@@ -19,10 +19,7 @@
 #include <string>
 #include <set>
 
-
-
-
-
+/*
 
 #if (ELISE_windows)
 	#ifdef INT
@@ -32,6 +29,7 @@
 	#include "winbase.h"
 	#include "direct.h"
 #endif
+*/
 
 #include "XML_GEN/all.h"
 #include "XML_GEN/SuperposImage.h"
@@ -60,7 +58,7 @@
 #include "algo_geom/Shewchuk.h"
 
 #include "api/vecto.h"
-#include "api/cox_roy.h"
+//#include "api/cox_roy.h"
 #include "api/el_regex.h"
 
 #include "ext_stl/fifo.h"

@@ -23,8 +23,6 @@
    $Date: 2010/11/11 12:43:11 $
  */
 
-//#include "StdAfx.h"
-
 #define VERSION "9.05"
 
 #ifndef _GNU_SOURCE
