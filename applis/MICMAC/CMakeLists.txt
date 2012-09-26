@@ -1,6 +1,7 @@
-SOURCE_GROUP(Param FILES ../../CodeGenere/File2String/Str_ParamMICMAC.cpp)
+SOURCE_GROUP(Param FILES 
+	../../CodeGenere/File2String/Str_ParamMICMAC.cpp)
 
-set(MicMac_Src_Files
+add_executable(MICMAC
 	../../CodeGenere/File2String/Str_ParamMICMAC.cpp
 	cAppliMICMAC_CorrelPonctuelle.cpp
 	Jp2ImageLoader.cpp
@@ -38,10 +39,6 @@ set(MicMac_Src_Files
 	uti_MICMAC.cpp
 	OrthoLocAnam.cpp
 )
-
-#enable_precompiled_headers(StdAfx.h MicMac_Src_Files)
-
-add_executable(MICMAC ${MicMac_Src_Files})
 
 target_link_libraries(MICMAC elise ${X11_LIBRARIES} ${KAKADU_LIBRARIES}  ${TICPP_LIBRARIES} ${Boost_LIBRARIES})
 
