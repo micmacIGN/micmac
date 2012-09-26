@@ -45,8 +45,9 @@ Header-MicMac-eLiSe-25/06/2007*/
      - associer a un fctr, un cSetEqFormelles
 */
 
-#include "StdAfx.h"
-
+#include "general/all.h"
+#include "private/all.h"
+#include <algorithm>
 
 
 
@@ -170,7 +171,7 @@ cEqHomogFormelle::cEq::cEq(Fonc_Num F,cEqHomogFormelle & anEQF,bool isX,bool Cod
   {
        cElCompileFN::DoEverything
        (
-          "src/GC_photogram/",
+          std::string("src")+ELISE_CAR_DIR+"GC_photogram"+ELISE_CAR_DIR,
           mName,
           F,
           anEQF.mLInterv

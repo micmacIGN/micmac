@@ -38,8 +38,10 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
 
+#include "XML_GEN/all.h"
 
 using namespace NS_SuperposeImage;
 
@@ -138,7 +140,7 @@ void cInterfSurfAn_Formelle::PostInitEqRat(bool Code2Gen)
     {
        cElCompileFN::DoEverything
        (
-           "CodeGenere/photogram/",  
+           std::string("CodeGenere")+ELISE_CAR_DIR+"photogram"+ELISE_CAR_DIR,
            mNameEqRat,  
            EqRat(),  
            mLIntervEqRat

@@ -13,7 +13,13 @@
  * to AMD.
  */
 
-#include "StdAfx.h"
+#include "amd.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+
+#include "general/all.h"
+#include "private/all.h"
 
 
 cAMD_Interf::cAMD_Interf(int aN) :

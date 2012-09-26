@@ -39,7 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
 
 void Data_Elise_PS_Disp::line(Pt2dr p1,Pt2dr p2)
 {

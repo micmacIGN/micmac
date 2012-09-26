@@ -38,7 +38,10 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
-#include "StdAfx.h"
+
+#include "general/all.h"
+#include "private/all.h"
+
 #include "algo_geom/delaunay_mediatrice.h"
 #include "graphes/graphe.h"
 #include "graphes/graphe_implem.h"
@@ -46,7 +49,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "algo_geom/qdt_implem.h"
 #include "graphes/algo_planarite.h"
 #include "graphes/algo_pcc.h"
-
 
 
 

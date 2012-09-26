@@ -13,7 +13,7 @@
  * for details.  If the Info array is not present, nothing is printed.
  */
 
-#include "StdAfx.h"
+#include "amd_internal.h"
 
 #define PRI(format,x) { if (x >= 0) { PRINTF ((format, x)) ; }}
 

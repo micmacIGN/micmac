@@ -37,7 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "StdAfx.h"
+#include "general/all.h"
 
 #if (ELISE_VW_W95NT_API)
 /*

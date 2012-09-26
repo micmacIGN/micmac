@@ -37,8 +37,10 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "StdAfx.h"
-
+#include "general/all.h"
+#include "private/all.h"
+                                
+#include "ext_stl/fifo.h"
 
 /*
      ELISE'S INTERFACE to NUMERICAL RECIPES.

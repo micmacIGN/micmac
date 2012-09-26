@@ -95,12 +95,7 @@ class ElGramArgMain  // classe contenant la "grammaire" rudimenataire
 
 template <class Type> inline std::istream &  ElStdRead (std::istream &is,Type & obj,const ElGramArgMain &)
 {
-#if (ELISE_windows)
-	//ELISE_ASSERT(false,"std::istream &  ElStdRead");
 	return is >> obj;
-#else
-	return is >> obj;
-#endif
 }
 
 extern bool Str2Bool(bool & aRes,const std::string & aStr);
@@ -224,9 +219,7 @@ template <class Type> class ElArgMain : public GenElArgMain
 		{
                         AllAddrEAM.insert( (void *) _adr);
 			_is_init = true;
-
-			const char * chaine = s.c_str();
-			std::STD_INPUT_STRING_STREAM Is(chaine);
+			std::STD_INPUT_STRING_STREAM Is(s.c_str());
 			// Is >> *_adr;
 			::ElStdRead(Is,*_adr,Gram);
 		}

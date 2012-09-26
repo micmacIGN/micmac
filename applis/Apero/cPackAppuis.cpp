@@ -440,7 +440,7 @@ Pt3dr cTypeEnglob_Centre::CreateFromXML
    Pt3dr aRes=  StdGetObjFromFile<Pt3dr>
                      (
                           aNameXML,
-                          "include/XML_GEN/ParamChantierPhotogram.xml",
+                          (std::string)"include"+ELISE_CAR_DIR+"XML_GEN"+ELISE_CAR_DIR+"ParamChantierPhotogram.xml",
                           anArg.Tag().Val(),
                           "Pt3dr"
                      );
