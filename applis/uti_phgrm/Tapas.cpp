@@ -1,4 +1,4 @@
-/*Header-MicMac-eLiSe-25/06/2007
+ /*Header-MicMac-eLiSe-25/06/2007
 
     MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
     eLiSe  : ELements of an Image Software Environnement
@@ -248,8 +248,8 @@ int main(int argc,char ** argv)
 
 
 
-   std::string aCom =     MMDir() + std::string("bin/Apero ")
-                       +  MMDir() + std::string("include/XML_MicMac/Apero-Glob.xml ")
+   std::string aCom =     MMDir() + std::string("bin")+ELISE_CAR_DIR+"Apero "
+                       +  MMDir() + std::string("include")+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+"Apero-Glob.xml "
                        + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
                        + std::string(" ") + QUOTE(std::string("+PatternAllIm=") + aPat) + std::string(" ")
                        //+ std::string(" +PatternAllIm=") + aPat + std::string(" ")

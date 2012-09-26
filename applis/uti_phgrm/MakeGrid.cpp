@@ -74,8 +74,11 @@ int main(int argc,char ** argv)
     SplitDirAndFile(aDir,aPat,aFullDir);
 
 
-
-    std::string aCom =     MMDir() + std::string("bin/Apero ")
+#ifdef ELISE_windows
+    std::string aCom =     MMDir() + std::string("bin\\Apero ")
+#else
+	std::string aCom =     MMDir() + std::string("bin/Apero ")
+#endif
                        +  MMDir() + std::string("include/XML_MicMac/AperoGrid.xml ")
                        + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
                        + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")

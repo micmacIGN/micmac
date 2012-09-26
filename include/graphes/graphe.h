@@ -44,6 +44,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "private/all.h"
 #include "ext_stl/fifo.h"
 
+
+
 template <class T> class ElTabDyn;
 template <class AttrSom,class AttrArc> class ElGraphe;
 template <class AttrSom,class AttrArc> class ElArc;

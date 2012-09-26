@@ -39,7 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
 
 
 template <class Type> class Linear_Gen_Comp : public Fonc_Num_Comp_TPL<Type>

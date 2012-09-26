@@ -1840,10 +1840,7 @@ void cAppliMICMAC::ExeProcessParallelisable
 #if (ELISE_unix || ELISE_MacOs || ELISE_Cygwin)
 		std::string CleanCommande=std::string("rm \"")+nomMakefile+std::string("\"");
 #else
-	//  GERALD
-	//std::string CleanCommande=std::string("rm.exe ")+nomMakefile;
-	std::string CleanCommande=std::string("del ")+nomMakefile;
-
+		std::string CleanCommande=std::string("rm.exe ")+nomMakefile;
 #endif
 		// system(CleanCommande.c_str());
         mCout << " ---End Process\n";

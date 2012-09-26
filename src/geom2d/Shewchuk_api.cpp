@@ -37,13 +37,14 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "StdAfx.h"
-#include "algo_geom/Shewchuk.h"
+#include "general/all.h"
+
 /*
     Interface  MPD sur qqs uti de Shewchuck
 
 */
 
+#include "algo_geom/Shewchuk.h"
 
 
 triangulateio::triangulateio()

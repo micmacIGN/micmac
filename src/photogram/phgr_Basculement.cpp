@@ -36,7 +36,8 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
 
 /*******************************************/
 /*                                         */
@@ -99,7 +100,7 @@ void cL2EqObsBascult::GenCode()
 
    cElCompileFN::DoEverything
    (
-        "CodeGenere/photogram/", 
+        std::string("CodeGenere")+ELISE_CAR_DIR+"photogram"+ELISE_CAR_DIR, 
         mNameType,  
         aV, 
         mLInterv 

@@ -37,7 +37,8 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
 
 
 // Histoire de tagger ts les cast qui degradent le contenu des images

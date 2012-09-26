@@ -86,8 +86,6 @@ Header-MicMac-eLiSe-25/06/2007*/
  
 /*=========================================================================================*/
 
-#include "StdAfx.h"
-#include "all_phot.h"
 
 /* Les deux Soleils programmes S1 et S2 donnent pratiquement les memes resultats 
    S2 semble legerment plus precis */
@@ -105,6 +103,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _REFRAC_ 	0.999689334064
 #define _RATM_  	1.000595218750
 
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+
+#include "all_phot.h"
 
 namespace ELISE_ORILIB {
 

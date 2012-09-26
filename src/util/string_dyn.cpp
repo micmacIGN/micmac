@@ -37,7 +37,18 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "StdAfx.h"
+
+
+
+#if(ELISE_unix)
+#include <cstrings>
+#endif
+
+#include "general/all.h"
+#include "private/all.h"
+
+#include <cstring>
+
 
 Tprov_char * dup_name_std(const char * name)
 {
@@ -227,33 +238,20 @@ void SplitDirAndFile
            const std::string & aStr
      )
 {
-#if ELISE_windows
- std::string::size_type aPos = aStr.rfind('/');
- if (aPos == std::string::npos)
-	aPos = aStr.rfind('\\');
- if (aPos == std::string::npos)
- {
-     aNameDir = ELISE_Current_DIR ;
-     aNameFile = aStr;
- }
- else
- {
-	aNameDir = aStr.substr(0,aPos+1);
-	aNameFile = aStr.substr(aPos+1,std::string::npos);
- }
-#else
- std::string::size_type aPos = aStr.rfind(ELISE_CAR_DIR);
- if (aPos == std::string::npos)
- {
-     aNameDir = ELISE_Current_DIR ;
-     aNameFile = aStr;
- }
- else
- {
-    aNameDir = aStr.substr(0,aPos+1);
-    aNameFile = aStr.substr(aPos+1,std::string::npos);
- }
- #endif
+	std::string::size_type aPos  = aStr.rfind('/');
+
+	if ( aPos==std::string::npos ) aPos = aStr.rfind('\\');
+
+	if (aPos == std::string::npos)
+	{
+		aNameDir = ELISE_Current_DIR ;
+		aNameFile = aStr;
+	}
+	else
+	{
+	   aNameDir = aStr.substr(0,aPos+1);
+	   aNameFile = aStr.substr(aPos+1,std::string::npos);
+	}
 }
 
 

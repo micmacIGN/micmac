@@ -9,9 +9,12 @@
 /* web: http://www.cise.ufl.edu/research/sparse/amd                          */
 /* ------------------------------------------------------------------------- */
 
-#include "StdAfx.h"
+#include <stdlib.h>
 
-
+#ifdef MATLAB_MEX_FILE
+#include "mex.h"
+#include "matrix.h"
+#endif
 
 #ifndef NULL
 #define NULL 0

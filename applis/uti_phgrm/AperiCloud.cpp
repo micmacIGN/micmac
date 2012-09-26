@@ -84,8 +84,13 @@ int main(int argc,char ** argv)
 
     SplitDirAndFile(aDir,aPat,aFullDir);
 
+#ifdef ELISE_windows
+    std::string aCom =   MMDir() + std::string("bin\\Apero ")
+                       + MMDir() + std::string("include\\XML_MicMac\\Apero-Cloud.xml ")
+#else
     std::string aCom =   MMDir() + std::string("bin/Apero ")
                        + MMDir() + std::string("include/XML_MicMac/Apero-Cloud.xml ")
+#endif
                        + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
                        + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
                        + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
