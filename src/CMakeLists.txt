@@ -77,14 +77,15 @@ enable_precompiled_headers(StdAfx.h Elise_Src_Files)
 
 set(Elise_Src_Files
 	${Elise_Src_Files}
-	${UTIL_DIR}/win_regex.cpp
-	${TIFF_DIR}/el_dcraw.cpp
+	${UTIL_DIR}/win_regex.c
+	${TIFF_DIR}/el_dcraw.c
 	${OPTIM_DIR}/opt_mat_creuse.cpp
 	${OPTIM_DIR}/opt_sysl2.cpp
 	${MULLGES_DIR}/mubasic.cpp
 	${MULLGES_DIR}/muflaguer.cpp
 	${MULLGES_DIR}/mufmueller.cpp
 	${MULLGES_DIR}/muvmblock.cpp
+	${ORIPHO_DIR}/cOriMntCarto.cpp
 )
 
 
