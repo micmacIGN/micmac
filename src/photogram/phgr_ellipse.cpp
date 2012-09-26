@@ -45,7 +45,8 @@ Header-MicMac-eLiSe-25/06/2007*/
      - associer a un fctr, un cSetEqFormelles
 */
 
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
 
 
 /************************************************************/
@@ -92,7 +93,7 @@ void cEqEllipseImage::GenCode()
 {
      cElCompileFN::DoEverything
      (
-         "CodeGenere/photogram/",
+         std::string("CodeGenere")+ELISE_CAR_DIR+"photogram"+ELISE_CAR_DIR,
          mNameType,
          fNumEqResidu,
          mLInterv

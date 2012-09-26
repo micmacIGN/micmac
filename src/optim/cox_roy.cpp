@@ -82,12 +82,11 @@ Modification : Marc PIERROT DESEILLIGNY
                marc.pierrot-deseilligny@ign.fr
                11/01/02
 **/
-#include "StdAfx.h"
+#include "general/all.h"
+
+
+
 #include "api/cox_roy.h"
-
-
-
-
 
 // Exemple minimaliste d'utilisation de l'interface
 

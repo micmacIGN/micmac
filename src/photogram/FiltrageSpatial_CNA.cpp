@@ -36,9 +36,15 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
-#include "algo_geom/delaunay_mediatrice.h"
+#include "general/all.h"
 
+
+#include "XML_GEN/all.h"
+#include "im_tpl/image.h"
+#include <algorithm>
+
+#include "algo_geom/delaunay_mediatrice.h"
+#include "algo_geom/rvois.h"
 
 namespace NS_ParamChantierPhotogram{
 

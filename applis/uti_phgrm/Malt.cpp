@@ -282,7 +282,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   bool UseMTAOri = mUseMasqTA;
 
   mUseMasqTA =    UseMTAOri
-               && ELISE_fp::exist_file(mDir+"/"+ mDirTA +"/TA_LeChantier_Masq.tif");
+               && ELISE_fp::exist_file(mDir+ELISE_CAR_DIR+ mDirTA +ELISE_CAR_DIR+"TA_LeChantier_Masq.tif");
 
   std::string FileMasqT = mUseMasqTA ? "MM-MasqTerrain.xml" : "EmptyXML.xml";
 
@@ -290,7 +290,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   {
     if (! EAMIsInit(&mDirMEC))
     {
-        mDirMEC = "MM-Malt-Img-" + StdPrefix(mImMaster) +"/";
+        mDirMEC = "MM-Malt-Img-" + StdPrefix(mImMaster) +ELISE_CAR_DIR;
     }
     FileMasqT = "MM-MasqImage.xml";
     mUseMasqTA = UseMTAOri && ELISE_fp::exist_file(StdPrefix(mImMaster)+"_Masq.tif");
@@ -332,10 +332,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
   std::string aNameGeom = (mImMaster=="") ? "eGeomMNTEuclid" : (mIsSperik? "eGeomMNTFaisceauPrChSpherik" :"eGeomMNTFaisceauIm1PrCh_Px1D");
 
-
-  mCom =     MMDir() +"bin/MICMAC "
-                      +  MMDir() +"include/XML_MicMac/" + aFileMM // MM-Malt.xml 
-
+  mCom =     MMDir() +"bin"+ELISE_CAR_DIR+"MICMAC "
+                      +  MMDir() +"include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+aFileMM // MM-Malt.xml
                       + anArgCommuns
 
 /*
@@ -448,10 +446,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   {
        std::string aFileOAM  = "MM-Malt-OrthoAnamOnly.xml";
 
-       mComOA =  MMDir() +"bin/MICMAC "
-               + MMDir() +"include/XML_MicMac/" + aFileOAM // MM-Malt.xml 
+	   mComOA =  MMDir() +"bin"+ELISE_CAR_DIR+"MICMAC "
+               + MMDir() +"include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+aFileOAM // MM-Malt.xml 
                + anArgCommuns;
-
 
        mComOA =        mComOA 
                     +  std::string(" +Repere=") + mRep

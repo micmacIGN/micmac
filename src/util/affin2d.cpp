@@ -40,7 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
   // Test de Greg
 
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
 
 /*
 void XXXXX(FILE * aF)

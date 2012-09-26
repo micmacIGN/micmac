@@ -39,8 +39,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
 
+#include "im_tpl/image.h"
 
 static const REAL Eps = 1e-7;
 

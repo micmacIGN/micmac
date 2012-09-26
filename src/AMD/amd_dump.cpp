@@ -14,8 +14,7 @@
  * debugging.  Not user-callable.
  */
 
-#include "StdAfx.h"
-
+#include "amd_internal.h"
 
 #ifndef NDEBUG
 

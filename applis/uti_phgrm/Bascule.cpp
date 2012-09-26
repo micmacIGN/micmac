@@ -241,9 +241,13 @@ int main(int argc,char ** argv)
        aStrFixS =  " +DistFS=" + ToString(DistFE);
    }
 
-
+#ifdef ELISE_windows
+    std::string aCom =   MMDir() + std::string("bin\\Apero ")
+                       + MMDir() + std::string("include/XML_MicMac/Apero-Bascule.xml ")
+#else
     std::string aCom =   MMDir() + std::string("bin/Apero ")
                        + MMDir() + std::string("include/XML_MicMac/Apero-Bascule.xml ")
+#endif
                        + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
                        + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
                        + std::string(" +AeroOut=") + aPrefOut + AeroOut

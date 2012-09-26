@@ -39,9 +39,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
 
-
+#include <cstring>
 
 ElTmplSpecNull INT   ElStdTypeScal<INT>::RtoT(REAL v) { return round_ni(v);}
 ElTmplSpecNull INT   ElStdTypeScal<INT>::RTtoT(REAL v) { return round_ni(v);}

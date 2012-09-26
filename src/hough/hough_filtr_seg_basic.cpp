@@ -37,12 +37,14 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "StdAfx.h"
-
-#include "hough_include.h"
+#include "general/all.h"
 
 #define NoTemplateOperatorVirgule
 
+
+#include "hough_include.h"
+#include "im_tpl/image.h"
+#include "ext_stl/fixed.h"
 
 
 

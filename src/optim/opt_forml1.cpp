@@ -39,8 +39,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-#include "StdAfx.h"
-
+#include "general/all.h"
+#include "private/all.h"
+#include <algorithm>
 
 
 bool Optim_L1FormLin::AbscD1::operator < (const AbscD1 & A2) const
