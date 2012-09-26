@@ -66,7 +66,7 @@ int main(int argc,char ** argv)
     SplitDirAndFile(aDir,aPat,aFullDir);
 
 
-    std::string aCom =     MMDir() + std::string("bin/Tapas RadialBasic ");
+    std::string aCom =     MMDir() + std::string("bin")+ELISE_CAR_DIR+"Tapas RadialBasic ";
     for (int aK=1 ; aK<argc ; aK++)
         aCom = aCom + " " + argv[aK];
                            

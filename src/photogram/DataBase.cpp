@@ -37,9 +37,11 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "StdAfx.h"
+#include "general/all.h"
 
-
+#include "XML_GEN/all.h"
+#include "im_tpl/image.h"
+#include <algorithm>
 
 
 

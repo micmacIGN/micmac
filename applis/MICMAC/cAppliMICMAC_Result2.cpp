@@ -186,13 +186,7 @@ class cParseDir_PurgeFile : public ElActionParseDir
              }
              if (isSel)
              {
-                 
-				 // GERALD
-				 #if (ELISE_windows)
-					std::string aCom= "rm " + aName;
-				#else
-					std::string aCom= "del " + aName;
-				#endif
+                 std::string aCom= "rm " + aName;
                  VoidSystem(aCom.c_str());
              }
          }
@@ -276,12 +270,6 @@ void cAppliMICMAC::MakeImagePx8Bits
       "Dim Px in cAppliMICMAC::MakeImagePx8Bits"
    );
 
-/*
-   if (! ELISE_fp::exist_file("bin/to8Bits"))
-   {
-       VoidSystem("make bin/to8Bits");
-   }
-*/
    std::string aStrOff = "";
    if (anOffset.IsInit())
       aStrOff = std::string(" Offset=") + ToString(anOffset.Val());
@@ -468,26 +456,15 @@ void cAppliMICMAC::MakeExportAsModeleDist
 
    aMod.SauvImgMR2A().SetVal(FullDirResult() + aModeleInit.SauvImgMR2A().Val());
 
-
-
    const std::string aNameTmp = "RtYjuiklpM76e4.xml";
-   std::string aNameBin = MMDir() + "bin/ModeleRadial";
+   std::string aNameBin = MMDir() + "bin"+ELISE_CAR_DIR+"ModeleRadial";
    MakeFileXML(aMod,aNameTmp);
-    // std::cout << "WAIT in MakeExportAsModeleDist\n";
-    // std::cout <<  aMod.SauvImgMR2A().Val() << "\n";
-    // getchar();
    RequireBin(mNameExe,aNameBin);
 
    aNameBin = aNameBin + " "  +  aNameTmp;
    aNameBin = aNameBin + " Ch1="+ ChMpDCraw(PDV1())+" Ch2="+ ChMpDCraw(PDV2());
    ::System( aNameBin);
-
-   #if (ELISE_windows)
-		::System("del " +  aNameTmp);	
-	#else
-		::System("\\rm " +  aNameTmp);		
-	#endif
-   
+   ::System("\\rm " +  aNameTmp);
 }
 
 

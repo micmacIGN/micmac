@@ -34,7 +34,7 @@
  * AMD_OK_BUT_JUMBLED).
  */
 
-#include "StdAfx.h"
+#include "amd_internal.h"
 
 GLOBAL Int AMD_valid
 (

@@ -38,8 +38,14 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
+
+
 #include "algo_geom/qdt.h"
+#include "algo_geom/qdt_implem.h"
+
+#include <cstring>
 
 
 class 	cTypeP3toP2

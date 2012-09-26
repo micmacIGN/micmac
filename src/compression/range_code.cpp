@@ -38,8 +38,10 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #define NoOperatorVirgule
 
-#include "StdAfx.h"
-
+#include "general/all.h"
+#include "private/all.h"
+#include "ext_stl/fifo.h"
+#include <string>
 
 
 

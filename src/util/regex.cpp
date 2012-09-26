@@ -36,10 +36,10 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
+#include "general/all.h"
+#include <iostream>
 
-
-
+#include "api/el_regex.h"
 
 std::string RegExAdapt(const std::string & aNameExprIn)
 {

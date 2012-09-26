@@ -39,7 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
 
 
 
@@ -87,11 +88,11 @@ std::string NameInDicoGeom(const std::string & aDir,const std::string & aName,co
    if (ELISE_fp::exist_file(aFullRes) ) 
       return aFullRes;
 
-   aFullRes = MMDir() + "include/XML_User/DicoCalibGeom/" + aName;
+   aFullRes = MMDir() + "include"+ELISE_CAR_DIR+"XML_User"+ELISE_CAR_DIR+"DicoCalibGeom"+ELISE_CAR_DIR + aName;
    if (ELISE_fp::exist_file(aFullRes) ) 
       return aFullRes;
 
-   aFullRes = MMDir() + "include/XML_MicMac/DicoCalibGeom/" + aName;
+   aFullRes = MMDir() + "include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+"DicoCalibGeom"+ELISE_CAR_DIR + aName;
    if (ELISE_fp::exist_file(aFullRes) ) 
       return aFullRes;
 
@@ -1960,7 +1961,7 @@ L_Arg_Opt_Tiff  ArgOpTiffMDP(const std::string & aNF)
 
 Tiff_Im MMIcone(const std::string & aName)
 {
-    return Tiff_Im::BasicConvStd(MMDir()+"data/"+aName +".tif");
+    return Tiff_Im::BasicConvStd(MMDir()+"data"+ELISE_CAR_DIR+aName +".tif");
        
 }
 
@@ -2022,7 +2023,7 @@ Tiff_Im  Tiff_Im::StdConvGen(const ElSTDNS string & Name,int aNbChan,bool Bits16
 
 static std::string NameAdapt(const std::string  &aFullName, const std::string & aPost,bool toMkDir)
 {
-   static std::string aDirAdd = "Tmp-MM-Dir/";
+   static std::string aDirAdd = "Tmp-MM-Dir"+ELISE_CAR_DIR;
    std::string aDir,aNameOri;
    SplitDirAndFile(aDir,aNameOri,aFullName);
    if (toMkDir)
@@ -2172,7 +2173,7 @@ std::string NameFileStd
       std::string  aNameCoul = (aNbChanSpec==1) ? "G" : "C";
       std::string  aNameReech =  DoReech ? "R" : "B";
 
-       std::string aStr =    MMDir()+ "bin/MpDcraw "
+	   std::string aStr =    MMDir()+ "bin"+ELISE_CAR_DIR+"MpDcraw "
                            + aFullNameOri + " "
                            + std::string(" Add16B8B=0 ")
                            + std::string(" ConsCol=0 ") 
