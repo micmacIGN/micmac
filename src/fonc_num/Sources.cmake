@@ -14,10 +14,9 @@ set(Fonc_num_Src_Files
 	${FONC_NUM_DIR}/symb_fnum.cpp
 )
 
-SOURCE_GROUP(Amd FILES 
-	${Amd_Src_Files})
+SOURCE_GROUP(Fonc_num FILES ${Fonc_num_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}
-	${Amd_Src_Files}
+	${Fonc_num_Src_Files}
 )

@@ -8,7 +8,7 @@ set(VECTO_DIR "vectorize")
 set(UTIL_DIR "util")
 set(TIFF_DIR "tiff")
 set(SIMULPH_DIR "SimulPhgr")
-set(PSC_DIR "SimulPhgr")
+set(PSC_DIR "post_script")
 set(PHOTOGR_DIR "photogram")
 set(OPERATOR_DIR "operator")
 set(ORIPHO_DIR "ori_phot")
@@ -37,30 +37,26 @@ set(NEIGH_DIR "neighboor")
 set(OP_BUF_DIR "op_buf")
 set(OPTIM_DIR "optim")
 
+
+
 INCLUDE (${AMD_DIR}/Sources.cmake)
+
+set(Elise_Src_Files
+	${Elise_Src_Files}
+	../CodeGenere/File2String/Str_DefautChantierDescripteur.cpp
+	../CodeGenere/File2String/Str_ParamChantierPhotogram.cpp
+	../CodeGenere/File2String/Str_SuperposImage.cpp
+)
+
 INCLUDE (${HASSA_DIR}/Sources.cmake)
-INCLUDE (${XINTER_DIR}/Sources.cmake)
-INCLUDE (${VECTO_DIR}/Sources.cmake)
-INCLUDE (${UTIL_DIR}/Sources.cmake)
-INCLUDE (${TIFF_DIR}/Sources.cmake)
 INCLUDE (${SAN_DIR}/Sources.cmake)
 INCLUDE (${SIMULPH_DIR}/Sources.cmake)
-INCLUDE (${PSC_DIR}/Sources.cmake)
-INCLUDE (${PHOTOGR_DIR}/Sources.cmake)
-INCLUDE (${OPERATOR_DIR}/Sources.cmake)
-INCLUDE (${ORIPHO_DIR}/Sources.cmake)
-INCLUDE (${OUTPUT_DIR}/Sources.cmake)
 INCLUDE (${XMLGEN_DIR}/Sources.cmake)
-INCLUDE (${RECIPES_DIR}/Sources.cmake)
-INCLUDE (${RAS_DIR}/Sources.cmake)
-INCLUDE (${RADIOM_DIR}/Sources.cmake)
-INCLUDE (${PLOTTER_DIR}/Sources.cmake)
-INCLUDE (${TOP_DIR}/Sources.cmake)
 INCLUDE (${ALOG_SPE_DIR}/Sources.cmake)
 INCLUDE (${API_DIR}/Sources.cmake)
 INCLUDE (${BITM_DIR}/Sources.cmake)
-INCLUDE (${CORREL_DIR}/Sources.cmake)
 INCLUDE (${COMPRE_DIR}/Sources.cmake)
+INCLUDE (${CORREL_DIR}/Sources.cmake)
 INCLUDE (${FILE_IMAGE_DIR}/Sources.cmake)
 INCLUDE (${FLUX_PTS_DIR}/Sources.cmake)
 INCLUDE (${FONC_NUM_DIR}/Sources.cmake)
@@ -72,6 +68,21 @@ INCLUDE (${MORPHO_DIR}/Sources.cmake)
 #INCLUDE (${MULLGES_DIR}/Sources.cmake)
 INCLUDE (${NEIGH_DIR}/Sources.cmake)
 INCLUDE (${OP_BUF_DIR}/Sources.cmake)
+INCLUDE (${OPERATOR_DIR}/Sources.cmake)
+INCLUDE (${OPTIM_DIR}/Sources.cmake)
+INCLUDE (${ORIPHO_DIR}/Sources.cmake)
+INCLUDE (${OUTPUT_DIR}/Sources.cmake)
+INCLUDE (${PHOTOGR_DIR}/Sources.cmake)
+INCLUDE (${PLOTTER_DIR}/Sources.cmake)
+INCLUDE (${PSC_DIR}/Sources.cmake)
+INCLUDE (${RADIOM_DIR}/Sources.cmake)
+INCLUDE (${RAS_DIR}/Sources.cmake)
+INCLUDE (${RECIPES_DIR}/Sources.cmake)
+INCLUDE (${TIFF_DIR}/Sources.cmake)
+INCLUDE (${TOP_DIR}/Sources.cmake)
+INCLUDE (${UTIL_DIR}/Sources.cmake)
+INCLUDE (${VECTO_DIR}/Sources.cmake)
+INCLUDE (${XINTER_DIR}/Sources.cmake)
 
 enable_precompiled_headers(StdAfx.h Elise_Src_Files)
 
@@ -88,6 +99,9 @@ set(Elise_Src_Files
 	${ORIPHO_DIR}/cOriMntCarto.cpp
 )
 
+#foreach(source_file ${Elise_Src_Files} )
+	#message(${source_file})
+#endforeach(source_file)
 
 add_library( elise ${Elise_Src_Files})
 

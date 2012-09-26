@@ -5,8 +5,7 @@ set(Recipes_Src_Files
 	${RECIPES_DIR}/resparse.cpp
 )
 
-SOURCE_GROUP(Recipes FILES 
-	${Recipes_Src_Files})
+SOURCE_GROUP(Recipes FILES ${Recipes_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

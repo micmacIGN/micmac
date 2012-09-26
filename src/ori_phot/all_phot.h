@@ -37,6 +37,8 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#pragma once
+
 #include "general/all.h"
 #include "private/all.h"
 

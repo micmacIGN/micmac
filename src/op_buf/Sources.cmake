@@ -17,8 +17,7 @@ set(Op_buf_Src_Files
 	${OP_BUF_DIR}/users_opb.cpp
 )
 
-SOURCE_GROUP(Op_buf FILES 
-	${Op_buf_Src_Files})
+SOURCE_GROUP(Op_buf FILES ${Op_buf_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

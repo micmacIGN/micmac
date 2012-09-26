@@ -1,6 +1,6 @@
 set(OriPhoto_Src_Files
 	${ORIPHO_DIR}/astro.cpp
-	${ORIPHO_DIR}/cOriMntCarto.cpp
+	#${ORIPHO_DIR}/cOriMntCarto.cpp
 	${ORIPHO_DIR}/elise_fonc.cpp
 	${ORIPHO_DIR}/elise_interface.cpp
 	${ORIPHO_DIR}/filmdist.cpp
@@ -10,8 +10,7 @@ set(OriPhoto_Src_Files
 	${ORIPHO_DIR}/orisol.cpp
 )
 
-SOURCE_GROUP(OriPhoto FILES 
-	${OriPhoto_Src_Files})
+SOURCE_GROUP(OriPhoto FILES ${OriPhoto_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

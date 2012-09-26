@@ -5,8 +5,7 @@ set(Output_Src_Files
 	${OUTPUT_DIR}/transform_intern.cpp
 )
 
-SOURCE_GROUP(Output FILES 
-	${Output_Src_Files})
+SOURCE_GROUP(Output FILES ${Output_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

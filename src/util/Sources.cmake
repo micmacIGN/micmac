@@ -26,11 +26,10 @@ set(Util_Src_Files
 	${UTIL_DIR}/wildmatch.cpp
 	${UTIL_DIR}/xml.cpp
 	${UTIL_DIR}/xml2cpp.cpp
-	#${UTIL_DIR}/win_regex.cpp
+	#${UTIL_DIR}/win_regex.c
 )
 
-SOURCE_GROUP(Util FILES 
-	${Util_Src_Files})
+SOURCE_GROUP(Util FILES ${Util_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

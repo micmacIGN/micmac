@@ -117,6 +117,8 @@ qui devrait pouvoir faire office de documentation minimale sur l'utilisation de 
 
 **/
 
+#pragma once
+
 class cInterfaceCoxRoyAlgo
 {
       public :
