@@ -80,7 +80,7 @@ IF(${WITH_MATIS_ORI})
 	ENDIF()
 ENDIF()
 
-
+# Recherche de X11 pour Linux et MacOS
 FIND_PACKAGE(X11)
 IF (X11_FOUND)
 	MESSAGE("X11 Found : ${X11_INCLUDE_DIRS} | ${X11_LIBRARIES} | ${X11_LIBRARY_DIRS}")
@@ -88,6 +88,7 @@ ELSE()
 	MESSAGE("X11 Not Found : pas de SaisieMasq")
 ENDIF()
 
+# Ajout de preprocesseur
 IF (MSVC)
 	add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /nologo" )
 ENDIF()
