@@ -78,7 +78,7 @@ IF (X11_FOUND)
         )
 
 	add_executable(MICMACSaisieLiaisons MICMAC/SaisieLiaisons.cpp
-		CodeGenere/File2String/Str_ParamMICMAC.cpp
+	../CodeGenere/File2String/Str_ParamMICMAC.cpp
         MICMAC/cAppliMICMAC_CorrelPonctuelle.cpp
         MICMAC/Jp2ImageLoader.cpp
         MICMAC/PartiesCachees.cpp

@@ -37,7 +37,7 @@
 #include "api/vecto.h"
 
 #if(ELISE_unix)
-	#include <cstrings>
+	#include <cstring>
 #endif
 
 #ifdef MATLAB_MEX_FILE
@@ -46,10 +46,10 @@
 #endif
 
 
-#include "general\hassan_arrangt.h"
-#include "general\optim.h"
-#include "general\abstract_types.h"
-#include "graphes\graphe.h"
+#include "general/hassan_arrangt.h"
+#include "general/optim.h"
+#include "general/abstract_types.h"
+#include "graphes/graphe.h"
 
 #include "algo_geom/qdt.h"
 #include "algo_geom/qdt_implem.h"
