@@ -6,11 +6,10 @@ set(Tiff_Src_Files
 	${TIFF_DIR}/tiff_nc_tiles.cpp
 	${TIFF_DIR}/tiff_pckbit_un_load.cpp
 	${TIFF_DIR}/tiff_tags.cpp
-	#${TIFF_DIR}/el_dcraw.cpp
+	#${TIFF_DIR}/el_dcraw.c
 )
 
-SOURCE_GROUP(Tiff FILES 
-	${Tiff_Src_Files})
+SOURCE_GROUP(Tiff FILES ${Tiff_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

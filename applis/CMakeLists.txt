@@ -1,5 +1,3 @@
-add_definitions(-DNO_JPEG -DNO_LCMS)
-
 ADD_SUBDIRECTORY(MICMAC)
 
 add_executable(MpDcraw 

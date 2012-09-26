@@ -8,8 +8,7 @@ set(PostScript_Src_Files
 	${PSC_DIR}/wind.cpp
 )
 
-SOURCE_GROUP(PostScript FILES 
-	${PostScript_Src_Files})
+SOURCE_GROUP(PostScript FILES ${PostScript_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

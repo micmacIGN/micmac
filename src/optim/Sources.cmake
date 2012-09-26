@@ -13,8 +13,7 @@ set(Optim_Src_Files
 	${OPTIM_DIR}/opt_syssuresolu.cpp
 )
 
-SOURCE_GROUP(Optim FILES 
-	${Optim_Src_Files})
+SOURCE_GROUP(Optim FILES ${Optim_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

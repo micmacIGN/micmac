@@ -8,8 +8,7 @@ set(File_image_Src_Files
 	${FILE_IMAGE_DIR}/tga.cpp
 )
 
-SOURCE_GROUP(File_image FILES 
-	${File_image_Src_Files})
+SOURCE_GROUP(File_image FILES ${File_image_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

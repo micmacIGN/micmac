@@ -3,8 +3,7 @@ set(Plotter_Src_Files
 	${PLOTTER_DIR}/gen_plot1.cpp
 )
 
-SOURCE_GROUP(Plotter FILES 
-	${Plotter_Src_Files})
+SOURCE_GROUP(Plotter FILES ${Plotter_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}
