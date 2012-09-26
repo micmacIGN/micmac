@@ -1,4 +1,5 @@
 syntax: glob
+bin/
 bin/src/elise.vcxproj.user
 bin/CMakeCache.txt
 bin/CMakeFiles/CMakeOutput.log
