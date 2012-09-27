@@ -37,11 +37,10 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/all.h"
+#include "StdAfx.h"
 
 
 
-#include "all_phot.h"
 
 #ifndef _abs
 #define _abs( a ) ( (a) < 0 ? -(a) : (a) )

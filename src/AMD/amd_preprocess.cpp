@@ -17,7 +17,7 @@
  * This input condition is NOT checked.  This routine is not user-callable.
  */
 
-#include "amd_internal.h"
+#include "StdAfx.h"
 
 /* ========================================================================= */
 /* === AMD_preprocess ====================================================== */

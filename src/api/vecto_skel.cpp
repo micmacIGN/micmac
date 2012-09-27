@@ -39,9 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define NoOperatorVirgule
 
-#include "general/all.h"
-#include "private/all.h"
-#include "api/vecto.h"
+#include "StdAfx.h"
+
 
 // template <class T> ElSTDNS complex<T> Pt2d2complex(Pt2d<T> p) {return ElSTDNS complex<T>(p.x,p.y);}
 ElSTDNS complex<INT> Pt2d2complex(Pt2d<INT> p) {return ElSTDNS complex<INT>(p.x,p.y);}

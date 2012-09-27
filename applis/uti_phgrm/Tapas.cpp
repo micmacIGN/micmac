@@ -1,4 +1,4 @@
- /*Header-MicMac-eLiSe-25/06/2007
+/*Header-MicMac-eLiSe-25/06/2007
 
     MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
     eLiSe  : ELements of an Image Software Environnement

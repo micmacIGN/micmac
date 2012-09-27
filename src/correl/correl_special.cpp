@@ -37,10 +37,9 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 
-#include <cstring>
+
 
 static void VerifIm(Pt2di aSz,   Pt2di aP0, Pt2di aP1, INT aNb)
 {

@@ -36,10 +36,10 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "general/all.h"
-#include "private/all.h"
-#include "im_special/hough.h"     
+#include "StdAfx.h"
+#include "im_special/hough.h"
 #include "api/vecto.h"
+
 
 
 /*

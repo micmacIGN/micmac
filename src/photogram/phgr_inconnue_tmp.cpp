@@ -45,11 +45,10 @@ Header-MicMac-eLiSe-25/06/2007*/
      - associer a un fctr, un cSetEqFormelles
 */
 
-#include "general/all.h"
-#include "private/all.h"
-#include "ext_stl/numeric.h"
-#include <map>
+#include "StdAfx.h"
 #include <iterator>
+#include "ext_stl/numeric.h"
+
 
 
 bool UseProjForFaisParal = true;

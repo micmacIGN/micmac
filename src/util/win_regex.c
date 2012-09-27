@@ -20,6 +20,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* AIX requires this to be the first thing in the file. */
+
 #if defined (_AIX) && !defined (REGEX_MALLOC)
   #pragma alloca
 #endif

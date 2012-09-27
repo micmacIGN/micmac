@@ -37,18 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-
-
-
-#if(ELISE_unix)
-#include <cstrings>
-#endif
-
-#include "general/all.h"
-#include "private/all.h"
-
-#include <cstring>
-
+#include "StdAfx.h"
 
 Tprov_char * dup_name_std(const char * name)
 {

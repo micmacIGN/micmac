@@ -45,8 +45,7 @@ Header-MicMac-eLiSe-25/06/2007*/
      - associer a un fctr, un cSetEqFormelles
 */
 
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 
 
 #define UseTjsDist false

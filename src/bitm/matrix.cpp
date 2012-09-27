@@ -40,8 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define BUG 0
 
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 
 static int cos(const int &) 
 {

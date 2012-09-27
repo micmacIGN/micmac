@@ -74,11 +74,7 @@ Copyright: (C) 1997-1999, Advanced Interfaces Group,
                                 Includes
 ===========================================================================
 */
-#include "general/all.h"
-
-#include <cstdlib>
-#include <cfloat>
-#include <cmath>
+#include "StdAfx.h"
 #include "gpc.h"
 
 

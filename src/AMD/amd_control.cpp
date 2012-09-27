@@ -14,7 +14,8 @@
  * printed instead.
  */
 
-#include "amd_internal.h"
+#include "StdAfx.h"
+
 
 GLOBAL void AMD_control
 (

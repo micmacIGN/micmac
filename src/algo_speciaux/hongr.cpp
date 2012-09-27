@@ -36,11 +36,10 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include <sys/types.h>
-#include <cstdio>
-#include <cstdlib>
 
-#include "general/all.h"
+
+#include "StdAfx.h"
+
 
 void init_var();
 void PIREMATR()  ;

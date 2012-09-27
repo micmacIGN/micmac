@@ -51,6 +51,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 *                                                                      *
 ***********************************************************************/
 
+
 #include "basis.h"  /*  for  NULL, freopen, stdout, fprintf, stderr,  */
                     /*       stdin, SQRT, EXP, sqrt                   */
                     /*       MACH_EPS, POSMAX, epsquad, maxroot, pi,  */

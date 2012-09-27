@@ -39,8 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 
 
 void OperBinMixte::t0_eg_t1_op_t2(REAL16 * t0,const REAL16 * t1,const REAL16 *t2,INT nb) const 

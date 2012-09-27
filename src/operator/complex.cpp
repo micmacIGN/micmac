@@ -39,8 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 
 
 Fonc_Num cast_complex(Fonc_Num f)

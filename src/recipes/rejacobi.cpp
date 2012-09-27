@@ -37,12 +37,9 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
                                 
-#include <algorithm>
 
-#include "ext_stl/fifo.h"
 
 
 /* Merci Numerical recipes (Press,Flannery,Teukolsky,Vetterling ...).
