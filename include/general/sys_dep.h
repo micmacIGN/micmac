@@ -90,24 +90,28 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #if ELISE_unix
 #define SYS_MV "mv"
+#define SYS_RM "rm"
 #define ELISE_CAR_DIR  '/' 
 #define ELISE_Current_DIR  "./"
 #endif
 
 #if ELISE_MacOs
 #define SYS_MV "mv"
+#define SYS_RM "rm"
 #define ELISE_CAR_DIR  '/' 
 #define ELISE_Current_DIR  "./"
 #endif
 
 #if ELISE_Cygwin
 #define SYS_MV "mv"
+#define SYS_RM "rm"
 #define ELISE_CAR_DIR  '/' 
 #define ELISE_Current_DIR  "./"
 #endif
 
 #if ELISE_windows
 #define SYS_MV "move"
+#define SYS_RM "del"
 #define ELISE_CAR_DIR  '\\' 
 #define ELISE_Current_DIR  ".\\"
 #include <float.h>
