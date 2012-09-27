@@ -50,7 +50,7 @@ associated documentation for non-commercial purposes is hereby granted,
 provided that the above copyright notice appears in all copies, derivative
 works or modified versions of the software and any portions thereof, and
 that both the copyright notice and this permission notice appear in the
-documentation.  NEC Research Institute Inc. shall be given a copy of any
+documentation..  NEC Research Institute Inc. shall be given a copy of any
 such derivative work or modified version of the software and NEC Research
 Institute Inc. and its affiliated companies (collectively referred to as
 NECI) shall be granted permission to use, copy, modify and distribute the
@@ -117,7 +117,6 @@ qui devrait pouvoir faire office de documentation minimale sur l'utilisation de 
 
 **/
 
-#pragma once
 
 class cInterfaceCoxRoyAlgo
 {

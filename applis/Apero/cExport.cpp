@@ -213,7 +213,7 @@ void cAppliApero::ExportSauvAutom()
    // anEP.KeyAssoc() = "NKS-Assoc-Im2Orient@" + aStrS;
    anEP.KeyAssoc() = "NKS-SauvAutom-Assoc-Im2Orient@" + aStrS;
    anEP.AddCalib().SetVal(true);
-   anEP.FileExtern().SetVal(std::string("NKS-Assoc-FromFocMm@Ori"+ aStrS+"/AutoCal@.xml"));
+   anEP.FileExtern().SetVal(std::string("NKS-Assoc-FromFocMm@Ori"+ aStrS+ELISE_CAR_DIR+"AutoCal@.xml"));
    anEP.FileExternIsKey().SetVal(true);
    anEP.CalcKeyFromCalib().SetVal(false);
    anEP.RelativeNameFE().SetVal(true);

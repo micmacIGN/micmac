@@ -48,8 +48,6 @@
     AMD will be exceedingly slow when running in debug mode.  The next three
     lines ensure that debugging is turned off.
 */
-
-
 #ifndef NDEBUG
 #define NDEBUG
 #endif

@@ -37,12 +37,12 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "StdAfx.h"
-#include "all_phot.h"
+#include "general/all.h"
 
 #define EL_ORILIB_NSP ELISE_ORILIB::
 
 
+#include "all_phot.h"
 
 //#ifndef __USE_ORILIB_ELISE_
 //#else

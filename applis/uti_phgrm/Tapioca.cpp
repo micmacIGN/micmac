@@ -36,7 +36,9 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
+#include <algorithm>
 
 
 // bin/Tapioca MulScale "../micmac_data/ExempleDoc/Boudha/IMG_[0-9]{4}.tif" 300 -1 ExpTxt=1
@@ -106,42 +108,39 @@ std::string NKS()
 
 void DoMkT()
 {
-	if (ByP)
-	{
-		
-		
-//GERALD
-#if (ELISE_windows)
-		//std::string aSMkSr = std::string("nmake all -f ") + MkFT + std::string(" -NOLOGO");// +std::string(" -j")+ToString(ByP);
-		std::string aSMkSr = std::string("jom all -f ") + MkFT + std::string(" -NOLOGO") + std::string(" -j")+ToString(ByP);
-#else
-		std::string aSMkSr = std::string("make all -f ") + MkFT +std::string(" -j")+ToString(ByP);
-#endif
-
-		int result = System(aSMkSr,true);
-		result = 0;
-
-	}
+    if (ByP)
+    {
+		// !!DEL!!
+			std::string aSMkSr = std::string("make all -f ") + MkFT;
+			//std::string aSMkSr = std::string("make all -f ") + MkFT +std::string(" -j")+ToString(ByP);
+        System(aSMkSr,true);
+    }
 }
+
+
+
+
 
 
 void DoDevelopp(int aSz1,int aSz2)
 {
-    std::list<std::string>  aList = anICNM->StdGetListOfFile(aPatOri,1);
+    std::list<std::string> aList = anICNM->StdGetListOfFile(aPatOri,1);
+	
     cEl_GPAO  aGPAO;
-
+	
     for (std::list<std::string>::iterator iT= aList.begin() ; iT!=aList.end() ; iT++)
     {
         std::string  aNOri = anICNM->Dir()+*iT;
         std::string  aNTif = NameFileStd(aNOri,1,false,true,false);
 
         std::string aCom = MMBin() + "PastDevlop " + aNOri + " Sz1=" +ToString(aSz1) + " Sz2="+ToString(aSz2);
+		
         aGPAO.GetOrCreate(aNTif,aCom);
         aGPAO.TaskOfName("all").AddDep(aNTif);
     }
+	
     aGPAO.GenerateMakeFile(MkFT);
-
-
+	
     DoMkT();
 }
 
@@ -222,22 +221,22 @@ int All(int argc,char ** argv)
                     << EAM(ByP,"ByP",true)	
                     << EAM(aPat2,"Pat2",true)	
     );
+	
     StdAdapt2Crochet(aPat2);
     DoDevelopp(-1,aFullRes);
-
+	
     std::string aSFR =  BinPastis
-                     +  aDir + std::string(" ") 
+                     +  aDir + std::string(" ")
                      +  RelAllIm()     //   +  QUOTE(std::string("NKS-Rel-AllCpleOfPattern@")+ aPat) + std::string(" ")
                      +  ToString(aFullRes) + std::string(" ")
                      +  StrMkT()
                      +  std::string("NbMinPtsExp=2 ")
                      +  NKS();
-
-
-    std::cout << aSFR << "\n";
+	
     System(aSFR,true);
+	
     DoMkT();
-
+	
     return 0;
 }
 
@@ -320,7 +319,7 @@ int File(int argc,char ** argv)
 int main(int argc,char ** argv)
 {
    MMD_InitArgcArgv(argc,argv);
-
+   
 /* =======  MODIF GREG, COMPREND PAS ?
 	MMD_InitArgcArgv(argc,argv);
 	aDir  = MMDir();
@@ -338,13 +337,13 @@ int main(int argc,char ** argv)
        argv[1] = argv[0];
        argv++; argc--;
     }
-
+	
     if (argc>=2)
     {
        aFullDir = argv[1];
        SplitDirAndFile(aDir,aPat,aFullDir);
     }
-
+	
     aPatOri = aPat;
 
      StdAdapt2Crochet(aPat);
@@ -361,7 +360,6 @@ int main(int argc,char ** argv)
 
     cTplValGesInit<std::string>  aTplFCND;
     anICNM = cInterfChantierNameManipulateur::StdAlloc(argc,argv,aDir,aTplFCND);
-
 
     if (TheType == Type[0])
     {

@@ -1143,7 +1143,6 @@ void cFilePx::ForceGenFileMA()
 
 void cFilePx::SauvResulPx(Fonc_Num  aFonc,Box2di aBoxOut,Box2di aBoxIn) 
 { 
-/// std::cout << "ALlllllllllll\n";
     if ((! mGenFile) && (!mGenFileMA))
        return;
     ELISE_COPY
@@ -1152,8 +1151,6 @@ void cFilePx::SauvResulPx(Fonc_Num  aFonc,Box2di aBoxOut,Box2di aBoxIn)
          trans(aFonc,-aBoxIn._p0),
          FileIm().out() 
     );
-/// std::cout << "uuuuuuuuuuuuuu\n";
-
 }
 
 void  cFilePx::SauvResulPxRel

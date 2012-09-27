@@ -36,9 +36,10 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
+#include "general/all.h"
 
-
+#include "XML_GEN/all.h"
+#include <algorithm>
 
 using namespace NS_SuperposeImage;
 

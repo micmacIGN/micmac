@@ -140,7 +140,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 *                                                                      *
 ***********************************************************************/
 
-
 #include "basis.h"     /*  for  size_t, NULL, malloc, free, calloc,   */
                        /*       boolean, FALSE, TRUE, REAL, mat4x4    */
 #include "vmblock.h"   /*  for  vmalloc, vmcomplete, vmfree, vminit,  */

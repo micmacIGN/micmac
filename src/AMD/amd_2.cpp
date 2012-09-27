@@ -14,8 +14,7 @@
  * AMD_postorder routine.
  */
 
-#include "StdAfx.h"
-
+#include "amd_internal.h"
 
 
 

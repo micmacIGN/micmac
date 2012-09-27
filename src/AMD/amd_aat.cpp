@@ -16,8 +16,7 @@
  * checked).
  */
 
-#include "StdAfx.h"
-
+#include "amd_internal.h"
 
 GLOBAL size_t AMD_aat	/* returns nz in A+A' */
 (

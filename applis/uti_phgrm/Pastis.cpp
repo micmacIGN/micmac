@@ -38,6 +38,13 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
+
+
+
+
+
+
+
 #include "general/all.h"
 #include "private/all.h"
 #include "XML_GEN/all.h"
@@ -238,10 +245,9 @@ std::string cAppliPastis::NameKey(const std::string & aFullName)
    std::string aDir,aName;
    SplitDirAndFile(aDir,aName,aFullName);
 
-   std::string ChantierFolder = DirChantier();
-   std::string File = ICNM()->Assoc1To2(mSiftImplem+"-Pastis-PtInt",aName,ToString(mSzPastis),true);
-
-   return ChantierFolder + File;
+   return 
+     DirChantier()
+   + ICNM()->Assoc1To2(mSiftImplem+"-Pastis-PtInt",aName,ToString(mSzPastis),true);
 }
 
 void cAppliPastis::GenerateKey(const std::string & aName,const std::string & aNameIm)
@@ -826,52 +832,28 @@ void cAppliPastis::Exec()
 
 void cAppliPastis::ExecSz(double aSzMaxApp,bool)
 {
-	// int aSzMaxApp = mSz;
-	if  (mModeBin== eModeAutopano)
-		aSzMaxApp= -1;
-
-	std::pair<cCompileCAPI,cCompileCAPI> aPair= ICNM()->APrioriAppar
-		(CurF1(),CurF2(),mKeyGeom1,mKeyGeom2,aSzMaxApp);
-	if (mModeBin==eModeLeBrisPP)
-	{
-
-		/*
-		bool WithSubDir = true;
-		if (WithSubDir)
-		MkDirSvp( DirChantier() + StdPrefix(CurF1()));
-		mNameAPM = DirChantier()
-		+ StdPrefix(CurF1()) 
-		+ (WithSubDir ? "/" : "-")
-		+ StdPrefix(CurF2()) 
-		+ ".result";
-
-		*/
-		std::string aDir,aN1,aN2;
-		SplitDirAndFile(aDir,aN1,NameKey(aPair.first.NameRectif()));
-		SplitDirAndFile(aDir,aN2,NameKey(aPair.second.NameRectif()));
-
-
-		//GERALD
-#if (ELISE_windows)
-		std::string PastisFolder = "Pastis\\LBPp-Match-";
-#else
-		std::string PastisFolder = "Pastis/LBPp-Match-";
-#endif
-
-
-		ELISE_fp::MkDirSvp(DirChantier() + PastisFolder + StdPrefix(aN1)+"/");
-		mNameAPM =    DirChantier()
-			+  ICNM()->Assoc1To2(mSiftImplem+"-Pastis-Hom-Txt",aN1,aN2,true);
-
-// std::cout << "mNameAPM " << mNameAPM << "\n";
+  if  (mModeBin== eModeAutopano)
+      aSzMaxApp= -1;
+  
+   std::pair<cCompileCAPI,cCompileCAPI> aPair= ICNM()->APrioriAppar
+                                               (CurF1(),CurF2(),mKeyGeom1,mKeyGeom2,aSzMaxApp);
+  if (mModeBin==eModeLeBrisPP)
+  {
+	  std::string aDir,aN1,aN2;
+      SplitDirAndFile(aDir,aN1,NameKey(aPair.first.NameRectif()));
+      SplitDirAndFile(aDir,aN2,NameKey(aPair.second.NameRectif()));
+	  
+      ELISE_fp::MkDirSvp(DirChantier() + "Pastis"+ELISE_CAR_DIR+"LBPp-Match-" + StdPrefix(aN1)+ELISE_CAR_DIR);
+	  
+      mNameAPM =    DirChantier()
+                 +  ICNM()->Assoc1To2(mSiftImplem+"-Pastis-Hom-Txt",aN1,aN2,true);
   }
   else if (mModeBin==eModeAutopano)
   {
       mNameAPM =   DirChantier() 
               + ICNM()->Assoc1To3(mSiftImplem+"-Pastis-Hom-Txt",CurF1(),CurF2(),ToString(mSzPastis),true);
   }
-
-
+  
    if (mNKS!="")
    {
       mNameHomXML =   DirChantier() + ICNM()->Assoc1To2(mNKS,CurF1(),CurF2(),true);
@@ -881,13 +863,14 @@ void cAppliPastis::ExecSz(double aSzMaxApp,bool)
        std::string aKAssoc =   mSsRes                                  ?
                                "Key-Assoc-SsRes-CpleIm2HomolPastisBin" :
                                "Key-Assoc-CpleIm2HomolPastisBin"       ;
-
+	  
       if (mExt!="") 
       {
          aKAssoc = "KeyStd-Assoc-CplIm2HomBin@" + mExt;
       }
-      mNameHomXML =   DirChantier() 
-                 + ICNM()->Assoc1To2(aKAssoc,CurF1(),CurF2(),true);
+      mNameHomXML = DirChantier() 
+					+ ICNM()->Assoc1To2(aKAssoc,CurF1(),CurF2(),true);
+
       if (mExpBin)
       {
          mNameHomXML = StdPrefix(mNameHomXML) + ".dat";
@@ -897,8 +880,7 @@ void cAppliPastis::ExecSz(double aSzMaxApp,bool)
          mNameHomXML = StdPrefix(mNameHomXML) + ".txt";
       }
    }
-
-
+   
    if (ModeExe()==eExeDoNothing)
    {
        std::cout << CurF1() << " " << CurF2() << "\n";
@@ -911,21 +893,13 @@ void cAppliPastis::ExecSz(double aSzMaxApp,bool)
        GenerateMatch(aPair.first.NameRectif(),aPair.second.NameRectif());
        GenerateXML(aPair);
    }
-
 }
 
 
 cAppliPastis::cAppliPastis(int argc,char ** argv) :
    cAppliBatch(argc,argv,4,2,"Pastis"),
    mBinDir           (MMBin()),
-
-   //GERALD
-   #if (ELISE_windows)
-		mBinDirAux        ("D:\\Micmac\\binaire-aux\\"),
-	#else
-		mBinDirAux        (MMDir()+"binaire-aux/"),		
-	#endif
-   
+   mBinDirAux        (MMDir()+"binaire-aux"+ELISE_CAR_DIR),
    mNbMaxMatch       (100),
    mKeyGeom1         ("DefKey"),
    mKeyGeom2         ("DefKey"),
@@ -1007,24 +981,7 @@ cAppliPastis::cAppliPastis(int argc,char ** argv) :
        mNbMinPtsExp = 20;
 
     mModeBin = Str2eModeBinSift(mSiftImplem);
-
-// std::cout << IsRelancedByThis() << "\n";
 }
-
-/*
-
-
-    mNameHomXML = mDir + std::string("Hom")
-		  + StdPrefix(mN1) + std::string("_")
-		  + StdPrefix(mN2) + std::string(".xml");
-
-    mNameAPM = mDir + std::string("AP-Match-")
-		  + StdPrefix(mN1) + std::string("_")
-		  + StdPrefix(mN2) + std::string("_")
-		  + ToString(mSz)  + std::string(".txt");
-
-}
-*/
 
 
 
@@ -1032,20 +989,18 @@ cAppliPastis::cAppliPastis(int argc,char ** argv) :
 
 
    //===========================================
+   
+#define S_ISDIR(v) ( (v)&(_S_IFDIR) )
 
 int main(int argc,char ** argv)
 {
     MMD_InitArgcArgv(argc,argv);
-
-    // system("make -f MakeMICMAC");
-
+		
     cAppliPastis aAP(argc,argv);
-
+	
     aAP.DoAll();
     aAP.Banniere();
-
-// std::cout << "AAAAAAAAAAAAAAa\n";
-
+	
     return 0;
 }
 

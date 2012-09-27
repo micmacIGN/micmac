@@ -37,10 +37,11 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#include <algorithm>
 
 
-
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
 
 
 void PtsOfSquare(ElFifo<Pt2dr> & pts,Pt2dr p0,Pt2dr p1)
