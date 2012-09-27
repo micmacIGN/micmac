@@ -40,10 +40,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define NoTemplateOperatorVirgule
 
 
-#include "general/all.h"
-#include "private/all.h"
-
+#include "StdAfx.h"
 #include <iterator>
+
+
 
 /*
 void f()

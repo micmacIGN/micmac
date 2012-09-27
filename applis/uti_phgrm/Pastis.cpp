@@ -989,15 +989,13 @@ cAppliPastis::cAppliPastis(int argc,char ** argv) :
 
 
    //===========================================
-   
-#define S_ISDIR(v) ( (v)&(_S_IFDIR) )
 
 int main(int argc,char ** argv)
 {
     MMD_InitArgcArgv(argc,argv);
-		
+
     cAppliPastis aAP(argc,argv);
-	
+
     aAP.DoAll();
     aAP.Banniere();
 	

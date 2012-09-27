@@ -39,10 +39,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-#include "general/all.h"
-#include "private/all.h"
-#include "ext_stl/fifo.h"
+#include "StdAfx.h"
 #include "ext_stl/pack_list.h"
+
 
 
 class Cont_Explore_Cycle

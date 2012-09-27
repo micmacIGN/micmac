@@ -38,9 +38,8 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
-#include "general/all.h"
-#include "private/all.h"          
-#include "im_tpl/max_loc.h"
+#include "StdAfx.h"          
+#include "hough_include.h"
 
 
 /*

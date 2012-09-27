@@ -41,11 +41,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define NoSimpleTemplateOperatorVirgule
 
 
-#include "general/all.h"
-#include "private/all.h"
-#include "im_tpl/image.h"
+#include "StdAfx.h"
 
-#include "XML_GEN/all.h"
 using namespace NS_ParamChantierPhotogram;
 
 bool BugFE = false;

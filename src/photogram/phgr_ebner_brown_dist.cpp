@@ -38,10 +38,9 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 
-#include "XML_GEN/all.h"
+
 using namespace NS_ParamChantierPhotogram;
 
 

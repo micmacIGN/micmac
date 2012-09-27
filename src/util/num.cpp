@@ -53,8 +53,7 @@ void f()
 */
 
 
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 
 /*
 template <> Pt2d<double>::Pt2d(const Pt2d<INT>& p) : x (p.x), y (p.y) {};

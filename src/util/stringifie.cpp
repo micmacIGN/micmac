@@ -38,9 +38,8 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
-#include "general/all.h"
-#include "private/all.h"
-#include <cstring>
+#include "StdAfx.h"
+
 
 /*******************************************************/
 /*                                                     */
@@ -349,10 +348,12 @@ cVirtStream *  cVirtStream::StdOpen(const std::string & aName)
 {
    std::string aNameSeul,aDir;
    SplitDirAndFile(aDir,aNameSeul,aName);
-   
+
     bool isFilePredef = (aDir== TheDirXmlGen);
     bool isFileSpec =  isFilePredef && (aNameSeul!="DefautChantierDescripteur.xml");
-	
+
+
+
     FILE *aFP = ElFopen(aName.c_str(),"rb");
     if (aFP!=0)
     {
@@ -366,7 +367,10 @@ cVirtStream *  cVirtStream::StdOpen(const std::string & aName)
     {
        return new cSTRVirtStream(aStr,aName,isFilePredef,isFileSpec);
     }
-	
+
+
+
+
    std::cout <<  "For required file " << aName << "\n";
    ELISE_ASSERT(false,"Cannot open");
 

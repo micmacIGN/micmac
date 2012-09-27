@@ -59,6 +59,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 *                                                                      *
 ***********************************************************************/
 
+
 #include "basis.h"      /* for   REAL, ZERO, FOUR, FABS, SQRT, TWO,   */
                         /*       MACH_EPS, copy_vector, SIGN          */
 #include "vmblock.h"    /* for   vminit, vmalloc, VEKTOR, vmcomplete, */

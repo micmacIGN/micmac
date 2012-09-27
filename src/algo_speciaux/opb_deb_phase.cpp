@@ -39,8 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 
 
 class Integ_grad_Opb : public Simple_OPBuf1 <INT,INT>

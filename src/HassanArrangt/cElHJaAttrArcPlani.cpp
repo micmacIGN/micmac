@@ -36,9 +36,11 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "general/all.h"
 
+#include "StdAfx.h"
 #include "cElHJa_all.h"
+
+
 
 cElHJaAttrArcPlani::cElHJaAttrArcPlani() :
     mCpt   (0),

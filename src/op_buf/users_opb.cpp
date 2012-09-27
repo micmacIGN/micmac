@@ -37,12 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-
-
-#include "general/all.h"
-#include "private/all.h"
-
-
+#include "StdAfx.h"
 
 INT adjust_nb_pack_y(INT nb_pack_y,INT nby_tot)
 {

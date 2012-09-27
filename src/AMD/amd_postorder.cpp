@@ -11,7 +11,7 @@
 
 /* Perform a postordering (via depth-first search) of an assembly tree. */
 
-#include "amd_internal.h"
+#include "StdAfx.h"
 
 GLOBAL void AMD_postorder
 (

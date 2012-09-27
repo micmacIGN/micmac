@@ -39,13 +39,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-#include "general/all.h"
+#include "StdAfx.h"
 
-// <JMV> Compilation Windows : Sleep()
 #if (ELISE_windows)
-#undef INT
-#include <windows.h> 
-#include "winbase.h"
+	#ifdef INT
+		#undef INT
+	#endif
+	#include "Windows.h"
+	#include "winbase.h"
+	#include "direct.h"
 #endif
 
 /*
