@@ -11,7 +11,7 @@
 
 /* Post-ordering of a supernodal elimination tree.  */
 
-#include "StdAfx.h"
+#include "amd_internal.h"
 
 GLOBAL Int AMD_post_tree
 (

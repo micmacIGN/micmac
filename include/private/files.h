@@ -37,8 +37,6 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-
-
 #ifndef _ELISE_PRIVATE_FILES_H
 #define _ELISE_PRIVATE_FILES_H
 

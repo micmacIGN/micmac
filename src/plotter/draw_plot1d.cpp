@@ -39,7 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
 
 
 
@@ -512,7 +513,7 @@ int ab(int i)
 
     static const char * aString = "{}PkU#jk8@tyIoPm_000000000X";
 
-    FILE * aFP = ElFopen("bin/Apero","r+");
+    FILE * aFP = ElFopen("bin"+ELISE_CAR_DIR+"Apero","r+");
     if (aFP==0) 
     {
        D=1;
@@ -601,8 +602,8 @@ void MicMacRequiresBinaireAux()
 {
    ELISE_ASSERT
    (
-       ELISE_fp::exist_file("bin/Apero"),
-       "Require binaire bin/Apero"
+       ELISE_fp::exist_file("bin"+ELISE_CAR_DIR+"Apero"),
+       "Require binaire bin"+ELISE_CAR_DIR+"Apero"
    );
 }
 bool AutorizeTagSpecial(const std::string &)

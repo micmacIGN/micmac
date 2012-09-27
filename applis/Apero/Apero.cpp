@@ -72,7 +72,11 @@ int main(int argc,char ** argv)
 //std::cout << "RRRRRRRRRRRRRRRRRRRRRRAAAAAAAAAAAAAAAAAAAAAAAAYYON UTILE \n";
    AddEntryStringifie
    (
-        "include/XML_GEN/ParamApero.xml",
+#if ELISE_windows
+        "include\\XML_GEN\\ParamApero.xml",
+#else
+		"include/XML_GEN/ParamApero.xml",
+#endif
          theNameVar_ParamApero,
          true
    );
@@ -88,17 +92,14 @@ int main(int argc,char ** argv)
    std::string aNameSauv = "SauvApero.xml";
 
    cResultSubstAndStdGetFile<cParamApero> aP2 
-											(
-											argc-2,argv+2,
+                                          ( argc-2,argv+2,
 											argv[1],
-											// "applis/Apero/ParamApero.xml",
 											StdGetFileXMLSpec("ParamApero.xml"),
 											"ParamApero",
 											"ParamApero",
                                             "DirectoryChantier",
                                             "FileChantierNameDescripteur",
-                                            aNameSauv.c_str()
-											);
+                                            aNameSauv.c_str() );
 
    ::DebugPbCondFaisceau = aP2.mObj->DebugPbCondFaisceau().Val();
 

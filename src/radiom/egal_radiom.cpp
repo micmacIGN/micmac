@@ -38,9 +38,22 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
-#include "StdAfx.h"
+/*
+ 
+
+
+
+
+*/
+
+#include <algorithm>
+
+
+#include "general/all.h"
+#include "private/all.h"
 #include "ext_stl/numeric.h"
 
+#include "XML_GEN/all.h"
 using namespace NS_ParamChantierPhotogram;
 using namespace NS_SuperposeImage;
 

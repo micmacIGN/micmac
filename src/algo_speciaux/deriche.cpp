@@ -38,7 +38,8 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
 
 
 /* Merci a Canny, Rachid Deriche et Tuan Dang */
@@ -453,7 +454,7 @@ void TD_Canny_Deriche::filtr_H_gx(REAL4 * gx)
                          - b2 * buf_P[x+2]);
 
      for (x=0; x< _tx; x++) 
-         gx[x] = (buf_M[x] + buf_P[x]) / mAmpl;
+         gx[x] = (float)( (buf_M[x] + buf_P[x]) / mAmpl );
 
 }
 
@@ -514,7 +515,7 @@ void TD_Canny_Deriche::filtr_H_gy(REAL4 * gy)
                       - b2 * buf_P[x+2]);
 
       for (x= 0; x< _tx; x++)
-          gy[x] = (buf_P[x] + buf_M[x]) / mAmpl;
+          gy[x] = (float)( (buf_P[x] + buf_M[x]) / mAmpl );
 }
 
 REAL4 *  TD_Canny_Deriche::filtr_V_av_gy(REAL4 *gy)

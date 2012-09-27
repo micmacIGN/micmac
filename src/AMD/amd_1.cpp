@@ -25,7 +25,7 @@
  * is performed (this was done in AMD_valid).
  */
 
-#include "StdAfx.h"
+#include "amd_internal.h"
 
 GLOBAL void AMD_1
 (

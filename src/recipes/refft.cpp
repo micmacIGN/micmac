@@ -36,7 +36,7 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
+#include "general/all.h"
 
 // #define DATA(IND) data[IND]
 #define DATA(IND) (((IND) & 1) ? Re[(IND)>>1] : Im[((IND)-1)>>1])

@@ -36,7 +36,8 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
+#include "general/all.h"
+
 #include "cElHJa_all.h"
 #include "graphes/graphe_implem.h"
 

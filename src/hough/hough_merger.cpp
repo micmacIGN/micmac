@@ -37,10 +37,16 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "StdAfx.h"
+#include "general/all.h"
+
+
+#include "hough_include.h"
+#include <algorithm>
+#include <set>
+
+#include "algo_geom/qdt_insertobj.h"
+#include "algo_geom/qdt.h"
 #include "algo_geom/qdt_implem.h"
-
-
 
 static bool LengthIsSup(const SegComp & s1,const SegComp & s2)
 {

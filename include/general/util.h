@@ -1034,7 +1034,7 @@ class cAppliBatch
 	std::string               mKeyDOIDE;
 	
         std::string               mMKf;
-        int                       mModeAddMkf;
+        bool                      mModeAddMkf;
         int                       mIsRelancedByThis;
         std::string               mDebCom;
         std::string               mEndCom;

@@ -38,8 +38,9 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
-#include "StdAfx.h"
-
+#include "general/all.h"
+#include "private/all.h"
+#include <cstring>
 
 /*******************************************************/
 /*                                                     */
@@ -50,14 +51,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 const std::string Terminator = "//#_-=+{}@$##$##@";
 
-
-//GERALD
-#if (ELISE_windows)
-	const std::string TheDirXmlGen="include\\XML_GEN\\";				
-#else
-	const std::string TheDirXmlGen="include/XML_GEN/";				
-#endif
-
+const std::string TheDirXmlGen=std::string("include")+ELISE_CAR_DIR+"XML_GEN"+ELISE_CAR_DIR;
 
 
 void Stringify
@@ -124,8 +118,8 @@ void XML_StdStringify (const std::string &aNameInput)
    Stringify
    (
          aNameInput,
-         std::string("CodeGenere/File2String/Str_")+aPref+std::string(".cpp"),
-         std::string("theNameVar_")+aPref
+         std::string("CodeGenere")+ELISE_CAR_DIR+"File2String"+ELISE_CAR_DIR+"Str_"+aPref+std::string(".cpp"),
+         "theNameVar_"+aPref
    );
 }
 
@@ -139,12 +133,12 @@ void StdXMl2CppAndString(const std::string &aNameInput)
 
     cElXMLTree aTreeSpec
                (
-                  std::string("include/XML_GEN/")
+                  std::string("include")+ELISE_CAR_DIR+"XML_GEN"+ELISE_CAR_DIR
                  + aPref + std::string(".xml"));
     aTreeSpec.StdGenCppGlob
     (
-         std::string("src/XML_GEN/") + aPref + ".cpp",
-         std::string("include/XML_GEN/") + aPref + ".h",
+         std::string("src")+ELISE_CAR_DIR+"XML_GEN"+ELISE_CAR_DIR+ aPref + ".cpp",
+         std::string("include")+ELISE_CAR_DIR+"XML_GEN"+ELISE_CAR_DIR + aPref + ".h",
          ""
     );
 
@@ -164,19 +158,19 @@ void InitEntryStringifie()
        Done=true;
        AddEntryStringifie
        (
-          "include/XML_GEN/ParamChantierPhotogram.xml",
+          std::string("include")+ELISE_CAR_DIR+"XML_GEN"+ELISE_CAR_DIR+"ParamChantierPhotogram.xml",
           theNameVar_ParamChantierPhotogram,
           true
        );
        AddEntryStringifie
        (
-          "include/XML_GEN/SuperposImage.xml",
+          std::string("include")+ELISE_CAR_DIR+"XML_GEN"+ELISE_CAR_DIR+"SuperposImage.xml",
           theNameVar_SuperposImage,
           true
        );
        AddEntryStringifie
        (
-          "include/XML_GEN/DefautChantierDescripteur.xml",
+          std::string("include")+ELISE_CAR_DIR+"XML_GEN"+ELISE_CAR_DIR+"DefautChantierDescripteur.xml",
           theNameVar_DefautChantierDescripteur,
           false
        );
@@ -355,12 +349,10 @@ cVirtStream *  cVirtStream::StdOpen(const std::string & aName)
 {
    std::string aNameSeul,aDir;
    SplitDirAndFile(aDir,aNameSeul,aName);
-
+   
     bool isFilePredef = (aDir== TheDirXmlGen);
     bool isFileSpec =  isFilePredef && (aNameSeul!="DefautChantierDescripteur.xml");
-
-
-
+	
     FILE *aFP = ElFopen(aName.c_str(),"rb");
     if (aFP!=0)
     {
@@ -374,10 +366,7 @@ cVirtStream *  cVirtStream::StdOpen(const std::string & aName)
     {
        return new cSTRVirtStream(aStr,aName,isFilePredef,isFileSpec);
     }
-
-
-
-
+	
    std::cout <<  "For required file " << aName << "\n";
    ELISE_ASSERT(false,"Cannot open");
 
