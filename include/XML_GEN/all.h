@@ -435,17 +435,14 @@ cResultSubstAndStdGetFile
    mICNM->CD_Add(mObj->DicoLoc().PtrVal());
 
    mICNM->MkDataBase();
-   ELISE_fp::AssertIsDirectory(mDC);
 
-/*
-   cElXMLTree * aTrFS  =  aTree.GetOneOrZero("FileSauvParam");
-   std::string aNameSauv = "SauvParam.xml";
-   if (aTrFS)
-   {
-        aNameSauv = aTrFS->Contenu();
-   }
-   aTree.StdShow(mDC+aNameSauv);
-*/
+#ifdef ELISE_windows
+   std::string name = mDC;
+   name.resize( name.size()-1 );
+   ELISE_fp::AssertIsDirectory(name);
+#else
+   ELISE_fp::AssertIsDirectory(mDC);
+#endif
 }
 
 };
