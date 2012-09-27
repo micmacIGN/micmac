@@ -1838,11 +1838,9 @@ void cAppliMICMAC::ExeProcessParallelisable
             ELISE_ASSERT(aCodeRetour==0,"Erreur dans processus fils");
         }     
 #if (ELISE_unix || ELISE_MacOs || ELISE_Cygwin)
-		std::string CleanCommande=std::string("rm \"")+nomMakefile+std::string("\"");
+		std::string CleanCommande=std::string(SYS_RM)+" \""+nomMakefile+std::string("\"");
 #else
-	//  GERALD
-	//std::string CleanCommande=std::string("rm.exe ")+nomMakefile;
-	std::string CleanCommande=std::string("del ")+nomMakefile;
+	std::string CleanCommande=std::string(SYS_RM)+' '+nomMakefile;
 
 #endif
 		// system(CleanCommande.c_str());
