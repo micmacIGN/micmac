@@ -971,6 +971,24 @@ mICNM           (0),
 		}
 		else
 		{
+			// check last caracter of argv[1] (which is chantier directory at this point)
+			// if it's not a '\' or '/', we need to add one before concatenation with argv[2]
+			char lastChar = argv[1][strlen(argv[1])-1];
+			if ( (lastChar!='\\') && (lastChar!='/') )
+			{
+				if ( lastChar==' ' )
+					// it may append that 'make' replaces an ending '\' by a ' '
+					argv[1][strlen(argv[1])-1] = ELISE_CAR_DIR;
+				else
+				{
+					string newArg1 = std::string( argv[1] ).append(1, ELISE_CAR_DIR);
+					// we don't 'delete []' argv[1] for we didn't 'new' it, it would cause some desallocation problems
+					// TODO: we should use a better solution later
+					argv[1] = new char[newArg1.length()+1];
+					strcpy( argv[1], newArg1.c_str() );
+				}
+			}
+
 			if ( ELISE_fp::exist_file(std::string(argv[1])+std::string(argv[2])))
 			{
 				mByNameFile = true;
