@@ -116,7 +116,7 @@ Dans "cox_roy.cpp" on trouvera , en debut  de fichier , la fonction  "ExempleUti
 qui devrait pouvoir faire office de documentation minimale sur l'utilisation de cette implementation.
 
 **/
-
+#pragma once
 
 class cInterfaceCoxRoyAlgo
 {

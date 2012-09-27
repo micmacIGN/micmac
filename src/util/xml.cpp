@@ -791,6 +791,9 @@ cElXMLTree::cElXMLTree
 				);
 		}
 
+		cElXMLTree * aFils = new cElXMLTree(DoFileCinclu,aUseSubst,aFp,aNewTok,this,anArg);
+		//aFils->IsBranche();
+
 		if (	
 			aFils->IsBranche()
 			&&  DoFileCinclu
@@ -800,13 +803,8 @@ cElXMLTree::cElXMLTree
 			)
 		{
 			int tempo = 11;
-			for 
-				(
-
-					std::list<cElXMLTree *>::iterator it=aFils->mFils.begin(); 
-					it!=aFils->mFils.end() ; 
-					it++
-				)
+			std::list<cElXMLTree *>::iterator it,it2;
+			for ( it=aFils->mFils.begin(); it!=aFils->mFils.end() ; it++ )
 			{
 				ELISE_ASSERT((*it)->IsFeuille(),"Error in Include File");
 				std::string aNF = (*it)->mValTag;
