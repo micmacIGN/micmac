@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\MicMac\CodeGenere\File2String\Str_ParamMICMAC.cpp">
+      <Filter>Param</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cAppliMICMAC_CorrelPonctuelle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\Jp2ImageLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\MICMAC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\PartiesCachees.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cAppliMICMAC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cAppliMICMAC_ChCorrel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cAppliMICMAC_GPU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cAppliMICMAC_MNE.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cAppliMICMAC_MEC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cAppliMICMAC_Result1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cAppliMICMAC_Result2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cBasculeMnt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cCaracOfDeZoom.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cEtapeMecComp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cFilePx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cGBV2_ProgDynOptimiseur.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cGeomImage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cGeomXXX.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cLoadedImage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cMicMacVisu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cModeleAnalytiqueComp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cNewProgDyn.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cOptimisationDiff.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cOrientationCon.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cOrientationGrille.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cOrientationRTO.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cParamMICMAC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cPriseDeVue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cProgDynOptimiseur.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cSimulation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cStatNDistrib.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cStdTiffModuleImageLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\cSurfaceOptimiseur.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\uti_MICMAC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\MicMac\applis\MICMAC\OrthoLocAnam.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\applis\MICMAC\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{3E40D0E7-3AE2-4557-A1A0-0F9AFDE6812E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Param">
+      <UniqueIdentifier>{49AA9B44-4479-40E2-A06A-1C93A37E2802}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+</Project>
