@@ -424,7 +424,8 @@ cArgCreatXLMTree::~cArgCreatXLMTree()
 std::string StdGetFileXMLSpec(const std::string & aName)
 {
 	// return  MMDir() + TheEliseDirXmlSpec+ aName;  BUG APPEL RECURSIF , A voir ....
-	return TheEliseDirXmlSpec+ aName;
+	// !!DEL!!
+	return MMDir() + TheEliseDirXmlSpec+ aName;
 }
 
 void cArgCreatXLMTree::AddRefs(const std::string & aTag,const std::string & aFileSeul)

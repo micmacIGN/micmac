@@ -348,8 +348,8 @@ cVirtStream *  cVirtStream::StdOpen(const std::string & aName)
 {
    std::string aNameSeul,aDir;
    SplitDirAndFile(aDir,aNameSeul,aName);
-
-    bool isFilePredef = (aDir== TheDirXmlGen);
+    
+    bool isFilePredef = (aDir== MMDir()+TheDirXmlGen);
     bool isFileSpec =  isFilePredef && (aNameSeul!="DefautChantierDescripteur.xml");
 
 
