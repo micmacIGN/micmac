@@ -788,7 +788,11 @@ namespace NS_ParamChantierPhotogram{
 					ELISE_ASSERT(false,"Set has # and is not Parametrized");
 				}
 			}
-			aRes->Add(itKSN->Key(),new cSetName(aICNM,aS0));
+
+			std::string key = itKSN->Key();
+			cSetName* name = new cSetName(aICNM,aS0);
+
+			aRes->Add(key,name);
 		}
 
 		return aRes;

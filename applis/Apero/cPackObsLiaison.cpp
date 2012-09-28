@@ -456,7 +456,10 @@ cPackObsLiaison::cPackObsLiaison
     {
         // std::string aDir = mAppli.DC() + aBDL.Directory().Val();
         // std::list<std::string> aLName = RegexListFileMatch(aDir,aBDL.PatternSel(),1,false);
-        const std::vector<std::string> * aVName =  mAppli.ICNM()->Get(aBDL.KeySet()[aKS]);
+
+		std::string keyset =  aBDL.KeySet()[aKS];
+		cInterfChantierNameManipulateur * iChantierNM = mAppli.ICNM();
+        const std::vector<std::string> * aVName =  iChantierNM->Get(keyset);
 
         aNbTot += aVName->size();
 
