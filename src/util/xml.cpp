@@ -213,6 +213,7 @@ void XML_Attributs_speciaux
 	}
 	else if (aNameAttr=="DirXmlSpec")
 	{
+		// Beware : TheEliseDirXmlSpec is considered relative to MMDir()
 		TheEliseDirXmlSpec = aValAttr;
 	}
 	else if (aNameAttr=="Subst")
@@ -430,7 +431,7 @@ std::string StdGetFileXMLSpec(const std::string & aName)
 
 void cArgCreatXLMTree::AddRefs(const std::string & aTag,const std::string & aFileSeul)
 {
-	std::string aFile = TheEliseDirXmlSpec + aFileSeul;
+	std::string aFile = StdGetFileXMLSpec(aFileSeul);
 	if (BoolFind(mAddedFiles,aFile))
 		return;
 
@@ -464,16 +465,16 @@ bool  cArgCreatXLMTree::ModifDico() const {return mModifDico;}
 
 void cArgCreatXLMTree::SetDico(const std::string & aKey,std::string  aVal,bool IsMMCALL)
 {
-	if (aVal[0] =='@')
+	if (aVal.length()!=0 && aVal[0] =='@')
 	{
 		aVal = aVal.substr(1,std::string::npos);
 	}
 
-	if (aVal[0]=='"')
+	if (aVal.length()!=0 && aVal[0]=='"')
 	{
 		const char * aVc = aVal.c_str();
 		int aL = strlen(aVc);
-		if (aVc[aL-1]=='"')
+		if (aL>1 && aVc[aL-1]=='"')
 		{
 			aVal = aVal.substr(1,aL-2);
 		}
