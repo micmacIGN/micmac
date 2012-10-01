@@ -186,13 +186,7 @@ class cParseDir_PurgeFile : public ElActionParseDir
              }
              if (isSel)
              {
-                 
-				 // GERALD
-				 #if (ELISE_windows)
-					std::string aCom= "rm " + aName;
-				#else
-					std::string aCom= "del " + aName;
-				#endif
+				 std::string aCom= std::string(SYS_RM)+' '+aName;
                  VoidSystem(aCom.c_str());
              }
          }
