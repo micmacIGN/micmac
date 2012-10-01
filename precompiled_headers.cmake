@@ -7,7 +7,7 @@
 # Instructs the MSVC toolset to use the precompiled header PRECOMPILED_HEADER
 # for each source file given in the collection named by SOURCE_VARIABLE_NAME.
 function(enable_precompiled_headers PRECOMPILED_HEADER SOURCE_VARIABLE_NAME)
-  if(MSVC)
+  if(MSVC_IDE)
     set(files ${${SOURCE_VARIABLE_NAME}})
     
     # Generate precompiled header translation unit
@@ -30,5 +30,5 @@ function(enable_precompiled_headers PRECOMPILED_HEADER SOURCE_VARIABLE_NAME)
     
     # Finally, update the source file collection to contain the precompiled header translation unit
     set(${SOURCE_VARIABLE_NAME} ${${SOURCE_VARIABLE_NAME}} ${pch_unity} PARENT_SCOPE)
-  endif(MSVC)
+  endif(MSVC_IDE)
 endfunction(enable_precompiled_headers)
