@@ -994,8 +994,7 @@ namespace NS_ParamChantierPhotogram{
 			//std::cout << "NO fOUND " << aKeySsArb<<"\n";
 			return 0;
 		}
-
-
+		
 		// Si il existe sans @, on le construit avec
 		cSetNameDescriptor & aSND = * new cSetNameDescriptor(anIt->second->SND());
 		TransFormArgKey(aSND,false,aVParams);

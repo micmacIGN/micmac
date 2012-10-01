@@ -710,11 +710,7 @@ void cAppliBatch::DoPurge()
 		}
 	}
 
-	#if (ELISE_windows)
-		std::string aCom =   std::string("del ") + mDirTmp + std::string("*");	
-	#else
-		std::string aCom =   std::string("rm ") + mDirTmp + std::string("*");	
-	#endif
+	std::string aCom = std::string(SYS_RM)+' '+mDirTmp+'*';
 
 	System(aCom,true);
 }

@@ -350,7 +350,7 @@ void  cArgMpDCRaw::DevJpg()
           aFinal.out()
      );
 
-     aCom = "rm " + aTmp;
+     aCom = std::string(SYS_RM)+' '+aTmp;
      VoidSystem(aCom.c_str());
 
 }
