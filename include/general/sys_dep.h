@@ -71,10 +71,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 // Pour l'instant : Unix=>X11, Win => pas de visu
 
-#ifndef ELISE_X11
-#define ELISE_X11  (ELISE_unix | ELISE_MacOs)
-// #define ELISE_X11  0
-#endif 
+#ifndef NO_X11
+	#ifndef ELISE_X11
+		#define ELISE_X11  (ELISE_unix | ELISE_MacOs)
+	#endif 
+#endif
 
 #define ELISE_NO_VIDEO  (! ELISE_X11)
 
@@ -89,73 +90,73 @@ Header-MicMac-eLiSe-25/06/2007*/
 //===================================================
 
 #if ELISE_unix
-#define SYS_MV "mv"
-#define SYS_RM "rm"
-#define ELISE_CAR_DIR  '/' 
-#define ELISE_Current_DIR  "./"
+	#define SYS_MV "mv"
+	#define SYS_RM "rm"
+	#define ELISE_CAR_DIR  '/' 
+	#define ELISE_Current_DIR  "./"
 #endif
 
 #if ELISE_MacOs
-#define SYS_MV "mv"
-#define SYS_RM "rm"
-#define ELISE_CAR_DIR  '/' 
-#define ELISE_Current_DIR  "./"
+	#define SYS_MV "mv"
+	#define SYS_RM "rm"
+	#define ELISE_CAR_DIR  '/' 
+	#define ELISE_Current_DIR  "./"
 #endif
 
 #if ELISE_Cygwin
-#define SYS_MV "mv"
-#define SYS_RM "rm"
-#define ELISE_CAR_DIR  '/' 
-#define ELISE_Current_DIR  "./"
+	#define SYS_MV "mv"
+	#define SYS_RM "rm"
+	#define ELISE_CAR_DIR  '/' 
+	#define ELISE_Current_DIR  "./"
 #endif
 
 #if ELISE_windows
-#define SYS_MV "move"
-#define SYS_RM "del"
-#define ELISE_CAR_DIR  '\\' 
-#define ELISE_Current_DIR  ".\\"
-#include <float.h>
-#define isnan _isnan 
+	#define SYS_MV "move"
+	#define SYS_RM "del"
+	#define ELISE_CAR_DIR  '\\' 
+	#define ELISE_Current_DIR  ".\\"
+	#include <float.h>
+	#define isnan _isnan 
 #endif
 
 #if Compiler_Gpp2_7_2   // =========
-#define ElTyName typename
+	#define ElTyName typename
 #elif(GPP3etPlus || Compiler_Visual_7_0)      // =========
-#define ElTyName typename
+	#define ElTyName typename
 #else                  // =========
-#define ElTyName 
+	#define ElTyName 
 #endif
 
 #define ElTemplateInstantiation 1
 
 // Apparamment MSW est assez restrictif sur l'emploi du typename
 #if ( ELISE_windows)
-#define ElTypeName_NotMSW
-#define  ClassFriend
+	#define ElTypeName_NotMSW
+	#define  ClassFriend
 #else
-#define ElTypeName_NotMSW typename
-#define  ClassFriend class
+	#define ElTypeName_NotMSW typename
+	#define  ClassFriend class
 #endif
 
 
 
 #if ElUseNameSpace 
-#define STDSORT std::sort
-#define STDUNIQUE std::unique
-#define STDOSTREAM std::ostream
-#define STDLIST std::list
-#define USING_STD_NAME_SPACE using namespace std;
-#define NS_BEGIN_eLiSe  namespace eLiSe{
-#define NS_END_eLiSe }
-#define NS_USING_eLiSe using namespace eLiSe;
+	#define STDSORT std::sort
+	#define STDUNIQUE std::unique
+	#define STDOSTREAM std::ostream
+	#define STDLIST std::list
+	#define USING_STD_NAME_SPACE using namespace std;
+	#define NS_BEGIN_eLiSe  namespace eLiSe{
+	#define NS_END_eLiSe }
+	#define NS_USING_eLiSe using namespace eLiSe;
 #else
-#define STDSORT sort
-#define STDUNIQUE unique
-#define STDOSTREAM ostream
-#define STDLIST list
-#define USING_STD_NAME_SPACE  
-#define BEGIN_ELISE_NAME_SPACE
-#define END_ELISE_NAME_SPACE
+	#define STDSORT sort
+	#define STDUNIQUE unique
+	#define STDOSTREAM ostream
+	#define STDLIST list
+	#define USING_STD_NAME_SPACE  
+	#define BEGIN_ELISE_NAME_SPACE
+	#define END_ELISE_NAME_SPACE
 #endif
 
 #define ElSTDNS  std::
@@ -163,9 +164,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 #if (SUN_WS5)
-#define ElMemberTpl 0
+	#define ElMemberTpl 0
 #else
-#define ElMemberTpl 1
+	#define ElMemberTpl 1
 #endif
 
 // Directory where Elise is installed 
@@ -176,9 +177,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 //===================================================
 
 #if (Compiler_Visual_5_0 || Compiler_Visual_6_0)
-#define PRE_CLASS
+	#define PRE_CLASS
 #else
-#define PRE_CLASS class
+	#define PRE_CLASS class
 #endif
 
 #define SUN_WS (SUN_WS5 || SUN_WS6)
@@ -190,9 +191,9 @@ Header-MicMac-eLiSe-25/06/2007*/
  *
  */
 #if ELISE_windows
-#define STRICT_ANSI_FRIEND_TPL 0
+	STRICT_ANSI_FRIEND_TPL 0
 #else
-#define STRICT_ANSI_FRIEND_TPL 1
+	#define STRICT_ANSI_FRIEND_TPL 1
 #endif
 /******************************************************************/
 /******************************************************************/

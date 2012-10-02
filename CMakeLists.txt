@@ -85,6 +85,7 @@ FIND_PACKAGE(X11)
 IF (X11_FOUND)
 	MESSAGE("X11 Found : ${X11_INCLUDE_DIRS} | ${X11_LIBRARIES} | ${X11_LIBRARY_DIRS}")
 ELSE()
+	add_definitions(-DNO_X11)
 	MESSAGE("X11 Not Found : pas de SaisieMasq")
 ENDIF()
 
