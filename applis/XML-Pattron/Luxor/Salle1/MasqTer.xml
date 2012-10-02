@@ -1,0 +1,10 @@
+<FileOriMnt>
+      <NameFileMnt>/data/Luxor/Salle1/GeoMask/Z_Num4_DeZoom4_GeomTer.tif</NameFileMnt>
+      <NameFileMasque>/data/Luxor/Salle1/GeoMask/Masq_GeomTer_DeZoom4.tif</NameFileMasque>
+      <NombrePixels>1610 883</NombrePixels>
+      <OriginePlani>-12.2503676025796437 7.08210905163838156</OriginePlani>
+      <ResolutionPlani>0.0169274806646662057 -0.0169274806646662057</ResolutionPlani>
+      <OrigineAlti>-0.00353735235773934955</OrigineAlti>
+      <ResolutionAlti>0.00846374033233291898</ResolutionAlti>
+      <Geometrie>eGeomMNTEuclid</Geometrie>
+</FileOriMnt>
