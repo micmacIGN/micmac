@@ -107,4 +107,5 @@ add_library( elise ${Elise_Src_Files})
 
 add_definitions(-DNO_JPEG -DNO_LCMS)
 
+install(TARGETS elise ARCHIVE DESTINATION ${Install_Dir})
 	

@@ -105,6 +105,9 @@ IF (CMAKE_COMPILER_IS_GNUCC)
 	ADD_DEFINITIONS(-O2)
 ENDIF()
 
+#dossier d'installation
+set(Install_Dir ${PROJECT_SOURCE_DIR}/bin)
+
 set(ELISE_DIR src)
 set(APPLIS_DIR applis)
 

@@ -37,6 +37,6 @@ add_executable(Apero
 
 target_link_libraries(Apero elise ${X11_LIBRARIES})
 
-INSTALL(TARGETS Apero RUNTIME DESTINATION bin)
+INSTALL(TARGETS Apero RUNTIME DESTINATION ${Install_Dir})
 
 	

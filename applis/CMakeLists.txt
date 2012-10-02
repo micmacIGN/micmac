@@ -64,17 +64,18 @@ target_link_libraries(tiff_info elise ${X11_LIBRARIES})
 add_executable(Dequant uti_image/Dequant.cpp)
 target_link_libraries(Dequant elise ${X11_LIBRARIES})
 
+
 IF (X11_FOUND)
 	add_executable(SaisieMasq uti_image/SaisieMasq.cpp)
 	target_link_libraries(SaisieMasq elise ${X11_LIBRARIES})
 	INSTALL(TARGETS SaisieMasq
-		RUNTIME DESTINATION bin
+		RUNTIME DESTINATION ${Install_Dir}
 	)
 
 	add_executable(SEL uti_phgrm/SEL.cpp)
 	target_link_libraries(SEL elise ${X11_LIBRARIES})
         INSTALL(TARGETS SEL
-                RUNTIME DESTINATION bin
+                RUNTIME DESTINATION ${Install_Dir}
         )
 
 	add_executable(MICMACSaisieLiaisons MICMAC/SaisieLiaisons.cpp
@@ -116,7 +117,7 @@ IF (X11_FOUND)
 	)
 	target_link_libraries(MICMACSaisieLiaisons elise ${X11_LIBRARIES})
         INSTALL(TARGETS MICMACSaisieLiaisons
-                RUNTIME DESTINATION bin
+                RUNTIME DESTINATION ${Install_Dir}
         )
 
 
@@ -144,6 +145,6 @@ IF ( MatisOrientation_FOUND)
 	ENDIF()
 ENDIF()
 
-INSTALL(TARGETS MpDcraw Malt Dequant Tapioca Pastis Nuage2Ply Pasta Bascule MakeGrid TestCam Tapas AperiCloud ScaleIm ElDcraw to8Bits GrShade PastDevlop Devlop tiff_info BatchFDC MapCmd
-	RUNTIME DESTINATION bin
+install(TARGETS MpDcraw Malt Dequant Tapioca Pastis Nuage2Ply Pasta Bascule MakeGrid TestCam Tapas AperiCloud ScaleIm ElDcraw to8Bits GrShade PastDevlop Devlop tiff_info BatchFDC MapCmd
+	RUNTIME DESTINATION ${Install_Dir}
 )
