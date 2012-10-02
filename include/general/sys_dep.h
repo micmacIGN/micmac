@@ -191,7 +191,7 @@ Header-MicMac-eLiSe-25/06/2007*/
  *
  */
 #if ELISE_windows
-	STRICT_ANSI_FRIEND_TPL 0
+	#define STRICT_ANSI_FRIEND_TPL 0
 #else
 	#define STRICT_ANSI_FRIEND_TPL 1
 #endif
