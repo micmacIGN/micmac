@@ -171,6 +171,9 @@ void cListDirAndMatch::act(const ElResParseDir & aRes)
   else
   {
        std::string aNR (aRes.name());
+#ifdef ELISE_windows
+	   replace( aNR.begin(), aNR.end(), '\\', '/' );
+#endif
        aNR = aNR.substr(mDir.size(),aNR.size());
 
       // if (! wildmat(aNR.c_str(),mPattern.c_str()))

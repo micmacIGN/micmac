@@ -1277,11 +1277,20 @@ private :
 class cElDirectory
 {
 public :
-	cElDirectory(const std::string& aName) :
-	   mPattern	(ELISE_fp::exist_file(aName) ? aName : (aName + "*")),
-		   mFirst		(true),
-		   mHandleFind	(::FindFirstFile (mPattern.c_str(), &mWFD))
+	cElDirectory(const std::string& aName):
+			mFirst(true)
 	   {
+		   if ( ELISE_fp::exist_file(aName) )
+				mPattern = aName;
+		   else
+		   {
+			    char lastChar = *aName.rbegin();
+				if ( lastChar!='\\' && lastChar!='/' )
+					mPattern = aName+"/*";
+				else
+					mPattern = aName+'*';
+		   }
+		   mHandleFind = ::FindFirstFile (mPattern.c_str(), &mWFD);
 	   }
 	   ~cElDirectory()  { ::FindClose(mHandleFind); }
 
