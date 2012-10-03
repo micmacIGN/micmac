@@ -108,9 +108,7 @@ void DoMkT()
 {
     if (ByP)
     {
-		// !!DEL!!
-			std::string aSMkSr = std::string("make all -f ") + MkFT;
-			//std::string aSMkSr = std::string("make all -f ") + MkFT +std::string(" -j")+ToString(ByP);
+		std::string aSMkSr = std::string("make all -f ") + MkFT +std::string(" -j")+ToString(ByP);
         System(aSMkSr,true);
     }
 }

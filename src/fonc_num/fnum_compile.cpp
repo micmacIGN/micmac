@@ -976,7 +976,13 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
             }
             else
             {
-               aSys.GSSR_AddNewEquation_Indexe(&mBlocs, &(mCompDer[aD][0]),aVIndInit.size(),aVInd,aPds,&(aDer[0]),aB);
+               aSys.GSSR_AddNewEquation_Indexe( &mBlocs,
+												&(mCompDer[aD][0]),
+												aVIndInit.size(),
+												aVInd,
+												aPds,
+												( ( aDer.size()==0 )?NULL:&(aDer[0]) ),
+												aB );
             }
        }
    }
