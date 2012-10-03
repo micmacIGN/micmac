@@ -30,17 +30,17 @@ namespace NS_ParamMICMAC{
        Trois type de geometrie interviennent
 
 
-       - La géométrie image est liée à l'instrument d'acquisition
+       - La gÃ©omÃ©trie image est liÃ©e Ã  l'instrument d'acquisition
        (conique ou barette, calibration ...); elle est definie
        dans la section <Section_PriseDeVue> par le champss
       GeomImages qui doit etre dans l'enumeration eGeomImage.
 
-       - La géométrie de mise en correspondance qui
+       - La gÃ©omÃ©trie de mise en correspondance qui
        a une influence forte sur l'algorithmie, elle
        est definie dans  <section_MEC>, par le champs
        GeomMEC qui doit etre dans l'enumeration eModeGeomMEC
 	
-       - la géométrie du MNT resultat (par exemple
+       - la gÃ©omÃ©trie du MNT resultat (par exemple
        cartographique ou euclidien local), elle est
        definie dans  <Section_Results> par le champs
        GeoMNT qui doit etre dans l'enumeration
@@ -104,14 +104,14 @@ namespace NS_ParamMICMAC{
 
         
 	 Pour le mode Terrain, aujourd'hui seul les ori sont
-    supportés mais il n'y aurait  pas de pb a rajouter
+    supportÃ©s mais il n'y aurait  pas de pb a rajouter
     par exemple les formats grilles.
 
     Mode derive :
-	   eGeomImage_Hom_Px : la geométrie est une homographie
+	   eGeomImage_Hom_Px : la geomÃ©trie est une homographie
          implemente comme un cas particulier de DHD
 
-	   eGeomImage_Epip : la geométrie epipolaire classique (mais en 2D)
+	   eGeomImage_Epip : la geomÃ©trie epipolaire classique (mais en 2D)
          implemente comme un cas particulier de DHD
    -->
    
@@ -129,7 +129,7 @@ namespace NS_ParamMICMAC{
 	   <eGeomImage_EpipolairePure>        </eGeomImage_EpipolairePure>
 
 	   <eNoGeomIm>              </eNoGeomIm>
-           <!-- Pas encore implementée -->
+           <!-- Pas encore implementÃ©e -->
    </enum>
 
 
@@ -423,7 +423,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
         et IntervParalaxe doit etre vide.
            Vice-vers en mode eGeomMECIm1.
 
-           Z,Px1,Px2 Calc sont les incertitude utilisée pour définir
+           Z,Px1,Px2 Calc sont les incertitude utilisÃ©e pour dÃ©finir
         l'intervalle de recherche initiale ("nappe englobante").
 
           Z,Px1,Px2 Zonage sont les incertitudes utilisees pour definir
@@ -871,6 +871,11 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                         </GPU_CorrelBasik>
 
 
+                        <MultiCorrelPonctuel Nb="?"  AccessorFils="false">
+                                <PdsCorrelStd   Nb="1" Type="double" > </PdsCorrelStd>
+                                <PdsCorrelPonct Nb="1" Type="double" > </PdsCorrelPonct>
+                                <DefCost  Nb="?" Type="double" Def="0.1"> </DefCost>
+                        </MultiCorrelPonctuel>
 
 
                         <Correl_Ponctuel2ImGeomI Nb="?" AccessorFils="false">    
@@ -1448,7 +1453,7 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
                            ortho "naturel")-->
                       <ScaleBiCub  Nb="?" Type="double" Def="1"> </ScaleBiCub>
                       <!-- On peut vouloir generer une ortho a une resol differente du MNT,
-                           de même, la phasage des pixel, peut etre different de celui du MNT
+                           de mÃªme, la phasage des pixel, peut etre different de celui du MNT
                             pour import dans une autre ortho
 
                              ResolRelOrhto -> 0.5 pour avoir une ortho 2 fois plus resolue

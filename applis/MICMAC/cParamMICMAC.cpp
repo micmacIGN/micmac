@@ -4290,6 +4290,60 @@ void xml_init(cGPU_CorrelBasik & anObj,cElXMLTree * aTree)
 }
 
 
+double & cMultiCorrelPonctuel::PdsCorrelStd()
+{
+   return mPdsCorrelStd;
+}
+
+const double & cMultiCorrelPonctuel::PdsCorrelStd()const 
+{
+   return mPdsCorrelStd;
+}
+
+
+double & cMultiCorrelPonctuel::PdsCorrelPonct()
+{
+   return mPdsCorrelPonct;
+}
+
+const double & cMultiCorrelPonctuel::PdsCorrelPonct()const 
+{
+   return mPdsCorrelPonct;
+}
+
+
+cTplValGesInit< double > & cMultiCorrelPonctuel::DefCost()
+{
+   return mDefCost;
+}
+
+const cTplValGesInit< double > & cMultiCorrelPonctuel::DefCost()const 
+{
+   return mDefCost;
+}
+
+cElXMLTree * ToXMLTree(const cMultiCorrelPonctuel & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MultiCorrelPonctuel",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("PdsCorrelStd"),anObj.PdsCorrelStd())->ReTagThis("PdsCorrelStd"));
+   aRes->AddFils(::ToXMLTree(std::string("PdsCorrelPonct"),anObj.PdsCorrelPonct())->ReTagThis("PdsCorrelPonct"));
+   if (anObj.DefCost().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DefCost"),anObj.DefCost().Val())->ReTagThis("DefCost"));
+  return aRes;
+}
+
+void xml_init(cMultiCorrelPonctuel & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.PdsCorrelStd(),aTree->Get("PdsCorrelStd",1)); //tototo 
+
+   xml_init(anObj.PdsCorrelPonct(),aTree->Get("PdsCorrelPonct",1)); //tototo 
+
+   xml_init(anObj.DefCost(),aTree->Get("DefCost",1),double(0.1)); //tototo 
+}
+
+
 cTplValGesInit< double > & cCorrel_Ponctuel2ImGeomI::RatioI1I2()
 {
    return mRatioI1I2;
@@ -4467,6 +4521,15 @@ const cTplValGesInit< cGPU_CorrelBasik > & cTypeCAH::GPU_CorrelBasik()const
    return mGPU_CorrelBasik;
 }
 
+cTplValGesInit< cMultiCorrelPonctuel > & cTypeCAH::MultiCorrelPonctuel()
+{
+   return mMultiCorrelPonctuel;
+}
+
+const cTplValGesInit< cMultiCorrelPonctuel > & cTypeCAH::MultiCorrelPonctuel()const 
+{
+   return mMultiCorrelPonctuel;
+}
 
 cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & cTypeCAH::Correl_Ponctuel2ImGeomI()
 {
@@ -4529,6 +4592,8 @@ cElXMLTree * ToXMLTree(const cTypeCAH & anObj)
       aRes->AddFils(ToXMLTree(anObj.GPU_Correl().Val())->ReTagThis("GPU_Correl"));
    if (anObj.GPU_CorrelBasik().IsInit())
       aRes->AddFils(ToXMLTree(anObj.GPU_CorrelBasik().Val())->ReTagThis("GPU_CorrelBasik"));
+   if (anObj.MultiCorrelPonctuel().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.MultiCorrelPonctuel().Val())->ReTagThis("MultiCorrelPonctuel"));
    if (anObj.Correl_Ponctuel2ImGeomI().IsInit())
       aRes->AddFils(ToXMLTree(anObj.Correl_Ponctuel2ImGeomI().Val())->ReTagThis("Correl_Ponctuel2ImGeomI"));
    if (anObj.Correl_PonctuelleCroisee().IsInit())
@@ -4549,6 +4614,8 @@ void xml_init(cTypeCAH & anObj,cElXMLTree * aTree)
    xml_init(anObj.GPU_Correl(),aTree->Get("GPU_Correl",1)); //tototo 
 
    xml_init(anObj.GPU_CorrelBasik(),aTree->Get("GPU_CorrelBasik",1)); //tototo 
+   
+   xml_init(anObj.MultiCorrelPonctuel(),aTree->Get("MultiCorrelPonctuel",1)); //tototo 
 
    xml_init(anObj.Correl_Ponctuel2ImGeomI(),aTree->Get("Correl_Ponctuel2ImGeomI",1)); //tototo 
 
@@ -4616,6 +4683,15 @@ const cTplValGesInit< cGPU_CorrelBasik > & cCorrelAdHoc::GPU_CorrelBasik()const
    return TypeCAH().GPU_CorrelBasik();
 }
 
+cTplValGesInit< cMultiCorrelPonctuel > & cCorrelAdHoc::MultiCorrelPonctuel()
+{
+   return TypeCAH().MultiCorrelPonctuel();
+}
+
+const cTplValGesInit< cMultiCorrelPonctuel > & cCorrelAdHoc::MultiCorrelPonctuel()const 
+{
+   return TypeCAH().MultiCorrelPonctuel();
+}
 
 cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & cCorrelAdHoc::Correl_Ponctuel2ImGeomI()
 {
@@ -8126,6 +8202,15 @@ const cTplValGesInit< cGPU_CorrelBasik > & cEtapeMEC::GPU_CorrelBasik()const
    return CorrelAdHoc().Val().TypeCAH().GPU_CorrelBasik();
 }
 
+cTplValGesInit< cMultiCorrelPonctuel > & cEtapeMEC::MultiCorrelPonctuel()
+{
+   return CorrelAdHoc().Val().TypeCAH().MultiCorrelPonctuel();
+}
+
+const cTplValGesInit< cMultiCorrelPonctuel > & cEtapeMEC::MultiCorrelPonctuel()const 
+{
+   return CorrelAdHoc().Val().TypeCAH().MultiCorrelPonctuel();
+}
 
 cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & cEtapeMEC::Correl_Ponctuel2ImGeomI()
 {

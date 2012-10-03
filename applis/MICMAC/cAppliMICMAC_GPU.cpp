@@ -542,7 +542,17 @@ void cAppliMICMAC::DoOneCorrelSym(int anX,int anY)
      mSurfOpt->SetCout(Pt2di(anX,anY),&mZIntCur,aCost);
 }
 
-void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY)
+double EcartNormalise(double aI1,double aI2)
+{
+   // X = I1/I2 
+   if (aI1 < aI2)   // X < 1
+      return aI1/aI2 -1;   // X -1
+
+   return 1-aI2/aI1;  // 1 -1/X 
+
+}
+
+void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel * aCMP)
 {
      int aNbOk = 0;
      double aSomCorrel = 0;
@@ -559,6 +569,36 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY)
           }
         }
      }
+
+     if (aCMP)
+     {
+         std::vector<INT1> aVNorm;
+         if (mVLI[0]->OkOrtho(anX,anY))
+         {
+             tGpuF aV0 = mVLI[0]->ImOrtho(anX,anY);
+             for (int aK=1 ; aK<mNbIm ; aK++)
+             {
+                 if (mVLI[aK]->OkOrtho(anX,anY))
+                 {
+                     double aVal = EcartNormalise(aV0,mVLI[aK]->ImOrtho(anX,anY));
+                     aVNorm.push_back(AdaptCostPonct(round_ni(aVal*127)));
+
+                 }
+                 else
+                 {
+                     aVNorm.push_back(ValUndefCPONT);
+                 }
+             }
+         }
+         else
+         {
+             for (int aK=1 ; aK<mNbIm ; aK++)
+             {
+                 aVNorm.push_back(ValUndefCPONT);
+             }
+         }
+         mSurfOpt->Local_VecInt1(Pt2di(anX,anY),&mZIntCur,aVNorm);
+     }
      
      mSurfOpt->SetCout
      (
@@ -572,7 +612,7 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY)
 
 void cAppliMICMAC::DoOneCorrelMaxIm1Maitre(int anX,int anY)
 {
-     if (mEBI)
+     if (mEBI) // Etiq Best Image
      {
         if (mNbIm>1)
         {
@@ -618,12 +658,17 @@ void cAppliMICMAC::DoOneCorrelMaxIm1Maitre(int anX,int anY)
 
 void cAppliMICMAC::DoGPU_Correl
      (
-            const Box2di & aBox
+            const Box2di & aBox,
+            const cMultiCorrelPonctuel * aMCP
      )
 {
    eModeInitZ aModeInitZ = eModeMom_2_22;
    eModeAggregCorr aModeAgr = mCurEtape->EtapeMEC().AggregCorr().Val();
-
+      
+   if (aMCP)
+   {
+     ELISE_ASSERT(aModeAgr==eAggregIm1Maitre,"MultiCorrelPonctuel requires eAggregIm1Maitre");
+   }
 
    if (aModeAgr==eAggregSymetrique)
    {
@@ -657,7 +702,7 @@ void cAppliMICMAC::DoGPU_Correl
                         break;
 
                         case eAggregIm1Maitre :
-                             DoOneCorrelIm1Maitre(anX,anY);
+                             DoOneCorrelIm1Maitre(anX,anY,aMCP);
                         break;
 
                         case  eAggregMaxIm1Maitre :
@@ -900,7 +945,7 @@ void cAppliMICMAC::DoCorrelAdHoc
 
    if (aTC.GPU_Correl().IsInit())
    {
-          DoGPU_Correl(aBox);
+          DoGPU_Correl(aBox,(cMultiCorrelPonctuel*)0);
    }
    else if (aTC.GPU_CorrelBasik().IsInit())
    {
@@ -925,6 +970,10 @@ void cAppliMICMAC::DoCorrelAdHoc
    else if (aTC.Correl_NC_Robuste().IsInit())
    {
       DoCorrelRobusteNonCentree(aBox,aTC.Correl_NC_Robuste().Val());
+   }
+   else if (aTC.MultiCorrelPonctuel().IsInit())
+   {
+       DoGPU_Correl(aBox,(aTC.MultiCorrelPonctuel().PtrVal()));
    }
 }
 

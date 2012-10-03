@@ -60,7 +60,7 @@ template <class Type,class Compare> class ElHeap
 		mEls.reserve(capa);
         }
 
-        void  push(Type v)
+         void  push(const Type & v)
         {
              mEls.push_back(v);
              heap_down(nb()-1);

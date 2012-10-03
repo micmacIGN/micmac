@@ -80,12 +80,13 @@ IF (X11_FOUND)
 
 	add_executable(MICMACSaisieLiaisons MICMAC/SaisieLiaisons.cpp
 	../CodeGenere/File2String/Str_ParamMICMAC.cpp
+	   MICMAC/cNewProgDyn.cpp
+        MICMAC/cAppliMICMAC_GPU.cpp
         MICMAC/cAppliMICMAC_CorrelPonctuelle.cpp
         MICMAC/Jp2ImageLoader.cpp
         MICMAC/PartiesCachees.cpp
         MICMAC/cAppliMICMAC.cpp
         MICMAC/cAppliMICMAC_ChCorrel.cpp
-        MICMAC/cAppliMICMAC_GPU.cpp
         MICMAC/cAppliMICMAC_MNE.cpp
         MICMAC/cAppliMICMAC_MEC.cpp
         MICMAC/cAppliMICMAC_Result1.cpp
@@ -100,7 +101,6 @@ IF (X11_FOUND)
         MICMAC/cLoadedImage.cpp
         MICMAC/cMicMacVisu.cpp
         MICMAC/cModeleAnalytiqueComp.cpp
-        MICMAC/cNewProgDyn.cpp
         MICMAC/cOptimisationDiff.cpp
         MICMAC/cOrientationCon.cpp
         MICMAC/cOrientationGrille.cpp

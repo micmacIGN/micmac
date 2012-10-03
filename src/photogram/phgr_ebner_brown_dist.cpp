@@ -1903,7 +1903,7 @@ void          cDistGen_FishEye_Generator<TPreC,NbRad,NbDec,NbPolyn,NBV>::InitCla
    }
 
    // Assure l'initialistaion
-   tVal aV[NBV];
+   tVal aV[NBV==0?1:NBV]; // visual does not allow arrays of size 0
    tVal aState[10];
    Pt2d<tVal> aP(0,0);
 

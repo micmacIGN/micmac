@@ -82,6 +82,7 @@ class cEmptyArgPrg2D
 
        double CostCroise(const cEmptyArgPrg2D &,const cEmptyArgPrg2D &  ) const {return 0;}
        void InitCpleRadiom(U_INT2,U_INT2) {}
+       void InitVecINT1(const  std::vector<INT1> &){}
 
        void InitTmp(const cTplCelNapPrgDyn<cEmptyArgPrg2D> &){}
 };
@@ -98,11 +99,14 @@ class cTypeStdArgPrg2D
 
 
 //==================================================================
+//==================================================================
+//==================================================================
 
 class cCpleValPrg2DCelNap
 {
     public :
-
+		
+       void InitVecINT1(const  std::vector<INT1> &){}
        void InitCpleRadiom(U_INT2 aR1,U_INT2 aR2)  
        {
             mR1 =aR1;
@@ -178,6 +182,109 @@ class cTypeClpeValArgPrg2D
 
        void InitTmp(const cTplCelNapPrgDyn<cEmptyArgPrg2D> &){}
 */
+//==================================================================
+//==================================================================
+//==================================================================
+
+template <class Type,const int NbV> class cTabValI1Prg2DCelNap
+{
+    public :
+
+       void InitCpleRadiom(U_INT2 aR1,U_INT2 aR2)  { }
+       void InitVecINT1(const  std::vector<Type> & aV)
+       {
+            ELISE_ASSERT(NbV==aV.size(),"Incoh in cTabValI1Prg2DCelNap");
+            memcpy(mVals,&(aV[0]),NbV*sizeof(Type));
+       }
+
+	   // visual does not allow arrays of size 0
+       Type mVals[NbV==0?1:NbV];
+
+};
+
+
+class cTabValArgGlob
+{
+     public :
+
+          cTabValArgGlob(const cMultiCorrelPonctuel & aMCP, const int & aValOut,double aDefRes) :
+                mPdsPonct (aMCP.PdsCorrelPonct() / 127.0),
+                mDefRes   (aMCP.PdsCorrelPonct() * aDefRes),
+                mValOut   (aValOut)
+          {
+          }
+
+          double mPdsPonct;
+          double mDefRes;
+          int    mValOut;
+};
+
+template <class Type,const int NbV> class cTabValI1Prg2DTmp
+{
+    public :
+       void InitTmp(const cTplCelNapPrgDyn< cTabValI1Prg2DCelNap<Type,NbV> >  & aCel)
+       {
+            memcpy(mVals,aCel.ArgAux().mVals,NbV);
+       }
+
+       cTabValI1Prg2DTmp()  
+       {
+       }
+	   
+	   // visual does not allow arrays of size 0
+       Type mVals[NbV==0?1:NbV];
+    
+
+       double CostCroise(const cTabValI1Prg2DTmp<Type,NbV> &  aC2,const cTabValArgGlob & anArg) const 
+       {
+           int  aRes = 0;
+           int  aNbNN = 0;
+           for (int aK=0 ; aK< NbV ; aK++)
+           {
+               Type aV1 = mVals[aK];
+               Type aV2 = aC2.mVals[aK];
+
+// std::cout << "V1V2 " << int(aV1) << " " << int(aV2) << "\n";
+               if ((aV1!=anArg.mValOut) && (aV2!=anArg.mValOut)) 
+               {
+                  aRes += ElAbs(aV1-aV2);
+                  aNbNN++;
+               }
+           }
+
+// std::cout << "RRRR = " << aRes << "\n";
+
+           if (aNbNN != 0)
+           {
+// std::cout << "RESS-NN " << (aRes * anArg.mPdsPonct) / aNbNN  << " " << anArg.mDefRes <<"\n";
+              return (aRes * anArg.mPdsPonct) / aNbNN;
+           }
+
+// std::cout << "RESNUl " << anArg.mDefRes << "\n";
+
+           return anArg.mDefRes;
+       }
+};
+
+/*
+template <class Type,const int NbV> class cTabValI1Prg2DTmp
+template <class Type,const int NbV> class cTabValI1Prg2DCelNap
+class cTabValArgGlob
+*/
+
+template <class Type,const int NbV> class cTypeTabValArgPgr2D    
+
+{
+     public :
+
+        typedef cTabValI1Prg2DTmp<Type,NbV>               tArgCelTmp;  
+        typedef cTabValI1Prg2DCelNap<Type,NbV>            tArgNappe;  
+        typedef cTabValArgGlob                            tArgGlob;
+};
+
+//==================================================================
+//==================================================================
+//==================================================================
 
 
 
@@ -212,6 +319,7 @@ template <class TypeArg> class cMMNewPrg2D : public cSurfaceOptimiseur
         void Local_SolveOpt(Im2D_U_INT1);
 
         void Local_SetCpleRadiom(Pt2di aPTer,int * aPX,U_INT2 aR1,U_INT2 aR2);
+        void Local_VecInt1(Pt2di aPTer,int * aPX,const  std::vector<INT1> &);
 
      //====================  End Pre Requis =================
 
@@ -470,6 +578,11 @@ template <class Type> void cMMNewPrg2D<Type>::Local_SetCpleRadiom(Pt2di aPTer,in
 {
    mCelsNap[aPTer.y][aPTer.x][aPX[0]].ArgAux().InitCpleRadiom(aR1,aR2);
 }
+template <class Type> void cMMNewPrg2D<Type>::Local_VecInt1(Pt2di aPTer,int * aPX,const  std::vector<INT1> & aVec)
+{
+   mCelsNap[aPTer.y][aPTer.x][aPX[0]].ArgAux().InitVecINT1(aVec);
+}
+
 
 
 
@@ -684,6 +797,44 @@ cSurfaceOptimiseur * cSurfaceOptimiseur::AllocNewPrgDyn
             ELISE_ASSERT(! EtiqImage,"Incompatibilite  : PonctuelleCroisee / EtiqImage");
             cCpleValArgGlob anArg(aCAH->Correl_PonctuelleCroisee().Val());
             return new cMMNewPrg2D<cTypeClpeValArgPrg2D>(anArg,aAppli,aPrgD,anEPG,aLT,anEqX,anEqY,aMulImage,EtiqImage,anEBI);
+        }
+        else if (aCAH->MultiCorrelPonctuel().IsInit())
+        {
+             const cMultiCorrelPonctuel & aMCP = aCAH->MultiCorrelPonctuel().Val();
+             ELISE_ASSERT(! EtiqImage,"Incompatibilite  : MultiCorrelPonctuel / EtiqImage");
+             cTabValArgGlob anArg(aMCP,ValUndefCPONT,aMCP.DefCost().Val());
+             switch (aAppli.NbVueAct()-1)
+             {
+                  case 0 :
+                     return new  cMMNewPrg2D<cTypeTabValArgPgr2D<INT1,0> >(anArg,aAppli,aPrgD,anEPG,aLT,anEqX,anEqY,aMulImage,EtiqImage,anEBI);
+                  break;
+                  case 1 :
+                     // cTabValArgGlob anArg(aMCP,ValUndefCPONT,aMCP.DefCost().Val());
+                     return new  cMMNewPrg2D<cTypeTabValArgPgr2D<INT1,1> >(anArg,aAppli,aPrgD,anEPG,aLT,anEqX,anEqY,aMulImage,EtiqImage,anEBI);
+                  break;
+                  case 2 :
+                     // cTabValArgGlob anArg(aMCP,ValUndefCPONT,aMCP.DefCost().Val());
+                     return new  cMMNewPrg2D<cTypeTabValArgPgr2D<INT1,2> >(anArg,aAppli,aPrgD,anEPG,aLT,anEqX,anEqY,aMulImage,EtiqImage,anEBI);
+                  break;
+                  case 3 :
+                     // cTabValArgGlob anArg(aMCP,ValUndefCPONT,aMCP.DefCost().Val());
+                     return new  cMMNewPrg2D<cTypeTabValArgPgr2D<INT1,3> >(anArg,aAppli,aPrgD,anEPG,aLT,anEqX,anEqY,aMulImage,EtiqImage,anEBI);
+                  break;
+                  case 4 :
+                     // cTabValArgGlob anArg(aMCP,ValUndefCPONT,aMCP.DefCost().Val());
+                     return new  cMMNewPrg2D<cTypeTabValArgPgr2D<INT1,4> >(anArg,aAppli,aPrgD,anEPG,aLT,anEqX,anEqY,aMulImage,EtiqImage,anEBI);
+                  break;
+                  case 5 :
+                     // cTabValArgGlob anArg(aMCP,ValUndefCPONT,aMCP.DefCost().Val());
+                     return new  cMMNewPrg2D<cTypeTabValArgPgr2D<INT1,5> >(anArg,aAppli,aPrgD,anEPG,aLT,anEqX,anEqY,aMulImage,EtiqImage,anEBI);
+                  break;
+                  case 6 :
+                     // cTabValArgGlob anArg(aMCP,ValUndefCPONT,aMCP.DefCost().Val());
+                     return new  cMMNewPrg2D<cTypeTabValArgPgr2D<INT1,6> >(anArg,aAppli,aPrgD,anEPG,aLT,anEqX,anEqY,aMulImage,EtiqImage,anEBI);
+                  break;
+             }
+             std::cout << "Nb Image " << aAppli.NbVueAct() << "\n";
+             ELISE_ASSERT(! EtiqImage,"Too much image in MultiCorrelPonctuel");
         }
    }
 

@@ -68,7 +68,7 @@ void  OneImage
       {
           for (int aKy =0 ; aKy<aNby ; aKy++)
           {
-             Pt2dr aP = Pt2dr(aRayon,aRayon);
+             // Pt2dr aP = Pt2dr(aRayon,aRayon);
 	     double aCx = aRayon + (aSz.x-2*aRayon) * (aKx/double(aNbx-1));
 	     double aCy = aRayon + (aSz.y-2*aRayon) * (aKy/double(aNby-1));
 
@@ -118,7 +118,7 @@ int main (int argc,char** argv)
     {
        OneImage
        (
-            "../TMP/Rodin.tif",
+            "TexureAleatoire.tif",
             Pt2di(1600,960),
 	    Virgule
 	    (
