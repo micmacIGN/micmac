@@ -1487,6 +1487,27 @@ class cGPU_CorrelBasik
 };
 cElXMLTree * ToXMLTree(const cGPU_CorrelBasik &);
 
+class cMultiCorrelPonctuel
+{
+    public:
+        friend void xml_init(cMultiCorrelPonctuel & anObj,cElXMLTree * aTree);
+
+
+        double & PdsCorrelStd();
+        const double & PdsCorrelStd()const ;
+
+        double & PdsCorrelPonct();
+        const double & PdsCorrelPonct()const ;
+
+        cTplValGesInit< double > & DefCost();
+        const cTplValGesInit< double > & DefCost()const ;
+    private:
+        double mPdsCorrelStd;
+        double mPdsCorrelPonct;
+        cTplValGesInit< double > mDefCost;
+};
+cElXMLTree * ToXMLTree(const cMultiCorrelPonctuel &);
+
 class cCorrel_Ponctuel2ImGeomI
 {
     public:
@@ -1571,6 +1592,9 @@ class cTypeCAH
 
         cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik();
         const cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik()const ;
+		
+        cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel();
+        const cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel()const ;
 
         cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI();
         const cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI()const ;
@@ -1589,6 +1613,7 @@ class cTypeCAH
     private:
         cTplValGesInit< cGPU_Correl > mGPU_Correl;
         cTplValGesInit< cGPU_CorrelBasik > mGPU_CorrelBasik;
+        cTplValGesInit< cMultiCorrelPonctuel > mMultiCorrelPonctuel;
         cTplValGesInit< cCorrel_Ponctuel2ImGeomI > mCorrel_Ponctuel2ImGeomI;
         cTplValGesInit< cCorrel_PonctuelleCroisee > mCorrel_PonctuelleCroisee;
         cTplValGesInit< cCorrel_MultiFen > mCorrel_MultiFen;
@@ -1617,6 +1642,9 @@ class cCorrelAdHoc
 
         cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik();
         const cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik()const ;
+		
+        cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel();
+        const cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel()const ;
 
         cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI();
         const cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI()const ;
@@ -2736,6 +2764,9 @@ class cEtapeMEC
 
         cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik();
         const cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik()const ;
+		
+        cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel();
+        const cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel()const ;
 
         cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI();
         const cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI()const ;
