@@ -1,6 +1,6 @@
 #include "general/all.h"
 #include "private/all.h"
-const char * (theNameVar_ParamMICMAC[1921]) = {
+const char * (theNameVar_ParamMICMAC[1926]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -874,6 +874,11 @@ const char * (theNameVar_ParamMICMAC[1921]) = {
 "                        </GPU_CorrelBasik>\n",
 "\n",
 "\n",
+"                        <MultiCorrelPonctuel Nb=\"?\"  AccessorFils=\"false\">\n",
+"                              <PdsCorrelStd   Nb=\"1\" Type=\"double\" > </PdsCorrelStd>\n",
+"                              <PdsCorrelPonct Nb=\"1\" Type=\"double\" > </PdsCorrelPonct>\n",
+"                              <DefCost  Nb=\"?\" Type=\"double\" Def=\"0.1\"> </DefCost>\n",
+"                        </MultiCorrelPonctuel>\n",
 "\n",
 "\n",
 "                        <Correl_Ponctuel2ImGeomI Nb=\"?\" AccessorFils=\"false\">    \n",

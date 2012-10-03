@@ -77,6 +77,11 @@ bool PtIsToTest(const Pt2di & aP)
    // return (aP==Pt2di(220,195)) || (aP==Pt2di(225,195));
 }
 
+/*
+   Cas ou pour chaque imahge on a calcule des projection du nuage, il est donne
+par NuagePredicteur
+*/
+
 void cAppliMICMAC::Correl_MNE_ZPredic
      (
             const Box2di & aBox,
@@ -84,19 +89,6 @@ void cAppliMICMAC::Correl_MNE_ZPredic
      )
 {
    static  cStatMNE aStat;
-   //std::cout << "Correl_MNE_ZPredic " << aBox._p0 << " " << aBox._p1 << "\n";
-
-   //  Lecture des parametre d'environnement MicMac : nappes, images, quantification etc ...
-
-
-   //   Masque des points terrains valides
-   // U_INT1 **  aTabMasqTER = mLTer->GPULowLevel_MasqTer();
-
-   //   Deux constantes : cout lorque la correlation ne peut etre calculee et
-   //   ecart type minmal
-   // double aAhDefCost =  mStatGlob->CorrelToCout(mDefCorr);
-   // double anAhEpsilon = EpsilonCorrelation().Val();
-
 
    // Buffer pour pointer sur l'ensmble des vignettes OK
    std::vector<double *> aVecVals(mNbIm);

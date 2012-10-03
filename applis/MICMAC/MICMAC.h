@@ -101,6 +101,11 @@ using namespace NS_SuperposeImage;
 void MicMacRequiresBinaireAux();
 
 
+#define ValUndefCPONT -128  // Valeur pour coder une valeur inexistante en correl "a un pixel" multi image
+inline int AdaptCostPonct(int aVal)
+{
+   return ElMax(-127,ElMin(127,aVal));
+}
 
 
 namespace NS_ParamMICMAC
@@ -306,6 +311,7 @@ class cSurfaceOptimiseur
       bool                    MaskCalcDone();
       Im2D_Bits<1>            MaskCalc();
       virtual void Local_SetCpleRadiom(Pt2di aPTer,int * aPX,U_INT2 aR1,U_INT2 aR2);  
+      virtual void Local_VecInt1(Pt2di aPTer,int * aPX,const  std::vector<INT1> &);
 
     protected  :
       cSurfaceOptimiseur
@@ -2454,6 +2460,10 @@ class   cGPU_LoadedImGeom
       {
             return mDOK_Ortho[anY][anX];
       }
+      tGpuF ImOrtho(int anX,int anY) const
+      {
+            return mDOrtho[anY][anX];
+      }
 
        tGpuF **  DataOrtho();
        U_INT1 ** DataOKOrtho();
@@ -2677,9 +2687,9 @@ class cAppliMICMAC  : public   cParamMICMAC,
         double CostCalcCorrelRectang(Box2di,int aNbPts) const;
         void   CalcCorrelByRect(Box2di,int * aPx);
 
-	void DoGPU_Correl (const Box2di & aBoxInterne);  
+	void DoGPU_Correl (const Box2di & aBoxInterne,const cMultiCorrelPonctuel *);  
         void DoOneCorrelSym(int anX,int anY);
-        void DoOneCorrelIm1Maitre(int anX,int anY);
+        void DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel *);
         void DoOneCorrelMaxIm1Maitre(int anX,int anY);
 
 	void DoGPU_Correl_Basik (const Box2di & aBoxInterne);  
