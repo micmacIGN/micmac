@@ -141,5 +141,5 @@ install(FILES ${BinAuxWin} DESTINATION ${Install_Dir})
 # Commande dos pour ajouter une variable d'environement
 # setx path "%path%;your new path"
 
-SET(ENV{path} "$ENV{path};${Install_Dir}")
-MESSAGE("path:" $ENV{path})
+# SET(ENV{path} "$ENV{path};${Install_Dir}")
+# MESSAGE("path:" $ENV{path})
