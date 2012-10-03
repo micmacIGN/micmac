@@ -1,4 +1,6 @@
+# fichier contenant la Macro gerant les en-tetes précompilées
 include(${CMAKE_CURRENT_SOURCE_DIR}/precompiled_headers.cmake)
+
 cmake_minimum_required( VERSION 2.8.1 )
 project(MICMAC)
 
@@ -80,7 +82,6 @@ IF(${WITH_MATIS_ORI})
 	ENDIF()
 ENDIF()
 
-
 FIND_PACKAGE(X11)
 IF (X11_FOUND)
 	MESSAGE("X11 Found : ${X11_INCLUDE_DIRS} | ${X11_LIBRARIES} | ${X11_LIBRARY_DIRS}")
@@ -90,15 +91,16 @@ ELSE()
 ENDIF()
 
 IF (MSVC)
-	add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /nologo" )
+	add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /nologo" )
 ENDIF()
 
+# Dossier Include
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
  
-
+# Windows : le projet debug est générer directement sous bin pour avoir les informations de Debug
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/bin)
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/bin)
 
 	
 IF (CMAKE_COMPILER_IS_GNUCC)
@@ -108,14 +110,36 @@ ENDIF()
 #dossier d'installation
 set(Install_Dir ${PROJECT_SOURCE_DIR}/bin)
 
+# Definition du dossier des sources d'Elise
 set(ELISE_DIR src)
+
+# Definition du dossier des sources des applications
 set(APPLIS_DIR applis)
 
+# construction de la librairie Elise
 ADD_SUBDIRECTORY(${ELISE_DIR}) 
+
+# construction des applications
 ADD_SUBDIRECTORY(${APPLIS_DIR})
 
+# Dossier des exe et Dll nécessaires sous windows 
+set(BinAuxWinDir ${PROJECT_SOURCE_DIR}/binaire-aux/BIN_AUX_WIN32)
 
-#set(BinAuxWinDir binaire-aux/BIN_AUX_WIN32)
-#set(BinAuxWin 	${BinAuxDir}/
-#install(FILES )
+# Les exe et Dll nécessaires sous windows 
+set(BinAuxWin 	
+	${BinAuxWinDir}/exiftool.exe
+	${BinAuxWinDir}/exiv2.exe
+	${BinAuxWinDir}/libexpat.dll
+	${BinAuxWinDir}/libiconv2.dll
+	${BinAuxWinDir}/libintl3.dll
+	${BinAuxWinDir}/make.exe
+)
+# Installation des exe et Dll nécessaires sous windows 
+install(FILES ${BinAuxWin} DESTINATION ${Install_Dir})
 
+
+# Commande dos pour ajouter une variable d'environement
+# setx path "%path%;your new path"
+
+SET(ENV{path} "$ENV{path};${Install_Dir}")
+MESSAGE("path:" $ENV{path})
