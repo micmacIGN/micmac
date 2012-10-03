@@ -112,5 +112,10 @@ set(ELISE_DIR src)
 set(APPLIS_DIR applis)
 
 ADD_SUBDIRECTORY(${ELISE_DIR}) 
-ADD_SUBDIRECTORY(${APPLIS_DIR}) 
+ADD_SUBDIRECTORY(${APPLIS_DIR})
+
+
+#set(BinAuxWinDir binaire-aux/BIN_AUX_WIN32)
+#set(BinAuxWin 	${BinAuxDir}/
+#install(FILES )
 
