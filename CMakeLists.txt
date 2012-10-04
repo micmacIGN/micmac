@@ -13,26 +13,30 @@ set (MICMAC_VERSION_MINOR 0)
 OPTION(WITH_KAKADU  "Include KAKADU Support" OFF)
 # Use Matis orientation
 OPTION(WITH_MATIS_ORI "Include Matis orrientation" OFF )
-# Use Subversion
-OPTION(WITH_SVN "Use SVN" OFF )
 
-IF(${WITH_SVN})
-	FIND_PACKAGE(Subversion)
-	  IF(SUBVERSION_FOUND)
-	    Subversion_WC_INFO(${PROJECT_SOURCE_DIR} MICMAC)
-	    MESSAGE("Current revision is ${MICMAC_WC_REVISION}")
-	    Subversion_WC_LOG(${PROJECT_SOURCE_DIR} MICMAC)
-	    MESSAGE("Last changed log is ${MICMAC_LAST_CHANGED_LOG}")
-	  ELSE()
-		MESSAGE("Impossible de trouver la version SVN")
-		set(MICMAC_WC_REVISION 0)
-	ENDIF()
-
-	IF(NOT ${PROJECT_NAME}_CONFIG_HAS_BEEN_RUN_BEFORE)
-		UNSET(CMAKE_INSTALL_PREFIX CACHE)
-		SET(CMAKE_INSTALL_PREFIX ${${PROJECT_NAME}_SOURCE_DIR} CACHE PATH "")
-	ENDIF()
+FIND_PACKAGE(Subversion)
+IF(!SUBVERSION_FOUND)
+	MESSAGE("Impossible de trouver la version SVN")
+	MESSAGE("Impossible d'effectuer les tests sans SVN")
 ENDIF()
+
+find_program(MERCURIAL_EXECUTABLE hg DOC "Chemin vers Mercurial")
+if(MERCURIAL_EXECUTABLE-NOTFOUND)
+	message("Vous devez installer TortoiseHG")
+else()
+	# Affiche la revision MICMAC
+	EXECUTE_PROCESS(
+		COMMAND
+		hg log -l 1 -b "default" --template "{rev}"
+		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+		OUTPUT_VARIABLE HG_REVISION_DIST
+		ERROR_QUIET
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+	message("Derniere revision mercurial de MicMac : " ${HG_REVISION_DIST})
+	
+	set(HG_REV ${HG_REVISION_DIST} CACHE STRING "Revision" FORCE)
+endif()
 
 CONFIGURE_FILE (
   "include/general/MM_InstalDir.h.in"
@@ -82,8 +86,8 @@ IF(${WITH_MATIS_ORI})
 	ENDIF()
 ENDIF()
 
-# Vérifier si imagemagik est installé
-find_program( CONVERT_EXECUTABLE convert)
+# Vérifier si ImageMagick est installé
+find_program( CONVERT_EXECUTABLE convert DOC "Chemin vers la commande convert d'ImageMagick")
 
 if(CONVERT_EXECUTABLE-NOTFOUND)
 
