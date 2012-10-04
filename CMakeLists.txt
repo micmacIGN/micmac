@@ -82,16 +82,29 @@ IF(${WITH_MATIS_ORI})
 	ENDIF()
 ENDIF()
 
-FIND_PACKAGE(X11)
-IF (X11_FOUND)
-	MESSAGE("X11 Found : ${X11_INCLUDE_DIRS} | ${X11_LIBRARIES} | ${X11_LIBRARY_DIRS}")
-ELSE()
-	add_definitions(-DNO_X11)
-	MESSAGE("X11 Not Found : pas de SaisieMasq")
-ENDIF()
+# Vérifier si imagemagik est installé
+find_program( CONVERT_EXECUTABLE convert)
 
-IF (MSVC)
-	add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /nologo" )
+if(CONVERT_EXECUTABLE-NOTFOUND)
+
+	MESSAGE("ATTENTION!!! Vous devez installer Image Magick.")
+	MESSAGE("http://www.imagemagick.org/script/index.php")
+	
+endif()
+
+# Vérifier si X11 est présent
+if(!WIN32)
+	FIND_PACKAGE(X11)
+	IF (X11_FOUND)
+		MESSAGE("X11 Found : ${X11_INCLUDE_DIRS} | ${X11_LIBRARIES} | ${X11_LIBRARY_DIRS}")
+	ELSE()
+		add_definitions(-DNO_X11)
+		MESSAGE("X11 Not Found : pas de SaisieMasq")
+	ENDIF()
+
+	IF (MSVC)
+		add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /nologo" )
+	ENDIF()
 ENDIF()
 
 # Dossier Include
@@ -100,7 +113,6 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 # Windows : le projet debug est générer directement sous bin pour avoir les informations de Debug
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/bin)
 
 	
 IF (CMAKE_COMPILER_IS_GNUCC)
@@ -136,10 +148,3 @@ set(BinAuxWin
 )
 # Installation des exe et Dll nécessaires sous windows 
 install(FILES ${BinAuxWin} DESTINATION ${Install_Dir})
-
-
-# Commande dos pour ajouter une variable d'environement
-# setx path "%path%;your new path"
-
-# SET(ENV{path} "$ENV{path};${Install_Dir}")
-# MESSAGE("path:" $ENV{path})
