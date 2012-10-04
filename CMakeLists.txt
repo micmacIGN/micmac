@@ -97,7 +97,7 @@ if(CONVERT_EXECUTABLE-NOTFOUND)
 endif()
 
 # Vérifier si X11 est présent
-if(!WIN32)
+if(NOT WIN32)
 	FIND_PACKAGE(X11)
 	IF (X11_FOUND)
 		MESSAGE("X11 Found : ${X11_INCLUDE_DIRS} | ${X11_LIBRARIES} | ${X11_LIBRARY_DIRS}")
@@ -105,10 +105,10 @@ if(!WIN32)
 		add_definitions(-DNO_X11)
 		MESSAGE("X11 Not Found : pas de SaisieMasq")
 	ENDIF()
+ENDIF()
 
-	IF (MSVC)
-		add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /nologo" )
-	ENDIF()
+IF (MSVC)
+	add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /nologo" )
 ENDIF()
 
 # Dossier Include
