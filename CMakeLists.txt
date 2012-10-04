@@ -141,14 +141,17 @@ ADD_SUBDIRECTORY(${APPLIS_DIR})
 # Dossier des exe et Dll nécessaires sous windows 
 set(BinAuxWinDir ${PROJECT_SOURCE_DIR}/binaire-aux/BIN_AUX_WIN32)
 
-# Les exe et Dll nécessaires sous windows 
-set(BinAuxWin 	
-	${BinAuxWinDir}/exiftool.exe
-	${BinAuxWinDir}/exiv2.exe
-	${BinAuxWinDir}/libexpat.dll
-	${BinAuxWinDir}/libiconv2.dll
-	${BinAuxWinDir}/libintl3.dll
-	${BinAuxWinDir}/make.exe
-)
+# Les exe et Dll nécessaires sous windows
+if (win32)
+	set(BinAuxWin 	
+		${BinAuxWinDir}/exiftool.exe
+		${BinAuxWinDir}/exiv2.exe
+		${BinAuxWinDir}/libexpat.dll
+		${BinAuxWinDir}/libiconv2.dll
+		${BinAuxWinDir}/libintl3.dll
+		${BinAuxWinDir}/make.exe
+	)
+endif()
+
 # Installation des exe et Dll nécessaires sous windows 
 install(FILES ${BinAuxWin} DESTINATION ${Install_Dir})
