@@ -396,8 +396,7 @@ void FiltrageDup
          bool   isP1
      )
 {
-
-   if (aDist<0) return;
+   if ( ( aDist<0 ) || ( aVPC.size()==0 ) ) return;
    cPtOfCple aPOC(isP1);
    cActSetCpleNotOK anAct;
    cCple ** aV0 = &(aVPC[0]);
