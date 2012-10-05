@@ -84,8 +84,12 @@ INCLUDE (${UTIL_DIR}/Sources.cmake)
 INCLUDE (${VECTO_DIR}/Sources.cmake)
 INCLUDE (${XINTER_DIR}/Sources.cmake)
 
-enable_precompiled_headers(StdAfx.h Elise_Src_Files)
+# En tetes precompilées pour visual studio
+if(MSVC_IDE)
+	enable_precompiled_headers(StdAfx.h Elise_Src_Files)
+endif(MSVC_IDE)
 
+# fichiers qui n'utilisent pas les en tetes precompilées
 set(Elise_Src_Files
 	${Elise_Src_Files}
 	${UTIL_DIR}/win_regex.c
@@ -104,6 +108,11 @@ set(Elise_Src_Files
 #endforeach(source_file)
 
 add_library( elise ${Elise_Src_Files})
+
+# En tetes precompilées pour GCC
+if(CMAKE_COMPILER_IS_GNUCXX)
+	enable_precompiled_headers(StdAfx.h elise)
+endif(CMAKE_COMPILER_IS_GNUCXX)
 
 add_definitions(-DNO_JPEG -DNO_LCMS)
 
