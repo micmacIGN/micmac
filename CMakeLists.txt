@@ -1,4 +1,4 @@
-# fichier contenant la Macro gerant les en-tetes précompilées
+# fichier contenant la fonction gerant les en-tetes précompilées
 include(${CMAKE_CURRENT_SOURCE_DIR}/precompiled_headers.cmake)
 
 cmake_minimum_required( VERSION 2.8.1 )
@@ -15,12 +15,13 @@ OPTION(WITH_KAKADU  "Include KAKADU Support" OFF)
 OPTION(WITH_MATIS_ORI "Include Matis orrientation" OFF )
 
 FIND_PACKAGE(Subversion)
-IF(!SUBVERSION_FOUND)
+IF(NOT SUBVERSION_FOUND)
 	MESSAGE("Impossible de trouver la version SVN")
 	MESSAGE("Impossible d'effectuer les tests sans SVN")
 ENDIF()
 
-find_program(MERCURIAL_EXECUTABLE hg DOC "Chemin vers Mercurial")
+find_program(MERCURIAL_EXECUTABLE hg DOC "Emplacement de gestionnaire de versions Mercurial")
+
 if(MERCURIAL_EXECUTABLE-NOTFOUND)
 	message("Vous devez installer TortoiseHG")
 else()
@@ -89,18 +90,34 @@ ENDIF()
 # Vérifier si ImageMagick est installé
 find_program( CONVERT_EXECUTABLE convert DOC "Chemin vers la commande convert d'ImageMagick")
 
-if(CONVERT_EXECUTABLE-NOTFOUND)
+if(NOT CONVERT_EXECUTABLE_FOUND)
 
 	MESSAGE("ATTENTION!!! Vous devez installer Image Magick.")
 	MESSAGE("http://www.imagemagick.org/script/index.php")
 	
 endif()
 
-# Vérifier si X11 est présent
+find_program(EXIF_EXECUTABLE exiftool)
+
+if(EXIF_EXECUTABLE_NOTFOUND)
+
+	message("Exiftool non trouvé!!")
+
+endif()
+
+
+find_program(PROJ4_EXECUTABLE proj4)
+if(PROJ4_EXECUTABLE_FOUND)
+
+	message("Proj4 non trouvé!!")
+
+endif()
+
+# Vérifier si X11 est présent sous MacOS et Linux
 if(NOT WIN32)
 	FIND_PACKAGE(X11)
 	IF (X11_FOUND)
-		MESSAGE("X11 Found : ${X11_INCLUDE_DIRS} | ${X11_LIBRARIES} | ${X11_LIBRARY_DIRS}")
+		#MESSAGE("X11 Found : ${X11_INCLUDE_DIRS} | ${X11_LIBRARIES} | ${X11_LIBRARY_DIRS}")
 	ELSE()
 		add_definitions(-DNO_X11)
 		MESSAGE("X11 Not Found : pas de SaisieMasq")
@@ -111,10 +128,11 @@ IF (MSVC)
 	add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /nologo" )
 ENDIF()
 
-# Dossier Include
+# DEFINITION : Dossier Include
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
  
-# Windows : le projet debug est générer directement sous bin pour avoir les informations de Debug
+# Windows : le projet debug est généré directement sous bin pour avoir les informations de Debug
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
 
@@ -123,25 +141,25 @@ IF (CMAKE_COMPILER_IS_GNUCC)
 	ADD_DEFINITIONS(-O2)
 ENDIF()
 
-#dossier d'installation
+# DEFINITION : du dossier d'installation
 set(Install_Dir ${PROJECT_SOURCE_DIR}/bin)
 
-# Definition du dossier des sources d'Elise
+# DEFINITION : du dossier des sources d'Elise
 set(ELISE_DIR src)
 
-# Definition du dossier des sources des applications
+# DEFINITION : du dossier des sources des applications
 set(APPLIS_DIR applis)
 
-# construction de la librairie Elise
+# CONSTRUCTION : de la librairie Elise
 ADD_SUBDIRECTORY(${ELISE_DIR}) 
 
-# construction des applications
+# CONSTRUCTION : des applications
 ADD_SUBDIRECTORY(${APPLIS_DIR})
 
-# Dossier des exe et Dll nécessaires sous windows 
+# INSTALLATION : Dossier des exe et Dll nécessaires sous windows 
 set(BinAuxWinDir ${PROJECT_SOURCE_DIR}/binaire-aux/BIN_AUX_WIN32)
 
-# Les exe et Dll nécessaires sous windows
+# INSTALLATION : Liste des exe et Dll nécessaires sous windows
 if (win32)
 	set(BinAuxWin 	
 		${BinAuxWinDir}/exiftool.exe
@@ -153,5 +171,5 @@ if (win32)
 	)
 endif()
 
-# Installation des exe et Dll nécessaires sous windows 
+# INSTALLATION : des exe et Dll nécessaires sous windows 
 install(FILES ${BinAuxWin} DESTINATION ${Install_Dir})
