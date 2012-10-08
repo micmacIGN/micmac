@@ -82,7 +82,8 @@ INCLUDE (${UTIL_DIR}/Sources.cmake)
 INCLUDE (${VECTO_DIR}/Sources.cmake)
 INCLUDE (${XINTER_DIR}/Sources.cmake)
 
-set(PreCompHeaderWIN ${Elise_Src_Files})
+# OPTION BUILD : En tetes precompilées visual studio
+enable_precompiled_headers_msvc(StdAfx.h Elise_Src_Files)
 
 # fichiers qui n'utilisent pas les en tetes precompilées
 set(Elise_Src_Files
@@ -101,8 +102,8 @@ set(Elise_Src_Files
 # CONSTRUCTION : Lib ELISE
 add_library( elise ${Elise_Src_Files})
 
-# OPTION BUILD : En tetes precompilées 
-enable_precompiled_headers(StdAfx.h PreCompHeaderWIN elise)
+# OPTION BUILD : En tetes precompilées pour gcc
+enable_precompiled_headers_GCC(StdAfx.h elise)
 
 # DEFINITION
 add_definitions(-DNO_JPEG -DNO_LCMS)

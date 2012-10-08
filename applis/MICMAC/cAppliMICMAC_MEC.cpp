@@ -36,7 +36,7 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "SdtAfx.h"
+#include "StdAfx.h"
 #include "MICMAC.h"
 
 namespace NS_ParamMICMAC

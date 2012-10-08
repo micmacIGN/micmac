@@ -79,8 +79,8 @@ IF (X11_FOUND)
         )
 
 	add_executable(MICMACSaisieLiaisons MICMAC/SaisieLiaisons.cpp
-	../CodeGenere/File2String/Str_ParamMICMAC.cpp
-	   MICMAC/cNewProgDyn.cpp
+		../CodeGenere/File2String/Str_ParamMICMAC.cpp
+		MICMAC/cNewProgDyn.cpp
         MICMAC/cAppliMICMAC_GPU.cpp
         MICMAC/cAppliMICMAC_CorrelPonctuelle.cpp
         MICMAC/Jp2ImageLoader.cpp
@@ -117,12 +117,9 @@ IF (X11_FOUND)
 	)
 
 	target_link_libraries(MICMACSaisieLiaisons elise ${X11_LIBRARIES})
-
-	#enable_precompiled_headers(StdAfx.h NoWIN MICMACSaisieLiaisons)
         
 	INSTALL(TARGETS MICMACSaisieLiaisons RUNTIME DESTINATION ${Install_Dir})
-
-
+	
 ENDIF()
 
 #Outils uti_files
@@ -131,12 +128,6 @@ target_link_libraries(BatchFDC elise ${X11_LIBRARIES})
 
 add_executable(MapCmd uti_files/MapCmd.cpp)
 target_link_libraries(MapCmd elise ${X11_LIBRARIES})
-
-# Apero
-#include_directories(
-#	${PROJECT_SOURCE_DIR}/Apero
-#)
-
 
 ADD_SUBDIRECTORY(Apero)
 
