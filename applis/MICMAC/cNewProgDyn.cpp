@@ -36,14 +36,8 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "general/all.h"
+#include "StdAfx.h"
 #include "MICMAC.h"
-
-//#include "ext_stl/Nappes.h"
-#include "im_tpl/algo_dist32.h"
-#include "im_tpl/ProgDyn2D.h"
-#include "im_tpl/algo_cc.h"
-
 
 namespace NS_ParamMICMAC
 {

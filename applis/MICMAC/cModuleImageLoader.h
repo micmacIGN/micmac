@@ -39,8 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef __cModuleImageLoader_H__
 #define __cModuleImageLoader_H__
 
-#include <string> 
-#include <complex.h>
+#include "StdAfx.h"
 
 class cAppliMICMAC;
 

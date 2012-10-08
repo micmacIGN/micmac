@@ -36,7 +36,7 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include <iostream>
+#include "StdAfx.h"
 #include "cOrientationGrille.h"
 
 int main(int argc, char **argv)

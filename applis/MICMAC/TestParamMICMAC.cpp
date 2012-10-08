@@ -36,8 +36,7 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 #include "cParamMEC.h"
 
 using namespace NS_ParamMEC;

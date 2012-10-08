@@ -18,7 +18,7 @@
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
     d'images, adapte au contexte geograhique" to appears in 
-    Bulletin d'information de l'Institut Geographique National, 2007.
+    Bulletin d'information de l'Institut Geographique National, 2007.	
 
 Francais :
 
@@ -39,12 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef __CORIENTATIONGRILLE_H__
 #define __CORIENTATIONGRILLE_H__
 
-#include <map>
-#include <vector>
-#include <string>
-#include <iostream>
-#include <complex>
-#include <math.h>
+#include "StdAfx.h"
 
 #include "cModuleOrientation.h"
 

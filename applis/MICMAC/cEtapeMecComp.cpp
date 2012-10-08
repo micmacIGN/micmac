@@ -36,7 +36,7 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "general/all.h"
+#include "StdAfx.h"
 #include "MICMAC.h"
 
 extern void  t(Im2DGen I,int,int);

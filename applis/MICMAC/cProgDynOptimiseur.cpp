@@ -36,10 +36,8 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "general/all.h"
+#include "StdAfx.h"
 #include "MICMAC.h"
-#include "ext_stl/appli_tab.h"
-#include "ext_stl/tab2D_dyn.h"
 
 
 namespace NS_ParamMICMAC
