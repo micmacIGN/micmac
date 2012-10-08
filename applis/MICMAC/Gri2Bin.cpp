@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include <iostream>
 #include "cOrientationGrille.h"
 
 

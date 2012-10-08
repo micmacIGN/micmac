@@ -1,7 +1,8 @@
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
 #ifndef Define_NotMicMac
 #define Define_NotMicMac
-
+#include "XML_GEN/all.h"
 using namespace NS_ParamChantierPhotogram;
 using namespace NS_SuperposeImage;
 namespace NS_ParamMICMAC{

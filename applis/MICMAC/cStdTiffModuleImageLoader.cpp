@@ -36,7 +36,7 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
+#include "general/all.h"
 #include "MICMAC.h"
 #if __USE_JP2__
 #include "Jp2ImageLoader.h"

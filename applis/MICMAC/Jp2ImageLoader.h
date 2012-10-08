@@ -3,7 +3,10 @@
 
 #ifdef __USE_JP2__
 
+#include <complex>
+#include <vector>
 #include "cInterfModuleImageLoader.h"
+
 
 namespace NS_ParamMICMAC
 {

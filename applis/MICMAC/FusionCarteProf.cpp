@@ -36,8 +36,11 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
 #include "MICMAC.h"
+#include "ext_stl/numeric.h"
+#include "im_tpl/algo_dist32.h"
 
 using namespace NS_ParamMICMAC;
 using namespace NS_ParamChantierPhotogram;
