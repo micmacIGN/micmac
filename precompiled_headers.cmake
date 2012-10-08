@@ -6,8 +6,8 @@
 
 # Instructs the MSVC toolset to use the precompiled header PRECOMPILED_HEADER
 # for each source file given in the collection named by SOURCE_VARIABLE_NAME.
-function(enable_precompiled_headers PRECOMPILED_HEADER SOURCE_VARIABLE_NAME)
-
+function(enable_precompiled_headers PRECOMPILED_HEADER SOURCE_VARIABLE_NAME TARGET_NAME)
+if(WITH_HEADER_PRECOMP)
 	if(MSVC_IDE)
 
 		set(files ${${SOURCE_VARIABLE_NAME}})
@@ -36,13 +36,10 @@ function(enable_precompiled_headers PRECOMPILED_HEADER SOURCE_VARIABLE_NAME)
 
 	IF(CMAKE_COMPILER_IS_GNUCXX)
 
-		set(_input  ${PRECOMPILED_HEADER})
-		set(_targetName ${SOURCE_VARIABLE_NAME})
+		GET_FILENAME_COMPONENT(_name ${PRECOMPILED_HEADER} NAME)
 
-		GET_FILENAME_COMPONENT(_name ${_input} NAME)
-
-		#SET(_source "${CMAKE_CURRENT_SOURCE_DIR}/${_input}")
-		SET(_source "${PROJECT_SOURCE_DIR}/include/${_input}")
+		#SET(_source "${CMAKE_CURRENT_SOURCE_DIR}/${PRECOMPILED_HEADER}")
+		SET(_source "${PROJECT_SOURCE_DIR}/include/${PRECOMPILED_HEADER}")
 		#message("source : " ${_source})
 
 		#SET(_outdir "${CMAKE_CURRENT_SOURCE_DIR}/${_name}.gch")
@@ -67,11 +64,11 @@ function(enable_precompiled_headers PRECOMPILED_HEADER SOURCE_VARIABLE_NAME)
 			OUTPUT ${_output}
 			COMMAND ${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} -x c++-header -o ${_output} ${_source}
 			DEPENDS ${_source} )
-			ADD_CUSTOM_TARGET(${_targetName}_gch DEPENDS ${_output})
+			ADD_CUSTOM_TARGET(${TARGET_NAME}_gch DEPENDS ${_output})
 
-		ADD_DEPENDENCIES(${_targetName} ${_targetName}_gch)
-		SET_TARGET_PROPERTIES(${_targetName}_gch PROPERTIES COMPILE_FLAGS "-include ${_name} -Winvalid-pch")
+		ADD_DEPENDENCIES(${TARGET_NAME} ${TARGET_NAME}_gch)
+		SET_TARGET_PROPERTIES(${TARGET_NAME}_gch PROPERTIES COMPILE_FLAGS "-include ${_name} -Winvalid-pch")
 
 	ENDIF(CMAKE_COMPILER_IS_GNUCXX)
-
+endif(WITH_HEADER_PRECOMP)
 endfunction(enable_precompiled_headers)

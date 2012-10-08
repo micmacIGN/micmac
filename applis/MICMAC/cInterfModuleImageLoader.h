@@ -39,9 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef __cModuleImageLoader_H__
 #define __cModuleImageLoader_H__
 
-#include <string> 
-#include <complex>
-#include <vector>
+#include "StdAfx.h"
 
 /*
    Il semble qu'il y ait une incompatibilite entre la definition

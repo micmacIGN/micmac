@@ -115,10 +115,12 @@ IF (X11_FOUND)
         MICMAC/uti_MICMAC.cpp
 		MICMAC/OrthoLocAnam.cpp
 	)
+
 	target_link_libraries(MICMACSaisieLiaisons elise ${X11_LIBRARIES})
-        INSTALL(TARGETS MICMACSaisieLiaisons
-                RUNTIME DESTINATION ${Install_Dir}
-        )
+
+	#enable_precompiled_headers(StdAfx.h NoWIN MICMACSaisieLiaisons)
+        
+	INSTALL(TARGETS MICMACSaisieLiaisons RUNTIME DESTINATION ${Install_Dir})
 
 
 ENDIF()

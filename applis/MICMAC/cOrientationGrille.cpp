@@ -36,15 +36,7 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "general/all.h"
-#include <iostream>
-#include <vector>
-#include <string>
-#include <complex>
-#include <fstream>
-#include <iomanip>
-#include <list>
-#include <stdexcept>
+#include "StdAfx.h"
 
 #include "cModuleOrientation.h"
 #include "cOrientationGrille.h"

@@ -46,21 +46,20 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cModuleOrientation.h"
 #include "cOrientationGrille.h"
 
-
 #ifdef __AVEC_XERCES__
-#include <xercesc/parsers/XercesDOMParser.hpp>
-#include <xercesc/dom/DOM.hpp>
-#include <xercesc/sax/HandlerBase.hpp>
-#include <xercesc/util/XMLString.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
+	#include <xercesc/parsers/XercesDOMParser.hpp>
+	#include <xercesc/dom/DOM.hpp>
+	#include <xercesc/sax/HandlerBase.hpp>
+	#include <xercesc/util/XMLString.hpp>
+	#include <xercesc/util/PlatformUtils.hpp>
 
 XERCES_CPP_NAMESPACE_USE
 #else
-#ifdef VERSION
-#undef VERSION
-#endif
-#include "general/all.h"
-#include "private/files.h"
+	#ifdef VERSION
+		#undef VERSION
+	#endif
+	#include "general/all.h"
+	#include "private/files.h"
 #endif
 
 
