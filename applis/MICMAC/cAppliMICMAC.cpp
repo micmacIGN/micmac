@@ -589,7 +589,7 @@ cAppliMICMAC * cAppliMICMAC::Alloc(int argc,char ** argv,eModeAllocAM aMode)
     if (aName==0) 
     {
        // aName = "applis/MICMAC/ParamMICMAC.xml";
-       std::string aStr =  MMDir() + StdGetFileXMLSpec("ParamMICMAC.xml");
+       std::string aStr =  StdGetFileXMLSpec("ParamMICMAC.xml");
        aName = (new std::string(aStr))->c_str();
     }
 
