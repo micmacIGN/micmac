@@ -6,24 +6,19 @@
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
-#include <complex>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
 #include <fstream>
 #include <iomanip>
-#include <iostream>
 #include <iterator>
 #include <map>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
 #include <set>
-#include <vector>
-#include <list>
-#include <stdexcept>
+
 
 #if (ELISE_windows)
 	#ifdef INT
@@ -67,29 +62,21 @@
 #include "api/cox_roy.h"
 #include "api/el_regex.h"
 
-#include "ext_stl/appli_tab.h"
 #include "ext_stl/fifo.h"
 #include "ext_stl/fixed.h"
 #include "ext_stl/intheap.h"
 #include "ext_stl/pack_list.h"
 #include "ext_stl/numeric.h"
-#include "ext_stl/tab2D_dyn.h"
 
 #include "graphes/graphe.h"
 #include "graphes/graphe_implem.h"
 #include "graphes/algo_planarite.h"
 #include "graphes/algo_pcc.h"
 
-#include "im_tpl/algo_cc.h"
-#include "im_tpl/algo_dist32.h"
-#include "im_tpl/algo_filter_exp.h"
-#include "im_tpl/oper_assoc_exter.h"
 #include "im_tpl/correl_imget.h"
 #include "im_tpl/cPtOfCorrel.h"
-#include "im_tpl/elise_ex_oper_assoc_exter.h"
 #include "im_tpl/image.h"
 #include "im_tpl/max_loc.h"
-#include "im_tpl/ProgDyn2D.h"
 
 #include "im_special/hough.h"
 
@@ -101,4 +88,5 @@
 #include "../src/ori_phot/all_phot.h"
 #include "../src/HassanArrangt/cElHJa_all.h"
 #include "../src/hough/hough_include.h"
+
 

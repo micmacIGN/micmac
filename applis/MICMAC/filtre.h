@@ -39,8 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef __FILTRE_H__
 #define __FILTRE_H__
 
-#include "StdAfx.h"
-
+#include <vector>
+#include <complex>
 
 template
 <class T>

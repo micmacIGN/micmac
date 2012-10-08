@@ -1,4 +1,5 @@
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
 #include "cParamMICMAC.h"
 namespace NS_ParamMICMAC{
 eModeGeomMEC  Str2eModeGeomMEC(const std::string & aName)

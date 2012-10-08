@@ -39,7 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef __MODULEORIENTATION_H__
 #define __MODULEORIENTATION_H__
 
-#include "StdAfx.h"
+#include <string> 
+// #include <dlfcn.h>
 
 class ModuleOrientation
 {
