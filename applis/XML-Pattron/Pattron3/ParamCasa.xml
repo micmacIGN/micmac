@@ -1,0 +1,34 @@
+<ParamCasa>
+    <SectionInitModele>
+        <Name>  Plafond </Name>
+        <SectionLoadNuage>
+           <NuageByImage>
+               <SzW>      900 700 </SzW>
+                <NameMasq> Masq-Cylindre.tif </NameMasq> 
+               <!-- 
+                    <NameMasq> Paquet.tif </NameMasq> 
+                -->
+               <NameNuage> GeoI/Nuage3DGeom-Im.tif </NameNuage>
+               <DistSep> 40  </DistSep>
+               <DistZone> 60 </DistZone>
+           </NuageByImage>
+        </SectionLoadNuage>
+
+        <SectionEstimSurf>
+            <TypeSurf> eTSA_CylindreRevolution </TypeSurf>
+            <NbRansac> 100 </NbRansac>
+        </SectionEstimSurf>
+    </SectionInitModele>
+
+     <SectionCompensation>
+         <EtapeCompensation>
+             <Sigma> 0.1 </Sigma>
+             <NbIter> 6  </NbIter>
+             <Export> Cyl.xml </Export>
+         </EtapeCompensation>
+     </SectionCompensation>
+
+
+
+     <DirectoryChantier> ThisDir </DirectoryChantier>
+</ParamCasa>
