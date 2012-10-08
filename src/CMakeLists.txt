@@ -37,8 +37,6 @@ set(NEIGH_DIR "neighboor")
 set(OP_BUF_DIR "op_buf")
 set(OPTIM_DIR "optim")
 
-
-
 INCLUDE (${AMD_DIR}/Sources.cmake)
 
 set(Elise_Src_Files
@@ -84,10 +82,8 @@ INCLUDE (${UTIL_DIR}/Sources.cmake)
 INCLUDE (${VECTO_DIR}/Sources.cmake)
 INCLUDE (${XINTER_DIR}/Sources.cmake)
 
-# En tetes precompilées pour visual studio
-if(MSVC_IDE)
-	enable_precompiled_headers(StdAfx.h Elise_Src_Files)
-endif(MSVC_IDE)
+# OPTION BUILD : En tetes precompilées visual studio
+enable_precompiled_headers_msvc(StdAfx.h Elise_Src_Files)
 
 # fichiers qui n'utilisent pas les en tetes precompilées
 set(Elise_Src_Files
@@ -103,18 +99,15 @@ set(Elise_Src_Files
 	${ORIPHO_DIR}/cOriMntCarto.cpp
 )
 
-#foreach(source_file ${Elise_Src_Files} )
-	#message(${source_file})
-#endforeach(source_file)
-
+# CONSTRUCTION : Lib ELISE
 add_library( elise ${Elise_Src_Files})
 
-# En tetes precompilées pour GCC
-if(CMAKE_COMPILER_IS_GNUCXX)
-	enable_precompiled_headers(StdAfx.h elise)
-endif(CMAKE_COMPILER_IS_GNUCXX)
+# OPTION BUILD : En tetes precompilées pour gcc
+enable_precompiled_headers_GCC(StdAfx.h elise)
 
+# DEFINITION
 add_definitions(-DNO_JPEG -DNO_LCMS)
 
+# INSTALLATION : Dossier de destination lors de l'install
 install(TARGETS elise ARCHIVE DESTINATION ${Install_Dir})
 	

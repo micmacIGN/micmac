@@ -9,16 +9,37 @@ set(VERBOSE 0)
 set (MICMAC_VERSION_MAJOR 1)
 set (MICMAC_VERSION_MINOR 0)
 
-# Use Kakadu
+# Dossier include
+
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
+
+##########################################
+## 		OPTIONS			##
+##########################################
+
+# Utiliser Kakadu
 OPTION(WITH_KAKADU  "Include KAKADU Support" OFF)
-# Use Matis orientation
+
+# Utiliser Matis orientation
 OPTION(WITH_MATIS_ORI "Include Matis orrientation" OFF )
+
+# Utiliser les en-tetes precompilees
+OPTION(WITH_HEADER_PRECOMP "En-tetes precompilees" ON )
+
+##########################################
+## 	Trouver les EXES et Libs	##
+##########################################
+
+# SUBVERSION
 
 FIND_PACKAGE(Subversion)
 IF(NOT SUBVERSION_FOUND)
 	MESSAGE("Impossible de trouver la version SVN")
 	MESSAGE("Impossible d'effectuer les tests sans SVN")
 ENDIF()
+
+# MERCURIAL
 
 find_program(MERCURIAL_EXECUTABLE hg DOC "Emplacement de gestionnaire de versions Mercurial")
 
@@ -44,7 +65,7 @@ CONFIGURE_FILE (
   "${PROJECT_BINARY_DIR}/include/general/MM_InstalDir.h"
   )
 
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
+# Utiliser Kakadu
 
 IF(${WITH_KAKADU})
 	FIND_PACKAGE( KAKADU )
@@ -58,6 +79,8 @@ IF(${WITH_KAKADU})
 	ENDIF()
 
 ENDIF()
+
+# Utiliser Matis orientation
 
 IF(${WITH_MATIS_ORI})
 	FIND_PACKAGE( MatisOrientation )
@@ -88,14 +111,17 @@ IF(${WITH_MATIS_ORI})
 ENDIF()
 
 # Vérifier si ImageMagick est installé
+
 find_program( CONVERT_EXECUTABLE convert DOC "Chemin vers la commande convert d'ImageMagick")
 
-if(NOT CONVERT_EXECUTABLE_FOUND)
+if(CONVERT_EXECUTABLE-NOTFOUND)
 
 	MESSAGE("ATTENTION!!! Vous devez installer Image Magick.")
 	MESSAGE("http://www.imagemagick.org/script/index.php")
 	
 endif()
+
+# Vérifier si exiftool est installé
 
 find_program(EXIF_EXECUTABLE exiftool)
 
@@ -105,6 +131,7 @@ if(EXIF_EXECUTABLE_NOTFOUND)
 
 endif()
 
+# Vérifier si Proj4 est installé
 
 find_program(PROJ4_EXECUTABLE proj4)
 if(PROJ4_EXECUTABLE_FOUND)
@@ -124,22 +151,20 @@ if(NOT WIN32)
 	ENDIF()
 ENDIF()
 
+# DEFINITION : des preprocesseurs windows
 IF (MSVC)
 	add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /nologo" )
 ENDIF()
 
-# DEFINITION : Dossier Include
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
- 
-# Windows : le projet debug est généré directement sous bin pour avoir les informations de Debug
-
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
-
-	
+# DEFINITION : des preprocesseurs G++
 IF (CMAKE_COMPILER_IS_GNUCC)
 	ADD_DEFINITIONS(-O2)
 ENDIF()
+
+# DEFINITION : Windows : le projet debug est généré directement sous bin pour avoir les informations de Debug
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
 
 # DEFINITION : du dossier d'installation
 set(Install_Dir ${PROJECT_SOURCE_DIR}/bin)
