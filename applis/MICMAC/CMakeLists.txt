@@ -39,12 +39,13 @@ set(MicMac_Src_Files
 	OrthoLocAnam.cpp
 )
 
+enable_precompiled_headers_msvc(StdAfx.h MicMac_Src_Files)
 
 add_executable(MICMAC ${MicMac_Src_Files})
 
 target_link_libraries(MICMAC elise ${X11_LIBRARIES} ${KAKADU_LIBRARIES}  ${TICPP_LIBRARIES} ${Boost_LIBRARIES})
 
-#enable_precompiled_headers(StdAfx.h NoWIN MICMAC)
+enable_precompiled_headers_GCC(StdAfx.h MICMAC)
 
 INSTALL(TARGETS MICMAC RUNTIME DESTINATION ${Install_Dir})
 	
