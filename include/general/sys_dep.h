@@ -94,6 +94,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 	#define SYS_RM "rm"
 	#define ELISE_CAR_DIR  '/' 
 	#define ELISE_Current_DIR  "./"
+        #define ELISE_STR_DIR "/"
 #endif
 
 #if ELISE_MacOs
@@ -101,6 +102,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 	#define SYS_RM "rm"
 	#define ELISE_CAR_DIR  '/' 
 	#define ELISE_Current_DIR  "./"
+        #define ELISE_STR_DIR "/"
 #endif
 
 #if ELISE_Cygwin
@@ -117,6 +119,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 	#define ELISE_Current_DIR  ".\\"
 	#include <float.h>
 	#define isnan _isnan 
+        #define ELISE_STR_DIR "\\"
 #endif
 
 #if Compiler_Gpp2_7_2   // =========

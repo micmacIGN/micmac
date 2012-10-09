@@ -361,6 +361,19 @@ bool TransFormArgKey
 	return aRes;
 }
 
+static const std::string aFileTmp = "MicMacInstall.txt";
+
+std::string ElGetStrSys(const std::string & aCBasik)
+{
+   std::string aCom = aCBasik  +  ">" + aFileTmp ;
+   VoidSystem(aCom.c_str());
+   ELISE_fp aF(aFileTmp.c_str(),ELISE_fp::READ);
+   std::string aRes = aF.std_fgets();
+   aF.close();
+
+   return aRes;
+}
+
 
 static std::string ArgvMMDir;
 void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
@@ -377,6 +390,7 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 
 	if ((ArgvMMDir=="") && (argc!=0))
 	{
+		MemoArg(argc,argv);
 #if ELISE_windows
 		TCHAR FilePath[MAX_PATH] = { 0 };
 		GetModuleFileName(NULL,FilePath, MAX_PATH );
@@ -387,20 +401,24 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 		ArgvMMDir.resize( ArgvMMDir.length()-1 );
         SplitDirAndFile(ArgvMMDir,sFile,ArgvMMDir);
 #else
-		MemoArg(argc,argv);
+
+               std::string aFulArg0 = ElGetStrSys("which "+ std::string(argv[0]));
+               // std::cout << "aFulArg0 " << aFulArg0 << "\n"; 
+
+
 		std::string aPatProg = "([0-9]|[a-z]|[A-Z]|_)+"; 
 		cElRegex  anAutomProg(aPatProg,10);
-		if (anAutomProg.Match(argv[0]))
+		if (anAutomProg.Match(aFulArg0))
 		{
              ArgvMMDir = std::string("..")+ELISE_CAR_DIR;
 		}
 		else
 		{
-             cElRegex  anAutomProg(std::string("(.*)bin")+ELISE_CAR_DIR+aPatProg,10);
-			ArgvMMDir = MatchAndReplace(anAutomProg,argv[0],"$1");
+                        cElRegex  anAutomProg(std::string("(.*)bin")+ELISE_CAR_DIR+aPatProg,10);
+			ArgvMMDir = MatchAndReplace(anAutomProg,aFulArg0,"$1");
 			if (ArgvMMDir=="")
 			{
-                ArgvMMDir=std::string(".")+ELISE_CAR_DIR;
+                           ArgvMMDir=std::string(".")+ELISE_CAR_DIR;
 			}
 		}
 #endif
