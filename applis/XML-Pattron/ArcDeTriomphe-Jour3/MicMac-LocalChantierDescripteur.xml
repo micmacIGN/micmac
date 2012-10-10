@@ -1,0 +1,212 @@
+<!--
+
+   Pattron pour mise en place de vue convergente a partir de longue focale.
+
+   Toute les vues convergent vers le meme point, on calcule tout les couples
+   homologues.
+
+   Focale trop longue pour mise en place directes, on utilise une prise
+   de vue grand angles "annexe" (eventuellement a resolution plus basse)
+   pour faire une mise en place initiale par points d'appuis
+
+
+-->
+
+<Global>
+
+  <ChantierDescripteur
+     Subst="@$#1"
+     NameDecl="@$#1"
+
+     PrefixImages="IMG_"
+     PostfixImagesBrute=""
+     PostfixRAW="CR2"
+     PostfixImagesDebay="_MpDcraw8B_GR"
+     NbJob="3"
+
+     PatternFoc="F([0-9]{3})_"
+     PatternNumero="[0-9]{4}"
+
+     PrefixCalibGeom="AutoCalDRad-Canon-"
+     PrefixCalibCoul="Bayer-Canon-"
+
+     SzPastisDef="1000"
+     SzPastisSsRes="300"
+  >
+
+
+       <BatchChantDesc>
+              <Key> Batch </Key>
+
+              <Requirement>
+                  <ExeRequired>
+                       <Exe> bin/Pastis </Exe>
+                       <Make> Makefile </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/ImProfAndL2App </Exe>
+                       <Make> AperiMake </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/Apero </Exe>
+                       <Make> AperiMake </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/MICMAC </Exe>
+                       <Make> MakeMICMAC </Make>
+                  </ExeRequired>
+
+              </Requirement>
+               
+
+
+<!--
+
+               <Line>  bin/MapCmd bin/MpDcraw "P=${ThisDir}(.*).${PostfixRAW}" 16B=0 Cal=Key-Assoc-Calib-Coul GR=1    BiCubParam=-0.5 M=MkToto "T=\$1${PostfixImagesDebay}.tif" </Line>
+               <Line>  bin/MapCmd bin/MpDcraw "P=${ThisDir}(.*).${PostfixRAW}" 16B=1 Cal=Key-Assoc-Calib-Coul GR=1    BiCubParam=-0.5 M=MkToto "T=\$1${PostfixImagesDebay}.tif" </Line>
+               <Line>  bin/MyRename  "${ThisDir}(${PrefixImages}.*).${PostfixRAW}"   "F\$2_\$1.${PostfixRAW}" AddFoc=1 Exe=1 </Line>
+
+-->
+              <Line> bin/Pastis  ${ThisDir} Key-Rel-All-Cple  ${SzPastisSsRes} FiltreOnlyDupl=1 MkF=MkToto NbMinPtsExp=2  SsRes=1 KG1=Key-APG KG2=Key-APG  </Line>
+ 
+
+              <Line> make all -k -f MkToto -j${NbJob}  </Line>
+              <Line> bin/Pastis  ${ThisDir}   Key-Rel-All-Cples-Filtr-SsEch   ${SzPastisDef}  KG1=Key-APG KG2=Key-APG FiltreOnlyDupl=1 MkF=MkToto NbMinPtsExp=2 </Line>
+
+
+              <Line> make all -k -f MkToto -j${NbJob}  </Line>
+<!--
+              <Line> bin/Apero  ${ThisDir}Apero-GA.xml  </Line>
+              <Line> bin/MICMAC  ${ThisDir}param-MM-GA.xml   </Line>
+
+
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+
+              <Line> bin/Apero  ${ThisDir}Apero-Appuis.xml  </Line>
+-->
+
+        </BatchChantDesc>
+
+<!--   ***********************************************   -->
+<!--                                                     -->
+<!--   MISE EN PLACE DES IMAGES FAISANT LE TOUR DE L'ARC -->
+<!--                                                     -->
+<!--   ***********************************************   -->
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> .*8B_GR.tif </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-All-Im </Key>
+  </KeyedSetsOfNames>
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> F100.*8B_GR.tif </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-All-100 </Key>
+  </KeyedSetsOfNames>
+  <APrioriImage>
+       <KeyedAddedSet>   Key-Set-All-100  </KeyedAddedSet>
+       <Key>  Key-APG </Key>
+       <ContenuAPrioriImage>
+              <Scale> 3.5 </Scale>
+       </ContenuAPrioriImage>
+   </APrioriImage>
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> F050.*8B_GR.tif </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-All-050 </Key>
+  </KeyedSetsOfNames>
+  <APrioriImage>
+       <KeyedAddedSet>   Key-Set-All-050  </KeyedAddedSet>
+       <Key>  Key-APG </Key>
+       <ContenuAPrioriImage>
+              <Scale> 1.0 </Scale>
+       </ContenuAPrioriImage>
+   </APrioriImage>
+
+
+
+<!--   ***********************************************   -->
+<!--                                                     -->
+<!--   MISE EN PLACE DES 100 et 400 mm                   -->
+<!--                                                     -->
+<!--   ***********************************************   -->
+
+  <KeyedSetsORels >
+       <Sets>
+           <ByAdjacence>
+               <KeySets >  Key-Set-All-Im </KeySets>
+               <DeltaMin > -100000 </DeltaMin>
+               <DeltaMax >  100000  </DeltaMax>
+           </ByAdjacence>
+       </Sets>
+       <Key>  Key-Rel-All-Cple   </Key>
+   </KeyedSetsORels>
+
+   <KeyedSetsORels>
+       <Sets >
+            <ByAdjacence>
+                <KeySets>  Key-Set-All-Im   </KeySets>
+                <DeltaMax > 10000  </DeltaMax>
+                <DeltaMin > -10000 </DeltaMin>
+                <Filtre>
+                     <FiltreByRelSsEch>
+                        <KeySet >  Key-Set-SsRes-HomolPastisBin          </KeySet>
+                        <KeyAssocCple>  Key-Assoc-SsRes-CpleIm2HomolPastisBin   </KeyAssocCple>
+                        <SeuilBasNbPts> 2 </SeuilBasNbPts>
+                        <SeuilHautNbPts> 2 </SeuilHautNbPts>
+                        <NbMinCple> 100000 </NbMinCple>
+                     </FiltreByRelSsEch>
+                </Filtre>
+            </ByAdjacence>
+       </Sets>
+       <Key  > Key-Rel-All-Cples-Filtr-SsEch </Key>
+    </KeyedSetsORels>
+
+
+    <KeyedSetsOfNames>
+          <Sets>
+                 <PatternAccepteur> ^PastisF100(.*)/F050(.*)\.(dat)  </PatternAccepteur>
+                 <PatternAccepteur> ^PastisF050(.*)/F100(.*)\.(dat)  </PatternAccepteur>
+                 <SubDir>   Homol/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+          </Sets>
+          <Key> Key-Set-Homol-050-100 </Key>
+    </KeyedSetsOfNames>
+
+    <KeyedSetsOfNames>
+          <Sets>
+                 <PatternAccepteur> ^PastisF100(.*)/F100(.*)\.(dat)  </PatternAccepteur>
+                 <SubDir>   Homol/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+          </Sets>
+          <Key> Key-Set-Homol-100-100 </Key>
+    </KeyedSetsOfNames>
+
+
+<!--   ***********************************************   -->
+<!--                                                     -->
+<!--   MISE EN PLACE DES 015  et 24 mm                   -->
+<!--                                                     -->
+<!--   ***********************************************   -->
+
+
+<!--   Relations   -->
+<!--   Relations   -->
+<!--   Relations   -->
+
+
+
+
+<!--   Associations   -->
+<!--   Associations   -->
+<!--   Associations   -->
+
+
+  </ChantierDescripteur>
+</Global>
