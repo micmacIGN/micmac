@@ -70,7 +70,8 @@ using namespace NS_SuperposeImage;
 
 template <class Type> void WriteType(FILE * aFP,Type f)
 {
-    TheIntFuckingReturnValue=fwrite(&f,sizeof(Type),1,aFP);
+	size_t  size = sizeof(Type);
+    TheIntFuckingReturnValue=fwrite(&f,size,1,aFP);
 }
 
 
@@ -666,7 +667,10 @@ void cElNuage3DMaille::PlyPutFile
        }
    }
 
-   FILE * aFP = FopenNN(aName,"w","cElNuage3DMaille::PlyPutFile");
+   //GERALD : Correction bug : ecriture binaire incorrect sous windows
+   //Mode Ecriture : binaire ou non
+   std::string mode = aModeBin ? "wb" : "w";
+   FILE * aFP = FopenNN(aName,mode,"cElNuage3DMaille::PlyPutFile");
 
    fprintf(aFP,"ply\n");
    std::string aBinSpec =       MSBF_PROCESSOR() ? 
