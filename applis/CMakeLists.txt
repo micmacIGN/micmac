@@ -64,6 +64,8 @@ target_link_libraries(tiff_info elise ${X11_LIBRARIES})
 add_executable(Dequant uti_image/Dequant.cpp)
 target_link_libraries(Dequant elise ${X11_LIBRARIES})
 
+add_executable(Reduc2MM uti_image/Reduc2MM.cpp)
+target_link_libraries(Reduc2MM elise ${X11_LIBRARIES})
 
 IF (X11_FOUND)
 	add_executable(SaisieMasq uti_image/SaisieMasq.cpp)
