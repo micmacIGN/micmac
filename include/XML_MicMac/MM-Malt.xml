@@ -1,0 +1,294 @@
+<!--
+   The simplest MicMac exemple
+
+-->
+
+<ParamMICMAC>
+
+<DicoLoc>
+<!-- Entrees minimales -->
+<!--
+   <Symb> Dir=""     </Symb>
+   <Symb> ImPat="IMG_[0-9]{4}.CR2"     </Symb>
+   <Symb> Ori=All     </Symb>
+
+MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/marc/TMP/PalazzioSpada/
+
+-->
+   <Symb> Dir="XXXX"     </Symb>
+   <Symb> ImPat="XXX"     </Symb>
+   <Symb> Ori=XXXX     </Symb>
+
+<!-- Parametre Algo  "fondamentaux" -->
+   <Symb> ZRegul=0.02     </Symb>
+   <Symb> SzW=1           </Symb>
+   <Symb> ZoomFinal=2     </Symb>
+   <Symb> ResolRelOrhto=0.5     </Symb>
+   <Symb> ZoomInit=32     </Symb>
+
+
+<!-- Parametre Algo ayant une valeur par defaut -->
+   <Symb>   DefCor=0.2      </Symb>
+   <Symb>   CostTrans=2.0      </Symb>
+   <Symb>   NbMinIV=3       </Symb>
+   <Symb>   ZIncCalc=0.3       </Symb>
+   <Symb>   Repere="NO-REPERE"  </Symb>
+   <Symb>   FileAnam=EmptyXML.xml  </Symb>
+   <Symb>   FileZMoy=EmptyXML.xml  </Symb>
+
+
+
+
+   <Symb>  FileMasqT=MM-MasqTerrain.xml </Symb>
+   <Symb>  FileZ4PC=MM-Zoom4-PC.xml </Symb>
+   <Symb>  FileZ2PC=EmptyXML.xml </Symb>
+
+   <Symb> FileZ1Raff=MM-Zoom1Raffin.xml</Symb>
+
+   <Symb>  FileZ64=EmptyXML.xml </Symb>
+   <Symb>  FileZ32=EmptyXML.xml </Symb>
+   <Symb>  FileZ16PC=MM-Zoom16-PC.xml </Symb>
+   <Symb>  FileOthoF=MM-Malt-OrthoFinal.xml </Symb>
+   <Symb>  FileOthoQ=MM-Malt-OrthoQuick.xml </Symb>
+   <Symb>  FileUnAnam=EmptyXML.xml </Symb>
+
+   <Symb>  ZPas=0.4 </Symb>
+        <!-- Calcules -->
+   <Symb>  DbleZPas=0.8 </Symb>
+   <Symb>  DemiZPas=0.2 </Symb>
+
+<!-- Parametre de "Chantier -->
+   <Symb> DirQO=Qk-ORTHO  </Symb>
+   <Symb> DirMEC=MEC-Malt/  </Symb>
+   <Symb> Chantier=STD-MALT  </Symb>
+   <Symb> DirTA=TA  </Symb>
+   <Symb> Purge=true  </Symb>
+
+   <Symb> MkFPC=true  </Symb>
+   <Symb> DoMEC=true  </Symb>
+
+   <Symb> DirOrthoF=ORTHO  </Symb>
+
+   <Symb>  NbEtapeQuant=-1 </Symb>
+
+   <Symb> NameMaskOrtho=../${DirMEC}AutoMask_STD-MALT_Num_${NbEtapeQuant}.tif </Symb>
+   <Symb> NameMTDMaskOrtho=../${DirMEC}Z_Num${NbEtapeQuant}_DeZoom${ZoomFinal}_STD-MALT.xml </Symb>
+
+   <Symb>  Geom=eGeomMNTEuclid </Symb>
+
+
+   <Symb>  ImageMaster=XXXX  </Symb>
+   <Symb>  ImageMasterSsPost=XXXX  </Symb>
+   <Symb>  FileIm1=EmptyXML.xml  </Symb>
+   <Symb>  ZIncIsProp=true  </Symb>
+   <Symb>  FullIm1=false  </Symb>
+   <Symb>  PasInPixel=true  </Symb>
+
+
+   <Symb>  ImMNT=".*" </Symb>
+   <Symb>  ImOrtho=".*" </Symb>
+
+</DicoLoc>
+
+<!--  M2 : Describe the ground zone where the matching is to be done -->
+<Section_Terrain>    
+      <IntervAltimetrie>
+           <!-- -->
+             <ZIncCalc>   ${ZIncCalc} </ZIncCalc>
+             <ZIncIsProp> ${ZIncIsProp} </ZIncIsProp>
+             <IncludeFileLoc>  ${FileZMoy} </IncludeFileLoc>
+
+      </IntervAltimetrie>
+
+      <IntervSpecialZInv>
+             <MulZMin> 0.5</MulZMin>
+             <MulZMax> 3 </MulZMax>
+       </IntervSpecialZInv>
+
+      <Planimetrie>
+           <IncludeFileLoc>  ${FileMasqT} </IncludeFileLoc>
+           <FilterEstimTerrain> ${ImMNT} </FilterEstimTerrain>
+      </Planimetrie>
+
+
+
+</Section_Terrain>
+
+<!--  M3 : describe the set of images to match -->
+<Section_PriseDeVue >   
+     <SingulariteInCorresp_I1I2> true</SingulariteInCorresp_I1I2>
+     <GeomImages> eGeomImageOri </GeomImages>
+     <Images >
+           <IncludeFileLoc>  ${FileIm1} </IncludeFileLoc>
+          <ImPat>    ${ImPat}  </ImPat>
+     </Images>
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-${Ori} </FCND_GeomCalc>
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+      <PasIsInPixel>  ${PasInPixel} </PasIsInPixel>
+      <NbMinImagesVisibles>  ${NbMinIV} </NbMinImagesVisibles>
+      <ChantierFullImage1> ${FullIm1} </ChantierFullImage1>
+
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      ${SzW}             </SzW>
+             <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+
+             <ZPas>        ${ZPas} </ZPas>
+             <ModeInterpolation> eInterpolSinCard </ModeInterpolation>
+
+	     <ZDilatAlti>  4      </ZDilatAlti>
+             <ZDilatPlani> 5      </ZDilatPlani>
+	     <ZRegul>  ${ZRegul}  </ZRegul>
+             <ModulationProgDyn>
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   7               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   2.0    </Px1PenteMax>
+                  <ArgMaskAuto >
+                      <ValDefCorrel >  ${DefCor} </ValDefCorrel>
+                      <CostTrans >     ${CostTrans}   </CostTrans>
+                      <ReInjectMask> false   </ReInjectMask>
+                  </ArgMaskAuto>
+            </ModulationProgDyn>
+
+            <ImageSelecteur>
+                   <ModeExclusion > false </ModeExclusion>
+                   <PatternSel > ${ImMNT} </PatternSel>
+            </ImageSelecteur>
+
+
+            
+        </EtapeMEC>
+	     
+        <EtapeMEC> 
+                <DeZoom >        ${ZoomInit}        </DeZoom> 
+                <ZPas>           ${DbleZPas}       </ZPas>
+        </EtapeMEC>
+
+        <EtapeMEC> 
+                <DeZoom >        ${ZoomInit}        </DeZoom> 
+	        <ZDilatAlti>  4    </ZDilatAlti>
+                <ZDilatPlani> 3    </ZDilatPlani>
+        </EtapeMEC>
+
+        <IncludeFileLoc>  ${FileZ64} </IncludeFileLoc>
+        <IncludeFileLoc>  ${FileZ32} </IncludeFileLoc>
+        <IncludeFileLoc>  ${FileZ16PC} </IncludeFileLoc>
+
+
+
+        <EtapeMEC> 
+                 <DeZoom >        8        </DeZoom> 
+	         <ZDilatAlti>  4    </ZDilatAlti>
+                 <ZDilatPlani> 3    </ZDilatPlani>
+                 <ModulationProgDyn Portee="Globale">
+                         <EtapeProgDyn>
+                              <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                              <NbDir>   7              </NbDir>
+                         </EtapeProgDyn>
+                         <Px1PenteMax>   1.0    </Px1PenteMax>
+                         <ArgMaskAuto >
+                                <ValDefCorrel >  ${DefCor} </ValDefCorrel>
+                                <CostTrans >     2.0   </CostTrans>
+                                <ReInjectMask>  false   </ReInjectMask>
+                         </ArgMaskAuto>
+                   </ModulationProgDyn>
+                   <GenerePartiesCachees >
+                        <SeuilUsePC> 4 </SeuilUsePC>
+                        <ByMkF> true </ByMkF>
+                        <KeyCalcPC> NKS-Assoc-AddDirAndPref@${DirQO}@PC_ </KeyCalcPC>
+                        <IncludeFileLoc>  ${FileOthoQ} </IncludeFileLoc>
+                   </GenerePartiesCachees>
+
+        </EtapeMEC>
+
+        <IncludeFileLoc>  ${FileZ4PC} </IncludeFileLoc>
+        <IncludeFileLoc>  ${FileZ2PC} </IncludeFileLoc>
+
+        <EtapeMEC> 
+                <DeZoom >        ${ZoomFinal}        </DeZoom> 
+        </EtapeMEC>
+
+        <IncludeFileLoc>  ${FileZ1Raff} </IncludeFileLoc>
+
+
+        <EtapeMEC> 
+               <DeZoom >        ${ZoomFinal}        </DeZoom> 
+               <ZPas>          1.0       </ZPas>
+               <AlgoRegul>  eAlgoDequant </AlgoRegul>
+
+               <ImageSelecteur>
+                   <ModeExclusion > false </ModeExclusion>
+                   <PatternSel > .* </PatternSel>
+               </ImageSelecteur>
+
+
+               <IncludeFileLoc>  ${FileOthoF} </IncludeFileLoc>
+               <IncludeFileLoc>  ${FileUnAnam} </IncludeFileLoc>
+        </EtapeMEC>
+
+</Section_MEC>
+
+<!--  M4 : Specify the output geometry -->
+<Section_Results >
+    <GeomMNT> ${Geom}  </GeomMNT> 
+    <RepereCorrel>   ${Repere}  </RepereCorrel>
+    <IncludeFileLoc>  ${FileAnam} </IncludeFileLoc>
+    <DoMEC>   ${DoMEC} </DoMEC>
+
+<!--
+-->
+    <ZoomMakeTA> 8 </ZoomMakeTA>
+<!--
+    <RepereCorrel>  Repere.xml </RepereCorrel>
+    <DoNothingBut>
+        <ButDoOrtho>  true </ButDoOrtho>
+    </DoNothingBut>
+ <DoNothingBut>
+        <ButDoRedrLocAnam>  true </ButDoRedrLocAnam>
+    </DoNothingBut>
+-->
+
+
+
+
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir >  ${Dir} </WorkDir> 
+     <TmpMEC>    ${DirMEC}  </TmpMEC>
+     <TmpResult> ${DirMEC}  </TmpResult>
+     <TmpPyr>    Pyram/  </TmpPyr>
+     <ByProcess>   ${MMNbProc}  </ByProcess>
+     <NomChantier> ${Chantier} </NomChantier>
+
+     <PurgeMECResultBefore>  ${Purge} </PurgeMECResultBefore>
+
+
+<!--
+   <Symb> Etape0=1  </Symb>
+     <FirstEtapeMEC> ${Etape0}  </FirstEtapeMEC>
+     <ByProcess>   0  </ByProcess>
+-->
+     <DefTileFile>  40000</DefTileFile>
+
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+
