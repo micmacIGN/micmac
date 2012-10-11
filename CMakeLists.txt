@@ -9,13 +9,8 @@ set(VERBOSE 0)
 set (MICMAC_VERSION_MAJOR 1)
 set (MICMAC_VERSION_MINOR 0)
 
-# Dossier include
-
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
-
 ##########################################
-## 		OPTIONS			##
+## 			OPTIONS			##
 ##########################################
 
 # Utiliser Kakadu
@@ -65,6 +60,8 @@ CONFIGURE_FILE (
   "${PROJECT_BINARY_DIR}/include/general/MM_InstalDir.h"
   )
 
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
+
 # Utiliser Kakadu
 
 IF(${WITH_KAKADU})
@@ -109,6 +106,7 @@ IF(${WITH_MATIS_ORI})
 
 	ENDIF()
 ENDIF()
+
 
 # Vérifier si ImageMagick est installé
 
@@ -155,6 +153,9 @@ ENDIF()
 IF (MSVC)
 	add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /nologo" )
 ENDIF()
+
+# Dossier include
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
 # DEFINITION : des preprocesseurs G++
 IF (CMAKE_COMPILER_IS_GNUCC)
