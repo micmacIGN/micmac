@@ -363,15 +363,18 @@ bool TransFormArgKey
 
 static const std::string aFileTmp = "MicMacInstall.txt";
 
-std::string ElGetStrSys(const std::string & aCBasik)
+// execute command i_base_cmd and get its standard output in a string
+bool ElGetStrSys( const std::string & i_base_cmd, std::string &o_result )
 {
-   std::string aCom = aCBasik  +  ">" + aFileTmp ;
-   VoidSystem(aCom.c_str());
-   ELISE_fp aF(aFileTmp.c_str(),ELISE_fp::READ);
-   std::string aRes = aF.std_fgets();
+   std::string aCom = i_base_cmd +  ">" + aFileTmp ;
+   if ( system( aCom.c_str() )!=EXIT_SUCCESS ) return false;
+   
+   ELISE_fp aF;
+   if ( !aF.open(aFileTmp.c_str(),ELISE_fp::READ) ) return false;
+   o_result = aF.std_fgets();
    aF.close();
 
-   return aRes;
+   return true;
 }
 
 
@@ -401,10 +404,23 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 		ArgvMMDir.resize( ArgvMMDir.length()-1 );
         SplitDirAndFile(ArgvMMDir,sFile,ArgvMMDir);
 #else
-
-               std::string aFulArg0 = ElGetStrSys("which "+ std::string(argv[0]));
-               // std::cout << "aFulArg0 " << aFulArg0 << "\n"; 
-
+		std::string aFulArg0;
+		// try to get executable full path using /proc filesystem
+		// not compatible with all unix
+		char buf[1024];
+		ssize_t len;
+		if ( ( len= readlink( "/proc/self/exe", buf, sizeof(buf)-1 ) ) != -1 )
+		{
+			buf[len] = '\0'; // make sure the string is null terminated, some implementation of readlink may not do it
+			aFulArg0 = buf;
+		}
+		else
+		{
+			// if the /proc filesystem is not available, try using the "which" command
+			bool whichSucceed = ElGetStrSys( "which "+ std::string( argv[0] ), aFulArg0 );
+			// if which failed then we're doomed
+			ELISE_ASSERT( whichSucceed, "MMD_InitArgcArgv : unable to retrieve binaries directory" );
+		}
 
 		std::string aPatProg = "([0-9]|[a-z]|[A-Z]|_)+"; 
 		cElRegex  anAutomProg(aPatProg,10);
