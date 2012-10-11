@@ -54,6 +54,7 @@ int main(int argc,char ** argv)
 
     int DoPly = 1;
     int DoXYZ = 0;
+	int DoNrm = 0;
 
     double aSc=1.0;
     double aDyn = 1.0;
@@ -79,6 +80,7 @@ int main(int argc,char ** argv)
                     << EAM(aDyn,"Dyn",true)
                     << EAM(DoPly,"DoPly",true)
                     << EAM(DoXYZ,"DoXYZ",true)
+					<< EAM(DoNrm,"Normale",true)
                     << EAM(aExagZ,"ExagZ",true)
                     << EAM(aRatio,"RatioAttrCarte",true)
                     << EAM(aDoMesh,"Mesh",true)
@@ -108,7 +110,7 @@ int main(int argc,char ** argv)
            aRes->AddExportMesh();
        }
 
-        aRes->PlyPutFile(aNameOut,aLComment,aBin);
+        aRes->PlyPutFile(aNameOut,aLComment,aBin,DoNrm);
     }
     if (DoXYZ)
     {

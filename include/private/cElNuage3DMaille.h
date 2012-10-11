@@ -200,6 +200,7 @@ class cElNuage3DMaille : public cCapture3D
 
         Pt3dr PtOfIndex(const tIndex2D & aP) const ;
         Pt3dr PtOfIndexInterpol(const Pt2dr & aP) const;  // [2]
+		Pt3dr NormaleOfIndex(const tIndex2D&, int) const;
 
 
         virtual Pt3dr Loc_PtOfIndex(const tIndex2D & aP) const = 0;
@@ -277,12 +278,11 @@ class cElNuage3DMaille : public cCapture3D
 
 
 
-
+		
 
         double DiffDeSurface(bool& OK,const tIndex2D&,const cElNuage3DMaille &) const;
 
-
-
+		
 
 /*
        [1]  Partie eventuellement re-definissable (les "iterateurs")
@@ -307,7 +307,7 @@ class cElNuage3DMaille : public cCapture3D
         //==================
 
         bool  Compatible(const cElNuage3DMaille &) const;
-        void PlyPutFile(const std::string & aName,const std::list<std::string>& aComments, bool aModeBin) const;
+        void PlyPutFile(const std::string & aName,const std::list<std::string>& aComments, bool aModeBin, int aAddNormale=0) const;
 
         static void PlyPutFile
                (
@@ -316,7 +316,8 @@ class cElNuage3DMaille : public cCapture3D
                     const std::vector<const cElNuage3DMaille *> &,
                     const std::vector<Pt3dr> * mPts,
                     const std::vector<Pt3di> * mCouls,
-                    bool aModeBin
+                    bool aModeBin,
+				    int aAddNormale = 0
                ) ;
  
         void Std_AddAttrFromFile(const std::string & aName,double aDyn=1,double aScale=1);
@@ -402,7 +403,7 @@ class cElNuage3DMaille : public cCapture3D
                                double aScale=1
                              );
         void PlyHeader(FILE *,bool aModeBin) const;
-        void PlyPutDataVertex(FILE *,bool aModeBin) const;
+        void PlyPutDataVertex(FILE *,bool aModeBin, int aAddNormale) const;
         void PlyPutDataFace(FILE *,bool aModeBin,int & anOffset) const;
 
         virtual cElNuage3DMaille * V_ReScale
