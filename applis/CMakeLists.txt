@@ -39,6 +39,9 @@ target_link_libraries(Tapas elise ${X11_LIBRARIES})
 add_executable(AperiCloud uti_phgrm/AperiCloud.cpp)
 target_link_libraries(AperiCloud elise ${X11_LIBRARIES})
 
+add_executable(CmpCalib uti_phgrm/CmpCalib.cpp)
+target_link_libraries(CmpCalib elise ${X11_LIBRARIES})
+
 #Outils uti_image
 add_executable(ScaleIm uti_image/ScaleIm.cpp)
 target_link_libraries(ScaleIm elise ${X11_LIBRARIES})
