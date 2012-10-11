@@ -64,17 +64,15 @@ using namespace NS_SuperposeImage;
 
 
 
-// En entree c'est le clip et la taille, d'entree
-// en sortie c'est la translation (diff si le scale<0) et la taille
-// de sortie
-
 template <class Type> void WriteType(FILE * aFP,Type f)
 {
 	size_t  size = sizeof(Type);
-    TheIntFuckingReturnValue=fwrite(&f,size,1,aFP);
+	TheIntFuckingReturnValue=fwrite(&f,size,1,aFP);
 }
 
-
+// En entree c'est le clip et la taille, d'entree
+// en sortie c'est la translation (diff si le scale<0) et la taille
+// de sortie
 
 cXML_ParamNuage3DMaille CropAndSousEch
                         (
@@ -611,12 +609,13 @@ void cElNuage3DMaille::PlyPutFile
      (
            const std::string & aName,
            const std::list<std::string> & aComments,
-           bool aModeBin
+           bool aModeBin,
+		   int aAddNormale
      ) const
 {
     std::vector<const cElNuage3DMaille *> aVN;
     aVN.push_back(this);
-    PlyPutFile(aName,aComments,aVN,0,0,aModeBin);
+    PlyPutFile(aName,aComments,aVN,0,0,aModeBin, aAddNormale);
 }
 
 
@@ -628,7 +627,8 @@ void cElNuage3DMaille::PlyPutFile
            const std::vector<const cElNuage3DMaille *> & aVN,
            const std::vector<Pt3dr> * mPts,
            const std::vector<Pt3di> * mCouls,
-           bool aModeBin
+           bool aModeBin,
+		   int aAddNormale
      ) 
 {
    int aNbF = 0;
@@ -671,14 +671,14 @@ void cElNuage3DMaille::PlyPutFile
    //Mode Ecriture : binaire ou non
    std::string mode = aModeBin ? "wb" : "w";
    FILE * aFP = FopenNN(aName,mode,"cElNuage3DMaille::PlyPutFile");
-
+	
+   //Header
    fprintf(aFP,"ply\n");
    std::string aBinSpec =       MSBF_PROCESSOR() ? 
                           "binary_big_endian":
                           "binary_little_endian" ;
                                        
    fprintf(aFP,"format %s 1.0\n",aModeBin?aBinSpec.c_str():"ascii");
-
 
    for 
    (
@@ -694,24 +694,33 @@ void cElNuage3DMaille::PlyPutFile
    fprintf(aFP,"property float y\n");
    fprintf(aFP,"property float z\n");
 
+   if (aAddNormale)
+   {
+       fprintf(aFP,"property float nx\n");
+	   fprintf(aFP,"property float ny\n");
+	   fprintf(aFP,"property float nz\n");
+   }
+   
    const char * aVCoul[3]={"red","green","blue"};
    for (int aK=0 ; aK<aNbAttr ; aK++)
    {
-      if (aN0)
-      {
-         aN0->mAttrs[aK]->PlyPutHeader(aFP);
-      }
-      else
-      {
-         fprintf(aFP,"property uchar %s\n",aVCoul[aK]);
-      }
+	   if (aN0)
+	   {
+		   aN0->mAttrs[aK]->PlyPutHeader(aFP);
+	   }
+	   else
+	   {
+		   fprintf(aFP,"property uchar %s\n",aVCoul[aK]);
+	   }
    }
+
    fprintf(aFP,"element face %d\n",aNbF);
    fprintf(aFP,"property list uchar int vertex_indices\n");
    fprintf(aFP,"end_header\n");
 
+   //Data	
    for (int aK=0 ; aK<int(aVN.size()) ; aK++)
-      aVN[aK]-> PlyPutDataVertex(aFP,aModeBin);
+      aVN[aK]-> PlyPutDataVertex(aFP,aModeBin, aAddNormale);
 
    if (mPts)
    {
@@ -783,26 +792,52 @@ void cElNuage3DMaille::NuageXZGCOL(const std::string & aName)
 
 
 
-void cElNuage3DMaille::PlyPutDataVertex(FILE * aFP,bool aModeBin) const
+void cElNuage3DMaille::PlyPutDataVertex(FILE * aFP, bool aModeBin, int aAddNormale) const
 {
+	if (aAddNormale)
+	{
+		ELISE_ASSERT((aAddNormale%2) && (aAddNormale>2),"cElNuage3DMaille::NormaleOfIndex: wSize should be an odd > 1 (3, 5, 7...)");
+	}
+	
     for (tIndex2D anI=Begin(); anI!=End() ;IncrIndex(anI))
     {
            Pt3dr aP = PtOfIndex(anI);
-// std::cout << "PlyPutData:::: " << aP << "\n"; getchar();
-           float xyz[3] ;
+		   // std::cout << "PlyPutData:::: " << aP << "\n"; getchar();
+           float xyz[3];
            xyz[0] = aP.x;
            xyz[1] = aP.y;
            xyz[2] = aP.z;
-           if (aModeBin)
+		
+		   if (aModeBin)
            {
                int aNb= fwrite(xyz,sizeof(float),3,aFP);
-               ELISE_ASSERT(aNb==3,"cElNuage3DMaille::PlyPutData");
+               ELISE_ASSERT(aNb==3,"cElNuage3DMaille::PlyPutDataVertex");
            }
            else
            {
-              fprintf(aFP,"%.3f %.3f %.3f", xyz[0],xyz[1],xyz[2]);
+              fprintf(aFP,"%.3f %.3f %.3f", xyz[0], xyz[1], xyz[2]);
            }
 
+		   if (aAddNormale) 
+		   {
+			   Pt3dr aN = NormaleOfIndex(anI, aAddNormale);
+			   
+			   float Nxyz[3];
+			   Nxyz[0] = aN.x;
+			   Nxyz[1] = aN.y;
+			   Nxyz[2] = aN.z;
+			   
+			   if (aModeBin)
+			   {
+				   int aNb= fwrite(Nxyz,sizeof(float),3,aFP);
+				   ELISE_ASSERT(aNb==3,"cElNuage3DMaille::PlyPutDataVertex-Normale");
+			   }
+			   else
+			   {
+				   fprintf(aFP,"%.3f %.3f %.3f", Nxyz[0], Nxyz[1], Nxyz[2]);
+			   }
+		   }
+		
            for (int aK=0 ; aK<int(mAttrs.size()) ; aK++)
            {
               mAttrs[aK]->PlyPutData(aFP,anI,aModeBin);
@@ -971,6 +1006,54 @@ double cElNuage3DMaille::DiffDeSurface
     }
 
     return -1e9;
+}
+
+//Compute local normal on 3D points in a window (wSize x wSize)
+Pt3dr cElNuage3DMaille::NormaleOfIndex(const tIndex2D& anI1, int wSize) const
+{
+	if (IndexHasContenu(anI1))
+	{
+		std::vector<Pt3dr> aVP; 
+		std::vector<double> aVPds;
+
+		int halfSize  = floor(wSize/2);
+		tIndex2D anI2 = anI1 - Pt2di(halfSize, halfSize); //top-left corner of window
+		tIndex2D anI3;	
+		
+		//recherche des voisins et stockage des points
+		for(int aK = 0; aK<wSize ; ++aK)
+		{
+			for(int bK = 0; bK<wSize ; ++bK)
+			{
+				anI3 = anI2 + Pt2di(aK, bK);
+				
+				if (IndexHasContenu(anI3))
+				{
+					aVP.push_back(PtOfIndex(anI3));
+					aVPds.push_back(1.f);
+				}
+			}
+		}
+		
+		//estimation du plan aux moindres carrés 	
+		cElPlan3D aPlan(aVP, &aVPds);
+		
+		//retourne la normale en fonction de l'angle avec le segment PdV-Pt
+		Pt3dr aN = aPlan.Norm();
+		Pt2dr anI1r(anI1.x, anI1.y);
+		ElSeg3D aV = Capteur2RayTer(anI1r);
+		Pt3dr aTgt = aV.TgNormee();
+		if (aN.x*aTgt.x + aN.y*aTgt.y + aN.z*aTgt.z < 0.f)	
+		{
+			return aN;
+		}	
+		else
+		{
+			return Pt3dr(-aN.x,-aN.y,-aN.z);
+		}
+	}
+	
+	return Pt3dr(0.f,0.f,0.f);
 }
 
 cXML_ParamNuage3DMaille&  cElNuage3DMaille::Params()
