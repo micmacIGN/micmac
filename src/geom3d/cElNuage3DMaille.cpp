@@ -1016,7 +1016,7 @@ Pt3dr cElNuage3DMaille::NormaleOfIndex(const tIndex2D& anI1, int wSize) const
 		std::vector<Pt3dr> aVP; 
 		std::vector<double> aVPds;
 
-		int halfSize  = floor(wSize/2);
+		int halfSize  = wSize/2;
 		tIndex2D anI2 = anI1 - Pt2di(halfSize, halfSize); //top-left corner of window
 		tIndex2D anI3;	
 		
