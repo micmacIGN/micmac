@@ -307,7 +307,7 @@ class cElNuage3DMaille : public cCapture3D
         //==================
 
         bool  Compatible(const cElNuage3DMaille &) const;
-        void PlyPutFile(const std::string & aName,const std::list<std::string>& aComments, bool aModeBin, int aAddNormale=false) const;
+        void PlyPutFile(const std::string & aName,const std::list<std::string>& aComments, bool aModeBin, int aAddNormale=0) const;
 
         static void PlyPutFile
                (
