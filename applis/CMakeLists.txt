@@ -67,6 +67,11 @@ target_link_libraries(Dequant elise ${X11_LIBRARIES})
 add_executable(Reduc2MM uti_image/Reduc2MM.cpp)
 target_link_libraries(Reduc2MM elise ${X11_LIBRARIES})
 
+add_executable(MergePly uti_phgrm/MergePly.cpp
+                        uti_phgrm/ply.c
+              )
+target_link_libraries(MergePly elise ${X11_LIBRARIES})
+
 IF (X11_FOUND)
 	add_executable(SaisieMasq uti_image/SaisieMasq.cpp)
 	target_link_libraries(SaisieMasq elise ${X11_LIBRARIES})
@@ -140,6 +145,6 @@ IF ( MatisOrientation_FOUND)
 	ENDIF()
 ENDIF()
 
-install(TARGETS MpDcraw Malt Dequant Reduc2MM Tapioca Pastis Nuage2Ply Pasta Bascule MakeGrid TestCam Tapas AperiCloud ScaleIm ElDcraw to8Bits GrShade PastDevlop Devlop tiff_info BatchFDC MapCmd
+install(TARGETS MpDcraw Malt Dequant Reduc2MM Tapioca Pastis Nuage2Ply Pasta Bascule MakeGrid TestCam Tapas AperiCloud ScaleIm ElDcraw to8Bits GrShade PastDevlop Devlop tiff_info BatchFDC MapCmd MergePly
 	RUNTIME DESTINATION ${Install_Dir}
 )
