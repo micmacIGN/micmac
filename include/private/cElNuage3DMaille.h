@@ -646,6 +646,7 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
                        bool  AutoResize
                     );
 
+template <class Type> void WriteType(FILE * aFP,Type f);
 
 #endif // _ELISE_NUAGE_3D_MAILLE_
 
