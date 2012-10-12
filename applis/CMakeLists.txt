@@ -42,6 +42,15 @@ target_link_libraries(AperiCloud elise ${X11_LIBRARIES})
 add_executable(CmpCalib uti_phgrm/CmpCalib.cpp)
 target_link_libraries(CmpCalib elise ${X11_LIBRARIES})
 
+add_executable(SBGlobBascule uti_phgrm/SBGlobBascule.cpp)
+target_link_libraries(SBGlobBascule elise ${X11_LIBRARIES})
+
+add_executable(GCPBascule uti_phgrm/GCPBascule.cpp)
+target_link_libraries(GCPBascule elise ${X11_LIBRARIES})
+
+add_executable(RepLocBascule uti_phgrm/RepLocBascule.cpp)
+target_link_libraries(RepLocBascule elise ${X11_LIBRARIES})
+
 #Outils uti_image
 add_executable(ScaleIm uti_image/ScaleIm.cpp)
 target_link_libraries(ScaleIm elise ${X11_LIBRARIES})
@@ -67,6 +76,8 @@ target_link_libraries(tiff_info elise ${X11_LIBRARIES})
 add_executable(Dequant uti_image/Dequant.cpp)
 target_link_libraries(Dequant elise ${X11_LIBRARIES})
 
+add_executable(Reduc2MM uti_image/Reduc2MM.cpp)
+target_link_libraries(Reduc2MM elise ${X11_LIBRARIES})
 
 IF (X11_FOUND)
 	add_executable(SaisieMasq uti_image/SaisieMasq.cpp)
@@ -141,6 +152,6 @@ IF ( MatisOrientation_FOUND)
 	ENDIF()
 ENDIF()
 
-install(TARGETS MpDcraw Malt Dequant Tapioca Pastis Nuage2Ply Pasta Bascule MakeGrid TestCam Tapas AperiCloud ScaleIm ElDcraw to8Bits GrShade PastDevlop Devlop tiff_info BatchFDC MapCmd
+install(TARGETS SBGlobBascule GCPBascule RepLocBascule Reduc2MM MpDcraw Malt Dequant Tapioca Pastis Nuage2Ply Pasta Bascule MakeGrid TestCam Tapas AperiCloud ScaleIm ElDcraw to8Bits GrShade PastDevlop Devlop tiff_info BatchFDC MapCmd
 	RUNTIME DESTINATION ${Install_Dir}
 )
