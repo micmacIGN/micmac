@@ -39,6 +39,18 @@ target_link_libraries(Tapas elise ${X11_LIBRARIES})
 add_executable(AperiCloud uti_phgrm/AperiCloud.cpp)
 target_link_libraries(AperiCloud elise ${X11_LIBRARIES})
 
+add_executable(CmpCalib uti_phgrm/CmpCalib.cpp)
+target_link_libraries(CmpCalib elise ${X11_LIBRARIES})
+
+add_executable(SBGlobBascule uti_phgrm/SBGlobBascule.cpp)
+target_link_libraries(SBGlobBascule elise ${X11_LIBRARIES})
+
+add_executable(GCPBascule uti_phgrm/GCPBascule.cpp)
+target_link_libraries(GCPBascule elise ${X11_LIBRARIES})
+
+add_executable(RepLocBascule uti_phgrm/RepLocBascule.cpp)
+target_link_libraries(RepLocBascule elise ${X11_LIBRARIES})
+
 #Outils uti_image
 add_executable(ScaleIm uti_image/ScaleIm.cpp)
 target_link_libraries(ScaleIm elise ${X11_LIBRARIES})
@@ -145,6 +157,6 @@ IF ( MatisOrientation_FOUND)
 	ENDIF()
 ENDIF()
 
-install(TARGETS MpDcraw Malt Dequant Reduc2MM Tapioca Pastis Nuage2Ply Pasta Bascule MakeGrid TestCam Tapas AperiCloud ScaleIm ElDcraw to8Bits GrShade PastDevlop Devlop tiff_info BatchFDC MapCmd MergePly
+install(TARGETS SBGlobBascule GCPBascule RepLocBascule Reduc2MM MpDcraw Malt Dequant Tapioca Pastis Nuage2Ply Pasta Bascule MakeGrid TestCam Tapas AperiCloud ScaleIm ElDcraw to8Bits GrShade PastDevlop Devlop tiff_info MergePly BatchFDC MapCmd
 	RUNTIME DESTINATION ${Install_Dir}
 )

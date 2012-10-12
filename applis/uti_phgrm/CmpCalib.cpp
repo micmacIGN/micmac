@@ -144,7 +144,7 @@ class cAppliCmpCal
 
              mP0    (Inf(mGr1.P0(), mGr2.P0())),
              mP1    (Inf(mGr1.P1(), mGr2.P1())),
-             mSz     (mP0-mP1),
+             mSz     (mP1-mP0),
              mRatioW (aSzW/ElMax(mSz.x,mSz.y)),
 
              mBox    (mP0,mP1),
@@ -152,7 +152,7 @@ class cAppliCmpCal
              mRay    (euclid(mP0,mMil)),
              mFocale ( (mGr1.Focale() + mGr2.Focale()) / 2.0),
              mSzW    (round_ni(mSz*mRatioW)),
-             mW      (aSzW>0 ? Video_Win::PtrWStd(Pt2di(aSzW,aSzW)) : 0),
+             mW      (aSzW>0 ? Video_Win::PtrWStd(mSzW) : 0),
              mDynVisu (aDynV),
              mRotCur  (Pt3dr(0,0,0),0,0,0)
           {
@@ -231,7 +231,7 @@ double cAppliCmpCal::EcartFromRay(double aR)
             double aD = euclid(ENC_From_PIm(aP));
             if (aD>1.0)
             {
-                 std::cout << "P= " << aP << ENC_From_PIm(aP)  << "\n";
+                 // std::cout << "P= " << aP << ENC_From_PIm(aP)  << "\n";
                  // getchar();
             }
             aSD += aD;
@@ -297,7 +297,9 @@ void cAppliCmpCal::OneItere(bool First,bool Last)
             if ((mW!=0) && (First || Last ))
             {
                 // Pt2dr aP0 (mSzW*aPdsX,mSzW*aPdsY);
-                Pt2dr aP0 = (aPIm- mP0)  * mRatioW;
+               //  Pt2dr aP0 = (aPIm- mP0)  * mRatioW;
+                Pt2dr aP0 = (aPIm-mP0)  * mRatioW;
+
  
                 mW->draw_circle_loc(aP0,2.0,mW->pdisc()(P8COL::green));
                 int aCoul = First ? P8COL::blue : P8COL::red;
@@ -313,7 +315,7 @@ void cAppliCmpCal::OneItere(bool First,bool Last)
                fprintf(aFP,"%lf %lf %lf %lf %lf\n",aPIm.x,aPIm.y,U.x,U.y,euclid(U));
        }
 
-       std::cout << (aSD/aS1) << "\n";
+       std::cout << (aSD/aS1) << " "  << (aSD/aS1) * (1e6/mFocale) << " MicroRadians " << "\n";
        mSetEq.SolveResetUpdate();
 
        if (aFP)
