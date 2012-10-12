@@ -86,10 +86,8 @@ int main(int argc,char ** argv)
 
 
     SplitDirAndFile(aDir,aPat,aFullDir);
-
-    // cTplValGesInit<std::string> aTplN;
-    // cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::StdAlloc(0,0,aDir,aTplN);
-
+	    
+	MMD_InitArgcArgv(argc,argv);
    
     std::string aCom =   MMDir() + std::string("bin/MICMAC ")
                        + MMDir() + std::string("include/XML_MicMac/MM-TA.xml ")
