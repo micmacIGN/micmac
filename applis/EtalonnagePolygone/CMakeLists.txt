@@ -1,3 +1,5 @@
+if (X11_FOUND)
+
 file(GLOB  SRC . 
         cParamSaisiePts.h
         cEtalonnage.cpp
@@ -14,6 +16,7 @@ file(GLOB  SRC .
         cCpleCamEtal.cpp
         cCoordNormalizer.cpp
     )
+
 
 add_library(libEtalPolyg  ${SRC})
 INSTALL(TARGETS libEtalPolyg ARCHIVE DESTINATION ${Install_Dir})
@@ -48,7 +51,7 @@ add_executable(ScriptCalib  ScriptCalib.cpp)
 target_link_libraries(ScriptCalib libEtalPolyg elise ${X11_LIBRARIES})
 INSTALL(TARGETS ScriptCalib RUNTIME DESTINATION ${Install_Dir})
 
-
+endif()
 
 
 	
