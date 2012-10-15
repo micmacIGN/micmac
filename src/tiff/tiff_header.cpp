@@ -1960,6 +1960,7 @@ L_Arg_Opt_Tiff  ArgOpTiffMDP(const std::string & aNF)
 
 Tiff_Im MMIcone(const std::string & aName)
 {
+// std::cout << "IIIICOne" << MMDir() << "\n";
     return Tiff_Im::BasicConvStd(MMDir()+"data"+ELISE_CAR_DIR+aName +".tif");
        
 }

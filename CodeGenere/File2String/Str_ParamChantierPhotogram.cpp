@@ -1,4 +1,5 @@
-#include "StdAfx.h"
+#include "general/all.h"
+#include "private/all.h"
 const char * (theNameVar_ParamChantierPhotogram[1328]) = {
 "<GenCpp>\n",
 "\n",

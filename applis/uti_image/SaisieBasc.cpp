@@ -101,7 +101,7 @@ int main(int argc,char ** argv)
   //anOri = "NKS-Assoc-Im2Orient@-" + anOri;
   aCINM->MakeStdOrient(anOri,true);
 
-  std::string aCom =     MMDir() +"bin/Antipasti "
+  std::string aCom =     MMDir() +"bin/SaisiePts "
                       +  MMDir() +"include/XML_MicMac/SaisieLine.xml "
                       +  std::string(" DirectoryChantier=") + aDir
                       +  std::string(" +Image=") + QUOTE(aName)

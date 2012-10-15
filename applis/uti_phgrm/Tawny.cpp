@@ -50,7 +50,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int main(int argc,char ** argv)
 {
-    MemoArg(argc,argv);
+    // MemoArg(argc,argv);
+    MMD_InitArgcArgv(argc,argv);
     std::string  aDir;
 
 
@@ -96,8 +97,8 @@ int main(int argc,char ** argv)
     MMD_InitArgcArgv(argc,argv);
 
     std::string aCom =    MMDir() + std::string("bin/Porto ")
-                        + MMDir() + std::string("include/XML_MicMac/Param-Tawny.xml ")
-                        + std::string(" \%WD=") + aDir
+                        + MMDir() +std::string("include/XML_MicMac/Param-Tawny.xml ")
+                        + std::string(" %WD=") + aDir
                         + std::string(" +DR1X=") + ToString(mDeqXY.x)
                         + std::string(" +DR1Y=") + ToString(mDeqXY.y)
                         + std::string(" +DR0X=") + ToString(aDegCste.x)

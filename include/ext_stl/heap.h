@@ -50,7 +50,18 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*************************************************************/
 
 
-template <class Type,class Compare> class ElHeap 
+template <class Type> class DefaultParamHeap
+{
+     public :
+        static void SetIndex(Type &,int i) {}
+        static int  Index(const Type &) 
+        {
+             ELISE_ASSERT(false,"No DefaultParamHeap::Index");
+             return -1;
+        }
+};
+
+template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class ElHeap 
 {
     public :
 
@@ -60,17 +71,35 @@ template <class Type,class Compare> class ElHeap
 		mEls.reserve(capa);
         }
 
-         void  push(const Type & v)
+        // Type & ValOfIndex(int aK) {return mEls[aK];}
+
+        void MAJ(Type & aV)
         {
-             mEls.push_back(v);
+           ReSync(TParam::Index(aV));
+        }
+
+        void Sortir(Type & v)
+        {
+            int i = TParam::Index(v);
+            mEls[i] =  mEls[nb()-1] ; 
+                                    /*----RI----*/ ResetIndex(i);
+                                                    SetNoIndex(v); // SetNoIndex(mEls[nb()-1]);
+            mEls.pop_back();
+            ReSync(i);
+        }
+
+        void  push(const Type & v)
+        {
+                                 /*-------RI-----------*/ // TParam::SetIndex(v,nb()); // Ca va croitre
+             mEls.push_back(v);  /*-------RI-----------*/    ResetIndex(nb()-1); //   ResetIndex(nb()-1);
              heap_down(nb()-1);
         }
 
         bool pop(Type & v)
         {
              if (nb() <= 0) return false;
-             v = mEls[0];
-             mEls[0] = mEls[nb()-1];
+             v = mEls[0];  /*-------------RI-----------*/    TParam::SetIndex(v,-1);
+             mEls[0] = mEls[nb()-1];  /*--RI-----------*/    ResetIndex(0);
 	     mEls.pop_back();
              heap_up(0);
              return true;
@@ -79,6 +108,7 @@ template <class Type,class Compare> class ElHeap
         INT nb() {return (int) mEls.size();}
         bool empty() {return mEls.empty();}
 
+        const std::vector<Type> & Els() {return mEls;}
    private :
 
 	std::vector<Type> mEls;
@@ -86,12 +116,29 @@ template <class Type,class Compare> class ElHeap
         static INT  Fils(INT i) { return   (i+1)/2-1;}
         static INT  Pere1(INT i){ return   i*2+1;}
         static INT  Pere2(INT i){ return   i*2+2;}
+        void ResetIndex(int aK)
+        {
+              TParam::SetIndex(mEls[aK],aK);
+        }
+        void SetNoIndex(Type & v)
+        {
+            TParam::SetIndex(v,-1);
+        }
 
 
         Compare       _inferior;
 
         // do not exist
         ElHeap(const ElHeap<Type,Compare> &);
+
+        void ReSync(int i)
+        {
+            if (i< nb())
+            {
+                if (!heap_down(i))
+                   heap_up(i);
+            }
+        }
 
         void heap_up(INT KV)
         {
@@ -111,19 +158,22 @@ template <class Type,class Compare> class ElHeap
                    return;
                 else
                 {
-                    ElSwap(mEls[ind_plus_petit],mEls[KV]);
+                    ElSwap(mEls[ind_plus_petit],mEls[KV]);  /*-RI-*/  ResetIndex(ind_plus_petit);ResetIndex(KV);
                     KV = ind_plus_petit;
                 }
             }
         }
 
-        void heap_down(INT KV)
+        bool heap_down(INT KV)
         {
+            bool SthDone = false;
             while ((KV>0)&& _inferior(mEls[KV],mEls[Fils(KV)]))
             {
-                  ElSwap(mEls[KV],mEls[Fils(KV)]);
+                  ElSwap(mEls[KV],mEls[Fils(KV)]); /*-------RI------*/ ResetIndex(KV); ResetIndex(Fils(KV));
                   KV = Fils(KV);
+                  SthDone = true;
             }
+            return SthDone;
         }
 };
 

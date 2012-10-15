@@ -38,7 +38,9 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
+
 #include "StdAfx.h"
+
 
 #if (ELISE_INSERT_CODE_GEN)
 
@@ -357,6 +359,13 @@ AddEntry("cEqAppui_AFocal_PProjInc_M2C"#aDist,cEqAppui_AFocal_PProjInc_M2C##aDis
 #include "../../CodeGenere/photogram/cEqHomogrXDeg5.h"
 #include "../../CodeGenere/photogram/cEqHomogrYDeg5.h"
 
+#include "../../CodeGenere/photogram/cEqHomogrSpaceInitX.h"
+#include "../../CodeGenere/photogram/cEqHomogrSpaceInitY.h"
+
+#include "../../CodeGenere/photogram/cEqHomogrX.h"
+#include "../../CodeGenere/photogram/cEqHomogrY.h"
+
+
 #include "../../CodeGenere/photogram/cEqLin_1.h"
 #include "../../CodeGenere/photogram/cEqLin_2.h"
 #include "../../CodeGenere/photogram/cEqLin_3.h"
@@ -518,6 +527,15 @@ void cElCompiledFonc::InitEntries()
 
      AddEntry("cEqHomogrXDeg5",cEqHomogrXDeg5::Alloc);    // EqHom
      AddEntry("cEqHomogrYDeg5",cEqHomogrYDeg5::Alloc);
+
+     AddEntry("cEqHomogrSpaceInitX",cEqHomogrSpaceInitX::Alloc);    // EqHom
+     AddEntry("cEqHomogrSpaceInitY",cEqHomogrSpaceInitY::Alloc);
+
+     AddEntry("cEqHomogrX",cEqHomogrX::Alloc);    // EqHom
+     AddEntry("cEqHomogrY",cEqHomogrY::Alloc);
+
+
+
      AddEntry("cEqCoplanDPol3Id",cEqCoplanDPol3Id::Alloc);  // DPol
      AddEntry("cEqCoplanDPol5Id",cEqCoplanDPol5Id::Alloc);
      AddEntry("cEqCoplanDPol7Id",cEqCoplanDPol7Id::Alloc);

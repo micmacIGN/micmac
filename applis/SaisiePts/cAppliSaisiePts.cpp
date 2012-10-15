@@ -377,7 +377,7 @@ void cAppli_SaisiePts::InitPG()
        cSetPointGlob aSPG = StdGetObjFromFile<cSetPointGlob>
                             (
                                 mNameSauvPG,
-                                MMDir() + StdGetFileXMLSpec("ParamSaisiePts.xml"),
+                                StdGetFileXMLSpec("ParamSaisiePts.xml"),
                                 "SetPointGlob",
                                 "SetPointGlob"
                             );
@@ -445,7 +445,7 @@ void cAppli_SaisiePts::IniPointeIm()
             mSOSPI = StdGetObjFromFile<cSetOfSaisiePointeIm>
                      (
                          mNameSauvPtIm,
-                         MMDir() + StdGetFileXMLSpec("ParamSaisiePts.xml"),
+                         StdGetFileXMLSpec("ParamSaisiePts.xml"),
                          "SetOfSaisiePointeIm",
                          "SetOfSaisiePointeIm"
                      );

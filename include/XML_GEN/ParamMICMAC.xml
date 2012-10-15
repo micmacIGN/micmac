@@ -875,6 +875,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                                 <PdsCorrelStd   Nb="1" Type="double" > </PdsCorrelStd>
                                 <PdsCorrelPonct Nb="1" Type="double" > </PdsCorrelPonct>
                                 <DefCost  Nb="?" Type="double" Def="0.1"> </DefCost>
+                                <UnUsedTest Nb="?" Type="std::string"> </UnUsedTest>
                         </MultiCorrelPonctuel>
 
 
