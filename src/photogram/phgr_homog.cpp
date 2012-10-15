@@ -39,6 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 #include "StdAfx.h"
+#include "ext_stl/numeric.h"
+
 
 
 
@@ -482,6 +484,276 @@ ElMatrix<REAL>  cElHomographie::MatCoordHom() const
 
    return aRes;
 }
+
+
+double  QuickDist(const Pt2dr & aPt)
+{
+   double aDx = ElAbs(aPt.x);
+   double aDy = ElAbs(aPt.y);
+   return   (aDx+aDy + ElMax(aDx,aDy))/ 2.0;
+}
+
+void AddPair(ElPackHomologue & aPack,const std::pair<Pt2dr,Pt2dr> aPair)
+{
+   aPack.Cple_Add(ElCplePtsHomologues(aPair.first,aPair.second));
+}
+
+cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomologue & aPack,bool & Ok ,int aNbTestEstim, double aPerc,int aNbMaxPts)
+{
+   cElHomographie aRes = cElHomographie::Id();
+   Ok = false;
+   Pt2dr aCdg(0,0);
+   for (ElPackHomologue::tCstIter itH=aPack.begin() ; itH!=aPack.end() ; itH++)
+   {
+       aCdg = aCdg + itH->P1();
+   }
+
+   aCdg = aCdg / double(aPack.size());
+   
+   std::vector<std::pair<Pt2dr,Pt2dr> > aV00;
+   std::vector<std::pair<Pt2dr,Pt2dr> > aV01;
+   std::vector<std::pair<Pt2dr,Pt2dr> > aV10;
+   std::vector<std::pair<Pt2dr,Pt2dr> > aV11;
+   std::vector<std::pair<Pt2dr,Pt2dr> > aVAll;
+
+   int aNbPtsTot = aPack.size();
+
+
+   int aCpt = 0;
+   for (ElPackHomologue::tCstIter itH=aPack.begin() ; itH!=aPack.end() ; itH++)
+   {
+        Pt2dr aP1 = itH->P1();
+        Pt2dr aP2 = itH->P2();
+        std::pair<Pt2dr,Pt2dr> aPair(aP1,aP2);
+
+        if (  (((aCpt-1)*aNbMaxPts)/aNbPtsTot)  !=  ((aCpt*aNbMaxPts)/aNbPtsTot))
+        {
+            aVAll.push_back(aPair);
+        }
+
+        if (aP1.x < aCdg.x)
+        {
+            if (aP1.y < aCdg.y) aV00.push_back(aPair);
+            else                aV01.push_back(aPair);
+        }
+        else
+        {
+            if (aP1.y < aCdg.y) aV10.push_back(aPair);
+            else                aV11.push_back(aPair);
+        }
+        aCpt++;
+   }
+
+
+   if (aV00.empty()  || aV01.empty()  || aV10.empty()  || aV11.empty()  )
+      return aRes;
+
+
+   double aDMIn = 1e30;
+   int aNbPts = aVAll.size();
+   int aNbKth = ElMax(1,ElMin(aNbPts-1,round_ni((aPerc/100.0) * aNbPts)));
+   std::vector<double> aVDist;
+
+   if (aNbMaxPts<aNbPtsTot)
+      aNbTestEstim = (aNbTestEstim*aNbPtsTot) / aNbMaxPts;
+
+   // int aKMIN = -1;
+   std::vector<double> aVD;
+   while (aNbTestEstim)
+   {
+       int aK00 = NRrandom3(aV00.size());
+       int aK01 = NRrandom3(aV01.size());
+       int aK10 = NRrandom3(aV10.size());
+       int aK11 = NRrandom3(aV11.size());
+
+       ElPackHomologue aP4;
+       AddPair(aP4,aV00[aK00]);
+       AddPair(aP4,aV01[aK01]);
+       AddPair(aP4,aV10[aK10]);
+       AddPair(aP4,aV11[aK11]);
+
+       cElHomographie aSol = cElHomographie(aP4,true);
+
+       aVDist.clear();
+       for (int aK=0 ; aK< aNbPts ; aK++)
+       {
+          Pt2dr aP1 = aVAll[aK].first;
+          Pt2dr aP2 = aVAll[aK].second;
+
+/*
+          Pt2dr aDif = aP2 -aSol.Direct(aP1);
+          double aDx = ElAbs(aDif.x);
+          double aDy = ElAbs(aDif.y);
+          double aDist =  (aDx+aDy + ElMax(aDx,aDy))/ 2.0;
+*/
+          double aDist = QuickDist(aP2 -aSol.Direct(aP1));
+          aVDist.push_back(aDist);
+       }
+       SplitArrounKthValue(aVDist.data(),aNbPts,aNbKth);
+
+       double aSom = Moy(aVDist.data(),aNbKth);
+   
+       aVD.push_back(aSom);
+
+       //std::cout << "Robust:Hom:SOM = " << aDMIn << " " << aSom << "\n";
+
+       if (aSom <aDMIn)
+       {
+          aRes = aSol;
+          aDMIn = aSom;
+       }
+       aNbTestEstim--;
+   }
+
+
+   double aDMinInit = aDMIn;
+   ElPackHomologue aPckPds;
+   for (int anIterL2 = 0 ; anIterL2 < 4 ; anIterL2++)
+   {
+       aPckPds = ElPackHomologue();
+       aVDist.clear();
+       int aCpt = 0;
+       for (ElPackHomologue::tCstIter itH=aPack.begin() ; itH!=aPack.end() ; itH++)
+       {
+           Pt2dr aP1 = itH->P1();
+           Pt2dr aP2 = itH->P2();
+           double aDist = QuickDist(aP2 -aRes.Direct(aP1));
+           aVDist.push_back(aDist);
+
+           double aPds = 1/ (1+ 4*ElSquare(aDist/aDMIn));
+           aPckPds.Cple_Add(ElCplePtsHomologues(aP1,aP2,aPds));
+           aCpt++;
+       }
+       ELISE_ASSERT(aNbPtsTot==aPack.size() ,"KKKKK ????");
+       int aKTh = round_ni(aNbPtsTot * (aPerc/100.0));
+
+
+       SplitArrounKthValue(aVDist.data(),aNbPtsTot,aKTh);
+       aDMIn = Moy(aVDist.data(),aKTh);
+       aRes = cElHomographie(aPckPds,true);
+
+
+   }
+
+   std::vector<double> aVEstim;
+   int aNbTestValid = 21;
+   for (int aKTest = 0 ; aKTest <aNbTestValid ; aKTest++)
+   {
+       ElPackHomologue aPckPdsA;
+       ElPackHomologue aPckPdsB;
+       for (ElPackHomologue::tCstIter itH=aPack.begin() ; itH!=aPack.end() ; itH++)
+       {
+           Pt2dr aP1 = itH->P1();
+           Pt2dr aP2 = itH->P2();
+           double aDist = QuickDist(aP2 -aRes.Direct(aP1));
+           aVDist.push_back(aDist);
+
+           double aPds = 1/ sqrt(1+ ElSquare(aDist/aDMIn));
+           if (NRrandom3() > 0.5) 
+               aPckPdsA.Cple_Add(ElCplePtsHomologues(aP1,aP2,aPds));
+           else
+               aPckPdsB.Cple_Add(ElCplePtsHomologues(aP1,aP2,aPds));
+
+           
+       }
+       cElHomographie aResA = cElHomographie(aPckPdsA,true);
+       cElHomographie aResB = cElHomographie(aPckPdsB,true);
+
+       double aSomDist = 0; 
+       for (ElPackHomologue::tCstIter itH=aPack.begin() ; itH!=aPack.end() ; itH++)
+       {
+           Pt2dr aP1 = itH->P1();
+
+           Pt2dr  aQ   = aRes.Direct(aP1);
+           Pt2dr  aQA  = aResA.Direct(aP1);
+           Pt2dr  aQB  = aResB.Direct(aP1);
+           double aDist = (QuickDist(aQ-aQA) + QuickDist(aQ-aQB) + QuickDist(aQB-aQA)) / 3.0;
+           aSomDist += aDist;
+       }
+       aSomDist /= aNbPtsTot;
+       aVEstim.push_back(aSomDist);
+   }
+   SplitArrounKthValue(aVEstim.data(),aNbTestValid,aNbTestValid/2);
+   *aQuality = aVEstim[aNbTestValid/2];
+
+
+   if (0)
+   {
+      std::sort(aVD.begin(),aVD.end());
+      std::cout << "Quality " << *aQuality << " DIST-HOM " << aDMinInit << " L2 " <<  aDMIn << " V10 " << aVD[ElMin(int(aVD.size()-1),10)] << " NB "<< aNbPtsTot << "\n";
+   }
+
+/*
+
+   std::sort(aVD.begin(),aVD.end());
+   for (int aK=0 ; aK<10 ; aK++)
+       std::cout << "DDD " << aVD[aK] << "\n";
+   std::cout << " KMIN " << aKMIN <<  "\n";
+*/
+//    getchar();
+/*
+*/
+
+   // std::cout << "WAIIT::Robust:Hom:SOM \n";
+   // getchar();
+
+    
+
+   Ok= true;
+   return aRes;
+}
+
+
+cElHomographie cElHomographie::SomPondHom(const std::vector<cElHomographie> & aVH,const std::vector<double> & aVP)
+{
+    ELISE_ASSERT(aVH.size()==aVP.size(),"SomPondHom");
+    double aSomHXx = 0;
+    double aSomHXy = 0;
+    double aSomHX1 = 0;
+    double aSomHYx = 0;
+    double aSomHYy = 0;
+    double aSomHY1 = 0;
+    double aSomHZx = 0;
+    double aSomHZy = 0;
+    double aSomHZ1 = 0;
+
+    double aSomPds = 0;
+
+    for (int aK=0 ; aK<int(aVH.size()) ; aK++)
+    {
+        double aPds = aVP[aK];
+
+        const cElComposHomographie &  aHX = aVH[aK].HX();
+        const cElComposHomographie &  aHY = aVH[aK].HY();
+        const cElComposHomographie &  aHZ = aVH[aK].HZ();
+
+        double aMul = aPds / aHZ.Coeff1();
+
+
+        aSomHXx += aHX.CoeffX() * aMul;
+        aSomHXy += aHX.CoeffY() * aMul;
+        aSomHX1 += aHX.Coeff1() * aMul;
+
+        aSomHYx += aHY.CoeffX() * aMul;
+        aSomHYy += aHY.CoeffY() * aMul;
+        aSomHY1 += aHY.Coeff1() * aMul;
+
+        aSomHZx += aHZ.CoeffX() * aMul;
+        aSomHZy += aHZ.CoeffY() * aMul;
+        aSomHZ1 += aHZ.Coeff1() * aPds;
+
+        aSomPds += aPds;
+    }
+
+
+    return cElHomographie
+           (
+               cElComposHomographie(aSomHXx/aSomPds,aSomHXy/aSomPds,aSomHX1/aSomPds),
+               cElComposHomographie(aSomHYx/aSomPds,aSomHYy/aSomPds,aSomHY1/aSomPds),
+               cElComposHomographie(aSomHZx/aSomPds,aSomHZy/aSomPds,aSomHZ1/aSomPds)
+           );
+}
+ 
 
 
 /****************************************************************/

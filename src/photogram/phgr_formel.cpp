@@ -1232,6 +1232,22 @@ cParamIFDistStdPhgr *  cSetEqFormelles::NewIntrDistStdPhgr
 
 cEqHomogFormelle * cSetEqFormelles::NewEqHomog
 (
+   bool                  InSpaceInit,
+   cHomogFormelle &      aHF1,
+   cHomogFormelle &      aHF2,
+   cDistRadialeFormelle* aDRF,
+   bool                  Code2Gen
+)
+{
+     AssertUnClosed();
+     cEqHomogFormelle * aRes = new cEqHomogFormelle(InSpaceInit,aHF1,aHF2,aDRF,Code2Gen);
+     AddObj2Kill(aRes);
+     return aRes;
+}
+
+#if (0)
+cEqHomogFormelle * cSetEqFormelles::NewEqHomog
+(
    cHomogFormelle &      aHF1,
    cHomogFormelle &      aHF2,
    cDistRadialeFormelle& aDRF,
@@ -1243,6 +1259,7 @@ cEqHomogFormelle * cSetEqFormelles::NewEqHomog
      AddObj2Kill(aRes);
      return aRes;
 }
+#endif
 
 cDistRadialeFormelle * cSetEqFormelles::NewDistF
                       (bool doCloseEEF,bool Fige,INT DegFige,

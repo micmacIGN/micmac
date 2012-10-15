@@ -81,7 +81,7 @@ int main(int argc,char ** argv)
                                                argc-2,argv+2,
                                               //0,0,
 		                              argv[1],
-			                      MMDir() + StdGetFileXMLSpec("ParamSaisiePts.xml"),
+			                       StdGetFileXMLSpec("ParamSaisiePts.xml"),
 			                      "ParamSaisiePts",
 			                      "ParamSaisiePts",
                                               "DirectoryChantier",
@@ -92,7 +92,6 @@ int main(int argc,char ** argv)
    anAppli.BoucleInput();
 
    SaisiePts_Banniere();
-getchar();
    return 0;
 }
 

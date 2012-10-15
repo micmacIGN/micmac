@@ -50,7 +50,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-
 /************************************************************/
 /*                                                          */
 /*                    cHomogFormelle                        */
@@ -91,6 +90,28 @@ void cHomogFormelle::SetModeCtrl(eModeContrHom aMode)
 	mModeContr = aMode;
 }
 
+
+template <class Type> Pt2d< Type>   InvHom(Type a,Type b,Type c,Type d,Type e,Type f,Type g,Type h,Type U,Type V)
+{
+    Type mA = a - U*g;
+    Type mB = b - U*h;
+    Type mC = d - V*g;
+    Type mD = e - V*h;
+
+    Type Delta = mA*mD - mB*mC;
+
+    Type  UP = U-c;
+    Type  VP = V-f;
+
+
+    Pt2d<Type> aRes(
+                       ( mD*UP - mB*VP)/Delta,
+                       (-mC*UP + mA*VP) /Delta
+                   );
+
+   return aRes;
+}
+
 cHomogFormelle::cHomogFormelle
 (
      const cElHomographie & anHomog,
@@ -107,6 +128,27 @@ cHomogFormelle::cHomogFormelle
      mHomFTol     (cContrainteEQF::theContrStricte)
 {
    CloseEEF();
+
+   for (int aK=0 ; aK<0 ; aK++)
+   {
+       cElComposHomographie aHX = mHomInit.HX();
+       cElComposHomographie aHY = mHomInit.HY();
+       cElComposHomographie aHZ = mHomInit.HZ();
+
+        Pt2dr aP(NRrandom3()*100,NRrandom3()*100);
+        Pt2dr aQ =  mHomInit.Direct(aP);
+
+        Pt2dr aR = InvHom(
+                         aHX.CoeffX(), aHX.CoeffY(), aHX.Coeff1(),
+                         aHY.CoeffX(), aHY.CoeffY(), aHY.Coeff1(),
+                         aHZ.CoeffX(), aHZ.CoeffY(),
+                         aQ.x,aQ.y
+                   );
+        double aDist =  euclid(aP,aR);
+        std::cout << "TESINV HOM " << aP << aR << aDist  << " B=" <<  aHX.CoeffY() << "\n";
+        ELISE_ASSERT(aDist<1e-5,"TESINV HOM ");
+   }
+
 }
 
 
@@ -114,6 +156,16 @@ cHomogFormelle::cHomogFormelle
 Pt2d< Fonc_Num>  cHomogFormelle::operator ()(Pt2d< Fonc_Num> aP)
 {
    return Pt2d<Fonc_Num>(mCX(aP)/ mCZ(aP) ,mCY(aP) / mCZ(aP));
+}
+
+Pt2d< Fonc_Num>  cHomogFormelle::ImRec(Pt2d< Fonc_Num> aP)
+{
+    return    InvHom(
+                         mCX.mX, mCX.mY, mCX.m1,
+                         mCY.mX, mCY.mY, mCY.m1,
+                         mCZ.mX, mCZ.mY,
+                         aP.x,aP.y
+              );
 }
 
 
@@ -161,16 +213,20 @@ cEqHomogFormelle::cEq::cEq(Fonc_Num F,cEqHomogFormelle & anEQF,bool isX,bool Cod
    mEQF(anEQF)
 {
   mName =   std::string("cEqHomogr")
+          + std::string(anEQF.mInSpaceInit ? "SpaceInit" : "")
           + std::string(isX ? "X" : "Y")
-          + std::string("Deg")
-          + ToString(anEQF.mDRF.DistInit().NbCoeff());
+          + (  anEQF.mDRF                                                          ?
+               ( std::string("Deg") + ToString(anEQF.mDRF->DistInit().NbCoeff()))  :
+               ""
+            );
 
 
   if (Code2Gen)
   {
        cElCompileFN::DoEverything
        (
-          std::string("src")+ELISE_CAR_DIR+"GC_photogram"+ELISE_CAR_DIR,
+          // "src/GC_photogram/",
+          DIRECTORY_GENCODE_FORMEL,
           mName,
           F,
           anEQF.mLInterv
@@ -192,8 +248,16 @@ cEqHomogFormelle::cEq::cEq(Fonc_Num F,cEqHomogFormelle & anEQF,bool isX,bool Cod
 
   pAdrX1 = pFEq->RequireAdrVarLocFromString(anEQF.mMemberX1);
   pAdrY1 = pFEq->RequireAdrVarLocFromString(anEQF.mMemberY1);
-  pAdrX2 = pFEq->RequireAdrVarLocFromString(anEQF.mMemberX2);
-  pAdrY2 = pFEq->RequireAdrVarLocFromString(anEQF.mMemberY2);
+  // En spcae init des variable X2 oy Y2 disparaissent !!!
+  if (isX || (!anEQF.mInSpaceInit))
+      pAdrX2 = pFEq->RequireAdrVarLocFromString(anEQF.mMemberX2);
+  else 
+     pAdrX2=0;
+
+  if ((!isX) || (!anEQF.mInSpaceInit))
+     pAdrY2 = pFEq->RequireAdrVarLocFromString(anEQF.mMemberY2);
+  else 
+     pAdrY2 = 0;
 
   anEQF.mSet.AddFonct(pFEq);
 
@@ -210,8 +274,8 @@ REAL cEqHomogFormelle::cEq::AddLiaisonP1P2(Pt2dr aP1,Pt2dr aP2,REAL aPds,bool Wi
 {
    *pAdrX1 = aP1.x;
    *pAdrY1 = aP1.y;
-   *pAdrX2 = aP2.x;
-   *pAdrY2 = aP2.y;
+   if (pAdrX2) *pAdrX2 = aP2.x;
+   if (pAdrY2) *pAdrY2 = aP2.y;
    return mEQF.mSet.AddEqFonctToSys(pFEq,aPds,WithD2);
 }
 
@@ -219,8 +283,8 @@ REAL cEqHomogFormelle::cEq::ResiduSigneP1P2(Pt2dr aP1,Pt2dr aP2)
 {
    *pAdrX1 = aP1.x;
    *pAdrY1 = aP1.y;
-   *pAdrX2 = aP2.x;
-   *pAdrY2 = aP2.y;
+   if (pAdrX2) *pAdrX2 = aP2.x;
+   if (pAdrY2) *pAdrY2 = aP2.y;
    return mEQF.mSet.ResiduSigne(pFEq);
 }
 
@@ -233,33 +297,51 @@ cEqHomogFormelle::~cEqHomogFormelle()
      delete pFEqX;
      delete pFEqY;
 }
+
 cEqHomogFormelle::cEqHomogFormelle
 (
+   bool InSpaceInit,
    cHomogFormelle &      aHF1,
    cHomogFormelle &      aHF2,
-   cDistRadialeFormelle& aDRF,
+   cDistRadialeFormelle* aDRF,
    bool Code2Gen
 ) :
+  mInSpaceInit (InSpaceInit),
   mSet       (*aHF1.Set()),
   mHF1       (aHF1),
   mHF2       (aHF2),
   mDRF       (aDRF),
-  mEqHom     (mHF1(mDRF(mP1))-mHF2(mDRF(mP2))),
+  mEqHom     (
+                  InSpaceInit                                     ?
+                  (mHF2.ImRec(mHF1(mP1))-mP2)                     :
+                  (mHF1(ComposeDRF(mP1))-mHF2(ComposeDRF(mP2)))
+             ),
   mLInterv   (),
   pFEqX      (0),
   pFEqY      (0)
 {
+  if (mInSpaceInit) 
+  {
+      ELISE_ASSERT(mDRF==0,"in cEqHomogFormelle incompat DRF/nSpaceInit");
+  }
   mHF1.IncInterv().SetName("Hom1");
   mHF2.IncInterv().SetName("Hom2");
-  mDRF.IncInterv().SetName("DRF");
+  if (mDRF)
+     mDRF->IncInterv().SetName("DRF");
   mLInterv.AddInterv(mHF1.IncInterv());
   mLInterv.AddInterv(mHF2.IncInterv());
-  mLInterv.AddInterv(mDRF.IncInterv());
+  if (mDRF)
+     mLInterv.AddInterv(mDRF->IncInterv());
 
 
   pFEqX =  new cEq(mEqHom.x,*this,true,Code2Gen);
   pFEqY =  new cEq(mEqHom.y,*this,false,Code2Gen);
 
+}
+
+Pt2d<Fonc_Num> cEqHomogFormelle::ComposeDRF (Pt2d<Fonc_Num> aP)
+{
+   return mDRF ? (*mDRF)(aP) : aP;
 }
 
 REAL cEqHomogFormelle::AddLiaisonP1P2(Pt2dr aP1,Pt2dr aP2,REAL aPds,bool WithD2)
@@ -268,6 +350,17 @@ REAL cEqHomogFormelle::AddLiaisonP1P2(Pt2dr aP1,Pt2dr aP2,REAL aPds,bool WithD2)
        ElAbs(pFEqX->AddLiaisonP1P2(aP1,aP2,aPds,WithD2)) +
        ElAbs(pFEqY->AddLiaisonP1P2(aP1,aP2,aPds,WithD2)) ;
 }
+
+Pt2dr cEqHomogFormelle::StdAddLiaisonP1P2(Pt2dr aP1,Pt2dr aP2,REAL aPds,bool WithD2)
+{
+  return  Pt2dr
+          (
+             pFEqX->AddLiaisonP1P2(aP1,aP2,aPds,WithD2) ,
+             pFEqY->AddLiaisonP1P2(aP1,aP2,aPds,WithD2)   
+          );
+}
+
+
 
 
 REAL cEqHomogFormelle::ResiduNonSigneP1P2(Pt2dr aP1,Pt2dr aP2)
@@ -305,14 +398,21 @@ static REAL DistHomogr(cElHomographie  aH1,cElHomographie  aH2)
 
 cHomogFormelle&       cEqHomogFormelle::HF1() {return mHF1;}
 cHomogFormelle&       cEqHomogFormelle::HF2() {return mHF2;}
-cDistRadialeFormelle& cEqHomogFormelle::DRF() {return mDRF;}
+cDistRadialeFormelle* cEqHomogFormelle::DRF() {return mDRF;}
+cDistRadialeFormelle& cEqHomogFormelle::DistRF() 
+{
+   ELISE_ASSERT(mDRF!=0,"cEqHomogFormelle::DistRF");
+   return *mDRF;
+}
 
 
 void cEqHomogFormelle::StdRepondere(ElPackHomologue & aPack,REAL aCoeff)
 {
     cElHomographie H1 = HF1().HomCur();
     cElHomographie H2 = HF2().HomCur();
-    ElDistRadiale_PolynImpair Dist = DRF().DistCur();
+    ElDistRadiale_PolynImpair Dist(1e5,Pt2dr(0,0));
+    if (DRF()) 
+       Dist = DRF()->DistCur();
 
     for
     (
@@ -321,6 +421,13 @@ void cEqHomogFormelle::StdRepondere(ElPackHomologue & aPack,REAL aCoeff)
          it++
     )
     {
+          Pt2dr aP1 = it->P1();
+          Pt2dr aP2 = it->P2();
+          if (mDRF)
+          {
+              aP1 = Dist.Direct(aP1);
+              aP2 = Dist.Direct(aP2);
+          }
           Pt2dr Ec = H1.Direct(Dist.Direct(it->P1())) - H2.Direct(Dist.Direct(it->P2()));
 
           REAL D = euclid(Ec);
@@ -354,7 +461,7 @@ void cLEqHomOneDist::AddHomogF(cHomogFormelle * anHom)
 
 void cLEqHomOneDist::AddEqF(cEqHomogFormelle * pEq)
 {
-   ELISE_ASSERT(mDRF ==&pEq->DRF(),"Multiple Dist in cLEqHomOneDist");
+   ELISE_ASSERT(mDRF ==pEq->DRF(),"Multiple Dist in cLEqHomOneDist");
 
    mEqFs.push_back(pEq);
    AddHomogF(&pEq->HF1());
@@ -373,7 +480,7 @@ void cLEqHomOneDist::AddCple(const ElPackHomologue & aPack)
 
 
      ELISE_ASSERT(mDRF !=0,"LEqHomOneDist::AddCple");
-     AddEqF(mSet.NewEqHomog(*aHF1,*aHF2,*mDRF));
+     AddEqF(mSet.NewEqHomog(false,*aHF1,*aHF2,mDRF));
 
      for 
      (
@@ -448,7 +555,9 @@ void cLEqHomOneDist::PondereFromErreur(REAL aDCut)
        ElPackHomologue * pPack = mLiaisons[aK];
 
        
-       ElDistRadiale_PolynImpair aDist = pEq->DRF().DistCur();
+       ElDistRadiale_PolynImpair aDist(1e5,Pt2dr(0,0));
+       if (pEq->DRF())
+          aDist = pEq->DRF()->DistCur();
        cElHomographie  aH1 = pEq->HF1().HomCur();
        cElHomographie  aH2 = pEq->HF2().HomCur();
 
@@ -459,8 +568,16 @@ void cLEqHomOneDist::PondereFromErreur(REAL aDCut)
            it++
        )
        {
-           Pt2dr aP1 = aH1.Direct(aDist.Direct(it->P1()));
-           Pt2dr aP2 = aH2.Direct(aDist.Direct(it->P2()));
+           Pt2dr aQ1 = it->P1();
+           Pt2dr aQ2 = it->P2();
+           if (pEq->DRF())
+           {
+                 aQ1 = aDist.Direct(aQ1);
+                 aQ2 = aDist.Direct(aQ2);
+           }
+
+           Pt2dr aP1 = aH1.Direct(aQ1);
+           Pt2dr aP2 = aH2.Direct(aQ2);
            REAL aD = euclid(aP1,aP2) * mDiag;
 
 

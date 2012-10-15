@@ -43,18 +43,35 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int main(int argc,char ** argv)
 {
-   ELISE_ASSERT(argc==3,"Nb Arg in GenXML2Cpp");
+   ELISE_ASSERT(argc>=3,"Nb Arg in GenXML2Cpp");
    int aCode;
-    FromString<int>(aCode,argv[2]);
+   FromString<int>(aCode,argv[2]);
    // std::cout << "CODE =" << aCode << " A2 " << argv[2] << "\n";
    // ELISE_ASSERT(Ok,"GenXML2Cpp.cpp arg not int");
    if (aCode==1)
    {
+      ELISE_ASSERT(argc==3,"Nb Arg in GenXML2Cpp");
       StdXMl2CppAndString(argv[1]);
    }
-   else if (aCode==0)
+   else if (aCode==0) // _DefautChantierDescripteu
    {
+        ELISE_ASSERT(argc==3,"Nb Arg in GenXML2Cpp");
         XML_StdStringify(argv[1]);
+   }
+   else if (aCode==2)
+   {
+        ELISE_ASSERT(argc==4,"Nb Arg in GenXML2Cpp");
+        XML_StdStringify(argv[1]);
+        cElXMLTree aTreeSpec(argv[1]);
+        aTreeSpec.GenCppGlob(argv[3],"");
+
+   }
+   else if (aCode==3)
+   {
+        ELISE_ASSERT(argc==4,"Nb Arg in GenXML2Cpp");
+        cElXMLTree aTreeSpec(argv[1]);
+        aTreeSpec.GenCppGlob(argv[3],"");
+
    }
    else 
    {

@@ -50,7 +50,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int main(int argc,char ** argv)
 {
-    MemoArg(argc,argv);
+    // MemoArg(argc,argv);
+    MMD_InitArgcArgv(argc,argv);
     std::string  aDir;
 
 

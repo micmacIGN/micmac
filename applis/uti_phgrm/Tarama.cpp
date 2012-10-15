@@ -63,7 +63,8 @@ std::string NoInit = "XXXXXXXXXX";
 
 int main(int argc,char ** argv)
 {
-    MemoArg(argc,argv);
+    // MemoArg(argc,argv);
+    MMD_InitArgcArgv(argc,argv);
     std::string  aDir,aPat,aFullDir;
     std::string Aero;
     int  Zoom=8;

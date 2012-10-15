@@ -323,6 +323,9 @@ cAppliSM::cAppliSM(int argc,char ** argv) :
 
 int main(int argc,char ** argv)
 {
+    MMD_InitArgcArgv(argc,argv);
+
+
     cAppliSM aAP(argc,argv);
 }
 
