@@ -46,6 +46,8 @@ set(Elise_Src_Files
 	../CodeGenere/File2String/Str_SuperposImage.cpp
 )
 
+
+
 INCLUDE (${HASSA_DIR}/Sources.cmake)
 INCLUDE (${SAN_DIR}/Sources.cmake)
 INCLUDE (${SIMULPH_DIR}/Sources.cmake)
@@ -81,6 +83,15 @@ INCLUDE (${TOP_DIR}/Sources.cmake)
 INCLUDE (${UTIL_DIR}/Sources.cmake)
 INCLUDE (${VECTO_DIR}/Sources.cmake)
 INCLUDE (${XINTER_DIR}/Sources.cmake)
+
+
+#set(includeDir ../include)
+
+#set(IncAlgo_geom 
+#		${includeDir}/algo_geom/delaunay_mediatrice.h
+#		${includeDir}/algo_geom/gr_qdt.h)
+		
+#source_group("Include" FILES ${Demo_HEADERS})
 
 # OPTION BUILD : En tetes precompilées visual studio
 enable_precompiled_headers_msvc(StdAfx.h Elise_Src_Files)

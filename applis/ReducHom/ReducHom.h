@@ -77,7 +77,7 @@ using namespace NS_ParamChantierPhotogram;
 
 
 
-#define TEST true
+#define TEST 1
 
 #if TEST
 #define NB_RANSAC_H 20
