@@ -84,14 +84,19 @@ INCLUDE (${UTIL_DIR}/Sources.cmake)
 INCLUDE (${VECTO_DIR}/Sources.cmake)
 INCLUDE (${XINTER_DIR}/Sources.cmake)
 
+# ORGANISATION des en-tetes ELISE
+file(GLOB_RECURSE IncFiles ../include/*.h  )
 
-#set(includeDir ../include)
+foreach(source_file ${IncFiles})
+	get_filename_component(VarName ${source_file}  ABSOLUTE)
+	get_filename_component(NameFile ${source_file}  NAME)
 
-#set(IncAlgo_geom 
-#		${includeDir}/algo_geom/delaunay_mediatrice.h
-#		${includeDir}/algo_geom/gr_qdt.h)
-		
-#source_group("Include" FILES ${Demo_HEADERS})
+	string(REGEX REPLACE "/${NameFile}" "" includeTree ${VarName})
+	string(REGEX REPLACE "${PROJECT_SOURCE_DIR}/" "" includeTree ${includeTree})
+	string(REGEX REPLACE "/" "\\\\\\\\" includeTree ${includeTree})
+	source_group("${includeTree}" FILES ${source_file})
+
+endforeach(source_file)
 
 # OPTION BUILD : En tetes precompilées visual studio
 enable_precompiled_headers_msvc(StdAfx.h Elise_Src_Files)
@@ -111,7 +116,7 @@ set(Elise_Src_Files
 )
 
 # CONSTRUCTION : Lib ELISE
-add_library( elise ${Elise_Src_Files})
+add_library( elise ${Elise_Src_Files} ${IncFiles})
 
 # OPTION BUILD : En tetes precompilées pour gcc
 enable_precompiled_headers_GCC(StdAfx.h elise)
