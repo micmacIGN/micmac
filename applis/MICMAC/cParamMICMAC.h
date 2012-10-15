@@ -1501,10 +1501,14 @@ class cMultiCorrelPonctuel
 
         cTplValGesInit< double > & DefCost();
         const cTplValGesInit< double > & DefCost()const ;
+
+        cTplValGesInit< std::string > & UnUsedTest();
+        const cTplValGesInit< std::string > & UnUsedTest()const ;
     private:
         double mPdsCorrelStd;
         double mPdsCorrelPonct;
         cTplValGesInit< double > mDefCost;
+        cTplValGesInit< std::string > mUnUsedTest;
 };
 cElXMLTree * ToXMLTree(const cMultiCorrelPonctuel &);
 
@@ -1592,7 +1596,7 @@ class cTypeCAH
 
         cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik();
         const cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik()const ;
-		
+
         cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel();
         const cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel()const ;
 
@@ -1642,7 +1646,7 @@ class cCorrelAdHoc
 
         cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik();
         const cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik()const ;
-		
+
         cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel();
         const cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel()const ;
 
@@ -2764,7 +2768,7 @@ class cEtapeMEC
 
         cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik();
         const cTplValGesInit< cGPU_CorrelBasik > & GPU_CorrelBasik()const ;
-		
+
         cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel();
         const cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel()const ;
 

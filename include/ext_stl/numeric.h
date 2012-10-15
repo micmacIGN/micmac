@@ -205,6 +205,91 @@ typename tGetVal::tValue     GenValPdsPercentile
 /*
 */
 
+// Permute les valeur de telle maniere que les [0,K[  premiere soit inferieure ou 
+// egale aux suivante
+template <class TVal> void SplitArrounKthValue(TVal * Data,int aNb,int aKth)
+{
+   if (aNb==0) return;
+   if (aKth<=0) return;
+   if (aKth>=aNb) return;
+ // std::cout << " SplitArrounKthValue " << aNb << " " << aKth << "\n";
+   // On calcule la moyenne
+   TVal aMoy(0);
+
+   for (int aKv=0 ; aKv<aNb ; aKv++)
+      aMoy = aMoy+Data[aKv];
+   aMoy = aMoy / aNb;
+
+   // On permut de maniere a ce que les valeur du debut soit < Moy  et celle de la fin >=Moy
+   int aK0 =0;
+   int aK1 = aNb-1;
+   while (aK0 < aK1)
+   {
+        while ((aK0<aK1) && (Data[aK0] <  aMoy)) aK0++;
+        while ((aK0<aK1) && (Data[aK1] >= aMoy)) aK1--;
+        if (aK0 < aK1) 
+        {
+           ElSwap(Data[aK0],Data[aK1]);
+        }
+   }
+   ELISE_ASSERT(aK0==aK1,"Verif in SplitArrounKthValue");
+
+   // Si le cas, on n'a pas progresse, toute les valeur sont egale
+   if  (aK0==0)
+   {
+       return;
+   }
+
+/*
+std::cout << " K0 " << aK0 << " K1 " << aK1 << " NB " << aNb << " Kth " << aKth << "\n";
+for (int aK=0; aK< aNb ; aK++) std::cout << Data[aK] << " ";
+std::cout << "\n";
+*/
+// getchar();
+   // A la fin K0=K1 et elle sont bien splite autour de la moyenne
+   if (aK0 == aKth)  return;
+
+
+   if (aK0 < aKth)  SplitArrounKthValue(Data+aK0,aNb-aK0,aKth-aK0);
+   else             SplitArrounKthValue(Data,aK0,aKth);
+}
+
+template <class TVal> TVal Moy(TVal * Data,int aNb)
+{
+    TVal aSom=0;
+    for (int aK=0 ; aK<aNb ; aK++)
+        aSom += Data[aK];
+
+    return aSom/aNb;
+}
+
+template <class TVal> TVal MaxTab(TVal * Data,int aNb)
+{
+    TVal aMax=Data[0];
+    for (int aK=0 ; aK<aNb ; aK++)
+        if (Data[aK]> aMax)
+           aMax = Data[aK];
+
+    return aMax;
+}
+
+template <class TVal> TVal MinTab(TVal * Data,int aNb)
+{
+    TVal aMin=Data[0];
+    for (int aK=0 ; aK<aNb ; aK++)
+        if (Data[aK]< aMin)
+           aMin = Data[aK];
+
+    return aMin;
+}
+
+
+template <class TVal> TVal KthVal(TVal * Data,int aNb,int aKth)
+{
+   ELISE_ASSERT(aKth>=0 && (aKth<aNb-1),"KthVal");
+   SplitArrounKthValue(Data,aNb,aKth);
+   return MinTab(Data+aKth,aNb-aKth);
+}
 
 
 #endif  // _ELISE_EXT_STL_NUMERICS_H

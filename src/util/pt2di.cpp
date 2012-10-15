@@ -1183,6 +1183,80 @@ std::vector<std::vector<Pt2di> > StdPointOfCouronnes(int aDMax,bool AddD4First)
 }
 
 
+template <class TypeCont,class TypeRes>  TypeRes  TplGetDistribRepre
+                                     (
+                                                 const TypeCont & aCont,
+                                                 const Pt2di & aNb,
+                                                 const TypeRes*
+                                     )
+{
+    TypeRes aRes;
+
+     Pt2dr aP0(-1e60,-1e60);
+     Pt2dr aP1( 1e60, 1e60);
+
+     for
+     (
+           typename TypeCont::const_iterator it=aCont.begin();
+           it!=aCont.end();
+           it++
+     )
+     {
+          Pt2dr aP = *it;
+          aP0.SetSup(aP);
+          aP1.SetInf(aP);
+     }
+
+     Pt2dr aStep = (aP1-aP0).dcbyc(Pt2dr(aNb));;
+
+     Im2D_REAL8 aIX(aNb.x,aNb.y,0.0);
+     Im2D_REAL8 aIY(aNb.x,aNb.y,0.0);
+     Im2D_REAL8 aIP(aNb.x,aNb.y,0.0);
+
+     TIm2D<REAL8,REAL> aTx(aIX);
+     TIm2D<REAL8,REAL> aTy(aIY);
+     TIm2D<REAL8,REAL> aTp(aIP);
+
+     for
+     (
+           typename TypeCont::const_iterator it=aCont.begin();
+           it!=aCont.end();
+           it++
+     )
+     {
+          Pt2dr aP = *it;
+          Pt2di anInd = round_ni((aP-aP0).dcbyc(aStep));
+          anInd = Sup(Pt2di(0,0),Inf(aNb-Pt2di(1,1),anInd));
+
+           aTx.add(anInd,aP.x);
+           aTy.add(anInd,aP.y);
+           aTp.add(anInd,1);
+     }
+
+     Pt2di anInd;
+     for(anInd.x=0 ; anInd.x<aNb.x; anInd.x++)
+     {
+         for(anInd.y=0 ; anInd.y<aNb.y; anInd.y++)
+         {
+              double aP = aTp.get(anInd);
+              if (aP>0)
+              {
+                 aRes.push_back(Pt3dr(aTx.get(anInd)/aP,aTy.get(anInd)/aP,aP));
+              }
+         }
+     }
+
+     return aRes;
+}
+
+
+std::vector<Pt3dr> GetDistribRepresentative(const std::vector<Pt2dr> & aV,const Pt2di & aNb)
+{
+    return TplGetDistribRepre(aV,aNb,(std::vector<Pt3dr> *)0);
+}
+
+
+
 
 
 namespace std

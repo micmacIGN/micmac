@@ -12,6 +12,9 @@ target_link_libraries(MpDcraw elise ${X11_LIBRARIES})
 add_executable(Malt uti_phgrm/Malt.cpp)
 target_link_libraries(Malt elise ${X11_LIBRARIES})
 
+add_executable(Tawny uti_phgrm/Tawny.cpp)
+target_link_libraries(Tawny elise ${X11_LIBRARIES})
+
 add_executable(Tapioca uti_phgrm/Tapioca.cpp)
 target_link_libraries(Tapioca elise ${X11_LIBRARIES})
 
@@ -26,6 +29,18 @@ target_link_libraries(Pasta elise ${X11_LIBRARIES})
 
 add_executable(Bascule uti_phgrm/Bascule.cpp)
 target_link_libraries(Bascule elise ${X11_LIBRARIES})
+
+add_executable(RepLocBascule uti_phgrm/RepLocBascule.cpp)
+target_link_libraries(RepLocBascule elise ${X11_LIBRARIES})
+
+add_executable(GCPBascule uti_phgrm/GCPBascule.cpp)
+target_link_libraries(GCPBascule elise ${X11_LIBRARIES})
+
+add_executable(SBGlobBascule uti_phgrm/SBGlobBascule.cpp)
+target_link_libraries(SBGlobBascule elise ${X11_LIBRARIES})
+
+add_executable(Tarama uti_phgrm/Tarama.cpp)
+target_link_libraries(Tarama elise ${X11_LIBRARIES})
 
 add_executable(MakeGrid uti_phgrm/MakeGrid.cpp)
 target_link_libraries(MakeGrid elise ${X11_LIBRARIES})
@@ -43,6 +58,9 @@ add_executable(CmpCalib uti_phgrm/CmpCalib.cpp)
 target_link_libraries(CmpCalib elise ${X11_LIBRARIES})
 
 #Outils uti_image
+add_executable(GenXML2Cpp uti_image/GenXML2Cpp.cpp)
+target_link_libraries(GenXML2Cpp elise ${X11_LIBRARIES})
+
 add_executable(ScaleIm uti_image/ScaleIm.cpp)
 target_link_libraries(ScaleIm elise ${X11_LIBRARIES})
 
@@ -69,6 +87,23 @@ target_link_libraries(Dequant elise ${X11_LIBRARIES})
 
 
 IF (X11_FOUND)
+	add_executable(SaisieBasc uti_image/SaisieBasc.cpp)
+	target_link_libraries(SaisieBasc elise ${X11_LIBRARIES})
+	INSTALL(TARGETS SaisieBasc
+		RUNTIME DESTINATION ${Install_Dir}
+	)
+	add_executable(SaisieAppuisInit uti_image/SaisieAppuisInit.cpp)
+	target_link_libraries(SaisieAppuisInit elise ${X11_LIBRARIES})
+	INSTALL(TARGETS SaisieAppuisInit
+		RUNTIME DESTINATION ${Install_Dir}
+	)
+	add_executable(SaisieAppuisPredic uti_image/SaisieAppuisPredic.cpp)
+	target_link_libraries(SaisieAppuisPredic elise ${X11_LIBRARIES})
+	INSTALL(TARGETS SaisieAppuisPredic
+		RUNTIME DESTINATION ${Install_Dir}
+	)
+
+
 	add_executable(SaisieMasq uti_image/SaisieMasq.cpp)
 	target_link_libraries(SaisieMasq elise ${X11_LIBRARIES})
 	INSTALL(TARGETS SaisieMasq
@@ -133,6 +168,10 @@ add_executable(MapCmd uti_files/MapCmd.cpp)
 target_link_libraries(MapCmd elise ${X11_LIBRARIES})
 
 ADD_SUBDIRECTORY(Apero)
+ADD_SUBDIRECTORY(ReducHom)
+ADD_SUBDIRECTORY(SaisiePts)
+ADD_SUBDIRECTORY(Ortho)
+ADD_SUBDIRECTORY(EtalonnagePolygone)
 
 IF ( MatisOrientation_FOUND)
 	target_link_libraries(MICMAC elise ${MatisOrientation_LIBRARIES})
@@ -141,6 +180,6 @@ IF ( MatisOrientation_FOUND)
 	ENDIF()
 ENDIF()
 
-install(TARGETS MpDcraw Malt Dequant Tapioca Pastis Nuage2Ply Pasta Bascule MakeGrid TestCam Tapas AperiCloud ScaleIm ElDcraw to8Bits GrShade PastDevlop Devlop tiff_info BatchFDC MapCmd
+install(TARGETS MpDcraw Tawny Malt Dequant Tapioca Pastis Nuage2Ply Pasta Bascule MakeGrid TestCam Tapas AperiCloud GenXML2Cpp ScaleIm ElDcraw to8Bits GrShade PastDevlop Devlop tiff_info BatchFDC MapCmd RepLocBascule Tarama GCPBascule SBGlobBascule
 	RUNTIME DESTINATION ${Install_Dir}
 )

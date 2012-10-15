@@ -4322,6 +4322,17 @@ const cTplValGesInit< double > & cMultiCorrelPonctuel::DefCost()const
    return mDefCost;
 }
 
+
+cTplValGesInit< std::string > & cMultiCorrelPonctuel::UnUsedTest()
+{
+   return mUnUsedTest;
+}
+
+const cTplValGesInit< std::string > & cMultiCorrelPonctuel::UnUsedTest()const 
+{
+   return mUnUsedTest;
+}
+
 cElXMLTree * ToXMLTree(const cMultiCorrelPonctuel & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MultiCorrelPonctuel",eXMLBranche);
@@ -4329,6 +4340,8 @@ cElXMLTree * ToXMLTree(const cMultiCorrelPonctuel & anObj)
    aRes->AddFils(::ToXMLTree(std::string("PdsCorrelPonct"),anObj.PdsCorrelPonct())->ReTagThis("PdsCorrelPonct"));
    if (anObj.DefCost().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("DefCost"),anObj.DefCost().Val())->ReTagThis("DefCost"));
+   if (anObj.UnUsedTest().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("UnUsedTest"),anObj.UnUsedTest().Val())->ReTagThis("UnUsedTest"));
   return aRes;
 }
 
@@ -4341,6 +4354,8 @@ void xml_init(cMultiCorrelPonctuel & anObj,cElXMLTree * aTree)
    xml_init(anObj.PdsCorrelPonct(),aTree->Get("PdsCorrelPonct",1)); //tototo 
 
    xml_init(anObj.DefCost(),aTree->Get("DefCost",1),double(0.1)); //tototo 
+
+   xml_init(anObj.UnUsedTest(),aTree->Get("UnUsedTest",1)); //tototo 
 }
 
 
@@ -4521,6 +4536,7 @@ const cTplValGesInit< cGPU_CorrelBasik > & cTypeCAH::GPU_CorrelBasik()const
    return mGPU_CorrelBasik;
 }
 
+
 cTplValGesInit< cMultiCorrelPonctuel > & cTypeCAH::MultiCorrelPonctuel()
 {
    return mMultiCorrelPonctuel;
@@ -4530,6 +4546,7 @@ const cTplValGesInit< cMultiCorrelPonctuel > & cTypeCAH::MultiCorrelPonctuel()co
 {
    return mMultiCorrelPonctuel;
 }
+
 
 cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & cTypeCAH::Correl_Ponctuel2ImGeomI()
 {
@@ -4614,7 +4631,7 @@ void xml_init(cTypeCAH & anObj,cElXMLTree * aTree)
    xml_init(anObj.GPU_Correl(),aTree->Get("GPU_Correl",1)); //tototo 
 
    xml_init(anObj.GPU_CorrelBasik(),aTree->Get("GPU_CorrelBasik",1)); //tototo 
-   
+
    xml_init(anObj.MultiCorrelPonctuel(),aTree->Get("MultiCorrelPonctuel",1)); //tototo 
 
    xml_init(anObj.Correl_Ponctuel2ImGeomI(),aTree->Get("Correl_Ponctuel2ImGeomI",1)); //tototo 
@@ -4683,6 +4700,7 @@ const cTplValGesInit< cGPU_CorrelBasik > & cCorrelAdHoc::GPU_CorrelBasik()const
    return TypeCAH().GPU_CorrelBasik();
 }
 
+
 cTplValGesInit< cMultiCorrelPonctuel > & cCorrelAdHoc::MultiCorrelPonctuel()
 {
    return TypeCAH().MultiCorrelPonctuel();
@@ -4692,6 +4710,7 @@ const cTplValGesInit< cMultiCorrelPonctuel > & cCorrelAdHoc::MultiCorrelPonctuel
 {
    return TypeCAH().MultiCorrelPonctuel();
 }
+
 
 cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & cCorrelAdHoc::Correl_Ponctuel2ImGeomI()
 {
@@ -8202,6 +8221,7 @@ const cTplValGesInit< cGPU_CorrelBasik > & cEtapeMEC::GPU_CorrelBasik()const
    return CorrelAdHoc().Val().TypeCAH().GPU_CorrelBasik();
 }
 
+
 cTplValGesInit< cMultiCorrelPonctuel > & cEtapeMEC::MultiCorrelPonctuel()
 {
    return CorrelAdHoc().Val().TypeCAH().MultiCorrelPonctuel();
@@ -8211,6 +8231,7 @@ const cTplValGesInit< cMultiCorrelPonctuel > & cEtapeMEC::MultiCorrelPonctuel()c
 {
    return CorrelAdHoc().Val().TypeCAH().MultiCorrelPonctuel();
 }
+
 
 cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & cEtapeMEC::Correl_Ponctuel2ImGeomI()
 {

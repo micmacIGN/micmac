@@ -66,7 +66,8 @@ Pt2dr aNoPt(123456,-8765432);
 
 int main(int argc,char ** argv)
 {
-    MemoArg(argc,argv);
+    // MemoArg(argc,argv);
+    MMD_InitArgcArgv(argc,argv);
     std::string  aDir,aPat,aFullDir;
     bool ExpTxt=false;
     std::string AeroIn;

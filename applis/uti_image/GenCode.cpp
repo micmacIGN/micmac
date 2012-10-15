@@ -434,7 +434,7 @@ void GenCodeGrid()
 
 //==================== HOMOGRAPHIE ========================================
 
-void GenCodeEqHom()
+void GenCodeEqHom(bool WithDrf,bool InSpaceInit)
 {
       cSetEqFormelles aSet;
       cHomogFormelle * aH1 = aSet.NewHomF(cElHomographie::Id(),
@@ -445,9 +445,15 @@ void GenCodeEqHom()
       ElDistRadiale_PolynImpair aDist =
                 ElDistRadiale_PolynImpair::DistId(1.0,Pt2dr(0,0),5);
       cDistRadialeFormelle * aDRF = aSet.NewDistF(true,true,5,aDist);
-      aSet.NewEqHomog(*aH1,*aH2,*aDRF,true);
+      aSet.NewEqHomog(InSpaceInit,*aH1,*aH2,WithDrf ?aDRF : 0,true);
 }
 
+void GenCodeEqHom()
+{
+    GenCodeEqHom(true,false);
+    GenCodeEqHom(false,false);
+    GenCodeEqHom(false,true);
+}
 //===========================================================================
 
 void GenCodeCorrelGrid(INT aNbPix,bool Im2MoyVar)
@@ -580,10 +586,10 @@ int main(int argc,char ** argv)
      // GencEqObsRotVect();
       // GenCodeEllipse();
      // GenCodeLaserImage();
-       GenCodeAppui();
+     //  GenCodeAppui();
      // GenCodeGrid(); 
       // GenCodeLiaison();
-     // GenCodeEqHom();
+      GenCodeEqHom();
      // GenCodeCorrelGrid();
      // GenCodeDiv();
      // GenCodeDiv2();

@@ -55,7 +55,7 @@ NROptF1vND::~NROptF1vND() {}
 #define GOLD 1.618034
 #define GLIMIT 100.0
 #define TINY 1.0e-20
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#define NRMAX(a,b) ((a) > (b) ? (a) : (b))
 #define SIGN(a,b) ((b) > 0.0 ? fabs(a) : -fabs(a))
 #define SHFT(a,b,c,d) (a)=(b);(b)=(c);(c)=(d);     
 
@@ -95,7 +95,7 @@ void NROptF1vND::mnbrack
                 r=(*bx-*ax)*(*fb-*fc);
                 q=(*bx-*cx)*(*fb-*fa);
                 u=(*bx)-((*bx-*cx)*q-(*bx-*ax)*r)/
-                        (2.0*SIGN(MAX(fabs(q-r),TINY),q-r));
+                        (2.0*SIGN(NRMAX(fabs(q-r),TINY),q-r));
                 ulim=(*bx)+GLIMIT*(*cx-*bx);
                 if ((*bx-u)*(u-*cx) > 0.0) {
                         fu=NRF1v(u);
