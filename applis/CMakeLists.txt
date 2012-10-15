@@ -57,6 +57,9 @@ target_link_libraries(Tarama elise ${X11_LIBRARIES})
 add_executable(Tawny uti_phgrm/Tawny.cpp)
 target_link_libraries(Tawny elise ${X11_LIBRARIES})
 
+add_executable(Porto uti_phgrm/Porto.cpp)
+target_link_libraries(Porto elise ${X11_LIBRARIES})
+
 #Outils uti_image
 add_executable(ScaleIm uti_image/ScaleIm.cpp)
 target_link_libraries(ScaleIm elise ${X11_LIBRARIES})
@@ -163,6 +166,6 @@ IF ( MatisOrientation_FOUND)
 	ENDIF()
 ENDIF()
 
-install(TARGETS Tawny Tarama SBGlobBascule GCPBascule RepLocBascule Reduc2MM MpDcraw Malt Dequant Tapioca Pastis Nuage2Ply Pasta Bascule MakeGrid TestCam Tapas AperiCloud ScaleIm ElDcraw to8Bits GrShade PastDevlop Devlop tiff_info BatchFDC MapCmd MergePly
+install(TARGETS Porto Tawny Tarama SBGlobBascule GCPBascule RepLocBascule Reduc2MM MpDcraw Malt Dequant Tapioca Pastis Nuage2Ply Pasta Bascule MakeGrid TestCam Tapas AperiCloud ScaleIm ElDcraw to8Bits GrShade PastDevlop Devlop tiff_info BatchFDC MapCmd MergePly
 	RUNTIME DESTINATION ${Install_Dir}
 )

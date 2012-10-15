@@ -93,8 +93,7 @@ int main(int argc,char ** argv)
 
     Pt2di aDegCste = mAddCste  ? Pt2di(0,0) : Pt2di(-1,-1);
 
-
-
+    MMD_InitArgcArgv(argc,argv);
 
     std::string aCom =    MMDir() + std::string("bin/Porto ")
                         + MMDir() + std::string("include/XML_MicMac/Param-Tawny.xml ")

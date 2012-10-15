@@ -104,13 +104,13 @@ static int types_checked = 0;
 #define NAMED_PROP       1
 
 /* returns 1 if strings are equal, 0 if not */
-int equal_strings(char *, char *);
+int equal_strings( const char *, const char * );
 
 /* find an element in a plyfile's list */
 PlyElement *find_element(PlyFile *, char *);
 
 /* find a property in an element's list */
-PlyProperty *find_property(PlyElement *, char *, int *);
+PlyProperty *find_property(PlyElement *, const char *, int *);
 
 /* write to a file the word describing a PLY file data type */
 void write_scalar_type (FILE *, int);
@@ -1480,7 +1480,7 @@ void ply_get_info(PlyFile *ply, float *version, int *file_type)
  Compare two strings.  Returns 1 if they are the same, 0 if not.
  ******************************************************************************/
 
-int equal_strings(char *s1, char *s2)
+int equal_strings( const char *s1, const char *s2)
 {
 	
 	while (*s1 && *s2)
@@ -1529,7 +1529,7 @@ PlyElement *find_element(PlyFile *plyfile, char *element)
  returns a pointer to the property, or NULL if not found
  ******************************************************************************/
 
-PlyProperty *find_property(PlyElement *elem, char *prop_name, int *index)
+PlyProperty *find_property(PlyElement *elem, const char *prop_name, int *index)
 {
 	int i;
 	
