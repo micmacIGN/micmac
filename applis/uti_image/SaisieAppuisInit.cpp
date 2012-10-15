@@ -46,9 +46,6 @@ using namespace NS_ParamChantierPhotogram;
 
 
 /*
-Antipasti ~/micmac/include/XML_MicMac/SaisieLine.xml DirectoryChantier="/home/marc/TMP/ExempleDoc/Boudha/"
-
-Antipasti xml DirectoryChantier="/home/marc/TMP/ExempleDoc/Boudha/"
 */
 
 
@@ -114,7 +111,7 @@ int main(int argc,char ** argv)
      getchar();
   }
 
-  std::string aCom =     MMDir() +"bin/Antipasti "
+  std::string aCom =     MMDir() +"bin/SaisiePts "
                       +  MMDir() +"include/XML_MicMac/SaisieInitiale.xml "
                       +  std::string(" DirectoryChantier=") + aDir
                       +  std::string(" +Image=") + QUOTE(aName)

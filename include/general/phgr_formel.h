@@ -636,9 +636,10 @@ class cSetEqFormelles : public cNameSpaceEqF
 			                      const ElDistRadiale_PolynImpair &);
               cEqHomogFormelle * NewEqHomog
                          (
+                             bool InSpaceInit,
                              cHomogFormelle &,
                              cHomogFormelle &,
-                             cDistRadialeFormelle &,
+                             cDistRadialeFormelle *,
 			     bool Code2Gen = false
                          );
 	      cParamIntrinsequeFormel * NewParamIntrNoDist(bool isDC2M,CamStenope * aCamInit,bool ParamVar=true);
@@ -881,6 +882,7 @@ class cSetEqFormelles : public cNameSpaceEqF
 };
 
 
+#if (0)
 class cHomogFormelle : public cElemEqFormelle,
                        public cObjFormel2Destroy
 {
@@ -910,6 +912,54 @@ class cHomogFormelle : public cElemEqFormelle,
 
 
                   private :
+                    Fonc_Num  mX;
+                    Fonc_Num  mY;
+                    Fonc_Num  m1;
+            };
+
+            // Foncteur de Rappel sur Valeur Init
+            cElHomographie  mHomInit;
+            cElHomographie  mCurHom;
+
+            cComp           mCX;
+            cComp           mCY;
+            cComp           mCZ;
+            eModeContrHom   mModeContr;
+	    double          mHomFTol;
+};
+#endif
+
+class cHomogFormelle : public cElemEqFormelle,
+                       public cObjFormel2Destroy
+{
+        public :
+            friend class cSetEqFormelles;
+            Pt2d< Fonc_Num>  operator ()(Pt2d< Fonc_Num>);
+            Pt2d< Fonc_Num>  ImRec(Pt2d< Fonc_Num>);
+
+            cMultiContEQF      StdContraintes() ;
+
+           const cElHomographie & HomInit() const;
+           const cElHomographie & HomCur() const;
+           void ReinitHom(const cElHomographie &);
+
+	   void SetModeCtrl(eModeContrHom);
+        private :
+            cHomogFormelle(const cElHomographie &,cSetEqFormelles &,eModeContrHom);
+
+            class cComp
+            {
+                 public :
+                    cComp
+                    (
+                         cElComposHomographie &,
+                         cSetEqFormelles &,
+                         bool IsDenom
+                    );
+                    Fonc_Num operator ()(Pt2d< Fonc_Num>);
+
+
+                  // private :
                     Fonc_Num  mX;
                     Fonc_Num  mY;
                     Fonc_Num  m1;
@@ -1637,7 +1687,7 @@ class cCpleCamFormelle : public cNameSpaceEqF,
 
 
 
-
+#if (0)
 
 class cEqHomogFormelle : public  cNameSpaceEqF ,
                          public cEqFPtLiaison,
@@ -1686,17 +1736,85 @@ class cEqHomogFormelle : public  cNameSpaceEqF ,
           };
           friend struct cEq;
 
+           bool  mInSpaceInit;
+
 
           cSetEqFormelles & mSet;
           cHomogFormelle&       mHF1;
           cHomogFormelle&       mHF2;
-          cDistRadialeFormelle& mDRF;
+          cDistRadialeFormelle* mDRF;
 
           Pt2d<Fonc_Num>        mEqHom;
           cIncListInterv        mLInterv;
           cEq*                  pFEqX;
           cEq*                  pFEqY;
 };
+#endif
+class cEqHomogFormelle : public  cNameSpaceEqF ,
+                         public cEqFPtLiaison,
+                         public cObjFormel2Destroy
+{
+      public :
+          ~cEqHomogFormelle();
+          cEqHomogFormelle
+          (
+                bool InSpaceInit, // Si true equation H1 H2-1
+                cHomogFormelle &,
+                cHomogFormelle &,
+                cDistRadialeFormelle *,
+		bool Code2Gen
+          );
+
+         // WithD2 : avec derivees secondes
+          REAL AddLiaisonP1P2(Pt2dr P1,Pt2dr P2,REAL aPds,bool WithD2);
+          Pt2dr StdAddLiaisonP1P2(Pt2dr P1,Pt2dr P2,REAL aPds,bool WithD2); // Version moderne type camera
+	  REAL ResiduNonSigneP1P2(Pt2dr aP1,Pt2dr aP2);
+	  Pt2dr  PtResidu(Pt2dr aP1,Pt2dr aP2);
+
+          cHomogFormelle&       HF1();
+          cHomogFormelle&       HF2();
+          cDistRadialeFormelle& DistRF();
+          cDistRadialeFormelle*   DRF();
+          cSetEqFormelles &       Set();
+
+          void StdRepondere(ElPackHomologue &,REAL aCoeff);
+          void StdRepondere(REAL aCoeff);
+          REAL MoyErreur(ElPackHomologue &);
+          REAL MoyErreur();
+
+      private :
+          Pt2d<Fonc_Num> ComposeDRF (Pt2d<Fonc_Num> aP);
+          struct cEq
+          {
+              cEqHomogFormelle & mEQF;
+              cElCompiledFonc * pFEq;
+              double          * pAdrX1;
+              double          * pAdrY1;
+              double          * pAdrX2;
+              double          * pAdrY2;
+              std::string     mName;
+
+	      ~cEq();
+              cEq(Fonc_Num F,cEqHomogFormelle &,bool isX,bool Code2Gen);
+              REAL AddLiaisonP1P2(Pt2dr P1,Pt2dr P2,REAL aPds,bool WithD2);
+	      REAL ResiduSigneP1P2(Pt2dr aP1,Pt2dr aP2);
+          };
+          friend struct cEq;
+
+                          
+          bool              mInSpaceInit;
+          cSetEqFormelles & mSet;
+          cHomogFormelle&       mHF1;
+          cHomogFormelle&       mHF2;
+          cDistRadialeFormelle* mDRF;
+
+          Pt2d<Fonc_Num>        mEqHom;
+          cIncListInterv        mLInterv;
+          cEq*                  pFEqX;
+          cEq*                  pFEqY;
+};
+
+
 
 
 // Class pour resoudre de maniere simplifiee, l'equation homographique

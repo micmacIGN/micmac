@@ -1289,6 +1289,9 @@ Pt3dr  tCho2double(const Pt3d<tSysCho> & aP);
 typedef TypeSubst<Pt2di>   Pt2diSubst;
 typedef TypeSubst<Pt2dr>   Pt2drSubst;
 
+std::vector<Pt3dr> GetDistribRepresentative(const std::vector<Pt2dr> & aV,const Pt2di & aNb);
+
+
 namespace std
 {
 bool operator < (const Pt3di & aP1,const Pt3di & aP2);

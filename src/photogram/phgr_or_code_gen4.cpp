@@ -40,6 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+
 #if  (ELISE_INSERT_CODE_GEN)
 
 #include "../../CodeGenere/photogram/cEqCoplanDPol3Id.cpp" // 
@@ -47,6 +48,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqCoplanDPol7Id.cpp" // 
 #include "../../CodeGenere/photogram/cEqHomogrXDeg5.cpp"   //
 #include "../../CodeGenere/photogram/cEqHomogrYDeg5.cpp"   // 
+#include "../../CodeGenere/photogram/cEqHomogrSpaceInitX.cpp"   //
+#include "../../CodeGenere/photogram/cEqHomogrSpaceInitY.cpp"   //
+#include "../../CodeGenere/photogram/cEqHomogrX.cpp"   //
+#include "../../CodeGenere/photogram/cEqHomogrY.cpp"   // 
 
 
    // GRILLE

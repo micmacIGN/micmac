@@ -815,6 +815,10 @@ class cElHomographie
 
           // Renvoie sa representation matricielle en coordonnees homogenes
           ElMatrix<REAL>  MatCoordHom() const;
+          static cElHomographie  RobustInit(double * aQuality,const ElPackHomologue & aPack,bool & Ok ,int aNbTestEstim, double aPerc,int aNbMaxPts);
+
+          static cElHomographie SomPondHom(const std::vector<cElHomographie> & aVH,const std::vector<double> & aVP);
+
 
      private :
           cElComposHomographie mHX;
