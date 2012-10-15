@@ -37,6 +37,10 @@ IF(NOT SUBVERSION_FOUND)
 	MESSAGE("Impossible d'effectuer les tests sans SVN")
 ENDIF()
 
+set(UnixBinPath	/bin
+		/usr/bin
+		/usr/local/bin)
+
 # MERCURIAL
 
 find_program(MERCURIAL_EXECUTABLE hg DOC "Emplacement de gestionnaire de versions Mercurial")
@@ -118,13 +122,12 @@ find_package(ImageMagick REQUIRED)
 if(NOT ImageMagick_FOUND)
 	MESSAGE("ATTENTION!!! Vous devez installer Image Magick.")
 	MESSAGE("http://www.imagemagick.org/script/index.php")
-	
 endif(NOT ImageMagick_FOUND)
 
 # Vérifier si exiftool est installé
 
 find_program(EXIF_EXECUTABLE exiftool
-				PATHS 	${BinAuxWinDir}
+				PATHS 	${BinAuxWinDir} ${UnixBinPath} 
 				DOC "Chemin vers la commande exiftool"
 				NO_DEFAULT_PATH)
 
@@ -136,7 +139,7 @@ endif()
 
 # Vérifier si exiv2 est installé
 find_program(EXIV2_EXECUTABLE exiv2
-				PATHS 	${BinAuxWinDir}
+				PATHS 	${BinAuxWinDir} ${UnixBinPath} 
 				DOC "Chemin vers la commande exiv2"
 				NO_DEFAULT_PATH)
 
@@ -149,7 +152,7 @@ endif(EXIV2_EXECUTABLE_NOTFOUND)
 if(NOT WIN32)
 
 	# Vérifier si Proj4 est installé
-	find_program(PROJ4_EXECUTABLE proj4)
+	#find_program(PROJ4_EXECUTABLE proj4 PATHS ${UnixBinPath} )
 	if(PROJ4_EXECUTABLE_FOUND)
 
 		message("Proj4 non trouvé!!")
