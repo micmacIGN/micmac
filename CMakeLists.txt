@@ -26,6 +26,9 @@ OPTION(WITH_HEADER_PRECOMP "En-tetes precompilees" ON )
 ## 	Trouver les EXES et Libs	##
 ##########################################
 
+# DEFINITION : Dossier des exe et Dll nécessaires sous windows 
+set(BinAuxWinDir ${PROJECT_SOURCE_DIR}/binaire-aux/BIN_AUX_WIN32)
+
 # SUBVERSION
 
 FIND_PACKAGE(Subversion)
@@ -109,19 +112,21 @@ ENDIF()
 
 
 # Vérifier si ImageMagick est installé
+		
+find_package(ImageMagick REQUIRED)				
 
-find_program( CONVERT_EXECUTABLE convert DOC "Chemin vers la commande convert d'ImageMagick")
-
-if(CONVERT_EXECUTABLE-NOTFOUND)
-
+if(NOT ImageMagick_FOUND)
 	MESSAGE("ATTENTION!!! Vous devez installer Image Magick.")
 	MESSAGE("http://www.imagemagick.org/script/index.php")
 	
-endif()
+endif(NOT ImageMagick_FOUND)
 
 # Vérifier si exiftool est installé
 
-find_program(EXIF_EXECUTABLE exiftool)
+find_program(EXIF_EXECUTABLE exiftool
+				PATHS 	${BinAuxWinDir}
+				DOC "Chemin vers la commande exiftool"
+				NO_DEFAULT_PATH)
 
 if(EXIF_EXECUTABLE_NOTFOUND)
 
@@ -129,17 +134,29 @@ if(EXIF_EXECUTABLE_NOTFOUND)
 
 endif()
 
-# Vérifier si Proj4 est installé
+# Vérifier si exiv2 est installé
+find_program(EXIV2_EXECUTABLE exiv2
+				PATHS 	${BinAuxWinDir}
+				DOC "Chemin vers la commande exiv2"
+				NO_DEFAULT_PATH)
 
-find_program(PROJ4_EXECUTABLE proj4)
-if(PROJ4_EXECUTABLE_FOUND)
+if(EXIV2_EXECUTABLE_NOTFOUND)
 
-	message("Proj4 non trouvé!!")
+	message("Exiv2 non trouvé!!")
 
-endif()
+endif(EXIV2_EXECUTABLE_NOTFOUND)
 
-# Vérifier si X11 est présent sous MacOS et Linux
 if(NOT WIN32)
+
+	# Vérifier si Proj4 est installé
+	find_program(PROJ4_EXECUTABLE proj4)
+	if(PROJ4_EXECUTABLE_FOUND)
+
+		message("Proj4 non trouvé!!")
+
+	endif()
+	
+	# Vérifier si X11 est présent sous MacOS et Linux
 	FIND_PACKAGE(X11)
 	IF (X11_FOUND)
 		#MESSAGE("X11 Found : ${X11_INCLUDE_DIRS} | ${X11_LIBRARIES} | ${X11_LIBRARY_DIRS}")
@@ -147,6 +164,20 @@ if(NOT WIN32)
 		add_definitions(-DNO_X11)
 		MESSAGE("X11 Not Found : pas de SaisieMasq")
 	ENDIF()
+	
+ELSE()
+
+	find_program(MAKE_EXECUTABLE make
+				PATHS 	${BinAuxWinDir}
+				DOC "Chemin vers la commande Make"
+				NO_DEFAULT_PATH)
+
+	if(MAKE_EXECUTABLE_NOTFOUND)
+
+		message("Make non trouvé!!")
+
+	endif()
+
 ENDIF()
 
 # DEFINITION : des preprocesseurs windows
@@ -181,9 +212,6 @@ ADD_SUBDIRECTORY(${ELISE_DIR})
 
 # CONSTRUCTION : des applications
 ADD_SUBDIRECTORY(${APPLIS_DIR})
-
-# INSTALLATION : Dossier des exe et Dll nécessaires sous windows 
-set(BinAuxWinDir ${PROJECT_SOURCE_DIR}/binaire-aux/BIN_AUX_WIN32)
 
 # INSTALLATION : Liste des exe et Dll nécessaires sous windows
 if (win32)
