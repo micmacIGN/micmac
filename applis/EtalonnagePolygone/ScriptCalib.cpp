@@ -60,7 +60,9 @@ class cExeComm
 	}
 	void DoOne(const std::string & aCom)
 	{
-		std::string aComComp = "bin/" + aCom + " " + mNameParam;
+
+
+		std::string aComComp = MMDir() + "bin/" + aCom + " " + mNameParam;
 		cout << "\n\n";
 		cout << "*****************************************************\n";
 		cout << "COM = [" << aComComp << "]\n";
@@ -73,6 +75,8 @@ class cExeComm
 
 int main(int argc,char ** argv)
 {
+   MMD_InitArgcArgv(argc,argv);
+
    cEtalonnage::Verif(false,argc,argv);
    cExeComm anEC(argc,argv);
    anEC.DoOne("EPExeRechCibleInit");

@@ -1378,8 +1378,8 @@ std::cout << "LOEMI " << mParam.CalibSpecifLoemi() << "\n"; getchar();
    // bool isCDL =  mParam.CDistLibre(true) || (! OptionFigeC);
    // std::string aLibCD = isCDL ? "eLib_PP_CD_11" : "eLib_PP_CD_Lies" ;
 
-   std::string aCom =     std::string("bin/Apero ")
-                        + std::string(" ") + aParamComp
+   std::string aCom =   MMDir() +  std::string("bin/Apero ")
+                        + std::string(" ") + MMDir() + aParamComp
                         + std::string(" DirectoryChantier=") + mDir
                         + std::string(" \"+PatternIm=") + mParam.PatternGlob() +std::string("\"")
                         + std::string(" +NameCam=")     +  aNameCam

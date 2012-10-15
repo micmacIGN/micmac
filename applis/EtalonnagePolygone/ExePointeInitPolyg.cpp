@@ -192,6 +192,8 @@ std::list<cPt2Im> cParamPointeInitEtalonnage::InitListePt2Is()
 
 int main(int argc,char ** argv)
 {
+   MMD_InitArgcArgv(argc,argv);
+
    ELISE_ASSERT(argc>=3,"No Enough Arg");
    std::string aNameIm = argv[2];
 

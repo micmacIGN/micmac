@@ -686,7 +686,8 @@ void cPointeInit::InitPtTmp()
 
 CaseGPUMT * cPointeInit::StdCase(const std::string & aName,Pt2di aCase)
 {
-	std::string aFN = std::string("data/") + aName +std::string(".tif");
+// std::cout << "MMMMDDD " << MMDir() << "\n";
+	std::string aFN = MMDir() + std::string("data/") + aName +std::string(".tif");
 
 	return  new CaseGPUMT
 		    (
@@ -703,8 +704,8 @@ BoolCaseGPUMT * cPointeInit::BoolStdCase
                 Pt2di aCase
             )
 {
-	std::string aFNT = std::string("data/") + aNameT +std::string(".tif");
-	std::string aFNF = std::string("data/") + aNameF +std::string(".tif");
+	std::string aFNT =  MMDir() + std::string("data/") + aNameT +std::string(".tif");
+	std::string aFNF = MMDir() + std::string("data/") + aNameF +std::string(".tif");
 
 	return  new BoolCaseGPUMT
 		    (
@@ -812,7 +813,7 @@ cPointeInit::cPointeInit
 	       mPPI.EtatDepAff(),
 	       *this
           ),
-   mTifMenu      ("data/Loupe.tif"),
+   mTifMenu      (MMIcone("Loupe")),
    mSzCase       (mTifMenu.sz()),
    mPopUp        (
                           mWIm.W(),

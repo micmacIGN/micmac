@@ -40,6 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int main(int argc,char ** argv)
 {
+   MMD_InitArgcArgv(argc,argv);
+
    cEtalonnage::DoCompensation(argc,argv);
 
    return 0;

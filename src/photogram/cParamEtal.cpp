@@ -616,12 +616,18 @@ cParamEtal::cParamEtal(int argc,char ** argv) :
      mImDeTest    = "";
      ELISE_ASSERT(argc >=2,"Not Enough Arg in ParamAnag");
      InitFromFile(argv[1]);
-     LArgMain anArgObl;
+     // LArgMain anArgObl;
      LArgMain anArgFac;
+     std::string  UnUsed;
+
+// std::cout << "cParamEtal " <<  argc << "\n";
+
      ElInitArgMain
      (
-         argc-1,argv+1,
-         anArgObl  ,
+         // argc-1,argv+1,
+         // anArgObl  ,
+         argc,argv,
+         LArgMain()  <<   EAM(UnUsed),
          anArgFac   << EAM(mCibleDeTest,"Cible",true)
 	            << EAM(mImDeTest,"Im",true)
 	            << EAM(mZoom,"Zoom",true)
