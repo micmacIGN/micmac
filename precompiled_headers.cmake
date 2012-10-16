@@ -68,7 +68,7 @@ function(enable_precompiled_headers_GCC PRECOMPILED_HEADER TARGET_NAME)
 			ADD_CUSTOM_COMMAND(
 				OUTPUT ${_output}
 				COMMAND ${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} -x c++-header -o ${_output} ${_source}
-				DEPENDS ${_source} )
+				DEPENDS ${_source} IMPLICIT_DEPENDS CXX ${_source})
 				ADD_CUSTOM_TARGET(${TARGET_NAME}_gch DEPENDS ${_output})
 
 			ADD_DEPENDENCIES(${TARGET_NAME} ${TARGET_NAME}_gch)

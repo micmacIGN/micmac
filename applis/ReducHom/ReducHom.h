@@ -89,7 +89,6 @@ void WarnTest();
 
 namespace NS_ReducHoms
 {
-class cMesPtIm;  // Mesure basique 1 point + 1 image
 class cPtHom;    // Point final multiple
 class cLink2Img; // "arc" du graphe de visibilite
 class cImagH;    // Une image
@@ -100,25 +99,15 @@ class cAppliReduc;    // Structure temporaire pour analyser les point d'une nouv
 typedef std::map<cImagH *,cLink2Img *> tSetLinks;
 
   //======================================
-  //           cMesPtIm      
   //           cPtHom      
   //======================================
 
+
 /*
-class cMesPtIm 
-{
-    public :
-        cMesPtIm(const Pt2dr & aPt,cImagH * anIm);
-        cImagH * Im() const;
-        const Pt2dr  & Pt() const;
-    private :
-       //   cMesPtIm(const cMesPtIm &); // N.I.
-
-       Pt2dr    mPt;
-       cImagH * mIm;
-};
+    cPtHom  : point multiple,  composante connexe resultante du graphe des points de
+              liaisons,   pour chaque image il contient  un vecteur
+              des points 2D ou il est mesure (unique qd pas d'incoherence)
 */
-
 
 class cPtHom
 {
@@ -188,7 +177,7 @@ class cLink2Img  // dans cImagH.cpp
         cElHomographie mHom12;
         bool            mPckLoaded;
         ElPackHomologue mPack;
-        std::vector<Pt3dr> mEchantP1;
+        std::vector<Pt3dr> mEchantP1; // suite de Pt2dr+poids, representative de la distrib
         cEqHomogFormelle * mEqHF;
 };
 
@@ -261,6 +250,7 @@ class cImagH
   //======================================
 
 
+// Pour indexer les Pt Hom dans un QTree
 class cPhIndexed
 {
      public :
@@ -272,7 +262,6 @@ class cPhIndexed
           Pt2dr      mPt;
           cPtHom *   mPH;
 };
-//typedef cPhIndexed * tPtrPHI;
 
 typedef Pt2dr (*tPtOfPhi)(const cPhIndexed &);
 
