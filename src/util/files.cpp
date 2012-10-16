@@ -287,6 +287,7 @@ void  ELISE_fp::PurgeDir(const std::string & aDir)
 	std::string aDirC = aDir;
 	MakeFileDirCompl(aDirC);
 #if ELISE_windows
+	replace( aDirC.begin(), aDirC.end(), '/', '\\' );
 	std::string aCom = std::string(SYS_RM)+" /Q \""+aDirC+"*\"";
 #else
 	std::string aCom = std::string(SYS_RM)+" \""+aDirC+"*\"";
