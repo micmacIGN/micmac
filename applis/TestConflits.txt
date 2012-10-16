@@ -1,4 +1,8 @@
-Ceci est un exemple de
-fichier pour gerrer
-les pbleme de confffflit.
+Fichier complètement inutile.
 
+xCeci est un exemple de
+xfichier pour gerrer
+xles pbleme de confffflit.
+
+
+AAAA  - BBBB
