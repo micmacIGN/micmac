@@ -121,7 +121,7 @@ int main(int argc,char ** argv)
    }
 
    std::cout << "Com = " << aCom << "\n";
-   int aRes = system(aCom.c_str());
+   int aRes = system_call(aCom.c_str());
 
    
    return aRes;

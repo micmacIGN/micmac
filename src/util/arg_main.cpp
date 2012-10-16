@@ -627,7 +627,7 @@ std::string StrFromArgMain(const std::string & aStr)
 int System(const std::string & aCom,bool aSVP)
 {
 	std::cout << "Sys:"<< aCom << "\n";
-	int aRes = system(aCom.c_str());
+	int aRes = system_call(aCom.c_str());
 	if ((aRes != 0) && (!aSVP))
 	{
 		std::cout  << "FAIL IN : \n";
