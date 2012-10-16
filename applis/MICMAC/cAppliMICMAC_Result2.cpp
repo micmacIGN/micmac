@@ -184,11 +184,7 @@ class cParseDir_PurgeFile : public ElActionParseDir
              {
                 (*itPA)->ModifDecision(aName,isSel);
              }
-             if (isSel)
-             {
-				 std::string aCom= std::string(SYS_RM)+' '+aName;
-                 VoidSystem(aCom.c_str());
-             }
+             if (isSel) ELISE_fp::RmFile( aName );
          }
      private :
          const std::list<cPurgeAct *> & mLPA;
@@ -473,7 +469,7 @@ void cAppliMICMAC::MakeExportAsModeleDist
    aNameBin = aNameBin + " Ch1="+ ChMpDCraw(PDV1())+" Ch2="+ ChMpDCraw(PDV2());
    ::System( aNameBin);
    
-   ::System( std::string(SYS_RM)+' '+ aNameTmp );
+   ELISE_fp::RmFile( aNameTmp );
 }
 
 

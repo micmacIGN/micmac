@@ -1834,15 +1834,8 @@ void cAppliMICMAC::ExeProcessParallelisable
        if (StopOnEchecFils().Val())
         {    
             ELISE_ASSERT(aCodeRetour==0,"Erreur dans processus fils");
-        }     
-#if (ELISE_unix || ELISE_MacOs || ELISE_Cygwin)
-		std::string CleanCommande=std::string(SYS_RM)+" \""+nomMakefile+std::string("\"");
-#else
-	std::string CleanCommande=std::string(SYS_RM)+' '+nomMakefile;
-
-#endif
-		// system(CleanCommande.c_str());
-        mCout << " ---End Process\n";
+        }
+	    mCout << " ---End Process\n";
     }//else 
    else 
    {
