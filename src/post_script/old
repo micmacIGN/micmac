@@ -1,0 +1,286 @@
+/*eLiSe06/05/99
+  
+     Copyright (C) 1999 Marc PIERROT DESEILLIGNY
+
+   eLiSe : Elements of a Linux Image Software Environment
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS  
+Internet: Marc.Pierrot-Deseilligny@ign.fr
+   Phone: (33) 01 43 98 81 28
+eLiSe06/05/99*/
+
+
+
+#if  (! BUG_CPP_Fclose)
+#include "general/all.h"
+#include "private/all.h"
+
+#include <time.h>
+
+
+
+class Data_Elise_PS_Disp : public Data_Elise_Gra_Disp
+{
+       public :
+
+           Data_Elise_PS_Disp(const char * name,const char * title,Elise_Set_Of_Palette);
+
+           virtual ~Data_Elise_PS_Disp();
+
+       private :
+
+           void disp_flush() {}
+           void _inst_set_line_witdh();
+
+           ofstream                _fp;
+           Elise_Set_Of_Palette   _sop;
+           INT                    _offs_bbox;
+           const char *           _prefix;
+           bool                   _init_prim_line;
+
+
+           void prim_line() { _fp << _prefix << "l";}
+           void init_line();
+           void line(Pt2dr p1,Pt2dr p2);
+        
+
+           INT                 _nbpal;
+           Elise_PS_Palette  ** _teps;
+};
+
+void Data_Elise_PS_Disp::init_line()
+{
+   if (_init_prim_line)
+      return;
+
+   _init_prim_line = true;
+   _fp << "/";  prim_line(); _fp << "\n";
+   _fp << "{ newpath moveto lineto stroke} \n";
+   _fp << "def\n";
+}
+
+
+void Data_Elise_PS_Disp::line(Pt2dr p1,Pt2dr p2)
+{
+    init_line();
+    _fp << p1.x << " " << p1.y << " " << p2.x  << " " << p2.y << " ";
+    prim_line();
+    _fp << "\n";
+}
+
+
+
+
+Data_Elise_PS_Disp::Data_Elise_PS_Disp
+       (
+               const char * name,
+               const char * title,
+               Elise_Set_Of_Palette sop
+       )    :
+       Data_Elise_Gra_Disp  ()               ,
+       _fp                  (name,ios::out)  ,
+       _sop                 (sop)            ,
+       _offs_bbox           (-1)             ,
+       _prefix              ("El")           ,
+       _init_prim_line      (false)          ,
+       _nbpal               (sop.lp().card())     ,
+       _teps                (NEW_VECTEUR(0,_nbpal,Elise_PS_Palette *))
+{
+      _fp << "%!PS-Adobe-2.0\n";
+      _fp << "%%BoundingBox: ";
+      _offs_bbox = _fp.tellp();
+      _fp << "                                                     \n";
+      _fp << "%%Creator : ELISE.0.0\n";
+      _fp << "%%Title :" << title << "\n";
+
+       {
+           time_t t= time(0);
+           tm * td = localtime(&t);
+
+           _fp << "%%CreationDate: "
+               << td->tm_mday << "/" << td->tm_mon << "/"  << td->tm_year << " "
+               << td->tm_hour << "h" << td->tm_min << "m"  << td->tm_sec << "s\n";
+
+       }
+
+       _fp << "%%EndComments\n";
+       _fp << "%%Pages: 1\n";
+       _fp << "%%EndProlog \n";
+       _fp << "%%Page: 1 1\n";
+
+       //=============================
+
+      _fp << "\n\n";
+      _fp << "% Definition of curent primitives \n";
+      init_line();
+
+      //=============================
+
+      _fp << "% Definition of PS-palette \n";
+
+
+       for (int i=0; i<_nbpal; i++)
+           _teps[i] = 0;
+
+       L_El_Palette   lp = sop.lp();
+       for (int i=0; i<_nbpal; i++)
+       {
+           char buf[200];
+           sprintf(buf,"%sPal%d",_prefix,i);
+           _teps[i] = lp.car().ps_comp(buf,_fp);
+           lp = lp.cdr();
+       }
+
+
+      _fp << "ElPal0 setcolorspace\n";
+
+/*
+
+      _fp << "gsave\n";
+         _fp << "100 100 translate \n";
+         _fp << "2 2 scale \n";
+
+         _fp << "64 setcolor \n";
+         line(Pt2dr(100,100),Pt2dr(200,200));
+         line(Pt2dr(100,200),Pt2dr(200,100));
+
+      _fp << "grestore\n";
+
+
+      _fp << "gsave\n";
+         _fp << "2 2 scale \n";
+         _fp << "100 100 translate \n";
+
+         _fp << "196 setcolor \n";
+         line(Pt2dr(100,100),Pt2dr(200,200));
+         line(Pt2dr(100,200),Pt2dr(200,100));
+
+      _fp << "grestore\n";
+
+
+
+      _fp << "0 setgray \n";
+      line(Pt2dr(100,200),Pt2dr(200,100));
+      line(Pt2dr(100,100),Pt2dr(200,200));
+
+*/
+      for (int i=0 ; i< 256 ; i++)
+      {
+         _fp << i << " setcolor \n";
+         line(Pt2dr(100,100+2*i),Pt2dr(200,100+2*i));
+      }
+}
+
+
+
+
+Data_Elise_PS_Disp::~Data_Elise_PS_Disp()
+{
+
+   _fp << "showpage\n";
+   _fp << "%%Trailer\n";
+
+   _fp.close();
+   _fp.open("test.ps",ios::out|ios::in);
+   _fp.seekp(_offs_bbox,ios::beg);
+   _fp << " 100 100 200 200";
+
+    for (int i=_nbpal-1; i>=0 ; i--)
+        if (_teps[i])
+           _teps[i]->~Elise_PS_Palette();
+    
+    DELETE_VECTOR(_teps,0);
+}
+
+
+/**********************************************************************/
+/*                                                                    */
+/*                Data_Elise_PS_Win                                   */
+/*                                                                    */
+/**********************************************************************/
+
+
+class Data_Elise_PS_Win  : public Data_Elise_Gra_Win
+{
+    public :
+
+
+        Data_Elise_PS_Win(Data_Elise_PS_Disp *,Pt2di sz,Pt2dr p0,Pt2dr p1);
+
+
+         Output_Computed
+         * rle_out_comp
+         (
+                       const Data_El_Geom_GWin *,
+                       const Arg_Output_Comp & ,
+                       Data_Elise_Palette *
+         )
+         {
+             El_Internal.assert(false,EEM0 << "PS not totally implemented");
+             return 0;
+         }
+
+         Output_Computed
+         * pint_cste_out_comp
+         (
+                       const Data_El_Geom_GWin *,
+                       const Arg_Output_Comp & ,
+                       Data_Elise_Palette *,
+                       INT        * 
+         ) 
+         {
+             El_Internal.assert(false,EEM0 << "PS not totally implemented");
+             return 0;
+         }
+
+
+        Output_Computed
+        * pint_no_cste_out_comp
+        (
+                       const Data_El_Geom_GWin *,
+                       const Arg_Output_Comp & ,
+                       Data_Elise_Palette *
+        )
+        {
+             El_Internal.assert(false,EEM0 << "PS not totally implemented");
+             return 0;
+        }
+
+};
+
+
+
+void test_ps()
+{
+    
+    // Disc_Pal  Pdisc = Disc_Pal::clisp_pal(30);
+    // Gray_Pal  Pgr(100);
+
+    Lin1Col_Pal   BluePal
+                  (
+                      Elise_colour::rgb(0,0,0.25),
+                      Elise_colour::rgb(0.5,0.75,1),
+                      40
+                  );
+
+
+    Elise_Set_Of_Palette SOP(newl(BluePal));
+
+    Data_Elise_PS_Disp("test.ps","Mon beau fichier ps",SOP);
+}
+
+#endif
