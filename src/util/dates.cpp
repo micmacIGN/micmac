@@ -362,7 +362,7 @@ std::string  cMetaDataPhoto::ExeCom(const std::string & aNameProg,const std::str
 		+ ".txt";
 	std::string aCom = aNameProg + ToStrBlkCorr(aNameFile) + std::string(" > ")+ aNameF;
 
-	int aRes = system(aCom.c_str());
+	int aRes = system_call(aCom.c_str());
 	if (aRes%256!=0)  // Pourquoi 256  : ??!?
 	{
 		std::cout << "COM="<< aCom << "\n";
@@ -792,7 +792,7 @@ void cXifDecoder::GenerateTxtFile(const std::string & aFullName)
 
 	mFileTxt = aDir + GenerateNameUnique(aNSsDir,mStrTmp);
 	std::string aCom = mStrLangE + QUOTE(aFullName) + " > " + mFileTxt;
-	int aRes = system(aCom.c_str());
+	int aRes = system_call(aCom.c_str());
 
 
 

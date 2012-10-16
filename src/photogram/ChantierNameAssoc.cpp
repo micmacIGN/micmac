@@ -367,7 +367,7 @@ static const std::string aFileTmp = "MicMacInstall.txt";
 bool ElGetStrSys( const std::string & i_base_cmd, std::string &o_result )
 {
    std::string aCom = i_base_cmd +  ">" + aFileTmp ;
-   if ( system( aCom.c_str() )!=EXIT_SUCCESS ) return false;
+   if ( system_call( aCom.c_str() )!=EXIT_SUCCESS ) return false;
    
    ELISE_fp aF;
    if ( !aF.open(aFileTmp.c_str(),ELISE_fp::READ) ) return false;
@@ -2045,7 +2045,7 @@ namespace NS_ParamChantierPhotogram{
 					}
 					else
 					{
-						int OK= system(aCom.c_str());
+						int OK= system_call(aCom.c_str());
 						ELISE_ASSERT(OK==0,"Pb in ss process By Cmd-Map");
 						std::cout << "RESULT = " << OK << "\n";
 					}

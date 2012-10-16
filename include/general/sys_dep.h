@@ -293,9 +293,11 @@ const  TY_OPERATING_SYST   ELISE_OS        =  ELISE_WNT;
 
 extern int TheIntFuckingReturnValue;
 extern char * TheCharPtrFuckingReturnValue;
+int trace_system( const char *cmd );		 // print cmd and execute ::system (helps with debugging)
+extern int (*system_call)( const char*cmd ); // equals ::system unless __TRACE_SYSTEM__ is defined (see all.cpp)
 #define  VoidFscanf TheIntFuckingReturnValue=::fscanf
 #define  VoidScanf TheIntFuckingReturnValue=::scanf
-#define  VoidSystem TheIntFuckingReturnValue=::system
+#define  VoidSystem TheIntFuckingReturnValue=::system_call
 #define  VoidFgets TheCharPtrFuckingReturnValue=::fgets
 
 

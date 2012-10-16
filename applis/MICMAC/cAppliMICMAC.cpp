@@ -1737,7 +1737,7 @@ void cAppliMICMAC::ExeProcessParallelisable
        {
            std::string commande = ToAdd  + " "+ (*itStr);
          mCout << " ---Lance Process="<<commande<< "\n";
-	int aCodeRetour = system(commande.c_str());
+	int aCodeRetour = system_call(commande.c_str());
          if (StopOnEchecFils().Val())
          {
              ELISE_ASSERT(aCodeRetour==0,"Erreur dans processus fils");
@@ -1830,7 +1830,7 @@ void cAppliMICMAC::ExeProcessParallelisable
 #else
 	   std::string aCom = std::string("make.exe -f ")+nomMakefile+std::string(" -j ")+ToString(std::abs(ByProcess().Val()));
 #endif
-	   int aCodeRetour = system(aCom.c_str());
+	   int aCodeRetour = system_call(aCom.c_str());
        if (StopOnEchecFils().Val())
         {    
             ELISE_ASSERT(aCodeRetour==0,"Erreur dans processus fils");
