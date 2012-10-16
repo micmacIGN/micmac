@@ -1,0 +1,4 @@
+Ceci est un exemple de
+fichier pour gerrer
+les pbleme de confffflit.
+
