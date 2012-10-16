@@ -278,7 +278,7 @@ void ELISE_fp::AssertIsDirectory(const std::string &  aName )
 
 void ELISE_fp::RmFile(const std::string & aFile)
 {
-	std::string aNameCom = std::string(SYS_RM)+' '+aFile;
+	std::string aNameCom = std::string(SYS_RM)+" \""+aFile+"\"";
 	VoidSystem(aNameCom.c_str());
 }
 
@@ -286,16 +286,12 @@ void  ELISE_fp::PurgeDir(const std::string & aDir)
 {
 	std::string aDirC = aDir;
 	MakeFileDirCompl(aDirC);
-
-	#if (ELISE_windows)
-		std::string cmdRemoveFile = "del ";
-	#else
-		std::string cmdRemoveFile = "\\rm ";
-	#endif
-
-	std::string aCom = cmdRemoveFile + aDirC + "*\n";
+#if ELISE_windows
+	std::string aCom = std::string(SYS_RM)+" /Q \""+aDirC+"*\"";
+#else
+	std::string aCom = std::string(SYS_RM)+" \""+aDirC+"*\"";
+#endif
 	VoidSystem(aCom.c_str());
-
 }
 
 void ELISE_fp::InterneMkDirRec(const  std::string  & aName )

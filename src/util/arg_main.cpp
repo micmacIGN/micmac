@@ -709,10 +709,8 @@ void cAppliBatch::DoPurge()
 			System(aCom,true);
 		}
 	}
-
-	std::string aCom = std::string(SYS_RM)+' '+mDirTmp+'*';
-
-	System(aCom,true);
+		
+	ELISE_fp::PurgeDir( mDirTmp );
 }
 
 std::string cAppliBatch::ComCommune() const

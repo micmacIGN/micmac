@@ -350,9 +350,7 @@ void  cArgMpDCRaw::DevJpg()
           aFinal.out()
      );
 
-     aCom = std::string(SYS_RM)+' '+aTmp;
-     VoidSystem(aCom.c_str());
-
+     ELISE_fp::RmFile( aTmp );
 }
 
 L_Arg_Opt_Tiff  cArgMpDCRaw:: ArgMTD() const
