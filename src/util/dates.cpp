@@ -954,10 +954,6 @@ cMetaDataPhoto cXifDecoder::GetMTDIm(const std::string & aNameIm)
 		if (1)
 		{
 			ELISE_fp::RmFile(aXifDec.mFileTxt);
-			/*
-			std::string aNameCom = "\\rm " + aXifDec.mFileTxt;
-			VoidSystem(aNameCom.c_str());
-			*/
 		}
 	}
 
@@ -1242,13 +1238,8 @@ cMetaDataPhoto cMetaDataPhoto::CreateNewExiv2(const std::string & aNameFile) // 
 			);
 		aFoc35  = aVFoc35[0];
 	}
-
-	// if (!aNameTest)
-	{
-		// std::string aNameCom = "\\rm " + aNameTmp;
-		// VoidSystem(aNameCom.c_str());
-		ELISE_fp::RmFile(aNameTmp);
-	}
+	
+	ELISE_fp::RmFile(aNameTmp);
 
 	return cMetaDataPhoto(aSz,aCam,aDate,aFoc,aFoc35,aExpTime,aDiaph,anIsoSpeed);
 }
