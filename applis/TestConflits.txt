@@ -1,4 +1,1 @@
-Ceci est un exemple de
-fichier pour gerrer
-les problèmes de conflit.
-
+Nouvelle version
