@@ -397,8 +397,10 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 #if ELISE_windows
 		TCHAR FilePath[MAX_PATH] = { 0 };
 		GetModuleFileName(NULL,FilePath, MAX_PATH );
-		std::string sFilePath(FilePath);
-		std::string sFile;
+		std::string sFilePath(FilePath),
+					sFile;
+
+		replace( sFilePath.begin(), sFilePath.end(), '\\', '/' );
 		SplitDirAndFile(ArgvMMDir,sFile,sFilePath);
 		
 		ArgvMMDir.resize( ArgvMMDir.length()-1 );

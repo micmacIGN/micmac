@@ -645,8 +645,6 @@ cAppliMICMAC * cAppliMICMAC::Alloc(int argc,char ** argv,eModeAllocAM aMode)
 void ViderDir(const std::string & aDir)
 {
      ELISE_fp::PurgeDir(aDir);
-     // std::string aCom = "\\rm " + aDir + "*\n";
-     // VoidSystem(aCom.c_str());
 }
 
 void cAppliMICMAC::InitDirectories()
@@ -1884,17 +1882,6 @@ void cAppliMICMAC::ExeProcessParallelisable
            } 
        fic.close();
 	*/
-/*
-       mCout << " ---Lance les Process avec le dag\n";
-       std::string aCom = std::string("condor_submit_dag ")+nomDag;
-       int aCodeRetour = system(aCom.c_str());
-       if (StopOnEchecFils().Val())
-       {    
-           ELISE_ASSERT(aCodeRetour==0,"Erreur dans processus fils");
-       }     
-       std::string CleanCommande=std::string("rm ")+nomDag;
-       system(CleanCommande.c_str());
-*/
        mCout << " ---End Process\n"; 
    }
 }

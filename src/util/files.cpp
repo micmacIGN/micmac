@@ -278,16 +278,8 @@ void ELISE_fp::AssertIsDirectory(const std::string &  aName )
 
 void ELISE_fp::RmFile(const std::string & aFile)
 {
-
-	#if (ELISE_windows)
-		std::string cmdRemoveFile = "del ";
-	#else
-		std::string cmdRemoveFile = "\\rm ";
-	#endif
-	
-	std::string aNameCom = cmdRemoveFile + aFile;
+	std::string aNameCom = std::string(SYS_RM)+' '+aFile;
 	VoidSystem(aNameCom.c_str());
-
 }
 
 void  ELISE_fp::PurgeDir(const std::string & aDir)

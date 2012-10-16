@@ -472,13 +472,8 @@ void cAppliMICMAC::MakeExportAsModeleDist
    aNameBin = aNameBin + " "  +  aNameTmp;
    aNameBin = aNameBin + " Ch1="+ ChMpDCraw(PDV1())+" Ch2="+ ChMpDCraw(PDV2());
    ::System( aNameBin);
-
-   #if (ELISE_windows)
-		::System("del " +  aNameTmp);	
-	#else
-		::System("\\rm " +  aNameTmp);		
-	#endif
    
+   ::System( std::string(SYS_RM)+' '+ aNameTmp );
 }
 
 

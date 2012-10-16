@@ -508,11 +508,6 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
 
     }
 
-
-
-
-   //aNameCom = "\\rm " + aNameTmp;
-   //VoidSystem(aNameCom.c_str());
    ELISE_fp::RmFile(aNameTmp);
 
    if (anArg.BayerCalib()  && (! TraitBasic))
