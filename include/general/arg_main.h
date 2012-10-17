@@ -417,6 +417,10 @@ class cReadObject
 };
 
 
+int AperiCloud_main(int argc,char ** argv);
+int Malt_main(int argc,char ** argv);
+
+
 
 #endif // ElMemberTpl
 
