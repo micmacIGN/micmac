@@ -36,6 +36,7 @@ set(MULLGES_DIR "mullgesuhlig")
 set(NEIGH_DIR "neighboor")
 set(OP_BUF_DIR "op_buf")
 set(OPTIM_DIR "optim")
+set(UTI_PHGRM_DIR "uti_phgrm")
 
 INCLUDE (${AMD_DIR}/Sources.cmake)
 
@@ -70,6 +71,7 @@ INCLUDE (${NEIGH_DIR}/Sources.cmake)
 INCLUDE (${OP_BUF_DIR}/Sources.cmake)
 INCLUDE (${OPERATOR_DIR}/Sources.cmake)
 INCLUDE (${OPTIM_DIR}/Sources.cmake)
+INCLUDE (${UTI_PHGRM_DIR}/Sources.cmake)
 INCLUDE (${ORIPHO_DIR}/Sources.cmake)
 INCLUDE (${OUTPUT_DIR}/Sources.cmake)
 INCLUDE (${PHOTOGR_DIR}/Sources.cmake)
@@ -127,3 +129,4 @@ add_definitions(-DNO_JPEG -DNO_LCMS)
 # INSTALLATION : Dossier de destination lors de l'install
 install(TARGETS elise ARCHIVE DESTINATION ${Install_Dir})
 	
+ADD_SUBDIRECTORY(CBinaires)
