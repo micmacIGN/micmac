@@ -736,9 +736,7 @@ cEl_GPAO * DoCmdExePar(const cCmdExePar & aCEP,int aNbProcess)
             itS != itOCP->OneCmdSer().end();
             itS++
        )
-       {
-           aTask.AddBR(*itS);
-       }
+       aTask.AddBR(*itS);
 
        aGPAO->TaskOfName("all").AddDep(aTask);
 
