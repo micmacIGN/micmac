@@ -48,20 +48,36 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 typedef int (*tCommande)  (int,char**);
 
+std::string StrToLower(const std::string & aStr)
+{
+   std::string aRes;
+   for (const char * aC=aStr.c_str(); *aC; aC++)
+   {
+      aRes += (isupper(*aC) ?  tolower(*aC) : *aC);
+   }
+   return aRes;
+}
+
 class cMMCom
 {
    public :
       cMMCom (const std::string & aName,tCommande  aCommand,const std::string & aComment) :
-          mName (aName),
+          mName     (aName),
+          mLowName  (StrToLower(aName)),
           mCommand  (aCommand),
           mComment  (aComment)
       {
       }
 
       std::string  mName;
+      std::string  mLowName;
       tCommande    mCommand;
       std::string  mComment;
 };
+
+
+
+
 
 const std::vector<cMMCom> & MMComs()
 {
@@ -74,31 +90,80 @@ const std::vector<cMMCom> & MMComs()
    return aRes;
 }
 
+class cSuggest
+{
+     public :
+        cSuggest(const std::string & aName,const std::string & aPat) :
+             mName (aName),
+             mPat  (aPat),
+             mAutom (mPat,10)
+        {
+        }
+        void Test(const cMMCom & aCom)
+        {
+            if (mAutom.Match(aCom.mLowName))
+               mRes.push_back(aCom);
+        }
+
+        std::string          mName;
+        std::string          mPat;
+        cElRegex             mAutom;
+        std::vector<cMMCom>  mRes;
+};
+
 
 int main(int argc,char ** argv)
 {
+
    const std::vector<cMMCom> & aVComs = MMComs();
-   
    if ((argc==1) || ((argc==2) && (std::string(argv[1])=="-help")))
    {
        std::cout << "mm3d : Allowed commands \n";
-       for (int aK=0 ; aK<aVComs.size() ; aK++)
+       for (int aKC=0 ; aKC<aVComs.size() ; aKC++)
        {
-            std::cout << " " << aVComs[aK].mName << "\t" << aVComs[aK].mComment << "\n";
+            std::cout  << " " << aVComs[aKC].mName << "\t" << aVComs[aKC].mComment << "\n";
        }
        return 0;
    }
 
-   ELISE_ASSERT(argc>=2,"Not enough arg in mm3d");
-
    std::string aCom = argv[1];
+   std::string aLowCom = StrToLower(aCom);
+
+   std::vector<cSuggest *> mSugg;
+   mSugg.push_back(new cSuggest("Pattern Match",aLowCom));
+   mSugg.push_back(new cSuggest("Prefix Match",aLowCom+".*"));
+   mSugg.push_back(new cSuggest("Subex Match",".*"+aLowCom+".*"));
+/*
+*/
+   
 
 
-   for (int aK=0 ; aK<aVComs.size() ; aK++)
+   for (int aKC=0 ; aKC<aVComs.size() ; aKC++)
    {
-       if (aVComs[aK].mName==aCom)
-          return (aVComs[aK].mCommand(argc-1,argv+1));
+       if (StrToLower(aVComs[aKC].mName)==StrToLower(aCom))
+       {
+          return (aVComs[aKC].mCommand(argc-1,argv+1));
+       }
+       for (int aKS=0 ; aKS<int(mSugg.size()) ; aKS++)
+       {
+            mSugg[aKS]->Test(aVComs[aKC]);
+       }
    }
+
+
+   for (int aKS=0 ; aKS<int(mSugg.size()) ; aKS++)
+   {
+      if (! mSugg[aKS]->mRes.empty())
+      {
+           std::cout << "Suggest by " << mSugg[aKS]->mName << "\n";
+           for (int aKC=0 ; aKC<mSugg[aKS]->mRes.size() ; aKC++)
+           {
+                std::cout << "    " << mSugg[aKS]->mRes[aKC].mName << "\n";
+           }
+           return -1;
+      }
+   }
+
 
 
    std::cout << "For command = " << argv[1] << "\n";
