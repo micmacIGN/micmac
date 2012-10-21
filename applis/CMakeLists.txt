@@ -154,7 +154,7 @@ IF (X11_FOUND)
 		MICMAC/OrthoLocAnam.cpp
 	)
 
-	target_link_libraries(MICMACSaisieLiaisons elise ${X11_LIBRARIES})
+	target_link_libraries(MICMACSaisieLiaisons elise ${X11_LIBRARIES} ${KAKADU_LIBRARIES} )
         
 	INSTALL(TARGETS MICMACSaisieLiaisons RUNTIME DESTINATION ${Install_Dir})
 	
