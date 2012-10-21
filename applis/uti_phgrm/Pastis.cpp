@@ -59,8 +59,20 @@ static const std::string TheStrAnn = "ann_mec_filtre.LINUX ";
 static const std::string TheStrSift = "siftpp_tgi.OSX ";
 static const std::string TheStrAnn = "ann_samplekey200filtre.OSX ";
 #elif ELISE_Cygwin | ELISE_windows
-static const std::string TheStrSift = "siftpp_tgi.exe ";
-static const std::string TheStrAnn = "ann_samplekeyfiltre.exe ";
+
+#ifdef USE_SIFT_GPU
+	#if defined( _M_X64 )
+		static const std::string TheStrSift = "SiftGpu\\x64\\SiftGpu_key.exe ";
+		static const std::string TheStrAnn = "SiftGpu\\x64\\SiftGpu_Match.exe ";
+	#elif defined( _WIN32 )
+		static const std::string TheStrSift = "SiftGpu\\win32\\SiftGpu_key32.exe ";
+		static const std::string TheStrAnn = "SiftGpu\\win32\\SiftGpu_Match32.exe ";
+	#endif
+#else
+	static const std::string TheStrSift = "siftpp_tgi.exe ";
+	static const std::string TheStrAnn = "ann_samplekeyfiltre.exe ";
+#endif
+
 #endif
 
 
@@ -265,9 +277,15 @@ void cAppliPastis::GenerateKey(const std::string & aName,const std::string & aNa
   {
 // std::cout << aNameIm << " " <<  NameFileStd(aNameIm,1) << "\n"; getchar();
 
+#ifdef USE_SIFT_GPU
+	  std::string OptOut = " -o ";
+#else
+	  std::string OptOut = " -o";
+#endif
+
       aCom =   mBinDirAux +  TheStrSift
               + NameFileStd(aNameIm,1,false) + " "
-              + std::string(" -o")+aNK;
+              + OptOut +aNK;
 
   }
   else if (mModeBin==eModeAutopano)
