@@ -42,25 +42,25 @@ Header-MicMac-eLiSe-25/06/2007*/
 using namespace NS_ParamChantierPhotogram;
 
 #if ELISE_unix
-static const std::string TheStrSift = "siftpp_tgi.LINUX ";
-static const std::string TheStrAnn = "ann_mec_filtre.LINUX ";
+	static const std::string TheStrSiftPP = "siftpp_tgi.LINUX ";
+	static const std::string TheStrAnnPP = "ann_mec_filtre.LINUX ";
 #elif ELISE_MacOs
-static const std::string TheStrSift = "siftpp_tgi.OSX ";
-static const std::string TheStrAnn = "ann_samplekey200filtre.OSX ";
+	static const std::string TheStrSiftPP = "siftpp_tgi.OSX ";
+	static const std::string TheStrAnnPP = "ann_samplekey200filtre.OSX ";
 #elif ELISE_Cygwin | ELISE_windows
-	#ifdef USE_SIFT_GPU
-		#if defined( _M_X64 )
-			static const std::string TheStrSift = "SiftGpu\\x64\\SiftGpu_key.exe ";
-			static const std::string TheStrAnn = "SiftGpu\\x64\\SiftGpu_Match.exe ";
-		#elif defined( _WIN32 )
-			static const std::string TheStrSift = "SiftGpu\\win32\\SiftGpu_key32.exe ";
-			static const std::string TheStrAnn = "SiftGpu\\win32\\SiftGpu_Match32.exe ";
-		#endif
-	#else
-		static const std::string TheStrSift = "siftpp_tgi.exe ";
-		static const std::string TheStrAnn = "ann_samplekeyfiltre.exe ";
+	#if defined( _M_X64 )
+				static const std::string TheStrSiftGPU = "SiftGpu\\x64\\SiftGpu_key.exe ";
+				static const std::string TheStrAnnGPU = "SiftGpu\\x64\\SiftGpu_Match.exe ";
+				static const std::string TheStrSiftPP = "siftpp_tgi.exe ";
+				static const std::string TheStrAnnPP = "ann_samplekeyfiltre.exe ";
+	#elif defined( _WIN32 )
+				static const std::string TheStrSiftGPU = "SiftGpu\\win32\\SiftGpu_key32.exe ";
+				static const std::string TheStrAnnGPU = "SiftGpu\\win32\\SiftGpu_Match32.exe ";
+				static const std::string TheStrSiftPP = "siftpp_tgi.exe ";
+				static const std::string TheStrAnnPP = "ann_samplekeyfiltre.exe ";
 	#endif
 #endif
+
 
 /*********************************************/
 /*                                           */
@@ -225,6 +225,7 @@ class cAppliPastis : public cAppliBatch
        int           mNbMaxValidGlobH;
        double        mSeuilHGLOB;
        std::string   mNKS;
+	   int           UseSiftGpu;
 
 
        Pt2dr Homogr1to2(const Pt2dr & aP1)
@@ -257,28 +258,45 @@ void cAppliPastis::GenerateKey(const std::string & aName,const std::string & aNa
 
   std::string aCom ;
     
-// static const std::string TheStrSift = "siftpp_tgi.LINUX";
+// static const std::string TheStrSiftPP = "siftpp_tgi.LINUX";
 // static const std::string TheStrAnn = "ann_mec_filtre.LINUX"
   if (mModeBin==eModeLeBrisPP)
   {
 // std::cout << aNameIm << " " <<  NameFileStd(aNameIm,1) << "\n"; getchar();
 
-#ifdef USE_SIFT_GPU
-	  std::string OptOut = " -o ";
-#else
-	  std::string OptOut = " -o";
+	std::string OptOut;
+	std::string TheStrSiftBin;
+
+	// CHOIX du binaire CPU ou GPU pour le calcul des points clés SIFT
+#if ELISE_windows
+	if (UseSiftGpu)
+	{
+		OptOut = " -o ";
+		TheStrSiftBin = TheStrSiftGPU;
+	}
+	else
+	{
+		OptOut = " -o";
+		TheStrSiftBin = TheStrSiftPP;
+	}
+#elif
+	OptOut = " -o";
+	TheStrSiftBin = TheStrSiftPP;
 #endif
-	aCom =	mBinDirAux +  TheStrSift
-			+ NameFileStd(aNameIm,1,false)
-			+ OptOut +aNK;
+
+	aCom =	mBinDirAux +
+			TheStrSiftBin +
+			NameFileStd(aNameIm,1,false) +
+			OptOut +
+			aNK;
 
   }
   else if (mModeBin==eModeAutopano)
   {
-       aCom = std::string("generatekeys ")
-                     +  aNameIm + " "
-                     +  aNK + " "
-		     + ((mSzPastis >=0) ? ToString(mSzPastis) : std::string(""));
+       aCom =	std::string("generatekeys ") +
+				aNameIm + " " +
+				aNK + " " +
+				((mSzPastis >=0) ? ToString(mSzPastis) : std::string(""));
    }
 
   System(aNK.c_str(),aCom);
@@ -294,10 +312,29 @@ void cAppliPastis::GenerateMatch(const std::string & aNI1,const std::string & aN
   
   if (mModeBin==eModeLeBrisPP)
   {
-     aCom =   mBinDirAux+ TheStrAnn
-            + std::string(" ") + NameKey(aNI1)
-            + std::string(" ") + NameKey(aNI2)
-	    + std::string(" ") + mNameAPM;
+
+
+std::string TheStrAnnBin;
+
+#if ELISE_windows
+	if (UseSiftGpu)
+
+		TheStrAnnBin = TheStrAnnGPU;
+	
+	else
+
+		TheStrAnnBin = TheStrAnnPP;
+	
+#elif
+	OptOut = " -o";
+	TheStrAnnBin = TheStrAnnPP;
+#endif
+
+	aCom =	mBinDirAux +
+			TheStrAnnBin + std::string(" ") +
+			NameKey(aNI1) + std::string(" ") +
+			NameKey(aNI2) + std::string(" ") +
+			mNameAPM;
 
 // std::cout << "CCCCCC " << aCom << "\n";
   }
@@ -957,6 +994,7 @@ cAppliPastis::cAppliPastis(int argc,char ** argv) :
                       << EAM(mSsRes,"SsRes",true)
                       << EAM(mExt,"Ext",true)
                       << EAM(mNKS,"NKS",true)
+					  << EAM(UseSiftGpu,"UseGpu",true)
 
     );
     if (mExpTxt) mExpBin = 0;
