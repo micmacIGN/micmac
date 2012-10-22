@@ -40,7 +40,7 @@
 #include "general/all.h"
 #include "private/all.h"
 #include <algorithm>
-#include "private/ply.h"
+#include "MergePly/ply.h"
 
 /* information needed to describe the user's data to the PLY routines */
 
@@ -63,7 +63,7 @@ static PlyProperty oriented_vert_props[] = {
 	{"nz", PLY_FLOAT, PLY_FLOAT, offsetof(PlyOrientedVertex,nz), 0, 0, 0, 0}
 };
 
-int main(int argc,char ** argv)
+int MergePly_main(int argc,char ** argv)
 {
     std::string aNameFiles,aNameOut;
     std::vector<string> aVFiles, aVCom;
