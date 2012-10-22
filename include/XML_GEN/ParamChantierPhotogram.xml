@@ -1287,8 +1287,22 @@ namespace NS_ParamChantierPhotogram{
           </geometry>
     </orientation>
 
-
+    <!-- Pour stocker les relations "Images/Maitresse" "Images/Secondaire"-->
+  
+    <OneSolImageSec Nb="1" Class="true" ToReference="true">
+          <Images Nb="*" Type="std::string">  </Images>
+          <Coverage  Nb="1" Type="double">    </Coverage>
+          <Score  Nb="1" Type="double">       </Score>
+    </OneSolImageSec>
+  
+    <ImSecOfMaster  Nb="1" Class="true" ToReference="true">
+          <Master Nb="1" Type="std::string"> </Master>
+          <Sols Nb="*" RefType="OneSolImageSec"> </Sols>
+    </ImSecOfMaster>
     
+  
+  
+  
     <!-- Type qui vont permettre d'ecrire une version "en clair" de  la base de donnees -->
 
     <XmlExivEntry Nb="1" Class="true" ToReference="true">
@@ -1313,6 +1327,7 @@ namespace NS_ParamChantierPhotogram{
 
 
 
+  
 <Verbatim File=".h.cpp">
 };
 </Verbatim>

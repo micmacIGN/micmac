@@ -11971,6 +11971,108 @@ void xml_init(corientation & anObj,cElXMLTree * aTree)
 }
 
 
+std::list< std::string > & cOneSolImageSec::Images()
+{
+   return mImages;
+}
+
+const std::list< std::string > & cOneSolImageSec::Images()const 
+{
+   return mImages;
+}
+
+
+double & cOneSolImageSec::Coverage()
+{
+   return mCoverage;
+}
+
+const double & cOneSolImageSec::Coverage()const 
+{
+   return mCoverage;
+}
+
+
+double & cOneSolImageSec::Score()
+{
+   return mScore;
+}
+
+const double & cOneSolImageSec::Score()const 
+{
+   return mScore;
+}
+
+cElXMLTree * ToXMLTree(const cOneSolImageSec & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"OneSolImageSec",eXMLBranche);
+  for
+  (       std::list< std::string >::const_iterator it=anObj.Images().begin();
+      it !=anObj.Images().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("Images"),(*it))->ReTagThis("Images"));
+   aRes->AddFils(::ToXMLTree(std::string("Coverage"),anObj.Coverage())->ReTagThis("Coverage"));
+   aRes->AddFils(::ToXMLTree(std::string("Score"),anObj.Score())->ReTagThis("Score"));
+  return aRes;
+}
+
+void xml_init(cOneSolImageSec & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.Images(),aTree->GetAll("Images",false,1));
+
+   xml_init(anObj.Coverage(),aTree->Get("Coverage",1)); //tototo 
+
+   xml_init(anObj.Score(),aTree->Get("Score",1)); //tototo 
+}
+
+
+std::string & cImSecOfMaster::Master()
+{
+   return mMaster;
+}
+
+const std::string & cImSecOfMaster::Master()const 
+{
+   return mMaster;
+}
+
+
+std::list< cOneSolImageSec > & cImSecOfMaster::Sols()
+{
+   return mSols;
+}
+
+const std::list< cOneSolImageSec > & cImSecOfMaster::Sols()const 
+{
+   return mSols;
+}
+
+cElXMLTree * ToXMLTree(const cImSecOfMaster & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ImSecOfMaster",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Master"),anObj.Master())->ReTagThis("Master"));
+  for
+  (       std::list< cOneSolImageSec >::const_iterator it=anObj.Sols().begin();
+      it !=anObj.Sols().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Sols"));
+  return aRes;
+}
+
+void xml_init(cImSecOfMaster & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.Master(),aTree->Get("Master",1)); //tototo 
+
+   xml_init(anObj.Sols(),aTree->GetAll("Sols",false,1));
+}
+
+
 std::list< std::string > & cXmlExivEntry::Names()
 {
    return mNames;

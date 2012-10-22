@@ -88,6 +88,10 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
    <Symb>  ImMNT=".*" </Symb>
    <Symb>  ImOrtho=".*" </Symb>
 
+   <Symb>ButDoOrtho=false </Symb>
+  
+   <Symb>  FileDoNothing=EmptyXML.xml  </Symb>
+  
 </DicoLoc>
 
 <!--  M2 : Describe the ground zone where the matching is to be done -->
@@ -250,6 +254,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 <!--
 -->
     <ZoomMakeTA> 8 </ZoomMakeTA>
+    <IncludeFileLoc>  ${FileDoNothing} </IncludeFileLoc>
 <!--
     <RepereCorrel>  Repere.xml </RepereCorrel>
     <DoNothingBut>

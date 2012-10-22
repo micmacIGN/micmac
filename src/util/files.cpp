@@ -290,7 +290,8 @@ void  ELISE_fp::PurgeDir(const std::string & aDir)
 	replace( aDirC.begin(), aDirC.end(), '/', '\\' );
 	std::string aCom = std::string(SYS_RM)+" /Q \""+aDirC+"*\"";
 #else
-	std::string aCom = std::string(SYS_RM)+" \""+aDirC+"*\"";
+    // MODIF MPD LES "" ne permettent pas
+	std::string aCom = std::string(SYS_RM)+ " " + aDirC+"*";
 #endif
 	VoidSystem(aCom.c_str());
 }
