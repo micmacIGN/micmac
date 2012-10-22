@@ -1,5 +1,5 @@
 add_executable(mm3d mm3d.cpp)
-target_link_libraries(mm3d elise ${X11_LIBRARIES})
+target_link_libraries(mm3d elise ${X11_LIBRARIES} ${KAKADU_LIBRARIES}  ${TICPP_LIBRARIES} ${Boost_LIBRARIES})
 INSTALL(TARGETS mm3d RUNTIME DESTINATION ${Install_Dir})
 
 add_executable(AperiCloud  AperiCloud.c)
@@ -31,6 +31,9 @@ INSTALL(TARGETS GCPBascule RUNTIME DESTINATION ${Install_Dir})
 
 add_executable(GenXML2Cpp  GenXML2Cpp.c)
 INSTALL(TARGETS GenXML2Cpp RUNTIME DESTINATION ${Install_Dir})
+                                                             
+add_executable(Gri2Bin  Gri2Bin.c)
+INSTALL(TARGETS Gri2Bin RUNTIME DESTINATION ${Install_Dir})
 
 add_executable(GrShade  GrShade.c)
 INSTALL(TARGETS GrShade RUNTIME DESTINATION ${Install_Dir})

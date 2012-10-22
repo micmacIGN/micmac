@@ -439,6 +439,7 @@ int Apero_main(int argc,char ** argv);
 int Bascule_main(int argc,char ** argv);
 int CmpCalib_main(int argc,char ** argv);
 int GCPBascule_main(int argc,char ** argv);
+int Gri2Bin_main(int argc,char ** argv);
 int MakeGrid_main(int argc,char ** argv);
 int Malt_main(int argc,char ** argv);
 int MICMAC_main(int argc,char ** argv);
