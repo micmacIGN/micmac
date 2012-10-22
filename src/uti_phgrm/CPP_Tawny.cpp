@@ -101,8 +101,8 @@ int Tawny_main(int argc,char ** argv)
                         + std::string(" +RapGlobPhys=") + ToString(mRapGlobPhys)
                         + std::string(" +DynGlob=") + ToString(mDynGlob)
                       ;
-
-    if (mImPrio0!="") aCom = aCom+ " +ImPrio="+mImPrio0;
+	
+    if (mImPrio0!="") aCom = aCom+ " +ImPrio="+QUOTE(mImPrio0);
     if (EAMIsInit(&mSzV)) aCom  = aCom + " +SzV=" + ToString(mSzV);
     if (EAMIsInit(&mNbPerIm)) aCom  = aCom + " +NbPerIm=" + ToString(mNbPerIm);
     if (EAMIsInit(&mCorrThresh)) aCom  = aCom + " +CorrThresh=" + ToString(mCorrThresh);

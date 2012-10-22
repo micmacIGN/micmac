@@ -12390,6 +12390,15 @@ void xml_init(cExportNuage & anObj,cElXMLTree * aTree)
    xml_init(anObj.NuagePutCam(),aTree->Get("NuagePutCam",1)); //tototo 
 }
 
+std::string & cChoixImSec::KeyAssoc()
+{
+   return mKeyAssoc;
+}
+
+const std::string & cChoixImSec::KeyAssoc()const 
+{
+   return mKeyAssoc;
+}
 
 cTplValGesInit< std::string > & cChoixImSec::PatternSel()
 {
@@ -12399,6 +12408,17 @@ cTplValGesInit< std::string > & cChoixImSec::PatternSel()
 const cTplValGesInit< std::string > & cChoixImSec::PatternSel()const 
 {
    return mPatternSel;
+}
+
+ 
+cTplValGesInit< int > & cChoixImSec::CardMaxSub()
+{
+   return mCardMaxSub;
+}
+
+const cTplValGesInit< int > & cChoixImSec::CardMaxSub()const 
+{
+   return mCardMaxSub;
 }
 
 
@@ -12423,18 +12443,6 @@ const std::string & cChoixImSec::IdBdl()const
    return mIdBdl;
 }
 
-
-cTplValGesInit< int > & cChoixImSec::NbMaxPresel()
-{
-   return mNbMaxPresel;
-}
-
-const cTplValGesInit< int > & cChoixImSec::NbMaxPresel()const 
-{
-   return mNbMaxPresel;
-}
-
-
 cTplValGesInit< int > & cChoixImSec::NbMinPtsHom()
 {
    return mNbMinPtsHom;
@@ -12443,6 +12451,28 @@ cTplValGesInit< int > & cChoixImSec::NbMinPtsHom()
 const cTplValGesInit< int > & cChoixImSec::NbMinPtsHom()const 
 {
    return mNbMinPtsHom;
+}
+
+
+cTplValGesInit< double > & cChoixImSec::TetaMinPreSel()
+{
+   return mTetaMinPreSel;
+}
+
+const cTplValGesInit< double > & cChoixImSec::TetaMinPreSel()const 
+{
+   return mTetaMinPreSel;
+}
+
+
+cTplValGesInit< double > & cChoixImSec::TetaOpt()
+{
+   return mTetaOpt;
+}
+
+const cTplValGesInit< double > & cChoixImSec::TetaOpt()const 
+{
+   return mTetaOpt;
 }
 
 
@@ -12457,66 +12487,118 @@ const cTplValGesInit< double > & cChoixImSec::TetaMaxPreSel()const
 }
 
 
-cTplValGesInit< int > & cChoixImSec::NbMinPresel()
+cTplValGesInit< double > & cChoixImSec::Teta2Min()
 {
-   return mNbMinPresel;
+   return mTeta2Min;
 }
 
-const cTplValGesInit< int > & cChoixImSec::NbMinPresel()const 
+const cTplValGesInit< double > & cChoixImSec::Teta2Min()const 
 {
-   return mNbMinPresel;
+   return mTeta2Min;
 }
 
 
-cTplValGesInit< double > & cChoixImSec::TetaOpt()
+cTplValGesInit< double > & cChoixImSec::Teta2Max()
 {
-   return mTetaOpt;
+   return mTeta2Max;
 }
 
-const cTplValGesInit< double > & cChoixImSec::TetaOpt()const 
+const cTplValGesInit< double > & cChoixImSec::Teta2Max()const 
 {
-   return mTetaOpt;
+   return mTeta2Max;
+}
+
+
+cTplValGesInit< int > & cChoixImSec::NbMaxPresel()
+{
+   return mNbMaxPresel;
+}
+
+const cTplValGesInit< int > & cChoixImSec::NbMaxPresel()const 
+{
+   return mNbMaxPresel;
+}
+
+
+cTplValGesInit< int > & cChoixImSec::NbSetPreSelAng()
+{
+   return mNbSetPreSelAng;
+}
+
+const cTplValGesInit< int > & cChoixImSec::NbSetPreSelAng()const 
+{
+   return mNbSetPreSelAng;
 }
 
 cElXMLTree * ToXMLTree(const cChoixImSec & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ChoixImSec",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("KeyAssoc"),anObj.KeyAssoc())->ReTagThis("KeyAssoc"));
    if (anObj.PatternSel().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PatternSel"),anObj.PatternSel().Val())->ReTagThis("PatternSel"));
+   if (anObj.CardMaxSub().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("CardMaxSub"),anObj.CardMaxSub().Val())->ReTagThis("CardMaxSub"));
    aRes->AddFils(::ToXMLTree(std::string("NbMin"),anObj.NbMin())->ReTagThis("NbMin"));
    aRes->AddFils(::ToXMLTree(std::string("IdBdl"),anObj.IdBdl())->ReTagThis("IdBdl"));
-   if (anObj.NbMaxPresel().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("NbMaxPresel"),anObj.NbMaxPresel().Val())->ReTagThis("NbMaxPresel"));
    if (anObj.NbMinPtsHom().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("NbMinPtsHom"),anObj.NbMinPtsHom().Val())->ReTagThis("NbMinPtsHom"));
-   if (anObj.TetaMaxPreSel().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("TetaMaxPreSel"),anObj.TetaMaxPreSel().Val())->ReTagThis("TetaMaxPreSel"));
-   if (anObj.NbMinPresel().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("NbMinPresel"),anObj.NbMinPresel().Val())->ReTagThis("NbMinPresel"));
+   if (anObj.TetaMinPreSel().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("TetaMinPreSel"),anObj.TetaMinPreSel().Val())->ReTagThis("TetaMinPreSel"));
    if (anObj.TetaOpt().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("TetaOpt"),anObj.TetaOpt().Val())->ReTagThis("TetaOpt"));
-  return aRes;
+   if (anObj.TetaMaxPreSel().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("TetaMaxPreSel"),anObj.TetaMaxPreSel().Val())->ReTagThis("TetaMaxPreSel"));
+   if (anObj.Teta2Min().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Teta2Min"),anObj.Teta2Min().Val())->ReTagThis("Teta2Min"));
+   if (anObj.Teta2Max().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Teta2Max"),anObj.Teta2Max().Val())->ReTagThis("Teta2Max"));
+   if (anObj.NbMaxPresel().IsInit())
+       aRes->AddFils(::ToXMLTree(std::string("NbMaxPresel"),anObj.NbMaxPresel().Val())->ReTagThis("NbMaxPresel"));
+   if (anObj.NbSetPreSelAng().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NbSetPreSelAng"),anObj.NbSetPreSelAng().Val())->ReTagThis("NbSetPreSelAng"));
+   return aRes;
 }
+
 
 void xml_init(cChoixImSec & anObj,cElXMLTree * aTree)
 {
    if (aTree==0) return;
+   
+   xml_init(anObj.KeyAssoc(),aTree->Get("KeyAssoc",1)); //tototo 
 
    xml_init(anObj.PatternSel(),aTree->Get("PatternSel",1),std::string(".*")); //tototo 
+   
+   xml_init(anObj.CardMaxSub(),aTree->Get("CardMaxSub",1),int(6)); //tototo 
 
    xml_init(anObj.NbMin(),aTree->Get("NbMin",1)); //tototo 
 
    xml_init(anObj.IdBdl(),aTree->Get("IdBdl",1)); //tototo 
+   xml_init(anObj.NbMinPtsHom(),aTree->Get("NbMinPtsHom",1),int(15)); //tototo 
 
-   xml_init(anObj.NbMaxPresel(),aTree->Get("NbMaxPresel",1),int(12)); //tototo 
+   xml_init(anObj.TetaMinPreSel(),aTree->Get("TetaMinPreSel",1),double(0.025)); //tototo 
 
-   xml_init(anObj.NbMinPtsHom(),aTree->Get("NbMinPtsHom",1),int(5)); //tototo 
+   xml_init(anObj.TetaOpt(),aTree->Get("TetaOpt",1),double(0.25)); //tototo 
 
-   xml_init(anObj.TetaMaxPreSel(),aTree->Get("TetaMaxPreSel",1),double(0.30)); //tototo 
+   xml_init(anObj.TetaMaxPreSel(),aTree->Get("TetaMaxPreSel",1),double(0.80)); //tototo 
 
-   xml_init(anObj.NbMinPresel(),aTree->Get("NbMinPresel",1),int(6)); //tototo 
+   xml_init(anObj.Teta2Min(),aTree->Get("Teta2Min",1),double(0.65)); //tototo 
 
-   xml_init(anObj.TetaOpt(),aTree->Get("TetaOpt",1),double(0.15)); //tototo 
+   xml_init(anObj.Teta2Max(),aTree->Get("Teta2Max",1),double(1.1)); //tototo 
+
+   xml_init(anObj.NbMaxPresel(),aTree->Get("NbMaxPresel",1),int(10)); //tototo 
+
+   xml_init(anObj.NbSetPreSelAng(),aTree->Get("NbSetPreSelAng",1),int(5)); //tototo 
+}
+
+
+std::string & cChoixImMM::KeyAssoc()
+{
+   return ChoixImSec().KeyAssoc();
+}
+
+const std::string & cChoixImMM::KeyAssoc()const 
+{
+   return ChoixImSec().KeyAssoc();
 }
 
 
@@ -12528,6 +12610,17 @@ cTplValGesInit< std::string > & cChoixImMM::PatternSel()
 const cTplValGesInit< std::string > & cChoixImMM::PatternSel()const 
 {
    return ChoixImSec().PatternSel();
+}
+
+
+cTplValGesInit< int > & cChoixImMM::CardMaxSub()
+{
+   return ChoixImSec().CardMaxSub();
+}
+
+const cTplValGesInit< int > & cChoixImMM::CardMaxSub()const 
+{
+   return ChoixImSec().CardMaxSub();
 }
 
 
@@ -12553,17 +12646,6 @@ const std::string & cChoixImMM::IdBdl()const
 }
 
 
-cTplValGesInit< int > & cChoixImMM::NbMaxPresel()
-{
-   return ChoixImSec().NbMaxPresel();
-}
-
-const cTplValGesInit< int > & cChoixImMM::NbMaxPresel()const 
-{
-   return ChoixImSec().NbMaxPresel();
-}
-
-
 cTplValGesInit< int > & cChoixImMM::NbMinPtsHom()
 {
    return ChoixImSec().NbMinPtsHom();
@@ -12572,6 +12654,28 @@ cTplValGesInit< int > & cChoixImMM::NbMinPtsHom()
 const cTplValGesInit< int > & cChoixImMM::NbMinPtsHom()const 
 {
    return ChoixImSec().NbMinPtsHom();
+}
+
+
+cTplValGesInit< double > & cChoixImMM::TetaMinPreSel()
+{
+   return ChoixImSec().TetaMinPreSel();
+}
+
+const cTplValGesInit< double > & cChoixImMM::TetaMinPreSel()const 
+{
+   return ChoixImSec().TetaMinPreSel();
+}
+
+
+cTplValGesInit< double > & cChoixImMM::TetaOpt()
+{
+   return ChoixImSec().TetaOpt();
+}
+
+const cTplValGesInit< double > & cChoixImMM::TetaOpt()const 
+{
+   return ChoixImSec().TetaOpt();
 }
 
 
@@ -12586,25 +12690,49 @@ const cTplValGesInit< double > & cChoixImMM::TetaMaxPreSel()const
 }
 
 
-cTplValGesInit< int > & cChoixImMM::NbMinPresel()
+cTplValGesInit< double > & cChoixImMM::Teta2Min()
 {
-   return ChoixImSec().NbMinPresel();
-}
-
-const cTplValGesInit< int > & cChoixImMM::NbMinPresel()const 
-{
-   return ChoixImSec().NbMinPresel();
+   return ChoixImSec().Teta2Min();
 }
 
 
-cTplValGesInit< double > & cChoixImMM::TetaOpt()
+const cTplValGesInit< double > & cChoixImMM::Teta2Min()const 
 {
-   return ChoixImSec().TetaOpt();
+   return ChoixImSec().Teta2Min();
 }
 
-const cTplValGesInit< double > & cChoixImMM::TetaOpt()const 
+
+cTplValGesInit< double > & cChoixImMM::Teta2Max()
 {
-   return ChoixImSec().TetaOpt();
+   return ChoixImSec().Teta2Max();
+}
+
+
+const cTplValGesInit< double > & cChoixImMM::Teta2Max()const 
+{
+   return ChoixImSec().Teta2Max();
+}
+
+
+cTplValGesInit< int > & cChoixImMM::NbMaxPresel()
+{
+   return ChoixImSec().NbMaxPresel();
+}
+
+const cTplValGesInit< int > & cChoixImMM::NbMaxPresel()const 
+{
+   return ChoixImSec().NbMaxPresel();
+}
+
+
+cTplValGesInit< int > & cChoixImMM::NbSetPreSelAng()
+{
+   return ChoixImSec().NbSetPreSelAng();
+}
+
+const cTplValGesInit< int > & cChoixImMM::NbSetPreSelAng()const 
+{
+   return ChoixImSec().NbSetPreSelAng();
 }
 
 
@@ -12742,6 +12870,16 @@ const std::list< cExportNuage > & cSectionExport::ExportNuage()const
    return mExportNuage;
 }
 
+std::string & cSectionExport::KeyAssoc()
+{
+   return ChoixImMM().Val().ChoixImSec().KeyAssoc();
+}
+
+const std::string & cSectionExport::KeyAssoc()const 
+{
+   return ChoixImMM().Val().ChoixImSec().KeyAssoc();
+}
+
 
 cTplValGesInit< std::string > & cSectionExport::PatternSel()
 {
@@ -12753,6 +12891,15 @@ const cTplValGesInit< std::string > & cSectionExport::PatternSel()const
    return ChoixImMM().Val().ChoixImSec().PatternSel();
 }
 
+cTplValGesInit< int > & cSectionExport::CardMaxSub()
+{
+   return ChoixImMM().Val().ChoixImSec().CardMaxSub();
+}
+
+const cTplValGesInit< int > & cSectionExport::CardMaxSub()const 
+{
+   return ChoixImMM().Val().ChoixImSec().CardMaxSub();
+}
 
 int & cSectionExport::NbMin()
 {
@@ -12775,18 +12922,6 @@ const std::string & cSectionExport::IdBdl()const
    return ChoixImMM().Val().ChoixImSec().IdBdl();
 }
 
-
-cTplValGesInit< int > & cSectionExport::NbMaxPresel()
-{
-   return ChoixImMM().Val().ChoixImSec().NbMaxPresel();
-}
-
-const cTplValGesInit< int > & cSectionExport::NbMaxPresel()const 
-{
-   return ChoixImMM().Val().ChoixImSec().NbMaxPresel();
-}
-
-
 cTplValGesInit< int > & cSectionExport::NbMinPtsHom()
 {
    return ChoixImMM().Val().ChoixImSec().NbMinPtsHom();
@@ -12795,6 +12930,28 @@ cTplValGesInit< int > & cSectionExport::NbMinPtsHom()
 const cTplValGesInit< int > & cSectionExport::NbMinPtsHom()const 
 {
    return ChoixImMM().Val().ChoixImSec().NbMinPtsHom();
+}
+
+
+cTplValGesInit< double > & cSectionExport::TetaMinPreSel()
+{
+   return ChoixImMM().Val().ChoixImSec().TetaMinPreSel();
+}
+
+const cTplValGesInit< double > & cSectionExport::TetaMinPreSel()const 
+{
+   return ChoixImMM().Val().ChoixImSec().TetaMinPreSel();
+}
+
+
+cTplValGesInit< double > & cSectionExport::TetaOpt()
+{
+   return ChoixImMM().Val().ChoixImSec().TetaOpt();
+}
+
+const cTplValGesInit< double > & cSectionExport::TetaOpt()const 
+{
+   return ChoixImMM().Val().ChoixImSec().TetaOpt();
 }
 
 
@@ -12809,25 +12966,47 @@ const cTplValGesInit< double > & cSectionExport::TetaMaxPreSel()const
 }
 
 
-cTplValGesInit< int > & cSectionExport::NbMinPresel()
+cTplValGesInit< double > & cSectionExport::Teta2Min()
 {
-   return ChoixImMM().Val().ChoixImSec().NbMinPresel();
+   return ChoixImMM().Val().ChoixImSec().Teta2Min();
 }
 
-const cTplValGesInit< int > & cSectionExport::NbMinPresel()const 
+const cTplValGesInit< double > & cSectionExport::Teta2Min()const 
 {
-   return ChoixImMM().Val().ChoixImSec().NbMinPresel();
+   return ChoixImMM().Val().ChoixImSec().Teta2Min();
 }
 
 
-cTplValGesInit< double > & cSectionExport::TetaOpt()
+cTplValGesInit< double > & cSectionExport::Teta2Max()
 {
-   return ChoixImMM().Val().ChoixImSec().TetaOpt();
+   return ChoixImMM().Val().ChoixImSec().Teta2Max();
 }
 
-const cTplValGesInit< double > & cSectionExport::TetaOpt()const 
+const cTplValGesInit< double > & cSectionExport::Teta2Max()const 
 {
-   return ChoixImMM().Val().ChoixImSec().TetaOpt();
+   return ChoixImMM().Val().ChoixImSec().Teta2Max();
+}
+
+
+cTplValGesInit< int > & cSectionExport::NbMaxPresel()
+{
+   return ChoixImMM().Val().ChoixImSec().NbMaxPresel();
+}
+
+const cTplValGesInit< int > & cSectionExport::NbMaxPresel()const 
+{
+   return ChoixImMM().Val().ChoixImSec().NbMaxPresel();
+}
+
+
+cTplValGesInit< int > & cSectionExport::NbSetPreSelAng()
+{
+   return ChoixImMM().Val().ChoixImSec().NbSetPreSelAng();
+}
+
+const cTplValGesInit< int > & cSectionExport::NbSetPreSelAng()const 
+{
+   return ChoixImMM().Val().ChoixImSec().NbSetPreSelAng();
 }
 
 
@@ -13229,6 +13408,16 @@ const std::list< cExportNuage > & cEtapeCompensation::ExportNuage()const
    return SectionExport().Val().ExportNuage();
 }
 
+std::string & cEtapeCompensation::KeyAssoc()
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().KeyAssoc();
+}
+
+const std::string & cEtapeCompensation::KeyAssoc()const 
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().KeyAssoc();
+}
+
 
 cTplValGesInit< std::string > & cEtapeCompensation::PatternSel()
 {
@@ -13238,6 +13427,16 @@ cTplValGesInit< std::string > & cEtapeCompensation::PatternSel()
 const cTplValGesInit< std::string > & cEtapeCompensation::PatternSel()const 
 {
    return SectionExport().Val().ChoixImMM().Val().ChoixImSec().PatternSel();
+}
+
+cTplValGesInit< int > & cEtapeCompensation::CardMaxSub()
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().CardMaxSub();
+}
+
+const cTplValGesInit< int > & cEtapeCompensation::CardMaxSub()const 
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().CardMaxSub();
 }
 
 
@@ -13262,18 +13461,6 @@ const std::string & cEtapeCompensation::IdBdl()const
    return SectionExport().Val().ChoixImMM().Val().ChoixImSec().IdBdl();
 }
 
-
-cTplValGesInit< int > & cEtapeCompensation::NbMaxPresel()
-{
-   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbMaxPresel();
-}
-
-const cTplValGesInit< int > & cEtapeCompensation::NbMaxPresel()const 
-{
-   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbMaxPresel();
-}
-
-
 cTplValGesInit< int > & cEtapeCompensation::NbMinPtsHom()
 {
    return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbMinPtsHom();
@@ -13282,6 +13469,28 @@ cTplValGesInit< int > & cEtapeCompensation::NbMinPtsHom()
 const cTplValGesInit< int > & cEtapeCompensation::NbMinPtsHom()const 
 {
    return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbMinPtsHom();
+}
+
+
+cTplValGesInit< double > & cEtapeCompensation::TetaMinPreSel()
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().TetaMinPreSel();
+}
+
+const cTplValGesInit< double > & cEtapeCompensation::TetaMinPreSel()const 
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().TetaMinPreSel();
+}
+
+
+cTplValGesInit< double > & cEtapeCompensation::TetaOpt()
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().TetaOpt();
+}
+
+const cTplValGesInit< double > & cEtapeCompensation::TetaOpt()const 
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().TetaOpt();
 }
 
 
@@ -13296,25 +13505,48 @@ const cTplValGesInit< double > & cEtapeCompensation::TetaMaxPreSel()const
 }
 
 
-cTplValGesInit< int > & cEtapeCompensation::NbMinPresel()
+cTplValGesInit< double > & cEtapeCompensation::Teta2Min()
 {
-   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbMinPresel();
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().Teta2Min();
 }
 
-const cTplValGesInit< int > & cEtapeCompensation::NbMinPresel()const 
+const cTplValGesInit< double > & cEtapeCompensation::Teta2Min()const 
 {
-   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbMinPresel();
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().Teta2Min();
 }
 
 
-cTplValGesInit< double > & cEtapeCompensation::TetaOpt()
+cTplValGesInit< double > & cEtapeCompensation::Teta2Max()
 {
-   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().TetaOpt();
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().Teta2Max();
 }
 
-const cTplValGesInit< double > & cEtapeCompensation::TetaOpt()const 
+const cTplValGesInit< double > & cEtapeCompensation::Teta2Max()const 
 {
-   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().TetaOpt();
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().Teta2Max();
+}
+
+
+cTplValGesInit< int > & cEtapeCompensation::NbMaxPresel()
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbMaxPresel();
+}
+
+const cTplValGesInit< int > & cEtapeCompensation::NbMaxPresel()const 
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbMaxPresel();
+}
+
+
+
+cTplValGesInit< int > & cEtapeCompensation::NbSetPreSelAng()
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbSetPreSelAng();
+}
+
+const cTplValGesInit< int > & cEtapeCompensation::NbSetPreSelAng()const 
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbSetPreSelAng();
 }
 
 
