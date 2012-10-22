@@ -36,7 +36,9 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+
 #include "StdAfx.h"
+
 
 /*
  @  Pour l'instant  ZMin-ZMax sont globaux au chantier;
@@ -1196,6 +1198,7 @@ void cAppliMICMAC::MakePartiesCachees()
                                + std::string(" Paral_Pc_NbProcess=") + ToString(aNbP)
                                + std::string(" Paral_Pc_IdProcess=") + ToString(aKP)   ;
             aLP.push_back(aCom);
+
        }
        ExeProcessParallelisable(true,aLP);
    }

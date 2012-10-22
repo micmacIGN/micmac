@@ -36,7 +36,9 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+
 #include "StdAfx.h"
+
 
 #ifdef MAC
 // Modif Greg pour avoir le nom de la machine dans les log
@@ -1162,6 +1164,7 @@ void cAppliMICMAC::PatternAddImages(const std::string & aPat)
 
 void cAppliMICMAC::AddAnImage(const std::string & aName)
 {
+// std::cout << "XXXXjjjI " << aName << "\n";
 
      if (PDVFromName  (aName,0))
         return;

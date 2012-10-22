@@ -36,7 +36,9 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+
 #include "StdAfx.h"
+
 
 namespace NS_ParamApero
 {
@@ -1526,6 +1528,11 @@ bool &   cPoseCam::MMSelected() { return mMMSelected;}
 double & cPoseCam::MMGain()     { return  mMMGain;}
 double & cPoseCam::MMAngle()    { return mMMAngle;}
 Pt3dr  & cPoseCam::MMDir()      { return mMMDir;}
+Pt2dr  & cPoseCam::MMDir2D()      { return mMMDir2D;}
+
+
+std::vector<double> &cPoseCam::MMGainTeta() {return mMMGainTeta;}
+
 
 
 double & cPoseCam::MMNbPts()    { return  mMMNbPts;}

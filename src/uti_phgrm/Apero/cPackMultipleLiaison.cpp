@@ -36,7 +36,10 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+
+
 #include "StdAfx.h"
+
 
 template  class ElQT<NS_ParamApero::cOnePtsMult *,Pt2dr,NS_ParamApero::cFctrPtsOfPMul> ;
 
@@ -71,7 +74,7 @@ double cStatObs::SomErPond() const
 
 bool   cStatObs::AddEq() const
 {
-   return ( mAddEq!=0 );
+   return mAddEq;
 }
 
 
@@ -713,10 +716,13 @@ Pt3dr cObsLiaisonMultiple::CentreNuage() const
 
   ELISE_ASSERT(aVProf.size()!=0,"cObsLiaisonMultiple::CentreNuage No Point");
 
-  aPMoy = aPMoy/double(aVProf.size()),
+  aPMoy = aPMoy/double(aVProf.size());
 
+/*
   std::sort(aVProf.begin(),aVProf.end());
   double aProf  = ValPercentile(aVProf,0.5);
+*/
+   double aProf = KthVal(aVProf.data(),aVProf.size(),aVProf.size()/2);
 
   return aCS.ImEtProf2Terrain(aPMoy,aProf);
 }
@@ -2040,7 +2046,7 @@ void  cObsLiaisonMultiple::CheckInit()
     {
 
         std::string aMes =   " Cam=" + mPose1->Name()
-                           + " %Behind=" + ToString((100.0*(aNb-aNbPos) ) / aNb)
+                           + " \%Behind=" + ToString((100.0*(aNb-aNbPos) ) / aNb)
                            + " AngleBehind="  + ToString(SomAngNeg);
         cElWarning::BehindCam.AddWarn(aMes,__LINE__,__FILE__);
     }

@@ -17,6 +17,9 @@
 #include <string>
 #include <set>
 #include <vector>
+#include <strstream>
+#include <iostream>
+#include <sstream>
 
 extern bool BugDG;
 
@@ -47,29 +50,66 @@ extern bool BugDG;
        #define ELISE_windows 0
        #define ELISE_Cygwin 0
 #endif
+#include "general/all.h"
+#include "private/all.h"
 
-#include "general/MM_InstalDir.h"
-#include "general/sys_dep.h"
-#include "general/opt_debug.h"
-#include "general/util.h"
-#include "general/ptxd.h"
+//#include "general/MM_InstalDir.h"
+//#include "general/sys_dep.h"
+//#include "general/opt_debug.h"
+//#include "general/util.h"
+//#include "general/ptxd.h"
 
-#include "api/el_regex.h"
+//#include "api/el_regex.h"
 
-#include "general/allocation.h"
-#include "general/garb_coll_pub.h"
-#include "general/abstract_types.h"
-#include "general/bitm.h"
-#include "general/tabulation.h"
+//#include "general/allocation.h"
+//#include "general/garb_coll_pub.h"
+//#include "general/abstract_types.h"
+//#include "general/bitm.h"
+//#include "general/tabulation.h"
 
+
+
+/*
+#include "private/util.h"
+#include "private/garb_coll_private.h"
+#include "private/colour.h"
 #include "private/garb_coll_tpl.h"
 #include "private/flux_pts.h"
 #include "private/flux_pts_tpl.h"
+#include "private/fonc_num.h"
+#include "private/fonc_num_tpl.h"
+#include "private/output.h"
+#include "private/bitm_def.h"
+#include "private/bitm_tpl.h"
+#include "private/bitm_bits.h"
+#include "private/bitm_comp.h"
+#include "private/neihgbour_rel.h"
+#include "private/graphics.h"
+#include "private/gen_window.h"
+#include "private/plot1d.h"
+#include "private/files.h"
+#include "private/tiff.h"
+#include "private/func_opbinmix_tpl.h"
+#include "private/op_buf.h"
+#include "private/hassan.h"
+#include "private/orilib.h"
+#include "private/morpho.h"
+#include "private/post_script.h"
+#include "private/compr_im.h"
+#include "private/recipes.h"
+#include "private/cElNuage3DMaille.h"
+#include "private/TraitRadiom.h"
+*/
+
+
+// #include "private/garb_coll_tpl.h"
+// #include "private/flux_pts.h"
+// #include "private/flux_pts_tpl.h"
 
 #include "im_tpl/flux.h"
 
-#include "private/bitm_def.h"
-#include "private/bitm_bits.h"
+// #include "private/bitm_def.h"
+// #include "private/bitm_bits.h"
 
 #include "ext_stl/fixed.h"
 
@@ -155,7 +195,7 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #include "../src/HassanArrangt/cElHJa_all.h"
 #include "../src/hough/hough_include.h"
 
-#include "../src/uti_image/MpDCraw/MpDcraw.h"
+#include "../src/uti_image/MpDcraw/MpDcraw.h"
 
 #include "../src/uti_phgrm/ReducHom/ReducHom.h"
 #include "../src/uti_phgrm/Apero/cParamApero.h"
