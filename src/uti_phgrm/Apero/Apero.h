@@ -37,9 +37,15 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+
 using namespace NS_ParamChantierPhotogram;
 
+
+//  cRotationFormelle::AddRappOnCentre
+
+
 extern bool ResidualStepByStep ;
+
 
 namespace NS_ParamApero
 {
@@ -310,6 +316,8 @@ class cPoseCam
          double & MMNbPts();
          double & MMGainAng();
          Pt3dr  & MMDir();
+         Pt2dr  & MMDir2D();
+         std::vector<double> & MMGainTeta();
 
          bool &  MMSelected();
          double & MMGain();
@@ -517,8 +525,10 @@ class cPoseCam
           double                       mMMGain;
           double                       mMMAngle;
           Pt3dr                        mMMDir;
+          Pt2dr                        mMMDir2D;
           double                       mMMNbPts;
           double                       mMMGainAng;
+          std::vector<double>          mMMGainTeta;
           bool                         mFidExist;
 };
 
@@ -2272,6 +2282,9 @@ class cAppliApero : public NROptF1vND
 
 
 };
+
+
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

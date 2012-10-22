@@ -437,8 +437,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   std::cout << mCom << "\n";
   // cInZRegulterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
-  if (mImMNT !="") mCom   =  mCom + std::string(" +ImMNT=")   + mImMNT;
-  if (mImOrtho !="") mCom =  mCom + std::string(" +ImOrtho=") + mImOrtho;
+  if (mImMNT !="") mCom   =  mCom + std::string(" +ImMNT=")   + QUOTE(mImMNT);
+  if (mImOrtho !="") mCom =  mCom + std::string(" +ImOrtho=") + QUOTE(mImOrtho);
+
   if (mOrthoInAnam)
   {
        std::string aFileOAM  = "MM-Malt-OrthoAnamOnly.xml";

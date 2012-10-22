@@ -50,7 +50,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+
 #if (ELISE_X11)
+
+
 using namespace NS_ParamMICMAC;
 
 
@@ -1198,6 +1201,8 @@ cElHomographie  ToImRedr
 
 int main(int argc,char** argv)
 {
+    MMD_InitArgcArgv(argc,argv);
+
 
     cAppliMICMAC & anAppli = *(cAppliMICMAC::Alloc(argc,argv,eAllocAM_Saisie));
     Pt2di SzW(anAppli.SL_XSzW().Val(),anAppli.SL_YSzW().Val());
