@@ -177,6 +177,42 @@ template  void elise_indexe_sort(REAL *   v,INT *  indexe,INT  nb);
 
 
 
+void RecGetSubset(std::vector<std::vector<int> > & aRes,int aNb,int aMax)
+{
+   if (aNb==0)
+   {
+       std::vector<int> aVide;
+       aRes.push_back(aVide);
+       return;
+   }
+
+   if (aNb==aMax)
+   {
+       std::vector<int> aFull;
+       for (int aK=0 ; aK<aNb; aK++)
+           aFull.push_back(aK);
+       aRes.push_back(aFull);
+       return;
+   }
+
+   // Ceux qui n'ont pas aMax
+   RecGetSubset(aRes,aNb,aMax-1);
+   int aNbRes = aRes.size();
+   // Ceux qui ont  aMax
+   RecGetSubset(aRes,aNb-1,aMax-1);
+   for (int aK=aNbRes ; aK<int(aRes.size()) ; aK++)
+       aRes[aK].push_back(aMax-1);
+}
+
+void GetSubset(std::vector<std::vector<int> > & aRes,int aNb,int aMax)
+{
+    aRes.clear();
+    if ((aNb<0) || (aMax<0) || (aNb>aMax))
+       return;
+    RecGetSubset(aRes,aNb,aMax);
+}
+
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant à la mise en

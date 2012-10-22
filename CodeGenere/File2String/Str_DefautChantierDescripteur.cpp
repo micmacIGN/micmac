@@ -1,6 +1,6 @@
 #include "general/all.h"
 #include "private/all.h"
-const char * (theNameVar_DefautChantierDescripteur[2458]) = {
+const char * (theNameVar_DefautChantierDescripteur[2475]) = {
 "<!--\n",
 "   Pour ne pas l'oublier : \n",
 "      Un exemple avec utilisation des fonctionnalites arithmetique\n",
@@ -152,6 +152,23 @@ const char * (theNameVar_DefautChantierDescripteur[2458]) = {
 "\n",
 "\n",
 "               <!--  ORIENTATIONS, HOMOLOGUES -->\n",
+"\n",
+"    <KeyedNamesAssociations>\n",
+"        <IsParametrized>  true </IsParametrized>\n",
+"        <Calcs>\n",
+"            <Arrite>  1 1 </Arrite>\n",
+"            <Direct>\n",
+"                <PatternTransform> (.*) </PatternTransform>\n",
+"                <CalcName>  Ori#1/ImSec-$1.xml  </CalcName>\n",
+"             </Direct>\n",
+"            <Inverse>\n",
+"                <PatternTransform> Ori#1/ImSec-(.*).xml  </PatternTransform>\n",
+"                <CalcName>  $1  </CalcName>\n",
+"             </Inverse>\n",
+"        </Calcs>\n",
+"        <Key>   NKS-Assoc-ImSec </Key>\n",
+"	<SubDirAutoMake> Ori#1 </SubDirAutoMake>\n",
+"    </KeyedNamesAssociations>\n",
 "\n",
 "    <KeyedNamesAssociations>\n",
 "        <IsParametrized>  true </IsParametrized>\n",

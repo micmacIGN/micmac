@@ -149,6 +149,30 @@ class cCmpImOnAngle
 };
 
 
+class cSubset
+{
+    public :
+         cSubset(const std::vector<cPoseCam*> & aVPres,const std::vector<int> & aVInd)
+         {
+            for (int aK=0 ; aK<int(aVInd.size()) ; aK++)
+               mPoses.push_back(aVPres.at(aVInd[aK]));
+         }
+
+         double                 mGainPond;
+         double                 mCouvAng;
+         std::vector<cPoseCam*> mPoses;
+};
+
+class cCmpSubset
+{
+    public :
+
+       bool operator()(const cSubset   & aP1,const cSubset   & aP2)
+       {
+             return aP1.mGainPond > aP2.mGainPond;
+       }
+};
+
 
 // A Angle  , O Optimum
 //  La formule est faite pour que
@@ -156,29 +180,43 @@ class cCmpImOnAngle
 //   *  un maximum pour Opt avec une derivee nulle
 //   *
 
-double GainAngle(double A,double Opt) 
+double GainSup(double aRatio)
 {
-   if (A <= Opt)
-      return 2*A*Opt - A*A;
+   return  1 / (1+ 2*pow(aRatio-1,3));
+}
 
-   return (Opt * Opt) / (1+ 2*pow(A/Opt-1,2));
+double GainAngle(double A,double Opt)
+{
+   A /= Opt;
+   if (A <= 1)
+      return pow(ElAbs(2*A - A*A),1.0);
+
+   return  1 / (1+ 2*pow(ElAbs(A-1),3));
 }
 
 void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
 {
 
+    std::cout << "ExportImSecMM " << aPC0->Name() << "\n";
 
     cObsLiaisonMultiple * anOLM = PackMulOfIndAndNale (aCIM.IdBdl(),aPC0->Name());
     const std::vector<cOnePtsMult *> &  aVPM = anOLM->VPMul();
+
+    //  Point 3D : pt image par moyenne, profondeur par médiane, devrait etre robuste ?
     Pt3dr  aPt0 = anOLM->CentreNuage();
 
     const CamStenope & aCS0 = *(aPC0->CurCam());
 
     aPC0->MMDir() =  vunit(aCS0.PseudoOpticalCenter()  - aPt0);
     Pt3dr aDir0 =  aPC0->MMDir();
+
+    Pt3dr aU,aV;
+    MakeRONWith1Vect(aDir0,aU,aV);
+    ElMatrix<double>  aMat = MakeMatON(aU,aV);
+    ElMatrix<double>  aMatI = gaussj(aMat);
  
 
-     // On remet a zero les gains
+     // On remet a zero le nombre de points
     for(int aKP=0 ; aKP<int(mVecPose.size()) ;aKP++)
     {
        cPoseCam* aPC2 = mVecPose[aKP];
@@ -202,13 +240,7 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
     aPC0->MMNbPts() = 0;
 
 
-
-ELISE_ASSERT(false,"METTRE AU MOINS NbMaxPresel \n");
-ELISE_ASSERT(false,"METTRE AU MOINS NbMaxPresel \n");
-ELISE_ASSERT(false,"METTRE AU MOINS NbMaxPresel \n");
-ELISE_ASSERT(false,"METTRE AU MOINS NbMaxPresel \n");
-
-
+    // Pre selection 
     std::vector<cPoseCam*> aVPPres;
 
     for(int aKP=0 ; aKP<int(mVecPose.size()) ;aKP++)
@@ -217,12 +249,19 @@ ELISE_ASSERT(false,"METTRE AU MOINS NbMaxPresel \n");
        if ((aPC2 != aPC0) && (aPC2->MMNbPts()>aCIM.NbMinPtsHom().Val()))
        {
            aPC2->MMDir() = vunit(aPC2->CurCam()->PseudoOpticalCenter()  - aPt0);
+           Pt3dr aDirLoc  =   aMatI * aPC2->MMDir();
+           Pt2dr aDir2D (aDirLoc.x,aDirLoc.y);
+           aPC2->MMDir2D() =  vunit(aDir2D);
            double anAngle = euclid(aDir0-aPC2->MMDir());
            aPC2->MMAngle() = anAngle;
            aPC2->MMGainAng() =  GainAngle(anAngle,aCIM.TetaOpt().Val());
-           aVPPres.push_back(aPC2);
+           if ((anAngle>aCIM.TetaMinPreSel().Val()) && (anAngle<aCIM.TetaMaxPreSel().Val()))
+           {
+               aVPPres.push_back(aPC2);
+           }
        }
     }
+
 
 
     // On reduit au nombre Max de Presel
@@ -231,85 +270,104 @@ ELISE_ASSERT(false,"METTRE AU MOINS NbMaxPresel \n");
     while (int(aVPPres.size()) > aCIM.NbMaxPresel().Val())
           aVPPres.pop_back();
 
+    int aNbIm = aVPPres.size();
 
-    // On supprime les angles trop fort en gardant au NbMin
-    cCmpImOnAngle   aCmpAngle;
-    std::sort(aVPPres.begin(),aVPPres.end(),aCmpAngle);
-    while (
-               (int(aVPPres.size()) > aCIM.NbMinPresel().Val()) && 
-               (aVPPres.back()->MMAngle() > aCIM.TetaMaxPreSel().Val())
-          )
-          aVPPres.pop_back();
+    double aTeta0 = aCIM.Teta2Min().Val();
+    double aTeta1 = aCIM.Teta2Max().Val();
+    int aNbTeta = 30;
 
-
-    cImDePonderH * aImPond = NewImDePonderH (anOLM,10,1.0);
-
-    std::cout << aPC0->Name() << "\n";
-    for(int aKP=0 ; aKP<int(aVPPres.size()) ;aKP++)
+    for (int aKI=0 ; aKI<aNbIm ; aKI++)
     {
-       aVPPres[aKP]->MMSelected() = false;
-       std::cout << "      "   <<  aVPPres[aKP]->Name() << " " << aVPPres[aKP]->MMAngle() << " " << aVPPres[aKP]->MMNbPts() << "\n";
-    }
-    std::cout << "=================================================\n";
-
-
-
-
-#if(0)
-    while (! Ok)
-    {
-        for(int aKP1=0 ; aKP1<int(mVecPose.size()) ;aKP1++)
+        cPoseCam * aPC = aVPPres[aKI];
+        aPC->MMGainTeta().resize(aNbTeta);
+        for (int aKTeta = 0 ; aKTeta<aNbTeta ; aKTeta++)
         {
-            if (! mVecPose[aKPos]->MMSelected())
-            {
-                // double aG = ;
-            }
-            //    mVecPose[aKPos]->MMGain() = 0.0;
-        }
+             Pt2dr aDirT = Pt2dr::FromPolar(1.0,(2*PI*aKTeta) / aNbTeta);
+             Pt2dr aDirLoc = aDirT / aPC->MMDir2D();
+             double aDifTeta = ElAbs(angle(aDirLoc));
+             double aGain = 0.0;
+             if (aDifTeta < aTeta0)
+                aGain = 1.0;
+             else if (aDifTeta < aTeta1)
+                  aGain = (aTeta1-aDifTeta) / (aTeta1-aTeta0);
+             aPC->MMGainTeta()[aKTeta] = aGain;
+         }
     }
 
 
 
+   if (0)
+   {
 
-    bool Ok = false;
-
-    while (! Ok)
-    {
-        for(int aKPos=0 ; aKPos<int(mVecPose.size()) ;aKPos++)
+        std::cout << aPC0->Name() << "\n";
+        for(int aKP=0 ; aKP<int(aVPPres.size()) ;aKP++)
         {
-             if (! mVecPose[aKPos]->MMSelected()) 
-                mVecPose[aKPos]->MMGain() = 0.0;
+           aVPPres[aKP]->MMSelected() = false;
+           std::cout << "      "   <<  aVPPres[aKP]->Name() << " " << aVPPres[aKP]->MMAngle() <<  " " << angle(aVPPres[aKP]->MMDir2D()) << " " << aVPPres[aKP]->MMNbPts() << "\n";
         }
-
-        int aNbNN=0;
-
-        for(int aKPt=0 ; aKPt<int(aVPM.size()) ;aKPt++)
-        {
-             cOnePtsMult & aPMul = *(aVPM[aKPt]);
-             if(aPMul.MemPds() >0)
-             {
-                  aNbNN ++;
-/*
-                  cOneCombinMult * anOCM = aPMul->OCM();
-                  const std::vector<cPoseCam *> & aVP = anOCM->VP();
-                  for(int aKPos=1 ; aKPos<int(mVecPose.size()) ;aKPos++)
-                  {
-                      cPoseCam * aPC = aVP[aKPos];
-                      if (! aPC->MMSelected())
-                      {
-                      }
-                  }
-*/
-             }
-        }
-
-        ELISE_ASSERT(aNbNN>0,"ExportImSecMM : probably no iteration !!");
- 
+        std::cout << "=================================================\n";
     }
-#endif
 
-    delete aImPond;
-    std::cout << "OLM " << aVPM.size() << "\n";
+
+
+    cImSecOfMaster aISM;
+    aISM.Master() = aPC0->Name();
+    // ON TESTE LES SUBSET 
+    for (int aCard=2 ; aCard< ElMin(aNbIm, 1+aCIM.CardMaxSub().Val()) ; aCard++)
+    {
+
+         // On selectionne a cardinal donne, les subset qui couvrent l'ensemble des directions
+         std::vector<std::vector<int> > aSubSub;
+         GetSubset(aSubSub,aCard,aNbIm);
+
+         
+         double aBestK = -1;
+         double aBestGain = -1;
+         double aBestCov = -1;
+         for (int aKS=0 ; aKS<aSubSub.size() ; aKS++)
+         {
+               std::vector<int> & aSub = aSubSub[aKS];
+               double aSomGain = 0.0;
+               double aSomCouv = 0.0;
+               for (int aKTeta = 0 ; aKTeta<aNbTeta ; aKTeta++)
+               {
+                   Pt2dr aDirT = Pt2dr::FromPolar(1.0,(2*PI*aKTeta) / aNbTeta);
+                   double aGainMax = 0;
+                   double aCouvMax = 0;
+                   for (int aKE=0 ; aKE<aCard ; aKE++)
+                   {
+                       cPoseCam * aPC = aVPPres.at(aSub.at(aKE));
+                       double aGain  = aPC->MMGainTeta()[aKTeta];
+                       ElSetMax(aCouvMax,aGain);
+                       aGain *=    pow(aPC->MMNbPts(),0.33333)*aPC->MMGainAng() ;
+                       ElSetMax(aGainMax,aGain);
+
+                   }
+                   aSomCouv += aCouvMax;
+                   aSomGain += aGainMax;
+               }
+               if (aSomGain>aBestGain)
+               {
+                    aBestGain = aSomGain;
+                    aBestCov = aSomCouv / aNbTeta;
+                    aBestK = aKS;
+               }
+         }
+
+         cOneSolImageSec aSol;
+         std::vector<int> & aSub = aSubSub.at(aBestK);
+         for (int aKE=0 ; aKE<aCard ; aKE++)
+         {
+             cPoseCam * aPC = aVPPres.at(aSub.at(aKE));
+             aSol.Images().push_back(aPC->Name());
+         }
+         aSol.Coverage() =  aBestCov;
+         aSol.Score() =  aBestCov  / pow(aCard,0.2);
+         aISM.Sols().push_back(aSol);
+    }
+    std::string aName = mDC + mICNM->Assoc1To1(aCIM.KeyAssoc(),aPC0->Name(),true);
+    MakeFileXML(aISM,aName);
+
 }
 
 void cAppliApero::ExportImMM(const cChoixImMM & aCIM)

@@ -1241,6 +1241,8 @@ void ShowFClose();
 };
 
 
+void GetSubset(std::vector<std::vector<int> > & aRes,int aNb,int aMax);
+
 
 
 

@@ -91,7 +91,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #if ELISE_unix
 	#define SYS_MV "mv"
-	#define SYS_RM "rm"
+	#define SYS_RM "\\rm"   // MODID MPD CAR rm ne fonctionne pas si il a ete redefini par alias !!
 	#define ELISE_CAR_DIR  '/' 
 	#define ELISE_Current_DIR  "./"
         #define ELISE_STR_DIR "/"

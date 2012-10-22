@@ -719,10 +719,13 @@ Pt3dr cObsLiaisonMultiple::CentreNuage() const
 
   ELISE_ASSERT(aVProf.size()!=0,"cObsLiaisonMultiple::CentreNuage No Point");
 
-  aPMoy = aPMoy/double(aVProf.size()),
+  aPMoy = aPMoy/double(aVProf.size());
 
+/*
   std::sort(aVProf.begin(),aVProf.end());
   double aProf  = ValPercentile(aVProf,0.5);
+*/
+   double aProf = KthVal(aVProf.data(),aVProf.size(),aVProf.size()/2);
 
   return aCS.ImEtProf2Terrain(aPMoy,aProf);
 }

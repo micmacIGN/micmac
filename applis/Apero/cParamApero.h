@@ -4080,8 +4080,14 @@ class cChoixImSec
         friend void xml_init(cChoixImSec & anObj,cElXMLTree * aTree);
 
 
+        std::string & KeyAssoc();
+        const std::string & KeyAssoc()const ;
+
         cTplValGesInit< std::string > & PatternSel();
         const cTplValGesInit< std::string > & PatternSel()const ;
+
+        cTplValGesInit< int > & CardMaxSub();
+        const cTplValGesInit< int > & CardMaxSub()const ;
 
         int & NbMin();
         const int & NbMin()const ;
@@ -4089,29 +4095,43 @@ class cChoixImSec
         std::string & IdBdl();
         const std::string & IdBdl()const ;
 
-        cTplValGesInit< int > & NbMaxPresel();
-        const cTplValGesInit< int > & NbMaxPresel()const ;
-
         cTplValGesInit< int > & NbMinPtsHom();
         const cTplValGesInit< int > & NbMinPtsHom()const ;
+
+        cTplValGesInit< double > & TetaMinPreSel();
+        const cTplValGesInit< double > & TetaMinPreSel()const ;
+
+        cTplValGesInit< double > & TetaOpt();
+        const cTplValGesInit< double > & TetaOpt()const ;
 
         cTplValGesInit< double > & TetaMaxPreSel();
         const cTplValGesInit< double > & TetaMaxPreSel()const ;
 
-        cTplValGesInit< int > & NbMinPresel();
-        const cTplValGesInit< int > & NbMinPresel()const ;
+        cTplValGesInit< double > & Teta2Min();
+        const cTplValGesInit< double > & Teta2Min()const ;
 
-        cTplValGesInit< double > & TetaOpt();
-        const cTplValGesInit< double > & TetaOpt()const ;
+        cTplValGesInit< double > & Teta2Max();
+        const cTplValGesInit< double > & Teta2Max()const ;
+
+        cTplValGesInit< int > & NbMaxPresel();
+        const cTplValGesInit< int > & NbMaxPresel()const ;
+
+        cTplValGesInit< int > & NbSetPreSelAng();
+        const cTplValGesInit< int > & NbSetPreSelAng()const ;
     private:
+        std::string mKeyAssoc;
         cTplValGesInit< std::string > mPatternSel;
+        cTplValGesInit< int > mCardMaxSub;
         int mNbMin;
         std::string mIdBdl;
-        cTplValGesInit< int > mNbMaxPresel;
         cTplValGesInit< int > mNbMinPtsHom;
-        cTplValGesInit< double > mTetaMaxPreSel;
-        cTplValGesInit< int > mNbMinPresel;
+        cTplValGesInit< double > mTetaMinPreSel;
         cTplValGesInit< double > mTetaOpt;
+        cTplValGesInit< double > mTetaMaxPreSel;
+        cTplValGesInit< double > mTeta2Min;
+        cTplValGesInit< double > mTeta2Max;
+        cTplValGesInit< int > mNbMaxPresel;
+        cTplValGesInit< int > mNbSetPreSelAng;
 };
 cElXMLTree * ToXMLTree(const cChoixImSec &);
 
@@ -4121,8 +4141,14 @@ class cChoixImMM
         friend void xml_init(cChoixImMM & anObj,cElXMLTree * aTree);
 
 
+        std::string & KeyAssoc();
+        const std::string & KeyAssoc()const ;
+
         cTplValGesInit< std::string > & PatternSel();
         const cTplValGesInit< std::string > & PatternSel()const ;
+
+        cTplValGesInit< int > & CardMaxSub();
+        const cTplValGesInit< int > & CardMaxSub()const ;
 
         int & NbMin();
         const int & NbMin()const ;
@@ -4130,20 +4156,29 @@ class cChoixImMM
         std::string & IdBdl();
         const std::string & IdBdl()const ;
 
-        cTplValGesInit< int > & NbMaxPresel();
-        const cTplValGesInit< int > & NbMaxPresel()const ;
-
         cTplValGesInit< int > & NbMinPtsHom();
         const cTplValGesInit< int > & NbMinPtsHom()const ;
+
+        cTplValGesInit< double > & TetaMinPreSel();
+        const cTplValGesInit< double > & TetaMinPreSel()const ;
+
+        cTplValGesInit< double > & TetaOpt();
+        const cTplValGesInit< double > & TetaOpt()const ;
 
         cTplValGesInit< double > & TetaMaxPreSel();
         const cTplValGesInit< double > & TetaMaxPreSel()const ;
 
-        cTplValGesInit< int > & NbMinPresel();
-        const cTplValGesInit< int > & NbMinPresel()const ;
+        cTplValGesInit< double > & Teta2Min();
+        const cTplValGesInit< double > & Teta2Min()const ;
 
-        cTplValGesInit< double > & TetaOpt();
-        const cTplValGesInit< double > & TetaOpt()const ;
+        cTplValGesInit< double > & Teta2Max();
+        const cTplValGesInit< double > & Teta2Max()const ;
+
+        cTplValGesInit< int > & NbMaxPresel();
+        const cTplValGesInit< int > & NbMaxPresel()const ;
+
+        cTplValGesInit< int > & NbSetPreSelAng();
+        const cTplValGesInit< int > & NbSetPreSelAng()const ;
 
         cChoixImSec & ChoixImSec();
         const cChoixImSec & ChoixImSec()const ;
@@ -4188,8 +4223,14 @@ class cSectionExport
         std::list< cExportNuage > & ExportNuage();
         const std::list< cExportNuage > & ExportNuage()const ;
 
+        std::string & KeyAssoc();
+        const std::string & KeyAssoc()const ;
+
         cTplValGesInit< std::string > & PatternSel();
         const cTplValGesInit< std::string > & PatternSel()const ;
+
+        cTplValGesInit< int > & CardMaxSub();
+        const cTplValGesInit< int > & CardMaxSub()const ;
 
         int & NbMin();
         const int & NbMin()const ;
@@ -4197,20 +4238,29 @@ class cSectionExport
         std::string & IdBdl();
         const std::string & IdBdl()const ;
 
-        cTplValGesInit< int > & NbMaxPresel();
-        const cTplValGesInit< int > & NbMaxPresel()const ;
-
         cTplValGesInit< int > & NbMinPtsHom();
         const cTplValGesInit< int > & NbMinPtsHom()const ;
+
+        cTplValGesInit< double > & TetaMinPreSel();
+        const cTplValGesInit< double > & TetaMinPreSel()const ;
+
+        cTplValGesInit< double > & TetaOpt();
+        const cTplValGesInit< double > & TetaOpt()const ;
 
         cTplValGesInit< double > & TetaMaxPreSel();
         const cTplValGesInit< double > & TetaMaxPreSel()const ;
 
-        cTplValGesInit< int > & NbMinPresel();
-        const cTplValGesInit< int > & NbMinPresel()const ;
+        cTplValGesInit< double > & Teta2Min();
+        const cTplValGesInit< double > & Teta2Min()const ;
 
-        cTplValGesInit< double > & TetaOpt();
-        const cTplValGesInit< double > & TetaOpt()const ;
+        cTplValGesInit< double > & Teta2Max();
+        const cTplValGesInit< double > & Teta2Max()const ;
+
+        cTplValGesInit< int > & NbMaxPresel();
+        const cTplValGesInit< int > & NbMaxPresel()const ;
+
+        cTplValGesInit< int > & NbSetPreSelAng();
+        const cTplValGesInit< int > & NbSetPreSelAng()const ;
 
         cChoixImSec & ChoixImSec();
         const cChoixImSec & ChoixImSec()const ;
@@ -4316,8 +4366,14 @@ class cEtapeCompensation
         std::list< cExportNuage > & ExportNuage();
         const std::list< cExportNuage > & ExportNuage()const ;
 
+        std::string & KeyAssoc();
+        const std::string & KeyAssoc()const ;
+
         cTplValGesInit< std::string > & PatternSel();
         const cTplValGesInit< std::string > & PatternSel()const ;
+
+        cTplValGesInit< int > & CardMaxSub();
+        const cTplValGesInit< int > & CardMaxSub()const ;
 
         int & NbMin();
         const int & NbMin()const ;
@@ -4325,20 +4381,29 @@ class cEtapeCompensation
         std::string & IdBdl();
         const std::string & IdBdl()const ;
 
-        cTplValGesInit< int > & NbMaxPresel();
-        const cTplValGesInit< int > & NbMaxPresel()const ;
-
         cTplValGesInit< int > & NbMinPtsHom();
         const cTplValGesInit< int > & NbMinPtsHom()const ;
+
+        cTplValGesInit< double > & TetaMinPreSel();
+        const cTplValGesInit< double > & TetaMinPreSel()const ;
+
+        cTplValGesInit< double > & TetaOpt();
+        const cTplValGesInit< double > & TetaOpt()const ;
 
         cTplValGesInit< double > & TetaMaxPreSel();
         const cTplValGesInit< double > & TetaMaxPreSel()const ;
 
-        cTplValGesInit< int > & NbMinPresel();
-        const cTplValGesInit< int > & NbMinPresel()const ;
+        cTplValGesInit< double > & Teta2Min();
+        const cTplValGesInit< double > & Teta2Min()const ;
 
-        cTplValGesInit< double > & TetaOpt();
-        const cTplValGesInit< double > & TetaOpt()const ;
+        cTplValGesInit< double > & Teta2Max();
+        const cTplValGesInit< double > & Teta2Max()const ;
+
+        cTplValGesInit< int > & NbMaxPresel();
+        const cTplValGesInit< int > & NbMaxPresel()const ;
+
+        cTplValGesInit< int > & NbSetPreSelAng();
+        const cTplValGesInit< int > & NbSetPreSelAng()const ;
 
         cChoixImSec & ChoixImSec();
         const cChoixImSec & ChoixImSec()const ;

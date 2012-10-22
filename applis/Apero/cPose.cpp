@@ -1528,6 +1528,11 @@ bool &   cPoseCam::MMSelected() { return mMMSelected;}
 double & cPoseCam::MMGain()     { return  mMMGain;}
 double & cPoseCam::MMAngle()    { return mMMAngle;}
 Pt3dr  & cPoseCam::MMDir()      { return mMMDir;}
+Pt2dr  & cPoseCam::MMDir2D()      { return mMMDir2D;}
+
+
+std::vector<double> &cPoseCam::MMGainTeta() {return mMMGainTeta;}
+
 
 
 double & cPoseCam::MMNbPts()    { return  mMMNbPts;}

@@ -1163,6 +1163,7 @@ void cAppliMICMAC::PatternAddImages(const std::string & aPat)
 
 void cAppliMICMAC::AddAnImage(const std::string & aName)
 {
+// std::cout << "XXXXjjjI " << aName << "\n";
 
      if (PDVFromName  (aName,0))
         return;

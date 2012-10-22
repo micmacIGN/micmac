@@ -156,6 +156,23 @@
             <Arrite>  1 1 </Arrite>
             <Direct>
                 <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  Ori#1/ImSec-$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Ori#1/ImSec-(.*).xml  </PatternTransform>
+                <CalcName>  $1  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   NKS-Assoc-ImSec </Key>
+	<SubDirAutoMake> Ori#1 </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
                 <CalcName>  Ori#1/Orientation-$1.xml  </CalcName>
              </Direct>
             <Inverse>

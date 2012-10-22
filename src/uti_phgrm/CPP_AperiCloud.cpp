@@ -42,84 +42,65 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /*
 
-
 */
 
 #define DEF_OFSET -12349876
 
 
-int main(int argc,char ** argv)
+
+int AperiCloud_main(int argc,char ** argv)
 {
-    // MemoArg(argc,argv);
     MMD_InitArgcArgv(argc,argv);
-    std::string  aDir;
+    std::string  aDir,aPat,aFullDir;
 
+    std::string AeroIn;
+    std::vector<std::string> ImPl;
+    int ExpTxt=0;
+    int PlyBin=1;
+    std::string Out="AperiCloud.ply";
 
-    int mDeq = 1;
-    Pt2di mDeqXY(-1,-1);
-    bool mAddCste = false;
-    int mDegRap = 0;
-    Pt2di mDegRapXY(-1,-1);
-    bool mRapGlobPhys = true;
-    double mDynGlob=1.0;
-
-    std::string mImPrio0 = ".*";
-    int mSzV = 1;
-    double mNbPerIm = 1e4;
-    double mCorrThresh = 0.8;
+    int RGB = -1;
+    double aSeuilEc = 10.0;
 
     ElInitArgMain
     (
 	argc,argv,
-	LArgMain()   << EAMC(aDir,"Directory where are the datas" ),
-	LArgMain()   << EAM(mDeq,"DEq",true,"Degre of equalization (Def=1)")
-	             << EAM(mDeqXY,"DEqXY",true,"Degre of equalization, if diff in X and Y")
-	             << EAM(mAddCste,"AddCste",true,"Add unknown constant for equalization (Def=false)")
-	             << EAM(mDegRap,"DegRap",true,"Degre of rappel to initial values, Def = 0")
-	             << EAM(mDegRapXY,"DegRapXY",true,"Degre of rappel to initial values, Def = 0")
-	             << EAM(mRapGlobPhys,"RGP",true,"Rappel glob on physycally equalized, Def = true")
-	             << EAM(mDynGlob,"DynG",true,"Global Dynamic (to correcyt saturation problems)")
-	             << EAM(mImPrio0,"ImPrio",true,"Pattern of image with high prio, def=.*")
-	             << EAM(mSzV,"SzV",true,"Sz of Window for equalisation (Def=2, means 5x5)")
-	             << EAM(mCorrThresh,"CorThr",true,"Threshold of correlation to validate homologous (Def 0.7)")
-	             << EAM(mNbPerIm,"NbPerIm",true,"Average number of point per image (Def = 1e4)")
+	LArgMain()  << EAM(aFullDir)
+                    << EAM(AeroIn),
+	LArgMain()  
+                    << EAM(ExpTxt,"ExpTxt",true)
+                    << EAM(Out,"Out",true)
+                    << EAM(PlyBin,"Bin",true)
+                    << EAM(RGB,"RGB",true)
+                    << EAM(aSeuilEc,"SeuilEc",true)
     );
 
-
-    if (! EAMIsInit(&mDeqXY)) 
-       mDeqXY = Pt2di(mDeq,mDeq);
-
-    if (! EAMIsInit(&mDegRapXY))
-       mDegRapXY = Pt2di(mDegRap,mDegRap);
-
-    Pt2di aDegCste = mAddCste  ? Pt2di(0,0) : Pt2di(-1,-1);
-
-    MMD_InitArgcArgv(argc,argv);
-
-    std::string aCom =    MMDir() + std::string("bin/Porto ")
-                        + MMDir() +std::string("include/XML_MicMac/Param-Tawny.xml ")
-                        + std::string(" %WD=") + aDir
-                        + std::string(" +DR1X=") + ToString(mDeqXY.x)
-                        + std::string(" +DR1Y=") + ToString(mDeqXY.y)
-                        + std::string(" +DR0X=") + ToString(aDegCste.x)
-                        + std::string(" +DR0Y=") + ToString(aDegCste.y)
-                        + std::string(" +DegRapX=") + ToString(mDegRapXY.x)
-                        + std::string(" +DegRapY=") + ToString(mDegRapXY.y)
-                        + std::string(" +RapGlobPhys=") + ToString(mRapGlobPhys)
-                        + std::string(" +DynGlob=") + ToString(mDynGlob)
-                      ;
-
-    if (mImPrio0!="") aCom = aCom+ " +ImPrio="+QUOTE(mImPrio0);
-    if (EAMIsInit(&mSzV)) aCom  = aCom + " +SzV=" + ToString(mSzV);
-    if (EAMIsInit(&mNbPerIm)) aCom  = aCom + " +NbPerIm=" + ToString(mNbPerIm);
-    if (EAMIsInit(&mCorrThresh)) aCom  = aCom + " +CorrThresh=" + ToString(mCorrThresh);
-
-    std::cout << aCom << "\n";
+    if (RGB >=0) 
+    {
+       RGB = RGB ? 3  : 1;
+    }
 
 
-    int aRes = system_call(aCom.c_str());
+    SplitDirAndFile(aDir,aPat,aFullDir);
 
-    return aRes;
+
+    std::string aCom =   MMDir() + std::string("bin" ELISE_STR_DIR  "Apero ")
+                       + MMDir() + std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Cloud.xml ")
+                       + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
+                       + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
+                       + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
+                       + std::string(" +AeroIn=-") + AeroIn
+                       + std::string(" +Out=") + Out
+                       + std::string(" +PlyBin=") + (PlyBin?"true":"false")
+                       + std::string(" +NbChan=") +  ToString(RGB)
+                       + std::string(" +SeuilEc=") +  ToString(aSeuilEc)
+                    ;
+
+   std::cout << "Com = " << aCom << "\n";
+   int aRes = system_call(aCom.c_str());
+
+   
+   return aRes;
 }
 
 

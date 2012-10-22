@@ -1203,6 +1203,8 @@ cElHomographie  ToImRedr
 
 int main(int argc,char** argv)
 {
+    MMD_InitArgcArgv(argc,argv);
+
 
     cAppliMICMAC & anAppli = *(cAppliMICMAC::Alloc(argc,argv,eAllocAM_Saisie));
     Pt2di SzW(anAppli.SL_XSzW().Val(),anAppli.SL_YSzW().Val());

@@ -332,6 +332,8 @@ class cPoseCam
          double & MMNbPts();
          double & MMGainAng();
          Pt3dr  & MMDir();
+         Pt2dr  & MMDir2D();
+         std::vector<double> & MMGainTeta();
 
          bool &  MMSelected();
          double & MMGain();
@@ -539,8 +541,10 @@ class cPoseCam
           double                       mMMGain;
           double                       mMMAngle;
           Pt3dr                        mMMDir;
+          Pt2dr                        mMMDir2D;
           double                       mMMNbPts;
           double                       mMMGainAng;
+          std::vector<double>          mMMGainTeta;
           bool                         mFidExist;
 };
 

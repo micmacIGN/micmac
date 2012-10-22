@@ -1,6 +1,6 @@
 #include "general/all.h"
 #include "private/all.h"
-const char * (theNameVar_ParamChantierPhotogram[1328]) = {
+const char * (theNameVar_ParamChantierPhotogram[1344]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1290,6 +1290,20 @@ const char * (theNameVar_ParamChantierPhotogram[1328]) = {
 "          </geometry>\n",
 "    </orientation>\n",
 "\n",
+"    <!-- Pour stocker les relations \"Images/Maitresse\" \"Images/Secondaire\"-->\n",
+"\n",
+"    <OneSolImageSec Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"         <Images Nb=\"*\" Type=\"std::string\">  </Images>\n",
+"         <Coverage  Nb=\"1\" Type=\"double\">    </Coverage>\n",
+"         <Score  Nb=\"1\" Type=\"double\">       </Score>\n",
+"    </OneSolImageSec>\n",
+"\n",
+"    <ImSecOfMaster  Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"         <Master Nb=\"1\" Type=\"std::string\"> </Master>   \n",
+"         <Sols Nb=\"*\" RefType=\"OneSolImageSec\"> </Sols>   \n",
+"    </ImSecOfMaster>\n",
+"\n",
+"\n",
 "\n",
 "    \n",
 "    <!-- Type qui vont permettre d'ecrire une version \"en clair\" de  la base de donnees -->\n",
@@ -1312,6 +1326,8 @@ const char * (theNameVar_ParamChantierPhotogram[1328]) = {
 "        <KeySplitName Nb=\"1\" Type=\"std::string\"> </KeySplitName>\n",
 "        <Delta Nb=\"+\" Type=\"int\">             </Delta>\n",
 "    </ListImByDelta>\n",
+"\n",
+"\n",
 "\n",
 "\n",
 "\n",

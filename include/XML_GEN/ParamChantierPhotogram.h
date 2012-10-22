@@ -4429,6 +4429,50 @@ cElXMLTree * ToXMLTree(const corientation &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cOneSolImageSec
+{
+    public:
+        friend void xml_init(cOneSolImageSec & anObj,cElXMLTree * aTree);
+
+
+        std::list< std::string > & Images();
+        const std::list< std::string > & Images()const ;
+
+        double & Coverage();
+        const double & Coverage()const ;
+
+        double & Score();
+        const double & Score()const ;
+    private:
+        std::list< std::string > mImages;
+        double mCoverage;
+        double mScore;
+};
+cElXMLTree * ToXMLTree(const cOneSolImageSec &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cImSecOfMaster
+{
+    public:
+        friend void xml_init(cImSecOfMaster & anObj,cElXMLTree * aTree);
+
+
+        std::string & Master();
+        const std::string & Master()const ;
+
+        std::list< cOneSolImageSec > & Sols();
+        const std::list< cOneSolImageSec > & Sols()const ;
+    private:
+        std::string mMaster;
+        std::list< cOneSolImageSec > mSols;
+};
+cElXMLTree * ToXMLTree(const cImSecOfMaster &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXmlExivEntry
 {
     public:

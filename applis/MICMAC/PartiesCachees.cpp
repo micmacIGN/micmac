@@ -1197,6 +1197,7 @@ void cAppliMICMAC::MakePartiesCachees()
                                + std::string(" Paral_Pc_NbProcess=") + ToString(aNbP)
                                + std::string(" Paral_Pc_IdProcess=") + ToString(aKP)   ;
             aLP.push_back(aCom);
+
        }
        ExeProcessParallelisable(true,aLP);
    }
