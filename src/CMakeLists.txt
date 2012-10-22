@@ -124,4 +124,5 @@ add_definitions(-DNO_JPEG -DNO_LCMS)
 # INSTALLATION : Dossier de destination lors de l'install
 install(TARGETS elise ARCHIVE DESTINATION ${Install_Dir})
 
-ADD_SUBDIRECTORY(CBinaires)
+#PROBLEME DE COMPILATION	
+#ADD_SUBDIRECTORY(CBinaires)

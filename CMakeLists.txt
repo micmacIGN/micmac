@@ -9,9 +9,9 @@ set(VERBOSE 0)
 set (MICMAC_VERSION_MAJOR 1)
 set (MICMAC_VERSION_MINOR 0)
 
-##########################################
+##############################
 ## 			OPTIONS			##
-##########################################
+##############################
 
 # Utiliser Kakadu
 OPTION(WITH_KAKADU  "Include KAKADU Support" OFF)
@@ -22,9 +22,12 @@ OPTION(WITH_MATIS_ORI "Include Matis orrientation" OFF )
 # Utiliser les en-tetes precompilees
 OPTION(WITH_HEADER_PRECOMP "En-tetes precompilees" ON )
 
-##########################################
+# Utiliser SIFTGPU
+OPTION(WITH_SIFT_GPU "Utiliser SiftGpu" OFF )
+
+##################################
 ## 	Trouver les EXES et Libs	##
-##########################################
+##################################
 
 # DEFINITION : Dossier des exe et Dll nécessaires sous windows
 set(BinAuxWinDir ${PROJECT_SOURCE_DIR}/binaire-aux/BIN_AUX_WIN32)
@@ -115,7 +118,7 @@ IF(${WITH_MATIS_ORI})
 ENDIF()
 
 
-# Vérifier si ImageMagick est installé
+# VERIFICATION si ImageMagick est installé
 
 find_package(ImageMagick REQUIRED)
 
@@ -124,7 +127,7 @@ if(NOT ImageMagick_FOUND)
 	MESSAGE("http://www.imagemagick.org/script/index.php")
 endif(NOT ImageMagick_FOUND)
 
-# Vérifier si exiftool est installé
+# VERIFICATION si exiftool est installé
 
 find_program(EXIF_EXECUTABLE exiftool
 				PATHS 	${BinAuxWinDir} ${UnixBinPath}
@@ -137,7 +140,7 @@ if(EXIF_EXECUTABLE_NOTFOUND)
 
 endif()
 
-# Vérifier si exiv2 est installé
+# VERIFICATION si exiv2 est installé
 find_program(EXIV2_EXECUTABLE exiv2
 				PATHS 	${BinAuxWinDir} ${UnixBinPath}
 				DOC "Chemin vers la commande exiv2"
@@ -151,7 +154,7 @@ endif(EXIV2_EXECUTABLE_NOTFOUND)
 
 if(NOT WIN32)
 
-	# Vérifier si Proj4 est installé
+	# VERIFICATION si Proj4 est installé
 	#find_program(PROJ4_EXECUTABLE proj4 PATHS ${UnixBinPath} )
 	if(PROJ4_EXECUTABLE_FOUND)
 
@@ -159,7 +162,7 @@ if(NOT WIN32)
 
 	endif()
 
-	# Vérifier si X11 est présent sous MacOS et Linux
+	# VERIFICATION si X11 est présent sous MacOS et Linux
 	FIND_PACKAGE(X11)
 	IF (X11_FOUND)
 		#MESSAGE("X11 Found : ${X11_INCLUDE_DIRS} | ${X11_LIBRARIES} | ${X11_LIBRARY_DIRS}")
@@ -188,12 +191,18 @@ IF (MSVC)
 	add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /nologo" )
 ENDIF()
 
-# Dossier include
+# DEFINITION : Dossier include
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
 # DEFINITION : des preprocesseurs G++
 IF (CMAKE_COMPILER_IS_GNUCC)
 	ADD_DEFINITIONS(-O2)
+ENDIF()
+
+# DEFINITION : Utilisation de SIFT GPU
+
+IF (WITH_SIFT_GPU)
+		ADD_DEFINITIONS(-DUSE_SIFT_GPU)
 ENDIF()
 
 # DEFINITION : Windows : le projet debug est généré directement sous bin pour avoir les informations de Debug
