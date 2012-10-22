@@ -79,10 +79,10 @@ const std::vector<cMMCom> & getAvailableCommands()
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
-       aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualisation of camerai in ply file"));
+       aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualisation of camera in ply file"));
        aRes.push_back(cMMCom("Apero",Apero_main," Do some stuff"));
        aRes.push_back(cMMCom("Bascule",Bascule_main," Do some stuff"));
-       aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Do some stuff"));
+       aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
        aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Do some stuff"));
        aRes.push_back(cMMCom("Dequant",Dequant_main," Do some stuff"));
        aRes.push_back(cMMCom("Devlop",Devlop_main," Do some stuff"));
@@ -91,11 +91,12 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("GenXML2Cpp",GenXML2Cpp_main," Do some stuff"));
        aRes.push_back(cMMCom("GrShade",GrShade_main," Do some stuff"));
        aRes.push_back(cMMCom("MakeGrid",MakeGrid_main," Do some stuff"));
-       aRes.push_back(cMMCom("Malt",Malt_main," Simplified matching (inteface to MicMac)"));
+       aRes.push_back(cMMCom("Malt",Malt_main," Simplified matching (interface to MicMac)"));
        aRes.push_back(cMMCom("MapCmd",MapCmd_main," Do some stuff"));
+	   aRes.push_back(cMMCom("MergePly",MergePly_main," Merge ply files"));
        aRes.push_back(cMMCom("MICMAC",MICMAC_main," Do some stuff"));
        aRes.push_back(cMMCom("MpDcraw",MpDcraw_main," Do some stuff"));
-       aRes.push_back(cMMCom("Nuage2Ply",Nuage2Ply_main," Do some stuff"));
+       aRes.push_back(cMMCom("Nuage2Ply",Nuage2Ply_main," Convert depth map into point cloud"));
        aRes.push_back(cMMCom("Pasta",Pasta_main," Do some stuff"));
        aRes.push_back(cMMCom("PastDevlop",PastDevlop_main," Do some stuff"));
        aRes.push_back(cMMCom("Pastis",Pastis_main," Do some stuff"));
@@ -104,14 +105,14 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ReducHom",ReducHom_main," Do some stuff"));
        aRes.push_back(cMMCom("RepLocBascule",RepLocBascule_main," Do some stuff"));
        aRes.push_back(cMMCom("SBGlobBascule",SBGlobBascule_main," Do some stuff"));
-       aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Do some stuff"));
+       aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Tool for scaling image"));
        aRes.push_back(cMMCom("Tapas",Tapas_main," Do some stuff"));
        aRes.push_back(cMMCom("Tapioca",Tapioca_main," Do some stuff"));
        aRes.push_back(cMMCom("Tarama",Tarama_main," Do some stuff"));
        aRes.push_back(cMMCom("Tawny",Tawny_main," Do some stuff"));
        aRes.push_back(cMMCom("TestCam",TestCam_main," Do some stuff"));
        aRes.push_back(cMMCom("tiff_info",tiff_info_main," Do some stuff"));
-       aRes.push_back(cMMCom("to8Bits",to8Bits_main," Do some stuff"));
+       aRes.push_back(cMMCom("to8Bits",to8Bits_main," Tool for converting 16 or 32 bit image in a 8 bit image."));
    }
    return aRes;
 }
