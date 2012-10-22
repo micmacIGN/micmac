@@ -108,7 +108,11 @@ void DoMkT()
 {
     if (ByP)
     {
+#ifdef USE_SIFT_GPU
+		std::string aSMkSr = std::string("make all -f ") + MkFT;// +std::string(" -j")+ToString(ByP);
+#else
 		std::string aSMkSr = std::string("make all -f ") + MkFT +std::string(" -j")+ToString(ByP);
+#endif
         System(aSMkSr,true);
     }
 }

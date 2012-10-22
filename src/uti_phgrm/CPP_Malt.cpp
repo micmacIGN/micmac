@@ -127,8 +127,6 @@ class cAppliMalt
           std::string  mImOrtho;
           double       mZMoy;
           bool         mIsSperik;
-          bool         mDoNothing;
-          bool         mButDoOrtho;
 };
 
 
@@ -167,9 +165,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mResolOrtho   (1.0),
     mImMNT        (""),
     mImOrtho      (""),
-    mIsSperik     (false),
-    mDoNothing    (false),
-    mButDoOrtho   (false)
+    mIsSperik     (false)
 {
   ELISE_ASSERT(argc >= 2,"Not enouh arg");
 
@@ -217,10 +213,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mImOrtho,"ImOrtho",true,"Filter to select images used for ortho (Def All) ")
                     << EAM(mZMoy,"ZMoy",true,"Average value of Z")
                     << EAM(mIsSperik,"Spherik",true,"If true the surface for redressing are spheres")
-                    << EAM(mButDoOrtho,"DoOO",true,"Do Ortho Only")
   );
-
-  mDoNothing = (mButDoOrtho);
 
   if ((mImMaster!="") != (mType==eGeomImage))
   {
@@ -232,7 +225,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       );
   }
 
-  if ((mEtapeInit!=1) || mDoNothing)
+  if (mEtapeInit!=1) 
      mPurge = false;
   MakeFileDirCompl(mDirMEC);
   if (mDirOrthoF=="")
@@ -382,11 +375,6 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   ;
 
 
-  if (mDoNothing)
-     mCom = mCom +  std::string(" +FileDoNothing=") + "MM-DoNothingBut.xml";
-  if (mButDoOrtho)
-     mCom = mCom +  std::string(" +ButDoOrtho=true");
-
 
   if (mImMaster != "")
   {
@@ -452,8 +440,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   std::cout << mCom << "\n";
   // cInZRegulterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
-  if (mImMNT !="") mCom   =  mCom + std::string(" +ImMNT=")   + QUOTE(mImMNT);
-  if (mImOrtho !="") mCom =  mCom + std::string(" +ImOrtho=") + QUOTE(mImOrtho);
+  if (mImMNT !="") mCom   =  mCom + std::string(" +ImMNT=")   + mImMNT;
+  if (mImOrtho !="") mCom =  mCom + std::string(" +ImOrtho=") + mImOrtho;
   if (mOrthoInAnam)
   {
        std::string aFileOAM  = "MM-Malt-OrthoAnamOnly.xml";
@@ -467,8 +455,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     +  std::string(" +DirOrthoF=") +  "Ortho-UnAnam-" + mDirMEC
                  ;
 
-       if (mImMNT !="") mComOA   =  mComOA + " +ImMNT="   + QUOTE(mImMNT);
-       if (mImOrtho !="") mComOA =  mComOA + " +ImOrtho=" + QUOTE(mImOrtho);
+       if (mImMNT !="") mComOA   =  mComOA + std::string(" +ImMNT=")   + mImMNT;
+       if (mImOrtho !="") mComOA =  mComOA + std::string(" +ImOrtho=") + mImOrtho;
        std::cout << "\n\n" << mComOA << "\n";
   }
 }
