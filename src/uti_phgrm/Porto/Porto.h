@@ -176,7 +176,7 @@ class cAppli_Ortho
 
          bool ValMasqMesure(const Pt2di & aP)
          {
-              return mTImMasqMesure.get(aP,1);
+              return ( mTImMasqMesure.get(aP,1)!=0 );
          }
 
          void SetRMax(double aRad,int aK)

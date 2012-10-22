@@ -1029,9 +1029,10 @@ template <class Type> void ElMatrix<Type>::SetColSchmidtOrthog(INT NbIter)
                    for(INT y =0; y< _ty ; y++)
                        _data[y][x] = _data[y][x] - _data[y][xp]*s;
             }
-            Type N = (Type) sqrt(NormC(x));
-            for(INT y =0; y< _ty ; y++)
-                _data[y][x] = _data[y][x]/N;
+            Type N = (Type)sqrt(NormC(x));
+
+			for(INT y =0; y< _ty ; y++)
+				_data[y][x] = _data[y][x]/N;
         }
     }
 }
