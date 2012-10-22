@@ -72,7 +72,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include "private/ply.h"
+#include "ply.h"
 
 char *type_names[] = {
 	"invalid",
