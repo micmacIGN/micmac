@@ -245,22 +245,22 @@ template <class tElem> class OptCorrSubPix_Diff :
 		    else
                          aGr = Pt3dr(TImageFixedCorrelateurSubPix<tElem>::tGet::geti_gv(this->mIm2,PLoc2));
 
-		     s2  += aGr.z;
-		     s22 += ElSquare(aGr.z);
-		     sX  += aGr.x;
-		     sXX += ElSquare(aGr.x);
-		     sY  += aGr.y;
-		     sYY += ElSquare(aGr.y);
+		     s2  += (INT)aGr.z;
+		     s22 += (INT)ElSquare(aGr.z);
+		     sX  += (INT)aGr.x;
+		     sXX += (INT)ElSquare(aGr.x);
+		     sY  += (INT)aGr.y;
+		     sYY += (INT)ElSquare(aGr.y);
 
-		     s2X +=  aGr.z * aGr.x;
-		     s2Y +=  aGr.z * aGr.y;
-		     sXY +=  aGr.x * aGr.y;
+		     s2X += (INT)( aGr.z * aGr.x );
+		     s2Y += (INT)( aGr.z * aGr.y );
+		     sXY += (INT)( aGr.x * aGr.y );
 
                      INT aV1   = TImageFixedCorrelateurSubPix<tElem>::tGet::geti(this->mIm1,aP1+this->mPts1[aK]);
 		     s1 += aV1;
-		     s12 += aV1 * aGr.z;
-		     s1X += aV1 * aGr.x;
-		     s1Y += aV1 * aGr.y;
+		     s12 += (INT)( aV1 * aGr.z );
+		     s1X += (INT)( aV1 * aGr.x );
+		     s1Y += (INT)( aV1 * aGr.y );
                  }
 
 		 REAL rNbPts = this->mNbPts;

@@ -2,6 +2,8 @@ syntax: glob
 MkTapioca
 bin/
 Boudha/
+build/
+Build/
 applis/Apero/Apero.cpp.orig
 applis/Apero/Basculement.cpp.orig
 applis/Apero/cExport.cpp.orig

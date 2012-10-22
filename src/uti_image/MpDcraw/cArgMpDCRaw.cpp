@@ -251,7 +251,7 @@ bool cArgMpDCRaw::ColBasic() const
 
 bool cArgMpDCRaw::NameOriIsPrefix() const
 {
-   return mNameOriIsPrefix;
+   return ( mNameOriIsPrefix!=0 );
 }
 
 bool cArgMpDCRaw::Diag() const
@@ -462,12 +462,12 @@ double cArgMpDCRaw::EpsLog() const { return mEpsLog; }
 
 bool cArgMpDCRaw::Cons16B() const
 {
-   return mCons16Bits;
+   return ( mCons16Bits!=0 );
 }
 
 bool cArgMpDCRaw::Adapt8B() const
 {
-   return m8BitAdapt;
+   return ( m8BitAdapt!=0 );
 }
 
 
@@ -516,7 +516,7 @@ bool  cArgMpDCRaw::PGSpec () const
 
 bool cArgMpDCRaw::Add16_8B() const
 {
-   return mAdd16_8B;
+   return ( mAdd16_8B!=0 );
 }
 
 const std::string &  cArgMpDCRaw::CamDist() const

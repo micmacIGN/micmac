@@ -54,9 +54,9 @@ void PutPt(FILE * aFP,const Pt3dr & aP,bool aModeBin)
 {
     if (aModeBin)
     {
-        float x=  aP.x;
-        float y=  aP.y;
-        float z=  aP.z;
+        float x= (float)aP.x;
+        float y= (float)aP.y;
+        float z= (float)aP.z;
         fwrite(&x,sizeof(float),1,aFP);
         fwrite(&y,sizeof(float),1,aFP);
         fwrite(&z,sizeof(float),1,aFP);

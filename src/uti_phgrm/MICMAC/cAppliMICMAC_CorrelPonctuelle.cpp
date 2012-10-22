@@ -182,8 +182,7 @@ void cAppliMICMAC::DoCorrel2ImGeomImGen
                    {
                      if (AddCpleRad)
                      {
-                         mSurfOpt->Local_SetCpleRadiom(Pt2di(anX,anY),&aZInt,Vals[0],Vals[1]);
-
+                         mSurfOpt->Local_SetCpleRadiom(Pt2di(anX,anY),&aZInt,(U_INT2)Vals[0],(U_INT2)Vals[1]);
                      }
                      double aV0 = Vals[0];
                      double aV1 = Vals[1] * aRatioI1I2;

@@ -366,7 +366,7 @@ void cAppliMICMAC::MakeGenCorPxTransv(cEtapeMecComp & anEtape)
         for (aPIm.y=0 ; aPIm.y<aSzRes.y ; aPIm.y++)
         {
 	   Pt2dr aPax = aGTWM2I.Im2Px(Pt2dr(aPIm));
-	   aRes.data()[aPIm.y][aPIm.x] = aPax.y;
+	   aRes.data()[aPIm.y][aPIm.x] = (REAL4)aPax.y;
         }
 	//std::cout << aPIm.x << "\n"; getchar();
     }

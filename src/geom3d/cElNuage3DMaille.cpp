@@ -804,9 +804,9 @@ void cElNuage3DMaille::PlyPutDataVertex(FILE * aFP, bool aModeBin, int aAddNorma
            Pt3dr aP = PtOfIndex(anI);
 		   // std::cout << "PlyPutData:::: " << aP << "\n"; getchar();
            float xyz[3];
-           xyz[0] = aP.x;
-           xyz[1] = aP.y;
-           xyz[2] = aP.z;
+           xyz[0] = (float)aP.x;
+           xyz[1] = (float)aP.y;
+           xyz[2] = (float)aP.z;
 		
 		   if (aModeBin)
            {
@@ -823,9 +823,9 @@ void cElNuage3DMaille::PlyPutDataVertex(FILE * aFP, bool aModeBin, int aAddNorma
 			   Pt3dr aN = NormaleOfIndex(anI, aAddNormale);
 			   
 			   float Nxyz[3];
-			   Nxyz[0] = aN.x;
-			   Nxyz[1] = aN.y;
-			   Nxyz[2] = aN.z;
+			   Nxyz[0] = (float)aN.x;
+			   Nxyz[1] = (float)aN.y;
+			   Nxyz[2] = (float)aN.z;
 			   
 			   if (aModeBin)
 			   {
@@ -1388,8 +1388,8 @@ void Test(const Pt2dr & aP)
     // cXML_ParamNuage3DMaille aNewParam = CropAndSousEch(mParams,aTr,aScale,aSz);
 
 
-static    float aBasculeDef = -5e10;
-static    float aBasculeValOut = -4e10;
+static    float aBasculeDef = -5e10f;
+static    float aBasculeValOut = -4e10f;
 
 cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
        (
@@ -1470,7 +1470,7 @@ void   cElNuage3DMaille::FinishBasculeInThis
         for (aP.y=0 ; aP.y<mSz.y ; aP.y++)
         {
              SetProfOfIndex(aP,0);
-             float aV = aTMB.get(aP-anOfOut,aBasculeDef);
+             float aV = (float)aTMB.get(aP-anOfOut,aBasculeDef);
              bool aSInv = SupprTriInv  && (aTImTI.get(aP-anOfOut,0) == 1);
              if (anAAB)
              {

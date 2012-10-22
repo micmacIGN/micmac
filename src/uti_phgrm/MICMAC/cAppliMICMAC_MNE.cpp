@@ -60,7 +60,7 @@ class cStatMNE
        void Show()
        {
             for (int aK=0 ; aK<mNbH; aK++)
-                std::cout << "  ---- HISTO[" << aK << "]= " << (mH[aK]/mTot)*100.0 << "\%\n";
+                std::cout << "  ---- HISTO[" << aK << "]= " << (mH[aK]/mTot)*100.0 << "%\n";
        }
         
 

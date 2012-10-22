@@ -2453,7 +2453,7 @@ class   cGPU_LoadedImGeom
       }
       bool OkOrtho(int anX,int anY) const
       {
-            return mDOK_Ortho[anY][anX];
+            return ( mDOK_Ortho[anY][anX]!=0 );
       }
       tGpuF ImOrtho(int anX,int anY) const
       {

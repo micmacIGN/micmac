@@ -191,6 +191,7 @@ int MapCmd_main(int argc,char ** argv)
    if (aGPAO)
       aGPAO->GenerateMakeFile(aMKF);
 
+   return EXIT_SUCCESS;
 }
 
 
