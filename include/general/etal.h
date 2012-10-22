@@ -73,17 +73,6 @@ Script :
 */
 
 
-
-
-/*
-*/
-
-#include "general/all.h"
-#include "private/all.h"
-// #include "im_tpl/image.h"
-#include "XML_GEN/all.h"
-// using namespace NS_ParamChantierPhotogram;
-
 typedef enum
 {
     eUCI_Jamais,

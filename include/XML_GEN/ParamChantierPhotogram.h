@@ -1,5 +1,3 @@
-#include "general/all.h"
-#include "private/all.h"
 #ifndef Define_NotPCP
 #define Define_NotPCP
 namespace NS_ParamChantierPhotogram{

@@ -42,11 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_IM_CHCOORD_
 #define _ELISE_IM_CHCOORD_
 
-#include "general/all.h"
-#include "private/all.h"
-#include "im_tpl/image.h"
-
-
 template <class TIn,class TOut> class  cTImageChCoord
 {
 	public :

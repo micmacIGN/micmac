@@ -36,13 +36,7 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "general/all.h"
-#include "private/all.h"
-#include <algorithm>
-
-/*
-
-*/
+#include "StdAfx.h"
 
 #define DEF_OFSET -12349876
 
@@ -58,6 +52,7 @@ std::string StrToLower(const std::string & aStr)
    return aRes;
 }
 
+// CMMCom is a descriptor of a MicMac Command
 class cMMCom
 {
    public :
@@ -79,13 +74,44 @@ class cMMCom
 
 
 
-const std::vector<cMMCom> & MMComs()
+const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
        aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualisation of camerai in ply file"));
+       aRes.push_back(cMMCom("Apero",Apero_main," Do some stuff"));
+       aRes.push_back(cMMCom("Bascule",Bascule_main," Do some stuff"));
+       aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Do some stuff"));
+       aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Do some stuff"));
+       aRes.push_back(cMMCom("Dequant",Dequant_main," Do some stuff"));
+       aRes.push_back(cMMCom("Devlop",Devlop_main," Do some stuff"));
+       aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
+       aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Do some stuff"));
+       aRes.push_back(cMMCom("GenXML2Cpp",GenXML2Cpp_main," Do some stuff"));
+       aRes.push_back(cMMCom("GrShade",GrShade_main," Do some stuff"));
+       aRes.push_back(cMMCom("MakeGrid",MakeGrid_main," Do some stuff"));
        aRes.push_back(cMMCom("Malt",Malt_main," Simplified matching (inteface to MicMac)"));
+       aRes.push_back(cMMCom("MapCmd",MapCmd_main," Do some stuff"));
+       aRes.push_back(cMMCom("MICMAC",MICMAC_main," Do some stuff"));
+       aRes.push_back(cMMCom("MpDcraw",MpDcraw_main," Do some stuff"));
+       aRes.push_back(cMMCom("Nuage2Ply",Nuage2Ply_main," Do some stuff"));
+       aRes.push_back(cMMCom("Pasta",Pasta_main," Do some stuff"));
+       aRes.push_back(cMMCom("PastDevlop",PastDevlop_main," Do some stuff"));
+       aRes.push_back(cMMCom("Pastis",Pastis_main," Do some stuff"));
+       aRes.push_back(cMMCom("Porto",Porto_main," Do some stuff"));
+       aRes.push_back(cMMCom("Reduc2MM",Reduc2MM_main," Do some stuff"));
+       aRes.push_back(cMMCom("ReducHom",ReducHom_main," Do some stuff"));
+       aRes.push_back(cMMCom("RepLocBascule",RepLocBascule_main," Do some stuff"));
+       aRes.push_back(cMMCom("SBGlobBascule",SBGlobBascule_main," Do some stuff"));
+       aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Do some stuff"));
+       aRes.push_back(cMMCom("Tapas",Tapas_main," Do some stuff"));
+       aRes.push_back(cMMCom("Tapioca",Tapioca_main," Do some stuff"));
+       aRes.push_back(cMMCom("Tarama",Tarama_main," Do some stuff"));
+       aRes.push_back(cMMCom("Tawny",Tawny_main," Do some stuff"));
+       aRes.push_back(cMMCom("TestCam",TestCam_main," Do some stuff"));
+       aRes.push_back(cMMCom("tiff_info",tiff_info_main," Do some stuff"));
+       aRes.push_back(cMMCom("to8Bits",to8Bits_main," Do some stuff"));
    }
    return aRes;
 }
@@ -115,11 +141,11 @@ class cSuggest
 int main(int argc,char ** argv)
 {
 
-   const std::vector<cMMCom> & aVComs = MMComs();
+   const std::vector<cMMCom> & aVComs = getAvailableCommands();
    if ((argc==1) || ((argc==2) && (std::string(argv[1])=="-help")))
    {
        std::cout << "mm3d : Allowed commands \n";
-       for (int aKC=0 ; aKC<aVComs.size() ; aKC++)
+       for (unsigned int aKC=0 ; aKC<aVComs.size() ; aKC++)
        {
             std::cout  << " " << aVComs[aKC].mName << "\t" << aVComs[aKC].mComment << "\n";
        }
@@ -133,12 +159,8 @@ int main(int argc,char ** argv)
    mSugg.push_back(new cSuggest("Pattern Match",aLowCom));
    mSugg.push_back(new cSuggest("Prefix Match",aLowCom+".*"));
    mSugg.push_back(new cSuggest("Subex Match",".*"+aLowCom+".*"));
-/*
-*/
-   
 
-
-   for (int aKC=0 ; aKC<aVComs.size() ; aKC++)
+   for (unsigned int aKC=0 ; aKC<aVComs.size() ; aKC++)
    {
        if (StrToLower(aVComs[aKC].mName)==StrToLower(aCom))
        {
@@ -151,7 +173,7 @@ int main(int argc,char ** argv)
    }
 
 
-   for (int aKS=0 ; aKS<int(mSugg.size()) ; aKS++)
+   for (unsigned int aKS=0 ; aKS<int(mSugg.size()) ; aKS++)
    {
       if (! mSugg[aKS]->mRes.empty())
       {

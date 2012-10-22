@@ -36,18 +36,11 @@ set(MULLGES_DIR "mullgesuhlig")
 set(NEIGH_DIR "neighboor")
 set(OP_BUF_DIR "op_buf")
 set(OPTIM_DIR "optim")
+set(UTI_FILES_DIR "uti_files")
+set(UTI_IMAGE_DIR "uti_image")
 set(UTI_PHGRM_DIR "uti_phgrm")
 
 INCLUDE (${AMD_DIR}/Sources.cmake)
-
-set(Elise_Src_Files
-	${Elise_Src_Files}
-	../CodeGenere/File2String/Str_DefautChantierDescripteur.cpp
-	../CodeGenere/File2String/Str_ParamChantierPhotogram.cpp
-	../CodeGenere/File2String/Str_SuperposImage.cpp
-)
-
-
 
 INCLUDE (${HASSA_DIR}/Sources.cmake)
 INCLUDE (${SAN_DIR}/Sources.cmake)
@@ -71,6 +64,8 @@ INCLUDE (${NEIGH_DIR}/Sources.cmake)
 INCLUDE (${OP_BUF_DIR}/Sources.cmake)
 INCLUDE (${OPERATOR_DIR}/Sources.cmake)
 INCLUDE (${OPTIM_DIR}/Sources.cmake)
+INCLUDE (${UTI_FILES_DIR}/Sources.cmake)
+INCLUDE (${UTI_IMAGE_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_DIR}/Sources.cmake)
 INCLUDE (${ORIPHO_DIR}/Sources.cmake)
 INCLUDE (${OUTPUT_DIR}/Sources.cmake)
@@ -128,5 +123,5 @@ add_definitions(-DNO_JPEG -DNO_LCMS)
 
 # INSTALLATION : Dossier de destination lors de l'install
 install(TARGETS elise ARCHIVE DESTINATION ${Install_Dir})
-	
+
 ADD_SUBDIRECTORY(CBinaires)

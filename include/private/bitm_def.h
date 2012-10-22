@@ -37,7 +37,8 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-
+#ifndef __BITM_DEF__
+#define __BITM_DEF__
 
 extern INT PTS_00000000000000 [];
 
@@ -135,6 +136,7 @@ class DataGenIm : public RC_Object
       Fonc_Num  in(bool,REAL);
 };
 
+#endif
 
 //             Warning    !!!!!!!!!!!!!!!!
 //          

@@ -40,12 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_ALGO_GEOM_RVOIS
 #define _ELISE_ALGO_GEOM_RVOIS
 
-#include "general/all.h"
-#include "private/all.h"
-#include  <algorithm>
-
-
-
 template <class Type,class Fpt> class ElComparPtOn_x_then_y
 {
      public :

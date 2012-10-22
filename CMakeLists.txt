@@ -26,7 +26,7 @@ OPTION(WITH_HEADER_PRECOMP "En-tetes precompilees" ON )
 ## 	Trouver les EXES et Libs	##
 ##########################################
 
-# DEFINITION : Dossier des exe et Dll nécessaires sous windows 
+# DEFINITION : Dossier des exe et Dll nécessaires sous windows
 set(BinAuxWinDir ${PROJECT_SOURCE_DIR}/binaire-aux/BIN_AUX_WIN32)
 
 # SUBVERSION
@@ -58,7 +58,7 @@ else()
 		OUTPUT_STRIP_TRAILING_WHITESPACE
 	)
 	message("Derniere revision mercurial de MicMac : " ${HG_REVISION_DIST})
-	
+
 	set(HG_REV ${HG_REVISION_DIST} CACHE STRING "Revision" FORCE)
 endif()
 
@@ -100,13 +100,13 @@ IF(${WITH_MATIS_ORI})
 			LINK_DIRECTORIES(${TICPP_LIBRARY_DIRS})
 			INCLUDE_DIRECTORIES(${TICPP_INCLUDE_DIRS})
 		ENDIF()
-	
+
 		IF (MICMAC_USE_PROJ4)
 			FIND_PACKAGE( PROJ4 REQUIRED )
 			LINK_DIRECTORIES(${PROJ4_LIBRARY_DIRS})
 			INCLUDE_DIRECTORIES(${PROJ4_INCLUDE_DIRS})
 		ENDIF()
-	
+
 		ADD_DEFINITIONS(-D__USE_ORIENTATIONMATIS__ )
 		LINK_DIRECTORIES(${MatisOrientation_LIBRARY_DIRS})
 		INCLUDE_DIRECTORIES(${MatisOrientation_INCLUDE_DIRS})
@@ -116,8 +116,8 @@ ENDIF()
 
 
 # Vérifier si ImageMagick est installé
-		
-find_package(ImageMagick REQUIRED)				
+
+find_package(ImageMagick REQUIRED)
 
 if(NOT ImageMagick_FOUND)
 	MESSAGE("ATTENTION!!! Vous devez installer Image Magick.")
@@ -127,7 +127,7 @@ endif(NOT ImageMagick_FOUND)
 # Vérifier si exiftool est installé
 
 find_program(EXIF_EXECUTABLE exiftool
-				PATHS 	${BinAuxWinDir} ${UnixBinPath} 
+				PATHS 	${BinAuxWinDir} ${UnixBinPath}
 				DOC "Chemin vers la commande exiftool"
 				NO_DEFAULT_PATH)
 
@@ -139,7 +139,7 @@ endif()
 
 # Vérifier si exiv2 est installé
 find_program(EXIV2_EXECUTABLE exiv2
-				PATHS 	${BinAuxWinDir} ${UnixBinPath} 
+				PATHS 	${BinAuxWinDir} ${UnixBinPath}
 				DOC "Chemin vers la commande exiv2"
 				NO_DEFAULT_PATH)
 
@@ -158,7 +158,7 @@ if(NOT WIN32)
 		message("Proj4 non trouvé!!")
 
 	endif()
-	
+
 	# Vérifier si X11 est présent sous MacOS et Linux
 	FIND_PACKAGE(X11)
 	IF (X11_FOUND)
@@ -167,7 +167,7 @@ if(NOT WIN32)
 		add_definitions(-DNO_X11)
 		MESSAGE("X11 Not Found : pas de SaisieMasq")
 	ENDIF()
-	
+
 ELSE()
 
 	find_program(MAKE_EXECUTABLE make
@@ -208,17 +208,19 @@ set(Install_Dir ${PROJECT_SOURCE_DIR}/bin)
 set(ELISE_DIR src)
 
 # DEFINITION : du dossier des sources des applications
-set(APPLIS_DIR applis)
+#set(APPLIS_DIR applis)
 
 # CONSTRUCTION : de la librairie Elise
-ADD_SUBDIRECTORY(${ELISE_DIR}) 
+set( code_genere_dir ${PROJECT_SOURCE_DIR}/CodeGenere )
+include(${code_genere_dir}/Sources.cmake)
+ADD_SUBDIRECTORY(${ELISE_DIR})
 
 # CONSTRUCTION : des applications
-ADD_SUBDIRECTORY(${APPLIS_DIR})
+#ADD_SUBDIRECTORY(${APPLIS_DIR})
 
 # INSTALLATION : Liste des exe et Dll nécessaires sous windows
 if (win32)
-	set(BinAuxWin 	
+	set(BinAuxWin
 		${BinAuxWinDir}/exiftool.exe
 		${BinAuxWinDir}/exiv2.exe
 		${BinAuxWinDir}/libexpat.dll
@@ -228,5 +230,5 @@ if (win32)
 	)
 endif()
 
-# INSTALLATION : des exe et Dll nécessaires sous windows 
+# INSTALLATION : des exe et Dll nécessaires sous windows
 install(FILES ${BinAuxWin} DESTINATION ${Install_Dir})

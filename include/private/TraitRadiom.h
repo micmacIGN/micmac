@@ -42,9 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_TRAITEMENT_RADIOM_  // general
 #define _ELISE_TRAITEMENT_RADIOM_
 
-#include "im_tpl/image.h"
-
-
 // Classe d'interface, les classe "concrete" derivee sont definie dans
 // un ".cpp".  Pour creer un objet il faut passer
 // par les allocateur static

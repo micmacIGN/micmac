@@ -286,10 +286,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_ALGO_GEOM_SHEWCHUCK
 #define _ELISE_ALGO_GEOM_SHEWCHUCK      
 
-#include "general/all.h"
-#include "private/all.h"  
-#include "graphes/graphe.h"
-
 struct triangulateio {
 
 public :

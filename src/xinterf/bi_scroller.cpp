@@ -350,10 +350,6 @@ void BiScroller::RG1B2MakeOneLine
     }
 }
 
-
-#include "im_tpl/image.h"
-
-
 void BiScroller::MasqMakeOneLine
      (
            U_INT1 * aDataImR,

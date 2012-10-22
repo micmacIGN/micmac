@@ -115,7 +115,7 @@ if ((aY%100)==0) cout << aY << "\n";
            {
                aTMasqOut.oset(aPOut,0);
                // On donne quand meme une valeur
-               aDout[aY][aX] = (typename TOut::tBase) aTImIn.getprojR(aPInR);
+               aDout[aY][aX] = (typename TOut::tElem) aTImIn.getprojR(aPInR);
            }
            else
            {

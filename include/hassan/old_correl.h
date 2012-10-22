@@ -36,8 +36,6 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-//#include "general/all.h"
-//#include "private/all.h"
 
 #ifndef _ELISE_HASSAN_CORREL_H
 #define _ELISE_HASSAN_CORREL_H

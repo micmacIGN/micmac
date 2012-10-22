@@ -42,13 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_IM_ALGO_DIST32
 #define _ELISE_IM_ALGO_DIST32
 
-#include "im_tpl/flux.h"
-#include "im_tpl/image.h"
-#include "im_tpl/fonc_operator.h"
-#include "im_tpl/output.h"
-
-
-
 template  <class Type,class Type_Base>
           void TIm2D<Type,Type_Base>::algo_dist_env_Klisp_Sup(int aD4,int aD8)
 {

@@ -42,12 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_IM_OPBUF_TPL_
 #define _ELISE_IM_OPBUF_TPL_
 
-#include "general/all.h"
-#include "private/all.h"
-#include "im_tpl/image.h"
-#include "im_tpl/correl_imget_ptr.h"
-
-
 template <class tArg> 
 class  cTplOpbBufImage
 {

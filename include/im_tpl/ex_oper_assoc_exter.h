@@ -217,20 +217,7 @@ void TestCorrel
            const std::complex<int> & aP1,
            int                       aSzV
            
-     )
-{
-    cArgCorrelRapide2Im anArg(anImOut,anIm1,anIm2);
-
-    cTplOpbBufImage<cArgCorrelRapide2Im>  aOPB
-                                          (
-                                               anArg,
-                                               aP0,aP1,
-                                               std::complex<int>(-aSzV,-aSzV),
-                                               std::complex<int>(aSzV,aSzV)
-                                          );
-
-    aOPB.DoIt();
-}
+     );
 
     /*******************************************************/
     /*                                                     */
@@ -295,25 +282,7 @@ void TestSomRapide
            const std::complex<int> & aP1,
            int                       aSzV
            
-     )
-{
-    cArgSommeRapide1Im  anArg(anIm1);
-
-    cTplOpbBufImage<cArgSommeRapide1Im>  aOPB
-                                          (
-                                               anArg,
-                                               aP0,aP1,
-                                               std::complex<int>(-aSzV,-aSzV),
-                                               std::complex<int>(aSzV,aSzV)
-                                          );
-
-    int aNbPts = (1+2*aSzV) * (1+2*aSzV);
-    cCumulSomIm *aCum ;
-    while ((aCum = aOPB.GetNext()))
-    {
-          anImOut.SetValue(aOPB.CurPtOut(),aCum->Som()/aNbPts);
-    }
-}
+     );
 
 
 
@@ -372,26 +341,7 @@ void TestSomIteree
            const std::complex<int> & aP1,
            int                       aSzV
            
-     )
-{
-    cArgSommeRapideIteree  anArg(anIm1,aP0,aP1,aSzV);
-
-    cTplOpbBufImage<cArgSommeRapideIteree>  aOPB
-                                          (
-                                               anArg,
-                                               aP0,aP1,
-                                               std::complex<int>(-aSzV,-aSzV),
-                                               std::complex<int>(aSzV,aSzV)
-                                          );
-
-    int aNbPts = (1+2*aSzV) * (1+2*aSzV);
-    aNbPts = aNbPts * aNbPts;
-    cCumulSomIm *aCum ;
-    while ((aCum = aOPB.GetNext()))
-    {
-          anImOut.SetValue(aOPB.CurPtOut(),aCum->Som()/aNbPts);
-    }
-}
+     );
 
 
 

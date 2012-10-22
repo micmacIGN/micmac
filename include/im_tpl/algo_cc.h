@@ -42,12 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_IM_ALGO_CC
 #define _ELISE_IM_ALGO_CC
 
-#include "im_tpl/flux.h"
-#include "im_tpl/image.h"
-#include "im_tpl/fonc_operator.h"
-#include "im_tpl/output.h"
-
-
 // Mais en aValAff les composante connexe de coul=aValSelec de taille < aSeuilCard
 
 template <class T1,class T2> int OneZC

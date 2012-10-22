@@ -40,13 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_IM_TPL_IMAGE
 #define _ELISE_IM_TPL_IMAGE
 
-#include "general/all.h"
-#include "private/all.h"
-#include "im_tpl/flux.h"
-#include "ext_stl/fixed.h"
-
-#include <cstring>
-
 class TFlux_Pts {};
 class TFonc_Num {};
 class TOuput {};
