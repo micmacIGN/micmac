@@ -47,11 +47,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #ifndef _EL_NAPPES
 #define _EL_NAPPES
-#include "general/all.h"
-#include "private/all.h"
-#include "im_tpl/image.h"
-
-
 
 // Strtucture pour gerer des napppes telle qu'utilise
 // en Cox-Roy et Progdyn 2D

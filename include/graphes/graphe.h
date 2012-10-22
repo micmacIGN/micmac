@@ -40,12 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_GRAPHES_GRAPHE_H
 #define _ELISE_GRAPHES_GRAPHE_H
 
-#include "general/all.h"
-#include "private/all.h"
-#include "ext_stl/fifo.h"
-
-
-
 template <class T> class ElTabDyn;
 template <class AttrSom,class AttrArc> class ElGraphe;
 template <class AttrSom,class AttrArc> class ElArc;

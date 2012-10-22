@@ -985,7 +985,7 @@ class cAppliBatch
     private :
 	void DoOne();
 	virtual void Exec() = 0;
-	void UseLFile(const std::list<string> &);
+	void UseLFile(const std::list<std::string> &);
 
 
 
@@ -1028,7 +1028,7 @@ class cAppliBatch
 
 	bool                      mFileByPat;
 	bool                      mByDico;
-	std::list<string>         mListFile1ByPat;
+	std::list<std::string>    mListFile1ByPat;
 	int  mReverse;
 	int                       mDOIDE;
 	std::string               mKeyDOIDE;

@@ -41,11 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_IM_TPL_OUTPUT
 #define _ELISE_IM_TPL_OUTPUT
 
-#include "general/all.h"    
-#include "private/all.h"    
-#include "ext_stl/fifo.h"    
-
-
 template <class O1,class O2> class TClCatOut
 {
      public :

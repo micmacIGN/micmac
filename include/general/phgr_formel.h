@@ -248,7 +248,7 @@ class cSsBloc
 
          void AssertIntInit() const;
          void BlocSetInt(cIncIntervale &);
-         inline const cIncIntervale *  Int() const {return mInt;};
+         inline const cIncIntervale *  Intervale() const {return mInt;};
           
         int Cpt() const;
          

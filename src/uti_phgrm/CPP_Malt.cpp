@@ -36,12 +36,9 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-
-#include "general/all.h"
-#include "private/all.h"
-
-#include "XML_GEN/all.h"
+#include "StdAfx.h"
 #include "XML_GEN/all_tpl.h"
+
 using namespace NS_ParamChantierPhotogram;
 
 

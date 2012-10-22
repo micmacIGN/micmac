@@ -1261,7 +1261,7 @@ template <class Type,class TyBase> void  Im2D<Type,TyBase>::SetI(const Pt2di  &a
 template <class Type,class TyBase> void  Im2D<Type,TyBase>::SetR(const Pt2di  &aP,double aVal ) 
 {
    AssertInside(aP);
-   data()[aP.y][aP.x] = ElStdTypeScal<TyBase>::RtoT(aVal);
+   data()[aP.y][aP.x] = (Type)ElStdTypeScal<TyBase>::RtoT(aVal);
 }
 
 

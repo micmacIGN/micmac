@@ -50,13 +50,16 @@ cElHJaPoint::cElHJaPoint
    mP1 (&aP1),
    mP2 (&aP2),
    mP3 (&aP3),
-   mS1   (mP1->SomGr3Pl(this)),
-   mS2   (mP2->SomGr3Pl(this)),
-   mS3   (mP3->SomGr3Pl(this)),
+   mS1   (NULL),
+   mS2   (NULL),
+   mS3   (NULL),
    mDr23 (0),
    mDr13 (0),
    mDr12 (0)
 {
+	mS1 = mP1->SomGr3Pl(this);
+	mS2 = mP2->SomGr3Pl(this);
+	mS3 = mP3->SomGr3Pl(this);
 }
 
 Pt3dr cElHJaPoint::Pt() const {return mPt;}

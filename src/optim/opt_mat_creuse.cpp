@@ -37,8 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 
 /****************************************************/
 /*                                                  */
@@ -945,7 +944,7 @@ void cElMatCreuseBlocSym::Indexee_QuadSet0 (const std::vector<cSsBloc> & aVx,
         const cSsBloc & aBlX = aVx[aKx];
         int aI0x = aBlX.I0AbsSolve();
         int aNbX = aBlX.Nb();
-        const cIncIntervale * aIntX  = aBlX.Int();
+        const cIncIntervale * aIntX  = aBlX.Intervale();
         int aNumBlocIntervX    = aIntX->NumBlocSolve();
 
         for (int aKy=0 ; aKy <int(aVy.size()) ; aKy++)
@@ -957,7 +956,7 @@ void cElMatCreuseBlocSym::Indexee_QuadSet0 (const std::vector<cSsBloc> & aVx,
 
             if ((aI0x>=aI0y) || (!mOptSym))
             {
-                const cIncIntervale * aIntY  = aBlY.Int();
+                const cIncIntervale * aIntY  = aBlY.Intervale();
                 int aNumBlocIntervY    = aIntY->NumBlocSolve();
                 cBlocMCBS * aBlocOut = BlocOfKbxKby(aNumBlocIntervX, aNumBlocIntervY);
                 int aI1y = aBlY.I1AbsSolve();
@@ -1261,7 +1260,7 @@ void  cElMatCreuseBlocSym::Indexee_EcrireDansMatrWithQuad
         const cSsBloc & aBlX = aVx[aKx];
         int aI0x = aBlX.I0AbsSolve();
         int aNbX = aBlX.Nb();
-        const cIncIntervale * aIntX  = aBlX.Int();
+        const cIncIntervale * aIntX  = aBlX.Intervale();
         int aNumBlocIntervX    = aIntX->NumBlocSolve();
 
         int yout=0;
@@ -1273,7 +1272,7 @@ void  cElMatCreuseBlocSym::Indexee_EcrireDansMatrWithQuad
             if ((aI0x>=aI0y) || (!mOptSym))
             {
                 bool toTransp = (aKx<aKy) && mOptSym &&  (&aVx==&aVy);
-                const cIncIntervale * aIntY  = aBlY.Int();
+                const cIncIntervale * aIntY  = aBlY.Intervale();
                 int aNumBlocIntervY    = aIntY->NumBlocSolve();
                 cBlocMCBS * aBlocOut = BlocOfKbxKby(aNumBlocIntervX, aNumBlocIntervY);
                 int aI1y = aBlY.I1AbsSolve();
@@ -1332,7 +1331,7 @@ void cElMatCreuseBlocSym::VMAT_GSSR_AddNewEquation_Indexe
    for (int aKBly=0 ; aKBly <aNbBl ; aKBly++)
    {
         const cSsBloc & aBlY = (*aVSB)[aKBly];
-        const cIncIntervale * aIntY  = aBlY.Int();
+        const cIncIntervale * aIntY  = aBlY.Intervale();
         int aNumBlocIntervY    = aIntY->NumBlocSolve();
 
         int aI0y = aBlY.I0AbsSolve();
@@ -1343,7 +1342,7 @@ void cElMatCreuseBlocSym::VMAT_GSSR_AddNewEquation_Indexe
         for (int aKBlx=0 ; aKBlx <aNbBl ; aKBlx++)
         {
             const cSsBloc & aBlX = (*aVSB)[aKBlx];
-            const cIncIntervale * aIntX  = aBlX.Int();
+            const cIncIntervale * aIntX  = aBlX.Intervale();
             int aNumBlocIntervX    = aIntX->NumBlocSolve();
             if ((!mOptSym) || (aNumBlocIntervX>=aNumBlocIntervY))
             {
@@ -1402,7 +1401,7 @@ void cElMatCreuseBlocSym::SoutraitProduc3x3
    for (int aKBly=0 ; aKBly <aNbBl ; aKBly++)
    {
         const cSsBloc & aBlY = (*aYVSB)[aKBly];
-        const cIncIntervale * aIntY  = aBlY.Int();
+        const cIncIntervale * aIntY  = aBlY.Intervale();
         int aNumBlocIntervY    = aIntY->NumBlocSolve();
 
         int aI0y = aBlY.I0AbsSolve();
@@ -1413,7 +1412,7 @@ void cElMatCreuseBlocSym::SoutraitProduc3x3
         for (int aKBlx=0 ; aKBlx <aNbBl ; aKBlx++)
         {
             const cSsBloc & aBlX = (*aYVSB)[aKBlx];
-            const cIncIntervale * aIntX  = aBlX.Int();
+            const cIncIntervale * aIntX  = aBlX.Intervale();
             int aNumBlocIntervX    = aIntX->NumBlocSolve();
             if ((!mOptSym) || (aNumBlocIntervX>=aNumBlocIntervY))
             {

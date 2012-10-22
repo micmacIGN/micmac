@@ -416,11 +416,45 @@ class cReadObject
          int mNumLine;
 };
 
+// uti_files
+int BatchFDC_main(int argc,char ** argv);
+int MapCmd_main(int argc,char ** argv);
 
+// uti_images
+int Dequant_main(int argc,char ** argv);
+int Devlop_main(int argc,char ** argv);
+int ElDcraw_main(int argc,char ** argv);
+int GenXML2Cpp_main(int argc,char ** argv);
+int GrShade_main(int argc,char ** argv);
+int MpDcraw_main(int argc,char ** argv);
+int PastDevlop_main(int argc,char ** argv);
+int Reduc2MM_main(int argc,char ** argv);
+int ScaleIm_main(int argc,char ** argv);
+int tiff_info_main(int argc,char ** argv);
+int to8Bits_main(int argc,char ** argv);
+
+// uti_phgram
 int AperiCloud_main(int argc,char ** argv);
+int Apero_main(int argc,char ** argv);
+int Bascule_main(int argc,char ** argv);
+int CmpCalib_main(int argc,char ** argv);
+int GCPBascule_main(int argc,char ** argv);
+int MakeGrid_main(int argc,char ** argv);
 int Malt_main(int argc,char ** argv);
-
-
+int MICMAC_main(int argc,char ** argv);
+int Nuage2Ply_main(int argc,char ** argv);
+int Pasta_main(int argc,char ** argv);
+int Pastis_main(int argc,char ** argv);
+int Porto_main(int argc,char ** argv);
+int ReducHom_main(int argc,char ** argv);
+int RepLocBascule_main(int argc,char ** argv);
+int SBGlobBascule_main(int argc,char ** argv);
+int Tapas_main(int argc,char ** argv);
+int Tapioca_main(int argc,char ** argv);
+int Tarama_main(int argc,char ** argv);
+int Tawny_main(int argc,char ** argv);
+int TestCam_main(int argc,char ** argv);
+int ScaleNuage_main(int argc,char ** argv);
 
 #endif // ElMemberTpl
 

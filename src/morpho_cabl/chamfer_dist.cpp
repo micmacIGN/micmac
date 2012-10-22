@@ -378,8 +378,6 @@ Chamfer::Chamfer
 /*                                                             */
 /***************************************************************/
 
-#include "im_tpl/image.h"
-
 cResProj32::cResProj32
 (
    Im2D_U_INT2 aDist,

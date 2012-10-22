@@ -300,8 +300,6 @@ REAL Fonc_Num::ValFoncGen(Pt2di aP) const
     return aSom;
 }
 
-
-#include "im_tpl/image.h"
 REAL Fonc_Num::ValFoncGenR(Pt2dr aPR) const
 {
     Pt2di  aPI(round_down(aPR.x),round_down(aPR.y));

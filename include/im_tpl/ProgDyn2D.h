@@ -40,10 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_TplProgDyn2D
 #define _ELISE_TplProgDyn2D
 
-#include "general/all.h"
-#include "private/all.h"
-#include "ext_stl/Nappes.h"
-
 /*
 Pt2di PBUG(547,832);
 bool ToDebug(const Pt2di & aP)

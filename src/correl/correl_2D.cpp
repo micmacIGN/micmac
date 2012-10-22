@@ -119,8 +119,8 @@ Pt2dr EliseDecCor2D::RDec(Pt2di aP)  const
 
 void  EliseDecCor2D::SetDec(Pt2di aP,Pt2dr aVal) 
 {
-   mDataX[aP.y][aP.x] = aVal.x;
-   mDataY[aP.y][aP.x] = aVal.y;
+   mDataX[aP.y][aP.x] = (EliseDecCor2D::tElem)aVal.x;
+   mDataY[aP.y][aP.x] = (EliseDecCor2D::tElem)aVal.y;
 }
 
 

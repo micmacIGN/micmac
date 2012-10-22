@@ -40,7 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _CPTOFCORREL_H_
 #define _CPTOFCORREL_H_
 
-#include "im_tpl/image.h"
 // Classe pour calculer des points "favorables a la correlation 2D",
 //  c'est a dire des point qui n'auto-correlent pas avec leur
 // translate et qui ont du contraste

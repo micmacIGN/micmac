@@ -41,10 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_IM_TPL_FLUX
 #define _ELISE_IM_TPL_FLUX
 
-#include "general/all.h"
-#include "private/all.h"
-
-
 class TFlux_Rect2d
 {
       public :

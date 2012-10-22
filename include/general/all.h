@@ -105,7 +105,7 @@ template <class Type> class ElFifo;
 		#include "noyau_base/nostream.h"
 	#else
 		// Pas de sortie message dans la fenetre du noyau
-		#define ncout() cout
+		#define ncout() cerr
 	#endif
 
 	// #include <stdlib.h>

@@ -58,11 +58,6 @@ class   GTIm2D
 #ifndef _ELISE_IM_TPL_GRAPHE_PIXEL
 #define _ELISE_IM_TPL_GRAPHE_PIXEL
 
-#include "general/all.h"
-#include "private/all.h"
-#include "im_tpl/flux.h"
-#include "ext_stl/fixed.h"
-
 /*
     Pre-requis  pour etre un graphe de pixel
 
