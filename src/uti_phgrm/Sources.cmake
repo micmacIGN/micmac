@@ -23,6 +23,7 @@ list( APPEND uti_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_Porto.cpp
     ${UTI_PHGRM_DIR}/CPP_ReducHom.cpp
     ${UTI_PHGRM_DIR}/CPP_RepLocBascule.cpp
+    ${UTI_PHGRM_DIR}/CPP_ScaleNuage.cpp
     ${UTI_PHGRM_DIR}/CPP_SBGlobBascule.cpp
     ${UTI_PHGRM_DIR}/CPP_Tapas.cpp
     ${UTI_PHGRM_DIR}/CPP_Tapioca.cpp

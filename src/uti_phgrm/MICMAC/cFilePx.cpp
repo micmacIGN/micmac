@@ -353,7 +353,7 @@ void  cLoadTer::SetDefCorrActif(const Pt2di & aP,int aVal)
 
 bool  cLoadTer::IsDefCorrActif(const Pt2di  &aP) const
 {
-   return mTOneDefCorr.get(aP);
+   return ( mTOneDefCorr.get(aP)!=0 );
 }
 
 

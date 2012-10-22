@@ -105,6 +105,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("RepLocBascule",RepLocBascule_main," Do some stuff"));
        aRes.push_back(cMMCom("SBGlobBascule",SBGlobBascule_main," Do some stuff"));
        aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Do some stuff"));
+       aRes.push_back(cMMCom("ScaleNuage",ScaleNuage_main," Do some stuff"));
        aRes.push_back(cMMCom("Tapas",Tapas_main," Do some stuff"));
        aRes.push_back(cMMCom("Tapioca",Tapioca_main," Do some stuff"));
        aRes.push_back(cMMCom("Tarama",Tarama_main," Do some stuff"));

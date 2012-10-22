@@ -79,6 +79,9 @@ INSTALL(TARGETS SBGlobBascule RUNTIME DESTINATION ${Install_Dir})
 
 add_executable(ScaleIm  ScaleIm.c)
 INSTALL(TARGETS ScaleIm RUNTIME DESTINATION ${Install_Dir})
+                                                                    
+add_executable(ScaleNuage  ScaleNuage.c)
+INSTALL(TARGETS ScaleNuage RUNTIME DESTINATION ${Install_Dir})
 
 add_executable(Tapas  Tapas.c)
 INSTALL(TARGETS Tapas RUNTIME DESTINATION ${Install_Dir})

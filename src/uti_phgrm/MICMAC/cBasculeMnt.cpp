@@ -239,7 +239,7 @@ les reultat image.
 
  std::cout << "BEGIN BASCULE \n";
  //Im2D_REAL4   aMnt=  aBasc.Basculer(anOffset,aP0Sauv,aP1Sauv,aDef);
- Im2D_REAL4   aMnt=  aBasc.BasculerAndInterpoleInverse(anOffset,aP0Sauv,aP1Sauv,aDef);
+ Im2D_REAL4   aMnt=  aBasc.BasculerAndInterpoleInverse(anOffset,aP0Sauv,aP1Sauv,(float)aDef);
 
 
  ELISE_COPY
