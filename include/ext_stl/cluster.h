@@ -143,13 +143,7 @@ template <class Type,class TAttrLnk> class cMergingNode
 
           // A appeler par  cAlgoMergingRec
 
-
-
      private :
-
-
-
-
             int               mNum;
             tPtrMN            mFils[TheNbFils];
             tSetN             mFathers; // N'est construit que pour les cluster existant et tant qu'ils sont "top"

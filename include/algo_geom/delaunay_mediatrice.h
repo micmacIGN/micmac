@@ -40,12 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_ALGO_GEOM_DELAUNAY_MEDIATRICE
 #define _ELISE_ALGO_GEOM_DELAUNAY_MEDIATRICE
 
-#include "general/all.h"
-#include "private/all.h"
-#include  <algorithm>
-
-
-#include "algo_geom/rvois.h"
+#include "StdAfx.h"
 
 typedef long  double tRationnelDelaunay;
 

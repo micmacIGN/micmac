@@ -41,10 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_ALGO_GEOM_QDT_H
 #define _ELISE_ALGO_GEOM_QDT_H
 
-#include "general/all.h"
-#include "ext_stl/elslist.h"
-#include <set>
-
 /*
     template <class Obj,class Prim,class FPrim> class ElClassQT;
 

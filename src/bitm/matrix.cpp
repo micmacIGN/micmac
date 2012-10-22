@@ -1029,9 +1029,10 @@ template <class Type> void ElMatrix<Type>::SetColSchmidtOrthog(INT NbIter)
                    for(INT y =0; y< _ty ; y++)
                        _data[y][x] = _data[y][x] - _data[y][xp]*s;
             }
-            Type N = (Type) sqrt(NormC(x));
-            for(INT y =0; y< _ty ; y++)
-                _data[y][x] = _data[y][x]/N;
+            Type N = (Type)sqrt(NormC(x));
+
+			for(INT y =0; y< _ty ; y++)
+				_data[y][x] = _data[y][x]/N;
         }
     }
 }
@@ -1050,8 +1051,6 @@ void SauvFile(const ElRotation3D & aRot,const std::string & aName)
     aFile.write(aRot);
     aFile.close();
 }
-
-#include "XML_GEN/all.h"
 
 using namespace NS_ParamChantierPhotogram;
 

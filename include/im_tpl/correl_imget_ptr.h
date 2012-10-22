@@ -42,11 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_IM_CORREL_IMGET_PTR_
 #define _ELISE_IM_CORREL_IMGET_PTR_
 
-#include "general/all.h"
-#include "private/all.h"
-#include "im_tpl/image.h"
-
-
 // Correlateur optimise (supposed to be) 
 
 #define NBB_TFCS 8

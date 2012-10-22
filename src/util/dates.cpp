@@ -48,9 +48,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                            */
 /**************************************************************/
 
-
-#include "XML_GEN/all.h"
-
 static    std::string  DEFBayPatt = "RGGB";
 
 static std::map<std::string,cCameraEntry> * statTheDicCam = 0;

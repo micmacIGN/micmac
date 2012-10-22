@@ -40,13 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_ALGO_GEOM_DELAUNAY_MEDIATRICE
 #define _ELISE_ALGO_GEOM_DELAUNAY_MEDIATRICE
 
-#include "general/all.h"
-#include "private/all.h"
-#include  <algorithm>
-
-
-#include "algo_geom/rvois.h"
-
 class RATIONNEL
 {
           public :
@@ -122,7 +115,7 @@ template <class Iterator,class Fpt,class Act,class Type>  void
     for (I = 0 ; I < nb ; I++)
     {
         /*   calcul des coordonnees du points A */
-        Pt2di pi = fpt(*vals[I]);
+        Pt2di pi = (Pt2di)fpt(*vals[I]);
         A_x = pi.x;
         A_y = pi.y;
         MARQUEUR_K.clear();
@@ -131,7 +124,7 @@ template <class Iterator,class Fpt,class Act,class Type>  void
         REAL x_lim = A_x + dist;
         for(J = I+1 ; (J < nb) && ( fpt(*vals[J]).x <x_lim) ; J++)
         {
-            Pt2di pj = fpt(*vals[J]);
+            Pt2di pj = (Pt2di)fpt(*vals[J]);
             if (euclid(pi,pj) < dist)
             {
                /* calcul des coordonnees et de la norme du vecteur AB */
@@ -157,7 +150,7 @@ template <class Iterator,class Fpt,class Act,class Type>  void
                   {
                      MARQUEUR_K[K] = J;
                      /* calcul des coordonnees du vecteur AC */
-                     Pt2di pk = fpt(*vals[K]);
+                     Pt2di pk = (Pt2di)fpt(*vals[K]);
                      AC_x = pk.x - A_x; 
                      AC_y = pk.y - A_y;
                      /* calcul des produits scalaires et vectoriel de AB et AC */

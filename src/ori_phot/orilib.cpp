@@ -53,9 +53,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 //#ifndef __USE_ORILIB_ELISE__
 //#else
 
-#include "XML_GEN/all.h"
-#include "all_phot.h"
-#include <cstring>
+#include "StdAfx.h"
 
 #if defined(UNIX)
 

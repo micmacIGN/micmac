@@ -42,19 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_IMTPL_REDUC_IM
 #define _ELISE_IMTPL_REDUC_IM
 
-#include "im_tpl/image.h"
-/*
-#include "im_tpl/fonc_operator.h"
-#include "im_tpl/flux.h"
-#include "im_tpl/output.h"
-*/
-
-
-
-
-#include "im_tpl/image.h"
-
-
 template <class TypeIn,class TypeOut> class   cReducImCenteredFact2
 {
       public :

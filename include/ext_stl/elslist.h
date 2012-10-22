@@ -41,8 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_EXT_STL_EL_SLIST_H
 #define _ELISE_EXT_STL_EL_SLIST_H
 
-#include "general/all.h"
-
 template <class Obj>  class ElSlist : public  Mcheck
 {
       private :

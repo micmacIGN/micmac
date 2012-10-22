@@ -42,11 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_EX_OPER_ASSOC_EXTERN_H_
 #define _ELISE_EX_OPER_ASSOC_EXTERN_H_
 
-
-#include "im_tpl/ex_oper_assoc_exter.h"
-#include "im_tpl/image.h"
-
-
 class cELise_InterfaceIm2D : public NS_TestOpBuf::cInterfaceIm2D
 {
      public :

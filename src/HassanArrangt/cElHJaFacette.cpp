@@ -37,7 +37,6 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
-#include "cElHJa_all.h"
 
 cElHJaFacette::cElHJaFacette
 (

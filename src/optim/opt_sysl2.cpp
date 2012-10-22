@@ -37,9 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/all.h"
-#include "private/all.h"
-
+#include "StdAfx.h"
 
 cVectMatMul::~cVectMatMul()
 {
@@ -968,7 +966,7 @@ void  L2SysSurResol::SoutraitProduc3x3
    for (int aKBly=0 ; aKBly <aNbBl ; aKBly++)
    {
         const cSsBloc & aBlY = (*aYVSB)[aKBly];
-        const cIncIntervale * aIntY  = aBlY.Int();
+        const cIncIntervale * aIntY  = aBlY.Intervale();
         int aNumBlocIntervY    = aIntY->NumBlocSolve();
 
         int aI0y = aBlY.I0AbsSolve();
@@ -978,7 +976,7 @@ void  L2SysSurResol::SoutraitProduc3x3
         for (int aKBlx=0 ; aKBlx <aNbBl ; aKBlx++)
         {
             const cSsBloc & aBlX = (*aYVSB)[aKBlx];
-            const cIncIntervale * aIntX  = aBlX.Int();
+            const cIncIntervale * aIntX  = aBlX.Intervale();
             int aNumBlocIntervX    = aIntX->NumBlocSolve();
             if ((!mOptSym) || (aNumBlocIntervX>=aNumBlocIntervY))
             {
@@ -1041,7 +1039,7 @@ std::cout <<  aNbTot << " " << aVInd.size()  << "\n";
          for (int aKBly=0 ; aKBly <aNbBl ; aKBly++)
          {
               const cSsBloc & aBlY = (*aVSB)[aKBly];
-              const cIncIntervale * aIntY  = aBlY.Int();
+              const cIncIntervale * aIntY  = aBlY.Intervale();
               int aNumBlocIntervY    = aIntY->NumBlocSolve();
 
               int aI0y = aBlY.I0AbsSolve();
@@ -1051,7 +1049,7 @@ std::cout <<  aNbTot << " " << aVInd.size()  << "\n";
               for (int aKBlx=0 ; aKBlx <aNbBl ; aKBlx++)
               {
                   const cSsBloc & aBlX = (*aVSB)[aKBlx];
-                  const cIncIntervale * aIntX  = aBlX.Int();
+                  const cIncIntervale * aIntX  = aBlX.Intervale();
                   int aNumBlocIntervX    = aIntX->NumBlocSolve();
                   if ((!mOptSym) || (aNumBlocIntervX>=aNumBlocIntervY))
                   {

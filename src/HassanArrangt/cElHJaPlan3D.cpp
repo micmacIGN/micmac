@@ -38,12 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-#include "cElHJa_all.h"
-#include "graphes/algo_planarite.h"
-#include "graphes/algo_pcc.h"
-
-
-
 cElHJaPlan3D::cElHJaPlan3D
 (
         cElHJaArrangt &            anArrgt,

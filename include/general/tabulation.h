@@ -37,6 +37,8 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#ifndef __TABULATION__
+#define __TABULATION__
 
 extern Pt2dr TAB_CornerPix[4];     // pts[i] = pts[i+8]
 
@@ -129,7 +131,7 @@ class Config_Freeman_Or
 };
 
 
-
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

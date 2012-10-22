@@ -42,9 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_IM_ALGO_FILTER_EXP
 #define _ELISE_IM_ALGO_FILTER_EXP
 
-#include "im_tpl/image.h"
-
-
 template <class TypeI,class TypeF>  void  FilterLinExpVar
                      (
                            TypeI * input,
@@ -154,8 +151,8 @@ template <class T1> void  FilterExp
 
         for (int anX = anX1-2; anX>=anX0 ; anX--)
         {
-           aLine[anX]   += aFx * aLine[anX+1];
-           aLine[anX+1] +=  mBL[anX+1];
+           aLine[anX]   += (T1::tElem)( aFx*aLine[anX+1] );
+           aLine[anX+1] += (T1::tElem)mBL[anX+1];
         }
     }
     for (int anX=anX0 ; anX<anX1 ; anX++)
@@ -167,8 +164,8 @@ template <class T1> void  FilterExp
         }
         for (int anY = anY1-2; anY>=anY0 ; anY--)
         {
-           aD[anY][anX]   += aFy * aD[anY+1][anX];
-           aD[anY+1][anX] +=  mBL[anY+1];
+           aD[anY][anX]   += (T1::tElem)( aFy * aD[anY+1][anX] );
+           aD[anY+1][anX] += (T1::tElem)mBL[anY+1];
         }
     }
 }

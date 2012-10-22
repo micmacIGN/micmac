@@ -40,10 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_ALGO_GEOM_INDEX_PTS
 #define _ELISE_ALGO_GEOM_INDEX_PTS
 
-#include "general/all.h"
-#include "private/all.h"
-#include "ext_stl/fifo.h"
-
+#include "StdAfx.h"
 
 template <class Type,class Fpt> class IndexPts
 {
