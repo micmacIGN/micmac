@@ -71,7 +71,7 @@ double cStatObs::SomErPond() const
 
 bool   cStatObs::AddEq() const
 {
-   return mAddEq;
+   return ( mAddEq!=0 );
 }
 
 
@@ -2040,7 +2040,7 @@ void  cObsLiaisonMultiple::CheckInit()
     {
 
         std::string aMes =   " Cam=" + mPose1->Name()
-                           + " \%Behind=" + ToString((100.0*(aNb-aNbPos) ) / aNb)
+                           + " %Behind=" + ToString((100.0*(aNb-aNbPos) ) / aNb)
                            + " AngleBehind="  + ToString(SomAngNeg);
         cElWarning::BehindCam.AddWarn(aMes,__LINE__,__FILE__);
     }

@@ -324,9 +324,9 @@ template  <class Type,class Type_Base> class  TIm2D : public GTIm2D
 	  }
 
 	  void  incr(Pt2di aPt,REAL aPds)
-          {
-                getproj(aPt) += aPds;
-          }
+	  {
+		getproj(aPt) += (Type)aPds;
+	  }
 
 
 	  void  incr(Pt2dr aPt,REAL aPds)
@@ -339,10 +339,10 @@ template  <class Type,class Type_Base> class  TIm2D : public GTIm2D
 		REAL  px0 =  1.0 -px1;
 		REAL  py0 =  1.0 -py1;
 
-		getproj(Pt2di(xo  ,yo  )) +=  px0 * py0 * aPds;
-		getproj(Pt2di(xo+1,yo  )) +=  px1 * py0 * aPds;
-		getproj(Pt2di(xo  ,yo+1)) +=  px0 * py1 * aPds;
-		getproj(Pt2di(xo+1,yo+1)) +=  px1 * py1 * aPds;
+		getproj(Pt2di(xo  ,yo  )) += (Type)( px0 * py0  *aPds );
+		getproj(Pt2di(xo+1,yo  )) += (Type)( px1 * py0 * aPds );
+		getproj(Pt2di(xo  ,yo+1)) += (Type)( px0 * py1 * aPds );
+		getproj(Pt2di(xo+1,yo+1)) += (Type)( px1 * py1 * aPds );
 	  }
 
 

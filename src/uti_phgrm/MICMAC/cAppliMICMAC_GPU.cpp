@@ -276,8 +276,8 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox,const Pt2di & aSzV)
    mNbIm = mVLI.size();
 
 
-   mZMinGlob = 1e7;
-   mZMaxGlob = -1e7;
+   mZMinGlob = (int)1e7;
+   mZMaxGlob = (int)(-1e7);
    for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
    {
        for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
@@ -455,7 +455,7 @@ bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
 
                    if (aGLI.IsOk(aPIm.x,aPIm.y))
                    {
-                      aDOrtho[anY][anX] = anInt->GetVal(aDataIm,aPIm);
+                      aDOrtho[anY][anX] = (tGpuF)anInt->GetVal(aDataIm,aPIm);
                       aOkOr[anY][anX] =  1;
                    }
                }

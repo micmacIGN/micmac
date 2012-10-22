@@ -180,7 +180,7 @@ void cCalibCam::ActiveContrainte(bool Stricte)
    mAppli.SetEq().AddContrainte(mPIF.StdContraintes(),Stricte);
 
    if (mAppli.Param().GridOptimKnownDist().Val())
-      mPIF.UpdateCamGrid(0.3);
+      mPIF.UpdateCamGrid( true );
 
 
 /*
