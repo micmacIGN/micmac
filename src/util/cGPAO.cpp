@@ -235,24 +235,9 @@ cElTask::cElTask
       mBR.push_back(aBuildingRule);
 }
 
-   void cElTask::AddBR(const std::string & aBuildingRule)
+   void cElTask::AddBR(const std::string &aBuildingRule)
    {
-	   // Gerald debug Make n'aime le charactere speciale '\'
-	   // On le remplace brutalement - A Factoriser!
-	   // pour Windows!
-
-	   std::string buildRN = aBuildingRule;
-	   #if ELISE_windows
-		   std::string from = ".\\";
-		   std::string to = "";
-		   size_t start_pos = 0;
-		   while((start_pos = buildRN.find(from, start_pos)) != std::string::npos) 
-		   {
-			   buildRN.replace(start_pos, from.length(), to);
-			   start_pos += to.length(); 
-		   }
-	   #endif
-	   mBR.push_back(buildRN);
+	   mBR.push_back(aBuildingRule);
    }
 
 void cElTask::GenerateMakeFile(FILE * aFP) const
