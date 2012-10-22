@@ -72,6 +72,8 @@ int ScaleNuage_main(int argc,char ** argv)
 
     cElNuage3DMaille * aRes = aNuage->ReScaleAndClip(Box2dr(aP0,aSz),aSc);
     aRes->Save(aNameOut);
+
+	return EXIT_SUCCESS;
 }
 
 

@@ -263,9 +263,14 @@ void cAppliPastis::GenerateKey(const std::string & aName,const std::string & aNa
   {
 // std::cout << aNameIm << " " <<  NameFileStd(aNameIm,1) << "\n"; getchar();
 
-      aCom =   mBinDirAux +  TheStrSift
-              + NameFileStd(aNameIm,1,false) + " "
-              + std::string(" -o")+aNK;
+#ifdef USE_SIFT_GPU
+	  std::string OptOut = " -o ";
+#else
+	  std::string OptOut = " -o";
+#endif
+	aCom =	mBinDirAux +  TheStrSift
+			+ NameFileStd(aNameIm,1,false)
+			+ OptOut +aNK;
 
   }
   else if (mModeBin==eModeAutopano)
