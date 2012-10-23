@@ -20,6 +20,9 @@
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
+#ifndef _WIN32
+	#include <unistd.h>
+#endif
 
 extern bool BugDG;
 
