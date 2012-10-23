@@ -85,7 +85,7 @@ void TestSomIteree
 }
 };
 
-const char * theNameVar_ParamMICMAC[];
+extern const char * theNameVar_ParamMICMAC[];
 
 namespace NS_ReducHoms{
 
@@ -154,12 +154,12 @@ std::string NameNode(tNodIm * aN)
     return anI ? anI->Name() : "XXX" ;
 }
 
-template class cMergingNode<cImagH,cAttrLnkIm>;
-template class cAlgoMergingRec<cImagH,cAttrLnkIm,cParamMerge>;
-template class  ElHeap<cMergingNode<cImagH,cAttrLnkIm> *,cCmpMNode<cImagH,cAttrLnkIm> >;
-
 }
 // -------
+
+template class cMergingNode<NS_ReducHoms::cImagH,NS_ReducHoms::cAttrLnkIm>;
+template class cAlgoMergingRec<NS_ReducHoms::cImagH,NS_ReducHoms::cAttrLnkIm,NS_ReducHoms::cParamMerge>;
+template class  ElHeap<cMergingNode<NS_ReducHoms::cImagH,NS_ReducHoms::cAttrLnkIm> *,cCmpMNode<NS_ReducHoms::cImagH,NS_ReducHoms::cAttrLnkIm> >;
 
 std::string NoInit;
 Pt2dr		aNoPt;

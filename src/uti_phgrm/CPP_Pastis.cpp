@@ -279,7 +279,7 @@ void cAppliPastis::GenerateKey(const std::string & aName,const std::string & aNa
 		OptOut = " -o";
 		TheStrSiftBin = TheStrSiftPP;
 	}
-#elif
+#else
 	OptOut = " -o";
 	TheStrSiftBin = TheStrSiftPP;
 #endif
@@ -325,8 +325,7 @@ std::string TheStrAnnBin;
 
 		TheStrAnnBin = TheStrAnnPP;
 	
-#elif
-	OptOut = " -o";
+#else
 	TheStrAnnBin = TheStrAnnPP;
 #endif
 

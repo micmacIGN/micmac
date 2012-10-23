@@ -100,7 +100,7 @@ template <const INT b>  class ElPFixed : public ElFixed<b>
        Pt2dr  Pt2drConv() const {return Pt2dr(x(),y());}
 
 #if (ELISE_unix || ELISE_MacOs || ELISE_Cygwin)
-        friend ostream & operator << (ostream & ofs,const ElPFixed  &p)
+        friend std::ostream & operator << (std::ostream & ofs,const ElPFixed  &p)
         {
                ofs << "[x " << p.x() << " ;y " << p.y() <<"]";
                return ofs;

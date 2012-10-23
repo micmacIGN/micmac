@@ -1,5 +1,4 @@
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 const char * (theNameVar_ParamMICMAC[1927]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",

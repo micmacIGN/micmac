@@ -1,4 +1,4 @@
-set(code_genere_file2string_dir ${code_genere_dir}/file2string)
+set(code_genere_file2string_dir ${code_genere_dir}/File2String)
 #set(code_genere_photogram_dir ${code_genere_dir}/photogram)
 
 list( APPEND code_genere_file2string_Src_Files

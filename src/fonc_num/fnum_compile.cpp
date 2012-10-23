@@ -1072,8 +1072,7 @@ void cElCompileFN::SetFile(const std::string & aPostFix, const char * anInclComp
     // cout << " --SUPPRIME -- #ifndef " << mNameTagInclude << "\n";
     // cout << " --SUPPRIME -- #define " << mNameTagInclude << "\n\n";
 
-   (*this)<< "#include \"general/all.h\"\n";
-   (*this)<< "#include \"private/all.h\"\n";
+   (*this)<< "#include \"StdAfx.h\"\n";
 
     if (anInclCompl)
     {

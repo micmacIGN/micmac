@@ -1,5 +1,4 @@
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 const char * (theNameVar_ParamApero[1457]) = {
 "<GenCpp>\n",
 "\n",
