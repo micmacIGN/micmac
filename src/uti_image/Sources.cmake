@@ -1,4 +1,6 @@
 set(UTI_IMAGE_MPDCRAW_DIR ${UTI_IMAGE_DIR}/MpDcraw)
+set(SGUti_Image uti_image)
+
 INCLUDE (${UTI_IMAGE_MPDCRAW_DIR}/Sources.cmake)
 
 list( APPEND uti_image_Src_Files
@@ -14,6 +16,6 @@ list( APPEND uti_image_Src_Files
     ${UTI_IMAGE_DIR}/CPP_tiff_info.cpp
     ${UTI_IMAGE_DIR}/CPP_to8Bits.cpp )
 
-SOURCE_GROUP(uti_image FILES ${uti_image_Src_Files})
+SOURCE_GROUP("${SGUti_Image}" FILES ${uti_image_Src_Files})
 
 list( APPEND Elise_Src_Files ${uti_image_Src_Files} )

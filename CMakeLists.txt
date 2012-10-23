@@ -219,7 +219,7 @@ set(ELISE_DIR src)
 # DEFINITION : du dossier des sources des applications
 #set(APPLIS_DIR applis)
 
-# CONSTRUCTION : de la librairie Elise
+# CONSTRUCTION : Librairie ELISE
 set( code_genere_dir ${PROJECT_SOURCE_DIR}/CodeGenere )
 include(${code_genere_dir}/Sources.cmake)
 ADD_SUBDIRECTORY(${ELISE_DIR})
