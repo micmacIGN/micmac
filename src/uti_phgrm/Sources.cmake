@@ -3,12 +3,15 @@ set(UTI_PHGRM_MICMAC_DIR ${UTI_PHGRM_DIR}/MICMAC)
 set(UTI_PHGRM_REDUCHOM_DIR ${UTI_PHGRM_DIR}/ReducHom)
 set(UTI_PHGRM_PORTO_DIR ${UTI_PHGRM_DIR}/Porto)
 
+set(SrcGrp_Uti_PHGRM uti_phgrm)
+
+
 INCLUDE (${UTI_PHGRM_APERO_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_MICMAC_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_REDUCHOM_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_PORTO_DIR}/Sources.cmake)
 
-list( APPEND uti_phgrm_Src_Files
+set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_AperiCloud.cpp
     ${UTI_PHGRM_DIR}/CPP_Apero.cpp
     ${UTI_PHGRM_DIR}/CPP_Bascule.cpp
@@ -32,8 +35,18 @@ list( APPEND uti_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_TestCam.cpp
 )
 
-SOURCE_GROUP(uti_phgrm FILES ${uti_phgrm_Src_Files})
+SOURCE_GROUP(${SrcGrp_Uti_PHGRM} FILES ${uti_phgrm_Src_Files})
+SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\Applis FILES ${Applis_phgrm_Src_Files})
+SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\Apero FILES ${uti_phgrm_Apero_Src_Files})
+SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\MicMac FILES ${uti_phgrm_MICMAC_Src_Files})
+SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\Porto FILES ${uti_phgrm_Porto_Src_Files})
+SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\ReducHom FILES ${uti_phgrm_Porto_Src_Files})
 
-list( APPEND Elise_Src_Files
-	${uti_phgrm_Src_Files}
-)
+
+list( APPEND uti_phgrm_Src_Files ${Applis_phgrm_Src_Files})
+list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Apero_Src_Files})
+list( APPEND uti_phgrm_Src_Files ${uti_phgrm_MICMAC_Src_Files} )
+list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Porto_Src_Files})
+list( APPEND uti_phgrm_Src_Files ${uti_phgrm_ReducHom_Src_Files})
+
+list( APPEND Elise_Src_Files ${uti_phgrm_Src_Files})

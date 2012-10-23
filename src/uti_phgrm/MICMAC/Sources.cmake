@@ -40,7 +40,7 @@ set(uti_phgrm_MICMAC_Src_Files
     ${UTI_PHGRM_MICMAC_DIR}/OrthoLocAnam.cpp
     ${UTI_PHGRM_MICMAC_DIR}/PartiesCachees.cpp
     ${UTI_PHGRM_MICMAC_DIR}/SaisieLiaisons.cpp
-    ${UTI_PHGRM_MICMAC_DIR}/StdAfx.cpp
+#    ${UTI_PHGRM_MICMAC_DIR}/StdAfx.cpp
 #    ${UTI_PHGRM_MICMAC_DIR}/SuperpositionImages.cpp
 #    ${UTI_PHGRM_MICMAC_DIR}/TestMICMAC.cpp
 #    ${UTI_PHGRM_MICMAC_DIR}/TestParamMICMAC.cpp
@@ -48,6 +48,5 @@ set(uti_phgrm_MICMAC_Src_Files
 #    ${UTI_PHGRM_MICMAC_DIR}/VisuSuperpGrid.cpp
 )
 
-#SOURCE_GROUP(uti_phgrm FILES ${uti_phgrm_Src_Files})
 
-list( APPEND uti_phgrm_Src_Files ${uti_phgrm_MICMAC_Src_Files} )
+

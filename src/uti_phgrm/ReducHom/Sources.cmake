@@ -6,9 +6,3 @@ set(uti_phgrm_ReducHom_Src_Files
     ${UTI_PHGRM_REDUCHOM_DIR}/IndexAppli.cpp
     ${UTI_PHGRM_REDUCHOM_DIR}/SimulMerge.cpp
 )
-
-#SOURCE_GROUP(uti_phgrm FILES ${uti_phgrm_Src_Files})
-
-list( APPEND uti_phgrm_Src_Files
-	${uti_phgrm_ReducHom_Src_Files}
-)

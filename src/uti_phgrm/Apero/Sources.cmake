@@ -31,8 +31,7 @@ set(uti_phgrm_Apero_Src_Files
     ${UTI_PHGRM_APERO_DIR}/VisuMult.cpp
 )
 
-#SOURCE_GROUP(uti_phgrm.Apero FILES ${uti_phgrm_Apero_Src_Files})
 
-list( APPEND uti_phgrm_Src_Files
-	${uti_phgrm_Apero_Src_Files}
-)
+
+
+
