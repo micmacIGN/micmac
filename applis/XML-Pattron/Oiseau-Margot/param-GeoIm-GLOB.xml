@@ -1,0 +1,221 @@
+<!-- 
+      Parametrage pour les points de liaison pour une triangulation.
+   Il s'agit de l'etape 0, elle doit etre suivie de 1, 2 et 3.
+   Cette etape 0 ne va que jusqu'a la resolution 16 et les 
+   les orientation exportees ne laisse libre que le cap.
+
+       Ce fichier a ete mis au point pour un vol drone heliporte.
+   Les valeus suivie d'un "#" en commentaire doivent etre modifiee
+   pour utilisation sur d'autre mission (terrestre, aerien ...)
+
+   #N : indique une modification numerique, une fois les valeurs 
+   fixees pour un type de chantier, il n'est pas necessaire de les
+   modifier pour un autre.
+
+   #S : indique une modification de nom;
+-->
+<ParamMICMAC  
+    Subst="@$#1"
+    NameDecl="@$#1"
+
+    NumImC="4547"
+    NumVois="4548|4549|4550"
+    FOC="035"
+>
+<Section_Terrain>  
+
+    <!--   Px1IncCalc : l'incertitude est liee au terrain elle est en metre,
+          ici 10 m c'est bcp pour un helico a 30 m.
+
+          Px2IncCalc : en pixel, c'est lie au defaut de mise en place
+     -->
+    
+    <IntervAltimetrie>
+        <ZIncCalc>   5.0 </ZIncCalc>    <!-- metres -->
+    </IntervAltimetrie>
+
+    <Planimetrie>
+          <MasqueTerrain >
+                  <MT_Image > F${FOC}_img_${NumImC}_MpDcraw8B_GR_Masq.tif </MT_Image>
+                  <MT_Xml>    F${FOC}_img_${NumImC}_MpDcraw8B_GR_Masq.xml  </MT_Xml>
+             </MasqueTerrain>
+    </Planimetrie>
+</Section_Terrain>
+<!--  ************************************************************* 
+         Parametres lies a la prise de vue,
+         independamment de son exploitation
+         par le correlateur
+-->
+<Section_PriseDeVue >
+     <GeomImages> eGeomImageOri </GeomImages> 
+     <Images >  
+          <Im1 >   F${FOC}_img_${NumImC}_MpDcraw8B_GR.tif </Im1>  
+          <ImPat > F${FOC}_img_${NumVois}_MpDcraw8B_GR.tif  </ImPat>  
+     </Images>
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc> Key-Assoc-Im2OrFinale-3 </FCND_GeomCalc>  
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+
+<!--
+     <MasqImageIn>
+        <OneMasqueImage>
+	    <PatternSel> .*  </PatternSel>
+	    <NomMasq>   Terrain/Masq.tif </NomMasq>
+        </OneMasqueImage>
+     </MasqImageIn>
+-->
+</Section_PriseDeVue>
+<!--  *************************************************************
+       Parametres fixant le comportement
+     de l'algo de mise en correspondance
+-->
+<Section_MEC >
+	<ChantierFullImage1>  true </ChantierFullImage1>
+	<!-- 
+	     Etape 0, ne sera pas calculee, DeZoom vaut -1,
+	elle permet de donner des valeur par defaut aux autres
+	parametres
+	-->
+        <TypePyramImage>
+               <Resol>   2            </Resol>
+               <TypeEl>  eFloat32Bits </TypeEl>
+        </TypePyramImage>
+
+	<EtapeMEC>
+            <DeZoom >  -1             </DeZoom>
+	    <DynamiqueCorrel> eCoeffCorrelStd </DynamiqueCorrel>
+	    <AggregCorr> eAggregSymetrique </AggregCorr>
+
+            <SzW >       1               </SzW>
+
+
+	    <!--
+	    <TypeWCorr> eWInCorrelRectSpec </TypeWCorr>
+	    <NbIterFenSpec> 4 </NbIterFenSpec>
+	    -->
+
+	    <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+	    <!--
+	    <AlgoRegul>  eAlgoCoxRoy </AlgoRegul>
+	    -->
+            <CoxRoy8Cnx> true </CoxRoy8Cnx>
+            <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+
+            <ZRegul>  0.1     </ZRegul>
+	    <!-- <ZRegul_Quad> 0.1 </ZRegul_Quad>  -->
+	    <ZPas>   0.5     </ZPas>
+            <ZDilatAlti>  3  </ZDilatAlti>
+	    <ZDilatPlani> 4  </ZDilatPlani>
+
+            <SsResolOptim> 1 </SsResolOptim>
+            <CoxRoyUChar> false </CoxRoyUChar>
+
+            <!-- <Gen8Bits_Px1> true </Gen8Bits_Px1> -->
+
+            <ModulationProgDyn Portee="Globale">
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   6               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   5.0    </Px1PenteMax>
+            </ModulationProgDyn>
+
+            <GenImagesCorrel> true </GenImagesCorrel>
+
+	</EtapeMEC>
+
+	<EtapeMEC>
+            <DeZoom >  32    </DeZoom>
+            <SeuilAttenZRegul> 2 </SeuilAttenZRegul>
+        </EtapeMEC>
+
+
+        <EtapeMEC>
+                <DeZoom >  16                </DeZoom>
+        </EtapeMEC>
+
+        <EtapeMEC>
+                <DeZoom >  8                </DeZoom>
+                <!-- <NameVisuTestPC> TerWMasq/Z_Num4_DeZoom8_Geom-ImShade.tif  </NameVisuTestPC> -->
+        </EtapeMEC>
+
+
+
+        <EtapeMEC>
+                <DeZoom >  4                </DeZoom>
+        </EtapeMEC>
+
+        <EtapeMEC>
+                <DeZoom >  2                </DeZoom>
+        </EtapeMEC>
+
+
+        <EtapeMEC>
+                <DeZoom >  1                </DeZoom>
+        </EtapeMEC>
+
+	<EtapeMEC> 
+	       <DeZoom >  1  </DeZoom> 
+	       <ZPas>   1.0     </ZPas>
+               <AlgoRegul> eAlgoDequant </AlgoRegul>
+        </EtapeMEC>
+
+</Section_MEC>
+<!--  *************************************************************
+       Parametres fixant les resultats
+     devant etre produits par l'algo
+-->
+<Section_Results >
+
+    <X_DirPlanInterFaisceau>  ${XVertStd} </X_DirPlanInterFaisceau>
+    <Y_DirPlanInterFaisceau>  ${YVertStd} </Y_DirPlanInterFaisceau>
+    <Z_DirPlanInterFaisceau>  ${ZVertStd} </Z_DirPlanInterFaisceau>
+
+<!--
+    <X_DirPlanInterFaisceau>  0 </X_DirPlanInterFaisceau>
+    <Y_DirPlanInterFaisceau>  0 </Y_DirPlanInterFaisceau>
+    <Z_DirPlanInterFaisceau> -1 </Z_DirPlanInterFaisceau>
+-->
+
+
+    <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D </GeomMNT>
+    <DoMEC >  true </DoMEC> 
+    <ZoomMakeTA> 8 </ZoomMakeTA>
+    <GammaVisu> 2.0 </GammaVisu>
+    <ZoomVisuLiaison> -1 </ZoomVisuLiaison>
+    <!--
+    <DoNothingBut>
+	<ButDoOriMNT>  true </ButDoOriMNT>
+    </DoNothingBut>
+    -->
+    <!--
+    -->
+</Section_Results>
+<!--  *************************************************************
+       Parametres lies a la gestions
+     du "chantier" sur la machine
+-->
+<Section_WorkSpace >
+     <WorkDir >  ThisDir </WorkDir> 
+     <TmpMEC > GeoI-Glob/ </TmpMEC>
+     <TmpPyr > GeoI-Glob/ </TmpPyr>
+     <TmpResult > GeoI-Glob/ </TmpResult>
+
+     <AvalaibleMemory> 1024 </AvalaibleMemory>
+     <SzDalleMin>  400 </SzDalleMin>
+     <SzDalleMax>  1000  </SzDalleMax>
+     <SzRecouvrtDalles> 100 </SzRecouvrtDalles>
+     <ByProcess> 2 </ByProcess>
+     <NomChantier> Geom-Im-${NumImC} </NomChantier>
+     <FirstEtapeMEC> 0 </FirstEtapeMEC>
+
+
+</Section_WorkSpace>
+
+<Section_Vrac> 
+</Section_Vrac>
+
+</ParamMICMAC>
+
