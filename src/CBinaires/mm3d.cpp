@@ -89,6 +89,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
        aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Do some stuff"));
        aRes.push_back(cMMCom("GenXML2Cpp",GenXML2Cpp_main," Do some stuff"));
+       aRes.push_back(cMMCom("Gri2Bin",Gri2Bin_main," Do some stuff"));
        aRes.push_back(cMMCom("GrShade",GrShade_main," Do some stuff"));
        aRes.push_back(cMMCom("MakeGrid",MakeGrid_main," Do some stuff"));
        aRes.push_back(cMMCom("Malt",Malt_main," Simplified matching (inteface to MicMac)"));
@@ -142,7 +143,6 @@ class cSuggest
 int main(int argc,char ** argv)
 {
 	MMD_InitArgcArgv( argc, argv );
-	cout << "GetCurrentProgramFullName() = " << getCurrentProgramFullName() << endl;
 
    const std::vector<cMMCom> & aVComs = getAvailableCommands();
    if ((argc==1) || ((argc==2) && (std::string(argv[1])=="-help")))
