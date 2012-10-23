@@ -946,7 +946,8 @@ cAppliPastis::cAppliPastis(int argc,char ** argv) :
    mFiltreOnlyHom    (0),
    mNbMinValidGlobH  (4),
    mNbMaxValidGlobH  (200000),
-   mSeuilHGLOB       (-1.0)
+   mSeuilHGLOB       (-1.0),
+   UseSiftGpu        (0)
 {
     std::string aKG12="";
     if (!NivPurgeIsInit())
