@@ -101,6 +101,7 @@ namespace NS_ParamChantierPhotogram{
 cMicMacConfiguration * MMC();
 std::string MMDir();
 std::string MMBin();
+std::string getCurrentProgramFullName();
 int MMNbProc();
 bool MPD_MM(); // Est ce que c'est ma machine, afin de ne pas polluer les autres en phase de test !!!!
 

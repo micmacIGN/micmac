@@ -42,8 +42,6 @@ int  BinaireUnique
 		while ( *itChar!='\\' ) itChar--;
 		// path ends after the last backslash
 		itChar[1] = '\0';
-
-		printf("%s\n", aPath);
 	}
 #elif __APPLE__
           FataleError("No mm3d path in Max version");
