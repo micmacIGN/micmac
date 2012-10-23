@@ -455,6 +455,7 @@ int Tarama_main(int argc,char ** argv);
 int Tawny_main(int argc,char ** argv);
 int TestCam_main(int argc,char ** argv);
 int ScaleNuage_main(int argc,char ** argv);
+int Gri2Bin_main(int argc, char **argv);
 
 #endif // ElMemberTpl
 
