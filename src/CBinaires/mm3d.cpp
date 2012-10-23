@@ -113,6 +113,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("TestCam",TestCam_main," Do some stuff"));
        aRes.push_back(cMMCom("tiff_info",tiff_info_main," Do some stuff"));
        aRes.push_back(cMMCom("to8Bits",to8Bits_main," Do some stuff"));
+       aRes.push_back(cMMCom("MPDtest",MPDtest_main," My own test"));
    }
    return aRes;
 }
