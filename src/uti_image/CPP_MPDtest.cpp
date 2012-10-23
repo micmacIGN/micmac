@@ -751,7 +751,7 @@ void TestIm()
 
 }
 
-int main (int argc,char** argv)
+int MPDtest_main (int argc,char** argv)
 {
    TestIm();
 /*
