@@ -634,8 +634,9 @@ cAppliMICMAC * cAppliMICMAC::Alloc(int argc,char ** argv,eModeAllocAM aMode)
 
     
 
-
-    return new cAppliMICMAC(aMode,argv[0],argv[1],aP2,argv+2,argc-2,aName);
+	
+    //return new cAppliMICMAC(aMode,argv[0],argv[1],aP2,argv+2,argc-2,aName);
+    return new cAppliMICMAC(aMode,getCurrentProgramFullName(),argv[1],aP2,argv+2,argc-2,aName);
 }
 
 

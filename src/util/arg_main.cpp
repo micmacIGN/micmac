@@ -954,7 +954,10 @@ mICNM           (0),
 	mIsRelancedByThis (0)
 {
 	bool A1IsFile=false;
-	mThisBin = argv[0];
+
+	MMD_InitArgcArgv( argc, argv );
+	mThisBin = getCurrentProgramFullName();
+
 	if ((argc >2) && (aNbFile>0))
 	{
 		if ( ELISE_fp::exist_file(argv[1]))

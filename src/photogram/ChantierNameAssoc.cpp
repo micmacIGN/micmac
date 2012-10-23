@@ -379,6 +379,7 @@ bool ElGetStrSys( const std::string & i_base_cmd, std::string &o_result )
 
 
 static std::string ArgvMMDir;
+static std::string CurrentProgramFullName;
 void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 {
 	if ((aNbMin >=0) && (argc < aNbMin))
@@ -397,11 +398,11 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 #if ELISE_windows
 		TCHAR FilePath[MAX_PATH] = { 0 };
 		GetModuleFileName(NULL,FilePath, MAX_PATH );
-		std::string sFilePath(FilePath),
-					sFile;
+		CurrentProgramFullName = string( FilePath );
+		std::string sFile;
 
-		replace( sFilePath.begin(), sFilePath.end(), '\\', '/' );
-		SplitDirAndFile(ArgvMMDir,sFile,sFilePath);
+		replace( CurrentProgramFullName.begin(), CurrentProgramFullName.end(), '\\', '/' );
+		SplitDirAndFile(ArgvMMDir,sFile,CurrentProgramFullName);
 		
 		ArgvMMDir.resize( ArgvMMDir.length()-1 );
         SplitDirAndFile(ArgvMMDir,sFile,ArgvMMDir);
@@ -439,9 +440,12 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
                            ArgvMMDir=std::string(".")+ELISE_CAR_DIR;
 			}
 		}
+		CurrentProgramFullName = aFulArg0;
 #endif
+		CurrentProgramFullName.append( std::string( " " )+argv[1] );
 	}
 }
+
 
 int NbProcSys()
 {
@@ -1914,8 +1918,8 @@ namespace NS_ParamChantierPhotogram{
 		if (!aCM.ActivateCmdMap())
 			return;
 
-		std::string aCom0;
-		for (int aKA=0 ; aKA<argc ; aKA++)
+		std::string aCom0 = getCurrentProgramFullName()+' ';
+		for (int aKA=1 ; aKA<argc ; aKA++)
 		{
 			aCom0 = aCom0 +  std::string(argv[aKA])+ " ";
 		}
@@ -2246,6 +2250,8 @@ namespace NS_ParamChantierPhotogram{
 		}
 		return ArgvMMDir;
 	}
+	
+	std::string getCurrentProgramFullName(){ return CurrentProgramFullName;}
 
 	bool MPD_MM()
 	{
