@@ -1,8 +1,7 @@
-#include <iostream>
-#include "cOrientationGrille.h"
+#include "StdAfx.h"
 
 
-int main(int argc, char **argv)
+int Gri2Bin_main(int argc, char **argv)
 {
 	if (argc!=3)
 	{
