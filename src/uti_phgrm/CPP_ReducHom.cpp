@@ -37,7 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "ReducHom/ReducHom.h"
+#include "StdAfx.h"
 
 /*
 AFAIRE :

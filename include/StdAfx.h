@@ -17,6 +17,9 @@
 #include <string>
 #include <set>
 #include <vector>
+#include <sstream>
+#include <iostream>
+#include <stdexcept>
 
 extern bool BugDG;
 
@@ -65,10 +68,11 @@ extern bool BugDG;
 #include "private/garb_coll_tpl.h"
 #include "private/flux_pts.h"
 #include "private/flux_pts_tpl.h"
+#include "private/bitm_def.h"
+#include "private/bitm_tpl.h"
 
 #include "im_tpl/flux.h"
 
-#include "private/bitm_def.h"
 #include "private/bitm_bits.h"
 
 #include "ext_stl/fixed.h"
@@ -116,6 +120,7 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #include "im_tpl/correl_imget_ptr.h"
 #include "im_tpl/algo_filter_exp.h"
 #include "im_tpl/oper_assoc_exter.h"
+#include "im_tpl/fonc_operator.h"
 #include "im_tpl/algo_dist32.h"
 #include "im_tpl/ex_oper_assoc_exter.h"
 #include "im_tpl/elise_ex_oper_assoc_exter.h"
@@ -155,7 +160,7 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #include "../src/HassanArrangt/cElHJa_all.h"
 #include "../src/hough/hough_include.h"
 
-#include "../src/uti_image/MpDCraw/MpDcraw.h"
+#include "../src/uti_image/MpDcraw/MpDcraw.h"
 
 #include "../src/uti_phgrm/ReducHom/ReducHom.h"
 #include "../src/uti_phgrm/Apero/cParamApero.h"

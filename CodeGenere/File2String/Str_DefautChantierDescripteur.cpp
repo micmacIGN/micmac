@@ -1,5 +1,4 @@
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 const char * (theNameVar_DefautChantierDescripteur[2475]) = {
 "<!--\n",
 "   Pour ne pas l'oublier : \n",

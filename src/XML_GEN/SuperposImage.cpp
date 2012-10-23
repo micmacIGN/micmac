@@ -1,6 +1,4 @@
-#include "general/all.h"
-#include "private/all.h"
-#include "XML_GEN/SuperposImage.h"
+#include "StdAfx.h"
 namespace NS_SuperposeImage{
 eTypeSurfaceAnalytique  Str2eTypeSurfaceAnalytique(const std::string & aName)
 {
