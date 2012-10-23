@@ -852,6 +852,12 @@ void cAppliMICMAC::SauvParam()
 							+ std::string("param_")
 							+ mNameChantier
 							+ std::string("_Ori.xml\"");
+
+#if (ELISE_windows)
+  // TODO: a generic function for copying files
+  replace( aNameSaveOri.begin(), aNameSaveOri.end(), '/', '\\' );
+#endif
+
   std::cout << aNameSaveOri << std::endl;
   VoidSystem(aNameSaveOri.c_str());
 
