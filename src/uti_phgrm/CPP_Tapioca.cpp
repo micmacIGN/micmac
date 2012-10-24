@@ -109,20 +109,10 @@ void DoMkT()
 {
     if (ByP)
     {
-		std::string aSMkSr;
-		if(UseSiftGpu)
-			aSMkSr = std::string("make all -f ") + MkFT;// +std::string(" -j")+ToString(ByP);
-		else
-	 		aSMkSr = std::string("make all -f ") + MkFT +std::string(" -j")+ToString(ByP);
-
+		std::string aSMkSr = std::string("make all -f ") + MkFT + (UseSiftGpu ? "" : std::string(" -j")+ToString(ByP));
         System(aSMkSr,true);
     }
 }
-
-
-
-
-
 
 void DoDevelopp(int aSz1,int aSz2)
 {

@@ -251,55 +251,42 @@ std::string cAppliPastis::NameKey(const std::string & aFullName)
 
 void cAppliPastis::GenerateKey(const std::string & aName,const std::string & aNameIm)
 {
-  if (mOnlyXML) 
-     return;
+	if (mOnlyXML) 
+		return;
 
-  std::string aNK = NameKey(aNameIm);
+	std::string aNK = NameKey(aNameIm);
 
-  std::string aCom ;
-    
-// static const std::string TheStrSiftPP = "siftpp_tgi.LINUX";
-// static const std::string TheStrAnn = "ann_mec_filtre.LINUX"
-  if (mModeBin==eModeLeBrisPP)
-  {
-// std::cout << aNameIm << " " <<  NameFileStd(aNameIm,1) << "\n"; getchar();
+	std::string aCom ;
 
-	std::string OptOut;
-	std::string TheStrSiftBin;
+	if (mModeBin==eModeLeBrisPP)
+	{
 
-	// CHOIX du binaire CPU ou GPU pour le calcul des points clés SIFT
+		std::string OptOut = " -o ";
+		std::string TheStrSiftBin;
+
+		// CHOIX du binaire CPU ou GPU pour le calcul des points clés SIFT
 #if ELISE_windows
-	if (UseSiftGpu)
-	{
-		OptOut = " -o ";
-		TheStrSiftBin = TheStrSiftGPU;
-	}
-	else
-	{
-		OptOut = " -o";
-		TheStrSiftBin = TheStrSiftPP;
-	}
+		TheStrSiftBin = UseSiftGpu ? TheStrSiftGPU : TheStrSiftPP;
 #else
-	OptOut = " -o";
-	TheStrSiftBin = TheStrSiftPP;
+		TheStrSiftBin = TheStrSiftPP;
 #endif
 
-	aCom =	mBinDirAux +
-			TheStrSiftBin +
-			NameFileStd(aNameIm,1,false) +
-			OptOut +
-			aNK;
+		aCom =	mBinDirAux +
+				TheStrSiftBin +
+				NameFileStd(aNameIm,1,false) +
+				OptOut +
+				aNK;
 
-  }
-  else if (mModeBin==eModeAutopano)
-  {
-       aCom =	std::string("generatekeys ") +
+	}
+	else if (mModeBin==eModeAutopano)
+	{
+		aCom =	std::string("generatekeys ") +
 				aNameIm + " " +
 				aNK + " " +
 				((mSzPastis >=0) ? ToString(mSzPastis) : std::string(""));
-   }
+	}
 
-  System(aNK.c_str(),aCom);
+	System(aNK.c_str(),aCom);
 }
 
 void cAppliPastis::GenerateMatch(const std::string & aNI1,const std::string & aNI2)
@@ -317,14 +304,7 @@ void cAppliPastis::GenerateMatch(const std::string & aNI1,const std::string & aN
 std::string TheStrAnnBin;
 
 #if ELISE_windows
-	if (UseSiftGpu)
-
-		TheStrAnnBin = TheStrAnnGPU;
-	
-	else
-
-		TheStrAnnBin = TheStrAnnPP;
-	
+	TheStrAnnBin = UseSiftGpu ? TheStrAnnGPU : TheStrAnnPP;	
 #else
 	TheStrAnnBin = TheStrAnnPP;
 #endif
@@ -335,16 +315,15 @@ std::string TheStrAnnBin;
 			NameKey(aNI2) + std::string(" ") +
 			mNameAPM;
 
-// std::cout << "CCCCCC " << aCom << "\n";
+
   }
   else if (mModeBin==eModeAutopano)
   {
       aCom = std::string("autopano --ransac off ")
 		     + std::string("--maxmatches ") + ToString(mNbMaxMatch) +  std::string(" ")
-                     + mNameAPM +  std::string(" ")
+             + mNameAPM +  std::string(" ")
 		     + NameKey(aNI1) + std::string(" ")
-		     + NameKey(aNI2) + std::string(" ")
-		     ; 
+		     + NameKey(aNI2) + std::string(" "); 
   }
 
   System(mNameAPM.c_str(),aCom);
