@@ -2191,6 +2191,12 @@ std::string NameFileStd
    }
 
    delete aTif;
+   if ( FileStrictPlusRecent(aNewName,aFullNameOri) )
+   {
+      std::cout << "FOR FILE " <<aFullNameOri << "\n";
+      ELISE_ASSERT(false,"File has probably a date in futur (you may use touch to change that)");
+   }
+
    return aNewName;
 }
 

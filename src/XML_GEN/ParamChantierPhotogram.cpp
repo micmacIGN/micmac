@@ -1,4 +1,7 @@
 #include "StdAfx.h"
+//#include "general/all.h"
+//#include "private/all.h"
+// #include "XML_GEN/ParamChantierPhotogram.h"
 namespace NS_ParamChantierPhotogram{
 eTypeMalt  Str2eTypeMalt(const std::string & aName)
 {

@@ -736,26 +736,47 @@ std::list<cElXMLTree *>  cElXMLTree::Interprete()
          )
          {
               bool aVal = Str2BoolForce(aVTest); 
+              // ELISE_ASSERT(mFils.size()==2,"Bd size in #IF-tag");
+              int aCpt = 0;
+
+              int aLim = 1000000000; // Cas WHEN
               if (mValTag==StrIF)
               {
-                  ELISE_ASSERT(mFils.size()==2,"Bd size in #IF-tag");
-                  int aCpt = 0;
-                  int aLim = 1;
-                  for 
-                  (
+                 std::string aStrLim   = ValAttr("GOTO","1"); 
+                 FromString(aLim,aStrLim);
+              }
+              for 
+              (
                         std::list<cElXMLTree *>::iterator anIt= mFils.begin();
                         anIt!= mFils.end();
                         anIt++
-                  )
-                  {
-                     if ( aVal ^ (aCpt >= aLim))
-                        aRes.push_back(*anIt);
-                      aCpt++;
-                  }
-
-                  return aRes;
+              )
+              {
+                 if (aVal ^ (aCpt >= aLim))
+                    aRes.push_back(*anIt);
+                 aCpt++;
               }
+  
+              return aRes;
          }
+         if (mValTag==StrSWITCH)
+         {
+              std::list<cElXMLTree *> aRDef;
+              for 
+              (
+                        std::list<cElXMLTree *>::iterator anIt= mFils.begin();
+                        anIt!= mFils.end();
+                        anIt++
+              )
+              {
+                 std::string aStrCase   = (*anIt)->ValAttr("CASE"); 
+                 if (aStrCase==aVTest)
+                    aRes.push_back(*anIt);
+                 else if (aStrCase=="DEFAULT")
+                    aRDef.push_back(*anIt);
+              }
+              return aRes.empty() ? aRDef : aRes;
+         }     
    }
 
    aRes.push_back(this);

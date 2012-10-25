@@ -1538,7 +1538,7 @@ class ElCamera : public cCapture3D
 		  // 3D et les points 2D
 
           bool Devant(const Pt3dr &) const;
-          bool TousDevant(const list<Pt3dr> &) const;
+          bool TousDevant(const std::list<Pt3dr> &) const;
           REAL EcProj(const ElSTDNS list<Pt3dr> & PR3 ,
                       const ElSTDNS list<Pt2dr> & PF2) const;
 

@@ -1,13 +1,13 @@
 <GenCpp  Difndef="Define_NotSaisiPts">
 
 <Verbatim File=".h">
-#include "general/all.h"
-#include "private/all.h"
+// #include "general/all.h"
+// #include "private/all.h"
 using namespace NS_ParamChantierPhotogram;
 using namespace NS_SuperposeImage;
 </Verbatim>
 <Verbatim File=".cpp">
-#include "cParamSaisiePts.h"
+#include "StdAfx.h"
 </Verbatim>
 <Verbatim File=".h.cpp">
 namespace NS_SaisiePts{

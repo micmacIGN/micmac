@@ -1,19 +1,18 @@
 <GenCpp>
 
 <Verbatim File=".h.cpp">
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 </Verbatim>
 <Verbatim  File=".h">
 #ifndef Define_NotApero
 #define Define_NotApero
 </Verbatim>
 <Verbatim File=".cpp">
-#include "cParamApero.h"
+// UNUSED #include "cParamApero.h"
 </Verbatim>
 
 <Verbatim File=".h">
-#include "XML_GEN/all.h"
+// #include "XML_GEN/all.h"
 using namespace NS_ParamChantierPhotogram;
 using namespace NS_SuperposeImage;
 </Verbatim>

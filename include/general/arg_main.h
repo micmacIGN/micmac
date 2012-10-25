@@ -244,14 +244,14 @@ template <class Type> class ElArgMain : public GenElArgMain
 		}
                 void show(bool named) const
                 {
-                    cout << "  * ";
+                    std::cout << "  * ";
                     if (named)
-                       cout << "[Name=" << name() <<"] " ;
+                       std::cout << "[Name=" << name() <<"] " ;
                        
-                    cout << str_type(_adr);
+                    std::cout << str_type(_adr);
                     if (mCom != "") 
-                       cout << " :: {" << mCom  <<"}" ;
-                    cout <<"\n";
+                       std::cout << " :: {" << mCom  <<"}" ;
+                    std::cout <<"\n";
                 }
 
 
