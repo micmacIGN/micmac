@@ -48,6 +48,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                     */
 /*******************************************************/
 
+#pragma once
+
+
+
 class ElEM   // Elise Erreur Message
 {
       friend class Elise_Pile_Mess_0;

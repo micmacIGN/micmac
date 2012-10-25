@@ -2,20 +2,23 @@
 
 
 <Verbatim File=".h.cpp">
-#include "general/all.h"
-#include "private/all.h"
+// #include "general/all.h"
+// #include "private/all.h"
 </Verbatim>
 <Verbatim  File=".h">
 #ifndef Define_NotSupIm
 #define Define_NotSupIm
 </Verbatim>
 <Verbatim File=".cpp">
-#include "XML_GEN/SuperposImage.h"
+// #include "XML_GEN/SuperposImage.h"
+#include "StdAfx.h"
 </Verbatim>
 
 
 <Verbatim File=".h">
-#include "XML_GEN/ParamChantierPhotogram.h"
+// #include "general/all.h"
+// #include "private/all.h"
+// #include "XML_GEN/ParamChantierPhotogram.h"
 using namespace NS_ParamChantierPhotogram;
 </Verbatim>
 <Verbatim File=".h.cpp">
@@ -44,8 +47,8 @@ namespace NS_SuperposeImage{
 
 
     <WindowSelection Nb="1" UnionType="true"  Class="true" ToReference="true">
-            <AllPts Nb="?"  Type="string"> </AllPts>
-            <PtsCenter Nb="?"  Type="string"> </PtsCenter>
+            <AllPts Nb="?"  Type="std::string"> </AllPts>
+            <PtsCenter Nb="?"  Type="std::string"> </PtsCenter>
             <Percent Nb="?"  Type="double"> </Percent>
     </WindowSelection>
 

@@ -41,8 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
-//#include "im_tpl/max_loc.h"
-
 using namespace NS_SaisiePts;
 
 

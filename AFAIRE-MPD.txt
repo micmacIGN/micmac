@@ -1,10 +1,6 @@
 Malt, géométrie image, pouvoir estimer le plan sur un repere cartesien (comme OrthoCyl)
 
 
-* DATE DANS LE FUTURE  TAPIOAC
-
-* BUG PGM MPDCRAW (Ecritue de Message dans mm3d)
-
-PB JPG (ou bouclage futur ??)
+Ajouter Test sur fichiers Raw.
 
 

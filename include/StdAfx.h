@@ -51,37 +51,112 @@ extern bool BugDG;
        #define ELISE_Cygwin 0
 #endif
 
+
+//  =================
+
+namespace NS_ParamChantierPhotogram
+{
+   class cOrientationConique;
+};
+
+using namespace std;
+
+
 #include "general/MM_InstalDir.h"
 #include "general/sys_dep.h"
 #include "general/opt_debug.h"
+#include "general/allocation.h"
 #include "general/util.h"
 #include "general/ptxd.h"
-
-#include "api/el_regex.h"
-
-#include "general/allocation.h"
+#include "general/tabulation.h"
+#include "general/smart_pointeur.h"
 #include "general/garb_coll_pub.h"
 #include "general/abstract_types.h"
 #include "general/bitm.h"
-#include "general/tabulation.h"
+#include "general/users_op_buf.h"
+#include "general/colour.h"
+#include "general/graphics.h"
+#include "ext_stl/fifo.h"
+#include "general/window.h"
+#include "general/file_im.h"
+#include "general/tiff_file_im.h"
+#include "general/operator.h"
+#include "general/plot1d.h"
+#include "general/morpho.h"
+#include "general/orilib.h"
+#include "general/vecto.h"
+#include "general/geom_vecteur.h"
+#include "ext_stl/elslist.h"
+#include "general/photogram.h"
+#include "general/mullgesuhlig.h"
+#include "general/optim.h"
+#include "general/error.h"
+#include "general/arg_main.h"
+#include "general/compr_im.h"
+#include "general/correl.h"
+#include "general/ijpeg.h"
+#include "general/cube_flux.h"
+#include "general/phgr_formel.h"
+#include "general/phgr_dist_unif.h"
+#include "general/exemple_phgr_formel.h"
+#include "general/exemple_basculement.h"
+#include "general/simul_phgr.h"
+#include "general/phgr_orel.h"
+#include "api/vecto.h"
+#include "api/el_regex.h"
+#include "general/phgr_san.h"
+#include "general/hassan_arrangt.h"
 
+//  ==== AJOUT  =====
+
+#include "private/util.h"
+#include "private/garb_coll_private.h"
+#include "private/colour.h"
 #include "private/garb_coll_tpl.h"
 #include "private/flux_pts.h"
 #include "private/flux_pts_tpl.h"
+#include "private/fonc_num.h"
+#include "private/fonc_num_tpl.h"
+#include "private/output.h"
 #include "private/bitm_def.h"
 #include "private/bitm_tpl.h"
-
-#include "im_tpl/flux.h"
-
 #include "private/bitm_bits.h"
+#include "private/bitm_comp.h"
+#include "private/neihgbour_rel.h"
+#include "private/graphics.h"
+#include "private/gen_window.h"
+#include "private/plot1d.h"
+#include "private/files.h"
+#include "private/tiff.h"
+#include "private/func_opbinmix_tpl.h"
+#include "private/op_buf.h"
+#include "private/hassan.h"
+#include "private/orilib.h"
+#include "private/morpho.h"
+#include "private/post_script.h"
+#include "private/compr_im.h"
+#include "private/recipes.h"
 
 #include "ext_stl/fixed.h"
-
+#include "im_tpl/flux.h"
 #include "im_tpl/image.h"
+
+#include "private/cElNuage3DMaille.h"
+#include "private/TraitRadiom.h"
+
+
+//===================
+
+
+
+
+#include "XML_GEN/ParamChantierPhotogram.h"
+#include "XML_GEN/SuperposImage.h"
 
 #include "XML_GEN/all.h"
 
-#include "api/vecto.h"
+
+
 
 // TODO : these global functions and classes should be placed somewhere else
 // see all.cpp for definitions
@@ -163,10 +238,16 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #include "../src/uti_image/MpDcraw/MpDcraw.h"
 
 #include "../src/uti_phgrm/ReducHom/ReducHom.h"
+
 #include "../src/uti_phgrm/Apero/cParamApero.h"
 #include "../src/uti_phgrm/Apero/Apero.h"
+
+
+#include "../src/uti_phgrm/MICMAC/cParamMICMAC.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 #include "../src/uti_phgrm/Porto/Porto.h"
 
-#include "../src/uti_phgrm/SaisiePts/SaisiePts.h"
 #include "../src/uti_phgrm/SaisiePts/cParamSaisiePts.h"
+#include "../src/uti_phgrm/SaisiePts/SaisiePts.h"
+#include "im_tpl/max_loc.h"
+
