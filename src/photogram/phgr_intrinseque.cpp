@@ -548,7 +548,7 @@ cCamStenopeGrid * cParamIntrinsequeFormel::CamGrid()
    return mCamGrid;
 }
 
-void cParamIntrinsequeFormel::UpdateCamGrid(bool aTol)
+void cParamIntrinsequeFormel::UpdateCamGrid( double aTol)
 {
    if (UseAFocal()  &&  (! AFocalAcceptNoDist))
       return;

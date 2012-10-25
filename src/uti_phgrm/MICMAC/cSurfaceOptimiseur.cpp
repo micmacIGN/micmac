@@ -69,7 +69,7 @@ cSurfaceOptimiseur::cSurfaceOptimiseur
    mCsteCost   (aCsteCost),
    mAppli      (anAppli),
    mDefCost     (anAppli.DefCost()),
-   mOneDCAllDC (anAppli.CurDCAllDC()),
+   mOneDCAllDC (anAppli.CurDCAllDC()!=0),
    mDimPx      (mAppli.DimPx()),
    mEtape      (*(anAppli.CurEtape())),
    mDeZoom     (mEtape.DeZoomTer()),

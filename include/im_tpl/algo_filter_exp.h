@@ -59,7 +59,7 @@ template <class TypeI,class TypeF>  void  FilterLinExpVar
    for (int anX = aNb-2; anX>=0 ; anX--)
    {
            input[anX]   += Fact[anX+1] * input[anX+1];
-           input[anX+1] += aBuf[anX+1];
+           input[anX+1] += (TypeI)( aBuf[anX+1] );
    }
 }
 
@@ -98,7 +98,7 @@ if (Bug)
      FilterLinExpVar(aDPond,Fact,aBuf,aNb); 
      for (int anX = 0; anX<aNb ; anX++)
      {
-        aDPond[anX] = ElMax(1e-4,double(aDPond[anX]));
+        aDPond[anX] = (float)( ElMax(1e-4,double(aDPond[anX])) );
      }
      for (int aKIt = 0 ; aKIt<aNbIter ; aKIt ++)
      {

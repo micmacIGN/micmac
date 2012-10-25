@@ -1063,7 +1063,7 @@ class cParamIntrinsequeFormel : public cElemEqFormelle,
            double StdScaleNNoGrid() const;
 	   CamStenope * CamInit();  // Utilisee pour pre-corriger les distortions
            cCamStenopeGrid * CamGrid();
-           void              UpdateCamGrid(bool aTol);
+           void              UpdateCamGrid( double aTol );
 
 	   virtual  std::string  NameType() const;
 	    // Direction rayon ,  Cam->Monde

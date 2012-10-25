@@ -279,7 +279,9 @@ class cAppliReduc
 
          void  QuadrReestimFromVois(std::vector<cImagH*> & aVI,int aFlag);
 
-         void TestMerge();
+		 // the two version of TestMerge() found during the merge of binaries
+         void TestMerge_SimulMerge();
+         void TestMerge_CalcHcImage();
 
      private :
 

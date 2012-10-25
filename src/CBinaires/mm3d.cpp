@@ -181,7 +181,7 @@ int main(int argc,char ** argv)
       if (! mSugg[aKS]->mRes.empty())
       {
            std::cout << "Suggest by " << mSugg[aKS]->mName << "\n";
-           for (int aKC=0 ; aKC<mSugg[aKS]->mRes.size() ; aKC++)
+           for (unsigned int aKC=0 ; aKC<mSugg[aKS]->mRes.size() ; aKC++)
            {
                 std::cout << "    " << mSugg[aKS]->mRes[aKC].mName << "\n";
            }

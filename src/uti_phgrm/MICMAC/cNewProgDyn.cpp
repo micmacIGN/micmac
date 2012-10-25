@@ -432,8 +432,8 @@ template <class Type> void cMMNewPrg2D<Type>::DoConnexion
           tCelOpt*Ouput,int aOutZMin,int aOutZMax
      )
 {
-   bool okPIn  = mTMaskTer.get(aPIn);
-   bool okPOut = mTMaskTer.get(aPOut);
+   bool okPIn  = ( mTMaskTer.get(aPIn)!=0 );
+   bool okPOut = ( mTMaskTer.get(aPOut)!=0 );
 
    bool  okInOut = (okPIn && okPOut);
 

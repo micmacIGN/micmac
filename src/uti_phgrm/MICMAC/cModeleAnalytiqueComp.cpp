@@ -358,7 +358,7 @@ void cMatrCorresp::Normalize
                        if (! aMMin)
 		          aCorAgr /= aNb;
 
-                       aIRCC.data()[aPRas.y][aPRas.x] = aCorAgr;
+                       aIRCC.data()[aPRas.y][aPRas.x] = (REAL4)aCorAgr;
                        // std::cout << "COR = " << aCorAgr << "\n";
 		       if (aCorAgr < aRCCME->Seuil() )
 		       {

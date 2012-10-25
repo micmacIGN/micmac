@@ -125,15 +125,15 @@ void cConvertBaseXXX::PutC(char aC,std::ostream & aStream)
    {
       for (int aK=0 ; aK<mNbBaseOut ; aK++)
       {
-          int aCout = mCurI/mPowbaseOut[aK];
-	  aStream << mSetChar[aCout];
-	  mCurI = mCurI - aCout * mPowbaseOut[aK];
-	  mNbInCurLine++;
-	  if (mNbInCurLine==mNbMaxParLine)
-	  {
-	     aStream <<  "\n";
-	     mNbInCurLine=0;
-	  }
+          int aCout = (int)( mCurI/mPowbaseOut[aK] );
+		  aStream << mSetChar[aCout];
+		  mCurI = mCurI - aCout * mPowbaseOut[aK];
+		  mNbInCurLine++;
+		  if (mNbInCurLine==mNbMaxParLine)
+		  {
+			 aStream <<  "\n";
+			 mNbInCurLine=0;
+		  }
       }
       mNbCCur = 0;
       // Si mCurI != 0, toute l'info n'a pas ete transmise !!
@@ -162,7 +162,7 @@ int  cConvertBaseXXX::GetC(std::istream & aStream)
       mNbCCur = mNbBaseIn;
    }
    mNbCCur--;
-   int aRes = mCurI / mPowbaseIn[mNbCCur];
+   int aRes = (int)( mCurI/mPowbaseIn[mNbCCur] );
    mCurI -= aRes * mPowbaseIn[mNbCCur];
    aRes += CHAR_MIN;
    // std::cout << "OUTPUT : " << aRes << "\n";

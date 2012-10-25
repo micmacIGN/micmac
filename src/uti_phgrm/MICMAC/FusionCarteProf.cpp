@@ -451,11 +451,8 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
                 aZ = (aZ -mIP->OrigineAlti()) / mIP->ResolutionAlti();
                 Ok=1;
             }
-            else
-            {
-            }
-            aTImFus.oset(aQ0,aZ);
-            aTImMasq.oset(aQ0,Ok);
+            aTImFus.oset(aQ0,(tNBase)aZ);
+            aTImMasq.oset(aQ0,(tNBase)Ok);
         }
    }
 

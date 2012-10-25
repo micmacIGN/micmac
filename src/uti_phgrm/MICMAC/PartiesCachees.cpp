@@ -209,7 +209,7 @@ double cMicMacZbuf::ZofXY(const Pt2di & aP)   const
 
 bool cMicMacZbuf::SelectP(const Pt2di & aP)   const  
 {
-   return mTImMasq.get(aP+mTrGT,0);
+   return ( mTImMasq.get(aP+mTrGT,0)!=0 );
    // return mTImMasq.get(aP,0);
 }
 
@@ -648,7 +648,7 @@ void cAppliMICMAC::MakePartiesCachees
 
         aMmZB.SetWithBufXYZ(aGPC.BufXYZ().Val());
 
-        float aZDef = -1e15;
+        float aZDef = -1e15f;
 
         Im2D_REAL4 aIPC = aMmZB.ZCaches (Pt2di(0,0),aGT.SzClip(), aZDef);
     

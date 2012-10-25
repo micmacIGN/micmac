@@ -358,7 +358,7 @@ if (mCO.TestDiff().Val())
                   std::vector<float> aVF;
                   for (int aK=0 ; aK<int(aVRes.size()) ; aK++)
                   {  
-                      aVF.push_back(aVRes[aK]);
+                      aVF.push_back( (float)( aVRes[aK] ) );
                   }
 
                   anERIPrinc->AddMesure(aMERIPrinc, aP0+aLI->DecLoc(), aVF);
