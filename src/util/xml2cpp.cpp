@@ -955,6 +955,14 @@ bool Str2Bool(bool & aRes,const std::string & aStr)
     return false;
 }
 
+bool Str2BoolForce(const std::string & aStr)
+{
+    bool aRes;
+    bool Ok = Str2Bool(aRes,aStr);
+    ELISE_ASSERT(Ok,"Bad value for bool");
+
+    return aRes;
+}
 
 void xml_init(bool  & aVal,cElXMLTree * aTree)
 {

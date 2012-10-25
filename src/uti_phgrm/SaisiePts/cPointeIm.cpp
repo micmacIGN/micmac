@@ -37,11 +37,8 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/all.h"
-#include "private/all.h"
-#include "SaisiePts.h"
+#include "StdAfx.h"
 
-#include "im_tpl/max_loc.h"
 
 using namespace NS_SaisiePts;
 
@@ -52,109 +49,25 @@ using namespace NS_SaisiePts;
 /*                                               */
 /*************************************************/
 
-const Pt2dr cWinIm::PtsEchec (-100000,-10000);
-
-Pt2dr cWinIm::RecherchePoint(const Pt2dr & aPIm,eTypePts aType,double aSz,cPointGlob * aPG)
+cSP_PointeImage::cSP_PointeImage
+(
+   cOneSaisie *      aSIm,
+   cImage *          anIm,
+   cSP_PointGlob  *  aPGl
+) :
+  mSIm      (aSIm),
+  mIm       (anIm),
+  mGl       (aPGl),
+  mVisible  (true)
 {
-     Tiff_Im aTF = mCurIm->Tif();
-     Pt2di aSzT = aTF.sz();
-
-     int aRab = 5 + round_up(aSz);
-     if ((aPIm.x <aRab) || (aPIm.y <aRab) || (aPIm.x >aSzT.x-aRab)|| (aPIm.y >aSzT.y-aRab))
-         return PtsEchec;
-
-
-     Pt2di aMil  = mAppli.SzRech() / 2;
-     Im2D_INT4 aImA = mAppli.ImRechAlgo();
-     mAppli.DecRech() = round_ni(aPIm) - aMil;
-     Pt2di aDec = mAppli.DecRech();
-     ELISE_COPY
-     (
-         aImA.all_pts(),
-         mCurIm->FilterImage(trans(aTF.in_proj(),aDec),aType,aPG),
-         aImA.out()
-     );
-     ELISE_COPY
-     (
-         aImA.all_pts(),
-         trans(aTF.in_proj(),aDec),
-         //  mCurIm->FilterImage(trans(aTF.in_proj(),aDec),aType),
-         mAppli.ImRechVisu().out()
-     );
-
-
-     if (aType==eNSM_Pts)
-     {
-        return aPIm;
-     }
-
-
-
-     Pt2dr aPosImInit = aPIm-Pt2dr(aDec);
-
-
-
-     bool aModeExtre = (aType == eNSM_MaxLoc) ||  (aType == eNSM_MinLoc) || (aType==eNSM_GeoCube);
-     bool aModeMax = (aType == eNSM_MaxLoc) ||  (aType==eNSM_GeoCube);
-
-
-     if (aModeExtre)
-     {
-          aPosImInit = Pt2dr(MaxLocEntier(aImA,round_ni(aPosImInit),aModeMax,2.1));
-          aPosImInit = MaxLocBicub(aImA,aPosImInit,aModeMax);
-
-
-          return aPosImInit+ Pt2dr(aDec);
-     }
-
-
-     return aPIm;
 }
 
+cOneSaisie *    cSP_PointeImage::Saisie() {return mSIm;}
+cImage *        cSP_PointeImage::Image()  {return mIm;}
+cSP_PointGlob * cSP_PointeImage::Gl()     {return mGl;}
 
-void  cWinIm::CreatePoint(const Pt2dr & aPW,eTypePts aType,double aSz)
-{
-     Pt2dr aPGlob = RecherchePoint(mScr->to_user(aPW),aType,aSz,0);
 
-     if (aPGlob==PtsEchec)
-     {
-         return;
-     }
-
-     mAppli.ShowZ(aPGlob);
-
-     cCaseNamePoint * aCNP = mAppli.GetIndexNamePt();
-
-     bool Ok = aCNP && aCNP->mFree && (aCNP->mTCP != eCaseCancel);
-     mAppli.ShowZ(aPGlob);
-
-     if (Ok)
-     {
-         mCurIm->CreatePGFromPointeMono(aPGlob,aType,aSz,aCNP);
-     }
-     else
-     {
-        mAppli.MenuNamePoint()->W().lower();
-     }
-}
-
-void cAppli_SaisiePts::ShowZ(const Pt2dr & aPGlob)
-{
-     double aZoom = 10.0;
-
-     Pt2dr aPIm = aPGlob- Pt2dr(DecRech());
-     Pt2dr aPMil = Pt2dr(SzWZ())/(2.0*aZoom);
-
-     Video_Win aWC = WZ().chc(aPIm-aPMil,Pt2dr(aZoom,aZoom));
-     ELISE_COPY
-     (
-                aWC.all_pts(),
-                ImRechVisu().in(0),
-                aWC.ogray()
-     );
-     aWC.draw_circle_abs(aPIm,4.0,Line_St(aWC.pdisc()(P8COL::blue),3.0));
-}
-
+bool & cSP_PointeImage::Visible() {return mVisible;}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
