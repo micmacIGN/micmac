@@ -587,7 +587,7 @@ Data_Elise_PS_Disp::Data_Elise_PS_Disp
 
       _fp << "%!PS-Adobe-2.0\n";
       _fp << "%%BoundingBox: ";
-      _offs_bbox = _fp.tellp();
+      _offs_bbox = (INT)_fp.tellp();
       _fp << "                                                                        \n";
       _fp << "%%Creator : ELISE.0.0\n";
       _fp << "%%Title :" << title << "\n";
@@ -639,7 +639,7 @@ Data_Elise_PS_Disp::Data_Elise_PS_Disp
 
 void Data_Elise_PS_Disp::add_file(ofstream &f,const char * name)
 {
-    INT nb = f.tellp();
+    INT nb = (INT)f.tellp();
     f.close();
     ifstream   src(name,ios::in);
 

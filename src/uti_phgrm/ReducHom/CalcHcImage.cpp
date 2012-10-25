@@ -52,7 +52,6 @@ class cNoAttr
 /*                                               */
 /*************************************************/
 
-
 bool cImagH::ComputeLnkHom(cLink2Img & aLnk)
 {
    // const ElPackHomologue aPack=ElPackHomologue::FromFile(mAppli.Dir()+aLnk.NameH());
@@ -157,6 +156,8 @@ void cImagH::VoisinsMarques(std::vector<cLink2Img*> & aVois,int aFlagN)
 }
 
 
+
+
 void  cAppliReduc::QuadrReestimFromVois(std::vector<cImagH*> & aVLocIm,int aFlag)
 {
 
@@ -221,11 +222,8 @@ void  cAppliReduc::QuadrReestimFromVois(std::vector<cImagH*> & aVLocIm,int aFlag
         anI->Hi2t() =  anI->HF()->HomCur();
     }
 }
-/*
-*/
 
-
-void cAppliReduc::TestMerge()
+void cAppliReduc::TestMerge_CalcHcImage()
 {
     cParamMerge  aParam;
     

@@ -318,7 +318,7 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
          double aBestK = -1;
          double aBestGain = -1;
          double aBestCov = -1;
-         for (int aKS=0 ; aKS<aSubSub.size() ; aKS++)
+         for (unsigned int aKS=0 ; aKS<aSubSub.size() ; aKS++)
          {
                std::vector<int> & aSub = aSubSub[aKS];
                double aSomGain = 0.0;
@@ -349,7 +349,7 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
          }
 
          cOneSolImageSec aSol;
-         std::vector<int> & aSub = aSubSub.at(aBestK);
+         std::vector<int> & aSub = aSubSub.at( (int)aBestK );
          for (int aKE=0 ; aKE<aCard ; aKE++)
          {
              cPoseCam * aPC = aVPPres.at(aSub.at(aKE));

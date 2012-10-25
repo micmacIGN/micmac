@@ -344,7 +344,7 @@ int CmpCalib_main(int argc,char ** argv)
                     << EAM(aDynV,"DynV",true)
     );	
 
-    cAppliCmpCal aCmpC(aName1,aName2,aL1,aSzW,aDynV);
+    cAppliCmpCal aCmpC(aName1,aName2, (aL1!=0),aSzW,aDynV);
 
     int aNbStep = 5;
     for (int aK=0 ; aK< 5 ; aK++)
