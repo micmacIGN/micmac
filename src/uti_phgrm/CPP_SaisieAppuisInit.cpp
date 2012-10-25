@@ -37,63 +37,105 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/all.h"
-#include "private/all.h"
-#include "SaisiePts.h"
+#include "StdAfx.h"
 
-using namespace NS_SaisiePts;
+using namespace NS_ParamChantierPhotogram;
 
-void SaisiePts_Banniere()
-{
-    std::cout <<  "\n";
-    std::cout <<  " *********************************\n";
-    std::cout <<  " *     SaisiePts                 *\n";
-    std::cout <<  " *********************************\n\n";
-}
+
 
 /*
- ANoTher
- Image
- ProgAm
- S
-
 */
 
-#if ELISE_windows
-int __cdecl main(int argc,char ** argv)
-#else
-int main(int argc,char ** argv)
-#endif 
+
+
+int SaisieAppuisInit_main(int argc,char ** argv)
 {
-   MMD_InitArgcArgv(argc,argv);
-  // cAppliApero * anAppli = cAppliMICMAC::Alloc(argc,argv,eAllocAM_STD);
+  MMD_InitArgcArgv(argc,argv);
+  Pt2di aSzW(800,800);
+  Pt2di aNbFen(-1,-1);
+  std::string aFullName,aNamePt,anOri,anOut;
+  std::string aNameAuto = "NONE";
+  std::string aPrefix2Add = "";
 
-  //if (0) delete anAppli;
-    
-   ELISE_ASSERT(argc>=2,"Not enough arg");
+  ElInitArgMain
+  (
+        argc,argv,
+        LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pattern)")
+                    << EAMC(anOri,"Orientation ; NONE if not used")
+                    << EAMC(aNamePt,"Name point")
+                    << EAMC(anOut,"Output"),
+        LArgMain()  << EAM(aSzW,"SzW",true,"Sz of Window")
+                    << EAM(aNbFen,"NbF",true,"Nb Of Sub window (Def depends of number of images with max of 2x2)")
+                    << EAM(aNameAuto,"NameAuto",true," Prefix or automatic point creation")
+                    << EAM(aPrefix2Add,"Pref2Add",true," Prefix to add during inpoort (for bug correction ?)")
+  );
+
+  std::string aDir,aName;
+  SplitDirAndFile(aDir,aName,aFullName);
 
 
-   cElXMLTree aTree(argv[1]);
+  cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+  const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
+
+  std::cout << "Nb Image =" << aSet->size() << "\n";
+  ELISE_ASSERT(aSet->size()!=0,"No image found");
+
+  if (aNbFen.x<0)
+  {
+     if (aSet->size() == 1)
+     {
+         aNbFen = Pt2di(1,2);
+     }
+     else if (aSet->size() == 2)
+     {
+         Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
+         Pt2di aSzIm = aTF.sz();
+         aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
+     }
+     else 
+     {
+         aNbFen = Pt2di(2,2);
+     }
+  }
+
+  cResulMSO aRMSO = aCINM->MakeStdOrient(anOri,true);
+
+  if (0)
+  {
+     std::cout  << "RMSO; Cam "  << aRMSO.Cam() 
+                << " Nuage " <<  aRMSO.Nuage() 
+                << " Ori " <<  aRMSO.IsKeyOri()
+                << "\n";
+     getchar();
+  }
+
+  std::string aCom =     MMDir() +"bin/SaisiePts "
+                      +  MMDir() +"include/XML_MicMac/SaisieInitiale.xml "
+                      +  std::string(" DirectoryChantier=") + aDir
+                      +  std::string(" +Image=") + QUOTE(aName)
+                      +  std::string(" +Ori=") + anOri
+                      +  std::string(" +NamePt=") + aNamePt
+                      +  std::string(" +NameAuto=") + aNameAuto
+                      +  std::string(" +Sauv=") + anOut
+                      +  std::string(" +SzWx=") + ToString(aSzW.x)
+                      +  std::string(" +SzWy=") + ToString(aSzW.y) 
+                      +  std::string(" +NbFx=") + ToString(aNbFen.x)
+                      +  std::string(" +NbFy=") + ToString(aNbFen.y) ;
 
 
-   cResultSubstAndStdGetFile<cParamSaisiePts> aP2 
-                                          (
-                                               argc-2,argv+2,
-                                              //0,0,
-		                              argv[1],
-			                       StdGetFileXMLSpec("ParamSaisiePts.xml"),
-			                      "ParamSaisiePts",
-			                      "ParamSaisiePts",
-                                              "DirectoryChantier",
-                                              "FileChantierNameDescripteur"
-                                          );
+  if (EAMIsInit(&aPrefix2Add))
+     aCom = aCom + " +Pref2Add=" + aPrefix2Add;
+  std::cout << aCom << "\n";
 
-   cAppli_SaisiePts   anAppli (aP2);
-   anAppli.BoucleInput();
+  int aRes = system(aCom.c_str());
 
-   SaisiePts_Banniere();
-   return 0;
+
+  return aRes;
 }
+
+
+
+
 
 
 

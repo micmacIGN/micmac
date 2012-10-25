@@ -167,3 +167,6 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #include "../src/uti_phgrm/Apero/Apero.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 #include "../src/uti_phgrm/Porto/Porto.h"
+
+#include "../src/uti_phgrm/SaisiePts/SaisiePts.h"
+#include "../src/uti_phgrm/SaisiePts/cParamSaisiePts.h"

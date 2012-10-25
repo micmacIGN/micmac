@@ -99,6 +99,7 @@ template <class Type> inline std::istream &  ElStdRead (std::istream &is,Type & 
 }
 
 extern bool Str2Bool(bool & aRes,const std::string & aStr);
+extern bool Str2BoolForce(const std::string & aStr);
 
 template <> inline std::istream & ElStdRead (std::istream &is, bool & aVal, const ElGramArgMain & G)
 {
@@ -456,6 +457,15 @@ int Tarama_main(int argc,char ** argv);
 int Tawny_main(int argc,char ** argv);
 int TestCam_main(int argc,char ** argv);
 int ScaleNuage_main(int argc,char ** argv);
+int SaisieBasc_main(int argc,char ** argv);
+int SaisieAppuisInit_main(int argc,char ** argv);
+int SaisieMasq_main(int argc,char ** argv);
+int  SaisieAppuisPredic_main(int argc,char ** argv);
+int  SaisiePts_main(int argc,char ** argv);
+
+
+
+
 
 #endif // ElMemberTpl
 
