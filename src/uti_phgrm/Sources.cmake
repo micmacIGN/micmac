@@ -23,6 +23,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_GCPBascule.cpp
     ${UTI_PHGRM_DIR}/CPP_MakeGrid.cpp
     ${UTI_PHGRM_DIR}/CPP_Malt.cpp
+	${UTI_PHGRM_DIR}/CPP_MergePly.cpp
     ${UTI_PHGRM_DIR}/CPP_MICMAC.cpp
     ${UTI_PHGRM_DIR}/CPP_Nuage2Ply.cpp
     ${UTI_PHGRM_DIR}/CPP_Pasta.cpp
@@ -37,6 +38,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_Tarama.cpp
     ${UTI_PHGRM_DIR}/CPP_Tawny.cpp
     ${UTI_PHGRM_DIR}/CPP_TestCam.cpp
+    ${UTI_PHGRM_DIR}/MergePly/ply.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieMasq.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieAppuisPredic.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieAppuisInit.cpp
