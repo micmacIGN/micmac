@@ -462,6 +462,7 @@ int SaisieAppuisInit_main(int argc,char ** argv);
 int SaisieMasq_main(int argc,char ** argv);
 int  SaisieAppuisPredic_main(int argc,char ** argv);
 int  SaisiePts_main(int argc,char ** argv);
+int  Gri2Bin_main(int argc,char ** argv);
 
 
 
