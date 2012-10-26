@@ -114,13 +114,15 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("TestCam",TestCam_main," Do some stuff"));
        aRes.push_back(cMMCom("tiff_info",tiff_info_main," Do some stuff"));
        aRes.push_back(cMMCom("to8Bits",to8Bits_main," Do some stuff"));
-       aRes.push_back(cMMCom("MPDtest",MPDtest_main," My own test"));
 
-       aRes.push_back(cMMCom("SaisieBasc",SaisieBasc_main," My own test"));
-       aRes.push_back(cMMCom("SaisieMasq",SaisieMasq_main," My own test"));
+#if (ELISE_X11)
+       aRes.push_back(cMMCom("MPDtest",MPDtest_main," My own test"));
        aRes.push_back(cMMCom("SaisieAppuisInit",SaisieAppuisInit_main," My own test"));
        aRes.push_back(cMMCom("SaisieAppuisPredic",SaisieAppuisPredic_main," My own test"));
+       aRes.push_back(cMMCom("SaisieBasc",SaisieBasc_main," My own test"));
+       aRes.push_back(cMMCom("SaisieMasq",SaisieMasq_main," My own test"));
        aRes.push_back(cMMCom("SaisiePts",SaisiePts_main," My own test"));
+#endif
    }
    return aRes;
 }

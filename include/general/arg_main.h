@@ -457,15 +457,15 @@ int Tarama_main(int argc,char ** argv);
 int Tawny_main(int argc,char ** argv);
 int TestCam_main(int argc,char ** argv);
 int ScaleNuage_main(int argc,char ** argv);
-int SaisieBasc_main(int argc,char ** argv);
-int SaisieAppuisInit_main(int argc,char ** argv);
-int SaisieMasq_main(int argc,char ** argv);
-int  SaisieAppuisPredic_main(int argc,char ** argv);
-int  SaisiePts_main(int argc,char ** argv);
 int  Gri2Bin_main(int argc,char ** argv);
 
-
-
+#if (ELISE_X11)
+int SaisieAppuisInit_main(int argc,char ** argv);
+int SaisieAppuisPredic_main(int argc,char ** argv);
+int SaisieBasc_main(int argc,char ** argv);
+int SaisieMasq_main(int argc,char ** argv);
+int SaisiePts_main(int argc,char ** argv);
+#endif
 
 
 #endif // ElMemberTpl

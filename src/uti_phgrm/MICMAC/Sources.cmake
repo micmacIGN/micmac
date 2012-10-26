@@ -1,5 +1,5 @@
 set(uti_phgrm_MICMAC_Src_Files
-    ${UTI_PHGRM_MICMAC_DIR}/BatchMICMAC.cpp
+#    ${UTI_PHGRM_MICMAC_DIR}/BatchMICMAC.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cAppliMICMAC.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cAppliMICMAC_ChCorrel.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cAppliMICMAC_CompareDirectRadiom.cpp
@@ -31,9 +31,9 @@ set(uti_phgrm_MICMAC_Src_Files
     ${UTI_PHGRM_MICMAC_DIR}/cStatNDistrib.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cStdTiffModuleImageLoader.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cSurfaceOptimiseur.cpp
-    ${UTI_PHGRM_MICMAC_DIR}/FusionCarteProf.cpp
-    ${UTI_PHGRM_MICMAC_DIR}/GenParamMICMAC.cpp
-    ${UTI_PHGRM_MICMAC_DIR}/GrilleXml2Bin.cpp
+#    ${UTI_PHGRM_MICMAC_DIR}/FusionCarteProf.cpp
+#    ${UTI_PHGRM_MICMAC_DIR}/GenParamMICMAC.cpp
+#    ${UTI_PHGRM_MICMAC_DIR}/GrilleXml2Bin.cpp
     ${UTI_PHGRM_MICMAC_DIR}/Jp2ImageLoader.cpp
 #    ${UTI_PHGRM_MICMAC_DIR}/Ori-cAppliMICMAC_GPU.cpp
     ${UTI_PHGRM_MICMAC_DIR}/OrthoLocAnam.cpp

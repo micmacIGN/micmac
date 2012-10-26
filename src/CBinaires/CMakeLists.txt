@@ -108,4 +108,22 @@ if (NOT ${BUILD_ONLY_ELISE})
 
 	add_executable(to8Bits  to8Bits.c)
 	INSTALL(TARGETS to8Bits RUNTIME DESTINATION ${Install_Dir})
+
+	# for x11 tools
+	if (X11_FOUND)		
+		add_executable(SaisieAppuisInit  SaisieAppuisInit.c)
+		INSTALL(TARGETS SaisieAppuisInit RUNTIME DESTINATION ${Install_Dir})
+				
+		add_executable(SaisieAppuisPredic  SaisieAppuisPredic.c)
+		INSTALL(TARGETS SaisieAppuisPredic RUNTIME DESTINATION ${Install_Dir})
+		
+		add_executable(SaisieBasc  SaisieBasc.c)
+		INSTALL(TARGETS SaisieBasc RUNTIME DESTINATION ${Install_Dir})
+		
+		add_executable(SaisieMasq  SaisieMasq.c)
+		INSTALL(TARGETS SaisieMasq RUNTIME DESTINATION ${Install_Dir})
+		
+		add_executable(SaisiePts  SaisiePts.c)
+		INSTALL(TARGETS SaisiePts RUNTIME DESTINATION ${Install_Dir})
+	endif()
 endif()

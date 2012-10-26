@@ -39,6 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+#if (ELISE_X11)
 
 using namespace NS_SaisiePts;
 
@@ -90,6 +91,7 @@ int SaisiePts_main(int argc,char ** argv)
    return 0;
 }
 
+#endif
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
