@@ -42,12 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _ELISE_SAISIEPTS_ALL_H_
 
 
-#include "general/all.h"
-#include "private/all.h"
-
-#include "cParamSaisiePts.h"
-
-#include "XML_GEN/all.h"
 using namespace NS_ParamChantierPhotogram;
 using namespace NS_SuperposeImage;
 

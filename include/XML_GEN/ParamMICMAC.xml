@@ -2,19 +2,17 @@
 <GenCpp>
 
 <Verbatim File=".h.cpp">
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 </Verbatim>
 <Verbatim  File=".h">
 #ifndef Define_NotMicMac
 #define Define_NotMicMac
 </Verbatim>
 <Verbatim File=".cpp">
-#include "cParamMICMAC.h"
+// UNUSED
 </Verbatim>
 
 <Verbatim File=".h">
-#include "XML_GEN/all.h"
 using namespace NS_ParamChantierPhotogram;
 using namespace NS_SuperposeImage;
 </Verbatim>

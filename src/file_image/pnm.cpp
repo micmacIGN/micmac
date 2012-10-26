@@ -78,14 +78,14 @@ Elise_File_Im  Elise_File_Im::pnm(const char * name)
      ELISE_fp fp;
 
      Tjs_El_User.ElAssert 
-     
      (
           fp.ropen(name,true),
           EEM0 << "Elise_File_Im::pnm : can't open the file \n"
                << "|       File name : " << name
      );
 
-     ASSERT_TJS_USER((fp.read_U_INT1() == 'P'),"bad magic pnm");
+     int aCar = fp.read_U_INT1();
+     ASSERT_TJS_USER((aCar == 'P'),"bad magic pnm");
      INT nb_can = -1234;
      INT kind_pnm = fp.read_U_INT1();
      switch (kind_pnm)

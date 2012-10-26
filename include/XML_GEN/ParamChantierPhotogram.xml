@@ -2,15 +2,16 @@
 
 
 <Verbatim File=".h.cpp">
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
+//#include "general/all.h"
+//#include "private/all.h"
 </Verbatim>
 <Verbatim  File=".h">
 #ifndef Define_NotPCP
 #define Define_NotPCP
 </Verbatim>
 <Verbatim File=".cpp">
-#include "XML_GEN/ParamChantierPhotogram.h"
+// #include "XML_GEN/ParamChantierPhotogram.h"
 </Verbatim>
 
 
@@ -1090,6 +1091,7 @@ namespace NS_ParamChantierPhotogram{
 
     <ChantierDescripteur Nb="1" Class="true" ToReference="true">
 
+          <!-- ?? Pour eviter PB dans compile; on lui donne une valeur -->
          <ExitOnBrkp Nb="?" Type="bool"> </ExitOnBrkp>
          <Symb Nb="*" Type="std::string"> </Symb>
 

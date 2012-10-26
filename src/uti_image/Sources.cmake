@@ -14,7 +14,8 @@ list( APPEND uti_image_Src_Files
     ${UTI_IMAGE_DIR}/CPP_Reduc2MM.cpp
     ${UTI_IMAGE_DIR}/CPP_ScaleIm.cpp
     ${UTI_IMAGE_DIR}/CPP_tiff_info.cpp
-    ${UTI_IMAGE_DIR}/CPP_to8Bits.cpp )
+    ${UTI_IMAGE_DIR}/CPP_to8Bits.cpp 
+    ${UTI_IMAGE_DIR}/CPP_MPDtest.cpp )
 
 SOURCE_GROUP(${SrcGrp_Uti_Image}\\outils FILES ${uti_image_Src_Files})
 

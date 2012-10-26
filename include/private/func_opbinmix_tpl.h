@@ -37,6 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#pragma once
 
 
 template <class Type> class OP_Bin_Comp_TPL : public Fonc_Num_Comp_TPL<Type>
