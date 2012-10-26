@@ -37,64 +37,37 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/all.h"
-#include "private/all.h"
-#include "SaisiePts.h"
+#include "StdAfx.h"
+
 
 using namespace NS_SaisiePts;
 
-void SaisiePts_Banniere()
+
+/*************************************************/
+/*                                               */
+/*                XXXXXXX                        */
+/*                                               */
+/*************************************************/
+
+cSP_PointeImage::cSP_PointeImage
+(
+   cOneSaisie *      aSIm,
+   cImage *          anIm,
+   cSP_PointGlob  *  aPGl
+) :
+  mSIm      (aSIm),
+  mIm       (anIm),
+  mGl       (aPGl),
+  mVisible  (true)
 {
-    std::cout <<  "\n";
-    std::cout <<  " *********************************\n";
-    std::cout <<  " *     SaisiePts                 *\n";
-    std::cout <<  " *********************************\n\n";
 }
 
-/*
- ANoTher
- Image
- ProgAm
- S
-
-*/
-
-#if ELISE_windows
-int __cdecl main(int argc,char ** argv)
-#else
-int main(int argc,char ** argv)
-#endif 
-{
-   MMD_InitArgcArgv(argc,argv);
-  // cAppliApero * anAppli = cAppliMICMAC::Alloc(argc,argv,eAllocAM_STD);
-
-  //if (0) delete anAppli;
-    
-   ELISE_ASSERT(argc>=2,"Not enough arg");
+cOneSaisie *    cSP_PointeImage::Saisie() {return mSIm;}
+cImage *        cSP_PointeImage::Image()  {return mIm;}
+cSP_PointGlob * cSP_PointeImage::Gl()     {return mGl;}
 
 
-   cElXMLTree aTree(argv[1]);
-
-
-   cResultSubstAndStdGetFile<cParamSaisiePts> aP2 
-                                          (
-                                               argc-2,argv+2,
-                                              //0,0,
-		                              argv[1],
-			                       StdGetFileXMLSpec("ParamSaisiePts.xml"),
-			                      "ParamSaisiePts",
-			                      "ParamSaisiePts",
-                                              "DirectoryChantier",
-                                              "FileChantierNameDescripteur"
-                                          );
-
-   cAppli_SaisiePts   anAppli (aP2);
-   anAppli.BoucleInput();
-
-   SaisiePts_Banniere();
-   return 0;
-}
-
+bool & cSP_PointeImage::Visible() {return mVisible;}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

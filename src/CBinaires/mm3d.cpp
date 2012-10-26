@@ -113,6 +113,13 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("TestCam",TestCam_main," Do some stuff"));
        aRes.push_back(cMMCom("tiff_info",tiff_info_main," Do some stuff"));
        aRes.push_back(cMMCom("to8Bits",to8Bits_main," Do some stuff"));
+       aRes.push_back(cMMCom("MPDtest",MPDtest_main," My own test"));
+
+       aRes.push_back(cMMCom("SaisieBasc",SaisieBasc_main," My own test"));
+       aRes.push_back(cMMCom("SaisieMasq",SaisieMasq_main," My own test"));
+       aRes.push_back(cMMCom("SaisieAppuisInit",SaisieAppuisInit_main," My own test"));
+       aRes.push_back(cMMCom("SaisieAppuisPredic",SaisieAppuisPredic_main," My own test"));
+       aRes.push_back(cMMCom("SaisiePts",SaisiePts_main," My own test"));
    }
    return aRes;
 }
@@ -141,8 +148,8 @@ class cSuggest
 
 int main(int argc,char ** argv)
 {
-	MMD_InitArgcArgv( argc, argv );
-	cout << "GetCurrentProgramFullName() = " << getCurrentProgramFullName() << endl;
+//	MMD_InitArgcArgv( argc, argv );
+//cout << "GetCurrentProgramFullName() = " << getCurrentProgramFullName() << endl;
 
    const std::vector<cMMCom> & aVComs = getAvailableCommands();
    if ((argc==1) || ((argc==2) && (std::string(argv[1])=="-help")))
@@ -154,6 +161,12 @@ int main(int argc,char ** argv)
        }
        return 0;
    }
+
+   // MPD : deplace sinon core dump qd argc==1
+   MMD_InitArgcArgv( argc, argv );
+
+   // MPD car affichage a la console genere des pb avec ElDcraw > ....
+   //   std::cout << "GetCurrentProgramFullName() = " << getCurrentProgramFullName() << endl;
 
    std::string aCom = argv[1];
    std::string aLowCom = StrToLower(aCom);

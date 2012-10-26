@@ -1,8 +1,10 @@
-#include "general/all.h"
-#include "private/all.h"
+// #include "general/all.h"
+// #include "private/all.h"
 #ifndef Define_NotSupIm
 #define Define_NotSupIm
-#include "XML_GEN/ParamChantierPhotogram.h"
+// #include "general/all.h"
+// #include "private/all.h"
+// #include "XML_GEN/ParamChantierPhotogram.h"
 using namespace NS_ParamChantierPhotogram;
 namespace NS_SuperposeImage{
 typedef enum
@@ -71,17 +73,17 @@ class cWindowSelection
         friend void xml_init(cWindowSelection & anObj,cElXMLTree * aTree);
 
 
-        cTplValGesInit< string > & AllPts();
-        const cTplValGesInit< string > & AllPts()const ;
+        cTplValGesInit< std::string > & AllPts();
+        const cTplValGesInit< std::string > & AllPts()const ;
 
-        cTplValGesInit< string > & PtsCenter();
-        const cTplValGesInit< string > & PtsCenter()const ;
+        cTplValGesInit< std::string > & PtsCenter();
+        const cTplValGesInit< std::string > & PtsCenter()const ;
 
         cTplValGesInit< double > & Percent();
         const cTplValGesInit< double > & Percent()const ;
     private:
-        cTplValGesInit< string > mAllPts;
-        cTplValGesInit< string > mPtsCenter;
+        cTplValGesInit< std::string > mAllPts;
+        cTplValGesInit< std::string > mPtsCenter;
         cTplValGesInit< double > mPercent;
 };
 cElXMLTree * ToXMLTree(const cWindowSelection &);
