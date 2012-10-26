@@ -39,13 +39,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+#if (ELISE_X11)
+
 using namespace NS_ParamChantierPhotogram;
-
-
-
-/*
-*/
-
 
 
 int  SaisieAppuisPredic_main(int argc,char ** argv)
@@ -122,6 +118,7 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
 }
 
 
+#endif
 
 
 
