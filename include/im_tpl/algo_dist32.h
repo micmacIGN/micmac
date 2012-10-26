@@ -315,7 +315,7 @@ void  ComplKLipsParLBas
                 double aZAugm = aTZ.get(aPVois) + ((aKV%2) ? 3 : 2);
                 if ((aZAugm < aVMin) && (aTMaskValInit.get(aPVois)))
                 {
-                    aVMin = aZAugm;
+                    aVMin = (int)aZAugm;
                     aTZHerit.oset(aP2Cur,aTZHerit.get(aPVois));
                     aNbUpdate++;
                 }

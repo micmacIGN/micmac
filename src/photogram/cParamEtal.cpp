@@ -198,7 +198,7 @@ bool  cParamEtal::DoSift() const
 
 bool cParamEtal::CalibSpecifLoemi() const
 {
-   return mCalibSpecifLoemi;
+   return ( mCalibSpecifLoemi!=0 );
 }
 
 bool  cParamEtal::DoSift(const std::string & aName) const
@@ -576,7 +576,7 @@ Pt2di cParamEtal::RabExportGrid() const
 
 bool cParamEtal::InvYPointe() const
 {
-   return mInvYPointe;
+   return ( mInvYPointe!=0 );
 }
 
 INT  cParamEtal::DegDist() const {return mDegDist;}

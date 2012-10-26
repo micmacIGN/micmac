@@ -20,9 +20,9 @@ set(uti_phgrm_Apero_Src_Files
     ${UTI_PHGRM_APERO_DIR}/cPose.cpp
     ${UTI_PHGRM_APERO_DIR}/cSurfParam.cpp
     ${UTI_PHGRM_APERO_DIR}/ExportNuage.cpp
-    ${UTI_PHGRM_APERO_DIR}/GenParamApero.cpp
+#    ${UTI_PHGRM_APERO_DIR}/GenParamApero.cpp
     ${UTI_PHGRM_APERO_DIR}/GraphePose.cpp
-    ${UTI_PHGRM_APERO_DIR}/ImProfAndL2App.cpp
+#    ${UTI_PHGRM_APERO_DIR}/ImProfAndL2App.cpp
     ${UTI_PHGRM_APERO_DIR}/PowelOptimize.cpp
     ${UTI_PHGRM_APERO_DIR}/PtsFlottant.cpp
     ${UTI_PHGRM_APERO_DIR}/Redressement.cpp
@@ -31,8 +31,7 @@ set(uti_phgrm_Apero_Src_Files
     ${UTI_PHGRM_APERO_DIR}/VisuMult.cpp
 )
 
-#SOURCE_GROUP(uti_phgrm.Apero FILES ${uti_phgrm_Apero_Src_Files})
 
-list( APPEND uti_phgrm_Src_Files
-	${uti_phgrm_Apero_Src_Files}
-)
+
+
+

@@ -1585,6 +1585,8 @@ class cElXMLTree
 	public :
 
          
+         std::list<cElXMLTree *>  Interprete();
+
 	 cElXMLTree * ReTagThis(const std::string & aNameTag);
          bool IsFeuille() const;
          bool IsBranche() const;

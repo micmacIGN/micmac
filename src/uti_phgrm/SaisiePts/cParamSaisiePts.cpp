@@ -1,4 +1,4 @@
-#include "cParamSaisiePts.h"
+#include "StdAfx.h"
 namespace NS_SaisiePts{
 eTypePts  Str2eTypePts(const std::string & aName)
 {

@@ -37,9 +37,9 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/all.h"
-#include "private/all.h"
-#include "SaisiePts.h"
+#include "StdAfx.h"
+
+#if (ELISE_X11)
 
 using namespace NS_SaisiePts;
 
@@ -59,11 +59,7 @@ void SaisiePts_Banniere()
 
 */
 
-#if ELISE_windows
-int __cdecl main(int argc,char ** argv)
-#else
-int main(int argc,char ** argv)
-#endif 
+int SaisiePts_main(int argc,char ** argv)
 {
    MMD_InitArgcArgv(argc,argv);
   // cAppliApero * anAppli = cAppliMICMAC::Alloc(argc,argv,eAllocAM_STD);
@@ -95,6 +91,7 @@ int main(int argc,char ** argv)
    return 0;
 }
 
+#endif
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

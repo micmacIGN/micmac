@@ -5,6 +5,7 @@
 #ifdef WIN32
 #include <windows.h>
 #elif __APPLE__
+#include <mach-o/dyld.h>
 #else
 #define ELISE_CAR_DIR  '/' 
 #endif
@@ -42,11 +43,20 @@ int  BinaireUnique
 		while ( *itChar!='\\' ) itChar--;
 		// path ends after the last backslash
 		itChar[1] = '\0';
-
-		printf("%s\n", aPath);
 	}
 #elif __APPLE__
-          FataleError("No mm3d path in Max version");
+    {
+		char *itChar;
+		uint32_t size = PATH_BUFFER_SIZE;
+		_NSGetExecutablePath(aPath, &size);
+				
+		// look for the last slash
+		size = strlen( aPath );
+		itChar = aPath+(size-1);
+		while ( *itChar!='/' ) itChar--;
+		// path ends after the last backslash
+		itChar[1] = '\0';		
+	}
 #else
   {
       ssize_t len;

@@ -1,6 +1,7 @@
-#include "general/all.h"
-#include "private/all.h"
-#include "XML_GEN/SuperposImage.h"
+// #include "general/all.h"
+// #include "private/all.h"
+// #include "XML_GEN/SuperposImage.h"
+#include "StdAfx.h"
 namespace NS_SuperposeImage{
 eTypeSurfaceAnalytique  Str2eTypeSurfaceAnalytique(const std::string & aName)
 {
@@ -138,23 +139,23 @@ void xml_init(cLutConvertion & anObj,cElXMLTree * aTree)
 }
 
 
-cTplValGesInit< string > & cWindowSelection::AllPts()
+cTplValGesInit< std::string > & cWindowSelection::AllPts()
 {
    return mAllPts;
 }
 
-const cTplValGesInit< string > & cWindowSelection::AllPts()const 
+const cTplValGesInit< std::string > & cWindowSelection::AllPts()const 
 {
    return mAllPts;
 }
 
 
-cTplValGesInit< string > & cWindowSelection::PtsCenter()
+cTplValGesInit< std::string > & cWindowSelection::PtsCenter()
 {
    return mPtsCenter;
 }
 
-const cTplValGesInit< string > & cWindowSelection::PtsCenter()const 
+const cTplValGesInit< std::string > & cWindowSelection::PtsCenter()const 
 {
    return mPtsCenter;
 }

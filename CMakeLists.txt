@@ -22,8 +22,8 @@ OPTION(WITH_MATIS_ORI "Include Matis orrientation" OFF )
 # Utiliser les en-tetes precompilees
 OPTION(WITH_HEADER_PRECOMP "En-tetes precompilees" ON )
 
-# Utiliser SIFTGPU
-OPTION(WITH_SIFT_GPU "Utiliser SiftGpu" OFF )
+# Utiliser les en-tetes precompilees
+OPTION(BUILD_ONLY_ELISE "Projet Elise uniquement" OFF )
 
 ##################################
 ## 	Trouver les EXES et Libs	##
@@ -40,12 +40,13 @@ IF(NOT SUBVERSION_FOUND)
 	MESSAGE("Impossible d'effectuer les tests sans SVN")
 ENDIF()
 
-set(UnixBinPath	/bin
+# DEFINITIION : des chemins binaires sous UNIX
+set(UnixBinPath
+		/bin
 		/usr/bin
 		/usr/local/bin)
 
 # MERCURIAL
-
 find_program(MERCURIAL_EXECUTABLE hg DOC "Emplacement de gestionnaire de versions Mercurial")
 
 if(MERCURIAL_EXECUTABLE-NOTFOUND)
@@ -199,12 +200,6 @@ IF (CMAKE_COMPILER_IS_GNUCC)
 	ADD_DEFINITIONS(-O2)
 ENDIF()
 
-# DEFINITION : Utilisation de SIFT GPU
-
-IF (WITH_SIFT_GPU)
-		ADD_DEFINITIONS(-DUSE_SIFT_GPU)
-ENDIF()
-
 # DEFINITION : Windows : le projet debug est généré directement sous bin pour avoir les informations de Debug
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
@@ -216,16 +211,10 @@ set(Install_Dir ${PROJECT_SOURCE_DIR}/bin)
 # DEFINITION : du dossier des sources d'Elise
 set(ELISE_DIR src)
 
-# DEFINITION : du dossier des sources des applications
-#set(APPLIS_DIR applis)
-
-# CONSTRUCTION : de la librairie Elise
+# CONSTRUCTION : Librairie ELISE
 set( code_genere_dir ${PROJECT_SOURCE_DIR}/CodeGenere )
 include(${code_genere_dir}/Sources.cmake)
 ADD_SUBDIRECTORY(${ELISE_DIR})
-
-# CONSTRUCTION : des applications
-#ADD_SUBDIRECTORY(${APPLIS_DIR})
 
 # INSTALLATION : Liste des exe et Dll nécessaires sous windows
 if (win32)

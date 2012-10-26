@@ -80,9 +80,14 @@ FAIT :
 #define BRK_MICMAC  BRK_MICMAC_MES("")
 
 #include "cInterfModuleImageLoader.h"
-#include  "cParamMICMAC.h"
-#include "uti_MICMAC.h"
 
+
+
+    // ================
+#include "StdAfx.h"
+// #include  "cParamMICMAC.h"
+
+#include "uti_MICMAC.h"
 template <class T> class cMatrOfSMV;
 
 using namespace NS_ParamChantierPhotogram;

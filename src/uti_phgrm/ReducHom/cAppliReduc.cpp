@@ -188,7 +188,7 @@ void cAppliReduc::ComputePts()
    mSetEq.SetClosed();
 
     // Init Noyau
-    TestMerge();
+    TestMerge_CalcHcImage();
 
     for (int aK=0 ; aK<int(mIms.size()) ; aK++)
     {

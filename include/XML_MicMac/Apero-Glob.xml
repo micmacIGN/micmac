@@ -30,13 +30,13 @@
                <Symb> xPRelPP=0.5  </Symb>
                <Symb> yPRelPP=0.5  </Symb>
                <Symb> PropDiagU=1.0  </Symb>
-               <Symb> SauvAutom=1  </Symb>
+               <Symb> SauvAutom=""  </Symb>
                <Symb> MOI=false  </Symb>
                <Symb> DebugPbCondFaisceau=false  </Symb>
 
                <Symb> ValDec=eLiberte_Phgr_Std_Dec </Symb>
                <Symb> ValAff=eLiberte_Phgr_Std_Aff </Symb>
-               <Symb> RapTxt=1   </Symb>
+               <Symb> RapTxt=""   </Symb>
                <Symb> PoseFigee="HUyZZ9_m@@9hyY" </Symb>
        </DicoLoc>
 

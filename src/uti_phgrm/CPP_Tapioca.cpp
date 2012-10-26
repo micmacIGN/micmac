@@ -46,8 +46,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define DEF_OFSET -12349876
 
-int  ExpTxt=0;
-int  ByP=-1;
+int ExpTxt=0;
+int	ByP=-1;
+int UseSiftGpu=0;
 std::string aDir,aPat,aPatOri;
 std::string aPat2="";
 std::string aFullDir; 
@@ -108,19 +109,10 @@ void DoMkT()
 {
     if (ByP)
     {
-#ifdef USE_SIFT_GPU
-		std::string aSMkSr = std::string("make all -f ") + MkFT;// +std::string(" -j")+ToString(ByP);
-#else
- 		std::string aSMkSr = std::string("make all -f ") + MkFT +std::string(" -j")+ToString(ByP);
-#endif
+		std::string aSMkSr = std::string("make all -f ") + MkFT + (UseSiftGpu ? "" : std::string(" -j")+ToString(ByP));
         System(aSMkSr,true);
     }
 }
-
-
-
-
-
 
 void DoDevelopp(int aSz1,int aSz2)
 {
@@ -163,7 +155,8 @@ int MultiECh(int argc,char ** argv)
                     << EAM(PostFix,"PostFix",true)	
                     << EAM(aNbMinPt,"NbMinPt",true)	
                     << EAM(DoLowRes,"DLR",true,"Do Low Resolution")	
-                    << EAM(aPat2,"Pat2",true)	
+                    << EAM(aPat2,"Pat2",true)
+					<< EAM(UseSiftGpu,"UseGpu",true)
     );
 
     if (aFullRes != -1)
@@ -180,6 +173,8 @@ int MultiECh(int argc,char ** argv)
 
     if (DoLowRes)
     {
+
+
          std::string aSsR = 
                         BinPastis
                      +  aDir + std::string(" ") 
@@ -188,7 +183,9 @@ int MultiECh(int argc,char ** argv)
                      +  std::string(" NKS=NKS-Assoc-CplIm2Hom@_SRes@dat")
                      +  StrMkT()
                      +  std::string("NbMinPtsExp=2 ")
-                     +  std::string("SsRes=1 ");
+                     +  std::string("SsRes=1 ")
+					 +  std::string("UseGpu=") + ToString(UseSiftGpu);
+
 
          System(aSsR,true);
          DoMkT();
@@ -201,7 +198,8 @@ int MultiECh(int argc,char ** argv)
                      +  ToString(aFullRes) + std::string(" ")
                      +  StrMkT()
                      +  std::string("NbMinPtsExp=2 ")
-                     +  NKS();
+                     +  NKS() + std::string(" ")
+					 +  std::string("UseGpu=") + ToString(UseSiftGpu);
 
     System(aSFR,true);
     DoMkT();

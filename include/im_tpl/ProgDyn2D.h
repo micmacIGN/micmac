@@ -149,8 +149,8 @@ template <class TargAux> class cTplCelNapPrgDyn
             }
             tCostPrgD OwnCost() const {return mOwnCost;}
             tCostPrgD CostAgrege() const {return mCostAgrege;}
-            void SetOwnCost(double aVal)  {mOwnCost = aVal;}
-            void AddCostAgrege(double aVal)  {mCostAgrege += aVal;}
+            void SetOwnCost(double aVal)  {mOwnCost = (tCostPrgD)aVal;}
+            void AddCostAgrege(double aVal)  {mCostAgrege += (tCostPrgD)aVal;}
 
             TargAux & ArgAux() {return mAuxArg;}
             const TargAux & ArgAux() const {return mAuxArg;}
@@ -333,7 +333,7 @@ template <class TArg>  void cProg2DOptimiser<TArg>::TransfertNapOpt(const std::v
        int aZMax = mLineZMax[aKP]*mMul + mRab;
 
        
-       tCostPrgD aMinCostF = 1e9;
+       tCostPrgD aMinCostF = (tCostPrgD)1e9;
        if (!VersOpt)
        {
           aMinCostF  = aVCelOpt[aZMin].CostPassageForce();
