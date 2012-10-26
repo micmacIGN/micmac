@@ -37,155 +37,92 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/all.h"
-#include "private/all.h"
-#include "SaisiePts.h"
+#include "StdAfx.h"
 
-using namespace NS_SaisiePts;
+using namespace NS_ParamChantierPhotogram;
 
-cWinIm * cAppli_SaisiePts::WImOfW(Video_Win aW)
+
+
+/*
+*/
+
+
+
+int  SaisieAppuisPredic_main(int argc,char ** argv)
 {
-    for (int aK=0 ; aK<mNbW; aK++)
-        if (mWins[aK]->W() == aW)
-           return mWins[aK];
+  MMD_InitArgcArgv(argc,argv);
+  Pt2di aSzW(800,800);
+  Pt2di aNbFen(-1,-1);
+  std::string aFullName,aNamePt,anOri,anOut,aNameMesure;
 
-   return 0;
-}
+  double aFlou=0.0;
 
-void cAppli_SaisiePts::TestClikWIm(Clik aCl)
-{
-  cWinIm * aWIm = WImOfW(aCl._w);
-  if (!aWIm) 
-     return;
+  ElInitArgMain
+  (
+        argc,argv,
+        LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pattern)")
+                    << EAMC(anOri,"Orientation")
+                    << EAMC(aNamePt,"File for Ground Control Points")
+                    << EAMC(aNameMesure,"File for Image Measurements"),
+        LArgMain()  << EAM(aSzW,"SzW",true,"Size of global window (Def 800 800)")
+                    << EAM(aNbFen,"NbF",true,"Number of Sub Window (Def 2 2)")
+                    << EAM(aFlou,"WBlur",true,"Size IN GROUND GEOMETRY of bluring for target")
+  );
 
-  if (aCl._b==1)
+  std::string aDir,aName;
+  SplitDirAndFile(aDir,aName,aFullName);
+
+
+  cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+  const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
+
+  std::cout << "Nb Image =" << aSet->size() << "\n";
+  ELISE_ASSERT(aSet->size()!=0,"No image found");
+
+  if (aNbFen.x<0)
   {
-      aWIm->SetPt(aCl);
-      Sauv();
+     if (aSet->size() == 1)
+     {
+         aNbFen = Pt2di(1,2);
+     }
+     else if (aSet->size() == 2)
+     {
+         Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
+         Pt2di aSzIm = aTF.sz();
+         aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
+     }
+     else 
+     {
+         aNbFen = Pt2di(2,2);
+     }
   }
 
-  if ((aCl._b==4) || (aCl._b==5))
-  {
-      double aFactZ = 1.2;
-      aWIm->SetZoom(aCl._pt,(aCl._b==5) ? aFactZ: (1/aFactZ));
-      aWIm->ShowVect();
-  }
+  aCINM->MakeStdOrient(anOri,false);
 
 
+  std::string aCom =     MMDir() +"bin/SaisiePts "
+                      +  MMDir() +"include/XML_MicMac/SaisieAppuisPredic.xml " 
+                      +  std::string(" DirectoryChantier=") + aDir
+                      +  std::string(" +Images=") + QUOTE(aName)
+                      +  std::string(" +Ori=") + anOri
+                      +  std::string(" +LargeurFlou=") + ToString(aFlou)
+                      +  std::string(" +Terrain=") + aNamePt
+                      +  std::string(" +Sauv=") + aNameMesure
+                      +  std::string(" +SzWx=") + ToString(aSzW.x)
+                      +  std::string(" +SzWy=") + ToString(aSzW.y) 
+                      +  std::string(" +NbFx=") + ToString(aNbFen.x)
+                      +  std::string(" +NbFy=") + ToString(aNbFen.y) ;
+
+  std::cout << aCom << "\n";
+
+  int aRes = system(aCom.c_str());
 
 
-  if (aCl._b==2)
-  {
-      aWIm->GrabScrTr(aCl);
-  }
-
-  if (aCl._b==3)
-  {
-      aWIm->MenuPopUp(aCl);
-  }
-}
-
-void cAppli_SaisiePts::BoucleInput()
-{
-   while(1)
-   {
-       Clik   aCl = mDisp->clik_press();
-
-       TestClikWIm(aCl);
-   }
-}
-
-
-void  cAppli_SaisiePts::SetInvisRef(bool aVal)
-{
-   mRefInvis = aVal;
-   for (int aKW=0 ; aKW<int(mWins.size()) ; aKW++)
-   {
-         mWins[aKW]->BCaseVR()->SetVal(aVal);
-         mWins[aKW]->Reaff();
-         mWins[aKW]->ShowVect();
-   }
-}
-
-
-void cAppli_SaisiePts::ReaffAllW()
-{
-    for (int aK=0 ; aK<int(mWins.size()) ; aK++)
-        mWins[aK]->Reaff();
-}
-
-void cAppli_SaisiePts::UndoRedo(std::vector<cUndoRedo>  & ToExe ,std::vector<cUndoRedo>  & ToPush)
-{
-   if ( ToExe.empty())
-      return;
-
-   const cUndoRedo & anUR = ToExe.back();
-
-   const cOneSaisie & aS = anUR.S();
-   cSP_PointeImage * aPIm  = anUR.I()->PointeOfNameGlobSVP(aS.NamePt());
-   ELISE_ASSERT(aPIm!=0,"Incoh in ExeUndoRedo");
-
-   ToPush.push_back(cUndoRedo(*(aPIm->Saisie()),aPIm->Image()));
-   *(aPIm->Saisie()) = aS;
-   ToExe.pop_back();
-   ReaffAllW();
-
-}
-
-void cAppli_SaisiePts::Undo()
-{
-    UndoRedo(mStackUndo, mStackRedo);
-}
-void cAppli_SaisiePts::Redo()
-{
-    UndoRedo(mStackRedo,mStackUndo);
+  return aRes;
 }
 
 
 
-void cAppli_SaisiePts::AddUndo(cOneSaisie aS,cImage * aI)
-{
-
-   mStackUndo.push_back(cUndoRedo(aS,aI));
-   mStackRedo.clear();
-}
-
-
-const std::vector<cWinIm *> &  cAppli_SaisiePts::WinIms()
-{
-   return mWins;
-}
-
-
-bool cAppli_SaisiePts::Visible(cSP_PointeImage & aPIm)
-{
-    return   (aPIm.Saisie()->Etat() != eEPI_Refute)
-           || mRefInvis;
-}
-
-
-void cAppli_SaisiePts::HighLightSom(cSP_PointGlob * aPG)
-{
-   for (int aKP=0 ; aKP<int(mPG.size()) ; aKP++)
-   {
-        if (mPG[aKP] == aPG)
-          aPG->HighLighted() = ! aPG->HighLighted();
-        else
-          mPG[aKP]->HighLighted() = false;
-   }
-}
-
-
-   //================== cUndoRedo ==========
-
-cUndoRedo::cUndoRedo(cOneSaisie aS,cImage *aI) :
-   mS (aS),
-   mI (aI)
-{
-}
-
-const    cOneSaisie & cUndoRedo::S() const {return mS;}
-cImage *              cUndoRedo::I() const {return mI;}
 
 
 

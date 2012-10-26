@@ -295,6 +295,7 @@ void VirerBlancFinal(std::string & aStr)
 	}
 }
 
+
 cElXMLToken::cElXMLToken
 	(
 	cArgCreatXLMTree & anArg,
@@ -374,6 +375,11 @@ cElXMLToken::cElXMLToken
 				{
 					cElXMLAttr anAttr;
 					XML_GetAttr(aNameDecl,anArg,aFp,anAttr.mSymb,anAttr.mVal,aUseSubst);
+		                        if (aUseSubst)
+                                        {
+			                        anArg.DoSubst(anAttr.mSymb);
+			                        anArg.DoSubst(anAttr.mVal);
+                                        }
 					mAttrs.push_back(anAttr);
 					// std::cout << "Atttrrrrrrr" << anAttr.mSymb << "::" << anAttr.mVal <<"\n";
 				}
@@ -710,6 +716,72 @@ void TestSpecialTags(const std::string & aMes,cElXMLTree * aTree,cVirtStream * a
 
 }
 
+static const std::string StrIF =     "#IF";
+static const std::string StrWHEN =   "#WHEN";
+static const std::string StrSWITCH = "#SWITCH";
+
+std::list<cElXMLTree *>  cElXMLTree::Interprete()
+{
+   std::list<cElXMLTree *> aRes;
+   if (
+              (mValTag==StrIF)
+           || (mValTag==StrWHEN)
+           || (mValTag==StrSWITCH)
+      )
+   {
+        const std::string & aVTest = ValAttr("VTEST");
+       if (
+              (mValTag==StrIF)
+           || (mValTag==StrWHEN)
+         )
+         {
+              bool aVal = Str2BoolForce(aVTest); 
+              // ELISE_ASSERT(mFils.size()==2,"Bd size in #IF-tag");
+              int aCpt = 0;
+
+              int aLim = 1000000000; // Cas WHEN
+              if (mValTag==StrIF)
+              {
+                 std::string aStrLim   = ValAttr("GOTO","1"); 
+                 FromString(aLim,aStrLim);
+              }
+              for 
+              (
+                        std::list<cElXMLTree *>::iterator anIt= mFils.begin();
+                        anIt!= mFils.end();
+                        anIt++
+              )
+              {
+                 if (aVal ^ (aCpt >= aLim))
+                    aRes.push_back(*anIt);
+                 aCpt++;
+              }
+  
+              return aRes;
+         }
+         if (mValTag==StrSWITCH)
+         {
+              std::list<cElXMLTree *> aRDef;
+              for 
+              (
+                        std::list<cElXMLTree *>::iterator anIt= mFils.begin();
+                        anIt!= mFils.end();
+                        anIt++
+              )
+              {
+                 std::string aStrCase   = (*anIt)->ValAttr("CASE"); 
+                 if (aStrCase==aVTest)
+                    aRes.push_back(*anIt);
+                 else if (aStrCase=="DEFAULT")
+                    aRDef.push_back(*anIt);
+              }
+              return aRes.empty() ? aRDef : aRes;
+         }     
+   }
+
+   aRes.push_back(this);
+   return aRes;
+}
 
 cElXMLTree::cElXMLTree
 	(
@@ -725,6 +797,7 @@ cElXMLTree::cElXMLTree
 	mPere = aPere;
 	if (aTok.Kind() == eXMLStd)
 	{
+// std::cout << "UST " << aUseSubstTree << " " << mValTag << "\n";
 		if (aUseSubstTree)
 			anArg.DoSubst(mValTag);
 		mKind = eXMLFeuille;
@@ -792,10 +865,11 @@ cElXMLTree::cElXMLTree
 		}
 
 		cElXMLTree * aFils = new cElXMLTree(DoFileCinclu,aUseSubst,aFp,aNewTok,this,anArg);
+
 		//aFils->IsBranche();
 
-		if (	
-			aFils->IsBranche()
+		if (	   aFils
+			&& aFils->IsBranche()
 			&&  DoFileCinclu
 			&& ( (aFils->mValTag=="IncludeFile")
 			|| (aFils->mValTag=="IncludeFileLoc")
@@ -815,7 +889,7 @@ cElXMLTree::cElXMLTree
 					anArg.DoSubst(aNF,true);
                 
 				cElXMLTree aPetitFils(aNF,&anArg);
-                for ( it2=aPetitFils.mFils.begin(); it2!=aPetitFils.mFils.end(); it2++ )
+                                for ( it2=aPetitFils.mFils.begin(); it2!=aPetitFils.mFils.end(); it2++ )
 				{
 					mFils.push_back(*it2);
 					(*it2)->mPere = this;
@@ -825,7 +899,16 @@ cElXMLTree::cElXMLTree
 			delete aFils;
 		}
 		else
-			mFils.push_back(aFils);
+                {
+                    std::list<cElXMLTree *> aNewFils = aFils->Interprete();
+                    for 
+                    (
+                         std::list<cElXMLTree *>::const_iterator anIt=aNewFils.begin();
+                         anIt!=aNewFils.end();
+                         anIt++
+                    )
+	                mFils.push_back(*anIt);
+                }
 	}
 
 

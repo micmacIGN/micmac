@@ -104,6 +104,11 @@
         <SzCaptMm>   4.55 6.17  </SzCaptMm>
         <ShortName> OlMu790  </ShortName>
    </CameraEntry>
+   <CameraEntry>
+        <Name>   NEX-7 </Name>
+        <SzCaptMm>   16 24  </SzCaptMm>
+        <ShortName> NEX-7  </ShortName>
+   </CameraEntry>
 
 </MMCameraDataBase>
 

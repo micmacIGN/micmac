@@ -1,4 +1,6 @@
 Malt, géométrie image, pouvoir estimer le plan sur un repere cartesien (comme OrthoCyl)
 
 
+Ajouter Test sur fichiers Raw.
+
 

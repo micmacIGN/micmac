@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-#define DEBUG 0
+#define DEBUG_POWEL 0
 
 namespace NS_ParamApero
 {
@@ -216,7 +216,7 @@ double cLiaisORPO::Residu()
          aK++;
     }
 
-    if (DEBUG)
+    if (DEBUG_POWEL)
     {
         std::cout << sDist/mPack.size() << "\n"; // getchar();
     }
@@ -315,7 +315,7 @@ void cOneRotPowelOptimize::InitPts()
 
 ElRotation3D  cOneRotPowelOptimize::Param2Rot(const double * aP)
 {
-if (DEBUG)
+if (DEBUG_POWEL)
 {
 for (int aK=0 ; aK<5 ; aK++)
     std::cout << aP[aK] << " ";
@@ -463,7 +463,7 @@ void cAppliApero::PowelOptimize
        int aDeg = NbDegOfLib(aDegOfLib[aK]);
        aNbDegTot += aDeg;
        for (int aD=0 ; aD<aDeg ; aD++)
-           if (DEBUG)
+           if (DEBUG_POWEL)
              aParam00.push_back(0.5-aD%2);
            else
              aParam00.push_back(0);
@@ -488,7 +488,7 @@ void cAppliApero::PowelOptimize
    aPOpt.powel(&aParam00[0],1e-7*aNbMes,200);
    aPOpt.AvantEval(&aParam00[0]);
 
-   if (DEBUG)
+   if (DEBUG_POWEL)
       getchar();
 
 }
