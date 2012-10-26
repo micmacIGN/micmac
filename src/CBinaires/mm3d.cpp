@@ -79,41 +79,42 @@ const std::vector<cMMCom> & getAvailableCommands()
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
-       aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualisation of camerai in ply file"));
-       aRes.push_back(cMMCom("Apero",Apero_main," Do some stuff"));
-       aRes.push_back(cMMCom("Bascule",Bascule_main," Do some stuff"));
-       aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Do some stuff"));
+       aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualisation of camera in ply file"));
+       aRes.push_back(cMMCom("Apero",Apero_main," Compute external and internal orientations"));
+       aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene"));
+       aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
        aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Do some stuff"));
-       aRes.push_back(cMMCom("Dequant",Dequant_main," Do some stuff"));
+       aRes.push_back(cMMCom("Dequant",Dequant_main," Tool for dequantifying an image"));
        aRes.push_back(cMMCom("Devlop",Devlop_main," Do some stuff"));
        aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
-       aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Do some stuff"));
+       aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Use ground control points (GCP) to make a global transformation from a general orientation to an orientation in the system of the GCP"));
        aRes.push_back(cMMCom("GenXML2Cpp",GenXML2Cpp_main," Do some stuff"));
+       aRes.push_back(cMMCom("GrShade",GrShade_main," Compute shading from depth image"));
        aRes.push_back(cMMCom("Gri2Bin",Gri2Bin_main," Do some stuff"));
-       aRes.push_back(cMMCom("GrShade",GrShade_main," Do some stuff"));
-       aRes.push_back(cMMCom("MakeGrid",MakeGrid_main," Do some stuff"));
-       aRes.push_back(cMMCom("Malt",Malt_main," Simplified matching (inteface to MicMac)"));
-       aRes.push_back(cMMCom("MapCmd",MapCmd_main," Do some stuff"));
-       aRes.push_back(cMMCom("MICMAC",MICMAC_main," Do some stuff"));
-       aRes.push_back(cMMCom("MpDcraw",MpDcraw_main," Do some stuff"));
-       aRes.push_back(cMMCom("Nuage2Ply",Nuage2Ply_main," Do some stuff"));
+       aRes.push_back(cMMCom("MakeGrid",MakeGrid_main," Generate orientations in a grid format"));
+       aRes.push_back(cMMCom("Malt",Malt_main," Simplified matching (interface to MicMac)"));
+       aRes.push_back(cMMCom("MapCmd",MapCmd_main," Transforms a command working on a single file in a command working on a set of files"));
+	   aRes.push_back(cMMCom("MergePly",MergePly_main," Merge ply files"));
+       aRes.push_back(cMMCom("MICMAC",MICMAC_main," Computes image matching from oriented images"));
+       aRes.push_back(cMMCom("MpDcraw",MpDcraw_main," Interface to dcraw"));
+       aRes.push_back(cMMCom("Nuage2Ply",Nuage2Ply_main," Convert depth map into point cloud"));
        aRes.push_back(cMMCom("Pasta",Pasta_main," Do some stuff"));
        aRes.push_back(cMMCom("PastDevlop",PastDevlop_main," Do some stuff"));
-       aRes.push_back(cMMCom("Pastis",Pastis_main," Do some stuff"));
-       aRes.push_back(cMMCom("Porto",Porto_main," Do some stuff"));
+       aRes.push_back(cMMCom("Pastis",Pastis_main," Tie points detection"));
+       aRes.push_back(cMMCom("Porto",Porto_main," Generates a global ortho-photo"));
        aRes.push_back(cMMCom("Reduc2MM",Reduc2MM_main," Do some stuff"));
        aRes.push_back(cMMCom("ReducHom",ReducHom_main," Do some stuff"));
-       aRes.push_back(cMMCom("RepLocBascule",RepLocBascule_main," Do some stuff"));
-       aRes.push_back(cMMCom("SBGlobBascule",SBGlobBascule_main," Do some stuff"));
-       aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Do some stuff"));
-       aRes.push_back(cMMCom("ScaleNuage",ScaleNuage_main," Do some stuff"));
-       aRes.push_back(cMMCom("Tapas",Tapas_main," Do some stuff"));
-       aRes.push_back(cMMCom("Tapioca",Tapioca_main," Do some stuff"));
+       aRes.push_back(cMMCom("RepLocBascule",RepLocBascule_main," Tool to define a local repair without changing the orientation"));
+       aRes.push_back(cMMCom("SBGlobBascule",SBGlobBascule_main," Tool for 'scene based global' bascule"));
+       aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Tool for scaling image"));
+       aRes.push_back(cMMCom("ScaleNuage",ScaleNuage_main," Tool for scaling internal representation of point cloud"));
+       aRes.push_back(cMMCom("Tapas",Tapas_main," Interface to Apero to compute external and internal orientations"));
+       aRes.push_back(cMMCom("Tapioca",Tapioca_main," Interface to Pastis for tie point detection and matching"));
        aRes.push_back(cMMCom("Tarama",Tarama_main," Do some stuff"));
-       aRes.push_back(cMMCom("Tawny",Tawny_main," Do some stuff"));
-       aRes.push_back(cMMCom("TestCam",TestCam_main," Do some stuff"));
-       aRes.push_back(cMMCom("tiff_info",tiff_info_main," Do some stuff"));
-       aRes.push_back(cMMCom("to8Bits",to8Bits_main," Do some stuff"));
+       aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image"));
+       aRes.push_back(cMMCom("TestCam",TestCam_main," Test camera orientation convention"));
+       aRes.push_back(cMMCom("tiff_info",tiff_info_main," Tool for giving information about a tifffile"));
+       aRes.push_back(cMMCom("to8Bits",to8Bits_main," Tool for converting 16 or 32 bit image in a 8 bit image."));
 
 #if (ELISE_X11)
        aRes.push_back(cMMCom("MPDtest",MPDtest_main," My own test"));
