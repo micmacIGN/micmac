@@ -106,7 +106,7 @@ int Nuage2Ply_main(int argc,char ** argv)
            aRes->AddExportMesh();
        }
 
-        aRes->PlyPutFile(aNameOut,aLComment,aBin,DoNrm);
+        aRes->PlyPutFile( aNameOut, aLComment, (aBin!=0), DoNrm );
     }
     if (DoXYZ)
     {

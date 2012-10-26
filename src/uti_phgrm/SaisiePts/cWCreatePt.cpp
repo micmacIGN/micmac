@@ -37,92 +37,121 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/all.h"
-#include "private/all.h"
 
-#include "XML_GEN/all.h"
-using namespace NS_ParamChantierPhotogram;
+#include "StdAfx.h"
 
 
-
-/*
-Antipasti ~/micmac/include/XML_MicMac/SaisieLine.xml DirectoryChantier="/home/marc/TMP/ExempleDoc/Boudha/"
-
-Antipasti xml DirectoryChantier="/home/marc/TMP/ExempleDoc/Boudha/"
-*/
+using namespace NS_SaisiePts;
 
 
+/*************************************************/
+/*                                               */
+/*                XXXXXXX                        */
+/*                                               */
+/*************************************************/
 
-int main(int argc,char ** argv)
+const Pt2dr cWinIm::PtsEchec (-100000,-10000);
+
+Pt2dr cWinIm::RecherchePoint(const Pt2dr & aPIm,eTypePts aType,double aSz,cPointGlob * aPG)
 {
-  MMD_InitArgcArgv(argc,argv);
-  Pt2di aSzW(800,800);
-  Pt2di aNbFen(-1,-1);
-  std::string aFullName,anOri,anOut;
+     Tiff_Im aTF = mCurIm->Tif();
+     Pt2di aSzT = aTF.sz();
 
-  ElInitArgMain
-  (
-        argc,argv,
-        LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pattern)")
-                    << EAMC(anOri,"Orientation, NONE if unused")
-                    << EAMC(anOut,"Output"),
-        LArgMain()  << EAM(aSzW,"SzW",true)
-                    << EAM(aNbFen,"NbF",true)
-  );
-
-  std::string aDir,aName;
-  SplitDirAndFile(aDir,aName,aFullName);
+     int aRab = 5 + round_up(aSz);
+     if ((aPIm.x <aRab) || (aPIm.y <aRab) || (aPIm.x >aSzT.x-aRab)|| (aPIm.y >aSzT.y-aRab))
+         return PtsEchec;
 
 
-  cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-  const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
+     Pt2di aMil  = mAppli.SzRech() / 2;
+     Im2D_INT4 aImA = mAppli.ImRechAlgo();
+     mAppli.DecRech() = round_ni(aPIm) - aMil;
+     Pt2di aDec = mAppli.DecRech();
+     ELISE_COPY
+     (
+         aImA.all_pts(),
+         mCurIm->FilterImage(trans(aTF.in_proj(),aDec),aType,aPG),
+         aImA.out()
+     );
+     ELISE_COPY
+     (
+         aImA.all_pts(),
+         trans(aTF.in_proj(),aDec),
+         //  mCurIm->FilterImage(trans(aTF.in_proj(),aDec),aType),
+         mAppli.ImRechVisu().out()
+     );
 
-  std::cout << "Nb Image =" << aSet->size() << "\n";
-  ELISE_ASSERT(aSet->size()!=0,"No image found");
 
-  if (aNbFen.x<0)
-  {
-     if (aSet->size() == 1)
+     if (aType==eNSM_Pts)
      {
-         aNbFen = Pt2di(1,2);
+        return aPIm;
      }
-     else if (aSet->size() == 2)
+
+
+
+     Pt2dr aPosImInit = aPIm-Pt2dr(aDec);
+
+
+
+     bool aModeExtre = (aType == eNSM_MaxLoc) ||  (aType == eNSM_MinLoc) || (aType==eNSM_GeoCube);
+     bool aModeMax = (aType == eNSM_MaxLoc) ||  (aType==eNSM_GeoCube);
+
+
+     if (aModeExtre)
      {
-         Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
-         Pt2di aSzIm = aTF.sz();
-         aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
+          aPosImInit = Pt2dr(MaxLocEntier(aImA,round_ni(aPosImInit),aModeMax,2.1));
+          aPosImInit = MaxLocBicub(aImA,aPosImInit,aModeMax);
+
+
+          return aPosImInit+ Pt2dr(aDec);
      }
-     else 
-     {
-         aNbFen = Pt2di(2,2);
-     }
-  }
-
-  //anOri = "NKS-Assoc-Im2Orient@-" + anOri;
-  aCINM->MakeStdOrient(anOri,true);
-
-  std::string aCom =     MMDir() +"bin/SaisiePts "
-                      +  MMDir() +"include/XML_MicMac/SaisieLine.xml "
-                      +  std::string(" DirectoryChantier=") + aDir
-                      +  std::string(" +Image=") + QUOTE(aName)
-                      +  std::string(" +Ori=") + anOri
-                      +  std::string(" +Sauv=") + anOut
-                      +  std::string(" +SzWx=") + ToString(aSzW.x)
-                      +  std::string(" +SzWy=") + ToString(aSzW.y) 
-                      +  std::string(" +NbFx=") + ToString(aNbFen.x)
-                      +  std::string(" +NbFy=") + ToString(aNbFen.y) ;
-
-  std::cout << aCom << "\n";
-
-  int aRes = system(aCom.c_str());
 
 
-  return aRes;
+     return aPIm;
 }
 
 
+void  cWinIm::CreatePoint(const Pt2dr & aPW,eTypePts aType,double aSz)
+{
+     Pt2dr aPGlob = RecherchePoint(mScr->to_user(aPW),aType,aSz,0);
 
+     if (aPGlob==PtsEchec)
+     {
+         return;
+     }
 
+     mAppli.ShowZ(aPGlob);
+
+     cCaseNamePoint * aCNP = mAppli.GetIndexNamePt();
+
+     bool Ok = aCNP && aCNP->mFree && (aCNP->mTCP != eCaseCancel);
+     mAppli.ShowZ(aPGlob);
+
+     if (Ok)
+     {
+         mCurIm->CreatePGFromPointeMono(aPGlob,aType,aSz,aCNP);
+     }
+     else
+     {
+        mAppli.MenuNamePoint()->W().lower();
+     }
+}
+
+void cAppli_SaisiePts::ShowZ(const Pt2dr & aPGlob)
+{
+     double aZoom = 10.0;
+
+     Pt2dr aPIm = aPGlob- Pt2dr(DecRech());
+     Pt2dr aPMil = Pt2dr(SzWZ())/(2.0*aZoom);
+
+     Video_Win aWC = WZ().chc(aPIm-aPMil,Pt2dr(aZoom,aZoom));
+     ELISE_COPY
+     (
+                aWC.all_pts(),
+                ImRechVisu().in(0),
+                aWC.ogray()
+     );
+     aWC.draw_circle_abs(aPIm,4.0,Line_St(aWC.pdisc()(P8COL::blue),3.0));
+}
 
 
 

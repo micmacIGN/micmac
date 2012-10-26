@@ -37,123 +37,90 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/all.h"
-#include "private/all.h"
-#include "SaisiePts.h"
+#include "StdAfx.h"
 
-#include "im_tpl/max_loc.h"
+#if (ELISE_X11)
 
-using namespace NS_SaisiePts;
+using namespace NS_ParamChantierPhotogram;
 
 
-/*************************************************/
-/*                                               */
-/*                XXXXXXX                        */
-/*                                               */
-/*************************************************/
-
-const Pt2dr cWinIm::PtsEchec (-100000,-10000);
-
-Pt2dr cWinIm::RecherchePoint(const Pt2dr & aPIm,eTypePts aType,double aSz,cPointGlob * aPG)
+int  SaisieAppuisPredic_main(int argc,char ** argv)
 {
-     Tiff_Im aTF = mCurIm->Tif();
-     Pt2di aSzT = aTF.sz();
+  MMD_InitArgcArgv(argc,argv);
+  Pt2di aSzW(800,800);
+  Pt2di aNbFen(-1,-1);
+  std::string aFullName,aNamePt,anOri,anOut,aNameMesure;
 
-     int aRab = 5 + round_up(aSz);
-     if ((aPIm.x <aRab) || (aPIm.y <aRab) || (aPIm.x >aSzT.x-aRab)|| (aPIm.y >aSzT.y-aRab))
-         return PtsEchec;
+  double aFlou=0.0;
 
+  ElInitArgMain
+  (
+        argc,argv,
+        LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pattern)")
+                    << EAMC(anOri,"Orientation")
+                    << EAMC(aNamePt,"File for Ground Control Points")
+                    << EAMC(aNameMesure,"File for Image Measurements"),
+        LArgMain()  << EAM(aSzW,"SzW",true,"Size of global window (Def 800 800)")
+                    << EAM(aNbFen,"NbF",true,"Number of Sub Window (Def 2 2)")
+                    << EAM(aFlou,"WBlur",true,"Size IN GROUND GEOMETRY of bluring for target")
+  );
 
-     Pt2di aMil  = mAppli.SzRech() / 2;
-     Im2D_INT4 aImA = mAppli.ImRechAlgo();
-     mAppli.DecRech() = round_ni(aPIm) - aMil;
-     Pt2di aDec = mAppli.DecRech();
-     ELISE_COPY
-     (
-         aImA.all_pts(),
-         mCurIm->FilterImage(trans(aTF.in_proj(),aDec),aType,aPG),
-         aImA.out()
-     );
-     ELISE_COPY
-     (
-         aImA.all_pts(),
-         trans(aTF.in_proj(),aDec),
-         //  mCurIm->FilterImage(trans(aTF.in_proj(),aDec),aType),
-         mAppli.ImRechVisu().out()
-     );
+  std::string aDir,aName;
+  SplitDirAndFile(aDir,aName,aFullName);
 
 
-     if (aType==eNSM_Pts)
+  cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+  const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
+
+  std::cout << "Nb Image =" << aSet->size() << "\n";
+  ELISE_ASSERT(aSet->size()!=0,"No image found");
+
+  if (aNbFen.x<0)
+  {
+     if (aSet->size() == 1)
      {
-        return aPIm;
+         aNbFen = Pt2di(1,2);
      }
-
-
-
-     Pt2dr aPosImInit = aPIm-Pt2dr(aDec);
-
-
-
-     bool aModeExtre = (aType == eNSM_MaxLoc) ||  (aType == eNSM_MinLoc) || (aType==eNSM_GeoCube);
-     bool aModeMax = (aType == eNSM_MaxLoc) ||  (aType==eNSM_GeoCube);
-
-
-     if (aModeExtre)
+     else if (aSet->size() == 2)
      {
-          aPosImInit = Pt2dr(MaxLocEntier(aImA,round_ni(aPosImInit),aModeMax,2.1));
-          aPosImInit = MaxLocBicub(aImA,aPosImInit,aModeMax);
-
-
-          return aPosImInit+ Pt2dr(aDec);
+         Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
+         Pt2di aSzIm = aTF.sz();
+         aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
      }
+     else 
+     {
+         aNbFen = Pt2di(2,2);
+     }
+  }
+
+  aCINM->MakeStdOrient(anOri,false);
 
 
-     return aPIm;
+  std::string aCom =     MMDir() +"bin/SaisiePts "
+                      +  MMDir() +"include/XML_MicMac/SaisieAppuisPredic.xml " 
+                      +  std::string(" DirectoryChantier=") + aDir
+                      +  std::string(" +Images=") + QUOTE(aName)
+                      +  std::string(" +Ori=") + anOri
+                      +  std::string(" +LargeurFlou=") + ToString(aFlou)
+                      +  std::string(" +Terrain=") + aNamePt
+                      +  std::string(" +Sauv=") + aNameMesure
+                      +  std::string(" +SzWx=") + ToString(aSzW.x)
+                      +  std::string(" +SzWy=") + ToString(aSzW.y) 
+                      +  std::string(" +NbFx=") + ToString(aNbFen.x)
+                      +  std::string(" +NbFy=") + ToString(aNbFen.y) ;
+
+  std::cout << aCom << "\n";
+
+  int aRes = system(aCom.c_str());
+
+
+  return aRes;
 }
 
 
-void  cWinIm::CreatePoint(const Pt2dr & aPW,eTypePts aType,double aSz)
-{
-     Pt2dr aPGlob = RecherchePoint(mScr->to_user(aPW),aType,aSz,0);
+#endif
 
-     if (aPGlob==PtsEchec)
-     {
-         return;
-     }
 
-     mAppli.ShowZ(aPGlob);
-
-     cCaseNamePoint * aCNP = mAppli.GetIndexNamePt();
-
-     bool Ok = aCNP && aCNP->mFree && (aCNP->mTCP != eCaseCancel);
-     mAppli.ShowZ(aPGlob);
-
-     if (Ok)
-     {
-         mCurIm->CreatePGFromPointeMono(aPGlob,aType,aSz,aCNP);
-     }
-     else
-     {
-        mAppli.MenuNamePoint()->W().lower();
-     }
-}
-
-void cAppli_SaisiePts::ShowZ(const Pt2dr & aPGlob)
-{
-     double aZoom = 10.0;
-
-     Pt2dr aPIm = aPGlob- Pt2dr(DecRech());
-     Pt2dr aPMil = Pt2dr(SzWZ())/(2.0*aZoom);
-
-     Video_Win aWC = WZ().chc(aPIm-aPMil,Pt2dr(aZoom,aZoom));
-     ELISE_COPY
-     (
-                aWC.all_pts(),
-                ImRechVisu().in(0),
-                aWC.ogray()
-     );
-     aWC.draw_circle_abs(aPIm,4.0,Line_St(aWC.pdisc()(P8COL::blue),3.0));
-}
 
 
 

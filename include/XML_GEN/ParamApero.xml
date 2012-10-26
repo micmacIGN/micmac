@@ -1,19 +1,18 @@
 <GenCpp>
 
 <Verbatim File=".h.cpp">
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 </Verbatim>
 <Verbatim  File=".h">
 #ifndef Define_NotApero
 #define Define_NotApero
 </Verbatim>
 <Verbatim File=".cpp">
-#include "cParamApero.h"
+// UNUSED #include "cParamApero.h"
 </Verbatim>
 
 <Verbatim File=".h">
-#include "XML_GEN/all.h"
+// #include "XML_GEN/all.h"
 using namespace NS_ParamChantierPhotogram;
 using namespace NS_SuperposeImage;
 </Verbatim>
@@ -1405,14 +1404,22 @@ normalises en echelle et/ou en translation -->
 
                      <ChoixImMM Nb="?">
                           <ChoixImSec Nb="1">
+                               <KeyAssoc Nb="1" Type="std::string"> </KeyAssoc>
                                <PatternSel Nb="?" Type="std::string" Def=".*"> </PatternSel>
+                               <CardMaxSub Nb="?" Type="int" Def="6"> </CardMaxSub>
                                <NbMin Nb="1" Type="int"> </NbMin>
-                               <IdBdl Nb="1" Type="std::string"> </IdBdl>   
-                               <NbMaxPresel Nb="?" Type="int" Def="12"> </NbMaxPresel>
-                               <NbMinPtsHom  Nb="?" Type="int" Def="5"> </NbMinPtsHom>
-                               <TetaMaxPreSel Nb="?" Type="double" Def="0.30"> </TetaMaxPreSel>
-                               <NbMinPresel Nb="?" Type="int" Def="6"> </NbMinPresel>
-                               <TetaOpt Nb="?" Type="double" Def="0.15"> </TetaOpt>
+                               <IdBdl Nb="1" Type="std::string"> </IdBdl>
+                               <NbMinPtsHom  Nb="?" Type="int" Def="15"> </NbMinPtsHom>
+<!-- Pour les petits angles c'est en radian, pour les grand 1.0 correspond a 60 degres -->
+                               <TetaMinPreSel Nb="?" Type="double" Def="0.025"> </TetaMinPreSel>
+                               <TetaOpt Nb="?" Type="double" Def="0.25"> </TetaOpt>
+                               <TetaMaxPreSel Nb="?" Type="double" Def="0.80"> </TetaMaxPreSel>
+                            
+                               <Teta2Min Nb="?" Type="double" Def="0.65"> </Teta2Min>
+                               <Teta2Max Nb="?" Type="double" Def="1.1"> </Teta2Max>
+                            
+                               <NbMaxPresel Nb="?" Type="int" Def="10"> </NbMaxPresel>
+                               <NbSetPreSelAng Nb="?" Type="int" Def="5"> </NbSetPreSelAng>
                           </ChoixImSec>
                      </ChoixImMM>
 

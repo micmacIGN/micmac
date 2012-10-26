@@ -1253,8 +1253,9 @@ Fonc_Num SomPondFoncNum
 		   ElSTDNS    list<Fonc_Num> Lfonc,
 			  ElMatrix<REAL8>
 		 );
-template <class Type> struct cMSymCoffact3x3
+template <class Type> class cMSymCoffact3x3
 {
+public:
     Type a;
     Type e;
     Type i;

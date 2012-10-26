@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-#ifndef _ELISE_RIVATE_MORPHO_H
+#ifndef _ELISE_PRIVATE_MORPHO_H
 #define _ELISE_PRIVATE_MORPHO_H
 
 Liste_Pts_U_INT2 Skeleton

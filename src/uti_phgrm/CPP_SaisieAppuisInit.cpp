@@ -37,38 +37,32 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 
-#include "XML_GEN/all.h"
+#if (ELISE_X11)
+
 using namespace NS_ParamChantierPhotogram;
 
-
-
-/*
-*/
-
-
-
-int main(int argc,char ** argv)
+int SaisieAppuisInit_main(int argc,char ** argv)
 {
   MMD_InitArgcArgv(argc,argv);
   Pt2di aSzW(800,800);
   Pt2di aNbFen(-1,-1);
-  std::string aFullName,aNamePt,anOri,anOut,aNameMesure;
-
-  double aFlou=0.0;
+  std::string aFullName,aNamePt,anOri,anOut;
+  std::string aNameAuto = "NONE";
+  std::string aPrefix2Add = "";
 
   ElInitArgMain
   (
         argc,argv,
         LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pattern)")
-                    << EAMC(anOri,"Orientation")
-                    << EAMC(aNamePt,"File for Ground Control Points")
-                    << EAMC(aNameMesure,"File for Image Measurements"),
-        LArgMain()  << EAM(aSzW,"SzW",true,"Size of global window (Def 800 800)")
-                    << EAM(aNbFen,"NbF",true,"Number of Sub Window (Def 2 2)")
-                    << EAM(aFlou,"WBlur",true,"Size IN GROUND GEOMETRY of bluring for target")
+                    << EAMC(anOri,"Orientation ; NONE if not used")
+                    << EAMC(aNamePt,"Name point")
+                    << EAMC(anOut,"Output"),
+        LArgMain()  << EAM(aSzW,"SzW",true,"Sz of Window")
+                    << EAM(aNbFen,"NbF",true,"Nb Of Sub window (Def depends of number of images with max of 2x2)")
+                    << EAM(aNameAuto,"NameAuto",true," Prefix or automatic point creation")
+                    << EAM(aPrefix2Add,"Pref2Add",true," Prefix to add during inpoort (for bug correction ?)")
   );
 
   std::string aDir,aName;
@@ -99,22 +93,33 @@ int main(int argc,char ** argv)
      }
   }
 
-  aCINM->MakeStdOrient(anOri,false);
+  cResulMSO aRMSO = aCINM->MakeStdOrient(anOri,true);
 
+  if (0)
+  {
+     std::cout  << "RMSO; Cam "  << aRMSO.Cam() 
+                << " Nuage " <<  aRMSO.Nuage() 
+                << " Ori " <<  aRMSO.IsKeyOri()
+                << "\n";
+     getchar();
+  }
 
   std::string aCom =     MMDir() +"bin/SaisiePts "
-                      +  MMDir() +"include/XML_MicMac/SaisieAppuisPredic.xml " 
+                      +  MMDir() +"include/XML_MicMac/SaisieInitiale.xml "
                       +  std::string(" DirectoryChantier=") + aDir
-                      +  std::string(" +Images=") + QUOTE(aName)
+                      +  std::string(" +Image=") + QUOTE(aName)
                       +  std::string(" +Ori=") + anOri
-                      +  std::string(" +LargeurFlou=") + ToString(aFlou)
-                      +  std::string(" +Terrain=") + aNamePt
-                      +  std::string(" +Sauv=") + aNameMesure
+                      +  std::string(" +NamePt=") + aNamePt
+                      +  std::string(" +NameAuto=") + aNameAuto
+                      +  std::string(" +Sauv=") + anOut
                       +  std::string(" +SzWx=") + ToString(aSzW.x)
                       +  std::string(" +SzWy=") + ToString(aSzW.y) 
                       +  std::string(" +NbFx=") + ToString(aNbFen.x)
                       +  std::string(" +NbFy=") + ToString(aNbFen.y) ;
 
+
+  if (EAMIsInit(&aPrefix2Add))
+     aCom = aCom + " +Pref2Add=" + aPrefix2Add;
   std::cout << aCom << "\n";
 
   int aRes = system(aCom.c_str());
@@ -124,7 +129,7 @@ int main(int argc,char ** argv)
 }
 
 
-
+#endif
 
 
 

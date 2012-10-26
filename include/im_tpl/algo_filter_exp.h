@@ -59,7 +59,7 @@ template <class TypeI,class TypeF>  void  FilterLinExpVar
    for (int anX = aNb-2; anX>=0 ; anX--)
    {
            input[anX]   += Fact[anX+1] * input[anX+1];
-           input[anX+1] += aBuf[anX+1];
+           input[anX+1] += (TypeI)( aBuf[anX+1] );
    }
 }
 
@@ -98,7 +98,7 @@ if (Bug)
      FilterLinExpVar(aDPond,Fact,aBuf,aNb); 
      for (int anX = 0; anX<aNb ; anX++)
      {
-        aDPond[anX] = ElMax(1e-4,double(aDPond[anX]));
+        aDPond[anX] = (float)( ElMax(1e-4,double(aDPond[anX])) );
      }
      for (int aKIt = 0 ; aKIt<aNbIter ; aKIt ++)
      {
@@ -151,8 +151,8 @@ template <class T1> void  FilterExp
 
         for (int anX = anX1-2; anX>=anX0 ; anX--)
         {
-           aLine[anX]   += (T1::tElem)( aFx*aLine[anX+1] );
-           aLine[anX+1] += (T1::tElem)mBL[anX+1];
+           aLine[anX]   += (typename T1::tElem)( aFx*aLine[anX+1] );
+           aLine[anX+1] += (typename T1::tElem)( mBL[anX+1] );
         }
     }
     for (int anX=anX0 ; anX<anX1 ; anX++)
@@ -164,8 +164,8 @@ template <class T1> void  FilterExp
         }
         for (int anY = anY1-2; anY>=anY0 ; anY--)
         {
-           aD[anY][anX]   += (T1::tElem)( aFy * aD[anY+1][anX] );
-           aD[anY+1][anX] += (T1::tElem)mBL[anY+1];
+           aD[anY][anX]   += (typename T1::tElem)( aFy * aD[anY+1][anX] );
+           aD[anY+1][anX] += (typename T1::tElem)( mBL[anY+1] );
         }
     }
 }

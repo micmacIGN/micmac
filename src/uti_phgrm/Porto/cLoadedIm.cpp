@@ -84,7 +84,7 @@ std::cout << "xxxxxxxxxxxxxxxxxxWWWWWW " << aCpt << "\n ";
         //  if (mAppli.ValMasqMesure( aPLoc)) aVK= 255- aVK;
         // aVIm[aK]->SetI(aPLoc,aVV[aK]);
 
-        aVIm[aK]->SetI(aPLoc,aVK);
+        aVIm[aK]->SetI( aPLoc, (int)aVK );
         mAppli.SetRMax(aVK,aK);
 
      }

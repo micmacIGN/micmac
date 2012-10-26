@@ -37,13 +37,11 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 
-#include "XML_GEN/all.h"
 using namespace NS_ParamChantierPhotogram;
 
-
+#if (ELISE_X11)
 
 
 class cAppliSM : public Grab_Untill_Realeased
@@ -321,15 +319,16 @@ cAppliSM::cAppliSM(int argc,char ** argv) :
 }
 
 
-int main(int argc,char ** argv)
+int SaisieMasq_main(int argc,char ** argv)
 {
     MMD_InitArgcArgv(argc,argv);
-
-
+	
     cAppliSM aAP(argc,argv);
+
+	return EXIT_SUCCESS;
 }
 
-
+#endif
 
 
 

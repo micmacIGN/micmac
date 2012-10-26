@@ -50,7 +50,6 @@ void f()
     FILE * aFP = ElFopen(MMC,"w");
     ElFclose(aFP);
 }
-*/
 
 #include "general/all.h"
 #include "private/all.h"
@@ -58,7 +57,11 @@ void f()
 #include "XML_GEN/all.h"
 #include "im_tpl/image.h"
 #include "im_tpl/reduc_im.h"
+*/
 
+#include "StdAfx.h"
+
+#if (ELISE_X11)
 
 using namespace NS_ParamChantierPhotogram;
 
@@ -751,10 +754,20 @@ void TestIm()
 
 }
 
-int main (int argc,char** argv)
+void TestXML2()
 {
-   TestIm();
+  // cElXMLTree aTree("Test.xml",0,false);
+  cArgCreatXLMTree anArg("Test.xml",true,true);
+  cElXMLTree aTree("Test.xml",&anArg);
+  aTree.StdShow("TestOur.xml");
+}
+
+int MPDtest_main (int argc,char** argv)
+{
+    std::cout << "Hello word\n";
+    TestXML2();
 /*
+   TestIm();
 {
     std::string aSTR="[A,bc,O$$]";
 
@@ -786,8 +799,11 @@ for (int aK=0; aK<int(aRES.size()) ; aK++)
    // TestDonDenis();
    // TestMatCstr();
    // TestCamOrtho();
+
+	return EXIT_SUCCESS;
 }
 
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -99,6 +99,7 @@ template <class Type> inline std::istream &  ElStdRead (std::istream &is,Type & 
 }
 
 extern bool Str2Bool(bool & aRes,const std::string & aStr);
+extern bool Str2BoolForce(const std::string & aStr);
 
 template <> inline std::istream & ElStdRead (std::istream &is, bool & aVal, const ElGramArgMain & G)
 {
@@ -243,14 +244,14 @@ template <class Type> class ElArgMain : public GenElArgMain
 		}
                 void show(bool named) const
                 {
-                    cout << "  * ";
+                    std::cout << "  * ";
                     if (named)
-                       cout << "[Name=" << name() <<"] " ;
+                       std::cout << "[Name=" << name() <<"] " ;
                        
-                    cout << str_type(_adr);
+                    std::cout << str_type(_adr);
                     if (mCom != "") 
-                       cout << " :: {" << mCom  <<"}" ;
-                    cout <<"\n";
+                       std::cout << " :: {" << mCom  <<"}" ;
+                    std::cout <<"\n";
                 }
 
 
@@ -432,6 +433,7 @@ int Reduc2MM_main(int argc,char ** argv);
 int ScaleIm_main(int argc,char ** argv);
 int tiff_info_main(int argc,char ** argv);
 int to8Bits_main(int argc,char ** argv);
+int MPDtest_main(int argc,char ** argv);
 
 // uti_phgram
 int AperiCloud_main(int argc,char ** argv);
@@ -439,7 +441,6 @@ int Apero_main(int argc,char ** argv);
 int Bascule_main(int argc,char ** argv);
 int CmpCalib_main(int argc,char ** argv);
 int GCPBascule_main(int argc,char ** argv);
-int Gri2Bin_main(int argc,char ** argv);
 int MakeGrid_main(int argc,char ** argv);
 int Malt_main(int argc,char ** argv);
 int MICMAC_main(int argc,char ** argv);
@@ -456,6 +457,16 @@ int Tarama_main(int argc,char ** argv);
 int Tawny_main(int argc,char ** argv);
 int TestCam_main(int argc,char ** argv);
 int ScaleNuage_main(int argc,char ** argv);
+int  Gri2Bin_main(int argc,char ** argv);
+
+#if (ELISE_X11)
+int SaisieAppuisInit_main(int argc,char ** argv);
+int SaisieAppuisPredic_main(int argc,char ** argv);
+int SaisieBasc_main(int argc,char ** argv);
+int SaisieMasq_main(int argc,char ** argv);
+int SaisiePts_main(int argc,char ** argv);
+#endif
+
 
 #endif // ElMemberTpl
 

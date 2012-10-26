@@ -1870,7 +1870,7 @@ cER_MesureNIm & cER_Global::NewMesure2DPure()
 
 cER_MesureNIm & cER_Global::NewMesure2DGlob(const Pt2dr & aP)
 {
-    mMes.push_back(cER_MesureNIm(eERG_2D_Pure,Pt3df(aP.x,aP.y,0),Pt3df(0,0,0)));
+    mMes.push_back(cER_MesureNIm(eERG_2D_Pure,Pt3df((float)aP.x,(float)aP.y,0.f),Pt3df(0.f,0.f,0.f)));
     return mMes.back();
 }
 
@@ -1966,7 +1966,7 @@ cER_Global * cER_Global::read(ELISE_fp & aFP)
 
 
 
-   cER_Global * anERG = cER_Global::Alloc(aVPOS,aVGlob,aSzGlob,aNamePSAG,aComputL1Cple);
+   cER_Global * anERG = cER_Global::Alloc( aVPOS, aVGlob, aSzGlob, aNamePSAG, (aComputL1Cple!=0) );
    anERG->mNumV = aNumV;
 
    int aNbIm =  aFP.read_INT4();

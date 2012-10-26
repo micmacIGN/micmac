@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 
+
 int Gri2Bin_main(int argc, char **argv)
 {
 	if (argc!=3)

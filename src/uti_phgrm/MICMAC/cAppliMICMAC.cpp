@@ -634,8 +634,9 @@ cAppliMICMAC * cAppliMICMAC::Alloc(int argc,char ** argv,eModeAllocAM aMode)
 
     
 
-
-    return new cAppliMICMAC(aMode,argv[0],argv[1],aP2,argv+2,argc-2,aName);
+	
+    //return new cAppliMICMAC(aMode,argv[0],argv[1],aP2,argv+2,argc-2,aName);
+    return new cAppliMICMAC(aMode,getCurrentProgramFullName(),argv[1],aP2,argv+2,argc-2,aName);
 }
 
 
@@ -1162,6 +1163,7 @@ void cAppliMICMAC::PatternAddImages(const std::string & aPat)
 
 void cAppliMICMAC::AddAnImage(const std::string & aName)
 {
+// std::cout << "XXXXjjjI " << aName << "\n";
 
      if (PDVFromName  (aName,0))
         return;
@@ -1703,7 +1705,15 @@ void cAppliMICMAC::ExeProcessParallelisable
    if (AddNameExeMicMac)
    {
 #if (ELISE_unix || ELISE_MacOs|| ELISE_Cygwin)
-      ToAdd = std::string("\"")+mNameExe+std::string("\"");  
+	  // TODO: a better solution for this
+	  std::size_t spacePos = mNameExe.rfind( ' ' );
+	  if ( spacePos!=std::string::npos )
+	  {
+		  std::string mmd3_full_name = mNameExe.substr( 0, spacePos );
+		  ToAdd = std::string("\"")+mmd3_full_name+std::string("\" MICMAC");  
+	  }
+	  else
+		ToAdd = std::string("\"")+mNameExe+std::string("\"");
 #else
 		ToAdd = mNameExe;  
 #endif

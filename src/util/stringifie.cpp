@@ -81,8 +81,7 @@ void Stringify
     //fprintf(aFOut,"%s","#include \"private/all.h\"");
     //fprintf(aFOut,"%s",""");
 
-   fprintf(aFOut,"#include \"general/all.h\"\n");
-   fprintf(aFOut,"#include \"private/all.h\"\n");
+   fprintf(aFOut,"#include \"StdAfx.h\"\n");
 
    
    fprintf(aFOut,"const char * (%s[%d]) = {\n",aNameString.c_str(),aNbLigneTot+2);
@@ -349,7 +348,7 @@ cVirtStream *  cVirtStream::StdOpen(const std::string & aName)
    std::string aNameSeul,aDir;
    SplitDirAndFile(aDir,aNameSeul,aName);
     
-    bool isFilePredef = (aDir== MMDir()+TheDirXmlGen);
+    bool isFilePredef = (aDir== MMDir()+TheDirXmlGen) || (aDir==TheDirXmlGen);
     bool isFileSpec =  isFilePredef && (aNameSeul!="DefautChantierDescripteur.xml");
 
 

@@ -276,7 +276,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mZoomInit = 32;
   }
 
-  bool UseMTAOri = mUseMasqTA;
+  bool UseMTAOri = ( mUseMasqTA!=0 );
 
   mUseMasqTA =    UseMTAOri
                && ELISE_fp::exist_file(mDir+ELISE_CAR_DIR+ mDirTA +ELISE_CAR_DIR+"TA_LeChantier_Masq.tif");

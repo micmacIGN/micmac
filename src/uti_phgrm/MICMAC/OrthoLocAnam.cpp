@@ -216,8 +216,8 @@ void cAppliMICMAC::MakeRedrLocAnam()
     int aRabX = aRLA.XRecouvrt().Val();
     double aMem = aRLA.MemAvalaible().Val();
 
-    int aMulLarg = aRLA.FilterMulLargY().Val();
-    int aNbIter = aRLA.NbIterFilterY().Val();
+    int aMulLarg = (int)( aRLA.FilterMulLargY().Val() );
+    int aNbIter = (int)( aRLA.NbIterFilterY().Val() );
     int aMoyFin = aRLA.FilterXY().Val();
     int aNbIterMF = aRLA.NbIterXY().Val();
 
@@ -316,7 +316,7 @@ void cAppliMICMAC::MakeRedrLocAnam()
                   double aF = FromSzW2FactExp(aVLarg[anY]*aMulLarg,aNbIter);
                   for (int y=aYI0 ; y<aYI1; y++)
                   {
-                      aDLarg[y] = aF;
+                      aDLarg[y] = (float)aF;
                       double aP1 = (y-aYr0) / (aYr1-aYr0);
                       aTZOut.oset
                       (
@@ -329,7 +329,7 @@ void cAppliMICMAC::MakeRedrLocAnam()
 
               for (int anY= 0 ; anY <aSzInRedr.y ; anY++)
               {
-                  aDBuf[anY] = aTCpt.get(Pt2di(anX,anY));
+                  aDBuf[anY] = (float)( aTCpt.get(Pt2di(anX,anY)) );
               }
               FilterMoyenneExpVar(aDBuf,aDLarg,aSzInRedr.y,aNbIter);
               for (int anY= 0 ; anY <aSzInRedr.y ; anY++)

@@ -53,7 +53,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 //#ifndef __USE_ORILIB_ELISE__
 //#else
 
-#include "StdAfx.h"
+//#include "StdAfx.h"
 
 #if defined(UNIX)
 

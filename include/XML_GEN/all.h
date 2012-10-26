@@ -89,8 +89,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_XML_GEN_ALL_H
 #define _ELISE_XML_GEN_ALL_H
 
-#include "XML_GEN/ParamChantierPhotogram.h"
-#include "XML_GEN/SuperposImage.h"
+// #include "XML_GEN/ParamChantierPhotogram.h"
+// #include "XML_GEN/SuperposImage.h"
 
 void  AddExtensionToSubdir(std::string & aName ,const std::string & aDirExt);
 
@@ -101,6 +101,7 @@ namespace NS_ParamChantierPhotogram{
 cMicMacConfiguration * MMC();
 std::string MMDir();
 std::string MMBin();
+std::string getCurrentProgramFullName();
 int MMNbProc();
 bool MPD_MM(); // Est ce que c'est ma machine, afin de ne pas polluer les autres en phase de test !!!!
 

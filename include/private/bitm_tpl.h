@@ -37,7 +37,8 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-
+#ifndef __BITM_TPL__
+#define __BITM_TPL__
 
 template <class Type,class TyBase>  class DataGenImType :
            public DataGenIm
@@ -350,7 +351,7 @@ template <class TyBase>
                   TyBase                 v_max
               );
 
-
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

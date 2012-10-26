@@ -2,18 +2,16 @@
 #mkdir build
 cd build
 cmake ..
-#read -p "Effectuer un make clean o/n " reponse
 echo "Voulez-vous effectuer MAKE CLEAN [o/n] ?"
 read REP
-
 case $REP in 	
 	O|o)
-        	echo "Make CLEAN"
+        echo "Make CLEAN"
 		make clean
-        	;;
+        ;;
 	N|n|*)
-                echo "Pas de Make CLEAN"
-                ;;
+        echo "Pas de Make CLEAN"
+        ;;
 esac
 
 NBRP=$(cat /proc/cpuinfo | grep processor | wc -l)
