@@ -1070,25 +1070,29 @@ void cAppliMICMAC::InitImages()
    if (ImSecCalcApero().IsInit())
    {
        const cImSecCalcApero & aISCA = ImSecCalcApero().Val();
-       std::string aNameImSec = WorkDir() + mICNM->Assoc1To1(aISCA.Key(),PDV1()->Name(),true);
-       cImSecOfMaster aISOM = StdGetObjFromFile<cImSecOfMaster>
+       int aNbPDV = mPrisesDeVue.size();  // Car la taille va augmenter
+       for (int aKV=0 ; aKV<aNbPDV ; aKV++)
+       {
+           std::string aNameImSec = WorkDir() + mICNM->Assoc1To1(aISCA.Key(),mPrisesDeVue[aKV]->Name(),true);
+           cImSecOfMaster aISOM = StdGetObjFromFile<cImSecOfMaster>
                               (
                                   aNameImSec,
                                   StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
                                  "ImSecOfMaster",
                                  "ImSecOfMaster"
                               );
-        const std::list<std::string > & aList =  GetBestSec(aISOM,aISCA.Nb().Val());
-        for 
-        (
-             std::list<std::string>::const_iterator itS = aList.begin();
-             itS != aList.end();
-             itS++
-        )
-        {
-            std::cout << "IMMSSEECCCCCCCCCC  ===== " << *itS << " =================\n";
-            AddAnImage(*itS);
-        }
+            const std::list<std::string > & aList =  GetBestSec(aISOM,aISCA.Nb().Val());
+            for 
+            (
+                 std::list<std::string>::const_iterator itS = aList.begin();
+                 itS != aList.end();
+                 itS++
+            )
+            {
+                std::cout << "IMMSSEECCCCCCCCCC  ===== " << *itS << " =================\n";
+                AddAnImage(*itS);
+            }
+       }
 
    }
 }
