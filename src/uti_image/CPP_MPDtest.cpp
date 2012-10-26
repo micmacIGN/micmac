@@ -61,6 +61,7 @@ void f()
 
 #include "StdAfx.h"
 
+#if (ELISE_X11)
 
 using namespace NS_ParamChantierPhotogram;
 
@@ -798,8 +799,11 @@ for (int aK=0; aK<int(aRES.size()) ; aK++)
    // TestDonDenis();
    // TestMatCstr();
    // TestCamOrtho();
+
+	return EXIT_SUCCESS;
 }
 
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
