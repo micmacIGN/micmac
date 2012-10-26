@@ -2851,6 +2851,46 @@ void xml_init(cFCND_CalcIm2fromIm1 & anObj,cElXMLTree * aTree)
 }
 
 
+std::string & cImSecCalcApero::Key()
+{
+   return mKey;
+}
+
+const std::string & cImSecCalcApero::Key()const 
+{
+   return mKey;
+}
+
+
+cTplValGesInit< int > & cImSecCalcApero::Nb()
+{
+   return mNb;
+}
+
+const cTplValGesInit< int > & cImSecCalcApero::Nb()const 
+{
+   return mNb;
+}
+
+cElXMLTree * ToXMLTree(const cImSecCalcApero & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ImSecCalcApero",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Key"),anObj.Key())->ReTagThis("Key"));
+   if (anObj.Nb().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Nb"),anObj.Nb().Val())->ReTagThis("Nb"));
+  return aRes;
+}
+
+void xml_init(cImSecCalcApero & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.Key(),aTree->Get("Key",1)); //tototo 
+
+   xml_init(anObj.Nb(),aTree->Get("Nb",1),int(-1)); //tototo 
+}
+
+
 double & cAutoSelectionneImSec::RecouvrMin()
 {
    return mRecouvrMin;
@@ -2942,6 +2982,39 @@ const std::list< std::string > & cImages::ImPat()const
 }
 
 
+std::string & cImages::Key()
+{
+   return ImSecCalcApero().Val().Key();
+}
+
+const std::string & cImages::Key()const 
+{
+   return ImSecCalcApero().Val().Key();
+}
+
+
+cTplValGesInit< int > & cImages::Nb()
+{
+   return ImSecCalcApero().Val().Nb();
+}
+
+const cTplValGesInit< int > & cImages::Nb()const 
+{
+   return ImSecCalcApero().Val().Nb();
+}
+
+
+cTplValGesInit< cImSecCalcApero > & cImages::ImSecCalcApero()
+{
+   return mImSecCalcApero;
+}
+
+const cTplValGesInit< cImSecCalcApero > & cImages::ImSecCalcApero()const 
+{
+   return mImSecCalcApero;
+}
+
+
 cTplValGesInit< cNameFilter > & cImages::Filter()
 {
    return mFilter;
@@ -3011,6 +3084,8 @@ cElXMLTree * ToXMLTree(const cImages & anObj)
       it++
   ) 
       aRes->AddFils(::ToXMLTree(std::string("ImPat"),(*it))->ReTagThis("ImPat"));
+   if (anObj.ImSecCalcApero().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.ImSecCalcApero().Val())->ReTagThis("ImSecCalcApero"));
    if (anObj.Filter().IsInit())
       aRes->AddFils(ToXMLTree(anObj.Filter().Val())->ReTagThis("Filter"));
    if (anObj.AutoSelectionneImSec().IsInit())
@@ -3033,6 +3108,8 @@ void xml_init(cImages & anObj,cElXMLTree * aTree)
    xml_init(anObj.FCND_CalcIm2fromIm1(),aTree->Get("FCND_CalcIm2fromIm1",1)); //tototo 
 
    xml_init(anObj.ImPat(),aTree->GetAll("ImPat",false,1));
+
+   xml_init(anObj.ImSecCalcApero(),aTree->Get("ImSecCalcApero",1)); //tototo 
 
    xml_init(anObj.Filter(),aTree->Get("Filter",1)); //tototo 
 
@@ -3784,6 +3861,39 @@ std::list< std::string > & cSection_PriseDeVue::ImPat()
 const std::list< std::string > & cSection_PriseDeVue::ImPat()const 
 {
    return Images().ImPat();
+}
+
+
+std::string & cSection_PriseDeVue::Key()
+{
+   return Images().ImSecCalcApero().Val().Key();
+}
+
+const std::string & cSection_PriseDeVue::Key()const 
+{
+   return Images().ImSecCalcApero().Val().Key();
+}
+
+
+cTplValGesInit< int > & cSection_PriseDeVue::Nb()
+{
+   return Images().ImSecCalcApero().Val().Nb();
+}
+
+const cTplValGesInit< int > & cSection_PriseDeVue::Nb()const 
+{
+   return Images().ImSecCalcApero().Val().Nb();
+}
+
+
+cTplValGesInit< cImSecCalcApero > & cSection_PriseDeVue::ImSecCalcApero()
+{
+   return Images().ImSecCalcApero();
+}
+
+const cTplValGesInit< cImSecCalcApero > & cSection_PriseDeVue::ImSecCalcApero()const 
+{
+   return Images().ImSecCalcApero();
 }
 
 
@@ -15684,6 +15794,39 @@ std::list< std::string > & cParamMICMAC::ImPat()
 const std::list< std::string > & cParamMICMAC::ImPat()const 
 {
    return Section_PriseDeVue().Images().ImPat();
+}
+
+
+std::string & cParamMICMAC::Key()
+{
+   return Section_PriseDeVue().Images().ImSecCalcApero().Val().Key();
+}
+
+const std::string & cParamMICMAC::Key()const 
+{
+   return Section_PriseDeVue().Images().ImSecCalcApero().Val().Key();
+}
+
+
+cTplValGesInit< int > & cParamMICMAC::Nb()
+{
+   return Section_PriseDeVue().Images().ImSecCalcApero().Val().Nb();
+}
+
+const cTplValGesInit< int > & cParamMICMAC::Nb()const 
+{
+   return Section_PriseDeVue().Images().ImSecCalcApero().Val().Nb();
+}
+
+
+cTplValGesInit< cImSecCalcApero > & cParamMICMAC::ImSecCalcApero()
+{
+   return Section_PriseDeVue().Images().ImSecCalcApero();
+}
+
+const cTplValGesInit< cImSecCalcApero > & cParamMICMAC::ImSecCalcApero()const 
+{
+   return Section_PriseDeVue().Images().ImSecCalcApero();
 }
 
 

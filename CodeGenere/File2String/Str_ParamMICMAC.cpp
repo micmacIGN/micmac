@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[1925]) = {
+const char * (theNameVar_ParamMICMAC[1931]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -633,6 +633,12 @@ const char * (theNameVar_ParamMICMAC[1925]) = {
 "	     </FCND_CalcIm2fromIm1>\n",
 "\n",
 "             <ImPat Nb=\"*\" Type=\"std::string\">   </ImPat>\n",
+"             <!-- Utilise le mecanisem ImSecOfMaster d'Apero -->\n",
+"             <ImSecCalcApero Nb=\"?\">\n",
+"                  <Key Nb=\"1\" Type=\"std::string\"> </Key>\n",
+"                  <!-- Si Pas donne utilise Score  -->\n",
+"                  <Nb Nb=\"?\" Type=\"int\" Def=\"-1\"> </Nb>  \n",
+"             </ImSecCalcApero>\n",
 "             <Filter Nb=\"?\" \n",
 "                     RefType=\"NameFilter\"\n",
 "                     RefFile=\"ParamChantierPhotogram.xml\"\n",

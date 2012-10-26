@@ -1015,6 +1015,23 @@ class cFCND_CalcIm2fromIm1
 };
 cElXMLTree * ToXMLTree(const cFCND_CalcIm2fromIm1 &);
 
+class cImSecCalcApero
+{
+    public:
+        friend void xml_init(cImSecCalcApero & anObj,cElXMLTree * aTree);
+
+
+        std::string & Key();
+        const std::string & Key()const ;
+
+        cTplValGesInit< int > & Nb();
+        const cTplValGesInit< int > & Nb()const ;
+    private:
+        std::string mKey;
+        cTplValGesInit< int > mNb;
+};
+cElXMLTree * ToXMLTree(const cImSecCalcApero &);
+
 class cAutoSelectionneImSec
 {
     public:
@@ -1052,6 +1069,15 @@ class cImages
         std::list< std::string > & ImPat();
         const std::list< std::string > & ImPat()const ;
 
+        std::string & Key();
+        const std::string & Key()const ;
+
+        cTplValGesInit< int > & Nb();
+        const cTplValGesInit< int > & Nb()const ;
+
+        cTplValGesInit< cImSecCalcApero > & ImSecCalcApero();
+        const cTplValGesInit< cImSecCalcApero > & ImSecCalcApero()const ;
+
         cTplValGesInit< cNameFilter > & Filter();
         const cTplValGesInit< cNameFilter > & Filter()const ;
 
@@ -1071,6 +1097,7 @@ class cImages
         cTplValGesInit< std::string > mIm2;
         cTplValGesInit< cFCND_CalcIm2fromIm1 > mFCND_CalcIm2fromIm1;
         std::list< std::string > mImPat;
+        cTplValGesInit< cImSecCalcApero > mImSecCalcApero;
         cTplValGesInit< cNameFilter > mFilter;
         cTplValGesInit< cAutoSelectionneImSec > mAutoSelectionneImSec;
         cTplValGesInit< cListImByDelta > mImSecByDelta;
@@ -1325,6 +1352,15 @@ class cSection_PriseDeVue
 
         std::list< std::string > & ImPat();
         const std::list< std::string > & ImPat()const ;
+
+        std::string & Key();
+        const std::string & Key()const ;
+
+        cTplValGesInit< int > & Nb();
+        const cTplValGesInit< int > & Nb()const ;
+
+        cTplValGesInit< cImSecCalcApero > & ImSecCalcApero();
+        const cTplValGesInit< cImSecCalcApero > & ImSecCalcApero()const ;
 
         cTplValGesInit< cNameFilter > & Filter();
         const cTplValGesInit< cNameFilter > & Filter()const ;
@@ -4837,6 +4873,15 @@ class cParamMICMAC
 
         std::list< std::string > & ImPat();
         const std::list< std::string > & ImPat()const ;
+
+        std::string & Key();
+        const std::string & Key()const ;
+
+        cTplValGesInit< int > & Nb();
+        const cTplValGesInit< int > & Nb()const ;
+
+        cTplValGesInit< cImSecCalcApero > & ImSecCalcApero();
+        const cTplValGesInit< cImSecCalcApero > & ImSecCalcApero()const ;
 
         cTplValGesInit< cNameFilter > & Filter();
         const cTplValGesInit< cNameFilter > & Filter()const ;

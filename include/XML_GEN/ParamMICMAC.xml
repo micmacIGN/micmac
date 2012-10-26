@@ -631,6 +631,12 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 	     </FCND_CalcIm2fromIm1>
 
              <ImPat Nb="*" Type="std::string">   </ImPat>
+             <!-- Utilise le mecanisem ImSecOfMaster d'Apero -->
+             <ImSecCalcApero Nb="?">
+                  <Key Nb="1" Type="std::string"> </Key>
+                  <!-- Si Pas donne utilise Score  -->
+                  <Nb Nb="?" Type="int" Def="-1"> </Nb>  
+             </ImSecCalcApero>
              <Filter Nb="?" 
                      RefType="NameFilter"
                      RefFile="ParamChantierPhotogram.xml"
