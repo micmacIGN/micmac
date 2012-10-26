@@ -398,6 +398,8 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
 	 {
 		 Pt2dr AP = Pt2dr(x,y)-A2;
 
+                  
+                 // Coordonnees barycentriques
 		 REAL aPdsB = (AP^AC) / aDet;
 		 REAL aPdsC = (AB^AP) / aDet;
 		 REAL aPdsA = 1 - aPdsB - aPdsC;
