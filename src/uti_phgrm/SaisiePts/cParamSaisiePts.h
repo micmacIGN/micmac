@@ -1,7 +1,7 @@
 #ifndef Define_NotSaisiPts
 #define Define_NotSaisiPts
-#include "general/all.h"
-#include "private/all.h"
+// #include "general/all.h"
+// #include "private/all.h"
 using namespace NS_ParamChantierPhotogram;
 using namespace NS_SuperposeImage;
 namespace NS_SaisiePts{

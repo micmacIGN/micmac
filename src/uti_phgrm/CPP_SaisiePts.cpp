@@ -37,95 +37,58 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/all.h"
-#include "private/all.h"
-
-#include "XML_GEN/all.h"
-using namespace NS_ParamChantierPhotogram;
+#include "StdAfx.h"
 
 
+using namespace NS_SaisiePts;
 
-/*
-*/
-
-
-
-int main(int argc,char ** argv)
+void SaisiePts_Banniere()
 {
-  MMD_InitArgcArgv(argc,argv);
-  Pt2di aSzW(800,800);
-  Pt2di aNbFen(-1,-1);
-  std::string aFullName,aNamePt,anOri,anOut,aNameMesure;
-
-  double aFlou=0.0;
-
-  ElInitArgMain
-  (
-        argc,argv,
-        LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pattern)")
-                    << EAMC(anOri,"Orientation")
-                    << EAMC(aNamePt,"File for Ground Control Points")
-                    << EAMC(aNameMesure,"File for Image Measurements"),
-        LArgMain()  << EAM(aSzW,"SzW",true,"Size of global window (Def 800 800)")
-                    << EAM(aNbFen,"NbF",true,"Number of Sub Window (Def 2 2)")
-                    << EAM(aFlou,"WBlur",true,"Size IN GROUND GEOMETRY of bluring for target")
-  );
-
-  std::string aDir,aName;
-  SplitDirAndFile(aDir,aName,aFullName);
-
-
-  cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-  const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
-
-  std::cout << "Nb Image =" << aSet->size() << "\n";
-  ELISE_ASSERT(aSet->size()!=0,"No image found");
-
-  if (aNbFen.x<0)
-  {
-     if (aSet->size() == 1)
-     {
-         aNbFen = Pt2di(1,2);
-     }
-     else if (aSet->size() == 2)
-     {
-         Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
-         Pt2di aSzIm = aTF.sz();
-         aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
-     }
-     else 
-     {
-         aNbFen = Pt2di(2,2);
-     }
-  }
-
-  aCINM->MakeStdOrient(anOri,false);
-
-
-  std::string aCom =     MMDir() +"bin/SaisiePts "
-                      +  MMDir() +"include/XML_MicMac/SaisieAppuisPredic.xml " 
-                      +  std::string(" DirectoryChantier=") + aDir
-                      +  std::string(" +Images=") + QUOTE(aName)
-                      +  std::string(" +Ori=") + anOri
-                      +  std::string(" +LargeurFlou=") + ToString(aFlou)
-                      +  std::string(" +Terrain=") + aNamePt
-                      +  std::string(" +Sauv=") + aNameMesure
-                      +  std::string(" +SzWx=") + ToString(aSzW.x)
-                      +  std::string(" +SzWy=") + ToString(aSzW.y) 
-                      +  std::string(" +NbFx=") + ToString(aNbFen.x)
-                      +  std::string(" +NbFy=") + ToString(aNbFen.y) ;
-
-  std::cout << aCom << "\n";
-
-  int aRes = system(aCom.c_str());
-
-
-  return aRes;
+    std::cout <<  "\n";
+    std::cout <<  " *********************************\n";
+    std::cout <<  " *     SaisiePts                 *\n";
+    std::cout <<  " *********************************\n\n";
 }
 
+/*
+ ANoTher
+ Image
+ ProgAm
+ S
+
+*/
+
+int SaisiePts_main(int argc,char ** argv)
+{
+   MMD_InitArgcArgv(argc,argv);
+  // cAppliApero * anAppli = cAppliMICMAC::Alloc(argc,argv,eAllocAM_STD);
+
+  //if (0) delete anAppli;
+    
+   ELISE_ASSERT(argc>=2,"Not enough arg");
 
 
+   cElXMLTree aTree(argv[1]);
 
+
+   cResultSubstAndStdGetFile<cParamSaisiePts> aP2 
+                                          (
+                                               argc-2,argv+2,
+                                              //0,0,
+		                              argv[1],
+			                       StdGetFileXMLSpec("ParamSaisiePts.xml"),
+			                      "ParamSaisiePts",
+			                      "ParamSaisiePts",
+                                              "DirectoryChantier",
+                                              "FileChantierNameDescripteur"
+                                          );
+
+   cAppli_SaisiePts   anAppli (aP2);
+   anAppli.BoucleInput();
+
+   SaisiePts_Banniere();
+   return 0;
+}
 
 
 

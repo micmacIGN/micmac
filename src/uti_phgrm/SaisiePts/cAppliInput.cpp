@@ -37,38 +37,156 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/all.h"
-#include "private/all.h"
-#include "SaisiePts.h"
+#include "StdAfx.h"
+
 
 using namespace NS_SaisiePts;
 
+cWinIm * cAppli_SaisiePts::WImOfW(Video_Win aW)
+{
+    for (int aK=0 ; aK<mNbW; aK++)
+        if (mWins[aK]->W() == aW)
+           return mWins[aK];
 
-/*************************************************/
-/*                                               */
-/*                XXXXXXX                        */
-/*                                               */
-/*************************************************/
+   return 0;
+}
 
-cSP_PointeImage::cSP_PointeImage
-(
-   cOneSaisie *      aSIm,
-   cImage *          anIm,
-   cSP_PointGlob  *  aPGl
-) :
-  mSIm      (aSIm),
-  mIm       (anIm),
-  mGl       (aPGl),
-  mVisible  (true)
+void cAppli_SaisiePts::TestClikWIm(Clik aCl)
+{
+  cWinIm * aWIm = WImOfW(aCl._w);
+  if (!aWIm) 
+     return;
+
+  if (aCl._b==1)
+  {
+      aWIm->SetPt(aCl);
+      Sauv();
+  }
+
+  if ((aCl._b==4) || (aCl._b==5))
+  {
+      double aFactZ = 1.2;
+      aWIm->SetZoom(aCl._pt,(aCl._b==5) ? aFactZ: (1/aFactZ));
+      aWIm->ShowVect();
+  }
+
+
+
+
+  if (aCl._b==2)
+  {
+      aWIm->GrabScrTr(aCl);
+  }
+
+  if (aCl._b==3)
+  {
+      aWIm->MenuPopUp(aCl);
+  }
+}
+
+void cAppli_SaisiePts::BoucleInput()
+{
+   while(1)
+   {
+       Clik   aCl = mDisp->clik_press();
+
+       TestClikWIm(aCl);
+   }
+}
+
+
+void  cAppli_SaisiePts::SetInvisRef(bool aVal)
+{
+   mRefInvis = aVal;
+   for (int aKW=0 ; aKW<int(mWins.size()) ; aKW++)
+   {
+         mWins[aKW]->BCaseVR()->SetVal(aVal);
+         mWins[aKW]->Reaff();
+         mWins[aKW]->ShowVect();
+   }
+}
+
+
+void cAppli_SaisiePts::ReaffAllW()
+{
+    for (int aK=0 ; aK<int(mWins.size()) ; aK++)
+        mWins[aK]->Reaff();
+}
+
+void cAppli_SaisiePts::UndoRedo(std::vector<cUndoRedo>  & ToExe ,std::vector<cUndoRedo>  & ToPush)
+{
+   if ( ToExe.empty())
+      return;
+
+   const cUndoRedo & anUR = ToExe.back();
+
+   const cOneSaisie & aS = anUR.S();
+   cSP_PointeImage * aPIm  = anUR.I()->PointeOfNameGlobSVP(aS.NamePt());
+   ELISE_ASSERT(aPIm!=0,"Incoh in ExeUndoRedo");
+
+   ToPush.push_back(cUndoRedo(*(aPIm->Saisie()),aPIm->Image()));
+   *(aPIm->Saisie()) = aS;
+   ToExe.pop_back();
+   ReaffAllW();
+
+}
+
+void cAppli_SaisiePts::Undo()
+{
+    UndoRedo(mStackUndo, mStackRedo);
+}
+void cAppli_SaisiePts::Redo()
+{
+    UndoRedo(mStackRedo,mStackUndo);
+}
+
+
+
+void cAppli_SaisiePts::AddUndo(cOneSaisie aS,cImage * aI)
+{
+
+   mStackUndo.push_back(cUndoRedo(aS,aI));
+   mStackRedo.clear();
+}
+
+
+const std::vector<cWinIm *> &  cAppli_SaisiePts::WinIms()
+{
+   return mWins;
+}
+
+
+bool cAppli_SaisiePts::Visible(cSP_PointeImage & aPIm)
+{
+    return   (aPIm.Saisie()->Etat() != eEPI_Refute)
+           || mRefInvis;
+}
+
+
+void cAppli_SaisiePts::HighLightSom(cSP_PointGlob * aPG)
+{
+   for (int aKP=0 ; aKP<int(mPG.size()) ; aKP++)
+   {
+        if (mPG[aKP] == aPG)
+          aPG->HighLighted() = ! aPG->HighLighted();
+        else
+          mPG[aKP]->HighLighted() = false;
+   }
+}
+
+
+   //================== cUndoRedo ==========
+
+cUndoRedo::cUndoRedo(cOneSaisie aS,cImage *aI) :
+   mS (aS),
+   mI (aI)
 {
 }
 
-cOneSaisie *    cSP_PointeImage::Saisie() {return mSIm;}
-cImage *        cSP_PointeImage::Image()  {return mIm;}
-cSP_PointGlob * cSP_PointeImage::Gl()     {return mGl;}
+const    cOneSaisie & cUndoRedo::S() const {return mS;}
+cImage *              cUndoRedo::I() const {return mI;}
 
 
-bool & cSP_PointeImage::Visible() {return mVisible;}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

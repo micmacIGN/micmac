@@ -1,5 +1,5 @@
-
 #include "StdAfx.h"
+// UNUSED #include "cParamApero.h"
 namespace NS_ParamApero{
 eTypeContrainteCalibCamera  Str2eTypeContrainteCalibCamera(const std::string & aName)
 {
@@ -12390,6 +12390,7 @@ void xml_init(cExportNuage & anObj,cElXMLTree * aTree)
    xml_init(anObj.NuagePutCam(),aTree->Get("NuagePutCam",1)); //tototo 
 }
 
+
 std::string & cChoixImSec::KeyAssoc()
 {
    return mKeyAssoc;
@@ -12399,6 +12400,7 @@ const std::string & cChoixImSec::KeyAssoc()const
 {
    return mKeyAssoc;
 }
+
 
 cTplValGesInit< std::string > & cChoixImSec::PatternSel()
 {
@@ -12410,7 +12412,7 @@ const cTplValGesInit< std::string > & cChoixImSec::PatternSel()const
    return mPatternSel;
 }
 
- 
+
 cTplValGesInit< int > & cChoixImSec::CardMaxSub()
 {
    return mCardMaxSub;
@@ -12442,6 +12444,7 @@ const std::string & cChoixImSec::IdBdl()const
 {
    return mIdBdl;
 }
+
 
 cTplValGesInit< int > & cChoixImSec::NbMinPtsHom()
 {
@@ -12553,26 +12556,26 @@ cElXMLTree * ToXMLTree(const cChoixImSec & anObj)
    if (anObj.Teta2Max().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Teta2Max"),anObj.Teta2Max().Val())->ReTagThis("Teta2Max"));
    if (anObj.NbMaxPresel().IsInit())
-       aRes->AddFils(::ToXMLTree(std::string("NbMaxPresel"),anObj.NbMaxPresel().Val())->ReTagThis("NbMaxPresel"));
+      aRes->AddFils(::ToXMLTree(std::string("NbMaxPresel"),anObj.NbMaxPresel().Val())->ReTagThis("NbMaxPresel"));
    if (anObj.NbSetPreSelAng().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("NbSetPreSelAng"),anObj.NbSetPreSelAng().Val())->ReTagThis("NbSetPreSelAng"));
-   return aRes;
+  return aRes;
 }
-
 
 void xml_init(cChoixImSec & anObj,cElXMLTree * aTree)
 {
    if (aTree==0) return;
-   
+
    xml_init(anObj.KeyAssoc(),aTree->Get("KeyAssoc",1)); //tototo 
 
    xml_init(anObj.PatternSel(),aTree->Get("PatternSel",1),std::string(".*")); //tototo 
-   
+
    xml_init(anObj.CardMaxSub(),aTree->Get("CardMaxSub",1),int(6)); //tototo 
 
    xml_init(anObj.NbMin(),aTree->Get("NbMin",1)); //tototo 
 
    xml_init(anObj.IdBdl(),aTree->Get("IdBdl",1)); //tototo 
+
    xml_init(anObj.NbMinPtsHom(),aTree->Get("NbMinPtsHom",1),int(15)); //tototo 
 
    xml_init(anObj.TetaMinPreSel(),aTree->Get("TetaMinPreSel",1),double(0.025)); //tototo 
@@ -12695,7 +12698,6 @@ cTplValGesInit< double > & cChoixImMM::Teta2Min()
    return ChoixImSec().Teta2Min();
 }
 
-
 const cTplValGesInit< double > & cChoixImMM::Teta2Min()const 
 {
    return ChoixImSec().Teta2Min();
@@ -12706,7 +12708,6 @@ cTplValGesInit< double > & cChoixImMM::Teta2Max()
 {
    return ChoixImSec().Teta2Max();
 }
-
 
 const cTplValGesInit< double > & cChoixImMM::Teta2Max()const 
 {
@@ -12870,6 +12871,7 @@ const std::list< cExportNuage > & cSectionExport::ExportNuage()const
    return mExportNuage;
 }
 
+
 std::string & cSectionExport::KeyAssoc()
 {
    return ChoixImMM().Val().ChoixImSec().KeyAssoc();
@@ -12891,6 +12893,7 @@ const cTplValGesInit< std::string > & cSectionExport::PatternSel()const
    return ChoixImMM().Val().ChoixImSec().PatternSel();
 }
 
+
 cTplValGesInit< int > & cSectionExport::CardMaxSub()
 {
    return ChoixImMM().Val().ChoixImSec().CardMaxSub();
@@ -12900,6 +12903,7 @@ const cTplValGesInit< int > & cSectionExport::CardMaxSub()const
 {
    return ChoixImMM().Val().ChoixImSec().CardMaxSub();
 }
+
 
 int & cSectionExport::NbMin()
 {
@@ -12921,6 +12925,7 @@ const std::string & cSectionExport::IdBdl()const
 {
    return ChoixImMM().Val().ChoixImSec().IdBdl();
 }
+
 
 cTplValGesInit< int > & cSectionExport::NbMinPtsHom()
 {
@@ -13408,6 +13413,7 @@ const std::list< cExportNuage > & cEtapeCompensation::ExportNuage()const
    return SectionExport().Val().ExportNuage();
 }
 
+
 std::string & cEtapeCompensation::KeyAssoc()
 {
    return SectionExport().Val().ChoixImMM().Val().ChoixImSec().KeyAssoc();
@@ -13428,6 +13434,7 @@ const cTplValGesInit< std::string > & cEtapeCompensation::PatternSel()const
 {
    return SectionExport().Val().ChoixImMM().Val().ChoixImSec().PatternSel();
 }
+
 
 cTplValGesInit< int > & cEtapeCompensation::CardMaxSub()
 {
@@ -13460,6 +13467,7 @@ const std::string & cEtapeCompensation::IdBdl()const
 {
    return SectionExport().Val().ChoixImMM().Val().ChoixImSec().IdBdl();
 }
+
 
 cTplValGesInit< int > & cEtapeCompensation::NbMinPtsHom()
 {
@@ -13536,7 +13544,6 @@ const cTplValGesInit< int > & cEtapeCompensation::NbMaxPresel()const
 {
    return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbMaxPresel();
 }
-
 
 
 cTplValGesInit< int > & cEtapeCompensation::NbSetPreSelAng()

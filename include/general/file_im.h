@@ -47,6 +47,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 //    Elis_File_Im is actually a smart pointer to Data_Elis_File_Im 
 //  that realy contain  the information.
 
+#ifndef _ELISE_FILEIM_H  // general
+#define _ELISE_FILEIM_H
+
 
 
 class ElDataGenFileIm;
@@ -443,6 +446,7 @@ Im2D_Bits<1> MasqImThom
 
 void ThomCorrigeCourrantObscur(Im2D_U_INT2,const Box2di&);
 
+#endif  //  _ELISE_FILEIM_H
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #ifndef Define_NotApero
 #define Define_NotApero
+// #include "XML_GEN/all.h"
 using namespace NS_ParamChantierPhotogram;
 using namespace NS_SuperposeImage;
 namespace NS_ParamApero{
@@ -4077,13 +4078,14 @@ class cChoixImSec
     public:
         friend void xml_init(cChoixImSec & anObj,cElXMLTree * aTree);
 
-		std::string & KeyAssoc();
+
+        std::string & KeyAssoc();
         const std::string & KeyAssoc()const ;
 
         cTplValGesInit< std::string > & PatternSel();
         const cTplValGesInit< std::string > & PatternSel()const ;
 
-		cTplValGesInit< int > & CardMaxSub();
+        cTplValGesInit< int > & CardMaxSub();
         const cTplValGesInit< int > & CardMaxSub()const ;
 
         int & NbMin();
@@ -4092,7 +4094,7 @@ class cChoixImSec
         std::string & IdBdl();
         const std::string & IdBdl()const ;
 
-		cTplValGesInit< int > & NbMinPtsHom();
+        cTplValGesInit< int > & NbMinPtsHom();
         const cTplValGesInit< int > & NbMinPtsHom()const ;
 
         cTplValGesInit< double > & TetaMinPreSel();
@@ -4136,13 +4138,14 @@ class cChoixImMM
 {
     public:
         friend void xml_init(cChoixImMM & anObj,cElXMLTree * aTree);
-		
+
+
         std::string & KeyAssoc();
         const std::string & KeyAssoc()const ;
 
         cTplValGesInit< std::string > & PatternSel();
         const cTplValGesInit< std::string > & PatternSel()const ;
-		
+
         cTplValGesInit< int > & CardMaxSub();
         const cTplValGesInit< int > & CardMaxSub()const ;
 
@@ -4151,7 +4154,7 @@ class cChoixImMM
 
         std::string & IdBdl();
         const std::string & IdBdl()const ;
-		
+
         cTplValGesInit< int > & NbMinPtsHom();
         const cTplValGesInit< int > & NbMinPtsHom()const ;
 
@@ -4224,7 +4227,7 @@ class cSectionExport
 
         cTplValGesInit< std::string > & PatternSel();
         const cTplValGesInit< std::string > & PatternSel()const ;
-		
+
         cTplValGesInit< int > & CardMaxSub();
         const cTplValGesInit< int > & CardMaxSub()const ;
 
@@ -4233,7 +4236,7 @@ class cSectionExport
 
         std::string & IdBdl();
         const std::string & IdBdl()const ;
-		
+
         cTplValGesInit< int > & NbMinPtsHom();
         const cTplValGesInit< int > & NbMinPtsHom()const ;
 
@@ -4367,7 +4370,7 @@ class cEtapeCompensation
 
         cTplValGesInit< std::string > & PatternSel();
         const cTplValGesInit< std::string > & PatternSel()const ;
-		
+
         cTplValGesInit< int > & CardMaxSub();
         const cTplValGesInit< int > & CardMaxSub()const ;
 
@@ -4376,7 +4379,7 @@ class cEtapeCompensation
 
         std::string & IdBdl();
         const std::string & IdBdl()const ;
-		
+
         cTplValGesInit< int > & NbMinPtsHom();
         const cTplValGesInit< int > & NbMinPtsHom()const ;
 
