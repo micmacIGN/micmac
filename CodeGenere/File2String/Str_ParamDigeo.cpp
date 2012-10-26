@@ -1,5 +1,4 @@
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 const char * (theNameVar_ParamDigeo[227]) = {
 "<GenCpp>\n",
 "\n",
