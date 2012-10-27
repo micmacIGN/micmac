@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[1931]) = {
+const char * (theNameVar_ParamMICMAC[1932]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -1862,6 +1862,7 @@ const char * (theNameVar_ParamMICMAC[1931]) = {
 "    de liaison.\n",
 "-->\n",
 "     <Section_Vrac Nb=\"1\">\n",
+"          <DebugMM Nb=\"?\" Type=\"bool\" Def=\"false\"></DebugMM>\n",
 "      <!-- SAISIE DE POINTS DE LIAISONS -->\n",
 "          <!-- Saisie de liasion avec contrainte epipolaire-->\n",
 "          <SL_XSzW Nb=\"?\" Def=\"1000\" Type=\"int\"> </SL_XSzW> \n",

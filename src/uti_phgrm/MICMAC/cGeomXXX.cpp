@@ -280,6 +280,10 @@ if (MPD_MM())
          double aRatio[theDimPxMax];
          if ((*itFI)->Geom().GetRatioResolAltiPlani(aRatio))
          {
+if (mAp->DebugMM().Val())
+{
+std::cout << "RRRRRRRRR " << aRatio[0] << "\n";
+}
            for (int aK=0; aK<mDimPx ; aK++)
               ElSetMin(mRatioResAltPlani[aK],aRatio[aK]);
          }
@@ -483,6 +487,11 @@ if (MPD_MM())
 
             ELISE_ASSERT((mEcPxInitPlus[0]>0) && (mEcPxInitMoins[0]>0),"Error in IntervSpecialZInv");
 
+if (mAp->DebugMM().Val())
+{
+    std::cout << " V0PX " << mV0Px[0] << " " << 1/mV0Px[0] << "\n";
+    std::cout  << "AAA  " << mEcPxInitPlus[0] << " " << mEcPxInitMoins[0] << "\n";
+}
 
            // mV0Px[0] =     (aPxMin+aPxMax)/2.0;
            // mEcPxInit[0] = (aPxMax-aPxMin)/2.0;
@@ -723,7 +732,7 @@ if (MPD_MM())
       double aZ0 = mV0Px[0];
       double aZ1 = aZ0+ mStepAbs[0];
       cout << "----STEP en Z " << (1/aZ0-1/aZ1) << " " <<  mV0Px[0] << " " <<  mStepAbs[0] << "\n";
-      // cout << " RESOL " <<  mResol << "\n";
+      cout << " RESOL " <<  mResol << " " << mRatioResAltPlani[0] << "\n";
   }
 
 

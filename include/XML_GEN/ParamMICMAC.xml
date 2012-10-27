@@ -1860,6 +1860,7 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
     de liaison.
 -->
      <Section_Vrac Nb="1">
+          <DebugMM Nb="?" Type="bool" Def="false"></DebugMM>
       <!-- SAISIE DE POINTS DE LIAISONS -->
           <!-- Saisie de liasion avec contrainte epipolaire-->
           <SL_XSzW Nb="?" Def="1000" Type="int"> </SL_XSzW> 

@@ -959,7 +959,11 @@ bool Str2BoolForce(const std::string & aStr)
 {
     bool aRes;
     bool Ok = Str2Bool(aRes,aStr);
-    ELISE_ASSERT(Ok,"Bad value for bool");
+    if (!Ok)
+    {
+       std::cout << "For Str=" << aStr << "\n";
+       ELISE_ASSERT(Ok,"Bad value for bool");
+    }
 
     return aRes;
 }

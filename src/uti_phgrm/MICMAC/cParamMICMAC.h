@@ -4578,6 +4578,9 @@ class cSection_Vrac
         friend void xml_init(cSection_Vrac & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< bool > & DebugMM();
+        const cTplValGesInit< bool > & DebugMM()const ;
+
         cTplValGesInit< int > & SL_XSzW();
         const cTplValGesInit< int > & SL_XSzW()const ;
 
@@ -4659,6 +4662,7 @@ class cSection_Vrac
         cTplValGesInit< cSectionDebug > & SectionDebug();
         const cTplValGesInit< cSectionDebug > & SectionDebug()const ;
     private:
+        cTplValGesInit< bool > mDebugMM;
         cTplValGesInit< int > mSL_XSzW;
         cTplValGesInit< int > mSL_YSzW;
         cTplValGesInit< bool > mSL_Epip;
@@ -5344,6 +5348,9 @@ class cParamMICMAC
 
         cTplValGesInit< cSectionBatch > & SectionBatch();
         const cTplValGesInit< cSectionBatch > & SectionBatch()const ;
+
+        cTplValGesInit< bool > & DebugMM();
+        const cTplValGesInit< bool > & DebugMM()const ;
 
         cTplValGesInit< int > & SL_XSzW();
         const cTplValGesInit< int > & SL_XSzW()const ;
