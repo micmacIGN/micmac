@@ -46,6 +46,40 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                       */
 /*********************************************************/
 
+
+void cEl_GPAO:: DoComInParal(const std::list<std::string> & aL,std::string  FileMk , int   aNbProc )
+{
+    if (aNbProc<=0)  
+       aNbProc = NbProcSys();
+
+    if (FileMk=="") 
+       FileMk = MMDir() + "MkStdMM";
+
+    cEl_GPAO aGPAO;
+    int aK=0;
+    for 
+    (
+        std::list<std::string>::const_iterator itS=aL.begin();
+        itS!=aL.end();
+        itS++
+    )
+    {
+         std::string aName ="Task_" + ToString(aK);
+         cElTask   & aTsk = aGPAO.NewTask(aName,*itS);
+         aGPAO.TaskOfName("all").AddDep(aTsk);
+         aK++;
+    }
+
+    aGPAO.GenerateMakeFile(FileMk);
+
+    std::string aCom = "make all -f " + FileMk + " -j" + ToString(aNbProc);
+    VoidSystem(aCom.c_str());
+    ELISE_fp::RmFile(FileMk);
+}
+
+
+
+
 void MkFMapCmd
      (
           const std::string & aDir,

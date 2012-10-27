@@ -86,6 +86,8 @@ int to8Bits_main(int argc,char ** argv)
     std::string Mask="";
     std::string BoucheMask="";
 
+    bool UseSigne = true;
+
 
 
     ElInitArgMain
@@ -121,6 +123,7 @@ int to8Bits_main(int argc,char ** argv)
                     << EAM(ForceMin,"ForceMin",true)
                     << EAM(Mask,"Mask",true)
                     << EAM(BoucheMask,"BoucheMask",true)
+                    << EAM(UseSigne,"UseSigne",true)
     );	
     if ((ForceMax> -Big) || (ForceMin < Big))
         AdaptMinMax = true;
@@ -248,7 +251,7 @@ cout << "Types = "
        {
             cout << "Dyn= " << Dyn  << " NEW OFF  " << NewOffset << "\n";
             fRes =   (FoncInit + NewOffset) *Dyn;
-            if (signed_type_num(aType))
+            if (UseSigne && signed_type_num(aType))
             {
                 fRes = fRes+128;
             }
@@ -261,7 +264,7 @@ cout << "Types = "
                 fRes = fRes + Offset;
             fRes = fRes * Dyn;
             std::cout << "SIGNED " << signed_type_num(aType) << " DO " << DefOffset << "\n";
-            if ( DefOffset && (signed_type_num(aType)))
+            if ( DefOffset && (UseSigne&&signed_type_num(aType)))
             {
                 fRes = fRes+128;
             }
@@ -271,20 +274,6 @@ cout << "Types = "
     if (aStep >0)
        fRes = aStep * round_ni(fRes/aStep);
 
-    if (Circ)
-    {
-       fRes = Max(1,mod(round_ni(fRes),256));
-    }
-    else
-    {
-       if (type_im_integral(aTypeOut) && (aTypeOut!= GenIm::int4))
-       {
-           INT  v_min,v_max;
-           min_max_type_num(aTypeOut,v_min,v_max);
-	   cout << "MAX MIN " << v_min << " " << v_max << "\n";
-           fRes = Min(v_max-1,Max(v_min,round_ni(fRes)));
-       }
-    }
 
     Im1D_REAL8 aHist(1);
     if (AdaptMinMax || AdaptMin || EqHisto)
@@ -322,8 +311,28 @@ cout << "Types = "
             );
 	    fRes = aHist.in()[round_ni((tiff.in()-GMin)/aStepH)];
        }
-       fRes = Max(0,Min(255,round_ni(fRes)));
+//        fRes = Max(0,Min(255,round_ni(fRes)));
     }
+
+    if (Circ)
+    {
+       fRes = Max(1,mod(round_ni(fRes),256));
+    }
+    else
+    {
+       if (type_im_integral(aTypeOut) && (aTypeOut!= GenIm::int4))
+       {
+           INT  v_min,v_max;
+           min_max_type_num(aTypeOut,v_min,v_max);
+	   cout << "MAX MIN " << v_min << " " << v_max << "\n";
+           fRes = Min(v_max-1,Max(v_min,round_ni(fRes)));
+       }
+    }
+
+
+
+
+
 
     if (Mask !="")
     {

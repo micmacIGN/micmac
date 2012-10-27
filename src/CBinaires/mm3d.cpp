@@ -81,6 +81,7 @@ const std::vector<cMMCom> & getAvailableCommands()
    {
        aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualisation of camera in ply file"));
        aRes.push_back(cMMCom("Apero",Apero_main," Compute external and internal orientations"));
+       aRes.push_back(cMMCom("AperoChImSecMM",AperoChImMM_main,"Select secondary images for MicMac "));
        aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene"));
        aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
        aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Do some stuff"));
@@ -96,7 +97,9 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("MapCmd",MapCmd_main," Transforms a command working on a single file in a command working on a set of files"));
 	   aRes.push_back(cMMCom("MergePly",MergePly_main," Merge ply files"));
        aRes.push_back(cMMCom("MICMAC",MICMAC_main," Computes image matching from oriented images"));
+       aRes.push_back(cMMCom("MMPyram",MMPyram_main," Computes pyram for micmac (internal use)"));
        aRes.push_back(cMMCom("MpDcraw",MpDcraw_main," Interface to dcraw"));
+       aRes.push_back(cMMCom("MMInitialModel",MMInitialModel_main,"Initial Model for MicMac "));
        aRes.push_back(cMMCom("Nuage2Ply",Nuage2Ply_main," Convert depth map into point cloud"));
        aRes.push_back(cMMCom("Pasta",Pasta_main," Do some stuff"));
        aRes.push_back(cMMCom("PastDevlop",PastDevlop_main," Do some stuff"));
@@ -113,16 +116,16 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Tarama",Tarama_main," Do some stuff"));
        aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image"));
        aRes.push_back(cMMCom("TestCam",TestCam_main," Test camera orientation convention"));
-       aRes.push_back(cMMCom("tiff_info",tiff_info_main," Tool for giving information about a tifffile"));
+       aRes.push_back(cMMCom("tiff_info",tiff_info_main," Tool for giving information about a tiff file"));
        aRes.push_back(cMMCom("to8Bits",to8Bits_main," Tool for converting 16 or 32 bit image in a 8 bit image."));
 
 #if (ELISE_X11)
        aRes.push_back(cMMCom("MPDtest",MPDtest_main," My own test"));
-       aRes.push_back(cMMCom("SaisieAppuisInit",SaisieAppuisInit_main," My own test"));
-       aRes.push_back(cMMCom("SaisieAppuisPredic",SaisieAppuisPredic_main," My own test"));
-       aRes.push_back(cMMCom("SaisieBasc",SaisieBasc_main," My own test"));
-       aRes.push_back(cMMCom("SaisieMasq",SaisieMasq_main," My own test"));
-       aRes.push_back(cMMCom("SaisiePts",SaisiePts_main," My own test"));
+       aRes.push_back(cMMCom("SaisieAppuisInit",SaisieAppuisInit_main,"Interactive tool for initial capture of GCP"));
+       aRes.push_back(cMMCom("SaisieAppuisPredic",SaisieAppuisPredic_main,"Interactive tool for assisted capture of GCP "));
+       aRes.push_back(cMMCom("SaisieBasc",SaisieBasc_main,"Interactive tool to cature information on the scene"));
+       aRes.push_back(cMMCom("SaisieMasq",SaisieMasq_main,"Interactive tool to capture  masq"));
+       aRes.push_back(cMMCom("SaisiePts",SaisiePts_main,"Tool to capture GCP (low level, not recommanded)"));
 #endif
    }
    return aRes;

@@ -375,10 +375,12 @@ cElXMLToken::cElXMLToken
 				{
 					cElXMLAttr anAttr;
 					XML_GetAttr(aNameDecl,anArg,aFp,anAttr.mSymb,anAttr.mVal,aUseSubst);
+
+// std::cout << "DDDDD " << aUseSubst << " " << anAttr.mSymb << " " << anAttr.mVal << "\n";
 		                        if (aUseSubst)
                                         {
-			                        anArg.DoSubst(anAttr.mSymb);
-			                        anArg.DoSubst(anAttr.mVal);
+			                        anArg.DoSubst(anAttr.mSymb,true);
+			                        anArg.DoSubst(anAttr.mVal,true);
                                         }
 					mAttrs.push_back(anAttr);
 					// std::cout << "Atttrrrrrrr" << anAttr.mSymb << "::" << anAttr.mVal <<"\n";
@@ -537,10 +539,8 @@ void cArgCreatXLMTree::DoSubst(std::string & aStr)
 
 void cArgCreatXLMTree::DoSubst(std::string & aStr,bool ForceSubst)
 {
-	//std::cout << "111111111\n";
 	if ((! mModifTree) && (!ForceSubst))
 		return;
-	//std::cout << "2222\n";
 	char aJoker = '$';
 	char aOpen = '{';
 	char aClose = '}';

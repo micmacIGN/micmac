@@ -15,6 +15,9 @@ INCLUDE (${UTI_PHGRM_SAISIEPTS_DIR}/Sources.cmake)
 
 set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_AperiCloud.cpp
+    ${UTI_PHGRM_DIR}/CPP_AperoChImMM.cpp
+    ${UTI_PHGRM_DIR}/CPP_MMPyram.cpp
+    ${UTI_PHGRM_DIR}/CPP_MMModelInitial.cpp
     ${UTI_PHGRM_DIR}/CPP_Apero.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisiePts.cpp
     ${UTI_PHGRM_DIR}/CPP_Bascule.cpp
@@ -23,7 +26,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_GCPBascule.cpp
     ${UTI_PHGRM_DIR}/CPP_MakeGrid.cpp
     ${UTI_PHGRM_DIR}/CPP_Malt.cpp
-	${UTI_PHGRM_DIR}/CPP_MergePly.cpp
+    ${UTI_PHGRM_DIR}/CPP_MergePly.cpp
     ${UTI_PHGRM_DIR}/CPP_MICMAC.cpp
     ${UTI_PHGRM_DIR}/CPP_Nuage2Ply.cpp
     ${UTI_PHGRM_DIR}/CPP_Pasta.cpp

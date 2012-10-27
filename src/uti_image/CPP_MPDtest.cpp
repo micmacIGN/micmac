@@ -762,10 +762,9 @@ void TestXML2()
   aTree.StdShow("TestOur.xml");
 }
 
+
 int MPDtest_main (int argc,char** argv)
 {
-    std::cout << "Hello word\n";
-    TestXML2();
 /*
    TestIm();
 {

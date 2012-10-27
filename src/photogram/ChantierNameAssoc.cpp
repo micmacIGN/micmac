@@ -459,19 +459,32 @@ int NbProcSys()
 #endif
 }
 
-
-
-
-//   GESTION DE LA NATURE DES CLES
-
-#if (0)
-
-
-
-#endif
-
-
 namespace NS_ParamChantierPhotogram{
+
+std::string MM3DStr = "mm3d";
+
+//   Binaire a "l'ancienne"  MMDir() + std::string("bin" ELISE_STR_DIR  COMMANDE) 
+std::string MMBinFile(const std::string & aCom)
+{
+  return  MMDir() + std::string("bin" +  std::string(ELISE_STR_DIR) +  aCom  + " ");
+}
+//   Nouveau par mm3d   MMDir() + std::string("bin" ELISE_STR_DIR "mm3d"  COMMANDE) 
+std::string MM3dBinFile(const std::string & aCom)
+{
+  return  MMDir() + std::string("bin" +  std::string(ELISE_STR_DIR) + MM3DStr +  " "+ aCom  + " ");
+}
+//   MMDir() + std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Cloud.xml ")
+std::string XML_MM_File(const std::string & aFile)
+{
+   
+   return   MMDir() + std::string("include" +std::string(ELISE_STR_DIR) + "XML_MicMac" + std::string(ELISE_STR_DIR) + aFile + " ");
+}
+
+
+
+
+
+
 
 	static bool DebugPCP = false;
 

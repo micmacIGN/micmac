@@ -503,6 +503,7 @@ void cAppliMICMAC::DoOneBloc
    mLTer = new cLoadTer(mDimPx,aBoxIn.sz(),*mCurEtape);
    double aNbCel = mCurEtape->LoadNappesAndSetGeom(*mLTer,aBoxIn);
 
+
    int aLMin = ElMin(aBoxOut._p1.x-aBoxOut._p0.x,aBoxOut._p1.y-aBoxOut._p0.y);
 
 /*

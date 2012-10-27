@@ -2031,6 +2031,17 @@ static std::string NameAdapt(const std::string  &aFullName, const std::string & 
    return aDir+aDirAdd+aNameOri + aPost + ".tif";
 }
 
+extern void  OkStat(const std::string & aFile,struct stat & status);
+
+void TestDate(const std::string & aF1,const std::string & aF2)
+{
+        struct stat status1;   OkStat(aF1,status1);
+        struct stat status2;  OkStat(aF2,status2);
+        std::cout << aF1 << " " << status1.st_mtim.tv_sec << " " << status1.st_mtim.tv_nsec << "\n";
+        std::cout << aF2 << " " << status2.st_mtim.tv_sec << " " << status2.st_mtim.tv_nsec << "\n";
+}
+
+
 
 std::string NameFileStd
             (
@@ -2091,8 +2102,8 @@ std::string NameFileStd
    std::string aNewName =  NameAdapt(aFullNameOri,aPost,false);
 
 
-   // if ((! Create) || ELISE_fp::exist_file(aNewName))
-   if ((! Create) ||  FileStrictPlusRecent(aNewName,aFullNameOri) )
+   if ((! Create) || ELISE_fp::exist_file(aNewName))
+   //  if ((! Create) ||  FileStrictPlusRecent(aNewName,aFullNameOri) )
    {
        return aNewName;
    }
@@ -2191,11 +2202,14 @@ std::string NameFileStd
    }
 
    delete aTif;
-   if ( FileStrictPlusRecent(aNewName,aFullNameOri) )
+/*
+   if ( FileStrictPlusRecent(aNewName,aFullNameOri,-120) )
    {
+      TestDate(aNewName,aFullNameOri);
       std::cout << "FOR FILE " <<aFullNameOri << "\n";
       ELISE_ASSERT(false,"File has probably a date in futur (you may use touch to change that)");
    }
+*/
 
    return aNewName;
 }

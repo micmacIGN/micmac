@@ -105,6 +105,19 @@ std::string getCurrentProgramFullName();
 int MMNbProc();
 bool MPD_MM(); // Est ce que c'est ma machine, afin de ne pas polluer les autres en phase de test !!!!
 
+extern std::string MM3DStr;
+
+//   Binaire a "l'ancienne"  MMDir() + std::string("bin" ELISE_STR_DIR  COMMANDE) 
+std::string MMBinFile(const std::string &);
+//   Nouveau par mm3d   MMDir() + std::string("bin" ELISE_STR_DIR "mm3d"  COMMANDE) 
+std::string MM3dBinFile(const std::string &);
+//   MMDir() + std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Cloud.xml ")
+std::string XML_MM_File(const std::string &);
+
+
+
+
+
 GenIm::type_el Xml2EL(const eTypeNumerique & aType);
 Tiff_Im::COMPR_TYPE Xml2EL(const eComprTiff & aType);
 

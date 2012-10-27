@@ -855,6 +855,9 @@ class cElTask
 class cEl_GPAO
 {
      public :
+          // Interface simplifiee quand il n'y a pas de dependance entre les commandes
+          static void DoComInParal(const std::list<std::string> &,std::string  FileMk = "", int   aNbProc = 0 );
+
          ~cEl_GPAO();
           cEl_GPAO();
          cElTask   & NewTask

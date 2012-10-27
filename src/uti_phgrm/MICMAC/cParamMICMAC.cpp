@@ -14729,6 +14729,17 @@ void xml_init(cSectionDebug & anObj,cElXMLTree * aTree)
 }
 
 
+cTplValGesInit< bool > & cSection_Vrac::DebugMM()
+{
+   return mDebugMM;
+}
+
+const cTplValGesInit< bool > & cSection_Vrac::DebugMM()const 
+{
+   return mDebugMM;
+}
+
+
 cTplValGesInit< int > & cSection_Vrac::SL_XSzW()
 {
    return mSL_XSzW;
@@ -15028,6 +15039,8 @@ const cTplValGesInit< cSectionDebug > & cSection_Vrac::SectionDebug()const
 cElXMLTree * ToXMLTree(const cSection_Vrac & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Section_Vrac",eXMLBranche);
+   if (anObj.DebugMM().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DebugMM"),anObj.DebugMM().Val())->ReTagThis("DebugMM"));
    if (anObj.SL_XSzW().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("SL_XSzW"),anObj.SL_XSzW().Val())->ReTagThis("SL_XSzW"));
    if (anObj.SL_YSzW().IsInit())
@@ -15088,6 +15101,8 @@ cElXMLTree * ToXMLTree(const cSection_Vrac & anObj)
 void xml_init(cSection_Vrac & anObj,cElXMLTree * aTree)
 {
    if (aTree==0) return;
+
+   xml_init(anObj.DebugMM(),aTree->Get("DebugMM",1),bool(false)); //tototo 
 
    xml_init(anObj.SL_XSzW(),aTree->Get("SL_XSzW",1),int(1000)); //tototo 
 
@@ -17521,6 +17536,17 @@ cTplValGesInit< cSectionBatch > & cParamMICMAC::SectionBatch()
 const cTplValGesInit< cSectionBatch > & cParamMICMAC::SectionBatch()const 
 {
    return mSectionBatch;
+}
+
+
+cTplValGesInit< bool > & cParamMICMAC::DebugMM()
+{
+   return Section_Vrac().DebugMM();
+}
+
+const cTplValGesInit< bool > & cParamMICMAC::DebugMM()const 
+{
+   return Section_Vrac().DebugMM();
 }
 
 

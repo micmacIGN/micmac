@@ -460,6 +460,10 @@ int TestCam_main(int argc,char ** argv);
 int ScaleNuage_main(int argc,char ** argv);
 int  Gri2Bin_main(int argc,char ** argv);
 
+int MMPyram_main(int argc,char ** argv);
+int AperoChImMM_main(int argc,char ** argv);
+int MMInitialModel_main(int argc,char ** argv);
+
 #if (ELISE_X11)
 int SaisieAppuisInit_main(int argc,char ** argv);
 int SaisieAppuisPredic_main(int argc,char ** argv);
