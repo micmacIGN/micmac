@@ -30,8 +30,8 @@ class ExternalToolHandler
 public:
 	ExternalToolHandler();
 
-	// returns a callable name for i_tool commande
-	std::string getCallName( const std::string &i_tool );
+	// returns a ExternalToolItem for i_tool commande
+	const ExternalToolItem & get( const std::string &i_tool );
 private:
 	list<std::string> m_pathDirectories; // the list of directories in PATH environment variable
 	map<std::string, ExternalToolItem> m_queriedTools; // all tools previously queried
@@ -39,9 +39,12 @@ private:
 	// initialize m_pathDirectories
 	void initPathDirectories();
 
-	// return true if a the tool has been found in one of PATH's (the environment variable) directories
+	// return true if a the tool has been found in one of PATH's directories
 	// if so io_exeTool is set to this full name otherwise it is left untouched
 	bool checkPathDirectories( std::string &io_exeTool );
+
+	// look for possible paths for this tool and store it in the map for later use
+	ExternalToolItem &addTool( const std::string &i_tool );
 };
 
 extern ExternalToolHandler g_externalToolHandler;
@@ -66,3 +69,13 @@ inline const std::string ExternalToolItem::callName() const
 // ExternalToolHandler
 
 inline ExternalToolHandler::ExternalToolHandler(){ initPathDirectories(); }
+
+inline const ExternalToolItem & ExternalToolHandler::get( const string &i_tool )
+{
+	map<string,ExternalToolItem>::iterator itTool = m_queriedTools.find( i_tool );
+
+	if ( itTool==m_queriedTools.end() )
+		return addTool( i_tool );
+	
+	return itTool->second;
+}
