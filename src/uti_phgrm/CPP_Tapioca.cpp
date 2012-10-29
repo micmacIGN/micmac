@@ -109,7 +109,7 @@ void DoMkT()
 {
     if (ByP)
     {
-		std::string aSMkSr = g_externalToolHandler.getCallName( "make" )+" all -f " + MkFT + (UseSiftGpu ? "" : std::string(" -j")+ToString(ByP));
+		std::string aSMkSr = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFT + (UseSiftGpu ? "" : std::string(" -j")+ToString(ByP));
         System(aSMkSr,true);
     }
 }

@@ -54,7 +54,7 @@ void UseRequirement(const std::string & aDir,const cTplValGesInit<cBatchRequirem
         itE++
     )
     {
-       std::string aCom = g_externalToolHandler.getCallName( "make" )+" " + itE->Exe() + " -f " + itE->Make();
+       std::string aCom = g_externalToolHandler.get( "make" ).callName()+" " + itE->Exe() + " -f " + itE->Make();
        System(aCom);
     }
 
@@ -775,7 +775,7 @@ cEl_GPAO * DoCmdExePar(const cCmdExePar & aCEP,int aNbProcess)
    {
       aNbProcess = ElMax(1,aNbProcess);
       aGPAO->GenerateMakeFile(aNameMkF);
-      std::string aCom = g_externalToolHandler.getCallName( "make" )+" all -f "+  aNameMkF + std::string(" -j") +ToString(aNbProcess);
+      std::string aCom = g_externalToolHandler.get( "make" ).callName()+" all -f "+  aNameMkF + std::string(" -j") +ToString(aNbProcess);
       VoidSystem(aCom.c_str());
       delete aGPAO;
       return 0;
