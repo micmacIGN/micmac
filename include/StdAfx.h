@@ -20,6 +20,7 @@
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
+#include <sys/stat.h>
 #ifndef _WIN32
 	#include <unistd.h>
 #endif
@@ -255,3 +256,5 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #include "im_tpl/max_loc.h"
 
 #include "../src/uti_phgrm/MICMAC/cOrientationGrille.h"
+
+#include "private/externalToolHandler.h"

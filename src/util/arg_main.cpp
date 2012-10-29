@@ -1054,10 +1054,15 @@ mICNM           (0),
 		aNbArgGlob
 		);
 
+#if (ELISE_windows)
+	replace( mDirChantier.begin(), mDirChantier.end(),'\\', '/' );
+#endif
+
 	if (!mByNameFile)
 		MakeFileDirCompl(mDirChantier);
 	if (A1IsFile)
 	{
+		// retrieve chantier directory from first file's path
 		std::string aFulName = mDirChantier;
 		SplitDirAndFile(mDirChantier,mPatF1,aFulName);
 	}

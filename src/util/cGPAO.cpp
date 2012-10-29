@@ -72,7 +72,7 @@ void cEl_GPAO:: DoComInParal(const std::list<std::string> & aL,std::string  File
 
     aGPAO.GenerateMakeFile(FileMk);
 
-    std::string aCom = "make all -f " + FileMk + " -j" + ToString(aNbProc);
+    std::string aCom = g_externalToolHandler.getCallName( "make" )+" all -f " + FileMk + " -j" + ToString(aNbProc);
     VoidSystem(aCom.c_str());
     ELISE_fp::RmFile(FileMk);
 }
@@ -110,7 +110,7 @@ void MkFMapCmd
 
     aGPAO.GenerateMakeFile(FileMk);
 
-    std::string aCom = "make all -f " + FileMk + " -j" + ToString(aNbProc);
+    std::string aCom = g_externalToolHandler.getCallName( "make" )+" all -f " + FileMk + " -j" + ToString(aNbProc);
     VoidSystem(aCom.c_str());
 }
 
@@ -140,7 +140,7 @@ void cEl_GPAO::ExeParal(std::string aFileMk,int aNbProc)
     // aFileMk = MMDir() + aFileMk;
     GenerateMakeFile(aFileMk);
 
-    std::string aCom = "make all -f " + aFileMk + " -j" + ToString(aNbProc);
+    std::string aCom = g_externalToolHandler.getCallName( "make" )+" all -f " + aFileMk + " -j" + ToString(aNbProc);
     if (false)
     {
        std::cout << "CCCC = " << aCom << "\n";

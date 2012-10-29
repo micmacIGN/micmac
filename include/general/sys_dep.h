@@ -96,6 +96,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 	#define ELISE_CAR_DIR  '/' 
 	#define ELISE_Current_DIR  "./"
     #define ELISE_STR_DIR "/"
+	// the character separating directories in PATH environment variable
+    #define ELISE_CAR_ENV ':'
 #endif
 
 #if ELISE_MacOs
@@ -105,6 +107,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 	#define ELISE_CAR_DIR  '/' 
 	#define ELISE_Current_DIR  "./"
     #define ELISE_STR_DIR "/"
+    #define ELISE_CAR_ENV ':'
 #endif
 
 #if ELISE_Cygwin
@@ -113,6 +116,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 	#define SYS_CP "cp"
 	#define ELISE_CAR_DIR  '/' 
 	#define ELISE_Current_DIR  "./"
+	// the character separating directories in PATH environment variable
+    #define ELISE_CAR_ENV ';'
 #endif
 
 #if ELISE_windows
@@ -123,7 +128,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 	#define ELISE_Current_DIR  "./"
 	#include <float.h>
 	#define isnan _isnan 
-        #define ELISE_STR_DIR "/"
+    #define ELISE_STR_DIR "/"
+	// the character separating directories in PATH environment variable
+    #define ELISE_CAR_ENV ';'
 #endif
 
 #if Compiler_Gpp2_7_2   // =========
