@@ -51,19 +51,11 @@ int GetCharOnBrkp()
    return getchar();
 }
 
-#if  (USE_NOYAU)
-void EliseBRKP()
-{
-    if (!TheExitOnBrkp)
-       while(1) ;
-}
-#else
 void EliseBRKP()
 {
     if (!TheExitOnBrkp)
        getchar();
 }
-#endif
 
 
 bool ELISE_DEBUG_USER = true;

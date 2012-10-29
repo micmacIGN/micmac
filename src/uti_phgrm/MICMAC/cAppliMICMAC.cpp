@@ -1868,7 +1868,7 @@ void cAppliMICMAC::ExeProcessParallelisable
 #if (ELISE_unix || ELISE_MacOs || ELISE_Cygwin)
 	   std::string aCom = std::string("make -f \"")+nomMakefile+std::string("\" -j ")+ToString(std::abs(ByProcess().Val()));
 #else
-	   std::string aCom = std::string("make.exe -f ")+nomMakefile+std::string(" -j ")+ToString(std::abs(ByProcess().Val()));
+	   std::string aCom = std::string(g_externalToolHandler.getCallName( "make" )+" -f ")+nomMakefile+std::string(" -j ")+ToString(std::abs(ByProcess().Val()));
 #endif
 	   int aCodeRetour = system_call(aCom.c_str());
        if (StopOnEchecFils().Val())

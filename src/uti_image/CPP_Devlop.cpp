@@ -107,7 +107,7 @@ int Devlop_main(int argc,char ** argv)
     // std::cout << aCom << "\n"; getchar();
      System(aCom);
 
-     aCom = "make all -f MkDevlop  -j" + ToString(MMNbProc());
+     aCom = g_externalToolHandler.getCallName( "make" )+" all -f MkDevlop  -j" + ToString(MMNbProc());
      System(aCom);
 	 
 	return EXIT_SUCCESS;

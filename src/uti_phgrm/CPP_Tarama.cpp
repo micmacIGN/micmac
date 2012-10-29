@@ -84,7 +84,7 @@ int Tarama_main(int argc,char ** argv)
 	    
 	MMD_InitArgcArgv(argc,argv);
    
-    std::string aCom =   MMDir() + std::string("bin/MICMAC ")
+    std::string aCom =   MM3dBinFile( "MICMAC" )
                        + MMDir() + std::string("include/XML_MicMac/MM-TA.xml ")
                        + std::string(" WorkDir=") +aDir +  std::string(" ")
                        + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
