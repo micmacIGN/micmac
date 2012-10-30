@@ -184,12 +184,9 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #include "general/hassan_arrangt.h"
 #include "general/optim.h"
 #include "general/abstract_types.h"
-#include "graphes/graphe.h"
 #include "general/phgr_formel.h"
 
-#include "api/vecto.h"
 #include "api/cox_roy.h"
-#include "api/el_regex.h"
 
 #include "graphes/algo_pcc.h"
 
@@ -253,7 +250,6 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 
 #include "../src/uti_phgrm/SaisiePts/cParamSaisiePts.h"
 #include "../src/uti_phgrm/SaisiePts/SaisiePts.h"
-#include "im_tpl/max_loc.h"
 
 #include "../src/uti_phgrm/MICMAC/cOrientationGrille.h"
 
