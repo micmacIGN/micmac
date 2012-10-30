@@ -404,6 +404,10 @@ cResultSubstAndStdGetFile
         SplitDirAndFile(mDC,aNF,aNameFileObj);
    }
 
+	#if (ELISE_windows)
+		replace( mDC.begin(), mDC.end(), '\\', '/' );
+	#endif
+
    {
       std::string aDef;
       std::string aDC = GetValLC(argc,argv,aNameTagDirectory,aDef);
