@@ -754,10 +754,12 @@ void cAppliMICMAC::DoGPU_Correl_Basik
            int aZMax = mTabZMax[anY][anX];
 
            // est-on dans le masque des points terrains valide
-           if ( IsInTer(anX,anY))
+           if ( IsInTer(anX,anY))	// -> GET_Val_BIT(mTabMasqTER[anY],anX) 
+									//	-> return (mTabMasqTER[anX/8] >> (7-anX %8) ) & 1;
            {
 
                // Bornes du voisinage
+			   // taille de la fenetre mPtSzWFixe
                int aX0v = anX-mPtSzWFixe.x;
                int aX1v = anX+mPtSzWFixe.x;
                int aY0v = anY-mPtSzWFixe.y;
@@ -773,7 +775,7 @@ void cAppliMICMAC::DoGPU_Correl_Basik
                    mNbPointsIsole++;
 
                    // On dequantifie le Z 
-                   double aZReel  = DequantZ(aZInt); // anOrigineZ+ aZInt*aStepZ;
+                   double aZReel  = DequantZ(aZInt); // -> anOrigineZ+ aZInt*aStepZ;
                     
 
                    int aNbImOk = 0;
@@ -807,22 +809,20 @@ void cAppliMICMAC::DoGPU_Correl_Basik
                                for (int aYVois= aY0v; (aYVois<=aY1v)&&IsOk; aYVois++)
                                {
                                    // On dequantifie la plani 
-                                     Pt2dr aPTer  = DequantPlani(aXVois,aYVois);
+                                     Pt2dr aPTer  = DequantPlani(aXVois,aYVois); 
+											// -> return Pt2dr( mOriPlani.x + mStepPlani.x*anX,mOriPlani.y + mStepPlani.y*anY);
+													
                                    // On projette dans l'image 
                                      Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);
-/*
-if (MPD_MM())
-{
-    static int aCpt; aCpt++;
-    std::cout  << "Cpt " << aCpt << " " << aPIm << aPTer << " OK " <<  aGLI.IsOk(aPIm.x,aPIm.y) << "\n";
-    getchar();
-}
-*/
 
+									 // Est ce qu'un point image est dans le domaine de definition de l'image
+									 // (dans le rectangle + dans le masque)
                                      if (aGLI.IsOk(aPIm.x,aPIm.y))
                                      {
                                         // On utilise l'interpolateur pour lire la valeur image
+											// ->return BicubValue(aTab,aP)
                                         double aVal =  mInterpolTabule.GetVal(aDataIm,aPIm);
+
                                         // On "push" la nouvelle valeur de l'image
                                         *(mCurVals++) = aVal;
                                         aSV += aVal;

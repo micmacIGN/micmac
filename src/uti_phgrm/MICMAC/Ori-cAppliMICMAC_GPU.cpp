@@ -216,7 +216,7 @@ void cAppliMICMAC::GPU_Correl
    }
    int aNbIm = aVLI.size();
 
-   // Buffer pour pointer sur l'ensmble des vignettes OK
+   // Buffer pour pointer sur l'ensemble des vignettes OK
    std::vector<double *> aVecVals(aNbIm);
    double ** aVVals = &(aVecVals[0]);
 
