@@ -12,6 +12,7 @@ set(Util_Src_Files
 	${UTIL_DIR}/current_fonc.cpp
 	${UTIL_DIR}/dates.cpp
 	${UTIL_DIR}/error.cpp
+	${UTIL_DIR}/externalToolHandler.cpp
 	${UTIL_DIR}/fifo.cpp
 	${UTIL_DIR}/files.cpp
 	${UTIL_DIR}/num.cpp

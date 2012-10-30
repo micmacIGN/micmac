@@ -976,7 +976,7 @@ const std::vector<cXifDecoder *> &  cXifDecoder::TheVect()
 			(
 			new cXifDecoder
 			(
-              MMDir()+"bin"+ELISE_CAR_DIR+"ElDcraw -i -v ",
+              MM3dBinFile("ElDcraw")+" -i -v ",
 			"ELDCRAW.txt",
 			"Timestamp: .* (...)  ?([0-9]{1,2})  ?([0-9]{1,2}):([0-9]{2}):([0-9]{2}) ([0-9]{4})",
 			"612345" ,

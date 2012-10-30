@@ -119,6 +119,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("tiff_info",tiff_info_main," Tool for giving information about a tiff file"));
        aRes.push_back(cMMCom("to8Bits",to8Bits_main," Tool for converting 16 or 32 bit image in a 8 bit image."));
 
+       aRes.push_back(cMMCom("CheckDependencies",CheckDependencies_main," check dependencies to third-party tools"));
+
 #if (ELISE_X11)
        aRes.push_back(cMMCom("MPDtest",MPDtest_main," My own test"));
        aRes.push_back(cMMCom("SaisieAppuisInit",SaisieAppuisInit_main,"Interactive tool for initial capture of GCP"));
@@ -155,9 +157,6 @@ class cSuggest
 
 int main(int argc,char ** argv)
 {
-//	MMD_InitArgcArgv( argc, argv );
-//cout << "GetCurrentProgramFullName() = " << getCurrentProgramFullName() << endl;
-
    const std::vector<cMMCom> & aVComs = getAvailableCommands();
    if ((argc==1) || ((argc==2) && (std::string(argv[1])=="-help")))
    {
@@ -171,9 +170,6 @@ int main(int argc,char ** argv)
 
    // MPD : deplace sinon core dump qd argc==1
    MMD_InitArgcArgv( argc, argv );
-
-   // MPD car affichage a la console genere des pb avec ElDcraw > ....
-   //   std::cout << "GetCurrentProgramFullName() = " << getCurrentProgramFullName() << endl;
 
    std::string aCom = argv[1];
    std::string aLowCom = StrToLower(aCom);

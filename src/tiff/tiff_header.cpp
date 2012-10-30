@@ -2037,8 +2037,10 @@ void TestDate(const std::string & aF1,const std::string & aF2)
 {
         struct stat status1;   OkStat(aF1,status1);
         struct stat status2;  OkStat(aF2,status2);
+#if (ELISE_unix)
         std::cout << aF1 << " " << status1.st_mtim.tv_sec << " " << status1.st_mtim.tv_nsec << "\n";
         std::cout << aF2 << " " << status2.st_mtim.tv_sec << " " << status2.st_mtim.tv_nsec << "\n";
+#endif
 }
 
 

@@ -76,7 +76,7 @@ int RepLocBascule_main(int argc,char ** argv)
     SplitDirAndFile(aDir,aPat,aFullDir);
     
 	MMD_InitArgcArgv(argc,argv);
-    std::string aCom =   MMDir() + std::string("bin/Apero ")
+    std::string aCom =   MM3dBinFile( "Apero" )
                        + MMDir() + std::string("include/XML_MicMac/Apero-RLoc-Bascule.xml ")
                        + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
 
