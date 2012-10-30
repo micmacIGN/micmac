@@ -89,7 +89,7 @@ int Tawny_main(int argc,char ** argv)
 
     MMD_InitArgcArgv(argc,argv);
 
-    std::string aCom =    MMDir() + std::string("bin/Porto ")
+    std::string aCom =    MM3dBinFile( "Porto" )
                         + MMDir() +std::string("include/XML_MicMac/Param-Tawny.xml ")
                         + std::string(" %WD=") + aDir
                         + std::string(" +DR1X=") + ToString(mDeqXY.x)

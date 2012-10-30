@@ -109,7 +109,7 @@ void DoMkT()
 {
     if (ByP)
     {
-		std::string aSMkSr = std::string("make all -f ") + MkFT + (UseSiftGpu ? "" : std::string(" -j")+ToString(ByP));
+		std::string aSMkSr = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFT + (UseSiftGpu ? "" : std::string(" -j")+ToString(ByP));
         System(aSMkSr,true);
     }
 }
@@ -343,12 +343,12 @@ int Tapioca_main(int argc,char ** argv)
 */
 
     MkFT= MMDir() + "MkTapioca";
-    BinPastis = MMBin() + "Pastis ";
+    BinPastis = MM3dBinFile("Pastis");
     ByP= MMNbProc();
 
     cTplValGesInit<std::string>  aTplFCND;
     anICNM = cInterfChantierNameManipulateur::StdAlloc(argc,argv,aDir,aTplFCND);
-
+	
     if (TheType == Type[0])
     {
         return MultiECh(argc,argv);
