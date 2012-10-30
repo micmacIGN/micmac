@@ -589,10 +589,16 @@ cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomolog
           double aDist = QuickDist(aP2 -aSol.Direct(aP1));
           aVDist.push_back(aDist);
        }
-       SplitArrounKthValue(aVDist.data(),aNbPts,aNbKth);
-
-       double aSom = Moy(aVDist.data(),aNbKth);
-   
+       
+	   #if __cplusplus <= 199711L
+			ELISE_ASSERT(aVDist.size()>0 ,"Empty vector: aVDist");	
+			SplitArrounKthValue(&aVDist.front(),aNbPts,aNbKth);	
+			double aSom = Moy(&aVDist.front(),aNbKth);
+	   #else
+			SplitArrounKthValue(aVDist.data(),aNbPts,aNbKth);
+			double aSom = Moy(aVDist.data(),aNbKth);
+	   #endif
+       
        aVD.push_back(aSom);
 
        //std::cout << "Robust:Hom:SOM = " << aDMIn << " " << aSom << "\n";
@@ -627,12 +633,16 @@ cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomolog
        ELISE_ASSERT(aNbPtsTot==aPack.size() ,"KKKKK ????");
        int aKTh = round_ni(aNbPtsTot * (aPerc/100.0));
 
+	   #if __cplusplus <= 199711L
+			ELISE_ASSERT(aVDist.size()>0 ,"Empty vector: aVDist");
+			SplitArrounKthValue(&aVDist.front(),aNbPtsTot,aKTh);
+			aDMIn = Moy(&aVDist.front(),aKTh);
+	   #else
+			SplitArrounKthValue(aVDist.data(),aNbPtsTot,aKTh);
+			aDMIn = Moy(aVDist.data(),aKTh);
+	   #endif
 
-       SplitArrounKthValue(aVDist.data(),aNbPtsTot,aKTh);
-       aDMIn = Moy(aVDist.data(),aKTh);
        aRes = cElHomographie(aPckPds,true);
-
-
    }
 
    std::vector<double> aVEstim;
@@ -673,7 +683,14 @@ cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomolog
        aSomDist /= aNbPtsTot;
        aVEstim.push_back(aSomDist);
    }
-   SplitArrounKthValue(aVEstim.data(),aNbTestValid,aNbTestValid/2);
+
+   #if __cplusplus <= 199711L
+		ELISE_ASSERT(aVEstim.size()>0 ,"Empty vector: aVEstim");	
+		SplitArrounKthValue(&aVEstim.front(),aNbTestValid,aNbTestValid/2);		 
+   #else
+		SplitArrounKthValue(aVEstim.data(),aNbTestValid,aNbTestValid/2);
+   #endif
+
    *aQuality = aVEstim[aNbTestValid/2];
 
 
