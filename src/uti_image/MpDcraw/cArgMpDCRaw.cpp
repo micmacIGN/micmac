@@ -303,8 +303,8 @@ void  cArgMpDCRaw::DevJpg()
      bool EnGray = GrayBasic() || GrayReech();
      bool En8B = ! Cons16B();
 
-
-     std::string  aCom =     std::string("convert "  )
+	 
+	 std::string  aCom =     g_externalToolHandler.get( "convert" ).callName()+ " "
                          +   aFullNJPG +  std::string(" ")
                          +   std::string(" -compress None ")
                          +   (mConsCol ? " " :   (std::string(" -colorspace ") + (EnGray ? "Gray " : "RGB ")))

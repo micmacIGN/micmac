@@ -11,7 +11,6 @@ set(uti_phgrm_Apero_Src_Files
     ${UTI_PHGRM_APERO_DIR}/cExport.cpp
 #    ${UTI_PHGRM_APERO_DIR}/cImageAppuis.cpp
     ${UTI_PHGRM_APERO_DIR}/cLayersIm.cpp
-    ${UTI_PHGRM_APERO_DIR}/Conventions.txt
     ${UTI_PHGRM_APERO_DIR}/cPackAppuis.cpp
     ${UTI_PHGRM_APERO_DIR}/cPackMultipleLiaison.cpp
     ${UTI_PHGRM_APERO_DIR}/cPackObsLiaison.cpp
