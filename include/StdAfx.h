@@ -224,6 +224,7 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #include "algo_geom/delaunay_mediatrice.h"
 #include "algo_geom/qdt_insertobj.h"
 #include "algo_geom/Shewchuk.h"
+#include "algo_geom/cMesh3D.h"
 
 #include "im_special/hough.h"
 
