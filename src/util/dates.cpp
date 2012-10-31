@@ -998,7 +998,7 @@ const std::vector<cXifDecoder *> &  cXifDecoder::TheVect()
 			(
 			new cXifDecoder
 			(
-			" exiv2 ",
+			string(" ")+g_externalToolHandler.get("exiv2").callName()+" ",
 			"EXIV2.txt",
 			"Image timestamp : ([0-9]{4}):([0-9]{2}):([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})",
 			"123456",
@@ -1021,7 +1021,7 @@ const std::vector<cXifDecoder *> &  cXifDecoder::TheVect()
 			(
 			new cXifDecoder
 			(
-			" exiftool ",
+			string(" ")+g_externalToolHandler.get("exiftool").callName()+" ",
 			"EXIFTOOL.txt",
 			"Create Date *: ([0-9]{4}):([0-9]{2}):([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})",
 			"123456",
