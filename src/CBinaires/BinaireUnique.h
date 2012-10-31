@@ -92,7 +92,7 @@ int  BinaireUnique
       // AddArg(aPath,argv[aK],aK!=0);
   }
 
-  // printf("Com =%s\n",aPath);
+  //printf("Com =%s\n",aPath);
   return system(aPath);
 }
 
