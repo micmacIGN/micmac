@@ -50,6 +50,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int Pasta_main(int argc,char ** argv)
 {
+    MMD_InitArgcArgv(argc,argv);
+
     std::string aDir,aPat,aFullDir;
     int ExpTxt=0;
     std::string AeroOut="-Pasta";
@@ -61,6 +63,10 @@ int Pasta_main(int argc,char ** argv)
 	LArgMain()  << EAM(ExpTxt,"ExpTxt",true)	
                     << EAM(AeroOut,"Out",true)	
     );
+	
+	#if (ELISE_windows)
+		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+	#endif
     SplitDirAndFile(aDir,aPat,aFullDir);
 
 

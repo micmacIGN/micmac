@@ -70,9 +70,10 @@ int AperiCloud_main(int argc,char ** argv)
        RGB = RGB ? 3  : 1;
     }
 
-
-    SplitDirAndFile(aDir,aPat,aFullDir);
-
+	#if (ELISE_windows)
+		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+	#endif
+	SplitDirAndFile(aDir,aPat,aFullDir);
 
     std::string aCom =   MMDir() + std::string("bin" ELISE_STR_DIR  "Apero ")
                        + MMDir() + std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Cloud.xml ")

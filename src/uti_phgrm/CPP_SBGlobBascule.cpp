@@ -93,7 +93,10 @@ int SBGlobBascule_main(int argc,char ** argv)
                     << EAM(TargetRep,"Rep",true,"Target repere (Def = ki, ie normal is vertical)")
 
     );
-
+	
+	#if (ELISE_windows)
+		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+	#endif
     SplitDirAndFile(aDir,aPat,aFullDir);
     
 	MMD_InitArgcArgv(argc,argv);

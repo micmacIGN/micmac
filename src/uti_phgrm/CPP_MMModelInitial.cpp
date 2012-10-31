@@ -57,7 +57,10 @@ int MMInitialModel_main(int argc,char ** argv)
                     << EAM(ImSec,"ImSec",true,"Out Put destination (Def= same as Orientation-parameter)")
                     << EAM(DoPly,"DoPly",true,"Generate ply ,for tuning purpose, (Def=false)")
     );
-
+	
+	#if (ELISE_windows)
+		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+	#endif
     SplitDirAndFile(aDir,aPat,aFullDir);
     cInterfChantierNameManipulateur * aICNM =  cInterfChantierNameManipulateur::BasicAlloc(aDir);
 

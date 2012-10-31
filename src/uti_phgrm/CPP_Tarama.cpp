@@ -79,7 +79,10 @@ int Tarama_main(int argc,char ** argv)
                     << EAM(aZMoy,"ZMoy",true,"Average value of Z")	
     );
 
-
+	
+	#if (ELISE_windows)
+		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+	#endif
     SplitDirAndFile(aDir,aPat,aFullDir);
 	    
 	MMD_InitArgcArgv(argc,argv);

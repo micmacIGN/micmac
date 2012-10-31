@@ -46,6 +46,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int MakeGrid_main(int argc,char ** argv)
 {
+	MMD_InitArgcArgv(argc,argv);
+
 	NoInit = "XXXXXXXXXX";
 
     MemoArg(argc,argv);
@@ -66,8 +68,10 @@ int MakeGrid_main(int argc,char ** argv)
 
     if (AeroOut=="")
        AeroOut = "Grid-"+AeroIn;
-
-
+		
+	#if (ELISE_windows)
+		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+	#endif
     SplitDirAndFile(aDir,aPat,aFullDir);
 
 

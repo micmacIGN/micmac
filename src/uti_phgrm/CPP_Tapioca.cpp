@@ -329,6 +329,9 @@ int Tapioca_main(int argc,char ** argv)
     if (argc>=2)
     {
        aFullDir = argv[1];
+	   #if(ELISE_windows)
+			replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+	   #endif
        SplitDirAndFile(aDir,aPat,aFullDir);
     }
 	

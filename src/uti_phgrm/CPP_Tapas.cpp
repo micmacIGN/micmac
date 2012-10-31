@@ -216,10 +216,12 @@ int Tapas_main(int argc,char ** argv)
     );
 
 
-     if ((AeroIn!= NoInit)  && (CalibIn==NoInit))
-          CalibIn = AeroIn;
-       
+    if ((AeroIn!= NoInit)  && (CalibIn==NoInit))
+		CalibIn = AeroIn;
 
+	#if (ELISE_windows)
+		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+	#endif
     SplitDirAndFile(aDir,aPat,aFullDir);
 
     cTplValGesInit<std::string> aTplN;

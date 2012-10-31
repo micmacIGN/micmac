@@ -68,9 +68,10 @@ int GCPBascule_main(int argc,char ** argv)
 	LArgMain()  
                     <<  EAM(ModeL1,"L1",true,"L1 minimisation vs L2; (Def=false)")
     );
-
-
-
+		
+	#if (ELISE_windows)
+		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+	#endif
     SplitDirAndFile(aDir,aPat,aFullDir);
 		
 	MMD_InitArgcArgv(argc,argv);

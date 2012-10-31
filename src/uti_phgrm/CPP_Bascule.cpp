@@ -123,7 +123,9 @@ int Bascule_main(int argc,char ** argv)
        aAxeRep = Pt2dr::FromPolar(1.0,aTetaRep * (PI/180.0));
     }
 
-
+	#if (ELISE_windows)
+		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+	#endif
     SplitDirAndFile(aDir,aPat,aFullDir);
 
     bool ModeRepere = IsPostfixed(AeroOut) && (StdPostfix(AeroOut) == "xml");

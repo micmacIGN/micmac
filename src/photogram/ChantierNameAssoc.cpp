@@ -443,6 +443,8 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 		CurrentProgramFullName = aFulArg0;
 #endif
 		CurrentProgramFullName.append( std::string( " " )+argv[1] );
+
+
 	}
 }
 

@@ -55,8 +55,10 @@ int MMPyram_main(int argc,char ** argv)
 	LArgMain()  
                     << EAM(ImSec,"ImSec",true,"Out Put destination (Def= same as Orientation-parameter)")
     );
-
-
+		
+	#if (ELISE_windows)
+		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+	#endif
     SplitDirAndFile(aDir,aPat,aFullDir);
     if (! EAMIsInit(&ImSec))
        ImSec = AeroIn;

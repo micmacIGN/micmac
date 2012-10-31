@@ -72,7 +72,10 @@ int RepLocBascule_main(int argc,char ** argv)
                     << EAM(OrthoCyl,"OrthoCyl",true,"Is the repere in ortho-cylindric mode ?")
 
     );
-
+	
+	#if (ELISE_windows)
+		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+	#endif
     SplitDirAndFile(aDir,aPat,aFullDir);
     
 	MMD_InitArgcArgv(argc,argv);
