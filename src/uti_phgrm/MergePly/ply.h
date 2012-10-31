@@ -181,7 +181,7 @@ current architecture */
 		PlyElement *which_elem;       /* which element we're currently writing */
 		PlyOtherElems *other_elems;   /* "other" elements from a PLY file */
 	} PlyFile;
-	
+
 	/* memory allocation */
 	extern char *my_alloc();
 #define myalloc(mem_size) my_alloc((mem_size), __LINE__, __FILE__)
@@ -222,7 +222,7 @@ exit(-1);                                             \
 #endif
     
 	
-	/*** delcaration of routines ***/
+	/*** declaration of routines ***/
 	
 	int get_native_binary_type2();
 	
