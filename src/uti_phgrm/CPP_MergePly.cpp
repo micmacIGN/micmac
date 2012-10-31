@@ -38,10 +38,6 @@
  Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
-
-// #include "general/all.h"
-// #include "private/all.h"
-// #include <algorithm>
 #include "MergePly/ply.h"
 
 /* information needed to describe the user's data to the PLY routines */
@@ -67,8 +63,8 @@ static PlyProperty oriented_vert_props[] = {
 
 int MergePly_main(int argc,char ** argv)
 {
-    std::string aNameFiles,aNameOut;
-    std::vector<string> aVFiles, aVCom;
+    string aNameFiles,aNameOut;
+    vector<string> aVFiles, aVCom;
     
 	int aBin  = 1;
 	int DoNrm = 1;
@@ -182,18 +178,18 @@ int MergePly_main(int argc,char ** argv)
 	//write ply file
 	
 	//Mode Ecriture : binaire ou non
-	std::string mode = aBin ? "wb" : "w";
+	string mode = aBin ? "wb" : "w";
 	FILE * aFP = FopenNN(aNameOut,mode,"MergePly");
 	
 	//Header
 	fprintf(aFP,"ply\n");
-	std::string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
+	string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
 	
 	fprintf(aFP,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
 	
 	for 
 		(
-		 std::vector<std::string>::const_iterator itS=aVCom.begin();
+		 vector<string>::const_iterator itS=aVCom.begin();
 		 itS!=aVCom.end();
 		 itS++
 		 )
