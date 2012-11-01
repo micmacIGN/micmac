@@ -1196,7 +1196,7 @@ cElHomographie  ToImRedr
 }
 
 
-int main(int argc,char** argv)
+int  MICMACSaisieLiaisons_main(int argc,char** argv)
 {
     MMD_InitArgcArgv(argc,argv);
 
@@ -1311,7 +1311,7 @@ cout << aNameIm2GeomInit << "     " << Nameim2 << "\n";
 }
 
 #else
-int main(int argc,char** argv)
+int MICMACSaisieLiaisons_main(int argc,char** argv)
 {
     ELISE_ASSERT(false,"No X11, no interactive program !");
 }

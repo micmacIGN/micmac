@@ -128,6 +128,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("SaisieBasc",SaisieBasc_main,"Interactive tool to cature information on the scene"));
        aRes.push_back(cMMCom("SaisieMasq",SaisieMasq_main,"Interactive tool to capture  masq"));
        aRes.push_back(cMMCom("SaisiePts",SaisiePts_main,"Tool to capture GCP (low level, not recommanded)"));
+       aRes.push_back(cMMCom("SEL",SEL_main,"Tool to visualise tie points"));
+       aRes.push_back(cMMCom("MICMACSaisieLiaisons",MICMACSaisieLiaisons_main,"low level version of SEL, not recommanded"));
 #endif
    }
    return aRes;
