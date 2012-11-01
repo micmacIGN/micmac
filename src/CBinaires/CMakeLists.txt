@@ -128,5 +128,8 @@ INSTALL(TARGETS MergePly RUNTIME DESTINATION ${Install_Dir})
 		
 		add_executable(SaisiePts  SaisiePts.c)
 		INSTALL(TARGETS SaisiePts RUNTIME DESTINATION ${Install_Dir})
+		
+		add_executable(SEL  SEL.c)
+		INSTALL(TARGETS SEL RUNTIME DESTINATION ${Install_Dir})
 	endif()
 endif()

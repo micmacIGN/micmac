@@ -48,6 +48,11 @@ struct TriangleAttribute
 	double correlation;		//correlation in image idx
 };
 
+// MODID MPD : pb compile LINUX
+class cTriangle;
+class cMesh;
+class cVertex;
+
 class cMesh
 {
 	friend class cTriangle;

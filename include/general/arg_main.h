@@ -471,6 +471,8 @@ int SaisieAppuisPredic_main(int argc,char ** argv);
 int SaisieBasc_main(int argc,char ** argv);
 int SaisieMasq_main(int argc,char ** argv);
 int SaisiePts_main(int argc,char ** argv);
+int SEL_main(int argc,char ** argv);
+int MICMACSaisieLiaisons_main(int argc,char ** argv);
 #endif
 
 
