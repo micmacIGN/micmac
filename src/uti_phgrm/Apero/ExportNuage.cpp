@@ -50,16 +50,25 @@ namespace NS_ParamApero
 {
 
 
-void PutPt(FILE * aFP,const Pt3dr & aP,bool aModeBin)
+void PutPt(FILE * aFP,const Pt3dr & aP,bool aModeBin,bool aDouble)
 {
     if (aModeBin)
     {
-        float x= (float)aP.x;
-        float y= (float)aP.y;
-        float z= (float)aP.z;
-        fwrite(&x,sizeof(float),1,aFP);
-        fwrite(&y,sizeof(float),1,aFP);
-        fwrite(&z,sizeof(float),1,aFP);
+        if (aDouble)
+        {
+              fwrite(&aP.x,sizeof(aP.x),1,aFP);
+              fwrite(&aP.y,sizeof(aP.y),1,aFP);
+              fwrite(&aP.z,sizeof(aP.z),1,aFP);
+        }
+        else
+        {
+             float x= (float)aP.x;
+             float y= (float)aP.y;
+             float z= (float)aP.z;
+             fwrite(&x,sizeof(float),1,aFP);
+             fwrite(&y,sizeof(float),1,aFP);
+             fwrite(&z,sizeof(float),1,aFP);
+        }
     }
     else
     {
@@ -130,6 +139,8 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
               aMode = eModeAGPHypso;
            else if (aNameFile == "NormalePoisson")
               aMode = eModeAGPNormale;
+           else if (aNameFile == "NoAttr")
+              aMode =  eModeAGPNoAttr;
 
            if (aLastMode!=eModeAGPNone)
            {
@@ -150,6 +161,10 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
                    anAGP.InitColiorageDirec(anEN.DirCol().Val(),anEN.PerCol().Val());
                 else if (aMode==eModeAGPNormale)
                     anAGP.InitModeNormale();
+                else if (aMode==eModeAGPNoAttr)
+                {
+                    anAGP.InitModeNoAttr();
+                }
 
                 anOLM->AddObsLM
                 (
@@ -238,20 +253,29 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
         }
     }
 
-    if (aLastMode==eModeAGPNormale)
+    if ((aLastMode==eModeAGPNormale) || (aLastMode==eModeAGPNoAttr))
     {
          FILE * aFP = FopenNN(mDC+anEN.NameOut(),"w","cAppliApero::ExportNuage");
+
 
          const std::vector<Pt3dr>  &   aVPts = anAGP.Pts();
          const std::vector<Pt3di>  &   aVNorm = anAGP.Cols();
          bool aModeBin = anEN.PlyModeBin().Val();
+         if ((aLastMode==eModeAGPNoAttr) && aModeBin)
+         {
+             int aNb = aVPts.size();
+             fwrite(&aNb,sizeof(aNb),1,aFP);
+         }
 
 
          for (int aK=0; aK<int(aVPts.size()) ; aK++)
          {
-              Pt3dr aNorm = -Pt3dr(aVNorm[aK]) / mAGPFactN;
-              PutPt(aFP,aVPts[aK],aModeBin);
-              PutPt(aFP,aNorm,aModeBin);
+              PutPt(aFP,aVPts[aK],aModeBin,aLastMode==eModeAGPNoAttr);
+              if (aLastMode==eModeAGPNormale)
+              {
+                  Pt3dr aNorm = -Pt3dr(aVNorm[aK]) / mAGPFactN;
+                  PutPt(aFP,aNorm,aModeBin,false);
+              }
               if (! aModeBin) 
                  fprintf(aFP,"\n");
          }

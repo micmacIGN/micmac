@@ -2557,11 +2557,15 @@ typedef enum
 eModeInitZ;
 
 
+class cCalcImTP;
+
 class cAppliMICMAC  : public   cParamMICMAC,
                       private  cStateSimul
 {
      public :
 
+
+      void DoMasqueAutoByTieP();
 
       double AdaptPas(double) const;
       cStatGlob  * StatGlob();
@@ -3303,6 +3307,16 @@ class cAppliMICMAC  : public   cParamMICMAC,
        void SimulateRelief(bool isNew);
        void SimulatePDV(cPriseDeVue & aPDV);
        void SimulateOneBoxPDV(cPriseDeVue & aPDV,Tiff_Im * aTifIm,Tiff_Im * aFileMNT);
+
+
+       //  Pour le calcul de masque par tie points
+      
+      
+         cCalcImTP *  CreateCalcImTP(cPriseDeVue *);
+       
+         int                   mTPZoom;
+         int                   mTPSzW;
+         std::vector<Pt3dr> *  mTP3d;
 };
 
 std::string  StdNameFromCple

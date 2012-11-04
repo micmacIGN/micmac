@@ -1108,7 +1108,8 @@ typedef enum
   eModeAGPNone,
   eModeAGPIm,
   eModeAGPHypso,
-  eModeAGPNormale
+  eModeAGPNormale,
+  eModeAGPNoAttr
 } eModeAGP;
 
 
@@ -1139,6 +1140,7 @@ class cArgGetPtsTerrain
 
           void InitColiorageDirec(Pt3dr,double);
           void InitModeNormale();
+          void InitModeNoAttr();
           double LimBsH() const;
 
 
