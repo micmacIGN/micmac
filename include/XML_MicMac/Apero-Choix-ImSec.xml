@@ -11,6 +11,7 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
             <Symb>  Out=XXXX  </Symb>
             <Symb>  PatternAllIm=XXXX  </Symb>
             <Symb>  Ext=XXXX  </Symb>
+            <Symb>  SeuilP3d=1.5  </Symb>
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -110,6 +111,19 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
                                <NbMaxPresel>  15</NbMaxPresel>
                           </ChoixImSec>
                      </ChoixImMM>
+                     <ExportNuage>
+                          <PatternSel> .* </PatternSel>
+
+                          <NameOut>  Ori${Out}/Pts3d.dat  </NameOut>
+                          <PlyModeBin> true </PlyModeBin>
+                          <NameRefLiaison> Id_Pastis_Hom </NameRefLiaison>
+                          <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <EcartMax> ${SeuilP3d} </EcartMax>
+                           </Pond>
+                           <KeyFileColImage> NKS-Assoc-Cste@NoAttr   </KeyFileColImage>
+                     </ExportNuage>
+
                    </SectionExport>
 	      </EtapeCompensation>
 	</SectionCompensation>

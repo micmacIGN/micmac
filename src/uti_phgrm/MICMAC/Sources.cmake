@@ -3,6 +3,7 @@ set(uti_phgrm_MICMAC_Src_Files
     ${UTI_PHGRM_MICMAC_DIR}/SaisieLiaisons.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cAppliMICMAC.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cAppliMICMAC_ChCorrel.cpp
+    ${UTI_PHGRM_MICMAC_DIR}/MMMaskByTP.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cAppliMICMAC_CompareDirectRadiom.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cAppliMICMAC_CorrelPonctuelle.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cAppliMICMAC_GPU.cpp

@@ -246,6 +246,9 @@ class cResolvAmbiBase
           std::vector<double> mLambdas;
 };
 
+// txt : format texte,  dat : format binaire (int , double[3] *)
+std::vector<Pt3dr> * StdNuage3DFromFile(const std::string &);
+
 
 // Representation des points homologues commes images, utiles lorsqu'ils
 // sont denses et + ou - regulierement espaces avec une image maitresse

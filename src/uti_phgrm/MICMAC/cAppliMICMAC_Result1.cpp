@@ -454,8 +454,17 @@ Fonc_Num cAppliMICMAC::FoncMasqOfResol(int aDz)
 
 // template <class tContPts> ElList<Pt2di> ToListPt2di(const tContPts & aCont)
 
+
+
+
 void cAppliMICMAC::MakeDefImMasq()
 {
+    if (MasqueAutoByTieP().IsInit())
+    {
+       DoMasqueAutoByTieP();
+    }
+
+
     int aNbImMin = NbMinImagesVisibles().Val();
     std::string aNameMasq = NameImageMasqOfResol(1);
     if (ELISE_fp::exist_file(aNameMasq))

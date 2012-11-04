@@ -525,6 +525,13 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                   <MT_Xml Nb="1" Type="std::string"> </MT_Xml>
              </MasqueTerrain>
 
+             
+
+             <MasqueAutoByTieP Nb="?"> 
+                  <FilePt3D  Nb="1" Type="std::string"> </FilePt3D>
+                  <Zoom  Nb="1" Type="int">  </Zoom>
+                  <SzW  Nb="1" Type="int">  </SzW>
+             </MasqueAutoByTieP> 
          
 
 

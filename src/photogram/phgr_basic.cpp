@@ -338,6 +338,40 @@ const ElPackHomologue & cPackNupletsHom::ToPckCple() const
 
 /*************************************************/
 /*                                               */
+/*         ::                                    */
+/*                                               */
+/*************************************************/
+
+std::vector<Pt3dr> * StdNuage3DFromFile(const std::string & aName)
+{
+   if (! IsPostfixed(aName))
+   {
+        std::cout << "For Name " << aName << "\n";
+        ELISE_ASSERT(false,"StdNuage3DFromFile name un post-fixed");
+   }
+   
+   std::string aPost = StdPostfix(aName);
+   
+   if (aPost=="dat")
+   {
+       std::vector<Pt3dr> *  aRes = new std::vector<Pt3dr> ;
+
+       ELISE_fp aFile(aName.c_str(),ELISE_fp::READ);
+       int aNb = aFile.read((INT4 *)0);
+       aRes->reserve(aNb);
+       for (int aK=0 ; aK<aNb; aK++)
+           aRes->push_back(aFile.read((Pt3dr *)0));
+
+       return aRes;
+   }
+
+   
+   std::cout << "For Name " << aName << "\n";
+   ELISE_ASSERT(false,"unsuported post-fix");
+}
+
+/*************************************************/
+/*                                               */
 /*    ElPackHomologue                            */
 /*                                               */
 /*************************************************/

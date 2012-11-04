@@ -741,6 +741,27 @@ class cMasqueTerrain
 };
 cElXMLTree * ToXMLTree(const cMasqueTerrain &);
 
+class cMasqueAutoByTieP
+{
+    public:
+        friend void xml_init(cMasqueAutoByTieP & anObj,cElXMLTree * aTree);
+
+
+        std::string & FilePt3D();
+        const std::string & FilePt3D()const ;
+
+        int & Zoom();
+        const int & Zoom()const ;
+
+        int & SzW();
+        const int & SzW()const ;
+    private:
+        std::string mFilePt3D;
+        int mZoom;
+        int mSzW;
+};
+cElXMLTree * ToXMLTree(const cMasqueAutoByTieP &);
+
 class cPlanimetrie
 {
     public:
@@ -774,6 +795,18 @@ class cPlanimetrie
         cTplValGesInit< cMasqueTerrain > & MasqueTerrain();
         const cTplValGesInit< cMasqueTerrain > & MasqueTerrain()const ;
 
+        std::string & FilePt3D();
+        const std::string & FilePt3D()const ;
+
+        int & Zoom();
+        const int & Zoom()const ;
+
+        int & SzW();
+        const int & SzW()const ;
+
+        cTplValGesInit< cMasqueAutoByTieP > & MasqueAutoByTieP();
+        const cTplValGesInit< cMasqueAutoByTieP > & MasqueAutoByTieP()const ;
+
         cTplValGesInit< double > & RecouvrementMinimal();
         const cTplValGesInit< double > & RecouvrementMinimal()const ;
     private:
@@ -783,6 +816,7 @@ class cPlanimetrie
         cTplValGesInit< double > mResolutionTerrain;
         cTplValGesInit< std::string > mFilterEstimTerrain;
         cTplValGesInit< cMasqueTerrain > mMasqueTerrain;
+        cTplValGesInit< cMasqueAutoByTieP > mMasqueAutoByTieP;
         cTplValGesInit< double > mRecouvrementMinimal;
 };
 cElXMLTree * ToXMLTree(const cPlanimetrie &);
@@ -915,6 +949,18 @@ class cSection_Terrain
 
         cTplValGesInit< cMasqueTerrain > & MasqueTerrain();
         const cTplValGesInit< cMasqueTerrain > & MasqueTerrain()const ;
+
+        std::string & FilePt3D();
+        const std::string & FilePt3D()const ;
+
+        int & Zoom();
+        const int & Zoom()const ;
+
+        int & SzW();
+        const int & SzW()const ;
+
+        cTplValGesInit< cMasqueAutoByTieP > & MasqueAutoByTieP();
+        const cTplValGesInit< cMasqueAutoByTieP > & MasqueAutoByTieP()const ;
 
         cTplValGesInit< double > & RecouvrementMinimal();
         const cTplValGesInit< double > & RecouvrementMinimal()const ;
@@ -4802,6 +4848,18 @@ class cParamMICMAC
 
         cTplValGesInit< cMasqueTerrain > & MasqueTerrain();
         const cTplValGesInit< cMasqueTerrain > & MasqueTerrain()const ;
+
+        std::string & FilePt3D();
+        const std::string & FilePt3D()const ;
+
+        int & Zoom();
+        const int & Zoom()const ;
+
+        int & SzW();
+        const int & SzW()const ;
+
+        cTplValGesInit< cMasqueAutoByTieP > & MasqueAutoByTieP();
+        const cTplValGesInit< cMasqueAutoByTieP > & MasqueAutoByTieP()const ;
 
         cTplValGesInit< double > & RecouvrementMinimal();
         const cTplValGesInit< double > & RecouvrementMinimal()const ;

@@ -98,6 +98,11 @@ void cArgGetPtsTerrain::InitModeNormale()
    mMode = eModeAGPNormale;
 }
 
+void cArgGetPtsTerrain::InitModeNoAttr()
+{
+   mMode = eModeAGPNoAttr;
+}
+
 void cArgGetPtsTerrain::SetMasq(Im2D_Bits<1> * aMasq)
 {
    mMasq = aMasq;
@@ -185,6 +190,9 @@ void cArgGetPtsTerrain::AddAGP
            );
 
            
+      }
+      else if (mMode==eModeAGPNoAttr)
+      {
       }
    }
 }

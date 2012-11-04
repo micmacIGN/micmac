@@ -762,9 +762,17 @@ void TestXML2()
   aTree.StdShow("TestOur.xml");
 }
 
+void TestVP3D()
+{
+   std::vector<Pt3dr> * aV = StdNuage3DFromFile("/home/marc/TMP/Delphes/12-Tetes-Inc-4341-6/Ori-Circle/Pts3d.dat");
+
+   std::cout << aV->size() << (*aV)[0] << aV->back() << "\n";
+}
+
 
 int MPDtest_main (int argc,char** argv)
 {
+ TestVP3D() ;
 /*
    TestIm();
 {

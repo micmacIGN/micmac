@@ -278,8 +278,14 @@ void ELISE_fp::AssertIsDirectory(const std::string &  aName )
 
 void ELISE_fp::RmFile(const std::string & aFile)
 {
+#if ELISE_windows
 	std::string aNameCom = std::string(SYS_RM)+" \""+aFile+"\"";
+#else
+    // MODIF MPD LES "" ne passent pas
+	std::string aNameCom = std::string(SYS_RM)+ " " +aFile;
+#endif
 	VoidSystem(aNameCom.c_str());
+
 }
 
 void  ELISE_fp::PurgeDir(const std::string & aDir)
