@@ -10,15 +10,21 @@ void ExternalToolHandler::initPathDirectories()
 {
 	m_pathDirectories.clear();
 
-	char *itPath = getenv( "PATH" );
+	const char *envPath = (const char *)getenv( "PATH" );
 
-	if ( itPath==NULL )
+	if ( envPath==NULL )
 	{
 		#if ( __VERBOSE__>1 )
 				cerr << "WARNING: PATH environment variable could not be found" << endl;
 		#endif
 		return;
 	}
+	
+	// copy the value for depending of the system, it may be the actual value of PATH used in th all process
+	char *pathCopy = new char[strlen( envPath )];
+	strcpy( pathCopy, envPath );
+	
+	char *itPath = pathCopy;
 	
 	// split PATH value in a list of strings
 	char *itNextDirectory = itPath;
@@ -52,6 +58,8 @@ void ExternalToolHandler::initPathDirectories()
 		itPath++;
 	}
 	while ( ok );
+	
+	delete [] pathCopy;
 }
 
 bool ExternalToolHandler::checkPathDirectories( string &io_exeName )
