@@ -422,6 +422,7 @@ int BatchFDC_main(int argc,char ** argv);
 int MapCmd_main(int argc,char ** argv);
 
 // uti_images
+int Undist_main(int argc,char ** argv);
 int Dequant_main(int argc,char ** argv);
 int Devlop_main(int argc,char ** argv);
 int ElDcraw_main(int argc,char ** argv);
