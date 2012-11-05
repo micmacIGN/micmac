@@ -21,7 +21,7 @@ void ExternalToolHandler::initPathDirectories()
 	}
 	
 	// copy the value for it may be the actual value of PATH used in the whole process
-	char *pathCopy = new char[strlen( envPath )];
+	char *pathCopy = new char[strlen( envPath )+1];
 	strcpy( pathCopy, envPath );
 	
 	char *itPath = pathCopy;
