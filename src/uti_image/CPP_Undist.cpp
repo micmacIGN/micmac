@@ -55,7 +55,7 @@ int Undist_main(int argc,char ** argv)
      (
            argc,argv,
            LArgMain() << EAMC(aFullName,"Dir + Pat") 
-                      << EAMC(aKeyOri,"Orientation"),
+                      << EAMC(aKeyOri,"Orientation (Calib File or Orientation File or Direcrit of Orientation)"),
            LArgMain() << EAM(aCanUseMkF,"UseMkF",true,"Can use make file for paralellisation, def =true")
 		      << EAM(aIC,aStrIC,true,"Internal use")
     );	
@@ -74,10 +74,15 @@ int Undist_main(int argc,char ** argv)
 
     for (int aKIm=0 ; aKIm<int(aSetIm->size()) ; aKIm++)
     {
-         CamStenope * aCam = Std_Cal_From_File(aKeyOri);
-         Pt2di aSz = aCam->Sz();
          std::string aNameIm = (*aSetIm)[aKIm];
+         std::string aNameCal = aDir+aKeyOri;
+         if (!ELISE_fp::exist_file(aNameCal))
+             aNameCal = anICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aKeyOri,aNameIm,true);
+         CamStenope * aCam = CamOrientGenFromFile(aNameCal,anICNM);
+         Pt2di aSz = aCam->Sz();
          std::cout << aCam->Focale() << aSz << " " << aNameIm << "\n";
+
+         
 
     }
 
