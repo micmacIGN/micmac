@@ -78,6 +78,9 @@ int Tawny_main(int argc,char ** argv)
 	             << EAM(mNbPerIm,"NbPerIm",true,"Average number of point per image (Def = 1e4)")
     );
 
+	#if (ELISE_windows)
+		replace( aDir.begin(), aDir.end(), '\\', '/' );
+	#endif
 
     if (! EAMIsInit(&mDeqXY)) 
        mDeqXY = Pt2di(mDeq,mDeq);
@@ -107,9 +110,7 @@ int Tawny_main(int argc,char ** argv)
     if (EAMIsInit(&mNbPerIm)) aCom  = aCom + " +NbPerIm=" + ToString(mNbPerIm);
     if (EAMIsInit(&mCorrThresh)) aCom  = aCom + " +CorrThresh=" + ToString(mCorrThresh);
 
-    std::cout << aCom << "\n";
-
-
+    //std::cout << aCom << "\n";
     int aRes = system_call(aCom.c_str());
 
     return aRes;

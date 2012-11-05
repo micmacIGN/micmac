@@ -237,9 +237,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       int TabZF[3] ={1,2,4};
       VerifIn(mZoomFinal,TabZF,3,"ZoomFinal");
   }
-
-
+    
+  #if (ELISE_windows)
+	replace( mFullName.begin(), mFullName.end(), '\\', '/' );
+  #endif
   SplitDirAndFile(mDir,mIms,mFullName);
+
   mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
   mSetIm = mICNM->Get(mIms);
   mNbIm = mSetIm->size();

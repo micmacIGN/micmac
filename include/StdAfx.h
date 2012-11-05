@@ -1,5 +1,9 @@
 #pragma once
 
+#if (  __VERBOSE__>1 )
+	#define __TRACE_SYSTEM__
+#endif
+
 #include <algorithm>
 #include <cfloat>
 #include <cmath>

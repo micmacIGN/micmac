@@ -84,6 +84,7 @@ int CreateEpip_main(int argc,char ** argv)
      aCplE.ImEpip(Tiff_Im::StdConvGen(aDir+aName1,1,false),true,aDir+"EpiGauche_"+StdPrefix(aName1)+".tif");
      aCplE.ImEpip(Tiff_Im::StdConvGen(aDir+aName2,1,false),false,aDir+"EpiDroite_"+StdPrefix(aName2)+".tif");
 
+	 return EXIT_SUCCESS;
 }
 
 

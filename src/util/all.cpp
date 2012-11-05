@@ -174,8 +174,14 @@ int trace_system( const char *cmd )
 {
 	cout << " system call to [" << cmd << ']' << endl;
 	int res = ::system( cmd );
+#if ( __VERBOSE__>1 )
 	if ( res!=0 )
-		cerr << '[' << cmd << "] errorlevel = " << res << endl;
+	{
+		string str = cmd;
+		if (str.find("ElDcraw" )==string::npos)
+			cerr << '[' << cmd << "] errorlevel = " << res << endl;
+	}
+#endif
 	return res;
 }
 

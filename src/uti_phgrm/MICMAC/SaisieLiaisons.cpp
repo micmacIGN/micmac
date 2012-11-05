@@ -1314,6 +1314,7 @@ cout << aNameIm2GeomInit << "     " << Nameim2 << "\n";
 int MICMACSaisieLiaisons_main(int argc,char** argv)
 {
     ELISE_ASSERT(false,"No X11, no interactive program !");
+	return EXIT_FAILURE;
 }
 #endif
 
