@@ -4210,6 +4210,22 @@ CamStenope * Std_Cal_From_CIC
     return aRes;
 }
 
+CamStenope * CamOrientGenFromFile(const std::string & aNameFile, cInterfChantierNameManipulateur * anICNM)
+{
+    cElXMLTree aTree(aNameFile);
+    cElXMLTree * aF1 = aTree.Get("CalibrationInternConique");
+    if (aF1)
+       return Std_Cal_From_File(aNameFile,"CalibrationInternConique");
+    cElXMLTree * aF2 = aTree.Get("OrientationConique");
+    if (aF2)
+       return Cam_Gen_From_File(aNameFile,"OrientationConique",anICNM)->CS();
+
+   std::cout << "For name " << aNameFile  << "\n";
+   ELISE_ASSERT(false,"Cannot Get Orientation from File");
+   return 0;
+}
+
+
 CamStenope * Std_Cal_From_File
              (
 	           const std::string & aNameFile,
