@@ -119,6 +119,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("TestCam",TestCam_main," Test camera orientation convention"));
        aRes.push_back(cMMCom("tiff_info",tiff_info_main," Tool for giving information about a tiff file"));
        aRes.push_back(cMMCom("to8Bits",to8Bits_main," Tool for converting 16 or 32 bit image in a 8 bit image."));
+       aRes.push_back(cMMCom("Undist",Undist_main," Tool make undistorted images"));
 
        aRes.push_back(cMMCom("CheckDependencies",CheckDependencies_main," check dependencies to third-party tools"));
 
