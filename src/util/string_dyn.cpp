@@ -193,9 +193,9 @@ void MakeFileDirCompl(std::string & aD)
 {
    const char * aC = aD.c_str();
    int aL = strlen(aC);
-   if ((aL==0) || (aC[aL-1] != ELISE_CAR_DIR))
+   if ( (aL==0) || ( (aC[aL-1]!='/') && (aC[aL-1]!='\\') ) )
    {
-          aD = aD + ELISE_CAR_DIR;
+          aD = aD + '/';
    }
 }
 

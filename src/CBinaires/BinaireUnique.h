@@ -88,11 +88,18 @@ int  BinaireUnique
   {
       strcat(aPath," \"");
       strcat(aPath,argv[aK]);
-      strcat(aPath,"\"");
+#if (WIN32)
+    // a '\' protects a '"' under windows
+	// add a space to break the combo
+	if ( argv[aK][strlen( argv[aK] )-1]=='\\' )
+		strcat(aPath," \"");
+	else
+#endif
+    strcat(aPath,"\"");
       // AddArg(aPath,argv[aK],aK!=0);
   }
-
-  //printf("Com =%s\n",aPath);
+  
+  //printf("Com =%s\n",aPath); fflush(stdout);
   return system(aPath);
 }
 
