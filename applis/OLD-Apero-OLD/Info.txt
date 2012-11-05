@@ -1,0 +1,49 @@
+
+* DONE * CHANGER LA PONDERATION DANS RapOnZ poue adpatation pds glob
+
+(* EN FAIT GERE) ABANDONNER OU GERER VRAIMENT LA DOUBLE INCERTITUDE
+
+
+* DONE *  TYPER LES PARAMETRE DE RAPPEL ON Z
+GERER LE SEUIL de REJET
+
+
+* SUPPRIMER LE 33
+
+GERER EN AMONT LES PB DE CONDTIONNEMENT PAR HOMOGE DES POIDS ?
+(en fait pds image homogene, peut etre pour les rap on Z)
+
+
+GERE en aval le condtionnement par calcul du cond effectif sur la matrice.
+Avec sortie prematuree si necessaire.
+
+
+
+
+*DONE* GERER LE Z INV POUR LES PLANS :
+
+
+         if (aRAZ)
+          {
+             aParam.mK = Pt3dr(0,0,1);
+             if (scal(aParam.mK,aSomT) <0)
+             {
+                aParam.mK =  - aParam.mK;
+             }
+             aRAZ->SetZProj(1.0 / (aZRap->Z()-aSomC.z));
+             // aParam.m1ZRap  = 1.0 / (aZRap->Z()-aSomC.z);
+          }
+
+
+
+
+
+-----   bin/ImProfAndL2App   ----
+
+
+bin/ImProfAndL2App /mnt/data/Archi/Villeneuve-les-Maguelone/Portail/ PastisMpDcraw_sg1l5714GR-MpDcraw_sg1l5725GB.xml  Homol/Nuage3DGeom-Im.tif
+
+
+bin/ImProfAndL2App /mnt/data/Archi/Villeneuve-les-Maguelone/Portail/  Appuis-Details-Pastis  Homol/Nuage3DGeom-Im.tif
+
+
