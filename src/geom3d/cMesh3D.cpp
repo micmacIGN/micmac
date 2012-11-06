@@ -46,10 +46,33 @@ Header-MicMac-eLiSe-25/06/2007*/
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
+cTriangle::~cTriangle(){}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+cTriangle::cTriangle(vector <int> const &idx)
+{
+	mIndexes = idx;
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+cTriangle::cTriangle(int idx1, int idx2, int idx3)
+{
+	mIndexes.push_back(idx1);
+	mIndexes.push_back(idx2);
+	mIndexes.push_back(idx3);
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
 Pt3dr cTriangle::getNormale(cMesh &elMesh, bool normalize)
 {
 	vector <Pt3dr> vPts;
-	getPoints(elMesh, vPts);
+	getVertexes(elMesh, vPts);
 
 	if (normalize)
 	{
@@ -66,11 +89,11 @@ Pt3dr cTriangle::getNormale(cMesh &elMesh, bool normalize)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-void cTriangle::getPoints(cMesh &elMesh, vector <Pt3dr> &vList)
+void cTriangle::getVertexes(cMesh &elMesh, vector <Pt3dr> &vList)
 {
 	for (unsigned int aK =0; aK < mIndexes.size(); ++aK)
 	{
-		vList.push_back(elMesh.getPt(mIndexes[aK]));
+		vList.push_back(elMesh.getVertex(mIndexes[aK]));
 	}
 }
 
@@ -97,16 +120,16 @@ bool cTriangle::getAttribute(int image_idx, TriangleAttribute &ta)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-cMesh::cMesh(){}
+cMesh::~cMesh(){}
 
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-Pt3dr cMesh::getPt (int idx)
+Pt3dr cMesh::getVertex(int idx)
 {
-	ELISE_ASSERT(idx < mVertexNumber, "cMesh3D.cpp cMesh::getPt, out of vertex array");
+	ELISE_ASSERT(idx < mVertexes.size(), "cMesh3D.cpp cMesh::getPt, out of vertex array");
 	
-	return mPts[idx];
+	return mVertexes[idx];
 }
 
 //--------------------------------------------------------------------------------------------------------------
@@ -114,7 +137,7 @@ Pt3dr cMesh::getPt (int idx)
 
 cTriangle cMesh::getTriangle(int idx)
 {
-	ELISE_ASSERT(idx < mFacesNumber, "cMesh3D.cpp cMesh::getTriangle, out of faces array");
+	ELISE_ASSERT(idx < mTriangles.size(), "cMesh3D.cpp cMesh::getTriangle, out of faces array");
 	
 	return mTriangles[idx];
 }
@@ -122,11 +145,23 @@ cTriangle cMesh::getTriangle(int idx)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-PlyProperty props[] = { /* list of property information for a vertex */
+// list of property information for a vertex
+PlyProperty props[] = 
+{ 
 	{"x", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,x), 0, 0, 0, 0},
 	{"y", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,y), 0, 0, 0, 0},
 	{"z", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,z), 0, 0, 0, 0},
 };
+
+// list of property information for a face
+PlyProperty face_props[] = 
+{ 
+  {"vertex_indices", PLY_INT, PLY_INT, offsetof(Face,verts),
+   1, PLY_UINT, PLY_UINT, offsetof(Face,nverts)},
+};
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
 
 cMesh::cMesh(const std::string & Filename)
 {
@@ -142,38 +177,70 @@ cMesh::cMesh(const std::string & Filename)
 
 	thePlyFile = ply_open_for_reading( const_cast<char *>(Filename.c_str()), &nelems, &elist, &file_type, &version);
 	
+	ELISE_ASSERT(thePlyFile != NULL, "cMesh3D.cpp: cMesh::cMesh, cannot open ply file for reading");
+
 	for (int i = 0; i < nelems; i++) 
 	{
-		/* get the description of the first element */
+		// get the description of the first element
 		elem_name = elist[i];
 		plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
 				
-		/* print the name of the element, for debugging */
 		//printf ("element %s %d\n", elem_name, num_elems);
 					
-		/* if we're on vertex elements, read them in */
 		if (equal_strings ("vertex", elem_name)) 
 		{		
-			/* set up for getting vertex elements */
+			// set up for getting vertex elements
 			ply_get_property (thePlyFile, elem_name, &props[0]);
 			ply_get_property (thePlyFile, elem_name, &props[1]);
 			ply_get_property (thePlyFile, elem_name, &props[2]);
 			
-			/* grab all the vertex elements */
+			// grab all the vertex elements
 			for (int j = 0; j < num_elems; j++) 
 			{
-				/* grab and element from the file */
-				//vlist[j] = (Vertex *) malloc (sizeof (Vertex));
+				Vertex *vert = (Vertex *) malloc (sizeof Vertex);
 				
-				//ply_get_element (thePlyFile, (void *) vlist[j]);
+				ply_get_element (thePlyFile, vert);
 									
-				
-				
-				/* print out vertex x,y,z for debugging */
-				//printf ("vertex: %g %g %g %g %g %g\n", vlist[j]->x, vlist[j]->y, vlist[j]->z, vlist[j]->nx, vlist[j]->ny, vlist[j]->nz);
+				addPt(Pt3dr(vert->x, vert->y, vert->z));
+
+				//printf ("vertex: %g %g %g\n", vert->x, vert->y, vert->z);
+			}
+		}
+		else if (equal_strings ("face", elem_name)) 
+		{
+			ply_get_property ( thePlyFile, elem_name, &face_props[0]);
+	
+			for (int j = 0; j < num_elems; j++) 
+			{
+				Face *theFace = (Face *) malloc (sizeof (Face));
+				ply_get_element (thePlyFile, theFace);
+
+				vector <int> idx;
+				for (int aK =0; aK < theFace->nverts; ++aK)
+				{
+					idx.push_back(theFace->verts[aK]);
+				}
+
+				addTriangle(cTriangle(idx));
 			}
 		}
 	}
 	
 	ply_close (thePlyFile);
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+void cMesh::addPt(const Pt3dr &aPt)
+{
+	mVertexes.push_back(aPt);
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+void cMesh::addTriangle(const cTriangle &aTri)
+{
+	mTriangles.push_back(aTri);
 }
