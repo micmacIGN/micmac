@@ -42,22 +42,22 @@ Header-MicMac-eLiSe-25/06/2007*/
 using namespace NS_ParamChantierPhotogram;
 
 #if ELISE_unix
-	static const std::string TheStrSiftPP = "siftpp_tgi.LINUX ";
-	static const std::string TheStrAnnPP = "ann_mec_filtre.LINUX ";
+	const std::string TheStrSiftPP = "siftpp_tgi.LINUX ";
+	const std::string TheStrAnnPP = "ann_mec_filtre.LINUX ";
 #elif ELISE_MacOs
-	static const std::string TheStrSiftPP = "siftpp_tgi.OSX ";
-	static const std::string TheStrAnnPP = "ann_samplekey200filtre.OSX ";
+	const std::string TheStrSiftPP = "siftpp_tgi.OSX ";
+	const std::string TheStrAnnPP = "ann_samplekey200filtre.OSX ";
 #elif ELISE_Cygwin | ELISE_windows
 	#if defined( _M_X64 )
-				static const std::string TheStrSiftGPU = "SiftGpu\\x64\\SiftGpu_key.exe ";
-				static const std::string TheStrAnnGPU = "SiftGpu\\x64\\SiftGpu_Match.exe ";
-				static const std::string TheStrSiftPP = "siftpp_tgi.exe ";
-				static const std::string TheStrAnnPP = "ann_samplekeyfiltre.exe ";
+				const std::string TheStrSiftGPU = "SiftGpu\\x64\\SiftGpu_key.exe ";
+				const std::string TheStrAnnGPU = "SiftGpu\\x64\\SiftGpu_Match.exe ";
+				const std::string TheStrSiftPP = "siftpp_tgi.exe ";
+				const std::string TheStrAnnPP = "ann_samplekeyfiltre.exe ";
 	#elif defined( _WIN32 )
-				static const std::string TheStrSiftGPU = "SiftGpu\\win32\\SiftGpu_key32.exe ";
-				static const std::string TheStrAnnGPU = "SiftGpu\\win32\\SiftGpu_Match32.exe ";
-				static const std::string TheStrSiftPP = "siftpp_tgi.exe ";
-				static const std::string TheStrAnnPP = "ann_samplekeyfiltre.exe ";
+				const std::string TheStrSiftGPU = "SiftGpu\\win32\\SiftGpu_key32.exe ";
+				const std::string TheStrAnnGPU = "SiftGpu\\win32\\SiftGpu_Match32.exe ";
+				const std::string TheStrSiftPP = "siftpp_tgi.exe ";
+				const std::string TheStrAnnPP = "ann_samplekeyfiltre.exe ";
 	#endif
 #endif
 

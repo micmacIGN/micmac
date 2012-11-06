@@ -93,7 +93,17 @@ ExternalToolItem & ExternalToolHandler::addTool( const std::string &i_tool )
 	ExtToolStatus status = EXT_TOOL_UNDEF;
 
 	#if (ELISE_windows)
-		exeName.append(".exe");
+		// add an ending ".exe" if there's none
+		bool addExe = true;
+		if ( exeName.length()>=4 )
+		{
+			string suffix = exeName.substr( exeName.length()-4, 4 );
+			suffix[1]=tolower( suffix[1] );
+			suffix[2]=tolower( suffix[2] );
+			suffix[3]=tolower( suffix[3] );
+			addExe = ( suffix!=".exe" );
+		}
+		if ( addExe ) exeName.append(".exe");
 	#endif
 
 	// check EXTERNAL_TOOLS_SUBDIRECTORY directory
@@ -140,6 +150,11 @@ int CheckDependencies_main(int argc,char ** argv)
 	cout << printResult( "exiftool" ) << endl;
 	cout << printResult( "exiv2" ) << endl;
 	cout << printResult( "convert" ) << endl;
+
+	string siftName = TheStrSiftPP.substr( 0, TheStrSiftPP.length()-1 ),
+		   annName  = TheStrAnnPP.substr( 0, TheStrAnnPP.length()-1 );
+	cout << printResult( siftName ) << endl;
+	cout << printResult( annName ) << endl;
 
 	return EXIT_SUCCESS;
 }

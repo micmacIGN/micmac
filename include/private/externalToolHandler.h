@@ -48,6 +48,8 @@ private:
 };
 
 extern ExternalToolHandler g_externalToolHandler;
+extern const std::string   TheStrSiftPP;
+extern const std::string   TheStrAnnPP;
 
 
 // inline methods
