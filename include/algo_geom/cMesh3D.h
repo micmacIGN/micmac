@@ -42,11 +42,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "general/ptxd.h"
 
-struct TriangleAttribute
+/*struct TriangleAttribute
 {
 	double angle;			//angle between image idx and triangle normale
 	double correlation;		//correlation in image idx
-};
+};*/
 
 class cMesh
 {
@@ -62,7 +62,7 @@ class cMesh
 		//int			getEdgesNumber()	{return mEdgesNumber;}
 
 		void		getVertexes(vector <Pt3dr> &vPts) {vPts = mVertexes;}
-		void		getFaces(vector <int> &vFaces);
+		void		getTriangles(vector <cTriangle> &vTriangles){vTriangles = mTriangles;}
 		void		getEdges(vector <int> &vEdges);
 	
 		Pt3dr		getVertex  (int idx);
@@ -109,14 +109,14 @@ class cTriangle
 		
 		void	getVertexesIndexes(vector <int> &vList){vList = mIndexes;}
 		void	getVoisins(vector <int> &vList);
-		bool	getAttribute(int image_idx, TriangleAttribute &ta);
+		bool	getAttributes(int image_idx, vector <float> &ta);
 
-		void	setAttribute(int image_idx, const TriangleAttribute &ta);
+		void	setAttributes(int image_idx, const vector <float> &ta);
 
 	private:
 
-		vector <int>					mIndexes;		// index of vertexes
-		map <int, TriangleAttribute>	mAttributes;	// map between image index and triangle attribute
+		vector <int>				mIndexes;		// index of vertexes
+		map <int, vector<float> >	mAttributes;	// map between image index and triangle attributes
 };
 
 #endif
