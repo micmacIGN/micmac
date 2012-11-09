@@ -100,9 +100,9 @@ void cTriangle::getVertexes(cMesh &elMesh, vector <Pt3dr> &vList)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-bool cTriangle::getAttribute(int image_idx, TriangleAttribute &ta)
+bool cTriangle::getAttributes(int image_idx, vector <float> &ta)
 {
-	map <int, TriangleAttribute>::iterator it;
+	map <int, vector <float>>::iterator it;
 
 	it = mAttributes.find(image_idx);
 	if (it != mAttributes.end())
@@ -215,13 +215,13 @@ cMesh::cMesh(const std::string & Filename)
 				Face *theFace = (Face *) malloc (sizeof (Face));
 				ply_get_element (thePlyFile, theFace);
 
-				vector <int> idx;
+				vector <int> vIndx;
 				for (int aK =0; aK < theFace->nverts; ++aK)
 				{
-					idx.push_back(theFace->verts[aK]);
+					vIndx.push_back(theFace->verts[aK]);
 				}
 
-				addTriangle(cTriangle(idx));
+				addTriangle(cTriangle(vIndx));
 			}
 		}
 	}

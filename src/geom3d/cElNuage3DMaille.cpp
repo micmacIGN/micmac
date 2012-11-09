@@ -1358,13 +1358,13 @@ class cBasculeNuage : public cZBuffer
         {
         }
 
-void Test(const Pt2dr & aP)
-{
-   Pt3dr aPEucl = mInput->IndexAndProf2Euclid(Pt2dr(aP.x,aP.y),0);
-   Pt3dr aPBasc = mDest->Euclid2ProfAndIndex(aPEucl);
+		void Test(const Pt2dr & aP)
+		{
+		   Pt3dr aPEucl = mInput->IndexAndProf2Euclid(Pt2dr(aP.x,aP.y),0);
+		   Pt3dr aPBasc = mDest->Euclid2ProfAndIndex(aPEucl);
 
-   std::cout << "TEST " << aP << aPEucl  << aPBasc << "\n";
-}
+		   std::cout << "TEST " << aP << aPEucl  << aPBasc << "\n";
+		}
 
      private :
 

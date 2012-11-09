@@ -525,6 +525,16 @@ class cZBuffer
                        float aZDef  // aZDef doit etre suffisement bas
                    );
 
+		// Fait le basculement "standard" d'un maillage
+		Im2D_REAL4 Basculer
+                   (
+					   cMesh & aMesh,
+					   Pt2di & aOffset_Out_00,
+                       Pt2di aP0In,
+                       Pt2di aP1In,
+                       float aZDef
+                   );
+
         Im2D_REAL4 ZCaches
                    (
                        Im2D_REAL4 aMnt,
@@ -535,7 +545,7 @@ class cZBuffer
                    );
         Im2D_REAL4 ZCaches(Pt2di aP0In,Pt2di aP1In,float aDef);
 
-        // Initialise d'abord un basculementi "standard", ensuite utilise
+        // Initialise d'abord un basculement "standard", ensuite utilise
         // un schema iteratif, pour calculer le basculement d'un 
         // interploateur specifie par ZInterpofXY
         Im2D_REAL4 BasculerAndInterpoleInverse
@@ -547,13 +557,13 @@ class cZBuffer
                    );
 
         Im2D_Bits<1> ImOkTer() const;
-// Image des triangles inverses . Au depart ces triangle ne faisait pas partie
-// du ZBUF. Certaine appli en ont besoins, d'autre sont perturbees. Au final
-// on memorise l'info, on la met a dispo et chacun se dem...
+		// Image des triangles inverses. Au depart ces triangles ne faisaient pas partie
+		// du ZBUF. Certaines applis en ont besoin, d'autres sont perturbees. Au final
+		// on memorise l'info, on la met a dispo et chacun se dem...
         Im2D_Bits<1> ImTriInv() const;
         bool OkTer(const Pt2di &) const;
 
-       // Utilise le "MNT" pour trouver le Z , si il y a  un buff,
+       // Utilise le "MNT" pour trouver le Z, si il y a  un buff,
        // fait une simple lecture
         Pt3dr ProjDisc(const Pt2di  &) const;
         Pt3dr ProjReelle(const Pt2dr  &,bool &OK) const;
@@ -563,8 +573,8 @@ class cZBuffer
         Pt2di P0_Out() const;
         Pt2di SzOut() const;
 
-       // Projection discrete au sens ou elle tient compte des pas,
-       // mais tout peut etre reel 
+        // Projection discrete au sens ou elle tient compte des pas,
+        // mais tout peut etre reel 
         Pt3dr ProjDisc(const Pt3dr &) const;
         void SetWithBufXYZ(bool);
 
@@ -598,6 +608,8 @@ class cZBuffer
 
 
         void BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas);
+
+		void BasculerUnTriangle(Pt3dr A,Pt3dr B,Pt3dr C,vector <float> const &attr);
 
         Pt2dr mOrigineIn;
         Pt2dr mStepIn;

@@ -96,6 +96,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("MakeGrid",MakeGrid_main," Generate orientations in a grid format"));
        aRes.push_back(cMMCom("Malt",Malt_main," Simplified matching (interface to MicMac)"));
        aRes.push_back(cMMCom("MapCmd",MapCmd_main," Transforms a command working on a single file in a command working on a set of files"));
+	   aRes.push_back(cMMCom("Mascarpone",Mascarpone_main," Automatic mask tests"));
 	   aRes.push_back(cMMCom("MergePly",MergePly_main," Merge ply files"));
        aRes.push_back(cMMCom("MICMAC",MICMAC_main," Computes image matching from oriented images"));
        aRes.push_back(cMMCom("MMPyram",MMPyram_main," Computes pyram for micmac (internal use)"));

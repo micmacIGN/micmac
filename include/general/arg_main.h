@@ -444,6 +444,7 @@ int CmpCalib_main(int argc,char ** argv);
 int GCPBascule_main(int argc,char ** argv);
 int MakeGrid_main(int argc,char ** argv);
 int Malt_main(int argc,char ** argv);
+int Mascarpone_main(int argc,char ** argv);
 int MergePly_main(int argc,char ** argv);
 int MICMAC_main(int argc,char ** argv);
 int Nuage2Ply_main(int argc,char ** argv);
