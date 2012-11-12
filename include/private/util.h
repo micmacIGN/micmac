@@ -113,6 +113,17 @@ extern std::string TheEliseDirXmlSpec;
 
 std::string StdGetFileXMLSpec(const std::string & aName);
 
+// convert upper-case caracter into lower-case
+void tolower( std::string &io_str );
+std::string tolower( const std::string &i_str);
+
+// convert a filename into a unique representation
+// (don't do anything unless under windows because unix's filenames are already unique)
+void filename_normalize( std::string &io_filename );
+std::string filename_normalize( const std::string &i_str);
+
+// return true if i_str starts with i_start (case sensitive)
+bool startWith( const std::string i_str, const std::string i_start );
 
 #endif // _ELISE_PRIVATE_UTI_H
 

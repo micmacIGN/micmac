@@ -6,6 +6,20 @@ using namespace std;
 
 // ExternalToolHandler
 
+ExternalToolHandler::ExternalToolHandler()
+{
+#if (ELISE_windows)
+	const char *windir = getenv( "windir" );
+	if ( windir!=NULL )
+		exclude( windir );
+	#if (__VERBOSE__>1)
+	else
+		cout << "warning: windir environment variable cannot be found" << endl;
+	#endif
+#endif
+	initPathDirectories();
+}
+
 void ExternalToolHandler::initPathDirectories()
 {
 	m_pathDirectories.clear();
@@ -41,15 +55,28 @@ void ExternalToolHandler::initPathDirectories()
 			directory = (string)itNextDirectory;
 			if ( directory.size()!=0 )
 			{
-				#if (ELISE_windows)
-					replace( directory.begin(), directory.end(), '\\', '/' );
-				#endif
+				filename_normalize( directory );
 
-				// make sure the path ends with a slash
-				if ( ( *directory.rbegin() )!='/' ) directory.append( "/" );
-				
-				// it seems like a nice clean directory path, we can add it to the list
-				m_pathDirectories.push_back( directory );
+				// do not add directories in the exclude list (including their subdirectories)
+				bool addDirectory = true;
+				list<string>::iterator itExcluded = m_excludedDirectories.begin();
+				while ( itExcluded!=m_excludedDirectories.end() )
+				{
+					if ( startWith( directory, *itExcluded++ ) )
+					{
+						addDirectory = false;
+						break;
+					}
+				}
+
+				if ( addDirectory )
+				{
+					// make sure the path ends with a slash
+					if ( ( *directory.rbegin() )!='/' ) directory.append( "/" );
+
+					// finally, we can add it to the list
+					m_pathDirectories.push_back( directory );
+				}
 			}
 			// next directory path begin after current character
 			itNextDirectory=itPath+1;
@@ -69,16 +96,11 @@ bool ExternalToolHandler::checkPathDirectories( string &io_exeName )
 	// walk through the directory list, looking for an io_exeName file
 	while ( itDir!=m_pathDirectories.end() )
 	{
-		#if (ELISE_windows)
-			if ( ( io_exeName!="convert.exe" ) || ( itDir->find("system32")==string::npos ) ) // an ugly special case but still
-		#endif
+		fullName = (*itDir)+io_exeName;
+		if ( ELISE_fp::exist_file( fullName ) )
 		{
-			fullName = (*itDir)+io_exeName;
-			if ( ELISE_fp::exist_file( fullName ) )
-			{
-				io_exeName = fullName;
-				return true;
-			}
+			io_exeName = fullName;
+			return true;
 		}
 		itDir++;
 	}
@@ -98,9 +120,7 @@ ExternalToolItem & ExternalToolHandler::addTool( const std::string &i_tool )
 		if ( exeName.length()>=4 )
 		{
 			string suffix = exeName.substr( exeName.length()-4, 4 );
-			suffix[1]=tolower( suffix[1] );
-			suffix[2]=tolower( suffix[2] );
-			suffix[3]=tolower( suffix[3] );
+			tolower( suffix );
 			addExe = ( suffix!=".exe" );
 		}
 		if ( addExe ) exeName.append(".exe");
