@@ -35,6 +35,7 @@ public:
 private:
 	list<std::string> m_pathDirectories; // the list of directories in PATH environment variable
 	map<std::string, ExternalToolItem> m_queriedTools; // all tools previously queried
+	list<std::string> m_excludedDirectories; // directories excluded from the search
 
 	// initialize m_pathDirectories
 	void initPathDirectories();
@@ -45,6 +46,9 @@ private:
 
 	// look for possible paths for this tool and store it in the map for later use
 	ExternalToolItem &addTool( const std::string &i_tool );
+
+	// exclude i_directory during the search for external tools
+	void exclude( const std::string &i_directory );
 };
 
 extern ExternalToolHandler g_externalToolHandler;
@@ -70,8 +74,6 @@ inline const std::string ExternalToolItem::callName() const
 
 // ExternalToolHandler
 
-inline ExternalToolHandler::ExternalToolHandler(){ initPathDirectories(); }
-
 inline const ExternalToolItem & ExternalToolHandler::get( const string &i_tool )
 {
 	map<string,ExternalToolItem>::iterator itTool = m_queriedTools.find( i_tool );
@@ -80,4 +82,10 @@ inline const ExternalToolItem & ExternalToolHandler::get( const string &i_tool )
 		return addTool( i_tool );
 	
 	return itTool->second;
+}
+
+// exclude i_directory during the search for external tools
+inline void ExternalToolHandler::exclude( const std::string &i_directory )
+{
+	m_excludedDirectories.push_back( filename_normalize(i_directory) );
 }

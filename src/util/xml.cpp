@@ -429,6 +429,55 @@ cArgCreatXLMTree::~cArgCreatXLMTree()
 	// DeleteAndClear(mAddedTree);
 }
 
+// convert upper-case caracter into lower-case
+void tolower( std::string &io_str )
+{
+	std::string::iterator it = io_str.begin();
+	while ( it!=io_str.end() )
+	{
+		*it = tolower( *it );
+		it++;
+	}
+}
+
+std::string tolower( const std::string &i_str )
+{
+	std::string str = i_str;
+	tolower( str );
+	return str;
+}
+
+// convert a filename into a unique representation
+// (don't do anything unless under windows because unix's filenames are already unique)
+void filename_normalize( std::string &io_filename )
+{
+#if (ELISE_windows)
+	std::string::iterator it = io_filename.begin();
+	while ( it!=io_filename.end() )
+	{
+		if ( (*it)=='\\' )
+			*it = '/';
+		else
+			*it = tolower( *it );
+		it++;
+	}
+#endif
+}
+
+std::string filename_normalize( const std::string &i_filename)
+{
+	std::string str = i_filename;
+	filename_normalize( str );
+	return str;
+}
+
+// return true if i_str starts with i_start (case sensitive)
+bool startWith( const std::string i_str, const std::string i_start )
+{
+	if ( i_str.length()<i_start.length() ) return false;
+	string strStart = i_str.substr( 0, i_start.length() );
+	return ( strStart.compare( i_start )==0 );
+}
 
 std::string StdGetFileXMLSpec(const std::string & aName)
 {
