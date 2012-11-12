@@ -769,10 +769,16 @@ void TestVP3D()
    std::cout << aV->size() << (*aV)[0] << aV->back() << "\n";
 }
 
+void TestQuadr() 
+{
+    Pt2di aSz(5634,3753);
+
+    Tiff_Im::Create8BFromFonc("Quadr.tif",aSz,255 * ((FX%10)>=2) * ((FY%20)>=6));
+}
 
 int MPDtest_main (int argc,char** argv)
 {
- TestVP3D() ;
+ TestQuadr() ;
 /*
    TestIm();
 {
