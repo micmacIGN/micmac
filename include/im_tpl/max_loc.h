@@ -58,7 +58,7 @@ template <class Type,class TypeBase> class cMaxLocBicub : public Optim2DParam
 
            REAL Op2DParam_ComputeScore(REAL anX,REAL anY) 
            {
-                return mTIm.getr(mKer,Pt2dr(anX,anY),mDef,true);
+                return mTIm.getr(mKer,Pt2dr(anX,anY),(TypeBase)mDef,true);
            }
      public :
            cMaxLocBicub

@@ -90,7 +90,7 @@ int Mascarpone_main(int argc,char ** argv)
 	}
 	aVFiles.push_back(aNameFiles);
 
-	for (int aK=0; aK <  aVFiles.size(); ++aK)
+	for (unsigned int aK=0; aK <  aVFiles.size(); ++aK)
 	{
 		cElNuage3DMaille * aNuage = cElNuage3DMaille::FromFileIm(aVFiles[aK]);
 

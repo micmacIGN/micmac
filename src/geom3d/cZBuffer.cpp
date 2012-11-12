@@ -325,7 +325,7 @@ Im2D_REAL4 cZBuffer::Basculer
 	vector <cTriangle> vTriangles;
 	aMesh.getTriangles(vTriangles);
 	
-	for (int aK =0; aK<vTriangles.size();++aK)
+	for (unsigned int aK =0; aK<vTriangles.size();++aK)
 	{
 		vector <Pt3dr> aPts;
 		vector <float> attr;
@@ -571,7 +571,7 @@ void cZBuffer::BasculerUnTriangle(Pt3dr A,Pt3dr B,Pt3dr C,vector <float> const &
 					   mDataRes[y][x] = aZ;
 					   mImTriInv.set(x,y,aDet<0);
 					   
-					   for (int aK; aK<attributes.size(); ++aK)
+					   for (unsigned int aK=0; aK<attributes.size(); ++aK)
 					   {
 							mImAttrOut[aK]->SetR(Pt2di(x,y),attributes[aK]);
 					   }

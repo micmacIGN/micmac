@@ -127,7 +127,7 @@ cMesh::~cMesh(){}
 
 Pt3dr cMesh::getVertex(int idx)
 {
-	ELISE_ASSERT(idx < mVertexes.size(), "cMesh3D.cpp cMesh::getPt, out of vertex array");
+	ELISE_ASSERT(idx < (int)mVertexes.size(), "cMesh3D.cpp cMesh::getPt, out of vertex array");
 	
 	return mVertexes[idx];
 }
@@ -137,7 +137,7 @@ Pt3dr cMesh::getVertex(int idx)
 
 cTriangle cMesh::getTriangle(int idx)
 {
-	ELISE_ASSERT(idx < mTriangles.size(), "cMesh3D.cpp cMesh::getTriangle, out of faces array");
+	ELISE_ASSERT(idx < (int)mTriangles.size(), "cMesh3D.cpp cMesh::getTriangle, out of faces array");
 	
 	return mTriangles[idx];
 }

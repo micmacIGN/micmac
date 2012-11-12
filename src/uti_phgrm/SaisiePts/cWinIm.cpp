@@ -314,7 +314,7 @@ void cWinIm::ShowPoint(const Pt2dr aP,eEtatPointeImage aState,cSP_PointGlob * aP
     if (aState == eEPI_Douteux) aC = Elise_colour::orange;
     if (aState == eEPI_Valide) aC = Elise_colour::green;
                
-    Col_Pal aCP = mW.prgb()(255*aC.r(),255*aC.g(),255*aC.b());
+    Col_Pal aCP = mW.prgb()( (INT)(255*aC.r()), (INT)(255*aC.g()), (INT)(255*aC.b()) );
     Line_St aLst(aCP,2.0);
 
     mW.draw_circle_abs(aP,4,aLst);
