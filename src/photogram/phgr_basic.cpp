@@ -363,11 +363,10 @@ std::vector<Pt3dr> * StdNuage3DFromFile(const std::string & aName)
            aRes->push_back(aFile.read((Pt3dr *)0));
 
        return aRes;
-   }
-
-   
+   }   
    std::cout << "For Name " << aName << "\n";
    ELISE_ASSERT(false,"unsuported post-fix");
+   return NULL;
 }
 
 /*************************************************/

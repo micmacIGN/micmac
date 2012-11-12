@@ -92,10 +92,10 @@ int SEL_main(int argc,char ** argv)
     std::string aCom =   MM3dBinFile("MICMACSaisieLiaisons")
                        + MMDir()+std::string("applis/XML-Pattron/Pattron-MicMacLiaison.xml ")
                        + " WorkDir=" + aDir
-                       + " \%Im1=" + aN1
-                       + " \%Im2=" + aN2
-                       + " \%SL_XSzW=" + ToString(aSzW.x)
-                       + " \%SL_YSzW=" + ToString(aSzW.y)
+                       + " %Im1=" + aN1
+                       + " %Im2=" + aN2
+                       + " %SL_XSzW=" + ToString(aSzW.x)
+                       + " %SL_YSzW=" + ToString(aSzW.y)
                      ;
 
     if (aRedr)
