@@ -7,6 +7,7 @@ set(Geom3d_Src_Files
 	${GEOM3D_DIR}/cMailageSphere.cpp
 	${GEOM3D_DIR}/cZBuffer.cpp
 	${GEOM3D_DIR}/geo3basic.cpp
+	${GEOM3D_DIR}/cMesh3D.cpp
 )
 
 SOURCE_GROUP(Geom3d FILES ${Geom3d_Src_Files})

@@ -82,13 +82,12 @@ extern "C" {
 #define PLY_ASCII         1      /* ascii PLY file */
 #define PLY_BINARY_BE     2      /* binary PLY file, big endian */
 #define PLY_BINARY_LE     3      /* binary PLY file, little endian */
-#define PLY_BINARY_NATIVE 4      /* binary PLY file, same endianness as
-current architecture */
+#define PLY_BINARY_NATIVE 4      /* binary PLY file, same endianness as current architecture */
     
 #define PLY_OKAY    0           /* ply routine worked okay */
 #define PLY_ERROR  -1           /* error in ply routine */
 	
-	/* scalar data types supported by PLY format */
+/* scalar data types supported by PLY format */
 	
 #define PLY_START_TYPE 0
 #define PLY_CHAR       1
@@ -104,7 +103,8 @@ current architecture */
 #define  PLY_SCALAR  0
 #define  PLY_LIST    1
 	
-	typedef struct Vertex {
+	typedef struct Vertex 
+	{
 		float x,y,z;             /* the usual 3-space position of a vertex */
 	} Vertex;
 	
@@ -113,15 +113,15 @@ current architecture */
 		float x, y, z , nx, ny, nz;
 	} PlyOrientedVertex;
 	
-	typedef struct Face {
-		unsigned char intensity; /* this user attaches intensity to faces */
+	typedef struct Face 
+	{
 		unsigned char nverts;    /* number of vertex indices in list */
 		int *verts;              /* vertex index list */
 	} Face;
 	
 	
-	typedef struct PlyProperty {    /* description of a property */
-		
+	typedef struct PlyProperty 
+	{   
 		const char *name;                     /* property name */
 		int external_type;                    /* file's data type */
 		int internal_type;                    /* program's data type */
@@ -134,7 +134,8 @@ current architecture */
 		
 	} PlyProperty;
 	
-	typedef struct PlyElement {     /* description of an element */
+	typedef struct PlyElement 
+	{     
 		char *name;                   /* element name */
 		int num;                      /* number of elements in this object */
 		int size;                     /* size of element (bytes) or -1 if variable */
@@ -145,30 +146,35 @@ current architecture */
 		int other_size;               /* size of other_props structure */
 	} PlyElement;
 	
-	typedef struct PlyOtherProp {   /* describes other properties in an element */
+	typedef struct PlyOtherProp 
+	{   
 		char *name;                   /* element name */
 		int size;                     /* size of other_props */
 		int nprops;                   /* number of properties in other_props */
 		PlyProperty **props;          /* list of properties in other_props */
 	} PlyOtherProp;
 	
-	typedef struct OtherData { /* for storing other_props for an other element */
+	typedef struct OtherData 
+	{
 		void *other_props;
 	} OtherData;
 	
-	typedef struct OtherElem {     /* data for one "other" element */
+	typedef struct OtherElem 
+	{    
 		char *elem_name;             /* names of other elements */
 		int elem_count;              /* count of instances of each element */
 		OtherData **other_data;      /* actual property data for the elements */
 		PlyOtherProp *other_props;   /* description of the property data */
 	} OtherElem;
 	
-	typedef struct PlyOtherElems {  /* "other" elements, not interpreted by user */
+	typedef struct PlyOtherElems 
+	{  
 		int num_elems;                /* number of other elements */
 		OtherElem *other_list;        /* list of data for other elements */
 	} PlyOtherElems;
 	
-	typedef struct PlyFile {        /* description of PLY file */
+	typedef struct PlyFile 
+	{        
 		FILE *fp;                     /* file pointer */
 		int file_type;                /* ascii or binary */
 		float version;                /* version number of file */

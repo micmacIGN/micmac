@@ -72,7 +72,7 @@ int MergePly_main(int argc,char ** argv)
     ElInitArgMain
     (
 	 argc,argv,
-	 LArgMain()  << EAM(aNameFiles),
+	 LArgMain()	<< EAM(aNameFiles),
 	 LArgMain()		<< EAM(aNameOut,"Out",true)
 					<< EAM(aVCom,"Comments",true)
 					<< EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
@@ -134,20 +134,19 @@ int MergePly_main(int argc,char ** argv)
 		
 		for (int i = 0; i < nelems; i++) 
 		{
-			/* get the description of the first element */
+			// get the description of the first element
 			elem_name = elist[i];
 			plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
 					
-			/* print the name of the element, for debugging */
+			// print the name of the element, for debugging
 			printf ("element %s %d\n", elem_name, num_elems);
 						
-			/* if we're on vertex elements, read them in */
 			if (equal_strings ("vertex", elem_name)) {
 				
-				/* create a vertex list to hold all the vertices */
+				// create a vertex list to hold all the vertices 
 				vlist = (PlyOrientedVertex **) malloc (sizeof (PlyOrientedVertex *) * num_elems);
 				
-				/* set up for getting vertex elements */
+				// set up for getting vertex elements 
 				ply_get_property (thePlyFile, elem_name, &oriented_vert_props[0]);
 				ply_get_property (thePlyFile, elem_name, &oriented_vert_props[1]);
 				ply_get_property (thePlyFile, elem_name, &oriented_vert_props[2]);
@@ -155,10 +154,10 @@ int MergePly_main(int argc,char ** argv)
 				ply_get_property (thePlyFile, elem_name, &oriented_vert_props[4]);
 				ply_get_property (thePlyFile, elem_name, &oriented_vert_props[5]);
 				
-				/* grab all the vertex elements */
+				// grab all the vertex elements
 				for (int j = 0; j < num_elems; j++, Cptr++) 
 				{
-					/* grab and element from the file */
+					// grab and element from the file
 					vlist[j] = (PlyOrientedVertex *) malloc (sizeof (PlyOrientedVertex));
 					
 					ply_get_element (thePlyFile, (void *) vlist[j]);
@@ -166,7 +165,6 @@ int MergePly_main(int argc,char ** argv)
 					glist[Cptr] = (PlyOrientedVertex *) malloc (sizeof (PlyOrientedVertex)); 
 					glist[Cptr] = vlist[j];
 					
-					/* print out vertex x,y,z for debugging */
 					//printf ("vertex: %g %g %g %g %g %g\n", vlist[j]->x, vlist[j]->y, vlist[j]->z, vlist[j]->nx, vlist[j]->ny, vlist[j]->nz);
 				}
 			}
@@ -237,12 +235,8 @@ int MergePly_main(int argc,char ** argv)
 	
 	delete glist;
 
-	return 1;
+	return EXIT_SUCCESS;
 }
-
-
-
-
 
 /*Footer-MicMac-eLiSe-25/06/2007
  

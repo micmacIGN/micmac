@@ -42,75 +42,81 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "general/ptxd.h"
 
-struct TriangleAttribute
+/*struct TriangleAttribute
 {
 	double angle;			//angle between image idx and triangle normale
 	double correlation;		//correlation in image idx
-};
-
-// MODID MPD : pb compile LINUX
-class cTriangle;
-class cMesh;
-class cVertex;
+};*/
 
 class cMesh
 {
 	friend class cTriangle;
 
 	public:
-							cMesh();
-							cMesh(const string & Filename);
-				
-							~cMesh();
+					cMesh(const string & Filename);
+		
+					~cMesh();
 
-				int			getVertexNumber()	{return mVertexNumber;}
-				int			getFacesNumber()	{return mFacesNumber;}
-				int			getEdgesNumber()	{return mEdgesNumber;}
+		int			getVertexNumber()	{return mVertexes.size();}
+		int			getFacesNumber()	{return mTriangles.size();}
+		//int			getEdgesNumber()	{return mEdgesNumber;}
 
-				void		getVertexes(vector <Pt3dr> &vPts) {vPts = mPts;}
-				void		getFaces(vector <int> &vFaces);
-				void		getEdges(vector <int> &vEdges);
-			
-				Pt3dr		getPt (int idx);
-				cTriangle	getTriangle(int idx);
+		void		getVertexes(vector <Pt3dr> &vPts) {vPts = mVertexes;}
+		void		getTriangles(vector <cTriangle> &vTriangles){vTriangles = mTriangles;}
+		void		getEdges(vector <int> &vEdges);
+	
+		Pt3dr		getVertex  (int idx);
+		cTriangle	getTriangle(int idx);
 
-				void		writePly(const string & Filename, int AttributeAsRGB);
+		void		writePly(const string &Filename, int AttributeAsRGB);
+
+		void		addPt(const Pt3dr &aPt);
+		void		addTriangle(const cTriangle &aTri);
 	
 	private:
-				int		mVertexNumber;		//size of mPts
-				int		mFacesNumber;		//size of mTriangles
-				int		mEdgesNumber;
 
-				vector <Pt3dr>		mPts;
-				vector <cTriangle>	mTriangles;
+		vector <Pt3dr>		mVertexes;
+		vector <cTriangle>	mTriangles;
 };
 
 class cVertex
 {
 	public:
-				void				getPos(Pt3dr &pos){pos = mPos;}
-				int					getIndex(){return mIndex;}
-				//VertexAttribute getAttribute();
+					cVertex(const Pt3dr & pt);
+			
+					~cVertex();
+
+		void		getPos(Pt3dr &pos){pos = mPos;}
+		int			getIndex(){return mIndex;}
+		//VertexAttribute getAttribute();
 
 	private:
-				int					mIndex;
-				Pt3dr				mPos;
+
+		int			mIndex;
+		Pt3dr		mPos;
 };
 
 class cTriangle
 {
 	public:
+				cTriangle(vector <int> const &idx);
+				cTriangle(int idx1, int idx2, int idx3);
 
-				Pt3dr				getNormale(cMesh &elMesh, bool normalize = false);
-				void				getPoints(cMesh &elMesh, vector <Pt3dr> &vList);
-				
-				void				getPointsIndexes(vector <int> &vList){vList = mIndexes;}
-				void				getVoisins(vector <int> &vList);
-				bool				getAttribute(int image_idx, TriangleAttribute &ta);
+				~cTriangle();
+
+		Pt3dr	getNormale(cMesh &elMesh, bool normalize = false);
+		void	getVertexes(cMesh &elMesh, vector <Pt3dr> &vList);
+		
+		void	getVertexesIndexes(vector <int> &vList){vList = mIndexes;}
+		void	getVoisins(vector <int> &vList);
+		bool	getAttributes(int image_idx, vector <float> &ta);
+
+		void	setAttributes(int image_idx, const vector <float> &ta);
 
 	private:
-				vector <int>					mIndexes;		// index of vertexes
-				map <int, TriangleAttribute>	mAttributes;	// map between image index and triangle attribute
+
+		vector <int>				mIndexes;		// index of vertexes
+		map <int, vector<float> >	mAttributes;	// map between image index and triangle attributes
 };
 
 #endif
