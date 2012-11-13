@@ -75,7 +75,7 @@ int MakeGrid_main(int argc,char ** argv)
     SplitDirAndFile(aDir,aPat,aFullDir);
 
 
-#ifdef ELISE_windows
+#if (ELISE_windows)
     std::string aCom =     MMDir() + std::string("bin\\Apero ")
 #else
 	std::string aCom =     MMDir() + std::string("bin/Apero ")

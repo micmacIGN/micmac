@@ -122,6 +122,6 @@ enable_precompiled_headers_GCC(StdAfx.h elise)
 add_definitions(-DNO_JPEG -DNO_LCMS)
 
 # INSTALLATION : Dossier de destination lors de l'install
-install(TARGETS elise ARCHIVE DESTINATION ${Install_Dir})
+#install(TARGETS elise ARCHIVE DESTINATION ${Install_Dir})
 
 ADD_SUBDIRECTORY(CBinaires)

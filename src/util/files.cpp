@@ -311,7 +311,7 @@ void ELISE_fp::InterneMkDirRec(const  std::string  & aName )
    std::string ms = aName;
 
 // même technique que dans MkDirSvp, a modifier par la suite
-#ifdef ELISE_windows
+#if (ELISE_windows)
 	if ((*ms.rbegin() == '/') || (*ms.rbegin() == '\\'))
 	ms.resize(ms.size()-1);
 #endif

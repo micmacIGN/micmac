@@ -451,7 +451,7 @@ cResultSubstAndStdGetFile
 
    mICNM->MkDataBase();
 
-#ifdef ELISE_windows
+#if (ELISE_windows)
    std::string name = mDC;
    name.resize( name.size()-1 );
    ELISE_fp::AssertIsDirectory(name);
