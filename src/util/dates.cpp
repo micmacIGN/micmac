@@ -409,7 +409,7 @@ mNameIm    (aNameIm),
 	if (mBayPat=="") 
 		mBayPat = DEFBayPatt;
 
-	char * CBP = const_cast<char *>(aBayPat.c_str());
+	char * CBP = const_cast<char *>(mBayPat.c_str());
 	int aKV = 0;
 	for (; *CBP  ; CBP++)
 	{
