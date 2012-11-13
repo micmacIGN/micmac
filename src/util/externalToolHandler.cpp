@@ -47,7 +47,7 @@ void ExternalToolHandler::initPathDirectories()
 
 	do
 	{
-		if ( ( *itPath )=='\0' ){ *itPath==ELISE_CAR_ENV; ok=false; }
+		if ( ( *itPath )=='\0' ){ *itPath=ELISE_CAR_ENV; ok=false; }
 		if ( ( *itPath )==ELISE_CAR_ENV ) // ELISE_CAR_ENV is the separator for directories in PATH, it is system dependant
 		{
 			*itPath=0;
@@ -138,7 +138,7 @@ ExternalToolItem & ExternalToolHandler::addTool( const std::string &i_tool )
 	}
 
 	// we searched and found nothing
-	if ( status==EXT_TOOL_UNDEF ) status==EXT_TOOL_NOT_FOUND;
+	if ( status==EXT_TOOL_UNDEF ) status=EXT_TOOL_NOT_FOUND;
 
 	// create the entry
 	return ( m_queriedTools[i_tool]=ExternalToolItem( status, i_tool, fullName ) );
