@@ -102,7 +102,7 @@ void cTriangle::getVertexes(cMesh &elMesh, vector <Pt3dr> &vList)
 
 bool cTriangle::getAttributes(int image_idx, vector <float> &ta)
 {
-	map <int, vector <float>>::iterator it;
+	map <int, vector <float> >::iterator it;  // MPD : norme C++
 
 	it = mAttributes.find(image_idx);
 	if (it != mAttributes.end())
@@ -197,7 +197,7 @@ cMesh::cMesh(const std::string & Filename)
 			// grab all the vertex elements
 			for (int j = 0; j < num_elems; j++) 
 			{
-				Vertex *vert = (Vertex *) malloc (sizeof Vertex);
+				Vertex *vert = (Vertex *) malloc (sizeof (Vertex));
 				
 				ply_get_element (thePlyFile, vert);
 									

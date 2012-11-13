@@ -42,11 +42,19 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "general/ptxd.h"
 
+
+// === MPD ===  necessaire pour compiler sous LINUX
+
+class cMesh;
+class cTriangle;
+class cVertex;
+
 /*struct TriangleAttribute
 {
 	double angle;			//angle between image idx and triangle normale
 	double correlation;		//correlation in image idx
 };*/
+
 
 class cMesh
 {
