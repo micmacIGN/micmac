@@ -103,6 +103,10 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("MpDcraw",MpDcraw_main," Interface to dcraw"));
        aRes.push_back(cMMCom("MMInitialModel",MMInitialModel_main,"Initial Model for MicMac "));
        aRes.push_back(cMMCom("Nuage2Ply",Nuage2Ply_main," Convert depth map into point cloud"));
+       aRes.push_back(cMMCom("NuageBascule",NuageBascule_main,"To Channge geometry of depth map "));
+
+
+
        aRes.push_back(cMMCom("Pasta",Pasta_main," Do some stuff"));
        aRes.push_back(cMMCom("PastDevlop",PastDevlop_main," Do some stuff"));
        aRes.push_back(cMMCom("Pastis",Pastis_main," Tie points detection"));
