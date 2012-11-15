@@ -98,7 +98,8 @@ typedef enum
   eAlgoMaxOfScore,
   eAlgoCoxRoySiPossible,
   eAlgoOptimDifferentielle,
-  eAlgoDequant
+  eAlgoDequant,
+  eAlgoLeastSQ
 } eAlgoRegul;
 void xml_init(eAlgoRegul & aVal,cElXMLTree * aTree);
 std::string  eToString(const eAlgoRegul & aVal);
@@ -1541,6 +1542,19 @@ class cAdapteDynCov
 };
 cElXMLTree * ToXMLTree(const cAdapteDynCov &);
 
+class cCorrel2DLeastSquare
+{
+    public:
+        friend void xml_init(cCorrel2DLeastSquare & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< std::string > & Unused();
+        const cTplValGesInit< std::string > & Unused()const ;
+    private:
+        cTplValGesInit< std::string > mUnused;
+};
+cElXMLTree * ToXMLTree(const cCorrel2DLeastSquare &);
+
 class cGPU_Correl
 {
     public:
@@ -1671,6 +1685,9 @@ class cTypeCAH
         friend void xml_init(cTypeCAH & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare();
+        const cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare()const ;
+
         cTplValGesInit< cGPU_Correl > & GPU_Correl();
         const cTplValGesInit< cGPU_Correl > & GPU_Correl()const ;
 
@@ -1695,6 +1712,7 @@ class cTypeCAH
         cTplValGesInit< cCorrel_NC_Robuste > & Correl_NC_Robuste();
         const cTplValGesInit< cCorrel_NC_Robuste > & Correl_NC_Robuste()const ;
     private:
+        cTplValGesInit< cCorrel2DLeastSquare > mCorrel2DLeastSquare;
         cTplValGesInit< cGPU_Correl > mGPU_Correl;
         cTplValGesInit< cGPU_CorrelBasik > mGPU_CorrelBasik;
         cTplValGesInit< cMultiCorrelPonctuel > mMultiCorrelPonctuel;
@@ -1720,6 +1738,9 @@ class cCorrelAdHoc
 
         cTplValGesInit< int > & SzBlocAH();
         const cTplValGesInit< int > & SzBlocAH()const ;
+
+        cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare();
+        const cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare()const ;
 
         cTplValGesInit< cGPU_Correl > & GPU_Correl();
         const cTplValGesInit< cGPU_Correl > & GPU_Correl()const ;
@@ -2842,6 +2863,9 @@ class cEtapeMEC
 
         cTplValGesInit< int > & SzBlocAH();
         const cTplValGesInit< int > & SzBlocAH()const ;
+
+        cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare();
+        const cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare()const ;
 
         cTplValGesInit< cGPU_Correl > & GPU_Correl();
         const cTplValGesInit< cGPU_Correl > & GPU_Correl()const ;

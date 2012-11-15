@@ -972,6 +972,16 @@ namespace NS_ParamMICMAC
 		)
 	{
 
+		const cTypeCAH & aTC  = mCorrelAdHoc->TypeCAH();
+                if (aTC.Correl2DLeastSquare().IsInit())
+                {
+                   // ELISE_ASSERT(AlgoRegul()==eAlgoLeastSQ
+                   DoCorrelLeastQuare(aBox,aTC.Correl2DLeastSquare().Val());
+                   return;
+                }
+
+
+
 		mEpsAddMoy  =  mCorrelAdHoc->EpsilonAddMoyenne().Val();
 		mEpsMulMoy  =  mCorrelAdHoc->EpsilonMulMoyenne().Val();
 

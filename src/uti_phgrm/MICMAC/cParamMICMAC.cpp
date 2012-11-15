@@ -273,6 +273,8 @@ eAlgoRegul  Str2eAlgoRegul(const std::string & aName)
       return eAlgoOptimDifferentielle;
    else if (aName=="eAlgoDequant")
       return eAlgoDequant;
+   else if (aName=="eAlgoLeastSQ")
+      return eAlgoLeastSQ;
   else
   {
       cout << aName << " is not a correct value for enum eAlgoRegul\n" ;
@@ -298,6 +300,8 @@ std::string  eToString(const eAlgoRegul & anObj)
       return  "eAlgoOptimDifferentielle";
    if (anObj==eAlgoDequant)
       return  "eAlgoDequant";
+   if (anObj==eAlgoLeastSQ)
+      return  "eAlgoLeastSQ";
  std::cout << "Enum = eAlgoRegul\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
@@ -4492,6 +4496,32 @@ void xml_init(cAdapteDynCov & anObj,cElXMLTree * aTree)
 }
 
 
+cTplValGesInit< std::string > & cCorrel2DLeastSquare::Unused()
+{
+   return mUnused;
+}
+
+const cTplValGesInit< std::string > & cCorrel2DLeastSquare::Unused()const 
+{
+   return mUnused;
+}
+
+cElXMLTree * ToXMLTree(const cCorrel2DLeastSquare & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Correl2DLeastSquare",eXMLBranche);
+   if (anObj.Unused().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Unused"),anObj.Unused().Val())->ReTagThis("Unused"));
+  return aRes;
+}
+
+void xml_init(cCorrel2DLeastSquare & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.Unused(),aTree->Get("Unused",1)); //tototo 
+}
+
+
 cTplValGesInit< std::string > & cGPU_Correl::Unused()
 {
    return mUnused;
@@ -4769,6 +4799,17 @@ void xml_init(cCorrel_NC_Robuste & anObj,cElXMLTree * aTree)
 }
 
 
+cTplValGesInit< cCorrel2DLeastSquare > & cTypeCAH::Correl2DLeastSquare()
+{
+   return mCorrel2DLeastSquare;
+}
+
+const cTplValGesInit< cCorrel2DLeastSquare > & cTypeCAH::Correl2DLeastSquare()const 
+{
+   return mCorrel2DLeastSquare;
+}
+
+
 cTplValGesInit< cGPU_Correl > & cTypeCAH::GPU_Correl()
 {
    return mGPU_Correl;
@@ -4859,6 +4900,8 @@ const cTplValGesInit< cCorrel_NC_Robuste > & cTypeCAH::Correl_NC_Robuste()const
 cElXMLTree * ToXMLTree(const cTypeCAH & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"TypeCAH",eXMLBranche);
+   if (anObj.Correl2DLeastSquare().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.Correl2DLeastSquare().Val())->ReTagThis("Correl2DLeastSquare"));
    if (anObj.GPU_Correl().IsInit())
       aRes->AddFils(ToXMLTree(anObj.GPU_Correl().Val())->ReTagThis("GPU_Correl"));
    if (anObj.GPU_CorrelBasik().IsInit())
@@ -4881,6 +4924,8 @@ cElXMLTree * ToXMLTree(const cTypeCAH & anObj)
 void xml_init(cTypeCAH & anObj,cElXMLTree * aTree)
 {
    if (aTree==0) return;
+
+   xml_init(anObj.Correl2DLeastSquare(),aTree->Get("Correl2DLeastSquare",1)); //tototo 
 
    xml_init(anObj.GPU_Correl(),aTree->Get("GPU_Correl",1)); //tototo 
 
@@ -4930,6 +4975,17 @@ cTplValGesInit< int > & cCorrelAdHoc::SzBlocAH()
 const cTplValGesInit< int > & cCorrelAdHoc::SzBlocAH()const 
 {
    return mSzBlocAH;
+}
+
+
+cTplValGesInit< cCorrel2DLeastSquare > & cCorrelAdHoc::Correl2DLeastSquare()
+{
+   return TypeCAH().Correl2DLeastSquare();
+}
+
+const cTplValGesInit< cCorrel2DLeastSquare > & cCorrelAdHoc::Correl2DLeastSquare()const 
+{
+   return TypeCAH().Correl2DLeastSquare();
 }
 
 
@@ -8451,6 +8507,17 @@ cTplValGesInit< int > & cEtapeMEC::SzBlocAH()
 const cTplValGesInit< int > & cEtapeMEC::SzBlocAH()const 
 {
    return CorrelAdHoc().Val().SzBlocAH();
+}
+
+
+cTplValGesInit< cCorrel2DLeastSquare > & cEtapeMEC::Correl2DLeastSquare()
+{
+   return CorrelAdHoc().Val().TypeCAH().Correl2DLeastSquare();
+}
+
+const cTplValGesInit< cCorrel2DLeastSquare > & cEtapeMEC::Correl2DLeastSquare()const 
+{
+   return CorrelAdHoc().Val().TypeCAH().Correl2DLeastSquare();
 }
 
 

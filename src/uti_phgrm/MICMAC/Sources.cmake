@@ -1,5 +1,6 @@
 set(uti_phgrm_MICMAC_Src_Files
 #    ${UTI_PHGRM_MICMAC_DIR}/BatchMICMAC.cpp
+    ${UTI_PHGRM_MICMAC_DIR}/cCorrel2DPonctuel.cpp
     ${UTI_PHGRM_MICMAC_DIR}/SaisieLiaisons.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cAppliMICMAC.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cAppliMICMAC_ChCorrel.cpp

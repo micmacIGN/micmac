@@ -238,6 +238,7 @@ cSurfaceOptimiseur * cSurfaceOptimiseur::Alloc
        break;
 
        case eAlgoMaxOfScore :
+       case eAlgoLeastSQ :
             aRes = cSurfaceOptimiseur::AllocCoxMaxOfCorrel(mAppli,aLT,anEqX,anEqY);
        break;
 

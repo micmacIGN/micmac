@@ -168,6 +168,7 @@ namespace NS_ParamMICMAC{
          -->
          <eAlgoOptimDifferentielle> </eAlgoOptimDifferentielle>
          <eAlgoDequant> </eAlgoDequant>
+         <eAlgoLeastSQ> </eAlgoLeastSQ>
    </enum>
 
    <enum Name="eModeInterpolation">
@@ -872,6 +873,13 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 
                 <SzBlocAH Nb="?" Type="int" Def="40"> </SzBlocAH>
                 <TypeCAH Nb="1" Union="true">
+
+                        <!-- Si Correl2DLeastSquare  L'algo doit obligat etre eAlgoLeastSQ -->
+                        <Correl2DLeastSquare Nb="?" AccessorFils="false">    
+                                <Unused Nb="?" Type="std::string"> </Unused>
+                        </Correl2DLeastSquare>
+
+
                         <GPU_Correl Nb="?" AccessorFils="false">    
                                 <Unused Nb="?" Type="std::string"> </Unused>
                         </GPU_Correl>

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[1939]) = {
+const char * (theNameVar_ParamMICMAC[1947]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -170,6 +170,7 @@ const char * (theNameVar_ParamMICMAC[1939]) = {
 "         -->\n",
 "         <eAlgoOptimDifferentielle> </eAlgoOptimDifferentielle>\n",
 "         <eAlgoDequant> </eAlgoDequant>\n",
+"         <eAlgoLeastSQ> </eAlgoLeastSQ>\n",
 "   </enum>\n",
 "\n",
 "   <enum Name=\"eModeInterpolation\">\n",
@@ -874,6 +875,13 @@ const char * (theNameVar_ParamMICMAC[1939]) = {
 "\n",
 "                <SzBlocAH Nb=\"?\" Type=\"int\" Def=\"40\"> </SzBlocAH>\n",
 "                <TypeCAH Nb=\"1\" Union=\"true\">\n",
+"\n",
+"                        <!-- Si Correl2DLeastSquare  L'algo doit obligat etre eAlgoLeastSQ -->\n",
+"                        <Correl2DLeastSquare Nb=\"?\" AccessorFils=\"false\">    \n",
+"                                <Unused Nb=\"?\" Type=\"std::string\"> </Unused>\n",
+"                        </Correl2DLeastSquare>\n",
+"\n",
+"\n",
 "                        <GPU_Correl Nb=\"?\" AccessorFils=\"false\">    \n",
 "                                <Unused Nb=\"?\" Type=\"std::string\"> </Unused>\n",
 "                        </GPU_Correl>\n",

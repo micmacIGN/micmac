@@ -40,6 +40,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 namespace NS_ParamMICMAC
 {
+
+void cAppliMICMAC::DoCorrelLeastQuare(const Box2di & aBox,const cCorrel2DLeastSquare &)
+{
+    std::cout << "DoCorrelLeastQuare " << aBox._p0 << aBox._p1 << "\n";
+}
+
+
 };
 
 

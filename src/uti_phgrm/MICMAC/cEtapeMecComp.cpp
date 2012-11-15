@@ -431,7 +431,7 @@ cEtapeMecComp::cEtapeMecComp
        }
 
 
-      if ((mNbNappesEp==0) && (aVEtPrec.size() > 1))
+      if ((mNbNappesEp==0) && (aVEtPrec.size() > 1)  && (mAlgoRegul!=eAlgoLeastSQ))
       {
          cout << "Etape numero " << mNum 
               << " a DeZoom " << DeZoomTer() << "\n";
@@ -1498,6 +1498,8 @@ int cEtapeMecComp::MemSizeCelluleAlgo() const
 {
     switch(AlgoRegul())
     {
+         case eAlgoLeastSQ   :
+              return 30;
          case eAlgoCoxRoy   :
               return 16;
          case eAlgo2PrgDyn  :

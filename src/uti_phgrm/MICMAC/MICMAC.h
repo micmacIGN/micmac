@@ -2686,6 +2686,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
         double CostCalcCorrelRectang(Box2di,int aNbPts) const;
         void   CalcCorrelByRect(Box2di,int * aPx);
 
+        void DoCorrelLeastQuare(const Box2di & aBox,const cCorrel2DLeastSquare &);
 	void DoGPU_Correl (const Box2di & aBoxInterne,const cMultiCorrelPonctuel *);  
         void DoOneCorrelSym(int anX,int anY);
         void DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel *);

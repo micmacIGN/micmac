@@ -249,7 +249,14 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
      if (mCorrelAdHoc)
      {
          mCurForceCorrelPontcuelle = true;
-         ELISE_ASSERT(mDimPx==1,"Multiple Px in GPU");
+         if (mCorrelAdHoc->Correl2DLeastSquare().IsInit())
+         {
+              ELISE_ASSERT(anEtape.AlgoRegul()==eAlgoLeastSQ,"Least Sq require eAlgoLeastSQ");
+         }
+         else
+         {
+             ELISE_ASSERT(mDimPx==1,"Multiple Px in GPU");
+         }
          ELISE_ASSERT(mCurSurEchWCor==1,"Sur ech in GPU");
 /*
          ELISE_ASSERT(mCurEtape->EtapeMEC().AggregCorr().Val()==eAggregSymetrique,"Aggreg non sym in GPU");
