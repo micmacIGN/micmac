@@ -519,6 +519,7 @@ void cAppliMICMAC::DoOneBloc
              << "  NbCel " << aNbCel << "\n"; 
 */
 
+
    if (
               aNbCel>NbCelluleMax().Val()
           // && (aBoxOut._p1.x-aBoxOut._p0.x) > (3*mSzRec+5)  // Evite recursion trop profonde, voir infinie
@@ -688,7 +689,7 @@ void cAppliMICMAC::DoOneBloc
 
        if (mCorrelAdHoc)
        {
-          GlobDoCorrelAdHoc(aBoxIn);
+          GlobDoCorrelAdHoc(aBoxOut,aBoxIn);
        }
        else
        {

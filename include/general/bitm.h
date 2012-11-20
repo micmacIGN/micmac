@@ -1679,7 +1679,9 @@ class cTabulKernelInterpol : public cKernelInterpol1D
         cTabulKernelInterpol(const cKernelInterpol1D *, int NbDisc1,bool mPrecBil);
         ~cTabulKernelInterpol();
         double  Value(double x) const ;
+        double  ValueDer(double x) const ;
         inline const double *   AdrDisc2Real(double  aX) const;
+        inline const double *   DerAdrDisc2Real(double  aX) const;
         inline int NbDisc1() const {return mNbDisc1;}
     private :
         inline double   Disc2Real(double  aX) const;
@@ -1690,6 +1692,8 @@ class cTabulKernelInterpol : public cKernelInterpol1D
         int                        mSzTab;
         Im1D_REAL8                 mImTab;
         double *                   mTab;
+        Im1D_REAL8                 mImDer;
+        double *                   mDer;
 };
 
 
@@ -1702,6 +1706,12 @@ class cInterpolateurIm2D
 {
      public :
          virtual double GetVal(TypeEl ** aTab,const Pt2dr &  aP) const = 0;
+
+//   version qui calcule le gradient par simple diff
+
+          Pt3dr GetValAndQuickGrad(TypeEl ** aTab,const Pt2dr &  aP) const;
+         virtual Pt3dr GetValDer(TypeEl ** aTab,const Pt2dr &  aP) const ;
+
          virtual void  GetVals(TypeEl ** aTab,const Pt2dr *  aP,double *,int Nb) const;
          // SzKernel, a partir de l'arrondi inferieur, de combien
          // faut il dilater x, typiquement 1 pour bilin, 2 pour bicub
@@ -1716,6 +1726,7 @@ template <class TypeEl> class cTabIM2D_FromIm2D : public cInterpolateurIm2D<Type
 {
      public :
          virtual double GetVal(TypeEl ** aTab,const Pt2dr &  aP) const ;
+         virtual Pt3dr GetValDer(TypeEl ** aTab,const Pt2dr &  aP) const ;
          // SzKernel, a partir de l'arrondi inferieur, de combien
          // faut il dilater x, typiquement 1 pour bilin, 2 pour bicub
          //  1 pour PPV (car fait a partir de round_ni)

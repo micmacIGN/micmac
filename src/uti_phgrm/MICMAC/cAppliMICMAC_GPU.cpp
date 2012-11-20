@@ -968,7 +968,8 @@ namespace NS_ParamMICMAC
 
 	void cAppliMICMAC::GlobDoCorrelAdHoc
 		(
-		const Box2di & aBox
+		const Box2di & aBoxOut,
+		const Box2di & aBox  //  IN
 		)
 	{
 
@@ -976,7 +977,7 @@ namespace NS_ParamMICMAC
                 if (aTC.Correl2DLeastSquare().IsInit())
                 {
                    // ELISE_ASSERT(AlgoRegul()==eAlgoLeastSQ
-                   DoCorrelLeastQuare(aBox,aTC.Correl2DLeastSquare().Val());
+                   DoCorrelLeastQuare(aBoxOut,aBox,aTC.Correl2DLeastSquare().Val());
                    return;
                 }
 

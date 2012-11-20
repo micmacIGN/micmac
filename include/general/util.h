@@ -227,6 +227,11 @@ inline INT mod_gen(INT a,INT b)
 }
 
 
+inline INT arrondi_inf(INT a,INT b)
+{
+   return (a/b)*b;
+}
+
 inline INT arrondi_sup(INT a,INT b)
 {
    return ((a+b-1)/b)*b;

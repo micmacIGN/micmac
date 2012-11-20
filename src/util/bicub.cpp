@@ -93,6 +93,29 @@ cInterpolateurIm2D<TypeEl>::~cInterpolateurIm2D()
 }
 
 
+template <class TypeEl>
+Pt3dr cInterpolateurIm2D<TypeEl>::GetValAndQuickGrad(TypeEl ** aTab,const Pt2dr &  aP) const
+{
+   //double aV = GetVal(aTab,aP);
+   int anX = round_down(aP.x);
+   int anY = round_down(aP.y);
+    
+   return  Pt3dr
+           (
+               aTab[anY][anX+1]-aTab[anY][anX],
+               aTab[anY+1][anX]-aTab[anY][anX],
+               GetVal(aTab,aP)
+           );
+}
+
+template <class TypeEl>
+ Pt3dr cInterpolateurIm2D<TypeEl>::GetValDer(TypeEl ** aTab,const Pt2dr &  aP) const
+{
+   ELISE_ASSERT(false,"no ::GetValDer");
+   return Pt3dr(0,0,0);
+}
+
+
 
 /******************************************************/
 /*                                                    */
@@ -140,10 +163,55 @@ template <class TypeEl> double cTabIM2D_FromIm2D<TypeEl>::GetVal(TypeEl ** aTab,
         aSomGlob += aSomLine * mK1.Value(aJ-aFracY);
     }
 
-// std::cout << "SG=" << aSomGlob << "\n";
-
     return aSomGlob;
 }
+
+template <class TypeEl> Pt3dr cTabIM2D_FromIm2D<TypeEl>::GetValDer(TypeEl ** aTab,const Pt2dr &  aP) const
+{
+    int aCI = round_down(aP.x);
+    int aCJ = round_down(aP.y);
+    double aFracX =  aP.x - aCI;
+    double aFracY =  aP.y - aCJ;
+
+    double aSomVal = 0.0;
+    double aSomDerX= 0.0;
+    double aSomDerY= 0.0;
+    for (int aJ= -mSzK+1 ; aJ<= mSzK ; aJ++)
+    {
+        TypeEl * aLine  = aTab[aJ+aCJ] + aCI;
+        const double *  anAdr = mK1.AdrDisc2Real(-aFracX+(-mSzK+1));
+        const double *  aDxAdr = mK1.DerAdrDisc2Real(-aFracX+(-mSzK+1));
+        double aSomLine = 0;
+        double aDxSomLine = 0;
+        for (int aI= -mSzK+1 ; aI<= mSzK ; aI++)
+        {
+            ///   aSomLine += aLine[aI] + mK0->Value(aI-aFracX);
+            aSomLine += aLine[aI] * (*anAdr);
+            aDxSomLine += aLine[aI] * (*aDxAdr);
+            // aSomLine +=  (*anAdr);
+            anAdr +=  mK1.NbDisc1();
+            aDxAdr +=  mK1.NbDisc1();
+        }
+        double aCoefY = mK1.Value(aJ-aFracY);
+        aSomVal += aSomLine * aCoefY;
+        aSomDerX += aDxSomLine * aCoefY;
+        aSomDerY +=  aSomLine * mK1.ValueDer(aJ-aFracY);
+    }
+
+    // return aSomGlob;
+   return Pt3dr(-aSomDerX,-aSomDerY,aSomVal);
+}
+
+
+/*
+
+template <class TypeEl>
+ Pt3dr cTabIM2D_FromIm2D<TypeEl>::GetValDer(TypeEl ** aTab,const Pt2dr &  aP) const
+{
+   ELISE_ASSERT(false,"no ::GetValDer");
+   return Pt3dr(0,0,0);
+}
+*/
 
 
 /******************************************************/
@@ -698,7 +766,9 @@ cTabulKernelInterpol::cTabulKernelInterpol
    mNbValPos         (round_up(NbDisc1*mSzKernel)),
    mSzTab            (1+2*mNbValPos),
    mImTab            (mSzTab),
-   mTab              (mImTab.data())
+   mTab              (mImTab.data()),
+   mImDer            (mSzTab),
+   mDer              (mImDer.data())
 {
     for (int anX=0 ;  anX<mSzTab ; anX++)
        mTab[anX] = aKer0->Value(Disc2Real(anX));
@@ -717,6 +787,16 @@ cTabulKernelInterpol::cTabulKernelInterpol
         {
             mTab[anY] /= aSom;
         }
+    }
+
+
+    for (int anX=0 ; anX<mSzTab ; anX++)
+    {
+        int aXm1 = ElMax(0,anX-1);
+        int aXp1 = ElMin(mSzTab-1,anX+1);
+
+        double aDif = mTab[aXp1]-mTab[aXm1];
+        mDer[anX] = (aDif/2.0) * mNbDisc1;
     }
 }
 
@@ -743,9 +823,23 @@ double  cTabulKernelInterpol::Value(double x) const
     return mTab[aK];
 }
 
+double  cTabulKernelInterpol::ValueDer(double x) const
+{
+    int aK = Real2Disc(x);
+    if (aK<0) return 0;
+    if (aK>=mSzTab) return 0;
+    return mDer[aK];
+}
+
+
 const double * cTabulKernelInterpol::AdrDisc2Real(double  aX) const
 {
     return mTab +  Real2Disc(aX);
+}
+
+const double * cTabulKernelInterpol::DerAdrDisc2Real(double  aX) const
+{
+    return mDer +  Real2Disc(aX);
 }
 
 
