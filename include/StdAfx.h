@@ -38,27 +38,23 @@ extern bool BugDG;
 	#define ELISE_unix 0
 	#define ELISE_windows 1
         #define ELISE_MacOs 0
-        #define ELISE_Cygwin 0
 #elif __APPLE__
 	#define USE_NOYAU 0
 	#define ELISE_unix 0
 	#define ELISE_MacOs 1
 	#define ELISE_windows 0
-        #define ELISE_Cygwin 0
-#elif __CYGWIN__
-       #define USE_NOYAU 0
-       #define ELISE_unix 0
-       #define ELISE_MacOs 0
-       #define ELISE_windows 0
-       #define ELISE_Cygwin 1
 #else
        #define USE_NOYAU 0
        #define ELISE_unix 1
        #define ELISE_MacOs 0
        #define ELISE_windows 0
-       #define ELISE_Cygwin 0
 #endif
 
+#if ( __CYGWIN__ & _WIN32 )
+    #define ELISE_Cygwin 1
+#else
+    #define ELISE_Cygwin 0
+#endif
 
 //  =================
 

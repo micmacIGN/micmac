@@ -144,7 +144,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define ElTemplateInstantiation 1
 
 // Apparamment MSW est assez restrictif sur l'emploi du typename
-#if ( ELISE_windows)
+#if ( ELISE_windows & !ELISE_Cygwin )
 	#define ElTypeName_NotMSW
 	#define  ClassFriend
 #else
