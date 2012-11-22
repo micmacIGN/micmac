@@ -773,8 +773,8 @@ namespace NS_ParamMICMAC
 						if (IsInTer(anX,anY) && (aGLI.IsVisible(anX,anY)) && (aZMin <= anZ <=aZMax))
 						{
 							// Dequantification  de X, Y et Z 
-							const float aZReel	= (float)DequantZ(anZ);
-							Pt2dr aPTer			= DequantPlani(anX,anY); 
+							const float	aZReel	= (float)DequantZ(anZ);
+							Pt2dr		aPTer	= DequantPlani(anX,anY); 
 
 							// Projection dans l'image 
 							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,(const double *)&aZReel);
@@ -785,13 +785,21 @@ namespace NS_ParamMICMAC
 								if (!areProj) areProj	= true;
 								cubeProjPIm[i3D + 0]	= (float)aPIm.x;
 								cubeProjPIm[i3D + 1]	= (float)aPIm.y;
+
 							}
 							else
-								cubeProjPIm[i3D + 0]	= -1.0f;
+							{
+								cubeProjPIm[i3D + 0]	= 1.0f;
+								cubeProjPIm[i3D + 1]	= 1.0f;
+
+							}
 						}
 						else
-							cubeProjPIm[i3D + 0]		= -1.0f;
+						{
+							cubeProjPIm[i3D + 0]	= 1.0f;
+							cubeProjPIm[i3D + 1]	= 1.0f;
 
+						}
 					}
 				}
 			}	
@@ -806,6 +814,7 @@ namespace NS_ParamMICMAC
 
 				// Format des canaux 
 				cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(32, 32, 0, 0, cudaChannelFormatKindFloat);
+				//cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float4>();
 			
 				// Taille du cube
 				cudaExtent sizeCube = make_cudaExtent(sX,sY,sZ);
@@ -820,9 +829,9 @@ namespace NS_ParamMICMAC
 				// Pointeur du tableau de destination
 				p.dstArray	= dev_CubeProjImg;
 				// Pas du cube
-				p.srcPtr	= make_cudaPitchedPtr(cubeProjPIm, sX * sT * sizeof(float), sY, sZ);
+				p.srcPtr	= make_cudaPitchedPtr(cubeProjPIm, sX * sT * sizeof(float), sX, sY);
 				// Taille du cube
-				p.extent	= sizeCube;
+				p.extent	= make_cudaExtent(sX,sY,sZ);
 				// Type de copie
 				p.kind		= cudaMemcpyHostToDevice;
 
