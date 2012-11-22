@@ -587,18 +587,18 @@ void  ELISE_fp::write_dummy(size_t nb_byte)
 #define aTBUF 2000
 char * ELISE_fp::std_fgets()
 {
-	static char aBigBuf[aTBUF];
+	static string aBigBuf(aTBUF,'\0');//static char aBigBuf[aTBUF]; TEST_OVERFLOW
 	bool aEOF;
 
-	bool OK = fgets(aBigBuf,aTBUF-1,aEOF,false);
+	bool OK = fgets(aBigBuf,aEOF); //bool OK = fgets(aBigBuf,aTBUF-1,aEOF,false); TEST_OVERFLOW
 	if (aEOF || (!OK))  return 0;
-	for (char * aC=aBigBuf; *aC ; aC++)
+	for (char * aC=&(aBigBuf[0]); *aC ; aC++) //for (char * aC=aBigBuf; *aC ; aC++) TEST_OVERFLOW
 	{
 		if (isspace(*aC)) *aC = ' ' ;
 	}
-	return aBigBuf;
+	return &(aBigBuf[0]); //return aBigBuf; TEST_OVERFLOW
 }
-
+/* TEST_OVERFLOW
 bool  ELISE_fp::fgets(char * s,INT sz,bool &endof,bool svp)
 {
 	for (INT i = 0; ; )
@@ -616,6 +616,30 @@ bool  ELISE_fp::fgets(char * s,INT sz,bool &endof,bool svp)
 				);
 			endof = (c== eof);
 			return ok_end;
+		}
+		// if (isascii(c) && (c!=13))
+		if (c!=13)
+		{
+			s[i] = c;
+			i++;
+		}
+	}
+	El_Internal.ElAssert(0,EEM0 << "should not be here in ELISE_fp::fgets");
+	return false;
+}
+*/
+// get the next line in the file
+bool  ELISE_fp::fgets( std::string &s, bool & endof )
+{
+	for (INT i = 0; ; )
+	{
+		INT c = fgetc();
+		if ( i==s.length() ) s.resize( s.length()+500 );
+		if ( ( c=='\n' ) || ( c==eof ) )
+		{
+			s[i] = 0;
+			endof = ( c==eof );
+			return true;
 		}
 		// if (isascii(c) && (c!=13))
 		if (c!=13)
