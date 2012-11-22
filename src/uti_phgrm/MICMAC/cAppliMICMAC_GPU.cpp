@@ -36,14 +36,9 @@ eLiSe image library. MicMac is governed by the  "Cecill-B licence".
 See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
 
-/*
-namespace std
-{
-bool operator < (const Pt3di & aP1,const Pt3di & aP2);
-};
-*/
+
+#include "StdAfx.h"
 
 namespace NS_ParamMICMAC
 {
@@ -712,6 +707,10 @@ namespace NS_ParamMICMAC
 		}
 	}
 
+	// Déclaration des fonctions Cuda
+	extern "C" void imageToDevice( float** h_ref,  int width, int height);
+	extern "C" void freeTexture();
+	extern "C" void cubeProjToDevice(float* ptCube, cudaExtent dimCube);
 
 	void cAppliMICMAC::DoGPU_Correl_Basik
 		(
@@ -719,19 +718,142 @@ namespace NS_ParamMICMAC
 		)
 	{
 
+#ifdef CUDA_ENABLED
+
+		// Obtenir la nappe englobante
+		short aZMinTer = -124 , aZMaxTer = 124;
+
+		// Taille de cube des points de projection
+		unsigned short sX	= mX1Ter - mX0Ter;
+		unsigned short sY	= mY1Ter - mY0Ter;
+		unsigned short sZ	= aZMaxTer - aZMinTer;
+		
+		// Nombre de float pour un point de pojection
+		unsigned short sT	= 2;
+
+		// Déclaration du cube de projection
+		float *cubeProjPIm		= new float[sT*sX*sY*sZ];
+
+		// Pour chaque image
+		for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
+		{
+			// Obtention de l'image courante
+			cGPU_LoadedImGeom & aGLI	= *(mVLI[aKIm]);
+			const cGeomImage * aGeom	= aGLI.Geom();
+			
+			// Obtention des données images
+			float **aDataIm	=  aGLI.DataIm();
+
+			// Point projeté
+			bool areProj	= false;
+
+			// Obtention de la taille de l'image counrante
+			Pt2di sImg		= aGLI.getSizeImage();
+
+			// Envoie de l'image courante dans le device (GPU)
+			imageToDevice(aDataIm, sImg.x,sImg.y);
+
+			// Initialisation du cube de projection
+			// Ballayage de l'espace terrain  
+			for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+			{
+				for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+				{
+					// Parcourt de l'intervalle de Z compris dans la nappe globale
+					for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
+					{
+
+						// Nappe des profondeurs
+						int aZMin = mTabZMin[anY][anX];
+						int aZMax = mTabZMax[anY][anX];
+
+						// Indice du tableau 3D des projections
+						unsigned short i3D = (anZ*sX*sY + anX*sY + anY)*sT;
+
+						if (IsInTer(anX,anY) && (aGLI.IsVisible(anX,anY)) && (aZMin <= anZ <=aZMax))
+						{
+							// Dequantification  de X, Y et Z 
+							const float aZReel	= (float)DequantZ(anZ);
+							Pt2dr aPTer			= DequantPlani(anX,anY); 
+
+							// Projection dans l'image 
+							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,(const double *)&aZReel);
+
+							if (aGLI.IsOk(aPIm.x,aPIm.y))
+							{
+								// Ecriture des projections
+								if (!areProj) areProj	= true;
+								cubeProjPIm[i3D + 0]	= (float)aPIm.x;
+								cubeProjPIm[i3D + 1]	= (float)aPIm.y;
+							}
+							else
+								cubeProjPIm[i3D + 0]	= -1.0f;
+						}
+						else
+							cubeProjPIm[i3D + 0]		= -1.0f;
+
+					}
+				}
+			}	
+			
+			if(areProj)
+			{
+				// Declaration du cube de projection pour le device
+				cudaArray* dev_CubeProjImg;
+
+				// Variable erreur cuda
+				cudaError_t cudaERROR;
+
+				// Format des canaux 
+				cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(32, 32, 0, 0, cudaChannelFormatKindFloat);
+			
+				// Taille du cube
+				cudaExtent sizeCube = make_cudaExtent(sX,sY,sZ);
+			
+				// Allocation memoire GPU du cube de projection
+				cudaERROR = cudaMalloc3DArray(&dev_CubeProjImg,&channelDesc,sizeCube);
+				printf("CUDA error malloc 3D : %s\n", cudaGetErrorString(cudaERROR));
+
+				// Déclaration des parametres de copie 3D
+				cudaMemcpy3DParms p = { 0 };
+			
+				// Pointeur du tableau de destination
+				p.dstArray	= dev_CubeProjImg;
+				// Pas du cube
+				p.srcPtr	= make_cudaPitchedPtr(cubeProjPIm, sX * sT * sizeof(float), sY, sZ);
+				// Taille du cube
+				p.extent	= sizeCube;
+				// Type de copie
+				p.kind		= cudaMemcpyHostToDevice;
+
+				// Copie du cube de projection du Host vers le Device
+				cudaERROR	= cudaMemcpy3D(&p);
+				// Sortie console : Statut de la copie 3D
+				printf("CUDA error memCpy 3D : %s\n", cudaGetErrorString(cudaERROR));
+
+
+				// Calcul de correlation sur l'image
+
+
+
+				// Liberation de la memoire de texture
+				freeTexture();
+			}
+		}
+	
+		delete cubeProjPIm;
+
+#else
 
 		//  Lecture des parametre d'environnement MicMac : nappes, images, quantification etc ...
-
 
 		//   Masque des points terrains valides
 		// U_INT1 **  aTabMasqTER = mLTer->GPULowLevel_MasqTer();
 
-		//   Deux constantes : cout lorque la correlation ne peut etre calculee et
-		//   ecart type minmal
+		// Deux constantes : cout lorque la correlation ne peut etre calculee et
+		// ecart type minmal
 		// double aAhDefCost =  mStatGlob->CorrelToCout(mDefCorr);
 		// double anAhEpsilon = EpsilonCorrelation().Val();
-
-
 		// Buffer pour pointer sur l'ensemble des vignettes OK
 		std::vector<double *> aVecVals(mNbIm);
 		double ** aVVals = &(aVecVals[0]);
@@ -809,7 +931,7 @@ namespace NS_ParamMICMAC
 
 										// Est ce qu'un point image est dans le domaine de definition de l'image
 										// (dans le rectangle + dans le masque)
-										if (aGLI.IsOk(aPIm.x,aPIm.y))
+										if ((aGLI.IsOk(aPIm.x,aPIm.y))&&(aGLI.IsOk(aPIm.x+2,aPIm.y+2))&&(aGLI.IsOk(aPIm.x-2,aPIm.y-2)))
 										{
 											// On utilise l'interpolateur pour lire la valeur image
 											// ->return BicubValue(aTab,aP)
@@ -857,6 +979,8 @@ namespace NS_ParamMICMAC
 							}
 						}
 
+
+
 						// Calcul "rapide"  de la multi-correlation en utilisant la formule
 						// de Huygens comme decrit en 3.5 de la Doc MicMac
 						if (aNbImOk>=2)
@@ -901,6 +1025,10 @@ namespace NS_ParamMICMAC
 				}
 			}
 		}
+
+		std::cout << "End DoGPU_Correl_Basik..." << "\n";
+#endif
+		
 	}
 
 	void cAppliMICMAC::DoCorrelAdHoc
@@ -908,7 +1036,6 @@ namespace NS_ParamMICMAC
 		const Box2di & aBox
 		)
 	{
-
 
 
 		if (mEBI)
@@ -920,8 +1047,6 @@ namespace NS_ParamMICMAC
 				);
 			/// ELISE_ASSERT(mNb_PDVBoxInterne>,);
 		}
-
-
 
 
 		// Pour eventuellement changer si existe algo qui impose une taille

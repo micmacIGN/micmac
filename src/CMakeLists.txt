@@ -113,7 +113,14 @@ set(Elise_Src_Files
 )
 
 # CONSTRUCTION : Lib ELISE
-add_library( elise ${Elise_Src_Files} ${IncFiles})
+
+if(${CUDA_ENABLED})
+	cuda_add_library( elise ${Elise_Src_Files} ${IncFiles})
+else()
+	add_library( elise ${Elise_Src_Files} ${IncFiles})
+endif()
+
+
 
 # OPTION BUILD : En tetes precompilées pour gcc
 enable_precompiled_headers_GCC(StdAfx.h elise)
