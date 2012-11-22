@@ -4,6 +4,15 @@
 	#define __TRACE_SYSTEM__
 #endif
 
+#ifdef CUDA_ENABLED
+	// CUDA runtime
+	#include <cuda_runtime.h>
+	// Utilities and system includes
+	#include <helper_functions.h>
+	#include <helper_cuda.h>
+
+#endif
+
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
@@ -152,15 +161,9 @@ using namespace std;
 
 //===================
 
-
-
-
 #include "XML_GEN/ParamChantierPhotogram.h"
 #include "XML_GEN/SuperposImage.h"
-
 #include "XML_GEN/all.h"
-
-
 
 
 // TODO : these global functions and classes should be placed somewhere else
@@ -255,3 +258,4 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #include "../src/uti_phgrm/MICMAC/cOrientationGrille.h"
 
 #include "private/externalToolHandler.h"
+

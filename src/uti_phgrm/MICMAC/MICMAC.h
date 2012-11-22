@@ -71,7 +71,6 @@ FAIT :
 #ifndef _ELISE_MICMAC_ALL_H_
 #define _ELISE_MICMAC_ALL_H_
 
-
 #define BRK_MICMAC_MES(aMes) \
 {\
     std::cout << aMes << " ;BRK = "<< __LINE__ <<" at " << __FILE__ << "\n";\
@@ -80,8 +79,6 @@ FAIT :
 #define BRK_MICMAC  BRK_MICMAC_MES("")
 
 #include "cInterfModuleImageLoader.h"
-
-
 
     // ================
 #include "StdAfx.h"
@@ -2440,6 +2437,15 @@ class   cGPU_LoadedImGeom
                    && (GET_Val_BIT(mImMasq[anIY],anIX));
 
       }
+
+	  Pt2di getSizeImage()
+	  {
+	  
+		  Pt2di size(mSzX,mSzY);
+		  
+		  return size;  
+	  
+	  }
 
       cGeomImage * Geom() {return mGeom;}
       float ** DataIm()   {return mDataIm;}
