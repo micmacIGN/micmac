@@ -40,6 +40,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../uti_phgrm/MergePly/ply.h"
 
+static const REAL Eps = 1e-7;
+
+//static const REAL MESH_MAX_ANGLE = 0.80901699437494742410229341718282; // PI/5
+static const REAL MESH_MAX_ANGLE = 0.70710678118654752440084436210485; // PI/4
+
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 // cTriangle
@@ -69,7 +74,7 @@ cTriangle::cTriangle(int idx1, int idx2, int idx3)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-Pt3dr cTriangle::getNormale(cMesh &elMesh, bool normalize)
+Pt3dr cTriangle::getNormale(cMesh const &elMesh, bool normalize) const
 {
 	vector <Pt3dr> vPts;
 	getVertexes(elMesh, vPts);
@@ -89,7 +94,7 @@ Pt3dr cTriangle::getNormale(cMesh &elMesh, bool normalize)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-void cTriangle::getVertexes(cMesh &elMesh, vector <Pt3dr> &vList)
+void cTriangle::getVertexes(cMesh const &elMesh, vector <Pt3dr> &vList) const
 {
 	for (unsigned int aK =0; aK < mIndexes.size(); ++aK)
 	{
@@ -100,9 +105,9 @@ void cTriangle::getVertexes(cMesh &elMesh, vector <Pt3dr> &vList)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-bool cTriangle::getAttributes(int image_idx, vector <float> &ta)
+bool cTriangle::getAttributes(int image_idx, vector <float> &ta) const
 {
-	map <int, vector <float> >::iterator it;  // MPD : norme C++
+	map <int, vector <float>>::const_iterator it;
 
 	it = mAttributes.find(image_idx);
 	if (it != mAttributes.end())
@@ -125,9 +130,9 @@ cMesh::~cMesh(){}
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-Pt3dr cMesh::getVertex(int idx)
+Pt3dr cMesh::getVertex(int idx) const
 {
-	ELISE_ASSERT(idx < (int)mVertexes.size(), "cMesh3D.cpp cMesh::getPt, out of vertex array");
+	ELISE_ASSERT(idx < mVertexes.size(), "cMesh3D.cpp cMesh::getPt, out of vertex array");
 	
 	return mVertexes[idx];
 }
@@ -135,11 +140,11 @@ Pt3dr cMesh::getVertex(int idx)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-cTriangle cMesh::getTriangle(int idx)
+cTriangle* cMesh::getTriangle(int idx) 
 {
-	ELISE_ASSERT(idx < (int)mTriangles.size(), "cMesh3D.cpp cMesh::getTriangle, out of faces array");
+	ELISE_ASSERT(idx < mTriangles.size(), "cMesh3D.cpp cMesh::getTriangle, out of faces array");
 	
-	return mTriangles[idx];
+	return &(mTriangles[idx]);
 }
 
 //--------------------------------------------------------------------------------------------------------------
@@ -197,7 +202,7 @@ cMesh::cMesh(const std::string & Filename)
 			// grab all the vertex elements
 			for (int j = 0; j < num_elems; j++) 
 			{
-				Vertex *vert = (Vertex *) malloc (sizeof (Vertex));
+				Vertex *vert = (Vertex *) malloc (sizeof Vertex);
 				
 				ply_get_element (thePlyFile, vert);
 									
@@ -243,4 +248,184 @@ void cMesh::addPt(const Pt3dr &aPt)
 void cMesh::addTriangle(const cTriangle &aTri)
 {
 	mTriangles.push_back(aTri);
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+//Sets angle between Dir and Triangle if in TriIdx
+void cMesh::setTrianglesAttribute(int img_idx, Pt3dr Dir, vector <unsigned int> const &TriIdx)
+{
+	for (int aK=0 ; aK < TriIdx.size() ; aK++)
+	{
+		cTriangle *aTri = getTriangle(TriIdx[aK]);
+	
+		Pt3dr A, B, C;
+
+		Pt3dr aNormale = aTri->getNormale(*this, true);
+
+		float cosAngle = scal(Dir, aNormale) / euclid(Dir);
+
+		//aTri->setAttribute(pair <int, float> (img_idx, cosAngle));
+	}
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+// cZBuf
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+cZBuf::cZBuf
+(
+Pt2di aSz
+) :
+mImMask     (1,1),
+mImTriIdx   (1,1),
+mRes        (1,1),
+mDataRes    (0),
+mSzRes		(aSz)
+{
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+cZBuf::~cZBuf(){}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+Im2D_REAL4 cZBuf::BasculerUnMaillage(cMesh &aMesh, cElNuage3DMaille const &aNuage, float aDef)
+{
+	mRes = Im2D_REAL4(mSzRes.x,mSzRes.y,aDef);
+    mDataRes = mRes.data();
+
+	vector <cTriangle> vTriangles;
+	aMesh.getTriangles(vTriangles);
+	
+	for (int aK =0; aK<vTriangles.size();++aK)
+	{
+		BasculerUnTriangle(vTriangles[aK], aMesh, aNuage, true);
+	}
+
+	return mRes;
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+void cZBuf::BasculerUnTriangle(cTriangle &aTri, cMesh &aMesh, cElNuage3DMaille const &aNuage, bool doMask)
+{
+	vector <Pt3dr> Sommets;
+	aTri.getVertexes(aMesh, Sommets);
+	
+	if (Sommets.size() == 3 )
+	{
+		//Projection du terrain dans l'image
+		Pt2dr A2  =  aNuage.Terrain2Index(Sommets[0]);
+		Pt2dr B2  =  aNuage.Terrain2Index(Sommets[1]);
+		Pt2dr C2  =  aNuage.Terrain2Index(Sommets[2]);
+		 
+		Pt2dr AB = B2-A2;
+		Pt2dr AC = C2-A2;
+		REAL aDet = AB^AC;
+
+		if (aDet==0) return;
+
+		Pt2di A2i = round_down(A2);
+		Pt2di B2i = round_down(B2);
+		Pt2di C2i = round_down(C2);
+
+		 //On verifie que le triangle se projete entierement dans l'image
+		 //TODO: gerer les triangles de bord
+		if (A2i.x < 0 || B2i.x < 0 || C2i.x < 0 || A2i.y < 0 || B2i.y < 0 || C2i.y < 0 || A2i.x >= mSzRes.x || B2i.x >= mSzRes.x || C2i.x >= mSzRes.x || A2i.y >= mSzRes.y  || B2i.y >= mSzRes.y  || C2i.y >= mSzRes.y)
+			 return;
+
+		REAL zA = aNuage.ProfOfIndex(A2i); //A verifier
+		REAL zB = aNuage.ProfOfIndex(B2i);
+		REAL zC = aNuage.ProfOfIndex(C2i);
+
+		Pt2di aP0 = round_down(Inf(A2,Inf(B2,C2)));
+		aP0 = Sup(aP0,Pt2di(0,0));
+		Pt2di aP1 = round_up(Sup(A2,Sup(B2,C2)));
+		aP1 = Inf(aP1,mSzRes-Pt2di(1,1));
+
+		for (INT x=aP0.x ; x<= aP1.x ; x++)
+			for (INT y=aP0.y ; y<= aP1.y ; y++)
+			{
+				Pt2dr AP = Pt2dr(x,y)-A2;
+
+				// Coordonnees barycentriques DE P(x,y)
+				REAL aPdsB = (AP^AC) / aDet;
+				REAL aPdsC = (AB^AP) / aDet;
+				REAL aPdsA = 1 - aPdsB - aPdsC;
+				if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps))
+				{
+					REAL4 aZ = (float) (zA *aPdsA  + zB* aPdsB + zC *aPdsC);
+					if (aZ>mDataRes[y][x])
+					{
+						mDataRes[y][x] = aZ;
+						//mImTriInv.set(x,y,aDet<0);
+					   
+						/* for (int aK=0;aK<attributes.size(); ++aK)
+						{
+							mImAttrOut[aK]->SetR(Pt2di(x,y),attributes[aK]);
+						}*/
+					}
+				}
+			}
+	}
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+set <unsigned int> cZBuf::getTrianglesIndexes()
+{
+	set <unsigned int> Res;
+
+	for (int aK=0 ; aK < mSzRes.x ; aK++)
+	{
+		for (int bK=0 ; bK < mSzRes.y ; bK++)
+		{
+			unsigned int Idx; //= mImTriIdx.get(aK,bK);
+			if ((Idx != mDef) && (Res.find(Idx) == Res.end())) Res.insert(Idx);
+		}
+	}
+
+	return Res;
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+void cZBuf::ComputeMask(int img_idx, cMesh &aMesh, cElNuage3DMaille const &aNuage, vector <unsigned int> const &TriIdx)
+{
+	for (int aK=0 ; aK < TriIdx.size() ; aK++)
+	{
+		cTriangle *aTri = aMesh.getTriangle(TriIdx[aK]);
+
+		//if (aTri->Attributes.size())
+		{
+			float bestAngle = MESH_MAX_ANGLE;  //on force l'angle à être au moins inférieur à PI/4
+			int   bestImage  = -1;
+
+			//for (int bK=0; bK < aTri->Attributes.size(); ++bK)
+			{
+				pair <int, float> aP;// = aTri->Attributes[bK];
+
+				if (aP.second > bestAngle)
+				{
+					bestAngle = aP.second;
+					bestImage = aP.first;
+				}
+			}
+
+			if ((bestAngle > MESH_MAX_ANGLE) && (bestImage == img_idx))
+			{
+				BasculerUnTriangle(*aTri, aMesh, aNuage, false); //soit on bascule en mode ZBuffer (true), soit en mode Masque (false)
+			}
+		}
+	}
 }

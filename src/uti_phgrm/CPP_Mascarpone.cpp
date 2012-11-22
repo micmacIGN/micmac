@@ -39,6 +39,8 @@
 
 #include "StdAfx.h"
 
+static    float aBasculeDef = -5e10f;
+
 int Mascarpone_main(int argc,char ** argv)
 {
     string aNameFiles, aNamePly, aNameOut;
@@ -72,9 +74,9 @@ int Mascarpone_main(int argc,char ** argv)
 
 		for (int aK = 0; aK <myMesh.getFacesNumber();++aK)
 		{
-			cTriangle tri = myMesh.getTriangle(aK);
+			cTriangle *tri = myMesh.getTriangle(aK);
 			vector <int> idxList;
-			tri.getVertexesIndexes(idxList);
+			tri->getVertexesIndexes(idxList);
 			if (idxList.size() ==  3)
 				printf ("triangle %d : %d %d %d\n", aK, idxList[0], idxList[1], idxList[2]);
 		}
@@ -90,11 +92,22 @@ int Mascarpone_main(int argc,char ** argv)
 	}
 	aVFiles.push_back(aNameFiles);
 
-	for (unsigned int aK=0; aK <  aVFiles.size(); ++aK)
+	for (unsigned int aK=0; aK < aVFiles.size(); ++aK)
 	{
+		string filename = aVFiles[aK];
 		cElNuage3DMaille * aNuage = cElNuage3DMaille::FromFileIm(aVFiles[aK]);
 
-		//TODO: relier au ZBuffer
+		//Calcul du Zbuffer (et TODO: stockage de l'angle avec chaque triangle)
+		cZBuf aZBuffer(aNuage->Sz());
+
+		Im2D_REAL4 res = aZBuffer.BasculerUnMaillage(myMesh, *aNuage, 0.f);
+
+		#ifdef _DEBUG
+			filename.replace(filename.end()-4, filename.end(), "_zbuf.tif");
+			Tiff_Im::CreateFromIm(res, filename);
+			//ELISE_fp fp (filename.c_str(),ELISE_fp::WRITE);
+			//res.write_data(fp);
+		#endif
 	}
 		
 	return EXIT_SUCCESS;

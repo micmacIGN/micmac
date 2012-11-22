@@ -41,13 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define CMESH
 
 #include "general/ptxd.h"
-
-
-// === MPD ===  necessaire pour compiler sous LINUX
-
-class cMesh;
-class cTriangle;
-class cVertex;
+#include "../private/cElNuage3DMaille.h"
 
 /*struct TriangleAttribute
 {
@@ -55,37 +49,45 @@ class cVertex;
 	double correlation;		//correlation in image idx
 };*/
 
+class cMesh;
+class cVertex;
+class cTriangle;
+class cZBuf;
 
 class cMesh
 {
 	friend class cTriangle;
 
 	public:
-					cMesh(const string & Filename);
+						cMesh(const string & Filename);
 		
-					~cMesh();
+						~cMesh();
 
-		int			getVertexNumber()	{return mVertexes.size();}
-		int			getFacesNumber()	{return mTriangles.size();}
-		//int			getEdgesNumber()	{return mEdgesNumber;}
-
-		void		getVertexes(vector <Pt3dr> &vPts) {vPts = mVertexes;}
-		void		getTriangles(vector <cTriangle> &vTriangles){vTriangles = mTriangles;}
+		int			getVertexNumber() const	{return (int) mVertexes.size();}
+		int			getFacesNumber() const	{return (int) mTriangles.size();}
+	
+		void		getVertexes(vector <Pt3dr> &vPts) const {vPts = mVertexes;}
+		void		getTriangles(vector <cTriangle> &vTriangles) const {vTriangles = mTriangles;}
 		void		getEdges(vector <int> &vEdges);
 	
-		Pt3dr		getVertex  (int idx);
-		cTriangle	getTriangle(int idx);
+		Pt3dr		getVertex(int idx) const;
+		cTriangle*	getTriangle(int idx);
 
 		void		writePly(const string &Filename, int AttributeAsRGB);
 
 		void		addPt(const Pt3dr &aPt);
 		void		addTriangle(const cTriangle &aTri);
+
+		void		setTrianglesAttribute(int img_idx, Pt3dr Dir, vector <unsigned int> const &TriIdx);
 	
 	private:
 
 		vector <Pt3dr>		mVertexes;
 		vector <cTriangle>	mTriangles;
 };
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
 
 class cVertex
 {
@@ -104,6 +106,9 @@ class cVertex
 		Pt3dr		mPos;
 };
 
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
 class cTriangle
 {
 	public:
@@ -112,12 +117,12 @@ class cTriangle
 
 				~cTriangle();
 
-		Pt3dr	getNormale(cMesh &elMesh, bool normalize = false);
-		void	getVertexes(cMesh &elMesh, vector <Pt3dr> &vList);
+		Pt3dr	getNormale(cMesh const &elMesh, bool normalize = false) const;
+		void	getVertexes(cMesh const &elMesh, vector <Pt3dr> &vList) const;
 		
-		void	getVertexesIndexes(vector <int> &vList){vList = mIndexes;}
-		void	getVoisins(vector <int> &vList);
-		bool	getAttributes(int image_idx, vector <float> &ta);
+		void	getVertexesIndexes(vector <int> &vList) const {vList = mIndexes;}
+		void	getVoisins(vector <int> &vList) const;
+		bool	getAttributes(int image_idx, vector <float> &ta) const;
 
 		void	setAttributes(int image_idx, const vector <float> &ta);
 
@@ -125,6 +130,39 @@ class cTriangle
 
 		vector <int>				mIndexes;		// index of vertexes
 		map <int, vector<float> >	mAttributes;	// map between image index and triangle attributes
+};
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+class cZBuf
+{
+	public:
+				cZBuf(Pt2di aSz);
+
+				~cZBuf();
+
+		Im2D_REAL4	BasculerUnMaillage(cMesh &aMesh, cElNuage3DMaille const &aNuage, float aDef);			//Projection du maillage dans la geometrie de aNuage, aDef: valeur par defaut de l'image resultante
+
+		void		BasculerUnTriangle(cTriangle &aTri, cMesh &aMesh, cElNuage3DMaille const &aNuage, bool doMask);
+
+		set <unsigned int> getTrianglesIndexes();
+
+		void		ComputeMask(int img_idx, cMesh &aMesh, cElNuage3DMaille const &aNuage, vector <unsigned int> const &TriIdx);
+
+		Im2D_Bits<1> getMaskImg() { return mImMask; }
+
+	private:
+
+		Pt2di			mSzRes;			//size result
+
+		Im2D_U_INT1     mImTriIdx;		//triangle index image (label image)
+		Im2D_Bits<1>    mImMask;		//mask image
+
+		Im2D_REAL4		mRes;			//Zbuffer
+        float **		mDataRes;
+
+		float			mDef;			//default value for Depth img
 };
 
 #endif

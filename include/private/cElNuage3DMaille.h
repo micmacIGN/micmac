@@ -525,16 +525,6 @@ class cZBuffer
                        float aZDef  // aZDef doit etre suffisement bas
                    );
 
-		// Fait le basculement "standard" d'un maillage
-		Im2D_REAL4 Basculer
-                   (
-					   cMesh & aMesh,
-					   Pt2di & aOffset_Out_00,
-                       Pt2di aP0In,
-                       Pt2di aP1In,
-                       float aZDef
-                   );
-
         Im2D_REAL4 ZCaches
                    (
                        Im2D_REAL4 aMnt,
@@ -609,8 +599,6 @@ class cZBuffer
 
         void BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas);
 
-		void BasculerUnTriangle(Pt3dr A,Pt3dr B,Pt3dr C,vector <float> const &attr);
-
         Pt2dr mOrigineIn;
         Pt2dr mStepIn;
         Pt2dr mOrigineOut;
@@ -655,11 +643,8 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
                        bool  AutoResize
                     );
 
-template <class Type> void WriteType(FILE * aFP,Type f)
-{
-        size_t  size = sizeof(Type);
-        TheIntFuckingReturnValue=fwrite(&f,size,1,aFP);
-}
+template <class Type> void WriteType(FILE * aFP,Type f);
+
 #endif // _ELISE_NUAGE_3D_MAILLE_
 
 

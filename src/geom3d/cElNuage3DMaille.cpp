@@ -63,6 +63,13 @@ using namespace NS_ParamChantierPhotogram;
 using namespace NS_SuperposeImage;
 
 
+
+template <class Type> void WriteType(FILE * aFP,Type f)
+{
+	size_t  size = sizeof(Type);
+	TheIntFuckingReturnValue=fwrite(&f,size,1,aFP);
+}
+
 // En entree c'est le clip et la taille, d'entree
 // en sortie c'est la translation (diff si le scale<0) et la taille
 // de sortie
