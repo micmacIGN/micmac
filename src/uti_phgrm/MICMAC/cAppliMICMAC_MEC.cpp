@@ -79,6 +79,22 @@ int cAppliMICMAC::GetTXY() const
 
 void cAppliMICMAC::DoAllMEC()
 {
+
+#ifdef CUDA_ENABLED
+	
+	// Création du contexte GPGPU
+	
+	cudaDeviceProp deviceProp;
+	// Obtention de l'identifiant de la carte la plus puissante
+	int devID = gpuGetMaxGflopsDeviceId();
+	// Initialisation du contexte 
+	checkCudaErrors(cudaSetDevice(devID));
+	// Obtention des propriétés de la carte
+	checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
+	// Affichage des propriétés de la carte
+	printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
+#endif
+
      for 
      (
         tContEMC::const_iterator itE = mEtapesMecComp.begin();
