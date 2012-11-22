@@ -292,8 +292,10 @@ class  ELISE_fp
          unsigned long int tell();
          INT  fgetc(); // name it fgetc because getc is a macro 
 
-
-          bool fgets(char *,INT sz_buf,bool & endof,bool svp = false);
+		  
+		  // get the next line in the file
+          bool fgets( std::string &s, bool & endof );
+          //bool fgets(char *,INT sz_buf,bool & endof,bool svp = false); TEST_OVERFLOW
 
           // Renvoie false en fin de fichier, renvoie un ligne ascii "standard" (Tab-> space ..)
           // Buf a 2000
