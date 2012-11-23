@@ -707,11 +707,14 @@ namespace NS_ParamMICMAC
 		}
 	}
 
-	// Déclaration des fonctions Cuda
-	extern "C" void imageToDevice( float** h_ref,  int width, int height);
-	extern "C" void freeTexture();
-	extern "C" void cubeProjToDevice(float* ptCube, cudaExtent dimCube);
+	#ifdef CUDA_ENABLED
+		// Déclaration des fonctions Cuda
+		extern "C" void imageToDevice( float** h_ref,  int width, int height);
+		extern "C" void freeTexture();
+		extern "C" void cubeProjToDevice(float* ptCube, cudaExtent dimCube);
 	extern "C" void correlation();
+	#endif
+
 
 	void cAppliMICMAC::DoGPU_Correl_Basik
 		(
