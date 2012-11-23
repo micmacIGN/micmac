@@ -8,6 +8,9 @@
 
 #include "Jp2ImageLoader.h"
 
+#ifdef INT
+#undef INT
+#endif
 
 // Kakadu core includes
 #include "kdu_arch.h"
@@ -256,7 +259,7 @@ namespace NS_ParamMICMAC
         //std::cout << "discard_levels : "<<discard_levels<<std::endl;
 		int minDwtLevels = 0;
 		if (avecDeZoom)
-			minDwtLevels = std::max(0,std::min(codestream.get_min_dwt_levels(),discard_levels-1));
+			minDwtLevels = std::max<int>(0,std::min<int>(codestream.get_min_dwt_levels(),discard_levels-1));
 		else
 			minDwtLevels = codestream.get_min_dwt_levels();
 		int reDeZoom = 0;
@@ -616,5 +619,5 @@ namespace NS_ParamMICMAC
 	
 };
 
-#endif
+#endif __USE_JP2__
 
