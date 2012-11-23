@@ -711,6 +711,7 @@ namespace NS_ParamMICMAC
 	extern "C" void imageToDevice( float** h_ref,  int width, int height);
 	extern "C" void freeTexture();
 	extern "C" void cubeProjToDevice(float* ptCube, cudaExtent dimCube);
+	extern "C" void correlation();
 
 	void cAppliMICMAC::DoGPU_Correl_Basik
 		(
@@ -785,61 +786,27 @@ namespace NS_ParamMICMAC
 								if (!areProj) areProj	= true;
 								cubeProjPIm[i3D + 0]	= (float)aPIm.x;
 								cubeProjPIm[i3D + 1]	= (float)aPIm.y;
-
 							}
 							else
-							{
-								cubeProjPIm[i3D + 0]	= 1.0f;
-								cubeProjPIm[i3D + 1]	= 1.0f;
+								cubeProjPIm[i3D + 0]	= -1.0f;
 
-							}
 						}
 						else
-						{
-							cubeProjPIm[i3D + 0]	= 1.0f;
-							cubeProjPIm[i3D + 1]	= 1.0f;
+							cubeProjPIm[i3D + 0]	= -1.0f;
 
-						}
 					}
 				}
 			}	
 			
 			if(areProj)
 			{
-				// Declaration du cube de projection pour le device
-				cudaArray* dev_CubeProjImg;
+				
 
-				// Variable erreur cuda
-				cudaError_t cudaERROR;
-
-				// Format des canaux 
-				cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(32, 32, 0, 0, cudaChannelFormatKindFloat);
-				//cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float4>();
-			
-				// Taille du cube
-				cudaExtent sizeCube = make_cudaExtent(sX,sY,sZ);
-			
-				// Allocation memoire GPU du cube de projection
-				cudaERROR = cudaMalloc3DArray(&dev_CubeProjImg,&channelDesc,sizeCube);
-				printf("CUDA error malloc 3D : %s\n", cudaGetErrorString(cudaERROR));
-
-				// Déclaration des parametres de copie 3D
-				cudaMemcpy3DParms p = { 0 };
-			
-				// Pointeur du tableau de destination
-				p.dstArray	= dev_CubeProjImg;
-				// Pas du cube
-				p.srcPtr	= make_cudaPitchedPtr(cubeProjPIm, sX * sT * sizeof(float), sX, sY);
-				// Taille du cube
-				p.extent	= make_cudaExtent(sX,sY,sZ);
-				// Type de copie
-				p.kind		= cudaMemcpyHostToDevice;
+				// Definition de la dimension du cube de projection
+				cudaExtent dimCube  = make_cudaExtent(sX,sY,sZ);
 
 				// Copie du cube de projection du Host vers le Device
-				cudaERROR	= cudaMemcpy3D(&p);
-				// Sortie console : Statut de la copie 3D
-				printf("CUDA error memCpy 3D : %s\n", cudaGetErrorString(cudaERROR));
-
+				cubeProjToDevice(cubeProjPIm, dimCube);
 
 				// Calcul de correlation sur l'image
 
@@ -900,7 +867,7 @@ namespace NS_ParamMICMAC
 						// On dequantifie le Z 
 						double aZReel  = DequantZ(aZInt); // -> anOrigineZ+ aZInt*aStepZ;
 
-
+						
 						int aNbImOk = 0;
 
 						// On balaye les images  pour lire les valeur et stocker, par image,
