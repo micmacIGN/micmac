@@ -1,19 +1,14 @@
 #include <cuda_runtime.h>
 
-texture<float, 1, cudaReadModeNormalizedFloat> refDeTex;
-
-cudaArray* dev_Img;
-// Declaration du cube de projection pour le device
-cudaArray* dev_CubeProjImg;
-	
-// Creation des tableaux de resultats de corrélation
-/*
-
-> Cube des corrélations
-	- channel : somme des valeurs, somme des valeur
+texture<float, cudaTextureType2D, cudaReadModeNormalizedFloat> refTex_Image;
+texture<float2, cudaTextureType2D, cudaReadModeNormalizedFloat> refTex_Project;
+texture<float, cudaTextureType2DLayered, cudaReadModeNormalizedFloat> refTex_ImagesLayered;
+texture<float2, cudaTextureType2DLayered, cudaReadModeNormalizedFloat> refTex_ProjectsLayered;
 
 
-*/
+cudaArray* dev_Img;				// Tableau des valeurs de l'image
+cudaArray* dev_CubeProjImg;		// Declaration du cube de projection pour le device
+cudaArray* dev_ArrayProjImg;	// Declaration du tableau de projection pour le device
 
 extern "C" void  imageToDevice(float** aDataIm,  int sXImg, int sYImg)
 {
@@ -36,7 +31,25 @@ extern "C" void  imageToDevice(float** aDataIm,  int sXImg, int sYImg)
 	cudaERROR = cudaMemcpy2DToArray(dev_Img,0,0,dataImg1D, sYImg*sizeof(float),sYImg*sizeof(float), sXImg, cudaMemcpyHostToDevice);
 
 	// Lier la texture au tableau Cuda
-	cudaERROR = cudaBindTextureToArray(refDeTex,dev_Img);
+	cudaERROR = cudaBindTextureToArray(refTex_Image,dev_Img);
+
+}
+
+extern "C" void  projToDevice(float* aProj,  int sXImg, int sYImg)
+{
+
+	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float2>();
+
+	cudaError_t cudaERROR;
+
+	// Allocation mémoire du tableau cuda
+	cudaERROR = cudaMallocArray(&dev_ArrayProjImg,&channelDesc,sYImg,sXImg);
+
+	// Copie des données du Host dans le tableau Cuda
+	cudaERROR = cudaMemcpy2DToArray(dev_ArrayProjImg,0,0,aProj, sYImg*sizeof(float2),sYImg*sizeof(float2), sXImg, cudaMemcpyHostToDevice);
+
+	// Lier la texture au tableau Cuda
+	cudaERROR = cudaBindTextureToArray(refTex_Project,dev_ArrayProjImg);
 
 }
 
@@ -84,7 +97,8 @@ extern "C" void correlation(){
 
 extern "C" void freeTexture()
 {
-	cudaUnbindTexture(refDeTex);
+	cudaUnbindTexture(refTex_Image);
+	cudaUnbindTexture(refTex_Project);
 	cudaFreeArray(dev_Img);
 	cudaFreeArray(dev_CubeProjImg);
 }
