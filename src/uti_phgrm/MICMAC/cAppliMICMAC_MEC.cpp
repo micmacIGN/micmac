@@ -75,7 +75,8 @@ int cAppliMICMAC::GetTXY() const
     return aSz-aStep;
 }
 
-
+extern "C" void  imagesToLayers(float *fdataImg1D, int sx, int sy, int sz);
+extern "C" void  FreeLayers();
 
 void cAppliMICMAC::DoAllMEC()
 {
@@ -93,13 +94,14 @@ void cAppliMICMAC::DoAllMEC()
 	checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
 	// Affichage des propriétés de la carte
 	printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
+
 #endif
 
      for 
      (
-        tContEMC::const_iterator itE = mEtapesMecComp.begin();
-	itE != mEtapesMecComp.end();
-	itE++
+		tContEMC::const_iterator itE = mEtapesMecComp.begin();
+		itE != mEtapesMecComp.end();
+		itE++
      )
      { 
         OneEtapeSetCur(**itE);
@@ -135,6 +137,13 @@ void cAppliMICMAC::DoAllMEC()
             }
         }
      }
+
+#ifdef CUDA_ENABLED
+
+	FreeLayers();
+	
+#endif
+
 }
 
 /*
@@ -369,7 +378,6 @@ void cAppliMICMAC::DoOneEtapeMEC(cEtapeMecComp & anEtape)
     }
 
 
-
      mNbPtsWFixe = (1+2*mPtSzWFixe.x*mCurSurEchWCor)*(1+2*mPtSzWFixe.y*mCurSurEchWCor);
      int aDZIm = anEtape.DeZoomIm();
      
@@ -491,7 +499,7 @@ std::cout << "CCMMM = " << aBoxClip._p0 << " " << aBoxClip._p1 << "\n"; getchar(
      }
      if (ByProcess().Val()!=0)
         ExeProcessParallelisable(true,aLStrProcess);
-
+	 
 }
 
 
@@ -640,7 +648,10 @@ void cAppliMICMAC::DoOneBloc
    }
    mNbImChCalc = (int) mPDVBoxGlobAct.size();
    if (mShowMes)
-      mCout << "       Images Loaded\n";
+   {
+	   
+      mCout << "      " << mNbIm << " Images Loaded\n";
+   }
 
    // Initialisation de mTabV1 et aVPtInEc
    //  mTabV1 : zone memoire pour stocker les valeurs de Im1 (acceleration "speciale")

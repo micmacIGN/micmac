@@ -43,6 +43,16 @@ Header-MicMac-eLiSe-25/06/2007*/
 namespace NS_ParamMICMAC
 {
 
+#ifdef CUDA_ENABLED
+
+	// Déclaration des fonctions Cuda
+	extern "C" void imageToDevice( float** h_ref,  int width, int height);
+	extern "C" void freeTexture();
+	extern "C" void projectionsToLayers(float *h_TabProj, int sx, int sy, int sz);
+	extern "C" void correlation(  float* h_TabCorre, int* listImgProj, int sx, int sy, int sz , int winX, int winY, int sXI, int sYI );
+	extern "C" void imagesToLayers(float *fdataImg1D, int sx, int sy, int sz);
+
+#endif
 
 
 	template <class Type,class TBase> 
@@ -270,6 +280,60 @@ namespace NS_ParamMICMAC
 		}
 		mNbIm = mVLI.size();
 
+#ifdef CUDA_ENABLED
+
+		//------------------------------------
+		//		Mise en calque des images	
+		//------------------------------------
+
+		float*		fdataImg1D	= NULL;	// 
+		cudaExtent	sizeImgsLay;			// Taille du tableau des calques 
+		int siX = 0, siY = 0 , nLayers = 0;
+
+		// Pour chaque image
+		for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
+		{
+			// Obtention de l'image courante
+			cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
+			const cGeomImage*	aGeom	= aGLI.Geom();
+
+			// Obtention des données images
+			float **aDataIm	=  aGLI.DataIm();
+
+			// Taille de l'image courante
+			Pt2di siz =  aGLI.getSizeImage();
+
+			if(fdataImg1D == NULL)
+			{
+
+				// Creation dynamique du tableau
+				fdataImg1D	= new float[ siz.x * siz.y * mNbIm ];
+				// Initialisation taille du tableau des calques  
+				siX		= siz.x;
+				siY		= siz.y;
+				nLayers = mNbIm;
+
+			}
+			else
+			{
+				int sizeImgs = aKIm*siz.x*siz.y;
+
+				// Linéarisation des données images
+				for (int i = 0; i < siz.x ; i++)
+					for (int j = 0; j < siz.y ; j++)
+						fdataImg1D[ ( i * siz.y + j ) + sizeImgs ] = aDataIm[j][i];
+
+				// Nous pourrions copier les images, image par image dans le tableau de texture
+			}
+		}
+
+		if ((!((siX == 0)|(siY == 0)|(nLayers == 0))) && (fdataImg1D != NULL))
+		{
+			imagesToLayers( fdataImg1D, siX, siY, nLayers );
+		}
+			delete fdataImg1D;
+
+#endif
 
 		mZMinGlob = (int)1e7;
 		mZMaxGlob = (int)(-1e7);
@@ -707,16 +771,6 @@ namespace NS_ParamMICMAC
 		}
 	}
 
-#ifdef CUDA_ENABLED
-	// Déclaration des fonctions Cuda
-	extern "C" void imageToDevice( float** h_ref,  int width, int height);
-	extern "C" void freeTexture();
-	extern "C" void cubeProjToDevice(float* ptCube, cudaExtent dimCube);
-	extern "C" void projToDevice(float* aProj,  int sXImg, int sYImg);
-	extern "C" void correlation();
-#endif
-
-
 	void cAppliMICMAC::DoGPU_Correl_Basik
 		(
 		const Box2di & aBox
@@ -736,102 +790,18 @@ namespace NS_ParamMICMAC
 		// Nombre de float pour un point de pojection
 		unsigned short sT	= 2;
 
-		//	+------------------------------+
-		//	|	Mise en calque des images  | --> Normalement à faire qu'une seule fois
-		//	+------------------------------+
-
-		// Variables cuda
-		
-		cudaError_t		cudaERROR;
-		cudaArray*		dev_ImagesLayered	= NULL;
-		float*			fdataImg1D			= NULL;
-		
-		// Taille du tableau des calques 
-		cudaExtent sizeImgsLay;
-
-		// Pour chaque image
-		for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
-		{
-			// Obtention de l'image courante
-			cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
-			const cGeomImage*	aGeom	= aGLI.Geom();
-
-			// Obtention des données images
-			float **aDataIm	=  aGLI.DataIm();
-
-			// Taille de l'image courante
-			Pt2di siz =  aGLI.getSizeImage();
-
-			if(fdataImg1D == NULL)
-			{
-
-				// Creation dynamique du tableau
-				fdataImg1D	= new float[ siz.x * siz.y * mNbIm ];
-
-				// Initialisation taille du tableau des calques  
-				sizeImgsLay  = make_cudaExtent( siz.x, siz.y, mNbIm );
-
-			}
-			else
-			{
-
-				int sizeImgs = aKIm*siz.x*siz.y;
-
-				// Linéarisation des données images
-				for (int i = 0; i < siz.x ; i++)
-					for (int j = 0; j < siz.y ; j++)
-						fdataImg1D[ ( i * siz.y + j ) + sizeImgs ] = aDataIm[j][i];
-
-				// Nous pourrions copier les images, image par image dans le tableau de texture
-			}
-		}
-
-		// Définition du format des canaux d'images
-		cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float>();
-
-		// Allocation memoire GPU du tableau des calques d'images
-		cudaERROR = cudaMalloc3DArray(&dev_ImagesLayered,&channelDesc,sizeImgsLay,cudaArrayLayered);
-		//printf("CUDA error malloc 3D Images : %s\n", cudaGetErrorString(cudaERROR));
-
-		// Déclaration des parametres de copie 3D
-		cudaMemcpy3DParms p = { 0 };
-
-		//----------------------------------->> Definition des paramètres de copies
-		// Pointeur du tableau de destination
-		p.dstArray	= dev_ImagesLayered;
-		// Pas du cube
-		p.srcPtr	= make_cudaPitchedPtr(fdataImg1D, sizeImgsLay.width * sizeof(float), sizeImgsLay.width, sizeImgsLay.height);
-		// Taille du cube
-		p.extent	= sizeImgsLay;
-		// Type de copie
-		p.kind		= cudaMemcpyHostToDevice;
-		//-----------------------------------<<
-
-		// Copie des images du Host vers le Device
-		cudaERROR	= cudaMemcpy3D(&p);
-		//printf("CUDA cudaMemcpy3D : %s\n", cudaGetErrorString(cudaERROR));
-
-		// !!!!!!!!!!!!!!!!!!!!!!!!
-		if(1)
-		{
-			delete fdataImg1D;
-			cudaERROR	= cudaFreeArray(dev_ImagesLayered);
-			//printf("CUDA cudaFreeArray : %s\n", cudaGetErrorString(cudaERROR));
-		}
-		// !!!!!!!!!!!!!!!!!!!!!!!!
-
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
 		{
 
-			//	+-----------------------------------+
-			//	|	Mise en calque des projections  |
-			//	+-----------------------------------+
+			//-----------------------------------------
+			//		Mise en calque des projections  
+			//-----------------------------------------
 
 			int *listImgProj	= new int[mNbIm];
 			int nBImgProj		= 0;
 
-			//
+			// Tableau des projections
 			float* h_TabProj = new float[ mNbIm * mX1Ter * mY1Ter * 2 ];
 
 			// Pour chaque image
@@ -846,7 +816,7 @@ namespace NS_ParamMICMAC
 				
 				// Initialisation du cube de projection
 				for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)		// 
-				{													// }-> Ballayage du terrain  
+				{													// -> Ballayage du terrain  
 					for (int anY = mY0Ter ; anY < mY1Ter ; anY++)	// 
 					{
 						// Nappe des profondeurs
@@ -858,13 +828,13 @@ namespace NS_ParamMICMAC
 
 						if (IsInTer( anX, anY ) && (aGLI.IsVisible(anX ,anY )) && (aZMin <= anZ <=aZMax))
 						{
-							// Dequantification  de X, Y et Z 
+							// Déquantification  de X, Y et Z 
 							const float	aZReel	= (float)DequantZ(anZ);
 							Pt2dr		aPTer	= DequantPlani(anX,anY);  
 
 							// Projection dans l'image 
 							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,( const double* )&aZReel);
-							
+
 							if (aGLI.IsOk( aPIm.x, aPIm.y ))
 							{
 								if (!areProj)
@@ -875,7 +845,7 @@ namespace NS_ParamMICMAC
 								
 								}
 
-								// Ecriture des projections
+								// Écriture des projections
 								int iD = (nBImgProj - 1 ) * ( mX1Ter * mY1Ter * 2 ) + ( mY1Ter * anX  + anY );
 
 								h_TabProj[iD + 0] = (float)aPIm.x;
@@ -884,7 +854,7 @@ namespace NS_ParamMICMAC
 							}
 							else if (areProj)
 							{
-								// Ecriture des projections
+								// Écriture des projections
 								int iD = (nBImgProj - 1 ) * ( mX1Ter * mY1Ter * 2 ) + ( mY1Ter * anX  + anY );
 
 								h_TabProj[iD + 0] = -1.0f;
@@ -895,144 +865,29 @@ namespace NS_ParamMICMAC
 					}
 				}
 			}
+			
+			if(nBImgProj>0)
+			{		
+				
+				// Copie des projections de host vers le device
+				projectionsToLayers(h_TabProj, mX1Ter, mY1Ter, nBImgProj);
 
+				delete h_TabProj;
 
-			//------------>> Copie des projections de host vers le device
+				// Tableau des projections
+				float* h_TabCorre = new float[  mX1Ter * mY1Ter ];
 
-			if(nBImgProj)
-			{
-				if(0)
-				{
-					std::cout << "Nombres projetees : " << nBImgProj << "\n";
-					std::cout << "Images projetees  : " << listImgProj[0];
-					for (int i = 1 ; i < nBImgProj ; i++)
-						std::cout << ", " << listImgProj[i];
-					std::cout << "\n";
-				}
-
-
-				cudaArray* dev_ProjLayered;
-
-				// Définition du format des canaux d'images
-				cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float2>();
-
-				// Taille du tableau des calques 
-				cudaExtent siz_PL = make_cudaExtent( mX1Ter, mY1Ter, nBImgProj);
-
-				// Allocation memoire GPU du tableau des calques d'images
-				cudaERROR = cudaMalloc3DArray(&dev_ProjLayered,&channelDesc,siz_PL,cudaArrayLayered);
-				//printf("CUDA error malloc 3D Projections : %s\n", cudaGetErrorString(cudaERROR));
-
-				// Déclaration des parametres de copie 3D
-				cudaMemcpy3DParms p = { 0 };
-
-				//----------------------------------->> Definition des paramètres de copies
-				// Pointeur du tableau de destination
-				p.dstArray	= dev_ProjLayered;
-				// Pas du cube
-				p.srcPtr	= make_cudaPitchedPtr(h_TabProj, siz_PL.width * sizeof(float2), siz_PL.width, siz_PL.height);
-				// Taille du cube
-				p.extent	= siz_PL;
-				// Type de copie
-				p.kind		= cudaMemcpyHostToDevice;
-				//-----------------------------------<<
-
-				// Copie des projections du Host vers le Device
-				cudaERROR	= cudaMemcpy3D(&p);
-				//printf("CUDA cudaMemcpy3D des projections : %s\n", cudaGetErrorString(cudaERROR));
-				//------------<<
-
-				if(1)
-				{
-					delete h_TabProj;
-					cudaERROR	= cudaFreeArray(dev_ProjLayered);
-					//printf("CUDA cudaFreeArray : %s\n", cudaGetErrorString(cudaERROR));
-				}
-
+				////	TEMP	////
+				// Obtention de l'image courante
+				cGPU_LoadedImGeom&	aGLI	= *(mVLI[listImgProj[0]]);
+				// Taille de l'image courante
+				Pt2di siz =  aGLI.getSizeImage();
+				////	TEMP	////
 
 				// Correlation
-			}
-
-		}
-
-
-		if(0)
-		{
-			// Parcourt de l'intervalle de Z compris dans la nappe globale
-			for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
-			{
-				// Initialisation du cube de projection
-				// Ballayage de l'espace terrain  
-				for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
-				{
-					for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
-					{
-						// Pour chaque image
-						for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
-						{
-							// Déclaration du tableau des projections
-							float *h_ArrayProjPIm		= new float[sT*sX*sY];
-
-							// Obtention de l'image courante
-							cGPU_LoadedImGeom & aGLI	= *(mVLI[aKIm]);
-							const cGeomImage * aGeom	= aGLI.Geom();
-
-							// Obtention des données images
-							float **aDataIm	=  aGLI.DataIm();
-
-							// Des Points sont-ils projetés pour l'image courante
-							bool areProj	= false;
-
-							// Obtention de la taille de l'image counrante
-							Pt2di sImg		= aGLI.getSizeImage();
-
-							// Nappe des profondeurs
-							int aZMin = mTabZMin[anY][anX];
-							int aZMax = mTabZMax[anY][anX];
-
-							// Indice du tableau 3D des projections
-							unsigned short iProj = (anX*sY + anY)*sT;
-
-							if (IsInTer(anX,anY) && (aGLI.IsVisible(anX,anY)) && (aZMin <= anZ <=aZMax))
-							{
-								// Dequantification  de X, Y et Z 
-								const float	aZReel	= (float)DequantZ(anZ);
-								Pt2dr		aPTer	= DequantPlani(anX,anY); 
-
-								// Projection dans l'image 
-								Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,(const double *)&aZReel);
-
-								if (aGLI.IsOk(aPIm.x,aPIm.y))
-								{
-									// Ecriture des projections
-									if (!areProj) areProj	= true;
-									h_ArrayProjPIm[iProj + 0]	= (float)aPIm.x;
-									h_ArrayProjPIm[iProj + 1]	= (float)aPIm.y;
-								}
-								else
-									h_ArrayProjPIm[iProj + 0]	= -1.0f;
-							}
-							else
-								h_ArrayProjPIm[iProj + 0]		= -1.0f;
-
-							if(areProj)
-							{
-								// Envoie de l'image courante dans le device (GPU)
-								imageToDevice(aDataIm, sImg.x,sImg.y);
-
-								// Envoie de l'image courante dans le device (GPU)
-								projToDevice(h_ArrayProjPIm, sImg.x,sImg.y);
-
-								// Calcul de correlation sur l'image
-
-								// Liberation de la memoire de texture
-								freeTexture();
-							}
-
-							delete h_ArrayProjPIm;
-						}
-					}
-				}
+				correlation(h_TabCorre , listImgProj , mX1Ter, mY1Ter, nBImgProj, mPtSzWFixe.x, mPtSzWFixe.y, siz.x,siz.y );
+				// libération de la mémoire GPU
+				freeTexture();
 			}
 		}
 
