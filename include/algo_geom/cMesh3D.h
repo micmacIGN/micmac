@@ -37,17 +37,11 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#ifndef CMESH
-#define CMESH
+#ifndef _ELISE_CMESH
+#define _ELISE_CMESH
 
 #include "general/ptxd.h"
 #include "../private/cElNuage3DMaille.h"
-
-/*struct TriangleAttribute
-{
-	double angle;			//angle between image idx and triangle normale
-	double correlation;		//correlation in image idx
-};*/
 
 class cMesh;
 class cVertex;
@@ -70,8 +64,8 @@ class cMesh
 		void		getTriangles(vector <cTriangle> &vTriangles) const {vTriangles = mTriangles;}
 		void		getEdges(vector <int> &vEdges);
 	
-		Pt3dr		getVertex(int idx) const;
-		cTriangle*	getTriangle(int idx);
+		Pt3dr		getVertex(unsigned int idx) const;
+		cTriangle*	getTriangle(unsigned int idx);
 
 		void		writePly(const string &Filename, int AttributeAsRGB);
 
@@ -98,7 +92,6 @@ class cVertex
 
 		void		getPos(Pt3dr &pos){pos = mPos;}
 		int			getIndex(){return mIndex;}
-		//VertexAttribute getAttribute();
 
 	private:
 
@@ -112,8 +105,8 @@ class cVertex
 class cTriangle
 {
 	public:
-				cTriangle(vector <int> const &idx);
-				cTriangle(int idx1, int idx2, int idx3);
+				cTriangle(vector <int> const &idx, int TriIdx);
+				cTriangle(int idx1, int idx2, int idx3, int TriIdx);
 
 				~cTriangle();
 
@@ -122,14 +115,19 @@ class cTriangle
 		
 		void	getVertexesIndexes(vector <int> &vList) const {vList = mIndexes;}
 		void	getVoisins(vector <int> &vList) const;
-		bool	getAttributes(int image_idx, vector <float> &ta) const;
+		bool	getAttributes(int image_idx, vector <double> &ta) const;
+		map <int, vector <REAL> >	getAttributesMap() const {return mAttributes;}
+		int		getIdx() const {return mTriIdx;}
 
-		void	setAttributes(int image_idx, const vector <float> &ta);
+		void	setAttributes(int image_idx, const vector <double> &ta);
 
+		bool	hasAttributes() { return (mAttributes.size() != 0); }
+		
 	private:
 
+		int							mTriIdx;		// triangle index
 		vector <int>				mIndexes;		// index of vertexes
-		map <int, vector<float> >	mAttributes;	// map between image index and triangle attributes
+		map <int, vector <REAL> >	mAttributes;	// map between image index and triangle attributes
 };
 
 //--------------------------------------------------------------------------------------------------------------
@@ -138,31 +136,75 @@ class cTriangle
 class cZBuf
 {
 	public:
-				cZBuf(Pt2di aSz);
+				cZBuf();
 
 				~cZBuf();
 
-		Im2D_REAL4	BasculerUnMaillage(cMesh &aMesh, cElNuage3DMaille const &aNuage, float aDef);			//Projection du maillage dans la geometrie de aNuage, aDef: valeur par defaut de l'image resultante
+		Im2D_REAL4	BasculerUnMaillage(cMesh &aMesh);			//Projection du maillage dans la geometrie de aNuage, aDef: valeur par defaut de l'image resultante
 
-		void		BasculerUnTriangle(cTriangle &aTri, cMesh &aMesh, cElNuage3DMaille const &aNuage, bool doMask);
+		void		BasculerUnTriangle(cTriangle &aTri, cMesh &aMesh, bool doMask = false); //soit on calcule le ZBuffer, soit le Masque (true)
+		
+		void		ComputeVisibleTrianglesIndexes();
+		Im2D_BIN	ComputeMask(int img_idx, cMesh &aMesh);
 
-		set <unsigned int> getTrianglesIndexes();
+		Im2D_U_INT2				getIndexImage() const {return mImTriIdx;}
+		vector <unsigned int>	getVisibleTrianglesIndexes() const {return vTri;}
+		
+		cElNuage3DMaille * &	Nuage() {return mNuage;}
 
-		void		ComputeMask(int img_idx, cMesh &aMesh, cElNuage3DMaille const &aNuage, vector <unsigned int> const &TriIdx);
+		void					SetSelfSz(){mSzRes = mNuage->Sz();} //temp
 
-		Im2D_Bits<1> getMaskImg() { return mImMask; }
+		Pt2di					Sz(){return mSzRes;}
 
 	private:
 
-		Pt2di			mSzRes;			//size result
+		Pt2di					mSzRes;			//size result
 
-		Im2D_U_INT1     mImTriIdx;		//triangle index image (label image)
-		Im2D_Bits<1>    mImMask;		//mask image
+		Im2D_U_INT2				mImTriIdx;		//triangle index image (label image)
+		Im2D_BIN				mImMask;		//mask image
 
-		Im2D_REAL4		mRes;			//Zbuffer
-        float **		mDataRes;
+		Im2D_REAL4				mRes;			//Zbuffer
+        float **				mDataRes;
 
-		float			mDef;			//default value for Depth img
+		float					mDpDef;			//default value for depth img (mRes)
+		unsigned int			mIdDef;			//default value for index img (mImTriIdx)
+
+		vector <unsigned int>	vTri;			//list of visible triangles (contained in the index image)
+
+		cElNuage3DMaille *		mNuage;			
 };
 
-#endif
+#endif // _ELISE_CMESH
+
+/*Footer-MicMac-eLiSe-25/06/2007
+
+Ce logiciel est un programme informatique servant à la mise en
+correspondances d'images pour la reconstruction du relief.
+
+Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
+respectant les principes de diffusion des logiciels libres. Vous pouvez
+utiliser, modifier et/ou redistribuer ce programme sous les conditions
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+sur le site "http://www.cecill.info".
+
+En contrepartie de l'accessibilité au code source et des droits de copie,
+de modification et de redistribution accordés par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
+seule une responsabilité restreinte pèse sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concédants successifs.
+
+A cet égard  l'attention de l'utilisateur est attirée sur les risques
+associés au chargement,  à l'utilisation,  à la modification et/ou au
+développement et à la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
+manipuler et qui le réserve donc à des développeurs et des professionnels
+avertis possédant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
+logiciel à leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
+termes.
+Footer-MicMac-eLiSe-25/06/2007*/

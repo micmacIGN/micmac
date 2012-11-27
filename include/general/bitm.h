@@ -727,6 +727,7 @@ template <class Type,class TyBase> class Im3D : public GenIm
 #define Im2D_REAL4     Im2D<REAL4,REAL>
 #define Im2D_REAL8     Im2D<REAL8,REAL>
 #define Im2D_REAL16    Im2D<REAL16,REAL16>
+#define Im2D_BIN	   Im2D_Bits<1>
 
 #define Im1D_U_INT1    Im1D<U_INT1,INT>
 #define Im1D_INT1      Im1D<INT1,INT>
@@ -745,8 +746,8 @@ typedef Im3D<U_INT2,INT>  Im3D_U_INT2;
 typedef Im3D<INT2,INT>    Im3D_INT2;
 typedef Im3D<INT4,INT>    Im3D_INT4;
 
-typedef Im3D<REAL4,REAL> Im3D_REAL4;
-typedef Im3D<REAL8,REAL> Im3D_REAL8;
+typedef Im3D<REAL4,REAL>  Im3D_REAL4;
+typedef Im3D<REAL8,REAL>  Im3D_REAL8;
 
 
 
@@ -757,10 +758,11 @@ typedef Im2D<U_INT2,INT>  Im2D_U_INT2;
 typedef Im2D<INT2,INT>    Im2D_INT2;
 typedef Im2D<INT4,INT>    Im2D_INT4;
 
-typedef Im2D<REAL4,REAL> Im2D_REAL4;
-typedef Im2D<REAL8,REAL> Im2D_REAL8;
+typedef Im2D<REAL4,REAL>  Im2D_REAL4;
+typedef Im2D<REAL8,REAL>  Im2D_REAL8;
+typedef Im2D<REAL16,REAL16> Im2D_REAL16;
 
-
+typedef Im2D_Bits<1>	  Im2D_BIN;
 
 typedef Im1D<U_INT1,INT>  Im1D_U_INT1;
 typedef Im1D<INT1,INT>    Im1D_INT1;
@@ -768,8 +770,8 @@ typedef Im1D<U_INT2,INT>  Im1D_U_INT2;
 typedef Im1D<INT2,INT>    Im1D_INT2;
 typedef Im1D<INT4,INT>    Im1D_INT4;
 
-typedef Im1D<REAL4,REAL> Im1D_REAL4;
-typedef Im1D<REAL8,REAL> Im1D_REAL8;
+typedef Im1D<REAL4,REAL>  Im1D_REAL4;
+typedef Im1D<REAL8,REAL>  Im1D_REAL8;
 #endif
 
 
