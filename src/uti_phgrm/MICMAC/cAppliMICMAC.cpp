@@ -552,6 +552,7 @@ cAppliMICMAC * cAppliMICMAC::Alloc(int argc,char ** argv,eModeAllocAM aMode)
     - dans la variable d'environnement MICMAC_Param
     - en dur, sous applis/MICMAC/ParamMICMAC.xml
 */
+	ELISE_ASSERT(argc >= 2,"Not enough arguments");
 
 
     const char * aName = 0;
@@ -631,11 +632,17 @@ cAppliMICMAC * cAppliMICMAC::Alloc(int argc,char ** argv,eModeAllocAM aMode)
         aP2.mObj->GeomMNT() = eNoGeomMNT;
         aP2.mObj->GeomImages() = eNoGeomIm;
     }
-
-    
-
 	
-    //return new cAppliMICMAC(aMode,argv[0],argv[1],aP2,argv+2,argc-2,aName);
+#if (ELISE_windows)
+	// argv[1] is a filename (for the parameters' XML file)
+	char *itChar = argv[1];
+	while ( *itChar!='\0' )
+	{
+		if ( *itChar=='\\' ) *itChar='/';
+		itChar++;
+	}
+#endif
+
     return new cAppliMICMAC(aMode,getCurrentProgramFullName(),argv[1],aP2,argv+2,argc-2,aName);
 }
 
@@ -1768,7 +1775,7 @@ void cAppliMICMAC::ExeProcessParallelisable
 	uname(&buf);
 	//std::cout << "Nom de machine : " << buf.nodename << std::endl;
 #endif
-       for 
+       for
        (
           std::list<std::string>::const_iterator itStr=aLProc.begin();
           itStr!=aLProc.end();
@@ -1833,6 +1840,15 @@ void cAppliMICMAC::ExeProcessParallelisable
             fic << "Box0Step0_"<< (unsigned int) i<<" ";
        }
        fic << std::endl;
+ 
+#if (ELISE_windows)
+	// the 'make' program takes a line beginning by a word + ':' for a rule
+	// and Windows' absolute paths match this expression, we need to protect such lines by double quotes
+	string mm3dFullName = mNameExe.substr( 0, mNameExe.length()-7 );
+	if ( ( ToAdd.length()>1 ) && ( ToAdd[1]==':' ) )
+		ToAdd = std::string( "\"" )+mm3dFullName+"\" MICMAC";
+#endif
+
        int num=0;
        for 
        (
