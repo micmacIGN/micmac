@@ -694,8 +694,7 @@ template <class Type> class Pt3d : public  ElStdTypeScal<Type>
 
 
      Pt3d<Type> AbsP() const {return Pt3d<Type>(ElAbs(x),ElAbs(y),ElAbs(z));}
-
-
+	 
      friend Pt3d<Type> Sup (const Pt3d<Type> & p1,const Pt3d<Type> & p2) 
            { return Pt3d<Type>(ElMax(p1.x,p2.x),ElMax(p1.y,p2.y),ElMax(p1.z,p2.z));}
      friend Pt3d<Type> Inf (const Pt3d<Type> & p1,const Pt3d<Type> & p2) 

@@ -45,6 +45,7 @@ int Mascarpone_main(int argc,char ** argv)
 {
     string aNameFiles, aNamePly, aNameOut;
     vector<string> aVFiles, aVCom;
+	string filename;
     
 	int aBin  = 1;
 	int DoNrm = 1;
@@ -82,6 +83,8 @@ int Mascarpone_main(int argc,char ** argv)
 		}
 	#endif
 
+	ELISE_ASSERT (myMesh.getFacesNumber() < 65536, "big mesh!! label image will overflow!!!");
+
 	//Images maitresses
 	int pos = aNameFiles.find('#',0);
 	while (pos>0)
@@ -92,24 +95,88 @@ int Mascarpone_main(int argc,char ** argv)
 	}
 	aVFiles.push_back(aNameFiles);
 
+	vector <cZBuf> aZBuffers;
+
+	//Pour chaque image, identification des triangles visibles et affectation des attributs
 	for (unsigned int aK=0; aK < aVFiles.size(); ++aK)
 	{
-		string filename = aVFiles[aK];
-		cElNuage3DMaille * aNuage = cElNuage3DMaille::FromFileIm(aVFiles[aK]);
+		cZBuf aZBuffer;
 
-		//Calcul du Zbuffer (et TODO: stockage de l'angle avec chaque triangle)
-		cZBuf aZBuffer(aNuage->Sz());
+		filename = aVFiles[aK];
 
-		Im2D_REAL4 res = aZBuffer.BasculerUnMaillage(myMesh, *aNuage, 0.f);
+		printf ("Reading %s\n", filename.c_str());
+		
+		aZBuffer.Nuage() = cElNuage3DMaille::FromFileIm(filename);
+
+		aZBuffer.SetSelfSz();
+
+		printf ("BasculerUnMaillage\n" );
+		Im2D_REAL4 res = aZBuffer.BasculerUnMaillage(myMesh);
+
+		#ifdef _DEBUG		
+			//convertion du zBuffer en 8 bits
+			Pt2di sz = aZBuffer.Sz();
+			Im2D_U_INT1 Converted = Im2D_U_INT1(sz.x, sz.y);
+			REAL min = FLT_MAX;
+			REAL max = 0.f;
+			for (int cK=0; cK < sz.x;++cK)
+			{
+				for (int bK=0; bK < sz.y;++bK)
+				{
+					float val = res.GetR(Pt2di(cK,bK)); 
+					
+					if (val > max) max = val;
+					else if ((val != 0.f) && (val < min)) min = val;
+				}
+			}
+
+			printf ("Min, max depth = %4.2f %4.2f\n", min, max );
+
+			for (int cK=0; cK < sz.x;++cK)
+			{
+				for (int bK=0; bK < sz.y;++bK)
+				{
+					Converted.SetI(Pt2di(cK,bK),(int)((res.GetR(Pt2di(cK,bK))-min) *255.f/(max-min)));
+				}
+			}
+
+			filename.replace(filename.end()-4, filename.end(), "_zbuf.tif");
+			printf ("Saving %s\n", filename.c_str());
+			Tiff_Im::CreateFromIm(Converted, filename);
+			printf ("Done\n");
+		
+			//image des labels
+			Im2D_U_INT2 Labels = aZBuffer.getIndexImage();
+							
+			filename.replace(filename.end()-9, filename.end(), "_label.tif");
+			printf ("Saving %s\n", filename.c_str());
+			Tiff_Im::CreateFromIm(Labels, filename);
+			//Tiff_Im::CreateFromIm(Conv, filename);
+			printf ("Done\n");
+		#endif
+
+		aZBuffer.ComputeVisibleTrianglesIndexes();
+
+		//On affecte les attributs aux triangles visibles (pour l'instant l'angle à la normale)
+		myMesh.setTrianglesAttribute(aK, aZBuffer.Nuage()->Cam()->DirVisee(), aZBuffer.getVisibleTrianglesIndexes());
+
+		aZBuffers.push_back(aZBuffer);
+	}
+
+	//Pour chaque image, on choisit les triangles "convenables" parmi les triangles visibles
+	for (unsigned int aK=0; aK < aVFiles.size(); ++aK)
+	{	
+		Im2D_BIN mask = aZBuffers[aK].ComputeMask(aK, myMesh);
 
 		#ifdef _DEBUG
-			filename.replace(filename.end()-4, filename.end(), "_zbuf.tif");
-			Tiff_Im::CreateFromIm(res, filename);
-			//ELISE_fp fp (filename.c_str(),ELISE_fp::WRITE);
-			//res.write_data(fp);
+			filename = aVFiles[aK];
+			filename.replace(filename.end()-4, filename.end(), "_mask.tif");
+			printf ("Saving %s\n", filename.c_str());
+			Tiff_Im::CreateFromIm(mask, filename);
+			printf ("Done\n");
 		#endif
 	}
-		
+
 	return EXIT_SUCCESS;
 }
 
