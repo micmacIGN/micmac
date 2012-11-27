@@ -52,12 +52,12 @@ void ElisePenseBete()
      return;
    ELISE_fp  aFile(aName.c_str(),ELISE_fp::READ);
    static const int tBuf = 1000;
-   char aBuf[tBuf]; 
+   string aBuf; //char aBuf[tBuf]; TEST_OVERFLOW
    bool eof=false;
    cout << "##################################\n";
    while (! eof)
    {
-       if ( aFile.fgets(aBuf,tBuf,eof))
+       if ( aFile.fgets(aBuf,eof)) //if ( aFile.fgets(aBuf,tBuf,eof)) TEST_OVERFLOW
           cout << aBuf << "\n";
    }
    cout << "##################################\n";

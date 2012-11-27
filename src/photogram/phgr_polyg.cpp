@@ -105,12 +105,12 @@ REAL cPointeEtalonage::Pds() const
 
 bool  cSetPointes1Im::InitFromFile(const cPolygoneEtal & aPol,ELISE_fp & aFile,bool InPK1)
 {
-    char buf[NbBuf];
+    string buf; //char buf[NbBuf]; TEST_OVERFLOW
     bool GotEOF = false;
     INT aCpt = 0;
     while (! GotEOF)
     {
-        aFile.fgets(buf,NbBuf,GotEOF,false);
+        aFile.fgets(buf, GotEOF ); //aFile.fgets(buf,NbBuf,GotEOF,false); TEST_OVERFLOW
 	if (GotEOF)
 	{
            if (InPK1)
@@ -121,7 +121,7 @@ bool  cSetPointes1Im::InitFromFile(const cPolygoneEtal & aPol,ELISE_fp & aFile,b
 	{
            INT anId; 
            REAL anX,anY;
-           sscanf(buf,"%d %lf %lf",&anId,&anX,&anY);
+           sscanf(buf.c_str(),"%d %lf %lf",&anId,&anX,&anY); // sscanf(buf,"%d %lf %lf",&anId,&anX,&anY); TEST_OVERFLOW
 	   if (anId>=0)
 	   {
               mPointes.push_back(cPointeEtalonage(anId,Pt2dr(anX,anY),aPol));
@@ -227,15 +227,15 @@ cSetNImSetPointes::cSetNImSetPointes
 
     ELISE_fp aFile(aName.c_str(),ELISE_fp::READ);
 
-    char buf[NbBuf];
+    string buf; // char buf[NbBuf]; TEST_OVERFLOW
     while (true)
     {
         bool GotEOF = false;
-        aFile.fgets(buf,NbBuf,GotEOF,false);
+        aFile.fgets( buf, GotEOF ); // aFile.fgets(buf,NbBuf,GotEOF,false); TEST_OVERFLOW
 	if (GotEOF) 
            return;
         INT anId=0; 
-        sscanf(buf,"%d",&anId);
+        sscanf(buf.c_str(),"%d",&anId); // sscanf(buf,"%d",&anId); TEST_OVERFLOW
 	if (anId<0)
            return;
 	cSetPointes1Im aPointes;
@@ -665,18 +665,18 @@ cPolygoneEtalImplem * cPolygoneEtalImplem::FromFile(const std::string & aName)
 
     ELISE_fp aFile(aName.c_str(),ELISE_fp::READ);
 
-    char buf[NbBuf];
+    string buf; // char buf[NbBuf]; TEST_OVERFLOW
     bool GotEOF = false;
     while (! GotEOF)
     {
-        aFile.fgets(buf,NbBuf,GotEOF,false);
+        aFile.fgets( buf, GotEOF ); // aFile.fgets(buf,NbBuf,GotEOF,false); TEST_OVERFLOW
 	if ((!GotEOF) && (buf[0] != '#'))
 	{
            INT anId; 
            REAL anX,anY,aZ;
            char IdMire[100];
 	   INT aQual;
-           sscanf(buf,"%d %lf %lf %lf %s %d",&anId,&anX,&anY,&aZ,IdMire,&aQual);
+           sscanf(buf.c_str(),"%d %lf %lf %lf %s %d",&anId,&anX,&anY,&aZ,IdMire,&aQual); // sscanf(buf,"%d %lf %lf %lf %s %d",&anId,&anX,&anY,&aZ,IdMire,&aQual); TEST_OVERFLOW
            //cout << IdMire << " - Mire[" << anId << "] : " 
            //<< "P(" << anX << " , " << anY << " , " << aZ  << ")\n";
 	   aRes->AddCible

@@ -25,6 +25,10 @@ OPTION(WITH_HEADER_PRECOMP "En-tetes precompilees" ON )
 # Utiliser les en-tetes precompilees
 OPTION(BUILD_ONLY_ELISE "Projet Elise uniquement" OFF )
 
+
+# Utiliser Cuda
+OPTION(CUDA_ENABLED "Utilisation de cuda" OFF )
+
 ##################################
 ## 	Trouver les EXES et Libs	##
 ##################################
@@ -46,6 +50,15 @@ set(UnixBinPath
 		/usr/bin
 		/usr/local/bin)
 
+# CUDA
+if (${CUDA_ENABLED})
+
+	FIND_PACKAGE(CUDA)
+	INCLUDE(FindCUDA)
+	INCLUDE_DIRECTORIES(${CUDA_SDK_ROOT_DIR}/inc)
+	add_definitions(-DCUDA_ENABLED)
+
+endif()
 # MERCURIAL
 find_program(MERCURIAL_EXECUTABLE hg DOC "Emplacement de gestionnaire de versions Mercurial")
 
