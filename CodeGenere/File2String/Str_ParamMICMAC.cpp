@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[1947]) = {
+const char * (theNameVar_ParamMICMAC[1949]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -878,7 +878,9 @@ const char * (theNameVar_ParamMICMAC[1947]) = {
 "\n",
 "                        <!-- Si Correl2DLeastSquare  L'algo doit obligat etre eAlgoLeastSQ -->\n",
 "                        <Correl2DLeastSquare Nb=\"?\" AccessorFils=\"false\">    \n",
-"                                <Unused Nb=\"?\" Type=\"std::string\"> </Unused>\n",
+"                             <SzW Nb=\"1\" Type=\"int\"> </SzW>\n",
+"                             <PeriodEch Nb=\"1\" Type=\"int\"> </PeriodEch>\n",
+"                             <Step Nb=\"?\" Type=\"double\" Def=\"1.0\"> </Step>\n",
 "                        </Correl2DLeastSquare>\n",
 "\n",
 "\n",

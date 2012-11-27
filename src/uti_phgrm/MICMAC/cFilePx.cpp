@@ -492,7 +492,7 @@ Tiff_Im cFilePx::FileIm(bool & IsCreated) const
                 IsCreated,
                 mNameFile,
                 mSzFile,
-                mEtape.IsOptimCont() ? GenIm::real4 : GenIm::int2,
+                mEtape.IsOptimReel() ? GenIm::real4 : GenIm::int2,
                 Tiff_Im::No_Compr,
                 Tiff_Im::BlackIsZero
 	    );

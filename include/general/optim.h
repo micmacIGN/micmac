@@ -53,7 +53,7 @@ class NROptF1vND
           virtual REAL NRF1v(REAL) = 0;
           virtual bool NROptF1vContinue() const;
           virtual ~NROptF1vND();
-          NROptF1vND();
+          NROptF1vND(int aNbIterMax=-1);
 
 
           //+++++++++++++++++++++++++++
@@ -83,6 +83,7 @@ class NROptF1vND
                       );
      protected :
          int mNbIter;
+         int mNbIterMax;
          double  mTolGolden;
          double  TOL;
          double x0,x1,x2,x3;

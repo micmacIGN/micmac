@@ -55,6 +55,7 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
      mImRechAlgo   (mSzRech.x,mSzRech.y),
      mSzWZ         (mParam.SectionWindows().SzWZ().ValWithDef(round_ni(Pt2dr(mParam.SzTotIm().Val())*0.6)))
 {
+
     Tiff_Im::SetDefTileFile(100000);
 
      InitImages();
@@ -671,9 +672,9 @@ void cAppli_SaisiePts::Sauv()
 
              aSOMAF.MesureAppuiFlottant1Im().push_back(aMAF);
         }
-        std::string aNameExp = DC()+mParam.ExportPointeImage().Val();
-        // MakeFileXML(aSOMAF, aNameExp);
-        MakeFileXML(aSOMAF, StdPrefix(aNameExp) + "-S2D.xml");
+        std::string aNameExp = DC()+StdPrefix(mParam.ExportPointeImage().Val());
+
+        MakeFileXML(aSOMAF, aNameExp + "-S2D.xml");
 
 
         cDicoAppuisFlottant aDico;
@@ -690,7 +691,7 @@ void cAppli_SaisiePts::Sauv()
             }
         }
 
-        MakeFileXML(aDico, StdPrefix(aNameExp) + "-S3D.xml");
+        MakeFileXML(aDico, aNameExp + "-S3D.xml");
 
 /*
 */
