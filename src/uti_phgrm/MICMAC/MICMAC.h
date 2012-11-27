@@ -1973,6 +1973,7 @@ class cEtapeMecComp
           bool  IsOptDiffer() const;
           bool  IsOptDequant() const;
           bool  IsOptimCont() const;
+          bool  IsOptimReel() const;
 
           // aP0 - aP1 : definit la zone a basculer
 	  void AllBasculeMnt(Pt2di aP0,Pt2di aP1,float **,INT2 **,Pt2di aSzData);
@@ -2037,7 +2038,9 @@ class cEtapeMecComp
           cCaracOfDeZoom *        mCaracZ;
           bool                    mIsOptDiffer;
           bool                    mIsOptDequant;
+          bool                    mIsOtpLeastSQ;
           bool                    mIsOptimCont;
+          bool                    mIsOptimReel;
           bool                    mGenImageCorrel;
 	  cEtapeMecComp *         mPrec;
 	  cEtapeMecComp *         mPredPC; // Derniere etape avec parties cachees
@@ -2622,6 +2625,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
         // Box2di          BoxOut();
         bool  IsOptDiffer() const;
         bool  IsOptimCont() const;
+        bool  IsOptimReel() const;
         bool  IsOptDequant() const;
 
         const std::string & DirImagesInit() const;
