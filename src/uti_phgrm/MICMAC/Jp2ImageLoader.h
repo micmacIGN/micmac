@@ -146,5 +146,5 @@ class JP2ImageLoader: public cInterfModuleImageLoader
 		
 	};
 };
-#endif // __USE_JP2__
-#endif // __JP2ImageLoader_H__
+#endif
+#endif

@@ -6,11 +6,12 @@
 #include <vector>
 #include <complex>
 
+#ifdef INT
+	#undef INT
+#endif
+
 #include "Jp2ImageLoader.h"
 
-#ifdef INT
-#undef INT
-#endif
 
 // Kakadu core includes
 #include "kdu_arch.h"
@@ -619,5 +620,5 @@ namespace NS_ParamMICMAC
 	
 };
 
-#endif __USE_JP2__
+#endif
 
