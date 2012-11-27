@@ -1451,14 +1451,14 @@ std::list<cMetaDataPhoto>  LMDP_Survey_FromFile(const std::string & aNameFile)
 	ELISE_fp aFile(aNameFile.c_str(),ELISE_fp::READ);
 	std::list<cMetaDataPhoto> aRes;
 	bool endof=false;
-	char aBuf[1000];
+	string aBuf; // char aBuf[1000]; TEST_OVERFLOW
 
 	while (!endof)
 	{
-		if (aFile.fgets(aBuf,1000,endof))
+		if ( aFile.fgets(aBuf,endof) )//if (aFile.fgets(aBuf,1000,endof)) TEST_OVERFLOW
 		{
 			// C'est des fichier texte Windaube, donc gaffe !
-			if (strlen(aBuf) !=0)
+			if ( aBuf.length()!=0 ) // if (strlen(aBuf) !=0) TEST_OVERFLOW
 				aRes.push_back(MDP_Survey_FromString(aBuf));
 		}
 	}
@@ -1519,13 +1519,13 @@ std::vector<cLine_N_XYZ_WPK> cLine_N_XYZ_WPK::FromFile
 {
 	ELISE_fp aFile(aNameFile.c_str(),ELISE_fp::READ);
 	bool endof=false;
-	char aBuf[1000];
+	string aBuf; // char aBuf[1000]; TEST_OVERFLOW
 
 	std::vector<cLine_N_XYZ_WPK> aRes;
 
 	while (!endof)
 	{
-		if (aFile.fgets(aBuf,1000,endof))
+		if (aFile.fgets(aBuf,endof)) //if (aFile.fgets(aBuf,1000,endof)) TEST_OVERFLOW
 		{
 			if (!endof)
 			{

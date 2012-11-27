@@ -742,17 +742,17 @@ ElPackHomologue ElPackHomologue::FromFile(const std::string & aName)
        if (StdPostfix(aName)=="txt")
        {
             bool End= false;
-            char aBuf[200];
+            string aBuf; //char aBuf[200]; TEST_OVERFLOW
 
             ElPackHomologue aPck;
             ELISE_fp aFTxt(aName.c_str(),ELISE_fp::READ);
 
             while (! End)
             {
-                if (aFTxt.fgets(aBuf,200,End))
+                if ( aFTxt.fgets( aBuf, End ) ) //if (aFTxt.fgets(aBuf,200,End)) TEST_OVERFLOW
                 {
                    Pt2dr aP1,aP2;
-                   sscanf(aBuf,"%lf %lf %lf %lf",&aP1.x,&aP1.y,&aP2.x,&aP2.y);
+                   sscanf(aBuf.c_str(),"%lf %lf %lf %lf",&aP1.x,&aP1.y,&aP2.x,&aP2.y); //sscanf(aBuf.c_str(),"%lf %lf %lf %lf",&aP1.x,&aP1.y,&aP2.x,&aP2.y); TEST_OVERFLOW
                    
                     aPck.Cple_Add(ElCplePtsHomologues(aP1,aP2,1.0));
                 }
