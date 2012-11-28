@@ -39,28 +39,26 @@
 
 #include "StdAfx.h"
 
-static    float aBasculeDef = -5e10f;
-
 int Mascarpone_main(int argc,char ** argv)
 {
-    string aNameFiles, aNamePly, aNameOut;
-    vector<string> aVFiles, aVCom;
+    string aNameFiles, aNamePly, aNameOut, aOut;
+    vector<string> aVFiles;
 	string filename;
     
-	int aBin  = 1;
-	int DoNrm = 1;
+	double aAngleMax = 90.f;
 	
     ElInitArgMain
     (
-	 argc,argv,
-	 LArgMain()	<< EAM(aNameFiles),
-	 LArgMain()		<< EAM(aNamePly,"Ply",true)
+	argc,argv,
+	LArgMain()	<< EAM(aNameFiles),
+	LArgMain()		<< EAM(aNamePly,"Ply",true)
 					<< EAM(aNameOut,"Out",true)
-					<< EAM(aVCom,"Comments",true)
-					<< EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
-					<< EAM(DoNrm,"Normale",true)
+					<< EAM(aAngleMax,"Max",true,"Max angle between surface and viewing direction (degree expected in ]0,90]) - default is 90")
 	);	
 	
+	printf ("Angle max: %3.1f\n", aAngleMax);
+	aAngleMax *= PI/180.f;
+
 	//Maillage
 	cMesh myMesh(aNamePly);
 
@@ -86,14 +84,15 @@ int Mascarpone_main(int argc,char ** argv)
 	ELISE_ASSERT (myMesh.getFacesNumber() < 65536, "big mesh!! label image will overflow!!!");
 
 	//Images maitresses
-	int pos = aNameFiles.find('#',0);
+	int pos = (int) aNameFiles.find('#',0);
 	while (pos>0)
 	{
 		aVFiles.push_back(aNameFiles.substr(0,pos));
 		aNameFiles = aNameFiles.substr(pos+1, aNameFiles.size());
-		pos = aNameFiles.find('#',0);
+		pos = (int) aNameFiles.find('#',0);
 	}
 	aVFiles.push_back(aNameFiles);
+
 
 	vector <cZBuf> aZBuffers;
 
@@ -108,7 +107,8 @@ int Mascarpone_main(int argc,char ** argv)
 		
 		aZBuffer.Nuage() = cElNuage3DMaille::FromFileIm(filename);
 
-		aZBuffer.SetSelfSz();
+		aZBuffer.setSelfSz();
+		aZBuffer.setMaxAngle(aAngleMax);
 
 		printf ("BasculerUnMaillage\n" );
 		Im2D_REAL4 res = aZBuffer.BasculerUnMaillage(myMesh);
@@ -123,7 +123,7 @@ int Mascarpone_main(int argc,char ** argv)
 			{
 				for (int bK=0; bK < sz.y;++bK)
 				{
-					float val = res.GetR(Pt2di(cK,bK)); 
+					REAL val = res.GetR(Pt2di(cK,bK)); 
 					
 					if (val > max) max = val;
 					else if ((val != 0.f) && (val < min)) min = val;
@@ -140,7 +140,7 @@ int Mascarpone_main(int argc,char ** argv)
 				}
 			}
 
-			filename.replace(filename.end()-4, filename.end(), "_zbuf.tif");
+			filename = StdPrefix(filename) + "_zbuf.tif";
 			printf ("Saving %s\n", filename.c_str());
 			Tiff_Im::CreateFromIm(Converted, filename);
 			printf ("Done\n");
@@ -151,7 +151,6 @@ int Mascarpone_main(int argc,char ** argv)
 			filename.replace(filename.end()-9, filename.end(), "_label.tif");
 			printf ("Saving %s\n", filename.c_str());
 			Tiff_Im::CreateFromIm(Labels, filename);
-			//Tiff_Im::CreateFromIm(Conv, filename);
 			printf ("Done\n");
 		#endif
 
@@ -167,14 +166,21 @@ int Mascarpone_main(int argc,char ** argv)
 	for (unsigned int aK=0; aK < aVFiles.size(); ++aK)
 	{	
 		Im2D_BIN mask = aZBuffers[aK].ComputeMask(aK, myMesh);
+			
+		if (aNameOut=="")
+		{
+			aOut = StdPrefix(aVFiles[aK]) + "_mask.tif";
+		}
+		else
+		{
+			char buf[100];
+			sprintf(buf, "%i", aK);
+			aOut = StdPrefix(aNameOut) + buf + ".tif";
+		}
 
-		#ifdef _DEBUG
-			filename = aVFiles[aK];
-			filename.replace(filename.end()-4, filename.end(), "_mask.tif");
-			printf ("Saving %s\n", filename.c_str());
-			Tiff_Im::CreateFromIm(mask, filename);
-			printf ("Done\n");
-		#endif
+		printf ("Saving %s\n", aOut.c_str());
+		Tiff_Im::CreateFromIm(mask, aOut);
+		printf ("Done\n");
 	}
 
 	return EXIT_SUCCESS;

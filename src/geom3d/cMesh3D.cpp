@@ -42,11 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 static const REAL Eps = 1e-7;
 
-//static const REAL MESH_MAX_ANGLE = 1.1780972450961724644234912687298; // 3PI/8 - 67,5 degres
-//static const REAL MESH_MAX_ANGLE = 0.78539816339744830961566084581988; // PI/4 
-static const REAL MESH_MAX_ANGLE = 1.5707963267948966192313216916398; // PI/2
-
-
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 // cTriangle
@@ -370,7 +365,7 @@ void cZBuf::BasculerUnTriangle(cTriangle &aTri, cMesh &aMesh, bool doMask)
 		Pt2di aP1 = round_up(Sup(A2,Sup(B2,C2)));
 		aP1 = Inf(aP1,mSzRes-Pt2di(1,1));
 
-		for (INT x=aP0.x ; x<= aP1.x ; x++)
+		/*for (INT x=aP0.x ; x<= aP1.x ; x++)
 			for (INT y=aP0.y ; y<= aP1.y ; y++)
 			{
 				Pt2dr AP = Pt2dr(x,y)-A2;
@@ -395,7 +390,47 @@ void cZBuf::BasculerUnTriangle(cTriangle &aTri, cMesh &aMesh, bool doMask)
 						}
 					}
 				}
-			}
+			}*/
+
+		if (doMask)
+		{
+			for (INT x=aP0.x ; x<= aP1.x ; x++)
+				for (INT y=aP0.y ; y<= aP1.y ; y++)
+				{
+					Pt2dr AP = Pt2dr(x,y)-A2;
+
+					// Coordonnees barycentriques de P(x,y)
+					REAL aPdsB = (AP^AC) / aDet;
+					REAL aPdsC = (AB^AP) / aDet;
+					REAL aPdsA = 1 - aPdsB - aPdsC;
+					if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps))
+					{
+						mImMask.set(x, y, 1);
+					}
+				}
+		}
+		else
+		{
+			for (INT x=aP0.x ; x<= aP1.x ; x++)
+				for (INT y=aP0.y ; y<= aP1.y ; y++)
+				{
+					Pt2dr AP = Pt2dr(x,y)-A2;
+
+					// Coordonnees barycentriques de P(x,y)
+					REAL aPdsB = (AP^AC) / aDet;
+					REAL aPdsC = (AB^AP) / aDet;
+					REAL aPdsA = 1 - aPdsB - aPdsC;
+					if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps))
+					{
+						REAL4 aZ = (float) (zA*aPdsA + zB*aPdsB + zC*aPdsC);
+						if (aZ>mDataRes[y][x])
+						{
+							mDataRes[y][x] = aZ;
+							mImTriIdx.SetI(Pt2di(x,y),aTri.getIdx());
+						}
+					}
+				}
+		}
 	}
 }
 
@@ -432,7 +467,7 @@ Im2D_BIN cZBuf::ComputeMask(int img_idx, cMesh &aMesh)
 
 		if (aTri->hasAttributes())
 		{
-			REAL bestAngle = MESH_MAX_ANGLE;
+			REAL bestAngle = mMaxAngle;
 			int  bestImage = -1;
 			REAL Angle;
 			
@@ -453,7 +488,7 @@ Im2D_BIN cZBuf::ComputeMask(int img_idx, cMesh &aMesh)
 				}
 			}
 
-			if ((bestAngle < MESH_MAX_ANGLE) && (bestImage == img_idx))
+			if ((bestAngle < mMaxAngle) && (bestImage == img_idx))
 			{
 				BasculerUnTriangle(*aTri, aMesh, true);
 			}

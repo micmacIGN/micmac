@@ -152,11 +152,14 @@ class cZBuf
 		
 		cElNuage3DMaille * &	Nuage() {return mNuage;}
 
-		void					SetSelfSz(){mSzRes = mNuage->Sz();} //temp
+		void					setSelfSz(){mSzRes = mNuage->Sz();} //temp
+		void					setMaxAngle(double aAngle){mMaxAngle = aAngle;}
 
 		Pt2di					Sz(){return mSzRes;}
 
 	private:
+
+		double					mMaxAngle;		//threshold on angle between surface and viewing direction
 
 		Pt2di					mSzRes;			//size result
 
