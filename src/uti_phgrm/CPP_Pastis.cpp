@@ -709,7 +709,7 @@ void cAppliPastis::GenerateXML(std::pair<cCompileCAPI,cCompileCAPI> & aPair)
    }
 
    ELISE_fp aFTxt(mNameAPM.c_str(),ELISE_fp::READ);
-   char aBuf[200];
+   string aBuf; // char aBuf[200]; TEST_OVERFLOW
    
    cTplValGesInit<std::string> aNoStr;
 
@@ -729,7 +729,7 @@ void cAppliPastis::GenerateXML(std::pair<cCompileCAPI,cCompileCAPI> & aPair)
    std::list<cCple> aLCple;
    while (! End)
    {
-       if (aFTxt.fgets(aBuf,200,End))
+       if (aFTxt.fgets(aBuf,End)) // if (aFTxt.fgets(aBuf,200,End)) TEST_OVERFLOW
        {
             bool DoIt = true;
 	    if ( mModeBin==eModeAutopano)
@@ -745,12 +745,12 @@ void cAppliPastis::GenerateXML(std::pair<cCompileCAPI,cCompileCAPI> & aPair)
 	       switch (mModeBin)
 	       {
                    case eModeAutopano :
-                        sscanf(aBuf,"%s %s %s %s %s %s %s %s",A,B,C,x,y,X,Y,D);
+                        sscanf(aBuf.c_str(),"%s %s %s %s %s %s %s %s",A,B,C,x,y,X,Y,D); //sscanf(aBuf,"%s %s %s %s %s %s %s %s",A,B,C,x,y,X,Y,D); TEST_OVERFLOW
 			aOfset=1;
                    break;
 
                    case eModeLeBrisPP :
-                        sscanf(aBuf,"%s %s %s %s",x,y,X,Y);
+                        sscanf(aBuf.c_str(),"%s %s %s %s",x,y,X,Y); // sscanf(aBuf,"%s %s %s %s",x,y,X,Y); TEST_OVERFLOW
                    break;
                }
             

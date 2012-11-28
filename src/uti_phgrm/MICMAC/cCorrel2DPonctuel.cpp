@@ -41,10 +41,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 namespace NS_ParamMICMAC
 {
 
+const double TheNormMinLSQ = 0.3;
+double       TheMult = 1.5;
+const int    TheNbIterLine  = 10;
+const int    TheNbIter2D    = 4;
 
 
 
-//     K0 +  K1 Im2  + Kx DIm2/Dx + Ky  DIm2/Dy = Im1
+//      Im2  + Kx DIm2/Dx + Ky  DIm2/Dy = K0 + K1 Im1
 
 class cOneImLSQ;
 class cOneTestLSQ;
@@ -58,13 +62,13 @@ class cOneImLSQ
 
        cOneImLSQ(float **,const Pt2di & aSz,cOneTestLSQ &);
        Pt2dr PVois(int aKx,int aKy) const;
-       bool OK(const cOneTestLSQ &) const;
+       bool OK(const Pt2dr &) const;
        void SetPtIm(const Pt2dr&);
        void SetPtImCur(const Pt2dr&);
        const Pt2dr& PImCur() const;
 
-       double GetVal(const Pt2dr &);
-       Pt3dr  GetValDer(const Pt2dr &);
+       double GetVal(const Pt2dr &) const;
+       Pt3dr  GetValDer(const Pt2dr &) const;
    private :
        cOneTestLSQ &  mTest;
        Pt2di          mSz;
@@ -76,10 +80,12 @@ class cOneImLSQ
 
 
 
-class cOneTestLSQ
+class cOneTestLSQ : public NROptF1vND
 {
       public :
          //  friend class cOneImLSQ;
+
+         REAL NRF1v(REAL) ;
 
          void SetPIm1(const Pt2dr & aPt) {mIm1.SetPtIm(aPt);}
          void SetPIm2(const Pt2dr & aPt) {mIm2.SetPtIm(aPt);}
@@ -87,10 +93,11 @@ class cOneTestLSQ
 
          cOneTestLSQ
          (
+             int aNbIterLine,
              float ** aData1,const Pt2di & aSzI1,
              float ** aData2,const Pt2di & aSzI2,
              cInterpolateurIm2D<float> *,
-             int aSzW, double aStep
+             const cCorrel2DLeastSquare &
          );
          void DoEstim();
          const double & Step() const {return mStep;}
@@ -99,8 +106,15 @@ class cOneTestLSQ
          cOneImLSQ & Im1() {return mIm1;}
          cOneImLSQ & Im2() {return mIm2;}
 
+         bool MinimByLSQandGolden(const Pt2dr& aP1,const Pt2dr&aP2);
       private :
 
+         double Correl(const Pt2dr & aDec) const;
+         double CorrelOnLine(const double & aLambda) const;
+         bool   OneOptimOnLine();
+
+
+         cCorrel2DLeastSquare       mCLSQ;
          cInterpolateurIm2D<float> * mInterp;
          double mStep;
          int mNbW;
@@ -109,11 +123,11 @@ class cOneTestLSQ
 
 
          typedef double tSom;
-         bool OK() const;
+         bool OK(const Pt2dr &) const;
 
          void ClearStat();
-         void Init();
-         bool OneItere();
+         void InitP1();
+         bool OneLSQItere();
 
         
          static const int NbInc = 4;
@@ -124,6 +138,9 @@ class cOneTestLSQ
 
          tSom  mCov[NbInc][NbInc];
          tSom  mSomI2[NbInc];
+         double mSomP;
+         double mSom1;
+         double mSom11;
 
          std::vector<double> mValsIm1;
          std::vector<Pt2dr>  mDeps;
@@ -131,19 +148,25 @@ class cOneTestLSQ
          ElMatrix<double>  mMatI2;
          ElMatrix<double>  mVecP;
          ElMatrix<double>  mValP;
+         ElMatrix<double>  mSolLSQ;
+         Pt2dr             mDepLSQ;
+         double            mCorel0LSQ;
+
 };
 
 //    ========================= cOneImLSQ:: ======================
 
 
-bool cOneImLSQ::OK(const cOneTestLSQ & aT) const
+bool cOneImLSQ::OK(const Pt2dr  & aP) const
 {
-    double  aSzW = aT.Interp()->SzKernel() + aT.NbW()*aT.Step() +2;
+    double  aSzW = mTest.Interp()->SzKernel() + mTest.NbW()*mTest.Step() +2;
 
-    return       (mPImCur.x > aSzW)
-            &&   (mPImCur.y > aSzW)
-            &&   (mPImCur.x < mSz.x - aSzW)
-            &&   (mPImCur.y < mSz.y - aSzW);
+    Pt2dr aQ = aP+mPImCur;
+
+    return       (aQ.x > aSzW)
+            &&   (aQ.y > aSzW)
+            &&   (aQ.x < mSz.x - aSzW)
+            &&   (aQ.y < mSz.y - aSzW);
 }
 
 Pt2dr cOneImLSQ::PVois(int aKx,int aKy) const
@@ -174,12 +197,12 @@ const Pt2dr& cOneImLSQ::PImCur() const
 }
 
 
-double cOneImLSQ::GetVal(const Pt2dr  & aP)
+double cOneImLSQ::GetVal(const Pt2dr  & aP) const
 {
    return mTest.Interp()->GetVal(mData,aP);
 }
 
-Pt3dr cOneImLSQ::GetValDer(const Pt2dr  & aP)
+Pt3dr cOneImLSQ::GetValDer(const Pt2dr  & aP) const
 {
    return mTest.Interp()->GetValDer(mData,aP);
 }
@@ -189,27 +212,31 @@ Pt3dr cOneImLSQ::GetValDer(const Pt2dr  & aP)
 
 cOneTestLSQ:: cOneTestLSQ
 (
+   int aNbIterLine,
    float ** aData1,const Pt2di & aSzI1,
    float ** aData2,const Pt2di & aSzI2,
    cInterpolateurIm2D<float> * anInterp,
-   int aSzW, double aStep
+   const cCorrel2DLeastSquare &  aCLSQ
 ) :
+   NROptF1vND (aNbIterLine),
+   mCLSQ   (aCLSQ),
    mInterp (anInterp),
-   mStep   (aStep),
+   mStep   (aCLSQ.Step().Val()),
    mIm1    (aData1,aSzI1,*this),
    mIm2    (aData2,aSzI2,*this),
-   mNbW    (round_ni(aSzW/aStep)),
+   mNbW    (round_ni(aCLSQ.SzW()/mStep)),
    mMatCov (NbInc,NbInc),
    mMatI2  (1,NbInc),
    mVecP   (NbInc,NbInc),
-   mValP   (NbInc,NbInc)
+   mValP   (NbInc,NbInc),
+   mSolLSQ (1,NbInc)
 {
 }
 
 
-bool cOneTestLSQ::OK() const
+bool cOneTestLSQ::OK(const Pt2dr & aP) const
 {
-    return mIm1.OK(*this) && mIm2.OK(*this) ;
+    return mIm1.OK(Pt2dr(0,0)) && mIm2.OK(aP) ;
 }
 
 
@@ -227,10 +254,14 @@ void cOneTestLSQ::ClearStat()
 }
 
 
-void cOneTestLSQ::Init()
+void cOneTestLSQ::InitP1()
 {
    mValsIm1.clear();
    mDeps.clear();
+
+   mSomP=0;
+   mSom1=0;
+   mSom11=0;
    for(int aKx=-mNbW; aKx<=mNbW; aKx++)
    {
        for(int aKy=-mNbW; aKy<=mNbW; aKy++)
@@ -238,14 +269,138 @@ void cOneTestLSQ::Init()
              
             Pt2dr aP1 = mIm1.PVois(aKx,aKy);
             double aV1 = mIm1.GetVal(aP1);
+            mSom1 += aV1;
+            mSom11 += ElSquare(aV1);
+            mSomP++;
             mValsIm1.push_back(aV1);
        }
    }
+   mSom1 /= mSomP;
+   mSom11 /= mSomP;
+   mSom11 -= ElSquare(mSom1);
 }
 
-bool  cOneTestLSQ::OneItere()
+double  cOneTestLSQ::NRF1v(REAL aV)
 {
-   if (!OK()) return false;
+   return -CorrelOnLine(aV);
+}
+
+
+double cOneTestLSQ::CorrelOnLine(const double & aLambda) const
+{
+    return Correl(mDepLSQ*aLambda);
+}
+
+double cOneTestLSQ::Correl(const Pt2dr & aDec) const
+{
+   if (! OK(aDec)) return -1;
+
+   double aSom2= 0;
+   double aSom22= 0;
+   double aSom12= 0;
+   int aCpt=0;
+
+   for(int aKx=-mNbW; aKx<=mNbW; aKx++)
+   {
+       for(int aKy=-mNbW; aKy<=mNbW; aKy++)
+       {
+          Pt2dr aP2 = aDec+mIm2.PVois(aKx,aKy);
+
+          double aV2 =  mIm2.GetVal(aP2);
+          double aV1 = mValsIm1[aCpt];
+          aSom2 += aV2;
+          aSom12 += aV1*aV2;
+          aSom22 += ElSquare(aV2);
+         
+          aCpt++;
+       }
+    }
+
+    aSom2 /= mSomP;
+    aSom12 /= mSomP;
+    aSom22 /= mSomP;
+
+    aSom12 -= mSom1 * aSom2;
+    aSom22 -= ElSquare(aSom2);
+
+
+    return aSom12 * sqrt(ElMax(1e-5,aSom22*mSom11));
+}
+ 
+bool  cOneTestLSQ::OneOptimOnLine()
+{
+   if (! OneLSQItere())
+      return false;
+
+   double aL0 = 0;
+   double aC0 =  mCorel0LSQ;
+
+   double aL1 = 1;
+   double aC1 =  CorrelOnLine(aL1);
+   if (aC1 == -1) 
+      return false;
+
+   if (aC1<aC0) 
+      return false;
+
+   double aL2 = ElMax(2.0,TheNormMinLSQ/euclid(mDepLSQ));
+   double aC2 =  CorrelOnLine(aL2);
+
+   if (aC2 == -1) 
+      return false;
+
+   while (aC2 > aC1)
+   {
+       aL0 = aL1;
+       aC0 = aC1;
+
+       aL1 = aL2;
+       aC1 = aC2;
+ 
+       aL2 *= TheMult;
+       aC2 =  CorrelOnLine(aL2);
+       if (aC2 == -1) 
+           return false;
+   }
+
+   double aLMin;
+   double aCMin = golden(aL0,aL1,aL2,1e-3,&aLMin);
+
+   SetPIm2(mIm2.PVois(0,0) +mDepLSQ *aLMin);
+   return true;
+
+}
+
+bool cOneTestLSQ::MinimByLSQandGolden(const Pt2dr& aP1,const Pt2dr& aP2)
+{
+   SetPIm1(aP1);
+   SetPIm2(aP2);
+   InitP1();
+
+
+   for (int aK=0 ; aK<TheNbIter2D ; aK++)
+   {
+     
+      if (! OneLSQItere())
+      {
+         return (aK>0);
+      }
+      if (!  OneOptimOnLine())
+      {
+         return (aK>0);
+      }
+   }
+   return true;
+}
+
+
+/*
+*/
+
+
+bool  cOneTestLSQ::OneLSQItere()
+{
+   if (!OK(Pt2dr(0,0))) return false;
 
    ClearStat();
    int aCpt=0;
@@ -262,8 +417,8 @@ bool  cOneTestLSQ::OneItere()
           Pt3dr aGV2 =  mIm2.GetValDer(aP2);
 
 
-          // double aV1 = mValsIm1[aCpt];
-          double aV1 = mIm1.GetVal(mIm1.PVois(aKx,aKy));
+           double aV1 = mValsIm1[aCpt];
+          // double aV1 = mIm1.GetVal(mIm1.PVois(aKx,aKy));
           double aV2 = aGV2.z;
           double aGx = aGV2.x;
           double aGy = aGV2.y;
@@ -271,18 +426,11 @@ bool  cOneTestLSQ::OneItere()
           aDif += ElSquare(aV1-aV2);
           aMat.add_pt_en_place(aV1,aV2);
 
-if (0)
-{
-/*
-  aV1 = NRrandom3();
-  aGx = NRrandom3();
-  aGy = NRrandom3();
-*/
-
-  aV2 = 50 + 2 * aV1  - 0.5* aGx -0.25 * aGy;
-}
-
-//     Im2 -K0 -K1 Im1 + Kx DIm2/Dx + Ky  DIm2/Dy =  0
+          // Pour verifier la justesse des moindres carres
+          if (0)
+          {
+              aV2 = 50 + 2 * aV1  - 0.5* aGx -0.25 * aGy;
+          }
 
           mCov[IndK0][IndK0] += 1;
           mCov[IndK0][IndK1] += aV1;
@@ -322,20 +470,19 @@ if (0)
    double aVPMin = 1e10;
    for(int aK1=0; aK1<NbInc; aK1++)
       aVPMin = ElMin(aVPMin,mValP(aK1,aK1));
-    // std::cout << aVPMin << " vp :: "<< mValP(0,0) << " " << mValP(1,1) << " " << mValP(2,2)<< " " << mValP(3,3) << "\n";
+
    if (aVPMin<1e-8) return false;
 
 
-   ElMatrix<double> aSol = gaussj(mMatCov) * mMatI2;
-
-   // std::cout << "Sol "<< aSol(0,0) << " " << aSol(0,1) << "  x " << aSol(0,2)<< " y " << aSol(0,3) << "\n";
-   // std::cout << mIm2.PImCur()  << mIm2.PVois(0,0) << " dif " << aDif<< " cor " << aMat.correlation() << "\n";
+   mSolLSQ = gaussj(mMatCov) * mMatI2;
+   mCorel0LSQ = aMat.correlation();
 
 
-   Pt2dr aDP2( aSol(0,2), aSol(0,3));
+   mDepLSQ = Pt2dr(mSolLSQ(0,2), mSolLSQ(0,3));
 
-   mDeps.push_back(aDP2);
-   mIm2.SetPtImCur(mIm2.PImCur()+aDP2);
+
+
+   mDeps.push_back(mDepLSQ);
 
    return true;
 }
@@ -343,18 +490,19 @@ if (0)
 
 void  cOneTestLSQ::DoEstim()
 {
-   if (! OK())
+   if (! OK(Pt2dr(0,0)))
       return;
 
-   Init();
+   InitP1();
 
    for (int aK=0 ; aK<90 ; aK++)
    {
-       if (!  OneItere())
+       if (!  OneLSQItere())
        {
            std::cout << " Failled !!!\n";
            return;
        }
+       mIm2.SetPtImCur(mIm2.PImCur()+mDepLSQ);
    }
 
    for (int aK=0 ; aK < int(mDeps.size()) ; aK++)
@@ -376,106 +524,85 @@ void  cOneTestLSQ::DoEstim()
 
 // ============================ cAppliMICMAC:: ========================
 
-void cAppliMICMAC::DoCorrelLeastQuare(const Box2di &  aBoxOut,const Box2di & aBoxIn,const cCorrel2DLeastSquare &)
-{
-while(1)
-{
-    double aSzW = 32.0;
-    double aStep = 1.0;
-    int aPer = 10;
 
+void cAppliMICMAC::DoCorrelLeastQuare(const Box2di &  aBoxOut,const Box2di & aBoxIn,const cCorrel2DLeastSquare & aClsq)
+{
+    int aPer = aClsq.PeriodEch();
 
 
     cOneTestLSQ  aTest
                  (
+                     TheNbIterLine,
                      PDV1()->LoadedIm().DataFloatIm(),PDV1()->LoadedIm().SzIm(),
                      PDV2()->LoadedIm().DataFloatIm(),PDV2()->LoadedIm().SzIm(),
                      CurEtape()->InterpFloat(),
-                     aSzW,aStep
+                     aClsq
                  );
 
-
-
-
-/*
-    aTest.mInterp = CurEtape()->InterpFloat();
-    aTest.mNbW = round_ni(aSzW/aStep);
-    aTest.mStep = aStep;
-
-    aTest.mIm1.mData = PDV1()->LoadedIm().DataFloatIm();
-    aTest.mIm1.mSz = PDV1()->LoadedIm().SzIm();
-    aTest.mIm2.mData = PDV2()->LoadedIm().DataFloatIm();
-    aTest.mIm2.mSz = PDV2()->LoadedIm().SzIm();
-*/
-
-    std::cout << "DoCorrelLeastQuare " << aBoxOut._p0 << aBoxOut._p1 << "\n";
-    std::cout << "DoCorrelLeastQuare " << aBoxIn._p0 << aBoxIn._p1 << "\n";
-    std::cout << "ssssssssssssss " << aBoxOut.sz() << aBoxIn.sz()  << "\n";
-
-
-
-    // ===================
 
     Pt2di aP0Red = round_up(Pt2dr(aBoxOut._p0) / double(aPer));
     Pt2di aP1Red = round_up(Pt2dr(aBoxOut._p1) / double(aPer));
     Pt2di aSzRed = aP1Red - aP0Red;
 
+    Im2D_REAL8 aImDepX(aSzRed.x,aSzRed.y);
+    Im2D_REAL8 aImDepY(aSzRed.x,aSzRed.y);
 
     Pt2di aPRed;
 
     const cOneNappePx & aPx1 = mLTer->KthNap(0);
     const cOneNappePx & aPx2 = mLTer->KthNap(1);
 
-/*
     for (aPRed.x=aP0Red.x  ; aPRed.x<aP1Red.x ; aPRed.x++)
     {
         for (aPRed.y=aP0Red.y ; aPRed.y<aP1Red.y ; aPRed.y++)
         {
-*/
+             // std::cout <<"REST " << aP1Red - aPRed << "\n";
+
               Pt2di aP = aPRed  * aPer;
-
-std::cout << "Enter value for P\n";
-std::cin >> aP.x >> aP.y ;
-
               Pt2di aPLoc = aP-aBoxIn._p0;
-
               double aPx[2];
-std::cout << "in::PL " << aPLoc  << " pp " << aP <<"\n";
               aPx[0] = aPx1.mTPxInit.get(aPLoc);
               aPx[1] = aPx2.mTPxInit.get(aPLoc);
-std::cout << "out::PL " << aPLoc <<"\n";
 
               mCurEtape->GeomTer().PxDisc2PxReel(aPx,aPx);
 
-              aTest.SetPIm1(PDV1()->Geom().CurObj2Im(Pt2dr(aP),aPx));
-              aTest.SetPIm2(PDV2()->Geom().CurObj2Im(Pt2dr(aP),aPx));
+              //aTest.SetPIm1(PDV1()->Geom().CurObj2Im(Pt2dr(aP),aPx));
+              //aTest.SetPIm2(PDV2()->Geom().CurObj2Im(Pt2dr(aP),aPx));
 
- Pt2dr aQ2 = aTest.Im2().PImCur();
+              aTest.MinimByLSQandGolden
+              (
+                   PDV1()->Geom().CurObj2Im(Pt2dr(aP),aPx),
+                   PDV2()->Geom().CurObj2Im(Pt2dr(aP),aPx)
+              );
 
+              double aPx0[2]={0,0};
+              Pt2dr aP20 = PDV2()->Geom().CurObj2Im(Pt2dr(aP),aPx0);
+              Pt2dr aP2 = aTest.Im2().PImCur();
 
-              std::cout << "  in ppxxx " << aPx[0] << " " << aPx[1] << aP << aTest.Im1().PImCur() << aTest.Im2().PImCur() << "\n";
-              aTest.DoEstim();
-              std::cout << "  out ppxxx " << aPx[0] << " " << aPx[1] << aP << aTest.Im1().PImCur() << aTest.Im2().PImCur() << "\n";
-
-std::cout << "Delta p2 " << aTest.Im2().PImCur() - aQ2 << "\n";
-
-// getchar();
-              // Pt2di aP0 = aP -Pt2di(aSzW,aSzW);
-              // Pt2di aP1 = aP +Pt2di(aSzW+1,aSzW+1);
-             
-/*
-        }
+              aImDepX.SetR(aPRed-aP0Red,aP2.x-aP20.x);
+              aImDepY.SetR(aPRed-aP0Red,aP2.y-aP20.y);
+         }
     }
+
+    Tiff_Im   aFileRX = mCurEtape->KPx(0).FileIm();
+    Tiff_Im   aFileRY = mCurEtape->KPx(1).FileIm();
+
+
+    ELISE_COPY
+    (
+         rectangle(aP0Red,aP1Red),
+         trans(aImDepX.in(),-aP0Red),
+         aFileRX.out()
+    );
+    ELISE_COPY
+    (
+         rectangle(aP0Red,aP1Red),
+         trans(aImDepY.in(),-aP0Red),
+         aFileRY.out()
+    );
+/*
 */
 
-
-    //cOneSolLSQ aSol(aBox,aBox.sz(),PDV1(),PDV2());
-
-
-//    for (int anX==
-
-
-}
 }
 
 

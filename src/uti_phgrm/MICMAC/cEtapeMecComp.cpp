@@ -280,7 +280,9 @@ cEtapeMecComp::cEtapeMecComp
   mCaracZ          (0),
   mIsOptDiffer     (anEtape.AlgoRegul().ValWithDef(eAlgoCoxRoy)==eAlgoOptimDifferentielle),
   mIsOptDequant    (anEtape.AlgoRegul().ValWithDef(eAlgoCoxRoy)==eAlgoDequant),
+  mIsOtpLeastSQ    (anEtape.AlgoRegul().ValWithDef(eAlgoCoxRoy)==eAlgoLeastSQ),
   mIsOptimCont     (mIsOptDiffer || mIsOptDequant),
+  mIsOptimReel     (mIsOptimCont || mIsOtpLeastSQ),
   mGenImageCorrel  ((!mIsOptimCont) && (anEtape.GenImagesCorrel().ValWithDef(mIsLast))),
   mPrec            (aVEtPrec.empty() ?0  : aVEtPrec.back()),
   mPredPC            (0),
@@ -316,6 +318,14 @@ cEtapeMecComp::cEtapeMecComp
       bool iPF = aVEtPrec.empty(); // is Pseudo First
       mGeomTer.SetDeZoom(anEtape.DeZoom());
       mSzFile = mGeomTer.SzDz();
+      if (mIsOtpLeastSQ)
+      {
+           const cCorrelAdHoc * aCAH = anEtape.CorrelAdHoc().PtrVal();
+           ELISE_ASSERT(aCAH!=0,"mIsOtpLeastSQ requires cCorrelAdHoc");
+           const cCorrel2DLeastSquare * aClsq = aCAH->Correl2DLeastSquare().PtrVal();
+           ELISE_ASSERT(aClsq!=0,"mIsOtpLeastSQ requires cCorrelAdHoc");
+           mSzFile  = mSzFile / aClsq->PeriodEch();
+      }
       cArgOneEtapePx aZArg;
       cArgOneEtapePx aPx1Arg;
       cArgOneEtapePx aPx2Arg;
@@ -1001,6 +1011,10 @@ bool cEtapeMecComp::IsOptDequant() const
 {
    return mIsOptDequant;
 }
+bool cEtapeMecComp::IsOptimReel() const
+{
+   return mIsOptimReel;
+}
 
 
 
@@ -1248,6 +1262,8 @@ void cEtapeMecComp::SauvNappes
      )
 {
 
+  if (mIsOtpLeastSQ)
+     return;
 
    cResProj32 aRP32 = Projection32
                       (

@@ -70,8 +70,9 @@ NROptF1vND::~NROptF1vND() {}
      //     Bracketting
      //++++++++++++++++++++++++++++++++
 
-NROptF1vND::NROptF1vND() :
-    TOL (1e-6)
+NROptF1vND::NROptF1vND(int aNbIterMax) :
+    TOL        (1e-6),
+    mNbIterMax (aNbIterMax)
 {
 }
 
@@ -132,7 +133,9 @@ void NROptF1vND::mnbrack
 
 bool  NROptF1vND::NROptF1vContinue() const
 {
-    return (fabs(x3-x0) > mTolGolden*(fabs(x1)+fabs(x2)));
+    return   (fabs(x3-x0) > mTolGolden*(fabs(x1)+fabs(x2)))
+            && ((mNbIterMax<=0) || (mNbIter<mNbIterMax))
+           ;
 }
 
 REAL NROptF1vND::golden(REAL ax,REAL bx,REAL cx,REAL tol,REAL * xmin)
@@ -156,6 +159,7 @@ REAL NROptF1vND::golden(REAL ax,REAL bx,REAL cx,REAL tol,REAL * xmin)
         f2=(NRF1v)(x2);
         mNbIter = 0;
         while (NROptF1vContinue() ) {
+// std::cout << "nb iter " << mNbIter << "\n";
                 mNbIter++;
                 if (f2 < f1) {
                         SHFT(x0,x1,x2,R*x1+C*x3)

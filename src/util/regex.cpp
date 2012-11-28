@@ -394,7 +394,7 @@ std::string  GetStringFromLineExprReg
              )
 {
   std::string aRes;
-  char aBuf[1000];
+  string aBuf; //char aBuf[1000]; TEST_OVERFLOW
   if (aReg == 0)
      aReg = new cElRegex(aNameExpr,15);
 
@@ -405,7 +405,7 @@ std::string  GetStringFromLineExprReg
 
   while (!endof)
   {
-      if (aFile.fgets(aBuf,1000,endof))
+      if (aFile.fgets(aBuf,endof)) //if (aFile.fgets(aBuf,1000,endof)) TEST_OVERFLOW
       {
           // printf("UgRl[%s,%s]\n",aBuf,aNameExpr.c_str());
           if (aReg->Match(aBuf))
@@ -447,7 +447,7 @@ std::vector<double> GetValsNumFromLineExprReg
                     )
 {
   std::vector<double> aRes;
-  char aBuf[1000];
+  string aBuf; //char aBuf[1000];
   if (aReg == 0)
      aReg = new cElRegex(aNameExpr,15);
 
@@ -458,7 +458,7 @@ std::vector<double> GetValsNumFromLineExprReg
 
   while (!endof)
   {
-      if (aFile.fgets(aBuf,1000,endof))
+      if (aFile.fgets(aBuf,endof)) //if (aFile.fgets(aBuf,1000,endof))
       {
           if (aReg->Match(aBuf))
 	  {

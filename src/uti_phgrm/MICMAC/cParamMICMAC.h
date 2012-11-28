@@ -1548,10 +1548,18 @@ class cCorrel2DLeastSquare
         friend void xml_init(cCorrel2DLeastSquare & anObj,cElXMLTree * aTree);
 
 
-        cTplValGesInit< std::string > & Unused();
-        const cTplValGesInit< std::string > & Unused()const ;
+        int & SzW();
+        const int & SzW()const ;
+
+        int & PeriodEch();
+        const int & PeriodEch()const ;
+
+        cTplValGesInit< double > & Step();
+        const cTplValGesInit< double > & Step()const ;
     private:
-        cTplValGesInit< std::string > mUnused;
+        int mSzW;
+        int mPeriodEch;
+        cTplValGesInit< double > mStep;
 };
 cElXMLTree * ToXMLTree(const cCorrel2DLeastSquare &);
 

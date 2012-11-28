@@ -227,19 +227,25 @@ void SplitDirAndFile
            const std::string & aStr
      )
 {
-	std::string::size_type aPos  = aStr.rfind('/');
+	string strCpy = aStr;
 
-	if ( aPos==std::string::npos ) aPos = aStr.rfind('\\');
+	#if (ELISE_windows)
+		replace( strCpy.begin(), strCpy.end(), '\\', '/' );
+	#endif
+
+	std::string::size_type aPos  = strCpy.rfind('/');
+
+	if ( aPos==std::string::npos ) aPos = strCpy.rfind('\\');
 
 	if (aPos == std::string::npos)
 	{
 		aNameDir = ELISE_Current_DIR ;
-		aNameFile = aStr;
+		aNameFile = strCpy;
 	}
 	else
 	{
-	   aNameDir = aStr.substr(0,aPos+1);
-	   aNameFile = aStr.substr(aPos+1,std::string::npos);
+	   aNameDir = strCpy.substr(0,aPos+1);
+	   aNameFile = strCpy.substr(aPos+1,std::string::npos);
 	}
 }
 

@@ -876,7 +876,9 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 
                         <!-- Si Correl2DLeastSquare  L'algo doit obligat etre eAlgoLeastSQ -->
                         <Correl2DLeastSquare Nb="?" AccessorFils="false">    
-                                <Unused Nb="?" Type="std::string"> </Unused>
+                             <SzW Nb="1" Type="int"> </SzW>
+                             <PeriodEch Nb="1" Type="int"> </PeriodEch>
+                             <Step Nb="?" Type="double" Def="1.0"> </Step>
                         </Correl2DLeastSquare>
 
 

@@ -42,9 +42,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 static const REAL Eps = 1e-7;
 
-static const REAL MESH_MAX_ANGLE = 1.1780972450961724644234912687298; // 3PI/8 - 67,5 degres
+//static const REAL MESH_MAX_ANGLE = 1.1780972450961724644234912687298; // 3PI/8 - 67,5 degres
 //static const REAL MESH_MAX_ANGLE = 0.78539816339744830961566084581988; // PI/4 
-//static const REAL MESH_MAX_ANGLE = 1.5707963267948966192313216916398; // PI/2
+static const REAL MESH_MAX_ANGLE = 1.5707963267948966192313216916398; // PI/2
 
 
 //--------------------------------------------------------------------------------------------------------------

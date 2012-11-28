@@ -4496,21 +4496,45 @@ void xml_init(cAdapteDynCov & anObj,cElXMLTree * aTree)
 }
 
 
-cTplValGesInit< std::string > & cCorrel2DLeastSquare::Unused()
+int & cCorrel2DLeastSquare::SzW()
 {
-   return mUnused;
+   return mSzW;
 }
 
-const cTplValGesInit< std::string > & cCorrel2DLeastSquare::Unused()const 
+const int & cCorrel2DLeastSquare::SzW()const 
 {
-   return mUnused;
+   return mSzW;
+}
+
+
+int & cCorrel2DLeastSquare::PeriodEch()
+{
+   return mPeriodEch;
+}
+
+const int & cCorrel2DLeastSquare::PeriodEch()const 
+{
+   return mPeriodEch;
+}
+
+
+cTplValGesInit< double > & cCorrel2DLeastSquare::Step()
+{
+   return mStep;
+}
+
+const cTplValGesInit< double > & cCorrel2DLeastSquare::Step()const 
+{
+   return mStep;
 }
 
 cElXMLTree * ToXMLTree(const cCorrel2DLeastSquare & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Correl2DLeastSquare",eXMLBranche);
-   if (anObj.Unused().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("Unused"),anObj.Unused().Val())->ReTagThis("Unused"));
+   aRes->AddFils(::ToXMLTree(std::string("SzW"),anObj.SzW())->ReTagThis("SzW"));
+   aRes->AddFils(::ToXMLTree(std::string("PeriodEch"),anObj.PeriodEch())->ReTagThis("PeriodEch"));
+   if (anObj.Step().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Step"),anObj.Step().Val())->ReTagThis("Step"));
   return aRes;
 }
 
@@ -4518,7 +4542,11 @@ void xml_init(cCorrel2DLeastSquare & anObj,cElXMLTree * aTree)
 {
    if (aTree==0) return;
 
-   xml_init(anObj.Unused(),aTree->Get("Unused",1)); //tototo 
+   xml_init(anObj.SzW(),aTree->Get("SzW",1)); //tototo 
+
+   xml_init(anObj.PeriodEch(),aTree->Get("PeriodEch",1)); //tototo 
+
+   xml_init(anObj.Step(),aTree->Get("Step",1),double(1.0)); //tototo 
 }
 
 
