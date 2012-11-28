@@ -49,7 +49,7 @@ namespace NS_ParamMICMAC
 	extern "C" void imageToDevice( float** h_ref,  int width, int height);
 	extern "C" void freeTexture();
 	extern "C" void projectionsToLayers(float *h_TabProj, int sx, int sy, int sz);
-	extern "C" void correlation(  float* h_TabCorre, int* listImgProj, int sx, int sy, int sz , int winX, int winY, int sXI, int sYI );
+	extern "C" void correlation(  float* h_TabCorre, int* listImgProj, int sx, int sy, int sz , int winX, int winY, int sXI, int sYI, float mAhEpsilon);
 	extern "C" void imagesToLayers(float *fdataImg1D, int sx, int sy, int sz);
 
 #endif
@@ -885,7 +885,7 @@ namespace NS_ParamMICMAC
 				////	TEMP	////
 
 				// Correlation
-				correlation(h_TabCorre , listImgProj , mX1Ter, mY1Ter, nBImgProj, mPtSzWFixe.x, mPtSzWFixe.y, siz.x,siz.y );
+				correlation(h_TabCorre , listImgProj , mX1Ter, mY1Ter, nBImgProj, mPtSzWFixe.x, mPtSzWFixe.y, siz.x, siz.y, mAhEpsilon );
 				// libération de la mémoire GPU
 				freeTexture();
 			}
