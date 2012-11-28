@@ -79,21 +79,31 @@ extern __shared__ float cacheCorrel[];
 __global__ void correlationKernel(float *dest, int sx, int sy, int winX, int winY, int sXI, int sYI )
 {
 
+
+	// Se placer dans l'espace terrain
 	const int X		= blockIdx.x * blockDim.x  + threadIdx.x;
 	const int Y		= blockIdx.y * blockDim.y  + threadIdx.y;
 	const int Z		= blockIdx.z * blockDim.z  + threadIdx.z;
 	const int idL	= dev_ListImgs[Z];
 
+	// Definir la zone de la fenetre/vignette
 	const int x0	= X - winX;
 	const int x1	= X + winX;
 	const int y0	= Y - winY;
 	const int y1	= Y + winY;
 
-	float aSV		= 0.0f;
-	float aSVV		= 0.0f;
+	// Intialisation des valeurs de calcul 
+	float aSV	= 0.0f;
+	float aSVV	= 0.0f;
 
+	// nombre de pixel dans la vignette
 	int dimVign	=	(winX * 2 + 1 ) * ( winY * 2 + 1 );
-	int pitchCo	=	dimVign * threadIdx.y *  blockDim.x  +  dimVign * threadIdx.x ;
+	
+	// Decalage dans la memoire partagée de la vignette
+	int piX		= dimVign * threadIdx.x;
+	int piY		= dimVign * threadIdx.y * blockDim.x;
+	int	piZ		= dimVign * threadIdx.z * blockDim.y *  blockDim.x;
+	int pitchCo	= dimVign * ( piX + piY + piZ );
 
 	// Balayage des points de la vignettes
 	#pragma unroll
@@ -104,20 +114,27 @@ __global__ void correlationKernel(float *dest, int sx, int sy, int winX, int win
 		{
 			const float  u		= (X / (float) sx)*2.0f-1.0f;
 			const float	 v		= (Y / (float) sy)*2.0f-1.0f;
+
+			// Projection dans l'image
 			const float2 pTProj	= tex2DLayered( refTex_ProjectsLayered, u, v, Z);
 
+			// Sortir si la projection est hors de l'image
 			if ((pTProj.x <0.0f)|(pTProj.y <0.0f)) return;
 
+			// Projection dans l'image en coordonnées de la texture GPU 
 			const float ui = (pTProj.x / (float) sXI)*2.0f-1.0f;
 			const float vi = (pTProj.y / (float) sYI)*2.0f-1.0f;
 			
+			// Valeur de l'image
 			float val = tex2DLayered( refTex_ImagesLayered, ui, vi, idL);
 
+			// Calcul du décalage dans la vignette
 			int pitchVi	=	x * (winX * 2 + 1 ) + y;
-
-			cacheCorrel[ pitchCo +  pitchVi ] = val;
-			aSV  += val;		// Somme des valeurs de l'image cte 
-			aSVV += val*val;	// Somme des carrés des vals image cte
+			int i		= pitchCo +  pitchVi;
+			 
+			cacheCorrel[ i ] = val; // Mis en cache de la valeur de l'image
+			aSV  += val;			// Somme des valeurs de l'image cte 
+			aSVV += val*val;		// Somme des carrés des vals image cte
 
 		}
 	}
@@ -127,8 +144,7 @@ __global__ void correlationKernel(float *dest, int sx, int sy, int winX, int win
 	aSVV 		/=	dimVign;
 	aSVV		-=	aSV * aSV;
 	float saSVV	 =	sqrt(aSVV);	
-	
-	
+
 	// si aSVV > mAhEpsilon
 
 	float result = 0;
