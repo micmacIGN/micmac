@@ -215,7 +215,7 @@ cMesh::cMesh(const std::string & Filename)
 			// grab all the vertex elements
 			for (int j = 0; j < num_elems; j++) 
 			{
-				Vertex *vert = (Vertex *) malloc (sizeof Vertex);
+				Vertex *vert = (Vertex *) malloc (sizeof(Vertex));
 				
 				ply_get_element (thePlyFile, vert);
 									
