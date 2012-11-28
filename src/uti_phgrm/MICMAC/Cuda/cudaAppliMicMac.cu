@@ -75,25 +75,40 @@ extern "C" void  projectionsToLayers(float *h_TabProj, int sx, int sy, int sz)
 };
 
 extern __shared__ float cacheCorrel[];
+extern __shared__ float cache__aSV[];
+extern __shared__ float cache_aSVV[];
+extern __shared__ float anEC2[];
 
-__global__ void correlationKernel(float *dest, int sx, int sy, int winX, int winY, int sXI, int sYI )
+__global__ void correlationKernel(float *dest, int sx, int sy, int winX, int winY, int sXI, int sYI, float mAhEpsilon )
 {
 
+
+	__shared__ int aNbImOk;
+
+	// Se placer dans l'espace terrain
 	const int X		= blockIdx.x * blockDim.x  + threadIdx.x;
 	const int Y		= blockIdx.y * blockDim.y  + threadIdx.y;
 	const int Z		= blockIdx.z * blockDim.z  + threadIdx.z;
 	const int idL	= dev_ListImgs[Z];
 
+	// Definir la zone de la fenetre/vignette
 	const int x0	= X - winX;
 	const int x1	= X + winX;
 	const int y0	= Y - winY;
 	const int y1	= Y + winY;
 
-	float aSV		= 0.0f;
-	float aSVV		= 0.0f;
+	// Intialisation des valeurs de calcul 
+	float aSV	= 0.0f;
+	float aSVV	= 0.0f;
 
+	// nombre de pixel dans la vignette
 	int dimVign	=	(winX * 2 + 1 ) * ( winY * 2 + 1 );
-	int pitchCo	=	dimVign * threadIdx.y *  blockDim.x  +  dimVign * threadIdx.x ;
+	
+	// Decalage dans la memoire partagée de la vignette
+	int piX		= dimVign * threadIdx.x;
+	int piY		= dimVign * threadIdx.y * blockDim.x;
+	int	piZ		= dimVign * threadIdx.z * blockDim.y *  blockDim.x;
+	int pitchCo	= dimVign * ( piX + piY + piZ );
 
 	// Balayage des points de la vignettes
 	#pragma unroll
@@ -104,72 +119,90 @@ __global__ void correlationKernel(float *dest, int sx, int sy, int winX, int win
 		{
 			const float  u		= (X / (float) sx)*2.0f-1.0f;
 			const float	 v		= (Y / (float) sy)*2.0f-1.0f;
+
+			// Projection dans l'image
 			const float2 pTProj	= tex2DLayered( refTex_ProjectsLayered, u, v, Z);
 
+			// Sortir si la projection est hors de l'image
 			if ((pTProj.x <0.0f)|(pTProj.y <0.0f)) return;
 
+			// Projection dans l'image en coordonnées de la texture GPU 
 			const float ui = (pTProj.x / (float) sXI)*2.0f-1.0f;
 			const float vi = (pTProj.y / (float) sYI)*2.0f-1.0f;
 			
+			// Valeur de l'image
 			float val = tex2DLayered( refTex_ImagesLayered, ui, vi, idL);
 
-			int pitchVi	=	x * (winX * 2 + 1 ) + y;
-
-			cacheCorrel[ pitchCo +  pitchVi ] = val;
-			aSV  += val;		// Somme des valeurs de l'image cte 
-			aSVV += val*val;	// Somme des carrés des vals image cte
+			// Calcul du décalage dans la vignette
+			int pi	= pitchCo +  x * (winX * 2 + 1 ) + y;
+			 
+			cacheCorrel[ pi ] = val;	// Mis en cache de la valeur de l'image
+			aSV  += val;				// Somme des valeurs de l'image cte 
+			aSVV += val*val;			// Somme des carrés des vals image cte
 
 		}
 	}
-	__syncthreads();
+	
+	// Je dois recuperer le nombre de vignettes OK
+	
 
 	aSV 		/=	dimVign;
 	aSVV 		/=	dimVign;
 	aSVV		-=	aSV * aSV;
-	float saSVV	 =	sqrt(aSVV);	
-	
-	
-	// si aSVV > mAhEpsilon
+	float saSVV	 =	sqrt(aSVV);
 
-	float result = 0;
+	if ( aSVV <= mAhEpsilon ) return;
+	
+	int cI = atomicAdd( &aNbImOk, 1);
+
+	__syncthreads();
 
 	#pragma unroll
 	for (int i = 0 ; i <= dimVign; i++)
-	{
 		cacheCorrel[pitchCo + i] = (cacheCorrel[pitchCo + i]-aSV)/saSVV;
-		result += cacheCorrel[pitchCo + i];
-	}
 
-	dest[sx * sy * Z + Y * sx + X ] = result / dimVign;
-
-	//Si plus 1 image correcte, Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens
-	// Pour chaque pixel de la vignette	: 0	< aKV	< mNbPtsWFixe
-/*	
 	
-	#pragma unroll
+
+	// Si plus 1 image correcte
+	// Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens
+
+	if (aNbImOk < 2 ) return;
+
+#pragma unroll
 	for (int i = 0 ; i <= dimVign; i++)
 	{
 		 
-		float aSVG	= 0;
-		float aSVVG	= 0;
+		float aSV = atomicAdd( &cache__aSV[i], cacheCorrel[pitchCo + i] );
+		atomicAdd( &cache_aSVV[i] , aSV * aSV );
 
-		//Pour chaque image correcte  	: 0 < aKIm	< aNbImOk 	// maj des stat 1 et 2
-		float aVt	= aVVals[aKIm][aKV];
-										aSV 		+= aV;
-										aSVV 		+= QSquare(aV);
-								
-								anEC2 += (aSVV-QSquare(aSV)/aNbImOk); // Additionner l'ecart type inter imagettes
+	}	
 	
-	}				
+	int id = blockDim.x * threadIdx.y + threadIdx.x;
+	anEC2[id] = threadIdx.z;
 
-*/							
+	__syncthreads();
 
+	if ( threadIdx.z != anEC2[id])
+		return;
+/*
+	anEC2[id] = 0;
 
+#pragma unroll	
+	for (int i = 0 ; i <= dimVign; i++)
+		anEC2[id] += (cache_aSVV[i] - cache__aSV[i] * cache__aSV[i] /aNbImOk); // Additionner l'ecart type inter imagettes
+	
+
+	// Normalisation pour le ramener a un equivalent de 1-Correl 
+	float aCost			= anEC2[id] / (( aNbImOk-1) * dimVign);
+	dest[ Y * sx + X ]	= 1 - max(-1.0,min(1.0,1-aCost));
+*/
+	dest[ Y * sx + X ]	= anEC2[id];
+	
 };
 
-extern "C" void correlation( float* h_TabCorre, int* listImgProj, int sx, int sy, int sz , int winX, int winY , int sXI, int sYI ){
+extern "C" void correlation( float* h_TabCorre, int* listImgProj, int sx, int sy, int sz , int winX, int winY , int sXI, int sYI, float mAhEpsilon ){
 
-	int mem_size = sx * sy * sz;
+	int mem_size = sx * sy;
 	
 	float* host_Correl_Out = (float *) malloc(mem_size);
 	float* dev_Correl_Out;
@@ -190,29 +223,26 @@ extern "C" void correlation( float* h_TabCorre, int* listImgProj, int sx, int sy
 	checkCudaErrors( cudaBindTextureToArray(refTex_ProjectsLayered,dev_ProjLayered) );
 
 	// Lancer la fonction de Kernel GPU pour calculer la correlation
-	correlationKernel<<<blocks, threads>>>( dev_Correl_Out, sx, sy, winX, winY, sXI, sYI );
+	correlationKernel<<<blocks, threads>>>( dev_Correl_Out, sx, sy, winX, winY, sXI, sYI, mAhEpsilon );
 
     checkCudaErrors( cudaUnbindTexture(refTex_ProjectsLayered) );
 	checkCudaErrors( cudaMemcpy(host_Correl_Out, dev_Correl_Out, mem_size, cudaMemcpyDeviceToHost) );
 	
-	if(0)
+	//if(0)
 	{
 		float result = 0.0f;
 
-		for ( int l = 0 ; l < sz; l++)
-		{
 			for ( int i = 0 ; i < sx; i++)
 			{
 				for ( int j = 0 ; j < sy; j++)
 				{
-					result = floor(host_Correl_Out[ l * sx * sy + i * sy + j ]/100.0f);
+					result = floor(host_Correl_Out[ i * sy + j ]);
 					if (result > 0.0f)
 						std::cout <<  result << " ";
 				}
 				if (result != 0.0f) std::cout << std::endl;
-			}
 
-			std::cout << "---------------------------------------------------------" << std::endl;
+			//std::cout << "---------------------------------------------------------" << std::endl;
 		}
 	}
 	
