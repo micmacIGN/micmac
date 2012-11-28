@@ -81,7 +81,7 @@ int Mascarpone_main(int argc,char ** argv)
 		}
 	#endif
 
-	ELISE_ASSERT (myMesh.getFacesNumber() < 65536, "big mesh!! label image will overflow!!!");
+	ELISE_ASSERT (myMesh.getFacesNumber() < 65536, "big mesh!! label image overflow!!!");
 
 	//Images maitresses
 	int pos = (int) aNameFiles.find('#',0);
@@ -106,7 +106,7 @@ int Mascarpone_main(int argc,char ** argv)
 		printf ("Reading %s\n", filename.c_str());
 		
 		aZBuffer.Nuage() = cElNuage3DMaille::FromFileIm(filename);
-
+		
 		aZBuffer.setSelfSz();
 		aZBuffer.setMaxAngle(aAngleMax);
 

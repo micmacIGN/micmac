@@ -49,12 +49,6 @@ if (NOT ${BUILD_ONLY_ELISE})
 	add_executable(MapCmd  MapCmd.c)
 	INSTALL(TARGETS MapCmd RUNTIME DESTINATION ${Install_Dir})
 
-	add_executable(Mascarpone  Mascarpone.c)
-	INSTALL(TARGETS Mascarpone RUNTIME DESTINATION ${Install_Dir})
-
-	add_executable(MergePly  MergePly.c)
-	INSTALL(TARGETS MergePly RUNTIME DESTINATION ${Install_Dir})
-
 	add_executable(MICMAC  MICMAC.c)
 	INSTALL(TARGETS MICMAC RUNTIME DESTINATION ${Install_Dir})
 
