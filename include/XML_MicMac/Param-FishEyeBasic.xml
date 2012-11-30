@@ -67,13 +67,18 @@
                     </IterationsCompensation>
 
                     <IterationsCompensation>
-                       <SectionContraintes>
-                          <ContraintesCamerasInc>
-                              <Val> eLiberteParamDeg_1      </Val>
-                          </ContraintesCamerasInc>
-                       </SectionContraintes>
-                       <Messages>   Polyn 1 </Messages>
-                   </IterationsCompensation>
+                       <#WHEN  VTEST=${LiberteAff}>
+                          <SectionContraintes>
+                             <ContraintesCamerasInc>
+                                 <Val> eLiberteParamDeg_1      </Val>
+                             </ContraintesCamerasInc>
+                          </SectionContraintes>
+                          <Messages>   Polyn 1 </Messages>
+                       </#WHEN>
+                    </IterationsCompensation>
+<!--
+-->
+
 
 
                    <IterationsCompensation> </IterationsCompensation>
