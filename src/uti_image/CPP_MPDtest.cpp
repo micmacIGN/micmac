@@ -776,16 +776,82 @@ void TestQuadr()
     Tiff_Im::Create8BFromFonc("Quadr.tif",aSz,255 * ((FX%10)>=2) * ((FY%20)>=6));
 }
 
+
+void TestLG(const std::string & aFullName)
+{
+    Tiff_Im aTF= Tiff_Im::StdConvGen(aFullName,3,false);
+
+    Pt2di aSz = aTF.sz();
+
+    Im2D_U_INT1  aImR(aSz.x,aSz.y);
+    Im2D_U_INT1  aImG(aSz.x,aSz.y);
+    Im2D_U_INT1  aImB(aSz.x,aSz.y);
+
+    ELISE_COPY
+    (
+       aTF.all_pts(),
+       aTF.in(),
+       Virgule(aImR.out(),aImG.out(),aImB.out())
+    ); 
+
+
+    std::string aDir,aName;
+    SplitDirAndFile(aDir,aName,aFullName);
+
+    std::string aNameOut = aDir + "Out_" + aName;
+
+
+    U_INT1 ** aDataR = aImR.data();
+    U_INT1 ** aDataG = aImG.data();
+    U_INT1 ** aDataB = aImB.data();
+
+ 
+    for (int aY=0 ; aY<aSz.y  ; aY++)
+    {
+        for (int aX=0 ; aX<aSz.x  ; aX++)
+        {
+             aDataR[aY][aX] = 255 - aDataR[aY][aX];
+             aDataG[aY][aX] = 255 - aDataG[aY][aX];
+             aDataB[aY][aX] = 255 - aDataB[aY][aX];
+        }
+    }
+    
+
+
+    Tiff_Im  aTOut 
+             (
+                  aNameOut.c_str(),
+                  aSz,
+                  GenIm::u_int1,
+                  Tiff_Im::No_Compr,
+                  Tiff_Im::RGB
+             );
+
+
+     ELISE_COPY
+     (
+         aTOut.all_pts(),
+         Virgule(aImR.in(),aImG.in(),aImB.in()),
+         aTOut.out()
+     );
+
+}
+
+
+
+
 int MPDtest_main (int argc,char** argv)
 {
- TestQuadr() ;
+   TestXML2();
 /*
-   TestIm();
+  TestLG(argv[1]);
+ TestQuadr() ;
+   testim();
 {
-    std::string aSTR="[A,bc,O$$]";
+    std::string astr="[a,bc,o$$]";
 
-    stringstream SS(aSTR);
-    std::vector<std::string>  aRES;
+    stringstream ss(astr);
+    std::vector<std::string>  ares;
     ElStdRead(SS,aRES,ElGramArgMain::StdGram);
 
 for (int aK=0; aK<int(aRES.size()) ; aK++)
