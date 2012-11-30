@@ -778,6 +778,8 @@ std::list<cElXMLTree *>  cElXMLTree::Interprete()
            || (mValTag==StrSWITCH)
       )
    {
+
+std::cout << "ENTERRIINNGG   WHHHEEENnnnnnn \n";
         const std::string & aVTest = ValAttr("VTEST");
        if (
               (mValTag==StrIF)
@@ -1568,6 +1570,10 @@ void  cElXMLTree::VerifMatch(cElXMLTree* aTSpecif)
 	aMM->ShowAscendance(stdout);
 	cout << "*********************************************************\n";
 	std::cout << "SPECIF:" ; aTSpecif->ShowAscendance(stdout);
+{
+if(0)
+  StdShow("DEBUG.XML");
+}
 	ELISE_ASSERT(false,"Exit XML Matching Specif Error");
 }
 
