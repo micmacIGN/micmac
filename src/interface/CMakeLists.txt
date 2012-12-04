@@ -17,7 +17,6 @@ IF (CMAKE_COMPILER_IS_GNUCC)
 	ADD_DEFINITIONS(-O3)
 ENDIF()
 
-#set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} D:/dev/culture3d/build_vc/src/Release)
 link_directories (D:/dev/culture3d/build_vc/src/Release)
 
 CONFIGURE_FILE (

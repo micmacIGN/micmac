@@ -2490,6 +2490,6 @@ QVector<REAL>& UserOrientation::modifRotationAbs() { return rotationAbs; }
 void UserOrientation::setPointsGPS(const QString& file) { pointsGPS = file; }
 void UserOrientation::setAppuisImg(const QString& file) { appuisImg = file; }
 
-const QString& UserOrientation::getMasque() const { return imgMasque.section(".",0,-2)+QString("_MasqPlan.tif"); }
-const QString& UserOrientation::getRefMasque() const { return getMasque().section(".",0,-2)+QString(".xml"); }
+const QString UserOrientation::getMasque() const { return imgMasque.section(".",0,-2)+QString("_MasqPlan.tif"); }
+const QString UserOrientation::getRefMasque() const { return getMasque().section(".",0,-2)+QString(".xml"); }
 

@@ -13,6 +13,9 @@ set (MICMAC_VERSION_MINOR 0)
 ## 			OPTIONS			##
 ##############################
 
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+
 # Utiliser Kakadu
 OPTION(WITH_KAKADU  "Include KAKADU Support" OFF)
 

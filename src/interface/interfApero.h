@@ -431,8 +431,8 @@ class UserOrientation {
 
 		UserOrientation& operator=(const UserOrientation& userOrientation);
 
-		const QString& getMasque() const;
-		const QString& getRefMasque() const;
+		const QString getMasque() const;
+		const QString getRefMasque() const;
 
 		int getOrientMethode() const;
 		bool getBascOnPlan() const;

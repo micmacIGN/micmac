@@ -404,7 +404,6 @@ void PaintInterf::setLastPoint(int n) {}
 pair<QPoint,QPoint> PaintInterf::getSegment() const { return pair<QPoint,QPoint>(QPoint(),QPoint()); }
 int PaintInterf::getNbPoint(int n) const {return -1;}
 int PaintInterf::maxSpinBox() const { return 0; }
-const QList<Pt2dr>& PaintInterf::getPtsLiaison() { return QList<Pt2dr>(); }
 Tiff_Im* PaintInterf::getMaskImg() { return 0; }
 
 
@@ -1431,7 +1430,7 @@ void PaintInterfSegment::setLastPoint(int n) { lastPoint = n; }
 
 
 RenderAreaPlan::RenderAreaPlan(PaintInterfPlan& parent, const ParamMain& pMain, const QString& imageFile, const QString& masquePrec) : 
-		DrawArea(parent,pMain,imageFile), maskPred(QString()), gradient(pair<QImage,QImage>(QImage(),QImage())), regul(0.1), autoRegul(true), tempoImages(pair<QImage,QImage>(QImage(),QImage())), refPainted(false), masqPrec(QImage())
+		DrawArea(parent,pMain,imageFile), maskPred(QString()), gradient(pair<QImage,QImage>(QImage(),QImage())), regul(0.1f), autoRegul(true), tempoImages(pair<QImage,QImage>(QImage(),QImage())), refPainted(false), masqPrec(QImage())
 {
 	done = false;
 	if (!loadMasquePrec (masquePrec)) {
@@ -1477,7 +1476,7 @@ void RenderAreaPlan::updateGradRegul(int n) {
 		autoRegul = false;
 	} else {
 		//regul = currentScale/10.0;	//n=1/10 sans zoom, 1 avec zoom max
-		regul = 0.1;
+		regul = 0.1f;
 		autoRegul = true;
 	}
 }
@@ -1781,7 +1780,7 @@ Tiff_Im* RenderAreaPlan::endPolygone () {
 		ELISE_COPY( imageMasq->all_pts(), 0, imageMasq->out() );	//fond noir
 	} else {	//avec le masque précédent
 		char buf[200];
-		sprintf(buf,"%s",ch(maskPred));	
+		sprintf(buf,"%s",ch(maskPred));
 		ELISE_fp fp;
 		if (! fp.ropen(buf,true)) {
 			qMessageBox(this, tr("Read error"), conv(tr("Fail to read mask.")));
