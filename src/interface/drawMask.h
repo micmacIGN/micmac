@@ -160,7 +160,6 @@ class PaintInterf : public QDialog
 		virtual std::pair<QPoint,QPoint> getSegment() const;
 		virtual int getNbPoint(int n) const;
 		virtual int maxSpinBox() const;
-		virtual const QList<Pt2dr>& getPtsLiaison();
 		virtual Tiff_Im* getMaskImg();
 		virtual bool masqueIsEmpty() const;
 		QSize sizeHint2() const;

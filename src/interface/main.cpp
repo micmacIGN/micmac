@@ -24,11 +24,6 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	#if defined Q_WS_WIN
-	Q_IMPORT_PLUGIN(qjpeg);
-	Q_IMPORT_PLUGIN(qtiff);
-	#endif
-
 	//fermeture si une interface est déjà lancée ailleurs
 	/*QSharedMemory sharedMemory("{35DF4G354DFH35FG5-534GN53-21S}");
 	if (sharedMemory.create(sizeof(int))==false) {
