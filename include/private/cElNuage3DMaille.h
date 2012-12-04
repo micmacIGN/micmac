@@ -643,7 +643,11 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
                        bool  AutoResize
                     );
 
-template <class Type> void WriteType(FILE * aFP,Type f);
+template <class Type> void WriteType(FILE * aFP,Type f)
+{
+	size_t  size = sizeof(Type);
+	TheIntFuckingReturnValue=fwrite(&f,size,1,aFP);
+}
 
 #endif // _ELISE_NUAGE_3D_MAILLE_
 
