@@ -2,65 +2,80 @@
 #include <helper_functions.h>
 #include <helper_cuda.h>
 
+#define   BLOCKDIM 32
+
+
+//------------------------------------------------------------------------------------------
+// Non utilisé
+
 texture<float, cudaTextureType2D, cudaReadModeNormalizedFloat> refTex_Image;
 texture<float2, cudaTextureType2D, cudaReadModeNormalizedFloat> refTex_Project;
-
-
-// ATTENTION : erreur de compilation avec l'option cudaReadModeNormalizedFloat et l'utilisation de la fonction tex2DLayered
-texture<float2,	cudaTextureType2DLayered>	refTex_ProjectsLayered;
-texture<float,	cudaTextureType2DLayered>	refTex_ImagesLayered;
-
 cudaArray* dev_Img;				// Tableau des valeurs de l'image
 cudaArray* dev_CubeProjImg;		// Declaration du cube de projection pour le device
 cudaArray* dev_ArrayProjImg;	// Declaration du tableau de projection pour le device
 
+//------------------------------------------------------------------------------------------
+
+
+//------------------------------------------------------------------------------------------
+// ATTENTION : erreur de compilation avec l'option cudaReadModeNormalizedFloat
+// et l'utilisation de la fonction tex2DLayered
+//
+
+texture<float2,	cudaTextureType2DLayered > TexLay_Proj;
+texture<float,	cudaTextureType2DLayered > refTex_ImagesLayered;
 cudaArray* dev_ImagesLayered;	//
-cudaArray* dev_ProjLayered; //
+cudaArray* dev_ProjLayered;		//
 
-__constant__ int dev_ListImgs[32];
+//------------------------------------------------------------------------------------------
 
-extern "C" void imagesToLayers(float *fdataImg1D, int sx, int sy, int sz)
+extern "C" void imagesToLayers(float *fdataImg1D, int sxImg, int syImg, int nbLayer)
 {
+	cudaExtent sizeImgsLay = make_cudaExtent( sxImg, syImg, nbLayer );
 
-		cudaExtent sizeImgsLay = make_cudaExtent( sx, sy, sz );
+	// Définition du format des canaux d'images
+	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
 
-		// Définition du format des canaux d'images
-		cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
+	// Allocation memoire GPU du tableau des calques d'images
+	checkCudaErrors( cudaMalloc3DArray(&dev_ImagesLayered,&channelDesc,sizeImgsLay,cudaArrayLayered) );
 
-		// Allocation memoire GPU du tableau des calques d'images
-		checkCudaErrors( cudaMalloc3DArray(&dev_ImagesLayered,&channelDesc,sizeImgsLay,cudaArrayLayered) );
+	// Déclaration des parametres de copie 3D
+	cudaMemcpy3DParms	p	= { 0 };
+	cudaPitchedPtr		pit = make_cudaPitchedPtr(fdataImg1D, sizeImgsLay.width * sizeof(float), sizeImgsLay.width, sizeImgsLay.height);
 
-		// Déclaration des parametres de copie 3D
-		cudaMemcpy3DParms p = { 0 };
+	p.dstArray	= dev_ImagesLayered;		// Pointeur du tableau de destination
+	p.srcPtr	= pit;						// Pitch
+	p.extent	= sizeImgsLay;				// Taille du cube
+	p.kind		= cudaMemcpyHostToDevice;	// Type de copie
 
-		p.dstArray	= dev_ImagesLayered;		// Pointeur du tableau de destination
-		p.srcPtr	= make_cudaPitchedPtr(fdataImg1D, sizeImgsLay.width * sizeof(float), sizeImgsLay.width, sizeImgsLay.height);	
-		p.extent	= sizeImgsLay;				// Taille du cube
-		p.kind		= cudaMemcpyHostToDevice;	// Type de copie
+	// Copie des images du Host vers le Device
+	checkCudaErrors( cudaMemcpy3D(&p) );
 
-		// Copie des images du Host vers le Device
-		checkCudaErrors( cudaMemcpy3D(&p) );
+	// Lié à la texture
+	refTex_ImagesLayered.addressMode[0]	= cudaAddressModeWrap;
+    refTex_ImagesLayered.addressMode[1]	= cudaAddressModeWrap;
+    refTex_ImagesLayered.filterMode		= cudaFilterModePoint;
+    refTex_ImagesLayered.normalized		= true;
+	checkCudaErrors( cudaBindTextureToArray(refTex_ImagesLayered,dev_ImagesLayered) );
 
-		// Lié à la texture
-		checkCudaErrors( cudaBindTextureToArray(refTex_ImagesLayered,dev_ImagesLayered) );
+	if(0)
+		for (int x = 0 ; x <= sxImg * syImg; x++)
+			std::cout << fdataImg1D[x] << " \n";
 
-
+	
 };
-#define   BLOCKDIM 32
 
-
-
-extern "C" void  projectionsToLayers(float *h_TabProj, int sx, int sy, int sz)
+extern "C" void  projectionsToLayers(float *h_TabProj, int sxTer, int syTer, int nbLayer)
 {
 	// Définition du format des canaux d'images
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float2>();
 
 	// Taille du tableau des calques 
-	cudaExtent siz_PL = make_cudaExtent( sx, sy, sz);
+	cudaExtent siz_PL = make_cudaExtent( sxTer, syTer, nbLayer);
 
 	// Allocation memoire GPU du tableau des calques d'images
 	checkCudaErrors( cudaMalloc3DArray(&dev_ProjLayered,&channelDesc,siz_PL,cudaArrayLayered ));
-				
+
 	// Déclaration des parametres de copie 3D
 	cudaMemcpy3DParms p = { 0 };
 
@@ -74,75 +89,86 @@ extern "C" void  projectionsToLayers(float *h_TabProj, int sx, int sy, int sz)
 
 };
 
-extern __shared__ float cacheCorrel[];
-extern __shared__ float cache__aSV[];
-extern __shared__ float cache_aSVV[];
-extern __shared__ float anEC2[];
-
-__global__ void correlationKernel(float *dest, int sx, int sy, int winX, int winY, int sXI, int sYI, float mAhEpsilon )
+__global__ void correlationKernel(float *dest, int sxTer, int syTer, int idLayer, int sxVig, int syVig, int sxImg, int syImg, float mAhEpsilon )
 {
 
+	__shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
 
-	__shared__ int aNbImOk;
+	float noC = -1.0f;
 
 	// Se placer dans l'espace terrain
-	const int X		= blockIdx.x * blockDim.x  + threadIdx.x;
-	const int Y		= blockIdx.y * blockDim.y  + threadIdx.y;
-	const int Z		= blockIdx.z * blockDim.z  + threadIdx.z;
-	const int idL	= dev_ListImgs[Z];
+	const int X	= blockIdx.x * blockDim.x  + threadIdx.x;
+	const int Y	= blockIdx.y * blockDim.y  + threadIdx.y;
 
-	// Definir la zone de la fenetre/vignette
-	const int x0	= X - winX;
-	const int x1	= X + winX;
-	const int y0	= Y - winY;
-	const int y1	= Y + winY;
+	// Si le processus est hors du terrain, nous sortons du kernel
+	if ( X >= sxTer || Y >= syTer) 
+	{
+		return;
+	}
+	// Decalage dans la memoire partagée de la vignette
+	int spiX = threadIdx.x ;
+	int spiY = threadIdx.y ;
+
+	float uTer = ((float)X + 0.5f) / ((float) sxTer);
+	float vTer = ((float)Y + 0.5f) / ((float) syTer);
+
+	// Calcul de toute les valeurs de l'image et mise en cache
+	const float2 PtTProj	= tex2DLayered( TexLay_Proj, uTer, vTer, idLayer);
+
+	//dest[ Y * sxTer + X ] = PtTProj.x;
+	//return;
+
+	if ( PtTProj.x < 0.0f ||  PtTProj.y < 0.0f ||  PtTProj.x > sxImg || PtTProj.y > syImg )
+	{
+		cacheImg[spiX][spiY] = noC;
+		//return;
+	}
+	else
+	{
+
+		float uImg = ((float)PtTProj.x+0.5f) / (float) sxImg;
+		float vImg = ((float)PtTProj.y+0.5f) / (float) syImg;
+		cacheImg[spiX][spiY] = tex2DLayered( refTex_ImagesLayered, uImg, vImg, idLayer);
+	
+	}
+
+	__syncthreads();
+	
 
 	// Intialisation des valeurs de calcul 
-	float aSV	= 0.0f;
-	float aSVV	= 0.0f;
+	float		aSV	= 0.0f;
+	float	   aSVV	= 0.0f;
+	const int	x0	= spiX - sxVig;
+	const int	x1	= spiX + sxVig;
+	const int	y0	= spiY - syVig;
+	const int	y1	= spiY + syVig;
 
-	// nombre de pixel dans la vignette
-	int dimVign	=	(winX * 2 + 1 ) * ( winY * 2 + 1 );
-	
-	// Decalage dans la memoire partagée de la vignette
-	int piX		= dimVign * threadIdx.x;
-	int piY		= dimVign * threadIdx.y * blockDim.x;
-	int	piZ		= dimVign * threadIdx.z * blockDim.y *  blockDim.x;
-	int pitchCo	= dimVign * ( piX + piY + piZ );
-
-	// Balayage des points de la vignettes
-	#pragma unroll
-	for (int x = x0 ; x <= x1; x++)
+	if ((x1 >= blockDim.x )|(y1 >= blockDim.y )|(x0 < 0)|(y0 < 0)) 
+	{
+		dest[ Y * sxTer + X ] = noC;
+		//return;
+	}
+	else
 	{
 		#pragma unroll
-		for (int y = y0 ; y <= y1; y++)
+		for (int x = x0 ; x <= x1; x++)
 		{
-			const float  u		= (X / (float) sx)*2.0f-1.0f;
-			const float	 v		= (Y / (float) sy)*2.0f-1.0f;
-
-			// Projection dans l'image
-			const float2 pTProj	= tex2DLayered( refTex_ProjectsLayered, u, v, Z);
-
-			// Sortir si la projection est hors de l'image
-			if ((pTProj.x <0.0f)|(pTProj.y <0.0f)) return;
-
-			// Projection dans l'image en coordonnées de la texture GPU 
-			const float ui = (pTProj.x / (float) sXI)*2.0f-1.0f;
-			const float vi = (pTProj.y / (float) sYI)*2.0f-1.0f;
-			
-			// Valeur de l'image
-			float val = tex2DLayered( refTex_ImagesLayered, ui, vi, idL);
-
-			// Calcul du décalage dans la vignette
-			int pi	= pitchCo +  x * (winX * 2 + 1 ) + y;
-			 
-			cacheCorrel[ pi ] = val;	// Mis en cache de la valeur de l'image
-			aSV  += val;				// Somme des valeurs de l'image cte 
-			aSVV += val*val;			// Somme des carrés des vals image cte
-
+			#pragma unroll
+			for (int y = y0 ; y <= y1; y++)
+			{	
+				float val = cacheImg[x][y];	// Valeur de l'image
+				aSV  += val;				// Somme des valeurs de l'image cte 
+				aSVV += val*val;			// Somme des carrés des vals image cte
+			}
 		}
 	}
-	
+
+	if(aSVV > 0 && aSV > 0)
+		dest[ Y * sxTer + X ] = aSV/aSVV;
+	else
+		dest[ Y * sxTer + X ] = noC;
+	return;
+	/*
 	// Je dois recuperer le nombre de vignettes OK
 	
 
@@ -151,8 +177,9 @@ __global__ void correlationKernel(float *dest, int sx, int sy, int winX, int win
 	aSVV		-=	aSV * aSV;
 	float saSVV	 =	sqrt(aSVV);
 
+
 	if ( aSVV <= mAhEpsilon ) return;
-	
+
 	int cI = atomicAdd( &aNbImOk, 1);
 
 	__syncthreads();
@@ -184,81 +211,89 @@ __global__ void correlationKernel(float *dest, int sx, int sy, int winX, int win
 
 	if ( threadIdx.z != anEC2[id])
 		return;
-/*
+
 	anEC2[id] = 0;
 
 #pragma unroll	
 	for (int i = 0 ; i <= dimVign; i++)
 		anEC2[id] += (cache_aSVV[i] - cache__aSV[i] * cache__aSV[i] /aNbImOk); // Additionner l'ecart type inter imagettes
 	
-
 	// Normalisation pour le ramener a un equivalent de 1-Correl 
 	float aCost			= anEC2[id] / (( aNbImOk-1) * dimVign);
-	dest[ Y * sx + X ]	= 1 - max(-1.0,min(1.0,1-aCost));
-*/
-	dest[ Y * sx + X ]	= anEC2[id];
-	
+	dest[ Y * sxTer + X ]	= 1 - max(-1.0,min(1.0,1-aCost));
+	*/
 };
 
-extern "C" void correlation( float* h_TabCorre, int* listImgProj, int sx, int sy, int sz , int winX, int winY , int sXI, int sYI, float mAhEpsilon ){
+static int iDivUp(int a, int b)
+{
+    return (a % b != 0) ? (a / b + 1) : (a / b);
+}
 
-	int mem_size = sx * sy;
-	
+extern "C" void basic_Correlation_GPU( float* h_TabCorre, int sxTer, int syTer, int nbLayer , int sxVig, int syVig , int sxImg, int syImg, float mAhEpsilon ){
+
+	int mem_size = sxTer * syTer * sizeof(float);
 	float* host_Correl_Out = (float *) malloc(mem_size);
 	float* dev_Correl_Out;
+	checkCudaErrors( cudaMalloc((void **) &dev_Correl_Out, mem_size) );	
 
-	checkCudaErrors(  cudaMalloc((void **) &dev_Correl_Out, mem_size) );
+	// Parametres de la texture
+    TexLay_Proj.addressMode[0]	= cudaAddressModeWrap;
+    TexLay_Proj.addressMode[1]	= cudaAddressModeWrap;	
+    TexLay_Proj.filterMode		= cudaFilterModePoint; //cudaFilterModePoint cudaFilterModeLinear
+    TexLay_Proj.normalized		= true;
+	checkCudaErrors( cudaBindTextureToArray(TexLay_Proj,dev_ProjLayered) );
 
-	// liste des images projetées copies de Host vers device
-	checkCudaErrors( cudaMemcpyToSymbol(dev_ListImgs, listImgProj, sizeof(int)*sz));
+	// KERNEL
+	dim3 threads(BLOCKDIM, BLOCKDIM);
+	dim3 blocks(iDivUp(sxTer,threads.x) , iDivUp(syTer,threads.y));
 
-	dim3 threads(BLOCKDIM / winX , BLOCKDIM / winY, sz);
-	dim3 blocks(sx / threads.x , sy /  threads.y, sz / threads.y);
+	correlationKernel<<<blocks, threads>>>( dev_Correl_Out, sxTer, syTer, 0, sxVig, syVig, sxImg, syImg, mAhEpsilon );
+	getLastCudaError("Basic Correlation kernel failed");
+	checkCudaErrors( cudaDeviceSynchronize() );
 
-	// set texture parameters
-    refTex_ProjectsLayered.filterMode		= cudaFilterModePoint;
-    refTex_ProjectsLayered.normalized		= true;  // access with normalized texture coordinates
 
-	// Lié à la texture
-	checkCudaErrors( cudaBindTextureToArray(refTex_ProjectsLayered,dev_ProjLayered) );
-
-	// Lancer la fonction de Kernel GPU pour calculer la correlation
-	correlationKernel<<<blocks, threads>>>( dev_Correl_Out, sx, sy, winX, winY, sXI, sYI, mAhEpsilon );
-
-    checkCudaErrors( cudaUnbindTexture(refTex_ProjectsLayered) );
+	checkCudaErrors( cudaUnbindTexture(TexLay_Proj) );
 	checkCudaErrors( cudaMemcpy(host_Correl_Out, dev_Correl_Out, mem_size, cudaMemcpyDeviceToHost) );
-	
-	//if(0)
+	checkCudaErrors( cudaDeviceSynchronize() );
+	if(0)
 	{
-		float result = 0.0f;
-
-			for ( int i = 0 ; i < sx; i++)
+		int step = 2;
+		std::cout << "Taille du terrain (x,y) : " << iDivUp(sxTer, step) << ", " << iDivUp(syTer, step) << std::endl;
+		for (int j = 0; j < syTer ; j+=step)
+		{
+			for (int i = 0; i < sxTer ; i+=step)
 			{
-				for ( int j = 0 ; j < sy; j++)
-				{
-					result = floor(host_Correl_Out[ i * sy + j ]);
-					if (result > 0.0f)
-						std::cout <<  result << " ";
-				}
-				if (result != 0.0f) std::cout << std::endl;
-
-			//std::cout << "---------------------------------------------------------" << std::endl;
+				int id = (j * sxTer  + i );
+				float c = host_Correl_Out[id];
+				if (c > 0.0f) 
+					std::cout << floor(c*1000)/10 << " ";
+				else
+					std::cout << c << " ";
+					
+			}
+			std::cout << std::endl; 
 		}
+		std::cout << "---------------------------------------------------------" << std::endl;
 	}
 	
 	cudaFree(dev_Correl_Out);
 	free(host_Correl_Out);
 }
 
-
-
-extern "C" void freeTexture()
+extern "C" void freeImagesTexture()
 {
 	checkCudaErrors( cudaUnbindTexture(refTex_Image) );
-	checkCudaErrors( cudaUnbindTexture(refTex_Project) );
 	checkCudaErrors( cudaUnbindTexture(refTex_ImagesLayered) );
 	checkCudaErrors( cudaFreeArray(dev_Img) );
+	checkCudaErrors( cudaFreeArray(dev_ImagesLayered) );
+}
+
+extern "C" void freeProjections()
+{
+	checkCudaErrors( cudaUnbindTexture(refTex_Project) );
+	checkCudaErrors( cudaUnbindTexture(TexLay_Proj) );
 	checkCudaErrors( cudaFreeArray(dev_CubeProjImg) );
+	checkCudaErrors( cudaFreeArray(dev_ArrayProjImg) );
 	checkCudaErrors( cudaFreeArray(dev_ProjLayered) );
 }
 
@@ -270,7 +305,6 @@ extern "C" void  FreeLayers()
 
 extern "C" void  projToDevice(float* aProj,  int sXImg, int sYImg)
 {
-
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float2>();
 
 	// Allocation mémoire du tableau cuda
@@ -328,5 +362,7 @@ extern "C" void  imageToDevice(float** aDataIm,  int sXImg, int sYImg)
 
 	// Lier la texture au tableau Cuda
 	checkCudaErrors( cudaBindTextureToArray(refTex_Image,dev_Img) );
+
+	delete dataImg1D;
 
 }
