@@ -273,6 +273,11 @@ int Tapas_main(int argc,char ** argv)
                     ;
 
 
+    if (EAMIsInit(&LibAff) && (!LibAff))
+    {
+          aCom = aCom + " +LiberteAff=false ";
+    }
+
     if (EAMIsInit(&TolLPPCD))
        aCom = aCom + " +TolLinkPPCD=" + ToString(TolLPPCD);
 

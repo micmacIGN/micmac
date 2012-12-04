@@ -38,6 +38,8 @@
                <Symb> ValAff=eLiberte_Phgr_Std_Aff </Symb>
                <Symb> RapTxt=""   </Symb>
                <Symb> PoseFigee="HUyZZ9_m@@9hyY" </Symb>
+
+               <Symb>  LiberteAff="true" </Symb>
        </DicoLoc>
 
        <SectionBDD_Observation>
