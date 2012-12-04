@@ -93,6 +93,8 @@ template <class  Tout,class Tin>
    return Im2D<Tin,tBaseIn>(Im2D_NoDataLin(),SzXBuf(),SzYBuf());
 }
 
+// Methode transferee dans include/general/users_op_buf.h
+/*
 template  <class  Tout,class Tin> void Simple_OPBuf1<Tout,Tin>::SetImageOnBufEntry
                                        (
                                             Im2D<Tin,typename  El_CTypeTraits<Tin>::tBase> anIm,
@@ -104,7 +106,7 @@ template  <class  Tout,class Tin> void Simple_OPBuf1<Tout,Tin>::SetImageOnBufEnt
    for (INT y=0; y<SzYBuf() ; y++)
         aDataIm[y] = aData[y+y0Buf()]+x0Buf();
 }
-
+*/
 
 template class Simple_OPBuf1<INT,U_INT2>;
 template class Simple_OPBuf1<INT,U_INT1>;
@@ -285,7 +287,7 @@ template <class Tout,class Tin>
 template <class Tout,class Tin>  void Simple_Buffered_Op_Comp<Tout,Tin>::post_new_line(bool )
 {
     _calc->_out = this->_buf_res;
-    _calc->_in = kth_buf((Tin *) 0,0);
+    _calc->_in = this->kth_buf((Tin *) 0,0);
 
     _calc->calc_buf(_calc->_out, _calc->_in);
     _calc->_ycur++;
