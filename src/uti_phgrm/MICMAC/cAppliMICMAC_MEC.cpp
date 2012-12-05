@@ -140,10 +140,10 @@ void cAppliMICMAC::DoAllMEC()
 
 #ifdef CUDA_ENABLED
 
-	FreeLayers();
-	
-#endif
+	checkCudaErrors( cudaDeviceReset() );
+	printf("Reset Device GPGPU.");
 
+#endif
 }
 
 /*
