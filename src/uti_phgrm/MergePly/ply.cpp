@@ -74,7 +74,7 @@
 #include <string.h>
 #include "ply.h"
 
-char *type_names[] = {
+const char *type_names[] = {
 	"invalid",
 	"char", "short", "int",
 	"uchar", "ushort", "uint",
@@ -151,7 +151,7 @@ void ascii_get_element(PlyFile *, char *);
 void binary_get_element(PlyFile *, char *);
 
 /* memory allocation */
-char *my_alloc(int, int, char *);
+char *my_alloc(int, int, const char *);
 
 /* byte ordering */
 void get_native_binary_type();
@@ -2805,7 +2805,7 @@ void copy_property(PlyProperty *dest, PlyProperty *src)
  fname - file name from which memory was requested
  ******************************************************************************/
 
-char *my_alloc(int size, int lnum, char *fe)
+char *my_alloc(int size, int lnum, const char *fe)
 {
 	char *ptr;
 	
