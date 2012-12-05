@@ -149,7 +149,7 @@ template <class Type> void  Red_Ass_OPB_Comp<Type>::reduce_line(INT yloc)
 {
       for (INT d=0; d<this->mDimOutSpec; d++)
       {
-           Type * line = kth_buf((Type *)0,0)[d][yloc]; 
+           Type * line = this->kth_buf((Type *)0,0)[d][yloc]; 
            _op.reduce_seg
            (
                   line,
@@ -168,7 +168,7 @@ template <class Type> void Red_Ass_OPB_Comp<Type>::pre_new_line(bool first)
 
      for (INT d =0; d < this->mDimOutSpec ; d++)
      {
-         Type ** lines = kth_buf((Type *)0,0)[d];
+         Type ** lines = this->kth_buf((Type *)0,0)[d];
 
          _op.t0_opinveg_t1
          (
@@ -194,7 +194,7 @@ template <class Type> void Red_Ass_OPB_Comp<Type>::post_new_line(bool first)
         {
            for (INT d =0; d < this->mDimOutSpec ; d++)
            {
-               Type ** lines = kth_buf((Type *)0,0)[d];
+               Type ** lines = this->kth_buf((Type *)0,0)[d];
             
                switch(this->_y1_buf-this->_y0_buf)
                {
@@ -238,7 +238,7 @@ template <class Type> void Red_Ass_OPB_Comp<Type>::post_new_line(bool first)
 
         for (INT d =0; d < this->mDimOutSpec ; d++)
         {
-            Type ** lines = kth_buf((Type *)0,0)[d];
+            Type ** lines = this->kth_buf((Type *)0,0)[d];
             
             switch(this->_y1_buf-this->_y0_buf)
             {

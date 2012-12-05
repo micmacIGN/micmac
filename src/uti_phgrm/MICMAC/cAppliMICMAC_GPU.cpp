@@ -47,10 +47,11 @@ namespace NS_ParamMICMAC
 
 	// Déclaration des fonctions Cuda
 	extern "C" void imageToDevice( float** h_ref,  int width, int height);
-	extern "C" void freeTexture();
-	extern "C" void projectionsToLayers(float *h_TabProj, int sx, int sy, int sz);
-	extern "C" void correlation(  float* h_TabCorre, int* listImgProj, int sx, int sy, int sz , int winX, int winY, int sXI, int sYI, float mAhEpsilon);
-	extern "C" void imagesToLayers(float *fdataImg1D, int sx, int sy, int sz);
+	extern "C" void freeProjections();
+	extern "C" void freeImagesTexture();
+	extern "C" void projectionsToLayers(float *h_TabProj, int sxTer, int syTer, int nbLayer);
+	extern "C" void basic_Correlation_GPU(  float* h_TabCorre, int sxTer, int syTer, int nbLayer , int sxVig, int syVig, int sxImg, int syImg, float mAhEpsilon);
+	extern "C" void imagesToLayers(float *fdataImg1D, int sxImg, int syImg, int nbLayer);
 
 #endif
 
@@ -281,57 +282,59 @@ namespace NS_ParamMICMAC
 		mNbIm = mVLI.size();
 
 #ifdef CUDA_ENABLED
-
-		//------------------------------------
-		//		Mise en calque des images	
-		//------------------------------------
-
-		float*		fdataImg1D	= NULL;	// 
-		cudaExtent	sizeImgsLay;			// Taille du tableau des calques 
-		int siX = 0, siY = 0 , nLayers = 0;
-
-		// Pour chaque image
-		for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
+	
+		if (mLoadTextures)
 		{
-			// Obtention de l'image courante
-			cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
-			const cGeomImage*	aGeom	= aGLI.Geom();
+			//------------------------------------
+			//		Mise en calque des images	
+			//------------------------------------
+			mLoadTextures = false;
+			float*		fdataImg1D	= NULL;	// 
+			cudaExtent	sizeImgsLay;			// Taille du tableau des calques 
+			int siX = 0, siY = 0 , nLayers = 0;
 
-			// Obtention des données images
-			float **aDataIm	=  aGLI.DataIm();
-
-			// Taille de l'image courante
-			Pt2di siz =  aGLI.getSizeImage();
-
-			if(fdataImg1D == NULL)
+			// Pour chaque image
+			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 			{
+				// Obtention de l'image courante
+				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
+				const cGeomImage*	aGeom	= aGLI.Geom();
 
-				// Creation dynamique du tableau
-				fdataImg1D	= new float[ siz.x * siz.y * mNbIm ];
-				// Initialisation taille du tableau des calques  
-				siX		= siz.x;
-				siY		= siz.y;
-				nLayers = mNbIm;
+				// Obtention des données images
+				float **aDataIm	=  aGLI.DataIm();
 
-			}
-			else
-			{
-				int sizeImgs = aKIm*siz.x*siz.y;
+				// Taille de l'image courante
+				Pt2di siz =  aGLI.getSizeImage();
 
-				// Linéarisation des données images
-				for (int i = 0; i < siz.x ; i++)
+				if(fdataImg1D == NULL)
+				{
+
+					// Creation dynamique du tableau
+					fdataImg1D	= new float[ siz.x * siz.y * mNbIm ];
+					// Initialisation taille du tableau des calques  
+					siX		= siz.x;
+					siY		= siz.y;
+					nLayers = mNbIm;
+
+				}
+				if(fdataImg1D != NULL)
+				{
 					for (int j = 0; j < siz.y ; j++)
-						fdataImg1D[ ( i * siz.y + j ) + sizeImgs ] = aDataIm[j][i];
-
-				// Nous pourrions copier les images, image par image dans le tableau de texture
+					{
+						float *local = fdataImg1D + siz.x * ( j + siz.y * aKIm );
+						memcpy( local, aDataIm[j],  siz.x * sizeof(float));
+					}	
+				
+				}
+			
 			}
-		}
 
-		if ((!((siX == 0)|(siY == 0)|(nLayers == 0))) && (fdataImg1D != NULL))
-		{
-			imagesToLayers( fdataImg1D, siX, siY, nLayers );
-		}
-			delete fdataImg1D;
+			if ((!((siX == 0)|(siY == 0)|(nLayers == 0))) && (fdataImg1D != NULL))
+				imagesToLayers( fdataImg1D, siX, siY, nLayers );
+
+		// Correction CPPECHECK error
+		delete[] fdataImg1D;
+	}
 
 #endif
 
@@ -771,6 +774,11 @@ namespace NS_ParamMICMAC
 		}
 	}
 
+	static int iDivUp(int a, int b)
+	{
+		return (a % b != 0) ? (a / b + 1) : (a / b);
+	}
+
 	void cAppliMICMAC::DoGPU_Correl_Basik
 		(
 		const Box2di & aBox
@@ -779,13 +787,16 @@ namespace NS_ParamMICMAC
 
 #ifdef CUDA_ENABLED
 
+		if(	mNbIm == 0) return;
+
 		// Obtenir la nappe englobante
-		short aZMinTer = -124 , aZMaxTer = 124;
+		//short aZMinTer = -124 , aZMaxTer = 124;
+		short aZMinTer = 0 , aZMaxTer = 1;
 
 		// Taille de cube des points de projection
-		unsigned short sX	= mX1Ter - mX0Ter;
-		unsigned short sY	= mY1Ter - mY0Ter;
-		unsigned short sZ	= aZMaxTer - aZMinTer;
+		unsigned short sTerBloc_X	= mX1Ter - mX0Ter;
+		unsigned short sTerBloc_Y	= mY1Ter - mY0Ter;
+		unsigned short sTerBloc_Z	= aZMaxTer - aZMinTer;
 
 		// Nombre de float pour un point de pojection
 		unsigned short sT	= 2;
@@ -798,35 +809,40 @@ namespace NS_ParamMICMAC
 			//		Mise en calque des projections  
 			//-----------------------------------------
 
-			int *listImgProj	= new int[mNbIm];
-			int nBImgProj		= 0;
+			// Sous echantillonage des projections
+			int stepBloc	= 5;
+			int ssTerBloc_X = iDivUp( sTerBloc_X , stepBloc ) ;
+			int	ssTerBloc_Y = iDivUp( sTerBloc_Y , stepBloc ) ;
+			int ssTerBloc	= ssTerBloc_X * ssTerBloc_Y;
 
 			// Tableau des projections
-			float* h_TabProj = new float[ mNbIm * mX1Ter * mY1Ter * 2 ];
+			float* h_TabProj	= new float[ mNbIm * ssTerBloc * 2 ];
+			float uvDefValue	= -1.0f;
 
+			//std::cout << "////////////////////--  " << anZ << "  --//////////////////////" << std::endl;
 			// Pour chaque image
-			for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++)
+			for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )
 			{
-				
-				bool areProj = false;
-
 				// Obtention de l'image courante
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 				const cGeomImage*	aGeom	= aGLI.Geom();
 				
 				// Initialisation du cube de projection
-				for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)		// 
-				{													// -> Ballayage du terrain  
-					for (int anY = mY0Ter ; anY < mY1Ter ; anY++)	// 
+				for (int anY = mY0Ter ; anY < mY1Ter ; anY = anY + stepBloc)
+				{															
+					for (int anX = mX0Ter ; anX <  mX1Ter ; anX = anX + stepBloc)	// Ballayage du terrain  
 					{
 						// Nappe des profondeurs
-						int aZMin = mTabZMin[anY][anX];
-						int aZMax = mTabZMax[anY][anX];
+						int aZMin	= mTabZMin[anY][anX];
+						int aZMax	= mTabZMax[anY][anX];
 
-						// Indice du tableau 3D des projections
-						unsigned short iProj = (anX*sY + anY)*sT;
+						int rX		= (anX - mX0Ter) / stepBloc;
+						int rY		= (anY - mY0Ter) / stepBloc;
+						//int iD		= (aKIm * ssTerBloc  + ssTerBloc_Y * rX + rY ) * 2;
+						int iD		= (aKIm * ssTerBloc  + ssTerBloc_X * rY + rX ) * 2;
 
-						if (IsInTer( anX, anY ) && (aGLI.IsVisible(anX ,anY )) && (aZMin <= anZ <=aZMax))
+
+						if (IsInTer( anX, anY ) && (aGLI.IsVisible(anX ,anY )) /*&& (aZMin <= anZ <=aZMax)*/)
 						{
 							// Déquantification  de X, Y et Z 
 							const float	aZReel	= (float)DequantZ(anZ);
@@ -836,60 +852,53 @@ namespace NS_ParamMICMAC
 							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,( const double* )&aZReel);
 
 							if (aGLI.IsOk( aPIm.x, aPIm.y ))
-							{
-								if (!areProj)
-								{
-									areProj	= true;
-									listImgProj[nBImgProj] = aKIm;
-									nBImgProj++;
-								
-								}
-
-								// Écriture des projections
-								int iD = (nBImgProj - 1 ) * ( mX1Ter * mY1Ter * 2 ) + ( mY1Ter * anX  + anY );
-
+							{	
 								h_TabProj[iD + 0] = (float)aPIm.x;
 								h_TabProj[iD + 1] = (float)aPIm.y;
-
 							}
-							else if (areProj)
+							else 
 							{
-								// Écriture des projections
-								int iD = (nBImgProj - 1 ) * ( mX1Ter * mY1Ter * 2 ) + ( mY1Ter * anX  + anY );
-
-								h_TabProj[iD + 0] = -1.0f;
-								h_TabProj[iD + 1] = -1.0f;
-
+								h_TabProj[iD + 0] = uvDefValue;
+								h_TabProj[iD + 1] = uvDefValue;
 							}
+						}
+						else
+						{
+							h_TabProj[iD + 0] = uvDefValue;
+							h_TabProj[iD + 1] = uvDefValue;
 						}
 					}
 				}
 			}
-			
-			if(nBImgProj>0)
-			{		
-				
-				// Copie des projections de host vers le device
-				projectionsToLayers(h_TabProj, mX1Ter, mY1Ter, nBImgProj);
 
-				delete h_TabProj;
+			// Copie des projections de host vers le device
+			projectionsToLayers(h_TabProj, ssTerBloc_X, ssTerBloc_Y, mNbIm);
 
-				// Tableau des projections
-				float* h_TabCorre = new float[  mX1Ter * mY1Ter ];
+            // Correction CPPECHECK error
+			delete [] h_TabProj;
 
-				////	TEMP	////
-				// Obtention de l'image courante
-				cGPU_LoadedImGeom&	aGLI	= *(mVLI[listImgProj[0]]);
-				// Taille de l'image courante
-				Pt2di siz =  aGLI.getSizeImage();
-				////	TEMP	////
+			// Tableau des projections
+			float* h_TabCorre = new float[  sTerBloc_X * sTerBloc_Y ];
 
-				// Correlation
-				correlation(h_TabCorre , listImgProj , mX1Ter, mY1Ter, nBImgProj, mPtSzWFixe.x, mPtSzWFixe.y, siz.x, siz.y, mAhEpsilon );
-				// libération de la mémoire GPU
-				freeTexture();
-			}
+			////	TEMP	////
+			// Obtention de l'image courante
+			cGPU_LoadedImGeom&	aGLI	= *(mVLI[0]);
+			// Taille de l'image courante
+			Pt2di siz =  aGLI.getSizeImage();
+			////	TEMP	////
+
+			// KERNEL Correlation
+			basic_Correlation_GPU(h_TabCorre , sTerBloc_X, sTerBloc_Y, mNbIm, mPtSzWFixe.x, mPtSzWFixe.y, siz.x, siz.y, mAhEpsilon );
+
+			// libération de la mémoire GPU
+			freeProjections();
+            // Correction CPPECHECK error
+			delete [] h_TabCorre;
+
 		}
+		
+//freeImagesTexture();
+
 
 #else
 
@@ -1136,6 +1145,7 @@ namespace NS_ParamMICMAC
 		{
 			DoGPU_Correl(aBox,(aTC.MultiCorrelPonctuel().PtrVal()));
 		}
+
 	}
 
 

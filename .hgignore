@@ -6840,3 +6840,8 @@ build_mingw
 build-vc
 build_vc
 build_vc_kakadu/
+src/geom3d/cMesh3D.cpp.orig
+src/geom3d/cMesh3D.cpp~
+src/uti_phgrm/MICMAC/MICMAC.h.orig
+src/uti_phgrm/MICMAC/cAppliMICMAC_GPU.cpp.orig
+src/uti_phgrm/MICMAC/cAppliMICMAC_MEC.cpp.orig

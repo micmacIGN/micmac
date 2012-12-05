@@ -48,13 +48,29 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 template <class tElem> class  TImageFixedCorrelateurSubPix
 {
-       public :
-
-           typedef ElPFixed<NBB_TFCS>                      tPF;
-           typedef typename El_CTypeTraits<tElem>::tBase    tBase;
-           typedef Im2D<tElem,tBase>               tIm;
-           typedef TIm2D<tElem,tBase>              tTIm;
-           typedef TImGet<tElem,tBase,NBB_TFCS>    tGet;
+    public :
+    
+    typedef ElPFixed<NBB_TFCS>                      tPF;
+    typedef typename El_CTypeTraits<tElem>::tBase    tBase;
+    typedef Im2D<tElem,tBase>               tIm;
+    typedef TIm2D<tElem,tBase>              tTIm;
+    typedef TImGet<tElem,tBase,NBB_TFCS>    tGet;
+    
+    bool OkTr12(tPF aP1,tPF aP2)
+    {
+        if (! mModeBicub)
+        {
+            return      tGet::inside_bilin(mIm1,aP1+mP0_I1)
+            &&  tGet::inside_bilin(mIm1,aP1+mP1_I1)
+            &&  tGet::inside_bilin(mIm2,aP2+mP0_I2)
+            &&  tGet::inside_bilin(mIm2,aP2+mP1_I2) ;
+        }
+        return      tGet::inside_bicub(mIm1,aP1+mP0_I1)
+        &&  tGet::inside_bicub(mIm1,aP1+mP1_I1)
+        &&  tGet::inside_bicub(mIm2,aP2+mP0_I2)
+        &&  tGet::inside_bicub(mIm2,aP2+mP1_I2) ;
+    }
+    
 
            TImageFixedCorrelateurSubPix
            (
@@ -164,22 +180,7 @@ template <class tElem> class  TImageFixedCorrelateurSubPix
            INT NbPts() const { return (INT) mPts1.size();}
 
 
-       protected :
-
-           bool OkTr12(tPF aP1,tPF aP2)
-           {
-	       if (! mModeBicub)
-	       {
-                  return      tGet::inside_bilin(mIm1,aP1+mP0_I1)
-                          &&  tGet::inside_bilin(mIm1,aP1+mP1_I1)
-                          &&  tGet::inside_bilin(mIm2,aP2+mP0_I2)
-                          &&  tGet::inside_bilin(mIm2,aP2+mP1_I2) ;
-	       }
-               return      tGet::inside_bicub(mIm1,aP1+mP0_I1)
-                       &&  tGet::inside_bicub(mIm1,aP1+mP1_I1)
-                       &&  tGet::inside_bicub(mIm2,aP2+mP0_I2)
-                       &&  tGet::inside_bicub(mIm2,aP2+mP1_I2) ;
-           }
+protected:
 
            tTIm             mIm1;
            tTIm             mIm2;
@@ -194,6 +195,8 @@ template <class tElem> class  TImageFixedCorrelateurSubPix
 	   cCIKTabul*       mBicub;
 	   bool             mModeBicub;
 };
+
+
 
 
 template <class tElem> class OptCorrSubPix_Diff :
@@ -227,7 +230,7 @@ template <class tElem> class OptCorrSubPix_Diff :
            {
                  typename TImageFixedCorrelateurSubPix<tElem>::tPF aP1 (aPr1);
                  typename TImageFixedCorrelateurSubPix<tElem>::tPF aP2 (aPr2);
-                 if (!  OkTr12(aP1,aP2))
+               if (!  TImageFixedCorrelateurSubPix<tElem>::OkTr12(aP1,aP2))
                     return mPtOut;
 
 		 s2  = 0; s22 = 0; 

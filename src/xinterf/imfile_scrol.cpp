@@ -1073,7 +1073,7 @@ template <class Type> ImFileScroller<Type>::ImFileScroller
 
 template <class Type> void ImFileScroller<Type>::LoadXImage(Pt2di p0,Pt2di p1,bool quick)
 {
-	do_it(ElImScroller::tr(),ElImScroller::sc(),p0,p1,quick);
+	this->do_it(ElImScroller::tr(),ElImScroller::sc(),p0,p1,quick);
 }
 
 template <class Type> void ImFileScroller<Type>::RasterUseLine(Pt2di p0,Pt2di p1,INT ** l)
