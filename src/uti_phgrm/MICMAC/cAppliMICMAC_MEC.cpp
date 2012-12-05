@@ -773,8 +773,10 @@ void cAppliMICMAC::DoOneBloc
              <<"\n";
     }
   
-
+	
+#ifdef CUDA_ENABLED
 	freeImagesTexture();
+#endif
     //  delete mStatN;
     delete mStatGlob;
     delete mLTer;
