@@ -1,5 +1,8 @@
 #include  "interface.h"
 
+QString g_interfaceDirectory;
+QString g_iconDirectory;
+
 using namespace std;
 
 
@@ -51,7 +54,7 @@ bool checkPath(const QString& path) {
 int execute(QString commande) {	//équivaut à system(ch(commande)) ; mais il y a un pb de buffer : la commande est coupée et l'exécution plante (pas toujours de pb avec la fct execute)
 	QByteArray ba;
 	ba.append(commande);
-	return system(ba.constData());
+	return system_call(ba.constData());
 }
 
 /*
@@ -102,12 +105,12 @@ QString systemeNumerique(QString& virgule, QString& point) {
 		- traduction + accents dans les widgets : conv(tr(char*))
 */
 const char* ch(const QString& s) { return s.toStdString().c_str(); }	//QString -> char* (pour les cout)
-QString conv(const QString& s) { return QApplication::translate("Dialog", ch(s), 0, QApplication::CodecForTr); }	//restitution des accents (peut s'utiliser avec un QObject::tr)
+QString conv(const QString& s) { return QApplication::translate("Dialog", s.toStdString().c_str(), 0, QApplication::CodecForTr); }	//restitution des accents (peut s'utiliser avec un QObject::tr)
 QString conv(const char* c) { return QApplication::translate("Dialog", c, 0, QApplication::CodecForTr); }	//restitution des accents (peut s'utiliser avec un QObject::tr)
 //void qMessageBox(QWidget* w, QString title, QString msg) { QMessageBox::about(w, conv(title), conv(msg)); }	//QMessageBox avec restitution des accents
 void qMessageBox(QWidget* w, QString title, QString msg) { QMessageBox::about(w, title, msg); }	//QMessageBox
 ostream& ecr(const QString& s) {	//cout << s
-	cout << ch(s) << endl;
+	cout << s.toStdString() << endl;
 	return cout;
 }
 QString remplace(const QString& s, const QString& before, const QString& after) {
@@ -126,7 +129,7 @@ QString comm(const QString& s) {
 int killall(const char* programme) {
 	#if (defined Q_WS_X11 || defined Q_WS_WIN)
 		if (system((string("ps -s | grep ")+string(programme)+string(" | awk '{print $1}' >tempo")).c_str())!=0) {
-			cout << ch(QObject::tr("Fail to get process PID list.").arg(programme)) << endl;
+			cout << QObject::tr("Fail to get process PID list.").arg(programme).toStdString() << endl;
 			return -1;
 		}
 		
@@ -136,7 +139,7 @@ int killall(const char* programme) {
 		if (fichier != NULL) {
 			while (fgets(chaine,5,fichier)!=NULL) {
 				if (system((string("kill ")+string(chaine)).c_str())!=0) {
-					cout << ch(QObject::tr("Fail to stop process n°%1.").arg(chaine)) << endl;
+					cout << QObject::tr("Fail to stop process n°%1.").arg(chaine).toStdString() << endl;
 					//return -1;
 				}
 			}
@@ -144,7 +147,7 @@ int killall(const char* programme) {
 		}
 		
 		if(remove("tempo" )!=0) {
-			cout << ch(QObject::tr("Fail to delete file tempo.")) << endl;
+			cout << QObject::tr("Fail to delete file tempo.").toStdString() << endl;
 			return -1;
 		}
 		return 0;
@@ -169,20 +172,20 @@ QString noBlank(const QString& s) { return remplace(s," ","\\ "); }
 int Interface::cpu_count = 2;	//par défaut
 
 Interface::Interface(QSettings& globParam) : paramMain(ParamMain()), settings(&globParam), assistant(new Assistant())
-{ 
-	cout << ch(tr("Initializing GUI...")) << endl;
+{
+	cout << tr("Initializing GUI...").toStdString() << endl;
 	paramMain.setFrench(settings->value("langue").toString()==QLocale::languageToString(QLocale::French));
 	//aide
 	assistant->setPages(settings->value("langue").toString()==QLocale::languageToString(QLocale::French));
 	//environnement
 	#if defined Q_OS_LINUX 
-		cout << ch(tr("Operating system : Linux")) << endl;	
+		cout << tr("Operating system : Linux").toStdString() << endl;	
 	#endif
 	#if defined Q_WS_WIN 
-		cout << ch(tr("Operating system : Windows")) << endl;		
+		cout << tr("Operating system : Windows").toStdString() << endl;		
 	#endif
 	#if defined Q_WS_MAC
-		cout << ch(tr("Operating system : Mac")) << endl;	
+		cout << tr("Operating system : Mac").toStdString() << endl;	
 	#endif
 	if (!checkPath(applicationPath())) {
 		qMessageBox(this, conv(tr("Execution error")), conv(tr("Application full file path contains special caracters ; this can cause issues with some calculations. Please modify parent directory name.")));
@@ -252,7 +255,7 @@ Interface::Interface(QSettings& globParam) : paramMain(ParamMain()), settings(&g
 	topLabel = new QLabel;
 		//logo
 	topLogos = new QToolButton;
-	QImage image(QString(":/images/LOGO_MATIS.gif"));
+	QImage image(QString(g_iconDirectory+"LOGO_MATIS.gif"));
 	image = image.scaled(50,50,Qt::KeepAspectRatio);
 	topLogos->setIconSize(image.size());
 	topLogos->setIcon(QPixmap::fromImage(image));
@@ -304,7 +307,7 @@ Interface::Interface(QSettings& globParam) : paramMain(ParamMain()), settings(&g
 	QSize s = QApplication::desktop()->availableGeometry().size()/2 -sizeHint()/2;
 	move( s.width(), s.height() );
 	statusBar()->showMessage(conv(tr("Ready")));
-	cout << ch(conv(tr("Ready"))) << endl;	
+	cout << conv(tr("Ready")).toStdString() << endl;	
 }
 Interface::~Interface() {
 		delete fileMenu;
@@ -484,25 +487,9 @@ bool Interface::checkMicmac() {
 	settings->setValue("cpu", maxcpu);
 
 	//répertoire micmac
-	QString micmacPath = settings->value("dossierMicmac").toString();	//dossier micmac par défaut, celui utilisé les sessions précédentes
-	if (micmacPath.isEmpty() || !QDir(micmacPath).exists()) {
-		micmacPath.clear();
-		cout << ch(tr("Closest micmac directory search...")) << endl;
-		//recherche du répertoire micmac de plus proche
-		QDir rootDir(QApplication::applicationDirPath());
-		while (micmacPath.isEmpty()) {
-			QStringList l = rootDir.entryList(QDir::AllDirs);
-			micmacPath = pathToMicMac (rootDir.absolutePath()+QString("/"), l, QString());
-			if (!rootDir.cdUp()) break;
-		}
-		if (micmacPath.isEmpty()) {
-			qMessageBox(this, tr("Directory error"), conv(tr("Micmac directory (which contains binaries) not found.")));
-			return false;
-		}
-		settings->setValue("dossierMicmac", micmacPath);
-	}
+	QString micmacPath( NS_ParamChantierPhotogram::MMDir().c_str() );
 	paramMain.setMicmacDir(micmacPath);	//NB : s'il existe, le dossier micmac est validé même s'il n'y a pas tous les binaires ou la bonne configuration
-	cout << ch(tr("Micmac directory : ")); cout << ch(micmacPath) << endl;
+	cout << tr("Micmac directory : ").toStdString(); cout << micmacPath.toStdString() << endl;
 
 	//configuration de micmac
 	bool b2 = true;	//si false, il faut réécrire le fichier MicMacConfig.xml
@@ -511,7 +498,7 @@ bool Interface::checkMicmac() {
 	if (b2 && settings->value("cpu").toString().isEmpty() && cpuLu<=cpu_count) maxcpu = cpuLu;	//pas de cpu initial -> on prend celui de micmac
 	else if (b2 && maxcpu!=cpuLu) b2 = false;	//il y a un cpu initial ou bien le cpu de micmac n'est pas possible -> on corrige le cpu de micmac
 	if (!b2) Options::writeMicMacInstall(micmacPath, maxcpu);
-	cout << ch(tr("Number of usable processors : ")); cout << maxcpu << endl;
+	cout << tr("Number of usable processors : ").toStdString(); cout << maxcpu << endl;
 
 	//vérification de la présence des fichiers exécutables requis
 	QStringList err = Options::checkBinaries(micmacPath);
@@ -1708,7 +1695,7 @@ void Interface::help()
 void Interface::about()
 {
 	bool fr = (settings->value("langue").toString()==QLocale::languageToString(QLocale::French));
-	QFile aboutFile((fr)? QString(":/help/about.txt") : QString(":/help/about_english.txt"));
+	QFile aboutFile((fr)? QString("../interface/help/about.txt") : QString("../interface/help/about_english.txt"));
 	if (!aboutFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
 		qMessageBox(this, tr("Read error"),conv(tr("Fail to find file help/about.txt.")));
 		return;
@@ -2297,11 +2284,11 @@ void Timer::displayTemps(QString label) {
 	//écriture
 	QFile file(dir+QString("timer"));
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Append)) {
-		cout << ch(QObject::tr("Problem in writing file timer")) << endl;
+		cout << QObject::tr("Problem in writing file timer").toStdString() << endl;
 		return;
 	}
 	QTextStream outStream(&file);
-	outStream << ch(ligne) << "\n";
+	outStream << ligne.toStdString().c_str() << "\n";
 	file.close();
 }
 

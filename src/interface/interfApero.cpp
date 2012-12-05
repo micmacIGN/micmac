@@ -49,7 +49,7 @@ InterfApero::InterfApero(const ParamMain* pMain, QWidget* parent, Assistant* hel
 	calButton = buttonBox->addButton (tr("Next"), QDialogButtonBox::AcceptRole);
 	cancelButton = buttonBox->addButton (tr("Cancel"), QDialogButtonBox::RejectRole);
 	helpButton = new QPushButton ;
-	helpButton->setIcon(QIcon(":/images/linguist-check-off.png"));
+	helpButton->setIcon(QIcon(g_iconDirectory+"linguist-check-off.png"));
 	buttonBox->addButton (helpButton, QDialogButtonBox::HelpRole);
 
 	QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -237,12 +237,12 @@ ImgToOriTabA::ImgToOriTabA(ParamApero* paramApero, QString dossier, const QVecto
 	listWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
 	listWidget2->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
-	addButton = new QPushButton(QIcon(":/images/linguist-up.png"), QString());
+	addButton = new QPushButton(QIcon(g_iconDirectory+"linguist-up.png"), QString());
 	addButton->setToolTip(conv(tr("Add image on the list")));
 	addButton->setEnabled(false);
 	addButton->setMaximumSize (QSize(21,21));
 
-	removeButton = new QPushButton(QIcon(":/images/linguist-down.png"), QString());
+	removeButton = new QPushButton(QIcon(g_iconDirectory+"linguist-down.png"), QString());
 	removeButton->setToolTip(conv(tr("Remove image from the list")));
 	removeButton->setEnabled(false);
 	removeButton->setMaximumSize (QSize(21,21));
@@ -395,7 +395,7 @@ QString MaitresseTabA::calculeBestMaitresse () {
 	const vector<string>* aVN = mICNM->Get("Key-Set-HomolPastisBin");
 	for (int aK=0; aK<signed(aVN->size()) ; aK++) {
 	  	pair<string,string> aPair = mICNM->Assoc2To1("Key-Assoc-CpleIm2HomolPastisBin", (*aVN)[aK],false);
-		ElPackHomologue aPack = ElPackHomologue::FromFile(ch(paramMain->getDossier())+(*aVN)[aK]);
+		ElPackHomologue aPack = ElPackHomologue::FromFile( paramMain->getDossier().toStdString()+(*aVN)[aK]);
 		QList<QListWidgetItem *> l1 = listWidget->findItems(aPair.first.c_str(),Qt::MatchExactly);
 		if (l1.count()==0) continue;
 		QList<QListWidgetItem *> l2 = listWidget->findItems(aPair.second.c_str(),Qt::MatchExactly);
@@ -428,7 +428,7 @@ void MaitresseTabA::maitresseSelected() {
 	parametres->setImgMaitresse( (*(listWidget->selectedItems().begin()))->text() );
 	QImage image(dir+paramMain->convertTifName2Couleur((*(listWidget->selectedItems().begin()))->text()));
 	if (image.isNull()) {
-		cout << ch(tr("Fail to read image %1.")) << endl; 
+		cout << tr("Fail to read image %1.").toStdString() << endl; 
 		return;
 	}
 	image = image.scaled(150,150,Qt::KeepAspectRatio);
@@ -679,7 +679,7 @@ ReferenceTabA::ReferenceTabA (ParamApero* paramApero, InterfApero* parentWindow,
 
 		//saisie des points
 	QLabel* fileSaisieLabel = new QLabel(conv(tr("or measure them : ")));
-	fileSaisieButton = new QPushButton(QIcon(":/images/designer-edit-resources-button.png"), QString());
+	fileSaisieButton = new QPushButton(QIcon(g_iconDirectory+"designer-edit-resources-button.png"), QString());
 	fileSaisieButton->setToolTip(conv(tr("Measure points on graphic window")));
 	fileSaisieButton->setMaximumSize (QSize(21,16));
 
@@ -1176,12 +1176,12 @@ AutoCalibTabA::AutoCalibTabA(ParamApero* paramApero, QString dossier, const QVec
 	listWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
 	listWidget2->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
-	addButton = new QPushButton(QIcon(":/images/linguist-up.png"), QString());
+	addButton = new QPushButton(QIcon(g_iconDirectory+"linguist-up.png"), QString());
 	addButton->setToolTip(conv(tr("Add an image on the list")));
 	addButton->setEnabled(false);
 	addButton->setMaximumSize (QSize(21,21));
 
-	removeButton = new QPushButton(QIcon(":/images/linguist-down.png"), QString());
+	removeButton = new QPushButton(QIcon(g_iconDirectory+"linguist-down.png"), QString());
 	removeButton->setToolTip(conv(tr("Remove an image from the list")));
 	removeButton->setEnabled(false);
 	removeButton->setMaximumSize (QSize(21,21));
@@ -1943,7 +1943,7 @@ DirectionWidget::DirectionWidget(const ParamMain* pMain, const QStringList & lis
 		else imageDirCombo2->setCurrentIndex(0);
 	}
 
-	imageDirButton = new QPushButton(QIcon(":/images/linguist-check-on.png"), QString());
+	imageDirButton = new QPushButton(QIcon(g_iconDirectory+"linguist-check-on.png"), QString());
 	imageDirButton->setToolTip(tr("Open these images"));
 	imageDirButton->setMaximumSize (QSize(21,21));
 	connect(imageDirButton, SIGNAL(clicked()), this, SLOT(imageDirClicked()));
@@ -2139,7 +2139,7 @@ EchelleWidget::EchelleWidget(const ParamMain* pMain, int N, const QStringList & 
 		if (nbList==4) connect(imageEchCombo[i], SIGNAL(currentIndexChanged(QString)), this, SIGNAL(updateParam()));
 	}
 
-	imageEchButton = new QPushButton(QIcon(":/images/linguist-check-on.png"), QString());
+	imageEchButton = new QPushButton(QIcon(g_iconDirectory+"linguist-check-on.png"), QString());
 	imageEchButton->setToolTip(tr("Open these images"));
 	imageEchButton->setMaximumSize (QSize(21,21));
 	connect(imageEchButton, SIGNAL(clicked()), this, SLOT(imageEchClicked()));
@@ -2311,7 +2311,7 @@ void EchelleWidget::updateParam(ParamApero* parametres) {
 	bool ok = true;
 	double dist = text.toInt(&ok);
 	if (!ok || dist==0) {
-		cout << ch(conv(tr("Uncorrect distance for rescaling."))) << endl;	
+		cout << conv(tr("Uncorrect distance for rescaling.")).toStdString() << endl;	
 		return;	
 	}
 	parametres->modifUserOrientation().setDistance(dist);
@@ -2338,7 +2338,7 @@ void EchelleWidget::updateParam(CarteDeProfondeur* parametres) {
 		bool ok;
 		double ech = distEdit->text().toDouble(&ok);
 		if (!ok) {
-			cout << ch(conv(tr("Orthoimage scale is unvalid."))) << endl;	
+			cout << conv( tr("Orthoimage scale is unvalid.") ).toStdString() << endl;	
 			return;	
 		}
 		parametres->setEchelleOrtho(ech);

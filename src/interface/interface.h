@@ -37,6 +37,8 @@ int killall(const char* programme);
 void print(const QString& s);
 QString noBlank(const QString& s);
 
+extern QString g_interfaceDirectory;
+extern QString g_iconDirectory;
 
 class FileDialog : public QFileDialog
 {

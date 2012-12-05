@@ -119,7 +119,7 @@ void PastisThread::run() {
 			if (!b) {
 				//if (!*getAnnulation()) getParamMain()->setAvancement(-28);
 				//return;
-				cout << ch(tr("Warning! Fail to link micmac/bin to data directory.")) << endl;
+				cout << tr("Warning! Fail to link micmac/bin to data directory.").toStdString() << endl;
 			}
 		#endif
 		//pour windows (Vista) :
@@ -170,7 +170,7 @@ void PastisThread::run() {
 				setReaderror(QString("Images_brutes/"));
 				return;
 			}
-			cout << ch(tr("Sub-directory Images_brutes for raw images made.\n"));
+			cout << tr("Sub-directory Images_brutes for raw images made.\n").toStdString();
 		}
 
 		for (int i=0; i<getParamMain()->getCorrespImgCalib().count(); i++) {
@@ -202,7 +202,7 @@ void PastisThread::run() {
 			//validité de l'image N&B (elle doit être lisible pour elise et pour Qt si l'image couleur n'existe pas et qu'il n'y a pas d'image RAW)
 			if (tifNB) {		
 				bool b = true;		
-				FILE * _fp = fopen(ch(getParamMain()->getDossier()+imgTIF),"r");
+				FILE * _fp = fopen((getParamMain()->getDossier()+imgTIF).toStdString().c_str(),"r");
 
 				if (_fp!=0) {
 					delete _fp;
@@ -213,13 +213,13 @@ void PastisThread::run() {
 				} else b = false;
 
 				if (!b) {	//image non lisible
-					cout << ch(QObject::tr("Unreadable image %1. Conversion in progress...").arg(noBlank(getParamMain()->getDossier()+imgTIF))) << endl;
+					cout << (QObject::tr("Unreadable image %1. Conversion in progress...").arg(noBlank(getParamMain()->getDossier()+imgTIF))).toStdString() << endl;
 					QString img0 = imgTIF.section(".",0,-2);
 					//conversion en jpg avec convert
 					if (!QFile().exists(getParamMain()->getDossier()+img0+QString(".jpg"))) {
 						QString commande = QString("convert %1%2.tif %1%2.jpg").arg(noBlank(getParamMain()->getDossier())).arg(img0);
 						if (execute(commande)!=0) {
-							cout << ch(QObject::tr("Fail to convert image %1 to JPG format.").arg(noBlank(getParamMain()->getDossier()+imgTIF))) << endl;
+							cout << (QObject::tr("Fail to convert image %1 to JPG format.").arg(noBlank(getParamMain()->getDossier()+imgTIF)).toStdString()) << endl;
 							getParamMain()->setAvancement(-35);
 							setReaderror(imgTIF);
 							return;
@@ -239,13 +239,13 @@ void PastisThread::run() {
 			//validité de l'image couleur pour Qt
 			if (tifClr) {
 				if (QImage(getParamMain()->getDossier()+imgTIF2).isNull()) {	//image non lisible
-					cout << ch(QObject::tr("Unreadable image %1. Conversion in progress...").arg(noBlank(getParamMain()->getDossier()+imgTIF2))) << endl;
+					cout << (QObject::tr("Unreadable image %1. Conversion in progress...").arg(noBlank(getParamMain()->getDossier()+imgTIF2))).toStdString() << endl;
 					QString img0 = imgTIF2.section(".",0,-2);
 					//conversion en jpg avec convert
 					if (!QFile(getParamMain()->getDossier()+img0+QString(".jpg")).exists()) {
 						QString commande = QString("convert %1%2.tif %1%2.jpg").arg(noBlank(getParamMain()->getDossier())).arg(img0);
 						if (execute(commande)!=0) {
-							cout << ch(QObject::tr("Fail to convert image %1 to JPG format.").arg(noBlank(getParamMain()->getDossier()+imgTIF2))) << endl;
+							cout << (QObject::tr("Fail to convert image %1 to JPG format.").arg(noBlank(getParamMain()->getDossier()+imgTIF2))).toStdString() << endl;
 							getParamMain()->setAvancement(-35);
 							setReaderror(imgTIF2);
 							return;
@@ -314,7 +314,7 @@ void PastisThread::run() {
 		newFileJPG.close();
 
 		getParamMain()->setAvancement(Conversion);
-		cout << ch(tr("Makefile for image conversion made.")) << endl;
+		cout << tr("Makefile for image conversion made.").toStdString() << endl;
 	}
 	
 	if (getParamMain()->getAvancement()==Conversion) {
@@ -328,7 +328,7 @@ void PastisThread::run() {
 			if (!*getAnnulation()) getParamMain()->setAvancement(-3);
 			return;
 		}
-		cout << ch(tr("Raw images converted into tif format.")) << endl;
+		cout << tr("Raw images converted into tif format.").toStdString() << endl;
 
 
 		//images jpg
@@ -342,7 +342,7 @@ void PastisThread::run() {
 		}*/
 		QFile makefileJPG(getParamMain()->getDossier()+getParamMain()->getMakeFile()+QString("JPG"));
 		if (!makefileJPG.open(QIODevice::ReadOnly | QIODevice::Text)) {
-			cout << ch(tr("Fail to read file %1.").arg(getParamMain()->getDossier()+getParamMain()->getMakeFile()+QString("JPG"))) << endl;
+			cout << (tr("Fail to read file %1.").arg(getParamMain()->getDossier()+getParamMain()->getMakeFile()+QString("JPG"))).toStdString() << endl;
 			if (!*getAnnulation()) getParamMain()->setAvancement(-3);
 			return;
 		}
@@ -355,7 +355,7 @@ void PastisThread::run() {
 			if (execute(text)==0) continue;
 			QString imgIn = text.section(" ",1,1).section("/",-1,-1);
 			if (!QFile(getParamMain()->getDossier()+QString("TmpConvert_XJI_%1.tif").arg(imgIn.section(".",0,-2))).rename(imgOut)) {
-				cout << ch(tr("Fail to convert image %1 into tif format.").arg(imgIn)) << endl;
+				cout << tr("Fail to convert image %1 into tif format.").arg(imgIn).toStdString() << endl;
 				if (!*getAnnulation()) getParamMain()->setAvancement(-3);
 				return;
 			}
@@ -369,7 +369,7 @@ void PastisThread::run() {
 			for (QStringList::const_iterator it=l.begin(); it!=l.end(); it++)
 				QFile(QApplication::applicationDirPath()+QString("/")+*it).remove();
 		}
-		cout << ch(tr("Jpg images converted into tif format.")) << endl;
+		cout << tr("Jpg images converted into tif format.").toStdString() << endl;
 		getParamMain()->setAvancement(Ecriture);
 	}
 	
@@ -388,7 +388,7 @@ void PastisThread::run() {
 				setReaderror(QString("Images_brutes/"));
 				return;
 			}
-			cout << ch(tr("Sub-directory Images_brutes for raw images made.\n"));
+			cout << tr("Sub-directory Images_brutes for raw images made.\n").toStdString();
 		}
 
 		//organisation des images
@@ -416,7 +416,7 @@ void PastisThread::run() {
 				}*/
 			}
 		}
-		cout << ch(tr("Raw and jpg images are moved. Tif images are renamed (extension).")) << endl;
+		cout << tr("Raw and jpg images are moved. Tif images are renamed (extension).").toStdString() << endl;
 
 		//associations des images et des calibrations
 		QList<int> calibDone; 	//calibrations traitées, afin de supprimer celles en trop
@@ -435,39 +435,6 @@ void PastisThread::run() {
 					imageQt = QImage(getParamMain()->getDossier()+getParamMain()->convertTifName2Couleur(imgTif));
 					if (!imageQt.isNull())	//on teste aussi l'image couleur (sinon elle sera supprimée car non lisible par Qt)
 						taille = imageQt.size();
-				/*	else {	//test en convertissant en JPG avec convert puis en tif avec Devlop puis lecture avec tiff_info
-						QString img = imgTif.section(".",0,-2);
-						QString commande = QString("convert %1%2.tif %1%2.jpg").arg(noBlank(getParamMain()->getDossier())).arg(img);	//conversion img.tif -> img.jpg
-						if (execute(commande)!=0) {
-							cout << ch(QObject::tr("Impossible de convertir l'image %1 en jpg.").arg(noBlank(getParamMain()->getDossier()+imgTif))) << endl;
-							getParamMain()->setAvancement(-35);
-							setReaderror(imgTif);
-							return;
-						}
-						QFile(getParamMain()->getDossier()+imgTif).rename(getParamMain()->getDossier()+QString("Images_brutes/")+imgTif);	//stockage img.tif -> Images_brutes
-						commande = QString("cd %1 & bin/Devlop %2%3.jpg").arg(noBlank(getParamMain()->getMicmacDir())).arg(noBlank(getParamMain()->getDossier())).arg(img);	//conversion img.jpg -> img.tif (2)
-						if (execute(commande)!=0) {
-							cout << ch(QObject::tr("Impossible de convertir l'image %1.jpg en tif.").arg(getParamMain()->getDossier()+img)) << endl;
-							getParamMain()->setAvancement(-35);
-							setReaderror(imgTif);
-							return;
-						}
-						if (!focaleTif(getParamMain()->getDossier()+imgTif, getMicmacDir(), &f, &taille)	//lecture taille de img.tif (2)
-						&& !focaleTif(getParamMain()->getDossier()+imgTif, getMicmacDir(), 0, &taille)) {
-							getParamMain()->setAvancement(-35);
-							setReaderror(imgTif);
-							return;
-						}
-						//img_couleur.tif = Images_brutes/img.jpg
-						QFile(getParamMain()->getDossier()+img+QString(".jpg")).rename(getParamMain()->getDossier()+QString("Images_brutes/")+img+QString(".jpg"));	//stockage img.jpg -> Images_brutes
-						deleteFile(getParamMain()->getDossier()+getParamMain()->convertTifName2Couleur(imgTif));	//suppression img_couleur.tif (2)
-						if (!QFile(getParamMain()->getDossier()+QString("Images_brutes/")+img+QString(".jpg")).link(getParamMain()->getDossier()+getParamMain()->convertTifName2Couleur(imgTif))) {
-							cout << ch(QObject::tr("Impossible de créer un lien vers l'image %1.jpg.").arg(getParamMain()->getDossier()+img)) << endl;	//lien Images_brutes/img.jpg -> img_couleur.tif
-							getParamMain()->setAvancement(-35);
-							setReaderror(imgTif);
-							return;
-						}
-					}*/
 					else {
 						getParamMain()->setAvancement(-35);
 						setReaderror(imgTif);
@@ -541,7 +508,7 @@ void PastisThread::run() {
 				i--;
 			}
 		}
-		cout << ch(tr("Calibration parameters completed.")) << endl;
+		cout << tr("Calibration parameters completed.").toStdString() << endl;
 
 		//ajout de la focale au nom des images tif
 		for (int i=0; i<getParamMain()->getCorrespImgCalib().count(); i++) {
@@ -589,7 +556,7 @@ void PastisThread::run() {
 			getParamMain()->setAvancement(-6);
 			return;
 		}
-		cout << ch(tr("Image list saved.")) << endl;
+		cout << tr("Image list saved.").toStdString() << endl;
 
 		//écriture de la liste des couples d'images
 		QString err = FichierCouples::convertir (getParamMain()->getDossier()+getParamMain()->getCoupleXML(), getParamMain()->getCorrespImgCalib());
@@ -598,14 +565,14 @@ void PastisThread::run() {
 			getParamMain()->setAvancement(-7);
 			return;
 		}
-		cout << ch(tr("Image pairs are updated.")) << endl;
+		cout << tr("Image pairs are updated.").toStdString() << endl;
 
 		//écriture du fichier des associations image - calibration interne
 		if (!FichierAssocCalib::ecrire (getParamMain()->getDossier()+getParamMain()->getAssocCalibXML(), getParamMain()->getCorrespImgCalib())) {
 			getParamMain()->setAvancement(-8);
 			return;
 		}
-		cout << ch(tr("Image - calibration matches saved.")) << endl;
+		cout << tr("Image - calibration matches saved.").toStdString() << endl;
 
 		//écriture du fichier .xml
 		/*QString patronXml;
@@ -624,7 +591,7 @@ void PastisThread::run() {
 		QFile file (QString(":/xml/")+patronXml);
 		deleteFile(getParamMain()->getDossier() + getParamMain()->getChantierXML());
 		file.copy(getParamMain()->getDossier() + getParamMain()->getChantierXML());
-		cout << ch(tr("Default survey parameters loaded.")) << endl;
+		cout << tr("Default survey parameters loaded.").toStdString() << endl;
 
 		//calcul du makefile des points d'intérêt
 		getParamMain()->setMakeFile(QString("MK")+getParamMain()->getDossier().section("/",-2,-2)+QString("b"));
@@ -635,14 +602,14 @@ void PastisThread::run() {
 			if (!*getAnnulation()) getParamMain()->setAvancement(-9);
 			return;
 		}
-		cout << ch(tr("Makefile for Pastis made")) << endl;
+		cout << tr("Makefile for Pastis made").toStdString() << endl;
 		getParamMain()->modifParamPastis().modifCouples().clear();
 		QString lecture = FichierCouples::lire (getParamMain()->getDossier()+getParamMain()->getCoupleXML(), getParamMain()->modifParamPastis().modifCouples(), getParamMain()->getCorrespImgCalib());
 		if (!lecture.isEmpty()) {
 			if (!*getAnnulation()) getParamMain()->setAvancement(-26);
 			return;
 		}
-		cout << ch(tr("image pairs read")) << endl;
+		cout << tr("image pairs read").toStdString() << endl;
 		if (!getParamMain()->getParamPastis().getMultiScale()) getParamMain()->setAvancement(PtsInteret);
 		else getParamMain()->setAvancement(FiltrCpls);
 	}
@@ -662,7 +629,7 @@ void PastisThread::run() {
 			if (!*getAnnulation()) getParamMain()->setAvancement(-10);
 			return;
 		}
-		cout << ch(tr("Tie-point computation first step done.")) << endl;
+		cout << tr("Tie-point computation first step done.").toStdString() << endl;
 
 		//tri des couples
 		cTplValGesInit<string>  aTpl;
@@ -701,7 +668,7 @@ void PastisThread::run() {
 			if (!*getAnnulation()) getParamMain()->setAvancement(-9);
 			return;
 		}
-		cout << ch(tr("Makefile for Pastis made (second step)")) << endl;
+		cout << tr("Makefile for Pastis made (second step)").toStdString() << endl;
 
 		getParamMain()->setAvancement(PtsInteret);
 	}
@@ -727,7 +694,7 @@ void PastisThread::run() {
 			return;
 		}
 		getParamMain()->modifParamApero().setFiltrage(true);
-		cout << ch(tr("Tie-points computed.")) << endl;
+		cout << tr("Tie-points computed.").toStdString() << endl;
 		getParamMain()->setAvancement(ImgsOrientables);
 	}
 	
@@ -742,9 +709,9 @@ void PastisThread::run() {
 			setReaderror(err);
 			return;
 		}
-		cout << ch(tr("Computable poses defined.")) << endl;
+		cout << tr("Computable poses defined.").toStdString() << endl;
 		getParamMain()->setAvancement(Termine);
-		cout << ch(tr("Done")) << endl;
+		cout << tr("Done").toStdString() << endl;
 	}
 
 	setProgressLabel(conv(tr("Done")));
@@ -1027,7 +994,7 @@ void AperoThread::run() {
 			QFile file (QString(":/xml/AperoLiberCalib.xml"));
 			file.copy(newFile);
 		}
-		cout << ch(tr("Default parameters loaded.")) << endl;
+		cout << tr("Default parameters loaded.").toStdString() << endl;
 
 		//écriture de l'image maîtresse dans un fichier xml
 		int i = getParamMain()->findImg(getParamMain()->getParamApero().getImgMaitresse(),1);
@@ -1044,7 +1011,7 @@ void AperoThread::run() {
 				}
 			}
 		}
-		cout << ch(tr("Master image saved.")) << endl;
+		cout << tr("Master image saved.").toStdString() << endl;
 
 		//liste des fichiers de calibration interne (on supprime les calibrations non associées à une image, orientable ou non)
 		getParamMain()->modifParamPastis().modifCalibFiles().clear();
@@ -1129,7 +1096,7 @@ void AperoThread::run() {
 				return;
 			}
 		}
-		cout << ch(tr("Images to be oriented saved.")) << endl;
+		cout << tr("Images to be oriented saved.").toStdString() << endl;
 
 		//lecture des calibrations non créées pour avoir le type
 		for (int i=0; i<getParamMain()->getParamPastis().getCalibFiles().count(); i++) {
@@ -1268,7 +1235,7 @@ void AperoThread::run() {
 				return;
 			}
 		}
-		cout << ch(tr("Calibration definitions saved.")) << endl;
+		cout << tr("Calibration definitions saved.").toStdString() << endl;
 
 		//écriture de l'orientation absolue (si pas d'orientation : fichiers vides)
 		QStringList imgsABasculer;
@@ -1355,7 +1322,7 @@ void AperoThread::run() {
 				return;
 			}
 		}
-		cout << ch(tr("Georeferencing files saved.")) << endl;
+		cout << tr("Georeferencing files saved.").toStdString() << endl;
 
 		//orientation initiale
 		if (getParamMain()->getParamApero().getUseOriInit()) {
@@ -1378,7 +1345,7 @@ void AperoThread::run() {
 				return;
 			}
 		}
-		cout << ch(tr("All parameter files saved.")) << endl;
+		cout << tr("All parameter files saved.").toStdString() << endl;
 
 		//progress dialog
 		getParamMain()->setAvancement(Filtrage);
@@ -1455,7 +1422,7 @@ void AperoThread::run() {
 				if (!*getAnnulation()) getParamMain()->setAvancement(-12);
 				return;
 			}
-			cout << ch(tr("Filtering parameters saved.")) << endl;
+			cout << tr("Filtering parameters saved.").toStdString() << endl;
 			//filtrage
 			QString commande =  comm(QString("cd %1 && %1bin/test_ISA0 %2%3").arg(noBlank(getMicmacDir())).arg(noBlank(getParamMain()->getDossier())).arg(QString("Filtrage.xml")));
 			if (execute(commande)!=0) {
@@ -1465,9 +1432,9 @@ void AperoThread::run() {
 			//renomination des résultats
 			FichierFiltrage::renameFiles(getParamMain()->getDossier());
 			getParamMain()->modifParamApero().setFiltrage(false);
-			cout << ch(tr("Tie points filtered.")) << endl;
+			cout << tr("Tie points filtered.").toStdString() << endl;
 		} else
-			cout << ch(tr("No filtering needed")) << endl;
+			cout << tr("No filtering needed").toStdString() << endl;
 
 		//progress dialog
 		if (getParamMain()->getParamApero().getAutoCalib().count()>0) getParamMain()->setAvancement(AutoCalibration);
@@ -1542,9 +1509,9 @@ void AperoThread::run() {
 				sfocale = QString("0")+sfocale;
 			deleteFile(getParamMain()->getDossier()+imagesTriees.at(i).second);
 			QFile(getParamMain()->getDossier()+QString("Ori-AutoCalib%1/F%2_AutoCalFinale2.xml").arg(numFocales.at(i)).arg(sfocale)).copy(getParamMain()->getDossier()+imagesTriees.at(i).second);
-			cout << ch(tr("Autocalibration (focal length %1) computed.").arg(numFocales.at(i))) << endl;
+			cout << tr("Autocalibration (focal length %1) computed.").arg(numFocales.at(i)).toStdString() << endl;
 		}
-		cout << ch(tr("Auto-calibration computed.")) << endl;
+		cout << tr("Auto-calibration computed.").toStdString() << endl;
 		getParamMain()->setAvancement(Poses);
 	}
 
@@ -1582,7 +1549,7 @@ void AperoThread::run() {
 				}
 				return;
 			}
-			cout << ch(tr("Poses computed")) << endl;
+			cout << tr("Poses computed").toStdString() << endl;
 
 			//maj interface
 			if (getParamMain()->getParamApero().getLiberCalib().contains(true))
@@ -1613,7 +1580,7 @@ void AperoThread::run() {
 				}
 				return;
 			}
-			cout << ch(tr("Poses with short focal length computed")) << endl;
+			cout << tr("Poses with short focal length computed").toStdString() << endl;
 
 			//maj interface
 			getParamMain()->setAvancement(PosesLgFocales);
@@ -1653,7 +1620,7 @@ void AperoThread::run() {
 			}
 			return;
 		}
-		cout << ch(tr("Poses with long focal length computed")) << endl;
+		cout << tr("Poses with long focal length computed").toStdString() << endl;
 
 		//maj interface
 		if (getParamMain()->getParamApero().getLiberCalib().contains(true))
@@ -1715,7 +1682,7 @@ void AperoThread::run() {
 					return;
 				}
 			}
-			cout << ch(tr("Poses with dissociated calibrations computed")) << endl;
+			cout << tr("Poses with dissociated calibrations computed").toStdString() << endl;
 		}
 
 
@@ -1756,7 +1723,7 @@ void AperoThread::run() {
 			}
 		}
 
-		cout << ch(tr("Cameras read.")) << endl;
+		cout << tr("Cameras read.").toStdString() << endl;
 		getParamMain()->setEtape(1);
 
 		//dossier Orient/3D/
@@ -1769,7 +1736,7 @@ void AperoThread::run() {
 				if (!*getAnnulation()) getParamMain()->setAvancement(-7);
 				return;
 			}
-			cout << ch(tr("Directory 3D created.")) << endl;
+			cout << tr("Directory 3D created.").toStdString() << endl;
 		}
 
 		//suite
@@ -1856,7 +1823,7 @@ void AperoThread::run() {
                 file2.close();
 	
 		//maj interface
-		cout << ch(tr("Done")) << endl;
+		cout << tr("Done").toStdString() << endl;
 		getParamMain()->setAvancement(Termine);
 		setProgressLabel(conv(tr("Done")));
 	}
@@ -2063,7 +2030,7 @@ QString AperoThread::orientationAbsolue() {
 		fichierR2.remove();
 		fichierR2b.rename(fPoint);
 	}
-	cout << ch(tr("Absolute aerotriangulation is computed.")) << endl;
+	cout << tr("Absolute aerotriangulation is computed.").toStdString() << endl;
 	return QString();
 }
 
@@ -2172,7 +2139,7 @@ void Points3DThread::run() {
 				}
 				if (cam2==-1) continue;	//cas notamment des fichiers "init" (sauvegarde avant filtrage)
 				//extraction des points d'appui
-				ElPackHomologue aPack = ElPackHomologue::FromFile(ch(getParamMain()->getDossier())+(*aVN)[aK]);
+				ElPackHomologue aPack = ElPackHomologue::FromFile( getParamMain()->getDossier().toStdString()+(*aVN)[aK] );
 				if (aPack.size()==0) continue;
 				if (*getAnnulation()) return;
 				for (ElPackHomologue::const_iterator  itH=aPack.begin(); itH!=aPack.end() ; itH++)
@@ -2218,7 +2185,7 @@ void Points3DThread::run() {
 					ptsApp.push_back(pair<Pt3dr, QColor>(pt3D,c));	
 				}
 			}
-			cout << ch(tr("3D points computed")) << endl;
+			cout << tr("3D points computed").toStdString() << endl;
 			if (*getAnnulation()) return;
 
 			//écriture des points 3D
@@ -2234,7 +2201,7 @@ void Points3DThread::run() {
 					outStream << it->first.x << " " << it->first.y << " " << it->first.z << " " << it->second.red() << " " << it->second.green() << " " << it->second.blue() << "\n";
 			}
 			file.close();	
-			cout << ch(tr("3D points saved.")) << endl;
+			cout << tr("3D points saved.").toStdString() << endl;
 		}
 	}
 
@@ -2269,7 +2236,7 @@ void Points3DThread::run() {
         REAL f = cameras.at(idx).getCamera().Focale();
 	double ech = min(sqrt(dist2)/f/0.1, sqrt(dist1)/double(max(cameras.at(idx).width(),cameras.at(idx).height()))*2.0/3.0);
 	if (ech<echelle) echelle = ech;
-	cout << ch(tr("Survey scale computed.")) << endl;
+	cout << tr("Survey scale computed.").toStdString() << endl;
 
 	//limites du chantier : 3*écart-type des points homologues (ce qui permet de ne pas compter les points trop loin de la zone d'intérêt)
 	GLdouble sigma0[3] = {0,0,0};
@@ -2315,7 +2282,7 @@ void Points3DThread::run() {
 		if (C[j]<zoneChantierEtCam[2*j]) zoneChantierEtCam[2*j] = C[j];
 		if (C[j]>zoneChantierEtCam[2*j+1]) zoneChantierEtCam[2*j+1] = C[j];
 	}
-	cout << ch(tr("Survey bouding box computed.")) << endl;
+	cout << tr("Survey bouding box computed.").toStdString() << endl;
 
 	//emprises des caméras à la profondeur moyenne des points d'appui
         ElMatrix<REAL> R = cameras.at(idx).rotation();
@@ -2340,7 +2307,7 @@ void Points3DThread::run() {
         emprise[1] = cameras.at(idx).getCamera().ImEtProf2Terrain(Pt2dr(cameras.at(idx).width(),0),z);
         emprise[3] = cameras.at(idx).getCamera().ImEtProf2Terrain(Pt2dr(0,cameras.at(idx).height()),z);
         emprise[2] = cameras.at(idx).getCamera().ImEtProf2Terrain(Pt2dr(cameras.at(idx).width(),cameras.at(idx).height()),z);
-	cout << ch(tr("Image bounding box computed.")) << endl;
+	cout << tr("Image bounding box computed.").toStdString() << endl;
 	setDone(true);
 }
 
@@ -2381,7 +2348,7 @@ void MicmacThread::run() {
 		}
 
 		if (getParamMain()->getAvancement()<=Enregistrement) {	
-			cout << ch(tr("Depth map %1 parameter saving :\n").arg(currentCarte->getImageDeReference()));
+			cout << tr("Depth map %1 parameter saving :\n").arg(currentCarte->getImageDeReference()).toStdString();
 
 			//recopie du fichier des paramètres
 			if (repere && !QFile(geoIXml).exists()) QFile(QString(":/xml/")+QString("MicMacConver.xml")).copy(geoIXml);
@@ -2433,20 +2400,20 @@ void MicmacThread::run() {
 				getParamMain()->setAvancement(-2);
 				return;
 			}
-			cout << ch(tr("Mask definition file saved.")) << endl;
+			cout << tr("Mask definition file saved.").toStdString() << endl;
 
 			//liste des images pour la corrélation
 			if (!FichierCartes::ecrire(getParamMain()->getDossier()+getParamMain()->getCartesXML(), *currentCarte)) {
 				getParamMain()->setAvancement(-14);
 				return;
 			}
-			cout << ch(tr("Fail to save search interval for correlation.")) << endl;
+			cout << tr("Fail to save search interval for correlation.").toStdString() << endl;
 
 			//repère
 			if (!repere) {
 				deleteFile(getParamMain()->getDossier()+getParamMain()->getRepereXML());
 				QFile(getParamMain()->getDossier()+currentCarte->getRepereFile(*getParamMain())).copy(getParamMain()->getDossier()+getParamMain()->getRepereXML());
-				cout << ch(tr("DTM frame copied.")) << endl;
+				cout << tr("DTM frame copied.").toStdString() << endl;
 			}
 
 			//orthoimages
@@ -2455,7 +2422,7 @@ void MicmacThread::run() {
 					getParamMain()->setAvancement(-11);
 					return;
 				}
-				cout << ch(tr("Orthorectification parameters saved.")) << endl;
+				cout << tr("Orthorectification parameters saved.").toStdString() << endl;
 			} else if (!repere) {	//fichiers vide
 				if (!createEmptyFile(getParamMain()->getDossier()+getParamMain()->getOrthoXML())) {
 					getParamMain()->setAvancement(-11);
@@ -2468,13 +2435,13 @@ void MicmacThread::run() {
 				getParamMain()->setAvancement(-5);
 				return;
 			}	
-			cout << ch(tr("Output parameter file saved.")) << endl;	
+			cout << tr("Output parameter file saved.").toStdString() << endl;	
 			getParamMain()->setAvancement(Calcul);
 		}
 
 		if (getParamMain()->getAvancement()==Calcul) {	
 			//calcul cartes
-			cout << ch(tr("Depth map %1 computing :\n").arg(currentCarte->getImageDeReference()));
+			cout << tr("Depth map %1 computing :\n").arg(currentCarte->getImageDeReference()).toStdString();
 			QString paramFile(repere? geoIXml : terXml);
 			QString newTempoDir = QString("cd ") + noBlank(getParamMain()->getDossier()) + QString(" & ");
 			QString commande = comm(newTempoDir + noBlank(getMicmacDir()) + QString("bin/MICMAC ") + noBlank(paramFile) + QString(" >")+noBlank(getStdoutfile()));
@@ -2482,7 +2449,7 @@ void MicmacThread::run() {
 				getParamMain()->setAvancement(-4);
 				return;
 			}	
-			cout << ch(tr("Depth map computed.")) << endl;	
+			cout << tr("Depth map computed.").toStdString() << endl;	
 
 			//répertoire conversion
 			QString oldDir = (!repere)? QString("GeoTer%1").arg(numCarte) : QString("GeoI%1").arg(numCarte);
@@ -2493,7 +2460,7 @@ void MicmacThread::run() {
 				getParamMain()->setAvancement(-7);
 				return;
 			}
-			cout << ch(tr("Directory conversion made.")) << endl;	
+			cout << tr("Directory conversion made.").toStdString() << endl;	
 			if (!repere && currentCarte->getDoOrtho()) getParamMain()->setAvancement(Ortho);
 			else {
 				getParamMain()->modifParamMicmac()[i].setACalculer(false);
@@ -2504,14 +2471,14 @@ void MicmacThread::run() {
 
 		if (getParamMain()->getAvancement()==Ortho && !repere && currentCarte->getDoOrtho()) {	
 			//calcul orthos
-			cout << ch(tr("Orthoimage %1 computation :\n").arg(currentCarte->getImageDeReference()));
+			cout << tr("Orthoimage %1 computation :\n").arg(currentCarte->getImageDeReference()).toStdString();
 			QString newTempoDir = QString("cd ") + noBlank(getParamMain()->getDossier()) + QString(" & ");
 			QString commande = comm(newTempoDir + noBlank(getMicmacDir()) + QString("bin/MICMAC ") + noBlank(mmorthoXml) + QString(" >")+noBlank(getStdoutfile()));
 			if (execute(commande)!=0) {
 				getParamMain()->setAvancement(-4);
 				return;
 			}	
-			cout << ch(tr("Orthoimage computed.")) << endl;
+			cout << tr("Orthoimage computed.").toStdString() << endl;
 
 			getParamMain()->modifParamMicmac()[i].setACalculer(false);
 			emit saveCalcul();
@@ -2520,7 +2487,7 @@ void MicmacThread::run() {
 	}
 	deleteFile(getParamMain()->getDossier()+getParamMain()->getCartesXML());
 
-	cout << ch(tr("Done")) << endl;
+	cout << tr("Done").toStdString() << endl;
 	getParamMain()->setAvancement(Termine);
 	setProgressLabel(conv(tr("Done")));
 }
@@ -2940,7 +2907,7 @@ void Convert2PlyThread::run() {
 	QString fichierPly = paramNuage->getFichierPly();
 	QString fichierXml = paramNuage->getFichierXml();
 	if (QFile(fichierPly).exists()) {
-		cout << ch(tr("File %1 already exists.").arg(fichierPly)) << endl;
+		cout << tr("File %1 already exists.").arg(fichierPly).toStdString() << endl;
 		setDone(true);
 		return;
 	}
@@ -2948,7 +2915,7 @@ void Convert2PlyThread::run() {
 	QString masqueFiltre;
 	if (paramPly->getDoFiltrage()) {
 		QString commande = paramNuage->commandeFiltrage(masqueFiltre);
-cout << "masque filtre " << ch(masqueFiltre) << endl;
+cout << "masque filtre " << masqueFiltre.toStdString() << endl;
 		if (commande.isEmpty()) {
 			setReaderror(conv(tr("Fail to read xml file %1 ; no filtering is possible.")).arg(fichierXml));
 			return;
@@ -2972,7 +2939,6 @@ cout << "masque filtre " << ch(masqueFiltre) << endl;
 		setReaderror(conv(tr("Fail to rescale filtered cloud mask, no possible conversion.")).arg(fichierXml));
 		return;
 	}
-	//if (system(ch(commande))!=0) {
 	if (execute(commande)!=0) {
 		setReaderror(conv(tr("Fail to convert point cloud %1 into ply format.")).arg(fichierXml));
 		return;
@@ -2997,55 +2963,3 @@ NuageThread::~NuageThread () {}
 GLuint& NuageThread::getObjectNuag() { return nuageobj; }
 
 void NuageThread::run() { nuageobj = glWidget->makeObjectNuag(i,j); }
-
-/*void NuageThread::run() {
-//dessin du num_ième nuage
-	GLuint list = glGenLists(1);
-	glNewList(list, GL_COMPILE);
-	glMatrixMode(GL_MODELVIEW);
-
-	glBegin(GL_POINTS);
-	int n=0;
-	const cElNuage3DMaille* nuage = parametres->getNuages().at(i).getPoints().at(j);
-	cElNuage3DMaille::tIndex2D it=nuage->Begin();
-cout << "image : " << ch(parametres->getNuages().at(i).getImageCouleur()) << endl;
-QFile file(ch(parametres->getNuages().at(i).getImageCouleur()));
-	if (!file.open(QFile::ReadOnly)) {
-		cout << "can't read\n";
-	}
-file.close();
-	QImage image(parametres->getNuages().at(i).getImageCouleur());	//image tif non tuilée
-	if (image.isNull()) cout << "L'image " << ch(parametres->getNuages().at(i).getImageCouleur()) << " n'a pas pu être ouverte.\n";
-	while(it!=nuage->End()) {
-		//masque du nuage
-		if (!nuage->IndexHasContenu(it)) {
-			nuage->IncrIndex(it);
-			continue;
-		}
-		Pt2dr pt = nuage->Index2Plani(it);
-		//point 3D
-		Pt3dr P = nuage->PtOfIndex(it);
-		//coloration
-		if (parametres->getColor()==GLParams::Hypso) {
-			GLdouble teinte = (P.z - parametres->getZonenuage().at(4)) * (parametres->getZonenuage().at(5) - parametres->getZonenuage().at(4));
-			teinte = 1-max (min (teinte,1.0), 0.0);
-			QColor couleur;
-			couleur.setHsv(teinte*300, 200, 255);	//couleur hypso
-			qglColor(couleur);		
-                } else if (parametres->getColor()==GLParams::Texture) {
-			qglColor(QColor(image.pixel(pt.x,pt.y)));
-                } else if (parametres->getColor()==GLParams::Mono) {	//monochrome (blanc)
-			qglColor(QColor(255,255,255));	
-		}
-		glVertex3d(P.x, P.y, P.z);
-		nuage->IncrIndex(it);
-		n++;
-	}		
-	glEnd();
-	//delete correlImage;
-cout << "nombre de points 3D : " << n << "\n";
-
-	glEndList();
-	nuageobj = list;
-}*/
-

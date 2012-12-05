@@ -159,7 +159,7 @@ InterfCartes8B::InterfCartes8B(const QString& dossier, const QString& dossierMic
 	cancelButton = buttonBox->addButton (tr("Cancel"), QDialogButtonBox::RejectRole);
 	assistant = help;
 	helpButton = new QPushButton ;
-	helpButton->setIcon(QIcon(":/images/linguist-check-off.png"));
+	helpButton->setIcon(QIcon(g_iconDirectory+"linguist-check-off.png"));
 	buttonBox->addButton (helpButton, QDialogButtonBox::HelpRole);
 
 	QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -296,11 +296,11 @@ QString InterfCartes8B::checkParametres(int i) {
 
 void InterfCartes8B::optionChanged(int n) {
 //vérificiation de la validité des paramètres, enregistrement et aperçu
-	cout << ch(tr("Loading preview...")) << endl;
+	cout << tr("Loading preview...").toStdString() << endl;
 	//vérification
 	QString err = checkParametres(n);
 	if (!err.isEmpty()) {
-		cout << ch(err) << endl;
+		cout << err.toStdString() << endl;
 		return;	//paramètre invalide
 	}
 	if (n==0 || n==4) {
@@ -309,14 +309,14 @@ void InterfCartes8B::optionChanged(int n) {
 	}
 	//exécution
 	if (!paramConvert8B.getCommande(micmacDir, dir, listeCartes->at(0), dir+QString("tempofile.tif"), dir+QString("tempofile.txt"), false))  {
-		cout << ch(tr("Fail to compute depth map preview.")) << endl;
+		cout << tr("Fail to compute depth map preview.").toStdString() << endl;
 		return;	//paramètre invalide
 	}
 	//conversion en tif non tuilé
 	QString commande = noBlank(applicationPath()) + QString("/lib/tiff2rgba ") + noBlank(dir) + QString("tempofile.tif ") + noBlank(dir) + QString("tempofile2.tif");
-cout << ch(commande) << endl;
+cout << commande.toStdString() << endl;
 	if (execute(commande)!=0) {
-		cout << ch(tr("Fail to convert temporary depth map into untiled tif format.")) << endl;
+		cout << tr("Fail to convert temporary depth map into untiled tif format.").toStdString() << endl;
 		QFile(dir+QString("tempofile.tif")).remove();
 		QFile(dir+QString("tempofile.txt")).remove();
 		return;
@@ -324,7 +324,7 @@ cout << ch(commande) << endl;
 	//aperçu
 	QImage image(dir+QString("tempofile2.tif"));
 	if (image.isNull()) {
-		cout << ch(tr("Temporary depth map image is empty.")) << endl;
+		cout << tr("Temporary depth map image is empty.").toStdString() << endl;
 		QFile(dir+QString("tempofile.tif")).remove();
 		QFile(dir+QString("tempofile2.tif")).remove();
 		QFile(dir+QString("tempofile.txt")).remove();
@@ -478,7 +478,7 @@ bool ParamConvert8B::getCommande(const QString& micmacDir, const QString& dir, c
 		if (image.getDezoom()!=1) {
 			imgRescaled = image.getTexture().section(".",0,-2)+QString("sc%1.tif").arg(image.getDezoom());
 			QString commande2 = comm(QString("%1bin/ScaleIm %2 %3 Out=%4").arg(noBlank(micmacDir)).arg(noBlank(dir+image.getTexture())).arg(image.getDezoom()).arg(noBlank(dir+imgRescaled)));
-			if (system(ch(commande2))!=0)
+			if ( system( commande2.toStdString().c_str() )!=0 )
 				return false;
 		} else
 			imgRescaled = image.getTexture();
@@ -514,9 +514,9 @@ bool ParamConvert8B::getCommande(const QString& micmacDir, const QString& dir, c
 		}
 	}
 	commande += QString(" >") + noBlank(outstd);
-cout << ch(commande) << endl;
+cout << commande.toStdString() << endl;
 	#if (defined Q_OS_LINUX || defined Q_WS_MAC)
-	if (system(ch(commande))!=0) {
+	if (system (commande.toStdString().c_str() )!=0) {
 	#else
 	if (execute(comm(commande))!=0) {
 	#endif
@@ -784,7 +784,7 @@ InterfModele3D::InterfModele3D(QWidget* parent, Assistant* help, ParamMain& para
 	cancelButton = buttonBox->addButton (tr("Cancel"), QDialogButtonBox::RejectRole);
 	assistant = help;
 	helpButton = new QPushButton ;
-	helpButton->setIcon(QIcon(":/images/linguist-check-off.png"));
+	helpButton->setIcon(QIcon(g_iconDirectory+"linguist-check-off.png"));
 	buttonBox->addButton (helpButton, QDialogButtonBox::HelpRole);
 
 	QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -919,7 +919,7 @@ void InterfModele3D::dirPlyChoose() {
   	if (dirNames.size()!=1)
 		return;
 	QString saveDir = QDir(dir).relativeFilePath(dirNames.at(0)) + QString("/");
-	cout << ch(saveDir) << endl;		//laisser sinon pb de pointeur
+	cout << saveDir.toStdString() << endl;		//laisser sinon pb de pointeur
 	//nuage à modifier
 	int idx = treeWidget->indexOfTopLevelItem(treeWidget->itemAt(mouse));
 	if (idx==-1) {
@@ -998,7 +998,7 @@ void InterfModele3D::drawMaskFiltr() {
 		imgMasque.save(imgNontuilee(applicationPath()+QString("/masquetempo.tif")));
 		//masque tuilé
 		QString commande = comm(QString("%1bin/ScaleIm %2/masquetempo.tif 0.125").arg(noBlank(paramMain->getMicmacDir())).arg(noBlank(applicationPath())));
-		if (system(ch(commande))!=0) {
+		if (system( commande.toStdString().c_str() )!=0) {
 			qMessageBox(this, tr("Execution error"), conv(tr("Fail to rescale mask %1.")).arg(masqueInit));
 			return;
 		}
@@ -1426,7 +1426,7 @@ InterfOrtho::InterfOrtho(QWidget* parent, Assistant* help, ParamMain& param, QVe
 	cancelButton = buttonBox->addButton (tr("Cancel"), QDialogButtonBox::RejectRole);
 	assistant = help;
 	helpButton = new QPushButton ;
-	helpButton->setIcon(QIcon(":/images/linguist-check-off.png"));
+	helpButton->setIcon(QIcon(g_iconDirectory+"linguist-check-off.png"));
 	buttonBox->addButton (helpButton, QDialogButtonBox::HelpRole);
 
 	QVBoxLayout *mainLayout = new QVBoxLayout;

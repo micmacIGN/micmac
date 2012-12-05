@@ -342,11 +342,7 @@ GLuint GLWidget::makeObjectNuag(int num, int etape) {
 
 	QImage image(parametres->getNuages().at(num).getImageCouleur());	//image tif non tuilée
 	if (!QFile(parametres->getNuages().at(num).getImageCouleur()).exists() || image.isNull() || image.size()==QSize(0,0))
-		cout << ch(tr("Fail to read image %1.\n").arg(parametres->getNuages().at(num).getImageCouleur()));
-
-	//if (parametres->getNuages().at(num).getFromTA() && etape==0) image = image.scaled (image.size()*8, Qt::KeepAspectRatio, Qt::FastTransformation);
-	//QImage correlImage(nuages->at(num)->correlation->at(etape));
-	//if (correlImage.isNull()) cout << "L'image de corrélation " << ch(nuages->at(num)->correlation->at(etape)) << " n'a pas pu être ouverte.\n";	//penser à convertir en image tif non tuilée
+		cout << tr("Fail to read image %1.\n").arg(parametres->getNuages().at(num).getImageCouleur()).toStdString();
 
 	while(it!=nuage->End()) {
 		//masque du nuage
@@ -356,11 +352,6 @@ GLuint GLWidget::makeObjectNuag(int num, int etape) {
 		}
 		Pt2dr pt = nuage->Index2Plani(Pt2dr(it.x,it.y));
 		pt = parametres->getNuages().at(num).getGeorefMNT().terrain2Image(pt);
-		//corrélation correcte
-		//if (QColor(correlImage.pixel(it.x,it.y)).value()<200) {
-		//	nuage->IncrIndex(it);
-		//	continue;
-		//}
 		//point 3D
 		Pt3dr P = nuage->PtOfIndex(it);
 		//coloration
@@ -1351,19 +1342,19 @@ VueChantier::VueChantier(const ParamMain* pMain, QWidget* parent, Assistant* hel
 	//boutons de translation
 	translationBox = new QGroupBox(conv(tr("Translate scene")));
 	intiViewButton = new QToolButton;
-	intiViewButton->setIcon(QIcon(":/images/radialGradient.png"));
+	intiViewButton->setIcon(QIcon(g_iconDirectory+"radialGradient.png"));
 	intiViewButton->setToolTip(conv(tr("Initialize view")));
-	moveButtons[0]->setIcon(QIcon(":/images/linguist-prev.png"));
+	moveButtons[0]->setIcon(QIcon(g_iconDirectory+"linguist-prev.png"));
 	moveButtons[0]->setToolTip(conv(tr("Move left")));
-	moveButtons[1]->setIcon(QIcon(":/images/linguist-next.png"));
+	moveButtons[1]->setIcon(QIcon(g_iconDirectory+"linguist-next.png"));
 	moveButtons[1]->setToolTip(conv(tr("Move right")));
-	moveButtons[2]->setIcon(QIcon(":/images/linguist-down.png"));
+	moveButtons[2]->setIcon(QIcon(g_iconDirectory+"linguist-down.png"));
 	moveButtons[2]->setToolTip(conv(tr("Move dowm")));
-	moveButtons[3]->setIcon(QIcon(":/images/linguist-up.png"));
+	moveButtons[3]->setIcon(QIcon(g_iconDirectory+"linguist-up.png"));
 	moveButtons[3]->setToolTip(conv(tr("Move up")));
-	moveButtons[5]->setIcon(QIcon(":/images/linguist-diag2.png"));
+	moveButtons[5]->setIcon(QIcon(g_iconDirectory+"linguist-diag2.png"));
 	moveButtons[5]->setToolTip(conv(tr("Move closer")));	//Z négatif
-	moveButtons[4]->setIcon(QIcon(":/images/linguist-diag.png"));
+	moveButtons[4]->setIcon(QIcon(g_iconDirectory+"linguist-diag.png"));
 	moveButtons[4]->setToolTip(conv(tr("Move farer")));
 	QGridLayout* translationLayout = new QGridLayout;
 	translationLayout->addWidget(moveButtons[3], 0, 1, 1, 1,Qt::AlignHCenter);
@@ -1376,9 +1367,9 @@ VueChantier::VueChantier(const ParamMain* pMain, QWidget* parent, Assistant* hel
 	translationBox->setLayout(translationLayout);
 
 	zoomBox = new QGroupBox(tr("Zoom in"));
-	moveButtons[6]->setIcon(QIcon(":/images/designer-property-editor-remove-dynamic2.png"));
+	moveButtons[6]->setIcon(QIcon(g_iconDirectory+"designer-property-editor-remove-dynamic2.png"));
 	moveButtons[6]->setToolTip(conv(tr("Scale down")));
-	moveButtons[7]->setIcon(QIcon(":/images/designer-property-editor-add-dynamic.png"));
+	moveButtons[7]->setIcon(QIcon(g_iconDirectory+"designer-property-editor-add-dynamic.png"));
 	moveButtons[7]->setToolTip(tr("Scale up"));
 	QHBoxLayout* zoomLayout = new QHBoxLayout;
 	zoomLayout->addWidget(moveButtons[7],0,Qt::AlignRight);
@@ -1387,7 +1378,7 @@ VueChantier::VueChantier(const ParamMain* pMain, QWidget* parent, Assistant* hel
 
 	focaleBox = new QGroupBox;
 	QToolButton* focaleButton = new QToolButton ;
-	focaleButton->setIcon(QIcon(":/images/movie_grey_camera.png"));
+	focaleButton->setIcon(QIcon(g_iconDirectory+"movie_grey_camera.png"));
 	focaleButton->setEnabled(false);
 	focaleButton->resize(QSize(20,20));
 	focaleButton->setToolTip(tr("View focal length"));
@@ -1421,17 +1412,17 @@ VueChantier::VueChantier(const ParamMain* pMain, QWidget* parent, Assistant* hel
 	QGroupBox* affButtonsBox = new QGroupBox;
 	QHBoxLayout* affButtonsLayout = new QHBoxLayout;
 	infoButton = new QToolButton ;
-	infoButton->setIcon(QIcon(":/images/qmessagebox-info.png"));
+	infoButton->setIcon(QIcon(g_iconDirectory+"qmessagebox-info.png"));
 	infoButton->setToolTip(tr("Image name"));
 	infoButton->setCheckable(true);
 	infoButton->setChecked(false);
 	colorButton = new QToolButton ;
-	colorButton->setIcon(QIcon(":/images/color.png"));
+	colorButton->setIcon(QIcon(g_iconDirectory+"color.png"));
 	colorButton->setToolTip(conv(tr("texture\nDisplay points with hypsometric colours")));
 	colorButton->setCheckable(true);
 	colorButton->setChecked(true);
 	measureButton = new QToolButton ;
-	measureButton->setIcon(QIcon(":/images/measure.png"));
+	measureButton->setIcon(QIcon(g_iconDirectory+"measure.png"));
 	measureButton->setToolTip(tr("Measure 3D distances"));
 	measureButton->setCheckable(true);
 	measureButton->setChecked(false);
@@ -1447,7 +1438,7 @@ VueChantier::VueChantier(const ParamMain* pMain, QWidget* parent, Assistant* hel
 	refBox = new SelectCamBox;
 
 	helpButton = new QToolButton ;
-	helpButton->setIcon(QIcon(":/images/linguist-check-off.png"));
+	helpButton->setIcon(QIcon(g_iconDirectory+"linguist-check-off.png"));
 	helpButton->setToolTip(tr("Help"));
 
 	mapper3 = new QSignalMapper(); 	
@@ -1726,7 +1717,7 @@ void VueChantier::textureClicked() {
 	disconnect(colorButton, SIGNAL(clicked()), this, SLOT(textureClicked()));
 	disconnect(colorButton, SIGNAL(clicked()), this, SLOT(hypsoClicked()));
 	disconnect(colorButton, SIGNAL(clicked()), this, SLOT(noColorClicked()));
-	colorButton->setIcon(QIcon(":/images/color.png"));
+	colorButton->setIcon(QIcon(g_iconDirectory+"color.png"));
 	colorButton->setToolTip(conv(tr("texture\nDisplay points with hypsometric colours")));
 	connect(colorButton, SIGNAL(clicked()), this, SLOT(hypsoClicked()));
 	glWidget->setColor(GLParams::Texture);
@@ -1736,7 +1727,7 @@ void VueChantier::hypsoClicked() {
 	disconnect(colorButton, SIGNAL(clicked()), this, SLOT(textureClicked()));
 	disconnect(colorButton, SIGNAL(clicked()), this, SLOT(hypsoClicked()));
 	disconnect(colorButton, SIGNAL(clicked()), this, SLOT(noColorClicked()));
-	colorButton->setIcon(QIcon(":/images/white.png"));
+	colorButton->setIcon(QIcon(g_iconDirectory+"white.png"));
 	colorButton->setToolTip(conv(tr("hypsometric colours\nDisplay points in grayscale")));
 	connect(colorButton, SIGNAL(clicked()), this, SLOT(noColorClicked()));
 	glWidget->setColor(GLParams::Hypso);
@@ -1746,7 +1737,7 @@ void VueChantier::noColorClicked() {
 	disconnect(colorButton, SIGNAL(clicked()), this, SLOT(textureClicked()));
 	disconnect(colorButton, SIGNAL(clicked()), this, SLOT(hypsoClicked()));
 	disconnect(colorButton, SIGNAL(clicked()), this, SLOT(noColorClicked()));
-	colorButton->setIcon(QIcon(":/images/texture.png"));
+	colorButton->setIcon(QIcon(g_iconDirectory+"texture.png"));
 	colorButton->setToolTip(conv(tr("grayscale\nDisplay points with texture")));
 	connect(colorButton, SIGNAL(clicked()), this, SLOT(textureClicked()));
 	glWidget->setColor(GLParams::Mono);
@@ -1899,7 +1890,7 @@ bool VueChantier::isDone() const { return done; }
 
 RotationButton::RotationButton() : QToolButton() {
 	setFocusPolicy(Qt::ClickFocus);;
-	icone = new QIcon(":/images/rotation.png");
+	icone = new QIcon(g_iconDirectory+"rotation.png");
 	setIcon(*icone);
 	setToolTip(conv(tr("Rotations (clic on corresponding circle)")));
 	setFixedSize(QSize(100,100));
@@ -2176,13 +2167,13 @@ bool GLParams::addNuages(const ParamMain& paramMain) {
 		bool ok;
 		QString numCarte = paramMain.getNumImage( nuages.at(i).getCarte().section("/",-1,-1), &ok, false );
 		if (!ok) {
-			cout << ch(conv(QObject::tr("Fail to extract image %1 number.")).arg(nuages.at(i).getCarte().section("/",-1,-1))) << endl;
+			cout << conv(QObject::tr("Fail to extract image %1 number.")).arg(nuages.at(i).getCarte().section("/",-1,-1)).toStdString() << endl;
 			return false;
 		}
                 for (int j=0; j<poses.count(); j++) {
 			QString numPose = paramMain.getNumImage( poses.at(j).getNomImg(), &ok, false );
 			if (!ok) {
-				cout << ch(conv(QObject::tr("Fail to extract image %1 number.")).arg(poses.at(j).getNomImg())) << endl;
+				cout << conv(QObject::tr("Fail to extract image %1 number.")).arg(poses.at(j).getNomImg()).toStdString() << endl;
 				return false;
 			}
 			if (numCarte==numPose) {
@@ -2310,13 +2301,13 @@ void SelectCamBox::create(const Mode& mode, const QString& refImg, const QString
 	else setTitle(conv(tr("Camera selection for correlation")));
 
 	refButton = new QToolButton ;
-	refButton->setIcon(QIcon(":/images/camera.png"));
+	refButton->setIcon(QIcon(g_iconDirectory+"camera.png"));
 	refButton->setToolTip(conv(tr("Select a camera")));
 	refButton->setCheckable(true);
 	refButton->setChecked(false);
 
 	okButton = new QToolButton;
-	okButton->setIcon(QIcon(":/images/linguist-check-on.png"));
+	okButton->setIcon(QIcon(g_iconDirectory+"linguist-check-on.png"));
 	okButton->setToolTip(tr("Accept"));
 	okButton->setEnabled(false);
 

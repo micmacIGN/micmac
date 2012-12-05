@@ -13,8 +13,8 @@ set (MICMAC_VERSION_MINOR 0)
 ## 			OPTIONS			##
 ##############################
 
-SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+# construire l'interface graphique
+OPTION(WITH_INTERFACE  "build graphic interface" OFF)
 
 # Utiliser Kakadu
 OPTION(WITH_KAKADU  "Include KAKADU Support" OFF)
@@ -251,3 +251,4 @@ endif()
 
 # INSTALLATION : des exe et Dll nécessaires sous windows
 install(FILES ${BinAuxWin} DESTINATION ${Install_Dir})
+

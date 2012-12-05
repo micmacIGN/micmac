@@ -17,6 +17,10 @@ Pour exécuter ce programme, il faut respecter l'arborescence :
 
 int main(int argc, char *argv[])
 {
+	MMD_InitArgcArgv(argc, argv);
+	g_interfaceDirectory = QString( ( NS_ParamChantierPhotogram::MMDir()+"/interface/" ).c_str() );
+	g_iconDirectory = g_interfaceDirectory+"images/";
+
 	QApplication app(argc, argv);
 
 	if (argc>2) {
@@ -30,18 +34,19 @@ int main(int argc, char *argv[])
 		int reponse = Interface::dispMsgBox("L'application est déjà lancée dans une autre fenêtre.", "Voulez-vous l'exécuter quand même ?", QVector<int>()<<0<<-1<<1, 2);
 		if (reponse!=0) return 0;
 	}*/	//pb : le segment reste si l'interface est quittée brusquement
-
+	
 	//rappel des données globales inter-sessions
 	QSettings settings("IGN/MATIS", "interfaceMicmac");
 	QCoreApplication::setOrganizationName("IGN/MATIS");
 	QCoreApplication::setOrganizationDomain("IGN/MATIS/interfaceMicmac.com");
 	QCoreApplication::setApplicationName("interfaceMicmac");
-
+	
 	//traductions (doivent être faites avant de charger la MainWindow) et encodage
 	QString langue = settings.value("langue").toString();
 
 	QTranslator qtTranslator;
-	qtTranslator.load("french");
+	if ( !qtTranslator.load( g_interfaceDirectory+"french.qm" ) )
+		cout << "unable to load french dictionnary" << endl;
 	if ((langue.isEmpty() && QLocale::system().language()==QLocale::English) || (langue==QLocale::languageToString(QLocale::English))) {
 		if (langue.isEmpty()) settings.setValue("langue", QLocale::languageToString(QLocale::English));
 		QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
@@ -54,7 +59,7 @@ int main(int argc, char *argv[])
 		QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
 		QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
 	}
-
+	
 	//style
 	app.setFont(QFont("Arial", 12));
 
@@ -62,7 +67,7 @@ int main(int argc, char *argv[])
 	Interface *interf = new Interface(settings);
 	interf->show();
 	if (argc==2) interf->openCalc(QString(argv[1]));
-
+	
 	return app.exec();
 }
 
