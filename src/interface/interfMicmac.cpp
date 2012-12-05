@@ -26,7 +26,7 @@ InterfMicmac::InterfMicmac(Interface* parent, const ParamMain* param, int typCha
 	QDialogButtonBox* buttonBox = new QDialogButtonBox();
 
 	QPushButton* helpButton = new QPushButton ;
-	helpButton->setIcon(QIcon(":/images/linguist-check-off.png"));
+	helpButton->setIcon(QIcon(g_iconDirectory+"linguist-check-off.png"));
 	helpButton->setToolTip(tr("Help"));
 	buttonBox->addButton (helpButton, QDialogButtonBox::HelpRole);
 	connect(helpButton, SIGNAL(clicked()), this, SLOT(helpClicked()));
@@ -34,7 +34,7 @@ InterfMicmac::InterfMicmac(Interface* parent, const ParamMain* param, int typCha
 	QPushButton* cancelButton = buttonBox->addButton (tr("Cancel"), QDialogButtonBox::ActionRole);
 	connect(cancelButton, SIGNAL(clicked()), this, SLOT(cancelClicked()));
 
-	precButton = buttonBox->addButton (QApplication::translate("Dialog", ch(tr("Previous")), 0, QApplication::CodecForTr), QDialogButtonBox::AcceptRole);
+	precButton = buttonBox->addButton (QApplication::translate("Dialog", tr("Previous").toStdString().c_str(), 0, QApplication::CodecForTr), QDialogButtonBox::AcceptRole);
 	precButton->setToolTip(tr("Previous tab"));
 	connect(precButton, SIGNAL(clicked()), this, SLOT(precClicked()));
 
@@ -142,8 +142,8 @@ cout << (QFile(carteCourante->getMasque(*paramMain)).exists()) << " && " << (QFi
 cout << (carteCourante->getRepere()) << " || " << (!carteCourante->getDoOrtho()) << " || " << (carteCourante->getImgsOrtho().count()>0) << " && " << (carteCourante->getEchelleOrtho()>0) << endl;
 cout << (!carteCourante->getImageDeReference().isEmpty()) << " " << (carteCourante->getImagesCorrel().count()>0) << endl;
 cout << (carteCourante->getInterv().first>0) << " && " << (carteCourante->getInterv().second>carteCourante->getInterv().first) << " && " << (!carteCourante->getDiscontinuites()) << " || " << (carteCourante->getSeuilZRelatif()>0) << endl;
-cout << ch(carteCourante->getRepereFile(*paramMain)) << endl;
-cout << ch(carteCourante->getReferencementMasque(*paramMain)) << endl;
+cout << carteCourante->getRepereFile(*paramMain).toStdString() << endl;
+cout << carteCourante->getReferencementMasque(*paramMain).toStdString() << endl;
 	if (	!carteCourante->getImageDeReference().isEmpty() && carteCourante->getImagesCorrel().count()>0
 		&& QFile(carteCourante->getImageSaisie(*paramMain)).exists() && (!carteCourante->getAutreRepere() || QFile(dir+carteCourante->getRepereFile(*paramMain)).exists())
 		&& QFile(carteCourante->getMasque(*paramMain)).exists() && QFile(carteCourante->getReferencementMasque(*paramMain)).exists()
@@ -273,19 +273,19 @@ CartesTab::CartesTab(InterfMicmac* interfMicmac, const ParamMain* pMain,  QVecto
 	connect(treeWidget, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
 
 	//boutons
-	addButton = new QPushButton(QIcon(":/images/designer-property-editor-add-dynamic.png"), QString());
+	addButton = new QPushButton(QIcon(g_iconDirectory+"designer-property-editor-add-dynamic.png"), QString());
 	addButton->setToolTip(conv(tr("Add new depth map")));
 	addButton->setMaximumSize (QSize(32,32));
 	addButton->setEnabled(treeWidget->topLevelItemCount()<paramMain->getParamApero().getImgToOri().count());
 	connect(addButton, SIGNAL(clicked()), this, SLOT(addNewCarte()));
 
-	removeButton = new QPushButton(QIcon(":/images/designer-property-editor-remove-dynamic2.png"), QString());
+	removeButton = new QPushButton(QIcon(g_iconDirectory+"designer-property-editor-remove-dynamic2.png"), QString());
 	removeButton->setToolTip(conv(tr("Remove depth map from computation")));
 	removeButton->setMaximumSize (QSize(32,32));
 	removeButton->setEnabled(false);
 	connect(removeButton, SIGNAL(clicked()), this, SLOT(removeCartes()));
 
-	modifButton = new QPushButton(QIcon(":/images/designer-edit-resources-button.png"), QString());
+	modifButton = new QPushButton(QIcon(g_iconDirectory+"designer-edit-resources-button.png"), QString());
 	modifButton->setToolTip(conv(tr("Modify depth map parameters")));
 	modifButton->setMaximumSize (QSize(32,32));
 	modifButton->setEnabled(false);
@@ -478,7 +478,7 @@ MNTTab::MNTTab(InterfMicmac* interfMicmac, const ParamMain* pMain,  CarteDeProfo
 	else imageCombo->setCurrentIndex(-1);
 	connect(imageCombo, SIGNAL(currentIndexChanged(QString)), this, SLOT(imgRefChanged(QString)));
 
-	vue3DButton = new QPushButton(QIcon(":/images/viewmag.png"), QString());
+	vue3DButton = new QPushButton(QIcon(g_iconDirectory+"viewmag.png"), QString());
 	vue3DButton->setToolTip(conv(tr("Select graphically reference image in the 3D view")));
 	vue3DButton->setMaximumSize (QSize(32,32));
 	connect(vue3DButton, SIGNAL(clicked()), this, SLOT(vue3DClicked()));
@@ -503,7 +503,7 @@ MNTTab::MNTTab(InterfMicmac* interfMicmac, const ParamMain* pMain,  CarteDeProfo
 	connect(correlImgsList, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
 	
 	addCorrelImgButton = new QToolButton;
-	addCorrelImgButton->setIcon(QIcon(":/images/designer-property-editor-add-dynamic.png"));
+	addCorrelImgButton->setIcon(QIcon(g_iconDirectory+"designer-property-editor-add-dynamic.png"));
 	addCorrelImgButton->setMaximumSize (QSize(32,32));
 	addCorrelImgButton->setToolTip(conv(tr("Add an image for correlation")));
 	addCorrelImgButton->setEnabled(parametre->getImagesCorrel().count()<paramMain->getParamApero().getImgToOri().count()-1);
@@ -517,7 +517,7 @@ MNTTab::MNTTab(InterfMicmac* interfMicmac, const ParamMain* pMain,  CarteDeProfo
 	connect(addFromStat, SIGNAL(triggered()), this, SLOT(addFromStatClicked()));
 	
 	removeCorrelImgButton = new QPushButton;
-	removeCorrelImgButton->setIcon(QIcon(":/images/designer-property-editor-remove-dynamic2.png"));
+	removeCorrelImgButton->setIcon(QIcon(g_iconDirectory+"designer-property-editor-remove-dynamic2.png"));
 	removeCorrelImgButton->setMaximumSize (QSize(32,32));
 	removeCorrelImgButton->setToolTip(conv(tr("Remove images for correlation")));
 	removeCorrelImgButton->setEnabled(parametre->getImagesCorrel().count()>0);
@@ -723,7 +723,7 @@ void MNTTab::addFromStatClicked() {
 	//on vérifie qu'il y a une caméra dans chaque direction
 	for (int k=0; k<8; k+=2) {
 		if (cam[k].first.isEmpty()) {
-			qMessageBox(this, tr("Warning"), QApplication::translate("Dialog", ch(tr("Selected cameras do not surround the reference camera.\nSome parts of the depth map could be unseen from any other image and not be reconstructed.")), 0, QApplication::CodecForTr));
+			qMessageBox(this, tr("Warning"), QApplication::translate("Dialog", tr("Selected cameras do not surround the reference camera.\nSome parts of the depth map could be unseen from any other image and not be reconstructed.").toStdString().c_str(), 0, QApplication::CodecForTr));
 			break;
 		}
 	}
@@ -836,7 +836,7 @@ RepereTab::RepereTab(InterfMicmac* interfMicmac, const ParamMain* pMain, VueChan
 	openBox->setLayout(openLayout);
 
 	//paramétrage du repère (nouveau repère)
-	vue3DButton = new QPushButton(QIcon(":/images/viewmag.png"), QString());
+	vue3DButton = new QPushButton(QIcon(g_iconDirectory+"viewmag.png"), QString());
 	vue3DButton->setToolTip(conv(tr("Select graphically background image in the 3D view")));
 	vue3DButton->setMaximumSize (QSize(32,32));
 	connect(vue3DButton, SIGNAL(clicked()), this, SLOT(vue3DClicked()));
@@ -1085,7 +1085,7 @@ void RepereTab::TAClicked() {
 			qMessageBox(this, conv(tr("Write error")),  conv(tr("Fail to write images to be reoriented.")));
 			return;
 		}
-cout << ch(dir+QString("KeyCalibration.xml")) << endl;		
+cout << (dir+QString("KeyCalibration.xml")).toStdString() << endl;		
 
 		//calcul
 		QString commande = comm(QString("cd %1 \n %1bin/Bascule %2 F %3 PostPlan=%4 P1Rep=%5 P2Rep=%6 AxeRep=%7 ImRep=%8").arg(noBlank(paramMain->getMicmacDir())).arg(s).arg(noBlank(parametre->getRepereFile(*paramMain))).arg("_MasqRepTA").arg(QPoint2QString(parametre->getSegmentRep().first)).arg(QPoint2QString(parametre->getSegmentRep().second)).arg(QPoint2QString(parametre->getAxeRep())).arg(parametre->getImgRep()));
@@ -1219,14 +1219,14 @@ OrthoTab::OrthoTab(InterfMicmac* interfMicmac, const ParamMain* pMain, CarteDePr
 	connect(listeWidget, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
 	
 	addImgsButton = new QPushButton;
-	addImgsButton->setIcon(QIcon(":/images/designer-property-editor-add-dynamic.png"));
+	addImgsButton->setIcon(QIcon(g_iconDirectory+"designer-property-editor-add-dynamic.png"));
 	addImgsButton->setMaximumSize (QSize(32,32));
 	addImgsButton->setToolTip(conv(tr("Add an image to orthorectify")));
 	addImgsButton->setEnabled(parametre->getImgsOrtho().count()<paramMain->getParamApero().getImgToOri().count());
 	connect(addImgsButton, SIGNAL(clicked()), this, SLOT(addImgsClicked()));
 	
 	removeImgsButton = new QPushButton;
-	removeImgsButton->setIcon(QIcon(":/images/designer-property-editor-remove-dynamic2.png"));
+	removeImgsButton->setIcon(QIcon(g_iconDirectory+"designer-property-editor-remove-dynamic2.png"));
 	removeImgsButton->setMaximumSize (QSize(32,32));
 	removeImgsButton->setToolTip(conv(tr("Remove an image from orthorectification")));
 	removeImgsButton->setEnabled(parametre->getImgsOrtho().count()<paramMain->getParamApero().getImgToOri().count());

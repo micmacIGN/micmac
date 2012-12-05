@@ -134,11 +134,14 @@ bool Assistant::startAssistant() {
 	if (!proc)
 		proc = new QProcess();
 	if (proc->state() != QProcess::Running) {
-		QString app = QLatin1String(ch(applicationPath() + QString ("/help/assistant")));
+		#if ELISE_windows
+				QString app = QLatin1String( ( applicationPath()+QString ("/../interface/help/assistant") ).toStdString().c_str() );
+		#else
+				QString app = QLatin1String( ( applicationPath()+QString ("../interface/help/assistant") ).toStdString().c_str() );
+		#endif
 		QStringList args;
 		args << QLatin1String("-collectionFile")
-		     //<< QLatin1String((QString(":/help/help.qhc"))))
-		     << QLatin1String(ch(applicationPath()+QString("/help/help.qhc")))
+		     << QLatin1String( (applicationPath()+QString("/../interface/help/help.qhc")).toStdString().c_str() )
 		     << QLatin1String("-enableRemoteControl");
 		proc->start(app, args);
 		if (!proc->waitForStarted()) {
@@ -203,8 +206,6 @@ QStringList Options::checkBinaries(const QString& micmacDossier) {	//micmacDossi
 
 	if (!QDir(micmacDossier).exists())
 		l.push_back( conv(QObject::tr("Selected micmac directory %1 does not exist.")).arg(micmacDossier) );
-	else if (micmacDossier.section("/",-2,-2)!=QString("micmac"))
-		l.push_back( conv(QObject::tr("Selected directory %1 is not named micmac.")).arg(micmacDossier) );
 	else if (!checkPath(micmacDossier))
 		l.push_back( conv(QObject::tr("Selected directory %1 contains special characters ; this can provide issues with some calculations. Please modify parent directory name.")).arg(micmacDossier) );
 
@@ -353,10 +354,10 @@ InterfOptions::InterfOptions(QWidget* parent, Assistant* help, const QSettings& 
 	camList->setSelectionMode (QAbstractItemView::ExtendedSelection);
 	camList->adjustSize();
 
-	addCam = new QPushButton(QIcon(":/images/designer-property-editor-add-dynamic.png"), QString());
+	addCam = new QPushButton(QIcon(g_iconDirectory+"designer-property-editor-add-dynamic.png"), QString());
 	addCam->setToolTip(conv(tr("Add camera into the data base")));
 	addCam->setMaximumSize (QSize(40,34));
-	removeCam = new QPushButton(QIcon(":/images/designer-property-editor-remove-dynamic.png"), QString());
+	removeCam = new QPushButton(QIcon(g_iconDirectory+"designer-property-editor-remove-dynamic.png"), QString());
 	removeCam->setToolTip(conv(tr("Remove camera from the data base")));
 	removeCam->setMaximumSize (QSize(40,34));
 
@@ -377,7 +378,7 @@ InterfOptions::InterfOptions(QWidget* parent, Assistant* help, const QSettings& 
 	cancelButton = buttonBox->addButton (tr("Cancel"), QDialogButtonBox::RejectRole);
 	assistant = help;
 	helpButton = new QPushButton ;
-	helpButton->setIcon(QIcon(":/images/linguist-check-off.png"));
+	helpButton->setIcon(QIcon(g_iconDirectory+"linguist-check-off.png"));
 	buttonBox->addButton (helpButton, QDialogButtonBox::HelpRole);
 
 	QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -501,10 +502,10 @@ InterfVerifMicmac::InterfVerifMicmac(QWidget* parent, Assistant* help, const Par
 
 	QDialogButtonBox* buttonBox = new QDialogButtonBox();
 	majButton = new QPushButton;
-	majButton->setIcon(QIcon(":/images/update.png"));
+	majButton->setIcon(QIcon(g_iconDirectory+"update.png"));
 	buttonBox->addButton (majButton, QDialogButtonBox::ActionRole);
 	helpButton = new QPushButton ;
-	helpButton->setIcon(QIcon(":/images/linguist-check-off.png"));
+	helpButton->setIcon(QIcon(g_iconDirectory+"linguist-check-off.png"));
 	buttonBox->addButton (helpButton, QDialogButtonBox::HelpRole);
 
 	QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -536,21 +537,21 @@ void InterfVerifMicmac::majClicked() {
 	bool ok;
 	QString numRef = paramMain->getNumImage( paramMain->getParamMicmac().at(numCarte).getImageDeReference(), &ok, false );
 	if (!ok) {
-		cout << ch(tr("Fail to extract reference image number.")) << endl;
+		cout << tr("Fail to extract reference image number.").toStdString() << endl;
 		return;
 	}
 	QString dir = paramMain->getDossier() + QString("Geo%1%2").arg(paramMain->getParamMicmac().at(numCarte).getRepere()? QString("I") : QString("Ter")).arg(numRef) + QString("/");
 	if (QFile(dir+QString("tempo.tif")).exists()) QFile(dir+QString("tempo.tif")).remove();
 	QString commande = comm(QString("%1bin/GrShade %2Z_Num1_DeZoom32_Geom-Im-%3.tif Mask=Masq_Geom-Im-%3_DeZoom32.tif Dequant=1 Out=%2tempo.tif >%2tempofile.txt").arg(noBlank(paramMain->getMicmacDir())).arg(noBlank(dir)).arg(numRef));
 	if (execute(commande)!=0)  {
-		cout << ch(tr("Fail to compute depth map preview.")) << endl;
+		cout << tr("Fail to compute depth map preview.").toStdString() << endl;
 		return;
 	}
 	//conversion en tif non tuilé
 	if (QFile(dir+QString("tempo2.tif")).exists()) QFile(dir+QString("tempo2.tif")).remove();
 	QString commande2 = comm(QString("%1/lib/tiff2rgba %2tempo.tif %2tempo2.tif").arg(noBlank(applicationPath())).arg(noBlank(dir)));
 	if (execute(commande2)!=0) {
-		cout << ch(tr("Fail to convert temporary depth map into untiled tif format.")) << endl;
+		cout << tr("Fail to convert temporary depth map into untiled tif format.").toStdString() << endl;
 		QFile(dir+QString("tempo.tif")).remove();
 		QFile(dir+QString("tempofile.txt")).remove();
 		return;
@@ -558,7 +559,7 @@ void InterfVerifMicmac::majClicked() {
 	if (QFile(dir+QString("tempo3.tif")).exists()) QFile(dir+QString("tempo3.tif")).remove();
 	QString commande3 = comm(QString("%1/lib/tiff2rgba %2Correl_Geom-Im-%3_Num_1.tif %2tempo3.tif").arg(noBlank(applicationPath())).arg(noBlank(dir)).arg(numRef));
 	if (execute(commande3)!=0) {
-		cout << ch(tr("Fail to convert image for correlation into untiled tif format.")) << endl;
+		cout << tr("Fail to convert image for correlation into untiled tif format.").toStdString() << endl;
 		QFile(dir+QString("tempo.tif")).remove();
 		QFile(dir+QString("tempo2.tif")).remove();
 		QFile(dir+QString("tempofile.txt")).remove();
@@ -571,7 +572,7 @@ void InterfVerifMicmac::majClicked() {
 		QFile(dir+QString("tempo2.tif")).remove();
 		QFile(dir+QString("tempo3.tif")).remove();
 		QFile(dir+QString("tempofile.txt")).remove();
-		cout << ch(tr("Fail to open depth map preview.")) << endl;
+		cout << tr("Fail to open depth map preview.").toStdString() << endl;
 		return;
 	}
 	image = image.scaled(150,150,Qt::KeepAspectRatio);
@@ -581,7 +582,7 @@ void InterfVerifMicmac::majClicked() {
 
 	QImage image2(dir+QString("tempo3.tif"));
 	if (image2.isNull()) {
-		cout << ch(tr("Fail to open image for correlation.")) << endl;
+		cout << tr("Fail to open image for correlation.").toStdString() << endl;
 		QFile(dir+QString("tempo.tif")).remove();
 		QFile(dir+QString("tempo2.tif")).remove();
 		QFile(dir+QString("tempo3.tif")).remove();

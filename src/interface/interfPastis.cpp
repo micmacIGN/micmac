@@ -17,7 +17,7 @@ InterfPastis::InterfPastis( QWidget* parent, Assistant* help, ParamMain* pMain) 
 
 	//liste des calibrations à fournir
 	QApplication::setOverrideCursor(Qt::WaitCursor);
-	cout << ch(tr("Used lens search...")) << endl;
+	cout << tr("Used lens search...").toStdString() << endl;
 	QList<int> calibAFournir;
 	QList<QSize> formatCalibAFournir;
 	QList<int> refImgCalibAFournir;
@@ -29,7 +29,7 @@ InterfPastis::InterfPastis( QWidget* parent, Assistant* help, ParamMain* pMain) 
 			int f;
 			QSize s;
 			if (!focaleTif(dossier+img, paramMain->getMicmacDir(), &f, &s)) {
-				cout << ch(tr("Fail to extract image %1 focal length and size.").arg(img)) << endl;
+				cout << tr("Fail to extract image %1 focal length and size.").arg(img).toStdString() << endl;
 				continue;
 			}
 			if (!calibAFournir.contains(f)) {
@@ -38,16 +38,20 @@ InterfPastis::InterfPastis( QWidget* parent, Assistant* help, ParamMain* pMain) 
 				refImgCalibAFournir.push_back(i);
 			}
 		} else if (img.section(".",-1,-1).toUpper()==QString("JPG") || img.section(".",-1,-1).toUpper()==QString("JPEG")) {	//trouver comment obtenir les métadonnées
-				cout << ch(tr("Fail to extract image %1 focal length and size (JGP format)").arg(img)) << endl;
+				cout << tr("Fail to extract image %1 focal length and size (JGP format)").arg(img).toStdString() << endl;
 		} else {	//raw -> ElDcraw
+					// __DEL
+					cout << "paramMain->getMicmacDir() = " << paramMain->getMicmacDir().toStdString() << endl;
+					cout << "dossier+img = " << (dossier+img).toStdString() << endl;
+					cout << "paramMain->getDossier() = " << paramMain->getDossier().toStdString() << endl;
 			QString commande = QString("%1bin/ElDcraw -i -v %2 >%3truc").arg(noBlank(paramMain->getMicmacDir())).arg(noBlank(dossier+img)).arg(noBlank(paramMain->getDossier()));
 			if (execute(commande)!=0) {
-				cout << ch(tr("Fail to extract image %1 focal length and size.").arg(img)) << endl;
+				cout << tr("Fail to extract image %1 focal length and size.").arg(img).toStdString() << endl;
 				continue;
 			}
 			QFile file(paramMain->getDossier()+QString("truc"));
 			if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-				cout << ch(tr("Fail to extract image %1 focal length and size.").arg(img)) << endl;
+				cout << tr("Fail to extract image %1 focal length and size.").arg(img).toStdString() << endl;
 				continue;
 			}
 			QTextStream inStream(&file);
@@ -89,7 +93,7 @@ InterfPastis::InterfPastis( QWidget* parent, Assistant* help, ParamMain* pMain) 
 				formatCalibAFournir.push_back(QSize(lgr,larg));
 				refImgCalibAFournir.push_back(i);
 			} else if (f==0 || larg==0 || lgr==0)
-				cout << ch(tr("Fail to extract image %1 focal length and size.").arg(img)) << endl;
+				cout << tr("Fail to extract image %1 focal length and size.").arg(img).toStdString() << endl;
 		}
 	}
 	longueur = numeric_limits<int>::max();
@@ -120,7 +124,7 @@ InterfPastis::InterfPastis( QWidget* parent, Assistant* help, ParamMain* pMain) 
 	calButton = buttonBox->addButton (tr("Next"), QDialogButtonBox::AcceptRole);
 	cancelButton = buttonBox->addButton (tr("Cancel"), QDialogButtonBox::RejectRole);
 	helpButton = new QPushButton ;
-	helpButton->setIcon(QIcon(":/images/linguist-check-off.png"));
+	helpButton->setIcon(QIcon(g_iconDirectory+"linguist-check-off.png"));
 	buttonBox->addButton (helpButton, QDialogButtonBox::HelpRole);
 
 	QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -320,13 +324,13 @@ CalibTab::CalibTab(InterfPastis* interfPastis, ParamPastis* parametres, ParamMai
 	calibViewSelected->setSelectionMode (QAbstractItemView::ExtendedSelection);
 	//calibViewSelected->adjustSize();
 
-	addCalib = new QPushButton(QIcon(":/images/linguist-fileopen.png"), QString());
+	addCalib = new QPushButton(QIcon(g_iconDirectory+"linguist-fileopen.png"), QString());
 	addCalib->setToolTip(tr("Load a file"));
 	addCalib->setMaximumSize (QSize(40,34));
-	removeCalib = new QPushButton(QIcon(":/images/designer-property-editor-remove-dynamic.png"), QString());
+	removeCalib = new QPushButton(QIcon(g_iconDirectory+"designer-property-editor-remove-dynamic.png"), QString());
 	removeCalib->setToolTip(tr("Remove a file"));
 	removeCalib->setMaximumSize (QSize(40,34));
-	newCalib = new QPushButton(QIcon(":/images/designer-property-editor-add-dynamic.png"), QString());
+	newCalib = new QPushButton(QIcon(g_iconDirectory+"designer-property-editor-add-dynamic.png"), QString());
 	newCalib->setToolTip(conv(tr("Create a new file")));
 	newCalib->setMaximumSize (QSize(40,34));
 	
@@ -430,10 +434,10 @@ CalibTab::CalibTab(InterfPastis* interfPastis, ParamPastis* parametres, ParamMai
 		fishEyeLayout->addRow(rayonLabel,rayonEdit);
 		fishEyeLayout->addRow(paramRadialLabel,paramRadialEdit);
 		
-	saveNewCalib = new QPushButton(QIcon(":/images/linguist-filesave.png"), QString());
+	saveNewCalib = new QPushButton(QIcon(g_iconDirectory+"linguist-filesave.png"), QString());
 	saveNewCalib->setToolTip(tr("Save this camera"));
 	saveNewCalib->setMaximumSize (QSize(40,34));
-	cancelNewCalib = new QPushButton(QIcon(":/images/linguist-prev.png"), QString());
+	cancelNewCalib = new QPushButton(QIcon(g_iconDirectory+"linguist-prev.png"), QString());
 	cancelNewCalib->setMaximumSize (QSize(40,34));
 	cancelNewCalib->setToolTip(tr("Cancel"));
 	
@@ -1082,19 +1086,19 @@ CoupleTab::CoupleTab(InterfPastis* interfPastis, ParamMain* paramMain, ParamPast
 	initList(listWidget1);
 
 	addButton = new QToolButton;
-	addButton->setIcon(QIcon(":/images/designer-property-editor-add-dynamic.png"));
+	addButton->setIcon(QIcon(g_iconDirectory+"designer-property-editor-add-dynamic.png"));
 	addButton->setMaximumSize (QSize(40,34));
 	addButton->setToolTip(tr("Add this pair"));
-	addAllButton = new QPushButton(QIcon(":/images/linguist-next.png"), QString());
+	addAllButton = new QPushButton(QIcon(g_iconDirectory+"linguist-next.png"), QString());
 	addAllButton->setMaximumSize (QSize(40,34));
 	addAllButton->setToolTip(conv(tr("Select all pairs...")));
-	removeButton = new QPushButton(QIcon(":/images/designer-property-editor-remove-dynamic2.png"), QString());
+	removeButton = new QPushButton(QIcon(g_iconDirectory+"designer-property-editor-remove-dynamic2.png"), QString());
 	removeButton->setMaximumSize (QSize(40,34));
 	removeButton->setToolTip(tr("Remove this pair"));
-	removeAllButton = new QPushButton(QIcon(":/images/linguist-prev.png"), QString());
+	removeAllButton = new QPushButton(QIcon(g_iconDirectory+"linguist-prev.png"), QString());
 	removeAllButton->setMaximumSize (QSize(40,34));
 	removeAllButton->setToolTip(tr("Remove all pairs"));
-	expandCollapseButton = new QPushButton(QIcon(":/images/collapse.png"), QString());
+	expandCollapseButton = new QPushButton(QIcon(g_iconDirectory+"collapse.png"), QString());
 	expandCollapseButton->setMaximumSize (QSize(40,34));
 	expandCollapseButton->setToolTip(conv(tr("Collapse the tree")));
 	expandCollapseButton->setEnabled (false);
@@ -1579,7 +1583,7 @@ void CoupleTab::expandAll() {
 	disconnect(expandCollapseButton, SIGNAL(clicked()), this, SLOT(expandAll()));
 	connect(expandCollapseButton, SIGNAL(clicked()), this, SLOT(collapseAll()));
 	treeWidget->expandAll ();
-	expandCollapseButton->setIcon(QIcon(":/images/collapse.png"));
+	expandCollapseButton->setIcon(QIcon(g_iconDirectory+"collapse.png"));
 	expandCollapseButton->setToolTip(conv(tr("Collapse the tree")));	
 }
 
@@ -1587,7 +1591,7 @@ void CoupleTab::collapseAll() {
 	disconnect(expandCollapseButton, SIGNAL(clicked()), this, SLOT(collapseAll()));
 	connect(expandCollapseButton, SIGNAL(clicked()), this, SLOT(expandAll()));
 	treeWidget->collapseAll ();	
-	expandCollapseButton->setIcon(QIcon(":/images/expand.png"));
+	expandCollapseButton->setIcon(QIcon(g_iconDirectory+"expand.png"));
 	expandCollapseButton->setToolTip(conv(tr("Expand the tree")));	
 }
 

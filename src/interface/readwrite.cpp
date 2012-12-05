@@ -440,10 +440,17 @@ QString ParamCalcul::lire(ParamMain& paramMain, const QString& fichier) {
 		tag = xmlTree.getMainTag().getEnfant("Repertoire",&ok);
 		if (!ok) return sbase+conv(QObject::tr("Data directory not found."));
 		QString repertoire = tag.getContenu();
-		if (repertoire.left(1)!=QString("/")) repertoire = QDir(dir+QString("/")+repertoire).canonicalPath();
+		
+		#if ELISE_windows
+			if ( repertoire[1]!=QChar(':') )
+		#else
+			if ( repertoire.left(1)!=QString("/") )
+		#endif
+				repertoire = QDir(dir+QString("/")+repertoire).canonicalPath();
+
 		repertoire = QDir(repertoire).absolutePath()+QString("/");
 		paramMain.setDossier(repertoire);
-		cout << ch(QObject::tr("Data directory : ")); cout << ch(repertoire) << endl;
+		cout << QObject::tr("Data directory : ").toStdString(); cout << repertoire.toStdString() << endl;
 	
 		if (paramMain.getCurrentMode()!=ParamMain::ImageMode) {   //PointsEnCours, PointsMode, PoseEnCours, PoseMode, CarteEnCours, EndMode
 			//chantier
@@ -848,7 +855,7 @@ QString ParamCalcul::lire(ParamMain& paramMain, const QString& fichier) {
 				}
 			}
 			paramMain.modifCorrespImgCalib().push_back(array);
-cout << ch(paramMain.getCorrespImgCalib().last().getImageTif()) << endl;
+cout << paramMain.getCorrespImgCalib().last().getImageTif().toStdString() << endl;
 		}
 
 		//calibrations
@@ -888,7 +895,7 @@ cout << ch(paramMain.getCorrespImgCalib().last().getImageTif()) << endl;
 
 
 //liste des caméras utilisées
-BDCamera::BDCamera() { BDfile = applicationPath() + QString("/xml/BDCamera.xml"); }
+BDCamera::BDCamera() { BDfile = applicationPath() + QString("/../interface/xml/BDCamera.xml"); }
 
 QString BDCamera::lire (QList<pair<QString,double> >& imgNames) {
 	QString sbase = conv(QObject::tr("Camera data base %1 reading :\n")).arg(BDfile);
@@ -1478,7 +1485,7 @@ bool FichierMaitresse::ecrire (QString fichier, QString maitresse, QString calib
 	bool ok = false;
 	int focale = calibFile.section(".",0,-2).right(3).toInt(&ok);
 	if (!ok) {
-		cout << ch(QObject::tr("Fail to extract focal length from master image calibration file name.")) << endl;
+		cout << QObject::tr("Fail to extract focal length from master image calibration file name.").toStdString() << endl;
 		return false;
 	}
 	QString f = QVariant(focale).toString();
@@ -2057,7 +2064,7 @@ bool FichierAppuiGPS::convert (const QString& fichierold, const QString& fichier
 	QList<QVector<double> > coordonnees;
 	QString err = lireFichierTexte(oldFile, points, coordonnees);
 	if (!err.isEmpty()) {
-		cout << ch(err) << endl;
+		cout << err.toStdString() << endl;
 		return false;
 	}
 
@@ -2214,12 +2221,12 @@ bool FichierAppuiImage::convert (const QString& fichierold, const QString& fichi
 		bool b = false;
 		double x = mesure.section(" ",1,1).replace(p,v).toDouble(&b);
 		if (!b) {
-			cout << ch(QObject::tr("%1 : unvalid coordinate\n").arg(mesure.section(" ",1,1)));
+			cout << QObject::tr("%1 : unvalid coordinate\n").arg(mesure.section(" ",1,1)).toStdString();
 			return false;
 		}
 		double y = mesure.section(" ",2,2).replace(p,v).toDouble(&b);
 		if (!b) {
-			cout << ch(QObject::tr("%1 : unvalid coordinate\n").arg(mesure.section(" ",2,2)));
+			cout << QObject::tr("%1 : unvalid coordinate\n").arg(mesure.section(" ",2,2)).toStdString();
 			return false;
 		}
 		
@@ -2529,7 +2536,7 @@ bool FichierSommetsGPS::convert (const QString& fichierold, const ParamMain& par
 			}
 			image = image.right(image.count()-12).section(".",0,-2);
 			if (paramMain.findImg(image,1)==-1) {
-				cout << ch(conv(QObject::tr("Image %1 does not match any survey image.")).arg(image)) << endl;
+				cout << conv(QObject::tr("Image %1 does not match any survey image.")).arg(image).toStdString() << endl;
 				return false;
 			} else
 				images.push_back(image);
@@ -2547,14 +2554,14 @@ bool FichierSommetsGPS::convert (const QString& fichierold, const ParamMain& par
 			QDir(paramMain.getDossier()).rename(QString("Ori-BDDC"),QString("Ori-BDDC%1").arg(i));
 		}
 		if (!QDir(paramMain.getDossier()).mkdir("Ori-BDDC")) {
-			cout << ch(conv(QObject::tr("Fail to create directory %1.")).arg(resultDir)) << endl;	
+			cout << conv(QObject::tr("Fail to create directory %1.")).arg(resultDir).toStdString() << endl;	
 			return false;
 		}
 
 		//conversion
 		QFile oldFile(fichierold);
 		if (!oldFile.open(QFile::ReadOnly | QFile::Text)) {
-			cout << ch(conv(QObject::tr("Fail to open file %1.")).arg(fichierold)) << endl;
+			cout << conv(QObject::tr("Fail to open file %1.")).arg(fichierold).toStdString() << endl;
 			return false;
 		}
 		QTextStream textReader(&oldFile);
@@ -2567,7 +2574,7 @@ bool FichierSommetsGPS::convert (const QString& fichierold, const ParamMain& par
 			int idx = paramMain.findImg(image,1,false);
 			if (idx==-1) idx = paramMain.findImg(image,0);
 			if (idx==-1) {
-				cout << ch(conv(QObject::tr("Image %1 does not match any survey image.")).arg(image)) << endl;
+				cout << conv(QObject::tr("Image %1 does not match any survey image.")).arg(image).toStdString() << endl;
 				return false;
 			}
 			image = paramMain.getCorrespImgCalib().at(idx).getImageTif();
@@ -2576,17 +2583,17 @@ bool FichierSommetsGPS::convert (const QString& fichierold, const ParamMain& par
 			bool b = false;
 			double x = sommet.section(" ",1,1).replace(p,v).toDouble(&b);
 			if (!b) {
-				cout << ch(QObject::tr("%1 : this coordinate is not a number").arg(sommet.section(" ",1,1))) << endl;;
+				cout << QObject::tr("%1 : this coordinate is not a number").arg(sommet.section(" ",1,1)).toStdString() << endl;;
 				return false;
 			}
 			double y = sommet.section(" ",2,2).replace(p,v).toDouble(&b);
 			if (!b) {
-				cout << ch(QObject::tr("%1 : this coordinate is not a number").arg(sommet.section(" ",2,2))) << endl;
+				cout << QObject::tr("%1 : this coordinate is not a number").arg(sommet.section(" ",2,2)).toStdString() << endl;
 				return false;
 			}
 			double z = sommet.section(" ",3,3).replace(p,v).toDouble(&b);
 			if (!b) {
-				cout << ch(QObject::tr("%1 : this coordinate is not a number").arg(sommet.section(" ",2,2))) << endl;
+				cout << QObject::tr("%1 : this coordinate is not a number").arg(sommet.section(" ",2,2)).toStdString() << endl;
 				return false;
 			}
 
@@ -2600,12 +2607,12 @@ bool FichierSommetsGPS::convert (const QString& fichierold, const ParamMain& par
 				}
 				pitch = sommet.section(" ",5,5).replace(p,v).toDouble(&b);
 				if (!b) {
-					cout << ch(QObject::tr("%1 : this coordinate is not a number").arg(sommet.section(" ",5,5))) << endl;
+					cout << QObject::tr("%1 : this coordinate is not a number").arg(sommet.section(" ",5,5)).toStdString() << endl;
 					return false;
 				}
 				direction = sommet.section(" ",6,6).replace(p,v).toDouble(&b);
 				if (!b) {
-					cout << ch(QObject::tr("%1 : this coordinate is not a number").arg(sommet.section(" ",6,6))) << endl;
+					cout << QObject::tr("%1 : this coordinate is not a number").arg(sommet.section(" ",6,6)).toStdString() << endl;
 					return false;
 				}
 			}
@@ -2613,7 +2620,7 @@ bool FichierSommetsGPS::convert (const QString& fichierold, const ParamMain& par
 			QString fichiernew = resultDir + QString("Orientation-%1.xml").arg(image);
 			QFile newFile(fichiernew);
 			if (!newFile.open(QFile::WriteOnly | QFile::Text | QIODevice::Truncate)) {
-				cout << ch(conv(QObject::tr("Fail to save file %1.")).arg(fichiernew)) << endl;
+				cout << conv(QObject::tr("Fail to save file %1.")).arg(fichiernew).toStdString() << endl;
 				return false;
 			}
 			QXmlStreamWriter xmlWriter(&newFile);
@@ -2628,7 +2635,7 @@ bool FichierSommetsGPS::convert (const QString& fichierold, const ParamMain& par
 		}
 		oldFile.close();
 		if (images.count()==0) {
-			cout << ch(conv(QObject::tr("No images found\n"))) << endl;
+			cout << conv(QObject::tr("No images found\n")).toStdString() << endl;
 			return false;
 		}
 	}
@@ -2644,7 +2651,7 @@ FichierOriInit::FichierOriInit() {}
 bool FichierOriInit::ecrire (const QString& fichier) {
 	QFile file(fichier);
 	if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate)) {
-		cout << ch(QObject::tr("Fail to open file %1.").arg(fichier)) << endl;
+		cout << QObject::tr("Fail to open file %1.").arg(fichier).toStdString() << endl;
 		return false;
 	}
 	QXmlStreamWriter xmlWriter(&file);
@@ -3253,10 +3260,10 @@ QString FichierGeorefMNT::lire(GeorefMNT& georefMNT) {
 QString focaleRaw(const QString& image, const ParamMain& paramMain, MetaDataRaw& metaDataRaw) {
 	QString commande = QString("%1bin/ElDcraw -i -v %2 >%3truc").arg(noBlank(paramMain.getMicmacDir())).arg(noBlank(image)).arg(noBlank(paramMain.getDossier()));
 	if (execute(commande)!=0)
-		return ch(QObject::tr("Fail to extract image %1 metadata.").arg(image));
+		return (QObject::tr("Fail to extract image %1 metadata.")).arg(image);
 	QFile file(paramMain.getDossier()+QString("truc"));
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-		return ch(QObject::tr("Fail to extract image %1 metadata.").arg(image));
+		return (QObject::tr("Fail to extract image %1 metadata.")).arg(image);
 	QTextStream inStream(&file);
 	while (!inStream.atEnd()) {
 		QString text = inStream.readLine();
@@ -3298,16 +3305,19 @@ QString focaleRaw(const QString& image, const ParamMain& paramMain, MetaDataRaw&
 	return QString();
 }
 
-bool focaleTif(const QString& image, const QString& micmacDir, int* focale, QSize* taille) {
+bool focaleTif(const QString& image, const QString& micmacDir, int* focale, QSize* taille)
+{
 	if (focale==0 && taille==0) return true;
+
 	QString commande = QString("%1bin/tiff_info %2 > %3/tempofile.txt").arg(noBlank(micmacDir)).arg(noBlank(image)).arg(noBlank(image.section("/",0,-2)));
 	if (execute(commande)!=0) {
-		cout << ch(QObject::tr("tiff_info binary failed to read image %1 metadata.").arg(image)) << endl;
+		cout << QObject::tr("tiff_info binary failed to read image %1 metadata.").arg(image).toStdString() << endl;
 		return false;
 	}
+
 	QFile file(image.section("/",0,-2)+QString("/tempofile.txt"));
 	if (!file.open(QFile::ReadOnly | QFile::Text)) {
-		cout << ch(QObject::tr("Fail to open image %1 metadata file.").arg(image)) << endl;
+		cout << QObject::tr("Fail to open image %1 metadata file.").arg(image).toStdString() << endl;
 		file.remove();
 		return false;
 	}
@@ -3321,30 +3331,33 @@ bool focaleTif(const QString& image, const QString& micmacDir, int* focale, QSiz
 			QString foc = text.section(" ",1,1);
 			if (!foc.at(foc.count()-1).isDigit()) foc = foc.left(foc.count()-1);
 			int f = foc.toInt(&ok);
-			if (!ok || f==-1) {
-				cout << ch(QObject::tr("The focal length extracted from image %1 metadata is uncorrect.").arg(image)) << endl;
+			if (!ok) {
+				cout << QObject::tr("The focal length extracted from image %1 metadata is uncorrect.").arg(image).toStdString() << endl;
 				file.remove();
 				return false;
 			}
 			*focale = f;
 		} else {
-			QString s = text.section(" ",1,1);
+			QString s = text.section(" ",1);
+			s = s.section(" ",1,1);
 			QString x = s.section(",",0,0);
 			QString y = s.section(",",1,1);
+			
 			if (x.left(1)==QString("(")) x = x.right(x.count()-1);
 			if (y.right(2)==QString(");")) y = y.left(y.count()-2);
 			int w = x.toInt(&ok);
 			if (!ok) {
-				cout << ch(QObject::tr("The image width extracted from image %1 metadata is uncorrect.").arg(image)) << endl;
+				cout << QObject::tr("The image width extracted from image %1 metadata is uncorrect.").arg(image).toStdString() << endl;
 				file.remove();
 				return false;
 			}
 			int h = y.toInt(&ok);
 			if (!ok) {
-				cout << ch(QObject::tr("The image height extracted from image %1 metadata is uncorrect.").arg(image)) << endl;
+				cout << QObject::tr("The image height extracted from image %1 metadata is uncorrect.").arg(image).toStdString() << endl;
 				file.remove();
 				return false;
 			}
+
 			taille->setWidth(max(w,h));
 			taille->setHeight(min(w,h));
 		}

@@ -229,7 +229,7 @@ PaintInterf::PaintInterf(const ParamMain* pMain, Assistant* help, QWidget* paren
 	setMaximumSize(maximumSizeHint());
 
 	statusBar = new QStatusBar;
-	fullScreenButton = new QPushButton(QIcon(":/images/windows_fullscreen.png"), QString());
+	fullScreenButton = new QPushButton(QIcon(g_iconDirectory+"windows_fullscreen.png"), QString());
 	fullScreenButton->setToolTip(conv(tr("Full screen")));
 	fullScreenButton->setMaximumSize(40,34);
 	statusBar->addPermanentWidget(fullScreenButton);
@@ -288,23 +288,23 @@ void PaintInterf::display() {
 }
 
 void PaintInterf::createActions() {
-	okAct = new QAction(QIcon(":/images/linguist-check-on.png"), tr("&Ok"), this);
+	okAct = new QAction(QIcon(g_iconDirectory+"linguist-check-on.png"), tr("&Ok"), this);
 	connect(okAct, SIGNAL(triggered()), this, SLOT(okClicked()));
 
-	dragAct = new QAction(QIcon(":/images/cursor-openhand.png"), conv(tr("Image moving")), this);
+	dragAct = new QAction(QIcon(g_iconDirectory+"cursor-openhand.png"), conv(tr("Image moving")), this);
 	connect(dragAct, SIGNAL(triggered()), this, SLOT(dragClicked()));
 
-	zoomInAct = new QAction(QIcon(":/images/designer-property-editor-add-dynamic.png"), tr("&Zoom in"), this);
+	zoomInAct = new QAction(QIcon(g_iconDirectory+"designer-property-editor-add-dynamic.png"), tr("&Zoom in"), this);
 	connect(zoomInAct, SIGNAL(triggered()), this, SLOT(zoomInClicked()));
 
-	zoomOutAct = new QAction(QIcon(":/images/designer-property-editor-remove-dynamic.png"), conv(tr("Zoom out")), this);
+	zoomOutAct = new QAction(QIcon(g_iconDirectory+"designer-property-editor-remove-dynamic.png"), conv(tr("Zoom out")), this);
 	connect(zoomOutAct, SIGNAL(triggered()), this, SLOT(zoomOutClicked()));
 
-	zoomFullAct = new QAction(QIcon(":/images/cursor-sizeall.png"), conv(tr("Scale to Window")), this);
+	zoomFullAct = new QAction(QIcon(g_iconDirectory+"cursor-sizeall.png"), conv(tr("Scale to Window")), this);
 	for (int i=0; i<renderArea.count(); i++)
 		connect(zoomFullAct, SIGNAL(triggered()), renderArea.at(i), SLOT(zoomFullClicked()));
 
-	helpAct = new QAction(QIcon(":/images/linguist-check-off.png"), tr("Help"), this);
+	helpAct = new QAction(QIcon(g_iconDirectory+"linguist-check-off.png"), tr("Help"), this);
 	connect(helpAct, SIGNAL(triggered()), this, SLOT(helpClicked()));
 }
 
@@ -520,7 +520,7 @@ VueHomologues::VueHomologues(const ParamMain* pMain, Assistant* help, QWidget* p
 		if (signed(aPair.first.find("_init"))!=-1 || signed(aPair.second.find("_init"))!=-1) continue;
 		if (signed(aPair.first.find("_filtre"))!=-1 || signed(aPair.second.find("_filtre"))!=-1) continue;
 		//extraction des points
-		ElPackHomologue aPack = ElPackHomologue::FromFile(ch(dir)+(*aVN)[aK]);
+		ElPackHomologue aPack = ElPackHomologue::FromFile(dir.toStdString()+(*aVN)[aK]);
 		if (aPack.size()==0) continue;
 		for (ElPackHomologue::const_iterator  itH=aPack.begin(); itH!=aPack.end() ; itH++)
 		{				
@@ -594,23 +594,23 @@ VueHomologues::~VueHomologues () {
 
 void VueHomologues::createActions() {
 	PaintInterf::createActions();
-	filtrAct = new QAction(QIcon(":/images/bin.png"), tr("&Display toolbar for deleting mismatches manually"), this);
+	filtrAct = new QAction(QIcon(g_iconDirectory+"bin.png"), tr("&Display toolbar for deleting mismatches manually"), this);
 	connect(filtrAct, SIGNAL(triggered()), this, SLOT(displayFiltreClicked()));
 
 	//barre d'outil de filtrage
-	marquiseAct = new QAction(QIcon(":/images/cursor-arrow.png"), tr("&Tie-point selection and removal (make a frame or click)"), this);
+	marquiseAct = new QAction(QIcon(g_iconDirectory+"cursor-arrow.png"), tr("&Tie-point selection and removal (make a frame or click)"), this);
 	connect(marquiseAct, SIGNAL(triggered()), this, SLOT(doMarquiseClicked()));
 
-	undoAct = new QAction(QIcon(":/images/linguist-editundo.png"), conv(tr("Restore deleted point(s)")), this);
+	undoAct = new QAction(QIcon(g_iconDirectory+"linguist-editundo.png"), conv(tr("Restore deleted point(s)")), this);
 	connect(undoAct, SIGNAL(triggered()), this, SLOT(undoClicked()));
 
-	redoAct = new QAction(QIcon(":/images/linguist-editredo.png"), tr("&Delete restored matches"), this);
+	redoAct = new QAction(QIcon(g_iconDirectory+"linguist-editredo.png"), tr("&Delete restored matches"), this);
 	connect(redoAct, SIGNAL(triggered()), this, SLOT(redoClicked()));
 
-	zoomOutAct = new QAction(QIcon(":/images/designer-property-editor-remove-dynamic.png"), conv(tr("Zoom out")), this);
+	zoomOutAct = new QAction(QIcon(g_iconDirectory+"designer-property-editor-remove-dynamic.png"), conv(tr("Zoom out")), this);
 	connect(zoomOutAct, SIGNAL(triggered()), this, SLOT(zoomOutClicked()));
 
-	saveAct = new QAction(QIcon(":/images/linguist-filesave.png"), conv(tr("Save point removal in files")), this);
+	saveAct = new QAction(QIcon(g_iconDirectory+"linguist-filesave.png"), conv(tr("Save point removal in files")), this);
 	connect(saveAct, SIGNAL(triggered()), this, SLOT(saveClicked()));
 	changed = false;
 }
@@ -1004,16 +1004,16 @@ DrawInterf::~DrawInterf () {
 
 void DrawInterf::createActions() {
 	PaintInterf::createActions();
-	drawAct = new QAction(QIcon(":/images/designer-edit-resources-button.png"), tr("&Draw mask"), this);
+	drawAct = new QAction(QIcon(g_iconDirectory+"designer-edit-resources-button.png"), tr("&Draw mask"), this);
 	connect(drawAct, SIGNAL(triggered()), this, SLOT(drawClicked()));
 
-	cutAct = new QAction(QIcon(":/images/linguist-editcut.png"), conv(tr("Cut the mask")), this);
+	cutAct = new QAction(QIcon(g_iconDirectory+"linguist-editcut.png"), conv(tr("Cut the mask")), this);
 	connect(cutAct, SIGNAL(triggered()), this, SLOT(cutClicked()));
 
-	undoAct = new QAction(QIcon(":/images/linguist-editundo.png"), tr("&Undo last point"), this);
-	redoAct = new QAction(QIcon(":/images/linguist-editredo.png"), conv(tr("Restore last point")), this);
+	undoAct = new QAction(QIcon(g_iconDirectory+"linguist-editundo.png"), tr("&Undo last point"), this);
+	redoAct = new QAction(QIcon(g_iconDirectory+"linguist-editredo.png"), conv(tr("Restore last point")), this);
 
-	clearAct = new QAction(QIcon(":/images/qmessagebox-crit.png"), tr("&Clear all points"), this);
+	clearAct = new QAction(QIcon(g_iconDirectory+"qmessagebox-crit.png"), tr("&Clear all points"), this);
 }
 
 void DrawInterf::createToolBar() {
@@ -1780,7 +1780,7 @@ Tiff_Im* RenderAreaPlan::endPolygone () {
 		ELISE_COPY( imageMasq->all_pts(), 0, imageMasq->out() );	//fond noir
 	} else {	//avec le masque précédent
 		char buf[200];
-		sprintf(buf,"%s",ch(maskPred));
+		sprintf(buf,"%s", maskPred.toStdString().c_str() );
 		ELISE_fp fp;
 		if (! fp.ropen(buf,true)) {
 			qMessageBox(this, tr("Read error"), conv(tr("Fail to read mask.")));
@@ -2026,7 +2026,7 @@ void PaintInterfPlan::createActions() {
 		connect(clearAct, SIGNAL(triggered()), renderArea[i], SLOT(clearClicked()));
 	}
 
-	gradToolAct = new QAction(QIcon(":/images/paintsystem-icon.png"), conv(tr("Draw help")), this);
+	gradToolAct = new QAction(QIcon(g_iconDirectory+"paintsystem-icon.png"), conv(tr("Draw help")), this);
 	gradToolAct->setCheckable (true);
 	gradToolAct->setChecked (true);
 	connect(gradToolAct, SIGNAL(triggered()), this, SLOT(gradToolClicked()));
@@ -2229,7 +2229,7 @@ PaintInterfCorrel::~PaintInterfCorrel () {
 void PaintInterfCorrel::createActions()
 {
 	PaintInterfPlan::createActions();
-	autoAct = new QAction(QIcon(":/images/editbookmarks.png"), conv(tr("&Automatic mask")), this);
+	autoAct = new QAction(QIcon(g_iconDirectory+"editbookmarks.png"), conv(tr("&Automatic mask")), this);
 	QSignalMapper* mapper = new QSignalMapper(); 	
 	connect(autoAct, SIGNAL(triggered()), this, SLOT(autoMenuDisplay()));
 	autoFull = new QAction(conv(tr("create a full mask")), this);
@@ -2276,7 +2276,7 @@ const QList<Pt2dr>& PaintInterfCorrel::getPtsLiaison() {
 		if (imgCurrent.section("/",-1,-1)!=QString(aPair.first.c_str())) continue;
 
 		//extraction des points d'appui
-		ElPackHomologue aPack = ElPackHomologue::FromFile(ch(dir)+(*aVN)[aK]);
+		ElPackHomologue aPack = ElPackHomologue::FromFile(dir.toStdString()+(*aVN)[aK]);
 		if (aPack.size()==0) continue;
 		for (ElPackHomologue::const_iterator  itH=aPack.begin(); itH!=aPack.end() ; itH++) {				
 			//if (!liaisons->contains(itH->P1())) 

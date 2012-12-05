@@ -136,3 +136,7 @@ add_definitions(-DNO_JPEG -DNO_LCMS)
 #install(TARGETS elise ARCHIVE DESTINATION ${Install_Dir})
 
 ADD_SUBDIRECTORY(CBinaires)
+
+if (WITH_INTERFACE)
+    ADD_SUBDIRECTORY(interface)
+endif()
