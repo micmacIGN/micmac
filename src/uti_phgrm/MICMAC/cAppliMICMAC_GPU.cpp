@@ -282,57 +282,58 @@ namespace NS_ParamMICMAC
 		mNbIm = mVLI.size();
 
 #ifdef CUDA_ENABLED
-
-		//------------------------------------
-		//		Mise en calque des images	
-		//------------------------------------
-
-		//std::cout << "Mise en calque des images" << "\n";
-		float*		fdataImg1D	= NULL;	// 
-		cudaExtent	sizeImgsLay;			// Taille du tableau des calques 
-		int siX = 0, siY = 0 , nLayers = 0;
-
-		// Pour chaque image
-		for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
+	
+		if (mLoadTextures)
 		{
-			// Obtention de l'image courante
-			cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
-			const cGeomImage*	aGeom	= aGLI.Geom();
+			//------------------------------------
+			//		Mise en calque des images	
+			//------------------------------------
+			mLoadTextures = false;
+			float*		fdataImg1D	= NULL;	// 
+			cudaExtent	sizeImgsLay;			// Taille du tableau des calques 
+			int siX = 0, siY = 0 , nLayers = 0;
 
-			// Obtention des données images
-			float **aDataIm	=  aGLI.DataIm();
-
-			// Taille de l'image courante
-			Pt2di siz =  aGLI.getSizeImage();
-
-			if(fdataImg1D == NULL)
+			// Pour chaque image
+			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 			{
+				// Obtention de l'image courante
+				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
+				const cGeomImage*	aGeom	= aGLI.Geom();
 
-				// Creation dynamique du tableau
-				fdataImg1D	= new float[ siz.x * siz.y * mNbIm ];
-				// Initialisation taille du tableau des calques  
-				siX		= siz.x;
-				siY		= siz.y;
-				nLayers = mNbIm;
+				// Obtention des données images
+				float **aDataIm	=  aGLI.DataIm();
 
-			}
-			if(fdataImg1D != NULL)
-			{
-				for (int j = 0; j < siz.y ; j++)
+				// Taille de l'image courante
+				Pt2di siz =  aGLI.getSizeImage();
+
+				if(fdataImg1D == NULL)
 				{
-					float *local = fdataImg1D + siz.x * ( j + siz.y * aKIm );
-					memcpy( local, aDataIm[j],  siz.x * sizeof(float));
-				}	
+
+					// Creation dynamique du tableau
+					fdataImg1D	= new float[ siz.x * siz.y * mNbIm ];
+					// Initialisation taille du tableau des calques  
+					siX		= siz.x;
+					siY		= siz.y;
+					nLayers = mNbIm;
+
+				}
+				if(fdataImg1D != NULL)
+				{
+					for (int j = 0; j < siz.y ; j++)
+					{
+						float *local = fdataImg1D + siz.x * ( j + siz.y * aKIm );
+						memcpy( local, aDataIm[j],  siz.x * sizeof(float));
+					}	
 				
-			}
+				}
 			
-		}
+			}
 
-		if ((!((siX == 0)|(siY == 0)|(nLayers == 0))) && (fdataImg1D != NULL))
-			imagesToLayers( fdataImg1D, siX, siY, nLayers );
+			if ((!((siX == 0)|(siY == 0)|(nLayers == 0))) && (fdataImg1D != NULL))
+				imagesToLayers( fdataImg1D, siX, siY, nLayers );
 		
-		delete fdataImg1D;
-
+			delete fdataImg1D;
+		}
 #endif
 
 		mZMinGlob = (int)1e7;
@@ -806,8 +807,6 @@ namespace NS_ParamMICMAC
 			//		Mise en calque des projections  
 			//-----------------------------------------
 
-			int *listImgProj	= new int[mNbIm];
-
 			// Sous echantillonage des projections
 			int stepBloc	= 5;
 			int ssTerBloc_X = iDivUp( sTerBloc_X , stepBloc ) ;
@@ -866,29 +865,10 @@ namespace NS_ParamMICMAC
 							h_TabProj[iD + 0] = uvDefValue;
 							h_TabProj[iD + 1] = uvDefValue;
 						}
-
-						//if (aKIm == 0) std::cout << ceilf(h_TabProj[iD + 0]  * 100) / 100 << " ";
 					}
-					//if (aKIm == 0) std::cout << std::endl;
-				}
-				//if (aKIm == 0) std::cout << "---------------------------------------------------------" << std::endl;
-			}
-
-			if(0)
-			{
-				std::cout << "-------------------- Verification --------------------" << std::endl;
-				for (int j = 0; j < ssTerBloc_Y ; j++)
-				{
-					for (int i = 0; i < ssTerBloc_X ; i++)
-					{
-						int id = (j * ssTerBloc_X  + i ) * 2;
-						std::cout << ceilf(h_TabProj[id + 0]  * 100) / 100 << " ";
-					
-					}
-					std::cout << std::endl;
 				}
 			}
-			//std::cout << "-------------------- End Verification --------------------" << std::endl;
+
 			// Copie des projections de host vers le device
 			projectionsToLayers(h_TabProj, ssTerBloc_X, ssTerBloc_Y, mNbIm);
 
@@ -905,16 +885,15 @@ namespace NS_ParamMICMAC
 			////	TEMP	////
 
 			// KERNEL Correlation
-			basic_Correlation_GPU(h_TabCorre , sTerBloc_X, sTerBloc_Y, 0, mPtSzWFixe.x, mPtSzWFixe.y, siz.x, siz.y, mAhEpsilon );
+			basic_Correlation_GPU(h_TabCorre , sTerBloc_X, sTerBloc_Y, mNbIm, mPtSzWFixe.x, mPtSzWFixe.y, siz.x, siz.y, mAhEpsilon );
 
 			// libération de la mémoire GPU
 			freeProjections();
 			delete h_TabCorre;
-			delete listImgProj;
 
 		}
 		
-freeImagesTexture();
+//freeImagesTexture();
 
 
 #else

@@ -89,22 +89,20 @@ extern "C" void  projectionsToLayers(float *h_TabProj, int sxTer, int syTer, int
 
 };
 
-__global__ void correlationKernel(float *dest, int sxTer, int syTer, int idLayer, int sxVig, int syVig, int sxImg, int syImg, float mAhEpsilon )
+__global__ void correlationKernel(float *dest, float* cache, int sxTer, int syTer, int sxVig, int syVig, int sxImg, int syImg, float mAhEpsilon )
 {
-
 	__shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
-
-	float noC = -1.0f;
 
 	// Se placer dans l'espace terrain
 	const int X	= blockIdx.x * blockDim.x  + threadIdx.x;
 	const int Y	= blockIdx.y * blockDim.y  + threadIdx.y;
+	const int L	= blockIdx.z;
+	const int iTer = Y * sxTer + X;
 
 	// Si le processus est hors du terrain, nous sortons du kernel
 	if ( X >= sxTer || Y >= syTer) 
-	{
 		return;
-	}
+
 	// Decalage dans la memoire partagée de la vignette
 	int spiX = threadIdx.x ;
 	int spiY = threadIdx.y ;
@@ -112,28 +110,20 @@ __global__ void correlationKernel(float *dest, int sxTer, int syTer, int idLayer
 	float uTer = ((float)X + 0.5f) / ((float) sxTer);
 	float vTer = ((float)Y + 0.5f) / ((float) syTer);
 
-	// Calcul de toute les valeurs de l'image et mise en cache
-	const float2 PtTProj	= tex2DLayered( TexLay_Proj, uTer, vTer, idLayer);
-
-	//dest[ Y * sxTer + X ] = PtTProj.x;
-	//return;
+	// Les coordonnées de projections dans l'image
+	const float2 PtTProj	= tex2DLayered( TexLay_Proj, uTer, vTer, L);
 
 	if ( PtTProj.x < 0.0f ||  PtTProj.y < 0.0f ||  PtTProj.x > sxImg || PtTProj.y > syImg )
 	{
-		cacheImg[spiX][spiY] = noC;
-		//return;
+		return;
 	}
 	else
 	{
-
 		float uImg = ((float)PtTProj.x+0.5f) / (float) sxImg;
 		float vImg = ((float)PtTProj.y+0.5f) / (float) syImg;
-		cacheImg[spiX][spiY] = tex2DLayered( refTex_ImagesLayered, uImg, vImg, idLayer);
-	
+		cacheImg[spiX][spiY] = tex2DLayered( refTex_ImagesLayered, uImg, vImg,L);
 	}
-
 	__syncthreads();
-	
 
 	// Intialisation des valeurs de calcul 
 	float		aSV	= 0.0f;
@@ -144,84 +134,85 @@ __global__ void correlationKernel(float *dest, int sxTer, int syTer, int idLayer
 	const int	y1	= spiY + syVig;
 
 	if ((x1 >= blockDim.x )|(y1 >= blockDim.y )|(x0 < 0)|(y0 < 0)) 
-	{
-		dest[ Y * sxTer + X ] = noC;
-		//return;
-	}
+		return;
 	else
 	{
 		#pragma unroll
-		for (int x = x0 ; x <= x1; x++)
+		for (int y = y0 ; y <= y1; y++)
 		{
 			#pragma unroll
-			for (int y = y0 ; y <= y1; y++)
+			for (int x = x0 ; x <= x1; x++)
 			{	
-				float val = cacheImg[x][y];	// Valeur de l'image
+				float val = cacheImg[y][x];	// Valeur de l'image
 				aSV  += val;				// Somme des valeurs de l'image cte 
 				aSVV += val*val;			// Somme des carrés des vals image cte
 			}
 		}
 	}
 
-	if(aSVV > 0 && aSV > 0)
-		dest[ Y * sxTer + X ] = aSV/aSVV;
-	else
-		dest[ Y * sxTer + X ] = noC;
-	return;
-	/*
-	// Je dois recuperer le nombre de vignettes OK
-	
-
+	int siCaX	 = 2 * sxVig + 1;
+	int siCaY	 = 2 * syVig + 1 ;
+	int dimVign	 = siCaX * siCaY;
 	aSV 		/=	dimVign;
 	aSVV 		/=	dimVign;
 	aSVV		-=	aSV * aSV;
-	float saSVV	 =	sqrt(aSVV);
-
-
+	
 	if ( aSVV <= mAhEpsilon ) return;
 
-	int cI = atomicAdd( &aNbImOk, 1);
+	// Nombre d'images correctes
+	atomicAdd( &dest[iTer], 1);
 
 	__syncthreads();
+
+	int aNbImOk = dest[iTer];
+	dest[iTer]  = 0.0f;
+
+	if (aNbImOk < 2) return;
+	
+	int iCTer = ( iTer + L * sxTer * syTer) * dimVign; 
+
+	aSVV =	sqrt(aSVV);
 
 	#pragma unroll
-	for (int i = 0 ; i <= dimVign; i++)
-		cacheCorrel[pitchCo + i] = (cacheCorrel[pitchCo + i]-aSV)/saSVV;
-
-	
-
-	// Si plus 1 image correcte
-	// Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens
-
-	if (aNbImOk < 2 ) return;
-
-#pragma unroll
-	for (int i = 0 ; i <= dimVign; i++)
+	for (int y = y0 ; y <= y1; y++)
 	{
-		 
-		float aSV = atomicAdd( &cache__aSV[i], cacheCorrel[pitchCo + i] );
-		atomicAdd( &cache_aSVV[i] , aSV * aSV );
+		int pitchV = siCaX *  ( y - y0); 
+		#pragma unroll
+		for (int x = x0 ; x <= x1; x++)	
+			cache[iCTer + pitchV  +  x - x0] = (cacheImg[y][x] -aSV)/aSVV;
+	}
 
-	}	
-	
-	int id = blockDim.x * threadIdx.y + threadIdx.x;
-	anEC2[id] = threadIdx.z;
+	// ---------------------------------------------------------------------------
+	// Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens
+	// ---------------------------------------------------------------------------
 
-	__syncthreads();
+	int size = 6;
 
-	if ( threadIdx.z != anEC2[id])
-		return;
+	int iSV		= ( iTer + (size - 2 ) * sxTer * syTer) * dimVign;
+	int iSVV	= ( iTer + (size - 1 ) * sxTer * syTer) * dimVign;
 
-	anEC2[id] = 0;
+	#pragma unroll
+	for (int v = 0 ; v < dimVign; v++)
+	{
+			float aSV = atomicAdd( &cache[iSV + v], cache[iCTer + v] );
+			atomicAdd( &cache[iSVV + v] , aSV * aSV );
+	}
 
-#pragma unroll	
-	for (int i = 0 ; i <= dimVign; i++)
-		anEC2[id] += (cache_aSVV[i] - cache__aSV[i] * cache__aSV[i] /aNbImOk); // Additionner l'ecart type inter imagettes
-	
+	float result = 0.0f;
+
+	#pragma unroll
+	for (int v = 0 ; v < dimVign; v++)		
+			result += (cache[iSVV + v] - ( cache[iSV + v] * cache[iSV + v] / aNbImOk));
+
 	// Normalisation pour le ramener a un equivalent de 1-Correl 
-	float aCost			= anEC2[id] / (( aNbImOk-1) * dimVign);
-	dest[ Y * sxTer + X ]	= 1 - max(-1.0,min(1.0,1-aCost));
-	*/
+	float cost = result / (( aNbImOk-1) * dimVign);
+
+
+
+	float aCorrel = 1.0f - cost;
+	aCorrel = max (-1.0, min(1.0,aCorrel));
+	dest[iTer] = 1.0f - aCorrel;
+
 };
 
 static int iDivUp(int a, int b)
@@ -231,31 +222,43 @@ static int iDivUp(int a, int b)
 
 extern "C" void basic_Correlation_GPU( float* h_TabCorre, int sxTer, int syTer, int nbLayer , int sxVig, int syVig , int sxImg, int syImg, float mAhEpsilon ){
 
-	int mem_size = sxTer * syTer * sizeof(float);
-	float* host_Correl_Out = (float *) malloc(mem_size);
+	int out_MemSize = sxTer * syTer * sizeof(float);
+	int cac_MemSize = out_MemSize * ( nbLayer + 2 ) * ( sxVig * 2 + 1 ) * ( sxVig * 2 + 1 );
+
+	float* host_Correl_Out;
 	float* dev_Correl_Out;
-	checkCudaErrors( cudaMalloc((void **) &dev_Correl_Out, mem_size) );	
+	float* dev_Cache;
+	
+	// Allocation mémoire
+	host_Correl_Out = (float *) malloc(out_MemSize);
+	
+	checkCudaErrors( cudaMalloc((void **) &dev_Correl_Out, out_MemSize) );	
+	checkCudaErrors( cudaMalloc((void **) &dev_Cache, cac_MemSize ) );
+
+	checkCudaErrors( cudaMemset( dev_Correl_Out, 0, out_MemSize ));
+	checkCudaErrors( cudaMemset( dev_Cache, 0, cac_MemSize ));
 
 	// Parametres de la texture
-    TexLay_Proj.addressMode[0]	= cudaAddressModeWrap;
+    
+	TexLay_Proj.addressMode[0]	= cudaAddressModeWrap;
     TexLay_Proj.addressMode[1]	= cudaAddressModeWrap;	
-    TexLay_Proj.filterMode		= cudaFilterModePoint; //cudaFilterModePoint cudaFilterModeLinear
+    TexLay_Proj.filterMode		= cudaFilterModePoint;
     TexLay_Proj.normalized		= true;
+
 	checkCudaErrors( cudaBindTextureToArray(TexLay_Proj,dev_ProjLayered) );
 
 	// KERNEL
-	dim3 threads(BLOCKDIM, BLOCKDIM);
-	dim3 blocks(iDivUp(sxTer,threads.x) , iDivUp(syTer,threads.y));
+	dim3 threads(BLOCKDIM, BLOCKDIM, 1);
+	dim3 blocks(iDivUp(sxTer,threads.x) , iDivUp(syTer,threads.y), nbLayer);
 
-	correlationKernel<<<blocks, threads>>>( dev_Correl_Out, sxTer, syTer, 0, sxVig, syVig, sxImg, syImg, mAhEpsilon );
+	correlationKernel<<<blocks, threads>>>( dev_Correl_Out, dev_Cache, sxTer, syTer, sxVig, syVig, sxImg, syImg, mAhEpsilon );
 	getLastCudaError("Basic Correlation kernel failed");
 	checkCudaErrors( cudaDeviceSynchronize() );
 
-
 	checkCudaErrors( cudaUnbindTexture(TexLay_Proj) );
-	checkCudaErrors( cudaMemcpy(host_Correl_Out, dev_Correl_Out, mem_size, cudaMemcpyDeviceToHost) );
-	checkCudaErrors( cudaDeviceSynchronize() );
-	if(0)
+	checkCudaErrors( cudaMemcpy(host_Correl_Out, dev_Correl_Out, out_MemSize, cudaMemcpyDeviceToHost) );
+	
+	//if(0)
 	{
 		int step = 2;
 		std::cout << "Taille du terrain (x,y) : " << iDivUp(sxTer, step) << ", " << iDivUp(syTer, step) << std::endl;
@@ -265,17 +268,14 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre, int sxTer, int syTer, 
 			{
 				int id = (j * sxTer  + i );
 				float c = host_Correl_Out[id];
-				if (c > 0.0f) 
-					std::cout << floor(c*1000)/10 << " ";
-				else
-					std::cout << c << " ";
-					
+				std::cout << floor(c*10)/10 << " ";
 			}
 			std::cout << std::endl; 
 		}
 		std::cout << "---------------------------------------------------------" << std::endl;
 	}
 	
+	cudaFree(dev_Cache);
 	cudaFree(dev_Correl_Out);
 	free(host_Correl_Out);
 }
