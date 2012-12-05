@@ -1169,7 +1169,12 @@ regex_compile (pattern, size, syntax, bufp)
         { /* Caller did not allocate a buffer.  Do it for them.  */
           bufp->buffer = TALLOC (INIT_BUF_SIZE, unsigned char);
         }
-      if (!bufp->buffer) return REG_ESPACE;
+      if (!bufp->buffer)
+// Correction CPPCHECK error [src/util/win_regex.c:1172]: (error) Memory leak: compile_stack.stack
+      {
+          free (compile_stack.stack);
+          return REG_ESPACE;
+      }
 
       bufp->allocated = INIT_BUF_SIZE;
     }
@@ -2596,6 +2601,8 @@ re_compile_fastmap (bufp)
            that is all we do.  */
 	case duplicate:
 	  bufp->can_be_null = 1;
+            // Correction CPPCHECK error
+            FREE_VAR (fail_stack.stack);
           return 0;
 
 
@@ -2651,7 +2658,11 @@ re_compile_fastmap (bufp)
           /* Return if we have already set `can_be_null'; if we have,
              then the fastmap is irrelevant.  Something's wrong here.  */
 	  else if (bufp->can_be_null)
-	    return 0;
+      {
+          // Correction CPPCHECK error
+          FREE_VAR (fail_stack.stack)
+          return 0;
+      }
 
           /* Otherwise, have to check alternative paths.  */
 	  break;
@@ -2745,7 +2756,11 @@ re_compile_fastmap (bufp)
           if (p + j < pend)
             {
               if (!PUSH_PATTERN_OP (p + j, fail_stack))
-                return -2;
+              {
+                  // Correction CPPCHECK error
+                  FREE_VAR (fail_stack.stack);
+                  return -2;
+              }
             }
           else
             bufp->can_be_null = 1;
@@ -2802,7 +2817,9 @@ re_compile_fastmap (bufp)
   /* Set `can_be_null' for the last path (also the first path, if the
      pattern is empty).  */
   bufp->can_be_null |= path_can_be_null;
-  return 0;
+    // Correction CPPCHECK error
+    FREE_VAR (fail_stack.stack);
+    return 0;
 } /* re_compile_fastmap */
 
 /* Set REGS to hold NUM_REGS registers, storing them in STARTS and
@@ -4843,7 +4860,16 @@ regexec (preg, string, nmatch, pmatch, eflags)
       regs.start = TALLOC (nmatch, regoff_t);
       regs.end = TALLOC (nmatch, regoff_t);
       if (regs.start == NULL || regs.end == NULL)
-        return (int) REG_NOMATCH;
+      {
+          // Correction CPPECHECK error : 
+          // [src/util/win_regex.c:4846]: (error) Memory leak: regs.start
+          // [src/util/win_regex.c:4846]: (error) Memory leak: regs.end
+          if (regs.start)
+              free(regs.start);
+          if (regs.end)
+              free(regs.end);
+          return (int) REG_NOMATCH;
+      }
     }
 
   /* Perform the searching operation.  */
