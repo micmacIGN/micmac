@@ -223,6 +223,7 @@ namespace NS_ParamMICMAC
 		delete[] precisions;
 		delete[] stripe_heights;
 		delete[] stripe_bufs;
+        delete[] comp_dims;
 	}
 	
 	void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImages,
@@ -494,6 +495,8 @@ namespace NS_ParamMICMAC
 			}
 			
 		}
+        delete[] is_signed;
+        delete[] comp_dims;
 	}
 	
 	void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<unsigned char> > & aVImages,
@@ -615,6 +618,7 @@ namespace NS_ParamMICMAC
 		delete[] precisions;
 		delete[] stripe_heights;
 		delete[] stripe_bufs;
+        delete[] comp_dims;
 		
 	}
 	

@@ -1139,7 +1139,7 @@ Disc_Pal  Disc_Pal::PCirc(INT aNb)
        aTab[aK] =  Elise_colour::its(0.5,aK/(REAL)aNb,1);
 
    Disc_Pal aRes(aTab,aNb);
-   delete aTab;
+   delete [] aTab;
    return aRes;
 }
 
@@ -1196,7 +1196,7 @@ Disc_Pal  Disc_Pal::clisp_pal(INT nb)
     tabc[20] = Elise_colour::emerald;
 
     Disc_Pal p (tabc,nb);
-    delete tabc;
+    delete [] tabc;
     return p;
 };
 

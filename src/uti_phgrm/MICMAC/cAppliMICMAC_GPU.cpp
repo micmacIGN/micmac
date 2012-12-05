@@ -331,9 +331,10 @@ namespace NS_ParamMICMAC
 
 			if ((!((siX == 0)|(siY == 0)|(nLayers == 0))) && (fdataImg1D != NULL))
 				imagesToLayers( fdataImg1D, siX, siY, nLayers );
-		
-			delete fdataImg1D;
-		}
+
+		// Correction CPPECHECK error
+		delete[] fdataImg1D;
+
 #endif
 
 		mZMinGlob = (int)1e7;
@@ -872,7 +873,8 @@ namespace NS_ParamMICMAC
 			// Copie des projections de host vers le device
 			projectionsToLayers(h_TabProj, ssTerBloc_X, ssTerBloc_Y, mNbIm);
 
-			delete h_TabProj;
+            // Correction CPPECHECK error
+			delete [] h_TabProj;
 
 			// Tableau des projections
 			float* h_TabCorre = new float[  sTerBloc_X * sTerBloc_Y ];
@@ -889,7 +891,10 @@ namespace NS_ParamMICMAC
 
 			// libération de la mémoire GPU
 			freeProjections();
-			delete h_TabCorre;
+            // Correction CPPECHECK error
+			delete [] h_TabCorre;
+            // Correction CPPECHECK error
+			delete [] listImgProj;
 
 		}
 		
