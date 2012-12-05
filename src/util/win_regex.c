@@ -2602,7 +2602,8 @@ re_compile_fastmap (bufp)
 	case duplicate:
 	  bufp->can_be_null = 1;
             // Correction CPPCHECK error
-            FREE_VAR (fail_stack.stack);
+            //FREE_VAR (fail_stack.stack);
+			if (fail_stack.stack) free (fail_stack.stack); fail_stack.stack = NULL;
           return 0;
 
 
@@ -2660,7 +2661,8 @@ re_compile_fastmap (bufp)
 	  else if (bufp->can_be_null)
       {
           // Correction CPPCHECK error
-          FREE_VAR (fail_stack.stack)
+          //FREE_VAR (fail_stack.stack);
+		  if (fail_stack.stack) free (fail_stack.stack); fail_stack.stack = NULL;
           return 0;
       }
 
@@ -2758,7 +2760,8 @@ re_compile_fastmap (bufp)
               if (!PUSH_PATTERN_OP (p + j, fail_stack))
               {
                   // Correction CPPCHECK error
-                  FREE_VAR (fail_stack.stack);
+                  //FREE_VAR (fail_stack.stack);
+				  if (fail_stack.stack) free (fail_stack.stack); fail_stack.stack = NULL;
                   return -2;
               }
             }
@@ -2818,7 +2821,8 @@ re_compile_fastmap (bufp)
      pattern is empty).  */
   bufp->can_be_null |= path_can_be_null;
     // Correction CPPCHECK error
-    FREE_VAR (fail_stack.stack);
+    //FREE_VAR (fail_stack.stack);
+	if (fail_stack.stack) free (fail_stack.stack); fail_stack.stack = NULL;
     return 0;
 } /* re_compile_fastmap */
 

@@ -334,6 +334,7 @@ namespace NS_ParamMICMAC
 
 		// Correction CPPECHECK error
 		delete[] fdataImg1D;
+	}
 
 #endif
 
@@ -893,8 +894,6 @@ namespace NS_ParamMICMAC
 			freeProjections();
             // Correction CPPECHECK error
 			delete [] h_TabCorre;
-            // Correction CPPECHECK error
-			delete [] listImgProj;
 
 		}
 		
