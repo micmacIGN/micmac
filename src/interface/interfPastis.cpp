@@ -23,8 +23,10 @@ InterfPastis::InterfPastis( QWidget* parent, Assistant* help, ParamMain* pMain) 
 	QList<int> refImgCalibAFournir;
 	for (int i=0; i<paramMain->getCorrespImgCalib().count(); i++) {
 		QString img = paramMain->getCorrespImgCalib().at(i).getImageRAW();
+		
 		if (!QFile(dossier+img).exists()) img = paramMain->getCorrespImgCalib().at(i).getImageTif();
 		if (!QFile(dossier+img).exists()) continue;
+
 		if (img.section(".",-1,-1).toUpper()==QString("TIFF") || img.section(".",-1,-1).toUpper()==QString("TIF")) {
 			int f;
 			QSize s;
@@ -40,10 +42,6 @@ InterfPastis::InterfPastis( QWidget* parent, Assistant* help, ParamMain* pMain) 
 		} else if (img.section(".",-1,-1).toUpper()==QString("JPG") || img.section(".",-1,-1).toUpper()==QString("JPEG")) {	//trouver comment obtenir les métadonnées
 				cout << tr("Fail to extract image %1 focal length and size (JGP format)").arg(img).toStdString() << endl;
 		} else {	//raw -> ElDcraw
-					// __DEL
-					cout << "paramMain->getMicmacDir() = " << paramMain->getMicmacDir().toStdString() << endl;
-					cout << "dossier+img = " << (dossier+img).toStdString() << endl;
-					cout << "paramMain->getDossier() = " << paramMain->getDossier().toStdString() << endl;
 			QString commande = QString("%1bin/ElDcraw -i -v %2 >%3truc").arg(noBlank(paramMain->getMicmacDir())).arg(noBlank(dossier+img)).arg(noBlank(paramMain->getDossier()));
 			if (execute(commande)!=0) {
 				cout << tr("Fail to extract image %1 focal length and size.").arg(img).toStdString() << endl;
