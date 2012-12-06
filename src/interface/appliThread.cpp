@@ -201,11 +201,10 @@ void PastisThread::run() {
 
 			//validité de l'image N&B (elle doit être lisible pour elise et pour Qt si l'image couleur n'existe pas et qu'il n'y a pas d'image RAW)
 			if (tifNB) {		
-				bool b = true;		
+				bool b = true;
 				FILE * _fp = fopen((getParamMain()->getDossier()+imgTIF).toStdString().c_str(),"r");
-
 				if (_fp!=0) {
-					delete _fp;
+					fclose( _fp );
 					if (!tifClr
 					&& imgRAW.section(".",-1,-1).toUpper()==QString("TIF") && imgRAW.section(".",-1,-1).toUpper()==QString("TIFF")
 					&& QImage(getParamMain()->getDossier()+imgTIF).isNull())	//imgTIF sera aussi l'image couleur
@@ -217,7 +216,8 @@ void PastisThread::run() {
 					QString img0 = imgTIF.section(".",0,-2);
 					//conversion en jpg avec convert
 					if (!QFile().exists(getParamMain()->getDossier()+img0+QString(".jpg"))) {
-						QString commande = QString("convert %1%2.tif %1%2.jpg").arg(noBlank(getParamMain()->getDossier())).arg(img0);
+						QString convertCallName = QString( g_externalToolHandler.get("convert").callName().c_str() );
+						QString commande = convertCallName+QString("convert %1%2.tif %1%2.jpg").arg(noBlank(getParamMain()->getDossier())).arg(img0);
 						if (execute(commande)!=0) {
 							cout << (QObject::tr("Fail to convert image %1 to JPG format.").arg(noBlank(getParamMain()->getDossier()+imgTIF)).toStdString()) << endl;
 							getParamMain()->setAvancement(-35);
@@ -298,6 +298,9 @@ void PastisThread::run() {
 					QString tempofile = imgRAW.section(".",0,-2)+QString(".tiff");
 					#if defined Q_WS_WIN
 						QString commande5 = comm(QString("move %1%2 %1%3").arg(comm(noBlank(getParamMain()->getDossier()))).arg(tempofile).arg(imgTIF2));
+
+						// __DEL
+						cout << "a move command = " << commande5.toStdString() << endl;
 					#else
 						QString commande5 = QString("mv %1%2 %1%3").arg(noBlank(getParamMain()->getDossier())).arg(tempofile).arg(imgTIF2);
 					#endif
@@ -323,7 +326,8 @@ void PastisThread::run() {
 		setProgressLabel(tr("Image conversion"));
 
 		//images raw
-		QString commande = comm(QString("cd %1 & %5make all -f %2%3 -j%4").arg(noBlank(getMicmacDir())).arg(noBlank(getParamMain()->getDossier())).arg(noBlank(getParamMain()->getMakeFile())).arg(cpu_count).arg(dirBin(getParamMain()->getMicmacDir())));
+		//QString commande = comm(QString("cd %1 & %5make all -f %2%3 -j%4").arg(noBlank(getMicmacDir())).arg(noBlank(getParamMain()->getDossier())).arg(noBlank(getParamMain()->getMakeFile())).arg(cpu_count).arg(dirBin(getParamMain()->getMicmacDir())));
+		QString commande = comm(QString("cd %1 & %5 all -f %2%3 -j%4").arg(noBlank(getMicmacDir())).arg(noBlank(getParamMain()->getDossier())).arg(noBlank(getParamMain()->getMakeFile())).arg(cpu_count).arg( (QString)( g_externalToolHandler.get("make").callName().c_str() ) ));
 		if (execute(commande)!=0) {
 			if (!*getAnnulation()) getParamMain()->setAvancement(-3);
 			return;
@@ -404,16 +408,6 @@ void PastisThread::run() {
 				QString imgTif = getParamMain()->getCorrespImgCalib().at(i).getImageTif();
 				if (imageRAW!=imgTif && QFile(getParamMain()->getDossier()+imageRAW).exists())	//à renommer
 					QFile(getParamMain()->getDossier()+imageRAW).rename(getParamMain()->getDossier()+imgTif);
-				//images tif couleur (lien)
-			/*	QString imgTifCouleur = getParamMain()->convertTifName2Couleur(imgTif);
-				if (!QFile(getParamMain()->getDossier()+imgTifCouleur).exists()) {
-					bool b = QFile(getParamMain()->getDossier()+imgTif).link(getParamMain()->getDossier()+imgTifCouleur);
-					if (!b) {
-						if (!*getAnnulation()) getParamMain()->setAvancement(-28);
-						setReaderror(imgTif);
-						return;
-					}					
-				}*/
 			}
 		}
 		cout << tr("Raw and jpg images are moved. Tif images are renamed (extension).").toStdString() << endl;
@@ -530,15 +524,25 @@ void PastisThread::run() {
 			QString imgTifCouleur = getParamMain()->convertTifName2Couleur(imgTif.right(imgTif.count()-5));
 			QString imgTifCouleur2 = QString("F%1_%2").arg(f).arg(imgTifCouleur);
 			if (!QFile(getParamMain()->getDossier()+imgTifCouleur).exists() && !QFile(getParamMain()->getDossier()+imgTifCouleur2).exists()) {	//création d'un lien
-				bool b = QFile(getParamMain()->getDossier()+imgTif).link(getParamMain()->getDossier()+imgTifCouleur2);
+		
+#if ELISE_windows
+				// Cannot create a symbolic link under windows so copy the file
+				bool b = QFile(getParamMain()->getDossier()+imgTif).copy(getParamMain()->getDossier()+imgTifCouleur2);
+#else
+				bool b = QFile(getParamMain()->getDossier()+imgTif).link(getParamMain()->getDossier()+imgTifCouleur2);		
+#endif
 				if (!b || !QFile(getParamMain()->getDossier()+imgTifCouleur2).exists()) {
+#if ELISE_windows
+					cerr << "unable to copy " << ( getParamMain()->getDossier()+imgTif ).toStdString() << endl;
+#else
 					QString commande = QString("ln -s %1%2 %1%3").arg(getParamMain()->getDossier()).arg(imgTif).arg(imgTifCouleur2);
 					if (execute(commande)!=0) {
 						if (!*getAnnulation()) getParamMain()->setAvancement(-33);
 						setReaderror(imgTif);
 						return;
-					}	
-				}				
+					}
+#endif
+				}
 			}
 			else if (!QFile(getParamMain()->getDossier()+imgTifCouleur2).exists())	//renomination
 				QFile(getParamMain()->getDossier()+imgTifCouleur).rename(getParamMain()->getDossier()+imgTifCouleur2);
@@ -596,7 +600,7 @@ void PastisThread::run() {
 		//calcul du makefile des points d'intérêt
 		getParamMain()->setMakeFile(QString("MK")+getParamMain()->getDossier().section("/",-2,-2)+QString("b"));
 		//QString newTempoDir = QString("cd ") + noBlank(getParamMain()->getDossier()) + QString("\n");
-		QString commande = comm(noBlank(getMicmacDir()) + QString("bin/Pastis ") + noBlank(getParamMain()->getDossier()) + QString(" Key-Rel-All-Cple %1").arg(getParamMain()->getParamPastis().getLargeurMax()));
+		QString commande = comm(noBlank(getMicmacDir()) + QString("bin/Pastis ") + noBlank(getParamMain()->getDossier()) + QString(" Key-Rel-All-Cple-Tif %1").arg(getParamMain()->getParamPastis().getLargeurMax()));
 		commande += comm(QString(" FiltreOnlyDupl=1 MkF=") + noBlank(getParamMain()->getDossier()) + noBlank(getParamMain()->getMakeFile()) + QString("  NbMinPtsExp=2"));
 		if (execute(commande)!=0) {
 			if (!*getAnnulation()) getParamMain()->setAvancement(-9);
@@ -624,7 +628,8 @@ void PastisThread::run() {
 		if (!corrigeMakefile()) return;
 
 		QString commande = QString("cd ") + comm(noBlank(getMicmacDir())) + QString(" & ");
-		commande += dirBin(getMicmacDir()) + QString("make all -f ") + noBlank(getParamMain()->getDossier()) + noBlank(getParamMain()->getMakeFile()) + QString(" -j%1").arg(cpu_count) + QString(" >")+noBlank(getStdoutfile());
+		QString makeCallName( g_externalToolHandler.get("make").callName().c_str() );
+		commande += makeCallName + QString(" all -f ") + noBlank(getParamMain()->getDossier()) + noBlank(getParamMain()->getMakeFile()) + QString(" -j%1").arg(cpu_count) + QString(" >")+noBlank(getStdoutfile());
 		if (execute(commande)!=0) {
 			if (!*getAnnulation()) getParamMain()->setAvancement(-10);
 			return;
@@ -662,7 +667,7 @@ void PastisThread::run() {
 		//makefile pour la 2ème passe
 		getParamMain()->setMakeFile(QString("MK")+getParamMain()->getDossier().section("/",-2,-2)+QString("b"));
 		//QString newTempoDir = QString("cd ") + noBlank(getParamMain()->getDossier()) + QString("\n");
-		commande = noBlank(getMicmacDir()) + QString("bin/Pastis ") + noBlank(getParamMain()->getDossier()) + QString(" Key-Rel-All-Cple %1").arg(getParamMain()->getParamPastis().getLargeurMax2());
+		commande = noBlank(getMicmacDir()) + QString("bin/Pastis ") + noBlank(getParamMain()->getDossier()) + QString(" Key-Rel-All-Cple-Tif %1").arg(getParamMain()->getParamPastis().getLargeurMax2());
 		commande += QString(" FiltreOnlyDupl=1 MkF=") + noBlank(getParamMain()->getDossier()) + noBlank(getParamMain()->getMakeFile()) + QString("  NbMinPtsExp=2");
 		if (execute(commande)!=0) {
 			if (!*getAnnulation()) getParamMain()->setAvancement(-9);
@@ -688,7 +693,8 @@ void PastisThread::run() {
 		#else
 			commande = QString("cd ") + comm(noBlank(getMicmacDir())) + QString(" & ");	//pour avoir des chemins relatifs
 		#endif
-		commande += dirBin(getMicmacDir()) + QString("make all -f ") + noBlank(getParamMain()->getDossier()) + noBlank(getParamMain()->getMakeFile()) + QString(" -j%1").arg(cpu_count) + QString(" >")+noBlank(getStdoutfile());
+		QString makeCallName( g_externalToolHandler.get("make").callName().c_str() );
+		commande += makeCallName + QString(" all -f ") + noBlank(getParamMain()->getDossier()) + noBlank(getParamMain()->getMakeFile()) + QString(" -j%1").arg(cpu_count) + QString(" >")+noBlank(getStdoutfile());
 		if (execute(commande)!=0) {
 			if (!*getAnnulation()) getParamMain()->setAvancement(-10);
 			return;

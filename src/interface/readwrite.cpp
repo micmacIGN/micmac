@@ -1101,7 +1101,7 @@ QString FichierCalibCam::lire(const QString& dossier, const QString& fichier, Ca
 
 	//rayon utile
 	const XmlTag* distTag;
-	double rayon;
+	double rayon = 0;
 	if (type==1) {
 		rayon  = tag.getContenu().section(" ",0,0).toDouble(&ok);
 		if (!ok) return sbase+conv(QObject::tr("Uncorrect efficient radius."));
@@ -1149,7 +1149,7 @@ QString FichierCalibCam::lire(const QString& dossier, const QString& fichier, Ca
 		f = focalemm;
 	} else
 		f /= 1000.0;
-
+	
 	calibCam = CalibCam(type,fichier, f, taillepx, QPointF(PPAx,PPAy), QSize(w,h), QPointF(PPSx,PPSy), paramDist, rayon, paramDist);
 	return QString();
 }
@@ -1232,6 +1232,9 @@ QString FichierParamImage::lire(const QString& fichier, QVector<ParamImage>& lst
 FichierCouples::FichierCouples() {}
 
 bool FichierCouples::ecrire (const QString& fichier, const QList<pair<QString, QString> >& couples, const QVector<ParamImage>& rawToTif) {
+	// __DEL
+	cout << "xriting XML file : " << fichier.toStdString() << endl;
+
 //écriture des couples dans fichier ; si rawToTif!=0, convertit les noms en tif
 	QFile oldFile(fichier);
 	if (oldFile.exists()) {
@@ -3331,7 +3334,20 @@ bool focaleTif(const QString& image, const QString& micmacDir, int* focale, QSiz
 			QString foc = text.section(" ",1,1);
 			if (!foc.at(foc.count()-1).isDigit()) foc = foc.left(foc.count()-1);
 			int f = foc.toInt(&ok);
-			if (!ok) {
+
+			// focal value is not defined in the file's meta-data
+			// try to retrieve the value from image filename
+			if ( !ok || f==-1 ){
+				ok = false;
+				string directory, filename, focalStr;
+				SplitDirAndFile( directory, filename, image.toStdString() );
+				int underscore_pos = filename.find( '_' );
+				if ( underscore_pos==string::npos || filename.size()<2 ) break;
+				f = atoi( filename.substr( 1, underscore_pos-1 ).c_str() );
+				if ( f!=0 ) ok=true; 
+			}
+
+			if ( !ok ){
 				cout << QObject::tr("The focal length extracted from image %1 metadata is uncorrect.").arg(image).toStdString() << endl;
 				file.remove();
 				return false;
