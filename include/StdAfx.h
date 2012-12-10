@@ -259,3 +259,8 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 
 #include "private/externalToolHandler.h"
 
+#ifdef ETA_POLYGON
+	#include "../src/EtalonnagePolygone/lib/all_etal.h"
+	#include "../src/EtalonnagePolygone/lib/pointe.h"
+#endif
+
