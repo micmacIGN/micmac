@@ -47,11 +47,12 @@ namespace NS_ParamMICMAC
 
 	// Déclaration des fonctions Cuda
 	extern "C" void imageToDevice( float** h_ref,  int width, int height);
-	extern "C" void freeProjections();
-	extern "C" void freeImagesTexture();
+	//extern "C" void freeProjections();
+	extern "C" void freeGpuMemory();
 	extern "C" void projectionsToLayers(float *h_TabProj, int sxTer, int syTer, int nbLayer);
 	extern "C" void basic_Correlation_GPU(  float* h_TabCorre, int sxTer, int syTer, int nbLayer , int sxVig, int syVig, int sxImg, int syImg, float mAhEpsilon);
 	extern "C" void imagesToLayers(float *fdataImg1D, int sxImg, int syImg, int nbLayer);
+	extern "C" void Init_Correlation_GPU( int sTer_X, int sTer_Y, int nbLayer , int rxVig, int ryVig );
 
 #endif
 
@@ -308,24 +309,16 @@ namespace NS_ParamMICMAC
 
 				if(fdataImg1D == NULL)
 				{
-
 					// Creation dynamique du tableau
 					fdataImg1D	= new float[ siz.x * siz.y * mNbIm ];
 					// Initialisation taille du tableau des calques  
 					siX		= siz.x;
 					siY		= siz.y;
 					nLayers = mNbIm;
-
 				}
-				if(fdataImg1D != NULL)
-				{
+				else 
 					for (int j = 0; j < siz.y ; j++)
-					{
-						float *local = fdataImg1D + siz.x * ( j + siz.y * aKIm );
-						memcpy( local, aDataIm[j],  siz.x * sizeof(float));
-					}	
-				
-				}
+						memcpy(  fdataImg1D + siz.x * ( j + siz.y * aKIm ), aDataIm[j],  siz.x * sizeof(float));
 			
 			}
 
@@ -334,6 +327,8 @@ namespace NS_ParamMICMAC
 
 		// Correction CPPECHECK error
 		delete[] fdataImg1D;
+
+		Init_Correlation_GPU( mX1Ter - mX0Ter, mY1Ter - mY0Ter, nLayers, mPtSzWFixe.x, mPtSzWFixe.y);
 	}
 
 #endif
@@ -790,6 +785,11 @@ namespace NS_ParamMICMAC
 
 		if(	mNbIm == 0) return;
 
+		// Obtention de l'image courante
+		cGPU_LoadedImGeom&	aGLI	= *(mVLI[0]);
+		// Taille de l'image courante
+		Pt2di sizImg =  aGLI.getSizeImage();
+
 		// Obtenir la nappe englobante
 		//short aZMinTer = -124 , aZMaxTer = 124;
 		short aZMinTer = 0 , aZMaxTer = 1;
@@ -801,27 +801,42 @@ namespace NS_ParamMICMAC
 
 		// Nombre de float pour un point de pojection
 		unsigned short sT	= 2;
+		
+		// Tableau de sortie de corrélation
+		float* h_TabCorre = new float[  sTerBloc_X * sTerBloc_Y ];
+
+		// Sous echantillonage des projections
+		int stepBloc	= 5;
+		int ssTerBloc_X = iDivUp( sTerBloc_X , stepBloc ) ;
+		int	ssTerBloc_Y = iDivUp( sTerBloc_Y , stepBloc ) ;
+		int ssTerBloc	= ssTerBloc_X * ssTerBloc_Y;
+		int siTabProj	= mNbIm * ssTerBloc * 2;
+
+		// Tableau des projections
+		float* h_TabProj	= new float[ siTabProj ];
+		float* h_TabPInit	= new float[ siTabProj ];		
+		
+		float uvDefValue	= -1.0f;
+		
+		for (int anX = 0 ; anX < ssTerBloc_X  ; anX++)
+		{
+			h_TabPInit[anX * 2 + 0] = uvDefValue;
+			h_TabPInit[anX * 2 + 1] = uvDefValue;
+		}
+
+		for (int anY = 1  ; anY < ssTerBloc_Y ; anY++)
+			memcpy( h_TabPInit +  2 * ssTerBloc_X * anY, &h_TabPInit[0], 2 * ssTerBloc_X * sizeof(float));
+
+		for (int aKIm = 1 ; aKIm < mNbIm ; aKIm++ )
+			memcpy( h_TabPInit + 2 * ssTerBloc * aKIm, &h_TabPInit[0], 2 * ssTerBloc * sizeof(float));
 
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
 		{
-
-			//-----------------------------------------
-			//		Mise en calque des projections  
-			//-----------------------------------------
-
-			// Sous echantillonage des projections
-			int stepBloc	= 5;
-			int ssTerBloc_X = iDivUp( sTerBloc_X , stepBloc ) ;
-			int	ssTerBloc_Y = iDivUp( sTerBloc_Y , stepBloc ) ;
-			int ssTerBloc	= ssTerBloc_X * ssTerBloc_Y;
-
-			// Tableau des projections
-			float* h_TabProj	= new float[ mNbIm * ssTerBloc * 2 ];
-			float uvDefValue	= -1.0f;
-
-			//std::cout << "////////////////////--  " << anZ << "  --//////////////////////" << std::endl;
-			// Pour chaque image
+			// Re-initialisation du tableau de projection
+			memcpy( h_TabProj, h_TabPInit, siTabProj * sizeof(float));
+			
+			//		Mise en calque des projections pour chaque image
 			for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )
 			{
 				// Obtention de l'image courante
@@ -836,14 +851,11 @@ namespace NS_ParamMICMAC
 						// Nappe des profondeurs
 						int aZMin	= mTabZMin[anY][anX];
 						int aZMax	= mTabZMax[anY][anX];
-
 						int rX		= (anX - mX0Ter) / stepBloc;
 						int rY		= (anY - mY0Ter) / stepBloc;
-						//int iD		= (aKIm * ssTerBloc  + ssTerBloc_Y * rX + rY ) * 2;
 						int iD		= (aKIm * ssTerBloc  + ssTerBloc_X * rY + rX ) * 2;
 
-
-						if (IsInTer( anX, anY ) && (aGLI.IsVisible(anX ,anY )) /*&& (aZMin <= anZ <=aZMax)*/)
+						if (IsInTer( anX, anY ) && (aGLI.IsVisible(anX ,anY )) && (aZMin <= anZ <=aZMax))
 						{
 							// Déquantification  de X, Y et Z 
 							const float	aZReel	= (float)DequantZ(anZ);
@@ -857,16 +869,6 @@ namespace NS_ParamMICMAC
 								h_TabProj[iD + 0] = (float)aPIm.x;
 								h_TabProj[iD + 1] = (float)aPIm.y;
 							}
-							else 
-							{
-								h_TabProj[iD + 0] = uvDefValue;
-								h_TabProj[iD + 1] = uvDefValue;
-							}
-						}
-						else
-						{
-							h_TabProj[iD + 0] = uvDefValue;
-							h_TabProj[iD + 1] = uvDefValue;
 						}
 					}
 				}
@@ -875,32 +877,19 @@ namespace NS_ParamMICMAC
 			// Copie des projections de host vers le device
 			projectionsToLayers(h_TabProj, ssTerBloc_X, ssTerBloc_Y, mNbIm);
 
-            // Correction CPPECHECK error
-			delete [] h_TabProj;
-
-			// Tableau des projections
-			float* h_TabCorre = new float[  sTerBloc_X * sTerBloc_Y ];
-
-			////	TEMP	////
-			// Obtention de l'image courante
-			cGPU_LoadedImGeom&	aGLI	= *(mVLI[0]);
-			// Taille de l'image courante
-			Pt2di siz =  aGLI.getSizeImage();
-			////	TEMP	////
+			// Re-initialisation du tableau de sortie
+			memset(h_TabCorre,0,ssTerBloc * mNbIm * 2 );
 
 			// KERNEL Correlation
-			basic_Correlation_GPU(h_TabCorre , sTerBloc_X, sTerBloc_Y, mNbIm, mPtSzWFixe.x, mPtSzWFixe.y, siz.x, siz.y, mAhEpsilon );
-
-			// libération de la mémoire GPU
-			freeProjections();
-            // Correction CPPECHECK error
-			delete [] h_TabCorre;
-
+			basic_Correlation_GPU(h_TabCorre , sTerBloc_X, sTerBloc_Y, mNbIm, mPtSzWFixe.x, mPtSzWFixe.y, sizImg.x, sizImg.y, mAhEpsilon );
 		}
+
+		ELISE_ASSERT(1,"stop");
+
+		delete [] h_TabCorre;
+		delete [] h_TabProj;
+		delete [] h_TabPInit;
 		
-//freeImagesTexture();
-
-
 #else
 std::cout  << "MESSAGE = "<<   mCorrelAdHoc->GPU_CorrelBasik().Val().Unused().Val() << "\n";
 
@@ -916,7 +905,6 @@ std::cout  << "MESSAGE = "<<   mCorrelAdHoc->GPU_CorrelBasik().Val().Unused().Va
 		// Buffer pour pointer sur l'ensemble des vignettes OK
 		std::vector<double *> aVecVals(mNbIm);
 		double ** aVVals = &(aVecVals[0]);
-
 
 		//  Au boulot !  on balaye le terrain
 		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
@@ -1022,7 +1010,9 @@ std::cout  << "MESSAGE = "<<   mCorrelAdHoc->GPU_CorrelBasik().Val().Unused().Va
 										*(aVVCur++) = mValsIm;
 										aSVV = sqrt(aSVV);
 										for (int aKV=0 ; aKV<mNbPtsWFixe; aKV++)
+										{
 											mValsIm[aKV] = (mValsIm[aKV]-aSV)/aSVV;
+										}
 									}
 									else
 									{
@@ -1065,7 +1055,7 @@ std::cout  << "MESSAGE = "<<   mCorrelAdHoc->GPU_CorrelBasik().Val().Unused().Va
 							aCost =  mStatGlob->CorrelToCout(1-aCost);
 							// On envoie le resultat a l'optimiseur pour valoir  ce que de droit
 							mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,aCost);
-							// if (Debug) std::cout << "Z " << aZInt << " Cost " << aCost << "\n";
+							//if (1) std::cout << "Z " << aZInt << " Cost " << aCost << "\n";
 						}
 						else
 						{
@@ -1083,11 +1073,13 @@ std::cout  << "MESSAGE = "<<   mCorrelAdHoc->GPU_CorrelBasik().Val().Unused().Va
 					}
 				}
 			}
-		}
+		
 
 		std::cout << "End DoGPU_Correl_Basik..." << "\n";
-#endif
 
+		}
+#endif
+		
 	}
 
 	void cAppliMICMAC::DoCorrelAdHoc
