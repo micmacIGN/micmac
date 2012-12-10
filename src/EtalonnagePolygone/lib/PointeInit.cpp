@@ -36,12 +36,8 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "pointe.h"
-#include "all_etal.h"
+#include "StdAfx.h"
 
-
-
-#include "XML_GEN/all.h"
 using  namespace NS_ParamChantierPhotogram;
 
 

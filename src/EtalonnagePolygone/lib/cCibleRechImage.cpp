@@ -50,7 +50,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                      cPointeCible                        */
 /*                                                          */
 /************************************************************/
-#include "all_etal.h"
+#include "StdAfx.h"
 
 Video_Win * cCibleRechImage::AllocW()
 {

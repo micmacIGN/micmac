@@ -4,8 +4,8 @@ if (X11_FOUND)
 
 	set(SrcGrp_EtaPoly Eta_polygon)
 
-	file( EtaPolyLib_Src_Files 
-			${UTI_ETAPOLYLIB_DIR}/cParamSaisiePts.h
+	set( EtaPolyLib_Src_Files 
+			#${UTI_ETAPOLYLIB_DIR}/cParamSaisiePts.h
 			${UTI_ETAPOLYLIB_DIR}/cEtalonnage.cpp
 			${UTI_ETAPOLYLIB_DIR}/cCamIncEtalonage.cpp
 			${UTI_ETAPOLYLIB_DIR}/cHypDetectCible.cpp
@@ -35,11 +35,10 @@ if (X11_FOUND)
 		${UTI_ETAPOLY_DIR}/CPP_CatImSaisie.cpp
 	)
 	
-	SOURCE_GROUP(${SrcGrp_Uti_EtaPoly} FILES ${EtaPoly_Src_Files})
-	SOURCE_GROUP(${SrcGrp_Uti_EtaPoly}\\Lib FILES ${EtaPolyLib_Src_Files})
+	SOURCE_GROUP(${SrcGrp_EtaPoly} FILES ${EtaPoly_Src_Files})
+	SOURCE_GROUP(${SrcGrp_EtaPoly}\\Lib FILES ${EtaPolyLib_Src_Files})
 	
-	
-	list( APPEND EtaPoly_Src_Files ${uti_phgrm_Src_Files})
+	list( APPEND Elise_Src_Files ${EtaPoly_Src_Files})
 
 endif()
 
