@@ -84,6 +84,7 @@ INCLUDE (${XINTER_DIR}/Sources.cmake)
 
 if(${WITH_ETALONPOLY})
 	INCLUDE (${UTI_ETAPOLY_DIR}/Sources.cmake)
+	set( LIB_ETAL_POLYG libEtalPolyg )
 endif()
 
 # ORGANISATION des en-tetes ELISE
