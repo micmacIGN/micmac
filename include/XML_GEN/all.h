@@ -99,6 +99,7 @@ void UseRequirement(const std::string &,const cTplValGesInit<cBatchRequirement> 
 
 namespace NS_ParamChantierPhotogram{ 
 cMicMacConfiguration * MMC();
+std::string _MMDir();
 std::string MMDir();
 std::string MMBin();
 std::string getCurrentProgramFullName();

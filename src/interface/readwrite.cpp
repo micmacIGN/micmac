@@ -1232,9 +1232,6 @@ QString FichierParamImage::lire(const QString& fichier, QVector<ParamImage>& lst
 FichierCouples::FichierCouples() {}
 
 bool FichierCouples::ecrire (const QString& fichier, const QList<pair<QString, QString> >& couples, const QVector<ParamImage>& rawToTif) {
-	// __DEL
-	cout << "xriting XML file : " << fichier.toStdString() << endl;
-
 //écriture des couples dans fichier ; si rawToTif!=0, convertit les noms en tif
 	QFile oldFile(fichier);
 	if (oldFile.exists()) {

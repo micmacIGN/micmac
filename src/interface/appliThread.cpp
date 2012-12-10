@@ -298,9 +298,6 @@ void PastisThread::run() {
 					QString tempofile = imgRAW.section(".",0,-2)+QString(".tiff");
 					#if defined Q_WS_WIN
 						QString commande5 = comm(QString("move %1%2 %1%3").arg(comm(noBlank(getParamMain()->getDossier()))).arg(tempofile).arg(imgTIF2));
-
-						// __DEL
-						cout << "a move command = " << commande5.toStdString() << endl;
 					#else
 						QString commande5 = QString("mv %1%2 %1%3").arg(noBlank(getParamMain()->getDossier())).arg(tempofile).arg(imgTIF2);
 					#endif
@@ -527,7 +524,9 @@ void PastisThread::run() {
 		
 #if ELISE_windows
 				// Cannot create a symbolic link under windows so copy the file
-				bool b = QFile(getParamMain()->getDossier()+imgTif).copy(getParamMain()->getDossier()+imgTifCouleur2);
+				//bool b = QFile(getParamMain()->getDossier()+imgTif).copy(getParamMain()->getDossier()+imgTifCouleur2);
+				// Cannot create a symbolic link under windows do nothing
+				bool b = true;
 #else
 				bool b = QFile(getParamMain()->getDossier()+imgTif).link(getParamMain()->getDossier()+imgTifCouleur2);		
 #endif
@@ -599,7 +598,13 @@ void PastisThread::run() {
 
 		//calcul du makefile des points d'intérêt
 		getParamMain()->setMakeFile(QString("MK")+getParamMain()->getDossier().section("/",-2,-2)+QString("b"));
-		//QString newTempoDir = QString("cd ") + noBlank(getParamMain()->getDossier()) + QString("\n");
+		
+		// compute a regular expression from file list
+		const QVector<ParamImage> &lstImg = getParamMain()->getCorrespImgCalib();
+		for (QVector<ParamImage>::const_iterator it=lstImg.begin(); it!=lstImg.end(); it++) {
+			cout << ( it++ )->getImageTif().toStdString() << endl;
+		}
+
 		QString commande = comm(noBlank(getMicmacDir()) + QString("bin/Pastis ") + noBlank(getParamMain()->getDossier()) + QString(" Key-Rel-All-Cple-Tif %1").arg(getParamMain()->getParamPastis().getLargeurMax()));
 		commande += comm(QString(" FiltreOnlyDupl=1 MkF=") + noBlank(getParamMain()->getDossier()) + noBlank(getParamMain()->getMakeFile()) + QString("  NbMinPtsExp=2"));
 		if (execute(commande)!=0) {
