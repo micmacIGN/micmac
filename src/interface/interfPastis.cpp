@@ -45,6 +45,20 @@ InterfPastis::InterfPastis( QWidget* parent, Assistant* help, ParamMain* pMain) 
 				refImgCalibAFournir.push_back(i);
 			}
 		} else if (img.section(".",-1,-1).toUpper()==QString("JPG") || img.section(".",-1,-1).toUpper()==QString("JPEG")) {
+			if ( focaleOther( dossier.toStdString(), img.toStdString(), f, s ) )
+			{
+				if ( !calibAFournir.contains(f) )
+				{
+					calibAFournir.push_back(f);
+					formatCalibAFournir.push_back(s);
+					refImgCalibAFournir.push_back(i);
+				}
+			}
+			else
+			{
+				cout << tr("Fail to extract image %1 focal length and size.").arg(img).toStdString() << endl;
+				continue;
+			}
 		} else {	//raw -> ElDcraw
 			QString commande = QString("%1bin/ElDcraw -i -v %2 >%3truc").arg(noBlank(paramMain->getMicmacDir())).arg(noBlank(dossier+img)).arg(noBlank(paramMain->getDossier()));
 			if (execute(commande)!=0) {

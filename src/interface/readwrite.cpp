@@ -3315,7 +3315,7 @@ bool focaleTif(const QString& image, const QString& micmacDir, int* focale, QSiz
 		return false;
 	}
 
-	QFile file(image.section("/",0,-2)+QString("/tempofile.txt"));
+	QFile file( image.section("/",0,-2)+QString("/tempofile.txt") );
 	if (!file.open(QFile::ReadOnly | QFile::Text)) {
 		cout << QObject::tr("Fail to open image %1 metadata file.").arg(image).toStdString() << endl;
 		file.remove();
@@ -3380,50 +3380,87 @@ bool focaleTif(const QString& image, const QString& micmacDir, int* focale, QSiz
 	return true;
 }
 
-// get focal and image size for EVIF/XMP data
-// extract meta-data with external tools exif and exiv2
-bool focaleOther( const string &i_image, int &o_focale, QSize &o_taille )
+// get meta data of an image with an extracting tool
+void getMetaData( const string &i_directory, const string &i_image, const string &i_tool, int &o_focal, QSize &o_size )
 {
-	// get an appropriate meta-data tool
-	ExternalToolItem toolItem;
-	toolItem = g_externalToolHandler.get("exiv2");
-	if ( toolItem.m_status!=EXT_TOOL_NOT_FOUND )
-		toolItem = g_externalToolHandler.get("exiftool");
-	if ( toolItem.m_status!=EXT_TOOL_NOT_FOUND ) {
-		cout << QObject::tr( "Fail to extract image %1 focal length and size (JGP format): no meta-data reading tool not found" ).arg( i_image.c_str() ).toStdString() << endl;
-		return false;
-	}
-
+	// get a valid name for the tool
+	ExternalToolItem toolItem =  g_externalToolHandler.get( i_tool );
+	if ( toolItem.m_status==EXT_TOOL_NOT_FOUND ) return;
+	
 	// run the tool in with a system call
-	//QString commande = QString("% %2 > %3truc").arg( QString( toolItem.callName().c_str() ) ).arg(noBlank(i_image)).arg(noBlank(paramMain->getDossier()));
-	QString commande = QString("% %2 > %3truc").arg( QString( toolItem.callName().c_str() ) ).arg(noBlank(i_image.c_str())).arg(noBlank(""));
-	if (execute(commande)!=0) {
-		cout << QObject::tr( "Fail to extract image %1 focal length and size (JGP format): failed to run the meta-data reading tool" ).arg(i_image.c_str()).toStdString() << endl;
-		return false;
-	}
+	string imageFullName = i_directory+'/'+i_image,
+		   tempFileName  = i_directory+"/truc";
+	QString commande( ( toolItem.callName() + ' ' + imageFullName + " > " + tempFileName ).c_str() );
+	if ( execute(commande)!=EXIT_SUCCESS )	return;
 
-	// read produced file to get the information about image size and focal length
-	QFile file( QString("truc") );
+	// open temporary file containing meta data
+	QFile file( QString( tempFileName.c_str() ) );
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
-		cout << QObject::tr("Fail to extract image %1 focal length and size (JGP format): failed to read extracted meta-data file").arg( i_image.c_str() ).toStdString() << endl;
-		return false;
+		#ifdef _DEBUG
+			cerr << "getMetaData (" << i_directory << ',' << i_image << ',' << i_tool << ") failed to open " << tempFileName << endl;
+		#endif
+		return;
 	}
+	
+	int colonPos, mmPos, xPos;
+	QString sectionName, sectionValue;
 	QTextStream inStream( &file );
 	while ( !inStream.atEnd() )
 	{
 		QString text = inStream.readLine();
-		if ( text.contains("Focal length") )
-		{
-			int colonPos = text.indexOf( ":" ),
-				mmPos = text.indexOf( "mm" );
-		}
-		else if ( text.contains("Image size") )
-		{
 
+		colonPos = text.indexOf( ":" );
+		if ( colonPos==-1 ) continue; // this is not a valid section
+		sectionName = text.left( colonPos ).trimmed().toLower();
+		
+		if ( ( sectionName=="focal length") && ( o_focal==-1 ) )
+		{
+			mmPos = text.indexOf( "mm" );
+			if ( mmPos==-1 ) continue; // this is not a valid section
+
+			// extract length value from section's value
+			o_focal = atoi( text.mid( colonPos+1, mmPos-colonPos-1 ).toStdString().c_str() );
+
+			if ( o_focal!=-1 && o_size.width()!=-1 ) return;
+		}
+		else if ( ( sectionName=="image size" ) && ( o_size.width()==-1 ) )
+		{
+			sectionValue = text.right( text.size()-colonPos-2 );
+			// at this point sectionValue should be of the form "WIDHTxHEIGHT" or "WIDTH x HEIGHT"
+			xPos = sectionValue.indexOf( "x" );
+			
+			o_size.setWidth( atoi( sectionValue.left( xPos ).toStdString().c_str() ) );
+			o_size.setHeight( atoi( sectionValue.right( sectionValue.size()-xPos-1 ).toStdString().c_str() ) );
+
+			if ( o_focal!=-1 && o_size.width()!=-1 ) return;
 		}
 	}
+}
 
-	return true;
+// get focal and image size for EVIF/XMP data
+// extract meta-data with external tools exif and exiv2
+bool focaleOther( const string &i_directory, const string &i_image, int &o_focal, QSize &o_size )
+{
+	// value defined as invalid
+	o_focal = -1;
+	o_size.setWidth( -1 );
+
+	getMetaData( i_directory, i_image, "exiv2", o_focal, o_size );
+
+	if ( ( o_focal!=-1 ) && ( o_size.width()!=-1 ) ) return true;
+
+	#ifdef _DEBUG
+		cerr << "focaleOther (" << i_directory << ',' << i_image << ") failed to recover meta data with exiv2" << endl;
+	#endif
+
+	getMetaData( i_directory, i_image, "exiftool", o_focal, o_size );
+	
+	#ifdef _DEBUG
+		if ( ( o_focal==-1 ) || ( o_size.width()==-1 ) )
+			cerr << "focaleOther (" << i_directory << ',' << i_image << ") failed to recover meta data with exiftool" << endl;
+	#endif
+
+	return ( ( o_focal!=-1 ) && ( o_size.width()!=-1 ) );
 }
 
 bool createEmptyFile(const QString& fichier) {
