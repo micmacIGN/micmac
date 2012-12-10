@@ -419,6 +419,20 @@ template <class  Tout,class Tin> class Simple_OPBuf1 : public Simple_OPBuf_Gen
 };
 
 
+template  <class  Tout,class Tin> void Simple_OPBuf1<Tout,Tin>::SetImageOnBufEntry
+(
+ Im2D<Tin,typename  El_CTypeTraits<Tin>::tBase> anIm,
+ Tin**                                         aData
+ )
+{
+    Tin ** aDataIm = anIm.data();
+    
+    for (INT y=0; y<SzYBuf() ; y++)
+        aDataIm[y] = aData[y+y0Buf()]+x0Buf();
+}
+
+
+
 Fonc_Num  create_op_buf_simple_tpl
           (
                  Simple_OPBuf1<INT,INT> *,

@@ -298,8 +298,8 @@ template <class Type> class Pt2d : public  ElStdTypeScal<Type>
 
 
           // lies a une distance
-     friend Type  dist4(const Pt2d<Type> & p){return ElAbs(p.x)+  ElAbs(p.y);}
-     friend Type  dist8(const Pt2d<Type> & p){return ElMax(ElAbs(p.x),ElAbs(p.y));}
+    //friend Type  dist4(const Pt2d<Type> & p){return ElAbs(p.x)+  ElAbs(p.y);}
+    //friend Type  dist8(const Pt2d<Type> & p){return ElMax(ElAbs(p.x),ElAbs(p.y));}
 
      typename ElStdTypeScal<Type>::TypeBool in_box(const Pt2d<Type> & p0, const Pt2d<Type> & p1)
      {
@@ -331,6 +331,13 @@ template <class Type> class Pt2d : public  ElStdTypeScal<Type>
           void Verif_adr_xy();
      
 };
+
+template <class Type>
+ Type  dist4(const Pt2d<Type> & p){return ElAbs(p.x)+  ElAbs(p.y);}
+
+template <class Type>
+Type  dist8(const Pt2d<Type> & p){return ElMax(ElAbs(p.x),ElAbs(p.y));}
+
 
 /*
 template <> Pt2d<double>::Pt2d(const Pt2d<INT>& p) : x (p.x), y (p.y) {};
@@ -694,12 +701,12 @@ template <class Type> class Pt3d : public  ElStdTypeScal<Type>
 
 
      Pt3d<Type> AbsP() const {return Pt3d<Type>(ElAbs(x),ElAbs(y),ElAbs(z));}
-	 
+	 /*
      friend Pt3d<Type> Sup (const Pt3d<Type> & p1,const Pt3d<Type> & p2) 
            { return Pt3d<Type>(ElMax(p1.x,p2.x),ElMax(p1.y,p2.y),ElMax(p1.z,p2.z));}
      friend Pt3d<Type> Inf (const Pt3d<Type> & p1,const Pt3d<Type> & p2) 
             { return Pt3d<Type>(ElMin(p1.x,p2.x),ElMin(p1.y,p2.y),ElMin(p1.z,p2.z));}
-
+      */
      Output sigma();
      Output VMax();
      Output VMin();
@@ -715,15 +722,22 @@ template <class Type> class Pt3d : public  ElStdTypeScal<Type>
      {
         return   Pt3d<Type>
 		 (
-		     RTtoT(cos(Phi)*cos(Teta)*Rho),
-		     RTtoT(cos(Phi)*sin(Teta)*Rho),
-		     RTtoT(sin(Phi)*Rho)
+          ElStdTypeScal<Type>::RTtoT(cos(Phi)*cos(Teta)*Rho),
+          ElStdTypeScal<Type>::RTtoT(cos(Phi)*sin(Teta)*Rho),
+          ElStdTypeScal<Type>::RTtoT(sin(Phi)*Rho)
 		 );
      }
 
      private : 
           void Verif_adr_xy();
 };
+
+template <class Type>
+Pt3d<Type> Sup (const Pt3d<Type> & p1,const Pt3d<Type> & p2) 
+{ return Pt3d<Type>(ElMax(p1.x,p2.x),ElMax(p1.y,p2.y),ElMax(p1.z,p2.z));}
+template <class Type>
+Pt3d<Type> Inf (const Pt3d<Type> & p1,const Pt3d<Type> & p2) 
+{ return Pt3d<Type>(ElMin(p1.x,p2.x),ElMin(p1.y,p2.y),ElMin(p1.z,p2.z));}
 
 inline Pt3dr Pcoord2(const Pt3dr & aP)
 {

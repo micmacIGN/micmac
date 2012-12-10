@@ -92,7 +92,7 @@ template <class Type> void Som_Rvar_Comp<Type>::integr(INT yloc,bool very_first)
 {
         for (INT d =0; d < this->_dim_out ; d++)
         {
-            Type ** lines = kth_buf((Type *)0,0)[d];
+            Type ** lines = this->kth_buf((Type *)0,0)[d];
             Type * l0  = lines[yloc];
 
             for (INT x = this->_x0_buf+1; x < this->_x1_buf; x++)
@@ -128,7 +128,7 @@ template <class Type> void Som_Rvar_Comp<Type>::post_new_line(bool first)
 
         for (INT d =0; d < this->_dim_out ; d++)
         {
-            Type ** lines = kth_buf((Type *)0,0)[d];
+            Type ** lines = this->kth_buf((Type *)0,0)[d];
             Type *  res = this->_buf_res[d];
 
             for (INT x = this->_x0; x < this->_x1; x++)
