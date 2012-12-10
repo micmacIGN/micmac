@@ -37,9 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "all_etal.h"
-#include "XML_GEN/all.h"
-
+#include "StdAfx.h"
 
 class cOneImSaisie
 {
@@ -195,7 +193,7 @@ void CatCDD()
   }
 }
 
-int main(int argc,char ** argv)
+int CatImSaisie_main(int argc,char ** argv)
 {
    CatCDD();
    return 0;

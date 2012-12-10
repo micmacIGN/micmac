@@ -36,7 +36,7 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "all_etal.h"
+#include "StdAfx.h"
 
 /************************************************/
 /*                                              */
@@ -44,7 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                              */
 /************************************************/
 
-#include "pointe.h"
+
 
 
 
@@ -190,7 +190,7 @@ std::list<cPt2Im> cParamPointeInitEtalonnage::InitListePt2Is()
 */
 
 
-int main(int argc,char ** argv)
+int PointeInitPolyg_main(int argc,char ** argv)
 {
    MMD_InitArgcArgv(argc,argv);
 

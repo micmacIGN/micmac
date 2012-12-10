@@ -36,13 +36,53 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "all_etal.h"
+#include "StdAfx.h"
 
-int main(int argc,char ** argv)
+/*
+   Erreurs possibles :
+
+     Erreur de syntaxe sur fichier Param, 
+     Fichier Tiff inexistant 
+     Ni Fichiers PointInit existant( ni dans les ref pour les fichier non Primaire)
+
+
+     Memes erreurs sur les fichier references
+
+*/
+
+class cExeComm
+{
+     public :
+	cExeComm(int argc,char ** argv)
+	{
+            ELISE_ASSERT(argc>=2,"cExeComm Not Enough Arg");
+	    mNameParam = argv[1];
+	}
+	void DoOne(const std::string & aCom)
+	{
+
+
+		std::string aComComp = MMDir() + "bin/" + aCom + " " + mNameParam;
+		cout << "\n\n";
+		cout << "*****************************************************\n";
+		cout << "COM = [" << aComComp << "]\n";
+		INT aCode = system(aComComp.c_str());
+		cout << "CODE FOR COM = [" << aCode << "]\n";
+	}
+     private :
+        std::string mNameParam;
+};
+
+int ScriptCalib_main(int argc,char ** argv)
 {
    MMD_InitArgcArgv(argc,argv);
 
-   cEtalonnage::DoCompensation(argc,argv);
+   cEtalonnage::Verif(false,argc,argv);
+   cExeComm anEC(argc,argv);
+   anEC.DoOne("EPExeRechCibleInit");
+   anEC.DoOne("EPExeCalibInit");
+   anEC.DoOne("EPExeRechCibleDRad");
+   anEC.DoOne("EPExeCalibFinale");
 
    return 0;
 }

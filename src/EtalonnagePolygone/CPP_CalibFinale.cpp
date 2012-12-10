@@ -36,13 +36,13 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "all_etal.h"
+#include "StdAfx.h"
 
-int main(int argc,char ** argv)
+int CalibFinale_main(int argc,char ** argv)
 {
-   cEtalonnage::CalculModeleRadialeInit(argc,argv);
+   cEtalonnage::CalculModeleRadialeFinal(argc,argv);
 
-   return 0;
+   return cEtalonnage::CodeSuccess();
 }
 
 

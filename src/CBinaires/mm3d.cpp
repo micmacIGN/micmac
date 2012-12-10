@@ -141,6 +141,18 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("SaisiePts",SaisiePts_main,"Tool to capture GCP (low level, not recommanded)"));
        aRes.push_back(cMMCom("SEL",SEL_main,"Tool to visualise tie points"));
        aRes.push_back(cMMCom("MICMACSaisieLiaisons",MICMACSaisieLiaisons_main,"low level version of SEL, not recommanded"));
+	   
+	   //Etalonnage polygone
+	   aRes.push_back(cMMCom("Compens",Compens_main," Do some stuff"));
+	   aRes.push_back(cMMCom("CatImSaisie",CatImSaisie_main," Do some stuff"));
+	   aRes.push_back(cMMCom("CalibFinale",CalibFinale_main," Do some stuff"));
+	   aRes.push_back(cMMCom("CalibInit",CalibInit_main," Do some stuff"));
+	   aRes.push_back(cMMCom("ConvertPolygone",ConvertPolygone_main," Do some stuff"));
+	   aRes.push_back(cMMCom("PointeInitPolyg",PointeInitPolyg_main," Do some stuff"));
+	   aRes.push_back(cMMCom("RechCibleDRad",RechCibleDRad_main," Do some stuff"));
+	   aRes.push_back(cMMCom("RechCibleInit",RechCibleInit_main," Do some stuff"));
+	   aRes.push_back(cMMCom("ScriptCalib",ScriptCalib_main," Do some stuff"));
+
 #endif
    }
    return aRes;

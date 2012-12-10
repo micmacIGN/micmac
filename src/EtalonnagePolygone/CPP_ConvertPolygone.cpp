@@ -37,8 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "all_etal.h"
-#include "XML_GEN/all.h"
+#include "StdAfx.h"
 
 using namespace NS_ParamChantierPhotogram;
 
@@ -263,7 +262,7 @@ void GenerePolyTxtRect
     ElFclose(aF2);
 }
 
-int main(int argc,char ** argv)
+int ConvertPolygone_main(int argc,char ** argv)
 {
 /*
    {
