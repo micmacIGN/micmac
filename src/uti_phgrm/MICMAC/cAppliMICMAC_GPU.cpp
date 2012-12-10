@@ -777,6 +777,7 @@ namespace NS_ParamMICMAC
 		)
 	{
 
+
 #ifdef CUDA_ENABLED
 
 		// Obtenir la nappe englobante
@@ -892,6 +893,7 @@ namespace NS_ParamMICMAC
 		}
 
 #else
+std::cout  << "MESSAGE = "<<   mCorrelAdHoc->GPU_CorrelBasik().Val().Unused().Val() << "\n";
 
 		//  Lecture des parametre d'environnement MicMac : nappes, images, quantification etc ...
 
