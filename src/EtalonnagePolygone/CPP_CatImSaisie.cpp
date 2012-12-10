@@ -106,7 +106,8 @@ class AllImSaisie
           mSzX (0),
           mSzY (0),
           mDir (aDir),
-	  mPol (cPolygoneEtal::FromName(mDir+aNamePol))
+          // WARNING
+	  mPol (cPolygoneEtal::FromName(mDir+aNamePol, NULL))
        {
        }
 

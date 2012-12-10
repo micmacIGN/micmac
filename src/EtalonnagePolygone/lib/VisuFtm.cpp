@@ -41,9 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*
 */
 
-#include "all_etal.h"
-#include <algorithm>
-
+#include "StdAfx.h"
 
 #define NbBuf 1000
 
@@ -67,12 +65,13 @@ void cEtalonnage::TestVisuFTM()
         std::string aName = NamePointeResult(*iTN,false,true);
         cout <<  aName << "\n";
         ELISE_fp aFile(aName.c_str(),ELISE_fp::READ);
-        char buf[NbBuf];
+        string buf;
         bool GotEOF = false;
 
         while (! GotEOF)
         {
-            aFile.fgets(buf,NbBuf,GotEOF,false);
+            //aFile.fgets(buf,NbBuf,GotEOF,false);
+		aFile.fgets(buf,GotEOF);
             if (GotEOF)
             {
             }
@@ -80,7 +79,7 @@ void cEtalonnage::TestVisuFTM()
             {
                INT anId;
                REAL anX,anY,aL;
-               sscanf(buf,"%d %lf %lf %lf",&anId,&anX,&anY,&aL);
+               sscanf(buf.c_str(),"%d %lf %lf %lf",&anId,&anX,&anY,&aL);
                if (anId>=0)
                {
                    INT aCoul = P8COL::red;

@@ -41,10 +41,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*
 */
 
-#include "all_etal.h"
-#include <algorithm>
+#include "StdAfx.h"
 
-#include "XML_GEN/all.h"
 using namespace NS_ParamChantierPhotogram;
 
 
