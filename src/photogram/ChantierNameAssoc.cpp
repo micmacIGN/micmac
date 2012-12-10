@@ -403,7 +403,7 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 
 		replace( CurrentProgramFullName.begin(), CurrentProgramFullName.end(), '\\', '/' );
 		SplitDirAndFile(ArgvMMDir,sFile,CurrentProgramFullName);
-		
+
 		ArgvMMDir.resize( ArgvMMDir.length()-1 );
         SplitDirAndFile(ArgvMMDir,sFile,ArgvMMDir);
 #else
@@ -2254,7 +2254,10 @@ std::string XML_MM_File(const std::string & aFile)
 		ELISE_ASSERT(aRes!=0,"Cannot open MMConfigNN");
 		return aRes;
 	}
-
+	
+	// MMDir() can return source directory
+	// it may be unappropriate in case of several builds
+	std::string _MMDir(){ return ArgvMMDir; }
 
 	std::string MMDir() 
 	{
