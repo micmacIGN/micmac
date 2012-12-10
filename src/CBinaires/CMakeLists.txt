@@ -1,5 +1,5 @@
 add_executable(mm3d mm3d.cpp)
-target_link_libraries(mm3d elise ${X11_LIBRARIES} ${X11_LIBRARIES} ${KAKADU_LIBRARIES} ${WINSOCK2_LIBRAIRIE})
+target_link_libraries(mm3d elise libEtalPolyg ${X11_LIBRARIES} ${X11_LIBRARIES} ${KAKADU_LIBRARIES} ${WINSOCK2_LIBRAIRIE} )
 INSTALL(TARGETS mm3d RUNTIME DESTINATION ${Install_Dir})
 
 
@@ -128,5 +128,35 @@ if (NOT ${BUILD_ONLY_ELISE})
 		
 		add_executable(SEL  SEL.c)
 		INSTALL(TARGETS SEL RUNTIME DESTINATION ${Install_Dir})
+		
+		if(${WITH_ETALONPOLY})
+			# Etalonnage polygone
+			add_executable(Compens  Compens.c)
+			INSTALL(TARGETS Compens RUNTIME DESTINATION ${Install_Dir})
+					
+			add_executable(ScriptCalib  ScriptCalib.c)
+			INSTALL(TARGETS ScriptCalib RUNTIME DESTINATION ${Install_Dir})
+			
+			add_executable(CatImSaisie  CatImSaisie.c)
+			INSTALL(TARGETS CatImSaisie RUNTIME DESTINATION ${Install_Dir})
+			
+			add_executable(CalibFinale  CalibFinale.c)
+			INSTALL(TARGETS CalibFinale RUNTIME DESTINATION ${Install_Dir})
+			
+			add_executable(CalibInit  CalibInit.c)
+			INSTALL(TARGETS CalibInit RUNTIME DESTINATION ${Install_Dir})
+			
+			add_executable(ConvertPolygone  ConvertPolygone.c)
+			INSTALL(TARGETS ConvertPolygone RUNTIME DESTINATION ${Install_Dir})
+			
+			add_executable(PointeInitPolyg  PointeInitPolyg.c)
+			INSTALL(TARGETS PointeInitPolyg RUNTIME DESTINATION ${Install_Dir})
+			
+			add_executable(RechCibleDRad  RechCibleDRad.c)
+			INSTALL(TARGETS RechCibleDRad RUNTIME DESTINATION ${Install_Dir})
+			
+			add_executable(RechCibleInit RechCibleInit.c)
+			INSTALL(TARGETS RechCibleInit RUNTIME DESTINATION ${Install_Dir})
+		endif()
 	endif()
 endif()

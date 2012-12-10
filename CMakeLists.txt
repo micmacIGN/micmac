@@ -28,6 +28,9 @@ OPTION(WITH_HEADER_PRECOMP "En-tetes precompilees" ON )
 # Utiliser les en-tetes precompilees
 OPTION(BUILD_ONLY_ELISE "Projet Elise uniquement" OFF )
 
+# construire l'interface graphique
+OPTION(WITH_ETALONPOLY  "build etalonnage polygone" OFF)
+
 
 # Utiliser Cuda
 OPTION(CUDA_ENABLED "Utilisation de cuda" OFF )
@@ -62,6 +65,16 @@ if (${CUDA_ENABLED})
 	add_definitions(-DCUDA_ENABLED)
 
 endif()
+
+# Etalonnage polygone
+
+if (${WITH_ETALONPOLY})
+	
+	add_definitions(-DETA_POLYGON)
+
+endif()
+
+
 # MERCURIAL
 find_program(MERCURIAL_EXECUTABLE hg DOC "Emplacement de gestionnaire de versions Mercurial")
 

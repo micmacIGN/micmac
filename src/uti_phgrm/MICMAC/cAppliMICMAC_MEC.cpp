@@ -43,7 +43,7 @@ namespace NS_ParamMICMAC
 
 #ifdef CUDA_ENABLED
 	// Déclaration des fonctions Cuda
-	extern "C" void freeImagesTexture();
+	extern "C" void freeGpuMemory();
 	
 #endif
 
@@ -775,7 +775,7 @@ void cAppliMICMAC::DoOneBloc
   
 	
 #ifdef CUDA_ENABLED
-	freeImagesTexture();
+	freeGpuMemory();
 #endif
     //  delete mStatN;
     delete mStatGlob;

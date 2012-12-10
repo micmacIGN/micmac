@@ -478,6 +478,20 @@ int SaisieMasq_main(int argc,char ** argv);
 int SaisiePts_main(int argc,char ** argv);
 int SEL_main(int argc,char ** argv);
 int MICMACSaisieLiaisons_main(int argc,char ** argv);
+
+	#ifdef ETA_POLYGON
+		// Etalonnage polygone
+		int Compens_main(int argc,char ** argv);
+		int CatImSaisie_main(int argc,char ** argv);
+		int CalibFinale_main(int argc,char ** argv);
+		int CalibInit_main(int argc,char ** argv);
+		int ConvertPolygone_main(int argc,char ** argv);
+		int PointeInitPolyg_main(int argc,char ** argv);
+		int RechCibleDRad_main(int argc,char ** argv);
+		int RechCibleInit_main(int argc,char ** argv);
+		int ScriptCalib_main(int argc,char ** argv);
+	#endif
+
 #endif
 
 
