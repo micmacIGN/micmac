@@ -272,11 +272,10 @@ cElHomographie::cElHomographie
    Normalize();
 }
 
-cElHomographie::cElHomographie(const ElPackHomologue & aPack,bool aL2) :
-    mHX (ComputeHomFromHomologues(aPack,aL2,mHX,mHY,mHZ)),
-    mHY (mHY),
-    mHZ (mHZ)
+cElHomographie::cElHomographie(const ElPackHomologue & aPack,bool aL2)
+:mHX(cElComposHomographie(1,0,0)),mHY(cElComposHomographie(1,0,0)),mHZ(cElComposHomographie(1,0,0))
 {
+    ComputeHomFromHomologues(aPack,aL2,mHX,mHY,mHZ);
     Normalize();
 }
 

@@ -355,7 +355,7 @@ template <class Type> void FoncNVarDer<Type>::GradConj
 	Type *g=aG.data(),*h=aH.data(),*xi =aXI.data();
 
 
-	fp= NRValFNV(p);
+	fp= this->NRValFNV(p);
 	NRGradFNV(p,xi);
 	for (j=1;j<=n;j++) {
 		g[j] = -xi[j];

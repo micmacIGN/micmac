@@ -31,7 +31,7 @@ int  BinaireUnique
     char aPath[PATH_BUFFER_SIZE] = { 0 };
 	int aK;
 
-    printf("Commande = %s\n",aCom);
+    //printf("Commande = %s\n",aCom);
 
 #ifdef WIN32
 	{

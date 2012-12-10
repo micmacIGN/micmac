@@ -38,7 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-#if (ELISE_unix || ELISE_MacOs || ELISE_Cygwin)
 /*
     Modifie par MPD. Uniquement pour le mettre en C-ANSI.
 
@@ -344,9 +343,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /* And here's one for those of you who are intimidated by math.              */
 
 #define ONETHIRD 0.333333333333333333333333333333333333333333333333333333333333
-#if (ELISE_windows)
-#include <cunistd>
-#else
+#if (!ELISE_windows | ELISE_Cygwin)
 #include <unistd.h>
 #endif
 
@@ -13262,7 +13259,6 @@ int main(int argc,char ** argv)
   return 0;
 #endif /* not TRILIBRARY */
 }
-#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

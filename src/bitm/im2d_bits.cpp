@@ -162,33 +162,6 @@ void Tabul_Bits_Gen::init_tabul_bits()
 
 
 
-const Tabul_Bits_Gen & Tabul_Bits_Gen::tbb(INT nbb,bool msbf)
-{
-      switch (nbb)
-      {
-           case   1 :
-                  if  (msbf)
-                      return Tabul_Bits<1,true>::The_Only_One;
-                  else
-                      return Tabul_Bits<1,false>::The_Only_One;
-
-           case   2 :
-                  if  (msbf)
-                      return Tabul_Bits<2,true>::The_Only_One;
-                  else
-                      return Tabul_Bits<2,false>::The_Only_One;
-
-           case   4 :
-                  if  (msbf)
-                      return Tabul_Bits<4,true>::The_Only_One;
-                  else
-                      return Tabul_Bits<4,false>::The_Only_One;
-      };
-
-      elise_internal_error("Tabul_Bits_Gen::tbb",__FILE__,__LINE__);
-
-      return  Tabul_Bits<1,false>::The_Only_One;
-}
 
 void Tabul_Bits_Gen::unpack
      (
@@ -286,44 +259,6 @@ template <const INT nbb> void DataGenImBits<nbb>::SetAll(INT aV)
    memset(_data_lin,aV,_sz_tot);
 }
 
-template <const INT nbb>  void DataGenImBits<nbb>::input_rle
-              (void * v_out,INT nb,const void* v_in,INT offs_0) const
-{
-
-     Tabul_Bits<nbb,true>::The_Only_One.input
-     (
-         C_CAST(INT *,v_out),
-         C_CAST(const U_INT1 *,v_in),
-         offs_0,
-         offs_0+nb
-     );
-}
-
-template <const INT nbb>  void DataGenImBits<nbb>::out_rle
-              (void * v_out,INT nb,const INT * v_in,INT offs_0) const
-{
-
-     Tabul_Bits<nbb,true>::The_Only_One.output
-     (
-         C_CAST(U_INT1 *,v_out),
-         v_in,
-         offs_0,
-         offs_0+nb
-     );
-}
-
-template <const INT nbb>  void DataGenImBits<nbb>::out_rle
-              (void * v_out,INT nb,const REAL * v_in,INT offs_0) const
-{
-
-     Tabul_Bits<nbb,true>::The_Only_One.output
-     (
-         C_CAST(U_INT1 *,v_out),
-         v_in,
-         offs_0,
-         offs_0+nb
-     );
-}
 
 template <const INT nbb> INT DataGenImBits<nbb>::vmin() const
 {
@@ -398,10 +333,7 @@ template <const INT nbb> void * DataGenImBits<nbb>::data_lin_gen()
      return _data_lin;
 }
 
-template <const INT nbb>  GenIm::type_el  DataGenImBits<nbb>::type() const
-{
-   return type_el_bitm;
-}
+
 
 /*************************************************************************/
 /*************************************************************************/
@@ -957,6 +889,78 @@ template <> U_INT1  Tabul_Bits<4,false>::out_tab[256][16][2];
 
     //==============================
 
+
+const Tabul_Bits_Gen & Tabul_Bits_Gen::tbb(INT nbb,bool msbf)
+{
+    switch (nbb)
+    {
+        case   1 :
+            if  (msbf)
+                return Tabul_Bits<1,true>::The_Only_One;
+            else
+                return Tabul_Bits<1,false>::The_Only_One;
+            
+        case   2 :
+            if  (msbf)
+                return Tabul_Bits<2,true>::The_Only_One;
+            else
+                return Tabul_Bits<2,false>::The_Only_One;
+            
+        case   4 :
+            if  (msbf)
+                return Tabul_Bits<4,true>::The_Only_One;
+            else
+                return Tabul_Bits<4,false>::The_Only_One;
+    };
+    
+    elise_internal_error("Tabul_Bits_Gen::tbb",__FILE__,__LINE__);
+    
+    return  Tabul_Bits<1,false>::The_Only_One;
+}
+
+template <const INT nbb>  void DataGenImBits<nbb>::input_rle
+(void * v_out,INT nb,const void* v_in,INT offs_0) const
+{
+    
+    Tabul_Bits<nbb,true>::The_Only_One.input
+    (
+     C_CAST(INT *,v_out),
+     C_CAST(const U_INT1 *,v_in),
+     offs_0,
+     offs_0+nb
+     );
+}
+
+template <const INT nbb>  void DataGenImBits<nbb>::out_rle
+(void * v_out,INT nb,const INT * v_in,INT offs_0) const
+{
+    
+    Tabul_Bits<nbb,true>::The_Only_One.output
+    (
+     C_CAST(U_INT1 *,v_out),
+     v_in,
+     offs_0,
+     offs_0+nb
+     );
+}
+
+template <const INT nbb>  void DataGenImBits<nbb>::out_rle
+(void * v_out,INT nb,const REAL * v_in,INT offs_0) const
+{
+    
+    Tabul_Bits<nbb,true>::The_Only_One.output
+    (
+     C_CAST(U_INT1 *,v_out),
+     v_in,
+     offs_0,
+     offs_0+nb
+     );
+}
+
+template <const INT nbb>  GenIm::type_el  DataGenImBits<nbb>::type() const
+{
+    return type_el_bitm;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

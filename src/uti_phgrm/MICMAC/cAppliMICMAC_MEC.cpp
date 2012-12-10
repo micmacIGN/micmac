@@ -41,6 +41,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 namespace NS_ParamMICMAC
 {
 
+#ifdef CUDA_ENABLED
+	// Déclaration des fonctions Cuda
+	extern "C" void freeImagesTexture();
+	
+#endif
+
 int cAppliMICMAC::MemSizePixelImage() const
 {
     // Nombre d'octet par pixel et par image,
@@ -140,10 +146,10 @@ void cAppliMICMAC::DoAllMEC()
 
 #ifdef CUDA_ENABLED
 
-	FreeLayers();
-	
-#endif
+	checkCudaErrors( cudaDeviceReset() );
+	printf("Reset Device GPGPU.");
 
+#endif
 }
 
 /*
@@ -528,6 +534,7 @@ void cAppliMICMAC::DoOneBloc
    mLTer = 0;
    mSurfOpt = 0;
 
+   mLoadTextures = true;
 
    mBoxIn = aBoxIn;
    mBoxOut = aBoxOut;
@@ -647,10 +654,11 @@ void cAppliMICMAC::DoOneBloc
        }
    }
    mNbImChCalc = (int) mPDVBoxGlobAct.size();
+
    if (mShowMes)
    {
 	   
-      mCout << "      " << mNbIm << " Images Loaded\n";
+      mCout << "      " << mNbImChCalc << " Images Loaded\n";
    }
 
    // Initialisation de mTabV1 et aVPtInEc
@@ -765,6 +773,10 @@ void cAppliMICMAC::DoOneBloc
              <<"\n";
     }
   
+	
+#ifdef CUDA_ENABLED
+	freeImagesTexture();
+#endif
     //  delete mStatN;
     delete mStatGlob;
     delete mLTer;

@@ -58,8 +58,9 @@ extern "C" {
 #include<libgen.h>
 #else
 #include<string.h>
-}
 #endif
+}
+
 
 using namespace VL ;
 

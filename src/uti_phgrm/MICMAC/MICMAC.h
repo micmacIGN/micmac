@@ -3328,6 +3328,10 @@ class cAppliMICMAC  : public   cParamMICMAC,
          int                   mTPZoom;
          int                   mTPSzW;
          std::vector<Pt3dr> *  mTP3d;
+
+	// GPGPU
+
+	bool mLoadTextures;
 };
 
 std::string  StdNameFromCple
