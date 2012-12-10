@@ -233,7 +233,7 @@ int MergePly_main(int argc,char ** argv)
 		
 	ElFclose(aFP);
 	
-	delete glist;
+	delete glist, vlist, plist;
 
 	return EXIT_SUCCESS;
 }
