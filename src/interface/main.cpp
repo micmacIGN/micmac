@@ -18,6 +18,7 @@ Pour exécuter ce programme, il faut respecter l'arborescence :
 int main(int argc, char *argv[])
 {
 	MMD_InitArgcArgv(argc, argv);
+
 	g_interfaceDirectory = QString( ( NS_ParamChantierPhotogram::MMDir()+"/interface/" ).c_str() );
 	g_iconDirectory = g_interfaceDirectory+"images/";
 

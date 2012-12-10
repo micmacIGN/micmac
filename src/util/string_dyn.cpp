@@ -235,8 +235,6 @@ void SplitDirAndFile
 
 	std::string::size_type aPos  = strCpy.rfind('/');
 
-	if ( aPos==std::string::npos ) aPos = strCpy.rfind('\\');
-
 	if (aPos == std::string::npos)
 	{
 		aNameDir = ELISE_Current_DIR ;

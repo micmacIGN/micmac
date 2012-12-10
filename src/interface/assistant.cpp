@@ -248,14 +248,23 @@ QStringList Options::checkBinaries(const QString& micmacDossier) {	//micmacDossi
 }
 
 bool Options::readMicMacInstall(QString& micmacDossier, int& cpuLu) {
+	// try to read Micmac install file if there are info we need
+	cpuLu = QThread::idealThreadCount();
+	return true;
+	
+	// we can no longer consider micmac being launched from source directory
+	/*
 	//lecture du fichier de paramètres ; retourne false s'il y a un problème
 	if (!QFile(micmacDossier+micmacInstallFile).exists()) return false;
 	cMicMacConfiguration aMF = StdGetObjFromFile<cMicMacConfiguration> ( (micmacDossier+micmacInstallFile).toStdString(), StdGetFileXMLSpec("ParamChantierPhotogram.xml"), "MicMacConfiguration", "MicMacConfiguration" );
-	bool b = false;
+	
 	if (QString(aMF.DirInstall().c_str())!=micmacDossier) b = false;
-	micmacDossier = QString(aMF.DirInstall().c_str());
-	cpuLu = aMF.NbProcess();
+	if ( micmacDossier=="" ) micmacDossier=QString(aMF.DirInstall().c_str());
+	
+	if ( cpuLu<1 ) cpuLu = aMF.NbProcess();
+
 	return b;
+	*/
 }
 
 void Options::writeMicMacInstall(const QString& micmacDossier, int cpuFinal) {

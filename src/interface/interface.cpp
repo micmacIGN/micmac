@@ -487,13 +487,14 @@ bool Interface::checkMicmac() {
 	settings->setValue("cpu", maxcpu);
 
 	//répertoire micmac
-	QString micmacPath( NS_ParamChantierPhotogram::MMDir().c_str() );
+	QString micmacPath( _MMDir().c_str() );
 	paramMain.setMicmacDir(micmacPath);	//NB : s'il existe, le dossier micmac est validé même s'il n'y a pas tous les binaires ou la bonne configuration
 	cout << tr("Micmac directory : ").toStdString(); cout << micmacPath.toStdString() << endl;
 
 	//configuration de micmac
 	bool b2 = true;	//si false, il faut réécrire le fichier MicMacConfig.xml
 	int cpuLu;
+	
 	if (!Options::readMicMacInstall(micmacPath, cpuLu)) b2 = false;	//pas de fichier MicMacConfig.xml reconnu ou fichier erronné (chemin micmac)
 	if (b2 && settings->value("cpu").toString().isEmpty() && cpuLu<=cpu_count) maxcpu = cpuLu;	//pas de cpu initial -> on prend celui de micmac
 	else if (b2 && maxcpu!=cpuLu) b2 = false;	//il y a un cpu initial ou bien le cpu de micmac n'est pas possible -> on corrige le cpu de micmac
