@@ -443,6 +443,7 @@ struct MetaDataRaw {
 };
 QString focaleRaw(const QString& image, const ParamMain& paramMain, MetaDataRaw& metaDataRaw);	//métadonnées d'une image raw ; renvoie false si pb
 bool focaleTif(const QString& image, const QString& micmacDir, int* focale, QSize* taille);	//focale en mm d'une image tif ; renvoie 0 si pb
+bool focaleOther(const QString& image, const QString& micmacDir, int* focale, QSize* taille);	// get focal and image size for non-TIFF, non-raw images
 bool createEmptyFile(const QString& fichier);	//crée un fichier vide
 
 #endif

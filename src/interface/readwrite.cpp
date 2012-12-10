@@ -3380,6 +3380,52 @@ bool focaleTif(const QString& image, const QString& micmacDir, int* focale, QSiz
 	return true;
 }
 
+// get focal and image size for EVIF/XMP data
+// extract meta-data with external tools exif and exiv2
+bool focaleOther( const string &i_image, int &o_focale, QSize &o_taille )
+{
+	// get an appropriate meta-data tool
+	ExternalToolItem toolItem;
+	toolItem = g_externalToolHandler.get("exiv2");
+	if ( toolItem.m_status!=EXT_TOOL_NOT_FOUND )
+		toolItem = g_externalToolHandler.get("exiftool");
+	if ( toolItem.m_status!=EXT_TOOL_NOT_FOUND ) {
+		cout << QObject::tr( "Fail to extract image %1 focal length and size (JGP format): no meta-data reading tool not found" ).arg( i_image.c_str() ).toStdString() << endl;
+		return false;
+	}
+
+	// run the tool in with a system call
+	//QString commande = QString("% %2 > %3truc").arg( QString( toolItem.callName().c_str() ) ).arg(noBlank(i_image)).arg(noBlank(paramMain->getDossier()));
+	QString commande = QString("% %2 > %3truc").arg( QString( toolItem.callName().c_str() ) ).arg(noBlank(i_image.c_str())).arg(noBlank(""));
+	if (execute(commande)!=0) {
+		cout << QObject::tr( "Fail to extract image %1 focal length and size (JGP format): failed to run the meta-data reading tool" ).arg(i_image.c_str()).toStdString() << endl;
+		return false;
+	}
+
+	// read produced file to get the information about image size and focal length
+	QFile file( QString("truc") );
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
+		cout << QObject::tr("Fail to extract image %1 focal length and size (JGP format): failed to read extracted meta-data file").arg( i_image.c_str() ).toStdString() << endl;
+		return false;
+	}
+	QTextStream inStream( &file );
+	while ( !inStream.atEnd() )
+	{
+		QString text = inStream.readLine();
+		if ( text.contains("Focal length") )
+		{
+			int colonPos = text.indexOf( ":" ),
+				mmPos = text.indexOf( "mm" );
+		}
+		else if ( text.contains("Image size") )
+		{
+
+		}
+	}
+
+	return true;
+}
+
 bool createEmptyFile(const QString& fichier) {
 	if (QFile(fichier).exists()) QFile(fichier).remove();
 	QFile file(fichier);

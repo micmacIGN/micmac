@@ -18,9 +18,14 @@ InterfPastis::InterfPastis( QWidget* parent, Assistant* help, ParamMain* pMain) 
 	//liste des calibrations à fournir
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 	cout << tr("Used lens search...").toStdString() << endl;
-	QList<int> calibAFournir;
-	QList<QSize> formatCalibAFournir;
-	QList<int> refImgCalibAFournir;
+
+	QList<int>	 calibAFournir;			// a list of focal lengths in mm
+	QList<QSize> formatCalibAFournir;	// a list of image sizes in pixel
+	QList<int>	 refImgCalibAFournir;	// a list of image indices
+
+	int f;
+	QSize s;
+
 	for (int i=0; i<paramMain->getCorrespImgCalib().count(); i++) {
 		QString img = paramMain->getCorrespImgCalib().at(i).getImageRAW();
 		
@@ -28,19 +33,18 @@ InterfPastis::InterfPastis( QWidget* parent, Assistant* help, ParamMain* pMain) 
 		if (!QFile(dossier+img).exists()) continue;
 
 		if (img.section(".",-1,-1).toUpper()==QString("TIFF") || img.section(".",-1,-1).toUpper()==QString("TIF")) {
-			int f;
-			QSize s;
-			if (!focaleTif(dossier+img, paramMain->getMicmacDir(), &f, &s)) {
+			if ( !focaleTif( dossier+img, paramMain->getMicmacDir(), &f, &s ) )
+			{
 				cout << tr("Fail to extract image %1 focal length and size.").arg(img).toStdString() << endl;
 				continue;
 			}
-			if (!calibAFournir.contains(f)) {
+			if ( !calibAFournir.contains(f) )
+			{
 				calibAFournir.push_back(f);
 				formatCalibAFournir.push_back(s);
 				refImgCalibAFournir.push_back(i);
 			}
-		} else if (img.section(".",-1,-1).toUpper()==QString("JPG") || img.section(".",-1,-1).toUpper()==QString("JPEG")) {	//trouver comment obtenir les métadonnées
-				cout << tr("Fail to extract image %1 focal length and size (JGP format)").arg(img).toStdString() << endl;
+		} else if (img.section(".",-1,-1).toUpper()==QString("JPG") || img.section(".",-1,-1).toUpper()==QString("JPEG")) {
 		} else {	//raw -> ElDcraw
 			QString commande = QString("%1bin/ElDcraw -i -v %2 >%3truc").arg(noBlank(paramMain->getMicmacDir())).arg(noBlank(dossier+img)).arg(noBlank(paramMain->getDossier()));
 			if (execute(commande)!=0) {
