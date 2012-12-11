@@ -252,7 +252,7 @@ cCameraFormelle & cCamIncEtalonage::CF()
 
 Tiff_Im cCamIncEtalonage::Tiff() const
 {
-    return mTiff.Im();
+    return mTiff.ImGray8B();
 }
 
 Pt2dr cCamIncEtalonage::Terrain2ImageGlob(Pt3dr aP) const
