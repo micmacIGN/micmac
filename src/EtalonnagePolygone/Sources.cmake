@@ -21,8 +21,6 @@ if (X11_FOUND)
 			${UTI_ETAPOLYLIB_DIR}/cCoordNormalizer.cpp
 		)
 
-	add_library(libEtalPolyg  ${EtaPolyLib_Src_Files})
-
 	set(EtaPoly_Src_Files 
 		${UTI_ETAPOLY_DIR}/CPP_PointeInitPolyg.cpp
 		${UTI_ETAPOLY_DIR}/CPP_RechCibleInit.cpp
@@ -38,6 +36,7 @@ if (X11_FOUND)
 	SOURCE_GROUP(${SrcGrp_EtaPoly} FILES ${EtaPoly_Src_Files})
 	SOURCE_GROUP(${SrcGrp_EtaPoly}\\Lib FILES ${EtaPolyLib_Src_Files})
 	
+	list( APPEND Elise_Src_Files ${EtaPolyLib_Src_Files})
 	list( APPEND Elise_Src_Files ${EtaPoly_Src_Files})
 
 endif()
