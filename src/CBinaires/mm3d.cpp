@@ -142,6 +142,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("SEL",SEL_main,"Tool to visualise tie points"));
        aRes.push_back(cMMCom("MICMACSaisieLiaisons",MICMACSaisieLiaisons_main,"low level version of SEL, not recommanded"));
 	   
+#ifdef ETA_POLYGON
+
 	   //Etalonnage polygone
 	   aRes.push_back(cMMCom("Compens",Compens_main," Do some stuff"));
 	   aRes.push_back(cMMCom("CatImSaisie",CatImSaisie_main," Do some stuff"));
@@ -152,6 +154,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 	   aRes.push_back(cMMCom("RechCibleDRad",RechCibleDRad_main," Do some stuff"));
 	   aRes.push_back(cMMCom("RechCibleInit",RechCibleInit_main," Do some stuff"));
 	   aRes.push_back(cMMCom("ScriptCalib",ScriptCalib_main," Do some stuff"));
+#endif
 
 #endif
    }

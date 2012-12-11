@@ -115,6 +115,9 @@ class cPt1IM
             eTyEtat  mEtat;
 };
 
+// Pour eviter les conflits avec ToString
+std::string iToString(const int &);
+
 class cPt2Im
 {
 	public :
@@ -122,7 +125,7 @@ class cPt2Im
                         mPtIm  (Pt2dr(-10000,-10000),eInexistant),
 		        mPtPol (aP,eNonSelec),
 		        pCible (aCible),
-			mName  (pCible ? ToString(pCible->Ind()) : "")
+			mName  (pCible ? iToString(pCible->Ind()) : "")
 		{
 		}
 

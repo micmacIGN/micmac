@@ -29,7 +29,7 @@ OPTION(WITH_HEADER_PRECOMP "En-tetes precompilees" ON )
 OPTION(BUILD_ONLY_ELISE "Projet Elise uniquement" OFF )
 
 # construire l'interface graphique
-OPTION(WITH_ETALONPOLY  "build etalonnage polygone" OFF)
+OPTION(WITH_ETALONPOLY  "build etalonnage polygone" ON)
 
 
 # Utiliser Cuda
