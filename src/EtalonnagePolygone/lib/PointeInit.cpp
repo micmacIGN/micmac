@@ -41,6 +41,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 using  namespace NS_ParamChantierPhotogram;
 
 
+std::string iToString(const int & i)
+{
+  return ToString(i);
+}
 
 
 /************************************************/
