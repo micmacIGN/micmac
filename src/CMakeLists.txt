@@ -131,8 +131,6 @@ else()
 	add_library( elise ${Elise_Src_Files} ${IncFiles})
 endif()
 
-
-
 # OPTION BUILD : En tetes precompilées pour gcc
 enable_precompiled_headers_GCC(StdAfx.h elise)
 
