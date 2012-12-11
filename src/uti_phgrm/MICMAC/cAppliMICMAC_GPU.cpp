@@ -818,6 +818,7 @@ namespace NS_ParamMICMAC
 		
 		float uvDefValue	= -1.0f;
 		
+		//-- Initialisation Tableau 
 		for (int anX = 0 ; anX < ssTerBloc_X  ; anX++)
 		{
 			h_TabPInit[anX * 2 + 0] = uvDefValue;
@@ -829,6 +830,9 @@ namespace NS_ParamMICMAC
 
 		for (int aKIm = 1 ; aKIm < mNbIm ; aKIm++ )
 			memcpy( h_TabPInit + 2 * ssTerBloc * aKIm, &h_TabPInit[0], 2 * ssTerBloc * sizeof(float));
+		//
+
+
 
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
