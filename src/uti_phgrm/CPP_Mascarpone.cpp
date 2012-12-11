@@ -62,6 +62,9 @@ int Mascarpone_main(int argc,char ** argv)
 	//Maillage
 	cMesh myMesh(aNamePly);
 
+	//Graphe d'adjacence
+	RGraph *g = new RGraph( myMesh.getFacesNumber(), myMesh.getEdgesNumber() );
+
 	#ifdef _DEBUG
 		printf ("nb vertex: %d - nb faces: %d\n", myMesh.getVertexNumber(), myMesh.getFacesNumber());
 
@@ -92,7 +95,6 @@ int Mascarpone_main(int argc,char ** argv)
 		pos = (int) aNameFiles.find('#',0);
 	}
 	aVFiles.push_back(aNameFiles);
-
 
 	vector <cZBuf> aZBuffers;
 
@@ -181,6 +183,33 @@ int Mascarpone_main(int argc,char ** argv)
 		printf ("Saving %s\n", aOut.c_str());
 		Tiff_Im::CreateFromIm(mask, aOut);
 		printf ("Done\n");
+
+		//on remplit le graphe d'adjacence grace aux attributs calcules pour chaque image
+		vector <int> TriIdxInGraph;
+		myMesh.setGraph(*g, TriIdxInGraph, aZBuffers[aK].getVisibleTrianglesIndexes());
+
+		//TODO: ajouter seed et sink
+		/*g->add_tweights
+		//g->add_tweights
+
+		//int flow = g->maxflow();
+
+		Im2D_BIN mask2 = aZBuffers[aK].ComputeMask(TriIdxInGraph, *g);
+			
+		if (aNameOut=="")
+		{
+			aOut = StdPrefix(aVFiles[aK]) + "_mask_mcmf.tif";
+		}
+		else
+		{
+			char buf[100];
+			sprintf(buf, "%i", aK);
+			aOut = StdPrefix(aNameOut) + buf + "_mcmf.tif";
+		}
+
+		printf ("Saving %s\n", aOut.c_str());
+		Tiff_Im::CreateFromIm(mask2, aOut);
+		printf ("Done\n");*/
 	}
 
 	return EXIT_SUCCESS;

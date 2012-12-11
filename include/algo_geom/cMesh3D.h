@@ -42,11 +42,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "general/ptxd.h"
 #include "../private/cElNuage3DMaille.h"
+#include "../../src/uti_phgrm/MaxFlow/graph.h"
 
 class cMesh;
 class cVertex;
 class cTriangle;
+class cEdge;
 class cZBuf;
+
+typedef Graph <float,float,float> RGraph;
 
 class cMesh
 {
@@ -58,26 +62,32 @@ class cMesh
 						~cMesh();
 
 		int			getVertexNumber() const	{return (int) mVertexes.size();}
-		int			getFacesNumber() const	{return (int) mTriangles.size();}
+		int			getFacesNumber()  const	{return (int) mTriangles.size();}
+		int			getEdgesNumber()  const	{return (int) mEdges.size();}
 	
 		void		getVertexes(vector <Pt3dr> &vPts) const {vPts = mVertexes;}
 		void		getTriangles(vector <cTriangle> &vTriangles) const {vTriangles = mTriangles;}
-		void		getEdges(vector <int> &vEdges);
+		void		getEdges(vector <cEdge> &vEdges) const {vEdges = mEdges;}
 	
 		Pt3dr		getVertex(unsigned int idx) const;
 		cTriangle*	getTriangle(unsigned int idx);
+		cEdge		getEdge(unsigned int idx) const;
 
 		void		writePly(const string &Filename, int AttributeAsRGB);
 
 		void		addPt(const Pt3dr &aPt);
 		void		addTriangle(const cTriangle &aTri);
+		void		addEdge(const cEdge &aEdge);
 
-		void		setTrianglesAttribute(int img_idx, Pt3dr Dir, vector <unsigned int> const &TriIdx);
+		void		setTrianglesAttribute(int img_idx, Pt3dr Dir, vector <unsigned int> const &aTriIdx);
+
+		void		setGraph(RGraph &aGraph, vector <int> TriInGraph, vector <unsigned int> const &aTriIdx); //TriInGraph: index of triangles in Graph
 	
 	private:
 
 		vector <Pt3dr>		mVertexes;
-		vector <cTriangle>	mTriangles;
+		vector <cTriangle>	mTriangles;	
+		vector <cEdge>	    mEdges;			//aretes du graphe de voisinage
 };
 
 //--------------------------------------------------------------------------------------------------------------
@@ -132,6 +142,25 @@ class cTriangle
 
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
+//TODO: remplacer par struct si la classe ne grossit pas plus que ça...
+class cEdge
+{
+	public:
+				cEdge(int tri1, int tri2){node1 = tri1; node2 = tri2;}
+			
+				~cEdge();
+
+		int		n1(){return node1;}
+		int		n2(){return node2;}
+
+	private:
+
+		int node1;
+		int node2;
+};
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
 
 class cZBuf
 {
@@ -140,12 +169,13 @@ class cZBuf
 
 				~cZBuf();
 
-		Im2D_REAL4	BasculerUnMaillage(cMesh &aMesh);			//Projection du maillage dans la geometrie de aNuage, aDef: valeur par defaut de l'image resultante
+		Im2D_REAL4	BasculerUnMaillage(cMesh const &aMesh);			//Projection du maillage dans la geometrie de aNuage, aDef: valeur par defaut de l'image resultante
 
-		void		BasculerUnTriangle(cTriangle &aTri, cMesh &aMesh, bool doMask = false); //soit on calcule le ZBuffer, soit le Masque (true)
+		void		BasculerUnTriangle(cTriangle &aTri, cMesh const &aMesh, bool doMask = false); //soit on calcule le ZBuffer, soit le Masque (true)
 		
 		void		ComputeVisibleTrianglesIndexes();
 		Im2D_BIN	ComputeMask(int img_idx, cMesh &aMesh);
+		Im2D_BIN	ComputeMask(vector <int> const &TriInGraph, RGraph &aGraph, cMesh &aMesh);
 
 		Im2D_U_INT2				getIndexImage() const {return mImTriIdx;}
 		vector <unsigned int>	getVisibleTrianglesIndexes() const {return vTri;}
