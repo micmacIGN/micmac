@@ -126,10 +126,8 @@ __global__ void correlationKernel(int *dev_NbImgOk, float* cache, int sTer_X, in
 	const float2 PtTProj	= tex2DLayered( TexLay_Proj, uTer, vTer, L);
 
 	if ( PtTProj.x < 0.0f ||  PtTProj.y < 0.0f ||  PtTProj.x > sxImg || PtTProj.y > syImg )
-	{
-	
 		return;
-	}
+	
 	else
 	{
 		float uImg = (PtTProj.x+0.5f) / (float) sxImg;
@@ -208,31 +206,31 @@ __global__ void multiCorrelationKernel(float *dest, float* cache, int * dev_NbIm
 	// coordonnées des threads
 	const unsigned short tx		= threadIdx.x;
 	const unsigned short ty		= threadIdx.y;
-/*
+	const unsigned short tz		= threadIdx.z;
 
 	aSV [ty][tx]		= 0.0f;
 	aSVV[ty][tx]		= 0.0f;
 	resu[ty/2][tx/2]	= 0.0f;
-	__syncthreads();*/
+	__syncthreads();
 
 	// nombres de threads utilisées dans le bloques
 	const unsigned short actiThs_X = blockDim.x - blockDim.x % svX;
 	const unsigned short actiThs_Y = blockDim.y - blockDim.y % svY;
 
+	// si le thread est inactif, il sort
+	if ( tx >=  actiThs_X || ty >=  actiThs_Y )
+		return;
+	
 	// taille de la vignette et du terrain
 	const unsigned short size_Vign = svX * svY;
 	const unsigned short size_Terr = sTer_X * sTer_Y;
 
-	// si le thread est inactif, il sort
-	if ( tx >=  actiThs_X || ty >=  actiThs_Y )
-		return;
-
 	// Coordonnées 3D du cache
 	const unsigned short x		= blockIdx.x * actiThs_X  + tx;
 	const unsigned short y		= blockIdx.y * actiThs_Y  + ty;
-	const unsigned short l		= threadIdx.y;
+	const unsigned short l		= threadIdx.z;
 
-	// Si le thread est en dehors du terrain
+	// Si le thread est en dehors du cache
 	if ( x >=  sTer_X * svX || y >=  sTer_Y * svY )
 		return;
 
@@ -250,7 +248,7 @@ __global__ void multiCorrelationKernel(float *dest, float* cache, int * dev_NbIm
 	const unsigned short tT_X	= tx / svX; 
 	const unsigned short tT_Y	= ty / svY;
 
-	bool mainThread = (tx % svX)== 0 && (ty % svY) == 0;
+	bool mainThread = (tx % svX)== 0 && (ty % svY) == 0 && tz == 0;
 
 	int aNbImOk = dev_NbImgOk[iTer];
 
@@ -258,19 +256,17 @@ __global__ void multiCorrelationKernel(float *dest, float* cache, int * dev_NbIm
 	{
 		if (mainThread)
 			dest[iTer] = -1.0f;
-		return; 
+		return;
 	}
 
 	float val = cache[iCach];
 
-	if ( mainThread ) 
-		resu[tT_Y][tT_X] = 0.0f;
-
 	__syncthreads();
-
 
 	atomicAdd( &aSV[ty][tx], val);
 
+	//printf ("aSV : %d, %4.2f, val :%4.2f | ", tz ,aSV[ty][tx], val);
+	
 	__syncthreads();
 
 	atomicAdd( &aSVV[ty][tx], val * val);
@@ -283,17 +279,11 @@ __global__ void multiCorrelationKernel(float *dest, float* cache, int * dev_NbIm
 
 	if ( !mainThread ) return;
 
-	__syncthreads();
-
 	// Normalisation pour le ramener a un equivalent de 1-Correl 
 	float cost = resu[tT_Y][tT_X] / (( aNbImOk-1) * size_Vign);
 
-	float aCorrel = 1.0f - cost;
-	aCorrel = max (-1.0, min(1.0,aCorrel));
-	
-	float temp = 1.0f - aCorrel;
+	dest[iTer] = 1.0f - max (-1.0, min(1.0,1.0f - cost));
 
-	dest[iTer] = 1.0f - aCorrel;
 }
 
 static int iDivUp(int a, int b)
@@ -356,30 +346,34 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre, int sTer_X, int sTer_Y
 		dim3 threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
 		dim3 blocks_mC(iDivUp(sTer_X * svX  ,actiThs_X) , iDivUp(sTer_Y * svY ,actiThs_Y));
 
-		//multiCorrelationKernel<<<blocks_mC, threads_mC>>>( dev_Corr_Out, dev_Cache, dev_NbImgOk, sTer_X, sTer_Y, rxVig, ryVig, sxImg, syImg );
-		//getLastCudaError("Multi-Correlation kernel failed");
+		multiCorrelationKernel<<<blocks_mC, threads_mC>>>( dev_Corr_Out, dev_Cache, dev_NbImgOk, sTer_X, sTer_Y, rxVig, ryVig, sxImg, syImg );
+		getLastCudaError("Multi-Correlation kernel failed");
 	}
 
 	//checkCudaErrors( cudaDeviceSynchronize() );
 	checkCudaErrors( cudaUnbindTexture(TexLay_Proj) );
 	checkCudaErrors( cudaMemcpy( host_Corr_Out,	dev_Corr_Out, out_MemSize, cudaMemcpyDeviceToHost) );
 	//checkCudaErrors( cudaMemcpy( host_NbImgOk,	dev_NbImgOk,  nBI_MemSize, cudaMemcpyDeviceToHost) );
-	checkCudaErrors( cudaMemcpy( host_Cache,	dev_Cache,	  cac_MemSize, cudaMemcpyDeviceToHost) );
+	//checkCudaErrors( cudaMemcpy( host_Cache,	dev_Cache,	  cac_MemSize, cudaMemcpyDeviceToHost) );
 	//--------------------------------------------------------
 
-	//if(0)
+	if(0)
 	{
-		int step = 1;
-		std::cout << "Taille du terrain (x,y) : " << iDivUp(sTer_X, step) << ", " << iDivUp(sTer_Y, step) << std::endl;
+		int step = 3;
+		std::cout << " --------------------  size ter (x,y) : " << iDivUp(sTer_X, step) << ", " << iDivUp(sTer_Y, step) << std::endl;
 		for (int j = 0; j < sTer_Y ; j+=step)
 		{
+			std::cout << "       "; 
 			for (int i = 0; i < sTer_X ; i+=step)
 			{
 				int id = (j * sTer_X  + i );
 				float c = host_Corr_Out[id];
-				//std::cout << floor(c*10)/10 << " ";
+				if( c !=-1.0f)
+					std::cout << floor(c*10)/10 << " ";
+				else
+					std::cout << ". ";
 				//float c = host_NbImgOk[id];
-				std::cout << c << " ";
+				//std::cout << c << " ";
 			}
 			std::cout << std::endl; 
 		}

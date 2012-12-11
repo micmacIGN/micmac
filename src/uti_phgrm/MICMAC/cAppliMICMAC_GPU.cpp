@@ -884,8 +884,6 @@ namespace NS_ParamMICMAC
 			basic_Correlation_GPU(h_TabCorre , sTerBloc_X, sTerBloc_Y, mNbIm, mPtSzWFixe.x, mPtSzWFixe.y, sizImg.x, sizImg.y, mAhEpsilon );
 		}
 
-		ELISE_ASSERT(1,"stop");
-
 		delete [] h_TabCorre;
 		delete [] h_TabProj;
 		delete [] h_TabPInit;
