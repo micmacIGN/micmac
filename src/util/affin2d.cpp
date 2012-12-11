@@ -52,6 +52,9 @@ void XXXXX(FILE * aF)
 */
 
 
+
+//  TEST MERCURIAL
+
 ElAffin2D::ElAffin2D
 (
      Pt2dr im00,  // partie affine
