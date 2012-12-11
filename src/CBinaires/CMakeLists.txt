@@ -1,5 +1,5 @@
 add_executable(mm3d mm3d.cpp)
-target_link_libraries(mm3d elise ${LIB_ETAL_POLYG} ${X11_LIBRARIES} ${X11_LIBRARIES} ${KAKADU_LIBRARIES} ${WINSOCK2_LIBRAIRIE} )
+target_link_libraries(mm3d elise ${X11_LIBRARIES} ${X11_LIBRARIES} ${KAKADU_LIBRARIES} ${WINSOCK2_LIBRAIRIE} )
 INSTALL(TARGETS mm3d RUNTIME DESTINATION ${Install_Dir})
 
 
