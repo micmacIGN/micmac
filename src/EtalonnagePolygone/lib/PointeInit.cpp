@@ -134,7 +134,7 @@ cWPointe::cWPointe
     mModeIm                 (modeIm),
     mSz                     (aW.sz()),
     mEtatDepAff             (aEtatDepAff),
-    mTifFile                (Tiff_Im::BasicConvStd(aName)),
+    mTifFile                (Tiff_Im::StdConvGen(aName,-1,false)),
     mPI                     (aPI)
 {
         // SetModeReplicationPixel();
@@ -840,7 +840,8 @@ cPointeInit::cPointeInit
 {
     if (mWithIm)
     {
-       Tiff_Im aTF = Tiff_Im::BasicConvStd(mPPI.NameImageCamera());
+       // Tiff_Im aTF = Tiff_Im::BasicConvStd(mPPI.NameImageCamera());
+       Tiff_Im aTF = Tiff_Im::StdConvGen(mPPI.NameImageCamera(),-1,false);
        Pt2di aSz =aTF.sz();
        mIm = Im2D_REAL4(aSz.x,aSz.y);
        ELISE_COPY(aTF.all_pts(),aTF.in(),mIm.out());
