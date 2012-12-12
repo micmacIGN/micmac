@@ -10,7 +10,7 @@
 	// Utilities and system includes
 	#include <helper_functions.h>
 	#include <helper_cuda.h>
-
+	#include <helper_math.h>
 #endif
 
 #include <algorithm>
