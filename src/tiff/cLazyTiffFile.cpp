@@ -43,8 +43,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 cLazyTiffFile::cLazyTiffFile(const std::string & aNameFile) :
-    mNameFile (aNameFile),
-    mFile     (0)
+    mNameFile   (aNameFile),
+    mFile       (0),
+    mFileGray8B (0)
 {
 }
 
@@ -53,7 +54,7 @@ cLazyTiffFile::~cLazyTiffFile()
    delete mFile;
 }
 
-Tiff_Im cLazyTiffFile::Im() const
+Tiff_Im cLazyTiffFile::StdImage() const
 {
    if (mFile == 0)
    {
@@ -61,6 +62,21 @@ Tiff_Im cLazyTiffFile::Im() const
    }
    return *mFile;
 }
+
+Tiff_Im cLazyTiffFile::ImGray8B() const
+{
+   if (mFileGray8B == 0)
+   {
+       mFileGray8B = new Tiff_Im(Tiff_Im::StdConvGen(mNameFile,1,false));
+   }
+   return *mFileGray8B;
+}
+
+
+
+
+
+
 
 
 

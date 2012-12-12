@@ -1889,7 +1889,8 @@ Tiff_Im Tiff_Im::LZW_Create8BFromFonc
 
 Elise_Palette StdPalOfFile(const std::string & aName,Video_Win aW)
 {
-   Tiff_Im  aFile = Tiff_Im::BasicConvStd(aName);
+   // Tiff_Im  aFile = Tiff_Im::BasicConvStd(aName);
+   Tiff_Im  aFile = Tiff_Im::StdConvGen(aName,-1,false);
    return aFile.std_pal(aW);
 }
 
