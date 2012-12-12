@@ -713,12 +713,12 @@
         <Calcs>
             <Arrite>  1 1 </Arrite>
             <Direct>
-                <PatternTransform>    (.*)\.tif     </PatternTransform>
+                <PatternTransform>    (.*)     </PatternTransform>
                 <CalcName>  Orient_Polyg/Orient$1.xml  </CalcName>
              </Direct>
             <Inverse>
                 <PatternTransform> Orient_Polyg/Orient(.*)\.xml  </PatternTransform>
-                <CalcName>  $1.tif     </CalcName>
+                <CalcName>  $1     </CalcName>
              </Inverse>
         </Calcs>
         <Key>   Key-Assoc-Im2AppuiOri-Polygone-Basic </Key>

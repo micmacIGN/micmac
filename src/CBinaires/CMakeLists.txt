@@ -131,32 +131,32 @@ if (NOT ${BUILD_ONLY_ELISE})
 		
 		if(${WITH_ETALONPOLY})
 			# Etalonnage polygone
-			add_executable(Compens  Compens.c)
-			INSTALL(TARGETS Compens RUNTIME DESTINATION ${Install_Dir})
+			add_executable(EPExeCompens  EPExeCompens.c)
+			INSTALL(TARGETS EPExeCompens RUNTIME DESTINATION ${Install_Dir})
 					
 			add_executable(ScriptCalib  ScriptCalib.c)
 			INSTALL(TARGETS ScriptCalib RUNTIME DESTINATION ${Install_Dir})
 			
-			add_executable(CatImSaisie  CatImSaisie.c)
-			INSTALL(TARGETS CatImSaisie RUNTIME DESTINATION ${Install_Dir})
+			add_executable(EPExeCatImSaisie  EPExeCatImSaisie.c)
+			INSTALL(TARGETS EPExeCatImSaisie RUNTIME DESTINATION ${Install_Dir})
 			
-			add_executable(CalibFinale  CalibFinale.c)
-			INSTALL(TARGETS CalibFinale RUNTIME DESTINATION ${Install_Dir})
+			add_executable(EPExeCalibFinale  EPExeCalibFinale.c)
+			INSTALL(TARGETS EPExeCalibFinale RUNTIME DESTINATION ${Install_Dir})
 			
-			add_executable(CalibInit  CalibInit.c)
-			INSTALL(TARGETS CalibInit RUNTIME DESTINATION ${Install_Dir})
+			add_executable(EPExeCalibInit  EPExeCalibInit.c)
+			INSTALL(TARGETS EPExeCalibInit RUNTIME DESTINATION ${Install_Dir})
 			
-			add_executable(ConvertPolygone  ConvertPolygone.c)
-			INSTALL(TARGETS ConvertPolygone RUNTIME DESTINATION ${Install_Dir})
+			add_executable(EPExeConvertPolygone  EPExeConvertPolygone.c)
+			INSTALL(TARGETS EPExeConvertPolygone RUNTIME DESTINATION ${Install_Dir})
 			
-			add_executable(PointeInitPolyg  PointeInitPolyg.c)
-			INSTALL(TARGETS PointeInitPolyg RUNTIME DESTINATION ${Install_Dir})
+			add_executable(EPExePointeInitPolyg  EPExePointeInitPolyg.c)
+			INSTALL(TARGETS EPExePointeInitPolyg RUNTIME DESTINATION ${Install_Dir})
 			
-			add_executable(RechCibleDRad  RechCibleDRad.c)
-			INSTALL(TARGETS RechCibleDRad RUNTIME DESTINATION ${Install_Dir})
+			add_executable(EPExeRechCibleDRad  EPExeRechCibleDRad.c)
+			INSTALL(TARGETS EPExeRechCibleDRad RUNTIME DESTINATION ${Install_Dir})
 			
-			add_executable(RechCibleInit RechCibleInit.c)
-			INSTALL(TARGETS RechCibleInit RUNTIME DESTINATION ${Install_Dir})
+			add_executable(EPExeRechCibleInit EPExeRechCibleInit.c)
+			INSTALL(TARGETS EPExeRechCibleInit RUNTIME DESTINATION ${Install_Dir})
 		endif()
 	endif()
 endif()

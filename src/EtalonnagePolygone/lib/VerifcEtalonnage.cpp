@@ -66,7 +66,7 @@ void cEtalonnage::VerifTifFile(const std::string & aName,bool UseRat)
          cout << aName << "=> " << aTifName << " : Tiff File Does not exist\n";
 	 exit(-1);
      }
-     Tiff_Im::BasicConvStd(aTifName);
+     Tiff_Im::StdConvGen(aTifName,1,false);
 
       std::string aNamePointe = NamePointeInit(aName);
 
