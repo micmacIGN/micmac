@@ -635,7 +635,7 @@ cParamEtal::cParamEtal(int argc,char ** argv) :
                     << EAM(mPointeInitIm,"Pointe",true)
                     << EAM(mByProcess,"ByP",true)
                     << EAM(mCalledByItsef,"CalledByItsef",true)
-                    << EAM(mOrderComp,"OC",true)
+                    << EAM(mOrderComp,"OC",true,"Order Compens, allow value in {P,R,5}")
      );
 
      // std::cout << "XXXXXXXx   " << mPointeInitIm << "\n";

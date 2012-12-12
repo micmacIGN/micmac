@@ -591,7 +591,7 @@ void PastisThread::run() {
 				break;
 		}*/
 		QString patronXml = "ChantierDescrConver.xml";
-		QFile file (QString(":/xml/")+patronXml);
+		QFile file (getParamMain()->getMicmacDir()+"/interface/xml/"+patronXml);
 		deleteFile(getParamMain()->getDossier() + getParamMain()->getChantierXML());
 		file.copy(getParamMain()->getDossier() + getParamMain()->getChantierXML());
 		cout << tr("Default survey parameters loaded.").toStdString() << endl;
@@ -827,6 +827,7 @@ QString PastisThread::defImgOrientables() {
 				break;
 			}
 		}
+		if ( l1==-1 ) continue;
 		//recherche de l'img2
 		for (int i=0; i<composantes.count(); i++) {
 			if (composantes.at(i).indexOf(it->second)!=-1) {
@@ -834,7 +835,7 @@ QString PastisThread::defImgOrientables() {
 				break;
 			}
 		}
-		if (l1==l2) continue;
+		if ( (l2==-1) || (l1==l2) ) continue;
 		//transfert
 		composantes[l1].append(composantes.at(l2));
 		composantes.removeAt(l2);
@@ -967,7 +968,7 @@ void AperoThread::run() {
 		if (getParamMain()->getParamApero().getAutoCalib().count()>0) {
 			QString newFile(getParamMain()->getDossier() + getParamMain()->getAperoXML().section(".",0,-2) + QString("0.xml"));
 			deleteFile(newFile);
-			QFile file (QString(":/xml/AperoConvAutoCalib.xml"));
+			QFile file (getParamMain()->getMicmacDir()+"/interface/xml/AperoConvAutoCalib.xml");
 			file.copy(newFile);
 		}
 		if (!getParamMain()->getParamApero().getMultiechelle()) {
@@ -986,23 +987,23 @@ void AperoThread::run() {
 			patronXml = "AperoConver.xml";
 			QString newFile(getParamMain()->getDossier() + getParamMain()->getAperoXML());
 			deleteFile(newFile);
-			QFile file (QString(":/xml/")+patronXml);
+			QFile file (getParamMain()->getMicmacDir()+"/interface/xml/"+patronXml);
 			file.copy(newFile);
 		} else {
 			QString newFile1(getParamMain()->getDossier() + getParamMain()->getAperoXML());
 			deleteFile(newFile1);
-			QFile file (QString(":/xml/AperoConvCourteFoc.xml"));
+			QFile file( getParamMain()->getMicmacDir()+"/interface/xml/AperoConvCourteFoc.xml" );
 			file.copy(newFile1);
 
 			QString newFile2(getParamMain()->getDossier() + getParamMain()->getAperoXML().section(".",-0,-2)+QString("2.xml"));
 			deleteFile(newFile2);
-			QFile file2 (QString(":/xml/AperoConvLongFoc.xml"));
+			QFile file2( getParamMain()->getMicmacDir()+"/interface/xml/AperoConvLongFoc.xml" );
 			file2.copy(newFile2);
 		}
 		if (getParamMain()->getParamApero().getLiberCalib().contains(true)) {
 			QString newFile(getParamMain()->getDossier() + getParamMain()->getAperoXML().section(".",-0,-2)+QString("3.xml"));
 			deleteFile(newFile);
-			QFile file (QString(":/xml/AperoLiberCalib.xml"));
+			QFile file( getParamMain()->getMicmacDir()+"/interface/xml/AperoLiberCalib.xml");
 			file.copy(newFile);
 		}
 		cout << tr("Default parameters loaded.").toStdString() << endl;
@@ -2362,9 +2363,9 @@ void MicmacThread::run() {
 			cout << tr("Depth map %1 parameter saving :\n").arg(currentCarte->getImageDeReference()).toStdString();
 
 			//recopie du fichier des paramètres
-			if (repere && !QFile(geoIXml).exists()) QFile(QString(":/xml/")+QString("MicMacConver.xml")).copy(geoIXml);
-			else if (!repere && !QFile(terXml).exists()) QFile(QString(":/xml/")+QString("MicMacEuclidien.xml")).copy(terXml);
-			if (!repere && currentCarte->getDoOrtho() && !QFile(mmorthoXml).exists()) QFile(QString(":/xml/")+QString("MicMacOrtho.xml")).copy(mmorthoXml);
+			if (repere && !QFile(geoIXml).exists()) QFile(getParamMain()->getMicmacDir()+"/interface/xml/MicMacConver.xml").copy(geoIXml);
+			else if (!repere && !QFile(terXml).exists()) QFile(getParamMain()->getMicmacDir()+"/interface/xml/MicMacEuclidien.xml").copy(terXml);
+			if (!repere && currentCarte->getDoOrtho() && !QFile(mmorthoXml).exists()) QFile(getParamMain()->getMicmacDir()+"/interface/xml/MicMacOrtho.xml").copy(mmorthoXml);
 
 			//intervalle
 			if (!FichierIntervalle::ecrire(getParamMain()->getDossier()+getParamMain()->getIntervalleXML(), currentCarte->getInterv().first, currentCarte->getInterv().second)) {
@@ -2869,8 +2870,8 @@ void OrthoThread::run() {
 	//fichiers xml
 	QString dossier = getParamMain()->getDossier() + QString("ORTHO%1/").arg(numRef);
 	deleteFile(dossier+QString("Porto.xml"));
-	if (!egaliser) QFile(QString(":/xml/Porto.xml")).copy(dossier+QString("Porto.xml"));
-	else QFile(QString(":/xml/PortoEgal.xml")).copy(dossier+QString("Porto.xml"));
+	if (!egaliser) QFile(getParamMain()->getMicmacDir()+"/interface/xml/Porto.xml").copy(dossier+QString("Porto.xml"));
+	else QFile(getParamMain()->getMicmacDir()+"/interface/xml/PortoEgal.xml").copy(dossier+QString("Porto.xml"));
 	if (!FichierPorto::ecrire(dossier+getParamMain()->getPathMntXML(), numRef)) {
 		setReaderror(conv(tr("Fail to write file %1.")).arg(dossier+getParamMain()->getPathMntXML()));
 		return;
