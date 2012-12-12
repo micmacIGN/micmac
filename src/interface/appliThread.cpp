@@ -827,6 +827,7 @@ QString PastisThread::defImgOrientables() {
 				break;
 			}
 		}
+		if ( l1==-1 ) continue;
 		//recherche de l'img2
 		for (int i=0; i<composantes.count(); i++) {
 			if (composantes.at(i).indexOf(it->second)!=-1) {
@@ -834,7 +835,7 @@ QString PastisThread::defImgOrientables() {
 				break;
 			}
 		}
-		if (l1==l2) continue;
+		if ( (l2==-1) || (l1==l2) ) continue;
 		//transfert
 		composantes[l1].append(composantes.at(l2));
 		composantes.removeAt(l2);

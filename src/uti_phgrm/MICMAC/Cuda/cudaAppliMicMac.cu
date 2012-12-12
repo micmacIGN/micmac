@@ -14,6 +14,7 @@
 //------------------------------------------------------------------------------------------
 // Non utilisé
 texture<float, cudaTextureType2D, cudaReadModeNormalizedFloat> refTex_Image;
+texture<bool, cudaTextureType2D, cudaReadModeNormalizedFloat> refTex_Cache;
 texture<float2, cudaTextureType2D, cudaReadModeNormalizedFloat> refTex_Project;
 cudaArray* dev_Img;				// Tableau des valeurs de l'image
 cudaArray* dev_CubeProjImg;		// Declaration du cube de projection pour le device
@@ -97,13 +98,13 @@ extern "C" void  projectionsToLayers(float *h_TabProj, int sTer_X, int sTer_Y, i
 
 };
 
-__global__ void correlationKernel(int *dev_NbImgOk, float* cache, int sTer_X, int sTer_Y, int rxVig, int ryVig, int sxImg, int syImg, float mAhEpsilon )
+__global__ void correlationKernel(float* dest, int *dev_NbImgOk, float* cache, int sTer_X, int sTer_Y, int rxVig, int ryVig, int sxImg, int syImg, float mAhEpsilon )
 {
 	__shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
 
 	// coordonnées des threads
-	const unsigned short tx		= threadIdx.x;
-	const unsigned short ty		= threadIdx.y;
+	const unsigned int tx		= threadIdx.x;
+	const unsigned int ty		= threadIdx.y;
 
 	// Se placer dans l'espace terrain
 	const int X	= blockIdx.x * blockDim.x  + tx;
@@ -115,15 +116,23 @@ __global__ void correlationKernel(int *dev_NbImgOk, float* cache, int sTer_X, in
 	if ( X >= sTer_X || Y >= sTer_Y) 
 		return;
 
-	// Decalage dans la memoire partagée de la vignette
-	int spiX = threadIdx.x ;
-	int spiY = threadIdx.y ;
-
 	float uTer = ((float)X + 0.5f) / ((float) sTer_X);
 	float vTer = ((float)Y + 0.5f) / ((float) sTer_Y);
 
 	// Les coordonnées de projections dans l'image
 	const float2 PtTProj	= tex2DLayered( TexLay_Proj, uTer, vTer, L);
+	
+	if (PtTProj.x == -1.0f)
+	{
+		dest[iTer] = PtTProj.x;
+	} 
+	else
+	{
+		dest[iTer] = PtTProj.x / (float)sxImg;
+	}
+	
+	
+	return;
 
 	if ( PtTProj.x < 0.0f ||  PtTProj.y < 0.0f ||  PtTProj.x > sxImg || PtTProj.y > syImg )
 		return;
@@ -132,18 +141,20 @@ __global__ void correlationKernel(int *dev_NbImgOk, float* cache, int sTer_X, in
 	{
 		float uImg = (PtTProj.x+0.5f) / (float) sxImg;
 		float vImg = (PtTProj.y+0.5f) / (float) syImg;
-		cacheImg[spiX][spiY] = tex2DLayered( refTex_ImagesLayered, uImg, vImg,L);
+		cacheImg[tx][ty] = tex2DLayered( refTex_ImagesLayered, uImg, vImg,L);
 	}
 
 	__syncthreads();
 
+	
+
 	// Intialisation des valeurs de calcul 
 	float		aSV	= 0.0f;
 	float	   aSVV	= 0.0f;
-	const int	x0	= spiX - rxVig;
-	const int	x1	= spiX + rxVig;
-	const int	y0	= spiY - ryVig;
-	const int	y1	= spiY + ryVig;
+	const int	x0	= tx - rxVig;
+	const int	x1	= tx + rxVig;
+	const int	y0	= ty - ryVig;
+	const int	y1	= ty + ryVig;
 
 	if ((x1 >= blockDim.x )|(y1 >= blockDim.y )|(x0 < 0)|(y0 < 0)) 
 		return;
@@ -200,13 +211,13 @@ __global__ void multiCorrelationKernel(float *dest, float* cache, int * dev_NbIm
 	__shared__ float resu[ SBLOCKDIM/2 ][ SBLOCKDIM/2 ];
 
 	// dimensions des vignettes
-	const unsigned short svX	= 2 * rxVig + 1;
-	const unsigned short svY	= 2 * ryVig + 1;
+	const unsigned int svX	= 2 * rxVig + 1;
+	const unsigned int svY	= 2 * ryVig + 1;
 
 	// coordonnées des threads
-	const unsigned short tx		= threadIdx.x;
-	const unsigned short ty		= threadIdx.y;
-	const unsigned short tz		= threadIdx.z;
+	const unsigned int tx		= threadIdx.x;
+	const unsigned int ty		= threadIdx.y;
+	const unsigned int tz		= threadIdx.z;
 
 	aSV [ty][tx]		= 0.0f;
 	aSVV[ty][tx]		= 0.0f;
@@ -214,39 +225,39 @@ __global__ void multiCorrelationKernel(float *dest, float* cache, int * dev_NbIm
 	__syncthreads();
 
 	// nombres de threads utilisées dans le bloques
-	const unsigned short actiThs_X = blockDim.x - blockDim.x % svX;
-	const unsigned short actiThs_Y = blockDim.y - blockDim.y % svY;
+	const unsigned int actiThs_X = blockDim.x - blockDim.x % svX;
+	const unsigned int actiThs_Y = blockDim.y - blockDim.y % svY;
 
 	// si le thread est inactif, il sort
 	if ( tx >=  actiThs_X || ty >=  actiThs_Y )
 		return;
 	
 	// taille de la vignette et du terrain
-	const unsigned short size_Vign = svX * svY;
-	const unsigned short size_Terr = sTer_X * sTer_Y;
+	const unsigned int size_Vign = svX * svY;
+	const unsigned int size_Terr = sTer_X * sTer_Y;
 
 	// Coordonnées 3D du cache
-	const unsigned short x		= blockIdx.x * actiThs_X  + tx;
-	const unsigned short y		= blockIdx.y * actiThs_Y  + ty;
-	const unsigned short l		= threadIdx.z;
+	const unsigned int x		= blockIdx.x * actiThs_X  + tx;
+	const unsigned int y		= blockIdx.y * actiThs_Y  + ty;
+	const unsigned int l		= threadIdx.z;
 
 	// Si le thread est en dehors du cache
 	if ( x >=  sTer_X * svX || y >=  sTer_Y * svY )
 		return;
 
 	// Coordonnées 1D du cache
-	const unsigned short iCach	= l * size_Terr * size_Vign + y * sTer_X * svX + x ;
+	const unsigned int iCach	= l * size_Terr * size_Vign + y * sTer_X * svX + x ;
 
 	// Coordonnées 2D du terrain 
-	const unsigned short X		= x / svX;
-	const unsigned short Y		= y / svY;
+	const unsigned int X		= x / svX;
+	const unsigned int Y		= y / svY;
 
 	// Coordonnées 1D dans le cache
-	const unsigned short iTer	= Y * sTer_X  + X;
+	const unsigned int iTer	= Y * sTer_X  + X;
 
 	// Coordonnées 2D du terrain dans le repere des threads
-	const unsigned short tT_X	= tx / svX; 
-	const unsigned short tT_Y	= ty / svY;
+	const unsigned int tT_X	= tx / svX; 
+	const unsigned int tT_Y	= ty / svY;
 
 	bool mainThread = (tx % svX)== 0 && (ty % svY) == 0 && tz == 0;
 
@@ -311,7 +322,7 @@ extern "C" void Init_Correlation_GPU( int sTer_X, int sTer_Y, int nbLayer , int 
 	// Texture des projections
 	TexLay_Proj.addressMode[0]	= cudaAddressModeWrap;
     TexLay_Proj.addressMode[1]	= cudaAddressModeWrap;	
-    TexLay_Proj.filterMode		= cudaFilterModePoint;
+    TexLay_Proj.filterMode		= cudaFilterModeLinear; //cudaFilterModePoint 
     TexLay_Proj.normalized		= true;
 }
 
@@ -334,7 +345,7 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre, int sTer_X, int sTer_Y
 		dim3 threads(BLOCKDIM, BLOCKDIM, 1);
 		dim3 blocks(iDivUp(sTer_X,threads.x) , iDivUp(sTer_Y,threads.y), nbLayer);
 		
-		correlationKernel<<<blocks, threads>>>( dev_NbImgOk, dev_Cache, sTer_X, sTer_Y, rxVig, ryVig, sxImg, syImg, mAhEpsilon);
+		correlationKernel<<<blocks, threads>>>( dev_Corr_Out, dev_NbImgOk, dev_Cache, sTer_X, sTer_Y, rxVig, ryVig, sxImg, syImg, mAhEpsilon);
 		getLastCudaError("Basic Correlation kernel failed");
 		//checkCudaErrors( cudaDeviceSynchronize() );
 
@@ -346,8 +357,8 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre, int sTer_X, int sTer_Y
 		dim3 threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
 		dim3 blocks_mC(iDivUp(sTer_X * svX  ,actiThs_X) , iDivUp(sTer_Y * svY ,actiThs_Y));
 
-		multiCorrelationKernel<<<blocks_mC, threads_mC>>>( dev_Corr_Out, dev_Cache, dev_NbImgOk, sTer_X, sTer_Y, rxVig, ryVig, sxImg, syImg );
-		getLastCudaError("Multi-Correlation kernel failed");
+		//multiCorrelationKernel<<<blocks_mC, threads_mC>>>( dev_Corr_Out, dev_Cache, dev_NbImgOk, sTer_X, sTer_Y, rxVig, ryVig, sxImg, syImg );
+		//getLastCudaError("Multi-Correlation kernel failed");
 	}
 
 	//checkCudaErrors( cudaDeviceSynchronize() );
@@ -357,9 +368,9 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre, int sTer_X, int sTer_Y
 	//checkCudaErrors( cudaMemcpy( host_Cache,	dev_Cache,	  cac_MemSize, cudaMemcpyDeviceToHost) );
 	//--------------------------------------------------------
 
-	if(0)
+	//if(0)
 	{
-		int step = 3;
+		int step = 1;
 		std::cout << " --------------------  size ter (x,y) : " << iDivUp(sTer_X, step) << ", " << iDivUp(sTer_Y, step) << std::endl;
 		for (int j = 0; j < sTer_Y ; j+=step)
 		{
@@ -368,10 +379,13 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre, int sTer_X, int sTer_Y
 			{
 				int id = (j * sTer_X  + i );
 				float c = host_Corr_Out[id];
-				if( c !=-1.0f)
+				if( c > 0.0f)
 					std::cout << floor(c*10)/10 << " ";
+				else if( c == -1.0f)			
+					std::cout << " .  ";
 				else
-					std::cout << ". ";
+					std::cout << " -  ";
+
 				//float c = host_NbImgOk[id];
 				//std::cout << c << " ";
 			}
