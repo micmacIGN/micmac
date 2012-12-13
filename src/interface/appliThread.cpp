@@ -524,9 +524,7 @@ void PastisThread::run() {
 		
 #if ELISE_windows
 				// Cannot create a symbolic link under windows so copy the file
-				//bool b = QFile(getParamMain()->getDossier()+imgTif).copy(getParamMain()->getDossier()+imgTifCouleur2);
-				// Cannot create a symbolic link under windows do nothing
-				bool b = true;
+				bool b = QFile(getParamMain()->getDossier()+imgTif).copy(getParamMain()->getDossier()+imgTifCouleur2);
 #else
 				bool b = QFile(getParamMain()->getDossier()+imgTif).link(getParamMain()->getDossier()+imgTifCouleur2);		
 #endif
