@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-#ADD_SUBDIRECTORY(test_ISA0)
+ADD_SUBDIRECTORY(test_ISA0)
 
 FIND_PACKAGE(Qt4 REQUIRED)
 

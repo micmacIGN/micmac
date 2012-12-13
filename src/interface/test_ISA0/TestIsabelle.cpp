@@ -310,7 +310,7 @@ void cAppliTestIsabelle::CalculsSurLesPoints (ListPt* lstPtInit, Image* img1, Be
 
 void cAppliTestIsabelle::Sortie (ListPt* lstPtInit, Image* img) {
 //écriture des points retenus dans un fichier
-	ElPackHomologue  aPack[(*img).GetNbPaires()];
+	ElPackHomologue *aPack = new ElPackHomologue[(*img).GetNbPaires()];
 	for(list<Point2>::iterator  itP=(*lstPtInit).begin(); itP!=(*lstPtInit).end(); itP++) {
 		if(!(*itP).GetSelect()) continue;
 		for(list<Coord>::iterator  itC=(*itP).begin(); itC!=(*itP).end(); itC++) {
@@ -325,6 +325,7 @@ void cAppliTestIsabelle::Sortie (ListPt* lstPtInit, Image* img) {
 		string s2 = (*img).GetChemin()+s+"_"+param.extensionSortie().Val()+".dat";
 		aPack[i].StdPutInFile(s2);
 	}
+	delete [] aPack;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
