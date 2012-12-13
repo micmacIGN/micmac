@@ -159,7 +159,12 @@ int MapCmd_main(int argc,char ** argv)
                 if ((aN[0]=='T') || (aN[0]=='c'))
                 {
                     ELISE_ASSERT(aTarget=="","Multiple cible");
-                   aTarget = aDirCur+aRepl;
+                   
+					#if (ELISE_windows)
+						aTarget = aRepl;
+					#else
+						aTarget = aDirCur+aRepl;
+					#endif
                 }
                 if ((aN[0]=='C') || (aN[0]=='c'))
                 {
