@@ -2045,7 +2045,7 @@ void * cAppliMICMAC::AllocObjFromLibDyn
          return 0;
    }
    return anObj;
-}
+}Mk
 #endif
 
 int cAppliMICMAC::CodeMicMax2CodeExt(eMicMacCodeRetourErreur aCode) const
