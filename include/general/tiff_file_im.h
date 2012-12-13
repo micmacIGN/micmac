@@ -456,10 +456,12 @@ class cLazyTiffFile
     public :
        cLazyTiffFile(const std::string & aNameFile);
         ~cLazyTiffFile();
-       Tiff_Im Im() const;
+       Tiff_Im StdImage() const;
+       Tiff_Im ImGray8B() const;
     private :
         std::string mNameFile;
         mutable Tiff_Im *   mFile;
+        mutable Tiff_Im *   mFileGray8B;
 };
 
 Elise_Palette StdPalOfFile(const std::string & aName,Video_Win);
