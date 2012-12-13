@@ -1781,7 +1781,7 @@ int ParamPastis::findFocale(const QString& calibFile) const {
 		if (it->first==calibFile) return it->second;
 		it++;
 	}
-	if (it==calibFiles.end()) return -1;
+	return -1;
 }
 
 bool ParamPastis::extractFocaleFromName(const QString& calibFile, int& focale) {

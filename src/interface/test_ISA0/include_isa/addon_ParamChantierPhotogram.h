@@ -1,13 +1,5 @@
 #include "StdAfx.h"
-
-// this is an add-on to NS_ParamChantierPhotogram
-// it adds classes cParamFusionSift, caffichImg and caffichPaire
-
 namespace NS_ParamChantierPhotogram{
-
-/******************************************************/
-/******************************************************/
-/******************************************************/
 class caffichImg
 {
     public:
@@ -181,4 +173,7 @@ class cParamFusionSift
 };
 cElXMLTree * ToXMLTree(const cParamFusionSift &);
 
-}; // namespace NS_ParamChantierPhotogram
+/******************************************************/
+/******************************************************/
+/******************************************************/
+};

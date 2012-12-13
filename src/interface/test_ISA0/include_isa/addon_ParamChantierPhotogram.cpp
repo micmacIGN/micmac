@@ -1,8 +1,6 @@
 #include "StdAfx.h"
 #include "addon_ParamChantierPhotogram.h"
-
 namespace NS_ParamChantierPhotogram{
-//class caffichImg
 
 int & caffichImg::image()
 {
@@ -42,7 +40,6 @@ void xml_init(caffichImg & anObj,cElXMLTree * aTree)
    xml_init(anObj.fichier(),aTree->Get("fichier",1)); //tototo 
 }
 
-// class caffichPaire
 
 int & caffichPaire::image1()
 {
@@ -139,14 +136,13 @@ void xml_init(caffichPaire & anObj,cElXMLTree * aTree)
    xml_init(anObj.trait(),aTree->Get("trait",1),bool(true)); //tototo 
 }
 
-// class ParamFusionSift
 
 string & cParamFusionSift::dossier()
 {
    return mdossier;
 }
 
-const string & cParamFusionSift::dossier()const
+const string & cParamFusionSift::dossier()const 
 {
    return mdossier;
 }
@@ -157,7 +153,7 @@ string & cParamFusionSift::dossierImg()
    return mdossierImg;
 }
 
-const string & cParamFusionSift::dossierImg()const
+const string & cParamFusionSift::dossierImg()const 
 {
    return mdossierImg;
 }
@@ -168,7 +164,7 @@ cTplValGesInit< std::string > & cParamFusionSift::extensionSortie()
    return mextensionSortie;
 }
 
-const cTplValGesInit< std::string > & cParamFusionSift::extensionSortie()const
+const cTplValGesInit< std::string > & cParamFusionSift::extensionSortie()const 
 {
    return mextensionSortie;
 }
@@ -179,7 +175,7 @@ cTplValGesInit< int > & cParamFusionSift::firstfichier()
    return mfirstfichier;
 }
 
-const cTplValGesInit< int > & cParamFusionSift::firstfichier()const
+const cTplValGesInit< int > & cParamFusionSift::firstfichier()const 
 {
    return mfirstfichier;
 }
@@ -190,7 +186,7 @@ cTplValGesInit< int > & cParamFusionSift::lastfichier()
    return mlastfichier;
 }
 
-const cTplValGesInit< int > & cParamFusionSift::lastfichier()const
+const cTplValGesInit< int > & cParamFusionSift::lastfichier()const 
 {
    return mlastfichier;
 }
@@ -201,7 +197,7 @@ cTplValGesInit< int > & cParamFusionSift::SzMin()
    return mSzMin;
 }
 
-const cTplValGesInit< int > & cParamFusionSift::SzMin()const
+const cTplValGesInit< int > & cParamFusionSift::SzMin()const 
 {
    return mSzMin;
 }
@@ -212,7 +208,7 @@ cTplValGesInit< int > & cParamFusionSift::NbObjMax()
    return mNbObjMax;
 }
 
-const cTplValGesInit< int > & cParamFusionSift::NbObjMax()const
+const cTplValGesInit< int > & cParamFusionSift::NbObjMax()const 
 {
    return mNbObjMax;
 }
@@ -223,7 +219,7 @@ cTplValGesInit< Box2dr > & cParamFusionSift::box()
    return mbox;
 }
 
-const cTplValGesInit< Box2dr > & cParamFusionSift::box()const
+const cTplValGesInit< Box2dr > & cParamFusionSift::box()const 
 {
    return mbox;
 }
@@ -234,7 +230,7 @@ cTplValGesInit< REAL > & cParamFusionSift::distIsol()
    return mdistIsol;
 }
 
-const cTplValGesInit< REAL > & cParamFusionSift::distIsol()const
+const cTplValGesInit< REAL > & cParamFusionSift::distIsol()const 
 {
    return mdistIsol;
 }
@@ -245,7 +241,7 @@ cTplValGesInit< int > & cParamFusionSift::ptppi()
    return mptppi;
 }
 
-const cTplValGesInit< int > & cParamFusionSift::ptppi()const
+const cTplValGesInit< int > & cParamFusionSift::ptppi()const 
 {
    return mptppi;
 }
@@ -256,7 +252,7 @@ cTplValGesInit< double > & cParamFusionSift::mindistalign()
    return mmindistalign;
 }
 
-const cTplValGesInit< double > & cParamFusionSift::mindistalign()const
+const cTplValGesInit< double > & cParamFusionSift::mindistalign()const 
 {
    return mmindistalign;
 }
@@ -267,7 +263,7 @@ cTplValGesInit< bool > & cParamFusionSift::filtre1()
    return mfiltre1;
 }
 
-const cTplValGesInit< bool > & cParamFusionSift::filtre1()const
+const cTplValGesInit< bool > & cParamFusionSift::filtre1()const 
 {
    return mfiltre1;
 }
@@ -278,7 +274,7 @@ cTplValGesInit< bool > & cParamFusionSift::filtre2()
    return mfiltre2;
 }
 
-const cTplValGesInit< bool > & cParamFusionSift::filtre2()const
+const cTplValGesInit< bool > & cParamFusionSift::filtre2()const 
 {
    return mfiltre2;
 }
@@ -289,7 +285,7 @@ cTplValGesInit< bool > & cParamFusionSift::filtre3()
    return mfiltre3;
 }
 
-const cTplValGesInit< bool > & cParamFusionSift::filtre3()const
+const cTplValGesInit< bool > & cParamFusionSift::filtre3()const 
 {
    return mfiltre3;
 }
@@ -300,7 +296,7 @@ cTplValGesInit< REAL > & cParamFusionSift::distIsol2()
    return mdistIsol2;
 }
 
-const cTplValGesInit< REAL > & cParamFusionSift::distIsol2()const
+const cTplValGesInit< REAL > & cParamFusionSift::distIsol2()const 
 {
    return mdistIsol2;
 }
@@ -311,7 +307,7 @@ cTplValGesInit< bool > & cParamFusionSift::rapide()
    return mrapide;
 }
 
-const cTplValGesInit< bool > & cParamFusionSift::rapide()const
+const cTplValGesInit< bool > & cParamFusionSift::rapide()const 
 {
    return mrapide;
 }
@@ -322,7 +318,7 @@ cTplValGesInit< double > & cParamFusionSift::aDistInitVois()
    return maDistInitVois;
 }
 
-const cTplValGesInit< double > & cParamFusionSift::aDistInitVois()const
+const cTplValGesInit< double > & cParamFusionSift::aDistInitVois()const 
 {
    return maDistInitVois;
 }
@@ -333,7 +329,7 @@ cTplValGesInit< double > & cParamFusionSift::aFact()
    return maFact;
 }
 
-const cTplValGesInit< double > & cParamFusionSift::aFact()const
+const cTplValGesInit< double > & cParamFusionSift::aFact()const 
 {
    return maFact;
 }
@@ -344,7 +340,7 @@ cTplValGesInit< int > & cParamFusionSift::aNbMax()
    return maNbMax;
 }
 
-const cTplValGesInit< int > & cParamFusionSift::aNbMax()const
+const cTplValGesInit< int > & cParamFusionSift::aNbMax()const 
 {
    return maNbMax;
 }
@@ -355,7 +351,7 @@ cTplValGesInit< int > & cParamFusionSift::aNb1()
    return maNb1;
 }
 
-const cTplValGesInit< int > & cParamFusionSift::aNb1()const
+const cTplValGesInit< int > & cParamFusionSift::aNb1()const 
 {
    return maNb1;
 }
@@ -366,7 +362,7 @@ cTplValGesInit< int > & cParamFusionSift::aNb2()
    return maNb2;
 }
 
-const cTplValGesInit< int > & cParamFusionSift::aNb2()const
+const cTplValGesInit< int > & cParamFusionSift::aNb2()const 
 {
    return maNb2;
 }
@@ -377,7 +373,7 @@ cTplValGesInit< double > & cParamFusionSift::seuilCoherenceVois()
    return mseuilCoherenceVois;
 }
 
-const cTplValGesInit< double > & cParamFusionSift::seuilCoherenceVois()const
+const cTplValGesInit< double > & cParamFusionSift::seuilCoherenceVois()const 
 {
    return mseuilCoherenceVois;
 }
@@ -388,7 +384,7 @@ cTplValGesInit< double > & cParamFusionSift::seuilCoherenceCarre()
    return mseuilCoherenceCarre;
 }
 
-const cTplValGesInit< double > & cParamFusionSift::seuilCoherenceCarre()const
+const cTplValGesInit< double > & cParamFusionSift::seuilCoherenceCarre()const 
 {
    return mseuilCoherenceCarre;
 }
@@ -399,7 +395,7 @@ cTplValGesInit< int > & cParamFusionSift::aNb()
    return maNb;
 }
 
-const cTplValGesInit< int > & cParamFusionSift::aNb()const
+const cTplValGesInit< int > & cParamFusionSift::aNb()const 
 {
    return maNb;
 }
@@ -410,7 +406,7 @@ cTplValGesInit< int > & cParamFusionSift::nbEssais()
    return mnbEssais;
 }
 
-const cTplValGesInit< int > & cParamFusionSift::nbEssais()const
+const cTplValGesInit< int > & cParamFusionSift::nbEssais()const 
 {
    return mnbEssais;
 }
@@ -492,13 +488,13 @@ cElXMLTree * ToXMLTree(const cParamFusionSift & anObj)
   (       std::list< caffichImg >::const_iterator it=anObj.affichImg().begin();
       it !=anObj.affichImg().end();
       it++
-  )
+  ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("affichImg"));
   for
   (       std::list< caffichPaire >::const_iterator it=anObj.affichPaire().begin();
       it !=anObj.affichPaire().end();
       it++
-  )
+  ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("affichPaire"));
   return aRes;
 }
@@ -507,59 +503,59 @@ void xml_init(cParamFusionSift & anObj,cElXMLTree * aTree)
 {
    if (aTree==0) return;
 
-   xml_init(anObj.dossier(),aTree->Get("dossier",1)); //tototo
+   xml_init(anObj.dossier(),aTree->Get("dossier",1)); //tototo 
 
-   xml_init(anObj.dossierImg(),aTree->Get("dossierImg",1)); //tototo
+   xml_init(anObj.dossierImg(),aTree->Get("dossierImg",1)); //tototo 
 
-   xml_init(anObj.extensionSortie(),aTree->Get("extensionSortie",1),std::string("filtre")); //tototo
+   xml_init(anObj.extensionSortie(),aTree->Get("extensionSortie",1),std::string("filtre")); //tototo 
 
-   xml_init(anObj.firstfichier(),aTree->Get("firstfichier",1),int(1)); //tototo
+   xml_init(anObj.firstfichier(),aTree->Get("firstfichier",1),int(1)); //tototo 
 
-   xml_init(anObj.lastfichier(),aTree->Get("lastfichier",1)); //tototo
+   xml_init(anObj.lastfichier(),aTree->Get("lastfichier",1)); //tototo 
 
-   xml_init(anObj.SzMin(),aTree->Get("SzMin",1),int(50)); //tototo
+   xml_init(anObj.SzMin(),aTree->Get("SzMin",1),int(50)); //tototo 
 
-   xml_init(anObj.NbObjMax(),aTree->Get("NbObjMax",1),int(10)); //tototo
+   xml_init(anObj.NbObjMax(),aTree->Get("NbObjMax",1),int(10)); //tototo 
 
-   xml_init(anObj.box(),aTree->Get("box",1),Box2dr(Pt2dr(0.0,0.0),Pt2dr(10000.0,10000.0))); //tototo
+   xml_init(anObj.box(),aTree->Get("box",1),Box2dr(Pt2dr(0.0,0.0),Pt2dr(10000.0,10000.0))); //tototo 
 
-   xml_init(anObj.distIsol(),aTree->Get("distIsol",1),REAL(300)); //tototo
+   xml_init(anObj.distIsol(),aTree->Get("distIsol",1),REAL(300)); //tototo 
 
-   xml_init(anObj.ptppi(),aTree->Get("ptppi",1),int(10)); //tototo
+   xml_init(anObj.ptppi(),aTree->Get("ptppi",1),int(10)); //tototo 
 
-   xml_init(anObj.mindistalign(),aTree->Get("mindistalign",1),double(4)); //tototo
+   xml_init(anObj.mindistalign(),aTree->Get("mindistalign",1),double(4)); //tototo 
 
-   xml_init(anObj.filtre1(),aTree->Get("filtre1",1),bool(false)); //tototo
+   xml_init(anObj.filtre1(),aTree->Get("filtre1",1),bool(false)); //tototo 
 
-   xml_init(anObj.filtre2(),aTree->Get("filtre2",1),bool(true)); //tototo
+   xml_init(anObj.filtre2(),aTree->Get("filtre2",1),bool(true)); //tototo 
 
-   xml_init(anObj.filtre3(),aTree->Get("filtre3",1),bool(false)); //tototo
+   xml_init(anObj.filtre3(),aTree->Get("filtre3",1),bool(false)); //tototo 
 
-   xml_init(anObj.distIsol2(),aTree->Get("distIsol2",1),REAL(1000)); //tototo
+   xml_init(anObj.distIsol2(),aTree->Get("distIsol2",1),REAL(1000)); //tototo 
 
-   xml_init(anObj.rapide(),aTree->Get("rapide",1),bool(false)); //tototo
+   xml_init(anObj.rapide(),aTree->Get("rapide",1),bool(false)); //tototo 
 
-   xml_init(anObj.aDistInitVois(),aTree->Get("aDistInitVois",1),double(1)); //tototo
+   xml_init(anObj.aDistInitVois(),aTree->Get("aDistInitVois",1),double(1)); //tototo 
 
-   xml_init(anObj.aFact(),aTree->Get("aFact",1),double(10.0)); //tototo
+   xml_init(anObj.aFact(),aTree->Get("aFact",1),double(10.0)); //tototo 
 
-   xml_init(anObj.aNbMax(),aTree->Get("aNbMax",1),int(100)); //tototo
+   xml_init(anObj.aNbMax(),aTree->Get("aNbMax",1),int(100)); //tototo 
 
-   xml_init(anObj.aNb1(),aTree->Get("aNb1",1),int(10)); //tototo
+   xml_init(anObj.aNb1(),aTree->Get("aNb1",1),int(10)); //tototo 
 
-   xml_init(anObj.aNb2(),aTree->Get("aNb2",1),int(20)); //tototo
+   xml_init(anObj.aNb2(),aTree->Get("aNb2",1),int(20)); //tototo 
 
-   xml_init(anObj.seuilCoherenceVois(),aTree->Get("seuilCoherenceVois",1),double(0.9)); //tototo
+   xml_init(anObj.seuilCoherenceVois(),aTree->Get("seuilCoherenceVois",1),double(0.9)); //tototo 
 
-   xml_init(anObj.seuilCoherenceCarre(),aTree->Get("seuilCoherenceCarre",1),double(0.5)); //tototo
+   xml_init(anObj.seuilCoherenceCarre(),aTree->Get("seuilCoherenceCarre",1),double(0.5)); //tototo 
 
-   xml_init(anObj.aNb(),aTree->Get("aNb",1),int(50)); //tototo
+   xml_init(anObj.aNb(),aTree->Get("aNb",1),int(50)); //tototo 
 
-   xml_init(anObj.nbEssais(),aTree->Get("nbEssais",1),int(25)); //tototo
+   xml_init(anObj.nbEssais(),aTree->Get("nbEssais",1),int(25)); //tototo 
 
    xml_init(anObj.affichImg(),aTree->GetAll("affichImg",false,1));
 
    xml_init(anObj.affichPaire(),aTree->GetAll("affichPaire",false,1));
 }
 
-}; // namespace NS_ParamChantierPhotogram
+};
