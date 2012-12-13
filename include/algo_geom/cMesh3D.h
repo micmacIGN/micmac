@@ -81,13 +81,16 @@ class cMesh
 
 		void		setTrianglesAttribute(int img_idx, Pt3dr Dir, vector <unsigned int> const &aTriIdx);
 
-		void		setGraph(RGraph &aGraph, vector <int> TriInGraph, vector <unsigned int> const &aTriIdx); //TriInGraph: index of triangles in Graph
+		void		setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, vector <unsigned int> const &aTriIdx); //TriInGraph: index of triangles in Graph
+		void		setLambda(REAL aL) {mLambda = aL;}
 	
 	private:
 
 		vector <Pt3dr>		mVertexes;
 		vector <cTriangle>	mTriangles;	
 		vector <cEdge>	    mEdges;			//aretes du graphe de voisinage
+
+		REAL				mLambda;
 };
 
 //--------------------------------------------------------------------------------------------------------------
@@ -124,17 +127,25 @@ class cTriangle
 		void	getVertexes(cMesh const &elMesh, vector <Pt3dr> &vList) const;
 		
 		void	getVertexesIndexes(vector <int> &vList) const {vList = mIndexes;}
+		void	getVertexesIndexes(int &v1, int &v2, int &v3);
 		void	getVoisins(vector <int> &vList) const;
-		bool	getAttributes(int image_idx, vector <double> &ta) const;
+		bool	getAttributes(int image_idx, vector <REAL> &ta) const;
 		map <int, vector <REAL> >	getAttributesMap() const {return mAttributes;}
 		int		getIdx() const {return mTriIdx;}
 
-		void	setAttributes(int image_idx, const vector <double> &ta);
+		void	setAttributes(int image_idx, const vector <REAL> &ta);
 
 		bool	hasAttributes() { return (mAttributes.size() != 0); }
+
+		void	setInside() {mInside = true;}
+
+		bool	isInside(){return mInside;}
+
+		REAL	computeEnergy(int img_idx);
 		
 	private:
 
+		bool						mInside;		// triangle a conserver
 		int							mTriIdx;		// triangle index
 		vector <int>				mIndexes;		// index of vertexes
 		map <int, vector <REAL> >	mAttributes;	// map between image index and triangle attributes
@@ -146,17 +157,23 @@ class cTriangle
 class cEdge
 {
 	public:
-				cEdge(int tri1, int tri2){node1 = tri1; node2 = tri2;}
+				cEdge();
+				cEdge(int tri1, int tri2, int v1, int v2){mNode1 = tri1; mNode2 = tri2; mV1 = v1; mV2 = v2;}
 			
 				~cEdge();
 
-		int		n1(){return node1;}
-		int		n2(){return node2;}
+		int		n1(){return mNode1;}
+		int		n2(){return mNode2;}
+		int		v1(){return mV1;}
+		int		v2(){return mV2;}
 
 	private:
 
-		int node1;
-		int node2;
+		int mNode1; //index du triangle
+		int mNode2;
+
+		int mV1;	//index des sommets communs
+		int mV2;
 };
 
 //--------------------------------------------------------------------------------------------------------------

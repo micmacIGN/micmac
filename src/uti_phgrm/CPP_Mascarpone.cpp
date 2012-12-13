@@ -184,17 +184,18 @@ int Mascarpone_main(int argc,char ** argv)
 		Tiff_Im::CreateFromIm(mask, aOut);
 		printf ("Done\n");
 
-		//on remplit le graphe d'adjacence grace aux attributs calcules pour chaque image
+		//ponderation entre attache aux donnees et regularisation
+		myMesh.setLambda(0.001);
+
+		//on remplit le graphe d'adjacence
 		vector <int> TriIdxInGraph;
-		myMesh.setGraph(*g, TriIdxInGraph, aZBuffers[aK].getVisibleTrianglesIndexes());
+		myMesh.setGraph(aK, *g, TriIdxInGraph, aZBuffers[aK].getVisibleTrianglesIndexes());
 
-		//TODO: ajouter seed et sink
-		/*g->add_tweights
-		//g->add_tweights
+		float flow = g->maxflow();
 
-		//int flow = g->maxflow();
+		printf("Flow = %4.2f\n", flow);
 
-		Im2D_BIN mask2 = aZBuffers[aK].ComputeMask(TriIdxInGraph, *g);
+		Im2D_BIN mask2 = aZBuffers[aK].ComputeMask(TriIdxInGraph, *g, myMesh);
 			
 		if (aNameOut=="")
 		{
@@ -209,7 +210,7 @@ int Mascarpone_main(int argc,char ** argv)
 
 		printf ("Saving %s\n", aOut.c_str());
 		Tiff_Im::CreateFromIm(mask2, aOut);
-		printf ("Done\n");*/
+		printf ("Done\n");
 	}
 
 	return EXIT_SUCCESS;
