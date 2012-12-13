@@ -1,4 +1,5 @@
-#include "cudaAppliMicMac.cuh"
+#include "gpu/cudaAppliMicMac.cuh"
+
 
 #ifdef _DEBUG
 	#define   BLOCKDIM	8

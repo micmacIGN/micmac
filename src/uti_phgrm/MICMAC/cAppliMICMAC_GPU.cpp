@@ -40,10 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-#ifdef CUDA_ENABLED
-	#include "./cuda/cudaAppliMicMac.cuh"
-#endif
-
 namespace NS_ParamMICMAC
 {
 
