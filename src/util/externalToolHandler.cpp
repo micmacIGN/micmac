@@ -12,10 +12,16 @@ ExternalToolHandler::ExternalToolHandler()
 	const char *windir = getenv( "windir" );
 	if ( windir!=NULL )
 		exclude( windir );
-	#if (__VERBOSE__>1)
 	else
-		cout << "warning: windir environment variable cannot be found" << endl;
-	#endif
+	{
+		windir = getenv( "SystemRoot" );
+		if ( windir!=NULL )
+			exclude( windir );
+		#if (__VERBOSE__>1)
+		else
+			cout << "WARNING: windir environment variable cannot be found" << endl;
+		#endif
+	}
 #endif
 	initPathDirectories();
 }

@@ -594,18 +594,13 @@ void PastisThread::run() {
 		QFile file (getParamMain()->getMicmacDir()+"/interface/xml/"+patronXml);
 		deleteFile(getParamMain()->getDossier() + getParamMain()->getChantierXML());
 		file.copy(getParamMain()->getDossier() + getParamMain()->getChantierXML());
-		cout << tr("Default survey parameters loaded.").toStdString() << endl;
 
+		cout << tr("Default survey parameters loaded.").toStdString() << endl;
+		
 		//calcul du makefile des points d'intérêt
 		getParamMain()->setMakeFile(QString("MK")+getParamMain()->getDossier().section("/",-2,-2)+QString("b"));
 		
-		// compute a regular expression from file list
-		const QVector<ParamImage> &lstImg = getParamMain()->getCorrespImgCalib();
-		for (QVector<ParamImage>::const_iterator it=lstImg.begin(); it!=lstImg.end(); it++) {
-			cout << ( it++ )->getImageTif().toStdString() << endl;
-		}
-
-		QString commande = comm(noBlank(getMicmacDir()) + QString("bin/Pastis ") + noBlank(getParamMain()->getDossier()) + QString(" Key-Rel-All-Cple-Tif %1").arg(getParamMain()->getParamPastis().getLargeurMax()));
+		QString commande = comm(noBlank(getMicmacDir()) + QString("bin/Pastis ") + noBlank(getParamMain()->getDossier()) + QString(" Key-Rel-All-Cple %1").arg(getParamMain()->getParamPastis().getLargeurMax()));
 		commande += comm(QString(" FiltreOnlyDupl=1 MkF=") + noBlank(getParamMain()->getDossier()) + noBlank(getParamMain()->getMakeFile()) + QString("  NbMinPtsExp=2"));
 		if (execute(commande)!=0) {
 			if (!*getAnnulation()) getParamMain()->setAvancement(-9);
@@ -672,7 +667,7 @@ void PastisThread::run() {
 		//makefile pour la 2ème passe
 		getParamMain()->setMakeFile(QString("MK")+getParamMain()->getDossier().section("/",-2,-2)+QString("b"));
 		//QString newTempoDir = QString("cd ") + noBlank(getParamMain()->getDossier()) + QString("\n");
-		commande = noBlank(getMicmacDir()) + QString("bin/Pastis ") + noBlank(getParamMain()->getDossier()) + QString(" Key-Rel-All-Cple-Tif %1").arg(getParamMain()->getParamPastis().getLargeurMax2());
+		commande = noBlank(getMicmacDir()) + QString("bin/Pastis ") + noBlank(getParamMain()->getDossier()) + QString(" Key-Rel-All-Cple %1").arg(getParamMain()->getParamPastis().getLargeurMax2());
 		commande += QString(" FiltreOnlyDupl=1 MkF=") + noBlank(getParamMain()->getDossier()) + noBlank(getParamMain()->getMakeFile()) + QString("  NbMinPtsExp=2");
 		if (execute(commande)!=0) {
 			if (!*getAnnulation()) getParamMain()->setAvancement(-9);
