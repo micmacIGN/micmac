@@ -48,12 +48,15 @@ namespace NS_ParamMICMAC
 	// Déclaration des fonctions Cuda
 	//extern "C" void imageToDevice( float** h_ref,  int width, int height);
 	//extern "C" void freeGpuMemory();
-	extern "C" void projectionsToLayers(float *h_TabProj, uint2 dimTer, int nbLayer);
+	extern "C" void projectionsToLayers(float2 *h_TabProj, uint2 dimTer, int nbLayer);
 	extern "C" void basic_Correlation_GPU(  float* h_TabCorre, uint2 dTer, uint2 sdTer, int nbLayer , uint2 dVig, uint2 dImg, float mAhEpsilon);
 	extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimImg, int nbLayer);
 	extern "C" void Init_Correlation_GPU( int sTer_X, int sTer_Y, int nbLayer , int rxVig, int ryVig );
 
+	uint2 touint2(Pt2di a){	return make_uint2(a.x,a.y);}
+
 #endif
+
 
 
 	template <class Type,class TBase> 
@@ -777,51 +780,46 @@ namespace NS_ParamMICMAC
 		// Obtention de l'image courante
 		cGPU_LoadedImGeom&	aGLI	= *(mVLI[0]);
 		// Taille de l'image courante
-		uint2 sizImg =  make_uint2(aGLI.getSizeImage().x, aGLI.getSizeImage().y);
+		//uint2 sizImg =  make_uint2(aGLI.getSizeImage().x, aGLI.getSizeImage().y);
+		uint2 dimImg =  touint2(aGLI.getSizeImage());
 
 		// Obtenir la nappe englobante
 		//short aZMinTer = -124 , aZMaxTer = 124;
-		short aZMinTer = 0 , aZMaxTer = 10;
+		short aZMinTer = 0 , aZMaxTer = 1;
 
 		// Taille de cube des points de projection
 		uint2 dimTer = make_uint2(mX1Ter - mX0Ter, mY1Ter - mY0Ter);
-
-		// Nombre de float pour un point de pojection
-		unsigned short sT	= 2;
 		
 		// Tableau de sortie de corrélation
-		float* h_TabCorre = new float[  size(dimTer) ];
+		float* h_TabCorre = new float[size(dimTer)];
 
 		// Sous echantillonage des projections
 		int	stepBloc	= 5;
 		uint2 sDimTer	= iDivUp( dimTer, stepBloc ) ;
 		int ssTerBloc	= size(sDimTer);
-		int siTabProj	= mNbIm * ssTerBloc * 2;
+		int siTabProj	= mNbIm * ssTerBloc;
 
 		// Tableau des projections
-		float* h_TabProj	= new float[ siTabProj ];
-		float* h_TabPInit	= new float[ siTabProj ];		
+		float2* h_TabProj	= new float2[ siTabProj ];
+		float2* h_TabPInit	= new float2[ siTabProj ];		
 		
 		float uvDefValue	= -1.0f;
 		
 		//-- Initialisation Tableau 
 		for (int anX = 0 ; anX < sDimTer.x  ; anX++)
-		{
-			h_TabPInit[anX * 2 + 0] = uvDefValue;
-			h_TabPInit[anX * 2 + 1] = uvDefValue;
-		}
+			h_TabPInit[anX] = make_float2(uvDefValue);
 
 		for (int anY = 1  ; anY < sDimTer.y ; anY++)
-			memcpy( h_TabPInit +  2 * sDimTer.x * anY, &h_TabPInit[0], 2 * sDimTer.x * sizeof(float));
+			memcpy( h_TabPInit +  sDimTer.x * anY, &h_TabPInit[0], sDimTer.x * sizeof(float2));
 
 		for (int aKIm = 1 ; aKIm < mNbIm ; aKIm++ )
-			memcpy( h_TabPInit + 2 * ssTerBloc * aKIm, &h_TabPInit[0], 2 * ssTerBloc * sizeof(float));
+			memcpy( h_TabPInit + ssTerBloc * aKIm, &h_TabPInit[0], ssTerBloc * sizeof(float2));
 
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
 		{
 			// Re-initialisation du tableau de projection
-			memcpy( h_TabProj, h_TabPInit, siTabProj * sizeof(float));
+			memcpy( h_TabProj, h_TabPInit, siTabProj * sizeof(float2));
 
 			bool oneProj = false;
 			
@@ -840,8 +838,8 @@ namespace NS_ParamMICMAC
 						// Nappe des profondeurs
 						int aZMin	= (int)mTabZMin[anY][anX];
 						int aZMax	= (int)mTabZMax[anY][anX];
-						uint2 r		= make_uint2((anX - mX0Ter) / stepBloc,(anY - mY0Ter) / stepBloc);
-						int iD		= (aKIm * ssTerBloc  + sDimTer.x * r.y + r.x ) * 2;
+						uint2 r		= make_uint2(anX - mX0Ter,anY - mY0Ter) / stepBloc;
+						int iD		= aKIm * ssTerBloc  + sDimTer.x * r.y + r.x ;
 
 						if ((IsInTer( anX, anY )) && (aGLI.IsVisible(anX ,anY )) && (aZMin <= anZ) && (anZ<=aZMax))
 						{
@@ -853,11 +851,8 @@ namespace NS_ParamMICMAC
 							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,( const double* )&aZReel);
 
 							if (aGLI.IsOk( aPIm.x, aPIm.y ))
-							{	
 								if(!oneProj) oneProj = true;
-								h_TabProj[iD + 0] = (float)aPIm.x;
-								h_TabProj[iD + 1] = (float)aPIm.y;
-							}
+									h_TabProj[iD] = make_float2((float)aPIm.x,(float)aPIm.y);
 						}
 					}
 				}
@@ -869,11 +864,11 @@ namespace NS_ParamMICMAC
 				projectionsToLayers(h_TabProj, dimTer, mNbIm);
 
 				// Re-initialisation du tableau de sortie
-				memset(h_TabCorre,0,ssTerBloc * mNbIm * 2 );
+				memset(h_TabCorre,0,size(dimTer));
 
-				uint2 dimVig = make_uint2(mPtSzWFixe.x, mPtSzWFixe.y);
+				uint2 dRVig = touint2(mPtSzWFixe);
 				// KERNEL Correlation
-				basic_Correlation_GPU(h_TabCorre , dimTer, sDimTer, mNbIm, dimVig, sizImg, (float)mAhEpsilon );
+				basic_Correlation_GPU(h_TabCorre , dimTer, sDimTer, mNbIm, dRVig, dimImg, (float)mAhEpsilon );
 			
 			}
 		}
