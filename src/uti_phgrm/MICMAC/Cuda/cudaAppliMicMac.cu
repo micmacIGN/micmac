@@ -67,7 +67,7 @@ extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimImg, int nbLayer)
 
 };
 
-extern "C" void  projectionsToLayers(float *h_TabProj, uint2 dimTer, int nbLayer)
+extern "C" void  projectionsToLayers(float2 *h_TabProj, uint2 dimTer, int nbLayer)
 {
 	// Définition du format des canaux d'images
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float2>();
@@ -336,6 +336,9 @@ extern "C" void basic_Correlation_GPU(  float* h_TabCorre, uint2 dTer, uint2 sdT
 		dim3 threads(BLOCKDIM, BLOCKDIM, 1);
 		dim3 blocks(iDivUp(dTer.x,threads.x) , iDivUp(dTer.y,threads.y), nbLayer);
 		
+		std::cout << " size ter (x,y) : " <<  dTer.x << ", " << dTer.y << std::endl;
+		std::cout << "threads : " << threads.x << " "<< threads.y << " "<< threads.z << "\n" ;
+		std::cout << "blocks : " << blocks.x << " "<< blocks.y << " "<< blocks.z << "\n" ;
 		correlationKernel<<<blocks, threads>>>( dev_Corr_Out, dev_NbImgOk, dev_Cache, dTer, sdTer, dRVig, dImg, espi);
 		getLastCudaError("Basic Correlation kernel failed");
 		//checkCudaErrors( cudaDeviceSynchronize() );
