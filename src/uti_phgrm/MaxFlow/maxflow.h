@@ -1,12 +1,14 @@
-/* maxflow.cpp */
+/* maxflow.h */
 
+#ifndef __MAXFLOW_H__
+#define __MAXFLOW_H__
 
 #include <stdio.h>
 #include "graph.h"
 
 
 /*
-	special constants for node->parent. Duplicated in graph.cpp, both should match!
+	special constants for node->parent.
 */
 #define TERMINAL ( (arc *) 1 )		/* to terminal */
 #define ORPHAN   ( (arc *) 2 )		/* orphan */
@@ -681,4 +683,4 @@ template <typename captype, typename tcaptype, typename flowtype>
 	}
 }
 
-#include "instances.inc"
+#endif
