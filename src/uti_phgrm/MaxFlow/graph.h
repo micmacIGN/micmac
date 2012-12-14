@@ -44,6 +44,7 @@
 #include <string.h>
 #include "block.h"
 
+
 #include <assert.h>
 // NOTE: in UNIX you need to use -DNDEBUG preprocessor option to supress assert's!!!
 
@@ -490,6 +491,5 @@ template <typename captype, typename tcaptype, typename flowtype>
 	}
 	i->is_marked = 1;
 }
-
 
 #endif

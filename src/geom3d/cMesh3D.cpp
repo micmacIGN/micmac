@@ -155,9 +155,12 @@ REAL cTriangle::computeEnergy(int img_idx)
 	map<int,vector <REAL> >::const_iterator it;
 	for (it = mAttributes.begin(); it != mAttributes.end(); it++)
 	{
-		diff = abs(angle0 - ((*it).second)[0]);
+		if (it->first != img_idx)
+		{
+			diff = abs(angle0 - ((*it).second)[0]);
 
-		if (diff < min) min = diff;
+			if (diff < min) min = diff;
+		}
 	}
 
 	return PI - min;
@@ -375,8 +378,8 @@ void cMesh::setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, vec
 	int id1, id2, pos1, pos2;
 	float E;
 
-	/*vector<unsigned int>::const_iterator it0_begin = aTriIdx.begin();
-	vector<unsigned int>::const_iterator it0_end   = aTriIdx.end();
+	/*vector<unsigned int>::const_iterator it0_begin = aVisTriIdx.begin();
+	vector<unsigned int>::const_iterator it0_end   = aVisTriIdx.end();
 
 	vector<int>::iterator it_begin = aTriInGraph.begin();
 	vector<int>::iterator it_end   = aTriInGraph.end();*/
@@ -428,6 +431,7 @@ void cMesh::setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, vec
 			E = square_euclid( getVertex( elEdge.v1() ), getVertex( elEdge.v2() ) );
 
 			aGraph.add_edge(pos1, pos2, E, E);		
+			//aGraph.add_edge(pos1, pos2, 1, 1);		
 		}
 	}
 
@@ -436,7 +440,16 @@ void cMesh::setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, vec
 		cTriangle *Tri = getTriangle(aTriInGraph[aK]);
 
 		E = Tri->computeEnergy(img_idx);
-		aGraph.add_tweights( aK, mLambda*(PI - E), mLambda*E );
+		if (E == 0.f) 
+			aGraph.add_tweights( aK, 0.f, 1.f );
+		else
+		{
+			aGraph.add_tweights( aK, mLambda*E, mLambda*(PI- E) );
+			/*if (Tri->isInside())
+				aGraph.add_tweights( aK, 0.f, 1.f );
+			else
+				aGraph.add_tweights( aK, 1.f, 0.f );*/
+		}
 	}
 }
 
@@ -642,9 +655,7 @@ Im2D_BIN cZBuf::ComputeMask(vector <int> const &TriInGraph, RGraph &aGraph, cMes
 	mImMask = Im2D_BIN (mSzRes.x, mSzRes.y, 0);
 
 	/*printf(" taille de TriIngraph :  %d", TriInGraph.size());
-	printf(" aGraph.get_node_num  :  %d", aGraph.get_node_num());
-
-	ELISE_ASSERT(TriInGraph.size() == aGraph.get_node_num(), "TriInGraph and graph size not compatible");*/
+	printf(" aGraph.get_node_num  :  %d", aGraph.get_node_num());*/
 
 	for (int aK=0; aK < TriInGraph.size(); aK++)
 	{
