@@ -11,7 +11,7 @@
 	#include <helper_functions.h>
 	#include <helper_cuda.h>
 	#include <helper_math.h>
-	#include "gpu/cudaAppliMicMac.cuh"
+	//#include "gpu/cudaAppliMicMac.cuh"
 #endif
 
 #include <algorithm>
