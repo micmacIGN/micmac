@@ -42,7 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "general/ptxd.h"
 #include "../private/cElNuage3DMaille.h"
-#include "../../src/uti_phgrm/MaxFlow/graph.h"
+#include "../../src/uti_phgrm/MaxFlow/maxflow.h"
 
 class cMesh;
 class cVertex;

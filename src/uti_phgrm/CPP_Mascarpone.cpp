@@ -185,7 +185,7 @@ int Mascarpone_main(int argc,char ** argv)
 		printf ("Done\n");
 
 		//ponderation entre attache aux donnees et regularisation
-		myMesh.setLambda(0.001);
+		myMesh.setLambda(10.f);
 
 		//on remplit le graphe d'adjacence
 		vector <int> TriIdxInGraph;
