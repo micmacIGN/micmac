@@ -363,20 +363,25 @@ bool TransFormArgKey
 
 static const std::string aFileTmp = "MicMacInstall.txt";
 
+#if (!ELISE_windows)
 // execute command i_base_cmd and get its standard output in a string
 bool ElGetStrSys( const std::string & i_base_cmd, std::string &o_result )
 {
-   std::string aCom = i_base_cmd +  ">" + aFileTmp ;
-   if ( system_call( aCom.c_str() )!=EXIT_SUCCESS ) return false;
-   
-   ELISE_fp aF;
-   if ( !aF.open(aFileTmp.c_str(),ELISE_fp::READ) ) return false;
-   o_result = aF.std_fgets();
-   aF.close();
-
-   return true;
+	o_result = "";
+	
+	FILE *f = popen_call( i_base_cmd.c_str(), "r" );
+	if ( f==NULL ) return false;
+	
+	// read popen's output
+	char buffer[500];
+	memset( buffer, 0, 500 ) ;
+	while ( fread( buffer, 1, 500, f ) )
+		o_result.append( buffer );	
+	pclose( f );
+	
+	return true;
 }
-
+#endif
 
 static std::string ArgvMMDir;
 static std::string CurrentProgramFullName;
@@ -421,6 +426,12 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 		{
 			// if the /proc filesystem is not available, try using the "which" command
 			bool whichSucceed = ElGetStrSys( "which "+ std::string( argv[0] ), aFulArg0 );
+			// remove the which's ending '\n'
+			aFulArg0.resize( aFulArg0.size()-1 );
+			
+			// __DEL
+			cout << "---------> " << aFulArg0 << endl;
+			
 			// if which failed then we're doomed
 			ELISE_ASSERT( whichSucceed, "MMD_InitArgcArgv : unable to retrieve binaries directory" );
 		}
@@ -428,17 +439,12 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 		std::string aPatProg = "([0-9]|[a-z]|[A-Z]|_)+"; 
 		cElRegex  anAutomProg(aPatProg,10);
 		if (anAutomProg.Match(aFulArg0))
-		{
              ArgvMMDir = std::string("..")+ELISE_CAR_DIR;
-		}
 		else
 		{
-                        cElRegex  anAutomProg(std::string("(.*)bin")+ELISE_CAR_DIR+aPatProg,10);
+            cElRegex  anAutomProg(std::string("(.*)bin")+ELISE_CAR_DIR+aPatProg,10);
 			ArgvMMDir = MatchAndReplace(anAutomProg,aFulArg0,"$1");
-			if (ArgvMMDir=="")
-			{
-                           ArgvMMDir=std::string(".")+ELISE_CAR_DIR;
-			}
+			if (ArgvMMDir=="") ArgvMMDir=std::string(".")+ELISE_CAR_DIR;
 		}
 		CurrentProgramFullName = aFulArg0;
 #endif
