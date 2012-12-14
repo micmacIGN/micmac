@@ -6,12 +6,6 @@
 #include <string.h>
 #include "graph.h"
 
-/*
-	special constants for node->parent. Duplicated in maxflow.cpp, both should match!
-*/
-#define TERMINAL ( (arc *) 1 )		/* to terminal */
-#define ORPHAN   ( (arc *) 2 )		/* orphan */
-
 template <typename captype, typename tcaptype, typename flowtype> 
 	Graph<captype, tcaptype, flowtype>::Graph(int node_num_max, int edge_num_max, void (*err_function)(const char *))
 	: node_num(0),
