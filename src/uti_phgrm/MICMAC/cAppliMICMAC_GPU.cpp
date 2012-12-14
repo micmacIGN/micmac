@@ -46,11 +46,12 @@ namespace NS_ParamMICMAC
 #ifdef CUDA_ENABLED
 
 	// Déclaration des fonctions Cuda
-	//extern "C" void imageToDevice( float** h_ref,  int width, int height);
-	//extern "C" void freeGpuMemory();
-	extern "C" void projectionsToLayers(float *h_TabProj, uint2 dimTer, int nbLayer);
-	extern "C" void basic_Correlation_GPU(  float* h_TabCorre, uint2 dTer, uint2 sdTer, int nbLayer , uint2 dVig, uint2 dImg, float mAhEpsilon);
-	extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimImg, int nbLayer);
+	extern "C" void imageToDevice( float** h_ref,  int width, int height);
+	//extern "C" void freeProjections();
+	extern "C" void freeGpuMemory();
+	extern "C" void projectionsToLayers(float *h_TabProj, int sxTer, int syTer, int nbLayer);
+	extern "C" void basic_Correlation_GPU(  float* h_TabCorre, int sxTer, int syTer, int nbLayer , int sxVig, int syVig, int sxImg, int syImg, float mAhEpsilon);
+	extern "C" void imagesToLayers(float *fdataImg1D, int sxImg, int syImg, int nbLayer);
 	extern "C" void Init_Correlation_GPU( int sTer_X, int sTer_Y, int nbLayer , int rxVig, int ryVig );
 
 #endif
@@ -279,7 +280,7 @@ namespace NS_ParamMICMAC
 		{
 			mVLI.push_back(new cGPU_LoadedImGeom(*this,*itFI,mNbPtsWFixe,aBox,mPtSzWFixe));
 		}
-		mNbIm = (int)mVLI.size();
+		mNbIm = mVLI.size();
 
 #ifdef CUDA_ENABLED
 	
@@ -289,9 +290,10 @@ namespace NS_ParamMICMAC
 			//		Mise en calque des images	
 			//------------------------------------
 			mLoadTextures = false;
-			float* fdataImg1D	= NULL;
+			float*		fdataImg1D	= NULL;	// 
+			cudaExtent	sizeImgsLay;			// Taille du tableau des calques 
 			int siX = 0, siY = 0 , nLayers = 0;
-			uint2 dimImg = make_uint2(0,0);
+
 			// Pour chaque image
 			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 			{
@@ -303,23 +305,25 @@ namespace NS_ParamMICMAC
 				float **aDataIm	=  aGLI.DataIm();
 
 				// Taille de l'image courante
-				dimImg =  make_uint2(aGLI.getSizeImage().x, aGLI.getSizeImage().y);
+				Pt2di siz =  aGLI.getSizeImage();
 
 				if(fdataImg1D == NULL)
 				{
 					// Creation dynamique du tableau
-					fdataImg1D	= new float[ size(dimImg) * mNbIm ];
+					fdataImg1D	= new float[ siz.x * siz.y * mNbIm ];
 					// Initialisation taille du tableau des calques  
+					siX		= siz.x;
+					siY		= siz.y;
 					nLayers = mNbIm;
 				}
 				else 
-					for (int j = 0; j < dimImg.y ; j++)
-						memcpy(  fdataImg1D + dimImg.x * ( j + dimImg.y * aKIm ), aDataIm[j],  dimImg.x * sizeof(float));
+					for (int j = 0; j < siz.y ; j++)
+						memcpy(  fdataImg1D + siz.x * ( j + siz.y * aKIm ), aDataIm[j],  siz.x * sizeof(float));
 			
 			}
 
 			if ((!((siX == 0)|(siY == 0)|(nLayers == 0))) && (fdataImg1D != NULL))
-				imagesToLayers( fdataImg1D, dimImg, nLayers );
+				imagesToLayers( fdataImg1D, siX, siY, nLayers );
 
 		// Correction CPPECHECK error
 		delete[] fdataImg1D;
@@ -367,6 +371,8 @@ namespace NS_ParamMICMAC
 		mY0UtiTer = mY1Ter + 1;
 		mX1UtiTer = mX0Ter;
 		mY1UtiTer = mY0Ter;
+
+
 
 		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
 		{
@@ -554,7 +560,7 @@ namespace NS_ParamMICMAC
 				aCurVLI.push_back(aGLI);
 			}
 		}
-		int aNbImCur = (int)aCurVLI.size();
+		int aNbImCur = aCurVLI.size();
 		if (aNbImCur >= 2)
 		{
 			int aX0 = anX - mCurSzV.x;
@@ -763,6 +769,11 @@ namespace NS_ParamMICMAC
 		}
 	}
 
+	static int iDivUp(int a, int b)
+	{
+		return (a % b != 0) ? (a / b + 1) : (a / b);
+	}
+
 	void cAppliMICMAC::DoGPU_Correl_Basik
 		(
 		const Box2di & aBox
@@ -777,25 +788,28 @@ namespace NS_ParamMICMAC
 		// Obtention de l'image courante
 		cGPU_LoadedImGeom&	aGLI	= *(mVLI[0]);
 		// Taille de l'image courante
-		uint2 sizImg =  make_uint2(aGLI.getSizeImage().x, aGLI.getSizeImage().y);
+		Pt2di sizImg =  aGLI.getSizeImage();
 
 		// Obtenir la nappe englobante
 		//short aZMinTer = -124 , aZMaxTer = 124;
-		short aZMinTer = 0 , aZMaxTer = 10;
+		short aZMinTer = 0 , aZMaxTer = 1;
 
 		// Taille de cube des points de projection
-		uint2 dimTer = make_uint2(mX1Ter - mX0Ter, mY1Ter - mY0Ter);
+		unsigned short sTerBloc_X	= mX1Ter - mX0Ter;
+		unsigned short sTerBloc_Y	= mY1Ter - mY0Ter;
+		unsigned short sTerBloc_Z	= aZMaxTer - aZMinTer;
 
 		// Nombre de float pour un point de pojection
 		unsigned short sT	= 2;
 		
 		// Tableau de sortie de corrélation
-		float* h_TabCorre = new float[  size(dimTer) ];
+		float* h_TabCorre = new float[  sTerBloc_X * sTerBloc_Y ];
 
 		// Sous echantillonage des projections
-		int	stepBloc	= 5;
-		uint2 sDimTer	= iDivUp( dimTer, stepBloc ) ;
-		int ssTerBloc	= size(sDimTer);
+		int stepBloc	= 5;
+		int ssTerBloc_X = iDivUp( sTerBloc_X , stepBloc ) ;
+		int	ssTerBloc_Y = iDivUp( sTerBloc_Y , stepBloc ) ;
+		int ssTerBloc	= ssTerBloc_X * ssTerBloc_Y;
 		int siTabProj	= mNbIm * ssTerBloc * 2;
 
 		// Tableau des projections
@@ -805,25 +819,26 @@ namespace NS_ParamMICMAC
 		float uvDefValue	= -1.0f;
 		
 		//-- Initialisation Tableau 
-		for (int anX = 0 ; anX < sDimTer.x  ; anX++)
+		for (int anX = 0 ; anX < ssTerBloc_X  ; anX++)
 		{
 			h_TabPInit[anX * 2 + 0] = uvDefValue;
 			h_TabPInit[anX * 2 + 1] = uvDefValue;
 		}
 
-		for (int anY = 1  ; anY < sDimTer.y ; anY++)
-			memcpy( h_TabPInit +  2 * sDimTer.x * anY, &h_TabPInit[0], 2 * sDimTer.x * sizeof(float));
+		for (int anY = 1  ; anY < ssTerBloc_Y ; anY++)
+			memcpy( h_TabPInit +  2 * ssTerBloc_X * anY, &h_TabPInit[0], 2 * ssTerBloc_X * sizeof(float));
 
 		for (int aKIm = 1 ; aKIm < mNbIm ; aKIm++ )
 			memcpy( h_TabPInit + 2 * ssTerBloc * aKIm, &h_TabPInit[0], 2 * ssTerBloc * sizeof(float));
+		//
+
+
 
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
 		{
 			// Re-initialisation du tableau de projection
 			memcpy( h_TabProj, h_TabPInit, siTabProj * sizeof(float));
-
-			bool oneProj = false;
 			
 			//		Mise en calque des projections pour chaque image
 			for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )
@@ -831,19 +846,20 @@ namespace NS_ParamMICMAC
 				// Obtention de l'image courante
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 				const cGeomImage*	aGeom	= aGLI.Geom();
-
+				
 				// Initialisation du cube de projection
 				for (int anY = mY0Ter ; anY < mY1Ter ; anY = anY + stepBloc)
 				{															
 					for (int anX = mX0Ter ; anX <  mX1Ter ; anX = anX + stepBloc)	// Ballayage du terrain  
 					{
 						// Nappe des profondeurs
-						int aZMin	= (int)mTabZMin[anY][anX];
-						int aZMax	= (int)mTabZMax[anY][anX];
-						uint2 r		= make_uint2((anX - mX0Ter) / stepBloc,(anY - mY0Ter) / stepBloc);
-						int iD		= (aKIm * ssTerBloc  + sDimTer.x * r.y + r.x ) * 2;
+						int aZMin	= mTabZMin[anY][anX];
+						int aZMax	= mTabZMax[anY][anX];
+						int rX		= (anX - mX0Ter) / stepBloc;
+						int rY		= (anY - mY0Ter) / stepBloc;
+						int iD		= (aKIm * ssTerBloc  + ssTerBloc_X * rY + rX ) * 2;
 
-						if ((IsInTer( anX, anY )) && (aGLI.IsVisible(anX ,anY )) && (aZMin <= anZ) && (anZ<=aZMax))
+						if (IsInTer( anX, anY ) && (aGLI.IsVisible(anX ,anY )) && (aZMin <= anZ <=aZMax))
 						{
 							// Déquantification  de X, Y et Z 
 							const float	aZReel	= (float)DequantZ(anZ);
@@ -854,7 +870,6 @@ namespace NS_ParamMICMAC
 
 							if (aGLI.IsOk( aPIm.x, aPIm.y ))
 							{	
-								if(!oneProj) oneProj = true;
 								h_TabProj[iD + 0] = (float)aPIm.x;
 								h_TabProj[iD + 1] = (float)aPIm.y;
 							}
@@ -863,19 +878,14 @@ namespace NS_ParamMICMAC
 				}
 			}
 
-			if(oneProj)
-			{
-				// Copie des projections de host vers le device
-				projectionsToLayers(h_TabProj, dimTer, mNbIm);
+			// Copie des projections de host vers le device
+			projectionsToLayers(h_TabProj, ssTerBloc_X, ssTerBloc_Y, mNbIm);
 
-				// Re-initialisation du tableau de sortie
-				memset(h_TabCorre,0,ssTerBloc * mNbIm * 2 );
+			// Re-initialisation du tableau de sortie
+			memset(h_TabCorre,0,ssTerBloc * mNbIm * 2 );
 
-				uint2 dimVig = make_uint2(mPtSzWFixe.x, mPtSzWFixe.y);
-				// KERNEL Correlation
-				basic_Correlation_GPU(h_TabCorre , dimTer, sDimTer, mNbIm, dimVig, sizImg, (float)mAhEpsilon );
-			
-			}
+			// KERNEL Correlation
+			basic_Correlation_GPU(h_TabCorre , sTerBloc_X, sTerBloc_Y, mNbIm, mPtSzWFixe.x, mPtSzWFixe.y, sizImg.x, sizImg.y, mAhEpsilon );
 		}
 
 		delete [] h_TabCorre;
