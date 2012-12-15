@@ -39,32 +39,23 @@ Header-MicMac-eLiSe-25/06/2007*/
 // #include "anag_all.h"
 
 /*
-#include <cstdlib>
-#include <cstdio>
-
-
-#define MMC  "MM.xml"
-
 void f()
 {
     FILE * aFP = ElFopen(MMC,"w");
     ElFclose(aFP);
 }
 
-#include "general/all.h"
-#include "private/all.h"
-
-#include "XML_GEN/all.h"
-#include "im_tpl/image.h"
-#include "im_tpl/reduc_im.h"
 */
 
 #include "StdAfx.h"
 
 #if (ELISE_X11)
 
+
+
 using namespace NS_ParamChantierPhotogram;
 
+#if (0)
 
 void TestFiltreMNT(int argc,char** argv)
 {
@@ -837,13 +828,14 @@ void TestLG(const std::string & aFullName)
 
 }
 
+#endif
 
 
 
 int MPDtest_main (int argc,char** argv)
 {
-   TestXML2();
 /*
+   TestXML2();
   TestLG(argv[1]);
  TestQuadr() ;
    testim();

@@ -514,6 +514,16 @@ Pt2di  cMetaDataPhoto::TifSzIm(bool Svp) const
 	return mTifSzIm; 
 }
 
+Pt2di  cMetaDataPhoto::SzImTifOrXif(bool Svp) const
+{
+  Pt2di aSz = XifSzIm(Svp);
+  if (aSz.x>0) return aSz;
+  aSz = TifSzIm(Svp);
+  ELISE_ASSERT(Svp || (aSz.x>0) ,"cMetaDataPhoto::Date UnInit");
+  return aSz;
+}
+
+
 /*
 std::cout << "AAAAAAkklMMMmpp \n"; getchar();
 */
