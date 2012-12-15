@@ -124,6 +124,8 @@ class cAppliMalt
           std::string  mImOrtho;
           double       mZMoy;
           bool         mIsSperik;
+          double      mLargMin;
+          Pt2dr       mSzGlob;
 };
 
 
@@ -162,7 +164,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mResolOrtho   (1.0),
     mImMNT        (""),
     mImOrtho      (""),
-    mIsSperik     (false)
+    mIsSperik     (false),
+    mLargMin      (25.0),
+    mSzGlob       (0,0)
 {
   ELISE_ASSERT(argc >= 2,"Not enouh arg");
 
@@ -210,6 +214,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mImOrtho,"ImOrtho",true,"Filter to select images used for ortho (Def All) ")
                     << EAM(mZMoy,"ZMoy",true,"Average value of Z")
                     << EAM(mIsSperik,"Spherik",true,"If true the surface for redressing are spheres")
+                    << EAM(mLargMin,"WMI",true,"Miinum width of reduced images (to fix ZoomInit)")
   );
 
   if ((mImMaster!="") != (mType==eGeomImage))
@@ -248,6 +253,16 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   mNbIm = mSetIm->size();
   ELISE_ASSERT(mNbIm>=2,"Not Enough image in Pattern");
 
+  std::string aKeyOri = "NKS-Assoc-Im2Orient@-" + mOri;
+  for (int aKIm = 0; aKIm<mNbIm ; aKIm++)
+  {
+     const std::string & aNameIm = (*mSetIm)[aKIm];
+     std::string aNameOri =  mICNM->Assoc1To1(aKeyOri,aNameIm,true);
+     CamStenope *  aCS = CamOrientGenFromFile(aNameOri,mICNM);
+     mSzGlob = mSzGlob + Pt2dr(aCS->Sz());
+  }
+  mSzGlob = mSzGlob / double(mNbIm);
+
   bool IsOrthoXCSte = false;
   mRepIsAnam = (mRep!="") && RepereIsAnam(mDir+mRep,IsOrthoXCSte);
   mUnAnam = mUnAnam && IsOrthoXCSte;
@@ -277,7 +292,14 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mZoomInit = 32;
        else 
           mZoomInit = 32;
+       
+       double aWidth = ElMin(mSzGlob.x,mSzGlob.y);
+       while ((aWidth/mZoomInit) < mLargMin)
+       {
+           mZoomInit /=2;
+       }
   }
+
 
   bool UseMTAOri = ( mUseMasqTA!=0 );
 

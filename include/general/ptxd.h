@@ -1102,6 +1102,7 @@ class cMetaDataPhoto
 
         Pt2di XifSzIm(bool Svp=false) const;
         Pt2di TifSzIm(bool Svp=false) const;
+        Pt2di SzImTifOrXif(bool Svp=false) const;
 
         void SetXYZTetas(const Pt3dr & aXYZ,const Pt3dr & Tetas);
         bool XYZTetasInit() const;

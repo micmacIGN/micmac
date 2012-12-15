@@ -148,7 +148,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
              <GenImagesCorrel > true </GenImagesCorrel>
 
              <ZPas>        ${ZPas} </ZPas>
-             <ModeInterpolation> eInterpolSinCard </ModeInterpolation>
+             <ModeInterpolation> eInterpolBiCub </ModeInterpolation>
 
 	     <ZDilatAlti>  4      </ZDilatAlti>
              <ZDilatPlani> 5      </ZDilatPlani>
@@ -193,6 +193,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
 
         <EtapeMEC> 
+                 <ModeInterpolation Portee="Globale"> eInterpolSinCard </ModeInterpolation>
                  <DeZoom >        8        </DeZoom> 
 	         <ZDilatAlti>  4    </ZDilatAlti>
                  <ZDilatPlani> 3    </ZDilatPlani>
