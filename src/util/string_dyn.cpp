@@ -99,6 +99,17 @@ ElSTDNS string StdPrefixGen(const ElSTDNS string & aStr,char c)
         return aStr;
 }
 
+bool IsPrefix(const char * aPref,const char *aStr)
+{
+   while (*aPref && *aStr && (*aPref==*aStr))
+   {
+       aPref++;
+       aStr++;
+   }
+   return (*aPref==0);
+}
+
+
 template <>  std::string ToString(const bool & aBool)
 {
    return  aBool ? "1" : "0";
@@ -430,6 +441,23 @@ std::vector<std::string> VecStrFromFile(const std::string & aFilePtsIn)
     return aRes;
 }
 
+
+void BanniereMM3D()
+{
+    std::cout << "\n";
+    std::cout << "  ************************************************************************\n";
+    std::cout << "  **                                                                    **\n";
+    std::cout << "  **    MicMac : a  free open source project  for photogrammetry        **\n";
+    std::cout << "  **     hosted at Ecole Nationale des Science Geographique             **\n";
+    std::cout << "  **               in Marne-la-Vallee, for IGN-France                   **\n";
+    std::cout << "  **                                                                    **\n";
+    std::cout << "  **                                                                    **\n";
+    std::cout << "  **  Current Team : MP Deseilligny, M Deveau, J Belveaux, G Choqueux   **\n";
+    std::cout << "  **               Contact : Marc.Pierrot-Deseilligny@ensg.eu           **\n";
+    std::cout << "  **                                                                    **\n";
+    std::cout << "  ************************************************************************\n";
+ 
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

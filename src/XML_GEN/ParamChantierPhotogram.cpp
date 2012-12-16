@@ -9634,6 +9634,17 @@ const std::list< std::string > & cChantierDescripteur::Symb()const
 }
 
 
+std::list< std::string > & cChantierDescripteur::eSymb()
+{
+   return meSymb;
+}
+
+const std::list< std::string > & cChantierDescripteur::eSymb()const 
+{
+   return meSymb;
+}
+
+
 cTplValGesInit< cMMCameraDataBase > & cChantierDescripteur::LocCamDataBase()
 {
    return mLocCamDataBase;
@@ -9820,6 +9831,12 @@ cElXMLTree * ToXMLTree(const cChantierDescripteur & anObj)
       it++
   ) 
       aRes->AddFils(::ToXMLTree(std::string("Symb"),(*it))->ReTagThis("Symb"));
+  for
+  (       std::list< std::string >::const_iterator it=anObj.eSymb().begin();
+      it !=anObj.eSymb().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("eSymb"),(*it))->ReTagThis("eSymb"));
    if (anObj.LocCamDataBase().IsInit())
       aRes->AddFils(ToXMLTree(anObj.LocCamDataBase().Val())->ReTagThis("LocCamDataBase"));
    if (anObj.MakeDataBase().IsInit())
@@ -9892,6 +9909,8 @@ void xml_init(cChantierDescripteur & anObj,cElXMLTree * aTree)
    xml_init(anObj.ExitOnBrkp(),aTree->Get("ExitOnBrkp",1)); //tototo 
 
    xml_init(anObj.Symb(),aTree->GetAll("Symb",false,1));
+
+   xml_init(anObj.eSymb(),aTree->GetAll("eSymb",false,1));
 
    xml_init(anObj.LocCamDataBase(),aTree->Get("LocCamDataBase",1)); //tototo 
 

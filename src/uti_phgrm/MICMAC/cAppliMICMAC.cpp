@@ -566,15 +566,19 @@ cAppliMICMAC * cAppliMICMAC::Alloc(int argc,char ** argv,eModeAllocAM aMode)
        }
     }
 
-    cElXMLTree aTreeParam(argv[1]);
-    if (aName==0)
+// std::cout << "AAAAAAAAAAAAAAAAAAAAAAa\n"; getchar();
     {
-       cElXMLTree * aTrNameParam = aTreeParam.GetOneOrZero("NameFileParamMICMAC");
-       if (aTrNameParam !=0)
-       {
-           aName = aTrNameParam->GetUniqueVal().c_str();
-       }
+        cElXMLTree aTreeParam(argv[1]);
+        if (aName==0)
+        {
+           cElXMLTree * aTrNameParam = aTreeParam.GetOneOrZero("NameFileParamMICMAC");
+           if (aTrNameParam !=0)
+           {
+               aName = aTrNameParam->GetUniqueVal().c_str();
+           }
+        }
     }
+// std::cout << "BBBBBBBBBBBBBBBBBBB\n"; getchar();
     // Creation de l'arbre de specif et de l'arbre des parametres
     if (aName==0) 
     {

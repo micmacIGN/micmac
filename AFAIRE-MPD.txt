@@ -23,3 +23,11 @@ Voir pour les sift comme masques
 =============================
 
 -1- Calcul des Moyenne Ecart Type
+
+=============================
+
+EVOL :
+
+    windows
+    mm3d
+    lock

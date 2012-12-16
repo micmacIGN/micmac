@@ -523,6 +523,9 @@ ElSTDNS string StdPrefix (const ElSTDNS string &,char = '.');
 ElSTDNS string StdPrefixGen (const ElSTDNS string &,char = '.');
 std::string NameWithoutDir(const std::string &);
 
+bool IsPrefix(const char * aPref,const char *aStr);
+
+
 std::string ToCommande(int argc,char ** argv);
 std::string QUOTE(const std::string & aStr);
 void GlobStdAdapt2Crochet(std::string & aStr);
@@ -1240,6 +1243,8 @@ void BasicComputeIntervaleDelta
                   INT aZ0Max
               );
 double FromSzW2FactExp(double aSzW,double mCurNbIterFenSpec);
+
+void BanniereMM3D();
 
 extern "C" {
 FILE * ElFopen(const char *path, const char *mode);

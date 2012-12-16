@@ -1052,15 +1052,17 @@ std::string XML_MM_File(const std::string & aFile)
 		std::map<tKey,cSetName *>::iterator anIt = mDico.find(aKeySsArb);
 		if (anIt==mDico.end())
 		{
-			//std::cout << "NO fOUND " << aKeySsArb<<"\n";
+// std::cout << "NO fOUND " << aKeySsArb<<"\n"; getchar();
 			return 0;
 		}
+
 		
 		// Si il existe sans @, on le construit avec
 		cSetNameDescriptor & aSND = * new cSetNameDescriptor(anIt->second->SND());
 		TransFormArgKey(aSND,false,aVParams);
 		cSetName *aSet = new cSetName(anIt->second->ICNM(),aSND);
 		mDico[aKey] = aSet;
+
 
 		return aSet;
 	}

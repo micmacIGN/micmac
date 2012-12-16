@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "graph.h"
+#include "maxflow.h"  // MODIF MPD : AJOUT
 
 template <typename captype, typename tcaptype, typename flowtype> 
 	Graph<captype, tcaptype, flowtype>::Graph(int node_num_max, int edge_num_max, void (*err_function)(const char *))
