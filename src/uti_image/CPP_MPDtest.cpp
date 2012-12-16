@@ -745,13 +745,6 @@ void TestIm()
 
 }
 
-void TestXML2()
-{
-  // cElXMLTree aTree("Test.xml",0,false);
-  cArgCreatXLMTree anArg("Test.xml",true,true);
-  cElXMLTree aTree("Test.xml",&anArg);
-  aTree.StdShow("TestOur.xml");
-}
 
 void TestVP3D()
 {
@@ -828,14 +821,24 @@ void TestLG(const std::string & aFullName)
 
 }
 
+
 #endif
 
-
+void TestXML2()
+{
+  // cElXMLTree aTree("Test.xml",0,false);
+  std::string aFileIn = "TestSubst.xml";
+  cArgCreatXLMTree anArg(aFileIn,true,true);
+  cElXMLTree aTree(aFileIn,&anArg);
+  aTree.StdShow("TestOur.xml");
+}
 
 int MPDtest_main (int argc,char** argv)
 {
+   BanniereMM3D();
+   // TestXML2();
+   //  cout <<  PolonaiseInverse(argv[1]) << "\n" ;
 /*
-   TestXML2();
   TestLG(argv[1]);
  TestQuadr() ;
    testim();

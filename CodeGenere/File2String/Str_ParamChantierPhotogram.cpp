@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1345]) = {
+const char * (theNameVar_ParamChantierPhotogram[1350]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1096,6 +1096,11 @@ const char * (theNameVar_ParamChantierPhotogram[1345]) = {
 "          <!-- ?? Pour eviter PB dans compile; on lui donne une valeur -->\n",
 "         <ExitOnBrkp Nb=\"?\" Type=\"bool\"> </ExitOnBrkp>\n",
 "         <Symb Nb=\"*\" Type=\"std::string\"> </Symb>\n",
+"         <!-- Evaluated Symb using a Polonaise Inverse Syntaxe -->\n",
+"         <eSymb Nb=\"*\" Type=\"std::string\"> </eSymb>\n",
+"\n",
+"\n",
+"\n",
 "\n",
 "         <LocCamDataBase Nb=\"?\" RefType=\"MMCameraDataBase\"> </LocCamDataBase>\n",
 "         <!--\n",

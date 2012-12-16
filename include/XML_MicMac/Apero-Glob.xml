@@ -15,7 +15,7 @@
 
                <Symb>  FocMin=0 </Symb>
                <Symb>  FocMax=10000 </Symb>
-               <Symb>  SetIm=NKS-Set-OfPatternAndFoc@${PatternAllIm}@${FocMin}@${FocMax} </Symb>
+               <Symb>  SetIm=NKS-Set-OfPatternAndFoc@[[${PatternAllIm}]]@${FocMin}@${FocMax} </Symb>
 
                <Symb>  SetImInit="XXXX" </Symb>
 

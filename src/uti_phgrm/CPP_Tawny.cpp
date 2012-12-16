@@ -113,6 +113,7 @@ int Tawny_main(int argc,char ** argv)
     //std::cout << aCom << "\n";
     int aRes = system_call(aCom.c_str());
 
+    BanniereMM3D();
     return aRes;
 }
 

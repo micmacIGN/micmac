@@ -1094,6 +1094,11 @@ namespace NS_ParamChantierPhotogram{
           <!-- ?? Pour eviter PB dans compile; on lui donne une valeur -->
          <ExitOnBrkp Nb="?" Type="bool"> </ExitOnBrkp>
          <Symb Nb="*" Type="std::string"> </Symb>
+         <!-- Evaluated Symb using a Polonaise Inverse Syntaxe -->
+         <eSymb Nb="*" Type="std::string"> </eSymb>
+
+
+
 
          <LocCamDataBase Nb="?" RefType="MMCameraDataBase"> </LocCamDataBase>
          <!--

@@ -259,7 +259,16 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
      const std::string & aNameIm = (*mSetIm)[aKIm];
      std::string aNameOri =  mICNM->Assoc1To1(aKeyOri,aNameIm,true);
      CamStenope *  aCS = CamOrientGenFromFile(aNameOri,mICNM);
-     mSzGlob = mSzGlob + Pt2dr(aCS->Sz());
+
+     Pt2di aCorns[4];
+     Box2di aBx(Pt2di(0,0), aCS->Sz());
+     aBx.Corners(aCorns);
+     Pt2dr aP0(0,0);
+     for (int aKC=0 ; aKC< 4 ; aKC++)
+        aP0.SetSup(aCS->OrGlbImaM2C(Pt2dr(aCorns[aKC])));
+
+     
+     mSzGlob = mSzGlob + aP0;
   }
   mSzGlob = mSzGlob / double(mNbIm);
 
@@ -294,7 +303,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mZoomInit = 32;
        
        double aWidth = ElMin(mSzGlob.x,mSzGlob.y);
-       while ((aWidth/mZoomInit) < mLargMin)
+       while (((aWidth/mZoomInit) < mLargMin) && (mZoomInit>16))
        {
            mZoomInit /=2;
        }
@@ -554,7 +563,10 @@ int Malt_main(int argc,char ** argv)
    MMD_InitArgcArgv(argc,argv);
    cAppliMalt anAppli(argc,argv);
 
-   return anAppli.Exe();
+
+   int aRes = anAppli.Exe();
+   BanniereMM3D();
+   return aRes;
 }
 
 
