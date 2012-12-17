@@ -660,7 +660,7 @@ template <class Type> void Hough_Mappped_Comp<Type>::calc_buf (INT ** output,Typ
 
     for (mDimIn = 0; mDimIn<this->dim_in() ; mDimIn++)
     {
-        Simple_OPBuf1<INT,Type>::SetImageOnBufEntry(mImGlobTmp[mDimIn],input[mDimIn]);
+        this->Simple_OPBuf1<INT,Type>::SetImageOnBufEntry(mImGlobTmp[mDimIn],input[mDimIn]);
     }
 
 

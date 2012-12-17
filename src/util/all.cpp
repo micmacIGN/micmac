@@ -186,7 +186,31 @@ int trace_system( const char *cmd )
 }
 
 #ifdef __TRACE_SYSTEM__
-	int (*system_call)( const char*cmd )=trace_system;
+	int (*system_call)( const char* )=trace_system;
 #else
-	int (*system_call)( const char*cmd )=::system;
+	int (*system_call)( const char* )=::system;
 #endif
+
+#if (!ELISE_windows)
+	FILE * trace_popen( const char *i_cmd, const char *i_access )
+	{
+		cout << " popen [" << i_cmd << ']' << endl;
+		FILE *res = popen( i_cmd, i_access );
+	#if ( __VERBOSE__>1 )
+		if ( res==NULL )
+		{
+			string str = i_cmd;
+			if (str.find("ElDcraw" )==string::npos)
+				cerr << '[' << i_cmd << "] errorlevel = " << errno << endl;
+		}
+	#endif
+		return res;
+	}
+	
+	#ifdef __TRACE_SYSTEM__
+		FILE * (*popen_call)( const char *, const char * )=trace_popen;
+	#else
+		FILE * (*popen_call)( const char *, const char * )=popen;
+	#endif
+#endif
+

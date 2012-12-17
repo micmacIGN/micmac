@@ -355,19 +355,27 @@ int Tapioca_main(int argc,char ** argv)
 	
     if (TheType == Type[0])
     {
-        return MultiECh(argc,argv);
+        int aRes =  MultiECh(argc,argv);
+        BanniereMM3D();
+        return aRes;
     }
     else if (TheType == Type[1])
     {
-        return All(argc,argv);
+        int aRes =  All(argc,argv);
+        BanniereMM3D();
+        return aRes;
     }
     else if (TheType == Type[2])
     {
-        return Line(argc,argv);
+        int aRes =  Line(argc,argv);
+        BanniereMM3D();
+        return aRes;
     }
     else if (TheType == Type[3])
     {
-        return File(argc,argv);
+        int aRes =  File(argc,argv);
+        BanniereMM3D();
+        return aRes;
     }
 
     std::cout << "TAPIOCA : Bad Value for networks configuration \n";

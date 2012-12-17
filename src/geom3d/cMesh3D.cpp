@@ -55,6 +55,7 @@ cTriangle::~cTriangle(){}
 
 cTriangle::cTriangle(vector <int> const &idx, int TriIdx)
 {
+	mInside = false;
 	mIndexes = idx;
 	mTriIdx  = TriIdx;
 }
@@ -64,6 +65,8 @@ cTriangle::cTriangle(vector <int> const &idx, int TriIdx)
 
 cTriangle::cTriangle(int idx1, int idx2, int idx3, int TriIdx)
 {
+	mInside = false;
+
 	mIndexes.push_back(idx1);
 	mIndexes.push_back(idx2);
 	mIndexes.push_back(idx3);
@@ -105,7 +108,7 @@ void cTriangle::getVertexes(cMesh const &elMesh, vector <Pt3dr> &vList) const
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-bool cTriangle::getAttributes(int image_idx, vector <double> &ta) const
+bool cTriangle::getAttributes(int image_idx, vector <REAL> &ta) const
 {
 	map <int, vector <REAL> >::const_iterator it;
 
@@ -125,6 +128,42 @@ bool cTriangle::getAttributes(int image_idx, vector <double> &ta) const
 void cTriangle::setAttributes(int image_idx, const vector <REAL> &ta)
 {
 	mAttributes.insert(pair <int, vector <REAL> > (image_idx, ta) );
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+void cTriangle::getVertexesIndexes(int &v1, int &v2, int &v3)
+{
+	//ELISE_ASSERT
+	v1 = mIndexes[0];
+	v2 = mIndexes[1];
+	v3 = mIndexes[2];
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+REAL cTriangle::computeEnergy(int img_idx)
+{
+	REAL diff;	
+
+	//angle entre la direction de visee de l'image idx et la normale au triangle
+	REAL angle0 = (mAttributes.find(img_idx))->second[0];
+
+	REAL min = PI;
+	map<int,vector <REAL> >::const_iterator it;
+	for (it = mAttributes.begin(); it != mAttributes.end(); it++)
+	{
+		if (it->first != img_idx)
+		{
+			diff = abs(angle0 - ((*it).second)[0]);
+
+			if (diff < min) min = diff;
+		}
+	}
+
+	return PI - min;
 }
 
 //--------------------------------------------------------------------------------------------------------------
@@ -158,7 +197,16 @@ cTriangle* cMesh::getTriangle(unsigned int idx)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-// list of property information for a vertex
+cEdge cMesh::getEdge(unsigned int idx) const
+{
+	ELISE_ASSERT(idx < mEdges.size(), "cMesh3D.cpp cMesh::getEdge, out of edges array");
+	
+	return mEdges[idx];
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
 PlyProperty props[] = 
 { 
 	{"x", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,x), 0, 0, 0, 0},
@@ -166,7 +214,6 @@ PlyProperty props[] =
 	{"z", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,z), 0, 0, 0, 0},
 };
 
-// list of property information for a face
 PlyProperty face_props[] = 
 { 
   {"vertex_indices", PLY_INT, PLY_INT, offsetof(Face,verts),
@@ -187,6 +234,10 @@ cMesh::cMesh(const std::string & Filename)
 	int num_elems;
 	char *elem_name;
 	PlyProperty **plist;
+	int cpt;
+	int id0, id1, id2;
+	int idc0, idc1; //index des sommets communs
+	id0 = id1 = id2 = -1;
 
 	thePlyFile = ply_open_for_reading( const_cast<char *>(Filename.c_str()), &nelems, &elist, &file_type, &version);
 	
@@ -194,7 +245,6 @@ cMesh::cMesh(const std::string & Filename)
 
 	for (int i = 0; i < nelems; i++) 
 	{
-		// get the description of the first element
 		elem_name = elist[i];
 		plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
 				
@@ -202,18 +252,17 @@ cMesh::cMesh(const std::string & Filename)
 					
 		if (equal_strings ("vertex", elem_name)) 
 		{		
-			// set up for getting vertex elements
 			ply_get_property (thePlyFile, elem_name, &props[0]);
 			ply_get_property (thePlyFile, elem_name, &props[1]);
 			ply_get_property (thePlyFile, elem_name, &props[2]);
 			
-			// grab all the vertex elements
 			for (int j = 0; j < num_elems; j++) 
 			{
 				Vertex *vert = (Vertex *) malloc (sizeof(Vertex));
 				
 				ply_get_element (thePlyFile, vert);
-									
+					
+				//ajout du point
 				addPt(Pt3dr(vert->x, vert->y, vert->z));
 
 				//printf ("vertex: %g %g %g\n", vert->x, vert->y, vert->z);
@@ -222,18 +271,52 @@ cMesh::cMesh(const std::string & Filename)
 		else if (equal_strings ("face", elem_name)) 
 		{
 			ply_get_property ( thePlyFile, elem_name, &face_props[0]);
-	
+			vector <int> vIndx;
+
 			for (int j = 0; j < num_elems; j++) 
 			{
 				Face *theFace = (Face *) malloc (sizeof (Face));
 				ply_get_element (thePlyFile, theFace);
 
-				vector <int> vIndx;
+				vIndx.clear();
 				for (int aK =0; aK < theFace->nverts; ++aK)
 				{
 					vIndx.push_back(theFace->verts[aK]);
 				}
 
+				//remplissage du graphe d'adjacence
+				for (int k = 0; k < getFacesNumber(); ++k)
+				{
+					mTriangles[k].getVertexesIndexes(id0, id1, id2);
+					
+					cpt = 0;
+					if((vIndx[0] == id0)||(vIndx[1] == id0)||(vIndx[2] == id0)) {cpt++; idc0 = id0;}
+					if((vIndx[0] == id1)||(vIndx[1] == id1)||(vIndx[2] == id1)) 
+					{
+						if (cpt) idc1 = id1;
+						else	 idc0 = id1;
+
+						cpt++; 
+					}
+					if((vIndx[0] == id2)||(vIndx[1] == id2)||(vIndx[2] == id2))
+					{
+						if (cpt) idc1 = id2;
+						else	 idc0 = id2;
+
+						cpt++;
+					}
+
+					if (cpt == 2)
+					{
+						#ifdef _DEBUG
+							printf ("found adjacent triangles : %d %d - vertex : %d %d\n", j, k, idc0, idc1);
+						#endif
+
+						addEdge(cEdge(k, j, idc0, idc1));
+					}
+				}
+
+				//ajout du triangle 
 				addTriangle(cTriangle(vIndx, j));
 			}
 		}
@@ -261,12 +344,20 @@ void cMesh::addTriangle(const cTriangle &aTri)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-//Sets angle between Dir and Triangle in TriIdx
-void cMesh::setTrianglesAttribute(int img_idx, Pt3dr Dir, vector <unsigned int> const &TriIdx)
+void cMesh::addEdge(const cEdge &aEdge)
 {
-	for (unsigned int aK=0 ; aK < TriIdx.size() ; aK++)
+	mEdges.push_back(aEdge);
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+//Calcule et stocke l'angle entre Dir et Triangle (appartenant a TriIdx)
+void cMesh::setTrianglesAttribute(int img_idx, Pt3dr Dir, vector <unsigned int> const &aTriIdx)
+{
+	for (unsigned int aK=0; aK < aTriIdx.size(); aK++)
 	{
-		cTriangle *aTri = getTriangle(TriIdx[aK]);
+		cTriangle *aTri = getTriangle(aTriIdx[aK]);
 	
 		Pt3dr aNormale = aTri->getNormale(*this, true);
 
@@ -276,6 +367,89 @@ void cMesh::setTrianglesAttribute(int img_idx, Pt3dr Dir, vector <unsigned int> 
 		vAttr.push_back(cosAngle);
 
 		aTri->setAttributes(img_idx, vAttr);
+	}
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+void cMesh::setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, vector <unsigned int> const &aVisTriIdx)
+{
+	int id1, id2, pos1, pos2;
+	float E;
+
+	/*vector<unsigned int>::const_iterator it0_begin = aVisTriIdx.begin();
+	vector<unsigned int>::const_iterator it0_end   = aVisTriIdx.end();
+
+	vector<int>::iterator it_begin = aTriInGraph.begin();
+	vector<int>::iterator it_end   = aTriInGraph.end();*/
+	
+	for (unsigned int aK=0; aK < mEdges.size(); aK++)
+	{
+		//filtrage des triangles visibles
+		id1 = mEdges[aK].n1();
+		id2 = mEdges[aK].n2();
+		
+		//on recherche id1 et id2 parmi les triangles visibles
+		if ((find(aVisTriIdx.begin(), aVisTriIdx.end(), id1)!=aVisTriIdx.end()) &&
+			(find(aVisTriIdx.begin(), aVisTriIdx.end(), id2)!=aVisTriIdx.end()))
+		{
+			//on ajoute seulement les triangles qui ne sont pas encore presents dans le graphe
+			if (find(aTriInGraph.begin(), aTriInGraph.end(), id1) == aTriInGraph.end())
+			{
+				aTriInGraph.push_back(id1);
+				aGraph.add_node();
+			}
+
+			if (find(aTriInGraph.begin(), aTriInGraph.end(), id2) == aTriInGraph.end())
+			{
+				aTriInGraph.push_back(id2);
+				aGraph.add_node();
+			}
+		}
+	}
+
+	cEdge elEdge;
+
+	//creation des aretes et stockage de leur energie
+	for (unsigned int aK=0; aK < mEdges.size(); aK++)
+	{
+		elEdge = mEdges[aK];
+
+		id1 = elEdge.n1();
+		id2 = elEdge.n2();
+
+		vector<int>::iterator it1 = find(aTriInGraph.begin(), aTriInGraph.end(), id1);
+		vector<int>::iterator it2 = find(aTriInGraph.begin(), aTriInGraph.end(), id2);
+		
+		if ( (it1 != aTriInGraph.end()) && (it2 != aTriInGraph.end()) )
+		{
+			pos1 = (int) (it1 - aTriInGraph.begin());
+			pos2 = (int) (it2 - aTriInGraph.begin());
+		
+			//longueur^2 de l'arete coupee par elEdge
+			E = square_euclid( getVertex( elEdge.v1() ), getVertex( elEdge.v2() ) );
+
+			aGraph.add_edge(pos1, pos2, E, E);		
+			//aGraph.add_edge(pos1, pos2, 1, 1);		
+		}
+	}
+
+	for (unsigned int aK=0; aK < aTriInGraph.size(); aK++)
+	{
+		cTriangle *Tri = getTriangle(aTriInGraph[aK]);
+
+		E = Tri->computeEnergy(img_idx);
+		if (E == 0.f) 
+			aGraph.add_tweights( aK, 0.f, 1.f );
+		else
+		{
+			aGraph.add_tweights( aK, mLambda*E, mLambda*(PI- E) );
+			/*if (Tri->isInside())
+				aGraph.add_tweights( aK, 0.f, 1.f );
+			else
+				aGraph.add_tweights( aK, 1.f, 0.f );*/
+		}
 	}
 }
 
@@ -305,7 +479,7 @@ cZBuf::~cZBuf(){}
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-Im2D_REAL4 cZBuf::BasculerUnMaillage(cMesh &aMesh)
+Im2D_REAL4 cZBuf::BasculerUnMaillage(cMesh const &aMesh)
 {
 	mRes = Im2D_REAL4(mSzRes.x,mSzRes.y,mDpDef);
 	mDataRes = mRes.data();
@@ -325,7 +499,7 @@ Im2D_REAL4 cZBuf::BasculerUnMaillage(cMesh &aMesh)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-void cZBuf::BasculerUnTriangle(cTriangle &aTri, cMesh &aMesh, bool doMask)
+void cZBuf::BasculerUnTriangle(cTriangle &aTri, cMesh const &aMesh, bool doMask)
 {
 	vector <Pt3dr> Sommets;
 	aTri.getVertexes(aMesh, Sommets);
@@ -364,33 +538,6 @@ void cZBuf::BasculerUnTriangle(cTriangle &aTri, cMesh &aMesh, bool doMask)
 		aP0 = Sup(aP0,Pt2di(0,0));
 		Pt2di aP1 = round_up(Sup(A2,Sup(B2,C2)));
 		aP1 = Inf(aP1,mSzRes-Pt2di(1,1));
-
-		/*for (INT x=aP0.x ; x<= aP1.x ; x++)
-			for (INT y=aP0.y ; y<= aP1.y ; y++)
-			{
-				Pt2dr AP = Pt2dr(x,y)-A2;
-
-				// Coordonnees barycentriques de P(x,y)
-				REAL aPdsB = (AP^AC) / aDet;
-				REAL aPdsC = (AB^AP) / aDet;
-				REAL aPdsA = 1 - aPdsB - aPdsC;
-				if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps))
-				{
-					if (doMask)
-					{
-						mImMask.set(x, y, 1);
-					}
-					else
-					{
-						REAL4 aZ = (float) (zA*aPdsA + zB*aPdsB + zC*aPdsC);
-						if (aZ>mDataRes[y][x])
-						{
-							mDataRes[y][x] = aZ;
-							mImTriIdx.SetI(Pt2di(x,y),aTri.getIdx());
-						}
-					}
-				}
-			}*/
 
 		if (doMask)
 		{
@@ -489,11 +636,47 @@ Im2D_BIN cZBuf::ComputeMask(int img_idx, cMesh &aMesh)
 			}
 
 			if ((bestAngle < mMaxAngle) && (bestImage == img_idx))
+			//if (bestAngle < mMaxAngle)
 			{
 				BasculerUnTriangle(*aTri, aMesh, true);
+				aTri->setInside();
 			}
 		}
 	}
 
 	return mImMask;
 }
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+Im2D_BIN cZBuf::ComputeMask(vector <int> const &TriInGraph, RGraph &aGraph, cMesh &aMesh)
+{
+	mImMask = Im2D_BIN (mSzRes.x, mSzRes.y, 0);
+
+	/*printf(" taille de TriIngraph :  %d", TriInGraph.size());
+	printf(" aGraph.get_node_num  :  %d", aGraph.get_node_num());*/
+
+	for (int aK=0; aK < TriInGraph.size(); aK++)
+	{
+		if (aGraph.what_segment(aK) == RGraph::SOURCE) BasculerUnTriangle(*(aMesh.getTriangle(TriInGraph[aK])), aMesh, true);
+	}
+
+	return mImMask;
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+// cEdge
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+cEdge::cEdge()
+{
+	mNode1 = -1;
+	mNode2 = -1;
+	mV1	   = -1;
+	mV2    = -1;
+}
+
+cEdge::~cEdge(){}

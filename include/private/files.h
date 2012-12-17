@@ -2037,6 +2037,11 @@ void StdXMl2CppAndString(const std::string &aNameInput);
 
 
 void AddEntryStringifie(const std::string &,const char ** aTab,bool formal);
+
+
+double PolonaiseInverse(const std::string & aStr);
+
+
 //   const char * GetEntryStringifie(const std::string &);
 
 

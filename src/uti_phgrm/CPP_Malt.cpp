@@ -124,6 +124,8 @@ class cAppliMalt
           std::string  mImOrtho;
           double       mZMoy;
           bool         mIsSperik;
+          double      mLargMin;
+          Pt2dr       mSzGlob;
 };
 
 
@@ -162,7 +164,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mResolOrtho   (1.0),
     mImMNT        (""),
     mImOrtho      (""),
-    mIsSperik     (false)
+    mIsSperik     (false),
+    mLargMin      (25.0),
+    mSzGlob       (0,0)
 {
   ELISE_ASSERT(argc >= 2,"Not enouh arg");
 
@@ -210,6 +214,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mImOrtho,"ImOrtho",true,"Filter to select images used for ortho (Def All) ")
                     << EAM(mZMoy,"ZMoy",true,"Average value of Z")
                     << EAM(mIsSperik,"Spherik",true,"If true the surface for redressing are spheres")
+                    << EAM(mLargMin,"WMI",true,"Miinum width of reduced images (to fix ZoomInit)")
   );
 
   if ((mImMaster!="") != (mType==eGeomImage))
@@ -248,6 +253,25 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   mNbIm = mSetIm->size();
   ELISE_ASSERT(mNbIm>=2,"Not Enough image in Pattern");
 
+  std::string aKeyOri = "NKS-Assoc-Im2Orient@-" + mOri;
+  for (int aKIm = 0; aKIm<mNbIm ; aKIm++)
+  {
+     const std::string & aNameIm = (*mSetIm)[aKIm];
+     std::string aNameOri =  mICNM->Assoc1To1(aKeyOri,aNameIm,true);
+     CamStenope *  aCS = CamOrientGenFromFile(aNameOri,mICNM);
+
+     Pt2di aCorns[4];
+     Box2di aBx(Pt2di(0,0), aCS->Sz());
+     aBx.Corners(aCorns);
+     Pt2dr aP0(0,0);
+     for (int aKC=0 ; aKC< 4 ; aKC++)
+        aP0.SetSup(aCS->OrGlbImaM2C(Pt2dr(aCorns[aKC])));
+
+     
+     mSzGlob = mSzGlob + aP0;
+  }
+  mSzGlob = mSzGlob / double(mNbIm);
+
   bool IsOrthoXCSte = false;
   mRepIsAnam = (mRep!="") && RepereIsAnam(mDir+mRep,IsOrthoXCSte);
   mUnAnam = mUnAnam && IsOrthoXCSte;
@@ -277,7 +301,14 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mZoomInit = 32;
        else 
           mZoomInit = 32;
+       
+       double aWidth = ElMin(mSzGlob.x,mSzGlob.y);
+       while (((aWidth/mZoomInit) < mLargMin) && (mZoomInit>16))
+       {
+           mZoomInit /=2;
+       }
   }
+
 
   bool UseMTAOri = ( mUseMasqTA!=0 );
 
@@ -532,7 +563,10 @@ int Malt_main(int argc,char ** argv)
    MMD_InitArgcArgv(argc,argv);
    cAppliMalt anAppli(argc,argv);
 
-   return anAppli.Exe();
+
+   int aRes = anAppli.Exe();
+   BanniereMM3D();
+   return aRes;
 }
 
 

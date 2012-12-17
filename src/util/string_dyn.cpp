@@ -99,6 +99,17 @@ ElSTDNS string StdPrefixGen(const ElSTDNS string & aStr,char c)
         return aStr;
 }
 
+bool IsPrefix(const char * aPref,const char *aStr)
+{
+   while (*aPref && *aStr && (*aPref==*aStr))
+   {
+       aPref++;
+       aStr++;
+   }
+   return (*aPref==0);
+}
+
+
 template <>  std::string ToString(const bool & aBool)
 {
    return  aBool ? "1" : "0";
@@ -430,23 +441,23 @@ std::vector<std::string> VecStrFromFile(const std::string & aFilePtsIn)
     return aRes;
 }
 
-void BanniereGlobale()
+
+void BanniereMM3D()
 {
-    std::cout << " ========================================================================\n";
-    std::cout << " ==                                                                    ==\n";
-    std::cout << " ==     Apero-MicMac  a set of Free-Open Source Photogrammetric Tools  ==\n";
-    std::cout << " ==                                                                    ==\n";
-    std::cout << " ==   a  project hosted at Ecole Nationale des Sciences Geographiques  ==\n";
-    std::cout << " ==                       Marne la Vallee (France)                     ==\n";
-    std::cout << " ==                  for Institut Geographique National                ==\n";
-    std::cout << " ==                                                                    ==\n";
-    std::cout << " == Current team :   MP Deseilligny, M Deveau, G Choqueux, J Belveau   ==\n";
-    std::cout << " ==         contact : marc.pierrot-deseilligny@ensg.eu                 ==\n";
-    std::cout << " ==                                                                    ==\n";
-    std::cout << " ========================================================================\n";
+    std::cout << "\n";
+    std::cout << "  ************************************************************************\n";
+    std::cout << "  **                                                                    **\n";
+    std::cout << "  **    MicMac : a  free open source project  for photogrammetry        **\n";
+    std::cout << "  **     hosted at Ecole Nationale des Science Geographique             **\n";
+    std::cout << "  **               in Marne-la-Vallee, for IGN-France                   **\n";
+    std::cout << "  **                                                                    **\n";
+    std::cout << "  **                                                                    **\n";
+    std::cout << "  **  Current Team : MP Deseilligny, M Deveau, J Belveaux, G Choqueux   **\n";
+    std::cout << "  **               Contact : Marc.Pierrot-Deseilligny@ensg.eu           **\n";
+    std::cout << "  **                                                                    **\n";
+    std::cout << "  ************************************************************************\n";
+ 
 }
-
-
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

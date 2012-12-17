@@ -426,9 +426,10 @@ QString MaitresseTabA::calculeBestMaitresse () {
 
 void MaitresseTabA::maitresseSelected() {
 	parametres->setImgMaitresse( (*(listWidget->selectedItems().begin()))->text() );
-	QImage image(dir+paramMain->convertTifName2Couleur((*(listWidget->selectedItems().begin()))->text()));
+	QString imageName = dir+paramMain->convertTifName2Couleur((*(listWidget->selectedItems().begin()))->text());
+	QImage image( imageName );
 	if (image.isNull()) {
-		cout << tr("Fail to read image %1.").toStdString() << endl; 
+		cout << tr("Fail to read image %1.").arg( imageName ).toStdString() << endl; 
 		return;
 	}
 	image = image.scaled(150,150,Qt::KeepAspectRatio);

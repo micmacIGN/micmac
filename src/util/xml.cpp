@@ -53,6 +53,143 @@ bool ValInitNameDecl = false;
 
 /***********************************************************/
 /*                                                         */
+/*                    POLONAISE INVERSE                    */
+/*                                                         */
+/***********************************************************/
+
+typedef const char * tCCP;
+
+double PolonaiseInverse(tCCP & aC,bool & OK);
+std::vector<double> GetNPolI(tCCP & aC,bool & OK,int aNB);
+
+std::vector<double> GetNPolI(tCCP & aC,bool & OK,int aNB)
+{
+   std::vector<double> aRes;
+   for (int aK=0 ; OK && (aK<aNB); aK++)
+   {
+       aRes.push_back(PolonaiseInverse(aC,OK));
+   }
+   return aRes;
+}
+
+typedef double (*tFoncPoli)(const std::vector<double> &);
+
+class cOpPolI
+{
+    public :
+       cOpPolI (int aNb,const std::string & aName,tFoncPoli aF) :
+           mNb (aNb),
+           mName (aName),
+           mF (aF)
+       {
+       }
+       int          mNb;
+       std::string  mName;
+       tFoncPoli    mF;
+
+};
+
+static double FSom(const std::vector<double> & aV) { return aV[0]+aV[1]; }
+static double FMul(const std::vector<double> & aV) { return aV[0]*aV[1]; }
+static double FInfEq(const std::vector<double> & aV) { return aV[0]<=aV[1]; }
+static double FSupEq(const std::vector<double> & aV) { return aV[0]>=aV[1]; }
+static double FInfStrict(const std::vector<double> & aV) { return aV[0]<aV[1]; }
+static double FSupStrict(const std::vector<double> & aV) { return aV[0]>aV[1]; }
+static double FIf(const std::vector<double> & aV) { return aV[0]?aV[1] : aV[2]; }
+
+const std::vector<cOpPolI> & OpPolI()
+{
+   static  std::vector<cOpPolI>  aRes;
+   if (aRes.empty())
+   {
+       aRes.push_back(cOpPolI(2,"+",FSom));
+       aRes.push_back(cOpPolI(2,"*",FMul));
+       aRes.push_back(cOpPolI(2,"InfEq",FInfEq));
+       aRes.push_back(cOpPolI(2,"SupEq",FSupEq));
+       aRes.push_back(cOpPolI(2,"Inf",FInfStrict));
+       aRes.push_back(cOpPolI(2,"Sup",FSupStrict));
+       aRes.push_back(cOpPolI(3,"?",FIf));
+   }
+   return aRes;
+}
+
+
+bool PolIBlank(int aC) {return (isblank(aC)) || (aC=='"');}
+void PasserPolIBlank(tCCP & aC)
+{
+   while (PolIBlank(*aC)) aC++;
+}
+
+double PolonaiseInverse(tCCP & aC,bool & OK)
+{
+   // while (isblank(*aC)) aC++;
+   PasserPolIBlank(aC);
+
+   if (isdigit(*aC))
+   {
+       char * aNew;
+       double aRes = strtod(aC,&aNew);
+       if (aNew==aC)
+       {
+          OK = false;
+          return 0;
+       }
+       aC = aNew;
+       return aRes;
+   }
+
+
+   const std::vector<cOpPolI> & aVOp = OpPolI();
+   for (int aKop=0 ; aKop<int(aVOp.size()) ; aKop++)
+   {
+       const cOpPolI & anOp = aVOp[aKop];
+       const char * anOpName = anOp.mName.c_str();
+       if (IsPrefix(anOpName,aC))
+       {
+          aC += strlen(anOpName);
+          
+          std::vector<double> aV;
+          for (int aK=0 ;  (aK<anOp.mNb); aK++)
+          {
+              aV.push_back(PolonaiseInverse(aC,OK));
+              if (! OK)
+                 return 0;
+          }
+          return anOp.mF(aV);
+       }
+   }
+
+   OK = false;
+   return 0;
+}
+
+double PolonaiseInverse(const std::string & aStr)
+{
+    const char * aC = aStr.c_str();
+    bool OK=true;
+    double aRes = PolonaiseInverse(aC,OK);
+    if (!OK)
+    {
+       std::cout << "for " << aStr << "\n";
+       ELISE_ASSERT(false,"Syntax error in PolonaiseInverse");
+    }
+    return aRes;
+}
+
+
+std::string PolISubst(const std::string & aStr)
+{
+   double aD = PolonaiseInverse(aStr);
+   int anI = int(aD);
+   return  (anI==aD) ? ToString(anI) : ToString(aD);
+}
+
+
+
+
+
+/***********************************************************/
+/*                                                         */
 /*                    eElXMLKindTree                       */
 /*                                                         */
 /***********************************************************/
@@ -732,7 +869,7 @@ void cElXMLTree::ExpendRef
 
 
 
-void TestSpecialTags(const std::string & aMes,cElXMLTree * aTree,cVirtStream * aFP,cArgCreatXLMTree &anArg)
+void TestSpecialTags(const std::string & aMes,cElXMLTree * aTree,cVirtStream * aFP,cArgCreatXLMTree &anArg,bool UsePolI)
 {
 	if (aFP->IsFileSpec()) 
 	{
@@ -746,15 +883,23 @@ void TestSpecialTags(const std::string & aMes,cElXMLTree * aTree,cVirtStream * a
 		TheExitOnBrkp = BoolVAl(aTree->GetUniqueVal());
 	}
 
-	if (aTree->ValTag()=="Symb")
+        bool IsSymb = (aTree->ValTag()=="Symb");
+        bool IsEvSymb = (aTree->ValTag()=="eSymb");
+	if (IsSymb || IsEvSymb)
 	{
 		std::string aSymb,aVal;
+
 		SplitIn2ArroundEq(aTree->GetUniqueVal(),aSymb,aVal);
+
 		// std::cout << aMes  << aVal << " => " << aSymb << "\n"; getchar();
 
 		//GERALD ATTENTION PLANTE SI PAS VALEUR PAR DEFAUT DANS Apero-Glob.xml!!!!
 		if(aVal.size()!=0)
-			anArg.SetDico(aSymb,aVal,false);
+                {
+                  if (IsEvSymb&&anArg.ModifTree())
+                     aVal = PolISubst(aVal);
+	  	  anArg.SetDico(aSymb,aVal,false);
+                }
 		else
 		{
 			std::cout << "Probleme avec le parametre " << aSymb << ", dans le fichier " << anArg.mNF << "\n";
@@ -779,7 +924,6 @@ std::list<cElXMLTree *>  cElXMLTree::Interprete()
       )
    {
 
-std::cout << "ENTERRIINNGG   WHHHEEENnnnnnn \n";
         const std::string & aVTest = ValAttr("VTEST");
        if (
               (mValTag==StrIF)
@@ -867,10 +1011,10 @@ cElXMLTree::cElXMLTree
 		for (std::list<cElXMLAttr>::const_iterator itA = aTok.Attrs().begin() ; itA!= aTok.Attrs().end() ; itA++)
 		{
 			cElXMLTree* aFils = ValueNode(itA->mSymb,itA->mVal);
-			TestSpecialTags("xx",aFils,aFp,anArg);
+			TestSpecialTags("xx",aFils,aFp,anArg,aUseSubstTree);
 			AddFils(aFils);
 		}
-		TestSpecialTags("AA",this,aFp,anArg);
+		TestSpecialTags("AA",this,aFp,anArg,aUseSubstTree);
 		return;
 	}
 
@@ -901,7 +1045,7 @@ cElXMLTree::cElXMLTree
 					anArg.Add2EntryDic(this,mValTag);
 				}
 			}
-			TestSpecialTags("BB",this,aFp,anArg);
+			TestSpecialTags("BB",this,aFp,anArg,aUseSubstTree);
 			return;
 		}
 		if (aNewTok.Kind()==eXMLEOF)
@@ -951,14 +1095,21 @@ cElXMLTree::cElXMLTree
 		}
 		else
                 {
-                    std::list<cElXMLTree *> aNewFils = aFils->Interprete();
-                    for 
-                    (
-                         std::list<cElXMLTree *>::const_iterator anIt=aNewFils.begin();
-                         anIt!=aNewFils.end();
-                         anIt++
-                    )
-	                mFils.push_back(*anIt);
+                   if (anArg.ModifTree())
+                   {
+                       std::list<cElXMLTree *> aNewFils = aFils->Interprete();
+                       for 
+                       (
+                            std::list<cElXMLTree *>::const_iterator anIt=aNewFils.begin();
+                            anIt!=aNewFils.end();
+                            anIt++
+                       )
+	                   mFils.push_back(*anIt);
+                    }
+                    else
+                    {
+                       mFils.push_back(aFils);
+                    }
                 }
 	}
 

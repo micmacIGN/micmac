@@ -757,6 +757,10 @@ template <class Type> typename ElStdTypeScal<Type>::TypeScalReel  square_euclid(
 		return aX*aX + aY*aY + aZ*aZ;
      }
 template <class Type>  typename ElStdTypeScal<Type>::TypeScalReel  euclid(const Pt3d<Type> & p ){return sqrt(square_euclid(p));}
+template <class Type> typename ElStdTypeScal<Type>::TypeScalReel  square_euclid(const Pt3d<Type> & p1,const Pt3d<Type> & p2)
+{
+	return ElSquare(p2.x-p1.x) + ElSquare(p2.y-p1.y) + ElSquare(p2.z-p1.z);
+}
 template <class Type>
 Type  scal (const Pt3d<Type> & p1,const Pt3d<Type> & p2)
 {
@@ -1102,6 +1106,7 @@ class cMetaDataPhoto
 
         Pt2di XifSzIm(bool Svp=false) const;
         Pt2di TifSzIm(bool Svp=false) const;
+        Pt2di SzImTifOrXif(bool Svp=false) const;
 
         void SetXYZTetas(const Pt3dr & aXYZ,const Pt3dr & Tetas);
         bool XYZTetasInit() const;
