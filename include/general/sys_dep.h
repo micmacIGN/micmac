@@ -306,6 +306,12 @@ extern int TheIntFuckingReturnValue;
 extern char * TheCharPtrFuckingReturnValue;
 int trace_system( const char *cmd );		 // print cmd and execute ::system (helps with debugging)
 extern int (*system_call)( const char*cmd ); // equals ::system unless __TRACE_SYSTEM__ is defined (see all.cpp)
+#if (!ELISE_windows)
+// same thing as system but with popen
+FILE * trace_popen( const char *cmd, const char *acces );
+extern FILE * (*popen_call)( const char *cmd, const char *acces );
+#endif
+
 #define  VoidFscanf TheIntFuckingReturnValue=::fscanf
 #define  VoidScanf TheIntFuckingReturnValue=::scanf
 #define  VoidSystem TheIntFuckingReturnValue=::system_call

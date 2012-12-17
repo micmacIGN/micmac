@@ -52,22 +52,97 @@ std::string StrToLower(const std::string & aStr)
    return aRes;
 }
 
+class cArgLockCom
+{
+    public :
+
+        cArgLockCom(int aNumArg) :
+            mNumArgDir ( aNumArg)
+        {
+        }
+
+        int mNumArgDir ;
+
+        static const cArgLockCom NoLock;
+};
+
+const cArgLockCom  cArgLockCom::NoLock(-1);
+
+
+
+FILE * FileLockMM3d(const std::string & aDir)
+{
+    return  FopenNN(aDir+"mm3d-LockFile.txt","a+","Lock File");
+}
+
+#include <ctime>
+
+void LockTime(FILE * aFp,const std::string & aMes)
+{
+
+  time_t rawtime;
+  struct tm * timeinfo;
+
+  time ( &rawtime );
+  timeinfo = localtime ( &rawtime );
+
+  fprintf(aFp,"   %s %s",aMes.c_str(),asctime (timeinfo));
+}
+
+void LockIn(int  argc,char **  argv,const std::string & aDir)
+{
+   FILE * aFp = FileLockMM3d(aDir);
+
+   fprintf(aFp,"=================================================================\n");
+   for (int aK=0 ; aK< argc ; aK++)
+       fprintf(aFp,"%s ",argv[aK]);
+   fprintf(aFp,"\n");
+   LockTime(aFp,"[Beginning at ]");
+
+   fclose(aFp);
+}
+
+void LockOut(int aRes,const std::string & aDir)
+{
+   FILE * aFp = FileLockMM3d(aDir);
+   std::string aMes;
+   if (aRes==0)
+      aMes = "[Ending correctly at]";
+   else 
+      aMes =  std::string("[Failing with code ") + ToString(aRes) +   " at ]" ;
+   LockTime(aFp,aMes);
+   fclose(aFp);
+}
+
+
+
+
 // CMMCom is a descriptor of a MicMac Command
 class cMMCom
 {
    public :
-      cMMCom (const std::string & aName,tCommande  aCommand,const std::string & aComment) :
+      cMMCom 
+      (
+             const std::string & aName,
+             tCommande  aCommand,
+             const std::string & aComment,
+             const cArgLockCom& aLock=cArgLockCom::NoLock
+      ) :
           mName     (aName),
           mLowName  (StrToLower(aName)),
           mCommand  (aCommand),
-          mComment  (aComment)
+          mComment  (aComment),
+          mLock     (aLock)
       {
       }
 
+
+    
       std::string  mName;
       std::string  mLowName;
       tCommande    mCommand;
       std::string  mComment;
+      cArgLockCom  mLock;
 };
 
 
@@ -94,7 +169,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("GrShade",GrShade_main," Compute shading from depth image"));
        aRes.push_back(cMMCom("Gri2Bin",Gri2Bin_main," Do some stuff"));
        aRes.push_back(cMMCom("MakeGrid",MakeGrid_main," Generate orientations in a grid format"));
-       aRes.push_back(cMMCom("Malt",Malt_main," Simplified matching (interface to MicMac)"));
+       aRes.push_back(cMMCom("Malt",Malt_main," Simplified matching (interface to MicMac)",cArgLockCom(2)));
        aRes.push_back(cMMCom("MapCmd",MapCmd_main," Transforms a command working on a single file in a command working on a set of files"));
 	   aRes.push_back(cMMCom("Mascarpone",Mascarpone_main," Automatic mask tests"));
 	   aRes.push_back(cMMCom("MergePly",MergePly_main," Merge ply files"));
@@ -121,8 +196,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("SBGlobBascule",SBGlobBascule_main," Tool for 'scene based global' bascule"));
        aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Tool for scaling image"));
        aRes.push_back(cMMCom("ScaleNuage",ScaleNuage_main," Tool for scaling internal representation of point cloud"));
-       aRes.push_back(cMMCom("Tapas",Tapas_main," Interface to Apero to compute external and internal orientations"));
-       aRes.push_back(cMMCom("Tapioca",Tapioca_main," Interface to Pastis for tie point detection and matching"));
+       aRes.push_back(cMMCom("Tapas",Tapas_main," Interface to Apero to compute external and internal orientations",cArgLockCom(3)));
+       aRes.push_back(cMMCom("Tapioca",Tapioca_main," Interface to Pastis for tie point detection and matching",cArgLockCom(3)));
        aRes.push_back(cMMCom("Tarama",Tarama_main," Do some stuff"));
        aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image"));
        aRes.push_back(cMMCom("TestCam",TestCam_main," Test camera orientation convention"));
@@ -211,7 +286,19 @@ int main(int argc,char ** argv)
    {
        if (StrToLower(aVComs[aKC].mName)==StrToLower(aCom))
        {
-          return (aVComs[aKC].mCommand(argc-1,argv+1));
+          cArgLockCom aLock = aVComs[aKC].mLock;
+          bool DoLock = (aLock.mNumArgDir >0) && (aLock.mNumArgDir<argc);
+          if (DoLock)
+          {
+               LockIn(argc,argv,DirOfFile(argv[aLock.mNumArgDir]));
+          }
+          int aRes =  (aVComs[aKC].mCommand(argc-1,argv+1));
+
+          if (DoLock)
+          {
+               LockOut(aRes,DirOfFile(argv[aLock.mNumArgDir]));
+          }
+          return aRes;
        }
        for (int aKS=0 ; aKS<int(mSugg.size()) ; aKS++)
        {

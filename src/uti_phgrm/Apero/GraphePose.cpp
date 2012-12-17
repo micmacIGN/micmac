@@ -164,7 +164,7 @@ void  cAppliApero::ConstructMST
               }
            }
        }
-std::cout << " Times " << aTimes << " Pds " << aPdsMax << "MUL " << aBestGotPM  << " " << aBestCam<<  " " << aNbRotPreInit << "\n";
+// std::cout << " Times " << aTimes << " Pds " << aPdsMax << "MUL " << aBestGotPM  << " " << aBestCam<<  " " << aNbRotPreInit << "\n";
 // if (! aBestGotPM) getchar();
 
        // On calcule les pere-mere

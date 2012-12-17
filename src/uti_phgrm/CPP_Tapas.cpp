@@ -341,6 +341,8 @@ int Tapas_main(int argc,char ** argv)
 
 
    Tapas_Banniere();
+   BanniereMM3D();
+
    
    return aRes;
 }

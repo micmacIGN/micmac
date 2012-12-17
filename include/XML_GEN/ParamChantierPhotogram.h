@@ -3667,6 +3667,9 @@ class cChantierDescripteur
         std::list< std::string > & Symb();
         const std::list< std::string > & Symb()const ;
 
+        std::list< std::string > & eSymb();
+        const std::list< std::string > & eSymb()const ;
+
         cTplValGesInit< cMMCameraDataBase > & LocCamDataBase();
         const cTplValGesInit< cMMCameraDataBase > & LocCamDataBase()const ;
 
@@ -3717,6 +3720,7 @@ class cChantierDescripteur
     private:
         cTplValGesInit< bool > mExitOnBrkp;
         std::list< std::string > mSymb;
+        std::list< std::string > meSymb;
         cTplValGesInit< cMMCameraDataBase > mLocCamDataBase;
         cTplValGesInit< cMakeDataBase > mMakeDataBase;
         cTplValGesInit< std::string > mKeySuprAbs2Rel;

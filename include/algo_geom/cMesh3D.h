@@ -42,11 +42,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "general/ptxd.h"
 #include "../private/cElNuage3DMaille.h"
+#include "../../src/uti_phgrm/MaxFlow/maxflow.h"
 
 class cMesh;
 class cVertex;
 class cTriangle;
+class cEdge;
 class cZBuf;
+
+typedef Graph <float,float,float> RGraph;
 
 class cMesh
 {
@@ -58,26 +62,35 @@ class cMesh
 						~cMesh();
 
 		int			getVertexNumber() const	{return (int) mVertexes.size();}
-		int			getFacesNumber() const	{return (int) mTriangles.size();}
+		int			getFacesNumber()  const	{return (int) mTriangles.size();}
+		int			getEdgesNumber()  const	{return (int) mEdges.size();}
 	
 		void		getVertexes(vector <Pt3dr> &vPts) const {vPts = mVertexes;}
 		void		getTriangles(vector <cTriangle> &vTriangles) const {vTriangles = mTriangles;}
-		void		getEdges(vector <int> &vEdges);
+		void		getEdges(vector <cEdge> &vEdges) const {vEdges = mEdges;}
 	
 		Pt3dr		getVertex(unsigned int idx) const;
 		cTriangle*	getTriangle(unsigned int idx);
+		cEdge		getEdge(unsigned int idx) const;
 
 		void		writePly(const string &Filename, int AttributeAsRGB);
 
 		void		addPt(const Pt3dr &aPt);
 		void		addTriangle(const cTriangle &aTri);
+		void		addEdge(const cEdge &aEdge);
 
-		void		setTrianglesAttribute(int img_idx, Pt3dr Dir, vector <unsigned int> const &TriIdx);
+		void		setTrianglesAttribute(int img_idx, Pt3dr Dir, vector <unsigned int> const &aTriIdx);
+
+		void		setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, vector <unsigned int> const &aTriIdx); //TriInGraph: index of triangles in Graph
+		void		setLambda(REAL aL) {mLambda = aL;}
 	
 	private:
 
 		vector <Pt3dr>		mVertexes;
-		vector <cTriangle>	mTriangles;
+		vector <cTriangle>	mTriangles;	
+		vector <cEdge>	    mEdges;			//aretes du graphe de voisinage
+
+		REAL				mLambda;
 };
 
 //--------------------------------------------------------------------------------------------------------------
@@ -114,20 +127,53 @@ class cTriangle
 		void	getVertexes(cMesh const &elMesh, vector <Pt3dr> &vList) const;
 		
 		void	getVertexesIndexes(vector <int> &vList) const {vList = mIndexes;}
+		void	getVertexesIndexes(int &v1, int &v2, int &v3);
 		void	getVoisins(vector <int> &vList) const;
-		bool	getAttributes(int image_idx, vector <double> &ta) const;
+		bool	getAttributes(int image_idx, vector <REAL> &ta) const;
 		map <int, vector <REAL> >	getAttributesMap() const {return mAttributes;}
 		int		getIdx() const {return mTriIdx;}
 
-		void	setAttributes(int image_idx, const vector <double> &ta);
+		void	setAttributes(int image_idx, const vector <REAL> &ta);
 
 		bool	hasAttributes() { return (mAttributes.size() != 0); }
+
+		void	setInside() {mInside = true;}
+
+		bool	isInside(){return mInside;}
+
+		REAL	computeEnergy(int img_idx);
 		
 	private:
 
+		bool						mInside;		// triangle a conserver
 		int							mTriIdx;		// triangle index
 		vector <int>				mIndexes;		// index of vertexes
 		map <int, vector <REAL> >	mAttributes;	// map between image index and triangle attributes
+};
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+//TODO: remplacer par struct si la classe ne grossit pas plus que ça...
+class cEdge
+{
+	public:
+				cEdge();
+				cEdge(int tri1, int tri2, int v1, int v2){mNode1 = tri1; mNode2 = tri2; mV1 = v1; mV2 = v2;}
+			
+				~cEdge();
+
+		int		n1(){return mNode1;}
+		int		n2(){return mNode2;}
+		int		v1(){return mV1;}
+		int		v2(){return mV2;}
+
+	private:
+
+		int mNode1; //index du triangle
+		int mNode2;
+
+		int mV1;	//index des sommets communs
+		int mV2;
 };
 
 //--------------------------------------------------------------------------------------------------------------
@@ -140,12 +186,13 @@ class cZBuf
 
 				~cZBuf();
 
-		Im2D_REAL4	BasculerUnMaillage(cMesh &aMesh);			//Projection du maillage dans la geometrie de aNuage, aDef: valeur par defaut de l'image resultante
+		Im2D_REAL4	BasculerUnMaillage(cMesh const &aMesh);			//Projection du maillage dans la geometrie de aNuage, aDef: valeur par defaut de l'image resultante
 
-		void		BasculerUnTriangle(cTriangle &aTri, cMesh &aMesh, bool doMask = false); //soit on calcule le ZBuffer, soit le Masque (true)
+		void		BasculerUnTriangle(cTriangle &aTri, cMesh const &aMesh, bool doMask = false); //soit on calcule le ZBuffer, soit le Masque (true)
 		
 		void		ComputeVisibleTrianglesIndexes();
 		Im2D_BIN	ComputeMask(int img_idx, cMesh &aMesh);
+		Im2D_BIN	ComputeMask(vector <int> const &TriInGraph, RGraph &aGraph, cMesh &aMesh);
 
 		Im2D_U_INT2				getIndexImage() const {return mImTriIdx;}
 		vector <unsigned int>	getVisibleTrianglesIndexes() const {return vTri;}

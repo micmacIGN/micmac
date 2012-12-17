@@ -12,7 +12,7 @@ CodeGenere/File2String/Str_ParamMICMAC.cpp : include/XML_GEN/ParamMICMAC.xml
 	bin/GenXML2Cpp  include/XML_GEN/ParamMICMAC.xml 2 src/uti_phgrm/MICMAC/cParamMICMAC
 CodeGenere/File2String/Str_ParamApero.cpp : include/XML_GEN/ParamApero.xml
 	bin/GenXML2Cpp  include/XML_GEN/ParamApero.xml 2 src/uti_phgrm/Apero/cParamApero
-applis/SaisiePts/cParamSaisiePts.cpp : include/XML_GEN/ParamSaisiePts.xml
+src/uti_phgrm/SaisiePts/cParamSaisiePts.cpp : include/XML_GEN/ParamSaisiePts.xml
 	bin/GenXML2Cpp  include/XML_GEN/ParamSaisiePts.xml 3 src/uti_phgrm/SaisiePts/cParamSaisiePts
 applis/CASA/cParamCasa.cpp : include/XML_GEN/ParamCasa.xml
 	bin/GenXML2Cpp  include/XML_GEN/ParamCasa.xml 3 applis/CASA/cParamCasa
@@ -24,7 +24,7 @@ all: src/XML_GEN/ParamChantierPhotogram.cpp\
      CodeGenere/File2String/Str_SuperposImage.cpp\
      CodeGenere/File2String/Str_ParamMICMAC.cpp\
      CodeGenere/File2String/Str_ParamApero.cpp\
-     applis/SaisiePts/cParamSaisiePts.cpp\
+     src/uti_phgrm/SaisiePts/cParamSaisiePts.cpp\
      applis/CASA/cParamCasa.cpp\
      CodeGenere/File2String/Str_ParamDigeo.cpp
 

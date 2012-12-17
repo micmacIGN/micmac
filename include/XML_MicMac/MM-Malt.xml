@@ -91,6 +91,12 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
    <Symb>ButDoOrtho=false </Symb>
   
    <Symb>  FileDoNothing=EmptyXML.xml  </Symb>
+
+
+    <!-- NOUVELLE FONCTIONNALITE SYMBOLE EVALUE, NOTATION POLONAISE INVERSE -->
+    <eSymb> AddZoom64=Sup ${ZoomInit} 64 </eSymb>
+    <eSymb> AddZoom32=Sup ${ZoomInit} 32 </eSymb>
+    <eSymb> AddZoom16=Sup ${ZoomInit} 16 </eSymb>
   
 </DicoLoc>
 
@@ -148,7 +154,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
              <GenImagesCorrel > true </GenImagesCorrel>
 
              <ZPas>        ${ZPas} </ZPas>
-             <ModeInterpolation> eInterpolSinCard </ModeInterpolation>
+             <ModeInterpolation> eInterpolBiCub </ModeInterpolation>
 
 	     <ZDilatAlti>  4      </ZDilatAlti>
              <ZDilatPlani> 5      </ZDilatPlani>
@@ -186,13 +192,41 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                 <ZDilatPlani> 3    </ZDilatPlani>
         </EtapeMEC>
 
+        <#WHEN VTEST=${AddZoom64}>
+              <EtapeMEC>
+                  <DeZoom >        64        </DeZoom>
+                  <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+              </EtapeMEC>
+        </#WHEN>
+        <#WHEN VTEST=${AddZoom32}>
+              <EtapeMEC>
+                  <DeZoom >        32        </DeZoom>
+                  <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+              </EtapeMEC>
+        </#WHEN>
+        <#WHEN VTEST=${AddZoom16}>
+            <EtapeMEC>
+                    <DeZoom >        16        </DeZoom>
+                    <GenerePartiesCachees>
+                             <SeuilUsePC> 3 </SeuilUsePC>
+                             <ByMkF> ${MkFPC} </ByMkF>
+                    </GenerePartiesCachees>
+                     <ZDilatAlti>  4    </ZDilatAlti>
+                     <ZDilatPlani> 3    </ZDilatPlani>
+             </EtapeMEC>
+        </#WHEN>
+
+
+<!--
         <IncludeFileLoc>  ${FileZ64} </IncludeFileLoc>
         <IncludeFileLoc>  ${FileZ32} </IncludeFileLoc>
         <IncludeFileLoc>  ${FileZ16PC} </IncludeFileLoc>
+-->
 
 
 
         <EtapeMEC> 
+                 <ModeInterpolation Portee="Globale"> eInterpolSinCard </ModeInterpolation>
                  <DeZoom >        8        </DeZoom> 
 	         <ZDilatAlti>  4    </ZDilatAlti>
                  <ZDilatPlani> 3    </ZDilatPlani>

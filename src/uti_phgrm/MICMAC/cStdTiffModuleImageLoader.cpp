@@ -426,13 +426,11 @@ std::string     cStdTiffModuleImageLoader::CreateFileOfResol(int aDeZoom,bool Fo
                            + ToString(mAppli.VSNI())    + " ";
        aGPAO->GetOrCreate(aName,aCom);
 
-std::cout << "yyyAAAAA " << aName << " " << aNameIn << " " << aDeZoom << "\n";
        aGPAO->TaskOfName("all").AddDep(aName);
        if (aDeZoom!=2)
        {
           aGPAO->TaskOfName(aName).AddDep(aNameIn);
        }
-std::cout << "xxxBBBBBB \n";
    }
    else
    {

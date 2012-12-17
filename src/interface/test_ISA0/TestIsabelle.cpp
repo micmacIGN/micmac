@@ -168,8 +168,8 @@ void cAppliTestIsabelle::Test0()
 			{				
 				Pt2dr pt1(itH->P1());
 				Pt2dr pt2(itH->P2());
-				Coord coord1(itH->P1().x,itH->P1().y,numImg1);
-				Coord coord2(itH->P2().x,itH->P2().y,numImg2);
+				Coord coord1((float)itH->P1().x,(float)itH->P1().y,numImg1);
+				Coord coord2((float)itH->P2().x,(float)itH->P2().y,numImg2);
 
 				Point1 point(coord1);
 				point.AddHom(coord2);
@@ -181,7 +181,7 @@ void cAppliTestIsabelle::Test0()
 			timer1=time(NULL);
 			Filtre filtre(&tempLstPt, &bench, &bench2, &bench3, &bench4, param.rapide().Val());
 			//if (param.filtre1().Val()) filtre.LimitesRecouvrement (param.distIsol2().Val());
-			if (param.filtre2().Val()) filtre.DistanceAuVoisinage (param.seuilCoherenceVois().Val(), param.aNb1().Val(), param.aNb2().Val(), param.aDistInitVois().Val(), param.aFact().Val(), param.aNbMax().Val(),false);
+			if (param.filtre2().Val()) filtre.DistanceAuVoisinage ((float)param.seuilCoherenceVois().Val(), param.aNb1().Val(), param.aNb2().Val(), param.aDistInitVois().Val(), param.aFact().Val(), param.aNbMax().Val(),false);
 			//if (param.filtre3().Val()) filtre.CoherenceDesCarres (param.seuilCoherenceCarre().Val(), param.aNb().Val(), param.aDistInitVois().Val(), param.aFact().Val(), param.aNbMax().Val(), param.nbEssais().Val());
 			timer2=time(NULL);
 			cout << timer2-timer1 << " secondes" << "\n";
@@ -263,7 +263,7 @@ void cAppliTestIsabelle::CalculsSurLesPoints (ListPt* lstPtInit, Image* img1, Be
 			for(list<Coord>::const_iterator  itC=(*itP).begin(); itC!=(*itP).end(); itC++){
 				int numImg2=(*itC).GetImg();
 				PaireImg* itp=&(*find((*img1).begin(),(*img1).end(),numImg2));
-				(*itp).RecalculeAddPt((*itC).GetX(),(*itC).GetY(),param.mindistalign().Val());
+				(*itp).RecalculeAddPt((*itC).GetX(),(*itC).GetY(),(float)param.mindistalign().Val());
 			}
 		}
 	}//end for set<Point2>::const_iterator  itP
@@ -292,7 +292,7 @@ void cAppliTestIsabelle::CalculsSurLesPoints (ListPt* lstPtInit, Image* img1, Be
 			for(list<Coord>::const_iterator  itC=(*itP).begin(); itC!=(*itP).end(); itC++){
 				int numImg2=(*itC).GetImg();
 				PaireImg* itp=&(*find((*img1).begin(),(*img1).end(),numImg2));
-				(*itp).RecalculeAddPt((*itC).GetX(),(*itC).GetY(),param.mindistalign().Val());
+				(*itp).RecalculeAddPt((*itC).GetX(),(*itC).GetY(),(float)param.mindistalign().Val());
 			}
 			(*itP).SetSelect(true); //le point est pris
 		}	
@@ -310,7 +310,7 @@ void cAppliTestIsabelle::CalculsSurLesPoints (ListPt* lstPtInit, Image* img1, Be
 
 void cAppliTestIsabelle::Sortie (ListPt* lstPtInit, Image* img) {
 //écriture des points retenus dans un fichier
-	ElPackHomologue  aPack[(*img).GetNbPaires()];
+	ElPackHomologue *aPack = new ElPackHomologue[(*img).GetNbPaires()];
 	for(list<Point2>::iterator  itP=(*lstPtInit).begin(); itP!=(*lstPtInit).end(); itP++) {
 		if(!(*itP).GetSelect()) continue;
 		for(list<Coord>::iterator  itC=(*itP).begin(); itC!=(*itP).end(); itC++) {
@@ -325,24 +325,34 @@ void cAppliTestIsabelle::Sortie (ListPt* lstPtInit, Image* img) {
 		string s2 = (*img).GetChemin()+s+"_"+param.extensionSortie().Val()+".dat";
 		aPack[i].StdPutInFile(s2);
 	}
+	delete [] aPack;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void TestW() {
 }
 
+extern const char * theNameVar_addon_ParamChantierPhotogram[];
 
 using namespace NS_ParamChantierPhotogram;
 
 int main(int argc,char ** argv)
 {
+	
+   AddEntryStringifie
+   (
+        "addon_ParamChantierPhotogram.xml",
+         theNameVar_addon_ParamChantierPhotogram,
+         true
+   );
+
 	std::cout << "ARGC " << argc << "\n";
 	for (int aK =0 ; aK< argc ; aK++) //verification de nombre d'arguments "in"
 		std::cout << "ARGV[" << aK << "]=" << argv[aK] << "\n";
 	ELISE_ASSERT(argc>=2,"Pas assez d'arguments");
 	cParamFusionSift aPSF = StdGetObjFromFile<cParamFusionSift>
                               ( string(argv[1]),
-                                  StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                                  "addon_ParamChantierPhotogram.xml",
                                   "ParamFusionSift",
                                   "ParamFusionSift"
                               );
