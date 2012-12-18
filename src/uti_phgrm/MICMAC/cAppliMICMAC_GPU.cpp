@@ -39,11 +39,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 #include "StdAfx.h"
-#include "gpu/cudaAppliMicMac.cuh"
 namespace NS_ParamMICMAC
 {
 
 #ifdef CUDA_ENABLED
+#include "gpu/cudaAppliMicMac.cuh" // DEPLACE MPD SINON COMPILE PAS EN MODE NON GPU
 
 	// Déclaration des fonctions Cuda
 	extern "C" void imageToDevice( float** h_ref,  int width, int height);
