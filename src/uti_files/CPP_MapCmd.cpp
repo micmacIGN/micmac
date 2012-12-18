@@ -39,6 +39,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+/*
+
+
+mm3d MapCmd ScaleIm  "P=./(IMG_020[0-4]).CR2" 4 F8B=true FG=true M=MKScale "T=\$1_Scaled.tif"
+
+
+*/
+
+
 // P,p   Pattern  (P est conservee pas p)
 // N Niv
 // M  Makefile
@@ -104,6 +113,7 @@ int MapCmd_main(int argc,char ** argv)
 
    cElRegex anAuto(aPatIn,10);
 
+
    std::list<std::string>  aLNameI = RegexListFileMatch(aDirIn,aPatIn,aNiv,NameCompl);
 
 
@@ -165,6 +175,7 @@ int MapCmd_main(int argc,char ** argv)
 					#else
 						aTarget = aDirCur+aRepl;
 					#endif
+
                 }
                 if ((aN[0]=='C') || (aN[0]=='c'))
                 {

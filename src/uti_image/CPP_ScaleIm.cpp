@@ -62,6 +62,9 @@ int ScaleIm_main(int argc,char ** argv)
     int aDebug=0;
     int Tile = -1;
 
+    bool aForceGray  = false;
+    bool aForce8B  = false;
+
 
     ElInitArgMain
     (
@@ -79,6 +82,8 @@ int ScaleIm_main(int argc,char ** argv)
                     << EAM(aDebug,"Debug",true)
                     << EAM(anOffset,"Offset",true)
                     << EAM(Tile,"Tile",true)
+                    << EAM(aForceGray,"FG",true,"Force gray (Def=false)")
+                    << EAM(aForce8B,"F8B",true,"Force 8 bits (Def=false)")
     );	
     if (Tile<0)
        Tile = 1<<30;
@@ -91,9 +96,9 @@ int ScaleIm_main(int argc,char ** argv)
         aScY= aScX;
 
     
-    std::string aNameTif = NameFileStd(aNameIn,-1,true,true,true);
+    std::string aNameTif = NameFileStd(aNameIn,aForceGray ? 1 :-1,!aForce8B ,true,true);
 
-    Tiff_Im tiff = Tiff_Im::StdConvGen(aNameIn.c_str(),-1,true,true);
+    Tiff_Im tiff = Tiff_Im::StdConvGen(aNameIn.c_str(),aForceGray ? 1 :-1,!aForce8B ,true);
 
     aP0.SetSup(Pt2dr(0,0));
     Pt2di aSzG = tiff.sz();
