@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 #include "StdAfx.h"
-
+#include "gpu/cudaAppliMicMac.cuh"
 namespace NS_ParamMICMAC
 {
 
@@ -51,8 +51,10 @@ namespace NS_ParamMICMAC
 	extern "C" void freeGpuMemory();
 	extern "C" void projectionsToLayers(float *h_TabProj, int sxTer, int syTer, int nbLayer);
 	extern "C" void basic_Correlation_GPU(  float* h_TabCorre, int sxTer, int syTer, int nbLayer , int sxVig, int syVig, int sxImg, int syImg, float mAhEpsilon);
-	extern "C" void imagesToLayers(float *fdataImg1D, int sxImg, int syImg, int nbLayer);
+	extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer);
 	extern "C" void Init_Correlation_GPU( int sTer_X, int sTer_Y, int nbLayer , int rxVig, int ryVig );
+
+	uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);};
 
 #endif
 
@@ -292,7 +294,8 @@ namespace NS_ParamMICMAC
 			mLoadTextures = false;
 			float*		fdataImg1D	= NULL;	// 
 			cudaExtent	sizeImgsLay;			// Taille du tableau des calques 
-			int siX = 0, siY = 0 , nLayers = 0;
+			uint2 dimTer;
+			int nLayers = 0;
 
 			// Pour chaque image
 			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
@@ -304,26 +307,22 @@ namespace NS_ParamMICMAC
 				// Obtention des données images
 				float **aDataIm	=  aGLI.DataIm();
 
-				// Taille de l'image courante
-				Pt2di siz =  aGLI.getSizeImage();
-
 				if(fdataImg1D == NULL)
 				{
 					// Creation dynamique du tableau
-					fdataImg1D	= new float[ siz.x * siz.y * mNbIm ];
+					fdataImg1D	= new float[ size(dimTer) * mNbIm ];
 					// Initialisation taille du tableau des calques  
-					siX		= siz.x;
-					siY		= siz.y;
+					dimTer		= toUi2(aGLI.getSizeImage());
 					nLayers = mNbIm;
 				}
 				else 
-					for (int j = 0; j < siz.y ; j++)
-						memcpy(  fdataImg1D + siz.x * ( j + siz.y * aKIm ), aDataIm[j],  siz.x * sizeof(float));
+					for (int j = 0; j < dimTer.y ; j++)
+						memcpy(  fdataImg1D + dimTer.x * ( j + dimTer.y * aKIm ), aDataIm[j],  dimTer.x * sizeof(float));
 			
 			}
 
-			if ((!((siX == 0)|(siY == 0)|(nLayers == 0))) && (fdataImg1D != NULL))
-				imagesToLayers( fdataImg1D, siX, siY, nLayers );
+			if ((!((dimTer.x == 0)|(dimTer.y == 0)|(nLayers == 0))) && (fdataImg1D != NULL))
+				imagesToLayers( fdataImg1D, dimTer, nLayers );
 
 		// Correction CPPECHECK error
 		delete[] fdataImg1D;

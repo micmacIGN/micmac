@@ -2,6 +2,7 @@
 #include <helper_functions.h>
 #include <helper_cuda.h>
 #include <helper_math.h>
+#include "gpu/cudaAppliMicMac.cuh"
 
 #ifdef _DEBUG
 	#define   BLOCKDIM	8
@@ -39,9 +40,9 @@ float*	dev_Corr_Out;
 float*	dev_Cache;
 int*	dev_NbImgOk;
 
-extern "C" void imagesToLayers(float *fdataImg1D, int sxImg, int syImg, int nbLayer)
+extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer)
 {
-	cudaExtent sizeImgsLay = make_cudaExtent( sxImg, syImg, nbLayer );
+	cudaExtent sizeImgsLay = make_cudaExtent( dimTer.x, dimTer.y, nbLayer );
 
 	// Définition du format des canaux d'images
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
@@ -68,11 +69,6 @@ extern "C" void imagesToLayers(float *fdataImg1D, int sxImg, int syImg, int nbLa
     refTex_ImagesLayered.normalized		= true;
 	checkCudaErrors( cudaBindTextureToArray(refTex_ImagesLayered,dev_ImagesLayered) );
 
-	if(0)
-		for (int x = 0 ; x <= sxImg * syImg; x++)
-			std::cout << fdataImg1D[x] << " \n";
-
-	
 };
 
 extern "C" void  projectionsToLayers(float *h_TabProj, int sTer_X, int sTer_Y, int nbLayer)
@@ -135,13 +131,9 @@ __global__ void correlationKernel(float* dest, int *dev_NbImgOk, float* cache, i
 {
 	__shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
 
-	// coordonnées des threads
-	const unsigned int tx		= threadIdx.x;
-	const unsigned int ty		= threadIdx.y;
-
 	// Se placer dans l'espace terrain
-	const int X	= blockIdx.x * blockDim.x  + tx;
-	const int Y	= blockIdx.y * blockDim.y  + ty;
+	const int X	= blockIdx.x * blockDim.x  + threadIdx.x;
+	const int Y	= blockIdx.y * blockDim.y  + threadIdx.y;
 	const int L	= blockIdx.z;
 	const int iTer = Y * sTer_X + X;
 
@@ -149,29 +141,22 @@ __global__ void correlationKernel(float* dest, int *dev_NbImgOk, float* cache, i
 	if ( X >= sTer_X || Y >= sTer_Y) 
 		return;
 
-	//float uTer = ((float)X + 0.5f) / ((float) sTer_X);
-	//float vTer = ((float)Y + 0.5f) / ((float) sTer_Y);
-	// Les coordonnées de projections dans l'image
-	//const float2 PtTProj	= tex2DLayered( TexLay_Proj, uTer, vTer, L);
-	
 	const float2 PtTProj	= simpleProjection(  make_uint2(sTer_X,sTer_Y), make_uint2(sTer_X /5 ,sTer_Y /5), make_uint2(sxImg,syImg), make_uint2(X,Y), L);
-	//dest[iTer] = PtTProj.x;
-	//return;
 	
 	if ( PtTProj.x < 0.0f ||  PtTProj.y < 0.0f )
 		return;
 	else
-		cacheImg[tx][ty] = tex2DLayered( refTex_ImagesLayered, PtTProj.x, PtTProj.y,L);
+		cacheImg[threadIdx.x][threadIdx.y] = tex2DLayered( refTex_ImagesLayered, PtTProj.x, PtTProj.y,L);
 	
 	__syncthreads();
 
 	// Intialisation des valeurs de calcul 
 	float		aSV	= 0.0f;
 	float	   aSVV	= 0.0f;
-	const int	x0	= tx - rxVig;
-	const int	x1	= tx + rxVig;
-	const int	y0	= ty - ryVig;
-	const int	y1	= ty + ryVig;
+	const int	x0	= threadIdx.x - rxVig;
+	const int	x1	= threadIdx.x + rxVig;
+	const int	y0	= threadIdx.y - ryVig;
+	const int	y1	= threadIdx.y + ryVig;
 
 	if ((x1 >= blockDim.x )|(y1 >= blockDim.y )|(x0 < 0)|(y0 < 0)) 
 		return;
@@ -313,11 +298,12 @@ __global__ void multiCorrelationKernel(float *dest, float* cache, int * dev_NbIm
 	dest[iTer] = 1.0f - max (-1.0, min(1.0,1.0f - cost));
 
 }
+/*
 
 static int iDivUp(int a, int b)
 {
     return (a % b != 0) ? (a / b + 1) : (a / b);
-}
+}*/
 
 extern "C" void Init_Correlation_GPU( int sTer_X, int sTer_Y, int nbLayer , int rxVig, int ryVig )
 {
