@@ -469,6 +469,8 @@ int AperoChImMM_main(int argc,char ** argv);
 int MMInitialModel_main(int argc,char ** argv);
 int CheckDependencies_main(int argc,char ** argv);
 int NuageBascule_main(int argc,char ** argv);
+int  cod_main(int argc,char ** argv);
+
 
 #if (ELISE_X11)
 int SaisieAppuisInit_main(int argc,char ** argv);
