@@ -1257,6 +1257,7 @@ void ShowFClose();
 void GetSubset(std::vector<std::vector<int> > & aRes,int aNb,int aMax);
 
 
+void BanniereGlobale();
 
 #endif /* ! _ELISE_UTIL_H */
 

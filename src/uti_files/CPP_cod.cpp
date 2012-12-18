@@ -36,10 +36,8 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "general/all.h"
-#include "private/all.h"
-#include <cstring>
 
+#include "StdAfx.h"
 
 
 
@@ -116,7 +114,7 @@ class FileCode : public ElActionParseDir
 
 
 
-int main(int argc,char ** argv)
+int cod_main(int argc,char ** argv)
 {
 
 
