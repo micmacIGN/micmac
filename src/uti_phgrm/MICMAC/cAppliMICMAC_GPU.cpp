@@ -50,9 +50,9 @@ namespace NS_ParamMICMAC
 	//extern "C" void freeProjections();
 	extern "C" void freeGpuMemory();
 	extern "C" void projectionsToLayers(float *h_TabProj, int sxTer, int syTer, int nbLayer);
-	extern "C" void basic_Correlation_GPU(  float* h_TabCorre, int sxTer, int syTer, int nbLayer , int sxVig, int syVig, int sxImg, int syImg, float mAhEpsilon);
+	extern "C" void basic_Correlation_GPU(  float* h_TabCorre, int nbLayer);
 	extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer);
-	extern "C" void Init_Correlation_GPU( int sTer_X, int sTer_Y, int nbLayer , int rxVig, int ryVig, uint2 dimImg, float mAhEpsilon);
+	extern "C" void Init_Correlation_GPU( uint2 dimTer, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon);
 
 	uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);};
 
@@ -310,13 +310,8 @@ namespace NS_ParamMICMAC
 				nLayers		= mNbIm;
 
 				if(fdataImg1D == NULL)
-				{
-					printf(" textures\n");
 					// Creation dynamique du tableau
 					fdataImg1D	= new float[ size(dimImg) * mNbIm ];
-					// Initialisation taille du tableau des calques  
-				
-				}
 				else
 					for (int j = 0; j < dimImg.y ; j++)
 						memcpy(  fdataImg1D + dimImg.x * ( j + dimImg.y * aKIm ), aDataIm[j],  dimImg.x * sizeof(float));
@@ -328,7 +323,7 @@ namespace NS_ParamMICMAC
 
 		delete[] fdataImg1D;
 
-		Init_Correlation_GPU( mX1Ter - mX0Ter, mY1Ter - mY0Ter, nLayers, mPtSzWFixe.x, mPtSzWFixe.y, dimImg, mAhEpsilon);
+		Init_Correlation_GPU( make_uint2(mX1Ter - mX0Ter, mY1Ter - mY0Ter), nLayers, toUi2(mPtSzWFixe), dimImg, mAhEpsilon);
 
 	}
 
@@ -886,7 +881,7 @@ namespace NS_ParamMICMAC
 			memset(h_TabCorre,0,ssTerBloc * mNbIm * 2 );
 
 			// KERNEL Correlation
-			basic_Correlation_GPU(h_TabCorre , sTerBloc_X, sTerBloc_Y, mNbIm, mPtSzWFixe.x, mPtSzWFixe.y, sizImg.x, sizImg.y, mAhEpsilon );
+			basic_Correlation_GPU(h_TabCorre , mNbIm);
 		}
 
 		delete [] h_TabCorre;
