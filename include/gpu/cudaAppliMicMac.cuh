@@ -29,4 +29,3 @@ inline __host__ __device__ uint2 operator/(uint2 a, int b)
 {
 	return make_uint2(a.x / b, a.y / b);
 }
-
