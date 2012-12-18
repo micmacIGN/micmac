@@ -12,6 +12,19 @@
 	#define   SBLOCKDIM 16
 #endif
 
+static __constant__ uint2 cDimTer;
+static __constant__ uint2 cDimVig;
+static __constant__ uint2 cDimImg;
+static __constant__ uint2 cRVig;
+static __constant__ float cMAhEpsilon;
+static __constant__ uint  csVig;
+
+static uint2 h_cDimTer;
+static uint2 h_cDimVig;
+static uint2 h_cDimImg;
+static uint2 h_cRVig;
+static uint  h_csVig;
+
 
 //------------------------------------------------------------------------------------------
 // Non utilisé
@@ -39,6 +52,24 @@ int*	host_NbImgOk;
 float*	dev_Corr_Out;
 float*	dev_Cache;
 int*	dev_NbImgOk;
+
+static void correlOptionsGPU(uint2 dTer, uint2 dV,uint2 dRV, uint2 dI, float mAhEpsilon )
+{
+
+	h_cDimTer = dTer;
+	h_cDimVig = dV;
+	h_cDimImg = dI;
+	h_cRVig	  = dRV;
+	h_csVig	  = size(dV);
+
+
+	checkCudaErrors(cudaMemcpyToSymbol(cDimVig, &dV, sizeof(uint2)));
+	checkCudaErrors(cudaMemcpyToSymbol(cRVig, &dRV, sizeof(uint2)));
+	checkCudaErrors(cudaMemcpyToSymbol(cDimTer, &dTer, sizeof(uint2)));
+	checkCudaErrors(cudaMemcpyToSymbol(cDimImg, &dI, sizeof(uint2)));
+	checkCudaErrors(cudaMemcpyToSymbol(cMAhEpsilon, &mAhEpsilon, sizeof(float)));
+	checkCudaErrors(cudaMemcpyToSymbol(csVig, &h_csVig, sizeof(uint)));
+}
 
 extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer)
 {
@@ -101,62 +132,62 @@ __device__  inline float2 simpleProjection( uint2 size, uint2 ssize, uint2 sizeI
 
 	const float2 cf = make_float2(ssize) * make_float2(coord) / make_float2(size) ;
 
-	const int2	 a	= make_int2(cf); 
-	const int2	 b	= a + 1; 
+	const int2	 a	= make_int2(cf);
 	const float2 uva = (make_float2(a) + 0.5f) / (make_float2(ssize));
-	const float2 uvb = (make_float2(b) + 0.5f) / (make_float2(ssize));
-	float2 ra, rb, Iaa, result;
+	const float2 uvb = (make_float2(a+1) + 0.5f) / (make_float2(ssize));
+	float2 ra, rb, Iaa;
 
 	ra	= tex2DLayered( TexLay_Proj, uva.x, uva.y, L);
 	rb	= tex2DLayered( TexLay_Proj, uvb.x, uva.y, L);
 	if (ra.x < 0.0f || ra.y < 0.0f || rb.x < 0.0f || rb.y < 0.0f)
 		return make_float2(-1.0f,-1.0f);
 
-	Iaa	= ((float)(b.x) - cf.x) * ra + (cf.x - (float)(a.x)) * rb;
+	Iaa	= ((float)(a.x + 1.0f) - cf.x) * ra + (cf.x - (float)(a.x)) * rb;
 	ra	= tex2DLayered( TexLay_Proj, uva.x, uvb.y, L);
 	rb	= tex2DLayered( TexLay_Proj, uvb.x, uvb.y, L);
 
 	if (ra.x < 0.0f || ra.y < 0.0f || rb.x < 0.0f || rb.y < 0.0f)
 		return make_float2(-1.0f,-1.0f);
 
-	result	= ((float)(b.x) - cf.x) * ra + (cf.x - (float)(a.x)) * rb;
+	ra	= ((float)(a.x+ 1.0f) - cf.x) * ra + (cf.x - (float)(a.x)) * rb;
 	
-	result = ((float)(b.y) - cf.y) * Iaa + (cf.y - (float)(a.y)) * result;
-	result = (result + 0.5f) / (make_float2(sizeImg));
+	ra = ((float)(a.y+ 1.0f) - cf.y) * Iaa + (cf.y - (float)(a.y)) * ra;
+	ra = (ra + 0.5f) / (make_float2(sizeImg));
 
-	return result;
+	return ra;
 }
 
-__global__ void correlationKernel(float* dest, int *dev_NbImgOk, float* cache, int sTer_X, int sTer_Y, int rxVig, int ryVig, int sxImg, int syImg, float mAhEpsilon )
+//__global__ void correlationKernel(float* dest, int *dev_NbImgOk, float* cache)
+__global__ void correlationKernel( int *dev_NbImgOk, float* cache)
 {
 	__shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
 
 	// Se placer dans l'espace terrain
 	const int X	= blockIdx.x * blockDim.x  + threadIdx.x;
 	const int Y	= blockIdx.y * blockDim.y  + threadIdx.y;
-	const int L	= blockIdx.z;
-	const int iTer = Y * sTer_X + X;
+	//const int L	= blockIdx.z;
+	const int iTer = Y * cDimTer.x + blockIdx.x * blockDim.x  + threadIdx.x;
 
 	// Si le processus est hors du terrain, nous sortons du kernel
-	if ( X >= sTer_X || Y >= sTer_Y) 
+	if ( X >= cDimTer.x || Y >= cDimTer.y) 
 		return;
 
-	const float2 PtTProj	= simpleProjection(  make_uint2(sTer_X,sTer_Y), make_uint2(sTer_X /5 ,sTer_Y /5), make_uint2(sxImg,syImg), make_uint2(X,Y), L);
+	const float2 PtTProj	= simpleProjection( cDimTer, cDimTer/5, cDimImg, make_uint2(X,Y), blockIdx.z);
 	
 	if ( PtTProj.x < 0.0f ||  PtTProj.y < 0.0f )
 		return;
 	else
-		cacheImg[threadIdx.x][threadIdx.y] = tex2DLayered( refTex_ImagesLayered, PtTProj.x, PtTProj.y,L);
+		cacheImg[threadIdx.x][threadIdx.y] = tex2DLayered( refTex_ImagesLayered, PtTProj.x, PtTProj.y,blockIdx.z);
 	
 	__syncthreads();
 
 	// Intialisation des valeurs de calcul 
 	float		aSV	= 0.0f;
 	float	   aSVV	= 0.0f;
-	const int	x0	= threadIdx.x - rxVig;
-	const int	x1	= threadIdx.x + rxVig;
-	const int	y0	= threadIdx.y - ryVig;
-	const int	y1	= threadIdx.y + ryVig;
+	const uint	x0	= threadIdx.x - cRVig.x;
+	const uint	x1	= threadIdx.x + cRVig.x;
+	const uint	y0	= threadIdx.y - cRVig.y;
+	const uint	y1	= threadIdx.y + cRVig.y;
 
 	if ((x1 >= blockDim.x )|(y1 >= blockDim.y )|(x0 < 0)|(y0 < 0)) 
 		return;
@@ -175,28 +206,27 @@ __global__ void correlationKernel(float* dest, int *dev_NbImgOk, float* cache, i
 		}
 	}
 
-	int siCaX	 = 2 * rxVig + 1;
-	int siCaY	 = 2 * ryVig + 1 ;
-	int size_Vign	 = siCaX * siCaY;
-	aSV 		/=	size_Vign;
-	aSVV 		/=	size_Vign;
+	//int siCaX	 = 2 * rxVig + 1;
+	//int siCaY	 = 2 * ryVig + 1 ;
+	//const uint size_Vign	 = size(cDimVig);
+	aSV 		/=	size(cDimVig);
+	aSVV 		/=	size(cDimVig);
 	aSVV		-=	aSV * aSV;
 	
-	if ( aSVV <= mAhEpsilon ) return;
+	if ( aSVV <= cMAhEpsilon) return;
 
-	int iCach = ( iTer + L * sTer_X * sTer_Y) * size_Vign; 
+	const uint iCach = ( iTer + blockIdx.z * size(cDimTer)) * size(cDimVig); 
 
 	aSVV =	sqrt(aSVV);
 
 	#pragma unroll
 	for (int y = y0 ; y <= y1; y++)
 	{
-		int pitchV = siCaX *  ( y - y0); 
+		const uint pitchV = cDimVig.x *  ( y - y0); 
 		#pragma unroll
 		for (int x = x0 ; x <= x1; x++)	
 			cache[iCach + pitchV  +  x - x0] = (cacheImg[y][x] -aSV)/aSVV;
 	}
-
 	// Nombre d'images correctes
 	atomicAdd( &dev_NbImgOk[iTer], 1); 
 	
@@ -298,15 +328,11 @@ __global__ void multiCorrelationKernel(float *dest, float* cache, int * dev_NbIm
 	dest[iTer] = 1.0f - max (-1.0, min(1.0,1.0f - cost));
 
 }
-/*
 
-static int iDivUp(int a, int b)
+extern "C" void Init_Correlation_GPU( int sTer_X, int sTer_Y, int nbLayer , int rxVig, int ryVig , uint2 dimImg, float mAhEpsilon )
 {
-    return (a % b != 0) ? (a / b + 1) : (a / b);
-}*/
 
-extern "C" void Init_Correlation_GPU( int sTer_X, int sTer_Y, int nbLayer , int rxVig, int ryVig )
-{
+	correlOptionsGPU(make_uint2(sTer_X,sTer_Y),make_uint2(rxVig,ryVig) * 2 + 1,make_uint2(rxVig,ryVig), dimImg,mAhEpsilon);
 	int svX = ( rxVig * 2 + 1 );
 	int svY = ( ryVig * 2 + 1 );
 	int out_MemSize = sTer_X * sTer_Y * sizeof(float);
@@ -327,6 +353,7 @@ extern "C" void Init_Correlation_GPU( int sTer_X, int sTer_Y, int nbLayer , int 
     TexLay_Proj.addressMode[1]	= cudaAddressModeClamp;	
     TexLay_Proj.filterMode		= cudaFilterModeLinear; //cudaFilterModePoint 
     TexLay_Proj.normalized		= true;
+	printf("start kernel Init fin\n");
 }
 
 extern "C" void basic_Correlation_GPU( float* h_TabCorre, int sTer_X, int sTer_Y, int nbLayer , int rxVig, int ryVig , int sxImg, int syImg, float mAhEpsilon ){
@@ -348,7 +375,9 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre, int sTer_X, int sTer_Y
 		dim3 threads(BLOCKDIM, BLOCKDIM, 1);
 		dim3 blocks(iDivUp(sTer_X,threads.x) , iDivUp(sTer_Y,threads.y), nbLayer);
 		
-		correlationKernel<<<blocks, threads>>>( dev_Corr_Out, dev_NbImgOk, dev_Cache, sTer_X, sTer_Y, rxVig, ryVig, sxImg, syImg, mAhEpsilon);
+		//correlationKernel<<<blocks, threads>>>( dev_Corr_Out, dev_NbImgOk, dev_Cache);
+
+		correlationKernel<<<blocks, threads>>>( dev_NbImgOk, dev_Cache);
 		getLastCudaError("Basic Correlation kernel failed");
 		//checkCudaErrors( cudaDeviceSynchronize() );
 

@@ -52,7 +52,7 @@ namespace NS_ParamMICMAC
 	extern "C" void projectionsToLayers(float *h_TabProj, int sxTer, int syTer, int nbLayer);
 	extern "C" void basic_Correlation_GPU(  float* h_TabCorre, int sxTer, int syTer, int nbLayer , int sxVig, int syVig, int sxImg, int syImg, float mAhEpsilon);
 	extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer);
-	extern "C" void Init_Correlation_GPU( int sTer_X, int sTer_Y, int nbLayer , int rxVig, int ryVig );
+	extern "C" void Init_Correlation_GPU( int sTer_X, int sTer_Y, int nbLayer , int rxVig, int ryVig, uint2 dimImg, float mAhEpsilon);
 
 	uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);};
 
@@ -294,7 +294,7 @@ namespace NS_ParamMICMAC
 			mLoadTextures = false;
 			float*		fdataImg1D	= NULL;	// 
 			cudaExtent	sizeImgsLay;			// Taille du tableau des calques 
-			uint2 dimTer;
+			uint2 dimImg;
 			int nLayers = 0;
 
 			// Pour chaque image
@@ -306,28 +306,30 @@ namespace NS_ParamMICMAC
 
 				// Obtention des données images
 				float **aDataIm	=  aGLI.DataIm();
+				dimImg		= toUi2(aGLI.getSizeImage());
+				nLayers		= mNbIm;
 
 				if(fdataImg1D == NULL)
 				{
+					printf(" textures\n");
 					// Creation dynamique du tableau
-					fdataImg1D	= new float[ size(dimTer) * mNbIm ];
+					fdataImg1D	= new float[ size(dimImg) * mNbIm ];
 					// Initialisation taille du tableau des calques  
-					dimTer		= toUi2(aGLI.getSizeImage());
-					nLayers = mNbIm;
+				
 				}
-				else 
-					for (int j = 0; j < dimTer.y ; j++)
-						memcpy(  fdataImg1D + dimTer.x * ( j + dimTer.y * aKIm ), aDataIm[j],  dimTer.x * sizeof(float));
+				else
+					for (int j = 0; j < dimImg.y ; j++)
+						memcpy(  fdataImg1D + dimImg.x * ( j + dimImg.y * aKIm ), aDataIm[j],  dimImg.x * sizeof(float));
 			
 			}
 
-			if ((!((dimTer.x == 0)|(dimTer.y == 0)|(nLayers == 0))) && (fdataImg1D != NULL))
-				imagesToLayers( fdataImg1D, dimTer, nLayers );
+			if ((!((dimImg.x == 0)|(dimImg.y == 0)|(nLayers == 0))) && (fdataImg1D != NULL))
+				imagesToLayers( fdataImg1D, dimImg, nLayers );
 
-		// Correction CPPECHECK error
 		delete[] fdataImg1D;
 
-		Init_Correlation_GPU( mX1Ter - mX0Ter, mY1Ter - mY0Ter, nLayers, mPtSzWFixe.x, mPtSzWFixe.y);
+		Init_Correlation_GPU( mX1Ter - mX0Ter, mY1Ter - mY0Ter, nLayers, mPtSzWFixe.x, mPtSzWFixe.y, dimImg, mAhEpsilon);
+
 	}
 
 #endif
