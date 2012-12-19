@@ -361,16 +361,19 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 
 		multiCorrelationKernel<<<blocks_mC, threads_mC>>>( dev_Corr_Out, dev_Cache, dev_NbImgOk);
 		getLastCudaError("Multi-Correlation kernel failed");
+
 	}
 
-	//checkCudaErrors( cudaDeviceSynchronize() );
 	checkCudaErrors( cudaUnbindTexture(TexLay_Proj) );
-	checkCudaErrors( cudaMemcpy( host_Corr_Out,	dev_Corr_Out, out_MemSize, cudaMemcpyDeviceToHost) );
+	//checkCudaErrors( cudaMemcpy( host_Corr_Out,	dev_Corr_Out, out_MemSize, cudaMemcpyDeviceToHost) );
+	checkCudaErrors( cudaMemcpy( h_TabCorre, dev_Corr_Out, out_MemSize, cudaMemcpyDeviceToHost) );
+	
+
 	//checkCudaErrors( cudaMemcpy( host_NbImgOk,	dev_NbImgOk,  nBI_MemSize, cudaMemcpyDeviceToHost) );
 	//checkCudaErrors( cudaMemcpy( host_Cache,	dev_Cache,	  cac_MemSize, cudaMemcpyDeviceToHost) );
 	//--------------------------------------------------------
-
-	//if(0)
+/*
+	if(0)
 	{
 		int step = 2;
 		std::cout << " --------------------  size ter (x,y) : " << iDivUp(h.DimTer.x, step) << ", " << iDivUp(h.DimTer.y, step) << std::endl;
@@ -421,7 +424,7 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 		}
 	}
 	//--------------------------------------------------------
-	
+	*/
 
 }
 
