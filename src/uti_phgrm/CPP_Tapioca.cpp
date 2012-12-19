@@ -184,7 +184,8 @@ int MultiECh(int argc,char ** argv)
                      +  StrMkT()
                      +  std::string("NbMinPtsExp=2 ")
                      +  std::string("SsRes=1 ")
-					 +  std::string("UseGpu=") + ToString(UseSiftGpu);
+                     +  std::string("ForceByDico=1 ")
+                     +  std::string("UseGpu=") + ToString(UseSiftGpu);
 
 
          System(aSsR,true);
@@ -198,6 +199,7 @@ int MultiECh(int argc,char ** argv)
                      +  ToString(aFullRes) + std::string(" ")
                      +  StrMkT()
                      +  std::string("NbMinPtsExp=2 ")
+                     +  std::string("ForceByDico=1 ")
                      +  NKS() + std::string(" ")
 					 +  std::string("UseGpu=") + ToString(UseSiftGpu);
 
@@ -229,6 +231,7 @@ int All(int argc,char ** argv)
                      +  ToString(aFullRes) + std::string(" ")
                      +  StrMkT()
                      +  std::string("NbMinPtsExp=2 ")
+                     +  std::string("ForceByDico=1 ")
                      +  NKS();
 
 	
@@ -265,6 +268,7 @@ int Line(int argc,char ** argv)
                      +  ToString(aFullRes) + std::string(" ")
                      +  StrMkT()
                      +  std::string("NbMinPtsExp=2 ")
+                     +  std::string("ForceByDico=1 ")
                      +  NKS();
 
 
@@ -295,6 +299,7 @@ int File(int argc,char ** argv)
                      +  ToString(aFullRes) + std::string(" ")
                      +  StrMkT()
                      +  std::string("NbMinPtsExp=2 ")
+                     +  std::string("ForceByDico=1 ")
                      +  NKS();
 
 

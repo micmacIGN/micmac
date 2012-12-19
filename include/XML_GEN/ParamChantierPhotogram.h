@@ -23,6 +23,7 @@ typedef enum
   eAppEgels,
   eAppGeoCub,
   eAppInFile,
+  eAppXML,
   eNbTypeApp
 } eTypeFichierApp;
 void xml_init(eTypeFichierApp & aVal,cElXMLTree * aTree);
