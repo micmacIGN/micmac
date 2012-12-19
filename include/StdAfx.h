@@ -165,6 +165,7 @@ using namespace std;
 #include "XML_GEN/ParamChantierPhotogram.h"
 #include "XML_GEN/SuperposImage.h"
 #include "XML_GEN/all.h"
+#include "XML_GEN/all_tpl.h"
 
 
 // TODO : these global functions and classes should be placed somewhere else
