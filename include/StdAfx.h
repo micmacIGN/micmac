@@ -6,9 +6,9 @@
 
 #ifdef CUDA_ENABLED
 	#include <cuda_runtime.h>
-	#include <helper_math.h>
 	#include <helper_functions.h>
 	#include <helper_cuda.h>
+	#include <helper_math.h>
 #endif
 
 #include <algorithm>
