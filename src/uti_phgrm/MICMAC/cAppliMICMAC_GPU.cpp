@@ -290,33 +290,71 @@ namespace NS_ParamMICMAC
 			//------------------------------------
 			mLoadTextures = false;
 			float*		fdataImg1D	= NULL;	// 
-			uint2 dimImg;
-			int nLayers = 0;
+			uint2 dimImgMax = make_uint2(0,0);
+
+			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
+			{
+				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
+				float **aDataIm	=  aGLI.DataIm();
+				dimImgMax		= max(dimImgMax,toUi2(aGLI.getSizeImage()));				
+			}
 
 			// Pour chaque image
 			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 			{
 				// Obtention de l'image courante
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
-				const cGeomImage*	aGeom	= aGLI.Geom();
-
+			
 				// Obtention des données images
 				float **aDataIm	=  aGLI.DataIm();
-				dimImg		= toUi2(aGLI.getSizeImage());
-				nLayers		= mNbIm;
+				uint2 dimImg	= toUi2(aGLI.getSizeImage());
 
 				if(fdataImg1D == NULL)
-					// Creation dynamique du tableau
-					fdataImg1D	= new float[ size(dimImg) * mNbIm ];
-				else
-					for (uint j = 0; j < dimImg.y ; j++)
-						// ERREUR IMAGE POUR DIFFERENT BLOC
-						memcpy(  fdataImg1D + dimImg.x * ( j + dimImg.y * aKIm ), aDataIm[j],  dimImg.x * sizeof(float));
-			
+					fdataImg1D	= new float[ size(dimImgMax) * mNbIm ];
+				
+				for (uint j = 0; j < dimImg.y ; j++)	
+					memcpy(  fdataImg1D + dimImgMax.x * ( j + dimImgMax.y * aKIm ), aDataIm[j],  dimImg.x * sizeof(float));
+		
 			}
 
-			if ((!((dimImg.x == 0)|(dimImg.y == 0)|(nLayers == 0))) && (fdataImg1D != NULL))
-				imagesToLayers( fdataImg1D, dimImg, nLayers );
+			//  [12/19/2012 GChoqueux]
+			if (0)
+			{
+
+				for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
+				{
+					int idImage = aKIm;
+					// Obtention des données images
+					cGPU_LoadedImGeom&	aGLI	= *(mVLI[idImage]);
+					float **aDataIm	=  aGLI.DataIm();
+					uint2 dimImg	= toUi2(aGLI.getSizeImage());	
+					float* image	= new float[size(dimImgMax)];
+
+					for (uint j = 0; j < dimImgMax.y ; j++)
+						for (uint i = 0; i < dimImgMax.x ; i++)
+						{
+							int id = j * dimImgMax.x + i;
+							image[id] = fdataImg1D[id + size(dimImgMax)*idImage] / 500.0f;
+
+						}
+
+						std::string file = "C:\\Users\\gchoqueux\\Downloads\\image" + ToString(aKIm)  +  ".pgm";
+					// save PGM
+					if (sdkSavePGM<float>(file.c_str(), image, dimImg.x,dimImg.y))
+					{
+						std::cout <<"success save image" << "\n";
+					}
+					else
+						std::cout <<"Failed save image" << "\n";
+
+
+					delete[] image;
+				}
+			}
+			//  [12/19/2012 GChoqueux]
+
+			if ((!((dimImgMax.x == 0)|(dimImgMax.y == 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
+				imagesToLayers( fdataImg1D, dimImgMax, mNbIm );
 
 			delete[] fdataImg1D;
 
@@ -324,7 +362,7 @@ namespace NS_ParamMICMAC
 			float uvDef	 = -1.0f;
 			uint sampTer = 5;
 
-			h = Init_Correlation_GPU(dimTer, nLayers, toUi2(mPtSzWFixe), dimImg, (float)mAhEpsilon, sampTer, uvDef);
+			h = Init_Correlation_GPU(dimTer, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, sampTer, uvDef);
 
 		}
 
@@ -786,7 +824,9 @@ namespace NS_ParamMICMAC
 
 		// Obtenir la nappe englobante
 		//short aZMinTer = -124 , aZMaxTer = 124;
-		//short aZMinTer = 0 , aZMaxTer = 1;
+		//uint aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
+		uint aZMinTer = 0 , aZMaxTer = 2;
+
 
 		// Tableau de sortie de corrélation
 		float* h_TabCorre = new float[  h.SizeTer ];
@@ -811,7 +851,7 @@ namespace NS_ParamMICMAC
 			memcpy( h_TabPInit + 2 * h.SizeSTer * aKIm, &h_TabPInit[0], 2 * h.SizeSTer * sizeof(float));
 	
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
-		for (int anZ = mZMinGlob ;  anZ < mZMaxGlob ; anZ++)
+		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
 		{
 			// Re-initialisation du tableau de projection
 			memcpy( h_TabProj, h_TabPInit, siTabProj * sizeof(float));
@@ -823,6 +863,10 @@ namespace NS_ParamMICMAC
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 				const cGeomImage*	aGeom	= aGLI.Geom();
 				
+				uint2 dimImg		= toUi2(aGLI.getSizeImage());
+		
+				//std::cout << "GPU size image " << aKIm << " : " << dimImg.x << "," << dimImg.y << "\n" ;
+
 				// Initialisation du cube de projection
 				for (int anY = mY0Ter ; anY < mY1Ter ; anY = anY + h.SampTer)
 				{															
