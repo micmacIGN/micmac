@@ -37,10 +37,8 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "general/all.h"
-#include "private/all.h"
-#include "XML_GEN/all.h"
-#include "XML_GEN/all_tpl.h"
+#include "StdAfx.h"
+// #include "XML_GEN/all_tpl.h"
 
 /*
 */
@@ -74,7 +72,7 @@ class  cReadAppui : public cReadObject
 
 
 
-int main(int argc,char ** argv)
+int GCP_Txt2Xml_main(int argc,char ** argv)
 {
     MMD_InitArgcArgv(argc,argv,3);
 
@@ -87,6 +85,7 @@ int main(int argc,char ** argv)
     {
         aStrType = argv[1];
         StdReadEnum(Help,aType,argv[1],eNbTypeApp,true);
+
     }
 
     std::string aStrChSys;
@@ -120,14 +119,19 @@ int main(int argc,char ** argv)
        bool Ok = cReadObject::ReadFormat(aCom,aFormat,aFilePtsIn,true);
        ELISE_ASSERT(Ok,"File do not begin by format specification");
     }
+    else if (aType==eAppXML)
+    {
+         aFormat = "00000";
+         aCom    = '0';
+       // bool Ok = cReadObject::ReadFormat(aCom,aFormat,aFilePtsIn,true);
+       // ELISE_ASSERT(Ok,"File do not begin by format specification");
+    }
     else
     {
         bool Ok = cReadObject::ReadFormat(aCom,aFormat,aStrType,false);
         ELISE_ASSERT(Ok,"Arg0 is not a valid format specif");
     }
 
-    std::cout << "Comment=[" << aCom<<"]\n";
-    std::cout << "Format=[" << aFormat<<"]\n";
     
 
 
@@ -140,26 +144,58 @@ int main(int argc,char ** argv)
         aFilePtsOut =StdPrefixGen(aFilePtsIn) + ".xml";
     }
 
-    ELISE_fp aFIn(aFilePtsIn.c_str(),ELISE_fp::READ);
 
-    cReadAppui aReadApp(aCom,aFormat);
 
     char * aLine;
     int aCpt=0;
     std::vector<Pt3dr> aVPts;
     std::vector<Pt3dr> aVInc;
     std::vector<std::string> aVName;
-    while ((aLine = aFIn.std_fgets()))
+
+
+    if (aType==eAppXML)
     {
-         if (aReadApp.Decode(aLine))
-         {
-            aVPts.push_back(aReadApp.mPt);
-            double  aInc = aReadApp.GetDef(aReadApp.mInc,1);
-            aVInc.push_back(aReadApp.GetDef(aReadApp.mInc3,aInc));
-            aVName.push_back(aReadApp.mName);
-        }
-        aCpt ++;
-     }
+        if (aFilePtsOut==aFilePtsIn)
+            aFilePtsOut = "GCPOut_"+aFilePtsIn;
+        cDicoAppuisFlottant aD = StdGetObjFromFile<cDicoAppuisFlottant>
+                                 (
+                                      aFilePtsIn,
+                                      StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                                      "DicoAppuisFlottant",
+                                      "DicoAppuisFlottant"
+                                 );
+
+          for 
+          (
+                std::list<cOneAppuisDAF>::iterator itA=aD.OneAppuisDAF().begin();
+                itA!=aD.OneAppuisDAF().end();
+                itA++
+          )
+          {
+              aVPts.push_back(itA->Pt());
+              aVInc.push_back(itA->Incertitude());
+              aVName.push_back(itA->NamePt());
+          }
+    }
+    else
+    {
+        std::cout << "Comment=[" << aCom<<"]\n";
+        std::cout << "Format=[" << aFormat<<"]\n";
+        cReadAppui aReadApp(aCom,aFormat);
+        ELISE_fp aFIn(aFilePtsIn.c_str(),ELISE_fp::READ);
+        while ((aLine = aFIn.std_fgets()))
+        {
+             if (aReadApp.Decode(aLine))
+             {
+                aVPts.push_back(aReadApp.mPt);
+                double  aInc = aReadApp.GetDef(aReadApp.mInc,1);
+                aVInc.push_back(aReadApp.GetDef(aReadApp.mInc3,aInc));
+                aVName.push_back(aReadApp.mName);
+            }
+            aCpt ++;
+         }
+        aFIn.close();
+    }
 
 
     if (aCSC!=0)
@@ -179,7 +215,6 @@ int main(int argc,char ** argv)
         aDico.OneAppuisDAF().push_back(aOAD);
     }
 
-    aFIn.close();
     MakeFileXML(aDico,aFilePtsOut);
 }
 

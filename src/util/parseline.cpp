@@ -39,13 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /* Ceci est commentaire */
 
 
-
-
-
-#include "general/all.h"
-#include "private/all.h"
-#include "XML_GEN/all.h"
-#include "XML_GEN/all_tpl.h"
+#include "StdAfx.h"
 
 const double cReadObject::TheDUnDef = 1.3478659e67;
 const std::string cReadObject::TheStrUnDef = "#Yuy@y{ur$8-5M}Ml%&[]";

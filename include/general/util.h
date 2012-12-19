@@ -969,7 +969,8 @@ class cAppliBatch
 	     int aNbArgGlob,
 	     int aNbFile,
 	     const std::string & aPostFixWorkDir,
-	     const std::string & aKeyDOIDE=""
+	     const std::string & aKeyDOIDE="",
+             bool  ForceByDico = false
         );
 
 	 void AddPatSauv(const std::string &);
