@@ -52,6 +52,8 @@ eTypeFichierApp  Str2eTypeFichierApp(const std::string & aName)
       return eAppGeoCub;
    else if (aName=="eAppInFile")
       return eAppInFile;
+   else if (aName=="eAppXML")
+      return eAppXML;
    else if (aName=="eNbTypeApp")
       return eNbTypeApp;
   else
@@ -73,6 +75,8 @@ std::string  eToString(const eTypeFichierApp & anObj)
       return  "eAppGeoCub";
    if (anObj==eAppInFile)
       return  "eAppInFile";
+   if (anObj==eAppXML)
+      return  "eAppXML";
    if (anObj==eNbTypeApp)
       return  "eNbTypeApp";
  std::cout << "Enum = eTypeFichierApp\n";
