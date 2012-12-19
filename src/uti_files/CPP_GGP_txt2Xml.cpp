@@ -89,6 +89,8 @@ int GCP_Txt2Xml_main(int argc,char ** argv)
     }
 
     std::string aStrChSys;
+    double aMul = 1.0;
+    bool   aMulIncAlso = true;
 
 
     ElInitArgMain
@@ -98,6 +100,8 @@ int GCP_Txt2Xml_main(int argc,char ** argv)
                       << EAMC(aFilePtsIn,"GCP  File") ,
            LArgMain() << EAM(aFilePtsOut,"Out",true,"Xml Out File")
                       << EAM(aStrChSys,"ChSys",true,"Change coordinate file")
+                      << EAM(aMul,"MulCo",true,"Mutilpier of result (for devlopment and testing use)")
+                      << EAM(aMulIncAlso,"MulInc",true,"Mutilpier also incertitude ? (for devlopment and testing use)")
     );
 
     // StdReadEnum(Help,aType,argv[1],eNbTypeApp,true);
@@ -203,6 +207,16 @@ int GCP_Txt2Xml_main(int argc,char ** argv)
         aVPts = aCSC->Src2Cibl(aVPts);
     }
 
+    if (aMul!=1.0)
+    {
+        for (int aK=0 ; aK<int(aVPts.size()) ; aK++)
+        {
+             aVPts[aK] = aVPts[aK] * aMul;
+             if (aMulIncAlso)
+                 aVInc[aK] = aVInc[aK] * aMul;
+        }
+    }
+
 
     cDicoAppuisFlottant  aDico;
     for (int aKP=0 ; aKP<int(aVPts.size()) ; aKP++)
@@ -219,106 +233,6 @@ int GCP_Txt2Xml_main(int argc,char ** argv)
 }
 
 
-
-/*
-int main(int argc,char ** argv)
-{
-    MMD_InitArgcArgv(argc,argv,2);
-
-    std::string aFilePtsIn,aFilePtsOut;
-    bool Help;
-    eTypeFichierApp aType;
-
-    std::string aStrType = argv[1];
-    StdReadEnum(Help,aType,argv[1],eNbTypeApp);
-
-    std::string aStrChSys;
-
-
-    ElInitArgMain
-    (
-           argc,argv,
-           LArgMain() << EAMC(aStrType,"Type of file") 
-                      << EAMC(aFilePtsIn,"App File") ,
-           LArgMain() << EAM(aFilePtsOut,"Out",true,"Xml Out File")
-                      << EAM(aStrChSys,"ChSys",true,"Change coordinate file")
-    );
-
-
-
-    cChSysCo * aCSC = 0;
-    if (aStrChSys!="")
-       aCSC = cChSysCo::Alloc(aStrChSys);
-
-    if (aFilePtsOut=="")
-    {
-        aFilePtsOut =StdPrefixGen(aFilePtsIn) + ".xml";
-    }
-
-    ELISE_fp aFIn(aFilePtsIn.c_str(),ELISE_fp::READ);
-
-
-    cDicoAppuisFlottant  aDico;
-    char * aLine;
-    int aCpt=0;
-    std::vector<Pt3dr> aVPts;
-    std::vector<std::string> aVName;
-    while ((aLine = aFIn.std_fgets()))
-    {
-         if (aLine[0] != '#')
-         {
-            char aName[1000];
-            char aTruc[1000];
-            double anX,anY,aZ;
-
-            int aNb=0;
-            if (aType==eAppEgels)
-            {
-                aNb = sscanf(aLine,"%s %s %lf %lf %lf",aName,aTruc,&anX,&anY,&aZ);
-                if (aNb!=5)
-                {
-                     std::cout <<  " At line " << aCpt << " of File "<< aFilePtsIn << "\n";
-                     ELISE_ASSERT(false,"Could not read the 5 expected values");
-                }
-            }
-            if (aType==eAppGeoCub)
-            {
-                aNb = sscanf(aLine,"%s %lf %lf %lf",aName,&anX,&anY,&aZ);
-                if (aNb!=4)
-                {
-                     std::cout <<  " At line " << aCpt << " of File "<< aFilePtsIn << "\n";
-                     ELISE_ASSERT(false,"Could not read the 4 expected values");
-                }
-            }
-            Pt3dr aP(anX,anY,aZ);
-            aVPts.push_back(aP);
-            aVName.push_back(aName);
-        }
-        aCpt ++;
-     }
-
-
-    if (aCSC!=0)
-    {
-        aVPts = aCSC->Src2Cibl(aVPts);
-    }
-
-
-    for (int aKP=0 ; aKP<int(aVPts.size()) ; aKP++)
-    {
-        cOneAppuisDAF aOAD;
-        aOAD.Pt() = aVPts[aKP];
-        aOAD.NamePt() = aVName[aKP];
-        aOAD.Incertitude() = Pt3dr(1,1,1);
-
-        aDico.OneAppuisDAF().push_back(aOAD);
-    }
-
-    aFIn.close();
-    MakeFileXML(aDico,aFilePtsOut);
-}
-
-*/
 
 
 
