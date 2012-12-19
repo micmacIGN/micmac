@@ -3,6 +3,7 @@ set(uti_files_Src_Files
     ${UTI_FILES_DIR}/CPP_BatchFDC.cpp
     ${UTI_FILES_DIR}/CPP_MyRename.cpp
     ${UTI_FILES_DIR}/CPP_cod.cpp
+    ${UTI_FILES_DIR}/CPP_GGP_txt2Xml.cpp
 )
 
 SOURCE_GROUP(uti_files FILES ${uti_files_Src_Files})

@@ -752,7 +752,9 @@ void  cAppliBatch::UseLFile(const std::list<string> & aLFile1)
 	{
 		mCurF1 = *itF1;
 		if (mFileByPat && (mNbFile==2))
+                {
 			mCurF2 = mICNM->Assoc1To1(mPatF2,mCurF1,true);
+                }
 		DoOne();
 	}
 }
@@ -938,7 +940,8 @@ cAppliBatch::cAppliBatch
 	int aNbArgGlob,
 	int   aNbFile,
 	const std::string & aPostFixWorkDir,
-	const std::string & aKeyDOIDE
+	const std::string & aKeyDOIDE,
+        bool  aForceDico
 	)  :
 mICNM           (0),
 	mPostFixWorkDir (aPostFixWorkDir),
@@ -994,7 +997,7 @@ mICNM           (0),
 			{
 				std::string aST2(argv[2]);
 
-				if (aST2.find("[[")!=std::string::npos)
+				if (aForceDico || aST2.find("[[")!=std::string::npos)
 				{
 					mByDico = true;
 				}

@@ -133,7 +133,7 @@ class cCple;
 class cAppliPastis : public cAppliBatch
 {
     public :
-       cAppliPastis(int argc,char ** argv);
+       cAppliPastis(int argc,char ** argv,bool FBD);
        //void DoAll();
        void Exec();
 
@@ -213,6 +213,7 @@ class cAppliPastis : public cAppliBatch
        double        mSeuilPente;
        double        mSeuilDup;
        int           mNbMinPtsExp;
+       bool          mForceByDico;
        int           mNbMinPtsRot;
        int           mExpBin;
        int           mExpTxt;
@@ -897,6 +898,8 @@ void cAppliPastis::ExecSz(double aSzMaxApp,bool)
          mNameHomXML = StdPrefix(mNameHomXML) + ".txt";
       }
    }
+
+
    
    if (ModeExe()==eExeDoNothing)
    {
@@ -913,8 +916,8 @@ void cAppliPastis::ExecSz(double aSzMaxApp,bool)
 }
 
 
-cAppliPastis::cAppliPastis(int argc,char ** argv) :
-   cAppliBatch(argc,argv,4,2,"Pastis"),
+cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
+   cAppliBatch(argc,argv,4,2,"Pastis","",FBD),
    mBinDir           (MMBin()),
    mBinDirAux        (MMDir()+"binaire-aux"+ELISE_CAR_DIR),
    mNbMaxMatch       (100),
@@ -947,6 +950,7 @@ cAppliPastis::cAppliPastis(int argc,char ** argv) :
    mExpTxt = 0;
    mSeuilDup = 1;
    mOnlyXML =0;
+   mForceByDico=true;
 
    mSsRes = 0;
 
@@ -967,6 +971,7 @@ cAppliPastis::cAppliPastis(int argc,char ** argv) :
 		      << EAM(mExpTxt,"ExpTxt",true)
 		      << EAM(mSeuilDup,"SeuilDup",true)
                       << EAM(mNbMinPtsExp,"NbMinPtsExp",true)
+                      << EAM(mForceByDico,"ForceByDico",true)
                       << EAM(mOnlyXML,"OnlyXML",true)
                       << EAM(mFiltreOnlyDupl,"FiltreOnlyDupl",true)
                       << EAM(mFiltreOnlyHom,"FiltreOnlyHom",true)
@@ -1011,9 +1016,30 @@ cAppliPastis::cAppliPastis(int argc,char ** argv) :
 
 int Pastis_main(int argc,char ** argv)
 {
+    std::vector<char *> aNewArgv;
+    bool FBD=false;
+    for (int aK=0 ; aK<argc ; aK++)
+    {
+         // if (std::string(argv[aK]==std::string("ForceByDico=1")))
+         if (strcmp(argv[aK],"ForceByDico=1")==0)
+         {
+              FBD=true;
+         }
+         else
+         {
+             aNewArgv.push_back(argv[aK]);
+         }
+    }
+
+
+    argv = & (aNewArgv[0]);
+    argc = aNewArgv.size();
+
+
+
     MMD_InitArgcArgv(argc,argv);
 
-    cAppliPastis aAP(argc,argv);
+    cAppliPastis aAP(argc,argv,FBD);
 
     aAP.DoAll();
     aAP.Banniere();
