@@ -166,6 +166,10 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Devlop",Devlop_main," Do some stuff"));
        aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
        aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Use ground control points (GCP) to make a global transformation from a general orientation to an orientation in the system of the GCP"));
+
+
+       aRes.push_back(cMMCom("GCPConvert",GCP_Txt2Xml_main," Use ground control points (GCP) to make a global transformation from a general orientation to an orientation in the system of the GCP"));
+
        aRes.push_back(cMMCom("GenXML2Cpp",GenXML2Cpp_main," Do some stuff"));
        aRes.push_back(cMMCom("GrShade",GrShade_main," Compute shading from depth image"));
        aRes.push_back(cMMCom("Gri2Bin",Gri2Bin_main," Do some stuff"));
