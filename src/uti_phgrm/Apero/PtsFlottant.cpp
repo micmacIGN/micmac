@@ -150,9 +150,10 @@ Pt3dr cOneAppuisFlottant::PInter() const
 
 void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
 {
-    bool aShowDet = AuMoinsUnMatch(anObs.PtsShowDet(),mName);
 
-
+   bool aShowDet = AuMoinsUnMatch(anObs.PtsShowDet(),mName);
+   if (aShowDet)
+       std::cout << "==== ADD Pts " << mName  << " Has Gr " << mHasGround << " Inc " << mInc << "\n";
 
    double aPdsIm = 1 / ElSquare(anObs.PondIm().EcartMesureIndiv());
 
@@ -177,7 +178,7 @@ void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
    // A verifier, mais probable que la methode de subsistution degenere
    // si il n'y a que deux  points (Lambda non inversible)
    //En fait, sans doute pas degeneree car attache au point !
-   if (aNbOK<0)
+   if ((aNbOK==0) && ((mInc.x <=0)  || (mInc.y <=0) || (mInc.z <=0)))
    {
       if (aShowDet)
       {
