@@ -225,7 +225,6 @@ namespace NS_ParamMICMAC
 	void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox,const Pt2di & aSzV)
 	{
 
-		std::cout << "DoInitAdHoc" << "\n";
 		mX0Ter = aBox._p0.x;
 		mX1Ter = aBox._p1.x;
 		mY0Ter = aBox._p0.y;
@@ -311,6 +310,7 @@ namespace NS_ParamMICMAC
 					fdataImg1D	= new float[ size(dimImg) * mNbIm ];
 				else
 					for (uint j = 0; j < dimImg.y ; j++)
+						// ERREUR IMAGE POUR DIFFERENT BLOC
 						memcpy(  fdataImg1D + dimImg.x * ( j + dimImg.y * aKIm ), aDataIm[j],  dimImg.x * sizeof(float));
 			
 			}
@@ -338,6 +338,7 @@ namespace NS_ParamMICMAC
 			{
 				ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
 				ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
+
 			}
 		}
 
@@ -785,7 +786,7 @@ namespace NS_ParamMICMAC
 
 		// Obtenir la nappe englobante
 		//short aZMinTer = -124 , aZMaxTer = 124;
-		short aZMinTer = 0 , aZMaxTer = 1;
+		//short aZMinTer = 0 , aZMaxTer = 1;
 
 		// Tableau de sortie de corrélation
 		float* h_TabCorre = new float[  h.SizeTer ];
@@ -810,7 +811,7 @@ namespace NS_ParamMICMAC
 			memcpy( h_TabPInit + 2 * h.SizeSTer * aKIm, &h_TabPInit[0], 2 * h.SizeSTer * sizeof(float));
 	
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
-		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
+		for (int anZ = mZMinGlob ;  anZ < mZMaxGlob ; anZ++)
 		{
 			// Re-initialisation du tableau de projection
 			memcpy( h_TabProj, h_TabPInit, siTabProj * sizeof(float));
@@ -861,12 +862,29 @@ namespace NS_ParamMICMAC
 
 			// KERNEL Correlation
 			basic_Correlation_GPU(h_TabCorre , mNbIm);
+
+			// Affectation des couts
+			for (int Y = mY0Ter ; Y < mY1Ter ; Y++)
+			{		
+				int rY	= Y - mY0Ter;
+
+				for (int X = mX0Ter ; X <  mX1Ter ; X++)	// Ballayage du terrain  
+				
+					if ( mTabZMin[Y][X] <=  anZ && anZ < mTabZMax[Y][X])
+					{
+						double cost = (double)h_TabCorre[h.DimTer.x * rY + X - mX0Ter];
+						if (cost > 0.0)
+							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,cost);
+						else
+							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,mAhDefCost);
+					}
+			}
 		}
 
+		// Erreur delete en Debug
 		delete [] h_TabCorre;
 		delete [] h_TabProj;
 		delete [] h_TabPInit;
-		
 #else
 std::cout  << "MESSAGE = "<<   mCorrelAdHoc->GPU_CorrelBasik().Val().Unused().Val() << "\n";
 

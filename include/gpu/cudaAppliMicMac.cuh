@@ -19,16 +19,16 @@ static __constant__ float cUVDefValue;
 
 struct paramGPU
 {
-	 uint2 DimTer;
-	 uint2 SDimTer;
-	 uint2 DimVig;
-	 uint2 DimImg;
-	 uint2 RVig;
-	 uint  SizeVig;
-	 uint  SizeTer;
-	 uint  SizeSTer;
-	 uint  SampTer;
-	 float UVDefValue;
+	 uint2 DimTer;		// Dimension du bloque terrain
+	 uint2 SDimTer;		// Dimension du bloque terrain sous echantilloné
+	 uint2 DimVig;		// Dimension de la vignette
+	 uint2 DimImg;		// Dimension des images
+	 uint2 RVig;		// Rayon de la vignette
+	 uint  SizeVig;		// Taille de la vignette en pixel 
+	 uint  SizeTer;		// Taille du bloque terrain
+	 uint  SizeSTer;	// Taille du bloque terrain sous echantilloné
+	 uint  SampTer;		// Pas echantillonage du terrain
+	 float UVDefValue;	// UV Terrain incorrect
 };
 
 
