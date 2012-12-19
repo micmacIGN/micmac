@@ -39,23 +39,22 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 #include "StdAfx.h"
+#ifdef CUDA_ENABLED
+	#include "gpu/cudaAppliMicMac.cuh"
+#endif
+
 namespace NS_ParamMICMAC
 {
 
 #ifdef CUDA_ENABLED
-#include "gpu/cudaAppliMicMac.cuh" // DEPLACE MPD SINON COMPILE PAS EN MODE NON GPU
-
-	// Déclaration des fonctions Cuda
-	extern "C" void imageToDevice( float** h_ref,  int width, int height);
-	//extern "C" void freeProjections();
 	extern "C" void freeGpuMemory();
-	extern "C" void projectionsToLayers(float *h_TabProj, int sxTer, int syTer, int nbLayer);
+	extern "C" void projectionsToLayers(float *h_TabProj, uint2 dimTer, int nbLayer);
 	extern "C" void basic_Correlation_GPU(  float* h_TabCorre, int nbLayer);
 	extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer);
-	extern "C" void Init_Correlation_GPU( uint2 dimTer, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon);
-
+	extern "C" paramGPU Init_Correlation_GPU( uint2 dimTer, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef);
 	uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);};
 
+	paramGPU h;
 #endif
 
 
@@ -225,11 +224,12 @@ namespace NS_ParamMICMAC
 
 	void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox,const Pt2di & aSzV)
 	{
+
+		std::cout << "DoInitAdHoc" << "\n";
 		mX0Ter = aBox._p0.x;
 		mX1Ter = aBox._p1.x;
 		mY0Ter = aBox._p0.y;
 		mY1Ter = aBox._p1.y;
-
 
 		mCurSzV = aSzV;
 		mDilX0Ter = mX0Ter  - aSzV.x;
@@ -254,8 +254,6 @@ namespace NS_ParamMICMAC
 		}
 		mAll1TImOkTerDil =  TIm2D<U_INT1,INT>(mAll1ImOkTerDil);
 		mAll1DOkTerDil = ImDec(mAll1VDOkTerDil,mAll1ImOkTerDil,aBox,aSzV);
-
-
 
 		mTabZMin = mLTer->GPULowLevel_ZMin();
 		mTabZMax = mLTer->GPULowLevel_ZMax();
@@ -282,7 +280,7 @@ namespace NS_ParamMICMAC
 		{
 			mVLI.push_back(new cGPU_LoadedImGeom(*this,*itFI,mNbPtsWFixe,aBox,mPtSzWFixe));
 		}
-		mNbIm = mVLI.size();
+		mNbIm = (int)mVLI.size();
 
 #ifdef CUDA_ENABLED
 	
@@ -293,7 +291,6 @@ namespace NS_ParamMICMAC
 			//------------------------------------
 			mLoadTextures = false;
 			float*		fdataImg1D	= NULL;	// 
-			cudaExtent	sizeImgsLay;			// Taille du tableau des calques 
 			uint2 dimImg;
 			int nLayers = 0;
 
@@ -313,7 +310,7 @@ namespace NS_ParamMICMAC
 					// Creation dynamique du tableau
 					fdataImg1D	= new float[ size(dimImg) * mNbIm ];
 				else
-					for (int j = 0; j < dimImg.y ; j++)
+					for (uint j = 0; j < dimImg.y ; j++)
 						memcpy(  fdataImg1D + dimImg.x * ( j + dimImg.y * aKIm ), aDataIm[j],  dimImg.x * sizeof(float));
 			
 			}
@@ -321,11 +318,15 @@ namespace NS_ParamMICMAC
 			if ((!((dimImg.x == 0)|(dimImg.y == 0)|(nLayers == 0))) && (fdataImg1D != NULL))
 				imagesToLayers( fdataImg1D, dimImg, nLayers );
 
-		delete[] fdataImg1D;
+			delete[] fdataImg1D;
 
-		Init_Correlation_GPU( make_uint2(mX1Ter - mX0Ter, mY1Ter - mY0Ter), nLayers, toUi2(mPtSzWFixe), dimImg, mAhEpsilon);
+			uint2 dimTer = make_uint2(mX1Ter - mX0Ter, mY1Ter - mY0Ter);
+			float uvDef	 = -1.0f;
+			uint sampTer = 5;
 
-	}
+			h = Init_Correlation_GPU(dimTer, nLayers, toUi2(mPtSzWFixe), dimImg, (float)mAhEpsilon, sampTer, uvDef);
+
+		}
 
 #endif
 
@@ -556,7 +557,7 @@ namespace NS_ParamMICMAC
 				aCurVLI.push_back(aGLI);
 			}
 		}
-		int aNbImCur = aCurVLI.size();
+		int aNbImCur = (int)aCurVLI.size();
 		if (aNbImCur >= 2)
 		{
 			int aX0 = anX - mCurSzV.x;
@@ -765,10 +766,6 @@ namespace NS_ParamMICMAC
 		}
 	}
 
-	static int iDivUp(int a, int b)
-	{
-		return (a % b != 0) ? (a / b + 1) : (a / b);
-	}
 
 	void cAppliMICMAC::DoGPU_Correl_Basik
 		(
@@ -790,46 +787,28 @@ namespace NS_ParamMICMAC
 		//short aZMinTer = -124 , aZMaxTer = 124;
 		short aZMinTer = 0 , aZMaxTer = 1;
 
-		// Taille de cube des points de projection
-		unsigned short sTerBloc_X	= mX1Ter - mX0Ter;
-		unsigned short sTerBloc_Y	= mY1Ter - mY0Ter;
-		unsigned short sTerBloc_Z	= aZMaxTer - aZMinTer;
-
-		// Nombre de float pour un point de pojection
-		unsigned short sT	= 2;
-		
 		// Tableau de sortie de corrélation
-		float* h_TabCorre = new float[  sTerBloc_X * sTerBloc_Y ];
+		float* h_TabCorre = new float[  h.SizeTer ];
 
-		// Sous echantillonage des projections
-		int stepBloc	= 5;
-		int ssTerBloc_X = iDivUp( sTerBloc_X , stepBloc ) ;
-		int	ssTerBloc_Y = iDivUp( sTerBloc_Y , stepBloc ) ;
-		int ssTerBloc	= ssTerBloc_X * ssTerBloc_Y;
-		int siTabProj	= mNbIm * ssTerBloc * 2;
+		int siTabProj	= mNbIm * h.SizeSTer * 2;
 
 		// Tableau des projections
 		float* h_TabProj	= new float[ siTabProj ];
 		float* h_TabPInit	= new float[ siTabProj ];		
 		
-		float uvDefValue	= -1.0f;
-		
 		//-- Initialisation Tableau 
-		for (int anX = 0 ; anX < ssTerBloc_X  ; anX++)
+		for (uint anX = 0 ; anX < h.SDimTer.x  ; anX++)
 		{
-			h_TabPInit[anX * 2 + 0] = uvDefValue;
-			h_TabPInit[anX * 2 + 1] = uvDefValue;
+			h_TabPInit[anX * 2 + 0] = h.UVDefValue;
+			h_TabPInit[anX * 2 + 1] = h.UVDefValue;
 		}
 
-		for (int anY = 1  ; anY < ssTerBloc_Y ; anY++)
-			memcpy( h_TabPInit +  2 * ssTerBloc_X * anY, &h_TabPInit[0], 2 * ssTerBloc_X * sizeof(float));
+		for (uint anY = 1  ; anY < h.SDimTer.y ; anY++)
+			memcpy( h_TabPInit +  2 * h.SDimTer.x  * anY, &h_TabPInit[0], 2 * h.SDimTer.x  * sizeof(float));
 
 		for (int aKIm = 1 ; aKIm < mNbIm ; aKIm++ )
-			memcpy( h_TabPInit + 2 * ssTerBloc * aKIm, &h_TabPInit[0], 2 * ssTerBloc * sizeof(float));
-		//
-
-
-
+			memcpy( h_TabPInit + 2 * h.SizeSTer * aKIm, &h_TabPInit[0], 2 * h.SizeSTer * sizeof(float));
+	
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
 		{
@@ -844,18 +823,18 @@ namespace NS_ParamMICMAC
 				const cGeomImage*	aGeom	= aGLI.Geom();
 				
 				// Initialisation du cube de projection
-				for (int anY = mY0Ter ; anY < mY1Ter ; anY = anY + stepBloc)
+				for (int anY = mY0Ter ; anY < mY1Ter ; anY = anY + h.SampTer)
 				{															
-					for (int anX = mX0Ter ; anX <  mX1Ter ; anX = anX + stepBloc)	// Ballayage du terrain  
+					for (int anX = mX0Ter ; anX <  mX1Ter ; anX = anX + h.SampTer)	// Ballayage du terrain  
 					{
 						// Nappe des profondeurs
 						int aZMin	= mTabZMin[anY][anX];
 						int aZMax	= mTabZMax[anY][anX];
-						int rX		= (anX - mX0Ter) / stepBloc;
-						int rY		= (anY - mY0Ter) / stepBloc;
-						int iD		= (aKIm * ssTerBloc  + ssTerBloc_X * rY + rX ) * 2;
+						int rX		= (anX - mX0Ter) / h.SampTer;
+						int rY		= (anY - mY0Ter) / h.SampTer;
+						int iD		= (aKIm * h.SizeSTer  + h.SDimTer.x * rY + rX ) * 2;
 
-						if (IsInTer( anX, anY ) && (aGLI.IsVisible(anX ,anY )) && (aZMin <= anZ <=aZMax))
+						if (IsInTer( anX, anY ) && (aGLI.IsVisible(anX ,anY )) && (aZMin <= anZ)&&(anZ <=aZMax))
 						{
 							// Déquantification  de X, Y et Z 
 							const float	aZReel	= (float)DequantZ(anZ);
@@ -875,10 +854,10 @@ namespace NS_ParamMICMAC
 			}
 
 			// Copie des projections de host vers le device
-			projectionsToLayers(h_TabProj, ssTerBloc_X, ssTerBloc_Y, mNbIm);
+			projectionsToLayers(h_TabProj, h.SDimTer, mNbIm);
 
 			// Re-initialisation du tableau de sortie
-			memset(h_TabCorre,0,ssTerBloc * mNbIm * 2 );
+			memset(h_TabCorre,0,h.SizeSTer * mNbIm * 2 );
 
 			// KERNEL Correlation
 			basic_Correlation_GPU(h_TabCorre , mNbIm);

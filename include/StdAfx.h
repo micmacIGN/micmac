@@ -5,13 +5,10 @@
 #endif
 
 #ifdef CUDA_ENABLED
-	// CUDA runtime
 	#include <cuda_runtime.h>
-	// Utilities and system includes
+	#include <helper_math.h>
 	#include <helper_functions.h>
 	#include <helper_cuda.h>
-	#include <helper_math.h>
-	//#include "gpu/cudaAppliMicMac.cuh"
 #endif
 
 #include <algorithm>

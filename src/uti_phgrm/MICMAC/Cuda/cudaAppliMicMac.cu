@@ -1,7 +1,3 @@
-#include <cuda_runtime.h>
-#include <helper_functions.h>
-#include <helper_cuda.h>
-#include <helper_math.h>
 #include "gpu/cudaAppliMicMac.cuh"
 
 #ifdef _DEBUG
@@ -11,22 +7,6 @@
 	#define   BLOCKDIM	32
 	#define   SBLOCKDIM 16
 #endif
-
-static __constant__ uint2 cDimTer;
-static __constant__ uint2 cDimVig;
-static __constant__ uint2 cDimImg;
-static __constant__ uint2 cRVig;
-static __constant__ float cMAhEpsilon;
-static __constant__ uint  cSizeVig;
-static __constant__ uint  cSizeTer;
-
-static uint2 h_DimTer;
-static uint2 h_DimVig;
-static uint2 h_DimImg;
-static uint2 h_RVig;
-static uint  h_SizeVig;
-static uint  h_SizeTer;
-
 
 //------------------------------------------------------------------------------------------
 // Non utilisé
@@ -54,24 +34,34 @@ int*	host_NbImgOk;
 float*	dev_Corr_Out;
 float*	dev_Cache;
 int*	dev_NbImgOk;
+paramGPU h;
 
-static void correlOptionsGPU(uint2 dTer, uint2 dV,uint2 dRV, uint2 dI, float mAhEpsilon )
+static void correlOptionsGPU(uint2 dTer, uint2 dV,uint2 dRV, uint2 dI, float mAhEpsilon, uint samplingZ, float uvDef )
 {
 
-	h_DimTer	= dTer;
-	h_DimVig	= dV;
-	h_DimImg	= dI;
-	h_RVig		= dRV;
-	h_SizeVig	= size(dV);
-	h_SizeTer	= size(dTer);
+	h.DimTer	= dTer;							// Dimension du bloque terrain
+	h.SDimTer	= iDivUp(h.DimTer,samplingZ);	// Dimension du bloque terrain sous echantilloné
+	h.DimVig	= dV;							// Dimension de la vignette
+	h.DimImg	= dI;							// Dimension des images
+	h.RVig		= dRV;							// Rayon de la vignette
+	h.SizeVig	= size(dV);						// Taille de la vignette en pixel 
+	h.SizeTer	= size(dTer);					// Taille du bloque terrain
+	h.SizeSTer  = size(h.SDimTer);				// Taille du bloque terrain sous echantilloné
+	h.SampTer	= samplingZ;					// Pas echantillonage du terrain
+	h.UVDefValue= uvDef;						// UV Terrain incorrect
 
 	checkCudaErrors(cudaMemcpyToSymbol(cDimVig, &dV, sizeof(uint2)));
+	checkCudaErrors(cudaMemcpyToSymbol(cSDimTer, &h.SDimTer, sizeof(uint2)));
 	checkCudaErrors(cudaMemcpyToSymbol(cRVig, &dRV, sizeof(uint2)));
 	checkCudaErrors(cudaMemcpyToSymbol(cDimTer, &dTer, sizeof(uint2)));
 	checkCudaErrors(cudaMemcpyToSymbol(cDimImg, &dI, sizeof(uint2)));
 	checkCudaErrors(cudaMemcpyToSymbol(cMAhEpsilon, &mAhEpsilon, sizeof(float)));
-	checkCudaErrors(cudaMemcpyToSymbol(cSizeVig, &h_SizeVig, sizeof(uint)));
-	checkCudaErrors(cudaMemcpyToSymbol(cSizeTer, &h_SizeTer, sizeof(uint)));
+	checkCudaErrors(cudaMemcpyToSymbol(cSizeVig, &h.SizeVig, sizeof(uint)));
+	checkCudaErrors(cudaMemcpyToSymbol(cSizeTer, &h.SizeTer, sizeof(uint)));
+	checkCudaErrors(cudaMemcpyToSymbol(cSizeSTer, &h.SizeSTer, sizeof(uint)));
+	checkCudaErrors(cudaMemcpyToSymbol(cSampTer, &h.SampTer, sizeof(uint)));
+	checkCudaErrors(cudaMemcpyToSymbol(cUVDefValue, &h.UVDefValue, sizeof(float)));
+
 }
 
 extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer)
@@ -105,13 +95,13 @@ extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer)
 
 };
 
-extern "C" void  projectionsToLayers(float *h_TabProj, int sTer_X, int sTer_Y, int nbLayer)
+extern "C" void  projectionsToLayers(float *h_TabProj, uint2 dimTer, int nbLayer)
 {
 	// Définition du format des canaux d'images
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float2>();
 
 	// Taille du tableau des calques 
-	cudaExtent siz_PL = make_cudaExtent( sTer_X, sTer_Y, nbLayer);
+	cudaExtent siz_PL = make_cudaExtent( dimTer.x, dimTer.y, nbLayer);
 
 	// Allocation memoire GPU du tableau des calques d'images
 	checkCudaErrors( cudaMalloc3DArray(&dev_ProjLayered,&channelDesc,siz_PL,cudaArrayLayered ));
@@ -315,13 +305,13 @@ __global__ void multiCorrelationKernel(float *dest, float* cache, int * dev_NbIm
 
 }
 
-extern "C" void Init_Correlation_GPU( uint2 dimTer, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon )
+extern "C" paramGPU Init_Correlation_GPU( uint2 dimTer, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef )
 {
 
-	correlOptionsGPU(dimTer,dRVig * 2 + 1,dRVig, dimImg,mAhEpsilon);
-	int out_MemSize = h_SizeTer * sizeof(float);
-	int nBI_MemSize = h_SizeTer * sizeof(int);
-	int cac_MemSize = out_MemSize * nbLayer * h_SizeVig;
+	correlOptionsGPU(dimTer,dRVig * 2 + 1,dRVig, dimImg,mAhEpsilon, samplingZ, uvDef);
+	int out_MemSize = h.SizeTer * sizeof(float);
+	int nBI_MemSize = h.SizeTer * sizeof(int);
+	int cac_MemSize = out_MemSize * nbLayer * h.SizeVig;
 
 	// Allocation mémoire
 	host_Corr_Out = (float*)	malloc(out_MemSize);
@@ -337,15 +327,15 @@ extern "C" void Init_Correlation_GPU( uint2 dimTer, int nbLayer , uint2 dRVig , 
     TexLay_Proj.addressMode[1]	= cudaAddressModeClamp;	
     TexLay_Proj.filterMode		= cudaFilterModeLinear; //cudaFilterModePoint 
     TexLay_Proj.normalized		= true;
+
+	return h;
 }
 
 extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 
-	int out_MemSize = h_SizeTer * sizeof(float);
-	int nBI_MemSize = h_SizeTer * sizeof(int);
-	int cac_MemSize = out_MemSize * nbLayer * h_SizeVig;
-
-	std::cout << "size vignette "<< cac_MemSize << "\n";
+	int out_MemSize = h.SizeTer * sizeof(float);
+	int nBI_MemSize = h.SizeTer * sizeof(int);
+	int cac_MemSize = out_MemSize * nbLayer * h.SizeVig;
 
 	checkCudaErrors( cudaMemset( dev_Corr_Out, 0, out_MemSize ));
 	checkCudaErrors( cudaMemset( dev_Cache, 0, cac_MemSize ));
@@ -355,7 +345,7 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 
 	//------------   Kernel correlation   ----------------
 		dim3 threads(BLOCKDIM, BLOCKDIM, 1);
-		dim3 blocks(iDivUp(h_DimTer.x,threads.x) , iDivUp(h_DimTer.y,threads.y), nbLayer);
+		dim3 blocks(iDivUp(h.DimTer.x,threads.x) , iDivUp(h.DimTer.y,threads.y), nbLayer);
 		
 		correlationKernel<<<blocks, threads>>>( dev_NbImgOk, dev_Cache);
 		getLastCudaError("Basic Correlation kernel failed");
@@ -363,11 +353,11 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 
 	//---------- Kernel multi-correlation -----------------
 	{
-		int actiThs_X = SBLOCKDIM - SBLOCKDIM % h_DimVig.x;
-		int actiThs_Y = SBLOCKDIM - SBLOCKDIM % h_DimVig.x;
+		int actiThs_X = SBLOCKDIM - SBLOCKDIM % h.DimVig.x;
+		int actiThs_Y = SBLOCKDIM - SBLOCKDIM % h.DimVig.x;
 
 		dim3 threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
-		dim3 blocks_mC(iDivUp(h_DimTer.x * h_DimVig.x  ,actiThs_X) , iDivUp(h_DimTer.y * h_DimVig.y ,actiThs_Y));
+		dim3 blocks_mC(iDivUp(h.DimTer.x * h.DimVig.x  ,actiThs_X) , iDivUp(h.DimTer.y * h.DimVig.y ,actiThs_Y));
 
 		multiCorrelationKernel<<<blocks_mC, threads_mC>>>( dev_Corr_Out, dev_Cache, dev_NbImgOk);
 		getLastCudaError("Multi-Correlation kernel failed");
@@ -383,13 +373,13 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 	//if(0)
 	{
 		int step = 2;
-		std::cout << " --------------------  size ter (x,y) : " << iDivUp(h_DimTer.x, step) << ", " << iDivUp(h_DimTer.y, step) << std::endl;
-		for (int j = 0; j < h_DimTer.y ; j+=step)
+		std::cout << " --------------------  size ter (x,y) : " << iDivUp(h.DimTer.x, step) << ", " << iDivUp(h.DimTer.y, step) << std::endl;
+		for (uint j = 0; j < h.DimTer.y ; j+=step)
 		{
 			std::cout << "       "; 
-			for (int i = 0; i < h_DimTer.x ; i+=step)
+			for (uint i = 0; i < h.DimTer.x ; i+=step)
 			{
-				int id = (j * h_DimTer.x + i );
+				int id = (j * h.DimTer.x + i );
 				float c = host_Corr_Out[id];
 				if( c > 0.0f)
 					std::cout << floor(c*1000)/1000 << " ";
@@ -410,11 +400,11 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 		float maxCache = -1000000000000.0f;
 		int step = 1;
 		std::cout << "Taille du cache (x,y) : ..??" << std::endl;
-		for (int j = 0; j < h_DimTer.y * h_DimVig.y ; j+=step)
+		for (uint j = 0; j < h.DimTer.y * h.DimVig.y ; j+=step)
 		{
-			for (int i = 0; i < h_DimTer.x * h_DimVig.x ; i+=step)
+			for (uint i = 0; i < h.DimTer.x * h.DimVig.x ; i+=step)
 			{
-				int id = (j * h_DimTer.x * h_DimVig.x + i );
+				int id = (j * h.DimTer.x * h.DimVig.x + i );
 				float c = host_Cache[id];
 
 				if ( c < minCache || c > maxCache )
