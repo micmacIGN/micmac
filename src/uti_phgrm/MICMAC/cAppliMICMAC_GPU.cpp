@@ -825,7 +825,7 @@ namespace NS_ParamMICMAC
 		// Obtenir la nappe englobante
 		//short aZMinTer = -124 , aZMaxTer = 124;
 		//uint aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		uint aZMinTer = 0 , aZMaxTer = 2;
+		uint aZMinTer = 0 , aZMaxTer = 1;
 
 
 		// Tableau de sortie de corrélation
@@ -862,11 +862,7 @@ namespace NS_ParamMICMAC
 				// Obtention de l'image courante
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 				const cGeomImage*	aGeom	= aGLI.Geom();
-				
-				uint2 dimImg		= toUi2(aGLI.getSizeImage());
-		
-				//std::cout << "GPU size image " << aKIm << " : " << dimImg.x << "," << dimImg.y << "\n" ;
-
+			
 				// Initialisation du cube de projection
 				for (int anY = mY0Ter ; anY < mY1Ter ; anY = anY + h.SampTer)
 				{															
@@ -908,6 +904,7 @@ namespace NS_ParamMICMAC
 			basic_Correlation_GPU(h_TabCorre , mNbIm);
 
 			// Affectation des couts
+			/*
 			for (int Y = mY0Ter ; Y < mY1Ter ; Y++)
 			{		
 				int rY	= Y - mY0Ter;
@@ -923,6 +920,7 @@ namespace NS_ParamMICMAC
 							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,mAhDefCost);
 					}
 			}
+			*/
 		}
 
 		// Erreur delete en Debug
