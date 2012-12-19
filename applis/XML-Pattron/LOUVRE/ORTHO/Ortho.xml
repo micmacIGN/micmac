@@ -1,0 +1,44 @@
+<CreateOrtho>
+        <!-- Truc +ou- genreaux a ttes les applis -->
+        <DicoLoc >
+        </DicoLoc>
+        <WorkDir>  ThisDir  </WorkDir>
+        <KBox0> 0 </KBox0>
+
+        <SectionEntree>
+           <FileMNT> Z_Num1_DeZoom1_Geom-Ortho.xml </FileMNT>
+<!--
+           <KeySetIm>   Key-Ortho-OK </KeySetIm>
+-->
+           <KeySetIm>  Key-OrthtoSet-All-OpIm </KeySetIm>
+           <KeyAssocMetaData > Key-Orthto-Assoc-OpIm2Mtd </KeyAssocMetaData>
+           <KeyAssocNamePC > Key-Assoc-OpIm2PC </KeyAssocNamePC>
+           <KeyAssocNameIncH> Key-Assoc-OpIm2Incid </KeyAssocNameIncH>
+        </SectionEntree>
+
+        <SectionFiltrageIn>
+             <SzDilatPC >   1 </SzDilatPC>
+             <SzOuvPC >     2 </SzOuvPC>
+             <BoucheTrou Nb="?">
+                <SeuilVisib > 50  </SeuilVisib>
+                <SeuilVisibBT > 10 </SeuilVisibBT>
+                <CoeffPondAngul > 3.14 </CoeffPondAngul>
+             </BoucheTrou>
+
+        </SectionFiltrageIn>
+
+
+
+        <SectionSorties>
+           <SzDalle>    1000            </SzDalle>
+           <SzBrd>      100             </SzBrd>
+           <!-- 
+           <BoxCalc>   1554 1637 3708 3875    </BoxCalc> 
+            -->
+           <NameOrtho>  Ortho-Test-Redr.tif</NameOrtho>
+           <NameLabels>  Label-Test-Redr.tif</NameLabels>
+        </SectionSorties>
+
+
+</CreateOrtho>
+
