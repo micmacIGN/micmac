@@ -93,6 +93,7 @@ extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer)
     refTex_ImagesLayered.normalized		= true;
 	checkCudaErrors( cudaBindTextureToArray(refTex_ImagesLayered,dev_ImagesLayered) );
 
+
 };
 
 extern "C" void  projectionsToLayers(float *h_TabProj, uint2 dimTer, int nbLayer)
@@ -372,7 +373,7 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 	//checkCudaErrors( cudaMemcpy( host_NbImgOk,	dev_NbImgOk,  nBI_MemSize, cudaMemcpyDeviceToHost) );
 	//checkCudaErrors( cudaMemcpy( host_Cache,	dev_Cache,	  cac_MemSize, cudaMemcpyDeviceToHost) );
 	//--------------------------------------------------------
-/*
+
 	if(0)
 	{
 		int step = 2;
@@ -383,7 +384,7 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 			for (uint i = 0; i < h.DimTer.x ; i+=step)
 			{
 				int id = (j * h.DimTer.x + i );
-				float c = host_Corr_Out[id];
+				float c = h_TabCorre[id];
 				if( c > 0.0f)
 					std::cout << floor(c*1000)/1000 << " ";
 				else if( c == -1.0f)			
@@ -401,7 +402,7 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 
 		float minCache =  1000000000000.0f;
 		float maxCache = -1000000000000.0f;
-		int step = 1;
+		int step = 3;
 		std::cout << "Taille du cache (x,y) : ..??" << std::endl;
 		for (uint j = 0; j < h.DimTer.y * h.DimVig.y ; j+=step)
 		{
@@ -424,7 +425,7 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 		}
 	}
 	//--------------------------------------------------------
-	*/
+	
 
 }
 
