@@ -230,6 +230,8 @@ int GCP_Txt2Xml_main(int argc,char ** argv)
     }
 
     MakeFileXML(aDico,aFilePtsOut);
+
+	return 0;
 }
 
 

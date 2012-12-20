@@ -39,27 +39,27 @@ paramGPU h;
 static void correlOptionsGPU(uint2 dTer, uint2 dV,uint2 dRV, uint2 dI, float mAhEpsilon, uint samplingZ, float uvDef )
 {
 
-	h.DimTer	= dTer;							// Dimension du bloque terrain
-	h.SDimTer	= iDivUp(h.DimTer,samplingZ);	// Dimension du bloque terrain sous echantilloné
-	h.DimVig	= dV;							// Dimension de la vignette
-	h.DimImg	= dI;							// Dimension des images
-	h.RVig		= dRV;							// Rayon de la vignette
-	h.SizeVig	= size(dV);						// Taille de la vignette en pixel 
-	h.SizeTer	= size(dTer);					// Taille du bloque terrain
-	h.SizeSTer  = size(h.SDimTer);				// Taille du bloque terrain sous echantilloné
-	h.SampTer	= samplingZ;					// Pas echantillonage du terrain
+	h.dimTer	= dTer;							// Dimension du bloque terrain
+	h.dimSTer	= iDivUp(h.dimTer,samplingZ);	// Dimension du bloque terrain sous echantilloné
+	h.dimVig	= dV;							// Dimension de la vignette
+	h.dimImg	= dI;							// Dimension des images
+	h.rVig		= dRV;							// Rayon de la vignette
+	h.sizeVig	= size(dV);						// Taille de la vignette en pixel 
+	h.sizeTer	= size(dTer);					// Taille du bloque terrain
+	h.sizeSTer  = size(h.dimSTer);				// Taille du bloque terrain sous echantilloné
+	h.sampTer	= samplingZ;					// Pas echantillonage du terrain
 	h.UVDefValue= uvDef;						// UV Terrain incorrect
 
 	checkCudaErrors(cudaMemcpyToSymbol(cDimVig, &dV, sizeof(uint2)));
-	checkCudaErrors(cudaMemcpyToSymbol(cSDimTer, &h.SDimTer, sizeof(uint2)));
+	checkCudaErrors(cudaMemcpyToSymbol(cSDimTer, &h.dimSTer, sizeof(uint2)));
 	checkCudaErrors(cudaMemcpyToSymbol(cRVig, &dRV, sizeof(uint2)));
 	checkCudaErrors(cudaMemcpyToSymbol(cDimTer, &dTer, sizeof(uint2)));
 	checkCudaErrors(cudaMemcpyToSymbol(cDimImg, &dI, sizeof(uint2)));
 	checkCudaErrors(cudaMemcpyToSymbol(cMAhEpsilon, &mAhEpsilon, sizeof(float)));
-	checkCudaErrors(cudaMemcpyToSymbol(cSizeVig, &h.SizeVig, sizeof(uint)));
-	checkCudaErrors(cudaMemcpyToSymbol(cSizeTer, &h.SizeTer, sizeof(uint)));
-	checkCudaErrors(cudaMemcpyToSymbol(cSizeSTer, &h.SizeSTer, sizeof(uint)));
-	checkCudaErrors(cudaMemcpyToSymbol(cSampTer, &h.SampTer, sizeof(uint)));
+	checkCudaErrors(cudaMemcpyToSymbol(cSizeVig, &h.sizeVig, sizeof(uint)));
+	checkCudaErrors(cudaMemcpyToSymbol(cSizeTer, &h.sizeTer, sizeof(uint)));
+	checkCudaErrors(cudaMemcpyToSymbol(cSizeSTer, &h.sizeSTer, sizeof(uint)));
+	checkCudaErrors(cudaMemcpyToSymbol(cSampTer, &h.sampTer, sizeof(uint)));
 	checkCudaErrors(cudaMemcpyToSymbol(cUVDefValue, &h.UVDefValue, sizeof(float)));
 
 }
@@ -89,7 +89,7 @@ extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer)
 	// Lié à la texture
 	refTex_ImagesLayered.addressMode[0]	= cudaAddressModeWrap;
     refTex_ImagesLayered.addressMode[1]	= cudaAddressModeWrap;
-    refTex_ImagesLayered.filterMode		= cudaFilterModePoint;
+    refTex_ImagesLayered.filterMode		= cudaFilterModeLinear; //cudaFilterModeLinear cudaFilterModePoint
     refTex_ImagesLayered.normalized		= true;
 	checkCudaErrors( cudaBindTextureToArray(refTex_ImagesLayered,dev_ImagesLayered) );
 
@@ -172,7 +172,7 @@ __global__ void correlationKernel( int *dev_NbImgOk, float* cache, float *dest )
 	{
 		cacheImg[threadIdx.y][threadIdx.x]  = 0.0f;
 		if (blockIdx.z == idImage)
-			dest[iTer] = 0.0f;
+			dest[iTer] = -1.0f;
 		return;
 	}
 	else
@@ -181,7 +181,7 @@ __global__ void correlationKernel( int *dev_NbImgOk, float* cache, float *dest )
 	__syncthreads();
 
 	if (blockIdx.z == idImage)
-		dest[iTer] = PtTProj.y;
+		dest[iTer] =  PtTProj.y * cDimImg.y - 0.5f;
 
 	return;
 
@@ -321,9 +321,9 @@ extern "C" paramGPU Init_Correlation_GPU( uint2 dimTer, int nbLayer , uint2 dRVi
 {
 
 	correlOptionsGPU(dimTer,dRVig * 2 + 1,dRVig, dimImg,mAhEpsilon, samplingZ, uvDef);
-	int out_MemSize = h.SizeTer * sizeof(float);
-	int nBI_MemSize = h.SizeTer * sizeof(int);
-	int cac_MemSize = out_MemSize * nbLayer * h.SizeVig;
+	int out_MemSize = h.sizeTer * sizeof(float);
+	int nBI_MemSize = h.sizeTer * sizeof(int);
+	int cac_MemSize = out_MemSize * nbLayer * h.sizeVig;
 
 	// Allocation mémoire
 	host_Corr_Out = (float*)	malloc(out_MemSize);
@@ -345,25 +345,26 @@ extern "C" paramGPU Init_Correlation_GPU( uint2 dimTer, int nbLayer , uint2 dRVi
 
 extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 
-	int out_MemSize = h.SizeTer * sizeof(float);
-	int nBI_MemSize = h.SizeTer * sizeof(int);
-	int cac_MemSize = out_MemSize * nbLayer * h.SizeVig;
+	int out_MemSize = h.sizeTer * sizeof(float);
+	int nBI_MemSize = h.sizeTer * sizeof(int);
+	int cac_MemSize = out_MemSize * nbLayer * h.sizeVig;
 
 	checkCudaErrors( cudaMemset( dev_Corr_Out, 0, out_MemSize ));
 	checkCudaErrors( cudaMemset( dev_Cache, 0, cac_MemSize ));
 	checkCudaErrors( cudaMemset( dev_NbImgOk, 0, nBI_MemSize ));
 	checkCudaErrors( cudaBindTextureToArray(TexLay_Proj,dev_ProjLayered) );
-
-
+	
 	//------------   Kernel correlation   ----------------
 		dim3 threads(BLOCKDIM, BLOCKDIM, 1);
-		dim3 blocks(iDivUp(h.DimTer.x,threads.x) , iDivUp(h.DimTer.y,threads.y), nbLayer);
+		dim3 blocks(iDivUp(h.dimTer.x,threads.x) , iDivUp(h.dimTer.y,threads.y), nbLayer);
 		
 		correlationKernel<<<blocks, threads>>>( dev_NbImgOk, dev_Cache,dev_Corr_Out);
 		getLastCudaError("Basic Correlation kernel failed");
 		//checkCudaErrors( cudaDeviceSynchronize() );
 
 	//---------- Kernel multi-correlation -----------------
+/*
+
 	if(0)
 	{
 		int actiThs_X = SBLOCKDIM - SBLOCKDIM % h.DimVig.x;
@@ -377,25 +378,23 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 
 	}
 
+*/
 	checkCudaErrors( cudaUnbindTexture(TexLay_Proj) );
 	//checkCudaErrors( cudaMemcpy( host_Corr_Out,	dev_Corr_Out, out_MemSize, cudaMemcpyDeviceToHost) );
 	checkCudaErrors( cudaMemcpy( h_TabCorre, dev_Corr_Out, out_MemSize, cudaMemcpyDeviceToHost) );
-	
-	
-
 	//checkCudaErrors( cudaMemcpy( host_NbImgOk,	dev_NbImgOk,  nBI_MemSize, cudaMemcpyDeviceToHost) );
 	//checkCudaErrors( cudaMemcpy( host_Cache,	dev_Cache,	  cac_MemSize, cudaMemcpyDeviceToHost) );
 	//--------------------------------------------------------
 
-	//if(0)
+	if(0)
 	{
 
-		float* image	= new float[h.SizeTer];
-		for (uint j = 0; j < h.DimTer.y ; j++)
+		float* image	= new float[h.sizeTer];
+		for (uint j = 0; j < h.dimTer.y ; j++)
 		{
-			for (uint i = 0; i < h.DimTer.x ; i++)
+			for (uint i = 0; i < h.dimTer.x ; i++)
 			{
-				int id = (j * h.DimTer.x + i );
+				int id = (j * h.dimTer.x + i );
 				//image[id] = h_TabCorre[id]/500.f;	
 				image[id] = h_TabCorre[id];	
 			}
@@ -404,7 +403,7 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 
 		std::string file = "C:\\Users\\gchoqueux\\Downloads\\image.pgm";
 		// save PGM
-		if (sdkSavePGM<float>(file.c_str(), image, h.DimTer.x,h.DimTer.y))
+		if (sdkSavePGM<float>(file.c_str(), image, h.dimTer.x,h.dimTer.y))
 		{
 			std::cout <<"success save image" << "\n";
 		}
@@ -413,6 +412,25 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 
 
 		delete[] image;
+
+
+		for (uint j = 0; j < h.dimTer.y ; j+= h.sampTer)
+		{
+			for (uint i = 0; i < h.dimTer.x ; i+= h.sampTer)
+			{
+				int id = (j * h.dimTer.x + i );
+				//image[id] = h_TabCorre[id]/500.f;	
+				if (h_TabCorre[id]!=-1.0f)
+				//std::cout << floor(h_TabCorre[id]*1000)/1000  << " ";
+				std::cout << h_TabCorre[id]  << " ";
+				else
+					std::cout << " .    " << " ";
+			}
+
+				std::cout << "\n";	
+		}
+
+		std::cout << "------------------------------------------\n";	
 	}
 
 /*
