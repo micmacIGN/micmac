@@ -66,12 +66,12 @@ std::string  cReadObject::GetDef(const std::string & aVal,const std::string & aD
 std::string cReadObject::GetNextStr(tCharPtr & aStr)
 {
    std::string aRes;
-   while ((*aStr) && isblank(*aStr))
+   while ((*aStr) && ISBLANK(*aStr))
         aStr++;
    if (*aStr==0)
       return aRes;
 
-   while  ((*aStr) && (!isblank(*aStr)))
+   while  ((*aStr) && (!ISBLANK(*aStr)))
       aRes += *(aStr++);
 
    return aRes;
