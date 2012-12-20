@@ -132,36 +132,6 @@ init_syntax_once ()
 /* isalpha etc. are used for the character classes.  */
 #include <ctype.h>
 
-#ifndef isascii
-#define isascii(c) 1
-#endif
-
-#ifdef isblank
-#define ISBLANK(c) (isascii (c) && isblank (c))
-#else
-#define ISBLANK(c) ((c) == ' ' || (c) == '\t')
-#endif
-#ifdef isgraph
-#define ISGRAPH(c) (isascii (c) && isgraph (c))
-#else
-#define ISGRAPH(c) (isascii (c) && isprint (c) && !isspace (c))
-#endif
-
-#define ISPRINT(c) (isascii (c) && isprint (c))
-#define ISDIGIT(c) (isascii (c) && isdigit (c))
-#define ISALNUM(c) (isascii (c) && isalnum (c))
-#define ISALPHA(c) (isascii (c) && isalpha (c))
-#define ISCNTRL(c) (isascii (c) && iscntrl (c))
-#define ISLOWER(c) (isascii (c) && islower (c))
-#define ISPUNCT(c) (isascii (c) && ispunct (c))
-#define ISSPACE(c) (isascii (c) && isspace (c))
-#define ISUPPER(c) (isascii (c) && isupper (c))
-#define ISXDIGIT(c) (isascii (c) && isxdigit (c))
-
-#ifndef NULL
-#define NULL 0
-#endif
-
 /* We remove any previous definition of `SIGN_EXTEND_CHAR',
    since ours (we hope) works properly with all combinations of
    machines, compilers, `char' and `unsigned char' argument types.

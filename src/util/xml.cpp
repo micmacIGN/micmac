@@ -114,8 +114,8 @@ const std::vector<cOpPolI> & OpPolI()
 }
 
 // ATTENTION isblank non defini !!!
-// bool PolIBlank(int aC) {return (isblank(aC)) || (aC=='"');}
-bool PolIBlank(int aC) {return ((aC) == ' ' || (aC) == '\t') || (aC=='"');}
+ bool PolIBlank(int aC) {return (ISBLANK(aC)) || (aC=='"');}
+//bool PolIBlank(int aC) {return ((aC) == ' ' || (aC) == '\t') || (aC=='"');}
 void PasserPolIBlank(tCCP & aC)
 {
    while (PolIBlank(*aC)) aC++;
