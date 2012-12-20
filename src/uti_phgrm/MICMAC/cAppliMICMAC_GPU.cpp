@@ -318,6 +318,7 @@ namespace NS_ParamMICMAC
 			}
 
 			//  [12/19/2012 GChoqueux]
+			/*
 			if (0)
 			{
 
@@ -345,6 +346,7 @@ namespace NS_ParamMICMAC
 					delete[] image;
 				}
 			}
+			*/
 			//  [12/19/2012 GChoqueux]
 
 			if ((!((dimImgMax.x == 0)|(dimImgMax.y == 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
@@ -354,7 +356,7 @@ namespace NS_ParamMICMAC
 
 			uint2 dimTer = make_uint2(mX1Ter - mX0Ter, mY1Ter - mY0Ter);
 			float uvDef	 = -1.0f;
-			uint sampTer = 1;
+			uint sampTer = 4;
 
 			h = Init_Correlation_GPU(dimTer, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, sampTer, uvDef);
 
@@ -817,9 +819,8 @@ namespace NS_ParamMICMAC
 		Pt2di sizImg =  aGLI.getSizeImage();
 
 		// Obtenir la nappe englobante
-		//short aZMinTer = -124 , aZMaxTer = 124;
-		//uint aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		uint aZMinTer = 100 , aZMaxTer = 102;
+		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
+		//int aZMinTer = 0 , aZMaxTer = 1;
 
 
 		// Tableau de sortie de corrélation
@@ -845,11 +846,8 @@ namespace NS_ParamMICMAC
 			memcpy( h_TabPInit + 2 * h.sizeSTer * aKIm, &h_TabPInit[0], 2 * h.sizeSTer * sizeof(float));
 	
 		// debug
-
 		bool showDebug	= false;
 		int imageIDShow = 3;
-
-		//
 
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
@@ -881,11 +879,11 @@ namespace NS_ParamMICMAC
 						if (IsInTer( anX, anY ) && (aGLI.IsVisible(anX ,anY )) && (aZMin <= anZ)&&(anZ <=aZMax))
 						{
 							// Déquantification  de X, Y et Z 
-							const float	aZReel	= (float)DequantZ(anZ);
+							const double aZReel	= DequantZ(anZ);
 							Pt2dr		aPTer	= DequantPlani(anX,anY);  
 
 							// Projection dans l'image 
-							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,( const double* )&aZReel);
+							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);
 
 							if (aGLI.IsOk( aPIm.x, aPIm.y ))
 							{	
@@ -906,12 +904,8 @@ namespace NS_ParamMICMAC
 				}
 				if (aKIm == imageIDShow && showDebug) std::cout << "--------------------------------------------------------------------------\n";
 			}
-
-
-			// Obtention de l'image courante
-			
-
-			for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )
+			/*
+			for (int aKIm = 1 ; aKIm < 2 ; aKIm++ )
 			{
 
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
@@ -949,10 +943,11 @@ namespace NS_ParamMICMAC
 				delete[] image;
 			}
 			
-			
+			*/
 
-			/*
+			
 			// Copie des projections de host vers le device
+
 			projectionsToLayers(h_TabProj, h.dimSTer, mNbIm);
 
 			// Re-initialisation du tableau de sortie
@@ -960,9 +955,9 @@ namespace NS_ParamMICMAC
 
 			// KERNEL Correlation
 			basic_Correlation_GPU(h_TabCorre , mNbIm);
-			*/
+			
 			// Affectation des couts
-			/*
+			
 			for (int Y = mY0Ter ; Y < mY1Ter ; Y++)
 			{		
 				int rY	= Y - mY0Ter;
@@ -971,14 +966,14 @@ namespace NS_ParamMICMAC
 				
 					if ( mTabZMin[Y][X] <=  anZ && anZ < mTabZMax[Y][X])
 					{
-						double cost = (double)h_TabCorre[h.DimTer.x * rY + X - mX0Ter];
+						double cost = (double)h_TabCorre[h.dimTer.x * rY + X - mX0Ter];
 						if (cost > 0.0)
 							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,cost);
 						else
 							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,mAhDefCost);
 					}
 			}
-			*/
+			
 		}
 
 		// Erreur delete en Debug
