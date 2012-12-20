@@ -150,7 +150,8 @@ __device__  inline float2 simpleProjection( uint2 size, uint2 ssize, uint2 sizeI
 	return ra;
 }
 
-__global__ void correlationKernel( int *dev_NbImgOk, float* cache, float *dest )
+//__global__ void correlationKernel( int *dev_NbImgOk, float* cache, float *dest )
+__global__ void correlationKernel( int *dev_NbImgOk, float* cache)
 {
 	__shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
 
@@ -162,28 +163,17 @@ __global__ void correlationKernel( int *dev_NbImgOk, float* cache, float *dest )
 	if ( coorTer.x >= cDimTer.x || coorTer.y >= cDimTer.y) 
 		return;
 
-	//float2 uv = (make_float2(coorTer) + 0.5f) / (make_float2(cDimTer));
 	const float2 PtTProj	= simpleProjection( cDimTer, cSDimTer, cDimImg, coorTer, blockIdx.z);
-	//const float2 PtTProj	= tex2DLayered( TexLay_Proj, uv.x, uv.y,blockIdx.z);
-	
-	const uint idImage = 1;
 
 	if ( PtTProj.x < 0.0f ||  PtTProj.y < 0.0f )
 	{
 		cacheImg[threadIdx.y][threadIdx.x]  = 0.0f;
-		if (blockIdx.z == idImage)
-			dest[iTer] = -1.0f;
 		return;
 	}
 	else
 		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayered( refTex_ImagesLayered, PtTProj.x, PtTProj.y,blockIdx.z);
 	
 	__syncthreads();
-
-	if (blockIdx.z == idImage)
-		dest[iTer] =  PtTProj.y * cDimImg.y - 0.5f;
-
-	return;
 
 	// Intialisation des valeurs de calcul 
 	float		aSV	= 0.0f;
@@ -355,30 +345,24 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 	checkCudaErrors( cudaBindTextureToArray(TexLay_Proj,dev_ProjLayered) );
 	
 	//------------   Kernel correlation   ----------------
-		dim3 threads(BLOCKDIM, BLOCKDIM, 1);
-		dim3 blocks(iDivUp(h.dimTer.x,threads.x) , iDivUp(h.dimTer.y,threads.y), nbLayer);
-		
-		correlationKernel<<<blocks, threads>>>( dev_NbImgOk, dev_Cache,dev_Corr_Out);
-		getLastCudaError("Basic Correlation kernel failed");
-		//checkCudaErrors( cudaDeviceSynchronize() );
+	dim3 threads(BLOCKDIM, BLOCKDIM, 1);
+	dim3 blocks(iDivUp(h.dimTer.x,threads.x) , iDivUp(h.dimTer.y,threads.y), nbLayer);
+	
+	correlationKernel<<<blocks, threads>>>( dev_NbImgOk, dev_Cache);
+	getLastCudaError("Basic Correlation kernel failed");
+	//checkCudaErrors( cudaDeviceSynchronize() );
 
 	//---------- Kernel multi-correlation -----------------
-/*
 
-	if(0)
-	{
-		int actiThs_X = SBLOCKDIM - SBLOCKDIM % h.DimVig.x;
-		int actiThs_Y = SBLOCKDIM - SBLOCKDIM % h.DimVig.x;
+	int actiThs_X = SBLOCKDIM - SBLOCKDIM % h.dimVig.x;
+	int actiThs_Y = SBLOCKDIM - SBLOCKDIM % h.dimVig.x;
 
-		dim3 threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
-		dim3 blocks_mC(iDivUp(h.DimTer.x * h.DimVig.x  ,actiThs_X) , iDivUp(h.DimTer.y * h.DimVig.y ,actiThs_Y));
+	dim3 threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
+	dim3 blocks_mC(iDivUp(h.dimTer.x * h.dimVig.x  ,actiThs_X) , iDivUp(h.dimTer.y * h.dimVig.y ,actiThs_Y));
 
-		multiCorrelationKernel<<<blocks_mC, threads_mC>>>( dev_Corr_Out, dev_Cache, dev_NbImgOk);
-		getLastCudaError("Multi-Correlation kernel failed");
+	multiCorrelationKernel<<<blocks_mC, threads_mC>>>( dev_Corr_Out, dev_Cache, dev_NbImgOk);
+	getLastCudaError("Multi-Correlation kernel failed");
 
-	}
-
-*/
 	checkCudaErrors( cudaUnbindTexture(TexLay_Proj) );
 	//checkCudaErrors( cudaMemcpy( host_Corr_Out,	dev_Corr_Out, out_MemSize, cudaMemcpyDeviceToHost) );
 	checkCudaErrors( cudaMemcpy( h_TabCorre, dev_Corr_Out, out_MemSize, cudaMemcpyDeviceToHost) );
@@ -386,8 +370,10 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 	//checkCudaErrors( cudaMemcpy( host_Cache,	dev_Cache,	  cac_MemSize, cudaMemcpyDeviceToHost) );
 	//--------------------------------------------------------
 
+	
 	if(0)
 	{
+/*
 
 		float* image	= new float[h.sizeTer];
 		for (uint j = 0; j < h.dimTer.y ; j++)
@@ -412,6 +398,7 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 
 
 		delete[] image;
+*/
 
 
 		for (uint j = 0; j < h.dimTer.y ; j+= h.sampTer)
@@ -421,10 +408,14 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 				int id = (j * h.dimTer.x + i );
 				//image[id] = h_TabCorre[id]/500.f;	
 				if (h_TabCorre[id]!=-1.0f)
-				//std::cout << floor(h_TabCorre[id]*1000)/1000  << " ";
-				std::cout << h_TabCorre[id]  << " ";
+				{
+					int off = 100;
+					std::cout << floor(h_TabCorre[id]*off)/off  << " ";
+					//std::cout << h_TabCorre[id]  << " ";
+
+				}
 				else
-					std::cout << " .    " << " ";
+					std::cout << "  .  ";
 			}
 
 				std::cout << "\n";	
@@ -433,8 +424,8 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 		std::cout << "------------------------------------------\n";	
 	}
 
-/*
 
+/*
 	if(0)
 	{
 
