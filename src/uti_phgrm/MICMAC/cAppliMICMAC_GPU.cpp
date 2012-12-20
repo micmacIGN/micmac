@@ -338,16 +338,10 @@ namespace NS_ParamMICMAC
 
 						}
 
-						std::string file = "C:\\Users\\gchoqueux\\Downloads\\image" + ToString(aKIm)  +  ".pgm";
+					std::string file = "C:\\Users\\gchoqueux\\Downloads\\image" + ToString(aKIm)  +  ".pgm";
 					// save PGM
-					if (sdkSavePGM<float>(file.c_str(), image, dimImg.x,dimImg.y))
-					{
-						std::cout <<"success save image" << "\n";
-					}
-					else
-						std::cout <<"Failed save image" << "\n";
-
-
+					sdkSavePGM<float>(file.c_str(), image, dimImg.x,dimImg.y);
+			
 					delete[] image;
 				}
 			}
@@ -360,7 +354,7 @@ namespace NS_ParamMICMAC
 
 			uint2 dimTer = make_uint2(mX1Ter - mX0Ter, mY1Ter - mY0Ter);
 			float uvDef	 = -1.0f;
-			uint sampTer = 5;
+			uint sampTer = 1;
 
 			h = Init_Correlation_GPU(dimTer, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, sampTer, uvDef);
 
@@ -825,31 +819,38 @@ namespace NS_ParamMICMAC
 		// Obtenir la nappe englobante
 		//short aZMinTer = -124 , aZMaxTer = 124;
 		//uint aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		uint aZMinTer = 0 , aZMaxTer = 1;
+		uint aZMinTer = 100 , aZMaxTer = 102;
 
 
 		// Tableau de sortie de corrélation
-		float* h_TabCorre = new float[  h.SizeTer ];
+		float* h_TabCorre = new float[  h.sizeTer ];
 
-		int siTabProj	= mNbIm * h.SizeSTer * 2;
+		int siTabProj	= mNbIm * h.sizeSTer * 2;
 
 		// Tableau des projections
 		float* h_TabProj	= new float[ siTabProj ];
 		float* h_TabPInit	= new float[ siTabProj ];		
 		
 		//-- Initialisation Tableau 
-		for (uint anX = 0 ; anX < h.SDimTer.x  ; anX++)
+		for (uint anX = 0 ; anX < h.dimSTer.x  ; anX++)
 		{
 			h_TabPInit[anX * 2 + 0] = h.UVDefValue;
 			h_TabPInit[anX * 2 + 1] = h.UVDefValue;
 		}
 
-		for (uint anY = 1  ; anY < h.SDimTer.y ; anY++)
-			memcpy( h_TabPInit +  2 * h.SDimTer.x  * anY, &h_TabPInit[0], 2 * h.SDimTer.x  * sizeof(float));
+		for (uint anY = 1  ; anY < h.dimSTer.y ; anY++)
+			memcpy( h_TabPInit +  2 * h.dimSTer.x  * anY, &h_TabPInit[0], 2 * h.dimSTer.x  * sizeof(float));
 
 		for (int aKIm = 1 ; aKIm < mNbIm ; aKIm++ )
-			memcpy( h_TabPInit + 2 * h.SizeSTer * aKIm, &h_TabPInit[0], 2 * h.SizeSTer * sizeof(float));
+			memcpy( h_TabPInit + 2 * h.sizeSTer * aKIm, &h_TabPInit[0], 2 * h.sizeSTer * sizeof(float));
 	
+		// debug
+
+		bool showDebug	= false;
+		int imageIDShow = 3;
+
+		//
+
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
 		{
@@ -859,21 +860,23 @@ namespace NS_ParamMICMAC
 			//		Mise en calque des projections pour chaque image
 			for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )
 			{
+				if (aKIm == imageIDShow && showDebug)
+					std::cout << "---------------------IMAGE " << aKIm << ", Z = " << anZ << "-------------------------------------\n";
 				// Obtention de l'image courante
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 				const cGeomImage*	aGeom	= aGLI.Geom();
 			
 				// Initialisation du cube de projection
-				for (int anY = mY0Ter ; anY < mY1Ter ; anY = anY + h.SampTer)
+				for (int anY = mY0Ter ; anY < mY1Ter ; anY = anY + h.sampTer)
 				{															
-					for (int anX = mX0Ter ; anX <  mX1Ter ; anX = anX + h.SampTer)	// Ballayage du terrain  
+					for (int anX = mX0Ter ; anX <  mX1Ter ; anX = anX + h.sampTer)	// Ballayage du terrain  
 					{
 						// Nappe des profondeurs
 						int aZMin	= mTabZMin[anY][anX];
 						int aZMax	= mTabZMax[anY][anX];
-						int rX		= (anX - mX0Ter) / h.SampTer;
-						int rY		= (anY - mY0Ter) / h.SampTer;
-						int iD		= (aKIm * h.SizeSTer  + h.SDimTer.x * rY + rX ) * 2;
+						int rX		= (anX - mX0Ter) / h.sampTer;
+						int rY		= (anY - mY0Ter) / h.sampTer;
+						int iD		= (aKIm * h.sizeSTer  + h.dimSTer.x * rY + rX ) * 2;
 
 						if (IsInTer( anX, anY ) && (aGLI.IsVisible(anX ,anY )) && (aZMin <= anZ)&&(anZ <=aZMax))
 						{
@@ -888,21 +891,76 @@ namespace NS_ParamMICMAC
 							{	
 								h_TabProj[iD + 0] = (float)aPIm.x;
 								h_TabProj[iD + 1] = (float)aPIm.y;
+
+								//if (aKIm == imageIDShow && showDebug) std::cout << "("<< floor(aPIm.x*10)/10 << "|" << floor(aPIm.y*10)/10 << ") ";
+								//if (aKIm == imageIDShow && showDebug) std::cout  << floor(aPIm.y*1000)/1000 << " ";
+								if (aKIm == imageIDShow && showDebug) std::cout  << aPIm.y << " ";
 							}
+							else
+								if (aKIm == imageIDShow && showDebug) std::cout << "   .   ";
 						}
+						else
+							if (aKIm == imageIDShow && showDebug) std::cout << "   .   ";
 					}
+					if (aKIm == imageIDShow && showDebug) std::cout << "\n";
 				}
+				if (aKIm == imageIDShow && showDebug) std::cout << "--------------------------------------------------------------------------\n";
 			}
 
+
+			// Obtention de l'image courante
+			
+
+			for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )
+			{
+
+				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
+				float **aDataIm	=  aGLI.DataIm();
+				float* image	= new float[h.sizeSTer];
+
+				for (int anY = mY0Ter ; anY < mY1Ter ; anY += h.sampTer)
+				{															
+					for (int anX = mX0Ter ; anX <  mX1Ter ; anX += h.sampTer)	// Ballayage du terrain  
+					{
+
+						int rX		= (anX - mX0Ter) / h.sampTer;
+						int rY		= (anY - mY0Ter) / h.sampTer;
+						int iD		= (aKIm * h.sizeSTer  + h.dimSTer.x * rY + rX ) * 2;
+						Pt2dr aPIm(h_TabProj[iD],h_TabProj[iD+1]);
+
+						double aVal;
+						if ((aGLI.IsOk(aPIm.x,aPIm.y))&&(aGLI.IsOk(aPIm.x+2,aPIm.y+2))&&(aGLI.IsOk(aPIm.x-2,aPIm.y-2)))
+						{
+							//std::cout << "image : " << aPIm.x << " , " << aPIm.y  << "\n";
+							aVal =  mInterpolTabule.GetVal(aDataIm,aPIm)/500.0f;
+						}
+						else
+							aVal = 0.0f;
+
+						image[h.dimSTer.x * rY + rX] = aVal;
+					}
+				}
+
+				std::string file = "C:\\Users\\gchoqueux\\Pictures\\image_" + ToString(aKIm) + "_Z_" + ToString(anZ)  +  ".pgm";
+				// save PGM
+
+				sdkSavePGM<float>(file.c_str(), image, h.dimTer.x,h.dimTer.y);
+
+				delete[] image;
+			}
+			
+			
+
+			/*
 			// Copie des projections de host vers le device
-			projectionsToLayers(h_TabProj, h.SDimTer, mNbIm);
+			projectionsToLayers(h_TabProj, h.dimSTer, mNbIm);
 
 			// Re-initialisation du tableau de sortie
-			memset(h_TabCorre,0,h.SizeSTer * mNbIm * 2 );
+			memset(h_TabCorre,0,h.sizeSTer * mNbIm * 2 );
 
 			// KERNEL Correlation
 			basic_Correlation_GPU(h_TabCorre , mNbIm);
-
+			*/
 			// Affectation des couts
 			/*
 			for (int Y = mY0Ter ; Y < mY1Ter ; Y++)
