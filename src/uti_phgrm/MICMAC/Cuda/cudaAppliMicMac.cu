@@ -163,28 +163,36 @@ __global__ void correlationKernel( int *dev_NbImgOk, float* cache, float *dest )
 	if ( coorTer.x >= cDimTer.x || coorTer.y >= cDimTer.y) 
 		return;
 
-	const float2 PtTProj	= simpleProjection( cDimTer, cSDimTer, cDimImg, coorTer, blockIdx.z);
+	const float2 PtTProj = simpleProjection( cDimTer, cSDimTer, cDimImg, coorTer, blockIdx.z);
 
 	if ( PtTProj.x < 0.0f ||  PtTProj.y < 0.0f )
 	{
 		cacheImg[threadIdx.y][threadIdx.x]  = 0.0f;
+		dest[iTer] = 0.0f;
 		return;
 	}
 	else
+	{
 		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayered( refTex_ImagesLayered, PtTProj.x, PtTProj.y,blockIdx.z);
-	
+		dest[iTer] = cacheImg[threadIdx.y][threadIdx.x] ;
+	}
+
 	__syncthreads();
 
 	// Intialisation des valeurs de calcul 
 	float		aSV	= 0.0f;
 	float	   aSVV	= 0.0f;
-	const uint	x0	= threadIdx.x - cRVig.x;
-	const uint	x1	= threadIdx.x + cRVig.x;
-	const uint	y0	= threadIdx.y - cRVig.y;
-	const uint	y1	= threadIdx.y + cRVig.y;
+	const int	x0	= threadIdx.x - cRVig.x;
+	const int	x1	= threadIdx.x + cRVig.x;
+	const int	y0	= threadIdx.y - cRVig.y;
+	const int	y1	= threadIdx.y + cRVig.y;
 
-	if ((x1 >= blockDim.x )||(y1 >= blockDim.y )||(x0 < 0)||(y0 < 0)) 
+	if ((x1 >= blockDim.x )||(y1 >= blockDim.y )||(x0 < 0)||(y0 < 0))
+	{
+		dest[iTer] = 1000.0f;
 		return;
+
+	}
 	else
 	{
 		#pragma unroll
@@ -204,21 +212,21 @@ __global__ void correlationKernel( int *dev_NbImgOk, float* cache, float *dest )
 	aSVV 		/=	cSizeVig;
 	aSVV		-=	aSV * aSV;
 	
-	if ( aSVV <= cMAhEpsilon) return;
-
-	const uint iCach = ( iTer + blockIdx.z * cSizeTer) * cSizeVig; 
-	const uint ic    = coorTer.y * cDimTer.x * cDimVig.x + coorTer.x * cDimVig.x;
-
-
+	if ( aSVV <= cMAhEpsilon)
+		return;
+	
+	const uint iC   = blockIdx.z * cSizeTer * cSizeVig + coorTer.y * cDimVig.y * cDimVig.x * cDimTer.x + coorTer.x * cDimVig.x;
 	aSVV =	sqrt(aSVV);
 
 	#pragma unroll
 	for (int y = y0 ; y <= y1; y++)
 	{
-		const uint pitchV = cDimVig.x *  ( y - y0); 
+		
+		const uint pCach = cDimVig.x * cDimTer.x * (y - y0);
 		#pragma unroll
-		for (int x = x0 ; x <= x1; x++)	
-			cache[iCach + pitchV  +  x - x0] = (cacheImg[y][x] -aSV)/aSVV;
+		for (int x = x0 ; x <= x1; x++)
+			cache[iC + pCach  +  x - x0] = (cacheImg[y][x] -aSV)/aSVV;
+
 	}
 	// Nombre d'images correctes
 	atomicAdd( &dev_NbImgOk[iTer], 1); 
@@ -347,11 +355,15 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 	checkCudaErrors( cudaBindTextureToArray(TexLay_Proj,dev_ProjLayered) );
 	
 	//------------   Kernel correlation   ----------------
-	dim3 threads(BLOCKDIM, BLOCKDIM, 1);
-	dim3 blocks(iDivUp(h.dimTer.x,threads.x) , iDivUp(h.dimTer.y,threads.y), nbLayer);
 	
+	dim3 threads( BLOCKDIM, BLOCKDIM, 1);
+	dim3 blocks(iDivUp(h.dimTer.x,threads.x) , iDivUp(h.dimTer.y,threads.y), nbLayer);
+	//dim3 blocks(iDivUp(h.dimTer.x,threads.x - 2 * cRVig.x) , iDivUp(h.dimTer.y,threads.y - 2 * cRVig.y), nbLayer);
+	
+
 	correlationKernel<<<blocks, threads>>>( dev_NbImgOk, dev_Cache , dev_Corr_Out);
 	getLastCudaError("Basic Correlation kernel failed");
+	
 	//checkCudaErrors( cudaDeviceSynchronize() );
 
 	//---------- Kernel multi-correlation -----------------
@@ -378,57 +390,47 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 	//if(0)
 	{
 
+		uint idImage = 0;
+
 		uint2 dimCach = h.dimTer * h.dimVig;
 
-		float* image	= new float[h.sizeTer * h.sizeVig];
+		float* imageCache	= new float[h.sizeTer * h.sizeVig];
 		for (uint j = 0; j < dimCach.y; j++)
-		{
 			for (uint i = 0; i < dimCach.x ; i++)
 			{
 				int id = (j * dimCach.x + i );
-				image[id] = host_Cache[id]/7.0f + 3.5f;	
-				
+				imageCache[id] = host_Cache[idImage * size(dimCach) + id]/7.0f + 3.5f;
 			}
 
-		}
-
-		std::string file = "C:\\Users\\Piment\\Pictures\\micmac\\image.pgm";
+		std::string fileImaCache = "C:\\Users\\gchoqueux\\Pictures\\imageCache.pgm";
 		// save PGM
-		if (sdkSavePGM<float>(file.c_str(), image, dimCach.x,dimCach.y))
-		{
+		if (sdkSavePGM<float>(fileImaCache.c_str(), imageCache, dimCach.x,dimCach.y))
 			std::cout <<"success save image" << "\n";
-		}
 		else
 			std::cout <<"Failed save image" << "\n";
 
 
-		delete[] image;
-/*
+		delete[] imageCache;
+
 		float* image	= new float[h.sizeTer];
 		for (uint j = 0; j < h.dimTer.y ; j++)
-		{
 			for (uint i = 0; i < h.dimTer.x ; i++)
 			{
 				int id = (j * h.dimTer.x + i );
-				//image[id] = h_TabCorre[id]/500.f;	
-				image[id] = h_TabCorre[id];	
+				image[id] = h_TabCorre[id]/500.f;	
+				//image[id] = h_TabCorre[id];	
 			}
-			
-		}
 
-		std::string file = "C:\\Users\\piment\\Pictures\\image.pgm";
+		std::string file = "C:\\Users\\gchoqueux\\Pictures\\image.pgm";
 		// save PGM
 		if (sdkSavePGM<float>(file.c_str(), image, h.dimTer.x,h.dimTer.y))
-		{
 			std::cout <<"success save image" << "\n";
-		}
 		else
 			std::cout <<"Failed save image" << "\n";
 
-
 		delete[] image;
 
-
+/*
 
 		for (uint j = 0; j < h.dimTer.y ; j+= h.sampTer)
 		{
