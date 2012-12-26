@@ -53,7 +53,6 @@ namespace NS_ParamMICMAC
 	extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer);
 	extern "C" paramGPU Init_Correlation_GPU( uint2 dimTer, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef);
 	uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);};
-
 	paramGPU h;
 #endif
 
@@ -819,8 +818,8 @@ namespace NS_ParamMICMAC
 		Pt2di sizImg =  aGLI.getSizeImage();
 
 		// Obtenir la nappe englobante
-		//int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		int aZMinTer = 0 , aZMaxTer = 1;
+		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
+		//int aZMinTer = 0 , aZMaxTer = 1;
 
 
 		// Tableau de sortie de corrélation
@@ -957,7 +956,7 @@ namespace NS_ParamMICMAC
 			basic_Correlation_GPU(h_TabCorre , mNbIm);
 			
 			// Affectation des couts
-			/*
+			
 			for (int Y = mY0Ter ; Y < mY1Ter ; Y++)
 			{		
 				int rY	= Y - mY0Ter;
@@ -973,7 +972,7 @@ namespace NS_ParamMICMAC
 							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,mAhDefCost);
 					}
 			}
-			*/
+			
 		}
 
 		// Erreur delete en Debug
