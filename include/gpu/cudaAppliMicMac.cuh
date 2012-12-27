@@ -20,6 +20,8 @@ static __constant__ uint  cSizeCach;
 
 struct paramGPU
 {
+	 int2 pUTer0;
+	 int2 pUTer1;
 	 uint2 dimTer;		// Dimension du bloque terrain
 	 uint2 dimSTer;		// Dimension du bloque terrain sous echantilloné
 	 uint2 dimVig;		// Dimension de la vignette
@@ -32,6 +34,7 @@ struct paramGPU
 	 float UVDefValue;	// UV Terrain incorrect
 	 uint2 dimCach;		// Dimension cache
 	 uint  sizeCach;	// Taille du cache
+	 uint nLayer;
 };
 
 static int iDivUp(int a, int b)

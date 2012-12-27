@@ -28,7 +28,7 @@ cudaArray* dev_ImagesLayered;	//
 cudaArray* dev_ProjLayered;		//
 
 //------------------------------------------------------------------------------------------
-float*	host_Corr_Out;
+//float*	host_Corr_Out;
 float*	host_Cache;
 int*	host_NbImgOk;
 float*	dev_Corr_Out;
@@ -36,36 +36,84 @@ float*	dev_Cache;
 int*	dev_NbImgOk;
 paramGPU h;
 
-static void correlOptionsGPU(uint2 dTer, uint2 dV,uint2 dRV, uint2 dI, float mAhEpsilon, uint samplingZ, float uvDef )
+extern "C" void allocMemory(void)
 {
 
-	h.dimTer	= dTer;							// Dimension du bloque terrain
-	h.dimSTer	= iDivUp(h.dimTer,samplingZ);	// Dimension du bloque terrain sous echantilloné
+	if (dev_NbImgOk != NULL) checkCudaErrors( cudaFree(dev_NbImgOk));
+	if (dev_Corr_Out != NULL) checkCudaErrors( cudaFree(dev_Corr_Out));
+	if (dev_Cache != NULL) checkCudaErrors( cudaFree(dev_Cache));
+
+	int out_MemSize = h.sizeTer * sizeof(float);
+	int nBI_MemSize = h.sizeTer	* sizeof(int);
+	int cac_MemSize = h.sizeCach* sizeof(float)* h.nLayer;
+
+	// Allocation mémoire
+	//host_Corr_Out	= (float*)	malloc(out_MemSize);
+	//host_Cache		= (float*)	malloc(cac_MemSize);
+	//host_NbImgOk	= (int*)	malloc(nBI_MemSize);
+
+	checkCudaErrors( cudaMalloc((void **) &dev_Corr_Out, out_MemSize) );	
+	checkCudaErrors( cudaMalloc((void **) &dev_Cache, cac_MemSize ) );
+	checkCudaErrors( cudaMalloc((void **) &dev_NbImgOk, nBI_MemSize ) );
+
+	// Texture des projections
+	TexLay_Proj.addressMode[0]	= cudaAddressModeClamp;
+	TexLay_Proj.addressMode[1]	= cudaAddressModeClamp;	
+	TexLay_Proj.filterMode		= cudaFilterModePoint; //cudaFilterModePoint 
+	TexLay_Proj.normalized		= true;
+
+}
+
+extern "C" paramGPU updateSizeBlock( int x0, int x1, int y0, int y1 )
+{
+
+	int oldSizeTer = h.sizeTer;
+
+	h.pUTer0.x	= x0 - h.rVig.x;
+	h.pUTer0.y	= y0 - h.rVig.y;
+	h.pUTer1.x	= x1 + h.rVig.x;
+	h.pUTer1.y	= y1 + h.rVig.y;
+
+	h.dimTer	= make_uint2(h.pUTer1.x - h.pUTer0.x, h.pUTer1.y - h.pUTer0.y);
+	h.dimSTer	= iDivUp(h.dimTer,h.sampTer);	// Dimension du bloque terrain sous echantilloné
+	h.sizeTer	= size(h.dimTer);				// Taille du bloque terrain
+	h.sizeSTer  = size(h.dimSTer);				// Taille du bloque terrain sous echantilloné
+	h.dimCach	= h.dimTer * h.dimVig;
+	h.sizeCach	= size(h.dimCach);
+
+	checkCudaErrors(cudaMemcpyToSymbol(cSDimTer, &h.dimSTer, sizeof(uint2)));
+	checkCudaErrors(cudaMemcpyToSymbol(cDimTer, &h.dimTer, sizeof(uint2)));
+	checkCudaErrors(cudaMemcpyToSymbol(cSizeTer, &h.sizeTer, sizeof(uint)));
+	checkCudaErrors(cudaMemcpyToSymbol(cSizeSTer, &h.sizeSTer, sizeof(uint)));
+	checkCudaErrors(cudaMemcpyToSymbol(cDimCach, &h.dimCach, sizeof(uint2)));
+	checkCudaErrors(cudaMemcpyToSymbol(cSizeCach, &h.sizeCach, sizeof(uint)));
+
+	if (oldSizeTer != h.sizeTer)
+		allocMemory();
+
+	return h;
+}
+
+static void correlOptionsGPU(int x0, int x1, int y0, int y1, uint2 dV,uint2 dRV, uint2 dI, float mAhEpsilon, uint samplingZ, float uvDef, uint nLayer )
+{
+
+	h.nLayer	= nLayer;
 	h.dimVig	= dV;							// Dimension de la vignette
 	h.dimImg	= dI;							// Dimension des images
 	h.rVig		= dRV;							// Rayon de la vignette
 	h.sizeVig	= size(dV);						// Taille de la vignette en pixel 
-	h.sizeTer	= size(dTer);					// Taille du bloque terrain
-	h.sizeSTer  = size(h.dimSTer);				// Taille du bloque terrain sous echantilloné
 	h.sampTer	= samplingZ;					// Pas echantillonage du terrain
 	h.UVDefValue= uvDef;						// UV Terrain incorrect
-	h.dimCach	= h.dimTer * h.dimVig;
-	h.sizeCach	= size(h.dimCach);
 
-	checkCudaErrors(cudaMemcpyToSymbol(cDimVig, &dV, sizeof(uint2)));
-	checkCudaErrors(cudaMemcpyToSymbol(cSDimTer, &h.dimSTer, sizeof(uint2)));
 	checkCudaErrors(cudaMemcpyToSymbol(cRVig, &dRV, sizeof(uint2)));
-	checkCudaErrors(cudaMemcpyToSymbol(cDimTer, &dTer, sizeof(uint2)));
+	checkCudaErrors(cudaMemcpyToSymbol(cDimVig, &h.dimVig, sizeof(uint2)));
 	checkCudaErrors(cudaMemcpyToSymbol(cDimImg, &dI, sizeof(uint2)));
 	checkCudaErrors(cudaMemcpyToSymbol(cMAhEpsilon, &mAhEpsilon, sizeof(float)));
 	checkCudaErrors(cudaMemcpyToSymbol(cSizeVig, &h.sizeVig, sizeof(uint)));
-	checkCudaErrors(cudaMemcpyToSymbol(cSizeTer, &h.sizeTer, sizeof(uint)));
-	checkCudaErrors(cudaMemcpyToSymbol(cSizeSTer, &h.sizeSTer, sizeof(uint)));
 	checkCudaErrors(cudaMemcpyToSymbol(cSampTer, &h.sampTer, sizeof(uint)));
 	checkCudaErrors(cudaMemcpyToSymbol(cUVDefValue, &h.UVDefValue, sizeof(float)));
-	checkCudaErrors(cudaMemcpyToSymbol(cDimCach, &h.dimCach, sizeof(uint2)));
-	checkCudaErrors(cudaMemcpyToSymbol(cSizeCach, &h.sizeCach, sizeof(uint)));
-
+	
+	updateSizeBlock( x0, x1, y0, y1 );
 }
 
 extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer)
@@ -96,7 +144,6 @@ extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer)
     refTex_ImagesLayered.filterMode		= cudaFilterModeLinear; //cudaFilterModeLinear cudaFilterModePoint
     refTex_ImagesLayered.normalized		= true;
 	checkCudaErrors( cudaBindTextureToArray(refTex_ImagesLayered,dev_ImagesLayered) );
-
 
 };
 
@@ -171,7 +218,7 @@ __global__ void correlationKernel( int *dev_NbImgOk, float* cache, float *dest )
 	if ( PtTProj.x < 0.0f ||  PtTProj.y < 0.0f )
 	{
 		cacheImg[threadIdx.y][threadIdx.x]  = -1.0f;
-		//dest[iTer] = 1000.0f;
+		//dest[iTer] = -1.0f;
 		return;
 	}
 	else
@@ -181,6 +228,7 @@ __global__ void correlationKernel( int *dev_NbImgOk, float* cache, float *dest )
 	}
 
 	__syncthreads();
+
 
 	// Intialisation des valeurs de calcul 
 	float		aSV	= 0.0f;
@@ -259,7 +307,7 @@ __global__ void multiCorrelationKernel(float *dest, float* cache, int * dev_NbIm
 	
 	__syncthreads();
 
-	// nombres de threads utilisées dans le bloques
+	// Threads utilisées dans le bloque
 	const uint2 activThds = make_uint2(blockDim.x - blockDim.x % cDimVig.x, blockDim.y - blockDim.y % cDimVig.y);
 
 	// si le thread est inactif, il sort
@@ -272,7 +320,7 @@ __global__ void multiCorrelationKernel(float *dest, float* cache, int * dev_NbIm
 	// Si le thread est en dehors du cache
 	if ( coordCach.x >=  cDimTer.x * cDimVig.x || coordCach.y >=  cDimTer.y * cDimVig.y )
 		return;
-
+	
 	// Coordonnées 1D du cache
 	const unsigned int iCach	= threadIdx.z * cSizeTer * cSizeVig + coordCach.y * cDimTer.x * cDimVig.x + coordCach.x ;
 
@@ -321,34 +369,20 @@ __global__ void multiCorrelationKernel(float *dest, float* cache, int * dev_NbIm
 
 }
 
-extern "C" paramGPU Init_Correlation_GPU( uint2 dimTer, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef )
+extern "C" paramGPU Init_Correlation_GPU( int x0, int x1, int y0, int y1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef )
 {
+	dev_NbImgOk		= NULL;
+	dev_Corr_Out	= NULL;
+	dev_Cache		= NULL;
 
-	correlOptionsGPU(dimTer,dRVig * 2 + 1,dRVig, dimImg,mAhEpsilon, samplingZ, uvDef);
-	int out_MemSize = h.sizeTer * sizeof(float);
-	int nBI_MemSize = h.sizeTer * sizeof(int);
-	int cac_MemSize = h.sizeCach * nbLayer * sizeof(float);
-
-	// Allocation mémoire
-	host_Corr_Out = (float*)	malloc(out_MemSize);
-	host_Cache		= (float*)	malloc(cac_MemSize);
-	//host_NbImgOk	= (int*)	malloc(nBI_MemSize);
-
-	checkCudaErrors( cudaMalloc((void **) &dev_Corr_Out, out_MemSize) );	
-	checkCudaErrors( cudaMalloc((void **) &dev_Cache, cac_MemSize ) );
-	checkCudaErrors( cudaMalloc((void **) &dev_NbImgOk, nBI_MemSize ) );
-
-	// Texture des projections
-	TexLay_Proj.addressMode[0]	= cudaAddressModeClamp;
-    TexLay_Proj.addressMode[1]	= cudaAddressModeClamp;	
-    TexLay_Proj.filterMode		= cudaFilterModePoint; //cudaFilterModePoint 
-    TexLay_Proj.normalized		= true;
+	correlOptionsGPU(x0, x1, y0, y1, dRVig * 2 + 1,dRVig, dimImg,mAhEpsilon, samplingZ, uvDef,nbLayer);
+	allocMemory();
 
 	return h;
 }
 
 extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
-
+	
 	int out_MemSize = h.sizeTer  * sizeof(float);
 	int nBI_MemSize = h.sizeTer	 * sizeof(int);
 	int cac_MemSize = h.sizeCach * sizeof(float) * nbLayer;
@@ -363,7 +397,6 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 	dim3 threads( BLOCKDIM, BLOCKDIM, 1);
 	//dim3 blocks(iDivUp(h.dimTer.x,threads.x) , iDivUp(h.dimTer.y,threads.y), nbLayer);
 	dim3 blocks(iDivUp(h.dimTer.x,threads.x - 2 * h.dimVig.x) , iDivUp(h.dimTer.y,threads.y - 2 * h.dimVig.y), nbLayer);
-	
 
 	correlationKernel<<<blocks, threads>>>( dev_NbImgOk, dev_Cache , dev_Corr_Out);
 	getLastCudaError("Basic Correlation kernel failed");
@@ -372,13 +405,11 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 
 	//---------- Kernel multi-correlation -----------------
 
-
 	int actiThs_X = SBLOCKDIM - SBLOCKDIM % h.dimVig.x;
-	int actiThs_Y = SBLOCKDIM - SBLOCKDIM % h.dimVig.x;
+	int actiThs_Y = SBLOCKDIM - SBLOCKDIM % h.dimVig.y;
 
 	dim3 threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
 	dim3 blocks_mC(iDivUp(h.dimTer.x * h.dimVig.x  ,actiThs_X) , iDivUp(h.dimTer.y * h.dimVig.y ,actiThs_Y));
-
 
 	multiCorrelationKernel<<<blocks_mC, threads_mC>>>( dev_Corr_Out, dev_Cache, dev_NbImgOk);
 	getLastCudaError("Multi-Correlation kernel failed");
@@ -390,7 +421,6 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 	//checkCudaErrors( cudaMemcpy( host_Cache,	dev_Cache,	  cac_MemSize, cudaMemcpyDeviceToHost) );
 	//--------------------------------------------------------
 
-	
 	if(0)
 	{
 		if (0)
@@ -416,26 +446,26 @@ extern "C" void basic_Correlation_GPU( float* h_TabCorre,  int nbLayer ){
 
 
 				delete[] imageCache;
+		
+
+			float* image	= new float[h.sizeTer];
+			for (uint j = 0; j < h.dimTer.y ; j++)
+				for (uint i = 0; i < h.dimTer.x ; i++)
+				{
+					int id = (j * h.dimTer.x + i );
+					//image[id] = h_TabCorre[id]/500.f;	
+					image[id] = h_TabCorre[id]/2.0f;	
+				}
+
+			std::string file = "C:\\Users\\gchoqueux\\Pictures\\image.pgm";
+			// save PGM
+			if (sdkSavePGM<float>(file.c_str(), image, h.dimTer.x,h.dimTer.y))
+				std::cout <<"success save image" << "\n";
+			else
+				std::cout <<"Failed save image" << "\n";
+
+			delete[] image;
 		}
-
-		float* image	= new float[h.sizeTer];
-		for (uint j = 0; j < h.dimTer.y ; j++)
-			for (uint i = 0; i < h.dimTer.x ; i++)
-			{
-				int id = (j * h.dimTer.x + i );
-				//image[id] = h_TabCorre[id]/500.f;	
-				image[id] = h_TabCorre[id]/2.0f;	
-			}
-
-		std::string file = "C:\\Users\\gchoqueux\\Pictures\\image.pgm";
-		// save PGM
-		if (sdkSavePGM<float>(file.c_str(), image, h.dimTer.x,h.dimTer.y))
-			std::cout <<"success save image" << "\n";
-		else
-			std::cout <<"Failed save image" << "\n";
-
-		delete[] image;
-
 
 
 		for (uint j = 0; j < h.dimTer.y ; j+= h.sampTer)
@@ -495,14 +525,14 @@ extern "C" void freeGpuMemory()
 	checkCudaErrors( cudaUnbindTexture(refTex_Image) );
 	checkCudaErrors( cudaUnbindTexture(refTex_ImagesLayered) );
 	checkCudaErrors( cudaFreeArray(dev_Img) );
-	checkCudaErrors( cudaFreeArray(dev_ImagesLayered) );
+	if(dev_ImagesLayered != NULL) checkCudaErrors( cudaFreeArray(dev_ImagesLayered) );
 	checkCudaErrors( cudaFreeArray(dev_CubeProjImg) );
 	checkCudaErrors( cudaFreeArray(dev_ArrayProjImg) );
-	checkCudaErrors( cudaFreeArray(dev_ProjLayered) );
-	checkCudaErrors( cudaFree(dev_NbImgOk));
-	checkCudaErrors( cudaFree(dev_Corr_Out));
-	checkCudaErrors( cudaFree(dev_Cache));
-	free(host_Corr_Out);
+	if(dev_ProjLayered != NULL)  checkCudaErrors( cudaFreeArray(dev_ProjLayered) );
+	if(dev_NbImgOk != NULL) checkCudaErrors( cudaFree(dev_NbImgOk));
+	if(dev_Corr_Out != NULL) checkCudaErrors( cudaFree(dev_Corr_Out));
+	if(dev_Cache != NULL) checkCudaErrors( cudaFree(dev_Cache));
+	//free(host_Corr_Out);
 	//free(host_NbImgOk); 
 	//free(host_Cache);
 }
