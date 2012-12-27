@@ -51,7 +51,9 @@ namespace NS_ParamMICMAC
 	extern "C" void projectionsToLayers(float *h_TabProj, uint2 dimTer, int nbLayer);
 	extern "C" void basic_Correlation_GPU(  float* h_TabCorre, int nbLayer);
 	extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer);
-	extern "C" paramGPU Init_Correlation_GPU( uint2 dimTer, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef);
+	extern "C" paramGPU Init_Correlation_GPU( int x0, int x1, int y0, int y1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef);
+	extern "C" paramGPU updateSizeBlock( int x0, int x1, int y0, int y1 );
+	
 	uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);};
 	paramGPU h;
 #endif
@@ -353,11 +355,9 @@ namespace NS_ParamMICMAC
 
 			delete[] fdataImg1D;
 
-			uint2 dimTer = make_uint2(mX1Ter - mX0Ter, mY1Ter - mY0Ter);
 			float uvDef	 = -1.0f;
 			uint sampTer = 4;
-
-			h = Init_Correlation_GPU(dimTer, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, sampTer, uvDef);
+			h = Init_Correlation_GPU(mX0Ter, mX1Ter , mY0Ter , mY1Ter, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, sampTer, uvDef);
 
 		}
 
@@ -812,6 +812,8 @@ namespace NS_ParamMICMAC
 
 		if(	mNbIm == 0) return;
 
+		h = updateSizeBlock(mX0Ter,mX1Ter,mY0Ter,mY1Ter);
+
 		// Obtention de l'image courante
 		cGPU_LoadedImGeom&	aGLI	= *(mVLI[0]);
 		// Taille de l'image courante
@@ -821,15 +823,13 @@ namespace NS_ParamMICMAC
 		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
 		//int aZMinTer = 0 , aZMaxTer = 1;
 
-
 		// Tableau de sortie de corrélation
 		float* h_TabCorre = new float[  h.sizeTer ];
-
-		int siTabProj	= mNbIm * h.sizeSTer * 2;
+		uint siTabProj	= mNbIm * h.sizeSTer * 2;
 
 		// Tableau des projections
 		float* h_TabProj	= new float[ siTabProj ];
-		float* h_TabPInit	= new float[ siTabProj ];		
+		float* h_TabPInit	= new float[ siTabProj ];
 		
 		//-- Initialisation Tableau 
 		for (uint anX = 0 ; anX < h.dimSTer.x  ; anX++)
@@ -839,14 +839,14 @@ namespace NS_ParamMICMAC
 		}
 
 		for (uint anY = 1  ; anY < h.dimSTer.y ; anY++)
-			memcpy( h_TabPInit +  2 * h.dimSTer.x  * anY, &h_TabPInit[0], 2 * h.dimSTer.x  * sizeof(float));
+			memcpy( h_TabPInit +  2 * h.dimSTer.x  * anY, &h_TabPInit[0], 2 * h.dimSTer.x * sizeof(float));
 
 		for (int aKIm = 1 ; aKIm < mNbIm ; aKIm++ )
 			memcpy( h_TabPInit + 2 * h.sizeSTer * aKIm, &h_TabPInit[0], 2 * h.sizeSTer * sizeof(float));
 	
 		// debug
 		bool showDebug	= false;
-		int imageIDShow = 3;
+		int imageIDShow = 0;
 
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
@@ -854,7 +854,9 @@ namespace NS_ParamMICMAC
 			// Re-initialisation du tableau de projection
 			memcpy( h_TabProj, h_TabPInit, siTabProj * sizeof(float));
 			
-			//		Mise en calque des projections pour chaque image
+			if (showDebug)
+				std::cout << "Mis en calque des projections : " << aZMinTer << " - " << aZMaxTer << " Z : " << anZ << "\n";
+			// Mise en calque des projections pour chaque image
 			for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )
 			{
 				if (aKIm == imageIDShow && showDebug)
@@ -864,40 +866,58 @@ namespace NS_ParamMICMAC
 				const cGeomImage*	aGeom	= aGLI.Geom();
 			
 				// Initialisation du cube de projection
-				for (int anY = mY0Ter ; anY < mY1Ter ; anY = anY + h.sampTer)
+				for (int anY = h.pUTer0.y ; anY < h.pUTer1.y; anY = anY + h.sampTer)
 				{															
-					for (int anX = mX0Ter ; anX <  mX1Ter ; anX = anX + h.sampTer)	// Ballayage du terrain  
+					for (int anX = h.pUTer0.x ; anX < h.pUTer1.x ; anX = anX + h.sampTer)	// Ballayage du terrain  
 					{
-						// Nappe des profondeurs
-						int aZMin	= mTabZMin[anY][anX];
-						int aZMax	= mTabZMax[anY][anX];
-						int rX		= (anX - mX0Ter) / h.sampTer;
-						int rY		= (anY - mY0Ter) / h.sampTer;
+						
+						int rX		= (anX - h.pUTer0.x) / h.sampTer;
+						int rY		= (anY - h.pUTer0.y) / h.sampTer;
 						int iD		= (aKIm * h.sizeSTer  + h.dimSTer.x * rY + rX ) * 2;
-
-						if (IsInTer( anX, anY ) && (aGLI.IsVisible(anX ,anY )) && (aZMin <= anZ)&&(anZ <=aZMax))
+						
+						if ( anX >= 0 && anY >= 0 )
 						{
-							// Déquantification  de X, Y et Z 
-							const double aZReel	= DequantZ(anZ);
-							Pt2dr		aPTer	= DequantPlani(anX,anY);  
+							// Nappe des profondeurs
+							int cY = anY > (mY1Ter -1)  ? (mY1Ter - 1) : anY;
+							int cX = anX > (mX1Ter -1)  ? (mX1Ter - 1) : anX;
+							cY = cY < 0  ? 0 : cY;
+							cX = cX < 0  ? 0 : cX;
+							int aZMin	= mTabZMin[cY][cX];
+							int aZMax	= mTabZMax[cY][cX];
 
-							// Projection dans l'image 
-							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);
+							if (IsInTer( cX, cY ) && (aGLI.IsVisible(cX ,cY )) && (aZMin <= anZ)&&(anZ <=aZMax))
+							{
+								// Déquantification  de X, Y et Z 
+								const double aZReel	= DequantZ(anZ);
+								Pt2dr		aPTer	= DequantPlani(anX,anY);  
 
-							if (aGLI.IsOk( aPIm.x, aPIm.y ))
-							{	
-								h_TabProj[iD + 0] = (float)aPIm.x;
-								h_TabProj[iD + 1] = (float)aPIm.y;
+								// Projection dans l'image 
+								Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);
 
-								//if (aKIm == imageIDShow && showDebug) std::cout << "("<< floor(aPIm.x*10)/10 << "|" << floor(aPIm.y*10)/10 << ") ";
-								//if (aKIm == imageIDShow && showDebug) std::cout  << floor(aPIm.y*1000)/1000 << " ";
-								if (aKIm == imageIDShow && showDebug) std::cout  << aPIm.y << " ";
+								if (aGLI.IsOk( aPIm.x, aPIm.y ))
+								{	
+									h_TabProj[iD + 0] = (float)aPIm.x;
+									h_TabProj[iD + 1] = (float)aPIm.y;
+
+									//if (aKIm == imageIDShow && showDebug) std::cout << "("<< floor(aPIm.x*10)/10 << "|" << floor(aPIm.y*10)/10 << ") ";
+									//if (aKIm == imageIDShow && showDebug) std::cout  << floor(aPIm.y*1000)/1000 << " ";
+									if (aKIm == imageIDShow && showDebug) std::cout  << aPIm.y << " ";
+						
+								}
+								else
+									if (aKIm == imageIDShow && showDebug) std::cout << "   .   ";
 							}
 							else
-								if (aKIm == imageIDShow && showDebug) std::cout << "   .   ";
+								if (aKIm == imageIDShow && showDebug)
+								{
+									std::cout << "   .   ";
+								}
 						}
 						else
-							if (aKIm == imageIDShow && showDebug) std::cout << "   .   ";
+							if (aKIm == imageIDShow && showDebug)
+							{
+								std::cout << "   .   ";
+							}
 					}
 					if (aKIm == imageIDShow && showDebug) std::cout << "\n";
 				}
@@ -956,29 +976,33 @@ namespace NS_ParamMICMAC
 			basic_Correlation_GPU(h_TabCorre , mNbIm);
 			
 			// Affectation des couts
-			
+			if (showDebug)
+				std::cout << "Affectation des couts\n";
 			for (int Y = mY0Ter ; Y < mY1Ter ; Y++)
-			{		
-				int rY	= Y - mY0Ter;
-
-				for (int X = mX0Ter ; X <  mX1Ter ; X++)	// Ballayage du terrain  
+			{			
+				int rY	= Y - mY0Ter + h.rVig.y;
+				for (int X = mX0Ter; X <  mX1Ter; X++)	// Ballayage du terrain  
 				
 					if ( mTabZMin[Y][X] <=  anZ && anZ < mTabZMax[Y][X])
 					{
-						double cost = (double)h_TabCorre[h.dimTer.x * rY + X - mX0Ter];
+						int rX	= X - mX0Ter + h.rVig.x;
+						double cost = (double)h_TabCorre[h.dimTer.x * rY + rX];
 						if (cost > 0.0)
 							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,cost);
 						else
 							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,mAhDefCost);
 					}
 			}
-			
 		}
-
+		if (showDebug)
+			std::cout << "delete\n";
 		// Erreur delete en Debug
 		delete [] h_TabCorre;
 		delete [] h_TabProj;
 		delete [] h_TabPInit;
+		if (showDebug)
+			std::cout << "fin delete\n";
+
 #else
 std::cout  << "MESSAGE = "<<   mCorrelAdHoc->GPU_CorrelBasik().Val().Unused().Val() << "\n";
 
