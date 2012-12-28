@@ -808,8 +808,8 @@ namespace NS_ParamMICMAC
 	{
 
 
-#ifdef CUDA_ENABLED
-
+#ifdef  CUDA_ENABLED
+		
 		if(	mNbIm == 0) return;
 
 		h = updateSizeBlock(mX0Ter,mX1Ter,mY0Ter,mY1Ter);
@@ -822,6 +822,8 @@ namespace NS_ParamMICMAC
 		// Obtenir la nappe englobante
 		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
 		//int aZMinTer = 0 , aZMaxTer = 1;
+
+		//std::cout << mZMinGlob << "," << mZMaxGlob << "\n";
 
 		// Tableau de sortie de corrélation
 		float* h_TabCorre = new float[  h.sizeTer ];
@@ -966,7 +968,6 @@ namespace NS_ParamMICMAC
 
 			
 			// Copie des projections de host vers le device
-
 			projectionsToLayers(h_TabProj, h.dimSTer, mNbIm);
 
 			// Re-initialisation du tableau de sortie
@@ -987,10 +988,14 @@ namespace NS_ParamMICMAC
 					{
 						int rX	= X - mX0Ter + h.rVig.x;
 						double cost = (double)h_TabCorre[h.dimTer.x * rY + rX];
-						if (cost > 0.0)
+						if (cost != -1000.0f)
+						{
+							cost =  mStatGlob->CorrelToCout(1-cost);
 							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,cost);
-						else
+						}
+						else 
 							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,mAhDefCost);
+							
 					}
 			}
 		}
@@ -1004,7 +1009,7 @@ namespace NS_ParamMICMAC
 			std::cout << "fin delete\n";
 
 #else
-std::cout  << "MESSAGE = "<<   mCorrelAdHoc->GPU_CorrelBasik().Val().Unused().Val() << "\n";
+//std::cout  << "MESSAGE = "<<   mCorrelAdHoc->GPU_CorrelBasik().Val().Unused().Val() << "\n";
 
 		//  Lecture des parametre d'environnement MicMac : nappes, images, quantification etc ...
 
@@ -1188,7 +1193,7 @@ std::cout  << "MESSAGE = "<<   mCorrelAdHoc->GPU_CorrelBasik().Val().Unused().Va
 			}
 		
 
-		std::cout << "End DoGPU_Correl_Basik..." << "\n";
+		//std::cout << "End DoGPU_Correl_Basik..." << "\n";
 
 		}
 #endif

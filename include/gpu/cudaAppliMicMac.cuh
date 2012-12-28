@@ -17,6 +17,8 @@ static __constant__ uint  cSizeSTer;
 static __constant__ float cUVDefValue;
 static __constant__ uint2 cDimCach;
 static __constant__ uint  cSizeCach;
+static __constant__ uint  cBadVignet;
+
 
 struct paramGPU
 {

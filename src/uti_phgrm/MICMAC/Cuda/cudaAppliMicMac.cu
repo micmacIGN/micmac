@@ -88,7 +88,7 @@ extern "C" paramGPU updateSizeBlock( int x0, int x1, int y0, int y1 )
 	checkCudaErrors(cudaMemcpyToSymbol(cDimCach, &h.dimCach, sizeof(uint2)));
 	checkCudaErrors(cudaMemcpyToSymbol(cSizeCach, &h.sizeCach, sizeof(uint)));
 
-	if (oldSizeTer != h.sizeTer)
+	if (oldSizeTer < h.sizeTer)
 		allocMemory();
 
 	return h;
@@ -104,6 +104,7 @@ static void correlOptionsGPU(int x0, int x1, int y0, int y1, uint2 dV,uint2 dRV,
 	h.sizeVig	= size(dV);						// Taille de la vignette en pixel 
 	h.sampTer	= samplingZ;					// Pas echantillonage du terrain
 	h.UVDefValue= uvDef;						// UV Terrain incorrect
+	float badVi = 10.0f;
 
 	checkCudaErrors(cudaMemcpyToSymbol(cRVig, &dRV, sizeof(uint2)));
 	checkCudaErrors(cudaMemcpyToSymbol(cDimVig, &h.dimVig, sizeof(uint2)));
@@ -112,6 +113,7 @@ static void correlOptionsGPU(int x0, int x1, int y0, int y1, uint2 dV,uint2 dRV,
 	checkCudaErrors(cudaMemcpyToSymbol(cSizeVig, &h.sizeVig, sizeof(uint)));
 	checkCudaErrors(cudaMemcpyToSymbol(cSampTer, &h.sampTer, sizeof(uint)));
 	checkCudaErrors(cudaMemcpyToSymbol(cUVDefValue, &h.UVDefValue, sizeof(float)));
+	checkCudaErrors(cudaMemcpyToSymbol(cBadVignet, &badVi, sizeof(float)));
 	
 	updateSizeBlock( x0, x1, y0, y1 );
 }
@@ -229,12 +231,13 @@ __global__ void correlationKernel( int *dev_NbImgOk, float* cache, float *dest )
 
 	__syncthreads();
 
-
 	// Intialisation des valeurs de calcul 
 	float		aSV	= 0.0f;
 	float	   aSVV	= 0.0f;
 	const int2 c0	= (threadIdx - cRVig);
 	const int2 c1	= (threadIdx + cRVig);
+
+	const uint iC   = blockIdx.z * cSizeCach + coorTer.y * cDimVig.y * cDimCach.x + coorTer.x * cDimVig.x;
 
 	if ( c1.x >= blockDim.x || c1.y >= blockDim.y || c0.x < 0 || c0.y < 0 )
 	{
@@ -252,9 +255,13 @@ __global__ void correlationKernel( int *dev_NbImgOk, float* cache, float *dest )
 			{	
 				const float val = cacheImg[y][x];	// Valeur de l'image
 
-				if (val < 0.0f) return;
-				aSV  += val;			// Somme des valeurs de l'image cte 
-				aSVV += val*val;		// Somme des carrés des vals image cte
+				if (val < 0.0f)
+				{
+					cache[iC] = cBadVignet; 
+					return;
+				}
+				aSV  += val;		// Somme des valeurs de l'image cte 
+				aSVV += val*val;	// Somme des carrés des vals image cte
 			}
 		}
 	}
@@ -264,9 +271,11 @@ __global__ void correlationKernel( int *dev_NbImgOk, float* cache, float *dest )
 	aSVV		-=	aSV * aSV;
 	
 	if ( aSVV <= cMAhEpsilon)
+	{
+		cache[iC] = cBadVignet;
 		return;
-	
-	const uint iC   = blockIdx.z * cSizeCach + coorTer.y * cDimVig.y * cDimCach.x + coorTer.x * cDimVig.x;
+	}
+
 	aSVV =	sqrt(aSVV);
 
 	#pragma unroll
@@ -276,7 +285,13 @@ __global__ void correlationKernel( int *dev_NbImgOk, float* cache, float *dest )
 		#pragma unroll
 		for (int x = c0.x ; x <= c1.x; x++)
 		{
-			if (cacheImg[y][x] < 0.0f) return;
+			
+			if (cacheImg[y][x] < 0.0f) 
+			{
+				cache[iC] = cBadVignet;
+				return;
+			}
+
 			cache[iC + pCach  +  x - c0.x] = (cacheImg[y][x] -aSV)/aSVV;
 		}
 	}
@@ -323,6 +338,10 @@ __global__ void multiCorrelationKernel(float *dest, float* cache, int * dev_NbIm
 	
 	// Coordonnées 1D du cache
 	const unsigned int iCach	= threadIdx.z * cSizeTer * cSizeVig + coordCach.y * cDimTer.x * cDimVig.x + coordCach.x ;
+	
+	// 1er coordonnées de la vignette
+	const uint2 coordCacho		= make_uint2(coordCach.x - coordCach.x % cDimVig.x, coordCach.y - coordCach.y % cDimVig.y);
+	const unsigned int iCacho	= threadIdx.z * cSizeTer * cSizeVig + coordCacho.y * cDimTer.x * cDimVig.x + coordCacho.x ;
 
 	// Coordonnées 2D du terrain 
 	const uint2 coordTer		= coordCach / cDimVig;
@@ -332,20 +351,22 @@ __global__ void multiCorrelationKernel(float *dest, float* cache, int * dev_NbIm
 
 	// Coordonnées 2D du terrain dans le repere des threads
 	const uint2 coorTTer	= t / cDimVig;
-
 	const bool mainThread	= (t.x % cDimVig.x)== 0 && (t.y % cDimVig.y) == 0 && threadIdx.z == 0;
-	
 	const uint aNbImOk		= dev_NbImgOk[iTer];
+	const float valo		= cache[iCach];
 
 	if ( aNbImOk < 2)
 	{
 		if (mainThread)
-			dest[iTer] = -1.0f;
+			dest[iTer] = -1000.0f;
 		return;
 	}
 
-	const float val = cache[iCach];
+	const float val	= cache[iCach];
 
+	if (valo == cBadVignet || val == cBadVignet )
+		return;
+	
 	__syncthreads();
 
 	atomicAdd( &aSV[t.y][t.x], val);
@@ -363,10 +384,11 @@ __global__ void multiCorrelationKernel(float *dest, float* cache, int * dev_NbIm
 	if ( !mainThread ) return;
 
 	// Normalisation pour le ramener a un equivalent de 1-Correl 
-	const float cost = resu[coorTTer.y][coorTTer.x] / (( aNbImOk-1) * cSizeVig);
+	//const float cost = resu[coorTTer.y][coorTTer.x] / (( aNbImOk-1) * cSizeVig);
 
-	dest[iTer] = 1.0f - max (-1.0, min(1.0,1.0f - cost));
+	//dest[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
 
+	dest[iTer] = resu[coorTTer.y][coorTTer.x] / (( aNbImOk-1) * cSizeVig);
 }
 
 extern "C" paramGPU Init_Correlation_GPU( int x0, int x1, int y0, int y1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef )
