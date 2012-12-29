@@ -445,6 +445,21 @@ void cAppliApero::MAJContraintePose(const cContraintesPoses & aC)
 typedef std::list<cContraintesCamerasInc> tLCCI;
 typedef std::list<cContraintesPoses> tLCCP;
 
+void cAppliApero::InspectCalibs()
+{
+   for 
+   (
+        tDiCal::const_iterator itC = mDicoCalib.begin();
+	itC!=  mDicoCalib.end();
+	itC++
+   )
+   {
+        itC->second->Inspect();
+   }
+}
+
+
+
 
 void  cAppliApero::MAJContraintes(const cSectionContraintes & aSC)
 {

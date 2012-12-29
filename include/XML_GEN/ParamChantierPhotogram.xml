@@ -460,6 +460,7 @@ namespace NS_ParamChantierPhotogram{
        <OneModifIPF Nb="*">
             <KeyName Nb="1" Type="std::string"> </KeyName>
 	    <Incertitude Nb="1"  Type="Pt3dr"> </Incertitude>
+            <IsMult Nb="?" Type="bool" Def="false"> </IsMult>
        </OneModifIPF>
    </ModifIncPtsFlottant>
 

@@ -370,6 +370,9 @@ const std::string & cCalibCam::KeyId()
    return mKeyId;
 }
 
+void  cCalibCam::Inspect()
+{
+}
 /**************************************************/
 /*                                                */
 /*          cCalibCam_ModeleRadial                */
@@ -438,10 +441,11 @@ bool cCalibCam_ModeleRadial::InstSetContrainte
 /*                                                */
 /**************************************************/
 
-
 class cCalibCam_ModeleUnif : public  cCalibCam
 {
      public :
+
+         void Inspect();
          ~cCalibCam_ModeleUnif() {}
 
          cCalibCam_ModeleUnif
@@ -464,6 +468,11 @@ class cCalibCam_ModeleUnif : public  cCalibCam
         cPIF_Unif_Gen &             mPIF;
 	cCamera_Param_Unif_Gen &    mCamInit;
 };
+
+void cCalibCam_ModeleUnif::Inspect()
+{
+    mPIF.Inspect();
+}
 
 
 cCalibCam_ModeleUnif::cCalibCam_ModeleUnif
@@ -892,6 +901,7 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
 
         std::string aFullName = anAppli.DC()+aCCI.Directory().Val()+ aSEF.NameFile();
         aTestFullName = aFullName;
+
 
         if (ELISE_fp::exist_file(aFullName))
         {
