@@ -2268,13 +2268,13 @@ ElCamera::~ElCamera() {}
 //    S2toS1 = S2.FromSys2This(
 //  R2 =  R1 S2toS1 = R1 S1.FromSys2This(S2
 
+
+/*
 void ElCamera::ChangeSys(const cSysCoord & a1Source,const cSysCoord & a2Cible,const Pt3dr & aP1)
 {
       Pt3dr aCam = _orient.ImAff(aP1);
       Pt3dr aP2 = a2Cible.FromSys2This(a1Source,aP1);
 
-// std::cout << "P1 " << aP1 << " P2 " << aP2 << "\n";
-// std::cout << "CINIT " << _orient.IRecAff(Pt3dr(0,0,0)) << "\n";
 
       ElMatrix<double>  aMatr2 =  _orient.Mat()*  a1Source.JacobSys2This(a2Cible,aP2) ;
       aMatr2 = NearestRotation(aMatr2);
@@ -2282,10 +2282,44 @@ void ElCamera::ChangeSys(const cSysCoord & a1Source,const cSysCoord & a2Cible,co
       Pt3dr aTr2 =  aCam - aMatr2*aP2;
 
       _orient = ElRotation3D(aTr2,aMatr2);
-
-// std::cout << "CfINAL " << _orient.IRecAff(Pt3dr(0,0,0)) << "\n";
-// getchar();
 }
+*/
+
+//
+//  Orientation Monde to Cam (CamStenope::CentreOptique() = _orient.IRecAff(Pt3dr(0,0,0))
+//
+//       p = D ( Pi (RSrci3Cam PSrc))
+//       PCam = RSrc2Cam PSrc  PCam  = RCible2Cam PCible
+//       PGeoC = S2G (PSrc)      PCible = G2C (PGeoC)
+//        RCible2Cam PCible = PCam =  RSrc2Cam PSrc = RSrc2Cam S2G-1 G2C-1 PCible
+//       
+//        RCible2Cam -1     = G2C S2G RSrc2Cam -1
+//        RCam2Cible = G2C S2G R Cam2Src
+
+void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord & aSource,const cSysCoord & aCible)
+{
+    std::vector<Pt3dr> aVCenterSrc;
+    for (int aK=0 ; aK<int(aVCam.size()); aK++)
+    {
+        ElCamera & aCam = *(aVCam[aK]);
+        ElRotation3D &  anOrient = aCam.Orient();
+        aVCenterSrc.push_back(anOrient.ImAff(Pt3dr(0,0,0)));
+    }
+
+    std::vector<Pt3dr> aVCenterGeoc;
+    std::vector<ElMatrix<double> > aVJacS2G = aSource.Jacobien(aVCenterSrc,Pt3dr(0.1,0.1,0.1),true,&aVCenterGeoc);
+
+    std::vector<Pt3dr> aVCenterCible;
+    std::vector<ElMatrix<double> > aVJacG2C = aCible.Jacobien(aVCenterGeoc,Pt3dr(0.1,0.1,0.1),false,&aVCenterCible);
+
+    for (int aK=0 ; aK<int(aVCam.size()); aK++)
+    {
+          ElCamera & aCam = *(aVCam[aK]);
+         
+    }
+}
+
+
 
 REAL ElCamera::EcProj
      (
@@ -3011,6 +3045,8 @@ const ElDistortion22_Gen & CamStenope::Dist() const
    ELISE_ASSERT(mDist!=0,"CamStenope::Dist()");
    return *mDist;
 }
+
+
 
 
 /*************************************************/

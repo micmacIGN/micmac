@@ -1263,9 +1263,13 @@ class cOneModifIPF
 
         Pt3dr & Incertitude();
         const Pt3dr & Incertitude()const ;
+
+        cTplValGesInit< bool > & IsMult();
+        const cTplValGesInit< bool > & IsMult()const ;
     private:
         std::string mKeyName;
         Pt3dr mIncertitude;
+        cTplValGesInit< bool > mIsMult;
 };
 cElXMLTree * ToXMLTree(const cOneModifIPF &);
 

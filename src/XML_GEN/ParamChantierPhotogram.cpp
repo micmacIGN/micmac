@@ -3191,11 +3191,24 @@ const Pt3dr & cOneModifIPF::Incertitude()const
    return mIncertitude;
 }
 
+
+cTplValGesInit< bool > & cOneModifIPF::IsMult()
+{
+   return mIsMult;
+}
+
+const cTplValGesInit< bool > & cOneModifIPF::IsMult()const 
+{
+   return mIsMult;
+}
+
 cElXMLTree * ToXMLTree(const cOneModifIPF & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"OneModifIPF",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("KeyName"),anObj.KeyName())->ReTagThis("KeyName"));
    aRes->AddFils(ToXMLTree(std::string("Incertitude"),anObj.Incertitude())->ReTagThis("Incertitude"));
+   if (anObj.IsMult().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("IsMult"),anObj.IsMult().Val())->ReTagThis("IsMult"));
   return aRes;
 }
 
@@ -3206,6 +3219,8 @@ void xml_init(cOneModifIPF & anObj,cElXMLTree * aTree)
    xml_init(anObj.KeyName(),aTree->Get("KeyName",1)); //tototo 
 
    xml_init(anObj.Incertitude(),aTree->Get("Incertitude",1)); //tototo 
+
+   xml_init(anObj.IsMult(),aTree->Get("IsMult",1),bool(false)); //tototo 
 }
 
 

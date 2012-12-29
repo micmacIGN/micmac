@@ -1199,6 +1199,9 @@ class cSysCoord
          virtual std::vector<Pt3dr> FromGeoC(const std::vector<Pt3dr> &) const ;
 
 
+          
+
+
 
          Pt3dr FromSys2This(const cSysCoord &,const Pt3dr &) const;
 
@@ -1238,13 +1241,16 @@ class cSysCoord
 
           virtual void Delete() = 0;  //  Virtuel car certain sont "indestructible"
 
+         ElMatrix<double> Jacobien(const Pt3dr &,const Pt3dr& Epsilon,bool SensToGeoC) const;
+         std::vector<ElMatrix<double> > Jacobien(const std::vector<Pt3dr > &,const Pt3dr& Epsilon,bool SensToGeoC,std::vector<Pt3dr> * aVPts=0 ) const;
 
      protected :
            virtual ~cSysCoord();
      private :
 
-         ElMatrix<double> Jacobien(const Pt3dr &,const Pt3dr& Epsilon,bool SensToGeoC ) const;
          Pt3dr  Transfo(const Pt3dr &, bool SensToGeoC) const;
+         std::vector<Pt3dr>  Transfo(const std::vector<Pt3dr> & aV, bool SensToGeoC) const;
+
 
 
           static cSysCoord * FromXML
@@ -1266,7 +1272,8 @@ class cChSysCo
 
            static cChSysCo * Alloc(const std::string & aName) ;
      private :
-           cChSysCo(const cChangementCoordonnees &,const std::string &) ;
+           //   cChSysCo(const cChangementCoordonnees &,const std::string &) ;
+           cChSysCo(cSysCoord * aSrc,cSysCoord * aCibl);
            cSysCoord * mSrc;
            cSysCoord * mCibl;
 };
