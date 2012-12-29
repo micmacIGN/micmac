@@ -1434,8 +1434,8 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
     mSz        (-1,-1),
     mDIsDirect (! isDistC2M),
     mTypeProj  (aTP),
-    mAltisSolIsDef (false),
-    mAltiSol       (-1e30),
+    // mAltisSolIsDef (false),
+    // mAltiSol       (-1e30),
     mProfondeurIsDef (false),
     mProfondeur       (0),
     mIdCam               ("NoName"),
@@ -1448,8 +1448,15 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
     mScaleAfnt       (1.0),
     mScanned         (false)
 {
+    UndefAltisSol();
 }
 
+
+void ElCamera::UndefAltisSol() 
+{
+     mAltisSolIsDef = false;
+     mAltiSol       = -1e30;
+}
 
 double ElCamera::ResolSolOfPt(const Pt3dr & aP) const
 {
@@ -2296,14 +2303,27 @@ void ElCamera::ChangeSys(const cSysCoord & a1Source,const cSysCoord & a2Cible,co
 //        RCible2Cam -1     = G2C S2G RSrc2Cam -1
 //        RCam2Cible = G2C S2G R Cam2Src
 
-void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord & aSource,const cSysCoord & aCible)
+void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord & aSource,const cSysCoord & aCible,bool ForceRot)
 {
     std::vector<Pt3dr> aVCenterSrc;
+    std::vector<Pt3dr> aPMoy;
+    std::vector<bool>  aPMoyIsCalc;
     for (int aK=0 ; aK<int(aVCam.size()); aK++)
     {
         ElCamera & aCam = *(aVCam[aK]);
-        ElRotation3D &  anOrient = aCam.Orient();
-        aVCenterSrc.push_back(anOrient.ImAff(Pt3dr(0,0,0)));
+        const ElRotation3D &  aOriSrc2Cam = aCam.Orient();
+        Pt3dr aC = aOriSrc2Cam.ImRecAff(Pt3dr(0,0,0));
+        aVCenterSrc.push_back(aC);
+        if (aCam.ProfIsDef())
+        {
+           aPMoy.push_back(aCam.ImEtProf2Terrain(Pt2dr(aCam.Sz())/2.0,aCam.GetProfondeur()));
+           aPMoyIsCalc.push_back(true);
+        }
+        else
+        {
+           aPMoy.push_back(aC);
+           aPMoyIsCalc.push_back(false);
+        }
     }
 
     std::vector<Pt3dr> aVCenterGeoc;
@@ -2312,10 +2332,32 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord 
     std::vector<Pt3dr> aVCenterCible;
     std::vector<ElMatrix<double> > aVJacG2C = aCible.Jacobien(aVCenterGeoc,Pt3dr(0.1,0.1,0.1),false,&aVCenterCible);
 
+    aPMoy  = aCible.FromGeoC(aSource.ToGeoC(aPMoy));
+
     for (int aK=0 ; aK<int(aVCam.size()); aK++)
     {
-          ElCamera & aCam = *(aVCam[aK]);
-         
+        ElCamera & aCam = *(aVCam[aK]);
+          
+        ElRotation3D  aOriCam2Src = aCam.Orient().inv();
+        ElMatrix<double> aMatCam2Cible  = aVJacG2C[aK] * aVJacS2G[aK] * aOriCam2Src.Mat();
+
+        if (ForceRot) 
+        {
+          aMatCam2Cible = NearestRotation(aMatCam2Cible);
+        }
+
+        ElRotation3D aOriCam2Cible(aVCenterCible[aK],aMatCam2Cible,false);
+
+        aCam.SetOrientation(aOriCam2Cible.inv());
+
+        if (aPMoyIsCalc[aK])
+        {
+           aCam.SetAltiSol(aPMoy[aK].z);
+        }
+        else
+        {
+           aCam.UndefAltisSol();
+        }
     }
 }
 

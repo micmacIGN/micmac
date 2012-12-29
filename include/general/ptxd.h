@@ -1261,6 +1261,8 @@ class cSysCoord
                              );
 };
 
+class ElCamera;
+
 class cChSysCo
 {
      public :
@@ -1268,9 +1270,9 @@ class cChSysCo
            Pt3dr Cibl2Src(const Pt3dr &) const;
            std::vector<Pt3dr> Src2Cibl(const std::vector<Pt3dr> &) const;
            std::vector<Pt3dr> Cibl2Src(const std::vector<Pt3dr> &) const;
+           static cChSysCo * Alloc(const std::string & aName,const std::string & aDir) ;
 
-
-           static cChSysCo * Alloc(const std::string & aName) ;
+           void ChangCoordCamera(const std::vector<ElCamera *> & aVCam,bool ForceRot);
      private :
            //   cChSysCo(const cChangementCoordonnees &,const std::string &) ;
            cChSysCo(cSysCoord * aSrc,cSysCoord * aCibl);
