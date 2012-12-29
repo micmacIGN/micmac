@@ -609,6 +609,19 @@ template <class Type> bool FromString(Type& x,const std::string & s)
    return ! i.fail();
 }
 
+template <class Type> Type RequireFromString(const std::string & s,const std::string & aContext)
+{
+    Type aRes;
+    bool Ok = FromString(aRes,s);
+    if (! Ok)
+    {
+       std::cout << "Trying str=[" << s << "] in context :" << aContext << "\n";
+       ELISE_ASSERT(false,"string is not a correc value for type");
+    }
+
+    return aRes;
+}
+
 template <class Type> int CmpTertiare(const Type & T1,const Type & T2)
 {
    if (T1<T2) return -1;

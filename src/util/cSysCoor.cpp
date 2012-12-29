@@ -145,6 +145,13 @@ class cGeoc_WGS4 : public cSysCoord
           static cGeoc_WGS4 * aRes = new cGeoc_WGS4;
           return aRes;
       }
+      static cGeoc_WGS4 * TheOneDeg()
+      {
+          static cGeoc_WGS4 * aRes = new cGeoc_WGS4(eUniteAngleDegre);
+          return aRes;
+      }
+
+
       void Delete() {}
 
       cGeoc_WGS4(const cBasicSystemeCoord & aBSC)
@@ -247,6 +254,11 @@ class cProj4 : public cSysCoord
 
 
          static cProj4  Lambert(double aPhi0,double aPhi1,double aPhi2,double aLon0,double aX0,double aY0);
+         static cProj4 * Lambert93()
+         {
+              static cProj4 * aRes =  new cProj4(cProj4::Lambert(46.5,49,44,3,700000,6600000));
+              return aRes;
+         }
          Pt3dr OdgEnMetre() const {return mMOdg;}
          cSystemeCoord ToXML() const
          {
@@ -902,7 +914,7 @@ cSysCoord * cSysCoord::FromXML
    if (aVBSC[0].TypeCoord() == eTC_Lambert93)
    {
       aVBSC++; aNbB--;
-      return new cProj4(cProj4::Lambert(46.5,49,44,3,700000,6600000));
+      return  cProj4::Lambert93();
    // cProj4  cProj4::Lambert(double aPhi0,double aPhi1,double aPhi2,double aLon0,double aX0,double aY0)
    }
 
@@ -916,6 +928,24 @@ cSysCoord * cSysCoord::FromXML
    }
 
 
+   if (aVBSC[0].TypeCoord() == eTC_Proj4)
+   {
+      std::string aCom;
+      for (int aK=0 ; aK<int(aVBSC[0].AuxStr().size()); aK++)
+      {
+          aCom = aCom + (aK==0 ? "" : " " ) +  aVBSC[0].AuxStr()[aK];
+      }
+
+      double aVOdg[3] = {1,1,1};
+      for (int aK=0 ; aK<ElMin(3,int(aVBSC[0].AuxR().size())); aK++)
+      {
+          aVOdg[aK] = aVBSC[0].AuxR()[aK];
+      }
+      Pt3dr anOdg(aVOdg[0],aVOdg[1],aVOdg[2]);
+
+      aVBSC++; aNbB--;
+      return new cProj4(aCom,anOdg);
+   }
 
 
    if (aVBSC[0].TypeCoord()== eTC_RTL)
@@ -1028,8 +1058,10 @@ cSysCoord * cSysCoord::FromXML(const cSystemeCoord & aSC,const char * aDir)
 
 cSysCoord * cSysCoord::FromFile(const std::string & aNF,const std::string & aNameTag)
 {
-   if (aNF=="GeoC") return GeoC();
-   if (aNF=="WGS84") return WGS84();
+   if (aNF=="GeoC")        return GeoC();
+   if (aNF=="WGS84")       return WGS84();
+   if (aNF=="DegreeWGS84") return cGeoc_WGS4::TheOneDeg();
+   if (aNF=="Lambert93")   return cProj4::Lambert93();
 
 
    cSystemeCoord  aCS = StdGetObjFromFile<cSystemeCoord>
@@ -1065,17 +1097,74 @@ Pt3dr  cSysCoord::Transfo(const Pt3dr & aP, bool SensToGeoC) const
    return SensToGeoC  ? ToGeoC(aP) : FromGeoC(aP);
 }
 
-ElMatrix<double> cSysCoord::Jacobien(const Pt3dr & aP,const Pt3dr& E,bool SensToGeoC) const
+std::vector<Pt3dr>  cSysCoord::Transfo(const std::vector<Pt3dr> & aV, bool SensToGeoC) const
 {
+   return SensToGeoC  ? ToGeoC(aV) : FromGeoC(aV);
+}
+
+
+
+std::vector<ElMatrix<double> > cSysCoord::Jacobien
+                               (
+                                    const  std::vector<Pt3dr> & aV0,
+                                    const Pt3dr& E,
+                                    bool SensToGeoC,
+                                    std::vector<Pt3dr> * aResPts
+                               ) const
+{
+     if (aResPts) 
+       aResPts->clear();
+     std::vector<ElMatrix<double> > aResMatr;
      Pt3dr aDx(E.x,0,0);
      Pt3dr aDy(0,E.y,0);
      Pt3dr aDz(0,0,E.z);
-     Pt3dr aDerivX = (Transfo(aP+aDx,SensToGeoC)-Transfo(aP-aDx,SensToGeoC)) / (2*E.x);
-     Pt3dr aDerivY = (Transfo(aP+aDy,SensToGeoC)-Transfo(aP-aDy,SensToGeoC)) / (2*E.y);
-     Pt3dr aDerivZ = (Transfo(aP+aDz,SensToGeoC)-Transfo(aP-aDz,SensToGeoC)) / (2*E.z);
 
-    return MatFromCol(aDerivX,aDerivY,aDerivZ);
+     std::vector<Pt3dr> aV;
+
+     for (int aK=0 ; aK<int(aV0.size()) ; aK++)
+     {
+         Pt3dr aP = aV0[aK];
+         aV.push_back(aP+aDx);
+         aV.push_back(aP-aDx);
+         aV.push_back(aP+aDy);
+         aV.push_back(aP-aDy);
+         aV.push_back(aP+aDz);
+         aV.push_back(aP-aDz);
+         if (aResPts)
+            aV.push_back(aP);
+     }
+
+     aV = Transfo(aV,SensToGeoC);
+   
+     for (int aK=0 ; aK<int(aV0.size()) ; aK++)
+     {
+         int aK6_7 = aK * (6 + (aResPts!=0));
+         Pt3dr aDerivX = (aV[aK6_7+1]-aV[aK6_7+0]) / (2*E.x);
+         Pt3dr aDerivY = (aV[aK6_7+3]-aV[aK6_7+2]) / (2*E.y);
+         Pt3dr aDerivZ = (aV[aK6_7+5]-aV[aK6_7+4]) / (2*E.z);
+
+         aResMatr.push_back(MatFromCol(aDerivX,aDerivY,aDerivZ));
+         if (aResPts)
+            aResPts->push_back(aV[aK6_7+6]);
+     }
+
+    return aResMatr;
 }
+
+
+
+
+ElMatrix<double>  cSysCoord::Jacobien(const  Pt3dr & aP,const Pt3dr& E,bool SensToGeoC) const
+{
+    std::vector<Pt3dr> aV0;
+    aV0.push_back(aP);
+   
+    std::vector<ElMatrix<double> > aVRes = Jacobien(aV0,E,SensToGeoC);
+
+    return aVRes[0];
+}
+
+
 
 ElMatrix<double> cSysCoord::JacobFromGeoc(const Pt3dr & aP,const Pt3dr& Epsilon) const
 {
@@ -1293,14 +1382,31 @@ cGeoRefRasterFile * cGeoRefRasterFile::FromFile(const std::string & aNF,const st
 /*                                             */
 /***********************************************/
 
+/*
 cChSysCo::cChSysCo(const cChangementCoordonnees & aCC,const std::string & aDir)  :
    mSrc  (cSysCoord::FromXML(aCC.SystemeSource(),aDir.c_str())),
    mCibl (cSysCoord::FromXML(aCC.SystemeCible(),aDir.c_str()))
 {
 }
+*/
+
+cChSysCo::cChSysCo(cSysCoord * aSrc,cSysCoord * aCibl) :
+   mSrc  (aSrc),
+   mCibl (aCibl)
+{
+}
 
 cChSysCo * cChSysCo::Alloc(const std::string & aName)
 {
+    std::string aSrc,aCibl;
+    if ( SplitIn2ArroundCar(aName,'@',aSrc,aCibl,true))
+    {
+         return new cChSysCo
+                    (
+                          cSysCoord::FromFile(aSrc),
+                          cSysCoord::FromFile(aCibl)
+                    );
+    }
     cChangementCoordonnees aCC= StdGetObjFromFile<cChangementCoordonnees>
                               (
                                   aName,
@@ -1309,7 +1415,14 @@ cChSysCo * cChSysCo::Alloc(const std::string & aName)
                                   "ChangementCoordonnees"
                                );
 
-    return new cChSysCo(aCC,DirOfFile(aName));
+    // return new cChSysCo(aCC,DirOfFile(aName));
+    std::string aDir = DirOfFile(aName);
+
+    return new cChSysCo
+               (
+                    cSysCoord::FromXML(aCC.SystemeSource(),aDir.c_str()),
+                    cSysCoord::FromXML(aCC.SystemeCible(),aDir.c_str())
+               );
 }
 
 Pt3dr  cChSysCo::Src2Cibl(const Pt3dr & aP) const

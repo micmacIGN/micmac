@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1351]) = {
+const char * (theNameVar_ParamChantierPhotogram[1352]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -462,6 +462,7 @@ const char * (theNameVar_ParamChantierPhotogram[1351]) = {
 "       <OneModifIPF Nb=\"*\">\n",
 "            <KeyName Nb=\"1\" Type=\"std::string\"> </KeyName>\n",
 "	    <Incertitude Nb=\"1\"  Type=\"Pt3dr\"> </Incertitude>\n",
+"            <IsMult Nb=\"?\" Type=\"bool\" Def=\"false\"> </IsMult>\n",
 "       </OneModifIPF>\n",
 "   </ModifIncPtsFlottant>\n",
 "\n",

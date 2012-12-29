@@ -148,6 +148,8 @@ void CompleteSurfParam();
 class cCalibCam
 {
      public :
+
+        virtual void Inspect();
         static cCalibCam *  Alloc
 	                    (
                                  const std::string & aKeyId,
@@ -2045,6 +2047,8 @@ class cAppliApero : public NROptF1vND
 
 
         void DoShowPtsMult(const std::list<cVisuPtsMult> &);
+
+        void InspectCalibs();
 
         void MAJContraintes(const cSectionContraintes & aSC);
 	  void MAJContrainteCamera(const cContraintesCamerasInc &);

@@ -223,6 +223,7 @@ class cPIF_Unif_Gen : public cParamIntrinsequeFormel
 {
     public :
         ~cPIF_Unif_Gen();
+        virtual void Inspect() = 0;
         virtual void FigeIfDegreSup(int aDegre,double aTol,eModeControleVarDGen) =0;
 // Parfois, equation de type homographique, il peut etre prudent de figer tous les
 // degres 1 quoiqu'il arrive par ailleurs:
@@ -266,6 +267,7 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
 	  void SetFreeKthParam(int aK);
 
           // fige les degres > a aDegre ; -1 -> Fige ts le monde
+          void Inspect() ;
 	  void FigeIfDegreSup(int aDegre,double aTol,eModeControleVarDGen);
           void FigeD1_Ou_IfDegreSup(int aDegre,double aTol);
 
