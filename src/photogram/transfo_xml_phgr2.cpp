@@ -571,7 +571,17 @@ void ModifDAF
    {
        if (aSet->IsSetIn(itO-> NamePt()))
        {
-          itO->Incertitude() = aModif.Incertitude();
+          Pt3dr anInc = aModif.Incertitude();
+          if (aModif.IsMult().Val())
+          {
+             itO->Incertitude().x *= anInc.x;
+             itO->Incertitude().y *= anInc.y;
+             itO->Incertitude().z *= anInc.z;
+          }
+          else 
+          {
+             itO->Incertitude() = anInc;
+          }
        }
    }
 }

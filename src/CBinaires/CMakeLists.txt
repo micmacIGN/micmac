@@ -91,6 +91,9 @@ if (NOT ${BUILD_ONLY_ELISE})
 	add_executable(Tapas  Tapas.c)
 	INSTALL(TARGETS Tapas RUNTIME DESTINATION ${Install_Dir})
 
+	add_executable(Campari  Campari.c)
+	INSTALL(TARGETS Campari RUNTIME DESTINATION ${Install_Dir})
+
 	add_executable(Tapioca  Tapioca.c)
 	INSTALL(TARGETS Tapioca RUNTIME DESTINATION ${Install_Dir})
 

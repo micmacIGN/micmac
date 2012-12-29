@@ -268,11 +268,14 @@ void cAppliApero::ExportPose(const cExportPose & anEP,const std::string & aPref)
 
            if (anEP.ChC().IsInit())
            {
+               ELISE_ASSERT(false,"CHC in Apero, inhibed : use ad-hoc command\n");
               // On modifie, donc on travaille sur un dupl
+/*
                 CamStenope *aCS2 = aPC->CF()->DuplicataCameraCourante();
 
                 aCS2->ChangeSys(*aSource,*aCible,aCS2->PseudoOpticalCenter());
                 aCS = aCS2;
+*/
            }
 
 	   if (aPC->PMoyIsInit())

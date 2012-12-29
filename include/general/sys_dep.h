@@ -354,6 +354,14 @@ typedef enum  {false,true} bool;
 
 extern bool MSBF_PROCESSOR();
 
+
+#if (ELISE_windows)
+#define ElIsBlank ISBLANK
+#else
+#define ElIsBlank isblank
+#endif
+
+
 #define Chol16Byte 0
 
 #if (Chol16Byte)
