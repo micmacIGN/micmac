@@ -836,6 +836,8 @@ void TestXML2()
 int MPDtest_main (int argc,char** argv)
 {
    BanniereMM3D();
+   double aNan = strtod("NAN(teta01)", NULL);
+   std::cout << "Nan=" << aNan << "\n";
    // TestXML2();
    //  cout <<  PolonaiseInverse(argv[1]) << "\n" ;
 /*

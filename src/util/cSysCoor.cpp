@@ -1396,27 +1396,27 @@ cChSysCo::cChSysCo(cSysCoord * aSrc,cSysCoord * aCibl) :
 {
 }
 
-cChSysCo * cChSysCo::Alloc(const std::string & aName)
+cChSysCo * cChSysCo::Alloc(const std::string & aName,const std::string & aDirGlob)
 {
     std::string aSrc,aCibl;
     if ( SplitIn2ArroundCar(aName,'@',aSrc,aCibl,true))
     {
          return new cChSysCo
                     (
-                          cSysCoord::FromFile(aSrc),
-                          cSysCoord::FromFile(aCibl)
+                          cSysCoord::FromFile(aDirGlob+aSrc),
+                          cSysCoord::FromFile(aDirGlob+aCibl)
                     );
     }
     cChangementCoordonnees aCC= StdGetObjFromFile<cChangementCoordonnees>
                               (
-                                  aName,
+                                  aDirGlob+aName,
                                   StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
                                   "ChangementCoordonnees",
                                   "ChangementCoordonnees"
                                );
 
     // return new cChSysCo(aCC,DirOfFile(aName));
-    std::string aDir = DirOfFile(aName);
+    std::string aDir = DirOfFile(aDirGlob+aName);
 
     return new cChSysCo
                (
@@ -1443,6 +1443,10 @@ std::vector<Pt3dr>  cChSysCo::Cibl2Src(const std::vector<Pt3dr> & aP) const
 }
 
 
+void cChSysCo::ChangCoordCamera(const std::vector<ElCamera *> & aVCam,bool ForceRot)
+{
+    ElCamera::ChangeSys(aVCam,*mSrc,*mCibl,ForceRot);
+}
 
 /*
 */

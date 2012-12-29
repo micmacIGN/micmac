@@ -1446,7 +1446,13 @@ class ElCamera : public cCapture3D
           void SetProfondeur(double );
 
            // void ChangeSys(const cSysCoord & a1Source,const cSysCoord & a2Cible,const Pt3dr & aP);
-         static void ChangeSys(const std::vector<ElCamera *>& , const cSysCoord & a1Source,const cSysCoord & a2Cible);
+         static void ChangeSys
+                     (
+                            const std::vector<ElCamera *>& , 
+                            const cSysCoord & a1Source,
+                            const cSysCoord & a2Cible,
+                            bool ForceRot
+                     );
 
           // Pour compatibilite stricte avec ce qui etait fait avant
          // dans cDistStdFromCam::Diff
@@ -1458,6 +1464,9 @@ class ElCamera : public cCapture3D
           virtual double ResolutionSol(const Pt3dr &) const = 0;
           double GetAltiSol() const;
           bool AltisSolIsDef() const;
+          void UndefAltisSol() ;
+
+
           double GetProfondeur() const;
           bool   ProfIsDef() const;
           eTypeProj GetTypeProj() const;

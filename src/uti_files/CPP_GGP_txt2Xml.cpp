@@ -141,7 +141,7 @@ int GCP_Txt2Xml_main(int argc,char ** argv)
 
     cChSysCo * aCSC = 0;
     if (aStrChSys!="")
-       aCSC = cChSysCo::Alloc(aStrChSys);
+       aCSC = cChSysCo::Alloc(aStrChSys,"");
 
     if (aFilePtsOut=="")
     {

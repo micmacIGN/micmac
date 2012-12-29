@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1456]) = {
+const char * (theNameVar_ParamApero[1457]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1230,7 +1230,8 @@ const char * (theNameVar_ParamApero[1456]) = {
 "                         <!-- Points de verifications -->\n",
 "		     </ExportCalib>\n",
 "		     <ExportPose Nb=\"*\" AccessorFils=\"false\" >\n",
-"                          <ChC Nb=\"?\" RefType=\"ChangementCoordonnees\" RefFile=\"SuperposImage.xml\"> </ChC>\n",
+"                          <ChC Nb=\"?\" Type=\"std::string\"> </ChC>\n",
+"                          <ChCForceRot Nb=\"?\" Type=\"bool\" Def=\"false\"> </ChCForceRot>\n",
 "                          <KeyAssoc  Nb=\"1\" Type=\"std::string\"> </KeyAssoc>\n",
 "			  <AddCalib   Nb=\"?\" Type=\"bool\" Def=\"true\"> </AddCalib>\n",
 "                          <ExportAsNewGrid Nb=\"?\"  AccessorFils=\"false\" RefType=\"ExportAsNewGrid\"> </ExportAsNewGrid>\n",
