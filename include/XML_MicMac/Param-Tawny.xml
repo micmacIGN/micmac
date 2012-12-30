@@ -33,6 +33,7 @@
                 <Symb>  CorrThresh=0.7 </Symb>
                 <Symb>  NbPerIm=2.5e4 </Symb>
                 <Symb>  SzV=2 </Symb>
+                <Symb>  DoL1Filter=true </Symb>
 
 <!--
                <SzVois >  ${SzV}  </SzVois>
@@ -97,6 +98,8 @@
                <NbPEqualMoyPerImage>  ${NbPerIm} </NbPEqualMoyPerImage>
 
                <NameFileMesures >  MesuresEgales.dat </NameFileMesures>
+
+               <AdjL1ByCple>  ${DoL1Filter}</AdjL1ByCple>
 
                <PercCutAdjL1> 50.0 </PercCutAdjL1>
 

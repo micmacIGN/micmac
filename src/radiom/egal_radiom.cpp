@@ -1224,6 +1224,15 @@ void cER_Global::DoComputeL1Cple()
                       aDataInc[3*aIndIm2+2] =  -aP2.y;
 
                       aSys.PushEquation(aDataInc,log(aFact),aCpl.Nb());
+
+
+
+                      aDataInc[3*aIndIm1  ]   =0;
+                      aDataInc[3*aIndIm1+1]   =0;
+                      aDataInc[3*aIndIm1+2]   =0;
+                      aDataInc[3*aIndIm2  ]   =0;
+                      aDataInc[3*aIndIm2+1]   =0;
+                      aDataInc[3*aIndIm2+2]   =0;
                  }
             }
        }

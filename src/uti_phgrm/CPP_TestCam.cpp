@@ -60,6 +60,8 @@ void TestDirect(ElCamera * aCam,Pt3dr aPG)
     }
 }
 
+extern void TestCamCHC(ElCamera & aCam);
+
 
 int TestCam_main(int argc,char ** argv)
 {
@@ -106,6 +108,7 @@ int TestCam_main(int argc,char ** argv)
    }
 
 
+   TestCamCHC(*aCam);
 
    TestDirect(aCam,Pt3dr(X,Y,Z));
 

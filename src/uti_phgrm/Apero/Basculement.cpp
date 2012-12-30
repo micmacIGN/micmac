@@ -747,7 +747,7 @@ void cAppliApero::FixeEchelle(const cFixeEchelle & aFE)
        if ( aPC->RotIsInit())
        {
             ElRotation3D  aR = aPC->CurRot();
-            aPC->SetCurRot(ElRotation3D(aR.tr()*aMult,aR.Mat()));
+            aPC->SetCurRot(ElRotation3D(aR.tr()*aMult,aR.Mat(),true));
        }
    }
 
@@ -898,7 +898,7 @@ void cAppliApero::FixeOrientPlane(const cFixeOrientPlane & aFOP)
                               PZ0(aCFinal0),
                               PZ0(aCFinal0 * Pt2dr(0,1))
                          );
-    ElRotation3D aR(Pt3dr(0,0,0),aMat);
+    ElRotation3D aR(Pt3dr(0,0,0),aMat,true);
 
     
 

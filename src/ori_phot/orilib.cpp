@@ -3826,18 +3826,23 @@ std::vector<double> StdEtat_F_PP(const cCalibrationInterneUnif & aCIU,const cCal
 ElMatrix<double>   Std_RAff_C2M
                    (
                        const cRotationVect             & aRVect,
-                       const cConvExplicite            & aConv
+                       const cConvExplicite            & aConv,
+                       bool & TrueRot
                    )
 {
-
+   TrueRot = true;
 
    ElMatrix<double> aM(3,true); // Initialisee a l'identite
+
 
    if (aRVect.CodageMatr().IsInit())
    {
        SetLig(aM,0,aRVect.L1());
        SetLig(aM,1,aRVect.L2());
        SetLig(aM,2,aRVect.L3());
+
+
+       TrueRot = aRVect.CodageMatr().Val().TrueRot().ValWithDef(true);
 
    }
    else if(aRVect.CodageAngulaire().IsInit())
@@ -3864,16 +3869,32 @@ ElMatrix<double>   Std_RAff_C2M
 
 
    if ( !aConv.MatrSenC2M())
-      aM.self_transpose();
+   {
+      if (TrueRot)
+         aM.self_transpose();
+      else
+         aM = gaussj(aM);
+   }
 
   double aCMul[3],aLMul[3];
 
   aConv.ColMul().to_tab(aCMul);
   aConv.LigMul().to_tab(aLMul);
 
+
+  // std::cout << "AAaaaAaaaaaaaaaaaaaaaaaaa\n";
   for (int aC=0 ; aC<3 ; aC++)
+  {
       for (int aL=0 ; aL<3 ; aL++)
+      {
+          // std::cout << "ColllLiig " << aCMul[aC] << " " <<  aLMul[aL] << " " << aConv.MatrSenC2M() << "\n";
           aM(aC,aL) *= aCMul[aC] * aLMul[aL];
+
+          // std::cout << " " <<  aM(aC,aL) ;
+      }
+      // std::cout << "\n";
+  }
+  
 
 
 
@@ -3887,9 +3908,10 @@ ElRotation3D  Std_RAff_C2M
 	         const cConvExplicite            & aConv
 	     )
 {
-  ElMatrix<double> aM =  Std_RAff_C2M(aCE.ParamRotation(),aConv);
+  bool TrueRot;
+  ElMatrix<double> aM =  Std_RAff_C2M(aCE.ParamRotation(),aConv,TrueRot);
   
-  return ElRotation3D(aCE.Centre(),aM);
+  return ElRotation3D(aCE.Centre(),aM,TrueRot);
 }
 
 
@@ -4485,15 +4507,32 @@ cOrientationExterneRigide From_Std_RAff_C2M
 			       bool aModeMatr
                           )
 {
+   // std::cout << "  TruuuuueRot = " << aRC2M.IsTrueRot() << "\n";
    cOrientationExterneRigide aRes;
    aRes.Centre() = aRC2M.ImAff(Pt3dr(0,0,0));
    if (aModeMatr)
    {
       cCodageMatr  aCM;
+/*    NE MARCHE PLUS AVEC MATRICE POSSIBLEMENT NON ORTHO
       // L1 L2 .. sont des ligne, donc transpose, donc image reciproques ...
       aCM.L1() = aRC2M.IRecVect(Pt3dr(1,0,0));
       aCM.L2() = aRC2M.IRecVect(Pt3dr(0,1,0));
       aCM.L3() = aRC2M.IRecVect(Pt3dr(0,0,1));
+*/
+
+       ElMatrix<double> aMat = aRC2M.Mat();
+       aMat.GetLig(0, aCM.L1() );
+       aMat.GetLig(1, aCM.L2() );
+       aMat.GetLig(2, aCM.L3() );
+
+      if (aRC2M.IsTrueRot())
+      {
+          aCM.TrueRot().SetNoInit();
+      }
+      else
+      {
+          aCM.TrueRot().SetVal(false);
+      }
       aRes.ParamRotation().CodageMatr().SetVal(aCM);
    }
    else
@@ -4531,7 +4570,8 @@ ElMatrix<double>   Std_RAff_C2M
                        eConventionsOrientation aConv
                    )
 {
-    return ::Std_RAff_C2M(aRVect,MakeExplicite(aConv));
+    bool TrueRot;
+    return ::Std_RAff_C2M(aRVect,MakeExplicite(aConv),TrueRot);
 }
 
 

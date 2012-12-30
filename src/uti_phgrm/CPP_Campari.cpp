@@ -96,7 +96,6 @@ int Campari_main(int argc,char ** argv)
 
 
     std::string aDir,aPat;
-
 #if (ELISE_windows)
      replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
 #endif

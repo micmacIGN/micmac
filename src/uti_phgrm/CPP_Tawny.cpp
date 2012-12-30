@@ -60,6 +60,7 @@ int Tawny_main(int argc,char ** argv)
     int mSzV = 1;
     double mNbPerIm = 1e4;
     double mCorrThresh = 0.8;
+    bool  DoL1Filter=true;
 
     ElInitArgMain
     (
@@ -76,6 +77,7 @@ int Tawny_main(int argc,char ** argv)
 	             << EAM(mSzV,"SzV",true,"Sz of Window for equalisation (Def=2, means 5x5)")
 	             << EAM(mCorrThresh,"CorThr",true,"Threshold of correlation to validate homologous (Def 0.7)")
 	             << EAM(mNbPerIm,"NbPerIm",true,"Average number of point per image (Def = 1e4)")
+	             << EAM(DoL1Filter,"L1F",true,"Do L1 Filter on couple, def=true (change when process is blocked)")
     );
 
 	#if (ELISE_windows)
@@ -110,7 +112,9 @@ int Tawny_main(int argc,char ** argv)
     if (EAMIsInit(&mNbPerIm)) aCom  = aCom + " +NbPerIm=" + ToString(mNbPerIm);
     if (EAMIsInit(&mCorrThresh)) aCom  = aCom + " +CorrThresh=" + ToString(mCorrThresh);
 
-    //std::cout << aCom << "\n";
+     if (!DoL1Filter) aCom  = aCom +" +DoL1Filter=false ";
+
+    std::cout << aCom << "\n";
     int aRes = system_call(aCom.c_str());
 
     BanniereMM3D();

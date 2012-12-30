@@ -1943,10 +1943,14 @@ class cCodageMatr
 
         Pt3dr & L3();
         const Pt3dr & L3()const ;
+
+        cTplValGesInit< bool > & TrueRot();
+        const cTplValGesInit< bool > & TrueRot()const ;
     private:
         Pt3dr mL1;
         Pt3dr mL2;
         Pt3dr mL3;
+        cTplValGesInit< bool > mTrueRot;
 };
 cElXMLTree * ToXMLTree(const cCodageMatr &);
 
@@ -1967,6 +1971,9 @@ class cRotationVect
 
         Pt3dr & L3();
         const Pt3dr & L3()const ;
+
+        cTplValGesInit< bool > & TrueRot();
+        const cTplValGesInit< bool > & TrueRot()const ;
 
         cTplValGesInit< cCodageMatr > & CodageMatr();
         const cTplValGesInit< cCodageMatr > & CodageMatr()const ;

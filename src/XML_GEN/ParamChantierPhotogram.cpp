@@ -4915,12 +4915,25 @@ const Pt3dr & cCodageMatr::L3()const
    return mL3;
 }
 
+
+cTplValGesInit< bool > & cCodageMatr::TrueRot()
+{
+   return mTrueRot;
+}
+
+const cTplValGesInit< bool > & cCodageMatr::TrueRot()const 
+{
+   return mTrueRot;
+}
+
 cElXMLTree * ToXMLTree(const cCodageMatr & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CodageMatr",eXMLBranche);
    aRes->AddFils(ToXMLTree(std::string("L1"),anObj.L1())->ReTagThis("L1"));
    aRes->AddFils(ToXMLTree(std::string("L2"),anObj.L2())->ReTagThis("L2"));
    aRes->AddFils(ToXMLTree(std::string("L3"),anObj.L3())->ReTagThis("L3"));
+   if (anObj.TrueRot().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("TrueRot"),anObj.TrueRot().Val())->ReTagThis("TrueRot"));
   return aRes;
 }
 
@@ -4933,6 +4946,8 @@ void xml_init(cCodageMatr & anObj,cElXMLTree * aTree)
    xml_init(anObj.L2(),aTree->Get("L2",1)); //tototo 
 
    xml_init(anObj.L3(),aTree->Get("L3",1)); //tototo 
+
+   xml_init(anObj.TrueRot(),aTree->Get("TrueRot",1),bool(true)); //tototo 
 }
 
 
@@ -4966,6 +4981,17 @@ Pt3dr & cRotationVect::L3()
 const Pt3dr & cRotationVect::L3()const 
 {
    return CodageMatr().Val().L3();
+}
+
+
+cTplValGesInit< bool > & cRotationVect::TrueRot()
+{
+   return CodageMatr().Val().TrueRot();
+}
+
+const cTplValGesInit< bool > & cRotationVect::TrueRot()const 
+{
+   return CodageMatr().Val().TrueRot();
 }
 
 

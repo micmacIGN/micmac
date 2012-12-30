@@ -322,7 +322,7 @@ for (int aK=0 ; aK<5 ; aK++)
 std::cout <<  "\n";
 }
    if (mContr==ePoseFigee)
-      return ElRotation3D(mU,mMatr);
+      return ElRotation3D(mU,mMatr,true);
 
    aP+= mI0;
    double aF = 0.05;
@@ -340,7 +340,8 @@ std::cout <<  "\n";
    return ElRotation3D
           (
               vunit(aTr) * aN,
-              mMatr * ElMatrix<double>::Rotation(aP[2]*aF,aP[3]*aF,aP[4]*aF)
+              mMatr * ElMatrix<double>::Rotation(aP[2]*aF,aP[3]*aF,aP[4]*aF),
+              true
           );
 }
 
