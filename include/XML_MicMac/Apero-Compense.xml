@@ -63,7 +63,7 @@
                          <CalFromFileExtern>
                               <NameFile>   ####  </NameFile>
                               <NameTag>    CalibrationInternConique </NameTag>
-                              <AutorizeNonExisting > true </AutorizeNonExisting>
+                              <AutorizeNonExisting > false </AutorizeNonExisting>
                          </CalFromFileExtern>
                 </CalValueInit>
                 <CalibPerPose>

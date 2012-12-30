@@ -238,7 +238,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
 # DEFINITION : des preprocesseurs G++
 IF (CMAKE_COMPILER_IS_GNUCC)
-	ADD_DEFINITIONS(-O2)
+	ADD_DEFINITIONS(-O2 -Wall)
 ENDIF()
 
 # DEFINITION : Windows : le projet debug est généré directement sous bin pour avoir les informations de Debug

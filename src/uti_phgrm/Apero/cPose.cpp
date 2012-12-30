@@ -938,7 +938,7 @@ else
             // std::cout << aMatrC2M*Pt3dr(1,0,0) << aMatrC2M*Pt3dr(0,1,0) <<  aMatrC2M*Pt3dr(0,0,1) << "\n";
         }
 
-	aRot = ElRotation3D(aTr,aMatrC2M);
+	aRot = ElRotation3D(aTr,aMatrC2M,true);
 
         anAltiSol = aM1.z;
         aProfPose = euclid(aC1);
@@ -1078,7 +1078,7 @@ else
                {
                   ELISE_ASSERT(aNbL==1,"Multiple Liaison with InitOrientPure");
                   ElMatrix<REAL> aMat =  aPack.MepRelCocentrique(aLI.NbTestRansacOrPure().Val(),aLI.NbPtsRansacOrPure().Val());
-                  aOrRel0 = ElRotation3D(Pt3dr(0,0,0),aMat);
+                  aOrRel0 = ElRotation3D(Pt3dr(0,0,0),aMat,true);
                   aRPure = true;
                   anAltiSol = aCam2->AltiSol();
                   aProfPose = aCam2->Profondeur();

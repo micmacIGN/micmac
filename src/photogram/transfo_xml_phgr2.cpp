@@ -725,7 +725,7 @@ ElPackHomologue PackFromCplAPF(const cMesureAppuiFlottant1Im & aMes, const cMesu
 
 const std::list<std::string > & GetBestSec(const cImSecOfMaster& anISOM,int aNb)
 {
-   const std::list<std::string > * aRes;
+   const std::list<std::string > * aRes = 0;
    double aScoreMax=-1;
    for 
    (
@@ -734,7 +734,7 @@ const std::list<std::string > & GetBestSec(const cImSecOfMaster& anISOM,int aNb)
           itS++
    )
    {
-       if ((aNb<=0) || (itS->Images().size() == aNb))
+       if ((aNb<=0) || (int(itS->Images().size()) == aNb))
        {
             if (itS->Score() > aScoreMax)
             {
@@ -847,7 +847,7 @@ ElMatrix<double> RotationVecAJ(const cAvionJauneDocument & anAJD)
 
 ElRotation3D   AJ2R3d(const cAvionJauneDocument & anAJD)
 {
-    return ElRotation3D(CentreAJ(anAJD),RotationVecAJ(anAJD));
+    return ElRotation3D(CentreAJ(anAJD),RotationVecAJ(anAJD),true);
 }
 
 

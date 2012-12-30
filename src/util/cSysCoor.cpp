@@ -318,7 +318,9 @@ std::vector<Pt3dr> cProj4::Chang(const std::vector<Pt3dr> & aPtsIn, bool Sens2Ge
        {
            aP =  aWD.FromGeoC(aP);
        }
-       fprintf(aFPin,"%lf %lf %lf\n",aP.x,aP.y,aP.z);
+       // fprintf(aFPin,"%lf %lf %lf\n",aP.x,aP.y,aP.z);
+       // fprintf(aFPin,"%Lf %Lf %Lf\n",(long double)aP.x,(long double)aP.y,(long double)aP.z);
+       fprintf(aFPin,"%.20f %.20f %.20f\n",aP.x,aP.y,aP.z);
    }
    ElFclose(aFPin);
 
@@ -326,6 +328,7 @@ std::vector<Pt3dr> cProj4::Chang(const std::vector<Pt3dr> & aPtsIn, bool Sens2Ge
 
    std::string aCom =    std::string( "cat " + aTmpIn + " | ")
                        + std::string(Sens2GeoC ? "invproj " : "proj ")
+                       + std::string(" -f '%.7f' ")
                        + mStr
                        + " > " 
                        + aTmpOut;
@@ -387,7 +390,7 @@ class cGeoc_RTL : public cSysCoord
               const Pt3dr & aDirZ
       ) :
            mOri        (aP),
-           mRGeocToRTL (ElRotation3D(aP,MatFromCol(aDirX,aDirY,aDirZ)).inv())
+           mRGeocToRTL (ElRotation3D(aP,MatFromCol(aDirX,aDirY,aDirZ),true).inv())
       {
       }
       void Delete() {delete this;}
@@ -933,7 +936,7 @@ cSysCoord * cSysCoord::FromXML
       std::string aCom;
       for (int aK=0 ; aK<int(aVBSC[0].AuxStr().size()); aK++)
       {
-          aCom = aCom + (aK==0 ? "" : " " ) +  aVBSC[0].AuxStr()[aK];
+          aCom = aCom +  " "  +  aVBSC[0].AuxStr()[aK];
       }
 
       double aVOdg[3] = {1,1,1};
@@ -1058,10 +1061,11 @@ cSysCoord * cSysCoord::FromXML(const cSystemeCoord & aSC,const char * aDir)
 
 cSysCoord * cSysCoord::FromFile(const std::string & aNF,const std::string & aNameTag)
 {
-   if (aNF=="GeoC")        return GeoC();
-   if (aNF=="WGS84")       return WGS84();
-   if (aNF=="DegreeWGS84") return cGeoc_WGS4::TheOneDeg();
-   if (aNF=="Lambert93")   return cProj4::Lambert93();
+   std::string aNBasic = NameWithoutDir(aNF);
+   if (aNBasic=="GeoC")        return GeoC();
+   if (aNBasic=="WGS84")       return WGS84();
+   if (aNBasic=="DegreeWGS84") return cGeoc_WGS4::TheOneDeg();
+   if (aNBasic=="Lambert93")   return cProj4::Lambert93();
 
 
    cSystemeCoord  aCS = StdGetObjFromFile<cSystemeCoord>
@@ -1143,9 +1147,12 @@ std::vector<ElMatrix<double> > cSysCoord::Jacobien
          Pt3dr aDerivY = (aV[aK6_7+3]-aV[aK6_7+2]) / (2*E.y);
          Pt3dr aDerivZ = (aV[aK6_7+5]-aV[aK6_7+4]) / (2*E.z);
 
+
          aResMatr.push_back(MatFromCol(aDerivX,aDerivY,aDerivZ));
          if (aResPts)
+         {
             aResPts->push_back(aV[aK6_7+6]);
+         }
      }
 
     return aResMatr;

@@ -316,7 +316,7 @@ std::list<ElRotation3D> ElPackHomologue::MepRelStd(REAL LBase,bool SysL2)  // Co
            ElMatrix<REAL> aR2T = aR2.transpose();
 
 
-           aRes.push_back(ElRotation3D(aR2T*Pt3dr(LBase*sign,0,0),aR2T*aR1));
+           aRes.push_back(ElRotation3D(aR2T*Pt3dr(LBase*sign,0,0),aR2T*aR1,true));
       }
    return aRes;
 }
@@ -709,7 +709,7 @@ cResMepRelCoplan ElPackHomologue::MepRelCoplan(REAL LBase,bool HomEstL2)
 
                          for (INT sign = -1; sign <=1 ; sign += 2)
 		         {
-                            ElRotation3D aR(aR2T*Pt3dr(0,LBase*sign,0),aR2T*aR1);
+                            ElRotation3D aR(aR2T*Pt3dr(0,LBase*sign,0),aR2T*aR1,true);
 			    cElemMepRelCoplan anEl(aHom12,aR,*this);
                             aRes.AddSol(anEl);
 			 }
@@ -1008,7 +1008,8 @@ ElRotation3D  cIterOptimiseMEPRel::Param2Rot(const double * aP)
    return ElRotation3D
           (
               vunit(aTr) * mNorm,
-              mMatr * ElMatrix<double>::Rotation(aP[2]*aF,aP[3]*aF,aP[4]*aF)
+              mMatr * ElMatrix<double>::Rotation(aP[2]*aF,aP[3]*aF,aP[4]*aF),
+              true
           );
 }
 
@@ -1092,7 +1093,7 @@ ElRotation3D cResolvAmbiBase::SolOrient(double & aLambda)
    Pt3dr aCL =  mC0 + mV01*aLambda;
    const ElMatrix<double> & aM = mR1.Mat();
 
-   return ElRotation3D(aCL,aM);
+   return ElRotation3D(aCL,aM,true);
 }
 
 double SomEcartDist

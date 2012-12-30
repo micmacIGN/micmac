@@ -314,7 +314,7 @@ int main(int argc,char ** argv)
    }
 
 
-   for (unsigned int aKS=0 ; aKS<int(mSugg.size()) ; aKS++)
+   for (unsigned int aKS=0 ; aKS<mSugg.size() ; aKS++)
    {
       if (! mSugg[aKS]->mRes.empty())
       {

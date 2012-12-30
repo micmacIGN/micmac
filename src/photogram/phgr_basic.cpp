@@ -2303,14 +2303,66 @@ void ElCamera::ChangeSys(const cSysCoord & a1Source,const cSysCoord & a2Cible,co
 //        RCible2Cam -1     = G2C S2G RSrc2Cam -1
 //        RCam2Cible = G2C S2G R Cam2Src
 
+void TestMatr(const char * aMes, ElMatrix<double> aM)
+{
+   ShowMatr(aMes,aM);
+   ShowMatr("MtM",aM*aM.transpose());
+}
+
+void TestCamCHC(ElCamera & aCam)
+{
+    double aProf0=100;
+    Pt2dr aPIm1(220,120);
+    std::cout << " TTttCamm  " << aCam.ImEtProf2Terrain(aPIm1,aProf0+1) -  aCam.ImEtProf2Terrain(aPIm1,aProf0) << "\n";
+}
+
 void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord & aSource,const cSysCoord & aCible,bool ForceRot)
 {
+    bool Test = false;
     std::vector<Pt3dr> aVCenterSrc;
     std::vector<Pt3dr> aPMoy;
     std::vector<bool>  aPMoyIsCalc;
+
+
+    Pt2dr aPIm0(0,0);
+    Pt3dr aPSrc0(0,0,0);
+    Pt3dr aGeoC0(0,0,0);
+    Pt3dr aCible0(0,0,0);
+    double aProf0=100;
+
+
+    Pt2dr aPIm1(0,0);
+    Pt3dr aPSrc1(0,0,0);
+    Pt3dr aGeoC1(0,0,0);
+    Pt3dr aCible1(0,0,0);
+    double aProf1=110;
+
+
     for (int aK=0 ; aK<int(aVCam.size()); aK++)
     {
         ElCamera & aCam = *(aVCam[aK]);
+
+        if (aK==0)
+        {
+            aPIm0 = Pt2dr(aCam.Sz()) / 2.0;
+            aPSrc0 = aCam.ImEtProf2Terrain(aPIm0,aProf0);
+            aGeoC0 = aSource.ToGeoC(aPSrc0);
+            aCible0  = aCible.FromGeoC(aGeoC0);
+
+            aPIm1 = Pt2dr(aCam.Sz()) / 4.0;
+            aPSrc1 = aCam.ImEtProf2Terrain(aPIm1,aProf1);
+            aGeoC1 = aSource.ToGeoC(aPSrc1);
+            aCible1  = aCible.FromGeoC(aGeoC1);
+
+
+            if (Test)
+            {
+                std::cout << "Im=" << aPIm0 << " Src=" << aPSrc0 << " G="<<aGeoC0 << " Cbl=" <<  aCible0 << "\n";
+                std::cout << "VEC ::  Src=" << aPSrc1-aPSrc0 << " G="<< aGeoC1- aGeoC0 << " Cbl=" << aCible1- aCible0 << "\n";
+                std::cout << "REPROJ-init " << aCam.R3toF2(aPSrc0) << aCam.R3toF2(aPSrc1) << "\n";
+            }
+        }
+       
         const ElRotation3D &  aOriSrc2Cam = aCam.Orient();
         Pt3dr aC = aOriSrc2Cam.ImRecAff(Pt3dr(0,0,0));
         aVCenterSrc.push_back(aC);
@@ -2326,11 +2378,13 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord 
         }
     }
 
+    double aEpsilon = 50.0;
+
     std::vector<Pt3dr> aVCenterGeoc;
-    std::vector<ElMatrix<double> > aVJacS2G = aSource.Jacobien(aVCenterSrc,Pt3dr(0.1,0.1,0.1),true,&aVCenterGeoc);
+    std::vector<ElMatrix<double> > aVJacS2G = aSource.Jacobien(aVCenterSrc,Pt3dr(aEpsilon,aEpsilon,aEpsilon),true,&aVCenterGeoc);
 
     std::vector<Pt3dr> aVCenterCible;
-    std::vector<ElMatrix<double> > aVJacG2C = aCible.Jacobien(aVCenterGeoc,Pt3dr(0.1,0.1,0.1),false,&aVCenterCible);
+    std::vector<ElMatrix<double> > aVJacG2C = aCible.Jacobien(aVCenterGeoc,Pt3dr(aEpsilon,aEpsilon,aEpsilon),false,&aVCenterCible);
 
     aPMoy  = aCible.FromGeoC(aSource.ToGeoC(aPMoy));
 
@@ -2341,6 +2395,8 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord 
         ElRotation3D  aOriCam2Src = aCam.Orient().inv();
         ElMatrix<double> aMatCam2Cible  = aVJacG2C[aK] * aVJacS2G[aK] * aOriCam2Src.Mat();
 
+// TestMatr("aVJacG2C ",  aVJacG2C[aK]);
+
         if (ForceRot) 
         {
           aMatCam2Cible = NearestRotation(aMatCam2Cible);
@@ -2350,6 +2406,7 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord 
 
         aCam.SetOrientation(aOriCam2Cible.inv());
 
+
         if (aPMoyIsCalc[aK])
         {
            aCam.SetAltiSol(aPMoy[aK].z);
@@ -2357,6 +2414,18 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord 
         else
         {
            aCam.UndefAltisSol();
+        }
+
+        if (aK==0)
+        {
+            if (Test)
+            {
+                std::cout << "REPROJ-finale " << aCam.R3toF2(aCible0) << " " << aCam.R3toF2(aCible1)  << "\n";
+                Pt3dr aPC0_Bis = aCam.ImEtProf2Terrain(aPIm0,aProf0);
+                std::cout << "Inv Proj Finale " << aCam.R3toF2(aPC0_Bis) << " " << euclid(aCible0 - aPC0_Bis)  << "\n";
+                std::cout << " VEC0 " << aCam.ImEtProf2Terrain(aPIm1,aProf0+1) -  aCam.ImEtProf2Terrain(aPIm1,aProf0) << "\n";
+                TestCamCHC(aCam);
+            }
         }
     }
 }
@@ -3266,7 +3335,7 @@ void CamStenope::OrientFromPtsAppui
                                    RAB,RAC,RAB^RAC,
                                    LAB,LAC,LAB^LAC
                                );
-           Res.push_back(ElRotation3D(L3A-M3*R3A,M3));
+           Res.push_back(ElRotation3D(L3A-M3*R3A,M3,true));
         }
     }
 }
@@ -3629,7 +3698,7 @@ void  CamStenope::Set_GPS_Orientation_From_Appuis
             
             ElMatrix<REAL> aMatC2M = ComplemRotation(aD1Cam,aD2Cam,aD1Monde,aD2Monde);
 
-            ElRotation3D aRC2M_Test(aGPS,aMatC2M);
+            ElRotation3D aRC2M_Test(aGPS,aMatC2M,true);
             SetOrientation(aRC2M_Test.inv());
 
             double anEcart = SomEcartAngulaire(aVApp);

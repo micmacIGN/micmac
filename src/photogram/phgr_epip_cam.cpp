@@ -138,12 +138,12 @@ cEpipOrientCam::cEpipOrientCam
   mCamEpip (true,aCam.Focale(),aCam.PP(),aCam.ParamAF())
 {
    ELISE_ASSERT(!aCam.UseAFocal(),"AFocal epip");
-   ElRotation3D aRot(Pt3dr(0,0,0),aMat);
+   ElRotation3D aRot(Pt3dr(0,0,0),aMat,true);
    ElMatrix<REAL> MR = aRot.Mat();
 
    Pt3dr Tr = -(MR*aCam.VraiOpticalCenter());
 
-   mCamEpip.SetOrientation(ElRotation3D(Tr,MR));
+   mCamEpip.SetOrientation(ElRotation3D(Tr,MR,true));
 }
 
 /********************************************************/
@@ -221,7 +221,7 @@ CpleEpipolaireCoord * CpleEpipolaireCoord::CamEpipolaire
 
 CamStenopeIdeale  cCpleEpip::CamOut(const CamStenope & aCamIn,Pt2dr aPP,Pt2di aSz)
 {
-    ElRotation3D  aRC2M(aCamIn.VraiOpticalCenter(),mMatC2M);
+    ElRotation3D  aRC2M(aCamIn.VraiOpticalCenter(),mMatC2M,true);
     CamStenopeIdeale  aCamOut(aCamIn.DistIsC2M(),mFoc,aPP,aCamIn.ParamAF());
     aCamOut.SetOrientation(aRC2M.inv());
     aCamOut.SetSz(aSz);

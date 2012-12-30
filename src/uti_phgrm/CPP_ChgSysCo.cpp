@@ -52,19 +52,7 @@ Parametre de Tapas :
 // bin/Tapioca Line  "../micmac_data/ExempleDoc/Boudha/IMG_[0-9]{4}.tif" -1   3 ExpTxt=1
 // bin/Tapioca File  "../micmac_data/ExempleDoc/Boudha/MesCouples.xml" -1  ExpTxt=1
 
-#define DEF_OFSET -12349876
 
-#define  NbModele 10
-
-
-struct cCamChSys
-{
-    std::string          mNCam;
-    std::string          mNOrIn;
-    std::string          mNOrOut;
-    cOrientationConique  mXmlIn;
-    ElCamera * aCam;
-};
 
 
 
@@ -79,8 +67,6 @@ int ChgSysCo_main(int argc,char ** argv)
     bool        ForceRot = false;
 
 
-   std::vector<std::string> GCP;
-
     ElInitArgMain
     (
 	argc,argv,
@@ -91,38 +77,28 @@ int ChgSysCo_main(int argc,char ** argv)
 	LArgMain()  << EAM(ForceRot,"FR",true,"Force orientation matrix to be pure rotation (Def = false)")	
     );
 
-    std::string aKeyIn = "NKS-Assoc-Im2Orient@-" + AeroIn;
-    std::string aKeyOut = "NKS-Assoc-Im2Orient@-" + AeroOut;
-
     std::string aDir,aPat;
-
 #if (ELISE_windows)
-     replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+    replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
 #endif
     SplitDirAndFile(aDir,aPat,aFullDir);
+    std::cout << "DPPPP= " << aDir << " " << aPat << "\n";
 
 
-    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    const cInterfChantierNameManipulateur::tSet * aSetIm = anICNM->Get(aPat);
 
-    std::vector<ElCamera *> aVCam;
-    std::vector<cCamChSys *>  aVCS;
-
-
-    for (int aK=0 ; aK<int(aSetIm->size()) ; aK++)
-    {
-         aVCS.push_back(new cCamChSys);
-         cCamChSys & aCS = *(aVCS.back());
-         aCS.mNCam = (*aSetIm)[aK];
-         aCS.mNOrIn = anICNM->Assoc1To1(aKeyIn,aCS.mNCam,true);
+    std::string aCom =       MM3dBinFile( "Apero" )
+                          +  XML_MM_File("Apero-ChCo.xml")
+                          +  std::string(" DirectoryChantier=") + aDir + " "
+                          +  std::string(" +SetIm=") + aPat + " "
+                          +  std::string(" +AeroIn=-") + AeroIn + " "
+                          +  std::string(" +AeroOut=-") + AeroOut + " "
+                          +  std::string(" +ChC=") + aStrChSys + " "
+                          +  std::string(" +ChCFR=") + ToString(ForceRot)
+                       ;
 
 
-         std::cout << aCS.mNCam << " " << aCS.mNOrIn << "\n";
-    }
-
-
-    int aRes = 1;
-
+   std::cout << "COM = " << aCom << "\n";
+   int aRes = system_call(aCom.c_str());
    return aRes;
 }
 

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1352]) = {
+const char * (theNameVar_ParamChantierPhotogram[1355]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -656,6 +656,9 @@ const char * (theNameVar_ParamChantierPhotogram[1352]) = {
 "                  <L1 Nb=\"1\" Type=\"Pt3dr\"> </L1>\n",
 "                  <L2 Nb=\"1\" Type=\"Pt3dr\"> </L2>\n",
 "                  <L3 Nb=\"1\" Type=\"Pt3dr\"> </L3>\n",
+"                 <!--  Pour gerer les axes non orthonormes  issus de la conversion de rotation dans\n",
+"                       des systèmes non euclidiens -->\n",
+"                  <TrueRot Type=\"bool\" Nb=\"?\" Def=\"true\"> </TrueRot>\n",
 "             </CodageMatr>\n",
 "             <CodageAngulaire Nb=\"?\" Type=\"Pt3dr\"> </CodageAngulaire>\n",
 "             <!-- Code les rotatuion simple perm + inv de signe sous la forme i-j-k ou ji-k etc .. -->\n",

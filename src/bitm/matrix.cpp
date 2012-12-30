@@ -1017,6 +1017,8 @@ template <class Type>   Type ElMatrix<Type>::NormC(INT x) const
 
 template <class Type> void ElMatrix<Type>::SetColSchmidtOrthog(INT NbIter)
 {
+//std::cout << "::SetColSchmidtOrthoguuu\n";
+//getchar();
     ELISE_ASSERT(_tx<=_ty,"Bad size in ElMatrix::ColSchmidtOrthog");
 
     for (INT x=0; x<_tx ; x++)
@@ -1089,6 +1091,7 @@ double ProfFromCam(const ElRotation3D & anOr,const Pt3dr & aP)
 //  X2 = S2toS1(X1) = S2.FromSys2This(S1,X1)
 //  X1 = S1.FromSys2This(S2,X2)
 
+/*
 ElRotation3D  ChangementSysC
               (
                      const Pt3dr &       aP1,
@@ -1113,6 +1116,7 @@ ElRotation3D  ChangementSysC
 
      return ElRotation3D(aTr2,aMatr2);
 }
+*/
 
 
 /*************************************************************/
@@ -1185,7 +1189,7 @@ template  bool   self_gaussj_svp(ElMatrix<REAL16> & m);
 
 ElMatrix<double> InvMatrix(const ElMatrix<double> & mat)
 {
-    gaussj(mat);
+    return gaussj(mat);
 }
 
 ElMatrix<Fonc_Num> InvMatrix(const ElMatrix<Fonc_Num> & mat)
@@ -1273,6 +1277,10 @@ template <class Type>  TplElRotation3D<Type>
 }
 
 
+template <class Type> bool TplElRotation3D<Type>::IsTrueRot() const
+{
+    return mTrueRot;
+}
 
 template <class Type> Pt3d<Type> TplElRotation3D<Type>:: ImAff( Pt3d<Type> p) const
 {
