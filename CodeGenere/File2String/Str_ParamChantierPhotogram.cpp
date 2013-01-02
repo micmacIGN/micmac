@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1355]) = {
+const char * (theNameVar_ParamChantierPhotogram[1365]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -845,6 +845,14 @@ const char * (theNameVar_ParamChantierPhotogram[1355]) = {
 "	 </OneCalib2Visu>\n",
 "   </VisuCalibZoom>\n",
 "\n",
+"\n",
+"   <FilterLocalisation Nb=\"1\" Class=\"true\" ToReference=\"true\" >\n",
+"       <KeyAssocOrient Nb=\"1\" Type=\"std::string\"> </KeyAssocOrient>\n",
+"       <NameMasq Nb=\"1\" Type=\"std::string\"> </NameMasq>\n",
+"       <NameMTDMasq Nb=\"1\" Type=\"std::string\"> </NameMTDMasq>\n",
+"   </FilterLocalisation>\n",
+"   \n",
+"\n",
 "   <!-- Description des associations de noms dans un chantier -->\n",
 "\n",
 "   <!-- Filtre de nom , sur les meta donnee -->\n",
@@ -867,6 +875,8 @@ const char * (theNameVar_ParamChantierPhotogram[1355]) = {
 "           <RequireExist Nb=\"1\" Type=\"bool\"> </RequireExist>\n",
 "           <RequireForAll Nb=\"1\" Type=\"bool\"> </RequireForAll>\n",
 "      </KeyExistingFile>\n",
+"\n",
+"      <KeyLocalisation Nb=\"?\" RefType=\"FilterLocalisation\"> </KeyLocalisation>\n",
 "   </NameFilter>\n",
 "\n",
 "   <BasicAssocNameToName  Nb=\"1\" Class=\"true\" ToReference=\"true\" >\n",
