@@ -843,6 +843,14 @@ namespace NS_ParamChantierPhotogram{
 	 </OneCalib2Visu>
    </VisuCalibZoom>
 
+
+   <FilterLocalisation Nb="1" Class="true" ToReference="true" >
+       <KeyAssocOrient Nb="1" Type="std::string"> </KeyAssocOrient>
+       <NameMasq Nb="1" Type="std::string"> </NameMasq>
+       <NameMTDMasq Nb="1" Type="std::string"> </NameMTDMasq>
+   </FilterLocalisation>
+   
+
    <!-- Description des associations de noms dans un chantier -->
 
    <!-- Filtre de nom , sur les meta donnee -->
@@ -865,6 +873,8 @@ namespace NS_ParamChantierPhotogram{
            <RequireExist Nb="1" Type="bool"> </RequireExist>
            <RequireForAll Nb="1" Type="bool"> </RequireForAll>
       </KeyExistingFile>
+
+      <KeyLocalisation Nb="?" RefType="FilterLocalisation"> </KeyLocalisation>
    </NameFilter>
 
    <BasicAssocNameToName  Nb="1" Class="true" ToReference="true" >

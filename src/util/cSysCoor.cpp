@@ -185,9 +185,15 @@ class cGeoc_WGS4 : public cSysCoord
       bool             mSwap;
 };
 
+
+
+/*
         const double cGeoc_WGS4::PtAxe = 6356752.3;
         const double cGeoc_WGS4::GdAxe = 6378137.0;
+*/
 
+const double cGeoc_WGS4::PtAxe = 6356752.314140;
+const double cGeoc_WGS4::GdAxe = 6378137.0;
 
 
        // static const double PtAxe = 6356752.3;

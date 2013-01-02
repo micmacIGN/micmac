@@ -303,6 +303,24 @@ template <class TCont,class TVal> bool IsInIntervalle
 }
 
 
+/*
+template <class Type> Type * GetImRemanenteFromFile(const std::string & aName)
+{
+   static std::map<std::string,Type *> aDic;
+   Type * aRes = aDic[aName];
+
+   if (aRes != 0) return aRes;
+
+   Tiff_Im aTF(aName.c_str());
+   Pt2di aSz = aTF.sz();
+
+   aRes = new Type(aSz.x,aSz.y);
+   ELISE_COPY(aTF.all_pts(),aTF.in(),aRes->out());
+   aDic[aName] = aRes;
+   return aRes;
+}
+*/
+
 
 ElRotation3D  CombinatoireOFPA
               (
@@ -318,12 +336,12 @@ ElRotation3D  CombinatoireOFPA
 
 bool NameFilter(const std::string & aSubD,cInterfChantierNameManipulateur * aICNM,const cNameFilter & aFilter,const std::string & aName)
 {
-//std::cout << "AAAAAAAaa NameFilter\n";
+   std::string anEntete = aICNM->Dir()+ aSubD;
+   std::string aFullName = anEntete + aName;
+
    int aSz = aFilter.SizeMinFile().Val();
    if (aSz>=0)
    {
-      std::string aFullName = aICNM->Dir()+ aSubD+aName;
-// std::cout << aFullName << " " << aSz << " " << sizeofile(aFullName.c_str()) << "\n";
       if (sizeofile(aFullName.c_str()) < aSz)
          return false;
    }
@@ -333,7 +351,6 @@ bool NameFilter(const std::string & aSubD,cInterfChantierNameManipulateur * aICN
    if (! aLFoc.empty())
    {
       
-      std::string aFullName = aICNM->Dir()+ aSubD+aName;
       if (!IsInIntervalle(aLFoc,GetFocalMmDefined(aFullName),true))
       {
             return false;
@@ -341,34 +358,6 @@ bool NameFilter(const std::string & aSubD,cInterfChantierNameManipulateur * aICN
    }
    
 
-/*
-   if (aFilter.DataBaseFilter().IsInit())
-   {
-       const cDataBaseFilter  aDBF = aFilter.DataBaseFilter().Val();
-       cXmlExivEntry * aXEE = aICNM->GetXivEntry(aName);
-
-       if (!IsInIntervalle(aDBF.FocMm(),aXEE->Focale(),true))
-       {
-            return false;
-       }
-   }
-*/
-/*
-   if (aFilter.XifMTDFilter().IsInit())
-   {
-       const cXifMTDFilter  aXF = aFilter.XifMTDFilter().Val();
-       std::string aNameXif = aName;
-       if (aXF.KeyAssocNameXif().IsInit())
-          aNameXif = aICNM->Assoc1To1(aXF.KeyAssocNameXif().Val(),aNameXif,true);
-       cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aICNM->Dir()+ aSubD+aNameXif);
-       if (aXF.FocMm().IsInit())
-       {
-          Pt2dr aFM = aXF.FocMm().Val();
-          if ((aFM.x>aMDP.FocMm())||(aFM.y<aMDP.FocMm()))
-             return false;
-       }
-   }
-*/
 
    if ((aFilter.Min().IsInit())&&(aFilter.Min().Val()>aName))
       return false;
@@ -376,7 +365,6 @@ bool NameFilter(const std::string & aSubD,cInterfChantierNameManipulateur * aICN
    if ((aFilter.Max().IsInit())&&(aFilter.Max().Val()<aName))
       return false;
 
-// std::cout << "Bbbbbbbbbb NameFilter\n";
    for 
    (
         std::list<cKeyExistingFile>::const_iterator itKEF=aFilter.KeyExistingFile().begin();
@@ -392,7 +380,7 @@ bool NameFilter(const std::string & aSubD,cInterfChantierNameManipulateur * aICN
             itKA++
        )
        {
-          std::string aNameF = aICNM->Dir()+ aSubD+ aICNM->Assoc1To1(*itKA,aName,true);
+          std::string aNameF = anEntete + aICNM->Assoc1To1(*itKA,aName,true);
           bool fExists = ELISE_fp::exist_file(aNameF);
 // std::cout << "KEY-NF " << aNameF << "\n";
           bool Ok = itKEF->RequireExist() ? fExists : (!fExists);
@@ -404,6 +392,27 @@ bool NameFilter(const std::string & aSubD,cInterfChantierNameManipulateur * aICN
    //std::cout << "KEY-NF " << aName << " " << OKGlob << "\n";
        if (!OKGlob) 
           return false;
+   }
+
+
+   if (aFilter.KeyLocalisation().IsInit())
+   {
+       const cFilterLocalisation & aKLoc = aFilter.KeyLocalisation().Val();
+       std::string aNameCam = anEntete + aICNM->Assoc1To1(aKLoc.KeyAssocOrient(),aName,true);
+       ElCamera * aCam = Cam_Gen_From_File(aNameCam,"OrientationConique",aICNM);
+       Im2D_Bits<1> * aMasq = GetImRemanenteFromFile<Im2D_Bits<1> > (anEntete+ aKLoc.NameMasq());
+       TIm2DBits<1> TM(*aMasq);
+
+       cFileOriMnt * anOri = RemanentStdGetObjFromFile<cFileOriMnt>
+                             (
+                                anEntete+aKLoc.NameMTDMasq(),
+                                StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                                "FileOriMnt",
+                                "FileOriMnt"
+                             );
+        Pt3dr aPMnt = FromMnt(*anOri,aCam->OrigineProf());
+        Pt2di aP(round_ni(aPMnt.x),round_ni(aPMnt.y));
+        return TM.get(aP,0);
    }
    
    return true;
