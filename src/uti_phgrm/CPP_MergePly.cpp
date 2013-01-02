@@ -91,7 +91,7 @@ int MergePly_main(int argc,char ** argv)
     if (aNameOut=="")
 		aNameOut = StdPrefix(aVFiles[0]) + "_merged.ply";
 	
-	PlyOrientedVertex **glist;
+	PlyOrientedVertex **glist=NULL;
 	int gen_nelems =0;
 	int Cptr = 0;
 	
@@ -103,8 +103,8 @@ int MergePly_main(int argc,char ** argv)
 	int nprops;
 	int num_elems;
 	char *elem_name;
-	PlyProperty **plist;
-	PlyOrientedVertex **vlist;
+	PlyProperty **plist=NULL;
+	PlyOrientedVertex **vlist=NULL;
 	
 	//get global number of elements
 	for (unsigned int aK=0; aK< aVFiles.size(); ++aK) 
@@ -233,9 +233,9 @@ int MergePly_main(int argc,char ** argv)
 		
 	ElFclose(aFP);
 	
-	delete glist;
-	delete vlist;
-	delete plist;
+	if ( glist!=NULL )delete glist;
+	if ( vlist!=NULL ) delete vlist;
+	if ( plist!=NULL )delete plist;
 
 	return EXIT_SUCCESS;
 }
