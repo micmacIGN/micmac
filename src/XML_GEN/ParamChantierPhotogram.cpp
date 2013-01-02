@@ -6567,6 +6567,59 @@ void xml_init(cVisuCalibZoom & anObj,cElXMLTree * aTree)
 }
 
 
+std::string & cFilterLocalisation::KeyAssocOrient()
+{
+   return mKeyAssocOrient;
+}
+
+const std::string & cFilterLocalisation::KeyAssocOrient()const 
+{
+   return mKeyAssocOrient;
+}
+
+
+std::string & cFilterLocalisation::NameMasq()
+{
+   return mNameMasq;
+}
+
+const std::string & cFilterLocalisation::NameMasq()const 
+{
+   return mNameMasq;
+}
+
+
+std::string & cFilterLocalisation::NameMTDMasq()
+{
+   return mNameMTDMasq;
+}
+
+const std::string & cFilterLocalisation::NameMTDMasq()const 
+{
+   return mNameMTDMasq;
+}
+
+cElXMLTree * ToXMLTree(const cFilterLocalisation & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"FilterLocalisation",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("KeyAssocOrient"),anObj.KeyAssocOrient())->ReTagThis("KeyAssocOrient"));
+   aRes->AddFils(::ToXMLTree(std::string("NameMasq"),anObj.NameMasq())->ReTagThis("NameMasq"));
+   aRes->AddFils(::ToXMLTree(std::string("NameMTDMasq"),anObj.NameMTDMasq())->ReTagThis("NameMTDMasq"));
+  return aRes;
+}
+
+void xml_init(cFilterLocalisation & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.KeyAssocOrient(),aTree->Get("KeyAssocOrient",1)); //tototo 
+
+   xml_init(anObj.NameMasq(),aTree->Get("NameMasq",1)); //tototo 
+
+   xml_init(anObj.NameMTDMasq(),aTree->Get("NameMTDMasq",1)); //tototo 
+}
+
+
 std::list< std::string > & cKeyExistingFile::KeyAssoc()
 {
    return mKeyAssoc;
@@ -6679,6 +6732,17 @@ const std::list< cKeyExistingFile > & cNameFilter::KeyExistingFile()const
    return mKeyExistingFile;
 }
 
+
+cTplValGesInit< cFilterLocalisation > & cNameFilter::KeyLocalisation()
+{
+   return mKeyLocalisation;
+}
+
+const cTplValGesInit< cFilterLocalisation > & cNameFilter::KeyLocalisation()const 
+{
+   return mKeyLocalisation;
+}
+
 cElXMLTree * ToXMLTree(const cNameFilter & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"NameFilter",eXMLBranche);
@@ -6700,6 +6764,8 @@ cElXMLTree * ToXMLTree(const cNameFilter & anObj)
       it++
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("KeyExistingFile"));
+   if (anObj.KeyLocalisation().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.KeyLocalisation().Val())->ReTagThis("KeyLocalisation"));
   return aRes;
 }
 
@@ -6716,6 +6782,8 @@ void xml_init(cNameFilter & anObj,cElXMLTree * aTree)
    xml_init(anObj.SizeMinFile(),aTree->Get("SizeMinFile",1),int(-1)); //tototo 
 
    xml_init(anObj.KeyExistingFile(),aTree->GetAll("KeyExistingFile",false,1));
+
+   xml_init(anObj.KeyLocalisation(),aTree->Get("KeyLocalisation",1)); //tototo 
 }
 
 

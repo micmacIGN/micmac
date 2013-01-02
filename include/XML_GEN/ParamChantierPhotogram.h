@@ -2533,6 +2533,30 @@ cElXMLTree * ToXMLTree(const cVisuCalibZoom &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cFilterLocalisation
+{
+    public:
+        friend void xml_init(cFilterLocalisation & anObj,cElXMLTree * aTree);
+
+
+        std::string & KeyAssocOrient();
+        const std::string & KeyAssocOrient()const ;
+
+        std::string & NameMasq();
+        const std::string & NameMasq()const ;
+
+        std::string & NameMTDMasq();
+        const std::string & NameMTDMasq()const ;
+    private:
+        std::string mKeyAssocOrient;
+        std::string mNameMasq;
+        std::string mNameMTDMasq;
+};
+cElXMLTree * ToXMLTree(const cFilterLocalisation &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cKeyExistingFile
 {
     public:
@@ -2577,12 +2601,16 @@ class cNameFilter
 
         std::list< cKeyExistingFile > & KeyExistingFile();
         const std::list< cKeyExistingFile > & KeyExistingFile()const ;
+
+        cTplValGesInit< cFilterLocalisation > & KeyLocalisation();
+        const cTplValGesInit< cFilterLocalisation > & KeyLocalisation()const ;
     private:
         std::list< Pt2drSubst > mFocMm;
         cTplValGesInit< std::string > mMin;
         cTplValGesInit< std::string > mMax;
         cTplValGesInit< int > mSizeMinFile;
         std::list< cKeyExistingFile > mKeyExistingFile;
+        cTplValGesInit< cFilterLocalisation > mKeyLocalisation;
 };
 cElXMLTree * ToXMLTree(const cNameFilter &);
 
