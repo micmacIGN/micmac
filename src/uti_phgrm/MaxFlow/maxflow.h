@@ -365,7 +365,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 		}
 	}
 
-	if (i->parent = a0_min)
+	if ((i->parent = a0_min))
 	{
 		i -> TS = TIME;
 		i -> DIST = d_min + 1;
@@ -442,7 +442,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 		}
 	}
 
-	if (i->parent = a0_min)
+	if ((i->parent = a0_min))
 	{
 		i -> TS = TIME;
 		i -> DIST = d_min + 1;
