@@ -78,7 +78,7 @@ int GCP_Txt2Xml_main(int argc,char ** argv)
 
     std::string aFilePtsIn,aFilePtsOut;
     bool Help;
-    eTypeFichierApp aType;
+    eTypeFichierApp aType=eAppEgels;
 
     std::string aStrType; 
     if (argc >=2)

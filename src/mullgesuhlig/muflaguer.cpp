@@ -449,9 +449,9 @@ int laguerre             /* real polynomial roots, Method of Laguerre */
 
 int laguerre (int  n,double  a[],double  x[])
 {
-    int nb;
+    int nb=0;
     int res = laguerre(n,a,1e-5,1e-7,10,x,(int *)0,&nb);
-printf("RES LAG = %d\n",res);
+	printf("RES LAG = %d\n",res);
     return nb;
 }              
 

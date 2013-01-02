@@ -1074,7 +1074,6 @@ cElXMLTree::cElXMLTree
 			)
 			)
 		{
-			int tempo = 11;
 			std::list<cElXMLTree *>::iterator it,it2;
 			for ( it=aFils->mFils.begin(); it!=aFils->mFils.end() ; it++ )
 			{
