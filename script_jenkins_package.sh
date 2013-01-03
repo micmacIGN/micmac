@@ -26,4 +26,4 @@ cp -r ../include/XML_MicMac $BIN_DIR/include
 
 # créer l'archive
 ARCH=`uname`_`uname -p`
-tar -czf bin_$(ARCH)_rev$(REV_NUMBER).tar.gz $BIN_DIR
+tar -czf bin_${ARCH}_rev${REV_NUMBER}.tar.gz $BIN_DIR
