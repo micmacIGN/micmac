@@ -401,6 +401,7 @@ bool NameFilter(const std::string & aSubD,cInterfChantierNameManipulateur * aICN
        std::string aNameCam = anEntete + aICNM->Assoc1To1(aKLoc.KeyAssocOrient(),aName,true);
        ElCamera * aCam = Cam_Gen_From_File(aNameCam,"OrientationConique",aICNM);
        Im2D_Bits<1> * aMasq = GetImRemanenteFromFile<Im2D_Bits<1> > (anEntete+ aKLoc.NameMasq());
+
        TIm2DBits<1> TM(*aMasq);
 
        cFileOriMnt * anOri = RemanentStdGetObjFromFile<cFileOriMnt>
@@ -410,6 +411,7 @@ bool NameFilter(const std::string & aSubD,cInterfChantierNameManipulateur * aICN
                                 "FileOriMnt",
                                 "FileOriMnt"
                              );
+       // std::cout << "ADR MASQ " << aMasq << " " << anOri << "\n";
         Pt3dr aPMnt = FromMnt(*anOri,aCam->OrigineProf());
         Pt2di aP(round_ni(aPMnt.x),round_ni(aPMnt.y));
         return TM.get(aP,0);
