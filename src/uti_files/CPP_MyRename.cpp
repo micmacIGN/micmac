@@ -78,6 +78,7 @@ class cAppliMyRename
        std::string mPat;
        std::string mRepl;
        std::string mFile2M;
+       std::string mPatSubst;
        int         mExe;
        int         mNiv;
        int         mForce;
@@ -108,10 +109,20 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
                       << EAM(mAddF,"AddFoc",true)
                       << EAM(mFile2M,"File2M",true)
                       << EAM(mFull,"Full",true)
+                      << EAM(mPatSubst,"PatSub","Can be diff from Patten when use key")
     );
     SplitDirAndFile(mDir,mPat,aDP);
 
+/*
     std::list<std::string> aLIn = RegexListFileMatch(mDir,mPat,mNiv,mFull);
+*/
+   cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+   const cInterfChantierNameManipulateur::tSet * aVecIm = aICNM->Get(mPat);
+   std::list<std::string> aLIn (aVecIm->begin(),aVecIm->end());
+   
+
+   if (EAMIsInit(&mPatSubst))
+      mPat = mPatSubst;
 
     std::vector<cMov> aVM;
     if (mAddF) 

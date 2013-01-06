@@ -325,7 +325,7 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
                double aSomCouv = 0.0;
                for (int aKTeta = 0 ; aKTeta<aNbTeta ; aKTeta++)
                {
-                   Pt2dr aDirT = Pt2dr::FromPolar(1.0,(2*PI*aKTeta) / aNbTeta);
+                   //Pt2dr aDirT = Pt2dr::FromPolar(1.0,(2*PI*aKTeta) / aNbTeta);
                    double aGainMax = 0;
                    double aCouvMax = 0;
                    for (int aKE=0 ; aKE<aCard ; aKE++)

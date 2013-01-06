@@ -1017,6 +1017,8 @@ template <class Type>   Type ElMatrix<Type>::NormC(INT x) const
 
 template <class Type> void ElMatrix<Type>::SetColSchmidtOrthog(INT NbIter)
 {
+//std::cout << "::SetColSchmidtOrthoguuu\n";
+//getchar();
     ELISE_ASSERT(_tx<=_ty,"Bad size in ElMatrix::ColSchmidtOrthog");
 
     for (INT x=0; x<_tx ; x++)
@@ -1089,6 +1091,7 @@ double ProfFromCam(const ElRotation3D & anOr,const Pt3dr & aP)
 //  X2 = S2toS1(X1) = S2.FromSys2This(S1,X1)
 //  X1 = S1.FromSys2This(S2,X2)
 
+/*
 ElRotation3D  ChangementSysC
               (
                      const Pt3dr &       aP1,
@@ -1113,6 +1116,7 @@ ElRotation3D  ChangementSysC
 
      return ElRotation3D(aTr2,aMatr2);
 }
+*/
 
 
 /*************************************************************/
@@ -1183,12 +1187,34 @@ template  bool   self_gaussj_svp(ElMatrix<REAL16> & m);
 /*************************************************************/
 
 
-template <class Type> TplElRotation3D<Type>::TplElRotation3D(Pt3d<Type> tr,const ElMatrix<Type> & mat) :
-    _tr   (tr),
-    _Mat  (mat.ColSchmidtOrthog()),
-    _InvM (_Mat.transpose())
+ElMatrix<double> InvMatrix(const ElMatrix<double> & mat)
 {
-     AngleFromRot(_Mat,_teta01,_teta02,_teta12);
+    return gaussj(mat);
+}
+
+ElMatrix<Fonc_Num> InvMatrix(const ElMatrix<Fonc_Num> & mat)
+{
+    ELISE_ASSERT(false,"InvMatrix(const ElMatrix<Fonc_Num> & mat)");
+    return mat;
+}
+
+
+template <class Type> TplElRotation3D<Type>::TplElRotation3D(Pt3d<Type> tr,const ElMatrix<Type> & mat,bool aTrueRot) :
+    _tr       (tr),
+    _Mat      ( aTrueRot ? mat.ColSchmidtOrthog() : mat),
+    _InvM     (aTrueRot  ? _Mat.transpose()       : InvMatrix(mat)),
+    mTrueRot  (aTrueRot)
+{
+     if (aTrueRot)
+     {
+        AngleFromRot(_Mat,_teta01,_teta02,_teta12);
+     }
+     else
+     {
+          _teta01= strtod("NAN(teta01)", NULL);
+          _teta02= strtod("NAN(teta02)", NULL);
+          _teta12= strtod("NAN(teta12)", NULL);
+     }
 }
 
 
@@ -1199,10 +1225,16 @@ template <class Type> TplElRotation3D<Type>::TplElRotation3D (Pt3d<Type> tr,Type
     _InvM   (_Mat.transpose()),
     _teta01 (teta01),
     _teta02 (teta02),
-    _teta12 (teta12)
+    _teta12 (teta12),
+    mTrueRot (true)
 {
 }
 
+
+template <class Type>  void  TplElRotation3D<Type>::AssertTrueRot() const
+{
+   ELISE_ASSERT(mTrueRot,"Excpecting true rotation");
+}
 
 
 template <class Type>   TplElRotation3D<Type> &  
@@ -1217,12 +1249,13 @@ template <class Type>   TplElRotation3D<Type> &
    _teta01 = aR2._teta01;
    _teta02 = aR2._teta02;
    _teta12 = aR2._teta12;
+   mTrueRot = aR2.mTrueRot;
    return *this;
 }
 
 template <>  TplElRotation3D<REAL> TplElRotation3D<REAL>::inv() const
 {
-   return ElRotation3D ( -(_InvM*_tr), _InvM);
+   return ElRotation3D ( -(_InvM*_tr), _InvM,mTrueRot);
 }
 
 template <> TplElRotation3D<Fonc_Num> TplElRotation3D<Fonc_Num>::inv() const 
@@ -1238,11 +1271,16 @@ template <class Type>  TplElRotation3D<Type>
    return TplElRotation3D<Type>
           (
               _tr+_Mat*R2._tr,
-              _Mat*R2._Mat
+              _Mat*R2._Mat,
+              mTrueRot && R2.mTrueRot
           );
 }
 
 
+template <class Type> bool TplElRotation3D<Type>::IsTrueRot() const
+{
+    return mTrueRot;
+}
 
 template <class Type> Pt3d<Type> TplElRotation3D<Type>:: ImAff( Pt3d<Type> p) const
 {

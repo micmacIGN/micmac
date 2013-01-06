@@ -222,9 +222,9 @@ cOneTestLSQ:: cOneTestLSQ
    mCLSQ   (aCLSQ),
    mInterp (anInterp),
    mStep   (aCLSQ.Step().Val()),
+   mNbW    (round_ni(aCLSQ.SzW()/mStep)),
    mIm1    (aData1,aSzI1,*this),
    mIm2    (aData2,aSzI2,*this),
-   mNbW    (round_ni(aCLSQ.SzW()/mStep)),
    mMatCov (NbInc,NbInc),
    mMatI2  (1,NbInc),
    mVecP   (NbInc,NbInc),
@@ -364,7 +364,7 @@ bool  cOneTestLSQ::OneOptimOnLine()
    }
 
    double aLMin;
-   double aCMin = golden(aL0,aL1,aL2,1e-3,&aLMin);
+   golden(aL0,aL1,aL2,1e-3,&aLMin);
 
    SetPIm2(mIm2.PVois(0,0) +mDepLSQ *aLMin);
    return true;

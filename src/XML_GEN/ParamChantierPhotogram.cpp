@@ -3191,11 +3191,24 @@ const Pt3dr & cOneModifIPF::Incertitude()const
    return mIncertitude;
 }
 
+
+cTplValGesInit< bool > & cOneModifIPF::IsMult()
+{
+   return mIsMult;
+}
+
+const cTplValGesInit< bool > & cOneModifIPF::IsMult()const 
+{
+   return mIsMult;
+}
+
 cElXMLTree * ToXMLTree(const cOneModifIPF & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"OneModifIPF",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("KeyName"),anObj.KeyName())->ReTagThis("KeyName"));
    aRes->AddFils(ToXMLTree(std::string("Incertitude"),anObj.Incertitude())->ReTagThis("Incertitude"));
+   if (anObj.IsMult().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("IsMult"),anObj.IsMult().Val())->ReTagThis("IsMult"));
   return aRes;
 }
 
@@ -3206,6 +3219,8 @@ void xml_init(cOneModifIPF & anObj,cElXMLTree * aTree)
    xml_init(anObj.KeyName(),aTree->Get("KeyName",1)); //tototo 
 
    xml_init(anObj.Incertitude(),aTree->Get("Incertitude",1)); //tototo 
+
+   xml_init(anObj.IsMult(),aTree->Get("IsMult",1),bool(false)); //tototo 
 }
 
 
@@ -4900,12 +4915,25 @@ const Pt3dr & cCodageMatr::L3()const
    return mL3;
 }
 
+
+cTplValGesInit< bool > & cCodageMatr::TrueRot()
+{
+   return mTrueRot;
+}
+
+const cTplValGesInit< bool > & cCodageMatr::TrueRot()const 
+{
+   return mTrueRot;
+}
+
 cElXMLTree * ToXMLTree(const cCodageMatr & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CodageMatr",eXMLBranche);
    aRes->AddFils(ToXMLTree(std::string("L1"),anObj.L1())->ReTagThis("L1"));
    aRes->AddFils(ToXMLTree(std::string("L2"),anObj.L2())->ReTagThis("L2"));
    aRes->AddFils(ToXMLTree(std::string("L3"),anObj.L3())->ReTagThis("L3"));
+   if (anObj.TrueRot().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("TrueRot"),anObj.TrueRot().Val())->ReTagThis("TrueRot"));
   return aRes;
 }
 
@@ -4918,6 +4946,8 @@ void xml_init(cCodageMatr & anObj,cElXMLTree * aTree)
    xml_init(anObj.L2(),aTree->Get("L2",1)); //tototo 
 
    xml_init(anObj.L3(),aTree->Get("L3",1)); //tototo 
+
+   xml_init(anObj.TrueRot(),aTree->Get("TrueRot",1),bool(true)); //tototo 
 }
 
 
@@ -4951,6 +4981,17 @@ Pt3dr & cRotationVect::L3()
 const Pt3dr & cRotationVect::L3()const 
 {
    return CodageMatr().Val().L3();
+}
+
+
+cTplValGesInit< bool > & cRotationVect::TrueRot()
+{
+   return CodageMatr().Val().TrueRot();
+}
+
+const cTplValGesInit< bool > & cRotationVect::TrueRot()const 
+{
+   return CodageMatr().Val().TrueRot();
 }
 
 
@@ -6526,6 +6567,59 @@ void xml_init(cVisuCalibZoom & anObj,cElXMLTree * aTree)
 }
 
 
+std::string & cFilterLocalisation::KeyAssocOrient()
+{
+   return mKeyAssocOrient;
+}
+
+const std::string & cFilterLocalisation::KeyAssocOrient()const 
+{
+   return mKeyAssocOrient;
+}
+
+
+std::string & cFilterLocalisation::NameMasq()
+{
+   return mNameMasq;
+}
+
+const std::string & cFilterLocalisation::NameMasq()const 
+{
+   return mNameMasq;
+}
+
+
+std::string & cFilterLocalisation::NameMTDMasq()
+{
+   return mNameMTDMasq;
+}
+
+const std::string & cFilterLocalisation::NameMTDMasq()const 
+{
+   return mNameMTDMasq;
+}
+
+cElXMLTree * ToXMLTree(const cFilterLocalisation & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"FilterLocalisation",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("KeyAssocOrient"),anObj.KeyAssocOrient())->ReTagThis("KeyAssocOrient"));
+   aRes->AddFils(::ToXMLTree(std::string("NameMasq"),anObj.NameMasq())->ReTagThis("NameMasq"));
+   aRes->AddFils(::ToXMLTree(std::string("NameMTDMasq"),anObj.NameMTDMasq())->ReTagThis("NameMTDMasq"));
+  return aRes;
+}
+
+void xml_init(cFilterLocalisation & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.KeyAssocOrient(),aTree->Get("KeyAssocOrient",1)); //tototo 
+
+   xml_init(anObj.NameMasq(),aTree->Get("NameMasq",1)); //tototo 
+
+   xml_init(anObj.NameMTDMasq(),aTree->Get("NameMTDMasq",1)); //tototo 
+}
+
+
 std::list< std::string > & cKeyExistingFile::KeyAssoc()
 {
    return mKeyAssoc;
@@ -6638,6 +6732,17 @@ const std::list< cKeyExistingFile > & cNameFilter::KeyExistingFile()const
    return mKeyExistingFile;
 }
 
+
+cTplValGesInit< cFilterLocalisation > & cNameFilter::KeyLocalisation()
+{
+   return mKeyLocalisation;
+}
+
+const cTplValGesInit< cFilterLocalisation > & cNameFilter::KeyLocalisation()const 
+{
+   return mKeyLocalisation;
+}
+
 cElXMLTree * ToXMLTree(const cNameFilter & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"NameFilter",eXMLBranche);
@@ -6659,6 +6764,8 @@ cElXMLTree * ToXMLTree(const cNameFilter & anObj)
       it++
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("KeyExistingFile"));
+   if (anObj.KeyLocalisation().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.KeyLocalisation().Val())->ReTagThis("KeyLocalisation"));
   return aRes;
 }
 
@@ -6675,6 +6782,8 @@ void xml_init(cNameFilter & anObj,cElXMLTree * aTree)
    xml_init(anObj.SizeMinFile(),aTree->Get("SizeMinFile",1),int(-1)); //tototo 
 
    xml_init(anObj.KeyExistingFile(),aTree->GetAll("KeyExistingFile",false,1));
+
+   xml_init(anObj.KeyLocalisation(),aTree->Get("KeyLocalisation",1)); //tototo 
 }
 
 

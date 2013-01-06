@@ -1950,6 +1950,40 @@ template <class Type> Type StdGetObjFromFile
 
 }
 
+template <class Type> Type * GetImRemanenteFromFile(const std::string & aName)
+{
+   static std::map<std::string,Type *> aDic;
+   Type * aRes = aDic[aName];
+
+   if (aRes != 0) return aRes;
+
+   Tiff_Im aTF(aName.c_str());
+   Pt2di aSz = aTF.sz();
+
+   aRes = new Type(aSz.x,aSz.y);
+   ELISE_COPY(aTF.all_pts(),aTF.in(),aRes->out());
+   aDic[aName] = aRes;
+   return aRes;
+}
+
+
+template <class Type> Type * RemanentStdGetObjFromFile
+                      (
+                          const std::string & aNameFileObj,
+                          const std::string & aNameFileSpecif,
+                          const std::string & aNameTagObj,
+                          const std::string & aNameTagType
+                      )
+{
+    static std::map<std::string,Type *> aDic;
+    Type * aRes = aDic[aNameFileObj];
+    if (aRes!=0) return aRes;
+
+    aRes = new Type(StdGetObjFromFile<Type>(aNameFileObj,aNameFileSpecif,aNameTagObj,aNameTagType));
+    aDic[aNameFileObj] = aRes;
+    return aRes;
+}
+
 
 template <class Type> Type * OptionalGetObjFromFile_WithLC
                       (

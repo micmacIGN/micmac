@@ -1445,7 +1445,14 @@ class ElCamera : public cCapture3D
           void SetAltiSol(double );
           void SetProfondeur(double );
 
-           void ChangeSys(const cSysCoord & a1Source,const cSysCoord & a2Cible,const Pt3dr & aP);
+           // void ChangeSys(const cSysCoord & a1Source,const cSysCoord & a2Cible,const Pt3dr & aP);
+         static void ChangeSys
+                     (
+                            const std::vector<ElCamera *>& , 
+                            const cSysCoord & a1Source,
+                            const cSysCoord & a2Cible,
+                            bool ForceRot
+                     );
 
           // Pour compatibilite stricte avec ce qui etait fait avant
          // dans cDistStdFromCam::Diff
@@ -1457,6 +1464,9 @@ class ElCamera : public cCapture3D
           virtual double ResolutionSol(const Pt3dr &) const = 0;
           double GetAltiSol() const;
           bool AltisSolIsDef() const;
+          void UndefAltisSol() ;
+
+
           double GetProfondeur() const;
           bool   ProfIsDef() const;
           eTypeProj GetTypeProj() const;
@@ -1867,6 +1877,7 @@ class CamStenope : public ElCamera
 
          virtual const cCamStenopeDistRadPol * Debug_CSDRP() const;
 
+
           // renvoit la distance de p1 a la projection de la droite
           // Inhibee car non testee
 
@@ -1997,6 +2008,7 @@ class CamStenope : public ElCamera
 	 Pt3dr OpticalVarCenterTer(const Pt3dr &) const;
 	 Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
 	 Pt3dr ImEtZ2Terrain(const Pt2dr & aP,double aZ) const;
+
 
          Pt3dr  ImEtProfSpherik2Terrain(const Pt2dr & aPIm,const REAL & aProf) const; //OO
          Pt3dr  ImDirEtProf2Terrain(const Pt2dr & aPIm,const REAL & aProf,const Pt3dr & aNormPl) const; //OO

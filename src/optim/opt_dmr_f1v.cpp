@@ -71,8 +71,8 @@ NROptF1vND::~NROptF1vND() {}
      //++++++++++++++++++++++++++++++++
 
 NROptF1vND::NROptF1vND(int aNbIterMax) :
-    TOL        (1e-6),
-    mNbIterMax (aNbIterMax)
+    mNbIterMax (aNbIterMax),
+    TOL        (1e-6)
 {
 }
 

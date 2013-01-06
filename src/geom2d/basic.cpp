@@ -94,17 +94,33 @@ template <class TypePile> Pt2dr Tbarrycentre (const TypePile & f)
     Pt2dr cdg(0,0);
     REAL s_pds = 0.0;
 
+    ELISE_ASSERT(f.size()!=0,"No point in bary");
+    Pt2dr aOri = f[0];
+
     for (INT k=0; k<(INT)f.size(); k++)
     {
-        Pt2dr p0 =f[k];
-        Pt2dr p1 =f[(k+1)%f.size()];
+        Pt2dr p0 =f[k]-aOri;
+        Pt2dr p1 =f[(k+1)%f.size()]-aOri;
         REAL pds = p0^p1;
         s_pds += pds;
         cdg += (p0+p1) * pds;
     }
 
-    ELISE_ASSERT(s_pds!=0.0,"barrycentre, surface nulle");
-    return  cdg / (3*s_pds);
+    if (s_pds == 0)
+    {
+       std::cout << "For polyg = " ;
+    
+       for (INT k=0; k<(INT)f.size(); k++)
+       {
+          Pt2dr p0 =f[k];
+          Pt2dr p1 =f[(k+1)%f.size()];
+          if (k==0) std::cout << "P0 : " << p0;
+          std::cout << p1-p0 ;
+       }
+       std::cout << "\n";
+       ELISE_ASSERT(false,"barrycentre, surface nulle");
+    }
+    return  cdg / (3*s_pds) + aOri;
 }
 
 

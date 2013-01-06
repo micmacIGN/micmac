@@ -51,7 +51,6 @@ void ElisePenseBete()
    if (! ELISE_fp::exist_file(aName))
      return;
    ELISE_fp  aFile(aName.c_str(),ELISE_fp::READ);
-   static const int tBuf = 1000;
    string aBuf; //char aBuf[tBuf]; TEST_OVERFLOW
    bool eof=false;
    cout << "##################################\n";

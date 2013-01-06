@@ -78,7 +78,7 @@ int GCP_Txt2Xml_main(int argc,char ** argv)
 
     std::string aFilePtsIn,aFilePtsOut;
     bool Help;
-    eTypeFichierApp aType;
+    eTypeFichierApp aType=eAppEgels;
 
     std::string aStrType; 
     if (argc >=2)
@@ -141,7 +141,7 @@ int GCP_Txt2Xml_main(int argc,char ** argv)
 
     cChSysCo * aCSC = 0;
     if (aStrChSys!="")
-       aCSC = cChSysCo::Alloc(aStrChSys);
+       aCSC = cChSysCo::Alloc(aStrChSys,"");
 
     if (aFilePtsOut=="")
     {

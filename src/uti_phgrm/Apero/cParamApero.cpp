@@ -10785,14 +10785,25 @@ void xml_init(cExportCalib & anObj,cElXMLTree * aTree)
 }
 
 
-cTplValGesInit< cChangementCoordonnees > & cExportPose::ChC()
+cTplValGesInit< std::string > & cExportPose::ChC()
 {
    return mChC;
 }
 
-const cTplValGesInit< cChangementCoordonnees > & cExportPose::ChC()const 
+const cTplValGesInit< std::string > & cExportPose::ChC()const 
 {
    return mChC;
+}
+
+
+cTplValGesInit< bool > & cExportPose::ChCForceRot()
+{
+   return mChCForceRot;
+}
+
+const cTplValGesInit< bool > & cExportPose::ChCForceRot()const 
+{
+   return mChCForceRot;
 }
 
 
@@ -10942,7 +10953,9 @@ cElXMLTree * ToXMLTree(const cExportPose & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ExportPose",eXMLBranche);
    if (anObj.ChC().IsInit())
-      aRes->AddFils(ToXMLTree(anObj.ChC().Val())->ReTagThis("ChC"));
+      aRes->AddFils(::ToXMLTree(std::string("ChC"),anObj.ChC().Val())->ReTagThis("ChC"));
+   if (anObj.ChCForceRot().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ChCForceRot"),anObj.ChCForceRot().Val())->ReTagThis("ChCForceRot"));
    aRes->AddFils(::ToXMLTree(std::string("KeyAssoc"),anObj.KeyAssoc())->ReTagThis("KeyAssoc"));
    if (anObj.AddCalib().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("AddCalib"),anObj.AddCalib().Val())->ReTagThis("AddCalib"));
@@ -10976,6 +10989,8 @@ void xml_init(cExportPose & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
 
    xml_init(anObj.ChC(),aTree->Get("ChC",1)); //tototo 
+
+   xml_init(anObj.ChCForceRot(),aTree->Get("ChCForceRot",1),bool(false)); //tototo 
 
    xml_init(anObj.KeyAssoc(),aTree->Get("KeyAssoc",1)); //tototo 
 

@@ -159,6 +159,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("AperoChImSecMM",AperoChImMM_main,"Select secondary images for MicMac "));
        aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene"));
        aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
+       aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero , for compensation of heterogenous measures",cArgLockCom(3)));
+       aRes.push_back(cMMCom("ChgSysCo",ChgSysCo_main," Chang coordinate system of orientation",cArgLockCom(3)));
        aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Do some stuff"));
        aRes.push_back(cMMCom("cod",cod_main," Do some stuff"));
        aRes.push_back(cMMCom("CreateEpip",CreateEpip_main," Tool create epipolar images"));
@@ -206,6 +208,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Tarama",Tarama_main," Do some stuff"));
        aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image"));
        aRes.push_back(cMMCom("TestCam",TestCam_main," Test camera orientation convention"));
+       aRes.push_back(cMMCom("TestKey",TestSet_main," Test Keys for Sets and Assoc"));
+
        aRes.push_back(cMMCom("tiff_info",tiff_info_main," Tool for giving information about a tiff file"));
        aRes.push_back(cMMCom("to8Bits",to8Bits_main," Tool for converting 16 or 32 bit image in a 8 bit image."));
        aRes.push_back(cMMCom("Undist",Undist_main," Tool make undistorted images"));
@@ -312,7 +316,7 @@ int main(int argc,char ** argv)
    }
 
 
-   for (unsigned int aKS=0 ; aKS<int(mSugg.size()) ; aKS++)
+   for (unsigned int aKS=0 ; aKS<mSugg.size() ; aKS++)
    {
       if (! mSugg[aKS]->mRes.empty())
       {

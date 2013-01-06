@@ -634,7 +634,7 @@ bool  ELISE_fp::fgets( std::string &s, bool & endof )
 	for (INT i = 0; ; )
 	{
 		INT c = fgetc();
-		if ( i==s.length() ) s.resize( s.length()+500 );
+		if ( i==int(s.length()) ) s.resize( s.length()+500 );
 		if ( ( c=='\n' ) || ( c==eof ) )
 		{
 			s[i] = 0;
@@ -1569,7 +1569,8 @@ ElRotation3D ELISE_fp::read(ElRotation3D *)
 	Pt3dr aP = read((Pt3dr *)0);
 	ElMatrix<REAL> aMat = read((ElMatrix<REAL> *) 0);
 
-	return ElRotation3D(aP,aMat);
+        ELISE_ASSERT(false,"agt::VERIFIER ElRotation3D(aP,aMat,true)\n");
+	return ElRotation3D(aP,aMat,true);
 }
 
 

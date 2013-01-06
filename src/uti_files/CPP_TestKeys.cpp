@@ -37,88 +37,60 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
+#include <algorithm>
 
-void TestDirect(ElCamera * aCam,Pt3dr aPG)
+/*
+Parametre de Tapas :
+  
+   - calibration In : en base de donnees ou deja existantes.
+
+
+*/
+
+// bin/Tapioca MulScale "../micmac_data/ExempleDoc/Boudha/IMG_[0-9]{4}.tif" 300 -1 ExpTxt=1
+// bin/Tapioca All  "../micmac_data/ExempleDoc/Boudha/IMG_[0-9]{4}.tif" -1  ExpTxt=1
+// bin/Tapioca Line  "../micmac_data/ExempleDoc/Boudha/IMG_[0-9]{4}.tif" -1   3 ExpTxt=1
+// bin/Tapioca File  "../micmac_data/ExempleDoc/Boudha/MesCouples.xml" -1  ExpTxt=1
+
+#define DEF_OFSET -12349876
+
+#define  NbModele 10
+
+
+int TestSet_main(int argc,char ** argv)
 {
-    {
-         std::cout << " ---PGround  = " << aPG << "\n";
-         Pt3dr aPC = aCam->R3toL3(aPG);
-         std::cout << " -0-CamCoord = " << aPC << "\n";
-         Pt2dr aIm1 = aCam->R3toC2(aPG);
-
-         std::cout << " -1-ImSsDist = " << aIm1 << "\n";
-         Pt2dr aIm2 = aCam->DComplC2M(aCam->R3toF2(aPG));
-
-         std::cout << " -2-ImDist 1 = " << aIm2 << "\n";
-
-         Pt2dr aIm3 = aCam->OrGlbImaC2M(aCam->R3toF2(aPG));
-
-         std::cout << " -3-ImDist N = " << aIm3 << "\n";
-
-         Pt2dr aIm4 = aCam->R3toF2(aPG);
-         std::cout << " -4-ImFinale = " << aIm4 << "\n";
-    }
-}
-
-extern void TestCamCHC(ElCamera & aCam);
-
-
-int TestCam_main(int argc,char ** argv)
-{
-    std::string aFullName;
-    std::string aNameCam;
-    std::string aNameDir;
-    std::string aNameTag = "OrientationConique";
-
-    double X,Y,Z;
-    bool aModeGrid = false;
-    std::string Out;
+    std::string  aDir,aPat,aFullDir;
+    int  aNbMax=10;
+    std::string aFile;
 
     ElInitArgMain
     (
 	argc,argv,
-	LArgMain()  << EAMC(aFullName,"Name")
-	            << EAMC(X,"x")
-	            << EAMC(Y,"y")
-	            << EAMC(Z,"z"),
-	LArgMain()  
-                    << EAM(aNameTag,"Tag",true,"Tag to get cam")	
-                    << EAM(aModeGrid,"Grid",true,"Test Grid Mode")	
-                    << EAM(Out,"Out",true,"To Regenerate an orientation file")	
+	LArgMain()  << EAMC(aFullDir,"Full Directory (Dir+Pattern)"),
+	LArgMain()  << EAM(aNbMax,"Nb",true,"Nb Max printed (def = 10)")	
     );
 
-    SplitDirAndFile(aNameDir,aNameCam,aFullName);
 
-    cTplValGesInit<std::string>  aTplFCND;
-    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aNameDir);
-/*
-    cInterfChantierNameManipulateur * anICNM = 
-        cInterfChantierNameManipulateur::StdAlloc(0,0,aNameDir,aTplFCND);
-*/
-
-
-   ElCamera * aCam  = Gen_Cam_Gen_From_File(aModeGrid,aFullName,aNameTag,anICNM);
-
-   
+#if (ELISE_windows)
+    replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+#endif
+    SplitDirAndFile(aDir,aPat,aFullDir);
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const cInterfChantierNameManipulateur::tSet * mSetIm = aICNM->Get(aPat);
 
 
-   if (aModeGrid)
-   {
-       std::cout << "Camera is grid " << aCam->IsGrid() << " " << aCam->Dist().Type() << "\n";
-   }
+    int aNb = ElMin(aNbMax,int(mSetIm->size()));
 
-
-   TestCamCHC(*aCam);
-
-   TestDirect(aCam,Pt3dr(X,Y,Z));
-
-   if (Out!="")
-   {
-         cOrientationConique aCO = aCam->StdExportCalibGlob();
-         MakeFileXML(aCO,Out);
-   }
+    for (int aK=0 ; aK< aNb ; aK++)
+    {
+         std::string aName = (*mSetIm)[aK];
+         printf("%3d ",aK);
+         std::cout << aName ;
+         std::cout  << "\n";
+    }
  
-	return EXIT_SUCCESS;
+   
+    return 1;
 }
 
 

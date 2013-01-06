@@ -80,7 +80,9 @@ cCalibDistortion StdToXmlStruct(const cDist_Param_Unif_Gen & aDist)
    aCIU.TypeModele() = (eModelesCalibUnif) aDist.TypeModele();
 
    for (int aKv=0 ; aKv<aDist.NbV(); aKv++)
+   {
        aCIU.Params().push_back(aDist.KVar(aKv));
+   }
 
    for (int aKs=0 ; aKs<aDist.NbS(); aKs++)
    {
@@ -99,7 +101,7 @@ cCalibrationInterneRadiale  ToXmlDradStrut(const cDist_Param_Unif_Gen & aDist,co
 {
     cCalibrationInterneRadiale aRes;
     int aKMaxNN =4;
-    while  ((aKMaxNN>=0) && (aDist.KVar(aKMaxNN)))
+    while  ((aKMaxNN>=0) && (aDist.KVar(aKMaxNN)==0))
         aKMaxNN--;
 
     for (int aK=0 ; aK<=aKMaxNN ; aK++)
@@ -232,7 +234,11 @@ bool  cGeneratorState_DRadScaleTr::AcceptScalingTranslate()
 void  cGeneratorState_DRadScaleTr::SetScalingTranslate(const double & aF,const Pt2dr & aPP,double * State,double *Vars)
 {
     for (int aK=0 ; aK< 5 ; aK++)
+    {
+        //std::cout << "DRadScaleTr::SetScalin AV " << Vars[aK] << "\n";
         Vars[aK] *=  pow(aF,2*(1+aK));
+        //std::cout << "DRadScaleTr::SetScalin AP " << Vars[aK] << "\n";
+    }
 }
 
 bool  cGeneratorState_FraserScaleTr::AcceptScalingTranslate()
@@ -681,7 +687,7 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
 /*                                                                   */
 /*********************************************************************/
 
-static void init(double * aVLoc,int aNbLoc,const std::vector<double> * aVInit,const std::string & aName)
+static void InitVars(double * aVLoc,int aNbLoc,const std::vector<double> * aVInit,const std::string & aName)
 {
     for (int aK=0 ; aK<aNbLoc ; aK++)
          aVLoc[aK] = 0;
@@ -689,12 +695,14 @@ static void init(double * aVLoc,int aNbLoc,const std::vector<double> * aVInit,co
     if (aVInit)
     {
          int aNbInit = aVInit->size();
+/*
          if ((aNbInit!=0) && (aNbInit!=aNbLoc))
 	 {
 	     std::cout << "Init Incomplete For modele " << aName 
 	               << " Nb  ="<< aNbInit << "\n";
-             // ELISE_ASSERT(false," Nb Param or State incoherent ");
 	 }
+*/
+         ELISE_ASSERT(aNbInit<=aNbLoc," Nb Param or State incoherent ");
 	 for (int aK=0 ; aK<aNbInit ; aK++)
 	     aVLoc[aK] =  (*aVInit)[aK];
     }
@@ -2079,8 +2087,8 @@ cDist_Param_Unif<TDistR,TDistF,NbVar,NbState>::cDist_Param_Unif
  ) :
 cDist_Param_Unif_Gen  (aSzIm,aCam)
 {
-    init(mVars,NbVar,aVParam,TheName);
-    init(mStates,NbState,aVEtats,TheName);
+    InitVars(mVars,NbVar,aVParam,TheName);
+    InitVars(mStates,NbState,aVEtats,TheName);
     
     TDistR::InitClass();
     
@@ -2118,6 +2126,7 @@ void  cPIF_Unif<TDistR,TDistF,NbVar,NbState>::SetFreeKthParam(int aK)
     mVarIsFree[aK] = true;
 }
 
+
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
 void  cPIF_Unif<TDistR,TDistF,NbVar,NbState>::FigeIfDegreSup(int aDegre,double aTol,eModeControleVarDGen aModeControl)
 {
@@ -2131,6 +2140,15 @@ void  cPIF_Unif<TDistR,TDistF,NbVar,NbState>::FigeIfDegreSup(int aDegre,double a
             else
                 SetFreeKthParam(aKV);
         }
+    }
+}
+
+template <class TDistR,class TDistF,const int NbVar,const int NbState>
+void  cPIF_Unif<TDistR,TDistF,NbVar,NbState>::Inspect()
+{
+    for (int aKV=0 ; aKV<NbVar ; aKV++)
+    {
+        std::cout << " FIDS  " <<  mDistCur.NameType() << " " << mDistCur.KVar(aKV) << " " << mVarIsFree[aKV] << "\n";
     }
 }
 

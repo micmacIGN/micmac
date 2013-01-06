@@ -421,6 +421,7 @@ class cReadObject
 int BatchFDC_main(int argc,char ** argv);
 int MapCmd_main(int argc,char ** argv);
 int MyRename_main(int argc,char ** argv);
+int TestSet_main(int argc,char ** argv);
 
 // uti_images
 int Undist_main(int argc,char ** argv);
@@ -442,6 +443,8 @@ int AperiCloud_main(int argc,char ** argv);
 int Apero_main(int argc,char ** argv);
 int Bascule_main(int argc,char ** argv);
 int CmpCalib_main(int argc,char ** argv);
+int Campari_main(int argc,char ** argv);
+int ChgSysCo_main(int argc,char ** argv);
 int GCPBascule_main(int argc,char ** argv);
 int MakeGrid_main(int argc,char ** argv);
 int Malt_main(int argc,char ** argv);
