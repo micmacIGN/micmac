@@ -344,7 +344,8 @@ ElRotation3D cElPlan3D::CoordPlan2Euclid()
     return ElRotation3D
            (
               mP0,
-              MatFromCol(mU,mV,mNorm)
+              MatFromCol(mU,mV,mNorm),
+              true
            );
 }
 

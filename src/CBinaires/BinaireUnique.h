@@ -7,6 +7,7 @@
 #elif __APPLE__
 #include <mach-o/dyld.h>
 #else
+#include <unistd.h>
 #define ELISE_CAR_DIR  '/' 
 #endif
 

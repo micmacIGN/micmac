@@ -528,7 +528,8 @@ ElRotation3D  Data_Ori3D_Std::GetOrientation() const
     return  ElRotation3D 
             (
                 aDos->orsommet_de_pdv_terrain(),
-                MatFromCol( aDos->orDirI(),aDos->orDirJ(),aDos->orDirK())
+                MatFromCol( aDos->orDirI(),aDos->orDirJ(),aDos->orDirK()),
+                true
             );
 }
 
@@ -1055,7 +1056,8 @@ cCamera_Orilib::cCamera_Orilib
                            anOri->orDirI(),
                            anOri->orDirJ(),
                            anOri->orDirK()
-                      )
+                      ),
+                      true
                  );
     SetSz(anOri->SzIm());
     SetOrientation(aRot.inv());

@@ -552,7 +552,7 @@ ElRotation3D cRotationFormelle::CurRot()
            );
    if (mModeGL)
    {
-      aRes = ElRotation3D(aRes.tr(),mMGL*aRes.Mat());
+      aRes = ElRotation3D(aRes.tr(),mMGL*aRes.Mat(),true);
    }
    return aRes;
 }

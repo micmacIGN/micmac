@@ -37,88 +37,69 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
+#include <algorithm>
 
-void TestDirect(ElCamera * aCam,Pt3dr aPG)
+/*
+Parametre de Tapas :
+  
+   - calibration In : en base de donnees ou deja existantes.
+
+
+*/
+
+// bin/Tapioca MulScale "../micmac_data/ExempleDoc/Boudha/IMG_[0-9]{4}.tif" 300 -1 ExpTxt=1
+// bin/Tapioca All  "../micmac_data/ExempleDoc/Boudha/IMG_[0-9]{4}.tif" -1  ExpTxt=1
+// bin/Tapioca Line  "../micmac_data/ExempleDoc/Boudha/IMG_[0-9]{4}.tif" -1   3 ExpTxt=1
+// bin/Tapioca File  "../micmac_data/ExempleDoc/Boudha/MesCouples.xml" -1  ExpTxt=1
+
+
+
+
+
+int ChgSysCo_main(int argc,char ** argv)
 {
-    {
-         std::cout << " ---PGround  = " << aPG << "\n";
-         Pt3dr aPC = aCam->R3toL3(aPG);
-         std::cout << " -0-CamCoord = " << aPC << "\n";
-         Pt2dr aIm1 = aCam->R3toC2(aPG);
+    MMD_InitArgcArgv(argc,argv);
 
-         std::cout << " -1-ImSsDist = " << aIm1 << "\n";
-         Pt2dr aIm2 = aCam->DComplC2M(aCam->R3toF2(aPG));
+    std::string aFullDir= "";
+    std::string AeroIn= "";
+    std::string aStrChSys="";
+    std::string AeroOut="";
+    bool        ForceRot = false;
 
-         std::cout << " -2-ImDist 1 = " << aIm2 << "\n";
-
-         Pt2dr aIm3 = aCam->OrGlbImaC2M(aCam->R3toF2(aPG));
-
-         std::cout << " -3-ImDist N = " << aIm3 << "\n";
-
-         Pt2dr aIm4 = aCam->R3toF2(aPG);
-         std::cout << " -4-ImFinale = " << aIm4 << "\n";
-    }
-}
-
-extern void TestCamCHC(ElCamera & aCam);
-
-
-int TestCam_main(int argc,char ** argv)
-{
-    std::string aFullName;
-    std::string aNameCam;
-    std::string aNameDir;
-    std::string aNameTag = "OrientationConique";
-
-    double X,Y,Z;
-    bool aModeGrid = false;
-    std::string Out;
 
     ElInitArgMain
     (
 	argc,argv,
-	LArgMain()  << EAMC(aFullName,"Name")
-	            << EAMC(X,"x")
-	            << EAMC(Y,"y")
-	            << EAMC(Z,"z"),
-	LArgMain()  
-                    << EAM(aNameTag,"Tag",true,"Tag to get cam")	
-                    << EAM(aModeGrid,"Grid",true,"Test Grid Mode")	
-                    << EAM(Out,"Out",true,"To Regenerate an orientation file")	
+	LArgMain()  << EAMC(aFullDir,"Full Directory (Dir+Pattern)")
+                    << EAMC(AeroIn,"Input Orientation")
+                    << EAMC(aStrChSys,"Change coordinate file")
+                    << EAMC(AeroOut,"Output Orientation"),
+	LArgMain()  << EAM(ForceRot,"FR",true,"Force orientation matrix to be pure rotation (Def = false)")	
     );
 
-    SplitDirAndFile(aNameDir,aNameCam,aFullName);
-
-    cTplValGesInit<std::string>  aTplFCND;
-    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aNameDir);
-/*
-    cInterfChantierNameManipulateur * anICNM = 
-        cInterfChantierNameManipulateur::StdAlloc(0,0,aNameDir,aTplFCND);
-*/
+    std::string aDir,aPat;
+#if (ELISE_windows)
+    replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+#endif
+    SplitDirAndFile(aDir,aPat,aFullDir);
+    std::cout << "DPPPP= " << aDir << " " << aPat << "\n";
 
 
-   ElCamera * aCam  = Gen_Cam_Gen_From_File(aModeGrid,aFullName,aNameTag,anICNM);
 
-   
+    std::string aCom =       MM3dBinFile( "Apero" )
+                          +  XML_MM_File("Apero-ChCo.xml")
+                          +  std::string(" DirectoryChantier=") + aDir + " "
+                          +  std::string(" +SetIm=") + aPat + " "
+                          +  std::string(" +AeroIn=-") + AeroIn + " "
+                          +  std::string(" +AeroOut=-") + AeroOut + " "
+                          +  std::string(" +ChC=") + aStrChSys + " "
+                          +  std::string(" +ChCFR=") + ToString(ForceRot)
+                       ;
 
 
-   if (aModeGrid)
-   {
-       std::cout << "Camera is grid " << aCam->IsGrid() << " " << aCam->Dist().Type() << "\n";
-   }
-
-
-   TestCamCHC(*aCam);
-
-   TestDirect(aCam,Pt3dr(X,Y,Z));
-
-   if (Out!="")
-   {
-         cOrientationConique aCO = aCam->StdExportCalibGlob();
-         MakeFileXML(aCO,Out);
-   }
- 
-	return EXIT_SUCCESS;
+   std::cout << "COM = " << aCom << "\n";
+   int aRes = system_call(aCom.c_str());
+   return aRes;
 }
 
 

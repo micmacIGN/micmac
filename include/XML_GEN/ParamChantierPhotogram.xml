@@ -460,6 +460,7 @@ namespace NS_ParamChantierPhotogram{
        <OneModifIPF Nb="*">
             <KeyName Nb="1" Type="std::string"> </KeyName>
 	    <Incertitude Nb="1"  Type="Pt3dr"> </Incertitude>
+            <IsMult Nb="?" Type="bool" Def="false"> </IsMult>
        </OneModifIPF>
    </ModifIncPtsFlottant>
 
@@ -653,6 +654,9 @@ namespace NS_ParamChantierPhotogram{
                   <L1 Nb="1" Type="Pt3dr"> </L1>
                   <L2 Nb="1" Type="Pt3dr"> </L2>
                   <L3 Nb="1" Type="Pt3dr"> </L3>
+                 <!--  Pour gerer les axes non orthonormes  issus de la conversion de rotation dans
+                       des systèmes non euclidiens -->
+                  <TrueRot Type="bool" Nb="?" Def="true"> </TrueRot>
              </CodageMatr>
              <CodageAngulaire Nb="?" Type="Pt3dr"> </CodageAngulaire>
              <!-- Code les rotatuion simple perm + inv de signe sous la forme i-j-k ou ji-k etc .. -->
@@ -839,6 +843,14 @@ namespace NS_ParamChantierPhotogram{
 	 </OneCalib2Visu>
    </VisuCalibZoom>
 
+
+   <FilterLocalisation Nb="1" Class="true" ToReference="true" >
+       <KeyAssocOrient Nb="1" Type="std::string"> </KeyAssocOrient>
+       <NameMasq Nb="1" Type="std::string"> </NameMasq>
+       <NameMTDMasq Nb="1" Type="std::string"> </NameMTDMasq>
+   </FilterLocalisation>
+   
+
    <!-- Description des associations de noms dans un chantier -->
 
    <!-- Filtre de nom , sur les meta donnee -->
@@ -861,6 +873,8 @@ namespace NS_ParamChantierPhotogram{
            <RequireExist Nb="1" Type="bool"> </RequireExist>
            <RequireForAll Nb="1" Type="bool"> </RequireForAll>
       </KeyExistingFile>
+
+      <KeyLocalisation Nb="?" RefType="FilterLocalisation"> </KeyLocalisation>
    </NameFilter>
 
    <BasicAssocNameToName  Nb="1" Class="true" ToReference="true" >

@@ -145,6 +145,13 @@ class cGeoc_WGS4 : public cSysCoord
           static cGeoc_WGS4 * aRes = new cGeoc_WGS4;
           return aRes;
       }
+      static cGeoc_WGS4 * TheOneDeg()
+      {
+          static cGeoc_WGS4 * aRes = new cGeoc_WGS4(eUniteAngleDegre);
+          return aRes;
+      }
+
+
       void Delete() {}
 
       cGeoc_WGS4(const cBasicSystemeCoord & aBSC)
@@ -178,9 +185,15 @@ class cGeoc_WGS4 : public cSysCoord
       bool             mSwap;
 };
 
+
+
+/*
         const double cGeoc_WGS4::PtAxe = 6356752.3;
         const double cGeoc_WGS4::GdAxe = 6378137.0;
+*/
 
+const double cGeoc_WGS4::PtAxe = 6356752.314140;
+const double cGeoc_WGS4::GdAxe = 6378137.0;
 
 
        // static const double PtAxe = 6356752.3;
@@ -247,6 +260,11 @@ class cProj4 : public cSysCoord
 
 
          static cProj4  Lambert(double aPhi0,double aPhi1,double aPhi2,double aLon0,double aX0,double aY0);
+         static cProj4 * Lambert93()
+         {
+              static cProj4 * aRes =  new cProj4(cProj4::Lambert(46.5,49,44,3,700000,6600000));
+              return aRes;
+         }
          Pt3dr OdgEnMetre() const {return mMOdg;}
          cSystemeCoord ToXML() const
          {
@@ -306,7 +324,9 @@ std::vector<Pt3dr> cProj4::Chang(const std::vector<Pt3dr> & aPtsIn, bool Sens2Ge
        {
            aP =  aWD.FromGeoC(aP);
        }
-       fprintf(aFPin,"%lf %lf %lf\n",aP.x,aP.y,aP.z);
+       // fprintf(aFPin,"%lf %lf %lf\n",aP.x,aP.y,aP.z);
+       // fprintf(aFPin,"%Lf %Lf %Lf\n",(long double)aP.x,(long double)aP.y,(long double)aP.z);
+       fprintf(aFPin,"%.20f %.20f %.20f\n",aP.x,aP.y,aP.z);
    }
    ElFclose(aFPin);
 
@@ -314,6 +334,7 @@ std::vector<Pt3dr> cProj4::Chang(const std::vector<Pt3dr> & aPtsIn, bool Sens2Ge
 
    std::string aCom =    std::string( "cat " + aTmpIn + " | ")
                        + std::string(Sens2GeoC ? "invproj " : "proj ")
+                       + std::string(" -f '%.7f' ")
                        + mStr
                        + " > " 
                        + aTmpOut;
@@ -375,7 +396,7 @@ class cGeoc_RTL : public cSysCoord
               const Pt3dr & aDirZ
       ) :
            mOri        (aP),
-           mRGeocToRTL (ElRotation3D(aP,MatFromCol(aDirX,aDirY,aDirZ)).inv())
+           mRGeocToRTL (ElRotation3D(aP,MatFromCol(aDirX,aDirY,aDirZ),true).inv())
       {
       }
       void Delete() {delete this;}
@@ -902,7 +923,7 @@ cSysCoord * cSysCoord::FromXML
    if (aVBSC[0].TypeCoord() == eTC_Lambert93)
    {
       aVBSC++; aNbB--;
-      return new cProj4(cProj4::Lambert(46.5,49,44,3,700000,6600000));
+      return  cProj4::Lambert93();
    // cProj4  cProj4::Lambert(double aPhi0,double aPhi1,double aPhi2,double aLon0,double aX0,double aY0)
    }
 
@@ -916,6 +937,24 @@ cSysCoord * cSysCoord::FromXML
    }
 
 
+   if (aVBSC[0].TypeCoord() == eTC_Proj4)
+   {
+      std::string aCom;
+      for (int aK=0 ; aK<int(aVBSC[0].AuxStr().size()); aK++)
+      {
+          aCom = aCom +  " "  +  aVBSC[0].AuxStr()[aK];
+      }
+
+      double aVOdg[3] = {1,1,1};
+      for (int aK=0 ; aK<ElMin(3,int(aVBSC[0].AuxR().size())); aK++)
+      {
+          aVOdg[aK] = aVBSC[0].AuxR()[aK];
+      }
+      Pt3dr anOdg(aVOdg[0],aVOdg[1],aVOdg[2]);
+
+      aVBSC++; aNbB--;
+      return new cProj4(aCom,anOdg);
+   }
 
 
    if (aVBSC[0].TypeCoord()== eTC_RTL)
@@ -1028,8 +1067,11 @@ cSysCoord * cSysCoord::FromXML(const cSystemeCoord & aSC,const char * aDir)
 
 cSysCoord * cSysCoord::FromFile(const std::string & aNF,const std::string & aNameTag)
 {
-   if (aNF=="GeoC") return GeoC();
-   if (aNF=="WGS84") return WGS84();
+   std::string aNBasic = NameWithoutDir(aNF);
+   if (aNBasic=="GeoC")        return GeoC();
+   if (aNBasic=="WGS84")       return WGS84();
+   if (aNBasic=="DegreeWGS84") return cGeoc_WGS4::TheOneDeg();
+   if (aNBasic=="Lambert93")   return cProj4::Lambert93();
 
 
    cSystemeCoord  aCS = StdGetObjFromFile<cSystemeCoord>
@@ -1065,17 +1107,77 @@ Pt3dr  cSysCoord::Transfo(const Pt3dr & aP, bool SensToGeoC) const
    return SensToGeoC  ? ToGeoC(aP) : FromGeoC(aP);
 }
 
-ElMatrix<double> cSysCoord::Jacobien(const Pt3dr & aP,const Pt3dr& E,bool SensToGeoC) const
+std::vector<Pt3dr>  cSysCoord::Transfo(const std::vector<Pt3dr> & aV, bool SensToGeoC) const
 {
+   return SensToGeoC  ? ToGeoC(aV) : FromGeoC(aV);
+}
+
+
+
+std::vector<ElMatrix<double> > cSysCoord::Jacobien
+                               (
+                                    const  std::vector<Pt3dr> & aV0,
+                                    const Pt3dr& E,
+                                    bool SensToGeoC,
+                                    std::vector<Pt3dr> * aResPts
+                               ) const
+{
+     if (aResPts) 
+       aResPts->clear();
+     std::vector<ElMatrix<double> > aResMatr;
      Pt3dr aDx(E.x,0,0);
      Pt3dr aDy(0,E.y,0);
      Pt3dr aDz(0,0,E.z);
-     Pt3dr aDerivX = (Transfo(aP+aDx,SensToGeoC)-Transfo(aP-aDx,SensToGeoC)) / (2*E.x);
-     Pt3dr aDerivY = (Transfo(aP+aDy,SensToGeoC)-Transfo(aP-aDy,SensToGeoC)) / (2*E.y);
-     Pt3dr aDerivZ = (Transfo(aP+aDz,SensToGeoC)-Transfo(aP-aDz,SensToGeoC)) / (2*E.z);
 
-    return MatFromCol(aDerivX,aDerivY,aDerivZ);
+     std::vector<Pt3dr> aV;
+
+     for (int aK=0 ; aK<int(aV0.size()) ; aK++)
+     {
+         Pt3dr aP = aV0[aK];
+         aV.push_back(aP+aDx);
+         aV.push_back(aP-aDx);
+         aV.push_back(aP+aDy);
+         aV.push_back(aP-aDy);
+         aV.push_back(aP+aDz);
+         aV.push_back(aP-aDz);
+         if (aResPts)
+            aV.push_back(aP);
+     }
+
+     aV = Transfo(aV,SensToGeoC);
+   
+     for (int aK=0 ; aK<int(aV0.size()) ; aK++)
+     {
+         int aK6_7 = aK * (6 + (aResPts!=0));
+         Pt3dr aDerivX = (aV[aK6_7+1]-aV[aK6_7+0]) / (2*E.x);
+         Pt3dr aDerivY = (aV[aK6_7+3]-aV[aK6_7+2]) / (2*E.y);
+         Pt3dr aDerivZ = (aV[aK6_7+5]-aV[aK6_7+4]) / (2*E.z);
+
+
+         aResMatr.push_back(MatFromCol(aDerivX,aDerivY,aDerivZ));
+         if (aResPts)
+         {
+            aResPts->push_back(aV[aK6_7+6]);
+         }
+     }
+
+    return aResMatr;
 }
+
+
+
+
+ElMatrix<double>  cSysCoord::Jacobien(const  Pt3dr & aP,const Pt3dr& E,bool SensToGeoC) const
+{
+    std::vector<Pt3dr> aV0;
+    aV0.push_back(aP);
+   
+    std::vector<ElMatrix<double> > aVRes = Jacobien(aV0,E,SensToGeoC);
+
+    return aVRes[0];
+}
+
+
 
 ElMatrix<double> cSysCoord::JacobFromGeoc(const Pt3dr & aP,const Pt3dr& Epsilon) const
 {
@@ -1293,23 +1395,47 @@ cGeoRefRasterFile * cGeoRefRasterFile::FromFile(const std::string & aNF,const st
 /*                                             */
 /***********************************************/
 
+/*
 cChSysCo::cChSysCo(const cChangementCoordonnees & aCC,const std::string & aDir)  :
    mSrc  (cSysCoord::FromXML(aCC.SystemeSource(),aDir.c_str())),
    mCibl (cSysCoord::FromXML(aCC.SystemeCible(),aDir.c_str()))
 {
 }
+*/
 
-cChSysCo * cChSysCo::Alloc(const std::string & aName)
+cChSysCo::cChSysCo(cSysCoord * aSrc,cSysCoord * aCibl) :
+   mSrc  (aSrc),
+   mCibl (aCibl)
 {
+}
+
+cChSysCo * cChSysCo::Alloc(const std::string & aName,const std::string & aDirGlob)
+{
+    std::string aSrc,aCibl;
+    if ( SplitIn2ArroundCar(aName,'@',aSrc,aCibl,true))
+    {
+         return new cChSysCo
+                    (
+                          cSysCoord::FromFile(aDirGlob+aSrc),
+                          cSysCoord::FromFile(aDirGlob+aCibl)
+                    );
+    }
     cChangementCoordonnees aCC= StdGetObjFromFile<cChangementCoordonnees>
                               (
-                                  aName,
+                                  aDirGlob+aName,
                                   StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
                                   "ChangementCoordonnees",
                                   "ChangementCoordonnees"
                                );
 
-    return new cChSysCo(aCC,DirOfFile(aName));
+    // return new cChSysCo(aCC,DirOfFile(aName));
+    std::string aDir = DirOfFile(aDirGlob+aName);
+
+    return new cChSysCo
+               (
+                    cSysCoord::FromXML(aCC.SystemeSource(),aDir.c_str()),
+                    cSysCoord::FromXML(aCC.SystemeCible(),aDir.c_str())
+               );
 }
 
 Pt3dr  cChSysCo::Src2Cibl(const Pt3dr & aP) const
@@ -1330,6 +1456,10 @@ std::vector<Pt3dr>  cChSysCo::Cibl2Src(const std::vector<Pt3dr> & aP) const
 }
 
 
+void cChSysCo::ChangCoordCamera(const std::vector<ElCamera *> & aVCam,bool ForceRot)
+{
+    ElCamera::ChangeSys(aVCam,*mSrc,*mCibl,ForceRot);
+}
 
 /*
 */

@@ -1146,7 +1146,7 @@ template <class Type> class TplElRotation3D
          TplElRotation3D<Type>  operator *(const TplElRotation3D<Type> &) const;
 
          static const TplElRotation3D<Type> Id;
-         TplElRotation3D(Pt3d<Type> tr,const ElMatrix<Type> &);
+         TplElRotation3D(Pt3d<Type> tr,const ElMatrix<Type> &,bool aTrueRot);
          TplElRotation3D(Pt3d<Type> tr,Type teta01,Type teta02,Type teta12);
 
          Pt3d<Type> ImAff(Pt3d<Type>) const; //return _tr + _Mat * p;
@@ -1160,13 +1160,16 @@ template <class Type> class TplElRotation3D
          const ElMatrix<Type> & Mat() const {return _Mat;}
          const Pt3d<Type> &  tr() const {return _tr;}
          Pt3d<Type> &  tr() {return _tr;}
-         const Type &   teta01() const {return _teta01;}
-         const Type &   teta02() const {return _teta02;}
-         const Type &   teta12() const {return _teta12;}
+         const Type &   teta01() const {AssertTrueRot(); return _teta01;}
+         const Type &   teta02() const {AssertTrueRot(); return _teta02;}
+         const Type &   teta12() const {AssertTrueRot(); return _teta12;}
 
-		 TplElRotation3D<Type> & operator = (const TplElRotation3D<Type> &);
+         TplElRotation3D<Type> & operator = (const TplElRotation3D<Type> &);
+
+         bool IsTrueRot() const;
 
       private  :
+         void AssertTrueRot() const;
 
          Pt3d<Type>        _tr;
          ElMatrix<Type>    _Mat;
@@ -1174,6 +1177,7 @@ template <class Type> class TplElRotation3D
          Type              _teta01;
          Type              _teta02;
          Type              _teta12;
+         bool              mTrueRot;
 };
 
 typedef TplElRotation3D<REAL> ElRotation3D;

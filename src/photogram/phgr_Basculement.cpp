@@ -51,7 +51,7 @@ cL2EqObsBascult::cL2EqObsBascult
      bool                    Code2Gen
 ) :
   mSet      (&aSet),
-  mRF       (mSet->NewRotation(eRotLibre,ElRotation3D(aV0.Tr(),aV0.Rot()))),
+  mRF       (mSet->NewRotation(eRotLibre,ElRotation3D(aV0.Tr(),aV0.Rot(),true))),
   mBlocL    (aSet,"Lambda",1),
 //  mIntL     (false,"Lambda",aSet,1),
 //  mLambda   (aV0.Lambda()),
@@ -164,7 +164,8 @@ ElRotation3D cSolBasculeRig::TransformOriC2M(const ElRotation3D & aRot) const
    return ElRotation3D
           (
              (*this)(aRot.tr()),
-             mMatR * aRot.Mat()
+             mMatR * aRot.Mat(),
+             true
           );
 }
 

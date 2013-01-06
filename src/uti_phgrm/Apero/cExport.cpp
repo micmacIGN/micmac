@@ -245,12 +245,10 @@ void cAppliApero::ExportPose(const cExportPose & anEP,const std::string & aPref)
    cSetName *  anAutoSel = mICNM->KeyOrPatSelector(anEP.PatternSel());
 
 
-   cSysCoord * aSource = 0;
-   cSysCoord * aCible = 0;
+   cChSysCo * aChCo = 0;
    if (anEP.ChC().IsInit())
    {
-      aSource = cSysCoord::FromXML(anEP.ChC().Val().SystemeSource(),mDC.c_str());
-      aCible  = cSysCoord::FromXML(anEP.ChC().Val().SystemeCible(),mDC.c_str());
+      aChCo = cChSysCo::Alloc(anEP.ChC().Val(),mDC);
    }
 
    for (tDiPo::const_iterator itP=mDicoPose.begin(); itP!=mDicoPose.end(); itP++)
@@ -266,22 +264,27 @@ void cAppliApero::ExportPose(const cExportPose & anEP,const std::string & aPref)
 
            const CamStenope * aCS = aPC->CF()->CameraCourante();
 
-           if (anEP.ChC().IsInit())
-           {
-              // On modifie, donc on travaille sur un dupl
-                CamStenope *aCS2 = aPC->CF()->DuplicataCameraCourante();
-
-                aCS2->ChangeSys(*aSource,*aCible,aCS2->PseudoOpticalCenter());
-                aCS = aCS2;
-           }
-
 	   if (aPC->PMoyIsInit())
 	   {
               Pt3dr aPM  = aPC->GetPMoy();
 	      aZ = aPM.z;
-	      // aP = aCS->ProfondeurDeChamps(aPM);
 	      aP =  aPC->ProfMoyHarmonik();
 	   }
+
+
+           if (anEP.ChC().IsInit())
+           {
+               // ELISE_ASSERT(false,"CHC in Apero, inhibed : use ad-hoc command\n");
+              // On modifie, donc on travaille sur un dupl
+                CamStenope *aCS2 = aPC->CF()->DuplicataCameraCourante();
+                aCS2->SetProfondeur(aP);
+                std::vector<ElCamera*> aVC;
+                aVC.push_back(aCS2);
+                aChCo->ChangCoordCamera(aVC,anEP.ChCForceRot().Val());
+                aCS = aCS2;
+                aZ = aCS2->GetAltiSol();
+           }
+
 
            int aNbV = anEP.NbVerif().Val();
            if (mMapMaskHom && (! aPC->HasMasqHom()) && (mParam.SauvePMoyenOnlyWithMasq().Val()))

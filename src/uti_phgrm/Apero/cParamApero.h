@@ -3569,8 +3569,11 @@ class cExportPose
         friend void xml_init(cExportPose & anObj,cElXMLTree * aTree);
 
 
-        cTplValGesInit< cChangementCoordonnees > & ChC();
-        const cTplValGesInit< cChangementCoordonnees > & ChC()const ;
+        cTplValGesInit< std::string > & ChC();
+        const cTplValGesInit< std::string > & ChC()const ;
+
+        cTplValGesInit< bool > & ChCForceRot();
+        const cTplValGesInit< bool > & ChCForceRot()const ;
 
         std::string & KeyAssoc();
         const std::string & KeyAssoc()const ;
@@ -3611,7 +3614,8 @@ class cExportPose
         cTplValGesInit< double > & TolWhenVerif();
         const cTplValGesInit< double > & TolWhenVerif()const ;
     private:
-        cTplValGesInit< cChangementCoordonnees > mChC;
+        cTplValGesInit< std::string > mChC;
+        cTplValGesInit< bool > mChCForceRot;
         std::string mKeyAssoc;
         cTplValGesInit< bool > mAddCalib;
         cTplValGesInit< cExportAsNewGrid > mExportAsNewGrid;

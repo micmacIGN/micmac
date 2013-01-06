@@ -65,7 +65,7 @@ ElRotation3D RotationCart2RTL(Pt3dr  aP, double aZ,Pt3dr aDirX )
    aDirX = vunit(aDirY^aDirZ);
 
 
-    ElRotation3D aRTL2Cart(aP,MatFromCol(aDirX,aDirY,aDirZ));
+    ElRotation3D aRTL2Cart(aP,MatFromCol(aDirX,aDirY,aDirZ),true);
 
    // std::cout <<  "TES-RTL :: " <<  aRTL2Cart.inv().ImAff(aP *1.001) << "\n"; 
    // std::cout <<  "TES-RTL :: " <<  aRTL2Cart.inv().ImAff(aP) << "\n"; 

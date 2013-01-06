@@ -26,6 +26,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_Apero.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisiePts.cpp
     ${UTI_PHGRM_DIR}/CPP_Bascule.cpp
+    ${UTI_PHGRM_DIR}/CPP_Campari.cpp
     ${UTI_PHGRM_DIR}/CPP_CmpCalib.cpp
     ${UTI_PHGRM_DIR}/CPP_Gri2Bin.cpp
     ${UTI_PHGRM_DIR}/CPP_GCPBascule.cpp
@@ -52,6 +53,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_SaisieAppuisPredic.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieAppuisInit.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieBasc.cpp
+    ${UTI_PHGRM_DIR}/CPP_ChgSysCo.cpp
 )
 
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM} FILES ${uti_phgrm_Src_Files})

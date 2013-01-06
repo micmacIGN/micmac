@@ -237,7 +237,7 @@ cMesh::cMesh(const std::string & Filename)
 	int cpt;
 	int id0, id1, id2;
 	int idc0, idc1; //index des sommets communs
-	id0 = id1 = id2 = -1;
+	id0 = id1 = id2 = idc0 = idc1 = -1;
 
 	thePlyFile = ply_open_for_reading( const_cast<char *>(Filename.c_str()), &nelems, &elist, &file_type, &version);
 	
@@ -460,11 +460,11 @@ void cMesh::setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, vec
 //--------------------------------------------------------------------------------------------------------------
 
 cZBuf::cZBuf() :
-mImMask     (1,1),
+mSzRes		(1,1),
 mImTriIdx   (1,1),
+mImMask     (1,1),
 mRes        (1,1),
 mDataRes    (0),
-mSzRes		(1,1),
 mDpDef      (0.f),
 mIdDef      (0),
 mNuage		(0)
@@ -657,7 +657,7 @@ Im2D_BIN cZBuf::ComputeMask(vector <int> const &TriInGraph, RGraph &aGraph, cMes
 	/*printf(" taille de TriIngraph :  %d", TriInGraph.size());
 	printf(" aGraph.get_node_num  :  %d", aGraph.get_node_num());*/
 
-	for (int aK=0; aK < TriInGraph.size(); aK++)
+	for (unsigned int aK=0; aK < TriInGraph.size(); aK++)
 	{
 		if (aGraph.what_segment(aK) == RGraph::SOURCE) BasculerUnTriangle(*(aMesh.getTriangle(TriInGraph[aK])), aMesh, true);
 	}
