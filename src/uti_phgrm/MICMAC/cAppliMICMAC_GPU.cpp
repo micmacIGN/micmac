@@ -356,7 +356,7 @@ namespace NS_ParamMICMAC
 			delete[] fdataImg1D;
 
 			float uvDef	 = -1.0f;
-			uint sampTer = 4;
+			uint sampTer = 1;
 			h = Init_Correlation_GPU(mX0Ter, mX1Ter , mY0Ter , mY1Ter, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, sampTer, uvDef);
 
 		}
@@ -848,6 +848,7 @@ namespace NS_ParamMICMAC
 	
 		// debug
 		bool showDebug	= false;
+		bool showTabPro = false;
 		int imageIDShow = 0;
 
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
@@ -861,7 +862,7 @@ namespace NS_ParamMICMAC
 			// Mise en calque des projections pour chaque image
 			for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )
 			{
-				if (aKIm == imageIDShow && showDebug)
+				if (aKIm == imageIDShow && showDebug && showTabPro)
 					std::cout << "---------------------IMAGE " << aKIm << ", Z = " << anZ << "-------------------------------------\n";
 				// Obtention de l'image courante
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
@@ -903,27 +904,27 @@ namespace NS_ParamMICMAC
 
 									//if (aKIm == imageIDShow && showDebug) std::cout << "("<< floor(aPIm.x*10)/10 << "|" << floor(aPIm.y*10)/10 << ") ";
 									//if (aKIm == imageIDShow && showDebug) std::cout  << floor(aPIm.y*1000)/1000 << " ";
-									if (aKIm == imageIDShow && showDebug) std::cout  << aPIm.y << " ";
+									if (aKIm == imageIDShow && showDebug && showTabPro) std::cout  << aPIm.y << " ";
 						
 								}
 								else
-									if (aKIm == imageIDShow && showDebug) std::cout << "   .   ";
+									if (aKIm == imageIDShow && showDebug && showTabPro) std::cout << "   .   ";
 							}
 							else
-								if (aKIm == imageIDShow && showDebug)
+								if (aKIm == imageIDShow && showDebug && showTabPro)
 								{
 									std::cout << "   .   ";
 								}
 						}
 						else
-							if (aKIm == imageIDShow && showDebug)
+							if (aKIm == imageIDShow && showDebug && showTabPro)
 							{
 								std::cout << "   .   ";
 							}
 					}
-					if (aKIm == imageIDShow && showDebug) std::cout << "\n";
+					if (aKIm == imageIDShow && showDebug && showTabPro) std::cout << "\n";
 				}
-				if (aKIm == imageIDShow && showDebug) std::cout << "--------------------------------------------------------------------------\n";
+				if (aKIm == imageIDShow && showDebug && showTabPro) std::cout << "--------------------------------------------------------------------------\n";
 			}
 			/*
 			for (int aKIm = 1 ; aKIm < 2 ; aKIm++ )
@@ -990,7 +991,7 @@ namespace NS_ParamMICMAC
 						double cost = (double)h_TabCorre[h.dimTer.x * rY + rX];
 						if (cost != -1000.0f)
 						{
-							cost =  mStatGlob->CorrelToCout(1-cost);
+							//cost =  mStatGlob->CorrelToCout(1-cost);
 							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,cost);
 						}
 						else 
@@ -1002,11 +1003,161 @@ namespace NS_ParamMICMAC
 		if (showDebug)
 			std::cout << "delete\n";
 		// Erreur delete en Debug
-		delete [] h_TabCorre;
-		delete [] h_TabProj;
-		delete [] h_TabPInit;
+// 		delete [] h_TabCorre;
+// 		delete [] h_TabProj;
+// 		delete [] h_TabPInit;
 		if (showDebug)
 			std::cout << "fin delete\n";
+
+		if(0)
+		{
+			std::vector<double *> aVecVals(mNbIm);
+			double ** aVVals = &(aVecVals[0]);
+			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+			{
+				for (int anX = mX0Ter ; anX <  mX1Ter ; anX++) 	//Au boulot !  on balaye le terrain
+				{
+				
+					int aZMin = 0;//int aZMin = mTabZMin[anY][anX];
+					int aZMax = 1;//int aZMax = mTabZMax[anY][anX];
+
+					// est-on dans le masque des points terrains valide
+					if ( IsInTer(anX,anY))
+					{
+						// Bornes du voisinage
+						int aX0v = anX-mPtSzWFixe.x;int aX1v = anX+mPtSzWFixe.x;
+						int aY0v = anY-mPtSzWFixe.y;int aY1v = anY+mPtSzWFixe.y;
+
+						// on parcourt l'intervalle de Z compris dans la nappe au point courant
+						for (int aZInt=aZMin ;  aZInt< aZMax ; aZInt++)
+						{
+							// Pointera sur la derniere imagette OK
+							double ** aVVCur = aVVals;					
+							double aZReel  = DequantZ(aZInt);
+							int aNbImOk = 0;
+							for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
+							{
+								cGPU_LoadedImGeom & aGLI = *(mVLI[aKIm]);
+								const cGeomImage * aGeom=aGLI.Geom();
+								float ** aDataIm =  aGLI.DataIm();
+
+								// Pour empiler les valeurs
+								double * mValsIm = aGLI.Vals();
+								double * mCurVals = mValsIm;
+
+								// Pour stocker les moment d'ordre 1 et 2
+								double  aSV = 0, aSVV = 0;
+
+								int imageDebug = 3;
+
+								if (aGLI.IsVisible(anX,anY)) // En cas de gestion parties cachees, un masque terrain de visibilite a ete calcule par image
+								{	
+									bool IsOk = true;
+									
+									for (int aXVois=aX0v ; (aXVois<=aX1v)&&IsOk; aXVois++)// Balaye le voisinage
+									{
+										for (int aYVois= aY0v; (aYVois<=aY1v)&&IsOk; aYVois++)
+										{
+											// On dequantifie la plani 
+											Pt2dr aPTer  = DequantPlani(aXVois,aYVois); 
+											Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);
+
+											// Est ce qu'un point image est dans le domaine de definition de l'image
+											if ((aGLI.IsOk(aPIm.x,aPIm.y))&&(aGLI.IsOk(aPIm.x+2,aPIm.y+2))&&(aGLI.IsOk(aPIm.x-2,aPIm.y-2)))
+											{
+												
+												double aVal =  mInterpolTabule.GetVal(aDataIm,aPIm);
+												if (aKIm == imageDebug && aXVois == anX && aYVois == anY)
+													std::cout << floor((aVal / 500.0f * 100.0f))/100.0f<< " ";
+
+												// On "push" la nouvelle valeur de l'image
+												*(mCurVals++) = aVal;
+												aSV += aVal;
+												aSVV += QSquare(aVal) ;
+												
+											}
+											else
+											{
+												IsOk =false; // Si un  seul des voisin n'est pas lisible , on annule tout
+												if (aKIm == imageDebug && aXVois == anX && aYVois == anY)
+													std::cout << " . ";
+											}
+										}
+										
+									}
+									if (IsOk)
+									{
+										// On normalise en moyenne et ecart type
+										aSV /= mNbPtsWFixe;
+										aSVV /= mNbPtsWFixe;
+										aSVV -=  QSquare(aSV) ;
+										if (aSVV >mAhEpsilon) // Test pour eviter / 0 et sqrt(<0) 
+										{
+											*(aVVCur++) = mValsIm;
+											aSVV = sqrt(aSVV);
+											for (int aKV=0 ; aKV<mNbPtsWFixe; aKV++)
+											{
+												mValsIm[aKV] = (mValsIm[aKV]-aSV)/aSVV;
+											}
+										}
+										else
+										{
+											IsOk = false;
+										}
+									}
+									aNbImOk += IsOk;
+									aGLI.SetOK(IsOk);
+								}
+								else
+								{
+									aGLI.SetOK(false);
+									if (aKIm == imageDebug)
+										std::cout << " . ";
+								}
+								
+								
+							}
+
+							if (aNbImOk>=2) // Calcul "rapide"  de la multi-correlation
+							{
+								double anEC2 = 0;
+								// Pour chaque pixel
+								for (int aKV=0 ; aKV<mNbPtsWFixe; aKV++)
+								{
+									double aSV=0,aSVV=0;
+									// Pour chaque image, maj des stat 1 et 2
+									for (int aKIm=0 ; aKIm<aNbImOk ; aKIm++)
+									{
+										double aV = aVVals[aKIm][aKV];
+										aSV += aV;
+										aSVV += QSquare(aV);
+									}
+									// Additionner l'ecart type inter imagettes
+									anEC2 += (aSVV-QSquare(aSV)/aNbImOk);
+								}
+								// Normalisation pour le ramener a un equivalent de 1-Correl 
+								double aCost = anEC2 / (( aNbImOk-1) *mNbPtsWFixe);
+								aCost =  mStatGlob->CorrelToCout(1-aCost);
+								// On envoie le resultat a l'optimiseur pour valoir  ce que de droit
+								mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,aCost);
+							}
+							else
+								// Si pas assez d'image, il faut quand meme remplir la case avec qq chose
+								mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,mAhDefCost);
+						}
+					}
+					else					
+					{
+						for (int aZInt=aZMin ; aZInt< aZMax ; aZInt++)						
+							mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,mAhDefCost);
+						std::cout << " .   ";
+					}
+						
+				}
+					std::cout << "\n";
+			}
+			std::cout << "----------------------------------------------------------------\n";
+		}
 
 #else
 //std::cout  << "MESSAGE = "<<   mCorrelAdHoc->GPU_CorrelBasik().Val().Unused().Val() << "\n";
