@@ -195,6 +195,8 @@ eModeDynamiqueCorrel  Str2eModeDynamiqueCorrel(const std::string & aName)
       return eCoeffCorrelStd;
    else if (aName=="eCoeffAngle")
       return eCoeffAngle;
+   else if (aName=="eCoeffGamma")
+      return eCoeffGamma;
   else
   {
       cout << aName << " is not a correct value for enum eModeDynamiqueCorrel\n" ;
@@ -212,6 +214,8 @@ std::string  eToString(const eModeDynamiqueCorrel & anObj)
       return  "eCoeffCorrelStd";
    if (anObj==eCoeffAngle)
       return  "eCoeffAngle";
+   if (anObj==eCoeffGamma)
+      return  "eCoeffGamma";
  std::cout << "Enum = eModeDynamiqueCorrel\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
@@ -8736,6 +8740,28 @@ const cTplValGesInit< eModeDynamiqueCorrel > & cEtapeMEC::DynamiqueCorrel()const
 }
 
 
+cTplValGesInit< double > & cEtapeMEC::CorrelMin()
+{
+   return mCorrelMin;
+}
+
+const cTplValGesInit< double > & cEtapeMEC::CorrelMin()const 
+{
+   return mCorrelMin;
+}
+
+
+cTplValGesInit< double > & cEtapeMEC::GammaCorrel()
+{
+   return mGammaCorrel;
+}
+
+const cTplValGesInit< double > & cEtapeMEC::GammaCorrel()const 
+{
+   return mGammaCorrel;
+}
+
+
 cTplValGesInit< eModeAggregCorr > & cEtapeMEC::AggregCorr()
 {
    return mAggregCorr;
@@ -10649,6 +10675,10 @@ cElXMLTree * ToXMLTree(const cEtapeMEC & anObj)
       aRes->AddFils(::ToXMLTree(std::string("SzDalleMax"),anObj.SzDalleMax().Val())->ReTagThis("SzDalleMax"));
    if (anObj.DynamiqueCorrel().IsInit())
       aRes->AddFils(ToXMLTree(std::string("DynamiqueCorrel"),anObj.DynamiqueCorrel().Val())->ReTagThis("DynamiqueCorrel"));
+   if (anObj.CorrelMin().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("CorrelMin"),anObj.CorrelMin().Val())->ReTagThis("CorrelMin"));
+   if (anObj.GammaCorrel().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("GammaCorrel"),anObj.GammaCorrel().Val())->ReTagThis("GammaCorrel"));
    if (anObj.AggregCorr().IsInit())
       aRes->AddFils(ToXMLTree(std::string("AggregCorr"),anObj.AggregCorr().Val())->ReTagThis("AggregCorr"));
    if (anObj.SzW().IsInit())
@@ -10859,6 +10889,10 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.SzDalleMax(),aTree->Get("SzDalleMax",1)); //tototo 
 
    xml_init(anObj.DynamiqueCorrel(),aTree->Get("DynamiqueCorrel",1)); //tototo 
+
+   xml_init(anObj.CorrelMin(),aTree->Get("CorrelMin",1)); //tototo 
+
+   xml_init(anObj.GammaCorrel(),aTree->Get("GammaCorrel",1)); //tototo 
 
    xml_init(anObj.AggregCorr(),aTree->Get("AggregCorr",1)); //tototo 
 
@@ -11545,6 +11579,14 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
         xml_init(aVal.DynamiqueCorrel(),(*itLTr)->Get("DynamiqueCorrel",1)); //tototo 
         if ((*itLTr)->HasFilsPorteeGlob("DynamiqueCorrel"))
           anObj.mGlobEtapeMEC.DynamiqueCorrel() = aVal.DynamiqueCorrel();
+
+        xml_init(aVal.CorrelMin(),(*itLTr)->Get("CorrelMin",1)); //tototo 
+        if ((*itLTr)->HasFilsPorteeGlob("CorrelMin"))
+          anObj.mGlobEtapeMEC.CorrelMin() = aVal.CorrelMin();
+
+        xml_init(aVal.GammaCorrel(),(*itLTr)->Get("GammaCorrel",1)); //tototo 
+        if ((*itLTr)->HasFilsPorteeGlob("GammaCorrel"))
+          anObj.mGlobEtapeMEC.GammaCorrel() = aVal.GammaCorrel();
 
         xml_init(aVal.AggregCorr(),(*itLTr)->Get("AggregCorr",1)); //tototo 
         if ((*itLTr)->HasFilsPorteeGlob("AggregCorr"))
