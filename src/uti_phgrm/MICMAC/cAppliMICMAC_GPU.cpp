@@ -48,7 +48,7 @@ namespace NS_ParamMICMAC
 
 #ifdef CUDA_ENABLED
 	extern "C" void freeGpuMemory();
-	extern "C" void projectionsToLayers(float *h_TabProj, uint2 dimTer, int nbLayer);
+	extern "C" void projectionsToLayers(float *h_TabProj, int2 dimTer, int nbLayer);
 	extern "C" void basic_Correlation_GPU(  float* h_TabCorre, int nbLayer);
 	extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer);
 	extern "C" paramGPU Init_Correlation_GPU( int x0, int x1, int y0, int y1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef);
@@ -800,6 +800,117 @@ namespace NS_ParamMICMAC
 		}
 	}
 
+	void cAppliMICMAC::Tabul_Projection( float* TabProj, int Z, int2 Ter0, int2 Ter1, uint sample)
+	{
+		// debug
+		bool showDebug	= false;
+		bool showTabPro = false;
+		int imageIDShow = 0;
+		
+		Pt2dr aSzDz = Pt2dr(mGeomDFPx.SzDz());	
+
+		// Mise en calque des projections pour chaque image
+		for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )
+		{
+			if (aKIm == imageIDShow && showDebug && showTabPro) std::cout << "---------------------TER size " << (h.dimSTer.x) << "," << h.dimSTer.y << "-------------------------------------\n";
+
+			// Obtention de l'image courante
+			cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
+			const cGeomImage*	aGeom	= aGLI.Geom();
+			
+			for (int anY = Ter0.y ; anY < Ter1.y; anY = anY + sample)
+			{															
+				for (int anX = Ter0.x ; anX < Ter1.x ; anX = anX + sample)	// Ballayage du terrain  
+				{
+					if ( anX >= 0 && anY >= 0 && anX < aSzDz.x && anY < aSzDz.y)
+					{
+						int rX		= (anX - Ter0.x) / sample;
+						int rY		= (anY - Ter0.y) / sample;
+						int iD		= (aKIm * h.sizeSTer  + h.dimSTer.x * rY + rX ) * 2;
+						int aZMin	= mTabZMin[anY][anX];
+						int aZMax	= mTabZMax[anY][anX];
+
+						if (IsInTer( anX, anY ) && (aGLI.IsVisible(anX ,anY ))&& (aZMin <= Z)&&(Z <=aZMax) )
+						{
+							// Déquantification  de X, Y et Z 
+							const double aZReel	= DequantZ(Z);
+							Pt2dr		aPTer	= DequantPlani(anX,anY);  
+
+							// Projection dans l'image 
+							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);
+
+							if (aGLI.IsOk( aPIm.x, aPIm.y ))
+							{	
+								TabProj[iD + 0] = (float)aPIm.x;
+								TabProj[iD + 1] = (float)aPIm.y;
+
+								//if (aKIm == imageIDShow && showDebug) std::cout << "("<< floor(aPIm.x*10)/10 << "|" << floor(aPIm.y*10)/10 << ") ";
+								if (aKIm == imageIDShow && showDebug) std::cout  << " " << anX << " ";
+								//if (aKIm == imageIDShow && showDebug && showTabPro) std::cout  << " " << (int)aPIm.y/10 << " ";
+								//if (aKIm == imageIDShow && showDebug && showTabPro) std::cout  << " 1 ";
+						
+							}
+							else
+								if (aKIm == imageIDShow && showDebug && showTabPro) std::cout << "(" << anX << ")";
+						}
+						else
+							if (aKIm == imageIDShow && showDebug && showTabPro)
+							{
+								std::cout << " - ";
+							}
+					}
+					else
+						if (aKIm == imageIDShow && showDebug && showTabPro)
+						{
+							std::cout << "  z ";
+						}
+				}
+				if (aKIm == imageIDShow && showDebug && showTabPro) std::cout << "\n";
+			}
+			if (aKIm == imageIDShow && showDebug && showTabPro) std::cout << "--------------------------------------------------------------------------\n";
+		}
+
+		/*
+		for (int aKIm = 1 ; aKIm < 2 ; aKIm++ )
+		{
+
+			cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
+			float **aDataIm	=  aGLI.DataIm();
+			float* image	= new float[h.sizeSTer];
+
+			for (int anY = mY0Ter ; anY < mY1Ter ; anY += h.sampTer)
+			{															
+				for (int anX = mX0Ter ; anX <  mX1Ter ; anX += h.sampTer)	// Ballayage du terrain  
+				{
+
+					int rX		= (anX - mX0Ter) / h.sampTer;
+					int rY		= (anY - mY0Ter) / h.sampTer;
+					int iD		= (aKIm * h.sizeSTer  + h.dimSTer.x * rY + rX ) * 2;
+					Pt2dr aPIm(TabProj[iD],TabProj[iD+1]);
+
+					double aVal;
+					if ((aGLI.IsOk(aPIm.x,aPIm.y))&&(aGLI.IsOk(aPIm.x+2,aPIm.y+2))&&(aGLI.IsOk(aPIm.x-2,aPIm.y-2)))
+					{
+						//std::cout << "image : " << aPIm.x << " , " << aPIm.y  << "\n";
+						aVal =  mInterpolTabule.GetVal(aDataIm,aPIm)/500.0f;
+					}
+					else
+						aVal = 0.0f;
+
+					image[h.dimSTer.x * rY + rX] = aVal;
+				}
+			}
+
+			std::string file = "C:\\Users\\gchoqueux\\Pictures\\image_" + ToString(aKIm) + "_Z_" + ToString(anZ)  +  ".pgm";
+			// save PGM
+
+			sdkSavePGM<float>(file.c_str(), image, h.dimTer.x,h.dimTer.y);
+
+			delete[] image;
+		}
+			
+		*/
+	}
 
 	void cAppliMICMAC::DoGPU_Correl_Basik
 		(
@@ -823,10 +934,9 @@ namespace NS_ParamMICMAC
 		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
 		//int aZMinTer = 0 , aZMaxTer = 1;
 
-		//std::cout << mZMinGlob << "," << mZMaxGlob << "\n";
+		// Tableau de sortie de corrélation 
 
-		// Tableau de sortie de corrélation
-		float* h_TabCorre = new float[  h.sizeTer ];
+		float* h_TabCost = new float[  h.rSiTer ];
 		uint siTabProj	= mNbIm * h.sizeSTer * 2;
 
 		// Tableau des projections
@@ -848,8 +958,7 @@ namespace NS_ParamMICMAC
 	
 		// debug
 		bool showDebug	= false;
-		bool showTabPro = false;
-		int imageIDShow = 0;
+		int	imgIdShow	= 0;
 
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
@@ -857,157 +966,45 @@ namespace NS_ParamMICMAC
 			// Re-initialisation du tableau de projection
 			memcpy( h_TabProj, h_TabPInit, siTabProj * sizeof(float));
 			
-			if (showDebug)
-				std::cout << "Mis en calque des projections : " << aZMinTer << " - " << aZMaxTer << " Z : " << anZ << "\n";
-			// Mise en calque des projections pour chaque image
-			for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )
-			{
-				if (aKIm == imageIDShow && showDebug && showTabPro)
-					std::cout << "---------------------IMAGE " << aKIm << ", Z = " << anZ << "-------------------------------------\n";
-				// Obtention de l'image courante
-				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
-				const cGeomImage*	aGeom	= aGLI.Geom();
-			
-				// Initialisation du cube de projection
-				for (int anY = h.pUTer0.y ; anY < h.pUTer1.y; anY = anY + h.sampTer)
-				{															
-					for (int anX = h.pUTer0.x ; anX < h.pUTer1.x ; anX = anX + h.sampTer)	// Ballayage du terrain  
-					{
-						
-						int rX		= (anX - h.pUTer0.x) / h.sampTer;
-						int rY		= (anY - h.pUTer0.y) / h.sampTer;
-						int iD		= (aKIm * h.sizeSTer  + h.dimSTer.x * rY + rX ) * 2;
-						
-						if ( anX >= 0 && anY >= 0 )
-						{
-							// Nappe des profondeurs
-							int cY = anY > (mY1Ter -1)  ? (mY1Ter - 1) : anY;
-							int cX = anX > (mX1Ter -1)  ? (mX1Ter - 1) : anX;
-							cY = cY < 0  ? 0 : cY;
-							cX = cX < 0  ? 0 : cX;
-							int aZMin	= mTabZMin[cY][cX];
-							int aZMax	= mTabZMax[cY][cX];
-
-							if (IsInTer( cX, cY ) && (aGLI.IsVisible(cX ,cY )) && (aZMin <= anZ)&&(anZ <=aZMax))
-							{
-								// Déquantification  de X, Y et Z 
-								const double aZReel	= DequantZ(anZ);
-								Pt2dr		aPTer	= DequantPlani(anX,anY);  
-
-								// Projection dans l'image 
-								Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);
-
-								if (aGLI.IsOk( aPIm.x, aPIm.y ))
-								{	
-									h_TabProj[iD + 0] = (float)aPIm.x;
-									h_TabProj[iD + 1] = (float)aPIm.y;
-
-									//if (aKIm == imageIDShow && showDebug) std::cout << "("<< floor(aPIm.x*10)/10 << "|" << floor(aPIm.y*10)/10 << ") ";
-									//if (aKIm == imageIDShow && showDebug) std::cout  << floor(aPIm.y*1000)/1000 << " ";
-									if (aKIm == imageIDShow && showDebug && showTabPro) std::cout  << aPIm.y << " ";
-						
-								}
-								else
-									if (aKIm == imageIDShow && showDebug && showTabPro) std::cout << "   .   ";
-							}
-							else
-								if (aKIm == imageIDShow && showDebug && showTabPro)
-								{
-									std::cout << "   .   ";
-								}
-						}
-						else
-							if (aKIm == imageIDShow && showDebug && showTabPro)
-							{
-								std::cout << "   .   ";
-							}
-					}
-					if (aKIm == imageIDShow && showDebug && showTabPro) std::cout << "\n";
-				}
-				if (aKIm == imageIDShow && showDebug && showTabPro) std::cout << "--------------------------------------------------------------------------\n";
-			}
-			/*
-			for (int aKIm = 1 ; aKIm < 2 ; aKIm++ )
-			{
-
-				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
-				float **aDataIm	=  aGLI.DataIm();
-				float* image	= new float[h.sizeSTer];
-
-				for (int anY = mY0Ter ; anY < mY1Ter ; anY += h.sampTer)
-				{															
-					for (int anX = mX0Ter ; anX <  mX1Ter ; anX += h.sampTer)	// Ballayage du terrain  
-					{
-
-						int rX		= (anX - mX0Ter) / h.sampTer;
-						int rY		= (anY - mY0Ter) / h.sampTer;
-						int iD		= (aKIm * h.sizeSTer  + h.dimSTer.x * rY + rX ) * 2;
-						Pt2dr aPIm(h_TabProj[iD],h_TabProj[iD+1]);
-
-						double aVal;
-						if ((aGLI.IsOk(aPIm.x,aPIm.y))&&(aGLI.IsOk(aPIm.x+2,aPIm.y+2))&&(aGLI.IsOk(aPIm.x-2,aPIm.y-2)))
-						{
-							//std::cout << "image : " << aPIm.x << " , " << aPIm.y  << "\n";
-							aVal =  mInterpolTabule.GetVal(aDataIm,aPIm)/500.0f;
-						}
-						else
-							aVal = 0.0f;
-
-						image[h.dimSTer.x * rY + rX] = aVal;
-					}
-				}
-
-				std::string file = "C:\\Users\\gchoqueux\\Pictures\\image_" + ToString(aKIm) + "_Z_" + ToString(anZ)  +  ".pgm";
-				// save PGM
-
-				sdkSavePGM<float>(file.c_str(), image, h.dimTer.x,h.dimTer.y);
-
-				delete[] image;
-			}
-			
-			*/
-
+			Tabul_Projection(h_TabProj, anZ, h.pUTer0, h.pUTer1, h.sampTer);
 			
 			// Copie des projections de host vers le device
 			projectionsToLayers(h_TabProj, h.dimSTer, mNbIm);
 
 			// Re-initialisation du tableau de sortie
-			memset(h_TabCorre,0,h.sizeSTer * mNbIm * 2 );
+			memset(h_TabCost,0,h.rSiTer);
 
-			// KERNEL Correlation
-			basic_Correlation_GPU(h_TabCorre , mNbIm);
+			// Kernel Correlation
+			basic_Correlation_GPU(h_TabCost, mNbIm);
 			
 			// Affectation des couts
-			if (showDebug)
-				std::cout << "Affectation des couts\n";
+			if (showDebug) std::cout << "Affectation des couts\n";
+
 			for (int Y = mY0Ter ; Y < mY1Ter ; Y++)
 			{			
-				int rY	= Y - mY0Ter + h.rVig.y;
+				int rY	= Y - mY0Ter;
 				for (int X = mX0Ter; X <  mX1Ter; X++)	// Ballayage du terrain  
 				
 					if ( mTabZMin[Y][X] <=  anZ && anZ < mTabZMax[Y][X])
 					{
-						int rX	= X - mX0Ter + h.rVig.x;
-						double cost = (double)h_TabCorre[h.dimTer.x * rY + rX];
+						int rX	= X - mX0Ter;
+						double cost = (double)h_TabCost[h.rDiTer.x * rY + rX];
 						if (cost != -1000.0f)
-						{
-							//cost =  mStatGlob->CorrelToCout(1-cost);
 							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,cost);
-						}
 						else 
-							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,mAhDefCost);
-							
+							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,mAhDefCost);				
 					}
 			}
 		}
-		if (showDebug)
-			std::cout << "delete\n";
+
+		if (showDebug) std::cout << "delete\n";
+		
 		// Erreur delete en Debug
-// 		delete [] h_TabCorre;
-// 		delete [] h_TabProj;
-// 		delete [] h_TabPInit;
-		if (showDebug)
-			std::cout << "fin delete\n";
+		delete [] h_TabCost;
+ 		delete [] h_TabProj;
+ 		delete [] h_TabPInit;
+
+		if (showDebug) std::cout << "fin delete\n";
 
 		if(0)
 		{
@@ -1020,7 +1017,7 @@ namespace NS_ParamMICMAC
 				
 					int aZMin = 0;//int aZMin = mTabZMin[anY][anX];
 					int aZMax = 1;//int aZMax = mTabZMax[anY][anX];
-
+					
 					// est-on dans le masque des points terrains valide
 					if ( IsInTer(anX,anY))
 					{
@@ -1037,6 +1034,8 @@ namespace NS_ParamMICMAC
 							int aNbImOk = 0;
 							for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 							{
+								
+								int imageDebug = 0;
 								cGPU_LoadedImGeom & aGLI = *(mVLI[aKIm]);
 								const cGeomImage * aGeom=aGLI.Geom();
 								float ** aDataIm =  aGLI.DataIm();
@@ -1048,12 +1047,10 @@ namespace NS_ParamMICMAC
 								// Pour stocker les moment d'ordre 1 et 2
 								double  aSV = 0, aSVV = 0;
 
-								int imageDebug = 3;
-
 								if (aGLI.IsVisible(anX,anY)) // En cas de gestion parties cachees, un masque terrain de visibilite a ete calcule par image
 								{	
 									bool IsOk = true;
-									
+
 									for (int aXVois=aX0v ; (aXVois<=aX1v)&&IsOk; aXVois++)// Balaye le voisinage
 									{
 										for (int aYVois= aY0v; (aYVois<=aY1v)&&IsOk; aYVois++)
@@ -1066,10 +1063,10 @@ namespace NS_ParamMICMAC
 											if ((aGLI.IsOk(aPIm.x,aPIm.y))&&(aGLI.IsOk(aPIm.x+2,aPIm.y+2))&&(aGLI.IsOk(aPIm.x-2,aPIm.y-2)))
 											{
 												
-												double aVal =  mInterpolTabule.GetVal(aDataIm,aPIm);
-												if (aKIm == imageDebug && aXVois == anX && aYVois == anY)
-													std::cout << floor((aVal / 500.0f * 100.0f))/100.0f<< " ";
+// 												if (aKIm == imageDebug && aXVois == anX && aYVois == anY ) 
+// 													std::cout << " " << anX << " ";
 
+												double aVal =  mInterpolTabule.GetVal(aDataIm,aPIm);
 												// On "push" la nouvelle valeur de l'image
 												*(mCurVals++) = aVal;
 												aSV += aVal;
@@ -1080,10 +1077,9 @@ namespace NS_ParamMICMAC
 											{
 												IsOk =false; // Si un  seul des voisin n'est pas lisible , on annule tout
 												if (aKIm == imageDebug && aXVois == anX && aYVois == anY)
-													std::cout << " . ";
+													std::cout << " * ";
 											}
 										}
-										
 									}
 									if (IsOk)
 									{
@@ -1098,6 +1094,17 @@ namespace NS_ParamMICMAC
 											for (int aKV=0 ; aKV<mNbPtsWFixe; aKV++)
 											{
 												mValsIm[aKV] = (mValsIm[aKV]-aSV)/aSVV;
+
+
+												if (aKIm == imageDebug && aKV == (2 * mPtSzWFixe.x + 1) * mPtSzWFixe.y + mPtSzWFixe.x)
+													if (mValsIm[aKV] == 0)
+														std::cout << "  00  ";
+													else if ( mValsIm[aKV] < 0.0f && mValsIm[aKV] > -1.0f)											
+														std::cout << "|\\|";													
+													else if ( mValsIm[aKV] < 1.0f  && mValsIm[aKV] > 0.0f)
+														std::cout << "|/|";
+													else
+														std::cout << " * ";
 											}
 										}
 										else
@@ -1112,7 +1119,7 @@ namespace NS_ParamMICMAC
 								{
 									aGLI.SetOK(false);
 									if (aKIm == imageDebug)
-										std::cout << " . ";
+										std::cout << " f ";
 								}
 								
 								
@@ -1150,7 +1157,7 @@ namespace NS_ParamMICMAC
 					{
 						for (int aZInt=aZMin ; aZInt< aZMax ; aZInt++)						
 							mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,mAhDefCost);
-						std::cout << " .   ";
+						std::cout << " . ";
 					}
 						
 				}
