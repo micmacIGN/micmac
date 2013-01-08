@@ -69,7 +69,8 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeAggregCorr & anOb
 typedef enum
 {
   eCoeffCorrelStd,
-  eCoeffAngle
+  eCoeffAngle,
+  eCoeffGamma
 } eModeDynamiqueCorrel;
 void xml_init(eModeDynamiqueCorrel & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModeDynamiqueCorrel & aVal);
@@ -2926,6 +2927,12 @@ class cEtapeMEC
         cTplValGesInit< eModeDynamiqueCorrel > & DynamiqueCorrel();
         const cTplValGesInit< eModeDynamiqueCorrel > & DynamiqueCorrel()const ;
 
+        cTplValGesInit< double > & CorrelMin();
+        const cTplValGesInit< double > & CorrelMin()const ;
+
+        cTplValGesInit< double > & GammaCorrel();
+        const cTplValGesInit< double > & GammaCorrel()const ;
+
         cTplValGesInit< eModeAggregCorr > & AggregCorr();
         const cTplValGesInit< eModeAggregCorr > & AggregCorr()const ;
 
@@ -3450,6 +3457,8 @@ class cEtapeMEC
         cTplValGesInit< int > mSzDalleMin;
         cTplValGesInit< int > mSzDalleMax;
         cTplValGesInit< eModeDynamiqueCorrel > mDynamiqueCorrel;
+        cTplValGesInit< double > mCorrelMin;
+        cTplValGesInit< double > mGammaCorrel;
         cTplValGesInit< eModeAggregCorr > mAggregCorr;
         cTplValGesInit< double > mSzW;
         cTplValGesInit< bool > mWSpecUseMasqGlob;

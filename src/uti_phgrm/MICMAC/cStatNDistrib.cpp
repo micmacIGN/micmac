@@ -41,11 +41,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 namespace NS_ParamMICMAC
 {
 
-static double Cor2Cost(eModeDynamiqueCorrel aDyn,double aCorrel) 
-{
-   aCorrel = ElMax(-1.0,ElMin(1.0,aCorrel));
+static double Cor2Cost(eModeDynamiqueCorrel aDyn,double aCorrel,double aCorrelMin,double aGamaCorr) 
+{ 
 
-   switch (aDyn)
+   aCorrel = ElMax(aCorrelMin,ElMin(1.0,aCorrel));
+
+   switch (aDyn) 
    {
        case eCoeffCorrelStd :
             return 1-aCorrel;
@@ -54,12 +55,21 @@ static double Cor2Cost(eModeDynamiqueCorrel aDyn,double aCorrel)
        case eCoeffAngle :
             return acos(aCorrel) / (PI/2);
        break;
+
+
+       case eCoeffGamma :
+            double aRes =  (aCorrel- aCorrelMin) / (1-aCorrelMin);  // 1->1 , CorrelMi->0 
+            aRes = pow(aRes,aGamaCorr);
+
+            return (1- aRes)  * (1-aCorrelMin);
+       break;
+
    }
    ELISE_ASSERT(false,"cStatOneClassEquiv::Cout");
    return 0;
 }
 
-static double Cost2Cor(eModeDynamiqueCorrel aDyn,double aCost)
+static double Cost2Cor(eModeDynamiqueCorrel aDyn,double aCost,double aGammaCor)
 {
    switch (aDyn)
    {
@@ -69,6 +79,10 @@ static double Cost2Cor(eModeDynamiqueCorrel aDyn,double aCost)
 
        case eCoeffAngle :
             return cos((PI/2)* aCost);
+       break;
+
+       case eCoeffGamma :
+            return 1-aCost;
        break;
    }
    ELISE_ASSERT(false,"cStatOneClassEquiv::Cout");
@@ -200,6 +214,8 @@ cStatOneClassEquiv::cStatOneClassEquiv
    mDefCorr    (mAppli.DefCorrelation().Val()),
    mEpsCorr    (mAppli.EpsilonCorrelation().Val()),
    mDynCorr    (mAppli.CurEtape()->EtapeMEC().DynamiqueCorrel().Val()),
+   mCorrelMin  (mAppli.CurEtape()->EtapeMEC().CorrelMin().ValWithDef(-1)),
+   mGammaCor   (mAppli.CurEtape()->EtapeMEC().GammaCorrel().ValWithDef(1)),
    mAggregCorr (mAppli.CurEtape()->EtapeMEC().AggregCorr().Val()),
    mVPtInEc    (aVPtInEc),
    mPtInEc     (&(mVPtInEc[0])),
@@ -498,7 +514,7 @@ REAL cStatOneClassEquiv::Cout() const
 
 double cStatOneClassEquiv::CorrelToCout(double aCorrel) const
 {
-   return Cor2Cost(mDynCorr,aCorrel);
+   return Cor2Cost(mDynCorr,aCorrel,mCorrelMin,mGammaCor);
 }
 
 
@@ -528,6 +544,8 @@ cStatGlob::cStatGlob
        mDefCorr    (mAppli.DefCorrelation().Val()),
        mEpsCorr    (mAppli.EpsilonCorrelation().Val()),
        mDynCorr    (mAppli.CurEtape()->EtapeMEC().DynamiqueCorrel().Val()),
+       mCorrelMin  (mAppli.CurEtape()->EtapeMEC().CorrelMin().ValWithDef(-1)),
+       mGammaCor   (mAppli.CurEtape()->EtapeMEC().GammaCorrel().ValWithDef(1)),
        mIsFull     (mVIndOK.size()==mVPtInEc.size())
 {
 }
@@ -578,12 +596,12 @@ void  cStatGlob::Clear()
 
 double cStatGlob::CorrelToCout(double aCorrel) const
 {
-   return Cor2Cost(mDynCorr,aCorrel);
+   return Cor2Cost(mDynCorr,aCorrel,mCorrelMin,mGammaCor);
 }
 
 double cStatGlob::Cout2Correl(double aCost) const
 {
-   return Cost2Cor(mDynCorr,aCost);
+   return Cost2Cor(mDynCorr,aCost,mGammaCor);
 }
 
 

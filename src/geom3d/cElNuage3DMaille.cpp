@@ -399,6 +399,11 @@ Pt2dr cElNuage3DMaille::Ter2Capteur(const Pt3dr & aP) const
 }
 
 
+bool cElNuage3DMaille::PIsVisibleInImage   (const Pt3dr & aP) const
+{
+   return   mCam->PIsVisibleInImage (aP);
+}
+
 
 
 void cElNuage3DMaille::AddTri(std::vector<tTri> & aMesh,const tIndex2D & aP,int *K123,int anOffset) const

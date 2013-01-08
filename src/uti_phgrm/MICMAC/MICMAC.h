@@ -493,6 +493,8 @@ class cStatOneClassEquiv
            double **                    mData; // [Kim][KPix]
            bool                         mSomsMade;
            eModeDynamiqueCorrel         mDynCorr;
+           double                       mCorrelMin;
+           double                       mGammaCor;
            eModeAggregCorr              mAggregCorr;
            std::vector<int>             mVPtInEc;
            int *                        mPtInEc;
@@ -553,6 +555,8 @@ class cStatGlob
           double                               mDefCorr;
           double                               mEpsCorr;
           eModeDynamiqueCorrel                 mDynCorr;
+          double                               mCorrelMin;
+          double                               mGammaCor;
           bool                                 mIsFull;
 
 };
