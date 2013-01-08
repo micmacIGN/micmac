@@ -520,14 +520,24 @@ void cAppli_SaisiePts::AddOnePGInImage(cSP_PointGlob  * aSPG,cImage & anI)
      const cPointGlob & aPG = *(aSPG->PG());
 
      Pt2dr aPIm  = anI.PointArbitraire();
+     bool OkInIm = true;
 
      if (aPG.P3D().IsInit())
      {
         Pt3dr aP3 = aPG.P3D().Val();
         cCapture3D * aCapt3D = anI.Capt3d();
         if (aCapt3D) 
+        {
             aPIm =  aCapt3D->Ter2Capteur(aP3); //  : anI.PointArbitraire();
+
+            if (! aCapt3D->PIsVisibleInImage(aP3)) 
+            {
+               OkInIm = false;
+            }
+        }
      }
+
+/// std::cout << "XccByyt "<< aSPG->PG()->Name() << " " << OkInIm << "\n";
 
      cSP_PointeImage * aPointeIm = anI.PointeOfNameGlobSVP(aPG.Name());
 
@@ -535,7 +545,7 @@ void cAppli_SaisiePts::AddOnePGInImage(cSP_PointGlob  * aSPG,cImage & anI)
      {
         if (aPointeIm->Saisie()->Etat()==eEPI_NonSaisi)
         {
-           if (anI.InImage(aPIm))
+           if ( OkInIm && anI.InImage(aPIm))
            {
               aPointeIm->Saisie()->PtIm() = aPIm;
            }
@@ -547,7 +557,7 @@ void cAppli_SaisiePts::AddOnePGInImage(cSP_PointGlob  * aSPG,cImage & anI)
      }
      else
      {
-        if (anI.InImage(aPIm))
+        if (OkInIm && anI.InImage(aPIm))
         {
            cOneSaisie anOS;
            anOS.Etat() = eEPI_NonSaisi;

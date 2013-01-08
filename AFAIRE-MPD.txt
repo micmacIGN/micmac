@@ -10,6 +10,12 @@ Ajouter Test sur fichiers Raw.
 
 =============================
 
+BUUUUUUUG  :
+
+Dans SaisiePts pts tres en dehors de l'image la distorsion le remet par hasrd
+en dedans, genere PB dans SAISIE PTS.
+
+
 Documenter :
 
    mm3d AperoChImSecMM ".*PEF" All
