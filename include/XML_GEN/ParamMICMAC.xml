@@ -142,6 +142,7 @@ namespace NS_ParamMICMAC{
    <enum Name="eModeDynamiqueCorrel">
          <eCoeffCorrelStd> </eCoeffCorrelStd>
 	 <eCoeffAngle>     </eCoeffAngle>
+	 <eCoeffGamma>     </eCoeffGamma>
    </enum>
 
    <enum Name="eTypeImPyram">
@@ -946,6 +947,12 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 
             <DynamiqueCorrel Nb="?" Type="eModeDynamiqueCorrel"> 
             </DynamiqueCorrel>
+
+            <!-- Un moyen basique de ne pas tenir compte des correlations faibles
+            est de dire que si Correl < CorrelMin alors Correl = CorrelMin -->
+            <CorrelMin Nb="?" Type="double" > </CorrelMin>
+            <!-- Gamma de 2, ecrase les correl faible => VOIR FORMULE Cor2Cost -->
+            <GammaCorrel Nb="?" Type="double" > </GammaCorrel>
 
             <AggregCorr Nb="?" Type="eModeAggregCorr"> 
             </AggregCorr>

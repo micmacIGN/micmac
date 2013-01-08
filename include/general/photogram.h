@@ -1392,6 +1392,7 @@ class cCapture3D
 {
    public :
       virtual Pt2dr    Ter2Capteur   (const Pt3dr & aP) const =0;
+      virtual bool     PIsVisibleInImage   (const Pt3dr & aP) const =0;
       virtual ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const =0;
 
       virtual bool  HasRoughCapteur2Terrain() const = 0;
@@ -1417,6 +1418,7 @@ class ElCamera : public cCapture3D
          bool &   IsScanned();
          bool  CaptHasData(const Pt2dr &) const ;
          Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
+         bool     PIsVisibleInImage   (const Pt3dr & aP) const ;
          ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const;
          double ResolImRefFromCapteur() const ;
          bool  HasRoughCapteur2Terrain() const ;

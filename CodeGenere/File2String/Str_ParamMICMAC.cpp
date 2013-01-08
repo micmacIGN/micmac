@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[1949]) = {
+const char * (theNameVar_ParamMICMAC[1956]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -144,6 +144,7 @@ const char * (theNameVar_ParamMICMAC[1949]) = {
 "   <enum Name=\"eModeDynamiqueCorrel\">\n",
 "         <eCoeffCorrelStd> </eCoeffCorrelStd>\n",
 "	 <eCoeffAngle>     </eCoeffAngle>\n",
+"	 <eCoeffGamma>     </eCoeffGamma>\n",
 "   </enum>\n",
 "\n",
 "   <enum Name=\"eTypeImPyram\">\n",
@@ -948,6 +949,12 @@ const char * (theNameVar_ParamMICMAC[1949]) = {
 "\n",
 "            <DynamiqueCorrel Nb=\"?\" Type=\"eModeDynamiqueCorrel\"> \n",
 "            </DynamiqueCorrel>\n",
+"\n",
+"            <!-- Un moyen basique de ne pas tenir compte des correlations faibles\n",
+"            est de dire que si Correl < CorrelMin alors Correl = CorrelMin -->\n",
+"            <CorrelMin Nb=\"?\" Type=\"double\" > </CorrelMin>\n",
+"            <!-- Gamma de 2, ecrase les correl faible => VOIR FORMULE Cor2Cost -->\n",
+"            <GammaCorrel Nb=\"?\" Type=\"double\" > </GammaCorrel>\n",
 "\n",
 "            <AggregCorr Nb=\"?\" Type=\"eModeAggregCorr\"> \n",
 "            </AggregCorr>\n",

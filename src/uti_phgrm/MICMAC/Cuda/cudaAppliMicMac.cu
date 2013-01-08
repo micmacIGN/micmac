@@ -39,6 +39,7 @@ paramGPU h;
 extern "C" void allocMemory(void)
 {
 
+	std::cout << "alloc delete\n";
 	if (dev_NbImgOk != NULL) checkCudaErrors( cudaFree(dev_NbImgOk));
 	if (dev_Corr_Out != NULL) checkCudaErrors( cudaFree(dev_Corr_Out));
 	if (dev_Cache != NULL) checkCudaErrors( cudaFree(dev_Cache));
@@ -52,6 +53,8 @@ extern "C" void allocMemory(void)
 	//host_Cache		= (float*)	malloc(cac_MemSize);
 	//host_NbImgOk	= (int*)	malloc(nBI_MemSize);
 
+
+	std::cout << "alloc malloc\n";
 	checkCudaErrors( cudaMalloc((void **) &dev_Corr_Out, out_MemSize) );	
 	checkCudaErrors( cudaMalloc((void **) &dev_Cache, cac_MemSize ) );
 	checkCudaErrors( cudaMalloc((void **) &dev_NbImgOk, nBI_MemSize ) );
@@ -61,6 +64,7 @@ extern "C" void allocMemory(void)
 	TexLay_Proj.addressMode[1]	= cudaAddressModeClamp;	
 	TexLay_Proj.filterMode		= cudaFilterModePoint; //cudaFilterModePoint 
 	TexLay_Proj.normalized		= true;
+	std::cout << "alloc  fin\n";
 
 }
 
@@ -173,7 +177,7 @@ extern "C" void  projectionsToLayers(float *h_TabProj, uint2 dimTer, int nbLayer
 
 };
 
-__device__  inline float2 simpleProjection( uint2 size, uint2 ssize, uint2 sizeImg ,uint2 coord, int L)
+__device__  inline float2 simpleProjection( uint2 size, uint2 ssize, uint2 sizeImg ,int2 coord, int L)
 {
 
 	const float2 cf = make_float2(ssize) * make_float2(coord) / make_float2(size) ;
@@ -208,7 +212,7 @@ __global__ void correlationKernel( int *dev_NbImgOk, float* cache, float *dest )
 	__shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
 
 	// Se placer dans l'espace terrain
-	const uint2	coorTer = make_uint2(blockIdx) * (make_uint2(blockDim) - 2 * cRVig) + make_uint2(threadIdx) - cRVig;
+	const int2	coorTer = make_int2(blockIdx) * (make_int2(blockDim) - 2 * cRVig) + make_int2(threadIdx) - cRVig;
 	const uint	iTer	= coorTer.y * cDimTer.x + coorTer.x;
 
 	// Si le processus est hors du terrain, nous sortons du kernel
@@ -216,6 +220,8 @@ __global__ void correlationKernel( int *dev_NbImgOk, float* cache, float *dest )
 		return;
 
 	const float2 PtTProj = simpleProjection( cDimTer, cSDimTer, cDimImg, coorTer, blockIdx.z);
+	//const float2 PtTProj = tex2DLayered(TexLay_Proj, ((float)coorTer.x / cDimTer.x * cSDimTer.x + 0.5f) /(float)cSDimTer.x, ((float)coorTer.y/ cDimTer.y * cSDimTer.y + 0.5f) /(float)cSDimTer.y ,blockIdx.z) ;
+
 
 	if ( PtTProj.x < 0.0f ||  PtTProj.y < 0.0f )
 	{
@@ -353,7 +359,7 @@ __global__ void multiCorrelationKernel(float *dest, float* cache, int * dev_NbIm
 	const uint2 coorTTer	= t / cDimVig;
 	const bool mainThread	= (t.x % cDimVig.x)== 0 && (t.y % cDimVig.y) == 0 && threadIdx.z == 0;
 	const uint aNbImOk		= dev_NbImgOk[iTer];
-	const float valo		= cache[iCach];
+	const float valo		= cache[iCacho];
 
 	if ( aNbImOk < 2)
 	{
@@ -384,11 +390,11 @@ __global__ void multiCorrelationKernel(float *dest, float* cache, int * dev_NbIm
 	if ( !mainThread ) return;
 
 	// Normalisation pour le ramener a un equivalent de 1-Correl 
-	//const float cost = resu[coorTTer.y][coorTTer.x] / (( aNbImOk-1) * cSizeVig);
+	const float cost = resu[coorTTer.y][coorTTer.x] / (( aNbImOk-1) * cSizeVig);
 
-	//dest[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
+	dest[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
 
-	dest[iTer] = resu[coorTTer.y][coorTTer.x] / (( aNbImOk-1) * cSizeVig);
+	//dest[iTer] = resu[coorTTer.y][coorTTer.x] / (( aNbImOk-1) * cSizeVig);
 }
 
 extern "C" paramGPU Init_Correlation_GPU( int x0, int x1, int y0, int y1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef )
