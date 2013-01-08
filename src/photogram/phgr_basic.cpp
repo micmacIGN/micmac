@@ -1452,6 +1452,23 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
 }
 
 
+bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer) const
+{
+   Pt3dr aPCam = R3toL3(aPTer);
+
+   if (aPCam.z < 0) return false;
+
+   Pt2dr aPI0 = Proj().Proj(aPCam);
+   Pt2dr aPF = DistDirecte(aPI0);
+
+   if ( ! IsInZoneUtile(aPF)) return false;
+
+   Pt2dr aI0Again = DistInverse(aPF);
+
+    return euclid(aPI0-aI0Again) < 1.0;
+}
+
+
 void ElCamera::UndefAltisSol() 
 {
      mAltisSolIsDef = false;

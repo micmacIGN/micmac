@@ -88,7 +88,7 @@ class cOpPolI
        tFoncPoli    mF;
 
 };
-
+    
 static double FSom(const std::vector<double> & aV) { return aV[0]+aV[1]; }
 static double FMul(const std::vector<double> & aV) { return aV[0]*aV[1]; }
 static double FInfEq(const std::vector<double> & aV) { return aV[0]<=aV[1]; }
@@ -96,6 +96,11 @@ static double FSupEq(const std::vector<double> & aV) { return aV[0]>=aV[1]; }
 static double FInfStrict(const std::vector<double> & aV) { return aV[0]<aV[1]; }
 static double FSupStrict(const std::vector<double> & aV) { return aV[0]>aV[1]; }
 static double FIf(const std::vector<double> & aV) { return aV[0]?aV[1] : aV[2]; }
+static double FDiv(const std::vector<double> & aV) 
+{
+   ELISE_ASSERT(aV[1]!=0,"Null divisor in / (Polonaise invert)");
+   return aV[0]/aV[1];
+}
 
 const std::vector<cOpPolI> & OpPolI()
 {
@@ -109,6 +114,7 @@ const std::vector<cOpPolI> & OpPolI()
        aRes.push_back(cOpPolI(2,"Inf",FInfStrict));
        aRes.push_back(cOpPolI(2,"Sup",FSupStrict));
        aRes.push_back(cOpPolI(3,"?",FIf));
+       aRes.push_back(cOpPolI(2,"/",FDiv));
    }
    return aRes;
 }

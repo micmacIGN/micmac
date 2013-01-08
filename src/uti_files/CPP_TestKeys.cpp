@@ -79,6 +79,16 @@ int TestSet_main(int argc,char ** argv)
     const cInterfChantierNameManipulateur::tSet * mSetIm = aICNM->Get(aPat);
 
 
+    int aNb = ElMin(aNbMax,int(mSetIm->size()));
+
+    for (int aK=0 ; aK< aNb ; aK++)
+    {
+         std::string aName = (*mSetIm)[aK];
+         printf("%3d ",aK);
+         std::cout << aName ;
+         std::cout  << "\n";
+    }
+ 
    
     return 1;
 }
