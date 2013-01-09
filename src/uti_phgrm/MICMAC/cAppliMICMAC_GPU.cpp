@@ -48,7 +48,7 @@ namespace NS_ParamMICMAC
 
 #ifdef CUDA_ENABLED
 	extern "C" void freeGpuMemory();
-	extern "C" void projectionsToLayers(float *h_TabProj, int2 dimTer, int nbLayer);
+	extern "C" void projectionsToLayers(float *h_TabProj, uint2 dimTer, int nbLayer);
 	extern "C" void basic_Correlation_GPU(  float* h_TabCorre, int nbLayer);
 	extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer);
 	extern "C" paramGPU Init_Correlation_GPU( int x0, int x1, int y0, int y1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef);
@@ -982,13 +982,12 @@ namespace NS_ParamMICMAC
 
 			for (int Y = mY0Ter ; Y < mY1Ter ; Y++)
 			{			
-				int rY	= Y - mY0Ter;
 				for (int X = mX0Ter; X <  mX1Ter; X++)	// Ballayage du terrain  
 				
 					if ( mTabZMin[Y][X] <=  anZ && anZ < mTabZMax[Y][X])
 					{
-						int rX	= X - mX0Ter;
-						double cost = (double)h_TabCost[h.rDiTer.x * rY + rX];
+
+						double cost = (double)h_TabCost[h.rDiTer.x * (Y - mY0Ter) +  X - mX0Ter];
 						if (cost != -1000.0f)
 							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,cost);
 						else 
