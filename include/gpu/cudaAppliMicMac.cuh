@@ -4,8 +4,8 @@
 #include <helper_functions.h>
 #include <helper_cuda.h>
 
-static __constant__ int2 cDimTer;
-static __constant__ int2 cSDimTer;
+static __constant__ uint2 cDimTer;
+static __constant__ uint2 cSDimTer;
 static __constant__ uint2 cDimVig;
 static __constant__ uint2 cDimImg;
 static __constant__ uint2 cRDiTer;
@@ -26,9 +26,10 @@ struct paramGPU
 
 	 int2  pUTer0;
 	 int2  pUTer1;
+
 	 uint2 rDiTer;
-	 int2  dimTer;		// Dimension du bloque terrain
-	 int2  dimSTer;		// Dimension du bloque terrain sous echantilloné
+	 uint2 dimTer;		// Dimension du bloque terrain
+	 uint2 dimSTer;		// Dimension du bloque terrain sous echantilloné
 	 uint2 dimVig;		// Dimension de la vignette
 	 uint2 dimImg;		// Dimension des images
 	 uint2 rVig;		// Rayon de la vignette
@@ -106,4 +107,12 @@ inline __host__ __device__ int2 operator-(const int2 a, uint2 b)
 inline __host__ __device__ int2 operator+(const uint3 a, uint2 b)
 {
 	return make_int2(a.x + b.x, a.y + b.y);
+}
+
+inline __host__ __device__ int mdlo(uint a, uint b)
+{
+
+	if (b == 0 ) return 0;
+	return ((int)a) - (((int)a )/((int)b))*((int)b);
+
 }
