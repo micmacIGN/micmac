@@ -938,7 +938,6 @@ namespace NS_ParamMICMAC
 		//int aZMinTer = 0 , aZMaxTer = 1;
 
 		// Tableau de sortie de corrélation 
-
 		float* h_TabCost = new float[  h.rSiTer ];
 		uint siTabProj	= mNbIm * h.sizeSTer * 2;
 
