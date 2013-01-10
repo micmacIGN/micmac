@@ -376,17 +376,11 @@ void cMesh::setTrianglesAttribute(int img_idx, Pt3dr Dir, vector <unsigned int> 
 void cMesh::setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, vector <unsigned int> const &aVisTriIdx)
 {
 	int id1, id2, pos1, pos2;
-	float E;
+	float E0, E1, E2;
 
-	/*vector<unsigned int>::const_iterator it0_begin = aVisTriIdx.begin();
-	vector<unsigned int>::const_iterator it0_end   = aVisTriIdx.end();
-
-	vector<int>::iterator it_begin = aTriInGraph.begin();
-	vector<int>::iterator it_end   = aTriInGraph.end();*/
-	
+	//parcours des aretes du graphe d'adjacence
 	for (unsigned int aK=0; aK < mEdges.size(); aK++)
 	{
-		//filtrage des triangles visibles
 		id1 = mEdges[aK].n1();
 		id2 = mEdges[aK].n2();
 		
@@ -411,7 +405,7 @@ void cMesh::setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, vec
 
 	cEdge elEdge;
 
-	//creation des aretes et stockage de leur energie
+	//creation des aretes et calcul de leur energie
 	for (unsigned int aK=0; aK < mEdges.size(); aK++)
 	{
 		elEdge = mEdges[aK];
@@ -424,33 +418,64 @@ void cMesh::setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, vec
 		
 		if ( (it1 != aTriInGraph.end()) && (it2 != aTriInGraph.end()) )
 		{
-			pos1 = (int) (it1 - aTriInGraph.begin());
-			pos2 = (int) (it2 - aTriInGraph.begin());
+			//pos1 = (int) (it1 - aTriInGraph.begin());
+			//pos2 = (int) (it2 - aTriInGraph.begin());
+
+			pos1 = (int) distance(aTriInGraph.begin(), it1);
+			pos2 = (int) distance(aTriInGraph.begin(), it2);
+			
+			//energies de l'arete triangle-source et de l'arete triangle-puit
+			cTriangle *Tri1 = getTriangle(id1);
+			cTriangle *Tri2 = getTriangle(id2);
+
+			E1 = Tri1->computeEnergy(img_idx);
+			E2 = Tri2->computeEnergy(img_idx);
+
+			//if (E1 == 0.f) 
+			//	aGraph.add_tweights( pos1, 0.f, 1.f );
+			//else
+			//{
+				aGraph.add_tweights( pos1, mLambda*E1, 0.f );
+			//}
+
+			//if (E2 == 0.f) 
+			//	aGraph.add_tweights( pos2, 0.f, 1.f );
+			//else
+			//{
+				aGraph.add_tweights( pos2, mLambda*E2, 0.f );
+			//}
+
+			//energie de l'arete inter-triangles
+			
 		
 			//longueur^2 de l'arete coupee par elEdge
-			E = square_euclid( getVertex( elEdge.v1() ), getVertex( elEdge.v2() ) );
+			E0 = square_euclid( getVertex( elEdge.v1() ), getVertex( elEdge.v2() ) );
 
-			aGraph.add_edge(pos1, pos2, E, E);		
+			aGraph.add_edge(pos1, pos2, E0, E0);		
 			//aGraph.add_edge(pos1, pos2, 1, 1);		
 		}
 	}
 
+#ifdef oldoldold
 	for (unsigned int aK=0; aK < aTriInGraph.size(); aK++)
 	{
 		cTriangle *Tri = getTriangle(aTriInGraph[aK]);
 
 		E = Tri->computeEnergy(img_idx);
 		if (E == 0.f) 
-			aGraph.add_tweights( aK, 0.f, 1.f );
+			aGraph.add_tweights( aK, 1.f, 0.f );
 		else
 		{
-			aGraph.add_tweights( aK, mLambda*E, mLambda*(PI- E) );
+			aGraph.add_tweights( aK, mLambda*E, 0.f );
+			//aGraph.add_tweights( aK, 1.f, 0.f );
 			/*if (Tri->isInside())
 				aGraph.add_tweights( aK, 0.f, 1.f );
 			else
 				aGraph.add_tweights( aK, 1.f, 0.f );*/
 		}
 	}
+#endif
+
 }
 
 //--------------------------------------------------------------------------------------------------------------
