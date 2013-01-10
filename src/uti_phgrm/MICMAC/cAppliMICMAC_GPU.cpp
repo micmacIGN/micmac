@@ -800,6 +800,7 @@ namespace NS_ParamMICMAC
 		}
 	}
 
+#ifdef  CUDA_ENABLED
 	void cAppliMICMAC::Tabul_Projection( float* TabProj, int Z, int2 Ter0, int2 Ter1, uint sample)
 	{
 		// debug
@@ -911,6 +912,8 @@ namespace NS_ParamMICMAC
 			
 		*/
 	}
+
+#endif
 
 	void cAppliMICMAC::DoGPU_Correl_Basik
 		(
