@@ -213,7 +213,7 @@ __device__  inline float2 simpleProjection( uint2 size, uint2 ssize, uint2 sizeI
 
 //#define OUTPUTCOR
 
-__global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, float *siCor ) //__global__ void correlationKernel( int *dev_NbImgOk, float* cachVig)
+__global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, float *siCor, uint2 nbActThrd ) //__global__ void correlationKernel( int *dev_NbImgOk, float* cachVig)
 {
 	__shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
 	const int outMask	= -1;
@@ -223,12 +223,13 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, float *si
 #endif
 
 	// Se placer dans l'espace terrain
-	const int2	coorTer = make_int2(blockIdx.x * (blockDim.x - 2 * ((int)cRVig.x)) + threadIdx.x - ((int)cRVig.x ),   blockIdx.y * (blockDim.y - 2 * ((int)cRVig.y)) + threadIdx.y - ((int)cRVig.y)  );
-	const int	iTer	= coorTer.y * cRDiTer.x + coorTer.x;
+	const int2	coorTer = make_int2((int)(blockIdx.x * nbActThrd.x )+ (int)threadIdx.x - ((int)cRVig.x),  (int)(blockIdx.y * nbActThrd.y) + (int)threadIdx.y - ((int)cRVig.y));
 	
 	// Si le processus est hors du terrain, nous sortons du kernel
 	if ( coorTer.x >= cDimTer.x || coorTer.y >= cDimTer.y || coorTer.x < 0 || coorTer.y < 0) 
 		return;
+
+	const int	iTer	= coorTer.y * cRDiTer.x + coorTer.x;
 
 	//const float2 PtTProj = simpleProjection( cDimTer, cSDimTer, cDimImg, coorTer, blockIdx.z);
 	const float2 PtTProj = tex2DLayered(TexLay_Proj, ((float)coorTer.x / cDimTer.x * cSDimTer.x + 0.5f) /(float)cSDimTer.x, ((float)coorTer.y/ cDimTer.y * cSDimTer.y + 0.5f) /(float)cSDimTer.y ,blockIdx.z) ;
@@ -245,9 +246,9 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, float *si
 		cacheImg[threadIdx.y][threadIdx.x]  = cBadVignet;		
 		cachVig[iC]		= cBadVignet; // ## - ##
 
-#ifdef	OUTPUTCOR 
-			if (blockIdx.z	== iDI) siCor[iTer] = 2*cBadVignet; 
-#endif
+			#ifdef	OUTPUTCOR 
+				if (blockIdx.z	== iDI) siCor[iTer] = 2*cBadVignet; 
+			#endif
 		return;
 	}
 	else
@@ -263,9 +264,9 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, float *si
 
 	if ( c1.x >= blockDim.x || c1.y >= blockDim.y || c0.x < 0 || c0.y < 0 )
 	{
-#ifdef	OUTPUTCOR 
+			#ifdef	OUTPUTCOR 
 			if (blockIdx.z == iDI) siCor[iTer] = 3*cBadVignet; // ## z ##
-#endif
+			#endif
 		return;
 	}
 
@@ -281,9 +282,10 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, float *si
 			{
 				cachVig[iC] = cBadVignet; 
 				
-#ifdef	OUTPUTCOR 
+				#ifdef	OUTPUTCOR 
 				if (blockIdx.z == iDI) siCor[iTer] = 5*cBadVignet; // ## z ##
-#endif
+				#endif
+
 				return;
 			}
 			aSV  += val;		// Somme des valeurs de l'image cte 
@@ -300,7 +302,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, float *si
 		cachVig[iC] = cBadVignet;
 		#ifdef	OUTPUTCOR 
 			if (blockIdx.z == iDI) siCor[iTer] = 6*cBadVignet; // ## e ##
-#endif
+		#endif
 		return;
 	}
 
@@ -319,9 +321,10 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, float *si
 			if (cacheImg[y][x]  ==  cBadVignet) // A priori Inutile
 			{
 				cachVig[iC] = cBadVignet;
-#ifdef	OUTPUTCOR 
+
+				#ifdef	OUTPUTCOR 
 				if (blockIdx.z == iDI) siCor[iTer] = 7*cBadVignet; // ## c ##
-#endif
+				#endif
 				
 				return;
 			}			
@@ -333,7 +336,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, float *si
 		}
 	}
 
-#ifdef	OUTPUTCOR
+	#ifdef	OUTPUTCOR
 	{
 		const uint _cx	= cRVig.x + coorTer.x * cDimVig.x ;
 		const uint _cy	= cRVig.y + coorTer.y * cDimVig.y;
@@ -341,7 +344,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, float *si
 
 		siCor[iTer] = (cachVig[_iC] == 0.0f) ? 9*cBadVignet : cachVig[_iC]; // ## ¤ ##
 	}
-#endif
+	#endif
 
 	// Nombre d'images correctes
 	atomicAdd( &dev_NbImgOk[iTer], 1.0f);
@@ -350,7 +353,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, float *si
 // ---------------------------------------------------------------------------
 // Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens
 // ---------------------------------------------------------------------------
-__global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * dev_NbImgOk, uint2 actThr)
+__global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * dev_NbImgOk, uint2 nbActThr)
 {
 
 	__shared__ float aSV [ SBLOCKDIM ][ SBLOCKDIM ];
@@ -370,11 +373,11 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	__syncthreads();
 
 	// si le thread est inactif, il sort
-	if ( t.x >=  actThr.x || t.y >=  actThr.y )
-		return;
+ 	if ( t.x >=  nbActThr.x || t.y >=  nbActThr.y )
+ 		return;
 
 	// Coordonnées 2D du cache vignette
-	const uint2 cCach = make_uint2(blockIdx.x * actThr.x  + t.x, blockIdx.y * actThr.y  + t.y);
+	const uint2 cCach = make_uint2(blockIdx.x * nbActThr.x  + t.x, blockIdx.y * nbActThr.y  + t.y);
 	
 	// Si le thread est en dehors du cache
 	if ( cCach.x >= cDimCach.x || cCach.y >= cDimCach.y )
@@ -395,17 +398,11 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	// Coordonnées 1D dans le terrain
 	const uint iTer		= coorTer.y * cRDiTer.x  + coorTer.x;
 
-	if (cacheVign[iCC] == cBadVignet)
-	{
-		dTCost[iTer] = -1000.0f;
-		return;
-	}
-	
 	const bool mainThread	= mdlo(t.x,cDimVig.x) == 0 && mdlo(t.y,cDimVig.y) == 0 && threadIdx.z == 0;
+	//const bool mainThread	= (t.x % cDimVig.x) == 0 && ( t.y % cDimVig.y) == 0 && threadIdx.z == 0;
+	float aNbImOk		= dev_NbImgOk[iTer];
 
-	const uint aNbImOk		= dev_NbImgOk[iTer];
-
-	if ( aNbImOk < 2)
+	if ((cacheVign[iCC] == cBadVignet) || (aNbImOk < 2))
 	{
 		if (mainThread)
 			dTCost[iTer] = -1000.0f;
@@ -413,13 +410,9 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	}
 
 	// Coordonnées 2D du terrain dans le repere des threads
-	const uint2 coorTTer	= t / cDimVig;
+	const uint2 coorTTer = t / cDimVig;
 
-	if (mainThread)
-		dTCost[iTer] = aNbImOk;
-	return;
-
-	const float val	= cacheVign[iCach];
+	float val	= cacheVign[iCach];
 
 	__syncthreads();
 
@@ -429,13 +422,13 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	atomicAdd( &aSVV[t.y][t.x], val * val);
 	__syncthreads();
 
-	atomicAdd(&resu[coorTTer.y][coorTTer.x],aSVV[t.y][t.x] - ( aSV[t.y][t.x] * aSV[t.y][t.x] / aNbImOk)); 
+	atomicAdd(&resu[coorTTer.y][coorTTer.x], aSVV[t.y][t.x] - ((aSV[t.y][t.x] * aSV[t.y][t.x]) / aNbImOk)); 
 	__syncthreads();
 
 	if ( !mainThread ) return;
 
 	// Normalisation pour le ramener a un equivalent de 1-Correl 
-	const float cost = resu[coorTTer.y][coorTTer.x] / (( aNbImOk-1) * cSizeVig);
+	const float cost = resu[coorTTer.y][coorTTer.x] / (( aNbImOk-1.0f) * ((float)cSizeVig));
 
 	dTCost[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
 
@@ -474,16 +467,19 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer ){
 	//////////////////////////////////////////////////////////////////////////
 
 	dim3 threads( BLOCKDIM, BLOCKDIM, 1);
-	dim3 blocks(iDivUp(h.dimTer.x,threads.x - 2 *((int)h.dimVig.x)) , iDivUp(h.dimTer.y,threads.y - 2 * ((int)h.dimVig.y)), nbLayer);
+	uint2 actiThsCo = make_uint2(threads.x - 2 *((int)(h.dimVig.x)), threads.y - 2 * ((int)(h.dimVig.y)));
+	dim3 blocks(iDivUp(h.dimTer.x,actiThsCo.x) , iDivUp(h.dimTer.y, actiThsCo.y), nbLayer);
+	
 	uint2 actiThs = make_uint2(SBLOCKDIM - SBLOCKDIM % ((int)h.dimVig.x), SBLOCKDIM - SBLOCKDIM % ((int)h.dimVig.y));
-
 	dim3 threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
 	dim3 blocks_mC(iDivUp(h.dimCach.x, actiThs.x) , iDivUp(h.dimCach.y, actiThs.y));
 
 	////////////////////--  KERNEL  Correlation  --//////////////////////////
 	
-	correlationKernel<<<blocks, threads>>>( dev_NbImgOk, dev_Cache , dev_SimpCor);
+	cudaDeviceSynchronize();
+	correlationKernel<<<blocks, threads>>>( dev_NbImgOk, dev_Cache , dev_SimpCor, actiThsCo);
 	getLastCudaError("Basic Correlation kernel failed");
+	cudaDeviceSynchronize();
 	
 	//////////////////--  KERNEL  Multi Correlation  --///////////////////////
 
@@ -493,16 +489,15 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer ){
 	//////////////////////////////////////////////////////////////////////////
 
 	checkCudaErrors( cudaUnbindTexture(TexLay_Proj) );
-	
 	checkCudaErrors( cudaMemcpy( h_TabCost, dev_Cost, costMemSize, cudaMemcpyDeviceToHost) );
+	cudaDeviceSynchronize();
 	//checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );
-
 	//checkCudaErrors( cudaMemcpy( host_SimpCor,	dev_SimpCor, sCorMemSize, cudaMemcpyDeviceToHost) );
 	//checkCudaErrors( cudaMemcpy( host_Cache,	dev_Cache,	  cac_MemSize, cudaMemcpyDeviceToHost) );
-	
+
 	//////////////////////////////////////////////////////////////////////////
 
-	if(0)
+	//if(0)
 	{
 		//////////////////////////////////////////////////////////////////////////
 		if (0)
@@ -511,28 +506,39 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer ){
 			int idii = 1;
 			for (uint j = 0 ; j < h.dimCach.y ; j++)
 			{
-				for (uint i = 0; i < h.dimCach.x / 3 ; i++)
+				for (uint i = 0; i < h.dimCach.x / 5 ; i++)
 				{
-					float off	= 1.0f;
+					float off	= 10.0f;
 					int id		= (idii * h.sizeCach + j * h.dimCach.x + i );
 					float outC	= host_Cache[id];
+					outC = floor(outC*off)/off;
+
 					int bad = -4;
+
 					if (outC == bad)
-						std::cout << " *  ";
+						std::cout << " *   ";
 					else if (outC == 2*bad)
-						std::cout << " -  ";
+						std::cout << " -   ";
 					else if (outC == 3*bad)
-						std::cout << " +  ";
+						std::cout << " +   ";
 					else if (outC == 4*bad)
-						std::cout << " O  ";
-					else if (outC < 0 )
-						std::cout << floor(outC*off)/off<< "  ";
+						std::cout << " p   ";
+					else if (outC == 0 )
+						std::cout << " 0   ";
+					else if (outC == -1 )
+						std::cout << "-1   ";
+					else if (outC == 1 )
+						std::cout << " 1   ";
+					else if (outC == -2 )
+						std::cout << "-2   ";
+					else if (outC == 2 )
+						std::cout << " 2   ";
 					else if (outC >= 1e5 )
-						std::cout << " !  ";
-					else if (outC >= 10 )
-						std::cout << " " << floor(outC*off)/off<< " ";
+						std::cout << " !   ";
+					else if (outC < 0 )
+						std::cout << outC << " ";
 					else
-						std::cout << " " << floor(outC*off)/off<< "  ";
+						std::cout << " " << outC << " ";
 
 				}
 				std::cout << "\n";	
@@ -584,27 +590,31 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer ){
 
 			delete[] image;
 		}
-
+		*/
 
 		//////////////////////////////////////////////////////////////////////////
 
-		/*for (uint j = 0 ; j < h.dimTer.y; j+= h.sampTer)
+		if(0)
 		{
-			for (uint i = 0; i < h.dimTer.x ; i+= h.sampTer)
-			{
-				float off = 10.0f;
-				int id = (j * h.dimTer.x + i );
-				float out = host_SimpCor[id];
-				std::cout << host_SimpCor[id] << " ";
-			}
-			std::cout << "\n";	
-		}
 
-		std::cout << "------------------------------------------\n";
-*/
+			for (uint j = 0 ; j < h.dimTer.y; j+= h.sampTer)
+			{
+				for (uint i = 0; i < h.dimTer.x ; i+= h.sampTer)
+				{
+					float off = 10.0f;
+					int id = (j * h.dimTer.x + i );
+					float out = host_SimpCor[id];
+					std::cout << floor(out*off)/off << " ";
+				}
+				std::cout << "\n";	
+			}
+			std::cout << "------------------------------------------\n";
+		}
+		
+
 		//////////////////////////////////////////////////////////////////////////
 
-		//if (0)
+		if (0)
 		{
 			for (uint j = 0 ; j < h.rDiTer.y; j++)
 			{
@@ -651,13 +661,17 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer ){
 
 		if (0)
 		{
-
 			int bad = -4;
+// 			for (uint j = h.rVig.y ; j < h.rDiTer.y; j+= h.sampTer)
+// 			{
+// 				for (uint i = h.rVig.x; i < h.rDiTer.x ; i+= h.sampTer)
+// 				{
 			for (uint j = 0 ; j < h.rDiTer.y; j+= h.sampTer)
 			{
 				for (uint i = 0; i < h.rDiTer.x ; i+= h.sampTer)
 				{
-					//float off = 10000000.0f;
+
+					float off = 10.0f;
 					int id = (j * h.rDiTer.x + i );
 
 					float out = h_TabCost[id];
@@ -693,41 +707,14 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer ){
 						//std::cout << " "  <<  floor(out*off)/off  << " ";
 						std::cout << "|/|";
 					else
-						//std::cout << floor(out*off)/off  << " ";
-						std::cout << " * ";
+						std::cout << floor(out*off)/off  << " ";
+						//std::cout << " * ";
 				}
-
 				std::cout << "\n";	
 			}
-
 			std::cout << "------------------------------------------\n";
-		}
-		
+		}	
 	}
-
-	/*if(0)
-	{
-
-		float minCache =  1e10;
-		float maxCache = -1e10;
-		int step = 3;
-		for (uint j = 0; j < h.dimTer.y * h.dimVig.y ; j+=step)
-		{
-			for (uint i = 0; i < h.dimTer.x * h.dimVig.x ; i+=step)
-			{
-				int id = (j * h.dimTer.x * h.dimVig.x + i );
-				float c = host_Cache[id];
-
-				if ( c < minCache || c > maxCache )
-				{
-					minCache = min( minCache, c);
-					maxCache = max( maxCache, c);
-					if(c!=0.0f)
-					std::cout << minCache << " / " << maxCache << std::endl;
-				}
-			}
-		}
-	}*/
 }
 
 extern "C" void freeGpuMemory()
@@ -737,7 +724,6 @@ extern "C" void freeGpuMemory()
 	checkCudaErrors( cudaFreeArray(dev_Img) );	
 	checkCudaErrors( cudaFreeArray(dev_CubeProjImg) );
 	checkCudaErrors( cudaFreeArray(dev_ArrayProjImg) );
-
 
 	if(dev_ImgLd	!= NULL) checkCudaErrors( cudaFreeArray( dev_ImgLd) );
 	if(dev_ProjLr	!= NULL) checkCudaErrors( cudaFreeArray( dev_ProjLr) );
