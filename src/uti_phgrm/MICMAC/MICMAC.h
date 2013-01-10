@@ -2707,7 +2707,10 @@ class cAppliMICMAC  : public   cParamMICMAC,
         void DoOneCorrelMaxIm1Maitre(int anX,int anY);
 
 		void DoGPU_Correl_Basik (const Box2di & aBoxInterne); 
+
+#ifdef  CUDA_ENABLED
 		void Tabul_Projection( float* TabProj, int Z, int2 Ter0, int2 Ter1, uint sample);
+#endif
 		void Correl_MNE_ZPredic (const Box2di & aBoxInterne,const cCorrel_Correl_MNE_ZPredic &);  
 		void DoCorrelPonctuelle2ImGeomI(const Box2di&aBoxInterne,const cCorrel_Ponctuel2ImGeomI&);  
         void DoCorrelCroisee2ImGeomI(const Box2di & aBox,const cCorrel_PonctuelleCroisee&aCPC);
