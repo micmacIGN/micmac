@@ -154,29 +154,31 @@ const std::vector<cMMCom> & getAvailableCommands()
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
-       aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualisation of camera in ply file"));
+       aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualisation of camera in ply file",cArgLockCom(2)));
        aRes.push_back(cMMCom("Apero",Apero_main," Compute external and internal orientations"));
        aRes.push_back(cMMCom("AperoChImSecMM",AperoChImMM_main,"Select secondary images for MicMac "));
        aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene"));
        aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
-       aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero , for compensation of heterogenous measures",cArgLockCom(3)));
-       aRes.push_back(cMMCom("ChgSysCo",ChgSysCo_main," Chang coordinate system of orientation",cArgLockCom(3)));
+       aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero , for compensation of heterogenous measures",cArgLockCom(2)));
+       aRes.push_back(cMMCom("ChgSysCo",ChgSysCo_main," Chang coordinate system of orientation",cArgLockCom(2)));
        aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Do some stuff"));
        aRes.push_back(cMMCom("cod",cod_main," Do some stuff"));
        aRes.push_back(cMMCom("CreateEpip",CreateEpip_main," Tool create epipolar images"));
        aRes.push_back(cMMCom("Dequant",Dequant_main," Tool for dequantifying an image"));
        aRes.push_back(cMMCom("Devlop",Devlop_main," Do some stuff"));
        aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
-       aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Use ground control points (GCP) to make a global transformation from a general orientation to an orientation in the system of the GCP"));
+       aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Realtive to absolute using  GCP",cArgLockCom(2)));
 
+       aRes.push_back(cMMCom("CenterBascule",CentreBascule_main," Realtive to absolute using  embedded GPS",cArgLockCom(2)));
 
-       aRes.push_back(cMMCom("GCPConvert",GCP_Txt2Xml_main," Use ground control points (GCP) to make a global transformation from a general orientation to an orientation in the system of the GCP"));
+       aRes.push_back(cMMCom("GCPConvert",GCP_Txt2Xml_main," Convert GCP from Txt 2 XML",cArgLockCom(3)));
+       aRes.push_back(cMMCom("OriConvert",Ori_Txt2Xml_main," Convert Orientation from Txt 2 XML",cArgLockCom(3)));
 
        aRes.push_back(cMMCom("GenXML2Cpp",GenXML2Cpp_main," Do some stuff"));
        aRes.push_back(cMMCom("GrShade",GrShade_main," Compute shading from depth image"));
        aRes.push_back(cMMCom("Gri2Bin",Gri2Bin_main," Do some stuff"));
        aRes.push_back(cMMCom("MakeGrid",MakeGrid_main," Generate orientations in a grid format"));
-       aRes.push_back(cMMCom("Malt",Malt_main," Simplified matching (interface to MicMac)",cArgLockCom(2)));
+       aRes.push_back(cMMCom("Malt",Malt_main," Simplified matching (interface to MicMac)",cArgLockCom(3)));
        aRes.push_back(cMMCom("MapCmd",MapCmd_main," Transforms a command working on a single file in a command working on a set of files"));
 	   aRes.push_back(cMMCom("Mascarpone",Mascarpone_main," Automatic mask tests"));
 	   aRes.push_back(cMMCom("MergePly",MergePly_main," Merge ply files"));

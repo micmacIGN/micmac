@@ -114,6 +114,7 @@ std::string MMBinFile(const std::string &);
 std::string MM3dBinFile(const std::string &);
 //   MMDir() + std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Cloud.xml ")
 std::string XML_MM_File(const std::string &);
+std::string Basic_XML_MM_File(const std::string &);
 
 
 

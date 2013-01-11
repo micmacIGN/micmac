@@ -2930,6 +2930,33 @@ class cCpleEpip
 CamStenope * CamCompatible_doublegrid(const std::string & aNameFile);
 
 
+
+class cTxtCam
+{
+    public :
+
+       cTxtCam();
+
+       std::string          mNameIm;
+       std::string          mNameOri;
+       CamStenope *         mCam;
+       cOrientationConique  * mOC;
+       double               mPrio;
+       bool                 mSelC;
+       Pt3dr                mC;  // Center
+       Pt3dr                mV;  // Vitesse
+};
+typedef cTxtCam * cTxtCamPtr;
+
+class cCmpPtrCam
+{
+    public :
+       bool operator() (const cTxtCamPtr & aC1  ,const cTxtCamPtr & aC2);
+};
+
+
+
+
 #endif // !  _ELISE_GENERAL_PHOTOGRAM_H
 
 

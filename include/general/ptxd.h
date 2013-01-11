@@ -1099,6 +1099,8 @@ class cMetaDataPhoto
         void SetCam(const std::string &);
         double FocMm(bool Svp=false) const;
         double Foc35(bool Svp=false) const;
+        double  FocPix() const;
+
         double ExpTime(bool Svp=false) const;
         double Diaph(bool Svp=false) const;
         double IsoSpeed(bool Svp=false) const;

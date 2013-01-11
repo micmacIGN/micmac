@@ -366,6 +366,22 @@
         <Key>   NKS-Assoc-ChangPrefixAndExt </Key>
     </KeyedNamesAssociations>
 
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  #1$1.#2  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> #1(.*)#2 </PatternTransform>
+                <CalcName>  $1  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   NKS-Assoc-AddPrePost </Key>
+    </KeyedNamesAssociations>
+
 
     <!-- Pour les image de pyramide MicMac -->
 
