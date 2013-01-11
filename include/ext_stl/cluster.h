@@ -56,6 +56,10 @@ template  <class Type,class  TAttrLnk> class cCmpMNode;
 template <class Type,class TAttrLnk,class TParam> class cAlgoMergingRec;
 
 
+class cNoAttr
+{
+};
+
 
 template <class Type,class TAttrLnk> class cMergingNode
 {

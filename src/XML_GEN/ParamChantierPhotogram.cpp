@@ -89,6 +89,43 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeFichierApp & anOb
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+eTypeFichierOriTxt  Str2eTypeFichierOriTxt(const std::string & aName)
+{
+   if (aName=="eOriTxtAgiSoft")
+      return eOriTxtAgiSoft;
+   else if (aName=="eOriTxtInFile")
+      return eOriTxtInFile;
+   else if (aName=="eNbTypeOriTxt")
+      return eNbTypeOriTxt;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeFichierOriTxt\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeFichierOriTxt) 0;
+}
+void xml_init(eTypeFichierOriTxt & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeFichierOriTxt(aTree->Contenu());
+}
+std::string  eToString(const eTypeFichierOriTxt & anObj)
+{
+   if (anObj==eOriTxtAgiSoft)
+      return  "eOriTxtAgiSoft";
+   if (anObj==eOriTxtInFile)
+      return  "eOriTxtInFile";
+   if (anObj==eNbTypeOriTxt)
+      return  "eNbTypeOriTxt";
+ std::cout << "Enum = eTypeFichierOriTxt\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeFichierOriTxt & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 eTypeNumerique  Str2eTypeNumerique(const std::string & aName)
 {
    if (aName=="eTN_u_int1")

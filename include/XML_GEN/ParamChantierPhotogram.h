@@ -35,6 +35,19 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeFichierApp & anOb
 
 typedef enum
 {
+  eOriTxtAgiSoft,
+  eOriTxtInFile,
+  eNbTypeOriTxt
+} eTypeFichierOriTxt;
+void xml_init(eTypeFichierOriTxt & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeFichierOriTxt & aVal);
+
+eTypeFichierOriTxt  Str2eTypeFichierOriTxt(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeFichierOriTxt & anObj);
+
+typedef enum
+{
   eTN_u_int1,
   eTN_int1,
   eTN_u_int2,

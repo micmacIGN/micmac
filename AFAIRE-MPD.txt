@@ -10,10 +10,6 @@ Ajouter Test sur fichiers Raw.
 
 =============================
 
-BUUUUUUUG  :
-
-Dans SaisiePts pts tres en dehors de l'image la distorsion le remet par hasrd
-en dedans, genere PB dans SAISIE PTS.
 
 
 Documenter :
@@ -30,6 +26,13 @@ mm3d-LockFile.txt
 
 
 Voir pour les sift comme masques
+
+Systeme carto Mini Cuxh
+Bascule Center
+conversio ori
+conversion app
+
+TestKey
 
 =============================
 
