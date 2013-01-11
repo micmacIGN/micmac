@@ -30,6 +30,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_CmpCalib.cpp
     ${UTI_PHGRM_DIR}/CPP_Gri2Bin.cpp
     ${UTI_PHGRM_DIR}/CPP_GCPBascule.cpp
+    ${UTI_PHGRM_DIR}/CPP_CenterBascule.cpp
     ${UTI_PHGRM_DIR}/CPP_MakeGrid.cpp
     ${UTI_PHGRM_DIR}/CPP_Malt.cpp
     ${UTI_PHGRM_DIR}/CPP_Mascarpone.cpp

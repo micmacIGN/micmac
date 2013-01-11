@@ -796,7 +796,8 @@ cCalibrationInternConique   CalibInternAutom
        ELISE_ASSERT(false,"Cannot get foc equiv 35 mm");
    }
     
-   double aF = aF35 * euclid(aSzIm) / euclid(aPRefFullFrame);
+   // double aF = aF35 * euclid(aSzIm) / euclid(aPRefFullFrame);
+   double aF = aMDP.FocPix();
 
    aRes.PP() = aMil;
    aRes.F() = aF;

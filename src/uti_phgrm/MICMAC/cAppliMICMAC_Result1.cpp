@@ -459,7 +459,7 @@ Fonc_Num cAppliMICMAC::FoncMasqOfResol(int aDz)
 
 void cAppliMICMAC::MakeDefImMasq()
 {
-    if (MasqueAutoByTieP().IsInit())
+    if (Planimetrie().IsInit() && MasqueAutoByTieP().IsInit())
     {
        DoMasqueAutoByTieP();
     }

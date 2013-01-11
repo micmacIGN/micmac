@@ -35,6 +35,13 @@ namespace NS_ParamChantierPhotogram{
        <eNbTypeApp>       </eNbTypeApp>
    </enum>
 
+   <enum Name="eTypeFichierOriTxt">
+       <eOriTxtAgiSoft>   </eOriTxtAgiSoft>
+       <eOriTxtInFile>       </eOriTxtInFile>
+       <eNbTypeOriTxt>    </eNbTypeOriTxt>
+   </enum>
+
+
 
    <enum Name="eTypeNumerique">
        <eTN_u_int1>   </eTN_u_int1>

@@ -446,6 +446,7 @@ int CmpCalib_main(int argc,char ** argv);
 int Campari_main(int argc,char ** argv);
 int ChgSysCo_main(int argc,char ** argv);
 int GCPBascule_main(int argc,char ** argv);
+int CentreBascule_main(int argc,char ** argv);
 int MakeGrid_main(int argc,char ** argv);
 int Malt_main(int argc,char ** argv);
 int Mascarpone_main(int argc,char ** argv);
@@ -473,6 +474,7 @@ int MMInitialModel_main(int argc,char ** argv);
 int CheckDependencies_main(int argc,char ** argv);
 int NuageBascule_main(int argc,char ** argv);
 int  cod_main(int argc,char ** argv);
+int Ori_Txt2Xml_main(int argc,char ** argv);
 int GCP_Txt2Xml_main(int argc,char ** argv);
 
 
