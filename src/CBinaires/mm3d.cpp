@@ -52,32 +52,32 @@ std::string StrToLower(const std::string & aStr)
    return aRes;
 }
 
-class cArgLockCom
+class cArgLogCom
 {
     public :
 
-        cArgLockCom(int aNumArg) :
+        cArgLogCom(int aNumArg) :
             mNumArgDir ( aNumArg)
         {
         }
 
         int mNumArgDir ;
 
-        static const cArgLockCom NoLock;
+        static const cArgLogCom NoLog;
 };
 
-const cArgLockCom  cArgLockCom::NoLock(-1);
+const cArgLogCom  cArgLogCom::NoLog(-1);
 
 
 
-FILE * FileLockMM3d(const std::string & aDir)
+FILE * FileLogMM3d(const std::string & aDir)
 {
-    return  FopenNN(aDir+"mm3d-LockFile.txt","a+","Lock File");
+    return  FopenNN(aDir+"mm3d-LogFile.txt","a+","Log File");
 }
 
 #include <ctime>
 
-void LockTime(FILE * aFp,const std::string & aMes)
+void LogTime(FILE * aFp,const std::string & aMes)
 {
 
   time_t rawtime;
@@ -89,28 +89,28 @@ void LockTime(FILE * aFp,const std::string & aMes)
   fprintf(aFp,"   %s %s",aMes.c_str(),asctime (timeinfo));
 }
 
-void LockIn(int  argc,char **  argv,const std::string & aDir)
+void LogIn(int  argc,char **  argv,const std::string & aDir)
 {
-   FILE * aFp = FileLockMM3d(aDir);
+   FILE * aFp = FileLogMM3d(aDir);
 
    fprintf(aFp,"=================================================================\n");
    for (int aK=0 ; aK< argc ; aK++)
        fprintf(aFp,"%s ",argv[aK]);
    fprintf(aFp,"\n");
-   LockTime(aFp,"[Beginning at ]");
+   LogTime(aFp,"[Beginning at ]");
 
    fclose(aFp);
 }
 
-void LockOut(int aRes,const std::string & aDir)
+void LogOut(int aRes,const std::string & aDir)
 {
-   FILE * aFp = FileLockMM3d(aDir);
+   FILE * aFp = FileLogMM3d(aDir);
    std::string aMes;
    if (aRes==0)
       aMes = "[Ending correctly at]";
    else 
       aMes =  std::string("[Failing with code ") + ToString(aRes) +   " at ]" ;
-   LockTime(aFp,aMes);
+   LogTime(aFp,aMes);
    fclose(aFp);
 }
 
@@ -126,13 +126,13 @@ class cMMCom
              const std::string & aName,
              tCommande  aCommand,
              const std::string & aComment,
-             const cArgLockCom& aLock=cArgLockCom::NoLock
+             const cArgLogCom& aLog=cArgLogCom::NoLog
       ) :
           mName     (aName),
           mLowName  (StrToLower(aName)),
           mCommand  (aCommand),
           mComment  (aComment),
-          mLock     (aLock)
+          mLog     (aLog)
       {
       }
 
@@ -142,7 +142,7 @@ class cMMCom
       std::string  mLowName;
       tCommande    mCommand;
       std::string  mComment;
-      cArgLockCom  mLock;
+      cArgLogCom  mLog;
 };
 
 
@@ -154,31 +154,31 @@ const std::vector<cMMCom> & getAvailableCommands()
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
-       aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualisation of camera in ply file",cArgLockCom(2)));
+       aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualisation of camera in ply file",cArgLogCom(2)));
        aRes.push_back(cMMCom("Apero",Apero_main," Compute external and internal orientations"));
        aRes.push_back(cMMCom("AperoChImSecMM",AperoChImMM_main,"Select secondary images for MicMac "));
        aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene"));
        aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
-       aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero , for compensation of heterogenous measures",cArgLockCom(2)));
-       aRes.push_back(cMMCom("ChgSysCo",ChgSysCo_main," Chang coordinate system of orientation",cArgLockCom(2)));
+       aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero , for compensation of heterogenous measures",cArgLogCom(2)));
+       aRes.push_back(cMMCom("ChgSysCo",ChgSysCo_main," Chang coordinate system of orientation",cArgLogCom(2)));
        aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Do some stuff"));
        aRes.push_back(cMMCom("cod",cod_main," Do some stuff"));
        aRes.push_back(cMMCom("CreateEpip",CreateEpip_main," Tool create epipolar images"));
        aRes.push_back(cMMCom("Dequant",Dequant_main," Tool for dequantifying an image"));
        aRes.push_back(cMMCom("Devlop",Devlop_main," Do some stuff"));
        aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
-       aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Realtive to absolute using  GCP",cArgLockCom(2)));
+       aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Realtive to absolute using  GCP",cArgLogCom(2)));
 
-       aRes.push_back(cMMCom("CenterBascule",CentreBascule_main," Realtive to absolute using  embedded GPS",cArgLockCom(2)));
+       aRes.push_back(cMMCom("CenterBascule",CentreBascule_main," Realtive to absolute using  embedded GPS",cArgLogCom(2)));
 
-       aRes.push_back(cMMCom("GCPConvert",GCP_Txt2Xml_main," Convert GCP from Txt 2 XML",cArgLockCom(3)));
-       aRes.push_back(cMMCom("OriConvert",Ori_Txt2Xml_main," Convert Orientation from Txt 2 XML",cArgLockCom(3)));
+       aRes.push_back(cMMCom("GCPConvert",GCP_Txt2Xml_main," Convert GCP from Txt 2 XML",cArgLogCom(3)));
+       aRes.push_back(cMMCom("OriConvert",Ori_Txt2Xml_main," Convert Orientation from Txt 2 XML",cArgLogCom(3)));
 
        aRes.push_back(cMMCom("GenXML2Cpp",GenXML2Cpp_main," Do some stuff"));
        aRes.push_back(cMMCom("GrShade",GrShade_main," Compute shading from depth image"));
        aRes.push_back(cMMCom("Gri2Bin",Gri2Bin_main," Do some stuff"));
        aRes.push_back(cMMCom("MakeGrid",MakeGrid_main," Generate orientations in a grid format"));
-       aRes.push_back(cMMCom("Malt",Malt_main," Simplified matching (interface to MicMac)",cArgLockCom(3)));
+       aRes.push_back(cMMCom("Malt",Malt_main," Simplified matching (interface to MicMac)",cArgLogCom(3)));
        aRes.push_back(cMMCom("MapCmd",MapCmd_main," Transforms a command working on a single file in a command working on a set of files"));
 	   aRes.push_back(cMMCom("Mascarpone",Mascarpone_main," Automatic mask tests"));
 	   aRes.push_back(cMMCom("MergePly",MergePly_main," Merge ply files"));
@@ -205,8 +205,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("SBGlobBascule",SBGlobBascule_main," Tool for 'scene based global' bascule"));
        aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Tool for scaling image"));
        aRes.push_back(cMMCom("ScaleNuage",ScaleNuage_main," Tool for scaling internal representation of point cloud"));
-       aRes.push_back(cMMCom("Tapas",Tapas_main," Interface to Apero to compute external and internal orientations",cArgLockCom(3)));
-       aRes.push_back(cMMCom("Tapioca",Tapioca_main," Interface to Pastis for tie point detection and matching",cArgLockCom(3)));
+       aRes.push_back(cMMCom("Tapas",Tapas_main," Interface to Apero to compute external and internal orientations",cArgLogCom(3)));
+       aRes.push_back(cMMCom("Tapioca",Tapioca_main," Interface to Pastis for tie point detection and matching",cArgLogCom(3)));
        aRes.push_back(cMMCom("Tarama",Tarama_main," Do some stuff"));
        aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image"));
        aRes.push_back(cMMCom("TestCam",TestCam_main," Test camera orientation convention"));
@@ -297,17 +297,17 @@ int main(int argc,char ** argv)
    {
        if (StrToLower(aVComs[aKC].mName)==StrToLower(aCom))
        {
-          cArgLockCom aLock = aVComs[aKC].mLock;
-          bool DoLock = (aLock.mNumArgDir >0) && (aLock.mNumArgDir<argc);
-          if (DoLock)
+          cArgLogCom aLog = aVComs[aKC].mLog;
+          bool DoLog = (aLog.mNumArgDir >0) && (aLog.mNumArgDir<argc);
+          if (DoLog)
           {
-               LockIn(argc,argv,DirOfFile(argv[aLock.mNumArgDir]));
+               LogIn(argc,argv,DirOfFile(argv[aLog.mNumArgDir]));
           }
           int aRes =  (aVComs[aKC].mCommand(argc-1,argv+1));
 
-          if (DoLock)
+          if (DoLog)
           {
-               LockOut(aRes,DirOfFile(argv[aLock.mNumArgDir]));
+               LogOut(aRes,DirOfFile(argv[aLog.mNumArgDir]));
           }
           return aRes;
        }
