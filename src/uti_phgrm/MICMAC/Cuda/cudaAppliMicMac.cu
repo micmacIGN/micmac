@@ -211,13 +211,13 @@ __device__  inline float2 simpleProjection( uint2 size, uint2 ssize, uint2 sizeI
 	return ra;
 }
 
-__global__ void correlationKernel( float *dev_NbImgOk, float* cacheVig, float *siCor, int2 nbActThrd ) //__global__ void correlationKernel( int *dev_NbImgOk, float* cachVig)
+__global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, float *siCor, int2 nbActThrd ) //__global__ void correlationKernel( int *dev_NbImgOk, float* cachVig)
 {
 	__shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
 	//const int iDI		= 0;
 
 	// Coordonnées du terrain global avec bordure
-	_int2(blockIdx.x * nbActThrd.x + threadIdx.x, blockIdx.y * nbActThrd.y + threadIdx.y);
+	int2 ghTer = make_int2(blockIdx.x * nbActThrd.x + threadIdx.x, blockIdx.y * nbActThrd.y + threadIdx.y);
 
 	// Si le processus est hors du terrain, nous sortons du kernel
  	if ( ghTer.x >= cDimTer.x || ghTer.y >= cDimTer.y) 
@@ -228,15 +228,15 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cacheVig, float *s
 	//const float2 PtTProj = simpleProjection( cDimTer, cSDimTer, cDimImg, ghTer, blockIdx.z);
 	
 	int2 ter	= make_int2( ghTer.x - ((int)(cRVig.x)) ,ghTer.y - ((int)(cRVig.y)));
-	int2 cacheVig	= make_int2( ter.x * cDimVig.x +  cRVig.x ,ter.y * cDimVig.y +  cRVig.y );
-	int  iC		= (blockIdx.z * cSizeCach) + cacheVig.y * cDimCach.x + cacheVig.x;
+	int2 caVig	= make_int2( ter.x * cDimVig.x +  cRVig.x ,ter.y * cDimVig.y +  cRVig.y );
+	int  iC		= (blockIdx.z * cSizeCach) + caVig.y * cDimCach.x + caVig.x;
 	
 	if ( PtTProj.x == -1 ||  PtTProj.y == -1 )
 	{
 		return;
 		cacheImg[threadIdx.y][threadIdx.x]  = cBadVignet;
-		if (!(cacheVig.x >= cDimCach.x || cacheVig.y >= cDimCach.y || cacheVig.x <0 || cacheVig.y < 0 ))
-			cacheVig[iC]		= cBadVignet;
+		if (!(caVig.x >= cDimCach.x || caVig.y >= cDimCach.y || caVig.x <0 || caVig.y < 0 ))
+			cachVig[iC]		= cBadVignet;
 		//if (blockIdx.z	== iDI) siCor[iTer] = 2*cBadVignet; 
 		return;
 	}
@@ -262,7 +262,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cacheVig, float *s
 	// Si le parcours de la vignette est hors du terrain, nous sortons!!!
 	if ( (c1.x >= blockDim.x) || (c1.y >= blockDim.y) || (c0.x < 0) || (c0.y < 0) )	//if (blockIdx.z == iDI) siCor[iTer] = 3*cBadVignet; // ## z ##
 	{
-		cacheVig[iC] = cBadVignet;
+		cachVig[iC] = cBadVignet;
 		return;
 	}
 	// Intialisation des valeurs de calcul 
@@ -279,7 +279,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cacheVig, float *s
 
 			if (val ==  cBadVignet)
 			{
-				cacheVig[iC] = cBadVignet; 
+				cachVig[iC] = cBadVignet; 
 				//if (blockIdx.z == iDI) siCor[iTer] = 5*cBadVignet; // ## z ##
 				return;
 			}
@@ -294,7 +294,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cacheVig, float *s
 	
 	if ( aSVV <= cMAhEpsilon) //if (blockIdx.z == iDI) siCor[iTer] = 6*cBadVignet; // ## e ##
 	{
-		cacheVig[iC] = cBadVignet;
+		cachVig[iC] = cBadVignet;
 		return;
 	}
 
@@ -306,19 +306,14 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cacheVig, float *s
 		const uint _cy	= ter.y * cDimVig.y + (y - c0.y);
 		#pragma unroll
 		for (int x = c0.x ; x <= c1.x; x++)
-		{			
-			if (cacheImg[y][x]  ==  cBadVignet) // A priori a virer //if (blockIdx.z == iDI) siCor[iTer] = 7*cBadVignet; // ## c ##
-			{
-				cacheVig[iC] = cBadVignet;		
-				return;
-			}			
+		{					
 			const uint _cx	= ter.x * cDimVig.x + (x - c0.x);
 			const uint _iC   = (blockIdx.z * cSizeCach) + _cy * cDimCach.x + _cx;
-
-			cacheVig[_iC] = (cacheImg[y][x] -aSV)/aSVV;
+			cachVig[_iC] = (cacheImg[y][x] -aSV)/aSVV;
 		
 		}
 	}
+
 // 	const uint _cx	= cRVig.x + ter.x * cDimVig.x ;
 // 	const uint _cy	= cRVig.y + ter.y * cDimVig.y;
 // 	const uint _iC   = (blockIdx.z * cSizeCach) + _cy * cDimCach.x + _cx;
