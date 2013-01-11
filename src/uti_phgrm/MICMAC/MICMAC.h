@@ -1468,6 +1468,7 @@ class cLoadedImage
          int      SeuilPC() const;
          U_INT1** DataMasqIm() const;
          virtual float ** DataFloatIm() const = 0;
+         virtual float * DataFloatLinIm() const = 0;
 
     protected :
       cLoadedImage
@@ -2456,6 +2457,7 @@ class   cGPU_LoadedImGeom
 
       cGeomImage * Geom() {return mGeom;}
       float ** DataIm()   {return mDataIm;}
+      float *  LinDIm()   {return mLinDIm;}
       double * Vals()     {return &(mVals[0]);}
       void  SetOK(bool aIsOK) {mIsOK = aIsOK;}
       bool  IsOK() const {return mIsOK;}
@@ -2548,6 +2550,7 @@ class   cGPU_LoadedImGeom
     //  zone de donnee : "l'image" elle meme en fait
 
         float **         mDataIm;
+        float *          mLinDIm;
     //  Masque Image (en geometrie image)
         int              mSzX;
         int              mSzY;
