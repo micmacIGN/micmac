@@ -46,12 +46,14 @@ QT4_ADD_RESOURCES(interfaceMicmac_RESOURCES_RCC ressources.qrc)
 
 message(qt use file = ${QT_USE_FILE})
 INCLUDE(${QT_USE_FILE})
-message(qt defintions = ${QT_DEFINITIONS})
+message(qt definitions = ${QT_DEFINITIONS})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
 
 ADD_EXECUTABLE(interfaceMicmac ${interfaceMicmac_SOURCES}
                                ${interfaceMicmac_HEADERS_MOC})
-TARGET_LINK_LIBRARIES(interfaceMicmac ${QT_LIBRARIES}
+TARGET_LINK_LIBRARIES(interfaceMicmac ${OPENGL_LIBRARIES} ${GLU_LIBRARY}
+									  ${X11_LIBRARIES}
+									  ${QT_LIBRARIES}
                                       elise
                                       ${interfaceMicmac_LIBS})
 INSTALL(TARGETS interfaceMicmac RUNTIME DESTINATION ${Install_Dir})
