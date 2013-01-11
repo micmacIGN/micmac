@@ -99,6 +99,7 @@ class cTplLoadedImage : public cLoadedImage
 
    private:
       float ** DataFloatIm() const ;
+      float *  DataFloatLinIm() const ;
       void PrecalcRect(const Box2di & aBoxCorrTer);
       void FiltrageWRect(const Box2di & aBoxCorrTer,Im2D_REAL8 anIm);
       void FiltrageWExp(const Box2di & aBoxCorrTer,Im2D_REAL8 anIm);
@@ -162,6 +163,14 @@ template <class TypeEl> float ** cTplLoadedImage<TypeEl>::DataFloatIm() const
   ELISE_ASSERT(mIm.TypeEl()==GenIm::real4,":DataFloatIm");
    return (float **)  mIm.data();
 }
+
+template <class TypeEl> float * cTplLoadedImage<TypeEl>::DataFloatLinIm() const
+{
+  ELISE_ASSERT(mIm.TypeEl()==GenIm::real4,":DataFloatIm");
+   return (float *)  mIm.data_lin();
+}
+
+
 
 
 template <class TypeEl,class tBase> cInterpolateurIm2D<TypeEl>  * InterpoleOfEtape(const cEtapeMEC & anEt,TypeEl *,tBase *)
