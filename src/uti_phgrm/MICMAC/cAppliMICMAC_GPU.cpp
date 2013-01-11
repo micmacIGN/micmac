@@ -123,6 +123,7 @@ namespace NS_ParamMICMAC
 
 		mVals    (aNbVals),
 		mDataIm  (mLI->DataFloatIm()),
+		mLinDIm  (mLI->DataFloatLinIm()),
 		mSzX     (mLI->SzIm().x),
 		mSzY     (mLI->SzIm().y),
 		mImMasq  (mLI->DataMasqIm()),
