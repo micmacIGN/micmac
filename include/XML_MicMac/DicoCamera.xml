@@ -110,6 +110,13 @@
         <ShortName> NEX-7  </ShortName>
    </CameraEntry>
 
+   <CameraEntry>
+        <Name>    RICOH GR DIGITAL 3 </Name>
+        <SzCaptMm>   5.7 7.6  </SzCaptMm>
+        <ShortName> GRD3  </ShortName>
+   </CameraEntry>
+
+
 </MMCameraDataBase>
 
 

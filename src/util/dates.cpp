@@ -502,6 +502,11 @@ Pt2di  cMetaDataPhoto::XifSzIm(bool Svp) const
 	return mXifSzIm; 
 }
 
+double  cMetaDataPhoto::FocPix() const
+{
+    return Foc35()   *  (euclid(XifSzIm()) / euclid(aPRefFullFrame));
+}
+
 
 Pt2di  cMetaDataPhoto::TifSzIm(bool Svp) const 
 { 
@@ -911,10 +916,12 @@ cMetaDataPhoto cXifDecoder::GetMTDIm(const std::string & aNameIm)
 
 		if (!GotCam)
 		{
+// std::cout << "TRY CAM " << aXifDec.mStrExe << "\n";
 			std::string aC=GetStringFromLineExprReg(aXifDec.mAutomCam, aXifDec.mFileTxt,"","$1",&aNbMatch);
 
 			if (aNbMatch== 1)
 			{
+// std::cout << "    GOT  CAM " << aC << "\n";
 				aCam = aC;
 				GotCam = true;
 			}
