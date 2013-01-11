@@ -62,9 +62,6 @@ int Mascarpone_main(int argc,char ** argv)
 	//Maillage
 	cMesh myMesh(aNamePly);
 
-	//Graphe d'adjacence
-	RGraph *g = new RGraph( myMesh.getFacesNumber(), myMesh.getEdgesNumber() );
-
 	#ifdef _DEBUG
 		printf ("nb vertex: %d - nb faces: %d\n", myMesh.getVertexNumber(), myMesh.getFacesNumber());
 
@@ -167,6 +164,9 @@ int Mascarpone_main(int argc,char ** argv)
 	//Pour chaque image, on choisit les triangles "convenables" parmi les triangles visibles
 	for (unsigned int aK=0; aK < aVFiles.size(); ++aK)
 	{	
+		//Graphe d'adjacence
+		RGraph *g = new RGraph(aZBuffers[aK].getVisibleTrianglesIndexes().size(), myMesh.getEdgesNumber());
+
 		Im2D_BIN mask = aZBuffers[aK].ComputeMask(aK, myMesh);
 			
 		if (aNameOut=="")
@@ -185,7 +185,7 @@ int Mascarpone_main(int argc,char ** argv)
 		printf ("Done\n");
 
 		//ponderation entre attache aux donnees et regularisation
-		myMesh.setLambda(10.f);
+		myMesh.setLambda(0.00001f);
 
 		//on remplit le graphe d'adjacence
 		vector <int> TriIdxInGraph;
@@ -211,6 +211,8 @@ int Mascarpone_main(int argc,char ** argv)
 		printf ("Saving %s\n", aOut.c_str());
 		Tiff_Im::CreateFromIm(mask2, aOut);
 		printf ("Done\n");
+
+		delete g;
 	}
 
 	return EXIT_SUCCESS;
