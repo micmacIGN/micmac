@@ -233,7 +233,6 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, float *si
 	
 	if ( PtTProj.x == -1 ||  PtTProj.y == -1 )
 	{
-		return;
 		cacheImg[threadIdx.y][threadIdx.x]  = cBadVignet;
 		if (!(caVig.x >= cDimCach.x || caVig.y >= cDimCach.y || caVig.x <0 || caVig.y < 0 ))
 			cachVig[iC]		= cBadVignet;
@@ -265,9 +264,9 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, float *si
 		cachVig[iC] = cBadVignet;
 		return;
 	}
+
 	// Intialisation des valeurs de calcul 
-	float		aSV	= 0.0f;
-	float	   aSVV	= 0.0f;
+	float aSV = 0.0f, aSVV	= 0.0f;
 	
 	#pragma unroll
 	for (int y = c0.y ; y <= c1.y; y++)
@@ -310,7 +309,6 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, float *si
 			const uint _cx	= ter.x * cDimVig.x + (x - c0.x);
 			const uint _iC   = (blockIdx.z * cSizeCach) + _cy * cDimCach.x + _cx;
 			cachVig[_iC] = (cacheImg[y][x] -aSV)/aSVV;
-		
 		}
 	}
 
@@ -329,11 +327,9 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, float *si
 // ---------------------------------------------------------------------------
 __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * dev_NbImgOk, int2 nbActThr)
 {
-
 	__shared__ float aSV [ SBLOCKDIM ][ SBLOCKDIM ];
 	__shared__ float aSVV[ SBLOCKDIM ][ SBLOCKDIM ];
 	__shared__ float resu[ SBLOCKDIM/2 ][ SBLOCKDIM/2 ];
-
 
 	// coordonnées des threads
 	const int2 t = make_int2(threadIdx);
@@ -405,7 +401,6 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	const float cost = resu[coorTTer.y][coorTTer.x] / (( aNbImOk -1.0f) * ((float)cSizeVig));
 
 	dTCost[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
-	//dTCost[iTer] = 1.5f;
 }
 
 extern "C" paramGPU Init_Correlation_GPU( int x0, int x1, int y0, int y1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef )
@@ -457,22 +452,22 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer ){
 	
 	//////////////////--  KERNEL  Multi Correlation  --///////////////////////
 
-//  	multiCorrelationKernel<<<blocks_mC, threads_mC>>>( dev_Cost, dev_Cache, dev_NbImgOk,actiThs);
-//  	getLastCudaError("Multi-Correlation kernel failed");
+  	multiCorrelationKernel<<<blocks_mC, threads_mC>>>( dev_Cost, dev_Cache, dev_NbImgOk,actiThs);
+  	getLastCudaError("Multi-Correlation kernel failed");
 
 	//////////////////////////////////////////////////////////////////////////
 
 	checkCudaErrors( cudaUnbindTexture(TexLay_Proj) );
-	//checkCudaErrors( cudaMemcpy( h_TabCost, dev_Cost, costMemSize, cudaMemcpyDeviceToHost) );
+	checkCudaErrors( cudaMemcpy( h_TabCost, dev_Cost, costMemSize, cudaMemcpyDeviceToHost) );
 	
 	cudaDeviceSynchronize();
-	checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );
+	//checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );
 	//checkCudaErrors( cudaMemcpy( host_SimpCor,	dev_SimpCor, sCorMemSize, cudaMemcpyDeviceToHost) );
 	//checkCudaErrors( cudaMemcpy( host_Cache,	dev_Cache,	  cac_MemSize, cudaMemcpyDeviceToHost) );
 
 	//////////////////////////////////////////////////////////////////////////
 
-	//if(0)
+	if(0)
 	{
 		//////////////////////////////////////////////////////////////////////////
 		if (0)

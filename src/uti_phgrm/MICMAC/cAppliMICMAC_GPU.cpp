@@ -934,8 +934,8 @@ namespace NS_ParamMICMAC
 		Pt2di sizImg =  aGLI.getSizeImage();
 
 		// Obtenir la nappe englobante
-		//int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		int aZMinTer = 0 , aZMaxTer = 1;
+		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
+		//int aZMinTer = 0 , aZMaxTer = 1;
 
 		// Tableau de sortie de corrélation 
 		float* h_TabCost = new float[  h.rSiTer ];
