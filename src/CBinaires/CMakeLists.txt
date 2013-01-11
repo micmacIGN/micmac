@@ -31,6 +31,9 @@ if (NOT ${BUILD_ONLY_ELISE})
 	add_executable(GCPBascule  GCPBascule.c)
 	INSTALL(TARGETS GCPBascule RUNTIME DESTINATION ${Install_Dir})
 
+	add_executable(CenterBascule  CenterBascule.c)
+	INSTALL(TARGETS CenterBascule RUNTIME DESTINATION ${Install_Dir})
+
 	add_executable(GenXML2Cpp  GenXML2Cpp.c)
 	INSTALL(TARGETS GenXML2Cpp RUNTIME DESTINATION ${Install_Dir})
 

@@ -482,11 +482,16 @@ std::string MM3dBinFile(const std::string & aCom)
   return  MMDir() + std::string("bin" +  std::string(ELISE_STR_DIR) + MM3DStr +  " "+ aCom  + " ");
 }
 //   MMDir() + std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Cloud.xml ")
+std::string Basic_XML_MM_File(const std::string & aFile)
+{
+   return   MMDir() + std::string("include" +std::string(ELISE_STR_DIR) + "XML_MicMac" + std::string(ELISE_STR_DIR) + aFile);
+}
 std::string XML_MM_File(const std::string & aFile)
 {
    
-   return   MMDir() + std::string("include" +std::string(ELISE_STR_DIR) + "XML_MicMac" + std::string(ELISE_STR_DIR) + aFile + " ");
+   return   Basic_XML_MM_File(aFile) + " ";
 }
+
 
 
 

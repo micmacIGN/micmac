@@ -800,7 +800,9 @@ namespace NS_ParamMICMAC
 		}
 	}
 
-	void cAppliMICMAC::Tabul_Projection( float* TabProj, int Z, int2 Ter0, int2 Ter1, uint sample)
+// MPD COMPILE NE PASSE PAS SUR LINUX : PROBLEME variable h non connue ???
+#if ELISE_windows
+	void cAppliMICMAC::Tabul_Projection( float* TabProj, int Z, INT2 Ter0, INT2 Ter1, uint sample)
 	{
 		// debug
 		bool showDebug	= false;
@@ -911,6 +913,11 @@ namespace NS_ParamMICMAC
 			
 		*/
 	}
+#else
+	void cAppliMICMAC::Tabul_Projection( float* TabProj, int Z, INT2 Ter0, INT2 Ter1, uint sample)
+	{
+        }
+#endif
 
 	void cAppliMICMAC::DoGPU_Correl_Basik
 		(
