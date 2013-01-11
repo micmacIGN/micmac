@@ -16,13 +16,13 @@
 #if defined Q_WS_WIN
 	#define NOMINMAX
 	#include <windows.h>
-	#include "GL/gl.h"
-	#include "GL/glu.h"
 #elif defined Q_WS_MAC
     #include <sys/types.h>
 #endif
+#include "GL/gl.h"
+#include "GL/glu.h"
 
-#include <QtOpenGl>
+#include <QtOpenGL>
 #include <QtPlugin>
 #include <QLabel>
 #include <QGLWidget>
