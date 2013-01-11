@@ -48,7 +48,7 @@ namespace NS_ParamMICMAC
 
 #ifdef CUDA_ENABLED
 	extern "C" void freeGpuMemory();
-	extern "C" void projectionsToLayers(float *h_TabProj, int2 dimTer, int nbLayer);
+	extern "C" void projectionsToLayers(float *h_TabProj, uint2 dimTer, int nbLayer);
 	extern "C" void basic_Correlation_GPU(  float* h_TabCorre, int nbLayer);
 	extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer);
 	extern "C" paramGPU Init_Correlation_GPU( int x0, int x1, int y0, int y1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef);
@@ -800,9 +800,8 @@ namespace NS_ParamMICMAC
 		}
 	}
 
-// MPD COMPILE NE PASSE PAS SUR LINUX : PROBLEME variable h non connue ???
-#if ELISE_windows
-	void cAppliMICMAC::Tabul_Projection( float* TabProj, int Z, INT2 Ter0, INT2 Ter1, uint sample)
+#ifdef  CUDA_ENABLED
+	void cAppliMICMAC::Tabul_Projection( float* TabProj, int Z, int2 Ter0, int2 Ter1, uint sample)
 	{
 		// debug
 		bool showDebug	= false;
@@ -913,10 +912,7 @@ namespace NS_ParamMICMAC
 			
 		*/
 	}
-#else
-	void cAppliMICMAC::Tabul_Projection( float* TabProj, int Z, INT2 Ter0, INT2 Ter1, uint sample)
-	{
-        }
+
 #endif
 
 	void cAppliMICMAC::DoGPU_Correl_Basik
@@ -938,11 +934,10 @@ namespace NS_ParamMICMAC
 		Pt2di sizImg =  aGLI.getSizeImage();
 
 		// Obtenir la nappe englobante
-		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		//int aZMinTer = 0 , aZMaxTer = 1;
+		//int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
+		int aZMinTer = 0 , aZMaxTer = 1;
 
 		// Tableau de sortie de corrélation 
-
 		float* h_TabCost = new float[  h.rSiTer ];
 		uint siTabProj	= mNbIm * h.sizeSTer * 2;
 
@@ -989,13 +984,12 @@ namespace NS_ParamMICMAC
 
 			for (int Y = mY0Ter ; Y < mY1Ter ; Y++)
 			{			
-				int rY	= Y - mY0Ter;
 				for (int X = mX0Ter; X <  mX1Ter; X++)	// Ballayage du terrain  
 				
 					if ( mTabZMin[Y][X] <=  anZ && anZ < mTabZMax[Y][X])
 					{
-						int rX	= X - mX0Ter;
-						double cost = (double)h_TabCost[h.rDiTer.x * rY + rX];
+
+						double cost = (double)h_TabCost[h.rDiTer.x * (Y - mY0Ter) +  X - mX0Ter];
 						if (cost != -1000.0f)
 							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,cost);
 						else 
