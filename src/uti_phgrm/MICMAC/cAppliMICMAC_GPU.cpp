@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #ifdef CUDA_ENABLED
 	#include "gpu/cudaAppliMicMac.cuh"
+	#include <Lmcons.h>
 #endif
 
 namespace NS_ParamMICMAC
@@ -300,6 +301,8 @@ namespace NS_ParamMICMAC
 				dimImgMax		= max(dimImgMax,toUi2(aGLI.getSizeImage()));				
 			}
 
+			std::cout << dimImgMax.x << "," << dimImgMax.y << "\n";
+
 			// Pour chaque image
 			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 			{
@@ -319,13 +322,14 @@ namespace NS_ParamMICMAC
 			}
 
 			//  [12/19/2012 GChoqueux]
-			/*
+			
 			if (0)
 			{
 
-				for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
+				//for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 				{
-					int idImage = aKIm;
+					//int idImage = aKIm;
+					int idImage = 0;
 					// Obtention des données images
 					cGPU_LoadedImGeom&	aGLI	= *(mVLI[idImage]);
 					float **aDataIm	=  aGLI.DataIm();
@@ -333,21 +337,29 @@ namespace NS_ParamMICMAC
 					float* image	= new float[size(dimImgMax)];
 
 					for (uint j = 0; j < dimImgMax.y ; j++)
+					{
 						for (uint i = 0; i < dimImgMax.x ; i++)
 						{
 							int id = j * dimImgMax.x + i;
 							image[id] = fdataImg1D[id + size(dimImgMax)*idImage] / 500.0f;
 
 						}
+					}
 
-					std::string file = "C:\\Users\\gchoqueux\\Downloads\\image" + ToString(aKIm)  +  ".pgm";
+					TCHAR name [ UNLEN + 1 ];
+					DWORD size = UNLEN + 1;
+					GetUserName( (TCHAR*)name, &size );
+
+					std::string suname = name;
+					std::string fileImage = "C:\\Users\\" + suname + "\\Pictures\\imageTexture.pgm";
+
 					// save PGM
-					sdkSavePGM<float>(file.c_str(), image, dimImg.x,dimImg.y);
+					sdkSavePGM<float>(fileImage.c_str(), image, dimImg.x,dimImg.y);
 			
 					delete[] image;
 				}
 			}
-			*/
+			
 			//  [12/19/2012 GChoqueux]
 
 			if ((!((dimImgMax.x == 0)|(dimImgMax.y == 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
@@ -871,21 +883,21 @@ namespace NS_ParamMICMAC
 			if (aKIm == imageIDShow && showDebug && showTabPro) std::cout << "--------------------------------------------------------------------------\n";
 		}
 
-		/*
-		for (int aKIm = 1 ; aKIm < 2 ; aKIm++ )
+		
+		for (int aKIm = 0 ; aKIm < 0 ; aKIm++ )
 		{
 
 			cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 			float **aDataIm	=  aGLI.DataIm();
 			float* image	= new float[h.sizeSTer];
 
-			for (int anY = mY0Ter ; anY < mY1Ter ; anY += h.sampTer)
+			for (int anY = Ter0.y ; anY < Ter1.y; anY = anY + sample)
 			{															
-				for (int anX = mX0Ter ; anX <  mX1Ter ; anX += h.sampTer)	// Ballayage du terrain  
+				for (int anX = Ter0.x ; anX < Ter1.x ; anX = anX + sample)	// Ballayage du terrain  
 				{
 
-					int rX		= (anX - mX0Ter) / h.sampTer;
-					int rY		= (anY - mY0Ter) / h.sampTer;
+					int rX		= (anX - Ter0.x) / h.sampTer;
+					int rY		= (anY - Ter0.y) / h.sampTer;
 					int iD		= (aKIm * h.sizeSTer  + h.dimSTer.x * rY + rX ) * 2;
 					Pt2dr aPIm(TabProj[iD],TabProj[iD+1]);
 
@@ -902,15 +914,24 @@ namespace NS_ParamMICMAC
 				}
 			}
 
-			std::string file = "C:\\Users\\gchoqueux\\Pictures\\image_" + ToString(aKIm) + "_Z_" + ToString(anZ)  +  ".pgm";
-			// save PGM
+			TCHAR name [ UNLEN + 1 ];
+			DWORD size = UNLEN + 1;
+			GetUserName( (TCHAR*)name, &size );
 
-			sdkSavePGM<float>(file.c_str(), image, h.dimTer.x,h.dimTer.y);
+
+
+			std::string suname = name;
+			std::string IDima = ToString(aKIm);
+
+			std::string fileImage = "C:\\Users\\" + suname + "\\Pictures\\imageTextureProj_" + IDima + ".pgm";
+			
+			// save PGM
+			sdkSavePGM<float>(fileImage.c_str(), image, h.dimSTer.x,h.dimSTer.y);
 
 			delete[] image;
 		}
 			
-		*/
+		
 	}
 
 #endif
@@ -967,7 +988,9 @@ namespace NS_ParamMICMAC
 		{
 			// Re-initialisation du tableau de projection
 			memcpy( h_TabProj, h_TabPInit, siTabProj * sizeof(float));
-			
+// 			std::cout  << "//////////////////////////////////////////////////////////////////////////\n";
+// 			std::cout << h.pUTer0.x << ","<< h.pUTer0.y <<  "\n";
+// 			std::cout << h.pUTer1.x << ","<< h.pUTer1.y <<  "\n";
 			Tabul_Projection(h_TabProj, anZ, h.pUTer0, h.pUTer1, h.sampTer);
 			
 			// Copie des projections de host vers le device
@@ -1064,14 +1087,16 @@ namespace NS_ParamMICMAC
 											if ((aGLI.IsOk(aPIm.x,aPIm.y))&&(aGLI.IsOk(aPIm.x+2,aPIm.y+2))&&(aGLI.IsOk(aPIm.x-2,aPIm.y-2)))
 											{
 												
-// 												if (aKIm == imageDebug && aXVois == anX && aYVois == anY ) 
-// 													std::cout << " " << anX << " ";
 
 												double aVal =  mInterpolTabule.GetVal(aDataIm,aPIm);
 												// On "push" la nouvelle valeur de l'image
 												*(mCurVals++) = aVal;
 												aSV += aVal;
 												aSVV += QSquare(aVal) ;
+
+												float off = 10.0f;
+												if (aKIm == imageDebug && aXVois == anX && aYVois == anY ) 
+													std::cout << " " << floor(aVal*off)/off << " ";
 												
 											}
 											else
@@ -1095,8 +1120,7 @@ namespace NS_ParamMICMAC
 											for (int aKV=0 ; aKV<mNbPtsWFixe; aKV++)
 											{
 												mValsIm[aKV] = (mValsIm[aKV]-aSV)/aSVV;
-
-
+/*
 												if (aKIm == imageDebug && aKV == (2 * mPtSzWFixe.x + 1) * mPtSzWFixe.y + mPtSzWFixe.x)
 													if (mValsIm[aKV] == 0)
 														std::cout << "  00  ";
@@ -1105,7 +1129,7 @@ namespace NS_ParamMICMAC
 													else if ( mValsIm[aKV] < 1.0f  && mValsIm[aKV] > 0.0f)
 														std::cout << "|/|";
 													else
-														std::cout << " * ";
+														std::cout << " * ";*/
 											}
 										}
 										else
