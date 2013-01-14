@@ -2945,6 +2945,8 @@ class cTxtCam
        bool                 mSelC;
        Pt3dr                mC;  // Center
        Pt3dr                mV;  // Vitesse
+       int                  mNum;
+       const cMetaDataPhoto *     mMTD;
 };
 typedef cTxtCam * cTxtCamPtr;
 
