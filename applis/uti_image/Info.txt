@@ -1,0 +1,10 @@
+SplitGif :
+
+  Separe une image gif animee en n images fixes.
+
+SimulEpip  :
+
+  Simualtion d'images pour la correlation, en geometrie epipolaire
+
+
+
