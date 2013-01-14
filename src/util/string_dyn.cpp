@@ -447,13 +447,13 @@ void BanniereMM3D()
     std::cout << "\n";
     std::cout << "  ************************************************************************\n";
     std::cout << "  **                                                                    **\n";
-    std::cout << "  **    MicMac : a  free open source project  for photogrammetry        **\n";
-    std::cout << "  **     hosted at Ecole Nationale des Science Geographique             **\n";
+    std::cout << "  **    MicMac: a  free open source project  for photogrammetry         **\n";
+    std::cout << "  **     hosted at Ecole Nationale des Sciences Geographiques           **\n";
     std::cout << "  **               in Marne-la-Vallee, for IGN-France                   **\n";
     std::cout << "  **                                                                    **\n";
     std::cout << "  **                                                                    **\n";
-    std::cout << "  **  Current Team : MP Deseilligny, M Deveau, J Belveaux, G Choqueux   **\n";
-    std::cout << "  **               Contact : Marc.Pierrot-Deseilligny@ensg.eu           **\n";
+    std::cout << "  **  Current Team: MP Deseilligny, M Deveau, J Belvaux, G Choqueux     **\n";
+    std::cout << "  **               Contact: Marc.Pierrot-Deseilligny@ensg.eu            **\n";
     std::cout << "  **                                                                    **\n";
     std::cout << "  ************************************************************************\n";
  
