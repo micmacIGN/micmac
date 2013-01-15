@@ -302,8 +302,6 @@ namespace NS_ParamMICMAC
 				dimImgMax		= max(dimImgMax,toUi2(aGLI.getSizeImage()));				
 			}
 
-			std::cout << dimImgMax.x << "," << dimImgMax.y << "\n";
-
 			// Pour chaque image
 			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 			{
@@ -311,15 +309,20 @@ namespace NS_ParamMICMAC
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 			
 				// Obtention des données images
-				float **aDataIm	=  aGLI.DataIm();
-				uint2 dimImg	= toUi2(aGLI.getSizeImage());
+				float **aDataIm		=  aGLI.DataIm();
+				float *aDataImgLin	=  aGLI.LinDIm();
+				uint2 dimImg		= toUi2(aGLI.getSizeImage());
 
 				if(fdataImg1D == NULL)
 					fdataImg1D	= new float[ size(dimImgMax) * mNbIm ];
 				
-				for (uint j = 0; j < dimImg.y ; j++)	
-					memcpy(  fdataImg1D + dimImgMax.x * ( j + dimImgMax.y * aKIm ), aDataIm[j],  dimImg.x * sizeof(float));
-		
+				// Copie du tableau 2d des valeurs de l'image
+ 				for (uint j = 0; j < dimImg.y ; j++)	
+ 					memcpy(  fdataImg1D + dimImgMax.x * ( j + dimImgMax.y * aKIm ), aDataIm[j],  dimImg.x * sizeof(float));
+				
+				// Copie du tableau des valeurs de l'image
+				//memcpy(  fdataImg1D + dimImgMax.x *  dimImgMax.y * aKIm, aDataImgLin , dimImg.x * dimImg.y * sizeof(float));
+
 			}
 
 			//  [12/19/2012 GChoqueux]
@@ -956,8 +959,8 @@ namespace NS_ParamMICMAC
 		Pt2di sizImg =  aGLI.getSizeImage();
 
 		// Obtenir la nappe englobante
-		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		//int aZMinTer = 0 , aZMaxTer = 1;
+		//int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
+		int aZMinTer = 0 , aZMaxTer = 1;
 
 		// Tableau de sortie de corrélation 
 		float* h_TabCost = new float[  h.rSiTer ];
@@ -1031,8 +1034,10 @@ namespace NS_ParamMICMAC
 
 		if (showDebug) std::cout << "fin delete\n";
 
-		if(0)
+		//if(0)
 		{
+
+			bool showdebug_CPU = true;
 			std::vector<double *> aVecVals(mNbIm);
 			double ** aVVals = &(aVecVals[0]);
 			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
@@ -1040,8 +1045,10 @@ namespace NS_ParamMICMAC
 				for (int anX = mX0Ter ; anX <  mX1Ter ; anX++) 	//Au boulot !  on balaye le terrain
 				{
 				
-					int aZMin = 0;//int aZMin = mTabZMin[anY][anX];
-					int aZMax = 1;//int aZMax = mTabZMax[anY][anX];
+					int aZMin = 0;
+					int aZMax = 1;
+// 					aZMin = mTabZMin[anY][anX];
+// 					aZMax = mTabZMax[anY][anX];
 					
 					// est-on dans le masque des points terrains valide
 					if ( IsInTer(anX,anY))
@@ -1087,29 +1094,40 @@ namespace NS_ParamMICMAC
 											// Est ce qu'un point image est dans le domaine de definition de l'image
 											if ((aGLI.IsOk(aPIm.x,aPIm.y))&&(aGLI.IsOk(aPIm.x+2,aPIm.y+2))&&(aGLI.IsOk(aPIm.x-2,aPIm.y-2)))
 											{
-												
-
-												double aVal =  mInterpolTabule.GetVal(aDataIm,aPIm);
+												//////////////////////////////////////////////////////////////////////////
+												//double aVal =  mInterpolTabule.GetVal(aDataIm,aPIm);
+												double aVal =  aDataIm[(int)aPIm.y][(int)aPIm.x];
+												//////////////////////////////////////////////////////////////////////////
 												// On "push" la nouvelle valeur de l'image
 												*(mCurVals++) = aVal;
 												aSV += aVal;
 												aSVV += QSquare(aVal) ;
 
-												float off = 10.0f;
-												if (aKIm == imageDebug && aXVois == anX && aYVois == anY ) 
-													std::cout << " " << floor(aVal*off)/off << " ";
+												/*float off = 100.0f;
+												if (showdebug_CPU && aKIm == imageDebug && aXVois == anX && aYVois == anY )
+												{
+													std::string valS;
+													stringstream sValS (stringstream::in | stringstream::out);
+													float res = floor(aVal*off/500.0f)/off;
+													sValS << res;
+													long sizeV = sValS.str().length();
+													std::cout << " " << sValS.str() ;
+													if (sizeV == 3) std::cout << " ";
+													
+												}*/
 												
 											}
 											else
 											{
 												IsOk =false; // Si un  seul des voisin n'est pas lisible , on annule tout
-												if (aKIm == imageDebug && aXVois == anX && aYVois == anY)
-													std::cout << " * ";
+// 												if (showdebug_CPU && aKIm == imageDebug && aXVois == anX && aYVois == anY)
+// 													std::cout << " * ";
 											}
 										}
 									}
 									if (IsOk)
 									{
+										
 										// On normalise en moyenne et ecart type
 										aSV /= mNbPtsWFixe;
 										aSVV /= mNbPtsWFixe;
@@ -1121,23 +1139,51 @@ namespace NS_ParamMICMAC
 											for (int aKV=0 ; aKV<mNbPtsWFixe; aKV++)
 											{
 												mValsIm[aKV] = (mValsIm[aKV]-aSV)/aSVV;
-/*
-												if (aKIm == imageDebug && aKV == (2 * mPtSzWFixe.x + 1) * mPtSzWFixe.y + mPtSzWFixe.x)
-													if (mValsIm[aKV] == 0)
-														std::cout << "  00  ";
-													else if ( mValsIm[aKV] < 0.0f && mValsIm[aKV] > -1.0f)											
-														std::cout << "|\\|";													
-													else if ( mValsIm[aKV] < 1.0f  && mValsIm[aKV] > 0.0f)
-														std::cout << "|/|";
-													else
-														std::cout << " * ";*/
-											}
+// 												if ( showdebug_CPU && aKIm == imageDebug && (aKV == (2 * mPtSzWFixe.x + 1) * mPtSzWFixe.y + mPtSzWFixe.x) )
+// 												{
+// 													float off = 100.0f;
+// 													if (aKIm == imageDebug )
+// 													{
+// 														std::string S2 = "   ";
+// 														std::string ES = "";
+// 														std::string S1 = "  ";
+// 
+// 														float out = mValsIm[aKV];
+// 														//float out = h_TabCost[id];
+// 														out = floor(out*off)/off ;
+// 
+// 														std::string valS;
+// 														stringstream sValS (stringstream::in | stringstream::out);
+// 														sValS << abs(out);
+// 														long sizeV = sValS.str().length();
+// 														if (sizeV == 3) ES = ES + " ";
+// 														else if (sizeV == 2) ES = ES + "  ";
+// 														else if (sizeV == 1) ES = ES + "   ";
+// 
+// 														if ( out < 0.0f && out > -1.0f)
+// 														{
+// 															std::cout << " " << out << ES;
+// 															//std::cout << "|\\|";
+// 														}
+// 														else if ( out > 0.0f && out < 1.0f)
+// 															std::cout << S1 << out << ES;
+// 														//std::cout << " *" << S1;
+// 														else
+// 															std::cout << S1 << "H" << S2;
+// 													}
+// 												}
+											}	
 										}
 										else
 										{
 											IsOk = false;
 										}
 									}
+// 									else
+// 									{
+// 										if (aKIm == imageDebug)
+// 											std::cout << "  *   ";
+// 									}
 									aNbImOk += IsOk;
 									aGLI.SetOK(IsOk);
 								}
@@ -1147,8 +1193,6 @@ namespace NS_ParamMICMAC
 									if (aKIm == imageDebug)
 										std::cout << " f ";
 								}
-								
-								
 							}
 
 							if (aNbImOk>=2) // Calcul "rapide"  de la multi-correlation
@@ -1165,9 +1209,44 @@ namespace NS_ParamMICMAC
 										aSV += aV;
 										aSVV += QSquare(aV);
 									}
+
+									//////////////////////////////////////////////////////////////////////////
+
+									if (showdebug_CPU && aKV == (mPtSzWFixe.x + 1) * mPtSzWFixe.x * 2 )
+									{
+										float off = 100.0f;
+										
+										std::string S2 = "   ";
+										std::string ES = "";
+										std::string S1 = "  ";
+
+										float out = aSV/10.0f;
+										//float out = aVVals[0][aKV];
+										out = floor(out*off)/off ;
+
+										std::string valS;
+										stringstream sValS (stringstream::in | stringstream::out);
+										sValS << abs(out);
+										long sizeV = sValS.str().length();
+										if (sizeV == 3) ES = ES + " ";
+										else if (sizeV == 2) ES = ES + "  ";
+										else if (sizeV == 1) ES = ES + "   ";
+
+										if ( out < 0.0f )
+											std::cout << " " << out << ES;
+										else
+											std::cout << S1 << out << ES;									
+
+									}
+									//////////////////////////////////////////////////////////////////////////
+
+
 									// Additionner l'ecart type inter imagettes
 									anEC2 += (aSVV-QSquare(aSV)/aNbImOk);
 								}
+						
+									
+
 								// Normalisation pour le ramener a un equivalent de 1-Correl 
 								double aCost = anEC2 / (( aNbImOk-1) *mNbPtsWFixe);
 								aCost =  mStatGlob->CorrelToCout(1-aCost);
@@ -1175,21 +1254,24 @@ namespace NS_ParamMICMAC
 								mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,aCost);
 							}
 							else
+							{
+								if (showdebug_CPU) std::cout << "  !" << aNbImOk << "  ";
 								// Si pas assez d'image, il faut quand meme remplir la case avec qq chose
 								mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,mAhDefCost);
+							}
 						}
 					}
 					else					
 					{
 						for (int aZInt=aZMin ; aZInt< aZMax ; aZInt++)						
 							mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,mAhDefCost);
-						std::cout << " . ";
+						if (showdebug_CPU) std::cout << "  .   ";
 					}
 						
 				}
-					std::cout << "\n";
+					if (showdebug_CPU) std::cout << "\n";
 			}
-			std::cout << "----------------------------------------------------------------\n";
+			if (showdebug_CPU) std::cout << "----------------------------------------------------------------\n";
 		}
 
 #else
