@@ -153,17 +153,17 @@ class CartesTab : public QScrollArea
 		void resizeTreeWidget();
 		void contextMenuEvent(QContextMenuEvent *event);
 
-		QTreeWidget* treeWidget;
-		QPushButton* addButton;
-		QPushButton* removeButton;
-		QPushButton* modifButton;
-		QAction *ignoreAct;
-		QWidget* resizableWidget;
+		QTreeWidget *treeWidget;
+		QPushButton *addButton;
+		QPushButton *removeButton;
+		QPushButton *modifButton;
+		QAction 	*ignoreAct;
+		QWidget		*resizableWidget;
 
-		QVector<CarteDeProfondeur>* parametres;
-		CarteDeProfondeur carteCourante;
-		InterfMicmac* parent;
-		const ParamMain* paramMain;
+		QVector<CarteDeProfondeur> *parametres;
+		CarteDeProfondeur 			carteCourante;
+		InterfMicmac			   *parent;
+		const ParamMain			   *paramMain;
 };
 
 
@@ -193,22 +193,22 @@ class MNTTab : public QScrollArea
 		void resizeEvent(QResizeEvent*);
 		QSize minimumSizeHint();
 
-		QComboBox* imageCombo;
-		QPushButton* vue3DButton;
-		QListWidget* correlImgsList;
+		QComboBox	*imageCombo;
+		QPushButton	*vue3DButton;
+		QListWidget	*correlImgsList;
 		QToolButton *addCorrelImgButton;
-		QAction *addFromList;
-		QAction *addFromView;
-		QAction *addFromStat;
+		QAction 	*addFromList;
+		QAction 	*addFromView;
+		QAction 	*addFromStat;
 		QPushButton *removeCorrelImgButton;
-		QWidget* resizableWidget;
+		QWidget		*resizableWidget;
 
-		Assistant* assistant;
-		CarteDeProfondeur* parametre;
-		InterfMicmac* parent;
-		const ParamMain* paramMain;
-		QString dir;
-		VueChantier* vue3D;
+		Assistant			*assistant;
+		CarteDeProfondeur	*parametre;
+		InterfMicmac		*parent;
+		const ParamMain		*paramMain;
+		QString 			 dir;
+		VueChantier			*vue3D;
 };
 
 class RepereTab : public QScrollArea
@@ -238,29 +238,29 @@ class RepereTab : public QScrollArea
 		QString QPoint2QString(const QPoint& P);
 		QString calcTAName();
 
-		QSignalMapper* mapper;
-		QRadioButton *radioTerrain;
-		QRadioButton *radioImage;
-		QCheckBox* autreRepCheck;
-		QGroupBox* radio2Box;
-		QRadioButton *radioOpen;
-		QRadioButton *radioNew;
-		QGroupBox* openBox;
-		QLineEdit* openEdit;
-		QPushButton* openButton;
-		QGroupBox* paramBox;
-		QPushButton* vue3DButton;
-		MasqueWidget* masqueWidget;
-		DirectionWidget* directionWidget;
-		QPushButton* TAButton;
-		QWidget* resizableWidget;
+		QSignalMapper	*mapper;
+		QRadioButton	*radioTerrain;
+		QRadioButton	*radioImage;
+		QCheckBox		*autreRepCheck;
+		QGroupBox		*radio2Box;
+		QRadioButton	*radioOpen;
+		QRadioButton	*radioNew;
+		QGroupBox		*openBox;
+		QLineEdit		*openEdit;
+		QPushButton		*openButton;
+		QGroupBox		*paramBox;
+		QPushButton		*vue3DButton;
+		MasqueWidget	*masqueWidget;
+		DirectionWidget	*directionWidget;
+		QPushButton		*TAButton;
+		QWidget			*resizableWidget;
 
-		Assistant* assistant;
-		CarteDeProfondeur* parametre;
-		InterfMicmac* parent;
-		const ParamMain* paramMain;
-		VueChantier* vue3D;
-		QString dir;
+		Assistant		  *assistant;
+		CarteDeProfondeur *parametre;
+		InterfMicmac	  *parent;
+		const ParamMain	  *paramMain;
+		VueChantier		  *vue3D;
+		QString 		   dir;
 };
 
 class MaskTab : public QScrollArea
@@ -278,14 +278,14 @@ class MaskTab : public QScrollArea
 		void updateParam();
 
 	private:
-		MasqueWidget* masqueWidget;
-		QWidget* resizableWidget;
+		MasqueWidget *masqueWidget;
+		QWidget		 *resizableWidget;
 
-		Assistant* assistant;
-		CarteDeProfondeur* parametre;
-		InterfMicmac* parent;
-		const ParamMain* paramMain;
-		QString dir;
+		Assistant		  *assistant;
+		CarteDeProfondeur *parametre;
+		InterfMicmac	  *parent;
+		const ParamMain	  *paramMain;
+		QString			   dir;
 };
 
 class OrthoTab : public QScrollArea
@@ -307,20 +307,20 @@ class OrthoTab : public QScrollArea
 		void updateParam();
 
 	private:
-		QCheckBox* checkOrtho;
-		QGroupBox* imgsBox;
-		QListWidget* listeWidget;
-		QPushButton* addImgsButton;
-		QPushButton* removeImgsButton;
-		QGroupBox* echelleBox;
-		EchelleWidget* echelleWidget;
-		QWidget* resizableWidget;
+		QCheckBox		*checkOrtho;
+		QGroupBox		*imgsBox;
+		QListWidget		*listeWidget;
+		QPushButton		*addImgsButton;
+		QPushButton		*removeImgsButton;
+		QGroupBox		*echelleBox;
+		EchelleWidget	*echelleWidget;
+		QWidget			*resizableWidget;
 
-		Assistant* assistant;
-		InterfMicmac* parent;
-		const ParamMain* paramMain;
-		CarteDeProfondeur* parametre;
-		QString dir;
+		Assistant			*assistant;
+		InterfMicmac		*parent;
+		const ParamMain		*paramMain;
+		CarteDeProfondeur	*parametre;
+		QString 			 dir;
 };
 
 class ProfondeurTab : public QScrollArea
@@ -431,26 +431,26 @@ class InterfMicmac : public QDialog
 	private:
 		bool cartesACalculer();
 
-		QTabWidget* tabWidget;
-		CartesTab* cartesTab;
-		MNTTab* mNTTab;
-		RepereTab* repereTab;
-		MaskTab* maskTab;
-		OrthoTab* orthoTab;
-		ProfondeurTab* profondeurTab;
-		QPushButton *suivantButton;
-		QPushButton *precButton;
-		QPushButton *saveButton;
-		QPushButton *calButton;
+		QTabWidget	  *tabWidget;
+		CartesTab	  *cartesTab;
+		MNTTab		  *mNTTab;
+		RepereTab	  *repereTab;
+		MaskTab		  *maskTab;
+		OrthoTab	  *orthoTab;
+		ProfondeurTab *profondeurTab;
+		QPushButton   *suivantButton;
+		QPushButton   *precButton;
+		QPushButton   *saveButton;
+		QPushButton   *calButton;
 
 		//données
-		Assistant* assistant;
-		const ParamMain* paramMain;
-		QVector<CarteDeProfondeur> paramMicmac;
-		int typeChantier;
-		QString dir;
-		CarteDeProfondeur* carteCourante;
-		VueChantier* vueChantier;
+		Assistant	    		   *assistant;
+		const ParamMain 		   *paramMain;
+		QVector<CarteDeProfondeur>  paramMicmac;
+		int 						typeChantier;
+		QString 					dir;
+		CarteDeProfondeur		   *carteCourante;
+		VueChantier				   *vueChantier;
 };
 
 #endif

@@ -11,7 +11,15 @@ using namespace std;
 
 int InterfPastis::numChoiceTab = 1;
 
-InterfPastis::InterfPastis( QWidget* parent, Assistant* help, ParamMain* pMain) : QDialog(parent), assistant(help), paramMain(pMain), paramPastis(paramMain->getParamPastis()), done(false), dossier(paramMain->getDossier()), correspImgCalib(&(paramMain->getCorrespImgCalib())), longueur(0)
+InterfPastis::InterfPastis( QWidget* parent, Assistant* help, ParamMain* pMain):
+	QDialog( parent ),
+	assistant( help ),
+	done( false ),
+	paramMain( pMain ),
+	paramPastis( paramMain->getParamPastis() ),
+	dossier( paramMain->getDossier() ),
+	correspImgCalib( &( paramMain->getCorrespImgCalib() ) ),
+	longueur( 0 )
 {
 	setWindowModality(Qt::ApplicationModal);
 
@@ -264,8 +272,29 @@ bool InterfPastis::isDone() { return done; }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CalibCam::CalibCam() : type(0), file(QString()), focale(0), taillePx(0), PPA(QPointF(-1,-1)), PPS(QPointF(-1,-1)), sizeImg(QSize(0,0)), distorsion(QVector<double>(4,0)), rayonUtile(0), paramRadial(QVector<double>()) {}
-CalibCam::CalibCam(int modele, const QString& fileName, double f, double px, const QPointF& PPApt, const QSize& size, const QPointF& PPSpt, const QVector<double>& dist, int rUtil, const QVector<double>& pRad) : type(modele), file(fileName), focale(f), taillePx(px), PPA(PPApt), PPS(PPSpt), sizeImg(size), distorsion(dist), rayonUtile(rUtil), paramRadial(pRad)  {}
+CalibCam::CalibCam():
+	file( QString() ),
+	type( 0 ),
+	focale( 0 ),
+	taillePx( 0 ),
+	PPA( QPointF(-1,-1) ),
+	sizeImg( QSize(0,0) ),
+	PPS( QPointF(-1,-1) ),
+	distorsion( QVector<double>(4,0) ),
+	rayonUtile( 0 ),
+	paramRadial( QVector<double>() ){}
+
+CalibCam::CalibCam(int modele, const QString& fileName, double f, double px, const QPointF& PPApt, const QSize& size, const QPointF& PPSpt, const QVector<double>& dist, int rUtil, const QVector<double>& pRad):
+	file( fileName ),
+	type( modele ),
+	focale( f ),
+	taillePx( px ),
+	PPA( PPApt ),
+	sizeImg( size ),
+	PPS( PPSpt ),
+	distorsion( dist ),
+	rayonUtile( rUtil ),
+	paramRadial( pRad ){}
 CalibCam::CalibCam(const QString& fileName) : file(fileName) {}
 CalibCam::CalibCam(const CalibCam& calibCam) { copie(calibCam); }
 CalibCam::~CalibCam() {}
@@ -319,7 +348,16 @@ void CalibCam::setFocale (int f) { focale = f; }
 
 QString CalibTab::defaultCalibName = QObject::tr("Calibration_Interne_");
 CalibCam CalibTab::defaultCalib = CalibCam();
-CalibTab::CalibTab(InterfPastis* interfPastis, ParamPastis* parametres, ParamMain* pMain, const QList<int>& focales, const QList<QSize>& formatCalibs, const QList<int>& refImgCalibs) : parent(interfPastis), paramPastis(parametres), dir(pMain->getDossier()), longueur(0), imgNames(QList<pair<QString,double> >()), paramMain(pMain), calibAFournir(focales), formatCalibAFournir(formatCalibs), refImgCalibAFournir(refImgCalibs)	//bool tifOnly
+CalibTab::CalibTab(InterfPastis* interfPastis, ParamPastis* parametres, ParamMain* pMain, const QList<int>& focales, const QList<QSize>& formatCalibs, const QList<int>& refImgCalibs):
+	parent( interfPastis ),
+	paramPastis( parametres ),
+	dir( pMain->getDossier() ),
+	paramMain( pMain ),
+	calibAFournir( focales ),
+	formatCalibAFournir( formatCalibs ),
+	refImgCalibAFournir( refImgCalibs ), //bool tifOnly
+	imgNames( QList<pair<QString,double> >() ),
+	longueur( 0 )
 {
 	//objectifs utilisés
 	QString obj = (calibAFournir.count()==0)? conv(tr("Used lens :")) : conv(tr("Used lenses :"));
@@ -953,7 +991,7 @@ void CalibTab::saveNewCalibClicked() {
 	paramPastis->modifCalibFiles().push_back( pair<QString,int>(file,focale) );
 
 	//ajout dans la BD MicMac
-	int idxCalib = 0;
+	//-- int idxCalib = 0;
 	while (i<calibAFournir.count() && calibAFournir.at(i)!=calibCam.getFocale()) i++;
 	if (i!=calibAFournir.count() && QFile(paramMain->getDossier()+paramMain->getCorrespImgCalib().at(i).getImageRAW()).exists()) {
 		QString extension = paramMain->getCorrespImgCalib().at(i).getImageRAW().section(".",-1,-1);
@@ -1624,7 +1662,10 @@ bool CoupleTab::isDone() { return done; }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-CommunTabP::CommunTabP(InterfPastis* interfPastis, ParamPastis* parametres, int largeurMax) : parent(interfPastis), paramPastis(parametres), tailleMax(largeurMax)
+CommunTabP::CommunTabP(InterfPastis* interfPastis, ParamPastis* parametres, int largeurMax):
+	tailleMax( largeurMax ),
+	parent( interfPastis ),
+	paramPastis( parametres )
 {
 	//recherche multiéchelle
 	checkMultiscale = new QCheckBox(conv(tr("Multiscale computing")));
@@ -1739,7 +1780,15 @@ cout << paramPastis->getMultiScale() << endl;
 QVector<std::pair<ParamPastis::TypeChantier,QString> > ParamPastis::tradTypChan(0);
 QVector<std::pair<ParamPastis::TypeChantier,QString> > ParamPastis::tradTypChanInternational(0);
 
-ParamPastis::ParamPastis() : typeChantier(Convergent), calibs(QList<CalibCam>()), calibFiles(QList<pair<QString,int> >()), largeurMax(0), couples(QList<pair<QString,QString> >()), largeurMax2(0), multiscale(false), nbPtMin(2) { fillTradTypChan(); }
+ParamPastis::ParamPastis():
+	typeChantier( Convergent ),
+	calibs( QList<CalibCam>() ),
+	calibFiles( QList<pair<QString,int> >() ),
+	largeurMax( 0 ),
+	couples( QList<pair<QString,QString> >() ),
+	multiscale( false ),
+	largeurMax2( 0 ),
+	nbPtMin( 2 ){ fillTradTypChan(); }
 ParamPastis::ParamPastis(const ParamPastis& paramPastis) { fillTradTypChan(); copie(paramPastis); }
 ParamPastis::~ParamPastis() {}
 

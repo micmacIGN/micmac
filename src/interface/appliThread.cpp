@@ -9,11 +9,30 @@
 using namespace std;
 
 
-AppliThread::AppliThread () : QThread(), readerror(), micmacDir(QString()), paramMain(0), annulation(0), stdoutfile(QString()), done(true), endResult(0), progressLabel(QString()) {}
+AppliThread::AppliThread () :
+	QThread(),
+	paramMain( 0 ),
+	endResult( 0 ),
+	annulation( 0 ),
+	progressLabel( QString() ),
+	readerror(),
+	micmacDir( QString() ),
+	stdoutfile( QString() ),
+	done( true ){
+}
+
 AppliThread::AppliThread (ParamMain* pMain, const QString& stdoutfilename, bool* annul) :
-		QThread(), readerror(), micmacDir(QString()), paramMain(pMain), annulation(annul), stdoutfile(stdoutfilename), done(true), progressLabel(QString()) {
+	QThread(),
+	paramMain( pMain ),
+	annulation( annul ),
+	progressLabel( QString() ),
+	readerror(),
+	micmacDir( QString() ),
+	stdoutfile( stdoutfilename ),
+	done( true ){
 	if (pMain!=0) micmacDir = pMain->getMicmacDir();
 }
+
 AppliThread::AppliThread(const AppliThread& appliThread) : QThread() { copie(this,appliThread); }
 AppliThread::~AppliThread () {}
 
@@ -637,7 +656,9 @@ void PastisThread::run() {
 		//tri des couples
 		cTplValGesInit<string>  aTpl;
 		char** argv = new char*[1];
-		argv[0] = "rthsrth";
+		char c_str[] = "rthsrth";
+		argv[0] = new char[strlen( c_str )+1];
+		strcpy( argv[0], c_str );
 		getParamMain()->modifParamPastis().modifCouples().clear();
 		cInterfChantierNameManipulateur* mICNM = cInterfChantierNameManipulateur::StdAlloc(1, argv, getParamMain()->getDossier().toStdString(), aTpl );
 		const vector<string>* aVN = mICNM->Get("Key-Set-HomolPastisBin");
@@ -650,6 +671,7 @@ void PastisThread::run() {
 			if (!getParamMain()->getParamPastis().getCouples().contains( pair<QString, QString>( QString(aPair.second.c_str()) , QString(aPair.first.c_str()) ) ))
 				getParamMain()->modifParamPastis().modifCouples().push_back( pair<QString, QString>( QString(aPair.first.c_str()) , QString(aPair.second.c_str()) ) );
 		}
+		delete [] argv[0];
 		delete [] argv;
 		delete mICNM;
 
@@ -786,7 +808,9 @@ QString PastisThread::defImgOrientables() {
 	//lecture des couples d'images
 	cTplValGesInit<string>  aTpl;
 	char** argv = new char*[1];
-	argv[0] = "rthsrth";
+	char c_str[] = "rthsrth";
+	argv[0] = new char[strlen( c_str )+1];
+	strcpy( argv[0], c_str );
 	QList<pair<QString, QString> >* couples = new QList<std::pair<QString, QString> >;
 	cInterfChantierNameManipulateur* mICNM = cInterfChantierNameManipulateur::StdAlloc(1, argv, getParamMain()->getDossier().toStdString(), aTpl );
 	const vector<string>* aVN = mICNM->Get("Key-Set-HomolPastisBin");
@@ -798,6 +822,7 @@ QString PastisThread::defImgOrientables() {
 		if (aPack.size()==0) continue;
 		couples->push_back( pair<QString, QString>( QString(aPair.first.c_str()) , QString(aPair.second.c_str()) ) );
 	}
+	delete [] argv[0];
 	delete [] argv;
 	delete mICNM;
 
@@ -1763,7 +1788,9 @@ void AperoThread::run() {
 		//extraction des fichiers de points homologues
 		cTplValGesInit<string>  aTpl;
 		char** argv = new char*[1];
-		argv[0] = "rthsrth";
+		char c_str[] = "rthsrth";
+		argv[0] = new char[strlen( c_str )+1];
+		strcpy( argv[0], c_str );
 		cInterfChantierNameManipulateur* mICNM = cInterfChantierNameManipulateur::StdAlloc(1, argv, getParamMain()->getDossier().toStdString(), aTpl );
 		const vector<string>* aVN = mICNM->Get("Key-Set-HomolPastisBin");
 		vector<pair<string,string> > aPair(aVN->size());
@@ -1784,6 +1811,7 @@ void AperoThread::run() {
 				while (points3DThread[N+i].isRunning()) {}
 		}
 
+		delete [] argv[0];
 		delete [] argv;
 		delete mICNM;
 		aPair.clear();
@@ -2066,8 +2094,28 @@ bool AperoThread::killProcess() {
 //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
 
 
-Points3DThread::Points3DThread() : AppliThread(0,QString(),0), zoneChantier(QVector<GLdouble>(6)), zoneChantierEtCam(QVector<GLdouble>(6)), emprise(QVector<Pt3dr>(4)), cameras(QVector<Pose>(0)), paramApero(0), aVN(0), aPair(0), typesCam(0) {}
-Points3DThread::Points3DThread(ParamMain* pMain, const QVector<Pose>& cam, bool* annul, const ParamApero& pApero, const vector<string>* fichiers, const vector<pair<string,string> >* pairCam, const QVector<bool>* fishEye) : AppliThread(pMain,QString(),annul), zoneChantier(QVector<GLdouble>(6)), zoneChantierEtCam(QVector<GLdouble>(6)), emprise(QVector<Pt3dr>(4)), cameras(cam), paramApero(&pApero), aVN(fichiers), aPair(pairCam), typesCam(fishEye) {}
+Points3DThread::Points3DThread():
+	AppliThread( 0, QString(), 0 ),
+	cameras( QVector<Pose>( 0 ) ),
+	zoneChantier( QVector<GLdouble>( 6 ) ),
+	zoneChantierEtCam( QVector<GLdouble>( 6 ) ),
+	emprise( QVector<Pt3dr>( 4 ) ),
+	paramApero( 0 ),
+	aVN( 0 ),
+	aPair( 0 ),
+	typesCam( 0 ){}
+
+Points3DThread::Points3DThread(ParamMain* pMain, const QVector<Pose>& cam, bool* annul, const ParamApero& pApero, const vector<string>* fichiers, const vector<pair<string,string> >* pairCam, const QVector<bool>* fishEye):
+	AppliThread( pMain, QString(), annul ),
+	cameras( cam ),
+	zoneChantier( QVector<GLdouble>( 6 ) ),
+	zoneChantierEtCam( QVector<GLdouble>( 6 ) ),
+	emprise( QVector<Pt3dr>( 4 ) ),
+	paramApero( &pApero ),
+	aVN( fichiers ),
+	aPair( pairCam ),
+	typesCam( fishEye ){}
+	
 Points3DThread::Points3DThread(const Points3DThread& points3DThread) : AppliThread() { copie(this, points3DThread); }
 Points3DThread::~Points3DThread () {}
 

@@ -124,21 +124,21 @@ class RenderArea : public QWidget
 		QPointF transfoInv(QPoint P) const;		//coordonnées image (*image) ->coordonnées souris
 		QRect transfoInv(QRect rect) const;		//coordonnées image (*image) ->coordonnées souris
 
-		QString fichierImage;
-		QImage refImage;	//image initiale
-		int num;	//si plusieurs images sont affichées, nombre d'images
-		int npos;	//si plusieurs images sont affichées, position de l'image (1 à N)
-		ToolMode toolMode;	//outil utilisé par paintInterf
-		ToolMode oldToolMode;	//sauvegarde du type d'outil de dessin (Draw ou Cut)
-		QPointF center;	//centre du zoom dans image
-		qreal currentScale; 	//>=1  : échelle du zoom supplémentaire
-		qreal painterScale;	//<=1 si l'image est grande  : échelle du painter pour redimensionnement à la taille de la fenêtre
-		QPointF dragStartPosition;	//position initiale pour l'outil de déplacement
-		bool dragging;	//outil de déplacement en cours d'utilisation
-		PaintInterf* parentWindow;	//accès à la barre d'outil de paintInterf
-		QSize currentSize;	//taille de l'image affichée (de image en fait)
-		bool done;
-		const ParamMain* paramMain;
+		QString 		 fichierImage;
+		QImage 			 refImage;			// image initiale
+		int 			 num;				// si plusieurs images sont affichées, nombre d'images
+		int 			 npos;				// si plusieurs images sont affichées, position de l'image (1 à N)
+		ToolMode 		 toolMode;			// outil utilisé par paintInterf
+		ToolMode 		 oldToolMode;		// sauvegarde du type d'outil de dessin (Draw ou Cut)
+		QPointF 		 center;			// centre du zoom dans image
+		qreal 			 currentScale; 		// >=1  : échelle du zoom supplémentaire
+		qreal 			 painterScale;		// <=1 si l'image est grande  : échelle du painter pour redimensionnement à la taille de la fenêtre
+		QPointF 		 dragStartPosition;	// position initiale pour l'outil de déplacement
+		bool 			 dragging;			// outil de déplacement en cours d'utilisation
+		PaintInterf		*parentWindow;		// accès à la barre d'outil de paintInterf
+		QSize 			 currentSize;		// taille de l'image affichée (de image en fait)
+		bool 			 done;
+		const ParamMain *paramMain;
 
 	private :
 };
@@ -184,24 +184,24 @@ class PaintInterf : public QDialog
 		virtual void createToolBar();
 
 
-		QList<RenderArea*> renderArea;
-		QVBoxLayout *mainLayout;
-		QGroupBox* renderBox;
-		QAction *okAct;
-		QAction *dragAct;
-		QAction *zoomInAct;
-		QAction *zoomOutAct;
-		QAction *zoomFullAct; 
-		QAction *helpAct; 
-		Assistant* assistant;
-		QToolBar *toolBar;
-		QStatusBar* statusBar;
-		QPushButton* fullScreenButton;
+		QList<RenderArea*>  renderArea;
+		QVBoxLayout 	   *mainLayout;
+		QGroupBox		   *renderBox;
+		QAction 		   *okAct;
+		QAction 		   *dragAct;
+		QAction 		   *zoomInAct;
+		QAction 		   *zoomOutAct;
+		QAction 		   *zoomFullAct; 
+		QAction 		   *helpAct; 
+		Assistant		   *assistant;
+		QToolBar 		   *toolBar;
+		QStatusBar		   *statusBar;
+		QPushButton		   *fullScreenButton;
 
-		const ParamMain* paramMain;
-		QString dir;
-		QStringList imageRef;
-		bool done;
+		const ParamMain	   *paramMain;
+		QString 			dir;
+		QStringList 		imageRef;
+		bool 				done;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -334,14 +334,14 @@ class DrawArea : public RenderArea
 		virtual void mousePressEvent(QMouseEvent* event);
 		virtual QPolygon* continuePolygone (QList<Polygone>& conteneur, int rad);
 
-		QImage refImageClean;	//image de sauvegarde sur laquelle on ne dessine pas le masque précédent du RenderAreaPlan (sert pour le gradient et le Cut)
-		QList<Polygone> masque;	//masque en cours de dessin à l'échelle initiale (coordonnées refImage) : le dernier est le plus récent
-		QList<Polygone> sauvegarde;	//sauvegarde des dessins supprimés (pour les outils undo-redo)
-		int updateBuffer;	//buffer pour mettre à jour partiellement le painter autour du dernier dessin
-		QList<int> undoCompteur;	//sauvegarde du nombre de points dessinés pour l'outil undo : le premier est le plus récent
-		QList<int> redoCompteur;	//idem pour redo
-		bool withGradTool;	//outil d'aide à la saisie en cours d'utilisation (false ici)
-		int maxPoint;	//nombre mawimum de points possibles pour cette image (cas segment)
+		QImage 			refImageClean;	//image de sauvegarde sur laquelle on ne dessine pas le masque précédent du RenderAreaPlan (sert pour le gradient et le Cut)
+		QList<Polygone> masque;			//masque en cours de dessin à l'échelle initiale (coordonnées refImage) : le dernier est le plus récent
+		QList<Polygone> sauvegarde;		//sauvegarde des dessins supprimés (pour les outils undo-redo)
+		int 			updateBuffer;	//buffer pour mettre à jour partiellement le painter autour du dernier dessin
+		QList<int> 		undoCompteur;	//sauvegarde du nombre de points dessinés pour l'outil undo : le premier est le plus récent
+		QList<int> 		redoCompteur;	//idem pour redo
+		bool 			withGradTool;	//outil d'aide à la saisie en cours d'utilisation (false ici)
+		int 			maxPoint;		//nombre mawimum de points possibles pour cette image (cas segment)
 };
 
 
@@ -530,13 +530,13 @@ class RenderAreaPlan : public DrawArea
 		QPolygon plusCourtChemin (const QPoint& firstPoint, const QPoint& lastPoint, const QRegion& region, const qreal& scale, const QImage& distImg=QImage());
 		QPolygon smoothPath (const QPoint& firstPoint, const QPolygon& polyg, int pas, float distance);
 
-		QString maskPred;	//masque précédent (ouvert)
-		QImage masqPrec;	//masque précédent (ouvert)
-		std::pair<QImage,QImage> gradient;	//gradient de refImage pour l'aide à la saisie
-		float regul;	//coefficient de régularité de l'outil d'aide à la saisie : cout(i) = gradient(i) + regul * dist(i,doite)
-		bool autoRegul;	//regul calculé automatiquement
-		std::pair<QImage,QImage> tempoImages; 	//images rééchantillonnées pour le calcul du gradient
-		bool refPainted;
+		QString					 maskPred;		// masque précédent (ouvert)
+		QImage					 masqPrec;		// masque précédent (ouvert)
+		std::pair<QImage,QImage> gradient;		// gradient de refImage pour l'aide à la saisie
+		float 					 regul;			// coefficient de régularité de l'outil d'aide à la saisie : cout(i) = gradient(i) + regul * dist(i,doite)
+		bool					 autoRegul;		// regul calculé automatiquement
+		std::pair<QImage,QImage> tempoImages; 	// images rééchantillonnées pour le calcul du gradient
+		bool					 refPainted;
 };
 
 
@@ -563,15 +563,15 @@ class PaintInterfPlan : public DrawInterf
 	protected:
 		virtual void createActions();
 
-		QAction *gradToolAct;
+		QAction  *gradToolAct;
 		QSpinBox *gradRegulBox;
 
 	private:
 		virtual void createRenderArea(const QString& imageFile);
 
-		Tiff_Im* maskImg;
-		QString masqPrec;
-		bool filtrage;	//activé si interface de dessin de Nuage2Ply (juste pour le titre)
+		Tiff_Im *maskImg;
+		QString  masqPrec;
+		bool	 filtrage;	//activé si interface de dessin de Nuage2Ply (juste pour le titre)
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

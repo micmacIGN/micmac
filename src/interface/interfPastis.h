@@ -52,15 +52,15 @@ class CalibCam
 	private :
 		void copie(const CalibCam& calibCam);
 
-		QString file;	//sans le dossier
-		int type; //0 : classique, 1 : fish-eye
-		double focale;	//en mm
-		double taillePx;	//en microns
-		QPointF PPA;
-		QSize sizeImg;
-		QPointF PPS;
+		QString 		file;	//sans le dossier
+		int 			type; //0 : classique, 1 : fish-eye
+		double 			focale;	//en mm
+		double 			taillePx;	//en microns
+		QPointF 		PPA;
+		QSize 			sizeImg;
+		QPointF 		PPS;
 		QVector<double> distorsion;	
-		int rayonUtile;
+		int 			rayonUtile;
 		QVector<double> paramRadial;	
 };
 class CalibTab : public QWidget
@@ -94,47 +94,47 @@ class CalibTab : public QWidget
 		double qstringToDouble(QString coeff, bool* ok=0);
 		void removeFromList(const QStringList& items);
 
-		QListWidget* calibViewSelected;
-		QPushButton* addCalib;
-		QPushButton* removeCalib;
-		QPushButton* newCalib;
-		QRadioButton* radioClassique;
-		QRadioButton* radioFishEye;
-		QLineEdit* focaleEdit;
-		QLineEdit* taillePxEdit;
-		QLineEdit* tailleCapteurEdit;
-		QComboBox* camCombo;
-		QLineEdit* PPAXEdit;
-		QLineEdit* PPAYEdit;
-		QLineEdit* sizeWEdit;
-		QLineEdit* sizeHEdit;
-		QLineEdit* PPSXEdit;
-		QLineEdit* PPSYEdit;
-		QLineEdit* distorsionaEdit;
-		QLineEdit* distorsionbEdit;
-		QLineEdit* distorsioncEdit;
-		QLineEdit* distorsiondEdit;
-		QGroupBox* classiqueBox;
-		QLineEdit* rayonEdit;
-		QTextEdit* paramRadialEdit;
-		QGroupBox* fishEyeBox;
-		QPushButton* saveNewCalib;
-		QPushButton* cancelNewCalib;
-		QGroupBox* formCalibBox;
-		QGroupBox* calibBox;
+		QListWidget	 *calibViewSelected;
+		QPushButton	 *addCalib;
+		QPushButton  *removeCalib;
+		QPushButton  *newCalib;
+		QRadioButton *radioClassique;
+		QRadioButton *radioFishEye;
+		QLineEdit	 *focaleEdit;
+		QLineEdit	 *taillePxEdit;
+		QLineEdit	 *tailleCapteurEdit;
+		QComboBox	 *camCombo;
+		QLineEdit	 *PPAXEdit;
+		QLineEdit	 *PPAYEdit;
+		QLineEdit	 *sizeWEdit;
+		QLineEdit	 *sizeHEdit;
+		QLineEdit	 *PPSXEdit;
+		QLineEdit	 *PPSYEdit;
+		QLineEdit	 *distorsionaEdit;
+		QLineEdit	 *distorsionbEdit;
+		QLineEdit	 *distorsioncEdit;
+		QLineEdit	 *distorsiondEdit;
+		QGroupBox	 *classiqueBox;
+		QLineEdit	 *rayonEdit;
+		QTextEdit	 *paramRadialEdit;
+		QGroupBox	 *fishEyeBox;
+		QPushButton	 *saveNewCalib;
+		QPushButton	 *cancelNewCalib;
+		QGroupBox	 *formCalibBox;
+		QGroupBox	 *calibBox;
 
-		InterfPastis* parent;
-		ParamPastis* paramPastis;
-		QString dir;
-		ParamMain* paramMain;
-		const QList<int> calibAFournir;
-		const QList<QSize> formatCalibAFournir;
-		const QList<int> refImgCalibAFournir;
+		InterfPastis 	   *parent;
+		ParamPastis	 	   *paramPastis;
+		QString 	 	    dir;
+		ParamMain		   *paramMain;
+		const QList<int>	calibAFournir;
+		const QList<QSize>	formatCalibAFournir;
+		const QList<int> 	refImgCalibAFournir;
 		//bool noCam;
 		QList<std::pair<QString,double> > imgNames;	//taille de pixel des caméras (BDCamera) -> ne pas modifier (modification dans Assistant.cpp)
-		static CalibCam defaultCalib;
-		static QString defaultCalibName;	//préfix par défaut des fichier.xml de calibrations internes créés
-		int longueur;
+		static CalibCam 				  defaultCalib;
+		static QString 					  defaultCalibName;	//préfix par défaut des fichier.xml de calibrations internes créés
+		int 							  longueur;
 };
 
 class ChoiceTab : public QWidget
@@ -223,17 +223,17 @@ class CommunTabP : public QWidget
 		void seuilChanged();
 
 	private:
-		QCheckBox* checkMultiscale;
-		QLabel* largeurMax1Label;
-		QLabel* largeurMax2Label;
-		QLineEdit* largeurMax1Edit;
-		QLineEdit* largeurMax2Edit;
-		QLabel* seuilLabel;
-		QSpinBox* seuilBox;
+		QCheckBox *checkMultiscale;
+		QLabel	  *largeurMax1Label;
+		QLabel	  *largeurMax2Label;
+		QLineEdit *largeurMax1Edit;
+		QLineEdit *largeurMax2Edit;
+		QLabel	  *seuilLabel;
+		QSpinBox  *seuilBox;
 
-		int tailleMax;	//taille réelle des images
-		InterfPastis* parent;
-		ParamPastis* paramPastis;		
+		int			  tailleMax;	//taille réelle des images
+		InterfPastis *parent;
+		ParamPastis	 *paramPastis;		
 };
 
 class ParamPastis
@@ -277,14 +277,14 @@ class ParamPastis
 		static QVector<std::pair<TypeChantier,QString> > tradTypChan;
 		static QVector<std::pair<TypeChantier,QString> > tradTypChanInternational;
 
-		TypeChantier typeChantier;
-		QList<CalibCam> calibs;	//sans le dossier : toutes les calibrations (pour Apero)
-		QList<std::pair<QString, int> > calibFiles;	//sans le dossier : toutes les calibrations
-		int largeurMax;
+		TypeChantier 						typeChantier;
+		QList<CalibCam> 					calibs;		//sans le dossier : toutes les calibrations (pour Apero)
+		QList<std::pair<QString, int> > 	calibFiles;	//sans le dossier : toutes les calibrations
+		int									largeurMax;
 		QList<std::pair<QString, QString> > couples;
-		bool multiscale;	//true si recherche multi-échelle
-		int largeurMax2;
-		int nbPtMin;
+		bool 								multiscale;	//true si recherche multi-échelle
+		int 								largeurMax2;
+		int 								nbPtMin;
 };
 
 
@@ -313,27 +313,27 @@ class InterfPastis : public QDialog
 	private:
 		void updateInterfPastis(int tab);
 
-		QTabWidget* tabWidget;
-		CalibTab* calibTab;
-		ChoiceTab* choiceTab;
-		CoupleTab* coupleTab;
-		CommunTabP* communTab;
+		QTabWidget	*tabWidget;
+		CalibTab	*calibTab;
+		ChoiceTab	*choiceTab;
+		CoupleTab	*coupleTab;
+		CommunTabP	*communTab;
 		QPushButton *precButton;
 		QPushButton *calButton;
 		QPushButton *cancelButton;
 		QPushButton *helpButton;
-		Assistant* assistant;
-		bool done;
+		Assistant	*assistant;
+		bool 		 done;
 
 		//données
-		static int numChoiceTab;
-		ParamMain* paramMain;
-		ParamPastis paramPastis;
-		QString dossier;
-		ParamPastis::TypeChantier oldTypeChantier;	
-		ParamMain* precParamMain;
-		const QVector<ParamImage>* correspImgCalib;
-		int longueur;
+		static int				   numChoiceTab;
+		ParamMain				  *paramMain;
+		ParamPastis 			   paramPastis;
+		QString 				   dossier;
+		ParamPastis::TypeChantier  oldTypeChantier;	
+		ParamMain				  *precParamMain;
+		const QVector<ParamImage> *correspImgCalib;
+		int 					   longueur;
 };
 
 #endif
