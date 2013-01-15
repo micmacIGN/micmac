@@ -4409,6 +4409,10 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
       aRes->SetProfondeur(anOC.Externe().Profondeur().Val());
 
 
+   if (anOC.Externe().Vitesse().IsInit())
+      aRes->SetVitesse(anOC.Externe().Vitesse().Val());
+
+   aRes->SetIncCentre(anOC.Externe().IncCentre().ValWithDef(Pt3dr(1,1,1)));
 // std::cout << "ISCANEDDD " << aRes->IsScanned() << "\n";
 
    return aRes;
