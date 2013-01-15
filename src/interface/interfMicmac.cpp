@@ -7,7 +7,20 @@ QString imgNontuilee(const QString& img) { return img.section(".",0,-2) + QStrin
 
 
 InterfMicmac::InterfMicmac(Interface* parent, const ParamMain* param, int typChan, VueChantier* vue, Assistant* help) : 
-		QDialog(parent), typeChantier(typChan), paramMain(param), dir(param->getDossier()), paramMicmac(param->getParamMicmac()), assistant(help), cartesTab(0), mNTTab(0), repereTab(0), maskTab(0), orthoTab(0), profondeurTab(0), carteCourante(0), vueChantier(vue)
+	QDialog( parent ),
+	cartesTab( 0 ),
+	mNTTab( 0 ),
+	repereTab( 0 ),
+	maskTab( 0 ),
+	orthoTab( 0 ),
+	profondeurTab( 0 ),
+	assistant( help ),
+	paramMain( param ),
+	paramMicmac( param->getParamMicmac() ),
+	typeChantier( typChan ),
+	dir( param->getDossier() ),
+	carteCourante( 0 ),
+	vueChantier( vue )
 {
 	//setWindowModality(Qt::ApplicationModal);
 	setMaximumSize(maximumSizeHint());
@@ -249,8 +262,12 @@ const QVector<CarteDeProfondeur>& InterfMicmac::getParamMicmac() const { return 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-CartesTab::CartesTab(InterfMicmac* interfMicmac, const ParamMain* pMain,  QVector<CarteDeProfondeur>* param)
-	: QScrollArea(), parent(interfMicmac), paramMain(pMain), parametres(param), resizableWidget(0)
+CartesTab::CartesTab(InterfMicmac* interfMicmac, const ParamMain* pMain,  QVector<CarteDeProfondeur>* param):
+	QScrollArea(),
+	resizableWidget( 0 ),
+	parametres( param ),
+	parent( interfMicmac ),
+	paramMain( pMain )
 {
 	//liste des cartes créées et importées
 	treeWidget = new QTreeWidget;
@@ -456,8 +473,14 @@ int CartesTab::getCarte(const QVector<CarteDeProfondeur>& parametres, const QStr
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-MNTTab::MNTTab(InterfMicmac* interfMicmac, const ParamMain* pMain,  CarteDeProfondeur* param, VueChantier* vueChantier, const QVector<CarteDeProfondeur>* cartes, Assistant* help)
-	: QScrollArea(), assistant(help), parent(interfMicmac), paramMain(pMain), vue3D(vueChantier), resizableWidget(0), parametre(param)
+MNTTab::MNTTab(InterfMicmac* interfMicmac, const ParamMain* pMain,  CarteDeProfondeur* param, VueChantier* vueChantier, const QVector<CarteDeProfondeur>* cartes, Assistant* help):
+	QScrollArea(),
+	resizableWidget( 0 ),
+	assistant( help ),
+	parametre( param ),
+	parent( interfMicmac ),
+	paramMain( pMain ),
+	vue3D( vueChantier )
 {
 	QStringList l;
 	for (QVector<CarteDeProfondeur>::const_iterator it=cartes->begin(); it!=cartes->end(); it++) {
@@ -684,7 +707,8 @@ void MNTTab::addFromStatClicked() {
 			if (proj[j].y<proj2[2]) proj2[2] = proj[j].y;
 			else if (proj[j].y>proj2[3]) proj2[3] = proj[j].y;
 		}
-		REAL rec[4] = {0, poses->at(i).width(), 0, poses->at(i).height()};	//rectangle de emprise n img i
+		REAL rec[4] = { 0, (REAL)poses->at(i).width(),
+						0, (REAL)poses->at(i).height() };	//rectangle de emprise n img i
 		if (proj2[0]>rec[0]) rec[0] = proj2[0];
 		else if (proj2[1]<rec[1]) rec[1] = proj2[1];
 		if (proj2[2]>rec[2]) rec[2] = proj2[0];
@@ -769,8 +793,15 @@ void MNTTab::removeCorrelImgClicked() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-RepereTab::RepereTab(InterfMicmac* interfMicmac, const ParamMain* pMain, VueChantier* vueChantier,  CarteDeProfondeur* param, Assistant* help)
-	: QScrollArea(), assistant(help), parent(interfMicmac), paramMain(pMain), resizableWidget(0), parametre(param), vue3D(vueChantier), dir(pMain->getDossier())
+RepereTab::RepereTab(InterfMicmac* interfMicmac, const ParamMain* pMain, VueChantier* vueChantier,  CarteDeProfondeur* param, Assistant* help):
+	QScrollArea(),
+	resizableWidget( 0 ),
+	assistant( help ),
+	parametre( param ),
+	parent( interfMicmac ),
+	paramMain( pMain ),
+	vue3D( vueChantier ),
+	dir( pMain->getDossier() )
 {
 	//choix du repère
 	QGroupBox* radioBox;
@@ -1168,8 +1199,13 @@ cout << (dir+QString("KeyCalibration.xml")).toStdString() << endl;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-MaskTab::MaskTab(InterfMicmac* interfMicmac, const ParamMain* pMain,  CarteDeProfondeur* param, Assistant* help)
-	: QScrollArea(), assistant(help), parent(interfMicmac), paramMain(pMain), parametre(param), dir(pMain->getDossier())
+MaskTab::MaskTab(InterfMicmac* interfMicmac, const ParamMain* pMain,  CarteDeProfondeur* param, Assistant* help):
+	QScrollArea(),
+	assistant( help ),
+	parametre( param ),
+	parent( interfMicmac ),
+	paramMain( pMain ),
+	dir( pMain->getDossier() )
 {
 	masqueWidget = new MasqueWidget(paramMain, assistant, true, true, 0, parametre->getImageSaisie(*paramMain), QString("_masque"));
 	connect(masqueWidget, SIGNAL(updateParam()), this, SLOT(updateParam()));
@@ -1194,8 +1230,13 @@ void MaskTab::updateParam() { masqueWidget->updateParam(parametre,false); }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-OrthoTab::OrthoTab(InterfMicmac* interfMicmac, const ParamMain* pMain, CarteDeProfondeur* param, Assistant* help)
-	: QScrollArea(), parent(interfMicmac), paramMain(pMain), parametre(param), dir(pMain->getDossier()), assistant(help)
+OrthoTab::OrthoTab(InterfMicmac* interfMicmac, const ParamMain* pMain, CarteDeProfondeur* param, Assistant* help):
+	QScrollArea(),
+	assistant( help ),
+	parent( interfMicmac ),
+	paramMain( pMain ),
+	parametre( param ),
+	dir( pMain->getDossier() )
 {
 	//orthoimage ?
 	checkOrtho = new QCheckBox(conv(tr("Compute orthoimages")));

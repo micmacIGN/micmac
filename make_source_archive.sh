@@ -1,30 +1,32 @@
+#!/bin/sh
+
 MICMAC_REPOSITORY=`basename $PWD`
 REV_NUMBER=`hg log -r tip --template "{rev}"`
-TEMP_DIRECTORY=micmac_sources_package
+TEMP_DIRECTORY=micmac
 ARCHIVE_NAME=micmac_source_rev$REV_NUMBER
 if [ -f $ARCHIVE_NAME.tar.gz ]
 then
 	echo l\'archive $ARCHIVE_NAME.tar.gz existe déjà
-	exit -1
+	exit 1
 fi
-cd ../
 if [ -d $TEMP_DIRECTORY ]
 then
 	echo le repertoire $TEMP_DIRECTORY existe déjà
-	exit -1
+	exit 1
 fi
-cp -r $MICMAC_REPOSITORY $TEMP_DIRECTORY
-cd $TEMP_DIRECTORY
-rm -fr ./.hg
-rm -fr ./interface
-rm -fr ./bin
-rm -fr ./build*
-rm -fr ./applis
-rm -fr ./include/StdAfx.h.gch
-rm -fr ./Documentation
-rm -fr ./BenchElise
-rm -fr ./binaire-aux
-rm -fr ./data/Tabul/.svn
-tar czf ../$MICMAC_REPOSITORY/$ARCHIVE_NAME.tar.gz ./
-cd ..
+mkdir $TEMP_DIRECTORY
+cp -R CodeGenere $TEMP_DIRECTORY
+cp -R CodeExterne $TEMP_DIRECTORY
+cp -R data $TEMP_DIRECTORY
+cp -R include $TEMP_DIRECTORY
+cp -R src $TEMP_DIRECTORY
+cp CMakeLists.txt $TEMP_DIRECTORY
+cp Makefile-XML2CPP $TEMP_DIRECTORY
+cp precompiled_headers.cmake $TEMP_DIRECTORY
+
+rm -fr $TEMP_DIRECTORY/include/StdAfx.h.gch
+rm -fr $TEMP_DIRECTORY/data/Tabul/.svn
+rm -fr $TEMP_DIRECTORY/src/interface
+
+tar czf $ARCHIVE_NAME.tar.gz $TEMP_DIRECTORY
 rm -fr $TEMP_DIRECTORY

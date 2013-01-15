@@ -58,21 +58,21 @@ class ParamConvert8B
 		QString getOutFile(const QString& dossier, const carte8B& image);	//fichier de sortie en fonction de l'image et des paramères actuels
 		const QList<ParamConvert8B::carte8B>& readImages() const;
 
-		bool visualiser;
-		bool useMasque;
-		bool dequantifier;
-		bool otherOptions;
-		bool withImg;
-		int nbDir;
-		int modeOmbre;
-		double fz;
-		QString out;
-		double anisotropie;
-		double hypsoDyn;
-		double hypsoSat;
-		bool doBoite;
+		bool 				visualiser;
+		bool 				useMasque;
+		bool 				dequantifier;
+		bool 				otherOptions;
+		bool 				withImg;
+		int 				nbDir;
+		int 				modeOmbre;
+		double 				fz;
+		QString 			out;
+		double  			anisotropie;
+		double 				hypsoDyn;
+		double 				hypsoSat;
+		bool 				doBoite;
 		pair<QPoint,QPoint> boite;	//x0,y0 , w,h
-		int bord;
+		int 				bord;
 
 	private:
 		void copie(const ParamConvert8B& paramConvert8B);
@@ -235,12 +235,12 @@ class ParamNuages
 		void copie(const ParamNuages& paramNuages);
 
 		const CarteDeProfondeur* paramMasque;	//pointeur vers paramMain.getMasques()
-		QString carte;	//avec dossier
-		int dezoom;
-		QString numCarte;
-		int etape;
-		QString fichierPly;	//avec dossier (conversion)
-		QString fichierXml;	//avec dossier
+		QString 				 carte;			//avec dossier
+		int 					 dezoom;
+		QString 				 numCarte;
+		int 					 etape;
+		QString					 fichierPly;	//avec dossier (conversion)
+		QString					 fichierXml;	//avec dossier
 };
 
 class ParamPly
@@ -287,19 +287,19 @@ class ParamPly
 	private :
 		void copie(const ParamPly& paramPly);
 
-		int echantInterval;
-		QVector<bool> nuages;
-		bool doFiltrage;
-		bool doFusion;
-		bool doEgalRadiom;
-		QList<pair<QString,QString> > masques;	//numCarte, masque
-		bool doBoite;
-		pair<QPoint,QPoint> boite;
-		bool binaire;
-		bool doPly;
-		bool doXyz;
-		double exagZ;
-		double dyn;
+		int 							echantInterval;
+		QVector<bool> 					nuages;
+		bool 							doFiltrage;
+		bool 							doFusion;
+		bool							doEgalRadiom;
+		QList<pair<QString,QString> >	masques;	//numCarte, masque
+		bool 							doBoite;
+		pair<QPoint,QPoint> 			boite;
+		bool 							binaire;
+		bool 							doPly;
+		bool 							doXyz;
+		double 							exagZ;
+		double 							dyn;
 };
 
 class InterfModele3D : public QDialog
@@ -328,33 +328,33 @@ class InterfModele3D : public QDialog
 		void resizeTreeWidget();
 		void contextMenuEvent(QContextMenuEvent *event);
 
-		QTreeWidget* treeWidget;
-		QSpinBox* intervBox;
-		QCheckBox* checkBinaire;
-		QCheckBox* checkPly;
-		QCheckBox* checkXyz;
-		QLineEdit* reliefEdit;
-		QLineEdit* dynEdit;
-		QCheckBox* boiteCheck;
-		BoiteArea* boiteArea;
-		QCheckBox* checkFiltr;
-		QCheckBox* checkFusion;
-		QCheckBox* checkRadiomEq;
-		QLabel* listeMasques;	//-> à rajouter pour montrer les masques modifiés
-		QSignalMapper* mapper;	
-		QPushButton *calButton;
-		QPushButton *cancelButton;
-		QPushButton *helpButton;
-		Assistant* assistant;
-		QAction* changeImgAct;
-		QAction* savePlyAct;
-		QAction* maskFiltrPlyAct;
-		QPoint mouse;
+		QTreeWidget		*treeWidget;
+		QSpinBox		*intervBox;
+		QCheckBox		*checkBinaire;
+		QCheckBox		*checkPly;
+		QCheckBox		*checkXyz;
+		QLineEdit		*reliefEdit;
+		QLineEdit		*dynEdit;
+		QCheckBox		*boiteCheck;
+		BoiteArea		*boiteArea;
+		QCheckBox		*checkFiltr;
+		QCheckBox		*checkFusion;
+		QCheckBox		*checkRadiomEq;
+		QLabel		  	*listeMasques;	//-> à rajouter pour montrer les masques modifiés
+		QSignalMapper 	*mapper;	
+		QPushButton		*calButton;
+		QPushButton		*cancelButton;
+		QPushButton		*helpButton;
+		Assistant		*assistant;
+		QAction			*changeImgAct;
+		QAction			*savePlyAct;
+		QAction			*maskFiltrPlyAct;
+		QPoint 			 mouse;
 
 		//données
-		ParamMain* paramMain;
-		QVector<ParamNuages> nuages;
-		ParamPly paramPly;
-		const QString dir;
+		ParamMain			 *paramMain;
+		QVector<ParamNuages>  nuages;
+		ParamPly 			  paramPly;
+		const QString		  dir;
 };
 #endif
