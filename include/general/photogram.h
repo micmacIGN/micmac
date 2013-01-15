@@ -1413,7 +1413,7 @@ class cCapture3D
 class ElCamera : public cCapture3D
 {
      public :
-          typedef ElAffin2D tOrIntIma ;
+        typedef ElAffin2D tOrIntIma ;
 
          bool &   IsScanned();
          bool  CaptHasData(const Pt2dr &) const ;
@@ -1430,6 +1430,12 @@ class ElCamera : public cCapture3D
          double ResolSolGlob() const;
 
          double  ScaleAfnt() const;
+
+         Pt3dr Vitesse() const;
+         void  SetVitesse(const Pt3dr &);
+         bool  VitesseIsInit() const;
+         Pt3dr IncCentre() const;
+         void  SetIncCentre(const Pt3dr &);
 
          void TestCam(const std::string & aMes);
          const double & GetTime() const;
@@ -1739,6 +1745,11 @@ class ElCamera : public cCapture3D
          double               mTime;
          double               mScaleAfnt;  // Echelle de l'affinite !!
          bool                 mScanned;
+
+   private :
+         Pt3dr  mVitesse;
+         bool   mVitesseIsInit;
+         Pt3dr  mIncCentre;
 };
 
 
@@ -2936,6 +2947,7 @@ class cTxtCam
     public :
 
        cTxtCam();
+       void SetVitesse(const Pt3dr& aV);
 
        std::string          mNameIm;
        std::string          mNameOri;
@@ -2945,6 +2957,7 @@ class cTxtCam
        bool                 mSelC;
        Pt3dr                mC;  // Center
        Pt3dr                mV;  // Vitesse
+       bool                 mVIsCalc;  // Vitesse
        int                  mNum;
        const cMetaDataPhoto *     mMTD;
 };

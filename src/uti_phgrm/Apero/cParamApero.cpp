@@ -6360,11 +6360,24 @@ const cTplValGesInit< std::string > & cBascOnCentre::PoseCentrale()const
    return mPoseCentrale;
 }
 
+
+cTplValGesInit< bool > & cBascOnCentre::UseVitesse()
+{
+   return mUseVitesse;
+}
+
+const cTplValGesInit< bool > & cBascOnCentre::UseVitesse()const 
+{
+   return mUseVitesse;
+}
+
 cElXMLTree * ToXMLTree(const cBascOnCentre & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"BascOnCentre",eXMLBranche);
    if (anObj.PoseCentrale().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PoseCentrale"),anObj.PoseCentrale().Val())->ReTagThis("PoseCentrale"));
+   if (anObj.UseVitesse().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("UseVitesse"),anObj.UseVitesse().Val())->ReTagThis("UseVitesse"));
   return aRes;
 }
 
@@ -6373,6 +6386,8 @@ void xml_init(cBascOnCentre & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
 
    xml_init(anObj.PoseCentrale(),aTree->Get("PoseCentrale",1)); //tototo 
+
+   xml_init(anObj.UseVitesse(),aTree->Get("UseVitesse",1),bool(false)); //tototo 
 }
 
 
@@ -6409,6 +6424,17 @@ cTplValGesInit< std::string > & cBasculeOnPoints::PoseCentrale()
 const cTplValGesInit< std::string > & cBasculeOnPoints::PoseCentrale()const 
 {
    return BascOnCentre().Val().PoseCentrale();
+}
+
+
+cTplValGesInit< bool > & cBasculeOnPoints::UseVitesse()
+{
+   return BascOnCentre().Val().UseVitesse();
+}
+
+const cTplValGesInit< bool > & cBasculeOnPoints::UseVitesse()const 
+{
+   return BascOnCentre().Val().UseVitesse();
 }
 
 
@@ -6618,6 +6644,17 @@ const cTplValGesInit< std::string > & cModeBascule::PoseCentrale()const
 }
 
 
+cTplValGesInit< bool > & cModeBascule::UseVitesse()
+{
+   return BasculeOnPoints().Val().BascOnCentre().Val().UseVitesse();
+}
+
+const cTplValGesInit< bool > & cModeBascule::UseVitesse()const 
+{
+   return BasculeOnPoints().Val().BascOnCentre().Val().UseVitesse();
+}
+
+
 cTplValGesInit< cBascOnCentre > & cModeBascule::BascOnCentre()
 {
    return BasculeOnPoints().Val().BascOnCentre();
@@ -6799,6 +6836,17 @@ cTplValGesInit< std::string > & cBasculeOrientation::PoseCentrale()
 const cTplValGesInit< std::string > & cBasculeOrientation::PoseCentrale()const 
 {
    return ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().PoseCentrale();
+}
+
+
+cTplValGesInit< bool > & cBasculeOrientation::UseVitesse()
+{
+   return ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().UseVitesse();
+}
+
+const cTplValGesInit< bool > & cBasculeOrientation::UseVitesse()const 
+{
+   return ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().UseVitesse();
 }
 
 
@@ -8715,6 +8763,17 @@ cTplValGesInit< std::string > & cIterationsCompensation::PoseCentrale()
 const cTplValGesInit< std::string > & cIterationsCompensation::PoseCentrale()const 
 {
    return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().PoseCentrale();
+}
+
+
+cTplValGesInit< bool > & cIterationsCompensation::UseVitesse()
+{
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().UseVitesse();
+}
+
+const cTplValGesInit< bool > & cIterationsCompensation::UseVitesse()const 
+{
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().UseVitesse();
 }
 
 

@@ -91,7 +91,7 @@ class cSolBasculeRig
 class cRansacBasculementRigide
 {
     public :
-        cRansacBasculementRigide();
+        cRansacBasculementRigide(bool WithSpeed);
         ~cRansacBasculementRigide();
 
 
@@ -99,7 +99,7 @@ class cRansacBasculementRigide
         void ExploreAllRansac() ;
 
 
-        void AddExemple(const Pt3dr & aAvant,const Pt3dr & aApres);
+        void AddExemple(const Pt3dr & aAvant,const Pt3dr & aApres,const Pt3dr * aSpeedApres);
 
         // Clos et estim la position centrale par Barrycentre
         void CloseWithTrGlob();
@@ -128,6 +128,8 @@ class cRansacBasculementRigide
          void Close();
          std::vector<Pt3dr>  mAvant;
          std::vector<Pt3dr>  mApres ;
+         std::vector<Pt3dr>  mSpeedApres ;
+         bool                mUseV;
 
          Pt3dr               mP0Avant;
          Pt3dr               mP0Apres;
