@@ -391,7 +391,23 @@ bool InterfCartes8B::getDone() const { return done; }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-ParamConvert8B::ParamConvert8B() : images(QList<carte8B>()), visualiser(false), useMasque(true), dequantifier(true), fz(1), out(QString()), anisotropie(0.95), hypsoDyn(0), hypsoSat(0), doBoite(false), boite(pair<QPoint,QPoint>(QPoint(0,0),QPoint(0,0))), bord(0), otherOptions(false), withImg(false), nbDir(20), modeOmbre(0) {}
+ParamConvert8B::ParamConvert8B():
+	visualiser( false ),
+	useMasque( true ),
+	dequantifier( true ),
+	otherOptions( false ),
+	withImg( false ),
+	nbDir( 20 ),
+	modeOmbre( 0 ),
+	fz( 1 ),
+	out( QString() ),
+	anisotropie( 0.95 ),
+	hypsoDyn( 0 ),
+	hypsoSat( 0 ),
+	doBoite( false ),
+	boite( pair<QPoint,QPoint>( QPoint(0,0), QPoint(0,0) ) ),
+	bord( 0 ),
+	images( QList<carte8B>() ){}
 ParamConvert8B::ParamConvert8B(const ParamConvert8B& paramConvert8B) { copie(paramConvert8B); }
 ParamConvert8B::~ParamConvert8B() {}
 
@@ -668,7 +684,14 @@ void BoiteArea::paintEvent(QPaintEvent*) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-InterfModele3D::InterfModele3D(QWidget* parent, Assistant* help, ParamMain& param, const QVector<ParamNuages>& choix) : QDialog(parent), paramPly(choix.count()), mouse(QPoint(-1,-1)), nuages(choix), dir(param.getDossier()), paramMain(&param) {
+InterfModele3D::InterfModele3D(QWidget* parent, Assistant* help, ParamMain& param, const QVector<ParamNuages>& choix):
+	QDialog( parent ),
+	mouse( QPoint(-1,-1) ),
+	paramMain( &param ),
+	nuages( choix ),
+	paramPly( choix.count() ),
+	dir( param.getDossier() )
+{
 	setWindowModality(Qt::ApplicationModal);
 
 	//liste de nuages
@@ -1174,7 +1197,13 @@ const ParamPly& InterfModele3D::getParamPly() const { return paramPly; }
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-ParamNuages::ParamNuages() : carte(QString()), dezoom(1), numCarte(QString()), etape(7), fichierPly(QString()), paramMasque(0) {}
+ParamNuages::ParamNuages():
+	paramMasque( 0 ),
+	carte( QString() ),
+	dezoom( 1 ),
+	numCarte( QString() ),
+	etape( 7 ),
+	fichierPly( QString() ){}
 ParamNuages::ParamNuages(const ParamNuages& paramNuages) { copie(paramNuages); }
 ParamNuages::~ParamNuages() {}
 
@@ -1327,19 +1356,43 @@ bool ParamNuages::commandeMv() const {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-ParamPly::ParamPly() : echantInterval(1), nuages(QVector<bool>()), doFiltrage(false), doFusion(false), doEgalRadiom(false), masques(QList<pair<QString,QString> >()), doBoite(false), boite(pair<QPoint,QPoint>(QPoint(0,0),QPoint(0,0))), doPly(true), doXyz(false), exagZ(1), dyn(1),
+ParamPly::ParamPly():
+	echantInterval( 1 ),
+	nuages( QVector<bool>() ),
+	doFiltrage( false ),
+	doFusion( false ),
+	doEgalRadiom( false ),
+	masques( QList<pair<QString,QString> >() ),
+	doBoite( false ),
+	boite( pair<QPoint,QPoint>( QPoint(0,0), QPoint(0,0) ) ),
 	#if (defined Q_WS_WIN)
-		binaire(false)
+		binaire(false),
 	#else
-		binaire(true)
+		binaire(true),
 	#endif
+	doPly( true ),
+	doXyz( false ),
+	exagZ( 1 ),
+	dyn( 1 )
 {}
-ParamPly::ParamPly(int nbNuages) : echantInterval(1), nuages(QVector<bool>(nbNuages,false)), doFiltrage(false), doFusion(false), doEgalRadiom(false), masques(QList<pair<QString,QString> >()), doBoite(false), boite(pair<QPoint,QPoint>(QPoint(0,0), QPoint(0,0))), doPly(true), doXyz(false), exagZ(1), dyn(1),
+ParamPly::ParamPly(int nbNuages):
+	echantInterval( 1 ),
+	nuages( QVector<bool>( nbNuages, false ) ),
+	doFiltrage( false ),
+	doFusion( false ),
+	doEgalRadiom( false ),
+	masques( QList<pair<QString,QString> >() ),
+	doBoite( false ),
+	boite( pair<QPoint,QPoint>( QPoint(0,0), QPoint(0,0) ) ),
 	#if (defined Q_WS_WIN)
-		binaire(false)
+		binaire(false),
 	#else
-		binaire(true)
+		binaire(true),
 	#endif
+	doPly( true ),
+	doXyz( false ),
+	exagZ( 1 ),
+	dyn( 1 )
 {}
 ParamPly::ParamPly(const ParamPly& paramPly) { copie(paramPly); }
 /*ParamPly::ParamPly(int e, const QVector<bool>& n, bool d, bool doF, bool doE, const QList<pair<QString,QString> >& m, bool doB, const Pt2di& P, const Pt2di& S, bool b, bool doP, bool doX, double ex, double dy) : echantInterval(e), nuages(n), doFiltrage(d), doFusion(doF), doEgalRadiom(doE), masques(m), doBoite(doB), P0(P), Sz(S), binaire(b), doPly(doP), doXyz(doX), exagZ(ex), dyn(dy) {}*/
@@ -1399,7 +1452,11 @@ void ParamPly::setDyn(double dy) { dyn = dy; }
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-InterfOrtho::InterfOrtho(QWidget* parent, Assistant* help, ParamMain& param, QVector<CarteDeProfondeur>* cartesProfondeur) : QDialog(parent), cartes(cartesProfondeur), paramMain(&param) {
+InterfOrtho::InterfOrtho(QWidget* parent, Assistant* help, ParamMain& param, QVector<CarteDeProfondeur>* cartesProfondeur):
+	QDialog( parent ),
+	paramMain( &param ),
+	cartes( cartesProfondeur )
+{
 	setWindowModality(Qt::ApplicationModal);
 
 	//liste de nuages

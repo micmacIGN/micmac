@@ -261,21 +261,21 @@ class ParamMain
 		QVector<CarteDeProfondeur> paramMicmac;
 				
 		//EndMode
-		static QString micmacXML;	//param pour micmac (géom image)
+		static QString micmacXML;		//param pour micmac (géom image)
 		static QString micmacTerXML;	//param pour micmac (géom terrain)
-		static QString micmacMMOrthoXML;	//param pour micmac (orthoimages seules)
+		static QString micmacMMOrthoXML;//param pour micmac (orthoimages seules)
 		static QString intervalleXML;
 		static QString discontinuteXML;
 		static QString defMasqueXML;
-		static QString cartesXML;	//liste des images utilisées pour la corrélation pour la carte courante
-		static QString repereXML;	//repère du MNT
+		static QString cartesXML;		//liste des images utilisées pour la corrélation pour la carte courante
+		static QString repereXML;		//repère du MNT
 		static QString nomCartesXML;	//nom des cartes en sortie
-		static QString nomTAXML;	//nom du TA en sortie
-		static QString orthoXML;	//nom des orthoimages simples en sortie
+		static QString nomTAXML;		//nom du TA en sortie
+		static QString orthoXML;		//nom des orthoimages simples en sortie
 
 		static QString paramPortoXML;	//paramètres du mosaïcage (Porto)
-		static QString portoXML;	//nom des orthoimages simples en entrée du mosaïcage
-		static QString pathMntXML;	//mnt de la carte de profondeur pour l'orthoimage mosaïquée
+		static QString portoXML;		//nom des orthoimages simples en entrée du mosaïcage
+		static QString pathMntXML;		//mnt de la carte de profondeur pour l'orthoimage mosaïquée
 };
 
 
