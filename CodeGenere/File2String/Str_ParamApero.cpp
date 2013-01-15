@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1457]) = {
+const char * (theNameVar_ParamApero[1458]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -945,6 +945,7 @@ const char * (theNameVar_ParamApero[1457]) = {
 "                          -->\n",
 "                                   <BascOnCentre Nb=\"?\">\n",
 "                                        <PoseCentrale Nb=\"?\" Type=\"std::string\"> </PoseCentrale>\n",
+"                                        <UseVitesse Type=\"bool\" Nb=\"?\" Def=\"false\"> </UseVitesse>\n",
 "                                   </BascOnCentre>\n",
 "                                   <BascOnAppuis Nb=\"?\">\n",
 "                                        <NameRef Nb=\"1\" Type=\"std::string\"> </NameRef>   \n",

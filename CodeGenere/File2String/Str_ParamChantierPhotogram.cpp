@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1372]) = {
+const char * (theNameVar_ParamChantierPhotogram[1374]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -690,6 +690,8 @@ const char * (theNameVar_ParamChantierPhotogram[1372]) = {
 "   -->\n",
 "	<KnownConv Nb=\"?\" Type=\"eConventionsOrientation\"> </KnownConv>\n",
 "        <Centre Nb=\"1\" Type=\"Pt3dr\"> </Centre>\n",
+"        <Vitesse Nb=\"?\" Type=\"Pt3dr\"> </Vitesse>\n",
+"        <IncCentre Nb=\"?\" Type=\"Pt3dr\"> </IncCentre>\n",
 "        <ParamRotation  Nb=\"1\"  RefType=\"RotationVect\" UnionType=\"true\">  </ParamRotation>\n",
 "<!--\n",
 "        <ParamRotation  Nb=\"1\"  UnionType=\"true\"> \n",

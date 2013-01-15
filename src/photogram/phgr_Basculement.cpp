@@ -283,8 +283,9 @@ int   cRansacBasculementRigide::CurK() const
 
 #define TheCostDef 1e50 
 
-cRansacBasculementRigide::cRansacBasculementRigide() :
+cRansacBasculementRigide::cRansacBasculementRigide(bool aUseV) :
    mClosed      (false),
+   mUseV        (aUseV),
    mP0Avant     (0.0,0.0,0.0),
    mP0Apres     (0.0,0.0,0.0),
    mLambda      (-1),
@@ -315,13 +316,19 @@ cRansacBasculementRigide::~cRansacBasculementRigide()
 {
 }
 
-void cRansacBasculementRigide::AddExemple(const Pt3dr & aAvant,const Pt3dr & aApres)
+void cRansacBasculementRigide::AddExemple(const Pt3dr & aAvant,const Pt3dr & aApres,const Pt3dr * aSpeedApres)
 {
+   ELISE_ASSERT((aSpeedApres!=0)==(mUseV),"Incoherence UseV cRansacBasculementRigide::AddExemple");
    AssertOpened();
    mAvant.push_back(aAvant);
    mApres.push_back(aApres);
    mP0Avant  = mP0Avant + aAvant;
    mP0Apres  = mP0Apres + aApres;
+
+   if (aSpeedApres)
+   {
+         mSpeedApres.push_back(*aSpeedApres);
+   }
 }
 
 void cRansacBasculementRigide::CloseWithTrOnK(int aK)
