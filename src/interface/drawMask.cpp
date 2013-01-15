@@ -27,7 +27,22 @@ qreal realDistance(const QPointF& P) { return sqrt(realDistance2(P)); }
 //classes mères pour toutes les interfaces d'affichage (avec possibilité d'afficher 2 images en même temps)
 
 RenderArea::RenderArea(PaintInterf& parent, const ParamMain& pMain, int N, int n) : 
-	QWidget(&parent), parentWindow(&parent), refImage(QImage()), done(false), paramMain(&pMain), toolMode(Move), oldToolMode(Move), num(N), npos(n), dragging(false), painterScale(1), currentSize(QSize(0,0)), fichierImage(QString()), center(QPointF()), currentScale(1), dragStartPosition(QPoint(-1,-1))
+	QWidget( &parent ),
+	fichierImage( QString() ),
+	refImage( QImage() ),
+	num( N ),
+	npos( n ),
+	toolMode( Move ),
+	oldToolMode( Move ),
+	center( QPointF() ),
+	currentScale( 1 ),
+	painterScale( 1 ),
+	dragStartPosition( QPoint(-1,-1) ),
+	dragging( false ),
+	parentWindow( &parent ),
+	currentSize( QSize(0,0) ),
+	done( false ),
+	paramMain( &pMain )
 { 
 	setBackgroundRole(QPalette::Base);
 	setAutoFillBackground(true);
@@ -60,7 +75,7 @@ QSize RenderArea::sizeHint () {
 	int h = ceil(num/ceil(sqrt((double)num)));
 	maxSize.setHeight( maxSize.height()/h );	//réduit la taille en fct du nb d'images à afficher
 	
-	qreal oldPainterScale = painterScale;
+	//-- qreal oldPainterScale = painterScale;
 	painterScale = 1.0/max(double(refImage.width())/double(maxSize.width()),double(refImage.height())/double(maxSize.height()));
 	//currentScale *= painterScale/oldPainterScale;
 
@@ -219,7 +234,12 @@ void RenderArea::setPoint(const QPoint& P) {}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-PaintInterf::PaintInterf(const ParamMain* pMain, Assistant* help, QWidget* parent) : QDialog(parent), paramMain(pMain), dir(pMain->getDossier()), done(false), imageRef(QStringList())
+PaintInterf::PaintInterf(const ParamMain* pMain, Assistant* help, QWidget* parent):
+	QDialog( parent ),
+	paramMain( pMain ),
+	dir( pMain->getDossier() ),
+	imageRef( QStringList() ),
+	done( false )
 {
 	toolBar = new QToolBar();
 
@@ -500,15 +520,22 @@ void VisuHomologues::paintEvent(QPaintEvent* event) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-VueHomologues::VueHomologues(const ParamMain* pMain, Assistant* help, QWidget* parent) : PaintInterf(pMain,help,parent), couples(QList<LiaisCpl>()),	//fichiers de couples (pb : homol a moins de fichiers que ceux demandés)
-			nomFichiers(QList<ElSTDNS string>()), undoCouples(QList<LiaisCpl>()), redoCouples(QList<LiaisCpl>()), changed(false)
+VueHomologues::VueHomologues(const ParamMain* pMain, Assistant* help, QWidget* parent) : 
+	PaintInterf( pMain,help,parent ),
+	couples( QList<LiaisCpl>() ),	//fichiers de couples (pb : homol a moins de fichiers que ceux demandés)
+	nomFichiers( QList<ElSTDNS string>() ),
+	undoCouples( QList<LiaisCpl>() ),
+	redoCouples( QList<LiaisCpl>() ),
+	changed( false )
 {
 	//paramètres
 	done = false;
 	//points de liaison
 	cTplValGesInit<string>  aTpl;
 	char** argv = new char*[1];
-	argv[0] = "rthsrth";
+	char c_str[] = "rthsrth";
+	argv[0] = new char[strlen( c_str )+1];
+	strcpy( argv[0], c_str );
 	cInterfChantierNameManipulateur* mICNM = cInterfChantierNameManipulateur::StdAlloc(1, argv, dir.toStdString(), aTpl );
 	const vector<string>* aVN = mICNM->Get("Key-Set-HomolPastisBin");
 	for (int aK=0; aK<signed(aVN->size()) ; aK++) {
@@ -535,6 +562,7 @@ VueHomologues::VueHomologues(const ParamMain* pMain, Assistant* help, QWidget* p
 			couples.removeAt(couples.count()-1);
 		}
 	}
+	delete [] argv[0];
 	delete [] argv;
 	delete mICNM;
 	if (couples.count()==0) {
@@ -808,7 +836,16 @@ void VueHomologues::saveClicked() {
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
 
 
-DrawArea::DrawArea(DrawInterf& parent, const ParamMain& pMain, const QString& imageFile, int N, int n) : RenderArea(parent, pMain,N,n), masque(QList<Polygone>()), sauvegarde(QList<Polygone>()), undoCompteur(QList<int>()), redoCompteur(QList<int>()), withGradTool(false), updateBuffer(0), maxPoint(-1), refImageClean(QImage())
+DrawArea::DrawArea(DrawInterf& parent, const ParamMain& pMain, const QString& imageFile, int N, int n):
+	RenderArea( parent, pMain,N,n ),
+	refImageClean( QImage() ),
+	masque( QList<Polygone>() ),
+	sauvegarde( QList<Polygone>() ),
+	updateBuffer( 0 ),
+	undoCompteur( QList<int>() ),
+	redoCompteur( QList<int>() ),
+	withGradTool( false ),
+	maxPoint( -1 )
 {
 	withGradTool = false;
 
@@ -1429,8 +1466,15 @@ void PaintInterfSegment::setLastPoint(int n) { lastPoint = n; }
 //saisie d'un masque pour un plan
 
 
-RenderAreaPlan::RenderAreaPlan(PaintInterfPlan& parent, const ParamMain& pMain, const QString& imageFile, const QString& masquePrec) : 
-		DrawArea(parent,pMain,imageFile), maskPred(QString()), gradient(pair<QImage,QImage>(QImage(),QImage())), regul(0.1f), autoRegul(true), tempoImages(pair<QImage,QImage>(QImage(),QImage())), refPainted(false), masqPrec(QImage())
+RenderAreaPlan::RenderAreaPlan(PaintInterfPlan& parent, const ParamMain& pMain, const QString& imageFile, const QString& masquePrec): 
+	DrawArea( parent, pMain, imageFile ),
+	maskPred(QString()),
+	masqPrec( QImage() ),
+	gradient( pair<QImage,QImage>( QImage(), QImage() ) ),
+	regul( 0.1f ),
+	autoRegul( true ),
+	tempoImages( pair<QImage,QImage>( QImage(), QImage() ) ),
+	refPainted( false )
 {
 	done = false;
 	if (!loadMasquePrec (masquePrec)) {
@@ -1857,7 +1901,7 @@ void RenderAreaPlan::continuePolygone (QList<Polygone>& conteneur, bool upDate) 
 	//si le polygone précédent était utilisé avec l'autre outil et n'a pas été fermé, on le supprime
 		ToolMode otherTool = (toolMode==Draw) ? Cut : Draw;
 		Polygone* polyg = &(conteneur[conteneur.count()-1]);
-		QRect rect = polyg->getQpolygon().boundingRect();
+		//-- QRect rect = polyg->getQpolygon().boundingRect();
 		ToolMode oldTmode = polyg->getTmode();
 		if (oldTmode==otherTool && !(polyg->getFerme())) {
 			polyg->modifQpolygon().clear();
@@ -1989,7 +2033,10 @@ bool RenderAreaPlan::noPolygone() const {return ((masque.size()==0 || !(masque.a
 
 
 PaintInterfPlan::PaintInterfPlan(const QString& imageFile, const ParamMain* pMain, Assistant* help, QWidget* parent, bool plan, const QString& masquePrec, bool filtre) : 
-	DrawInterf(pMain,help,parent), masqPrec(masquePrec), maskImg(0), filtrage(filtre)
+	DrawInterf( pMain, help, parent ),
+	maskImg( 0 ),
+	masqPrec( masquePrec ),
+	filtrage( filtre )
 	//plan=true si masque du plan horizontal, false si masque de corrélation=>définition renderArea à part
 {
 	if (plan) createRenderArea(imageFile);
@@ -2264,7 +2311,9 @@ const QList<Pt2dr>& PaintInterfCorrel::getPtsLiaison() {
 	pointsLiaison.clear();
 	cTplValGesInit<string>  aTpl;
 	char** argv = new char*[1];
-	argv[0] = "rthsrth";
+	char c_str[] = "rthsrth";
+	argv[0] = new char[strlen( c_str )+1];
+	strcpy( argv[0], c_str );
 	cInterfChantierNameManipulateur* mICNM = cInterfChantierNameManipulateur::StdAlloc(1, argv, dir.toStdString(), aTpl );
 	const vector<string>* aVN = mICNM->Get("Key-Set-HomolPastisBin");
 
@@ -2283,6 +2332,7 @@ const QList<Pt2dr>& PaintInterfCorrel::getPtsLiaison() {
 				pointsLiaison.push_back(itH->P1());	//pour qu'il y ait le même nb de points 3D que de points 2D
 		}
 	}
+	delete [] argv[0];
 	delete [] argv;
 	delete mICNM;
 

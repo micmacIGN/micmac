@@ -12,7 +12,10 @@ QStringList listWidgetToStringList(const QList<QListWidgetItem*>& l) {
 }
 
 InterfApero::InterfApero(const ParamMain* pMain, QWidget* parent, Assistant* help) : 
-	QDialog(parent), paramMain(pMain), assistant(help), paramApero(paramMain->getParamApero())
+	QDialog( parent ),
+	assistant( help ),
+	paramMain( pMain ),
+	paramApero( paramMain->getParamApero() )
 {
 	done = false;
 	//setWindowModality(Qt::ApplicationModal);
@@ -390,7 +393,9 @@ QString MaitresseTabA::calculeBestMaitresse () {
 	QVector<int> nbHom(listWidget->count(),0);
 	cTplValGesInit<string>  aTpl;
 	char** argv = new char*[1];
-	argv[0] = "rthsrth";
+	char c_str[] = "rthsrth";
+	argv[0] = new char[strlen( c_str )+1];
+	strcpy( argv[0], c_str );
 	cInterfChantierNameManipulateur* mICNM = cInterfChantierNameManipulateur::StdAlloc(1, argv, paramMain->getDossier().toStdString(), aTpl );
 	const vector<string>* aVN = mICNM->Get("Key-Set-HomolPastisBin");
 	for (int aK=0; aK<signed(aVN->size()) ; aK++) {
@@ -407,6 +412,7 @@ QString MaitresseTabA::calculeBestMaitresse () {
 		nbVois[i2] ++;
 		nbHom[i2] += aPack.size();
 	}
+	delete [] argv[0];
 	delete [] argv;
 	delete mICNM;
 	//imges avec le plus d'images connectées
@@ -456,7 +462,14 @@ void MaitresseTabA::imgsSetChanged() {
 
 
 ReferenceTabA::ReferenceTabA (ParamApero* paramApero, InterfApero* parentWindow, const ParamMain* pMain, Assistant* help) :
-		QScrollArea(), parent(parentWindow), paramMain(pMain), parametres(paramApero), assistant(help), dir(pMain->getDossier()), fileDialogSommets(0), paintInterfAppui(0)
+	QScrollArea(),
+	dir( pMain->getDossier() ),
+	parametres( paramApero ),
+	paramMain( pMain ),
+	assistant( help ),
+	parent( parentWindow ),
+	paintInterfAppui( 0 ),
+	fileDialogSommets( 0 )
 {
 	//sélection du type d'orientation
 	radioAucun = new QRadioButton(conv(tr("Relative orientation (no GCP)")));
@@ -1494,7 +1507,18 @@ void PtsHomolTabA::exportPt3DClicked() { parametres->setExportPts3D( (checkExpor
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-MasqueWidget::MasqueWidget(const ParamMain* param, Assistant* help, bool mm, bool mmasq, QPushButton* vue3DButton, const QString& image, const QString& postfx) : QWidget(), paramMain(param), assistant(help), dir(param->getDossier()), paintInterf(0), masque(0), imageFond(image), postfixe(postfx), masqueFile(QString()), micmac(mm), micmacMasque(mmasq)
+MasqueWidget::MasqueWidget(const ParamMain* param, Assistant* help, bool mm, bool mmasq, QPushButton* vue3DButton, const QString& image, const QString& postfx):
+	QWidget(),
+	masque( 0 ),
+	assistant( help ),
+	paramMain( param ),
+	dir( param->getDossier() ),
+	paintInterf( 0 ),
+	imageFond( image ),
+	masqueFile( QString() ),
+	postfixe( postfx ),
+	micmac( mm ),
+	micmacMasque( mmasq )
 {
 	if (!imageFond.isEmpty())
 		if (!calcMasqueFile())
@@ -2122,7 +2146,15 @@ void DirectionWidget::updateParam(CarteDeProfondeur* parametres) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-EchelleWidget::EchelleWidget(const ParamMain* pMain, int N, const QStringList & liste1, const QStringList & liste2, Assistant* help, const pair<QVector<QString>,QVector<QPoint> > & paramPrec, double mesPrec) : QWidget(), paintInterfSegment(QVector<PaintInterfSegment*>(2,0)), nbList(N), dir(pMain->getDossier()), paramMain(pMain), assistant(help), pointsEdit(QVector<QLineEdit*>(8,0)), imageEchCombo(QVector<QComboBox*>(N,0))
+EchelleWidget::EchelleWidget(const ParamMain* pMain, int N, const QStringList & liste1, const QStringList & liste2, Assistant* help, const pair<QVector<QString>,QVector<QPoint> > & paramPrec, double mesPrec):
+	QWidget(),
+	imageEchCombo( QVector<QComboBox*>(N,0) ),
+	pointsEdit( QVector<QLineEdit*>(8,0) ),
+	paintInterfSegment( QVector<PaintInterfSegment*>( 2, 0 ) ),
+	dir( pMain->getDossier() ),
+	paramMain( pMain ),
+	assistant( help ),
+	nbList( N )
 {
 	QFont font;
 	font.setBold(true);
@@ -2352,7 +2384,19 @@ void EchelleWidget::updateParam(CarteDeProfondeur* parametres) {
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ParamApero::ParamApero() : imgMaitresse(QString()), userOrientation(UserOrientation()), useOriInit(false), dirOriInit(QString()), autoCalib(QStringList()), multiechelle(false), calibFigees(QList<int>()), imgToOri(QStringList()), liberCalib(QVector<bool>()), filtrage(true), calcPts3D(true), exportPts3D(false) {}
+ParamApero::ParamApero():
+	imgToOri( QStringList() ),
+	imgMaitresse( QString() ),
+	userOrientation( UserOrientation() ),
+	useOriInit( false ),
+	dirOriInit( QString() ),
+	autoCalib( QStringList() ),
+	multiechelle( false ),
+	calibFigees( QList<int>() ),
+	liberCalib( QVector<bool>() ),
+	filtrage( true ),
+	calcPts3D( true ),
+	exportPts3D( false ){}
 
 ParamApero::ParamApero(const ParamApero& paramApero) { copie(paramApero); }
 

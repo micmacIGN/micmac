@@ -50,13 +50,13 @@ class AppliThread : public QThread
 		friend void copie(AppliThread* appliThread1, const AppliThread& appliThread2);
 
 		ParamMain* paramMain;
-		int endResult;
-		bool* annulation;
-		QString progressLabel;
-		QString readerror;
-		QString micmacDir;
-		QString stdoutfile;
-		bool done;
+		int 	   endResult;
+		bool* 	   annulation;
+		QString    progressLabel;
+		QString    readerror;
+		QString    micmacDir;
+		QString    stdoutfile;
+		bool 	   done;
 };
 
 class InterfPastis;
@@ -140,16 +140,17 @@ class Points3DThread : public AppliThread
 		
 	private :
 		friend void copie(Points3DThread* points3DThread1, const Points3DThread& points3DThread2);
-                QVector<Pose> cameras;
-                int idx;
-		double echelle;
-		QVector<GLdouble> zoneChantier;
-		QVector<GLdouble> zoneChantierEtCam;
-		QVector<Pt3dr> emprise;
-		const ParamApero* paramApero;
-		const vector<string>* aVN;
-		const vector<pair<string,string> >* aPair;
-		const QVector<bool>* typesCam;	//true si fish-eye
+		
+		QVector<Pose> 	 					 cameras;
+		int 			 					 idx;
+		double								 echelle;
+		QVector<GLdouble>					 zoneChantier;
+		QVector<GLdouble>					 zoneChantierEtCam;
+		QVector<Pt3dr>						 emprise;
+		const ParamApero					*paramApero;
+		const vector<string>				*aVN;
+		const vector<pair<string,string> >	*aPair;
+		const QVector<bool>					*typesCam;	//true si fish-eye
 };
 
 class InterfMicmac;

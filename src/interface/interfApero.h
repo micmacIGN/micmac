@@ -60,32 +60,32 @@ class MasqueWidget : public QWidget
 		void showPainter(QString masquePrec=QString());
 		void saveClicked();
 
-		QGroupBox* imageBox;
-		QComboBox *imageCombo;
-		QGroupBox *radioBox;
+		QGroupBox	 *imageBox;
+		QComboBox	 *imageCombo;
+		QGroupBox 	 *radioBox;
 		QRadioButton *radioNvu;
 		QRadioButton *radioOpen;
-		QGroupBox* openBox;
-		QLineEdit *openEdit;
-		QPushButton* openButton;
-		QPushButton* modifButton;
-		QGroupBox* saveBox;
-		QLineEdit *saveEdit;
-		QGroupBox* masqueBox;
+		QGroupBox	 *openBox;
+		QLineEdit	 *openEdit;
+		QPushButton	 *openButton;
+		QPushButton	 *modifButton;
+		QGroupBox	 *saveBox;
+		QLineEdit	 *saveEdit;
+		QGroupBox	 *masqueBox;
 
 		//données
-		Mode currentMode;
-		Tiff_Im* masque;
+		Mode 	 currentMode;
+		Tiff_Im *masque;
 
-		Assistant* assistant;
-		const ParamMain* paramMain;
-		QString dir;		
-		PaintInterf* paintInterf;
-		QString imageFond;
-		QString masqueFile;
-		QString postfixe;	//cas repere apero absolu : "_MasqPlan", cas repereTA micmac : "_MasqRepTA", cas micmac : "_masque"
-		bool micmac;
-		bool micmacMasque;
+		Assistant		*assistant;
+		const ParamMain *paramMain;
+		QString 		 dir;		
+		PaintInterf		*paintInterf;
+		QString			 imageFond;
+		QString			 masqueFile;
+		QString			 postfixe;	//cas repere apero absolu : "_MasqPlan", cas repereTA micmac : "_MasqRepTA", cas micmac : "_masque"
+		bool			 micmac;
+		bool			 micmacMasque;
 };
 
 class DirectionWidget : public QWidget
@@ -147,17 +147,17 @@ class EchelleWidget : public QWidget
 		void imageEchClicked();
 
 	private :
-		QGroupBox* mainBox;
-		QVector<QComboBox*> imageEchCombo;
-		QPushButton* imageEchButton;
-		QVector<QLineEdit*> pointsEdit;
-		QLineEdit* distEdit;	
+		QGroupBox			*mainBox;
+		QVector<QComboBox*>  imageEchCombo;
+		QPushButton			*imageEchButton;
+		QVector<QLineEdit*>  pointsEdit;
+		QLineEdit			*distEdit;	
 
-		QVector<PaintInterfSegment*> paintInterfSegment;
-		QString dir;
-		const ParamMain* paramMain;
-		Assistant* assistant;	
-		int nbList;
+		QVector<PaintInterfSegment*>  paintInterfSegment;
+		QString 					  dir;
+		const ParamMain				 *paramMain;
+		Assistant					 *assistant;	
+		int							  nbList;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -250,53 +250,53 @@ class ReferenceTabA : public QScrollArea
 	private:
 		void resizeEvent(QResizeEvent*);
 
-		QString dir;
-		ParamApero* parametres;
-		const ParamMain* paramMain;
-		Assistant* assistant;
-		InterfApero* parent;
+		QString 		 dir;
+		ParamApero      *parametres;
+		const ParamMain *paramMain;
+		Assistant		*assistant;
+		InterfApero		*parent;
 
-		QWidget* resizableWidget;
+		QWidget		 *resizableWidget;
 		QRadioButton *radioAucun;
-		QRadioButton* radioPlan;
-		QRadioButton* radioImageAbs;
+		QRadioButton *radioPlan;
+		QRadioButton *radioImageAbs;
 		QRadioButton *radioAppuis;
 		QRadioButton *radioSommets;
 			//orientation manuelle
-		QGroupBox* manuBox;
-		QCheckBox* checkDoPlanDir;
-		QCheckBox* checkDoEchelle;
-		QSignalMapper* mapper;
+		QGroupBox 	  *manuBox;
+		QCheckBox 	  *checkDoPlanDir;
+		QCheckBox 	  *checkDoEchelle;
+		QSignalMapper *mapper;
 				//masque+direction
-		QGroupBox* planDirBox;
-		MasqueWidget* masqueWidget;
-		DirectionWidget* directionWidget;
+		QGroupBox		*planDirBox;
+		MasqueWidget	*masqueWidget;
+		DirectionWidget *directionWidget;
 				//échelle
-		EchelleWidget* echelleWidget;
+		EchelleWidget *echelleWidget;
 			//orientation absolue d'une image
-		QGroupBox* imgAbsBox;
-		QComboBox* imgAbsCombo;
-		QRadioButton *radioFichier;
-		QRadioButton *radioHand;
-		QLineEdit* fichierAbsEdit;
-		QGroupBox* fichierAbsBox;
-		QGroupBox* formAbsBox;
-		QVector<QLineEdit*> centerAbsEdit;
-		QVector<QLineEdit*> rotationAbsEdit;
-		EchelleWidget* echelleWidget2;
+		QGroupBox 	 		*imgAbsBox;
+		QComboBox 	 		*imgAbsCombo;
+		QRadioButton 		*radioFichier;
+		QRadioButton 		*radioHand;
+		QLineEdit	 		*fichierAbsEdit;
+		QGroupBox	 		*fichierAbsBox;
+		QGroupBox			*formAbsBox;
+		QVector<QLineEdit*>  centerAbsEdit;
+		QVector<QLineEdit*>  rotationAbsEdit;
+		EchelleWidget		*echelleWidget2;
 			//géoréférencement par points d'appui
-		QGroupBox* appuiBox;
-		QLineEdit* fileAppEdit;
-		QPushButton* fileAppButton;
-		QLineEdit* fileMesEdit;
-		QPushButton* fileMesButton;	
-		QPushButton* fileSaisieButton;
-		PaintInterfAppui* paintInterfAppui;
+		QGroupBox   	 *appuiBox;
+		QLineEdit		 *fileAppEdit;
+		QPushButton 	 *fileAppButton;
+		QLineEdit		 *fileMesEdit;
+		QPushButton 	 *fileMesButton;	
+		QPushButton 	 *fileSaisieButton;
+		PaintInterfAppui *paintInterfAppui;
 			//géoréférencement par coordonnées GPS des sommets
-		QGroupBox* sommetsBox;
-		QLineEdit* fileSommetsEdit;
-		QPushButton* fileSommetsButton;		
-		FileDialog* fileDialogSommets;	
+		QGroupBox   *sommetsBox;
+		QLineEdit   *fileSommetsEdit;
+		QPushButton *fileSommetsButton;		
+		FileDialog  *fileDialogSommets;	
 };
 
 
@@ -547,18 +547,18 @@ class ParamApero
 	private :
 		void copie(const ParamApero& paramApero);
 
-		QStringList imgToOri;
-		QString imgMaitresse;
+		QStringList		imgToOri;
+		QString			imgMaitresse;
 		UserOrientation userOrientation;
-		bool useOriInit;
-		QString dirOriInit;
-		QStringList autoCalib;
-		bool multiechelle;
-		QList<int> calibFigees;
-		QVector<bool> liberCalib;
-		bool filtrage;
-		bool calcPts3D;
-		bool exportPts3D;
+		bool		 	useOriInit;
+		QString		 	dirOriInit;
+		QStringList	 	autoCalib;
+		bool			multiechelle;
+		QList<int>		calibFigees;
+		QVector<bool> 	liberCalib;
+		bool			filtrage;
+		bool			calcPts3D;
+		bool			exportPts3D;
 };
 
 class InterfApero : public QDialog
@@ -584,26 +584,25 @@ class InterfApero : public QDialog
 		void updateInterfApero(int tab);
 
 		//QVector<QIcon> icones;
-		QTabWidget* tabWidget;
-		ImgToOriTabA* imgToOriTabA;
-		MaitresseTabA* maitresseTabA;
-		ReferenceTabA* referenceTabA;
-		OriInitTabA* oriInitTabA;
-		AutoCalibTabA* autoCalibTabA;
-		MultiEchelleTabA* multiEchelleTabA;
-		LiberCalibTabA* liberCalibTabA;
-		PtsHomolTabA* ptsHomolTabA;
-		QPushButton *precButton;
-		QPushButton *calButton;
-		QPushButton *cancelButton;
-		QPushButton *helpButton;
-		Assistant* assistant;
-		bool done;
-
+		QTabWidget		 *tabWidget;
+		ImgToOriTabA	 *imgToOriTabA;
+		MaitresseTabA	 *maitresseTabA;
+		ReferenceTabA	 *referenceTabA;
+		OriInitTabA		 *oriInitTabA;
+		AutoCalibTabA	 *autoCalibTabA;
+		MultiEchelleTabA *multiEchelleTabA;
+		LiberCalibTabA	 *liberCalibTabA;
+		PtsHomolTabA	 *ptsHomolTabA;
+		QPushButton 	 *precButton;
+		QPushButton 	 *calButton;
+		QPushButton 	 *cancelButton;
+		QPushButton 	 *helpButton;
+		Assistant		 *assistant;
+		bool 			  done;
 
 		//données
-		const ParamMain* paramMain;
-		ParamApero paramApero;
+		const ParamMain  *paramMain;
+		ParamApero 		  paramApero;
 };
 
 #endif

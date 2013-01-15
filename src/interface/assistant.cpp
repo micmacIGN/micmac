@@ -503,7 +503,12 @@ const Options& InterfOptions::getOptions() const { return options; }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-InterfVerifMicmac::InterfVerifMicmac(QWidget* parent, Assistant* help, const ParamMain* param, const QProgressDialog* pDialog) : QDialog(parent), paramMain(param), assistant(help), progressDialog(pDialog) {
+InterfVerifMicmac::InterfVerifMicmac(QWidget* parent, Assistant* help, const ParamMain* param, const QProgressDialog* pDialog) :
+	QDialog( parent ),
+	assistant( help ),
+	paramMain( param ),
+	progressDialog( pDialog )
+{
 	setWindowModality(Qt::ApplicationModal);
 
 	apercuButton = new QToolButton;

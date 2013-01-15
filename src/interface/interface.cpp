@@ -171,7 +171,10 @@ QString noBlank(const QString& s) { return remplace(s," ","\\ "); }
 
 int Interface::cpu_count = 2;	//par défaut
 
-Interface::Interface(QSettings& globParam) : paramMain(ParamMain()), settings(&globParam), assistant(new Assistant())
+Interface::Interface(QSettings& globParam):
+	assistant( new Assistant() ),
+	settings( &globParam ),
+	paramMain( ParamMain() )
 {
 	cout << tr("Initializing GUI...").toStdString() << endl;
 	paramMain.setFrench(settings->value("langue").toString()==QLocale::languageToString(QLocale::French));
@@ -914,14 +917,14 @@ void Interface::closeEvent(QCloseEvent* event) {
 
 void Interface::calcPastis(bool continuer)
 {
-	bool refaire = false;
+	//-- bool refaire = false;
 	if (!continuer) {
 		if (paramMain.getCurrentMode()!=ParamMain::ImageMode) {
 			int reponse = dispMsgBox(conv(tr("Tie points were already found.")), conv(tr("Do you want to remove them from the calculation ?")), QVector<int>()<<0<<-1<<1, 2);
 			if (reponse == 1) {	//annuler
 				return;
 			}	//sinon oui
-			refaire = true;	//des paramètres ont déjà été saisis (dans cette session ou ouverture d'un calcul)
+			//-- refaire = true;	//des paramètres ont déjà été saisis (dans cette session ou ouverture d'un calcul)
 		}
 		if (imagesList->topLevelItem(0)->childCount()<2) {	
 			qMessageBox(this, conv(tr("Parameter error.")), conv(tr("Not enough images.")));
@@ -956,14 +959,14 @@ void Interface::calcPastis(bool continuer)
 	pastisLabel->setText(tr("Computing tie points."));
 
 	//progress dialog
-	int nbCpls;
-	if (interfPastis!=0)
-		nbCpls = interfPastis->getParamPastis().getCouples().count();
-	else {
+	//-- int nbCpls;
+	if (interfPastis==0){
 		QList<pair<QString, QString> > couples;
 		QString lecture = FichierCouples::lire (paramMain.getDossier()+paramMain.getCoupleXML(), couples, paramMain.getCorrespImgCalib());
-		nbCpls = couples.count();
+		//-- nbCpls = couples.count();
 	}
+	//-- else
+	//--	nbCpls = interfPastis->getParamPastis().getCouples().count();
 
 	stdoutfilename = paramMain.getDossier()+QString("pastis_outstream");
 	appliThread = new PastisThread(&paramMain, stdoutfilename, &annulation, maxcpu);
@@ -1024,10 +1027,10 @@ void Interface::calcApero(bool continuer)
 
 void Interface::calcMicmac(bool continuer)
 {
-	bool refaire = false;
+	//-- bool refaire = false;
 	if (!continuer) {
-		if (paramMain.getCurrentMode()!=ParamMain::PoseMode)
-			refaire = true;	//des paramètres ont déjà été saisis (dans cette session ou ouverture d'un calcul)
+		//-- if (paramMain.getCurrentMode()!=ParamMain::PoseMode)
+		//--	refaire = true;	//des paramètres ont déjà été saisis (dans cette session ou ouverture d'un calcul)
 		paramMain.setAvancement(MicmacThread::Calcul);
 		paramMain.setAvancement(MicmacThread::Enregistrement);
 		updateInterface(ParamMain::PoseMode);
@@ -2412,7 +2415,16 @@ QString ParamMain::paramPortoXML("param-Porto.xml");
 QString ParamMain::portoXML("Porto.xml");
 QString ParamMain::pathMntXML("PathMNT.xml");
 
-ParamMain::ParamMain() : paramPastis(0), paramApero(0), paramMicmac(QVector<CarteDeProfondeur>()), avancement(0), correspImgCalib(0), tradMode(QVector<pair<Mode,QString> >(8)), tradModeInternational(QVector<pair<Mode,QString> >(8)), micmacDir(QString()), french(true)
+ParamMain::ParamMain():
+	french( true ),
+	tradMode( QVector<pair<Mode,QString> >(8) ),
+	tradModeInternational( QVector<pair<Mode,QString> >(8) ),
+	micmacDir( QString() ),
+	avancement( 0 ),
+	correspImgCalib( 0 ),
+	paramPastis( 0 ),
+	paramApero( 0 ),
+	paramMicmac( QVector<CarteDeProfondeur>() )
 {
 	tradMode[0] = pair<Mode,QString>(BeginMode, conv("initialisation")) ;
 	tradMode[1] = pair<Mode,QString>(ImageMode, conv("images importees")) ;
