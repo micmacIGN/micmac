@@ -140,7 +140,7 @@ cPoseCam::cPoseCam
     mMasqH       (mAppli.MasqHom(aNamePose)),
     mTMasqH      (mMasqH ? new  TIm2DBits<1>(*mMasqH) : 0),
     mPreInit     (false),
-    mObsCentre   (0,0,0),
+    // mObsCentre   (0,0,0),
     mHasObsCentre (false),
     mNumTmp       (-12345678),
     mNbPtsMulNN   (-1),
@@ -722,7 +722,7 @@ const Pt3dr  & cPoseCam::ObsCentre() const
        );
    }
  
-   return mObsCentre;
+   return mObsCentre.mCentre;
 }
 
 
@@ -779,7 +779,8 @@ else
       if (mAppli.HasObsCentre(mPCI->IdBDCentre().Val(),mName))
       {
           mObsCentre = mAppli.ObsCentre(mPCI->IdBDCentre().Val(),mName).mVals;
-          mHasObsCentre = true;
+          mHasObsCentre = (mObsCentre.mInc.x>0) && (mObsCentre.mInc.y>0) && (mObsCentre.mInc.z>0);
+
       }
    }
   
@@ -1660,14 +1661,14 @@ Pt3dr  cPoseCam::AddObsCentre
 {
    ELISE_ASSERT(DoAddObsCentre(anObs),"cPoseCam::AddObsCentre");
    Pt3dr aC0 = CurRot().ImAff(Pt3dr(0,0,0));
-   Pt3dr aDif = aC0 - mObsCentre;
+   Pt3dr aDif = aC0 - mObsCentre.mCentre;
    Pt2dr aDifPlani(aDif.x,aDif.y);
 
    double aPdsP  = aPondPlani.PdsOfError(euclid(aDifPlani)/sqrt(2.));
    double aPdsZ  = aPondAlti.PdsOfError(ElAbs(aDif.z));
 
    Pt3dr aPPds = aSO.AddEq() ? Pt3dr(aPdsP,aPdsP,aPdsZ) : Pt3dr(0,0,0) ; 
-   Pt3dr aRAC = mRF.AddRappOnCentre(mObsCentre,aPPds ,false);
+   Pt3dr aRAC = mRF.AddRappOnCentre(mObsCentre.mCentre,aPPds ,false);
 
 
    double aSEP = aPdsP*(ElSquare(aRAC.x)+ElSquare(aRAC.y))+aPdsZ*ElSquare(aRAC.z);
@@ -1694,10 +1695,10 @@ Pt3dr  cPoseCam::AddObsCentre
               double aDT = mNext->mTime -  mPrec->mTime;
               Pt2dr aV2C(aVC.x,aVC.y);
 
-              Pt3dr aVG = mNext->mObsCentre - mPrec->mObsCentre ;
+              Pt3dr aVG = mNext->mObsCentre.mCentre - mPrec->mObsCentre.mCentre ;
               Pt3dr  aVitG = aVG / aDT;
 
-              Pt3dr aGC = CurCentre() -mObsCentre;
+              Pt3dr aGC = CurCentre() -mObsCentre.mCentre;
 
               double aRetard = scal(aGC,aVitG) /scal(aVitG,aVitG);
 

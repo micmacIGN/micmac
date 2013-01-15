@@ -1446,10 +1446,42 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
     mParamGridIsInit (false),
     mTime            (TIME_UNDEF()),
     mScaleAfnt       (1.0),
-    mScanned         (false)
+    mScanned         (false),
+    mVitesse         (0,0,0),
+    mVitesseIsInit   (false),
+    mIncCentre       (1,1,1)
 {
     UndefAltisSol();
 }
+
+
+Pt3dr ElCamera::Vitesse() const
+{
+    ELISE_ASSERT(mVitesseIsInit,"ElCamera::Vitesse nor init");
+    return mVitesse;
+}
+
+void  ElCamera::SetVitesse(const Pt3dr & aV)
+{
+    mVitesseIsInit  = true;
+    mVitesse = aV;
+}
+
+bool  ElCamera::VitesseIsInit() const
+{
+   return mVitesseIsInit;
+}
+
+Pt3dr ElCamera::IncCentre() const
+{
+    return mIncCentre;
+}
+
+void  ElCamera::SetIncCentre(const Pt3dr & anInc)
+{
+   mIncCentre = anInc;
+}
+
 
 
 bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer) const
@@ -2689,6 +2721,11 @@ cOrientationConique  ElCamera::ExportCalibGlob
    cOrientationExterneRigide anOER = From_Std_RAff_C2M(_orient.inv(),aModeMatr);
    anOER.AltiSol().SetVal(AltiSol);
    anOER.Profondeur().SetVal(Prof);
+
+
+    if (VitesseIsInit())
+       anOER.Vitesse().SetVal(Vitesse());
+   anOER.IncCentre().SetVal(IncCentre());
 
    cOrientationConique anOC;
    anOER.Time().SetVal(GetTime());

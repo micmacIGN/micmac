@@ -2027,6 +2027,12 @@ class cOrientationExterneRigide
         Pt3dr & Centre();
         const Pt3dr & Centre()const ;
 
+        cTplValGesInit< Pt3dr > & Vitesse();
+        const cTplValGesInit< Pt3dr > & Vitesse()const ;
+
+        cTplValGesInit< Pt3dr > & IncCentre();
+        const cTplValGesInit< Pt3dr > & IncCentre()const ;
+
         cRotationVect & ParamRotation();
         const cRotationVect & ParamRotation()const ;
     private:
@@ -2035,6 +2041,8 @@ class cOrientationExterneRigide
         cTplValGesInit< double > mTime;
         cTplValGesInit< eConventionsOrientation > mKnownConv;
         Pt3dr mCentre;
+        cTplValGesInit< Pt3dr > mVitesse;
+        cTplValGesInit< Pt3dr > mIncCentre;
         cRotationVect mParamRotation;
 };
 cElXMLTree * ToXMLTree(const cOrientationExterneRigide &);

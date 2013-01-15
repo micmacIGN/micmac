@@ -314,14 +314,16 @@ void cAppliApero::BasculePoints
            cElRegex &            aSelectorApply
      )
 {
-   cRansacBasculementRigide aBasc;
+   bool aBonC = aBOP.BascOnCentre().IsInit();
+   bool UseV = aBonC &&  aBOP.BascOnCentre().Val().UseVitesse().Val();
+
+   cRansacBasculementRigide aBasc(UseV);
    int aKC=-1;
    std::vector<std::string> aVName;
    bool Test = false;
 
-   if (aBOP.BascOnCentre().IsInit())
+   if (aBonC)
    {
-   
       const cBascOnCentre aBC = aBOP.BascOnCentre().Val();
       for (int aKPose=0 ; aKPose<int(mVecPose.size()) ; aKPose++)
       {
@@ -330,6 +332,7 @@ void cAppliApero::BasculePoints
           if (
                    aSelectorEstim.IsSetIn(aPC->Name()) 
                 && (aPC->RotIsInit())
+                && (aPC->HasObsCentre())
              )
           {
               // std::cout << "BASCULE CENTRE DO " << aPC->Name() << "\n";
@@ -340,8 +343,14 @@ void cAppliApero::BasculePoints
               // const cObserv1Im<cTypeEnglob_Centre> & anOC = ObsCentre(aBC.IdBDC(),aPC->Name());
               //
                 if (Test) aVName.push_back(aPC->Name());
-
-               aBasc.AddExemple(aC0,aCObs);
+  
+               if (UseV)
+               {
+               }
+               else
+               {
+                   aBasc.AddExemple(aC0,aCObs,0);
+               }
                if (   aBOP.PoseCentrale().IsInit()
                    && (aBOP.PoseCentrale().Val()==aPC->Name())
                   )
@@ -373,7 +382,7 @@ void cAppliApero::BasculePoints
                 cOneAppuiMul * anOAM = itO->second;
                 if (anOAM->NbInter() >=2)  
                 {
-                    aBasc.AddExemple(anOAM->PInter(),anOAM->PTer());
+                    aBasc.AddExemple(anOAM->PInter(),anOAM->PTer(),0);
                 }
            }
        }
@@ -395,7 +404,7 @@ void cAppliApero::BasculePoints
                     ///std::cout << "BASCULEFFF " <<  anOAF->Name() << " " << aPInc << "\n";
                     if ((aPInc.x>0) && (aPInc.y>0) && (aPInc.z>0))
                     {
-                        aBasc.AddExemple(anOAF->PInter(),anOAF->PtRes());
+                        aBasc.AddExemple(anOAF->PInter(),anOAF->PtRes(),0);
                     }
                 }
            }
