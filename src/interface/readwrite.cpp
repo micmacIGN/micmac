@@ -2598,7 +2598,9 @@ bool FichierSommetsGPS::convert (const QString& fichierold, const ParamMain& par
 			}
 
 			bool doRot = (!sommet.section(" ",4,4).isEmpty() && !sommet.section(" ",5,5).isEmpty() && !sommet.section(" ",6,6).isEmpty());
-			double roll,pitch,direction;
+			double roll = 0.,
+				   pitch = 0.,
+				   direction = 0.;
 			if (doRot) {
 				roll = sommet.section(" ",4,4).replace(p,v).toDouble(&b);
 				if (!b) {
@@ -3338,7 +3340,7 @@ bool focaleTif(const QString& image, const QString& micmacDir, int* focale, QSiz
 				ok = false;
 				string directory, filename, focalStr;
 				SplitDirAndFile( directory, filename, image.toStdString() );
-				int underscore_pos = filename.find( '_' );
+				size_t underscore_pos = filename.find( '_' );
 				if ( underscore_pos==string::npos || filename.size()<2 ) break;
 				f = atoi( filename.substr( 1, underscore_pos-1 ).c_str() );
 				if ( f!=0 ) ok=true; 
