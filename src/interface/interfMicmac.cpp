@@ -804,7 +804,7 @@ RepereTab::RepereTab(InterfMicmac* interfMicmac, const ParamMain* pMain, VueChan
 	dir( pMain->getDossier() )
 {
 	//choix du repère
-	QGroupBox* radioBox;
+	QGroupBox *radioBox = NULL;
 	if (paramMain->getParamPastis().getTypeChantier()==ParamPastis::Convergent) {
 		radioTerrain = new QRadioButton(conv(tr("Euclidean frame")));
 		radioTerrain->setToolTip(conv(tr("A depth map is a DSM computed in the Euclidean frame of pose orientation and bounded by the union of all images bounding boxes selected for correlation")));

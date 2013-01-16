@@ -131,7 +131,6 @@ void  cAppliApero::ConstructMST
 
    int aNbC = aVCible.size() ; 
 
-   bool aBestGotPM = false;
    // A chaque iteration on va affecter un sommet
    for (int aTimes=0 ; aTimes<aNbC ; aTimes++)
    {
@@ -157,15 +156,12 @@ void  cAppliApero::ConstructMST
                   {
                       aPdsMax = aPds;
                       aBestCam = aPcK;
-                      aBestGotPM = GotPMul;
                       aBestPack= anOLM;
                       aNbRotPreInit = anOLM->NbRotPreInit();
                   }
               }
            }
        }
-// std::cout << " Times " << aTimes << " Pds " << aPdsMax << "MUL " << aBestGotPM  << " " << aBestCam<<  " " << aNbRotPreInit << "\n";
-// if (! aBestGotPM) getchar();
 
        // On calcule les pere-mere
        std::vector<cPoseCam *>  aVBestC;
