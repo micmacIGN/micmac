@@ -108,6 +108,7 @@ class cRansacBasculementRigide
         int  CurK() const;
         const std::vector<Pt3dr>  & PAvant() const;
         const  std::vector<Pt3dr> & PApres()  const;
+        void EstimateDelay();
     private :
 
           bool SolIsInit() const;
@@ -128,12 +129,14 @@ class cRansacBasculementRigide
          void Close();
          std::vector<Pt3dr>  mAvant;
          std::vector<Pt3dr>  mApres ;
+         std::vector<Pt3dr>  mApresInit ;
          std::vector<Pt3dr>  mSpeedApres ;
          bool                mUseV;
 
          Pt3dr               mP0Avant;
          Pt3dr               mP0Apres;
          double              mLambda;
+         double              mDelay;
          double              mCostBestSol;
          cSolBasculeRig      mBestSol;
 };

@@ -54,7 +54,6 @@ Parametre de Tapas :
 
 #define DEF_OFSET -12349876
 
-#define  NbModele 10
 
 
 void Tapas_Banniere()
@@ -70,6 +69,7 @@ void Tapas_Banniere()
 }
 
 
+#define  NbModele 11
 
 const char * Modele[NbModele] = {
                                    "RadialBasic",     // 0
@@ -81,7 +81,8 @@ const char * Modele[NbModele] = {
                                    "HemiEqui",        // 6 
                                    "RadialStd",       // 7 
                                    "FraserBasic",     // 8 
-                                   "FishEyeBasic"     // 9
+                                   "FishEyeBasic",    // 9
+                                   "FE_EquiSolBasic"  // 10
                                 };
 
 
@@ -125,9 +126,11 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
                PropDiag = 0.52;
         }
     }
-    else if (aMod==Modele[9])
+    else if ((aMod==Modele[9]) || (aMod==Modele[10]))
     {
         eModAutom = "eCalibAutomFishEyeLineaire";
+        if (aMod==Modele[10])
+           eModAutom = "eCalibAutomFishEyeEquiSolid";
         aModParam  = Modele[9];
     }
     else if ((aMod==Modele[4]) || (aMod==Modele[5]))
