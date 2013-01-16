@@ -216,6 +216,7 @@ bool Progression::doOrthoCurrentCarte(const ParamMain& paramMain) const {
 		if (!paramMain.getParamMicmac().at(i).getACalculer()) continue;
 		return (!paramMain.getParamMicmac().at(i).getRepere() && paramMain.getParamMicmac().at(i).getDoOrtho());
 	}
+	return false; // ?
 }
 
 int Progression::whichGrShade(const QString& stdoutfile) const {
