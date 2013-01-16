@@ -710,7 +710,7 @@ bool cPoseCam::HasObsCentre() const
    return mHasObsCentre;
 }
 
-const Pt3dr  & cPoseCam::ObsCentre() const
+void cPoseCam::AssertHasObsCentre() const
 {
    if (!mHasObsCentre)
    {
@@ -721,8 +721,33 @@ const Pt3dr  & cPoseCam::ObsCentre() const
              "Observation on centre (GPS) has no been associated to camera"
        );
    }
+}
+
+void cPoseCam::AssertHasObsVitesse() const
+{
+    AssertHasObsCentre();
+    if (! mObsCentre.mVitesse.IsInit())
+    {
+       std::cout << "Name Pose = " << mName << "\n";
+       ELISE_ASSERT
+       (
+             mHasObsCentre,
+             "No speed has  been associated to camera"
+       );
+    }
+}
+
+const Pt3dr  & cPoseCam::ObsCentre() const
+{
+   AssertHasObsCentre();
  
    return mObsCentre.mCentre;
+}
+
+Pt3dr   cPoseCam::Vitesse() const
+{
+    AssertHasObsVitesse();
+    return mObsCentre.mVitesse.Val();
 }
 
 

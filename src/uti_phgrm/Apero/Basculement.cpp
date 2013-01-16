@@ -314,8 +314,10 @@ void cAppliApero::BasculePoints
            cElRegex &            aSelectorApply
      )
 {
+
    bool aBonC = aBOP.BascOnCentre().IsInit();
    bool UseV = aBonC &&  aBOP.BascOnCentre().Val().UseVitesse().Val();
+
 
    cRansacBasculementRigide aBasc(UseV);
    int aKC=-1;
@@ -346,12 +348,16 @@ void cAppliApero::BasculePoints
   
                if (UseV)
                {
+                   Pt3dr aV = aPC->Vitesse();
+                   aBasc.AddExemple(aC0,aCObs,&aV);
                }
                else
                {
                    aBasc.AddExemple(aC0,aCObs,0);
                }
+
                if (   aBOP.PoseCentrale().IsInit()
+                   && (! UseV)
                    && (aBOP.PoseCentrale().Val()==aPC->Name())
                   )
                {
@@ -416,6 +422,7 @@ void cAppliApero::BasculePoints
 
 // std::cout << "--------------BBBBBBBBBBBBBBBB\n";
 
+  
    if (aKC!=-1)
    {
       aBasc.CloseWithTrOnK(aKC);
