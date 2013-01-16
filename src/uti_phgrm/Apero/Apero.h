@@ -404,6 +404,7 @@ class cPoseCam
 
           bool HasObsCentre() const;
           const Pt3dr  & ObsCentre() const;
+          Pt3dr   Vitesse() const;
 	  cRotationFormelle &     RF();
 
           bool DoAddObsCentre(const cObsCentrePDV & anObs);
@@ -441,6 +442,9 @@ class cPoseCam
 
           int   & NumTmp(); // Entre autre dans bloc bascule
      private  :
+
+          void AssertHasObsCentre() const;
+          void AssertHasObsVitesse() const;
           void   AffineRot();
 	  void SetRattach(const std::string &);
           cPoseCam

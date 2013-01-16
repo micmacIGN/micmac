@@ -379,9 +379,63 @@ cSolBasculeRig    cRansacBasculementRigide::SolOfK1K2(int aK1,int aK2,bool & OkS
    return cSolBasculeRig(mP0Avant,mP0Apres,aMat,mLambda);
 }
 
+//
+//   R Av + Tr = Apr + D V
+//
+//    C0 C1 C2  Av.x
+//    C3 C4 C5  Av.y
+//    C3 C4 C5  Av.z
+//    
+
+void Reset13(double *aCoef,int aL,Pt3dr aP,double aV)
+{
+     for (int aK=0 ; aK<13 ;aK++)
+         aCoef[aK] = 0;
+
+      aCoef[3*aL+0] = aP.x;
+      aCoef[3*aL+1] = aP.y;
+      aCoef[3*aL+2] = aP.z;
+      aCoef[9+aL]   = 1;   // Tr
+      aCoef[12]     = -aV;  // Vx Vy Vz
+}
+void cRansacBasculementRigide::EstimateDelay() 
+{
+    ELISE_ASSERT(mAvant.size() >=5,"Need at least 5 sample to use speed");
+
+    L2SysSurResol aSys(13);
+    aSys.GSSR_Reset(false);
+
+     for (int aK=0 ; aK<int(mAvant.size()) ; aK++)
+     {
+         double aCoeff[13];
+
+         Reset13(aCoeff,0,mAvant[aK],mSpeedApres[aK].x);
+         aSys.GSSR_AddNewEquation(1.0,aCoeff,mApres[aK].x,0);
+
+         Reset13(aCoeff,1,mAvant[aK],mSpeedApres[aK].y);
+         aSys.GSSR_AddNewEquation(1.0,aCoeff,mApres[aK].y,0);
+
+         Reset13(aCoeff,2,mAvant[aK],mSpeedApres[aK].z);
+         aSys.GSSR_AddNewEquation(1.0,aCoeff,mApres[aK].z,0);
+
+     }
+    
+     Im1D_REAL8  aSol = aSys.GSSR_Solve(0);
+
+     std::cout << "delay :::    " << aSol.data()[12]  << "\n";
+}
 
 void cRansacBasculementRigide::ExploreAllRansac() 
 {
+
+    if (mUseV)
+    {
+       EstimateDelay();
+    }
+
+    
+
+
     for (int aK1=0 ; aK1<int(mAvant.size()) ; aK1++)
     {
        for (int aK2=aK1+1 ; aK2<int(mAvant.size()) ; aK2++)
