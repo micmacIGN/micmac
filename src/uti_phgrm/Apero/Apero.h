@@ -99,6 +99,13 @@ class cRelEquivPose;
 /*                                                          */
 /************************************************************/
 
+class cObsCentre
+{
+    public :
+       Pt3dr                 mCentre;
+       Pt3dr                 mInc;
+       cTplValGesInit<Pt3dr> mVitesse;
+};
 
 // Utilisation dans AddObservationsRigidGrp 
 
@@ -490,7 +497,7 @@ class cPoseCam
           TIm2DBits<1> *               mTMasqH;
           bool                         mPreInit;
 
-          Pt3dr                        mObsCentre;
+          cObsCentre                   mObsCentre;
           bool                         mHasObsCentre;
 
           int                          mNumTmp; // Entre autre dans bloc bascule
@@ -579,10 +586,11 @@ class  cTypeEnglob_Orient
 	};
 };
 
+
 class cTypeEnglob_Centre
 {
      public :
-        typedef Pt3dr  tObj;
+        typedef cObsCentre  tObj;
 	typedef cBDD_Centre   tArg;
 	static tObj CreateFromXML( cAppliApero &,const std::string &,const tArg &,cObserv1Im<cTypeEnglob_Centre> &);
 

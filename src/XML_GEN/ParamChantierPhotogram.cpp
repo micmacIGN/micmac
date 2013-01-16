@@ -5143,6 +5143,28 @@ const Pt3dr & cOrientationExterneRigide::Centre()const
 }
 
 
+cTplValGesInit< Pt3dr > & cOrientationExterneRigide::Vitesse()
+{
+   return mVitesse;
+}
+
+const cTplValGesInit< Pt3dr > & cOrientationExterneRigide::Vitesse()const 
+{
+   return mVitesse;
+}
+
+
+cTplValGesInit< Pt3dr > & cOrientationExterneRigide::IncCentre()
+{
+   return mIncCentre;
+}
+
+const cTplValGesInit< Pt3dr > & cOrientationExterneRigide::IncCentre()const 
+{
+   return mIncCentre;
+}
+
+
 cRotationVect & cOrientationExterneRigide::ParamRotation()
 {
    return mParamRotation;
@@ -5165,6 +5187,10 @@ cElXMLTree * ToXMLTree(const cOrientationExterneRigide & anObj)
    if (anObj.KnownConv().IsInit())
       aRes->AddFils(ToXMLTree(std::string("KnownConv"),anObj.KnownConv().Val())->ReTagThis("KnownConv"));
    aRes->AddFils(ToXMLTree(std::string("Centre"),anObj.Centre())->ReTagThis("Centre"));
+   if (anObj.Vitesse().IsInit())
+      aRes->AddFils(ToXMLTree(std::string("Vitesse"),anObj.Vitesse().Val())->ReTagThis("Vitesse"));
+   if (anObj.IncCentre().IsInit())
+      aRes->AddFils(ToXMLTree(std::string("IncCentre"),anObj.IncCentre().Val())->ReTagThis("IncCentre"));
    aRes->AddFils(ToXMLTree(anObj.ParamRotation())->ReTagThis("ParamRotation"));
   return aRes;
 }
@@ -5182,6 +5208,10 @@ void xml_init(cOrientationExterneRigide & anObj,cElXMLTree * aTree)
    xml_init(anObj.KnownConv(),aTree->Get("KnownConv",1)); //tototo 
 
    xml_init(anObj.Centre(),aTree->Get("Centre",1)); //tototo 
+
+   xml_init(anObj.Vitesse(),aTree->Get("Vitesse",1)); //tototo 
+
+   xml_init(anObj.IncCentre(),aTree->Get("IncCentre",1)); //tototo 
 
    xml_init(anObj.ParamRotation(),aTree->Get("ParamRotation",1)); //tototo 
 }

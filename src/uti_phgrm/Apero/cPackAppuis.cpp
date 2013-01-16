@@ -426,7 +426,7 @@ std::cout << anOER.L3() << "\n";
 
 }
 
-Pt3dr cTypeEnglob_Centre::CreateFromXML
+cObsCentre cTypeEnglob_Centre::CreateFromXML
              (              
                   cAppliApero & anAppli,
 	          const std::string & aNameXML,
@@ -434,13 +434,28 @@ Pt3dr cTypeEnglob_Centre::CreateFromXML
 		  cObserv1Im<cTypeEnglob_Centre> & anObs
              )
 {
-   Pt3dr aRes=  StdGetObjFromFile<Pt3dr>
-                     (
-                          aNameXML,
-                          (std::string)"include"+ELISE_CAR_DIR+"XML_GEN"+ELISE_CAR_DIR+"ParamChantierPhotogram.xml",
-                          anArg.Tag().Val(),
-                          "Pt3dr"
-                     );
+    cObsCentre aRes;
+    cElXMLTree aFullTreeParam(aNameXML,0);
+    cElXMLTree * aTreeParam = aFullTreeParam.GetUnique(anArg.Tag().Val(),false);
+    xml_init(aRes.mCentre,aTreeParam);
+
+    cElXMLTree * aTreeVitesse = aFullTreeParam.GetOneOrZero("Vitesse");
+    if (aTreeVitesse)
+    {
+        Pt3dr aV;
+        xml_init(aV,aTreeVitesse);
+        aRes.mVitesse.SetVal(aV);
+    }
+
+    cElXMLTree * aTreeInc     = aFullTreeParam.GetOneOrZero("IncCentre");
+    Pt3dr anInc(1,1,1);
+    if (aTreeInc)
+    {
+        xml_init(anInc,aTreeInc);
+    }
+    aRes.mInc = anInc;
+
+
 
     if (anArg.CalcOffsetCentre().IsInit())
     {
@@ -459,7 +474,7 @@ Pt3dr cTypeEnglob_Centre::CreateFromXML
 
         Pt3dr anOFs = anAppli.ICNM()->GetPt3dr(aCOC.IdBase(),aBande);
         
-        aRes = aRes + anOFs;
+        aRes.mCentre = aRes.mCentre + anOFs;
         // std::cout << anOFs << "\n";
     }
 
@@ -938,6 +953,8 @@ void cAppliApero::InitBDDCentre()
     {
          if (itBddC->ByFileTrajecto().IsInit())
          {
+            ELISE_ASSERT(false,"File trajecto no more supported, contact devlopers if required");
+/*
              NewSymb(itBddC->Id());
              cFichier_Trajecto * aFT = GetTrajFromString(mDC+itBddC->ByFileTrajecto().Val(),true);
 
@@ -979,6 +996,7 @@ void cAppliApero::InitBDDCentre()
              delete anAutomSel;
              delete anAutomRefut;
              // getchar();
+*/
          }
          else
          {
