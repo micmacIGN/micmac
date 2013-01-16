@@ -316,9 +316,11 @@ namespace NS_ParamMICMAC
 				if(fdataImg1D == NULL)
 					fdataImg1D	= new float[ size(dimImgMax) * mNbIm ];
 				
+				//std::cout << "size max : " << dimImgMax.x << "," << dimImgMax.y << " image size : " << dimImg.x << "," << dimImg.y << "\n";
+
 				// Copie du tableau 2d des valeurs de l'image
- 				for (uint j = 0; j < dimImg.y ; j++)	
- 					memcpy(  fdataImg1D + dimImgMax.x * ( j + dimImgMax.y * aKIm ), aDataIm[j],  dimImg.x * sizeof(float));
+ 				for (uint j = 0; j < dimImg.y ; j++)
+					memcpy(  fdataImg1D + dimImgMax.x * ( j + dimImgMax.y * aKIm ), aDataIm[j],  dimImg.x * sizeof(float));
 				
 				// Copie du tableau des valeurs de l'image
 				//memcpy(  fdataImg1D + dimImgMax.x *  dimImgMax.y * aKIm, aDataImgLin , dimImg.x * dimImg.y * sizeof(float));
@@ -959,8 +961,8 @@ namespace NS_ParamMICMAC
 		Pt2di sizImg =  aGLI.getSizeImage();
 
 		// Obtenir la nappe englobante
-		//int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		int aZMinTer = 0 , aZMaxTer = 1;
+		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
+		//int aZMinTer = 0 , aZMaxTer = 1;
 
 		// Tableau de sortie de corrélation 
 		float* h_TabCost = new float[  h.rSiTer ];
@@ -1034,7 +1036,7 @@ namespace NS_ParamMICMAC
 
 		if (showDebug) std::cout << "fin delete\n";
 
-		//if(0)
+		if(0)
 		{
 
 			bool showdebug_CPU = true;
@@ -1067,7 +1069,12 @@ namespace NS_ParamMICMAC
 							for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 							{
 								
-								int imageDebug = 0;
+								//////////////////////////////////////////////////////////////////////////
+													//////////////////////////////////////////////////////
+								int imageDebug = 2; //////////////////////////////////////////////////////
+
+								//////////////////////////////////////////////////////////////////////////
+
 								cGPU_LoadedImGeom & aGLI = *(mVLI[aKIm]);
 								const cGeomImage * aGeom=aGLI.Geom();
 								float ** aDataIm =  aGLI.DataIm();
@@ -1102,19 +1109,41 @@ namespace NS_ParamMICMAC
 												*(mCurVals++) = aVal;
 												aSV += aVal;
 												aSVV += QSquare(aVal) ;
+												
 
-												/*float off = 100.0f;
-												if (showdebug_CPU && aKIm == imageDebug && aXVois == anX && aYVois == anY )
-												{
-													std::string valS;
-													stringstream sValS (stringstream::in | stringstream::out);
-													float res = floor(aVal*off/500.0f)/off;
-													sValS << res;
-													long sizeV = sValS.str().length();
-													std::cout << " " << sValS.str() ;
-													if (sizeV == 3) std::cout << " ";
-													
-												}*/
+// 												if (showdebug_CPU && aKIm == imageDebug && aXVois == anX && aYVois == anY )
+// 												{
+// 													float off = 100.0f;
+// 													std::string S2 = "    ";
+// 													std::string ES = "";
+// 													std::string S1 = " ";
+// 
+// 													float out = aVal/500.0f;
+// 													//float out = (float)aPIm.y;
+// 													//float out = h_TabCost[id];
+// 
+// 													out = floor(out*off)/off;
+// 
+// 													std::string valS;
+// 													stringstream sValS (stringstream::in | stringstream::out);
+// 													sValS << abs(out);
+// 													long sizeV = sValS.str().length();
+// 													if (sizeV == 5) ES = ES + "";
+// 													else if (sizeV == 4) ES = ES + " ";
+// 													else if (sizeV == 3) ES = ES + "  ";
+// 													else if (sizeV == 2) ES = ES + "   ";
+// 													else if (sizeV == 1) ES = ES + "    ";
+// 
+// 													if ( out < 0.0f && out > -1.0f)
+// 														std::cout << " " << out << ES;						
+// 													else if ( out > 0.0f /*&& out < 1.0f*/)
+// 														std::cout << S1 << out << ES;
+// 													else if ( out == 0 )
+// 														std::cout << S1 << "0" << S2;
+// 													else
+// 														std::cout << S1 << "." << S2;
+// 
+// 												}
 												
 											}
 											else
@@ -1139,38 +1168,38 @@ namespace NS_ParamMICMAC
 											for (int aKV=0 ; aKV<mNbPtsWFixe; aKV++)
 											{
 												mValsIm[aKV] = (mValsIm[aKV]-aSV)/aSVV;
+// 											
 // 												if ( showdebug_CPU && aKIm == imageDebug && (aKV == (2 * mPtSzWFixe.x + 1) * mPtSzWFixe.y + mPtSzWFixe.x) )
 // 												{
 // 													float off = 100.0f;
-// 													if (aKIm == imageDebug )
-// 													{
-// 														std::string S2 = "   ";
-// 														std::string ES = "";
-// 														std::string S1 = "  ";
+// 													std::string S2 = "    ";
+// 													std::string ES = "";
+// 													std::string S1 = " ";
 // 
-// 														float out = mValsIm[aKV];
-// 														//float out = h_TabCost[id];
-// 														out = floor(out*off)/off ;
+// 													float out = (mValsIm[aKV] + 1.0f) /2.0f;
+// 													//float out = h_TabCost[id];
+// 													out = floor(out*off)/off ;
 // 
-// 														std::string valS;
-// 														stringstream sValS (stringstream::in | stringstream::out);
-// 														sValS << abs(out);
-// 														long sizeV = sValS.str().length();
-// 														if (sizeV == 3) ES = ES + " ";
-// 														else if (sizeV == 2) ES = ES + "  ";
-// 														else if (sizeV == 1) ES = ES + "   ";
+// 													std::string valS;
+// 													stringstream sValS (stringstream::in | stringstream::out);
+// 													sValS << abs(out);
+// 													long sizeV = sValS.str().length();
 // 
-// 														if ( out < 0.0f && out > -1.0f)
-// 														{
-// 															std::cout << " " << out << ES;
-// 															//std::cout << "|\\|";
-// 														}
-// 														else if ( out > 0.0f && out < 1.0f)
-// 															std::cout << S1 << out << ES;
-// 														//std::cout << " *" << S1;
-// 														else
-// 															std::cout << S1 << "H" << S2;
-// 													}
+// 													if (sizeV == 5) ES = ES + "";
+// 													else if (sizeV == 4) ES = ES + " ";
+// 													else if (sizeV == 3) ES = ES + "  ";
+// 													else if (sizeV == 2) ES = ES + "   ";
+// 													else if (sizeV == 1) ES = ES + "    ";
+// 
+// 													if ( out < 0.0f && out > -1.0f)
+// 														std::cout << out << ES;						
+// 													else if ( out > 0.0f)
+// 														std::cout << S1 << out << ES;
+// 													else if ( out == 0 )
+// 														std::cout << S1 << "0" << S2;
+// 													else
+// 														std::cout << S1 << "." << S2;
+// 													
 // 												}
 											}	
 										}
@@ -1179,7 +1208,7 @@ namespace NS_ParamMICMAC
 											IsOk = false;
 										}
 									}
-// 									else
+//									else
 // 									{
 // 										if (aKIm == imageDebug)
 // 											std::cout << "  *   ";
@@ -1212,32 +1241,39 @@ namespace NS_ParamMICMAC
 
 									//////////////////////////////////////////////////////////////////////////
 
-									if (showdebug_CPU && aKV == (mPtSzWFixe.x + 1) * mPtSzWFixe.x * 2 )
-									{
-										float off = 100.0f;
-										
-										std::string S2 = "   ";
-										std::string ES = "";
-										std::string S1 = "  ";
-
-										float out = aSV/10.0f;
-										//float out = aVVals[0][aKV];
-										out = floor(out*off)/off ;
-
-										std::string valS;
-										stringstream sValS (stringstream::in | stringstream::out);
-										sValS << abs(out);
-										long sizeV = sValS.str().length();
-										if (sizeV == 3) ES = ES + " ";
-										else if (sizeV == 2) ES = ES + "  ";
-										else if (sizeV == 1) ES = ES + "   ";
-
-										if ( out < 0.0f )
-											std::cout << " " << out << ES;
-										else
-											std::cout << S1 << out << ES;									
-
-									}
+									//if ( showdebug_CPU && (aKV == (2 * mPtSzWFixe.x + 1) * mPtSzWFixe.y + mPtSzWFixe.x) )
+// 									if ( showdebug_CPU && (aKV == (2 * mPtSzWFixe.y + 1) * (2 * mPtSzWFixe.x + 1) - 1  ) )
+// 									{
+// 										float off = 100.0f;
+// 										std::string S2 = "    ";
+// 										std::string ES = "";
+// 										std::string S1 = " ";
+// 
+// 										float out = aSV /10.0f;
+// 										//float out = h_TabCost[id];
+// 										out = floor(out*off)/off ;
+// 
+// 										std::string valS;
+// 										stringstream sValS (stringstream::in | stringstream::out);
+// 										sValS << abs(out);
+// 										long sizeV = sValS.str().length();
+// 
+// 										if (sizeV == 5) ES = ES + "";
+// 										else if (sizeV == 4) ES = ES + " ";
+// 										else if (sizeV == 3) ES = ES + "  ";
+// 										else if (sizeV == 2) ES = ES + "   ";
+// 										else if (sizeV == 1) ES = ES + "    ";
+// 
+// 										if ( out < 0.0f && out > -1.0f)
+// 											std::cout << out << ES;						
+// 										else if ( out > 0.0f)
+// 											std::cout << S1 << out << ES;
+// 										else if ( out == 0 )
+// 											std::cout << S1 << "0" << S2;
+// 										else
+// 											std::cout << S1 << "." << S2;
+// 													
+// 									}
 									//////////////////////////////////////////////////////////////////////////
 
 
@@ -1245,11 +1281,46 @@ namespace NS_ParamMICMAC
 									anEC2 += (aSVV-QSquare(aSV)/aNbImOk);
 								}
 						
-									
+								
 
 								// Normalisation pour le ramener a un equivalent de 1-Correl 
 								double aCost = anEC2 / (( aNbImOk-1) *mNbPtsWFixe);
 								aCost =  mStatGlob->CorrelToCout(1-aCost);
+
+								if ( showdebug_CPU )
+								{
+									float off = 100.0f;
+									std::string S2 = "    ";
+									std::string ES = "";
+									std::string S1 = " ";
+
+									float out = aCost;
+									//float out = h_TabCost[id];
+									out = floor(out*off)/off ;
+
+									std::string valS;
+									stringstream sValS (stringstream::in | stringstream::out);
+									sValS << abs(out);
+									long sizeV = sValS.str().length();
+
+									if (sizeV == 5) ES = ES + "";
+									else if (sizeV == 4) ES = ES + " ";
+									else if (sizeV == 3) ES = ES + "  ";
+									else if (sizeV == 2) ES = ES + "   ";
+									else if (sizeV == 1) ES = ES + "    ";
+
+									if ( out < 0.0f && out > -1.0f)
+										std::cout << out << ES;						
+									else if ( out > 0.0f)
+										std::cout << S1 << out << ES;
+									else if ( out == 0 )
+										std::cout << S1 << "0" << S2;
+									else
+										std::cout << S1 << "." << S2;
+
+								}
+
+
 								// On envoie le resultat a l'optimiseur pour valoir  ce que de droit
 								mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,aCost);
 							}
