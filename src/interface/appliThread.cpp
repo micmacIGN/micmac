@@ -2696,9 +2696,8 @@ void LectureCamThread::run() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-Model3DThread::Model3DThread() : AppliThread(), glParam(0), i(0) {}
-Model3DThread::Model3DThread(ParamMain* pMain, GLParams*& pGL) : AppliThread(pMain,QString(),0), glParam(pGL), i(0)
-        {}
+Model3DThread::Model3DThread() : AppliThread(), i(0), glParam(0) {}
+Model3DThread::Model3DThread(ParamMain* pMain, GLParams*& pGL) : AppliThread(pMain,QString(),0), i(0), glParam(pGL){}
 Model3DThread::Model3DThread(const Model3DThread& model3DThread) : AppliThread() { copie(this, model3DThread); }
 Model3DThread::~Model3DThread () {}
 
@@ -2884,9 +2883,16 @@ void Model3DSousThread::run() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-OrthoThread::OrthoThread() : AppliThread(), numRef(QString()), infoLabel(0), egaliser(false) {}
-OrthoThread::OrthoThread(ParamMain* pMain, QLabel *label, bool egal) : AppliThread(pMain,QString(),0), numRef(QString()), infoLabel(label), egaliser(egal)
-        {}
+OrthoThread::OrthoThread():
+	AppliThread(),
+	infoLabel(0),
+	numRef(QString()),
+	egaliser(false) {}
+OrthoThread::OrthoThread(ParamMain* pMain, QLabel *label, bool egal):
+	AppliThread(pMain,QString(),0),
+	infoLabel(label),
+	numRef(QString()),
+	egaliser(egal){}
 OrthoThread::OrthoThread(const OrthoThread& orthoThread) : AppliThread() { copie(this, orthoThread); }
 OrthoThread::~OrthoThread () {}
 

@@ -48,12 +48,12 @@ class Pose
 	private :
 		void copie(const Pose& pose);
 
-		QString nomImg;
-		CamStenope* camera;
+		QString						nomImg;
+		CamStenope				   *camera;
 		QList<pair<Pt3dr, QColor> > ptsAppui;
 		QList<pair<Pt3dr, QColor> > ptsAppui2nd;	//points d'appui qui ne seront tracés que si on cherche tous les points de cette caméra (infoButton)
-		QVector<Pt3dr> emprise;
-		QSize imgSize;
+		QVector<Pt3dr>				emprise;
+		QSize						imgSize;
 };
 
 class SelectCamBox : public QGroupBox
@@ -88,15 +88,15 @@ class SelectCamBox : public QGroupBox
 		void clearContent();
 		void contextMenuEvent(QContextMenuEvent *event);
 
-		QHBoxLayout* mainLayout;
+		QHBoxLayout	*mainLayout;
 		QToolButton *refButton;
 		QToolButton *okButton;
 		QListWidget *camList;
-		QAction *cutAct;
-		QLineEdit *camEdit;
+		QAction		*cutAct;
+		QLineEdit	*camEdit;
 
 		QString refImage;
-		Mode pCurrentMode;		
+		Mode 	pCurrentMode;		
 };
 
 class GeorefMNT
@@ -130,13 +130,13 @@ class GeorefMNT
 	private :
 		void copie(const GeorefMNT& georefMNT);
 
-		double x0;
-		double y0;
-		double dx;
-		double dy;
+		double	x0;
+		double	y0;
+		double	dx;
+		double	dy;
 		QString fichier;
-		bool geomTerrain;
-		bool done;
+		bool	geomTerrain;
+		bool	done;
 };
 
 class Nuage {
@@ -331,26 +331,26 @@ class GLWidget : public QGLWidget
                 GLdouble profondeur(const Pt3dr& point) const;
 		void doNuages();
 
-		GLParams* parametres;
-		QVector<GLdouble> espace;	//xmin, xmax, ymin, ymax, zmin, zmax
-		QVector<int> currentDezoom;	//nuages->count()] , de 0 (peu précis,  dézoom 32) à 5 (résolution 1)
-		const ParamMain* paramMain;
+		GLParams		  *parametres;
+		QVector<GLdouble>  espace;			//xmin, xmax, ymin, ymax, zmin, zmax
+		QVector<int>	   currentDezoom;	//nuages->count()] , de 0 (peu précis,  dézoom 32) à 5 (résolution 1)
+		const ParamMain	  *paramMain;
 
-		GLuint objectCam;
-		GLuint objectEmp;
-		GLuint objectApp;
-		QVector<GLuint> objectNuag;	//[6*num + resol], du moins résolu (1/32) au plus résolu (1)
-		GLuint axes;
-		GLuint boule;
-		QPoint lastPos;
-		pair<int,double> posSphere;
-		double winZ;
-		bool info;
-		bool ref;
+		GLuint			  objectCam;
+		GLuint			  objectEmp;
+		GLuint			  objectApp;
+		QVector<GLuint>   objectNuag;	//[6*num + resol], du moins résolu (1/32) au plus résolu (1)
+		GLuint 			  axes;
+		GLuint			  boule;
+		QPoint 			  lastPos;
+		pair<int,double>  posSphere;
+		double			  winZ;
+		bool			  info;
+		bool			  ref;
 		QPair<QPoint,int> infoBulle;
-		double demiCote;
-		QAction* addCamAct;
-		static double visibilite;	//taille de l'espace / taille du chantier
+		double			  demiCote;
+		QAction			 *addCamAct;
+		static double 	  visibilite;	//taille de l'espace / taille du chantier
 };
 
 class Layers;
@@ -403,33 +403,33 @@ class VueChantier : public QDialog
 		void showEvent(QShowEvent*);
 		void resizeEvent(QResizeEvent*);
 
-		GLWidget *glWidget;
-		QToolBar* toolBar1;
-		QToolBar* toolBar2;
-		QGroupBox* translationBox;
-		QGroupBox* zoomBox;
-		QGroupBox* focaleBox;
-		QGroupBox* rotationBox;
-		QToolButton** moveButtons;
-		QToolButton *intiViewButton;
-		QSlider* focaleSlide;
-		RotationButton *rotationButton;
-		Layers* aperoLayers;
-		Layers* nuagesLayers;
-		QToolButton *infoButton;
-		QToolButton *colorButton;
-		QToolButton *measureButton;
-		SelectCamBox* refBox;
-		QToolButton *helpButton;
-		QTimer* timer;
-		int currentTool;
-		QSignalMapper* mapper3;
-		QGridLayout *mainLayout;
-		Assistant* assistant;
-		bool hidden;
-		bool done;
-		const ParamMain* paramMain;
-		GLParams glparams;
+		GLWidget 		*glWidget;
+		QToolBar		*toolBar1;
+		QToolBar		*toolBar2;
+		QGroupBox		*translationBox;
+		QGroupBox		*zoomBox;
+		QGroupBox		*focaleBox;
+		QGroupBox		*rotationBox;
+		QToolButton	   **moveButtons;
+		QToolButton		*intiViewButton;
+		QSlider			*focaleSlide;
+		RotationButton	*rotationButton;
+		Layers			*aperoLayers;
+		Layers			*nuagesLayers;
+		QToolButton		*infoButton;
+		QToolButton		*colorButton;
+		QToolButton		*measureButton;
+		SelectCamBox	*refBox;
+		QToolButton		 *helpButton;
+		QTimer			*timer;
+		int				 currentTool;
+		QSignalMapper	*mapper3;
+		QGridLayout		*mainLayout;
+		Assistant		*assistant;
+		bool			 hidden;
+		bool			 done;
+		const ParamMain	*paramMain;
+		GLParams		 glparams;
 };
 
 class RotationButton : public QToolButton

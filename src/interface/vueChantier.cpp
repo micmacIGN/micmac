@@ -22,7 +22,18 @@ void multTransposeMatrix(const GLdouble* m) {	//pour Windows
 //initialisation/////////////////////////////////////////////////
 double GLWidget::visibilite = 100.0;//1000.0;
 GLWidget::GLWidget(VueChantier *parent, GLParams* params, const ParamMain& pMain) :
-                QGLWidget(parent), parametres(params), info(false), ref(false), objectCam(0), objectEmp(0), objectApp(0), axes(0), espace(QVector<GLdouble>(6)), objectNuag(QVector<GLuint>()), currentDezoom(QVector<int>()), paramMain(&pMain)
+	QGLWidget(parent),
+	parametres(params),
+	espace(QVector<GLdouble>(6)),
+	currentDezoom(QVector<int>()),
+	paramMain(&pMain),
+	objectCam(0),
+	objectEmp(0),
+	objectApp(0),
+	objectNuag(QVector<GLuint>()),
+	axes(0),
+	info(false),
+	ref(false)
 {     
 	setFocusPolicy(Qt::WheelFocus);
 	setAutoFillBackground(false);
@@ -637,8 +648,8 @@ bool GLWidget::calcDezoom(int num) {
 	//paramètres du nuage
         double f = double(parametres->getNuages().at(num).getFocale());	//en pixels
         const Pose* pose = &(parametres->getNuages().at(num).getPose());
-        const cElNuage3DMaille* nuage = parametres->getNuages().at(num).getPoints().at(0);
-	Pt2dr Pt = nuage->Plani2Index(Pt2dr(pose->width()/2,pose->height()/2));
+    //-- const cElNuage3DMaille* nuage = parametres->getNuages().at(num).getPoints().at(0);
+	//-- Pt2dr Pt = nuage->Plani2Index(Pt2dr(pose->width()/2,pose->height()/2));
 	//double profondeurMoy = nuage->ProfEnPixel(Pt2di(Pt.x,Pt.y));	//peut aussi être la plus petite distance entre S et les ptsExtremes (au cas où l'objet ne serait pas centré)
 
 	//distance des points au sommet pour avoir la profondeur réelle du nuage
@@ -1326,7 +1337,13 @@ int GLWidget::getRefImg() const { return infoBulle.second; }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-VueChantier::VueChantier(const ParamMain* pMain, QWidget* parent, Assistant* help) : QDialog(parent), glparams(), assistant(help), paramMain(pMain), hidden(false), glWidget(0)
+VueChantier::VueChantier(const ParamMain* pMain, QWidget* parent, Assistant* help):
+	QDialog(parent),
+	glWidget(0),
+	assistant(help),
+	hidden(false),
+	paramMain(pMain),
+	glparams()
 {
 	done = false;
 	setWindowModality(Qt::ApplicationModal);
@@ -1977,7 +1994,13 @@ void RotationButton::mouseReleaseEvent(QMouseEvent * event) {
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 
-Pose::Pose() : ptsAppui(QList<pair<Pt3dr, QColor> >()), ptsAppui2nd(QList<pair<Pt3dr, QColor> >()), nomImg(QString()), emprise(QVector<Pt3dr>(4)), imgSize(QSize(0,0)), camera(0) {}
+Pose::Pose():
+	nomImg(QString()),
+	camera(0),
+	ptsAppui(QList<pair<Pt3dr, QColor> >()),
+	ptsAppui2nd(QList<pair<Pt3dr, QColor> >()),
+	emprise(QVector<Pt3dr>(4)),
+	imgSize(QSize(0,0)) {}
 Pose::Pose(const Pose& pose) { copie(pose); }
 Pose::~Pose() {
 	if (camera!=0)
@@ -2280,7 +2303,16 @@ void Nuage::setZoomMax(int z) { zoomMax = z; }
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 		
-SelectCamBox::SelectCamBox() : QGroupBox(), pCurrentMode(SelectCamBox::Hide), refImage(QString()), mainLayout(0), refButton(0), okButton(0), camList(0), camEdit(0), cutAct(0) {}
+SelectCamBox::SelectCamBox():
+	QGroupBox(),
+	mainLayout(0),
+	refButton(0),
+	okButton(0),
+	camList(0),
+	cutAct(0),
+	camEdit(0),
+	refImage(QString()),
+	pCurrentMode(SelectCamBox::Hide) {}
 SelectCamBox::~SelectCamBox() {
 	clearContent();
 }
@@ -2431,7 +2463,15 @@ void SelectCamBox::cut() {
 
 GeorefMNT::GeorefMNT() : x0(0), y0(0), dx(1), dy(1), fichier(QString()), geomTerrain(false), done(true) {}
 GeorefMNT::GeorefMNT(const GeorefMNT& georefMNT) { copie(georefMNT); }
-GeorefMNT::GeorefMNT(const QString& f, bool lire) : x0(0), y0(0), dx(1), dy(1), geomTerrain(false), fichier(f), done(false) {
+GeorefMNT::GeorefMNT(const QString& f, bool lire):
+	x0(0),
+	y0(0),
+	dx(1),
+	dy(1),
+	fichier(f),
+	geomTerrain(false),
+	done(false)
+{
 	if (lire) {
 		geomTerrain = true;
 		QString err = FichierGeorefMNT::lire(*this);

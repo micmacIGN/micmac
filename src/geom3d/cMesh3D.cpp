@@ -233,7 +233,6 @@ cMesh::cMesh(const std::string & Filename)
 	int nprops;
 	int num_elems;
 	char *elem_name;
-	PlyProperty **plist;
 	int cpt;
 	int id0, id1, id2;
 	int idc0, idc1; //index des sommets communs
@@ -246,7 +245,7 @@ cMesh::cMesh(const std::string & Filename)
 	for (int i = 0; i < nelems; i++) 
 	{
 		elem_name = elist[i];
-		plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
+		ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
 				
 		//printf ("element %s %d\n", elem_name, num_elems);
 					
