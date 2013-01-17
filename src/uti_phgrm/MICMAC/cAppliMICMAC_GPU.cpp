@@ -265,9 +265,9 @@ namespace NS_ParamMICMAC
 		mAhDefCost =  mStatGlob->CorrelToCout(mDefCorr);
 		mAhEpsilon = EpsilonCorrelation().Val();
 
-		mGeomDFPx.SetOriResolPlani(mOriPlani,mStepPlani);
-		mOrigineZ = mGeomDFPx.OrigineAlti();
-		mStepZ = mGeomDFPx.ResolutionAlti();
+		mGeomDFPx->SetOriResolPlani(mOriPlani,mStepPlani);
+		mOrigineZ = mGeomDFPx->OrigineAlti();
+		mStepZ = mGeomDFPx->ResolutionAlti();
 
 		mFirstZIsInit = false;
 
@@ -826,7 +826,7 @@ namespace NS_ParamMICMAC
 		bool showTabPro = false;
 		int imageIDShow = 0;
 		
-		Pt2dr aSzDz = Pt2dr(mGeomDFPx.SzDz());	
+		Pt2dr aSzDz = Pt2dr(mGeomDFPx->SzDz());	
 
 		// Mise en calque des projections pour chaque image
 		for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )

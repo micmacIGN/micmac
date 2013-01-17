@@ -301,9 +301,6 @@ template <class Type,class TBase>
             return  CorZInv(mIsSpherik?euclid(aPe-mCentre):scal(aPe-mCentre,mDirPl));
         }
 
-
-
-        // ElCamera   * mCam;
         Pt3dr        mCentre;
         Pt3dr        mDirPl;
         bool         mProfIsZ;
@@ -344,17 +341,14 @@ template <class Type,class TBase>  cElN3D_EpipGen<Type,TBase>::cElN3D_EpipGen
 
 )  :
    cElNuage3DMaille_FromImProf<Type,TBase>(aDir,aNuage,aFMasq,aFProf), 
-   // mCam       (this->Cam()),
-   mCentre    (this->mCam->OrigineProf()),
-   mDirPl     (this->Params().DirFaisceaux()),
-   mProfIsZ   (aProfIsZ),
-   mZIsInv    (this->Params().ZIsInverse()),
-   mIsSpherik (this->Params().IsSpherik().Val()),
-   mCS        (mIsSpherik ? this->mCam->CS() : 0),
-   mProfC     (scal(mDirPl,mCentre))
+   mProfIsZ   (aProfIsZ)
 {
-   // std::cout << "ZINV " <<  this->Params().ZIsInverse();
-   // std::cout << "CENTRE " << mCentre << "\n";
+	mCentre	   = mCam->OrigineProf();
+	mDirPl	   = Params().DirFaisceaux();
+	mZIsInv    = Params().ZIsInverse();
+	mIsSpherik = Params().IsSpherik().Val();
+	mCS        = (mIsSpherik ? mCam->CS() : 0);
+	mProfC     = scal(mDirPl,mCentre);
 }
 
 template <class Type,class TBase> cElNuage3DMaille * cElN3D_EpipGen<Type,TBase>::V_ReScale

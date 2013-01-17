@@ -474,7 +474,7 @@ class TestScroller :
                    MyBisCr & aScr,
                    Pt2di     aTrInit,
                    bool  IsEpip
-                 );
+                );
 
 		void GUR_query_pointer(Clik p,bool);
 		void GUR_button_released(Clik p);

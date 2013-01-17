@@ -42,6 +42,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+#if ELISE_windows
+	// disable "potential divide by 0" warning in method void ElMatrix::SetColSchmidtOrthog(INT NbIter)
+	#pragma warning( disable : 4723 )
+#endif
+
 static int cos(const int &) 
 {
        ELISE_ASSERT (false,"::cos(const int&)");

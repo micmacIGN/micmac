@@ -427,28 +427,28 @@ void cMesh::setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, vec
 			cTriangle *Tri1 = getTriangle(id1);
 			cTriangle *Tri2 = getTriangle(id2);
 
-			E1 = Tri1->computeEnergy(img_idx);
-			E2 = Tri2->computeEnergy(img_idx);
+			E1 = (float)Tri1->computeEnergy(img_idx);
+			E2 = (float)Tri2->computeEnergy(img_idx);
 
 			//if (E1 == 0.f) 
 			//	aGraph.add_tweights( pos1, 0.f, 1.f );
 			//else
 			//{
-				aGraph.add_tweights( pos1, mLambda*E1, 0.f );
+				aGraph.add_tweights( pos1, (float)(mLambda*E1), 0.f );
 			//}
 
 			//if (E2 == 0.f) 
 			//	aGraph.add_tweights( pos2, 0.f, 1.f );
 			//else
 			//{
-				aGraph.add_tweights( pos2, mLambda*E2, 0.f );
+				aGraph.add_tweights( pos2, (float)(mLambda*E2), 0.f );
 			//}
 
 			//energie de l'arete inter-triangles
 			
 		
 			//longueur^2 de l'arete coupee par elEdge
-			E0 = square_euclid( getVertex( elEdge.v1() ), getVertex( elEdge.v2() ) );
+			E0 = (float)square_euclid( getVertex( elEdge.v1() ), getVertex( elEdge.v2() ) );
 
 			aGraph.add_edge(pos1, pos2, E0, E0);		
 			//aGraph.add_edge(pos1, pos2, 1, 1);		
