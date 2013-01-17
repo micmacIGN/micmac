@@ -220,19 +220,18 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig/*, float *
 	__shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
 
 	// Coordonnées du terrain global avec bordure
-	const uint2 ghTer = make_uint2(blockIdx) * nbActThrd + make_uint2(threadIdx);
-
+	const uint2 ptHTer = make_uint2(blockIdx) * nbActThrd + make_uint2(threadIdx);
+	
 	// Si le processus est hors du terrain, nous sortons du kernel
- 	if ( ghTer.x >= cDimTer.x || ghTer.y >= cDimTer.y) return;
+ 	if ( ptHTer.x >= cDimTer.x || ptHTer.y >= cDimTer.y) return;
 
 	//float2 PtTProj = tex2DLayered(TexLay_Proj, ((float)ghTer.x / (float)cDimTer.x * (float)cSDimTer.x + 0.5f) /(float)cSDimTer.x, ((float)ghTer.y/ (float)cDimTer.y * (float)cSDimTer.y + 0.5f) /(float)cSDimTer.y ,blockIdx.z) ;
-	//const float2 PtTProj = simpleProjection( cDimTer, cSDimTer/*, cDimImg*/, ghTer, blockIdx.z);
-	const float2 PtTProj = tex2DLayered(TexLay_Proj, ((float)ghTer.x  + 0.5f) /(float)cDimTer.x, ((float)ghTer.y + 0.5f) /(float)cDimTer.y ,blockIdx.z) ;
+	//const float2 PtTProj = simpleProjection( cDimTer, cSDimTer/*, cDimImg*/, ptHTer, blockIdx.z);
+	const float2 PtTProj = tex2DLayered(TexLay_Proj, ((float)ptHTer.x  + 0.5f) /(float)cDimTer.x, ((float)ptHTer.y + 0.5f) /(float)cDimTer.y ,blockIdx.z) ;
 	
-	
-	const int2 ter	= make_int2(ghTer) - make_int2(cRVig);
-	const int2 caVig= ter * make_int2(cDimVig);
-	const int  iC	= blockIdx.z * cSizeCach + caVig.y * cDimCach.x + caVig.x;
+	const int2 ptTer	= make_int2(ptHTer) - make_int2(cRVig);
+	const int2 caVig	= ptTer * make_int2(cDimVig);
+	const int  iC		= blockIdx.z * cSizeCach + caVig.y * cDimCach.x + caVig.x;
 
 	if ( PtTProj.x == -1 || PtTProj.y == -1 )
 	{
@@ -250,11 +249,11 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig/*, float *
 	__syncthreads();
 
 	// Nous traitons uniquement les points du terrain du bloque ou Si le processus est hors du terrain global, nous sortons du kernel
-	if ((threadIdx.x >= (nbActThrd.x + cRVig.x))||(threadIdx.y >= (nbActThrd.y + cRVig.y) || (threadIdx.x < cRVig.x) || (threadIdx.y < cRVig.y)) || ( ter.x >= cRDiTer.x) || (ter.y >= cRDiTer.y) || (ter.x < 0) || (ter.y < 0) )
+	if ((threadIdx.x >= (nbActThrd.x + cRVig.x))||(threadIdx.y >= (nbActThrd.y + cRVig.y) || (threadIdx.x < cRVig.x) || (threadIdx.y < cRVig.y)) || ( ptTer.x >= cRDiTer.x) || (ptTer.y >= cRDiTer.y) || (ptTer.x < 0) || (ptTer.y < 0) )
 		return;
-
-	const int2 c0	= make_int2((int)threadIdx.x - ((int)(cRVig.x)),(int)threadIdx.y - ((int)(cRVig.y)));
-	const int2 c1	= make_int2((int)threadIdx.x + ((int)(cRVig.x)),(int)threadIdx.y + ((int)(cRVig.y)));
+	
+	const short2 c0	= make_short2(threadIdx.x - ((short)(cRVig.x)),threadIdx.y - ((short)(cRVig.y)));
+	const short2 c1	= make_short2(threadIdx.x + ((short)(cRVig.x)),threadIdx.y + ((short)(cRVig.y)));
 
 	// Si le parcours de la vignette est hors du terrain, nous sortons!!! Sinon crash GPU!!!!
 // 	if ( (c1.x >= blockDim.x) || (c1.y >= blockDim.y) || (c0.x < 0) || (c0.y < 0) )	//if (blockIdx.z == iDI) siCor[iTer] = 3*cBadVignet; // ## z ##
@@ -266,18 +265,17 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig/*, float *
 	// Intialisation des valeurs de calcul 
 	float aSV = 0.0f, aSVV	= 0.0f;
 	
-	#pragma unroll // ATTENTION PRAGMA FAIT PETER LA MEMOIRE !!!
-	for (int y = c0.y ; y <= c1.y; y++)
+	#pragma unroll // ATTENTION PRAGMA FAIT PETER LA MEMOIRE des registres!!!
+	for (short y = c0.y ; y <= c1.y; y++)
 	{
 		#pragma unroll
-		for (int x = c0.x ; x <= c1.x; x++)
+		for (short x = c0.x ; x <= c1.x; x++)
 		{	
 			const float val = cacheImg[y][x];	// Valeur de l'image
 
 			if (val ==  cBadVignet)
 			{
 				cachVig[iC] = cBadVignet; 
-				
 				return;
 			}
 			aSV  += val;		// Somme des valeurs de l'image cte 
@@ -298,11 +296,11 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig/*, float *
 	aSVV =	sqrt(aSVV);
 
 	#pragma unroll
-	for (int y = c0.y ; y <= c1.y; y++)
+	for (short y = c0.y ; y <= c1.y; y++)
 	{
-		const int _cy	= ter.y * cDimVig.y + (y - c0.y);
+		const int _cy	= ptTer.y * cDimVig.y + (y - c0.y);
 		#pragma unroll
-		for (int x = c0.x ; x <= c1.x; x++)					
+		for (short x = c0.x ; x <= c1.x; x++)					
 // 			if (cacheImg[y][x] == cBadVignet)
 // 			{
 // 				cachVig[iC] = cBadVignet;
@@ -310,7 +308,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig/*, float *
 // 			}
 // 			const int _cx	= ter.x * cDimVig.x + (x - c0.x);
 // 			const int _iC   = (blockIdx.z * cSizeCach) + _cy * cDimCach.x + _cx;
-			cachVig[(blockIdx.z * cSizeCach) + _cy * cDimCach.x + ter.x * cDimVig.x + (x - c0.x)] = (cacheImg[y][x] -aSV)/aSVV;
+			cachVig[(blockIdx.z * cSizeCach) + _cy * cDimCach.x + ptTer.x * cDimVig.x + (x - c0.x)] = (cacheImg[y][x] -aSV)/aSVV;
 		
 	}
 
@@ -321,7 +319,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig/*, float *
 	//const int iTer	= (cRDiTer.x * ter.y) + ter.x; // ne sert pas 
 	// Nombre d'images correctes
 	//atomicAdd( &dev_NbImgOk[iTer], 1.0f);
-	atomicAdd( &dev_NbImgOk[(cRDiTer.x * ter.y) + ter.x], 1.0f);
+	atomicAdd( &dev_NbImgOk[(cRDiTer.x * ptTer.y) + ptTer.x], 1.0f);
 };
 
 // ---------------------------------------------------------------------------
