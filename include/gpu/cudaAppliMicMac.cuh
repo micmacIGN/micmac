@@ -89,6 +89,11 @@ inline __host__ __device__ uint2 operator*(int2 a, uint2 b)
 	return make_uint2(a.x * b.x, a.y * b.y);
 }
 
+inline __host__ __device__ int2 operator+(int2 a, uint2 b)
+{
+	return make_int2(a.x + b.x, a.y + b.y);
+}
+
 inline __host__ __device__ uint2 make_uint2(dim3 a)
 {
 	return make_uint2((uint3)a);
