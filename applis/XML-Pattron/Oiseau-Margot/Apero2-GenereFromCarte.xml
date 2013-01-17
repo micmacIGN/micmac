@@ -1,0 +1,115 @@
+<Global
+    Subst="@$#1"
+    NameDecl="@$#1"
+    PatCouloir="img_(2789|279[0-9]|2800|283[4-9]|284[0-2])_MpDcraw8B_GR.tif"
+>
+   <ParamApero>
+
+<!-- Raccord : 2787 (plafond)
+
+    PB = 2789-2800
+         
+         2834 2842
+-->
+
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> Key-Set-HomolPastisBin  </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>  Key-Assoc-CpleIm2HomolPastisBin   </KeyAssoc>
+             </BDD_PtsLiaisons>
+             <BDD_Orient>
+                  <Id>  IdOrInit </Id>
+                  <KeySet>   Key-Set-All-OrInit       </KeySet>
+                  <KeyAssoc> Key-Assoc-Im2OrInit </KeyAssoc>
+             </BDD_Orient>
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_035 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+                           <NameFile>   Orient/F035_AutoCalInit.xml  </NameFile>
+                           <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_100 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+                           <NameFile>   AutoCalDRad-Canon-100.xml  </NameFile>
+                           <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+          <PoseCameraInc>
+                   <PatternName>  F(035)_${PrefixImages}${PatternNumero}${PostfixImagesDebay}\.${TifPost} </PatternName>
+                   <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+
+                   <PosesDeRattachement>  0  </PosesDeRattachement>
+
+                   <PosValueInit>
+                        <PosFromBDOrient> IdOrInit </PosFromBDOrient>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+
+             <PoseCameraInc>
+                   <PatternName>  F(100)_${PrefixImages}[0-9]{4}${PostfixImagesDebay}\.${TifPost} </PatternName>
+                   <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+                        <PosId> toto </PosId>
+                   </PosValueInit>
+             </PoseCameraInc>
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+		    <SectionObservations>
+		    </SectionObservations>
+
+                   <SectionExport>
+
+                       <ExportMesuresFromCarteProf>
+                          <Cartes2Export>
+                              <Im1>  F100_IMG_5626_MpDcraw8B_GR.tif </Im1>
+                              <Nuage> GeoI-MOS/NuageImProf_LeChantier_Etape_8.xml </Nuage>
+                              <ImN>  F050_IMG_5669_MpDcraw8B_GR.tif </ImN>
+                              <ImN>  F050_IMG_5671_MpDcraw8B_GR.tif </ImN>
+                              <ImN>  F050_IMG_5676_MpDcraw8B_GR.tif </ImN>
+                              <FilterIm2> F100*  </FilterIm2>
+                          </Cartes2Export>
+                          <IdBdLiaisonIn> Id_Pastis_Hom </IdBdLiaisonIn>
+                          <KeyAssocLiaisons12> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons12>
+                          <KeyAssocLiaisons21> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons21>
+                          <LiaisonModeAdd> true </LiaisonModeAdd>
+                       </ExportMesuresFromCarteProf>
+
+
+                   </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
