@@ -218,21 +218,20 @@ __device__  inline float2 simpleProjection( uint2 size, uint2 ssize/*, uint2 siz
 __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig/*, float *siCor*/, uint2 nbActThrd ) //__global__ void correlationKernel( int *dev_NbImgOk, float* cachVig)
 {
 	__shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
-	//const int iDI = 2;
 
 	// Coordonnées du terrain global avec bordure
 	const uint2 ghTer = make_uint2(blockIdx) * nbActThrd + make_uint2(threadIdx);
 
 	// Si le processus est hors du terrain, nous sortons du kernel
- 	if ( ghTer.x >= cDimTer.x || ghTer.y >= cDimTer.y) 
- 		return;
+ 	if ( ghTer.x >= cDimTer.x || ghTer.y >= cDimTer.y) return;
 
 	//float2 PtTProj = tex2DLayered(TexLay_Proj, ((float)ghTer.x / (float)cDimTer.x * (float)cSDimTer.x + 0.5f) /(float)cSDimTer.x, ((float)ghTer.y/ (float)cDimTer.y * (float)cSDimTer.y + 0.5f) /(float)cSDimTer.y ,blockIdx.z) ;
-	const float2 PtTProj = tex2DLayered(TexLay_Proj, ((float)ghTer.x  + 0.5f) /(float)cDimTer.x, ((float)ghTer.y + 0.5f) /(float)cDimTer.y ,blockIdx.z) ;
 	//const float2 PtTProj = simpleProjection( cDimTer, cSDimTer/*, cDimImg*/, ghTer, blockIdx.z);
+	const float2 PtTProj = tex2DLayered(TexLay_Proj, ((float)ghTer.x  + 0.5f) /(float)cDimTer.x, ((float)ghTer.y + 0.5f) /(float)cDimTer.y ,blockIdx.z) ;
+	
 	
 	const int2 ter	= make_int2(ghTer) - make_int2(cRVig);
-	const int2 caVig= ter * make_int2(cDimVig) + cRVig;
+	const int2 caVig= ter * make_int2(cDimVig);
 	const int  iC	= blockIdx.z * cSizeCach + caVig.y * cDimCach.x + caVig.x;
 
 	if ( PtTProj.x == -1 || PtTProj.y == -1 )
@@ -366,12 +365,12 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	const uint2 coorTer		= cCach / cDimVig;
 	
 	// coordonnées central de la vignette
-	const uint2 cc = cRVig + coorTer * cDimVig;
+	const uint2 cc = coorTer * cDimVig;
 	const int iCC = pitCachLayer + cc.y * cDimCach.x + cc.x;
 
 	// Coordonnées 1D dans le terrain
 	const int iTer		= coorTer.y * cRDiTer.x  + coorTer.x;
-	const bool mainThread	= ((t.x + cRVig.x + 1 ) % (int)(cDimVig.x)) == 0 && (( t.y + cRVig.y + 1)% (int)(cDimVig.y)) == 0 && threadIdx.z == 0;
+	const bool mainThread	= t.x % cDimVig.x == 0 &&  t.y% cDimVig.y == 0 && threadIdx.z == 0;
 	const float aNbImOk = dev_NbImgOk[iTer];
 
 	if (aNbImOk < 2)
