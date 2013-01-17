@@ -282,8 +282,8 @@ cAppliMICMAC::cAppliMICMAC
    mCurEtape       (0),
    mEBI            (0),
    mCurMAI         (0),
-   mGeomDFPx_II       (NULL),
-   mGeomDFPxInit_II   (NULL),
+   mGeomDFPx       (NULL),
+   mGeomDFPxInit   (NULL),
    mCout           (std::cout),
    mTimeTotCorrel  (0.0),
    mTimeTotOptim   (0.0),
@@ -330,8 +330,8 @@ cAppliMICMAC::cAppliMICMAC
                      || (GeomMNT()==eGeomMNTFaisceauPrChSpherik) );
 	mDirImagesInit	= WorkDir()+DirImagesOri().ValWithDef("");
 	mDirMasqueIms	= WorkDir()+DirMasqueImages().Val();
-	mGeomDFPx_II		= new cGeomDiscFPx(*this);
-	mGeomDFPxInit_II   = new cGeomDiscFPx(*this);
+	mGeomDFPx		= new cGeomDiscFPx(*this);
+	mGeomDFPxInit   = new cGeomDiscFPx(*this);
 	mShowMes		= ( ByProcess().Val()==0 );
 	mNbBoitesToDo	= NbBoitesMEC().Val();
 	mFreqPtsInt		= ( EchantillonagePtsInterets().IsInit() ? FreqEchantPtsI() : 1 );
@@ -427,9 +427,9 @@ std::cout << "END TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
       return;
 
 
-   mGeomDFPx_II->PostInit();
-   *mGeomDFPxInit_II =  *mGeomDFPx_II;
-   double aLogDZ = log2(mGeomDFPxInit_II->SzDz().XtY() / NbPixDefFilesAux().Val());
+   mGeomDFPx->PostInit();
+   *mGeomDFPxInit =  *mGeomDFPx;
+   double aLogDZ = log2(mGeomDFPxInit->SzDz().XtY() / NbPixDefFilesAux().Val());
    mDeZoomFilesAux = ElMax(DeZoomDefMinFileAux().Val(),(1<<ElMax(0,(round_ni(aLogDZ)))));
    PostInitGeom();
 
@@ -525,8 +525,8 @@ cAppliMICMAC::~cAppliMICMAC()
     DeleteAndClear(mPrisesDeVue);
     DeleteAndClear(mEtapesMecComp);
     delete mEtape00;
-	if ( mGeomDFPx_II!=NULL ) delete mGeomDFPx_II;
-	if ( mGeomDFPxInit_II!=NULL ) delete mGeomDFPxInit_II;
+	if ( mGeomDFPx!=NULL ) delete mGeomDFPx;
+	if ( mGeomDFPxInit!=NULL ) delete mGeomDFPxInit;
 }
 
 
@@ -893,7 +893,7 @@ void cAppliMICMAC::InitMecComp()
                         *this,
                         *itE,
                         (aCpt==0),
-                        *mGeomDFPx_II,
+                        *mGeomDFPx,
 		        mEtapesMecComp
                     );
            mEtapesMecComp.push_back ( anEt);
@@ -1489,12 +1489,12 @@ cStatGlob  * cAppliMICMAC::StatGlob() {return mStatGlob;}
 
 const cGeomDiscFPx &  cAppliMICMAC::GeomDFPx() const
 {
-  return *mGeomDFPx_II;
+  return *mGeomDFPx;
 }
 
 const cGeomDiscFPx &  cAppliMICMAC::GeomDFPxInit() const
 {
-  return *mGeomDFPxInit_II;
+  return *mGeomDFPxInit;
 }
 
 const Pt2di &  cAppliMICMAC::PtSzWFixe() const

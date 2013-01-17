@@ -782,7 +782,7 @@ else
 //  std::cout << "CCCcccC : " << mName <<  " " << mAppli.HasObsCentre(mPCI->IdBDCentre().Val(),mName) << "\n";
       if (mAppli.HasObsCentre(mPCI->IdBDCentre().Val(),mName))
       {
-          mObsCentre = *( mAppli.ObsCentre(mPCI->IdBDCentre().Val(),mName).mVals_II );
+          mObsCentre = *( mAppli.ObsCentre(mPCI->IdBDCentre().Val(),mName).mVals );
           mHasObsCentre = (mObsCentre.mInc.x>0) && (mObsCentre.mInc.y>0) && (mObsCentre.mInc.z>0);
 
       }

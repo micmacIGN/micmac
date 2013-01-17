@@ -625,7 +625,7 @@ template <class TypeEngl> class cObserv1Im : public TypeEngl::tSuppplem
 	 std::string                mIm;
          cPoseCam *                 mPose;
 	 cCameraFormelle *          mCF;
-	 typename TypeEngl::tObj *mVals_II;
+	 typename TypeEngl::tObj *mVals;
 };
 
 

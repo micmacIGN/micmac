@@ -97,11 +97,11 @@ EliseStdImageInteractor::EliseStdImageInteractor
    mScaleMax       (100.0),
    mScaleMin       (0.02),
    mRasterQuickZoom      (true),
-   mGeoGraber_II            (NULL),
+   mGeoGraber            (NULL),
    mModeReplicationPixel (false)
 {
 	// NO_WARN
-	mGeoGraber_II = new Graber(*this);
+	mGeoGraber = new Graber(*this);
 
     aScrol.set_max_init();
     // mScr.set(Pt2dr(0,0),0.1);
@@ -187,7 +187,7 @@ void EliseStdImageInteractor::SetModeReplicationPixel()
 }
 
 EliseStdImageInteractor::~EliseStdImageInteractor(){
-	if ( mGeoGraber_II!=NULL ) delete mGeoGraber_II;
+	if ( mGeoGraber!=NULL ) delete mGeoGraber;
 }
 
 
@@ -266,7 +266,7 @@ Clik  EliseStdImageInteractor::clik_press()
         anI->mP0Grab    = cl1._pt;
         anI->mLastPGrab    = cl1._pt;
         anI->mScale0Grab = anI->mScr.sc();
-        anI->mW.grab( *( anI->mGeoGraber_II ) );
+        anI->mW.grab( *( anI->mGeoGraber ) );
 	}
     }
 
