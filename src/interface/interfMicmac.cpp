@@ -1539,7 +1539,26 @@ QStringList ListeWindow::getSelectedImages() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-CarteDeProfondeur::CarteDeProfondeur() : aCalculer(true), imageDeReference(QString()), imagesCorrel(QStringList()), repere(true), autreRepere(false), imgRepMasq(QString()), imgRep(QString()), segmentRep(std::pair<QPoint,QPoint>(QPoint(-1,-1),QPoint(-1,-1))), axeRep(QPoint(1,0)), doOrtho(false), orthoCalculee(false), imgsOrtho(QStringList()), echelleOrtho(1.0), imgEchOrtho(std::pair<QString,QString>()), ptsEchOrtho(QVector<QPoint>()), interv(std::pair<float,float>(0.3,5)), discontinuites(false), seuilZ(0), seuilZRelatif(0.3) {}
+CarteDeProfondeur::CarteDeProfondeur():
+	aCalculer(true),
+	imageDeReference(QString()),
+	imagesCorrel(QStringList()),
+	repere(true),
+	autreRepere(false),
+	imgRepMasq(QString()),
+	imgRep(QString()),
+	segmentRep(std::pair<QPoint,QPoint>(QPoint(-1,-1),QPoint(-1,-1))),
+	axeRep(QPoint(1,0)),
+	doOrtho(false),
+	orthoCalculee(false),
+	imgsOrtho(QStringList()),
+	echelleOrtho(1.0),
+	imgEchOrtho(std::pair<QString,QString>()),
+	ptsEchOrtho(QVector<QPoint>()),
+	interv(std::pair<float,float>(0.3f,5.f)),
+	discontinuites(false),
+	seuilZ(0),
+	seuilZRelatif(0.3f) {}
 CarteDeProfondeur::CarteDeProfondeur(const CarteDeProfondeur& carteDeProfondeur) { copie(carteDeProfondeur); }
 CarteDeProfondeur::~CarteDeProfondeur() {}
 
