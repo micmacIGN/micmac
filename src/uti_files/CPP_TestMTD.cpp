@@ -57,39 +57,29 @@ Parametre de Tapas :
 #define  NbModele 10
 
 
-int TestSet_main(int argc,char ** argv)
+int TestMTD_main(int argc,char ** argv)
 {
-   MMD_InitArgcArgv(argc,argv,2);
+    MMD_InitArgcArgv(argc,argv,2);
 
-    std::string  aDir,aPat,aFullDir;
-    int  aNbMax=10;
-    std::string aFile;
+    std::string  aNameIm,aToto;
 
     ElInitArgMain
     (
 	argc,argv,
-	LArgMain()  << EAMC(aFullDir,"Full Directory (Dir+Pattern)"),
-	LArgMain()  << EAM(aNbMax,"Nb",true,"Nb Max printed (def = 10)")	
+	LArgMain()  << EAMC(aNameIm,"Name Image"),
+	LArgMain()  << EAM(aToto,"AZERTYUIOP",true,"Unused")	
     );
 
-
-#if (ELISE_windows)
-    replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
-#endif
-    SplitDirAndFile(aDir,aPat,aFullDir);
-    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    const cInterfChantierNameManipulateur::tSet * mSetIm = aICNM->Get(aPat);
+    std::string aDir,aPat;
+    SplitDirAndFile(aDir,aPat,aNameIm);
+    cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
 
-    int aNb = ElMin(aNbMax,int(mSetIm->size()));
+    cMetaDataPhoto aMTD =  cMetaDataPhoto::CreateExiv2(aNameIm);
 
-    for (int aK=0 ; aK< aNb ; aK++)
-    {
-         std::string aName = (*mSetIm)[aK];
-         printf("%3d ",aK);
-         std::cout << aName ;
-         std::cout  << "\n";
-    }
+    std::cout << "FocMm " << aMTD.FocMm(true) << "\n";
+    std::cout << "Foc35 " << aMTD.Foc35(true) << "\n";
+    std::cout << "Cam   [" << aMTD.Cam(true) << "]\n";
  
    
     return 1;
