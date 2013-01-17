@@ -496,16 +496,16 @@ void cObserv1ImPostInit
           const std::string& aNameIm
      )
 {
-   Appar23 aBary = BarryImTer( *(anObs.mVals_II) );
+   Appar23 aBary = BarryImTer( *(anObs.mVals) );
    anObs.mBarryTer = aBary.pter;
    if (aBPA.SzImForInvY().IsInit())
-      InvY( *(anObs.mVals_II),aBPA.SzImForInvY().Val(),aBPA.InvXY().Val() );
+      InvY( *(anObs.mVals),aBPA.SzImForInvY().Val(),aBPA.InvXY().Val() );
 
    cPoseCam *  aPose = anAppli.PoseFromName(aNameIm);
    for 
    (
-       std::list<Appar23>::iterator itL=(anObs.mVals_II)->begin();
-       itL!=(anObs.mVals_II)->end();
+       std::list<Appar23>::iterator itL=(anObs.mVals)->begin();
+       itL!=(anObs.mVals)->end();
        itL++
    )
    {
@@ -536,10 +536,10 @@ cObserv1Im<TypeEngl>::cObserv1Im
    mIm     (aNameIm),
    mPose   (0),
    mCF     (0),
-   mVals_II(NULL)
+   mVals(NULL)
 {
 	// NO_WARN
-	mVals_II = new TypeEngl::tObj( TypeEngl::CreateFromXML(anAppli,aNamePack,anArg,*this) );
+	mVals = new TypeEngl::tObj( TypeEngl::CreateFromXML(anAppli,aNamePack,anArg,*this) );
 
 	cObserv1ImPostInit(*this,anArg,anAppli,aNameIm);
 }
@@ -547,7 +547,7 @@ cObserv1Im<TypeEngl>::cObserv1Im
    
 template <class  TypeEngl>
 cObserv1Im<TypeEngl>::~cObserv1Im(){
-	if ( mVals_II!=NULL ) delete mVals_II;
+	if ( mVals!=NULL ) delete mVals;
 }
 
 template <class  TypeEngl>
@@ -561,9 +561,9 @@ cObserv1Im<TypeEngl>::cObserv1Im
    mIm     (aNameIm),
    mPose   (0),
    mCF     (0),
-   mVals_II (NULL)
+   mVals (NULL)
 {
-	mVals_II = new TypeEngl::tObj(aVals);
+	mVals = new TypeEngl::tObj(aVals);
 }
 
 template <class  TypeEngl>
@@ -585,13 +585,13 @@ cPoseCam * cObserv1Im<TypeEngl>::PC() const
 template <class  TypeEngl>
 const typename TypeEngl::tObj  & cObserv1Im<TypeEngl>::Vals() const
 {
-   return *mVals_II;
+   return *mVals;
 }
 
 template <class  TypeEngl>
 typename TypeEngl::tObj  & cObserv1Im<TypeEngl>::Vals() 
 {
-   return *mVals_II;
+   return *mVals;
 }
 
 template <class  TypeEngl>
@@ -621,7 +621,7 @@ double  cAppliApero::AddAppuisOnePose
       )
 {
 
-   const  std::list<Appar23> & aLAp = *( anObs->mVals_II );
+   const  std::list<Appar23> & aLAp = *( anObs->mVals );
    const cPonderationPackMesure & aPPM = anArg.Pond();
    cCameraFormelle & aCF = *(anObs->mCF);
    cCalibCam * aCalib = anObs->PC()->Calib();

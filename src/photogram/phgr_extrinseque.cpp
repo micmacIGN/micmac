@@ -902,8 +902,8 @@ cCameraFormelle::cCameraFormelle
    mRot        (mSet.NewRotation(aMode,aRot, ((pCamAttach==0) ? 0 : pCamAttach->mRot),aName)),
    mName       (aName),
 
-   mEqAppuiTerNoGL_II(NULL),
-   mEqAppuiTerGL_II(NULL),
+   mEqAppuiTerNoGL(NULL),
+   mEqAppuiTerGL(NULL),
 
 
    mEqAppuiIncXY (0),
@@ -918,8 +918,8 @@ cCameraFormelle::cCameraFormelle
    mCameraCourante(NULL)
 {
 	// NO_WARN
-	mEqAppuiTerNoGL_II = new cEqAppui(true,false,false,true,CompEqAppui,*this,GenCodeAppui);
-	mEqAppuiTerGL_II	 = new cEqAppui(true,true ,false,true,CompEqAppui,*this,GenCodeAppui);
+	mEqAppuiTerNoGL = new cEqAppui(true,false,false,true,CompEqAppui,*this,GenCodeAppui);
+	mEqAppuiTerGL	 = new cEqAppui(true,true ,false,true,CompEqAppui,*this,GenCodeAppui);
 	mCameraCourante	 = CalcCameraCourante();
 }
 
@@ -1137,7 +1137,7 @@ Pt2dr  cCameraFormelle::AddAppui(Pt3dr aP,Pt2dr aPIm,REAL aPds)
 {
    // ELISE_ASSERT(! mRot->IsGL(),"Do not handle cCameraFormelle::ResiduAppui in mode GL");
    aPIm = CorrigePFromDAdd(aPIm,false);
-   cEqAppui * anEq = mRot->IsGL() ? mEqAppuiTerGL_II : mEqAppuiTerNoGL_II ;
+   cEqAppui * anEq = mRot->IsGL() ? mEqAppuiTerGL : mEqAppuiTerNoGL ;
    return anEq->Residu(aP,aPIm,aPds);
 }
 

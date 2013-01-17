@@ -149,7 +149,7 @@ void cAppliMICMAC::MakeFileTA()
        }
    }
 // TA1
-    cGeomDiscFPx aGeomDFPx =  *mGeomDFPx_II;
+    cGeomDiscFPx aGeomDFPx =  *mGeomDFPx;
     aGeomDFPx.SetDeZoom(aDeZoom);
     Pt2di aSzClip = aGeomDFPx.SzDz();
     std::cout << "aSzClip : " << aSzClip <<  " " << aDeZoom << "\n";
@@ -367,7 +367,7 @@ std::string cAppliMICMAC::NameImageMasqOfResol(int aDeZoom)
 
 Pt2di  cAppliMICMAC::SzOfResol(int aDeZoom)
 {
-     cGeomDiscFPx aGeomDFPx =  *mGeomDFPx_II;
+     cGeomDiscFPx aGeomDFPx =  *mGeomDFPx;
      aGeomDFPx.SetDeZoom(aDeZoom);
      VerifSzFile(aGeomDFPx.SzDz());
 
@@ -472,7 +472,7 @@ void cAppliMICMAC::MakeDefImMasq()
 
     std::cout << "<< Make Masq Resol 1 " << aNameMasq << "\n";
 
-    cGeomDiscFPx aGeomDFPx =  *mGeomDFPx_II;
+    cGeomDiscFPx aGeomDFPx =  *mGeomDFPx;
     aGeomDFPx.SetDeZoom(1);
     // Pt2di aSzGlob = aGeomDFPx.SzDz();
     // int aDeZoom = ElMax(0,round_ni(log2(aSzGlob.x * aSzGlob.y / 3.0e7)));

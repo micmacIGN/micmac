@@ -217,7 +217,7 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
 	    tPIF *          PIF(bool isDistC2M,cSetEqFormelles &);
             ElDistortion22_Gen   *  DistPreCond() const ;
      private  :
-            tDist   *mDist_II;
+            tDist   *mDist;
 };
 
 

@@ -87,8 +87,8 @@ class cOneTestLSQ : public NROptF1vND
 
          REAL NRF1v(REAL) ;
 
-         void SetPIm1(const Pt2dr & aPt) {mIm1_II->SetPtIm(aPt);}
-         void SetPIm2(const Pt2dr & aPt) {mIm2_II->SetPtIm(aPt);}
+         void SetPIm1(const Pt2dr & aPt) {mIm1->SetPtIm(aPt);}
+         void SetPIm2(const Pt2dr & aPt) {mIm2->SetPtIm(aPt);}
 
 
          cOneTestLSQ
@@ -104,8 +104,8 @@ class cOneTestLSQ : public NROptF1vND
          const double & Step() const {return mStep;}
          const int    & NbW() const {return mNbW;}
          cInterpolateurIm2D<float> * Interp() const {return mInterp;}
-         cOneImLSQ & Im1() {return *mIm1_II;}
-         cOneImLSQ & Im2() {return *mIm2_II;}
+         cOneImLSQ & Im1() {return *mIm1;}
+         cOneImLSQ & Im2() {return *mIm2;}
 
          bool MinimByLSQandGolden(const Pt2dr& aP1,const Pt2dr&aP2);
       private :
@@ -119,8 +119,8 @@ class cOneTestLSQ : public NROptF1vND
          cInterpolateurIm2D<float> * mInterp;
          double mStep;
          int mNbW;
-         cOneImLSQ  *mIm1_II;
-         cOneImLSQ  *mIm2_II;
+         cOneImLSQ  *mIm1;
+         cOneImLSQ  *mIm2;
 
 
          typedef double tSom;
@@ -224,8 +224,8 @@ cOneTestLSQ::cOneTestLSQ
    mInterp (anInterp),
    mStep   (aCLSQ.Step().Val()),
    mNbW    (round_ni(aCLSQ.SzW()/mStep)),
-   mIm1_II    (NULL),
-   mIm2_II    (NULL),
+   mIm1    (NULL),
+   mIm2    (NULL),
    mMatCov (NbInc,NbInc),
    mMatI2  (1,NbInc),
    mVecP   (NbInc,NbInc),
@@ -233,18 +233,18 @@ cOneTestLSQ::cOneTestLSQ
    mSolLSQ (1,NbInc)
 {
 	// NO_WARN
-	mIm1_II = new cOneImLSQ( aData1,aSzI1, *this );
-	mIm2_II = new cOneImLSQ( aData2,aSzI2, *this );
+	mIm1 = new cOneImLSQ( aData1,aSzI1, *this );
+	mIm2 = new cOneImLSQ( aData2,aSzI2, *this );
 }
 
 cOneTestLSQ::~cOneTestLSQ(){
-	if ( mIm1_II!=NULL ) delete mIm1_II;
-	if ( mIm2_II!=NULL ) delete mIm2_II;
+	if ( mIm1!=NULL ) delete mIm1;
+	if ( mIm2!=NULL ) delete mIm2;
 }
 
 bool cOneTestLSQ::OK(const Pt2dr & aP) const
 {
-    return mIm1_II->OK(Pt2dr(0,0)) && mIm2_II->OK(aP) ;
+    return mIm1->OK(Pt2dr(0,0)) && mIm2->OK(aP) ;
 }
 
 
@@ -275,8 +275,8 @@ void cOneTestLSQ::InitP1()
        for(int aKy=-mNbW; aKy<=mNbW; aKy++)
        {
              
-            Pt2dr aP1 = mIm1_II->PVois(aKx,aKy);
-            double aV1 = mIm1_II->GetVal(aP1);
+            Pt2dr aP1 = mIm1->PVois(aKx,aKy);
+            double aV1 = mIm1->GetVal(aP1);
             mSom1 += aV1;
             mSom11 += ElSquare(aV1);
             mSomP++;
@@ -312,9 +312,9 @@ double cOneTestLSQ::Correl(const Pt2dr & aDec) const
    {
        for(int aKy=-mNbW; aKy<=mNbW; aKy++)
        {
-          Pt2dr aP2 = aDec+mIm2_II->PVois(aKx,aKy);
+          Pt2dr aP2 = aDec+mIm2->PVois(aKx,aKy);
 
-          double aV2 =  mIm2_II->GetVal(aP2);
+          double aV2 =  mIm2->GetVal(aP2);
           double aV1 = mValsIm1[aCpt];
           aSom2 += aV2;
           aSom12 += aV1*aV2;
@@ -374,7 +374,7 @@ bool  cOneTestLSQ::OneOptimOnLine()
    double aLMin;
    golden(aL0,aL1,aL2,1e-3,&aLMin);
 
-   SetPIm2(mIm2_II->PVois(0,0) +mDepLSQ *aLMin);
+   SetPIm2(mIm2->PVois(0,0) +mDepLSQ *aLMin);
    return true;
 
 }
@@ -420,9 +420,9 @@ bool  cOneTestLSQ::OneLSQItere()
    {
        for(int aKy=-mNbW; aKy<=mNbW; aKy++)
        {
-          Pt2dr aP2 = mIm2_II->PVois(aKx,aKy);
+          Pt2dr aP2 = mIm2->PVois(aKx,aKy);
 
-          Pt3dr aGV2 =  mIm2_II->GetValDer(aP2);
+          Pt3dr aGV2 =  mIm2->GetValDer(aP2);
 
 
            double aV1 = mValsIm1[aCpt];
@@ -510,7 +510,7 @@ void  cOneTestLSQ::DoEstim()
            std::cout << " Failled !!!\n";
            return;
        }
-       mIm2_II->SetPtImCur(mIm2_II->PImCur()+mDepLSQ);
+       mIm2->SetPtImCur(mIm2->PImCur()+mDepLSQ);
    }
 
    for (int aK=0 ; aK < int(mDeps.size()) ; aK++)

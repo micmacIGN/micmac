@@ -351,9 +351,9 @@ template <class TypeArg> class cMMNewPrg2D : public cSurfaceOptimiseur
         bool              mEtiqImage;
         int               mMulZ;
         int               mCostChImage;
-        cProg2DOptimiser<cMMNewPrg2D>   *mPrg2D_II;
-        TIm2DBits<1>                    *mTMaskTer_II;
-        cDynTplNappe3D<tCelNap>		    *mNap_II;
+        cProg2DOptimiser<cMMNewPrg2D>   *mPrg2D;
+        TIm2DBits<1>                    *mTMaskTer;
+        cDynTplNappe3D<tCelNap>		    *mNap;
         tCelNap ***                     mCelsNap;
         
         int mMaxJumpGlob;
@@ -400,21 +400,21 @@ template <class Type> cMMNewPrg2D<Type>::cMMNewPrg2D
    mEtiqImage    (EtiqImage),
    mMulZ         (aMul),
    mCostChImage  ( anEBI ? CostR2I(anEBI->CostChangeEtiq()) :0),
-   mPrg2D_II				 (NULL),
-   mTMaskTer_II			 (NULL),
-   mNap_II	                 (NULL),
+   mPrg2D				 (NULL),
+   mTMaskTer			 (NULL),
+   mNap	                 (NULL),
    mCostDefMasked        (0),
    mCostTransMaskNoMask  (0),
    mCostOut              (CostR2I(50.0))
 {
 	// NO_WARN
-	mPrg2D_II		= new cProg2DOptimiser<cMMNewPrg2D>( *this, mONP.mImPxMin, mONP.mImPxMax, (mHasMask ? 1 : 0), mMulZ );
-	mTMaskTer_II	= new TIm2DBits<1>( mLTCur->ImMasqTer() );
-	mNap_II			= &( mPrg2D_II->Nappe() );
-	mCelsNap		= mNap_II->Data();
+	mPrg2D		= new cProg2DOptimiser<cMMNewPrg2D>( *this, mONP.mImPxMin, mONP.mImPxMax, (mHasMask ? 1 : 0), mMulZ );
+	mTMaskTer	= new TIm2DBits<1>( mLTCur->ImMasqTer() );
+	mNap		= &( mPrg2D->Nappe() );
+	mCelsNap	= mNap->Data();
 
-    mPrg2D_II->SetTeta0(mEPG.Teta0().Val());
-    mMaxJumpGlob  = MaxJump (mNap_II->IZMin(),mNap_II->IZMax());
+    mPrg2D->SetTeta0(mEPG.Teta0().Val());
+    mMaxJumpGlob  = MaxJump (mNap->IZMin(),mNap->IZMax());
     mMaxPente     = mMod.Px1PenteMax().Val()/ mEtape.KPx(mNumNap).Pas();
 
     for (int aKJ=0 ; aKJ<=mMaxJumpGlob+1 ; aKJ++)
@@ -425,8 +425,8 @@ template <class Type> cMMNewPrg2D<Type>::cMMNewPrg2D
 }
 
 template <class Type> cMMNewPrg2D<Type>::~cMMNewPrg2D(){
-	if ( mPrg2D_II!=NULL ) delete mPrg2D_II;
-	if ( mTMaskTer_II!=NULL ) delete mTMaskTer_II;
+	if ( mPrg2D!=NULL ) delete mPrg2D;
+	if ( mTMaskTer!=NULL ) delete mTMaskTer;
 }
 
 template <class Type> void cMMNewPrg2D<Type>::DoConnexion
@@ -437,8 +437,8 @@ template <class Type> void cMMNewPrg2D<Type>::DoConnexion
           tCelOpt*Ouput,int aOutZMin,int aOutZMax
      )
 {
-   bool okPIn  = ( mTMaskTer_II->get(aPIn)!=0 );
-   bool okPOut = ( mTMaskTer_II->get(aPOut)!=0 );
+   bool okPIn  = ( mTMaskTer->get(aPIn)!=0 );
+   bool okPOut = ( mTMaskTer->get(aPOut)!=0 );
 
    bool  okInOut = (okPIn && okPOut);
 
@@ -598,8 +598,8 @@ template <class Type>  void cMMNewPrg2D<Type>::Local_SolveOpt(Im2D_U_INT1 aImCor
 
 // std::cout << "mCostTransMaskNoMask " << mCostTransMaskNoMask << "\n";
 
-        Im2D_INT2  aIZMax = mNap_II->IZMax();
-        Im2D_INT2  aIZMin = mNap_II->IZMin();
+        Im2D_INT2  aIZMax = mNap->IZMax();
+        Im2D_INT2  aIZMin = mNap->IZMin();
         Pt2di aSz = aIZMax.sz();
         INT2 ** aDZmax = aIZMax.data();
         INT2 ** aDZmin = aIZMin.data();
@@ -632,11 +632,11 @@ template <class Type>  void cMMNewPrg2D<Type>::Local_SolveOpt(Im2D_U_INT1 aImCor
         }
     }
 
-   mPrg2D_II->DoOptim(mEPG.NbDir().Val());
+   mPrg2D->DoOptim(mEPG.NbDir().Val());
    // mDataImRes[0][y][x]
-   mPrg2D_II->TranfereSol(mDataImRes[mNumNap]);
+   mPrg2D->TranfereSol(mDataImRes[mNumNap]);
 
-   Im2D_INT2  aIZMax = mNap_II->IZMax();
+   Im2D_INT2  aIZMax = mNap->IZMax();
    Pt2di aSz = aIZMax.sz();
 
    Im2D_U_INT1 aImEtiq(aSz.x,aSz.y);

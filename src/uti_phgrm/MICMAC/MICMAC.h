@@ -3094,8 +3094,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
          std::vector<Pt2dr>     mVecPtsW;
          Pt2dr *                mTabPtsW;
 
-        cGeomDiscFPx           *mGeomDFPx_II;
-        cGeomDiscFPx           *mGeomDFPxInit_II;
+        cGeomDiscFPx           *mGeomDFPx;
+        cGeomDiscFPx           *mGeomDFPxInit;
         cLoadTer *              mLTer;
         // Box2dr                  mBoxTer;
         Box2di                  mBoxIn;

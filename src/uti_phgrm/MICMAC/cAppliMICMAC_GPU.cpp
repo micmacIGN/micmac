@@ -265,9 +265,9 @@ namespace NS_ParamMICMAC
 		mAhDefCost =  mStatGlob->CorrelToCout(mDefCorr);
 		mAhEpsilon = EpsilonCorrelation().Val();
 
-		mGeomDFPx_II->SetOriResolPlani(mOriPlani,mStepPlani);
-		mOrigineZ = mGeomDFPx_II->OrigineAlti();
-		mStepZ = mGeomDFPx_II->ResolutionAlti();
+		mGeomDFPx->SetOriResolPlani(mOriPlani,mStepPlani);
+		mOrigineZ = mGeomDFPx->OrigineAlti();
+		mStepZ = mGeomDFPx->ResolutionAlti();
 
 		mFirstZIsInit = false;
 
