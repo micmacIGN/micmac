@@ -356,7 +356,7 @@ void cAppliMICMAC::MakeGenCorPxTransv(cEtapeMecComp & anEtape)
     cDblePx aDpx = LoadPx(anEtape,aResol);
 //std::cout << "ENTER cGeomTerWithMNT2Image\n";
 
-    cGeomTerWithMNT2Image aGTWM2I(aResol,mGeomDFPxInit,PDV2()->Geom(),aDpx);
+    cGeomTerWithMNT2Image aGTWM2I(aResol,*mGeomDFPxInit,PDV2()->Geom(),aDpx);
 
     Pt2di aSzRes = round_ni(Pt2dr(PDV2()->SzIm())/aResol);
     Im2D_REAL4 aRes(aSzRes.x,aSzRes.y);

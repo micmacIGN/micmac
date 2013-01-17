@@ -863,10 +863,18 @@ cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState>::cCamera_Param_Unif
      const std::vector<double> * aVParams,
      const std::vector<double> * aVEtats
 ) :
-   cCamera_Param_Unif_Gen(isDistC2M,Focale,PP,aParam),
-   mDist (aSzIm,this,aVParams,aVEtats)
+	cCamera_Param_Unif_Gen(isDistC2M,Focale,PP,aParam),
+	mDist(NULL)
 {
+	// NO_WARN
+	mDist = new tDist(aSzIm,this,aVParams,aVEtats);
+
    // SetDistInverse();
+}
+
+template <class TDistR,class TDistF,const int NbVar,const int NbState>
+cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState>::~cCamera_Param_Unif(){
+	if ( mDist!=NULL ) delete mDist;
 }
 
 /*
@@ -880,27 +888,27 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
    cDist_Param_Unif<TDistR,TDistF,NbVar,NbState> & 
        cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState>::DistUnif()
 {
-    return mDist;
+    return *mDist;
 }
 
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
    const cDist_Param_Unif<TDistR,TDistF,NbVar,NbState> & 
        cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState>::DistUnif() const
 {
-    return mDist;
+    return *mDist;
 }
 
 
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
    cDist_Param_Unif_Gen & cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState>::DistUnifGen()
 {
-    return mDist;
+    return *mDist;
 }
 
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
    const cDist_Param_Unif_Gen & cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState>::DistUnifGen() const
 {
-    return mDist;
+    return *mDist;
 }
 
 
@@ -923,13 +931,13 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
    ElDistortion22_Gen & cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState>::Dist()
 {
-    return mDist;
+    return *mDist;
 }
 
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
    const ElDistortion22_Gen & cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState>::Dist() const
 {
-    return mDist;
+    return *mDist;
 }
 
 
@@ -951,7 +959,7 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
  ElDistortion22_Gen   *   cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState>:: DistPreCond() const
 {
-   return TDistR::DistPreCond(&(mDist.KVar(0)),&(mDist.KState(0)));
+   return TDistR::DistPreCond( &( mDist->KVar(0) ), &( mDist->KState(0) ) );
 }
 
 
