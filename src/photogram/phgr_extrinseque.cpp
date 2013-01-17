@@ -902,8 +902,8 @@ cCameraFormelle::cCameraFormelle
    mRot        (mSet.NewRotation(aMode,aRot, ((pCamAttach==0) ? 0 : pCamAttach->mRot),aName)),
    mName       (aName),
 
-   mEqAppuiTerNoGL   (true,false,false,true,CompEqAppui,*this,GenCodeAppui),
-   mEqAppuiTerGL     (true,true ,false,true,CompEqAppui,*this,GenCodeAppui),
+   mEqAppuiTerNoGL_II(NULL),
+   mEqAppuiTerGL_II(NULL),
 
 
    mEqAppuiIncXY (0),
@@ -915,8 +915,19 @@ cCameraFormelle::cCameraFormelle
    mEqAppuiSDistProjIncXY (0),
    mEqAppuiSDistGLIncXY (0),
    mEqAppuiSDistGLProjIncXY (0),
-   mCameraCourante (CalcCameraCourante())
+   mCameraCourante(NULL)
 {
+	// NO_WARN
+	mEqAppuiTerNoGL_II = new cEqAppui(true,false,false,true,CompEqAppui,*this,GenCodeAppui);
+	mEqAppuiTerGL_II	 = new cEqAppui(true,true ,false,true,CompEqAppui,*this,GenCodeAppui);
+	mCameraCourante	 = CalcCameraCourante();
+}
+
+cCameraFormelle::~cCameraFormelle(){
+	// we should delete mEqAppuiTerNoGL and mEqAppuiTerGL but it makes apero crash
+	// something is probably using them after their natural lifetime
+	//if ( mEqAppuiTerNoGL_II!=NULL ) delete mEqAppuiTerNoGL;
+	//if ( mEqAppuiTerGL_II!=NULL ) delete mEqAppuiTerNoGL;
 }
 
 Pt2dr cCameraFormelle::AddEqAppuisInc(const Pt2dr & aPIm,double aPds,cParamPtProj & aPPP)
@@ -1126,7 +1137,7 @@ Pt2dr  cCameraFormelle::AddAppui(Pt3dr aP,Pt2dr aPIm,REAL aPds)
 {
    // ELISE_ASSERT(! mRot->IsGL(),"Do not handle cCameraFormelle::ResiduAppui in mode GL");
    aPIm = CorrigePFromDAdd(aPIm,false);
-   cEqAppui * anEq = mRot->IsGL() ? &mEqAppuiTerGL : &mEqAppuiTerNoGL ;
+   cEqAppui * anEq = mRot->IsGL() ? mEqAppuiTerGL_II : mEqAppuiTerNoGL_II ;
    return anEq->Residu(aP,aPIm,aPds);
 }
 
@@ -1165,10 +1176,6 @@ void cCameraFormelle::SetModeRot(eModeContrRot aMode)
 cSetEqFormelles & cCameraFormelle::Set()
 {
    return mSet;
-}
-
-cCameraFormelle::~cCameraFormelle()
-{
 }
 
 Pt3d<Fonc_Num> cCameraFormelle::COptF()

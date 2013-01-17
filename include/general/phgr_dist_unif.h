@@ -198,6 +198,8 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
 		    const std::vector<double> * State=0
            );  // Sens C2M, Vars et States a 0
 
+		   
+           ~cCamera_Param_Unif();
 
           // Version specifique, pour manipuler les param
           tDist &  DistUnif();
@@ -215,7 +217,7 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
 	    tPIF *          PIF(bool isDistC2M,cSetEqFormelles &);
             ElDistortion22_Gen   *  DistPreCond() const ;
      private  :
-            tDist   mDist;
+            tDist   *mDist_II;
 };
 
 

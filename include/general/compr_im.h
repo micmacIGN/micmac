@@ -1085,7 +1085,7 @@ class  EliseStdImageInteractor
           REAL               mScaleMax;        // 10.0
           REAL               mScaleMin;        // 0.02
           bool               mRasterQuickZoom; // true
-          Graber             mGeoGraber;
+          Graber             *mGeoGraber_II;
           bool               mModeReplicationPixel;
 
           std::vector<Pt2dr> mPolygCur;

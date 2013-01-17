@@ -362,7 +362,7 @@ void CLASS read_shorts (ushort *pixel, int count)
 {
   if (fread (pixel, 2, count, ifp) < count) derror();
   if ((order == 0x4949) == (ntohs(0x1234) == 0x1234))
-    swab (pixel, pixel, count*2);
+    swab ((char*)pixel, (char*)pixel, count*2);
 }
 
 void CLASS canon_600_fixed_wb (int temp)
@@ -1268,7 +1268,7 @@ int CLASS minolta_z2()
   int i, nz;
   char tail[424];
 
-  fseek (ifp, -sizeof tail, SEEK_END);
+  fseek (ifp, -(int)(sizeof(tail)), SEEK_END);
   g_nb_read_bytes=fread (tail, 1, sizeof tail, ifp);
   for (nz=i=0; i < sizeof tail; i++)
     if (tail[i]) nz++;
@@ -5282,7 +5282,7 @@ guess_cfa_pc:
     if ((ifp = tmpfile())) {
       fwrite (buf, sony_length, 1, ifp);
       fseek (ifp, 0, SEEK_SET);
-      parse_tiff_ifd (-sony_offset);
+      parse_tiff_ifd (-(int)( sony_offset ));
       ElFclose (ifp);
     }
     ifp = sfp;
@@ -8590,7 +8590,7 @@ void CLASS write_ppm_tiff()
 	   FORCC ppm [col*colors+c] = curve[image[soff][c]] >> 8;
       else FORCC ppm2[col*colors+c] = curve[image[soff][c]];
     if (output_bps == 16 && !output_tiff && htons(0x55aa) != 0x55aa)
-      swab (ppm2, ppm2, width*colors*2);
+      swab ((char*)ppm2, (char*)ppm2, width*colors*2);
     fwrite (ppm, colors*output_bps/8, width, ofp);
   }
   free (ppm);

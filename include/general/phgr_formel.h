@@ -1611,8 +1611,8 @@ class cCameraFormelle :  public cNameSpaceEqF ,
           cRotationFormelle *         mRot;
 	  std::string                 mName;
 
-          cEqAppui                      mEqAppuiTerNoGL ;
-          cEqAppui                      mEqAppuiTerGL ;
+          cEqAppui *                    mEqAppuiTerNoGL_II;
+          cEqAppui *                    mEqAppuiTerGL_II;
 
           cEqAppui *                    mEqAppuiIncXY ;
           cEqAppui *                    mEqAppuiProjIncXY ;
