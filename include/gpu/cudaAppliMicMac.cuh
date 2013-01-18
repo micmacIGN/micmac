@@ -19,29 +19,32 @@ static __constant__ float cUVDefValue;
 static __constant__ uint2 cDimCach;
 static __constant__ uint  cSizeCach;
 static __constant__ float cBadVignet;
-
+static __constant__ int2  ptMask0;
+static __constant__ int2  ptMask1;
 
 struct paramGPU
 {
 
-	 int2  pUTer0;
-	 int2  pUTer1;
+	 int2	pUTer0;
+	 int2	pUTer1;
 
-	 uint2 rDiTer;
-	 uint2 dimTer;		// Dimension du bloque terrain
-	 uint2 dimSTer;		// Dimension du bloque terrain sous echantilloné
-	 uint2 dimVig;		// Dimension de la vignette
-	 uint2 dimImg;		// Dimension des images
-	 uint2 rVig;		// Rayon de la vignette
-	 uint  sizeVig;		// Taille de la vignette en pixel 
-	 uint  sizeTer;		// Taille du bloque terrain
-	 uint  rSiTer;		// taille reel du terrain
-	 uint  sizeSTer;	// Taille du bloque terrain sous echantilloné
-	 uint  sampTer;		// Pas echantillonage du terrain
-	 float UVDefValue;	// UV Terrain incorrect
-	 uint2 dimCach;		// Dimension cache
-	 uint  sizeCach;	// Taille du cache
-	 uint nLayer;
+	 uint2	rDiTer;		// Dimension du bloque terrain
+	 uint2	dimTer;		// Dimension du bloque terrain + halo
+	 uint2	dimSTer;	// Dimension du bloque terrain + halo sous echantilloné
+	 uint2	dimVig;		// Dimension de la vignette
+	 uint2	dimImg;		// Dimension des images
+	 uint2	rVig;		// Rayon de la vignette
+	 uint	sizeVig;	// Taille de la vignette en pixel
+	 uint	sizeTer;	// Taille du bloque terrain + halo
+	 uint	rSiTer;		// taille reel du terrain
+	 uint	sizeSTer;	// Taille du bloque terrain + halo sous echantilloné
+	 uint	sampTer;	// Pas echantillonage du terrain
+	 float	UVDefValue;	// UV Terrain incorrect
+	 uint2	dimCach;	// Dimension cache
+	 uint	sizeCach;	// Taille du cache
+	 uint	nLayer;		// Nombre d'images
+	 int2	ptMask0;	// point debut du masque
+	 int2	ptMask1;	// point fin du masque
 };
 
 static int iDivUp(int a, int b)

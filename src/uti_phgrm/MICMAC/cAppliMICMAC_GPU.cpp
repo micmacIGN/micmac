@@ -52,8 +52,8 @@ namespace NS_ParamMICMAC
 	extern "C" void projectionsToLayers(float *h_TabProj, uint2 dimTer, int nbLayer);
 	extern "C" void basic_Correlation_GPU(  float* h_TabCorre, int nbLayer);
 	extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer);
-	extern "C" paramGPU Init_Correlation_GPU( int x0, int x1, int y0, int y1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef);
-	extern "C" paramGPU updateSizeBlock( int x0, int x1, int y0, int y1 );
+	extern "C" paramGPU Init_Correlation_GPU( uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef);
+	extern "C" paramGPU updateSizeBlock( uint2 ter0, uint2 ter1 );
 	
 	uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);};
 	paramGPU h;
@@ -284,6 +284,10 @@ namespace NS_ParamMICMAC
 		}
 		mNbIm = (int)mVLI.size();
 
+
+		mZMinGlob = (int)1e7;
+		mZMaxGlob = (int)(-1e7);
+
 #ifdef CUDA_ENABLED
 	
 		if (mLoadTextures)
@@ -298,7 +302,7 @@ namespace NS_ParamMICMAC
 			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 			{
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
-				float **aDataIm	=  aGLI.DataIm();
+				float **aDataIm	= aGLI.DataIm();
 				dimImgMax		= max(dimImgMax,toUi2(aGLI.getSizeImage()));				
 			}
 
@@ -309,8 +313,8 @@ namespace NS_ParamMICMAC
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 			
 				// Obtention des données images
-				float **aDataIm		=  aGLI.DataIm();
-				float *aDataImgLin	=  aGLI.LinDIm();
+				float **aDataIm		= aGLI.DataIm();
+				float *aDataImgLin	= aGLI.LinDIm();
 				uint2 dimImg		= toUi2(aGLI.getSizeImage());
 
 				if(fdataImg1D == NULL)
@@ -376,14 +380,53 @@ namespace NS_ParamMICMAC
 
 			float uvDef	 = -1.0f;
 			uint sampTer = 1;
-			h = Init_Correlation_GPU(mX0Ter, mX1Ter , mY0Ter , mY1Ter, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, sampTer, uvDef);
+
+			uint2 Ter0		= make_uint2(mX0Ter,mY0Ter);
+			uint2 Ter1		= make_uint2(mX1Ter,mY1Ter);
+
+			h = Init_Correlation_GPU(Ter0, Ter1, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, sampTer, uvDef);
 
 		}
 
-#endif
 
-		mZMinGlob = (int)1e7;
-		mZMaxGlob = (int)(-1e7);
+		//////////////////////////////////////////////////////////////////////////
+
+		h.ptMask0 = make_int2(-1);
+		h.ptMask1 = make_int2(-1);
+
+		bool *maskTab	= new bool[h.rSiTer];
+
+		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+		{
+			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+			{
+				bool visible	= IsInTer(anX,anY);
+				uint idMask		= h.rDiTer.x * (anY - mY0Ter) + anX - mX0Ter;
+				if (visible)
+				{					
+					if (h.ptMask0.x == -1 && h.ptMask0.y == -1)
+						h.ptMask0 = make_int2(anX,anY);
+
+					if (h.ptMask1.x < anX) h.ptMask1.x = anX;
+					if (h.ptMask1.y < anY) h.ptMask1.y = anY;
+
+					maskTab[idMask] = true;
+				}	
+				else
+					maskTab[idMask] = false;
+
+				ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
+				ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
+
+			}
+		}
+
+		delete[] maskTab;
+
+		//////////////////////////////////////////////////////////////////////////
+		
+#else
+
 		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
 		{
 			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
@@ -393,6 +436,9 @@ namespace NS_ParamMICMAC
 
 			}
 		}
+
+#endif
+		
 
 		mGpuSzD = 0;
 		if (mCurEtape->UseGeomDerivable())
@@ -596,7 +642,6 @@ namespace NS_ParamMICMAC
 
 		return true;
 	}
-
 
 	void cAppliMICMAC::DoOneCorrelSym(int anX,int anY)
 	{
@@ -954,16 +999,32 @@ namespace NS_ParamMICMAC
 		
 		if(	mNbIm == 0) return;
 
-		h = updateSizeBlock(mX0Ter,mX1Ter,mY0Ter,mY1Ter);
+		// Obtenir la nappe englobante
+		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
+		//int aZMinTer = 0 , aZMaxTer = 1;
+		
+		if (h.ptMask0.x == -1)
+		{
+			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+			{
+				for (int anX = mX0Ter ; anX <  mX1Ter ; anX++) 
+				{
+					for (int anZ = mTabZMin[anY][anX] ;  anZ < mTabZMax[anY][anX] ; anZ++)					
+						mSurfOpt->SetCout(Pt2di(anX,anY),&anZ,mAhDefCost);
+				}
+			}
+			return;
+		}
+	
+		uint2 ter0 = make_uint2(mX0Ter, mY0Ter);
+		uint2 ter1 = make_uint2(mX1Ter, mY1Ter);
+
+		h = updateSizeBlock(ter0,ter1);
 
 		// Obtention de l'image courante
 		cGPU_LoadedImGeom&	aGLI	= *(mVLI[0]);
 		// Taille de l'image courante
 		Pt2di sizImg =  aGLI.getSizeImage();
-
-		// Obtenir la nappe englobante
-		//int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		int aZMinTer = 0 , aZMaxTer = 1;
 
 		// Tableau de sortie de corrélation 
 		float* h_TabCost = new float[  h.rSiTer ];
@@ -973,7 +1034,9 @@ namespace NS_ParamMICMAC
 		float* h_TabProj	= new float[ siTabProj ];
 		float* h_TabPInit	= new float[ siTabProj ];
 		
-		//-- Initialisation Tableau 
+		//  [1/18/2013 GChoqueux]
+		//-- création du Tableau initialisation  // ATTENTION A FAIRE 1 FOIS !!! A DEPLACER
+		//  [1/18/2013 GChoqueux]
 		for (uint anX = 0 ; anX < h.dimSTer.x  ; anX++)
 		{
 			h_TabPInit[anX * 2 + 0] = h.UVDefValue;
@@ -1036,7 +1099,6 @@ namespace NS_ParamMICMAC
  		delete [] h_TabPInit;
 
 		if (showDebug) std::cout << "fin delete\n";
-
 
 		if(0)
 		{

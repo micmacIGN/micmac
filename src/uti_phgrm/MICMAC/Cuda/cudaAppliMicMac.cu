@@ -74,17 +74,17 @@ extern "C" void allocMemory(void)
 
 }
 
-extern "C" paramGPU updateSizeBlock( int x0, int x1, int y0, int y1 )
+extern "C" paramGPU updateSizeBlock(  uint2 ter0, uint2 ter1 )
 {
 
 	uint oldSizeTer = h.sizeTer;
 
-	h.pUTer0.x	= x0 - (int)h.rVig.x;
-	h.pUTer0.y	= y0 - (int)h.rVig.y;
-	h.pUTer1.x	= x1 + (int)h.rVig.x;
-	h.pUTer1.y	= y1 + (int)h.rVig.y;
+	h.pUTer0.x	= (int)ter0.x - (int)h.rVig.x;
+	h.pUTer0.y	= (int)ter0.y - (int)h.rVig.y;
+	h.pUTer1.x	= (int)ter1.x + (int)h.rVig.x;
+	h.pUTer1.y	= (int)ter1.y + (int)h.rVig.y;
 	
-	h.rDiTer	= make_uint2(x1 - x0, y1 - y0);
+	h.rDiTer	= make_uint2(ter1.x - ter0.x, ter1.y - ter0.y);
 	h.dimTer	= make_uint2(h.pUTer1.x - h.pUTer0.x, h.pUTer1.y - h.pUTer0.y);
 	h.dimSTer	= iDivUp(h.dimTer,h.sampTer);	// Dimension du bloque terrain sous echantilloné
 	h.sizeTer	= size(h.dimTer);				// Taille du bloque terrain
@@ -109,7 +109,7 @@ extern "C" paramGPU updateSizeBlock( int x0, int x1, int y0, int y1 )
 	return h;
 }
 
-static void correlOptionsGPU(int x0, int x1, int y0, int y1, uint2 dV,uint2 dRV, uint2 dI, float mAhEpsilon, uint samplingZ, float uvDef, uint nLayer )
+static void correlOptionsGPU( uint2 ter0, uint2 ter1, uint2 dV,uint2 dRV, uint2 dI, float mAhEpsilon, uint samplingZ, float uvDef, uint nLayer )
 {
 
 	h.nLayer	= nLayer;
@@ -130,7 +130,7 @@ static void correlOptionsGPU(int x0, int x1, int y0, int y1, uint2 dV,uint2 dRV,
 	checkCudaErrors(cudaMemcpyToSymbol(cUVDefValue, &h.UVDefValue, sizeof(float)));
 	checkCudaErrors(cudaMemcpyToSymbol(cBadVignet, &badVi, sizeof(float)));
 	
-	updateSizeBlock( x0, x1, y0, y1 );
+	updateSizeBlock( ter0, ter1 );
 }
 
 extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimImage, int nbLayer)
@@ -233,7 +233,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig/*, float *
 	const int2 caVig	= ptTer * make_int2(cDimVig);
 	const int  iC		= blockIdx.z * cSizeCach + caVig.y * cDimCach.x + caVig.x;
 
-	if ( PtTProj.x == -1 || PtTProj.y == -1 )
+	if ( PtTProj.x == cUVDefValue || PtTProj.y == cUVDefValue )
 	{
 		cacheImg[threadIdx.y][threadIdx.x]  = cBadVignet;
 		if (!(caVig.x >= cDimCach.x || caVig.y >= cDimCach.y || caVig.x <0 || caVig.y < 0 ))
@@ -402,14 +402,14 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	dTCost[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
 }
 
-extern "C" paramGPU Init_Correlation_GPU( int x0, int x1, int y0, int y1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef )
+extern "C" paramGPU Init_Correlation_GPU(  uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef )
 {
 	dev_NbImgOk		= NULL;
 	dev_SimpCor		= NULL;
 	dev_Cache		= NULL;
 	dev_Cost		= NULL;
 
-	correlOptionsGPU(x0, x1, y0, y1, dRVig * 2 + 1,dRVig, dimImg,mAhEpsilon, samplingZ, uvDef,nbLayer);
+	correlOptionsGPU( ter0, ter1, dRVig * 2 + 1,dRVig, dimImg,mAhEpsilon, samplingZ, uvDef,nbLayer);
 	allocMemory();
 
 	return h;
