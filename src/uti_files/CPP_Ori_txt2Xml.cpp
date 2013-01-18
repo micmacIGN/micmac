@@ -192,7 +192,7 @@ double CostIntrins(eTyNdVit  aTyN)
         case eVitAv : return 1.0;
 
         case eNoVit : return 5.0;
-        case eTrans : return 0.0;
+        //case eTrans : return 0.0;
    }
 
    return 0;
