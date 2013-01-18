@@ -30,7 +30,7 @@ Francais :
 
 English :
 
-    MicMa cis an open source software specialized in image matching
+    MicMac is an open source software specialized in image matching
     for research in geographic information. MicMac is built on the
     eLiSe image library. MicMac is governed by the  "Cecill-B licence".
     See below and http://www.cecill.info.
@@ -207,7 +207,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ScaleNuage",ScaleNuage_main," Tool for scaling internal representation of point cloud"));
        aRes.push_back(cMMCom("Tapas",Tapas_main," Interface to Apero to compute external and internal orientations",cArgLogCom(3)));
        aRes.push_back(cMMCom("Tapioca",Tapioca_main," Interface to Pastis for tie point detection and matching",cArgLogCom(3)));
-       aRes.push_back(cMMCom("Tarama",Tarama_main," Do some stuff"));
+       aRes.push_back(cMMCom("Tarama",Tarama_main," Compute a rectified image"));
        aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image"));
        aRes.push_back(cMMCom("TestCam",TestCam_main," Test camera orientation convention"));
        aRes.push_back(cMMCom("TestKey",TestSet_main," Test Keys for Sets and Assoc"));

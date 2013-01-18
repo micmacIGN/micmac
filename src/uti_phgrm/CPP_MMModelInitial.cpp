@@ -30,7 +30,7 @@ Francais :
 
 English :
 
-    MicMa cis an open source software specialized in image matching
+    MicMac is an open source software specialized in image matching
     for research in geographic information. MicMac is built on the
     eLiSe image library. MicMac is governed by the  "Cecill-B licence".
     See below and http://www.cecill.info.
@@ -67,7 +67,7 @@ int MMInitialModel_main(int argc,char ** argv)
     if (! EAMIsInit(&ImSec))
        ImSec = AeroIn;
 
-    // Genere les pryramide pour que le paral ne s'ecrase pas les 1 les autres
+    // Genere les pryramides pour que le paral ne s'ecrase pas les 1 les autres
     {
          std::string aComPyr =  MM3dBinFile("MMPyram")
                                 + aFullDir + " "
