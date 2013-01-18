@@ -116,6 +116,12 @@ class cAppli_Ori_Txt2Xml_main
          {
              return mVCam[aK2]->mC-mVCam[aK1]->mC ;
          }
+         Pt3dr VitesseIndice(int aK1, int aK2) const
+         {
+             return Vect(aK1,aK2) / double(aK2-aK1);
+         }
+
+
 
          std::string NameOrientation(const std::string &anOri,const cTxtCam & aCam)
          {
@@ -152,6 +158,76 @@ class cAppli_Ori_Txt2Xml_main
          double               mDifMaxV ;
 };
 
+/*
+
+   On cherche à decomposer en un sous ensemble de sommets connexes.
+Il y a 4 etat possible
+
+   * debut de brin
+   * fin de brin
+   * milieu de brin
+   * no brin 
+
+   eVitMil  -> eVitMil, eVitApr, eNoVit,
+   eVitAv   -> eVitMil, eVitApr, 
+   eVitApr  -> eVitAv, eNoVit,
+   eNoVit   -> eNoVit, eVitAv,
+
+*/
+
+typedef enum
+{
+     eVitMil,
+     eVitAv,
+     eVitApr,
+     eNoVit,
+} eTyNdVit;
+
+double CostIntrins(eTyNdVit  aTyN)
+{
+   switch (aTyN)
+   {
+        case eVitMil : return 0.0;
+        case eVitApr :
+        case eVitAv : return 1.0;
+
+        case eNoVit : return 5.0;
+        case eTrans : return 0.0;
+   }
+
+   return 0;
+}
+
+double CostTrans(eTyNdVit  aTyN1, eTyNdVit  aTyN2)
+{
+   if (aTyN1==aTyN2) return 0.0;
+
+   if ((aTyN1==eNoVit) != (aTyN2==eNoVit))  return 2.0;
+
+   return 1.0;
+}
+
+
+class cAttrSom
+{
+    public :
+       cAttrSom(cTxtCam * aCam,Pt3dr aV,bool Ok,eTyNdVit aTyN) :
+              mCam (aCam),
+              mV   (aV),
+              mOK  (Ok),
+              mTyN (aTyN)
+       {
+       }
+
+       cAttrSom()   :
+           mCam(0) 
+       {}
+
+       cTxtCam * mCam;
+       Pt3dr     mV;
+       bool      mOK;
+       eTyNdVit  mTyN;
+};
 
 class cAttrArc
 {
@@ -159,7 +235,9 @@ class cAttrArc
         double mCost;
 };
 
-class OriSubGr  : public ElSubGraphe<cTxtCam *,cAttrArc> 
+
+
+class OriSubGr  : public ElSubGraphe<cAttrSom,cAttrArc> 
 {
     public :
           REAL   pds(TArc & anArc) 
@@ -171,7 +249,7 @@ class OriSubGr  : public ElSubGraphe<cTxtCam *,cAttrArc>
 };
 
 
-typedef ElSom<cTxtCam *,cAttrArc>  tSom;
+typedef ElSom<cAttrSom,cAttrArc>  tSom;
 
 
 
@@ -223,6 +301,7 @@ void cAppli_Ori_Txt2Xml_main::SauvOriFinal()
 void cAppli_Ori_Txt2Xml_main::CalcVitesse()
 {
 
+/*
    for (int aK= 1 ; aK<mNbCam-1 ; aK++)
    {
        cTxtCam & aCam = *(mVCam[aK]);
@@ -253,7 +332,11 @@ void cAppli_Ori_Txt2Xml_main::CalcVitesse()
            if (aCam.mVIsCalc)
               std::cout << aCam.mV;
             else
+            {
               std::cout << "XXXXX";
+              if (aK>0) std::cout << Vect(aK-1,aK) ;
+              if (aK<mNbCam-1) std::cout << Vect(aK,aK+1) ;
+            }
             std::cout << "\n";
        }
        if (aCam.mVIsCalc)
@@ -262,9 +345,96 @@ void cAppli_Ori_Txt2Xml_main::CalcVitesse()
        }
        else
        {
-          aCam.mOC->Externe().IncCentre().SetVal(Pt3dr(-1,-1,-1));
+          aCam.mOC->Externe().IncCentre().SetVal(Pt3dr(-1,-1,-1));
        }
    }
+*/
+
+
+   ElGraphe<cAttrSom,cAttrArc> mGr;
+   std::vector<tSom *> aVSom;
+
+   for (int aK= 0 ; aK<mNbCam ; aK++)
+   {
+        cTxtCam * aCam = mVCam[aK];
+        int aKPrec = ElMax(0,aK-1);
+        int aKNext = ElMin(mNbCam-1,aK+1);
+
+        aVSom.push_back(&mGr.new_som(cAttrSom(aCam,VitesseIndice(aKPrec,aKNext),(aKPrec!=aK) && (aKNext!=aK),eVitMil)));
+        aVSom.push_back(&mGr.new_som(cAttrSom(aCam,VitesseIndice(aKPrec,aK),(aKPrec!=aK) ,eVitAv)));
+        aVSom.push_back(&mGr.new_som(cAttrSom(aCam,VitesseIndice(aK,aKNext),(aKNext!=aK) ,eVitApr)));
+        aVSom.push_back(&mGr.new_som(cAttrSom(aCam,Pt3dr(0,0,0),true,eNoVit)));
+    }
+
+
+    for (int aKS =0 ; aKS<int(aVSom.size()-1) ; aKS+=4)
+    {
+         for (int aKS1 = aKS ; aKS1<(aKS+4) ; aKS1++)
+         {
+             for (int aKS2 = aKS+4 ; aKS2<(aKS+8) ; aKS2++)
+             {
+                tSom * aS1 = aVSom[aKS1];
+                const cAttrSom & anAttr1 = aS1->attr();
+                tSom * aS2 = aVSom[aKS2];
+                const cAttrSom & anAttr2 = aS2->attr();
+
+                if (anAttr1.mOK && anAttr2.mOK)
+                {
+                    double aCost = 0;
+                    if ((anAttr1.mTyN != eNoVit) && (anAttr2.mTyN != eNoVit))
+                    {
+                        aCost  += ElMax(euclid(anAttr1.mV-anAttr2.mV),8.0);
+                    }
+                    aCost += (CostIntrins(anAttr1.mTyN) + CostIntrins(anAttr2.mTyN)) / 2.0;
+
+                   aCost += CostTrans(anAttr1.mTyN,anAttr2.mTyN);
+
+//  AJOUTE ARC
+                }
+             }
+         }
+    }
+
+    ElFilo<tSom *> aBegin;
+    for (int aK = 0; aK< 4 ; aK++)
+        aBegin.pushlast(aVSom[aK]);
+
+    ElFilo<tSom *> aEnd;
+    for (int aK = aVSom.size()-4 ; aK< int(aVSom.size()) ; aK++)
+        aEnd.pushlast(aVSom[aK]);
+
+    ElSubGrapheInFilo<cAttrSom,cAttrArc> aGrBut(aEnd);
+
+
+    ElPcc<cAttrSom,cAttrArc> aPcc;
+    OriSubGr aSub;
+
+    tSom * aRes = aPcc.pcc
+                  (
+                       aBegin,
+                       aGrBut,
+                       aSub,
+                       eModePCC_Somme
+                  );
+/*
+    tSom * aRes = aPcc.pcc
+                  (
+                       *(aVSom[0]),
+                       *(aVSom[0]),
+                       aSub,
+                       eModePCC_Somme
+                  );
+*/
+     
+    
+/*
+     eVitMil,
+     eVitAv,
+     eVitApr,
+     eNoVit
+*/
+ 
+
 /*
    ElGraphe<cTxtCam *,cAttrArc> mGr;
    std::vector<tSom *> aVSom;
