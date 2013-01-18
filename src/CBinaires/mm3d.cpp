@@ -159,7 +159,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("AperoChImSecMM",AperoChImMM_main,"Select secondary images for MicMac "));
        aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene"));
        aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
-       aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero , for compensation of heterogenous measures",cArgLogCom(2)));
+       aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero, for compensation of heterogenous measures",cArgLogCom(2)));
        aRes.push_back(cMMCom("ChgSysCo",ChgSysCo_main," Chang coordinate system of orientation",cArgLogCom(2)));
        aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Do some stuff"));
        aRes.push_back(cMMCom("cod",cod_main," Do some stuff"));
@@ -167,7 +167,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Dequant",Dequant_main," Tool for dequantifying an image"));
        aRes.push_back(cMMCom("Devlop",Devlop_main," Do some stuff"));
        aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
-       aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Realtive to absolute using  GCP",cArgLogCom(2)));
+       aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Relative to absolute using  GCP",cArgLogCom(2)));
 
        aRes.push_back(cMMCom("CenterBascule",CentreBascule_main," Realtive to absolute using  embedded GPS",cArgLogCom(2)));
 
@@ -191,7 +191,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 
        aRes.push_back(cMMCom("Nuage2Ply",Nuage2Ply_main," Convert depth map into point cloud"));
-       aRes.push_back(cMMCom("NuageBascule",NuageBascule_main,"To Channge geometry of depth map "));
+       aRes.push_back(cMMCom("NuageBascule",NuageBascule_main,"To Change geometry of depth map "));
 
 
 
@@ -215,7 +215,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("tiff_info",tiff_info_main," Tool for giving information about a tiff file"));
        aRes.push_back(cMMCom("to8Bits",to8Bits_main," Tool for converting 16 or 32 bit image in a 8 bit image."));
-       aRes.push_back(cMMCom("Undist",Undist_main," Tool make undistorted images"));
+       aRes.push_back(cMMCom("Undist",Undist_main," Tool for removing images distortion"));
 
        aRes.push_back(cMMCom("CheckDependencies",CheckDependencies_main," check dependencies to third-party tools"));
 
