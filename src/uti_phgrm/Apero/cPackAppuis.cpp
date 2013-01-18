@@ -537,9 +537,9 @@ cObserv1Im<TypeEngl>::cObserv1Im
    mPose   (0),
    mCF     (0),
    mVals(NULL)
-{
+{	
 	// NO_WARN
-	mVals = new TypeEngl::tObj( TypeEngl::CreateFromXML(anAppli,aNamePack,anArg,*this) );
+	mVals = new typename TypeEngl::tObj(TypeEngl::CreateFromXML(anAppli,aNamePack,anArg,*this) );
 
 	cObserv1ImPostInit(*this,anArg,anAppli,aNameIm);
 }
@@ -563,7 +563,7 @@ cObserv1Im<TypeEngl>::cObserv1Im
    mCF     (0),
    mVals (NULL)
 {
-	mVals = new TypeEngl::tObj(aVals);
+	mVals = new typename TypeEngl::tObj(aVals);
 }
 
 template <class  TypeEngl>
