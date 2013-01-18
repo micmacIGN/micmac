@@ -483,8 +483,8 @@ void  cMicMacVisu::InitGeomPtI(Pt2di aP)
           mCurPxI[aK]= aIm.data()[mCurPtI.y][mCurPtI.x];
 
    } 
-   mAp.mGeomDFPx.PxDisc2PxReel(mCurPxR,mCurPxI);
-   mPTer =  mAp.mGeomDFPx.DiscToR2(mCurPtI);
+   mAp.mGeomDFPx->PxDisc2PxReel(mCurPxR,mCurPxI);
+   mPTer =  mAp.mGeomDFPx->DiscToR2(mCurPtI);
 }
 
 
@@ -496,8 +496,8 @@ Pt3dr cMicMacVisu::Pdisc2Pter(Pt3dr aP)
           aPxI[aK]= (aK==0) ? aP.z : 0;
    } 
    double aPxRes[theDimPxMax];
-   mAp.mGeomDFPx.PxDisc2PxReel(aPxRes,aPxI);
-   Pt2dr aPTer =  mAp.mGeomDFPx.RDiscToR2(Pt2dr(aP.x,aP.y));
+   mAp.mGeomDFPx->PxDisc2PxReel(aPxRes,aPxI);
+   Pt2dr aPTer =  mAp.mGeomDFPx->RDiscToR2(Pt2dr(aP.x,aP.y));
    Pt3dr aRes(aPTer.x,aPTer.y,aPxRes[0]);
 
    return aRes;

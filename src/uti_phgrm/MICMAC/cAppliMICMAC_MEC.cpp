@@ -390,7 +390,7 @@ void cAppliMICMAC::DoOneEtapeMEC(cEtapeMecComp & anEtape)
      mVecPtsW = std::vector<Pt2dr>(mNbPtsWFixe,Pt2dr(0,0));
      mTabPtsW = &mVecPtsW[0];
 
-     mGeomDFPx = mCurEtape->GeomTer();
+     *mGeomDFPx = mCurEtape->GeomTer();
      for 
      (
          tCsteIterPDV itP = PdvBegin();
@@ -403,7 +403,7 @@ void cAppliMICMAC::DoOneEtapeMEC(cEtapeMecComp & anEtape)
 
      Box2dr aPropClip = ProportionClipMEC().ValWithDef
                      (Box2dr(Pt2dr(0,0),Pt2dr(1,1)));
-     Pt2dr aSzDz = Pt2dr(mGeomDFPx.SzDz());
+     Pt2dr aSzDz = Pt2dr(mGeomDFPx->SzDz());
      Box2di aBoxClip 
             (
                    aPropClip._p0.mcbyc(aSzDz),
@@ -591,7 +591,7 @@ void cAppliMICMAC::DoOneBloc
 
 
 
-   mGeomDFPx = mCurEtape->GeomTer();  // actualisation en fonction du LoadNappes
+   *mGeomDFPx = mCurEtape->GeomTer();  // actualisation en fonction du LoadNappes
 
    cEquiv1D anEqX;
    anEqX.InitByClipAndTr(mCurCarDZ->EqX(),mBoxIn._p0.x,0,mBoxIn.sz().x);
@@ -799,7 +799,7 @@ void cAppliMICMAC::InitBlocInterne( const Box2di & aBox)
    {
        if (  (*itFI)->Geom().BoxTerHasIntersection
              (
-                 mGeomDFPx,
+                 *mGeomDFPx,
                  aPxMin,aPxMax,
                  Box2dr(aBox._p0,aBox._p1)
              )
@@ -833,7 +833,7 @@ void cAppliMICMAC::DoOneBlocInterne
    {
        if (  (*itFI)->Geom().BoxTerHasIntersection
              (
-                 mGeomDFPx,
+                 *mGeomDFPx,
                  aPxMin,aPxMax,
                  Box2dr(aBox._p0,aBox._p1)
              )
@@ -941,7 +941,7 @@ void cAppliMICMAC::PrepareAccelIm1(int * aPx)
         mCurBoxW,
         aPx,
         mPDV1->Geom(),
-        mGeomDFPx,
+        *mGeomDFPx,
         *mCurEtape,
         *mLTer,
         Pt2di(0,0),
@@ -965,7 +965,7 @@ REAL cAppliMICMAC::CalculAccelereScore()
         mCurBoxW,
         mCurPxI,
         mPDV2->Geom(),
-        mGeomDFPx,
+        *mGeomDFPx,
         *mCurEtape,
         *mLTer,
         Pt2di(0,0),
@@ -1009,7 +1009,7 @@ REAL cAppliMICMAC::CalculScore()
                 mCurBoxW,
                 mCurPxI,
                 (*itFI)->Geom(),
-                mGeomDFPx,
+                *mGeomDFPx,
                 *mCurEtape,
                 *mLTer,
                 Pt2di(0,0),
@@ -1056,7 +1056,7 @@ void   cAppliMICMAC::CalcCorrelByRect(Box2di aBox,int * aPx)
    {
        if (  (*itFI)->Geom().BoxTerHasIntersection
              (
-                 mGeomDFPx,
+                 *mGeomDFPx,
                  aPx,aPx,
                  Box2dr(aBox._p0,aBox._p1)
              )

@@ -265,34 +265,14 @@ cAppliMICMAC::cAppliMICMAC
     const std::string  & aNameSpecXML
 ) :
    cParamMICMAC    (*(aParam.mObj)),
-   mICNM           (  UseICNM((cParamMICMAC &) *this)                   ?
-                      /*cInterfChantierNameManipulateur::StdAlloc
-		             (WorkDir(),FileChantierNameDescripteur())*/
-                       aParam.mICNM                                     :
-			                                                0
-                   ),
-   mWM             (this->WithMessage().Val()),
-   mFullIm1        (
-                            this->ChantierFullImage1().Val() 
-			 || this->ExportForMultiplePointsHomologues().Val()
-			 //  || this->SingulariteInCorresp_I1I2().Val()
-                   ),
-   mUseConstSpecIm1   (false),
+   mICNM           (NULL),
+   mUseConstSpecIm1(false),
    mModeAlloc      (aMode),
-   mModeGeomMEC    (CalculGeomMEC(*this)),
-   mAucuneGeom     (mModeGeomMEC == eNoGeomMEC),
-   mInversePx      (
-                        (GeomMNT()==eGeomMNTFaisceauIm1PrCh_Px1D)
-                     || (GeomMNT()==eGeomMNTFaisceauIm1PrCh_Px2D)
-                     || (GeomMNT()==eGeomMNTFaisceauPrChSpherik)
-                   ),
    mNameExe        (aNameExe),
    mNameXML        (aNameXML),
    mNameSpecXML    (aNameSpecXML),
    mArgAux         (aArgAux),
    mNbArgAux       (aNbArgAux),
-   mDirImagesInit  (WorkDir()+DirImagesOri().ValWithDef("")),
-   mDirMasqueIms   (WorkDir()+DirMasqueImages().Val()),
    mNbPDV          (0),
    mPDV1           (0),
    mPDV2           (0),
@@ -302,44 +282,30 @@ cAppliMICMAC::cAppliMICMAC
    mCurEtape       (0),
    mEBI            (0),
    mCurMAI         (0),
-   mGeomDFPx       (*this),
-   mGeomDFPxInit   (*this),
-   mShowMes        (ByProcess().Val()==0),
+   mGeomDFPx       (NULL),
+   mGeomDFPxInit   (NULL),
    mCout           (std::cout),
    mTimeTotCorrel  (0.0),
    mTimeTotOptim   (0.0),
-   mNbBoitesToDo   (NbBoitesMEC().Val()),
    mNbPointsByRect2 (0.0),
    mNbPointsByRectN (0.0),
    mNbPointByRectGen (0.0),
    mNbPointsIsole   (0.0),
    mLastMAnExp      (0),
-   mFreqPtsInt      (
-                        EchantillonagePtsInterets().IsInit() ?
-                        FreqEchantPtsI()                   :
-                        1
-                    ),
-   mDefCorr  (DefCorrelation().Val()),
-   mEpsCorr  (EpsilonCorrelation().Val()),
-
-
    mImOkTerCur (1,1),
    mTImOkTerCur (mImOkTerCur),
    mImOkTerDil (1,1),
    mTImOkTerDil (mImOkTerDil),
    mAll1ImOkTerDil (1,1),
    mAll1TImOkTerDil (mAll1ImOkTerDil),
-  
-
    mGeoX (1,1),
    mTGeoX (mGeoX),
    mGeoY (1,1),
    mTGeoY (mGeoY),
-
    mPtrIV    (0),
    mVisu     (0),
    mOriPtLoc_Read (false),
-   mMapEquiv (StdAllocMn2n(ClassEquivalenceImage(),mICNM)),
+   mMapEquiv (NULL),
    mAnam          (0),
    mXmlAnam        (0),
    mRepCorrel      (0),
@@ -350,10 +316,29 @@ cAppliMICMAC::cAppliMICMAC
    mCorrelAdHoc    (0),
    mGIm1IsInPax    (ModeGeomIsIm1InvarPx(*aParam.mObj)),
    mGPRed2         (0)
-
    // mInterpolTabule (10,8,0.0,eTabul_Bilin)
    // mInterpolTabule (10,8,0.0,eTabul_Bicub)
 {
+	// NO_WARN
+	mICNM			= ( ( UseICNM( (cParamMICMAC &)(*this) ) ) ? aParam.mICNM : NULL );
+	mWM				= WithMessage().Val();
+	mFullIm1		= ( ChantierFullImage1().Val() || ExportForMultiplePointsHomologues().Val() );
+	mModeGeomMEC	= CalculGeomMEC(*this);
+	mAucuneGeom     = ( mModeGeomMEC == eNoGeomMEC );
+	mInversePx      = ( (GeomMNT()==eGeomMNTFaisceauIm1PrCh_Px1D)
+                     || (GeomMNT()==eGeomMNTFaisceauIm1PrCh_Px2D)
+                     || (GeomMNT()==eGeomMNTFaisceauPrChSpherik) );
+	mDirImagesInit	= WorkDir()+DirImagesOri().ValWithDef("");
+	mDirMasqueIms	= WorkDir()+DirMasqueImages().Val();
+	mGeomDFPx		= new cGeomDiscFPx(*this);
+	mGeomDFPxInit   = new cGeomDiscFPx(*this);
+	mShowMes		= ( ByProcess().Val()==0 );
+	mNbBoitesToDo	= NbBoitesMEC().Val();
+	mFreqPtsInt		= ( EchantillonagePtsInterets().IsInit() ? FreqEchantPtsI() : 1 );
+	mDefCorr		= DefCorrelation().Val();
+	mEpsCorr		= EpsilonCorrelation().Val();	
+	mMapEquiv		= StdAllocMn2n( ClassEquivalenceImage(), mICNM );
+
   if (RepereCorrel().IsInit() && (RepereCorrel().Val() != "NO-REPERE"))
   {
       cRepereCartesien aRC = StdGetObjFromFile<cRepereCartesien>
@@ -442,9 +427,9 @@ std::cout << "END TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
       return;
 
 
-   mGeomDFPx.PostInit();
-   mGeomDFPxInit =  mGeomDFPx;
-   double aLogDZ = log2(mGeomDFPxInit.SzDz().XtY() / NbPixDefFilesAux().Val());
+   mGeomDFPx->PostInit();
+   *mGeomDFPxInit =  *mGeomDFPx;
+   double aLogDZ = log2(mGeomDFPxInit->SzDz().XtY() / NbPixDefFilesAux().Val());
    mDeZoomFilesAux = ElMax(DeZoomDefMinFileAux().Val(),(1<<ElMax(0,(round_ni(aLogDZ)))));
    PostInitGeom();
 
@@ -540,6 +525,8 @@ cAppliMICMAC::~cAppliMICMAC()
     DeleteAndClear(mPrisesDeVue);
     DeleteAndClear(mEtapesMecComp);
     delete mEtape00;
+	if ( mGeomDFPx!=NULL ) delete mGeomDFPx;
+	if ( mGeomDFPxInit!=NULL ) delete mGeomDFPxInit;
 }
 
 
@@ -906,7 +893,7 @@ void cAppliMICMAC::InitMecComp()
                         *this,
                         *itE,
                         (aCpt==0),
-                        mGeomDFPx,
+                        *mGeomDFPx,
 		        mEtapesMecComp
                     );
            mEtapesMecComp.push_back ( anEt);
@@ -1502,12 +1489,12 @@ cStatGlob  * cAppliMICMAC::StatGlob() {return mStatGlob;}
 
 const cGeomDiscFPx &  cAppliMICMAC::GeomDFPx() const
 {
-  return mGeomDFPx;
+  return *mGeomDFPx;
 }
 
 const cGeomDiscFPx &  cAppliMICMAC::GeomDFPxInit() const
 {
-  return mGeomDFPxInit;
+  return *mGeomDFPxInit;
 }
 
 const Pt2di &  cAppliMICMAC::PtSzWFixe() const

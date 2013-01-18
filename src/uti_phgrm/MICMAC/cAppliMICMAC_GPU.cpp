@@ -265,9 +265,9 @@ namespace NS_ParamMICMAC
 		mAhDefCost =  mStatGlob->CorrelToCout(mDefCorr);
 		mAhEpsilon = EpsilonCorrelation().Val();
 
-		mGeomDFPx.SetOriResolPlani(mOriPlani,mStepPlani);
-		mOrigineZ = mGeomDFPx.OrigineAlti();
-		mStepZ = mGeomDFPx.ResolutionAlti();
+		mGeomDFPx->SetOriResolPlani(mOriPlani,mStepPlani);
+		mOrigineZ = mGeomDFPx->OrigineAlti();
+		mStepZ = mGeomDFPx->ResolutionAlti();
 
 		mFirstZIsInit = false;
 
@@ -826,7 +826,7 @@ namespace NS_ParamMICMAC
 		bool showTabPro = false;
 		int imageIDShow = 0;
 		
-		Pt2dr aSzDz = Pt2dr(mGeomDFPx.SzDz());	
+		Pt2dr aSzDz = Pt2dr(mGeomDFPx->SzDz());	
 
 		// Mise en calque des projections pour chaque image
 		for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )
@@ -837,9 +837,9 @@ namespace NS_ParamMICMAC
 			cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 			const cGeomImage*	aGeom	= aGLI.Geom();
 			
-			for (int anY = Ter0.y ; anY < Ter1.y; anY = anY + sample)
+			for (int anY = Ter0.y ; anY < Ter1.y; anY += sample)
 			{															
-				for (int anX = Ter0.x ; anX < Ter1.x ; anX = anX + sample)	// Ballayage du terrain  
+				for (int anX = Ter0.x ; anX < Ter1.x ; anX += sample)	// Ballayage du terrain  
 				{
 					if ( anX >= 0 && anY >= 0 && anX < aSzDz.x && anY < aSzDz.y)
 					{
@@ -890,7 +890,7 @@ namespace NS_ParamMICMAC
 		}
 
 		
-		for (int aKIm = 0 ; aKIm < 0 ; aKIm++ )
+		/*for (int aKIm = 0 ; aKIm < 0 ; aKIm++ )
 		{
 
 			cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
@@ -936,7 +936,7 @@ namespace NS_ParamMICMAC
 
 			delete[] image;
 		}
-			
+			*/
 		
 	}
 

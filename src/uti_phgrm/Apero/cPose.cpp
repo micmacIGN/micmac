@@ -115,15 +115,13 @@ cPoseCam::cPoseCam
     mProf2Init (TheDefProf2Init),
     mPdsTmpMST (0.0),
     mPCI     (&aPCI),
-    mCalib   (mAppli.CalibFromName(aNameCalib,this)),
+	mCalib(NULL),
     mPoseRat (aPRat),
     mPoseInitMST1 (0),
     mPoseInitMST2 (0),
     mCamRF   (mPoseRat ? mPoseRat->mCF : 0),
-
-    mCF      (mCalib->PIF().NewCam(cNameSpaceEqF::eRotLibre,ElRotation3D::Id,mCamRF,aNamePose,true)),
-
-    mRF      (mCF->RF()),
+	mCF(NULL),
+	mRF(NULL),
     mAltiSol     (ALTISOL_UNDEF()),
     mProfondeur  (PROF_UNDEF()),
     mTime        (TIME_UNDEF()),
@@ -145,8 +143,8 @@ cPoseCam::cPoseCam
     mNumTmp       (-12345678),
     mNbPtsMulNN   (-1),
     mNumBande     (0),
-    mPrec         (this),
-    mNext         (this),
+    mPrec         (NULL),
+    mNext         (NULL),
     mNumCreate    (theNumCreate++),
     mCurLayer     (0), 
     mOrIntM2C     (ElAffin2D::Id()),
@@ -154,7 +152,13 @@ cPoseCam::cPoseCam
     mNbPosOfInit  (-1),
     mFidExist     (false)
 {
-    
+    mPrec = this;
+    mNext = this;
+
+	mCalib = mAppli.CalibFromName(aNameCalib,this);
+	mCF	=  mCalib->PIF().NewCam(cNameSpaceEqF::eRotLibre,ElRotation3D::Id,mCamRF,aNamePose,true);
+	mRF = &mCF->RF();
+
    SetOrInt(mAppli.Param().GlobOrInterne());
    SetOrInt(aPCI.OrInterne());
 
@@ -385,12 +389,12 @@ std::string  cPoseCam::CalNameFromL(const cLiaisonsInit & aLI)
 
 cRotationFormelle & cPoseCam::RF()
 {
-   return mRF;
+   return *mRF;
 }
 
 ElRotation3D cPoseCam::CurRot() const
 {
-   return mRF.CurRot();
+   return mRF->CurRot();
 }
 
 int   cPoseCam::NbPtsMulNN() const 
@@ -489,7 +493,7 @@ double   cPoseCam::ProfMoyHarmonik() const
 
 void cPoseCam::ActiveContrainte(bool Stricte)
 {
-    mAppli.SetEq().AddContrainte(mRF.StdContraintes(),Stricte);
+    mAppli.SetEq().AddContrainte(mRF->StdContraintes(),Stricte);
 }
 
 void ShowResMepRelCoplan(cResMepRelCoplan aRMRC)
@@ -693,7 +697,7 @@ void  cPoseCam::SetBascRig(const cSolBasculeRig & aSBR)
 
 void cPoseCam::BeforeCompens()
 {
-   mRF.ReactuFcteurRapCoU();
+   mRF->ReactuFcteurRapCoU();
 }
 
 void cPoseCam::InitCpt()
@@ -803,7 +807,7 @@ else
 //  std::cout << "CCCcccC : " << mName <<  " " << mAppli.HasObsCentre(mPCI->IdBDCentre().Val(),mName) << "\n";
       if (mAppli.HasObsCentre(mPCI->IdBDCentre().Val(),mName))
       {
-          mObsCentre = mAppli.ObsCentre(mPCI->IdBDCentre().Val(),mName).mVals;
+          mObsCentre = *( mAppli.ObsCentre(mPCI->IdBDCentre().Val(),mName).mVals );
           mHasObsCentre = (mObsCentre.mInc.x>0) && (mObsCentre.mInc.y>0) && (mObsCentre.mInc.z>0);
 
       }
@@ -1342,9 +1346,9 @@ bool cPoseCam::CanBeUSedForInit(bool OnInit) const
 
 void cPoseCam::SetFigee()
 {
-    mRF.SetTolAng(-1);
-    mRF.SetTolCentre(-1);
-    mRF.SetModeRot(cNameSpaceEqF::eRotFigee);
+    mRF->SetTolAng(-1);
+    mRF->SetTolCentre(-1);
+    mRF->SetModeRot(cNameSpaceEqF::eRotFigee);
 }
 
 void cPoseCam::SetDeFigee()
@@ -1352,7 +1356,7 @@ void cPoseCam::SetDeFigee()
    if (mLastCP)
       SetContrainte(*mLastCP);
    else
-      mRF.SetModeRot(cNameSpaceEqF::eRotLibre);
+      mRF->SetModeRot(cNameSpaceEqF::eRotLibre);
 }
 
 void cPoseCam::SetContrainte(const cContraintesPoses & aCP)
@@ -1366,13 +1370,13 @@ void cPoseCam::SetContrainte(const cContraintesPoses & aCP)
 	       (aCP.TolAng().Val()<=0)&&(aCP.TolCoord().Val()<=0),
 	       "Tolerance inutile avec ePoseLibre"
 	  );
-          mRF.SetModeRot(cNameSpaceEqF::eRotLibre);
+          mRF->SetModeRot(cNameSpaceEqF::eRotLibre);
       break;
 
       case ePoseFigee :
-           mRF.SetTolAng(aCP.TolAng().Val());
-           mRF.SetTolCentre(aCP.TolCoord().Val());
-	   mRF.SetModeRot(cNameSpaceEqF::eRotFigee);
+           mRF->SetTolAng(aCP.TolAng().Val());
+           mRF->SetTolCentre(aCP.TolCoord().Val());
+	   mRF->SetModeRot(cNameSpaceEqF::eRotFigee);
       break;
 
 
@@ -1382,8 +1386,8 @@ void cPoseCam::SetContrainte(const cContraintesPoses & aCP)
 	       (aCP.TolAng().Val()<=0),
 	       "Tolerance angulaire avec eCentreFige"
 	   );
-           mRF.SetTolCentre(aCP.TolCoord().Val());
-	   mRF.SetModeRot(cNameSpaceEqF::eRotCOptFige);
+           mRF->SetTolCentre(aCP.TolCoord().Val());
+	   mRF->SetModeRot(cNameSpaceEqF::eRotCOptFige);
       break;
 
 
@@ -1402,17 +1406,17 @@ void cPoseCam::SetContrainte(const cContraintesPoses & aCP)
 	       "Tolerance angle inutile avec ePoseBaseNormee"
 	  );
 
-           mRF.SetTolCentre(aCP.TolCoord().Val());
+           mRF->SetTolCentre(aCP.TolCoord().Val());
            if (aCP.Val()==ePoseVraieBaseNormee) 
            {
                 SetRattach(aCP.PoseRattachement().Val());
-	       mRF.SetModeRot(cNameSpaceEqF::eRotBaseU);
+	       mRF->SetModeRot(cNameSpaceEqF::eRotBaseU);
            }
            else
            {
                cPoseCam * aPR  = mAppli.PoseFromName(aCP.PoseRattachement().Val());
-               mRF.SetRotPseudoBaseU(&(aPR->mRF));
-	       mRF.SetModeRot(cNameSpaceEqF::eRotPseudoBaseU);
+               mRF->SetRotPseudoBaseU(aPR->mRF);
+	       mRF->SetModeRot(cNameSpaceEqF::eRotPseudoBaseU);
            }
       break;
 
@@ -1693,7 +1697,7 @@ Pt3dr  cPoseCam::AddObsCentre
    double aPdsZ  = aPondAlti.PdsOfError(ElAbs(aDif.z));
 
    Pt3dr aPPds = aSO.AddEq() ? Pt3dr(aPdsP,aPdsP,aPdsZ) : Pt3dr(0,0,0) ; 
-   Pt3dr aRAC = mRF.AddRappOnCentre(mObsCentre.mCentre,aPPds ,false);
+   Pt3dr aRAC = mRF->AddRappOnCentre(mObsCentre.mCentre,aPPds ,false);
 
 
    double aSEP = aPdsP*(ElSquare(aRAC.x)+ElSquare(aRAC.y))+aPdsZ*ElSquare(aRAC.z);
