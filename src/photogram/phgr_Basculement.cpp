@@ -270,7 +270,7 @@ void  cRansacBasculementRigide::Close()
    ELISE_ASSERT
    (
       mAvant.size() >= 3,
-      "Not enouh samples (Min 3) in cRansacBasculementRigide"
+      "Not enough samples (Min 3) in cRansacBasculementRigide"
    );
    mClosed = true;
    mLambda = EstimLambda();

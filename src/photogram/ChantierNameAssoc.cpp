@@ -428,10 +428,7 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 			bool whichSucceed = ElGetStrSys( "which "+ std::string( argv[0] ), aFulArg0 );
 			// remove the which's ending '\n'
 			aFulArg0.resize( aFulArg0.size()-1 );
-			
-			// __DEL
-			cout << "---------> " << aFulArg0 << endl;
-			
+						
 			// if which failed then we're doomed
 			ELISE_ASSERT( whichSucceed, "MMD_InitArgcArgv : unable to retrieve binaries directory" );
 		}
@@ -732,8 +729,9 @@ std::string XML_MM_File(const std::string & aFile)
 		cInv_AutomNC * aInv
 		)  :
 	cNI_AutomNC  (aICNM,aAutDir),
-		mInv         ((aInv==0) ? new cInv_AutomNC(aICNM,aAutInv,aAutDir,this) : aInv)
+		mInv( NULL )
 	{
+		mInv = ((aInv==0) ? new cInv_AutomNC(aICNM,aAutInv,aAutDir,this) : aInv);
 	}
 
 	cInterfNameCalculator::tNuplet cInv_AutomNC::Inverse(const tNuplet & aNuple)

@@ -44,8 +44,8 @@ namespace NS_ParamApero
 
 void cPoseCam::ShowRel(const cTraceCpleCam & aTCC,const cPoseCam & aCam2) const
 {
-     ElRotation3D aR1=mRF.CurRot();
-     ElRotation3D aR2=aCam2.mRF.CurRot();
+     ElRotation3D aR1=mRF->CurRot();
+     ElRotation3D aR2=aCam2.mRF->CurRot();
 
      ElRotation3D aR2inR1 = aR1.inv() * aR2;
 

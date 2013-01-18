@@ -414,7 +414,7 @@ bool NameFilter(const std::string & aSubD,cInterfChantierNameManipulateur * aICN
        // std::cout << "ADR MASQ " << aMasq << " " << anOri << "\n";
         Pt3dr aPMnt = FromMnt(*anOri,aCam->OrigineProf());
         Pt2di aP(round_ni(aPMnt.x),round_ni(aPMnt.y));
-        return TM.get(aP,0);
+        return ( TM.get(aP,0)==0 );
    }
    
    return true;

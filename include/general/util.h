@@ -373,6 +373,7 @@ template <class Type> Type red_tab_som(const Type * t,INT nb,Type v_init);
 /*************************************************************/
 
 template <class Type> inline Type ElAbs   (Type v1) {return ( (v1>0) ? v1 : -v1 );}
+					  inline bool ElAbs   (bool v1) {return v1;}
 inline REAL ecart_frac(REAL r)
 {
     return ElAbs(signed_frac(r));

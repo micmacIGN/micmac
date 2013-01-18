@@ -477,7 +477,7 @@ class cPoseCam
 
 	  cCameraFormelle *         mCamRF;
 	  cCameraFormelle *         mCF;
-	  cRotationFormelle &       mRF;
+	  cRotationFormelle *       mRF;
 	  // Distance aux zone plane
 	  std::map<std::string,double> mDZP;
 	  double                       mAltiSol;
@@ -614,6 +614,7 @@ template <class TypeEngl> class cObserv1Im : public TypeEngl::tSuppplem
                  const std::string& aNameIm,
 		 const typename TypeEngl::tArg &
          );
+		 ~cObserv1Im();
 
 
          cObserv1Im(cAppliApero & anAppli,typename TypeEngl::tObj aVals,const std::string& aNameIm);
@@ -628,7 +629,7 @@ template <class TypeEngl> class cObserv1Im : public TypeEngl::tSuppplem
 	 std::string                mIm;
          cPoseCam *                 mPose;
 	 cCameraFormelle *          mCF;
-	 typename TypeEngl::tObj    mVals;
+	 typename TypeEngl::tObj *mVals;
 };
 
 
