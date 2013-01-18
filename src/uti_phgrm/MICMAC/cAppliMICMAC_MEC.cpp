@@ -739,6 +739,10 @@ void cAppliMICMAC::DoOneBloc
         if (mShowMes)
             mCout << "       Correl Calc, Begin Opt\n";
         mSurfOpt->SolveOpt();
+
+#ifdef CUDA_ENABLED
+		freeGpuMemory();
+#endif
     }
 
 
@@ -774,9 +778,7 @@ void cAppliMICMAC::DoOneBloc
     }
   
 	
-#ifdef CUDA_ENABLED
-	freeGpuMemory();
-#endif
+
     //  delete mStatN;
     delete mStatGlob;
     delete mLTer;

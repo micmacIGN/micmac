@@ -174,8 +174,16 @@ extern "C" void  projectionsToLayers(float *h_TabProj, uint2 dimTer, int nbLayer
 	// Taille du tableau des calques 
 	cudaExtent siz_PL = make_cudaExtent( dimTer.x, dimTer.y, nbLayer);
 
-	// Allocation memoire GPU du tableau des calques d'images
-	checkCudaErrors( cudaMalloc3DArray(&dev_ProjLr,&channelDesc,siz_PL,cudaArrayLayered ));
+	// Allocation memoire GPU du tableau des calques de projections
+	
+	//checkCudaErrors( cudaMalloc3DArray(&dev_ProjLr,&channelDesc,siz_PL,cudaArrayLayered ));
+	cudaError_t eC =  cudaMalloc3DArray(&dev_ProjLr,&channelDesc,siz_PL,cudaArrayLayered );
+	if (eC != cudaSuccess)
+	{
+		std::cout << "Dimension du tableau des Images : " << h.dimImg.x << ","<< h.dimImg.x << "," << nbLayer  << "\n";
+		std::cout << "Dimension du tableau des projections : " << dimTer.x << ","<< dimTer.x << "," << nbLayer  << "\n";
+		
+	}
 
 	// Déclaration des parametres de copie 3D
 	cudaMemcpy3DParms p = { 0 };
