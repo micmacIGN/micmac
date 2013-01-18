@@ -328,6 +328,7 @@ namespace NS_ParamMICMAC
 			}
 
 			//  [12/19/2012 GChoqueux]
+/*
 			
 			if (0)
 			{
@@ -365,7 +366,7 @@ namespace NS_ParamMICMAC
 					delete[] image;
 				}
 			}
-			
+			*/
 			//  [12/19/2012 GChoqueux]
 
 			if ((!((dimImgMax.x == 0)|(dimImgMax.y == 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
@@ -961,8 +962,8 @@ namespace NS_ParamMICMAC
 		Pt2di sizImg =  aGLI.getSizeImage();
 
 		// Obtenir la nappe englobante
-		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		//int aZMinTer = 0 , aZMaxTer = 1;
+		//int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
+		int aZMinTer = 0 , aZMaxTer = 1;
 
 		// Tableau de sortie de corrélation 
 		float* h_TabCost = new float[  h.rSiTer ];
@@ -1036,10 +1037,11 @@ namespace NS_ParamMICMAC
 
 		if (showDebug) std::cout << "fin delete\n";
 
+
 		if(0)
 		{
 
-			bool showdebug_CPU = true;
+			bool showdebug_CPU = false;
 			std::vector<double *> aVecVals(mNbIm);
 			double ** aVVals = &(aVecVals[0]);
 			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
@@ -1049,8 +1051,8 @@ namespace NS_ParamMICMAC
 				
 					int aZMin = 0;
 					int aZMax = 1;
-// 					aZMin = mTabZMin[anY][anX];
-// 					aZMax = mTabZMax[anY][anX];
+					aZMin = mTabZMin[anY][anX];
+ 					aZMax = mTabZMax[anY][anX];
 					
 					// est-on dans le masque des points terrains valide
 					if ( IsInTer(anX,anY))
@@ -1102,15 +1104,13 @@ namespace NS_ParamMICMAC
 											if ((aGLI.IsOk(aPIm.x,aPIm.y))&&(aGLI.IsOk(aPIm.x+2,aPIm.y+2))&&(aGLI.IsOk(aPIm.x-2,aPIm.y-2)))
 											{
 												//////////////////////////////////////////////////////////////////////////
-												//double aVal =  mInterpolTabule.GetVal(aDataIm,aPIm);
-												double aVal =  aDataIm[(int)aPIm.y][(int)aPIm.x];
+												double aVal =  mInterpolTabule.GetVal(aDataIm,aPIm);
+												//double aVal =  aDataIm[(int)aPIm.y][(int)aPIm.x];
 												//////////////////////////////////////////////////////////////////////////
 												// On "push" la nouvelle valeur de l'image
 												*(mCurVals++) = aVal;
 												aSV += aVal;
 												aSVV += QSquare(aVal) ;
-												
-
 // 												if (showdebug_CPU && aKIm == imageDebug && aXVois == anX && aYVois == anY )
 // 												{
 // 													float off = 100.0f;
@@ -1287,7 +1287,7 @@ namespace NS_ParamMICMAC
 								double aCost = anEC2 / (( aNbImOk-1) *mNbPtsWFixe);
 								aCost =  mStatGlob->CorrelToCout(1-aCost);
 
-								if ( showdebug_CPU )
+	/*							if ( showdebug_CPU )
 								{
 									float off = 100.0f;
 									std::string S2 = "    ";
@@ -1318,7 +1318,7 @@ namespace NS_ParamMICMAC
 									else
 										std::cout << S1 << "." << S2;
 
-								}
+								}*/
 
 
 								// On envoie le resultat a l'optimiseur pour valoir  ce que de droit
