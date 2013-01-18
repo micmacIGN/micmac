@@ -343,11 +343,11 @@ template <class Type,class TBase>  cElN3D_EpipGen<Type,TBase>::cElN3D_EpipGen
    cElNuage3DMaille_FromImProf<Type,TBase>(aDir,aNuage,aFMasq,aFProf), 
    mProfIsZ   (aProfIsZ)
 {
-	mCentre	   = mCam->OrigineProf();
-	mDirPl	   = Params().DirFaisceaux();
-	mZIsInv    = Params().ZIsInverse();
-	mIsSpherik = Params().IsSpherik().Val();
-	mCS        = (mIsSpherik ? mCam->CS() : 0);
+	mCentre	   = this->mCam->OrigineProf();
+	mDirPl	   = this->Params().DirFaisceaux();
+	mZIsInv    = this->Params().ZIsInverse();
+	mIsSpherik = this->Params().IsSpherik().Val();
+	mCS        = (mIsSpherik ? this->mCam->CS() : 0);
 	mProfC     = scal(mDirPl,mCentre);
 }
 
