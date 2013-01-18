@@ -4,8 +4,10 @@
 #include <string>
 using namespace std;
 
-#include <windows.h>
-#include <Lmcons.h>
+#ifdef _WIN32
+  #include <windows.h>
+  #include <Lmcons.h>
+#endif
 
 #ifdef _DEBUG
 	#define   BLOCKDIM	16

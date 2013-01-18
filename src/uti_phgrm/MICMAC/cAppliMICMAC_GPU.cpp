@@ -41,7 +41,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #ifdef CUDA_ENABLED
 	#include "gpu/cudaAppliMicMac.cuh"
+#ifdef _WIN32
 	#include <Lmcons.h>
+#endif
 #endif
 
 namespace NS_ParamMICMAC
@@ -302,7 +304,6 @@ namespace NS_ParamMICMAC
 			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 			{
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
-				float **aDataIm	= aGLI.DataIm();
 				dimImgMax		= max(dimImgMax,toUi2(aGLI.getSizeImage()));				
 			}
 
@@ -314,7 +315,7 @@ namespace NS_ParamMICMAC
 			
 				// Obtention des données images
 				float **aDataIm		= aGLI.DataIm();
-				float *aDataImgLin	= aGLI.LinDIm();
+				//float *aDataImgLin	= aGLI.LinDIm();
 				uint2 dimImg		= toUi2(aGLI.getSizeImage());
 
 				if(fdataImg1D == NULL)
@@ -391,23 +392,27 @@ namespace NS_ParamMICMAC
 
 		//////////////////////////////////////////////////////////////////////////
 
-		h.ptMask0 = make_int2(-1);
-		h.ptMask1 = make_int2(-1);
+		uint2 Ter0  = make_uint2(mX0Ter,mY0Ter);
+		uint2 Ter1  = make_uint2(mX1Ter,mY1Ter);
+		uint2 diTer = Ter1 - Ter0;
+		h.ptMask0   = make_int2(-1,-1);
+		h.ptMask1   = make_int2(-1,-1);
 
-		bool *maskTab	= new bool[h.rSiTer];
+		bool *maskTab = new bool[size(diTer)];
 
 		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
 		{
 			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
 			{
-				bool visible	= IsInTer(anX,anY);
-				uint idMask		= h.rDiTer.x * (anY - mY0Ter) + anX - mX0Ter;
-				if (visible)
-				{					
-					if (h.ptMask0.x == -1 && h.ptMask0.y == -1)
-						h.ptMask0 = make_int2(anX,anY);
 
-					if (h.ptMask1.x < anX) h.ptMask1.x = anX;
+				bool visible	= IsInTer(anX,anY);
+				uint idMask	= diTer.x * (anY - mY0Ter) + anX - mX0Ter;
+				if (visible)
+				{
+				    if (h.ptMask0.x == -1 && h.ptMask0.y == -1)
+					h.ptMask0 = make_int2(anX,anY);
+
+				    if (h.ptMask1.x < anX) h.ptMask1.x = anX;
 					if (h.ptMask1.y < anY) h.ptMask1.y = anY;
 
 					maskTab[idMask] = true;
@@ -421,7 +426,9 @@ namespace NS_ParamMICMAC
 			}
 		}
 
+
 		delete[] maskTab;
+
 
 		//////////////////////////////////////////////////////////////////////////
 		
@@ -1021,11 +1028,6 @@ namespace NS_ParamMICMAC
 
 		h = updateSizeBlock(ter0,ter1);
 
-		// Obtention de l'image courante
-		cGPU_LoadedImGeom&	aGLI	= *(mVLI[0]);
-		// Taille de l'image courante
-		Pt2di sizImg =  aGLI.getSizeImage();
-
 		// Tableau de sortie de corrélation 
 		float* h_TabCost = new float[  h.rSiTer ];
 		uint siTabProj	= mNbIm * h.sizeSTer * 2;
@@ -1051,7 +1053,7 @@ namespace NS_ParamMICMAC
 	
 		// debug
 		bool showDebug	= false;
-		int	imgIdShow	= 0;
+		//int   imgIdShow	= 0;
 
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
