@@ -827,10 +827,6 @@ else
     cPoseCam * aCam2PL = 0;
     double aLambdaRot=1;
 
-	/*cParamIntrinsequeFormel  &piF = (mCalib->PIF());
-	CamStenope *cam	= piF.cParamIntrinsequeFormel::CurPIF();
-	CamStenope & aCS1 = *cam;*/
-
     CamStenope & aCS1 =   * (mCalib->PIF().CurPIF());
 
     double  aProfPose = -1;
