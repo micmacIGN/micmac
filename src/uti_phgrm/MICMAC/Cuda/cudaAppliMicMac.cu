@@ -36,9 +36,9 @@ cudaArray* dev_ImgLd;	//
 cudaArray* dev_ProjLr;		//
 
 //------------------------------------------------------------------------------------------
-float*	host_SimpCor;
+//float*	host_SimpCor;
 float*	host_Cache;
-float*	dev_SimpCor;
+//float*	dev_SimpCor;
 float*	dev_Cost;
 float*	dev_Cache;
 float*	dev_NbImgOk;
@@ -48,22 +48,24 @@ paramGPU h;
 extern "C" void allocMemory(void)
 {
 
+	//std::cout << "allocMemory\n";
+
 	if (dev_NbImgOk	!= NULL) checkCudaErrors( cudaFree(dev_NbImgOk));
-	if (dev_SimpCor != NULL) checkCudaErrors( cudaFree(dev_SimpCor));
+	//if (dev_SimpCor != NULL) checkCudaErrors( cudaFree(dev_SimpCor));
 	if (dev_Cache	!= NULL) checkCudaErrors( cudaFree(dev_Cache));
 	if (dev_Cost	!= NULL) checkCudaErrors( cudaFree(dev_Cost));
 
 
-	int sCorMemSize = h.sizeTer * sizeof(float);
+	//int sCorMemSize = h.sizeTer * sizeof(float);
 	int costMemSize = h.rSiTer	* sizeof(float);
 	int nBI_MemSize = h.rSiTer	* sizeof(float);
 	int cac_MemSize = h.sizeCach* sizeof(float)* h.nLayer;
 	
 	// Allocation mémoire
-	host_SimpCor	= (float*)	malloc(sCorMemSize);
+	//host_SimpCor	= (float*)	malloc(sCorMemSize);
 	host_Cache		= (float*)	malloc(cac_MemSize);
 	
-	checkCudaErrors( cudaMalloc((void **) &dev_SimpCor	, sCorMemSize) );	
+	//checkCudaErrors( cudaMalloc((void **) &dev_SimpCor	, sCorMemSize) );	
 	checkCudaErrors( cudaMalloc((void **) &dev_Cache	, cac_MemSize ) );
 	checkCudaErrors( cudaMalloc((void **) &dev_NbImgOk	, nBI_MemSize ) );
 	checkCudaErrors( cudaMalloc((void **) &dev_Cost		, costMemSize ) );
@@ -137,6 +139,8 @@ static void correlOptionsGPU( uint2 ter0, uint2 ter1, uint2 dV,uint2 dRV, uint2 
 
 extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimImage, int nbLayer)
 {
+
+	//std::cout << "imagesToLayers\n";
 	cudaExtent sizeImgsLay = make_cudaExtent( dimImage.x, dimImage.y, nbLayer );
 
 	// Définition du format des canaux d'images
@@ -166,8 +170,10 @@ extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimImage, int nbLayer)
 
 };
 
-extern "C" void  projectionsToLayers(float *h_TabProj, uint2 dimTer, int nbLayer)
+extern "C" void  allocMemoryTabProj(uint2 dimTer, int nbLayer)
 {
+
+	//std::cout << "projectionsToLayers\n";
 	// Définition du format des canaux d'images
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float2>();
 
@@ -175,15 +181,27 @@ extern "C" void  projectionsToLayers(float *h_TabProj, uint2 dimTer, int nbLayer
 	cudaExtent siz_PL = make_cudaExtent( dimTer.x, dimTer.y, nbLayer);
 
 	// Allocation memoire GPU du tableau des calques de projections
-	
-	//checkCudaErrors( cudaMalloc3DArray(&dev_ProjLr,&channelDesc,siz_PL,cudaArrayLayered ));
+	if (dev_ProjLr != NULL) cudaFreeArray(dev_ProjLr);
+
+	checkCudaErrors( cudaMalloc3DArray(&dev_ProjLr,&channelDesc,siz_PL,cudaArrayLayered ));
+/*
 	cudaError_t eC =  cudaMalloc3DArray(&dev_ProjLr,&channelDesc,siz_PL,cudaArrayLayered );
 	if (eC != cudaSuccess)
 	{
+		std::cout << "Erreur cuda malloc\n";
 		std::cout << "Dimension du tableau des Images : " << h.dimImg.x << ","<< h.dimImg.x << "," << nbLayer  << "\n";
 		std::cout << "Dimension du tableau des projections : " << dimTer.x << ","<< dimTer.x << "," << nbLayer  << "\n";
-		
+		checkCudaErrors(eC);
+
 	}
+*/
+
+
+}
+
+extern "C" void  CopyProjToLayers(float *h_TabProj, uint2 dimTer, int nbLayer)
+{
+	cudaExtent siz_PL = make_cudaExtent( dimTer.x, dimTer.y, nbLayer);
 
 	// Déclaration des parametres de copie 3D
 	cudaMemcpy3DParms p = { 0 };
@@ -414,10 +432,12 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 
 extern "C" paramGPU Init_Correlation_GPU(  uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef )
 {
+
 	dev_NbImgOk		= NULL;
-	dev_SimpCor		= NULL;
+	//dev_SimpCor		= NULL;
 	dev_Cache		= NULL;
 	dev_Cost		= NULL;
+	dev_ProjLr		= NULL;
 
 	correlOptionsGPU( ter0, ter1, dRVig * 2 + 1,dRVig, dimImg,mAhEpsilon, samplingZ, uvDef,nbLayer);
 	allocMemory();
@@ -454,7 +474,7 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer ){
 
 	////////////////////--  KERNEL  Correlation  --//////////////////////////
 	
-	correlationKernel<<<blocks, threads>>>( dev_NbImgOk, dev_Cache /*, dev_SimpCor*/, actiThsCo);
+	correlationKernel<<<blocks, threads>>>( dev_NbImgOk, dev_Cache, actiThsCo);
 	getLastCudaError("Basic Correlation kernel failed");
 	//cudaDeviceSynchronize();
 	
@@ -762,19 +782,19 @@ extern "C" void freeGpuMemory()
 	if(dev_ImgLd	!= NULL) checkCudaErrors( cudaFreeArray( dev_ImgLd) );
 	if(dev_ProjLr	!= NULL) checkCudaErrors( cudaFreeArray( dev_ProjLr) );
 	if(dev_NbImgOk	!= NULL) checkCudaErrors( cudaFree( dev_NbImgOk));
-	if(dev_SimpCor	!= NULL) checkCudaErrors( cudaFree( dev_SimpCor));
+	//if(dev_SimpCor	!= NULL) checkCudaErrors( cudaFree( dev_SimpCor));
 	if(dev_Cache	!= NULL) checkCudaErrors( cudaFree( dev_Cache));
 	if(dev_Cost		!= NULL) checkCudaErrors( cudaFree( dev_Cost));
 
 	dev_NbImgOk	= NULL;
-	dev_SimpCor = NULL;
+	//dev_SimpCor = NULL;
 	dev_Cache	= NULL;
 	dev_ImgLd	= NULL;
 	dev_Cost	= NULL;
 
 	// DEBUG 
 
-	free(host_SimpCor); 
+	//free(host_SimpCor); 
 	free(host_Cache);
 }
 

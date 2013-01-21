@@ -50,13 +50,14 @@ namespace NS_ParamMICMAC
 {
 
 #ifdef CUDA_ENABLED
-	extern "C" void freeGpuMemory();
-	extern "C" void projectionsToLayers(float *h_TabProj, uint2 dimTer, int nbLayer);
-	extern "C" void basic_Correlation_GPU(  float* h_TabCorre, int nbLayer);
-	extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer);
+	extern "C" void		freeGpuMemory();
+	extern "C" void		CopyProjToLayers(float *h_TabProj, uint2 dimTer, int nbLayer);
+	extern "C" void		basic_Correlation_GPU(  float* h_TabCorre, int nbLayer);
+	extern "C" void		imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer);
 	extern "C" paramGPU Init_Correlation_GPU( uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef);
 	extern "C" paramGPU updateSizeBlock( uint2 ter0, uint2 ter1 );
-	
+	extern "C" void		allocMemoryTabProj(uint2 dimTer, int nbLayer);
+
 	uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);};
 	paramGPU h;
 #endif
@@ -542,13 +543,9 @@ namespace NS_ParamMICMAC
 		Box2di aBoxUtiLocIm(Pt2di(mX0UtiLocIm,mY0UtiLocIm),Pt2di(mX1UtiLocIm,mY1UtiLocIm));
 		Box2di aBoxUtiDilLocIm(Pt2di(mX0UtiDilLocIm,mY0UtiDilLocIm),Pt2di(mX1UtiDilLocIm,mY1UtiDilLocIm));
 
-
 		Dilate(mImOkTerCur,mImOkTerDil,mCurSzV,aBoxUtiDilLocIm);
 
-
 		cInterpolateurIm2D<float> * anInt = CurEtape()->InterpFloat();
-
-
 
 		cGPU_LoadedImGeom * aGLI_00 =  mNbIm ? mVLI[0] : 0 ;
 		if (aMode==eModeMom_12_2_22)
@@ -879,7 +876,12 @@ namespace NS_ParamMICMAC
 		bool showTabPro = false;
 		int imageIDShow = 0;
 		
-		Pt2dr aSzDz = Pt2dr(mGeomDFPx->SzDz());	
+		int2 dimTabProj		= Ter1 - Ter0;
+		int2 dimSTabProj	= iDivUp(dimTabProj,sample);
+		uint  sizSTabProj	= size(dimSTabProj);
+
+		Pt2dr aSzDz		= Pt2dr(mGeomDFPx->SzDz());	
+		Pt2dr aSzClip	= Pt2dr(mGeomDFPx->SzClip());	
 
 		// Mise en calque des projections pour chaque image
 		for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )
@@ -894,11 +896,11 @@ namespace NS_ParamMICMAC
 			{															
 				for (int anX = Ter0.x ; anX < Ter1.x ; anX += sample)	// Ballayage du terrain  
 				{
-					if ( anX >= 0 && anY >= 0 && anX < aSzDz.x && anY < aSzDz.y)
+					if ( anX >= 0 && anY >= 0 && anX < aSzDz.x && anY < aSzDz.y && anX < aSzClip.x && anY < aSzClip.y)
 					{
 						int rX		= (anX - Ter0.x) / sample;
 						int rY		= (anY - Ter0.y) / sample;
-						int iD		= (aKIm * h.sizeSTer  + h.dimSTer.x * rY + rX ) * 2;
+						int iD		= (aKIm * sizSTabProj  + dimSTabProj.x * rY + rX ) * 2;
 						int aZMin	= mTabZMin[anY][anX];
 						int aZMax	= mTabZMax[anY][anX];
 
@@ -1055,6 +1057,8 @@ namespace NS_ParamMICMAC
 		bool showDebug	= false;
 		//int   imgIdShow	= 0;
 
+		allocMemoryTabProj(h.dimSTer, mNbIm);
+
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
 		{
@@ -1066,7 +1070,7 @@ namespace NS_ParamMICMAC
 			Tabul_Projection(h_TabProj, anZ, h.pUTer0, h.pUTer1, h.sampTer);
 			
 			// Copie des projections de host vers le device
-			projectionsToLayers(h_TabProj, h.dimSTer, mNbIm);
+			CopyProjToLayers(h_TabProj, h.dimSTer, mNbIm);
 
 			// Re-initialisation du tableau de sortie
 			memset(h_TabCost,0,h.rSiTer);
@@ -1083,6 +1087,8 @@ namespace NS_ParamMICMAC
 				
 					if ( mTabZMin[Y][X] <=  anZ && anZ < mTabZMax[Y][X])
 					{
+						// Statistique MICMAC
+						mNbPointsIsole++;
 
 						double cost = (double)h_TabCost[h.rDiTer.x * (Y - mY0Ter) +  X - mX0Ter];
 						if (cost != -1000.0f)
@@ -1101,6 +1107,7 @@ namespace NS_ParamMICMAC
  		delete [] h_TabPInit;
 
 		if (showDebug) std::cout << "fin delete\n";
+/*
 
 		if(0)
 		{
@@ -1200,7 +1207,7 @@ namespace NS_ParamMICMAC
 // 
 // 													if ( out < 0.0f && out > -1.0f)
 // 														std::cout << " " << out << ES;						
-// 													else if ( out > 0.0f /*&& out < 1.0f*/)
+// 													else if ( out > 0.0f / *&& out < 1.0f* /)
 // 														std::cout << S1 << out << ES;
 // 													else if ( out == 0 )
 // 														std::cout << S1 << "0" << S2;
@@ -1351,7 +1358,7 @@ namespace NS_ParamMICMAC
 								double aCost = anEC2 / (( aNbImOk-1) *mNbPtsWFixe);
 								aCost =  mStatGlob->CorrelToCout(1-aCost);
 
-	/*							if ( showdebug_CPU )
+							if ( showdebug_CPU )
 								{
 									float off = 100.0f;
 									std::string S2 = "    ";
@@ -1382,7 +1389,7 @@ namespace NS_ParamMICMAC
 									else
 										std::cout << S1 << "." << S2;
 
-								}*/
+								}
 
 
 								// On envoie le resultat a l'optimiseur pour valoir  ce que de droit
@@ -1408,6 +1415,7 @@ namespace NS_ParamMICMAC
 			}
 			if (showdebug_CPU) std::cout << "----------------------------------------------------------------\n";
 		}
+*/
 
 #else
 //std::cout  << "MESSAGE = "<<   mCorrelAdHoc->GPU_CorrelBasik().Val().Unused().Val() << "\n";
