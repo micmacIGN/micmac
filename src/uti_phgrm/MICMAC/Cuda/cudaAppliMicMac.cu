@@ -17,6 +17,7 @@ using namespace std;
 	#define   SBLOCKDIM 16
 #endif
 
+/*
 //------------------------------------------------------------------------------------------
 // Non utilisé
 texture<float, cudaTextureType2D, cudaReadModeNormalizedFloat> refTex_Image;
@@ -26,14 +27,16 @@ cudaArray* dev_Img;				// Tableau des valeurs de l'image
 cudaArray* dev_CubeProjImg;		// Declaration du cube de projection pour le device
 cudaArray* dev_ArrayProjImg;	// Declaration du tableau de projection pour le device
 //------------------------------------------------------------------------------------------
-
+*/
 //------------------------------------------------------------------------------------------
 // ATTENTION : erreur de compilation avec l'option cudaReadModeNormalizedFloat
 // et l'utilisation de la fonction tex2DLayered
-texture<float2,	cudaTextureType2DLayered > TexLay_Proj;
-texture<float,	cudaTextureType2DLayered > refTex_ImagesLayered;
-cudaArray* dev_ImgLd;	//
+texture< bool,	cudaTextureType2D >			TexMaskTer;
+texture< float2,cudaTextureType2DLayered >	TexLay_Proj;
+texture< float,	cudaTextureType2DLayered >	refTex_ImagesLayered;
+cudaArray* dev_ImgLd;		//
 cudaArray* dev_ProjLr;		//
+cudaArray* dev_MaskTer;		//
 
 //------------------------------------------------------------------------------------------
 //float*	host_SimpCor;
@@ -773,11 +776,13 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer ){
 
 extern "C" void freeGpuMemory()
 {
-	checkCudaErrors( cudaUnbindTexture(refTex_Image) );
-	checkCudaErrors( cudaUnbindTexture(refTex_ImagesLayered) );
-	checkCudaErrors( cudaFreeArray(dev_Img) );	
-	checkCudaErrors( cudaFreeArray(dev_CubeProjImg) );
-	checkCudaErrors( cudaFreeArray(dev_ArrayProjImg) );
+	//checkCudaErrors( cudaUnbindTexture(refTex_Image) );
+	//checkCudaErrors( cudaFreeArray(dev_Img) );
+	//checkCudaErrors( cudaFreeArray(dev_CubeProjImg) );
+	//checkCudaErrors( cudaFreeArray(dev_ArrayProjImg) );
+
+	checkCudaErrors( cudaUnbindTexture(refTex_ImagesLayered) );	
+
 
 	if(dev_ImgLd	!= NULL) checkCudaErrors( cudaFreeArray( dev_ImgLd) );
 	if(dev_ProjLr	!= NULL) checkCudaErrors( cudaFreeArray( dev_ProjLr) );
@@ -804,22 +809,22 @@ extern "C" void  FreeLayers()
 
 };
 
-extern "C" void  projToDevice(float* aProj,  int sXImg, int sYImg)
+extern "C" void  projToDevice(cudaArray_t *dev_ArrayProjImg,texture<float2, cudaTextureType2D, cudaReadModeNormalizedFloat> refTex_Project, float* aProj,  int sXImg, int sYImg)
 {
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float2>();
 
 	// Allocation mémoire du tableau cuda
-	checkCudaErrors( cudaMallocArray(&dev_ArrayProjImg,&channelDesc,sYImg,sXImg) );
+	checkCudaErrors( cudaMallocArray(dev_ArrayProjImg,&channelDesc,sYImg,sXImg) );
 
 	// Copie des données du Host dans le tableau Cuda
-	checkCudaErrors( cudaMemcpy2DToArray(dev_ArrayProjImg,0,0,aProj, sYImg*sizeof(float2),sYImg*sizeof(float2), sXImg, cudaMemcpyHostToDevice) );
+	checkCudaErrors( cudaMemcpy2DToArray(*dev_ArrayProjImg,0,0,aProj, sYImg*sizeof(float2),sYImg*sizeof(float2), sXImg, cudaMemcpyHostToDevice) );
 
 	// Lier la texture au tableau Cuda
-	checkCudaErrors( cudaBindTextureToArray(refTex_Project,dev_ArrayProjImg) );
+	checkCudaErrors( cudaBindTextureToArray(refTex_Project,*dev_ArrayProjImg) );
 
 }
 
-extern "C" void cubeProjToDevice(float* cubeProjPIm, cudaExtent dimCube)
+extern "C" void cubeProjToDevice(cudaArray_t *dev_CubeProjImg,float* cubeProjPIm, cudaExtent dimCube)
 {
 
 	// Format des canaux 
@@ -829,12 +834,12 @@ extern "C" void cubeProjToDevice(float* cubeProjPIm, cudaExtent dimCube)
 	cudaExtent sizeCube = dimCube;
 			
 	// Allocation memoire GPU du cube de projection
-	checkCudaErrors( cudaMalloc3DArray(&dev_CubeProjImg,&channelDesc,sizeCube) );
+	checkCudaErrors( cudaMalloc3DArray(dev_CubeProjImg,&channelDesc,sizeCube) );
 
 	// Déclaration des parametres de copie 3D
 	cudaMemcpy3DParms p = { 0 };
 			
-	p.dstArray	= dev_CubeProjImg;			// Pointeur du tableau de destination
+	p.dstArray	= *dev_CubeProjImg;			// Pointeur du tableau de destination
 	p.srcPtr	= make_cudaPitchedPtr(cubeProjPIm, dimCube.width * 2 * sizeof(float), dimCube.width, dimCube.height);
 	p.extent	= dimCube;					// Taille du cube
 	p.kind		= cudaMemcpyHostToDevice;	// Type de copie
@@ -844,7 +849,7 @@ extern "C" void cubeProjToDevice(float* cubeProjPIm, cudaExtent dimCube)
 		
 }
 
-extern "C" void  imageToDevice(float** aDataIm,  int sXImg, int sYImg)
+extern "C" void  imageToDevice(cudaArray_t *dev_Img, texture<float, cudaTextureType2D, cudaReadModeNormalizedFloat> refTex_Image, float** aDataIm,  int sXImg, int sYImg)
 {
 	float *dataImg1D	= new float[sXImg*sYImg];
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float>();
@@ -856,13 +861,13 @@ extern "C" void  imageToDevice(float** aDataIm,  int sXImg, int sYImg)
 			dataImg1D[i*sYImg+j] = aDataIm[j][i];
 
 	// Allocation mémoire du tableau cuda
-	checkCudaErrors( cudaMallocArray(&dev_Img,&channelDesc,sYImg,sXImg) );
+	checkCudaErrors( cudaMallocArray(dev_Img,&channelDesc,sYImg,sXImg) );
 
 	// Copie des données du Host dans le tableau Cuda
-	checkCudaErrors( cudaMemcpy2DToArray(dev_Img,0,0,dataImg1D, sYImg*sizeof(float),sYImg*sizeof(float), sXImg, cudaMemcpyHostToDevice) );
+	checkCudaErrors( cudaMemcpy2DToArray(*dev_Img,0,0,dataImg1D, sYImg*sizeof(float),sYImg*sizeof(float), sXImg, cudaMemcpyHostToDevice) );
 
 	// Lier la texture au tableau Cuda
-	checkCudaErrors( cudaBindTextureToArray(refTex_Image,dev_Img) );
+	checkCudaErrors( cudaBindTextureToArray(refTex_Image,*dev_Img) );
 
 	delete dataImg1D;
 
