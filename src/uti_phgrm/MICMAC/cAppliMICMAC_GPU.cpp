@@ -427,6 +427,17 @@ namespace NS_ParamMICMAC
 			}
 		}
 
+		bool maskZone = false;
+		int2 ptHmask0 = h.ptMask0 - h.rVig;
+		int2 ptHmask1 = h.ptMask1 + h.rVig;
+
+
+		if (h.ptMask0.x != -1 && ((h.ptMask0.x != mX0Ter || h.ptMask0.y != mY0Ter) || ( h.ptMask1.x != mX1Ter - 1 || h.ptMask1.y != mY1Ter - 1) ))
+		{
+			std::cout << "mask zone : "  << h.ptMask0.x << "," << h.ptMask0.y << " -> " << h.ptMask1.x << "," << h.ptMask1.y << "\n";
+			std::cout << "mask Halo zone: "  << ptHmask0.x << "," << ptHmask0.y << " -> " << ptHmask1.x << "," << ptHmask1.y << "\n";
+			maskZone = true;
+		}
 
 		delete[] maskTab;
 
@@ -1009,8 +1020,8 @@ namespace NS_ParamMICMAC
 		if(	mNbIm == 0) return;
 
 		// Obtenir la nappe englobante
-		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		//int aZMinTer = 0 , aZMaxTer = 1;
+		//int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
+		int aZMinTer = 0 , aZMaxTer = 1;
 		
 		if (h.ptMask0.x == -1)
 		{
