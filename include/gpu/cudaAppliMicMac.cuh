@@ -19,8 +19,8 @@ static __constant__ float cUVDefValue;
 static __constant__ uint2 cDimCach;
 static __constant__ uint  cSizeCach;
 static __constant__ float cBadVignet;
-static __constant__ int2  ptMask0;
-static __constant__ int2  ptMask1;
+static __constant__ uint2  ptMask0;
+static __constant__ uint2  ptMask1;
 
 struct paramGPU
 {
