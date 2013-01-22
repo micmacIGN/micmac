@@ -19,6 +19,8 @@ cp -r ../data $BIN_DIR
 mkdir $BIN_DIR/include
 cp -r ../include/XML_GEN $BIN_DIR/include
 cp -r ../include/XML_MicMac $BIN_DIR/include
+cp README.fr $BIN_DIR
+cp README.en $BIN_DIR
 
 # copie les outils tiers
 OS=$(uname -s)
