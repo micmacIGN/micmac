@@ -54,7 +54,7 @@ namespace NS_ParamMICMAC
 	extern "C" void		CopyProjToLayers(float *h_TabProj, uint2 dimTer, int nbLayer);
 	extern "C" void		basic_Correlation_GPU(  float* h_TabCorre, int nbLayer);
 	extern "C" void		imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer);
-	extern "C" paramGPU Init_Correlation_GPU( uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef);
+	extern "C" paramGPU Init_Correlation_GPU( uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef);
 	extern "C" paramGPU updateSizeBlock( uint2 ter0, uint2 ter1 );
 	extern "C" void		allocMemoryTabProj(uint2 dimTer, int nbLayer);
 
@@ -380,13 +380,14 @@ namespace NS_ParamMICMAC
 
 			delete[] fdataImg1D;
 
-			float uvDef	 = -1.0f;
+			int uvINTDef = -64;
+			
 			uint sampTer = 1;
 
 			uint2 Ter0		= make_uint2(mX0Ter,mY0Ter);
 			uint2 Ter1		= make_uint2(mX1Ter,mY1Ter);
 
-			h = Init_Correlation_GPU(Ter0, Ter1, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, sampTer, uvDef);
+			h = Init_Correlation_GPU(Ter0, Ter1, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, sampTer, uvINTDef);
 
 		}
 
@@ -410,7 +411,7 @@ namespace NS_ParamMICMAC
 				uint idMask	= diTer.x * (anY - mY0Ter) + anX - mX0Ter;
 				if (visible)
 				{
-				    if (h.ptMask0.x == -1 && h.ptMask0.y == -1)
+				    if ( aEq(h.ptMask0, -1))
 					h.ptMask0 = make_int2(anX,anY);
 
 				    if (h.ptMask1.x < anX) h.ptMask1.x = anX;
@@ -1020,19 +1021,15 @@ namespace NS_ParamMICMAC
 		if(	mNbIm == 0) return;
 
 		// Obtenir la nappe englobante
-		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		//int aZMinTer = 0 , aZMaxTer = 1;
-		
+		//int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
+		int aZMinTer = 0 , aZMaxTer = 1;
+
 		if (h.ptMask0.x == -1)
 		{
 			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
-			{
 				for (int anX = mX0Ter ; anX <  mX1Ter ; anX++) 
-				{
 					for (int anZ = mTabZMin[anY][anX] ;  anZ < mTabZMax[anY][anX] ; anZ++)					
 						mSurfOpt->SetCout(Pt2di(anX,anY),&anZ,mAhDefCost);
-				}
-			}
 			return;
 		}
 	
@@ -1044,26 +1041,9 @@ namespace NS_ParamMICMAC
 		// Tableau de sortie de corrélation 
 		float* h_TabCost = new float[  h.rSiTer ];
 		uint siTabProj	= mNbIm * h.sizeSTer * 2;
-
 		// Tableau des projections
 		float* h_TabProj	= new float[ siTabProj ];
-		float* h_TabPInit	= new float[ siTabProj ];
-		
-		//  [1/18/2013 GChoqueux]
-		//-- création du Tableau initialisation  // ATTENTION A FAIRE 1 FOIS !!! A DEPLACER
-		//  [1/18/2013 GChoqueux]
-		for (uint anX = 0 ; anX < h.dimSTer.x  ; anX++)
-		{
-			h_TabPInit[anX * 2 + 0] = h.UVDefValue;
-			h_TabPInit[anX * 2 + 1] = h.UVDefValue;
-		}
 
-		for (uint anY = 1  ; anY < h.dimSTer.y ; anY++)
-			memcpy( h_TabPInit +  2 * h.dimSTer.x  * anY, &h_TabPInit[0], 2 * h.dimSTer.x * sizeof(float));
-
-		for (int aKIm = 1 ; aKIm < mNbIm ; aKIm++ )
-			memcpy( h_TabPInit + 2 * h.sizeSTer * aKIm, &h_TabPInit[0], 2 * h.sizeSTer * sizeof(float));
-	
 		// debug
 		bool showDebug	= false;
 		//int   imgIdShow	= 0;
@@ -1074,17 +1054,12 @@ namespace NS_ParamMICMAC
 		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
 		{
 			// Re-initialisation du tableau de projection
-			memcpy( h_TabProj, h_TabPInit, siTabProj * sizeof(float));
-// 			std::cout  << "//////////////////////////////////////////////////////////////////////////\n";
-// 			std::cout << h.pUTer0.x << ","<< h.pUTer0.y <<  "\n";
-// 			std::cout << h.pUTer1.x << ","<< h.pUTer1.y <<  "\n";
+			memset(h_TabProj,h.UVIntDef,siTabProj * sizeof(float));
+
 			Tabul_Projection(h_TabProj, anZ, h.pUTer0, h.pUTer1, h.sampTer);
 			
 			// Copie des projections de host vers le device
 			CopyProjToLayers(h_TabProj, h.dimSTer, mNbIm);
-
-			// Re-initialisation du tableau de sortie
-			memset(h_TabCost,0,h.rSiTer);
 
 			// Kernel Correlation
 			basic_Correlation_GPU(h_TabCost, mNbIm);
@@ -1102,7 +1077,7 @@ namespace NS_ParamMICMAC
 						mNbPointsIsole++;
 
 						double cost = (double)h_TabCost[h.rDiTer.x * (Y - mY0Ter) +  X - mX0Ter];
-						if (cost != -1000.0f)
+						if (cost != h.UVDefValue)
 							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,cost);
 						else 
 							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,mAhDefCost);				
@@ -1111,11 +1086,8 @@ namespace NS_ParamMICMAC
 		}
 
 		if (showDebug) std::cout << "delete\n";
-		
-		// Erreur delete en Debug
 		delete [] h_TabCost;
  		delete [] h_TabProj;
- 		delete [] h_TabPInit;
 
 		if (showDebug) std::cout << "fin delete\n";
 /*
