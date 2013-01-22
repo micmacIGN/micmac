@@ -82,7 +82,6 @@ int cAppliMICMAC::GetTXY() const
 }
 
 extern "C" void  imagesToLayers(float *fdataImg1D, int sx, int sy, int sz);
-extern "C" void  FreeLayers();
 
 void cAppliMICMAC::DoAllMEC()
 {
