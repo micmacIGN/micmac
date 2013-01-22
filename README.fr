@@ -57,4 +57,15 @@ fichiers d'en-tête de X11 pour Linux et MacOS X.
 
 Tester l'installation
 
+	Sur le site logiciels.ign.fr (section image->Micmac->téléchargement) se trouve également disponible en téléchargement le jeu de 
+test Boudha_dataset.zip.
+	Le script et les données qu'il contient, permettent de tester si votre installation de Micmac fonctionne correctement. Pour lancer
+le script, si vous vous trouvez dans le répertoire "Boudha" issu du fichier zip, entrez une commande de la forme :
+		./boudha_test.sh mon_micmac_bin/ 
+	où mon_micmac_bin est le chemin (absolu ou relatif) du répertoire "bin" de votre installation. Par exemple :
+		./boudha_test.sh ../micmac/bin/
+	Attention, le nom du répertoire doit impérativement finir par un '/' terminal (ou un '\' sous Windows, les deux formes sont possibles).
+	Lorsque le calcul sera terminé, vous pourrez vérifier le résultat grâce aux trois fichier "ply" contenus dans le répertoire MEC-6-Im.
+	Il s'agit du même exemple Boudha que dans la documentation. Editez les fichiers PLY à l'aide d'un viewer comme meshlab pour vérifier que
+les résultats sont cohérents.
 	
