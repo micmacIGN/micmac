@@ -23,10 +23,20 @@ cp -R src $TEMP_DIRECTORY
 cp CMakeLists.txt $TEMP_DIRECTORY
 cp Makefile-XML2CPP $TEMP_DIRECTORY
 cp precompiled_headers.cmake $TEMP_DIRECTORY
+cp README.fr $TEMP_DIRECTORY
+cp README.en $TEMP_DIRECTORY
 
 rm -fr $TEMP_DIRECTORY/include/StdAfx.h.gch
 rm -fr $TEMP_DIRECTORY/data/Tabul/.svn
 rm -fr $TEMP_DIRECTORY/src/interface
+
+mkdir $TEMP_DIRECTORY/binaire-aux
+cp binaire-aux/ann_mec_filtre.LINUX $TEMP_DIRECTORY/binaire-aux
+cp binaire-aux/siftpp_tgi.LINUX $TEMP_DIRECTORY/binaire-aux
+cp binaire-aux/ann_samplekey200filtre.OSX $TEMP_DIRECTORY/binaire-aux
+cp binaire-aux/siftpp_tgi.OSX $TEMP_DIRECTORY/binaire-aux
+cp binaire-aux/siftpp_tgi.exe $TEMP_DIRECTORY/binaire-aux
+cp binaire-aux/ann_samplekeyfiltre.exe $TEMP_DIRECTORY/binaire-aux
 
 tar czf $ARCHIVE_NAME.tar.gz $TEMP_DIRECTORY
 rm -fr $TEMP_DIRECTORY
