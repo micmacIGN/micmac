@@ -82,7 +82,6 @@ int cAppliMICMAC::GetTXY() const
 }
 
 extern "C" void  imagesToLayers(float *fdataImg1D, int sx, int sy, int sz);
-extern "C" void  FreeLayers();
 
 void cAppliMICMAC::DoAllMEC()
 {
@@ -739,6 +738,10 @@ void cAppliMICMAC::DoOneBloc
         if (mShowMes)
             mCout << "       Correl Calc, Begin Opt\n";
         mSurfOpt->SolveOpt();
+
+#ifdef CUDA_ENABLED
+		freeGpuMemory();
+#endif
     }
 
 
@@ -774,9 +777,7 @@ void cAppliMICMAC::DoOneBloc
     }
   
 	
-#ifdef CUDA_ENABLED
-	freeGpuMemory();
-#endif
+
     //  delete mStatN;
     delete mStatGlob;
     delete mLTer;

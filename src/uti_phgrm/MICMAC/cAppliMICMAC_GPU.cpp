@@ -41,20 +41,23 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #ifdef CUDA_ENABLED
 	#include "gpu/cudaAppliMicMac.cuh"
+#ifdef _WIN32
 	#include <Lmcons.h>
+#endif
 #endif
 
 namespace NS_ParamMICMAC
 {
 
 #ifdef CUDA_ENABLED
-	extern "C" void freeGpuMemory();
-	extern "C" void projectionsToLayers(float *h_TabProj, uint2 dimTer, int nbLayer);
-	extern "C" void basic_Correlation_GPU(  float* h_TabCorre, int nbLayer);
-	extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer);
-	extern "C" paramGPU Init_Correlation_GPU( int x0, int x1, int y0, int y1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, float uvDef);
-	extern "C" paramGPU updateSizeBlock( int x0, int x1, int y0, int y1 );
-	
+	extern "C" void		freeGpuMemory();
+	extern "C" void		CopyProjToLayers(float *h_TabProj, uint2 dimTer, int nbLayer);
+	extern "C" void		basic_Correlation_GPU(  float* h_TabCorre, int nbLayer);
+	extern "C" void		imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer);
+	extern "C" paramGPU Init_Correlation_GPU( uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef);
+	extern "C" paramGPU updateSizeBlock( uint2 ter0, uint2 ter1 );
+	extern "C" void		allocMemoryTabProj(uint2 dimTer, int nbLayer);
+
 	uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);};
 	paramGPU h;
 #endif
@@ -284,6 +287,10 @@ namespace NS_ParamMICMAC
 		}
 		mNbIm = (int)mVLI.size();
 
+
+		mZMinGlob = (int)1e7;
+		mZMaxGlob = (int)(-1e7);
+
 #ifdef CUDA_ENABLED
 	
 		if (mLoadTextures)
@@ -298,7 +305,6 @@ namespace NS_ParamMICMAC
 			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 			{
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
-				float **aDataIm	=  aGLI.DataIm();
 				dimImgMax		= max(dimImgMax,toUi2(aGLI.getSizeImage()));				
 			}
 
@@ -309,8 +315,8 @@ namespace NS_ParamMICMAC
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 			
 				// Obtention des données images
-				float **aDataIm		=  aGLI.DataIm();
-				float *aDataImgLin	=  aGLI.LinDIm();
+				float **aDataIm		= aGLI.DataIm();
+				//float *aDataImgLin	= aGLI.LinDIm();
 				uint2 dimImg		= toUi2(aGLI.getSizeImage());
 
 				if(fdataImg1D == NULL)
@@ -328,6 +334,7 @@ namespace NS_ParamMICMAC
 			}
 
 			//  [12/19/2012 GChoqueux]
+/*
 			
 			if (0)
 			{
@@ -365,7 +372,7 @@ namespace NS_ParamMICMAC
 					delete[] image;
 				}
 			}
-			
+			*/
 			//  [12/19/2012 GChoqueux]
 
 			if ((!((dimImgMax.x == 0)|(dimImgMax.y == 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
@@ -373,16 +380,73 @@ namespace NS_ParamMICMAC
 
 			delete[] fdataImg1D;
 
-			float uvDef	 = -1.0f;
+			int uvINTDef = -64;
+			
 			uint sampTer = 1;
-			h = Init_Correlation_GPU(mX0Ter, mX1Ter , mY0Ter , mY1Ter, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, sampTer, uvDef);
+
+			uint2 Ter0		= make_uint2(mX0Ter,mY0Ter);
+			uint2 Ter1		= make_uint2(mX1Ter,mY1Ter);
+
+			h = Init_Correlation_GPU(Ter0, Ter1, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, sampTer, uvINTDef);
 
 		}
 
-#endif
 
-		mZMinGlob = (int)1e7;
-		mZMaxGlob = (int)(-1e7);
+		//////////////////////////////////////////////////////////////////////////
+
+		uint2 Ter0  = make_uint2(mX0Ter,mY0Ter);
+		uint2 Ter1  = make_uint2(mX1Ter,mY1Ter);
+		uint2 diTer = Ter1 - Ter0;
+		h.ptMask0   = make_int2(-1,-1);
+		h.ptMask1   = make_int2(-1,-1);
+
+		bool *maskTab = new bool[size(diTer)];
+
+		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+		{
+			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+			{
+
+				bool visible	= IsInTer(anX,anY);
+				uint idMask	= diTer.x * (anY - mY0Ter) + anX - mX0Ter;
+				if (visible)
+				{
+				    if ( aEq(h.ptMask0, -1))
+					h.ptMask0 = make_int2(anX,anY);
+
+				    if (h.ptMask1.x < anX) h.ptMask1.x = anX;
+					if (h.ptMask1.y < anY) h.ptMask1.y = anY;
+
+					maskTab[idMask] = true;
+				}	
+				else
+					maskTab[idMask] = false;
+
+				ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
+				ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
+
+			}
+		}
+
+		bool maskZone = false;
+		int2 ptHmask0 = h.ptMask0 - h.rVig;
+		int2 ptHmask1 = h.ptMask1 + h.rVig;
+
+
+// 		if (h.ptMask0.x != -1 && ((h.ptMask0.x != mX0Ter || h.ptMask0.y != mY0Ter) || ( h.ptMask1.x != mX1Ter - 1 || h.ptMask1.y != mY1Ter - 1) ))
+// 		{
+// 			std::cout << "mask zone : "  << h.ptMask0.x << "," << h.ptMask0.y << " -> " << h.ptMask1.x << "," << h.ptMask1.y << "\n";
+// 			std::cout << "mask Halo zone: "  << ptHmask0.x << "," << ptHmask0.y << " -> " << ptHmask1.x << "," << ptHmask1.y << "\n";
+// 			maskZone = true;
+// 		}
+
+		delete[] maskTab;
+
+
+		//////////////////////////////////////////////////////////////////////////
+		
+#else
+
 		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
 		{
 			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
@@ -392,6 +456,9 @@ namespace NS_ParamMICMAC
 
 			}
 		}
+
+#endif
+		
 
 		mGpuSzD = 0;
 		if (mCurEtape->UseGeomDerivable())
@@ -488,13 +555,9 @@ namespace NS_ParamMICMAC
 		Box2di aBoxUtiLocIm(Pt2di(mX0UtiLocIm,mY0UtiLocIm),Pt2di(mX1UtiLocIm,mY1UtiLocIm));
 		Box2di aBoxUtiDilLocIm(Pt2di(mX0UtiDilLocIm,mY0UtiDilLocIm),Pt2di(mX1UtiDilLocIm,mY1UtiDilLocIm));
 
-
 		Dilate(mImOkTerCur,mImOkTerDil,mCurSzV,aBoxUtiDilLocIm);
 
-
 		cInterpolateurIm2D<float> * anInt = CurEtape()->InterpFloat();
-
-
 
 		cGPU_LoadedImGeom * aGLI_00 =  mNbIm ? mVLI[0] : 0 ;
 		if (aMode==eModeMom_12_2_22)
@@ -595,7 +658,6 @@ namespace NS_ParamMICMAC
 
 		return true;
 	}
-
 
 	void cAppliMICMAC::DoOneCorrelSym(int anX,int anY)
 	{
@@ -826,7 +888,12 @@ namespace NS_ParamMICMAC
 		bool showTabPro = false;
 		int imageIDShow = 0;
 		
-		Pt2dr aSzDz = Pt2dr(mGeomDFPx->SzDz());	
+		int2 dimTabProj		= Ter1 - Ter0;
+		int2 dimSTabProj	= iDivUp(dimTabProj,sample);
+		uint  sizSTabProj	= size(dimSTabProj);
+
+		Pt2dr aSzDz		= Pt2dr(mGeomDFPx->SzDz());	
+		Pt2dr aSzClip	= Pt2dr(mGeomDFPx->SzClip());	
 
 		// Mise en calque des projections pour chaque image
 		for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )
@@ -841,11 +908,11 @@ namespace NS_ParamMICMAC
 			{															
 				for (int anX = Ter0.x ; anX < Ter1.x ; anX += sample)	// Ballayage du terrain  
 				{
-					if ( anX >= 0 && anY >= 0 && anX < aSzDz.x && anY < aSzDz.y)
+					if ( anX >= 0 && anY >= 0 && anX < aSzDz.x && anY < aSzDz.y && anX < aSzClip.x && anY < aSzClip.y)
 					{
 						int rX		= (anX - Ter0.x) / sample;
 						int rY		= (anY - Ter0.y) / sample;
-						int iD		= (aKIm * h.sizeSTer  + h.dimSTer.x * rY + rX ) * 2;
+						int iD		= (aKIm * sizSTabProj  + dimSTabProj.x * rY + rX ) * 2;
 						int aZMin	= mTabZMin[anY][anX];
 						int aZMax	= mTabZMax[anY][anX];
 
@@ -953,57 +1020,46 @@ namespace NS_ParamMICMAC
 		
 		if(	mNbIm == 0) return;
 
-		h = updateSizeBlock(mX0Ter,mX1Ter,mY0Ter,mY1Ter);
-
-		// Obtention de l'image courante
-		cGPU_LoadedImGeom&	aGLI	= *(mVLI[0]);
-		// Taille de l'image courante
-		Pt2di sizImg =  aGLI.getSizeImage();
-
 		// Obtenir la nappe englobante
-		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		//int aZMinTer = 0 , aZMaxTer = 1;
+		//int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
+		int aZMinTer = 0 , aZMaxTer = 1;
+
+		if (h.ptMask0.x == -1)
+		{
+			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+				for (int anX = mX0Ter ; anX <  mX1Ter ; anX++) 
+					for (int anZ = mTabZMin[anY][anX] ;  anZ < mTabZMax[anY][anX] ; anZ++)					
+						mSurfOpt->SetCout(Pt2di(anX,anY),&anZ,mAhDefCost);
+			return;
+		}
+	
+		uint2 ter0 = make_uint2(mX0Ter, mY0Ter);
+		uint2 ter1 = make_uint2(mX1Ter, mY1Ter);
+
+		h = updateSizeBlock(ter0,ter1);
 
 		// Tableau de sortie de corrélation 
 		float* h_TabCost = new float[  h.rSiTer ];
 		uint siTabProj	= mNbIm * h.sizeSTer * 2;
-
 		// Tableau des projections
 		float* h_TabProj	= new float[ siTabProj ];
-		float* h_TabPInit	= new float[ siTabProj ];
-		
-		//-- Initialisation Tableau 
-		for (uint anX = 0 ; anX < h.dimSTer.x  ; anX++)
-		{
-			h_TabPInit[anX * 2 + 0] = h.UVDefValue;
-			h_TabPInit[anX * 2 + 1] = h.UVDefValue;
-		}
 
-		for (uint anY = 1  ; anY < h.dimSTer.y ; anY++)
-			memcpy( h_TabPInit +  2 * h.dimSTer.x  * anY, &h_TabPInit[0], 2 * h.dimSTer.x * sizeof(float));
-
-		for (int aKIm = 1 ; aKIm < mNbIm ; aKIm++ )
-			memcpy( h_TabPInit + 2 * h.sizeSTer * aKIm, &h_TabPInit[0], 2 * h.sizeSTer * sizeof(float));
-	
 		// debug
 		bool showDebug	= false;
-		int	imgIdShow	= 0;
+		//int   imgIdShow	= 0;
+
+		allocMemoryTabProj(h.dimSTer, mNbIm);
 
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
 		{
 			// Re-initialisation du tableau de projection
-			memcpy( h_TabProj, h_TabPInit, siTabProj * sizeof(float));
-// 			std::cout  << "//////////////////////////////////////////////////////////////////////////\n";
-// 			std::cout << h.pUTer0.x << ","<< h.pUTer0.y <<  "\n";
-// 			std::cout << h.pUTer1.x << ","<< h.pUTer1.y <<  "\n";
+			memset(h_TabProj,h.UVIntDef,siTabProj * sizeof(float));
+
 			Tabul_Projection(h_TabProj, anZ, h.pUTer0, h.pUTer1, h.sampTer);
 			
 			// Copie des projections de host vers le device
-			projectionsToLayers(h_TabProj, h.dimSTer, mNbIm);
-
-			// Re-initialisation du tableau de sortie
-			memset(h_TabCost,0,h.rSiTer);
+			CopyProjToLayers(h_TabProj, h.dimSTer, mNbIm);
 
 			// Kernel Correlation
 			basic_Correlation_GPU(h_TabCost, mNbIm);
@@ -1017,9 +1073,11 @@ namespace NS_ParamMICMAC
 				
 					if ( mTabZMin[Y][X] <=  anZ && anZ < mTabZMax[Y][X])
 					{
+						// Statistique MICMAC
+						mNbPointsIsole++;
 
 						double cost = (double)h_TabCost[h.rDiTer.x * (Y - mY0Ter) +  X - mX0Ter];
-						if (cost != -1000.0f)
+						if (cost != h.UVDefValue)
 							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,cost);
 						else 
 							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,mAhDefCost);				
@@ -1028,18 +1086,16 @@ namespace NS_ParamMICMAC
 		}
 
 		if (showDebug) std::cout << "delete\n";
-		
-		// Erreur delete en Debug
 		delete [] h_TabCost;
  		delete [] h_TabProj;
- 		delete [] h_TabPInit;
 
 		if (showDebug) std::cout << "fin delete\n";
+/*
 
 		if(0)
 		{
 
-			bool showdebug_CPU = true;
+			bool showdebug_CPU = false;
 			std::vector<double *> aVecVals(mNbIm);
 			double ** aVVals = &(aVecVals[0]);
 			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
@@ -1049,8 +1105,8 @@ namespace NS_ParamMICMAC
 				
 					int aZMin = 0;
 					int aZMax = 1;
-// 					aZMin = mTabZMin[anY][anX];
-// 					aZMax = mTabZMax[anY][anX];
+					aZMin = mTabZMin[anY][anX];
+ 					aZMax = mTabZMax[anY][anX];
 					
 					// est-on dans le masque des points terrains valide
 					if ( IsInTer(anX,anY))
@@ -1102,15 +1158,13 @@ namespace NS_ParamMICMAC
 											if ((aGLI.IsOk(aPIm.x,aPIm.y))&&(aGLI.IsOk(aPIm.x+2,aPIm.y+2))&&(aGLI.IsOk(aPIm.x-2,aPIm.y-2)))
 											{
 												//////////////////////////////////////////////////////////////////////////
-												//double aVal =  mInterpolTabule.GetVal(aDataIm,aPIm);
-												double aVal =  aDataIm[(int)aPIm.y][(int)aPIm.x];
+												double aVal =  mInterpolTabule.GetVal(aDataIm,aPIm);
+												//double aVal =  aDataIm[(int)aPIm.y][(int)aPIm.x];
 												//////////////////////////////////////////////////////////////////////////
 												// On "push" la nouvelle valeur de l'image
 												*(mCurVals++) = aVal;
 												aSV += aVal;
 												aSVV += QSquare(aVal) ;
-												
-
 // 												if (showdebug_CPU && aKIm == imageDebug && aXVois == anX && aYVois == anY )
 // 												{
 // 													float off = 100.0f;
@@ -1136,7 +1190,7 @@ namespace NS_ParamMICMAC
 // 
 // 													if ( out < 0.0f && out > -1.0f)
 // 														std::cout << " " << out << ES;						
-// 													else if ( out > 0.0f /*&& out < 1.0f*/)
+// 													else if ( out > 0.0f / *&& out < 1.0f* /)
 // 														std::cout << S1 << out << ES;
 // 													else if ( out == 0 )
 // 														std::cout << S1 << "0" << S2;
@@ -1287,7 +1341,7 @@ namespace NS_ParamMICMAC
 								double aCost = anEC2 / (( aNbImOk-1) *mNbPtsWFixe);
 								aCost =  mStatGlob->CorrelToCout(1-aCost);
 
-								if ( showdebug_CPU )
+							if ( showdebug_CPU )
 								{
 									float off = 100.0f;
 									std::string S2 = "    ";
@@ -1344,6 +1398,7 @@ namespace NS_ParamMICMAC
 			}
 			if (showdebug_CPU) std::cout << "----------------------------------------------------------------\n";
 		}
+*/
 
 #else
 //std::cout  << "MESSAGE = "<<   mCorrelAdHoc->GPU_CorrelBasik().Val().Unused().Val() << "\n";
