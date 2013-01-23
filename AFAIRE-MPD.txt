@@ -23,6 +23,7 @@ portage windows
 Campari
 Campari
 mm3d-LockFile.txt
+CenterBascule
 
 
 Voir pour les sift comme masques
