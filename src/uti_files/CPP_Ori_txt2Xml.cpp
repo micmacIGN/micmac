@@ -167,6 +167,7 @@ class cAppli_Ori_Txt2Xml_main
          bool                 mHasWPK;
          bool                 mMTDOnce;
          bool                 mTetaFromCap;
+         double               mOffsetTeta;
 };
 
 /*
@@ -541,6 +542,8 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
                       << EAM(mCalcV,"CalcV",true,"Calcul speed (def = false)")
                       << EAM(mDelay,"Delay",true,"Delay to take into accound after speed estimate")
                       << EAM(mMTDOnce,"MTD1",true,"Compute Metadata only for first image (internal use, speed up in set up mode)")
+                      << EAM(mTetaFromCap,"TFC",true,"Teta from cap : compute orientation from speed)")
+                      << EAM(mOffsetTeta,"OfsT",true,"Offset on teta")
     );
 
     mCalcV  = mCalcV
