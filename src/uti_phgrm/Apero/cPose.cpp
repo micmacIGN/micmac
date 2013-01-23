@@ -833,6 +833,7 @@ else
     double aDZPl2 = -1;
     cPoseCam * aCam2PL = 0;
     double aLambdaRot=1;
+
     CamStenope & aCS1 =   * (mCalib->PIF().CurPIF());
 
     double  aProfPose = -1;

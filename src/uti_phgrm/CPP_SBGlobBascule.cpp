@@ -30,7 +30,7 @@ Francais :
 
 English :
 
-    MicMa cis an open source software specialized in image matching
+    MicMac is an open source software specialized in image matching
     for research in geographic information. MicMac is built on the
     eLiSe image library. MicMac is governed by the  "Cecill-B licence".
     See below and http://www.cecill.info.

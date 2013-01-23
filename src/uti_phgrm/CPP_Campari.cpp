@@ -30,7 +30,7 @@ Francais :
 
 English :
 
-    MicMa cis an open source software specialized in image matching
+    MicMac is an open source software specialized in image matching
     for research in geographic information. MicMac is built on the
     eLiSe image library. MicMac is governed by the  "Cecill-B licence".
     See below and http://www.cecill.info.
@@ -91,7 +91,7 @@ int Campari_main(int argc,char ** argv)
 	LArgMain()  << EAMC(aFullDir,"Full Directory (Dir+Pattern)")
                     << EAMC(AeroIn,"Input Orientation")
                     << EAMC(AeroOut,"Output Orientation"),
-	LArgMain()  << EAM(GCP,"GCP",true,"[GrMes.xml,GrUncertaincy,ImMes.xml,ImUnc]")	
+	LArgMain()  << EAM(GCP,"GCP",true,"[GrMes.xml,GrUncertainty,ImMes.xml,ImUnc]")	
     );
 
 
@@ -116,8 +116,8 @@ int Campari_main(int argc,char ** argv)
     if (EAMIsInit(&GCP))
     {
         ELISE_ASSERT(GCP.size()==4,"Mandatory part of GCP requires 4 arguments");
-        double aGcpGrU = RequireFromString<double>(GCP[1],"GCP-Ground uncertancy");
-        double aGcpImU = RequireFromString<double>(GCP[3],"GCP-Image  uncertancy");
+        double aGcpGrU = RequireFromString<double>(GCP[1],"GCP-Ground uncertainty");
+        double aGcpImU = RequireFromString<double>(GCP[3],"GCP-Image  uncertainty");
 
         std::cout << "THAT IS ::: " << aGcpGrU << " === " << aGcpImU << "\n";
 
