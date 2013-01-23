@@ -55,7 +55,7 @@ int CentreBascule_main(int argc,char ** argv)
     std::string DicoPts;
     std::string BDC;
     bool ModeL1 = false;
-    bool UseV   = false;
+    bool CalcV   = false;
 
 
     ElInitArgMain
@@ -67,7 +67,7 @@ int CentreBascule_main(int argc,char ** argv)
                     << EAMC(AeroOut,"Orientation out"),
 	LArgMain()  
                     <<  EAM(ModeL1,"L1",true,"L1 minimisation vs L2; (Def=false)")
-                    <<  EAM(UseV,"UseV",true,"Use speed to estimate time delay (Def=false)")
+                    <<  EAM(CalcV,"CalcV",true,"Use speed to estimate time delay (Def=false)")
     );
 		
 #if (ELISE_windows)
@@ -90,9 +90,9 @@ int CentreBascule_main(int argc,char ** argv)
         aCom = aCom+ std::string(" +L2Basc=") + ToString(!ModeL1);
      }
 
-     if (UseV)
+     if (CalcV)
      {
-        aCom = aCom+ std::string(" +UseV=") + ToString(UseV);
+        aCom = aCom+ std::string(" +CalcV=") + ToString(CalcV);
      }
 
 

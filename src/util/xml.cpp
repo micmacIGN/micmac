@@ -88,6 +88,10 @@ class cOpPolI
        tFoncPoli    mF;
 
 };
+
+static double FTrue(const std::vector<double> & aV) { return 1; }
+static double FFalse(const std::vector<double> & aV) { return 0; }
+static double FNot(const std::vector<double> & aV) { return aV[0]==0; }
     
 static double FSom(const std::vector<double> & aV) { return aV[0]+aV[1]; }
 static double FMul(const std::vector<double> & aV) { return aV[0]*aV[1]; }
@@ -115,9 +119,13 @@ const std::vector<cOpPolI> & OpPolI()
        aRes.push_back(cOpPolI(2,"Sup",FSupStrict));
        aRes.push_back(cOpPolI(3,"?",FIf));
        aRes.push_back(cOpPolI(2,"/",FDiv));
+       aRes.push_back(cOpPolI(0,"true",FTrue));
+       aRes.push_back(cOpPolI(0,"false",FFalse));
+       aRes.push_back(cOpPolI(1,"!",FNot));
    }
    return aRes;
 }
+
 
 // ATTENTION isblank non defini !!!  == >>  EN FAIT PAS VRAIMENT  :
 //  sous linux  :    isblank defini ,  ISBLANK non defini

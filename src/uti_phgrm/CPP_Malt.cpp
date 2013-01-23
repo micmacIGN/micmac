@@ -126,6 +126,7 @@ class cAppliMalt
           bool         mIsSperik;
           double      mLargMin;
           Pt2dr       mSzGlob;
+          std::string  mMasqIm;
 };
 
 
@@ -215,6 +216,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mZMoy,"ZMoy",true,"Average value of Z")
                     << EAM(mIsSperik,"Spherik",true,"If true the surface for redressing are spheres")
                     << EAM(mLargMin,"WMI",true,"Miinum width of reduced images (to fix ZoomInit)")
+                    << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq")
   );
 
   if ((mImMaster!="") != (mType==eGeomImage))
@@ -406,6 +408,14 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   ;
 
 
+  if (EAMIsInit(&mMasqIm))
+  {
+        mCom =  mCom
+                +  std::string(" +UseMasqPerIm=true")
+                +  std::string(" +MasqPerIm=") + mMasqIm
+             ;
+  }
+
 
   if (mImMaster != "")
   {
@@ -471,8 +481,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   std::cout << mCom << "\n";
   // cInZRegulterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
-  if (mImMNT !="") mCom   =  mCom + std::string(" +ImMNT=")   + mImMNT;
-  if (mImOrtho !="") mCom =  mCom + std::string(" +ImOrtho=") + mImOrtho;
+  if (mImMNT !="") mCom   =  mCom + std::string(" +ImMNT=")   + QUOTE(mImMNT);
+  if (mImOrtho !="") mCom =  mCom + std::string(" +ImOrtho=") + QUOTE(mImOrtho);
   if (mOrthoInAnam)
   {
        std::string aFileOAM  = "MM-Malt-OrthoAnamOnly.xml";

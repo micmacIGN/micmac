@@ -2125,11 +2125,11 @@ class cBascOnCentre
         cTplValGesInit< std::string > & PoseCentrale();
         const cTplValGesInit< std::string > & PoseCentrale()const ;
 
-        cTplValGesInit< bool > & UseVitesse();
-        const cTplValGesInit< bool > & UseVitesse()const ;
+        cTplValGesInit< bool > & EstimateSpeed();
+        const cTplValGesInit< bool > & EstimateSpeed()const ;
     private:
         cTplValGesInit< std::string > mPoseCentrale;
-        cTplValGesInit< bool > mUseVitesse;
+        cTplValGesInit< bool > mEstimateSpeed;
 };
 cElXMLTree * ToXMLTree(const cBascOnCentre &);
 
@@ -2155,8 +2155,8 @@ class cBasculeOnPoints
         cTplValGesInit< std::string > & PoseCentrale();
         const cTplValGesInit< std::string > & PoseCentrale()const ;
 
-        cTplValGesInit< bool > & UseVitesse();
-        const cTplValGesInit< bool > & UseVitesse()const ;
+        cTplValGesInit< bool > & EstimateSpeed();
+        const cTplValGesInit< bool > & EstimateSpeed()const ;
 
         cTplValGesInit< cBascOnCentre > & BascOnCentre();
         const cTplValGesInit< cBascOnCentre > & BascOnCentre()const ;
@@ -2232,8 +2232,8 @@ class cModeBascule
         cTplValGesInit< std::string > & PoseCentrale();
         const cTplValGesInit< std::string > & PoseCentrale()const ;
 
-        cTplValGesInit< bool > & UseVitesse();
-        const cTplValGesInit< bool > & UseVitesse()const ;
+        cTplValGesInit< bool > & EstimateSpeed();
+        const cTplValGesInit< bool > & EstimateSpeed()const ;
 
         cTplValGesInit< cBascOnCentre > & BascOnCentre();
         const cTplValGesInit< cBascOnCentre > & BascOnCentre()const ;
@@ -2291,8 +2291,8 @@ class cBasculeOrientation
         cTplValGesInit< std::string > & PoseCentrale();
         const cTplValGesInit< std::string > & PoseCentrale()const ;
 
-        cTplValGesInit< bool > & UseVitesse();
-        const cTplValGesInit< bool > & UseVitesse()const ;
+        cTplValGesInit< bool > & EstimateSpeed();
+        const cTplValGesInit< bool > & EstimateSpeed()const ;
 
         cTplValGesInit< cBascOnCentre > & BascOnCentre();
         const cTplValGesInit< cBascOnCentre > & BascOnCentre()const ;
@@ -2926,8 +2926,8 @@ class cIterationsCompensation
         cTplValGesInit< std::string > & PoseCentrale();
         const cTplValGesInit< std::string > & PoseCentrale()const ;
 
-        cTplValGesInit< bool > & UseVitesse();
-        const cTplValGesInit< bool > & UseVitesse()const ;
+        cTplValGesInit< bool > & EstimateSpeed();
+        const cTplValGesInit< bool > & EstimateSpeed()const ;
 
         cTplValGesInit< cBascOnCentre > & BascOnCentre();
         const cTplValGesInit< cBascOnCentre > & BascOnCentre()const ;

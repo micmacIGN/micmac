@@ -8,7 +8,7 @@
             <Symb>  AeroOut=XXXX  </Symb>
             <Symb>  L2Basc=true  </Symb>
             <Symb>  BDDC=XXX  </Symb>
-            <Symb>  UseV=false  </Symb>
+            <Symb>  CalcV=false  </Symb>
        </DicoLoc>
 
 
@@ -75,7 +75,7 @@
                           <ModeBascule>
                                <BasculeOnPoints>
                                    <BascOnCentre>  
-                                       <UseVitesse> ${UseV} </UseVitesse>
+                                       <EstimateSpeed> ${CalcV} </EstimateSpeed>
                                    </BascOnCentre>
                                    <ModeL2> ${L2Basc} </ModeL2>
                                </BasculeOnPoints>

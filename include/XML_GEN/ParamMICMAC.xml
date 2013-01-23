@@ -617,6 +617,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                         pour ne pas aller chercher de masque -->
                 <NomMasq Nb="1"  Type="std::string">      </NomMasq>  
              </OneMasqueImage>
+             <AcceptNonExistingFile Nb="?" Type="bool" Def="false"> </AcceptNonExistingFile>
         </MasqImageIn>
 
          <!-- Filtre a appliquer en entree de l'image -->

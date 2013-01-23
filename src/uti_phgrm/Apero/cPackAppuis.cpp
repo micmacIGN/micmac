@@ -447,13 +447,20 @@ cObsCentre cTypeEnglob_Centre::CreateFromXML
         aRes.mVitesse.SetVal(aV);
     }
 
+    aRes.mVitFiable = true;
+    cElXMLTree * aTreeVF     = aFullTreeParam.GetOneOrZero("VitesseFiable");
+    if (aTreeVF)
+    {
+        xml_init(aRes.mVitFiable,aTreeVF);
+    }
+    
+
+    aRes.mIncOnC = Pt3dr (1,1,1);
     cElXMLTree * aTreeInc     = aFullTreeParam.GetOneOrZero("IncCentre");
-    Pt3dr anInc(1,1,1);
     if (aTreeInc)
     {
-        xml_init(anInc,aTreeInc);
+        xml_init(aRes.mIncOnC,aTreeInc);
     }
-    aRes.mInc = anInc;
 
 
 

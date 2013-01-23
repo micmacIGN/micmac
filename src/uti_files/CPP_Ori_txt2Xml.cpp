@@ -110,6 +110,7 @@ class cAppli_Ori_Txt2Xml_main
          void SauvOriFinal();
          void OnePasseElargV(int aK0, int aK1, int aStep);
          void SauvRel();
+         void  InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK);
 
          bool  OkArc(int aK1,int aK2) const;
          Pt3dr Vect(int aK1, int aK2) const
@@ -137,6 +138,7 @@ class cAppli_Ori_Txt2Xml_main
          std::string         mImC;
          int                 mNbImC;
          int                 mSizeC; 
+         int                 mSizeRC; 
          std::string         mReexpMatr;
          std::string         mDir;
          cInterfChantierNameManipulateur * mICNM;
@@ -156,6 +158,15 @@ class cAppli_Ori_Txt2Xml_main
          int                  mCptMin;
          int                  mCptMax;
          double               mDifMaxV ;
+
+         double               mRegul;
+         double               mRelNewBr;
+         double               mRelFiabl;
+         bool                 mCalcV;
+         double               mDelay;
+         bool                 mHasWPK;
+         bool                 mMTDOnce;
+         bool                 mTetaFromCap;
 };
 
 /*
@@ -177,34 +188,29 @@ Il y a 4 etat possible
 
 typedef enum
 {
-     eVitMil,
-     eVitAv,
-     eVitApr,
-     eNoVit,
+     eDebTraj,
+     eMilTraj,
+     eFinTraj,
+     eNoTraj
 } eTyNdVit;
 
-double CostIntrins(eTyNdVit  aTyN)
+
+void  ComputeTransition(eTyNdVit  aTyN1,eTyNdVit  aTyN2,bool & Ok,bool & Innoc,bool & CreateBr)
 {
-   switch (aTyN)
-   {
-        case eVitMil : return 0.0;
-        case eVitApr :
-        case eVitAv : return 1.0;
 
-        case eNoVit : return 5.0;
-        //case eTrans : return 0.0;
-   }
+    if ((aTyN1 == eDebTraj) || (aTyN1 == eMilTraj))
+    {
+         Ok = (aTyN2==eMilTraj) || (aTyN2==eFinTraj);
+         Innoc = false;
+    }
+    else
+    {
+         Ok = (aTyN2==eNoTraj) || (aTyN2==eDebTraj);
+         Innoc = true;
+    }
 
-   return 0;
-}
+    CreateBr = (aTyN1==eDebTraj);
 
-double CostTrans(eTyNdVit  aTyN1, eTyNdVit  aTyN2)
-{
-   if (aTyN1==aTyN2) return 0.0;
-
-   if ((aTyN1==eNoVit) != (aTyN2==eNoVit))  return 2.0;
-
-   return 1.0;
 }
 
 
@@ -295,60 +301,19 @@ void cAppli_Ori_Txt2Xml_main::SauvOriFinal()
    {
        cTxtCam & aCam = *(mVCam[aK]);
        MakeFileXML(*(aCam.mOC),aCam.mNameOri);
+       if (EAMIsInit(&mReexpMatr))
+       {
+          cOrientationConique aOriEx = aCam.mCam->StdExportCalibGlob();
+          MakeFileXML(aOriEx,NameOrientation(mReexpMatr,aCam));
+       }
    }
 }
 
 void cAppli_Ori_Txt2Xml_main::CalcVitesse()
 {
-
-/*
-   for (int aK= 1 ; aK<mNbCam-1 ; aK++)
-   {
-       cTxtCam & aCam = *(mVCam[aK]);
-       Pt3dr aVPrec =  Vect(aK-1,aK);
-       Pt3dr aVNext =  Vect(aK,aK+1);
-
-       double aDif = euclid(aVPrec-aVNext);
-       if (aDif < mDifMaxV)
-       {
-          aCam.SetVitesse((aVPrec+aVNext) / 2.0);
-          //   aCam.mVIsCalc = true;
-          //   aCam.mV = (aVPrec+aVNext) / 2.0 ;
-       }
-   }
-
-   for (int aK=0 ; aK<2 ; aK++)
-   {
-       OnePasseElargV(0,mNbCam-3,1);
-       OnePasseElargV(mNbCam-1,2,-1);
-   }
-
-   for (int aK= 0 ; aK<mNbCam ; aK++)
-   {
-       cTxtCam & aCam = *(mVCam[aK]);
-       if (1)
-       {
-           std::cout <<  aCam.mNameIm ;
-           if (aCam.mVIsCalc)
-              std::cout << aCam.mV;
-            else
-            {
-              std::cout << "XXXXX";
-              if (aK>0) std::cout << Vect(aK-1,aK) ;
-              if (aK<mNbCam-1) std::cout << Vect(aK,aK+1) ;
-            }
-            std::cout << "\n";
-       }
-       if (aCam.mVIsCalc)
-       {
-          aCam.mOC->Externe().Vitesse().SetVal(aCam.mV);
-       }
-       else
-       {
-          aCam.mOC->Externe().IncCentre().SetVal(Pt3dr(-1,-1,-1));
-       }
-   }
-*/
+   
+   if (mTetaFromCap)
+      mHasWPK = true;
 
 
    ElGraphe<cAttrSom,cAttrArc> mGr;
@@ -360,14 +325,14 @@ void cAppli_Ori_Txt2Xml_main::CalcVitesse()
         int aKPrec = ElMax(0,aK-1);
         int aKNext = ElMin(mNbCam-1,aK+1);
 
-        aVSom.push_back(&mGr.new_som(cAttrSom(aCam,VitesseIndice(aKPrec,aKNext),(aKPrec!=aK) && (aKNext!=aK),eVitMil)));
-        aVSom.push_back(&mGr.new_som(cAttrSom(aCam,VitesseIndice(aKPrec,aK),(aKPrec!=aK) ,eVitAv)));
-        aVSom.push_back(&mGr.new_som(cAttrSom(aCam,VitesseIndice(aK,aKNext),(aKNext!=aK) ,eVitApr)));
-        aVSom.push_back(&mGr.new_som(cAttrSom(aCam,Pt3dr(0,0,0),true,eNoVit)));
+        aVSom.push_back(&mGr.new_som(cAttrSom(aCam,VitesseIndice(aK,aKNext),(aKNext!=aK) ,eDebTraj)));
+        aVSom.push_back(&mGr.new_som(cAttrSom(aCam,VitesseIndice(aKPrec,aKNext),(aKPrec!=aK) && (aKNext!=aK),eMilTraj)));
+        aVSom.push_back(&mGr.new_som(cAttrSom(aCam,VitesseIndice(aKPrec,aK),(aKPrec!=aK) ,eFinTraj)));
+        aVSom.push_back(&mGr.new_som(cAttrSom(aCam,Pt3dr(0,0,0),true,eNoTraj)));
     }
 
 
-    for (int aKS =0 ; aKS<int(aVSom.size()-1) ; aKS+=4)
+    for (int aKS =0 ; aKS<int(aVSom.size()-4) ; aKS+=4)
     {
          for (int aKS1 = aKS ; aKS1<(aKS+4) ; aKS1++)
          {
@@ -380,16 +345,20 @@ void cAppli_Ori_Txt2Xml_main::CalcVitesse()
 
                 if (anAttr1.mOK && anAttr2.mOK)
                 {
-                    double aCost = 0;
-                    if ((anAttr1.mTyN != eNoVit) && (anAttr2.mTyN != eNoVit))
+                    bool Ok,Innocuped,CreateBr;
+                    ComputeTransition(anAttr1.mTyN,anAttr2.mTyN,Ok,Innocuped,CreateBr);
+
+                    if (Ok)
                     {
-                        aCost  += ElMax(euclid(anAttr1.mV-anAttr2.mV),8.0);
+                        cAttrArc anAA;
+                        anAA.mCost = Innocuped ? mRegul : euclid(anAttr1.mV-anAttr2.mV);
+
+                        if (CreateBr)
+                           anAA.mCost += mRegul * mRelNewBr;
+
+                           
+                         mGr.add_arc(*aS1,*aS2,anAA);
                     }
-                    aCost += (CostIntrins(anAttr1.mTyN) + CostIntrins(anAttr2.mTyN)) / 2.0;
-
-                   aCost += CostTrans(anAttr1.mTyN,anAttr2.mTyN);
-
-//  AJOUTE ARC
                 }
              }
          }
@@ -416,87 +385,88 @@ void cAppli_Ori_Txt2Xml_main::CalcVitesse()
                        aSub,
                        eModePCC_Somme
                   );
-/*
-    tSom * aRes = aPcc.pcc
-                  (
-                       *(aVSom[0]),
-                       *(aVSom[0]),
-                       aSub,
-                       eModePCC_Somme
-                  );
-*/
-     
     
-/*
-     eVitMil,
-     eVitAv,
-     eVitApr,
-     eNoVit
-*/
+     ELISE_ASSERT(aRes!=0,"Pcc inc in cAppli_Ori_Txt2Xml_main::CalcVitesse");
+ 
+     ElFilo<tSom *> aPCC;
+     aPcc.chemin(aPCC,*(aRes));
+
+     for (int aKPcc = aPCC.nb()-1 ; aKPcc >= 0 ; aKPcc--)
+     {
+         const cAttrSom & anAttr = aPCC[aKPcc]->attr();
+         cTxtCam * aCam = anAttr.mCam ;
+
+         eTyNdVit  aTyn = anAttr.mTyN ;
+         Pt3dr aV = anAttr.mV;
+
+         bool Fiable = false;
+         if (aTyn==eMilTraj)
+         {
+             Pt3dr aVPrec = Vect(aCam->mNum-1,aCam->mNum);
+             Pt3dr aVNext = Vect(aCam->mNum,aCam->mNum+1);
+
+             Fiable = euclid(aVPrec-aVNext) < mDifMaxV;
+         }
+
+
+         if (aTyn != eNoTraj)
+         {
+            aCam->mV = aV;
+            aCam->mOC->Externe().Vitesse().SetVal(aV);
+            aCam->mOC->Externe().VitesseFiable().SetVal(Fiable);
+         }
+
+
+         if (1)
+         {
+             if (aTyn==eDebTraj) std::cout << "[[\n";
+
+             std::cout << "   Num " << aCam->mNum << " ";
+
  
 
-/*
-   ElGraphe<cTxtCam *,cAttrArc> mGr;
-   std::vector<tSom *> aVSom;
+              if (aTyn== eNoTraj)   
+                 std::cout << " ******";
+              else
+              {
+                 if (Fiable) 
+                    std::cout  << "##";
+                 else
+                    std::cout  << "  ";
+                 if (mHasWPK)
+                 {
+                    Pt3dr aWPK = aCam->mOC->Externe().ParamRotation().CodageAngulaire().Val();
+                    double aKap = aWPK.z;
+                    double aTeta = angle(Pt2dr(aV.x,aV.y)) * (180/PI);
+                    std::cout << aV << "TETA " << aTeta <<  " Kap=" << aKap << " Dif=" << mod_real(aTeta-aKap,360) ;
+                 }
+              }
+             
 
 
-   for (int aK= 0 ; aK<mNbCam ; aK++)
-   {
-        tSom & aSom = mGr.new_som(mVCam[aK]);
-        aVSom.push_back(&aSom);
-   }
+             std::cout << "\n";
+             if (aTyn==eFinTraj) std::cout << "]]\n";
+         }
+     }
 
-   for (int aK1=0 ; aK1<mNbCam ; aK1++)
-   {
-       for (int aK2=aK1+1 ; (aK2<mNbCam) && OkArc(aK1,aK2) ; aK2++)
-       {
-            tSom * aS1 = aVSom[aK1];
-            tSom * aS2 = aVSom[aK2];
-            cAttrArc anAttr;
-            Pt3dr aV0 = Vect(aK1,aK2) / (aK2-aK1);
-            anAttr.mCost = mCostRegulAngle;
-            for (int aK3= aK1+1; aK3 <= aK2 ; aK3++)
-                anAttr.mCost += euclid(aV0-Vect(aK3-1,aK3));
-                
-            mGr.add_arc(*aS1,*aS2,anAttr);
-       }
-   }
+     if (EAMIsInit(&mDelay))
+     {
+         for (int aK= 0 ; aK<mNbCam ; aK++)
+         {
+             cTxtCam * aCam = mVCam[aK];
+             if ( aCam->mOC->Externe().Vitesse().IsInit())
+             {
 
-   ElPcc<cTxtCam *,cAttrArc> aPcc;
-   OriSubGr aSub;
+                 Pt3dr aC  = aCam->mC + aCam->mV * mDelay;
+                 Pt3dr aV  = aCam->mV;
+                 Pt3dr aWPK  = aCam->mOC->Externe().ParamRotation().CodageAngulaire().ValWithDef(Pt3dr(0,0,0));
+                 if (mTetaFromCap)
+                    aWPK = Pt3dr(0,0, angle(Pt2dr(aV.x,aV.y)) * (180/PI));
 
-   tSom  * aRes = aPcc.pcc
-                  (
-                       *(aVSom[0]),
-                       *(aVSom.back()),
-                       aSub,
-                       eModePCC_Somme
-                  );
-
-   ELISE_ASSERT(aRes==aVSom.back(),"Pcc failed in cAppli_Ori_Txt2Xml_main::CalcVitesse");
-
-   ElFilo<tSom *> aPCC;
-   aPcc.chemin(aPCC,*(aRes));
-
-   for (int aKPcc = 1 ; aKPcc < aPCC.nb() ; aKPcc++)
-   {
-       int aK0 = aPCC[aKPcc-1]->attr()->mNum;
-       int aK1 = aPCC[aKPcc]->attr()->mNum;
-
-       set_min_max(aK0,aK1);
-
-       cTxtCam * aS0 = mVCam[aK0];
-       cTxtCam * aS1 = mVCam[aK1];
-
-       Pt3dr aV = (aS1->mC - aS0->mC) / (aS1->mCam->GetTime()-aS0->mCam->GetTime());
-       
-
-       if ((aK1-aK0) > 1)
-       {
-           std::cout << "KKKk " << aK0 << " " << aK1  << " " << aV << "\n";
-       }
-   }
-*/
+                 InitCamera(*aCam,aC,aWPK);
+             }
+         }
+     }
 }
 
 
@@ -510,6 +480,7 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     mImC             (""),
     mNbImC           (10),
     mSizeC           (1000),
+    mSizeRC          (300),
     mReexpMatr       (),
     mDir             (),
     mICNM            (),
@@ -522,7 +493,13 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     mCostRegulAngle  (5),
     mCptMin          (0),
     mCptMax          (int (1e9)),
-    mDifMaxV         (3.0)
+    mRegul           (5.0),
+    mRelNewBr        (0.4),
+    mRelFiabl        (0.75),
+    mCalcV           (false),
+    mDelay           (0),
+    mMTDOnce         (false),
+    mTetaFromCap     (false)
 {
 
     bool Help;
@@ -554,11 +531,25 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
                       << EAM(mImC,"ImC",true,"Image \"Center\" for computing AltiSol")
                       << EAM(mNbImC,"NbImC",true,"Number of neigboor around Image \"Center\" (Def=10)")
                       << EAM(mSizeC,"SizeSC",true,"Size of image to use for Tapioca for AltiSol (Def=1000)")
+                      << EAM(mSizeRC,"RedSizeSC",true,"Reduced Size of image to use for Tapioca for AltiSol (Def=1000)")
                       << EAM(mReexpMatr,"Reexp",true,"Reexport as Matrix (internal set up)")
                       << EAM(mNameCple,"NameCple",true,"Name of XML file to save couples")
                       << EAM(aVCpt,"Cpt",true,"[CptMin,CptMax] for tuning purpose")
+                      << EAM(mRegul,"Regul",true,"Regularisation cost (Cost of hole), Def=5.0")
+                      << EAM(mRelNewBr,"RegNewBr",true,"cost of creating a new branch (Def=0.4, prop to Regul)")
+                      << EAM(mRelFiabl,"Reliab",true,"Threshold for reliable speed, Def=0.75 (prop to Regul)")
+                      << EAM(mCalcV,"CalcV",true,"Calcul speed (def = false)")
+                      << EAM(mDelay,"Delay",true,"Delay to take into accound after speed estimate")
+                      << EAM(mMTDOnce,"MTD1",true,"Compute Metadata only for first image (internal use, speed up in set up mode)")
     );
 
+    mCalcV  = mCalcV
+             || EAMIsInit(&mDelay)
+             || EAMIsInit(&mRelFiabl)
+             || EAMIsInit(&mRelNewBr)
+             || EAMIsInit(&mRegul);
+
+    mDifMaxV    = mRegul * mRelFiabl;
     if (EAMIsInit(&aPrePost))
     {
         ELISE_ASSERT(aPrePost.size()==2,"PrePost must be exactly of size 2");
@@ -621,13 +612,37 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     ParseFile();
     CalcImCenter();
     DoTiePCenter();
-    CalcVitesse();
+    if (mCalcV)
+    {
+       CalcVitesse();
+    }
     SauvOriFinal();
     SauvRel();
 
     std::cout << "PATC = " << mPatImCenter << "\n";
 }
 
+
+void  cAppli_Ori_Txt2Xml_main::InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK)
+{
+    {
+       aCam.mOC->Externe().Centre() = aC;
+               
+       aCam.mOC->Externe().Time().SetVal(aCam.mMTD->Date().DifInSec(mVCam[0]->mMTD->Date()));
+       aCam.mC = aC;
+    }
+
+    // Calcul de la rotation
+    if (mHasWPK)
+    {
+       aCam.mOC->ConvOri().KnownConv().SetVal(eConvAngLPSDegre);
+       aCam.mOC->Externe().ParamRotation().CodageAngulaire().SetVal(aWPK);
+    }
+    MakeFileXML(*(aCam.mOC),aCam.mNameOri);
+    aCam.mCam = CamOrientGenFromFile(aCam.mNameOri,mICNM);
+}
+/*
+*/
 
 
 void cAppli_Ori_Txt2Xml_main::ParseFile()
@@ -640,36 +655,60 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
     char * aLine;
 
     int aCpt = 0;
+    
+    const cMetaDataPhoto * aMTD0 = 0;
     while ((aLine = aFIn.std_fgets()))
     {
         if (aReadApp.Decode(aLine) && (aCpt>=mCptMin) && (aCpt<mCptMax))
         {
+           {
+              if (mNbCam==0) 
+                 mHasWPK = aReadApp.IsDef(aReadApp.mWPK);
+              ELISE_ASSERT(mHasWPK==aReadApp.IsDef(aReadApp.mWPK),"Incoherence in HasWPK");
+           }
            cTxtCam  & aNewCam = *(new cTxtCam);
            mVCam.push_back(&aNewCam);
            aNewCam.mNum = mNbCam;
            aNewCam.mNameIm = mICNM->Assoc1To1(mKeyName2Image,aReadApp.mName,true);
-
-           if (mNbCam==0)
-              mPatternIm = aNewCam.mNameIm;
-           else
-              mPatternIm +=  "|"+aNewCam.mNameIm;
-
            aNewCam.mNameOri = NameOrientation(mOriOut,aNewCam);
 
-           const cMetaDataPhoto & aMTD = cMetaDataPhoto::CreateExiv2(mDir+aNewCam.mNameIm);
-           aNewCam.mMTD = & aMTD;
+
+
+           const cMetaDataPhoto * aMTD=0;
+           if ((!mMTDOnce) || (aMTD0==0))
+           {
+              aMTD = &cMetaDataPhoto::CreateExiv2(mDir+aNewCam.mNameIm);
+              aMTD0 = aMTD;
+           }
+           else
+               aMTD = aMTD0;
+
+           aNewCam.mMTD =  aMTD;
            if (mAddCalib && (! EAMIsInit(&mFileCalib) ))
            {
-              Pt2di aSz =  aMTD.XifSzIm();
+              Pt2di aSz =  aMTD->XifSzIm();
               Pt2dr aPP = Pt2dr(aSz) / 2.0;
 
               mCIO.PP() = aPP;
-              mCIO.F() = aMTD.FocPix();
+              mCIO.F() = aMTD->FocPix();
               mCIO.SzIm() = aSz;
               mCIO.CalibDistortion()[0].ModRad().Val().CDist() = aPP;
            }
 
            aNewCam.mOC = new cOrientationConique(mOC0);
+           if (mAddCalib)
+           {
+              aNewCam.mOC->Interne().SetVal(mCIO);
+           }
+
+//===============================
+
+           Pt3dr aC =  aReadApp.mPt;
+           if (mCSC)
+              aC = mCSC->Src2Cibl(aC);
+           InitCamera(aNewCam,aC,mHasWPK  ? aReadApp.mWPK :Pt3dr(0,0,0));
+
+/*
            {
                Pt3dr aC =  aReadApp.mPt;
                if (mCSC)
@@ -686,21 +725,11 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
               aNewCam.mOC->ConvOri().KnownConv().SetVal(eConvAngLPSDegre);
               aNewCam.mOC->Externe().ParamRotation().CodageAngulaire().SetVal(aReadApp.mWPK);
            }
-
-           if (mAddCalib)
-           {
-              aNewCam.mOC->Interne().SetVal(mCIO);
-           }
            MakeFileXML(*(aNewCam.mOC),aNewCam.mNameOri);
-
-
            aNewCam.mCam = CamOrientGenFromFile(aNewCam.mNameOri,mICNM);
+*/
+//===============================
 
-           if (EAMIsInit(&mReexpMatr))
-           {
-              cOrientationConique aOriEx = aNewCam.mCam->StdExportCalibGlob();
-              MakeFileXML(aOriEx,NameOrientation(mReexpMatr,aNewCam));
-           }
 
            if (1)
            {
@@ -732,10 +761,16 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
               mCamC = &aNewCam;
            }
 
+           if (mNbCam==0)
+              mPatternIm = aNewCam.mNameIm;
+           else
+              mPatternIm +=  "|"+aNewCam.mNameIm;
+
            mNbCam++;
         }
         aCpt++;
     }
+std::cout << "CMAC " << mCamC << "\n";
     aFIn.close();
 }
 
@@ -750,15 +785,16 @@ void cAppli_Ori_Txt2Xml_main::CalcImCenter()
         aC1.mPrio = euclid(aC1.mC-mCamC->mC);
     }
     cCmpPtrCam aCmp;
-    std::sort(mVCam.begin(),mVCam.end(),aCmp);
+    std::vector<cTxtCam *> aVBIS = mVCam;
+    std::sort(aVBIS.begin(),aVBIS.end(),aCmp);
     for (int aK=0 ; aK<mNbImC ; aK++)
     {
-        mVCam[aK]->mSelC = true;
+        aVBIS[aK]->mSelC = true;
         if (aK!=0)
         {
            mPatImCenter += "|";
         }
-        mPatImCenter += mVCam[aK]->mNameIm;
+        mPatImCenter += aVBIS[aK]->mNameIm;
     }
 }
 
@@ -766,11 +802,19 @@ void cAppli_Ori_Txt2Xml_main::DoTiePCenter()
 {
     if (mCamC==0) return;
 
+/*
+    std::string aCom =    MM3DStr
+                            + std::string(" Tapioca MulScale \"") 
+                            + mPatImCenter std::string("\"")
+                            + std::string(" ") + ToString(mSizeRC) 
+                            + std::string(" ") + ToString(mSizeC) 
+                            ;
+*/
     std::string aCom =    MM3DStr
                             + std::string(" Tapioca All \"") 
-                            + mPatImCenter
-                            + std::string("\" ")
-                            + ToString(mSizeC) ;
+                            + mPatImCenter + std::string("\"")
+                            + std::string(" ") + ToString(mSizeC) 
+                            ;
 
     system_call(aCom.c_str());
     // std::cout << "PATC = " << aPatC << "\n";
@@ -814,6 +858,7 @@ int Ori_Txt2Xml_main(int argc,char ** argv)
 {
     MMD_InitArgcArgv(argc,argv,3);
     cAppli_Ori_Txt2Xml_main(argc,argv);
+    BanniereMM3D();
     return 0;
 }
 

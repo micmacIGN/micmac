@@ -103,7 +103,8 @@ class cObsCentre
 {
     public :
        Pt3dr                 mCentre;
-       Pt3dr                 mInc;
+       Pt3dr                 mIncOnC;
+       bool                  mVitFiable;
        cTplValGesInit<Pt3dr> mVitesse;
 };
 
@@ -402,7 +403,8 @@ class cPoseCam
           Im2D_U_INT2  Im();
           bool     PreInit() const;
 
-          bool HasObsCentre() const;
+          bool HasObsOnCentre() const;
+          bool HasObsOnVitesse() const;
           const Pt3dr  & ObsCentre() const;
           Pt3dr   Vitesse() const;
 	  cRotationFormelle &     RF();
@@ -502,7 +504,8 @@ class cPoseCam
           bool                         mPreInit;
 
           cObsCentre                   mObsCentre;
-          bool                         mHasObsCentre;
+          bool                         mHasObsOnCentre;
+          bool                         mHasObsOnVitesse;
 
           int                          mNumTmp; // Entre autre dans bloc bascule
           // Pour qualifier les Pack Pts Mul

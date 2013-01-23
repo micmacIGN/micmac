@@ -47,7 +47,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*********************************************************/
 
 
-void cEl_GPAO:: DoComInParal(const std::list<std::string> & aL,std::string  FileMk , int   aNbProc )
+void cEl_GPAO::DoComInParal(const std::list<std::string> & aL,std::string  FileMk , int   aNbProc )
 {
     if (aNbProc<=0)  
        aNbProc = NbProcSys();

@@ -421,8 +421,21 @@ void cRansacBasculementRigide::EstimateDelay()
      }
     
      Im1D_REAL8  aSol = aSys.GSSR_Solve(0);
+     mDelay = aSol.data()[12];
 
-     std::cout << "delay :::    " << aSol.data()[12]  << "\n";
+     mApresInit =  mApres;
+
+     std::cout << "delay init :::    " << mDelay  << "\n";
+     for (int aK=0 ; aK<int(mAvant.size()) ; aK++)
+     {
+         mApres[aK] =  mApres[aK] +  mSpeedApres[aK] * mDelay;
+     }
+}
+
+double cRansacBasculementRigide::Delay() const
+{
+   ELISE_ASSERT(mUseV,"No vitesse for delay un  cRansacBasculementRigide");
+   return mDelay;
 }
 
 void cRansacBasculementRigide::ExploreAllRansac() 

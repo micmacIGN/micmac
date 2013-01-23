@@ -1024,8 +1024,12 @@ class cMasqImageIn
 
         std::list< cOneMasqueImage > & OneMasqueImage();
         const std::list< cOneMasqueImage > & OneMasqueImage()const ;
+
+        cTplValGesInit< bool > & AcceptNonExistingFile();
+        const cTplValGesInit< bool > & AcceptNonExistingFile()const ;
     private:
         std::list< cOneMasqueImage > mOneMasqueImage;
+        cTplValGesInit< bool > mAcceptNonExistingFile;
 };
 cElXMLTree * ToXMLTree(const cMasqImageIn &);
 

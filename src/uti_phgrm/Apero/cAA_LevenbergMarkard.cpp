@@ -84,7 +84,7 @@ void cAppliApero::AddRappelOnCentre(const cRappelOnCentres & aRAC,double aMult,c
     {
         cPoseCam & aPC = *(mVecPose[aKP]);
         if (    (aRAC.ParamF().PatternNameApply()->Match(aPC.Name()))
-             && ((! aRAC.OnlyWhenNoCentreInit().Val()) || (!aPC.HasObsCentre()))
+             && ((! aRAC.OnlyWhenNoCentreInit().Val()) || (!aPC.HasObsOnCentre()))
            )
         {
             const std::vector<double>&  aVI = aPFR.Incertitude();

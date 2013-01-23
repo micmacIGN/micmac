@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[1956]) = {
+const char * (theNameVar_ParamMICMAC[1957]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -619,6 +619,7 @@ const char * (theNameVar_ParamMICMAC[1956]) = {
 "                        pour ne pas aller chercher de masque -->\n",
 "                <NomMasq Nb=\"1\"  Type=\"std::string\">      </NomMasq>  \n",
 "             </OneMasqueImage>\n",
+"             <AcceptNonExistingFile Nb=\"?\" Type=\"bool\" Def=\"false\"> </AcceptNonExistingFile>\n",
 "        </MasqImageIn>\n",
 "\n",
 "         <!-- Filtre a appliquer en entree de l'image -->\n",

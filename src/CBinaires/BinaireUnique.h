@@ -11,7 +11,10 @@
 #define ELISE_CAR_DIR  '/' 
 #endif
 
-#define PATH_BUFFER_SIZE 1024
+// !!  LE PATH PEUT ETRE TRES GRAND -CAS DE PATH GENERE AUTO, IL FAUDRAIT CHANGE CELA !!
+// A COURT TERME 1024 => 100000
+
+#define PATH_BUFFER_SIZE 100000
 
 
 void FataleError(const char * aMes)

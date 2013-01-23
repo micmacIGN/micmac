@@ -97,7 +97,12 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
     <eSymb> AddZoom64=Sup ${ZoomInit} 64 </eSymb>
     <eSymb> AddZoom32=Sup ${ZoomInit} 32 </eSymb>
     <eSymb> AddZoom16=Sup ${ZoomInit} 16 </eSymb>
+
+    <eSymb>  DoNotMEC=! ${DoMEC} </eSymb>
   
+    <!-- GESTION DES MASQUE IMAGE -->
+    <Symb>  UseMasqPerIm=false </Symb>
+    <Symb>  MasqPerIm="XXXXXX" </Symb>
 </DicoLoc>
 
 <!--  M2 : Describe the ground zone where the matching is to be done -->
@@ -138,7 +143,17 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-${Ori} </FCND_GeomCalc>
          </FCND_Mode_GeomIm>
      </NomsGeometrieImage>
+     <#WHEN VTEST=${UseMasqPerIm}>
+         <MasqImageIn>
+             <OneMasqueImage>
+                <PatternSel> (.*)\.(.*)   </PatternSel>
+                <NomMasq>  $1_${MasqPerIm}.tif    </NomMasq>
+             </OneMasqueImage>
+             <AcceptNonExistingFile> true </AcceptNonExistingFile>
+        </MasqImageIn>
+     </#WHEN>
 </Section_PriseDeVue>
+
 
 <Section_MEC >
 
@@ -283,17 +298,20 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
     <GeomMNT> ${Geom}  </GeomMNT> 
     <RepereCorrel>   ${Repere}  </RepereCorrel>
     <IncludeFileLoc>  ${FileAnam} </IncludeFileLoc>
-    <DoMEC>   ${DoMEC} </DoMEC>
 
+    <DoMEC>   ${DoMEC} </DoMEC>
 <!--
 -->
     <ZoomMakeTA> 8 </ZoomMakeTA>
     <IncludeFileLoc>  ${FileDoNothing} </IncludeFileLoc>
+    <#WHEN VTEST=${DoNotMEC}>
+        <DoNothingBut>
+            <ButDoOrtho>  true </ButDoOrtho>
+            <ButDoMemPart>  true </ButDoMemPart>
+        </DoNothingBut>
+    </#WHEN>
 <!--
     <RepereCorrel>  Repere.xml </RepereCorrel>
-    <DoNothingBut>
-        <ButDoOrtho>  true </ButDoOrtho>
-    </DoNothingBut>
  <DoNothingBut>
         <ButDoRedrLocAnam>  true </ButDoRedrLocAnam>
     </DoNothingBut>

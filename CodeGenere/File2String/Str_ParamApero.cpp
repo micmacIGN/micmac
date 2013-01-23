@@ -945,7 +945,7 @@ const char * (theNameVar_ParamApero[1458]) = {
 "                          -->\n",
 "                                   <BascOnCentre Nb=\"?\">\n",
 "                                        <PoseCentrale Nb=\"?\" Type=\"std::string\"> </PoseCentrale>\n",
-"                                        <UseVitesse Type=\"bool\" Nb=\"?\" Def=\"false\"> </UseVitesse>\n",
+"                                        <EstimateSpeed Type=\"bool\" Nb=\"?\" Def=\"false\"> </EstimateSpeed>\n",
 "                                   </BascOnCentre>\n",
 "                                   <BascOnAppuis Nb=\"?\">\n",
 "                                        <NameRef Nb=\"1\" Type=\"std::string\"> </NameRef>   \n",

@@ -139,7 +139,8 @@ cPoseCam::cPoseCam
     mTMasqH      (mMasqH ? new  TIm2DBits<1>(*mMasqH) : 0),
     mPreInit     (false),
     // mObsCentre   (0,0,0),
-    mHasObsCentre (false),
+    mHasObsOnCentre (false),
+    mHasObsOnVitesse (false),
     mNumTmp       (-12345678),
     mNbPtsMulNN   (-1),
     mNumBande     (0),
@@ -709,22 +710,27 @@ void cPoseCam::InitCpt()
     }
 }
 
-bool cPoseCam::HasObsCentre() const
+bool cPoseCam::HasObsOnCentre() const
 {
-   return mHasObsCentre;
+   return mHasObsOnCentre;
 }
 
 void cPoseCam::AssertHasObsCentre() const
 {
-   if (!mHasObsCentre)
+   if (!mHasObsOnCentre)
    {
        std::cout << "Name Pose = " << mName << "\n";
        ELISE_ASSERT
        (
-             mHasObsCentre,
+             false,
              "Observation on centre (GPS) has no been associated to camera"
        );
    }
+}
+
+bool cPoseCam::HasObsOnVitesse() const
+{
+   return mHasObsOnVitesse;
 }
 
 void cPoseCam::AssertHasObsVitesse() const
@@ -735,7 +741,7 @@ void cPoseCam::AssertHasObsVitesse() const
        std::cout << "Name Pose = " << mName << "\n";
        ELISE_ASSERT
        (
-             mHasObsCentre,
+             false,
              "No speed has  been associated to camera"
        );
     }
@@ -808,7 +814,8 @@ else
       if (mAppli.HasObsCentre(mPCI->IdBDCentre().Val(),mName))
       {
           mObsCentre = *( mAppli.ObsCentre(mPCI->IdBDCentre().Val(),mName).mVals );
-          mHasObsCentre = (mObsCentre.mInc.x>0) && (mObsCentre.mInc.y>0) && (mObsCentre.mInc.z>0);
+          mHasObsOnCentre = (mObsCentre.mIncOnC.x>0) && (mObsCentre.mIncOnC.y>0) && (mObsCentre.mIncOnC.z>0);
+          mHasObsOnVitesse = mHasObsOnCentre && mObsCentre.mVitFiable && mObsCentre.mVitesse.IsInit();
 
       }
    }
@@ -1663,7 +1670,7 @@ std::vector<cPoseCam*>  cAppliApero::VecLoadedPose(const cOnePtsMult & aPM,int a
 
 bool   cPoseCam::DoAddObsCentre(const cObsCentrePDV & anObs)
 {
-   if (! mHasObsCentre)
+   if (! mHasObsOnCentre)
       return false;
 
    if (  

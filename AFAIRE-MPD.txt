@@ -45,3 +45,12 @@ EVOL :
     windows
     mm3d
     lock
+
+==========================================
+
+EGYPTE :
+
+-1- Recalibration de tous les objectifs
+-2- Détermination des heures de "rasances" pour les principaux points de vue
+-3- Fixer les conventions de nomage  (Plan, masq ...), et de renommage des images (par la focale entre autre);
+
