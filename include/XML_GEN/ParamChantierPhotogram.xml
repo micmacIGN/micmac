@@ -689,6 +689,7 @@ namespace NS_ParamChantierPhotogram{
 	<KnownConv Nb="?" Type="eConventionsOrientation"> </KnownConv>
         <Centre Nb="1" Type="Pt3dr"> </Centre>
         <Vitesse Nb="?" Type="Pt3dr"> </Vitesse>
+        <VitesseFiable Nb="?" Type="bool" Def="true"> </VitesseFiable>
         <IncCentre Nb="?" Type="Pt3dr"> </IncCentre>
         <ParamRotation  Nb="1"  RefType="RotationVect" UnionType="true">  </ParamRotation>
 <!--

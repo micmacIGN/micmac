@@ -2030,6 +2030,9 @@ class cOrientationExterneRigide
         cTplValGesInit< Pt3dr > & Vitesse();
         const cTplValGesInit< Pt3dr > & Vitesse()const ;
 
+        cTplValGesInit< bool > & VitesseFiable();
+        const cTplValGesInit< bool > & VitesseFiable()const ;
+
         cTplValGesInit< Pt3dr > & IncCentre();
         const cTplValGesInit< Pt3dr > & IncCentre()const ;
 
@@ -2042,6 +2045,7 @@ class cOrientationExterneRigide
         cTplValGesInit< eConventionsOrientation > mKnownConv;
         Pt3dr mCentre;
         cTplValGesInit< Pt3dr > mVitesse;
+        cTplValGesInit< bool > mVitesseFiable;
         cTplValGesInit< Pt3dr > mIncCentre;
         cRotationVect mParamRotation;
 };

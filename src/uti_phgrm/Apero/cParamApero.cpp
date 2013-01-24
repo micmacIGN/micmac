@@ -6361,14 +6361,14 @@ const cTplValGesInit< std::string > & cBascOnCentre::PoseCentrale()const
 }
 
 
-cTplValGesInit< bool > & cBascOnCentre::UseVitesse()
+cTplValGesInit< bool > & cBascOnCentre::EstimateSpeed()
 {
-   return mUseVitesse;
+   return mEstimateSpeed;
 }
 
-const cTplValGesInit< bool > & cBascOnCentre::UseVitesse()const 
+const cTplValGesInit< bool > & cBascOnCentre::EstimateSpeed()const 
 {
-   return mUseVitesse;
+   return mEstimateSpeed;
 }
 
 cElXMLTree * ToXMLTree(const cBascOnCentre & anObj)
@@ -6376,8 +6376,8 @@ cElXMLTree * ToXMLTree(const cBascOnCentre & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"BascOnCentre",eXMLBranche);
    if (anObj.PoseCentrale().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PoseCentrale"),anObj.PoseCentrale().Val())->ReTagThis("PoseCentrale"));
-   if (anObj.UseVitesse().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("UseVitesse"),anObj.UseVitesse().Val())->ReTagThis("UseVitesse"));
+   if (anObj.EstimateSpeed().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("EstimateSpeed"),anObj.EstimateSpeed().Val())->ReTagThis("EstimateSpeed"));
   return aRes;
 }
 
@@ -6387,7 +6387,7 @@ void xml_init(cBascOnCentre & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.PoseCentrale(),aTree->Get("PoseCentrale",1)); //tototo 
 
-   xml_init(anObj.UseVitesse(),aTree->Get("UseVitesse",1),bool(false)); //tototo 
+   xml_init(anObj.EstimateSpeed(),aTree->Get("EstimateSpeed",1),bool(false)); //tototo 
 }
 
 
@@ -6427,14 +6427,14 @@ const cTplValGesInit< std::string > & cBasculeOnPoints::PoseCentrale()const
 }
 
 
-cTplValGesInit< bool > & cBasculeOnPoints::UseVitesse()
+cTplValGesInit< bool > & cBasculeOnPoints::EstimateSpeed()
 {
-   return BascOnCentre().Val().UseVitesse();
+   return BascOnCentre().Val().EstimateSpeed();
 }
 
-const cTplValGesInit< bool > & cBasculeOnPoints::UseVitesse()const 
+const cTplValGesInit< bool > & cBasculeOnPoints::EstimateSpeed()const 
 {
-   return BascOnCentre().Val().UseVitesse();
+   return BascOnCentre().Val().EstimateSpeed();
 }
 
 
@@ -6644,14 +6644,14 @@ const cTplValGesInit< std::string > & cModeBascule::PoseCentrale()const
 }
 
 
-cTplValGesInit< bool > & cModeBascule::UseVitesse()
+cTplValGesInit< bool > & cModeBascule::EstimateSpeed()
 {
-   return BasculeOnPoints().Val().BascOnCentre().Val().UseVitesse();
+   return BasculeOnPoints().Val().BascOnCentre().Val().EstimateSpeed();
 }
 
-const cTplValGesInit< bool > & cModeBascule::UseVitesse()const 
+const cTplValGesInit< bool > & cModeBascule::EstimateSpeed()const 
 {
-   return BasculeOnPoints().Val().BascOnCentre().Val().UseVitesse();
+   return BasculeOnPoints().Val().BascOnCentre().Val().EstimateSpeed();
 }
 
 
@@ -6839,14 +6839,14 @@ const cTplValGesInit< std::string > & cBasculeOrientation::PoseCentrale()const
 }
 
 
-cTplValGesInit< bool > & cBasculeOrientation::UseVitesse()
+cTplValGesInit< bool > & cBasculeOrientation::EstimateSpeed()
 {
-   return ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().UseVitesse();
+   return ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().EstimateSpeed();
 }
 
-const cTplValGesInit< bool > & cBasculeOrientation::UseVitesse()const 
+const cTplValGesInit< bool > & cBasculeOrientation::EstimateSpeed()const 
 {
-   return ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().UseVitesse();
+   return ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().EstimateSpeed();
 }
 
 
@@ -8766,14 +8766,14 @@ const cTplValGesInit< std::string > & cIterationsCompensation::PoseCentrale()con
 }
 
 
-cTplValGesInit< bool > & cIterationsCompensation::UseVitesse()
+cTplValGesInit< bool > & cIterationsCompensation::EstimateSpeed()
 {
-   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().UseVitesse();
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().EstimateSpeed();
 }
 
-const cTplValGesInit< bool > & cIterationsCompensation::UseVitesse()const 
+const cTplValGesInit< bool > & cIterationsCompensation::EstimateSpeed()const 
 {
-   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().UseVitesse();
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().BascOnCentre().Val().EstimateSpeed();
 }
 
 

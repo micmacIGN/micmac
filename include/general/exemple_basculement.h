@@ -109,6 +109,7 @@ class cRansacBasculementRigide
         const std::vector<Pt3dr>  & PAvant() const;
         const  std::vector<Pt3dr> & PApres()  const;
         void EstimateDelay();
+        double   Delay() const;
     private :
 
           bool SolIsInit() const;

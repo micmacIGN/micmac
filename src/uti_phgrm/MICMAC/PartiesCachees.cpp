@@ -442,9 +442,10 @@ void cAppliMICMAC::MakePartiesCachees
     // Eventuellement on adpate la boite pour la reduire
    
 
+
+
    if  ((aP0.x<aP1.x) && (aP0.y <aP1.y))
    {
-      cGeomImage & aGeoI =  aPdv.Geom();
       aGT.SetClip(aP0,aP1);
       Pt2di aSzIm = aP1- aP0;
 
@@ -470,6 +471,15 @@ void cAppliMICMAC::MakePartiesCachees
       cLineariseProj aLP;
       int aSzBloc = 7;
 
+      int aZoomMasqI = 4;
+      Tiff_Im aFileMasqGeomIm = aPdv.FileImMasqOfResol(aZoomMasqI);
+      Pt2di aSzMGI = aFileMasqGeomIm.sz();
+      Im2D_Bits<1> aImMGI(aSzMGI.x,aSzMGI.y);
+      ELISE_COPY(aImMGI.all_pts(),aFileMasqGeomIm.in(),aImMGI.out());
+      TIm2DBits<1>  aTImMGI(aImMGI);
+///std::cout << "MADSSSsssssssssssssssskkkKKK  " << aMasqIm.name() << aMasqIm.sz() << aSzPdv << "\n";
+
+      cGeomImage & aGeoI =  aPdv.Geom();
       // Calcul le masque en geometrie image
       for (int aY0=0; aY0<aSzIm.y ; aY0+=aSzBloc)
       {
@@ -530,6 +540,7 @@ void cAppliMICMAC::MakePartiesCachees
                                 &&   (aPIm2.y>0)
                                 &&   (aPIm2.x<aSzPdv.x)
                                 &&   (aPIm2.y<aSzPdv.y)
+                                &&   (aTImMGI.get(round_ni(aPIm2/double(aZoomMasqI)),0))
                               )
                          {
                             aNewP0 = Inf(aNewP0,aP);

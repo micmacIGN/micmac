@@ -770,9 +770,20 @@ Fonc_Num  cPriseDeVue::FoncMasq(std::string  & aName) const
        
        if (aNameM != "PasDeMasqImage")
        {
-           aName = aName + "_"+StdPrefix(aNameM);
            std::string  aFullNM =   mAppli.DirMasqueIms() + aNameM;
-           aFRes = aFRes && Tiff_Im(aFullNM.c_str()).in();
+           if (ELISE_fp::exist_file(aFullNM))
+           {
+               aName = aName + "_"+StdPrefix(aNameM);
+               aFRes = aFRes && Tiff_Im(aFullNM.c_str()).in();
+           }
+           else
+           {
+               if (!itM->AcceptNonExistingFile().Val())
+               {
+                   std::cout << "For file " << aFullNM << "\n";
+                   ELISE_ASSERT(false,"Required masq fo not exist in MasqImageIn");
+               }
+           }
        }
    }
 

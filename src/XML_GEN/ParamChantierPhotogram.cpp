@@ -5154,6 +5154,17 @@ const cTplValGesInit< Pt3dr > & cOrientationExterneRigide::Vitesse()const
 }
 
 
+cTplValGesInit< bool > & cOrientationExterneRigide::VitesseFiable()
+{
+   return mVitesseFiable;
+}
+
+const cTplValGesInit< bool > & cOrientationExterneRigide::VitesseFiable()const 
+{
+   return mVitesseFiable;
+}
+
+
 cTplValGesInit< Pt3dr > & cOrientationExterneRigide::IncCentre()
 {
    return mIncCentre;
@@ -5189,6 +5200,8 @@ cElXMLTree * ToXMLTree(const cOrientationExterneRigide & anObj)
    aRes->AddFils(ToXMLTree(std::string("Centre"),anObj.Centre())->ReTagThis("Centre"));
    if (anObj.Vitesse().IsInit())
       aRes->AddFils(ToXMLTree(std::string("Vitesse"),anObj.Vitesse().Val())->ReTagThis("Vitesse"));
+   if (anObj.VitesseFiable().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("VitesseFiable"),anObj.VitesseFiable().Val())->ReTagThis("VitesseFiable"));
    if (anObj.IncCentre().IsInit())
       aRes->AddFils(ToXMLTree(std::string("IncCentre"),anObj.IncCentre().Val())->ReTagThis("IncCentre"));
    aRes->AddFils(ToXMLTree(anObj.ParamRotation())->ReTagThis("ParamRotation"));
@@ -5210,6 +5223,8 @@ void xml_init(cOrientationExterneRigide & anObj,cElXMLTree * aTree)
    xml_init(anObj.Centre(),aTree->Get("Centre",1)); //tototo 
 
    xml_init(anObj.Vitesse(),aTree->Get("Vitesse",1)); //tototo 
+
+   xml_init(anObj.VitesseFiable(),aTree->Get("VitesseFiable",1),bool(true)); //tototo 
 
    xml_init(anObj.IncCentre(),aTree->Get("IncCentre",1)); //tototo 
 

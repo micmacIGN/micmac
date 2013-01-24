@@ -2906,6 +2906,17 @@ const std::list< cOneMasqueImage > & cMasqImageIn::OneMasqueImage()const
    return mOneMasqueImage;
 }
 
+
+cTplValGesInit< bool > & cMasqImageIn::AcceptNonExistingFile()
+{
+   return mAcceptNonExistingFile;
+}
+
+const cTplValGesInit< bool > & cMasqImageIn::AcceptNonExistingFile()const 
+{
+   return mAcceptNonExistingFile;
+}
+
 cElXMLTree * ToXMLTree(const cMasqImageIn & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MasqImageIn",eXMLBranche);
@@ -2915,6 +2926,8 @@ cElXMLTree * ToXMLTree(const cMasqImageIn & anObj)
       it++
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("OneMasqueImage"));
+   if (anObj.AcceptNonExistingFile().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("AcceptNonExistingFile"),anObj.AcceptNonExistingFile().Val())->ReTagThis("AcceptNonExistingFile"));
   return aRes;
 }
 
@@ -2923,6 +2936,8 @@ void xml_init(cMasqImageIn & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
 
    xml_init(anObj.OneMasqueImage(),aTree->GetAll("OneMasqueImage",false,1));
+
+   xml_init(anObj.AcceptNonExistingFile(),aTree->Get("AcceptNonExistingFile",1),bool(false)); //tototo 
 }
 
 

@@ -316,10 +316,10 @@ void cAppliApero::BasculePoints
 {
 
    bool aBonC = aBOP.BascOnCentre().IsInit();
-   bool UseV = aBonC &&  aBOP.BascOnCentre().Val().UseVitesse().Val();
+   bool CalcV = aBonC &&  aBOP.BascOnCentre().Val().EstimateSpeed().Val();
 
 
-   cRansacBasculementRigide aBasc(UseV);
+   cRansacBasculementRigide aBasc(CalcV);
    int aKC=-1;
    std::vector<std::string> aVName;
    bool Test = false;
@@ -334,7 +334,8 @@ void cAppliApero::BasculePoints
           if (
                    aSelectorEstim.IsSetIn(aPC->Name()) 
                 && (aPC->RotIsInit())
-                && (aPC->HasObsCentre())
+                && (aPC->HasObsOnCentre())
+                && ((! CalcV) || aPC->HasObsOnVitesse())
              )
           {
               // std::cout << "BASCULE CENTRE DO " << aPC->Name() << "\n";
@@ -346,7 +347,7 @@ void cAppliApero::BasculePoints
               //
                 if (Test) aVName.push_back(aPC->Name());
   
-               if (UseV)
+               if (CalcV)
                {
                    Pt3dr aV = aPC->Vitesse();
                    aBasc.AddExemple(aC0,aCObs,&aV);
@@ -357,7 +358,7 @@ void cAppliApero::BasculePoints
                }
 
                if (   aBOP.PoseCentrale().IsInit()
-                   && (! UseV)
+                   && (! CalcV)
                    && (aBOP.PoseCentrale().Val()==aPC->Name())
                   )
                {
@@ -485,11 +486,13 @@ void cAppliApero::BasculePoints
             aPC->SetBascRig(aSBR);
             //   aPC->SetCurRot ( aSBR.TransformOriC2M(aPC->CurRot())); 
 
-            if (aPC->HasObsCentre())
+            if (aPC->HasObsOnCentre() && ((!CalcV) || (aPC->HasObsOnVitesse())))
             {
                Pt3dr aCObs = aPC->ObsCentre();
                Pt3dr aC = aPC->CurRot().tr();
-               std::cout <<  aPC->Name() << " " << aCObs-aC << "\n";
+               if (CalcV)
+                  aCObs = aCObs +  aPC-> Vitesse() * aBasc.Delay();
+               std::cout << "Basc-Residual " <<  aPC->Name() << " " << aCObs-aC << "\n";
             }
        }
    }

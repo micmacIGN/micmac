@@ -943,7 +943,7 @@ normalises en echelle et/ou en translation -->
                           -->
                                    <BascOnCentre Nb="?">
                                         <PoseCentrale Nb="?" Type="std::string"> </PoseCentrale>
-                                        <UseVitesse Type="bool" Nb="?" Def="false"> </UseVitesse>
+                                        <EstimateSpeed Type="bool" Nb="?" Def="false"> </EstimateSpeed>
                                    </BascOnCentre>
                                    <BascOnAppuis Nb="?">
                                         <NameRef Nb="1" Type="std::string"> </NameRef>   

@@ -1197,6 +1197,7 @@ if (0) // (MPD_MM())
    Pt3dr aSomT2(0,0,0);
    double aSP = 0;
    double aSP2 = 0;
+ // std::cout << "BsssHH " << aParam.mSeuilBsHRefut  << " "  << aParam.mSeuilBsH << " " << CanUseProjectifP<< "\n";
    if (((aParam.mSeuilBsH > 0) || (aParam.mSeuilBsHRefut>0)) && (CanUseProjectifP))
    {
       for (int aK=0 ; aK<int(aVCC.size()) ; aK++)
@@ -1308,9 +1309,10 @@ if (0) // (MPD_MM())
       }
 
 
+//std::cout << "PPPPii " << aParam.mProjIsInit <<"\n";I
       if (aParam.mProjIsInit)
       {
-         // std::cout  << "==== " << aROIF.mVal1 << " " << aROIF.mVal2 << " " << aROIF.mVal3 << "\n";
+          // std::cout  << "==== " << aROIF.mVal1 << " " << aROIF.mVal2 << " " << aROIF.mVal3 << "\n";
          //   std::cout << aSomT << aROIF.mVec1 << aROIF.mVec2 << aROIF.mVec3 << "\n";
 
           if (aROIF.mVal1 <=0)
@@ -1432,7 +1434,9 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
           mResidus.mPTer = CalcPTerInterFaisceauCams
                         (
                               aRAZ,
-                              WithApp && (aRAZ==0),
+//  GROS BUG ???? AVANT   WithApp && (aRAZ==0),
+// GENERE EVIDEMMENT PB EN INTER RASANT COMPREND PAS POURQUOI CA MARCHE AVEC APPUIS ??????
+                              (! WithApp) && (aRAZ==0),
                               mResidus.mOKRP3I,
                               aNuple,
                               aVPdsIm,

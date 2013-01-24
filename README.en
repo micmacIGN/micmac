@@ -55,6 +55,16 @@ sure to be in "Release" configuration, for Micmac is much faster built this way 
 		Again, do not compile the entire solution but just the 'INSTALL' project, otherwise compiled binaries won't be copied in the 'bin'
 directory and this will prevent Micmac from working.
 
-Installation-test dataset : Boudha
+Installation test
 
-	
+	The website logiciels.ign.fr (section image->Micmac->Téléchargement) also provides a test dataset called Boudha_dataset.zip.
+	This file contains images and configuration files needed to compute the 'Boudha' example from Micmac's documentation. By calling
+the script this way :
+		./boudha_test.sh my_micmac_bin/
+	assuming your working directory is the 'Boudha' directory contained in the file, you can process all the tool-chain until dense point
+matching. 'my_micmac_bin' is a path to the 'bin' directory of your installation.
+	ex.: ./boudha_test.sh ../micmac/bin/
+	This example assumes 'Boudha' directory (containing data) and 'micmac' (installation directory) have the same parent directory. Notice
+the ending '/', it's mandatory for the script to work.
+	After some computation time, you may find three 'ply' files in the 'MEC-6-Im' directory with the three parts of the dense points cloud
+of the statue's head. Open the PLY files with a viewer like meshlab to check everything proceeded correctly.
