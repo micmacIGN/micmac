@@ -40,7 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 #ifdef CUDA_ENABLED
-	#include "gpu/cudaAppliMicMac.cuh"
+	#include "GpGpu/cudaAppliMicMac.cuh"
 #ifdef _WIN32
 	#include <Lmcons.h>
 #endif
