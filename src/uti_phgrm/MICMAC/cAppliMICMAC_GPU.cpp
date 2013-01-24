@@ -41,6 +41,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #ifdef CUDA_ENABLED
 	#include "GpGpu/cudaAppliMicMac.cuh"
+	#include "GpGpu/helper_math_extented.cuh"
+	#include "GpGpu/GpGpuTools.h"
 #ifdef _WIN32
 	#include <Lmcons.h>
 #endif
@@ -294,13 +296,11 @@ namespace NS_ParamMICMAC
 
 #ifdef CUDA_ENABLED
 	
-		if (mLoadTextures)
+		if (mLoadTextures)//		Mise en calque des images	
 		{
-			//------------------------------------
-			//		Mise en calque des images	
-			//------------------------------------
+
 			mLoadTextures = false;
-			float*		fdataImg1D	= NULL;	// 
+			float*		fdataImg1D	= NULL;	
 			uint2 dimImgMax = make_uint2(0,0);
 
 			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
@@ -322,69 +322,32 @@ namespace NS_ParamMICMAC
 
 				if(fdataImg1D == NULL)
 					fdataImg1D	= new float[ size(dimImgMax) * mNbIm ];
-				
-				//std::cout << "size max : " << dimImgMax.x << "," << dimImgMax.y << " image size : " << dimImg.x << "," << dimImg.y << "\n";
-
+	
 				// Copie du tableau 2d des valeurs de l'image
- 				for (uint j = 0; j < dimImg.y ; j++)
-					memcpy(  fdataImg1D + dimImgMax.x * ( j + dimImgMax.y * aKIm ), aDataIm[j],  dimImg.x * sizeof(float));
-				
-				// Copie du tableau des valeurs de l'image
-				//memcpy(  fdataImg1D + dimImgMax.x *  dimImgMax.y * aKIm, aDataImgLin , dimImg.x * dimImg.y * sizeof(float));
+ 				GpGpuTools::memcpy2Dto1D(aDataIm ,fdataImg1D + size(dimImgMax) * aKIm, dimImgMax, dimImg );
 
 			}
 
-			//  [12/19/2012 GChoqueux]
-/*
-			
 			if (0)
 			{
 
 				//for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 				{
-					//int idImage = aKIm;
 					int idImage = 0;
-					// Obtention des données images
-					cGPU_LoadedImGeom&	aGLI	= *(mVLI[idImage]);
-					float **aDataIm	=  aGLI.DataIm();
-					uint2 dimImg	= toUi2(aGLI.getSizeImage());	
-					float* image	= new float[size(dimImgMax)];
 
-					for (uint j = 0; j < dimImgMax.y ; j++)
-					{
-						for (uint i = 0; i < dimImgMax.x ; i++)
-						{
-							int id = j * dimImgMax.x + i;
-							image[id] = fdataImg1D[id + size(dimImgMax)*idImage] / 500.0f;
+					GpGpuTools::Array1DtoImageFile((fdataImg1D + size(dimImgMax)*idImage) , "imageTexture.pgm", dimImgMax, 500.0f);
 
-						}
-					}
-
-					TCHAR name [ UNLEN + 1 ];
-					DWORD size = UNLEN + 1;
-					GetUserName( (TCHAR*)name, &size );
-
-					std::string suname = name;
-					std::string fileImage = "C:\\Users\\" + suname + "\\Pictures\\imageTexture.pgm";
-
-					// save PGM
-					sdkSavePGM<float>(fileImage.c_str(), image, dimImg.x,dimImg.y);
-			
-					delete[] image;
 				}
 			}
-			*/
-			//  [12/19/2012 GChoqueux]
 
-			if ((!((dimImgMax.x == 0)|(dimImgMax.y == 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
+
+			if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
 				imagesToLayers( fdataImg1D, dimImgMax, mNbIm );
 
 			delete[] fdataImg1D;
 
-			int uvINTDef = -64;
-			
-			uint sampTer = 1;
-
+			int uvINTDef	= INTDEFAULT;
+			uint sampTer	= SAMPLETERR;
 			uint2 Ter0		= make_uint2(mX0Ter,mY0Ter);
 			uint2 Ter1		= make_uint2(mX1Ter,mY1Ter);
 
