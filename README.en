@@ -1,0 +1,60 @@
+Prerequisites
+
+	Some external tools need to be present on your system for Micmac to run properly :
+		- make (www.gnu.org/software/make)
+			For parallel processes management. 
+		- convert, d'ImageMagick (www.imagemagick.org)
+			For image format conversion.
+		- exiftool (www.sno.phy.queensu.ca/~phil/exiftool) et exiv2 (www.exiv2.org)
+			To read/write image meta-data.
+			
+	You can check before-hand that Micmac is able to find those programs by calling the command
+		bin/mm3d CheckDependencies (in Micmac directory)
+		
+	'NOT FOUND' near one of the tools indicates either the specified executable is not on your disk or it cannot be found in the
+directories of the PATH environment variable.
+	There is also a special directory for tool finding which is named 'binaire-aux', in Micmac directory. When an external program
+is needed, this directory is always scanned whatever the value of PATH.
+
+	Additionnal notes for Windows
+	
+		One of WINDIR or SystemRoot environment variable must be set to Windows' installation directory (“C:\Windows” in much cases).
+This prevents Micmac from calling a convert.exe that is not ImageMagick's convert tool but a network utility used by the system.
+		Since Windows does not have an easy-to-use package manager, a version of make, convert, exiftool and exiv2 are delivered with
+the source and Windows binaries archives. They are placed in the “binaire-aux” directory.
+
+Compiling from the sources' archive
+
+	Prerequisites
+	
+		In addition of previously named tools, people willing to compile binaries from the source code will need to install the cmake
+program (www.cmake.org). Linux and MacOS X users may also want to get X11 header files in order to generate graphical functionalities
+like SaisieBasc, SaisieMasque, etc.
+		The package of X11 headers is general called 'libx11-dev' under Linux distributions.
+		X11-based tools are not available in the Windows version.
+
+	Compiling process for Linux / MacOS X
+
+		- extract source files from the tarball :
+			tar xvf micmac_source_revXXX.tar.gz
+		- enter 'micmac' directory :
+			cd micmac
+		- create a directory for the build's intermediate files, then enter it :
+			mkdir build
+			cd build
+		- generate makefiles using cmake
+			cmake ../
+		- process compilation :
+			make install -j"cores number" (ex.: 'make install -j4')
+
+	Compiling process for Visual C++ (Windows)
+	
+		The first steps are the same as for a Linux/MacOS build except for the 'make' call.
+		Instead of makefiles, Cmake generates a Visual C++ solution, named 'micmac.sln'. Open it and compile the 'INSTALL' project. Be
+sure to be in "Release" configuration, for Micmac is much faster built this way than in 'Debug' mode.
+		Again, do not compile the entire solution but just the 'INSTALL' project, otherwise compiled binaries won't be copied in the 'bin'
+directory and this will prevent Micmac from working.
+
+Installation-test dataset : Boudha
+
+	
