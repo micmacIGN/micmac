@@ -105,7 +105,6 @@ static void correlOptionsGPU( uint2 ter0, uint2 ter1, uint2 dV,uint2 dRV, uint2 
 {
 
 	float uvDef;
-	//int uvINTDef = -64;
 	memset(&uvDef,uvINTDef,sizeof(float));
 
 	h.nLayer	= nLayer;
@@ -137,7 +136,7 @@ extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimImage, int nbLayer)
 	cudaMemcpy3DParms	p	= { 0 };
 	cudaPitchedPtr		pit = make_cudaPitchedPtr(fdataImg1D, sizeImgsLay.width * sizeof(float), sizeImgsLay.width, sizeImgsLay.height);
 
-	p.dstArray	= dev_ImgLd;		// Pointeur du tableau de destination
+	p.dstArray	= dev_ImgLd;				// Pointeur du tableau de destination
 	p.srcPtr	= pit;						// Pitch
 	p.extent	= sizeImgsLay;				// Taille du cube
 	p.kind		= cudaMemcpyHostToDevice;	// Type de copie
@@ -167,17 +166,6 @@ extern "C" void  allocMemoryTabProj(uint2 dimTer, int nbLayer)
 	if (dev_ProjLr != NULL) cudaFreeArray(dev_ProjLr);
 
 	checkCudaErrors( cudaMalloc3DArray(&dev_ProjLr,&channelDesc,siz_PL,cudaArrayLayered ));
-/*
-	cudaError_t eC =  cudaMalloc3DArray(&dev_ProjLr,&channelDesc,siz_PL,cudaArrayLayered );
-	if (eC != cudaSuccess)
-	{
-		std::cout << "Erreur cuda malloc\n";
-		std::cout << "Dimension du tableau des Images : " << h.dimImg.x << ","<< h.dimImg.x << "," << nbLayer  << "\n";
-		std::cout << "Dimension du tableau des projections : " << dimTer.x << ","<< dimTer.x << "," << nbLayer  << "\n";
-		checkCudaErrors(eC);
-
-	}
-*/
 
 }
 
@@ -259,24 +247,17 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig/*, float *
 	
 	const short2 c0	= make_short2(threadIdx) - cH.rVig;
 	const short2 c1	= make_short2(threadIdx) + cH.rVig;
-
-	// Si le parcours de la vignette est hors du terrain, nous sortons!!! Sinon crash GPU!!!!
-// 	if ( (c1.x >= blockDim.x) || (c1.y >= blockDim.y) || (c0.x < 0) || (c0.y < 0) )	//if (blockIdx.z == iDI) siCor[iTer] = 3*cH.badVig; // ## z ##
-// 	{
-// 		cachVig[iC] = cH.badVig;
-// 		return;
-// 	}
-
+	 
 	// Intialisation des valeurs de calcul 
 	float aSV = 0.0f, aSVV	= 0.0f;
-	short x,y;
+	short2 pt;
 	
 	#pragma unroll // ATTENTION PRAGMA FAIT AUGMENTER LA quantité MEMOIRE des registres!!!
-	for (y = c0.y ; y <= c1.y; y++)
+	for (pt.y = c0.y ; pt.y <= c1.y; pt.y++)
 		#pragma unroll
-		for (x = c0.x ; x <= c1.x; x++)
+		for (pt.x = c0.x ; pt.x <= c1.x; pt.x++)
 		{	
-			const float val = cacheImg[y][x];	// Valeur de l'image
+			const float val = cacheImg[pt.y][pt.x];	// Valeur de l'image
 
 			if (val ==  cH.badVig) return;
 
@@ -293,29 +274,14 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig/*, float *
 	aSVV =	sqrt(aSVV);
 
 	#pragma unroll
-	for ( y = c0.y ; y <= c1.y; y++)
+	for ( pt.y = c0.y ; pt.y <= c1.y; pt.y++)
 	{
-		const int _cy	= ptTer.y * cH.dimVig.y + (y - c0.y);
+		const int _cy	= ptTer.y * cH.dimVig.y + (pt.y - c0.y);
 		#pragma unroll
-		for ( x = c0.x ; x <= c1.x; x++)					
-// 			if (cacheImg[y][x] == cH.badVig)
-// 			{
-// 				cachVig[iC] = cH.badVig;
-// 				return;
-// 			}
-// 			const int _cx	= ter.x * cDimVig.x + (x - c0.x);
-// 			const int _iC   = (blockIdx.z * cH.sizeCach) + _cy * cH.dimCach.x + _cx;
-			cachVig[(blockIdx.z * cH.sizeCach) + _cy * cH.dimCach.x + ptTer.x * cH.dimVig.x + (x - c0.x)] = (cacheImg[y][x] -aSV)/aSVV;
+		for ( pt.x = c0.x ; pt.x <= c1.x; pt.x++)					
+			cachVig[(blockIdx.z * cH.sizeCach) + _cy * cH.dimCach.x + ptTer.x * cH.dimVig.x + (pt.x - c0.x)] = (cacheImg[pt.y][pt.x] -aSV)/aSVV;
 	}	
-//  	if (blockIdx.z	== iDI)
-// 		siCor[iTer] = (1.0f + cachVig[iC]) / 2.0f; //== 0.0f ? -9 * cH.badVig : cachVig[iC] ; // ## ¤ ##
 
-	// Coordonnées 1D du terrain
-	//const int iTer	= (cRDiTer.x * ter.y) + ter.x; // ne sert pas 
-	// Nombre d'images correctes
-	//atomicAdd( &dev_NbImgOk[iTer], 1.0f);
-
-	
 	atomicAdd( &dev_NbImgOk[to1D(ptTer,cH.rDiTer)], 1.0f);
 };
 
@@ -351,10 +317,10 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	// Si le thread est en dehors du cache
 	if ( oSE(ptCach, cH.dimCach))	return;
 	
-	const uint2	ptTer	= ptCach / cH.dimVig;		// Coordonnées 2D du terrain 
-	const uint	iTer	= to1D(ptTer, cH.rDiTer);	// Coordonnées 1D dans le terrain
-	const bool	mThrd	= t.x % cH.dimVig.x == 0 &&  t.y% cH.dimVig.y == 0 && threadIdx.z == 0;
-	const float aNbImOk = dev_NbImgOk[iTer];
+	const uint2	ptTer	= ptCach / cH.dimVig;					// Coordonnées 2D du terrain 
+	const uint	iTer	= to1D(ptTer, cH.rDiTer);				// Coordonnées 1D dans le terrain
+	const bool	mThrd	= t.x % cH.dimVig.x == 0 &&  t.y % cH.dimVig.y == 0 && threadIdx.z == 0;
+	const float aNbImOk = dev_NbImgOk[iTer];					// Nombre vignettes correctes
 
 	if (aNbImOk < 2) return;
 	
