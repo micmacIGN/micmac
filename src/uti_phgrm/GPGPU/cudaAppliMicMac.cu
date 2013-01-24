@@ -1,4 +1,4 @@
-#include "gpu/cudaAppliMicMac.cuh"
+#include "GpGpu/cudaAppliMicMac.cuh"
 
 #include <iostream>
 #include <string>

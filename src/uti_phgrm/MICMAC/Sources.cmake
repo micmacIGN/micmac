@@ -50,8 +50,3 @@ set(uti_phgrm_MICMAC_Src_Files
 #    ${UTI_PHGRM_MICMAC_DIR}/VisuSuperpGrid.cpp
 )
 
-if(${CUDA_ENABLED})
-
-	set(uti_phgrm_MICMAC_Src_Files ${uti_phgrm_MICMAC_Src_Files}  ${UTI_PHGRM_MICMAC_DIR}/Cuda/cudaAppliMicMac.cu)
-
-endif()
