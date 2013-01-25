@@ -331,7 +331,7 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	const uint2 cc		= ptTer * cH.dimVig;						// coordonnées 2D 1er pixel de la vignette
 	const int iCC		= sizLayer + to1D( cc, cH.dimCach );	// coordonnées 1D 1er pixel de la vignette
 	
-	float val = (cacheVign[iCC] != cH.UVDefValue) ? cacheVign[iCach] : 0.0f; // sortir si bad vignette
+	const float val = (cacheVign[iCC] != cH.UVDefValue) ? cacheVign[iCach] : 0.0f; // sortir si bad vignette
 
 	atomicAdd( &(aSV[t.y][t.x]), val);
 
