@@ -324,9 +324,10 @@ namespace NS_ParamMICMAC
 					fdataImg1D	= new float[ size(dimImgMax) * mNbIm ];
 	
 				// Copie du tableau 2d des valeurs de l'image
- 				GpGpuTools::memcpy2Dto1D(aDataIm ,fdataImg1D + size(dimImgMax) * aKIm, dimImgMax, dimImg );
+ 				GpGpuTools::Memcpy2Dto1D(aDataIm ,fdataImg1D + size(dimImgMax) * aKIm, dimImgMax, dimImg );
 
 			}
+/*
 
 			if (0)
 			{
@@ -339,7 +340,7 @@ namespace NS_ParamMICMAC
 
 				}
 			}
-
+*/
 
 			if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
 				imagesToLayers( fdataImg1D, dimImgMax, mNbIm );
@@ -354,7 +355,6 @@ namespace NS_ParamMICMAC
 			h = Init_Correlation_GPU(Ter0, Ter1, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, sampTer, uvINTDef);
 
 		}
-
 
 		//////////////////////////////////////////////////////////////////////////
 
@@ -396,16 +396,7 @@ namespace NS_ParamMICMAC
 		int2 ptHmask0 = h.ptMask0 - h.rVig;
 		int2 ptHmask1 = h.ptMask1 + h.rVig;
 
-
-// 		if (h.ptMask0.x != -1 && ((h.ptMask0.x != mX0Ter || h.ptMask0.y != mY0Ter) || ( h.ptMask1.x != mX1Ter - 1 || h.ptMask1.y != mY1Ter - 1) ))
-// 		{
-// 			std::cout << "mask zone : "  << h.ptMask0.x << "," << h.ptMask0.y << " -> " << h.ptMask1.x << "," << h.ptMask1.y << "\n";
-// 			std::cout << "mask Halo zone: "  << ptHmask0.x << "," << ptHmask0.y << " -> " << ptHmask1.x << "," << ptHmask1.y << "\n";
-// 			maskZone = true;
-// 		}
-
 		delete[] maskTab;
-
 
 		//////////////////////////////////////////////////////////////////////////
 		
@@ -853,7 +844,7 @@ namespace NS_ParamMICMAC
 		uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
  		int2	aSzDz		= toI2(Pt2dr(mGeomDFPx->SzDz()));		// Dimension de la zone terrain total
  		int2	aSzClip		= toI2(Pt2dr(mGeomDFPx->SzClip()));		// Dimension du bloque
-		
+	
 		for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )					// Mise en calque des projections pour chaque image
 		{
 			
@@ -870,21 +861,22 @@ namespace NS_ParamMICMAC
 
 						int2 r		= (an - Ter0)/sample;
 						int iD		= (aKIm * sizSTabProj  + to1D(r,dimSTabProj)) * 2;
+
 						int aZMin	= mTabZMin[an.y][an.x];
 						int aZMax	= mTabZMax[an.y][an.x];
 
-						if (IsInTer( an.x, an.y ) && (aGLI.IsVisible(an.x ,an.y ))&& (aZMin <= Z)&&(Z <=aZMax) )
+						if (IsInTer( an.x, an.y ) && (aGLI.IsVisible(an.x ,an.y )) && (aZMin <= Z)&&(Z <=aZMax) )
 						{
 							// Déquantification  de X, Y et Z 
 							const double aZReel	= DequantZ(Z);
 							Pt2dr		aPTer	= DequantPlani(an.x,an.y);
 
-							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image 
+							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image 			
 
 							if (aGLI.IsOk( aPIm.x, aPIm.y ))
 							{	
 								TabProj[iD + 0] = (float)aPIm.x;
-								TabProj[iD + 1] = (float)aPIm.y;	
+								TabProj[iD + 1] = (float)aPIm.y;
 							}
 						}	
 					}
@@ -892,54 +884,33 @@ namespace NS_ParamMICMAC
 			}
 		}
 		
-		/*for (int aKIm = 0 ; aKIm < 0 ; aKIm++ )
+/*
+		for (int aKIm = 0 ; aKIm < 4 ; aKIm++ )
 		{
-
-			cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
-			float **aDataIm	=  aGLI.DataIm();
-			float* image	= new float[h.sizeSTer];
-
-			for (int anY = Ter0.y ; anY < Ter1.y; anY = anY + sample)
-			{															
-				for (int an.x = Ter0.x ; an.x < Ter1.x ; an.x = an.x + sample)	// Ballayage du terrain  
+			cGPU_LoadedImGeom&	aGLI = *(mVLI[aKIm]);
+			float**	aDataIm	= aGLI.DataIm();
+			float*	image	= new float[h.sizeSTer];
+			memset(image,0,h.sizeSTer * sizeof(float));
+			int2 an;
+			for ( an.y = Ter0.y ; an.y < Ter1.y; an.y = an.y + sample)															
+				for ( an.x = Ter0.x ; an.x < Ter1.x ; an.x = an.x + sample)	// Ballayage du terrain  
 				{
-
-					int rX		= (an.x - Ter0.x) / h.sampTer;
-					int rY		= (anY - Ter0.y) / h.sampTer;
-					int iD		= (aKIm * h.sizeSTer  + h.dimSTer.x * rY + rX ) * 2;
+					int2 r	= (an - Ter0) / h.sampTer;
+					int iD	= (aKIm * h.sizeSTer + to1D(r,h.dimSTer)) * 2;
 					Pt2dr aPIm(TabProj[iD],TabProj[iD+1]);
 
-					double aVal;
 					if ((aGLI.IsOk(aPIm.x,aPIm.y))&&(aGLI.IsOk(aPIm.x+2,aPIm.y+2))&&(aGLI.IsOk(aPIm.x-2,aPIm.y-2)))
-					{
-						//std::cout << "image : " << aPIm.x << " , " << aPIm.y  << "\n";
-						aVal =  mInterpolTabule.GetVal(aDataIm,aPIm)/500.0f;
-					}
-					else
-						aVal = 0.0f;
-
-					image[h.dimSTer.x * rY + rX] = aVal;
+						image[to1D(r,h.dimSTer)] =  (float)mInterpolTabule.GetVal(aDataIm,aPIm)/500.0f;
+					
 				}
-			}
 
-			TCHAR name [ UNLEN + 1 ];
-			DWORD size = UNLEN + 1;
-			GetUserName( (TCHAR*)name, &size );
+			std::string fileImage = "imageTextureProj_" + ToString(aKIm) + ".pgm";
 
-
-
-			std::string suname = name;
-			std::string IDima = ToString(aKIm);
-
-			std::string fileImage = "C:\\Users\\" + suname + "\\Pictures\\imageTextureProj_" + IDima + ".pgm";
-			
-			// save PGM
-			sdkSavePGM<float>(fileImage.c_str(), image, h.dimSTer.x,h.dimSTer.y);
+			GpGpuTools::Array1DtoImageFile(image,fileImage.c_str(),h.dimSTer);
 
 			delete[] image;
 		}
-			*/
-		
+*/
 	}
 
 #endif
@@ -958,6 +929,7 @@ namespace NS_ParamMICMAC
 		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
 		//int aZMinTer = 0 , aZMaxTer = 1;
 
+
 		if (h.ptMask0.x == -1)
 		{
 			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
@@ -967,12 +939,19 @@ namespace NS_ParamMICMAC
 			return;
 		}
 	
-		uint siTabProj	= mNbIm * h.sizeSTer * 2;
+		
 
 		h = updateSizeBlock(make_uint2(mX0Ter, mY0Ter),make_uint2(mX1Ter, mY1Ter));
+		uint siTabProj	= mNbIm * h.sizeSTer * 2;
 
-		float* h_TabCost = new float[  h.rSiTer ];	// Tableau de sortie de corrélation 	
-		float* h_TabProj = new float[ siTabProj ];	// Tableau des projections
+		//float* h_TabCost = new float[  h.rSiTer ];	// Tableau de sortie de corrélation 	
+		//float* h_TabProj = new float[ siTabProj ];	// Tableau des projections
+
+		float* h_TabCost;
+		float* h_TabProj;
+
+		cudaMallocHost(&h_TabCost,(size_t)(h.rSiTer * sizeof(float)));
+		cudaMallocHost(&h_TabProj,(size_t)(siTabProj * sizeof(float)));
 
 		allocMemoryTabProj(h.dimSTer, mNbIm);
 
@@ -1007,10 +986,14 @@ namespace NS_ParamMICMAC
 							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,mAhDefCost);				
 					}
 			}
+			
 		}
 
-		delete [] h_TabCost;
- 		delete [] h_TabProj;
+		cudaFreeHost(h_TabCost);
+		cudaFreeHost(h_TabProj);
+		
+// 		delete [] h_TabCost;		
+//  		delete [] h_TabProj;
 
 /*
 

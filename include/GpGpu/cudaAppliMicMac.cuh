@@ -3,6 +3,7 @@
 #include <helper_math.h>
 #include <helper_functions.h>
 #include <helper_cuda.h>
+#include "GpGpuTools.h"
 
 #define INTDEFAULT -64
 #define SAMPLETERR 1
