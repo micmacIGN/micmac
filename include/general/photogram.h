@@ -2952,13 +2952,16 @@ class cTxtCam
        std::string          mNameIm;
        std::string          mNameOri;
        CamStenope *         mCam;
+       CamStenope *         mRefCam;// En cas de reference exacte pour faire du reverse engenering
        cOrientationConique  * mOC;
        double               mPrio;
        bool                 mSelC;
        Pt3dr                mC;  // Center
        Pt3dr                mV;  // Vitesse
+       Pt3dr                mWPK;  // Angles
        bool                 mVIsCalc;  // Vitesse
        int                  mNum;
+       double               mTime;
        const cMetaDataPhoto *     mMTD;
 };
 typedef cTxtCam * cTxtCamPtr;
