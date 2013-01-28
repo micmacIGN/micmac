@@ -392,9 +392,9 @@ namespace NS_ParamMICMAC
 			}
 		}
 
-		bool maskZone = false;
-		int2 ptHmask0 = h.ptMask0 - h.rVig;
-		int2 ptHmask1 = h.ptMask1 + h.rVig;
+		//bool maskZone = false;
+		//int2 ptHmask0 = h.ptMask0 - h.rVig;
+		//int2 ptHmask1 = h.ptMask1 + h.rVig;
 
 		delete[] maskTab;
 

@@ -36,4 +36,3 @@ struct paramGPU
 	 float	mAhEpsilon;
 };
 
-static __constant__ paramGPU cH;

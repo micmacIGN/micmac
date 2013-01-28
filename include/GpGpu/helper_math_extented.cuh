@@ -1,5 +1,9 @@
 #pragma once
+
+#include <cuda_runtime.h>
+#include <helper_functions.h>
 #include <helper_math.h>
+#include <helper_cuda.h>
 
 
 static int iDivUp(int a, int b)
@@ -134,7 +138,7 @@ inline __host__ __device__ bool oEq(float2 a, float b)
 
 inline __host__ __device__ bool oEq(uint2 a, int b)
 {
-	return ((a.x == b) || (a.y == b));
+	return ((a.x == (uint)b) || (a.y == (uint)b));
 }
 
 

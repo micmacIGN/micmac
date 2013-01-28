@@ -47,6 +47,7 @@ float*	dev_Cache;
 float*	dev_NbImgOk;
 
 paramGPU h;
+static __constant__ paramGPU cH;
 
 extern "C" void allocMemory(void)
 {
