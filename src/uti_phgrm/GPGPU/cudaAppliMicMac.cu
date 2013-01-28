@@ -47,6 +47,7 @@ float*	dev_Cache;
 float*	dev_NbImgOk;
 
 paramGPU h;
+static __constant__ paramGPU cH;
 
 extern "C" void allocMemory(void)
 {
@@ -171,7 +172,7 @@ extern "C" void  allocMemoryTabProj(uint2 dimTer, int nbLayer)
 
 }
 
-extern "C" void  CopyProjToLayers(float *h_TabProj, uint2 dimTer, int nbLayer)
+extern "C" void  CopyProjToLayers(float2 *h_TabProj, uint2 dimTer, int nbLayer)
 {
 	cudaExtent siz_PL = make_cudaExtent( dimTer.x, dimTer.y, nbLayer);
 

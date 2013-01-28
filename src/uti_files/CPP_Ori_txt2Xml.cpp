@@ -721,7 +721,14 @@ void  cAppli_Ori_Txt2Xml_main::InitGrapheVois()
        mBoxC._p1.SetSup(POfSom(aSom));
     }
 
-    if ((mSzV >0) && ELISE_X11)
+	bool elise_x11 = false;
+#ifdef ELISE_X11
+
+	elise_x11 = true;
+
+#endif
+
+    if ((mSzV >0) && elise_x11)
     {
         mScaleV = mSzV / dist8(mBoxC.sz());
         mSzW = mBoxC.sz() * mScaleV + Pt2dr(mBordV,mBordV) * 2.0;
