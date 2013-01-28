@@ -1,0 +1,94 @@
+<!--
+    Pattron pour le calcul de MNT a partir d'un ensemble de vue convergentes simples.
+ 
+    N Images , toutes convergentes vers la meme zones, angle suffisant pour que l'on puisse
+    faire une mise en place directe.
+-->
+
+<Global>
+   <ChantierDescripteur
+        Subst="@$#1"
+        NameDecl="@$#1"
+   >
+
+<!--   BATCH  -->
+
+        <BatchChantDesc>
+              <Key> Batch </Key>
+
+              <Requirement>
+                 <ExeRequired>
+                    <Exe> bin/Pastis </Exe>
+                    <Make> Makefile </Make>
+                 </ExeRequired>
+                 <ExeRequired>
+                    <Exe> bin/Apero </Exe>
+                    <Make> AperiMake </Make>
+                 </ExeRequired>
+                 <ExeRequired>
+                    <Exe> bin/MICMAC </Exe>
+                    <Make> MakeMICMAC </Make>
+                 </ExeRequired>
+
+
+              </Requirement>
+
+              <Line> bin/Pastis  ${ThisDir}  AllCpleImages 1000  MkF=MkToto </Line>
+              <Line> make all -f MkToto -j2  </Line>
+        </BatchChantDesc>
+
+
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+
+
+    <KeyedSetsOfNames >
+          <Sets>
+                 <PatternAccepteur> DSC[0-9]{5}.tif  </PatternAccepteur>
+          </Sets>
+          <Key> AllImages </Key>
+    </KeyedSetsOfNames>
+
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+
+
+
+
+<!--   Associations   -->
+<!--   Associations   -->
+<!--   Associations   -->
+
+   <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> .*.tif  </PatternTransform>
+                       <CalcName>  DRadInitSonyDSC-V3.xml </CalcName>
+                 </Direct>
+             </Calcs>
+
+             <Key>   Key-Assoc-CalibOfIm </Key>
+   </KeyedNamesAssociations>
+
+
+<!--   Relations   -->
+<!--   Relations   -->
+<!--   Relations   -->
+
+
+    <KeyedSetsORels>
+       <Sets >
+            <ByAdjacence>
+                <KeySets>  AllImages   </KeySets>
+                <DeltaMax > 10000  </DeltaMax>
+                <DeltaMin > -10000 </DeltaMin>
+            </ByAdjacence>
+       </Sets>
+       <Key  > AllCpleImages </Key>
+    </KeyedSetsORels>
+
+  </ChantierDescripteur>
+</Global>
