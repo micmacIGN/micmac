@@ -37,8 +37,8 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#ifndef _ELISE_ALGO_GEOM_DELAUNAY_MEDIATRICE
-#define _ELISE_ALGO_GEOM_DELAUNAY_MEDIATRICE
+#ifndef _ELISE_ALGO_GEOM_INTEGER_DELAUNAY_MEDIATRICE
+#define _ELISE_ALGO_GEOM_INTEGER_DELAUNAY_MEDIATRICE
 
 class RATIONNEL
 {
@@ -69,7 +69,7 @@ class RATIONNEL
 
 
 template <class Iterator,class Fpt,class Act,class Type>  void  
-          Delaunay_Mediatrice
+          Integer_Delaunay_Mediatrice
           (
                  Iterator begin,
                  Iterator end,
@@ -233,7 +233,7 @@ template <class Iterator,class Fpt,class Act,class Type>  void
 
 
 template <class Type,class Fpt,class Act>  void  
-          Delaunay_Mediatrice
+          Integer_Delaunay_Mediatrice
           (
                  Type * vals,
                  INT   nb,
@@ -242,7 +242,7 @@ template <class Type,class Fpt,class Act>  void
                  REAL  dist
           )
 {
-   Delaunay_Mediatrice(vals,vals+nb,fpt,act,dist,(Type *)0);
+   Integer_Delaunay_Mediatrice(vals,vals+nb,fpt,act,dist,(Type *)0);
 }
 
                 
@@ -566,7 +566,7 @@ template <class Iterator,class Fpt,class Act>  void
         }
     }
 }
-#endif
+#endif // _ELISE_ALGO_GEOM_INTEGER_DELAUNAY_MEDIATRICE
                 
 
 /*Footer-MicMac-eLiSe-25/06/2007
