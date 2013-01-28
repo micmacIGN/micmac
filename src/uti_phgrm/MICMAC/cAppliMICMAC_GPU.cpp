@@ -53,7 +53,7 @@ namespace NS_ParamMICMAC
 
 #ifdef CUDA_ENABLED
 	extern "C" void		freeGpuMemory();
-	extern "C" void		CopyProjToLayers(float *h_TabProj, uint2 dimTer, int nbLayer);
+	extern "C" void		CopyProjToLayers(float2 *h_TabProj, uint2 dimTer, int nbLayer);
 	extern "C" void		basic_Correlation_GPU(  float* h_TabCorre, int nbLayer);
 	extern "C" void		imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer);
 	extern "C" paramGPU Init_Correlation_GPU( uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef);
@@ -392,9 +392,9 @@ namespace NS_ParamMICMAC
 			}
 		}
 
-		bool maskZone = false;
-		int2 ptHmask0 = h.ptMask0 - h.rVig;
-		int2 ptHmask1 = h.ptMask1 + h.rVig;
+		//bool maskZone = false;
+		//int2 ptHmask0 = h.ptMask0 - h.rVig;
+		//int2 ptHmask1 = h.ptMask1 + h.rVig;
 
 		delete[] maskTab;
 
@@ -836,7 +836,7 @@ namespace NS_ParamMICMAC
 	}
 
 #ifdef  CUDA_ENABLED
-	void cAppliMICMAC::Tabul_Projection( float* TabProj, int Z, int2 Ter0, int2 Ter1, uint sample)
+	void cAppliMICMAC::Tabul_Projection( float2* TabProj, int Z, int2 Ter0, int2 Ter1, uint sample)
 	{
 		
 		uint2	dimTabProj	= make_uint2(Ter1 - Ter0);				// Dimension de la zone terrain 
@@ -860,7 +860,7 @@ namespace NS_ParamMICMAC
 					{
 
 						int2 r		= (an - Ter0)/sample;
-						int iD		= (aKIm * sizSTabProj  + to1D(r,dimSTabProj)) * 2;
+						int iD		= (aKIm * sizSTabProj  + to1D(r,dimSTabProj));
 
 						int aZMin	= mTabZMin[an.y][an.x];
 						int aZMax	= mTabZMax[an.y][an.x];
@@ -870,14 +870,11 @@ namespace NS_ParamMICMAC
 							// Déquantification  de X, Y et Z 
 							const double aZReel	= DequantZ(Z);
 							Pt2dr		aPTer	= DequantPlani(an.x,an.y);
-
 							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image 			
 
 							if (aGLI.IsOk( aPIm.x, aPIm.y ))
-							{	
-								TabProj[iD + 0] = (float)aPIm.x;
-								TabProj[iD + 1] = (float)aPIm.y;
-							}
+								TabProj[iD] = make_float2((float)aPIm.x,(float)aPIm.y);
+
 						}	
 					}
 				}
@@ -929,7 +926,6 @@ namespace NS_ParamMICMAC
 		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
 		//int aZMinTer = 0 , aZMaxTer = 1;
 
-
 		if (h.ptMask0.x == -1)
 		{
 			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
@@ -938,20 +934,15 @@ namespace NS_ParamMICMAC
 						mSurfOpt->SetCout(Pt2di(anX,anY),&anZ,mAhDefCost);
 			return;
 		}
-	
-		
 
 		h = updateSizeBlock(make_uint2(mX0Ter, mY0Ter),make_uint2(mX1Ter, mY1Ter));
-		uint siTabProj	= mNbIm * h.sizeSTer * 2;
-
-		//float* h_TabCost = new float[  h.rSiTer ];	// Tableau de sortie de corrélation 	
-		//float* h_TabProj = new float[ siTabProj ];	// Tableau des projections
+		uint siTabProj	= mNbIm * h.sizeSTer;
 
 		float* h_TabCost;
-		float* h_TabProj;
+		float2* h_TabProj;
 
 		cudaMallocHost(&h_TabCost,(size_t)(h.rSiTer * sizeof(float)));
-		cudaMallocHost(&h_TabProj,(size_t)(siTabProj * sizeof(float)));
+		cudaMallocHost(&h_TabProj,(size_t)(siTabProj * sizeof(float2)));
 
 		allocMemoryTabProj(h.dimSTer, mNbIm);
 
@@ -959,7 +950,7 @@ namespace NS_ParamMICMAC
 		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
 		{
 			// Re-initialisation du tableau de projection
-			memset(h_TabProj,h.UVIntDef,siTabProj * sizeof(float));
+			memset(h_TabProj,h.UVIntDef,siTabProj * sizeof(float2));
 
 			Tabul_Projection(h_TabProj, anZ, h.pUTer0, h.pUTer1, h.sampTer);
 			
@@ -971,19 +962,13 @@ namespace NS_ParamMICMAC
 
 			for (int Y = mY0Ter ; Y < mY1Ter ; Y++)		// Ballayage du terrain  
 			{			
-				for (int X = mX0Ter; X <  mX1Ter; X++)	
+				for (int X = mX0Ter; X <  mX1Ter; X++,mNbPointsIsole++)	
 				
 					if ( mTabZMin[Y][X] <=  anZ && anZ < mTabZMax[Y][X])
 					{
-						
-						mNbPointsIsole++;				// Statistique MICMAC
-
 						double cost = (double)h_TabCost[h.rDiTer.x * (Y - mY0Ter) +  X - mX0Ter];
-		
-						if (cost != h.UVDefValue)
-							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,cost);
-						else 
-							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,mAhDefCost);				
+						
+						mSurfOpt->SetCout(Pt2di(X,Y),&anZ,cost != h.UVDefValue ? cost : mAhDefCost);
 					}
 			}
 			
@@ -991,9 +976,6 @@ namespace NS_ParamMICMAC
 
 		cudaFreeHost(h_TabCost);
 		cudaFreeHost(h_TabProj);
-		
-// 		delete [] h_TabCost;		
-//  		delete [] h_TabProj;
 
 /*
 
