@@ -259,6 +259,12 @@ template <class AttrSom,class AttrArc> class ElArc
                   sym_flag_set_kth(k,!flag_kth(k));
             }
 
+            // Quand un choix arbitraire doit etre fait sur l'orientation
+            bool IsOrientedNumCroissant() const
+            {
+                 return _s1->num() < _s2->num();
+            }
+
       private  :
 
             ElArc(TSom & s1,TSom & s2,const AttrArc & attr):
