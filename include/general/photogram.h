@@ -2961,6 +2961,7 @@ class cTxtCam
        Pt3dr                mWPK;  // Angles
        bool                 mVIsCalc;  // Vitesse
        int                  mNum;
+       int                  mNumBande;
        double               mTime;
        const cMetaDataPhoto *     mMTD;
 };

@@ -119,8 +119,13 @@ class cAttrVoisA
 
 
 typedef  ElSom<cAttrVoisSom,cAttrVoisA>    tSomVois;
-typedef  ElArc<cAttrVoisSom,cAttrVoisA>    tSomArc;
+typedef  ElArc<cAttrVoisSom,cAttrVoisA>    tArcVois;
+typedef  ElSomIterator<cAttrVoisSom,cAttrVoisA> tItSVois;
+typedef  ElArcIterator<cAttrVoisSom,cAttrVoisA> tItAVois;
+
 typedef  ElGraphe<cAttrVoisSom,cAttrVoisA> tGrVois;
+
+
 
 Pt2dr POfSom(const tSomVois & aSom)
 {
@@ -128,6 +133,28 @@ Pt2dr POfSom(const tSomVois & aSom)
       return Pt2dr(aP.x,aP.y);
 }
 Pt2dr POfSomPtr(const tSomVois * aSom) {return POfSom(*aSom);}
+Pt2dr POfSomPtrPtr(const tSomVois ** aSom) {return POfSom(**aSom);}
+
+
+class cSubGrVois : public ElSubGraphe<cAttrVoisSom,cAttrVoisA>
+{
+    public :
+        Pt2dr pt(tSomVois & aS) {return POfSom(aS);}
+};
+
+
+tSomVois & SomDif(const ElFilo<tArcVois *>& aF,const tSomVois & aS1,const tSomVois & aS2)
+{
+    for (int aK=0 ; aK<aF.nb() ; aK++)
+    {
+        tSomVois & aS = aF[aK]->s1();
+        if ((aS.num() != aS1.num())  && (aS.num() != aS2.num()))
+           return aS;
+    }
+    ELISE_ASSERT(false,"SomDif");
+    return *((tSomVois*)0);
+}
+
 
 //================================================
 
@@ -138,7 +165,10 @@ class cAppli_Ori_Txt2Xml_main
 {
      public :
           cAppli_Ori_Txt2Xml_main (int argc,char ** argv);
+         void operator()(tSomVois*,tSomVois*,bool);  // Delaunay Call back
      private :
+
+         void AddArc(tSomVois*,tSomVois*,int aCoul);
 
          void ParseFile();
          void TestRef();
@@ -148,9 +178,15 @@ class cAppli_Ori_Txt2Xml_main
          void SauvOriFinal();
          void OnePasseElargV(int aK0, int aK1, int aStep);
          void SauvRel();
-         void  InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK);
+         void InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK);
+
          void InitGrapheVois();
+         void VoisInitDelaunay();
+         void VoisInitDelaunayCroist();
+         void VoisInitLine();
+
          void ShowSom(const tSomVois & aSom,int aCoul);
+         void ShowArc(const tSomVois & aSom1,const tSomVois & aSom2,int aCoul);
 
          bool  OkArc(int aK1,int aK2) const;
          Pt3dr Vect(int aK1, int aK2) const
@@ -176,7 +212,6 @@ class cAppli_Ori_Txt2Xml_main
              return mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-" +anOri,aCam.mNameIm,true);
          }
 
-         void operator()(tSomVois&,tSomVois&,bool){}  // Delaunay Call back
 
          std::string         mFilePtsIn;
          std::string         mOriOut;
@@ -204,6 +239,7 @@ class cAppli_Ori_Txt2Xml_main
          int                  mNbCam;
          std::string          mNameCple;
          bool                 mAddDelaunay;
+         bool                 mAddDelaunayCroist;
          double               mCostRegulAngle;
          int                  mCptMin;
          int                  mCptMax;
@@ -223,6 +259,7 @@ class cAppli_Ori_Txt2Xml_main
          int                  mSiftLowResol;
          bool                 mUseOnlyC;
          tGrVois              mGrVois;
+         cSubGrVois              mSubAll;
          std::vector<tSomVois *> mVSomVois;
          Box2dr                  mBoxC;
          double                  mSzV;
@@ -232,11 +269,35 @@ class cAppli_Ori_Txt2Xml_main
          Video_Win *             mW;
 };
 
+void cAppli_Ori_Txt2Xml_main::operator()(tSomVois* aS1,tSomVois* aS2,bool)  // Delaunay Call back
+{
+    AddArc(aS1,aS2,P8COL::blue);
+}
+
+
+void cAppli_Ori_Txt2Xml_main::AddArc(tSomVois* aS1,tSomVois* aS2,int aCoul)
+{
+    tArcVois * anAExist = mGrVois.arc_s1s2(*aS1,*aS2);
+    if (! anAExist)
+    {
+       tArcVois & anArc = mGrVois.add_arc(*aS1,*aS2,cAttrVoisA());
+       ShowArc(anArc.s1(),anArc.s2(),aCoul);
+    }
+}
+
+
 void cAppli_Ori_Txt2Xml_main::ShowSom(const tSomVois & aSom,int aCoul)
 {
   if (mW)
      mW->draw_circle_loc(ToW(aSom),2.0,mW->pdisc()(aCoul));
 }
+void cAppli_Ori_Txt2Xml_main::ShowArc(const tSomVois & aSom1,const tSomVois & aSom2,int aCoul)
+{
+   if (mW)
+      mW->draw_seg(ToW(aSom1),ToW(aSom2),mW->pdisc()(aCoul));
+
+}
+
 /*
 
    On cherche à decomposer en un sous ensemble de sommets connexes.
@@ -459,12 +520,18 @@ void cAppli_Ori_Txt2Xml_main::CalcVitesse()
      ElFilo<tSom *> aPCC;
      aPcc.chemin(aPCC,*(aRes));
 
+     int aCptTraj=-1;
+
      for (int aKPcc = aPCC.nb()-1 ; aKPcc >= 0 ; aKPcc--)
      {
          const cAttrHypSomV & anAttr = aPCC[aKPcc]->attr();
+         eTyNdVit  aTyn = anAttr.mTyN ;
          cTxtCam * aCam = anAttr.mCam ;
 
-         eTyNdVit  aTyn = anAttr.mTyN ;
+         if ((aTyn==eDebTraj) || (aTyn==eNoTraj))
+            aCptTraj++;
+         aCam->mNumBande = aCptTraj;
+
          Pt3dr aV = anAttr.mV;
 
          bool Fiable = false;
@@ -490,7 +557,7 @@ void cAppli_Ori_Txt2Xml_main::CalcVitesse()
          {
              if (aTyn==eDebTraj) std::cout << "[[\n";
 
-             std::cout << "   Num " << aCam->mNum << " ";
+             std::cout << "   Num " << aCam->mNum << " " << " Band " << aCam-> mNumBande << " " ;
 
  
 
@@ -516,6 +583,8 @@ void cAppli_Ori_Txt2Xml_main::CalcVitesse()
              std::cout << "\n";
              if (aTyn==eFinTraj) std::cout << "]]\n";
          }
+
+
      }
 
      if (EAMIsInit(&mDelay) || mTetaFromCap)
@@ -588,6 +657,7 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     std::string aStrChSys;
     std::vector<std::string> aPrePost;
     std::vector<int>         aVCpt;
+    
 
     ElInitArgMain
     (
@@ -618,11 +688,20 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
 
                       << EAM(mNameCple,"NameCple",true,"Name of XML file to save couples")
                       << EAM(mAddDelaunay,"Delaunay",true,"Add delaunay arc when save couple (Def=true)")
+                      << EAM(mAddDelaunayCroist,"DelaunayCross",true,"Complete delaunay with some crossing trick arc when save couple (Def=true)")
 
                       << EAM(aVCpt,"Cpt",true,"============ [CptMin,CptMax] for tuning purpose =======")
                       << EAM(mUseOnlyC,"UOC",true,"Use Only Center (tuning)")
                       << EAM(mMTDOnce,"MTD1",true,"Compute Metadata only for first image (tuning)")
     );
+
+    if (! EAMIsInit(&mAddDelaunay))
+       mAddDelaunay = EAMIsInit(&mNameCple);
+
+    if (! EAMIsInit(&mAddDelaunayCroist))
+       mAddDelaunayCroist = mAddDelaunay ;
+    else
+       mAddDelaunayCroist = mAddDelaunayCroist &&  mAddDelaunayCroist;
 
     mCalcV  = mCalcV
              || EAMIsInit(&mDelay)
@@ -709,6 +788,9 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     std::cout << "PATC = " << mPatImCenter << "\n";
 }
 
+
+
+
 void  cAppli_Ori_Txt2Xml_main::InitGrapheVois()
 {
     mBoxC._p0 = Pt2dr( 1e20, 1e20);
@@ -731,18 +813,72 @@ void  cAppli_Ori_Txt2Xml_main::InitGrapheVois()
     for (int aKS=0 ; aKS<int(mVSomVois.size()) ; aKS++)
        ShowSom(*(mVSomVois[aKS]),P8COL::red);
 
-    
-/*
+}
+
+         // void VoisInitLine();
+
+void cAppli_Ori_Txt2Xml_main::VoisInitDelaunay()
+{
     Delaunay_Mediatrice
     (
       &(mVSomVois[0]),
       &(mVSomVois[0])+mVSomVois.size(),
-       POfSom,
+       POfSomPtr,
        *this,
        1e10,
        (tSomVois **) 0
     );
-*/
+}
+
+
+void cAppli_Ori_Txt2Xml_main::VoisInitDelaunayCroist()
+{
+
+    std::vector<tSomVois *> aVQ1;
+    std::vector<tSomVois *> aVQ2;
+    for (tItSVois itS=mGrVois.begin(mSubAll) ; itS.go_on() ;itS++)
+    {
+        for (tItAVois itA= (*itS).begin(mSubAll) ; itA.go_on() ; itA++)
+        {
+             tSomVois & aS1 = (*itA).s1();
+             tSomVois & aS2 = (*itA).s2();
+             if ((*itA).IsOrientedNumCroissant())
+             {
+                ElFilo<tArcVois *> aF1;
+                if (face_trigo(*itA,mSubAll,aF1))
+                {
+
+                   if (aF1.nb() == 3)
+                   {
+                       ElFilo<tArcVois*> aF2;
+                       if (face_trigo((*itA).arc_rec(),mSubAll,aF2))
+                       {
+                           if (aF2.nb() == 3)
+                           {
+                               tSomVois & aQ1 =  SomDif(aF1,aS1,aS2);
+                               tSomVois & aQ2 =  SomDif(aF2,aS1,aS2);
+                               SegComp aSInit(POfSom(aS1),POfSom(aS2));
+                               SegComp aSNew(POfSom(aQ1),POfSom(aQ2));
+
+                               bool OK ;
+                               aSInit.inter(SegComp::seg,aSNew,SegComp::seg,OK);
+                               if (OK)
+                               {
+                                  aVQ1.push_back(&aQ1);
+                                  aVQ2.push_back(&aQ2);
+                               }
+                           }
+                       }
+                   }
+                }
+             }
+        }
+    }
+
+     for  (int aKq=0 ; aKq<int(aVQ1.size()) ; aKq++)
+          AddArc(aVQ1[aKq],aVQ2[aKq],P8COL::green);
+
+
 
     std::cout << "Viiissuu "<< mBoxC.sz() << " " << mScaleV << "\n"; getchar();
 }
@@ -966,6 +1102,7 @@ void cAppli_Ori_Txt2Xml_main::CalcImCenter()
               aVSel.push_back(mVCam[aK1]);
 
        mVCam = aVSel;
+       mNbCam = mVCam.size();
     }
 }
 
@@ -992,7 +1129,11 @@ void cAppli_Ori_Txt2Xml_main::SauvRel()
 
    if (mAddDelaunay)
    {
-      
+        VoisInitDelaunay();
+   }
+   if (mAddDelaunayCroist)
+   {
+        VoisInitDelaunayCroist();
    }
     cSauvegardeNamedRel  aRelIm;    
 /*
@@ -1018,8 +1159,8 @@ void cAppli_Ori_Txt2Xml_main::SauvRel()
             }
         }
     }
-*/
     MakeFileXML(aRelIm,mDir+mNameCple);
+*/
 }
 
 
