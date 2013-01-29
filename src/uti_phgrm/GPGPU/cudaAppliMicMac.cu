@@ -83,6 +83,8 @@ extern "C" paramGPU updateSizeBlock( uint2 ter0, uint2 ter1 )
 
 	uint oldSizeTer = h.sizeTer;
 
+	h.ptMask0	= make_int2(ter0);
+	h.ptMask1	= make_int2(ter1);
 	h.pUTer0.x	= (int)ter0.x - (int)h.rVig.x;
 	h.pUTer0.y	= (int)ter0.y - (int)h.rVig.y;
 	h.pUTer1.x	= (int)ter1.x + (int)h.rVig.x;
