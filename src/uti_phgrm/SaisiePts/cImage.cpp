@@ -318,7 +318,7 @@ Fonc_Num  cImage::FilterImage(Fonc_Num aFonc,eTypePts aType,cPointGlob * aPG)
     double aResol = (aPG && aPG->P3D().IsInit()) ? mCapt3d->ResolSolOfPt(aPG->P3D().Val()) : mCapt3d->ResolSolGlob() ;
 
     aResol *= mCapt3d->ResolImRefFromCapteur();
-    //std::cout <<  "FILIM : " << eToString(aType) <<  "  aPG " << aPG<<  " R=" << aResol << "\n";
+    std::cout <<  "FILIM : " << eToString(aType) <<  "  aPG " << aPG<<  " R=" << aResol << "\n";
 
     // if) (aType == eNSM_GeoCube)
     if ( aPG && aPG->LargeurFlou().IsInit() )
@@ -326,7 +326,7 @@ Fonc_Num  cImage::FilterImage(Fonc_Num aFonc,eTypePts aType,cPointGlob * aPG)
         double aLarg = aPG->LargeurFlou().Val();
         double aNbPix = (aLarg /  aResol)/2.0;
 
-        // std::cout << " NbPix " << aNbPix  << " L = " << aLarg << "\n";
+        std::cout << " NbPix " << aNbPix  << " L = " << aLarg << "\n";
 
         aFonc = MoyByIterSquare(aFonc,aNbPix,3);
     }

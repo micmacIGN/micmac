@@ -372,12 +372,14 @@ namespace NS_ParamMICMAC
 			{
 
 				bool visible	= IsInTer(anX,anY);
-				uint idMask	= diTer.x * (anY - mY0Ter) + anX - mX0Ter;
+				uint idMask		= diTer.x * (anY - mY0Ter) + anX - mX0Ter;
 				if (visible)
 				{
 				    if ( aEq(h.ptMask0, -1))
-					h.ptMask0 = make_int2(anX,anY);
+						h.ptMask0 = make_int2(anX,anY);
 
+					if (h.ptMask0.x > anX) h.ptMask0.x = anX;
+					if (h.ptMask0.y > anY) h.ptMask0.y = anY;
 				    if (h.ptMask1.x < anX) h.ptMask1.x = anX;
 					if (h.ptMask1.y < anY) h.ptMask1.y = anY;
 
@@ -392,9 +394,8 @@ namespace NS_ParamMICMAC
 			}
 		}
 
-		//bool maskZone = false;
-		//int2 ptHmask0 = h.ptMask0 - h.rVig;
-		//int2 ptHmask1 = h.ptMask1 + h.rVig;
+ 		h.ptMask1.x++;
+		h.ptMask1.y++;
 
 		delete[] maskTab;
 
@@ -926,7 +927,7 @@ namespace NS_ParamMICMAC
 		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
 		//int aZMinTer = 0 , aZMaxTer = 1;
 
-		if (h.ptMask0.x == -1)
+		if (h.ptMask0.x == -1 || (h.ptMask0.x -h.ptMask1.x == 1 )|| (h.ptMask0.y -h.ptMask1.y == 1 ))
 		{
 			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
 				for (int anX = mX0Ter ; anX <  mX1Ter ; anX++) 
@@ -935,7 +936,12 @@ namespace NS_ParamMICMAC
 			return;
 		}
 
-		h = updateSizeBlock(make_uint2(mX0Ter, mY0Ter),make_uint2(mX1Ter, mY1Ter));
+		//h = updateSizeBlock(make_uint2(mX0Ter, mY0Ter),make_uint2(mX1Ter, mY1Ter));
+
+		//std::cout << "m0 : " <<  h.ptMask0.x << "," <<  h.ptMask0.y << "\n";
+		//std::cout << "m1 : " <<  h.ptMask1.x << "," <<  h.ptMask1.y << "\n";
+
+		h = updateSizeBlock(make_uint2(h.ptMask0),make_uint2(h.ptMask1));
 		uint siTabProj	= mNbIm * h.sizeSTer;
 
 		float* h_TabCost;
@@ -945,7 +951,6 @@ namespace NS_ParamMICMAC
 		cudaMallocHost(&h_TabProj,(size_t)(siTabProj * sizeof(float2)));
 
 		allocMemoryTabProj(h.dimSTer, mNbIm);
-
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
 		{
@@ -957,23 +962,44 @@ namespace NS_ParamMICMAC
 			// Copie des projections de host vers le device
 			CopyProjToLayers(h_TabProj, h.dimSTer, mNbIm);
 
-			// Kernel Correlation
+			// Kernel Correlation		
 			basic_Correlation_GPU(h_TabCost, mNbIm);
+			//GpGpuTools::DisplayOutput(true);
+			GpGpuTools::OutputArray(h_TabCost,h.rDiTer,10.0f,h.UVDefValue);
 
+// 			std::cout << "terrain : " << mX0Ter << "," << mY0Ter << " -> " << mX1Ter << "," << mY1Ter << "\n";
+// 			std::cout << "Mask : " << h.ptMask0.x << "," << h.ptMask0.y << " -> " << h.ptMask1.x << "," << h.ptMask1.y << "\n";
+			
 			for (int Y = mY0Ter ; Y < mY1Ter ; Y++)		// Ballayage du terrain  
 			{			
 				for (int X = mX0Ter; X <  mX1Ter; X++,mNbPointsIsole++)	
-				
+				{
 					if ( mTabZMin[Y][X] <=  anZ && anZ < mTabZMax[Y][X])
 					{
-						double cost = (double)h_TabCost[h.rDiTer.x * (Y - mY0Ter) +  X - mX0Ter];
-						
-						mSurfOpt->SetCout(Pt2di(X,Y),&anZ,cost != h.UVDefValue ? cost : mAhDefCost);
+					
+						if (X >= h.ptMask0.x && Y >= h.ptMask0.y && X < h.ptMask1.x && Y < h.ptMask1.y )
+						{			
+							
+							double cost = (double)h_TabCost[h.rDiTer.x * (Y - h.ptMask0.y) +  X -  h.ptMask0.x];
+							mSurfOpt->SetCout(Pt2di(X,Y),&anZ, cost != h.UVDefValue ? cost : mAhDefCost);
+							GpGpuTools::OutputValue((float)cost,10.0f,h.UVDefValue);												
+								
+						}
+						else
+						{
+							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,mAhDefCost);
+							GpGpuTools::OutputValue(2*h.UVDefValue,1.0f,h.UVDefValue);	
+						}
 					}
+					else
+						GpGpuTools::OutputValue(3*h.UVDefValue,1.0f,h.UVDefValue);
+				}	
+				GpGpuTools::OutputReturn();
 			}
-			
 		}
 
+		GpGpuTools::OutputReturn("------------------------------------------------");	
+		
 		cudaFreeHost(h_TabCost);
 		cudaFreeHost(h_TabProj);
 

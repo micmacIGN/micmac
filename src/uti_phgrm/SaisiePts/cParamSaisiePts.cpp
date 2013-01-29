@@ -659,6 +659,28 @@ const std::list< cImportFromDico > & cSectionInOut::ImportFromDico()const
 }
 
 
+cTplValGesInit< bool > & cSectionInOut::FlouGlobEcras()
+{
+   return mFlouGlobEcras;
+}
+
+const cTplValGesInit< bool > & cSectionInOut::FlouGlobEcras()const 
+{
+   return mFlouGlobEcras;
+}
+
+
+cTplValGesInit< bool > & cSectionInOut::TypeGlobEcras()
+{
+   return mTypeGlobEcras;
+}
+
+const cTplValGesInit< bool > & cSectionInOut::TypeGlobEcras()const 
+{
+   return mTypeGlobEcras;
+}
+
+
 cTplValGesInit< std::string > & cSectionInOut::NamePointesImage()
 {
    return mNamePointesImage;
@@ -735,6 +757,10 @@ cElXMLTree * ToXMLTree(const cSectionInOut & anObj)
       it++
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("ImportFromDico"));
+   if (anObj.FlouGlobEcras().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("FlouGlobEcras"),anObj.FlouGlobEcras().Val())->ReTagThis("FlouGlobEcras"));
+   if (anObj.TypeGlobEcras().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("TypeGlobEcras"),anObj.TypeGlobEcras().Val())->ReTagThis("TypeGlobEcras"));
    if (anObj.NamePointesImage().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("NamePointesImage"),anObj.NamePointesImage().Val())->ReTagThis("NamePointesImage"));
    if (anObj.NamePointsGlobal().IsInit())
@@ -761,6 +787,10 @@ void xml_init(cSectionInOut & anObj,cElXMLTree * aTree)
    xml_init(anObj.Prefix2Add2IdPt(),aTree->Get("Prefix2Add2IdPt",1),std::string("")); //tototo 
 
    xml_init(anObj.ImportFromDico(),aTree->GetAll("ImportFromDico",false,1));
+
+   xml_init(anObj.FlouGlobEcras(),aTree->Get("FlouGlobEcras",1),bool(false)); //tototo 
+
+   xml_init(anObj.TypeGlobEcras(),aTree->Get("TypeGlobEcras",1),bool(false)); //tototo 
 
    xml_init(anObj.NamePointesImage(),aTree->Get("NamePointesImage",1),std::string("SP_PointesImageIm.xml")); //tototo 
 
@@ -1031,6 +1061,28 @@ std::list< cImportFromDico > & cParamSaisiePts::ImportFromDico()
 const std::list< cImportFromDico > & cParamSaisiePts::ImportFromDico()const 
 {
    return SectionInOut().ImportFromDico();
+}
+
+
+cTplValGesInit< bool > & cParamSaisiePts::FlouGlobEcras()
+{
+   return SectionInOut().FlouGlobEcras();
+}
+
+const cTplValGesInit< bool > & cParamSaisiePts::FlouGlobEcras()const 
+{
+   return SectionInOut().FlouGlobEcras();
+}
+
+
+cTplValGesInit< bool > & cParamSaisiePts::TypeGlobEcras()
+{
+   return SectionInOut().TypeGlobEcras();
+}
+
+const cTplValGesInit< bool > & cParamSaisiePts::TypeGlobEcras()const 
+{
+   return SectionInOut().TypeGlobEcras();
 }
 
 
