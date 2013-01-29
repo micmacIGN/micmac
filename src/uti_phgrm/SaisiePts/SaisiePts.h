@@ -345,7 +345,7 @@ class cAppli_SaisiePts
          std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP);
 
          // 0 si existe deja
-         cSP_PointGlob *  AddPointGlob(cPointGlob aPG,bool OkRessucite=false,bool Init=false);
+         cSP_PointGlob *  AddPointGlob(cPointGlob aPG,bool OkRessucite=false,bool Init=false,bool ReturnAlways=false);
          void AddPGInAllImage(cSP_PointGlob * aSPG);
          void ReaffAllW();
 

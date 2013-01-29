@@ -255,6 +255,12 @@ class cSectionInOut
         std::list< cImportFromDico > & ImportFromDico();
         const std::list< cImportFromDico > & ImportFromDico()const ;
 
+        cTplValGesInit< bool > & FlouGlobEcras();
+        const cTplValGesInit< bool > & FlouGlobEcras()const ;
+
+        cTplValGesInit< bool > & TypeGlobEcras();
+        const cTplValGesInit< bool > & TypeGlobEcras()const ;
+
         cTplValGesInit< std::string > & NamePointesImage();
         const cTplValGesInit< std::string > & NamePointesImage()const ;
 
@@ -275,6 +281,8 @@ class cSectionInOut
     private:
         cTplValGesInit< std::string > mPrefix2Add2IdPt;
         std::list< cImportFromDico > mImportFromDico;
+        cTplValGesInit< bool > mFlouGlobEcras;
+        cTplValGesInit< bool > mTypeGlobEcras;
         cTplValGesInit< std::string > mNamePointesImage;
         cTplValGesInit< std::string > mNamePointsGlobal;
         cTplValGesInit< std::string > mExportPointeImage;
@@ -386,6 +394,12 @@ class cParamSaisiePts
 
         std::list< cImportFromDico > & ImportFromDico();
         const std::list< cImportFromDico > & ImportFromDico()const ;
+
+        cTplValGesInit< bool > & FlouGlobEcras();
+        const cTplValGesInit< bool > & FlouGlobEcras()const ;
+
+        cTplValGesInit< bool > & TypeGlobEcras();
+        const cTplValGesInit< bool > & TypeGlobEcras()const ;
 
         cTplValGesInit< std::string > & NamePointesImage();
         const cTplValGesInit< std::string > & NamePointesImage()const ;
