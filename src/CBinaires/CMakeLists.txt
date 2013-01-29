@@ -1,5 +1,19 @@
 add_executable(mm3d mm3d.cpp)
 target_link_libraries(mm3d elise ${X11_LIBRARIES} ${KAKADU_LIBRARIES} ${WINSOCK2_LIBRAIRIE} )
+
+if (Boost_FOUND)
+    target_link_libraries(mm3d ${Boost_LIBRARIES} ${Boost_THREADAPI})
+endif()
+
+if (TinyXML_FOUND)
+    target_link_libraries(mm3d ${TinyXML_LIBRARIES})
+endif()
+
+if (IgnSocle_FOUND)
+    target_link_libraries(mm3d ${IgnSocle_LIBRARIES})
+    message({IgnSocle_LIBRARIES} : ${IgnSocle_LIBRARIES})
+endif()
+
 INSTALL(TARGETS mm3d RUNTIME DESTINATION ${Install_Dir})
 
 
