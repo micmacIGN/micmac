@@ -47,6 +47,13 @@ public:
 	//					sortie de tableau
 	static void			OutputArray(float* data, uint2 dim, float offset = 1.0f, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
 
+
+	static void			OutputValue(float value, float offset = 1.0f, float defaut = 0.0f, float factor = 1.0f);
+
+	static void			OutputReturn(char * out = "");
+
+	static void			DisplayOutput(bool diplay);
+
 };
 
 

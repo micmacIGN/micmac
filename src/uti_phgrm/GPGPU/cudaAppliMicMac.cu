@@ -83,6 +83,8 @@ extern "C" paramGPU updateSizeBlock( uint2 ter0, uint2 ter1 )
 
 	uint oldSizeTer = h.sizeTer;
 
+	h.ptMask0	= make_int2(ter0);
+	h.ptMask1	= make_int2(ter1);
 	h.pUTer0.x	= (int)ter0.x - (int)h.rVig.x;
 	h.pUTer0.y	= (int)ter0.y - (int)h.rVig.y;
 	h.pUTer1.x	= (int)ter1.x + (int)h.rVig.x;
@@ -245,7 +247,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig/*, float *
 	const int2 ptTer = make_int2(ptHTer) - make_int2(cH.rVig);
 
 	// Nous traitons uniquement les points du terrain du bloque ou Si le processus est hors du terrain global, nous sortons du kernel
-	if ( oSE(threadIdx, nbActThrd + cH.rVig) || oI(threadIdx , cH.rVig) || oSE( ptTer, cH.rDiTer) || oI(ptTer, 0))
+	if (oSE(threadIdx, nbActThrd + cH.rVig) || oI(threadIdx , cH.rVig) || oSE( ptTer, cH.rDiTer) || oI(ptTer, 0))
 		return;
 	
 	const short2 c0	= make_short2(threadIdx) - cH.rVig;
@@ -276,13 +278,15 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig/*, float *
 
 	aSVV =	sqrt(aSVV);
 
+	const uint pitchCache = blockIdx.z * cH.sizeCach + ptTer.x * cH.dimVig.x;
+	const uint pitchCachY = ptTer.y * cH.dimVig.y ;
 	#pragma unroll
 	for ( pt.y = c0.y ; pt.y <= c1.y; pt.y++)
 	{
-		const int _cy	= ptTer.y * cH.dimVig.y + (pt.y - c0.y);
+		const int _py	= (pitchCachY + (pt.y - c0.y))* cH.dimCach.x;
 		#pragma unroll
 		for ( pt.x = c0.x ; pt.x <= c1.x; pt.x++)					
-			cachVig[(blockIdx.z * cH.sizeCach) + _cy * cH.dimCach.x + ptTer.x * cH.dimVig.x + (pt.x - c0.x)] = (cacheImg[pt.y][pt.x] -aSV)/aSVV;
+			cachVig[ pitchCache + _py  + (pt.x - c0.x)] = (cacheImg[pt.y][pt.x] -aSV)/aSVV;
 	}	
 
 	atomicAdd( &dev_NbImgOk[to1D(ptTer,cH.rDiTer)], 1.0f);
@@ -327,12 +331,13 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 
 	if (aNbImOk < 2) return;
 	
-	const uint sizLayer = threadIdx.z * cH.sizeCach;			// Taille du cache vignette pour une image
+	const uint sizLayer = threadIdx.z * cH.sizeCach;				// Taille du cache vignette pour une image
 	const uint iCach	= sizLayer + to1D( ptCach, cH.dimCach );	// Coordonnées 1D du cache vignette
 	const uint2 cc		= ptTer * cH.dimVig;						// coordonnées 2D 1er pixel de la vignette
-	const int iCC		= sizLayer + to1D( cc, cH.dimCach );	// coordonnées 1D 1er pixel de la vignette
-	
-	const float val = (cacheVign[iCC] != cH.UVDefValue) ? cacheVign[iCach] : 0.0f; // sortir si bad vignette
+	const int iCC		= sizLayer + to1D( cc, cH.dimCach );		// coordonnées 1D 1er pixel de la vignette
+
+	if (cacheVign[iCC] == cH.UVDefValue) return; // sortir si bad vignette
+	const float val = cacheVign[iCach]; 
 
 	atomicAdd( &(aSV[t.y][t.x]), val);
 
