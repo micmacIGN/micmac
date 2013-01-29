@@ -116,6 +116,12 @@
         <ShortName> GRD3  </ShortName>
    </CameraEntry>
 
+   <CameraEntry>
+        <Name>    NIKON D800 </Name>
+        <SzCaptMm>   24 26  </SzCaptMm>
+        <ShortName> ND800  </ShortName>
+   </CameraEntry>
+
 
 </MMCameraDataBase>
 

@@ -6,6 +6,10 @@
              <Symb> Images=XXXXIMG_01[0-9][0-9].CR2  </Symb>
              <Symb> Ori=XXXXRTL-Basc </Symb>
              <Symb> LargeurFlou=XXXX </Symb>
+              
+             <Symb> TypePts=eNSM_Pts </Symb>
+             <Symb> FlouSpecified=false </Symb>
+             <Symb> TypeSpecified=false </Symb>
         </DicoLoc>
 
         <SectionWindows>
@@ -19,10 +23,14 @@
 
         <SectionInOut>
               <ImportFromDico>
-                   <TypePt> eNSM_MaxLoc     </TypePt>
+                   <TypePt> ${TypePts}     </TypePt>
                    <File>   ${Terrain}  </File>
                    <LargeurFlou> ${LargeurFlou} </LargeurFlou>
               </ImportFromDico>
+
+              <FlouGlobEcras> ${FlouSpecified} </FlouGlobEcras>
+              <TypeGlobEcras> ${TypeSpecified} </TypeGlobEcras>
+
 
               <NamePointesImage> Tmp-SL-Im-${Sauv}   </NamePointesImage>
               <NamePointsGlobal> Tmp-SL-Glob-${Sauv} </NamePointsGlobal>

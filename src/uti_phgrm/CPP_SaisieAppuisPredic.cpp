@@ -53,6 +53,7 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
 
   double aFlou=0.0;
 
+  std::string aTypePts="Pts";
   ElInitArgMain
   (
         argc,argv,
@@ -63,7 +64,11 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
         LArgMain()  << EAM(aSzW,"SzW",true,"Size of global window (Def 800 800)")
                     << EAM(aNbFen,"NbF",true,"Number of Sub Window (Def 2 2)")
                     << EAM(aFlou,"WBlur",true,"Size IN GROUND GEOMETRY of bluring for target")
+                    << EAM(aTypePts,"Type",true,"in [MaxLoc,MinLoc,GeoCube]")
   );
+
+
+  aTypePts = "eNSM_" + aTypePts;
 
   std::string aDir,aName;
   SplitDirAndFile(aDir,aName,aFullName);
@@ -107,7 +112,14 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
                       +  std::string(" +SzWx=") + ToString(aSzW.x)
                       +  std::string(" +SzWy=") + ToString(aSzW.y) 
                       +  std::string(" +NbFx=") + ToString(aNbFen.x)
-                      +  std::string(" +NbFy=") + ToString(aNbFen.y) ;
+                      +  std::string(" +NbFy=") + ToString(aNbFen.y) 
+                      +  std::string(" +TypePts=") + aTypePts;
+                   ;
+
+  if (EAMIsInit(&aFlou)) 
+     aCom = aCom + std::string(" +FlouSpecified=true");
+  if (EAMIsInit(&aTypePts)) 
+     aCom = aCom + std::string(" +TypeGlobEcras=true");
 
   std::cout << aCom << "\n";
 
