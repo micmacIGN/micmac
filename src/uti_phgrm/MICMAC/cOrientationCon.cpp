@@ -10,8 +10,8 @@ OrientationCon::OrientationCon(std::string const &nom):ModuleOrientation(nom)
 {
     // Pas de gestion des projections (identite)
     //if (ign::geodesy::ProjEngine::Instance())
-    ign:: geodesy::SystemCoordProjection* srs=ign::transform::SystemRegistry::Create<ign::geodesy::SystemCoordProjection>("LAMBERT93", *ign::numeric::unit::SysUnitRegistry::Instance().getSystemById(ign::numeric::unit::kUndefined));
-    ign::geodesy::ProjEngine::SetInstance(new ign::geodesy::ProjEngine(srs));
+    //ign:: geodesy::SystemCoordProjection* srs=ign::transform::SystemRegistry::Create<ign::geodesy::SystemCoordProjection>("LAMBERT93", *ign::numeric::unit::SysUnitRegistry::Instance().getSystemById(ign::numeric::unit::kUndefined));
+    ign::geodesy::ProjEngine::SetInstance(new ign::geodesy::ProjEngine(NULL));
     ign::orientation::io::driver::ImageModelReaderCON reader;
     
     try{
