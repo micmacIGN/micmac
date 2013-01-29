@@ -521,7 +521,7 @@ cGeomImage * cPriseDeVue::StdGeomTerrain()
     {
         return  cGeomImage::GeomImage_RTO(mAppli,*this,SzIm(),mAppli.FullDirGeom()+NameGeom());
     }
-#ifdef __USE_ORIENTATIONMATIS__
+#ifdef __USE_ORIENTATIONIGN__
     else if (mAppli.GeomImages()== eGeomImageCON)
     {
         return cGeomImage::GeomImage_CON(mAppli,*this,SzIm(),mAppli.FullDirGeom()+NameGeom());
