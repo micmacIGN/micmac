@@ -106,8 +106,11 @@ pas interfere avec format utilisateur basique, on separe -->
                    <File Nb="1" Type="std::string">            </File>
                    <LargeurFlou Nb="?" Type="double" Def="0.0"> </LargeurFlou>
               </ImportFromDico>
+              <FlouGlobEcras Nb="?"  Type="bool" Def="false"> </FlouGlobEcras>
+              <TypeGlobEcras Nb="?"  Type="bool" Def="false"> </TypeGlobEcras>
               <NamePointesImage Nb="?" Type="std::string" Def="SP_PointesImageIm.xml"> </NamePointesImage>
               <NamePointsGlobal Nb="?" Type="std::string" Def="SP_PointesGlobal.xml"> </NamePointsGlobal>
+
 
                <!-- Export au format standadr -->
                <ExportPointeImage   Nb="?" Type="std::string"> </ExportPointeImage>

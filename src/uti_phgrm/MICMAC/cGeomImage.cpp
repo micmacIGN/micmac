@@ -2337,7 +2337,7 @@ cGeomImage * cGeomImage::GeomImage_RTO
 {
         return new cGeomImage_Module(nom_ori,anAppli,aPDV,aSzIm,new OrientationRTO(nom_ori));
 }
-#ifdef __USE_ORIENTATIONMATIS__
+#ifdef __USE_ORIENTATIONIGN__
 cGeomImage * cGeomImage::GeomImage_CON
 (
     const cAppliMICMAC & anAppli,

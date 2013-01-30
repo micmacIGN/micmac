@@ -39,11 +39,14 @@
 #ifndef __ORIENTATION_CON__
 #define __ORIENTATION_CON__
 
-#ifdef __USE_ORIENTATIONMATIS__
+#ifdef __USE_ORIENTATIONIGN__
 
 #include "cModuleOrientation.h"
-#include "ign/matis/orientation/noboost.hpp"
-#include "ign/matis/orientation/modeleprojection.hpp"
+
+#include <ign/orientation/ImageModelConical.h>
+
+//#include "ign/matis/orientation/noboost.hpp"
+//#include "ign/matis/orientation/modeleprojection.hpp"
 /*
 namespace ign{
 namespace matis{
@@ -72,9 +75,9 @@ class OrientationCon: public ModuleOrientation
 		}
 		
 	private:
-		std::string projection;
-		shared_ptr<ign::matis::orientation::ModeleProjection> ori;
-		
+		//std::string projection;
+		//shared_ptr<ign::matis::orientation::ModeleProjection> ori;
+		shared_ptr<ign::orientation::ImageModelConical> ori;
 	};
 
 
