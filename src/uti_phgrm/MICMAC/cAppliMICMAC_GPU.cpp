@@ -845,7 +845,7 @@ namespace NS_ParamMICMAC
 		uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
  		int2	aSzDz		= toI2(Pt2dr(mGeomDFPx->SzDz()));		// Dimension de la zone terrain total
  		int2	aSzClip		= toI2(Pt2dr(mGeomDFPx->SzClip()));		// Dimension du bloque
-	
+//		bool	projOK		= false;
 		for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )					// Mise en calque des projections pour chaque image
 		{
 			
@@ -874,13 +874,20 @@ namespace NS_ParamMICMAC
 							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image 			
 
 							if (aGLI.IsOk( aPIm.x, aPIm.y ))
+							{
 								TabProj[iD] = make_float2((float)aPIm.x,(float)aPIm.y);
 
+// 								if (aKIm !=0)
+// 									projOK = true;
+							}
 						}	
 					}
 				}
 			}
 		}
+
+// 		if (!projOK)
+// 			std::cout << "aaaaaa\n";
 		
 /*
 		for (int aKIm = 0 ; aKIm < 4 ; aKIm++ )
@@ -965,7 +972,7 @@ namespace NS_ParamMICMAC
 			// Kernel Correlation		
 			basic_Correlation_GPU(h_TabCost, mNbIm);
 			//GpGpuTools::DisplayOutput(true);
-			GpGpuTools::OutputArray(h_TabCost,h.rDiTer,10.0f,h.UVDefValue);
+			//GpGpuTools::OutputArray(h_TabCost,h.rDiTer,10.0f,h.UVDefValue);
 
 // 			std::cout << "terrain : " << mX0Ter << "," << mY0Ter << " -> " << mX1Ter << "," << mY1Ter << "\n";
 // 			std::cout << "Mask : " << h.ptMask0.x << "," << h.ptMask0.y << " -> " << h.ptMask1.x << "," << h.ptMask1.y << "\n";
@@ -975,31 +982,20 @@ namespace NS_ParamMICMAC
 				for (int X = mX0Ter; X <  mX1Ter; X++,mNbPointsIsole++)	
 				{
 					if ( mTabZMin[Y][X] <=  anZ && anZ < mTabZMax[Y][X])
-					{
-					
+					{					
 						if (X >= h.ptMask0.x && Y >= h.ptMask0.y && X < h.ptMask1.x && Y < h.ptMask1.y )
-						{			
-							
+						{							
 							double cost = (double)h_TabCost[h.rDiTer.x * (Y - h.ptMask0.y) +  X -  h.ptMask0.x];
-							mSurfOpt->SetCout(Pt2di(X,Y),&anZ, cost != h.UVDefValue ? cost : mAhDefCost);
-							GpGpuTools::OutputValue((float)cost,10.0f,h.UVDefValue);												
-								
+							mSurfOpt->SetCout(Pt2di(X,Y),&anZ, cost != h.UVDefValue ? cost : mAhDefCost);																									
 						}
-						else
-						{
-							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,mAhDefCost);
-							GpGpuTools::OutputValue(2*h.UVDefValue,1.0f,h.UVDefValue);	
-						}
-					}
-					else
-						GpGpuTools::OutputValue(3*h.UVDefValue,1.0f,h.UVDefValue);
+						else						
+							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,mAhDefCost);							
+						
+					}	
 				}	
-				GpGpuTools::OutputReturn();
 			}
 		}
 
-		GpGpuTools::OutputReturn("------------------------------------------------");	
-		
 		cudaFreeHost(h_TabCost);
 		cudaFreeHost(h_TabProj);
 
