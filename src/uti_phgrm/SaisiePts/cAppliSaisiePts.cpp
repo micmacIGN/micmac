@@ -336,7 +336,7 @@ void  cAppli_SaisiePts::RenameIdPt(std::string & anId)
    
 }
 
-cSP_PointGlob * cAppli_SaisiePts::AddPointGlob(cPointGlob aPG,bool OkRessucite,bool Init)
+cSP_PointGlob * cAppli_SaisiePts::AddPointGlob(cPointGlob aPG,bool OkRessucite,bool Init,bool ReturnAlway)
 {
 
    if (Init)
@@ -364,6 +364,7 @@ cSP_PointGlob * cAppli_SaisiePts::AddPointGlob(cPointGlob aPG,bool OkRessucite,b
        iT->second->PG()->Disparu().SetNoInit();
        return iT->second;
    }
+   if (ReturnAlway) return  iT->second;
    return 0;
 }
 
@@ -372,6 +373,8 @@ void cAppli_SaisiePts::InitPG()
 
     mNameSauvPG = mDC + mParam.NamePointsGlobal().Val();
     mDupNameSauvPG = mNameSauvPG + ".dup";
+
+// std::cout << "TTttttcs::InitPG"  << mNameSauvPG << " " << ELISE_fp::exist_file(mNameSauvPG) << "\n";
     if (ELISE_fp::exist_file(mNameSauvPG))
     {
        cSetPointGlob aSPG = StdGetObjFromFile<cSetPointGlob>
@@ -429,7 +432,14 @@ void cAppli_SaisiePts::InitPG()
             aPG.Incert().SetVal(itA->Incertitude());
             aPG.ContenuPt().SetNoInit();
             aPG.FromDico().SetVal(true);
-            AddPointGlob(aPG,false,true);
+            cSP_PointGlob * aNPG = AddPointGlob(aPG,false,true,true);
+
+            if (mParam.FlouGlobEcras().Val())
+               aNPG->PG()->LargeurFlou().SetVal(aPG.LargeurFlou().Val());
+            if (mParam.TypeGlobEcras().Val())
+               aNPG->PG()->Type() = aPG.Type();
+
+
          }
 
    }

@@ -1133,7 +1133,7 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
              Pt2di aSzIm,
              std::string const &nom_ori
             );
-#ifdef __USE_ORIENTATIONMATIS__
+#ifdef __USE_ORIENTATIONIGN__
 	static cGeomImage * GeomImage_CON
             (
              const cAppliMICMAC & anAppli,

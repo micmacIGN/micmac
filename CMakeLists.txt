@@ -19,8 +19,8 @@ OPTION(WITH_INTERFACE  "build graphic interface" OFF)
 # Utiliser Kakadu
 OPTION(WITH_KAKADU  "Include KAKADU Support" OFF)
 
-# Utiliser Matis orientation
-OPTION(WITH_MATIS_ORI "Include Matis orrientation" OFF )
+# Utiliser Ign orientation
+OPTION(WITH_IGN_ORI "Include Ign orientation" OFF )
 
 # Utiliser les en-tetes precompilees
 OPTION(WITH_HEADER_PRECOMP "En-tetes precompilees" ON )
@@ -118,6 +118,30 @@ IF(${WITH_KAKADU})
 ENDIF()
 
 # Utiliser Matis orientation
+
+IF(${WITH_IGN_ORI})
+	FIND_PACKAGE( IgnSocle  COMPONENTS core data orientation geodesy transform math numeric tools xml)
+	FIND_PACKAGE(TinyXML)
+	add_definitions( "-DBOOST_THREAD_USE_LIB" ) 
+	SET(Boost_USE_MULTITHREADED ON)
+	FIND_PACKAGE( Boost 1.46.0 COMPONENTS unit_test_framework system filesystem serialization thread regex)
+	IF(IgnSocle_FOUND AND TinyXML_FOUND AND Boost_FOUND)	
+        	INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+        	LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
+		message("TinyXML_LIBRARY_DIRS : ${TinyXML_LIBRARY_DIRS}")
+		LINK_DIRECTORIES(${TinyXML_LIBRARY_DIRS})
+		INCLUDE_DIRECTORIES(${TinyXML_INCLUDE_DIRS})
+		ADD_DEFINITIONS(-D__USE_ORIENTATIONIGN__ )
+		LINK_DIRECTORIES(${IgnSocle_LIBRARY_DIRS})
+		INCLUDE_DIRECTORIES(${IgnSocle_INCLUDE_DIRS})
+	ELSE()
+		MESSAGE("IgnSocle_FOUND : ${IgnSocle_FOUND}")
+                MESSAGE("TinyXML_FOUND : ${TinyXML_FOUND}")
+                MESSAGE("Boost_FOUND : ${Boost_FOUND}")
+		MESSAGE("Warning! Ign Orientation not found. Micmac will be built without Ign Orientation support.")
+	ENDIF()
+ENDIF()
+
 
 IF(${WITH_MATIS_ORI})
 	FIND_PACKAGE( MatisOrientation )

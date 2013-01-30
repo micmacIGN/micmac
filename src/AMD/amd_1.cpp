@@ -27,6 +27,7 @@
 
 #include "StdAfx.h"
 
+
 GLOBAL void AMD_1
 (
     Int n,		/* n > 0 */
