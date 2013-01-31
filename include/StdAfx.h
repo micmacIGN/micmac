@@ -34,6 +34,7 @@
 #include <sys/stat.h>
 #ifndef _WIN32
 	#include <unistd.h>
+	#include <errno.h>
 #endif
 
 extern bool BugDG;

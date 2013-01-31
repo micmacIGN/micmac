@@ -303,7 +303,9 @@ void  cArgMpDCRaw::DevJpg()
      bool EnGray = GrayBasic() || GrayReech();
      bool En8B = ! Cons16B();
 
-	 
+	 // we use m_fullName instead of callName() because of Windows' exception for convert
+	 // callName() in this case is not equivalent to what we would have enter on a terminal
+	 // double quotes are added to protect spaces in the path
 	 std::string  aCom =     std::string("\"")+g_externalToolHandler.get( "convert" ).m_fullName+ "\" "
                          +   aFullNJPG +  std::string(" ")
                          +   std::string(" -compress None ")
