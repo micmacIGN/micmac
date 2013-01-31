@@ -1,5 +1,6 @@
 #include "GpGpu/cudaAppliMicMac.cuh"
 #include "GpGpu/helper_math_extented.cuh"
+#include "GpGpu/GpGpuTools.h"
 
 
 #include <iostream>
@@ -31,12 +32,14 @@ cudaArray* dev_ArrayProjImg;	// Declaration du tableau de projection pour le dev
 //------------------------------------------------------------------------------------------
 // ATTENTION : erreur de compilation avec l'option cudaReadModeNormalizedFloat
 // et l'utilisation de la fonction tex2DLayered
-texture< bool,	cudaTextureType2D >			TexMaskTer;
+texture< unsigned char,	cudaTextureType2D >	TexMaskTer;
 texture< float2,cudaTextureType2DLayered >	TexLay_Proj;
 texture< float,	cudaTextureType2DLayered >	refTex_ImagesLayered;
 cudaArray* dev_ImgLd;		//
 cudaArray* dev_ProjLr;		//
 cudaArray* dev_MaskTer;		//
+
+ImageCuda<unsigned char> mask;
 
 //------------------------------------------------------------------------------------------
 //float*	host_SimpCor;
@@ -48,6 +51,18 @@ float*	dev_NbImgOk;
 
 paramGPU h;
 static __constant__ paramGPU cH;
+
+extern "C" void SetMask(unsigned char* dataMask, uint2 dimMask)
+{
+	mask.InitImage(dimMask,dataMask);
+
+	//TexMaskTer.addressMode[0]	= cudaAddressModeClamp;
+	//TexMaskTer.addressMode[1]	= cudaAddressModeClamp;	
+	//TexMaskTer.filterMode		= cudaFilterModePoint; 
+	//TexMaskTer.normalized		= false;
+
+	cudaBindTextureToArray(TexMaskTer,mask.GetCudaArray());
+}
 
 extern "C" void allocMemory(void)
 {
@@ -218,7 +233,7 @@ __device__  inline float2 simpleProjection( uint2 size, uint2 ssize/*, uint2 siz
 	return ra;
 }
 
-__global__ void correlationKernel( float *dev_NbImgOk, float* cachVig/*, float *siCor*/, uint2 nbActThrd ) //__global__ void correlationKernel( int *dev_NbImgOk, float* cachVig)
+__global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbActThrd )
 {
 	__shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
 
@@ -235,7 +250,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig/*, float *
 	if (oEq(PtTProj, cH.UVDefValue))
 	{
 		cacheImg[threadIdx.y][threadIdx.x]  = cH.badVig;
-		return;
+		//return;
 	}
  	else
 		// !!! ATTENTION Modification pour simplification du debug !!!!
@@ -245,11 +260,14 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig/*, float *
 	__syncthreads();
 
 	const int2 ptTer = make_int2(ptHTer) - make_int2(cH.rVig);
-
 	// Nous traitons uniquement les points du terrain du bloque ou Si le processus est hors du terrain global, nous sortons du kernel
 	if (oSE(threadIdx, nbActThrd + cH.rVig) || oI(threadIdx , cH.rVig) || oSE( ptTer, cH.rDiTer) || oI(ptTer, 0))
 		return;
 	
+	
+	if(tex2D(TexMaskTer, ptTer.x, ptTer.y) == 0) return;
+
+
 	const short2 c0	= make_short2(threadIdx) - cH.rVig;
 	const short2 c1	= make_short2(threadIdx) + cH.rVig;
 	 
@@ -324,7 +342,10 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	// Si le thread est en dehors du cache
 	if ( oSE(ptCach, cH.dimCach))	return;
 	
-	const uint2	ptTer	= ptCach / cH.dimVig;					// Coordonnées 2D du terrain 
+	const uint2	ptTer	= ptCach / cH.dimVig;					// Coordonnées 2D du terrain
+
+	if(tex2D(TexMaskTer, ptTer.x, ptTer.y) == 0) return;
+
 	const uint	iTer	= to1D(ptTer, cH.rDiTer);				// Coordonnées 1D dans le terrain
 	const bool	mThrd	= t.x % cH.dimVig.x == 0 &&  t.y % cH.dimVig.y == 0 && threadIdx.z == 0;
 	const float aNbImOk = dev_NbImgOk[iTer];					// Nombre vignettes correctes
@@ -415,12 +436,11 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer ){
 	checkCudaErrors( cudaUnbindTexture(TexLay_Proj) );
 	checkCudaErrors( cudaMemcpy( h_TabCost, dev_Cost, costMemSize, cudaMemcpyDeviceToHost) );
 	
-	//cudaDeviceSynchronize();
-	//checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );
+//	checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );
 	//checkCudaErrors( cudaMemcpy( host_SimpCor, dev_SimpCor, sCorMemSize, cudaMemcpyDeviceToHost) );
 	//checkCudaErrors( cudaMemcpy( host_Cache, dev_Cache,	  cac_MemSize, cudaMemcpyDeviceToHost) );
 
-	//GpGpuTools::OutputArray(h_TabCost,h.rDiTer,100.0f,h.UVDefValue);
+	//GpGpuTools::OutputArray(h_TabCost,h.rDiTer,1.0f,h.UVDefValue);
 
 	//////////////////////////////////////////////////////////////////////////
 
@@ -436,6 +456,7 @@ extern "C" void freeGpuMemory()
 	//if(dev_SimpCor	!= NULL) checkCudaErrors( cudaFree( dev_SimpCor));
 	
 	checkCudaErrors( cudaUnbindTexture(refTex_ImagesLayered) );	
+	checkCudaErrors( cudaUnbindTexture(TexMaskTer) );	
 
 	if(dev_ImgLd	!= NULL) checkCudaErrors( cudaFreeArray( dev_ImgLd) );
 	if(dev_ProjLr	!= NULL) checkCudaErrors( cudaFreeArray( dev_ProjLr) );
@@ -447,6 +468,8 @@ extern "C" void freeGpuMemory()
 	dev_Cache	= NULL;
 	dev_ImgLd	= NULL;
 	dev_Cost	= NULL;
+
+	mask.DeallocMemory();
 
 	// DEBUG
 	//dev_SimpCor = NULL;

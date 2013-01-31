@@ -59,6 +59,7 @@ namespace NS_ParamMICMAC
 	extern "C" paramGPU Init_Correlation_GPU( uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef);
 	extern "C" paramGPU updateSizeBlock( uint2 ter0, uint2 ter1 );
 	extern "C" void		allocMemoryTabProj(uint2 dimTer, int nbLayer);
+	extern "C" void		SetMask(unsigned char* dataMask, uint2 dimMask);
 
 	uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);};
 	int2  toI2(Pt2dr a){return make_int2((int)a.x,(int)a.y);};
@@ -361,32 +362,31 @@ namespace NS_ParamMICMAC
 		uint2 Ter0  = make_uint2(mX0Ter,mY0Ter);
 		uint2 Ter1  = make_uint2(mX1Ter,mY1Ter);
 		uint2 diTer = Ter1 - Ter0;
-		h.ptMask0   = make_int2(-1,-1);
-		h.ptMask1   = make_int2(-1,-1);
+		h.ptMask0   = make_int2(-1);
+		h.ptMask1   = make_int2(-1);
 
-		bool *maskTab = new bool[size(diTer)];
+		unsigned char *maskTab = new unsigned char[size(diTer)];
 
 		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
 		{
 			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
 			{
-
-				bool visible	= IsInTer(anX,anY);
 				uint idMask		= diTer.x * (anY - mY0Ter) + anX - mX0Ter;
-				if (visible)
+				if (IsInTer(anX,anY))
 				{
 				    if ( aEq(h.ptMask0, -1))
 						h.ptMask0 = make_int2(anX,anY);
 
-					if (h.ptMask0.x > anX) h.ptMask0.x = anX;
-					if (h.ptMask0.y > anY) h.ptMask0.y = anY;
+					if (anX < h.ptMask0.x ) h.ptMask0.x = anX;
+					if (anY < h.ptMask0.y ) h.ptMask0.y = anY;
+
 				    if (h.ptMask1.x < anX) h.ptMask1.x = anX;
 					if (h.ptMask1.y < anY) h.ptMask1.y = anY;
 
-					maskTab[idMask] = true;
+					maskTab[idMask] = 1;
 				}	
 				else
-					maskTab[idMask] = false;
+					maskTab[idMask] = 0;
 
 				ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
 				ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
@@ -394,8 +394,21 @@ namespace NS_ParamMICMAC
 			}
 		}
 
- 		h.ptMask1.x++;
+		h.ptMask1.x++;
 		h.ptMask1.y++;
+
+		h = updateSizeBlock(make_uint2(h.ptMask0),make_uint2(h.ptMask1));
+		
+		if (h.ptMask0.x != -1)
+		{
+			unsigned char *SubMaskTab = new unsigned char[size(h.rDiTer)];
+
+			for (int y = h.ptMask0.y; y < h.ptMask1.y; y++) 
+				memcpy(SubMaskTab + (y  - h.ptMask0.y) * h.rDiTer.x, maskTab + (y - mY0Ter) * diTer.x + h.ptMask0.x - mX0Ter, sizeof(unsigned char) * h.rDiTer.x );
+			SetMask(SubMaskTab,h.rDiTer);
+
+			delete[] SubMaskTab;
+		}
 
 		delete[] maskTab;
 
@@ -943,12 +956,6 @@ namespace NS_ParamMICMAC
 			return;
 		}
 
-		//h = updateSizeBlock(make_uint2(mX0Ter, mY0Ter),make_uint2(mX1Ter, mY1Ter));
-
-		//std::cout << "m0 : " <<  h.ptMask0.x << "," <<  h.ptMask0.y << "\n";
-		//std::cout << "m1 : " <<  h.ptMask1.x << "," <<  h.ptMask1.y << "\n";
-
-		h = updateSizeBlock(make_uint2(h.ptMask0),make_uint2(h.ptMask1));
 		uint siTabProj	= mNbIm * h.sizeSTer;
 
 		float* h_TabCost;
@@ -971,12 +978,7 @@ namespace NS_ParamMICMAC
 
 			// Kernel Correlation		
 			basic_Correlation_GPU(h_TabCost, mNbIm);
-			//GpGpuTools::DisplayOutput(true);
-			//GpGpuTools::OutputArray(h_TabCost,h.rDiTer,10.0f,h.UVDefValue);
-
-// 			std::cout << "terrain : " << mX0Ter << "," << mY0Ter << " -> " << mX1Ter << "," << mY1Ter << "\n";
-// 			std::cout << "Mask : " << h.ptMask0.x << "," << h.ptMask0.y << " -> " << h.ptMask1.x << "," << h.ptMask1.y << "\n";
-			
+		
 			for (int Y = mY0Ter ; Y < mY1Ter ; Y++)		// Ballayage du terrain  
 			{			
 				for (int X = mX0Ter; X <  mX1Ter; X++,mNbPointsIsole++)	
