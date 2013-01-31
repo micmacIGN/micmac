@@ -6,7 +6,7 @@
 #include "GpGpuTools.h"
 
 #define INTDEFAULT -64
-#define SAMPLETERR 1
+#define SAMPLETERR 4
 
 struct paramGPU
 {
@@ -17,6 +17,7 @@ struct paramGPU
 	 uint2	rDiTer;		// Dimension du bloque terrain
 	 uint2	dimTer;		// Dimension du bloque terrain + halo
 	 uint2	dimSTer;	// Dimension du bloque terrain + halo sous echantilloné
+	 uint2	restTer;
 	 uint2	dimVig;		// Dimension de la vignette
 	 uint2	dimImg;		// Dimension des images
 	 uint2	rVig;		// Rayon de la vignette

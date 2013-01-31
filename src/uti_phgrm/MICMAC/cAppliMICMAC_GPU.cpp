@@ -412,6 +412,9 @@ namespace NS_ParamMICMAC
 
 		delete[] maskTab;
 
+		//std::cout << "Terrain   : " << h.dimTer.x << "," << h.dimTer.y << "\n";
+		//std::cout << "S Terrain : " << h.dimSTer.x << "," << h.dimSTer.y << "\n";
+
 		//////////////////////////////////////////////////////////////////////////
 		
 #else
@@ -876,31 +879,24 @@ namespace NS_ParamMICMAC
 						int2 r		= (an - Ter0)/sample;
 						int iD		= (aKIm * sizSTabProj  + to1D(r,dimSTabProj));
 
-						int aZMin	= mTabZMin[an.y][an.x];
-						int aZMax	= mTabZMax[an.y][an.x];
+						//int aZMin	= mTabZMin[an.y][an.x];
+						//int aZMax	= mTabZMax[an.y][an.x];
 
-						if (IsInTer( an.x, an.y ) && (aGLI.IsVisible(an.x ,an.y )) && (aZMin <= Z)&&(Z <=aZMax) )
+						//if (/*IsInTer( an.x, an.y ) && */(aGLI.IsVisible(an.x ,an.y )) && (aZMin <= Z)&&(Z <=aZMax) )
 						{
 							// Déquantification  de X, Y et Z 
 							const double aZReel	= DequantZ(Z);
 							Pt2dr		aPTer	= DequantPlani(an.x,an.y);
 							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image 			
 
-							if (aGLI.IsOk( aPIm.x, aPIm.y ))
-							{
+							if (aGLI.IsOk( aPIm.x, aPIm.y ))			
 								TabProj[iD] = make_float2((float)aPIm.x,(float)aPIm.y);
-
-// 								if (aKIm !=0)
-// 									projOK = true;
-							}
+							
 						}	
 					}
 				}
 			}
 		}
-
-// 		if (!projOK)
-// 			std::cout << "aaaaaa\n";
 		
 /*
 		for (int aKIm = 0 ; aKIm < 4 ; aKIm++ )
