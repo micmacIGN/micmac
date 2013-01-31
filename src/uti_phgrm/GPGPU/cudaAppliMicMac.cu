@@ -88,7 +88,7 @@ extern "C" void allocMemory(void)
 	// Texture des projections
 	TexLay_Proj.addressMode[0]	= cudaAddressModeClamp;
 	TexLay_Proj.addressMode[1]	= cudaAddressModeClamp;	
-	TexLay_Proj.filterMode		= cudaFilterModePoint; //cudaFilterModePoint cudaFilterModeLinear
+	TexLay_Proj.filterMode		= cudaFilterModeLinear; //cudaFilterModePoint cudaFilterModeLinear
 	TexLay_Proj.normalized		= true;
 
 }
@@ -112,7 +112,8 @@ extern "C" paramGPU updateSizeBlock( uint2 ter0, uint2 ter1 )
 	h.rSiTer	= size(h.rDiTer);
 	h.dimCach	= h.rDiTer * h.dimVig;
 	h.sizeCach	= size(h.dimCach);
-	
+	h.restTer	= h.dimSTer * h.sampTer - h.dimTer;
+
 	checkCudaErrors(cudaMemcpyToSymbol(cH, &h, sizeof(paramGPU)));
 
 	if (oldSizeTer < h.sizeTer)
@@ -243,9 +244,15 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbA
 	// Si le processus est hors du terrain, nous sortons du kernel
 	if (oSE(ptHTer,cH.dimTer)) return;
 
-	//float2 PtTProj = tex2DLayered(TexLay_Proj, ((float)ghTer.x / (float)cDimTer.x * (float)cSDimTer.x + 0.5f) /(float)cSDimTer.x, ((float)ghTer.y/ (float)cDimTer.y * (float)cSDimTer.y + 0.5f) /(float)cSDimTer.y ,blockIdx.z) ;
+	//const float2 PtTProj = tex2DLayered(TexLay_Proj, ((float)ptHTer.x / (float)cH.dimTer.x * (float)cH.dimSTer.x + 0.5f) /(float)cH.dimSTer.x, ((float)ptHTer.y/ (float)cH.dimTer.y * (float)cH.dimSTer.y + 0.5f) /(float)cH.dimSTer.y ,blockIdx.z) ;
 	//const float2 PtTProj = simpleProjection( cDimTer, cSDimTer/*, cDimImg*/, ptHTer, blockIdx.z);
-	const float2 PtTProj = tex2DLayered(TexLay_Proj, ((float)ptHTer.x  + 0.5f) /(float)cH.dimTer.x, ((float)ptHTer.y + 0.5f) /(float)cH.dimTer.y ,blockIdx.z) ;
+
+ 
+	//const float2 PtTProj = tex2DLayered(TexLay_Proj, ((float)ptHTer.x  + 0.5f) /(float)cH.dimTer.x, ((float)ptHTer.y + 0.5f) /(float)cH.dimTer.y ,blockIdx.z) ;
+	
+
+	const float2 PtTProj = tex2DLayered(TexLay_Proj, ((float)ptHTer.x  + 0.5f) /(float)(cH.dimTer.x + cH.restTer.x), ((float)ptHTer.y + 0.5f) /(float)(cH.dimTer.y + cH.restTer.y) ,blockIdx.z) ;
+
 
 	if (oEq(PtTProj, cH.UVDefValue))
 	{
@@ -358,6 +365,7 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	const int iCC		= sizLayer + to1D( cc, cH.dimCach );		// coordonnées 1D 1er pixel de la vignette
 
 	if (cacheVign[iCC] == cH.UVDefValue) return; // sortir si bad vignette
+
 	const float val = cacheVign[iCach]; 
 
 	atomicAdd( &(aSV[t.y][t.x]), val);
