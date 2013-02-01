@@ -840,6 +840,8 @@ namespace NS_ParamMICMAC
 		uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
  		int2	aSzDz		= toI2(Pt2dr(mGeomDFPx->SzDz()));		// Dimension de la zone terrain total
  		int2	aSzClip		= toI2(Pt2dr(mGeomDFPx->SzClip()));		// Dimension du bloque
+		float*	debugProj	= new float[h.sizeSTer * mNbIm];
+
 
 		for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )					// Mise en calque des projections pour chaque image
 		{
@@ -866,14 +868,20 @@ namespace NS_ParamMICMAC
 							const double aZReel	= DequantZ(Z);// Déquantification  de X, Y et Z 
 							Pt2dr		aPTer	= DequantPlani(an.x,an.y);
 							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image 			
-
-							if (aGLI.IsOk( aPIm.x, aPIm.y ))			
-								TabProj[iD] = make_float2((float)aPIm.x,(float)aPIm.y);							
+							
+							if (aGLI.IsOk( aPIm.x, aPIm.y ))
+							{
+								TabProj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
+								debugProj[iD]	= (float)aPIm.x;
+							}
 						}	
 					}
 				}
 			}
 		}
+
+		//GpGpuTools::OutputArray(debugProj + h.sizeSTer, h.dimSTer, 10.f, h.UVDefValue);
+
 		
 /*
 		for (int aKIm = 0 ; aKIm < 4 ; aKIm++ )

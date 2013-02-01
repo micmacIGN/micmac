@@ -125,7 +125,7 @@ extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimImage, int nbLayer)
 	// Lié à la texture
 	refTex_ImagesLayered.addressMode[0]	= cudaAddressModeWrap;
     refTex_ImagesLayered.addressMode[1]	= cudaAddressModeWrap;
-    refTex_ImagesLayered.filterMode		= cudaFilterModePoint; //cudaFilterModeLinear cudaFilterModePoint
+    refTex_ImagesLayered.filterMode		= cudaFilterModeLinear; //cudaFilterModeLinear cudaFilterModePoint
     refTex_ImagesLayered.normalized		= true;
 	checkCudaErrors( cudaBindTextureToArray(refTex_ImagesLayered,dev_ImgLd) );
 
@@ -201,24 +201,19 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbA
 	// Si le processus est hors du terrain, nous sortons du kernel
 	if (oSE(ptHTer,cH.dimTer)) return;
 
-	//const float2 PtTProj = tex2DLayered(TexLay_Proj, ((float)ptHTer.x / (float)cH.dimTer.x * (float)cH.dimSTer.x + 0.5f) /(float)cH.dimSTer.x, ((float)ptHTer.y/ (float)cH.dimTer.y * (float)cH.dimSTer.y + 0.5f) /(float)cH.dimSTer.y ,blockIdx.z) ;
-	//const float2 PtTProj = simpleProjection( cDimTer, cSDimTer/*, cDimImg*/, ptHTer, blockIdx.z);
- 
-	// OK
-	const float2 PtTProj = tex2DLayered(TexLay_Proj, ((float)ptHTer.x  + 0.5f) /(float)cH.dimTer.x, ((float)ptHTer.y + 0.5f) /(float)cH.dimTer.y ,blockIdx.z) ;
-	
-	//const float2 PtTProj = tex2DLayered(TexLay_Proj, ((float)ptHTer.x  + 0.5f) /(float)(cH.dimTer.x + cH.restTer.x), ((float)ptHTer.y + 0.5f) /(float)(cH.dimTer.y + cH.restTer.y) ,blockIdx.z) ;
+	//const float2 ptProj = tex2DLayered(TexLay_Proj, ((float)ptHTer.x  + 0.5f) /(float)cH.dimTer.x, ((float)ptHTer.y + 0.5f) /(float)cH.dimTer.y ,blockIdx.z) ;
+	const float2 ptProj = tex2DLayered(TexLay_Proj, ((float)ptHTer.x / cH.sampTer + 0.5f) /(float)cH.dimSTer.x, ((float)ptHTer.y / cH.sampTer + 0.5f) /(float)cH.dimSTer.y ,blockIdx.z) ;
 
-
-	if (oEq(PtTProj, cH.UVDefValue))
+	//if (oEq(ptProj, cH.UVDefValue))
+	if (oI(ptProj,0))
 	{
 		cacheImg[threadIdx.y][threadIdx.x]  = cH.badVig;
-		//return;
+		return;
 	}
  	else
 		// !!! ATTENTION Modification pour simplification du debug !!!!
-		//cacheImg[threadIdx.y][threadIdx.x] = tex2DLayered( refTex_ImagesLayered, (PtTProj.x + 0.5f) / (float)cDimImg.x, (PtTProj.y + 0.5f) / (float)cDimImg.y,blockIdx.z);
-		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayered( refTex_ImagesLayered, (((int)PtTProj.x )+ 0.5f) / (float)cH.dimImg.x, (((int)(PtTProj.y) )+ 0.5f) / (float)cH.dimImg.y,blockIdx.z);
+		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayered( refTex_ImagesLayered, (ptProj.x + 0.5f) / (float)cH.dimImg.x, (ptProj.y + 0.5f) / (float)cH.dimImg.y,blockIdx.z);
+		//cacheImg[threadIdx.y][threadIdx.x] = tex2DLayered( refTex_ImagesLayered, (((int)ptProj.x )+ 0.5f) / (float)cH.dimImg.x, (((int)(ptProj.y) )+ 0.5f) / (float)cH.dimImg.y,blockIdx.z);
 
 	__syncthreads();
 
@@ -226,8 +221,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbA
 	// Nous traitons uniquement les points du terrain du bloque ou Si le processus est hors du terrain global, nous sortons du kernel
 	if (oSE(threadIdx, nbActThrd + cH.rVig) || oI(threadIdx , cH.rVig) || oSE( ptTer, cH.rDiTer) || oI(ptTer, 0))
 		return;
-	
-	
+
 	if(tex2D(TexMaskTer, ptTer.x, ptTer.y) == 0) return;
 
 
@@ -405,9 +399,9 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer ){
 	checkCudaErrors( cudaUnbindTexture(TexLay_Proj) );
 	checkCudaErrors( cudaMemcpy( h_TabCost, dev_Cost, costMemSize, cudaMemcpyDeviceToHost) );
 	
-//	checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );
+	//checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );
 	//checkCudaErrors( cudaMemcpy( host_Cache, dev_Cache,	  cac_MemSize, cudaMemcpyDeviceToHost) );
-	//GpGpuTools::OutputArray(h_TabCost,h.rDiTer,1.0f,h.UVDefValue);
+	//GpGpuTools::OutputArray(h_TabCost,h.rDiTer,10.0f,h.UVDefValue);
 
 	//////////////////////////////////////////////////////////////////////////
 
