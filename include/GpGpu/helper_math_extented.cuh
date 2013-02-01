@@ -16,6 +16,11 @@ static uint2 iDivUp(uint2 a, uint b)
 	return make_uint2(iDivUp(a.x,b),iDivUp(a.y,b));
 }
 
+static uint2 iDivUp(uint2 a, uint2 b)
+{
+	return make_uint2(iDivUp(a.x,b.x),iDivUp(a.y,b.y));
+}
+
 static int2 iDivUp(int2 a, uint b)
 {
 	return make_int2(iDivUp(a.x,b),iDivUp(a.y,b));
