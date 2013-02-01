@@ -18,7 +18,7 @@ using namespace std;
 
 
 #define INTDEFAULT -64
-#define SAMPLETERR 1
+#define SAMPLETERR 4
 
 #ifdef _DEBUG
 	#define   BLOCKDIM	16
