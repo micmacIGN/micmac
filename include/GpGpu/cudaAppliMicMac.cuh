@@ -3,10 +3,30 @@
 #include <helper_math.h>
 #include <helper_functions.h>
 #include <helper_cuda.h>
-#include "GpGpuTools.h"
+
+#include "GpGpu/helper_math_extented.cuh"
+#include "GpGpu/GpGpuTools.h"
+
+#ifdef _WIN32
+	#include <windows.h>
+	#include <Lmcons.h>
+#endif
+
+#include <iostream>
+#include <string>
+using namespace std;
+
 
 #define INTDEFAULT -64
-#define SAMPLETERR 4
+#define SAMPLETERR 1
+
+#ifdef _DEBUG
+	#define   BLOCKDIM	16
+	#define   SBLOCKDIM 10
+#else
+	#define   BLOCKDIM	32
+	#define   SBLOCKDIM 16
+#endif
 
 struct paramGPU
 {
