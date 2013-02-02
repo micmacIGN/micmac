@@ -1,3 +1,10 @@
+
+
+AMELIORER MESSAGE D'ERREUR SUR PAS ASSEZ DE POINTS DS BASCULE
+
+=========================================
+
+
 Commande pour MM-Pyram.xml, Apero-Choix-ImSec.xml, MM-ModelInitial.xml (en // avec makefile)
 
 
