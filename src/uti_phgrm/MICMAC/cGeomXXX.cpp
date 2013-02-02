@@ -627,6 +627,12 @@ if (mAp->DebugMM().Val())
                   VMin(aYMin)|VMax(aYMax)
               )
           );
+
+          if (aXMin > aXMax)
+          {
+               std::cout << "For FILE : " << mAp->FileBoxMasqIsBoxTer() << "\n";
+               ELISE_ASSERT(false,"Masq is empty");
+          }
           cFileOriMnt aFileOri = mAp->GetOri(mAp->WorkDir()+mAp->MasqueTerrain().Val().MT_Xml());
 
          Pt2dr aOri = aFileOri.OriginePlani();
