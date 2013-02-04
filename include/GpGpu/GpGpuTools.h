@@ -185,7 +185,6 @@ class ImageCuda
 public:
 
 	ImageCuda();
-	ImageCuda(textureReference textRef);
 	~ImageCuda();
 	
 	void		InitImage(uint2 dimension, T* data);
@@ -193,7 +192,6 @@ public:
 	uint2		SetDimension(uint2 dimension);
 	uint2		SetDimension(int dimX,int dimY);
 	uint2		SetDimension(uint dimX,uint dimY);
-	void		SetTexRef(textureReference texRef);
 	cudaArray*	GetCudaArray();
 	void		AllocMemory();
 	void		DeallocMemory();
@@ -205,7 +203,6 @@ private:
 	uint2				_dimension;
 	cudaArray*			_cudaArray;
 	
-
 };
 
 template <class T>
@@ -225,28 +222,19 @@ template <class T>
 void ImageCuda<T>::copyHostToDevice( T* data )
 {
 	// Copie des données du Host dans le tableau Cuda
-	//checkCudaErrors( cudaMemcpy2DToArray(_cudaArray,0,0,data, _dimension.y*sizeof(T),_dimension.y*sizeof(T), _dimension.x, cudaMemcpyHostToDevice) );
 	checkCudaErrors(cudaMemcpyToArray(_cudaArray, 0, 0, data, sizeof(T)*size(_dimension), cudaMemcpyHostToDevice));
-	//checkCudaErrors(cudaMemcpyToArray(array, 0, 0, data, Bpp*sizeof(Pixel)*iw*ih, cudaMemcpyHostToDevice));
 }
 
 template <class T>
 cudaArray* ImageCuda<T>::GetCudaArray()
 {
-
 	return _cudaArray;
-
 }
+
 template <class T>
 ImageCuda<T>::ImageCuda()
 {
 	_cudaArray = NULL;
-}
-
-template <class T>
-ImageCuda<T>::ImageCuda( textureReference textRef )
-{
-	SetTexRef(textRef);
 }
 
 template <class T>
@@ -281,12 +269,6 @@ uint2 ImageCuda<T>::SetDimension( int dimX,int dimY )
 }
 
 template <class T>
-void ImageCuda<T>::SetTexRef( textureReference texRef )
-{
-	//_textureRef = texRef;
-}
-
-template <class T>
 void ImageCuda<T>::AllocMemory()
 {
 	
@@ -296,5 +278,49 @@ void ImageCuda<T>::AllocMemory()
 
 }
 
+
+template <class T> 
+class ImageLayeredCuda : public ImageCuda<T>
+{
+public:
+	ImageLayeredCuda(){};
+	~ImageLayeredCuda(){};
+
+	uint	GetNbLayer();
+	void	SetNbLayer(uint nbLayer);
+	void	SetDimension(uint2 dimension, uint nbLayer);
+	void	SetDimension(uint3 dimension);
+
+private:
+
+	uint _nbLayers;
+
+};
+
+template <class T>
+void ImageLayeredCuda<T>::SetDimension( uint3 dimension )
+{
+	SetDimension(make_uint2(dimension),dimension.z);
+}
+
+template <class T>
+void ImageLayeredCuda<T>::SetDimension( uint2 dimension, uint nbLayer )
+{
+	ImageCuda<T>::SetDimension(dimension);
+	SetNbLayer(nbLayer);
+}
+
+template <class T>
+void ImageLayeredCuda<T>::SetNbLayer( uint nbLayer )
+{
+	_nbLayers = nbLayer;
+}
+
+template <class T>
+uint ImageLayeredCuda<T>::GetNbLayer()
+{
+	return _nbLayers;
+
+}
 
 
