@@ -295,6 +295,3 @@ void ImageCuda<T>::AllocMemory()
 	checkCudaErrors( cudaMallocArray(&_cudaArray,&channelDesc,_dimension.x,_dimension.y) );
 
 }
-
-
-

@@ -16,6 +16,11 @@ static uint2 iDivUp(uint2 a, uint b)
 	return make_uint2(iDivUp(a.x,b),iDivUp(a.y,b));
 }
 
+static uint2 iDivUp(uint2 a, uint2 b)
+{
+	return make_uint2(iDivUp(a.x,b.x),iDivUp(a.y,b.y));
+}
+
 static int2 iDivUp(int2 a, uint b)
 {
 	return make_int2(iDivUp(a.x,b),iDivUp(a.y,b));
@@ -134,6 +139,11 @@ inline __host__ __device__ bool oSE(uint3 a, uint2 b)
 inline __host__ __device__ bool oEq(float2 a, float b)
 {
 	return ((a.x == b) || (a.y == b));
+}
+
+inline __host__ __device__ bool oI(float2 a, float b)
+{
+	return ((a.x < b) || (a.y < b));
 }
 
 inline __host__ __device__ bool oEq(uint2 a, int b)

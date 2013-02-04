@@ -40,32 +40,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 #ifdef CUDA_ENABLED
-	#include "GpGpu/cudaAppliMicMac.cuh"
-	#include "GpGpu/helper_math_extented.cuh"
-	#include "GpGpu/GpGpuTools.h"
-#ifdef _WIN32
-	#include <Lmcons.h>
-#endif
+	#include "GpGpu/InterfaceMicMacGpGpu.h"
 #endif
 
 namespace NS_ParamMICMAC
 {
-
-#ifdef CUDA_ENABLED
-	extern "C" void		freeGpuMemory();
-	extern "C" void		CopyProjToLayers(float2 *h_TabProj, uint2 dimTer, int nbLayer);
-	extern "C" void		basic_Correlation_GPU(  float* h_TabCorre, int nbLayer);
-	extern "C" void		imagesToLayers(float *fdataImg1D, uint2 dimTer, int nbLayer);
-	extern "C" paramGPU Init_Correlation_GPU( uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef);
-	extern "C" paramGPU updateSizeBlock( uint2 ter0, uint2 ter1 );
-	extern "C" void		allocMemoryTabProj(uint2 dimTer, int nbLayer);
-	extern "C" void		SetMask(unsigned char* dataMask, uint2 dimMask);
-
-	uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);};
-	int2  toI2(Pt2dr a){return make_int2((int)a.x,(int)a.y);};
-	paramGPU h;
-#endif
-
 
 	template <class Type,class TBase> 
 	Type ** ImDec
@@ -861,7 +840,9 @@ namespace NS_ParamMICMAC
 		uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
  		int2	aSzDz		= toI2(Pt2dr(mGeomDFPx->SzDz()));		// Dimension de la zone terrain total
  		int2	aSzClip		= toI2(Pt2dr(mGeomDFPx->SzClip()));		// Dimension du bloque
-//		bool	projOK		= false;
+		float*	debugProj	= new float[h.sizeSTer * mNbIm];
+
+
 		for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )					// Mise en calque des projections pour chaque image
 		{
 			
@@ -883,20 +864,24 @@ namespace NS_ParamMICMAC
 						//int aZMax	= mTabZMax[an.y][an.x];
 
 						//if (/*IsInTer( an.x, an.y ) && */(aGLI.IsVisible(an.x ,an.y )) && (aZMin <= Z)&&(Z <=aZMax) )
-						{
-							// Déquantification  de X, Y et Z 
-							const double aZReel	= DequantZ(Z);
+						{					
+							const double aZReel	= DequantZ(Z);// Déquantification  de X, Y et Z 
 							Pt2dr		aPTer	= DequantPlani(an.x,an.y);
 							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image 			
-
-							if (aGLI.IsOk( aPIm.x, aPIm.y ))			
-								TabProj[iD] = make_float2((float)aPIm.x,(float)aPIm.y);
 							
+							if (aGLI.IsOk( aPIm.x, aPIm.y ))
+							{
+								TabProj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
+								debugProj[iD]	= (float)aPIm.x;
+							}
 						}	
 					}
 				}
 			}
 		}
+
+		//GpGpuTools::OutputArray(debugProj + h.sizeSTer, h.dimSTer, 10.f, h.UVDefValue);
+
 		
 /*
 		for (int aKIm = 0 ; aKIm < 4 ; aKIm++ )
