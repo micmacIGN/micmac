@@ -58,15 +58,15 @@ inline __device__ T tex2DLayeredPt(texture<T, cudaTextureType2DLayered, cudaRead
 }
 
 template<class T>
-inline __device__ T tex2DLayeredPt(texture<T, cudaTextureType2DLayered, cudaReadModeElementType> t, uint2 pt, uint2 dim, short layer)
+inline __device__ T tex2DLayeredPt(texture<T, cudaTextureType2DLayered, cudaReadModeElementType> t, float2 pt, uint2 dim, short layer)
 {
 	return tex2DLayered(t, ((float)pt.x + 0.5f) /(float)dim.x, ((float)pt.y + 0.5f) /(float)dim.y ,layer) ;
 }
 
 template<class T>
-inline __device__ T tex2DLayeredPt(texture<T, cudaTextureType2DLayered, cudaReadModeElementType> t, float2 pt, uint2 dim, short layer)
+inline __device__ T tex2DLayeredPt(texture<T, cudaTextureType2DLayered, cudaReadModeElementType> t, uint2 pt, uint2 dim, short layer)
 {
-	return tex2DLayered(t, ((float)pt.x + 0.5f) /(float)dim.x, ((float)pt.y + 0.5f) /(float)dim.y ,layer) ;
+	return tex2DLayeredPt(t, make_float2(pt), dim, layer);
 }
 
 // fast bicubic texture lookup using 4 bilinear lookups

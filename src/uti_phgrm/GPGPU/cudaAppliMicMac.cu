@@ -269,13 +269,13 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	// Si le thread est en dehors du cache
 	if ( oSE(ptCach, cH.dimCach))	return;
 	
-	const uint2	ptTer	= ptCach / cH.dimVig;					// Coordonnées 2D du terrain
+	const uint2	ptTer	= ptCach / cH.dimVig;						// Coordonnées 2D du terrain
 
 	if(tex2D(TexMaskTer, ptTer.x, ptTer.y) == 0) return;
 
-	const uint	iTer	= to1D(ptTer, cH.rDiTer);				// Coordonnées 1D dans le terrain
+	const uint	iTer	= to1D(ptTer, cH.rDiTer);					// Coordonnées 1D dans le terrain
 	const bool	mThrd	= t.x % cH.dimVig.x == 0 &&  t.y % cH.dimVig.y == 0 && threadIdx.z == 0;
-	const float aNbImOk = dev_NbImgOk[iTer];					// Nombre vignettes correctes
+	const float aNbImOk = dev_NbImgOk[iTer];						// Nombre vignettes correctes
 
 	if (aNbImOk < 2) return;
 	
@@ -284,7 +284,7 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	const uint2 cc		= ptTer * cH.dimVig;						// coordonnées 2D 1er pixel de la vignette
 	const int iCC		= sizLayer + to1D( cc, cH.dimCach );		// coordonnées 1D 1er pixel de la vignette
 
-	if (cacheVign[iCC] == cH.UVDefValue) return; // sortir si vignette incorrecte
+	if (cacheVign[iCC] == cH.UVDefValue) return;					// sortir si vignette incorrecte
 
 	const float val = cacheVign[iCach]; 
 
@@ -294,7 +294,7 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 
 	if ( threadIdx.z != 0) return;
 
-	const uint2 thTer = t / cH.dimVig;	// Coordonnées 2D du terrain dans le repere des threads
+	const uint2 thTer = t / cH.dimVig;								// Coordonnées 2D du terrain dans le repere des threads
 	
 	atomicAdd(&(resu[thTer.y][thTer.x]),aSVV[t.y][t.x] - ((aSV[t.y][t.x] * aSV[t.y][t.x])/ aNbImOk)); 
 
@@ -322,11 +322,6 @@ extern "C" paramGPU Init_Correlation_GPU(  uint2 ter0, uint2 ter1, int nbLayer ,
 
 extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer ){
 
-	//////////////////////////////////////////////////////////////////////////
-	//int sCorMemSize = h.sizeTer  * sizeof(float);
-	//checkCudaErrors( cudaMemset( dev_SimpCor,	0, sCorMemSize ));
-	////////////////////////////////////////////////////////////////////////// 
-	
 	int nBI_MemSize = h.rSiTer	 * sizeof(float);
 	int cac_MemSize = h.sizeCach * sizeof(float) * nbLayer;
 	int costMemSize = h.rSiTer	 * sizeof(float);
