@@ -1,9 +1,10 @@
 #include "GpGpu/cudaAppliMicMac.cuh"
+#include "GpGpu/cudaTextureTools.cuh"
 
 // ATTENTION : erreur de compilation avec l'option cudaReadModeNormalizedFloat et l'utilisation de la fonction tex2DLayered
 texture< unsigned char,	cudaTextureType2D >	TexMaskTer;
-texture< float2,cudaTextureType2DLayered >	TexLay_Proj;
-texture< float,	cudaTextureType2DLayered >	refTex_ImagesLayered;
+texture< float2,cudaTextureType2DLayered >	TexL_Proj;
+texture< float,	cudaTextureType2DLayered >	TexL_Images;
 cudaArray* dev_ImgLd;		//
 cudaArray* dev_ProjLr;		//
 cudaArray* dev_MaskTer;		//
@@ -16,6 +17,7 @@ float*	dev_Cache;
 float*	dev_NbImgOk;
 static __constant__ paramGPU cH;
 paramGPU h;
+
 
 //------------------------------------------------------------------------------------------
 extern "C" void SetMask(unsigned char* dataMask, uint2 dimMask)
@@ -43,10 +45,10 @@ extern "C" void allocMemory(void)
 	checkCudaErrors( cudaMalloc((void **) &dev_Cost		, costMemSize ) );
 
 	// Texture des projections
-	TexLay_Proj.addressMode[0]	= cudaAddressModeClamp;
-	TexLay_Proj.addressMode[1]	= cudaAddressModeClamp;	
-	TexLay_Proj.filterMode		= cudaFilterModeLinear; //cudaFilterModePoint cudaFilterModeLinear
-	TexLay_Proj.normalized		= true;
+	TexL_Proj.addressMode[0]	= cudaAddressModeClamp;
+	TexL_Proj.addressMode[1]	= cudaAddressModeClamp;	
+	TexL_Proj.filterMode		= cudaFilterModeLinear; //cudaFilterModePoint cudaFilterModeLinear
+	TexL_Proj.normalized		= true;
 
 }
 
@@ -123,11 +125,11 @@ extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimImage, int nbLayer)
 	checkCudaErrors( cudaMemcpy3D(&p) );
 
 	// Lié à la texture
-	refTex_ImagesLayered.addressMode[0]	= cudaAddressModeWrap;
-    refTex_ImagesLayered.addressMode[1]	= cudaAddressModeWrap;
-    refTex_ImagesLayered.filterMode		= cudaFilterModeLinear; //cudaFilterModeLinear cudaFilterModePoint
-    refTex_ImagesLayered.normalized		= true;
-	checkCudaErrors( cudaBindTextureToArray(refTex_ImagesLayered,dev_ImgLd) );
+	TexL_Images.addressMode[0]	= cudaAddressModeWrap;
+    TexL_Images.addressMode[1]	= cudaAddressModeWrap;
+    TexL_Images.filterMode		= cudaFilterModeLinear; //cudaFilterModeLinear cudaFilterModePoint
+    TexL_Images.normalized		= true;
+	checkCudaErrors( cudaBindTextureToArray(TexL_Images,dev_ImgLd) );
 
 };
 
@@ -164,57 +166,30 @@ extern "C" void  CopyProjToLayers(float2 *h_TabProj, uint2 dimTer, int nbLayer)
 
 };
 
-__device__  inline float2 simpleProjection( uint2 size, uint2 ssize/*, uint2 sizeImg*/ ,uint2 coord, int L)
-{
-	const float2 cf		= make_float2(ssize) * make_float2(coord) / make_float2(size) ;
-	const int2	 a		= make_int2(cf);
-	const float2 uva	= (make_float2(a) + 0.5f) / (make_float2(ssize));
-	const float2 uvb	= (make_float2(a+1) + 0.5f) / (make_float2(ssize));
-	float2 ra, rb, Iaa;
-
-	ra	= tex2DLayered( TexLay_Proj, uva.x, uva.y, L);
-	rb	= tex2DLayered( TexLay_Proj, uvb.x, uva.y, L);
-	if (ra.x < 0.0f || ra.y < 0.0f || rb.x < 0.0f || rb.y < 0.0f)
-		return make_float2(cH.badVig);
-
-	Iaa	= ((float)(a.x + 1.0f) - cf.x) * ra + (cf.x - (float)(a.x)) * rb;
-	ra	= tex2DLayered( TexLay_Proj, uva.x, uvb.y, L);
-	rb	= tex2DLayered( TexLay_Proj, uvb.x, uvb.y, L);
-
-	if (ra.x < 0.0f || ra.y < 0.0f || rb.x < 0.0f || rb.y < 0.0f)
-		return make_float2(cH.badVig);
-
-	ra	= ((float)(a.x+ 1.0f) - cf.x) * ra + (cf.x - (float)(a.x)) * rb;
-	ra = ((float)(a.y+ 1.0f) - cf.y) * Iaa + (cf.y - (float)(a.y)) * ra;
-	/*ra = (ra + 0.5f) / (make_float2(sizeImg));*/
-
-	return ra;
-}
-
 __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbActThrd )
 {
 	__shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
 
-	// Coordonnées du terrain global avec bordure
+	// Coordonnées du terrain global avec bordure // __umul24!!!! A voir
 	const uint2 ptHTer = make_uint2(blockIdx) * nbActThrd + make_uint2(threadIdx);
 	
 	// Si le processus est hors du terrain, nous sortons du kernel
 	if (oSE(ptHTer,cH.dimTer)) return;
 
-	//const float2 ptProj = tex2DLayered(TexLay_Proj, ((float)ptHTer.x  + 0.5f) /(float)cH.dimTer.x, ((float)ptHTer.y + 0.5f) /(float)cH.dimTer.y ,blockIdx.z) ;
-	const float2 ptProj = tex2DLayered(TexLay_Proj, ((float)ptHTer.x / cH.sampTer + 0.5f) /(float)cH.dimSTer.x, ((float)ptHTer.y / cH.sampTer + 0.5f) /(float)cH.dimSTer.y ,blockIdx.z) ;
-
-	//if (oEq(ptProj, cH.UVDefValue))
-	if (oI(ptProj,0))
+#if (SAMPLETERR == 1)
+	const float2 ptProj = tex2DLayeredPt(TexL_Proj,ptHTer,cH.dimSTer,blockIdx.z);
+#else
+	const float2 ptProj = tex2DLayeredPt(TexL_Proj,ptHTer,cH.dimSTer,cH.sampTer,blockIdx.z);
+#endif
+	
+	if (oI(ptProj,0))	//if (oEq(ptProj, cH.UVDefValue))
 	{
 		cacheImg[threadIdx.y][threadIdx.x]  = cH.badVig;
 		return;
 	}
- 	else
-		// !!! ATTENTION Modification pour simplification du debug !!!!
-		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayered( refTex_ImagesLayered, (ptProj.x + 0.5f) / (float)cH.dimImg.x, (ptProj.y + 0.5f) / (float)cH.dimImg.y,blockIdx.z);
-		//cacheImg[threadIdx.y][threadIdx.x] = tex2DLayered( refTex_ImagesLayered, (((int)ptProj.x )+ 0.5f) / (float)cH.dimImg.x, (((int)(ptProj.y) )+ 0.5f) / (float)cH.dimImg.y,blockIdx.z);
-
+ 	else				//cacheImg[threadIdx.y][threadIdx.x] = tex2DLayeredPt( TexL_Images, ptProj, cH.dimImg, blockIdx.z);
+		cacheImg[threadIdx.y][threadIdx.x] = tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, cH.dimImg,(int)blockIdx.z);
+	
 	__syncthreads();
 
 	const int2 ptTer = make_int2(ptHTer) - make_int2(cH.rVig);
@@ -223,7 +198,6 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbA
 		return;
 
 	if(tex2D(TexMaskTer, ptTer.x, ptTer.y) == 0) return;
-
 
 	const short2 c0	= make_short2(threadIdx) - cH.rVig;
 	const short2 c1	= make_short2(threadIdx) + cH.rVig;
@@ -267,12 +241,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbA
 	atomicAdd( &dev_NbImgOk[to1D(ptTer,cH.rDiTer)], 1.0f);
 };
 
-///////////////////////////////////////////////////////////////////////////////////
-//																				///
 // Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens	///
-//																				///
-///////////////////////////////////////////////////////////////////////////////////
-
 __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * dev_NbImgOk, uint2 nbActThr)
 {
 	__shared__ float aSV [ SBLOCKDIM ][ SBLOCKDIM ];
@@ -281,6 +250,7 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 
 	// coordonnées des threads
 	const uint2 t = make_uint2(threadIdx);
+
 
 	if ( threadIdx.z == 0)
 	{
@@ -314,12 +284,11 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	const uint2 cc		= ptTer * cH.dimVig;						// coordonnées 2D 1er pixel de la vignette
 	const int iCC		= sizLayer + to1D( cc, cH.dimCach );		// coordonnées 1D 1er pixel de la vignette
 
-	if (cacheVign[iCC] == cH.UVDefValue) return; // sortir si bad vignette
+	if (cacheVign[iCC] == cH.UVDefValue) return; // sortir si vignette incorrecte
 
 	const float val = cacheVign[iCach]; 
 
 	atomicAdd( &(aSV[t.y][t.x]), val);
-
 	atomicAdd(&(aSVV[t.y][t.x]), val * val);
 	__syncthreads();
 
@@ -362,55 +331,57 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer ){
 	int cac_MemSize = h.sizeCach * sizeof(float) * nbLayer;
 	int costMemSize = h.rSiTer	 * sizeof(float);
 
-	//////////////////////////////////////////////////////////////////////////
+	//----------------------------------------------------------------------------
 	 
 	checkCudaErrors( cudaMemset( dev_Cost,	h.UVIntDef, costMemSize ));
 	checkCudaErrors( cudaMemset( dev_Cache,	h.UVIntDef, cac_MemSize ));
 	checkCudaErrors( cudaMemset( dev_NbImgOk,0, nBI_MemSize ));
-	checkCudaErrors( cudaBindTextureToArray(TexLay_Proj,dev_ProjLr) );
+	checkCudaErrors( cudaBindTextureToArray(TexL_Proj,dev_ProjLr) );
 
-	//////////////////////////////////////////////////////////////////////////
+	//----------------------------------------------------------------------------
+	//				calcul de dimension du kernel de correlation
 
-	dim3  threads( BLOCKDIM, BLOCKDIM, 1);
-	uint2 thd2D		= make_uint2(threads);
-	uint2 actiThsCo = thd2D - 2 * h.dimVig;
-	uint2 block2D	= iDivUp(h.dimTer,actiThsCo);
+	dim3	threads( BLOCKDIM, BLOCKDIM, 1);
+	uint2	thd2D		= make_uint2(threads);
+	uint2	actiThsCo	= thd2D - 2 * h.dimVig;
+	uint2	block2D		= iDivUp(h.dimTer,actiThsCo);
+	dim3	blocks(block2D.x , block2D.y, nbLayer);
 
-	//uint2 actiThsCo = make_uint2(threads.x - 2 *((int)(h.dimVig.x)), threads.y - 2 * ((int)(h.dimVig.y)));
-	//dim3 blocks(iDivUp((int)(h.dimTer.x),actiThsCo.x) , iDivUp((int)(h.dimTer.y), actiThsCo.y), nbLayer);
-	dim3 blocks(block2D.x , block2D.y, nbLayer);
+	//----------------------------------------------------------------------------
+	//				calcul de dimension du kernel de multi-correlation
 
-	uint2 actiThs = make_uint2(SBLOCKDIM - SBLOCKDIM % ((int)h.dimVig.x), SBLOCKDIM - SBLOCKDIM % ((int)h.dimVig.y));
-	dim3 threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
-	dim3 blocks_mC(iDivUp((int)(h.dimCach.x), actiThs.x) , iDivUp((int)(h.dimCach.y), actiThs.y));
+	uint2	actiThs		= SBLOCKDIM - make_uint2( SBLOCKDIM % h.dimVig.x, SBLOCKDIM % h.dimVig.y);
+	dim3	threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
+	uint2	block2D_mC	= iDivUp(h.dimCach,actiThs);
+	dim3	blocks_mC(block2D_mC.x,block2D_mC.y);
 
-	////////////////////--  KERNEL  Correlation  --//////////////////////////
+	//-----------------------  KERNEL  Correlation  -------------------------------
 	
 	correlationKernel<<<blocks, threads>>>( dev_NbImgOk, dev_Cache, actiThsCo);
 	getLastCudaError("Basic Correlation kernel failed");
 	
-	//////////////////--  KERNEL  Multi Correlation  --///////////////////////
+	//-------------------  KERNEL  Multi Correlation  ------------------------------
 
    	multiCorrelationKernel<<<blocks_mC, threads_mC>>>( dev_Cost, dev_Cache, dev_NbImgOk, actiThs);
    	getLastCudaError("Multi-Correlation kernel failed");
 
-	//////////////////////////////////////////////////////////////////////////
+	//----------------------------------------------------------------------------
 
-	checkCudaErrors( cudaUnbindTexture(TexLay_Proj) );
+	checkCudaErrors( cudaUnbindTexture(TexL_Proj) );
 	checkCudaErrors( cudaMemcpy( h_TabCost, dev_Cost, costMemSize, cudaMemcpyDeviceToHost) );
 	
+	//----------------------------------------------------------------------------
 	//checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );
 	//checkCudaErrors( cudaMemcpy( host_Cache, dev_Cache,	  cac_MemSize, cudaMemcpyDeviceToHost) );
 	//GpGpuTools::OutputArray(h_TabCost,h.rDiTer,10.0f,h.UVDefValue);
-
-	//////////////////////////////////////////////////////////////////////////
+	//----------------------------------------------------------------------------
 
 }
 
 extern "C" void freeGpuMemory()
 {
 
-	checkCudaErrors( cudaUnbindTexture(refTex_ImagesLayered) );	
+	checkCudaErrors( cudaUnbindTexture(TexL_Images) );	
 	checkCudaErrors( cudaUnbindTexture(TexMaskTer) );	
 
 	if(dev_ImgLd	!= NULL) checkCudaErrors( cudaFreeArray( dev_ImgLd) );
