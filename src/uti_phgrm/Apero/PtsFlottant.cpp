@@ -439,6 +439,46 @@ void cBdAppuisFlottant::AddAFDico(const cDicoAppuisFlottant & aDAF)
    }
 }
 
+
+void cBdAppuisFlottant::ShowError()
+{
+    for (int aK=0 ; aK < 4 ; aK++)
+    {
+       if (aK==0)  std::cout <<  "===============  Point Without GCP ==========================================\n";
+       if (aK==1)  std::cout <<  "===============  Point With less than 2 image seizing =======================\n";
+       if (aK==2)  std::cout <<  "===============  Point With uncertaincy <0  =================================\n";
+       if (aK==3)  std::cout <<  "===============  Point OK                 ===================================\n";
+       for
+       (
+            std::map<std::string,cOneAppuisFlottant *>::const_iterator itF= mApps.begin();
+            itF!= mApps.end();
+            itF++
+       )
+       {
+             cOneAppuisFlottant * anOAF = itF->second;
+             Pt3dr aPInc = anOAF->PInc();
+             int aCase =3;
+             if (!anOAF->HasGround()) aCase = 0;
+             else if (anOAF->NbMesures()<2) aCase = 1;
+             else if ((aPInc.x<=0) || (aPInc.y<=0) || (aPInc.z<=0)) aCase = 2;
+
+             if (aCase==aK)
+             {
+                 std::cout << " " << anOAF->Name() << " " ;
+                 if (aK==1) std::cout << " Nb Mes Im " << anOAF->NbMesures() ;
+                 if (aK==2) std::cout << " Inc " << aPInc ;
+                 std::cout << "\n";
+                 
+                 
+             }
+
+
+       }
+    }
+    std::cout <<  "=============================================================================\n";
+
+}
+
 void cBdAppuisFlottant::AddAFLiaison
      (
             const std::string & aNameIm,

@@ -102,9 +102,9 @@ class cRansacBasculementRigide
         void AddExemple(const Pt3dr & aAvant,const Pt3dr & aApres,const Pt3dr * aSpeedApres);
 
         // Clos et estim la position centrale par Barrycentre
-        void CloseWithTrGlob();
+        bool CloseWithTrGlob(bool Svp= false);
         // Clos et estim la position centrale sur l'exemple K
-        void CloseWithTrOnK(int aK);
+        bool CloseWithTrOnK(int aK,bool Svp= false);
         int  CurK() const;
         const std::vector<Pt3dr>  & PAvant() const;
         const  std::vector<Pt3dr> & PApres()  const;
@@ -127,7 +127,7 @@ class cRansacBasculementRigide
          void AssertOpened() const ;
 
          bool                mClosed;
-         void Close();
+         bool Close(bool Svp= false);
          std::vector<Pt3dr>  mAvant;
          std::vector<Pt3dr>  mApres ;
          std::vector<Pt3dr>  mApresInit ;

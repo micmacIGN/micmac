@@ -368,6 +368,10 @@ void cAppliApero::BasculePoints
       }
    }
 
+
+
+   cBdAppuisFlottant * aBAF = 0;
+
    if (aBOP.BascOnAppuis().IsInit())
    {
        cBascOnAppuis aBOA = aBOP.BascOnAppuis().Val();
@@ -395,7 +399,7 @@ void cAppliApero::BasculePoints
        }
        else
        {
-           cBdAppuisFlottant * aBAF = BAF_FromName(aBOA.NameRef(),0);
+           aBAF = BAF_FromName(aBOA.NameRef(),0);
            const std::map<std::string,cOneAppuisFlottant *> &  aMAP = aBAF->Apps();
            for
            (
@@ -424,13 +428,27 @@ void cAppliApero::BasculePoints
 // std::cout << "--------------BBBBBBBBBBBBBBBB\n";
 
   
+   bool OkBasc=false;
    if (aKC!=-1)
    {
-      aBasc.CloseWithTrOnK(aKC);
+      OkBasc = aBasc.CloseWithTrOnK(aKC,true);
    }
    else
    {
-      aBasc.CloseWithTrGlob();
+      OkBasc = aBasc.CloseWithTrGlob(true);
+   }
+
+   if (!OkBasc)
+   {
+       if (aBAF)
+       {
+          aBAF->ShowError();
+       }
+       ELISE_ASSERT
+       (
+           false,
+           "Not enough samples (Min 3) in cRansacBasculementRigide"
+       );
    }
 
    aBasc.ExploreAllRansac();

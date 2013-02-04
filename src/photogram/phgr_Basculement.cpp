@@ -264,16 +264,22 @@ void cRansacBasculementRigide::AssertKValide(int aK) const
    );
 }
 
-void  cRansacBasculementRigide::Close()
+bool  cRansacBasculementRigide::Close(bool aSvp)
 {
    AssertOpened();
-   ELISE_ASSERT
-   (
-      mAvant.size() >= 3,
-      "Not enough samples (Min 3) in cRansacBasculementRigide"
-   );
+   if ( mAvant.size() < 3)
+   {
+       ELISE_ASSERT
+       (
+          aSvp,
+          "Not enough samples (Min 3) in cRansacBasculementRigide"
+       );
+       return false;
+   }
    mClosed = true;
    mLambda = EstimLambda();
+
+   return true;
 }
 
 int   cRansacBasculementRigide::CurK() const
@@ -331,23 +337,23 @@ void cRansacBasculementRigide::AddExemple(const Pt3dr & aAvant,const Pt3dr & aAp
    }
 }
 
-void cRansacBasculementRigide::CloseWithTrOnK(int aK)
+bool cRansacBasculementRigide::CloseWithTrOnK(int aK,bool aSvp)
 {
   AssertKValide(aK);
   
   mP0Avant = mAvant[aK];
   mP0Apres = mApres[aK];
 
-  Close();
+  return Close(aSvp);
 }
 
 
-void cRansacBasculementRigide::CloseWithTrGlob()
+bool cRansacBasculementRigide::CloseWithTrGlob(bool aSvp)
 {
   mP0Avant = mP0Avant / double(mAvant.size());
   mP0Apres = mP0Apres / double(mApres.size());
 
-  Close();
+  return Close(aSvp);
 }
 
 

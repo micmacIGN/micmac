@@ -1373,6 +1373,7 @@ class cOneAppuisFlottant
 class cBdAppuisFlottant
 {	  
     public :
+       void ShowError();
        cBdAppuisFlottant(cAppliApero &);
        void AddAFLiaison(const std::string & aNameIm,const cOneMesureAF1I &,const Pt2dr & anOffset,bool OkNoGr);
        void AddAFDico(const cDicoAppuisFlottant &);
