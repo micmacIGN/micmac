@@ -134,11 +134,7 @@ bool Assistant::startAssistant() {
 	if (!proc)
 		proc = new QProcess();
 	if (proc->state() != QProcess::Running) {
-		#if ELISE_windows
-				QString app = QLatin1String( ( applicationPath()+QString ("/../interface/help/assistant") ).toStdString().c_str() );
-		#else
-				QString app = QLatin1String( ( applicationPath()+QString ("../interface/help/assistant") ).toStdString().c_str() );
-		#endif
+		QString app = QLatin1String( ( applicationPath()+QString ("/../interface/help/assistant") ).toStdString().c_str() );
 		QStringList args;
 		args << QLatin1String("-collectionFile")
 		     << QLatin1String( (applicationPath()+QString("/../interface/help/help.qhc")).toStdString().c_str() )
