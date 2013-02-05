@@ -130,7 +130,9 @@ std::vector<Pt2dr> EliseStdImageInteractor::GetPolyg
       }
       if (aCl.controled())
       {
-          mPolygCur.pop_back();
+          if (!mPolygCur.empty())
+             mPolygCur.pop_back();
+
           mScr.LoadAndVisuIm(mModeReplicationPixel);
       }
       else
