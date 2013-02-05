@@ -24,6 +24,8 @@ using namespace std;
 
 #define DISPLAYOUTPUT
 
+typedef unsigned char pixel;
+
 class GpGpuTools
 {
 
@@ -33,14 +35,15 @@ public:
 	
 	~GpGpuTools(){};
 	
-	//					Convert array 2D to linear array
-	static void			Memcpy2Dto1D(float** dataImage2D, float* dataImage1D, uint2 dimDest, uint2 dimSource);
+	//					Convertir array 2D en tableau linéaire
+	template <class T>
+	static void			Memcpy2Dto1D(T** dataImage2D, T* dataImage1D, uint2 dimDest, uint2 dimSource);
 
-	//					Save to file image PGM
+	//					Sauvegarder tableau de valeur dans un fichier PGN
 	template <class T>
 	static bool			Array1DtoImageFile(T* dataImage,const char* fileName, uint2 dimImage);
 
-	//					Save to file image PGM
+	//					Sauvegarder tableau de valeur (multiplier par un facteur) dans un fichier PGN
 	template <class T>
 	static bool			Array1DtoImageFile(T* dataImage,const char* fileName, uint2 dimImage, float factor );
 
@@ -63,6 +66,13 @@ public:
 	static void			OutputReturn(char * out = "");
 
 };
+
+template <class T>
+void GpGpuTools::Memcpy2Dto1D( T** dataImage2D, T* dataImage1D, uint2 dimDest, uint2 dimSource )
+{
+	for (uint j = 0; j < dimSource.y ; j++)
+		memcpy(  dataImage1D + dimDest.x * j , dataImage2D[j],  dimSource.x * sizeof(T));		
+}
 
 template <class T>
 void GpGpuTools::OutputValue( T value, float offset, float defaut, float factor)
@@ -178,6 +188,10 @@ bool GpGpuTools::Array1DtoImageFile(T* dataImage,const char* fileName, uint2 dim
 	return r;
 }
 
+//-----------------------------------------------------------------------------------------------
+//									CLASS IMAGE CUDA
+//-----------------------------------------------------------------------------------------------
+
 template <class T> 
 class ImageCuda
 {
@@ -193,6 +207,7 @@ public:
 	uint2		SetDimension(int dimX,int dimY);
 	uint2		SetDimension(uint dimX,uint dimY);
 	cudaArray*	GetCudaArray();
+	cudaArray_t*GetCudaArray_t();
 	void		AllocMemory();
 	void		DeallocMemory();
 	void		BindTexture();
@@ -200,10 +215,18 @@ public:
 
 private:
 
-	uint2				_dimension;
-	cudaArray*			_cudaArray;
-	
+	uint2		_dimension;
+	cudaArray*	_cudaArray;
+
 };
+
+template <class T>
+cudaArray_t* ImageCuda<T>::GetCudaArray_t()
+{
+
+	return &_cudaArray;
+
+}
 
 template <class T>
 void ImageCuda<T>::DeallocMemory()
@@ -278,6 +301,9 @@ void ImageCuda<T>::AllocMemory()
 
 }
 
+//-----------------------------------------------------------------------------------------------
+//									CLASS IMAGE LAYARED CUDA
+//-----------------------------------------------------------------------------------------------
 
 template <class T> 
 class ImageLayeredCuda : public ImageCuda<T>
@@ -290,12 +316,47 @@ public:
 	void	SetNbLayer(uint nbLayer);
 	void	SetDimension(uint2 dimension, uint nbLayer);
 	void	SetDimension(uint3 dimension);
+	void	AllocMemory();
+	void	copyHostToDevice(T* data);
 
 private:
 
 	uint _nbLayers;
 
 };
+
+template <class T>
+void ImageLayeredCuda<T>::copyHostToDevice( T* data )
+{
+
+	cudaExtent sizeImagesLayared = make_cudaExtent( GetDimension().x, GetDimension().y, _nbLayers );
+
+	// Déclaration des parametres de copie 3D
+	cudaMemcpy3DParms	p		= { 0 };
+	cudaPitchedPtr		pitch	= make_cudaPitchedPtr(data, sizeImagesLayared.width * sizeof(T), sizeImagesLayared.width, sizeImagesLayared.height);
+
+	p.dstArray	= GetCudaArray();			// Pointeur du tableau de destination
+	p.srcPtr	= pitch;					// Pitch
+	p.extent	= sizeImagesLayared;		// Taille du cube
+	p.kind		= cudaMemcpyHostToDevice;	// Type de copie
+
+	// Copie des images du Host vers le Device
+	checkCudaErrors( cudaMemcpy3D(&p) );
+
+}
+
+template <class T>
+void ImageLayeredCuda<T>::AllocMemory()
+{
+	cudaExtent sizeImagesLayared = make_cudaExtent( GetDimension().x, GetDimension().y, _nbLayers );
+
+	// Définition du format des canaux d'images	
+	cudaChannelFormatDesc channelDesc =	cudaCreateChannelDesc<T>();
+
+	// Allocation memoire GPU du tableau des calques d'images
+	checkCudaErrors( cudaMalloc3DArray(GetCudaArray_t(),&channelDesc,sizeImagesLayared,cudaArrayLayered) );
+
+}
 
 template <class T>
 void ImageLayeredCuda<T>::SetDimension( uint3 dimension )
