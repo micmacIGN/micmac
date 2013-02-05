@@ -279,9 +279,9 @@ namespace NS_ParamMICMAC
 		if (mLoadTextures)//		Mise en calque des images	
 		{
 
-			mLoadTextures = false;
-			float*		fdataImg1D	= NULL;	
-			uint2 dimImgMax = make_uint2(0,0);
+			mLoadTextures		= false;
+			float*	fdataImg1D	= NULL;	
+			uint2	dimImgMax	= make_uint2(0,0);
 
 			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 			{
@@ -296,43 +296,42 @@ namespace NS_ParamMICMAC
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 			
 				// Obtention des données images
-				float **aDataIm		= aGLI.DataIm();
-				//float *aDataImgLin	= aGLI.LinDIm();
-				uint2 dimImg		= toUi2(aGLI.getSizeImage());
+				float **aDataIm	= aGLI.DataIm();
+				float*	data	= aGLI.LinDIm();
+				uint2 dimImg	= toUi2(aGLI.getSizeImage());
 
 				if(fdataImg1D == NULL)
 					fdataImg1D	= new float[ size(dimImgMax) * mNbIm ];
 	
 				// Copie du tableau 2d des valeurs de l'image
- 				GpGpuTools::Memcpy2Dto1D(aDataIm ,fdataImg1D + size(dimImgMax) * aKIm, dimImgMax, dimImg );
-
+				// [2/5/2013 GChoqueux]
+				// Ameliorer encore la copy de texture, copier les images une à une dans le device!!!!
+				if (aEq(dimImgMax,dimImg))
+ 					memcpy(  fdataImg1D + size(dimImgMax)* aKIm , data,  size(dimImg) * sizeof(float));
+				else
+					GpGpuTools::Memcpy2Dto1D(aDataIm ,fdataImg1D + size(dimImgMax) * aKIm, dimImgMax, dimImg );
+				
 			}
 /*
 
 			if (0)
 			{
-
 				//for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 				{
 					int idImage = 0;
-
+					dimImgMax = make_uint2(dimImgMax.y,dimImgMax.x);
 					GpGpuTools::Array1DtoImageFile((fdataImg1D + size(dimImgMax)*idImage) , "imageTexture.pgm", dimImgMax, 500.0f);
-
 				}
-			}
-*/
-
+			}*/
 			if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
 				imagesToLayers( fdataImg1D, dimImgMax, mNbIm );
 
-			delete[] fdataImg1D;
+			if (fdataImg1D != NULL) delete[] fdataImg1D;
 
-			int uvINTDef	= INTDEFAULT;
-			uint sampTer	= SAMPLETERR;
 			uint2 Ter0		= make_uint2(mX0Ter,mY0Ter);
 			uint2 Ter1		= make_uint2(mX1Ter,mY1Ter);
 
-			h = Init_Correlation_GPU(Ter0, Ter1, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, sampTer, uvINTDef);
+			h = Init_Correlation_GPU(Ter0, Ter1, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
 
 		}
 
@@ -344,7 +343,7 @@ namespace NS_ParamMICMAC
 		h.ptMask0   = make_int2(-1);
 		h.ptMask1   = make_int2(-1);
 
-		unsigned char *maskTab = new unsigned char[size(diTer)];
+		pixel *maskTab = new pixel[size(diTer)];
 
 		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
 		{
@@ -380,10 +379,12 @@ namespace NS_ParamMICMAC
 		
 		if (h.ptMask0.x != -1)
 		{
-			unsigned char *SubMaskTab = new unsigned char[size(h.rDiTer)];
+			
+			pixel *SubMaskTab = new pixel[size(h.rDiTer)];
 
 			for (int y = h.ptMask0.y; y < h.ptMask1.y; y++) 
-				memcpy(SubMaskTab + (y  - h.ptMask0.y) * h.rDiTer.x, maskTab + (y - mY0Ter) * diTer.x + h.ptMask0.x - mX0Ter, sizeof(unsigned char) * h.rDiTer.x );
+				memcpy(SubMaskTab + (y  - h.ptMask0.y) * h.rDiTer.x, maskTab + (y - mY0Ter) * diTer.x + h.ptMask0.x - mX0Ter, sizeof(pixel) * h.rDiTer.x );
+			
 			SetMask(SubMaskTab,h.rDiTer);
 
 			delete[] SubMaskTab;
@@ -955,7 +956,7 @@ namespace NS_ParamMICMAC
 			Tabul_Projection(h_TabProj, anZ, h.pUTer0, h.pUTer1, h.sampTer);
 			
 			// Copie des projections de host vers le device
-			CopyProjToLayers(h_TabProj, h.dimSTer, mNbIm);
+			CopyProjToLayers(h_TabProj);
 
 			// Kernel Correlation		
 			basic_Correlation_GPU(h_TabCost, mNbIm);
