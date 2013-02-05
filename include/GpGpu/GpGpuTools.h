@@ -329,16 +329,16 @@ template <class T>
 void ImageLayeredCuda<T>::copyHostToDevice( T* data )
 {
 
-	cudaExtent sizeImagesLayared = make_cudaExtent( GetDimension().x, GetDimension().y, _nbLayers );
+	cudaExtent sizeImagesLayared = make_cudaExtent( ImageCuda<T>::GetDimension().x, ImageCuda<T>::GetDimension().y, _nbLayers );
 
 	// Déclaration des parametres de copie 3D
 	cudaMemcpy3DParms	p		= { 0 };
 	cudaPitchedPtr		pitch	= make_cudaPitchedPtr(data, sizeImagesLayared.width * sizeof(T), sizeImagesLayared.width, sizeImagesLayared.height);
 
-	p.dstArray	= GetCudaArray();			// Pointeur du tableau de destination
-	p.srcPtr	= pitch;					// Pitch
-	p.extent	= sizeImagesLayared;		// Taille du cube
-	p.kind		= cudaMemcpyHostToDevice;	// Type de copie
+	p.dstArray	= ImageCuda<T>::GetCudaArray();	// Pointeur du tableau de destination
+	p.srcPtr	= pitch;						// Pitch
+	p.extent	= sizeImagesLayared;			// Taille du cube
+	p.kind		= cudaMemcpyHostToDevice;		// Type de copie
 
 	// Copie des images du Host vers le Device
 	checkCudaErrors( cudaMemcpy3D(&p) );
@@ -348,13 +348,13 @@ void ImageLayeredCuda<T>::copyHostToDevice( T* data )
 template <class T>
 void ImageLayeredCuda<T>::AllocMemory()
 {
-	cudaExtent sizeImagesLayared = make_cudaExtent( GetDimension().x, GetDimension().y, _nbLayers );
+	cudaExtent sizeImagesLayared = make_cudaExtent( ImageCuda<T>::GetDimension().x, ImageCuda<T>::GetDimension().y, _nbLayers );
 
 	// Définition du format des canaux d'images	
 	cudaChannelFormatDesc channelDesc =	cudaCreateChannelDesc<T>();
 
 	// Allocation memoire GPU du tableau des calques d'images
-	checkCudaErrors( cudaMalloc3DArray(GetCudaArray_t(),&channelDesc,sizeImagesLayared,cudaArrayLayered) );
+	checkCudaErrors( cudaMalloc3DArray(ImageCuda<T>::GetCudaArray_t(),&channelDesc,sizeImagesLayared,cudaArrayLayered) );
 
 }
 

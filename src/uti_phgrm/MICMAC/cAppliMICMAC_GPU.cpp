@@ -280,7 +280,7 @@ namespace NS_ParamMICMAC
 		{
 
 			mLoadTextures		= false;
-			float*	fdataImg1D	= nullptr;	
+			float*	fdataImg1D	= NULL;	
 			uint2	dimImgMax	= make_uint2(0,0);
 
 			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
@@ -300,7 +300,7 @@ namespace NS_ParamMICMAC
 				float*	data	= aGLI.LinDIm();
 				uint2 dimImg	= toUi2(aGLI.getSizeImage());
 
-				if(fdataImg1D == nullptr)
+				if(fdataImg1D == NULL)
 					fdataImg1D	= new float[ size(dimImgMax) * mNbIm ];
 	
 				// Copie du tableau 2d des valeurs de l'image
@@ -323,10 +323,10 @@ namespace NS_ParamMICMAC
 					GpGpuTools::Array1DtoImageFile((fdataImg1D + size(dimImgMax)*idImage) , "imageTexture.pgm", dimImgMax, 500.0f);
 				}
 			}*/
-			if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != nullptr))
+			if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
 				imagesToLayers( fdataImg1D, dimImgMax, mNbIm );
 
-			if (fdataImg1D != nullptr) delete[] fdataImg1D;
+			if (fdataImg1D != NULL) delete[] fdataImg1D;
 
 			uint2 Ter0		= make_uint2(mX0Ter,mY0Ter);
 			uint2 Ter1		= make_uint2(mX1Ter,mY1Ter);
