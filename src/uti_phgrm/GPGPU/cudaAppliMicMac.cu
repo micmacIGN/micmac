@@ -2,25 +2,23 @@
 #include "GpGpu/cudaTextureTools.cuh"
 
 // ATTENTION : erreur de compilation avec l'option cudaReadModeNormalizedFloat et l'utilisation de la fonction tex2DLayered
-texture< unsigned char,	cudaTextureType2D >	TexMaskTer;
+texture< pixel,	cudaTextureType2D >	TexMaskTer;
 texture< float2,cudaTextureType2DLayered >	TexL_Proj;
 texture< float,	cudaTextureType2DLayered >	TexL_Images;
-cudaArray* dev_ImgLd;		//
-cudaArray* dev_ProjLr;		//
-cudaArray* dev_MaskTer;		//
 
-ImageCuda<unsigned char> mask;
+ImageCuda<pixel>			mask;
+ImageLayeredCuda<float>		LayeredImages;
+ImageLayeredCuda<float2>	LayeredProjection;
 
-float*	host_Cache;
+//float*	host_Cache;
 float*	dev_Cost;
 float*	dev_Cache;
 float*	dev_NbImgOk;
 static __constant__ paramGPU cH;
 paramGPU h;
 
-
 //------------------------------------------------------------------------------------------
-extern "C" void SetMask(unsigned char* dataMask, uint2 dimMask)
+extern "C" void SetMask(pixel* dataMask, uint2 dimMask)
 {
 	mask.InitImage(dimMask,dataMask);
 
@@ -29,8 +27,6 @@ extern "C" void SetMask(unsigned char* dataMask, uint2 dimMask)
 
 extern "C" void allocMemory(void)
 {
-	//host_Cache		= (float*)	malloc(cac_MemSize);
-
 	if (dev_NbImgOk	!= NULL) checkCudaErrors( cudaFree(dev_NbImgOk));
 	if (dev_Cache	!= NULL) checkCudaErrors( cudaFree(dev_Cache));
 	if (dev_Cost	!= NULL) checkCudaErrors( cudaFree(dev_Cost));
@@ -104,66 +100,30 @@ static void correlOptionsGPU( uint2 ter0, uint2 ter1, uint2 dV,uint2 dRV, uint2 
 extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimImage, int nbLayer)
 {
 
-	cudaExtent sizeImgsLay = make_cudaExtent( dimImage.x, dimImage.y, nbLayer );
-
-	// Définition du format des canaux d'images
-	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
-
-	// Allocation memoire GPU du tableau des calques d'images
-	checkCudaErrors( cudaMalloc3DArray(&dev_ImgLd,&channelDesc,sizeImgsLay,cudaArrayLayered) );
-
-	// Déclaration des parametres de copie 3D
-	cudaMemcpy3DParms	p	= { 0 };
-	cudaPitchedPtr		pit = make_cudaPitchedPtr(fdataImg1D, sizeImgsLay.width * sizeof(float), sizeImgsLay.width, sizeImgsLay.height);
-
-	p.dstArray	= dev_ImgLd;				// Pointeur du tableau de destination
-	p.srcPtr	= pit;						// Pitch
-	p.extent	= sizeImgsLay;				// Taille du cube
-	p.kind		= cudaMemcpyHostToDevice;	// Type de copie
-
-	// Copie des images du Host vers le Device
-	checkCudaErrors( cudaMemcpy3D(&p) );
+	LayeredImages.SetDimension(dimImage,nbLayer);
+	LayeredImages.AllocMemory();
+	LayeredImages.copyHostToDevice(fdataImg1D);
 
 	// Lié à la texture
 	TexL_Images.addressMode[0]	= cudaAddressModeWrap;
     TexL_Images.addressMode[1]	= cudaAddressModeWrap;
     TexL_Images.filterMode		= cudaFilterModeLinear; //cudaFilterModeLinear cudaFilterModePoint
     TexL_Images.normalized		= true;
-	checkCudaErrors( cudaBindTextureToArray(TexL_Images,dev_ImgLd) );
+	
+	checkCudaErrors( cudaBindTextureToArray(TexL_Images,LayeredImages.GetCudaArray()) );
 
 };
 
 extern "C" void  allocMemoryTabProj(uint2 dimTer, int nbLayer)
 {
-
-	// Définition du format des canaux d'images
-	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float2>();
-
-	// Taille du tableau des calques 
-	cudaExtent siz_PL = make_cudaExtent( dimTer.x, dimTer.y, nbLayer);
-
-	// Allocation memoire GPU du tableau des calques de projections
-	if (dev_ProjLr != NULL) cudaFreeArray(dev_ProjLr);
-
-	checkCudaErrors( cudaMalloc3DArray(&dev_ProjLr,&channelDesc,siz_PL,cudaArrayLayered ));
-
+	LayeredProjection.DeallocMemory();
+	LayeredProjection.SetDimension(dimTer,nbLayer);
+	LayeredProjection.AllocMemory();
 }
 
-extern "C" void  CopyProjToLayers(float2 *h_TabProj, uint2 dimTer, int nbLayer)
+extern "C" void  CopyProjToLayers(float2 *h_TabProj)
 {
-	cudaExtent siz_PL = make_cudaExtent( dimTer.x, dimTer.y, nbLayer);
-
-	// Déclaration des parametres de copie 3D
-	cudaMemcpy3DParms p = { 0 };
-
-	p.dstArray	= dev_ProjLr;			// Pointeur du tableau de destination
-	p.srcPtr	= make_cudaPitchedPtr(h_TabProj, siz_PL.width * sizeof(float2), siz_PL.width, siz_PL.height);
-	p.extent	= siz_PL;
-	p.kind		= cudaMemcpyHostToDevice;	// Type de copie
-
-	// Copie des projections du Host vers le Device
-	checkCudaErrors( cudaMemcpy3D(&p) );
-
+	LayeredProjection.copyHostToDevice(h_TabProj);
 };
 
 __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbActThrd )
@@ -312,7 +272,6 @@ extern "C" paramGPU Init_Correlation_GPU(  uint2 ter0, uint2 ter1, int nbLayer ,
 	dev_NbImgOk		= NULL;
 	dev_Cache		= NULL;
 	dev_Cost		= NULL;
-	dev_ProjLr		= NULL;
 
 	correlOptionsGPU( ter0, ter1, dRVig * 2 + 1,dRVig, dimImg,mAhEpsilon, samplingZ, uvINTDef,nbLayer);
 	allocMemory();
@@ -331,7 +290,7 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer ){
 	checkCudaErrors( cudaMemset( dev_Cost,	h.UVIntDef, costMemSize ));
 	checkCudaErrors( cudaMemset( dev_Cache,	h.UVIntDef, cac_MemSize ));
 	checkCudaErrors( cudaMemset( dev_NbImgOk,0, nBI_MemSize ));
-	checkCudaErrors( cudaBindTextureToArray(TexL_Proj,dev_ProjLr) );
+	checkCudaErrors( cudaBindTextureToArray(TexL_Proj,LayeredProjection.GetCudaArray()) );
 
 	//----------------------------------------------------------------------------
 	//				calcul de dimension du kernel de correlation
@@ -375,20 +334,18 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer ){
 
 extern "C" void freeGpuMemory()
 {
-
 	checkCudaErrors( cudaUnbindTexture(TexL_Images) );	
 	checkCudaErrors( cudaUnbindTexture(TexMaskTer) );	
 
-	if(dev_ImgLd	!= NULL) checkCudaErrors( cudaFreeArray( dev_ImgLd) );
-	if(dev_ProjLr	!= NULL) checkCudaErrors( cudaFreeArray( dev_ProjLr) );
 	if(dev_NbImgOk	!= NULL) checkCudaErrors( cudaFree( dev_NbImgOk));
 	if(dev_Cache	!= NULL) checkCudaErrors( cudaFree( dev_Cache));
 	if(dev_Cost		!= NULL) checkCudaErrors( cudaFree( dev_Cost));
 
 	dev_NbImgOk	= NULL;
 	dev_Cache	= NULL;
-	dev_ImgLd	= NULL;
 	dev_Cost	= NULL;
 
 	mask.DeallocMemory();
+	LayeredImages.DeallocMemory();
+	LayeredProjection.DeallocMemory();
 }
