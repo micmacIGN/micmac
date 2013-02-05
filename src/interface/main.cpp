@@ -16,19 +16,19 @@ Pour exécuter ce programme, il faut respecter l'arborescence :
 
 
 int main(int argc, char *argv[])
-{
+{	
 	MMD_InitArgcArgv(argc, argv);
 
-	g_interfaceDirectory = QString( ( NS_ParamChantierPhotogram::MMDir()+"/interface/" ).c_str() );
+	g_interfaceDirectory = QString( ( NS_ParamChantierPhotogram::_MMDir()+"/interface/" ).c_str() );
 	g_iconDirectory = g_interfaceDirectory+"images/";
 
 	QApplication app(argc, argv);
-
+	
 	if (argc>2) {
 		cout << "interfaceMicmac [sauvegarde.xml]" << endl;
 		return -1;
 	}
-
+	
 	//fermeture si une interface est déjà lancée ailleurs
 	/*QSharedMemory sharedMemory("{35DF4G354DFH35FG5-534GN53-21S}");
 	if (sharedMemory.create(sizeof(int))==false) {
