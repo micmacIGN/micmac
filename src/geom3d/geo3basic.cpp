@@ -211,7 +211,7 @@ ElSeg3D  ElSeg3D::CombinL1(const std::vector<Pt3dr> & aV)
             }
         }
     }
-    aCdg = aCdg /aV.size();
+    aCdg = aCdg /(double)(aV.size());
     
     ElSeg3D aSeg(aV[aK1Min],aV[aK2Min]);
     aCdg = aSeg.ProjOrtho(aCdg);

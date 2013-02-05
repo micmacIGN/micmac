@@ -1051,8 +1051,12 @@ GIF_Out_NotComp::GIF_Out_NotComp
     _name         = _tprov_name->coord();
     _sz           = sz;
     _nbb           = ElMax(4,nbb);
-    _cols        = NEW_TAB(1<<_nbb,Elise_colour);
-    memcpy(_cols,tec,sizeof(Elise_colour)*(1<<nbb));
+	//  [2/5/2013 GChoqueux]
+    //_cols        = NEW_TAB(1<<_nbb,Elise_colour);
+    //memcpy(_cols,tec,sizeof(Elise_colour)*(1<<nbb));
+	_cols        = NEW_TAB(1i64<<_nbb,Elise_colour);
+	memcpy(_cols,tec,sizeof(Elise_colour)*(1i64<<nbb));
+	//  [2/5/2013 GChoqueux]
     for (INT k=(1<<nbb);  k<(1<<_nbb); k++)
          _cols[k] = Elise_colour::rgb(0,0,0);
 }

@@ -89,7 +89,7 @@ template <class Iterator,class Fpt,class Act,class Type>  void
     {
         ElComparPts<Type ,Fpt> CmpEq(fpt);
         Type ** newlast = STDUNIQUE(vals,vals+nb,CmpEq);
-        nb = newlast - vals;
+        nb = (int)(newlast - vals);
     }
 
 

@@ -65,6 +65,9 @@ public:
 	//					Retour chariot
 	static void			OutputReturn(char * out = "");
 
+	//
+	static void			OutputGpu();
+
 };
 
 template <class T>

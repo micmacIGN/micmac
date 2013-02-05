@@ -637,7 +637,7 @@ double  cAppliApero::AddAppuisOnePose
    // Pt3dr aCDG = anObs->mBarryTer;
 
 
-   cPonderateur aPdrt(aPPM,aLAp.size());
+   cPonderateur aPdrt(aPPM,(double)(aLAp.size()));
 
 
    double aSomEr= 0;

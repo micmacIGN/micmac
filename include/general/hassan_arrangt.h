@@ -408,7 +408,7 @@ int  IndFind(const std::vector<Type> & aCont,const Type & aVal)
    typename std::vector<Type>::const_iterator iT = std::find(aCont.begin(),aCont.end(),aVal);
    if (iT== aCont.end())
       return -1;
-   return iT - aCont.begin();
+   return (int)(iT - aCont.begin());
 }
 
 template <class T1,class T2>
