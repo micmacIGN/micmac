@@ -1,0 +1,228 @@
+<!--
+
+  FLI    TEX
+  317    318 
+
+-->
+
+<Global>
+
+  <ChantierDescripteur
+     Subst="@$#1"
+     NameDecl="@$#1"
+
+     SzPastis="1500"
+     NbJob="3"
+     PostfixRAW="CR2"
+     PrefixImages="nmb3D"
+     PostfixImagesDebay="_MpDcraw8B_GB"
+
+     SzPastisDef="1500"
+     SzPastisSsRes="500"
+
+     OriFlISeul="-Init"
+
+     PatText="((032[0246])|(033[02468])|(034[468])|(0350))"
+     PatFliTex="((032[1357])|(033[13579])||(034[579])|(0351))"
+
+     PatFliTex2="((035[68])|(036[024]))"
+     PatText2="((035[579])|(036[13]))"
+  >
+
+       <BatchChantDesc>
+              <Key> Batch </Key>
+
+              <Requirement>
+              </Requirement>
+               
+
+
+              <Line>  bin/MyRename  "${ThisDir}(${PrefixImages}.*).${PostfixRAW}"   "F\$2_\$1.${PostfixRAW}" AddFoc=1  </Line>
+              <Line>  bin/MapCmd bin/MpDcraw "P=${ThisDir}(.*).${PostfixRAW}" 16B=0  GB=1   M=MkToto "T=\$1${PostfixImagesDebay}.tif" </Line>
+
+              <Line> bin/Pastis  ${ThisDir} Key-Rel-All-Cple ${SzPastisSsRes} FiltreOnlyDupl=1 MkF=MkToto  NbMinPtsExp=2 SsRes=1  </Line>
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+              <Line> bin/Pastis  ${ThisDir} Key-Rel-All-Cples-Filtr-SsEch ${SzPastisDef} FiltreOnlyDupl=1 MkF=MkToto  NbMinPtsExp=2  </Line>
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+        </BatchChantDesc>
+
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur>  F[0-9]{3}.*\.tif </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-All-Im </Key>
+  </KeyedSetsOfNames>
+
+
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>      F[0-9]{3}_nmb3D_(...)_.*   </PatternTransform>
+                <CalcName>  $1  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Zone   </Key>
+  </KeyedNamesAssociations>
+
+
+
+
+  <KeyedSetsORels >
+       <Sets>
+           <ByAdjacence>
+               <KeySets >  Key-Set-All-Im </KeySets>
+               <DeltaMax > 10000  </DeltaMax>
+               <DeltaMin > -10000 </DeltaMin>
+               <Filtre>
+                    <KeyEquiv> Key-Assoc-Zone  </KeyEquiv>
+               </Filtre>
+
+           </ByAdjacence>
+       </Sets>
+       <Key>  Key-Rel-All-Cple</Key>
+   </KeyedSetsORels>
+
+   <KeyedSetsORels>
+       <Sets >
+            <ByAdjacence>
+                <KeySets>  Key-Set-All-Im   </KeySets>
+                <DeltaMax > 10000  </DeltaMax>
+                <DeltaMin > -10000 </DeltaMin>
+                <Filtre>
+                     <FiltreByRelSsEch>
+                        <KeySet >  Key-Set-SsRes-HomolPastisBin          </KeySet>
+                        <KeyAssocCple>  Key-Assoc-SsRes-CpleIm2HomolPastisBin   </KeyAssocCple>
+                        <SeuilBasNbPts> 4 </SeuilBasNbPts>
+                        <SeuilHautNbPts> 4 </SeuilHautNbPts>
+                        <NbMinCple> 100000 </NbMinCple>
+                     </FiltreByRelSsEch>
+                </Filtre>
+            </ByAdjacence>
+       </Sets>
+       <Key  > Key-Rel-All-Cples-Filtr-SsEch </Key>
+    </KeyedSetsORels>
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>  F024_nmb3D_Tex_2011-01_0318_MpDcraw8B_GB.tif      </PatternTransform>
+                <CalcName>  Ori${OriFlISeul}/Orientation-F024_nmb3D_FlI_2011-01_0317_MpDcraw8B_GB.xml  </CalcName>
+             </Direct>
+             <AutoInverseBySym> true </AutoInverseBySym>
+        </Calcs>
+
+
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>  F024_nmb3D_Tex_2011-01_(${PatText}|${PatText2})_MpDcraw8B_GB.tif      </PatternTransform>
+                <CalcName>  Ori${OriFlISeul}/Orientation-F024_nmb3D_FlI_2011-01_$+1+1_MpDcraw8B_GB.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform>  Ori${OriFlISeul}/Orientation-F024_nmb3D_FlI_2011-01_(${PatFliTex}|${PatFliTex2})_MpDcraw8B_GB.xml </PatternTransform>
+                <CalcName>  F024_nmb3D_Tex_2011-01_$-1-1_MpDcraw8B_GB.tif  </CalcName>
+             </Inverse>
+        </Calcs>
+
+
+
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>  .* </PatternTransform>
+                <CalcName>  NO-XML  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>  NO-TIF </CalcName>
+             </Inverse>
+        </Calcs>
+
+
+
+
+          <Key  > Key-Assoc-Im2Or-TexFromNorm </Key>
+    </KeyedNamesAssociations>
+ 
+
+
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>  F024_nmb3D_..._2011-01_031[7-8]_MpDcraw8B_GB.tif      </PatternTransform>
+                <CalcName>  InvGrp-317  </CalcName>
+             </Direct>
+        </Calcs>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>  F024_nmb3D_..._2011-01_(${PatText}|${PatFliTex})_MpDcraw8B_GB.tif      </PatternTransform>
+                <CalcName>  Grp-$/2/1   </CalcName>
+             </Direct>
+        </Calcs>
+
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>  F024_nmb3D_..._2011-01_035[56]_MpDcraw8B_GB.tif      </PatternTransform>
+                <CalcName>  InvGrp-355   </CalcName>
+             </Direct>
+        </Calcs>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>  F024_nmb3D_..._2011-01_035[78]_MpDcraw8B_GB.tif      </PatternTransform>
+                <CalcName>  InvGrp-357   </CalcName>
+             </Direct>
+        </Calcs>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>  F024_nmb3D_..._2011-01_03(59|60)_MpDcraw8B_GB.tif      </PatternTransform>
+                <CalcName>  InvGrp-359   </CalcName>
+             </Direct>
+        </Calcs>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>  F024_nmb3D_..._2011-01_036[12]_MpDcraw8B_GB.tif      </PatternTransform>
+                <CalcName>  InvGrp-361   </CalcName>
+             </Direct>
+        </Calcs>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>  F024_nmb3D_..._2011-01_036[34]_MpDcraw8B_GB.tif      </PatternTransform>
+                <CalcName>  InvGrp-363   </CalcName>
+             </Direct>
+        </Calcs>
+
+
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>  F024_nmb3D_..._2011-01_([0-9]{4})_MpDcraw8B_GB.tif      </PatternTransform>
+                <CalcName>  Triv-Grp-$1   </CalcName>
+             </Direct>
+        </Calcs>
+
+
+        <Key>   Key-Assoc-Grp-PoseCom  </Key>
+  </KeyedNamesAssociations>
+
+
+
+
+
+  </ChantierDescripteur>
+</Global>
