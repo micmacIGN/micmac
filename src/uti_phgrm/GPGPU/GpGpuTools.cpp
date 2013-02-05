@@ -39,9 +39,7 @@ void GpGpuTools::OutputReturn( char * out )
 
 void GpGpuTools::OutputGpu()
 {
-
-	//std::cout << '-' << std::flush;
-	
+#if (ELISE_windows)
 	Sleep(10);
 	std::cout << "\b\\" << std::flush;
 	Sleep(10);
@@ -50,6 +48,6 @@ void GpGpuTools::OutputGpu()
 	std::cout << "\b/" << std::flush;
 	Sleep(10);
 	std::cout << "\b-" << std::flush;
-	
+#endif
 }
 
