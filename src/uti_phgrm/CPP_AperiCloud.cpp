@@ -55,14 +55,14 @@ int AperiCloud_main(int argc,char ** argv)
     ElInitArgMain
     (
 	argc,argv,
-	LArgMain()  << EAM(aFullDir)
-                    << EAM(AeroIn),
+	LArgMain()  << EAMC(aFullDir,"Full Name : Dir + images")
+                    << EAMC(AeroIn,"Orientation (in)"),
 	LArgMain()  
-                    << EAM(ExpTxt,"ExpTxt",true)
-                    << EAM(Out,"Out",true)
-                    << EAM(PlyBin,"Bin",true)
-                    << EAM(RGB,"RGB",true)
-                    << EAM(aSeuilEc,"SeuilEc",true)
+                    << EAM(ExpTxt,"ExpTxt",true,"Point in txt format ? Def=false")
+                    << EAM(Out,"Out",true,"Result, Def=AperiCloud.ply")
+                    << EAM(PlyBin,"Bin",true,"Ply in binarie mode, Def=true")
+                    << EAM(RGB,"RGB",true,"Use RGB image to texurate points, def=true")
+                    << EAM(aSeuilEc,"SeuilEc",true,"Max residual (def =10)")
     );
 
     if (RGB >=0) 
