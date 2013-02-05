@@ -64,21 +64,21 @@ int Nuage2Ply_main(int argc,char ** argv)
     ElInitArgMain
     (
 	argc,argv,
-	LArgMain()  << EAM(aNameNuage),
-	LArgMain()  << EAM(aSz,"Sz",true)	
-                    << EAM(aP0,"P0",true)	
-                    << EAM(aNameOut,"Out",true)
-                    << EAM(aSc,"Scale",true)
-                    << EAM(anAttr1,"Attr",true)
-                    << EAM(aVCom,"Comments",true)
+	LArgMain()  << EAMC(aNameNuage,"Name of XML file"),
+	LArgMain()  << EAM(aSz,"Sz",true,"Sz (to crop)")	
+                    << EAM(aP0,"P0",true,"Origin (to crop)")	
+                    << EAM(aNameOut,"Out",true,"Name of refult (default toto.xml => toto.ply)")
+                    << EAM(aSc,"Scale",true,"Do change the scale of result (def=1, 2 mean smaller)")
+                    << EAM(anAttr1,"Attr",true,"Image to colour the point")
+                    << EAM(aVCom,"Comments",true,"Commentary to add in the ply file (Def=None)" )
                     << EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
-                    << EAM(aMask,"Mask",true)
-                    << EAM(aDyn,"Dyn",true)
-                    << EAM(DoPly,"DoPly",true)
-                    << EAM(DoXYZ,"DoXYZ",true)
-					<< EAM(DoNrm,"Normale",true)
-                    << EAM(aExagZ,"ExagZ",true)
-                    << EAM(aRatio,"RatioAttrCarte",true)
+                    << EAM(aMask,"Mask",true,"Supplementary mask image")
+                    << EAM(aDyn,"Dyn",true,"Dynamic of attribute")
+                    << EAM(DoPly,"DoPly",true,"Do Ply , def = true")
+                    << EAM(DoXYZ,"DoXYZ",true,"Do XYZ, export as RGB image where R=X,G=Y,B=Z")
+                    << EAM(DoNrm,"Normale",true,"Add normale (Def=false, usuable for Poisson)")
+                    << EAM(aExagZ,"ExagZ",true,"To exagerate the depth, Def=1.0")
+                    << EAM(aRatio,"RatioAttrCarte",true,"")
                     << EAM(aDoMesh,"Mesh",true)
     );	
 
