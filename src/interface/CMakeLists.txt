@@ -35,16 +35,21 @@ SET(interfaceMicmac_HEADERS ${interface_directory}/appliThread.h
 
 SET(QT_USE_QTOPENGL TRUE)
 
+find_package(Qt4 REQUIRED QtCore QtGui QtOpenGL)
+
 QT4_WRAP_CPP(interfaceMicmac_HEADERS_MOC ${interfaceMicmac_HEADERS})
 QT4_ADD_RESOURCES(interfaceMicmac_RESOURCES_RCC ressources.qrc)
 
 INCLUDE(${QT_USE_FILE})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
 
+message("librairies X11 : "${X11_LIBRARIES})
+message("librairies Qt : "${QT_LIBRARIES})
+
 ADD_EXECUTABLE(interfaceMicmac ${interfaceMicmac_SOURCES}
                                ${interfaceMicmac_HEADERS_MOC})
 TARGET_LINK_LIBRARIES(interfaceMicmac ${OPENGL_LIBRARIES} ${GLU_LIBRARY}
-									  ${X11_LIBRARIES} X11
+									  ${X11_LIBRARIES}
 									  ${QT_LIBRARIES}
                                       elise
                                       ${interfaceMicmac_LIBS})
