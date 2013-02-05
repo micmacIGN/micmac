@@ -37,3 +37,19 @@ void GpGpuTools::OutputReturn( char * out )
 
 }
 
+void GpGpuTools::OutputGpu()
+{
+
+	//std::cout << '-' << std::flush;
+	
+	Sleep(10);
+	std::cout << "\b\\" << std::flush;
+	Sleep(10);
+	std::cout << "\b|" << std::flush;
+	Sleep(10);
+	std::cout << "\b/" << std::flush;
+	Sleep(10);
+	std::cout << "\b-" << std::flush;
+	
+}
+

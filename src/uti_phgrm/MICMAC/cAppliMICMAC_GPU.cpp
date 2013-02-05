@@ -392,9 +392,6 @@ namespace NS_ParamMICMAC
 
 		delete[] maskTab;
 
-		//std::cout << "Terrain   : " << h.dimTer.x << "," << h.dimTer.y << "\n";
-		//std::cout << "S Terrain : " << h.dimSTer.x << "," << h.dimSTer.y << "\n";
-
 		//////////////////////////////////////////////////////////////////////////
 		
 #else
@@ -925,11 +922,13 @@ namespace NS_ParamMICMAC
 		
 		if(	mNbIm == 0) return;
 
+		//GpGpuTools::OutputGpu();
+
 		// Obtenir la nappe englobante
 		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
 		//int aZMinTer = 0 , aZMaxTer = 1;
 
-		if (h.ptMask0.x == -1 || (h.ptMask0.x -h.ptMask1.x == 1 )|| (h.ptMask0.y -h.ptMask1.y == 1 ))
+		if (h.ptMask0.x == -1)
 		{
 			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
 				for (int anX = mX0Ter ; anX <  mX1Ter ; anX++) 
@@ -957,7 +956,7 @@ namespace NS_ParamMICMAC
 			
 			// Copie des projections de host vers le device
 			CopyProjToLayers(h_TabProj);
-
+			
 			// Kernel Correlation		
 			basic_Correlation_GPU(h_TabCost, mNbIm);
 		

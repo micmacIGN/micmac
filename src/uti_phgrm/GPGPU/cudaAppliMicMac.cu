@@ -142,12 +142,12 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbA
 	const float2 ptProj = tex2DLayeredPt(TexL_Proj,ptHTer,cH.dimSTer,cH.sampTer,blockIdx.z);
 #endif
 	
-	if (oI(ptProj,0))	//if (oEq(ptProj, cH.UVDefValue))
+	if (oI(ptProj,0))
 	{
 		cacheImg[threadIdx.y][threadIdx.x]  = cH.badVig;
 		return;
 	}
- 	else				//cacheImg[threadIdx.y][threadIdx.x] = tex2DLayeredPt( TexL_Images, ptProj, cH.dimImg, blockIdx.z);
+ 	else
 		cacheImg[threadIdx.y][threadIdx.x] = tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, cH.dimImg,(int)blockIdx.z);
 	
 	__syncthreads();

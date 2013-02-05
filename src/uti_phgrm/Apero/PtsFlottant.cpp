@@ -254,7 +254,7 @@ void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
    }
 
 
-   cPonderateur aPdrtIm(anObs.PondIm(),mCams.size());
+   cPonderateur aPdrtIm(anObs.PondIm(),(double)(mCams.size()));
 
    double anErMax = -1;
    int aKMax = -1;

@@ -1515,7 +1515,7 @@ std::string XML_MM_File(const std::string & aFile)
 				Pt2di aPer = aMatr.Period();
 				int aIP = aPer.x * aPer.y;
 
-				int aK = aLB - aV0;
+				int aK = (int)(aLB - aV0);
 				aMR.mNumMatr = aK/aIP;
 				aMR.mNumGlob = aK;
 				aK = aK % aIP;

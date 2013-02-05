@@ -489,7 +489,7 @@ void cNormCoord::Set(const std::vector<Pt3dr> &aVin)
         Pt3dr aP = aVin[aK];
         aCDG = aCDG +  aP;
     }
-    aCDG = aCDG / aVin.size();
+    aCDG = aCDG / (double)(aVin.size());
 
 
     for (int aK=0 ;aK<int(aVin.size()) ; aK++)
@@ -497,7 +497,7 @@ void cNormCoord::Set(const std::vector<Pt3dr> &aVin)
         Pt3dr aP = aVin[aK];
         aScale = aScale + (aP-aCDG).AbsP();
     }
-    aScale = aScale /aVin.size();
+    aScale = aScale /(double)(aVin.size());
 
 /*
 std::cout << "TRICHE " << aCDG << " " << aScale << "\n";
