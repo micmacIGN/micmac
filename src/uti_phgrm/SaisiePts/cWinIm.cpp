@@ -82,7 +82,7 @@ cWinIm::cWinIm(cAppli_SaisiePts& anAppli,Video_Win aW,Video_Win aWT,cImage & aIm
     Grab_Untill_Realeased(),
     mAppli  (anAppli),
     mW (aW),
-    mWT(aWT),
+    mWT (aWT),
     mVWV (aW,StdPalOfFile(aIm0.Tif().name(),aW),Pt2di(10,10)),  // Sz  Incrustation 
     // mScr (ElImScroller::StdPyramide (mVWV,aIm0.Tif().name())),
     mScr    (SCR(mVWV,aIm0.Tif().name())),

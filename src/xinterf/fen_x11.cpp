@@ -554,11 +554,16 @@ void DataElXim::init(Data_Elise_Video_Win * w,Pt2di sz)
 {
 
     _w = w;
-    ELISE_ASSERT
-    (
-          (sz.x <= w->_sz.x) && (sz.y<=w->_sz.y),
-          "ElXim size to big for Window "
-    );
+
+    if ((sz.x > w->_sz.x) || (sz.y>w->_sz.y))
+    {
+        std::cout << "DataElXim::init " << sz << " " << w->_sz << "\n";
+        ELISE_ASSERT
+        (
+              (sz.x <= w->_sz.x) && (sz.y<=w->_sz.y),
+              "ElXim size to big for Window "
+        );
+    }
     _xim =  w->AllocXim(sz);
     ELISE_ASSERT(_xim,"Can't alloc Ximage");
     _bbl    = _xim->bytes_per_line; 
