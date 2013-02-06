@@ -19,7 +19,7 @@ using namespace std;
 
 #define INTDEFAULT	-64
 #define SAMPLETERR	4
-#define INTERZ		4
+#define INTERZ		12
 
 #ifdef _DEBUG
 	#define   BLOCKDIM	16
@@ -52,7 +52,7 @@ struct paramGPU
 	 int	IntDefault;	// INT UV Terrain incorrect
 	 uint2	dimCach;	// Dimension cache
 	 uint	sizeCach;	// Taille du cache
-	 uint	nLayer;		// Nombre d'images
+	 uint	nbImages;		// Nombre d'images
 	 int2	ptMask0;	// point debut du masque
 	 int2	ptMask1;	// point fin du masque
 	 float	badVig;		//

@@ -855,16 +855,13 @@ namespace NS_ParamMICMAC
 						if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip))
 						{
 							int2 r	= (an - Ter0)/sample;
-							int iD	= ( (abs(Z - anZ) * mNbIm   +   aKIm )* sizSTabProj  + to1D(r,dimSTabProj));
-
-
-							int aZMin	= mTabZMin[an.y][an.x];
-							int aZMax	= mTabZMax[an.y][an.x];
-								
-							//if (/*IsInTer( an.x, an.y ) && (aGLI.IsVisible(an.x ,an.y )) && */(aZMin <= anZ)&&(anZ <=aZMax) )
-							
+							int iD	= (abs(Z - anZ) * mNbIm  +   aKIm )* sizSTabProj  + to1D(r,dimSTabProj);
+// 							int aZMin	= mTabZMin[an.y][an.x];
+// 							int aZMax	= mTabZMax[an.y][an.x];
+ 										
+							//if ((aGLI.IsVisible(an.x ,an.y )) /*&& (aZMin <= anZ)&&(anZ <=aZMax) */)
 							{					
-								const double aZReel	= DequantZ(anZ);				// Déquantification  de X, Y et Z 
+								const double aZReel	= DequantZ(anZ);			// Déquantification  de X, Y et Z 
 								Pt2dr aPTer	= DequantPlani(an.x,an.y);
 								Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image 			
 							
@@ -918,7 +915,8 @@ namespace NS_ParamMICMAC
 		if(	mNbIm == 0) return;
 
 		// Obtenir la nappe englobante
-		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;//int aZMinTer = 0 , aZMaxTer = 1;
+		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
+		//int aZMinTer = 0 , aZMaxTer = 1;
 		
 		if (h.ptMask0.x == -1)
 		{
@@ -928,7 +926,6 @@ namespace NS_ParamMICMAC
 						mSurfOpt->SetCout(Pt2di(anX,anY),&anZ,mAhDefCost);
 			return;
 		}
-
 
 		uint interZ	= min(INTERZ, abs(aZMaxTer - aZMinTer));
 
@@ -981,12 +978,12 @@ namespace NS_ParamMICMAC
 				}
 			}
 
-			if ( ((int)interZ >= abs(aZMaxTer - anZ ))  &&  (anZ != aZMinTer - 1))
+			if ( ((int)interZ >= abs(aZMaxTer - anZ ))  &&  (anZ != aZMaxTer - 1))
 			{
 				
-				interZ		= aZMaxTer - anZ;
+				interZ		= abs(aZMaxTer - anZ);
 				siTabProj	= mNbIm * h.sizeSTer * interZ;
-
+				
 				h = updateSizeBlock(make_uint2(h.ptMask0),make_uint2(h.ptMask1),interZ);
 				
 				cudaFreeHost(h_TabCost);
