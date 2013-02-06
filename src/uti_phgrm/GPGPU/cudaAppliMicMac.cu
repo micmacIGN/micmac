@@ -33,7 +33,7 @@ extern "C" void allocMemory(void)
 
 	int costMemSize = h.rSiTer	* sizeof(float) * h.ZInter;
 	int nBI_MemSize = h.rSiTer	* sizeof(float) * h.ZInter;
-	int cac_MemSize = h.sizeCach* sizeof(float)* h.nLayer * h.ZInter;
+	int cac_MemSize = h.sizeCach* sizeof(float)* h.nbImages * h.ZInter;
 	
 	// Allocation mémoire
 	checkCudaErrors( cudaMalloc((void **) &dev_Cache	, cac_MemSize ) );
@@ -84,7 +84,7 @@ static void correlOptionsGPU( uint2 ter0, uint2 ter1, uint2 dV,uint2 dRV, uint2 
 	float uvDef;
 	memset(&uvDef,uvINTDef,sizeof(float));
 
-	h.nLayer	= nLayer;
+	h.nbImages	= nLayer;
 	h.dimVig	= dV;							// Dimension de la vignette
 	h.dimImg	= dI;							// Dimension des images
 	h.rVig		= dRV;							// Rayon de la vignette
@@ -149,7 +149,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbA
 		return;
 	}
  	else
-		cacheImg[threadIdx.y][threadIdx.x] = tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, cH.dimImg,(int)blockIdx.z);
+		cacheImg[threadIdx.y][threadIdx.x] = tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, cH.dimImg,(int)(blockIdx.z % cH.nbImages));
 	
 	__syncthreads();
 
@@ -199,7 +199,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbA
 			cachVig[ pitchCache + _py  + (pt.x - c0.x)] = (cacheImg[pt.y][pt.x] -aSV)/aSVV;
 	}	
 
-	const uint ZPitch = (blockIdx.z % cH.nLayer) * cH.rSiTer;
+	const int ZPitch = (blockIdx.z / cH.nbImages) * cH.rSiTer;
 
 	atomicAdd( &dev_NbImgOk[ZPitch + to1D(ptTer,cH.rDiTer)], 1.0f);
 };
@@ -241,12 +241,12 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 
 	if (aNbImOk < 2) return;
 	
-	const uint sizLayer = threadIdx.z * cH.sizeCach;				// Taille du cache vignette pour une image
+	const uint sizLayer = (blockIdx.z * cH.nbImages + threadIdx.z) * cH.sizeCach;				// Taille du cache vignette pour une image
 	const uint iCach	= sizLayer + to1D( ptCach, cH.dimCach );	// Coordonnées 1D du cache vignette
 	const uint2 cc		= ptTer * cH.dimVig;						// coordonnées 2D 1er pixel de la vignette
 	const int iCC		= sizLayer + to1D( cc, cH.dimCach );		// coordonnées 1D 1er pixel de la vignette
 
-	if (cacheVign[iCC] == cH.DefaultVal) return;					// sortir si vignette incorrecte
+	if (cacheVign[iCC] == cH.DefaultVal) return;					// sortir si la vignette incorrecte
 
 	const float val = cacheVign[iCach]; 
 
@@ -318,8 +318,8 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer, uint inte
 	
 	//-------------------  KERNEL  Multi Correlation  ------------------------------
 
-   	multiCorrelationKernel<<<blocks_mC, threads_mC>>>( dev_Cost, dev_Cache, dev_NbImgOk, actiThs);
-   	getLastCudaError("Multi-Correlation kernel failed");
+    multiCorrelationKernel<<<blocks_mC, threads_mC>>>( dev_Cost, dev_Cache, dev_NbImgOk, actiThs);
+    getLastCudaError("Multi-Correlation kernel failed");
 
 	//----------------------------------------------------------------------------
 
@@ -329,7 +329,7 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer, uint inte
 	//----------------------------------------------------------------------------
 	//checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );
 	//checkCudaErrors( cudaMemcpy( host_Cache, dev_Cache,	  cac_MemSize, cudaMemcpyDeviceToHost) );
-	//GpGpuTools::OutputArray(h_TabCost,h.rDiTer,10.0f,h.UVDefValue);
+	//GpGpuTools::OutputArray(h_TabCost,h.rDiTer,11.0f,h.DefaultVal);
 	//----------------------------------------------------------------------------
 
 }
