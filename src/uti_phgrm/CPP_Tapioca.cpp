@@ -252,7 +252,7 @@ int Line(int argc,char ** argv)
 	argc,argv,
 	LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)")
                      <<EAMC(aFullRes,"Size of image")
-                     <<EAM(aNbAdj,"Number of ajdcent images to look for"),
+                     <<EAMC(aNbAdj,"Number of ajdcent images to look for"),
 	LArgMain()  << EAM(ExpTxt,"ExpTxt",true)	
                     << EAM(PostFix,"PostFix",true)	
                     << EAM(ByP,"ByP",true)	
