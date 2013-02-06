@@ -253,9 +253,9 @@ int Line(int argc,char ** argv)
 	LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)")
                      <<EAMC(aFullRes,"Size of image")
                      <<EAMC(aNbAdj,"Number of ajdcent images to look for"),
-	LArgMain()  << EAM(ExpTxt,"ExpTxt",true)	
-                    << EAM(PostFix,"PostFix",true)	
-                    << EAM(ByP,"ByP",true)	
+	LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export Pts in texte format")	
+                    << EAM(PostFix,"PostFix",true,"Add post fix in directory")	
+                    << EAM(ByP,"ByP",true,"By processe")	
                     << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")	
     );
     DoDevelopp(-1,aFullRes);

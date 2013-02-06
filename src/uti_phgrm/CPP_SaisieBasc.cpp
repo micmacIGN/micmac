@@ -65,9 +65,9 @@ int SaisieBasc_main(int argc,char ** argv)
         argc,argv,
         LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pattern)")
                     << EAMC(anOri,"Orientation, NONE if unused")
-                    << EAMC(anOut,"Output"),
-        LArgMain()  << EAM(aSzW,"SzW",true)
-                    << EAM(aNbFen,"NbF",true)
+                    << EAMC(anOut,"Output File "),
+        LArgMain()  << EAM(aSzW,"SzW",true,"Total size of windows")
+                    << EAM(aNbFen,"NbF",true,"Number of Windows (def depend of number of images")
   );
 
   std::string aDir,aName;
