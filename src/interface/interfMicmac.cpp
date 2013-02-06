@@ -1485,7 +1485,7 @@ void ProfondeurTab::updateParam() {
 
 	float pmax = intervMaxEdit->text().toDouble(&ok);
 	if (!ok) return;
-	parametre->setInterv( pair<float,float>(pmin,pmax) );
+	parametre->setInterv( pair<float,float>((float)pmin,pmax) );
 
 	//discontinuités
 	if (checkDiscont->isChecked()) {
