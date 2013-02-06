@@ -333,6 +333,9 @@ ElXim  VideoWin_Visu_ElImScr::StdIm(Video_Win w)
     Pt2di Sz0 = E.sz();
 
     Pt2di sz (3*Sz0.x,Sz0.y);
+
+sz = Inf(sz,w.sz());
+
     Im2D_U_INT1 R(sz.x,sz.y,0);
     Im2D_U_INT1 G(sz.x,sz.y,0);
     Im2D_U_INT1 B(sz.x,sz.y,0);
@@ -346,7 +349,9 @@ ElXim  VideoWin_Visu_ElImScr::StdIm(Video_Win w)
     );
 
 
-    return ElXim(w,sz,Virgule(R.in(),G.in(),B.in()),w.prgb());
+    ElXim aRes = ElXim(w,sz,Virgule(R.in(),G.in(),B.in()),w.prgb());
+
+    return aRes;
 
 }
 

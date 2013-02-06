@@ -151,6 +151,7 @@ void cAppli_SaisiePts::InitWindows()
 
    Pt2di aSzF =  aSW.SzTotIm().Val().dcbyc(mNb2W);;
 
+
    int aCpt=0;
    Video_Win * aLastW = 0;
    Video_Win * aLastWX0 = 0;
