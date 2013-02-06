@@ -17,8 +17,9 @@
 using namespace std;
 
 
-#define INTDEFAULT -64
-#define SAMPLETERR 4
+#define INTDEFAULT	-64
+#define SAMPLETERR	4
+#define INTERZ		4
 
 #ifdef _DEBUG
 	#define   BLOCKDIM	16
@@ -34,6 +35,7 @@ struct paramGPU
 	 int2	pUTer0;
 	 int2	pUTer1;
 
+	 uint	ZInter;
 	 uint2	rDiTer;		// Dimension du bloque terrain
 	 uint2	dimTer;		// Dimension du bloque terrain + halo
 	 uint2	dimSTer;	// Dimension du bloque terrain + halo sous echantilloné
@@ -46,8 +48,8 @@ struct paramGPU
 	 uint	rSiTer;		// taille reel du terrain
 	 uint	sizeSTer;	// Taille du bloque terrain + halo sous echantilloné
 	 uint	sampTer;	// Pas echantillonage du terrain
-	 float	UVDefValue;	// UV Terrain incorrect
-	 int	UVIntDef;	// INT UV Terrain incorrect
+	 float	DefaultVal;	// UV Terrain incorrect
+	 int	IntDefault;	// INT UV Terrain incorrect
 	 uint2	dimCach;	// Dimension cache
 	 uint	sizeCach;	// Taille du cache
 	 uint	nLayer;		// Nombre d'images
