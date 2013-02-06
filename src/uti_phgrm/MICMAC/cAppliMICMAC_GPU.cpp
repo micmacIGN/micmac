@@ -331,7 +331,7 @@ namespace NS_ParamMICMAC
 			uint2 Ter0		= make_uint2(mX0Ter,mY0Ter);
 			uint2 Ter1		= make_uint2(mX1Ter,mY1Ter);
 
-			h = Init_Correlation_GPU(Ter0, Ter1, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
+			h = Init_Correlation_GPU(Ter0, Ter1, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT, 4);
 
 		}
 
@@ -375,7 +375,7 @@ namespace NS_ParamMICMAC
 		h.ptMask1.x++;
 		h.ptMask1.y++;
 
-		h = updateSizeBlock(make_uint2(h.ptMask0),make_uint2(h.ptMask1));
+		h = updateSizeBlock(make_uint2(h.ptMask0),make_uint2(h.ptMask1),INTERZ);
 		
 		if (h.ptMask0.x != -1)
 		{
@@ -830,7 +830,7 @@ namespace NS_ParamMICMAC
 	}
 
 #ifdef  CUDA_ENABLED
-	void cAppliMICMAC::Tabul_Projection( float2* TabProj, int Z, int2 Ter0, int2 Ter1, uint sample)
+	void cAppliMICMAC::Tabul_Projection( float2* TabProj, int Z, int2 Ter0, int2 Ter1, uint sample, uint interZ)
 	{
 		
 		uint2	dimTabProj	= make_uint2(Ter1 - Ter0);				// Dimension de la zone terrain 
@@ -838,49 +838,44 @@ namespace NS_ParamMICMAC
 		uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
  		int2	aSzDz		= toI2(Pt2dr(mGeomDFPx->SzDz()));		// Dimension de la zone terrain total
  		int2	aSzClip		= toI2(Pt2dr(mGeomDFPx->SzClip()));		// Dimension du bloque
-		float*	debugProj	= new float[h.sizeSTer * mNbIm];
 
-
-		for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )					// Mise en calque des projections pour chaque image
+		for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
 		{
+			for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )					// Mise en calque des projections pour chaque image
+			{
 			
-			cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);			// Obtention de l'image courante
-			const cGeomImage*	aGeom	= aGLI.Geom();
-			int2 an;
+				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);			// Obtention de l'image courante
+				const cGeomImage*	aGeom	= aGLI.Geom();
+				int2 an;
 		
-			for (an.y = Ter0.y; an.y < Ter1.y; an.y += sample)	// Ballayage du terrain  
-			{															
-				for (an.x = Ter0.x; an.x < Ter1.x ; an.x += sample)	
-				{
-					if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip))
+				for (an.y = Ter0.y; an.y < Ter1.y; an.y += sample)	// Ballayage du terrain  
+				{															
+					for (an.x = Ter0.x; an.x < Ter1.x ; an.x += sample)	
 					{
+						if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip))
+						{
+							int2 r	= (an - Ter0)/sample;
+							int iD	= ( (abs(Z - anZ) * mNbIm   +   aKIm )* sizSTabProj  + to1D(r,dimSTabProj));
 
-						int2 r		= (an - Ter0)/sample;
-						int iD		= (aKIm * sizSTabProj  + to1D(r,dimSTabProj));
 
-						//int aZMin	= mTabZMin[an.y][an.x];
-						//int aZMax	= mTabZMax[an.y][an.x];
-
-						//if (/*IsInTer( an.x, an.y ) && */(aGLI.IsVisible(an.x ,an.y )) && (aZMin <= Z)&&(Z <=aZMax) )
-						{					
-							const double aZReel	= DequantZ(Z);// Déquantification  de X, Y et Z 
-							Pt2dr		aPTer	= DequantPlani(an.x,an.y);
-							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image 			
+							int aZMin	= mTabZMin[an.y][an.x];
+							int aZMax	= mTabZMax[an.y][an.x];
+								
+							//if (/*IsInTer( an.x, an.y ) && (aGLI.IsVisible(an.x ,an.y )) && */(aZMin <= anZ)&&(anZ <=aZMax) )
 							
-							if (aGLI.IsOk( aPIm.x, aPIm.y ))
-							{
-								TabProj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
-								debugProj[iD]	= (float)aPIm.x;
-							}
-						}	
+							{					
+								const double aZReel	= DequantZ(anZ);				// Déquantification  de X, Y et Z 
+								Pt2dr aPTer	= DequantPlani(an.x,an.y);
+								Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image 			
+							
+								if (aGLI.IsOk( aPIm.x, aPIm.y ))
+									TabProj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
+							}	
+						}
 					}
 				}
 			}
 		}
-
-		//GpGpuTools::OutputArray(debugProj + h.sizeSTer, h.dimSTer, 10.f, h.UVDefValue);
-
-		
 /*
 		for (int aKIm = 0 ; aKIm < 4 ; aKIm++ )
 		{
@@ -922,12 +917,9 @@ namespace NS_ParamMICMAC
 		
 		if(	mNbIm == 0) return;
 
-		//GpGpuTools::OutputGpu();
-
 		// Obtenir la nappe englobante
-		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		//int aZMinTer = 0 , aZMaxTer = 1;
-
+		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;//int aZMinTer = 0 , aZMaxTer = 1;
+		
 		if (h.ptMask0.x == -1)
 		{
 			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
@@ -937,360 +929,80 @@ namespace NS_ParamMICMAC
 			return;
 		}
 
-		uint siTabProj	= mNbIm * h.sizeSTer;
 
-		float* h_TabCost;
+		uint interZ	= min(INTERZ, abs(aZMaxTer - aZMinTer));
+
+		if (interZ != INTERZ)
+			h = updateSizeBlock(make_uint2(h.ptMask0),make_uint2(h.ptMask1),interZ);
+
+		uint siTabProj	= mNbIm * h.sizeSTer * interZ;
+		int anZ			= aZMinTer;
+		float*	h_TabCost;
 		float2* h_TabProj;
 
-		cudaMallocHost(&h_TabCost,(size_t)(h.rSiTer * sizeof(float)));
+		cudaMallocHost(&h_TabCost,(size_t)(interZ * h.rSiTer * sizeof(float)));
 		cudaMallocHost(&h_TabProj,(size_t)(siTabProj * sizeof(float2)));
 
-		allocMemoryTabProj(h.dimSTer, mNbIm);
+		allocMemoryTabProj(h.dimSTer, mNbIm * interZ);
+		
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
-		for (int anZ = aZMinTer ;  anZ < aZMaxTer ; anZ++)
+		while( anZ < aZMaxTer )
 		{
 			// Re-initialisation du tableau de projection
-			memset(h_TabProj,h.UVIntDef,siTabProj * sizeof(float2));
+			memset(h_TabProj,h.IntDefault,siTabProj * sizeof(float2));
 
-			Tabul_Projection(h_TabProj, anZ, h.pUTer0, h.pUTer1, h.sampTer);
+			Tabul_Projection(h_TabProj, anZ, h.pUTer0, h.pUTer1, h.sampTer, interZ);
 			
 			// Copie des projections de host vers le device
 			CopyProjToLayers(h_TabProj);
 			
-			// Kernel Correlation		
-			basic_Correlation_GPU(h_TabCost, mNbIm);
+			// Kernel Correlation
+			basic_Correlation_GPU(h_TabCost, mNbIm, interZ);
 		
-			for (int Y = mY0Ter ; Y < mY1Ter ; Y++)		// Ballayage du terrain  
-			{			
-				for (int X = mX0Ter; X <  mX1Ter; X++,mNbPointsIsole++)	
-				{
-					if ( mTabZMin[Y][X] <=  anZ && anZ < mTabZMax[Y][X])
-					{					
-						if (X >= h.ptMask0.x && Y >= h.ptMask0.y && X < h.ptMask1.x && Y < h.ptMask1.y )
-						{							
-							double cost = (double)h_TabCost[h.rDiTer.x * (Y - h.ptMask0.y) +  X -  h.ptMask0.x];
-							mSurfOpt->SetCout(Pt2di(X,Y),&anZ, cost != h.UVDefValue ? cost : mAhDefCost);																									
-						}
-						else						
-							mSurfOpt->SetCout(Pt2di(X,Y),&anZ,mAhDefCost);							
+			for (int Z = anZ ; Z < (int)(anZ + interZ); Z++)
+			{
+				for (int Y = mY0Ter ; Y < mY1Ter ; Y++)		// Ballayage du terrain  
+				{			
+					for (int X = mX0Ter; X <  mX1Ter; X++,mNbPointsIsole++)	
+					{
+						if ( mTabZMin[Y][X] <=  Z && Z < mTabZMax[Y][X])
+						{					
+							if (X >= h.ptMask0.x && Y >= h.ptMask0.y && X < h.ptMask1.x && Y < h.ptMask1.y )
+							{							
+								int id = h.rSiTer * abs(anZ - Z) + h.rDiTer.x * (Y - h.ptMask0.y) +  X -  h.ptMask0.x;
+								double cost = (double)h_TabCost[id];
+								mSurfOpt->SetCout(Pt2di(X,Y),&Z, cost != h.DefaultVal ? cost : mAhDefCost);																									
+							}
+							else						
+								mSurfOpt->SetCout(Pt2di(X,Y),&Z,mAhDefCost);							
 						
+						}	
 					}	
-				}	
+				}
 			}
+
+			if ( ((int)interZ >= abs(aZMaxTer - anZ ))  &&  (anZ != aZMinTer - 1))
+			{
+				
+				interZ		= aZMaxTer - anZ;
+				siTabProj	= mNbIm * h.sizeSTer * interZ;
+
+				h = updateSizeBlock(make_uint2(h.ptMask0),make_uint2(h.ptMask1),interZ);
+				
+				cudaFreeHost(h_TabCost);
+				cudaFreeHost(h_TabProj);
+				
+				cudaMallocHost(&h_TabCost,(size_t)(interZ * h.rSiTer * sizeof(float)));
+				cudaMallocHost(&h_TabProj,(size_t)(siTabProj * sizeof(float2)));
+
+				allocMemoryTabProj(h.dimSTer, mNbIm * interZ);
+			} 
+			
+			anZ += interZ;
 		}
 
 		cudaFreeHost(h_TabCost);
 		cudaFreeHost(h_TabProj);
-
-/*
-
-		if(0)
-		{
-
-			bool showdebug_CPU = false;
-			std::vector<double *> aVecVals(mNbIm);
-			double ** aVVals = &(aVecVals[0]);
-			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
-			{
-				for (int anX = mX0Ter ; anX <  mX1Ter ; anX++) 	//Au boulot !  on balaye le terrain
-				{
-				
-					int aZMin = 0;
-					int aZMax = 1;
-					aZMin = mTabZMin[anY][anX];
- 					aZMax = mTabZMax[anY][anX];
-					
-					// est-on dans le masque des points terrains valide
-					if ( IsInTer(anX,anY))
-					{
-						// Bornes du voisinage
-						int aX0v = anX-mPtSzWFixe.x;int aX1v = anX+mPtSzWFixe.x;
-						int aY0v = anY-mPtSzWFixe.y;int aY1v = anY+mPtSzWFixe.y;
-
-						// on parcourt l'intervalle de Z compris dans la nappe au point courant
-						for (int aZInt=aZMin ;  aZInt< aZMax ; aZInt++)
-						{
-							// Pointera sur la derniere imagette OK
-							double ** aVVCur = aVVals;					
-							double aZReel  = DequantZ(aZInt);
-							int aNbImOk = 0;
-							for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
-							{
-								
-								//////////////////////////////////////////////////////////////////////////
-													//////////////////////////////////////////////////////
-								int imageDebug = 2; //////////////////////////////////////////////////////
-
-								//////////////////////////////////////////////////////////////////////////
-
-								cGPU_LoadedImGeom & aGLI = *(mVLI[aKIm]);
-								const cGeomImage * aGeom=aGLI.Geom();
-								float ** aDataIm =  aGLI.DataIm();
-
-								// Pour empiler les valeurs
-								double * mValsIm = aGLI.Vals();
-								double * mCurVals = mValsIm;
-
-								// Pour stocker les moment d'ordre 1 et 2
-								double  aSV = 0, aSVV = 0;
-
-								if (aGLI.IsVisible(anX,anY)) // En cas de gestion parties cachees, un masque terrain de visibilite a ete calcule par image
-								{	
-									bool IsOk = true;
-
-									for (int aXVois=aX0v ; (aXVois<=aX1v)&&IsOk; aXVois++)// Balaye le voisinage
-									{
-										for (int aYVois= aY0v; (aYVois<=aY1v)&&IsOk; aYVois++)
-										{
-											// On dequantifie la plani 
-											Pt2dr aPTer  = DequantPlani(aXVois,aYVois); 
-											Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);
-
-											// Est ce qu'un point image est dans le domaine de definition de l'image
-											if ((aGLI.IsOk(aPIm.x,aPIm.y))&&(aGLI.IsOk(aPIm.x+2,aPIm.y+2))&&(aGLI.IsOk(aPIm.x-2,aPIm.y-2)))
-											{
-												//////////////////////////////////////////////////////////////////////////
-												double aVal =  mInterpolTabule.GetVal(aDataIm,aPIm);
-												//double aVal =  aDataIm[(int)aPIm.y][(int)aPIm.x];
-												//////////////////////////////////////////////////////////////////////////
-												// On "push" la nouvelle valeur de l'image
-												*(mCurVals++) = aVal;
-												aSV += aVal;
-												aSVV += QSquare(aVal) ;
-// 												if (showdebug_CPU && aKIm == imageDebug && aXVois == anX && aYVois == anY )
-// 												{
-// 													float off = 100.0f;
-// 													std::string S2 = "    ";
-// 													std::string ES = "";
-// 													std::string S1 = " ";
-// 
-// 													float out = aVal/500.0f;
-// 													//float out = (float)aPIm.y;
-// 													//float out = h_TabCost[id];
-// 
-// 													out = floor(out*off)/off;
-// 
-// 													std::string valS;
-// 													stringstream sValS (stringstream::in | stringstream::out);
-// 													sValS << abs(out);
-// 													long sizeV = sValS.str().length();
-// 													if (sizeV == 5) ES = ES + "";
-// 													else if (sizeV == 4) ES = ES + " ";
-// 													else if (sizeV == 3) ES = ES + "  ";
-// 													else if (sizeV == 2) ES = ES + "   ";
-// 													else if (sizeV == 1) ES = ES + "    ";
-// 
-// 													if ( out < 0.0f && out > -1.0f)
-// 														std::cout << " " << out << ES;						
-// 													else if ( out > 0.0f / *&& out < 1.0f* /)
-// 														std::cout << S1 << out << ES;
-// 													else if ( out == 0 )
-// 														std::cout << S1 << "0" << S2;
-// 													else
-// 														std::cout << S1 << "." << S2;
-// 
-// 												}
-												
-											}
-											else
-											{
-												IsOk =false; // Si un  seul des voisin n'est pas lisible , on annule tout
-// 												if (showdebug_CPU && aKIm == imageDebug && aXVois == anX && aYVois == anY)
-// 													std::cout << " * ";
-											}
-										}
-									}
-									if (IsOk)
-									{
-										
-										// On normalise en moyenne et ecart type
-										aSV /= mNbPtsWFixe;
-										aSVV /= mNbPtsWFixe;
-										aSVV -=  QSquare(aSV) ;
-										if (aSVV >mAhEpsilon) // Test pour eviter / 0 et sqrt(<0) 
-										{
-											*(aVVCur++) = mValsIm;
-											aSVV = sqrt(aSVV);
-											for (int aKV=0 ; aKV<mNbPtsWFixe; aKV++)
-											{
-												mValsIm[aKV] = (mValsIm[aKV]-aSV)/aSVV;
-// 											
-// 												if ( showdebug_CPU && aKIm == imageDebug && (aKV == (2 * mPtSzWFixe.x + 1) * mPtSzWFixe.y + mPtSzWFixe.x) )
-// 												{
-// 													float off = 100.0f;
-// 													std::string S2 = "    ";
-// 													std::string ES = "";
-// 													std::string S1 = " ";
-// 
-// 													float out = (mValsIm[aKV] + 1.0f) /2.0f;
-// 													//float out = h_TabCost[id];
-// 													out = floor(out*off)/off ;
-// 
-// 													std::string valS;
-// 													stringstream sValS (stringstream::in | stringstream::out);
-// 													sValS << abs(out);
-// 													long sizeV = sValS.str().length();
-// 
-// 													if (sizeV == 5) ES = ES + "";
-// 													else if (sizeV == 4) ES = ES + " ";
-// 													else if (sizeV == 3) ES = ES + "  ";
-// 													else if (sizeV == 2) ES = ES + "   ";
-// 													else if (sizeV == 1) ES = ES + "    ";
-// 
-// 													if ( out < 0.0f && out > -1.0f)
-// 														std::cout << out << ES;						
-// 													else if ( out > 0.0f)
-// 														std::cout << S1 << out << ES;
-// 													else if ( out == 0 )
-// 														std::cout << S1 << "0" << S2;
-// 													else
-// 														std::cout << S1 << "." << S2;
-// 													
-// 												}
-											}	
-										}
-										else
-										{
-											IsOk = false;
-										}
-									}
-//									else
-// 									{
-// 										if (aKIm == imageDebug)
-// 											std::cout << "  *   ";
-// 									}
-									aNbImOk += IsOk;
-									aGLI.SetOK(IsOk);
-								}
-								else
-								{
-									aGLI.SetOK(false);
-									if (aKIm == imageDebug)
-										std::cout << " f ";
-								}
-							}
-
-							if (aNbImOk>=2) // Calcul "rapide"  de la multi-correlation
-							{
-								double anEC2 = 0;
-								// Pour chaque pixel
-								for (int aKV=0 ; aKV<mNbPtsWFixe; aKV++)
-								{
-									double aSV=0,aSVV=0;
-									// Pour chaque image, maj des stat 1 et 2
-									for (int aKIm=0 ; aKIm<aNbImOk ; aKIm++)
-									{
-										double aV = aVVals[aKIm][aKV];
-										aSV += aV;
-										aSVV += QSquare(aV);
-									}
-
-									//////////////////////////////////////////////////////////////////////////
-
-									//if ( showdebug_CPU && (aKV == (2 * mPtSzWFixe.x + 1) * mPtSzWFixe.y + mPtSzWFixe.x) )
-// 									if ( showdebug_CPU && (aKV == (2 * mPtSzWFixe.y + 1) * (2 * mPtSzWFixe.x + 1) - 1  ) )
-// 									{
-// 										float off = 100.0f;
-// 										std::string S2 = "    ";
-// 										std::string ES = "";
-// 										std::string S1 = " ";
-// 
-// 										float out = aSV /10.0f;
-// 										//float out = h_TabCost[id];
-// 										out = floor(out*off)/off ;
-// 
-// 										std::string valS;
-// 										stringstream sValS (stringstream::in | stringstream::out);
-// 										sValS << abs(out);
-// 										long sizeV = sValS.str().length();
-// 
-// 										if (sizeV == 5) ES = ES + "";
-// 										else if (sizeV == 4) ES = ES + " ";
-// 										else if (sizeV == 3) ES = ES + "  ";
-// 										else if (sizeV == 2) ES = ES + "   ";
-// 										else if (sizeV == 1) ES = ES + "    ";
-// 
-// 										if ( out < 0.0f && out > -1.0f)
-// 											std::cout << out << ES;						
-// 										else if ( out > 0.0f)
-// 											std::cout << S1 << out << ES;
-// 										else if ( out == 0 )
-// 											std::cout << S1 << "0" << S2;
-// 										else
-// 											std::cout << S1 << "." << S2;
-// 													
-// 									}
-									//////////////////////////////////////////////////////////////////////////
-
-
-									// Additionner l'ecart type inter imagettes
-									anEC2 += (aSVV-QSquare(aSV)/aNbImOk);
-								}
-						
-								
-
-								// Normalisation pour le ramener a un equivalent de 1-Correl 
-								double aCost = anEC2 / (( aNbImOk-1) *mNbPtsWFixe);
-								aCost =  mStatGlob->CorrelToCout(1-aCost);
-
-							if ( showdebug_CPU )
-								{
-									float off = 100.0f;
-									std::string S2 = "    ";
-									std::string ES = "";
-									std::string S1 = " ";
-
-									float out = aCost;
-									//float out = h_TabCost[id];
-									out = floor(out*off)/off ;
-
-									std::string valS;
-									stringstream sValS (stringstream::in | stringstream::out);
-									sValS << abs(out);
-									long sizeV = sValS.str().length();
-
-									if (sizeV == 5) ES = ES + "";
-									else if (sizeV == 4) ES = ES + " ";
-									else if (sizeV == 3) ES = ES + "  ";
-									else if (sizeV == 2) ES = ES + "   ";
-									else if (sizeV == 1) ES = ES + "    ";
-
-									if ( out < 0.0f && out > -1.0f)
-										std::cout << out << ES;						
-									else if ( out > 0.0f)
-										std::cout << S1 << out << ES;
-									else if ( out == 0 )
-										std::cout << S1 << "0" << S2;
-									else
-										std::cout << S1 << "." << S2;
-
-								}
-
-
-								// On envoie le resultat a l'optimiseur pour valoir  ce que de droit
-								mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,aCost);
-							}
-							else
-							{
-								if (showdebug_CPU) std::cout << "  !" << aNbImOk << "  ";
-								// Si pas assez d'image, il faut quand meme remplir la case avec qq chose
-								mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,mAhDefCost);
-							}
-						}
-					}
-					else					
-					{
-						for (int aZInt=aZMin ; aZInt< aZMax ; aZInt++)						
-							mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,mAhDefCost);
-						if (showdebug_CPU) std::cout << "  .   ";
-					}
-						
-				}
-					if (showdebug_CPU) std::cout << "\n";
-			}
-			if (showdebug_CPU) std::cout << "----------------------------------------------------------------\n";
-		}
-*/
 
 #else
 //std::cout  << "MESSAGE = "<<   mCorrelAdHoc->GPU_CorrelBasik().Val().Unused().Val() << "\n";
