@@ -14,7 +14,7 @@
            <Symb>  LibParamInterne=eAllParamFiges  </Symb>
            <Symb>  SigmaTieP=1  </Symb>
 
-           <Symb>  SauvAutom=SauvAutom </Symb>
+           <Symb>  SauvAutom="" </Symb>
            <Symb>  PropDiagU=1.0  </Symb>
            <Symb>  MaxResTieP=5  </Symb>
 
@@ -25,7 +25,7 @@
            <Symb>  CalibIn=${AeroIn} </Symb>
            <Symb>  NbLiais=100 </Symb>
 
-           <Symb>  WithGCP=XXXX </Symb>
+           <Symb>  WithGCP=false </Symb>
            <Symb>  FileGCP-Gr=XXXX </Symb>
            <Symb>  FileGCP-Im=XXXX </Symb>
            <Symb>  GrIncGr=XXXX </Symb>
