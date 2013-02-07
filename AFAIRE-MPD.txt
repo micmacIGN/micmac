@@ -1,3 +1,7 @@
+Bascule sur des images quasi panoramiques : probleme stabité intersection de faisceau.
+
+
+===============================================================
 
 
 AMELIORER MESSAGE D'ERREUR SUR PAS ASSEZ DE POINTS DS BASCULE

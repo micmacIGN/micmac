@@ -245,6 +245,7 @@ int All(int argc,char ** argv)
 int Line(int argc,char ** argv)
 {
     int  aNbAdj;
+    bool  ForceAdj= false;
     int isCirc=0;
 
     ElInitArgMain
@@ -257,7 +258,21 @@ int Line(int argc,char ** argv)
                     << EAM(PostFix,"PostFix",true,"Add post fix in directory")	
                     << EAM(ByP,"ByP",true,"By processe")	
                     << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")	
+                    << EAM(ForceAdj,"ForceAdSupResol",true,"to force computation even when Resol < Adj")	
     );
+
+    if ((aFullRes < aNbAdj) && (!ForceAdj) && (aFullRes>0))
+    {
+        std::cout << "Resol=" << aFullRes  << " NbAdjacence=" << aNbAdj << "\n";
+        ELISE_ASSERT
+        (
+             false,
+             "Probable inversion of Resol and Adjacence (use ForceAdSupResol is that's what you mean)"
+        );
+       
+    }
+
+
     DoDevelopp(-1,aFullRes);
 
    std::string aRel = isCirc ? "NKS-Rel-ChantierCirculaire" : "NKS-Rel-ChantierLineaire";
