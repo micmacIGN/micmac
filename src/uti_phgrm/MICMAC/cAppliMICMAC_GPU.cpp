@@ -922,7 +922,7 @@ namespace NS_ParamMICMAC
 		{
 			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
 				for (int anX = mX0Ter ; anX <  mX1Ter ; anX++) 
-					for (int anZ = mTabZMin[anY][anX] ;  anZ < mTabZMax[anY][anX] ; anZ++)					
+					for (int anZ = mTabZMin[anY][anX] ;  anZ < mTabZMax[anY][anX] ; anZ++,mNbPointsIsole++)					
 						mSurfOpt->SetCout(Pt2di(anX,anY),&anZ,mAhDefCost);
 			return;
 		}
