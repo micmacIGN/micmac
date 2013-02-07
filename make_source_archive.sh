@@ -1,42 +1,42 @@
-#!/bin/sh
+#!/bin/bash
 
 MICMAC_REPOSITORY=`basename $PWD`
 REV_NUMBER=`hg log -r tip --template "{rev}"`
-TEMP_DIRECTORY=micmac
+OUT_MICMAC_DIR=micmac
 ARCHIVE_NAME=micmac_source_rev$REV_NUMBER
 if [ -f $ARCHIVE_NAME.tar.gz ]
 then
 	echo l\'archive $ARCHIVE_NAME.tar.gz existe déjà
 	exit 1
 fi
-if [ -d $TEMP_DIRECTORY ]
+if [ -d $OUT_MICMAC_DIR ]
 then
-	echo le repertoire $TEMP_DIRECTORY existe déjà
+	echo le repertoire $OUT_MICMAC_DIR existe déjà
 	exit 1
 fi
-mkdir $TEMP_DIRECTORY
-cp -R CodeGenere $TEMP_DIRECTORY
-cp -R CodeExterne $TEMP_DIRECTORY
-cp -R data $TEMP_DIRECTORY
-cp -R include $TEMP_DIRECTORY
-cp -R src $TEMP_DIRECTORY
-cp CMakeLists.txt $TEMP_DIRECTORY
-cp Makefile-XML2CPP $TEMP_DIRECTORY
-cp precompiled_headers.cmake $TEMP_DIRECTORY
-cp README.fr $TEMP_DIRECTORY
-cp README.en $TEMP_DIRECTORY
+mkdir $OUT_MICMAC_DIR
+cp -R CodeGenere $OUT_MICMAC_DIR
+cp -R CodeExterne $OUT_MICMAC_DIR
+cp -R data $OUT_MICMAC_DIR
+cp -R include $OUT_MICMAC_DIR
+cp -R src $OUT_MICMAC_DIR
+cp CMakeLists.txt $OUT_MICMAC_DIR
+cp Makefile-XML2CPP $OUT_MICMAC_DIR
+cp precompiled_headers.cmake $OUT_MICMAC_DIR
+cp README.fr $OUT_MICMAC_DIR
+cp README.en $OUT_MICMAC_DIR
 
-rm -fr $TEMP_DIRECTORY/include/StdAfx.h.gch
-rm -fr $TEMP_DIRECTORY/data/Tabul/.svn
-rm -fr $TEMP_DIRECTORY/src/interface
+rm -fr $OUT_MICMAC_DIR/include/StdAfx.h.gch
+rm -fr $OUT_MICMAC_DIR/data/Tabul/.svn
+rm -fr $OUT_MICMAC_DIR/src/interface
 
-mkdir $TEMP_DIRECTORY/binaire-aux
-cp binaire-aux/ann_mec_filtre.LINUX $TEMP_DIRECTORY/binaire-aux
-cp binaire-aux/siftpp_tgi.LINUX $TEMP_DIRECTORY/binaire-aux
-cp binaire-aux/ann_samplekey200filtre.OSX $TEMP_DIRECTORY/binaire-aux
-cp binaire-aux/siftpp_tgi.OSX $TEMP_DIRECTORY/binaire-aux
-cp binaire-aux/siftpp_tgi.exe $TEMP_DIRECTORY/binaire-aux
-cp binaire-aux/ann_samplekeyfiltre.exe $TEMP_DIRECTORY/binaire-aux
+mkdir $OUT_MICMAC_DIR/binaire-aux
+cp binaire-aux/ann_mec_filtre.LINUX $OUT_MICMAC_DIR/binaire-aux
+cp binaire-aux/siftpp_tgi.LINUX $OUT_MICMAC_DIR/binaire-aux
+cp binaire-aux/ann_samplekey200filtre.OSX $OUT_MICMAC_DIR/binaire-aux
+cp binaire-aux/siftpp_tgi.OSX $OUT_MICMAC_DIR/binaire-aux
+cp binaire-aux/siftpp_tgi.exe $OUT_MICMAC_DIR/binaire-aux
+cp binaire-aux/ann_samplekeyfiltre.exe $OUT_MICMAC_DIR/binaire-aux
 
-tar czf $ARCHIVE_NAME.tar.gz $TEMP_DIRECTORY
-rm -fr $TEMP_DIRECTORY
+tar czf $ARCHIVE_NAME.tar.gz $OUT_MICMAC_DIR
+rm -fr $OUT_MICMAC_DIR

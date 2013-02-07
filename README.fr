@@ -1,71 +1,71 @@
-Prérequis
+Prerequis
 
-	Micmac nécessite pour fonctionner la présence des outils suivants sur votre système :
+	Micmac necessite pour fonctionner la presence des outils suivants sur votre systeme :
 		- make (www.gnu.org/software/make)
-			Pour la gestion de tâches en parallèle.
+			Pour la gestion de taches en parallele.
 		- convert, d'ImageMagick (www.imagemagick.org)
 			Pour la conversion de format des images.
 		- exiftool (www.sno.phy.queensu.ca/~phil/exiftool) et exiv2 (www.exiv2.org)
-			Pour la lecture/écriture des méta-données image.
+			Pour la lecture/ecriture des meta-donnees image.
 			
-	Vous pouvez vérifier que Micmac trouve correctement les programmes ci-dessus grâce à la commande
-		bin/mm3d CheckDependencies (si vous vous trouvez dans le répertoire de Micmac)
+	Vous pouvez verifier que Micmac trouve correctement les programmes ci-dessus grace a la commande
+		bin/mm3d CheckDependencies (si vous vous trouvez dans le repertoire de Micmac)
 		
-	La mention "NOT FOUND" indique que l'exécutable correspondant n'est pas présent ou qu'il n'a pu être trouvé. Dans ce cas,
-vérifiez que les chemins d'accès sont bien inclus dans la variable d'environnement PATH.
-	Il convient de noter que quelle que soit la valeur de la variable PATH, le répertoire "binaire-aux" est examiné lors de la
-recherche des outils externes mais qu'un outil trouvé ailleurs aura la prépondérance.
+	La mention "NOT FOUND" indique que l'executable correspondant n'est pas present ou qu'il n'a pu etre trouve. Dans ce cas,
+verifiez que les chemins d'acces sont bien inclus dans la variable d'environnement PATH.
+	Il convient de noter que quelle que soit la valeur de la variable PATH, le repertoire "binaire-aux" est examine lors de la
+recherche des outils externes mais qu'un outil trouve ailleurs aura la preponderance.
 
 	Sous Windows
 	
-		Il est nécessaire que l'une des variables d'environnement WINDIR ou SystemRoot soit renseignée avec le nom complet du 
-répertoire d'installation de Windows (généralement C:\Windows), ceci afin d'éviter la confusion entre convert.exe d'ImageMagick et
+		Il est necessaire que l'une des variables d'environnement WINDIR ou SystemRoot soit renseignee avec le nom complet du 
+repertoire d'installation de Windows (generalement C:\Windows), ceci afin d'eviter la confusion entre convert.exe d'ImageMagick et
 celui de Windows.
-		Par mesure de commodité, l'archive des sources, ainsi que l'archive des binaires précompilés pour Windows, contient une
-version des utilitaires prérequis. En effet, comme cet OS ne dispose pas d'un service d'installation et de mise à jour de paquets,
-il peut donc être fastidieux de récupérer les exécutables nécessaires.
+		Par mesure de commodite, l'archive des sources, ainsi que l'archive des binaires precompiles pour Windows, contient une
+version des utilitaires prerequis. En effet, comme cet OS ne dispose pas d'un service d'installation et de mise a jour de paquets,
+il peut donc etre fastidieux de recuperer les executables necessaires.
 
-Compilation à partir de l'archive des sources
+Compilation a partir de l'archive des sources
 
-	Prérequis
+	Prerequis
 	
-		En plus des prérequis précédent, la compilation des sources nécessite l'installation de cmake (www.cmake.org) ainsi que des
-fichiers d'en-tête de X11 pour Linux et MacOS X.
-		Le nom du paquet Linux des headers X11 est généralement libx11-dev.
-		Sous Windows, les outils graphiques de saisie ne sont pas générés.
+		En plus des prerequis precedent, la compilation des sources necessite l'installation de cmake (www.cmake.org) ainsi que des
+fichiers d'en-tete de X11 pour Linux et MacOS X.
+		Le nom du paquet Linux des headers X11 est generalement libx11-dev.
+		Sous Windows, les outils graphiques de saisie ne sont pas generes.
 
 	Sous Linux / MacOS X
 
-		- décompressez l'archive :
+		- decompressez l'archive :
 			tar xvf micmac_source_revXXX.tar.gz
-		- entrez dans le répertoire "micmac"
+		- entrez dans le repertoire "micmac"
 			cd micmac
-		- créez un répertoire pour accueillir les fichiers intermédiaires générés par la compilation et placez vous à l'intérieur :
+		- creez un repertoire pour accueillir les fichiers intermediaires generes par la compilation et placez vous a l'interieur :
 			mkdir build
 			cd build
-		- lancez la génération des makefiles
+		- lancez la generation des makefiles
 			cmake ../
 		- lancez la compilation :
 			make install -j"nombre de coeurs"
 
 	Sous Windows avec Visual C++
 	
-		Les premières étapes sont semblables à la compilation sous linux mais la procédure varie après l'appel à cmake.
-		Cmake génère une solution micmac.sln, ouvrez-là avec visual c++ et générez le projet "INSTALL".
-		Attention à passer la configuration sur "Release", les exécutables en mode "Debug" sont bien plus lents à l'exécution.
-		Si vous construisez la solution complète et non le projet "INSTALL", les fichiers ne seront pas copiés dans le répertoire "bin".
+		Les premieres etapes sont semblables a la compilation sous linux mais la procedure varie apres l'appel a cmake.
+		Cmake genere une solution micmac.sln, ouvrez-la avec visual c++ et generez le projet "INSTALL".
+		Attention a passer la configuration sur "Release", les executables en mode "Debug" sont bien plus lents a l'execution.
+		Si vous construisez la solution complete et non le projet "INSTALL", les fichiers ne seront pas copies dans le repertoire "bin".
 
 Tester l'installation
 
-	Sur le site logiciels.ign.fr (section image->Micmac->téléchargement) se trouve également disponible en téléchargement le jeu de 
+	Sur le site logiciels.ign.fr (section image->Micmac->telechargement) se trouve egalement disponible en telechargement le jeu de 
 test Boudha_dataset.zip.
-	Le script et les données qu'il contient, permettent de tester si votre installation de Micmac fonctionne correctement. Pour lancer
-le script, si vous vous trouvez dans le répertoire "Boudha" issu du fichier zip, entrez une commande de la forme :
+	Le script et les donnees qu'il contient, permettent de tester si votre installation de Micmac fonctionne correctement. Pour lancer
+le script, si vous vous trouvez dans le repertoire "Boudha" issu du fichier zip, entrez une commande de la forme :
 		./boudha_test.sh mon_micmac_bin/ 
-	où mon_micmac_bin est le chemin (absolu ou relatif) du répertoire "bin" de votre installation. Par exemple :
+	où mon_micmac_bin est le chemin (absolu ou relatif) du repertoire "bin" de votre installation. Par exemple :
 		./boudha_test.sh ../micmac/bin/
-	Attention, le nom du répertoire doit impérativement finir par un '/' terminal (ou un '\' sous Windows, les deux formes sont possibles).
-	Lorsque le calcul sera terminé, vous pourrez vérifier le résultat grâce aux trois fichier "ply" contenus dans le répertoire MEC-6-Im.
-	Il s'agit du même exemple Boudha que dans la documentation. Editez les fichiers PLY à l'aide d'un viewer comme meshlab pour vérifier que
-les résultats sont cohérents.
+	Attention, le nom du repertoire doit imperativement finir par un '/' terminal (ou un '\' sous Windows, les deux formes sont possibles).
+	Lorsque le calcul sera termine, vous pourrez verifier le resultat grace aux trois fichier "ply" contenus dans le repertoire MEC-6-Im.
+	Il s'agit du meme exemple Boudha que dans la documentation. Editez les fichiers PLY a l'aide d'un viewer comme meshlab pour verifier que
+les resultats sont coherents.
 	
