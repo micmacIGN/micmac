@@ -19,7 +19,7 @@ using namespace std;
 
 #define INTDEFAULT	-64
 #define SAMPLETERR	4
-#define INTERZ		12
+#define INTERZ		4
 
 #ifdef _DEBUG
 	#define   BLOCKDIM	16
