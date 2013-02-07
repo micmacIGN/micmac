@@ -209,9 +209,10 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbA
 // Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens	///
 __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * dev_NbImgOk, uint2 nbActThr)
 {
-	__shared__ float aSV [ SBLOCKDIM ][ SBLOCKDIM ];
-	__shared__ float aSVV[ SBLOCKDIM ][ SBLOCKDIM ];
-	__shared__ float resu[ SBLOCKDIM/2 ][ SBLOCKDIM/2 ];
+	__shared__ float aSV [ SBLOCKDIM ][ SBLOCKDIM ];		// Somme des valeurs
+	__shared__ float aSVV[ SBLOCKDIM ][ SBLOCKDIM ];		// Somme des carrés des valeurs
+	__shared__ float resu[ SBLOCKDIM/2 ][ SBLOCKDIM/2 ];	// resultat
+	__shared__ ushort nbIm[ SBLOCKDIM/2 ][ SBLOCKDIM/2 ];	// nombre d'images correcte
 
 	// coordonnées des threads
 	const uint2 t = make_uint2(threadIdx);
@@ -221,6 +222,7 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 		aSV [t.y][t.x]		= 0.0f;
 		aSVV[t.y][t.x]		= 0.0f;
 		resu[t.y/2][t.x/2]	= 0.0f;
+		nbIm[t.y/2][t.x/2]	= 0;
 	}
 	
 	__syncthreads();
@@ -239,18 +241,24 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 
 	const uint	iTer	= blockIdx.z * cH.rSiTer + to1D(ptTer, cH.rDiTer);	// Coordonnées 1D dans le terrain
 	const bool	mThrd	= t.x % cH.dimVig.x == 0 &&  t.y % cH.dimVig.y == 0 && threadIdx.z == 0;
-	const float aNbImOk = dev_NbImgOk[iTer];								// Nombre vignettes correctes
-
-	if (aNbImOk < 2) return;
+	const uint2 thTer	= t / cH.dimVig;									// Coordonnées 2D du terrain dans le repere des threads
 	
-	const uint sizLayer = (blockIdx.z * cH.nbImages + threadIdx.z) * cH.sizeCach;				// Taille du cache vignette pour une image
-	const uint iCach	= sizLayer + to1D( ptCach, cH.dimCach );	// Coordonnées 1D du cache vignette
-	const uint2 cc		= ptTer * cH.dimVig;						// coordonnées 2D 1er pixel de la vignette
-	const int iCC		= sizLayer + to1D( cc, cH.dimCach );		// coordonnées 1D 1er pixel de la vignette
+	if (mThrd)
+		nbIm[thTer.y][thTer.x] = (ushort)dev_NbImgOk[iTer];
 
-	if (cacheVign[iCC] == cH.DefaultVal) return;					// sortir si la vignette incorrecte
+	__syncthreads();
 
-	const float val = cacheVign[iCach]; 
+	if (nbIm[thTer.y][thTer.x] < 2) return;
+	
+	const uint sizLayer = (blockIdx.z * cH.nbImages + threadIdx.z) * cH.sizeCach;	// Taille du cache vignette pour une image
+
+	const uint2 cc		= ptTer * cH.dimVig;										// coordonnées 2D 1er pixel de la vignette
+	const int iCC		= sizLayer + to1D( cc, cH.dimCach );						// coordonnées 1D 1er pixel de la vignette
+
+	if (cacheVign[iCC] == cH.DefaultVal) return;									// sortir si la vignette incorrecte
+	
+	const uint iCach	= sizLayer + to1D( ptCach, cH.dimCach );					// Coordonnées 1D du cache vignette
+	const float val		= cacheVign[iCach]; 
 
 	atomicAdd( &(aSV[t.y][t.x]), val);
 	atomicAdd(&(aSVV[t.y][t.x]), val * val);
@@ -258,15 +266,13 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 
 	if ( threadIdx.z != 0) return;
 
-	const uint2 thTer = t / cH.dimVig;								// Coordonnées 2D du terrain dans le repere des threads
-	
-	atomicAdd(&(resu[thTer.y][thTer.x]),aSVV[t.y][t.x] - ((aSV[t.y][t.x] * aSV[t.y][t.x])/ aNbImOk)); 
+	atomicAdd(&(resu[thTer.y][thTer.x]),aSVV[t.y][t.x] - ((aSV[t.y][t.x] * aSV[t.y][t.x])/ nbIm[thTer.y][thTer.x])); 
 
 	if ( !mThrd ) return;
 	__syncthreads();
 
 	// Normalisation pour le ramener a un equivalent de 1-Correl 
-	const float cost = resu[thTer.y][thTer.x]/ (( aNbImOk -1.0f) * ((float)cH.sizeVig));
+	const float cost = resu[thTer.y][thTer.x]/ (( nbIm[thTer.y][thTer.x] -1.0f) * ((float)cH.sizeVig));
 
 	dTCost[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
 }
