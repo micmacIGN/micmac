@@ -51,3 +51,78 @@ void GpGpuTools::OutputGpu()
 #endif
 }
 
+uint2 struct2D::GetDimension()
+{
+	return _dimension;
+}
+
+uint2 struct2D::SetDimension( uint2 dimension )
+{
+	_dimension = dimension;
+	return _dimension;
+}
+
+uint2 struct2D::SetDimension( uint dimX,uint dimY )
+{
+	return SetDimension(make_uint2(dimX,dimY));
+}
+
+uint2 struct2D::SetDimension( int dimX,int dimY )
+{
+	return SetDimension((uint)dimX,(uint)dimY);
+}
+
+void struct2DLayered::SetDimension( uint3 dimension )
+{
+	SetDimension(make_uint2(dimension),dimension.z);
+}
+
+
+void struct2DLayered::SetDimension( uint2 dimension, uint nbLayer )
+{
+	struct2D::SetDimension(dimension);
+	SetNbLayer(nbLayer);
+}
+
+
+void struct2DLayered::SetNbLayer( uint nbLayer )
+{
+	_nbLayers = nbLayer;
+}
+
+
+uint struct2DLayered::GetNbLayer()
+{
+	return _nbLayers;
+
+}
+
+cudaArray_t* CCudaArray::GetCudaArray_t()
+{
+
+	return &_cudaArray;
+}
+
+void CCudaArray::DeallocMemory()
+{
+	if (_cudaArray !=NULL) checkCudaErrors( cudaFreeArray( _cudaArray) );
+	_cudaArray = NULL;
+}
+
+
+cudaArray* CCudaArray::GetCudaArray()
+{
+	return _cudaArray;
+}
+
+CCudaArray::CCudaArray()
+{
+	_cudaArray = NULL;
+}
+
+CCudaArray::~CCudaArray()
+{
+
+}
+
+

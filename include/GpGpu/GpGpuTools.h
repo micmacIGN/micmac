@@ -195,8 +195,139 @@ bool GpGpuTools::Array1DtoImageFile(T* dataImage,const char* fileName, uint2 dim
 //									CLASS IMAGE CUDA
 //-----------------------------------------------------------------------------------------------
 
+class struct2D
+{
+public:
+
+	struct2D(){};
+	~struct2D(){};
+	uint2		GetDimension();
+	uint2		SetDimension(uint2 dimension);
+	uint2		SetDimension(int dimX,int dimY);
+	uint2		SetDimension(uint dimX,uint dimY);
+
+private:
+
+	uint2		_dimension;
+
+};
+
+class struct2DLayered : public struct2D
+{
+
+public:
+
+	struct2DLayered(){};
+	~struct2DLayered(){};
+	uint	GetNbLayer();
+	void	SetNbLayer(uint nbLayer);
+	void	SetDimension(uint2 dimension, uint nbLayer);
+	void	SetDimension(uint3 dimension);
+
+private:
+
+	uint _nbLayers;
+};
+
+
+
+
+class CCudaArray
+{
+
+public:
+
+	CCudaArray();
+	~CCudaArray();
+	cudaArray*	GetCudaArray();
+	cudaArray_t*GetCudaArray_t();
+	void		DeallocMemory();
+
+
+private:
+
+	cudaArray*	_cudaArray;
+	
+};
+
+
 template <class T> 
-class ImageCuda
+class CuData3D : public struct2DLayered
+{
+
+public:
+
+	CuData3D();
+	~CuData3D(){};
+	void Dealloc();
+	void Realloc(uint2 dim, uint l);
+	void Malloc();
+	void Memset(int val);
+	uint SizeByt();
+	T*	 pData();
+	void CopyDevicetoHost(T* hostData);
+
+private:
+
+	T*	_deviceData;
+};
+
+template <class T>
+void CuData3D<T>::Realloc( uint2 dim, uint l )
+{
+	Dealloc();
+	SetDimension(dim,l);
+	Malloc();
+}
+
+template <class T>
+void CuData3D<T>::CopyDevicetoHost( T* hostData )
+{
+	checkCudaErrors( cudaMemcpy( hostData, _deviceData, SizeByt(), cudaMemcpyDeviceToHost) );
+}
+
+template <class T>
+T* CuData3D<T>::pData()
+{
+	return _deviceData;
+}
+
+template <class T>
+uint CuData3D<T>::SizeByt()
+{
+	return struct2DLayered::GetNbLayer()*size(struct2D::GetDimension())* sizeof(T);
+}
+
+template <class T>
+void CuData3D<T>::Memset( int val )
+{
+
+	checkCudaErrors( cudaMemset( _deviceData, val, SizeByt()));
+}
+
+template <class T>
+CuData3D<T>::CuData3D()
+{
+	_deviceData = NULL;
+}
+
+template <class T>
+void CuData3D<T>::Malloc()
+{
+	checkCudaErrors( cudaMalloc((void **) &_deviceData, SizeByt()));
+}
+
+template <class T>
+void CuData3D<T>::Dealloc()
+{
+
+	if (_deviceData != NULL) checkCudaErrors( cudaFree(_deviceData));
+	_deviceData = NULL;
+}
+
+
+template <class T> 
+class ImageCuda : public CCudaArray, public struct2D
 {
 
 public:
@@ -205,38 +336,11 @@ public:
 	~ImageCuda();
 	
 	void		InitImage(uint2 dimension, T* data);
-	uint2		GetDimension();
-	uint2		SetDimension(uint2 dimension);
-	uint2		SetDimension(int dimX,int dimY);
-	uint2		SetDimension(uint dimX,uint dimY);
-	cudaArray*	GetCudaArray();
-	cudaArray_t*GetCudaArray_t();
 	void		AllocMemory();
-	void		DeallocMemory();
-	void		BindTexture();
 	void		copyHostToDevice(T* data);
-
-private:
-
-	uint2		_dimension;
-	cudaArray*	_cudaArray;
 
 };
 
-template <class T>
-cudaArray_t* ImageCuda<T>::GetCudaArray_t()
-{
-
-	return &_cudaArray;
-
-}
-
-template <class T>
-void ImageCuda<T>::DeallocMemory()
-{
-	if (_cudaArray !=NULL) checkCudaErrors( cudaFreeArray( _cudaArray) );
-	_cudaArray = NULL;
-}
 
 template <class T>
 ImageCuda<T>::~ImageCuda()
@@ -248,19 +352,16 @@ template <class T>
 void ImageCuda<T>::copyHostToDevice( T* data )
 {
 	// Copie des données du Host dans le tableau Cuda
-	checkCudaErrors(cudaMemcpyToArray(_cudaArray, 0, 0, data, sizeof(T)*size(_dimension), cudaMemcpyHostToDevice));
+
+
+	checkCudaErrors(cudaMemcpyToArray(CCudaArray::GetCudaArray(), 0, 0, data, sizeof(T)*size(GetDimension()), cudaMemcpyHostToDevice));
 }
 
-template <class T>
-cudaArray* ImageCuda<T>::GetCudaArray()
-{
-	return _cudaArray;
-}
 
 template <class T>
 ImageCuda<T>::ImageCuda()
 {
-	_cudaArray = NULL;
+
 }
 
 template <class T>
@@ -272,35 +373,13 @@ void ImageCuda<T>::InitImage(uint2 dimension, T* data)
 }
 
 template <class T>
-uint2 ImageCuda<T>::GetDimension()
-{
-	return _dimension;
-
-}
-template <class T>
-uint2 ImageCuda<T>::SetDimension( uint2 dimension )
-{
-	_dimension = dimension;
-	return _dimension;
-}
-template <class T>
-uint2 ImageCuda<T>::SetDimension( uint dimX,uint dimY )
-{
-	return SetDimension(make_uint2(dimX,dimY));
-}
-template <class T>
-uint2 ImageCuda<T>::SetDimension( int dimX,int dimY )
-{
-	return SetDimension((uint)dimX,(uint)dimY);
-}
-
-template <class T>
 void ImageCuda<T>::AllocMemory()
 {
 	
 	cudaChannelFormatDesc channelDesc =  cudaCreateChannelDesc<T>() ;
 	// Allocation mémoire du tableau cuda
-	checkCudaErrors( cudaMallocArray(&_cudaArray,&channelDesc,_dimension.x,_dimension.y) );
+
+	checkCudaErrors( cudaMallocArray(CCudaArray::GetCudaArray_t(),&channelDesc,GetDimension().x,GetDimension().y) );
 
 }
 
@@ -309,22 +388,14 @@ void ImageCuda<T>::AllocMemory()
 //-----------------------------------------------------------------------------------------------
 
 template <class T> 
-class ImageLayeredCuda : public ImageCuda<T>
+class ImageLayeredCuda : public struct2DLayered, public CCudaArray 
 {
 public:
 	ImageLayeredCuda(){};
 	~ImageLayeredCuda(){};
 
-	uint	GetNbLayer();
-	void	SetNbLayer(uint nbLayer);
-	void	SetDimension(uint2 dimension, uint nbLayer);
-	void	SetDimension(uint3 dimension);
 	void	AllocMemory();
 	void	copyHostToDevice(T* data);
-
-private:
-
-	uint _nbLayers;
 
 };
 
@@ -332,13 +403,13 @@ template <class T>
 void ImageLayeredCuda<T>::copyHostToDevice( T* data )
 {
 
-	cudaExtent sizeImagesLayared = make_cudaExtent( ImageCuda<T>::GetDimension().x, ImageCuda<T>::GetDimension().y, _nbLayers );
+	cudaExtent sizeImagesLayared = make_cudaExtent( struct2D::GetDimension().x, struct2D::GetDimension().y, struct2DLayered::GetNbLayer());
 
 	// Déclaration des parametres de copie 3D
 	cudaMemcpy3DParms	p		= { 0 };
 	cudaPitchedPtr		pitch	= make_cudaPitchedPtr(data, sizeImagesLayared.width * sizeof(T), sizeImagesLayared.width, sizeImagesLayared.height);
 
-	p.dstArray	= ImageCuda<T>::GetCudaArray();	// Pointeur du tableau de destination
+	p.dstArray	= CCudaArray::GetCudaArray();	// Pointeur du tableau de destination
 	p.srcPtr	= pitch;						// Pitch
 	p.extent	= sizeImagesLayared;			// Taille du cube
 	p.kind		= cudaMemcpyHostToDevice;		// Type de copie
@@ -351,40 +422,17 @@ void ImageLayeredCuda<T>::copyHostToDevice( T* data )
 template <class T>
 void ImageLayeredCuda<T>::AllocMemory()
 {
-	cudaExtent sizeImagesLayared = make_cudaExtent( ImageCuda<T>::GetDimension().x, ImageCuda<T>::GetDimension().y, _nbLayers );
+	cudaExtent sizeImagesLayared = make_cudaExtent( struct2D::GetDimension().x, struct2D::GetDimension().y,struct2DLayered::GetNbLayer());
 
 	// Définition du format des canaux d'images	
 	cudaChannelFormatDesc channelDesc =	cudaCreateChannelDesc<T>();
 
 	// Allocation memoire GPU du tableau des calques d'images
-	checkCudaErrors( cudaMalloc3DArray(ImageCuda<T>::GetCudaArray_t(),&channelDesc,sizeImagesLayared,cudaArrayLayered) );
+	checkCudaErrors( cudaMalloc3DArray(CCudaArray::GetCudaArray_t(),&channelDesc,sizeImagesLayared,cudaArrayLayered) );
 
 }
 
-template <class T>
-void ImageLayeredCuda<T>::SetDimension( uint3 dimension )
-{
-	SetDimension(make_uint2(dimension),dimension.z);
-}
 
-template <class T>
-void ImageLayeredCuda<T>::SetDimension( uint2 dimension, uint nbLayer )
-{
-	ImageCuda<T>::SetDimension(dimension);
-	SetNbLayer(nbLayer);
-}
 
-template <class T>
-void ImageLayeredCuda<T>::SetNbLayer( uint nbLayer )
-{
-	_nbLayers = nbLayer;
-}
-
-template <class T>
-uint ImageLayeredCuda<T>::GetNbLayer()
-{
-	return _nbLayers;
-
-}
 
 
