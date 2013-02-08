@@ -328,19 +328,19 @@ public:
 template <class T>
 void CuHostData3D<T>::Memset( int val )
 {
-	memset(pData(),val,SizeByt());
+	memset(CuData3D<T>::pData(),val,CuData3D<T>::SizeByt());
 }
 
 template <class T>
 void CuHostData3D<T>::Malloc()
 {
-	cudaMallocHost(ppData(),SizeByt());
+	cudaMallocHost(CuData3D<T>::ppData(),CuData3D<T>::SizeByt());
 }
 
 template <class T>
 void CuHostData3D<T>::Dealloc()
 {
-	cudaFreeHost(pData());
+	cudaFreeHost(CuData3D<T>::pData());
 }
 
 template <class T> 
@@ -362,33 +362,33 @@ template <class T>
 void CuDeviceData3D<T>::CopyDevicetoHost( T* hostData )
 {
 	
-	checkCudaErrors( cudaMemcpy( hostData, pData(), SizeByt(), cudaMemcpyDeviceToHost) );
+	checkCudaErrors( cudaMemcpy( hostData, CuData3D<T>::pData(), CuData3D<T>::SizeByt(), cudaMemcpyDeviceToHost) );
 }
 
 template <class T>
 void CuDeviceData3D<T>::Memset( int val )
 {
 
-	checkCudaErrors( cudaMemset( pData(), val, SizeByt()));
+	checkCudaErrors( cudaMemset( CuData3D<T>::pData(), val, CuData3D<T>::SizeByt()));
 }
 
 template <class T>
 CuDeviceData3D<T>::CuDeviceData3D()
 {
-	dataNULL();
+  CuData3D<T>::dataNULL();
 }
 
 template <class T>
 void CuDeviceData3D<T>::Malloc()
 {
-	checkCudaErrors( cudaMalloc((void **)ppData(), SizeByt()));
+        checkCudaErrors( cudaMalloc((void **)CuData3D<T>::ppData(), CuData3D<T>::SizeByt()));
 }
 
 template <class T>
 void CuDeviceData3D<T>::Dealloc()
 {
-	if (isNULL()) checkCudaErrors( cudaFree(pData()));
-	dataNULL();
+	if (CuData3D<T>::isNULL()) checkCudaErrors( cudaFree(CuData3D<T>::pData()));
+	CuData3D<T>::dataNULL();
 }
 
 template <class T> 
