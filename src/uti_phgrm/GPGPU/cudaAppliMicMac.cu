@@ -10,9 +10,9 @@ ImageCuda<pixel>			mask;
 ImageLayeredCuda<float>		LayeredImages;
 ImageLayeredCuda<float2>	LayeredProjection;
 
-CuData3D<float>	volumeCost;	// volume des couts   
-CuData3D<float>	volumeCach;	// volume des calculs intermédiaires
-CuData3D<float>	volumeNIOk;	// nombre d'image correct pour une vignette
+CuDeviceData3D<float>	volumeCost;	// volume des couts   
+CuDeviceData3D<float>	volumeCach;	// volume des calculs intermédiaires
+CuDeviceData3D<float>	volumeNIOk;	// nombre d'image correct pour une vignette
 
 static __constant__ paramGPU cH;
 paramGPU h;

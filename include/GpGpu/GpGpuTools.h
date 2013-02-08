@@ -229,9 +229,6 @@ private:
 	uint _nbLayers;
 };
 
-
-
-
 class CCudaArray
 {
 
@@ -243,13 +240,11 @@ public:
 	cudaArray_t*GetCudaArray_t();
 	void		DeallocMemory();
 
-
 private:
 
 	cudaArray*	_cudaArray;
 	
 };
-
 
 template <class T> 
 class CuData3D : public struct2DLayered
@@ -259,18 +254,38 @@ public:
 
 	CuData3D();
 	~CuData3D(){};
-	void Dealloc();
-	void Realloc(uint2 dim, uint l);
-	void Malloc();
-	void Memset(int val);
-	uint SizeByt();
-	T*	 pData();
-	void CopyDevicetoHost(T* hostData);
-
+	virtual void	Malloc() = 0;
+	virtual void	Memset(int val) = 0;
+	virtual void	Dealloc() = 0;
+	void			dataNULL();
+	uint			SizeByt();
+	T*				pData();
+	void			Realloc(uint2 dim, uint l);
+	bool			isNULL();
+	T**				ppData();
+	
 private:
 
-	T*	_deviceData;
+	T*	_data;
 };
+
+template <class T>
+T** CuData3D<T>::ppData()
+{
+	return &_data;
+}
+
+template <class T>
+CuData3D<T>::CuData3D()
+{
+	dataNULL();
+}
+
+template <class T>
+bool CuData3D<T>::isNULL()
+{
+	return (_data == NULL);
+}
 
 template <class T>
 void CuData3D<T>::Realloc( uint2 dim, uint l )
@@ -281,15 +296,15 @@ void CuData3D<T>::Realloc( uint2 dim, uint l )
 }
 
 template <class T>
-void CuData3D<T>::CopyDevicetoHost( T* hostData )
+void CuData3D<T>::dataNULL()
 {
-	checkCudaErrors( cudaMemcpy( hostData, _deviceData, SizeByt(), cudaMemcpyDeviceToHost) );
+	_data = NULL;
 }
 
 template <class T>
 T* CuData3D<T>::pData()
 {
-	return _deviceData;
+	return _data;
 }
 
 template <class T>
@@ -298,33 +313,83 @@ uint CuData3D<T>::SizeByt()
 	return struct2DLayered::GetNbLayer()*size(struct2D::GetDimension())* sizeof(T);
 }
 
-template <class T>
-void CuData3D<T>::Memset( int val )
+template <class T> 
+class CuHostData3D : public CuData3D<T>
 {
+public:
+	CuHostData3D(){};
+	~CuHostData3D(){};
+	void Dealloc();
+	void Malloc();
+	void Memset(int val);
+	
+};
 
-	checkCudaErrors( cudaMemset( _deviceData, val, SizeByt()));
+template <class T>
+void CuHostData3D<T>::Memset( int val )
+{
+	memset(pData(),val,SizeByt());
 }
 
 template <class T>
-CuData3D<T>::CuData3D()
+void CuHostData3D<T>::Malloc()
 {
-	_deviceData = NULL;
+	cudaMallocHost(ppData(),SizeByt());
 }
 
 template <class T>
-void CuData3D<T>::Malloc()
+void CuHostData3D<T>::Dealloc()
 {
-	checkCudaErrors( cudaMalloc((void **) &_deviceData, SizeByt()));
+	cudaFreeHost(pData());
+}
+
+template <class T> 
+class CuDeviceData3D : public CuData3D<T> 
+{
+
+public:
+
+	CuDeviceData3D();
+	~CuDeviceData3D(){};
+	void Dealloc();
+	void Malloc();
+	void Memset(int val);
+	void CopyDevicetoHost(T* hostData);
+
+};
+
+template <class T>
+void CuDeviceData3D<T>::CopyDevicetoHost( T* hostData )
+{
+	
+	checkCudaErrors( cudaMemcpy( hostData, pData(), SizeByt(), cudaMemcpyDeviceToHost) );
 }
 
 template <class T>
-void CuData3D<T>::Dealloc()
+void CuDeviceData3D<T>::Memset( int val )
 {
 
-	if (_deviceData != NULL) checkCudaErrors( cudaFree(_deviceData));
-	_deviceData = NULL;
+	checkCudaErrors( cudaMemset( pData(), val, SizeByt()));
 }
 
+template <class T>
+CuDeviceData3D<T>::CuDeviceData3D()
+{
+	dataNULL();
+}
+
+template <class T>
+void CuDeviceData3D<T>::Malloc()
+{
+	checkCudaErrors( cudaMalloc((void **)ppData(), SizeByt()));
+}
+
+template <class T>
+void CuDeviceData3D<T>::Dealloc()
+{
+	if (isNULL()) checkCudaErrors( cudaFree(pData()));
+	dataNULL();
+}
 
 template <class T> 
 class ImageCuda : public CCudaArray, public struct2D
@@ -352,8 +417,6 @@ template <class T>
 void ImageCuda<T>::copyHostToDevice( T* data )
 {
 	// Copie des données du Host dans le tableau Cuda
-
-
 	checkCudaErrors(cudaMemcpyToArray(CCudaArray::GetCudaArray(), 0, 0, data, sizeof(T)*size(GetDimension()), cudaMemcpyHostToDevice));
 }
 
@@ -375,12 +438,9 @@ void ImageCuda<T>::InitImage(uint2 dimension, T* data)
 template <class T>
 void ImageCuda<T>::AllocMemory()
 {
-	
 	cudaChannelFormatDesc channelDesc =  cudaCreateChannelDesc<T>() ;
 	// Allocation mémoire du tableau cuda
-
 	checkCudaErrors( cudaMallocArray(CCudaArray::GetCudaArray_t(),&channelDesc,GetDimension().x,GetDimension().y) );
-
 }
 
 //-----------------------------------------------------------------------------------------------
