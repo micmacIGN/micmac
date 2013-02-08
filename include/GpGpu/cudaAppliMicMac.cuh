@@ -20,6 +20,11 @@ using namespace std;
 #define INTDEFAULT	-64
 #define SAMPLETERR	4
 #define INTERZ		12
+#define NEAREST		0
+#define LINEARINTER	1
+#define BICUBIC		2
+#define INTERPOLA	NEAREST
+#define FLOATMATH
 
 #ifdef _DEBUG
 	#define   BLOCKDIM	16
