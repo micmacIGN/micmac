@@ -141,10 +141,14 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbA
 		return;
 	}
  	else
-		//cacheImg[threadIdx.y][threadIdx.x] = tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, cH.dimImg,(int)(blockIdx.z % cH.nbImages));
-		//cacheImg[threadIdx.y][threadIdx.x] = tex2DLayeredPt( TexL_Images, ptProj, cH.dimImg, (int)(blockIdx.z % cH.nbImages));
+#if		INTERPOLA == NEAREST
 		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayered( TexL_Images, (((int)ptProj.x )+ 0.5f) / (float)cH.dimImg.x, (((int)(ptProj.y) )+ 0.5f) / (float)cH.dimImg.y,(int)(blockIdx.z % cH.nbImages));
- 
+#elif	INTERPOLA == LINEARINTER
+		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayeredPt( TexL_Images, ptProj, cH.dimImg, (int)(blockIdx.z % cH.nbImages));
+#elif	INTERPOLA == BICUBIC
+		cacheImg[threadIdx.y][threadIdx.x] = tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, cH.dimImg,(int)(blockIdx.z % cH.nbImages));
+#endif
+		
 	__syncthreads();
 
 	const int2 ptTer = make_int2(ptHTer) - make_int2(cH.rVig);
@@ -173,14 +177,21 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbA
 			aSV  += val;		// Somme des valeurs de l'image cte 
 			aSVV += (val*val);	// Somme des carrés des vals image cte
 		}
-	
-	aSV	 /=	cH.sizeVig;
-	aSVV /=	cH.sizeVig;
-	aSVV -=	(aSV * aSV);
+
+#ifdef FLOATMATH
+		aSV	 = fdividef(aSV,(float)cH.sizeVig );
+		aSVV = fdividef(aSVV,(float)cH.sizeVig );
+		aSVV -=	(aSV * aSV);
+#else
+		aSV	 /=	cH.sizeVig;
+		aSVV /=	cH.sizeVig;
+		aSVV -=	(aSV * aSV);
+
+#endif
 	
 	if ( aSVV <= cH.mAhEpsilon) return;
 
-	aSVV =	sqrt(aSVV);
+	aSVV =	rsqrtf(aSVV); // racine carre inverse
 
 	const uint pitchCache = blockIdx.z * cH.sizeCach + ptTer.x * cH.dimVig.x;
 	const uint pitchCachY = ptTer.y * cH.dimVig.y ;
@@ -189,8 +200,9 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbA
 	{
 		const int _py	= (pitchCachY + (pt.y - c0.y))* cH.dimCach.x;
 		#pragma unroll
-		for ( pt.x = c0.x ; pt.x <= c1.x; pt.x++)					
-			cachVig[ pitchCache + _py  + (pt.x - c0.x)] = (cacheImg[pt.y][pt.x] -aSV)/aSVV;
+		for ( pt.x = c0.x ; pt.x <= c1.x; pt.x++)		
+			cachVig[ pitchCache + _py  + (pt.x - c0.x)] = (cacheImg[pt.y][pt.x] -aSV)*aSVV;
+
 	}	
 
 	const int ZPitch = (blockIdx.z / cH.nbImages) * cH.rSiTer;
@@ -258,13 +270,22 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 
 	if ( threadIdx.z != 0) return;
 
+#ifdef FLOATMATH
+	atomicAdd(&(resu[thTer.y][thTer.x]),aSVV[t.y][t.x] - fdividef(aSV[t.y][t.x] * aSV[t.y][t.x],(float)nbIm[thTer.y][thTer.x])); 
+#else
 	atomicAdd(&(resu[thTer.y][thTer.x]),aSVV[t.y][t.x] - ((aSV[t.y][t.x] * aSV[t.y][t.x])/ nbIm[thTer.y][thTer.x])); 
+#endif
+	
 
 	if ( !mThrd ) return;
 	__syncthreads();
 
 	// Normalisation pour le ramener a un equivalent de 1-Correl 
+#ifdef FLOATMATH
+	const float cost = fdividef( resu[thTer.y][thTer.x], (float)( nbIm[thTer.y][thTer.x] -1.0f) * (cH.sizeVig));
+#else
 	const float cost = resu[thTer.y][thTer.x]/ (( nbIm[thTer.y][thTer.x] -1.0f) * ((float)cH.sizeVig));
+#endif
 
 	dTCost[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
 }
