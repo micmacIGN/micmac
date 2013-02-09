@@ -43,6 +43,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <sys/utsname.h>
 #endif
 
+
+// Test Mercurial
+
 namespace NS_ParamMICMAC
 {
 
