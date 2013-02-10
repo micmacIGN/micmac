@@ -1249,6 +1249,10 @@ namespace NS_ParamMICMAC
 		{
 			DoGPU_Correl(aBox,(aTC.MultiCorrelPonctuel().PtrVal()));
 		}
+                else if (aTC.MasqueAutoByTieP().IsInit())
+                {
+                        DoMasqueAutoByTieP(aBox,aTC.MasqueAutoByTieP().Val());
+                }
 
 	}
 
