@@ -1575,7 +1575,7 @@ void cEtapeMecComp::DoRemplitXMLNuage() const
    }
 }
 
-void cEtapeMecComp::DoRemplitXML_MTD_Nuage() const
+cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXML_MTD_Nuage() const
 {
    // Prudence pour la generation systematique, ce ne doit pas
    // fonctionner avec toutes les geometries
@@ -1588,11 +1588,11 @@ void cEtapeMecComp::DoRemplitXML_MTD_Nuage() const
    aMTD.KeyNameMTD() = "Key-Assoc-Nuage-ImProf";
    cExportNuage anEN;
    anEN.MTD_Nuage_Maille().SetVal(aMTD);
-   DoRemplitXMLNuage(anEN);
+   return DoRemplitXMLNuage(anEN);
 }
 
 
-void cEtapeMecComp::DoRemplitXMLNuage(const cExportNuage & anEN) const
+cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXMLNuage(const cExportNuage & anEN) const
 {
     cXML_ParamNuage3DMaille aNuage;
     bool aMTD = anEN.MTD_Nuage_Maille().IsInit();
@@ -1677,7 +1677,7 @@ void cEtapeMecComp::DoRemplitXMLNuage(const cExportNuage & anEN) const
          MakeFileXML(aN2->Params(), StdPrefix(aName)+std::string(".xml"));
     }
 
-   
+   return aNuage;
 }
 
 std::string cEtapeMecComp::NameMasqCarteProf() const

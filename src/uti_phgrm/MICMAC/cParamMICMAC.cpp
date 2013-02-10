@@ -2009,59 +2009,6 @@ void xml_init(cMasqueTerrain & anObj,cElXMLTree * aTree)
 }
 
 
-std::string & cMasqueAutoByTieP::FilePt3D()
-{
-   return mFilePt3D;
-}
-
-const std::string & cMasqueAutoByTieP::FilePt3D()const 
-{
-   return mFilePt3D;
-}
-
-
-int & cMasqueAutoByTieP::Zoom()
-{
-   return mZoom;
-}
-
-const int & cMasqueAutoByTieP::Zoom()const 
-{
-   return mZoom;
-}
-
-
-int & cMasqueAutoByTieP::SzW()
-{
-   return mSzW;
-}
-
-const int & cMasqueAutoByTieP::SzW()const 
-{
-   return mSzW;
-}
-
-cElXMLTree * ToXMLTree(const cMasqueAutoByTieP & anObj)
-{
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MasqueAutoByTieP",eXMLBranche);
-   aRes->AddFils(::ToXMLTree(std::string("FilePt3D"),anObj.FilePt3D())->ReTagThis("FilePt3D"));
-   aRes->AddFils(::ToXMLTree(std::string("Zoom"),anObj.Zoom())->ReTagThis("Zoom"));
-   aRes->AddFils(::ToXMLTree(std::string("SzW"),anObj.SzW())->ReTagThis("SzW"));
-  return aRes;
-}
-
-void xml_init(cMasqueAutoByTieP & anObj,cElXMLTree * aTree)
-{
-   if (aTree==0) return;
-
-   xml_init(anObj.FilePt3D(),aTree->Get("FilePt3D",1)); //tototo 
-
-   xml_init(anObj.Zoom(),aTree->Get("Zoom",1)); //tototo 
-
-   xml_init(anObj.SzW(),aTree->Get("SzW",1)); //tototo 
-}
-
-
 cTplValGesInit< Box2dr > & cPlanimetrie::BoxTerrain()
 {
    return mBoxTerrain;
@@ -2161,50 +2108,6 @@ const cTplValGesInit< cMasqueTerrain > & cPlanimetrie::MasqueTerrain()const
 }
 
 
-std::string & cPlanimetrie::FilePt3D()
-{
-   return MasqueAutoByTieP().Val().FilePt3D();
-}
-
-const std::string & cPlanimetrie::FilePt3D()const 
-{
-   return MasqueAutoByTieP().Val().FilePt3D();
-}
-
-
-int & cPlanimetrie::Zoom()
-{
-   return MasqueAutoByTieP().Val().Zoom();
-}
-
-const int & cPlanimetrie::Zoom()const 
-{
-   return MasqueAutoByTieP().Val().Zoom();
-}
-
-
-int & cPlanimetrie::SzW()
-{
-   return MasqueAutoByTieP().Val().SzW();
-}
-
-const int & cPlanimetrie::SzW()const 
-{
-   return MasqueAutoByTieP().Val().SzW();
-}
-
-
-cTplValGesInit< cMasqueAutoByTieP > & cPlanimetrie::MasqueAutoByTieP()
-{
-   return mMasqueAutoByTieP;
-}
-
-const cTplValGesInit< cMasqueAutoByTieP > & cPlanimetrie::MasqueAutoByTieP()const 
-{
-   return mMasqueAutoByTieP;
-}
-
-
 cTplValGesInit< double > & cPlanimetrie::RecouvrementMinimal()
 {
    return mRecouvrementMinimal;
@@ -2234,8 +2137,6 @@ cElXMLTree * ToXMLTree(const cPlanimetrie & anObj)
       aRes->AddFils(::ToXMLTree(std::string("FilterEstimTerrain"),anObj.FilterEstimTerrain().Val())->ReTagThis("FilterEstimTerrain"));
    if (anObj.MasqueTerrain().IsInit())
       aRes->AddFils(ToXMLTree(anObj.MasqueTerrain().Val())->ReTagThis("MasqueTerrain"));
-   if (anObj.MasqueAutoByTieP().IsInit())
-      aRes->AddFils(ToXMLTree(anObj.MasqueAutoByTieP().Val())->ReTagThis("MasqueAutoByTieP"));
    if (anObj.RecouvrementMinimal().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("RecouvrementMinimal"),anObj.RecouvrementMinimal().Val())->ReTagThis("RecouvrementMinimal"));
   return aRes;
@@ -2256,8 +2157,6 @@ void xml_init(cPlanimetrie & anObj,cElXMLTree * aTree)
    xml_init(anObj.FilterEstimTerrain(),aTree->Get("FilterEstimTerrain",1),std::string(".*")); //tototo 
 
    xml_init(anObj.MasqueTerrain(),aTree->Get("MasqueTerrain",1)); //tototo 
-
-   xml_init(anObj.MasqueAutoByTieP(),aTree->Get("MasqueAutoByTieP",1)); //tototo 
 
    xml_init(anObj.RecouvrementMinimal(),aTree->Get("RecouvrementMinimal",1)); //tototo 
 }
@@ -2690,50 +2589,6 @@ cTplValGesInit< cMasqueTerrain > & cSection_Terrain::MasqueTerrain()
 const cTplValGesInit< cMasqueTerrain > & cSection_Terrain::MasqueTerrain()const 
 {
    return Planimetrie().Val().MasqueTerrain();
-}
-
-
-std::string & cSection_Terrain::FilePt3D()
-{
-   return Planimetrie().Val().MasqueAutoByTieP().Val().FilePt3D();
-}
-
-const std::string & cSection_Terrain::FilePt3D()const 
-{
-   return Planimetrie().Val().MasqueAutoByTieP().Val().FilePt3D();
-}
-
-
-int & cSection_Terrain::Zoom()
-{
-   return Planimetrie().Val().MasqueAutoByTieP().Val().Zoom();
-}
-
-const int & cSection_Terrain::Zoom()const 
-{
-   return Planimetrie().Val().MasqueAutoByTieP().Val().Zoom();
-}
-
-
-int & cSection_Terrain::SzW()
-{
-   return Planimetrie().Val().MasqueAutoByTieP().Val().SzW();
-}
-
-const int & cSection_Terrain::SzW()const 
-{
-   return Planimetrie().Val().MasqueAutoByTieP().Val().SzW();
-}
-
-
-cTplValGesInit< cMasqueAutoByTieP > & cSection_Terrain::MasqueAutoByTieP()
-{
-   return Planimetrie().Val().MasqueAutoByTieP();
-}
-
-const cTplValGesInit< cMasqueAutoByTieP > & cSection_Terrain::MasqueAutoByTieP()const 
-{
-   return Planimetrie().Val().MasqueAutoByTieP();
 }
 
 
@@ -4846,6 +4701,31 @@ void xml_init(cCorrel_NC_Robuste & anObj,cElXMLTree * aTree)
 }
 
 
+std::string & cMasqueAutoByTieP::FilePt3D()
+{
+   return mFilePt3D;
+}
+
+const std::string & cMasqueAutoByTieP::FilePt3D()const 
+{
+   return mFilePt3D;
+}
+
+cElXMLTree * ToXMLTree(const cMasqueAutoByTieP & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MasqueAutoByTieP",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("FilePt3D"),anObj.FilePt3D())->ReTagThis("FilePt3D"));
+  return aRes;
+}
+
+void xml_init(cMasqueAutoByTieP & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.FilePt3D(),aTree->Get("FilePt3D",1)); //tototo 
+}
+
+
 cTplValGesInit< cCorrel2DLeastSquare > & cTypeCAH::Correl2DLeastSquare()
 {
    return mCorrel2DLeastSquare;
@@ -4944,6 +4824,17 @@ const cTplValGesInit< cCorrel_NC_Robuste > & cTypeCAH::Correl_NC_Robuste()const
    return mCorrel_NC_Robuste;
 }
 
+
+cTplValGesInit< cMasqueAutoByTieP > & cTypeCAH::MasqueAutoByTieP()
+{
+   return mMasqueAutoByTieP;
+}
+
+const cTplValGesInit< cMasqueAutoByTieP > & cTypeCAH::MasqueAutoByTieP()const 
+{
+   return mMasqueAutoByTieP;
+}
+
 cElXMLTree * ToXMLTree(const cTypeCAH & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"TypeCAH",eXMLBranche);
@@ -4965,6 +4856,8 @@ cElXMLTree * ToXMLTree(const cTypeCAH & anObj)
       aRes->AddFils(ToXMLTree(anObj.Correl_Correl_MNE_ZPredic().Val())->ReTagThis("Correl_Correl_MNE_ZPredic"));
    if (anObj.Correl_NC_Robuste().IsInit())
       aRes->AddFils(ToXMLTree(anObj.Correl_NC_Robuste().Val())->ReTagThis("Correl_NC_Robuste"));
+   if (anObj.MasqueAutoByTieP().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.MasqueAutoByTieP().Val())->ReTagThis("MasqueAutoByTieP"));
   return aRes;
 }
 
@@ -4989,6 +4882,8 @@ void xml_init(cTypeCAH & anObj,cElXMLTree * aTree)
    xml_init(anObj.Correl_Correl_MNE_ZPredic(),aTree->Get("Correl_Correl_MNE_ZPredic",1)); //tototo 
 
    xml_init(anObj.Correl_NC_Robuste(),aTree->Get("Correl_NC_Robuste",1)); //tototo 
+
+   xml_init(anObj.MasqueAutoByTieP(),aTree->Get("MasqueAutoByTieP",1)); //tototo 
 }
 
 
@@ -5121,6 +5016,17 @@ cTplValGesInit< cCorrel_NC_Robuste > & cCorrelAdHoc::Correl_NC_Robuste()
 const cTplValGesInit< cCorrel_NC_Robuste > & cCorrelAdHoc::Correl_NC_Robuste()const 
 {
    return TypeCAH().Correl_NC_Robuste();
+}
+
+
+cTplValGesInit< cMasqueAutoByTieP > & cCorrelAdHoc::MasqueAutoByTieP()
+{
+   return TypeCAH().MasqueAutoByTieP();
+}
+
+const cTplValGesInit< cMasqueAutoByTieP > & cCorrelAdHoc::MasqueAutoByTieP()const 
+{
+   return TypeCAH().MasqueAutoByTieP();
 }
 
 
@@ -8653,6 +8559,17 @@ cTplValGesInit< cCorrel_NC_Robuste > & cEtapeMEC::Correl_NC_Robuste()
 const cTplValGesInit< cCorrel_NC_Robuste > & cEtapeMEC::Correl_NC_Robuste()const 
 {
    return CorrelAdHoc().Val().TypeCAH().Correl_NC_Robuste();
+}
+
+
+cTplValGesInit< cMasqueAutoByTieP > & cEtapeMEC::MasqueAutoByTieP()
+{
+   return CorrelAdHoc().Val().TypeCAH().MasqueAutoByTieP();
+}
+
+const cTplValGesInit< cMasqueAutoByTieP > & cEtapeMEC::MasqueAutoByTieP()const 
+{
+   return CorrelAdHoc().Val().TypeCAH().MasqueAutoByTieP();
 }
 
 
@@ -15831,50 +15748,6 @@ cTplValGesInit< cMasqueTerrain > & cParamMICMAC::MasqueTerrain()
 const cTplValGesInit< cMasqueTerrain > & cParamMICMAC::MasqueTerrain()const 
 {
    return Section_Terrain().Planimetrie().Val().MasqueTerrain();
-}
-
-
-std::string & cParamMICMAC::FilePt3D()
-{
-   return Section_Terrain().Planimetrie().Val().MasqueAutoByTieP().Val().FilePt3D();
-}
-
-const std::string & cParamMICMAC::FilePt3D()const 
-{
-   return Section_Terrain().Planimetrie().Val().MasqueAutoByTieP().Val().FilePt3D();
-}
-
-
-int & cParamMICMAC::Zoom()
-{
-   return Section_Terrain().Planimetrie().Val().MasqueAutoByTieP().Val().Zoom();
-}
-
-const int & cParamMICMAC::Zoom()const 
-{
-   return Section_Terrain().Planimetrie().Val().MasqueAutoByTieP().Val().Zoom();
-}
-
-
-int & cParamMICMAC::SzW()
-{
-   return Section_Terrain().Planimetrie().Val().MasqueAutoByTieP().Val().SzW();
-}
-
-const int & cParamMICMAC::SzW()const 
-{
-   return Section_Terrain().Planimetrie().Val().MasqueAutoByTieP().Val().SzW();
-}
-
-
-cTplValGesInit< cMasqueAutoByTieP > & cParamMICMAC::MasqueAutoByTieP()
-{
-   return Section_Terrain().Planimetrie().Val().MasqueAutoByTieP();
-}
-
-const cTplValGesInit< cMasqueAutoByTieP > & cParamMICMAC::MasqueAutoByTieP()const 
-{
-   return Section_Terrain().Planimetrie().Val().MasqueAutoByTieP();
 }
 
 

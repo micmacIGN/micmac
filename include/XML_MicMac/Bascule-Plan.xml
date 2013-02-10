@@ -14,6 +14,7 @@
                                               <SigmaPond> 2.0 </SigmaPond>
                                               <EcartMax> 5.0 </EcartMax>
                                             </Pond>
+                                            <LimBSurH> ${LimBsH} </LimBSurH>
                                        </EstimPl>
                                    </BasculeLiaisonOnPlan>
                                </ModeBascule>

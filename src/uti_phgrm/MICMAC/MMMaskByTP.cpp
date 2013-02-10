@@ -49,49 +49,53 @@ Header-MicMac-eLiSe-25/06/2007*/
 namespace NS_ParamMICMAC
 {
 
-class cCalcImTP
+static bool WithWTieP=true ;
+static Video_Win *  WTiePCor = 0;
+
+class cCelTiep
 {
-    public :
-         cCalcImTP(Tiff_Im aTF);
-    private :
-         Pt2di mSz;
-         Im2D_REAL4 mIm;
-         TIm2D<REAL4,REAL8> mTIm;
+   public :
+       INT2  mZ;
+       INT2  mCor;
+       INT2  mX;
+       INT2  mY;
 };
 
 
-cCalcImTP::cCalcImTP(Tiff_Im aTF) :
-    mSz   (aTF.sz()),
-    mIm   (mSz.x,mSz.y),
-    mTIm  (mIm)
+
+void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTieP & aMATP)
 {
-    ELISE_COPY(mIm.all_pts(),aTF.in(),mIm.out());
-}
-
-
-cCalcImTP *   cAppliMICMAC::CreateCalcImTP(cPriseDeVue * aPDV)
-{
-
-      Tiff_Im   aTF =   aPDV->FileImMasqOfResol(mTPZoom);
-
-       return new cCalcImTP(aTF);
-}
-
-
-
-void  cAppliMICMAC::DoMasqueAutoByTieP()
-{
-   ELISE_ASSERT
-   (
-          GeomMNT()==eGeomMNTFaisceauIm1PrCh_Px1D
-       || GeomMNT()==eGeomMNTFaisceauIm1ZTerrain_Px1D,
-       "MasqueAutoByTieP requires eGeomMNTFaisceauIm1PrCh_Px1D"
-   );
-
-   const cMasqueAutoByTieP & aMATP = MasqueAutoByTieP().Val();
+#ifdef ELISE_X11
+   if (WithWTieP)
+   {
+       WTiePCor= Video_Win::PtrWStd(aBox.sz());
+   }
+#endif 
    mTP3d = StdNuage3DFromFile(WorkDir()+aMATP.FilePt3D());
-   mTPZoom = aMATP.Zoom();
-   mTPSzW = aMATP.SzW();
+
+   std::cout << "== cAppliMICMAC::DoMasqueAutoByTieP " << aBox._p0 << " " << aBox._p1 << " Nb=" << mTP3d->size() << "\n"; 
+
+   cXML_ParamNuage3DMaille aXmlN =  mCurEtape->DoRemplitXML_MTD_Nuage();
+
+
+   cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromParam(aXmlN,FullDirMEC());
+
+
+   for (int aK=0 ; aK<int(mTP3d->size()) ; aK++)
+   {
+       Pt3dr aPE = (*mTP3d)[aK];
+       Pt3dr aPL = aNuage->Euclid2ProfAndIndex(aPE);
+       Pt3dr aPL2 = aNuage->Euclid2ProfPixelAndIndex(aPE);
+
+       std::cout << aPE << aPL << aPL2 << "\n";
+       getchar();
+
+    
+   }
+
+
+   //cElNuage3DMaille * aNuage = ;
+   getchar();
 }
 
 

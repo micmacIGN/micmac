@@ -120,8 +120,8 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
                           <Pond>
                                  <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
                                  <EcartMax> ${SeuilP3d} </EcartMax>
-                           </Pond>
-                           <KeyFileColImage> NKS-Assoc-Cste@NoAttr   </KeyFileColImage>
+                          </Pond>
+                          <KeyFileColImage> NKS-Assoc-Cste@NoAttr   </KeyFileColImage>
                      </ExportNuage>
 
                    </SectionExport>

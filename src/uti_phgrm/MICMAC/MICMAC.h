@@ -1899,9 +1899,9 @@ class cEtapeMecComp
           std::string NameMasqCarteProf() const;
 
           void RemplitOri(cFileOriMnt &) const;
-          void DoRemplitXML_MTD_Nuage() const;
+          cXML_ParamNuage3DMaille DoRemplitXML_MTD_Nuage() const;
           void DoRemplitXMLNuage() const;
-          void DoRemplitXMLNuage(const cExportNuage &) const;
+          cXML_ParamNuage3DMaille DoRemplitXMLNuage(const cExportNuage &) const;
           void RemplitXMLNuage(const cTplValGesInit<cMTD_Nuage_Maille> &,cXML_ParamNuage3DMaille &,eModeExportNuage) const;
 
 
@@ -2581,7 +2581,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
      public :
 
 
-      void DoMasqueAutoByTieP();
+      void DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTieP & aMATP);
 
       double AdaptPas(double) const;
       cStatGlob  * StatGlob();
