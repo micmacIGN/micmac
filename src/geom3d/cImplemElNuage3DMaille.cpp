@@ -143,7 +143,7 @@ template <class Type,class TBase>
          Pt3dr Loc_Euclid2ProfPixelAndIndex(const   Pt3dr & aP) const
          {
               Pt3dr aRes = Loc_Euclid2ProfAndIndex(aP);
-              return Pt3dr(aRes.x,aRes.y,PReel2Tab(aP.z));
+              return Pt3dr(aRes.x,aRes.y,this->PReel2Tab(aRes.z));
          }
 
          double  ProfEnPixel(const Pt2di & aP) const

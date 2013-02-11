@@ -1899,9 +1899,9 @@ class cEtapeMecComp
           std::string NameMasqCarteProf() const;
 
           void RemplitOri(cFileOriMnt &) const;
-          void DoRemplitXML_MTD_Nuage() const;
+          cXML_ParamNuage3DMaille DoRemplitXML_MTD_Nuage() const;
           void DoRemplitXMLNuage() const;
-          void DoRemplitXMLNuage(const cExportNuage &) const;
+          cXML_ParamNuage3DMaille DoRemplitXMLNuage(const cExportNuage &) const;
           void RemplitXMLNuage(const cTplValGesInit<cMTD_Nuage_Maille> &,cXML_ParamNuage3DMaille &,eModeExportNuage) const;
 
 
@@ -2581,7 +2581,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
      public :
 
 
-      void DoMasqueAutoByTieP();
+      void DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTieP & aMATP);
 
       double AdaptPas(double) const;
       cStatGlob  * StatGlob();
@@ -2713,6 +2713,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
 #ifdef  CUDA_ENABLED
 		void Tabul_Projection( float2* TabProj, int Z, int2 Ter0, int2 Ter1, uint sample, uint interZ = 1);
+		void setVolumeCost(uint2 ter0, uint2 ter1,  uint interZ0, uint interZ1, double defaultCost, float* tabCost = NULL, int2 pt0 = make_int2(0,0) , int2 pt1 = make_int2(0,0), float valdefault = 0.0f);
 #endif
 		void Correl_MNE_ZPredic (const Box2di & aBoxInterne,const cCorrel_Correl_MNE_ZPredic &);  
 		void DoCorrelPonctuelle2ImGeomI(const Box2di&aBoxInterne,const cCorrel_Ponctuel2ImGeomI&);  

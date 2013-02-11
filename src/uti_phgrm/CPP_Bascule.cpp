@@ -91,6 +91,7 @@ int Bascule_main(int argc,char ** argv)
     double DistFE;
     Pt3dr  Normal;
     Pt3dr  SNormal;
+    double aLimBsH;
 
     ElInitArgMain
     (
@@ -114,6 +115,7 @@ int Bascule_main(int argc,char ** argv)
                     << EAM(DistFE,"DistFS",true,"Distance between to fixe scale, if not given no scaling")
                     << EAM(Normal,"Norm",true,"Target normal for the plane")
                     << EAM(SNormal,"SNorm",true,"\"Symbolic Normal\" (must be X, Y or Z)")
+                    << EAM(aLimBsH,"LimBsH",true,"Limit ratio base to high (Def=1e-2)")
 
     );
 
@@ -258,6 +260,9 @@ int Bascule_main(int argc,char ** argv)
                     ;
 
      
+   if (EAMIsInit(&aLimBsH))
+       aCom = aCom + std::string(" +LimBsH=") + ToString(aLimBsH);
+
 
    if (aPatternPlan!="")
    {
