@@ -454,10 +454,19 @@ public:
 	ImageLayeredCuda(){};
 	~ImageLayeredCuda(){};
 
+	void	Realloc(uint2 dim, uint l);
 	void	AllocMemory();
 	void	copyHostToDevice(T* data);
 
 };
+
+template <class T>
+void ImageLayeredCuda<T>::Realloc( uint2 dim, uint l )
+{
+	DeallocMemory();
+	SetDimension(dim,l);
+	AllocMemory();
+}
 
 template <class T>
 void ImageLayeredCuda<T>::copyHostToDevice( T* data )

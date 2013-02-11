@@ -64,6 +64,8 @@ extern "C" paramGPU updateSizeBlock( uint2 ter0, uint2 ter1, uint Zinter )
 
 	checkCudaErrors(cudaMemcpyToSymbol(cH, &h, sizeof(paramGPU)));
 
+	LayeredProjection.Realloc(h.dimSTer,h.nbImages * h.ZInter);
+
 	if (oldSizeTer < h.sizeTer)
 		allocMemory();
 
@@ -83,7 +85,7 @@ static void correlOptionsGPU( uint2 ter0, uint2 ter1, uint2 dV,uint2 dRV, uint2 
 	h.sizeVig	= size(dV);						// Taille de la vignette en pixel 
 	h.sampTer	= samplingZ;					// Pas echantillonage du terrain
 	h.DefaultVal= uvDef;						// UV Terrain incorrect
-	h.IntDefault	= uvINTDef;
+	h.IntDefault= uvINTDef;
 	h.badVig	= -4.0f;
 	h.mAhEpsilon= mAhEpsilon;
 
@@ -105,18 +107,6 @@ extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimImage, int nbLayer)
 	
 	checkCudaErrors( cudaBindTextureToArray(TexL_Images,LayeredImages.GetCudaArray()) );
 
-};
-
-extern "C" void  allocMemoryTabProj(uint2 dimTer, int nbLayer)
-{
-	LayeredProjection.DeallocMemory();
-	LayeredProjection.SetDimension(dimTer,nbLayer);
-	LayeredProjection.AllocMemory();
-}
-
-extern "C" void  CopyProjToLayers(float2 *h_TabProj)
-{
-	LayeredProjection.copyHostToDevice(h_TabProj);
 };
 
 __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbActThrd )
@@ -298,7 +288,7 @@ extern "C" paramGPU Init_Correlation_GPU(  uint2 ter0, uint2 ter1, int nbLayer ,
 	return h;
 }
 
-extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer, uint interZ ){
+extern "C" void basic_Correlation_GPU( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ ){
 
  	volumeCost.SetDimension(h.rDiTer,interZ);
 	volumeCach.SetDimension(h.dimCach,nbLayer * interZ);
@@ -309,6 +299,8 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer, uint inte
 	volumeCost.Memset(h.IntDefault);
 	volumeCach.Memset(h.IntDefault);
 	volumeNIOk.Memset(0);
+
+	LayeredProjection.copyHostToDevice(hostVolumeProj);
  	checkCudaErrors( cudaBindTextureToArray(TexL_Proj,LayeredProjection.GetCudaArray()) );
 
 	// --------------- calcul de dimension du kernel de correlation --------------
@@ -340,7 +332,7 @@ extern "C" void basic_Correlation_GPU( float* h_TabCost,  int nbLayer, uint inte
 	//----------------------------------------------------------------------------
 
 	checkCudaErrors( cudaUnbindTexture(TexL_Proj) );
-	volumeCost.CopyDevicetoHost(h_TabCost);
+	volumeCost.CopyDevicetoHost(hostVolumeCost);
 	
 	//----------------------------------------------------------------------------
 	//checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );

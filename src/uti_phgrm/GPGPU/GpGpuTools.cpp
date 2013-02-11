@@ -77,19 +77,16 @@ void struct2DLayered::SetDimension( uint3 dimension )
 	SetDimension(make_uint2(dimension),dimension.z);
 }
 
-
 void struct2DLayered::SetDimension( uint2 dimension, uint nbLayer )
 {
 	struct2D::SetDimension(dimension);
 	SetNbLayer(nbLayer);
 }
 
-
 void struct2DLayered::SetNbLayer( uint nbLayer )
 {
 	_nbLayers = nbLayer;
 }
-
 
 uint struct2DLayered::GetNbLayer()
 {
@@ -109,7 +106,6 @@ void CCudaArray::DeallocMemory()
 	_cudaArray = NULL;
 }
 
-
 cudaArray* CCudaArray::GetCudaArray()
 {
 	return _cudaArray;
@@ -124,5 +120,3 @@ CCudaArray::~CCudaArray()
 {
 
 }
-
-

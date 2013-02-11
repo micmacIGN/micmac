@@ -963,8 +963,6 @@ namespace NS_ParamMICMAC
 		hVolumeCost.Malloc();
 		hVolumeProj.Malloc();
 
-		allocMemoryTabProj(h.dimSTer, mNbIm * interZ);
-		
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		while( anZ < aZMaxTer )
 		{
@@ -973,11 +971,8 @@ namespace NS_ParamMICMAC
 
 			Tabul_Projection(hVolumeProj.pData(), anZ, h.pUTer0, h.pUTer1, h.sampTer, interZ);
 			
-			// Copie des projections de host vers le device
-			CopyProjToLayers(hVolumeProj.pData());
-			
 			// Kernel Correlation
-			basic_Correlation_GPU(hVolumeCost.pData(), mNbIm, interZ);
+			basic_Correlation_GPU(hVolumeCost.pData(), hVolumeProj.pData(), mNbIm, interZ);
 
 			setVolumeCost(mTer0,mTer1,anZ,anZ + interZ,mAhDefCost,hVolumeCost.pData(), h.ptMask0, h.ptMask1,h.DefaultVal);
 
@@ -991,7 +986,6 @@ namespace NS_ParamMICMAC
 				hVolumeCost.Realloc(h.rDiTer,interZ);
 				hVolumeProj.Realloc(h.dimSTer, interZ*mNbIm);
 
-				allocMemoryTabProj(h.dimSTer, mNbIm * interZ);
 			} 
 			
 			anZ += interZ;
