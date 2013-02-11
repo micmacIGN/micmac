@@ -21,8 +21,7 @@ paramGPU h;
 extern "C" void SetMask(pixel* dataMask, uint2 dimMask)
 {
 	mask.InitImage(dimMask,dataMask);
-
-	cudaBindTextureToArray(TexS_MaskTer,mask.GetCudaArray());
+	mask.bindTexture(TexS_MaskTer);
 }
 
 extern "C" void allocMemory(void)
@@ -298,8 +297,8 @@ extern "C" void basic_Correlation_GPU( float* hostVolumeCost, float2* hostVolume
 	volumeNIOk.Memset(0);
 
 	LayeredProjection.copyHostToDevice(hostVolumeProj);
- 	checkCudaErrors( cudaBindTextureToArray(TexL_Proj,LayeredProjection.GetCudaArray()) );
-
+	LayeredProjection.bindTexture(TexL_Proj);
+ 
 	// --------------- calcul de dimension du kernel de correlation --------------
 
 	dim3	threads( BLOCKDIM, BLOCKDIM, 1);

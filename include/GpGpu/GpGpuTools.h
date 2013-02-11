@@ -231,23 +231,6 @@ private:
 	uint _nbLayers;
 };
 
-class CCudaArray
-{
-
-public:
-
-	CCudaArray();
-	~CCudaArray();
-	cudaArray*	GetCudaArray();
-	cudaArray_t*GetCudaArray_t();
-	void		Dealloc();
-
-private:
-
-	cudaArray*	_cudaArray;
-	
-};
-
 template <class T> 
 class CData 
 {
@@ -449,8 +432,19 @@ void CuDeviceData3D<T>::Dealloc()
 	CData3D<T>::dataNULL();
 }
 
+class AImageCuda : public CData<cudaArray>
+{
+public:
+	AImageCuda(){};
+	~AImageCuda(){};
+	void		bindTexture(textureReference& texRef);
+	cudaArray*	GetCudaArray();
+	void		Dealloc();
+	void		Memset(int val);
+};
+
 template <class T> 
-class ImageCuda : public CData2D<cudaArray>
+class ImageCuda : public CData2D<cudaArray>, public AImageCuda
 {
 
 public:
@@ -461,37 +455,16 @@ public:
 	void	InitImage(uint2 dimension, T* data);
 	void	Malloc();
 	void	copyHostToDevice(T* data);
-	void	Memset(int val);
-	void	Dealloc();
-	cudaArray*	GetCudaArray();
+	void	Memset(int val){AImageCuda::Memset(val);};
+	void	Dealloc(){AImageCuda::Dealloc();};
 
 };
-
-template <class T>
-cudaArray* ImageCuda<T>::GetCudaArray()
-{
-	return CData2D::pData();
-}
-
-
-template <class T>
-void ImageCuda<T>::Dealloc()
-{
-	if (CData2D::isNULL()) checkCudaErrors( cudaFreeArray( CData2D::pData()) );
-	CData2D::dataNULL();
-}
-
-template <class T>
-void ImageCuda<T>::Memset(int val)
-{
-	std::cout << "PAS DE MEMSET POUR CUDA ARRAY" << "\n";
-}
 
 template <class T>
 void ImageCuda<T>::copyHostToDevice( T* data )
 {
 	// Copie des données du Host dans le tableau Cuda
-	checkCudaErrors(cudaMemcpyToArray(CData2D::pData(), 0, 0, data, sizeof(T)*size(GetDimension()), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpyToArray(AImageCuda::pData(), 0, 0, data, sizeof(T)*size(GetDimension()), cudaMemcpyHostToDevice));
 }
 
 template <class T>
@@ -507,7 +480,7 @@ void ImageCuda<T>::Malloc()
 {
 	cudaChannelFormatDesc channelDesc =  cudaCreateChannelDesc<T>() ;
 	// Allocation mémoire du tableau cuda
-	checkCudaErrors( cudaMallocArray(CData2D::ppData(),&channelDesc,GetDimension().x,GetDimension().y) );
+	checkCudaErrors( cudaMallocArray(AImageCuda::ppData(),&channelDesc,GetDimension().x,GetDimension().y) );
 }
 
 //-----------------------------------------------------------------------------------------------
@@ -515,7 +488,7 @@ void ImageCuda<T>::Malloc()
 //-----------------------------------------------------------------------------------------------
 
 template <class T> 
-class ImageLayeredCuda : public CData3D<cudaArray>
+class ImageLayeredCuda : public CData3D<cudaArray>, public AImageCuda
 {
 
 public:
@@ -523,18 +496,11 @@ public:
 	ImageLayeredCuda(){};
 	~ImageLayeredCuda(){};
 	void	Malloc();
-	void	Memset(int val);
-	void	Dealloc();
+	void	Memset(int val){AImageCuda::Memset(val);};
+	void	Dealloc(){AImageCuda::Dealloc();};
 	void	copyHostToDevice(T* data);
-	cudaArray*	GetCudaArray();
 
 };
-
-template <class T>
-cudaArray* ImageLayeredCuda<T>::GetCudaArray()
-{
-	return CData3D::pData();
-}
 
 template <class T>
 void ImageLayeredCuda<T>::copyHostToDevice( T* data )
@@ -545,26 +511,13 @@ void ImageLayeredCuda<T>::copyHostToDevice( T* data )
 	cudaMemcpy3DParms	p		= { 0 };
 	cudaPitchedPtr		pitch	= make_cudaPitchedPtr(data, sizeImagesLayared.width * sizeof(T), sizeImagesLayared.width, sizeImagesLayared.height);
 
-	p.dstArray	= CData3D::pData();			// Pointeur du tableau de destination
+	p.dstArray	= AImageCuda::GetCudaArray();	// Pointeur du tableau de destination
 	p.srcPtr	= pitch;					// Pitch
 	p.extent	= sizeImagesLayared;		// Taille du cube
 	p.kind		= cudaMemcpyHostToDevice;	// Type de copie
 
 	// Copie des images du Host vers le Device
 	checkCudaErrors( cudaMemcpy3D(&p) );
-}
-
-template <class T>
-void ImageLayeredCuda<T>::Dealloc()
-{
-	if (CData3D::isNULL()) checkCudaErrors( cudaFreeArray( CData3D::pData()) );
-	CData3D::dataNULL();
-}
-
-template <class T>
-void ImageLayeredCuda<T>::Memset( int val )
-{
-	std::cout << "PAS DE MEMSET POUR CUDA ARRAY" << "\n";
 }
 
 template <class T>
@@ -577,6 +530,6 @@ void ImageLayeredCuda<T>::Malloc()
 	cudaChannelFormatDesc channelDesc =	cudaCreateChannelDesc<T>();
 
 	// Allocation memoire GPU du tableau des calques d'images
-	checkCudaErrors( cudaMalloc3DArray(CData3D::ppData(),&channelDesc,sizeImagesLayared,cudaArrayLayered) );
+	checkCudaErrors( cudaMalloc3DArray(AImageCuda::ppData(),&channelDesc,sizeImagesLayared,cudaArrayLayered) );
 
 }

@@ -104,29 +104,27 @@ uint struct2DLayered::GetSize()
 	return struct2D::GetSize() * GetNbLayer();
 }
 
-cudaArray_t* CCudaArray::GetCudaArray_t()
+void AImageCuda::bindTexture( textureReference& texRef )
 {
-
-	return &_cudaArray;
+	cudaChannelFormatDesc desc;
+	checkCudaErrors(cudaGetChannelDesc(&desc, GetCudaArray()));
+	checkCudaErrors(cudaBindTextureToArray(&texRef,GetCudaArray(),&desc));
 }
 
-void CCudaArray::Dealloc()
+cudaArray* AImageCuda::GetCudaArray()
 {
-	if (_cudaArray !=NULL) checkCudaErrors( cudaFreeArray( _cudaArray) );
-	_cudaArray = NULL;
+	return CData<cudaArray>::pData();
 }
 
-cudaArray* CCudaArray::GetCudaArray()
+void AImageCuda::Dealloc()
 {
-	return _cudaArray;
+
+	if (CData<cudaArray>::isNULL()) checkCudaErrors( cudaFreeArray( CData<cudaArray>::pData()) );
+	CData<cudaArray>::dataNULL();
+
 }
 
-CCudaArray::CCudaArray()
+void AImageCuda::Memset( int val )
 {
-	_cudaArray = NULL;
-}
-
-CCudaArray::~CCudaArray()
-{
-
+	std::cout << "PAS DE MEMSET POUR CUDA ARRAY" << "\n";
 }
