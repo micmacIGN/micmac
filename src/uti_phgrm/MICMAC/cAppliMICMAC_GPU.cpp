@@ -136,6 +136,28 @@ namespace NS_ParamMICMAC
 	tImGpu  cGPU_LoadedImGeom::ImSom12()  {return mImSom12; }
 
 
+Pt2dr cGPU_LoadedImGeom::ProjOfPDisc(int anX,int anY,int aZ,const cAppliMICMAC & anAppli) const
+{
+    double aZR = anAppli.DequantZ(aZ);
+    Pt2dr aPR = anAppli.DequantPlani(anX,anY);
+
+    return mGeom->CurObj2Im(aPR,&aZR);
+}
+
+void cGPU_LoadedImGeom::MakeDeriv(int anX,int anY,int aZ,const cAppliMICMAC & anAppli)
+{
+    mPOfDeriv = Pt3di(anX,anY,aZ);
+
+    mValueP0D = ProjOfPDisc(anX,anY,aZ,anAppli);
+    mDerivX = (ProjOfPDisc(anX+1,anY,aZ,anAppli)- ProjOfPDisc(anX-1,anY,aZ,anAppli)) / 2.0;
+    mDerivY = (ProjOfPDisc(anX,anY+1,aZ,anAppli)- ProjOfPDisc(anX,anY-1,aZ,anAppli)) / 2.0;
+    mDerivZ = (ProjOfPDisc(anX,anY,aZ+1,anAppli)- ProjOfPDisc(anX,anY,aZ-1,anAppli)) / 2.0;
+}
+
+
+
+
+
 	bool   cGPU_LoadedImGeom::InitValNorms(int anX,int anY)
 	{
 		if (! mDOK_Ortho[anY][anX])
@@ -424,6 +446,8 @@ namespace NS_ParamMICMAC
 
 
 	double MAXDIST = 0.0;
+
+
 
 	bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
 	{

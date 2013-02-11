@@ -2,6 +2,9 @@
    The simplest MicMac exemple
 
    MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/media/data1/Delphe/DELPHE-TMP-CP/Delphes/12-Tetes-Inc-4341-6/
+
+
+   MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/home/marc/TMP/Delphes/12-Tetes-Inc-4341-6/
 -->
 
 <ParamMICMAC>
