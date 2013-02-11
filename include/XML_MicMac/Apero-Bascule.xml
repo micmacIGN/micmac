@@ -24,6 +24,7 @@
             <Symb> OC_AngCor=true </Symb>
             <Symb> OC_L2Estim=true </Symb>
             <Symb> OC_AxeParalPl=false </Symb>
+            <Symb> LimBsH=1e-2 </Symb>
        </DicoLoc>
 
 

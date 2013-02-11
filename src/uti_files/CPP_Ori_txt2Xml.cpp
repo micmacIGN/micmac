@@ -807,7 +807,6 @@ void  cAppli_Ori_Txt2Xml_main::InitGrapheVois()
 #ifdef ELISE_X11
 
 	elise_x11 = true;
-
 #endif
 
     if ((mSzV >0) && elise_x11)

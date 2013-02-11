@@ -1188,9 +1188,10 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
 
                 if (anArgPT&&(aPdsIm >0) && (aRes.mBSurH > anArgPT->LimBsH()))
                 {
-                   double aPdsBsH  = ElMin(1.0,aRes.mBSurH / 0.1);
+                   double aPdsBsH  = ElMin(1.0,pow(aRes.mBSurH,2) / 0.1);
                    Pt2dr aP = aNupl.PK(mKIm);
                    aP = aVP[mKIm]->OrIntM2C()(aP);
+// std::cout << "BBBbSh " << aRes.mBSurH << " " << anArgPT->LimBsH() << "\n";
                    anArgPT->AddAGP(aP,aRes.mPTer,aPdsIm*aPdsBsH,false,&aVpds,&(aCOM->VP()));
                 }
 
