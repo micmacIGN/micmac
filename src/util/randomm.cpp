@@ -317,7 +317,7 @@ class ElTimer
 };
 */
                 
-#if (ELISE_unix || ELISE_MacOs || ELISE_Cygwin)
+#if (ELISE_unix || ELISE_MacOs)
 
 #include <unistd.h>
 #include <cstdio>
