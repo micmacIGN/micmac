@@ -122,6 +122,9 @@ if (NOT ${BUILD_ONLY_ELISE})
 
 	add_executable(TestCam  TestCam.c)
 	INSTALL(TARGETS TestCam RUNTIME DESTINATION ${Install_Dir})
+	
+	add_executable(TestCmds  TestCmds.c)
+	INSTALL(TARGETS TestCmds RUNTIME DESTINATION ${Install_Dir})
 
 	add_executable(tiff_info  tiff_info.c)
 	INSTALL(TARGETS tiff_info RUNTIME DESTINATION ${Install_Dir})
