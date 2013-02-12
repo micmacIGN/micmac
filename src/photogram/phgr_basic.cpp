@@ -3527,7 +3527,7 @@ ElRotation3D  CamStenope::CombinatoireOFPAGen
      ElRotation3D aRes(Pt3dr(0,0,0),0,0,0);
      * Res_Dmin = 1e8;
 
-#if (ELISE_unix || ELISE_MacOs || ELISE_Cygwin)
+#if (ELISE_unix || ELISE_MacOs || ELISE_MinGW)
      std::vector < Pt3dr > V3( PR3.begin() , PR3.end() );
      std::vector < Pt2dr > V2( PF2.begin() , PF2.end() );
 #else
