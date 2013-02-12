@@ -1052,7 +1052,7 @@ GIF_Out_NotComp::GIF_Out_NotComp
     _sz           = sz;
     _nbb           = ElMax(4,nbb);
     
-#if (ELISE_windows)
+#if (ELISE_windows & !ELISE_MinGW)
     _cols        = NEW_TAB(1i64<<_nbb,Elise_colour);
     memcpy(_cols,tec,sizeof(Elise_colour)*(1i64<<nbb));
 #else

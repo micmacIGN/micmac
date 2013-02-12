@@ -857,7 +857,7 @@ extern   double    AtanXY(double,double);
 extern Fonc_Num FoncNormalisee_S1S2 (Flux_Pts aFl,Fonc_Num aFPds,Fonc_Num aF);
 extern Fonc_Num FoncNormalisee_S1S2 (Flux_Pts aFl,Fonc_Num aF); // FPds=1.0
 
-#if ( ELISE_windows & !ELISE_Cygwin )
+#if ( ELISE_windows & !ELISE_MinGW )
 inline double log2(const double & aD)
 {
        return log(aD) / log(2.0);
