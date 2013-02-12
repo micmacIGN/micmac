@@ -47,7 +47,7 @@ using namespace NS_ParamChantierPhotogram;
 #elif ELISE_MacOs
 	const std::string TheStrSiftPP = "siftpp_tgi.OSX ";
 	const std::string TheStrAnnPP = "ann_samplekey200filtre.OSX ";
-#elif ELISE_Cygwin | ELISE_windows
+#elif ELISE_windows
 	#if defined( _M_X64 )
 				const std::string TheStrSiftGPU = "SiftGpu\\x64\\SiftGpu_key.exe ";
 				const std::string TheStrAnnGPU = "SiftGpu\\x64\\SiftGpu_Match.exe ";

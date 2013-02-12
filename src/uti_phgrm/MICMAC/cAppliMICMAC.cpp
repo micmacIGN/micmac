@@ -1733,7 +1733,7 @@ void cAppliMICMAC::ExeProcessParallelisable
    std::string ToAdd("");
    if (AddNameExeMicMac)
    {
-#if (ELISE_unix || ELISE_MacOs|| ELISE_Cygwin)
+#if (ELISE_unix || ELISE_MacOs)
 	  // TODO: a better solution for this
 	  std::size_t spacePos = mNameExe.rfind( ' ' );
 	  if ( spacePos!=std::string::npos )
@@ -1872,7 +1872,7 @@ void cAppliMICMAC::ExeProcessParallelisable
        } 
        fic.close();
        mCout << " ---Lance les Process avec le Makefile\n";
-#if (ELISE_unix || ELISE_MacOs || ELISE_Cygwin)
+#if (ELISE_unix || ELISE_MacOs)
 
 	   std::string aCom = std::string("make -f \"")+nomMakefile+std::string("\" -j ")+ToString(std::abs(ByProcess().Val()));
 #else
