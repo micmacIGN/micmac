@@ -122,6 +122,12 @@
         <ShortName> ND800  </ShortName>
    </CameraEntry>
 
+   <CameraEntry>
+        <Name>    SONY DSC-H3 </Name>
+        <SzCaptMm>   7.5 10  </SzCaptMm>
+        <ShortName> ND800  </ShortName>
+   </CameraEntry>
+
 
 </MMCameraDataBase>
 

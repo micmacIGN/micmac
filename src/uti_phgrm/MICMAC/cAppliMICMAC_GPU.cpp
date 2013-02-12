@@ -136,6 +136,28 @@ namespace NS_ParamMICMAC
 	tImGpu  cGPU_LoadedImGeom::ImSom12()  {return mImSom12; }
 
 
+Pt2dr cGPU_LoadedImGeom::ProjOfPDisc(int anX,int anY,int aZ,const cAppliMICMAC & anAppli) const
+{
+    double aZR = anAppli.DequantZ(aZ);
+    Pt2dr aPR = anAppli.DequantPlani(anX,anY);
+
+    return mGeom->CurObj2Im(aPR,&aZR);
+}
+
+void cGPU_LoadedImGeom::MakeDeriv(int anX,int anY,int aZ,const cAppliMICMAC & anAppli)
+{
+    mPOfDeriv = Pt3di(anX,anY,aZ);
+
+    mValueP0D = ProjOfPDisc(anX,anY,aZ,anAppli);
+    mDerivX = (ProjOfPDisc(anX+1,anY,aZ,anAppli)- ProjOfPDisc(anX-1,anY,aZ,anAppli)) / 2.0;
+    mDerivY = (ProjOfPDisc(anX,anY+1,aZ,anAppli)- ProjOfPDisc(anX,anY-1,aZ,anAppli)) / 2.0;
+    mDerivZ = (ProjOfPDisc(anX,anY,aZ+1,anAppli)- ProjOfPDisc(anX,anY,aZ-1,anAppli)) / 2.0;
+}
+
+
+
+
+
 	bool   cGPU_LoadedImGeom::InitValNorms(int anX,int anY)
 	{
 		if (! mDOK_Ortho[anY][anX])
@@ -424,6 +446,8 @@ namespace NS_ParamMICMAC
 
 
 	double MAXDIST = 0.0;
+
+
 
 	bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
 	{
@@ -902,6 +926,28 @@ namespace NS_ParamMICMAC
 */
 	}
 
+	void cAppliMICMAC::setVolumeCost(uint2 ter0, uint2 ter1, uint z0, uint z1, double defaultCost, float* tabCost, int2 pt0, int2 pt1, float valdefault)
+	{
+		uint2 rDiTer = make_uint2(pt1 - pt0);
+		uint  rSiTer = size(rDiTer);
+		for (int anY = ter0.y ; anY < (int)ter1.y; anY++)
+			for (int anX = ter0.x ; anX <  (int)ter1.x ; anX++) 
+			{
+				int anZ0 = max(z0,mTabZMin[anY][anX]);
+				int anZ1 = min(z1,mTabZMax[anY][anX]);
+
+				for (int anZ = anZ0;  anZ < anZ1 ; anZ++,mNbPointsIsole++)
+					if (tabCost !=NULL && anX >= pt0.x && anY >= pt0.y && anX < pt1.x && anY < pt1.y )
+					{							
+						double cost = (double)tabCost[rSiTer * abs(anZ - (int)z0) + rDiTer.x * (anY - pt0.y) + anX -  pt0.x];
+						mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : defaultCost);																									
+					}
+					else						
+						mSurfOpt->SetCout(Pt2di(anX,anY),&anZ,defaultCost);
+
+			}
+	}
+
 #endif
 
 	void cAppliMICMAC::DoGPU_Correl_Basik
@@ -914,16 +960,14 @@ namespace NS_ParamMICMAC
 		
 		if(	mNbIm == 0) return;
 
-		// Obtenir la nappe englobante
 		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		//int aZMinTer = 0 , aZMaxTer = 1;
 		
+		uint2 mTer0 = make_uint2(mX0Ter,mY0Ter);
+		uint2 mTer1 = make_uint2(mX1Ter,mY1Ter);
+
 		if (h.ptMask0.x == -1)
 		{
-			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
-				for (int anX = mX0Ter ; anX <  mX1Ter ; anX++) 
-					for (int anZ = mTabZMin[anY][anX] ;  anZ < mTabZMax[anY][anX] ; anZ++)					
-						mSurfOpt->SetCout(Pt2di(anX,anY),&anZ,mAhDefCost);
+			setVolumeCost(mTer0,mTer1,mZMinGlob,mZMaxGlob,mAhDefCost);
 			return;
 		}
 
@@ -932,74 +976,47 @@ namespace NS_ParamMICMAC
 		if (interZ != INTERZ)
 			h = updateSizeBlock(make_uint2(h.ptMask0),make_uint2(h.ptMask1),interZ);
 
-		uint siTabProj	= mNbIm * h.sizeSTer * interZ;
 		int anZ			= aZMinTer;
-		float*	h_TabCost;
-		float2* h_TabProj;
+	
+		CuHostData3D<float>		hVolumeCost;
+		CuHostData3D<float2>	hVolumeProj;
 
-		cudaMallocHost(&h_TabCost,(size_t)(interZ * h.rSiTer * sizeof(float)));
-		cudaMallocHost(&h_TabProj,(size_t)(siTabProj * sizeof(float2)));
+		hVolumeCost.SetDimension(h.rDiTer,interZ);
+		hVolumeProj.SetDimension(h.dimSTer, interZ*mNbIm);
 
-		allocMemoryTabProj(h.dimSTer, mNbIm * interZ);
-		
+		hVolumeCost.Malloc();
+		hVolumeProj.Malloc();
+
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		while( anZ < aZMaxTer )
 		{
 			// Re-initialisation du tableau de projection
-			memset(h_TabProj,h.IntDefault,siTabProj * sizeof(float2));
+			hVolumeProj.Memset(h.IntDefault);
 
-			Tabul_Projection(h_TabProj, anZ, h.pUTer0, h.pUTer1, h.sampTer, interZ);
-			
-			// Copie des projections de host vers le device
-			CopyProjToLayers(h_TabProj);
+			Tabul_Projection(hVolumeProj.pData(), anZ, h.pUTer0, h.pUTer1, h.sampTer, interZ);
 			
 			// Kernel Correlation
-			basic_Correlation_GPU(h_TabCost, mNbIm, interZ);
-		
-			for (int Z = anZ ; Z < (int)(anZ + interZ); Z++)
-			{
-				for (int Y = mY0Ter ; Y < mY1Ter ; Y++)		// Ballayage du terrain  
-				{			
-					for (int X = mX0Ter; X <  mX1Ter; X++,mNbPointsIsole++)	
-					{
-						if ( mTabZMin[Y][X] <=  Z && Z < mTabZMax[Y][X])
-						{					
-							if (X >= h.ptMask0.x && Y >= h.ptMask0.y && X < h.ptMask1.x && Y < h.ptMask1.y )
-							{							
-								int id = h.rSiTer * abs(anZ - Z) + h.rDiTer.x * (Y - h.ptMask0.y) +  X -  h.ptMask0.x;
-								double cost = (double)h_TabCost[id];
-								mSurfOpt->SetCout(Pt2di(X,Y),&Z, cost != h.DefaultVal ? cost : mAhDefCost);																									
-							}
-							else						
-								mSurfOpt->SetCout(Pt2di(X,Y),&Z,mAhDefCost);							
-						
-						}	
-					}	
-				}
-			}
+			basic_Correlation_GPU(hVolumeCost.pData(), hVolumeProj.pData(), mNbIm, interZ);
 
-			if ( ((int)interZ >= abs(aZMaxTer - anZ ))  &&  (anZ != aZMaxTer - 1))
+			setVolumeCost(mTer0,mTer1,anZ,anZ + interZ,mAhDefCost,hVolumeCost.pData(), h.ptMask0, h.ptMask1,h.DefaultVal);
+
+			uint intZ = (uint)abs(aZMaxTer - anZ );
+
+			if (interZ >= intZ  &&  anZ != (aZMaxTer - 1))
 			{
-				
-				interZ		= abs(aZMaxTer - anZ);
-				siTabProj	= mNbIm * h.sizeSTer * interZ;
-				
+				interZ = intZ;
 				h = updateSizeBlock(make_uint2(h.ptMask0),make_uint2(h.ptMask1),interZ);
 				
-				cudaFreeHost(h_TabCost);
-				cudaFreeHost(h_TabProj);
-				
-				cudaMallocHost(&h_TabCost,(size_t)(interZ * h.rSiTer * sizeof(float)));
-				cudaMallocHost(&h_TabProj,(size_t)(siTabProj * sizeof(float2)));
+				hVolumeCost.Realloc(h.rDiTer,interZ);
+				hVolumeProj.Realloc(h.dimSTer, interZ*mNbIm);
 
-				allocMemoryTabProj(h.dimSTer, mNbIm * interZ);
 			} 
 			
 			anZ += interZ;
 		}
 
-		cudaFreeHost(h_TabCost);
-		cudaFreeHost(h_TabProj);
+		hVolumeCost.Dealloc();
+		hVolumeProj.Dealloc();
 
 #else
 //std::cout  << "MESSAGE = "<<   mCorrelAdHoc->GPU_CorrelBasik().Val().Unused().Val() << "\n";
@@ -1250,6 +1267,10 @@ namespace NS_ParamMICMAC
 		{
 			DoGPU_Correl(aBox,(aTC.MultiCorrelPonctuel().PtrVal()));
 		}
+                else if (aTC.MasqueAutoByTieP().IsInit())
+                {
+                        DoMasqueAutoByTieP(aBox,aTC.MasqueAutoByTieP().Val());
+                }
 
 	}
 

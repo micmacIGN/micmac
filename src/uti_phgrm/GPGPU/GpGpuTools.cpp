@@ -51,3 +51,80 @@ void GpGpuTools::OutputGpu()
 #endif
 }
 
+uint2 struct2D::GetDimension()
+{
+	return _dimension;
+}
+
+uint2 struct2D::SetDimension( uint2 dimension )
+{
+	_dimension = dimension;
+	return _dimension;
+}
+
+uint2 struct2D::SetDimension( uint dimX,uint dimY )
+{
+	return SetDimension(make_uint2(dimX,dimY));
+}
+
+uint2 struct2D::SetDimension( int dimX,int dimY )
+{
+	return SetDimension((uint)dimX,(uint)dimY);
+}
+
+uint struct2D::GetSize()
+{
+	return size(_dimension);
+}
+
+void struct2DLayered::SetDimension( uint3 dimension )
+{
+	SetDimension(make_uint2(dimension),dimension.z);
+}
+
+void struct2DLayered::SetDimension( uint2 dimension, uint nbLayer )
+{
+	struct2D::SetDimension(dimension);
+	SetNbLayer(nbLayer);
+}
+
+void struct2DLayered::SetNbLayer( uint nbLayer )
+{
+	_nbLayers = nbLayer;
+}
+
+uint struct2DLayered::GetNbLayer()
+{
+	return _nbLayers;
+
+}
+
+uint struct2DLayered::GetSize()
+{
+	return struct2D::GetSize() * GetNbLayer();
+}
+
+void AImageCuda::bindTexture( textureReference& texRef )
+{
+	cudaChannelFormatDesc desc;
+	checkCudaErrors(cudaGetChannelDesc(&desc, GetCudaArray()));
+	checkCudaErrors(cudaBindTextureToArray(&texRef,GetCudaArray(),&desc));
+}
+
+cudaArray* AImageCuda::GetCudaArray()
+{
+	return CData<cudaArray>::pData();
+}
+
+void AImageCuda::Dealloc()
+{
+
+	if (CData<cudaArray>::isNULL()) checkCudaErrors( cudaFreeArray( CData<cudaArray>::pData()) );
+	CData<cudaArray>::dataNULL();
+
+}
+
+void AImageCuda::Memset( int val )
+{
+	std::cout << "PAS DE MEMSET POUR CUDA ARRAY" << "\n";
+}

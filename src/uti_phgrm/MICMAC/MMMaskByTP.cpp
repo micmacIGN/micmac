@@ -43,52 +43,129 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <sys/utsname.h>
 #endif
 
+
+// Test Mercurial
+
 namespace NS_ParamMICMAC
 {
 
-class cCalcImTP
+static bool WithWTieP=true ;
+static Video_Win *  WTiePCor = 0;
+
+
+/********************************************************************/
+/*                                                                  */
+/*                  Gestion des cellules                            */
+/*                                                                  */
+/********************************************************************/
+
+
+
+class cCelTiep
 {
-    public :
-         cCalcImTP(Tiff_Im aTF);
-    private :
-         Pt2di mSz;
-         Im2D_REAL4 mIm;
-         TIm2D<REAL4,REAL8> mTIm;
+   public :
+      cCelTiep() :
+         mCor      (Cor2I(-1)),
+         mHeapInd  (-1)
+      {
+      }
+/*
+*/
+
+     int & HeapInd() {return mHeapInd;}
+     int Cor() const {return mCor;}
+      
+   private :
+
+       static INT2 Cor2I(double aCor) 
+       {
+            return round_ni(ElMax(-1.0,ElMin(1.0,aCor))*1e4);
+       }
+       INT2  mZ;
+       INT2  mCor;
+       INT2  mX;
+       INT2  mY;
+       int   mHeapInd;
 };
 
 
-cCalcImTP::cCalcImTP(Tiff_Im aTF) :
-    mSz   (aTF.sz()),
-    mIm   (mSz.x,mSz.y),
-    mTIm  (mIm)
+typedef cCelTiep * cCelTiepPtr;
+
+
+class cHeap_CTP_Index
 {
-    ELISE_COPY(mIm.all_pts(),aTF.in(),mIm.out());
-}
+    public :
+     static void SetIndex(cCelTiepPtr & aCTP,int i) 
+     {
+        aCTP->HeapInd() = i;
+     }
+     static int  Index(const cCelTiepPtr & aCTP)
+     {
+             return aCTP->HeapInd();
+     }
 
+};
 
-cCalcImTP *   cAppliMICMAC::CreateCalcImTP(cPriseDeVue * aPDV)
+class cHeap_CTP_Cmp
 {
+    public :
+         bool operator () (const cCelTiepPtr & aCTP1,const cCelTiepPtr & aCTP2)
+         {
+               return aCTP1->Cor() > aCTP2->Cor();
+         }
+};
 
-      Tiff_Im   aTF =   aPDV->FileImMasqOfResol(mTPZoom);
+static std::vector< std::vector<cCelTiep> > mMatrCTP;
+static Pt2di mP0Tiep;
+static Pt2di mSzTiep;
 
-       return new cCalcImTP(aTF);
-}
+/********************************************************************/
+/********************************************************************/
+/********************************************************************/
 
-
-
-void  cAppliMICMAC::DoMasqueAutoByTieP()
+void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTieP & aMATP)
 {
-   ELISE_ASSERT
-   (
-          GeomMNT()==eGeomMNTFaisceauIm1PrCh_Px1D
-       || GeomMNT()==eGeomMNTFaisceauIm1ZTerrain_Px1D,
-       "MasqueAutoByTieP requires eGeomMNTFaisceauIm1PrCh_Px1D"
-   );
-
-   const cMasqueAutoByTieP & aMATP = MasqueAutoByTieP().Val();
+#ifdef ELISE_X11
+   if (WithWTieP)
+   {
+       WTiePCor= Video_Win::PtrWStd(aBox.sz());
+   }
+#endif 
    mTP3d = StdNuage3DFromFile(WorkDir()+aMATP.FilePt3D());
-   mTPZoom = aMATP.Zoom();
-   mTPSzW = aMATP.SzW();
+
+   mP0Tiep = aBox._p0;
+   mSzTiep = aBox.sz();
+
+   std::cout << "== cAppliMICMAC::DoMasqueAutoByTieP " << aBox._p0 << " " << aBox._p1 << " Nb=" << mTP3d->size() << "\n"; 
+   std::cout << " =NB Im " << mVLI.size() << "\n";
+
+   cXML_ParamNuage3DMaille aXmlN =  mCurEtape->DoRemplitXML_MTD_Nuage();
+
+
+   cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromParam(aXmlN,FullDirMEC());
+
+
+   mMatrCTP = std::vector< std::vector<cCelTiep> > (mSzTiep.y);
+   for (int anY = 0 ; anY<mSzTiep.y ; anY++)
+      mMatrCTP[anY] =  std::vector<cCelTiep>(mSzTiep.x);
+
+
+
+   for (int aK=0 ; aK<int(mTP3d->size()) ; aK++)
+   {
+       Pt3dr aPE = (*mTP3d)[aK];
+       Pt3dr aPL = aNuage->Euclid2ProfAndIndex(aPE);
+       Pt3dr aPL2 = aNuage->Euclid2ProfPixelAndIndex(aPE);
+
+       std::cout << aPE << aPL << aPL2 << "\n";
+       getchar();
+
+    
+   }
+
+
+   //cElNuage3DMaille * aNuage = ;
+   getchar();
 }
 
 
