@@ -38,6 +38,19 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+bool CheckForMM3D()
+{
+	ExternalToolItem item = g_externalToolHandler.get("mm3d");
+
+	if ( item.m_status==EXT_TOOL_NOT_FOUND ) 
+	{
+		std::cout << "mm3d NOT FOUND - please set PATH for MM3D_Directory (Linux: PATH=$PATH:MM3D_Directory ; Windows: SET PATH=%PATH%;MM3D_Directory)" << std::endl;
+		return false;
+	}
+	
+	return true;
+}
+
 void GenerateMakeFile(std::string aNameFile, std::string aDataDir, bool doAll)
 {
 	std::string chantDir, aCom; 
@@ -48,7 +61,7 @@ void GenerateMakeFile(std::string aNameFile, std::string aDataDir, bool doAll)
 
 	aCom = "all:\n\t";
 	aCom += "mm3d Tapioca MulScale " + chantDir + "/IMG_[0-9]{4}.tif 300 -1 ExpTxt=1\n\t";
-	aCom += "mm3d Apero " + chantDir + "/Apero-5.xml\n\t";
+	aCom += "mm3d Apero "  + chantDir + "/Apero-5.xml\n\t";
 	aCom += "mm3d MICMAC " + chantDir + "/Param-6-Ter.xml\n\t";	
 
 	if (doAll)
@@ -58,8 +71,6 @@ void GenerateMakeFile(std::string aNameFile, std::string aDataDir, bool doAll)
 		aCom += "mm3d Tapioca All \"" + chantDir + "/IMGP41((1[8-9])|(2[0-2])).JPG\" 1000\n\t";
 		aCom += "mm3d Tapioca All \"" + chantDir + "/IMGP41((5[2-8])).JPG\" 1000\n\t";
 		aCom += "mm3d Tapioca All \"" + chantDir + "/IMGP41((2[3-9])|[3-4][0-9]|(5[0-1])).JPG\" 1000\n\t";
-		aCom += "mm3d Tapas RadialExtended \"" + chantDir + "/IMGP416[0-5].JPG\" Out=Calib\n\t";	
-		aCom += "mm3d Tapas AutoCal \"" + chantDir + "/IMGP41((6[7-9])|([7-8][0-9])).JPG\" InCal=Calib Out=Test-5\n\t";
 		aCom += "mm3d Tapas FishEyeEqui \"" + chantDir + "/IMGP41((1[8-9])|(2[0-2])).JPG\" Out=Calib10\n\t";
 		aCom += "mm3d Tapas FishEyeEqui \"" + chantDir + "/IMGP41((5[2-8])).JPG\" Out=Calib17\n\t";
 		aCom += "mm3d Tapas AutoCal \"" + chantDir + "/IMGP41((2[3-9])|[3-4][0-9]|(5[0-1])).JPG\" InCal=Calib10 Focs=[9,11] Out=Tmp1\n\t";
@@ -79,7 +90,7 @@ void GenerateMakeFile(std::string aNameFile, std::string aDataDir, bool doAll)
 
 		aCom += "mm3d AperiCloud \""+ chantDir + "/(Face|Lnk).*JPG\" All Out=AllCam.ply &&";
 		
-		aCom += "mm3d GCPBascule \""+ chantDir +  "/(Face1|Face2|Lnk12)-IMGP[0-9]{4}.JPG\" All Ground Mesure-TestApInit-3D.xml Mesure-TestApInit.xml\n\t";
+		aCom += "mm3d GCPBascule \""+ chantDir + "/(Face1|Face2|Lnk12)-IMGP[0-9]{4}.JPG\" All Ground Mesure-TestApInit-3D.xml Mesure-TestApInit.xml\n\t";
 
 		aCom += "mm3d RepLocBascule \""+ chantDir +  "/(Face1)-IMGP[0-9]{4}.JPG\" Ground  MesureBascFace1.xml Ortho-Cyl1.xml PostPlan=_MasqPlanFace1 OrthoCyl=true\n\t";
 		aCom += "mm3d Tarama \""+ chantDir +  "/(Face1)-IMGP[0-9]{4}.JPG\" Ground  Repere=Ortho-Cyl1.xml  Out=TA-OC-F1 Zoom=4\n\t";
@@ -104,7 +115,7 @@ void GenerateMakeFile(std::string aNameFile, std::string aDataDir, bool doAll)
 
 int TestCmds_main(int argc,char ** argv)
 {
-	std::string aDataDir, MkFile;
+	std::string aDataDir, MkFile, aMk;
 	int doAll = 0;
 
 	ElInitArgMain
@@ -114,22 +125,28 @@ int TestCmds_main(int argc,char ** argv)
 		LArgMain()  << EAM(doAll,"DoAll",true,"run the tool chain on all the data sets (def=false : run only on boudha data set)")	
 	);
 
-	MkFile = "makefile";
+	if(CheckForMM3D())
+	{
+		MkFile = "makefile";
 
-	GenerateMakeFile(MkFile, aDataDir, doAll==1);
+		GenerateMakeFile(MkFile, aDataDir, doAll==1);
 
-	std::string aMk = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFile;
-    System(aMk,true);
+		aMk = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFile;
+		aMk += " && " + std::string(SYS_RM)  + ' ' + MkFile;
+		System(aMk,true);
 
-	std::cout << " *************************************************\n";
-	std::cout << " **                                             **\n";
-	std::cout << " **               Test finished                 **\n";
-	std::cout << " **                                             **\n";
-	std::cout << " **          You may check .ply files!          **\n";
-	std::cout << " **                                             **\n";
-	std::cout << " *************************************************\n";
-
-    return 1;
+		std::cout << "  *************************************************\n";
+		std::cout << "  **                                             **\n";
+		std::cout << "  **               Test finished                 **\n";
+		std::cout << "  **                                             **\n";
+		std::cout << "  **          You may check .ply files!          **\n";
+		std::cout << "  **                                             **\n";
+		std::cout << "  *************************************************\n";
+		
+		return 1;
+	}
+	else
+		return -1;
 }
 
 
