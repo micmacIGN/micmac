@@ -68,6 +68,32 @@ namespace NS_ParamMICMAC
 		//return anIm.data();
 	}
 
+/********************************************************************/
+/*                                                                  */
+/*                   cStatOneImage                                  */
+/*                                                                  */
+/********************************************************************/
+
+cStatOneImage::cStatOneImage()
+{
+   Reset();
+}
+
+
+void cStatOneImage::Reset()
+{
+   mS1 = 0.0;
+   mS2 = 0.0;
+   mVals.clear();
+}
+
+
+/********************************************************************/
+/*                                                                  */
+/*                   cGPU_LoadedImGeom                              */
+/*                                                                  */
+/********************************************************************/
+
 	cGPU_LoadedImGeom::cGPU_LoadedImGeom
 		(
 		const cAppliMICMAC & anAppli,
@@ -136,23 +162,65 @@ namespace NS_ParamMICMAC
 	tImGpu  cGPU_LoadedImGeom::ImSom12()  {return mImSom12; }
 
 
-Pt2dr cGPU_LoadedImGeom::ProjOfPDisc(int anX,int anY,int aZ,const cAppliMICMAC & anAppli) const
+Pt2dr cGPU_LoadedImGeom::ProjOfPDisc(int anX,int anY,int aZ) const
 {
-    double aZR = anAppli.DequantZ(aZ);
-    Pt2dr aPR = anAppli.DequantPlani(anX,anY);
+    double aZR = mAppli.DequantZ(aZ);
+    Pt2dr aPR = mAppli.DequantPlani(anX,anY);
 
     return mGeom->CurObj2Im(aPR,&aZR);
 }
 
-void cGPU_LoadedImGeom::MakeDeriv(int anX,int anY,int aZ,const cAppliMICMAC & anAppli)
+void cGPU_LoadedImGeom::MakeDeriv(int anX,int anY,int aZ)
 {
     mPOfDeriv = Pt3di(anX,anY,aZ);
 
-    mValueP0D = ProjOfPDisc(anX,anY,aZ,anAppli);
-    mDerivX = (ProjOfPDisc(anX+1,anY,aZ,anAppli)- ProjOfPDisc(anX-1,anY,aZ,anAppli)) / 2.0;
-    mDerivY = (ProjOfPDisc(anX,anY+1,aZ,anAppli)- ProjOfPDisc(anX,anY-1,aZ,anAppli)) / 2.0;
-    mDerivZ = (ProjOfPDisc(anX,anY,aZ+1,anAppli)- ProjOfPDisc(anX,anY,aZ-1,anAppli)) / 2.0;
+    mValueP0D = ProjOfPDisc(anX,anY,aZ);
+    mDerivX = (ProjOfPDisc(anX+1,anY,aZ)- ProjOfPDisc(anX-1,anY,aZ)) / 2.0;
+    mDerivY = (ProjOfPDisc(anX,anY+1,aZ)- ProjOfPDisc(anX,anY-1,aZ)) / 2.0;
+    mDerivZ = (ProjOfPDisc(anX,anY,aZ+1)- ProjOfPDisc(anX,anY,aZ-1)) / 2.0;
+
+    mX0Deriv = anX;
+    mY0Deriv = anY;
+    mZ0Deriv = aZ;
 }
+
+Pt2dr cGPU_LoadedImGeom::ProjByDeriv(int anX,int anY,int aZ) const
+{
+
+   return    mValueP0D 
+          +  mDerivX*double(anX-mX0Deriv)
+          +  mDerivY*double(anY-mY0Deriv)
+          +  mDerivZ*double( aZ-mZ0Deriv) ;
+}
+
+cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,int aSzV,int aPasVig)
+{
+
+    cInterpolateurIm2D<float> * anInt = mAppli.CurEtape()->InterpFloat();
+    mBufVignette.Reset();
+    Pt2dr aP0 = ProjByDeriv(anX,anY,aZ);
+
+    Pt2dr aDx = mDerivX * double(aPasVig);
+    Pt2dr aDy = mDerivY * double(aPasVig);
+
+    Pt2dr aDebL =  aP0 - aDx*double(aSzV) - aDy*double(aSzV);
+    for (int aKY=-aSzV ; aKY<=aSzV ; aKY++)
+    {
+        Pt2dr aCur = aDebL;
+        for (int aKX=-aSzV ; aKX<=aSzV ; aKX++)
+        {
+            if (IsOk(aCur.x,aCur.y))
+               mBufVignette.Add(anInt->GetVal(mDataIm,aCur));
+            else
+               return 0;
+            aCur += aDx;
+        }
+        aDebL += aDy;
+    }
+
+    return & mBufVignette;
+}
+
 
 
 
