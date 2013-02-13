@@ -133,7 +133,7 @@ ExternalToolItem & ExternalToolHandler::addTool( const std::string &i_tool )
 	#endif
 
 	// check EXTERNAL_TOOLS_SUBDIRECTORY directory
-	fullName = MMDir()+EXTERNAL_TOOLS_SUBDIRECTORY+ELISE_CAR_DIR+exeName;
+	fullName = _MMDir()+EXTERNAL_TOOLS_SUBDIRECTORY+ELISE_CAR_DIR+exeName;
 	if ( ELISE_fp::exist_file( fullName ) )
 		status = EXT_TOOL_FOUND_IN_DIR;
 
