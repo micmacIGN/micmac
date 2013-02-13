@@ -325,8 +325,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     {
         mDirMEC = "MM-Malt-Img-" + StdPrefix(mImMaster) +ELISE_CAR_DIR;
     }
-    FileMasqT = "MM-MasqImage.xml";
     mUseMasqTA = UseMTAOri && ELISE_fp::exist_file(StdPrefix(mImMaster)+"_Masq.tif");
+    if (mUseMasqTA)
+      FileMasqT = "MM-MasqImage.xml";
   }
 
 // mZoomInit
