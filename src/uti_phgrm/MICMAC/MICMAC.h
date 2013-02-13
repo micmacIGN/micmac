@@ -270,6 +270,23 @@ typedef std::list<cEtapeMecComp *>  tContEMC;
 class cOptimDiffer;
 class cMicMacVisu;
 
+class cStatOneImage
+{
+   public :
+      std::vector<double> mVals;
+      double              mS1;
+      double              mS2;
+
+      cStatOneImage();
+      void Reset();
+      void Add(const double & aV)
+      {
+         mVals.push_back(aV);
+         mS1 += aV;
+         mS2 += ElSquare(aV);
+      }
+};
+
 
 
 /*****************************************************/
@@ -2491,10 +2508,10 @@ class   cGPU_LoadedImGeom
 
        bool Correl(double & Correl,int anX,int anY,const cGPU_LoadedImGeom & aGeoJ) const;
 
-       Pt2dr ProjOfPDisc(int anX,int anY,int aZ,const cAppliMICMAC &) const;
-       void MakeDeriv(int anX,int anY,int aZ,const cAppliMICMAC &);
+       Pt2dr ProjOfPDisc(int anX,int anY,int aZ) const;
+       void MakeDeriv(int anX,int anY,int aZ);
        Pt2dr ProjByDeriv(int anX,int anY,int aZ) const;
-       std::vector<double> & ValueVignette(int anX,int anY,int aZ,int aSzV) const;
+       cStatOneImage * ValueVignettByDeriv(int anX,int anY,int aZ,int aSzV,int PasVig) ;
 
        
 
@@ -2508,12 +2525,15 @@ class   cGPU_LoadedImGeom
        Pt2di              mSzV;
        Pt2di              mSzOrtho;
 
+       int                mX0Deriv;
+       int                mY0Deriv;
+       int                mZ0Deriv;
        Pt2dr              mDerivX;
        Pt2dr              mDerivY;
        Pt2dr              mDerivZ;
        Pt2dr              mValueP0D;
        Pt3di              mPOfDeriv;
-       std::vector<std::vector<double> > mBufVignette;
+       cStatOneImage      mBufVignette;
 
 // tGpuF
 // tImGpu
