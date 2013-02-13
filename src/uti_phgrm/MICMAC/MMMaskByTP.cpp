@@ -52,16 +52,76 @@ namespace NS_ParamMICMAC
 static bool WithWTieP=true ;
 static Video_Win *  WTiePCor = 0;
 
+
+/********************************************************************/
+/*                                                                  */
+/*                  Gestion des cellules                            */
+/*                                                                  */
+/********************************************************************/
+
+
+
 class cCelTiep
 {
    public :
+      cCelTiep() :
+         mCor      (Cor2I(-1)),
+         mHeapInd  (-1)
+      {
+      }
+/*
+*/
+
+     int & HeapInd() {return mHeapInd;}
+     int Cor() const {return mCor;}
+      
+   private :
+
+       static INT2 Cor2I(double aCor) 
+       {
+            return round_ni(ElMax(-1.0,ElMin(1.0,aCor))*1e4);
+       }
        INT2  mZ;
        INT2  mCor;
        INT2  mX;
        INT2  mY;
+       int   mHeapInd;
 };
 
 
+typedef cCelTiep * cCelTiepPtr;
+
+
+class cHeap_CTP_Index
+{
+    public :
+     static void SetIndex(cCelTiepPtr & aCTP,int i) 
+     {
+        aCTP->HeapInd() = i;
+     }
+     static int  Index(const cCelTiepPtr & aCTP)
+     {
+             return aCTP->HeapInd();
+     }
+
+};
+
+class cHeap_CTP_Cmp
+{
+    public :
+         bool operator () (const cCelTiepPtr & aCTP1,const cCelTiepPtr & aCTP2)
+         {
+               return aCTP1->Cor() > aCTP2->Cor();
+         }
+};
+
+static std::vector< std::vector<cCelTiep> > mMatrCTP;
+static Pt2di mP0Tiep;
+static Pt2di mSzTiep;
+
+/********************************************************************/
+/********************************************************************/
+/********************************************************************/
 
 void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTieP & aMATP)
 {
@@ -73,12 +133,22 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
 #endif 
    mTP3d = StdNuage3DFromFile(WorkDir()+aMATP.FilePt3D());
 
+   mP0Tiep = aBox._p0;
+   mSzTiep = aBox.sz();
+
    std::cout << "== cAppliMICMAC::DoMasqueAutoByTieP " << aBox._p0 << " " << aBox._p1 << " Nb=" << mTP3d->size() << "\n"; 
+   std::cout << " =NB Im " << mVLI.size() << "\n";
 
    cXML_ParamNuage3DMaille aXmlN =  mCurEtape->DoRemplitXML_MTD_Nuage();
 
 
    cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromParam(aXmlN,FullDirMEC());
+
+
+   mMatrCTP = std::vector< std::vector<cCelTiep> > (mSzTiep.y);
+   for (int anY = 0 ; anY<mSzTiep.y ; anY++)
+      mMatrCTP[anY] =  std::vector<cCelTiep>(mSzTiep.x);
+
 
 
    for (int aK=0 ; aK<int(mTP3d->size()) ; aK++)

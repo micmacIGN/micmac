@@ -343,7 +343,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /* And here's one for those of you who are intimidated by math.              */
 
 #define ONETHIRD 0.333333333333333333333333333333333333333333333333333333333333
-#if (!ELISE_windows | ELISE_Cygwin)
+#if (!ELISE_windows | ELISE_MinGW)
 #include <unistd.h>
 #endif
 

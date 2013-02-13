@@ -72,6 +72,11 @@ uint2 struct2D::SetDimension( int dimX,int dimY )
 	return SetDimension((uint)dimX,(uint)dimY);
 }
 
+uint struct2D::GetSize()
+{
+	return size(_dimension);
+}
+
 void struct2DLayered::SetDimension( uint3 dimension )
 {
 	SetDimension(make_uint2(dimension),dimension.z);
@@ -94,29 +99,32 @@ uint struct2DLayered::GetNbLayer()
 
 }
 
-cudaArray_t* CCudaArray::GetCudaArray_t()
+uint struct2DLayered::GetSize()
 {
-
-	return &_cudaArray;
+	return struct2D::GetSize() * GetNbLayer();
 }
 
-void CCudaArray::DeallocMemory()
+void AImageCuda::bindTexture( textureReference& texRef )
 {
-	if (_cudaArray !=NULL) checkCudaErrors( cudaFreeArray( _cudaArray) );
-	_cudaArray = NULL;
+	cudaChannelFormatDesc desc;
+	checkCudaErrors(cudaGetChannelDesc(&desc, GetCudaArray()));
+	checkCudaErrors(cudaBindTextureToArray(&texRef,GetCudaArray(),&desc));
 }
 
-cudaArray* CCudaArray::GetCudaArray()
+cudaArray* AImageCuda::GetCudaArray()
 {
-	return _cudaArray;
+	return CData<cudaArray>::pData();
 }
 
-CCudaArray::CCudaArray()
+void AImageCuda::Dealloc()
 {
-	_cudaArray = NULL;
+
+	if (CData<cudaArray>::isNULL()) checkCudaErrors( cudaFreeArray( CData<cudaArray>::pData()) );
+	CData<cudaArray>::dataNULL();
+
 }
 
-CCudaArray::~CCudaArray()
+void AImageCuda::Memset( int val )
 {
-
+	std::cout << "PAS DE MEMSET POUR CUDA ARRAY" << "\n";
 }

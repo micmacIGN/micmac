@@ -110,16 +110,6 @@ Header-MicMac-eLiSe-25/06/2007*/
     #define ELISE_CAR_ENV ':'
 #endif
 
-#if ELISE_Cygwin
-	#define SYS_MV "mv"
-	#define SYS_RM "rm"
-	#define SYS_CP "cp"
-	#define ELISE_CAR_DIR  '/' 
-	#define ELISE_Current_DIR  "./"
-	// the character separating directories in PATH environment variable
-    #define ELISE_CAR_ENV ';'
-#endif
-
 #if ELISE_windows
 	#define SYS_MV "move"
 	#define SYS_RM "del"
@@ -144,7 +134,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define ElTemplateInstantiation 1
 
 // Apparamment MSW est assez restrictif sur l'emploi du typename
-#if ( ELISE_windows & !ELISE_Cygwin )
+#if ( ELISE_windows & !ELISE_MinGW )
 	#define ElTypeName_NotMSW
 	#define  ClassFriend
 #else

@@ -205,6 +205,7 @@ public:
 	uint2		SetDimension(uint2 dimension);
 	uint2		SetDimension(int dimX,int dimY);
 	uint2		SetDimension(uint dimX,uint dimY);
+	uint		GetSize();
 
 private:
 
@@ -223,98 +224,138 @@ public:
 	void	SetNbLayer(uint nbLayer);
 	void	SetDimension(uint2 dimension, uint nbLayer);
 	void	SetDimension(uint3 dimension);
+	uint	GetSize();
 
 private:
 
 	uint _nbLayers;
 };
 
-class CCudaArray
-{
-
-public:
-
-	CCudaArray();
-	~CCudaArray();
-	cudaArray*	GetCudaArray();
-	cudaArray_t*GetCudaArray_t();
-	void		DeallocMemory();
-
-private:
-
-	cudaArray*	_cudaArray;
-	
-};
-
 template <class T> 
-class CuData3D : public struct2DLayered
+class CData 
 {
 
 public:
-
-	CuData3D();
-	~CuData3D(){};
+	CData();
+	~CData(){};
 	virtual void	Malloc() = 0;
 	virtual void	Memset(int val) = 0;
 	virtual void	Dealloc() = 0;
+
 	void			dataNULL();
-	uint			SizeByt();
 	T*				pData();
-	void			Realloc(uint2 dim, uint l);
 	bool			isNULL();
 	T**				ppData();
-	
+
 private:
 
 	T*	_data;
 };
 
 template <class T>
-T** CuData3D<T>::ppData()
-{
-	return &_data;
-}
-
-template <class T>
-CuData3D<T>::CuData3D()
+CData<T>::CData()
 {
 	dataNULL();
 }
 
 template <class T>
-bool CuData3D<T>::isNULL()
+T** CData<T>::ppData()
+{
+	return &_data;
+}
+template <class T>
+bool CData<T>::isNULL()
 {
 	return (_data == NULL);
 }
 
 template <class T>
-void CuData3D<T>::Realloc( uint2 dim, uint l )
-{
-	Dealloc();
-	SetDimension(dim,l);
-	Malloc();
-}
-
-template <class T>
-void CuData3D<T>::dataNULL()
+void CData<T>::dataNULL()
 {
 	_data = NULL;
 }
 
 template <class T>
-T* CuData3D<T>::pData()
+T* CData<T>::pData()
 {
 	return _data;
 }
 
-template <class T>
-uint CuData3D<T>::SizeByt()
+template <class T> 
+class CData2D : public struct2D, public CData<T>
 {
-	return struct2DLayered::GetNbLayer()*size(struct2D::GetDimension())* sizeof(T);
+public:
+	CData2D(){};
+	~CData2D(){};
+	virtual void	Malloc() = 0;
+	virtual void	Memset(int val) = 0;
+	virtual void	Dealloc() = 0;
+
+	void			Malloc(uint2 dim);
+	void			Realloc(uint2 dim);
+	uint			Sizeof();
+};
+
+template <class T>
+uint CData2D<T>::Sizeof()
+{
+	return sizeof(T) * struct2D::GetSize();
+}
+
+template <class T>
+void CData2D<T>::Realloc( uint2 dim )
+{
+	Dealloc();
+	Malloc(dim);
+}
+
+template <class T>
+void CData2D<T>::Malloc( uint2 dim )
+{
+	SetDimension(dim);
+	Malloc();
 }
 
 template <class T> 
-class CuHostData3D : public CuData3D<T>
+class CData3D : public struct2DLayered, public CData<T>
+{
+
+public:
+
+	CData3D(){};
+	~CData3D(){};
+	virtual void	Malloc() = 0;
+	virtual void	Memset(int val) = 0;
+	virtual void	Dealloc() = 0;
+	
+	void			Malloc(uint2 dim, uint l);
+	void			Realloc(uint2 dim, uint l);
+ 	uint			Sizeof();
+
+};
+
+template <class T>
+void CData3D<T>::Malloc( uint2 dim, uint l )
+{
+	SetDimension(dim,l);
+	Malloc();
+}
+
+template <class T>
+void CData3D<T>::Realloc( uint2 dim, uint l )
+{
+	Dealloc();
+	Malloc(dim,l);
+}
+
+template <class T>
+uint CData3D<T>::Sizeof()
+{
+	return GetSize() * sizeof(T);
+}
+
+template <class T> 
+class CuHostData3D : public CData3D<T>
 {
 public:
 	CuHostData3D(){};
@@ -328,23 +369,23 @@ public:
 template <class T>
 void CuHostData3D<T>::Memset( int val )
 {
-	memset(CuData3D<T>::pData(),val,CuData3D<T>::SizeByt());
+	memset(CData3D<T>::pData(),val,CData3D<T>::Sizeof());
 }
 
 template <class T>
 void CuHostData3D<T>::Malloc()
 {
-	cudaMallocHost(CuData3D<T>::ppData(),CuData3D<T>::SizeByt());
+	cudaMallocHost(CData3D<T>::ppData(),CData3D<T>::Sizeof());
 }
 
 template <class T>
 void CuHostData3D<T>::Dealloc()
 {
-	cudaFreeHost(CuData3D<T>::pData());
+	cudaFreeHost(CData3D<T>::pData());
 }
 
 template <class T> 
-class CuDeviceData3D : public CuData3D<T> 
+class CuDeviceData3D : public CData3D<T> 
 {
 
 public:
@@ -362,85 +403,84 @@ template <class T>
 void CuDeviceData3D<T>::CopyDevicetoHost( T* hostData )
 {
 	
-	checkCudaErrors( cudaMemcpy( hostData, CuData3D<T>::pData(), CuData3D<T>::SizeByt(), cudaMemcpyDeviceToHost) );
+	checkCudaErrors( cudaMemcpy( hostData, CData3D<T>::pData(), CData3D<T>::Sizeof(), cudaMemcpyDeviceToHost) );
 }
 
 template <class T>
 void CuDeviceData3D<T>::Memset( int val )
 {
 
-	checkCudaErrors( cudaMemset( CuData3D<T>::pData(), val, CuData3D<T>::SizeByt()));
+	checkCudaErrors( cudaMemset( CData3D<T>::pData(), val, CData3D<T>::Sizeof()));
 }
 
 template <class T>
 CuDeviceData3D<T>::CuDeviceData3D()
 {
-  CuData3D<T>::dataNULL();
+  CData3D<T>::dataNULL();
 }
 
 template <class T>
 void CuDeviceData3D<T>::Malloc()
 {
-        checkCudaErrors( cudaMalloc((void **)CuData3D<T>::ppData(), CuData3D<T>::SizeByt()));
+	checkCudaErrors( cudaMalloc((void **)CData3D<T>::ppData(), CData3D<T>::Sizeof()));
 }
 
 template <class T>
 void CuDeviceData3D<T>::Dealloc()
 {
-	if (CuData3D<T>::isNULL()) checkCudaErrors( cudaFree(CuData3D<T>::pData()));
-	CuData3D<T>::dataNULL();
+	if (CData3D<T>::isNULL()) checkCudaErrors( cudaFree(CData3D<T>::pData()));
+	CData3D<T>::dataNULL();
 }
 
+class AImageCuda : public CData<cudaArray>
+{
+public:
+	AImageCuda(){};
+	~AImageCuda(){};
+	void		bindTexture(textureReference& texRef);
+	cudaArray*	GetCudaArray();
+	void		Dealloc();
+	void		Memset(int val);
+};
+
 template <class T> 
-class ImageCuda : public CCudaArray, public struct2D
+class ImageCuda : public CData2D<cudaArray>, public AImageCuda
 {
 
 public:
 
-	ImageCuda();
-	~ImageCuda();
+	ImageCuda(){};
+	~ImageCuda(){};
 	
-	void		InitImage(uint2 dimension, T* data);
-	void		AllocMemory();
-	void		copyHostToDevice(T* data);
+	void	InitImage(uint2 dimension, T* data);
+	void	Malloc();
+	void	copyHostToDevice(T* data);
+	void	Memset(int val){AImageCuda::Memset(val);};
+	void	Dealloc(){AImageCuda::Dealloc();};
 
 };
-
-
-template <class T>
-ImageCuda<T>::~ImageCuda()
-{
-	//DeallocMemory();
-}
 
 template <class T>
 void ImageCuda<T>::copyHostToDevice( T* data )
 {
 	// Copie des données du Host dans le tableau Cuda
-	checkCudaErrors(cudaMemcpyToArray(CCudaArray::GetCudaArray(), 0, 0, data, sizeof(T)*size(GetDimension()), cudaMemcpyHostToDevice));
-}
-
-
-template <class T>
-ImageCuda<T>::ImageCuda()
-{
-
+	checkCudaErrors(cudaMemcpyToArray(AImageCuda::pData(), 0, 0, data, sizeof(T)*size(GetDimension()), cudaMemcpyHostToDevice));
 }
 
 template <class T>
 void ImageCuda<T>::InitImage(uint2 dimension, T* data)
 {
 	SetDimension(dimension);
-	AllocMemory();
+	Malloc();
 	copyHostToDevice(data);
 }
 
 template <class T>
-void ImageCuda<T>::AllocMemory()
+void ImageCuda<T>::Malloc()
 {
 	cudaChannelFormatDesc channelDesc =  cudaCreateChannelDesc<T>() ;
 	// Allocation mémoire du tableau cuda
-	checkCudaErrors( cudaMallocArray(CCudaArray::GetCudaArray_t(),&channelDesc,GetDimension().x,GetDimension().y) );
+	checkCudaErrors( cudaMallocArray(AImageCuda::ppData(),&channelDesc,GetDimension().x,GetDimension().y) );
 }
 
 //-----------------------------------------------------------------------------------------------
@@ -448,60 +488,48 @@ void ImageCuda<T>::AllocMemory()
 //-----------------------------------------------------------------------------------------------
 
 template <class T> 
-class ImageLayeredCuda : public struct2DLayered, public CCudaArray 
+class ImageLayeredCuda : public CData3D<cudaArray>, public AImageCuda
 {
+
 public:
+
 	ImageLayeredCuda(){};
 	~ImageLayeredCuda(){};
-
-	void	Realloc(uint2 dim, uint l);
-	void	AllocMemory();
+	void	Malloc();
+	void	Memset(int val){AImageCuda::Memset(val);};
+	void	Dealloc(){AImageCuda::Dealloc();};
 	void	copyHostToDevice(T* data);
 
 };
 
 template <class T>
-void ImageLayeredCuda<T>::Realloc( uint2 dim, uint l )
-{
-	DeallocMemory();
-	SetDimension(dim,l);
-	AllocMemory();
-}
-
-template <class T>
 void ImageLayeredCuda<T>::copyHostToDevice( T* data )
 {
-
-	cudaExtent sizeImagesLayared = make_cudaExtent( struct2D::GetDimension().x, struct2D::GetDimension().y, struct2DLayered::GetNbLayer());
+	cudaExtent sizeImagesLayared = make_cudaExtent( CData3D::GetDimension().x, CData3D::GetDimension().y, CData3D::GetNbLayer());
 
 	// Déclaration des parametres de copie 3D
 	cudaMemcpy3DParms	p		= { 0 };
 	cudaPitchedPtr		pitch	= make_cudaPitchedPtr(data, sizeImagesLayared.width * sizeof(T), sizeImagesLayared.width, sizeImagesLayared.height);
 
-	p.dstArray	= CCudaArray::GetCudaArray();	// Pointeur du tableau de destination
-	p.srcPtr	= pitch;						// Pitch
-	p.extent	= sizeImagesLayared;			// Taille du cube
-	p.kind		= cudaMemcpyHostToDevice;		// Type de copie
+	p.dstArray	= AImageCuda::GetCudaArray();	// Pointeur du tableau de destination
+	p.srcPtr	= pitch;					// Pitch
+	p.extent	= sizeImagesLayared;		// Taille du cube
+	p.kind		= cudaMemcpyHostToDevice;	// Type de copie
 
 	// Copie des images du Host vers le Device
 	checkCudaErrors( cudaMemcpy3D(&p) );
-
 }
 
 template <class T>
-void ImageLayeredCuda<T>::AllocMemory()
+void ImageLayeredCuda<T>::Malloc()
 {
-	cudaExtent sizeImagesLayared = make_cudaExtent( struct2D::GetDimension().x, struct2D::GetDimension().y,struct2DLayered::GetNbLayer());
+
+	cudaExtent sizeImagesLayared = make_cudaExtent( CData3D::GetDimension().x, CData3D::GetDimension().y,CData3D::GetNbLayer());
 
 	// Définition du format des canaux d'images	
 	cudaChannelFormatDesc channelDesc =	cudaCreateChannelDesc<T>();
 
 	// Allocation memoire GPU du tableau des calques d'images
-	checkCudaErrors( cudaMalloc3DArray(CCudaArray::GetCudaArray_t(),&channelDesc,sizeImagesLayared,cudaArrayLayered) );
+	checkCudaErrors( cudaMalloc3DArray(AImageCuda::ppData(),&channelDesc,sizeImagesLayared,cudaArrayLayered) );
 
 }
-
-
-
-
-
