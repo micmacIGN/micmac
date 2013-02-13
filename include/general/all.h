@@ -53,30 +53,30 @@ extern bool BugDG;
 /*
 #endif
 */
-#ifdef _WIN32
-	#define USE_NOYAU 1
-	#define ELISE_unix 0
-	#define ELISE_windows 1
-        #define ELISE_MacOs 0
-        #define ELISE_Cygwin 0
-#elif __APPLE__
-	#define USE_NOYAU 0
-	#define ELISE_unix 0
-	#define ELISE_MacOs 1
-	#define ELISE_windows 0
-        #define ELISE_Cygwin 0
-#elif __CYGWIN__
-       #define USE_NOYAU 0
-       #define ELISE_unix 0
-       #define ELISE_MacOs 0
-       #define ELISE_windows 0
-       #define ELISE_Cygwin 1
-#else
-       #define USE_NOYAU 0
-       #define ELISE_unix 1
-       #define ELISE_MacOs 0
-       #define ELISE_windows 0
-       #define ELISE_Cygwin 0
+#ifndef ELISE_unix
+	#ifdef _WIN32
+		#define USE_NOYAU 0
+		#define ELISE_unix 0
+		#define ELISE_windows 1
+		#define ELISE_MacOs 0
+		#if __MINGW__
+			#define ELISE_MinGW 1
+		#else
+			#define ELISE_MinGW 0
+		#endif
+	#elif __APPLE__
+		#define USE_NOYAU 0
+		#define ELISE_unix 0
+		#define ELISE_MacOs 1
+		#define ELISE_windows 0
+		#define ELISE_MinGW 0
+	#else
+		#define USE_NOYAU 0
+		#define ELISE_unix 1
+		#define ELISE_MacOs 0
+		#define ELISE_windows 0
+		#define ELISE_MinGW 0
+	#endif
 #endif
 
 #include  "general/MM_InstalDir.h"
@@ -166,7 +166,7 @@ using namespace std;
 
 #if (USE_NOYAU)
 #else
-inline std::ostream & ncout () {return std::cout;}
+	inline std::ostream & ncout () {return std::cout;}
 #endif
 
 

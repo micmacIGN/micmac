@@ -2491,6 +2491,11 @@ class   cGPU_LoadedImGeom
 
        bool Correl(double & Correl,int anX,int anY,const cGPU_LoadedImGeom & aGeoJ) const;
 
+       Pt2dr ProjOfPDisc(int anX,int anY,int aZ,const cAppliMICMAC &) const;
+       void MakeDeriv(int anX,int anY,int aZ,const cAppliMICMAC &);
+       Pt2dr ProjByDeriv(int anX,int anY,int aZ) const;
+       std::vector<double> & ValueVignette(int anX,int anY,int aZ,int aSzV) const;
+
        
 
    private :
@@ -2502,6 +2507,13 @@ class   cGPU_LoadedImGeom
 
        Pt2di              mSzV;
        Pt2di              mSzOrtho;
+
+       Pt2dr              mDerivX;
+       Pt2dr              mDerivY;
+       Pt2dr              mDerivZ;
+       Pt2dr              mValueP0D;
+       Pt3di              mPOfDeriv;
+       std::vector<std::vector<double> > mBufVignette;
 
 // tGpuF
 // tImGpu
@@ -2843,6 +2855,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
          void SauvFileChantier(Fonc_Num aF,Tiff_Im aFile) const;
          cEl_GPAO *            GPRed2() const;
               
+          Pt2dr DequantPlani(int anX,int anY) const {return Pt2dr( mOriPlani.x + mStepPlani.x*anX,mOriPlani.y + mStepPlani.y*anY);}
+          double DequantZ(int aZ) const {return  mOrigineZ+ aZ*mStepZ;}
      private :
         static const int theNbImageMaxAlgoRapide = 3; 
 	cAppliMICMAC (const cAppliMICMAC  &);     // N.I.
@@ -3284,8 +3298,6 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
 
            inline bool IsInTer(int anX,int anY) const {return GET_Val_BIT(mTabMasqTER[anY],anX);}
-           Pt2dr DequantPlani(int anX,int anY) const {return Pt2dr( mOriPlani.x + mStepPlani.x*anX,mOriPlani.y + mStepPlani.y*anY);}
-           double DequantZ(int aZ) const {return  mOrigineZ+ aZ*mStepZ;}
 
 
 
