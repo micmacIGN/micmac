@@ -51,6 +51,27 @@ private:
 	void exclude( const std::string &i_directory );
 };
 
+#if (ELISE_POSIX)
+	// functions for rights checking/setting (unices only)
+		
+	// process has execution rights on i_filename ?
+	bool hasExecutionRights( const std::string i_filename );
+	
+	// set execution rigths for owner, group's members and others on i_filename
+	// equivalent of chmod +x i_filename
+	// return true if successfull
+	bool setAllExecutionRights( const std::string i_filename, bool i_value );
+	
+	// process' owner owns i_filename ?
+	bool isOwnerOf( std::string i_filename );
+		
+	// process' owner belongs to the group of i_filename ?
+	bool belongsToGroupOf( const std::string i_filename );
+	
+	// is process executed with super-user rights ?
+	inline bool isProcessRoot(){ return geteuid()==0; }
+#endif
+
 extern ExternalToolHandler g_externalToolHandler;
 extern const std::string   TheStrSiftPP;
 extern const std::string   TheStrAnnPP;
