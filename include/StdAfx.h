@@ -47,6 +47,7 @@ extern bool BugDG;
 		#define ELISE_unix 0
 		#define ELISE_windows 1
 		#define ELISE_MacOs 0
+		#define ELISE_POSIX 0
 		#if __MINGW__
 			#define ELISE_MinGW 1
 		#else
@@ -58,12 +59,14 @@ extern bool BugDG;
 		#define ELISE_MacOs 1
 		#define ELISE_windows 0
 		#define ELISE_MinGW 0
+		#define ELISE_POSIX 1
 	#else
 		#define USE_NOYAU 0
 		#define ELISE_unix 1
 		#define ELISE_MacOs 0
 		#define ELISE_windows 0
 		#define ELISE_MinGW 0
+		#define ELISE_POSIX 1
 	#endif
 #endif
 
@@ -178,8 +181,9 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 
 // ---------
 
-#if(ELISE_unix)
-	#include <cstring>
+#if (ELISE_POSIX)
+	#include <grp.h>
+	#include <pwd.h>
 #endif
 
 #ifdef MATLAB_MEX_FILE

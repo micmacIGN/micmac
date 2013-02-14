@@ -1873,11 +1873,9 @@ void cAppliMICMAC::ExeProcessParallelisable
        fic.close();
        mCout << " ---Lance les Process avec le Makefile\n";
 #if (ELISE_unix || ELISE_MacOs)
-
-	   std::string aCom = std::string("make -f \"")+nomMakefile+std::string("\" -j ")+ToString(std::abs(ByProcess().Val()));
+	   std::string aCom = g_externalToolHandler.get( "make" ).callName() + " -f \""+nomMakefile+std::string("\" -j ")+ToString(std::abs(ByProcess().Val()));
 #else
-	   string str = g_externalToolHandler.get( "make" ).callName();
-	   std::string aCom = std::string(g_externalToolHandler.get( "make" ).callName()+" -f ")+nomMakefile+std::string(" -j ")+ToString(std::abs(ByProcess().Val()));
+	   std::string aCom = g_externalToolHandler.get( "make" ).callName()+" -f "+nomMakefile+std::string(" -j ")+ToString(std::abs(ByProcess().Val()));
 #endif
 	   int aCodeRetour = system_call(aCom.c_str());
        if (StopOnEchecFils().Val())
