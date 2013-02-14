@@ -87,6 +87,41 @@ void cStatOneImage::Reset()
    mVals.clear();
 }
 
+void cStatOneImage::Normalise(double aMoy,double aSigma)
+{
+    int aNb = mVals.size();
+    double * aData = &(mVals[0]);
+
+    for (int aK=0 ; aK<aNb ; aK++)
+    {
+        aData[aK] = (aData[aK] - aMoy) / aSigma;
+    }
+}
+
+void cStatOneImage::StdNormalise(double aEpsilon)
+{
+    double aMoy = mS1 / mVals.size();
+    double aSigma2  = mS2 / mVals.size() - ElSquare(aMoy);
+
+    Normalise(aMoy,sqrt(ElMax(aEpsilon,aSigma2)));
+}
+
+
+double cStatOneImage::SquareDist(const cStatOneImage & aS2) const
+{
+    int aNb = mVals.size();
+    ELISE_ASSERT(aNb==aS2.mVals.size(),"Incoherent size in cStatOneImage::SquareDist");
+
+    const double * aD1 = &(mVals[0]);
+    const double * aD2 = &(aS2.mVals[0]);
+    double aRes = 0;
+
+    for (int aK=0 ; aK<aNb ; aK++)
+        aRes += ElSquare(aD1[aK]-aD2[aK]);
+
+    return aRes;
+}
+
 
 /********************************************************************/
 /*                                                                  */
@@ -220,7 +255,6 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 
     return & mBufVignette;
 }
-
 
 
 

@@ -273,6 +273,13 @@ class cMicMacVisu;
 class cStatOneImage
 {
    public :
+
+     void   Normalise(double aMoy,double aSigma);
+     void   StdNormalise(double aEpsilon = 1e-10);
+     double SquareDist(const cStatOneImage & aS2) const;
+
+
+
       std::vector<double> mVals;
       double              mS1;
       double              mS2;
