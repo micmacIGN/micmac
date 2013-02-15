@@ -207,7 +207,7 @@ if(EXIV2_EXECUTABLE_NOTFOUND)
 endif(EXIV2_EXECUTABLE_NOTFOUND)
 
 if (MINGW)
-	add_definitions(-D__CYGWIN__)
+	add_definitions(-D__MINGW__)
 	set( WINSOCK2_LIBRAIRIE ws2_32 )
 endif()
 

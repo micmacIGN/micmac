@@ -423,6 +423,7 @@ int MapCmd_main(int argc,char ** argv);
 int MyRename_main(int argc,char ** argv);
 int TestSet_main(int argc,char ** argv);
 int TestMTD_main(int argc,char ** argv);
+int TestCmds_main(int argc,char ** argv);
 
 // uti_images
 int Undist_main(int argc,char ** argv);
@@ -466,7 +467,7 @@ int Tarama_main(int argc,char ** argv);
 int Tawny_main(int argc,char ** argv);
 int TestCam_main(int argc,char ** argv);
 int ScaleNuage_main(int argc,char ** argv);
-int  Gri2Bin_main(int argc,char ** argv);
+int Gri2Bin_main(int argc,char ** argv);
 
 int MMPyram_main(int argc,char ** argv);
 int CreateEpip_main(int argc,char ** argv);
