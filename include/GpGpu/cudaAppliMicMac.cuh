@@ -19,7 +19,7 @@ using namespace std;
 
 #define INTDEFAULT	-64
 #define SAMPLETERR	4
-#define INTERZ		12
+#define INTERZ		8
 #define NEAREST		0
 #define LINEARINTER	1
 #define BICUBIC		2
@@ -31,7 +31,7 @@ using namespace std;
 	#define   SBLOCKDIM 10
 #else
 	#define   BLOCKDIM	32
-	#define   SBLOCKDIM 16
+	#define   SBLOCKDIM 15
 #endif
 
 struct paramGPU

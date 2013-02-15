@@ -1,10 +1,21 @@
 #include "GpGpu/cudaAppliMicMac.cuh"
 #include "GpGpu/cudaTextureTools.cuh"
 
+static __constant__ paramGPU cH;
+paramGPU h;
+
 // ATTENTION : erreur de compilation avec l'option cudaReadModeNormalizedFloat et l'utilisation de la fonction tex2DLayered
 texture< pixel,	cudaTextureType2D >			TexS_MaskTer;
-texture< float2,cudaTextureType2DLayered >	TexL_Proj;
-texture< float2,cudaTextureType2DLayered >	TexL_Proj2;
+
+TexFloat2Layered TexL_Proj_01;
+TexFloat2Layered TexL_Proj_02;
+
+template<int TexSel> __device__ __host__ TexFloat2Layered TexFloat2L();
+
+template<> __device__ __host__ TexFloat2Layered TexFloat2L<1>() { return TexL_Proj_01; };
+template<> __device__ __host__ TexFloat2Layered TexFloat2L<2>() { return TexL_Proj_02; };
+
+
 texture< float,	cudaTextureType2DLayered >	TexL_Images;
 
 ImageCuda<pixel>		mask;
@@ -15,8 +26,7 @@ CuDeviceData3D<float>	volumeCost;	// volume des couts
 CuDeviceData3D<float>	volumeCach;	// volume des calculs intermédiaires
 CuDeviceData3D<float>	volumeNIOk;	// nombre d'image correct pour une vignette
 
-static __constant__ paramGPU cH;
-paramGPU h;
+
 
 //------------------------------------------------------------------------------------------
 extern "C" void SetMask(pixel* dataMask, uint2 dimMask)
@@ -27,16 +37,16 @@ extern "C" void SetMask(pixel* dataMask, uint2 dimMask)
 
 extern "C" void allocMemory(void)
 {
-
+	
 	volumeCost.Realloc(h.rDiTer,h.ZInter);
 	volumeCach.Realloc(h.dimCach, h.nbImages * h.ZInter);
 	volumeNIOk.Realloc(h.rDiTer,h.ZInter);
 
 	// Texture des projections
-	TexL_Proj.addressMode[0]	= cudaAddressModeClamp;
-	TexL_Proj.addressMode[1]	= cudaAddressModeClamp;	
-	TexL_Proj.filterMode		= cudaFilterModeLinear; //cudaFilterModePoint cudaFilterModeLinear
-	TexL_Proj.normalized		= true;
+	TexL_Proj_01.addressMode[0]	= cudaAddressModeClamp;
+	TexL_Proj_01.addressMode[1]	= cudaAddressModeClamp;	
+	TexL_Proj_01.filterMode		= cudaFilterModeLinear; //cudaFilterModePoint cudaFilterModeLinear
+	TexL_Proj_01.normalized		= true;
 
 }
 
@@ -113,7 +123,7 @@ extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimImage, int nbLayer)
 	checkCudaErrors( cudaBindTextureToArray(TexL_Images,LayeredImages.GetCudaArray()));
 };
 
-__global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbActThrd, uint text)
+template<int TexSel> __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbActThrd, uint text)
 {
 	__shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
 
@@ -124,11 +134,11 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbA
 	if (oSE(ptHTer,cH.dimTer)) return;
 
 #if (SAMPLETERR == 1)
-	const float2 ptProj = tex2DLayeredPt(TexL_Proj,ptHTer,cH.dimSTer,blockIdx.z);
+	const float2 ptProj = tex2DLayeredPt(TexFloat2L<TexSel>(),ptHTer,cH.dimSTer,blockIdx.z);
 #else
-	const float2 ptProj = tex2DLayeredPt(text == 0 ? TexL_Proj : TexL_Proj2,ptHTer,cH.dimSTer,cH.sampTer,blockIdx.z);
+	const float2 ptProj = tex2DLayeredPt(TexFloat2L<TexSel>(),ptHTer,cH.dimSTer,cH.sampTer,blockIdx.z);
 #endif
-	
+
 	if (oI(ptProj,0))
 	{
 		cacheImg[threadIdx.y][threadIdx.x]  = cH.badVig;
@@ -269,7 +279,6 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	atomicAdd(&(resu[thTer.y][thTer.x]),aSVV[t.y][t.x] - ((aSV[t.y][t.x] * aSV[t.y][t.x])/ nbIm[thTer.y][thTer.x])); 
 #endif
 	
-
 	if ( !mThrd ) return;
 	__syncthreads();
 
@@ -285,10 +294,19 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 
 extern "C" void basic_Correlation_GPU( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ ){
 
- 	volumeCost.SetDimension(h.rDiTer,interZ);
+	const int streamTexture = 1;
+
+	volumeCost.SetDimension(h.rDiTer,interZ);
 	volumeCach.SetDimension(h.dimCach,nbLayer * interZ);
 	volumeNIOk.SetDimension(h.rDiTer,interZ);
-
+	
+	if (volumeCost.GetSizeofMalloc() < volumeCost.Sizeof() )
+	{
+		std::cout << "Realloc Device Data" << "\n";
+		volumeCost.Realloc(h.rDiTer,interZ);
+		volumeCach.Realloc(h.dimCach,nbLayer * interZ);
+		volumeNIOk.Realloc(h.rDiTer,interZ);
+	}
 	//----------------------------------------------------------------------------
 	
 	volumeCost.Memset(h.IntDefault);
@@ -296,8 +314,8 @@ extern "C" void basic_Correlation_GPU( float* hostVolumeCost, float2* hostVolume
 	volumeNIOk.Memset(0);
 
 	LayeredProjection.copyHostToDevice(hostVolumeProj);
-	LayeredProjection.bindTexture(TexL_Proj);
- 
+	LayeredProjection.bindTexture(TexL_Proj_01);
+
 	// --------------- calcul de dimension du kernel de correlation --------------
 
 	dim3	threads( BLOCKDIM, BLOCKDIM, 1);
@@ -315,7 +333,7 @@ extern "C" void basic_Correlation_GPU( float* hostVolumeCost, float2* hostVolume
 
 	//-----------------------  KERNEL  Correlation  -------------------------------
 	
-	correlationKernel<<<blocks, threads>>>( volumeNIOk.pData(), volumeCach.pData(), actiThsCo, 0);
+	correlationKernel<streamTexture><<<blocks, threads>>>( volumeNIOk.pData(), volumeCach.pData(), actiThsCo, 0);
 	getLastCudaError("Basic Correlation kernel failed");
 	
 	//-------------------  KERNEL  Multi Correlation  ------------------------------
@@ -325,7 +343,7 @@ extern "C" void basic_Correlation_GPU( float* hostVolumeCost, float2* hostVolume
 
 	//----------------------------------------------------------------------------
 
-	checkCudaErrors( cudaUnbindTexture(TexL_Proj) );
+	checkCudaErrors( cudaUnbindTexture(TexL_Proj_01) );
 	volumeCost.CopyDevicetoHost(hostVolumeCost);
 	
 	//----------------------------------------------------------------------------
