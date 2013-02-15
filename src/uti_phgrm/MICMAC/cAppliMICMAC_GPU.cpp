@@ -565,8 +565,6 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 		mX1UtiTer = mX0Ter;
 		mY1UtiTer = mY0Ter;
 
-
-
 		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
 		{
 			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
@@ -1371,10 +1369,10 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 		{
 			DoGPU_Correl(aBox,(aTC.MultiCorrelPonctuel().PtrVal()));
 		}
-                else if (aTC.MasqueAutoByTieP().IsInit())
-                {
-                        DoMasqueAutoByTieP(aBox,aTC.MasqueAutoByTieP().Val());
-                }
+		else if (aTC.MasqueAutoByTieP().IsInit())
+		{
+			DoMasqueAutoByTieP(aBox,aTC.MasqueAutoByTieP().Val());
+		}
 
 	}
 

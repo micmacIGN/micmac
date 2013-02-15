@@ -5,9 +5,11 @@
 #include <helper_math.h>
 #include <helper_functions.h>
 #include <helper_cuda.h>
+
 #include <sstream>     // for ostringstream
 #include <string>
 #include <iostream>
+
 using namespace std;
 
 #ifdef _WIN32
@@ -25,6 +27,7 @@ using namespace std;
 #define DISPLAYOUTPUT
 
 typedef unsigned char pixel;
+#define TexFloat2Layered texture<float2,cudaTextureType2DLayered>
 
 class GpGpuTools
 {
@@ -238,19 +241,35 @@ class CData
 public:
 	CData();
 	~CData(){};
-	virtual void	Malloc() = 0;
+	virtual void	Malloc()		= 0;
 	virtual void	Memset(int val) = 0;
-	virtual void	Dealloc() = 0;
+	virtual void	Dealloc()		= 0;
 
-	void			dataNULL();
-	T*				pData();
-	bool			isNULL();
-	T**				ppData();
-
+	void	dataNULL();
+	bool	isNULL();
+	T*		pData();
+	T**		ppData();
+	uint	GetSizeofMalloc();
+	void	SetSizeofMalloc(uint sizeofmalloc);
 private:
 
-	T*	_data;
+	
+	T*		_data;
+	uint	_sizeofMalloc;
+
 };
+
+template <class T>
+void CData<T>::SetSizeofMalloc( uint sizeofmalloc )
+{
+	_sizeofMalloc = sizeofmalloc;
+}
+
+template <class T>
+uint CData<T>::GetSizeofMalloc()
+{
+	return _sizeofMalloc;
+}
 
 template <class T>
 CData<T>::CData()
@@ -369,12 +388,15 @@ public:
 template <class T>
 void CuHostData3D<T>::Memset( int val )
 {
+	if (GetSizeofMalloc() < CData3D<T>::Sizeof())
+		std::cout << "Allocation trop petite !!!" << "\n";
 	memset(CData3D<T>::pData(),val,CData3D<T>::Sizeof());
 }
 
 template <class T>
 void CuHostData3D<T>::Malloc()
 {
+	SetSizeofMalloc(CData3D<T>::Sizeof());
 	cudaMallocHost(CData3D<T>::ppData(),CData3D<T>::Sizeof());
 }
 
@@ -409,8 +431,17 @@ void CuDeviceData3D<T>::CopyDevicetoHost( T* hostData )
 template <class T>
 void CuDeviceData3D<T>::Memset( int val )
 {
+	if (GetSizeofMalloc() < CData3D<T>::Sizeof())
+		std::cout << "Allocation trop petite !!!" << "\n";
 
-	checkCudaErrors( cudaMemset( CData3D<T>::pData(), val, CData3D<T>::Sizeof()));
+	cudaError_t cuER = cudaMemset( CData3D<T>::pData(), val, CData3D<T>::Sizeof());
+
+	if (cuER != cudaSuccess)
+	{
+		checkCudaErrors( cuER );
+		std::cout << "Pointeur de donnees : " << CData3D<T>::pData() << "\n";
+		std::cout << "Taille des donnees  : " << CData3D<T>::Sizeof() << "\n";
+	}
 }
 
 template <class T>
@@ -422,6 +453,7 @@ CuDeviceData3D<T>::CuDeviceData3D()
 template <class T>
 void CuDeviceData3D<T>::Malloc()
 {
+	SetSizeofMalloc(CData3D<T>::Sizeof());
 	checkCudaErrors( cudaMalloc((void **)CData3D<T>::ppData(), CData3D<T>::Sizeof()));
 }
 
