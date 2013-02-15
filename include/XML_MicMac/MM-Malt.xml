@@ -103,6 +103,11 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
     <!-- GESTION DES MASQUE IMAGE -->
     <Symb>  UseMasqPerIm=false </Symb>
     <Symb>  MasqPerIm="XXXXXX" </Symb>
+
+    <!-- GESTION DES IMAGES MAX MIN -->
+    <Symb>  UseImMaxMin="false" </Symb>
+    <Symb>  ImMin="XXXXXX" </Symb>
+    <Symb>  ImMax="XXXXXX" </Symb>
 </DicoLoc>
 
 <!--  M2 : Describe the ground zone where the matching is to be done -->
@@ -135,7 +140,13 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      <GeomImages> eGeomImageOri </GeomImages>
      <Images >
            <IncludeFileLoc>  ${FileIm1} </IncludeFileLoc>
-          <ImPat>    ${ImPat}  </ImPat>
+           <ImPat>    ${ImPat}  </ImPat>
+           <#WHEN VTEST=${UseImMaxMin}>
+              <Filter>
+                  <Min>  ${ImMin}  </Min>
+                  <Max>  ${ImMax} </Max>
+              </Filter>
+           </#WHEN>
      </Images>
 
      <NomsGeometrieImage>
