@@ -409,7 +409,6 @@ void CuDeviceData3D<T>::CopyDevicetoHost( T* hostData )
 template <class T>
 void CuDeviceData3D<T>::Memset( int val )
 {
-
 	checkCudaErrors( cudaMemset( CData3D<T>::pData(), val, CData3D<T>::Sizeof()));
 }
 

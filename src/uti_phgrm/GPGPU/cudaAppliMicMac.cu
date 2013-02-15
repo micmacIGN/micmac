@@ -4,11 +4,12 @@
 // ATTENTION : erreur de compilation avec l'option cudaReadModeNormalizedFloat et l'utilisation de la fonction tex2DLayered
 texture< pixel,	cudaTextureType2D >			TexS_MaskTer;
 texture< float2,cudaTextureType2DLayered >	TexL_Proj;
+texture< float2,cudaTextureType2DLayered >	TexL_Proj2;
 texture< float,	cudaTextureType2DLayered >	TexL_Images;
 
-ImageCuda<pixel>			mask;
-ImageLayeredCuda<float>		LayeredImages;
-ImageLayeredCuda<float2>	LayeredProjection;
+ImageCuda<pixel>		mask;
+ImageLayeredCuda<float>	LayeredImages;
+ImageLayeredCuda<float2>LayeredProjection;
 
 CuDeviceData3D<float>	volumeCost;	// volume des couts   
 CuDeviceData3D<float>	volumeCach;	// volume des calculs intermédiaires
@@ -91,6 +92,13 @@ static void correlOptionsGPU( uint2 ter0, uint2 ter1, uint2 dV,uint2 dRV, uint2 
 	updateSizeBlock( ter0, ter1, interZ );
 }
 
+extern "C" paramGPU Init_Correlation_GPU(  uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ)
+{
+	correlOptionsGPU( ter0, ter1, dRVig * 2 + 1,dRVig, dimImg,mAhEpsilon, samplingZ, uvINTDef,nbLayer, interZ);
+	allocMemory();
+	return h;
+}
+
 extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimImage, int nbLayer)
 {
 	LayeredImages.CData3D::Malloc(dimImage,nbLayer);
@@ -102,10 +110,10 @@ extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimImage, int nbLayer)
     TexL_Images.filterMode		= cudaFilterModePoint; //cudaFilterModeLinear cudaFilterModePoint
     TexL_Images.normalized		= true;
 	
-	checkCudaErrors( cudaBindTextureToArray(TexL_Images,LayeredImages.GetCudaArray()) );
+	checkCudaErrors( cudaBindTextureToArray(TexL_Images,LayeredImages.GetCudaArray()));
 };
 
-__global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbActThrd )
+__global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbActThrd, uint text)
 {
 	__shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
 
@@ -118,7 +126,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbA
 #if (SAMPLETERR == 1)
 	const float2 ptProj = tex2DLayeredPt(TexL_Proj,ptHTer,cH.dimSTer,blockIdx.z);
 #else
-	const float2 ptProj = tex2DLayeredPt(TexL_Proj,ptHTer,cH.dimSTer,cH.sampTer,blockIdx.z);
+	const float2 ptProj = tex2DLayeredPt(text == 0 ? TexL_Proj : TexL_Proj2,ptHTer,cH.dimSTer,cH.sampTer,blockIdx.z);
 #endif
 	
 	if (oI(ptProj,0))
@@ -134,7 +142,7 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbA
 #elif	INTERPOLA == BICUBIC
 		cacheImg[threadIdx.y][threadIdx.x] = tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, cH.dimImg,(int)(blockIdx.z % cH.nbImages));
 #endif
-		
+
 	__syncthreads();
 
 	const int2 ptTer = make_int2(ptHTer) - make_int2(cH.rVig);
@@ -172,7 +180,6 @@ __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbA
 		aSV	 /=	cH.sizeVig;
 		aSVV /=	cH.sizeVig;
 		aSVV -=	(aSV * aSV);
-
 #endif
 	
 	if ( aSVV <= cH.mAhEpsilon) return;
@@ -276,14 +283,6 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	dTCost[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
 }
 
-extern "C" paramGPU Init_Correlation_GPU(  uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ)
-{
-	correlOptionsGPU( ter0, ter1, dRVig * 2 + 1,dRVig, dimImg,mAhEpsilon, samplingZ, uvINTDef,nbLayer, interZ);
-	allocMemory();
-
-	return h;
-}
-
 extern "C" void basic_Correlation_GPU( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ ){
 
  	volumeCost.SetDimension(h.rDiTer,interZ);
@@ -307,7 +306,6 @@ extern "C" void basic_Correlation_GPU( float* hostVolumeCost, float2* hostVolume
 	uint2	block2D		= iDivUp(h.dimTer,actiThsCo);
 	dim3	blocks(block2D.x , block2D.y, nbLayer * interZ);
 
-
 	//-------------	calcul de dimension du kernel de multi-correlation ------------
 
 	uint2	actiThs		= SBLOCKDIM - make_uint2( SBLOCKDIM % h.dimVig.x, SBLOCKDIM % h.dimVig.y);
@@ -317,7 +315,7 @@ extern "C" void basic_Correlation_GPU( float* hostVolumeCost, float2* hostVolume
 
 	//-----------------------  KERNEL  Correlation  -------------------------------
 	
-	correlationKernel<<<blocks, threads>>>( volumeNIOk.pData(), volumeCach.pData(), actiThsCo);
+	correlationKernel<<<blocks, threads>>>( volumeNIOk.pData(), volumeCach.pData(), actiThsCo, 0);
 	getLastCudaError("Basic Correlation kernel failed");
 	
 	//-------------------  KERNEL  Multi Correlation  ------------------------------
