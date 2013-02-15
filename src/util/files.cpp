@@ -174,7 +174,7 @@ int S_ISDIR(int v)
 
 bool ELISE_fp::MkDirSvp(const std::string & aName )
 {
-#if (ELISE_unix || ELISE_Cygwin)
+#if (ELISE_unix)
 	long long int res = mkdir(aName.c_str(),0X7FFFFFFF);
 #endif
 
@@ -1266,7 +1266,7 @@ void RecElParse_dir
 
 
 
-#if (ELISE_unix || ELISE_MacOs || ELISE_Cygwin)
+#if (ELISE_unix || ELISE_MacOs)
 #include <dirent.h>
 class cElDirectory
 {

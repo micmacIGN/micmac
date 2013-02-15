@@ -223,8 +223,10 @@ int GrShade_main(int argc,char ** argv)
 
 	 if (aFileMasq!="")
 	 {
+             if (ELISE_fp::exist_file(aDir+aFileMasq))
+                aFileMasq = aDir+aFileMasq;
 	     double aDif=100;
-	     Tiff_Im aFM = Tiff_Im::StdConvGen(aDir+aFileMasq,1,true,false);
+	     Tiff_Im aFM = Tiff_Im::StdConvGen(aFileMasq,1,true,false);
              ELISE_COPY
              (
                   select(rectangle(Pt2di(0,0),aSzIn),trans(!aFM.in_proj(),aP0In)),

@@ -41,27 +41,33 @@ extern bool BugDG;
 
 #define ELISE_INSERT_CODE_GEN 1
 
-#ifdef _WIN32
-	#define USE_NOYAU 1
-	#define ELISE_unix 0
-	#define ELISE_windows 1
-        #define ELISE_MacOs 0
-#elif __APPLE__
-	#define USE_NOYAU 0
-	#define ELISE_unix 0
-	#define ELISE_MacOs 1
-	#define ELISE_windows 0
-#else
-       #define USE_NOYAU 0
-       #define ELISE_unix 1
-       #define ELISE_MacOs 0
-       #define ELISE_windows 0
-#endif
-
-#if ( __CYGWIN__ & _WIN32 )
-    #define ELISE_Cygwin 1
-#else
-    #define ELISE_Cygwin 0
+#ifndef ELISE_unix
+	#ifdef _WIN32
+		#define USE_NOYAU 0
+		#define ELISE_unix 0
+		#define ELISE_windows 1
+		#define ELISE_MacOs 0
+		#define ELISE_POSIX 0
+		#if __MINGW__
+			#define ELISE_MinGW 1
+		#else
+			#define ELISE_MinGW 0
+		#endif
+	#elif __APPLE__
+		#define USE_NOYAU 0
+		#define ELISE_unix 0
+		#define ELISE_MacOs 1
+		#define ELISE_windows 0
+		#define ELISE_MinGW 0
+		#define ELISE_POSIX 1
+	#else
+		#define USE_NOYAU 0
+		#define ELISE_unix 1
+		#define ELISE_MacOs 0
+		#define ELISE_windows 0
+		#define ELISE_MinGW 0
+		#define ELISE_POSIX 1
+	#endif
 #endif
 
 //  =================
@@ -175,8 +181,9 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 
 // ---------
 
-#if(ELISE_unix)
-	#include <cstring>
+#if (ELISE_POSIX)
+	#include <grp.h>
+	#include <pwd.h>
 #endif
 
 #ifdef MATLAB_MEX_FILE

@@ -133,9 +133,27 @@ ExternalToolItem & ExternalToolHandler::addTool( const std::string &i_tool )
 	#endif
 
 	// check EXTERNAL_TOOLS_SUBDIRECTORY directory
-	fullName = MMDir()+EXTERNAL_TOOLS_SUBDIRECTORY+ELISE_CAR_DIR+exeName;
+	fullName = _MMDir()+EXTERNAL_TOOLS_SUBDIRECTORY+ELISE_CAR_DIR+exeName;
 	if ( ELISE_fp::exist_file( fullName ) )
+	{
+		#if (ELISE_POSIX)
+			if ( !hasExecutionRights( fullName ) )
+			{
+				cerr << "WARNING: process does not have the right to execute " << fullName << "" << endl;
+				cerr << "WARNING: trying to grant execution rights on " << fullName << " ..." << endl;
+				if ( setAllExecutionRights( fullName, true ) )
+					cerr << "WARNING: execution rights have been successfully granted on " << fullName << endl;
+				else
+				{
+					cerr << "WARNING: unable to grant execution rights on " << fullName << ", try :" << endl;
+					cerr << "WARNING: sudo chmod +x "+ fullName << endl;
+					cerr << "WARNING: to solve this problem" << endl;
+					exit( EXIT_FAILURE );
+				}
+			}
+		#endif
 		status = EXT_TOOL_FOUND_IN_DIR;
+	}
 
 	if ( checkPathDirectories( exeName ) )
 	{
@@ -176,7 +194,7 @@ int CheckDependencies_main(int argc,char ** argv)
 	cout << printResult( "exiftool" ) << endl;
 	cout << printResult( "exiv2" ) << endl;
 	cout << printResult( "convert" ) << endl;
-
+	
 	string siftName = TheStrSiftPP.substr( 0, TheStrSiftPP.length()-1 ),
 		   annName  = TheStrAnnPP.substr( 0, TheStrAnnPP.length()-1 );
 	cout << printResult( siftName ) << endl;
@@ -184,3 +202,71 @@ int CheckDependencies_main(int argc,char ** argv)
 
 	return EXIT_SUCCESS;
 }
+
+#if (ELISE_POSIX)
+	// functions for rights checking/setting (unices only)
+	
+	// process has execution rights on i_filename ?
+	bool hasExecutionRights( const std::string i_filename )
+	{
+		struct stat s;
+		stat( i_filename.c_str(), &s );
+		
+		bool ownerCanExecute = s.st_mode&S_IXUSR,
+			 groupCanExecute = s.st_mode&S_IXGRP,
+			 otherCanExecute = s.st_mode&S_IXOTH;
+		
+		if ( isProcessRoot() && ( ownerCanExecute || groupCanExecute || otherCanExecute ) ) return true;
+		
+		bool isOwner = isOwnerOf( i_filename );	
+		if ( ownerCanExecute && isOwner ) return true;
+		
+		bool belongsToGroup = belongsToGroupOf( i_filename );
+		if ( groupCanExecute && belongsToGroup ) return true;
+		
+		if ( otherCanExecute && !isOwner && !belongsToGroup ) return true;
+		
+		return false;
+	}
+	
+	// set execution rigths for owner, group's members and others on i_filename
+	// equivalent of chmod +x i_filename
+	// return true if successfull
+	bool setAllExecutionRights( const std::string i_filename, bool i_value )
+	{
+		struct stat s;
+		stat( i_filename.c_str(), &s );
+		return chmod( i_filename.c_str(), s.st_mode|S_IXUSR|S_IXGRP|S_IXOTH )==0;
+	}
+	
+	// process' owner owns i_filename ?
+	bool isOwnerOf( std::string i_filename )
+	{
+		struct stat s;
+		stat( i_filename.c_str(), &s );
+		return s.st_uid==geteuid();
+	}
+		
+	// process' owner belongs to the group of i_filename ?
+	bool belongsToGroupOf( const std::string i_filename )
+	{		
+		struct stat file_stat;
+		struct group *file_group;
+		struct passwd *user;
+		
+		stat( i_filename.c_str(), &file_stat );
+
+		// if it's impossible to retrieve file's group, there's no use in going further
+		if ( ( file_group=getgrgid( file_stat.st_gid ) )==NULL ) return false;
+		
+		// compare file's group with process' effective user's primary group
+		if ( ( ( user=getpwuid( geteuid() ) )!=NULL ) && ( user->pw_gid==file_stat.st_gid ) ) return true;
+				
+		// compare file's group with all other groups the user belongs to
+		int i=0;
+		while ( file_group->gr_mem[i] )
+			if ( strcmp( file_group->gr_mem[i++], user->pw_name )==0 ) return true;
+		
+		return false;
+	}
+#endif

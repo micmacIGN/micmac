@@ -169,7 +169,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mLargMin      (25.0),
     mSzGlob       (0,0)
 {
-  ELISE_ASSERT(argc >= 2,"Not enouh arg");
+  ELISE_ASSERT(argc >= 2,"Not enough arg");
 
   ReadType(argv[1]);
 
@@ -215,7 +215,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mImOrtho,"ImOrtho",true,"Filter to select images used for ortho (Def All) ")
                     << EAM(mZMoy,"ZMoy",true,"Average value of Z")
                     << EAM(mIsSperik,"Spherik",true,"If true the surface for redressing are spheres")
-                    << EAM(mLargMin,"WMI",true,"Miinum width of reduced images (to fix ZoomInit)")
+                    << EAM(mLargMin,"WMI",true,"Mininum width of reduced images (to fix ZoomInit)")
                     << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq")
   );
 
@@ -325,8 +325,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     {
         mDirMEC = "MM-Malt-Img-" + StdPrefix(mImMaster) +ELISE_CAR_DIR;
     }
-    FileMasqT = "MM-MasqImage.xml";
     mUseMasqTA = UseMTAOri && ELISE_fp::exist_file(StdPrefix(mImMaster)+"_Masq.tif");
+    if (mUseMasqTA)
+      FileMasqT = "MM-MasqImage.xml";
   }
 
 // mZoomInit

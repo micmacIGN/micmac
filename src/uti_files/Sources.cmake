@@ -7,6 +7,7 @@ set(uti_files_Src_Files
     ${UTI_FILES_DIR}/CPP_Ori_txt2Xml.cpp
     ${UTI_FILES_DIR}/CPP_TestKeys.cpp
     ${UTI_FILES_DIR}/CPP_TestMTD.cpp
+	${UTI_FILES_DIR}/CPP_TestCmds.cpp
 )
 
 SOURCE_GROUP(uti_files FILES ${uti_files_Src_Files})

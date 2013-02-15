@@ -270,6 +270,30 @@ typedef std::list<cEtapeMecComp *>  tContEMC;
 class cOptimDiffer;
 class cMicMacVisu;
 
+class cStatOneImage
+{
+   public :
+
+     void   Normalise(double aMoy,double aSigma);
+     void   StdNormalise(double aEpsilon = 1e-10);
+     double SquareDist(const cStatOneImage & aS2) const;
+
+
+
+      std::vector<double> mVals;
+      double              mS1;
+      double              mS2;
+
+      cStatOneImage();
+      void Reset();
+      void Add(const double & aV)
+      {
+         mVals.push_back(aV);
+         mS1 += aV;
+         mS2 += ElSquare(aV);
+      }
+};
+
 
 
 /*****************************************************/
@@ -2491,6 +2515,11 @@ class   cGPU_LoadedImGeom
 
        bool Correl(double & Correl,int anX,int anY,const cGPU_LoadedImGeom & aGeoJ) const;
 
+       Pt2dr ProjOfPDisc(int anX,int anY,int aZ) const;
+       void MakeDeriv(int anX,int anY,int aZ);
+       Pt2dr ProjByDeriv(int anX,int anY,int aZ) const;
+       cStatOneImage * ValueVignettByDeriv(int anX,int anY,int aZ,int aSzV,int PasVig) ;
+
        
 
    private :
@@ -2502,6 +2531,16 @@ class   cGPU_LoadedImGeom
 
        Pt2di              mSzV;
        Pt2di              mSzOrtho;
+
+       int                mX0Deriv;
+       int                mY0Deriv;
+       int                mZ0Deriv;
+       Pt2dr              mDerivX;
+       Pt2dr              mDerivY;
+       Pt2dr              mDerivZ;
+       Pt2dr              mValueP0D;
+       Pt3di              mPOfDeriv;
+       cStatOneImage      mBufVignette;
 
 // tGpuF
 // tImGpu
@@ -2843,6 +2882,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
          void SauvFileChantier(Fonc_Num aF,Tiff_Im aFile) const;
          cEl_GPAO *            GPRed2() const;
               
+          Pt2dr DequantPlani(int anX,int anY) const {return Pt2dr( mOriPlani.x + mStepPlani.x*anX,mOriPlani.y + mStepPlani.y*anY);}
+          double DequantZ(int aZ) const {return  mOrigineZ+ aZ*mStepZ;}
      private :
         static const int theNbImageMaxAlgoRapide = 3; 
 	cAppliMICMAC (const cAppliMICMAC  &);     // N.I.
@@ -3284,8 +3325,6 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
 
            inline bool IsInTer(int anX,int anY) const {return GET_Val_BIT(mTabMasqTER[anY],anX);}
-           Pt2dr DequantPlani(int anX,int anY) const {return Pt2dr( mOriPlani.x + mStepPlani.x*anX,mOriPlani.y + mStepPlani.y*anY);}
-           double DequantZ(int aZ) const {return  mOrigineZ+ aZ*mStepZ;}
 
 
 

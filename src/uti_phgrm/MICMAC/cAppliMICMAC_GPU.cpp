@@ -68,6 +68,67 @@ namespace NS_ParamMICMAC
 		//return anIm.data();
 	}
 
+/********************************************************************/
+/*                                                                  */
+/*                   cStatOneImage                                  */
+/*                                                                  */
+/********************************************************************/
+
+cStatOneImage::cStatOneImage()
+{
+   Reset();
+}
+
+
+void cStatOneImage::Reset()
+{
+   mS1 = 0.0;
+   mS2 = 0.0;
+   mVals.clear();
+}
+
+void cStatOneImage::Normalise(double aMoy,double aSigma)
+{
+    int aNb = mVals.size();
+    double * aData = &(mVals[0]);
+
+    for (int aK=0 ; aK<aNb ; aK++)
+    {
+        aData[aK] = (aData[aK] - aMoy) / aSigma;
+    }
+}
+
+void cStatOneImage::StdNormalise(double aEpsilon)
+{
+    double aMoy = mS1 / mVals.size();
+    double aSigma2  = mS2 / mVals.size() - ElSquare(aMoy);
+
+    Normalise(aMoy,sqrt(ElMax(aEpsilon,aSigma2)));
+}
+
+
+double cStatOneImage::SquareDist(const cStatOneImage & aS2) const
+{
+    int aNb = mVals.size();
+    ELISE_ASSERT(aNb==aS2.mVals.size(),"Incoherent size in cStatOneImage::SquareDist");
+
+    const double * aD1 = &(mVals[0]);
+    const double * aD2 = &(aS2.mVals[0]);
+    double aRes = 0;
+
+    for (int aK=0 ; aK<aNb ; aK++)
+        aRes += ElSquare(aD1[aK]-aD2[aK]);
+
+    return aRes;
+}
+
+
+/********************************************************************/
+/*                                                                  */
+/*                   cGPU_LoadedImGeom                              */
+/*                                                                  */
+/********************************************************************/
+
 	cGPU_LoadedImGeom::cGPU_LoadedImGeom
 		(
 		const cAppliMICMAC & anAppli,
@@ -134,6 +195,69 @@ namespace NS_ParamMICMAC
 	tImGpu  cGPU_LoadedImGeom::ImSomO()   {return mImSomO; }
 	tImGpu  cGPU_LoadedImGeom::ImSomO2()  {return mImSomO2; }
 	tImGpu  cGPU_LoadedImGeom::ImSom12()  {return mImSom12; }
+
+
+Pt2dr cGPU_LoadedImGeom::ProjOfPDisc(int anX,int anY,int aZ) const
+{
+    double aZR = mAppli.DequantZ(aZ);
+    Pt2dr aPR = mAppli.DequantPlani(anX,anY);
+
+    return mGeom->CurObj2Im(aPR,&aZR);
+}
+
+void cGPU_LoadedImGeom::MakeDeriv(int anX,int anY,int aZ)
+{
+    mPOfDeriv = Pt3di(anX,anY,aZ);
+
+    mValueP0D = ProjOfPDisc(anX,anY,aZ);
+    mDerivX = (ProjOfPDisc(anX+1,anY,aZ)- ProjOfPDisc(anX-1,anY,aZ)) / 2.0;
+    mDerivY = (ProjOfPDisc(anX,anY+1,aZ)- ProjOfPDisc(anX,anY-1,aZ)) / 2.0;
+    mDerivZ = (ProjOfPDisc(anX,anY,aZ+1)- ProjOfPDisc(anX,anY,aZ-1)) / 2.0;
+
+    mX0Deriv = anX;
+    mY0Deriv = anY;
+    mZ0Deriv = aZ;
+}
+
+Pt2dr cGPU_LoadedImGeom::ProjByDeriv(int anX,int anY,int aZ) const
+{
+
+   return    mValueP0D 
+          +  mDerivX*double(anX-mX0Deriv)
+          +  mDerivY*double(anY-mY0Deriv)
+          +  mDerivZ*double( aZ-mZ0Deriv) ;
+}
+
+cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,int aSzV,int aPasVig)
+{
+
+    cInterpolateurIm2D<float> * anInt = mAppli.CurEtape()->InterpFloat();
+    mBufVignette.Reset();
+    Pt2dr aP0 = ProjByDeriv(anX,anY,aZ);
+
+    Pt2dr aDx = mDerivX * double(aPasVig);
+    Pt2dr aDy = mDerivY * double(aPasVig);
+
+    Pt2dr aDebL =  aP0 - aDx*double(aSzV) - aDy*double(aSzV);
+    for (int aKY=-aSzV ; aKY<=aSzV ; aKY++)
+    {
+        Pt2dr aCur = aDebL;
+        for (int aKX=-aSzV ; aKX<=aSzV ; aKX++)
+        {
+            if (IsOk(aCur.x,aCur.y))
+               mBufVignette.Add(anInt->GetVal(mDataIm,aCur));
+            else
+               return 0;
+            aCur += aDx;
+        }
+        aDebL += aDy;
+    }
+
+    return & mBufVignette;
+}
+
+
+
 
 
 	bool   cGPU_LoadedImGeom::InitValNorms(int anX,int anY)
@@ -424,6 +548,8 @@ namespace NS_ParamMICMAC
 
 
 	double MAXDIST = 0.0;
+
+
 
 	bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
 	{
