@@ -110,7 +110,7 @@ void cStatOneImage::StdNormalise(double aEpsilon)
 double cStatOneImage::SquareDist(const cStatOneImage & aS2) const
 {
     int aNb = mVals.size();
-    ELISE_ASSERT(aNb==aS2.mVals.size(),"Incoherent size in cStatOneImage::SquareDist");
+    ELISE_ASSERT(aNb==int(aS2.mVals.size()),"Incoherent size in cStatOneImage::SquareDist");
 
     const double * aD1 = &(mVals[0]);
     const double * aD2 = &(aS2.mVals[0]);
@@ -121,6 +121,8 @@ double cStatOneImage::SquareDist(const cStatOneImage & aS2) const
 
     return aRes;
 }
+
+
 
 
 /********************************************************************/

@@ -157,7 +157,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualisation of camera in ply file",cArgLogCom(2)));
        aRes.push_back(cMMCom("Apero",Apero_main," Compute external and internal orientations"));
        aRes.push_back(cMMCom("AperoChImSecMM",AperoChImMM_main,"Select secondary images for MicMac "));
-       aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene"));
+       aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene",cArgLogCom(2)));
        aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
        aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero, for compensation of heterogenous measures",cArgLogCom(2)));
        aRes.push_back(cMMCom("ChgSysCo",ChgSysCo_main," Chang coordinate system of orientation",cArgLogCom(2)));
@@ -219,6 +219,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Undist",Undist_main," Tool for removing images distortion"));
 
        aRes.push_back(cMMCom("CheckDependencies",CheckDependencies_main," check dependencies to third-party tools"));
+       aRes.push_back(cMMCom("VV",VideoVisage_main,"A very simplified tool for 3D model of visage out of video, just for fun"));
 
 #if (ELISE_X11)
        aRes.push_back(cMMCom("MPDtest",MPDtest_main," My own test"));
