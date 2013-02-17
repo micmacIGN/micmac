@@ -1,0 +1,112 @@
+<!--
+   The simplest MicMac exemple
+-->
+
+<ParamMICMAC>
+
+<Section_Terrain>  
+      <IntervAltimetrie>
+             <!-- Mandatory but unused -->
+             <ZIncCalc>   0.0  </ZIncCalc>
+      </IntervAltimetrie>
+      <IntervSpecialZInv >
+             <MulZMin >  0.3</MulZMin>
+             <MulZMax > 5 </MulZMax>
+      </IntervSpecialZInv>
+     <Planimetrie>
+         <MasqueTerrain>
+             <MT_Image> Sosoim00016_Masq.tif </MT_Image>
+             <MT_Xml>   Sosoim00016_Masq.xml </MT_Xml>
+         </MasqueTerrain>
+     </Planimetrie>
+
+</Section_Terrain>
+
+<Section_PriseDeVue >
+     <GeomImages> eGeomImageOri </GeomImages>
+     <Images >
+          <Im1> Sosoim00016.png </Im1>
+          <ImPat> Sosoim0001[3-9].png </ImPat>
+     </Images>
+
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-All  </FCND_GeomCalc>
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+      <ChantierFullImage1>  true </ChantierFullImage1>
+
+
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      1             </SzW>
+             <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+
+             <ZPas>        0.5  </ZPas>
+             <ModeInterpolation> eInterpolBiCub </ModeInterpolation>
+
+	     <ZDilatAlti>  3    </ZDilatAlti>
+             <ZDilatPlani> 4    </ZDilatPlani>
+	     <ZRegul>  0.05    </ZRegul>
+             <ModulationProgDyn>
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   7               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   3.0    </Px1PenteMax>
+            </ModulationProgDyn>
+
+            <CorrelAdHoc>
+                <TypeCAH>
+                        <GPU_Correl> </GPU_Correl>
+                </TypeCAH>
+            </CorrelAdHoc>
+        </EtapeMEC>
+	     
+
+        <EtapeMEC> 
+                 <DeZoom >        16        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        8        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        4        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        2        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        1        </DeZoom> 
+        </EtapeMEC>
+
+
+</Section_MEC>
+
+<Section_Results >
+    <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D  </GeomMNT> 
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir >  ThisDir </WorkDir> 
+     <TmpMEC>  MEC-MScale/  </TmpMEC>
+     <TmpResult>  MEC-MScale/  </TmpResult>
+     <TmpPyr>    Pyram/  </TmpPyr>
+     <ByProcess>  ${MMNbProc} </ByProcess>
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+

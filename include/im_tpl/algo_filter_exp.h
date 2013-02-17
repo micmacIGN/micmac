@@ -182,9 +182,8 @@ template <class T1> void  FilterExp (T1 & anIm, double aFxy)
 
 
 
-template <class T1> void  FilterGauss(T1 & anIm, double aSzF)
+template <class T1> void  FilterGauss(T1 & anIm, double aSzF,int aNbIter = 4)
 {
-  int aNbIter = 4;
   double aF = FromSzW2FactExp(aSzF,aNbIter);
 
   Pt2di aSz = anIm.sz();

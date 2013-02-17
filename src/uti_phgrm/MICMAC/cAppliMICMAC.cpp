@@ -1508,6 +1508,11 @@ const cCorrelAdHoc * cAppliMICMAC::CAH() const
     return mCorrelAdHoc;
 }
 
+const cCorrelMultiScale * cAppliMICMAC::CMS() const
+{
+   return mCMS;
+}
+
 const cEtiqBestImage *  cAppliMICMAC::EBI() const
 {
    return mEBI;

@@ -1501,6 +1501,40 @@ class cAdapteDynCov
 };
 cElXMLTree * ToXMLTree(const cAdapteDynCov &);
 
+class cOneParamCMS
+{
+    public:
+        friend void xml_init(cOneParamCMS & anObj,cElXMLTree * aTree);
+
+
+        Pt2di & SzW();
+        const Pt2di & SzW()const ;
+
+        double & Sigma();
+        const double & Sigma()const ;
+
+        double & Pds();
+        const double & Pds()const ;
+    private:
+        Pt2di mSzW;
+        double mSigma;
+        double mPds;
+};
+cElXMLTree * ToXMLTree(const cOneParamCMS &);
+
+class cCorrelMultiScale
+{
+    public:
+        friend void xml_init(cCorrelMultiScale & anObj,cElXMLTree * aTree);
+
+
+        std::vector< cOneParamCMS > & OneParamCMS();
+        const std::vector< cOneParamCMS > & OneParamCMS()const ;
+    private:
+        std::vector< cOneParamCMS > mOneParamCMS;
+};
+cElXMLTree * ToXMLTree(const cCorrelMultiScale &);
+
 class cCorrel2DLeastSquare
 {
     public:
@@ -1665,6 +1699,12 @@ class cTypeCAH
         friend void xml_init(cTypeCAH & anObj,cElXMLTree * aTree);
 
 
+        std::vector< cOneParamCMS > & OneParamCMS();
+        const std::vector< cOneParamCMS > & OneParamCMS()const ;
+
+        cTplValGesInit< cCorrelMultiScale > & CorrelMultiScale();
+        const cTplValGesInit< cCorrelMultiScale > & CorrelMultiScale()const ;
+
         cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare();
         const cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare()const ;
 
@@ -1695,6 +1735,7 @@ class cTypeCAH
         cTplValGesInit< cMasqueAutoByTieP > & MasqueAutoByTieP();
         const cTplValGesInit< cMasqueAutoByTieP > & MasqueAutoByTieP()const ;
     private:
+        cTplValGesInit< cCorrelMultiScale > mCorrelMultiScale;
         cTplValGesInit< cCorrel2DLeastSquare > mCorrel2DLeastSquare;
         cTplValGesInit< cGPU_Correl > mGPU_Correl;
         cTplValGesInit< cGPU_CorrelBasik > mGPU_CorrelBasik;
@@ -1722,6 +1763,12 @@ class cCorrelAdHoc
 
         cTplValGesInit< int > & SzBlocAH();
         const cTplValGesInit< int > & SzBlocAH()const ;
+
+        std::vector< cOneParamCMS > & OneParamCMS();
+        const std::vector< cOneParamCMS > & OneParamCMS()const ;
+
+        cTplValGesInit< cCorrelMultiScale > & CorrelMultiScale();
+        const cTplValGesInit< cCorrelMultiScale > & CorrelMultiScale()const ;
 
         cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare();
         const cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare()const ;
@@ -2850,6 +2897,12 @@ class cEtapeMEC
 
         cTplValGesInit< int > & SzBlocAH();
         const cTplValGesInit< int > & SzBlocAH()const ;
+
+        std::vector< cOneParamCMS > & OneParamCMS();
+        const std::vector< cOneParamCMS > & OneParamCMS()const ;
+
+        cTplValGesInit< cCorrelMultiScale > & CorrelMultiScale();
+        const cTplValGesInit< cCorrelMultiScale > & CorrelMultiScale()const ;
 
         cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare();
         const cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare()const ;

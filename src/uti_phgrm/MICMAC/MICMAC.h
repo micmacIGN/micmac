@@ -1415,6 +1415,16 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
 /*                                                   */
 /*****************************************************/
 
+class cMSLoadedIm
+{
+      public :
+        cMSLoadedIm(const cOneParamCMS& ,Im2D_REAL4 *,bool First);
+      private :
+         cOneParamCMS        mImCMS; 
+         Im2D_REAL4         mIm;
+         TIm2D<REAL4,REAL8> mTIm;
+};
+
 class cLoadedImage
 {
     public:
@@ -1493,6 +1503,9 @@ class cLoadedImage
          U_INT1** DataMasqIm() const;
          virtual float ** DataFloatIm() const = 0;
          virtual float * DataFloatLinIm() const = 0;
+       
+         virtual  Im2D_REAL4 * FloatIm() const = 0;
+         const std::vector<cMSLoadedIm>&  MSLI();
 
     protected :
       cLoadedImage
@@ -1508,6 +1521,9 @@ class cLoadedImage
 	  bool                       IsFirstLoaded,
 	  const eTypeNumerique       aType
       );
+
+         void PostInit();
+
          Pt2di DiscTerAppli2DiscTerCorr(const Pt2di  &aPt);
       // Encapsule le fait qu'il y a une simple translation entre les deux
 
@@ -1539,6 +1555,8 @@ class cLoadedImage
          Im2D_U_INT1        mImPC;
          TIm2D<U_INT1,INT>  mTImPC;
          int                mSeuilPC;
+
+         std::vector<cMSLoadedIm>  mMSLI;
 
     private:
 
@@ -2443,7 +2461,8 @@ typedef tGpuF **             tDataGpu;
 class   cGPU_LoadedImGeom
 {
    public :
-       cGPU_LoadedImGeom(const cAppliMICMAC &,cPriseDeVue*,int aNbVals,const Box2di & aBox,const Pt2di & aSzV);
+       ~cGPU_LoadedImGeom();
+       cGPU_LoadedImGeom(const cAppliMICMAC &,cPriseDeVue*,const Box2di & aBox,const Pt2di & aSzV,bool Top);
 
 //  Est-ce que un point terrain est visible (si l'option des parties cachees
 //  a ete activee)
@@ -2523,8 +2542,10 @@ class   cGPU_LoadedImGeom
        
 
    private :
+       
        cGPU_LoadedImGeom(const cGPU_LoadedImGeom &); // N.I.
        const cAppliMICMAC & mAppli;
+       bool             mTop;
        cPriseDeVue *    mPDV;
        cLoadedImage *   mLI;
        cGeomImage *     mGeom;
@@ -2541,6 +2562,9 @@ class   cGPU_LoadedImGeom
        Pt2dr              mValueP0D;
        Pt3di              mPOfDeriv;
        cStatOneImage      mBufVignette;
+
+       std::vector<cGPU_LoadedImGeom *> mMSGLI;  // Multi Scale GLI
+       const cOneParamCMS *             mOPCms;
 
 // tGpuF
 // tImGpu
@@ -2870,6 +2894,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
          double CurCorrelToCout(double) const;
 
          const cCorrelAdHoc * CAH() const;
+         const cCorrelMultiScale*  CMS() const;
 
          double AhDefCost () const {return mAhDefCost;} 
          double AhEpsilon () const {return mAhEpsilon;}
@@ -3231,7 +3256,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
         //  Variables utilisee dans les correls Ad Hoc
 
-           void DoInitAdHoc(const Box2di & aBox,const Pt2di & aSzV);
+           void DoInitAdHoc(const Box2di & aBox);
            // Si pas FirstZ de la colone et Im1 maitresse, pas la peine
            // de reinitialiser 
            bool InitZ(int aZ,eModeInitZ aMode);
@@ -3276,7 +3301,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
            int    mZMaxGlob;
            int    mZIntCur;
            double mZTerCur;
-           Pt2di  mCurSzV;
+           Pt2di  mCurSzV0;
+           Pt2di  mCurSzVMax;
 
            Im2D_U_INT1            mImOkTerCur;
            TIm2D<U_INT1,INT>      mTImOkTerCur;
@@ -3360,7 +3386,9 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
        cTplCIKTabul<float,double>  mInterpolTabule;
        cSurfaceOptimiseur *    mSurfOpt;
-       const cCorrelAdHoc *  mCorrelAdHoc;
+       const cCorrelAdHoc *      mCorrelAdHoc;
+       const cCorrelMultiScale*  mCMS;
+
        bool                  mGIm1IsInPax;
        cEl_GPAO *            mGPRed2;
 
