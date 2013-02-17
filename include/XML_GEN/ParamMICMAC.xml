@@ -861,6 +861,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
         <EtapeMEC Nb="+" DeltaPrec="1">
             <DeZoom  Nb="1" Type="int">                    </DeZoom>
 
+
             <CorrelAdHoc Nb="?">
 
                 <EpsilonAddMoyenne Nb="?" Type="double" Def="0.0"> </EpsilonAddMoyenne>
@@ -868,6 +869,15 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 
                 <SzBlocAH Nb="?" Type="int" Def="40"> </SzBlocAH>
                 <TypeCAH Nb="1" Union="true">
+                        <CorrelMultiScale Nb="?">
+                            <OneParamCMS Nb="+" Container="std::vector">
+                                  <SzW Nb="1" Type="Pt2di"> </SzW>
+                                  <!-- A priori Sigma doit etre fonction de  SzW, mais quelle fonction ?? -->
+                                  <Sigma Nb="1" Type="double"> </Sigma>
+                                  <!-- Poids apres normalisation des tailles de fenetres -->
+                                  <Pds Nb="1" Type="double"> </Pds> 
+                            </OneParamCMS>
+                        </CorrelMultiScale>
 
                         <!-- Si Correl2DLeastSquare  L'algo doit obligat etre eAlgoLeastSQ -->
                         <Correl2DLeastSquare Nb="?" AccessorFils="false">    

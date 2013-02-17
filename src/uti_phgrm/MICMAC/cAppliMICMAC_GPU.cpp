@@ -131,63 +131,99 @@ double cStatOneImage::SquareDist(const cStatOneImage & aS2) const
 /*                                                                  */
 /********************************************************************/
 
-	cGPU_LoadedImGeom::cGPU_LoadedImGeom
-		(
+cGPU_LoadedImGeom::cGPU_LoadedImGeom
+(
 		const cAppliMICMAC & anAppli,
 		cPriseDeVue* aPDV,
-		int aNbVals,
 		const Box2di & aBox,
-		const Pt2di  &aSzV
-		) :
-	mAppli   (anAppli),
-		mPDV     (aPDV),
-		mLI      (&aPDV->LoadedIm()),
-		mGeom    (&aPDV->Geom()),
+		const Pt2di  &aSzV,
+                bool  Top
+) :
+      mAppli   (anAppli),
+      mTop     (Top),
+      mPDV     (aPDV),
+      mLI      (&aPDV->LoadedIm()),
+      mGeom    (&aPDV->Geom()),
 
-		mSzV     (aSzV),
-		mSzOrtho (aBox.sz()+ mSzV*2),
+      mSzV     (aSzV),
+      mSzOrtho (aBox.sz()+ mSzV*2),
 
-		mImOrtho (mSzOrtho.x,mSzOrtho.y),
-		mDImOrtho (mImOrtho),
-		mDOrtho   (ImDec(mVOrtho,mImOrtho,aBox,aSzV)),
+      mOPCms   (0),
 
-		mImSomO  (mSzOrtho.x,mSzOrtho.y),
-		mDImSomO (mImSomO),
-		mDSomO   (ImDec(mVSomO,mImSomO,aBox,aSzV)),
+      mImOrtho (mSzOrtho.x,mSzOrtho.y),
+      mDImOrtho (mImOrtho),
+      mDOrtho   (ImDec(mVOrtho,mImOrtho,aBox,aSzV)),
 
-		mImSomO2  (mSzOrtho.x,mSzOrtho.y),
-		mDImSomO2 (mImSomO2),
-		mDSomO2   (ImDec(mVSomO2,mImSomO2,aBox,aSzV)),
+      mImSomO  (mSzOrtho.x,mSzOrtho.y),
+      mDImSomO (mImSomO),
+      mDSomO   (ImDec(mVSomO,mImSomO,aBox,aSzV)),
 
-		mImSom12  (mSzOrtho.x,mSzOrtho.y),
-		mDImSom12 (mImSom12),
-		mDSom12   (ImDec(mVSom12,mImSom12,aBox,aSzV)),
+      mImSomO2  (mSzOrtho.x,mSzOrtho.y),
+      mDImSomO2 (mImSomO2),
+      mDSomO2   (ImDec(mVSomO2,mImSomO2,aBox,aSzV)),
 
-		mImOK_Ortho (mSzOrtho.x,mSzOrtho.y),
-		mDImOK_Ortho (mImOK_Ortho),
-		mDOK_Ortho   (ImDec(mVImOK_Ortho,mImOK_Ortho,aBox,aSzV)),
+      mImSom12  (mSzOrtho.x,mSzOrtho.y),
+      mDImSom12 (mImSom12),
+      mDSom12   (ImDec(mVSom12,mImSom12,aBox,aSzV)),
+
+      mImOK_Ortho (mSzOrtho.x,mSzOrtho.y),
+      mDImOK_Ortho (mImOK_Ortho),
+      mDOK_Ortho   (ImDec(mVImOK_Ortho,mImOK_Ortho,aBox,aSzV)),
 
 
-		mNbVals    ((1+2*aSzV.x) * (1+2*aSzV.y)),
+      mNbVals    ((1+2*aSzV.x) * (1+2*aSzV.y)),
 
 
-		mVals    (aNbVals),
-		mDataIm  (mLI->DataFloatIm()),
-		mLinDIm  (mLI->DataFloatLinIm()),
-		mSzX     (mLI->SzIm().x),
-		mSzY     (mLI->SzIm().y),
-		mImMasq  (mLI->DataMasqIm()),
-		mImPC    (mLI->DataImPC()),
-		mSeuilPC (mLI->SeuilPC()),
-		mUsePC   (mLI->UsePC())
-	{
+      mVals    (mNbVals),
+      mDataIm  (mLI->DataFloatIm()),
+      mLinDIm  (mLI->DataFloatLinIm()),
+      mSzX     (mLI->SzIm().x),
+      mSzY     (mLI->SzIm().y),
+      mImMasq  (mLI->DataMasqIm()),
+      mImPC    (mLI->DataImPC()),
+      mSeuilPC (mLI->SeuilPC()),
+      mUsePC   (mLI->UsePC())
+{
 
-		ELISE_ASSERT
-			(
-			aPDV->NumEquiv()==0,
-			"Ne gere pas les classe d'equiv image en GPU"
-			);
-	}
+                
+    ELISE_ASSERT
+    (
+        aPDV->NumEquiv()==0,
+	"Ne gere pas les classe d'equiv image en GPU"
+    );
+
+    if (! Top) 
+       return;
+
+    mMSGLI.push_back(this);
+    const cCorrelMultiScale*  aCMS = anAppli.CMS();
+
+    if (! aCMS) 
+       return;
+
+    const std::vector<cOneParamCMS> & aVP = aCMS->OneParamCMS();
+
+
+    for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+    {
+        mOPCms = &(aVP[aK]);
+        if (aK>0)
+        {
+             mMSGLI.push_back(new cGPU_LoadedImGeom(anAppli,aPDV,aBox,mOPCms->SzW(),false));
+        }
+        
+    }
+    
+}
+cGPU_LoadedImGeom::~cGPU_LoadedImGeom()
+{
+   if (mTop)
+   {   
+       // mMSGLI[0] contient this, donc commence a 1
+       for (int aK=1; aK<int(mMSGLI.size()) ; aK++)
+           delete mMSGLI[aK];
+   }
+}
 
 	tGpuF **    cGPU_LoadedImGeom::DataOrtho()   {return mDOrtho;    }
 	U_INT1 **   cGPU_LoadedImGeom::DataOKOrtho() {return mDOK_Ortho; }
@@ -337,7 +373,7 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 	//
 
 
-	void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox,const Pt2di & aSzV)
+	void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 	{
 
 		mX0Ter = aBox._p0.x;
@@ -345,21 +381,20 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 		mY0Ter = aBox._p0.y;
 		mY1Ter = aBox._p1.y;
 
-		mCurSzV = aSzV;
-		mDilX0Ter = mX0Ter  - aSzV.x;
-		mDilY0Ter = mY0Ter  - aSzV.y;
-		mDilX1Ter = mX1Ter  + aSzV.x;
-		mDilY1Ter = mY1Ter  + aSzV.y;
+		mDilX0Ter = mX0Ter  - mCurSzVMax.x;
+		mDilY0Ter = mY0Ter  - mCurSzVMax.y;
+		mDilX1Ter = mX1Ter  + mCurSzVMax.x;
+		mDilY1Ter = mY1Ter  + mCurSzVMax.y;
 
 		mCurSzDil = Pt2di(mDilX1Ter-mDilX0Ter, mDilY1Ter-mDilY0Ter);
 
 		mImOkTerCur.Resize(mCurSzDil);
 		mTImOkTerCur = TIm2D<U_INT1,INT> (mImOkTerCur);
-		mDOkTer = ImDec(mVDOkTer,mImOkTerCur,aBox,aSzV);
+		mDOkTer = ImDec(mVDOkTer,mImOkTerCur,aBox,mCurSzVMax);
 
 		mImOkTerDil.Resize(mCurSzDil);
 		mTImOkTerDil = TIm2D<U_INT1,INT> (mImOkTerDil);
-		mDOkTerDil  = ImDec(mVDOkTerDil,mImOkTerDil,aBox,aSzV);
+		mDOkTerDil  = ImDec(mVDOkTerDil,mImOkTerDil,aBox,mCurSzVMax);
 
 		Pt2di aSzAll1 = mAll1ImOkTerDil.sz();
 		if ((aSzAll1.x < mCurSzDil.x ) || (aSzAll1.y<mCurSzDil.y))
@@ -367,7 +402,7 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 			mAll1ImOkTerDil = Im2D_U_INT1(mCurSzDil.x,mCurSzDil.y,1);
 		}
 		mAll1TImOkTerDil =  TIm2D<U_INT1,INT>(mAll1ImOkTerDil);
-		mAll1DOkTerDil = ImDec(mAll1VDOkTerDil,mAll1ImOkTerDil,aBox,aSzV);
+		mAll1DOkTerDil = ImDec(mAll1VDOkTerDil,mAll1ImOkTerDil,aBox,mCurSzVMax);
 
 		mTabZMin = mLTer->GPULowLevel_ZMin();
 		mTabZMax = mLTer->GPULowLevel_ZMax();
@@ -392,7 +427,7 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 		itFI++
 			)
 		{
-			mVLI.push_back(new cGPU_LoadedImGeom(*this,*itFI,mNbPtsWFixe,aBox,mPtSzWFixe));
+			mVLI.push_back(new cGPU_LoadedImGeom(*this,*itFI,aBox,mCurSzV0,true));
 		}
 		mNbIm = (int)mVLI.size();
 
@@ -457,7 +492,7 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 			uint2 Ter0		= make_uint2(mX0Ter,mY0Ter);
 			uint2 Ter1		= make_uint2(mX1Ter,mY1Ter);
 
-			h = Init_Correlation_GPU(Ter0, Ter1, mNbIm, toUi2(mPtSzWFixe), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT, 4);
+			h = Init_Correlation_GPU(Ter0, Ter1, mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT, 4);
 
 		}
 
@@ -539,7 +574,7 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 		if (mCurEtape->UseGeomDerivable())
 		{
 			mGpuSzD = mCurEtape->SzGeomDerivable();
-			Pt2di aSzOrtho = aBox.sz() + aSzV * 2;
+			Pt2di aSzOrtho = aBox.sz() + mCurSzVMax * 2;
 			Pt2di aSzTab =  Pt2di(3,3) + aSzOrtho/mGpuSzD;
 			mGeoX.Resize(aSzTab);
 			mGeoY.Resize(aSzTab);
@@ -611,10 +646,10 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 			}
 		}
 
-		mX0UtiDilTer = mX0UtiTer - mCurSzV.x;
-		mY0UtiDilTer = mY0UtiTer - mCurSzV.y;
-		mX1UtiDilTer = mX1UtiTer + mCurSzV.x;
-		mY1UtiDilTer = mY1UtiTer + mCurSzV.y;
+		mX0UtiDilTer = mX0UtiTer - mCurSzVMax.x;
+		mY0UtiDilTer = mY0UtiTer - mCurSzVMax.y;
+		mX1UtiDilTer = mX1UtiTer + mCurSzVMax.x;
+		mY1UtiDilTer = mY1UtiTer + mCurSzVMax.y;
 
 		mX0UtiLocIm = mX0UtiTer - mDilX0Ter;
 		mX1UtiLocIm = mX1UtiTer - mDilX0Ter;
@@ -630,7 +665,7 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 		Box2di aBoxUtiLocIm(Pt2di(mX0UtiLocIm,mY0UtiLocIm),Pt2di(mX1UtiLocIm,mY1UtiLocIm));
 		Box2di aBoxUtiDilLocIm(Pt2di(mX0UtiDilLocIm,mY0UtiDilLocIm),Pt2di(mX1UtiDilLocIm,mY1UtiDilLocIm));
 
-		Dilate(mImOkTerCur,mImOkTerDil,mCurSzV,aBoxUtiDilLocIm);
+		Dilate(mImOkTerCur,mImOkTerDil,mCurSzVMax,aBoxUtiDilLocIm);
 
 		cInterpolateurIm2D<float> * anInt = CurEtape()->InterpFloat();
 
@@ -706,12 +741,12 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 				anIndX += aStep;
 			}
 
-			SelfErode(aGLI.ImOK_Ortho(), mCurSzV,aBoxUtiLocIm);
+			SelfErode(aGLI.ImOK_Ortho(), mCurSzV0,aBoxUtiLocIm);
 			if (    (aMode==eModeMom_2_22)
 				|| ((aKIm==0) &&  (aMode==eModeMom_12_2_22))
 				)
 			{
-				MomOrdre2(aGLI.ImOrtho(),aGLI.ImSomO(),aGLI.ImSomO2(),mCurSzV,aBoxUtiLocIm);
+				MomOrdre2(aGLI.ImOrtho(),aGLI.ImSomO(),aGLI.ImSomO2(),mCurSzV0,aBoxUtiLocIm);
 			}
 			else if (aMode==eModeMom_12_2_22) 
 			{
@@ -723,7 +758,7 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 					aGLI.ImSom12(),
 					aGLI.ImSomO(),
 					aGLI.ImSomO2(),
-					mCurSzV,
+					mCurSzV0,
 					aBoxUtiLocIm
 					);
 			}
@@ -749,10 +784,10 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 		int aNbImCur = (int)aCurVLI.size();
 		if (aNbImCur >= 2)
 		{
-			int aX0 = anX - mCurSzV.x;
-			int aX1 = anX + mCurSzV.x;
-			int aY0 = anY - mCurSzV.x;
-			int aY1 = anY + mCurSzV.x;
+			int aX0 = anX - mCurSzV0.x;
+			int aX1 = anX + mCurSzV0.x;
+			int aY0 = anY - mCurSzV0.x;
+			int aY1 = anY + mCurSzV0.x;
 
 
 			double anEC2 = 0;
@@ -1150,11 +1185,11 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 				{
 
 					// Bornes du voisinage
-					// taille de la fenetre mPtSzWFixe
-					int aX0v = anX-mPtSzWFixe.x;
-					int aX1v = anX+mPtSzWFixe.x;
-					int aY0v = anY-mPtSzWFixe.y;
-					int aY1v = anY+mPtSzWFixe.y;
+					// taille de la fenetre mCurSzV0
+					int aX0v = anX-mCurSzV0.x;
+					int aX1v = anX+mCurSzV0.x;
+					int aY0v = anY-mCurSzV0.y;
+					int aY1v = anY+mCurSzV0.y;
 
 					// on parcourt l'intervalle de Z compris dans la nappe au point courant
 					for (int aZInt=aZMin ;  aZInt< aZMax ; aZInt++)
@@ -1331,9 +1366,24 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 
 
 		// Pour eventuellement changer si existe algo qui impose une taille
-		Pt2di aSzV = mPtSzWFixe;
 
-		DoInitAdHoc(aBox,aSzV);
+                
+		mCurSzV0   = mPtSzWFixe;
+                mCurSzVMax = mCurSzV0;
+                if (mCMS)
+                {
+                    ELISE_ASSERT
+                    (
+                         mCurSzV0 == mCMS->OneParamCMS()[0].SzW(),
+                        "Incoherence in first SzW of OneParamCMS"
+                    );
+                    mCurSzVMax = mCurSzV0;
+                    for (int aK=1 ; aK<int(mCMS->OneParamCMS().size()) ; aK++)
+                        mCurSzVMax.SetSup(mCMS->OneParamCMS()[aK].SzW());
+                }
+                
+
+		DoInitAdHoc(aBox);
 
 		const cTypeCAH & aTC  = mCorrelAdHoc->TypeCAH();
 

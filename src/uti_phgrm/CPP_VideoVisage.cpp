@@ -41,10 +41,26 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define DEF_OFSET -12349876
 
 
+std::string Str5OfInt(int aK)
+{
+    char aBuf[10];
+    sprintf(aBuf,"%05d",aK);
+
+    return aBuf;
+   
+}
+
 class cVideoVisage
 {
     public :
        cVideoVisage(int argc,char ** argv);
+
+       std::string NameIm(const std::string & aCenter)
+       {
+           return  StdPrefixGen(mNameVideo) + "im" + aCenter + ".png";
+       }
+       bool OK_MMLD() {return ELISE_fp::exist_file(mDir+"MicMac-LocalChantierDescripteur.xml");}
+
     private :
        void DoImage();
        void DoHomol();
@@ -54,12 +70,14 @@ class cVideoVisage
        std::string mDir;
        std::string mPatIm;
        const std::vector<std::string> * mSetIm;
+       std::string                      mImMedian;
        std::vector<std::string>         mMasters;
        std::vector<int>                 mKMasters;
        std::string mNameVideo;
        double      mRate;
        int         mSzSift;
        int         mLineSift;
+       double      mTeta;
        cInterfChantierNameManipulateur * mICNM;
 };
 
@@ -68,7 +86,7 @@ void cVideoVisage::DoImage()
     std::string aStr =   std::string("ffmpeg -i ")
                        + mFullNameVideo
                        + std::string(" -r ") + ToString(mRate) + std::string("  ")
-                       + StdPrefixGen(mFullNameVideo) + "im%05d.png";
+                       + NameIm("%05d");
 
 
 
@@ -88,18 +106,19 @@ void cVideoVisage::DoHomol()
 
 void cVideoVisage::DoOri()
 {
-    std::string aStr =    std::string("Tapas RadialStd  ") + mPatIm + " Out=All";
+    std::string aStr =    std::string("Tapas RadialBasic  ") + mPatIm + " Out=All" +  " ImInit=" + mImMedian;
     system_call(aStr.c_str());
-    aStr =    std::string("AperiCloud  ") + mPatIm + " All ";
+    aStr =    std::string("AperiCloud  ") + mPatIm + " All " + std::string(" Out=Cam")+ StdPrefixGen(mNameVideo) + ".ply";
     system_call(aStr.c_str());
 }
 
 cVideoVisage::cVideoVisage(int argc,char ** argv) :
     mRate (4.0),
     mSzSift  (-1),
-    mLineSift (8)
+    mLineSift (8),
+    mTeta     (180)
 {
-    // MemoArg(argc,argv);
+    MemoArg(argc,argv);
     MMD_InitArgcArgv(argc,argv);
 
 
@@ -110,26 +129,47 @@ cVideoVisage::cVideoVisage(int argc,char ** argv) :
 	LArgMain()   << EAM(mRate,"Rate",true,"Number of image / sec; def = 4")
                      << EAM(mSzSift,"SzS","Size Sift, def=-1 (Max resol)")
                      << EAM(mLineSift,"LineS","Line Sift, def=8")
+                     << EAM(mTeta,"Teta","Angle done (Def=180)")
     );
+
+    int aNbB = sizeofile(mFullNameVideo.c_str());
+
+    if (! EAMIsInit(&mRate))
+    {
+      // Un film de 100 Go au rate de 4 a donne 71 image sur 180, on en voulait 36
+       mRate = 4.0 * ( 1.03e8 / aNbB) * (36.0 /71.0);
+       std::cout << "Rate=" << mRate << "\n";
+    }
 
     SplitDirAndFile(mDir,mNameVideo,mFullNameVideo);
 
+    if (! OK_MMLD())
+    {
+        std::cout << "Add MicMac-LocalChantierDescripteur.xml !!!! \n";
+        getchar();
+        ELISE_ASSERT(OK_MMLD(),"No MicMac-LocalChantierDescripteur.xml, no 3D model ...");
+    }
+    DoImage();
 
     mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
 
-    mPatIm =   StdPrefixGen(mNameVideo) + "im[0-9]{5}\\.png";
+    mPatIm =   NameIm("[0-9]{5}");
     mSetIm = mICNM->Get(mPatIm);
-// std::cout << mPatIm << " " << mSetIm->size() << "\n";
-    mPatIm =  "\"" + mPatIm + "\"";
+    mPatIm =  QUOTE(mPatIm) ;
 
-    // DoImage();
-    // DoHomol();
-    // DoOri();
+    mImMedian = NameIm (Str5OfInt(mSetIm->size()/2));
+
+
+    DoHomol();
+    DoOri();
 
 
      std::cout << "MASKE DONE ?????   When yes type enter \n"; getchar();
      
 
+
+     std::list<std::string> aListComMalt;
+     std::list<std::string> aListComPly;
      
      for (int aK=0 ; aK<int(mSetIm->size()) ; aK++)
      {
@@ -140,28 +180,43 @@ cVideoVisage::cVideoVisage(int argc,char ** argv) :
               mMasters.push_back(aName);
               mKMasters.push_back(aK+1);
 
-              std::cout <<  aName << " " <<  aK+1 << "\n";
+              int aDelta = 4;
+              int aStep = 1;
+              std::string aPatIm =   "(";
+              bool First = true;
+              for (int aD = -aDelta ; aD<= aDelta ; aD++)
+              {
+                  int aKP = aK+1 + aD * aStep;
+                  if ((aKP>=1) && (aKP<=int(mSetIm->size())))
+                  {
+                       if (!First) aPatIm = aPatIm+"|";
+                       aPatIm = aPatIm+Str5OfInt(aKP);
+                       First=false;
+                  }
+              }
+
+              aPatIm = QUOTE(NameIm(aPatIm+")"));
+              std::string aComMalt = "Malt GeomImage " + aPatIm 
+                                     + " All Regul=0.1 SzW=2 ZoomF=2 AffineLast=true Master="+aName;
+              aListComMalt.push_back(aComMalt);
+
+              std::string aComPly = "Nuage2Ply MM-Malt-Img-"
+                                    +StdPrefixGen(aName)+"/NuageImProf_STD-MALT_Etape_7.xml" 
+                                    + " Attr=" +aName 
+                                    + std::string(" RatioAttrCarte=2 ")
+                                    + std::string(" Out=") +StdPrefixGen(aName)+".ply";
+
+              aListComPly.push_back(aComPly);
+              // std::cout << aComPly << "\n";
           }
      }
 
+     cEl_GPAO::DoComInParal(aListComMalt);
+     cEl_GPAO::DoComInParal(aListComPly);
 
-/*
-	#if (ELISE_windows)
-		replace( aDir.begin(), aDir.end(), '\\', '/' );
-	#endif
 
-    if (! EAMIsInit(&mDeqXY)) 
-       mDeqXY = Pt2di(mDeq,mDeq);
-
-    if (! EAMIsInit(&mDegRapXY))
-       mDegRapXY = Pt2di(mDegRap,mDegRap);
-
-    int aRes = system_call(aCom.c_str());
 
     BanniereMM3D();
-    return aRes;
-*/
-
 }
 
 int VideoVisage_main(int argc,char ** argv)
