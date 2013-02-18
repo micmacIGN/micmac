@@ -31,6 +31,7 @@ rm -fr $OUT_MICMAC_DIR/data/Tabul/.svn
 rm -fr $OUT_MICMAC_DIR/src/interface
 
 mkdir $OUT_MICMAC_DIR/binaire-aux
+cp -r binaire-aux/BIN_AUX_WIN32 $OUT_MICMAC_DIR/binaire-aux
 cp binaire-aux/ann_mec_filtre.LINUX $OUT_MICMAC_DIR/binaire-aux
 cp binaire-aux/siftpp_tgi.LINUX $OUT_MICMAC_DIR/binaire-aux
 cp binaire-aux/ann_samplekey200filtre.OSX $OUT_MICMAC_DIR/binaire-aux
