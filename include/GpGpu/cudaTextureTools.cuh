@@ -1,5 +1,6 @@
 #pragma once
 
+
 // w0, w1, w2, and w3 are the four cubic B-spline basis functions
 __host__ __device__
 	float w0(float a)
