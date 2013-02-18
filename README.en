@@ -63,9 +63,6 @@ sure to be in "Release" configuration, for Micmac is much faster built this way 
 		Again, do not compile the entire solution but just the 'INSTALL' project, otherwise compiled binaries won't be copied in the 'bin'
 directory and this will prevent Micmac from working.
 
-		Once you're done with compiling the binaries, you must copy the content of the directory "binaire-aux/BIN_AUX_WIN32" into its
-parent directory "binaire-aux" to get the default external tools working.
-
 Installation test
 
 	The website logiciels.ign.fr (section image->Micmac->Téléchargement) also provides a test dataset called Boudha_dataset.zip.

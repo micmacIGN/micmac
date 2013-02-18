@@ -3418,8 +3418,11 @@ class cAppliMICMAC  : public   cParamMICMAC,
          std::vector<Pt3dr> *  mTP3d;
 
 	// GPGPU
+#ifdef CUDA_ENABLED
+		bool					mLoadTextures;
+		InterfaceMicMacGpGpu	IMmGg;
+#endif	
 
-	bool mLoadTextures;
 };
 
 std::string  StdNameFromCple
