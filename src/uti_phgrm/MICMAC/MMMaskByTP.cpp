@@ -157,6 +157,16 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
        Pt3dr aPL = aNuage->Euclid2ProfAndIndex(aPE);
        Pt3dr aPL2 = aNuage->Euclid2ProfPixelAndIndex(aPE);
 
+       int aXIm = round_ni(aPL2.x);
+       int aYIm = round_ni(aPL2.y);
+       int aZIm = round_ni(aPL2.z);
+
+
+       for (int aKIm=0 ; aKIm<int(mVLI.size()) ; aK++)
+       {
+           mVLI[aKIm]->MakeDeriv(aXIm,aYIm,aZIm);
+       }
+
        std::cout << aPE << aPL << aPL2 << "\n";
        getchar();
 

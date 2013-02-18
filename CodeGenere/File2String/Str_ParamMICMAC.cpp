@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[1953]) = {
+const char * (theNameVar_ParamMICMAC[1963]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -863,6 +863,7 @@ const char * (theNameVar_ParamMICMAC[1953]) = {
 "        <EtapeMEC Nb=\"+\" DeltaPrec=\"1\">\n",
 "            <DeZoom  Nb=\"1\" Type=\"int\">                    </DeZoom>\n",
 "\n",
+"\n",
 "            <CorrelAdHoc Nb=\"?\">\n",
 "\n",
 "                <EpsilonAddMoyenne Nb=\"?\" Type=\"double\" Def=\"0.0\"> </EpsilonAddMoyenne>\n",
@@ -870,6 +871,15 @@ const char * (theNameVar_ParamMICMAC[1953]) = {
 "\n",
 "                <SzBlocAH Nb=\"?\" Type=\"int\" Def=\"40\"> </SzBlocAH>\n",
 "                <TypeCAH Nb=\"1\" Union=\"true\">\n",
+"                        <CorrelMultiScale Nb=\"?\">\n",
+"                            <OneParamCMS Nb=\"+\" Container=\"std::vector\">\n",
+"                                  <SzW Nb=\"1\" Type=\"Pt2di\"> </SzW>\n",
+"                                  <!-- A priori Sigma doit etre fonction de  SzW, mais quelle fonction ?? -->\n",
+"                                  <Sigma Nb=\"1\" Type=\"double\"> </Sigma>\n",
+"                                  <!-- Poids apres normalisation des tailles de fenetres -->\n",
+"                                  <Pds Nb=\"1\" Type=\"double\"> </Pds> \n",
+"                            </OneParamCMS>\n",
+"                        </CorrelMultiScale>\n",
 "\n",
 "                        <!-- Si Correl2DLeastSquare  L'algo doit obligat etre eAlgoLeastSQ -->\n",
 "                        <Correl2DLeastSquare Nb=\"?\" AccessorFils=\"false\">    \n",

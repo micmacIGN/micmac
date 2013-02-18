@@ -277,6 +277,7 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
      mCorrelAdHoc = anEM.CorrelAdHoc().PtrVal();
      if (mCorrelAdHoc)
      {
+         // C'est pour court circuiter les algo cd ChCorrel, c'est indépendant de ce qui est fait dans le code specifique
          mCurForceCorrelPontcuelle = true;
          if (mCorrelAdHoc->Correl2DLeastSquare().IsInit())
          {
@@ -287,12 +288,18 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
              ELISE_ASSERT(mDimPx==1,"Multiple Px in GPU");
          }
          ELISE_ASSERT(mCurSurEchWCor==1,"Sur ech in GPU");
+
+        mCMS = mCorrelAdHoc->CorrelMultiScale().PtrVal();
 /*
          ELISE_ASSERT(mCurEtape->EtapeMEC().AggregCorr().Val()==eAggregSymetrique,"Aggreg non sym in GPU");
          ELISE_ASSERT(mCurEtape->EtapeMEC().ModeInterpolation().Val()==eInterpolMPD,"Interp non MPD in GPU");
 */
 
 
+     }
+     else
+     {
+         mCMS = 0;
      }
 
 
