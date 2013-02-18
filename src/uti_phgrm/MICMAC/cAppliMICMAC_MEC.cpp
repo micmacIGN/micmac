@@ -41,12 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 namespace NS_ParamMICMAC
 {
 
-#ifdef CUDA_ENABLED
-	// Déclaration des fonctions Cuda
-	extern "C" void freeGpuMemory();
-	
-#endif
-
 int cAppliMICMAC::MemSizePixelImage() const
 {
     // Nombre d'octet par pixel et par image,
@@ -81,7 +75,7 @@ int cAppliMICMAC::GetTXY() const
     return aSz-aStep;
 }
 
-extern "C" void  imagesToLayers(float *fdataImg1D, int sx, int sy, int sz);
+
 
 void cAppliMICMAC::DoAllMEC()
 {
@@ -746,7 +740,8 @@ void cAppliMICMAC::DoOneBloc
         mSurfOpt->SolveOpt();
 
 #ifdef CUDA_ENABLED
-		freeGpuMemory();
+		IMmGg.DeallocMemory();
+		//freeGpuMemory();
 #endif
     }
 
