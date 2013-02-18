@@ -4,10 +4,14 @@ ADD_SUBDIRECTORY(test_ISA0)
 
 FIND_PACKAGE(Qt4 REQUIRED)
 
+
 set(interface_directory ${PROJECT_SOURCE_DIR}/src/interface)
 
 if (MSVC)
 	set(interfaceMicmac_LIBS OpenGL32 GLU32)
+    configure_file( ${QT_BINARY_DIR}/assistant.exe ${CMAKE_SOURCE_DIR}/interface/help/assistant.exe COPYONLY)
+else()
+    configure_file( ${QT_BINARY_DIR}/assistant ${CMAKE_SOURCE_DIR}/interface/help/assistant COPYONLY)
 ENDIF()
 
 SET(interfaceMicmac_SOURCES ${interface_directory}/appliThread.cpp
