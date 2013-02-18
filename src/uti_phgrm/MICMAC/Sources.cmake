@@ -10,6 +10,7 @@ set(uti_phgrm_MICMAC_Src_Files
     ${UTI_PHGRM_MICMAC_DIR}/cAppliMICMAC_GPU.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cAppliMICMAC_MEC.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cAppliMICMAC_MNE.cpp
+    ${UTI_PHGRM_MICMAC_DIR}/cCorrelMulScale.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cAppliMICMAC_Result1.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cAppliMICMAC_Result2.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cBasculeMnt.cpp

@@ -439,6 +439,7 @@ int ScaleIm_main(int argc,char ** argv);
 int tiff_info_main(int argc,char ** argv);
 int to8Bits_main(int argc,char ** argv);
 int MPDtest_main(int argc,char ** argv);
+int CmpIm_main(int argc,char ** argv);
 
 // uti_phgram
 int AperiCloud_main(int argc,char ** argv);

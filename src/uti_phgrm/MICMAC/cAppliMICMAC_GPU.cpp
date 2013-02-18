@@ -136,7 +136,8 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
 		const cAppliMICMAC & anAppli,
 		cPriseDeVue* aPDV,
 		const Box2di & aBox,
-		const Pt2di  &aSzV,
+		const Pt2di  &aSzV0,
+		const Pt2di  &aSzVMax,
                 bool  Top
 ) :
       mAppli   (anAppli),
@@ -145,33 +146,34 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
       mLI      (&aPDV->LoadedIm()),
       mGeom    (&aPDV->Geom()),
 
-      mSzV     (aSzV),
-      mSzOrtho (aBox.sz()+ mSzV*2),
+      mSzV0    (aSzV0),
+      mSzVMax  (aSzVMax),
+      mSzOrtho (aBox.sz()+ mSzVMax*2),
 
       mOPCms   (0),
 
       mImOrtho (mSzOrtho.x,mSzOrtho.y),
       mDImOrtho (mImOrtho),
-      mDOrtho   (ImDec(mVOrtho,mImOrtho,aBox,aSzV)),
+      mDOrtho   (ImDec(mVOrtho,mImOrtho,aBox,mSzVMax)),
 
       mImSomO  (mSzOrtho.x,mSzOrtho.y),
       mDImSomO (mImSomO),
-      mDSomO   (ImDec(mVSomO,mImSomO,aBox,aSzV)),
+      mDSomO   (ImDec(mVSomO,mImSomO,aBox,mSzVMax)),
 
       mImSomO2  (mSzOrtho.x,mSzOrtho.y),
       mDImSomO2 (mImSomO2),
-      mDSomO2   (ImDec(mVSomO2,mImSomO2,aBox,aSzV)),
+      mDSomO2   (ImDec(mVSomO2,mImSomO2,aBox,mSzVMax)),
 
       mImSom12  (mSzOrtho.x,mSzOrtho.y),
       mDImSom12 (mImSom12),
-      mDSom12   (ImDec(mVSom12,mImSom12,aBox,aSzV)),
+      mDSom12   (ImDec(mVSom12,mImSom12,aBox,mSzVMax)),
 
       mImOK_Ortho (mSzOrtho.x,mSzOrtho.y),
       mDImOK_Ortho (mImOK_Ortho),
-      mDOK_Ortho   (ImDec(mVImOK_Ortho,mImOK_Ortho,aBox,aSzV)),
+      mDOK_Ortho   (ImDec(mVImOK_Ortho,mImOK_Ortho,aBox,mSzVMax)),
 
 
-      mNbVals    ((1+2*aSzV.x) * (1+2*aSzV.y)),
+      mNbVals    ((1+2*mSzV0.x) * (1+2*mSzV0.y)),
 
 
       mVals    (mNbVals),
@@ -209,7 +211,7 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
         mOPCms = &(aVP[aK]);
         if (aK>0)
         {
-             mMSGLI.push_back(new cGPU_LoadedImGeom(anAppli,aPDV,aBox,mOPCms->SzW(),false));
+             mMSGLI.push_back(new cGPU_LoadedImGeom(anAppli,aPDV,aBox,mOPCms->SzW(),mSzVMax,false));
         }
         
     }
@@ -427,7 +429,7 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 		itFI++
 			)
 		{
-			mVLI.push_back(new cGPU_LoadedImGeom(*this,*itFI,aBox,mCurSzV0,true));
+			mVLI.push_back(new cGPU_LoadedImGeom(*this,*itFI,aBox,mCurSzV0,mCurSzVMax,true));
 		}
 		mNbIm = (int)mVLI.size();
 
@@ -1387,7 +1389,11 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 
 		const cTypeCAH & aTC  = mCorrelAdHoc->TypeCAH();
 
-		if (aTC.GPU_Correl().IsInit())
+		if (aTC.CorrelMultiScale().IsInit())
+                {
+			DoGPU_Correl(aBox,(cMultiCorrelPonctuel*)0);
+                }
+		else if (aTC.GPU_Correl().IsInit())
 		{
 			DoGPU_Correl(aBox,(cMultiCorrelPonctuel*)0);
 		}

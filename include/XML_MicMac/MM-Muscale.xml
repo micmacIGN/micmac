@@ -1,8 +1,27 @@
 <!--
    The simplest MicMac exemple
+
+MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Muscale.xml  WorkDir=/home/marc/TMP/Visages/MPD/
+
+
 -->
 
 <ParamMICMAC>
+
+<DicoLoc>
+
+<!--
+   <Symb> Im1=Sosoim00016     </Symb>
+   <Symb> ImPat=Sosoim00016     </Symb>
+-->
+   <Symb>   Im1=MVI_0101im00046     </Symb>
+   <Symb> ImPat=MVI_0101im0004[3-9] </Symb>
+
+
+   <Symb> Post=png     </Symb>
+   <Symb>  Ori=All     </Symb>
+</DicoLoc>
+
 
 <Section_Terrain>  
       <IntervAltimetrie>
@@ -15,8 +34,8 @@
       </IntervSpecialZInv>
      <Planimetrie>
          <MasqueTerrain>
-             <MT_Image> Sosoim00016_Masq.tif </MT_Image>
-             <MT_Xml>   Sosoim00016_Masq.xml </MT_Xml>
+             <MT_Image> ${Im1}_Masq.tif </MT_Image>
+             <MT_Xml>   ${Im1}_Masq.xml </MT_Xml>
          </MasqueTerrain>
      </Planimetrie>
 
@@ -25,14 +44,14 @@
 <Section_PriseDeVue >
      <GeomImages> eGeomImageOri </GeomImages>
      <Images >
-          <Im1> Sosoim00016.png </Im1>
-          <ImPat> Sosoim0001[3-9].png </ImPat>
+          <Im1>     ${Im1}.${Post} </Im1>
+          <ImPat> ${ImPat}.${Post} </ImPat>
      </Images>
 
 
      <NomsGeometrieImage>
          <FCND_Mode_GeomIm>
-               <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-All  </FCND_GeomCalc>
+               <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-${Ori}  </FCND_GeomCalc>
          </FCND_Mode_GeomIm>
      </NomsGeometrieImage>
 </Section_PriseDeVue>
@@ -66,9 +85,26 @@
 
             <CorrelAdHoc>
                 <TypeCAH>
-                        <GPU_Correl> </GPU_Correl>
+<!--
+                       <GPU_Correl> </GPU_Correl>
+-->
+                       <CorrelMultiScale>
+                            <OneParamCMS>
+                                  <SzW> 1 1 </SzW>
+                                  <Sigma> 0.0  </Sigma>
+                                  <Pds> 0  </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                  <SzW> 2 2 </SzW>
+                                  <Sigma> 0.0  </Sigma>
+                                  <Pds> 0  </Pds>
+                            </OneParamCMS>
+<!--
+-->
+                        </CorrelMultiScale>
                 </TypeCAH>
             </CorrelAdHoc>
+
         </EtapeMEC>
 	     
 
@@ -100,6 +136,9 @@
      <TmpMEC>  MEC-MScale/  </TmpMEC>
      <TmpResult>  MEC-MScale/  </TmpResult>
      <TmpPyr>    Pyram/  </TmpPyr>
+<!--
+     <ByProcess>  0 </ByProcess>
+-->
      <ByProcess>  ${MMNbProc} </ByProcess>
 </Section_WorkSpace>
 

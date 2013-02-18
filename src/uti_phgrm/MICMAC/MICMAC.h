@@ -2462,7 +2462,15 @@ class   cGPU_LoadedImGeom
 {
    public :
        ~cGPU_LoadedImGeom();
-       cGPU_LoadedImGeom(const cAppliMICMAC &,cPriseDeVue*,const Box2di & aBox,const Pt2di & aSzV,bool Top);
+       cGPU_LoadedImGeom
+       (
+             const cAppliMICMAC &,
+             cPriseDeVue*,
+             const Box2di & aBox,
+             const Pt2di & aSzV0,
+             const Pt2di & aSzVMax,
+             bool Top
+        );
 
 //  Est-ce que un point terrain est visible (si l'option des parties cachees
 //  a ete activee)
@@ -2550,7 +2558,8 @@ class   cGPU_LoadedImGeom
        cLoadedImage *   mLI;
        cGeomImage *     mGeom;
 
-       Pt2di              mSzV;
+       Pt2di              mSzV0;
+       Pt2di              mSzVMax;
        Pt2di              mSzOrtho;
 
        int                mX0Deriv;
