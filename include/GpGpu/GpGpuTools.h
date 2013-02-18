@@ -473,6 +473,7 @@ public:
 	cudaArray*	GetCudaArray();
 	void		Dealloc();
 	void		Memset(int val);
+
 };
 
 template <class T> 
