@@ -1,0 +1,78 @@
+/*eLiSe06/05/99
+  
+     Copyright (C) 1999 Marc PIERROT DESEILLIGNY
+
+   eLiSe : Elements of a Linux Image Software Environment
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS  
+Internet: Marc.Pierrot-Deseilligny@ign.fr
+   Phone: (33) 01 43 98 81 28
+eLiSe06/05/99*/
+
+
+
+#ifndef _ELISE_GENERAL_HASSAN_H
+#define _ELISE_GENERAL_HASSAN_H
+
+#define DEBUG_HASSAN   1
+
+template  <class Type> Tab_Dynamique : public Object_cptref
+{
+     friend class Facette_3D;
+
+     public :
+     private :
+
+         DECLAR_DTI_THIS;
+         Data_Facette_3D(const Pt3dr * pts,INT nb);
+         void flush();
+
+         Pt3dr *   _pts;
+         INT        _nb;
+};
+
+class Facette_3D : Ptr_OCR
+{
+     public :
+      
+           Facette_3D(Pt3dr p0,Pt3dr p1,Pt3dr p2);
+           Facette_3D(Pt3dr p0,Pt3dr p1,Pt3dr p2,Pt3dr p3);
+           Facette_3D(Pt3dr *pts,INT nb);
+
+           INT   nb()
+           {
+                 return df3d()->_nb;
+           }
+           Pt3dr & operator [](INT i)
+           {
+#if (DEBUG_HASSAN)
+                if ((i<0)||(i>=nb()))
+                {
+                    cout << "OUT OF RANGE in Facette_3D::[]\n";
+                    exit(0);
+                }
+#endif
+                return df3d()->_pts[i];
+           }
+
+     private :
+
+          Data_Facette_3D * df3d(){ return (Data_Facette_3D *) _ptr;}
+};
+
+
+#endif // _ELISE_GENERAL_HASSAN_H
