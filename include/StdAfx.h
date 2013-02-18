@@ -4,12 +4,15 @@
 	#define __TRACE_SYSTEM__
 #endif
 
+
 #ifdef CUDA_ENABLED
-	#include <cuda_runtime.h>
-	#include <helper_functions.h>
-	#include <helper_math.h>
-	#include <helper_cuda.h>
+#include <cuda_runtime.h>
+#include <helper_functions.h>
+#include <helper_math.h>
+#include <helper_cuda.h>
+
 #endif
+
 
 #include <algorithm>
 #include <cfloat>
@@ -124,6 +127,7 @@ using namespace std;
 #include "api/el_regex.h"
 #include "general/phgr_san.h"
 #include "general/hassan_arrangt.h"
+#include "GpGpu/InterfaceMicMacGpGpu.h"
 
 //  ==== AJOUT  =====
 

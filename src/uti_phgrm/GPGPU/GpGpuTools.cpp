@@ -109,6 +109,7 @@ void AImageCuda::bindTexture( textureReference& texRef )
 	cudaChannelFormatDesc desc;
 	checkCudaErrors(cudaGetChannelDesc(&desc, GetCudaArray()));
 	checkCudaErrors(cudaBindTextureToArray(&texRef,GetCudaArray(),&desc));
+
 }
 
 cudaArray* AImageCuda::GetCudaArray()
