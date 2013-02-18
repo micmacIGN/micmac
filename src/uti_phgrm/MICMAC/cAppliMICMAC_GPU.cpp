@@ -37,14 +37,16 @@ See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-
 #include "StdAfx.h"
-#ifdef CUDA_ENABLED
-	#include "GpGpu/InterfaceMicMacGpGpu.h"
-#endif
 
 namespace NS_ParamMICMAC
 {
+
+#ifdef CUDA_ENABLED
+	uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);};
+	int2  toI2(Pt2dr a){return make_int2((int)a.x,(int)a.y);};
+	//paramMicMacGpGpu h;
+#endif
 
 	template <class Type,class TBase> 
 	Type ** ImDec
@@ -439,7 +441,6 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 	
 		if (mLoadTextures)//		Mise en calque des images	
 		{
-
 			mLoadTextures		= false;
 			float*	fdataImg1D	= NULL;	
 			uint2	dimImgMax	= make_uint2(0,0);
@@ -485,15 +486,17 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 				}
 			}*/
 			if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
-				imagesToLayers( fdataImg1D, dimImgMax, mNbIm );
+				IMmGg.SetImages(fdataImg1D, dimImgMax, mNbIm);
+				//imagesToLayers( fdataImg1D, dimImgMax, mNbIm );
 
 			if (fdataImg1D != NULL) delete[] fdataImg1D;
 
 			uint2 Ter0		= make_uint2(mX0Ter,mY0Ter);
 			uint2 Ter1		= make_uint2(mX1Ter,mY1Ter);
 
-			h = Init_Correlation_GPU(Ter0, Ter1, mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT, 4);
-
+			//h = Init_Correlation_GPU();
+			IMmGg.InitParam(Ter0, Ter1, mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT, INTERZ);
+			
 		}
 
 		//////////////////////////////////////////////////////////////////////////
@@ -501,8 +504,8 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 		uint2 Ter0  = make_uint2(mX0Ter,mY0Ter);
 		uint2 Ter1  = make_uint2(mX1Ter,mY1Ter);
 		uint2 diTer = Ter1 - Ter0;
-		h.ptMask0   = make_int2(-1);
-		h.ptMask1   = make_int2(-1);
+		int2 ptMask0   = make_int2(-1);
+		int2 ptMask1   = make_int2(-1);
 
 		pixel *maskTab = new pixel[size(diTer)];
 
@@ -513,14 +516,14 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 				uint idMask		= diTer.x * (anY - mY0Ter) + anX - mX0Ter;
 				if (IsInTer(anX,anY))
 				{
-				    if ( aEq(h.ptMask0, -1))
-						h.ptMask0 = make_int2(anX,anY);
+				    if ( aEq(ptMask0, -1))
+						ptMask0 = make_int2(anX,anY);
 
-					if (anX < h.ptMask0.x ) h.ptMask0.x = anX;
-					if (anY < h.ptMask0.y ) h.ptMask0.y = anY;
+					if (anX < ptMask0.x ) ptMask0.x = anX;
+					if (anY < ptMask0.y ) ptMask0.y = anY;
 
-				    if (h.ptMask1.x < anX) h.ptMask1.x = anX;
-					if (h.ptMask1.y < anY) h.ptMask1.y = anY;
+				    if (ptMask1.x < anX) ptMask1.x = anX;
+					if (ptMask1.y < anY) ptMask1.y = anY;
 
 					maskTab[idMask] = 1;
 				}	
@@ -533,20 +536,23 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 			}
 		}
 
-		h.ptMask1.x++;
-		h.ptMask1.y++;
+		ptMask1.x++;
+		ptMask1.y++;
 
-		h = updateSizeBlock(make_uint2(h.ptMask0),make_uint2(h.ptMask1),INTERZ);
-		
-		if (h.ptMask0.x != -1)
+		//h = updateSizeBlock(make_uint2(ptMask0),make_uint2(ptMask1),INTERZ);
+		IMmGg.SetSizeBlock(make_uint2(ptMask0),make_uint2(ptMask1),INTERZ);
+
+		if (IMmGg.IsValid())
 		{
-			
-			pixel *SubMaskTab = new pixel[size(h.rDiTer)];
+			uint2 rDimTerr = IMmGg.GetDimensionTerrain();
 
-			for (int y = h.ptMask0.y; y < h.ptMask1.y; y++) 
-				memcpy(SubMaskTab + (y  - h.ptMask0.y) * h.rDiTer.x, maskTab + (y - mY0Ter) * diTer.x + h.ptMask0.x - mX0Ter, sizeof(pixel) * h.rDiTer.x );
-			
-			SetMask(SubMaskTab,h.rDiTer);
+			pixel *SubMaskTab = new pixel[size(rDimTerr)];
+
+			for (int y = ptMask0.y; y < ptMask1.y; y++) 
+				memcpy(SubMaskTab + (y  - ptMask0.y) * rDimTerr.x, maskTab + (y - mY0Ter) * diTer.x + ptMask0.x - mX0Ter, sizeof(pixel) * rDimTerr.x );
+					
+			//SetMask(SubMaskTab,rDimTerr);
+			IMmGg.SetMask(SubMaskTab,rDimTerr);
 
 			delete[] SubMaskTab;
 		}
@@ -1095,14 +1101,14 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 
 #ifdef  CUDA_ENABLED
 		
-		if(	mNbIm == 0) return;
+		if(	mNbIm == 0) return;	
 
 		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
 		
 		uint2 mTer0 = make_uint2(mX0Ter,mY0Ter);
 		uint2 mTer1 = make_uint2(mX1Ter,mY1Ter);
 
-		if (h.ptMask0.x == -1)
+		if (!IMmGg.IsValid())
 		{
 			setVolumeCost(mTer0,mTer1,mZMinGlob,mZMaxGlob,mAhDefCost);
 			return;
@@ -1111,15 +1117,16 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 		uint interZ	= min(INTERZ, abs(aZMaxTer - aZMinTer));
 
 		if (interZ != INTERZ)
-			h = updateSizeBlock(make_uint2(h.ptMask0),make_uint2(h.ptMask1),interZ);
+			IMmGg.SetSizeBlock(interZ);
+		
 
 		int anZ			= aZMinTer;
 	
 		CuHostData3D<float>		hVolumeCost;
 		CuHostData3D<float2>	hVolumeProj;
 
-		hVolumeCost.SetDimension(h.rDiTer,interZ);
-		hVolumeProj.SetDimension(h.dimSTer, interZ*mNbIm);
+		hVolumeCost.Realloc(IMmGg.GetDimensionTerrain(),interZ);
+		hVolumeProj.Realloc(IMmGg.GetSDimensionTerrain(), interZ*mNbIm);
 
 		hVolumeCost.Malloc();
 		hVolumeProj.Malloc();
@@ -1128,24 +1135,24 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 		while( anZ < aZMaxTer )
 		{
 			// Re-initialisation du tableau de projection
-			hVolumeProj.Memset(h.IntDefault);
+			hVolumeProj.Memset(IMmGg.GetIntDefaultVal());
 
-			Tabul_Projection(hVolumeProj.pData(), anZ, h.pUTer0, h.pUTer1, h.sampTer, interZ);
-			
+			Tabul_Projection(hVolumeProj.pData(), anZ, IMmGg.ptU0(), IMmGg.ptU1(),IMmGg.GetSample(), interZ);
+
 			// Kernel Correlation
-			basic_Correlation_GPU(hVolumeCost.pData(), hVolumeProj.pData(), mNbIm, interZ);
+			IMmGg.BasicCorrelation(hVolumeCost.pData(), hVolumeProj.pData(), mNbIm, interZ);
 
-			setVolumeCost(mTer0,mTer1,anZ,anZ + interZ,mAhDefCost,hVolumeCost.pData(), h.ptMask0, h.ptMask1,h.DefaultVal);
+			setVolumeCost(mTer0,mTer1,anZ,anZ + interZ,mAhDefCost,hVolumeCost.pData(), IMmGg.ptM0(), IMmGg.ptM1(),IMmGg.GetDefaultVal());
 
 			uint intZ = (uint)abs(aZMaxTer - anZ );
 
 			if (interZ >= intZ  &&  anZ != (aZMaxTer - 1))
 			{
 				interZ = intZ;
-				h = updateSizeBlock(make_uint2(h.ptMask0),make_uint2(h.ptMask1),interZ);
-				
-				hVolumeCost.Realloc(h.rDiTer,interZ);
-				hVolumeProj.Realloc(h.dimSTer, interZ*mNbIm);
+				IMmGg.SetSizeBlock(interZ);
+
+				hVolumeCost.Realloc(IMmGg.GetDimensionTerrain(),interZ);
+				hVolumeProj.Realloc(IMmGg.GetSDimensionTerrain(), interZ*mNbIm);
 
 			} 
 			
