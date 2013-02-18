@@ -2,93 +2,28 @@
 #include "GpGpu/cudaTextureTools.cuh"
 
 static __constant__ paramMicMacGpGpu cH;
-paramMicMacGpGpu h;
 
 // ATTENTION : erreur de compilation avec l'option cudaReadModeNormalizedFloat et l'utilisation de la fonction tex2DLayered
 texture< pixel,	cudaTextureType2D >			TexS_MaskTer;
 texture< float,	cudaTextureType2DLayered >	TexL_Images;
-TexFloat2Layered TexL_Proj_01;
-TexFloat2Layered TexL_Proj_02;
+TexFloat2Layered							TexL_Proj_01;
+TexFloat2Layered							TexL_Proj_02;
 
 template<int TexSel> __device__ __host__ TexFloat2Layered TexFloat2L();
 
 template<> __device__ __host__ TexFloat2Layered TexFloat2L<1>() { return TexL_Proj_01; };
 template<> __device__ __host__ TexFloat2Layered TexFloat2L<2>() { return TexL_Proj_02; };
 
-ImageCuda<pixel>		mask;
-ImageLayeredCuda<float>	LayeredImages;
-ImageLayeredCuda<float2>LayeredProjection;
-
-CuDeviceData3D<float>	volumeCost;	// volume des couts   
-CuDeviceData3D<float>	volumeCach;	// volume des calculs intermédiaires
-CuDeviceData3D<float>	volumeNIOk;	// nombre d'image correct pour une vignette
-
 //------------------------------------------------------------------------------------------
+
+extern "C" textureReference& getMask(){	return TexS_MaskTer;}
+extern "C" textureReference& getImage(){ return TexL_Images;}
+extern "C" textureReference& getProjection(){return TexL_Proj_01;}
+
 extern "C" void CopyParamTodevice( paramMicMacGpGpu param )
 {
 	checkCudaErrors(cudaMemcpyToSymbol(cH, &param, sizeof(paramMicMacGpGpu)));
 }
-
-extern "C" void SetMask(pixel* dataMask, uint2 dimMask)
-{
-	mask.InitImage(dimMask,dataMask);
-	mask.bindTexture(TexS_MaskTer);
-}
-
-extern "C" void allocMemory(void)
-{	
-	volumeCost.Realloc(h.rDiTer,h.ZInter);
-	volumeCach.Realloc(h.dimCach, h.nbImages * h.ZInter);
-	volumeNIOk.Realloc(h.rDiTer,h.ZInter);
-
-}
-
-extern "C" paramMicMacGpGpu updateSizeBlock( uint2 ter0, uint2 ter1, uint Zinter )
-{
-
-	uint oldSizeTer = h.sizeTer;
-
-	h.SetDimension(ter0,ter1,Zinter);
-
-	checkCudaErrors(cudaMemcpyToSymbol(cH, &h, sizeof(paramMicMacGpGpu)));
-
-	LayeredProjection.Realloc(h.dimSTer,h.nbImages * h.ZInter);
-
-	if (oldSizeTer < h.sizeTer)
-		allocMemory();
-
-	return h;
-}
-
-extern "C" paramMicMacGpGpu Init_Correlation_GPU(  uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ)
-{
-	// Parametres texture des projections
-	TexL_Proj_01.addressMode[0]	= cudaAddressModeClamp;
-	TexL_Proj_01.addressMode[1]	= cudaAddressModeClamp;	
-	TexL_Proj_01.filterMode		= cudaFilterModeLinear; //cudaFilterModePoint cudaFilterModeLinear
-	TexL_Proj_01.normalized		= true;
-
-	// Parametres texture des Images
-	TexL_Images.addressMode[0]	= cudaAddressModeWrap;
-    TexL_Images.addressMode[1]	= cudaAddressModeWrap;
-    TexL_Images.filterMode		= cudaFilterModePoint; //cudaFilterModeLinear cudaFilterModePoint
-    TexL_Images.normalized		= true;
-	
-	h.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
-	updateSizeBlock( ter0, ter1, interZ );
-	allocMemory();
-	return h;
-}
-
-extern "C" void imagesToLayers(float *fdataImg1D, uint2 dimImage, int nbLayer)
-{
-	LayeredImages.CData3D::Malloc(dimImage,nbLayer);
-	LayeredImages.copyHostToDevice(fdataImg1D);
-	
-	checkCudaErrors( cudaBindTextureToArray(TexL_Images,LayeredImages.GetCudaArray()));
-};
-
-
 
 template<int TexSel> __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
 {
@@ -119,7 +54,7 @@ template<int TexSel> __global__ void correlationKernel( float *dev_NbImgOk, floa
 #elif	INTERPOLA == BICUBIC
 		cacheImg[threadIdx.y][threadIdx.x] = tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, cH.dimImg,(int)(blockIdx.z % cH.nbImages));
 #endif
-
+		
 	__syncthreads();
 
 	const int2 ptTer = make_int2(ptHTer) - make_int2(cH.rVig);
@@ -270,79 +205,4 @@ extern "C" void KernelmultiCorrelation(dim3 blocks, dim3 threads, float *dTCost,
 	multiCorrelationKernel<<<blocks, threads>>>(dTCost, cacheVign, dev_NbImgOk, nbActThr);
 	getLastCudaError("Multi-Correlation kernel failed");
 
-}
-
-extern "C" void basic_Correlation_GPU( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ ){
-
-	const int streamTexture = 1;
-
-	volumeCost.SetDimension(h.rDiTer,interZ);
-	volumeCach.SetDimension(h.dimCach,nbLayer * interZ);
-	volumeNIOk.SetDimension(h.rDiTer,interZ);
-	
-	if (volumeCost.GetSizeofMalloc() < volumeCost.Sizeof() )
-	{
-		std::cout << "Realloc Device Data" << "\n";
-		volumeCost.Realloc(h.rDiTer,interZ);
-		volumeCach.Realloc(h.dimCach,nbLayer * interZ);
-		volumeNIOk.Realloc(h.rDiTer,interZ);
-	}
-	//----------------------------------------------------------------------------
-	
-	volumeCost.Memset(h.IntDefault);
-	volumeCach.Memset(h.IntDefault);
-	volumeNIOk.Memset(0);
-
-	LayeredProjection.copyHostToDevice(hostVolumeProj);
-	LayeredProjection.bindTexture(TexL_Proj_01);
-
-	// --------------- calcul de dimension du kernel de correlation --------------
-
-	dim3	threads( BLOCKDIM, BLOCKDIM, 1);
-	uint2	thd2D		= make_uint2(threads);
-	uint2	actiThsCo	= thd2D - 2 * h.dimVig;
-	uint2	block2D		= iDivUp(h.dimTer,actiThsCo);
-	dim3	blocks(block2D.x , block2D.y, nbLayer * interZ);
-
-	//-------------	calcul de dimension du kernel de multi-correlation ------------
-
-	uint2	actiThs		= SBLOCKDIM - make_uint2( SBLOCKDIM % h.dimVig.x, SBLOCKDIM % h.dimVig.y);
-	dim3	threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
-	uint2	block2D_mC	= iDivUp(h.dimCach,actiThs);
-	dim3	blocks_mC(block2D_mC.x,block2D_mC.y,interZ);
-
-	//-----------------------  KERNEL  Correlation  -------------------------------
-	
-	correlationKernel<streamTexture><<<blocks, threads>>>( volumeNIOk.pData(), volumeCach.pData(), actiThsCo);
-	getLastCudaError("Basic Correlation kernel failed");
-	
-	//-------------------  KERNEL  Multi Correlation  ------------------------------
-
-    multiCorrelationKernel<<<blocks_mC, threads_mC>>>( volumeCost.pData(), volumeCach.pData(), volumeNIOk.pData(), actiThs);
-    getLastCudaError("Multi-Correlation kernel failed");
-
-	//----------------------------------------------------------------------------
-
-	checkCudaErrors( cudaUnbindTexture(TexL_Proj_01) );
-	volumeCost.CopyDevicetoHost(hostVolumeCost);
-	
-	//----------------------------------------------------------------------------
-	//checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );
-	//checkCudaErrors( cudaMemcpy( host_Cache, dev_Cache,	  cac_MemSize, cudaMemcpyDeviceToHost) );
-	//GpGpuTools::OutputArray(h_TabCost,h.rDiTer,11.0f,h.DefaultVal);
-	//----------------------------------------------------------------------------
-}
-
-extern "C" void freeGpuMemory()
-{
-	checkCudaErrors( cudaUnbindTexture(TexL_Images) );	
-	checkCudaErrors( cudaUnbindTexture(TexS_MaskTer) );	
-
-	volumeCach.Dealloc();
-	volumeCost.Dealloc();
-	volumeNIOk.Dealloc();
-
-	mask.Dealloc();
-	LayeredImages.Dealloc();
-	LayeredProjection.Dealloc();
 }
