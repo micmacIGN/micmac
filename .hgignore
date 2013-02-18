@@ -6875,3 +6875,11 @@ ModelingProject1/UMLClassDiagram1.classdiagram.layout
 CMakeLists.txt.user
 CMakeLists.txt~
 src/CMakeLists.txt~
+interface/help/assistant.exe
+binaire-aux/make.exe
+binaire-aux/libintl3.dll
+binaire-aux/libiconv2.dll
+binaire-aux/libexpat.dll
+binaire-aux/exiv2.exe
+binaire-aux/exiftool.exe
+binaire-aux/convert.exe

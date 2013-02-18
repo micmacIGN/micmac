@@ -39,6 +39,20 @@ OPTION(CUDA_ENABLED "Utilisation de cuda" OFF )
 ## 	Trouver les EXES et Libs	##
 ##################################
 
+# systeme 32 ou 64 bits
+if (WIN32)
+    set(CPU_BITNESS 64)
+    if (CMAKE_CL_64)
+        set(CPU_BITNESS 32)
+    endif()
+else()
+    set(CPU_BITNESS 32)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(CPU_BITNESS 64)
+    endif()
+endif()
+message( "Systeme " ${CMAKE_SYSTEM_NAME} ${CPU_BITNESS} )
+
 # DEFINITION : Dossier des exe et Dll nécessaires sous windows
 set(BinAuxWinDir ${PROJECT_SOURCE_DIR}/binaire-aux/BIN_AUX_WIN32)
 
@@ -122,10 +136,10 @@ ENDIF()
 IF(${WITH_IGN_ORI})
 	FIND_PACKAGE( IgnSocle  COMPONENTS core data orientation geodesy transform math numeric tools xml)
 	FIND_PACKAGE(TinyXML)
-	add_definitions( "-DBOOST_THREAD_USE_LIB" ) 
+	add_definitions( "-DBOOST_THREAD_USE_LIB" )
 	SET(Boost_USE_MULTITHREADED ON)
 	FIND_PACKAGE( Boost 1.46.0 COMPONENTS unit_test_framework system filesystem serialization thread regex)
-	IF(IgnSocle_FOUND AND TinyXML_FOUND AND Boost_FOUND)	
+	IF(IgnSocle_FOUND AND TinyXML_FOUND AND Boost_FOUND)
         	INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
         	LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
 		message("TinyXML_LIBRARY_DIRS : ${TinyXML_LIBRARY_DIRS}")
@@ -248,7 +262,7 @@ ENDIF()
 # DEFINITION : des preprocesseurs windows
 IF (MSVC)
 	add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
-	
+
 	if(MSVC80 OR MSVC90 OR MSVC10)
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 	endif()
@@ -280,16 +294,12 @@ include(${code_genere_dir}/Sources.cmake)
 ADD_SUBDIRECTORY(${ELISE_DIR})
 
 # INSTALLATION : Liste des exe et Dll nécessaires sous windows
-if (win32)
-	set(BinAuxWin
-		${BinAuxWinDir}/exiftool.exe
-		${BinAuxWinDir}/exiv2.exe
-		${BinAuxWinDir}/libexpat.dll
-		${BinAuxWinDir}/libiconv2.dll
-		${BinAuxWinDir}/libintl3.dll
-		${BinAuxWinDir}/make.exe
-	)
+if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
+	configure_file( ${BinAuxWinDir}/convert.exe ${PROJECT_SOURCE_DIR}/binaire-aux/convert.exe COPYONLY )
+	configure_file( ${BinAuxWinDir}/exiftool.exe ${PROJECT_SOURCE_DIR}/binaire-aux/exiftool.exe COPYONLY )
+	configure_file( ${BinAuxWinDir}/exiv2.exe ${PROJECT_SOURCE_DIR}/binaire-aux/exiv2.exe COPYONLY )
+	configure_file( ${BinAuxWinDir}/libexpat.dll ${PROJECT_SOURCE_DIR}/binaire-aux/libexpat.dll COPYONLY )
+	configure_file( ${BinAuxWinDir}/libiconv2.dll ${PROJECT_SOURCE_DIR}/binaire-aux/libiconv2.dll COPYONLY )
+	configure_file( ${BinAuxWinDir}/libintl3.dll ${PROJECT_SOURCE_DIR}/binaire-aux/libintl3.dll COPYONLY )
+	configure_file( ${BinAuxWinDir}/make.exe ${PROJECT_SOURCE_DIR}/binaire-aux/make.exe COPYONLY )
 endif()
-
-# INSTALLATION : des exe et Dll nécessaires sous windows
-install(FILES ${BinAuxWin} DESTINATION ${Install_Dir})
