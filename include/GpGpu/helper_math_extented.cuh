@@ -5,23 +5,28 @@
 #include <helper_math.h>
 #include <helper_cuda.h>
 
+#ifdef __GNUC__
+#define SUPPRESS_NOT_USED_WARN __attribute__ ((unused))
+#else
+#define SUPPRESS_NOT_USED_WARN
+#endif
 
 static int iDivUp(int a, int b)
 {
 	return (a % b != 0) ? (a / b + 1) : (a / b);
 }
 
-static uint2 iDivUp(uint2 a, uint b)
+SUPPRESS_NOT_USED_WARN static uint2 iDivUp(uint2 a, uint b)
 {
 	return make_uint2(iDivUp(a.x,b),iDivUp(a.y,b));
 }
 
-static uint2 iDivUp(uint2 a, uint2 b)
+SUPPRESS_NOT_USED_WARN static uint2 iDivUp(uint2 a, uint2 b)
 {
 	return make_uint2(iDivUp(a.x,b.x),iDivUp(a.y,b.y));
 }
 
-static int2 iDivUp(int2 a, uint b)
+SUPPRESS_NOT_USED_WARN static int2 iDivUp(int2 a, uint b)
 {
 	return make_int2(iDivUp(a.x,b),iDivUp(a.y,b));
 }

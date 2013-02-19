@@ -1,14 +1,14 @@
 #include "GpGpu/InterfaceMicMacGpGpu.h"
 
 
-NS_ParamMICMAC::InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
+InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
 _texMask(getMask()),
 _texImages(getImage()),
 _texProjections(getProjection())
 {
 }
 
-void NS_ParamMICMAC::InterfaceMicMacGpGpu::SetSizeBlock( uint2 ter0, uint2 ter1, uint Zinter )
+void InterfaceMicMacGpGpu::SetSizeBlock( uint2 ter0, uint2 ter1, uint Zinter )
 {
 
 	uint oldSizeTer = _param.sizeTer;
@@ -24,19 +24,19 @@ void NS_ParamMICMAC::InterfaceMicMacGpGpu::SetSizeBlock( uint2 ter0, uint2 ter1,
 
 }
 
-void NS_ParamMICMAC::InterfaceMicMacGpGpu::SetSizeBlock( uint Zinter )
+void InterfaceMicMacGpGpu::SetSizeBlock( uint Zinter )
 {
 	SetSizeBlock( make_uint2(_param.ptMask0), make_uint2(_param.ptMask1), Zinter );
 }
 
-void NS_ParamMICMAC::InterfaceMicMacGpGpu::AllocMemory()
+void InterfaceMicMacGpGpu::AllocMemory()
 {
 	_volumeCost.Realloc(_param.rDiTer,_param.ZInter);
 	_volumeCach.Realloc(_param.dimCach, _param.nbImages * _param.ZInter);
 	_volumeNIOk.Realloc(_param.rDiTer,_param.ZInter);
 }
 
-void NS_ParamMICMAC::InterfaceMicMacGpGpu::DeallocMemory()
+void InterfaceMicMacGpGpu::DeallocMemory()
 {
 	checkCudaErrors( cudaUnbindTexture(&_texImages) );	
 	checkCudaErrors( cudaUnbindTexture(&_texMask) );	
@@ -50,13 +50,13 @@ void NS_ParamMICMAC::InterfaceMicMacGpGpu::DeallocMemory()
 	_LayeredProjection.Dealloc();
 }
 
-void NS_ParamMICMAC::InterfaceMicMacGpGpu::SetMask( pixel* dataMask, uint2 dimMask )
+void InterfaceMicMacGpGpu::SetMask( pixel* dataMask, uint2 dimMask )
 {
 	_mask.InitImage(dimMask,dataMask);
 	_mask.bindTexture(_texMask);
 }
 
-void NS_ParamMICMAC::InterfaceMicMacGpGpu::InitParam( uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ )
+void InterfaceMicMacGpGpu::InitParam( uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ )
 {
 	
 	// Parametres texture des projections
@@ -77,14 +77,14 @@ void NS_ParamMICMAC::InterfaceMicMacGpGpu::InitParam( uint2 ter0, uint2 ter1, in
 	//return h;
 }
 
-void NS_ParamMICMAC::InterfaceMicMacGpGpu::SetImages( float* dataImage, uint2 dimImage, int nbLayer )
+void InterfaceMicMacGpGpu::SetImages( float* dataImage, uint2 dimImage, int nbLayer )
 {
 	_LayeredImages.CData3D::Malloc(dimImage,nbLayer);
 	_LayeredImages.copyHostToDevice(dataImage);
 	_LayeredImages.bindTexture(_texImages);
 }
 
-void NS_ParamMICMAC::InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* hostVolumeProj, int nbLayer, uint interZ )
+void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* hostVolumeProj, int nbLayer, uint interZ )
 {
 	
 	_volumeCost.SetDimension(_param.rDiTer,interZ);
@@ -142,56 +142,56 @@ void NS_ParamMICMAC::InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCo
 	//----------------------------------------------------------------------------
 }
 
-uint2 NS_ParamMICMAC::InterfaceMicMacGpGpu::GetDimensionTerrain()
+uint2 InterfaceMicMacGpGpu::GetDimensionTerrain()
 {
 	return _param.rDiTer;
 }
 
-bool NS_ParamMICMAC::InterfaceMicMacGpGpu::IsValid()
+bool InterfaceMicMacGpGpu::IsValid()
 {
 	return !(_param.ptMask0.x == - 1);
 }
 
-int2 NS_ParamMICMAC::InterfaceMicMacGpGpu::ptU1()
+int2 InterfaceMicMacGpGpu::ptU1()
 {
 	return _param.pUTer1;
 }
 
-int2 NS_ParamMICMAC::InterfaceMicMacGpGpu::ptU0()
+int2 InterfaceMicMacGpGpu::ptU0()
 {
 	return _param.pUTer0;
 }
 
-int2 NS_ParamMICMAC::InterfaceMicMacGpGpu::ptM0()
+int2 InterfaceMicMacGpGpu::ptM0()
 {
 	return _param.ptMask0;
 }
 
-int2 NS_ParamMICMAC::InterfaceMicMacGpGpu::ptM1()
+int2 InterfaceMicMacGpGpu::ptM1()
 {
 	return _param.ptMask1;
 }
 
-NS_ParamMICMAC::InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
+InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
 {
 }
 
-uint NS_ParamMICMAC::InterfaceMicMacGpGpu::GetSample()
+uint InterfaceMicMacGpGpu::GetSample()
 {
 	return _param.sampTer;
 }
 
-float NS_ParamMICMAC::InterfaceMicMacGpGpu::GetDefaultVal()
+float InterfaceMicMacGpGpu::GetDefaultVal()
 {
 	return _param.DefaultVal;
 }
 
-uint2 NS_ParamMICMAC::InterfaceMicMacGpGpu::GetSDimensionTerrain()
+uint2 InterfaceMicMacGpGpu::GetSDimensionTerrain()
 {
 	return _param.dimSTer;
 }
 
-int NS_ParamMICMAC::InterfaceMicMacGpGpu::GetIntDefaultVal()
+int InterfaceMicMacGpGpu::GetIntDefaultVal()
 {
 	return _param.IntDefault;
 

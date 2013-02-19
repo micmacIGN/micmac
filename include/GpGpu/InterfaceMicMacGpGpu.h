@@ -2,11 +2,13 @@
 
 #ifdef CUDA_ENABLED
 		
-		#include "StdAfx.h"
-		#include "GpGpu/cudaAppliMicMac.cuh"
+//#include "StdAfx.h"
+//#include "GpGpu/helper_math_extented.cuh"
+#include "GpGpu/cudaAppliMicMac.cuh"
 
-	namespace NS_ParamMICMAC
-	{
+
+	//namespace NS_ParamMICMAC
+	//{
 		extern "C" void	CopyParamTodevice(paramMicMacGpGpu h);
 		extern "C" void	KernelCorrelation(dim3 blocks, dim3 threads, float *dev_NbImgOk, float* cachVig, uint2 nbActThrd);
 		extern "C" void	KernelmultiCorrelation(dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, float * dev_NbImgOk, uint2 nbActThr);
@@ -61,6 +63,6 @@
 
 
 		};
-	}
+	//}
 
 #endif

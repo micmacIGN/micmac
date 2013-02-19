@@ -388,7 +388,7 @@ public:
 template <class T>
 void CuHostData3D<T>::Memset( int val )
 {
-	if (GetSizeofMalloc() < CData3D<T>::Sizeof())
+	if (CData<T>::GetSizeofMalloc() < CData3D<T>::Sizeof())
 		std::cout << "Allocation trop petite !!!" << "\n";
 	memset(CData3D<T>::pData(),val,CData3D<T>::Sizeof());
 }
@@ -431,7 +431,7 @@ void CuDeviceData3D<T>::CopyDevicetoHost( T* hostData )
 template <class T>
 void CuDeviceData3D<T>::Memset( int val )
 {
-	if (GetSizeofMalloc() < CData3D<T>::Sizeof())
+	if (CData<T>::GetSizeofMalloc() < CData3D<T>::Sizeof())
 		std::cout << "Allocation trop petite !!!" << "\n";
 
 	cudaError_t cuER = cudaMemset( CData3D<T>::pData(), val, CData3D<T>::Sizeof());

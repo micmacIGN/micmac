@@ -6883,3 +6883,5 @@ binaire-aux/libexpat.dll
 binaire-aux/exiv2.exe
 binaire-aux/exiftool.exe
 binaire-aux/convert.exe
+micmiac.creator.user
+src/uti_phgrm/GPGPU/cudaAppliMicMac.cu~

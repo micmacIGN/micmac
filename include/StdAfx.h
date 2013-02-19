@@ -10,9 +10,8 @@
 #include <helper_functions.h>
 #include <helper_math.h>
 #include <helper_cuda.h>
-
+#include "GpGpu/InterfaceMicMacGpGpu.h"
 #endif
-
 
 #include <algorithm>
 #include <cfloat>
