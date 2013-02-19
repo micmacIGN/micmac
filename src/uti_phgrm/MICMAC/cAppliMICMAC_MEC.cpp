@@ -533,7 +533,10 @@ void cAppliMICMAC::DoOneBloc
    mLTer = 0;
    mSurfOpt = 0;
 
+#ifdef CUDA_ENABLED
    mLoadTextures = true;
+#endif
+
 
    mBoxIn = aBoxIn;
    mBoxOut = aBoxOut;

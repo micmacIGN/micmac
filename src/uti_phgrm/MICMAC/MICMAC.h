@@ -2527,6 +2527,9 @@ class   cGPU_LoadedImGeom
       }
 
        tGpuF **  DataOrtho();
+       tGpuF **  DataSomO();
+       tGpuF **  DataSomO2();
+
        U_INT1 ** DataOKOrtho();
        Im2D_U_INT1 ImOK_Ortho();
        tImGpu  ImOrtho();
@@ -2539,6 +2542,8 @@ class   cGPU_LoadedImGeom
        {
             return (mDOrtho[anY][anX]-mMoy) / mSigma;
        }
+       double Moy() const {return mMoy;}
+       double Sigma() const {return mSigma;}
 
        bool Correl(double & Correl,int anX,int anY,const cGPU_LoadedImGeom & aGeoJ) const;
 

@@ -239,6 +239,10 @@ cGPU_LoadedImGeom::~cGPU_LoadedImGeom()
 	tImGpu  cGPU_LoadedImGeom::ImSom12()  {return mImSom12; }
 
 
+	tGpuF **    cGPU_LoadedImGeom::DataSomO()   {return mDSomO;    }
+	tGpuF **    cGPU_LoadedImGeom::DataSomO2()  {return mDSomO2;    }
+
+
 Pt2dr cGPU_LoadedImGeom::ProjOfPDisc(int anX,int anY,int aZ) const
 {
     double aZR = mAppli.DequantZ(aZ);
@@ -779,6 +783,8 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 
 	void cAppliMICMAC::DoOneCorrelSym(int anX,int anY)
 	{
+
+bool  TestMS = (anX==70) && (anY==59) && (mZIntCur==-46);
 		double aCost = mAhDefCost;
 		std::vector<cGPU_LoadedImGeom *> aCurVLI;
 		for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
@@ -788,6 +794,15 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 			{
 				aCurVLI.push_back(aGLI);
 			}
+if (TestMS)
+{
+     std::cout << "VvvVVvv " << aGLI->Moy() << " " << aGLI->Sigma() << "\n";
+     std::cout << " Epsssilon " << mEpsAddMoy << " " << mEpsMulMoy << "\n";
+
+     std::cout  << "   Oooo " << aGLI->DataOrtho()[anY][anX] << "\n";
+     std::cout  << "SssOooo " << aGLI->DataSomO()[anY][anX] << "\n";
+     std::cout  << "22 Oooo " << aGLI->DataSomO2()[anY][anX] << "\n";
+}
 		}
 		int aNbImCur = (int)aCurVLI.size();
 		if (aNbImCur >= 2)
@@ -808,6 +823,7 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 					for (int aKIm=0 ; aKIm<aNbImCur ; aKIm++)
 					{
 						double aV = aCurVLI[aKIm]->ValNorm(aXV,aYV);
+// if (TestMS) std::cout << "VvvVVvv " << aCurVLI[aKIm]->ImOrtho(aXV,aYV) << "\n";
 						aSV += aV;
 						aSVV += QSquare(aV) ;
 					}
@@ -818,6 +834,10 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 			aCost = anEC2 / ((aNbImCur -1) * mNbPtsWFixe);
 			aCost =  mStatGlob->CorrelToCout(1-aCost);
 		}
+if (TestMS)
+{
+    std::cout << "ZZzz " << mZIntCur  << " CcCccc " << aCost << "\n";
+}
 		mSurfOpt->SetCout(Pt2di(anX,anY),&mZIntCur,aCost);
 	}
 
