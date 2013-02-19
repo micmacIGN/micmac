@@ -552,12 +552,18 @@ void ImageLayeredCuda<T>::copyHostToDeviceASync( T* data, cudaStream_t stream /*
 	cudaPitchedPtr		pitch	= make_cudaPitchedPtr(data, sizeImagesLayared.width * sizeof(T), sizeImagesLayared.width, sizeImagesLayared.height);
 
 	p.dstArray	= AImageCuda::GetCudaArray();	// Pointeur du tableau de destination
-	p.srcPtr	= pitch;					// Pitch
-	p.extent	= sizeImagesLayared;		// Taille du cube
-	p.kind		= cudaMemcpyHostToDevice;	// Type de copie
+	p.srcPtr	= pitch;						// Pitch
+	p.extent	= sizeImagesLayared;			// Taille du cube
+	p.kind		= cudaMemcpyHostToDevice;		// Type de copie
 
 	// Copie des images du Host vers le Device
-	checkCudaErrors( cudaMemcpy3DAsync (&p, stream) );
+	cudaError_t err = cudaMemcpy3DAsync (&p, stream);
+	if (err != cudaSuccess)
+	{
+		checkCudaErrors(err);
+		std::cout << "Dim Cuda Array : " << CData3D::GetDimension().x << "," << CData3D::GetDimension().y<< "," << CData3D::GetNbLayer() << "\n";
+		std::cout << "Data* : " << data << "\n";
+	}
 }
 
 template <class T>
