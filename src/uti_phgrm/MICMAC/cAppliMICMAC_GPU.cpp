@@ -697,10 +697,15 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 
 
 			// Tabulation des projections image au pas de mGpuSzD
+static int aCpt=0; aCpt++;
+//Pt2di KKL;
 			if (mGpuSzD)
 			{
 				int aNbX = (mX1UtiDilTer-mX0UtiDilTer +mGpuSzD) / mGpuSzD;
 				int aNbY = (mY1UtiDilTer-mY0UtiDilTer +mGpuSzD) / mGpuSzD;
+
+//KKL=Pt2di(aNbX,aNbY);
+
 				for (int aKX = 0; aKX <= aNbX ; aKX++)
 				{
 					for (int aKY = 0; aKY <= aNbY ; aKY++)
@@ -733,6 +738,34 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 						{
 							Pt2dr anInd(anIndX,anIndY);
 							aPIm = Pt2dr( mTGeoX.getr(anInd), mTGeoY.getr(anInd)) ;
+if (1)
+{
+   Pt2dr aPTer  = DequantPlani(anX,anY);
+   Pt2dr aP2 = aGeom->CurObj2Im(aPTer,&mZTerCur);
+   double aD = euclid(aPIm,aP2);
+   static double aDMax = 0;
+   if ((aD>aDMax) && (aD>0.5) )
+   {
+       aDMax = aD;
+       std::cout << "DMax = " << aDMax  << " " << aP2 << "\n";
+/*
+       std::cout << "WWWWw " << anIndX   << " " << anIndY  << " "  << mGeoX.sz() << KKL<< "\n";
+
+int Ix = int(anIndX);
+int Iy = int(anIndY);
+Pt2di aPI(Ix,Iy);
+       std::cout << "PI " << aPI << "\n";
+std::cout << "R " << aP2 << " Tab=" << aPIm << "\n";
+std::cout << Pt2dr( mTGeoX.get(aPI), mTGeoY.get(aPI)) << "\n";
+std::cout << Pt2dr( mTGeoX.get(aPI+Pt2di(1,0)), mTGeoY.get(aPI+Pt2di(1,0))) << "\n";
+std::cout << Pt2dr( mTGeoX.get(aPI+Pt2di(0,1)), mTGeoY.get(aPI+Pt2di(0,1))) << "\n";
+std::cout << Pt2dr( mTGeoX.get(aPI+Pt2di(1,1)), mTGeoY.get(aPI+Pt2di(1,1))) << "\n";
+
+std::cout << "\n";
+*/
+   }
+// std::cout << "Ddd = " << aD << "\n";
+}
 						}
 						else
 						{
@@ -802,6 +835,11 @@ if (TestMS)
      std::cout  << "   Oooo " << aGLI->DataOrtho()[anY][anX] << "\n";
      std::cout  << "SssOooo " << aGLI->DataSomO()[anY][anX] << "\n";
      std::cout  << "22 Oooo " << aGLI->DataSomO2()[anY][anX] << "\n";
+
+   Pt2dr aPTer  = DequantPlani(anX,anY);
+   Pt2dr aP2 = aGLI->Geom()->CurObj2Im(aPTer,&mZTerCur);
+
+      std::cout << "P2 " << aP2 << "\n";
 
      if (aKIm==1)
      {
