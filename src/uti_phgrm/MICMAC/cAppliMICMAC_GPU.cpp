@@ -454,7 +454,7 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 			{
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
-				dimImgMax		= max(dimImgMax,toUi2(aGLI.getSizeImage()));				
+				dimImgMax = max(dimImgMax,toUi2(aGLI.getSizeImage()));				
 			}
 
 			// Pour chaque image
@@ -1150,8 +1150,8 @@ if (TestMS)
 		hVolumeCost.Realloc(IMmGg.GetDimensionTerrain(),interZ);
 		hVolumeProj.Realloc(IMmGg.GetSDimensionTerrain(), interZ*mNbIm);
 
-		hVolumeCost.Malloc();
-		hVolumeProj.Malloc();
+// 		hVolumeCost.Malloc();
+// 		hVolumeProj.Malloc();
 
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		while( anZ < aZMaxTer )

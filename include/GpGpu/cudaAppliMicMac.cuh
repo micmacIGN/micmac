@@ -11,6 +11,7 @@
 #define INTDEFAULT	-64
 #define SAMPLETERR	4
 #define INTERZ		8
+#define LOCINTERZ	1
 #define NEAREST		0
 #define LINEARINTER	1
 #define BICUBIC		2
@@ -32,6 +33,7 @@ struct paramMicMacGpGpu
 	 int2	pUTer1;
 
 	 uint	ZInter;
+	 uint	ZLocInter;
 	 uint2	rDiTer;		// Dimension du bloque terrain
 	 uint2	dimTer;		// Dimension du bloque terrain + halo
 	 uint2	dimSTer;	// Dimension du bloque terrain + halo sous echantilloné
@@ -73,6 +75,8 @@ struct paramMicMacGpGpu
 		 dimCach	= rDiTer * dimVig;
 		 sizeCach	= size(dimCach);
 		 restTer	= dimSTer * sampTer - dimTer;
+		 //ZLocInter	= LOCINTERZ;
+		 ZLocInter	= ZInter;
 	 
 	 };
 

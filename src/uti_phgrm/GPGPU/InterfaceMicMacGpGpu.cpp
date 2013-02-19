@@ -28,7 +28,7 @@ void InterfaceMicMacGpGpu::SetSizeBlock( uint2 ter0, uint2 ter1, uint Zinter )
 
 	for (int s = 0;s<NSTREAM;s++)
 	{
-		_LayeredProjection[s].Realloc(_param.dimSTer,_param.nbImages * _param.ZInter);
+		_LayeredProjection[s].Realloc(_param.dimSTer,_param.nbImages * _param.ZLocInter);
 
 		if (oldSizeTer < _param.sizeTer)
 			AllocMemory(s);
@@ -43,9 +43,9 @@ void InterfaceMicMacGpGpu::SetSizeBlock( uint Zinter )
 
 void InterfaceMicMacGpGpu::AllocMemory(int nStream)
 {
-	_volumeCost[nStream].Realloc(_param.rDiTer,_param.ZInter);
-	_volumeCach[nStream].Realloc(_param.dimCach, _param.nbImages * _param.ZInter);
-	_volumeNIOk[nStream].Realloc(_param.rDiTer,_param.ZInter);
+	_volumeCost[nStream].Realloc(_param.rDiTer,_param.ZLocInter);
+	_volumeCach[nStream].Realloc(_param.dimCach, _param.nbImages * _param.ZLocInter);
+	_volumeNIOk[nStream].Realloc(_param.rDiTer,_param.ZLocInter);
 }
 
 void InterfaceMicMacGpGpu::DeallocMemory()
@@ -91,8 +91,9 @@ void InterfaceMicMacGpGpu::InitParam( uint2 ter0, uint2 ter1, int nbLayer , uint
 
 	_param.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
 	SetSizeBlock( ter0, ter1, interZ );
-	AllocMemory(0);
-	//return h;
+
+	for (int s = 0;s<NSTREAM;s++)
+		AllocMemory(s);
 }
 
 void InterfaceMicMacGpGpu::SetImages( float* dataImage, uint2 dimImage, int nbLayer )
@@ -105,55 +106,65 @@ void InterfaceMicMacGpGpu::SetImages( float* dataImage, uint2 dimImage, int nbLa
 void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* hostVolumeProj, int nbLayer, uint interZ )
 {
 
-	//const int localInterZ = 1;
+	ResizeVolume(nbLayer,_param.ZLocInter);
 
-	ResizeVolume(nbLayer,interZ);
+	uint Z = 0;
 
-	for (int s = 0;s<NSTREAM;s++)
-	{
-		//_LayeredProjection[s].copyHostToDevice(hostVolumeProj);
-		_LayeredProjection[s].copyHostToDeviceASync(hostVolumeProj,*(GetStream(s)));
-		_LayeredProjection[s].bindTexture(GetTeXProjection(s));
-	}
-
-	// --------------- calcul de dimension du kernel de correlation --------------
+	/*--------------- calcul de dimension du kernel de correlation ---------------*/
 
 	dim3	threads( BLOCKDIM, BLOCKDIM, 1);
 	uint2	thd2D		= make_uint2(threads);
 	uint2	actiThsCo	= thd2D - 2 * _param.rVig;
 	uint2	block2D		= iDivUp(_param.dimTer,actiThsCo);
-	dim3	blocks(block2D.x , block2D.y, nbLayer * interZ);
+	dim3	blocks(block2D.x , block2D.y, nbLayer * _param.ZLocInter);
 
-	//-------------	calcul de dimension du kernel de multi-correlation ------------
+	/*-------------	calcul de dimension du kernel de multi-correlation ------------*/
 
 	uint2	actiThs		= SBLOCKDIM - make_uint2( SBLOCKDIM % _param.dimVig.x, SBLOCKDIM % _param.dimVig.y);
 	dim3	threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
 	uint2	block2D_mC	= iDivUp(_param.dimCach,actiThs);
-	dim3	blocks_mC(block2D_mC.x,block2D_mC.y,interZ);
+	dim3	blocks_mC(block2D_mC.x,block2D_mC.y,_param.ZLocInter);
 
-	int s = 0;
+	//std::cout <<  interZ << "\n";
 
-	//-----------------------  KERNEL  Correlation  -------------------------------
-	KernelCorrelation( *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo);
+	while(Z < interZ)
+	{
+		//const uint nstream = ((NSTREAM * _param.ZLocInter) >= (interZ - Z)  &&  Z != (interZ - 1)) ? (interZ - Z) : NSTREAM;
 
-	//-------------------  KERNEL  Multi Correlation  ------------------------------
-	KernelmultiCorrelation( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs);
+		const uint nstream = NSTREAM;
+
+		for (uint s = 0;s<nstream;s++)
+		{
+			//_LayeredProjection[s].copyHostToDevice(hostVolumeProj);
+			_LayeredProjection[s].copyHostToDeviceASync(hostVolumeProj + (Z+s)*_LayeredProjection->GetSize() * _LayeredProjection->GetNbLayer(),*(GetStream(s)));
+			_LayeredProjection[s].bindTexture(GetTeXProjection(s));
+		}
+
+		for (uint s = 0;s<nstream;s++)
+		{
+			KernelCorrelation( *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo);
+			KernelmultiCorrelation( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs);
+		}
 	
-	//----------------------------------------------------------------------------
+		for (uint s = 0;s<nstream;s++)
+		{
+			checkCudaErrors( cudaUnbindTexture(&(GetTeXProjection(s))) );
+			_volumeCost[s].CopyDevicetoHostASync(hostVolumeCost + (Z+s)*_volumeCost->GetSize()*_volumeCost->GetNbLayer(),*(GetStream(s)));
+		}
 
-	checkCudaErrors( cudaUnbindTexture(&(GetTeXProjection(0))) );
-	//_volumeCost[s].CopyDevicetoHost(hostVolumeCost);
-	_volumeCost[s].CopyDevicetoHostASync(hostVolumeCost,*(GetStream(s)));
-	
-	checkCudaErrors( cudaStreamSynchronize(*(GetStream(s))));
+		for (uint s = 0;s<NSTREAM;s++)
+			checkCudaErrors( cudaStreamSynchronize(*(GetStream(s))));
+		
+		Z += nstream * _param.ZLocInter;
+	}
+
+
+	for (uint s = 0;s<NSTREAM;s++)
+		checkCudaErrors( cudaStreamSynchronize(*(GetStream(s))));
 
 	//_volumeNIOk.CopyDevicetoHost(hostVolumeCost);
-	//----------------------------------------------------------------------------
-	//checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );
-	//checkCudaErrors( cudaMemcpy( host_Cache, dev_Cache,	  cac_MemSize, cudaMemcpyDeviceToHost) );
-	
+	//checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );	
 	//GpGpuTools::OutputArray(hostVolumeCost,_param.rDiTer,11.0f,_param.DefaultVal);
-	//----------------------------------------------------------------------------
 }
 
 uint2 InterfaceMicMacGpGpu::GetDimensionTerrain()
@@ -244,6 +255,6 @@ textureReference& InterfaceMicMacGpGpu::GetTeXProjection( int TexSel )
 
 cudaStream_t* InterfaceMicMacGpGpu::GetStream( int stream )
 {
-	return _stream + stream;
+	return &(_stream[stream]);
 }
 
