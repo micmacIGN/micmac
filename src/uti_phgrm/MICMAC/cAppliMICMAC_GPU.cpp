@@ -802,6 +802,20 @@ if (TestMS)
      std::cout  << "   Oooo " << aGLI->DataOrtho()[anY][anX] << "\n";
      std::cout  << "SssOooo " << aGLI->DataSomO()[anY][anX] << "\n";
      std::cout  << "22 Oooo " << aGLI->DataSomO2()[anY][anX] << "\n";
+
+     if (aKIm==1)
+     {
+           double aS=0;
+           for (int aDx=-mCurSzV0.x; aDx<= mCurSzV0.x ; aDx++)
+           {
+              for (int aDy=-mCurSzV0.y; aDy<= mCurSzV0.y ; aDy++)
+              {
+  std::cout  << "   xxxXxx  " << aGLI->DataOrtho()[anY+aDy][anX+aDx] << "\n";
+                   aS +=  aGLI->DataOrtho()[anY+aDy][anX+aDx];
+              }
+           }
+   std::cout << "  ssSss " << aS << "\n";
+     }
 }
 		}
 		int aNbImCur = (int)aCurVLI.size();
