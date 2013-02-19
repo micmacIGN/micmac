@@ -4,8 +4,17 @@
 InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
 _texMask(getMask()),
 _texImages(getImage()),
-_texProjections(getProjection())
+_texProjections_01(getProjection(1)),
+_texProjections_02(getProjection(2))
 {
+	for (int s = 0;s<NSTREAM;s++)
+		checkCudaErrors( cudaStreamCreate(GetStream(s)));
+}
+
+InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
+{
+	for (int s = 0;s<NSTREAM;s++)
+		checkCudaErrors( cudaStreamDestroy(*(GetStream(s))));
 }
 
 void InterfaceMicMacGpGpu::SetSizeBlock( uint2 ter0, uint2 ter1, uint Zinter )
@@ -17,10 +26,13 @@ void InterfaceMicMacGpGpu::SetSizeBlock( uint2 ter0, uint2 ter1, uint Zinter )
 
 	CopyParamTodevice(_param);
 
-	_LayeredProjection.Realloc(_param.dimSTer,_param.nbImages * _param.ZInter);
+	for (int s = 0;s<NSTREAM;s++)
+	{
+		_LayeredProjection[s].Realloc(_param.dimSTer,_param.nbImages * _param.ZInter);
 
-	if (oldSizeTer < _param.sizeTer)
-		AllocMemory();
+		if (oldSizeTer < _param.sizeTer)
+			AllocMemory(s);
+	}
 
 }
 
@@ -29,11 +41,11 @@ void InterfaceMicMacGpGpu::SetSizeBlock( uint Zinter )
 	SetSizeBlock( make_uint2(_param.ptMask0), make_uint2(_param.ptMask1), Zinter );
 }
 
-void InterfaceMicMacGpGpu::AllocMemory()
+void InterfaceMicMacGpGpu::AllocMemory(int nStream)
 {
-	_volumeCost.Realloc(_param.rDiTer,_param.ZInter);
-	_volumeCach.Realloc(_param.dimCach, _param.nbImages * _param.ZInter);
-	_volumeNIOk.Realloc(_param.rDiTer,_param.ZInter);
+	_volumeCost[nStream].Realloc(_param.rDiTer,_param.ZInter);
+	_volumeCach[nStream].Realloc(_param.dimCach, _param.nbImages * _param.ZInter);
+	_volumeNIOk[nStream].Realloc(_param.rDiTer,_param.ZInter);
 }
 
 void InterfaceMicMacGpGpu::DeallocMemory()
@@ -41,13 +53,17 @@ void InterfaceMicMacGpGpu::DeallocMemory()
 	checkCudaErrors( cudaUnbindTexture(&_texImages) );	
 	checkCudaErrors( cudaUnbindTexture(&_texMask) );	
 
-	_volumeCach.Dealloc();
-	_volumeCost.Dealloc();
-	_volumeNIOk.Dealloc();
+	for (int s = 0;s<NSTREAM;s++)
+	{
+		_volumeCach[s].Dealloc();
+		_volumeCost[s].Dealloc();
+		_volumeNIOk[s].Dealloc();
+		_LayeredProjection[s].Dealloc();
+	}
 
 	_mask.Dealloc();
 	_LayeredImages.Dealloc();
-	_LayeredProjection.Dealloc();
+	
 }
 
 void InterfaceMicMacGpGpu::SetMask( pixel* dataMask, uint2 dimMask )
@@ -60,11 +76,13 @@ void InterfaceMicMacGpGpu::InitParam( uint2 ter0, uint2 ter1, int nbLayer , uint
 {
 	
 	// Parametres texture des projections
-	_texProjections.addressMode[0]	= cudaAddressModeClamp;
-	_texProjections.addressMode[1]	= cudaAddressModeClamp;	
-	_texProjections.filterMode		= cudaFilterModeLinear; //cudaFilterModePoint cudaFilterModeLinear
-	_texProjections.normalized		= true;
-
+	for (int s = 0;s<NSTREAM;s++)
+	{
+		GetTeXProjection(s).addressMode[0]	= cudaAddressModeClamp;
+		GetTeXProjection(s).addressMode[1]	= cudaAddressModeClamp;	
+		GetTeXProjection(s).filterMode		= cudaFilterModeLinear; //cudaFilterModePoint cudaFilterModeLinear
+		GetTeXProjection(s).normalized		= true;
+	}
 	// Parametres texture des Images
 	_texImages.addressMode[0]	= cudaAddressModeWrap;
 	_texImages.addressMode[1]	= cudaAddressModeWrap;
@@ -73,7 +91,7 @@ void InterfaceMicMacGpGpu::InitParam( uint2 ter0, uint2 ter1, int nbLayer , uint
 
 	_param.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
 	SetSizeBlock( ter0, ter1, interZ );
-	AllocMemory();
+	AllocMemory(0);
 	//return h;
 }
 
@@ -86,26 +104,17 @@ void InterfaceMicMacGpGpu::SetImages( float* dataImage, uint2 dimImage, int nbLa
 
 void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* hostVolumeProj, int nbLayer, uint interZ )
 {
-	
-	_volumeCost.SetDimension(_param.rDiTer,interZ);
-	_volumeCach.SetDimension(_param.dimCach,nbLayer * interZ);
-	_volumeNIOk.SetDimension(_param.rDiTer,interZ);
 
-	if (_volumeCost.GetSizeofMalloc() < _volumeCost.Sizeof() )
+	//const int localInterZ = 1;
+
+	ResizeVolume(nbLayer,interZ);
+
+	for (int s = 0;s<NSTREAM;s++)
 	{
-		std::cout << "Realloc Device Data" << "\n";
-		_volumeCost.Realloc(_param.rDiTer,interZ);
-		_volumeCach.Realloc(_param.dimCach,nbLayer * interZ);
-		_volumeNIOk.Realloc(_param.rDiTer,interZ);
+		//_LayeredProjection[s].copyHostToDevice(hostVolumeProj);
+		_LayeredProjection[s].copyHostToDeviceASync(hostVolumeProj,*(GetStream(s)));
+		_LayeredProjection[s].bindTexture(GetTeXProjection(s));
 	}
-	//----------------------------------------------------------------------------
-
-	_volumeCost.Memset(_param.IntDefault);
-	_volumeCach.Memset(_param.IntDefault);
-	_volumeNIOk.Memset(0);
-
-	_LayeredProjection.copyHostToDevice(hostVolumeProj);
-	_LayeredProjection.bindTexture(_texProjections);
 
 	// --------------- calcul de dimension du kernel de correlation --------------
 
@@ -122,17 +131,22 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
 	uint2	block2D_mC	= iDivUp(_param.dimCach,actiThs);
 	dim3	blocks_mC(block2D_mC.x,block2D_mC.y,interZ);
 
+	int s = 0;
+
 	//-----------------------  KERNEL  Correlation  -------------------------------
-	KernelCorrelation( blocks, threads, _volumeNIOk.pData(), _volumeCach.pData(), actiThsCo);
+	KernelCorrelation( *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo);
 
 	//-------------------  KERNEL  Multi Correlation  ------------------------------
-	KernelmultiCorrelation( blocks_mC, threads_mC, _volumeCost.pData(), _volumeCach.pData(), _volumeNIOk.pData(), actiThs);
+	KernelmultiCorrelation( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs);
 	
 	//----------------------------------------------------------------------------
 
-	checkCudaErrors( cudaUnbindTexture(&_texProjections) );
-	_volumeCost.CopyDevicetoHost(hostVolumeCost);
+	checkCudaErrors( cudaUnbindTexture(&(GetTeXProjection(0))) );
+	//_volumeCost[s].CopyDevicetoHost(hostVolumeCost);
+	_volumeCost[s].CopyDevicetoHostASync(hostVolumeCost,*(GetStream(s)));
 	
+	checkCudaErrors( cudaStreamSynchronize(*(GetStream(s))));
+
 	//_volumeNIOk.CopyDevicetoHost(hostVolumeCost);
 	//----------------------------------------------------------------------------
 	//checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );
@@ -172,10 +186,6 @@ int2 InterfaceMicMacGpGpu::ptM1()
 	return _param.ptMask1;
 }
 
-InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
-{
-}
-
 uint InterfaceMicMacGpGpu::GetSample()
 {
 	return _param.sampTer;
@@ -194,6 +204,46 @@ uint2 InterfaceMicMacGpGpu::GetSDimensionTerrain()
 int InterfaceMicMacGpGpu::GetIntDefaultVal()
 {
 	return _param.IntDefault;
+}
 
+void InterfaceMicMacGpGpu::ResizeVolume( int nbLayer, uint interZ )
+{
+	for (int s = 0;s<NSTREAM;s++)
+	{
+		_volumeCost[s].SetDimension(_param.rDiTer,interZ);
+		_volumeCach[s].SetDimension(_param.dimCach,nbLayer * interZ);
+		_volumeNIOk[s].SetDimension(_param.rDiTer,interZ);
+
+		if (_volumeCost[s].GetSizeofMalloc() < _volumeCost[s].Sizeof() )
+		{
+			//std::cout << "Realloc Device Data" << "\n";
+			_volumeCost[s].Realloc(_param.rDiTer,interZ);
+			_volumeCach[s].Realloc(_param.dimCach,nbLayer * interZ);
+			_volumeNIOk[s].Realloc(_param.rDiTer,interZ);
+		}
+		//----------------------------------------------------------------------------
+
+		_volumeCost[s].Memset(_param.IntDefault);
+		_volumeCach[s].Memset(_param.IntDefault);
+		_volumeNIOk[s].Memset(0);
+	}
+}
+
+textureReference& InterfaceMicMacGpGpu::GetTeXProjection( int TexSel )
+{
+	switch (TexSel)
+	{
+	case 1:
+		return _texProjections_01;
+	case 2:
+		return _texProjections_02;
+	default:
+		return _texProjections_01;
+	}	
+}
+
+cudaStream_t* InterfaceMicMacGpGpu::GetStream( int stream )
+{
+	return _stream + stream;
 }
 

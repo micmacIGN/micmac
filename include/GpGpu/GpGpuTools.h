@@ -418,13 +418,19 @@ public:
 	void Malloc();
 	void Memset(int val);
 	void CopyDevicetoHost(T* hostData);
+	void CopyDevicetoHostASync(T* hostData, cudaStream_t stream = 0);
 
 };
 
 template <class T>
+void CuDeviceData3D<T>::CopyDevicetoHostASync( T* hostData, cudaStream_t stream )
+{
+	checkCudaErrors( cudaMemcpyAsync ( hostData, CData3D<T>::pData(), CData3D<T>::Sizeof(), cudaMemcpyDeviceToHost, stream) );
+}
+
+template <class T>
 void CuDeviceData3D<T>::CopyDevicetoHost( T* hostData )
 {
-	
 	checkCudaErrors( cudaMemcpy( hostData, CData3D<T>::pData(), CData3D<T>::Sizeof(), cudaMemcpyDeviceToHost) );
 }
 
@@ -532,8 +538,27 @@ public:
 	void	Memset(int val){AImageCuda::Memset(val);};
 	void	Dealloc(){AImageCuda::Dealloc();};
 	void	copyHostToDevice(T* data);
-
+	void	copyHostToDeviceASync(T* data, cudaStream_t stream = 0);
+	
 };
+
+template <class T>
+void ImageLayeredCuda<T>::copyHostToDeviceASync( T* data, cudaStream_t stream /*= 0*/ )
+{
+	cudaExtent sizeImagesLayared = make_cudaExtent( CData3D::GetDimension().x, CData3D::GetDimension().y, CData3D::GetNbLayer());
+
+	// Déclaration des parametres de copie 3D
+	cudaMemcpy3DParms	p		= { 0 };
+	cudaPitchedPtr		pitch	= make_cudaPitchedPtr(data, sizeImagesLayared.width * sizeof(T), sizeImagesLayared.width, sizeImagesLayared.height);
+
+	p.dstArray	= AImageCuda::GetCudaArray();	// Pointeur du tableau de destination
+	p.srcPtr	= pitch;					// Pitch
+	p.extent	= sizeImagesLayared;		// Taille du cube
+	p.kind		= cudaMemcpyHostToDevice;	// Type de copie
+
+	// Copie des images du Host vers le Device
+	checkCudaErrors( cudaMemcpy3DAsync (&p, stream) );
+}
 
 template <class T>
 void ImageLayeredCuda<T>::copyHostToDevice( T* data )
