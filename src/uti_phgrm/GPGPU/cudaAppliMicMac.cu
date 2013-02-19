@@ -18,7 +18,18 @@ template<> __device__ __host__ TexFloat2Layered TexFloat2L<2>() { return TexL_Pr
 
 extern "C" textureReference& getMask(){	return TexS_MaskTer;}
 extern "C" textureReference& getImage(){ return TexL_Images;}
-extern "C" textureReference& getProjection(){return TexL_Proj_01;}
+extern "C"  textureReference& getProjection(int TexSel)
+{
+switch (TexSel)
+	{
+		case 1:
+			return TexL_Proj_01;
+		case 2:
+			return TexL_Proj_02;
+		default:
+			return TexL_Proj_01;
+	}								
+}
 
 extern "C" void CopyParamTodevice( paramMicMacGpGpu param )
 {
@@ -115,9 +126,9 @@ template<int TexSel> __global__ void correlationKernel( float *dev_NbImgOk, floa
 	atomicAdd( &dev_NbImgOk[ZPitch + to1D(ptTer,cH.rDiTer)], 1.0f);
 };
 
-extern "C" void	 KernelCorrelation(dim3 blocks, dim3 threads, float *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
+extern "C" void	 KernelCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
 {
-	correlationKernel<1><<<blocks, threads>>>( dev_NbImgOk, cachVig, nbActThrd);
+	correlationKernel<1><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
 	getLastCudaError("Basic Correlation kernel failed");
 }
 
@@ -200,9 +211,9 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	dTCost[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
 }
 
-extern "C" void KernelmultiCorrelation(dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, float * dev_NbImgOk, uint2 nbActThr)
+extern "C" void KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, float * dev_NbImgOk, uint2 nbActThr)
 {
-	multiCorrelationKernel<<<blocks, threads>>>(dTCost, cacheVign, dev_NbImgOk, nbActThr);
+	multiCorrelationKernel<<<blocks, threads, 0, stream>>>(dTCost, cacheVign, dev_NbImgOk, nbActThr);
 	getLastCudaError("Multi-Correlation kernel failed");
 
 }
