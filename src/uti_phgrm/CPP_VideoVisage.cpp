@@ -170,6 +170,9 @@ cVideoVisage::cVideoVisage(int argc,char ** argv) :
 
      std::list<std::string> aListComMalt;
      std::list<std::string> aListComPly;
+
+
+     ELISE_fp::MkDir("Pyram");
      
      for (int aK=0 ; aK<int(mSetIm->size()) ; aK++)
      {
@@ -211,8 +214,9 @@ cVideoVisage::cVideoVisage(int argc,char ** argv) :
           }
      }
 
-     cEl_GPAO::DoComInParal(aListComMalt);
-     cEl_GPAO::DoComInParal(aListComPly);
+     cEl_GPAO::DoComInParal(aListComMalt,"Make-Malt-Video",0,false);
+getchar();
+     cEl_GPAO::DoComInParal(aListComPly,"Make-Nuage2Ply-Video");
 
 
 
