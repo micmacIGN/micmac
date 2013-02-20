@@ -28,6 +28,7 @@ class InterfaceMicMacGpGpu
 		void	SetImages(float* dataImage, uint2 dimImage, int nbLayer);
 		void	InitParam(uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ);
 		void	BasicCorrelation( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
+		void	BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
 		uint2	GetDimensionTerrain();
 		uint2	GetSDimensionTerrain();
 		bool	IsValid();
