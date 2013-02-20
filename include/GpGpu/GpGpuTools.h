@@ -406,7 +406,7 @@ public:
 template <class T>
 CuHostData3D<T>::CuHostData3D( uint2 dim, uint l )
 {
-	Realloc(dim,l);
+	CData3D<T>::Realloc(dim,l);
 }
 
 template <class T>
