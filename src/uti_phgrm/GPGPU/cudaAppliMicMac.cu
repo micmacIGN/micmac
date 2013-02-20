@@ -6,13 +6,18 @@ static __constant__ paramMicMacGpGpu cH;
 // ATTENTION : erreur de compilation avec l'option cudaReadModeNormalizedFloat et l'utilisation de la fonction tex2DLayered
 texture< pixel,	cudaTextureType2D >			TexS_MaskTer;
 texture< float,	cudaTextureType2DLayered >	TexL_Images;
+TexFloat2Layered							TexL_Proj_00;
 TexFloat2Layered							TexL_Proj_01;
 TexFloat2Layered							TexL_Proj_02;
+TexFloat2Layered							TexL_Proj_03;
 
 template<int TexSel> __device__ __host__ TexFloat2Layered TexFloat2L();
 
+template<> __device__ __host__ TexFloat2Layered TexFloat2L<0>() { return TexL_Proj_00; };
 template<> __device__ __host__ TexFloat2Layered TexFloat2L<1>() { return TexL_Proj_01; };
 template<> __device__ __host__ TexFloat2Layered TexFloat2L<2>() { return TexL_Proj_02; };
+template<> __device__ __host__ TexFloat2Layered TexFloat2L<3>() { return TexL_Proj_03; };
+
 
 //------------------------------------------------------------------------------------------
 
@@ -22,12 +27,16 @@ extern "C"  textureReference& getProjection(int TexSel)
 {
 switch (TexSel)
 	{
+		case 0:
+			return TexL_Proj_00;
 		case 1:
 			return TexL_Proj_01;
 		case 2:
 			return TexL_Proj_02;
+		case 3:
+			return TexL_Proj_03;
 		default:
-			return TexL_Proj_01;
+			return TexL_Proj_00;
 	}								
 }
 
@@ -126,10 +135,28 @@ template<int TexSel> __global__ void correlationKernel( float *dev_NbImgOk, floa
 	atomicAdd( &dev_NbImgOk[ZPitch + to1D(ptTer,cH.rDiTer)], 1.0f);
 };
 
-extern "C" void	 KernelCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
+extern "C" void	 KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, float *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
 {
-	correlationKernel<1><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
-	getLastCudaError("Basic Correlation kernel failed");
+	switch (s)
+	{
+		case 0:
+			correlationKernel<0><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+			getLastCudaError("Basic Correlation kernel failed stream 0");
+			break;
+		case 1:
+			correlationKernel<1><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+			getLastCudaError("Basic Correlation kernel failed stream 1");
+			break;
+		case 2:
+			correlationKernel<2><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+			getLastCudaError("Basic Correlation kernel failed stream 2");
+			break;
+		case 3:
+			correlationKernel<3><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+			getLastCudaError("Basic Correlation kernel failed stream 3");
+			break;
+	}	
+	
 }
 
 // Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens	///

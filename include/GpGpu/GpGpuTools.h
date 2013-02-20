@@ -59,19 +59,25 @@ public:
 
 	//					Sortie console d'un tableau
 	template <class T>	
-	static void			OutputArray(T* data, uint2 dim, float offset = 1.0f, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
+	static void			OutputArray(T* data, uint2 dim, uint offset = 1, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
 
 	//					Sortie console formater d'une valeur
 	template <class T>
-	static void			OutputValue(T value, float offset = 1.0f, float defaut = 0.0f, float factor = 1.0f);
+	static void			OutputValue(T value, uint offset = 1, float defaut = 0.0f, float factor = 1.0f);
 
 	//					Retour chariot
 	static void			OutputReturn(char * out = "");
+
+	static float		fValue( float value,float factor );
+
+	static float		fValue( float2 value,float factor );
 
 	//
 	static void			OutputGpu();
 
 };
+
+
 
 template <class T>
 void GpGpuTools::Memcpy2Dto1D( T** dataImage2D, T* dataImage1D, uint2 dimDest, uint2 dimSource )
@@ -81,18 +87,22 @@ void GpGpuTools::Memcpy2Dto1D( T** dataImage2D, T* dataImage1D, uint2 dimDest, u
 }
 
 template <class T>
-void GpGpuTools::OutputValue( T value, float offset, float defaut, float factor)
+void GpGpuTools::OutputValue( T value, uint offset, float defaut, float factor)
 {
 #ifndef DISPLAYOUTPUT
 	return;
 #endif
 
+
+
 	std::string S2	= "    ";
 	std::string ES	= "";
 	std::string S1	= " ";
 
-	float outO	= (float)value*factor;
-	float out	= floor(outO*offset)/offset ;
+	float outO	= fValue(value,factor);
+	float p		= pow(10.0f,(float)(offset-1));
+	if(p < 1.0f ) p = 1.0f;
+	float out	= floor(outO*p)/p;
 
 	std::string valS;
 	stringstream sValS (stringstream::in | stringstream::out);
@@ -136,7 +146,7 @@ void GpGpuTools::OutputValue( T value, float offset, float defaut, float factor)
 }
 
 template <class T>
-void GpGpuTools::OutputArray( T* data, uint2 dim, float offset, float defaut, float sample, float factor )
+void GpGpuTools::OutputArray( T* data, uint2 dim, uint offset, float defaut, float sample, float factor )
 {
 
 #ifndef DISPLAYOUTPUT
@@ -342,6 +352,7 @@ class CData3D : public struct2DLayered, public CData<T>
 public:
 
 	CData3D(){};
+	CData3D(uint2 dim, uint l);
 	~CData3D(){};
 	virtual void	Malloc() = 0;
 	virtual void	Memset(int val) = 0;
@@ -352,6 +363,12 @@ public:
  	uint			Sizeof();
 
 };
+
+template <class T>
+CData3D<T>::CData3D( uint2 dim, uint l )
+{
+	Malloc(dim,l);
+}
 
 template <class T>
 void CData3D<T>::Malloc( uint2 dim, uint l )
@@ -378,12 +395,19 @@ class CuHostData3D : public CData3D<T>
 {
 public:
 	CuHostData3D(){};
+	CuHostData3D(uint2 dim, uint l);
 	~CuHostData3D(){};
 	void Dealloc();
 	void Malloc();
 	void Memset(int val);
 	
 };
+
+template <class T>
+CuHostData3D<T>::CuHostData3D( uint2 dim, uint l )
+{
+	Realloc(dim,l);
+}
 
 template <class T>
 void CuHostData3D<T>::Memset( int val )

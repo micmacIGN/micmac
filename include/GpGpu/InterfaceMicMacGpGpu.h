@@ -5,7 +5,7 @@
 #include "GpGpu/cudaAppliMicMac.cuh"
 
 extern "C" void	CopyParamTodevice(paramMicMacGpGpu h);
-extern "C" void	KernelCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dev_NbImgOk, float* cachVig, uint2 nbActThrd);
+extern "C" void	KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, float *dev_NbImgOk, float* cachVig, uint2 nbActThrd);
 extern "C" void	KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, float * dev_NbImgOk, uint2 nbActThr);
 
 extern "C" textureReference&	getMask();
@@ -42,12 +42,13 @@ class InterfaceMicMacGpGpu
 
 	private:
 
-		void	ResizeVolume(int nbLayer, uint interZ);
-		void	AllocMemory(int nStream);
+		void					ResizeVolume(int nbLayer, uint interZ);
+		void					AllocMemory(int nStream);
 		cudaStream_t*			GetStream(int stream);
+		textureReference&		GetTeXProjection(int texSel);
+
 
 		cudaStream_t			_stream[NSTREAM];
-		textureReference&		GetTeXProjection(int texSel);
 		paramMicMacGpGpu		_param;
 
 		CuDeviceData3D<float>	_volumeCost[NSTREAM];	// volume des couts   
@@ -60,8 +61,10 @@ class InterfaceMicMacGpGpu
 
 		textureReference&		_texMask;
  		textureReference&		_texImages;
- 		textureReference&		_texProjections_01;
+ 		textureReference&		_texProjections_00;
+		textureReference&		_texProjections_01;
 		textureReference&		_texProjections_02;
+		textureReference&		_texProjections_03;
 };
 
 #endif
