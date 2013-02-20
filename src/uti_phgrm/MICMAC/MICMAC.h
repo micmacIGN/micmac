@@ -2544,6 +2544,7 @@ class   cGPU_LoadedImGeom
        }
        double Moy() const {return mMoy;}
        double Sigma() const {return mSigma;}
+       cPriseDeVue * PDV();
 
        bool Correl(double & Correl,int anX,int anY,const cGPU_LoadedImGeom & aGeoJ) const;
 
