@@ -1178,7 +1178,8 @@ if (TestMS)
 		if(	mNbIm == 0) return;	
 
 		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		
+		//int aZMinTer = 0, aZMaxTer = 2;
+
 		uint2 mTer0 = make_uint2(mX0Ter,mY0Ter);
 		uint2 mTer1 = make_uint2(mX1Ter,mY1Ter);
 
@@ -1193,17 +1194,10 @@ if (TestMS)
 		if (interZ != INTERZ)
 			IMmGg.SetSizeBlock(interZ);
 		
-
 		int anZ			= aZMinTer;
 	
-		CuHostData3D<float>		hVolumeCost;
-		CuHostData3D<float2>	hVolumeProj;
-
-		hVolumeCost.Realloc(IMmGg.GetDimensionTerrain(),interZ);
-		hVolumeProj.Realloc(IMmGg.GetSDimensionTerrain(), interZ*mNbIm);
-
-// 		hVolumeCost.Malloc();
-// 		hVolumeProj.Malloc();
+		CuHostData3D<float>		hVolumeCost(IMmGg.GetDimensionTerrain(),interZ);
+		CuHostData3D<float2>	hVolumeProj(IMmGg.GetSDimensionTerrain(), interZ*mNbIm);
 
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		while( anZ < aZMaxTer )
@@ -1212,6 +1206,8 @@ if (TestMS)
 			hVolumeProj.Memset(IMmGg.GetIntDefaultVal());
 
 			Tabul_Projection(hVolumeProj.pData(), anZ, IMmGg.ptU0(), IMmGg.ptU1(),IMmGg.GetSample(), interZ);
+
+			//std::cout << "N Layer volume Proj : " << hVolumeProj.GetNbLayer() << "\n";
 
 			// Kernel Correlation
 			IMmGg.BasicCorrelation(hVolumeCost.pData(), hVolumeProj.pData(), mNbIm, interZ);

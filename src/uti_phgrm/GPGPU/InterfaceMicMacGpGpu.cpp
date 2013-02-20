@@ -4,8 +4,10 @@
 InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
 _texMask(getMask()),
 _texImages(getImage()),
+_texProjections_00(getProjection(0)),
 _texProjections_01(getProjection(1)),
-_texProjections_02(getProjection(2))
+_texProjections_02(getProjection(2)),
+_texProjections_03(getProjection(3))
 {
 	for (int s = 0;s<NSTREAM;s++)
 		checkCudaErrors( cudaStreamCreate(GetStream(s)));
@@ -107,7 +109,6 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
 {
 
 	ResizeVolume(nbLayer,_param.ZLocInter);
-
 	uint Z = 0;
 
 	/*--------------- calcul de dimension du kernel de correlation ---------------*/
@@ -125,43 +126,36 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
 	uint2	block2D_mC	= iDivUp(_param.dimCach,actiThs);
 	dim3	blocks_mC(block2D_mC.x,block2D_mC.y,_param.ZLocInter);
 
-	//std::cout <<  interZ << "\n";
-
 	while(Z < interZ)
 	{
-		//const uint nstream = ((NSTREAM * _param.ZLocInter) >= (interZ - Z)  &&  Z != (interZ - 1)) ? (interZ - Z) : NSTREAM;
-
-		const uint nstream = NSTREAM;
+		//const uint nstream = (NSTREAM * _param.ZLocInter) >= (interZ - Z)  ? (interZ - Z) : NSTREAM;
+		const uint nstream = 1;
 
 		for (uint s = 0;s<nstream;s++)
 		{
 			//_LayeredProjection[s].copyHostToDevice(hostVolumeProj);
-			_LayeredProjection[s].copyHostToDeviceASync(hostVolumeProj + (Z+s)*_LayeredProjection->GetSize() * _LayeredProjection->GetNbLayer(),*(GetStream(s)));
+			_LayeredProjection[s].copyHostToDeviceASync(hostVolumeProj + (Z  + s) *_LayeredProjection->GetSize(),*(GetStream(s)));
 			_LayeredProjection[s].bindTexture(GetTeXProjection(s));
 		}
 
 		for (uint s = 0;s<nstream;s++)
 		{
-			KernelCorrelation( *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo);
+			KernelCorrelation(s, *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo);
 			KernelmultiCorrelation( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs);
 		}
 	
 		for (uint s = 0;s<nstream;s++)
-		{
+		{	
 			checkCudaErrors( cudaUnbindTexture(&(GetTeXProjection(s))) );
-			_volumeCost[s].CopyDevicetoHostASync(hostVolumeCost + (Z+s)*_volumeCost->GetSize()*_volumeCost->GetNbLayer(),*(GetStream(s)));
+			_volumeCost[s].CopyDevicetoHostASync(hostVolumeCost + (Z + s)*_volumeCost[s].GetSize(),*(GetStream(s)));	
 		}
-
-		for (uint s = 0;s<NSTREAM;s++)
-			checkCudaErrors( cudaStreamSynchronize(*(GetStream(s))));
-		
 		Z += nstream * _param.ZLocInter;
 	}
 
+	checkCudaErrors(cudaDeviceSynchronize());
 
-	for (uint s = 0;s<NSTREAM;s++)
-		checkCudaErrors( cudaStreamSynchronize(*(GetStream(s))));
-
+	//GpGpuTools::OutputArray(hostVolumeCost,_param.rDiTer,3,_param.DefaultVal);
+	//GpGpuTools::OutputArray(hostVolumeCost +  _volumeCost[0].GetSize(),_param.rDiTer,3,_param.DefaultVal);
 	//_volumeNIOk.CopyDevicetoHost(hostVolumeCost);
 	//checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );	
 	//GpGpuTools::OutputArray(hostVolumeCost,_param.rDiTer,11.0f,_param.DefaultVal);
@@ -244,12 +238,16 @@ textureReference& InterfaceMicMacGpGpu::GetTeXProjection( int TexSel )
 {
 	switch (TexSel)
 	{
+	case 0:
+		return _texProjections_00;
 	case 1:
 		return _texProjections_01;
 	case 2:
 		return _texProjections_02;
+	case 3:
+		return _texProjections_03;
 	default:
-		return _texProjections_01;
+		return _texProjections_00;
 	}	
 }
 
