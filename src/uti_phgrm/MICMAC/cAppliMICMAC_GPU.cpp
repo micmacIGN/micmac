@@ -42,17 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 namespace NS_ParamMICMAC
 {
 
-bool PBUG_C(int anX,int anY, int aZ)
-{
-  // return (anX==70) && (anY==59) && (aZ==-46);
-  return false;
-}
-bool PBUG_V(int anX,int anY, int aZ)
-{
-  // return (anX==75) && (anY==49) && (aZ==-48);
-   return false;
-}
-
 
 
 
@@ -711,20 +700,14 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 		{
 			cGPU_LoadedImGeom & aGLI = *(mVLI[aKIm]);
 			const cGeomImage * aGeom=aGLI.Geom();
-			float ** aDataIm =  aGLI.DataIm();
-			tGpuF ** aDOrtho = aGLI.DataOrtho();
-			U_INT1 ** aOkOr =  aGLI.DataOKOrtho();
 
 
 			// Tabulation des projections image au pas de mGpuSzD
-static int aCpt=0; aCpt++;
-//Pt2di KKL;
 			if (mGpuSzD)
 			{
 				int aNbX = (mX1UtiDilTer-mX0UtiDilTer +mGpuSzD) / mGpuSzD;
 				int aNbY = (mY1UtiDilTer-mY0UtiDilTer +mGpuSzD) / mGpuSzD;
 
-//KKL=Pt2di(aNbX,aNbY);
 
 				for (int aKX = 0; aKX <= aNbX ; aKX++)
 				{
@@ -739,115 +722,72 @@ static int aCpt=0; aCpt++;
 				}
 			}
 
-			U_INT1 ** aDLocOkTerDil = (aKIm==0) ? aDOkIm0TerDil : mDOkTerDil;
+                        {
+			     float ** aDataIm =  aGLI.DataIm();
+			     tGpuF ** aDOrtho = aGLI.DataOrtho();
+			     U_INT1 ** aOkOr =  aGLI.DataOKOrtho();
+
+			     U_INT1 ** aDLocOkTerDil = (aKIm==0) ? aDOkIm0TerDil : mDOkTerDil;
 
 
-			double aStep = 1.0/ElMax(1,mGpuSzD); // Histoire de ne pas diviser par 0
-			double anIndX = 0.0;
-			for (int anX = mX0UtiDilTer ; anX <  mX1UtiDilTer ; anX++)
-			{
-				double anIndY = 0.0;
-				for (int anY = mY0UtiDilTer ; anY < mY1UtiDilTer ; anY++)
-				{
-					aOkOr[anY][anX] = 0;
-					aDOrtho[anY][anX] = 0.0;
-if (PBUG_V(anX,anY,mZIntCur))
-{
-     // std::cout << "####================#aDLocOkTerDil " << int(aDLocOkTerDil[anY][anX]) << "\n";
-}
-					if (aDLocOkTerDil[anY][anX])
-					{
-						Pt2dr aPIm;
-						if (mGpuSzD)
-						{
-							Pt2dr anInd(anIndX,anIndY);
-							aPIm = Pt2dr( mTGeoX.getr(anInd), mTGeoY.getr(anInd)) ;
-if (0)
-{
-   Pt2dr aPTer  = DequantPlani(anX,anY);
-   Pt2dr aP2 = aGeom->CurObj2Im(aPTer,&mZTerCur);
-   double aD = euclid(aPIm,aP2);
-   static double aDMax = 0;
-   Pt2dr aSzIm = Pt2dr(aGLI.PDV()->SzIm()) / mCurEtape->DeZoomTer();
-   static Pt2dr aPMax (0,0);
-   aPMax.SetSup(aP2);
-   Box2dr aBKK(Pt2dr(0,0),aSzIm);
-   double inter = aBKK.Interiorite(aP2);
-   if ((aD>aDMax) && (inter > 1 ))
-   // if (aD>aDMax) 
-   {
-       aDMax = aD;
-       std::cout << "DMax = " << aDMax  << " " << aP2  << " OK " <<  aGLI.IsOk(aPIm.x,aPIm.y) << "  Int " << inter << " " << aSzIm <<  aPMax<< "\n";
-/*
-       std::cout << "WWWWw " << anIndX   << " " << anIndY  << " "  << mGeoX.sz() << KKL<< "\n";
+			     double aStep = 1.0/ElMax(1,mGpuSzD); // Histoire de ne pas diviser par 0
+			     double anIndX = 0.0;
+			     for (int anX = mX0UtiDilTer ; anX <  mX1UtiDilTer ; anX++)
+			     {
+				     double anIndY = 0.0;
+				     for (int anY = mY0UtiDilTer ; anY < mY1UtiDilTer ; anY++)
+				     {
+					     aOkOr[anY][anX] = 0;
+					     aDOrtho[anY][anX] = 0.0;
+					     if (aDLocOkTerDil[anY][anX])
+					     {
+						     Pt2dr aPIm;
+						     if (mGpuSzD)
+						     {
+							     Pt2dr anInd(anIndX,anIndY);
+							     aPIm = Pt2dr( mTGeoX.getr(anInd), mTGeoY.getr(anInd)) ;
+						     }
+						     else
+						     {
+							     Pt2dr aPTer  = DequantPlani(anX,anY);
+							     aPIm = aGeom->CurObj2Im(aPTer,&mZTerCur);
+						     }
 
-int Ix = int(anIndX);
-int Iy = int(anIndY);
-Pt2di aPI(Ix,Iy);
-       std::cout << "PI " << aPI << "\n";
-std::cout << "R " << aP2 << " Tab=" << aPIm << "\n";
-std::cout << Pt2dr( mTGeoX.get(aPI), mTGeoY.get(aPI)) << "\n";
-std::cout << Pt2dr( mTGeoX.get(aPI+Pt2di(1,0)), mTGeoY.get(aPI+Pt2di(1,0))) << "\n";
-std::cout << Pt2dr( mTGeoX.get(aPI+Pt2di(0,1)), mTGeoY.get(aPI+Pt2di(0,1))) << "\n";
-std::cout << Pt2dr( mTGeoX.get(aPI+Pt2di(1,1)), mTGeoY.get(aPI+Pt2di(1,1))) << "\n";
 
-std::cout << "\n";
-*/
-   }
-// std::cout << "Ddd = " << aD << "\n";
-}
-						}
-						else
-						{
-							Pt2dr aPTer  = DequantPlani(anX,anY);
-							aPIm = aGeom->CurObj2Im(aPTer,&mZTerCur);
-						}
+						     if (aGLI.IsOk(aPIm.x,aPIm.y))
+						     {
+							     aDOrtho[anY][anX] = (tGpuF)anInt->GetVal(aDataIm,aPIm);
+							     aOkOr[anY][anX] =  1;
+						     }
+					     }
+					     anIndY += aStep;
 
-if (PBUG_V(anX,anY,mZIntCur))
-{
-    // std::cout << "#########  " << aGLI.IsOk(aPIm.x,aPIm.y) << "\n";
-}
+				     }
+				     anIndX += aStep;
+			     }
 
-						if (aGLI.IsOk(aPIm.x,aPIm.y))
-						{
-							aDOrtho[anY][anX] = (tGpuF)anInt->GetVal(aDataIm,aPIm);
-if (PBUG_V(anX,anY,mZIntCur) && (aKIm==1))
-{
-   Pt2dr aPTer  = DequantPlani(anX,anY);
-   Pt2dr aPImVrai = aGeom->CurObj2Im(aPTer,&mZTerCur);
-    std::cout  << aKIm << "===== #########  " << aDOrtho[anY][anX]   << " DVRAi " <<  (tGpuF)anInt->GetVal(aDataIm,aPImVrai) << " DFaux " << (tGpuF)anInt->GetVal(aDataIm,aPIm) << "\n";
-    std::cout << " PInt " << aPIm << " PVrai " << aPImVrai << " D=" << euclid(aPIm,aPImVrai) << "\n";
-}
-							aOkOr[anY][anX] =  1;
-						}
-					}
-					anIndY += aStep;
-
-				}
-				anIndX += aStep;
-			}
-
-			SelfErode(aGLI.ImOK_Ortho(), mCurSzV0,aBoxUtiLocIm);
-			if (    (aMode==eModeMom_2_22)
-				|| ((aKIm==0) &&  (aMode==eModeMom_12_2_22))
-				)
-			{
-				MomOrdre2(aGLI.ImOrtho(),aGLI.ImSomO(),aGLI.ImSomO2(),mCurSzV0,aBoxUtiLocIm);
-			}
-			else if (aMode==eModeMom_12_2_22) 
-			{
-				// std::cout << "KIM " << aKIm << "\n";
-				Mom12_22
+			     SelfErode(aGLI.ImOK_Ortho(), mCurSzV0,aBoxUtiLocIm);
+			     if (    (aMode==eModeMom_2_22)
+				     || ((aKIm==0) &&  (aMode==eModeMom_12_2_22))
+				     )
+			     {
+				     MomOrdre2(aGLI.ImOrtho(),aGLI.ImSomO(),aGLI.ImSomO2(),mCurSzV0,aBoxUtiLocIm);
+			     }
+			     else if (aMode==eModeMom_12_2_22) 
+			     {
+				     // std::cout << "KIM " << aKIm << "\n";
+				     Mom12_22
 					(
-					aGLI_00->ImOrtho(),
-					aGLI.ImOrtho(),
-					aGLI.ImSom12(),
-					aGLI.ImSomO(),
-					aGLI.ImSomO2(),
-					mCurSzV0,
-					aBoxUtiLocIm
+					     aGLI_00->ImOrtho(),
+					     aGLI.ImOrtho(),
+					     aGLI.ImSom12(),
+					     aGLI.ImSomO(),
+					     aGLI.ImSomO2(),
+					     mCurSzV0,
+					     aBoxUtiLocIm
 					);
-			}
+			     }
+                        }
 		}
 
 		mFirstZIsInit = true;
@@ -858,9 +798,6 @@ if (PBUG_V(anX,anY,mZIntCur) && (aKIm==1))
 	void cAppliMICMAC::DoOneCorrelSym(int anX,int anY)
 	{
 
-// bool  TestMS = (anX==70) && (anY==59) && (mZIntCur==-46);
-//bool  TestMS =  PBUG_C(anX,anY,mZIntCur);  // (anX==70) && (anY==59) && (mZIntCur==-46);
-// bool TestMS = (anX==75) && (anY==49) && (mZIntCur==-48) ;
 		double aCost = mAhDefCost;
 		std::vector<cGPU_LoadedImGeom *> aCurVLI;
 		for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
@@ -870,40 +807,6 @@ if (PBUG_V(anX,anY,mZIntCur) && (aKIm==1))
 			{
 				aCurVLI.push_back(aGLI);
 			}
-if (0) //TestMS)
-{
-     std::cout << "VvvVVvv " << aGLI->Moy() << " " << aGLI->Sigma() << "\n";
-     std::cout << " Epsssilon " << mEpsAddMoy << " " << mEpsMulMoy << "\n";
-
-     std::cout  << "   Oooo " << aGLI->DataOrtho()[anY][anX] << "\n";
-     std::cout  << "SssOooo " << aGLI->DataSomO()[anY][anX] << "\n";
-     std::cout  << "22 Oooo " << aGLI->DataSomO2()[anY][anX] << "\n";
-
-   Pt2dr aPTer  = DequantPlani(anX,anY);
-   Pt2dr aP2 = aGLI->Geom()->CurObj2Im(aPTer,&mZTerCur);
-
-      std::cout << "P2 " << aP2 << "\n";
-
-     if (aKIm==1)
-     {
-           double aS=0;
-           for (int aDx=-mCurSzV0.x; aDx<= mCurSzV0.x ; aDx++)
-           {
-              for (int aDy=-mCurSzV0.y; aDy<= mCurSzV0.y ; aDy++)
-              {
-                   int XX = anX+aDx;
-                   int YY = anY+aDy;
-                   int VV = aGLI->DataOrtho()[YY][XX];
-if (1) // PBUG_V(XX,YY,mZIntCur))
-{
-  std::cout  << "   xxxXxx  " << VV << " " << XX << " " << YY << "\n";
-}
-                   aS +=  VV;
-              }
-           }
-   std::cout << "  ssSss " << aS << "\n";
-     }
-}
 		}
 		int aNbImCur = (int)aCurVLI.size();
 		if (aNbImCur >= 2)
@@ -924,7 +827,6 @@ if (1) // PBUG_V(XX,YY,mZIntCur))
 					for (int aKIm=0 ; aKIm<aNbImCur ; aKIm++)
 					{
 						double aV = aCurVLI[aKIm]->ValNorm(aXV,aYV);
-// if (TestMS) std::cout << "VvvVVvv " << aCurVLI[aKIm]->ImOrtho(aXV,aYV) << "\n";
 						aSV += aV;
 						aSVV += QSquare(aV) ;
 					}
@@ -935,10 +837,6 @@ if (1) // PBUG_V(XX,YY,mZIntCur))
 			aCost = anEC2 / ((aNbImCur -1) * mNbPtsWFixe);
 			aCost =  mStatGlob->CorrelToCout(1-aCost);
 		}
-if (0)// && TestMS)
-{
-    std::cout << "ZZzz " << mZIntCur  << " CcCccc " << aCost <<  " " <<  round_ni(128 * (2-aCost))  << "\n";
-}
 		mSurfOpt->SetCout(Pt2di(anX,anY),&mZIntCur,aCost);
 	}
 
