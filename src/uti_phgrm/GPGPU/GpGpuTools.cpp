@@ -51,6 +51,16 @@ void GpGpuTools::OutputGpu()
 #endif
 }
 
+float GpGpuTools::fValue( float value,float factor )
+{
+	return value * factor;
+}
+
+float GpGpuTools::fValue( float2 value,float factor )
+{
+	return (float)value.x * factor;
+}
+
 uint2 struct2D::GetDimension()
 {
 	return _dimension;
