@@ -107,6 +107,41 @@ void InterfaceMicMacGpGpu::SetImages( float* dataImage, uint2 dimImage, int nbLa
 
 void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* hostVolumeProj, int nbLayer, uint interZ )
 {
+	ResizeVolume(nbLayer,_param.ZLocInter);
+	
+	/*--------------- calcul de dimension du kernel de correlation ---------------*/
+	dim3	threads( BLOCKDIM, BLOCKDIM, 1);
+	uint2	thd2D		= make_uint2(threads);
+	uint2	actiThsCo	= thd2D - 2 * _param.rVig;
+	uint2	block2D		= iDivUp(_param.dimTer,actiThsCo);
+	dim3	blocks(block2D.x , block2D.y, nbLayer * _param.ZLocInter);
+
+	/*-------------	calcul de dimension du kernel de multi-correlation ------------*/
+	uint2	actiThs		= SBLOCKDIM - make_uint2( SBLOCKDIM % _param.dimVig.x, SBLOCKDIM % _param.dimVig.y);
+	dim3	threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
+	uint2	block2D_mC	= iDivUp(_param.dimCach,actiThs);
+	dim3	blocks_mC(block2D_mC.x,block2D_mC.y,_param.ZLocInter);
+
+	const int s = 0;
+
+	_LayeredProjection[s].copyHostToDevice(hostVolumeProj);
+	_LayeredProjection[s].bindTexture(GetTeXProjection(s));
+
+	KernelCorrelation(s, *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo);
+	KernelmultiCorrelation( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs);
+
+	checkCudaErrors( cudaUnbindTexture(&(GetTeXProjection(s))) );
+	_volumeCost[s].CopyDevicetoHost(hostVolumeCost);	
+		
+	//GpGpuTools::OutputArray(hostVolumeCost,_param.rDiTer,3,_param.DefaultVal);
+	//GpGpuTools::OutputArray(hostVolumeCost +  _volumeCost[0].GetSize(),_param.rDiTer,3,_param.DefaultVal);
+	//_volumeNIOk.CopyDevicetoHost(hostVolumeCost);
+	//checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );	
+	//GpGpuTools::OutputArray(hostVolumeCost,_param.rDiTer,11.0f,_param.DefaultVal);
+}
+
+void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj, int nbLayer, uint interZ )
+{
 
 	ResizeVolume(nbLayer,_param.ZLocInter);
 	uint Z = 0;
@@ -143,7 +178,7 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
 			KernelCorrelation(s, *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo);
 			KernelmultiCorrelation( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs);
 		}
-	
+
 		for (uint s = 0;s<nstream;s++)
 		{	
 			checkCudaErrors( cudaUnbindTexture(&(GetTeXProjection(s))) );
@@ -153,12 +188,6 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
 	}
 
 	checkCudaErrors(cudaDeviceSynchronize());
-
-	//GpGpuTools::OutputArray(hostVolumeCost,_param.rDiTer,3,_param.DefaultVal);
-	//GpGpuTools::OutputArray(hostVolumeCost +  _volumeCost[0].GetSize(),_param.rDiTer,3,_param.DefaultVal);
-	//_volumeNIOk.CopyDevicetoHost(hostVolumeCost);
-	//checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );	
-	//GpGpuTools::OutputArray(hostVolumeCost,_param.rDiTer,11.0f,_param.DefaultVal);
 }
 
 uint2 InterfaceMicMacGpGpu::GetDimensionTerrain()
