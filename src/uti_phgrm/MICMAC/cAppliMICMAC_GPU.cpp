@@ -220,6 +220,8 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
         }
         
     }
+
+    mOneImage = (aVP.size()==0);
     
 }
 cGPU_LoadedImGeom::~cGPU_LoadedImGeom()
@@ -300,7 +302,7 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
         for (int aKX=-aSzV ; aKX<=aSzV ; aKX++)
         {
             if (IsOk(aCur.x,aCur.y))
-               mBufVignette.Add(anInt->GetVal(mDataIm,aCur));
+               mBufVignette.Add(anInt->GetVal(DataIm0(),aCur));
             else
                return 0;
             aCur += aDx;
@@ -473,8 +475,8 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 			
 				// Obtention des données images
-				float **aDataIm	= aGLI.DataIm();
-				float*	data	= aGLI.LinDIm();
+				float **aDataIm	= aGLI.DataIm0();
+				float*	data	= aGLI.LinDIm0();
 				uint2 dimImg	= toUi2(aGLI.getSizeImage());
 
 				if(fdataImg1D == NULL)
@@ -723,7 +725,10 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 			}
 
                         {
-			     float ** aDataIm =  aGLI.DataIm();
+                             int aKScale = 0;
+
+
+			     float ** aDataIm =  aGLI.VDataIm()[aKScale];
 			     tGpuF ** aDOrtho = aGLI.DataOrtho();
 			     U_INT1 ** aOkOr =  aGLI.DataOKOrtho();
 
@@ -1236,7 +1241,7 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 						{
 							cGPU_LoadedImGeom & aGLI = *(mVLI[aKIm]);
 							const cGeomImage * aGeom=aGLI.Geom();
-							float ** aDataIm =  aGLI.DataIm();
+							float ** aDataIm =  aGLI.DataIm0();
 
 							// Pour empiler les valeurs
 							double * mValsIm = aGLI.Vals();

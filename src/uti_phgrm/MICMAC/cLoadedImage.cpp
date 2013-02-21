@@ -98,9 +98,11 @@ class cTplLoadedImage : public cLoadedImage
       tVecTPtr ToCurType(tContPDV&);
 
    private:
-      float ** DataFloatIm() const ;
-      float *  DataFloatLinIm() const ;
-      Im2D_REAL4 * FloatIm() const;
+      float *** DataFloatIm();
+      float **  DataFloatLinIm();
+      Im2D_REAL4 ** FloatIm();
+      Im2D_REAL4 * FirstFloatIm();
+
       void PrecalcRect(const Box2di & aBoxCorrTer);
       void FiltrageWRect(const Box2di & aBoxCorrTer,Im2D_REAL8 anIm);
       void FiltrageWExp(const Box2di & aBoxCorrTer,Im2D_REAL8 anIm);
@@ -159,27 +161,40 @@ cTplLoadedImage<TypeEl>::~cTplLoadedImage()
 }
 
 
-template <class TypeEl> float ** cTplLoadedImage<TypeEl>::DataFloatIm() const
+template <class TypeEl> float *** cTplLoadedImage<TypeEl>::DataFloatIm() 
 {
-  ELISE_ASSERT(mIm.TypeEl()==GenIm::real4,":DataFloatIm");
-   return (float **)  mIm.data();
+   // return (float **)  mIm.data();
+   return & (mVDataIm[0]);
 }
 
-template <class TypeEl> float * cTplLoadedImage<TypeEl>::DataFloatLinIm() const
+template <class TypeEl> float ** cTplLoadedImage<TypeEl>::DataFloatLinIm() 
 {
-  ELISE_ASSERT(mIm.TypeEl()==GenIm::real4,":DataFloatIm");
-   return (float *)  mIm.data_lin();
+   // return (float *)  mIm.data_lin();
+   return & (mVDataLin[0]);
 }
 
-template <class TypeEl> Im2D_REAL4 * cTplLoadedImage<TypeEl>::FloatIm() const
+template <class TypeEl> Im2D_REAL4 ** cTplLoadedImage<TypeEl>::FloatIm()
+{
+/*
+  cTplLoadedImage<TypeEl> * aNI = const_cast<cTplLoadedImage<TypeEl> *>(this);
+  return (Im2D_REAL4 *)  &(aNI->mIm);
+  return (Im2D_REAL4 *)  &(mIm);
+*/
+   return  & (mVIm[0]);
+}
+
+template <class TypeEl> Im2D_REAL4 * cTplLoadedImage<TypeEl>::FirstFloatIm()
 {
   ELISE_ASSERT(mIm.TypeEl()==GenIm::real4,":DataFloatIm");
 /*
   cTplLoadedImage<TypeEl> * aNI = const_cast<cTplLoadedImage<TypeEl> *>(this);
   return (Im2D_REAL4 *)  &(aNI->mIm);
+  return  & (mVIm[0]);
 */
   return (Im2D_REAL4 *)  &(mIm);
 }
+
+
 
 
 
@@ -1576,6 +1591,10 @@ cMSLoadedIm::cMSLoadedIm(const cOneParamCMS& aParam ,Im2D_REAL4 * anI,bool First
        FilterGauss(mIm,aParam.Sigma(),2);
    }
 }
+
+Im2D_REAL4 * cMSLoadedIm::Im() { return &mIm; }
+const Im2D_REAL4 * cMSLoadedIm::Im() const { return &mIm; }
+
 /*
 */
 
@@ -1697,16 +1716,38 @@ cLoadedImage::cLoadedImage
    }
 }
 
+
+
 void cLoadedImage::PostInit()
 {
     const cCorrelMultiScale*  aCMS = mAppli.CMS();
 
-    if (! aCMS) return;
-
-    for (int aK=0 ; aK<int(aCMS->OneParamCMS().size()) ; aK++)
+    if ( aCMS) 
     {
-        cMSLoadedIm  aMLI(aCMS->OneParamCMS()[aK],FloatIm(), aK==0);
-        mMSLI.push_back(aMLI);
+       for (int aK=0 ; aK<int(aCMS->OneParamCMS().size()) ; aK++)
+       {
+           cMSLoadedIm  aMLI(aCMS->OneParamCMS()[aK],FirstFloatIm() , aK==0);
+           mMSLI.push_back(aMLI);
+       }
+    }
+    else
+    {
+         cOneParamCMS aParam;
+         aParam.SzW() = mAppli.PtSzWFixe();
+         aParam.Sigma() = 0;
+         aParam.Pds() = 1;
+
+         cMSLoadedIm  aMLI(aParam,FirstFloatIm() , true);
+         mMSLI.push_back(aMLI);
+    }
+
+    for (int aK=0 ; aK<int(mMSLI.size()) ; aK++)
+    {
+         Im2D_REAL4 * anIm = mMSLI[aK].Im();
+
+         mVIm.push_back(anIm);
+         mVDataIm.push_back(anIm->data());
+         mVDataLin.push_back(anIm->data_lin());
     }
 
 }

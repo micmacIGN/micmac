@@ -541,8 +541,8 @@ void cAppliMICMAC::DoCorrelLeastQuare(const Box2di &  aBoxOut,const Box2di & aBo
     cOneTestLSQ  aTest
                  (
                      TheNbIterLine,
-                     PDV1()->LoadedIm().DataFloatIm(),PDV1()->LoadedIm().SzIm(),
-                     PDV2()->LoadedIm().DataFloatIm(),PDV2()->LoadedIm().SzIm(),
+                     PDV1()->LoadedIm().DataFloatIm()[0],PDV1()->LoadedIm().SzIm(),
+                     PDV2()->LoadedIm().DataFloatIm()[0],PDV2()->LoadedIm().SzIm(),
                      CurEtape()->InterpFloat(),
                      aClsq
                  );
