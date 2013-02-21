@@ -211,19 +211,27 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
     const std::vector<cOneParamCMS> & aVP = aCMS->OneParamCMS();
 
 
+    mSomPdsMS = 0;
     for (int aK=0 ; aK<int(aVP.size()) ; aK++)
     {
-        mOPCms = &(aVP[aK]);
         if (aK>0)
         {
-             mMSGLI.push_back(new cGPU_LoadedImGeom(anAppli,aPDV,aBox,mOPCms->SzW(),mSzVMax,false));
+             mMSGLI.push_back(new cGPU_LoadedImGeom(anAppli,aPDV,aBox,aVP[aK].SzW(),mSzVMax,false));
         }
         
+        mMSGLI[aK]->mOPCms = &(aVP[aK]);
+        mMSGLI[aK]->mPdsMS = aVP[aK].Pds();
+        mSomPdsMS += mMSGLI[aK]->mPdsMS;
+        mMSGLI[aK]->mPdsMS /= mNbVals;
     }
 
     mOneImage = (aVP.size()==0);
     
 }
+
+
+
+
 cGPU_LoadedImGeom::~cGPU_LoadedImGeom()
 {
    if (mTop)
@@ -339,26 +347,100 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 		return true;
 	}
 
+double  cGPU_LoadedImGeom::MoyIm(int anX,int anY) const
+{
+    if (! mOPCms)
+        return mDSomO [anY][anX] /mNbVals;
+
+    double aRes = 0;
+    for (int aK=0 ; aK<int(mMSGLI.size()) ; aK++)
+    {
+        cGPU_LoadedImGeom * aGLI = mMSGLI[aK];
+        aRes += aGLI->mDSomO [anY][anX] * aGLI->mPdsMS;
+    }
+    return aRes / mSomPdsMS;
+}
+double  cGPU_LoadedImGeom::MoyQuadIm(int anX,int anY) const
+{
+    if (! mOPCms)
+        return mDSomO2 [anY][anX] /mNbVals;
+
+    double aRes = 0;
+    for (int aK=0 ; aK<int(mMSGLI.size()) ; aK++)
+    {
+        cGPU_LoadedImGeom * aGLI = mMSGLI[aK];
+        aRes += aGLI->mDSomO2 [anY][anX] * aGLI->mPdsMS;
+    }
+    return aRes / mSomPdsMS;
+}
+double  cGPU_LoadedImGeom::CovIm(int anX,int anY) const
+{
+    if (! mOPCms)
+        return mDSom12 [anY][anX] /mNbVals;
+
+    double aRes = 0;
+    for (int aK=0 ; aK<int(mMSGLI.size()) ; aK++)
+    {
+        cGPU_LoadedImGeom * aGLI = mMSGLI[aK];
+        aRes += aGLI->mDSom12 [anY][anX] * aGLI->mPdsMS;
+    }
+    return aRes / mSomPdsMS;
+}
+
+
+
+/*
+double MoyQuad() const;
+double Cov(const cGPU_LoadedImGeom & aGeoJ) const;
+*/
+
+
 
 	bool   cGPU_LoadedImGeom::Correl(double & aCorrel,int anX,int anY,const  cGPU_LoadedImGeom & aGeoJ) const
 	{
 		if (! mDOK_Ortho[anY][anX])
 			return false;
-		double aMI  =  mDSomO [anY][anX] /mNbVals;
+		//double aMI  =  mDSomO [anY][anX] /mNbVals;
+                double aMI  = MoyIm(anX,anY);
 		double aDmI = mAppli.DeltaMoy(aMI);
-		double aMII =  mDSomO2[anY][anX] /mNbVals - ElSquare(aMI) + ElSquare(aDmI);
+		// double aMII =  mDSomO2[anY][anX] /mNbVals - ElSquare(aMI) + ElSquare(aDmI);
+		double aMII =  MoyQuadIm(anX,anY) - ElSquare(aMI) + ElSquare(aDmI);
 		if (aMII < mAppli.AhEpsilon()) 
 			return false;
 
-		double aMJ  =  aGeoJ.mDSomO [anY][anX] /mNbVals;
+		// double aMJ  =  aGeoJ.mDSomO [anY][anX] /mNbVals;
+		double aMJ  =  aGeoJ.MoyIm(anX,anY);
 		double aDmJ = mAppli.DeltaMoy(aMJ);
-		double aMJJ =  aGeoJ.mDSomO2[anY][anX] /mNbVals - ElSquare(aMJ) + ElSquare(aDmJ);
+		// double aMJJ =  aGeoJ.mDSomO2[anY][anX] /mNbVals - ElSquare(aMJ) + ElSquare(aDmJ);
+		double aMJJ =  aGeoJ.MoyQuadIm(anX,anY) - ElSquare(aMJ) + ElSquare(aDmJ);
 		if (aMJJ < mAppli.AhEpsilon()) 
 			return false;
 
-		double aMIJ =  mDSom12[anY][anX] /mNbVals - aMI * aMJ + aDmI*aDmJ;
+		// double aMIJ =  mDSom12[anY][anX] /mNbVals - aMI * aMJ + aDmI*aDmJ;
+		double aMIJ =  CovIm(anX,anY) - aMI * aMJ + aDmI*aDmJ;
 
 		aCorrel = aMIJ / sqrt(aMII*aMJJ);
+if (0)
+{
+   static double aNb=0; aNb++;
+   static double aNbOut=0; 
+   static double aMaxC = -10;
+   static double aMinC = 10;
+   if ((aCorrel>1) || (aCorrel<-1))
+   {
+      aNbOut++;
+   }
+   if (aCorrel>aMaxC)
+   {
+        aMaxC = aCorrel;
+        std::cout  << "MAX-MIN-COR   " << aMinC << " " << aMaxC << " OUT " << (aNbOut/aNb) << "\n";
+   }
+   if (aCorrel<aMinC)
+   {
+        aMinC = aCorrel;
+        std::cout  << "MAX-MIN-COR   " << aMinC << " " << aMaxC << " OUT " << (aNbOut/aNb) << "\n";
+   }
+}
 		return true;
 	}
 
@@ -700,8 +782,8 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 
 		for (int aKIm= aKFirstIm ; aKIm<mNbIm ; aKIm++)
 		{
-			cGPU_LoadedImGeom & aGLI = *(mVLI[aKIm]);
-			const cGeomImage * aGeom=aGLI.Geom();
+			cGPU_LoadedImGeom & aGLI_0 = *(mVLI[aKIm]);
+			const cGeomImage * aGeom=aGLI_0.Geom();
 
 
 			// Tabulation des projections image au pas de mGpuSzD
@@ -724,13 +806,16 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 				}
 			}
 
+                        const std::vector<cGPU_LoadedImGeom *> &  aVGLI = aGLI_0.MSGLI();
+
+                        for (int aKScale = 0; aKScale<int(aVGLI.size()) ; aKScale++)
                         {
-                             int aKScale = 0;
+                             cGPU_LoadedImGeom & aGLI_K = *(aVGLI[aKScale]);
 
-
-			     float ** aDataIm =  aGLI.VDataIm()[aKScale];
-			     tGpuF ** aDOrtho = aGLI.DataOrtho();
-			     U_INT1 ** aOkOr =  aGLI.DataOKOrtho();
+                             ELISE_ASSERT(aGLI_0.VDataIm()==aGLI_K.VDataIm(),"Internal incohe in MulScale correl");
+			     float ** aDataIm =  aGLI_0.VDataIm()[aKScale];
+			     tGpuF ** aDOrtho = aGLI_K.DataOrtho();
+			     U_INT1 ** aOkOr =  aGLI_K.DataOKOrtho();
 
 			     U_INT1 ** aDLocOkTerDil = (aKIm==0) ? aDOkIm0TerDil : mDOkTerDil;
 
@@ -759,7 +844,8 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 						     }
 
 
-						     if (aGLI.IsOk(aPIm.x,aPIm.y))
+                                                     // Peu importe aGLI_0 ou aGLI_K
+						     if (aGLI_0.IsOk(aPIm.x,aPIm.y))
 						     {
 							     aDOrtho[anY][anX] = (tGpuF)anInt->GetVal(aDataIm,aPIm);
 							     aOkOr[anY][anX] =  1;
@@ -771,26 +857,26 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 				     anIndX += aStep;
 			     }
 
-			     SelfErode(aGLI.ImOK_Ortho(), mCurSzV0,aBoxUtiLocIm);
+			     SelfErode(aGLI_K.ImOK_Ortho(), mCurSzV0,aBoxUtiLocIm);
 			     if (    (aMode==eModeMom_2_22)
 				     || ((aKIm==0) &&  (aMode==eModeMom_12_2_22))
 				     )
 			     {
-				     MomOrdre2(aGLI.ImOrtho(),aGLI.ImSomO(),aGLI.ImSomO2(),mCurSzV0,aBoxUtiLocIm);
+				     MomOrdre2(aGLI_K.ImOrtho(),aGLI_K.ImSomO(),aGLI_K.ImSomO2(),mCurSzV0,aBoxUtiLocIm);
 			     }
 			     else if (aMode==eModeMom_12_2_22) 
 			     {
 				     // std::cout << "KIM " << aKIm << "\n";
 				     Mom12_22
-					(
-					     aGLI_00->ImOrtho(),
-					     aGLI.ImOrtho(),
-					     aGLI.ImSom12(),
-					     aGLI.ImSomO(),
-					     aGLI.ImSomO2(),
+				     (
+					     aGLI_00->KiemeMSGLI(aKScale)->ImOrtho(),
+					     aGLI_K.ImOrtho(),
+					     aGLI_K.ImSom12(),
+					     aGLI_K.ImSomO(),
+					     aGLI_K.ImSomO2(),
 					     mCurSzV0,
 					     aBoxUtiLocIm
-					);
+				   );
 			     }
                         }
 		}
@@ -985,6 +1071,17 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 		{
 			ELISE_ASSERT(false,"Unsupported Mode Aggreg in cAppliMICMAC::DoGPU_Correl");
 		}
+
+
+                if (mCMS)
+                {
+                     mCMS_ModeDense = mCMS->ModeDense().ValWithDef(IsModeIm1Maitre(aModeAgr));
+                     ELISE_ASSERT
+                     (
+                          IsModeIm1Maitre(aModeAgr) && mCMS_ModeDense,
+                          "Non supported option of CorrelMultiScale"
+                     );
+                }
 
 
 		for (int aZ=mZMinGlob ; aZ<mZMaxGlob ; aZ++)

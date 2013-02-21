@@ -2565,11 +2565,17 @@ class   cGPU_LoadedImGeom
        {
             return (mDOrtho[anY][anX]-mMoy) / mSigma;
        }
-       double Moy() const {return mMoy;}
-       double Sigma() const {return mSigma;}
+       double MoyCal() const {return mMoy;}
+       double SigmaCalc() const {return mSigma;}
        cPriseDeVue * PDV();
 
        bool Correl(double & Correl,int anX,int anY,const cGPU_LoadedImGeom & aGeoJ) const;
+
+       // inline double StatIm(int anX,int anY,tGpuF **) const;
+
+       inline double MoyIm(int anX,int anY) const;
+       inline double MoyQuadIm(int anX,int anY) const;
+       inline double CovIm(int anX,int anY) const;
 
        Pt2dr ProjOfPDisc(int anX,int anY,int aZ) const;
        void MakeDeriv(int anX,int anY,int aZ);
@@ -2577,6 +2583,8 @@ class   cGPU_LoadedImGeom
        cStatOneImage * ValueVignettByDeriv(int anX,int anY,int aZ,int aSzV,int PasVig) ;
 
        
+       const std::vector<cGPU_LoadedImGeom *> & MSGLI() const {return mMSGLI;}
+       cGPU_LoadedImGeom * KiemeMSGLI(int aK) const {return mMSGLI.at(aK);}
 
    private :
        
@@ -2604,6 +2612,8 @@ class   cGPU_LoadedImGeom
        std::vector<cGPU_LoadedImGeom *> mMSGLI;  // Multi Scale GLI
        bool                             mOneImage;
        const cOneParamCMS *             mOPCms;
+       double                           mPdsMS;
+       double                           mSomPdsMS;
 
 // tGpuF
 // tImGpu
@@ -3427,6 +3437,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
        cSurfaceOptimiseur *    mSurfOpt;
        const cCorrelAdHoc *      mCorrelAdHoc;
        const cCorrelMultiScale*  mCMS;
+       bool                      mCMS_ModeDense;
 
        bool                  mGIm1IsInPax;
        cEl_GPAO *            mGPRed2;

@@ -1528,9 +1528,13 @@ class cCorrelMultiScale
         friend void xml_init(cCorrelMultiScale & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< bool > & ModeDense();
+        const cTplValGesInit< bool > & ModeDense()const ;
+
         std::vector< cOneParamCMS > & OneParamCMS();
         const std::vector< cOneParamCMS > & OneParamCMS()const ;
     private:
+        cTplValGesInit< bool > mModeDense;
         std::vector< cOneParamCMS > mOneParamCMS;
 };
 cElXMLTree * ToXMLTree(const cCorrelMultiScale &);
@@ -1699,6 +1703,9 @@ class cTypeCAH
         friend void xml_init(cTypeCAH & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< bool > & ModeDense();
+        const cTplValGesInit< bool > & ModeDense()const ;
+
         std::vector< cOneParamCMS > & OneParamCMS();
         const std::vector< cOneParamCMS > & OneParamCMS()const ;
 
@@ -1763,6 +1770,9 @@ class cCorrelAdHoc
 
         cTplValGesInit< int > & SzBlocAH();
         const cTplValGesInit< int > & SzBlocAH()const ;
+
+        cTplValGesInit< bool > & ModeDense();
+        const cTplValGesInit< bool > & ModeDense()const ;
 
         std::vector< cOneParamCMS > & OneParamCMS();
         const std::vector< cOneParamCMS > & OneParamCMS()const ;
@@ -2897,6 +2907,9 @@ class cEtapeMEC
 
         cTplValGesInit< int > & SzBlocAH();
         const cTplValGesInit< int > & SzBlocAH()const ;
+
+        cTplValGesInit< bool > & ModeDense();
+        const cTplValGesInit< bool > & ModeDense()const ;
 
         std::vector< cOneParamCMS > & OneParamCMS();
         const std::vector< cOneParamCMS > & OneParamCMS()const ;
