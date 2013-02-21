@@ -74,7 +74,7 @@ std::cout << "HHHHhjjj " << aBox._p0 << aBox._p1 << "\n";
                 {
                        cGPU_LoadedImGeom & aGLI = *(mVLI[aKIm]);
                        const cGeomImage * aGeom=aGLI.Geom();
-                       float ** aDataIm =  aGLI.DataIm();
+                       float ** aDataIm =  aGLI.DataIm0();
                        
                        if (aGLI.IsVisible(anX,anY))
                        {
@@ -160,7 +160,7 @@ void cAppliMICMAC::DoCorrel2ImGeomImGen
                    {
                        cGPU_LoadedImGeom & aGLI = *(mVLI[aKIm]);
                        const cGeomImage * aGeom=aGLI.Geom();
-                       float ** aDataIm =  aGLI.DataIm();
+                       float ** aDataIm =  aGLI.DataIm0();
        
                        
                        // En cas de gestion parties cachees, un masque terrain 
@@ -228,11 +228,11 @@ void cAppliMICMAC::DoCorrelMultiFen
 
    cGPU_LoadedImGeom & aGL1 = *(mVLI[0]);
    const cGeomImage * aGeom1=aGL1.Geom();
-   float ** aDataIm1 =  aGL1.DataIm();
+   float ** aDataIm1 =  aGL1.DataIm0();
 
    cGPU_LoadedImGeom & aGL2 = *(mVLI[mNbIm-1]);
    const cGeomImage * aGeom2=aGL2.Geom();
-   float ** aDataIm2 =  aGL2.DataIm();
+   float ** aDataIm2 =  aGL2.DataIm0();
 
    //  Au boulot !  on balaye le terrain
    for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
@@ -307,11 +307,11 @@ void cAppliMICMAC::DoCorrelRobusteNonCentree
 
    cGPU_LoadedImGeom & aGL1 = *(mVLI[0]);
    const cGeomImage * aGeom1=aGL1.Geom();
-   float ** aDataIm1 =  aGL1.DataIm();
+   float ** aDataIm1 =  aGL1.DataIm0();
 
    cGPU_LoadedImGeom & aGL2 = *(mVLI[mNbIm-1]);
    const cGeomImage * aGeom2=aGL2.Geom();
-   float ** aDataIm2 =  aGL2.DataIm();
+   float ** aDataIm2 =  aGL2.DataIm0();
 
 
    //  Au boulot !  on balaye le terrain
