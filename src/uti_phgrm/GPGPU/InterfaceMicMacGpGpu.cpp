@@ -1,5 +1,12 @@
 #include "GpGpu/InterfaceMicMacGpGpu.h"
 
+void toto()
+{
+	while (1)
+	{
+		int tttt = 5;
+	}
+}
 
 InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
 _texMask(getMask()),
@@ -11,6 +18,11 @@ _texProjections_03(getProjection(3))
 {
 	for (int s = 0;s<NSTREAM;s++)
 		checkCudaErrors( cudaStreamCreate(GetStream(s)));
+
+	_gpuThread = new boost::thread(&InterfaceMicMacGpGpu::MTComputeCost,this);
+	_gpuThread->detach();
+	SetZCToCopy(0);
+	SetZToCompute(0);
 }
 
 InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
@@ -125,6 +137,7 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
 	const int s = 0;
 
 	_LayeredProjection[s].copyHostToDevice(hostVolumeProj);
+	SetComputeNextProj(true);
 	_LayeredProjection[s].bindTexture(GetTeXProjection(s));
 
 	KernelCorrelation(s, *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo);
@@ -283,5 +296,93 @@ textureReference& InterfaceMicMacGpGpu::GetTeXProjection( int TexSel )
 cudaStream_t* InterfaceMicMacGpGpu::GetStream( int stream )
 {
 	return &(_stream[stream]);
+}
+
+void InterfaceMicMacGpGpu::MTComputeCost()
+{
+
+	std::cout << " Thread GpGpu launch" << "\n";
+	std::cout << " Wait for GpGpu Compute..." << "\n";
+
+	bool gpuThreadLoop = true;
+	bool DEBUGTHRE = false;
+	while (gpuThreadLoop)
+	{
+
+		if (GetZToCompute()!=0 && GetZCtoCopy()==0)
+		{
+			uint interZ = GetZToCompute();
+			SetZToCompute(0);
+			//SetComputeNextProj(true);
+			int t = GetComputedZ()+interZ;
+			if (DEBUGTHRE) std::cout << "GPU Start Compute :	" << GetComputedZ() << " --> " <<  t << "\n";
+			BasicCorrelation(_vCost, _vProj, _param.nbImages, interZ);
+			//boost::this_thread::sleep( boost::posix_time::microseconds(1000) );
+			if (DEBUGTHRE) std::cout << "GPU End Compute\n";
+			
+			SetZCToCopy(interZ);
+			
+		}
+
+	}
+}
+
+
+void InterfaceMicMacGpGpu::createThreadGpu()
+{
+	
+}
+
+void InterfaceMicMacGpGpu::SetHostVolume( float* vCost, float2* vProj )
+{
+	_vCost = vCost;
+	_vProj = vProj;	
+}
+
+uint InterfaceMicMacGpGpu::GetZToCompute()
+{
+	 boost::lock_guard<boost::mutex> guard(_mutex);
+	 return _ZCompute;
+}
+
+void InterfaceMicMacGpGpu::SetZToCompute( uint Z )
+{
+	boost::lock_guard<boost::mutex> guard(_mutex);
+	_ZCompute = Z;
+}
+
+uint InterfaceMicMacGpGpu::GetZCtoCopy()
+{
+	boost::lock_guard<boost::mutex> guard(_mutexC);
+	return _ZCCopy;
+
+}
+
+void InterfaceMicMacGpGpu::SetZCToCopy( uint Z )
+{
+	boost::lock_guard<boost::mutex> guard(_mutexC);
+	_ZCCopy = Z;
+}
+
+bool InterfaceMicMacGpGpu::GetComputeNextProj()
+{
+	boost::lock_guard<boost::mutex> guard(_mutexCompute);
+	return _computeNextProj;
+}
+
+void InterfaceMicMacGpGpu::SetComputeNextProj( bool compute )
+{
+	boost::lock_guard<boost::mutex> guard(_mutexCompute);
+	_computeNextProj = compute;
+}
+
+int InterfaceMicMacGpGpu::GetComputedZ()
+{
+	return _computedZ;
+}
+
+void InterfaceMicMacGpGpu::SetComputedZ( int computedZ )
+{
+	_computedZ = computedZ;
 }
 

@@ -3,6 +3,9 @@
 #ifdef CUDA_ENABLED
 
 #include "GpGpu/cudaAppliMicMac.cuh"
+#define BOOST_ALL_NO_LIB 
+#include <boost\thread\thread.hpp>
+#include <boost\chrono\chrono.hpp>
 
 extern "C" void	CopyParamTodevice(paramMicMacGpGpu h);
 extern "C" void	KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, float *dev_NbImgOk, float* cachVig, uint2 nbActThrd);
@@ -40,6 +43,15 @@ class InterfaceMicMacGpGpu
 		float	GetDefaultVal();
 		int		GetIntDefaultVal();
 		void	DeallocMemory();
+		void	SetHostVolume(float* vCost, float2* vProj);
+		uint	GetZToCompute();
+		void	SetZToCompute(uint Z);
+		uint	GetZCtoCopy();
+		void	SetZCToCopy(uint Z);
+		bool	GetComputeNextProj();
+		void	SetComputeNextProj(bool compute);
+		int		GetComputedZ();
+		void	SetComputedZ(int computedZ);
 
 	private:
 
@@ -47,7 +59,8 @@ class InterfaceMicMacGpGpu
 		void					AllocMemory(int nStream);
 		cudaStream_t*			GetStream(int stream);
 		textureReference&		GetTeXProjection(int texSel);
-
+		void					createThreadGpu();
+		void					MTComputeCost();
 
 		cudaStream_t			_stream[NSTREAM];
 		paramMicMacGpGpu		_param;
@@ -66,6 +79,16 @@ class InterfaceMicMacGpGpu
 		textureReference&		_texProjections_01;
 		textureReference&		_texProjections_02;
 		textureReference&		_texProjections_03;
+		boost::thread*			_gpuThread;
+		boost::mutex			_mutex;
+		boost::mutex			_mutexC;
+		boost::mutex			_mutexCompute;
+		float*					_vCost;
+		float2*					_vProj;	
+		uint					_ZCompute;
+		uint					_ZCCopy;
+		bool					_computeNextProj;
+		int						_computedZ;
 };
 
 #endif

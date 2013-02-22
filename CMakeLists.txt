@@ -51,7 +51,7 @@ else()
         set(CPU_BITNESS 64)
     endif()
 endif()
-message( "Systeme " ${CMAKE_SYSTEM_NAME} ${CPU_BITNESS} )
+# message( "Systeme " ${CMAKE_SYSTEM_NAME} ${CPU_BITNESS} )
 
 # DEFINITION : Dossier des exe et Dll nécessaires sous windows
 set(BinAuxWinDir ${PROJECT_SOURCE_DIR}/binaire-aux/BIN_AUX_WIN32)
@@ -77,7 +77,8 @@ if (${CUDA_ENABLED})
 	INCLUDE(FindCUDA)
 	INCLUDE_DIRECTORIES(${CUDA_SDK_ROOT_DIR}/inc)
 	add_definitions(-DCUDA_ENABLED)
-
+	FIND_PACKAGE( Boost 1.46.0 COMPONENTS system serialization thread chrono REQUIRED )
+	include_directories ( ${Boost_INCLUDE_DIRS} )
 endif()
 
 # Etalonnage polygone

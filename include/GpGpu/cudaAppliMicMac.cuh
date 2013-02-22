@@ -18,6 +18,7 @@
 #define INTERPOLA	NEAREST
 #define FLOATMATH
 
+
 #ifdef _DEBUG
 	#define   BLOCKDIM	16
 	#define   SBLOCKDIM 10
