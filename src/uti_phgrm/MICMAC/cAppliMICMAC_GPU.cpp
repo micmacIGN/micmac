@@ -205,6 +205,8 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
     mMSGLI.push_back(this);
     const cCorrelMultiScale*  aCMS = anAppli.CMS();
 
+    mOneImage = true;
+
     if (! aCMS) 
        return;
 
@@ -225,7 +227,7 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
         mMSGLI[aK]->mPdsMS /= mNbVals;
     }
 
-    mOneImage = (aVP.size()==0);
+    mOneImage = (aVP.size()==1);
     
 }
 
