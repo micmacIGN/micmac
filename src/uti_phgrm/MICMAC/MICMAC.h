@@ -1419,6 +1419,9 @@ class cMSLoadedIm
 {
       public :
         cMSLoadedIm(const cOneParamCMS& ,Im2D_REAL4 *,bool First);
+        const Im2D_REAL4 * Im() const;
+        Im2D_REAL4 * Im();
+
       private :
          cOneParamCMS        mImCMS; 
          Im2D_REAL4         mIm;
@@ -1501,10 +1504,12 @@ class cLoadedImage
          U_INT1** DataImPC() const;
          int      SeuilPC() const;
          U_INT1** DataMasqIm() const;
-         virtual float ** DataFloatIm() const = 0;
-         virtual float * DataFloatLinIm() const = 0;
+         virtual float *** DataFloatIm()  = 0;
+         virtual float ** DataFloatLinIm()  = 0;
        
-         virtual  Im2D_REAL4 * FloatIm() const = 0;
+         virtual  Im2D_REAL4 ** FloatIm()  = 0;
+
+         virtual  Im2D_REAL4 * FirstFloatIm()  = 0;
          const std::vector<cMSLoadedIm>&  MSLI();
 
     protected :
@@ -1557,6 +1562,9 @@ class cLoadedImage
          int                mSeuilPC;
 
          std::vector<cMSLoadedIm>  mMSLI;
+         std::vector<Im2D_REAL4 *> mVIm;
+         std::vector<float **>     mVDataIm;
+         std::vector<float *>      mVDataLin;
 
     private:
 
@@ -2507,8 +2515,23 @@ class   cGPU_LoadedImGeom
 	  }
 
       cGeomImage * Geom() {return mGeom;}
-      float ** DataIm()   {return mDataIm;}
-      float *  LinDIm()   {return mLinDIm;}
+      void AssertOneImage()
+      {
+          ELISE_ASSERT(mOneImage,"cGPU_LoadedImGeom::AssertOneImage");
+      }
+      float ** DataIm0()   
+      {
+           AssertOneImage();
+           return mDataIm[0];
+      }
+      float * LinDIm0()   
+      {
+           AssertOneImage();
+           return mLinDIm[0];
+      }
+      float *** VDataIm()   {return mDataIm;}
+      float **  VLinDIm()   {return mLinDIm;}
+
       double * Vals()     {return &(mVals[0]);}
       void  SetOK(bool aIsOK) {mIsOK = aIsOK;}
       bool  IsOK() const {return mIsOK;}
@@ -2542,11 +2565,17 @@ class   cGPU_LoadedImGeom
        {
             return (mDOrtho[anY][anX]-mMoy) / mSigma;
        }
-       double Moy() const {return mMoy;}
-       double Sigma() const {return mSigma;}
+       double MoyCal() const {return mMoy;}
+       double SigmaCalc() const {return mSigma;}
        cPriseDeVue * PDV();
 
        bool Correl(double & Correl,int anX,int anY,const cGPU_LoadedImGeom & aGeoJ) const;
+
+       // inline double StatIm(int anX,int anY,tGpuF **) const;
+
+       inline double MoyIm(int anX,int anY) const;
+       inline double MoyQuadIm(int anX,int anY) const;
+       inline double CovIm(int anX,int anY) const;
 
        Pt2dr ProjOfPDisc(int anX,int anY,int aZ) const;
        void MakeDeriv(int anX,int anY,int aZ);
@@ -2554,6 +2583,8 @@ class   cGPU_LoadedImGeom
        cStatOneImage * ValueVignettByDeriv(int anX,int anY,int aZ,int aSzV,int PasVig) ;
 
        
+       const std::vector<cGPU_LoadedImGeom *> & MSGLI() const {return mMSGLI;}
+       cGPU_LoadedImGeom * KiemeMSGLI(int aK) const {return mMSGLI.at(aK);}
 
    private :
        
@@ -2579,7 +2610,10 @@ class   cGPU_LoadedImGeom
        cStatOneImage      mBufVignette;
 
        std::vector<cGPU_LoadedImGeom *> mMSGLI;  // Multi Scale GLI
+       bool                             mOneImage;
        const cOneParamCMS *             mOPCms;
+       double                           mPdsMS;
+       double                           mSomPdsMS;
 
 // tGpuF
 // tImGpu
@@ -2627,8 +2661,8 @@ class   cGPU_LoadedImGeom
 
     //  zone de donnee : "l'image" elle meme en fait
 
-        float **         mDataIm;
-        float *          mLinDIm;
+        float ***        mDataIm;
+        float **         mLinDIm;
     //  Masque Image (en geometrie image)
         int              mSzX;
         int              mSzY;
@@ -3403,6 +3437,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
        cSurfaceOptimiseur *    mSurfOpt;
        const cCorrelAdHoc *      mCorrelAdHoc;
        const cCorrelMultiScale*  mCMS;
+       bool                      mCMS_ModeDense;
 
        bool                  mGIm1IsInPax;
        cEl_GPAO *            mGPRed2;

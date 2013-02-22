@@ -4423,6 +4423,17 @@ void xml_init(cOneParamCMS & anObj,cElXMLTree * aTree)
 }
 
 
+cTplValGesInit< bool > & cCorrelMultiScale::ModeDense()
+{
+   return mModeDense;
+}
+
+const cTplValGesInit< bool > & cCorrelMultiScale::ModeDense()const 
+{
+   return mModeDense;
+}
+
+
 std::vector< cOneParamCMS > & cCorrelMultiScale::OneParamCMS()
 {
    return mOneParamCMS;
@@ -4436,6 +4447,8 @@ const std::vector< cOneParamCMS > & cCorrelMultiScale::OneParamCMS()const
 cElXMLTree * ToXMLTree(const cCorrelMultiScale & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CorrelMultiScale",eXMLBranche);
+   if (anObj.ModeDense().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ModeDense"),anObj.ModeDense().Val())->ReTagThis("ModeDense"));
   for
   (       std::vector< cOneParamCMS >::const_iterator it=anObj.OneParamCMS().begin();
       it !=anObj.OneParamCMS().end();
@@ -4448,6 +4461,8 @@ cElXMLTree * ToXMLTree(const cCorrelMultiScale & anObj)
 void xml_init(cCorrelMultiScale & anObj,cElXMLTree * aTree)
 {
    if (aTree==0) return;
+
+   xml_init(anObj.ModeDense(),aTree->Get("ModeDense",1)); //tototo 
 
    xml_init(anObj.OneParamCMS(),aTree->GetAll("OneParamCMS",false,1));
 }
@@ -4809,6 +4824,17 @@ void xml_init(cMasqueAutoByTieP & anObj,cElXMLTree * aTree)
 }
 
 
+cTplValGesInit< bool > & cTypeCAH::ModeDense()
+{
+   return CorrelMultiScale().Val().ModeDense();
+}
+
+const cTplValGesInit< bool > & cTypeCAH::ModeDense()const 
+{
+   return CorrelMultiScale().Val().ModeDense();
+}
+
+
 std::vector< cOneParamCMS > & cTypeCAH::OneParamCMS()
 {
    return CorrelMultiScale().Val().OneParamCMS();
@@ -5026,6 +5052,17 @@ cTplValGesInit< int > & cCorrelAdHoc::SzBlocAH()
 const cTplValGesInit< int > & cCorrelAdHoc::SzBlocAH()const 
 {
    return mSzBlocAH;
+}
+
+
+cTplValGesInit< bool > & cCorrelAdHoc::ModeDense()
+{
+   return TypeCAH().CorrelMultiScale().Val().ModeDense();
+}
+
+const cTplValGesInit< bool > & cCorrelAdHoc::ModeDense()const 
+{
+   return TypeCAH().CorrelMultiScale().Val().ModeDense();
 }
 
 
@@ -8591,6 +8628,17 @@ cTplValGesInit< int > & cEtapeMEC::SzBlocAH()
 const cTplValGesInit< int > & cEtapeMEC::SzBlocAH()const 
 {
    return CorrelAdHoc().Val().SzBlocAH();
+}
+
+
+cTplValGesInit< bool > & cEtapeMEC::ModeDense()
+{
+   return CorrelAdHoc().Val().TypeCAH().CorrelMultiScale().Val().ModeDense();
+}
+
+const cTplValGesInit< bool > & cEtapeMEC::ModeDense()const 
+{
+   return CorrelAdHoc().Val().TypeCAH().CorrelMultiScale().Val().ModeDense();
 }
 
 
