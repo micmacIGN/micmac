@@ -1361,7 +1361,7 @@ if (0)
 			anZ += interZ;*/
 		}
 
-		if (DEBUGTHRE) GpGpuTools::OutputReturn("END");
+		//if (DEBUGTHRE) GpGpuTools::OutputReturn("END");
 		IMmGg.SetZCToCopy(0);
 		IMmGg.SetZToCompute(0);
 		hVolumeCost.Dealloc();
