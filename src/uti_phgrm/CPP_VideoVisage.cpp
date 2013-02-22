@@ -214,8 +214,7 @@ cVideoVisage::cVideoVisage(int argc,char ** argv) :
           }
      }
 
-     cEl_GPAO::DoComInParal(aListComMalt,"Make-Malt-Video",0,false);
-getchar();
+     cEl_GPAO::DoComInParal(aListComMalt,"Make-Malt-Video");
      cEl_GPAO::DoComInParal(aListComPly,"Make-Nuage2Ply-Video");
 
 
