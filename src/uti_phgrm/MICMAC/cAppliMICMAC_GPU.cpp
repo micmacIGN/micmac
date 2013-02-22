@@ -1269,8 +1269,8 @@ if (0)
 			if ( IMmGg.GetComputeNextProj() && anZProjection <= anZComputed + interZ)
 			{
 				
-				uint intZ = (uint)abs(aZMaxTer - anZProjection );
-				uint oldinterz		= interZ;
+				int intZ = (uint)abs(aZMaxTer - anZProjection );
+				int oldinterz		= interZ;
 				bool waitToRealloc	= false;
 				
 				if (interZ >= intZ  &&  anZProjection != (aZMaxTer - 1) )
@@ -1348,7 +1348,7 @@ if (0)
 			anZ += interZ;*/
 		}
 
-		if (DEBUGTHRE) GpGpuTools::OutputReturn("END");
+		//if (DEBUGTHRE) GpGpuTools::OutputReturn("END");
 		IMmGg.SetZCToCopy(0);
 		IMmGg.SetZToCompute(0);
 		hVolumeCost.Dealloc();

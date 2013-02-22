@@ -4,8 +4,9 @@
 
 #include "GpGpu/cudaAppliMicMac.cuh"
 #define BOOST_ALL_NO_LIB 
-#include <boost\thread\thread.hpp>
-#include <boost\chrono\chrono.hpp>
+#include <boost/thread/thread.hpp>
+
+//#include <boost\chrono\chrono.hpp>
 
 extern "C" void	CopyParamTodevice(paramMicMacGpGpu h);
 extern "C" void	KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, float *dev_NbImgOk, float* cachVig, uint2 nbActThrd);
