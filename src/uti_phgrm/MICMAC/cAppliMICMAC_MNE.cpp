@@ -154,7 +154,7 @@ void cAppliMICMAC::Correl_MNE_ZPredic
                    {
                        cGPU_LoadedImGeom & aGLI = *(aSelLI[aKIm]);
                        const cGeomImage * aGeom=aGLI.Geom();
-                       float ** aDataIm =  aGLI.DataIm();
+                       float ** aDataIm =  aGLI.DataIm0();
        
                        // Pour empiler les valeurs
                        double * mValsIm = aGLI.Vals();

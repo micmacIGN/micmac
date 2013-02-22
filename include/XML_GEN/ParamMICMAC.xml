@@ -870,6 +870,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                 <SzBlocAH Nb="?" Type="int" Def="40"> </SzBlocAH>
                 <TypeCAH Nb="1" Union="true">
                         <CorrelMultiScale Nb="?">
+                            <ModeDense Nb="?" Type="bool"> </ModeDense>
                             <OneParamCMS Nb="+" Container="std::vector">
                                   <SzW Nb="1" Type="Pt2di"> </SzW>
                                   <!-- A priori Sigma doit etre fonction de  SzW, mais quelle fonction ?? -->

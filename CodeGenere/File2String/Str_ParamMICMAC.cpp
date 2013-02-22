@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[1963]) = {
+const char * (theNameVar_ParamMICMAC[1964]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -872,6 +872,7 @@ const char * (theNameVar_ParamMICMAC[1963]) = {
 "                <SzBlocAH Nb=\"?\" Type=\"int\" Def=\"40\"> </SzBlocAH>\n",
 "                <TypeCAH Nb=\"1\" Union=\"true\">\n",
 "                        <CorrelMultiScale Nb=\"?\">\n",
+"                            <ModeDense Nb=\"?\" Type=\"bool\"> </ModeDense>\n",
 "                            <OneParamCMS Nb=\"+\" Container=\"std::vector\">\n",
 "                                  <SzW Nb=\"1\" Type=\"Pt2di\"> </SzW>\n",
 "                                  <!-- A priori Sigma doit etre fonction de  SzW, mais quelle fonction ?? -->\n",
