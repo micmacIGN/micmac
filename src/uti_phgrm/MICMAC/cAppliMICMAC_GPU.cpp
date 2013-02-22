@@ -540,12 +540,14 @@ if (0)
 	
 		if (mLoadTextures)//		Mise en calque des images	
 		{
+			std::cout << "Start load image\n";
 			mLoadTextures		= false;
 			float*	fdataImg1D	= NULL;	
 			uint2	dimImgMax	= make_uint2(0,0);
 
 			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 			{
+				std::cout << aKIm << "\n";
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 				dimImgMax = max(dimImgMax,toUi2(aGLI.getSizeImage()));				
 			}
@@ -557,8 +559,11 @@ if (0)
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 			
 				// Obtention des données images
+				std::cout << " get image donnee : " << aKIm << "\n";
 				float **aDataIm	= aGLI.DataIm0();
+				std::cout << " get lin image donnee\n";
 				float*	data	= aGLI.LinDIm0();
+				std::cout << " get Size image donnee\n";
 				uint2 dimImg	= toUi2(aGLI.getSizeImage());
 
 				if(fdataImg1D == NULL)
@@ -567,12 +572,20 @@ if (0)
 				// Copie du tableau 2d des valeurs de l'image
 				// [2/5/2013 GChoqueux]
 				// Ameliorer encore la copy de texture, copier les images une à une dans le device!!!!
+				std::cout <<   "COPY\n";
 				if (aEq(dimImgMax,dimImg))
+				{
+					std::cout <<   "memcopy\n";
  					memcpy(  fdataImg1D + size(dimImgMax)* aKIm , data,  size(dimImg) * sizeof(float));
+				}
 				else
+				{
+					std::cout <<   "Memcpy2Dto1D\n";
 					GpGpuTools::Memcpy2Dto1D(aDataIm ,fdataImg1D + size(dimImgMax) * aKIm, dimImgMax, dimImg );
-				
+				}
+				std::cout << "end copy one image\n";
 			}
+			std::cout << "end load image\n";
 /*
 
 			if (0)
@@ -1269,8 +1282,8 @@ if (0)
 			if ( IMmGg.GetComputeNextProj() && anZProjection <= anZComputed + interZ)
 			{
 				
-				uint intZ = (uint)abs(aZMaxTer - anZProjection );
-				uint oldinterz		= interZ;
+				int intZ = (uint)abs(aZMaxTer - anZProjection );
+				int oldinterz		= interZ;
 				bool waitToRealloc	= false;
 				
 				if (interZ >= intZ  &&  anZProjection != (aZMaxTer - 1) )
