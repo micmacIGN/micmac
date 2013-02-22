@@ -1,13 +1,5 @@
 #include "GpGpu/InterfaceMicMacGpGpu.h"
 
-void toto()
-{
-	while (1)
-	{
-		int tttt = 5;
-	}
-}
-
 InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
 _texMask(getMask()),
 _texImages(getImage()),
