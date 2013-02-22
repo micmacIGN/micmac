@@ -200,11 +200,12 @@ cVideoVisage::cVideoVisage(int argc,char ** argv) :
 
               aPatIm = QUOTE(NameIm(aPatIm+")"));
               std::string aComMalt = "Malt GeomImage " + aPatIm 
-                                     + " All Regul=0.1 SzW=2 ZoomF=2 AffineLast=true Master="+aName;
-              aListComMalt.push_back(aComMalt);
+                                     + " All Regul=0.1 SzW=2 ZoomF=2 AffineLast=false Master="+aName;
+               system_call(aComMalt.c_str());
+       //        aListComMalt.push_back(aComMalt);
 
               std::string aComPly = "Nuage2Ply MM-Malt-Img-"
-                                    +StdPrefixGen(aName)+"/NuageImProf_STD-MALT_Etape_7.xml" 
+                                    +StdPrefixGen(aName)+"/NuageImProf_STD-MALT_Etape_6.xml" 
                                     + " Attr=" +aName 
                                     + std::string(" RatioAttrCarte=2 ")
                                     + std::string(" Out=") +StdPrefixGen(aName)+".ply";
@@ -214,8 +215,7 @@ cVideoVisage::cVideoVisage(int argc,char ** argv) :
           }
      }
 
-     cEl_GPAO::DoComInParal(aListComMalt,"Make-Malt-Video",0,false);
-getchar();
+     // cEl_GPAO::DoComInParal(aListComMalt,"Make-Malt-Video");
      cEl_GPAO::DoComInParal(aListComPly,"Make-Nuage2Ply-Video");
 
 
