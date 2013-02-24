@@ -163,10 +163,34 @@
                 <CalcName>  $1  </CalcName>
             </Inverse>
         </Calcs>
-    <Key>   NKS-Assoc-ImSec </Key>
-    <SubDirAutoMake> Ori#1 </SubDirAutoMake>
+        <Key>   NKS-Assoc-ImSec </Key>
+        <SubDirAutoMake> Ori#1 </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  Ori#1/Pt3dIm-$1.dat  </CalcName>
+            </Direct>
+            <Inverse>
+                <PatternTransform> Ori#1/Pt3dIm-(.*).dat  </PatternTransform>
+                <CalcName>  $1  </CalcName>
+            </Inverse>
+        </Calcs>
+        <Key>   NKS-Assoc-Pts3dIm </Key>
+        <SubDirAutoMake> Ori#1 </SubDirAutoMake>
     </KeyedNamesAssociations>
   
+
+
+
+  
+
+
+
     <KeyedNamesAssociations>
     <IsParametrized>  true </IsParametrized>
     <Calcs>

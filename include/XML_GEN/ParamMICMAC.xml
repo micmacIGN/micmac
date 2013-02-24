@@ -930,7 +930,8 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                         </Correl_NC_Robuste>
 
                         <MasqueAutoByTieP Nb="?" AccessorFils="false"> 
-                            <FilePt3D  Nb="1" Type="std::string"> </FilePt3D>
+                            <GlobFilePt3D  Nb="?" Type="std::string"> </GlobFilePt3D>
+                            <KeyImFilePt3D  Nb="1" Type="std::string"> </KeyImFilePt3D>
                         </MasqueAutoByTieP> 
                 </TypeCAH>
             </CorrelAdHoc>

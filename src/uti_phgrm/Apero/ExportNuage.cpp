@@ -76,10 +76,17 @@ void PutPt(FILE * aFP,const Pt3dr & aP,bool aModeBin,bool aDouble)
     }
 }
 
-
+void  cAppliApero::ClearAllCamPtsVu()
+{
+    for (int aK=0; aK<int(mVecPose.size()) ; aK++)
+    {
+         mVecPose[aK]->ResetPtsVu();
+    }
+}
 
 void cAppliApero::ExportNuage(const cExportNuage & anEN)
 {
+    const cExportNuageByImage * aByI = anEN.ExportNuageByImage().PtrVal();
     int aNbChan= anEN.NbChan().Val();
     cSetName *  aSelector = mICNM->KeyOrPatSelector(anEN.PatternSel());
 
@@ -102,6 +109,13 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
     // cElRegex_Ptr  aSelector = anEN.PatternSel().ValWithDef(0);
 
     cArgGetPtsTerrain anAGP(1.0,anEN.LimBSurH().Val());
+    if (aByI)
+    {
+       anAGP.SetByIm(true,aByI->SymPts().Val());
+       ClearAllCamPtsVu();
+    }
+
+
     cPonderationPackMesure aPPM = anEN.Pond();
     aPPM.Add2Compens().SetVal(false);
     cStatObs aStatObs(false);
@@ -252,6 +266,7 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
             }
         }
     }
+    bool aModeBin = anEN.PlyModeBin().Val();
 
     if ((aLastMode==eModeAGPNormale) || (aLastMode==eModeAGPNoAttr))
     {
@@ -260,7 +275,6 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
 
          const std::vector<Pt3dr>  &   aVPts = anAGP.Pts();
          const std::vector<Pt3di>  &   aVNorm = anAGP.Cols();
-         bool aModeBin = anEN.PlyModeBin().Val();
          if ((aLastMode==eModeAGPNoAttr) && aModeBin)
          {
              int aNb = aVPts.size();
@@ -295,6 +309,28 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
           &(anAGP.Cols()),
           anEN.PlyModeBin().Val()
        );
+    }
+    if (aByI)
+    {
+        for (int aK=0; aK<int(mVecPose.size()) ; aK++)
+        {
+             cPoseCam & aPC = *(mVecPose[aK]);
+             const std::vector<Pt3dr> & aVPts = aPC.PtsVu();
+             std::string aName = mICNM->Assoc1To1(aByI->KeyCalc(),aPC.Name(),true);
+             FILE * aFP = FopenNN(mDC+aName,"w","cAppliApero::ExportNuage");
+             
+             if (aModeBin)
+             {
+                 int aNb = aVPts.size();
+                 fwrite(&aNb,sizeof(aNb),1,aFP);
+             }
+             for (int aK=0; aK<int(aVPts.size()) ; aK++)
+             {
+                  PutPt(aFP,aVPts[aK],aModeBin,aLastMode==eModeAGPNoAttr);
+             }
+             ElFclose(aFP);
+        }
+        ClearAllCamPtsVu();
     }
 }
 

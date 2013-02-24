@@ -115,6 +115,12 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
                           <PatternSel> .* </PatternSel>
 
                           <NameOut>  Ori${Out}/Pts3d.dat  </NameOut>
+                          <ExportNuageByImage>
+                               <KeyCalc> NKS-Assoc-Pts3dIm@${Out} </KeyCalc>
+                               <SymPts> true </SymPts>
+                          </ExportNuageByImage>
+
+
                           <PlyModeBin> true </PlyModeBin>
                           <NameRefLiaison> Id_Pastis_Hom </NameRefLiaison>
                           <Pond>

@@ -1371,6 +1371,12 @@ normalises en echelle et/ou en translation -->
                      <ExportNuage Nb="*">
                           <!-- Pour l'instant par defaut mode ply -->
                           <NameOut Nb="1" Type="std::string"> </NameOut>
+                          <!-- Si on veut avoir pour chaque image un fichier specfique des points vue par cette image-->
+                          <ExportNuageByImage Nb="?">
+                               <KeyCalc Nb="1" Type="std::string"> </KeyCalc>
+                               <!-- Si Symetrise Pts, alors les points sont ajoutes autrement que pour la vue maitresse; la valeur par defaut anticipe ce que l'on fera avec des "vrai" point multiple -->
+                               <SymPts Nb="?" Type="bool" Def="true"> </SymPts>
+                          </ExportNuageByImage>
                           <PlyModeBin Nb="?" Def="true" Type="bool"> </PlyModeBin>
                           <!-- Pour l'instant par defaut mode ply -->
 	                  <NameRefLiaison Nb="*" Type="std::string"> </NameRefLiaison>

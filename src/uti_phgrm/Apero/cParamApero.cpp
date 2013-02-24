@@ -12135,6 +12135,46 @@ void xml_init(cExportRedressement & anObj,cElXMLTree * aTree)
 }
 
 
+std::string & cExportNuageByImage::KeyCalc()
+{
+   return mKeyCalc;
+}
+
+const std::string & cExportNuageByImage::KeyCalc()const 
+{
+   return mKeyCalc;
+}
+
+
+cTplValGesInit< bool > & cExportNuageByImage::SymPts()
+{
+   return mSymPts;
+}
+
+const cTplValGesInit< bool > & cExportNuageByImage::SymPts()const 
+{
+   return mSymPts;
+}
+
+cElXMLTree * ToXMLTree(const cExportNuageByImage & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ExportNuageByImage",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("KeyCalc"),anObj.KeyCalc())->ReTagThis("KeyCalc"));
+   if (anObj.SymPts().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SymPts"),anObj.SymPts().Val())->ReTagThis("SymPts"));
+  return aRes;
+}
+
+void xml_init(cExportNuageByImage & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.KeyCalc(),aTree->Get("KeyCalc",1)); //tototo 
+
+   xml_init(anObj.SymPts(),aTree->Get("SymPts",1),bool(true)); //tototo 
+}
+
+
 Pt3di & cNuagePutCam::ColCadre()
 {
    return mColCadre;
@@ -12226,6 +12266,39 @@ std::string & cExportNuage::NameOut()
 const std::string & cExportNuage::NameOut()const 
 {
    return mNameOut;
+}
+
+
+std::string & cExportNuage::KeyCalc()
+{
+   return ExportNuageByImage().Val().KeyCalc();
+}
+
+const std::string & cExportNuage::KeyCalc()const 
+{
+   return ExportNuageByImage().Val().KeyCalc();
+}
+
+
+cTplValGesInit< bool > & cExportNuage::SymPts()
+{
+   return ExportNuageByImage().Val().SymPts();
+}
+
+const cTplValGesInit< bool > & cExportNuage::SymPts()const 
+{
+   return ExportNuageByImage().Val().SymPts();
+}
+
+
+cTplValGesInit< cExportNuageByImage > & cExportNuage::ExportNuageByImage()
+{
+   return mExportNuageByImage;
+}
+
+const cTplValGesInit< cExportNuageByImage > & cExportNuage::ExportNuageByImage()const 
+{
+   return mExportNuageByImage;
 }
 
 
@@ -12408,6 +12481,8 @@ cElXMLTree * ToXMLTree(const cExportNuage & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ExportNuage",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("NameOut"),anObj.NameOut())->ReTagThis("NameOut"));
+   if (anObj.ExportNuageByImage().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.ExportNuageByImage().Val())->ReTagThis("ExportNuageByImage"));
    if (anObj.PlyModeBin().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PlyModeBin"),anObj.PlyModeBin().Val())->ReTagThis("PlyModeBin"));
   for
@@ -12440,6 +12515,8 @@ void xml_init(cExportNuage & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
 
    xml_init(anObj.NameOut(),aTree->Get("NameOut",1)); //tototo 
+
+   xml_init(anObj.ExportNuageByImage(),aTree->Get("ExportNuageByImage",1)); //tototo 
 
    xml_init(anObj.PlyModeBin(),aTree->Get("PlyModeBin",1),bool(true)); //tototo 
 

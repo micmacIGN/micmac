@@ -3992,6 +3992,23 @@ class cExportRedressement
 };
 cElXMLTree * ToXMLTree(const cExportRedressement &);
 
+class cExportNuageByImage
+{
+    public:
+        friend void xml_init(cExportNuageByImage & anObj,cElXMLTree * aTree);
+
+
+        std::string & KeyCalc();
+        const std::string & KeyCalc()const ;
+
+        cTplValGesInit< bool > & SymPts();
+        const cTplValGesInit< bool > & SymPts()const ;
+    private:
+        std::string mKeyCalc;
+        cTplValGesInit< bool > mSymPts;
+};
+cElXMLTree * ToXMLTree(const cExportNuageByImage &);
+
 class cNuagePutCam
 {
     public:
@@ -4029,6 +4046,15 @@ class cExportNuage
 
         std::string & NameOut();
         const std::string & NameOut()const ;
+
+        std::string & KeyCalc();
+        const std::string & KeyCalc()const ;
+
+        cTplValGesInit< bool > & SymPts();
+        const cTplValGesInit< bool > & SymPts()const ;
+
+        cTplValGesInit< cExportNuageByImage > & ExportNuageByImage();
+        const cTplValGesInit< cExportNuageByImage > & ExportNuageByImage()const ;
 
         cTplValGesInit< bool > & PlyModeBin();
         const cTplValGesInit< bool > & PlyModeBin()const ;
@@ -4079,6 +4105,7 @@ class cExportNuage
         const cTplValGesInit< cNuagePutCam > & NuagePutCam()const ;
     private:
         std::string mNameOut;
+        cTplValGesInit< cExportNuageByImage > mExportNuageByImage;
         cTplValGesInit< bool > mPlyModeBin;
         std::list< std::string > mNameRefLiaison;
         cTplValGesInit< std::string > mPatternSel;

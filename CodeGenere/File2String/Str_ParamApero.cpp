@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1458]) = {
+const char * (theNameVar_ParamApero[1464]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1373,6 +1373,12 @@ const char * (theNameVar_ParamApero[1458]) = {
 "                     <ExportNuage Nb=\"*\">\n",
 "                          <!-- Pour l'instant par defaut mode ply -->\n",
 "                          <NameOut Nb=\"1\" Type=\"std::string\"> </NameOut>\n",
+"                          <!-- Si on veut avoir pour chaque image un fichier specfique des points vue par cette image-->\n",
+"                          <ExportNuageByImage Nb=\"?\">\n",
+"                               <KeyCalc Nb=\"1\" Type=\"std::string\"> </KeyCalc>\n",
+"                               <!-- Si Symetrise Pts, alors les points sont ajoutes autrement que pour la vue maitresse; la valeur par defaut anticipe ce que l'on fera avec des \"vrai\" point multiple -->\n",
+"                               <SymPts Nb=\"?\" Type=\"bool\" Def=\"true\"> </SymPts>\n",
+"                          </ExportNuageByImage>\n",
 "                          <PlyModeBin Nb=\"?\" Def=\"true\" Type=\"bool\"> </PlyModeBin>\n",
 "                          <!-- Pour l'instant par defaut mode ply -->\n",
 "	                  <NameRefLiaison Nb=\"*\" Type=\"std::string\"> </NameRefLiaison>\n",
