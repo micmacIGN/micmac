@@ -73,7 +73,10 @@
                      <SzBlocAH> 400000 </SzBlocAH>
                      <TypeCAH>
                         <MasqueAutoByTieP>
+<!--
                             <FilePt3D> Ori${Ori}/Pts3d.dat </FilePt3D>
+-->
+                            <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>
                         </MasqueAutoByTieP>
                      </TypeCAH>
                  </CorrelAdHoc>

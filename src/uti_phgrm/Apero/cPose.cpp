@@ -1776,6 +1776,24 @@ void cPoseCam::SetCurLayer(cLayerImage * aLI)
     mCurLayer = aLI->NamePose2Layer(mName);
 }
 
+
+void cPoseCam::ResetPtsVu()
+{
+   mPtsVu.clear();
+}
+
+void cPoseCam::AddPtsVu(const Pt3dr & aP)
+{
+   mPtsVu.push_back(aP);
+}
+
+
+const std::vector<Pt3dr> &  cPoseCam::PtsVu() const
+{
+    return mPtsVu;
+}
+
+
 /************************************************************/
 /*                                                          */
 /*              cClassEquivPose                             */

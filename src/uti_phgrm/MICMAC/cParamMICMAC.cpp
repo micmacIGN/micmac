@@ -4799,20 +4799,33 @@ void xml_init(cCorrel_NC_Robuste & anObj,cElXMLTree * aTree)
 }
 
 
-std::string & cMasqueAutoByTieP::FilePt3D()
+cTplValGesInit< std::string > & cMasqueAutoByTieP::GlobFilePt3D()
 {
-   return mFilePt3D;
+   return mGlobFilePt3D;
 }
 
-const std::string & cMasqueAutoByTieP::FilePt3D()const 
+const cTplValGesInit< std::string > & cMasqueAutoByTieP::GlobFilePt3D()const 
 {
-   return mFilePt3D;
+   return mGlobFilePt3D;
+}
+
+
+std::string & cMasqueAutoByTieP::KeyImFilePt3D()
+{
+   return mKeyImFilePt3D;
+}
+
+const std::string & cMasqueAutoByTieP::KeyImFilePt3D()const 
+{
+   return mKeyImFilePt3D;
 }
 
 cElXMLTree * ToXMLTree(const cMasqueAutoByTieP & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MasqueAutoByTieP",eXMLBranche);
-   aRes->AddFils(::ToXMLTree(std::string("FilePt3D"),anObj.FilePt3D())->ReTagThis("FilePt3D"));
+   if (anObj.GlobFilePt3D().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("GlobFilePt3D"),anObj.GlobFilePt3D().Val())->ReTagThis("GlobFilePt3D"));
+   aRes->AddFils(::ToXMLTree(std::string("KeyImFilePt3D"),anObj.KeyImFilePt3D())->ReTagThis("KeyImFilePt3D"));
   return aRes;
 }
 
@@ -4820,7 +4833,9 @@ void xml_init(cMasqueAutoByTieP & anObj,cElXMLTree * aTree)
 {
    if (aTree==0) return;
 
-   xml_init(anObj.FilePt3D(),aTree->Get("FilePt3D",1)); //tototo 
+   xml_init(anObj.GlobFilePt3D(),aTree->Get("GlobFilePt3D",1)); //tototo 
+
+   xml_init(anObj.KeyImFilePt3D(),aTree->Get("KeyImFilePt3D",1)); //tototo 
 }
 
 

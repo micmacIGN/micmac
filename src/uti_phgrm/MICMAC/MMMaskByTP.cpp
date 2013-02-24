@@ -131,13 +131,20 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
        WTiePCor= Video_Win::PtrWStd(aBox.sz());
    }
 #endif 
-   mTP3d = StdNuage3DFromFile(WorkDir()+aMATP.FilePt3D());
+   std::string  aNamePts = mICNM->Assoc1To1
+                           (
+                              aMATP.KeyImFilePt3D(),
+                              PDV1()->Name(),
+                              true
+                           );
+   mTP3d = StdNuage3DFromFile(WorkDir()+aNamePts);
 
    mP0Tiep = aBox._p0;
    mSzTiep = aBox.sz();
 
    std::cout << "== cAppliMICMAC::DoMasqueAutoByTieP " << aBox._p0 << " " << aBox._p1 << " Nb=" << mTP3d->size() << "\n"; 
    std::cout << " =NB Im " << mVLI.size() << "\n";
+
 
    cXML_ParamNuage3DMaille aXmlN =  mCurEtape->DoRemplitXML_MTD_Nuage();
 
@@ -147,7 +154,9 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
 
    mMatrCTP = std::vector< std::vector<cCelTiep> > (mSzTiep.y);
    for (int anY = 0 ; anY<mSzTiep.y ; anY++)
+   {
       mMatrCTP[anY] =  std::vector<cCelTiep>(mSzTiep.x);
+   }
 
 
 
@@ -162,13 +171,13 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
        int aZIm = round_ni(aPL2.z);
 
 
-       for (int aKIm=0 ; aKIm<int(mVLI.size()) ; aK++)
+       for (int aKIm=0 ; aKIm<int(mVLI.size()) ; aKIm++)
        {
            mVLI[aKIm]->MakeDeriv(aXIm,aYIm,aZIm);
        }
 
        std::cout << aPE << aPL << aPL2 << "\n";
-       getchar();
+       // getchar();
 
     
    }

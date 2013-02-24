@@ -443,6 +443,10 @@ class cPoseCam
           void  SetNbPosOfInit(int);
 
           int   & NumTmp(); // Entre autre dans bloc bascule
+
+          void ResetPtsVu();
+          void AddPtsVu(const Pt3dr &);
+          const std::vector<Pt3dr> & PtsVu() const;
      private  :
 
           void AssertHasObsCentre() const;
@@ -540,6 +544,8 @@ class cPoseCam
           double                       mMMGainAng;
           std::vector<double>          mMMGainTeta;
           bool                         mFidExist;
+
+          std::vector<Pt3dr>           mPtsVu;
 };
 
 
@@ -1160,6 +1166,7 @@ class cArgGetPtsTerrain
           void InitModeNormale();
           void InitModeNoAttr();
           double LimBsH() const;
+          void SetByIm(bool DoByIm,bool Sym);
 
 
       private :
@@ -1183,6 +1190,8 @@ class cArgGetPtsTerrain
           eModeAGP                mMode;
           Pt3dr                   mDirCol;
           double                  mLimBsH;
+          bool                    mDoByIm;
+          bool                    mSymDoByIm;
 };
 
 
@@ -1931,6 +1940,10 @@ class cAppliApero : public NROptF1vND
 
        void CheckInit(const cLiaisonsInit * ,cPoseCam *);
     private :
+
+       void ClearAllCamPtsVu();
+
+
         void  BasculeBloc(const cBlocBascule &);
         std::vector<cPoseCam *> PoseOfPattern(const std::string & aKeyPat);
         void  BasculeBloc

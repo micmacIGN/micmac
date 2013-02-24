@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[1964]) = {
+const char * (theNameVar_ParamMICMAC[1965]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -932,7 +932,8 @@ const char * (theNameVar_ParamMICMAC[1964]) = {
 "                        </Correl_NC_Robuste>\n",
 "\n",
 "                        <MasqueAutoByTieP Nb=\"?\" AccessorFils=\"false\"> \n",
-"                            <FilePt3D  Nb=\"1\" Type=\"std::string\"> </FilePt3D>\n",
+"                            <GlobFilePt3D  Nb=\"?\" Type=\"std::string\"> </GlobFilePt3D>\n",
+"                            <KeyImFilePt3D  Nb=\"1\" Type=\"std::string\"> </KeyImFilePt3D>\n",
 "                        </MasqueAutoByTieP> \n",
 "                </TypeCAH>\n",
 "            </CorrelAdHoc>\n",

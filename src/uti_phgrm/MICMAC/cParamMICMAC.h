@@ -1690,10 +1690,14 @@ class cMasqueAutoByTieP
         friend void xml_init(cMasqueAutoByTieP & anObj,cElXMLTree * aTree);
 
 
-        std::string & FilePt3D();
-        const std::string & FilePt3D()const ;
+        cTplValGesInit< std::string > & GlobFilePt3D();
+        const cTplValGesInit< std::string > & GlobFilePt3D()const ;
+
+        std::string & KeyImFilePt3D();
+        const std::string & KeyImFilePt3D()const ;
     private:
-        std::string mFilePt3D;
+        cTplValGesInit< std::string > mGlobFilePt3D;
+        std::string mKeyImFilePt3D;
 };
 cElXMLTree * ToXMLTree(const cMasqueAutoByTieP &);
 
