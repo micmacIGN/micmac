@@ -23,6 +23,9 @@ if (NOT ${BUILD_ONLY_ELISE})
 
 	add_executable(Apero  Apero.c)
 	INSTALL(TARGETS Apero RUNTIME DESTINATION ${Install_Dir})
+	
+	add_executable(Apero2PMVS Apero2PMVS.c)
+	INSTALL(TARGETS Apero2PMVS RUNTIME DESTINATION ${Install_Dir})
 
 	add_executable(Bascule  Bascule.c)
 	INSTALL(TARGETS Bascule RUNTIME DESTINATION ${Install_Dir})
@@ -38,6 +41,9 @@ if (NOT ${BUILD_ONLY_ELISE})
 
 	add_executable(Devlop  Devlop.c)
 	INSTALL(TARGETS Devlop RUNTIME DESTINATION ${Install_Dir})
+
+	add_executable(Drunk Drunk.c)
+	INSTALL(TARGETS Drunk RUNTIME DESTINATION ${Install_Dir})
 
 	add_executable(ElDcraw  ElDcraw.c)
 	INSTALL(TARGETS ElDcraw RUNTIME DESTINATION ${Install_Dir})

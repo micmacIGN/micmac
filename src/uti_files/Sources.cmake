@@ -8,6 +8,7 @@ set(uti_files_Src_Files
     ${UTI_FILES_DIR}/CPP_TestKeys.cpp
     ${UTI_FILES_DIR}/CPP_TestMTD.cpp
 	${UTI_FILES_DIR}/CPP_TestCmds.cpp
+	${UTI_FILES_DIR}/CPP_Apero2PMVS.cpp
 )
 
 SOURCE_GROUP(uti_files FILES ${uti_files_Src_Files})
