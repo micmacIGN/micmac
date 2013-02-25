@@ -48,7 +48,6 @@ namespace NS_ParamMICMAC
 #ifdef CUDA_ENABLED
 	uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);};
 	int2  toI2(Pt2dr a){return make_int2((int)a.x,(int)a.y);};
-	//paramMicMacGpGpu h;
 #endif
 
 	template <class Type,class TBase> 
@@ -542,14 +541,13 @@ if (0)
 	
 		if (mLoadTextures)//		Mise en calque des images	
 		{
-			std::cout << "Start load image\n";
+
 			mLoadTextures		= false;
 			float*	fdataImg1D	= NULL;	
 			uint2	dimImgMax	= make_uint2(0,0);
 
 			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
 			{
-				std::cout << aKIm << "\n";
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 				dimImgMax = max(dimImgMax,toUi2(aGLI.getSizeImage()));				
 			}
@@ -561,33 +559,22 @@ if (0)
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 			
 				// Obtention des données images
-				std::cout << " get image donnee : " << aKIm << "\n";
 				float **aDataIm	= aGLI.DataIm0();
-				std::cout << " get lin image donnee\n";
 				float*	data	= aGLI.LinDIm0();
-				std::cout << " get Size image donnee\n";
 				uint2 dimImg	= toUi2(aGLI.getSizeImage());
 
 				if(fdataImg1D == NULL)
 					fdataImg1D	= new float[ size(dimImgMax) * mNbIm ];
 	
 				// Copie du tableau 2d des valeurs de l'image
-				// [2/5/2013 GChoqueux]
 				// Ameliorer encore la copy de texture, copier les images une à une dans le device!!!!
-				std::cout <<   "COPY\n";
 				if (aEq(dimImgMax,dimImg))
-				{
-					std::cout <<   "memcopy\n";
  					memcpy(  fdataImg1D + size(dimImgMax)* aKIm , data,  size(dimImg) * sizeof(float));
-				}
+
 				else
-				{
-					std::cout <<   "Memcpy2Dto1D\n";
 					GpGpuTools::Memcpy2Dto1D(aDataIm ,fdataImg1D + size(dimImgMax) * aKIm, dimImgMax, dimImg );
-				}
-				std::cout << "end copy one image\n";
+
 			}
-			std::cout << "end load image\n";
 /*
 
 			if (0)
@@ -653,7 +640,6 @@ if (0)
 		ptMask1.x++;
 		ptMask1.y++;
 
-		//h = updateSizeBlock(make_uint2(ptMask0),make_uint2(ptMask1),INTERZ);
 		IMmGg.SetSizeBlock(make_uint2(ptMask0),make_uint2(ptMask1),INTERZ);
 
 		if (IMmGg.IsValid())
@@ -665,7 +651,6 @@ if (0)
 			for (int y = ptMask0.y; y < ptMask1.y; y++) 
 				memcpy(SubMaskTab + (y  - ptMask0.y) * rDimTerr.x, maskTab + (y - mY0Ter) * diTer.x + ptMask0.x - mX0Ter, sizeof(pixel) * rDimTerr.x );
 					
-			//SetMask(SubMaskTab,rDimTerr);
 			IMmGg.SetMask(SubMaskTab,rDimTerr);
 
 			delete[] SubMaskTab;
