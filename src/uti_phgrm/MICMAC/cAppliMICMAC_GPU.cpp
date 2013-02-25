@@ -1255,58 +1255,61 @@ if (0)
 		int anZProjection	= aZMinTer;
 		int anZComputed		= aZMinTer;
 
+		bool multiT = true;
 		bool DEBUGTHRE = false;
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		while( anZComputed < aZMaxTer )
 		{
 			
-			
-			if ( IMmGg.GetComputeNextProj() && anZProjection <= anZComputed + interZ && anZProjection < aZMaxTer)
+			if (multiT)
 			{
-				int intZ = (uint)abs(aZMaxTer - anZProjection );
-				if (interZ >= intZ  &&  anZProjection != (aZMaxTer - 1) )
- 						interZ = intZ;
-// 				int t = anZProjection+interZ;
-// 				if (DEBUGTHRE) std::cout << "Start Compute projection : " << anZProjection << " -> " << t << "/" << aZMaxTer << "\n" ;
+				if ( IMmGg.GetComputeNextProj() && anZProjection <= anZComputed + interZ && anZProjection < aZMaxTer)
+				{
+					int intZ = (uint)abs(aZMaxTer - anZProjection );
+					if (interZ >= intZ  &&  anZProjection != (aZMaxTer - 1) )
+						interZ = intZ;
 
+					hVolumeProj.Memset(IMmGg.GetIntDefaultVal());
+					Tabul_Projection(hVolumeProj.pData(), anZProjection, IMmGg.ptU0(), IMmGg.ptU1(),IMmGg.GetSample(), interZ);
+					IMmGg.SetComputeNextProj(false);				
+					IMmGg.SetZToCompute(interZ);				
+					anZProjection+= interZ;				
+				}
+				int ZtoCopy = IMmGg.GetZCtoCopy();
+				if (ZtoCopy != 0 && anZComputed < aZMaxTer)
+				{
+
+					setVolumeCost(mTer0,mTer1,anZComputed,anZComputed + ZtoCopy,mAhDefCost,hVolumeCost.pData(), IMmGg.ptM0(), IMmGg.ptM1(),IMmGg.GetDefaultVal());
+					anZComputed += ZtoCopy;
+					IMmGg.SetComputedZ(anZComputed);
+					IMmGg.SetZCToCopy(0);
+				}
+			}
+			else
+			{
+				// Re-initialisation du tableau de projection
 				hVolumeProj.Memset(IMmGg.GetIntDefaultVal());
-				Tabul_Projection(hVolumeProj.pData(), anZProjection, IMmGg.ptU0(), IMmGg.ptU1(),IMmGg.GetSample(), interZ);
-				IMmGg.SetComputeNextProj(false);				
-				IMmGg.SetZToCompute(interZ);				
-				anZProjection+= interZ;				
-			}
-			int ZtoCopy = IMmGg.GetZCtoCopy();
-			if (ZtoCopy != 0 && anZComputed < aZMaxTer)
-			{
-				//int t = IMmGg.GetComputedZ() + ZtoCopy;
-				setVolumeCost(mTer0,mTer1,anZComputed,anZComputed + ZtoCopy,mAhDefCost,hVolumeCost.pData(), IMmGg.ptM0(), IMmGg.ptM1(),IMmGg.GetDefaultVal());
-				//if (DEBUGTHRE) std::cout << "Copy : " << anZComputed << " -> " <<  t << "/" << aZMaxTer <<"\n";
-				anZComputed += ZtoCopy;
-				IMmGg.SetComputedZ(anZComputed);
-				IMmGg.SetZCToCopy(0);
-			}
+				Tabul_Projection(hVolumeProj.pData(), anZComputed, IMmGg.ptU0(), IMmGg.ptU1(),IMmGg.GetSample(), interZ);
+				// Kernel Correlation
+				IMmGg.BasicCorrelation(hVolumeCost.pData(), hVolumeProj.pData(), mNbIm, interZ);
 
-/*			// Re-initialisation du tableau de projection
-			//hVolumeProj.Memset(IMmGg.GetIntDefaultVal());
-			//Tabul_Projection(hVolumeProj.pData(), anZ, IMmGg.ptU0(), IMmGg.ptU1(),IMmGg.GetSample(), interZ);
-			// Kernel Correlation
-			IMmGg.BasicCorrelation(hVolumeCost.pData(), hVolumeProj.pData(), mNbIm, interZ);
+				setVolumeCost(mTer0,mTer1,anZComputed,anZComputed + interZ,mAhDefCost,hVolumeCost.pData(), IMmGg.ptM0(), IMmGg.ptM1(),IMmGg.GetDefaultVal());
 
-			setVolumeCost(mTer0,mTer1,anZ,anZ + interZ,mAhDefCost,hVolumeCost.pData(), IMmGg.ptM0(), IMmGg.ptM1(),IMmGg.GetDefaultVal());
+				uint intZ = (uint)abs(aZMaxTer - anZComputed );
 
-			uint intZ = (uint)abs(aZMaxTer - anZ );
+				if (interZ >= (int)intZ  &&  anZComputed != (aZMaxTer - 1))
+				{
+					interZ = intZ;
+					IMmGg.SetSizeBlock(interZ);
 
-			if (interZ >= intZ  &&  anZ != (aZMaxTer - 1))
-			{
-				interZ = intZ;
-				IMmGg.SetSizeBlock(interZ);
+					hVolumeCost.Realloc(IMmGg.GetDimensionTerrain(),interZ);
+					hVolumeProj.Realloc(IMmGg.GetSDimensionTerrain(), interZ*mNbIm);
 
-				hVolumeCost.Realloc(IMmGg.GetDimensionTerrain(),interZ);
-				hVolumeProj.Realloc(IMmGg.GetSDimensionTerrain(), interZ*mNbIm);
-
-			} 
+				} 
 			
-			anZ += interZ;*/
+				anZComputed += interZ;
+			}
+
 		}
 
 		if (DEBUGTHRE) GpGpuTools::OutputReturn("END");
