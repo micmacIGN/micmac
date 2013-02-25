@@ -1246,8 +1246,6 @@ if (0)
 		if (interZ != INTERZ)
 			IMmGg.SetSizeBlock(interZ);
 		
-		
-	
 		CuHostData3D<float>		hVolumeCost(IMmGg.GetDimensionTerrain(),interZ);
 		CuHostData3D<float2>	hVolumeProj(IMmGg.GetSDimensionTerrain(), interZ*mNbIm);
 
@@ -1261,73 +1259,36 @@ if (0)
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		while( anZComputed < aZMaxTer )
 		{
-			// Re-initialisation du tableau de projection
-			//hVolumeProj.Memset(IMmGg.GetIntDefaultVal());
-
-			//Tabul_Projection(hVolumeProj.pData(), anZ, IMmGg.ptU0(), IMmGg.ptU1(),IMmGg.GetSample(), interZ);
 			
-			if ( IMmGg.GetComputeNextProj() && anZProjection <= anZComputed + interZ)
+			
+			if ( IMmGg.GetComputeNextProj() && anZProjection <= anZComputed + interZ && anZProjection < aZMaxTer)
 			{
-				
 				int intZ = (uint)abs(aZMaxTer - anZProjection );
-				int oldinterz		= interZ;
-				bool waitToRealloc	= false;
-				
 				if (interZ >= intZ  &&  anZProjection != (aZMaxTer - 1) )
-				{
-
-					if (IMmGg.GetZToCompute() == 0)
-					{
-
-						if (DEBUGTHRE)
-							std::cout << "Realloc \n";	
  						interZ = intZ;
-// 	 					IMmGg.SetSizeBlock(interZ);	
-// 	 
-// 	 					hVolumeCost.Realloc(IMmGg.GetDimensionTerrain(),interZ);
-// 	 					hVolumeProj.Realloc(IMmGg.GetSDimensionTerrain(), interZ*mNbIm);
+// 				int t = anZProjection+interZ;
+// 				if (DEBUGTHRE) std::cout << "Start Compute projection : " << anZProjection << " -> " << t << "/" << aZMaxTer << "\n" ;
 
-					}
-					else
-					{
-						waitToRealloc =  true;
-					}
-
-				} 
-
-				if ( anZProjection <= anZComputed + oldinterz && !waitToRealloc)
-				{
-
-					int t = anZProjection+interZ;
-					if (DEBUGTHRE) std::cout << "Start Compute projection : " << anZProjection << " -> " << t << "\n" ;
-					
-					hVolumeProj.Memset(IMmGg.GetIntDefaultVal());
-
-					Tabul_Projection(hVolumeProj.pData(), anZProjection, IMmGg.ptU0(), IMmGg.ptU1(),IMmGg.GetSample(), interZ);
-					IMmGg.SetComputeNextProj(false);				
-					IMmGg.SetZToCompute(interZ);				
-					anZProjection+= interZ;
-					
-				}
+				hVolumeProj.Memset(IMmGg.GetIntDefaultVal());
+				Tabul_Projection(hVolumeProj.pData(), anZProjection, IMmGg.ptU0(), IMmGg.ptU1(),IMmGg.GetSample(), interZ);
+				IMmGg.SetComputeNextProj(false);				
+				IMmGg.SetZToCompute(interZ);				
+				anZProjection+= interZ;				
 			}
-
-			if (IMmGg.GetZCtoCopy() != 0)
+			int ZtoCopy = IMmGg.GetZCtoCopy();
+			if (ZtoCopy != 0 && anZComputed < aZMaxTer)
 			{
-
-				int ZtoCopy = IMmGg.GetZCtoCopy();
-
-				int t = IMmGg.GetComputedZ() + ZtoCopy;
-				if (DEBUGTHRE) std::cout << "Copy : " << anZComputed << " -> " <<  t << "\n";
+				//int t = IMmGg.GetComputedZ() + ZtoCopy;
 				setVolumeCost(mTer0,mTer1,anZComputed,anZComputed + ZtoCopy,mAhDefCost,hVolumeCost.pData(), IMmGg.ptM0(), IMmGg.ptM1(),IMmGg.GetDefaultVal());
-
+				//if (DEBUGTHRE) std::cout << "Copy : " << anZComputed << " -> " <<  t << "/" << aZMaxTer <<"\n";
 				anZComputed += ZtoCopy;
 				IMmGg.SetComputedZ(anZComputed);
-				//if (DEBUGTHRE) std::cout << "anZComputed : " << anZComputed << "/" << aZMaxTer << "\n";
 				IMmGg.SetZCToCopy(0);
 			}
 
-
-/*
+/*			// Re-initialisation du tableau de projection
+			//hVolumeProj.Memset(IMmGg.GetIntDefaultVal());
+			//Tabul_Projection(hVolumeProj.pData(), anZ, IMmGg.ptU0(), IMmGg.ptU1(),IMmGg.GetSample(), interZ);
 			// Kernel Correlation
 			IMmGg.BasicCorrelation(hVolumeCost.pData(), hVolumeProj.pData(), mNbIm, interZ);
 
@@ -1348,7 +1309,7 @@ if (0)
 			anZ += interZ;*/
 		}
 
-		//if (DEBUGTHRE) GpGpuTools::OutputReturn("END");
+		if (DEBUGTHRE) GpGpuTools::OutputReturn("END");
 		IMmGg.SetZCToCopy(0);
 		IMmGg.SetZToCompute(0);
 		hVolumeCost.Dealloc();
