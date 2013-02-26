@@ -1253,7 +1253,7 @@ if (0)
 		int anZComputed		= aZMinTer;
 
 		bool multiT = true;
-		bool DEBUGTHRE = false;
+		//bool DEBUGTHRE = false;
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		while( anZComputed < aZMaxTer )
 		{
