@@ -11,6 +11,40 @@
 #define SUPPRESS_NOT_USED_WARN
 #endif
 
+struct Rect
+{
+	int2 pt0;
+	int2 pt1;
+
+	Rect();
+	Rect(int2 p0, int2 p1)
+	{
+
+		pt0 = p0;
+		pt1 = p1;
+	};
+
+
+	Rect(uint2 p0, uint2 p1)
+	{
+
+		pt0 = make_int2(p0);
+		pt1 = make_int2(p1);
+	};
+
+	Rect(int p0x,int p0y,int p1x,int p1y)
+	{
+
+		pt0 = make_int2(p0x,p0y);
+		pt1 = make_int2(p1x,p1y);
+	};
+
+	uint2 dimension()
+	{
+		return make_uint2(pt1-pt0);
+	};
+};
+
 static int iDivUp(int a, int b)
 {
 	return (a % b != 0) ? (a / b + 1) : (a / b);
