@@ -35,7 +35,6 @@ struct paramMicMacGpGpu
 	 uint2	rDiTer;		// Dimension du bloque terrain
 	 uint2	dimTer;		// Dimension du bloque terrain + halo
 	 uint2	dimSTer;	// Dimension du bloque terrain + halo sous echantilloné
-	 uint2	restTer;
 	 uint2	dimVig;		// Dimension de la vignette
 	 uint2	dimImg;		// Dimension des images
 	 uint2	rVig;		// Rayon de la vignette
@@ -51,7 +50,6 @@ struct paramMicMacGpGpu
 	 uint	nbImages;		// Nombre d'images
 	 Rect	rUTer;
 	 Rect	rMask;
-	 float	badVig;		//
 	 float	mAhEpsilon;
 
 	 Rect GetRUTer()
@@ -78,7 +76,6 @@ struct paramMicMacGpGpu
 		 rSiTer		= size(rDiTer);
 		 dimCach	= rDiTer * dimVig;
 		 sizeCach	= size(dimCach);
-		 restTer	= dimSTer * sampTer - dimTer;
 		 //ZLocInter	= LOCINTERZ;
 		 ZLocInter	= ZInter;
 	 
@@ -97,7 +94,6 @@ struct paramMicMacGpGpu
 		 sampTer	= samplingZ;					// Pas echantillonage du terrain
 		 DefaultVal	= uvDef;						// UV Terrain incorrect
 		 IntDefault	= uvINTDef;
-		 badVig		= -4.0f;
 		 mAhEpsilon	= mAhEpsilon;
 
 	 };
