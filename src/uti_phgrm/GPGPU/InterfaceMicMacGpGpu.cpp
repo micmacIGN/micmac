@@ -272,33 +272,19 @@ cudaStream_t* InterfaceMicMacGpGpu::GetStream( int stream )
 
 void InterfaceMicMacGpGpu::MTComputeCost()
 {
-
-	std::cout << " Thread GpGpu launch" << "\n";
-	std::cout << " Wait for GpGpu Compute..." << "\n";
-
 	bool gpuThreadLoop = true;
-	bool DEBUGTHRE = false;
+
 	while (gpuThreadLoop)
 	{
-
 		if (GetZToCompute()!=0 && GetZCtoCopy()==0)
 		{
 			uint interZ = GetZToCompute();
 			SetZToCompute(0);
-			//SetComputeNextProj(true);
-			int t = GetComputedZ()+interZ;
-			if (DEBUGTHRE) std::cout << "GPU Start Compute :	" << GetComputedZ() << " --> " <<  t << "\n";
 			BasicCorrelation(_vCost, _vProj, _param.nbImages, interZ);
-			//boost::this_thread::sleep( boost::posix_time::microseconds(1000) );
-			if (DEBUGTHRE) std::cout << "GPU End Compute\n";
-			
 			SetZCToCopy(interZ);
-			
 		}
-
 	}
 }
-
 
 void InterfaceMicMacGpGpu::createThreadGpu()
 {
