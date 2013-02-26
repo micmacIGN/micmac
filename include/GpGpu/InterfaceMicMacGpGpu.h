@@ -25,20 +25,18 @@ class InterfaceMicMacGpGpu
 		InterfaceMicMacGpGpu();
 		~InterfaceMicMacGpGpu();
 
-		void	SetSizeBlock( uint2 ter0, uint2 ter1, uint Zinter);
+		void	SetSizeBlock( Rect Ter, uint Zinter);
 		void	SetSizeBlock( uint Zinter);
 		void	SetMask(pixel* dataMask, uint2 dimMask);
 		void	SetImages(float* dataImage, uint2 dimImage, int nbLayer);
-		void	InitParam(uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ);
+		void	InitParam(Rect Ter, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ);
 		void	BasicCorrelation( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
 		void	BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
 		uint2	GetDimensionTerrain();
 		uint2	GetSDimensionTerrain();
 		bool	IsValid();
-		int2	ptU0();
-		int2	ptU1();
-		int2	ptM0();
-		int2	ptM1();
+		Rect	rUTer();
+		Rect	rMask();
 		uint	GetSample();
 		float	GetDefaultVal();
 		int		GetIntDefaultVal();

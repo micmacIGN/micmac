@@ -15,7 +15,7 @@
 #define NEAREST		0
 #define LINEARINTER	1
 #define BICUBIC		2
-#define INTERPOLA	BICUBIC
+#define INTERPOLA	NEAREST
 #define FLOATMATH
 
 
@@ -57,18 +57,26 @@ struct paramMicMacGpGpu
 	 float	badVig;		//
 	 float	mAhEpsilon;
 
-	 void SetDimension(uint2 ter0, uint2 ter1, uint Zinter)
+	 Rect rUTer()
+	 {
+		 return Rect(pUTer0,pUTer1);
+	 };
+
+	 Rect rMask()
+	 {
+		 return Rect(ptMask0,ptMask1);
+	 };
+
+	 void SetDimension(Rect Ter, uint Zinter)
 	 {
 
 		 ZInter		= Zinter;
-		 ptMask0	= make_int2(ter0);
-		 ptMask1	= make_int2(ter1);
-		 pUTer0.x	= (int)ter0.x - (int)rVig.x;
-		 pUTer0.y	= (int)ter0.y - (int)rVig.y;
-		 pUTer1.x	= (int)ter1.x + (int)rVig.x;
-		 pUTer1.y	= (int)ter1.y + (int)rVig.y;
-		 rDiTer		= make_uint2(ter1.x - ter0.x, ter1.y - ter0.y);
-		 dimTer		= make_uint2(pUTer1.x - pUTer0.x, pUTer1.y - pUTer0.y);
+		 ptMask0	= Ter.pt0;
+		 ptMask1	= Ter.pt1;
+		 pUTer0		= Ter.pt0 - rVig;
+		 pUTer1		= Ter.pt1 + rVig;
+		 rDiTer		= Ter.dimension();
+		 dimTer		= Rect(pUTer0,pUTer1).dimension();
 		 dimSTer	= iDivUp(dimTer,sampTer);	// Dimension du bloque terrain sous echantilloné
 		 sizeTer	= size(dimTer);				// Taille du bloque terrain
 		 sizeSTer	= size(dimSTer);				// Taille du bloque terrain sous echantilloné

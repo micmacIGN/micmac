@@ -539,6 +539,8 @@ if (0)
 
 #ifdef CUDA_ENABLED
 	
+		Rect Ter(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
+
 		if (mLoadTextures)//		Mise en calque des images	
 		{
 
@@ -592,39 +594,35 @@ if (0)
 
 			if (fdataImg1D != NULL) delete[] fdataImg1D;
 
-			uint2 Ter0		= make_uint2(mX0Ter,mY0Ter);
-			uint2 Ter1		= make_uint2(mX1Ter,mY1Ter);
+// 			int2 Ter0		= make_int2(mX0Ter,mY0Ter);
+// 			int2 Ter1		= make_int2(mX1Ter,mY1Ter);
 
+			
 			//h = Init_Correlation_GPU();
-			IMmGg.InitParam(Ter0, Ter1, mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT, INTERZ);
+			IMmGg.InitParam(Ter, mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT, INTERZ);
 			
 		}
 
 		//////////////////////////////////////////////////////////////////////////
 
-		uint2 Ter0  = make_uint2(mX0Ter,mY0Ter);
-		uint2 Ter1  = make_uint2(mX1Ter,mY1Ter);
-		uint2 diTer = Ter1 - Ter0;
-		int2 ptMask0   = make_int2(-1);
-		int2 ptMask1   = make_int2(-1);
-
-		pixel *maskTab = new pixel[size(diTer)];
+		Rect rMask(-1,-1,-1,-1);
+		pixel *maskTab = new pixel[size(Ter.dimension())];
 
 		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
 		{
 			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
 			{
-				uint idMask		= diTer.x * (anY - mY0Ter) + anX - mX0Ter;
+				uint idMask		= Ter.dimension().x * (anY - mY0Ter) + anX - mX0Ter;
 				if (IsInTer(anX,anY))
 				{
-				    if ( aEq(ptMask0, -1))
-						ptMask0 = make_int2(anX,anY);
+				    if ( aEq(rMask.pt0, -1))
+						rMask.pt0 = make_int2(anX,anY);
 
-					if (anX < ptMask0.x ) ptMask0.x = anX;
-					if (anY < ptMask0.y ) ptMask0.y = anY;
-
-				    if (ptMask1.x < anX) ptMask1.x = anX;
-					if (ptMask1.y < anY) ptMask1.y = anY;
+					if (anX < rMask.pt0.x ) rMask.pt0.x = anX;
+					if (anY < rMask.pt0.y ) rMask.pt0.y = anY;
+					
+				    if (rMask.pt1.x < anX) rMask.pt1.x = anX;
+					if (rMask.pt1.y < anY) rMask.pt1.y = anY;
 
 					maskTab[idMask] = 1;
 				}	
@@ -637,10 +635,10 @@ if (0)
 			}
 		}
 
-		ptMask1.x++;
-		ptMask1.y++;
+		rMask.pt1.x++;
+		rMask.pt1.y++;
 
-		IMmGg.SetSizeBlock(make_uint2(ptMask0),make_uint2(ptMask1),INTERZ);
+		IMmGg.SetSizeBlock(rMask,INTERZ);
 
 		if (IMmGg.IsValid())
 		{
@@ -648,8 +646,8 @@ if (0)
 
 			pixel *SubMaskTab = new pixel[size(rDimTerr)];
 
-			for (int y = ptMask0.y; y < ptMask1.y; y++) 
-				memcpy(SubMaskTab + (y  - ptMask0.y) * rDimTerr.x, maskTab + (y - mY0Ter) * diTer.x + ptMask0.x - mX0Ter, sizeof(pixel) * rDimTerr.x );
+			for (int y = rMask.pt0.y; y < rMask.pt1.y; y++) 
+				memcpy(SubMaskTab + (y  - rMask.pt0.y) * rDimTerr.x, maskTab + (y - mY0Ter) * Ter.dimension().x + rMask.pt0.x - mX0Ter, sizeof(pixel) * rDimTerr.x );
 					
 			IMmGg.SetMask(SubMaskTab,rDimTerr);
 
@@ -1120,10 +1118,10 @@ if (0)
 	}
 
 #ifdef  CUDA_ENABLED
-	void cAppliMICMAC::Tabul_Projection( float2* TabProj, int Z, int2 Ter0, int2 Ter1, uint sample, uint interZ)
+	void cAppliMICMAC::Tabul_Projection( float2* TabProj, int Z, Rect zone, uint sample, uint interZ)
 	{
 		
-		uint2	dimTabProj	= make_uint2(Ter1 - Ter0);				// Dimension de la zone terrain 
+		uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain 
 		uint2	dimSTabProj	= iDivUp(dimTabProj,sample);			// Dimension de la zone terrain echantilloné
 		uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
  		int2	aSzDz		= toI2(Pt2dr(mGeomDFPx->SzDz()));		// Dimension de la zone terrain total
@@ -1138,13 +1136,13 @@ if (0)
 				const cGeomImage*	aGeom	= aGLI.Geom();
 				int2 an;
 		
-				for (an.y = Ter0.y; an.y < Ter1.y; an.y += sample)	// Ballayage du terrain  
+				for (an.y = zone.pt0.y; an.y < zone.pt1.y; an.y += sample)	// Ballayage du terrain  
 				{															
-					for (an.x = Ter0.x; an.x < Ter1.x ; an.x += sample)	
+					for (an.x = zone.pt0.x; an.x < zone.pt1.x ; an.x += sample)	
 					{
 						if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip))
 						{
-							int2 r	= (an - Ter0)/sample;
+							int2 r	= (an - zone.pt0)/sample;
 							int iD	= (abs(Z - anZ) * mNbIm  +   aKIm )* sizSTabProj  + to1D(r,dimSTabProj);
 // 							int aZMin	= mTabZMin[an.y][an.x];
 // 							int aZMax	= mTabZMax[an.y][an.x];
@@ -1195,20 +1193,20 @@ if (0)
 */
 	}
 
-	void cAppliMICMAC::setVolumeCost(uint2 ter0, uint2 ter1, uint z0, uint z1, double defaultCost, float* tabCost, int2 pt0, int2 pt1, float valdefault)
+	void cAppliMICMAC::setVolumeCost(Rect Ter, uint z0, uint z1, double defaultCost, float* tabCost, Rect zone, float valdefault)
 	{
-		uint2 rDiTer = make_uint2(pt1 - pt0);
+		uint2 rDiTer = zone.dimension();
 		uint  rSiTer = size(rDiTer);
-		for (int anY = ter0.y ; anY < (int)ter1.y; anY++)
-			for (int anX = ter0.x ; anX <  (int)ter1.x ; anX++) 
+		for (int anY = Ter.pt0.y ; anY < (int)Ter.pt1.y; anY++)
+			for (int anX = Ter.pt0.x ; anX <  (int)Ter.pt1.x ; anX++) 
 			{
 				int anZ0 = max(z0,mTabZMin[anY][anX]);
 				int anZ1 = min(z1,mTabZMax[anY][anX]);
 
 				for (int anZ = anZ0;  anZ < anZ1 ; anZ++,mNbPointsIsole++)
-					if (tabCost !=NULL && anX >= pt0.x && anY >= pt0.y && anX < pt1.x && anY < pt1.y )
+					if (tabCost !=NULL && anX >= zone.pt0.x && anY >= zone.pt0.y && anX < zone.pt1.x && anY < zone.pt1.y )
 					{							
-						double cost = (double)tabCost[rSiTer * abs(anZ - (int)z0) + rDiTer.x * (anY - pt0.y) + anX -  pt0.x];
+						double cost = (double)tabCost[rSiTer * abs(anZ - (int)z0) + rDiTer.x * (anY - zone.pt0.y) + anX -  zone.pt0.x];
 						mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : defaultCost);																									
 					}
 					else						
@@ -1232,12 +1230,11 @@ if (0)
 		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
 		//int aZMinTer = 0, aZMaxTer = 26;
 
-		uint2 mTer0 = make_uint2(mX0Ter,mY0Ter);
-		uint2 mTer1 = make_uint2(mX1Ter,mY1Ter);
+		Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
 
 		if (!IMmGg.IsValid())
 		{
-			setVolumeCost(mTer0,mTer1,mZMinGlob,mZMaxGlob,mAhDefCost);
+			setVolumeCost(mTer,mZMinGlob,mZMaxGlob,mAhDefCost);
 			return;
 		}
 
@@ -1270,7 +1267,7 @@ if (0)
 						interZ = intZ;
 
 					hVolumeProj.Memset(IMmGg.GetIntDefaultVal());
-					Tabul_Projection(hVolumeProj.pData(), anZProjection, IMmGg.ptU0(), IMmGg.ptU1(),IMmGg.GetSample(), interZ);
+					Tabul_Projection(hVolumeProj.pData(), anZProjection, IMmGg.rUTer(),IMmGg.GetSample(), interZ);
 					IMmGg.SetComputeNextProj(false);				
 					IMmGg.SetZToCompute(interZ);				
 					anZProjection+= interZ;				
@@ -1279,7 +1276,7 @@ if (0)
 				if (ZtoCopy != 0 && anZComputed < aZMaxTer)
 				{
 
-					setVolumeCost(mTer0,mTer1,anZComputed,anZComputed + ZtoCopy,mAhDefCost,hVolumeCost.pData(), IMmGg.ptM0(), IMmGg.ptM1(),IMmGg.GetDefaultVal());
+					setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,hVolumeCost.pData(), IMmGg.rMask(),IMmGg.GetDefaultVal());
 					anZComputed += ZtoCopy;
 					IMmGg.SetComputedZ(anZComputed);
 					IMmGg.SetZCToCopy(0);
@@ -1289,11 +1286,11 @@ if (0)
 			{
 				// Re-initialisation du tableau de projection
 				hVolumeProj.Memset(IMmGg.GetIntDefaultVal());
-				Tabul_Projection(hVolumeProj.pData(), anZComputed, IMmGg.ptU0(), IMmGg.ptU1(),IMmGg.GetSample(), interZ);
+				Tabul_Projection(hVolumeProj.pData(), anZComputed, IMmGg.rUTer(),IMmGg.GetSample(), interZ);
 				// Kernel Correlation
 				IMmGg.BasicCorrelation(hVolumeCost.pData(), hVolumeProj.pData(), mNbIm, interZ);
 
-				setVolumeCost(mTer0,mTer1,anZComputed,anZComputed + interZ,mAhDefCost,hVolumeCost.pData(), IMmGg.ptM0(), IMmGg.ptM1(),IMmGg.GetDefaultVal());
+				setVolumeCost(mTer,anZComputed,anZComputed + interZ,mAhDefCost,hVolumeCost.pData(), IMmGg.rMask(),IMmGg.GetDefaultVal());
 
 				uint intZ = (uint)abs(aZMaxTer - anZComputed );
 
@@ -1311,8 +1308,6 @@ if (0)
 			}
 
 		}
-
-		if (DEBUGTHRE) GpGpuTools::OutputReturn("END");
 		IMmGg.SetZCToCopy(0);
 		IMmGg.SetZToCompute(0);
 		hVolumeCost.Dealloc();

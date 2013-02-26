@@ -23,12 +23,12 @@ InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
 		checkCudaErrors( cudaStreamDestroy(*(GetStream(s))));
 }
 
-void InterfaceMicMacGpGpu::SetSizeBlock( uint2 ter0, uint2 ter1, uint Zinter )
+void InterfaceMicMacGpGpu::SetSizeBlock( Rect Ter, uint Zinter )
 {
 
 	uint oldSizeTer = _param.sizeTer;
 
-	_param.SetDimension(ter0,ter1,Zinter);
+	_param.SetDimension(Ter,Zinter);
 
 	CopyParamTodevice(_param);
 
@@ -44,7 +44,7 @@ void InterfaceMicMacGpGpu::SetSizeBlock( uint2 ter0, uint2 ter1, uint Zinter )
 
 void InterfaceMicMacGpGpu::SetSizeBlock( uint Zinter )
 {
-	SetSizeBlock( make_uint2(_param.ptMask0), make_uint2(_param.ptMask1), Zinter );
+	SetSizeBlock( _param.rMask(), Zinter );
 }
 
 void InterfaceMicMacGpGpu::AllocMemory(int nStream)
@@ -78,7 +78,7 @@ void InterfaceMicMacGpGpu::SetMask( pixel* dataMask, uint2 dimMask )
 	_mask.bindTexture(_texMask);
 }
 
-void InterfaceMicMacGpGpu::InitParam( uint2 ter0, uint2 ter1, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ )
+void InterfaceMicMacGpGpu::InitParam( Rect Ter, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ )
 {
 	
 	// Parametres texture des projections
@@ -96,7 +96,7 @@ void InterfaceMicMacGpGpu::InitParam( uint2 ter0, uint2 ter1, int nbLayer , uint
 	_texImages.normalized		= true;
 
 	_param.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
-	SetSizeBlock( ter0, ter1, interZ );
+	SetSizeBlock( Ter, interZ );
 
 	for (int s = 0;s<NSTREAM;s++)
 		AllocMemory(s);
@@ -203,26 +203,6 @@ uint2 InterfaceMicMacGpGpu::GetDimensionTerrain()
 bool InterfaceMicMacGpGpu::IsValid()
 {
 	return !(_param.ptMask0.x == - 1);
-}
-
-int2 InterfaceMicMacGpGpu::ptU1()
-{
-	return _param.pUTer1;
-}
-
-int2 InterfaceMicMacGpGpu::ptU0()
-{
-	return _param.pUTer0;
-}
-
-int2 InterfaceMicMacGpGpu::ptM0()
-{
-	return _param.ptMask0;
-}
-
-int2 InterfaceMicMacGpGpu::ptM1()
-{
-	return _param.ptMask1;
 }
 
 uint InterfaceMicMacGpGpu::GetSample()
@@ -378,3 +358,12 @@ void InterfaceMicMacGpGpu::SetComputedZ( int computedZ )
 	_computedZ = computedZ;
 }
 
+Rect InterfaceMicMacGpGpu::rMask()
+{
+	return _param.rMask();
+}
+
+Rect InterfaceMicMacGpGpu::rUTer()
+{
+	return _param.rUTer();
+}
