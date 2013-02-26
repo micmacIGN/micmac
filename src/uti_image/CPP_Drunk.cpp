@@ -42,7 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /******************************/
 
 #include "StdAfx.h"
-#include "..\..\include\hassan\reechantillonnage.h"
+#include "hassan/reechantillonnage.h"
 
 void Drunk_Banniere()
 {
