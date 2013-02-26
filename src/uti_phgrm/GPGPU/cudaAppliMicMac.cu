@@ -63,7 +63,7 @@ template<int TexSel> __global__ void correlationKernel( float *dev_NbImgOk, floa
 
 	if (oI(ptProj,0))
 	{
-		cacheImg[threadIdx.y][threadIdx.x]  = cH.badVig;
+		cacheImg[threadIdx.y][threadIdx.x]  = cH.DefaultVal;
 		return;
 	}
  	else
@@ -98,7 +98,7 @@ template<int TexSel> __global__ void correlationKernel( float *dev_NbImgOk, floa
 		{	
 			const float val = cacheImg[pt.y][pt.x];	// Valeur de l'image
 
-			if (val ==  cH.badVig) return;
+			if (val ==  cH.DefaultVal) return;
 
 			aSV  += val;		// Somme des valeurs de l'image cte 
 			aSVV += (val*val);	// Somme des carrés des vals image cte
