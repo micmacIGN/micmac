@@ -16,7 +16,7 @@ struct Rect
 	int2 pt0;
 	int2 pt1;
 
-	Rect();
+	__device__ __host__ Rect(){};
 	Rect(int2 p0, int2 p1)
 	{
 

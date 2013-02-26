@@ -44,7 +44,7 @@ void InterfaceMicMacGpGpu::SetSizeBlock( Rect Ter, uint Zinter )
 
 void InterfaceMicMacGpGpu::SetSizeBlock( uint Zinter )
 {
-	SetSizeBlock( _param.rMask(), Zinter );
+	SetSizeBlock( _param.GetRMask(), Zinter );
 }
 
 void InterfaceMicMacGpGpu::AllocMemory(int nStream)
@@ -202,7 +202,7 @@ uint2 InterfaceMicMacGpGpu::GetDimensionTerrain()
 
 bool InterfaceMicMacGpGpu::IsValid()
 {
-	return !(_param.ptMask0.x == - 1);
+	return _param.MaskNoNULL();
 }
 
 uint InterfaceMicMacGpGpu::GetSample()
@@ -360,10 +360,10 @@ void InterfaceMicMacGpGpu::SetComputedZ( int computedZ )
 
 Rect InterfaceMicMacGpGpu::rMask()
 {
-	return _param.rMask();
+	return _param.GetRMask();
 }
 
 Rect InterfaceMicMacGpGpu::rUTer()
 {
-	return _param.rUTer();
+	return _param.GetRUTer();
 }

@@ -30,9 +30,6 @@
 struct paramMicMacGpGpu
 {
 
-	 int2	pUTer0;
-	 int2	pUTer1;
-
 	 uint	ZInter;
 	 uint	ZLocInter;
 	 uint2	rDiTer;		// Dimension du bloque terrain
@@ -52,31 +49,29 @@ struct paramMicMacGpGpu
 	 uint2	dimCach;	// Dimension cache
 	 uint	sizeCach;	// Taille du cache
 	 uint	nbImages;		// Nombre d'images
-	 int2	ptMask0;	// point debut du masque
-	 int2	ptMask1;	// point fin du masque
+	 Rect	rUTer;
+	 Rect	rMask;
 	 float	badVig;		//
 	 float	mAhEpsilon;
 
-	 Rect rUTer()
+	 Rect GetRUTer()
 	 {
-		 return Rect(pUTer0,pUTer1);
+		 return rUTer;
 	 };
 
-	 Rect rMask()
+	 Rect GetRMask()
 	 {
-		 return Rect(ptMask0,ptMask1);
+		 return rMask;
 	 };
 
 	 void SetDimension(Rect Ter, uint Zinter)
 	 {
 
 		 ZInter		= Zinter;
-		 ptMask0	= Ter.pt0;
-		 ptMask1	= Ter.pt1;
-		 pUTer0		= Ter.pt0 - rVig;
-		 pUTer1		= Ter.pt1 + rVig;
-		 rDiTer		= Ter.dimension();
-		 dimTer		= Rect(pUTer0,pUTer1).dimension();
+		 rMask		= Ter;
+		 rUTer		= Rect(Ter.pt0 - rVig,Ter.pt1 + rVig);
+		 rDiTer		= rMask.dimension();
+		 dimTer		= rUTer.dimension();
 		 dimSTer	= iDivUp(dimTer,sampTer);	// Dimension du bloque terrain sous echantilloné
 		 sizeTer	= size(dimTer);				// Taille du bloque terrain
 		 sizeSTer	= size(dimSTer);				// Taille du bloque terrain sous echantilloné
@@ -106,6 +101,11 @@ struct paramMicMacGpGpu
 		 mAhEpsilon	= mAhEpsilon;
 
 	 };
+
+	 bool MaskNoNULL()
+	 {
+		 return (GetRMask().pt0.x != -1);
+	 }
 
 };
 
