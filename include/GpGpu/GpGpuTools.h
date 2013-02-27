@@ -431,6 +431,54 @@ void CuHostData3D<T>::Dealloc()
 }
 
 template <class T> 
+class CuDeviceData2D : public CData2D<T> 
+{
+
+public:
+
+	CuDeviceData2D();
+	~CuDeviceData2D(){};
+	void Dealloc();
+	void Malloc();
+	void Memset(int val);
+	void CopyDevicetoHost(T* hostData);
+	//void CopyDevicetoHostASync(T* hostData, cudaStream_t stream = 0);
+
+};
+
+template <class T>
+CuDeviceData2D<T>::CuDeviceData2D()
+{
+	CData2D<T>::dataNULL();
+}
+
+template <class T>
+void CuDeviceData2D<T>::CopyDevicetoHost( T* hostData )
+{
+	checkCudaErrors( cudaMemcpy( hostData, CData2D<T>::pData(), CData2D<T>::Sizeof(), cudaMemcpyDeviceToHost) );
+}
+
+template <class T>
+void CuDeviceData2D<T>::Memset( int val )
+{
+	checkCudaErrors(cudaMemset( CData2D<T>::pData(), val, CData2D<T>::Sizeof()));
+}
+
+template <class T>
+void CuDeviceData2D<T>::Malloc()
+{
+	checkCudaErrors( cudaMalloc((void **)CData2D<T>::ppData(), CData2D<T>::Sizeof()));
+}
+
+template <class T>
+void CuDeviceData2D<T>::Dealloc()
+{
+	if (CData2D<T>::isNULL()) checkCudaErrors( cudaFree(CData2D<T>::pData()));
+	CData2D<T>::dataNULL();
+}
+
+
+template <class T> 
 class CuDeviceData3D : public CData3D<T> 
 {
 
@@ -445,6 +493,7 @@ public:
 	void CopyDevicetoHostASync(T* hostData, cudaStream_t stream = 0);
 
 };
+
 
 template <class T>
 void CuDeviceData3D<T>::CopyDevicetoHostASync( T* hostData, cudaStream_t stream )

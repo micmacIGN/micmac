@@ -11,6 +11,9 @@ extern "C" void	CopyParamTodevice(paramMicMacGpGpu h);
 extern "C" void	KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, float *dev_NbImgOk, float* cachVig, uint2 nbActThrd);
 extern "C" void	KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, float * dev_NbImgOk, uint2 nbActThr);
 
+extern "C" void dilateKernel(pixel* HostDataOut, short r, uint2 dim);
+extern "C" textureReference& getMaskD();
+
 extern "C" textureReference&	getMask();
 extern "C" textureReference&	getImage();
 extern "C" textureReference&	getProjection(int TexSel);
@@ -50,6 +53,10 @@ class InterfaceMicMacGpGpu
 		void	SetComputeNextProj(bool compute);
 		int		GetComputedZ();
 		void	SetComputedZ(int computedZ);
+		void	dilateMask(uint2 dim);
+		pixel*	GetDilateMask();
+		pixel	ValDilMask(int2 pt);
+
 
 	private:
 
@@ -71,7 +78,11 @@ class InterfaceMicMacGpGpu
 		ImageLayeredCuda<float>	_LayeredImages;
 		ImageLayeredCuda<float2>_LayeredProjection[NSTREAM];
 
+		pixel*					_dilateMask;
+		uint2					_dimDilateMask;
+
 		textureReference&		_texMask;
+		textureReference&		_texMaskD;
  		textureReference&		_texImages;
  		textureReference&		_texProjections_00;
 		textureReference&		_texProjections_01;

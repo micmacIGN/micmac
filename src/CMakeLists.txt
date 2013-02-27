@@ -98,6 +98,7 @@ if(${CUDA_ENABLED})
 
 endif()
 
+# Construction de l'arborescence des fichiers INCLUDE
 foreach(source_file ${IncFiles})
 	get_filename_component(VarName ${source_file}  ABSOLUTE)
 	get_filename_component(NameFile ${source_file}  NAME)

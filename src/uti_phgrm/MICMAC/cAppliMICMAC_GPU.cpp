@@ -590,15 +590,9 @@ if (0)
 			}*/
 			if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
 				IMmGg.SetImages(fdataImg1D, dimImgMax, mNbIm);
-				//imagesToLayers( fdataImg1D, dimImgMax, mNbIm );
 
 			if (fdataImg1D != NULL) delete[] fdataImg1D;
 
-// 			int2 Ter0		= make_int2(mX0Ter,mY0Ter);
-// 			int2 Ter1		= make_int2(mX1Ter,mY1Ter);
-
-			
-			//h = Init_Correlation_GPU();
 			IMmGg.InitParam(Ter, mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT, INTERZ);
 			
 		}
@@ -642,14 +636,16 @@ if (0)
 
 		if (IMmGg.IsValid())
 		{
-			uint2 rDimTerr = IMmGg.GetDimensionTerrain();
+			uint2 rDimTer = IMmGg.GetDimensionTerrain();
 
-			pixel *SubMaskTab = new pixel[size(rDimTerr)];
+			pixel *SubMaskTab = new pixel[size(rDimTer)];
 
 			for (int y = rMask.pt0.y; y < rMask.pt1.y; y++) 
-				memcpy(SubMaskTab + (y  - rMask.pt0.y) * rDimTerr.x, maskTab + (y - mY0Ter) * Ter.dimension().x + rMask.pt0.x - mX0Ter, sizeof(pixel) * rDimTerr.x );
+				memcpy(SubMaskTab + (y  - rMask.pt0.y) * rDimTer.x, maskTab + (y - mY0Ter) * Ter.dimension().x + rMask.pt0.x - mX0Ter, sizeof(pixel) * rDimTer.x );
 					
-			IMmGg.SetMask(SubMaskTab,rDimTerr);
+			IMmGg.SetMask(SubMaskTab,rDimTer);
+
+			IMmGg.dilateMask(rDimTer);
 
 			delete[] SubMaskTab;
 		}
@@ -1140,8 +1136,9 @@ if (0)
 				{															
 					for (an.x = zone.pt0.x; an.x < zone.pt1.x ; an.x += sample)	
 					{
-						if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip))
+						if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip) && IMmGg.ValDilMask(an-zone.pt0) == 1)
 						{
+							//std::cout <<  "fff\n";
 							int2 r	= (an - zone.pt0)/sample;
 							int iD	= (abs(Z - anZ) * mNbIm  +   aKIm )* sizSTabProj  + to1D(r,dimSTabProj);
 // 							int aZMin	= mTabZMin[an.y][an.x];
@@ -1227,8 +1224,8 @@ if (0)
 		
 		if(	mNbIm == 0) return;	
 
-		//int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		int aZMinTer = 0, aZMaxTer = 1;
+		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
+		//int aZMinTer = 0, aZMaxTer = 1;
 
 		Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
 

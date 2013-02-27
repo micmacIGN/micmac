@@ -2,6 +2,7 @@
 
 InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
 _texMask(getMask()),
+_texMaskD(getMaskD()),
 _texImages(getImage()),
 _texProjections_00(getProjection(0)),
 _texProjections_01(getProjection(1)),
@@ -57,7 +58,8 @@ void InterfaceMicMacGpGpu::AllocMemory(int nStream)
 void InterfaceMicMacGpGpu::DeallocMemory()
 {
 	checkCudaErrors( cudaUnbindTexture(&_texImages) );	
-	checkCudaErrors( cudaUnbindTexture(&_texMask) );	
+	checkCudaErrors( cudaUnbindTexture(&_texMask) );
+	checkCudaErrors( cudaUnbindTexture(&_texMaskD) );
 
 	for (int s = 0;s<NSTREAM;s++)
 	{
@@ -69,6 +71,8 @@ void InterfaceMicMacGpGpu::DeallocMemory()
 
 	_mask.Dealloc();
 	_LayeredImages.Dealloc();
+
+	delete [] _dilateMask;
 	
 }
 
@@ -76,6 +80,7 @@ void InterfaceMicMacGpGpu::SetMask( pixel* dataMask, uint2 dimMask )
 {
 	_mask.InitImage(dimMask,dataMask);
 	_mask.bindTexture(_texMask);
+	_mask.bindTexture(_texMaskD);
 }
 
 void InterfaceMicMacGpGpu::InitParam( Rect Ter, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ )
@@ -352,4 +357,27 @@ Rect InterfaceMicMacGpGpu::rMask()
 Rect InterfaceMicMacGpGpu::rUTer()
 {
 	return _param.GetRUTer();
+}
+
+void InterfaceMicMacGpGpu::dilateMask(uint2 dim )
+{
+
+	_dimDilateMask = dim + 2*_param.rVig.x;
+
+	_dilateMask = new pixel[size(_dimDilateMask)];
+
+	dilateKernel(_dilateMask, _param.rVig.x,dim);
+
+	//GpGpuTools::OutputArray(_dilateMask,_dimDilateMask);
+
+}
+
+pixel* InterfaceMicMacGpGpu::GetDilateMask()
+{
+	return _dilateMask;
+}
+
+pixel InterfaceMicMacGpGpu::ValDilMask(int2 pt)
+{
+	return (oI(pt,0) || oSE(pt,_dimDilateMask)) ? 0 : _dilateMask[to1D(pt,_dimDilateMask)];
 }
