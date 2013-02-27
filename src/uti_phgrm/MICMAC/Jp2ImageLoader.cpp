@@ -106,7 +106,7 @@ namespace NS_ParamMICMAC
 									 tPInt            aSz
 									 )
 	{
-		//std::cout << "LoadNCanaux en usnigned short"<<std::endl;
+		std::cout << "LoadNCanaux en usnigned short"<<std::endl;
 		int precision = 16;
 		bool signe = false;
 		
@@ -235,12 +235,12 @@ namespace NS_ParamMICMAC
 									 )
 	{
 		//std::cout << "LoadNCanaux en float "<<aDeZoom<<" - "<<aP0Im.real()<<" "<<aP0Im.imag()<<" - "<<aP0File.real()<<" "<<aP0File.imag()<<" - "<<aSz.real()<<" "<<aSz.imag()<<std::endl;
-		bool avecFiltre=false;
+		//bool avecFiltre=false;
 		bool avecDeZoom=false;
-		float facteurM = 4.;//3.
-		float facteurMR = 5.;
+		//float facteurM = 4.;//3.
+		//float facteurMR = 5.;
 
-		int precision = 8;
+		int precision = 16;
 		bool signe = false;
 		
 		jp2_source              m_Source;
@@ -258,7 +258,7 @@ namespace NS_ParamMICMAC
 		int max_layers = 0;
         int discard_levels = 0;
         while(((1 << discard_levels) & aDeZoom)==0) ++discard_levels;
-        //std::cout << "discard_levels : "<<discard_levels<<std::endl;
+        std::cout << "discard_levels : "<<discard_levels<<std::endl;
 		int minDwtLevels = 0;
 		if (avecDeZoom)
 			minDwtLevels = std::max<int>(0,std::min<int>(codestream.get_min_dwt_levels(),discard_levels-1));
@@ -272,7 +272,7 @@ namespace NS_ParamMICMAC
 			dz = (1 << discard_levels);
 			std::cout << "On fait un dz "<<dz<<" puis on fera un ssech "<<reDeZoom<<std::endl;
 		}
-		//std::cout << "reDeZoom : "<<reDeZoom<<std::endl;
+		std::cout << "reDeZoom : "<<reDeZoom<<std::endl;
 		
 		int * precisions = new int[aVImages.size()];
 		bool *is_signed = new bool[aVImages.size()];
@@ -313,15 +313,47 @@ namespace NS_ParamMICMAC
 		int *stripe_heights = new int[num_components];
 		int *sample_gaps = NULL;
 		int *row_gaps = NULL;
+        
+        
+        
+        kdu_int16 **stripe_bufs = new kdu_int16 *[num_components];
 		
+		{
+			for(n=0;n<num_components;++n)
+			{
+				stripe_bufs[n] = new kdu_int16[comp_dims[n].size.x];
+			}
+		}
+
+		/*
 		unsigned char **stripe_bufs = new unsigned char *[num_components];
 		
 		{
 			for(n=0;n<num_components;++n)
 			{
+                std::cout << "Allocation de : "<<comp_dims[n].size.x<<std::endl;
 				stripe_bufs[n] = new unsigned char[comp_dims[n].size.x];
 			}
 		}
+         */
+        
+        std::vector<float> coef;
+        float norm = 0.f;
+        float d2 = (float)(reDeZoom-1.)/2.;
+        float sigma = 0.5*d2;
+        for(int l=0;l<reDeZoom;++l)
+        {
+            for(int c=0;c<reDeZoom;++c)
+            {
+                float dist = (l-d2)*(l-d2) + (c-d2)*(c-d2);
+                float c = exp(-dist/(2*sigma*sigma));
+                //std::cout << c << " ";
+                coef.push_back(c);
+                norm += c;
+            }
+            //std::cout << std::endl;
+        }
+        std::cout << "norm : "<<norm<<std::endl;
 		
 		int env_dbuf_height = 0;
 		//int preferred_min_stripe_height = 8;
@@ -333,23 +365,28 @@ namespace NS_ParamMICMAC
 		{
 			if (reDeZoom>0)
 			{ 
-				/*float R2 = reDeZoom*reDeZoom;*/
+				float R2 = reDeZoom*reDeZoom;
 				for(int ll=0;ll<reDeZoom;++ll)
 				{
-					decompressor.pull_stripe(stripe_bufs,stripe_heights,sample_gaps,row_gaps,precisions);
+					decompressor.pull_stripe(stripe_bufs,stripe_heights,sample_gaps,row_gaps,precisions,is_signed);
+                    
 					for(n=0;n<num_components;++n)
 					{
 						float* pt_out = &(aVImages[n].mData[aP0Im.imag()+l][aP0Im.real()]);
-						unsigned char* pt_buf = &(stripe_bufs[n][0]);
+						kdu_int16* pt_buf = &(stripe_bufs[n][0]);
 						for(int c=0;c<aSz.real();++c)
 						{
 							if (ll==0) (*pt_out) = 0;
 							for(int cc=0;cc<reDeZoom;++cc)
 							{
-								if ((cc==0)&&(ll==0)) (*pt_out)+=(float)(*pt_buf);
+								(*pt_out)+=(float)(*pt_buf) * coef[cc+ll*reDeZoom];
 								++pt_buf;
 							}
-							/*if (ll==(reDeZoom-1)) (*pt_out) /=(float)R2;*/
+                            
+							if (ll==(reDeZoom-1))
+                            {
+                                (*pt_out) /=(float)norm;
+                            }
 							++pt_out;
 						}
 					}
@@ -381,7 +418,7 @@ namespace NS_ParamMICMAC
 		delete[] stripe_heights;
 		delete[] stripe_bufs;
 		
-		
+        /*
 		if (reDeZoom>0)
 		{
 			//std::cout << "filtrage"<<std::endl;
@@ -391,6 +428,7 @@ namespace NS_ParamMICMAC
 			std::cout << "1   "<<facteurMR<<"   1"<<std::endl;
 			for(int k=0;(k<num_components)&&(k<(int)aVImages.size());++k)
 			{
+                std::cout << "k="<<k<<std::endl;
 				float *img=aVImages[k].mDataLin;
 				int NC=aSz.real();
 				int NL=aSz.imag();
@@ -495,8 +533,32 @@ namespace NS_ParamMICMAC
 			}
 			
 		}
+         */
         delete[] is_signed;
         delete[] comp_dims;
+        
+        
+        
+        /*
+        Tiff_Im  aTOut
+        (
+         "toto.tif",
+         Pt2di(aSz.real(),aSz.imag()),
+         GenIm::real4,
+         Tiff_Im::No_Compr,
+         Tiff_Im::BlackIsZero
+         );
+        
+        Im2D<float,double> aIm(aVImages[0].mDataLin,aVImages[0].mData,aSz.real(),aSz.imag());
+        
+        
+        ELISE_COPY
+        (
+         aTOut.all_pts(),
+         aIm.in(),
+         aTOut.out()
+         );
+         */
 	}
 	
 	void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<unsigned char> > & aVImages,
@@ -507,7 +569,7 @@ namespace NS_ParamMICMAC
 									 tPInt            aSz
 									 )
 	{
-		//std::cout << "LoadNCanaux en usnigned char"<<std::endl;
+		std::cout << "LoadNCanaux en usnigned char"<<std::endl;
 		int precision = 8;
 		
 		jp2_source              m_Source;
