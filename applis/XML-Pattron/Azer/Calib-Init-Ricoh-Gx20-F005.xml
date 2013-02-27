@@ -1,0 +1,13 @@
+<ExportAPERO>
+     <CalibrationInternConique>
+          <KnownConv>eConvApero_DistM2C</KnownConv>
+          <PP>  2000 1500 </PP>
+          <F> 2666 </F>
+          <SzIm> 4000 3000</SzIm>
+          <CalibDistortion>
+               <ModRad>
+                    <CDist> 2000 1500 </CDist>
+               </ModRad>
+          </CalibDistortion>
+     </CalibrationInternConique>
+</ExportAPERO>
