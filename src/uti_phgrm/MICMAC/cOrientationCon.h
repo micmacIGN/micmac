@@ -77,7 +77,7 @@ class OrientationCon: public ModuleOrientation
 	private:
 		//std::string projection;
 		//shared_ptr<ign::matis::orientation::ModeleProjection> ori;
-		shared_ptr<ign::orientation::ImageModelConical> ori;
+		boost::shared_ptr<ign::orientation::ImageModelConical> ori;
 	};
 
 
