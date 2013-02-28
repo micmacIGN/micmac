@@ -32,7 +32,7 @@ struct Rect
 		pt1 = make_int2(p1);
 	};
 
-	Rect(int p0x,int p0y,int p1x,int p1y)
+	__device__ __host__ Rect(int p0x,int p0y,int p1x,int p1y)
 	{
 
 		pt0 = make_int2(p0x,p0y);
@@ -43,6 +43,15 @@ struct Rect
 	{
 		return make_uint2(pt1-pt0);
 	};
+
+#ifdef __cplusplus
+
+	void out()
+	{
+		std::cout << "(" << pt0.x << "," <<  pt0.y << ")" << " -> (" << pt1.x << "," <<  pt1.y << ") ";
+	}
+
+#endif
 };
 
 static int iDivUp(int a, int b)
