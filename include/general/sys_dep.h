@@ -93,6 +93,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 	#define SYS_MV "mv"
 	#define SYS_RM "\\rm"   // MODID MPD CAR rm ne fonctionne pas si il a ete redefini par alias !!
 	#define SYS_CP "cp"
+	#define SYS_CAT "cat"
 	#define ELISE_CAR_DIR  '/' 
 	#define ELISE_Current_DIR  "./"
     #define ELISE_STR_DIR "/"
@@ -104,6 +105,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 	#define SYS_MV "mv"
 	#define SYS_RM "rm"
 	#define SYS_CP "cp"
+	#define SYS_CAT "cat"
 	#define ELISE_CAR_DIR  '/' 
 	#define ELISE_Current_DIR  "./"
     #define ELISE_STR_DIR "/"
@@ -114,6 +116,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 	#define SYS_MV "move"
 	#define SYS_RM "del"
 	#define SYS_CP "copy"
+	#define SYS_CAT "type"
 	#define ELISE_CAR_DIR  '/' 
 	#define ELISE_Current_DIR  "./"
 	#include <float.h>

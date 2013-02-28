@@ -332,7 +332,7 @@ std::vector<Pt3dr> cProj4::Chang(const std::vector<Pt3dr> & aPtsIn, bool Sens2Ge
 
    std::string aTmpOut = "Proj4Output.txt";
 
-   std::string aCom =    std::string( "cat " + aTmpIn + " | ")
+   std::string aCom =    std::string( std::string(SYS_CAT) + " " + aTmpIn + " | ")
                        + std::string(Sens2GeoC ? "invproj " : "proj ")
                        + std::string(" -f '%.7f' ")
                        + mStr
