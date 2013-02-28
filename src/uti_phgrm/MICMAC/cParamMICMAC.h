@@ -1695,9 +1695,25 @@ class cMasqueAutoByTieP
 
         std::string & KeyImFilePt3D();
         const std::string & KeyImFilePt3D()const ;
+
+        int & DeltaZ();
+        const int & DeltaZ()const ;
+
+        double & SeuilSomCostCorrel();
+        const double & SeuilSomCostCorrel()const ;
+
+        double & SeuilMaxCostCorrel();
+        const double & SeuilMaxCostCorrel()const ;
+
+        cTplValGesInit< bool > & Visu();
+        const cTplValGesInit< bool > & Visu()const ;
     private:
         cTplValGesInit< std::string > mGlobFilePt3D;
         std::string mKeyImFilePt3D;
+        int mDeltaZ;
+        double mSeuilSomCostCorrel;
+        double mSeuilMaxCostCorrel;
+        cTplValGesInit< bool > mVisu;
 };
 cElXMLTree * ToXMLTree(const cMasqueAutoByTieP &);
 
@@ -1706,15 +1722,6 @@ class cTypeCAH
     public:
         friend void xml_init(cTypeCAH & anObj,cElXMLTree * aTree);
 
-
-        cTplValGesInit< bool > & ModeDense();
-        const cTplValGesInit< bool > & ModeDense()const ;
-
-        std::vector< cOneParamCMS > & OneParamCMS();
-        const std::vector< cOneParamCMS > & OneParamCMS()const ;
-
-        cTplValGesInit< cCorrelMultiScale > & CorrelMultiScale();
-        const cTplValGesInit< cCorrelMultiScale > & CorrelMultiScale()const ;
 
         cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare();
         const cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare()const ;
@@ -1746,7 +1753,6 @@ class cTypeCAH
         cTplValGesInit< cMasqueAutoByTieP > & MasqueAutoByTieP();
         const cTplValGesInit< cMasqueAutoByTieP > & MasqueAutoByTieP()const ;
     private:
-        cTplValGesInit< cCorrelMultiScale > mCorrelMultiScale;
         cTplValGesInit< cCorrel2DLeastSquare > mCorrel2DLeastSquare;
         cTplValGesInit< cGPU_Correl > mGPU_Correl;
         cTplValGesInit< cGPU_CorrelBasik > mGPU_CorrelBasik;
@@ -1820,6 +1826,7 @@ class cCorrelAdHoc
         cTplValGesInit< double > mEpsilonAddMoyenne;
         cTplValGesInit< double > mEpsilonMulMoyenne;
         cTplValGesInit< int > mSzBlocAH;
+        cTplValGesInit< cCorrelMultiScale > mCorrelMultiScale;
         cTypeCAH mTypeCAH;
 };
 cElXMLTree * ToXMLTree(const cCorrelAdHoc &);

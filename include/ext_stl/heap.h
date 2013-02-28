@@ -49,6 +49,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /* SOME UTILS ON TAB                                         */
 /*************************************************************/
 
+#define HEAP_NO_INDEX -1
 
 template <class Type> class DefaultParamHeap
 {
@@ -57,7 +58,7 @@ template <class Type> class DefaultParamHeap
         static int  Index(const Type &) 
         {
              ELISE_ASSERT(false,"No DefaultParamHeap::Index");
-             return -1;
+             return HEAP_NO_INDEX;
         }
 };
 
@@ -71,9 +72,18 @@ template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class 
 		mEls.reserve(capa);
         }
 
+
+        void MajOrAdd(const Type & aV)
+        {
+            if (TParam::Index(aV)==HEAP_NO_INDEX)
+               push(aV);
+            else
+               MAJ(aV);
+        }
+
         // Type & ValOfIndex(int aK) {return mEls[aK];}
 
-        void MAJ(Type & aV)
+        void MAJ(const Type & aV)
         {
            ReSync(TParam::Index(aV));
         }
@@ -98,7 +108,7 @@ template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class 
         bool pop(Type & v)
         {
              if (nb() <= 0) return false;
-             v = mEls[0];  /*-------------RI-----------*/    TParam::SetIndex(v,-1);
+             v = mEls[0];  /*-------------RI-----------*/   SetNoIndex(v); //  TParam::SetIndex(v,HEAP_NO_INDEX);
              mEls[0] = mEls[nb()-1];  /*--RI-----------*/    ResetIndex(0);
 	     mEls.pop_back();
              heap_up(0);
@@ -122,7 +132,7 @@ template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class 
         }
         void SetNoIndex(Type & v)
         {
-            TParam::SetIndex(v,-1);
+            TParam::SetIndex(v,HEAP_NO_INDEX);
         }
 
 

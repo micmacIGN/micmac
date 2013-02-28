@@ -127,6 +127,19 @@ double cStatOneImage::SquareDist(const cStatOneImage & aS2) const
 }
 
 
+double cStatOneImage::SquareNorm() const
+{
+    int aNb = mVals.size();
+
+    const double * aD1 = &(mVals[0]);
+    double aRes = 0;
+
+    for (int aK=0 ; aK<aNb ; aK++)
+        aRes += ElSquare(aD1[aK]);
+
+    return aRes;
+}
+
 
 
 /********************************************************************/
@@ -224,12 +237,28 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
         mMSGLI[aK]->mPdsMS = aVP[aK].Pds();
         mSomPdsMS += mMSGLI[aK]->mPdsMS;
         mMSGLI[aK]->mPdsMS /= mNbVals;
+        mMSGLI[aK]->mMyDataIm0 = mDataIm[aK];
+        mMSGLI[aK]->mMaster = this;
     }
 
     mOneImage = (aVP.size()==1);
     
 }
 
+Pt2di  cGPU_LoadedImGeom::SzV0() const
+{
+   return mSzV0;
+}
+
+int  cGPU_LoadedImGeom::NbScale() const
+{
+    return mMSGLI.size();
+}
+
+Im2D_REAL4 * cGPU_LoadedImGeom::FloatIm(int aKScale)
+{
+   return mLI->FloatIm()[aKScale];
+}
 
 
 
@@ -276,6 +305,7 @@ void cGPU_LoadedImGeom::MakeDeriv(int anX,int anY,int aZ)
     mPOfDeriv = Pt3di(anX,anY,aZ);
 
     mValueP0D = ProjOfPDisc(anX,anY,aZ);
+// std::cout << "MkddDD " << mValueP0D << " " << anX << " " << anY << " " << aZ << "\n";
     mDerivX = (ProjOfPDisc(anX+1,anY,aZ)- ProjOfPDisc(anX-1,anY,aZ)) / 2.0;
     mDerivY = (ProjOfPDisc(anX,anY+1,aZ)- ProjOfPDisc(anX,anY-1,aZ)) / 2.0;
     mDerivZ = (ProjOfPDisc(anX,anY,aZ+1)- ProjOfPDisc(anX,anY,aZ-1)) / 2.0;
@@ -288,21 +318,31 @@ void cGPU_LoadedImGeom::MakeDeriv(int anX,int anY,int aZ)
 Pt2dr cGPU_LoadedImGeom::ProjByDeriv(int anX,int anY,int aZ) const
 {
 
-   return    mValueP0D 
+   Pt2dr aRes =    mValueP0D 
           +  mDerivX*double(anX-mX0Deriv)
           +  mDerivY*double(anY-mY0Deriv)
           +  mDerivZ*double( aZ-mZ0Deriv) ;
+
+
+  return aRes;
 }
 
-cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,int aSzV,int aPasVig)
+
+cStatOneImage * cGPU_LoadedImGeom::VignetteDone()
+{
+    return & mBufVignette;
+}
+
+
+cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,int aSzV,Pt2di aPasVig)
 {
 
     cInterpolateurIm2D<float> * anInt = mAppli.CurEtape()->InterpFloat();
     mBufVignette.Reset();
-    Pt2dr aP0 = ProjByDeriv(anX,anY,aZ);
+    Pt2dr aP0 = mMaster->ProjByDeriv(anX,anY,aZ);
 
-    Pt2dr aDx = mDerivX * double(aPasVig);
-    Pt2dr aDy = mDerivY * double(aPasVig);
+    Pt2dr aDx = mDerivX * double(aPasVig.x);
+    Pt2dr aDy = mDerivY * double(aPasVig.y);
 
     Pt2dr aDebL =  aP0 - aDx*double(aSzV) - aDy*double(aSzV);
     for (int aKY=-aSzV ; aKY<=aSzV ; aKY++)
@@ -311,7 +351,7 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
         for (int aKX=-aSzV ; aKX<=aSzV ; aKX++)
         {
             if (IsOk(aCur.x,aCur.y))
-               mBufVignette.Add(anInt->GetVal(DataIm0(),aCur));
+               mBufVignette.Add(anInt->GetVal(MyDataIm0(),aCur));
             else
                return 0;
             aCur += aDx;
@@ -388,7 +428,14 @@ double  cGPU_LoadedImGeom::CovIm(int anX,int anY) const
     return aRes / mSomPdsMS;
 }
 
-
+double  cGPU_LoadedImGeom::PdsMS() const
+{
+   return mPdsMS;
+}
+double  cGPU_LoadedImGeom::SomPdsMS() const
+{
+   return mSomPdsMS;
+}
 
 /*
 double MoyQuad() const;
@@ -532,6 +579,27 @@ if (0)
 			mVLI.push_back(new cGPU_LoadedImGeom(*this,*itFI,aBox,mCurSzV0,mCurSzVMax,true));
 		}
 		mNbIm = (int)mVLI.size();
+
+                mNbScale = mVLI.size() ?  mVLI[0]->NbScale()  : 0;
+
+
+                mVScaIm.clear();
+                for (int aKS=0 ; aKS<mNbScale ; aKS++)
+                {
+                    std::vector<cGPU_LoadedImGeom *> aV;
+                    mVScaIm.push_back(aV);
+                }
+
+                for (int aKS=0 ; aKS<mNbScale ; aKS++)
+                {
+                    for (int aKI=0 ; aKI<mNbIm ; aKI++)
+                    {
+                        mVScaIm[aKS].push_back(mVLI[aKI]->KiemeMSGLI(aKS));
+                    }
+                }
+
+
+                
 
 
 		mZMinGlob = (int)1e7;
@@ -1542,11 +1610,14 @@ if (0)
 
 		const cTypeCAH & aTC  = mCorrelAdHoc->TypeCAH();
 
+/*
 		if (aTC.CorrelMultiScale().IsInit())
                 {
 			DoGPU_Correl(aBox,(cMultiCorrelPonctuel*)0);
                 }
-		else if (aTC.GPU_Correl().IsInit())
+		else 
+*/
+                if (aTC.GPU_Correl().IsInit())
 		{
 			DoGPU_Correl(aBox,(cMultiCorrelPonctuel*)0);
 		}
