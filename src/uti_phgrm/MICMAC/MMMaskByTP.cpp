@@ -82,8 +82,8 @@ static void  ShowMasq(Im2D_Bits<1> aMasq)
        ELISE_COPY
        (
            select(aMasq.all_pts(),aMasq.in()==0),
-           128,
-           TheWTiePCor->ogray()
+           P8COL::green,
+           TheWTiePCor->odisc()
        );
    }
 #endif 
@@ -110,6 +110,13 @@ class cCelTiep
               SetCostCorel(4.0);
       }
 
+      void Init()
+      {
+          SetCostCorel(4.0);
+          mExploredIndex.clear();
+          mZ =  TheNoZ;
+      }
+
       bool ZIsExplored(int aZ)
       {
             return mExploredIndex.find(aZ) != mExploredIndex.end();
@@ -118,6 +125,7 @@ class cCelTiep
       {
             mExploredIndex.insert(aZ);
       }
+
 
      void SetZ(int aZ) {mZ = aZ;}
      void SetPlani(int anX,int anY)
@@ -181,7 +189,7 @@ cHeap_CTP_Cmp    TheCmpCTP;
 class cMMTP
 {
     public :
-      cMMTP(const Box2di & aBox);
+      cMMTP(const Box2di & aBox,cAppliMICMAC &);
       bool Inside(const int & anX,const int & anY,const int & aZ)
       {
          return ((anX>=mP0Tiep.x) && (anY>=mP0Tiep.y) && (anX<mP1Tiep.x) && (anY<mP1Tiep.y) && (aZ> cCelTiep::TheNoZ));
@@ -197,35 +205,41 @@ class cMMTP
       {
          return mHeapCTP.pop(aCPtr);
       }
-      void DoMasqAndProfInit();
+      void DoMasqAndProfInit(const cMasqueAutoByTieP & aMATP);
 
-       Im2D_Bits<1> ImMasq() {return mImMasq;}
+       Im2D_Bits<1> ImMasqFinal() {return mImMasqFinal;}
        Im2D_INT2    ImProf() {return mImProf;}
-       void SauvZ(cSurfaceOptimiseur *);
+       bool InMasqFinal(const Pt2di & aP) const {return  mTImMasqFinal.get(aP);}
 
     private :
-        Pt2di mP0Tiep;
-        Pt2di mP1Tiep;
-        Pt2di mSzTiep;
-        cCelTiep **  mTabCTP;
+        cAppliMICMAC &    mAppli;
+        Pt2di             mP0Tiep;
+        Pt2di             mP1Tiep;
+        Pt2di             mSzTiep;
+        cCelTiep **       mTabCTP;
         ElHeap<cCelTiepPtr,cHeap_CTP_Cmp,cHeap_CTP_Index> mHeapCTP;
 
         Im2D_INT2       mImProf;
         TIm2D<INT2,INT> mTImProf;
-        Im2D_Bits<1>    mImMasq;
-        TIm2DBits<1>    mTImMasq;   
+        Im2D_Bits<1>    mImMasqInit;
+        TIm2DBits<1>    mTImMasqInit;   
+        Im2D_Bits<1>    mImMasqFinal;
+        TIm2DBits<1>    mTImMasqFinal;   
 };
 
 
-cMMTP::cMMTP(const Box2di & aBox) : 
-   mP0Tiep   (aBox._p0),
-   mP1Tiep   (aBox._p1),
-   mSzTiep   (aBox.sz()),
-   mHeapCTP  (TheCmpCTP),
-   mImProf   (mSzTiep.x,mSzTiep.y),
-   mTImProf  (mImProf),
-   mImMasq   (mSzTiep.x,mSzTiep.y),
-   mTImMasq  (mImMasq)
+cMMTP::cMMTP(const Box2di & aBox,cAppliMICMAC & anAppli) : 
+   mAppli        (anAppli),
+   mP0Tiep       (aBox._p0),
+   mP1Tiep       (aBox._p1),
+   mSzTiep       (aBox.sz()),
+   mHeapCTP      (TheCmpCTP),
+   mImProf       (mSzTiep.x,mSzTiep.y),
+   mTImProf      (mImProf),
+   mImMasqInit   (mSzTiep.x,mSzTiep.y),
+   mTImMasqInit  (mImMasqInit),
+   mImMasqFinal   (mSzTiep.x,mSzTiep.y),
+   mTImMasqFinal  (mImMasqFinal)
 {
    mTabCTP = (new  cCelTiepPtr [mSzTiep.y]) - mP0Tiep.y;
    for (int anY = mP0Tiep.y ; anY<mP1Tiep.y ; anY++)
@@ -240,27 +254,9 @@ cMMTP::cMMTP(const Box2di & aBox) :
 }
 
 
-void cMMTP::SauvZ(cSurfaceOptimiseur * aSurfOpt)
-{
-   Pt2di aP;
-   for (aP.y = mP0Tiep.y ; aP.y<mP1Tiep.y ; aP.y++)
-   {
-        for (aP.x = mP0Tiep.x ; aP.x<mP1Tiep.x ; aP.x++)
-        {
-            // cCelTiep & aCel =  Cel(aP);
-            Pt2di aPIm = aP - mP0Tiep;
-            int aZ[2] ;
-             aZ[0] = mTImProf.get(aPIm);
-             aZ[1] = 0;
-std::cout << "cMMTP::SauvZ " << aSurfOpt << " " << aZ[0] << aP << "\n";
-            aSurfOpt->SetCout(aP,aZ,0.0);
-std::cout << "BBBbbbbbbbbbb\n";
-        }
-   }
-}
 
 
-void cMMTP::DoMasqAndProfInit()
+void cMMTP::DoMasqAndProfInit(const cMasqueAutoByTieP & aMATP)
 {
    Pt2di aP;
    for (aP.y = mP0Tiep.y ; aP.y<mP1Tiep.y ; aP.y++)
@@ -269,12 +265,75 @@ void cMMTP::DoMasqAndProfInit()
         {
             cCelTiep & aCel =  Cel(aP);
             Pt2di aPIm = aP - mP0Tiep;
-            mTImMasq.oset(aPIm,aCel.IsSet());
+            mTImMasqInit.oset(aPIm,aCel.IsSet());
             mTImProf.oset(aPIm,aCel.Pt().z);
         }
    }
-   if (0)
-      ShowMasq(mImMasq);
+
+   ELISE_COPY
+   (
+       mImMasqInit.all_pts(),
+       close_32(mImMasqInit.in(0),18),
+       mImMasqFinal.out()
+   );
+
+   for (aP.y = mP0Tiep.y ; aP.y<mP1Tiep.y ; aP.y++)
+   {
+        for (aP.x = mP0Tiep.x ; aP.x<mP1Tiep.x ; aP.x++)
+        {
+            Pt2di aPIm = aP - mP0Tiep;
+            if ((mTImMasqFinal.get(aPIm) && (!mTImMasqInit.get(aPIm))))
+            {
+                cCelTiep & aCel =  Cel(aP);
+                aCel.Init();
+            }
+        }
+   }
+
+   if (1)
+      ShowMasq(mImMasqFinal);
+
+   Liste_Pts_INT4 aL(2);
+   ELISE_COPY
+   (
+       select
+       (
+             mImMasqInit.all_pts(),
+             mImMasqInit.in() & (!erod_d4(mImMasqInit.in(0),1))
+       ),
+       P8COL::red,
+       Output(aL) 
+   );
+   Im2D_INT4 anIP = aL.image();
+   int aNbP  = anIP.tx();
+   int * aTX =  anIP.data()[0];
+   int * aTY =  anIP.data()[1];
+
+   std::cout << "NNbbbb  " << aL.card()  << " " << anIP.tx() << "\n";
+
+   for (int aKP=0 ; aKP<aNbP; aKP++)
+   {
+      int aXIm = aTX[aKP];
+      int aYIm = aTY[aKP];
+      int aZIm = mTImProf.get(Pt2di(aXIm,aYIm));
+
+      mAppli.MakeDerivAllGLI(aXIm,aYIm,aZIm);
+      cCelTiep & aCel =  Cel(aXIm,aYIm);
+      MajOrAdd(aCel);
+   }
+   mAppli.OneIterFinaleMATP(aMATP,true);
+
+   for (aP.y = mP0Tiep.y ; aP.y<mP1Tiep.y ; aP.y++)
+   {
+        for (aP.x = mP0Tiep.x ; aP.x<mP1Tiep.x ; aP.x++)
+        {
+            cCelTiep & aCel =  Cel(aP);
+            Pt2di aPIm = aP - mP0Tiep;
+            mTImProf.oset(aPIm,aCel.Pt().z);
+        }
+   }
+
+
 }
 
 class cResCorTP
@@ -372,10 +431,14 @@ cResCorTP cAppliMICMAC::CorrelMasqTP(const cMasqueAutoByTieP & aMATP,int anX,int
 /*
 */
 
-void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,int aZ)
+void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,int aZ,bool Final)
 {
    if (!mMMTP->Inside(anX,anY,aZ))
      return;
+
+
+   if (Final && (! mMMTP->InMasqFinal(Pt2di(anX,anY))))
+      return;
 
    cCelTiep & aCel =  mMMTP->Cel(anX,anY);
 
@@ -386,8 +449,10 @@ void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,in
    cResCorTP aCost = CorrelMasqTP(aMATP,anX,anY,aZ) ;
    double aCSom = aCost.CSom();
    if (
-               (aCSom > aMATP.SeuilSomCostCorrel()) 
+         (     (aCSom > aMATP.SeuilSomCostCorrel()) 
             || (aCost.CMax() > aMATP.SeuilMaxCostCorrel()) 
+         )
+         && (! Final)
       )
    {
       return ;
@@ -411,9 +476,44 @@ void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,in
 /********************************************************************/
 /********************************************************************/
 
+void  cAppliMICMAC::MakeDerivAllGLI(int aX,int aY,int aZ)
+{
+   for (int aKIm=0 ; aKIm<int(mVLI.size()) ; aKIm++)
+   {
+       mVLI[aKIm]->MakeDeriv(aX,aY,aZ);
+   }
+}
+
+void  cAppliMICMAC::OneIterFinaleMATP(const cMasqueAutoByTieP & aMATP,bool Final)
+{
+   cCelTiepPtr aCPtr;
+   while (mMMTP->PopCel(aCPtr))
+   {
+        // std::cout << "CCC:: " << aCPtr->CostCorel() << "\n";
+        Pt3di  aP = aCPtr->Pt();
+        int aMxDZ = aMATP.DeltaZ();
+        Pt3di aDP;
+
+        MakeDerivAllGLI(aP.x,aP.y,aP.z);
+        for (aDP.x=-1 ; aDP.x<=1 ; aDP.x++)
+        {
+            for (aDP.y=-1 ; aDP.y<=1 ; aDP.y++)
+            {
+                for (aDP.z=-aMxDZ ; aDP.z<=aMxDZ ; aDP.z++)
+                {
+                    CTPAddCell(aMATP,aP.x+aDP.x,aP.y+aDP.y,aP.z+aDP.z,Final);
+                }
+            }
+        }
+ 
+   }
+}
+
+
+
 void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTieP & aMATP)
 {
-   mMMTP = new cMMTP(aBox);
+   mMMTP = new cMMTP(aBox,*this);
 #ifdef ELISE_X11
    if (aMATP.Visu().Val())
    {
@@ -427,13 +527,6 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
        TheWTiePCor=  TheWTiePCor->PtrChc(Pt2dr(0,0),Pt2dr(TheScaleW,TheScaleW),true);
        for (int aKS=0 ; aKS<mVLI[0]->NbScale() ; aKS++)
        {
-/*
-           if (aKS>0) 
-           {
-               std::cout << "====================ENTER ========================\n";
-               getchar();
-           }
-*/
            Im2D_REAL4 * anI = mVLI[0]->FloatIm(aKS);
            ELISE_COPY(anI->all_pts(),Max(0,Min(255,anI->in()/50)),TheWTiePCor->ogray());
        }
@@ -459,17 +552,6 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
 
 
 
-/*
-   mTabCTP = (new  cCelTiepPtr [mSzTiep.y]) - mP0Tiep.y;
-   for (int anY = mP0Tiep.y ; anY<mP1Tiep.y ; anY++)
-   {
-        mTabCTP[anY] = (new cCelTiep [mSzTiep.x]) - mP0Tiep.x;
-        for (int anX = mP0Tiep.x ; anX<mP1Tiep.x ; anX++)
-        {
-             mTabCTP[anY][anX].SetPlani(anX,anY);
-        }
-   }
-*/
 
    ElTimer aChrono;
    for (int aK=0 ; aK<int(mTP3d->size()) ; aK++)
@@ -482,16 +564,15 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
        int aYIm = round_ni(aPL2.y);
        int aZIm = round_ni(aPL2.z) ;
 
-
-       for (int aKIm=0 ; aKIm<int(mVLI.size()) ; aKIm++)
-       {
-           mVLI[aKIm]->MakeDeriv(aXIm,aYIm,aZIm);
-       }
-       CTPAddCell(aMATP,aXIm,aYIm,aZIm);
+       MakeDerivAllGLI(aXIm,aYIm,aZIm);
+       CTPAddCell(aMATP,aXIm,aYIm,aZIm,false);
 
    }
 
 
+   OneIterFinaleMATP(aMATP,false);
+
+/*
    cCelTiepPtr aCPtr;
    while (mMMTP->PopCel(aCPtr))
    {
@@ -499,10 +580,8 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
         Pt3di  aP = aCPtr->Pt();
         int aMxDZ = aMATP.DeltaZ();
         Pt3di aDP;
-        for (int aKIm=0 ; aKIm<int(mVLI.size()) ; aKIm++)
-        {
-            mVLI[aKIm]->MakeDeriv(aP.x,aP.y,aP.z);
-        }
+
+        MakeDerivAllGLI(aP.x,aP.y,aP.z);
         for (aDP.x=-1 ; aDP.x<=1 ; aDP.x++)
         {
             for (aDP.y=-1 ; aDP.y<=1 ; aDP.y++)
@@ -515,11 +594,12 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
         }
  
    }
+*/
 
    std::cout << "TIME CorTP " << aChrono.uval() << "\n";
    std::cout << " XML " << aXmlN.Image_Profondeur().Val().Image() << "\n";
 
-   mMMTP->DoMasqAndProfInit();
+   mMMTP->DoMasqAndProfInit(aMATP);
 
 
 //  ==================  SAUVEGARDE DES DONNEES POU FAITE UN NUAGE ====================
@@ -527,13 +607,10 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
    std::string aNameMasq = FullDirMEC() +aXmlN.Image_Profondeur().Val().Masq();
    ELISE_COPY
    (
-        mMMTP->ImMasq().all_pts(),
-        mMMTP->ImMasq().in(),
+        mMMTP->ImMasqFinal().all_pts(),
+        mMMTP->ImMasqFinal().in(),
         Tiff_Im(aNameMasq.c_str()).out()
    );
-
-   // mMMTP->SauvZ(mSurfOpt);
-   //cElNuage3DMaille * aNuage = ;
 
    
    std::string aNameImage = FullDirMEC() +aXmlN.Image_Profondeur().Val().Image();
