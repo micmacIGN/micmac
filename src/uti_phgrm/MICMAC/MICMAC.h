@@ -2714,9 +2714,12 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
 
       void DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTieP & aMATP);
-      void CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,int aZ);
+      void CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,int aZ,bool Final);
       cResCorTP CorrelMasqTP(const cMasqueAutoByTieP & aMATP,int anX,int anY,int aZ);
+      void  OneIterFinaleMATP(const cMasqueAutoByTieP & aMATP,bool Final);
 
+
+      void MakeDerivAllGLI(int anX,int anY,int aZ);
 
       double AdaptPas(double) const;
       cStatGlob  * StatGlob();
