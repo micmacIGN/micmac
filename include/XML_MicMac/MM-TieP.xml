@@ -29,10 +29,13 @@
 <Section_PriseDeVue >
      <GeomImages> eGeomImageOri </GeomImages>
      <Images >
-          <Im1> IMG_0013.CR2 </Im1>
+          <Im1> IMG_0057.CR2 </Im1>
          <ImSecCalcApero>
                <Key> NKS-Assoc-ImSec@${Ori} </Key>
           </ImSecCalcApero>
+<!--
+          <ImPat> IMG_0055.CR2 </ImPat>
+-->
 
      </Images>
 
@@ -57,7 +60,7 @@
 
              <GenImagesCorrel > true </GenImagesCorrel>
 
-             <ZPas>        0.5  </ZPas>
+             <ZPas>        0.25  </ZPas>
              <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
 
 	     <ZDilatAlti>  1    </ZDilatAlti>
@@ -71,12 +74,46 @@
                  <DeZoom >        ${Zoom}       </DeZoom> 
                  <CorrelAdHoc>
                      <SzBlocAH> 400000 </SzBlocAH>
+
+                     <CorrelMultiScale>
+                            <ModeDense> true </ModeDense>
+                            <OneParamCMS>
+                                 <SzW> 1 1 </SzW>
+                                 <Sigma> 0 </Sigma>
+                                 <Pds> 1.0 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 2 2 </SzW>
+                                 <Sigma> 1.0 </Sigma>
+                                 <Pds> 0.5 </Pds>
+                            </OneParamCMS>
+<!--
+                            <OneParamCMS>
+                                 <SzW> 4 4 </SzW>
+                                 <Sigma> 3.0 </Sigma>
+                                 <Pds> 0.25 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 8 8 </SzW>
+                                 <Sigma> 6.0 </Sigma>
+                                 <Pds> 0.125 </Pds>
+                            </OneParamCMS>
+-->
+
+
+                      </CorrelMultiScale>
+
+
                      <TypeCAH>
                         <MasqueAutoByTieP>
 <!--
                             <FilePt3D> Ori${Ori}/Pts3d.dat </FilePt3D>
 -->
                             <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>
+                            <DeltaZ >        2                         </DeltaZ>
+                            <SeuilSomCostCorrel> 0.65 </SeuilSomCostCorrel>
+                            <SeuilMaxCostCorrel> 0.8 </SeuilMaxCostCorrel>
+                            <Visu> true </Visu>
                         </MasqueAutoByTieP>
                      </TypeCAH>
                  </CorrelAdHoc>
@@ -95,6 +132,8 @@
      <TmpPyr>    Pyram/  </TmpPyr>
      <ByProcess> 0 </ByProcess>
      <SzDalleMin> 20000 </SzDalleMin>
+
+     <ComprMasque> eComprTiff_None </ComprMasque>
 
 </Section_WorkSpace>
 

@@ -292,7 +292,8 @@ cEtapeMecComp::cEtapeMecComp
   mEBI               (0),
   mTheModPrgD        (0),
   mTheEtapeNewPrgD   (0),
-  mInterpFloat       (0)
+  mInterpFloat       (0),
+  mMATP              (false)
 {
 
     
@@ -618,6 +619,7 @@ cEtapeMecComp::cEtapeMecComp
               {
                   NewPrgDynOblig = true;
               }
+
           }
 
           if (NewPrgDynInterdit && NewPrgDynOblig)
@@ -630,6 +632,12 @@ cEtapeMecComp::cEtapeMecComp
       }
 
 
+      if (mEtape.CorrelAdHoc().IsInit())
+      {
+         cTypeCAH aT = mEtape.CorrelAdHoc().Val().TypeCAH();
+         if (aT.MasqueAutoByTieP().IsInit())
+            mMATP = true;
+      }
 
 
       if (mArgMaskAuto)
@@ -703,6 +711,10 @@ void cEtapeMecComp::ExportModelesAnalytiques()
    }
 }
 
+bool  cEtapeMecComp::MATP() const
+{
+   return mMATP;
+}
 
 cInterpolateurIm2D<float> * cEtapeMecComp::InterpFloat()  const
 {
@@ -1262,7 +1274,9 @@ void cEtapeMecComp::SauvNappes
      )
 {
 
-  if (mIsOtpLeastSQ)
+/// std::cout << "cEtapeMecComp::SauvNappes  " << mMATP << "\n";
+
+  if (mIsOtpLeastSQ || mMATP)
      return;
 
    cResProj32 aRP32 = Projection32

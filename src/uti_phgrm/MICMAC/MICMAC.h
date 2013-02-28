@@ -277,6 +277,7 @@ class cStatOneImage
      void   Normalise(double aMoy,double aSigma);
      void   StdNormalise(double aEpsilon = 1e-10);
      double SquareDist(const cStatOneImage & aS2) const;
+     double SquareNorm() const;
 
 
 
@@ -2057,6 +2058,7 @@ class cEtapeMecComp
           const cModulationProgDyn *  TheModPrgD() const;
           const cEtapeProgDyn *       TheEtapeNewPrgD() const; 
           cInterpolateurIm2D<float> * InterpFloat() const;
+          bool        MATP() const;
        private:
 	  void VerifInit(bool,const std::string &);
 	  static cFilePx * GetPred(const tContEMC &,int anInd);
@@ -2105,6 +2107,7 @@ class cEtapeMecComp
           const cModulationProgDyn * mTheModPrgD;
           const cEtapeProgDyn *      mTheEtapeNewPrgD; 
           mutable cInterpolateurIm2D<float> * mInterpFloat;
+          bool                                mMATP;
 };
 
 /*****************************************************/
@@ -2519,6 +2522,10 @@ class   cGPU_LoadedImGeom
       {
           ELISE_ASSERT(mOneImage,"cGPU_LoadedImGeom::AssertOneImage");
       }
+      float ** MyDataIm0()   
+      {
+          return mMyDataIm0;
+      }
       float ** DataIm0()   
       {
            AssertOneImage();
@@ -2531,6 +2538,9 @@ class   cGPU_LoadedImGeom
       }
       float *** VDataIm()   {return mDataIm;}
       float **  VLinDIm()   {return mLinDIm;}
+      double  PdsMS() const;
+      double  SomPdsMS() const;
+
 
       double * Vals()     {return &(mVals[0]);}
       void  SetOK(bool aIsOK) {mIsOK = aIsOK;}
@@ -2580,11 +2590,18 @@ class   cGPU_LoadedImGeom
        Pt2dr ProjOfPDisc(int anX,int anY,int aZ) const;
        void MakeDeriv(int anX,int anY,int aZ);
        Pt2dr ProjByDeriv(int anX,int anY,int aZ) const;
-       cStatOneImage * ValueVignettByDeriv(int anX,int anY,int aZ,int aSzV,int PasVig) ;
+       cStatOneImage * ValueVignettByDeriv(int anX,int anY,int aZ,int aSzV,Pt2di PasVig) ;
+       cStatOneImage * VignetteDone();
 
        
        const std::vector<cGPU_LoadedImGeom *> & MSGLI() const {return mMSGLI;}
        cGPU_LoadedImGeom * KiemeMSGLI(int aK) const {return mMSGLI.at(aK);}
+
+
+       int  NbScale() const;
+       Im2D_REAL4 * FloatIm(int aKScale);
+       Pt2di  SzV0() const;
+
 
    private :
        
@@ -2610,10 +2627,12 @@ class   cGPU_LoadedImGeom
        cStatOneImage      mBufVignette;
 
        std::vector<cGPU_LoadedImGeom *> mMSGLI;  // Multi Scale GLI
+       cGPU_LoadedImGeom *              mMaster;
        bool                             mOneImage;
        const cOneParamCMS *             mOPCms;
        double                           mPdsMS;
        double                           mSomPdsMS;
+       float **                         mMyDataIm0;
 
 // tGpuF
 // tImGpu
@@ -2685,7 +2704,8 @@ typedef enum
 eModeInitZ;
 
 
-class cCalcImTP;
+class cResCorTP;
+class cMMTP;
 
 class cAppliMICMAC  : public   cParamMICMAC,
                       private  cStateSimul
@@ -2694,6 +2714,9 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
 
       void DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTieP & aMATP);
+      void CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,int aZ);
+      cResCorTP CorrelMasqTP(const cMasqueAutoByTieP & aMATP,int anX,int anY,int aZ);
+
 
       double AdaptPas(double) const;
       cStatGlob  * StatGlob();
@@ -3395,8 +3418,11 @@ class cAppliMICMAC  : public   cParamMICMAC,
            double mOrigineZ;
            double mStepZ;
 
-            std::vector<cGPU_LoadedImGeom *>  mVLI;
+           std::vector<cGPU_LoadedImGeom *>  mVLI;
+           // mVScaIm[aScale][aIm]
+           std::vector<std::vector<cGPU_LoadedImGeom *> > mVScaIm;
            int                              mNbIm;
+           int                              mNbScale;
 
 
            inline bool IsInTer(int anX,int anY) const {return GET_Val_BIT(mTabMasqTER[anY],anX);}
@@ -3452,7 +3478,6 @@ class cAppliMICMAC  : public   cParamMICMAC,
        //  Pour le calcul de masque par tie points
       
       
-         cCalcImTP *  CreateCalcImTP(cPriseDeVue *);
        
          int                   mTPZoom;
          int                   mTPSzW;
@@ -3463,6 +3488,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
 		bool					mLoadTextures;
 		InterfaceMicMacGpGpu	IMmGg;
 #endif	
+
+         cMMTP *  mMMTP;
 
 };
 
