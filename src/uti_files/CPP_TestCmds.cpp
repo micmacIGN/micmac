@@ -51,61 +51,89 @@ bool CheckForMM3D()
 	return true;
 }
 
-void GenerateMakeFile(std::string aNameFile, std::string aDataDir, bool doAll)
+void GenerateMakeFile(std::string aNameFile, std::string aDataDir, int chantier)
 {
-	std::string chantDir, aCom; 
-
 	FILE * aFP = FopenNN(aNameFile.c_str(),false ? "a" : "w","TestCmds_GenerateMakeFile");
 
-	chantDir = aDataDir + "/ExempleDoc/Boudha";
+	std::string chantDir = aDataDir + "/Boudha/";
 
-	aCom = "all:\n\t";
-	aCom += "mm3d Tapioca MulScale " + chantDir + "/IMG_[0-9]{4}.tif 300 -1 ExpTxt=1\n\t";
-	aCom += "mm3d Apero "  + chantDir + "/Apero-5.xml\n\t";
-	aCom += "mm3d MICMAC " + chantDir + "/Param-6-Ter.xml\n\t";	
+	std::string aCom = "all:\n\t";
 
-	if (doAll)
+	if (chantier == 0)
 	{
-		chantDir = aDataDir + "/ExempleDoc/StreetSaintMartin";
+		aCom += "mm3d Tapioca MulScale " + chantDir + "IMG_[0-9]{4}.tif 300 -1 ExpTxt=1\n\t";
+		aCom += "mm3d Apero "  + chantDir + "Apero-5.xml\n\t";
+		aCom += "mm3d MICMAC " + chantDir + "Param-6-Ter.xml\n\t";	
+	}
+	else if (chantier == 1)
+	{
+		chantDir = aDataDir + "/StreetSaintMartin/";
 
-		aCom += "mm3d Tapioca All \"" + chantDir + "/IMGP41((1[8-9])|(2[0-2])).JPG\" 1000\n\t";
-		aCom += "mm3d Tapioca All \"" + chantDir + "/IMGP41((5[2-8])).JPG\" 1000\n\t";
-		aCom += "mm3d Tapioca All \"" + chantDir + "/IMGP41((2[3-9])|[3-4][0-9]|(5[0-1])).JPG\" 1000\n\t";
-		aCom += "mm3d Tapas FishEyeEqui \"" + chantDir + "/IMGP41((1[8-9])|(2[0-2])).JPG\" Out=Calib10\n\t";
-		aCom += "mm3d Tapas FishEyeEqui \"" + chantDir + "/IMGP41((5[2-8])).JPG\" Out=Calib17\n\t";
-		aCom += "mm3d Tapas AutoCal \"" + chantDir + "/IMGP41((2[3-9])|[3-4][0-9]|(5[0-1])).JPG\" InCal=Calib10 Focs=[9,11] Out=Tmp1\n\t";
-		aCom += std::string(SYS_CP) + ' ' + chantDir + "/Ori-Calib17/AutoCal170.xml " + chantDir +"/Ori-Tmp1/ \n\t";
-		aCom += "mm3d Tapas FishEyeEqui \"" + chantDir + "/IMGP41((2[3-9])|[3-4][0-9]|(5[0-1])).JPG\" InOri=Tmp1 Out=all\n\t";
-		aCom += "mm3d AperiCloud \"" + chantDir + "/IMGP41((2[3-9])|[3-4][0-9]|(5[0-1])).JPG\" all\n\t";
+		aCom += "mm3d Tapioca All \"" + chantDir + "IMGP41((1[8-9])|(2[0-2])).JPG\" 1000\n\t";
+		aCom += "mm3d Tapioca All \"" + chantDir + "IMGP41((5[2-8])).JPG\" 1000\n\t";
+		aCom += "mm3d Tapioca All \"" + chantDir + "IMGP41((2[3-9])|[3-4][0-9]|(5[0-1])).JPG\" 1000\n\t";
+		aCom += "mm3d Tapas FishEyeEqui \"" + chantDir + "IMGP41((1[8-9])|(2[0-2])).JPG\" Out=Calib10\n\t";
+		aCom += "mm3d Tapas FishEyeEqui \"" + chantDir + "IMGP41((5[2-8])).JPG\" Out=Calib17\n\t";
+		aCom += "mm3d Tapas AutoCal \"" + chantDir + "IMGP41((2[3-9])|[3-4][0-9]|(5[0-1])).JPG\" InCal=Calib10 Focs=[9,11] Out=Tmp1\n\t";
+		aCom += std::string(SYS_CP) + ' ' + chantDir + "Ori-Calib17/AutoCal170.xml " + chantDir +"Ori-Tmp1/ \n\t";
+		aCom += "mm3d Tapas FishEyeEqui \"" + chantDir + "IMGP41((2[3-9])|[3-4][0-9]|(5[0-1])).JPG\" InOri=Tmp1 Out=all\n\t";
+		aCom += "mm3d AperiCloud \"" + chantDir + "IMGP41((2[3-9])|[3-4][0-9]|(5[0-1])).JPG\" all\n\t";
+	}
+	else if (chantier == 2)
+	{
+		chantDir = aDataDir + "/Vincennes/";
 
-		chantDir = aDataDir + "/ExempleDoc/Vincennes";
+		aCom += "mm3d Tapioca All \"" + chantDir + "Calib-IMGP[0-9]{4}.JPG\" 1000\n\t";
+		aCom += "mm3d Tapioca Line \""+ chantDir + "Face1-IMGP[0-9]{4}.JPG\" 1000 5\n\t";
+		aCom += "mm3d Tapioca Line \""+ chantDir + "Face2-IMGP[0-9]{4}.JPG\" 1000 5\n\t";
+		aCom += "mm3d Tapioca All \"" + chantDir + "((Lnk12-IMGP[0-9]{4})|(Face1-IMGP529[0-9])|(Face2-IMGP531[0-9])).JPG\" 1000\n\t";
 
-		aCom += "mm3d Tapioca All \"" + chantDir + "/Calib-IMGP[0-9]{4}.JPG\" 1000\n\t";
-		aCom += "mm3d Tapioca Line \""+ chantDir + "/Face1-IMGP[0-9]{4}.JPG\" 1000 5\n\t";
-		aCom += "mm3d Tapioca Line \""+ chantDir + "/Face2-IMGP[0-9]{4}.JPG\" 1000 5\n\t";
-		aCom += "mm3d Tapioca All \"" + chantDir + "/((Lnk12-IMGP[0-9]{4})|(Face1-IMGP529[0-9])|(Face2-IMGP531[0-9])).JPG\" 1000\n\t";
+		aCom += "mm3d Tapas RadialStd \""+ chantDir + "Calib-IMGP[0-9]{4}.JPG\" Out=Calib\n\t";
+		aCom += "mm3d Tapas RadialStd \""+ chantDir + "(Face1|Face2|Lnk12)-IMGP[0-9]{4}.JPG\" Out=All InCal=Calib\n\t";
 
-		aCom += "mm3d Tapas RadialStd \""+ chantDir + "/Calib-IMGP[0-9]{4}.JPG\" Out=Calib\n\t";
-		aCom += "mm3d Tapas RadialStd \""+ chantDir + "/(Face1|Face2|Lnk12)-IMGP[0-9]{4}.JPG\" Out=All InCal=Calib\n\t";
-
-		aCom += "mm3d AperiCloud \""+ chantDir + "/(Face|Lnk).*JPG\" All Out=AllCam.ply &&";
+		aCom += "mm3d AperiCloud \""+ chantDir + "(Face|Lnk).*JPG\" All Out=AllCam.ply\n\t";
 		
-		aCom += "mm3d GCPBascule \""+ chantDir + "/(Face1|Face2|Lnk12)-IMGP[0-9]{4}.JPG\" All Ground Mesure-TestApInit-3D.xml Mesure-TestApInit.xml\n\t";
+		aCom += "mm3d GCPBascule \""+ chantDir + "(Face1|Face2|Lnk12)-IMGP[0-9]{4}.JPG\" All Ground Mesure-TestApInit-3D.xml Mesure-TestApInit.xml\n\t";
 
-		aCom += "mm3d RepLocBascule \""+ chantDir +  "/(Face1)-IMGP[0-9]{4}.JPG\" Ground  MesureBascFace1.xml Ortho-Cyl1.xml PostPlan=_MasqPlanFace1 OrthoCyl=true\n\t";
-		aCom += "mm3d Tarama \""+ chantDir +  "/(Face1)-IMGP[0-9]{4}.JPG\" Ground  Repere=Ortho-Cyl1.xml  Out=TA-OC-F1 Zoom=4\n\t";
-		aCom += "mm3d Malt Ortho \""+ chantDir +  "/(Face1)-IMGP[0-9]{4}.JPG\" Ground  Repere=Ortho-Cyl1.xml  SzW=1 ZoomF=1  DirMEC=Malt-OC-F1 DirTA=TA-OC-F1\n\t";
-		aCom += "mm3d Tawny \""+ chantDir +  "/Ortho-UnAnam-Malt-OC-F1/\n\t";
-		aCom += "mm3d Nuage2Ply "+ chantDir +  "/Malt-OC-F1/NuageImProf_Malt-Ortho-UnAnam_Etape_1.xml Attr="+ chantDir +  "/Ortho-UnAnam-Malt-OC-F1/Ortho-Eg-Test-Redr.tif Scale=3\n\t";
+		aCom += "mm3d RepLocBascule \""+ chantDir +  "(Face1)-IMGP[0-9]{4}.JPG\" Ground MesureBascFace1.xml Ortho-Cyl1.xml PostPlan=_MasqPlanFace1 OrthoCyl=true\n\t";
+		aCom += "mm3d Tarama \""+ chantDir +  "(Face1)-IMGP[0-9]{4}.JPG\" Ground  Repere=Ortho-Cyl1.xml  Out=TA-OC-F1 Zoom=4\n\t";
+		aCom += "mm3d Malt Ortho \""+ chantDir +  "(Face1)-IMGP[0-9]{4}.JPG\" Ground  Repere=Ortho-Cyl1.xml SzW=1 ZoomF=1 DirMEC=Malt-OC-F1 DirTA=TA-OC-F1\n\t";
+		aCom += "mm3d Tawny \""+ chantDir +  "Ortho-UnAnam-Malt-OC-F1/\n\t";
+		aCom += "mm3d Nuage2Ply "+ chantDir +  "Malt-OC-F1/NuageImProf_Malt-Ortho-UnAnam_Etape_1.xml Attr=Ortho-UnAnam-Malt-OC-F1/Ortho-Eg-Test-Redr.tif Scale=3\n\t";
 
-		aCom += "mm3d RepLocBascule \""+ chantDir +  "/(Face2)-IMGP[0-9]{4}.JPG\" Ground  MesureBascFace2.xml Ortho-Cyl2.xml PostPlan=_MasqPlanFace2 OrthoCyl=true\n\t";
-		aCom += "mm3d Tarama \""+ chantDir +  "/(Face2)-IMGP[0-9]{4}.JPG\" Ground  Repere=Ortho-Cyl2.xml  Out=TA-OC-F2 Zoom=4\n\t";
-		aCom += "mm3d Malt Ortho \""+ chantDir +  "/(Face2)-IMGP[0-9]{4}.JPG\" Ground  Repere=Ortho-Cyl2.xml  SzW=1 ZoomF=1  DirMEC=Malt-OC-F2 DirTA=TA-OC-F2 NbVI=2\n\t";
-		aCom += "mm3d Tawny "+ chantDir +  "/Ortho-UnAnam-Malt-OC-F2/\n\t";
-		aCom += "mm3d Tawny "+ chantDir +  "/Ortho-UnAnam-Malt-OC-F2/  DEq=0\n\t";
-		aCom += "mm3d Nuage2Ply "+ chantDir +  "/Malt-OC-F2/NuageImProf_Malt-Ortho-UnAnam_Etape_1.xml Attr="+ chantDir +  "/Ortho-UnAnam-Malt-OC-F2/Ortho-Eg-Test-Redr.tif Scale=3\n\t";
+		aCom += "mm3d RepLocBascule \""+ chantDir +  "(Face2)-IMGP[0-9]{4}.JPG\" Ground MesureBascFace2.xml Ortho-Cyl2.xml PostPlan=_MasqPlanFace2 OrthoCyl=true\n\t";
+		aCom += "mm3d Tarama \""+ chantDir +  "(Face2)-IMGP[0-9]{4}.JPG\" Ground  Repere=Ortho-Cyl2.xml  Out=TA-OC-F2 Zoom=4\n\t";
+		aCom += "mm3d Malt Ortho \""+ chantDir +  "(Face2)-IMGP[0-9]{4}.JPG\" Ground  Repere=Ortho-Cyl2.xml  SzW=1 ZoomF=1  DirMEC=Malt-OC-F2 DirTA=TA-OC-F2 NbVI=2\n\t";
+		aCom += "mm3d Tawny "+ chantDir +  "Ortho-UnAnam-Malt-OC-F2/\n\t";
+		aCom += "mm3d Tawny "+ chantDir +  "Ortho-UnAnam-Malt-OC-F2/  DEq=0\n\t";
+		aCom += "mm3d Nuage2Ply "+ chantDir +  "Malt-OC-F2/NuageImProf_Malt-Ortho-UnAnam_Etape_1.xml Attr=Ortho-UnAnam-Malt-OC-F2/Ortho-Eg-Test-Redr.tif Scale=3\n\t";
 
-		aCom += "mm3d SBGlobBascule \""+ chantDir +  "/(Face1|Face2|Lnk12)-IMGP[0-9]{4}.JPG\" All MesureBascFace1.xml  Glob PostPlan=_MasqPlanFace1  DistFS=2.0 Rep=ij\n\t";
+		aCom += "mm3d SBGlobBascule \""+ chantDir +  "(Face1|Face2|Lnk12)-IMGP[0-9]{4}.JPG\" All MesureBascFace1.xml Glob PostPlan=_MasqPlanFace1 DistFS=2.0 Rep=ij\n\t";
+	}
+	else if (chantier == 3)
+	{
+		chantDir = aDataDir + "/MiniCuxha/";
+
+		/*aCom += "mm3d Tapioca MulScale \"" + chantDir + "Abbey-IMG.*.jpg\" 200 800\n\t";
+		aCom += "mm3d Tapas RadialBasic \"" + chantDir + "Abbey-IMG_(0248|0247|0249|0238|0239|0240).jpg\" Out=Calib\n\t";
+		aCom += "mm3d Tapas RadialBasic \"" + chantDir + "Abbey-IMG.*.jpg\" Out=All-Rel\n\t";
+
+		aCom += "mm3d AperiCloud \""+ chantDir + "Abbey-IMG_[0-9]*.jpg\" All-Rel RGB=0\n\t";
+
+		aCom += "mm3d GCPConvert \"#F=N_X_Y_Z_I\" "+ chantDir + "F120601.txt ChSys=DegreeWGS84@"+chantDir+"SysCoRTL.xml Out=AppRTL.xml\n\t";
+
+		aCom += "mm3d GCPBascule \""+ chantDir + "Abbey-IMG.*jpg\" All-Rel RTL-Init AppRTL.xml MesureInit-S2D.xml\n\t";
+		
+		aCom += "mm3d GCPBascule \""+chantDir + "Abbey-IMG.*jpg\" All-Rel  RTL-Bascule F120601.xml MesureFinale-S2D.xml\n\t";
+
+		aCom += "mm3d Campari \""+ chantDir +"Abbey-IMG.*.jpg\"  RTL-Bascule RTL-Compense GCP=[AppRTL.xml,0.1,MesureFinale-S2D.xml,0.5]\n\t";*/
+
+		aCom += "mm3d ChgSysCo \""+ chantDir +"Abbey-IMG.*.jpg\" RTL-Compense SysCoRTL.xml@Lambert93 L93\n\t";
+		aCom += "Tarama \""+ chantDir +"Abbey-IMG.*.jpg\" L93\n\t";
+
+		aCom += "Malt Ortho \""+ chantDir +"Abbey-IMG.*.jpg\" L93 SzW=1 AffineLast=false DefCor=0.0\n\t";
+
+		aCom += "Tawny Ortho-MEC-Malt/\n\t";
 	}
 
 	fprintf(aFP,"%s",aCom.c_str());	
@@ -116,20 +144,20 @@ void GenerateMakeFile(std::string aNameFile, std::string aDataDir, bool doAll)
 int TestCmds_main(int argc,char ** argv)
 {
 	std::string aDataDir, MkFile, aMk;
-	int doAll = 0;
+	int aDataSet = 0;
 
 	ElInitArgMain
     (
 		argc,argv,
-		LArgMain()  << EAMC(aDataDir,"micmac_data directory"),
-		LArgMain()  << EAM(doAll,"DoAll",true,"run the tool chain on all the data sets (def=false : run only on boudha data set)")	
+		LArgMain()  << EAMC(aDataDir,"data directory"),
+		LArgMain()  << EAM(aDataSet,"Data",0,"data sets:\n 0=/Boudha (default)\n 1=/StreetSaintMartin\n 2=/Vincennes\n 3=/MiniCuxha\n")	
 	);
 
 	if(CheckForMM3D())
 	{
 		MkFile = "makefile";
 
-		GenerateMakeFile(MkFile, aDataDir, doAll==1);
+		GenerateMakeFile(MkFile, aDataDir, aDataSet);
 
 		aMk = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFile;
 		aMk += " && " + std::string(SYS_RM)  + ' ' + MkFile;
