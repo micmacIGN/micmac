@@ -4820,12 +4820,61 @@ const std::string & cMasqueAutoByTieP::KeyImFilePt3D()const
    return mKeyImFilePt3D;
 }
 
+
+int & cMasqueAutoByTieP::DeltaZ()
+{
+   return mDeltaZ;
+}
+
+const int & cMasqueAutoByTieP::DeltaZ()const 
+{
+   return mDeltaZ;
+}
+
+
+double & cMasqueAutoByTieP::SeuilSomCostCorrel()
+{
+   return mSeuilSomCostCorrel;
+}
+
+const double & cMasqueAutoByTieP::SeuilSomCostCorrel()const 
+{
+   return mSeuilSomCostCorrel;
+}
+
+
+double & cMasqueAutoByTieP::SeuilMaxCostCorrel()
+{
+   return mSeuilMaxCostCorrel;
+}
+
+const double & cMasqueAutoByTieP::SeuilMaxCostCorrel()const 
+{
+   return mSeuilMaxCostCorrel;
+}
+
+
+cTplValGesInit< bool > & cMasqueAutoByTieP::Visu()
+{
+   return mVisu;
+}
+
+const cTplValGesInit< bool > & cMasqueAutoByTieP::Visu()const 
+{
+   return mVisu;
+}
+
 cElXMLTree * ToXMLTree(const cMasqueAutoByTieP & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MasqueAutoByTieP",eXMLBranche);
    if (anObj.GlobFilePt3D().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("GlobFilePt3D"),anObj.GlobFilePt3D().Val())->ReTagThis("GlobFilePt3D"));
    aRes->AddFils(::ToXMLTree(std::string("KeyImFilePt3D"),anObj.KeyImFilePt3D())->ReTagThis("KeyImFilePt3D"));
+   aRes->AddFils(::ToXMLTree(std::string("DeltaZ"),anObj.DeltaZ())->ReTagThis("DeltaZ"));
+   aRes->AddFils(::ToXMLTree(std::string("SeuilSomCostCorrel"),anObj.SeuilSomCostCorrel())->ReTagThis("SeuilSomCostCorrel"));
+   aRes->AddFils(::ToXMLTree(std::string("SeuilMaxCostCorrel"),anObj.SeuilMaxCostCorrel())->ReTagThis("SeuilMaxCostCorrel"));
+   if (anObj.Visu().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Visu"),anObj.Visu().Val())->ReTagThis("Visu"));
   return aRes;
 }
 
@@ -4836,39 +4885,14 @@ void xml_init(cMasqueAutoByTieP & anObj,cElXMLTree * aTree)
    xml_init(anObj.GlobFilePt3D(),aTree->Get("GlobFilePt3D",1)); //tototo 
 
    xml_init(anObj.KeyImFilePt3D(),aTree->Get("KeyImFilePt3D",1)); //tototo 
-}
 
+   xml_init(anObj.DeltaZ(),aTree->Get("DeltaZ",1)); //tototo 
 
-cTplValGesInit< bool > & cTypeCAH::ModeDense()
-{
-   return CorrelMultiScale().Val().ModeDense();
-}
+   xml_init(anObj.SeuilSomCostCorrel(),aTree->Get("SeuilSomCostCorrel",1)); //tototo 
 
-const cTplValGesInit< bool > & cTypeCAH::ModeDense()const 
-{
-   return CorrelMultiScale().Val().ModeDense();
-}
+   xml_init(anObj.SeuilMaxCostCorrel(),aTree->Get("SeuilMaxCostCorrel",1)); //tototo 
 
-
-std::vector< cOneParamCMS > & cTypeCAH::OneParamCMS()
-{
-   return CorrelMultiScale().Val().OneParamCMS();
-}
-
-const std::vector< cOneParamCMS > & cTypeCAH::OneParamCMS()const 
-{
-   return CorrelMultiScale().Val().OneParamCMS();
-}
-
-
-cTplValGesInit< cCorrelMultiScale > & cTypeCAH::CorrelMultiScale()
-{
-   return mCorrelMultiScale;
-}
-
-const cTplValGesInit< cCorrelMultiScale > & cTypeCAH::CorrelMultiScale()const 
-{
-   return mCorrelMultiScale;
+   xml_init(anObj.Visu(),aTree->Get("Visu",1),bool(false)); //tototo 
 }
 
 
@@ -4984,8 +5008,6 @@ const cTplValGesInit< cMasqueAutoByTieP > & cTypeCAH::MasqueAutoByTieP()const
 cElXMLTree * ToXMLTree(const cTypeCAH & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"TypeCAH",eXMLBranche);
-   if (anObj.CorrelMultiScale().IsInit())
-      aRes->AddFils(ToXMLTree(anObj.CorrelMultiScale().Val())->ReTagThis("CorrelMultiScale"));
    if (anObj.Correl2DLeastSquare().IsInit())
       aRes->AddFils(ToXMLTree(anObj.Correl2DLeastSquare().Val())->ReTagThis("Correl2DLeastSquare"));
    if (anObj.GPU_Correl().IsInit())
@@ -5012,8 +5034,6 @@ cElXMLTree * ToXMLTree(const cTypeCAH & anObj)
 void xml_init(cTypeCAH & anObj,cElXMLTree * aTree)
 {
    if (aTree==0) return;
-
-   xml_init(anObj.CorrelMultiScale(),aTree->Get("CorrelMultiScale",1)); //tototo 
 
    xml_init(anObj.Correl2DLeastSquare(),aTree->Get("Correl2DLeastSquare",1)); //tototo 
 
@@ -5072,34 +5092,34 @@ const cTplValGesInit< int > & cCorrelAdHoc::SzBlocAH()const
 
 cTplValGesInit< bool > & cCorrelAdHoc::ModeDense()
 {
-   return TypeCAH().CorrelMultiScale().Val().ModeDense();
+   return CorrelMultiScale().Val().ModeDense();
 }
 
 const cTplValGesInit< bool > & cCorrelAdHoc::ModeDense()const 
 {
-   return TypeCAH().CorrelMultiScale().Val().ModeDense();
+   return CorrelMultiScale().Val().ModeDense();
 }
 
 
 std::vector< cOneParamCMS > & cCorrelAdHoc::OneParamCMS()
 {
-   return TypeCAH().CorrelMultiScale().Val().OneParamCMS();
+   return CorrelMultiScale().Val().OneParamCMS();
 }
 
 const std::vector< cOneParamCMS > & cCorrelAdHoc::OneParamCMS()const 
 {
-   return TypeCAH().CorrelMultiScale().Val().OneParamCMS();
+   return CorrelMultiScale().Val().OneParamCMS();
 }
 
 
 cTplValGesInit< cCorrelMultiScale > & cCorrelAdHoc::CorrelMultiScale()
 {
-   return TypeCAH().CorrelMultiScale();
+   return mCorrelMultiScale;
 }
 
 const cTplValGesInit< cCorrelMultiScale > & cCorrelAdHoc::CorrelMultiScale()const 
 {
-   return TypeCAH().CorrelMultiScale();
+   return mCorrelMultiScale;
 }
 
 
@@ -5232,6 +5252,8 @@ cElXMLTree * ToXMLTree(const cCorrelAdHoc & anObj)
       aRes->AddFils(::ToXMLTree(std::string("EpsilonMulMoyenne"),anObj.EpsilonMulMoyenne().Val())->ReTagThis("EpsilonMulMoyenne"));
    if (anObj.SzBlocAH().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("SzBlocAH"),anObj.SzBlocAH().Val())->ReTagThis("SzBlocAH"));
+   if (anObj.CorrelMultiScale().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.CorrelMultiScale().Val())->ReTagThis("CorrelMultiScale"));
    aRes->AddFils(ToXMLTree(anObj.TypeCAH())->ReTagThis("TypeCAH"));
   return aRes;
 }
@@ -5245,6 +5267,8 @@ void xml_init(cCorrelAdHoc & anObj,cElXMLTree * aTree)
    xml_init(anObj.EpsilonMulMoyenne(),aTree->Get("EpsilonMulMoyenne",1),double(0.0)); //tototo 
 
    xml_init(anObj.SzBlocAH(),aTree->Get("SzBlocAH",1),int(40)); //tototo 
+
+   xml_init(anObj.CorrelMultiScale(),aTree->Get("CorrelMultiScale",1)); //tototo 
 
    xml_init(anObj.TypeCAH(),aTree->Get("TypeCAH",1)); //tototo 
 }
@@ -8648,34 +8672,34 @@ const cTplValGesInit< int > & cEtapeMEC::SzBlocAH()const
 
 cTplValGesInit< bool > & cEtapeMEC::ModeDense()
 {
-   return CorrelAdHoc().Val().TypeCAH().CorrelMultiScale().Val().ModeDense();
+   return CorrelAdHoc().Val().CorrelMultiScale().Val().ModeDense();
 }
 
 const cTplValGesInit< bool > & cEtapeMEC::ModeDense()const 
 {
-   return CorrelAdHoc().Val().TypeCAH().CorrelMultiScale().Val().ModeDense();
+   return CorrelAdHoc().Val().CorrelMultiScale().Val().ModeDense();
 }
 
 
 std::vector< cOneParamCMS > & cEtapeMEC::OneParamCMS()
 {
-   return CorrelAdHoc().Val().TypeCAH().CorrelMultiScale().Val().OneParamCMS();
+   return CorrelAdHoc().Val().CorrelMultiScale().Val().OneParamCMS();
 }
 
 const std::vector< cOneParamCMS > & cEtapeMEC::OneParamCMS()const 
 {
-   return CorrelAdHoc().Val().TypeCAH().CorrelMultiScale().Val().OneParamCMS();
+   return CorrelAdHoc().Val().CorrelMultiScale().Val().OneParamCMS();
 }
 
 
 cTplValGesInit< cCorrelMultiScale > & cEtapeMEC::CorrelMultiScale()
 {
-   return CorrelAdHoc().Val().TypeCAH().CorrelMultiScale();
+   return CorrelAdHoc().Val().CorrelMultiScale();
 }
 
 const cTplValGesInit< cCorrelMultiScale > & cEtapeMEC::CorrelMultiScale()const 
 {
-   return CorrelAdHoc().Val().TypeCAH().CorrelMultiScale();
+   return CorrelAdHoc().Val().CorrelMultiScale();
 }
 
 
