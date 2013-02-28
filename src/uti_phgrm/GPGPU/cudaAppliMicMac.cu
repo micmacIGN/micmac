@@ -2,55 +2,21 @@
 #include "GpGpu/cudaTextureTools.cuh"
 #include "GpGpu/CudaRefTexture.cuh"
 
-// ATTENTION : erreur de compilation avec l'option cudaReadModeNormalizedFloat et l'utilisation de la fonction tex2DLayered
-
-texture< float,	cudaTextureType2DLayered >	TexL_Images;
-TexFloat2Layered							TexL_Proj_00;
-TexFloat2Layered							TexL_Proj_01;
-TexFloat2Layered							TexL_Proj_02;
-TexFloat2Layered							TexL_Proj_03;
-
-template<int TexSel> __device__ __host__ TexFloat2Layered TexFloat2L();
-
-template<> __device__ __host__ TexFloat2Layered TexFloat2L<0>() { return TexL_Proj_00; };
-template<> __device__ __host__ TexFloat2Layered TexFloat2L<1>() { return TexL_Proj_01; };
-template<> __device__ __host__ TexFloat2Layered TexFloat2L<2>() { return TexL_Proj_02; };
-template<> __device__ __host__ TexFloat2Layered TexFloat2L<3>() { return TexL_Proj_03; };
-
-
-//------------------------------------------------------------------------------------------
-
-extern "C" textureReference& getMask(){	return TexS_MaskTer;}
-extern "C" textureReference& getImage(){ return TexL_Images;}
-extern "C" textureReference& getProjection(int TexSel)
-{
-	switch (TexSel)
-	{
-	case 0:
-		return TexL_Proj_00;
-	case 1:
-		return TexL_Proj_01;
-	case 2:
-		return TexL_Proj_02;
-	case 3:
-		return TexL_Proj_03;
-	default:
-		return TexL_Proj_00;
-	}								
-}
-
-
 static __constant__ paramMicMacGpGpu cH;
-
 
 extern "C" void CopyParamTodevice( paramMicMacGpGpu param )
 {
 	checkCudaErrors(cudaMemcpyToSymbol(cH, &param, sizeof(paramMicMacGpGpu)));
 }
 
-template<int TexSel> __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
+template<int TexSel> __global__ void correlationKernel( float *dev_NbImgOk, float* cachVig, uint2 nbActThrd, Rect *rGVok)
 {
 	__shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
+
+	__shared__ Rect sRVOK;
+
+	if (threadIdx.x == 0 && threadIdx.y == 0)	
+		sRVOK = Rect(cH.rDiTer.x,cH.rDiTer.y,-1,-1);
 
 	// Coordonnées du terrain global avec bordure // __umul24!!!! A voir
 	const uint2 ptHTer = make_uint2(blockIdx) * nbActThrd + make_uint2(threadIdx);
@@ -64,20 +30,27 @@ template<int TexSel> __global__ void correlationKernel( float *dev_NbImgOk, floa
 	const float2 ptProj = tex2DLayeredPt(TexFloat2L<TexSel>(),ptHTer,cH.dimSTer,cH.sampTer,blockIdx.z);
 #endif
 
+	uint iZ;
+	uint mZ;
+
 	if (oI(ptProj,0))
 	{
 		cacheImg[threadIdx.y][threadIdx.x]  = cH.DefaultVal;
 		return;
 	}
  	else
+	{
+		iZ = blockIdx.z / cH.nbImages;
+		mZ = blockIdx.z - iZ * cH.nbImages;
 #if		INTERPOLA == NEAREST
-		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayered( TexL_Images, (((int)ptProj.x )+ 0.5f) / (float)cH.dimImg.x, (((int)(ptProj.y) )+ 0.5f) / (float)cH.dimImg.y,(int)(blockIdx.z % cH.nbImages));
+		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayered( TexL_Images, (((int)ptProj.x )+ 0.5f) / (float)cH.dimImg.x, (((int)(ptProj.y) )+ 0.5f) / (float)cH.dimImg.y,mZ);
 #elif	INTERPOLA == LINEARINTER
-		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayeredPt( TexL_Images, ptProj, cH.dimImg, (int)(blockIdx.z % cH.nbImages));
+		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayeredPt( TexL_Images, ptProj, cH.dimImg, mZ);
 #elif	INTERPOLA == BICUBIC
-		cacheImg[threadIdx.y][threadIdx.x] = tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, cH.dimImg,(int)(blockIdx.z % cH.nbImages));
+		cacheImg[threadIdx.y][threadIdx.x] = tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, cH.dimImg,mZ));
 #endif
-		
+
+	}
 	__syncthreads();
 
 	const int2 ptTer = make_int2(ptHTer) - make_int2(cH.rVig);
@@ -133,29 +106,51 @@ template<int TexSel> __global__ void correlationKernel( float *dev_NbImgOk, floa
 
 	}	
 
-	const int ZPitch = (blockIdx.z / cH.nbImages) * cH.rSiTer;
+	const int ZPitch = iZ * cH.rSiTer; 
+	const int idN = ZPitch + to1D(ptTer,cH.rDiTer);
 
-	atomicAdd( &dev_NbImgOk[ZPitch + to1D(ptTer,cH.rDiTer)], 1.0f);
+	atomicAdd( &dev_NbImgOk[idN], 1.0f);
+/*
+	__syncthreads();
+
+	if ( mZ != 0 ) return;
+	if (dev_NbImgOk[idN]<2) return;
+
+	if (ptTer.x > sRVOK.pt0.x && ptTer.y > sRVOK.pt0.y && ptTer.x < sRVOK.pt1.x && ptTer.y < sRVOK.pt1.y)
+		return;
+
+	if (sRVOK.pt0.x != atomicMin(&(sRVOK.pt0.x),ptTer.x));
+		atomicMin(&(rGVok->pt0.x),(int)sRVOK.pt0.x);
+
+	if (sRVOK.pt0.y != atomicMin(&(sRVOK.pt0.y),ptTer.y));
+		atomicMin(&(rGVok->pt0.y),(int)sRVOK.pt0.y);
+
+	if (sRVOK.pt1.x != atomicMax(&(sRVOK.pt1.x),ptTer.x));
+		atomicMax(&(rGVok->pt1.x),(int)sRVOK.pt1.x);
+
+	if (sRVOK.pt1.y != atomicMax(&(sRVOK.pt1.y),ptTer.y));
+		atomicMax(&(rGVok->pt1.y),(int)sRVOK.pt1.y);*/
 };
 
-extern "C" void	 KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, float *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
+extern "C" void	 KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, float *dev_NbImgOk, float* cachVig, uint2 nbActThrd, Rect *rVoK)
 {
+
 	switch (s)
 	{
 		case 0:
-			correlationKernel<0><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+			correlationKernel<0><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd, rVoK);
 			getLastCudaError("Basic Correlation kernel failed stream 0");
 			break;
 		case 1:
-			correlationKernel<1><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+			correlationKernel<1><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd, rVoK);
 			getLastCudaError("Basic Correlation kernel failed stream 1");
 			break;
 		case 2:
-			correlationKernel<2><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+			correlationKernel<2><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd, rVoK);
 			getLastCudaError("Basic Correlation kernel failed stream 2");
 			break;
 		case 3:
-			correlationKernel<3><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+			correlationKernel<3><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd, rVoK);
 			getLastCudaError("Basic Correlation kernel failed stream 3");
 			break;
 	}	
@@ -241,7 +236,7 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, float * 
 	dTCost[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
 }
 
-extern "C" void KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, float * dev_NbImgOk, uint2 nbActThr)
+extern "C" void KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, float * dev_NbImgOk, uint2 nbActThr, Rect rGVoK)
 {
 	multiCorrelationKernel<<<blocks, threads, 0, stream>>>(dTCost, cacheVign, dev_NbImgOk, nbActThr);
 	getLastCudaError("Multi-Correlation kernel failed");
