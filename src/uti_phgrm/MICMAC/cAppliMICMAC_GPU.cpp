@@ -1138,7 +1138,7 @@ if (0)
 					{
 						if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip) && IMmGg.ValDilMask(an-zone.pt0) == 1)
 						{
-							//std::cout <<  "fff\n";
+							
 							int2 r	= (an - zone.pt0)/sample;
 							int iD	= (abs(Z - anZ) * mNbIm  +   aKIm )* sizSTabProj  + to1D(r,dimSTabProj);
 // 							int aZMin	= mTabZMin[an.y][an.x];
@@ -1146,7 +1146,7 @@ if (0)
  										
 							//if ((aGLI.IsVisible(an.x ,an.y )) /*&& (aZMin <= anZ)&&(anZ <=aZMax) */)
 							if (aKIm !=0)
-							{					
+							{	
 								const double aZReel	= DequantZ(anZ);			// Déquantification  de X, Y et Z 
 								Pt2dr aPTer	= DequantPlani(an.x,an.y);
 								Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image 			
@@ -1161,6 +1161,7 @@ if (0)
 				}
 			}
 		}
+
 /*
 		for (int aKIm = 0 ; aKIm < 4 ; aKIm++ )
 		{

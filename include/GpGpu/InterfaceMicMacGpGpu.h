@@ -1,9 +1,9 @@
 #pragma once
 
 #ifdef CUDA_ENABLED
+#define BOOST_ALL_NO_LIB 
 
 #include "GpGpu/cudaAppliMicMac.cuh"
-#define BOOST_ALL_NO_LIB 
 #include <boost/thread/thread.hpp>
 //#include <boost\chrono\chrono.hpp>
 

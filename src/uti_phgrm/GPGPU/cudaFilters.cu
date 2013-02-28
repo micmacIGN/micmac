@@ -69,5 +69,6 @@ extern "C" void dilateKernel(pixel* HostDataOut, short r, uint2 dim)
 	getLastCudaError("DilateX kernel failed");
 
 	deviceDataOut.CopyDevicetoHost(HostDataOut);
+	deviceDataOut.Dealloc();
 
 }
