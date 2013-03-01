@@ -712,9 +712,9 @@ if (0)
 				memcpy(SubMaskTab + (y  - rMask.pt0.y) * rDimTer.x, maskTab + (y - mY0Ter) * Ter.dimension().x + rMask.pt0.x - mX0Ter, sizeof(pixel) * rDimTer.x );
 					
 			IMmGg.SetMask(SubMaskTab,rDimTer);
-
+#ifdef USEDILATEMASK
 			IMmGg.dilateMask(rDimTer);
-
+#endif
 			delete[] SubMaskTab;
 		}
 
@@ -1204,7 +1204,11 @@ if (0)
 				{															
 					for (an.x = zone.pt0.x; an.x < zone.pt1.x ; an.x += sample)	
 					{
+#ifdef USEDILATEMASK
 						if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip) && IMmGg.ValDilMask(an-zone.pt0) == 1)
+#else
+						if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip))
+#endif
 						{
 							
 							int2 r	= (an - zone.pt0)/sample;

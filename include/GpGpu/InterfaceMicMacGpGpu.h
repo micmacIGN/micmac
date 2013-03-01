@@ -53,10 +53,12 @@ class InterfaceMicMacGpGpu
 		void	SetComputeNextProj(bool compute);
 		int		GetComputedZ();
 		void	SetComputedZ(int computedZ);
+
+#ifdef USEDILATEMASK
 		void	dilateMask(uint2 dim);
 		pixel*	GetDilateMask();
 		pixel	ValDilMask(int2 pt);
-
+#endif
 
 	private:
 
@@ -77,10 +79,10 @@ class InterfaceMicMacGpGpu
 		ImageCuda<pixel>		_mask;
 		ImageLayeredCuda<float>	_LayeredImages;
 		ImageLayeredCuda<float2>_LayeredProjection[NSTREAM];
-
+#ifdef USEDILATEMASK
 		pixel*					_dilateMask;
 		uint2					_dimDilateMask;
-
+#endif
 		textureReference&		_texMask;
 		textureReference&		_texMaskD;
  		textureReference&		_texImages;
