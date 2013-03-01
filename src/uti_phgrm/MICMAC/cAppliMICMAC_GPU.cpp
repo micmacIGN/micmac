@@ -636,8 +636,7 @@ if (0)
 				if(fdataImg1D == NULL)
 					fdataImg1D	= new float[ size(dimImgMax) * mNbIm ];
 	
-				// Copie du tableau 2d des valeurs de l'image
-				// Ameliorer encore la copy de texture, copier les images une à une dans le device!!!!
+				// Copie du tableau 2d des valeurs de l'image Ameliorer encore la copy de texture, copier les images une à une dans le device!!!!
 				if (aEq(dimImgMax,dimImg))
  					memcpy(  fdataImg1D + size(dimImgMax)* aKIm , data,  size(dimImg) * sizeof(float));
 
@@ -645,17 +644,7 @@ if (0)
 					GpGpuTools::Memcpy2Dto1D(aDataIm ,fdataImg1D + size(dimImgMax) * aKIm, dimImgMax, dimImg );
 
 			}
-/*
 
-			if (0)
-			{
-				//for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
-				{
-					int idImage = 0;
-					dimImgMax = make_uint2(dimImgMax.y,dimImgMax.x);
-					GpGpuTools::Array1DtoImageFile((fdataImg1D + size(dimImgMax)*idImage) , "imageTexture.pgm", dimImgMax, 500.0f);
-				}
-			}*/
 			if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
 				IMmGg.SetImages(fdataImg1D, dimImgMax, mNbIm);
 
@@ -1213,54 +1202,20 @@ if (0)
 							
 							int2 r	= (an - zone.pt0)/sample;
 							int iD	= (abs(Z - anZ) * mNbIm  +   aKIm )* sizSTabProj  + to1D(r,dimSTabProj);
-// 							int aZMin	= mTabZMin[an.y][an.x];
-// 							int aZMax	= mTabZMax[an.y][an.x];
- 										
-							//if ((aGLI.IsVisible(an.x ,an.y )) /*&& (aZMin <= anZ)&&(anZ <=aZMax) */)
-							if (aKIm !=0)
-							{	
-								const double aZReel	= DequantZ(anZ);			// Déquantification  de X, Y et Z 
-								Pt2dr aPTer	= DequantPlani(an.x,an.y);
-								Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image 			
+// 							int aZMin	= mTabZMin[an.y][an.x];int aZMax	= mTabZMax[an.y][an.x];if ((aGLI.IsVisible(an.x ,an.y )) /*&& (aZMin <= anZ)&&(anZ <=aZMax) */)
+
+							const double aZReel	= DequantZ(anZ);			// Déquantification  de X, Y et Z 
+							Pt2dr aPTer	= DequantPlani(an.x,an.y);
+							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image 			
 							
-								if (aGLI.IsOk( aPIm.x, aPIm.y ))
-									TabProj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
-							}
-							else							
-								TabProj[iD]		= make_float2((float)an.x,(float)an.y);							
+							if (aGLI.IsOk( aPIm.x, aPIm.y ))
+								TabProj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
+				
 						}
 					}
 				}
 			}
 		}
-
-/*
-		for (int aKIm = 0 ; aKIm < 4 ; aKIm++ )
-		{
-			cGPU_LoadedImGeom&	aGLI = *(mVLI[aKIm]);
-			float**	aDataIm	= aGLI.DataIm();
-			float*	image	= new float[h.sizeSTer];
-			memset(image,0,h.sizeSTer * sizeof(float));
-			int2 an;
-			for ( an.y = Ter0.y ; an.y < Ter1.y; an.y = an.y + sample)															
-				for ( an.x = Ter0.x ; an.x < Ter1.x ; an.x = an.x + sample)	// Ballayage du terrain  
-				{
-					int2 r	= (an - Ter0) / h.sampTer;
-					int iD	= (aKIm * h.sizeSTer + to1D(r,h.dimSTer)) * 2;
-					Pt2dr aPIm(TabProj[iD],TabProj[iD+1]);
-
-					if ((aGLI.IsOk(aPIm.x,aPIm.y))&&(aGLI.IsOk(aPIm.x+2,aPIm.y+2))&&(aGLI.IsOk(aPIm.x-2,aPIm.y-2)))
-						image[to1D(r,h.dimSTer)] =  (float)mInterpolTabule.GetVal(aDataIm,aPIm)/500.0f;
-					
-				}
-
-			std::string fileImage = "imageTextureProj_" + ToString(aKIm) + ".pgm";
-
-			GpGpuTools::Array1DtoImageFile(image,fileImage.c_str(),h.dimSTer);
-
-			delete[] image;
-		}
-*/
 	}
 
 	void cAppliMICMAC::setVolumeCost(Rect Ter, uint z0, uint z1, double defaultCost, float* tabCost, Rect zone, float valdefault)
