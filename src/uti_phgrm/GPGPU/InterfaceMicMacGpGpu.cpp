@@ -125,44 +125,26 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
 	uint2	block2D		= iDivUp(_param.dimTer,actiThsCo);
 	dim3	blocks(block2D.x , block2D.y, nbLayer * _param.ZLocInter);
 
-	
-	const int s = 0;
-	Rect* host_rVoK  =  (Rect*)malloc(sizeof(Rect));
-	host_rVoK->pt0   = make_int2(_param.rDiTer);
-	host_rVoK->pt1   = make_int2(-1,-1);
-	Rect* dev__rVoK;
-	
-	checkCudaErrors(cudaMalloc((void**)&dev__rVoK,sizeof(Rect)));  
-	checkCudaErrors(cudaMemcpy(dev__rVoK,host_rVoK,sizeof(Rect),cudaMemcpyHostToDevice));
+	/*-------------	calcul de dimension du kernel de multi-correlation ------------*/
+
+	uint2	actiThs		= SBLOCKDIM - make_uint2( SBLOCKDIM % _param.dimVig.x, SBLOCKDIM % _param.dimVig.y);
+	dim3	threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
+	uint2	block2D_mC	= iDivUp(_param.dimCach,actiThs);
+	dim3	blocks_mC(block2D_mC.x,block2D_mC.y,_param.ZLocInter);
+
+	const uint s = 0;
 
 	_LayeredProjection[s].copyHostToDevice(hostVolumeProj);
 	SetComputeNextProj(true);
 	_LayeredProjection[s].bindTexture(GetTeXProjection(s));
 
-	KernelCorrelation(s, *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo,dev__rVoK);
-
-	cudaMemcpy(host_rVoK,dev__rVoK,sizeof(Rect),cudaMemcpyDeviceToHost);
-
-	host_rVoK->out();
-	std::cout << "/(" << _param.rDiTer.x << "," << _param.rDiTer.y << ")\n";
-
-	/*-------------	calcul de dimension du kernel de multi-correlation ------------*/
+	KernelCorrelation(s, *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo);
 	
-	uint2 computeDimTer = host_rVoK->dimension();
-	uint2	actiThs		= SBLOCKDIM - make_uint2( SBLOCKDIM % _param.dimVig.x, SBLOCKDIM % _param.dimVig.y);
-	dim3	threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
-	uint2	block2D_mC	= iDivUp(_param.dimCach,actiThs);
-	dim3	blocks_mC(block2D_mC.x,block2D_mC.y,_param.ZLocInter);
-	//KernelmultiCorrelation( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs, dev__rVoK);
+	KernelmultiCorrelation( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs);
 
-	checkCudaErrors( cudaUnbindTexture(&(GetTeXProjection(s))) );
-	//_volumeCost[s].CopyDevicetoHost(hostVolumeCost);	
-	_volumeNIOk[s].CopyDevicetoHost(hostVolumeCost);	
-
-
-	delete host_rVoK;
-	cudaFree(dev__rVoK);
-
+	checkCudaErrors( cudaUnbindTexture(&(GetTeXProjection(s))));
+	_volumeCost[s].CopyDevicetoHost(hostVolumeCost);	
+	//_volumeNIOk[s].CopyDevicetoHost(hostVolumeCost);	
 	//GpGpuTools::OutputArray(hostVolumeCost,_param.rDiTer);
 	//GpGpuTools::OutputArray(hostVolumeCost +  _volumeCost[0].GetSize(),_param.rDiTer,3,_param.DefaultVal);
 	//_volumeNIOk.CopyDevicetoHost(hostVolumeCost);
@@ -192,12 +174,11 @@ void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2
 	dim3	blocks_mC(block2D_mC.x,block2D_mC.y,_param.ZLocInter);
 
 	const int s = 0;
-	Rect* host_rVoK  =  (Rect*)malloc(sizeof(Rect));
-	host_rVoK->pt0   = make_int2(_param.rDiTer);
-	host_rVoK->pt1   = make_int2(-1,-1);
-	Rect* dev__rVoK;
-	checkCudaErrors(cudaMalloc((void**)&dev__rVoK,sizeof(Rect)));  
-	checkCudaErrors(cudaMemcpy(dev__rVoK,host_rVoK,sizeof(Rect),cudaMemcpyHostToDevice));
+	bool* host_isOK  =  (bool*)malloc(sizeof(bool));
+	*host_isOK = false;
+	bool* dev__isOK;
+	checkCudaErrors(cudaMalloc((void**)&dev__isOK,sizeof(bool)));  
+	checkCudaErrors(cudaMemcpy(dev__isOK,host_isOK,sizeof(bool),cudaMemcpyHostToDevice));
 
 	while(Z < interZ)
 	{
@@ -213,8 +194,8 @@ void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2
 
 		for (uint s = 0;s<nstream;s++)
 		{
-			KernelCorrelation(s, *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo,dev__rVoK);
-			KernelmultiCorrelation( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs, dev__rVoK);
+			KernelCorrelation(s, *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo);
+			KernelmultiCorrelation( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs);
 		}
 
 		for (uint s = 0;s<nstream;s++)

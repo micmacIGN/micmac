@@ -8,8 +8,8 @@
 //#include <boost\chrono\chrono.hpp>
 
 extern "C" void	CopyParamTodevice(paramMicMacGpGpu h);
-extern "C" void	KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, float *dev_NbImgOk, float* cachVig, uint2 nbActThrd, Rect *rVoK);
-extern "C" void	KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, float * dev_NbImgOk, uint2 nbActThr, Rect *rGVoK);
+extern "C" void	KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd);
+extern "C" void	KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, uint* dev_NbImgOk, uint2 nbActThr);
 
 extern "C" void dilateKernel(pixel* HostDataOut, short r, uint2 dim);
 extern "C" textureReference& getMaskD();
@@ -72,7 +72,7 @@ class InterfaceMicMacGpGpu
 
 		CuDeviceData3D<float>	_volumeCost[NSTREAM];	// volume des couts   
 		CuDeviceData3D<float>	_volumeCach[NSTREAM];	// volume des calculs intermédiaires
-		CuDeviceData3D<float>	_volumeNIOk[NSTREAM];	// nombre d'image correct pour une vignette
+		CuDeviceData3D<uint>	_volumeNIOk[NSTREAM];	// nombre d'image correct pour une vignette
 
 		ImageCuda<pixel>		_mask;
 		ImageLayeredCuda<float>	_LayeredImages;

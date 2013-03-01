@@ -24,3 +24,31 @@ __device__  inline float2 simpleProjection( uint2 size, uint2 ssize/*, uint2 siz
 
 	return ra;
 }
+
+
+/*
+
+Eviter les divergences dans la multi-corre
+
+	__syncthreads();
+
+	if ( mZ != 0 ) return;
+	if (dev_NbImgOk[idN]<2) return;
+
+	if (ptTer.x > sRVOK.pt0.x && ptTer.y > sRVOK.pt0.y && ptTer.x < sRVOK.pt1.x && ptTer.y < sRVOK.pt1.y)
+		return;
+
+	if (sRVOK.pt0.x != atomicMin(&(sRVOK.pt0.x),ptTer.x));
+		atomicMin(&(rGVok->pt0.x),(int)sRVOK.pt0.x);
+
+	if (sRVOK.pt0.y != atomicMin(&(sRVOK.pt0.y),ptTer.y));
+		atomicMin(&(rGVok->pt0.y),(int)sRVOK.pt0.y);
+
+	if (sRVOK.pt1.x != atomicMax(&(sRVOK.pt1.x),ptTer.x));
+		atomicMax(&(rGVok->pt1.x),(int)sRVOK.pt1.x);
+
+	if (sRVOK.pt1.y != atomicMax(&(sRVOK.pt1.y),ptTer.y));
+		atomicMax(&(rGVok->pt1.y),(int)sRVOK.pt1.y);
+		
+		
+*/
