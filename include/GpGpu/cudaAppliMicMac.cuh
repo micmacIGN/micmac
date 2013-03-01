@@ -15,10 +15,9 @@
 #define NEAREST		0
 #define LINEARINTER	1
 #define BICUBIC		2
-#define INTERPOLA	BICUBIC
+#define INTERPOLA	NEAREST
 #define FLOATMATH
 //#define USEDILATEMASK
-
 
 #ifdef _DEBUG
 	#define   BLOCKDIM	16
@@ -27,9 +26,6 @@
 	#define   BLOCKDIM	32
 	#define   SBLOCKDIM 15
 #endif
-
-
-
 
 struct paramMicMacGpGpu
 {

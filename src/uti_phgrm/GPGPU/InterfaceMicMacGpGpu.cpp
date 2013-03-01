@@ -293,11 +293,6 @@ void InterfaceMicMacGpGpu::MTComputeCost()
 	}
 }
 
-void InterfaceMicMacGpGpu::createThreadGpu()
-{
-	
-}
-
 void InterfaceMicMacGpGpu::SetHostVolume( float* vCost, float2* vProj )
 {
 	_vCost = vCost;
@@ -360,6 +355,7 @@ Rect InterfaceMicMacGpGpu::rUTer()
 {
 	return _param.GetRUTer();
 }
+
 #ifdef USEDILATEMASK
 void InterfaceMicMacGpGpu::dilateMask(uint2 dim )
 {

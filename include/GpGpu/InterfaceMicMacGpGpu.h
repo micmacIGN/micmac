@@ -66,7 +66,6 @@ class InterfaceMicMacGpGpu
 		void					AllocMemory(int nStream);
 		cudaStream_t*			GetStream(int stream);
 		textureReference&		GetTeXProjection(int texSel);
-		void					createThreadGpu();
 		void					MTComputeCost();
 
 		cudaStream_t			_stream[NSTREAM];
