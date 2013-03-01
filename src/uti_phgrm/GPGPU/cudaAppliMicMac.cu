@@ -42,7 +42,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 #elif	INTERPOLA == LINEARINTER
 		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayeredPt( TexL_Images, ptProj, cH.dimImg, mZ);
 #elif	INTERPOLA == BICUBIC
-		cacheImg[threadIdx.y][threadIdx.x] = tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, cH.dimImg,mZ));
+		cacheImg[threadIdx.y][threadIdx.x] = tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, cH.dimImg,mZ);
 #endif
 
 	}
