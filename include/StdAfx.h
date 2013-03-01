@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _ELISE_STDAFX_H
+#define _ELISE_STDAFX_H
 
 #if (  __VERBOSE__>1 )
 	#define __TRACE_SYSTEM__
@@ -274,3 +275,4 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 	#include "../src/EtalonnagePolygone/lib/pointe.h"
 #endif
 
+#endif //_ELISE_STDAFX_H

@@ -71,9 +71,9 @@ void InterfaceMicMacGpGpu::DeallocMemory()
 
 	_mask.Dealloc();
 	_LayeredImages.Dealloc();
-
+#ifdef USEDILATEMASK
 	delete [] _dilateMask;
-	
+#endif
 }
 
 void InterfaceMicMacGpGpu::SetMask( pixel* dataMask, uint2 dimMask )
@@ -172,13 +172,6 @@ void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2
 	dim3	threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
 	uint2	block2D_mC	= iDivUp(_param.dimCach,actiThs);
 	dim3	blocks_mC(block2D_mC.x,block2D_mC.y,_param.ZLocInter);
-
-	const int s = 0;
-	bool* host_isOK  =  (bool*)malloc(sizeof(bool));
-	*host_isOK = false;
-	bool* dev__isOK;
-	checkCudaErrors(cudaMalloc((void**)&dev__isOK,sizeof(bool)));  
-	checkCudaErrors(cudaMemcpy(dev__isOK,host_isOK,sizeof(bool),cudaMemcpyHostToDevice));
 
 	while(Z < interZ)
 	{
@@ -367,7 +360,7 @@ Rect InterfaceMicMacGpGpu::rUTer()
 {
 	return _param.GetRUTer();
 }
-
+#ifdef USEDILATEMASK
 void InterfaceMicMacGpGpu::dilateMask(uint2 dim )
 {
 
@@ -390,3 +383,4 @@ pixel InterfaceMicMacGpGpu::ValDilMask(int2 pt)
 {
 	return (oI(pt,0) || oSE(pt,_dimDilateMask)) ? 0 : _dilateMask[to1D(pt,_dimDilateMask)];
 }
+#endif
