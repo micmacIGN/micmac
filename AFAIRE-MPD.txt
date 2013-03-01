@@ -1,0 +1,68 @@
+Bascule sur des images quasi panoramiques : probleme stabité intersection de faisceau.
+
+
+===============================================================
+
+
+AMELIORER MESSAGE D'ERREUR SUR PAS ASSEZ DE POINTS DS BASCULE
+
+=========================================
+
+
+Commande pour MM-Pyram.xml, Apero-Choix-ImSec.xml, MM-ModelInitial.xml (en // avec makefile)
+
+
+
+=============================
+Malt, géométrie image, pouvoir estimer le plan sur un repere cartesien (comme OrthoCyl)
+
+
+Ajouter Test sur fichiers Raw.
+
+=============================
+
+
+
+Documenter :
+
+   mm3d AperoChImSecMM ".*PEF" All
+
+MMPyram
+MMInitialModel
+nouvelle inteface mm3d
+portage windows
+Campari
+Campari
+mm3d-LockFile.txt
+CenterBascule
+
+
+Voir pour les sift comme masques
+
+Systeme carto Mini Cuxh
+Bascule Center
+conversio ori
+conversion app
+
+TestKey
+
+=============================
+
+-1- Calcul des Moyenne Ecart Type
+
+=============================
+
+EVOL :
+
+    windows
+    mm3d
+    lock
+
+==========================================
+
+EGYPTE :
+
+-1- Recalibration de tous les objectifs
+-2- Détermination des heures de "rasances" pour les principaux points de vue
+-3- Fixer les conventions de nomage  (Plan, masq ...), et de renommage des images (par la focale entre autre);
+
