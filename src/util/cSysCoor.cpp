@@ -334,10 +334,11 @@ std::vector<Pt3dr> cProj4::Chang(const std::vector<Pt3dr> & aPtsIn, bool Sens2Ge
 
    std::string aCom =    std::string( std::string(SYS_CAT) + " " + aTmpIn + " | ")
                        + std::string(Sens2GeoC ? "invproj " : "proj ")
-                       + std::string(" -f '%.7f' ")
+                       + std::string(" -f %.7f ")
                        + mStr
                        + " > " 
                        + aTmpOut;
+
 
    VoidSystem(aCom.c_str());
 

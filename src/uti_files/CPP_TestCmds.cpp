@@ -114,7 +114,7 @@ void GenerateMakeFile(std::string aNameFile, std::string aDataDir, int chantier)
 	{
 		chantDir = aDataDir + "/MiniCuxha/";
 
-		/*aCom += "mm3d Tapioca MulScale \"" + chantDir + "Abbey-IMG.*.jpg\" 200 800\n\t";
+		aCom += "mm3d Tapioca MulScale \"" + chantDir + "Abbey-IMG.*.jpg\" 200 800\n\t";
 		aCom += "mm3d Tapas RadialBasic \"" + chantDir + "Abbey-IMG_(0248|0247|0249|0238|0239|0240).jpg\" Out=Calib\n\t";
 		aCom += "mm3d Tapas RadialBasic \"" + chantDir + "Abbey-IMG.*.jpg\" Out=All-Rel\n\t";
 
@@ -126,7 +126,7 @@ void GenerateMakeFile(std::string aNameFile, std::string aDataDir, int chantier)
 		
 		aCom += "mm3d GCPBascule \""+chantDir + "Abbey-IMG.*jpg\" All-Rel  RTL-Bascule F120601.xml MesureFinale-S2D.xml\n\t";
 
-		aCom += "mm3d Campari \""+ chantDir +"Abbey-IMG.*.jpg\"  RTL-Bascule RTL-Compense GCP=[AppRTL.xml,0.1,MesureFinale-S2D.xml,0.5]\n\t";*/
+		aCom += "mm3d Campari \""+ chantDir +"Abbey-IMG.*.jpg\"  RTL-Bascule RTL-Compense GCP=[AppRTL.xml,0.1,MesureFinale-S2D.xml,0.5]\n\t";
 
 		aCom += "mm3d ChgSysCo \""+ chantDir +"Abbey-IMG.*.jpg\" RTL-Compense SysCoRTL.xml@Lambert93 L93\n\t";
 		aCom += "Tarama \""+ chantDir +"Abbey-IMG.*.jpg\" L93\n\t";
