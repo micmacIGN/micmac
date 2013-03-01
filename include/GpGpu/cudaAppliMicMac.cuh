@@ -15,7 +15,7 @@
 #define NEAREST		0
 #define LINEARINTER	1
 #define BICUBIC		2
-#define INTERPOLA	LINEARINTER
+#define INTERPOLA	BICUBIC
 #define FLOATMATH
 //#define USEDILATEMASK
 
