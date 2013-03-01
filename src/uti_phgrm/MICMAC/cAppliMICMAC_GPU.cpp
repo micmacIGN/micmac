@@ -1293,8 +1293,8 @@ if (0)
 		
 		if(	mNbIm == 0) return;	
 
-		//int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		int aZMinTer = 0, aZMaxTer = 1;
+		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
+		//int aZMinTer = 0, aZMaxTer = 1;
 
 		Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
 
