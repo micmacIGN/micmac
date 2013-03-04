@@ -38,7 +38,12 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 		iZ = blockIdx.z / cH.nbImages;
 		mZ = blockIdx.z - iZ * cH.nbImages;
 #if		INTERPOLA == NEAREST
-		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayered( TexL_Images, (((int)ptProj.x )+ 0.5f) / (float)cH.dimImg.x, (((int)(ptProj.y) )+ 0.5f) / (float)cH.dimImg.y,mZ);
+
+		const float2 ptImg = (ptProj + 0.5f) / cH.dimImg;
+		//const float2 ptImg = ((int)ptProj + 0.5f) / cH.dimImg;
+		//(((int)ptProj.x )+ 0.5f) / (float)cH.dimImg.x
+
+		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayered( TexL_Images,ptImg.x , ptImg.y,mZ);
 #elif	INTERPOLA == LINEARINTER
 		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayeredPt( TexL_Images, ptProj, cH.dimImg, mZ);
 #elif	INTERPOLA == BICUBIC
@@ -133,12 +138,14 @@ extern "C" void	 KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks,
 }
 
 // Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens	///
-__global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, int* dev_NbImgOk, uint2 nbActThr)
+template<int sNbTh> __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, int* dev_NbImgOk, uint2 nbActThr)
 {
-	__shared__ float aSV [ SBLOCKDIM ][ SBLOCKDIM ];		// Somme des valeurs
-	__shared__ float aSVV[ SBLOCKDIM ][ SBLOCKDIM ];		// Somme des carrés des valeurs
-	__shared__ float resu[ SBLOCKDIM/2 ][ SBLOCKDIM/2 ];	// resultat
-	__shared__ ushort nbIm[ SBLOCKDIM/2 ][ SBLOCKDIM/2 ];	// nombre d'images correcte
+
+	const ushort BB = ( 4 - sNbTh ) * SBLOCKDIM / 3;
+	__shared__ float aSV [ BB ][ BB ];		// Somme des valeurs
+	__shared__ float aSVV[ BB  ][ BB ];		// Somme des carrés des valeurs
+	__shared__ float resu[ BB/2 ][ BB/2 ];	// resultat
+	__shared__ ushort nbIm[ BB/2][ BB/2 ];	// nombre d'images correcte
 
 	// coordonnées des threads
 	const uint2 t = make_uint2(threadIdx);
@@ -211,9 +218,24 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, int* dev
 	dTCost[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
 }
 
-extern "C" void KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, int * dev_NbImgOk, uint2 nbActThr)
+extern "C" void KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, int * dev_NbImgOk, uint2 nbActThr, ushort divideNThreads)
 {
-	multiCorrelationKernel<<<blocks, threads, 0, stream>>>(dTCost, cacheVign, dev_NbImgOk, nbActThr);
+
+	switch (divideNThreads)
+	{
+		case 1:
+			multiCorrelationKernel<1><<<blocks, threads, 0, stream>>>(dTCost, cacheVign, dev_NbImgOk, nbActThr);
+			break;
+		case 2:
+			multiCorrelationKernel<2><<<blocks, threads, 0, stream>>>(dTCost, cacheVign, dev_NbImgOk, nbActThr);
+			break;
+		case 3:
+			multiCorrelationKernel<3><<<blocks, threads, 0, stream>>>(dTCost, cacheVign, dev_NbImgOk, nbActThr);
+			break;
+		default :
+			multiCorrelationKernel<3><<<blocks, threads, 0, stream>>>(dTCost, cacheVign, dev_NbImgOk, nbActThr);			
+	}
+	
 	getLastCudaError("Multi-Correlation kernel failed");
 
 }

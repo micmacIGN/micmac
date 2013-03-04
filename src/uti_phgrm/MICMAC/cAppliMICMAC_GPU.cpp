@@ -691,7 +691,7 @@ if (0)
 
 		IMmGg.SetSizeBlock(rMask,INTERZ);
 
-		if (IMmGg.IsValid())
+		if (IMmGg.MaskNoNULL())
 		{
 			uint2 rDimTer = IMmGg.GetDimensionTerrain();
 
@@ -1175,10 +1175,11 @@ if (0)
 	{
 		
 		uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain 
-		uint2	dimSTabProj	= iDivUp(dimTabProj,sample);			// Dimension de la zone terrain echantilloné
+		uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain echantilloné
 		uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
  		int2	aSzDz		= toI2(Pt2dr(mGeomDFPx->SzDz()));		// Dimension de la zone terrain total
  		int2	aSzClip		= toI2(Pt2dr(mGeomDFPx->SzClip()));		// Dimension du bloque
+		int2	anB = zone.pt0 +  dimSTabProj * sample;
 
 		for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
 		{
@@ -1187,17 +1188,13 @@ if (0)
 			
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);			// Obtention de l'image courante
 				const cGeomImage*	aGeom	= aGLI.Geom();
-				int2 an;
-		
-				for (an.y = zone.pt0.y; an.y < zone.pt1.y; an.y += sample)	// Ballayage du terrain  
+				int2 an;				
+
+				for (an.y = zone.pt0.y; an.y < anB.y; an.y += sample)	// Ballayage du terrain  
 				{															
-					for (an.x = zone.pt0.x; an.x < zone.pt1.x ; an.x += sample)	
+					for (an.x = zone.pt0.x; an.x < anB.x ; an.x += sample)	
 					{
-#ifdef USEDILATEMASK
-						if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip) && IMmGg.ValDilMask(an-zone.pt0) == 1)
-#else
-						if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip))
-#endif
+						if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip) /*&& IMmGg.ValDilMask(an-zone.pt0) == 1*/)
 						{
 							
 							int2 r	= (an - zone.pt0)/sample;
@@ -1255,35 +1252,47 @@ if (0)
 		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
 		//int aZMinTer = 0, aZMaxTer = 1;
 
+		// definition de la zone rectangulaire de terrain
 		Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
 
-		if (!IMmGg.IsValid())
+		// Si le terrain est masqué : Aucun calcul
+		if (!IMmGg.MaskNoNULL())
 		{
 			setVolumeCost(mTer,mZMinGlob,mZMaxGlob,mAhDefCost);
 			return;
 		}
 
-		int interZ	= min(INTERZ, abs(aZMaxTer - aZMinTer));
+		// intervale des pronfondeurs calculés simultanément
+		int interZ	= min(INTERZ, abs(aZMaxTer - aZMinTer)); 
 
+		// S'il change allocation différentes... A VERIFIER!! depuis les derniers changements
 		if (interZ != INTERZ)
 			IMmGg.SetSizeBlock(interZ);
 		
+		// Allocation de l'espace mémoire pour la tabulation des projections et des couts
 		CuHostData3D<float>		hVolumeCost(IMmGg.GetDimensionTerrain(),interZ);
 		CuHostData3D<float2>	hVolumeProj(IMmGg.GetSDimensionTerrain(), interZ*mNbIm);
 
-		IMmGg.SetHostVolume(hVolumeCost.pData(), hVolumeProj.pData());
-		IMmGg.SetComputeNextProj(true);
-		IMmGg.SetComputedZ(aZMinTer);
-		int anZProjection	= aZMinTer;
-		int anZComputed		= aZMinTer;
+		bool multiThreading = true;
 
-		bool multiT = true;
+		// Initiation des parametres pour le multithreading
+		if (multiThreading)
+		{		
+			IMmGg.SetHostVolume(hVolumeCost.pData(), hVolumeProj.pData());
+			IMmGg.SetComputeNextProj(true);
+			IMmGg.SetComputedZ(aZMinTer);
+		}
+		int anZProjection = aZMinTer, anZComputed= aZMinTer;
 		
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		while( anZComputed < aZMaxTer )
 		{
-			if (multiT)
+			if (multiThreading)
 			{
+				// le calcul de correlation est effectué dans un thread parallèle à celui-ci
+				// il s'effectue quand des projections ont été calculées!
+
+				// Tabulation des projections si la demande est faite
 				if ( IMmGg.GetComputeNextProj() && anZProjection <= anZComputed + interZ && anZProjection < aZMaxTer)
 				{
 					int intZ = (uint)abs(aZMaxTer - anZProjection );
@@ -1297,6 +1306,8 @@ if (0)
 					anZProjection+= interZ;				
 				}
 				int ZtoCopy = IMmGg.GetZCtoCopy();
+
+				// Affectation des couts si des nouveaux ont été calculé!
 				if (ZtoCopy != 0 && anZComputed < aZMaxTer)
 				{
 
@@ -1336,195 +1347,6 @@ if (0)
 		IMmGg.SetZToCompute(0);
 		hVolumeCost.Dealloc();
 		hVolumeProj.Dealloc();
-
-#else
-//std::cout  << "MESSAGE = "<<   mCorrelAdHoc->GPU_CorrelBasik().Val().Unused().Val() << "\n";
-
-		//  Lecture des parametre d'environnement MicMac : nappes, images, quantification etc ...
-
-		//   Masque des points terrains valides
-		// U_INT1 **  aTabMasqTER = mLTer->GPULowLevel_MasqTer();
-
-		// Deux constantes : cout lorque la correlation ne peut etre calculee et
-		// ecart type minmal
-		// double aAhDefCost =  mStatGlob->CorrelToCout(mDefCorr);
-		// double anAhEpsilon = EpsilonCorrelation().Val();
-		// Buffer pour pointer sur l'ensemble des vignettes OK
-		std::vector<double *> aVecVals(mNbIm);
-		double ** aVVals = &(aVecVals[0]);
-
-		//  Au boulot !  on balaye le terrain
-		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
-		{
-			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
-			{
-
-				int aZMin = mTabZMin[anY][anX];
-				int aZMax = mTabZMax[anY][anX];
-
-				// est-on dans le masque des points terrains valide
-				if ( IsInTer(anX,anY))	// -> GET_Val_BIT(mTabMasqTER[anY],anX) -> return (mTabMasqTER[anX/8] >> (7-anX %8) ) & 1;
-				{
-
-					// Bornes du voisinage
-					// taille de la fenetre mCurSzV0
-					int aX0v = anX-mCurSzV0.x;
-					int aX1v = anX+mCurSzV0.x;
-					int aY0v = anY-mCurSzV0.y;
-					int aY1v = anY+mCurSzV0.y;
-
-					// on parcourt l'intervalle de Z compris dans la nappe au point courant
-					for (int aZInt=aZMin ;  aZInt< aZMax ; aZInt++)
-					{
-
-						// Pointera sur la derniere imagette OK
-						double ** aVVCur = aVVals;
-						// Statistique MICMAC
-						mNbPointsIsole++;
-
-						// On dequantifie le Z 
-						double aZReel  = DequantZ(aZInt); // -> anOrigineZ+ aZInt*aStepZ;
-
-
-						int aNbImOk = 0;
-
-						// On balaye les images  pour lire les valeur et stocker, par image,
-						// un vecteur des valeurs voisine normalisees en moyenne et ecart type
-						for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
-						{
-							cGPU_LoadedImGeom & aGLI = *(mVLI[aKIm]);
-							const cGeomImage * aGeom=aGLI.Geom();
-							float ** aDataIm =  aGLI.DataIm0();
-
-							// Pour empiler les valeurs
-							double * mValsIm = aGLI.Vals();
-							double * mCurVals = mValsIm;
-
-							// Pour stocker les moment d'ordre 1 et 2
-							double  aSV = 0;
-							double  aSVV = 0;
-
-							// En cas de gestion parties cachees, un masque terrain 
-							// de visibilite a ete calcule par image
-							if (aGLI.IsVisible(anX,anY))
-							{
-								// memorise le fait que tout est OK pour le pixel et l'image consideres
-								bool IsOk = true;
-
-								// Balaye le voisinage
-								for (int aXVois=aX0v ; (aXVois<=aX1v)&&IsOk; aXVois++)
-								{
-									for (int aYVois= aY0v; (aYVois<=aY1v)&&IsOk; aYVois++)
-									{
-										// On dequantifie la plani 
-										Pt2dr aPTer  = DequantPlani(aXVois,aYVois); 
-										// -> return Pt2dr( mOriPlani.x + mStepPlani.x*anX,mOriPlani.y + mStepPlani.y*anY);
-
-										// On projette dans l'image 
-										Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);
-
-										// Est ce qu'un point image est dans le domaine de definition de l'image
-										// (dans le rectangle + dans le masque)
-										if ((aGLI.IsOk(aPIm.x,aPIm.y))&&(aGLI.IsOk(aPIm.x+2,aPIm.y+2))&&(aGLI.IsOk(aPIm.x-2,aPIm.y-2)))
-										{
-											// On utilise l'interpolateur pour lire la valeur image
-											// ->return BicubValue(aTab,aP)
-											double aVal =  mInterpolTabule.GetVal(aDataIm,aPIm);
-
-											// On "push" la nouvelle valeur de l'image
-											*(mCurVals++) = aVal;
-											aSV += aVal;
-											aSVV += QSquare(aVal) ;
-											// mValsIm.push_back(mInterpolTabule.GetVal(aDataIm,aPIm));
-											// *(mTopPts++) = aPIm;
-										}
-										else
-										{
-											// Si un  seul des voisin n'est pas lisible , on annule tout
-											IsOk =false;
-										}
-									}
-								}
-								if (IsOk)
-								{
-
-									// On normalise en moyenne et ecart type
-									aSV /= mNbPtsWFixe;
-									aSVV /= mNbPtsWFixe;
-									aSVV -=  QSquare(aSV) ;
-									if (aSVV >mAhEpsilon) // Test pour eviter / 0 et sqrt(<0) 
-									{
-										*(aVVCur++) = mValsIm;
-										aSVV = sqrt(aSVV);
-										for (int aKV=0 ; aKV<mNbPtsWFixe; aKV++)
-										{
-											mValsIm[aKV] = (mValsIm[aKV]-aSV)/aSVV;
-										}
-									}
-									else
-									{
-										IsOk = false;
-									}
-								}
-								aNbImOk += IsOk;
-								aGLI.SetOK(IsOk);
-							}
-							else
-							{
-								aGLI.SetOK(false);
-							}
-						}
-
-
-
-						// Calcul "rapide"  de la multi-correlation en utilisant la formule
-						// de Huygens comme decrit en 3.5 de la Doc MicMac
-						if (aNbImOk>=2)
-						{
-							double anEC2 = 0;
-							// Pour chaque pixel
-							for (int aKV=0 ; aKV<mNbPtsWFixe; aKV++)
-							{
-								double aSV=0,aSVV=0;
-								// Pour chaque image, maj des stat 1 et 2
-								for (int aKIm=0 ; aKIm<aNbImOk ; aKIm++)
-								{
-									double aV = aVVals[aKIm][aKV];
-									aSV += aV;
-									aSVV += QSquare(aV);
-								}
-								// Additionner l'ecart type inter imagettes
-								anEC2 += (aSVV-QSquare(aSV)/aNbImOk);
-							}
-
-							// Normalisation pour le ramener a un equivalent de 1-Correl 
-							double aCost = anEC2 / (( aNbImOk-1) *mNbPtsWFixe);
-							aCost =  mStatGlob->CorrelToCout(1-aCost);
-							// On envoie le resultat a l'optimiseur pour valoir  ce que de droit
-							mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,aCost);
-							//if (1) std::cout << "Z " << aZInt << " Cost " << aCost << "\n";
-						}
-						else
-						{
-							// if (Debug) std::cout << "Z " << aZInt << " DEF " << aDefCost << "\n";
-							// Si pas assez d'image, il faut quand meme remplir la case avec qq chose
-							mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,mAhDefCost);
-						}
-					}
-				}
-				else
-				{
-					for (int aZInt=aZMin ; aZInt< aZMax ; aZInt++)
-					{
-						mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,mAhDefCost);
-					}
-				}
-			}
-		
-
-		//std::cout << "End DoGPU_Correl_Basik..." << "\n";
-
-		}
 #endif
 		
 	}

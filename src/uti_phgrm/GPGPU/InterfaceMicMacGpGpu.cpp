@@ -78,6 +78,8 @@ void InterfaceMicMacGpGpu::DeallocMemory()
 
 void InterfaceMicMacGpGpu::SetMask( pixel* dataMask, uint2 dimMask )
 {
+	// Initialisation du masque utilisateur
+	// le masque est passe en texture
 	_mask.InitImage(dimMask,dataMask);
 	_mask.bindTexture(_texMask);
 	_mask.bindTexture(_texMaskD);
@@ -89,18 +91,21 @@ void InterfaceMicMacGpGpu::InitParam( Rect Ter, int nbLayer , uint2 dRVig , uint
 	// Parametres texture des projections
 	for (int s = 0;s<NSTREAM;s++)
 	{
-		GetTeXProjection(s).addressMode[0]	= cudaAddressModeClamp;
-		GetTeXProjection(s).addressMode[1]	= cudaAddressModeClamp;	
+		GetTeXProjection(s).addressMode[0]	= cudaAddressModeBorder;
+		GetTeXProjection(s).addressMode[1]	= cudaAddressModeBorder;	
 		GetTeXProjection(s).filterMode		= cudaFilterModeLinear; //cudaFilterModePoint cudaFilterModeLinear
 		GetTeXProjection(s).normalized		= true;
 	}
 	// Parametres texture des Images
 	_texImages.addressMode[0]	= cudaAddressModeWrap;
 	_texImages.addressMode[1]	= cudaAddressModeWrap;
-	_texImages.filterMode		= cudaFilterModePoint; //cudaFilterModeLinear cudaFilterModePoint
+	_texImages.filterMode		= cudaFilterModeLinear; //cudaFilterModeLinear cudaFilterModePoint
 	_texImages.normalized		= true;
 
+
+	// Initialisation des parametres constants
 	_param.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
+	// Initialisation des parametres de dimensions du terrain
 	SetSizeBlock( Ter, interZ );
 
 	for (int s = 0;s<NSTREAM;s++)
@@ -109,6 +114,7 @@ void InterfaceMicMacGpGpu::InitParam( Rect Ter, int nbLayer , uint2 dRVig , uint
 
 void InterfaceMicMacGpGpu::SetImages( float* dataImage, uint2 dimImage, int nbLayer )
 {
+	// Images vers Textures Gpu
 	_LayeredImages.CData3D::Malloc(dimImage,nbLayer);
 	_LayeredImages.copyHostToDevice(dataImage);
 	_LayeredImages.bindTexture(_texImages);
@@ -116,8 +122,13 @@ void InterfaceMicMacGpGpu::SetImages( float* dataImage, uint2 dimImage, int nbLa
 
 void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* hostVolumeProj, int nbLayer, uint interZ )
 {
+	// Lancement des algo GPGPU
+
+	// Re-dimensionner les strucutres de données si elles ont été modifiées
 	ResizeVolume(nbLayer,_param.ZLocInter);
 	
+
+	// Cacul de dimension des threads des kernels
 	/*--------------- calcul de dimension du kernel de correlation ---------------*/
 	dim3	threads( BLOCKDIM, BLOCKDIM, 1);
 	uint2	thd2D		= make_uint2(threads);
@@ -127,29 +138,32 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
 
 	/*-------------	calcul de dimension du kernel de multi-correlation ------------*/
 
-	uint2	actiThs		= SBLOCKDIM - make_uint2( SBLOCKDIM % _param.dimVig.x, SBLOCKDIM % _param.dimVig.y);
-	dim3	threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
+	// Calcul pour eviter la limitaion de nomre de threads par block (ici 1024)
+	ushort sNbTh	=  (ushort)((float)sqrt( (float)_param.nbImages / MAX_THREADS_PER_BLOCK) * SBLOCKDIM ) + 1;
+	ushort	BLDIM	= ( 4 - sNbTh ) * SBLOCKDIM / 3 ;
+	uint2	actiThs		= BLDIM - make_uint2( BLDIM % _param.dimVig.x, BLDIM % _param.dimVig.y);
+	dim3	threads_mC(BLDIM, BLDIM, nbLayer);
 	uint2	block2D_mC	= iDivUp(_param.dimCach,actiThs);
 	dim3	blocks_mC(block2D_mC.x,block2D_mC.y,_param.ZLocInter);
+	const uint s = 0; // Affection du stream de calcul
 
-	const uint s = 0;
-
+	// Copier les projections du host --> device
 	_LayeredProjection[s].copyHostToDevice(hostVolumeProj);
+	// Indique que la copie est terminée pour le thread de calcul des projections
 	SetComputeNextProj(true);
+	// Lié de données de projections du device avec la texture de projections
 	_LayeredProjection[s].bindTexture(GetTeXProjection(s));
 
+	// Lancement du calcul de correlation 
 	KernelCorrelation(s, *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo);
-	
-	KernelmultiCorrelation( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs);
+	// Lancement du calcul de multi-correlation
+	KernelmultiCorrelation( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs,sNbTh);
 
+	// Libérer la texture de projection
 	checkCudaErrors( cudaUnbindTexture(&(GetTeXProjection(s))));
+	// Copier les resultats de calcul des couts du device vers le host!
 	_volumeCost[s].CopyDevicetoHost(hostVolumeCost);	
-	//_volumeNIOk[s].CopyDevicetoHost(hostVolumeCost);	
-	//GpGpuTools::OutputArray(hostVolumeCost,_param.rDiTer);
-	//GpGpuTools::OutputArray(hostVolumeCost +  _volumeCost[0].GetSize(),_param.rDiTer,3,_param.DefaultVal);
-	//_volumeNIOk.CopyDevicetoHost(hostVolumeCost);
-	//checkCudaErrors( cudaMemcpy( h_TabCost, dev_NbImgOk, costMemSize, cudaMemcpyDeviceToHost) );	
-	//GpGpuTools::OutputArray(hostVolumeCost,_param.rDiTer,11.0f,_param.DefaultVal);
+	
 }
 
 void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj, int nbLayer, uint interZ )
@@ -167,6 +181,8 @@ void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2
 	dim3	blocks(block2D.x , block2D.y, nbLayer * _param.ZLocInter);
 
 	/*-------------	calcul de dimension du kernel de multi-correlation ------------*/
+
+	
 
 	uint2	actiThs		= SBLOCKDIM - make_uint2( SBLOCKDIM % _param.dimVig.x, SBLOCKDIM % _param.dimVig.y);
 	dim3	threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
@@ -188,7 +204,7 @@ void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2
 		for (uint s = 0;s<nstream;s++)
 		{
 			KernelCorrelation(s, *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo);
-			KernelmultiCorrelation( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs);
+			KernelmultiCorrelation( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs,1);
 		}
 
 		for (uint s = 0;s<nstream;s++)
@@ -207,7 +223,7 @@ uint2 InterfaceMicMacGpGpu::GetDimensionTerrain()
 	return _param.rDiTer;
 }
 
-bool InterfaceMicMacGpGpu::IsValid()
+bool InterfaceMicMacGpGpu::MaskNoNULL()
 {
 	return _param.MaskNoNULL();
 }
