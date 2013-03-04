@@ -156,7 +156,7 @@ const std::vector<cMMCom> & getAvailableCommands()
    {
        aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualisation of camera in ply file",cArgLogCom(2)));
        aRes.push_back(cMMCom("Apero",Apero_main," Compute external and internal orientations"));
-       aRes.push_back(cMMCom("AperoChImSecMM",AperoChImMM_main,"Select secondary images for MicMac"));
+       aRes.push_back(cMMCom("AperoChImSecMM",AperoChImMM_main,"Select secondary images for MicMac",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("Apero2PMVS",Apero2PMVS_main,"Convert Orientation from Apero-Micmac workflow to PMVS format"));
        aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene",cArgLogCom(2)));
        aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
@@ -185,7 +185,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 	   aRes.push_back(cMMCom("Mascarpone",Mascarpone_main," Automatic mask tests"));
 	   aRes.push_back(cMMCom("MergePly",MergePly_main," Merge ply files"));
        aRes.push_back(cMMCom("MICMAC",MICMAC_main," Computes image matching from oriented images"));
-       aRes.push_back(cMMCom("MMPyram",MMPyram_main," Computes pyram for micmac (internal use)"));
+       aRes.push_back(cMMCom("MMPyram",MMPyram_main," Computes pyram for micmac (internal use)",cArgLogCom(2)));
        aRes.push_back(cMMCom("MpDcraw",MpDcraw_main," Interface to dcraw"));
        aRes.push_back(cMMCom("MMInitialModel",MMInitialModel_main,"Initial Model for MicMac "));
 

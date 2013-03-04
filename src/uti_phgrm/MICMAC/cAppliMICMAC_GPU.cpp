@@ -333,6 +333,13 @@ cStatOneImage * cGPU_LoadedImGeom::VignetteDone()
     return & mBufVignette;
 }
 
+REAL cGPU_LoadedImGeom::GetValOfDisc(int anX,int anY,int aZ)
+{
+    Pt2dr aP = ProjOfPDisc(anX,anY,aZ);
+    cInterpolateurIm2D<float> * anInt = mAppli.CurEtape()->InterpFloat();
+
+    return IsOk(aP.x,aP.y) ? anInt->GetVal(MyDataIm0(),aP) : 0 ;
+}
 
 cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,int aSzV,Pt2di aPasVig)
 {
