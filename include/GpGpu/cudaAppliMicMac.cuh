@@ -18,6 +18,7 @@
 #define INTERPOLA	LINEARINTER
 #define FLOATMATH
 //#define USEDILATEMASK
+#define MAX_THREADS_PER_BLOCK 1024 // A definir en fonction du device!!!
 
 #ifdef _DEBUG
 	#define   BLOCKDIM	16
