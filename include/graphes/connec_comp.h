@@ -115,6 +115,45 @@ template <class  AttrSom,class AttrArc,class Res>
 }
 
 
+template <class  AttrSom,class AttrArc>  
+        void PartitionCC
+        (
+             ElPartition<ElSom<AttrSom,AttrArc> * >&  aRes,
+             ElGraphe<AttrSom,AttrArc>  &     aGr,
+             ElSubGraphe<AttrSom,AttrArc> &     sub
+        )
+{
+    aRes.clear();
+    INT flag_p = aGr.alloc_flag_som();
+    set_flag_all_soms(aGr,flag_p,false);
+    for
+    (
+          ElSomIterator<AttrSom,AttrArc> sit = aGr.begin(sub) ;
+          sit.go_on()                        ;
+          sit++
+    )
+    {
+          ElSom<AttrSom,AttrArc> & s =   * sit;
+          if (! s.flag_kth(flag_p))
+          {
+              ElFifo<ElSom<AttrSom,AttrArc> *> aCC;
+              comp_connexe_som(aCC,&s,sub);
+              for (int aK=0 ; aK<int(aCC.size()) ; aK++)
+              {
+                  aRes.add(aCC[aK]);
+                  aCC[aK]->flag_set_kth(flag_p,true);
+              }
+              aRes.close_cur();
+          }
+    }
+
+    set_flag_all_soms(aGr,flag_p,false);
+
+
+    aGr.free_flag_som(flag_p);
+}
+
+
 template <class  AttrSom,class AttrArc,class Soms,class Arcs>
          void  arcs_entre_soms
          (

@@ -61,9 +61,51 @@ using namespace NS_ParamChantierPhotogram;
 #endif
 
 
+Fonc_Num Moy(Fonc_Num aF,int aNb)
+{
+   return rect_som(aF,aNb) / ElSquare(1.0+2*aNb);
+}
+
+Fonc_Num Correl(Fonc_Num aF1,Fonc_Num aF2,int aNb)
+{
+   Symb_FNum aM1 (Moy(aF1,aNb));
+   Symb_FNum aM2 (Moy(aF2,aNb));
+
+   Fonc_Num aEnct1 = Moy(Square(aF1),aNb) -Square(aM1);
+   Fonc_Num aEnct2 = Moy(Square(aF2),aNb) -Square(aM2);
+
+
+   return (Moy(aF1*aF2,aNb)  -aM1*aM2) / sqrt(Max(1e-5,aEnct1*aEnct2));
+}
+
+void AutoCorrel(const std::string & aName)
+{
+   Tiff_Im aTF(aName.c_str());
+   Pt2di aSz = aTF.sz();
+   Im2D_REAL4 anI(aSz.x,aSz.y);
+   ELISE_COPY(aTF.all_pts(),aTF.in(),anI.out());
+
+   int aNb = 2;
+
+   Fonc_Num aF = 1.0;
+   for (int aK=0 ; aK<4 ; aK++)
+   {
+      aF = Min(aF,Correl(anI.in(0),trans(anI.in(0),TAB_4_NEIGH[aK])*(aNb*2),aNb));
+   }
+  
+   Tiff_Im::Create8BFromFonc
+   (
+       StdPrefix(aName)+"_AutoCor.tif",
+       aSz,
+       Min(255,Max(0,(1+aF)*128))
+   );
+}
+
+
 int MPDtest_main (int argc,char** argv)
 {
    BanniereMM3D();
+   AutoCorrel(argv[1]);
    double aNan = strtod("NAN(teta01)", NULL);
    std::cout << "Nan=" << aNan << "\n";
 

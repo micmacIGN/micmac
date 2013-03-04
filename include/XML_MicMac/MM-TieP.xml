@@ -4,12 +4,12 @@
    MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/media/data1/Delphe/DELPHE-TMP-CP/Delphes/12-Tetes-Inc-4341-6/
 
 
-   MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/home/marc/TMP/Delphes/12-Tetes-Inc-4341-6/
+   MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/home/marc/TMP/Delphes/MedinetAbou/
 -->
 
 <ParamMICMAC>
 <DicoLoc>
-   <Symb> Ori="-Circle"     </Symb>
+   <Symb> Ori="-All"     </Symb>
    <Symb> DirMEC="Masq-TieP"     </Symb>
    <Symb> Zoom=8     </Symb>
 </DicoLoc>
@@ -29,7 +29,7 @@
 <Section_PriseDeVue >
      <GeomImages> eGeomImageOri </GeomImages>
      <Images >
-          <Im1> IMG_0057.CR2 </Im1>
+          <Im1> IMG_0104.JPG </Im1>
          <ImSecCalcApero>
                <Key> NKS-Assoc-ImSec@${Ori} </Key>
           </ImSecCalcApero>
@@ -60,7 +60,7 @@
 
              <GenImagesCorrel > true </GenImagesCorrel>
 
-             <ZPas>        0.25  </ZPas>
+             <ZPas>        0.5  </ZPas>
              <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
 
 	     <ZDilatAlti>  1    </ZDilatAlti>
@@ -110,7 +110,7 @@
                             <FilePt3D> Ori${Ori}/Pts3d.dat </FilePt3D>
 -->
                             <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>
-                            <DeltaZ >        2                         </DeltaZ>
+                            <DeltaZ >        1                         </DeltaZ>
                             <SeuilSomCostCorrel> 0.65 </SeuilSomCostCorrel>
                             <SeuilMaxCostCorrel> 0.8 </SeuilMaxCostCorrel>
                             <Visu> true </Visu>
