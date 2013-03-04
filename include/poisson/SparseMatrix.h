@@ -48,7 +48,7 @@ private:
 	int _maxEntriesPerRow;
 	static int UseAlloc;
 public:
-	static Allocator<MatrixEntry<T> > Allocator;
+	static Allocator<MatrixEntry<T> > TheAllocator;
 	static int UseAllocator(void);
 	static void SetAllocator( int blockSize );
 

@@ -42,9 +42,18 @@
 
 
 
+#if (0)
+MPD CAR DEFINI AILLEURS
+../libelise.a(ply.cpp.o):(.data+0x0): multiple definition of `elem_names'
+../libelise.a(CPP_MergePly.cpp.o):(.data+0x80): first defined here
+collect2: ld a retourné 1 code d'état d'exécution
+make[2]: *** [src/CBinaires/mm3d] Erreur 1
+make[1]: *** [src/CBinaires/CMakeFiles/mm3d.dir/all] Erreur 2
+
 const char *elem_names[] = { /* list of the kinds of elements in the user's object */
 	"vertex", "face"
 };
+#endif
 
 PlyProperty vert_props[] = { /* list of property information for a vertex */
 	{"x", PLY_FLOAT, PLY_FLOAT, offsetof(sVertex,x), 0, 0, 0, 0},
