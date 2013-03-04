@@ -28,7 +28,7 @@ DAMAGE.
 
 #include "StdAfx.h"
 
-double Time( void )
+double PTime( void )
 {
 #ifdef WIN32
 	struct _timeb t;

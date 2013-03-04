@@ -28,5 +28,5 @@ DAMAGE.
 
 #ifndef TIME_INCLUDED
 #define TIME_INCLUDED
-double Time(void);
+double PTime(void);
 #endif // TIME_INCLUDED

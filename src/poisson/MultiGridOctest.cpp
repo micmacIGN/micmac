@@ -218,7 +218,7 @@ int Execute( int argc , char* argv[] )
 		}
 
 	double t;
-	double tt=Time();
+	double tt=PTime();
 	Point3D< float > center;
 	Real scale = 1.0;
 	Real isoValue = 0;
@@ -247,7 +247,7 @@ int Execute( int argc , char* argv[] )
 	
 	TreeOctNode::SetAllocator( MEMORY_ALLOCATOR_BLOCK_SIZE );
 
-	t=Time();
+	t=PTime();
 	int kernelDepth = KernelDepth.set ?  KernelDepth.value : Depth.value-2;
 
 	tree.setBSplineData( Depth.value , Real(1.0)/(1<<Depth.value) , true );
@@ -257,38 +257,38 @@ int Execute( int argc , char* argv[] )
 		return EXIT_FAILURE;
 	}
 
-	t=Time() , tree.maxMemoryUsage=0;
+	t=PTime() , tree.maxMemoryUsage=0;
 	int pointCount = tree.setTree( In.value , Depth.value , MinDepth.value , kernelDepth , Real(SamplesPerNode.value) , Scale.value , center , scale , Confidence.set , PointWeight.value , !NonAdaptiveWeights.set );
 	tree.ClipTree();
 	tree.finalize();
 	tree.RefineBoundary( IsoDivide.value );
 
-	DumpOutput2( comments[commentNum++] , "#             Tree set in: %9.1f (s), %9.1f (MB)\n" , Time()-t , tree.maxMemoryUsage );
+	DumpOutput2( comments[commentNum++] , "#             Tree set in: %9.1f (s), %9.1f (MB)\n" , PTime()-t , tree.maxMemoryUsage );
 	DumpOutput( "Input Points: %d\n" , pointCount );
 	DumpOutput( "Leaves/Nodes: %d/%d\n" , tree.tree.leaves() , tree.tree.nodes() );
 	DumpOutput( "Memory Usage: %.3f MB\n" , float( MemoryInfo::Usage() )/(1<<20) );
 
-	t=Time() , tree.maxMemoryUsage=0;
+	t=PTime() , tree.maxMemoryUsage=0;
 	tree.SetLaplacianConstraints();
-	DumpOutput2( comments[commentNum++] , "#      Constraints set in: %9.1f (s), %9.1f (MB)\n" , Time()-t , tree.maxMemoryUsage );
+	DumpOutput2( comments[commentNum++] , "#      Constraints set in: %9.1f (s), %9.1f (MB)\n" , PTime()-t , tree.maxMemoryUsage );
 	DumpOutput( "Memory Usage: %.3f MB\n" , float( MemoryInfo::Usage())/(1<<20) );
 
-	t=Time() , tree.maxMemoryUsage=0;
+	t=PTime() , tree.maxMemoryUsage=0;
 	tree.LaplacianMatrixIteration( SolverDivide.value, ShowResidual.set , MinIters.value , SolverAccuracy.value );
-	DumpOutput2( comments[commentNum++] , "# Linear system solved in: %9.1f (s), %9.1f (MB)\n" , Time()-t , tree.maxMemoryUsage );
+	DumpOutput2( comments[commentNum++] , "# Linear system solved in: %9.1f (s), %9.1f (MB)\n" , PTime()-t , tree.maxMemoryUsage );
 	DumpOutput( "Memory Usage: %.3f MB\n" , float( MemoryInfo::Usage() )/(1<<20) );
 
 	CoredVectorMeshData mesh;
 	if( Verbose.set ) tree.maxMemoryUsage=0;
-	t=Time();
+	t=PTime();
 	isoValue = tree.GetIsoValue();
-	DumpOutput( "Got average in: %f\n" , Time()-t );
+	DumpOutput( "Got average in: %f\n" , PTime()-t );
 	DumpOutput( "Iso-Value: %e\n" , isoValue );
 	DumpOutput( "Memory Usage: %.3f MB\n" , float(tree.MemoryUsage()) );
 
 	if( VoxelGrid.set )
 	{
-		double t = Time();
+		double t = PTime();
 		FILE* fp = fopen( VoxelGrid.value , "wb" );
 		if( !fp ) fprintf( stderr , "Failed to open voxel file for writing: %s\n" , VoxelGrid.value );
 		else
@@ -300,15 +300,15 @@ int Execute( int argc , char* argv[] )
 			fclose( fp );
 			delete[] values;
 		}
-		DumpOutput( "Got voxel grid in: %f\n" , Time()-t );
+		DumpOutput( "Got voxel grid in: %f\n" , PTime()-t );
 	}
 
 	if( Out.set )
 	{		
-		t=Time();
+		t=PTime();
 		tree.GetMCIsoTriangles( isoValue , IsoDivide.value , &mesh , 0 , 1 , !NonManifold.set , PolygonMesh.set );
-		if( PolygonMesh.set ) DumpOutput2( comments[commentNum++] , "#         Got polygons in: %9.1f (s), %9.1f (MB)\n" , Time()-t , tree.maxMemoryUsage );
-		else                  DumpOutput2( comments[commentNum++] , "#        Got triangles in: %9.1f (s), %9.1f (MB)\n" , Time()-t , tree.maxMemoryUsage );
+		if( PolygonMesh.set ) DumpOutput2( comments[commentNum++] , "#         Got polygons in: %9.1f (s), %9.1f (MB)\n" , PTime()-t , tree.maxMemoryUsage );
+		else                  DumpOutput2( comments[commentNum++] , "#        Got triangles in: %9.1f (s), %9.1f (MB)\n" , PTime()-t , tree.maxMemoryUsage );
 		
 		//MD: filter mesh wrt original points
 		std::vector< Point3D<Real> > thePoints = tree.getOriginalPoints();
@@ -351,10 +351,10 @@ int Execute( int argc , char* argv[] )
 			if (found) mesh.setPolygon(i+1, true);
 		}
 		
-		DumpOutput2( comments[commentNum++],"#          Filtering time: %9.1f (s)\n" , Time()-t );
+		DumpOutput2( comments[commentNum++],"#          Filtering time: %9.1f (s)\n" , PTime()-t );
 		//end MD
 		
-		DumpOutput2( comments[commentNum++],"#              Total time: %9.1f (s)\n" , Time()-tt );
+		DumpOutput2( comments[commentNum++],"#              Total time: %9.1f (s)\n" , PTime()-tt );
 		
 		if( NoComments.set )
 		{
@@ -374,14 +374,14 @@ int Execute( int argc , char* argv[] )
 //int Poisson_main( int argc , char* argv[] )
 int Poisson_main( int argc , char** argv )
 {
-	double t = Time();
+	double t = PTime();
 	Execute< 2 >( argc , argv );
 
 /* TODO: need OMP
 #ifdef _WIN32
 	if( Performance.set )
 	{
-		printf( "Time: %.2f\n" , Time()-t );
+		printf( "Time: %.2f\n" , PTime()-t );
 		HANDLE h = GetCurrentProcess();
 		PROCESS_MEMORY_COUNTERS pmc;
 		

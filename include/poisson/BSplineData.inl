@@ -392,7 +392,7 @@ template< int Degree >
 BSplineElements< Degree >::BSplineElements( int res , int offset , int boundary )
 {
 	denominator = 1;
-	resize( res , BSplineElementCoefficients<Degree>() );
+	vector<BSplineElementCoefficients<Degree> >::resize( res , BSplineElementCoefficients<Degree>() );
 
 	for( int i=0 ; i<=Degree ; i++ )
 	{
