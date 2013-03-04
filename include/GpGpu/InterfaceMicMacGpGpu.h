@@ -37,7 +37,7 @@ class InterfaceMicMacGpGpu
 		void	BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
 		uint2	GetDimensionTerrain();
 		uint2	GetSDimensionTerrain();
-		bool	IsValid();
+		bool	MaskNoNULL();
 		Rect	rUTer();
 		Rect	rMask();
 		uint	GetSample();
