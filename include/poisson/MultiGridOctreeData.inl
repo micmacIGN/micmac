@@ -731,7 +731,7 @@ int Octree<Degree>::setTree( char* fileName , int maxDepth , int minDepth ,
 	tree.setFullDepth( _minDepth );
 	// Read through once to get the center and scale
 	{
-		double t = Time();
+		double t = PTime();
 		Point3D< Real > p , n;
 		while( pointStream->nextPoint( p , n ) )
 		{
@@ -753,7 +753,7 @@ int Octree<Degree>::setTree( char* fileName , int maxDepth , int minDepth ,
 	for( i=0 ; i<DIMENSION ; i++ ) center[i] -= scale/2;
 	if( splatDepth>0 )
 	{
-		double t = Time();
+		double t = PTime();
 		cnt = 0;
 		pointStream->reset();
 		while( pointStream->nextPoint( position , normal ) )
@@ -1827,11 +1827,11 @@ int Octree<Degree>::LaplacianMatrixIteration( int subdivideDepth , bool showResi
 	for( i=1 ; i<_sNodes.maxDepth ; i++ )
 	{
 		DumpOutput( "Depth[%d/%d]: %d\n" , i , _sNodes.maxDepth-1 , _sNodes.nodeCount[i+1]-_sNodes.nodeCount[i] );
-		t=Time();
+		t=PTime();
 		if( subdivideDepth>0 ) iter += SolveFixedDepthMatrix( i , _sNodes , &metSolution[0] , subdivideDepth , showResidual , minIters , accuracy );
 		else                   iter += SolveFixedDepthMatrix( i , _sNodes , &metSolution[0] ,                  showResidual , minIters , accuracy );
 	}
-	SparseMatrix< float >::Allocator.reset();
+	SparseMatrix< float >::allocator.reset();
 	fData.clearDotTables( fData.VV_DOT_FLAG | fData.DV_DOT_FLAG | fData.DD_DOT_FLAG );
 
 	return iter;
@@ -1858,33 +1858,33 @@ int Octree<Degree>::SolveFixedDepthMatrix( int depth , const SortedTreeNodes& sN
 	}
 	if( _constrainValues )
 	{
-		evaluateTime = Time();
+		evaluateTime = PTime();
 		SetCoarserPointValues( depth , sNodes , metSolution );
-		evaluateTime = Time() - evaluateTime;
+		evaluateTime = PTime() - evaluateTime;
 	}
 
-	SparseSymmetricMatrix< Real >::Allocator.rollBack();
+	SparseSymmetricMatrix< Real >::allocator.rollBack();
 	{
 		int maxECount = ( (2*Degree+1)*(2*Degree+1)*(2*Degree+1) + 1 ) / 2;
 		maxECount = ( ( maxECount + 15 ) / 16 ) * 16;
 		M.Resize( sNodes.nodeCount[depth+1]-sNodes.nodeCount[depth] );
 		for( int i=0 ; i<M.rows ; i++ ) M.SetRowSize( i , maxECount );
 	}
-	systemTime = Time();
+	systemTime = PTime();
 	{
 		// Get the system matrix
-		SparseSymmetricMatrix< Real >::Allocator.rollBack();
+		SparseSymmetricMatrix< Real >::allocator.rollBack();
 		GetFixedDepthLaplacian( M , depth , sNodes , metSolution );
 		// Set the constraint vector
 		B.Resize( sNodes.nodeCount[depth+1]-sNodes.nodeCount[depth] );
 		for( int i=sNodes.nodeCount[depth] ; i<sNodes.nodeCount[depth+1] ; i++ ) B[i-sNodes.nodeCount[depth]] = sNodes.treeNodes[i]->nodeData.constraint;
 	}
-	systemTime = Time()-systemTime;
+	systemTime = PTime()-systemTime;
 
-	solveTime = Time();
+	solveTime = PTime();
 	// Solve the linear system
 	iter += SparseSymmetricMatrix< Real >::Solve( M , B , std::max< int >( int( pow( M.rows , ITERATION_POWER ) ) , minIters ) , X , Real(accuracy) , 0 , threads , (depth<=_minDepth) && !_constrainValues );
-	solveTime = Time()-solveTime;
+	solveTime = PTime()-solveTime;
 
 	if( showResidual )
 	{
@@ -1925,9 +1925,9 @@ int Octree<Degree>::SolveFixedDepthMatrix( int depth , const SortedTreeNodes& sN
 
 	if( _constrainValues )
 	{
-		evaluateTime = Time();
+		evaluateTime = PTime();
 		SetCoarserPointValues( depth , sNodes , metSolution );
-		evaluateTime = Time() - evaluateTime;
+		evaluateTime = PTime() - evaluateTime;
 	}
 	B.Resize( sNodes.nodeCount[depth+1] - sNodes.nodeCount[depth] );
 
@@ -1968,7 +1968,7 @@ int Octree<Degree>::SolveFixedDepthMatrix( int depth , const SortedTreeNodes& sN
 	for( i=sNodes.nodeCount[d] ; i<sNodes.nodeCount[d+1] ; i++ )
 	{
 		int iter = 0;
-		gTime = Time();
+		gTime = PTime();
 		// Count the number of nodes at depth "depth" that lie under sNodes.treeNodes[i]
 		acf.adjacencyCount = subDimension[i-sNodes.nodeCount[d]];
 		if( !acf.adjacencyCount ) continue;
@@ -1997,7 +1997,7 @@ int Octree<Degree>::SolveFixedDepthMatrix( int depth , const SortedTreeNodes& sN
 			_X[j] = sNodes.treeNodes[ asf.adjacencies[j] ]->nodeData.solution;
 		}
 		// Get the associated matrix
-		SparseSymmetricMatrix< Real >::Allocator.rollBack();
+		SparseSymmetricMatrix< Real >::allocator.rollBack();
 		GetRestrictedFixedDepthLaplacian( _M , depth , asf.adjacencies , asf.adjacencyCount , sNodes.treeNodes[i] , myRadius , sNodes , metSolution );
 #pragma omp parallel for num_threads( threads ) schedule( static )
 		for( j=0 ; j<asf.adjacencyCount ; j++ )
@@ -2005,13 +2005,13 @@ int Octree<Degree>::SolveFixedDepthMatrix( int depth , const SortedTreeNodes& sN
 			_B[j] += sNodes.treeNodes[asf.adjacencies[j]]->nodeData.constraint;
 			sNodes.treeNodes[ asf.adjacencies[j] ]->nodeData.constraint = 0;
 		}
-		gTime=Time()-gTime;
+		gTime=PTime()-gTime;
 
 		// Solve the matrix
 		// Since we don't have the full matrix, the system shouldn't be singular, so we shouldn't have to correct it
-		sTime=Time();
+		sTime=PTime();
 		iter += SparseSymmetricMatrix< Real >::Solve( _M , _B , std::max< int >( int( pow( _M.rows , ITERATION_POWER ) ) , minIters ) , _X , mrVector , Real(accuracy) , 0 );
-		sTime=Time()-sTime;
+		sTime=PTime()-sTime;
 
 		if( showResidual )
 		{

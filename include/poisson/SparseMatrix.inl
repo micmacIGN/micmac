@@ -39,14 +39,14 @@ DAMAGE.
 // Static Allocator Methods and Memebers //
 ///////////////////////////////////////////
 template<class T> int SparseMatrix<T>::UseAlloc=0;
-template<class T> Allocator<MatrixEntry<T> > SparseMatrix<T>::Allocator;
+template<class T> Allocator<MatrixEntry<T> > SparseMatrix<T>::allocator;
 template<class T> int SparseMatrix<T>::UseAllocator(void){return UseAlloc;}
 template<class T>
 void SparseMatrix<T>::SetAllocator( int blockSize )
 {
 	if(blockSize>0){
 		UseAlloc=1;
-		Allocator.set(blockSize);
+		allocator.set(blockSize);
 	}
 	else{UseAlloc=0;}
 }
@@ -201,7 +201,7 @@ void SparseMatrix< T >::SetRowSize( int row , int count )
 	}
 	else if( row>=0 && row<rows )
 	{
-		if( UseAlloc ) m_ppElements[row] = Allocator.newElements(count);
+		if( UseAlloc ) m_ppElements[row] = allocator.newElements(count);
 		else
 		{
 			if( rowSizes[row] ) free( m_ppElements[row] );
