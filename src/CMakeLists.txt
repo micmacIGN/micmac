@@ -40,6 +40,7 @@ set(UTI_FILES_DIR "uti_files")
 set(UTI_IMAGE_DIR "uti_image")
 set(UTI_PHGRM_DIR "uti_phgrm")
 set(UTI_ETAPOLY_DIR "EtalonnagePolygone")
+set(POISSON_DIR "poisson")
 
 
 INCLUDE (${AMD_DIR}/Sources.cmake)
@@ -81,6 +82,7 @@ INCLUDE (${TOP_DIR}/Sources.cmake)
 INCLUDE (${UTIL_DIR}/Sources.cmake)
 INCLUDE (${VECTO_DIR}/Sources.cmake)
 INCLUDE (${XINTER_DIR}/Sources.cmake)
+INCLUDE (${POISSON_DIR}/Sources.cmake)
 
 if(${WITH_ETALONPOLY})
 	INCLUDE (${UTI_ETAPOLY_DIR}/Sources.cmake)

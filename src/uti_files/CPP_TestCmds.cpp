@@ -55,7 +55,7 @@ void GenerateMakeFile(std::string aNameFile, std::string aDataDir, int chantier)
 {
 	FILE * aFP = FopenNN(aNameFile.c_str(),false ? "a" : "w","TestCmds_GenerateMakeFile");
 
-	std::string chantDir = aDataDir + "/Boudha/";
+	std::string chantDir = aDataDir + "Boudha/";
 
 	std::string aCom = "all:\n\t";
 
@@ -67,7 +67,7 @@ void GenerateMakeFile(std::string aNameFile, std::string aDataDir, int chantier)
 	}
 	else if (chantier == 1)
 	{
-		chantDir = aDataDir + "/StreetSaintMartin/";
+		chantDir = aDataDir + "StreetSaintMartin/";
 
 		aCom += "mm3d Tapioca All \"" + chantDir + "IMGP41((1[8-9])|(2[0-2])).JPG\" 1000\n\t";
 		aCom += "mm3d Tapioca All \"" + chantDir + "IMGP41((5[2-8])).JPG\" 1000\n\t";
@@ -81,7 +81,7 @@ void GenerateMakeFile(std::string aNameFile, std::string aDataDir, int chantier)
 	}
 	else if (chantier == 2)
 	{
-		chantDir = aDataDir + "/Vincennes/";
+		chantDir = aDataDir + "Vincennes/";
 
 		aCom += "mm3d Tapioca All \"" + chantDir + "Calib-IMGP[0-9]{4}.JPG\" 1000\n\t";
 		aCom += "mm3d Tapioca Line \""+ chantDir + "Face1-IMGP[0-9]{4}.JPG\" 1000 5\n\t";
@@ -112,9 +112,8 @@ void GenerateMakeFile(std::string aNameFile, std::string aDataDir, int chantier)
 	}
 	else if (chantier == 3)
 	{
-		chantDir = aDataDir + "/MiniCuxha/";
+		chantDir = aDataDir + "MiniCuxha/";
 
-		aCom += "mm3d Tapioca MulScale \"" + chantDir + "Abbey-IMG.*.jpg\" 200 800\n\t";
 		aCom += "mm3d Tapas RadialBasic \"" + chantDir + "Abbey-IMG_(0248|0247|0249|0238|0239|0240).jpg\" Out=Calib\n\t";
 		aCom += "mm3d Tapas RadialBasic \"" + chantDir + "Abbey-IMG.*.jpg\" Out=All-Rel\n\t";
 
@@ -126,9 +125,9 @@ void GenerateMakeFile(std::string aNameFile, std::string aDataDir, int chantier)
 		
 		aCom += "mm3d GCPBascule \""+chantDir + "Abbey-IMG.*jpg\" All-Rel  RTL-Bascule F120601.xml MesureFinale-S2D.xml\n\t";
 
-		aCom += "mm3d Campari \""+ chantDir +"Abbey-IMG.*.jpg\"  RTL-Bascule RTL-Compense GCP=[AppRTL.xml,0.1,MesureFinale-S2D.xml,0.5]\n\t";
 
 		aCom += "mm3d ChgSysCo \""+ chantDir +"Abbey-IMG.*.jpg\" RTL-Compense SysCoRTL.xml@Lambert93 L93\n\t";
+		
 		aCom += "Tarama \""+ chantDir +"Abbey-IMG.*.jpg\" L93\n\t";
 
 		aCom += "Malt Ortho \""+ chantDir +"Abbey-IMG.*.jpg\" L93 SzW=1 AffineLast=false DefCor=0.0\n\t";

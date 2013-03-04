@@ -339,7 +339,6 @@ std::vector<Pt3dr> cProj4::Chang(const std::vector<Pt3dr> & aPtsIn, bool Sens2Ge
                        + " > " 
                        + aTmpOut;
 
-
    VoidSystem(aCom.c_str());
 
 
