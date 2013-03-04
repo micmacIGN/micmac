@@ -207,7 +207,7 @@ uint2 InterfaceMicMacGpGpu::GetDimensionTerrain()
 	return _param.rDiTer;
 }
 
-bool InterfaceMicMacGpGpu::IsValid()
+bool InterfaceMicMacGpGpu::MaskNoNULL()
 {
 	return _param.MaskNoNULL();
 }
