@@ -38,7 +38,12 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 		iZ = blockIdx.z / cH.nbImages;
 		mZ = blockIdx.z - iZ * cH.nbImages;
 #if		INTERPOLA == NEAREST
-		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayered( TexL_Images, (((int)ptProj.x )+ 0.5f) / (float)cH.dimImg.x, (((int)(ptProj.y) )+ 0.5f) / (float)cH.dimImg.y,mZ);
+
+		const float2 ptImg = (ptProj + 0.5f) / cH.dimImg;
+		//const float2 ptImg = ((int)ptProj + 0.5f) / cH.dimImg;
+		//(((int)ptProj.x )+ 0.5f) / (float)cH.dimImg.x
+
+		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayered( TexL_Images,ptImg.x , ptImg.y,mZ);
 #elif	INTERPOLA == LINEARINTER
 		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayeredPt( TexL_Images, ptProj, cH.dimImg, mZ);
 #elif	INTERPOLA == BICUBIC

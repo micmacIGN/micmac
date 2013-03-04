@@ -15,7 +15,7 @@
 #define NEAREST		0
 #define LINEARINTER	1
 #define BICUBIC		2
-#define INTERPOLA	NEAREST
+#define INTERPOLA	LINEARINTER
 #define FLOATMATH
 //#define USEDILATEMASK
 
@@ -70,9 +70,9 @@ struct paramMicMacGpGpu
 		 rUTer		= Rect(Ter.pt0 - rVig,Ter.pt1 + rVig);
 		 rDiTer		= rMask.dimension();
 		 dimTer		= rUTer.dimension();
-		 dimSTer	= iDivUp(dimTer,sampTer);	// Dimension du bloque terrain sous echantilloné
+		 dimSTer	= iDivUp(dimTer,sampTer)+1;	// Dimension du bloque terrain sous echantilloné
 		 sizeTer	= size(dimTer);				// Taille du bloque terrain
-		 sizeSTer	= size(dimSTer);				// Taille du bloque terrain sous echantilloné
+		 sizeSTer	= size(dimSTer);			// Taille du bloque terrain sous echantilloné
 		 rSiTer		= size(rDiTer);
 		 dimCach	= rDiTer * dimVig;
 		 sizeCach	= size(dimCach);

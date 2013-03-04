@@ -1175,10 +1175,11 @@ if (0)
 	{
 		
 		uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain 
-		uint2	dimSTabProj	= iDivUp(dimTabProj,sample);			// Dimension de la zone terrain echantilloné
+		uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain echantilloné
 		uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
  		int2	aSzDz		= toI2(Pt2dr(mGeomDFPx->SzDz()));		// Dimension de la zone terrain total
  		int2	aSzClip		= toI2(Pt2dr(mGeomDFPx->SzClip()));		// Dimension du bloque
+		int2	anB = zone.pt0 +  dimSTabProj * sample;
 
 		for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
 		{
@@ -1187,17 +1188,13 @@ if (0)
 			
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);			// Obtention de l'image courante
 				const cGeomImage*	aGeom	= aGLI.Geom();
-				int2 an;
-		
-				for (an.y = zone.pt0.y; an.y < zone.pt1.y; an.y += sample)	// Ballayage du terrain  
+				int2 an;				
+
+				for (an.y = zone.pt0.y; an.y < anB.y; an.y += sample)	// Ballayage du terrain  
 				{															
-					for (an.x = zone.pt0.x; an.x < zone.pt1.x ; an.x += sample)	
+					for (an.x = zone.pt0.x; an.x < anB.x ; an.x += sample)	
 					{
-#ifdef USEDILATEMASK
-						if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip) && IMmGg.ValDilMask(an-zone.pt0) == 1)
-#else
-						if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip))
-#endif
+						if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip) /*&& IMmGg.ValDilMask(an-zone.pt0) == 1*/)
 						{
 							
 							int2 r	= (an - zone.pt0)/sample;
