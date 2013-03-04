@@ -56,7 +56,6 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_Tarama.cpp
     ${UTI_PHGRM_DIR}/CPP_Tawny.cpp
     ${UTI_PHGRM_DIR}/CPP_TestCam.cpp
-    ${UTI_PHGRM_DIR}/MergePly/ply.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieMasq.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieAppuisPredic.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieAppuisInit.cpp

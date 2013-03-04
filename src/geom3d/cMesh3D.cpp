@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
-#include "../uti_phgrm/MergePly/ply.h"
+#include "poisson/ply.h"
 
 static const REAL Eps = 1e-7;
 
@@ -209,15 +209,15 @@ cEdge cMesh::getEdge(unsigned int idx) const
 
 PlyProperty props[] = 
 { 
-	{"x", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,x), 0, 0, 0, 0},
-	{"y", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,y), 0, 0, 0, 0},
-	{"z", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,z), 0, 0, 0, 0},
+	{"x", PLY_FLOAT, PLY_FLOAT, offsetof(sVertex,x), 0, 0, 0, 0},
+	{"y", PLY_FLOAT, PLY_FLOAT, offsetof(sVertex,y), 0, 0, 0, 0},
+	{"z", PLY_FLOAT, PLY_FLOAT, offsetof(sVertex,z), 0, 0, 0, 0},
 };
 
 PlyProperty face_props[] = 
 { 
-  {"vertex_indices", PLY_INT, PLY_INT, offsetof(Face,verts),
-   1, PLY_UINT, PLY_UINT, offsetof(Face,nverts)},
+  {"vertex_indices", PLY_INT, PLY_INT, offsetof(sFace,verts),
+   1, PLY_UINT, PLY_UINT, offsetof(sFace,nverts)},
 };
 
 //--------------------------------------------------------------------------------------------------------------
@@ -257,7 +257,7 @@ cMesh::cMesh(const std::string & Filename)
 			
 			for (int j = 0; j < num_elems; j++) 
 			{
-				Vertex *vert = (Vertex *) malloc (sizeof(Vertex));
+				sVertex *vert = (sVertex *) malloc (sizeof(sVertex));
 				
 				ply_get_element (thePlyFile, vert);
 					
@@ -274,7 +274,7 @@ cMesh::cMesh(const std::string & Filename)
 
 			for (int j = 0; j < num_elems; j++) 
 			{
-				Face *theFace = (Face *) malloc (sizeof (Face));
+				sFace *theFace = (sFace *) malloc (sizeof (sFace));
 				ply_get_element (thePlyFile, theFace);
 
 				vIndx.clear();

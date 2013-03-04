@@ -200,6 +200,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Pasta",Pasta_main," Do some stuff"));
        aRes.push_back(cMMCom("PastDevlop",PastDevlop_main," Do some stuff"));
        aRes.push_back(cMMCom("Pastis",Pastis_main," Tie points detection"));
+	   aRes.push_back(cMMCom("Poisson",Poisson_main," Mesh Poisson reconstruction by M. Khazdan"));
        aRes.push_back(cMMCom("Porto",Porto_main," Generates a global ortho-photo"));
        aRes.push_back(cMMCom("Reduc2MM",Reduc2MM_main," Do some stuff"));
        aRes.push_back(cMMCom("ReducHom",ReducHom_main," Do some stuff"));

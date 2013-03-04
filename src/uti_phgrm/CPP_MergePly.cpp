@@ -38,27 +38,27 @@
  Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
-#include "MergePly/ply.h"
+#include "poisson/ply.h"
 
-/* information needed to describe the user's data to the PLY routines */
+
 
 const char *elem_names[] = { /* list of the kinds of elements in the user's object */
 	"vertex", "face"
 };
 
 PlyProperty vert_props[] = { /* list of property information for a vertex */
-	{"x", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,x), 0, 0, 0, 0},
-	{"y", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,y), 0, 0, 0, 0},
-	{"z", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,z), 0, 0, 0, 0},
+	{"x", PLY_FLOAT, PLY_FLOAT, offsetof(sVertex,x), 0, 0, 0, 0},
+	{"y", PLY_FLOAT, PLY_FLOAT, offsetof(sVertex,y), 0, 0, 0, 0},
+	{"z", PLY_FLOAT, PLY_FLOAT, offsetof(sVertex,z), 0, 0, 0, 0},
 };
 
 static PlyProperty oriented_vert_props[] = {
-	{"x",  PLY_FLOAT, PLY_FLOAT, offsetof(PlyOrientedVertex,x ), 0, 0, 0, 0},
-	{"y",  PLY_FLOAT, PLY_FLOAT, offsetof(PlyOrientedVertex,y ), 0, 0, 0, 0},
-	{"z",  PLY_FLOAT, PLY_FLOAT, offsetof(PlyOrientedVertex,z ), 0, 0, 0, 0},
-	{"nx", PLY_FLOAT, PLY_FLOAT, offsetof(PlyOrientedVertex,nx), 0, 0, 0, 0},
-	{"ny", PLY_FLOAT, PLY_FLOAT, offsetof(PlyOrientedVertex,ny), 0, 0, 0, 0},
-	{"nz", PLY_FLOAT, PLY_FLOAT, offsetof(PlyOrientedVertex,nz), 0, 0, 0, 0}
+	{"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,x ), 0, 0, 0, 0},
+	{"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,y ), 0, 0, 0, 0},
+	{"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,z ), 0, 0, 0, 0},
+	{"nx", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,nx), 0, 0, 0, 0},
+	{"ny", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,ny), 0, 0, 0, 0},
+	{"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,nz), 0, 0, 0, 0}
 };
 
 int MergePly_main(int argc,char ** argv)
@@ -91,7 +91,7 @@ int MergePly_main(int argc,char ** argv)
     if (aNameOut=="")
 		aNameOut = StdPrefix(aVFiles[0]) + "_merged.ply";
 	
-	PlyOrientedVertex **glist=NULL;
+	sPlyOrientedVertex **glist=NULL;
 	int gen_nelems =0;
 	int Cptr = 0;
 	
@@ -104,7 +104,7 @@ int MergePly_main(int argc,char ** argv)
 	int num_elems;
 	char *elem_name;
 	PlyProperty **plist=NULL;
-	PlyOrientedVertex **vlist=NULL;
+	sPlyOrientedVertex **vlist=NULL;
 	
 	//get global number of elements
 	for (unsigned int aK=0; aK< aVFiles.size(); ++aK) 
@@ -125,7 +125,7 @@ int MergePly_main(int argc,char ** argv)
 	}
 	
 	cout << "nb total elem "	<< gen_nelems << endl;	
-	glist = (PlyOrientedVertex **) malloc (sizeof (PlyOrientedVertex *) * gen_nelems);
+	glist = (sPlyOrientedVertex **) malloc (sizeof (sPlyOrientedVertex *) * gen_nelems);
 
 	//read ply files
 	for (unsigned int aK=0; aK< aVFiles.size(); ++aK) 
@@ -144,7 +144,7 @@ int MergePly_main(int argc,char ** argv)
 			if (equal_strings ("vertex", elem_name)) {
 				
 				// create a vertex list to hold all the vertices 
-				vlist = (PlyOrientedVertex **) malloc (sizeof (PlyOrientedVertex *) * num_elems);
+				vlist = (sPlyOrientedVertex **) malloc (sizeof (sPlyOrientedVertex *) * num_elems);
 				
 				// set up for getting vertex elements 
 				ply_get_property (thePlyFile, elem_name, &oriented_vert_props[0]);
@@ -158,11 +158,11 @@ int MergePly_main(int argc,char ** argv)
 				for (int j = 0; j < num_elems; j++, Cptr++) 
 				{
 					// grab and element from the file
-					vlist[j] = (PlyOrientedVertex *) malloc (sizeof (PlyOrientedVertex));
+					vlist[j] = (sPlyOrientedVertex *) malloc (sizeof (sPlyOrientedVertex));
 					
 					ply_get_element (thePlyFile, (void *) vlist[j]);
 										
-					glist[Cptr] = (PlyOrientedVertex *) malloc (sizeof (PlyOrientedVertex)); 
+					glist[Cptr] = (sPlyOrientedVertex *) malloc (sizeof (sPlyOrientedVertex)); 
 					glist[Cptr] = vlist[j];
 					
 					//printf ("vertex: %g %g %g %g %g %g\n", vlist[j]->x, vlist[j]->y, vlist[j]->z, vlist[j]->nx, vlist[j]->ny, vlist[j]->nz);
