@@ -104,6 +104,11 @@ inline __host__ __device__ int2 operator/(int2 a, uint2 b)
 	return make_int2(a.x / ((int)(b.x)), a.y / ((int)(b.y)));
 }
 
+inline __host__ __device__ float2 operator/(float2 a, uint2 b)
+{
+	return make_float2(a.x / ((float)(b.x)), a.y / ((float)(b.y)));
+}
+
 inline __host__ __device__ uint2 operator*(int2 a, uint2 b)
 {
 	return make_uint2(a.x * b.x, a.y * b.y);

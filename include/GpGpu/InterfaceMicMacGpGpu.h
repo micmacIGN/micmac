@@ -9,7 +9,7 @@
 
 extern "C" void	CopyParamTodevice(paramMicMacGpGpu h);
 extern "C" void	KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd);
-extern "C" void	KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, uint* dev_NbImgOk, uint2 nbActThr);
+extern "C" void	KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, uint* dev_NbImgOk, uint2 nbActThr, ushort divideNThreads);
 
 extern "C" void dilateKernel(pixel* HostDataOut, short r, uint2 dim);
 extern "C" textureReference& getMaskD();
@@ -37,7 +37,7 @@ class InterfaceMicMacGpGpu
 		void	BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
 		uint2	GetDimensionTerrain();
 		uint2	GetSDimensionTerrain();
-		bool	IsValid();
+		bool	MaskNoNULL();
 		Rect	rUTer();
 		Rect	rMask();
 		uint	GetSample();
