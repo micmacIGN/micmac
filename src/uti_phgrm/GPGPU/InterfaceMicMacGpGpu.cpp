@@ -89,15 +89,15 @@ void InterfaceMicMacGpGpu::InitParam( Rect Ter, int nbLayer , uint2 dRVig , uint
 	// Parametres texture des projections
 	for (int s = 0;s<NSTREAM;s++)
 	{
-		GetTeXProjection(s).addressMode[0]	= cudaAddressModeClamp;
-		GetTeXProjection(s).addressMode[1]	= cudaAddressModeClamp;	
+		GetTeXProjection(s).addressMode[0]	= cudaAddressModeBorder;
+		GetTeXProjection(s).addressMode[1]	= cudaAddressModeBorder;	
 		GetTeXProjection(s).filterMode		= cudaFilterModeLinear; //cudaFilterModePoint cudaFilterModeLinear
 		GetTeXProjection(s).normalized		= true;
 	}
 	// Parametres texture des Images
 	_texImages.addressMode[0]	= cudaAddressModeWrap;
 	_texImages.addressMode[1]	= cudaAddressModeWrap;
-	_texImages.filterMode		= cudaFilterModePoint; //cudaFilterModeLinear cudaFilterModePoint
+	_texImages.filterMode		= cudaFilterModeLinear; //cudaFilterModeLinear cudaFilterModePoint
 	_texImages.normalized		= true;
 
 	_param.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
