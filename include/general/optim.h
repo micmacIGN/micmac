@@ -289,6 +289,8 @@ class ElGrowingSetInd
          // Partie set classique
             void clear();
             void insert(const INT&) ;
+            int size() const;
+
 
          /*
              >,>=, == , != : peuvent etre fait rapidement

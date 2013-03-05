@@ -400,7 +400,8 @@ template <class Type> class ElSubFilo
          typedef Type value_type;
          friend class ElPartition<Type>;
 
-         INT nb() const { return _i2-_i1;}
+         INT size() const { return _i2-_i1;}
+         INT nb() const { return size();}
          Type & operator [] (int k) {return (*_f)[k+_i1];}
          const Type & operator [] (int k) const {return (*_f)[k+_i1];}
          const Type & top (INT k=0) const {return (*_f)[_i2-1-k];}

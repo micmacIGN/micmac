@@ -231,6 +231,9 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #include "graphes/graphe.h"
 #include "graphes/graphe_implem.h"
 #include "graphes/algo_planarite.h"
+#include "graphes/connec_comp.h"
+#include "graphes/uti_gr.h"
+#include "graphes/brins.h"
 
 #include "algo_geom/qdt.h"
 #include "algo_geom/qdt_implem.h"

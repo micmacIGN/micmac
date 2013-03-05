@@ -423,6 +423,61 @@ template <class  AttrSom,class AttrArc>
       gr.free_flag_arc(fl_marq);
 }
 
+template <class  AttrSom,class AttrArc> 
+         void Ebarbule
+         (
+               ElGraphe<AttrSom,AttrArc> &               gr,
+               ElSubGraphe<AttrSom,AttrArc> &            subgr,
+               ElSubGrapheSom<AttrSom,AttrArc> &         Mendatory,
+               std::vector<ElSom<AttrSom,AttrArc> *>  &  aRes
+         )
+{
+     aRes.clear();
+     INT fl_marq = gr.alloc_flag_som();
+     set_flag_all_soms(gr,subgr,fl_marq,true);
+     cSubGrFlagSom<ElSubGraphe<AttrSom,AttrArc> > aGrMarq(subgr,fl_marq);
+
+     for
+     (
+        ElSomIterator<AttrSom,AttrArc> sit = gr.begin(aGrMarq) ;
+        sit.go_on()                                          ;
+        sit++
+     )
+     {
+         ElSom<AttrSom,AttrArc> * aS = &(*sit);
+         if ((!Mendatory.inS(*aS)) && (aS->nb_succ(aGrMarq)<=1))
+         {
+             aRes.push_back(aS);
+         }
+     }
+     int aK= 0;
+     while (aK!=int(aRes.size()))
+     {
+         ElSom<AttrSom,AttrArc> * aS1 = aRes[aK];
+         aS1->flag_set_kth_false(fl_marq);
+         for
+         (
+                  ElArcIterator<AttrSom,AttrArc> ait = aS1->begin(aGrMarq) ;
+                  ait.go_on()                                        ;
+                  ait++
+         )
+         {
+               ElSom<AttrSom,AttrArc> * aS2 = &((*ait).s2());
+               if ((!Mendatory.inS(*aS2)) && (aS2->nb_succ(aGrMarq)==1))
+                   aRes.push_back(aS2);
+         }
+
+
+         aK++;
+     }
+
+
+     set_flag_all_soms(gr,subgr,fl_marq,false);
+     gr.free_flag_som(fl_marq);
+}
+/*
+*/
+
 
 #endif // _ELISE_GRAPHE_BRINS
 
