@@ -144,7 +144,7 @@ extern int TheIntFuckingReturnValue;
                             fprintf(stderr, "gpc malloc failure: %s\n", s); \
 		            exit(0);}} else p= NULL;}
 
-#define FREE(p)            {if (p) {free(p); (p)= NULL;}}
+#define GPC_Free(p)            {if (p) {free(p); (p)= NULL;}}
 
 
 /*
@@ -292,7 +292,7 @@ static void reset_it(it_node **it)
   while (*it)
   {
     itn= (*it)->next;
-    FREE(*it);
+    GPC_Free(*it);
     *it= itn;
   }
 }
@@ -305,7 +305,7 @@ static void reset_lmt(lmt_node **lmt)
   while (*lmt)
   {
     lmtn= (*lmt)->next;
-    FREE(*lmt);
+    GPC_Free(*lmt);
     *lmt= lmtn;
   }
 }
@@ -446,7 +446,7 @@ static void free_sbtree(sb_tree **sbtree)
   {
     free_sbtree(&((*sbtree)->less));
     free_sbtree(&((*sbtree)->more));
-    FREE(*sbtree);
+    GPC_Free(*sbtree);
   }
 }
 
@@ -778,7 +778,7 @@ static void build_intersection_table(it_node **it, edge_node *aet, double dy)
   while (st)
   {
     stp= st->prev;
-    FREE(st);
+    GPC_Free(st);
     st= stp;
   }
 }
@@ -808,7 +808,7 @@ static int count_contours(polygon_node *polygon)
         for (v= polygon->proxy->v[LEFT]; v; v= nextv)
         {
           nextv= v->next;
-          FREE(v);
+          GPC_Free(v);
         }
         polygon->active= 0;
       }
@@ -1075,9 +1075,9 @@ static void minimax_test(gpc_polygon *subj, gpc_polygon *clip, gpc_op op)
     }  
   }
 
-  FREE(s_bbox);
-  FREE(c_bbox);
-  FREE(o_table);
+  GPC_Free(s_bbox);
+  GPC_Free(c_bbox);
+  GPC_Free(o_table);
 }
 
 
@@ -1092,9 +1092,9 @@ void gpc_free_polygon(gpc_polygon *p)
   int c;
 
   for (c= 0; c < p->num_contours; c++)
-    FREE(p->contour[c].vertex);
-  FREE(p->hole);
-  FREE(p->contour);
+    GPC_Free(p->contour[c].vertex);
+  GPC_Free(p->hole);
+  GPC_Free(p->contour);
   p->num_contours= 0;
 }
 
@@ -1187,8 +1187,8 @@ void gpc_add_contour(gpc_polygon *p, gpc_vertex_list *new_contour, int hole)
     extended_contour[c].vertex[v]= new_contour->vertex[v];
 
   /* Dispose of the old contour */
-  FREE(p->contour);
-  FREE(p->hole);
+  GPC_Free(p->contour);
+  GPC_Free(p->hole);
 
   /* Update the polygon information */
   p->num_contours++;
@@ -1242,8 +1242,8 @@ void gpc_polygon_clip(gpc_op op, gpc_polygon *subj, gpc_polygon *clip,
     result->hole= NULL;
     result->contour= NULL;
     reset_lmt(&lmt);
-    FREE(s_heap);
-    FREE(c_heap);
+    GPC_Free(s_heap);
+    GPC_Free(c_heap);
     return;
   }
 
@@ -1816,21 +1816,21 @@ void gpc_polygon_clip(gpc_op op, gpc_polygon *subj, gpc_polygon *clip,
           nv= vtx->next;
           result->contour[c].vertex[v].x= vtx->x;
           result->contour[c].vertex[v].y= vtx->y;
-          FREE(vtx);
+          GPC_Free(vtx);
           v--;
         }
         c++;
       }
-      FREE(poly);
+      GPC_Free(poly);
     }
   }
 
   /* Tidy up */
   reset_it(&it);
   reset_lmt(&lmt);
-  FREE(c_heap);
-  FREE(s_heap);
-  FREE(sbt);
+  GPC_Free(c_heap);
+  GPC_Free(s_heap);
+  GPC_Free(sbt);
 }
 
 
@@ -1839,8 +1839,8 @@ void gpc_free_tristrip(gpc_tristrip *t)
   int s;
 
   for (s= 0; s < t->num_strips; s++)
-    FREE(t->strip[s].vertex);
-  FREE(t->strip);
+    GPC_Free(t->strip[s].vertex);
+  GPC_Free(t->strip);
   t->num_strips= 0;
 }
 
@@ -1900,8 +1900,8 @@ void gpc_tristrip_clip(gpc_op op, gpc_polygon *subj, gpc_polygon *clip,
     result->num_strips= 0;
     result->strip= NULL;
     reset_lmt(&lmt);
-    FREE(s_heap);
-    FREE(c_heap);
+    GPC_Free(s_heap);
+    GPC_Free(c_heap);
     return;
   }
 
@@ -2512,7 +2512,7 @@ void gpc_tristrip_clip(gpc_op op, gpc_polygon *subj, gpc_polygon *clip,
             result->strip[s].vertex[v].x= lt->x;
             result->strip[s].vertex[v].y= lt->y;
             v++;
-            FREE(lt);
+            GPC_Free(lt);
             lt= ltn;
           }
           if (rt)
@@ -2521,7 +2521,7 @@ void gpc_tristrip_clip(gpc_op op, gpc_polygon *subj, gpc_polygon *clip,
             result->strip[s].vertex[v].x= rt->x;
             result->strip[s].vertex[v].y= rt->y;
             v++;
-            FREE(rt);
+            GPC_Free(rt);
             rt= rtn;
           }
         }
@@ -2533,24 +2533,24 @@ void gpc_tristrip_clip(gpc_op op, gpc_polygon *subj, gpc_polygon *clip,
         for (lt= tn->v[LEFT]; lt; lt= ltn)
         {
           ltn= lt->next;
-          FREE(lt);
+          GPC_Free(lt);
         }
         for (rt= tn->v[RIGHT]; rt; rt=rtn)
         {
           rtn= rt->next;
-          FREE(rt);
+          GPC_Free(rt);
         }
       }
-      FREE(tn);
+      GPC_Free(tn);
     }
   }
 
   /* Tidy up */
   reset_it(&it);
   reset_lmt(&lmt);
-  FREE(c_heap);
-  FREE(s_heap);
-  FREE(sbt);
+  GPC_Free(c_heap);
+  GPC_Free(s_heap);
+  GPC_Free(sbt);
 }
 
 /*
