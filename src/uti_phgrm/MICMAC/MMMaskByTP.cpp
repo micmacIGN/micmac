@@ -111,23 +111,6 @@ void MMClearW()
 #endif 
 }
 
-/*
-static void ShowGrayIm(Fonc_Num aF)
-{
-#ifdef ELISE_X11
-   if (TheWTiePCor)
-   {
-       ELISE_COPY
-       (
-           TheWTiePCor->all_pts(),
-           aF,
-           TheWTiePCor->ogray()
-       );
-   }
-#endif 
-}
-*/
-
 /********************************************************************/
 /*                                                                  */
 /*                  Gestion des cellules                            */
@@ -529,7 +512,7 @@ void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,in
 
 
   static int aCpt=0; aCpt++;
-  if ((aCpt%1000)==0)
+  if ((aCpt%10000)==0)
      std::cout << "CPT= " << aCpt << "\n";
 
 }
@@ -577,6 +560,7 @@ void  cAppliMICMAC::OneIterFinaleMATP(const cMasqueAutoByTieP & aMATP,bool Final
 
 void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTieP & aMATP)
 {
+   ElTimer aChrono;
    mMMTP = new cMMTP(aBox,*this);
 #ifdef ELISE_X11
    if (aMATP.Visu().Val())
@@ -617,7 +601,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
 
 
 
-   ElTimer aChrono;
+   // ElTimer aChrono;
    for (int aK=0 ; aK<int(mTP3d->size()) ; aK++)
    {
        Pt3dr aPE = (*mTP3d)[aK];
@@ -635,7 +619,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
 
 
    OneIterFinaleMATP(aMATP,false);
-   std::cout << "TIME CorTP " << aChrono.uval() << "\n";
+   // std::cout << "TIME CorTP " << aChrono.uval() << "\n";
    std::cout << " XML " << aXmlN.Image_Profondeur().Val().Image() << "\n";
 
    mMMTP->DoMasqAndProfInit(aMATP);
@@ -656,6 +640,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
    ELISE_COPY(aIL.all_pts(),aF,aIL.out());
 
  
+   if (TheWTiePCor)
    {
         ELISE_COPY(aIL.all_pts(),aIL.in()+2*mMMTP->ImMasqInit().in(),TheWTiePCor->odisc());
 
@@ -691,6 +676,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
    //cElNuage3DMaille * aNuage = ;
 
 
+   std::cout << "SAUV DONNEE " << aChrono.uval() << "\n";
    getchar();
 }
 

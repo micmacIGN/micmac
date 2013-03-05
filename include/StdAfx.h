@@ -218,6 +218,7 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #include "ext_stl/Nappes.h"
 #include "im_tpl/ProgDyn2D.h"
 #include "im_tpl/algo_cc.h"
+#include "im_tpl/impainting.h"
 
 #include "ext_stl/fifo.h"
 #include "ext_stl/intheap.h"
