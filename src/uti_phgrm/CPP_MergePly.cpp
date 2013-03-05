@@ -42,9 +42,13 @@
 
 
 
+#if (0)
+// MPD : PB de linj et doublon avec : poisson/plyfile.cpp
 const char *elem_names[] = { /* list of the kinds of elements in the user's object */
 	"vertex", "face"
 };
+
+#endif
 
 PlyProperty vert_props[] = { /* list of property information for a vertex */
 	{"x", PLY_FLOAT, PLY_FLOAT, offsetof(sVertex,x), 0, 0, 0, 0},
