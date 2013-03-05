@@ -244,3 +244,5 @@ inline __host__ __device__ uint to1D( int2 c2D, uint2 dim)
 {
 	return c2D.y * dim.x + c2D.x;
 }
+
+

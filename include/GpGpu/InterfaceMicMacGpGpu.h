@@ -5,6 +5,7 @@
 
 #include "GpGpu/cudaAppliMicMac.cuh"
 #include <boost/thread/thread.hpp>
+#include "GpGpu/GpGpuTools.h"
 //#include <boost\chrono\chrono.hpp>
 
 extern "C" void	CopyParamTodevice(paramMicMacGpGpu h);
@@ -78,6 +79,7 @@ class InterfaceMicMacGpGpu
 		ImageCuda<pixel>		_mask;
 		ImageLayeredCuda<float>	_LayeredImages;
 		ImageLayeredCuda<float2>_LayeredProjection[NSTREAM];
+
 #ifdef USEDILATEMASK
 		pixel*					_dilateMask;
 		uint2					_dimDilateMask;

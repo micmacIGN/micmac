@@ -104,5 +104,34 @@ struct paramMicMacGpGpu
 		 return (GetRMask().pt0.x != -1);
 	 }
 
+	 void outConsole()
+	 {
+		std::cout << "Parametre de calcul GPU pour la correlation symetrique\n";
+		std::cout << "\n";
+		std::cout << "----------------------------------------------------------\n";
+		std::cout << "ZInter                : " << ZInter << "\n";
+		std::cout << "ZLocInter             : " << ZLocInter << "\n";
+		std::cout << "Dim Reel Terrain      : " << GpGpuTools::toStr(rDiTer) << "\n";
+		std::cout << "Dim calcul Terrain    : " << GpGpuTools::toStr(dimTer) << "\n";
+		std::cout << "Dim calcul Ter Samp   : " << GpGpuTools::toStr(dimSTer) << "\n";
+		std::cout << "Dim vignette          : " << GpGpuTools::toStr(dimVig) << "\n";
+		std::cout << "Rayon vignette        : " << GpGpuTools::toStr(rVig) << "\n";
+		std::cout << "Dim Image             : " << GpGpuTools::toStr(dimImg) << "\n";
+		std::cout << "Dim Cache             : " << GpGpuTools::toStr(dimCach) << "\n";
+		std::cout << "Taille vignette       : " << sizeVig << "\n";
+		std::cout << "Taille terrain + halo : " << sizeTer << "\n";
+		std::cout << "Taille Reel Terrain   : " << rSiTer << "\n";
+		std::cout << "Taille Samp Terrain   : " << sizeSTer << "\n";
+		std::cout << "Taille cache          : " << sizeCach << "\n";
+		std::cout << "Sample                : " << sampTer << "\n";
+		std::cout << "Default Val float     : " << DefaultVal << "\n";
+		std::cout << "Default Val int       : " << IntDefault << "\n";
+		std::cout << "Nombre Images         : " << nbImages << "\n";
+		std::cout << "mAhEpsilon            : " << mAhEpsilon << "\n";
+		std::cout << "Rectangle terrain     : ";rUTer.out();std::cout << "\n";
+		std::cout << "Rectangle masque      : ";rMask.out();std::cout << "\n";
+		std::cout << "\n";
+		std::cout << "----------------------------------------------------------\n";
+	 }
 };
 

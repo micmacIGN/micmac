@@ -1280,6 +1280,9 @@ if (0)
 		CuHostData3D<float>		hVolumeCost(IMmGg.GetDimensionTerrain(),interZ);
 		CuHostData3D<float2>	hVolumeProj(IMmGg.GetSDimensionTerrain(), interZ*mNbIm);
 
+		hVolumeCost.Name("hVolumeCost");
+		hVolumeProj.Name("hVolumeProj");
+
 		bool multiThreading = true;
 
 		// Initiation des parametres pour le multithreading

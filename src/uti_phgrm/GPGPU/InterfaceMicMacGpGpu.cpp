@@ -16,6 +16,13 @@ _texProjections_03(getProjection(3))
 	_gpuThread->detach();
 	SetZCToCopy(0);
 	SetZToCompute(0);
+
+	_volumeCost->Name("_volumeCost");
+	_volumeCach->Name("_volumeCach");
+	_volumeNIOk->Name("_volumeNIOk");
+// 	_mask.Name("_mask");
+// 	_LayeredImages.Name("_LayeredImages");
+// 	_LayeredProjection->Name("_LayeredProjection");
 }
 
 InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
@@ -50,9 +57,12 @@ void InterfaceMicMacGpGpu::SetSizeBlock( uint Zinter )
 
 void InterfaceMicMacGpGpu::AllocMemory(int nStream)
 {
-	_volumeCost[nStream].Realloc(_param.rDiTer,_param.ZLocInter);
-	_volumeCach[nStream].Realloc(_param.dimCach, _param.nbImages * _param.ZLocInter);
-	_volumeNIOk[nStream].Realloc(_param.rDiTer,_param.ZLocInter);
+
+	if(!((	_volumeCost[nStream].Realloc(_param.rDiTer,_param.ZLocInter)) &&
+		(	_volumeCach[nStream].Realloc(_param.dimCach, _param.nbImages * _param.ZLocInter)) &&
+		(	_volumeNIOk[nStream].Realloc(_param.rDiTer,_param.ZLocInter))))
+		_param.outConsole();
+	
 }
 
 void InterfaceMicMacGpGpu::DeallocMemory()
