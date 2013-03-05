@@ -61,6 +61,9 @@ using namespace NS_ParamChantierPhotogram;
 #endif
 
 
+
+
+
 Fonc_Num Moy(Fonc_Num aF,int aNb)
 {
    return rect_som(aF,aNb) / ElSquare(1.0+2*aNb);
@@ -101,132 +104,86 @@ void AutoCorrel(const std::string & aName)
    );
 }
 
-template  <class Type,class Type_Base>  class cNImpainting
+
+Im2D_REAL4 Conv2Float(Im2DGen anI)
 {
-      public :
+   Pt2di aSz = anI.sz();
+   Im2D_REAL4 aRes(aSz.x,aSz.y);
+   ELISE_COPY(anI.all_pts(),anI.in(),aRes.out());
+   return aRes;
+}
 
 
+class cImpFloatL2
+{
+    public :
+    private :
 
-         cNImpainting
-         (
-              Im2D_Bits<1>          aMaskInit,
-              Im2D_Bits<1>          aMaskFinale,
-              Im2D<Type,Type_Base>  anImVal
-         );
-
-         void ComplKLips(double aDynZ);  // aDynZ=0 => Approx au  PPV ; aDynZ infini  => au  min du void composante conexe
-
-         TIm2DBits<1>             mTMaskInit;
-         TIm2DBits<1>             mTMaskFinal;
-         TIm2D <Type,Type_Base>   mTImVal;
-         Pt2di                    mSz;
-         Im2D<REAL4,REAL8>        mImBuf;
-         TIm2D<REAL4,REAL8>       mTImBuf;
-
-         std::vector<Pt2di>       mVPts;
-         int                      mNbPts;
-
-      private :
+    
 };
-template  <class Type,class Type_Base>
-void  NComplKLipsParLBas
-       (
-              Im2D_Bits<1>          aMaskInit,
-              Im2D_Bits<1>          aMaskFinale,
-              Im2D<Type,Type_Base>  anImVal,
-              double                aDynZ
-       )
+
+
+Im2D_REAL4 RecursiveImpaint
+     (
+          Im2D_REAL4 aMaskInit,
+          Im2D_REAL4 aMaskFinal,
+          Im2D_REAL4 anIn,
+          Im2D_REAL4 aV0,
+          int        aDeZoom,
+          int        aZoomCible
+     )
 {
-    cNImpainting<Type,Type_Base> aIP(aMaskInit,aMaskFinale,anImVal);
-    aIP.ComplKLips(aDynZ);
+    if (aDeZoom ==aZoomCible)
+       return aV0;
+
+    Im2D_REAL4 aSsEch = RecursiveImpaint
+                        (
+                            ReducItered(aMaskInit,1),
+                            ReducItered(aMaskFinal,1),
+                            ReducItered(anIn,1),
+                            ReducItered(aV0,1),
+                            aDeZoom*2,
+                            aZoomCible
+                        );
+
+    Pt2di aSz = aV0.sz();
+    TIm2D<REAL4,REAL> aTSsE(aSsEch);
+    TIm2D<REAL4,REAL> aTV0(aV0);
+ 
+    Pt2di aP;
+    for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
+    {
+        for (aP.y=0 ; aP.y<aSz.y ; aP.y++)
+        {
+            aTV0.oset(aP,aTSsE.getprojR(Pt2dr(aP.x/2.0,aP.y/2.0)));
+        }
+    }
+
+    // ELISE_COPY(aV0.all_pts(),aSsEch.in_protj
+
+    return aV0;
 }
 
-template  <class Type,class Type_Base>
-    void cNImpainting<Type,Type_Base>::ComplKLips(double aDynZ)
+template <class TypeIn,class TypeOut> 
+Im2D<TypeIn,TypeOut> ImpaintL2
+     (
+         Im2D_Bits<1>           aB1MaskInit,
+         Im2D_Bits<1>           aB1MaskFinal,
+         Im2D<TypeIn,TypeOut>   anIn
+     )
 {
-   Pt2di aP;
-   for (aP.y =0 ; aP.y<mSz.y ; aP.y++)
-   {
-      for (aP.x =0 ; aP.x<mSz.x ; aP.x++)
-      {
-           double aVal = mTMaskInit.get(aP) ? (mTImVal.get(aP) *aDynZ) : 1e20;
-           mTImBuf.oset(aP,aVal);
-      }
-   }
+   Im2D_REAL4 aFlMaskInit = Conv2Float(aB1MaskInit);
+   Im2D_REAL4 aFlMaskFinal = Conv2Float(aB1MaskFinal);
+   Im2D_REAL4 aFlInit = Conv2Float(anIn);
 
-    for (int aKIter=0 ; aKIter< 6 ; aKIter++)
-   {
-       int aNbUpdate = 0;
-       bool Pair= ((aKIter%2)==0);
+   Im2D<TypeIn,TypeOut> aRes = ComplKLipsParLBas(aB1MaskInit,aB1MaskFinal,anIn,0.0); // Init en PPV
+   Im2D_REAL4 aFlRes = Conv2Float(aRes);
 
-       int IndDeb = Pair ? 0       : (mNbPts-1);
-       int IndOut = Pair ? mNbPts  : (-1)      ;
-       int Incr   = Pair ? 1       : (-1)      ;
-
-       for (int Ind=IndDeb ; Ind!=IndOut ; Ind+=Incr)
-       {
-            Pt2di aP2Cur = mVPts[Ind];
-            Type aValOfZMin = mTImVal.get(aP2Cur);
-            double aZMin = mTImBuf.get(aP2Cur);
-            for (int aKV = 0 ; aKV<8 ; aKV++)
-            {
-                Pt2di aPVois = aP2Cur + TAB_8_NEIGH[aKV];
-                if (mTMaskFinal.get(aPVois) || mTMaskInit.get(aPVois))
-                {
-                     double aZAugm = mTImBuf.get(aPVois) + ((aKV%2) ? 3 : 2);
-                     if (aZAugm < aZMin)
-                     {
-                          aZMin = aZAugm;
-                          aValOfZMin = mTImVal.get(aPVois);
-                          aNbUpdate++;
-                     }
-                }
-            }
-            mTImVal.oset(aP2Cur,aValOfZMin);
-            mTImBuf.oset(aP2Cur,aZMin);
-       }
-       // std::cout << "NNNbUodta " << aNbUpdate << "\n";
-   }
+   return aRes;
 }
 
-template  <class Type,class Type_Base>
-cNImpainting<Type,Type_Base>::cNImpainting
-(
-      Im2D_Bits<1>          aMaskInit,
-      Im2D_Bits<1>          aMaskFinal,
-      Im2D<Type,Type_Base>  anImVal
-)  :
-     mTMaskInit    (aMaskInit),
-     mTMaskFinal   (aMaskFinal),
-     mTImVal       (anImVal),
-     mSz           (anImVal.sz()),
-     mImBuf        (mSz.x,mSz.y) ,
-     mTImBuf       (mImBuf)
-{
-    ELISE_ASSERT
-    (
-          (aMaskInit.sz()==mSz)&&(aMaskFinal.sz()==mSz),
-          "cImpainting  Sz incoherent"
-    );
-
-
-   Pt2di aP;
-   for (aP.y =1 ; aP.y<(mSz.y-1) ; aP.y++)
-   {
-      for (aP.x =1 ; aP.x<(mSz.x-1) ; aP.x++)
-      {
-           if (mTMaskFinal.get(aP) && (!mTMaskInit.get(aP)))
-           {
-               mVPts.push_back(aP);
-           }
-      }
-   }
-   mNbPts = mVPts.size();
-
-   std::cout << "AAAA  " << mNbPts << "\n";
-}
-
-
+/*
+*/
 
 
 void TestKL()
@@ -245,7 +202,7 @@ void TestKL()
    ELISE_COPY(aW.all_pts(),aImMasqDef.in(),aW.odisc());
    getchar();
 
-   NComplKLipsParLBas(aImMasqDef,aImMasqF,aImVal,1.0);
+   // NComplKLipsParLBas(aImMasqDef,aImMasqF,aImVal,1.0);
 
    ELISE_COPY(aW.all_pts(),aImVal.in(),aW.ogray());
    getchar();
