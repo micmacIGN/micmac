@@ -2587,6 +2587,8 @@ class   cGPU_LoadedImGeom
        inline double MoyQuadIm(int anX,int anY) const;
        inline double CovIm(int anX,int anY) const;
 
+       REAL GetValOfDisc(int anX,int anY,int aZ);
+
        Pt2dr ProjOfPDisc(int anX,int anY,int aZ) const;
        void MakeDeriv(int anX,int anY,int aZ);
        Pt2dr ProjByDeriv(int anX,int anY,int aZ) const;
