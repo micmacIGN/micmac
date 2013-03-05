@@ -264,6 +264,7 @@ template  <class Type,class Type_Base>
 
 
 
+/*
 
 template  <class Type,class Type_Base>
 void  ComplKLipsParLBas
@@ -288,7 +289,7 @@ void  ComplKLipsParLBas
       {
            if ((! aTMaskValFinale.get(aP)) && (aTMaskValInit.get(aP)))
            {
-               aTZ.oset(aP,SHRT_MAX-1);
+               aTZ.oset(aP,El_CTypeTraits<Type>::MaxValue());
                aVPts.push_back(aP);
            }
       }
@@ -334,7 +335,19 @@ void  ComplKLipsParLBas
    // std::cout << "Ennndxcfttt \n"; getchar();
 
 }
+*/
 
+/*
+template  <class Type,class Type_Base>
+void  ComplKLipsParLBas
+      (
+           TIm2DBits<1>      aTMaskValInit,
+           TIm2DBits<1>      aTMaskValFinale,
+           TIm2D<Type,Type_Base>   aTZ
+      )
+{
+}
+*/
 
 #endif  //  _ELISE_IM_ALGO_DIST32
 

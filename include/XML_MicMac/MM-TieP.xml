@@ -113,7 +113,7 @@
                             <DeltaZ >        1                         </DeltaZ>
                             <SeuilSomCostCorrel> 0.65 </SeuilSomCostCorrel>
                             <SeuilMaxCostCorrel> 0.8 </SeuilMaxCostCorrel>
-                            <Visu> true </Visu>
+                            <Visu> false </Visu>
                         </MasqueAutoByTieP>
                      </TypeCAH>
                  </CorrelAdHoc>
