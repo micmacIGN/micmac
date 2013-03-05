@@ -280,15 +280,16 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 
 //Poisson
 #ifdef _WIN32
-#ifdef INT
-	#undef INT
-#endif
-#include <Windows.h>
-#include <Psapi.h>
+	#ifdef INT
+		#undef INT
+	#endif
+	#include <Windows.h>
+	#include <Psapi.h>
 #endif // _WIN32
-#include "poisson/Time.h"
 
+#include "poisson/Time.h"
 #include <sys/timeb.h>
+
 #ifndef WIN32
 #include <sys/time.h>
 #endif
@@ -307,9 +308,9 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #include "poisson/ply.h"
 #include "poisson/PlyFile.h"
 
-#ifdef LoadImage
-	#undef LoadImage 
-#endif
+// #ifdef LoadImage
+// 	//#undef LoadImage 
+// #endif
 
 #ifndef INT
 	#define INT int
