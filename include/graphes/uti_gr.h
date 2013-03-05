@@ -42,6 +42,38 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "graphes/graphe.h"
 
+template <class AttrSom,class AttrArc> 
+         void set_flag_all_soms
+              (
+                    ElGraphe<AttrSom,AttrArc> &          gr,
+                    ElSubGraphe<AttrSom,AttrArc> &       sub,
+                    INT                                  flag,
+                    bool                                 val
+              )
+{
+      for
+      (
+            ElSomIterator<AttrSom,AttrArc> sit = gr.begin(sub) ;
+            sit.go_on()                        ;
+            sit++
+      )
+      {
+           ElSom<AttrSom,AttrArc> & s =   * sit;
+           s.flag_set_kth(flag,val);
+      }
+}
+template <class AttrSom,class AttrArc> 
+         void set_flag_all_soms
+              (
+                    ElGraphe<AttrSom,AttrArc> &          gr,
+                    INT                                  flag,
+                    bool                                 val
+              )
+{
+     ElSubGraphe<AttrSom,AttrArc>  sub;
+     set_flag_all_soms(gr,sub,flag,val);
+}
+
 
 template <class AttrSom,class AttrArc> 
          void sym_set_flag_all_arcs
@@ -84,6 +116,79 @@ template <class AttrSom,class AttrArc>
      ElSubGraphe<AttrSom,AttrArc>  sub;
      sym_set_flag_all_arcs(gr,sub,flag,val);
 }
+
+
+template <class TSubGr> class cSubGrFlagSom : public  ElSubGraphe<typename TSubGr::ASom,typename TSubGr::AArc>
+{
+     public :
+          cSubGrFlagSom(TSubGr & aSub,int aFlag) :
+              mSub(aSub),
+              mFlag(aFlag)
+          {
+          }
+          bool   inS(typename TSubGr::TSom & aS)  { return aS.flag_kth(mFlag) && (mSub.inS(aS)); }
+          bool   inA(typename TSubGr::TArc & anA) { return mSub.inA(anA);}
+     private :
+          TSubGr & mSub;
+          int mFlag;
+};
+
+template <class TSubGr> class cSubGrFlagArc : public  ElSubGraphe<typename TSubGr::ASom,typename TSubGr::AArc>
+{
+     public :
+          cSubGrFlagArc(TSubGr & aSub,int aFlag) :
+              mSub(aSub),
+              mFlag(aFlag)
+          {
+          }
+          bool   inS(typename TSubGr::TSom & aS)  { return mSub.inS(aS); }
+          bool   inA(typename TSubGr::TArc & anA) { return anA.flag_kth(mFlag) && mSub.inA(anA);}
+     private :
+          TSubGr & mSub;
+          int mFlag;
+};
+
+
+
+
+template <class TSubGr> class cSubGrFlagSomArc : public ElSubGraphe<typename TSubGr::ASom,typename TSubGr::AArc>
+{
+     public :
+          cSubGrFlagSomArc(const TSubGr & aSub,int aFlagSom,int aFlagArc) :
+              mSub    (aSub),
+              mFlagSom  (aFlagSom),
+              mFlagArc  (aFlagArc)
+          {
+          }
+          bool   inS(typename TSubGr::TSom & aS)  { return aS.flag_kth(mFlagSom) && (mSub.inS(aS)); }
+          bool   inA(typename TSubGr::TArc & anA)  { return anA.flag_kth(mFlagArc) && (mSub.inA(anA));}
+     private :
+          TSubGr & mSub;
+          int mFlagSom;
+          int mFlagArc;
+};
+
+
+
+
+/*
+template <class TSubGr> class cSubGrFlagSom : public TSubGr
+{
+     public :
+          TSubGr(int aFlag) :
+              mFlag(aFag)
+          {
+          }
+          bool   inS(typename TSom::TSom &)  
+          {
+               return aS.flag_kth(mFlag);
+          }
+     private :
+          int mFlag;
+};
+*/
+
+
 
 
 #endif // _ELISE_GRAPHES_UTI_GR_H
