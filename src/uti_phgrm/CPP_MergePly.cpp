@@ -42,7 +42,7 @@
 
 
 
-const char *elem_names[] = { /* list of the kinds of elements in the user's object */
+const char *elem_namesMM[] = { /* list of the kinds of elements in the user's object */
 	"vertex", "face"
 };
 
