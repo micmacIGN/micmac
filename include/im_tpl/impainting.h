@@ -36,79 +36,30 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-// #include "anag_all.h"
+
+
+
+#ifndef _ELISE_IMTPL_IMPAINTING_H_
+#define _ELISE_IMTPL_IMPAINTING_H_
 
 /*
-void f()
-{
-    FILE * aFP = ElFopen(MMC,"w");
-    ElFclose(aFP);
-}
+    Impainting est un peu prétentieux, il s'agit de combler des trous dans une image (mais sans idee de realisme).
+    Trois methode :
+
+       1- L2 qui minimise la courbure ?
+       2- Au plus proche voisin
+       3- Completion "par le bas" (adapte au bouchage de MNT si les zones a combler sont des parties cachees)
 
 */
 
-#include "StdAfx.h"
-
-#if (ELISE_X11)
-
-
-
-using namespace NS_ParamChantierPhotogram;
-
-#if (0)
-
-
-#endif
-
-
-Fonc_Num Moy(Fonc_Num aF,int aNb)
-{
-   return rect_som(aF,aNb) / ElSquare(1.0+2*aNb);
-}
-
-Fonc_Num Correl(Fonc_Num aF1,Fonc_Num aF2,int aNb)
-{
-   Symb_FNum aM1 (Moy(aF1,aNb));
-   Symb_FNum aM2 (Moy(aF2,aNb));
-
-   Fonc_Num aEnct1 = Moy(Square(aF1),aNb) -Square(aM1);
-   Fonc_Num aEnct2 = Moy(Square(aF2),aNb) -Square(aM2);
-
-
-   return (Moy(aF1*aF2,aNb)  -aM1*aM2) / sqrt(Max(1e-5,aEnct1*aEnct2));
-}
-
-void AutoCorrel(const std::string & aName)
-{
-   Tiff_Im aTF(aName.c_str());
-   Pt2di aSz = aTF.sz();
-   Im2D_REAL4 anI(aSz.x,aSz.y);
-   ELISE_COPY(aTF.all_pts(),aTF.in(),anI.out());
-
-   int aNb = 2;
-
-   Fonc_Num aF = 1.0;
-   for (int aK=0 ; aK<4 ; aK++)
-   {
-      aF = Min(aF,Correl(anI.in(0),trans(anI.in(0),TAB_4_NEIGH[aK])*(aNb*2),aNb));
-   }
-  
-   Tiff_Im::Create8BFromFonc
-   (
-       StdPrefix(aName)+"_AutoCor.tif",
-       aSz,
-       Min(255,Max(0,(1+aF)*128))
-   );
-}
-
-template  <class Type,class Type_Base>  class cNImpainting
+template  <class Type,class Type_Base>  class cImpainting
 {
       public :
 
 
 
-         cNImpainting
-         (
+         cImpainting
+         ( 
               Im2D_Bits<1>          aMaskInit,
               Im2D_Bits<1>          aMaskFinale,
               Im2D<Type,Type_Base>  anImVal
@@ -128,8 +79,9 @@ template  <class Type,class Type_Base>  class cNImpainting
 
       private :
 };
-template  <class Type,class Type_Base>
-void  NComplKLipsParLBas
+
+template  <class Type,class Type_Base>  
+void  ComplKLipsParLBas
        (
               Im2D_Bits<1>          aMaskInit,
               Im2D_Bits<1>          aMaskFinale,
@@ -137,12 +89,15 @@ void  NComplKLipsParLBas
               double                aDynZ
        )
 {
-    cNImpainting<Type,Type_Base> aIP(aMaskInit,aMaskFinale,anImVal);
+    cImpainting<Type,Type_Base> aIP(aMaskInit,aMaskFinale,anImVal);
     aIP.ComplKLips(aDynZ);
 }
 
-template  <class Type,class Type_Base>
-    void cNImpainting<Type,Type_Base>::ComplKLips(double aDynZ)
+
+
+
+template  <class Type,class Type_Base>  
+    void cImpainting<Type,Type_Base>::ComplKLips(double aDynZ)
 {
    Pt2di aP;
    for (aP.y =0 ; aP.y<mSz.y ; aP.y++)
@@ -189,8 +144,8 @@ template  <class Type,class Type_Base>
    }
 }
 
-template  <class Type,class Type_Base>
-cNImpainting<Type,Type_Base>::cNImpainting
+template  <class Type,class Type_Base>  
+cImpainting<Type,Type_Base>::cImpainting
 (
       Im2D_Bits<1>          aMaskInit,
       Im2D_Bits<1>          aMaskFinal,
@@ -222,48 +177,23 @@ cNImpainting<Type,Type_Base>::cNImpainting
       }
    }
    mNbPts = mVPts.size();
-
-   std::cout << "AAAA  " << mNbPts << "\n";
 }
 
+    
 
 
 
-void TestKL()
-{
-   Pt2di aSZ(200,200);
-   Im2D_Bits<1> aImMasqF(aSZ.x,aSZ.y,1);
-
-   Im2D_Bits<1> aImMasqDef(aSZ.x,aSZ.y,1);
-   ELISE_COPY(rectangle(Pt2di(70,0),Pt2di(130,200)),0,aImMasqDef.out());
-
-   Im2D<U_INT2,INT> aImVal(aSZ.x,aSZ.y);
-   ELISE_COPY(aImVal.all_pts(),FX,aImVal.out());
-
-   Video_Win aW=Video_Win::WStd(aSZ,3.0);
-   ELISE_COPY(aW.all_pts(),aImVal.in(),aW.ogray());
-   ELISE_COPY(aW.all_pts(),aImMasqDef.in(),aW.odisc());
-   getchar();
-
-   NComplKLipsParLBas(aImMasqDef,aImMasqF,aImVal,1.0);
-
-   ELISE_COPY(aW.all_pts(),aImVal.in(),aW.ogray());
-   getchar();
-}
+#endif  //  _ELISE_IMTPL_IMPAINTING_H_
 
 
-int MPDtest_main (int argc,char** argv)
-{
-   TestKL();
-   BanniereMM3D();
-   // AutoCorrel(argv[1]);
-   double aNan = strtod("NAN(teta01)", NULL);
-   std::cout << "Nan=" << aNan << "\n";
 
-    return EXIT_SUCCESS;
-}
 
-#endif
+
+
+
+
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
