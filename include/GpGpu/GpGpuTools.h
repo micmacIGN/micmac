@@ -208,6 +208,23 @@ bool GpGpuTools::Array1DtoImageFile(T* dataImage,const char* fileName, uint2 dim
 //									CLASS IMAGE CUDA
 //-----------------------------------------------------------------------------------------------
 
+class CGObject
+{
+public:
+  CGObject();
+  ~CGObject();
+  std::string Name();
+  //void  Name(std::string)
+
+private:
+
+  std::string _name;
+  //std::string _type;
+
+};
+
+
+
 class struct2D
 {
 public:
@@ -518,6 +535,8 @@ void CuDeviceData3D<T>::Memset( int val )
 	if (cuER != cudaSuccess)
 	{
 		checkCudaErrors( cuER );
+
+		std::cout << "ERREUR MEMSET\n";
 		std::cout << "Pointeur de donnees : " << CData3D<T>::pData() << "\n";
 		std::cout << "Taille des donnees  : " << CData3D<T>::Sizeof() << "\n";
 	}
@@ -533,7 +552,14 @@ template <class T>
 void CuDeviceData3D<T>::Malloc()
 {
 	SetSizeofMalloc(CData3D<T>::Sizeof());
-	checkCudaErrors( cudaMalloc((void **)CData3D<T>::ppData(), CData3D<T>::Sizeof()));
+
+	cudaError_t cuER =  cudaMalloc((void **)CData3D<T>::ppData(), CData3D<T>::Sizeof());
+	if (cuER != cudaSuccess)
+	{
+	  checkCudaErrors(cuER );
+	  std::cout << "Pointeur de donnees : " << CData3D<T>::pData() << "\n";
+	  std::cout << "Taille des donnees  : " << CData3D<T>::Sizeof() << "\n";
+	}
 }
 
 template <class T>

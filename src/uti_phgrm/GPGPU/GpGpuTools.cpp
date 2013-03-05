@@ -61,6 +61,11 @@ float GpGpuTools::fValue( float2 value,float factor )
 	return (float)value.x * factor;
 }
 
+std::string CGObject::CGObjectName()
+{
+  return _name;
+}
+
 uint2 struct2D::GetDimension()
 {
 	return _dimension;
