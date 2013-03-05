@@ -261,8 +261,8 @@ public:
 	T**		ppData();
 	uint	GetSizeofMalloc();
 	void	SetSizeofMalloc(uint sizeofmalloc);
-private:
 
+private:
 	
 	T*		_data;
 	uint	_sizeofMalloc;
