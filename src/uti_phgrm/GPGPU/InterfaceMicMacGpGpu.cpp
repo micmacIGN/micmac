@@ -385,6 +385,18 @@ Rect InterfaceMicMacGpGpu::rUTer()
 	return _param.GetRUTer();
 }
 
+void InterfaceMicMacGpGpu::MallocInfo()
+{
+	std::cout << "Malloc Info GpGpu\n";
+	GpGpuTools::OutputInfoGpuMemory();
+	_volumeCost[0].MallocInfo();	 
+	_volumeCach[0].MallocInfo();
+	_volumeNIOk[0].MallocInfo();	
+	_mask.CData2D::MallocInfo();
+	_LayeredImages.CData3D::MallocInfo();
+	_LayeredProjection[0].CData3D::MallocInfo();
+}
+
 #ifdef USEDILATEMASK
 void InterfaceMicMacGpGpu::dilateMask(uint2 dim )
 {
@@ -408,4 +420,7 @@ pixel InterfaceMicMacGpGpu::ValDilMask(int2 pt)
 {
 	return (oI(pt,0) || oSE(pt,_dimDilateMask)) ? 0 : _dilateMask[to1D(pt,_dimDilateMask)];
 }
+
+
+
 #endif

@@ -227,24 +227,7 @@ public:
 	void		ClassTemplate(std::string classTemplate);
 
 	template<class T>
-	const char* StringClass(T* tt){ return "T";};
-
-#if ELISE_windows
-	template<>
-	const char* StringClass<float>( float* tt );
-
-	template<>
-	const char* StringClass<uint>( uint* tt );
-
-	template<>
-	const char* StringClass<pixel>( pixel* tt );
-
-	template<>
-	const char* StringClass<struct float2>(struct float2* tt );
-
-	template<>
-	const char* StringClass<cudaArray>(cudaArray* tt );
-#endif
+	const char* StringClass(T* tt){ return "T";}
 
 private:
 
@@ -254,35 +237,15 @@ private:
 
 };
 
-template<>
-inline const char* CGObject::StringClass( float* tt )
-{
-	return "float*";
-}
+template<> inline const char* CGObject::StringClass( float* t ){return "float*";}
 
-template<>
-inline const char* CGObject::StringClass( pixel* tt )
-{
-	return "pixel*";
-}
+template<> inline const char* CGObject::StringClass( pixel* t ){return "pixel*";}
 
-template<>
-inline const char* CGObject::StringClass( uint* tt )
-{
-	return "uint*";
-}
+template<> inline const char* CGObject::StringClass( uint* t ){	return "uint*";}
 
-template<>
-inline const char* CGObject::StringClass(struct float2* tt )
-{
-	return "float2*";
-}
+template<> inline const char* CGObject::StringClass(struct float2* t ){	return "float2*";}
 
-template<>
-inline const char* CGObject::StringClass(cudaArray* tt )
-{
-	return "cudaArray*";
-}
+template<> inline const char* CGObject::StringClass(cudaArray* t ){	return "cudaArray*";}
 
 class struct2D 
 {
@@ -341,6 +304,7 @@ public:
 	uint	GetSizeofMalloc();
 	void	SetSizeofMalloc(uint sizeofmalloc);
 	bool	ErrorOutput(cudaError_t err,const char* fonctionName);
+	void	MallocInfo();
 
 protected:
 
@@ -354,6 +318,12 @@ private:
 	uint	_sizeofMalloc;
 
 };
+
+template <class T>
+void CData<T>::MallocInfo()
+{
+	std::cout << "Malloc Info " << CGObject::Name() << " :"<<  _sizeofMalloc / pow(2.0,20) << "/" << _memoryOc / pow(2.0,20) << "\n";
+}
 
 template <class T>
 void CData<T>::SubMemoryOc( uint m )
