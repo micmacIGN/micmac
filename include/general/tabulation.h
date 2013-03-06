@@ -45,6 +45,7 @@ extern Pt2dr TAB_CornerPix[4];     // pts[i] = pts[i+8]
 extern Pt2di TAB_8_NEIGH[16];     // pts[i] = pts[i+8]
 extern Pt2di TAB_4_NEIGH[8];     // pts[i] = pts[i+4]
 extern Pt2di TAB_9_NEIGH[9];     // pts[8] = 0,0
+extern Pt2di TAB_5_NEIGH[5];     // pts[5] = 0,0
 
 
 extern Pt2di VOIS_9[9];  // dans l'ordre de parcourt "video"

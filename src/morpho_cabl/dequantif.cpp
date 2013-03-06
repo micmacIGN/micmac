@@ -427,6 +427,132 @@ Im2D_U_INT2 ElImplemDequantifier::DistMoins()
    return mDistMoins;
 }
 
+Im2D_REAL4 RecursiveImpaint
+     (
+          Im2D_REAL4 aFlMaskInit,
+          Im2D_REAL4 aFlMaskFinal,
+          Im2D_REAL4 aFlIm,
+          int        aDeZoom,
+          int        aZoomCible
+     )
+{
+    Pt2di aSz = aFlIm.sz();
+    Im2D_REAL4 aSolInit(aSz.x,aSz.y);
+    ELISE_COPY(aFlIm.all_pts(),aFlIm.in(),aSolInit.out());
+
+
+    TIm2D<REAL4,REAL> aTMaskI(aFlMaskInit);
+    TIm2D<REAL4,REAL> aTMaskF(aFlMaskFinal);
+
+   int aNbIter = 2 + 3 * aDeZoom;
+
+    if (aDeZoom >=aZoomCible)
+    {
+       aNbIter += ElSquare(aNbIter)/2;
+       Im2D_REAL8 aDblMasqk(aSz.x,aSz.y);
+
+       ELISE_COPY(aFlIm.all_pts(),aFlMaskInit.in(),aDblMasqk.out());
+       ELISE_COPY
+       (
+            select(aDblMasqk.all_pts(), erod_d4(aDblMasqk.in(0)>0.5,1)),
+            0,
+            aDblMasqk.out()
+       );
+
+       Im2D_REAL8 aDblIm(aSz.x,aSz.y);
+       ELISE_COPY(aDblIm.all_pts(),aFlIm.in()*aDblMasqk.in(),aDblIm.out());
+
+       FilterGauss(aDblIm,2.0,1);
+       FilterGauss(aDblMasqk,2.0,1);
+
+       ELISE_COPY
+       (
+           select(aSolInit.all_pts(),aFlMaskInit.in()<0.5),
+           aDblIm.in() / Max(1e-20,aDblMasqk.in()),
+           aSolInit.out()
+       );
+    }
+    else
+    {
+        TIm2D<REAL4,REAL> aTSolInit(aSolInit);
+        TIm2D<REAL4,REAL> aTIm(aFlIm);
+
+        Im2D_REAL4 aSsEch = RecursiveImpaint
+                            (
+                                ReducItered(aFlMaskInit,1),
+                                ReducItered(aFlMaskFinal,1),
+                                ReducItered(aFlIm,1),
+                                aDeZoom*2,
+                                aZoomCible
+                            );
+
+         TIm2D<REAL4,REAL> aTSsE(aSsEch);
+         Pt2di aP;
+         for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
+         {
+             for (aP.y=0 ; aP.y<aSz.y ; aP.y++)
+             {
+                 double aPdsI = aTMaskI.get(aP);
+                 if (aPdsI <0.999)
+                 {
+                     double aVal =  aPdsI * aTIm.get(aP) 
+                                    + (1-aPdsI) * aTSsE.getprojR(Pt2dr(aP.x/2.0,aP.y/2.0));
+                      aTSolInit.oset(aP,aVal);
+                 }
+             }
+         }
+      }
+
+
+      std::vector<Pt2di> aVF;
+      {
+          Pt2di aP;
+          for (aP.x=1 ; aP.x<aSz.x-1 ; aP.x++)
+          {
+              for (aP.y=1 ; aP.y<aSz.y-1 ; aP.y++)
+              {
+                   if ((aTMaskI.get(aP)<0.999) && (aTMaskF.get(aP)>0.001))
+                   {
+                      aVF.push_back(aP);
+                   }
+              }
+          }
+      }
+
+
+      int aNbPts = aVF.size();
+      for (int aKIter=0 ; aKIter<aNbIter ; aKIter++)
+      {
+          TIm2D<REAL4,REAL> aTSolInit(aSolInit);
+          TIm2D<REAL4,REAL> aTIm(aFlIm);
+          Im2D_REAL4        aNewSol (aSz.x,aSz.y);
+          TIm2D<REAL4,REAL> aTNew(aNewSol);
+          aNewSol.dup(aFlIm);
+
+          for (int aKP=0 ; aKP<aNbPts ; aKP++)
+          {
+              Pt2di aP =  aVF[aKP];
+              float aSomV=0;
+              float aSomM=0;
+              for (int aKV = 0 ; aKV<5 ; aKV++)
+              {
+                  Pt2di aPV = aP+ TAB_5_NEIGH[aKV];
+                  float aM = aTMaskF.get(aPV);
+                  aSomM += aM;
+                  aSomV += aM *aTSolInit.get(aPV);
+              }
+              float aPdsI = aTMaskI.get(aP);
+              float aVal =  aPdsI * aTIm.get(aP) + (1-aPdsI) * (aSomV/aSomM);
+              aTNew.oset(aP,aVal);
+              
+          }
+
+          aSolInit = aNewSol;
+      }
+
+      return aSolInit;
+}
+
 
 
 

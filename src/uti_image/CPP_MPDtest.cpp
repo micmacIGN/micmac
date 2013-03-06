@@ -114,55 +114,15 @@ Im2D_REAL4 Conv2Float(Im2DGen anI)
 }
 
 
-class cImpFloatL2
-{
-    public :
-    private :
-
-    
-};
-
-
+/*
 Im2D_REAL4 RecursiveImpaint
      (
-          Im2D_REAL4 aMaskInit,
-          Im2D_REAL4 aMaskFinal,
-          Im2D_REAL4 anIn,
-          Im2D_REAL4 aV0,
+          Im2D_REAL4 aFlMaskInit,
+          Im2D_REAL4 aFlMaskFinal,
+          Im2D_REAL4 aFlIm,
           int        aDeZoom,
           int        aZoomCible
-     )
-{
-    if (aDeZoom ==aZoomCible)
-       return aV0;
-
-    Im2D_REAL4 aSsEch = RecursiveImpaint
-                        (
-                            ReducItered(aMaskInit,1),
-                            ReducItered(aMaskFinal,1),
-                            ReducItered(anIn,1),
-                            ReducItered(aV0,1),
-                            aDeZoom*2,
-                            aZoomCible
-                        );
-
-    Pt2di aSz = aV0.sz();
-    TIm2D<REAL4,REAL> aTSsE(aSsEch);
-    TIm2D<REAL4,REAL> aTV0(aV0);
- 
-    Pt2di aP;
-    for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
-    {
-        for (aP.y=0 ; aP.y<aSz.y ; aP.y++)
-        {
-            aTV0.oset(aP,aTSsE.getprojR(Pt2dr(aP.x/2.0,aP.y/2.0)));
-        }
-    }
-
-    // ELISE_COPY(aV0.all_pts(),aSsEch.in_protj
-
-    return aV0;
-}
+     );
 
 template <class TypeIn,class TypeOut> 
 Im2D<TypeIn,TypeOut> ImpaintL2
@@ -172,18 +132,20 @@ Im2D<TypeIn,TypeOut> ImpaintL2
          Im2D<TypeIn,TypeOut>   anIn
      )
 {
-   Im2D_REAL4 aFlMaskInit = Conv2Float(aB1MaskInit);
-   Im2D_REAL4 aFlMaskFinal = Conv2Float(aB1MaskFinal);
-   Im2D_REAL4 aFlInit = Conv2Float(anIn);
+   Im2D_REAL4  aFlRes = RecursiveImpaint
+                         (
+                             Conv2Type(aB1MaskInit,(Im2D_REAL4*)0),
+                             Conv2Type(aB1MaskFinal,(Im2D_REAL4*)0),
+                             Conv2Type(anIn,(Im2D_REAL4*)0),
+                             1,
+                             16
+                         );
 
-   Im2D<TypeIn,TypeOut> aRes = ComplKLipsParLBas(aB1MaskInit,aB1MaskFinal,anIn,0.0); // Init en PPV
-   Im2D_REAL4 aFlRes = Conv2Float(aRes);
 
-   return aRes;
+   return Conv2Type(aFlRes,(Im2D<TypeIn,TypeOut>*)0);
 }
-
-/*
 */
+
 
 
 void TestKL()
@@ -202,11 +164,18 @@ void TestKL()
    ELISE_COPY(aW.all_pts(),aImMasqDef.in(),aW.odisc());
    getchar();
 
+
+   aImVal = ImpaintL2(aImMasqDef,aImMasqF,aImVal);
+
    // NComplKLipsParLBas(aImMasqDef,aImMasqF,aImVal,1.0);
 
    ELISE_COPY(aW.all_pts(),aImVal.in(),aW.ogray());
+
+   Tiff_Im::Create8BFromFonc("toto.tif",aSZ,aImVal.in());
    getchar();
 }
+#if (0)
+#endif
 
 
 int MPDtest_main (int argc,char** argv)
