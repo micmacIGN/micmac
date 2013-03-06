@@ -70,6 +70,14 @@ std::string GpGpuTools::toStr( uint2 tt )
 	return sValS.str();
 }
 
+void GpGpuTools::OutputInfoGpuMemory()
+{
+	size_t free;  
+	size_t total;  
+	cudaMemGetInfo(&free, &total);
+	cout << "Free memory video : " << (float)free / pow(2.0f,20) << "/" << (float)total / pow(2.0f,20) << "mb" << endl;
+}
+
 std::string CGObject::Name()
 {
   return _name;
@@ -177,6 +185,7 @@ uint struct2DLayered::GetSize()
 
 void struct2DLayered::Output()
 {
+	struct2D::Output();
 	std::cout << "Nombre de calques : " << GetNbLayer() << "\n";
 }
 
@@ -195,10 +204,12 @@ cudaArray* AImageCuda::GetCudaArray()
 
 bool AImageCuda::Dealloc()
 {
-
-	if (CData<cudaArray>::isNULL()) checkCudaErrors( cudaFreeArray( CData<cudaArray>::pData()) );
+	cudaError_t erC = cudaSuccess;
+	SubMemoryOc(GetSizeofMalloc());
+	SetSizeofMalloc(0);
+	if (!CData<cudaArray>::isNULL()) erC = cudaFreeArray( CData<cudaArray>::pData());
 	CData<cudaArray>::dataNULL();
-	return true;
+	return erC == cudaSuccess ? true : false;
 }
 
 bool AImageCuda::Memset( int val )
@@ -206,73 +217,3 @@ bool AImageCuda::Memset( int val )
 	std::cout << "PAS DE MEMSET POUR CUDA ARRAY" << "\n";
 	return true;
 }
-
-
-/*
-template<class T>
-const char* CGObject::StringClass( T* tt )
-{
-	return "*T";
-}
-
-
-template<>
-const char* CGObject::StringClass<float>( float* tt )
-{
-	return "*float";
-}
-*//*
-template<>
-const char* CGObject::StringClass<float*>( float* tt )
-{
-	return "*float";
-}
-
-template<>
-const char* CGObject::StringClass<struct  float2*>(struct  float2* tt )
-{
-	return "*float2";
-}
-
-template<>
-const char* CGObject::StringClass<uint*>( uint* tt )
-{
-	return "*uint";
-}
-
-template<>
-const char* CGObject::StringClass<pixel*>( pixel* tt )
-{
-	return "*uint";
-}
-
-
-template<class T>
-const char* CGObject::StringClass( T tt )
-{
-	return "T";
-}
-
-template<>
-const char* CGObject::StringClass<float>( float tt )
-{
-	return "float";
-}
-
-template<>
-const char* CGObject::StringClass<struct float2>(struct float2 tt )
-{
-	return "float2";
-}
-
-template<>
-const char* CGObject::StringClass<uint>( uint tt )
-{
-	return "uint";
-}
-
-template<>
-const char* CGObject::StringClass<pixel>( pixel tt )
-{
-	return "uint";
-}*/

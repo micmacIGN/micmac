@@ -369,10 +369,6 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
     return & mBufVignette;
 }
 
-
-
-
-
 	bool   cGPU_LoadedImGeom::InitValNorms(int anX,int anY)
 	{
 		if (! mDOK_Ortho[anY][anX])
@@ -615,10 +611,11 @@ if (0)
 #ifdef CUDA_ENABLED
 	
 		Rect Ter(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
-
+		
 		if (mLoadTextures)//		Mise en calque des images	
 		{
-
+			IMmGg.DeallocMemory();
+			GpGpuTools::OutputInfoGpuMemory();
 			mLoadTextures		= false;
 			float*	fdataImg1D	= NULL;	
 			uint2	dimImgMax	= make_uint2(0,0);
