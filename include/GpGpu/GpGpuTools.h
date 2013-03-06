@@ -227,8 +227,9 @@ public:
 	void		ClassTemplate(std::string classTemplate);
 
 	template<class T>
-	const char* StringClass(T* tt);
+	const char* StringClass(T* tt){ return "T";};
 
+#if ELISE_windows
 	template<>
 	const char* StringClass<float>( float* tt );
 
@@ -243,7 +244,7 @@ public:
 
 	template<>
 	const char* StringClass<cudaArray>(cudaArray* tt );
-
+#endif
 
 private:
 
@@ -254,31 +255,31 @@ private:
 };
 
 template<>
-const char* CGObject::StringClass( float* tt )
+inline const char* CGObject::StringClass( float* tt )
 {
 	return "float*";
 }
 
 template<>
-const char* CGObject::StringClass( pixel* tt )
+inline const char* CGObject::StringClass( pixel* tt )
 {
 	return "pixel*";
 }
 
 template<>
-const char* CGObject::StringClass( uint* tt )
+inline const char* CGObject::StringClass( uint* tt )
 {
 	return "uint*";
 }
 
 template<>
-const char* CGObject::StringClass(struct float2* tt )
+inline const char* CGObject::StringClass(struct float2* tt )
 {
 	return "float2*";
 }
 
 template<>
-const char* CGObject::StringClass(cudaArray* tt )
+inline const char* CGObject::StringClass(cudaArray* tt )
 {
 	return "cudaArray*";
 }
@@ -460,7 +461,7 @@ void CData2D<T>::OutputInfo()
 template <class T>
 CData2D<T>::CData2D()
 {
-	ClassTemplate(CGObject::StringClass<T>(pData()));
+	ClassTemplate(CGObject::StringClass<T>(CData2D::pData()));
 }
 
 template <class T>
@@ -515,7 +516,7 @@ void CData3D<T>::OutputInfo()
 template <class T>
 CData3D<T>::CData3D()
 {
-	ClassTemplate(CGObject::StringClass<T>(pData()));
+	ClassTemplate(CGObject::StringClass<T>(CData3D::pData()));
 }
 
 template <class T>
@@ -563,7 +564,7 @@ public:
 template <class T>
 CuHostData3D<T>::CuHostData3D()
 {
-	SetType("CuHostData3D");
+	CGObject::SetType("CuHostData3D");
 }
 
 template <class T>
@@ -587,16 +588,16 @@ bool CuHostData3D<T>::Memset( int val )
 template <class T>
 bool CuHostData3D<T>::Malloc()
 {
-	SetSizeofMalloc(CData3D<T>::Sizeof());
-	AddMemoryOc(GetSizeofMalloc());
+	CData3D<T>::SetSizeofMalloc(CData3D<T>::Sizeof());
+	CData3D<T>::AddMemoryOc(CData3D<T>::GetSizeofMalloc());
 	return ErrorOutput(cudaMallocHost(CData3D<T>::ppData(),CData3D<T>::Sizeof()),"Malloc");
 }
 
 template <class T>
 bool CuHostData3D<T>::Dealloc()
 {
-	SubMemoryOc(GetSizeofMalloc());
-	SetSizeofMalloc(0);
+	CData3D<T>::SubMemoryOc(CData3D<T>::GetSizeofMalloc());
+	CData3D<T>::SetSizeofMalloc(0);
 	return ErrorOutput(cudaFreeHost(CData3D<T>::pData()),"Dealloc");
 }
 
@@ -627,7 +628,7 @@ bool CuDeviceData2D<T>::CopyDevicetoHost( T* hostData )
 {
 	cudaError_t err = cudaMemcpy( hostData, CData2D<T>::pData(), CData2D<T>::Sizeof(), cudaMemcpyDeviceToHost);
 	
-	return ErrorOutput(err,"CopyDevicetoHost");
+	return CData<T>::ErrorOutput(err,"CopyDevicetoHost");
 	
 }
 
@@ -642,7 +643,7 @@ template <class T>
 bool CuDeviceData2D<T>::Malloc()
 {
 	SetSizeofMalloc(CData2D<T>::Sizeof());
-	AddMemoryOc(GetSizeofMalloc());
+	CData2D<T>::AddMemoryOc(CData2D<T>::GetSizeofMalloc());
 	return ErrorOutput(cudaMalloc((void **)CData2D<T>::ppData(), CData2D<T>::Sizeof()),"Malloc");
 }
 
@@ -650,8 +651,8 @@ template <class T>
 bool CuDeviceData2D<T>::Dealloc()
 {
 	cudaError_t erC = cudaSuccess;
-	SubMemoryOc(GetSizeofMalloc());
-	SetSizeofMalloc(0);
+	CData2D<T>::SubMemoryOc(CData2D<T>::GetSizeofMalloc());
+	CData2D<T>::SetSizeofMalloc(0);
 	if (!CData2D<T>::isNULL()) erC = cudaFree(CData2D<T>::pData());
 	CData2D<T>::dataNULL();
 	return erC == cudaSuccess ? true : false;
@@ -700,14 +701,14 @@ template <class T>
 CuDeviceData3D<T>::CuDeviceData3D()
 {
   CData3D<T>::dataNULL();
-  SetType("CuDeviceData3D");
+  CGObject::SetType("CuDeviceData3D");
 }
 
 template <class T>
 bool CuDeviceData3D<T>::Malloc()
 {
 	SetSizeofMalloc(CData3D<T>::Sizeof());
-	AddMemoryOc(GetSizeofMalloc());
+	AddMemoryOc(CData3D<T>::GetSizeofMalloc());
 	return ErrorOutput(cudaMalloc((void **)CData3D<T>::ppData(), CData3D<T>::Sizeof()),"Malloc");
 }
 
@@ -715,8 +716,8 @@ template <class T>
 bool CuDeviceData3D<T>::Dealloc()
 {
 	cudaError_t erC = cudaSuccess;
-	SubMemoryOc(GetSizeofMalloc());
-	SetSizeofMalloc(0);
+	SubMemoryOc(CData3D<T>::GetSizeofMalloc());
+	CData3D<T>::SetSizeofMalloc(0);
 	if (!CData3D<T>::isNULL()) erC = cudaFree(CData3D<T>::pData());
 	CData3D<T>::dataNULL();
 	return erC == cudaSuccess ? true : false;
