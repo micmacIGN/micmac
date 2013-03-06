@@ -178,6 +178,38 @@ cImpainting<Type,Type_Base>::cImpainting
    }
    mNbPts = mVPts.size();
 }
+Im2D_REAL4 RecursiveImpaint
+     (
+          Im2D_REAL4 aFlMaskInit,
+          Im2D_REAL4 aFlMaskFinal,
+          Im2D_REAL4 aFlIm,
+          int        aDeZoom,
+          int        aZoomCible
+     );
+
+template <class TypeIn,class TypeOut>
+Im2D<TypeIn,TypeOut> ImpaintL2
+     (
+         Im2D_Bits<1>           aB1MaskInit,
+         Im2D_Bits<1>           aB1MaskFinal,
+         Im2D<TypeIn,TypeOut>   anIn,
+         int                    aDezoom = 16
+     )
+{
+   Im2D_REAL4  aFlRes = RecursiveImpaint
+                         (
+                             Conv2Type(aB1MaskInit,(Im2D_REAL4*)0),
+                             Conv2Type(aB1MaskFinal,(Im2D_REAL4*)0),
+                             Conv2Type(anIn,(Im2D_REAL4*)0),
+                             1,
+                             aDezoom
+                         );
+
+
+   return Conv2Type(aFlRes,(Im2D<TypeIn,TypeOut>*)0);
+}
+
+
 
     
 
