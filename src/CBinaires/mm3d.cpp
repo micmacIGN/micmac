@@ -224,7 +224,9 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("CheckDependencies",CheckDependencies_main," check dependencies to third-party tools"));
        aRes.push_back(cMMCom("VV",VideoVisage_main,"A very simplified tool for 3D model of visage out of video, just for fun"));
-       aRes.push_back(cMMCom("XYZ2Im",XYZ2Im_main,"tool to transform a 3D point (text file) to their 2D proj in cam or nuage"));
+
+       // Il manque le fichier source CPP_XYZ2Im.cpp
+       //aRes.push_back(cMMCom("XYZ2Im",XYZ2Im_main,"tool to transform a 3D point (text file) to their 2D proj in cam or nuage"));
 
 #if (ELISE_X11)
        aRes.push_back(cMMCom("MPDtest",MPDtest_main," My own test"));
