@@ -80,6 +80,18 @@ bool IsPostfixedJPG(const std::string & aName)
    return IsPostfixed(aName) && IsKnownJPGPost(StdPostfix(aName));
 }
 
+
+bool IsKnownNotRawPost(const std::string & aPost)
+{
+    return    (aPost == "png")
+           || (aPost == "PNG");
+
+}
+bool IsPostfixedNotRaw(const std::string & aName)
+{
+   return IsPostfixed(aName) && IsKnownNotRawPost(StdPostfix(aName));
+}
+
 std::string NameInDicoGeom(const std::string & aDir,const std::string & aName,const std::string & aDef)
 {
 
@@ -129,7 +141,7 @@ std::string StdFileCalibOfImage
 
 std::string StdNameBayerCalib(const std::string & aFullName)
 {
-   if (IsPostfixedJPG(aFullName) ||  Tiff_Im::IsTiff(aFullName.c_str(),true))
+   if (IsPostfixedJPG(aFullName) ||  Tiff_Im::IsTiff(aFullName.c_str(),true) || IsPostfixedNotRaw(aFullName))
       return "";
 
    cMetaDataPhoto aMDP;
