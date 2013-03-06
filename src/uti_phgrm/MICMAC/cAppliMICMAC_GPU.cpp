@@ -615,7 +615,9 @@ if (0)
 		if (mLoadTextures)//		Mise en calque des images	
 		{
 			IMmGg.DeallocMemory();
-			GpGpuTools::OutputInfoGpuMemory();
+
+			IMmGg.MallocInfo();
+			
 			mLoadTextures		= false;
 			float*	fdataImg1D	= NULL;	
 			uint2	dimImgMax	= make_uint2(0,0);

@@ -54,6 +54,7 @@ class InterfaceMicMacGpGpu
 		void	SetComputeNextProj(bool compute);
 		int		GetComputedZ();
 		void	SetComputedZ(int computedZ);
+		void	MallocInfo();
 
 #ifdef USEDILATEMASK
 		void	dilateMask(uint2 dim);
