@@ -120,6 +120,15 @@ Pt2di TAB_8_NEIGH[16] =
           Pt2di( 1,-1) 
       };
 
+Pt2di TAB_5_NEIGH[5] =
+      {
+          Pt2di( 1, 0) ,
+          Pt2di( 0, 1) ,
+          Pt2di(-1, 0) ,
+          Pt2di( 0,-1) ,
+          Pt2di( 0, 0) 
+      };
+
 
 Pt2di TAB_4_NEIGH[8] =
       {

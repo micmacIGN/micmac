@@ -588,6 +588,17 @@ template <class Type,class TyBase> class Im2D : public Im2DGen
 	  DataIm2D<Type,TyBase> * di2d(){return (DataIm2D<Type,TyBase> *) (_ptr);}
 };
 
+
+template <class TypeIn,class TypeOut> TypeOut Conv2Type(TypeIn anImIn,TypeOut * )
+{
+   Pt2di aSz = anImIn.sz();
+   TypeOut aRes(aSz.x,aSz.y);
+   ELISE_COPY(anImIn.all_pts(),anImIn.in(),aRes.out());
+   return aRes;
+}
+
+
+
 template <class Type,class Type_Base> Im2D<Type,Type_Base> ImMediane
                                       (
                                            const std::vector<Im2D<Type,Type_Base> > &, 
