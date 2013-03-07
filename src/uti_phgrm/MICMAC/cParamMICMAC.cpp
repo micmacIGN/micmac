@@ -4803,6 +4803,59 @@ void xml_init(cCorrel_NC_Robuste & anObj,cElXMLTree * aTree)
 }
 
 
+std::string & cTiePMasqIm::File()
+{
+   return mFile;
+}
+
+const std::string & cTiePMasqIm::File()const 
+{
+   return mFile;
+}
+
+
+int & cTiePMasqIm::DeZoomRel()
+{
+   return mDeZoomRel;
+}
+
+const int & cTiePMasqIm::DeZoomRel()const 
+{
+   return mDeZoomRel;
+}
+
+
+int & cTiePMasqIm::Dilate()
+{
+   return mDilate;
+}
+
+const int & cTiePMasqIm::Dilate()const 
+{
+   return mDilate;
+}
+
+cElXMLTree * ToXMLTree(const cTiePMasqIm & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"TiePMasqIm",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("File"),anObj.File())->ReTagThis("File"));
+   aRes->AddFils(::ToXMLTree(std::string("DeZoomRel"),anObj.DeZoomRel())->ReTagThis("DeZoomRel"));
+   aRes->AddFils(::ToXMLTree(std::string("Dilate"),anObj.Dilate())->ReTagThis("Dilate"));
+  return aRes;
+}
+
+void xml_init(cTiePMasqIm & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.File(),aTree->Get("File",1)); //tototo 
+
+   xml_init(anObj.DeZoomRel(),aTree->Get("DeZoomRel",1)); //tototo 
+
+   xml_init(anObj.Dilate(),aTree->Get("Dilate",1)); //tototo 
+}
+
+
 cTplValGesInit< std::string > & cMasqueAutoByTieP::GlobFilePt3D()
 {
    return mGlobFilePt3D;
@@ -4890,6 +4943,50 @@ const cTplValGesInit< double > & cMasqueAutoByTieP::ParamIPMnt()const
    return mParamIPMnt;
 }
 
+
+std::string & cMasqueAutoByTieP::File()
+{
+   return TiePMasqIm().Val().File();
+}
+
+const std::string & cMasqueAutoByTieP::File()const 
+{
+   return TiePMasqIm().Val().File();
+}
+
+
+int & cMasqueAutoByTieP::DeZoomRel()
+{
+   return TiePMasqIm().Val().DeZoomRel();
+}
+
+const int & cMasqueAutoByTieP::DeZoomRel()const 
+{
+   return TiePMasqIm().Val().DeZoomRel();
+}
+
+
+int & cMasqueAutoByTieP::Dilate()
+{
+   return TiePMasqIm().Val().Dilate();
+}
+
+const int & cMasqueAutoByTieP::Dilate()const 
+{
+   return TiePMasqIm().Val().Dilate();
+}
+
+
+cTplValGesInit< cTiePMasqIm > & cMasqueAutoByTieP::TiePMasqIm()
+{
+   return mTiePMasqIm;
+}
+
+const cTplValGesInit< cTiePMasqIm > & cMasqueAutoByTieP::TiePMasqIm()const 
+{
+   return mTiePMasqIm;
+}
+
 cElXMLTree * ToXMLTree(const cMasqueAutoByTieP & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MasqueAutoByTieP",eXMLBranche);
@@ -4905,6 +5002,8 @@ cElXMLTree * ToXMLTree(const cMasqueAutoByTieP & anObj)
       aRes->AddFils(::ToXMLTree(std::string("ImPaintResult"),anObj.ImPaintResult().Val())->ReTagThis("ImPaintResult"));
    if (anObj.ParamIPMnt().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ParamIPMnt"),anObj.ParamIPMnt().Val())->ReTagThis("ParamIPMnt"));
+   if (anObj.TiePMasqIm().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.TiePMasqIm().Val())->ReTagThis("TiePMasqIm"));
   return aRes;
 }
 
@@ -4927,6 +5026,8 @@ void xml_init(cMasqueAutoByTieP & anObj,cElXMLTree * aTree)
    xml_init(anObj.ImPaintResult(),aTree->Get("ImPaintResult",1),eImpaintMethod(eImpaintL2)); //tototo 
 
    xml_init(anObj.ParamIPMnt(),aTree->Get("ParamIPMnt",1),double(1.0)); //tototo 
+
+   xml_init(anObj.TiePMasqIm(),aTree->Get("TiePMasqIm",1)); //tototo 
 }
 
 
