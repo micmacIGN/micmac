@@ -616,7 +616,7 @@ if (0)
 		{
 			IMmGg.DeallocMemory();
 
-			IMmGg.MallocInfo();
+			//IMmGg.MallocInfo();
 			
 			mLoadTextures		= false;
 			float*	fdataImg1D	= NULL;	
@@ -656,7 +656,7 @@ if (0)
 
 			if (fdataImg1D != NULL) delete[] fdataImg1D;
 
-			IMmGg.InitParam(Ter, mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT, INTERZ);
+			IMmGg.SetParameter(Ter, mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT, INTERZ);
 			
 		}
 
@@ -695,11 +695,11 @@ if (0)
 		rMask.pt1.x++;
 		rMask.pt1.y++;
 
-		IMmGg.SetSizeBlock(rMask,INTERZ);
+		IMmGg.SetSizeBlock(INTERZ,rMask);
 
-		if (IMmGg.MaskNoNULL())
+		if (IMmGg.Param().MaskNoNULL())
 		{
-			uint2 rDimTer = IMmGg.GetDimensionTerrain();
+			uint2 rDimTer = IMmGg.Param().dimTer;
 
 			pixel *SubMaskTab = new pixel[size(rDimTer)];
 
@@ -707,16 +707,14 @@ if (0)
 				memcpy(SubMaskTab + (y  - rMask.pt0.y) * rDimTer.x, maskTab + (y - mY0Ter) * Ter.dimension().x + rMask.pt0.x - mX0Ter, sizeof(pixel) * rDimTer.x );
 					
 			IMmGg.SetMask(SubMaskTab,rDimTer);
+
 #ifdef USEDILATEMASK
 			IMmGg.dilateMask(rDimTer);
 #endif
 			delete[] SubMaskTab;
 		}
 
-		delete[] maskTab;
-
-		//////////////////////////////////////////////////////////////////////////
-		
+		delete[] maskTab;	
 #else
 
 		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
@@ -730,8 +728,6 @@ if (0)
 		}
 
 #endif
-		
-
 		mGpuSzD = 0;
 		if (mCurEtape->UseGeomDerivable())
 		{
@@ -745,10 +741,7 @@ if (0)
 		}
 	}
 
-
 	double MAXDIST = 0.0;
-
-
 
 	bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
 	{
@@ -1185,7 +1178,7 @@ if (0)
 		uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
  		int2	aSzDz		= toI2(Pt2dr(mGeomDFPx->SzDz()));		// Dimension de la zone terrain total
  		int2	aSzClip		= toI2(Pt2dr(mGeomDFPx->SzClip()));		// Dimension du bloque
-		int2	anB = zone.pt0 +  dimSTabProj * sample;
+		int2	anB			= zone.pt0 +  dimSTabProj * sample;
 
 		for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
 		{
@@ -1262,7 +1255,7 @@ if (0)
 		Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
 
 		// Si le terrain est masqué : Aucun calcul
-		if (!IMmGg.MaskNoNULL())
+		if (!IMmGg.Param().MaskNoNULL())
 		{
 			setVolumeCost(mTer,mZMinGlob,mZMaxGlob,mAhDefCost);
 			return;
@@ -1276,11 +1269,11 @@ if (0)
 			IMmGg.SetSizeBlock(interZ);
 		
 		// Allocation de l'espace mémoire pour la tabulation des projections et des couts
-		CuHostData3D<float>		hVolumeCost(IMmGg.GetDimensionTerrain(),interZ);
-		CuHostData3D<float2>	hVolumeProj(IMmGg.GetSDimensionTerrain(), interZ*mNbIm);
+		CuHostData3D<float>		hVolumeCost(IMmGg.Param().dimTer,interZ);
+		CuHostData3D<float2>	hVolumeProj(IMmGg.Param().dimSTer, interZ*mNbIm);
 
-		hVolumeCost.Name("hVolumeCost");
-		hVolumeProj.Name("hVolumeProj");
+		hVolumeCost.SetName("hVolumeCost");
+		hVolumeProj.SetName("hVolumeProj");
 
 		bool multiThreading = true;
 
@@ -1289,7 +1282,7 @@ if (0)
 		{		
 			IMmGg.SetHostVolume(hVolumeCost.pData(), hVolumeProj.pData());
 			IMmGg.SetComputeNextProj(true);
-			IMmGg.SetComputedZ(aZMinTer);
+			//IMmGg.SetComputedZ(aZMinTer);
 		}
 		int anZProjection = aZMinTer, anZComputed= aZMinTer;
 		
@@ -1297,10 +1290,7 @@ if (0)
 		while( anZComputed < aZMaxTer )
 		{
 			if (multiThreading)
-			{
-				// le calcul de correlation est effectué dans un thread parallèle à celui-ci
-				// il s'effectue quand des projections ont été calculées!
-
+			{	// le calcul de correlation est effectué dans un thread parallèle à celui-ci, il s'effectue quand des projections ont été calculées!								
 				// Tabulation des projections si la demande est faite
 				if ( IMmGg.GetComputeNextProj() && anZProjection <= anZComputed + interZ && anZProjection < aZMaxTer)
 				{
@@ -1308,8 +1298,8 @@ if (0)
 					if (interZ >= intZ  &&  anZProjection != (aZMaxTer - 1) )
 						interZ = intZ;
 
-					hVolumeProj.Memset(IMmGg.GetIntDefaultVal());
-					Tabul_Projection(hVolumeProj.pData(), anZProjection, IMmGg.rUTer(),IMmGg.GetSample(), interZ);
+					hVolumeProj.Memset(IMmGg.Param().IntDefault);
+					Tabul_Projection(hVolumeProj.pData(), anZProjection, IMmGg.Param().RDTer(),IMmGg.Param().sampProj, interZ);
 					IMmGg.SetComputeNextProj(false);				
 					IMmGg.SetZToCompute(interZ);				
 					anZProjection+= interZ;				
@@ -1319,22 +1309,20 @@ if (0)
 				// Affectation des couts si des nouveaux ont été calculé!
 				if (ZtoCopy != 0 && anZComputed < aZMaxTer)
 				{
-
-					setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,hVolumeCost.pData(), IMmGg.rMask(),IMmGg.GetDefaultVal());
+					setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,hVolumeCost.pData(), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
 					anZComputed += ZtoCopy;
-					IMmGg.SetComputedZ(anZComputed);
 					IMmGg.SetZCToCopy(0);
 				}
 			}
 			else
 			{
 				// Re-initialisation du tableau de projection
-				hVolumeProj.Memset(IMmGg.GetIntDefaultVal());
-				Tabul_Projection(hVolumeProj.pData(), anZComputed, IMmGg.rUTer(),IMmGg.GetSample(), interZ);
+				hVolumeProj.Memset(IMmGg.Param().IntDefault);
+				Tabul_Projection(hVolumeProj.pData(), anZComputed, IMmGg.Param().RDTer(),IMmGg.Param().sampProj, interZ);
 				// Kernel Correlation
 				IMmGg.BasicCorrelation(hVolumeCost.pData(), hVolumeProj.pData(), mNbIm, interZ);
 
-				setVolumeCost(mTer,anZComputed,anZComputed + interZ,mAhDefCost,hVolumeCost.pData(), IMmGg.rMask(),IMmGg.GetDefaultVal());
+				setVolumeCost(mTer,anZComputed,anZComputed + interZ,mAhDefCost,hVolumeCost.pData(), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
 
 				uint intZ = (uint)abs(aZMaxTer - anZComputed );
 
@@ -1342,10 +1330,8 @@ if (0)
 				{
 					interZ = intZ;
 					IMmGg.SetSizeBlock(interZ);
-
-					hVolumeCost.Realloc(IMmGg.GetDimensionTerrain(),interZ);
-					hVolumeProj.Realloc(IMmGg.GetSDimensionTerrain(), interZ*mNbIm);
-
+					hVolumeCost.Realloc(IMmGg.Param().dimTer,interZ);
+					hVolumeProj.Realloc(IMmGg.Param().dimSTer, interZ*mNbIm);
 				} 
 			
 				anZComputed += interZ;

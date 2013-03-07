@@ -537,12 +537,12 @@ Im2D_REAL4 RecursiveImpaint
               for (int aKV = 0 ; aKV<5 ; aKV++)
               {
                   Pt2di aPV = aP+ TAB_5_NEIGH[aKV];
-                  float aM = aTMaskF.get(aPV);
+                  float aM = (float)aTMaskF.get(aPV);
                   aSomM += aM;
-                  aSomV += aM *aTSolInit.get(aPV);
+                  aSomV += aM *(float)aTSolInit.get(aPV);
               }
-              float aPdsI = aTMaskI.get(aP);
-              float aVal =  aPdsI * aTIm.get(aP) + (1-aPdsI) * (aSomV/aSomM);
+              float aPdsI = (float)aTMaskI.get(aP);
+              float aVal =  aPdsI * (float)aTIm.get(aP) + (1-aPdsI) * (aSomV/aSomM);
               aTNew.oset(aP,aVal);
               
           }
