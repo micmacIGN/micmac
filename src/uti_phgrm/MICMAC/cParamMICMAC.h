@@ -57,7 +57,8 @@ typedef enum
   eAggregSymetrique,
   eAggregIm1Maitre,
   eAggregInfoMut,
-  eAggregMaxIm1Maitre
+  eAggregMaxIm1Maitre,
+  eAggregMinIm1Maitre
 } eModeAggregCorr;
 void xml_init(eModeAggregCorr & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModeAggregCorr & aVal);
@@ -1707,6 +1708,12 @@ class cMasqueAutoByTieP
 
         cTplValGesInit< bool > & Visu();
         const cTplValGesInit< bool > & Visu()const ;
+
+        cTplValGesInit< eImpaintMethod > & ImPaintResult();
+        const cTplValGesInit< eImpaintMethod > & ImPaintResult()const ;
+
+        cTplValGesInit< double > & ParamIPMnt();
+        const cTplValGesInit< double > & ParamIPMnt()const ;
     private:
         cTplValGesInit< std::string > mGlobFilePt3D;
         std::string mKeyImFilePt3D;
@@ -1714,6 +1721,8 @@ class cMasqueAutoByTieP
         double mSeuilSomCostCorrel;
         double mSeuilMaxCostCorrel;
         cTplValGesInit< bool > mVisu;
+        cTplValGesInit< eImpaintMethod > mImPaintResult;
+        cTplValGesInit< double > mParamIPMnt;
 };
 cElXMLTree * ToXMLTree(const cMasqueAutoByTieP &);
 
