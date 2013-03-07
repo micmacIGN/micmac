@@ -7,6 +7,12 @@
    MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/home/marc/TMP/Delphes/MedinetAbou/ +Im1=IMG_0099.JPG
 
    MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/home/marc/TMP/Delphes/PiedsRamses/
+
+
+   MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/media/data1/Delphe/DELPHE-TMP-CP/Delphes/MedinetAbou/ +Im1=IMG_0099.CR2
+
+
+
 -->
 
 <ParamMICMAC>
@@ -20,7 +26,7 @@
 -->
    <Symb> Visu=true  </Symb>
 
-   <Symb> FEM=1  </Symb>
+   <Symb> FEM=2  </Symb>
 
    <eSymb>   Z2=* ${Zoom} 2 </eSymb>
    <eSymb>   LEM=+ ${FEM} 1 </eSymb>
@@ -217,7 +223,7 @@
      <TmpMEC>    ${DirMEC}/  </TmpMEC>
      <TmpResult> ${DirMEC}/  </TmpResult>
      <TmpPyr>    Pyram/  </TmpPyr>
-     <ByProcess> 1 </ByProcess>
+     <ByProcess> 0 </ByProcess>
      <SzDalleMin> 20000 </SzDalleMin>
 
      <FirstEtapeMEC > ${FEM}  </FirstEtapeMEC>
