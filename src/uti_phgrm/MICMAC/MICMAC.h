@@ -501,6 +501,7 @@ class cStatOneClassEquiv
             REAL CoeffCorrelSymetrique() const;
             REAL CoeffCorrelIm1Maitre() const;
             REAL CoeffCorrelMaxIm1Maitre() const;
+            REAL CoeffCorrelMinIm1Maitre() const;
             REAL CoeffInfoMut() const ;
             REAL CoeffCorrelation() const;
 
@@ -2847,7 +2848,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 		void DoGPU_Correl (const Box2di & aBoxInterne,const cMultiCorrelPonctuel *);  
         void DoOneCorrelSym(int anX,int anY);
         void DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel *);
-        void DoOneCorrelMaxIm1Maitre(int anX,int anY);
+        void DoOneCorrelMaxMinIm1Maitre(int anX,int anY,bool aModeMax);
 
 		void DoGPU_Correl_Basik (const Box2di & aBoxInterne); 
 

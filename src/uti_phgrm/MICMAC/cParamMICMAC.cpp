@@ -158,6 +158,8 @@ eModeAggregCorr  Str2eModeAggregCorr(const std::string & aName)
       return eAggregInfoMut;
    else if (aName=="eAggregMaxIm1Maitre")
       return eAggregMaxIm1Maitre;
+   else if (aName=="eAggregMinIm1Maitre")
+      return eAggregMinIm1Maitre;
   else
   {
       cout << aName << " is not a correct value for enum eModeAggregCorr\n" ;
@@ -179,6 +181,8 @@ std::string  eToString(const eModeAggregCorr & anObj)
       return  "eAggregInfoMut";
    if (anObj==eAggregMaxIm1Maitre)
       return  "eAggregMaxIm1Maitre";
+   if (anObj==eAggregMinIm1Maitre)
+      return  "eAggregMinIm1Maitre";
  std::cout << "Enum = eModeAggregCorr\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
@@ -4864,6 +4868,28 @@ const cTplValGesInit< bool > & cMasqueAutoByTieP::Visu()const
    return mVisu;
 }
 
+
+cTplValGesInit< eImpaintMethod > & cMasqueAutoByTieP::ImPaintResult()
+{
+   return mImPaintResult;
+}
+
+const cTplValGesInit< eImpaintMethod > & cMasqueAutoByTieP::ImPaintResult()const 
+{
+   return mImPaintResult;
+}
+
+
+cTplValGesInit< double > & cMasqueAutoByTieP::ParamIPMnt()
+{
+   return mParamIPMnt;
+}
+
+const cTplValGesInit< double > & cMasqueAutoByTieP::ParamIPMnt()const 
+{
+   return mParamIPMnt;
+}
+
 cElXMLTree * ToXMLTree(const cMasqueAutoByTieP & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MasqueAutoByTieP",eXMLBranche);
@@ -4875,6 +4901,10 @@ cElXMLTree * ToXMLTree(const cMasqueAutoByTieP & anObj)
    aRes->AddFils(::ToXMLTree(std::string("SeuilMaxCostCorrel"),anObj.SeuilMaxCostCorrel())->ReTagThis("SeuilMaxCostCorrel"));
    if (anObj.Visu().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Visu"),anObj.Visu().Val())->ReTagThis("Visu"));
+   if (anObj.ImPaintResult().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ImPaintResult"),anObj.ImPaintResult().Val())->ReTagThis("ImPaintResult"));
+   if (anObj.ParamIPMnt().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ParamIPMnt"),anObj.ParamIPMnt().Val())->ReTagThis("ParamIPMnt"));
   return aRes;
 }
 
@@ -4893,6 +4923,10 @@ void xml_init(cMasqueAutoByTieP & anObj,cElXMLTree * aTree)
    xml_init(anObj.SeuilMaxCostCorrel(),aTree->Get("SeuilMaxCostCorrel",1)); //tototo 
 
    xml_init(anObj.Visu(),aTree->Get("Visu",1),bool(false)); //tototo 
+
+   xml_init(anObj.ImPaintResult(),aTree->Get("ImPaintResult",1),eImpaintMethod(eImpaintL2)); //tototo 
+
+   xml_init(anObj.ParamIPMnt(),aTree->Get("ParamIPMnt",1),double(1.0)); //tototo 
 }
 
 

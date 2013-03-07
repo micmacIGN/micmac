@@ -41,6 +41,10 @@ namespace NS_ParamChantierPhotogram{
        <eNbTypeOriTxt>    </eNbTypeOriTxt>
    </enum>
 
+   <enum Name="eImpaintMethod">
+       <eImpaintL2>   </eImpaintL2>
+       <eImpaintMNT>  </eImpaintMNT>
+   </enum>
 
 
    <enum Name="eTypeNumerique">

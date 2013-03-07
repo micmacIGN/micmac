@@ -1049,7 +1049,7 @@ if (0)
 
 
 
-	void cAppliMICMAC::DoOneCorrelMaxIm1Maitre(int anX,int anY)
+	void cAppliMICMAC::DoOneCorrelMaxMinIm1Maitre(int anX,int anY,bool aModeMax)
 	{
 		if (mEBI) // Etiq Best Image
 		{
@@ -1070,7 +1070,8 @@ if (0)
 		}
 		else
 		{
-			double aMaxCorrel = -2;
+			double aRes =  aModeMax ? -2 : 2;
+                        bool isOk = false;
 
 			if (mVLI[0]->OkOrtho(anX,anY))
 			{
@@ -1079,7 +1080,11 @@ if (0)
 					double aCor;
 					if (mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0])))
 					{
-						ElSetMax(aMaxCorrel,aCor);
+						if (aModeMax) 
+                                                   ElSetMax(aRes,aCor);
+                                                 else
+                                                   ElSetMin(aRes,aCor);
+                                                isOk = true;
 					}
 				}
 			}
@@ -1088,7 +1093,7 @@ if (0)
 				(
 				Pt2di(anX,anY),
 				&mZIntCur,
-				(aMaxCorrel>-1) ? mStatGlob->CorrelToCout(aMaxCorrel) : mAhDefCost
+				(isOk) ? mStatGlob->CorrelToCout(aRes) : mAhDefCost
 				);
 		}
 	}
@@ -1112,7 +1117,6 @@ if (0)
 		if (aModeAgr==eAggregSymetrique)
 		{
 		}
-		//else if ((aModeAgr==eAggregIm1Maitre) || (aModeAgr==eAggregMaxIm1Maitre))
 		else if (IsModeIm1Maitre(aModeAgr))
 		{
 			aModeInitZ = eModeMom_12_2_22;
@@ -1156,8 +1160,12 @@ if (0)
 								break;
 
 							case  eAggregMaxIm1Maitre :
-								DoOneCorrelMaxIm1Maitre(anX,anY);
-								break;
+								DoOneCorrelMaxMinIm1Maitre(anX,anY,true);
+						        break;
+
+							case  eAggregMinIm1Maitre :
+								DoOneCorrelMaxMinIm1Maitre(anX,anY,false);
+						        break;
 
 							default :
 								break;

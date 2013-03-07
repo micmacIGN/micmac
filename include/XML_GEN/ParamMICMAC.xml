@@ -137,6 +137,7 @@ namespace NS_ParamMICMAC{
          <eAggregInfoMut>    </eAggregInfoMut>
          <!-- Max des correls a l'image 1; teste pour resoudre pb de parties cachees -->
 	 <eAggregMaxIm1Maitre>  </eAggregMaxIm1Maitre>
+	 <eAggregMinIm1Maitre>  </eAggregMinIm1Maitre>
    </enum>
 
    <enum Name="eModeDynamiqueCorrel">
@@ -939,6 +940,8 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                             <SeuilSomCostCorrel Nb="1" Type="double"> </SeuilSomCostCorrel>
                             <SeuilMaxCostCorrel Nb="1" Type="double"> </SeuilMaxCostCorrel>
                             <Visu Nb="?" Type="bool" Def="false"> </Visu>
+                            <ImPaintResult Nb="?"  Type="eImpaintMethod" Def="eImpaintL2"> </ImPaintResult>
+                            <ParamIPMnt Nb="?" Type="double" Def="1.0"> </ParamIPMnt>
                         </MasqueAutoByTieP> 
                 </TypeCAH>
             </CorrelAdHoc>
