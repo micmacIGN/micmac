@@ -8,7 +8,7 @@
 #include "GpGpu/GpGpuTools.h"
 //#include <boost\chrono\chrono.hpp>
 
-extern "C" void	CopyParamTodevice(paramMicMacGpGpu h);
+extern "C" void	CopyParamTodevice(pCorGpu h);
 extern "C" void	KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd);
 extern "C" void	KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, uint* dev_NbImgOk, uint2 nbActThr, ushort divideNThreads);
 
@@ -29,41 +29,29 @@ class InterfaceMicMacGpGpu
 		InterfaceMicMacGpGpu();
 		~InterfaceMicMacGpGpu();
 
-		void	SetSizeBlock( Rect Ter, uint Zinter);
+		void	SetSizeBlock( uint Zinter, Rect Ter);
 		void	SetSizeBlock( uint Zinter);
 		void	SetMask(pixel* dataMask, uint2 dimMask);
 		void	SetImages(float* dataImage, uint2 dimImage, int nbLayer);
-		void	InitParam(Rect Ter, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ);
+		void	SetParameter(Rect Ter, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ);
+		
 		void	BasicCorrelation( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
 		void	BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
-		uint2	GetDimensionTerrain();
-		uint2	GetSDimensionTerrain();
-		bool	MaskNoNULL();
-		Rect	rUTer();
-		Rect	rMask();
-		uint	GetSample();
-		float	GetDefaultVal();
-		int		GetIntDefaultVal();
+		pCorGpu Param();
+		
 		void	DeallocMemory();
+		void	MallocInfo();
+
 		void	SetHostVolume(float* vCost, float2* vProj);
-		uint	GetZToCompute();
 		void	SetZToCompute(uint Z);
 		uint	GetZCtoCopy();
 		void	SetZCToCopy(uint Z);
 		bool	GetComputeNextProj();
 		void	SetComputeNextProj(bool compute);
-		int		GetComputedZ();
-		void	SetComputedZ(int computedZ);
-		void	MallocInfo();
-
-#ifdef USEDILATEMASK
-		void	dilateMask(uint2 dim);
-		pixel*	GetDilateMask();
-		pixel	ValDilMask(int2 pt);
-#endif
 
 	private:
-
+		
+		uint					GetZToCompute();
 		void					ResizeVolume(int nbLayer, uint interZ);
 		void					AllocMemory(int nStream);
 		cudaStream_t*			GetStream(int stream);
@@ -71,7 +59,7 @@ class InterfaceMicMacGpGpu
 		void					MTComputeCost();
 
 		cudaStream_t			_stream[NSTREAM];
-		paramMicMacGpGpu		_param;
+		pCorGpu		_param;
 
 		CuDeviceData3D<float>	_volumeCost[NSTREAM];	// volume des couts   
 		CuDeviceData3D<float>	_volumeCach[NSTREAM];	// volume des calculs intermédiaires
@@ -81,10 +69,6 @@ class InterfaceMicMacGpGpu
 		ImageLayeredCuda<float>	_LayeredImages;
 		ImageLayeredCuda<float2>_LayeredProjection[NSTREAM];
 
-#ifdef USEDILATEMASK
-		pixel*					_dilateMask;
-		uint2					_dimDilateMask;
-#endif
 		textureReference&		_texMask;
 		textureReference&		_texMaskD;
  		textureReference&		_texImages;
@@ -101,7 +85,17 @@ class InterfaceMicMacGpGpu
 		uint					_ZCompute;
 		uint					_ZCCopy;
 		bool					_computeNextProj;
-		int						_computedZ;
+
+#ifdef USEDILATEMASK	
+public:
+	void	dilateMask(uint2 dim);
+	pixel*	GetDilateMask();
+private:
+	pixel	ValDilMask(int2 pt);
+	pixel*					_dilateMask;
+	uint2					_dimDilateMask;
+#endif
+
 };
 
 #endif

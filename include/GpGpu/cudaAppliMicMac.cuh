@@ -28,57 +28,52 @@
 	#define   SBLOCKDIM 15
 #endif
 
-struct paramMicMacGpGpu
+struct pCorGpu
 {
 
-	 uint	ZInter;
 	 uint	ZLocInter;
-	 uint2	rDiTer;		// Dimension du bloque terrain
-	 uint2	dimTer;		// Dimension du bloque terrain + halo
-	 uint2	dimSTer;	// Dimension du bloque terrain + halo sous echantilloné
-	 uint2	dimVig;		// Dimension de la vignette
-	 uint2	dimImg;		// Dimension des images
-	 uint2	rVig;		// Rayon de la vignette
-	 uint	sizeVig;	// Taille de la vignette en pixel
-	 uint	sizeTer;	// Taille du bloque terrain + halo
-	 uint	rSiTer;		// taille reel du terrain
-	 uint	sizeSTer;	// Taille du bloque terrain + halo sous echantilloné
-	 uint	sampTer;	// Pas echantillonage du terrain
-	 float	DefaultVal;	// UV Terrain incorrect
-	 int	IntDefault;	// INT UV Terrain incorrect
-	 uint2	dimCach;	// Dimension cache
-	 uint	sizeCach;	// Taille du cache
+	 
+	 uint2	dimTer;			// Dimension du bloque terrain
+	 uint2	dimDTer;		// Dimension du bloque terrain + halo
+	 uint2	dimSTer;		// Dimension du bloque terrain + halo sous echantilloné
+	 uint2	dimImg;			// Dimension de l'image la plus grande
+	 uint2	dimCach;		// Dimension cache des calculs intermédiaires
+	 uint2	dimVig;			// Dimension de la vignette
+	 uint2	rayVig;			// Rayon de la vignette
+	 
+	 uint	sizeVig;		// Taille de la vignette en pixel
+	 uint	sizeDTer;		// Taille du bloque terrain + halo
+	 uint	sizeTer;		// taille reel du terrain
+	 uint	sizeSTer;		// Taille du bloque terrain + halo sous echantilloné
+	 uint	sizeCach;		// Taille du cache
+
+	 uint	sampProj;		// Pas echantillonage du terrain
+	 float	floatDefault;	// UV Terrain incorrect
+	 int	IntDefault;		// INT UV Terrain incorrect
 	 uint	nbImages;		// Nombre d'images
-	 Rect	rUTer;
-	 Rect	rMask;
-	 float	mAhEpsilon;
+	 Rect	rDTer;			// Rectangle du terrain dilaté du rayon de la vignette
+	 Rect	rTer;			// Rectangle du terrain 
+	 float	mAhEpsilon;		// 
 
-	 Rect GetRUTer()
-	 {
-		 return rUTer;
-	 };
-
-	 Rect GetRMask()
-	 {
-		 return rMask;
-	 };
+	 Rect	RDTer() { return rDTer; };
+	 Rect	RTer() { return rTer; };
 
 	 void SetDimension(Rect Ter, uint Zinter)
 	 {
 
-		 ZInter		= Zinter;
-		 rMask		= Ter;
-		 rUTer		= Rect(Ter.pt0 - rVig,Ter.pt1 + rVig);
-		 rDiTer		= rMask.dimension();
-		 dimTer		= rUTer.dimension();
-		 dimSTer	= iDivUp(dimTer,sampTer)+1;	// Dimension du bloque terrain sous echantilloné
-		 sizeTer	= size(dimTer);				// Taille du bloque terrain
+		 rTer		= Ter;
+		 rDTer		= Rect(Ter.pt0 - rayVig,Ter.pt1 + rayVig);
+		 dimTer		= rTer.dimension();
+		 dimDTer	= rDTer.dimension();
+		 dimSTer	= iDivUp(dimDTer,sampProj)+1;	// Dimension du bloque terrain sous echantilloné
+		 dimCach	= dimTer * dimVig;
+		 
+		 sizeDTer	= size(dimDTer);				// Taille du bloque terrain
 		 sizeSTer	= size(dimSTer);			// Taille du bloque terrain sous echantilloné
-		 rSiTer		= size(rDiTer);
-		 dimCach	= rDiTer * dimVig;
+		 sizeTer	= size(dimTer);
 		 sizeCach	= size(dimCach);
 		 //ZLocInter	= LOCINTERZ;
-		 ZLocInter	= ZInter;
+		 ZLocInter	= Zinter;
 	 
 	 };
 
@@ -87,21 +82,21 @@ struct paramMicMacGpGpu
 		 float uvDef;
 		 memset(&uvDef,uvINTDef,sizeof(float));
 
-		 nbImages	= nLayer;
-		 dimVig		= dV;							// Dimension de la vignette
-		 dimImg		= dI;							// Dimension des images
-		 rVig		= dRV;							// Rayon de la vignette
-		 sizeVig	= size(dV);						// Taille de la vignette en pixel 
-		 sampTer	= samplingZ;					// Pas echantillonage du terrain
-		 DefaultVal	= uvDef;						// UV Terrain incorrect
-		 IntDefault	= uvINTDef;
-		 mAhEpsilon	= mAhEpsilon;
+		 nbImages		= nLayer;
+		 dimVig			= dV;							// Dimension de la vignette
+		 dimImg			= dI;							// Dimension des images
+		 rayVig			= dRV;							// Rayon de la vignette
+		 sizeVig		= size(dV);						// Taille de la vignette en pixel 
+		 sampProj		= samplingZ;					// Pas echantillonage du terrain
+		 floatDefault	= uvDef;						// UV Terrain incorrect
+		 IntDefault		= uvINTDef;
+		 mAhEpsilon		= mAhEpsilon;
 
 	 };
 
 	 bool MaskNoNULL()
 	 {
-		 return (GetRMask().pt0.x != -1);
+		 return (rTer.pt0.x != -1);
 	 }
 
 	 void outConsole()
@@ -109,27 +104,26 @@ struct paramMicMacGpGpu
 		std::cout << "Parametre de calcul GPU pour la correlation symetrique\n";
 		std::cout << "\n";
 		std::cout << "----------------------------------------------------------\n";
-		std::cout << "ZInter                : " << ZInter << "\n";
 		std::cout << "ZLocInter             : " << ZLocInter << "\n";
-		std::cout << "Dim Reel Terrain      : " << GpGpuTools::toStr(rDiTer) << "\n";
-		std::cout << "Dim calcul Terrain    : " << GpGpuTools::toStr(dimTer) << "\n";
+		std::cout << "Dim Reel Terrain      : " << GpGpuTools::toStr(dimTer) << "\n";
+		std::cout << "Dim calcul Terrain    : " << GpGpuTools::toStr(dimDTer) << "\n";
 		std::cout << "Dim calcul Ter Samp   : " << GpGpuTools::toStr(dimSTer) << "\n";
 		std::cout << "Dim vignette          : " << GpGpuTools::toStr(dimVig) << "\n";
-		std::cout << "Rayon vignette        : " << GpGpuTools::toStr(rVig) << "\n";
+		std::cout << "Rayon vignette        : " << GpGpuTools::toStr(rayVig) << "\n";
 		std::cout << "Dim Image             : " << GpGpuTools::toStr(dimImg) << "\n";
 		std::cout << "Dim Cache             : " << GpGpuTools::toStr(dimCach) << "\n";
 		std::cout << "Taille vignette       : " << sizeVig << "\n";
-		std::cout << "Taille terrain + halo : " << sizeTer << "\n";
-		std::cout << "Taille Reel Terrain   : " << rSiTer << "\n";
+		std::cout << "Taille terrain + halo : " << sizeDTer << "\n";
+		std::cout << "Taille Reel Terrain   : " << sizeTer << "\n";
 		std::cout << "Taille Samp Terrain   : " << sizeSTer << "\n";
 		std::cout << "Taille cache          : " << sizeCach << "\n";
-		std::cout << "Sample                : " << sampTer << "\n";
-		std::cout << "Default Val float     : " << DefaultVal << "\n";
+		std::cout << "Sample                : " << sampProj << "\n";
+		std::cout << "Default Val float     : " << floatDefault << "\n";
 		std::cout << "Default Val int       : " << IntDefault << "\n";
 		std::cout << "Nombre Images         : " << nbImages << "\n";
 		std::cout << "mAhEpsilon            : " << mAhEpsilon << "\n";
-		std::cout << "Rectangle terrain     : ";rUTer.out();std::cout << "\n";
-		std::cout << "Rectangle masque      : ";rMask.out();std::cout << "\n";
+		std::cout << "Rectangle terrain     : ";rDTer.out();std::cout << "\n";
+		std::cout << "Rectangle masque      : ";rTer.out();std::cout << "\n";
 		std::cout << "\n";
 		std::cout << "----------------------------------------------------------\n";
 	 }

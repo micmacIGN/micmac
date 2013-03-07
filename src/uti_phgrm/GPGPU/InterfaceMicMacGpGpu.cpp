@@ -17,12 +17,12 @@ _texProjections_03(getProjection(3))
 	SetZCToCopy(0);
 	SetZToCompute(0);
 
-	_volumeCost->Name("_volumeCost");
-	_volumeCach->Name("_volumeCach");
-	_volumeNIOk->Name("_volumeNIOk");
- 	_mask.CData2D::Name("_mask");
- 	_LayeredImages.CData3D::Name("_LayeredImages");
- 	_LayeredProjection->CData3D::Name("_LayeredProjection");
+	_volumeCost->SetName("_volumeCost");
+	_volumeCach->SetName("_volumeCach");
+	_volumeNIOk->SetName("_volumeNIOk");
+ 	_mask.CData2D::SetName("_mask");
+ 	_LayeredImages.CData3D::SetName("_LayeredImages");
+ 	_LayeredProjection->CData3D::SetName("_LayeredProjection");
 }
 
 InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
@@ -33,10 +33,10 @@ InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
 	DeallocMemory();
 }
 
-void InterfaceMicMacGpGpu::SetSizeBlock( Rect Ter, uint Zinter )
+void InterfaceMicMacGpGpu::SetSizeBlock( uint Zinter, Rect Ter)
 {
 
-	uint oldSizeTer = _param.sizeTer;
+	uint oldSizeTer = _param.sizeDTer;
 
 	_param.SetDimension(Ter,Zinter);
 
@@ -46,7 +46,7 @@ void InterfaceMicMacGpGpu::SetSizeBlock( Rect Ter, uint Zinter )
 	{
 		_LayeredProjection[s].Realloc(_param.dimSTer,_param.nbImages * _param.ZLocInter);
 
-		if (oldSizeTer < _param.sizeTer)
+		if (oldSizeTer < _param.sizeDTer)
 			AllocMemory(s);
 	}
 
@@ -54,18 +54,18 @@ void InterfaceMicMacGpGpu::SetSizeBlock( Rect Ter, uint Zinter )
 
 void InterfaceMicMacGpGpu::SetSizeBlock( uint Zinter )
 {
-	SetSizeBlock( _param.GetRMask(), Zinter );
+	SetSizeBlock( Zinter,_param.RTer());
 }
 
 void InterfaceMicMacGpGpu::AllocMemory(int nStream)
 {
 
-	_volumeCost[nStream].Realloc(_param.rDiTer,_param.ZLocInter);
+	_volumeCost[nStream].Realloc(_param.dimTer,_param.ZLocInter);
 
 	if(!_volumeCach[nStream].Realloc(_param.dimCach, _param.nbImages * _param.ZLocInter))
 		_param.outConsole();
 
-	_volumeNIOk[nStream].Realloc(_param.rDiTer,_param.ZLocInter);		
+	_volumeNIOk[nStream].Realloc(_param.dimTer,_param.ZLocInter);		
 }
 
 void InterfaceMicMacGpGpu::DeallocMemory()
@@ -96,11 +96,19 @@ void InterfaceMicMacGpGpu::SetMask( pixel* dataMask, uint2 dimMask )
 	// le masque est passe en texture
 	_mask.Dealloc();
 	_mask.InitImage(dimMask,dataMask);
-	_mask.bindTexture(_texMask);
+	if(!_mask.bindTexture(_texMask))
+	{
+		_mask.OutputInfo();
+		_mask.CGObject::Name();
+	}
+
+#ifdef USEDILATEMASK
 	_mask.bindTexture(_texMaskD);
+#endif
+	
 }
 
-void InterfaceMicMacGpGpu::InitParam( Rect Ter, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ )
+void InterfaceMicMacGpGpu::SetParameter( Rect Ter, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ )
 {
 	
 	// Parametres texture des projections
@@ -121,7 +129,7 @@ void InterfaceMicMacGpGpu::InitParam( Rect Ter, int nbLayer , uint2 dRVig , uint
 	// Initialisation des parametres constants
 	_param.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
 	// Initialisation des parametres de dimensions du terrain
-	SetSizeBlock( Ter, interZ );
+	SetSizeBlock( interZ, Ter);
 
 	for (int s = 0;s<NSTREAM;s++)
 		AllocMemory(s);
@@ -146,8 +154,8 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
 	/*--------------- calcul de dimension du kernel de correlation ---------------*/
 	dim3	threads( BLOCKDIM, BLOCKDIM, 1);
 	uint2	thd2D		= make_uint2(threads);
-	uint2	actiThsCo	= thd2D - 2 * _param.rVig;
-	uint2	block2D		= iDivUp(_param.dimTer,actiThsCo);
+	uint2	actiThsCo	= thd2D - 2 * _param.rayVig;
+	uint2	block2D		= iDivUp(_param.dimDTer,actiThsCo);
 	dim3	blocks(block2D.x , block2D.y, nbLayer * _param.ZLocInter);
 
 	/*-------------	calcul de dimension du kernel de multi-correlation ------------*/
@@ -190,8 +198,8 @@ void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2
 
 	dim3	threads( BLOCKDIM, BLOCKDIM, 1);
 	uint2	thd2D		= make_uint2(threads);
-	uint2	actiThsCo	= thd2D - 2 * _param.rVig;
-	uint2	block2D		= iDivUp(_param.dimTer,actiThsCo);
+	uint2	actiThsCo	= thd2D - 2 * _param.rayVig;
+	uint2	block2D		= iDivUp(_param.dimDTer,actiThsCo);
 	dim3	blocks(block2D.x , block2D.y, nbLayer * _param.ZLocInter);
 
 	/*-------------	calcul de dimension du kernel de multi-correlation ------------*/
@@ -230,51 +238,21 @@ void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2
 	checkCudaErrors(cudaDeviceSynchronize());
 }
 
-uint2 InterfaceMicMacGpGpu::GetDimensionTerrain()
-{
-	return _param.rDiTer;
-}
-
-bool InterfaceMicMacGpGpu::MaskNoNULL()
-{
-	return _param.MaskNoNULL();
-}
-
-uint InterfaceMicMacGpGpu::GetSample()
-{
-	return _param.sampTer;
-}
-
-float InterfaceMicMacGpGpu::GetDefaultVal()
-{
-	return _param.DefaultVal;
-}
-
-uint2 InterfaceMicMacGpGpu::GetSDimensionTerrain()
-{
-	return _param.dimSTer;
-}
-
-int InterfaceMicMacGpGpu::GetIntDefaultVal()
-{
-	return _param.IntDefault;
-}
-
 void InterfaceMicMacGpGpu::ResizeVolume( int nbLayer, uint interZ )
 {
 	for (int s = 0;s<NSTREAM;s++)
 	{
-		_volumeCost[s].SetDimension(_param.rDiTer,interZ);
+		_volumeCost[s].SetDimension(_param.dimTer,interZ);
 		_volumeCach[s].SetDimension(_param.dimCach,nbLayer * interZ);
-		_volumeNIOk[s].SetDimension(_param.rDiTer,interZ);
+		_volumeNIOk[s].SetDimension(_param.dimTer,interZ);
 
 		if (_volumeCost[s].GetSizeofMalloc() < _volumeCost[s].Sizeof() )
 		{
 			//std::cout << "Realloc Device Data" << "\n";
-			_volumeCost[s].Realloc(_param.rDiTer,interZ);
+			_volumeCost[s].Realloc(_param.dimTer,interZ);
 			if (!_volumeCach[s].Realloc(_param.dimCach,nbLayer * interZ))
 				_param.outConsole();
-			_volumeNIOk[s].Realloc(_param.rDiTer,interZ);
+			_volumeNIOk[s].Realloc(_param.dimTer,interZ);
 		}
 		//----------------------------------------------------------------------------
 
@@ -365,26 +343,6 @@ void InterfaceMicMacGpGpu::SetComputeNextProj( bool compute )
 	_computeNextProj = compute;
 }
 
-int InterfaceMicMacGpGpu::GetComputedZ()
-{
-	return _computedZ;
-}
-
-void InterfaceMicMacGpGpu::SetComputedZ( int computedZ )
-{
-	_computedZ = computedZ;
-}
-
-Rect InterfaceMicMacGpGpu::rMask()
-{
-	return _param.GetRMask();
-}
-
-Rect InterfaceMicMacGpGpu::rUTer()
-{
-	return _param.GetRUTer();
-}
-
 void InterfaceMicMacGpGpu::MallocInfo()
 {
 	std::cout << "Malloc Info GpGpu\n";
@@ -401,11 +359,11 @@ void InterfaceMicMacGpGpu::MallocInfo()
 void InterfaceMicMacGpGpu::dilateMask(uint2 dim )
 {
 
-	_dimDilateMask = dim + 2*_param.rVig.x;
+	_dimDilateMask = dim + 2*_param.rayVig.x;
 
 	_dilateMask = new pixel[size(_dimDilateMask)];
 
-	dilateKernel(_dilateMask, _param.rVig.x,dim);
+	dilateKernel(_dilateMask, _param.rayVig.x,dim);
 
 	//GpGpuTools::OutputArray(_dilateMask,_dimDilateMask);
 
@@ -421,6 +379,11 @@ pixel InterfaceMicMacGpGpu::ValDilMask(int2 pt)
 	return (oI(pt,0) || oSE(pt,_dimDilateMask)) ? 0 : _dilateMask[to1D(pt,_dimDilateMask)];
 }
 
-
-
 #endif
+
+pCorGpu InterfaceMicMacGpGpu::Param()
+{
+	return _param;
+}
+
+

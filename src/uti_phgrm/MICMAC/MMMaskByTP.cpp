@@ -233,7 +233,7 @@ class cMMTP
        Im2D_Bits<1> ImMasqFinal() {return mImMasqFinal;}
        Im2D_Bits<1> ImMasqInit() {return mImMasqInit;}
        Im2D_INT2    ImProf() {return mImProf;}
-       bool InMasqFinal(const Pt2di & aP) const {return  mTImMasqFinal.get(aP);}
+       bool InMasqFinal(const Pt2di & aP) const {return  (mTImMasqFinal.get(aP) == 1) ? true : false ;}
 
        Im2D_REAL4 ImOrtho(cGPU_LoadedImGeom *);
 

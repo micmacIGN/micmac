@@ -83,7 +83,7 @@ std::string CGObject::Name()
   return _name;
 }
 
-void CGObject::Name( std::string name )
+void CGObject::SetName( std::string name )
 {
 	_name = name;
 }
@@ -100,7 +100,7 @@ void CGObject::SetType( std::string type )
 
 CGObject::CGObject()
 {
-	Name("NO_NAME");
+	SetName("NO_NAME");
 	SetType("NO_TYPE");
 	ClassTemplate("NO_CLASS_TEMPLATE");
 }
@@ -192,9 +192,9 @@ void struct2DLayered::Output()
 bool  AImageCuda::bindTexture( textureReference& texRef )
 {
 	cudaChannelFormatDesc desc;
-	checkCudaErrors(cudaGetChannelDesc(&desc, GetCudaArray()));
-	checkCudaErrors(cudaBindTextureToArray(&texRef,GetCudaArray(),&desc));
-	return true;
+	bool bCha	= CData::ErrorOutput(cudaGetChannelDesc(&desc, GetCudaArray()),"Bind Texture / cudaGetChannelDesc");
+	bool bBind	= CData::ErrorOutput(cudaBindTextureToArray(&texRef,GetCudaArray(),&desc),"Bind Texture / Bind");
+	return bCha && bBind;
 }
 
 cudaArray* AImageCuda::GetCudaArray()

@@ -220,7 +220,7 @@ public:
 
 	std::string Id();
 	std::string	Name();
-	void		Name(std::string name);
+	void		SetName(std::string name);
 	std::string	Type();
 	void		SetType(std::string type);
 	std::string	ClassTemplate();
@@ -303,7 +303,7 @@ public:
 	T**		ppData();
 	uint	GetSizeofMalloc();
 	void	SetSizeofMalloc(uint sizeofmalloc);
-	bool	ErrorOutput(cudaError_t err,const char* fonctionName);
+	virtual bool	ErrorOutput(cudaError_t err,const char* fonctionName);
 	void	MallocInfo();
 
 protected:

@@ -2,11 +2,11 @@
 #include "GpGpu/cudaTextureTools.cuh"
 #include "GpGpu/CudaRefTexture.cuh"
 
-static __constant__ paramMicMacGpGpu cH;
+static __constant__ pCorGpu cH;
 
-extern "C" void CopyParamTodevice( paramMicMacGpGpu param )
+extern "C" void CopyParamTodevice( pCorGpu param )
 {
-	checkCudaErrors(cudaMemcpyToSymbol(cH, &param, sizeof(paramMicMacGpGpu)));
+	checkCudaErrors(cudaMemcpyToSymbol(cH, &param, sizeof(pCorGpu)));
 }
 
 template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
@@ -18,19 +18,19 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 	const uint2 ptHTer = make_uint2(blockIdx) * nbActThrd + make_uint2(threadIdx);
 	
 	// Si le processus est hors du terrain, nous sortons du kernel
-	if (oSE(ptHTer,cH.dimTer)) return;
+	if (oSE(ptHTer,cH.dimDTer)) return;
 
 #if (SAMPLETERR == 1)
 	const float2 ptProj = tex2DLayeredPt(TexFloat2L<TexSel>(),ptHTer,cH.dimSTer,blockIdx.z);
 #else
-	const float2 ptProj = tex2DLayeredPt(TexFloat2L<TexSel>(),ptHTer,cH.dimSTer,cH.sampTer,blockIdx.z);
+	const float2 ptProj = tex2DLayeredPt(TexFloat2L<TexSel>(),ptHTer,cH.dimSTer,cH.sampProj,blockIdx.z);
 #endif
 
 	uint iZ,mZ;
 
 	if (oI(ptProj,0))
 	{
-		cacheImg[threadIdx.y][threadIdx.x]  = cH.DefaultVal;
+		cacheImg[threadIdx.y][threadIdx.x]  = cH.floatDefault;
 		return;
 	}
  	else
@@ -53,15 +53,15 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 	}
 	__syncthreads();
 
-	const int2 ptTer = make_int2(ptHTer) - make_int2(cH.rVig);
+	const int2 ptTer = make_int2(ptHTer) - make_int2(cH.rayVig);
 	// Nous traitons uniquement les points du terrain du bloque ou Si le processus est hors du terrain global, nous sortons du kernel
-	if (oSE(threadIdx, nbActThrd + cH.rVig) || oI(threadIdx , cH.rVig) || oSE( ptTer, cH.rDiTer) || oI(ptTer, 0))
+	if (oSE(threadIdx, nbActThrd + cH.rayVig) || oI(threadIdx , cH.rayVig) || oSE( ptTer, cH.dimTer) || oI(ptTer, 0))
 		return;
 
 	if(tex2D(TexS_MaskTer, ptTer.x, ptTer.y) == 0) return;
 
-	const short2 c0	= make_short2(threadIdx) - cH.rVig;
-	const short2 c1	= make_short2(threadIdx) + cH.rVig;
+	const short2 c0	= make_short2(threadIdx) - cH.rayVig;
+	const short2 c1	= make_short2(threadIdx) + cH.rayVig;
 	 
 	// Intialisation des valeurs de calcul 
 	float aSV = 0.0f, aSVV	= 0.0f;
@@ -74,7 +74,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 		{	
 			const float val = cacheImg[pt.y][pt.x];	// Valeur de l'image
 
-			if (val ==  cH.DefaultVal) return;
+			if (val ==  cH.floatDefault) return;
 
 			aSV  += val;		// Somme des valeurs de l'image cte 
 			aSVV += (val*val);	// Somme des carrés des vals image cte
@@ -106,8 +106,8 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 
 	}	
 
-	const int ZPitch	= iZ * cH.rSiTer; 
-	const int idN		= ZPitch + to1D(ptTer,cH.rDiTer);
+	const int ZPitch	= iZ * cH.sizeTer; 
+	const int idN		= ZPitch + to1D(ptTer,cH.dimTer);
 	atomicAdd( &dev_NbImgOk[idN], 1U);
 
 };
@@ -172,7 +172,7 @@ template<int sNbTh> __global__ void multiCorrelationKernel(float *dTCost, float*
 
 	if(tex2D(TexS_MaskTer, ptTer.x, ptTer.y) == 0) return;
 
-	const uint	iTer	= blockIdx.z * cH.rSiTer + to1D(ptTer, cH.rDiTer);	// Coordonnées 1D dans le terrain
+	const uint	iTer	= blockIdx.z * cH.sizeTer + to1D(ptTer, cH.dimTer);	// Coordonnées 1D dans le terrain
 	const bool	mThrd	= t.x % cH.dimVig.x == 0 &&  t.y % cH.dimVig.y == 0 && threadIdx.z == 0;
 	const uint2 thTer	= t / cH.dimVig;									// Coordonnées 2D du terrain dans le repere des threads
 	
@@ -188,7 +188,7 @@ template<int sNbTh> __global__ void multiCorrelationKernel(float *dTCost, float*
 	const uint2 cc		= ptTer * cH.dimVig;										// coordonnées 2D 1er pixel de la vignette
 	const int iCC		= sizLayer + to1D( cc, cH.dimCach );						// coordonnées 1D 1er pixel de la vignette
 
-	if (cacheVign[iCC] == cH.DefaultVal) return;									// sortir si la vignette incorrecte
+	if (cacheVign[iCC] == cH.floatDefault) return;									// sortir si la vignette incorrecte
 	
 	const uint iCach	= sizLayer + to1D( ptCach, cH.dimCach );					// Coordonnées 1D du cache vignette
 	const float val		= cacheVign[iCach]; 
