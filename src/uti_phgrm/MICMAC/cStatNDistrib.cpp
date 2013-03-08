@@ -438,6 +438,23 @@ REAL cStatOneClassEquiv::CoeffCorrelMaxIm1Maitre() const
    return aRes ;
 }
 
+REAL cStatOneClassEquiv::CoeffCorrelMinIm1Maitre() const
+{
+   if (mKCurDist <=1 ) 
+      return mDefCorr;
+   double aRes=1.0;
+   for (int aK=1 ;aK<mKCurDist ; aK++)
+   {
+       ElSetMin(aRes,mVDistr[0]->CoeffCorrel2Dist(*mVDistr[aK],mEpsCorr));
+   }
+   return aRes ;
+}
+
+
+
+
+
+
 
 REAL cStatOneClassEquiv::CoeffCorrelSymetrique() const
 {
@@ -492,6 +509,10 @@ REAL cStatOneClassEquiv::CoeffCorrelation() const
 
       case eAggregMaxIm1Maitre :
            return CoeffCorrelMaxIm1Maitre();
+      break;
+
+      case eAggregMinIm1Maitre :
+           return CoeffCorrelMinIm1Maitre();
       break;
 
 

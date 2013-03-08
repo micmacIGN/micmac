@@ -455,11 +455,13 @@ std::cout << "CCMMM = " << aBoxClip._p0 << " " << aBoxClip._p1 << "\n"; getchar(
                 && (mNbBoitesToDo >0)
              )
           {
-               if (mShowMes)
+               if ( mShowMes)
                {
                   mCout << "   -- BEGIN BLOC  "
                         << "  Bloc= " << mKBox 
                         << ", Out of " << aDecInterv.NbInterv()  
+                        << aDecInterv.KthIntervOut(mKBox)._p0
+                        << aDecInterv.KthIntervOut(mKBox)._p1
                         << "\n";
                }
                if (ByProcess().Val()==0)
@@ -527,7 +529,7 @@ void cAppliMICMAC::DoOneBloc
           const Box2di & aBoxGlob
      )
 {
-   // std::cout << "DO ONE BLOC " << aBoxOut._p0 << " " << aBoxIn._p0 << "\n";
+    std::cout << "DO ONE BLOC " << aBoxOut._p0 << " " << aBoxOut._p1 << " " << aBoxIn._p0  << " MATP " << mCurEtape->MATP() << "\n";
    //  mStatN =0;
    mStatGlob =0;
    mLTer = 0;
@@ -554,7 +556,8 @@ void cAppliMICMAC::DoOneBloc
 
 
    if (
-              aNbCel>NbCelluleMax().Val()
+                 (!mCurEtape->MATP() )
+              && aNbCel>NbCelluleMax().Val()
           // && (aBoxOut._p1.x-aBoxOut._p0.x) > (3*mSzRec+5)  // Evite recursion trop profonde, voir infinie
           // && (aBoxOut._p1.y-aBoxOut._p0.y) > (3*mSzRec+5)
       )

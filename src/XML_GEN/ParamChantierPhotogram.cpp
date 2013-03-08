@@ -126,6 +126,39 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeFichierOriTxt & a
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+eImpaintMethod  Str2eImpaintMethod(const std::string & aName)
+{
+   if (aName=="eImpaintL2")
+      return eImpaintL2;
+   else if (aName=="eImpaintMNT")
+      return eImpaintMNT;
+  else
+  {
+      cout << aName << " is not a correct value for enum eImpaintMethod\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eImpaintMethod) 0;
+}
+void xml_init(eImpaintMethod & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eImpaintMethod(aTree->Contenu());
+}
+std::string  eToString(const eImpaintMethod & anObj)
+{
+   if (anObj==eImpaintL2)
+      return  "eImpaintL2";
+   if (anObj==eImpaintMNT)
+      return  "eImpaintMNT";
+ std::cout << "Enum = eImpaintMethod\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eImpaintMethod & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 eTypeNumerique  Str2eTypeNumerique(const std::string & aName)
 {
    if (aName=="eTN_u_int1")

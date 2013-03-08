@@ -48,6 +48,18 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeFichierOriTxt & a
 
 typedef enum
 {
+  eImpaintL2,
+  eImpaintMNT
+} eImpaintMethod;
+void xml_init(eImpaintMethod & aVal,cElXMLTree * aTree);
+std::string  eToString(const eImpaintMethod & aVal);
+
+eImpaintMethod  Str2eImpaintMethod(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eImpaintMethod & anObj);
+
+typedef enum
+{
   eTN_u_int1,
   eTN_int1,
   eTN_u_int2,

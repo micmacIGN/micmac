@@ -57,7 +57,8 @@ typedef enum
   eAggregSymetrique,
   eAggregIm1Maitre,
   eAggregInfoMut,
-  eAggregMaxIm1Maitre
+  eAggregMaxIm1Maitre,
+  eAggregMinIm1Maitre
 } eModeAggregCorr;
 void xml_init(eModeAggregCorr & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModeAggregCorr & aVal);
@@ -1684,6 +1685,27 @@ class cCorrel_NC_Robuste
 };
 cElXMLTree * ToXMLTree(const cCorrel_NC_Robuste &);
 
+class cTiePMasqIm
+{
+    public:
+        friend void xml_init(cTiePMasqIm & anObj,cElXMLTree * aTree);
+
+
+        std::string & File();
+        const std::string & File()const ;
+
+        int & DeZoomRel();
+        const int & DeZoomRel()const ;
+
+        int & Dilate();
+        const int & Dilate()const ;
+    private:
+        std::string mFile;
+        int mDeZoomRel;
+        int mDilate;
+};
+cElXMLTree * ToXMLTree(const cTiePMasqIm &);
+
 class cMasqueAutoByTieP
 {
     public:
@@ -1707,6 +1729,24 @@ class cMasqueAutoByTieP
 
         cTplValGesInit< bool > & Visu();
         const cTplValGesInit< bool > & Visu()const ;
+
+        cTplValGesInit< eImpaintMethod > & ImPaintResult();
+        const cTplValGesInit< eImpaintMethod > & ImPaintResult()const ;
+
+        cTplValGesInit< double > & ParamIPMnt();
+        const cTplValGesInit< double > & ParamIPMnt()const ;
+
+        std::string & File();
+        const std::string & File()const ;
+
+        int & DeZoomRel();
+        const int & DeZoomRel()const ;
+
+        int & Dilate();
+        const int & Dilate()const ;
+
+        cTplValGesInit< cTiePMasqIm > & TiePMasqIm();
+        const cTplValGesInit< cTiePMasqIm > & TiePMasqIm()const ;
     private:
         cTplValGesInit< std::string > mGlobFilePt3D;
         std::string mKeyImFilePt3D;
@@ -1714,6 +1754,9 @@ class cMasqueAutoByTieP
         double mSeuilSomCostCorrel;
         double mSeuilMaxCostCorrel;
         cTplValGesInit< bool > mVisu;
+        cTplValGesInit< eImpaintMethod > mImPaintResult;
+        cTplValGesInit< double > mParamIPMnt;
+        cTplValGesInit< cTiePMasqIm > mTiePMasqIm;
 };
 cElXMLTree * ToXMLTree(const cMasqueAutoByTieP &);
 

@@ -857,7 +857,9 @@ void cAppliMICMAC::SauvMemPart()
 
 bool IsModeIm1Maitre(const eModeAggregCorr & aMode)
 {
-    return (aMode==eAggregIm1Maitre) || (aMode==eAggregMaxIm1Maitre);
+    return    (aMode==eAggregIm1Maitre) 
+           || (aMode==eAggregMaxIm1Maitre)
+           || (aMode==eAggregMinIm1Maitre);
 }
 
 
