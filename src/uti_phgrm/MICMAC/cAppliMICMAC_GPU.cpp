@@ -1249,8 +1249,7 @@ if (0)
 		if(	mNbIm == 0) return;	
 
 		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
-		//int aZMinTer = 0, aZMaxTer = 1;
-
+	
 		// definition de la zone rectangulaire de terrain
 		Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
 
@@ -1265,8 +1264,7 @@ if (0)
 		int interZ	= min(INTERZ, abs(aZMaxTer - aZMinTer)); 
 
 		// S'il change allocation différentes... A VERIFIER!! depuis les derniers changements
-		if (interZ != INTERZ)
-			IMmGg.SetSizeBlock(interZ);
+		if (interZ != INTERZ)	IMmGg.SetSizeBlock(interZ);
 		
 		// Allocation de l'espace mémoire pour la tabulation des projections et des couts
 		CuHostData3D<float>		hVolumeCost(IMmGg.Param().dimTer,interZ);
@@ -1282,8 +1280,8 @@ if (0)
 		{		
 			IMmGg.SetHostVolume(hVolumeCost.pData(), hVolumeProj.pData());
 			IMmGg.SetComputeNextProj(true);
-			//IMmGg.SetComputedZ(aZMinTer);
 		}
+
 		int anZProjection = aZMinTer, anZComputed= aZMinTer;
 		
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
@@ -1295,14 +1293,16 @@ if (0)
 				if ( IMmGg.GetComputeNextProj() && anZProjection <= anZComputed + interZ && anZProjection < aZMaxTer)
 				{
 					int intZ = (uint)abs(aZMaxTer - anZProjection );
+					
 					if (interZ >= intZ  &&  anZProjection != (aZMaxTer - 1) )
 						interZ = intZ;
 
 					hVolumeProj.Memset(IMmGg.Param().IntDefault);
 					Tabul_Projection(hVolumeProj.pData(), anZProjection, IMmGg.Param().RDTer(),IMmGg.Param().sampProj, interZ);
-					IMmGg.SetComputeNextProj(false);				
-					IMmGg.SetZToCompute(interZ);				
-					anZProjection+= interZ;				
+					
+					IMmGg.SetComputeNextProj(false);	
+					IMmGg.SetZToCompute(interZ);
+					anZProjection+= interZ;
 				}
 				int ZtoCopy = IMmGg.GetZCtoCopy();
 
@@ -1333,7 +1333,7 @@ if (0)
 					hVolumeCost.Realloc(IMmGg.Param().dimTer,interZ);
 					hVolumeProj.Realloc(IMmGg.Param().dimSTer, interZ*mNbIm);
 				} 
-			
+
 				anZComputed += interZ;
 			}
 
@@ -1342,6 +1342,9 @@ if (0)
 		IMmGg.SetZToCompute(0);
 		hVolumeCost.Dealloc();
 		hVolumeProj.Dealloc();
+
+#else
+		ELISE_ASSERT(1,"Sorry, no cuda version");
 #endif
 		
 	}

@@ -6,7 +6,6 @@
 #include "GpGpu/cudaAppliMicMac.cuh"
 #include <boost/thread/thread.hpp>
 #include "GpGpu/GpGpuTools.h"
-//#include <boost\chrono\chrono.hpp>
 
 extern "C" void	CopyParamTodevice(pCorGpu h);
 extern "C" void	KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd);
