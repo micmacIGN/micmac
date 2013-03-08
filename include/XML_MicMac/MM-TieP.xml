@@ -1,0 +1,146 @@
+<!--
+   The simplest MicMac exemple
+
+   MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/media/data1/Delphe/DELPHE-TMP-CP/Delphes/12-Tetes-Inc-4341-6/
+
+
+   MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/home/marc/TMP/Delphes/MedinetAbou/
+-->
+
+<ParamMICMAC>
+<DicoLoc>
+   <Symb> Ori="-All"     </Symb>
+   <Symb> DirMEC="Masq-TieP"     </Symb>
+   <Symb> Zoom=8     </Symb>
+</DicoLoc>
+
+
+<Section_Terrain>  
+      <IntervAltimetrie>
+             <!-- Mandatory but unused -->
+             <ZIncCalc>   0.0  </ZIncCalc>
+      </IntervAltimetrie>
+      <IntervSpecialZInv >
+             <MulZMin >  0.9999</MulZMin>
+             <MulZMax >  1.0001 </MulZMax>
+      </IntervSpecialZInv>
+</Section_Terrain>
+
+<Section_PriseDeVue >
+     <GeomImages> eGeomImageOri </GeomImages>
+     <Images >
+          <Im1> IMG_0104.JPG </Im1>
+         <ImSecCalcApero>
+               <Key> NKS-Assoc-ImSec@${Ori} </Key>
+          </ImSecCalcApero>
+<!--
+          <ImPat> IMG_0055.CR2 </ImPat>
+-->
+
+     </Images>
+
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>  NKS-Assoc-Im2Orient@${Ori}  </FCND_GeomCalc>
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+      <ChantierFullImage1>  true </ChantierFullImage1>
+
+
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      1             </SzW>
+             <AlgoRegul>  eAlgoMaxOfScore </AlgoRegul>
+
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+
+             <ZPas>        0.5  </ZPas>
+             <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+
+	     <ZDilatAlti>  1    </ZDilatAlti>
+             <ZDilatPlani> 1    </ZDilatPlani>
+	     <ZRegul>  0.05    </ZRegul>
+            
+        </EtapeMEC>
+	     
+
+        <EtapeMEC> 
+                 <DeZoom >        ${Zoom}       </DeZoom> 
+                 <CorrelAdHoc>
+                     <SzBlocAH> 400000 </SzBlocAH>
+
+                     <CorrelMultiScale>
+                            <ModeDense> true </ModeDense>
+                            <OneParamCMS>
+                                 <SzW> 1 1 </SzW>
+                                 <Sigma> 0 </Sigma>
+                                 <Pds> 1.0 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 2 2 </SzW>
+                                 <Sigma> 1.0 </Sigma>
+                                 <Pds> 0.5 </Pds>
+                            </OneParamCMS>
+<!--
+                            <OneParamCMS>
+                                 <SzW> 4 4 </SzW>
+                                 <Sigma> 3.0 </Sigma>
+                                 <Pds> 0.25 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 8 8 </SzW>
+                                 <Sigma> 6.0 </Sigma>
+                                 <Pds> 0.125 </Pds>
+                            </OneParamCMS>
+-->
+
+
+                      </CorrelMultiScale>
+
+
+                     <TypeCAH>
+                        <MasqueAutoByTieP>
+<!--
+                            <FilePt3D> Ori${Ori}/Pts3d.dat </FilePt3D>
+-->
+                            <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>
+                            <DeltaZ >        1                         </DeltaZ>
+                            <SeuilSomCostCorrel> 0.65 </SeuilSomCostCorrel>
+                            <SeuilMaxCostCorrel> 0.8 </SeuilMaxCostCorrel>
+                            <Visu> false </Visu>
+                        </MasqueAutoByTieP>
+                     </TypeCAH>
+                 </CorrelAdHoc>
+        </EtapeMEC>
+
+</Section_MEC>
+
+<Section_Results >
+    <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D  </GeomMNT> 
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir >  XXXX </WorkDir> 
+     <TmpMEC>    ${DirMEC}/  </TmpMEC>
+     <TmpResult> ${DirMEC}/  </TmpResult>
+     <TmpPyr>    Pyram/  </TmpPyr>
+     <ByProcess> 0 </ByProcess>
+     <SzDalleMin> 20000 </SzDalleMin>
+
+     <ComprMasque> eComprTiff_None </ComprMasque>
+
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+
