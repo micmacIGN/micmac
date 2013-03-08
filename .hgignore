@@ -6885,3 +6885,11 @@ binaire-aux/exiftool.exe
 binaire-aux/convert.exe
 micmiac.creator.user
 src/uti_phgrm/GPGPU/cudaAppliMicMac.cu~
+include/GpGpu/GpGpu.h~
+include/GpGpu/GpGpuDefines.h.in~
+include/GpGpu/GpGpuDefines.h~
+include/GpGpu/cudaDefine.h.in~
+include/general/noWarning.h~
+micmiac.config~
+src/uti_phgrm/GPGPU/GpGpuNoDefines.h.in~
+src/uti_phgrm/Sources.cmake~
