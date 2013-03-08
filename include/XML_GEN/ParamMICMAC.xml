@@ -944,7 +944,6 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                             <ParamIPMnt Nb="?" Type="double" Def="1.0"> </ParamIPMnt>
 
                             <TiePMasqIm Nb="?">
-                                 <File Nb="1" Type="std::string"> </File>
                                  <DeZoomRel Nb="1" Type="int"> </DeZoomRel>
                                  <Dilate Nb="1" Type="int">   </Dilate>
                             </TiePMasqIm>
