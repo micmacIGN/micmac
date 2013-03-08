@@ -1,15 +1,10 @@
 <!--
    The simplest MicMac exemple
 
-   MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/media/data1/Delphe/DELPHE-TMP-CP/Delphes/12-Tetes-Inc-4341-6/
 
 
-   MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/home/marc/TMP/Delphes/MedinetAbou/ +Im1=IMG_0099.JPG
+   MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/home/marc/TMP/Delphes/12-Tetes-Inc-4341-6/ +Im1=IMG_0032.CR2  +Visu=false +Ori=-Circle
 
-   MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/home/marc/TMP/Delphes/PiedsRamses/
-
-
-   MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/media/data1/Delphe/DELPHE-TMP-CP/Delphes/MedinetAbou/ +Im1=IMG_0099.CR2
 
 
 
@@ -18,15 +13,15 @@
 <ParamMICMAC>
 <DicoLoc>
    <Symb> Ori="-All"     </Symb>
-   <Symb> DirMEC="Masq-TieP"     </Symb>
    <Symb> Zoom=8     </Symb>
    <Symb> Im1=IMG_0018.JPG </Symb>
 <!--
    <Symb> Im1=IMG_0099.JPG </Symb>
 -->
-   <Symb> Visu=true  </Symb>
+   <Symb> Visu=false  </Symb>
 
    <Symb> FEM=2  </Symb>
+   <Symb> DirMEC="Masq-TieP-${Im1}"     </Symb>
 
    <eSymb>   Z2=* ${Zoom} 2 </eSymb>
    <eSymb>   LEM=+ ${FEM} 1 </eSymb>
@@ -170,6 +165,10 @@
                             <SeuilSomCostCorrel> 0.65 </SeuilSomCostCorrel>
                             <SeuilMaxCostCorrel> 0.8 </SeuilMaxCostCorrel>
                             <Visu> ${Visu} </Visu>
+                            <TiePMasqIm>
+                                <DeZoomRel > 2 </DeZoomRel>
+                                <Dilate>   4 </Dilate>
+                            </TiePMasqIm>
                         </MasqueAutoByTieP>
                      </TypeCAH>
                  </CorrelAdHoc>
@@ -226,8 +225,10 @@
      <ByProcess> 0 </ByProcess>
      <SzDalleMin> 20000 </SzDalleMin>
 
+<!--
      <FirstEtapeMEC > ${FEM}  </FirstEtapeMEC>
      <LastEtapeMEC  > ${LEM} </LastEtapeMEC>
+-->
 
 
      <ComprMasque> eComprTiff_None </ComprMasque>

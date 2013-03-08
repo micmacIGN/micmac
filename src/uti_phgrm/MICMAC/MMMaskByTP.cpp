@@ -215,7 +215,14 @@ class cMMTP
       cMMTP(const Box2di & aBox,cAppliMICMAC &);
       bool Inside(const int & anX,const int & anY,const int & aZ)
       {
-         return ((anX>=mP0Tiep.x) && (anY>=mP0Tiep.y) && (anX<mP1Tiep.x) && (anY<mP1Tiep.y) && (aZ> cCelTiep::TheNoZ));
+         return     (anX>=mP0Tiep.x) 
+                 && (anY>=mP0Tiep.y) 
+                 && (anX<mP1Tiep.x) 
+                 && (anY<mP1Tiep.y) 
+                 && (aZ> cCelTiep::TheNoZ)
+                 && (aZ< 32000)
+                 &&  (mTImMasquageInput.get(Pt2di(anX-mP0Tiep.x,anY-mP0Tiep.y)))
+                ;
       }
       cCelTiep & Cel(int anX,int anY) { return mTabCTP[anY][anX]; }
       cCelTiep & Cel(const Pt2di & aP) { return Cel(aP.x,aP.y);}
@@ -230,6 +237,7 @@ class cMMTP
       }
       void DoMasqAndProfInit(const cMasqueAutoByTieP & aMATP);
 
+       Im2D_Bits<1> ImMasquageInput() {return   mImMasquageInput;}
        Im2D_Bits<1> ImMasqFinal() {return mImMasqFinal;}
        Im2D_Bits<1> ImMasqInit() {return mImMasqInit;}
        Im2D_INT2    ImProf() {return mImProf;}
@@ -251,6 +259,11 @@ class cMMTP
         TIm2DBits<1>    mTImMasqInit;   
         Im2D_Bits<1>    mImMasqFinal;
         TIm2DBits<1>    mTImMasqFinal;   
+
+
+        Im2D_Bits<1>    mImMasquageInput;
+        TIm2DBits<1>    mTImMasquageInput;   
+
 };
 
 Im2D_REAL4 cMMTP::ImOrtho(cGPU_LoadedImGeom * aGLI)
@@ -274,17 +287,19 @@ Im2D_REAL4 cMMTP::ImOrtho(cGPU_LoadedImGeom * aGLI)
 }
 
 cMMTP::cMMTP(const Box2di & aBox,cAppliMICMAC & anAppli) : 
-   mAppli        (anAppli),
-   mP0Tiep       (aBox._p0),
-   mP1Tiep       (aBox._p1),
-   mSzTiep       (aBox.sz()),
-   mHeapCTP      (TheCmpCTP),
-   mImProf       (mSzTiep.x,mSzTiep.y),
-   mTImProf      (mImProf),
-   mImMasqInit   (mSzTiep.x,mSzTiep.y),
-   mTImMasqInit  (mImMasqInit),
-   mImMasqFinal   (mSzTiep.x,mSzTiep.y),
-   mTImMasqFinal  (mImMasqFinal)
+   mAppli            (anAppli),
+   mP0Tiep           (aBox._p0),
+   mP1Tiep           (aBox._p1),
+   mSzTiep           (aBox.sz()),
+   mHeapCTP          (TheCmpCTP),
+   mImProf           (mSzTiep.x,mSzTiep.y,0),
+   mTImProf          (mImProf),
+   mImMasqInit       (mSzTiep.x,mSzTiep.y),
+   mTImMasqInit      (mImMasqInit),
+   mImMasqFinal      (mSzTiep.x,mSzTiep.y),
+   mTImMasqFinal     (mImMasqFinal),
+   mImMasquageInput  (mSzTiep.x,mSzTiep.y,1),
+   mTImMasquageInput (mImMasquageInput)
 {
    mTabCTP = (new  cCelTiepPtr [mSzTiep.y]) - mP0Tiep.y;
    for (int anY = mP0Tiep.y ; anY<mP1Tiep.y ; anY++)
@@ -562,6 +577,28 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
 {
    ElTimer aChrono;
    mMMTP = new cMMTP(aBox,*this);
+
+    if (aMATP.TiePMasqIm().IsInit())
+    {
+       int aDZ = aMATP.TiePMasqIm().Val().DeZoomRel();
+       int aDil = aMATP.TiePMasqIm().Val().Dilate();
+
+       std::string aNameMasq = NameImageMasqOfResol(mCurEtape->DeZoomTer()*aDZ);
+       Tiff_Im aTM(aNameMasq.c_str());
+       Pt2di aSZM = aTM.sz();
+       Im2D_Bits<1> aM(aSZM.x,aSZM.y);
+       ELISE_COPY(aM.all_pts(),aTM.in(),aM.out());
+
+       Im2D_Bits<1> aNewM = mMMTP->ImMasquageInput();
+       ELISE_COPY
+       (
+             aNewM.all_pts(),
+             dilat_32(aM.in(0)[Virgule(FX,FY)/double(aDZ)],aDil*3),
+              aNewM.out()
+       );
+    }
+
+
 #ifdef ELISE_X11
    if (aMATP.Visu().Val())
    {
@@ -578,6 +615,12 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
            Im2D_REAL4 * anI = mVLI[0]->FloatIm(aKS);
            ELISE_COPY(anI->all_pts(),Max(0,Min(255,anI->in()/50)),TheWTiePCor->ogray());
        }
+/*
+       {
+           ELISE_COPY(TheWTiePCor->all_pts(),mMMTP->ImMasquageInput().in(),TheWTiePCor->odisc());
+           std::cout << "HERISE THE MAKSE \n"; getchar();
+       }
+*/
    }
 #endif 
    std::string  aNamePts = mICNM->Assoc1To1
@@ -596,25 +639,20 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
    cXML_ParamNuage3DMaille aXmlN =  mCurEtape->DoRemplitXML_MTD_Nuage();
 
 
-   cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromParam(aXmlN,FullDirMEC());
-
-
-
-
-   // ElTimer aChrono;
-   for (int aK=0 ; aK<int(mTP3d->size()) ; aK++)
    {
-       Pt3dr aPE = (*mTP3d)[aK];
-       // Pt3dr aPL = aNuage->Euclid2ProfAndIndex(aPE);
-       Pt3dr aPL2 = aNuage->Euclid2ProfPixelAndIndex(aPE);
+       cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromParam(aXmlN,FullDirMEC());
+       for (int aK=0 ; aK<int(mTP3d->size()) ; aK++)
+       {
+           Pt3dr aPE = (*mTP3d)[aK];
+           Pt3dr aPL2 = aNuage->Euclid2ProfPixelAndIndex(aPE);
 
-       int aXIm = round_ni(aPL2.x);
-       int aYIm = round_ni(aPL2.y);
-       int aZIm = round_ni(aPL2.z) ;
+           int aXIm = round_ni(aPL2.x);
+           int aYIm = round_ni(aPL2.y);
+           int aZIm = round_ni(aPL2.z) ;
 
-       MakeDerivAllGLI(aXIm,aYIm,aZIm);
-       CTPAddCell(aMATP,aXIm,aYIm,aZIm,false);
-
+           MakeDerivAllGLI(aXIm,aYIm,aZIm);
+           CTPAddCell(aMATP,aXIm,aYIm,aZIm,false);
+       }
    }
 
 
@@ -668,12 +706,20 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
 
 //  ==================  SAUVEGARDE DES DONNEES POU FAITE UN NUAGE ====================
 
-   std::string aNameMasq = FullDirMEC() +aXmlN.Image_Profondeur().Val().Masq();
+   // std::string aNameMasq = FullDirMEC() +aXmlN.Image_Profondeur().Val().Masq();
+   std::string aNameMasq =  NameImageMasqOfResol(mCurEtape->DeZoomTer());
    ELISE_COPY(aIL.all_pts(), aIL.in(), Tiff_Im(aNameMasq.c_str()).out());
 
    
    std::string aNameImage = FullDirMEC() +aXmlN.Image_Profondeur().Val().Image();
+   ELISE_COPY(select(anIpRes.all_pts(),anIpRes.in()==cCelTiep::TheNoZ),0,anIpRes.out());
    ELISE_COPY ( anIpRes.all_pts(), anIpRes.in(), Tiff_Im(aNameImage.c_str()).out());
+
+{
+   int aVMax,aVMin;
+   ELISE_COPY ( anIpRes.all_pts(), anIpRes.in(), VMax(aVMax)|VMin(aVMin));
+   std::cout << "MaxMin " << aVMax << " :: " << aVMin << "\n";
+}
    //cElNuage3DMaille * aNuage = ;
 
 }

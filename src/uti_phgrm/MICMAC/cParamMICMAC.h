@@ -1691,16 +1691,12 @@ class cTiePMasqIm
         friend void xml_init(cTiePMasqIm & anObj,cElXMLTree * aTree);
 
 
-        std::string & File();
-        const std::string & File()const ;
-
         int & DeZoomRel();
         const int & DeZoomRel()const ;
 
         int & Dilate();
         const int & Dilate()const ;
     private:
-        std::string mFile;
         int mDeZoomRel;
         int mDilate;
 };
@@ -1735,9 +1731,6 @@ class cMasqueAutoByTieP
 
         cTplValGesInit< double > & ParamIPMnt();
         const cTplValGesInit< double > & ParamIPMnt()const ;
-
-        std::string & File();
-        const std::string & File()const ;
 
         int & DeZoomRel();
         const int & DeZoomRel()const ;
