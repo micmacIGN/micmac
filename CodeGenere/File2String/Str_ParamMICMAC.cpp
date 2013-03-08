@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[1981]) = {
+const char * (theNameVar_ParamMICMAC[1980]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -946,7 +946,6 @@ const char * (theNameVar_ParamMICMAC[1981]) = {
 "                            <ParamIPMnt Nb=\"?\" Type=\"double\" Def=\"1.0\"> </ParamIPMnt>\n",
 "\n",
 "                            <TiePMasqIm Nb=\"?\">\n",
-"                                 <File Nb=\"1\" Type=\"std::string\"> </File>\n",
 "                                 <DeZoomRel Nb=\"1\" Type=\"int\"> </DeZoomRel>\n",
 "                                 <Dilate Nb=\"1\" Type=\"int\">   </Dilate>\n",
 "                            </TiePMasqIm>\n",
