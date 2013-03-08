@@ -1,0 +1,243 @@
+<!--
+   The simplest MicMac exemple
+
+   MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/media/data1/Delphe/DELPHE-TMP-CP/Delphes/12-Tetes-Inc-4341-6/
+
+
+   MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/home/marc/TMP/Delphes/MedinetAbou/ +Im1=IMG_0099.JPG
+
+   MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/home/marc/TMP/Delphes/PiedsRamses/
+
+
+   MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/media/data1/Delphe/DELPHE-TMP-CP/Delphes/MedinetAbou/ +Im1=IMG_0099.CR2
+
+
+
+-->
+
+<ParamMICMAC>
+<DicoLoc>
+   <Symb> Ori="-All"     </Symb>
+   <Symb> DirMEC="Masq-TieP"     </Symb>
+   <Symb> Zoom=8     </Symb>
+   <Symb> Im1=IMG_0018.JPG </Symb>
+<!--
+   <Symb> Im1=IMG_0099.JPG </Symb>
+-->
+   <Symb> Visu=true  </Symb>
+
+   <Symb> FEM=2  </Symb>
+
+   <eSymb>   Z2=* ${Zoom} 2 </eSymb>
+   <eSymb>   LEM=+ ${FEM} 1 </eSymb>
+</DicoLoc>
+
+
+<Section_Terrain>  
+      <IntervAltimetrie>
+             <!-- Mandatory but unused -->
+             <ZIncCalc>   0.0  </ZIncCalc>
+      </IntervAltimetrie>
+      <IntervSpecialZInv >
+             <MulZMin >  0.9999</MulZMin>
+             <MulZMax >  1.0001 </MulZMax>
+      </IntervSpecialZInv>
+</Section_Terrain>
+
+<Section_PriseDeVue >
+     <GeomImages> eGeomImageOri </GeomImages>
+     <Images >
+          <Im1> ${Im1} </Im1>
+         <ImSecCalcApero>
+               <Key> NKS-Assoc-ImSec@${Ori} </Key>
+          </ImSecCalcApero>
+<!--
+          <ImPat> IMG_0055.CR2 </ImPat>
+-->
+
+     </Images>
+
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>  NKS-Assoc-Im2Orient@${Ori}  </FCND_GeomCalc>
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+      <ChantierFullImage1>  true </ChantierFullImage1>
+
+
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      1             </SzW>
+             <AlgoRegul>  eAlgoMaxOfScore </AlgoRegul>
+             <AggregCorr> eAggregMinIm1Maitre </AggregCorr>
+
+
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+
+             <ZPas>        0.5  </ZPas>
+             <ModeInterpolation> eInterpolBiCub </ModeInterpolation>
+
+	     <ZDilatAlti>  4    </ZDilatAlti>
+             <ZDilatPlani> 3    </ZDilatPlani>
+	     <ZRegul>  0.05    </ZRegul>
+
+             <ModulationProgDyn Portee="Globale">
+                  <EtapeProgDyn>
+                              <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                              <NbDir>   7              </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   2.0    </Px1PenteMax>
+                  <ArgMaskAuto >
+                         <ValDefCorrel >  0.3 </ValDefCorrel>
+                         <CostTrans >     2   </CostTrans>
+                         <ReInjectMask> true   </ReInjectMask>
+
+                         <Erod32Mask> 0        </Erod32Mask>
+                         <SzOpen32> 0 </SzOpen32>
+                         <SeuilZC> 50 </SeuilZC>
+                  </ArgMaskAuto>
+             </ModulationProgDyn>
+
+            
+        </EtapeMEC>
+	     
+        <EtapeMEC> 
+                 <DeZoom >        ${Z2}       </DeZoom> 
+                 <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+	         <ZDilatAlti>  1    </ZDilatAlti>
+                 <ZDilatPlani> 1    </ZDilatPlani>
+                 <CorrelAdHoc>
+                     <SzBlocAH> 400000 </SzBlocAH>
+
+                     <CorrelMultiScale>
+                            <ModeDense> true </ModeDense>
+                            <OneParamCMS>
+                                 <SzW> 1 1 </SzW>
+                                 <Sigma> 0 </Sigma>
+                                 <Pds> 1.0 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 2 2 </SzW>
+                                 <Sigma> 1.0 </Sigma>
+                                 <Pds> 0.5 </Pds>
+                            </OneParamCMS>
+                     </CorrelMultiScale>
+
+                     <TypeCAH>
+                        <MasqueAutoByTieP>
+                            <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>
+                            <DeltaZ >        1                         </DeltaZ>
+                            <SeuilSomCostCorrel> 0.65 </SeuilSomCostCorrel>
+                            <SeuilMaxCostCorrel> 0.8 </SeuilMaxCostCorrel>
+                            <Visu> ${Visu} </Visu>
+                        </MasqueAutoByTieP>
+                     </TypeCAH>
+                 </CorrelAdHoc>
+        </EtapeMEC>
+
+        <EtapeMEC> 
+                 <DeZoom >        ${Zoom}       </DeZoom> 
+                 <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+	         <ZDilatAlti>  1    </ZDilatAlti>
+                 <ZDilatPlani> 1    </ZDilatPlani>
+                 <CorrelAdHoc>
+                     <SzBlocAH> 400000 </SzBlocAH>
+
+                     <CorrelMultiScale>
+                            <ModeDense> true </ModeDense>
+                            <OneParamCMS>
+                                 <SzW> 1 1 </SzW>
+                                 <Sigma> 0 </Sigma>
+                                 <Pds> 1.0 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 2 2 </SzW>
+                                 <Sigma> 1.0 </Sigma>
+                                 <Pds> 0.5 </Pds>
+                            </OneParamCMS>
+                     </CorrelMultiScale>
+
+                     <TypeCAH>
+                        <MasqueAutoByTieP>
+                            <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>
+                            <DeltaZ >        1                         </DeltaZ>
+                            <SeuilSomCostCorrel> 0.65 </SeuilSomCostCorrel>
+                            <SeuilMaxCostCorrel> 0.8 </SeuilMaxCostCorrel>
+                            <Visu> ${Visu} </Visu>
+                        </MasqueAutoByTieP>
+                     </TypeCAH>
+                 </CorrelAdHoc>
+        </EtapeMEC>
+
+
+
+        <EtapeMEC> 
+                 <DeZoom >        ${Zoom}       </DeZoom> 
+                 <ModeInterpolation> eInterpolBiCub </ModeInterpolation>
+                 <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+                 <CorrelAdHoc>
+                     <CorrelMultiScale>
+                            <ModeDense> true </ModeDense>
+                            <OneParamCMS>
+                                 <SzW> 1 1 </SzW>
+                                 <Sigma> 0 </Sigma>
+                                 <Pds> 1.0 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 2 2 </SzW>
+                                 <Sigma> 1.0 </Sigma>
+                                 <Pds> 0.5 </Pds>
+                            </OneParamCMS>
+                     </CorrelMultiScale>
+                     <TypeCAH>
+                           <GPU_Correl> </GPU_Correl>
+                     </TypeCAH>
+                 </CorrelAdHoc>
+        </EtapeMEC>
+
+        <EtapeMEC> 
+                 <DeZoom >        ${Zoom}   </DeZoom> 
+                 <AlgoRegul>  eAlgoDequant  </AlgoRegul>
+                 <ZPas>       1             </ZPas>
+        </EtapeMEC> 
+
+
+
+<!--
+-->
+
+</Section_MEC>
+
+<Section_Results >
+    <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D  </GeomMNT> 
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir >  XXXX </WorkDir> 
+     <TmpMEC>    ${DirMEC}/  </TmpMEC>
+     <TmpResult> ${DirMEC}/  </TmpResult>
+     <TmpPyr>    Pyram/  </TmpPyr>
+     <ByProcess> 0 </ByProcess>
+     <SzDalleMin> 20000 </SzDalleMin>
+
+     <FirstEtapeMEC > ${FEM}  </FirstEtapeMEC>
+     <LastEtapeMEC  > ${LEM} </LastEtapeMEC>
+
+
+     <ComprMasque> eComprTiff_None </ComprMasque>
+
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+

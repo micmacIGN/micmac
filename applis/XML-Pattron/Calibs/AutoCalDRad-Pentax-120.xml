@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<ExportAPERO>
+     <CalibrationInternConique>
+          <KnownConv>eConvApero_DistM2C</KnownConv>
+          <PP>1541.27317978059205 960.09730016983724</PP>
+          <F>15507.0276985966048</F>
+          <SzIm>3040 2024</SzIm>
+          <RayonUtile>1650</RayonUtile>
+          <CalibDistortion>
+               <ModRad>
+                    <CDist>1518.49716685458361 1092.11705253368496</CDist>
+                    <CoeffDist>1.99894804443560917e-09</CoeffDist>
+                    <CoeffDist>-9.46539719939505432e-17</CoeffDist>
+                    <CoeffDist>5.1426551620255287e-23</CoeffDist>
+               </ModRad>
+          </CalibDistortion>
+     </CalibrationInternConique>
+</ExportAPERO>
