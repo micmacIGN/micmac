@@ -884,6 +884,7 @@ void   cTplLoadedImage<TypeEl>::CalcFenSpec(const Box2di & aBox,tContPDV& aCont)
        break;
        case eAggregIm1Maitre :
        case eAggregMaxIm1Maitre :
+       case eAggregMinIm1Maitre :
             for (int aK2=1 ; aK2<int(aVTpl.size()) ; aK2++)
             {
                 aVTpl[0]->OneCorrelSpec(Box2di(aP0,aP1),*(aVTpl[aK2]));

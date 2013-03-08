@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[1972]) = {
+const char * (theNameVar_ParamMICMAC[1981]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -139,6 +139,7 @@ const char * (theNameVar_ParamMICMAC[1972]) = {
 "         <eAggregInfoMut>    </eAggregInfoMut>\n",
 "         <!-- Max des correls a l'image 1; teste pour resoudre pb de parties cachees -->\n",
 "	 <eAggregMaxIm1Maitre>  </eAggregMaxIm1Maitre>\n",
+"	 <eAggregMinIm1Maitre>  </eAggregMinIm1Maitre>\n",
 "   </enum>\n",
 "\n",
 "   <enum Name=\"eModeDynamiqueCorrel\">\n",
@@ -941,6 +942,14 @@ const char * (theNameVar_ParamMICMAC[1972]) = {
 "                            <SeuilSomCostCorrel Nb=\"1\" Type=\"double\"> </SeuilSomCostCorrel>\n",
 "                            <SeuilMaxCostCorrel Nb=\"1\" Type=\"double\"> </SeuilMaxCostCorrel>\n",
 "                            <Visu Nb=\"?\" Type=\"bool\" Def=\"false\"> </Visu>\n",
+"                            <ImPaintResult Nb=\"?\"  Type=\"eImpaintMethod\" Def=\"eImpaintL2\"> </ImPaintResult>\n",
+"                            <ParamIPMnt Nb=\"?\" Type=\"double\" Def=\"1.0\"> </ParamIPMnt>\n",
+"\n",
+"                            <TiePMasqIm Nb=\"?\">\n",
+"                                 <File Nb=\"1\" Type=\"std::string\"> </File>\n",
+"                                 <DeZoomRel Nb=\"1\" Type=\"int\"> </DeZoomRel>\n",
+"                                 <Dilate Nb=\"1\" Type=\"int\">   </Dilate>\n",
+"                            </TiePMasqIm>\n",
 "                        </MasqueAutoByTieP> \n",
 "                </TypeCAH>\n",
 "            </CorrelAdHoc>\n",

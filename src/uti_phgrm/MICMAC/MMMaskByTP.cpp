@@ -651,6 +651,17 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
    }
 
 
+   Im2D_INT2   anIpRes = mMMTP->ImProf();
+
+   switch(aMATP.ImPaintResult().Val())
+   {
+        case eImpaintL2 :
+             anIpRes = ImpaintL2(mMMTP->ImMasqInit(),aIL,anIpRes,16);
+        break;
+        case eImpaintMNT :
+             ComplKLipsParLBas(mMMTP->ImMasqInit(),aIL,anIpRes,aMATP.ParamIPMnt().Val());
+        break;
+   }
 
 
 
@@ -658,26 +669,13 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
 //  ==================  SAUVEGARDE DES DONNEES POU FAITE UN NUAGE ====================
 
    std::string aNameMasq = FullDirMEC() +aXmlN.Image_Profondeur().Val().Masq();
-   ELISE_COPY
-   (
-        mMMTP->ImMasqFinal().all_pts(),
-        mMMTP->ImMasqFinal().in(),
-        Tiff_Im(aNameMasq.c_str()).out()
-   );
+   ELISE_COPY(aIL.all_pts(), aIL.in(), Tiff_Im(aNameMasq.c_str()).out());
 
    
    std::string aNameImage = FullDirMEC() +aXmlN.Image_Profondeur().Val().Image();
-   ELISE_COPY
-   (
-        mMMTP->ImProf().all_pts(),
-        mMMTP->ImProf().in(),
-        Tiff_Im(aNameImage.c_str()).out()
-   );
+   ELISE_COPY ( anIpRes.all_pts(), anIpRes.in(), Tiff_Im(aNameImage.c_str()).out());
    //cElNuage3DMaille * aNuage = ;
 
-
-   std::cout << "SAUV DONNEE " << aChrono.uval() << "\n";
-   getchar();
 }
 
 
