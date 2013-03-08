@@ -28,6 +28,9 @@ DAMAGE.
 
 #include "StdAfx.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic warning "-w"
+
 double PTime( void )
 {
 #ifdef WIN32
@@ -40,3 +43,5 @@ double PTime( void )
 	return t.tv_sec + double( t.tv_usec ) / 1000000;
 #endif // WIN32
 }
+
+#pragma GCC diagnostic pop

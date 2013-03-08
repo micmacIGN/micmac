@@ -18,7 +18,17 @@ INCLUDE (${UTI_PHGRM_PORTO_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_SAISIEPTS_DIR}/Sources.cmake)
 
 if(${CUDA_ENABLED})
-	INCLUDE (${UTI_PHGRM_GPGPU_DIR}/Sources.cmake)
+    INCLUDE (${UTI_PHGRM_GPGPU_DIR}/Sources.cmake)
+    configure_file(
+        ${UTI_PHGRM_GPGPU_DIR}/GpGpuDefines.h.in
+        ${PROJECT_SOURCE_DIR}/include/GpGpu/GpGpuDefines.h
+    )
+
+else()
+    configure_file(
+        ${UTI_PHGRM_GPGPU_DIR}/GpGpuNoDefines.h.in
+        ${PROJECT_SOURCE_DIR}/include/GpGpu/GpGpuDefines.h
+    )
 endif()
 
 set( Applis_phgrm_Src_Files

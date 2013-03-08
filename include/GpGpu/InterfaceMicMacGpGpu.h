@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GpGpu/GpGpu.h"
+
 #ifdef CUDA_ENABLED
 #define BOOST_ALL_NO_LIB 
 

@@ -39,11 +39,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+#include "GpGpu/GpGpu.h"
+
 namespace NS_ParamMICMAC
 {
-
-
-
 
 #ifdef CUDA_ENABLED
 	uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);};

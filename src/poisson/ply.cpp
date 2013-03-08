@@ -27,7 +27,8 @@ DAMAGE.
 */
 
 #include "StdAfx.h"
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic warning "-w"
 //
 // PLY data structures
 //
@@ -260,3 +261,4 @@ int PlyWritePolygons( char* fileName , CoredMeshData2* mesh , int file_type , co
 	ply_close( ply );
 	return 1;
 }
+#pragma GCC diagnostic pop

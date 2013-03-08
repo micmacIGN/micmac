@@ -22,7 +22,7 @@ _texProjections_03(getProjection(3))
 	_volumeNIOk->SetName("_volumeNIOk");
  	_mask.CData2D::SetName("_mask");
  	_LayeredImages.CData3D::SetName("_LayeredImages");
- 	_LayeredProjection->CData3D::SetName("_LayeredProjection");
+        _LayeredProjection->CData3D::SetName("_LayeredProjection");
 }
 
 InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
@@ -99,7 +99,7 @@ void InterfaceMicMacGpGpu::SetMask( pixel* dataMask, uint2 dimMask )
 	if(!_mask.bindTexture(_texMask))
 	{
 		_mask.OutputInfo();
-		_mask.CGObject::Name();
+		_mask.CData2D::Name();
 	}
 
 #ifdef USEDILATEMASK

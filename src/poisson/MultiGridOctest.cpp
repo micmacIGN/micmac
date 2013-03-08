@@ -28,6 +28,10 @@ DAMAGE.
 
 #include "StdAfx.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic warning "-w"
+
+
 char* outputFile=NULL;
 int echoStdout=0;
 void DumpOutput( const char* format , ... )
@@ -391,3 +395,4 @@ int Poisson_main( int argc , char** argv )
 
 	return EXIT_SUCCESS;
 }
+#pragma GCC diagnostic pop

@@ -34,6 +34,9 @@ DAMAGE.
 #include "PointStream.h"
 #include "MAT.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic warning "-w"
+
 #define ITERATION_POWER 1.0/3
 #define MEMORY_ALLOCATOR_BLOCK_SIZE 1<<12
 #define SPLAT_ORDER 2
@@ -3885,3 +3888,4 @@ long long VertexData::EdgeIndex(const TreeOctNode* node,int eIndex,int maxDepth,
 	};
 	return (long long)(idx[0]) | (long long)(idx[1])<<15 | (long long)(idx[2])<<30;
 }
+#pragma GCC diagnostic pop

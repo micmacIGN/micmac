@@ -38,7 +38,9 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
-#include "poisson/ply.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic warning "-w"
 
 static const REAL Eps = 1e-7;
 
@@ -704,3 +706,5 @@ cEdge::cEdge()
 }
 
 cEdge::~cEdge(){}
+
+#pragma GCC diagnostic pop

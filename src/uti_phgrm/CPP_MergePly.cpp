@@ -38,6 +38,10 @@
  Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic warning "-w"
+
 #include "poisson/ply.h"
 
 
@@ -243,6 +247,8 @@ int MergePly_main(int argc,char ** argv)
 
 	return EXIT_SUCCESS;
 }
+
+#pragma GCC diagnostic pop
 
 /*Footer-MicMac-eLiSe-25/06/2007
  
