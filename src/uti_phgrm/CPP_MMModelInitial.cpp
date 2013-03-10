@@ -43,9 +43,10 @@ int MMInitialModel_main(int argc,char ** argv)
     MMD_InitArgcArgv(argc,argv);
 
     std::string  aDir,aPat,aFullDir;
-    std::string AeroIn;
-    std::string ImSec;
-    bool  DoPly = false;
+    std::string  AeroIn;
+    std::string  ImSec;
+    bool         Visu = false;
+    bool         DoPly = false;
 
 
     ElInitArgMain
@@ -54,7 +55,7 @@ int MMInitialModel_main(int argc,char ** argv)
 	LArgMain()  << EAMC(aFullDir,"Dir + Pattern")
                     << EAMC(AeroIn,"Orientation"),
 	LArgMain()  
-                    << EAM(ImSec,"ImSec",true,"Out Put destination (Def= same as Orientation-parameter)")
+                    << EAM(Visu,"Visu",true,"Interactif Visualization (tuning purpose, programm will stop at breakpoint)")
                     << EAM(DoPly,"DoPly",true,"Generate ply ,for tuning purpose, (Def=false)")
     );
 	
@@ -70,7 +71,7 @@ int MMInitialModel_main(int argc,char ** argv)
     // Genere les pryramides pour que le paral ne s'ecrase pas les 1 les autres
     {
          std::string aComPyr =  MM3dBinFile("MMPyram")
-                                + aFullDir + " "
+                                + QUOTE(aFullDir) + " "
                                 + AeroIn + " " 
                                 + "ImSec=" +ImSec;
 
@@ -84,15 +85,17 @@ int MMInitialModel_main(int argc,char ** argv)
     for (int aKIm=0 ; aKIm<int(aSetIm->size()) ; aKIm++)
     {
            std::string aCom =   MM3dBinFile("MICMAC")
-                              + XML_MM_File("MM-ModelInitial.xml")
+                              //  + XML_MM_File("MM-ModelInitial.xml")
+                              + XML_MM_File("MM-TieP.xml")
                               + std::string(" WorkDir=") +aDir +  std::string(" ")
                               + std::string(" +Im1=") + QUOTE((*aSetIm)[aKIm]) + std::string(" ")
                               + std::string(" +Ori=-") + AeroIn
                               + std::string(" +ImSec=-") + ImSec
+                              + " +DoPly=" + ToString(DoPly) + " "
                     ;
 
-           if (DoPly)
-              aCom = aCom + " +DoPly=" + ToString(DoPly) + " ";
+           if (Visu)
+              aCom = aCom + " +Visu=" + ToString(Visu) + " ";
 
           std::cout << "Com = " << aCom << "\n";
           aLCom.push_back(aCom);

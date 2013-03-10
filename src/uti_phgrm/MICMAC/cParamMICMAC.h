@@ -54,6 +54,19 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeGeomImage & anObj
 
 typedef enum
 {
+  eOEISA_error,
+  eOEISA_exit,
+  eOEISA_goon
+} eOnEmptyImSecApero;
+void xml_init(eOnEmptyImSecApero & aVal,cElXMLTree * aTree);
+std::string  eToString(const eOnEmptyImSecApero & aVal);
+
+eOnEmptyImSecApero  Str2eOnEmptyImSecApero(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eOnEmptyImSecApero & anObj);
+
+typedef enum
+{
   eAggregSymetrique,
   eAggregIm1Maitre,
   eAggregInfoMut,
@@ -1033,9 +1046,17 @@ class cImSecCalcApero
 
         cTplValGesInit< int > & Nb();
         const cTplValGesInit< int > & Nb()const ;
+
+        cTplValGesInit< int > & NbMin();
+        const cTplValGesInit< int > & NbMin()const ;
+
+        cTplValGesInit< eOnEmptyImSecApero > & OnEmpty();
+        const cTplValGesInit< eOnEmptyImSecApero > & OnEmpty()const ;
     private:
         std::string mKey;
         cTplValGesInit< int > mNb;
+        cTplValGesInit< int > mNbMin;
+        cTplValGesInit< eOnEmptyImSecApero > mOnEmpty;
 };
 cElXMLTree * ToXMLTree(const cImSecCalcApero &);
 
@@ -1081,6 +1102,12 @@ class cImages
 
         cTplValGesInit< int > & Nb();
         const cTplValGesInit< int > & Nb()const ;
+
+        cTplValGesInit< int > & NbMin();
+        const cTplValGesInit< int > & NbMin()const ;
+
+        cTplValGesInit< eOnEmptyImSecApero > & OnEmpty();
+        const cTplValGesInit< eOnEmptyImSecApero > & OnEmpty()const ;
 
         cTplValGesInit< cImSecCalcApero > & ImSecCalcApero();
         const cTplValGesInit< cImSecCalcApero > & ImSecCalcApero()const ;
@@ -1365,6 +1392,12 @@ class cSection_PriseDeVue
 
         cTplValGesInit< int > & Nb();
         const cTplValGesInit< int > & Nb()const ;
+
+        cTplValGesInit< int > & NbMin();
+        const cTplValGesInit< int > & NbMin()const ;
+
+        cTplValGesInit< eOnEmptyImSecApero > & OnEmpty();
+        const cTplValGesInit< eOnEmptyImSecApero > & OnEmpty()const ;
 
         cTplValGesInit< cImSecCalcApero > & ImSecCalcApero();
         const cTplValGesInit< cImSecCalcApero > & ImSecCalcApero()const ;
@@ -4337,6 +4370,9 @@ class cSection_Results
         cTplValGesInit< int > & ZoomMakeMasq();
         const cTplValGesInit< int > & ZoomMakeMasq()const ;
 
+        cTplValGesInit< bool > & LazyZoomMaskTerrain();
+        const cTplValGesInit< bool > & LazyZoomMaskTerrain()const ;
+
         cTplValGesInit< bool > & MakeImCptTA();
         const cTplValGesInit< bool > & MakeImCptTA()const ;
 
@@ -4411,6 +4447,7 @@ class cSection_Results
         cTplValGesInit< double > mSaturationTA;
         cTplValGesInit< bool > mOrthoTA;
         cTplValGesInit< int > mZoomMakeMasq;
+        cTplValGesInit< bool > mLazyZoomMaskTerrain;
         cTplValGesInit< bool > mMakeImCptTA;
         cTplValGesInit< std::string > mFilterTA;
         cTplValGesInit< double > mGammaVisu;
@@ -5065,6 +5102,12 @@ class cParamMICMAC
         cTplValGesInit< int > & Nb();
         const cTplValGesInit< int > & Nb()const ;
 
+        cTplValGesInit< int > & NbMin();
+        const cTplValGesInit< int > & NbMin()const ;
+
+        cTplValGesInit< eOnEmptyImSecApero > & OnEmpty();
+        const cTplValGesInit< eOnEmptyImSecApero > & OnEmpty()const ;
+
         cTplValGesInit< cImSecCalcApero > & ImSecCalcApero();
         const cTplValGesInit< cImSecCalcApero > & ImSecCalcApero()const ;
 
@@ -5322,6 +5365,9 @@ class cParamMICMAC
 
         cTplValGesInit< int > & ZoomMakeMasq();
         const cTplValGesInit< int > & ZoomMakeMasq()const ;
+
+        cTplValGesInit< bool > & LazyZoomMaskTerrain();
+        const cTplValGesInit< bool > & LazyZoomMaskTerrain()const ;
 
         cTplValGesInit< bool > & MakeImCptTA();
         const cTplValGesInit< bool > & MakeImCptTA()const ;

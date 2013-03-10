@@ -3108,7 +3108,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
         void ShowEtapes() const;
         void MakeFileTA();
-        void MakeDefImMasq() ;
+        void MakeDefImMasq(int aZoomCible) ;
 
 
         void InitCostCalcCorrel();

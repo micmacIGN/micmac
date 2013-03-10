@@ -527,7 +527,7 @@ void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,in
 
 
   static int aCpt=0; aCpt++;
-  if ((aCpt%10000)==0)
+  if ((aCpt%100000)==0)
      std::cout << "CPT= " << aCpt << "\n";
 
 }

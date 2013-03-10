@@ -39,6 +39,7 @@ MICMAC  /home/marc/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=/home/
           <ImPat >    ${ImPat}   </ImPat>  
           <ImSecCalcApero>
                <Key> NKS-Assoc-ImSec@${ImSec} </Key>
+               <OnEmpty> eOEISA_goon </OnEmpty>
           </ImSecCalcApero>
      </Images>
      <NomsGeometrieImage>
