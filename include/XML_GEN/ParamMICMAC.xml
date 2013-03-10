@@ -130,6 +130,11 @@ namespace NS_ParamMICMAC{
            <!-- Pas encore implementée -->
    </enum>
 
+   <enum Name="eOnEmptyImSecApero">
+           <eOEISA_error> </eOEISA_error>
+           <eOEISA_exit> </eOEISA_exit>
+           <eOEISA_goon> </eOEISA_goon>
+   </enum>
 
    <enum Name="eModeAggregCorr">
          <eAggregSymetrique> </eAggregSymetrique>
@@ -640,6 +645,9 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                   <Key Nb="1" Type="std::string"> </Key>
                   <!-- Si Pas donne utilise Score  -->
                   <Nb Nb="?" Type="int" Def="-1"> </Nb>  
+
+                  <NbMin Nb="?" Type="int" Def="-1"> </NbMin>  
+                  <OnEmpty Nb="?" Type="eOnEmptyImSecApero" Def="eOEISA_error"> </OnEmpty>  
              </ImSecCalcApero>
              <Filter Nb="?" 
                      RefType="NameFilter"
@@ -1736,6 +1744,14 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
           coloration est   un etiquettage -->
          <OrthoTA Nb="?" Type="bool" Def="false"> </OrthoTA>
 	 <ZoomMakeMasq Nb="?"  Type="int"> </ZoomMakeMasq>
+
+         <!-- Si true le masque terrain n'est calcule qu'a la resolution necessaire, cela fait gagner un temps
+              non negligeable en proportion lorque l'on s'arrete a des resol basse; false par defaut au cas
+              ou il y aurait des effets collateraux ...
+         -->
+         <LazyZoomMaskTerrain Nb="?" Type="bool" Def="false"> </LazyZoomMaskTerrain>
+
+
          <MakeImCptTA Nb="?" Type="bool" Def="false"> </MakeImCptTA>
          <FilterTA  Nb="?" Type="std::string"> </FilterTA>
 	 <!-- 

@@ -1071,6 +1071,7 @@ void cAppliMICMAC::InitImages()
    {
        const cImSecCalcApero & aISCA = ImSecCalcApero().Val();
        int aNbPDV = mPrisesDeVue.size();  // Car la taille va augmenter
+       int aNbMin = aISCA.NbMin().Val();
        for (int aKV=0 ; aKV<aNbPDV ; aKV++)
        {
            std::string aNameImSec = WorkDir() + mICNM->Assoc1To1(aISCA.Key(),mPrisesDeVue[aKV]->Name(),true);
@@ -1083,15 +1084,35 @@ void cAppliMICMAC::InitImages()
                                  "ImSecOfMaster",
                                  "ImSecOfMaster"
                               );
-                 const std::list<std::string > & aList =  GetBestSec(aISOM,aISCA.Nb().Val());
-                 for 
-                 (
-                      std::list<std::string>::const_iterator itS = aList.begin();
-                      itS != aList.end();
-                      itS++
-                 )
+                 const std::list<std::string > * aList =  GetBestSec(aISOM,aISCA.Nb().Val(),aNbMin,true);
+                 if (aList==0) 
                  {
-                     AddAnImage(*itS);
+                     std::cout << "NOT ENOUG IMAGE in ImSecCalcApero for " << aNameImSec << "\n";
+                     switch(aISCA.OnEmpty().Val())
+                     {
+                         case eOEISA_error:
+                             ELISE_ASSERT(false,"NOT ENOUG IMAGE is fatal error in this context");
+                         break;
+
+                         case eOEISA_exit:
+                             exit(0);
+                         break;
+           
+                         case eOEISA_goon:
+                         break;
+                     }
+                 }
+                 else
+                 {
+                      for 
+                      (
+                           std::list<std::string>::const_iterator itS = aList->begin();
+                           itS != aList->end();
+                           itS++
+                      )
+                      {
+                          AddAnImage(*itS);
+                      }
                  }
             }
        }

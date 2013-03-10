@@ -55,9 +55,9 @@ int ScaleNuage_main(int argc,char ** argv)
     ElInitArgMain
     (
 	argc,argv,
-	LArgMain()  << EAM(aNameNuage)
-                    <<  EAM(aNameOut)
-                    << EAM(aSc),
+	LArgMain()  << EAMC(aNameNuage,"Name input Cloud (some stuuff like NuageImProf_LeChantier_Etape_1.xml)")
+                    << EAMC(aNameOut,"Name Output Cloud")
+                    << EAMC(aSc,"Scaling factor"),
 	LArgMain()  << EAM(aSz,"Sz",true)	
                     << EAM(aP0,"P0",true)	
     );	

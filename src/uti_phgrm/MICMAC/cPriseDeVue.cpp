@@ -812,7 +812,7 @@ Tiff_Im     cPriseDeVue::FileImMasqOfResol(int aDz) const
    Pt2di aSz = Std2Elise(mIMIL->Sz(aDz));
    if (! ELISE_fp::exist_file(aName))
    {
-      std::cout << "Make Masq " << aName << "\n";
+      std::cout << "PDV--Make Masq " << aName << "\n";
       if (aDz==1)
       {
            Tiff_Im aFile

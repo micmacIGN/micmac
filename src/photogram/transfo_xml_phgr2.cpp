@@ -734,7 +734,7 @@ ElPackHomologue PackFromCplAPF(const cMesureAppuiFlottant1Im & aMes, const cMesu
 }
 
 
-const std::list<std::string > & GetBestSec(const cImSecOfMaster& anISOM,int aNb)
+const std::list<std::string > * GetBestSec(const cImSecOfMaster& anISOM,int aNb,int aNbMin,bool  OkAndOutWhenNone)
 {
    const std::list<std::string > * aRes = 0;
    double aScoreMax=-1;
@@ -745,21 +745,22 @@ const std::list<std::string > & GetBestSec(const cImSecOfMaster& anISOM,int aNb)
           itS++
    )
    {
-       if ((aNb<=0) || (int(itS->Images().size()) == aNb))
+       int aNbIm = itS->Images().size();
+       if ((aNb<=0) || (aNbIm == aNb))
        {
-            if (itS->Score() > aScoreMax)
+            if ((itS->Score() > aScoreMax) && (aNbIm>=aNbMin))
             {
                  aScoreMax = itS->Score();
                  aRes = &(itS->Images());
             }
        }
    }
-   if (aRes==0)
+   if ((aRes==0 ) && (!OkAndOutWhenNone))
    {
        std::cout  << "For image " << anISOM.Master() << " and Nb= " << aNb << "\n";
        ELISE_ASSERT(aRes!=0,"Cannot GetBestSec");
    }
-   return *aRes;
+   return aRes;
 }
 
 
