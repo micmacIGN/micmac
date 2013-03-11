@@ -1,10 +1,19 @@
 #ifndef HASH_INCLUDED
 #define HASH_INCLUDED
+
+#ifdef NOWARNINGPOISSON
+#pragma GCC diagnostic push
+#pragma GCC diagnostic warning "-w"
+
+#endif
+
 #ifdef WIN32
 #include <hash_map>
 using stdext::hash_map;
 #else // !WIN32
+
 #include <ext/hash_map>
+
 using namespace __gnu_cxx;
 
 namespace __gnu_cxx
@@ -27,3 +36,6 @@ namespace __gnu_cxx
 #endif // WIN32
 #endif // HASH_INCLUDED
 
+#ifdef NOWARNINGPOISSON
+#pragma GCC diagnostic pop
+#endif
