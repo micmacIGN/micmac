@@ -31,9 +31,13 @@ OPTION(BUILD_ONLY_ELISE "Projet Elise uniquement" OFF )
 # construire l'interface graphique
 OPTION(WITH_ETALONPOLY  "build etalonnage polygone" ON)
 
-
 # Utiliser Cuda
 OPTION(CUDA_ENABLED "Utilisation de cuda" OFF )
+
+# Pas de Warning Poisson
+if(NOT WIN32)
+OPTION(NOWARNINGPOISSON "Pas warning a la compilation de poisson" ON )
+endif()
 
 ##################################
 ## 	Trouver les EXES et Libs	##
@@ -247,6 +251,11 @@ if(NOT WIN32)
 		MESSAGE("X11 Not Found : pas de SaisieMasq")
 	ENDIF()
 
+        # Warning POISSON
+        if(${NOWARNINGPOISSON})
+                set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated ")
+                add_definitions(-DNOWARNINGPOISSON)
+        endif()
 ELSE()
 
 	find_program(MAKE_EXECUTABLE make
