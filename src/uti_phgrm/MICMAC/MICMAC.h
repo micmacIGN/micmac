@@ -1984,6 +1984,7 @@ class cEtapeMecComp
           const cEtapeMEC &   EtapeMEC() const;
 
           void SauvNappes (cLoadTer &,Box2di aBoxOut,Box2di aBoxIn);
+
           // retourne le nombre de cellules creees
           double LoadNappesAndSetGeom
                (
@@ -3114,6 +3115,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
         void InitCostCalcCorrel();
         void ChoixCalcCorrByQT(Box2di aBoxTer);
 
+        void DoImagesBSurH(const cDoImageBSurH&);
 
         cInterfModuleImageLoader * GetMIL
                                    (

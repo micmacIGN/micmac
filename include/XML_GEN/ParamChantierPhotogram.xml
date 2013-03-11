@@ -1334,6 +1334,13 @@ namespace NS_ParamChantierPhotogram{
     <ImSecOfMaster  Nb="1" Class="true" ToReference="true">
           <Master Nb="1" Type="std::string"> </Master>
           <Sols Nb="*" RefType="OneSolImageSec"> </Sols>
+          <ISOM_AllVois Nb="?" AccessorFils="false">
+               <ISOM_Vois Nb="*">
+                    <Name Type="std::string" Nb="1"> </Name>
+                    <Angle Type="double" Nb="1"> </Angle>
+                    <Nb Type="double" Nb="1"> </Nb>
+               </ISOM_Vois>
+          </ISOM_AllVois>
     </ImSecOfMaster>
     
   

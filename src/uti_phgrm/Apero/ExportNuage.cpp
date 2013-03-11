@@ -203,6 +203,7 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
             const CamStenope *  aCS = aPC->CurCam();
 
 
+
             Box2di aBox(Pt2di(0,0),aCS->Sz());
             if (aCS->HasRayonUtile())
             {
@@ -239,6 +240,52 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
             {
                anAGP.AddSeg(aC3D[aKC],aC3D[(aKC+1)%4],aNPC.StepSeg(),aNPC.ColCadre());
                anAGP.AddSeg(aCo,aC3D[aKC],aNPC.StepSeg(),aNPC.ColRay().ValWithDef(aNPC.ColCadre()));
+            }
+
+            {
+                std::string   aName = aPC->Name();
+                std::string   aNum;
+                cElBitmFont & aFont =  cElBitmFont::BasicFont_10x8();
+                for (const char * aC=aName.c_str() ; *aC ; aC++)
+                {
+                    if (isdigit(*aC))
+                    {
+                        aNum += *aC;
+                    }
+                }
+                double aStep = 30;
+                int    aNb = 3;
+                const char * aC = aNum.c_str();
+                int aKC=0;
+                while (*aC)
+                {
+                    Pt3di aCol(255,255,255);
+                    Im2D_Bits<1>  anIm = aFont.ImChar(*aC);
+                    TIm2DBits<1>  aTIm(anIm);
+                    Pt2di aSz = anIm.sz();
+                    Pt2di aP;
+                    for (aP.x=0 ; aP.x<aSz.x ;aP.x++)
+                    {
+                        for (aP.y=0 ; aP.y<aSz.y ;aP.y++)
+                        {
+                            if (aTIm.get(aP))
+                            {
+                                for (int aKx = 0 ; aKx< aNb ; aKx++)
+                                {
+                                   for (int aKy = 0 ; aKy< aNb ; aKy++)
+                                   {
+                                       Pt2di anU = aP + Pt2di(aKC*aSz.x+2,10);
+                                       Pt2dr  aPW = Pt2dr(anU.x+aKx/double(aNb),anU.y+aKy/double(aNb)) * aStep ;
+                                       Pt3dr aQ =  aCS->ImEtProf2Terrain(aPW,aProf);
+                                       anAGP.AddPts(aQ,aCol);
+                                   }
+                               }
+                            }
+                        }
+                    }
+                    aC++;
+                    aKC++;
+                }
             }
 
             if (aStIm >0)

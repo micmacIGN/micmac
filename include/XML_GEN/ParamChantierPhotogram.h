@@ -4535,6 +4535,43 @@ cElXMLTree * ToXMLTree(const cOneSolImageSec &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cISOM_Vois
+{
+    public:
+        friend void xml_init(cISOM_Vois & anObj,cElXMLTree * aTree);
+
+
+        std::string & Name();
+        const std::string & Name()const ;
+
+        double & Angle();
+        const double & Angle()const ;
+
+        double & Nb();
+        const double & Nb()const ;
+    private:
+        std::string mName;
+        double mAngle;
+        double mNb;
+};
+cElXMLTree * ToXMLTree(const cISOM_Vois &);
+
+class cISOM_AllVois
+{
+    public:
+        friend void xml_init(cISOM_AllVois & anObj,cElXMLTree * aTree);
+
+
+        std::list< cISOM_Vois > & ISOM_Vois();
+        const std::list< cISOM_Vois > & ISOM_Vois()const ;
+    private:
+        std::list< cISOM_Vois > mISOM_Vois;
+};
+cElXMLTree * ToXMLTree(const cISOM_AllVois &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cImSecOfMaster
 {
     public:
@@ -4546,9 +4583,13 @@ class cImSecOfMaster
 
         std::list< cOneSolImageSec > & Sols();
         const std::list< cOneSolImageSec > & Sols()const ;
+
+        cTplValGesInit< cISOM_AllVois > & ISOM_AllVois();
+        const cTplValGesInit< cISOM_AllVois > & ISOM_AllVois()const ;
     private:
         std::string mMaster;
         std::list< cOneSolImageSec > mSols;
+        cTplValGesInit< cISOM_AllVois > mISOM_AllVois;
 };
 cElXMLTree * ToXMLTree(const cImSecOfMaster &);
 

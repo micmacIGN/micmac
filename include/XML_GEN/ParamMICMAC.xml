@@ -959,6 +959,14 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                 </TypeCAH>
             </CorrelAdHoc>
 
+            <DoImageBSurH Nb="?">
+                 <Dyn Nb="?" Type="double" Def="1e-2"> </Dyn>
+                 <!-- Offset >0 si on veut stocker les eventuel B/H neg (vue derriere la cam) -->
+                 <Offset Nb="?" Type="double" Def="0"> </Offset>
+                 <SeuilMasqExport Nb="?" Type="double"> </SeuilMasqExport>
+                 <Name Nb="?" Type="std::string"> </Name>
+            </DoImageBSurH>
+
              <DoStatResult Nb="?">
                   <DoRatio2Im Nb="1" Type="bool"> </DoRatio2Im>
              </DoStatResult>
