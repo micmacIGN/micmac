@@ -20,11 +20,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 	// Si le processus est hors du terrain, nous sortons du kernel
 	if (oSE(ptHTer,cH.dimDTer)) return;
 
-#if (SAMPLETERR == 1)
-	const float2 ptProj = tex2DLayeredPt(TexFloat2L<TexSel>(),ptHTer,cH.dimSTer,blockIdx.z);
-#else
-	const float2 ptProj = tex2DLayeredPt(TexFloat2L<TexSel>(),ptHTer,cH.dimSTer,cH.sampProj,blockIdx.z);
-#endif
+	const float2 ptProj = GetProjection<TexSel>(ptHTer,cH.dimSTer,cH.sampProj,blockIdx.z);
 
 	uint iZ,mZ;
 
@@ -37,14 +33,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 	{
 		iZ = blockIdx.z / cH.nbImages;
 		mZ = blockIdx.z - iZ * cH.nbImages;
-#if	INTERPOLA == NEAREST
-		const float2 ptImg = (ptProj + 0.5f) / cH.dimImg;
-		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayered( TexL_Images,ptImg.x , ptImg.y,mZ);
-#elif	INTERPOLA == LINEARINTER
-		cacheImg[threadIdx.y][threadIdx.x] = tex2DLayeredPt( TexL_Images, ptProj, cH.dimImg, mZ);
-#elif	INTERPOLA == BICUBIC
-		cacheImg[threadIdx.y][threadIdx.x] = tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, cH.dimImg,mZ);
-#endif
+		cacheImg[threadIdx.y][threadIdx.x] = GetImageValue(ptProj,cH.dimImg,mZ);
 	}
 	__syncthreads();
 

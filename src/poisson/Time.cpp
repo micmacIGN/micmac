@@ -28,8 +28,10 @@ DAMAGE.
 
 #include "StdAfx.h"
 
+#ifdef NOWARNINGPOISSON
 #pragma GCC diagnostic push
 #pragma GCC diagnostic warning "-w"
+#endif
 
 double PTime( void )
 {
@@ -44,4 +46,6 @@ double PTime( void )
 #endif // WIN32
 }
 
+#ifdef NOWARNINGPOISSON
 #pragma GCC diagnostic pop
+#endif

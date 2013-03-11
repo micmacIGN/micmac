@@ -39,12 +39,13 @@
 
 #include "StdAfx.h"
 
+#ifdef NOWARNINGPOISSON
 #pragma GCC diagnostic push
 #pragma GCC diagnostic warning "-w"
+#endif
 
-#include "poisson/ply.h"
 
-
+//#include "poisson/ply.h"
 
 #if (0)
 // MPD : PB de linj et doublon avec : poisson/plyfile.cpp
@@ -248,7 +249,10 @@ int MergePly_main(int argc,char ** argv)
 	return EXIT_SUCCESS;
 }
 
+#ifdef NOWARNINGPOISSON
 #pragma GCC diagnostic pop
+#endif
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
  

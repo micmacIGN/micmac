@@ -34,8 +34,10 @@
 
 #include "StdAfx.h"
 
-#pragma GCC diagnostic push_heap
+#ifdef NOWARNINGPOISSON
+#pragma GCC diagnostic push
 #pragma GCC diagnostic warning "-w"
+#endif
 
 char *type_names[] = {
 	"invalid",
@@ -2724,4 +2726,6 @@ Read an element from a binary file.
 	  return (ptr);
   }
   
+#ifdef NOWARNINGPOISSON
 #pragma GCC diagnostic pop
+#endif

@@ -17,6 +17,7 @@
 #ifndef WIN32
 #include <sys/time.h>
 #endif
+
 #if defined __GNUC__
     #pragma GCC system_header
 #elif defined __SUNPRO_CC
@@ -38,6 +39,7 @@
 //#include "poisson/omp.h"
 #include "poisson/ply.h"
 #include "poisson/PlyFile.h"
+//#include "poisson/MultiGridOctreeData.h"
 
 // #ifdef LoadImage
 // 	//#undef LoadImage 
