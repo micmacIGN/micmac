@@ -129,7 +129,6 @@ set(Elise_Src_Files
 )
 
 # CONSTRUCTION : Lib ELISE
-
 if(${CUDA_ENABLED})
 	set(GENCODE_SM10 -gencode=arch=compute_10,code=sm_10 -gencode=arch=compute_10,code=compute_10)
 	set(GENCODE_SM13 -gencode=arch=compute_13,code=sm_13 -gencode=arch=compute_13,code=compute_13)

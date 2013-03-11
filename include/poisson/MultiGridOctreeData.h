@@ -345,6 +345,13 @@ public:
 	void GetMCIsoTriangles( Real isoValue , int subdivideDepth , CoredMeshData* mesh , int fullDepthIso=0 , int nonLinearFit=1 , bool addBarycenter=false , bool polygonMesh=false );
 	std::vector< Point3D<Real> > getOriginalPoints() {return _Original_points;}
 };
+#if defined __GNUC__
+    #pragma GCC system_header
+#elif defined __SUNPRO_CC
+    #pragma disable_warn
+#elif defined _MSC_VER
+    #pragma warning(push, 1)
+#endif
 
 #include "MultiGridOctreeData.inl"
 #endif // MULTI_GRID_OCTREE_DATA_INCLUDED

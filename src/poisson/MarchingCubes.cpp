@@ -28,9 +28,10 @@ DAMAGE.
 
 #include "StdAfx.h"
 
+#ifdef NOWARNINGPOISSON
 #pragma GCC diagnostic push
 #pragma GCC diagnostic warning "-w"
-
+#endif
 ////////////
 // Square //
 ////////////
