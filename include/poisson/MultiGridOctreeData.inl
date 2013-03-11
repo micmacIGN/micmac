@@ -34,8 +34,10 @@ DAMAGE.
 #include "PointStream.h"
 #include "MAT.h"
 
+#ifdef NOWARNINGPOISSON
 #pragma GCC diagnostic push
 #pragma GCC diagnostic warning "-w"
+#endif
 
 #define ITERATION_POWER 1.0/3
 #define MEMORY_ALLOCATOR_BLOCK_SIZE 1<<12
@@ -3888,4 +3890,7 @@ long long VertexData::EdgeIndex(const TreeOctNode* node,int eIndex,int maxDepth,
 	};
 	return (long long)(idx[0]) | (long long)(idx[1])<<15 | (long long)(idx[2])<<30;
 }
+#ifdef NOWARNINGPOISSON
 #pragma GCC diagnostic pop
+#endif
+

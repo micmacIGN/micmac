@@ -954,4 +954,6 @@ void MarchingCubes::SetVertex( int e , const float values[Cube::CORNERS] , float
 }
 float MarchingCubes::Interpolate( float v1 , float v2 ){ return v1/(v1-v2); }
 
+#ifdef NOWARNINGPOISSON
 #pragma GCC diagnostic pop
+#endif

@@ -16,8 +16,27 @@ template<> __device__ __host__ TexFloat2Layered TexFloat2L<1>() { return TexL_Pr
 template<> __device__ __host__ TexFloat2Layered TexFloat2L<2>() { return TexL_Proj_02; };
 template<> __device__ __host__ TexFloat2Layered TexFloat2L<3>() { return TexL_Proj_03; };
 
+inline __device__ float GetImageValue(float2 ptProj, uint2 dimImg, uint mZ)
+{
+#if	INTERPOLA == NEAREST
+	const float2 ptImg = (ptProj + 0.5f) / dimImg;
+	return tex2DLayered( TexL_Images,ptImg.x , ptImg.y,mZ);
+#elif	INTERPOLA == LINEARINTER
+	return tex2DLayeredPt( TexL_Images, ptProj, dimImg, mZ);
+#elif	INTERPOLA == BICUBIC
+	return tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, dimImg,mZ);
+#endif
+};
 
-//------------------------------------------------------------------------------------------
+template<int TexSel> inline  __device__ float2 GetProjection(uint2 ptTer, uint2 dimSTer, uint sampProj, uint BZ)
+{
+#if (SAMPLETERR == 1)
+	return tex2DLayeredPt(TexFloat2L<TexSel>(),ptTer,dimSTer,BZ);
+#else
+	return tex2DLayeredPt(TexFloat2L<TexSel>(),ptTer,dimSTer, sampProj,BZ);
+#endif
+};
+
 
 extern "C" textureReference& getMask(){	return TexS_MaskTer;}
 extern "C" textureReference& getImage(){ return TexL_Images;}

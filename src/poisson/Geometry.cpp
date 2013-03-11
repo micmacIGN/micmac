@@ -88,6 +88,8 @@ void CoredVectorMeshData::clearPolygons( void ) { polygons.clear(); }
 
 Point3D<float> CoredVectorMeshData::GetOutOfCorePoint(int index) {
 	if(index<int(oocPoints.size())){return oocPoints[index];}
+	Point3D<float> pt;
+	return pt;
 }
 
 void CoredVectorMeshData::setPolygon( int index, bool b ) 
