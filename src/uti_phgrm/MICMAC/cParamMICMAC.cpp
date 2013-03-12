@@ -5495,6 +5495,77 @@ void xml_init(cCorrelAdHoc & anObj,cElXMLTree * aTree)
 }
 
 
+cTplValGesInit< double > & cDoImageBSurH::Dyn()
+{
+   return mDyn;
+}
+
+const cTplValGesInit< double > & cDoImageBSurH::Dyn()const 
+{
+   return mDyn;
+}
+
+
+cTplValGesInit< double > & cDoImageBSurH::Offset()
+{
+   return mOffset;
+}
+
+const cTplValGesInit< double > & cDoImageBSurH::Offset()const 
+{
+   return mOffset;
+}
+
+
+cTplValGesInit< double > & cDoImageBSurH::SeuilMasqExport()
+{
+   return mSeuilMasqExport;
+}
+
+const cTplValGesInit< double > & cDoImageBSurH::SeuilMasqExport()const 
+{
+   return mSeuilMasqExport;
+}
+
+
+cTplValGesInit< std::string > & cDoImageBSurH::Name()
+{
+   return mName;
+}
+
+const cTplValGesInit< std::string > & cDoImageBSurH::Name()const 
+{
+   return mName;
+}
+
+cElXMLTree * ToXMLTree(const cDoImageBSurH & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"DoImageBSurH",eXMLBranche);
+   if (anObj.Dyn().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Dyn"),anObj.Dyn().Val())->ReTagThis("Dyn"));
+   if (anObj.Offset().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Offset"),anObj.Offset().Val())->ReTagThis("Offset"));
+   if (anObj.SeuilMasqExport().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SeuilMasqExport"),anObj.SeuilMasqExport().Val())->ReTagThis("SeuilMasqExport"));
+   if (anObj.Name().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name().Val())->ReTagThis("Name"));
+  return aRes;
+}
+
+void xml_init(cDoImageBSurH & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.Dyn(),aTree->Get("Dyn",1),double(1e-2)); //tototo 
+
+   xml_init(anObj.Offset(),aTree->Get("Offset",1),double(0)); //tototo 
+
+   xml_init(anObj.SeuilMasqExport(),aTree->Get("SeuilMasqExport",1)); //tototo 
+
+   xml_init(anObj.Name(),aTree->Get("Name",1)); //tototo 
+}
+
+
 bool & cDoStatResult::DoRatio2Im()
 {
    return mDoRatio2Im;
@@ -9056,6 +9127,61 @@ const cTplValGesInit< cCorrelAdHoc > & cEtapeMEC::CorrelAdHoc()const
 }
 
 
+cTplValGesInit< double > & cEtapeMEC::Dyn()
+{
+   return DoImageBSurH().Val().Dyn();
+}
+
+const cTplValGesInit< double > & cEtapeMEC::Dyn()const 
+{
+   return DoImageBSurH().Val().Dyn();
+}
+
+
+cTplValGesInit< double > & cEtapeMEC::Offset()
+{
+   return DoImageBSurH().Val().Offset();
+}
+
+const cTplValGesInit< double > & cEtapeMEC::Offset()const 
+{
+   return DoImageBSurH().Val().Offset();
+}
+
+
+cTplValGesInit< double > & cEtapeMEC::SeuilMasqExport()
+{
+   return DoImageBSurH().Val().SeuilMasqExport();
+}
+
+const cTplValGesInit< double > & cEtapeMEC::SeuilMasqExport()const 
+{
+   return DoImageBSurH().Val().SeuilMasqExport();
+}
+
+
+cTplValGesInit< std::string > & cEtapeMEC::Name()
+{
+   return DoImageBSurH().Val().Name();
+}
+
+const cTplValGesInit< std::string > & cEtapeMEC::Name()const 
+{
+   return DoImageBSurH().Val().Name();
+}
+
+
+cTplValGesInit< cDoImageBSurH > & cEtapeMEC::DoImageBSurH()
+{
+   return mDoImageBSurH;
+}
+
+const cTplValGesInit< cDoImageBSurH > & cEtapeMEC::DoImageBSurH()const 
+{
+   return mDoImageBSurH;
+}
+
+
 bool & cEtapeMEC::DoRatio2Im()
 {
    return DoStatResult().Val().DoRatio2Im();
@@ -11052,6 +11178,8 @@ cElXMLTree * ToXMLTree(const cEtapeMEC & anObj)
    aRes->AddFils(::ToXMLTree(std::string("DeZoom"),anObj.DeZoom())->ReTagThis("DeZoom"));
    if (anObj.CorrelAdHoc().IsInit())
       aRes->AddFils(ToXMLTree(anObj.CorrelAdHoc().Val())->ReTagThis("CorrelAdHoc"));
+   if (anObj.DoImageBSurH().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.DoImageBSurH().Val())->ReTagThis("DoImageBSurH"));
    if (anObj.DoStatResult().IsInit())
       aRes->AddFils(ToXMLTree(anObj.DoStatResult().Val())->ReTagThis("DoStatResult"));
   for
@@ -11270,6 +11398,8 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.DeZoom(),aTree->Get("DeZoom",1)); //tototo 
 
    xml_init(anObj.CorrelAdHoc(),aTree->Get("CorrelAdHoc",1)); //tototo 
+
+   xml_init(anObj.DoImageBSurH(),aTree->Get("DoImageBSurH",1)); //tototo 
 
    xml_init(anObj.DoStatResult(),aTree->Get("DoStatResult",1)); //tototo 
 
@@ -11948,6 +12078,10 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
         xml_init(aVal.CorrelAdHoc(),(*itLTr)->Get("CorrelAdHoc",1)); //tototo 
         if ((*itLTr)->HasFilsPorteeGlob("CorrelAdHoc"))
           anObj.mGlobEtapeMEC.CorrelAdHoc() = aVal.CorrelAdHoc();
+
+        xml_init(aVal.DoImageBSurH(),(*itLTr)->Get("DoImageBSurH",1)); //tototo 
+        if ((*itLTr)->HasFilsPorteeGlob("DoImageBSurH"))
+          anObj.mGlobEtapeMEC.DoImageBSurH() = aVal.DoImageBSurH();
 
         xml_init(aVal.DoStatResult(),(*itLTr)->Get("DoStatResult",1)); //tototo 
         if ((*itLTr)->HasFilsPorteeGlob("DoStatResult"))

@@ -1900,6 +1900,31 @@ class cCorrelAdHoc
 };
 cElXMLTree * ToXMLTree(const cCorrelAdHoc &);
 
+class cDoImageBSurH
+{
+    public:
+        friend void xml_init(cDoImageBSurH & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< double > & Dyn();
+        const cTplValGesInit< double > & Dyn()const ;
+
+        cTplValGesInit< double > & Offset();
+        const cTplValGesInit< double > & Offset()const ;
+
+        cTplValGesInit< double > & SeuilMasqExport();
+        const cTplValGesInit< double > & SeuilMasqExport()const ;
+
+        cTplValGesInit< std::string > & Name();
+        const cTplValGesInit< std::string > & Name()const ;
+    private:
+        cTplValGesInit< double > mDyn;
+        cTplValGesInit< double > mOffset;
+        cTplValGesInit< double > mSeuilMasqExport;
+        cTplValGesInit< std::string > mName;
+};
+cElXMLTree * ToXMLTree(const cDoImageBSurH &);
+
 class cDoStatResult
 {
     public:
@@ -3033,6 +3058,21 @@ class cEtapeMEC
         cTplValGesInit< cCorrelAdHoc > & CorrelAdHoc();
         const cTplValGesInit< cCorrelAdHoc > & CorrelAdHoc()const ;
 
+        cTplValGesInit< double > & Dyn();
+        const cTplValGesInit< double > & Dyn()const ;
+
+        cTplValGesInit< double > & Offset();
+        const cTplValGesInit< double > & Offset()const ;
+
+        cTplValGesInit< double > & SeuilMasqExport();
+        const cTplValGesInit< double > & SeuilMasqExport()const ;
+
+        cTplValGesInit< std::string > & Name();
+        const cTplValGesInit< std::string > & Name()const ;
+
+        cTplValGesInit< cDoImageBSurH > & DoImageBSurH();
+        const cTplValGesInit< cDoImageBSurH > & DoImageBSurH()const ;
+
         bool & DoRatio2Im();
         const bool & DoRatio2Im()const ;
 
@@ -3578,6 +3618,7 @@ class cEtapeMEC
     private:
         int mDeZoom;
         cTplValGesInit< cCorrelAdHoc > mCorrelAdHoc;
+        cTplValGesInit< cDoImageBSurH > mDoImageBSurH;
         cTplValGesInit< cDoStatResult > mDoStatResult;
         std::list< cMasqOfEtape > mMasqOfEtape;
         cTplValGesInit< int > mSzRecouvrtDalles;

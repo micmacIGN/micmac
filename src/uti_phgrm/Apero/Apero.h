@@ -1162,6 +1162,8 @@ class cArgGetPtsTerrain
           void InitFileColor(const std::string &,double aStepIm,const std::string & aRef,int NbChan);
           void AddSeg(Pt3dr aP1,Pt3dr aP2,double aStep,Pt3di aCoul);
 
+          void AddPts(Pt3dr aP1,Pt3di aCoul);
+
           void InitColiorageDirec(Pt3dr,double);
           void InitModeNormale();
           void InitModeNoAttr();
