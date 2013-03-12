@@ -192,8 +192,10 @@ double GainAngle(double A,double Opt)
 
 void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
 {
-	
     std::cout << "ExportImSecMM " << aPC0->Name() << "\n";
+    cImSecOfMaster aISM;
+    aISM.ISOM_AllVois().SetVal(cISOM_AllVois());
+    cISOM_AllVois &  aILV = aISM.ISOM_AllVois().Val();
 
     cObsLiaisonMultiple * anOLM = PackMulOfIndAndNale (aCIM.IdBdl(),aPC0->Name());
     const std::vector<cOnePtsMult *> &  aVPM = anOLM->VPMul();
@@ -255,6 +257,11 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
            {
                aVPPres.push_back(aPC2);
            }
+           cISOM_Vois aV;
+           aV.Name() = aPC2->Name();
+           aV.Nb() = aPC2->MMNbPts();
+           aV.Angle() = anAngle;
+           aILV.ISOM_Vois().push_back(aV);
        }
     }
 
@@ -306,7 +313,6 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
    
 
 
-    cImSecOfMaster aISM;
     aISM.Master() = aPC0->Name();
     // ON TESTE LES SUBSET 
     for (int aCard=2 ; aCard< ElMin(aNbIm, 1+aCIM.CardMaxSub().Val()) ; aCard++)

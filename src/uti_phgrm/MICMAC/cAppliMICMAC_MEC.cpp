@@ -521,6 +521,8 @@ void cAppliMICMAC::SauvFileChantier(Fonc_Num aF,Tiff_Im aFile) const
 
 }
 
+
+
 void cAppliMICMAC::DoOneBloc
      (
           const Box2di & aBoxOut,
@@ -792,6 +794,25 @@ void cAppliMICMAC::DoOneBloc
     mSurfOpt = 0;
     mNbBoitesToDo--;
 }
+
+void cAppliMICMAC::DoImagesBSurH(const cDoImageBSurH& aParBsH)
+{
+     cXML_ParamNuage3DMaille aXmlN =  mCurEtape->DoRemplitXML_MTD_Nuage();
+     cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromParam(aXmlN,FullDirMEC());
+     Pt2di aSz = aNuage->Sz();
+     Pt2di aP;
+     Im2D_U_INT1 aRes(aSz.x,aSz.y);
+     for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
+     {
+         for (aP.y=0 ; aP.y<aSz.x ; aP.y++)
+         {
+             if (aNuage->IndexHasContenu(aP))
+             {
+             }
+         }
+     }
+}
+
 
 
 void cAppliMICMAC::InitBlocInterne( const Box2di & aBox)

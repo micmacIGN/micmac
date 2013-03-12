@@ -12277,6 +12277,89 @@ void xml_init(cOneSolImageSec & anObj,cElXMLTree * aTree)
 }
 
 
+std::string & cISOM_Vois::Name()
+{
+   return mName;
+}
+
+const std::string & cISOM_Vois::Name()const 
+{
+   return mName;
+}
+
+
+double & cISOM_Vois::Angle()
+{
+   return mAngle;
+}
+
+const double & cISOM_Vois::Angle()const 
+{
+   return mAngle;
+}
+
+
+double & cISOM_Vois::Nb()
+{
+   return mNb;
+}
+
+const double & cISOM_Vois::Nb()const 
+{
+   return mNb;
+}
+
+cElXMLTree * ToXMLTree(const cISOM_Vois & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ISOM_Vois",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name())->ReTagThis("Name"));
+   aRes->AddFils(::ToXMLTree(std::string("Angle"),anObj.Angle())->ReTagThis("Angle"));
+   aRes->AddFils(::ToXMLTree(std::string("Nb"),anObj.Nb())->ReTagThis("Nb"));
+  return aRes;
+}
+
+void xml_init(cISOM_Vois & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.Name(),aTree->Get("Name",1)); //tototo 
+
+   xml_init(anObj.Angle(),aTree->Get("Angle",1)); //tototo 
+
+   xml_init(anObj.Nb(),aTree->Get("Nb",1)); //tototo 
+}
+
+
+std::list< cISOM_Vois > & cISOM_AllVois::ISOM_Vois()
+{
+   return mISOM_Vois;
+}
+
+const std::list< cISOM_Vois > & cISOM_AllVois::ISOM_Vois()const 
+{
+   return mISOM_Vois;
+}
+
+cElXMLTree * ToXMLTree(const cISOM_AllVois & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ISOM_AllVois",eXMLBranche);
+  for
+  (       std::list< cISOM_Vois >::const_iterator it=anObj.ISOM_Vois().begin();
+      it !=anObj.ISOM_Vois().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("ISOM_Vois"));
+  return aRes;
+}
+
+void xml_init(cISOM_AllVois & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.ISOM_Vois(),aTree->GetAll("ISOM_Vois",false,1));
+}
+
+
 std::string & cImSecOfMaster::Master()
 {
    return mMaster;
@@ -12298,6 +12381,17 @@ const std::list< cOneSolImageSec > & cImSecOfMaster::Sols()const
    return mSols;
 }
 
+
+cTplValGesInit< cISOM_AllVois > & cImSecOfMaster::ISOM_AllVois()
+{
+   return mISOM_AllVois;
+}
+
+const cTplValGesInit< cISOM_AllVois > & cImSecOfMaster::ISOM_AllVois()const 
+{
+   return mISOM_AllVois;
+}
+
 cElXMLTree * ToXMLTree(const cImSecOfMaster & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ImSecOfMaster",eXMLBranche);
@@ -12308,6 +12402,8 @@ cElXMLTree * ToXMLTree(const cImSecOfMaster & anObj)
       it++
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("Sols"));
+   if (anObj.ISOM_AllVois().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.ISOM_AllVois().Val())->ReTagThis("ISOM_AllVois"));
   return aRes;
 }
 
@@ -12318,6 +12414,8 @@ void xml_init(cImSecOfMaster & anObj,cElXMLTree * aTree)
    xml_init(anObj.Master(),aTree->Get("Master",1)); //tototo 
 
    xml_init(anObj.Sols(),aTree->GetAll("Sols",false,1));
+
+   xml_init(anObj.ISOM_AllVois(),aTree->Get("ISOM_AllVois",1)); //tototo 
 }
 
 

@@ -214,6 +214,12 @@ void cArgGetPtsTerrain::AddAGP
    }
 }
 
+void cArgGetPtsTerrain::AddPts(Pt3dr aP1,Pt3di aCoul)
+{
+   mCouls.push_back(aCoul); 
+   mPts.push_back(aP1);
+}
+
 void cArgGetPtsTerrain::AddSeg(Pt3dr aP1,Pt3dr aP2,double aStep,Pt3di aCoul)
 {
    double aD = euclid(aP1-aP2);
