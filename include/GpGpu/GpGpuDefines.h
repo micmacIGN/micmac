@@ -1,0 +1,1 @@
+#define CUDA_ENABLED
