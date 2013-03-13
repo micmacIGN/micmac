@@ -168,18 +168,19 @@ policy %lu (since kernel 2.5.19)
 #include <mach/task.h>
 #include <mach/mach_init.h>
 
-void getres(task_t task, unsigned long *rss, unsigned long *vs)
-{
-    struct task_basic_info t_info;
-    mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
-
-    task_info(task, TASK_BASIC_INFO, (task_info_t)&t_info, &t_info_count);
-    *rss = t_info.resident_size;
-    *vs = t_info.virtual_size;
-}
-
 class MemoryInfo
 {
+private:
+	static void getres(task_t task, unsigned long *rss, unsigned long *vs)
+	{
+		struct task_basic_info t_info;
+		mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+		
+		task_info(task, TASK_BASIC_INFO, (task_info_t)&t_info, &t_info_count);
+		*rss = t_info.resident_size;
+		*vs = t_info.virtual_size;
+	}
+	
  public:
   static size_t Usage(void)
   {

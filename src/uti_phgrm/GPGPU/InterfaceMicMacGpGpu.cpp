@@ -29,6 +29,8 @@ InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
 {
   _gpuThread->interrupt();
   _gpuThread->join();
+  delete _gpuThread;
+
   for (int s = 0;s<NSTREAM;s++)
     checkCudaErrors( cudaStreamDestroy(*(GetStream(s))));
 
