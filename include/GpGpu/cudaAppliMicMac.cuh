@@ -46,6 +46,7 @@ struct pCorGpu
 	 uint	sizeTer;		// taille reel du terrain
 	 uint	sizeSTer;		// Taille du bloque terrain + halo sous echantilloné
 	 uint	sizeCach;		// Taille du cache
+	 uint	sizeCachAll;		// Taille du cache
 
 	 uint	sampProj;		// Pas echantillonage du terrain
 	 float	floatDefault;	// UV Terrain incorrect
@@ -72,6 +73,7 @@ struct pCorGpu
 		 sizeSTer	= size(dimSTer);			// Taille du bloque terrain sous echantilloné
 		 sizeTer	= size(dimTer);
 		 sizeCach	= size(dimCach);
+		 sizeCachAll	= sizeCach * nbImages;
 		 //ZLocInter	= LOCINTERZ;
 		 ZLocInter	= Zinter;
 	 
