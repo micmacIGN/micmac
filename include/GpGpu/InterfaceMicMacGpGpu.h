@@ -26,76 +26,76 @@ extern "C" textureReference&	getProjection(int TexSel);
 class InterfaceMicMacGpGpu
 {
 
-	public:
+public:
 
-		InterfaceMicMacGpGpu();
-		~InterfaceMicMacGpGpu();
+  InterfaceMicMacGpGpu();
+  ~InterfaceMicMacGpGpu();
 
-		void	SetSizeBlock( uint Zinter, Rect Ter);
-		void	SetSizeBlock( uint Zinter);
-		void	SetMask(pixel* dataMask, uint2 dimMask);
-		void	SetImages(float* dataImage, uint2 dimImage, int nbLayer);
-		void	SetParameter(Rect Ter, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ);
-		
-		void	BasicCorrelation( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
-		void	BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
-		pCorGpu Param();
-		
-		void	DeallocMemory();
-		void	MallocInfo();
+  void	SetSizeBlock( uint Zinter, Rect Ter);
+  void	SetSizeBlock( uint Zinter);
+  void	SetMask(pixel* dataMask, uint2 dimMask);
+  void	SetImages(float* dataImage, uint2 dimImage, int nbLayer);
+  void	SetParameter(Rect Ter, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ);
 
-		void	SetHostVolume(float* vCost, float2* vProj);
-		void	SetZToCompute(uint Z);
-		uint	GetZCtoCopy();
-		void	SetZCToCopy(uint Z);
-		bool	GetComputeNextProj();
-		void	SetComputeNextProj(bool compute);
+  void	BasicCorrelation( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
+  void	BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
+  pCorGpu Param();
 
-	private:
-		
-		uint					GetZToCompute();
-		void					ResizeVolume(int nbLayer, uint interZ);
-		void					AllocMemory(int nStream);
-		cudaStream_t*			GetStream(int stream);
-		textureReference&		GetTeXProjection(int texSel);
-		void					MTComputeCost();
+  void	DeallocMemory();
+  void	MallocInfo();
 
-		cudaStream_t			_stream[NSTREAM];
-		pCorGpu		_param;
+  void	SetHostVolume(float* vCost, float2* vProj);
+  void	SetZToCompute(uint Z);
+  uint	GetZCtoCopy();
+  void	SetZCToCopy(uint Z);
+  bool	GetComputeNextProj();
+  void	SetComputeNextProj(bool compute);
 
-		CuDeviceData3D<float>	_volumeCost[NSTREAM];	// volume des couts   
-		CuDeviceData3D<float>	_volumeCach[NSTREAM];	// volume des calculs intermédiaires
-		CuDeviceData3D<uint>	_volumeNIOk[NSTREAM];	// nombre d'image correct pour une vignette
+private:
 
-		ImageCuda<pixel>		_mask;
-		ImageLayeredCuda<float>	_LayeredImages;
-		ImageLayeredCuda<float2>_LayeredProjection[NSTREAM];
+  uint                  GetZToCompute();
+  void			ResizeVolume(int nbLayer, uint interZ);
+  void			AllocMemory(int nStream);
+  cudaStream_t*		GetStream(int stream);
+  textureReference&	GetTeXProjection(int texSel);
+  void			MTComputeCost();
 
-		textureReference&		_texMask;
-		textureReference&		_texMaskD;
- 		textureReference&		_texImages;
- 		textureReference&		_texProjections_00;
-		textureReference&		_texProjections_01;
-		textureReference&		_texProjections_02;
-		textureReference&		_texProjections_03;
-		boost::thread*			_gpuThread;
-		boost::mutex			_mutex;
-		boost::mutex			_mutexC;
-		boost::mutex			_mutexCompute;
-		float*					_vCost;
-		float2*					_vProj;	
-		uint					_ZCompute;
-		uint					_ZCCopy;
-		bool					_computeNextProj;
+  cudaStream_t		_stream[NSTREAM];
+  pCorGpu		_param;
+
+  CuDeviceData3D<float>	_volumeCost[NSTREAM];	// volume des couts
+  CuDeviceData3D<float>	_volumeCach[NSTREAM];	// volume des calculs intermédiaires
+  CuDeviceData3D<uint>	_volumeNIOk[NSTREAM];	// nombre d'image correct pour une vignette
+
+  ImageCuda<pixel>		_mask;
+  ImageLayeredCuda<float>	_LayeredImages;
+  ImageLayeredCuda<float2>      _LayeredProjection[NSTREAM];
+
+  textureReference&		_texMask;
+  textureReference&		_texMaskD;
+  textureReference&		_texImages;
+  textureReference&		_texProjections_00;
+  textureReference&		_texProjections_01;
+  textureReference&		_texProjections_02;
+  textureReference&		_texProjections_03;
+  boost::thread*		_gpuThread;
+  boost::mutex			_mutex;
+  boost::mutex			_mutexC;
+  boost::mutex			_mutexCompute;
+  float*			_vCost;
+  float2*			_vProj;
+  uint				_ZCompute;
+  uint				_ZCCopy;
+  bool				_computeNextProj;
 
 #ifdef USEDILATEMASK	
 public:
-	void	dilateMask(uint2 dim);
-	pixel*	GetDilateMask();
+  void	dilateMask(uint2 dim);
+  pixel*	GetDilateMask();
 private:
-	pixel	ValDilMask(int2 pt);
-	pixel*					_dilateMask;
-	uint2					_dimDilateMask;
+  pixel	ValDilMask(int2 pt);
+  pixel*				_dilateMask;
+  uint2					_dimDilateMask;
 #endif
 
 };

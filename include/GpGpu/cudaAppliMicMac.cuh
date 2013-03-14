@@ -56,8 +56,8 @@ struct pCorGpu
 	 Rect	rTer;			// Rectangle du terrain 
 	 float	mAhEpsilon;		// 
 
-	 Rect	RDTer() { return rDTer; };
-	 Rect	RTer() { return rTer; };
+	 Rect	RDTer() { return rDTer; }
+	 Rect	RTer() { return rTer; }
 
 	 void SetDimension(Rect Ter, uint Zinter)
 	 {
