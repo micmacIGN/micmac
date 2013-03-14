@@ -231,20 +231,28 @@ __global__ void multiCorrelationKernelNA(float *dTCost, float* cacheVign, int* d
   const uint	iTer	= blockIdx.z * cH.sizeTer + to1D(ptTer, cH.dimTer);     // Coordonnées 1D dans le terrain avec prise en compte des differents Z
   const uint2   thTer	= t / cH.dimVig;                                        // Coordonnées 2D du terrain dans le repere des threads
 
+  //if(aEq(t,thTer * cH.dimVig))
   nbIm[thTer.y][thTer.x] = (ushort)dev_NbImgOk[iTer];
+
+  //__syncthreads();
 
   if ( nbIm[thTer.y][thTer.x]  < 2) return;
 
   const uint pitLayerCache  = blockIdx.z * cH.sizeCachAll + to1D( ptCach, cH.dimCach );	// Taille du cache vignette pour une image
+  //const uint pit  = blockIdx.z * cH.nbImages;
 
  #pragma unroll
   for(uint i = 0;i< cH.sizeCachAll;i+=cH.sizeCach)
+  //for(uint l = pit ;l< pit + cH.nbImages;l++)
     {
       const uint iCach = pitLayerCache  + i;
-      if(cacheVign[iCach] != cH.floatDefault)
+      const float val  = cacheVign[iCach];
+      //const float val  = tex2DLayered( TexL_Cache,ptCach.x , ptCach.y,l);
+
+      if(val!= cH.floatDefault)
         {
           // Coordonnées 1D du cache vignette
-          const float val  = cacheVign[iCach];
+
           aSV[t.y][t.x]   += val;
           aSVV[t.y][t.x]  += val * val;
         }

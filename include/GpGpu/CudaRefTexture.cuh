@@ -8,6 +8,8 @@ TexFloat2Layered							TexL_Proj_00;
 TexFloat2Layered							TexL_Proj_01;
 TexFloat2Layered							TexL_Proj_02;
 TexFloat2Layered							TexL_Proj_03;
+//texture< float,	cudaTextureType2DLayered >	TexL_Cache;
+
 
 template<int TexSel> __device__ __host__ TexFloat2Layered TexFloat2L();
 
@@ -39,6 +41,8 @@ template<int TexSel> inline  __device__ float2 GetProjection(uint2 ptTer, uint s
 
 extern "C" textureReference& getMask(){	return TexS_MaskTer;}
 extern "C" textureReference& getImage(){ return TexL_Images;}
+//extern "C" textureReference& getCache(){ return TexL_Cache;}
+
 extern "C" textureReference& getProjection(int TexSel)
 {
 	switch (TexSel)

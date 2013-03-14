@@ -20,6 +20,7 @@ extern "C" textureReference& getMaskD();
 extern "C" textureReference&	getMask();
 extern "C" textureReference&	getImage();
 extern "C" textureReference&	getProjection(int TexSel);
+//extern "C" textureReference&    getCache();
 
 #define NSTREAM 1
 
@@ -74,6 +75,7 @@ private:
   textureReference&		_texMask;
   textureReference&		_texMaskD;
   textureReference&		_texImages;
+  //textureReference&		_texCache;
   textureReference&		_texProjections_00;
   textureReference&		_texProjections_01;
   textureReference&		_texProjections_02;
