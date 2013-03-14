@@ -4,6 +4,7 @@ InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
   _texMask(getMask()),
   _texMaskD(getMaskD()),
   _texImages(getImage()),
+  //_texCache(getCache()),
   _texProjections_00(getProjection(0)),
   _texProjections_01(getProjection(1)),
   _texProjections_02(getProjection(2)),
@@ -23,6 +24,30 @@ InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
   _mask.CData2D::SetName("_mask");
   _LayeredImages.CData3D::SetName("_LayeredImages");
   _LayeredProjection->CData3D::SetName("_LayeredProjection");
+
+
+  // Parametres texture des projections
+  for (int s = 0;s<NSTREAM;s++)
+    {
+
+      GetTeXProjection(s).addressMode[0]	= cudaAddressModeBorder;
+      GetTeXProjection(s).addressMode[1]	= cudaAddressModeBorder;
+      GetTeXProjection(s).filterMode		= cudaFilterModeLinear; //cudaFilterModePoint cudaFilterModeLinear
+      GetTeXProjection(s).normalized		= false;
+
+    }
+  // Parametres texture des Images
+  _texImages.addressMode[0]	= cudaAddressModeWrap;
+  _texImages.addressMode[1]	= cudaAddressModeWrap;
+  _texImages.filterMode		= cudaFilterModeLinear; //cudaFilterModeLinear cudaFilterModePoint
+  _texImages.normalized		= false;
+
+  // Parametres texture des Caches
+//  _texCache.addressMode[0]	= cudaAddressModeWrap;
+//  _texCache.addressMode[1]	= cudaAddressModeWrap;
+//  _texCache.filterMode		= cudaFilterModePoint; //cudaFilterModeLinear cudaFilterModePoint
+//  _texCache.normalized		= false;
+
 }
 
 InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
@@ -115,23 +140,6 @@ void InterfaceMicMacGpGpu::SetMask( pixel* dataMask, uint2 dimMask )
 void InterfaceMicMacGpGpu::SetParameter( Rect Ter, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ )
 {
 
-  // Parametres texture des projections
-  for (int s = 0;s<NSTREAM;s++)
-    {
-
-      GetTeXProjection(s).addressMode[0]	= cudaAddressModeBorder;
-      GetTeXProjection(s).addressMode[1]	= cudaAddressModeBorder;
-      GetTeXProjection(s).filterMode		= cudaFilterModeLinear; //cudaFilterModePoint cudaFilterModeLinear
-      GetTeXProjection(s).normalized		= false;
-
-    }
-  // Parametres texture des Images
-  _texImages.addressMode[0]	= cudaAddressModeWrap;
-  _texImages.addressMode[1]	= cudaAddressModeWrap;
-  _texImages.filterMode		= cudaFilterModeLinear; //cudaFilterModeLinear cudaFilterModePoint
-  _texImages.normalized		= false;
-
-
   // Initialisation des parametres constants
   _param.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
   // Initialisation des parametres de dimensions du terrain
@@ -180,6 +188,11 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
   // Lancement du calcul de correlation
   KernelCorrelation(s, *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo);
 
+//  ImageLayeredCuda<float> textureCache;
+//  textureCache.Realloc(_param.dimCach,_param.nbImages * _param.ZLocInter);
+//  textureCache.copyDeviceToDevice(_volumeCach[s].pData());
+//  textureCache.bindTexture(_texCache);
+
   // Lancement du calcul de multi-correlation
   if(useAtomic)
     {
@@ -209,6 +222,9 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
   checkCudaErrors( cudaUnbindTexture(&(GetTeXProjection(s))));
   // Copier les resultats de calcul des couts du device vers le host!
   _volumeCost[s].CopyDevicetoHost(hostVolumeCost);
+
+  //checkCudaErrors( cudaUnbindTexture(&_texCache));
+  //textureCache.Dealloc();
 
 }
 

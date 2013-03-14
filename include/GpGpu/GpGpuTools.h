@@ -775,6 +775,7 @@ public:
 	bool	Memset(int val){return AImageCuda::Memset(val);}
 	bool	Dealloc(){return AImageCuda::Dealloc();}
 	bool	copyHostToDevice(T* data);
+	bool	copyDeviceToDevice(T* data);
 	bool	copyHostToDeviceASync(T* data, cudaStream_t stream = 0);
 	void	OutputInfo(){CData3D::OutputInfo();}
 
@@ -824,6 +825,24 @@ bool ImageLayeredCuda<T>::copyHostToDevice( T* data )
 
 	// Copie des images du Host vers le Device
 	return CData3D::ErrorOutput(cudaMemcpy3D(&p),"copyHostToDevice") ;
+}
+
+template <class T>
+bool ImageLayeredCuda<T>::copyDeviceToDevice(T *data)
+{
+  cudaExtent sizeImagesLayared = make_cudaExtent( CData3D::GetDimension().x, CData3D::GetDimension().y, CData3D::GetNbLayer());
+
+  // Déclaration des parametres de copie 3D
+  cudaMemcpy3DParms	p		= { 0 };
+  cudaPitchedPtr		pitch	= make_cudaPitchedPtr(data, sizeImagesLayared.width * sizeof(T), sizeImagesLayared.width, sizeImagesLayared.height);
+
+  p.dstArray	= AImageCuda::GetCudaArray();	// Pointeur du tableau de destination
+  p.srcPtr	= pitch;					// Pitch
+  p.extent	= sizeImagesLayared;		// Taille du cube
+  p.kind	= cudaMemcpyDeviceToDevice;	// Type de copie
+
+  // Copie des images du Host vers le Device
+  return CData3D::ErrorOutput(cudaMemcpy3D(&p),"copyDeviceToDevice") ;
 }
 
 template <class T>
