@@ -33,9 +33,9 @@ class GpGpuTools
 
 public:
 	
-	GpGpuTools(){};
+	GpGpuTools(){}
 	
-	~GpGpuTools(){};
+	~GpGpuTools(){}
 	
 	//					Convertir array 2D en tableau linéaire
 	template <class T>
@@ -251,8 +251,8 @@ class struct2D
 {
 public:
 
-	struct2D(){};
-	~struct2D(){};
+	struct2D(){}
+	~struct2D(){}
 	uint2		GetDimension();
 	uint2		SetDimension(uint2 dimension);
 	uint2		SetDimension(int dimX,int dimY);
@@ -271,8 +271,8 @@ class struct2DLayered : public struct2D
 
 public:
 
-	struct2DLayered(){};
-	~struct2DLayered(){};
+	struct2DLayered(){}
+	~struct2DLayered(){}
 	uint	GetNbLayer();
 	void	SetNbLayer(uint nbLayer);
 	void	SetDimension(uint2 dimension, uint nbLayer);
@@ -291,7 +291,7 @@ class CData : public CGObject
 
 public:
 	CData();
-	~CData(){};
+	~CData(){}
 	virtual bool	Malloc()		= 0;
 	virtual bool	Memset(int val) = 0;
 	virtual bool	Dealloc()		= 0;
@@ -409,7 +409,7 @@ class CData2D : public struct2D, public CData<T>
 public:
 
 	CData2D();
-	~CData2D(){};
+	~CData2D(){}
 	virtual bool	Malloc() = 0;
 	virtual bool	Memset(int val) = 0;
 	virtual bool	Dealloc() = 0;
@@ -464,7 +464,7 @@ public:
 
 	CData3D();
 	CData3D(uint2 dim, uint l);
-	~CData3D(){};
+	~CData3D(){}
 	virtual bool	Malloc() = 0;
 	virtual bool	Memset(int val) = 0;
 	virtual bool	Dealloc() = 0;
@@ -524,7 +524,7 @@ class CuHostData3D : public CData3D<T>
 public:
 	CuHostData3D();
 	CuHostData3D(uint2 dim, uint l);
-	~CuHostData3D(){};
+	~CuHostData3D(){}
 	bool Dealloc();
 	bool Malloc();
 	bool Memset(int val);
@@ -578,7 +578,7 @@ class CuDeviceData2D : public CData2D<T>
 public:
 
 	CuDeviceData2D();
-	~CuDeviceData2D(){};
+	~CuDeviceData2D(){}
 	bool Dealloc();
 	bool Malloc();
 	bool Memset(int val);
@@ -636,7 +636,7 @@ class CuDeviceData3D : public CData3D<T>
 public:
 
 	CuDeviceData3D();
-	~CuDeviceData3D(){};
+	~CuDeviceData3D(){}
 	bool	Dealloc();
 	bool	Malloc();
 	bool	Memset(int val);
@@ -696,8 +696,8 @@ bool CuDeviceData3D<T>::Dealloc()
 class AImageCuda : public CData<cudaArray>
 {
 public:
-	AImageCuda(){};
-	~AImageCuda(){};
+	AImageCuda(){}
+	~AImageCuda(){}
 	bool		bindTexture(textureReference& texRef);
 	cudaArray*	GetCudaArray();
 	bool		Dealloc();
@@ -712,14 +712,14 @@ class ImageCuda : public CData2D<cudaArray>, public AImageCuda
 public:
 
 	ImageCuda();
-	~ImageCuda(){};
+	~ImageCuda(){}
 	
 	bool	InitImage(uint2 dimension, T* data);
 	bool	Malloc();
 	bool	copyHostToDevice(T* data);
-	bool	Memset(int val){return AImageCuda::Memset(val);};
-	bool	Dealloc(){return AImageCuda::Dealloc();};
-	void	OutputInfo(){CData2D::OutputInfo();};
+	bool	Memset(int val){return AImageCuda::Memset(val);}
+	bool	Dealloc(){return AImageCuda::Dealloc();}
+	void	OutputInfo(){CData2D::OutputInfo();}
 
 private:
 
@@ -770,17 +770,17 @@ class ImageLayeredCuda : public CData3D<cudaArray>, public AImageCuda
 public:
 
 	ImageLayeredCuda();
-	~ImageLayeredCuda(){};
+	~ImageLayeredCuda(){}
 	bool	Malloc();
-	bool	Memset(int val){return AImageCuda::Memset(val);};
-	bool	Dealloc(){return AImageCuda::Dealloc();};
+	bool	Memset(int val){return AImageCuda::Memset(val);}
+	bool	Dealloc(){return AImageCuda::Dealloc();}
 	bool	copyHostToDevice(T* data);
 	bool	copyHostToDeviceASync(T* data, cudaStream_t stream = 0);
-	void	OutputInfo(){CData3D::OutputInfo();};
+	void	OutputInfo(){CData3D::OutputInfo();}
 
 private:
 
-	T*		_ClassData;
+	T*	_ClassData;
 };
 
 template <class T>

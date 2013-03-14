@@ -20,7 +20,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
   // Si le processus est hors du terrain, nous sortons du kernel
   if (oSE(ptHTer,cH.dimDTer)) return;
 
-  const float2 ptProj = GetProjection<TexSel>(ptHTer,cH.dimSTer,cH.sampProj,blockIdx.z);
+  const float2 ptProj = GetProjection<TexSel>(ptHTer,cH.sampProj,blockIdx.z);
 
   uint pitZ,modZ;
 
@@ -33,7 +33,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
     {
       pitZ  = blockIdx.z / cH.nbImages;
       modZ  = blockIdx.z - pitZ * cH.nbImages;
-      cacheImg[threadIdx.y][threadIdx.x] = GetImageValue(ptProj,cH.dimImg,modZ);
+      cacheImg[threadIdx.y][threadIdx.x] = GetImageValue(ptProj,modZ);
     }
   __syncthreads();
 
