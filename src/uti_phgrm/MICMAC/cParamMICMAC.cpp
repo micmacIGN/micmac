@@ -5528,14 +5528,36 @@ const cTplValGesInit< double > & cDoImageBSurH::SeuilMasqExport()const
 }
 
 
-cTplValGesInit< std::string > & cDoImageBSurH::Name()
+std::string & cDoImageBSurH::Name()
 {
    return mName;
 }
 
-const cTplValGesInit< std::string > & cDoImageBSurH::Name()const 
+const std::string & cDoImageBSurH::Name()const 
 {
    return mName;
+}
+
+
+double & cDoImageBSurH::ScaleNuage()
+{
+   return mScaleNuage;
+}
+
+const double & cDoImageBSurH::ScaleNuage()const 
+{
+   return mScaleNuage;
+}
+
+
+std::string & cDoImageBSurH::NameNuage()
+{
+   return mNameNuage;
+}
+
+const std::string & cDoImageBSurH::NameNuage()const 
+{
+   return mNameNuage;
 }
 
 cElXMLTree * ToXMLTree(const cDoImageBSurH & anObj)
@@ -5547,8 +5569,9 @@ cElXMLTree * ToXMLTree(const cDoImageBSurH & anObj)
       aRes->AddFils(::ToXMLTree(std::string("Offset"),anObj.Offset().Val())->ReTagThis("Offset"));
    if (anObj.SeuilMasqExport().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("SeuilMasqExport"),anObj.SeuilMasqExport().Val())->ReTagThis("SeuilMasqExport"));
-   if (anObj.Name().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name().Val())->ReTagThis("Name"));
+   aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name())->ReTagThis("Name"));
+   aRes->AddFils(::ToXMLTree(std::string("ScaleNuage"),anObj.ScaleNuage())->ReTagThis("ScaleNuage"));
+   aRes->AddFils(::ToXMLTree(std::string("NameNuage"),anObj.NameNuage())->ReTagThis("NameNuage"));
   return aRes;
 }
 
@@ -5563,6 +5586,10 @@ void xml_init(cDoImageBSurH & anObj,cElXMLTree * aTree)
    xml_init(anObj.SeuilMasqExport(),aTree->Get("SeuilMasqExport",1)); //tototo 
 
    xml_init(anObj.Name(),aTree->Get("Name",1)); //tototo 
+
+   xml_init(anObj.ScaleNuage(),aTree->Get("ScaleNuage",1)); //tototo 
+
+   xml_init(anObj.NameNuage(),aTree->Get("NameNuage",1)); //tototo 
 }
 
 
@@ -9124,50 +9151,6 @@ cTplValGesInit< cCorrelAdHoc > & cEtapeMEC::CorrelAdHoc()
 const cTplValGesInit< cCorrelAdHoc > & cEtapeMEC::CorrelAdHoc()const 
 {
    return mCorrelAdHoc;
-}
-
-
-cTplValGesInit< double > & cEtapeMEC::Dyn()
-{
-   return DoImageBSurH().Val().Dyn();
-}
-
-const cTplValGesInit< double > & cEtapeMEC::Dyn()const 
-{
-   return DoImageBSurH().Val().Dyn();
-}
-
-
-cTplValGesInit< double > & cEtapeMEC::Offset()
-{
-   return DoImageBSurH().Val().Offset();
-}
-
-const cTplValGesInit< double > & cEtapeMEC::Offset()const 
-{
-   return DoImageBSurH().Val().Offset();
-}
-
-
-cTplValGesInit< double > & cEtapeMEC::SeuilMasqExport()
-{
-   return DoImageBSurH().Val().SeuilMasqExport();
-}
-
-const cTplValGesInit< double > & cEtapeMEC::SeuilMasqExport()const 
-{
-   return DoImageBSurH().Val().SeuilMasqExport();
-}
-
-
-cTplValGesInit< std::string > & cEtapeMEC::Name()
-{
-   return DoImageBSurH().Val().Name();
-}
-
-const cTplValGesInit< std::string > & cEtapeMEC::Name()const 
-{
-   return DoImageBSurH().Val().Name();
 }
 
 

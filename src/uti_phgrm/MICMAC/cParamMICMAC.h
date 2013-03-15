@@ -1915,13 +1915,21 @@ class cDoImageBSurH
         cTplValGesInit< double > & SeuilMasqExport();
         const cTplValGesInit< double > & SeuilMasqExport()const ;
 
-        cTplValGesInit< std::string > & Name();
-        const cTplValGesInit< std::string > & Name()const ;
+        std::string & Name();
+        const std::string & Name()const ;
+
+        double & ScaleNuage();
+        const double & ScaleNuage()const ;
+
+        std::string & NameNuage();
+        const std::string & NameNuage()const ;
     private:
         cTplValGesInit< double > mDyn;
         cTplValGesInit< double > mOffset;
         cTplValGesInit< double > mSeuilMasqExport;
-        cTplValGesInit< std::string > mName;
+        std::string mName;
+        double mScaleNuage;
+        std::string mNameNuage;
 };
 cElXMLTree * ToXMLTree(const cDoImageBSurH &);
 
@@ -3057,18 +3065,6 @@ class cEtapeMEC
 
         cTplValGesInit< cCorrelAdHoc > & CorrelAdHoc();
         const cTplValGesInit< cCorrelAdHoc > & CorrelAdHoc()const ;
-
-        cTplValGesInit< double > & Dyn();
-        const cTplValGesInit< double > & Dyn()const ;
-
-        cTplValGesInit< double > & Offset();
-        const cTplValGesInit< double > & Offset()const ;
-
-        cTplValGesInit< double > & SeuilMasqExport();
-        const cTplValGesInit< double > & SeuilMasqExport()const ;
-
-        cTplValGesInit< std::string > & Name();
-        const cTplValGesInit< std::string > & Name()const ;
 
         cTplValGesInit< cDoImageBSurH > & DoImageBSurH();
         const cTplValGesInit< cDoImageBSurH > & DoImageBSurH()const ;

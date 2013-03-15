@@ -216,6 +216,24 @@
             <Arrite>  1 1 </Arrite>
             <Direct>
                 <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  #1$1/#2$1.#3  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform>#1(.*)/#2(.*).#3  </PatternTransform>
+                <CalcName>  $2  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   NKS-Assoc-Im2NuageInit </Key>
+    </KeyedNamesAssociations>
+
+    <!-- C'est quasiment la meme qie NKS-Assoc-Im2Orient,  mais pas SubDirAutoMake
+        pas tres elegant comme duplication, mais bon ....  -->
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
                 <CalcName>  Ori#1/Orientation-$1.xml  </CalcName>
              </Direct>
             <Inverse>

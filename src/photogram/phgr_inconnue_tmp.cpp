@@ -1309,11 +1309,8 @@ if (0) // (MPD_MM())
       }
 
 
-//std::cout << "PPPPii " << aParam.mProjIsInit <<"\n";I
       if (aParam.mProjIsInit)
       {
-          // std::cout  << "==== " << aROIF.mVal1 << " " << aROIF.mVal2 << " " << aROIF.mVal3 << "\n";
-         //   std::cout << aSomT << aROIF.mVec1 << aROIF.mVec2 << aROIF.mVec3 << "\n";
 
           if (aROIF.mVal1 <=0)
           {

@@ -507,6 +507,11 @@ std::cout << "CCMMM = " << aBoxClip._p0 << " " << aBoxClip._p1 << "\n"; getchar(
      if (ByProcess().Val()!=0)
         ExeProcessParallelisable(true,aLStrProcess);
 	 
+
+   if (anEM.DoImageBSurH().IsInit())
+   {
+      DoImagesBSurH(anEM.DoImageBSurH().Val());
+   }
 }
 
 
@@ -795,22 +800,133 @@ void cAppliMICMAC::DoOneBloc
     mNbBoitesToDo--;
 }
 
+template <class aTVect> double EcartType(const aTVect & aV,const  std::vector<double> * aVPds)
+{
+   typename aTVect::value_type aSomT;
+   typename aTVect::value_type aSomT2;
+   double aSP = 0;
+   double aSP2 = 0;
+
+   int aK=0;
+   for (typename aTVect::const_iterator itV=aV.begin() ; itV!=aV.end() ; itV++)
+   {
+          double aPds = aVPds ? (*aVPds)[aK] : 1.0 ;
+          typename aTVect::value_type aT = *itV;
+          aSomT = aSomT + aT*aPds;
+          aSomT2 = aSomT2 + Pcoord2(aT) *aPds;
+          aSP += aPds;
+          aSP2 += ElSquare(aPds);
+          aK++;
+   }
+   aSomT = aSomT / aSP;
+   aSomT2 = aSomT2 / aSP;
+   aSomT2 = aSomT2 - Pcoord2(aSomT);
+
+      // Ce debiaisement est necessaire, par exemple si tous les poids sauf 1 sont
+      // presque nuls
+   double aDebias = 1 - aSP2/ElSquare(aSP);
+   ELISE_ASSERT(aDebias>0,"Singularity in cManipPt3TerInc::CalcPTerInterFaisceauCams ");
+   aSomT2 =  aSomT2/ aDebias;
+
+   // double anEc2 = aSomT2.x+aSomT2.y+aSomT2.z;
+   double anEc2 = SomCoord(aSomT2);
+   if (anEc2 <= -1e-7)
+   {
+       std::cout << "EC2 =" << anEc2 << "\n";
+       ELISE_ASSERT(false,"Singularity in BSurH_SetOfDir ");
+   }
+   anEc2 = sqrt(ElMax(0.0,anEc2));
+    return anEc2;
+}
+
+double BSurH_SetOfDir(const std::vector<Pt3dr> & aV,const  std::vector<double> * aVPds)
+{
+      // Adaptation purement heuristique
+   return     1.35 * EcartType(aV,aVPds);
+}
+
+        // virtual ElSeg3D FaisceauPersp(const Pt2dr & )  const;
 void cAppliMICMAC::DoImagesBSurH(const cDoImageBSurH& aParBsH)
 {
+     ElTimer aChrono;
+     double aDownScale = aParBsH.ScaleNuage();
+
      cXML_ParamNuage3DMaille aXmlN =  mCurEtape->DoRemplitXML_MTD_Nuage();
-     cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromParam(aXmlN,FullDirMEC());
+     cElNuage3DMaille *  aFullNuage = cElNuage3DMaille::FromParam(aXmlN,FullDirMEC());
+
+     cElNuage3DMaille *  aNuage = aFullNuage->ReScaleAndClip(aDownScale);
+
+
      Pt2di aSz = aNuage->Sz();
-     Pt2di aP;
      Im2D_U_INT1 aRes(aSz.x,aSz.y);
-     for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
+     TIm2D<U_INT1,INT> aTRes(aRes);
+
+     Im2D_Bits<1>  aNewMasq(aSz.x,aSz.y,0);
+     TIm2DBits<1>  aTNMasq(aNewMasq);
+     double aSeuilBsH = aParBsH.SeuilMasqExport().ValWithDef(0);
+
+     Pt2di aPIndex;
+     double aPax[theDimPxMax] ={0,0};
+
+     for (aPIndex.x=0 ; aPIndex.x<aSz.x ; aPIndex.x++)
      {
-         for (aP.y=0 ; aP.y<aSz.x ; aP.y++)
+         for (aPIndex.y=0 ; aPIndex.y<aSz.y ; aPIndex.y++)
          {
-             if (aNuage->IndexHasContenu(aP))
+             int aVal = 255;
+             if (aNuage->IndexHasContenu(aPIndex))
              {
+                Pt3dr aPEucl = aNuage->PtOfIndex(aPIndex);
+                // Pt3dr aQE = aNuage->Euclid2ProfAndIndex(aPEucl);
+                // Pt2dr aPE2(aPEucl.x,aPEucl.y);
+                aPax[0] = aPEucl.z;
+                std::vector<Pt3dr> aVN;
+                for (int aKPdv=0 ; aKPdv<int(mPrisesDeVue.size()) ; aKPdv++)
+                {
+                    cPriseDeVue & aPDV = *(mPrisesDeVue[aKPdv]);
+                    cGeomImage & aGeom = aPDV.Geom();
+                    CamStenope *  aCS = aGeom.GetOriNN() ;
+
+                    Pt2dr  aPIm = aCS->R3toF2(aPEucl);
+
+
+                    //  Pt2dr  aPIm = aGeom.Objet2ImageInit_Euclid(aPE2,aPax);
+                    Pt2di  aSz = aPDV.SzIm() ;
+                    if ((aPIm.x>0) && (aPIm.y>0) && (aPIm.x<aSz.x) && (aPIm.y<aSz.y))
+                    {
+                          Pt3dr aN = vunit(aPEucl-aCS->PseudoOpticalCenter());
+                          aVN.push_back(aN);
+                    }
+                }
+                if (aVN.size() > 1)
+                {
+                   double aRVal = BSurH_SetOfDir(aVN,0);
+                   aTNMasq.oset(aPIndex,aRVal > aSeuilBsH);
+                   aRVal = (aRVal+aParBsH.Offset().Val()) * aParBsH.Dyn().Val();
+                   aVal = ElMax(0,ElMin(253,round_ni(aRVal)));
+                }
+                else
+                {
+                   aVal = 254;
+                }
              }
+             aTRes.oset(aPIndex,aVal);
          }
      }
+     Tiff_Im::Create8BFromFonc
+     (
+         FullDirMEC()+aParBsH.Name(),
+         aRes.sz(),
+         aRes.in()
+     );
+     Im2D_Bits<1>  anOldMasq = aNuage->ImDef();
+     ELISE_COPY
+     (
+          anOldMasq.all_pts(),
+          anOldMasq.in() && close_32(aNewMasq.in(0),6),
+          anOldMasq.out()
+     );
+     aNuage->Save(aParBsH.NameNuage());
+     std::cout << "Time-BSH " << aChrono.uval();
 }
 
 

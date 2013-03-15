@@ -739,11 +739,11 @@ template <class Type>
 Pt3d<Type> Inf (const Pt3d<Type> & p1,const Pt3d<Type> & p2) 
 { return Pt3d<Type>(ElMin(p1.x,p2.x),ElMin(p1.y,p2.y),ElMin(p1.z,p2.z));}
 
-inline Pt3dr Pcoord2(const Pt3dr & aP)
-{
-   return Pt3dr(ElSquare(aP.x),ElSquare(aP.y),ElSquare(aP.z));
-}
+inline Pt3dr Pcoord2(const Pt3dr & aP) { return Pt3dr(ElSquare(aP.x),ElSquare(aP.y),ElSquare(aP.z)); }
+inline Pt2dr Pcoord2(const Pt2dr & aP) { return Pt2dr(ElSquare(aP.x),ElSquare(aP.y)); }
 
+inline double SomCoord(const Pt3dr & aP) { return aP.x+aP.y+aP.z;}
+inline double SomCoord(const Pt2dr & aP) { return aP.x+aP.y;}
 
 
 

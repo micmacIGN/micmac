@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2004]) = {
+const char * (theNameVar_ParamMICMAC[2006]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -961,12 +961,14 @@ const char * (theNameVar_ParamMICMAC[2004]) = {
 "                </TypeCAH>\n",
 "            </CorrelAdHoc>\n",
 "\n",
-"            <DoImageBSurH Nb=\"?\">\n",
+"            <DoImageBSurH Nb=\"?\" AccessorFils=\"false\">\n",
 "                 <Dyn Nb=\"?\" Type=\"double\" Def=\"1e-2\"> </Dyn>\n",
 "                 <!-- Offset >0 si on veut stocker les eventuel B/H neg (vue derriere la cam) -->\n",
 "                 <Offset Nb=\"?\" Type=\"double\" Def=\"0\"> </Offset>\n",
 "                 <SeuilMasqExport Nb=\"?\" Type=\"double\"> </SeuilMasqExport>\n",
-"                 <Name Nb=\"?\" Type=\"std::string\"> </Name>\n",
+"                 <Name Nb=\"1\" Type=\"std::string\"> </Name>\n",
+"                 <ScaleNuage Nb=\"1\" Type=\"double\"> </ScaleNuage>\n",
+"                 <NameNuage Nb=\"1\" Type=\"std::string\"> </NameNuage>\n",
 "            </DoImageBSurH>\n",
 "\n",
 "             <DoStatResult Nb=\"?\">\n",

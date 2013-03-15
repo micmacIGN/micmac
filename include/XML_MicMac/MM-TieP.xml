@@ -10,9 +10,9 @@
 
 mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./  +ImPat="IMGP3454.PEF"  +Ori=-All +ImSec=-All
 
-
-
    mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/media/data1/Jeux-Tests/Dragon-2/  +Im1=IMGP7528.PEF +Ori=-All +Zoom=2 +Visu=1 +Do2Z=false
+
+    mm3d MICMAC  /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml  WorkDir=/media/data/Jeux-Test/Tortue-Pagode-Hue/ +Im1=IMGP6861.JPG +Visu=0 +DoPly=1
 -->
 
 <ParamMICMAC>
@@ -38,6 +38,11 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
    <Symb> ImTextPly=${Im1}_Scaled_${ZVE}.tif </Symb>
    <Symb> ImSec=${Ori} </Symb>
    <eSymb> EtapeFin= ?  ${Do2Z} 4 3 </eSymb>
+
+
+    <Symb> SeuilSCor=0.65 </Symb>
+    <Symb> SeuilMCor=0.8  </Symb>
+
 </DicoLoc>
 
 
@@ -144,8 +149,8 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                         <MasqueAutoByTieP>
                             <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>
                             <DeltaZ >        1                         </DeltaZ>
-                            <SeuilSomCostCorrel> 0.65 </SeuilSomCostCorrel>
-                            <SeuilMaxCostCorrel> 0.8 </SeuilMaxCostCorrel>
+                            <SeuilSomCostCorrel> ${SeuilSCor}  </SeuilSomCostCorrel>
+                            <SeuilMaxCostCorrel> ${SeuilMCor}  </SeuilMaxCostCorrel>
                             <Visu> ${Visu} </Visu>
                         </MasqueAutoByTieP>
                      </TypeCAH>
@@ -179,8 +184,8 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                         <MasqueAutoByTieP>
                             <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>
                             <DeltaZ >        1                         </DeltaZ>
-                            <SeuilSomCostCorrel> 0.65 </SeuilSomCostCorrel>
-                            <SeuilMaxCostCorrel> 0.8 </SeuilMaxCostCorrel>
+                            <SeuilSomCostCorrel> ${SeuilSCor}  </SeuilSomCostCorrel>
+                            <SeuilMaxCostCorrel> ${SeuilMCor}  </SeuilMaxCostCorrel>
                             <Visu> ${Visu} </Visu>
                             <#WHEN  VTEST=${Do2Z}>
                                 <TiePMasqIm>
@@ -221,8 +226,15 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                  <DeZoom >        ${Zoom}   </DeZoom> 
                  <AlgoRegul>  eAlgoDequant  </AlgoRegul>
                  <ZPas>       1             </ZPas>
+                 <DoImageBSurH>
+                     <Dyn>  100 </Dyn>
+                     <Offset> 0  </Offset>
+                     <SeuilMasqExport> 0.02 </SeuilMasqExport> 
+                     <Name> BSH-${Im1}.tif </Name>
+                     <NameNuage> RN${Im1}  </NameNuage>
+                     <ScaleNuage> 3.0  </ScaleNuage>
+                </DoImageBSurH>
         </EtapeMEC> 
-
 
 
 <!--
@@ -248,7 +260,10 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
     <PostProcess>
        <OneCmdPar>
+                <OneCmdSer>  echo   ${ThisDir} </OneCmdSer>
+<!--
                 <OneCmdSer>  ${MMDir}bin/mm3d ScaleNuage  ${ThisDir}${DirMEC}/NuageImProf_LeChantier_Etape_${EtapeFin}.xml  RN${Im1} ${ReduceExp} </OneCmdSer>
+-->
                 <#WHEN  VTEST=${DoPly}>
                      <OneCmdSer>  ${MMDir}bin/mm3d ScaleIm    ${ThisDir}/${Im1}  ${ZVE} F8B=true Out=${ThisDir}/${ImTextPly}  </OneCmdSer>
                      <OneCmdSer>  ${MMDir}bin/mm3d Nuage2Ply   ${ThisDir}${DirMEC}/RN${Im1}.xml   Attr=${ThisDir}/${ImTextPly} </OneCmdSer>
