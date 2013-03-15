@@ -253,7 +253,7 @@ if(NOT WIN32)
 
         # Warning POISSON
         if(${NOWARNINGPOISSON})
-                set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated ")
+                #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated ")
                 add_definitions(-DNOWARNINGPOISSON)
         endif()
 ELSE()

@@ -53,15 +53,15 @@ __device__ float h1(float a)
 }
 
 template<class T>
-inline __device__ T tex2DLayeredPt(texture<T, cudaTextureType2DLayered, cudaReadModeElementType> t, uint2 pt, uint2 dim, short sample, short layer)
+inline __device__ T tex2DLayeredPt(texture<T, cudaTextureType2DLayered, cudaReadModeElementType> t, uint2 pt, short sample, short layer)
 {
-	return tex2DLayered(t, ((float)pt.x / sample + 0.5f) /(float)dim.x, ((float)pt.y / sample + 0.5f) /(float)dim.y ,layer) ;
+	return tex2DLayered(t, (float)pt.x / sample + 0.5f, (float)pt.y / sample + 0.5f,layer) ;
 }
 
 template<class T>
-inline __device__ T tex2DLayeredPt(texture<T, cudaTextureType2DLayered, cudaReadModeElementType> t, float2 pt, uint2 dim, short layer)
+inline __device__ T tex2DLayeredPt(texture<T, cudaTextureType2DLayered, cudaReadModeElementType> t, float2 pt, short layer)
 {
-	return tex2DLayered(t, ((float)pt.x + 0.5f) /(float)dim.x, ((float)pt.y + 0.5f) /(float)dim.y ,layer) ;
+	return tex2DLayered(t, pt.x + 0.5f, pt.y + 0.5f,layer) ;
 }
 
 /*

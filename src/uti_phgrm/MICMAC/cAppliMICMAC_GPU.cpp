@@ -1255,7 +1255,8 @@ if (0)
 		
 		if(	mNbIm == 0) return;	
 
-		int aZMinTer = mZMinGlob , aZMaxTer = mZMaxGlob;
+		int aZMinTer = mZMinGlob, aZMaxTer = mZMaxGlob;
+		//int aZMinTer = 0, aZMaxTer = 1;
 	
 		// definition de la zone rectangulaire de terrain
 		Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
@@ -1351,7 +1352,7 @@ if (0)
 		hVolumeProj.Dealloc();
 
 #else
-		ELISE_ASSERT(1,"Sorry, no cuda version");
+		ELISE_ASSERT(1,"Sorry, this is not the cuda version");
 #endif
 		
 	}

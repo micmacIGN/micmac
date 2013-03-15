@@ -215,6 +215,11 @@ inline __host__ __device__ bool aEq(uint2 a, uint2 b)
 	return ((a.x == b.x) && (a.y == b.y));
 }
 
+inline __host__ __device__ bool aEq(uint2 a, int b)
+{
+	return ((a.x == (uint)b) && (a.y == (uint)b));
+}
+
 inline __host__ __device__ bool oI(uint2 a, uint2 b)
 {
 	return ((a.x < b.x) || (a.y < b.y));
