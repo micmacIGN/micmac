@@ -86,7 +86,7 @@ void Vector<T>::SetZero(void){for (size_t i=0; i<m_N; i++){m_pV[i] = T(0);}}
 template<class T>
 const T& Vector<T>::operator () (size_t i) const
 {
-	Assert( i < m_N );
+	assert( i < m_N );
 	return m_pV[i];
 }
 template<class T>
@@ -330,7 +330,7 @@ void NVector<T,Dim>::SetZero(void){for (size_t i=0; i<m_N*Dim; i++){m_pV[i] = T(
 template<class T,int Dim>
 const T* NVector<T,Dim>::operator () (size_t i) const
 {
-	Assert( i < m_N );
+	assert( i < m_N );
 	return &m_pV[i*Dim];
 }
 template<class T,int Dim>

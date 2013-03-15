@@ -17,6 +17,9 @@
 #define BICUBIC		2
 #define INTERPOLA	LINEARINTER
 #define FLOATMATH
+#define USEATOMICFUNCT	false
+#define NSTREAM		1
+
 //#define USEDILATEMASK
 #define MAX_THREADS_PER_BLOCK 1024 // A definir en fonction du device!!!
 
@@ -46,6 +49,7 @@ struct pCorGpu
 	 uint	sizeTer;		// taille reel du terrain
 	 uint	sizeSTer;		// Taille du bloque terrain + halo sous echantilloné
 	 uint	sizeCach;		// Taille du cache
+	 uint	sizeCachAll;		// Taille du cache
 
 	 uint	sampProj;		// Pas echantillonage du terrain
 	 float	floatDefault;	// UV Terrain incorrect
@@ -55,8 +59,8 @@ struct pCorGpu
 	 Rect	rTer;			// Rectangle du terrain 
 	 float	mAhEpsilon;		// 
 
-	 Rect	RDTer() { return rDTer; };
-	 Rect	RTer() { return rTer; };
+	 Rect	RDTer() { return rDTer; }
+	 Rect	RTer() { return rTer; }
 
 	 void SetDimension(Rect Ter, uint Zinter)
 	 {
@@ -72,6 +76,7 @@ struct pCorGpu
 		 sizeSTer	= size(dimSTer);			// Taille du bloque terrain sous echantilloné
 		 sizeTer	= size(dimTer);
 		 sizeCach	= size(dimCach);
+		 sizeCachAll	= sizeCach * nbImages;
 		 //ZLocInter	= LOCINTERZ;
 		 ZLocInter	= Zinter;
 	 
