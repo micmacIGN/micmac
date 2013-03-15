@@ -640,6 +640,7 @@ public:
 	bool	Dealloc();
 	bool	Malloc();
 	bool	Memset(int val);
+	bool	MemsetAsync(int val, cudaStream_t stream );
 	bool	CopyDevicetoHost(T* hostData);
 	bool	CopyDevicetoHostASync(T* hostData, cudaStream_t stream = 0);
 
@@ -665,6 +666,15 @@ bool CuDeviceData3D<T>::Memset( int val )
 		std::cout << "Allocation trop petite !!!" << "\n";
 
 	return CData<T>::ErrorOutput(cudaMemset( CData3D<T>::pData(), val, CData3D<T>::Sizeof()),"Memset");
+}
+
+template <class T>
+bool CuDeviceData3D<T>::MemsetAsync(int val, cudaStream_t stream)
+{
+  if (CData<T>::GetSizeofMalloc() < CData3D<T>::Sizeof())
+          std::cout << "Allocation trop petite !!!" << "\n";
+
+  return CData<T>::ErrorOutput(cudaMemsetAsync(CData3D<T>::pData(), val, CData3D<T>::Sizeof(), stream ),"MemsetAsync");
 }
 
 template <class T>
