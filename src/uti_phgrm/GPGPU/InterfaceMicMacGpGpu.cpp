@@ -8,7 +8,12 @@ InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
   _texProjections_00(getProjection(0)),
   _texProjections_01(getProjection(1)),
   _texProjections_02(getProjection(2)),
-  _texProjections_03(getProjection(3))
+  _texProjections_03(getProjection(3)),
+  _texProjections_04(getProjection(4)),
+  _texProjections_05(getProjection(5)),
+  _texProjections_06(getProjection(6)),
+  _texProjections_07(getProjection(7)),
+  _useAtomicFunction(USEATOMICFUNCT)
 {
   for (int s = 0;s<NSTREAM;s++)
     checkCudaErrors( cudaStreamCreate(GetStream(s)));
@@ -43,10 +48,10 @@ InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
   _texImages.normalized		= false;
 
   // Parametres texture des Caches
-//  _texCache.addressMode[0]	= cudaAddressModeWrap;
-//  _texCache.addressMode[1]	= cudaAddressModeWrap;
-//  _texCache.filterMode		= cudaFilterModePoint; //cudaFilterModeLinear cudaFilterModePoint
-//  _texCache.normalized		= false;
+  //  _texCache.addressMode[0]	= cudaAddressModeWrap;
+  //  _texCache.addressMode[1]	= cudaAddressModeWrap;
+  //  _texCache.filterMode		= cudaFilterModePoint; //cudaFilterModeLinear cudaFilterModePoint
+  //  _texCache.normalized		= false;
 
 }
 
@@ -164,8 +169,6 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
   // Re-dimensionner les strucutres de données si elles ont été modifiées
   ResizeVolume(nbLayer,_param.ZLocInter);
 
-  bool useAtomic = false;
-
   // Calcul de dimension des threads des kernels
   //--------------- calcul de dimension du kernel de correlation ---------------
   dim3	threads( BLOCKDIM, BLOCKDIM, 1);
@@ -173,10 +176,7 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
   uint2	actiThsCo	= thd2D - 2 * _param.rayVig;
   uint2	block2D		= iDivUp(_param.dimDTer,actiThsCo);
   dim3	blocks(block2D.x , block2D.y, nbLayer * _param.ZLocInter);
-
-
-  //-------------	calcul de dimension du kernel de multi-correlation NON ATOMIC ------------
-  const uint s = 0; // Affection du stream de calcul
+  const uint s = 0;     // Affection du stream de calcul
 
   // Copier les projections du host --> device
   _LayeredProjection[s].copyHostToDevice(hostVolumeProj);
@@ -188,16 +188,20 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
   // Lancement du calcul de correlation
   KernelCorrelation(s, *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo);
 
-//  ImageLayeredCuda<float> textureCache;
-//  textureCache.Realloc(_param.dimCach,_param.nbImages * _param.ZLocInter);
-//  textureCache.copyDeviceToDevice(_volumeCach[s].pData());
-//  textureCache.bindTexture(_texCache);
+  /*
+  ImageLayeredCuda<float> textureCache;
+  textureCache.Realloc(_param.dimCach,_param.nbImages * _param.ZLocInter);
+  textureCache.copyDeviceToDevice(_volumeCach[s].pData());
+  textureCache.bindTexture(_texCache);
+*/
+
+  // Libérer la texture de projection
+  checkCudaErrors( cudaUnbindTexture(&(GetTeXProjection(s))));
 
   // Lancement du calcul de multi-correlation
-  if(useAtomic)
+  if(_useAtomicFunction)
     {
       //-------------	calcul de dimension du kernel de multi-correlation ------------
-
       // Calcul pour eviter la limitation de nombre de threads par block (ici 1024)
       ushort	sNbTh	=  (ushort)((float)sqrt( (float)_param.nbImages / MAX_THREADS_PER_BLOCK) * SBLOCKDIM ) + 1;
       ushort	BLDIM	= ( 4 - sNbTh ) * SBLOCKDIM / 3 ;
@@ -210,6 +214,7 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
     }
   else
     {
+      //-------------	calcul de dimension du kernel de multi-correlation NON ATOMIC ------------
       uint2	actiThs_NA	= SBLOCKDIM - make_uint2( SBLOCKDIM % _param.dimVig.x, SBLOCKDIM % _param.dimVig.y);
       dim3	threads_mC_NA(SBLOCKDIM, SBLOCKDIM, 1);
       uint2	block2D_mC_NA	= iDivUp(_param.dimCach,actiThs_NA);
@@ -218,14 +223,14 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
       KernelmultiCorrelationNA( *(GetStream(s)),blocks_mC_NA, threads_mC_NA,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs_NA);
     }
 
-  // Libérer la texture de projection
-  checkCudaErrors( cudaUnbindTexture(&(GetTeXProjection(s))));
+
   // Copier les resultats de calcul des couts du device vers le host!
   _volumeCost[s].CopyDevicetoHost(hostVolumeCost);
 
-  //checkCudaErrors( cudaUnbindTexture(&_texCache));
-  //textureCache.Dealloc();
-
+  /*
+  checkCudaErrors( cudaUnbindTexture(&_texCache));
+  textureCache.Dealloc();
+  */
 }
 
 void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj, int nbLayer, uint interZ )
@@ -244,38 +249,65 @@ void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2
 
   /*-------------	calcul de dimension du kernel de multi-correlation ------------*/
 
-  uint2	actiThs		= SBLOCKDIM - make_uint2( SBLOCKDIM % _param.dimVig.x, SBLOCKDIM % _param.dimVig.y);
-  dim3	threads_mC(SBLOCKDIM, SBLOCKDIM, nbLayer);
-  uint2	block2D_mC	= iDivUp(_param.dimCach,actiThs);
-  dim3	blocks_mC(block2D_mC.x,block2D_mC.y,_param.ZLocInter);
+  ushort  sNbTh,BLDIM;
+  dim3    threads_mC,blocks_mC;
+  uint2   actiThs,block2D_mC;
+
+  //-------------	calcul de dimension du kernel de multi-correlation ------------
+  if(_useAtomicFunction)
+    {
+      // Calcul pour eviter la limitation de nombre de threads par block (ici 1024)
+      sNbTh       =  (ushort)((float)sqrt( (float)_param.nbImages / MAX_THREADS_PER_BLOCK) * SBLOCKDIM ) + 1;
+      BLDIM       = ( 4 - sNbTh ) * SBLOCKDIM / 3 ;
+      actiThs     = BLDIM - make_uint2( BLDIM % _param.dimVig.x, BLDIM % _param.dimVig.y);
+      threads_mC  = dim3(BLDIM, BLDIM, nbLayer);
+    }
+  else
+    {
+      //-------------	calcul de dimension du kernel de multi-correlation NON ATOMIC ------------
+      actiThs     = SBLOCKDIM - make_uint2( SBLOCKDIM % _param.dimVig.x, SBLOCKDIM % _param.dimVig.y);
+      threads_mC  = dim3(SBLOCKDIM, SBLOCKDIM, 1);
+    }
+
+  block2D_mC  = iDivUp(_param.dimCach,actiThs);
+  blocks_mC   = dim3(block2D_mC.x,block2D_mC.y,_param.ZLocInter);
 
   while(Z < interZ)
     {
-      //const uint nstream = (NSTREAM * _param.ZLocInter) >= (interZ - Z)  ? (interZ - Z) : NSTREAM;
-      const uint nstream = 1;
+      const uint nstream = (NSTREAM * _param.ZLocInter) >= (interZ - Z)  ? (interZ - Z) : NSTREAM;
+      //const uint nstream = 1;
 
       for (uint s = 0;s<nstream;s++)
-        {
-          //_LayeredProjection[s].copyHostToDevice(hostVolumeProj);
           _LayeredProjection[s].copyHostToDeviceASync(hostVolumeProj + (Z  + s) *_LayeredProjection->GetSize(),*(GetStream(s)));
-          _LayeredProjection[s].bindTexture(GetTeXProjection(s));
-        }
+
+      if (Z == 0) SetComputeNextProj(true); // A faire quand toutes les copies asynchrones sont terminées!!
 
       for (uint s = 0;s<nstream;s++)
         {
+          _LayeredProjection[s].bindTexture(GetTeXProjection(s)); // peut etre qu'ici également
           KernelCorrelation(s, *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo);
-          KernelmultiCorrelation( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs,1);
+          if(_useAtomicFunction)
+            KernelmultiCorrelation( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs,1);
+          else
+            KernelmultiCorrelationNA( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs);
+
         }
 
       for (uint s = 0;s<nstream;s++)
-        {
-          checkCudaErrors( cudaUnbindTexture(&(GetTeXProjection(s))) );
           _volumeCost[s].CopyDevicetoHostASync(hostVolumeCost + (Z + s)*_volumeCost[s].GetSize(),*(GetStream(s)));
-        }
+
+      for (uint s = 0;s<nstream;s++)
+        checkCudaErrors( cudaUnbindTexture(&(GetTeXProjection(s))) ); // il faut mettre un signal pour unbinder...
+
       Z += nstream * _param.ZLocInter;
     }
 
-  checkCudaErrors(cudaDeviceSynchronize());
+    //SetComputeNextProj(true); // A faire quand toutes les copies asynchrones sont terminées!!
+
+//  for (uint s = 0;s<NSTREAM;s++)
+//    cudaStreamSynchronize(*(GetStream(s));
+
+    checkCudaErrors(cudaDeviceSynchronize());
 }
 
 void InterfaceMicMacGpGpu::ResizeVolume( int nbLayer, uint interZ )
@@ -299,7 +331,32 @@ void InterfaceMicMacGpGpu::ResizeVolume( int nbLayer, uint interZ )
       _volumeCost[s].Memset(_param.IntDefault);
       _volumeCach[s].Memset(_param.IntDefault);
       _volumeNIOk[s].Memset(0);
-    }
+  }
+}
+
+void InterfaceMicMacGpGpu::ResizeVolumeAsync(int nbLayer, uint interZ)
+{
+  for (int s = 0;s<NSTREAM;s++)
+    {
+      _volumeCost[s].SetDimension(_param.dimTer,interZ);
+      _volumeCach[s].SetDimension(_param.dimCach,nbLayer * interZ);
+      _volumeNIOk[s].SetDimension(_param.dimTer,interZ);
+
+      if (_volumeCost[s].GetSizeofMalloc() < _volumeCost[s].Sizeof() )
+        {
+          //std::cout << "Realloc Device Data" << "\n";
+          _volumeCost[s].Realloc(_param.dimTer,interZ);
+          if (!_volumeCach[s].Realloc(_param.dimCach,nbLayer * interZ))
+            _param.outConsole();
+          _volumeNIOk[s].Realloc(_param.dimTer,interZ);
+        }
+      //----------------------------------------------------------------------------
+
+      _volumeCost[s].MemsetAsync(_param.IntDefault, *(GetStream(s)));
+      _volumeCach[s].MemsetAsync(_param.IntDefault, *(GetStream(s)));
+      _volumeNIOk[s].MemsetAsync(0, *(GetStream(s)));
+  }
+
 }
 
 textureReference& InterfaceMicMacGpGpu::GetTeXProjection( int TexSel )
@@ -335,6 +392,7 @@ void InterfaceMicMacGpGpu::MTComputeCost()
           uint interZ = GetZToCompute();
           SetZToCompute(0);
           BasicCorrelation(_vCost, _vProj, _param.nbImages, interZ);
+          //BasicCorrelationStream(_vCost, _vProj, _param.nbImages, interZ);
           SetZCToCopy(interZ);
         }
     }

@@ -17,6 +17,9 @@
 #define BICUBIC		2
 #define INTERPOLA	LINEARINTER
 #define FLOATMATH
+#define USEATOMICFUNCT	false
+#define NSTREAM		1
+
 //#define USEDILATEMASK
 #define MAX_THREADS_PER_BLOCK 1024 // A definir en fonction du device!!!
 

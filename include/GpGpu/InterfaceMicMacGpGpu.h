@@ -22,8 +22,6 @@ extern "C" textureReference&	getImage();
 extern "C" textureReference&	getProjection(int TexSel);
 //extern "C" textureReference&    getCache();
 
-#define NSTREAM 1
-
 class InterfaceMicMacGpGpu
 {
 
@@ -56,6 +54,7 @@ private:
 
   uint                  GetZToCompute();
   void			ResizeVolume(int nbLayer, uint interZ);
+  void			ResizeVolumeAsync(int nbLayer, uint interZ);
   void			AllocMemory(int nStream);
   cudaStream_t*		GetStream(int stream);
   textureReference&	GetTeXProjection(int texSel);
@@ -68,27 +67,33 @@ private:
   CuDeviceData3D<float>	_volumeCach[NSTREAM];	// volume des calculs intermédiaires
   CuDeviceData3D<uint>	_volumeNIOk[NSTREAM];	// nombre d'image correct pour une vignette
 
-  ImageCuda<pixel>		_mask;
-  ImageLayeredCuda<float>	_LayeredImages;
-  ImageLayeredCuda<float2>      _LayeredProjection[NSTREAM];
+  ImageCuda<pixel>          _mask;
+  ImageLayeredCuda<float>   _LayeredImages;
+  ImageLayeredCuda<float2>  _LayeredProjection[NSTREAM];
 
-  textureReference&		_texMask;
-  textureReference&		_texMaskD;
-  textureReference&		_texImages;
-  //textureReference&		_texCache;
-  textureReference&		_texProjections_00;
-  textureReference&		_texProjections_01;
-  textureReference&		_texProjections_02;
-  textureReference&		_texProjections_03;
-  boost::thread*		_gpuThread;
-  boost::mutex			_mutex;
-  boost::mutex			_mutexC;
-  boost::mutex			_mutexCompute;
-  float*			_vCost;
-  float2*			_vProj;
-  uint				_ZCompute;
-  uint				_ZCCopy;
-  bool				_computeNextProj;
+  textureReference&         _texMask;
+  textureReference&         _texMaskD;
+  textureReference&         _texImages;
+  //textureReference&       _texCache;
+  textureReference&         _texProjections_00;
+  textureReference&         _texProjections_01;
+  textureReference&         _texProjections_02;
+  textureReference&         _texProjections_03;
+  textureReference&         _texProjections_04;
+  textureReference&         _texProjections_05;
+  textureReference&         _texProjections_06;
+  textureReference&         _texProjections_07;
+  boost::thread*            _gpuThread;
+  boost::mutex              _mutex;
+  boost::mutex              _mutexC;
+  boost::mutex              _mutexCompute;
+  float*                    _vCost;
+  float2*                   _vProj;
+  uint                      _ZCompute;
+  uint                      _ZCCopy;
+  bool                      _computeNextProj;
+  bool                      _useAtomicFunction;
+
 
 #ifdef USEDILATEMASK	
 public:

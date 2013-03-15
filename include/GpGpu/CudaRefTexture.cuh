@@ -8,6 +8,10 @@ TexFloat2Layered							TexL_Proj_00;
 TexFloat2Layered							TexL_Proj_01;
 TexFloat2Layered							TexL_Proj_02;
 TexFloat2Layered							TexL_Proj_03;
+TexFloat2Layered							TexL_Proj_04;
+TexFloat2Layered							TexL_Proj_05;
+TexFloat2Layered							TexL_Proj_06;
+TexFloat2Layered							TexL_Proj_07;
 //texture< float,	cudaTextureType2DLayered >	TexL_Cache;
 
 
@@ -17,6 +21,10 @@ template<> __device__ __host__ TexFloat2Layered TexFloat2L<0>() { return TexL_Pr
 template<> __device__ __host__ TexFloat2Layered TexFloat2L<1>() { return TexL_Proj_01; };
 template<> __device__ __host__ TexFloat2Layered TexFloat2L<2>() { return TexL_Proj_02; };
 template<> __device__ __host__ TexFloat2Layered TexFloat2L<3>() { return TexL_Proj_03; };
+template<> __device__ __host__ TexFloat2Layered TexFloat2L<4>() { return TexL_Proj_04; };
+template<> __device__ __host__ TexFloat2Layered TexFloat2L<5>() { return TexL_Proj_05; };
+template<> __device__ __host__ TexFloat2Layered TexFloat2L<6>() { return TexL_Proj_06; };
+template<> __device__ __host__ TexFloat2Layered TexFloat2L<7>() { return TexL_Proj_07; };
 
 inline __device__ float GetImageValue(float2 ptProj, uint mZ)
 {
