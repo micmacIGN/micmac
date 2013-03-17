@@ -27,6 +27,11 @@ if (NOT ${BUILD_ONLY_ELISE})
 	add_executable(Apero2PMVS Apero2PMVS.c)
 	INSTALL(TARGETS Apero2PMVS RUNTIME DESTINATION ${Install_Dir})
 
+	add_executable(mmxv mmxv.c)
+	INSTALL(TARGETS mmxv RUNTIME DESTINATION ${Install_Dir})
+
+
+
 	add_executable(Bascule  Bascule.c)
 	INSTALL(TARGETS Bascule RUNTIME DESTINATION ${Install_Dir})
 

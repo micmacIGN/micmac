@@ -46,6 +46,7 @@ cAppliFusionNuage::cAppliFusionNuage
       const std::string & aDir,
       const std::string & aPat,
       const std::string & aKeyI2N,
+      const std::string & aKeyI2ISec,
       const std::string & aKeyI2BsH
 )  :
    mParam  (aParam),
@@ -60,6 +61,11 @@ cAppliFusionNuage::cAppliFusionNuage
    mGrArcIn     (mAllGr,mFlagAIn),
    mGrArcTested     (mAllGr,mFlagATested)
 {
+
+    //=============================================================
+    //        CONSTRUCTION DES SOMMETS DU GRAPHE
+    //=============================================================
+
     const  std::vector<std::string>  * aSet = mICNM->Get(aPat);
     int aNbIm = int(aSet->size());
     for (int aKN=0 ; aKN<aNbIm ; aKN++)
@@ -68,7 +74,7 @@ cAppliFusionNuage::cAppliFusionNuage
         std::string  aNameCl = mICNM->Assoc1To1(mKeyI2N,aNameIm,true);
         if (ELISE_fp::exist_file(aNameCl))
         {
-ElTimer Chrono;
+            ElTimer Chrono;
             cElNuage3DMaille * aCloud = cElNuage3DMaille::FromFileIm(aNameCl);
             Im2D_U_INT1 aBSH(1,1);
             if (aKeyI2BsH != "")
@@ -82,11 +88,24 @@ ElTimer Chrono;
                       std::cout << " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  \n";
                   }
             }
-std::cout << Chrono.uval() << aBSH.sz() << "\n";
+
+            std::string aNameImSec = mICNM->Assoc1To1(aKeyI2ISec,aNameIm,true);
+            cImSecOfMaster  aISec = StdGetObjFromFile<cImSecOfMaster>
+                                    (
+                                        aNameImSec,
+                                        StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                                       "ImSecOfMaster",
+                                       "ImSecOfMaster"
+                                    );
+              ELISE_ASSERT(aISec.ISOM_AllVois().IsInit(),"ImSecOfMaster :: no ISOM_AllVois");
+
+
+            std::cout << Chrono.uval() << aBSH.sz() << "\n";
             // cFNuAttrSom anAttr(aCloud,aNameIm);
-            mGr.new_som(new cFNuAttrSom(aCloud,aNameIm,this,aBSH));
-std::cout << Chrono.uval() << "\n";
-            std::cout << "To do " << aNbIm - aKN << "\n";
+            tFNuSom & aSom = mGr.new_som(new cFNuAttrSom(aCloud,aISec,aNameIm,this,aBSH));
+            mMapSom[aNameIm] = &aSom;
+            mVSom.push_back(&aSom);
+            std::cout << "To do " << aNbIm - aKN <<  " TTot " << Chrono.uval() << "\n";
         }
         else
         {
@@ -94,7 +113,31 @@ std::cout << Chrono.uval() << "\n";
             std::cout << " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  \n";
         }
     }
+    mNbSom = mVSom.size();
+
+    std::vector<tFNuArc *> aVArc;
+    for (int aK1=0 ; aK1 <mNbSom ; aK1++)
+    {
+    }
 }
+
+bool cAppliFusionNuage::TestNewAndSet(tFNuSom *aS1,tFNuSom *aS2)
+{
+   if (aS1==aS2) return false;
+   if (aS2>aS1) ElSwap(aS1,aS2);
+
+   std::pair<tFNuSom *,tFNuSom *>  aPair(aS1,aS2);
+
+   std::set<std::pair<tFNuSom *,tFNuSom *> >::iterator it = mTestedPair.find(aPair);
+
+   if (it != mTestedPair.end()) 
+      return false;
+
+   mTestedPair.insert(aPair);
+
+  return aS1->attr()->IsArcValide(aS2->attr());
+}
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

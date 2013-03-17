@@ -87,6 +87,7 @@ int to8Bits_main(int argc,char ** argv)
     std::string BoucheMask="";
 
     bool UseSigne = true;
+    bool ToXV = false;
 
 
 
@@ -124,6 +125,7 @@ int to8Bits_main(int argc,char ** argv)
                     << EAM(Mask,"Mask",true)
                     << EAM(BoucheMask,"BoucheMask",true)
                     << EAM(UseSigne,"UseSigne",true)
+                    << EAM(ToXV,"2XV",true)
     );	
     if ((ForceMax> -Big) || (ForceMin < Big))
         AdaptMinMax = true;
@@ -371,6 +373,30 @@ cout << "Types = "
          trans(fRes,aP0_Out),
          TiffOut.out() | (aVisuAff ? Video_Win::WiewAv(tiff.sz()) : Output::onul())
     );
+ 
+
+
+   if (ToXV)
+   {
+/*
+        std::string aCom =  std::string("convert -quality 100 ")
+                           + aNameOut +  std::string(" ")
+                           + StdPrefix(aNameOut) + std::string(".jpg ");
+*/
+        std::string aDir,aNewName;
+        SplitDirAndFile(aDir,aNewName,aNameOut);
+        ELISE_fp::MkDir(aDir+"Tmp-MM-Dir/");
+
+        std::string aCom =  std::string("convert ")
+                           + aNameOut +  std::string(" ")
+                           + aDir+"Tmp-MM-Dir/"+StdPrefix(aNewName) + std::string(".gif ");
+
+        system_call(aCom.c_str());
+        aCom  = "\\rm " + aNameOut;
+        system_call(aCom.c_str());
+   }
+
+// convert -quality 100 Z_Num3_DeZoom8_LeChantier_8Bits.tif  Z_Num3_DeZoom8_LeChantier_8Bits.jpg
 
 
     return 0;
