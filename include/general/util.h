@@ -518,6 +518,7 @@ bool N2IsEndN1(const char * aName1,const char * aName2);
 std::string ToStrBlkCorr(const std::string &);
 
 
+std::string StrToLower(const std::string & aStr);
 INT    IndPostfixed  (const ElSTDNS string &,char = '.');
 ElSTDNS string StdPostfix(const ElSTDNS string &,char = '.');
 ElSTDNS string StdPrefix (const ElSTDNS string &,char = '.');

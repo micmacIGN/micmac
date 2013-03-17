@@ -42,16 +42,20 @@ Header-MicMac-eLiSe-25/06/2007*/
 cFNuAttrSom::cFNuAttrSom
 (
        cElNuage3DMaille *aN,
+       const cImSecOfMaster&   aSecs,
        const std::string & aNameIm,
        cAppliFusionNuage * anAppli,
        Im2D_U_INT1       aImBsH
 
 ) :
    mAppli     (anAppli),
+   mSecs      (aSecs),
+   mVoisInit  (mSecs.ISOM_AllVois().Val()),
    mStdN      (aN),
    mNameIm    (aNameIm),
    mMasqValid (1,1)
 {
+   // ELISE_ASSERT(mSecs.ISOM_AllVois
 
    /******************************************/
    /*                                        */
@@ -94,6 +98,7 @@ ELISE_COPY(select(anImDist.all_pts(),anImDist.in()>10),P8COL::yellow,aW.odisc())
 getchar();
 */
 
+   mNbSomTest = 0;
 
    for (aPK.x=0 ; aPK.x<aNb2C.x ; aPK.x++)
    {
@@ -108,7 +113,7 @@ getchar();
            Pt2di aP;
 
            Pt2dr aPMoy(0,0);
-           int aSom=0;
+           int aNbSom=0;
            // aW.draw_rect(Pt2dr(aP0),Pt2dr(aP1),Line_St(aW.pdisc()(P8COL::green)));
            for (aP.x=aP0.x; aP.x<aP1.x ; aP.x++)
            {
@@ -117,13 +122,13 @@ getchar();
                   if (aTDef.get(aP))
                   {
                      aPMoy = aPMoy + Pt2dr(aP);
-                     aSom++;
+                     aNbSom++;
                   }
                }
            }
-           if (aSom>0)
+           if (aNbSom>0)
            {
-              aPMoy = aPMoy/double(aSom);
+              aPMoy = aPMoy/double(aNbSom);
               double aDBest = 1e10;
               Pt2di aPBest(0,0);
               for (aP.x=aP0.x; aP.x<aP1.x ; aP.x++)
@@ -144,23 +149,38 @@ getchar();
               }
               Pt3dr aP3 = mStdN->PtOfIndex(aPBest);
               cPtFuNu aPF;
-              aPF.mNb = aSom;
+              aPF.mNb = aNbSom;
               aPF.mPt =  Pt3df(aP3.x,aP3.y,aP3.z);
               aVPTR.push_back(aPF);
+              mNbSomTest += aNbSom;
               // aW.draw_circle_abs(Pt2dr(aPBest),3.0,aW.pdisc()(P8COL::red));
            }
        }
    }
 
    mPtsTestRec = aVPTR;
+   mSeuilNbSomTest = round_ni((anAppli->Param().mPercRecMin/100.0) * mNbSomTest);
 
-   std::cout << "aNameIm " << mStdN->Sz()  << " " << aNb2C << " " << mPtsTestRec.size() << "\n";
+   std::cout << "aNameIm " << mStdN->Sz()  << " " << aNb2C << " " << mPtsTestRec.size()  << " " << mVoisInit.ISOM_Vois().size()<< "\n";
+}
+
+
+const std::list<cISOM_Vois> & cFNuAttrSom::ListVoisInit()
+{
+   return mVoisInit.ISOM_Vois();
+}
+
+bool cFNuAttrSom::IsArcValide(cFNuAttrSom * aS2)
+{
+   
+   ELISE_ASSERT(false,"cFNuAttrSom::IsArcValide");
+   return false;
 }
 
 /*
 cFNuAttrSom::cFNuAttrSom() :
-   mStdN(0)
-{
+   mStdN(0)mSecs
+{IsArcValide(
 }
 */
 

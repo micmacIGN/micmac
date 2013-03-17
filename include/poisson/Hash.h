@@ -12,7 +12,9 @@
 using stdext::hash_map;
 #else // !WIN32
 
-#include <ext/hash_map>
+// #include <unordered_map>  // + MPD
+//#include <hash_multimap>  // + MPD
+#include <ext/hash_map>  // MODIF warning deprecated header => A Voir
 
 using namespace __gnu_cxx;
 

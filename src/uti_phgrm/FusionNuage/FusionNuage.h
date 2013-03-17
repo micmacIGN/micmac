@@ -73,19 +73,26 @@ class cFNuAttrSom
     public :
         cFNuAttrSom 
         (
-             cElNuage3DMaille *aN,
-             const std::string & aNameIm,
+             cElNuage3DMaille *      aN,
+             const cImSecOfMaster&   aSecs,
+             const std::string &     aNameIm,
              cAppliFusionNuage *,
              Im2D_U_INT1       aImBsH
          );
+         bool IsArcValide(cFNuAttrSom *);
+         const std::list<cISOM_Vois> & ListVoisInit();
         // cFNuAttrSom ();
     private :
-         cFNuAttrSom(const cFNuAttrSom &);  // N.I.
+        cFNuAttrSom(const cFNuAttrSom &);  // N.I.
 
         cAppliFusionNuage *    mAppli;
+        cImSecOfMaster         mSecs;
+        const cISOM_AllVois &  mVoisInit;
         cElNuage3DMaille *     mStdN;
         std::string            mNameIm;
         std::vector<cPtFuNu>   mPtsTestRec;
+        int                    mNbSomTest;
+        int                    mSeuilNbSomTest;
         Im2D_Bits<1>           mMasqValid;
 };
 
@@ -136,23 +143,31 @@ class cAppliFusionNuage
             const std::string & aDir,
             const std::string & aPat,
             const std::string & aKeyI2N,
+            const std::string & aKeyI2ISec,
             const std::string & aKeyI2BsH
        );
        void NoOp() {}
        const cParamFuNu & Param() {return mParam;}
+       bool TestNewAndSet(tFNuSom *,tFNuSom *);
     private :
+  
+    
 
-        cParamFuNu  mParam;
-        std::string mDir;
-        std::string mPat;
-        std::string mKeyI2N;
-        cInterfChantierNameManipulateur * mICNM;
-        tFNuGr      mGr;                     
-        tFNuSubGr   mAllGr;
-        int         mFlagAIn;
-        int         mFlagATested;
-        tFNuSubGrFA mGrArcIn;
-        tFNuSubGrFA mGrArcTested;
+        cParamFuNu                       mParam;
+        std::string                      mDir;
+        std::string                      mPat;
+        std::string                      mKeyI2N;
+        cInterfChantierNameManipulateur* mICNM;
+        tFNuGr                           mGr;                     
+        tFNuSubGr                        mAllGr;
+        int                              mFlagAIn;
+        int                              mFlagATested;
+        tFNuSubGrFA                      mGrArcIn;
+        tFNuSubGrFA                      mGrArcTested;
+        std::map<std::string,tFNuSom *>  mMapSom;
+        std::vector<tFNuSom *>           mVSom;
+        int                              mNbSom;
+        std::set<std::pair<tFNuSom *,tFNuSom *> > mTestedPair;
 };
 
 

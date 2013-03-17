@@ -51,7 +51,7 @@ cParamFuNu::cParamFuNu() :
 int MM_FusionNuage_main(int argc,char ** argv)
 {
     std::cout << "ADD MM_FusionNuage_main in argmain.h \n";
-    std::string aFullName;
+    std::string aFullName,anOri;
     std::string aKeyNuage= "NKS-Assoc-Im2NuageInit@Masq-TieP-@RN@xml";
     std::string aKeyBsH=   "NKS-Assoc-Im2NuageInit@Masq-TieP-@BSH-@tif";
     cParamFuNu aParam;
@@ -59,12 +59,15 @@ int MM_FusionNuage_main(int argc,char ** argv)
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(aFullName,"Dir + Pat"),
+        LArgMain()  << EAMC(aFullName,"Dir + Pat")
+                    << EAMC(anOri,"Orientation"),
         LArgMain()  << EAM(aKeyNuage,"Key",true,"Key Assoc Im->Nuage")
                     << EAM(aParam.mNbCellCalcGraph,"NbCelGraph",true,"Nb Cell/Im To limit computation time, def=15")
                     << EAM(aParam.mPercRecMin,"PercRecMin",true,"Percent of point for graph")
     );
 
+
+    std::string aKeyImSec= "NKS-Assoc-ImSec@-"+anOri;
 
     std::string aDir,aPat;
 
@@ -76,6 +79,7 @@ int MM_FusionNuage_main(int argc,char ** argv)
                                           aDir,
                                           aPat,
                                           aKeyNuage,
+                                          aKeyImSec,
                                           aKeyBsH
                                       );
     anAppli->NoOp();
