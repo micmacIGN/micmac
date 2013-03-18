@@ -82,7 +82,7 @@ void cAppliMICMAC::DoAllMEC()
 
 #ifdef CUDA_ENABLED
 	
-	// CrÃ©ation du contexte GPGPU
+	// Création du contexte GPGPU
 	cudaDeviceProp deviceProp;
 	// Obtention de l'identifiant de la carte la plus puissante
 	int devID = gpuGetMaxGflopsDeviceId();

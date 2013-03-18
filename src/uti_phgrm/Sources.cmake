@@ -85,7 +85,7 @@ SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\Porto FILES ${uti_phgrm_Porto_Src_Files})
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\ReducHom FILES ${uti_phgrm_Porto_Src_Files})
 
 if(${CUDA_ENABLED})
-	SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\GpGpu FILES ${uti_phgrm_GpGpu_Src_Files})
+        SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\GpGpu FILES ${uti_phgrm_GpGpu_Src_Files})
         SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\GpGpu FILES ${GpGpuTools_Src_Files})
 endif()
 

@@ -29,7 +29,7 @@ typedef unsigned char pixel;
 #define TexFloat2Layered texture<float2,cudaTextureType2DLayered>
 
 
-template<class T> class CData3D;
+template<class T> class CuHostData3D;
 
 class GpGpuTools
 {
@@ -64,7 +64,7 @@ public:
 	static void			OutputArray(T* data, uint2 dim, uint offset = 1, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
 
 	template <class T>
-	static void			OutputArray(CData3D<T> data, uint Z = 0, uint offset = 1, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
+    static void			OutputArray(CuHostData3D<T> data, uint Z = 0, uint offset = 1, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
 
 	//					Sortie console formater d'une valeur
 	template <class T>
@@ -175,10 +175,10 @@ void GpGpuTools::OutputArray( T* data, uint2 dim, uint offset, float defaut, flo
 
 
 template <class T>
-static void OutputArray(CData3D<T> data, uint Z, uint offset, float defaut, float sample, float factor)
+static void OutputArray(CuHostData3D<T> data, uint Z, uint offset, float defaut, float sample, float factor)
 {
 
-  //OutputArray(data.pData() + Z * Sizeof(data.Dimension()),data.Dimension(),offset, defaut, sample, factor );
+  OutputArray(data.pData() + Z * Sizeof(data.Dimension()),data.Dimension(),offset, defaut, sample, factor );
 
 }
 
@@ -421,6 +421,7 @@ class CData2D : public struct2D, public CData<T>
 public:
 
 	CData2D();
+    CData2D(uint2 dim);
 	~CData2D(){}
 	virtual bool	Malloc() = 0;
 	virtual bool	Memset(int val) = 0;
@@ -443,7 +444,13 @@ void CData2D<T>::OutputInfo()
 template <class T>
 CData2D<T>::CData2D()
 {
-	ClassTemplate(CGObject::StringClass<T>(CData2D::pData()));
+    ClassTemplate(CGObject::StringClass<T>(CData2D::pData()));
+}
+template <class T>
+CData2D<T>::CData2D(uint2 dim)
+{
+    ClassTemplate(CGObject::StringClass<T>(CData2D::pData()));
+    Realloc(dim);
 }
 
 template <class T>
@@ -464,7 +471,7 @@ template <class T>
 bool CData2D<T>::Malloc( uint2 dim )
 {
 	SetDimension(dim);
-	Malloc();
+    Malloc();
 	return true;
 }
 
@@ -654,6 +661,7 @@ public:
 	bool	Memset(int val);
 	bool	MemsetAsync(int val, cudaStream_t stream );
 	bool	CopyDevicetoHost(T* hostData);
+    bool	CopyHostToDevice(T* hostData);
 	bool	CopyDevicetoHostASync(T* hostData, cudaStream_t stream = 0);
 
 };
@@ -668,7 +676,13 @@ bool CuDeviceData3D<T>::CopyDevicetoHostASync( T* hostData, cudaStream_t stream 
 template <class T>
 bool CuDeviceData3D<T>::CopyDevicetoHost( T* hostData )
 {
-	return ErrorOutput(cudaMemcpy( hostData, CData3D<T>::pData(), CData3D<T>::Sizeof(), cudaMemcpyDeviceToHost),"CopyDevicetoHost");
+    return ErrorOutput(cudaMemcpy( hostData, CData3D<T>::pData(), CData3D<T>::Sizeof(), cudaMemcpyDeviceToHost),"CopyDevicetoHost");
+}
+
+template <class T>
+bool CuDeviceData3D<T>::CopyHostToDevice(T *hostData)
+{
+    return ErrorOutput(cudaMemcpy( CData3D<T>::pData(),hostData, CData3D<T>::Sizeof(), cudaMemcpyHostToDevice),"CopyHostToDevice");
 }
 
 template <class T>
