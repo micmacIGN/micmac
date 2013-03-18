@@ -1,7 +1,7 @@
 #ifndef GPGPUTOOLS_H
 #define GPGPUTOOLS_H
 
-#include "GpGpu/helper_math_extented.cuh"
+#include "helper_math_extented.cuh"
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 #include <helper_math.h>
@@ -28,6 +28,9 @@ using namespace std;
 typedef unsigned char pixel;
 #define TexFloat2Layered texture<float2,cudaTextureType2DLayered>
 
+
+template<class T> class CData3D;
+
 class GpGpuTools
 {
 
@@ -50,15 +53,18 @@ public:
 	static bool			Array1DtoImageFile(T* dataImage,const char* fileName, uint2 dimImage, float factor );
 
 	//					Retourne la dossier image de l'utilisateur
-	static std::string	GetImagesFolder();
+	static std::string		GetImagesFolder();
 
 	//					Divise toutes les valeurs du tableau par un facteur
 	template <class T>  
-	static T* 			DivideArray(T* data, uint2 dimImage, float factor);
+	static T*			DivideArray(T* data, uint2 dimImage, float factor);
 
 	//					Sortie console d'un tableau
 	template <class T>	
 	static void			OutputArray(T* data, uint2 dim, uint offset = 1, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
+
+	template <class T>
+	static void			OutputArray(CData3D<T> data, uint Z = 0, uint offset = 1, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
 
 	//					Sortie console formater d'une valeur
 	template <class T>
@@ -79,8 +85,6 @@ public:
 	static void			OutputGpu();
 
 };
-
-
 
 template <class T>
 void GpGpuTools::Memcpy2Dto1D( T** dataImage2D, T* dataImage1D, uint2 dimDest, uint2 dimSource )
@@ -169,6 +173,14 @@ void GpGpuTools::OutputArray( T* data, uint2 dim, uint offset, float defaut, flo
 	std::cout << "------------------------------------------\n";
 }	
 
+
+template <class T>
+static void OutputArray(CData3D<T> data, uint Z, uint offset, float defaut, float sample, float factor)
+{
+
+  //OutputArray(data.pData() + Z * Sizeof(data.Dimension()),data.Dimension(),offset, defaut, sample, factor );
+
+}
 
 template <class T>
 T* GpGpuTools::DivideArray( T* data, uint2 dim, float factor )
@@ -766,7 +778,7 @@ bool ImageCuda<T>::Malloc()
 	CData2D::SetSizeofMalloc(CData2D::GetSize()*sizeof(T));
 	CData2D::AddMemoryOc(CData2D::GetSizeofMalloc());
 	// Allocation mémoire du tableau cuda
-	return CData2D::ErrorOutput(cudaMallocArray(AImageCuda::ppData(),&channelDesc,GetDimension().x,GetDimension().y),"Malloc");
+	return CData2D::ErrorOutput(cudaMallocArray(AImageCuda::ppData(),&channelDesc,struct2D::GetDimension().x,struct2D::GetDimension().y),"Malloc");
 }
 
 //-----------------------------------------------------------------------------------------------

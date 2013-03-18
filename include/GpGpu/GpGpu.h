@@ -11,6 +11,8 @@
 
 #include "GpGpu/GpGpuDefines.h"
 
-#include "GpGpu/GpGpuDefines.h"
- 
+#ifdef CUDA_ENABLED
+#include "GpGpu/InterfaceMicMacGpGpu.h"
+#endif
+
 #endif // __GPGPU_H__

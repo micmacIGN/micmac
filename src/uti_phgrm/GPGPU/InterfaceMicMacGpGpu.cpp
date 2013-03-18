@@ -290,7 +290,6 @@ void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2
             KernelmultiCorrelation( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs,1);
           else
             KernelmultiCorrelationNA( *(GetStream(s)),blocks_mC, threads_mC,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs);
-
         }
 
       for (uint s = 0;s<nstream;s++)

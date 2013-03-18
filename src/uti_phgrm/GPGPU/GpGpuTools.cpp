@@ -23,7 +23,6 @@ std::string GpGpuTools::GetImagesFolder()
 	return ImagesFolder;
 }
 
-
 void GpGpuTools::OutputReturn( char * out )
 {
 

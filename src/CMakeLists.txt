@@ -90,13 +90,12 @@ if(${WITH_ETALONPOLY})
 endif()
 
 # ORGANISATION des en-tetes ELISE
-file(GLOB_RECURSE IncFiles ../include/*.h  )
+file(GLOB_RECURSE IncFiles ${PROJECT_SOURCE_DIR}/include/*.h  )
 
 if(${CUDA_ENABLED})
 
-	file(GLOB_RECURSE IncCudaFiles ../include/*.cuh  )
-
-	list( APPEND IncFiles ${IncCudaFiles})
+    file(GLOB_RECURSE IncCudaFiles ${PROJECT_SOURCE_DIR}/include/*.cuh  )
+    list( APPEND IncFiles ${IncCudaFiles})
 
 endif()
 
@@ -111,7 +110,12 @@ foreach(source_file ${IncFiles})
 	source_group("${includeTree}" FILES ${source_file})
 endforeach(source_file)
 
+if(${CUDA_ENABLED})
+    list(REMOVE_ITEM IncFiles "${PROJECT_SOURCE_DIR}/include/GpGpu/GpGpuTools.h")
+endif()
+
 # OPTION BUILD : En tetes precompilées visual studio
+
 enable_precompiled_headers_msvc(StdAfx.h Elise_Src_Files)
 
 # fichiers qui n'utilisent pas les en tetes precompilées
@@ -130,14 +134,25 @@ set(Elise_Src_Files
 
 # CONSTRUCTION : Lib ELISE
 if(${CUDA_ENABLED})
-	set(GENCODE_SM10 -gencode=arch=compute_10,code=sm_10 -gencode=arch=compute_10,code=compute_10)
-	set(GENCODE_SM13 -gencode=arch=compute_13,code=sm_13 -gencode=arch=compute_13,code=compute_13)
-      set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20 -lineinfo)
-         # set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20)
-	set(GENCODE_SM21 -gencode=arch=compute_21,code=sm_21 -gencode=arch=compute_21,code=compute_21)
-        set(GENCODE_SM20FM -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20 -use_fast_math)
+         #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20 -lineinfo)
+        set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20)
+        #set(GENCODE_SM20FM -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20 -use_fast_math)
+        #set(GENCODE_SM21 -gencode=arch=compute_21,code=sm_21 -gencode=arch=compute_21,code=compute_21)
+
+        set(libStatGpGpuTools GpGpuTools)
+
+        cuda_add_library(${libStatGpGpuTools}  ${GpGpuTools_Src_Files} STATIC OPTIONS ${GENCODE_SM20})
+
+        INSTALL(TARGETS ${libStatGpGpuTools}
+                LIBRARY DESTINATION ${PROJECT_SOURCE_DIR}/lib
+                ARCHIVE DESTINATION ${PROJECT_SOURCE_DIR}/lib)
+
+        link_directories(${PROJECT_SOURCE_DIR}/lib)
 
         cuda_add_library( elise ${Elise_Src_Files} ${IncFiles} OPTIONS ${GENCODE_SM20})
+
+        target_link_libraries(elise libGpGpuTools.a)
+
 else()
 	add_library( elise ${Elise_Src_Files} ${IncFiles})
 endif()
