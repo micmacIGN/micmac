@@ -2,6 +2,8 @@
 Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  DirectoryChantier=/home/marc/TMP/ExempleDoc/Boudha/ +AeroIn=-Test-3 +PatternAllIm="IMG_[0-9]{4}\.tif"
 
 Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  DirectoryChantier=/home/marc/TMP/Versailles/  +AeroIn=-All +PatternAllIm="IMGP[0-9]{4}.PEF" +Ext=dat Out=-All
+                               <TetaMinPreSel> 0.025</TetaMinPreSel>
+                               <TetaOpt > 0.17 </TetaOpt>
 -->
 <Global>
    <ParamApero>
@@ -12,6 +14,7 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
             <Symb>  PatternAllIm=XXXX  </Symb>
             <Symb>  Ext=XXXX  </Symb>
             <Symb>  SeuilP3d=1.5  </Symb>
+            <Symb>  TetaOpt=0.17   </Symb>
        </DicoLoc>
 
        <SectionBDD_Observation>
