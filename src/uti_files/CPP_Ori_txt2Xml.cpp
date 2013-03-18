@@ -267,6 +267,7 @@ class cAppli_Ori_Txt2Xml_main
          double                  mScaleV;
          double                  mBordV;
          Video_Win *             mW;
+         int                     mLine;
 };
 
 void cAppli_Ori_Txt2Xml_main::operator()(tSomVois* aS1,tSomVois* aS2,bool)  // Delaunay Call back
@@ -642,7 +643,8 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     mUseOnlyC        (false),
     mSzV             (800),
     mBordV           (20),
-    mW               (0)
+    mW               (0),
+    mLine            (3)
 {
 
     bool Help;
@@ -693,6 +695,7 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
                       << EAM(aVCpt,"Cpt",true,"============ [CptMin,CptMax] for tuning purpose =======")
                       << EAM(mUseOnlyC,"UOC",true,"Use Only Center (tuning)")
                       << EAM(mMTDOnce,"MTD1",true,"Compute Metadata only for first image (tuning)")
+                      << EAM(mLine,"Line",true,"Nb neighbour in the same line")
     );
 
     if (! EAMIsInit(&mAddDelaunay))
@@ -886,7 +889,7 @@ void cAppli_Ori_Txt2Xml_main::VoisInitDelaunayCroist()
 
 
 
-    std::cout << "Viiissuu "<< mBoxC.sz() << " " << mScaleV << "\n"; getchar();
+    // std::cout << "Viiissuu "<< mBoxC.sz() << " " << mScaleV << "\n"; getchar();
 }
 
 void  cAppli_Ori_Txt2Xml_main::InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK)
@@ -1141,7 +1144,41 @@ void cAppli_Ori_Txt2Xml_main::SauvRel()
    {
         VoisInitDelaunayCroist();
    }
-    cSauvegardeNamedRel  aRelIm;    
+
+   if (mLine > 0)
+   {
+       for (int aK1 = 0 ; aK1<int(mVCam.size()) ; aK1++)
+       {
+           int aK2Min = ElMax(0,aK1-mLine);
+           int aK2Max = ElMin(int(mVCam.size())-1,aK1+mLine);
+           for (int aK2=aK2Min ; aK2<aK2Max ; aK2++)
+           {
+                if (aK1 != aK2)
+                   AddArc(mVSomVois[aK1],mVSomVois[aK2],P8COL::white);
+           }
+           
+           std::cout << "TTttiim e " << mVSomVois[aK1]->attr().mCam->mTime << "\n";
+       }
+       //getchar();
+   }
+
+   cSauvegardeNamedRel  aRelIm;    
+
+   for (tItSVois itS=mGrVois.begin(mSubAll) ; itS.go_on() ;itS++)
+   {
+       for (tItAVois itA= (*itS).begin(mSubAll) ; itA.go_on() ; itA++)
+       {
+             tSomVois & aS1 = (*itA).s1();
+             tSomVois & aS2 = (*itA).s2();
+             const cTxtCam * aC1 = aS1.attr().mCam;
+             const cTxtCam * aC2 = aS2.attr().mCam;
+             cCpleString aCpl(aC1->mNameIm,aC2->mNameIm);
+             aRelIm.Cple().push_back(aCpl);
+       }
+   }
+  
+
+   MakeFileXML(aRelIm,mDir+mNameCple);
 /*
     for (int aK1=0 ; aK1<mNbCam ; aK1++)
     {
@@ -1165,7 +1202,6 @@ void cAppli_Ori_Txt2Xml_main::SauvRel()
             }
         }
     }
-    MakeFileXML(aRelIm,mDir+mNameCple);
 */
 }
 
