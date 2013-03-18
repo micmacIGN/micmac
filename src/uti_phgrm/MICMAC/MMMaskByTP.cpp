@@ -121,6 +121,7 @@ namespace NS_ParamMICMAC
 {
 
 
+const int TheMbMaxCel = 15;  // Pas tres fier de ca ...
 
 class cCelTiep
 {
@@ -128,13 +129,15 @@ class cCelTiep
       static const INT2  TheNoZ = -32000;
       cCelTiep() :
          mHeapInd  (HEAP_NO_INDEX),
-         mZ        (TheNoZ)
+         mZ        (TheNoZ),
+         mNbCel    (0)
       {
               SetCostCorel(4.0);
       }
 
       void InitCel()
       {
+          mNbCel =0;
           SetCostCorel(4.0);
           mExploredIndex.clear();
           mZ =  TheNoZ;
@@ -142,10 +145,12 @@ class cCelTiep
 
       bool ZIsExplored(int aZ)
       {
-            return mExploredIndex.find(aZ) != mExploredIndex.end();
+            return     (mNbCel>= TheMbMaxCel)
+                   ||  mExploredIndex.find(aZ) != mExploredIndex.end();
       }
       void SetZExplored(int aZ)
       {
+            mNbCel++;
             mExploredIndex.insert(aZ);
       }
 
@@ -177,6 +182,7 @@ class cCelTiep
        INT2  mX;
        INT2  mY;
        INT2  mZ;
+       int           mNbCel;
        std::set<int> mExploredIndex;
 };
 

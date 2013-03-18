@@ -797,7 +797,7 @@ cEl_GPAO * DoCmdExePar(const cCmdExePar & aCEP,int aNbProcess)
    {
       aNbProcess = ElMax(1,aNbProcess);
       aGPAO->GenerateMakeFile(aNameMkF);
-      std::string aCom = g_externalToolHandler.get( "make" ).callName()+" all -f "+  aNameMkF + std::string(" -j") +ToString(aNbProcess);
+      std::string aCom = g_externalToolHandler.get( "make" ).callName()+" all -f "+  aNameMkF + std::string(" -j") +ToString(aNbProcess) + " -k"; 
       VoidSystem(aCom.c_str());
       delete aGPAO;
       return 0;

@@ -259,6 +259,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
      <DeZoomDefMinFileAux> 8 </DeZoomDefMinFileAux>
 
     <PostProcess>
+       <NameMkF> Make_Cmd_Tiep-${Im1} </NameMkF>
        <OneCmdPar>
                 <OneCmdSer>  echo   ${ThisDir} </OneCmdSer>
 <!--
