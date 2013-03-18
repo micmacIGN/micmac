@@ -223,7 +223,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("tiff_info",tiff_info_main," Tool for giving information about a tiff file"));
        aRes.push_back(cMMCom("to8Bits",to8Bits_main," Tool for converting 16 or 32 bit image in a 8 bit image."));
-       // aRes.push_back(cMMCom("mmxv",mmxv_main," Interface to xv (due to problem in tiff lib)"));
+       aRes.push_back(cMMCom("mmxv",mmxv_main," Interface to xv (due to problem in tiff lib)"));
        aRes.push_back(cMMCom("CmpIm",CmpIm_main," Tool basic for comparison of images"));
        aRes.push_back(cMMCom("Undist",Undist_main," Tool for removing images distortion"));
 
