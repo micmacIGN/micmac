@@ -39,7 +39,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+#ifdef CUDA_ENABLED
 #include "GpGpu/GpGpu.h"
+#endif
 
 namespace NS_ParamMICMAC
 {
