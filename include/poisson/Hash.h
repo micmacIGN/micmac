@@ -4,7 +4,6 @@
 #ifdef NOWARNINGPOISSON
 #pragma GCC diagnostic push
 #pragma GCC diagnostic warning "-w"
-
 #endif
 
 #ifdef WIN32
