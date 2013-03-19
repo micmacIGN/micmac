@@ -346,10 +346,10 @@ namespace NS_ParamMICMAC
             for(int c=0;c<reDeZoom;++c)
             {
                 float dist = (l-d2)*(l-d2) + (c-d2)*(c-d2);
-                float c = exp(-dist/(2*sigma*sigma));
+                float cf = exp(-dist/(2.*sigma*sigma));
                 //std::cout << c << " ";
-                coef.push_back(c);
-                norm += c;
+                coef.push_back(cf);
+                norm += cf;
             }
             //std::cout << std::endl;
         }
