@@ -41,9 +41,9 @@
 #include "poisson/PlyFile.h"
 //#include "poisson/MultiGridOctreeData.h"
 
-// #ifdef LoadImage
-// 	//#undef LoadImage 
-// #endif
+ #ifdef LoadImage
+ 	#undef LoadImage 
+ #endif
 
 #ifndef INT
 	#define INT int
