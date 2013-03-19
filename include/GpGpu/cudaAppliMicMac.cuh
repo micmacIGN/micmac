@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef CUDA_ENABLED
+
 #include <cuda_runtime.h>
 #include <helper_functions.h>
 #include <helper_cuda.h>
@@ -134,3 +136,4 @@ struct pCorGpu
 	 }
 };
 
+#endif
