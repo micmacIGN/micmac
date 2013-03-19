@@ -11,6 +11,7 @@
 #include <sstream>     // for ostringstream
 #include <string>
 #include <iostream>
+#include <limits>
 
 using namespace std;
 
@@ -265,7 +266,7 @@ public:
 
 	struct2D(){}
 	~struct2D(){}
-	uint2		GetDimension();
+    uint2		GetDimension();
 	uint2		SetDimension(uint2 dimension);
 	uint2		SetDimension(int dimX,int dimY);
 	uint2		SetDimension(uint dimX,uint dimY);
@@ -547,6 +548,8 @@ public:
 	bool Dealloc();
 	bool Malloc();
 	bool Memset(int val);
+    void Fill(T Value);
+    void FillRandom(T min, T max);
 	
 };
 
@@ -571,7 +574,38 @@ bool CuHostData3D<T>::Memset( int val )
 		return false;
 	}
 	memset(CData3D<T>::pData(),val,CData3D<T>::Sizeof());
-	return true;
+    return true;
+}
+
+template <class T>
+void CuHostData3D<T>::Fill(T Value)
+{
+    T* data = CData3D<T>::pData();
+
+    data[0] = Value;
+
+    uint sizeFilled = 1;
+
+    while( sizeFilled < CData3D<T>::GetSize() - sizeFilled)
+    {
+        memcpy(data + sizeFilled, data, sizeof(T) * sizeFilled);
+        sizeFilled <<= 1;
+    }
+
+    memcpy(data + sizeFilled, data, sizeof(T) * (CData3D<T>::GetSize() - sizeFilled));
+}
+
+template <class T>
+void CuHostData3D<T>::FillRandom(T min, T max)
+{
+    T mod = abs(max - min);
+    srand (time(NULL));
+    for(int i=0;i<CData3D<T>::GetSize();i++)
+    {
+        int rdVal  = rand()%((int)mod);
+        double dRdVal = (float)rand() / std::numeric_limits<int>::max();
+        CData3D<T>::pData()[i] = min + rdVal + (T)dRdVal;
+    }
 }
 
 template <class T>
@@ -665,7 +699,6 @@ public:
 	bool	CopyDevicetoHostASync(T* hostData, cudaStream_t stream = 0);
 
 };
-
 
 template <class T>
 bool CuDeviceData3D<T>::CopyDevicetoHostASync( T* hostData, cudaStream_t stream )
@@ -774,7 +807,7 @@ template <class T>
 bool ImageCuda<T>::copyHostToDevice( T* data )
 {
 	// Copie des données du Host dans le tableau Cuda
-	return CData2D::ErrorOutput(cudaMemcpyToArray(AImageCuda::pData(), 0, 0, data, sizeof(T)*size(GetDimension()), cudaMemcpyHostToDevice),"copyHostToDevice");
+    return CData2D::ErrorOutput(cudaMemcpyToArray(AImageCuda::pData(), 0, 0, data, sizeof(T)*size(GetDimension()), cudaMemcpyHostToDevice),"copyHostToDevice");
 }
 
 template <class T>
@@ -792,7 +825,7 @@ bool ImageCuda<T>::Malloc()
 	CData2D::SetSizeofMalloc(CData2D::GetSize()*sizeof(T));
 	CData2D::AddMemoryOc(CData2D::GetSizeofMalloc());
 	// Allocation mémoire du tableau cuda
-	return CData2D::ErrorOutput(cudaMallocArray(AImageCuda::ppData(),&channelDesc,struct2D::GetDimension().x,struct2D::GetDimension().y),"Malloc");
+    return CData2D::ErrorOutput(cudaMallocArray(AImageCuda::ppData(),&channelDesc,struct2D::GetDimension().x,struct2D::GetDimension().y),"Malloc");
 }
 
 //-----------------------------------------------------------------------------------------------
@@ -830,7 +863,7 @@ ImageLayeredCuda<T>::ImageLayeredCuda()
 template <class T>
 bool ImageLayeredCuda<T>::copyHostToDeviceASync( T* data, cudaStream_t stream /*= 0*/ )
 {
-	cudaExtent sizeImagesLayared = make_cudaExtent( CData3D::GetDimension().x, CData3D::GetDimension().y, CData3D::GetNbLayer());
+    cudaExtent sizeImagesLayared = make_cudaExtent( CData3D::GetDimension().x, CData3D::GetDimension().y, CData3D::GetNbLayer());
 
 	// Déclaration des parametres de copie 3D
 	cudaMemcpy3DParms	p		= { 0 };
@@ -848,7 +881,7 @@ bool ImageLayeredCuda<T>::copyHostToDeviceASync( T* data, cudaStream_t stream /*
 template <class T>
 bool ImageLayeredCuda<T>::copyHostToDevice( T* data )
 {
-	cudaExtent sizeImagesLayared = make_cudaExtent( CData3D::GetDimension().x, CData3D::GetDimension().y, CData3D::GetNbLayer());
+    cudaExtent sizeImagesLayared = make_cudaExtent( CData3D::GetDimension().x, CData3D::GetDimension().y, CData3D::GetNbLayer());
 
 	// Déclaration des parametres de copie 3D
 	cudaMemcpy3DParms	p		= { 0 };
@@ -888,7 +921,7 @@ bool ImageLayeredCuda<T>::Malloc()
 	CData3D::SetSizeofMalloc(CData3D::GetSize()*sizeof(T));
 	CData3D::AddMemoryOc(CData3D::GetSizeofMalloc());
 
-	cudaExtent sizeImagesLayared = make_cudaExtent( CData3D::GetDimension().x, CData3D::GetDimension().y,CData3D::GetNbLayer());
+    cudaExtent sizeImagesLayared = make_cudaExtent( CData3D::GetDimension().x, CData3D::GetDimension().y,CData3D::GetNbLayer());
 
 	// Définition du format des canaux d'images	
 	cudaChannelFormatDesc channelDesc =	cudaCreateChannelDesc<T>();
