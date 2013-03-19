@@ -1348,7 +1348,7 @@ if (0)
 		}
 		IMmGg.SetZCToCopy(0);
 		IMmGg.SetZToCompute(0);
-		hVolumeCost.Dealloc();
+		hVolumeCost.Dealloc(); // Attention la liberation de memoire prends un certain temps, tout comme l'allocation... eviter cette manip...!!!
 		hVolumeProj.Dealloc();
 
 #else
