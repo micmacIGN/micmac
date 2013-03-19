@@ -28,9 +28,7 @@ DAMAGE.
 
 #pragma once
 
-#include "StdAfx.h"
-
-//#include "Ply.h"
+#include "ply.h"
 
 template< class Real >
 ASCIIPointStream< Real >::ASCIIPointStream( const char* fileName )
