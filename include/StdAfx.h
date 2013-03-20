@@ -5,14 +5,6 @@
 	#define __TRACE_SYSTEM__
 #endif
 
-
-//#ifdef CUDA_ENABLED
-//#include <cuda_runtime.h>
-//#include <helper_functions.h>
-//#include <helper_math.h>
-//#include <helper_cuda.h>
-//#endif
-
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
