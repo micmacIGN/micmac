@@ -211,6 +211,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("RepLocBascule",RepLocBascule_main," Tool to define a local repair without changing the orientation"));
        aRes.push_back(cMMCom("SBGlobBascule",SBGlobBascule_main," Tool for 'scene based global' bascule"));
        aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Tool for scaling image"));
+       aRes.push_back(cMMCom("PanelIm",MakePlancheImage_main,"Tool for creating a pannel of images ")); 
        aRes.push_back(cMMCom("ScaleNuage",ScaleNuage_main," Tool for scaling internal representation of point cloud"));
        aRes.push_back(cMMCom("Tapas",Tapas_main," Interface to Apero to compute external and internal orientations",cArgLogCom(3)));
        aRes.push_back(cMMCom("Tapioca",Tapioca_main," Interface to Pastis for tie point detection and matching",cArgLogCom(3)));
