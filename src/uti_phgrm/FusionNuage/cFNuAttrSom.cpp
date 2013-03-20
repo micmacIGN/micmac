@@ -173,8 +173,32 @@ const std::list<cISOM_Vois> & cFNuAttrSom::ListVoisInit()
 bool cFNuAttrSom::IsArcValide(cFNuAttrSom * aS2)
 {
    
-   ELISE_ASSERT(false,"cFNuAttrSom::IsArcValide");
-   return false;
+   // ELISE_ASSERT(false,"cFNuAttrSom::IsArcValide");
+   std::string aNameH = mAppli->ICNM()->Assoc1To2
+                        (
+                            "NKS-Assoc-CplIm2Hom@@dat",
+                            mNameIm,
+                            aS2->mNameIm,
+                            true
+                        );
+
+    if (sizeofile(aNameH.c_str()) < 1000)
+       return false;
+
+   int aSom = 0;
+   cElNuage3DMaille * aN2 = aS2->mStdN;
+   for (int aKP=0 ; aKP< int(mPtsTestRec.size()) ;  aKP++)
+   {
+        Pt3dr aPT1 = mPtsTestRec[aKP].PR();
+        Pt2dr aPIm2 = aN2->Terrain2Index(aPT1);
+        if (aN2->IndexHasContenuForInterpol(aPIm2))
+        {
+            Pt3dr aPT2 =  aN2->PtOfIndexInterpol(aPIm2);
+            std::cout << "Dist = " << aPT1  - aPT2 << "\n";
+        }
+   }
+   
+   return true;
 }
 
 /*
