@@ -438,6 +438,7 @@ int MpDcraw_main(int argc,char ** argv);
 int PastDevlop_main(int argc,char ** argv);
 int Reduc2MM_main(int argc,char ** argv);
 int ScaleIm_main(int argc,char ** argv);
+int MakePlancheImage_main(int argc,char ** argv);
 int tiff_info_main(int argc,char ** argv);
 int to8Bits_main(int argc,char ** argv);
 int mmxv_main(int argc,char ** argv);
