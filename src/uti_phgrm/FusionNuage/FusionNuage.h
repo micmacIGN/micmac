@@ -148,7 +148,8 @@ class cAppliFusionNuage
        );
        void NoOp() {}
        const cParamFuNu & Param() {return mParam;}
-       bool TestNewAndSet(tFNuSom *,tFNuSom *);
+       tFNuArc * TestNewAndSet(tFNuSom *,tFNuSom *);
+       cInterfChantierNameManipulateur* ICNM();
     private :
   
     

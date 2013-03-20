@@ -84,7 +84,7 @@ cAppliFusionNuage::cAppliFusionNuage
                      aBSH = Im2D_U_INT1::FromFileStd(aNameBsH);
                   else
                   {
-                      std::cout << "WaaaaarNNN no  " << aNameBsH  << "\n";
+                      std::cout << "WaaaaarNNNnoBsH  " << aNameBsH  << "\n";
                       std::cout << " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  \n";
                   }
             }
@@ -115,15 +115,31 @@ cAppliFusionNuage::cAppliFusionNuage
     }
     mNbSom = mVSom.size();
 
+
     std::vector<tFNuArc *> aVArc;
     for (int aK1=0 ; aK1 <mNbSom ; aK1++)
     {
+        tFNuSom * aS1 = mVSom[aK1];
+        const std::list<cISOM_Vois> & aLV = aS1->attr()->ListVoisInit();
+        for 
+        (
+              std::list<cISOM_Vois>::const_iterator itV=aLV.begin();
+              itV!=aLV.end();
+              itV++
+        )
+        {
+              tFNuSom *aS2 = mMapSom[itV->Name()];
+              if (aS2)
+              {
+                 TestNewAndSet(aS1,aS2);
+              }
+        }
     }
 }
 
-bool cAppliFusionNuage::TestNewAndSet(tFNuSom *aS1,tFNuSom *aS2)
+tFNuArc * cAppliFusionNuage::TestNewAndSet(tFNuSom *aS1,tFNuSom *aS2)
 {
-   if (aS1==aS2) return false;
+   if (aS1==aS2) return 0;
    if (aS2>aS1) ElSwap(aS1,aS2);
 
    std::pair<tFNuSom *,tFNuSom *>  aPair(aS1,aS2);
@@ -131,13 +147,20 @@ bool cAppliFusionNuage::TestNewAndSet(tFNuSom *aS1,tFNuSom *aS2)
    std::set<std::pair<tFNuSom *,tFNuSom *> >::iterator it = mTestedPair.find(aPair);
 
    if (it != mTestedPair.end()) 
-      return false;
+      return 0;
 
    mTestedPair.insert(aPair);
 
-  return aS1->attr()->IsArcValide(aS2->attr());
+   if (aS1->attr()->IsArcValide(aS2->attr()))
+   {
+   }
+   return 0;
 }
 
+cInterfChantierNameManipulateur* cAppliFusionNuage::ICNM()
+{
+   return mICNM;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
