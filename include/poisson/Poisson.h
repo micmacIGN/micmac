@@ -41,10 +41,12 @@
 #include "poisson/PlyFile.h"
 //#include "poisson/MultiGridOctreeData.h"
 
- #ifdef LoadImage
- 	#undef LoadImage 
- #endif
-
+// #ifndef _WIN64
+// #ifdef LoadImage
+//   #undef LoadImage 
+// #endif 
+// #endif 
+ 
 #ifndef INT
 	#define INT int
 #endif

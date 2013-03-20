@@ -5,6 +5,8 @@
 	#define __TRACE_SYSTEM__
 #endif
 
+
+
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
@@ -76,6 +78,9 @@ using namespace std;
 
 #include "general/MM_InstalDir.h"
 #include "general/sys_dep.h"
+
+
+
 #include "general/opt_debug.h"
 #include "general/allocation.h"
 #include "general/util.h"
@@ -118,8 +123,9 @@ using namespace std;
 #include "api/el_regex.h"
 #include "general/phgr_san.h"
 #include "general/hassan_arrangt.h"
+
 #ifdef CUDA_ENABLED
-#include "GpGpu/InterfaceMicMacGpGpu.h"
+	#include "GpGpu/InterfaceMicMacGpGpu.h"
 #endif
 
 //  ==== AJOUT  =====

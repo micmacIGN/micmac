@@ -42,7 +42,6 @@ set(UTI_PHGRM_DIR "uti_phgrm")
 set(UTI_ETAPOLY_DIR "EtalonnagePolygone")
 set(POISSON_DIR "poisson")
 
-
 INCLUDE (${AMD_DIR}/Sources.cmake)
 INCLUDE (${HASSA_DIR}/Sources.cmake)
 INCLUDE (${SAN_DIR}/Sources.cmake)
@@ -144,15 +143,18 @@ if(${CUDA_ENABLED})
         cuda_add_library(${libStatGpGpuTools}  ${GpGpuTools_Src_Files} STATIC OPTIONS ${GENCODE_SM20})
 
         INSTALL(TARGETS ${libStatGpGpuTools}
-                LIBRARY DESTINATION ${PROJECT_SOURCE_DIR}/lib
-                ARCHIVE DESTINATION ${PROJECT_SOURCE_DIR}/lib)
+                LIBRARY DESTINATION ${PROJECT_SOURCE_DIR}/lib/
+                ARCHIVE DESTINATION ${PROJECT_SOURCE_DIR}/lib/)
 
-        link_directories(${PROJECT_SOURCE_DIR}/lib)
+        link_directories(${PROJECT_SOURCE_DIR}/lib/)
 
         cuda_add_library( elise ${Elise_Src_Files} ${IncFiles} OPTIONS ${GENCODE_SM20})
 
-        target_link_libraries(elise libGpGpuTools.a)
-
+		if (WIN32)
+			target_link_libraries(elise GpGpuTools.lib)
+		else()
+			target_link_libraries(elise GpGpuTools.a)
+		endif()
 else()
 	add_library( elise ${Elise_Src_Files} ${IncFiles})
 endif()

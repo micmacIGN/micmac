@@ -1,5 +1,11 @@
 #pragma once
 
+#ifdef _WIN32
+	#ifdef INT
+		#undef INT 
+	#endif
+#endif
+
 #include "GpGpu/GpGpu.h"
 
 #ifdef CUDA_ENABLED

@@ -91,7 +91,7 @@ int MM_FusionNuage_main(int argc,char ** argv)
                                           aKeyBsH
                                       );
     anAppli->NoOp();
-
+	return 0;
 }
 
 
