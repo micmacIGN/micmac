@@ -178,10 +178,70 @@ void TestKL()
 #endif
 
 
+void TestMultiEch(int argc,char** argv)
+{
+   std::string aNameIm;
+   Pt2di aP0(0,0),aSz;
+
+std::cout << "AAAAAAAbbbBBB  a\n";
+
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(aNameIm,"Name Im"),
+        LArgMain()  << EAM(aP0,"P0",true,"")
+                    << EAM(aSz,"Sz",true,"")
+   );
+
+   Tiff_Im aTF = Tiff_Im::StdConvGen(aNameIm,1,false);
+   if (! EAMIsInit(&aSz))
+   {
+      aSz = aTF.sz();
+   }
+   Video_Win  aW = Video_Win::WStd(aSz,1.0);
+
+   Im2D_REAL4 anIm(aSz.x,aSz.y);
+   Im2D_REAL4 aGMax(aSz.x,aSz.y,-1);
+   Im2D_INT4 aKMax(aSz.x,aSz.y,-1);
+   ELISE_COPY
+   (
+        anIm.all_pts(),
+        trans(aTF.in(0),aP0),
+        anIm.out()
+   );
+
+   std::vector<Im2D_REAL4> aVG;
+   for (int aK=0 ; aK< 100 ; aK++)
+   {
+       Im2D_REAL4 aG(aSz.x,aSz.y);
+       double anAlpha = 2 * pow(0.97,aK);
+       Symb_FNum  aSF = deriche(anIm.in_proj(),anAlpha,50);
+       ELISE_COPY
+       (
+            aW.all_pts(),
+            sqrt(Square(aSF.v0()) + Square(aSF.v1())),
+            aG.out()
+       );
+       double aSom;
+       ELISE_COPY(aG.all_pts(),aG.in(),sigma(aSom));
+       aSom /= aSz.x * aSz.y;
+       ELISE_COPY(aG.all_pts(),aG.in()/aSom,aG.out());
+       ELISE_COPY(aW.all_pts(),Min(255,128*pow(aG.in(),0.5)),aW.ogray());
+
+       ELISE_COPY(select(aG.all_pts(),aG.in()>aGMax.in()),Virgule(aG.in(),aK),Virgule(aGMax.out(),aKMax.out()));
+       std::cout << "AAAAAAaaaa   " << aK << "\n" ;  
+   }
+   ELISE_COPY(aW.all_pts(),aKMax.in(),aW.ogray());
+   Tiff_Im::Create8BFromFonc("Scale.tif",aSz,aKMax.in());
+   getchar();
+}
+
+
 int MPDtest_main (int argc,char** argv)
 {
-   TestKL();
-   BanniereMM3D();
+   TestMultiEch(argc,argv);
+//    TestKL();
+//    BanniereMM3D();
    // AutoCorrel(argv[1]);
    double aNan = strtod("NAN(teta01)", NULL);
    std::cout << "Nan=" << aNan << "\n";
