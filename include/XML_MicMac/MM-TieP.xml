@@ -13,6 +13,11 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
    mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/media/data1/Jeux-Tests/Dragon-2/  +Im1=IMGP7528.PEF +Ori=-All +Zoom=2 +Visu=1 +Do2Z=false
 
     mm3d MICMAC  /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml  WorkDir=/media/data/Jeux-Test/Tortue-Pagode-Hue/ +Im1=IMGP6861.JPG +Visu=0 +DoPly=1
+
+    mm3d MICMAC  /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml  WorkDir=/media/data1/Visage/Filles1/ +Im1=filles00022.png +Visu=1 +DoPly=1 +Zoom=2
+
+
+
 -->
 
 <ParamMICMAC>
