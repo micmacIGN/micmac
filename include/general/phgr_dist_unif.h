@@ -621,6 +621,107 @@ typedef  cPIF_Unif<cDistGen_Deg7_Generator<double>,cDistGen_Deg7_Generator<Fonc_
 
 
 
+// Methodes deplacees dans le header suite a des erreurs de compilation sous MacOS entre gcc4.0 et gcc4.2 (LLVM)
+// du type : error: explicit specialization of 'TheType' after instantiation
+
+template <class TDistR,class TDistF,const int NbVar,const int NbState>
+int  cDist_Param_Unif<TDistR,TDistF,NbVar,NbState>::TypeModele() const
+{
+    return TheType;
+}
+
+template <class TDistR,class TDistF,const int NbVar,const int NbState>
+cDist_Param_Unif<TDistR,TDistF,NbVar,NbState>::cDist_Param_Unif
+(
+ Pt2dr                        aSzIm,
+ CamStenope *                 aCam,
+ const std::vector<double> *  aVParam,
+ const std::vector<double> *  aVEtats
+ ) :
+cDist_Param_Unif_Gen  (aSzIm,aCam)
+{
+    InitVars(mVars,NbVar,aVParam,TheName);
+    InitVars(mStates,NbState,aVEtats,TheName);
+    
+    TDistR::InitClass();
+    
+    mPC = TDistR::DistPreCond(mVars,mStates);
+    if (mPC)
+    {
+        SetParamConvInvDiff(100,1e-3);
+    }
+    
+}
+
+template <class TDistR,class TDistF,const int NbVar,const int NbState>
+const std::string &   cDist_Param_Unif<TDistR,TDistF,NbVar,NbState>:: NameType() const
+{
+    return TheName;
+}
+
+template <class TDistR,class TDistF,const int NbVar,const int NbState>
+void  cPIF_Unif<TDistR,TDistF,NbVar,NbState>::SetFigeKthParam(int aK,double aTol)
+{
+    
+    VerifIndexVar(aK);
+    double aDiag = euclid(mDistInit.SzIm()) / 2.0;
+    
+    aTol =  (aTol<=0)                       ?
+    cContrainteEQF::theContrStricte :
+    aTol / pow(aDiag,mDegrePolyn[aK]);
+    mVarIsFree[aK] = false;
+    mTolCstr[aK] = aTol;
+}
+template <class TDistR,class TDistF,const int NbVar,const int NbState>
+void  cPIF_Unif<TDistR,TDistF,NbVar,NbState>::SetFreeKthParam(int aK)
+{
+    VerifIndexVar(aK);
+    mVarIsFree[aK] = true;
+}
+
+
+template <class TDistR,class TDistF,const int NbVar,const int NbState>
+void  cPIF_Unif<TDistR,TDistF,NbVar,NbState>::FigeIfDegreSup(int aDegre,double aTol,eModeControleVarDGen aModeControl)
+{
+    for (int aKV=0 ; aKV<NbVar ; aKV++)
+    {
+        int aDegK = TDistR::DegreOfPolyn(mDegrePolyn,aKV,aModeControl);
+        if (aDegK >=0)
+        {
+            if (aDegK > aDegre)
+                SetFigeKthParam(aKV,aTol);
+            else
+                SetFreeKthParam(aKV);
+        }
+    }
+}
+
+template <class TDistR,class TDistF,const int NbVar,const int NbState>
+void  cPIF_Unif<TDistR,TDistF,NbVar,NbState>::Inspect()
+{
+    for (int aKV=0 ; aKV<NbVar ; aKV++)
+    {
+        std::cout << " FIDS  " <<  mDistCur.NameType() << " " << mDistCur.KVar(aKV) << " " << mVarIsFree[aKV] << "\n";
+    }
+}
+
+template <class TDistR,class TDistF,const int NbVar,const int NbState>
+void  cPIF_Unif<TDistR,TDistF,NbVar,NbState>::FigeD1_Ou_IfDegreSup(int aDegre,double aTol)
+{
+    for (int aKV=0 ; aKV<NbVar ; aKV++)
+    {
+        int aDegK = TDistR::DegreOfPolyn(mDegrePolyn,aKV,eModeContDGPol);
+        if (aDegK >=0)
+        {
+            if (( aDegK> aDegre) ||  (aDegK==1))
+                SetFigeKthParam(aKV,aTol);
+            else
+                SetFreeKthParam(aKV);
+        }
+    }
+}
+
+
 
 #endif  // _PHGR_DIST_UNIF_H_
 
