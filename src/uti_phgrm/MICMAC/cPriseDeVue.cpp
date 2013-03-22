@@ -282,7 +282,7 @@ int  cPriseDeVue::Num() const {return mNum;}
 /*  Chargement des images                */
 /*****************************************/
 
-bool cPriseDeVue::LoadImage
+bool cPriseDeVue::LoadImageMM
      (
           const cLoadTer& aLT,
           const Pt2di & aSzMaxInGeomTer,
