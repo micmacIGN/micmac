@@ -89,7 +89,7 @@ int MakePlancheImage_main(int argc,char ** argv)
 
 
    if (aNbLine==0)
-      aNbLine = round_up(sqrt(aVT.size()));
+      aNbLine = round_up(sqrt(double(aVT.size())));
 
    int aNbCol = round_up(aVT.size()/double(aNbLine));
 
