@@ -178,10 +178,220 @@ void TestKL()
 #endif
 
 
+void TestMultiEch_Deriche(int argc,char** argv)
+{
+   std::string aNameIm;
+   Pt2di aP0(0,0),aSz;
+
+std::cout << "AAAAAAAbbbBBB  a\n";
+
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(aNameIm,"Name Im"),
+        LArgMain()  << EAM(aP0,"P0",true,"")
+                    << EAM(aSz,"Sz",true,"")
+   );
+
+   Tiff_Im aTF = Tiff_Im::StdConvGen(aNameIm,1,false);
+   if (! EAMIsInit(&aSz))
+   {
+      aSz = aTF.sz();
+   }
+   Video_Win  aW = Video_Win::WStd(aSz,1.0);
+
+   Im2D_REAL4 anIm(aSz.x,aSz.y);
+   Im2D_REAL4 aGMax(aSz.x,aSz.y,-1);
+   Im2D_INT4 aKMax(aSz.x,aSz.y,-1);
+   ELISE_COPY
+   (
+        anIm.all_pts(),
+        trans(aTF.in(0),aP0),
+        anIm.out()
+   );
+
+//  1 / alp = aK
+
+   std::vector<Im2D_REAL4> aVG;
+   for (int aK=0 ; aK< 8 ; aK++)
+   {
+       Im2D_REAL4 aG(aSz.x,aSz.y);
+       double anAlpha = 2 / (1.0+aK);
+       Symb_FNum  aSF = deriche(anIm.in_proj(),anAlpha,150);
+       ELISE_COPY
+       (
+            aW.all_pts(),
+            sqrt(Square(aSF.v0()) + Square(aSF.v1())),
+            aG.out()
+       );
+       double aSom;
+       ELISE_COPY(aG.all_pts(),aG.in(),sigma(aSom));
+       aSom /= aSz.x * aSz.y;
+       ELISE_COPY(aG.all_pts(),aG.in()/aSom,aG.out());
+       ELISE_COPY(aW.all_pts(),Min(255,128*pow(aG.in(),0.5)),aW.ogray());
+
+       Fonc_Num aFK =  aK;//  Min(255,round_ni((1/anAlpha -0.5) ));
+       ELISE_COPY(select(aG.all_pts(),aG.in()>aGMax.in()),Virgule(aG.in(),aFK),Virgule(aGMax.out(),aKMax.out()));
+       std::cout << "AAAAAAaaaa   " << aK << "\n" ;  
+   }
+   ELISE_COPY(aW.all_pts(),aKMax.in(),aW.ogray());
+   Tiff_Im::Create8BFromFonc("Scale.tif",aSz,aKMax.in());
+   getchar();
+}
+
+void TestMultiEch_Gauss(int argc,char** argv)
+{
+   std::string aNameIm;
+   Pt2di aP0(0,0),aSz;
+
+
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(aNameIm,"Name Im"),
+        LArgMain()  << EAM(aP0,"P0",true,"")
+                    << EAM(aSz,"Sz",true,"")
+   );
+
+   Tiff_Im aTF = Tiff_Im::StdConvGen(aNameIm,1,false);
+   if (! EAMIsInit(&aSz))
+   {
+      aSz = aTF.sz();
+   }
+   Video_Win  aW = Video_Win::WStd(aSz,1.0);
+
+   Im2D_REAL4 anImOri(aSz.x,aSz.y);
+   Im2D_REAL4 aGMax(aSz.x,aSz.y,-1);
+   Im2D_INT4 aKMax(aSz.x,aSz.y,-1);
+   ELISE_COPY
+   (
+        anImOri.all_pts(),
+        trans(aTF.in(0),aP0),
+        anImOri.out()
+   );
+
+   std::vector<Im2D_REAL4> aVG;
+   for (int aK=0 ; aK< 100 ; aK++)
+   {
+       Im2D_REAL4 anI(aSz.x,aSz.y);
+       // TIm2D<REAL4,REAL8> aTIm(anI);
+       ELISE_COPY(anI.all_pts(),anImOri.in(),anI.out());
+       double aSigm = aK;
+       double aSigmM = aK+1;
+
+       if (aSigm)
+          FilterGauss(anI,aSigm);
+
+       Im2D_REAL4 anI2(aSz.x,aSz.y);
+       // TIm2D<REAL4,REAL8> aTIm2(anI2);
+       ELISE_COPY(anI.all_pts(),Square(anI.in()),anI2.out());
+
+       FilterGauss(anI,aSigmM);
+       FilterGauss(anI2,aSigmM);
+       
+
+       double aSom;
+       Im2D_REAL4 aImEc(aSz.x,aSz.y);
+       ELISE_COPY(aW.all_pts(),sqrt(anI2.in()-Square(anI.in())),aImEc.out()|sigma(aSom));
+       aSom /= aSz.x*aSz.y;
+       ELISE_COPY(aImEc.all_pts(),aImEc.in() *(1.0/(aSom*(10+aK))),aImEc.out());
+
+       ELISE_COPY(select(aImEc.all_pts(),aImEc.in()>aGMax.in()),Virgule(aImEc.in(),aK),Virgule(aGMax.out(),aKMax.out()));
+       ELISE_COPY(aW.all_pts(),Min(255,128*pow(aImEc.in(),0.5)),aW.ogray());
+       std::cout << "AAAAAAaaaa   " << aSom << " " << aK << "\n" ;  
+   }
+   ELISE_COPY(aW.all_pts(),aKMax.in(),aW.ogray());
+   Tiff_Im::Create8BFromFonc("Scale.tif",aSz,aKMax.in());
+   getchar();
+}
+
+Fonc_Num sobel_0(Fonc_Num f)
+{
+    Im2D_REAL8 Fx
+               (  3,3,
+                  " -1 0 1 "
+                  " -2 0 2 "
+                  " -1 0 1 "
+                );
+    Im2D_REAL8 Fy
+               (  3,3,
+                  " -1 -2 -1 "
+                  "  0  0  0 "
+                  "  1  2  1 "
+                );
+   return
+       Abs(som_masq(f,Fx,Pt2di(-1,-1)))
+     + Abs(som_masq(f,Fy));
+}
+
+
+void TestMultiEch_Gauss2(int argc,char** argv)
+{
+   std::string aNameIm;
+   Pt2di aP0(0,0),aSz;
+
+
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(aNameIm,"Name Im"),
+        LArgMain()  << EAM(aP0,"P0",true,"")
+                    << EAM(aSz,"Sz",true,"")
+   );
+
+   Tiff_Im aTF = Tiff_Im::StdConvGen(aNameIm,1,false);
+   if (! EAMIsInit(&aSz))
+   {
+      aSz = aTF.sz();
+   }
+   Video_Win  aW = Video_Win::WStd(aSz,1.0);
+
+   Im2D_REAL4 anImOri(aSz.x,aSz.y);
+   Im2D_REAL4 aGMax(aSz.x,aSz.y,-1);
+   Im2D_INT4 aKMax(aSz.x,aSz.y,-1);
+   ELISE_COPY
+   (
+        anImOri.all_pts(),
+        trans(aTF.in(0),aP0),
+        anImOri.out()
+   );
+
+   std::vector<Im2D_REAL4> aVG;
+   for (int aK=0 ; aK< 100 ; aK++)
+   {
+       Im2D_REAL4 anI(aSz.x,aSz.y);
+       // TIm2D<REAL4,REAL8> aTIm(anI);
+       ELISE_COPY(anI.all_pts(),anImOri.in(),anI.out());
+       double aSigm = aK;
+       // double aSigmM = aK+1;
+
+       if (aSigm)
+          FilterGauss(anI,aSigm);
+
+       double aSom;
+       Im2D_REAL4 aImEc(aSz.x,aSz.y);
+       ELISE_COPY(aW.all_pts(),sobel_0(anI.in_proj()),aImEc.out()|sigma(aSom));
+
+       aSom /= aSz.x*aSz.y;
+       ELISE_COPY(aImEc.all_pts(),aImEc.in() *(1.0/(aSom*(1+0.0*aK))),aImEc.out());
+
+       ELISE_COPY(select(aImEc.all_pts(),aImEc.in()>aGMax.in()),Virgule(aImEc.in(),aK),Virgule(aGMax.out(),aKMax.out()));
+       ELISE_COPY(aW.all_pts(),Min(255,128*pow(aImEc.in(),0.5)),aW.ogray());
+       std::cout << "AAAAAAaaaa   " << aSom << " " << aK << "\n" ;  
+   }
+   ELISE_COPY(aW.all_pts(),aKMax.in(),aW.ogray());
+   Tiff_Im::Create8BFromFonc("Scale.tif",aSz,aKMax.in());
+   getchar();
+}
+
+
+
+
 int MPDtest_main (int argc,char** argv)
 {
-   TestKL();
-   BanniereMM3D();
+   TestMultiEch_Deriche(argc,argv);
+//    TestKL();
+//    BanniereMM3D();
    // AutoCorrel(argv[1]);
    double aNan = strtod("NAN(teta01)", NULL);
    std::cout << "Nan=" << aNan << "\n";
