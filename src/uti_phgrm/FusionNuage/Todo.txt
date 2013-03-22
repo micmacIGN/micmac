@@ -39,5 +39,13 @@ Tant qu'on en trouve
 
 Acceleration possible : liste des arcs nouveau
 (voir une seule Filo ou un seul vect que l'on parcourt jusqu'a epuisement)
+===========================================================
+
+Dans MMTieP : refaire correl sur fen min (3x3?) , rogner  les bords de correl trop faible (objectif :
+limiter , par ex, le ciel: voir en sur resol ?).
+
+Critère pour adapter les poids de fenetre en fonction du gradient de l'image. Critère à trouver ? Rechercher du coté du multi échelle  type SIFT ?? 
+
+
 
 
