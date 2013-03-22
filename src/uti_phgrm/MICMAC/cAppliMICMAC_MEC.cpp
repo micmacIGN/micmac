@@ -640,7 +640,7 @@ void cAppliMICMAC::DoOneBloc
        // bool Loaded = false;
        if (
                 (mCurEtape->SelectImage(*itFI))
-            &&  (*itFI)->LoadImage(*mLTer,aSzMaxDec,isFirstImLoaded)
+            &&  (*itFI)->LoadImageMM(*mLTer,aSzMaxDec,isFirstImLoaded)
           )
        {
          // Loaded = true;

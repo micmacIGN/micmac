@@ -615,7 +615,7 @@ class cModGeomComp
 };
 
 // Gere :
-//   * les noms de fichiers associe a une image a resolution donnnee
+//   * les noms de fichiers associes a une image a resolution donnnee
 //   * les fichiers de resolution variees
 //   * initialise la geometrie d'une image
 
@@ -632,45 +632,45 @@ class cPriseDeVue
 		       const std::list<cModifieurGeometrie>  &
              );
             ~cPriseDeVue();
-	    const std::string & Name() const;
+	    
+			const std::string & Name() const;
         
-
-            // Lazzy eval aussi
+            // Lazy eval aussi
             cGeomImage & Geom();
             const cGeomImage & Geom() const;
             Pt2di SzIm() const;
 
             // Charge en RAM une zone de fichier image,
-            // la zone Terraion est accedee via mAppli
+            // la zone Terrain est accedee via mAppli
             // aLT sert a calculer PXmin et PXmax pour convertir
             // l'emprise terrain en emprise image
-            bool LoadImage (const  cLoadTer& aLT,
-	                    const Pt2di & aSzMaxGeomTer,
-			    bool IsFirstLoaded);
+            bool LoadImageMM (const cLoadTer& aLT,
+							  const Pt2di & aSzMaxGeomTer,
+							  bool IsFirstLoaded);
             const cLoadedImage & LoadedIm() const;
             cLoadedImage & LoadedIm();
 
 
-	   cDbleGrid * ReadGridDist() const;
-	   ElPackHomologue ReadPackHom(const cPriseDeVue * aPDV2) const;
+			cDbleGrid * ReadGridDist() const;
+			ElPackHomologue ReadPackHom(const cPriseDeVue * aPDV2) const;
 
-           std::string NamePackHom(const cPriseDeVue * aPDV2) const;
+			std::string NamePackHom(const cPriseDeVue * aPDV2) const;
 
-           bool IsMaitre() const;
-           void SetMaitre(bool AvecImMaitre);
+			bool IsMaitre() const;
+			void SetMaitre(bool AvecImMaitre);
 
-           cInterfModuleImageLoader * IMIL();
-           const cInterfModuleImageLoader * IMIL() const;
-           Box2dr BoxIm() const;
-           Tiff_Im     FileImMasqOfResol(int aDz) const;
-	   const std::string & NameGeom() const;
+			cInterfModuleImageLoader * IMIL();
+			const cInterfModuleImageLoader * IMIL() const;
+			Box2dr BoxIm() const;
+			Tiff_Im     FileImMasqOfResol(int aDz) const;
+			const std::string & NameGeom() const;
 
-           const std::string  &  NameClassEquiv() const;
-           const int & NumEquiv() const;
-           int & NumEquiv() ;
-           int  Num() const;
+			const std::string  &  NameClassEquiv() const;
+			const int & NumEquiv() const;
+			int & NumEquiv() ;
+			int  Num() const;
 
-           double  DzOverPredic(const Pt3dr &) const;
+			double  DzOverPredic(const Pt3dr &) const;
 
         private :
 
@@ -692,19 +692,19 @@ class cPriseDeVue
        /*   Partie Data                  */
        /**********************************/
 
-            const cAppliMICMAC & mAppli;
-            cInterfModuleImageLoader * mIMIL;
-	    std::string          mName; // Nom avec extension, sans dir
-	    std::string          mNameTif; // Nom avec extension, sans dir, tjs termine par ".tif"
-	    std::string          mNameGeom; // Nom avec extension, sans dir
-            int                  mNum;
-            cGeomImage *         mGeom;
-            cGeomImage *         mGeomTerAssoc;  // Geometrie terrain associee
-            mutable Pt2di        mSzIm; // Taille pleine resol
-            cLoadedImage *       mLoadIm;
-            const cEtapeMecComp* mCurEtape;
-            bool                 mIsMaitre;
-	    std::vector<cModGeomComp *> mVModif;
+            const cAppliMICMAC &		mAppli;
+            cInterfModuleImageLoader *	mIMIL;
+			std::string					mName;		// Nom avec extension, sans dir
+			std::string					mNameTif;	// Nom avec extension, sans dir, tjs termine par ".tif"
+			std::string					mNameGeom; // Nom avec extension, sans dir
+            int							mNum;
+            cGeomImage *				mGeom;
+            cGeomImage *				mGeomTerAssoc;  // Geometrie terrain associee
+            mutable Pt2di				mSzIm; // Taille pleine resol
+            cLoadedImage *				mLoadIm;
+            const cEtapeMecComp*		mCurEtape;
+            bool						mIsMaitre;
+			std::vector<cModGeomComp *> mVModif;
 
             std::string                 mNameClassEquiv;
             int                         mNumEquiv;
