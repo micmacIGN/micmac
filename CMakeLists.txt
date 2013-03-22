@@ -36,12 +36,16 @@ OPTION(CUDA_ENABLED "Utilisation de cuda" OFF )
 
 # Pas de Warning Poisson
 if(NOT WIN32)
-OPTION(NOWARNINGPOISSON "Pas warning a la compilation de poisson" ON )
+    OPTION(NOWARNINGPOISSON "Pas warning a la compilation de poisson" ON )
 endif()
 
-##################################
+# Utiliser Cuda
+OPTION(WITH_DOXYGEN "Generation de documentation" OFF )
+
+
+######################################
 ## 	Trouver les EXES et Libs	##
-##################################
+######################################
 
 # systeme 32 ou 64 bits
 if (WIN32)
@@ -314,4 +318,14 @@ if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
 	configure_file( ${BinAuxWinDir}/libiconv2.dll ${PROJECT_SOURCE_DIR}/binaire-aux/libiconv2.dll COPYONLY )
 	configure_file( ${BinAuxWinDir}/libintl3.dll ${PROJECT_SOURCE_DIR}/binaire-aux/libintl3.dll COPYONLY )
 	configure_file( ${BinAuxWinDir}/make.exe ${PROJECT_SOURCE_DIR}/binaire-aux/make.exe COPYONLY )
+endif()
+
+# Doxygen
+if(${WITH_DOXYGEN})
+    find_package(Doxygen)
+    if(DOXYGEN_FOUND)
+	  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+    message("${CMAKE_CURRENT_SOURCE_DIR}")
+	  add_custom_target(doc ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMENT "Generating API documentation with Doxygen" VERBATIM)
+    endif(DOXYGEN_FOUND)
 endif()
