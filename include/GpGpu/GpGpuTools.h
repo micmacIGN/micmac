@@ -53,6 +53,10 @@ public:
     static void			Memcpy2Dto1D(T** dataImage2D, T* dataImage1D, uint2 dimDest, uint2 dimSource);
 
     ///  \brief         Sauvegarder tableau de valeur dans un fichier PGN
+    ///  \param         dataImage : Donnees images a ecrire
+    ///  \param         fileName : nom du fichier a ecrire
+    ///  \param         dimImage : dimension de l image
+    ///  \return        true si l ecriture reussie
     template <class T>
     static bool			Array1DtoImageFile(T* dataImage,const char* fileName, uint2 dimImage);
 
@@ -82,8 +86,10 @@ public:
     ///	\brief			Retour chariot
     static void			OutputReturn(char * out = "");
 
+    ///	\brief			multiplie par un facteur
     static float		fValue( float value,float factor );
 
+    ///	\brief			multiplie par un facteur
     static float		fValue( float2 value,float factor );
 
     ///	\brief			Convertie un uint2 en string
@@ -92,7 +98,7 @@ public:
     ///	\brief			Affiche les parametres GpGpu de correlation multi-images
     static void			OutputInfoGpuMemory();
 
-    ///	\brief			Fun
+    ///	\brief			(X)
     static void			OutputGpu();
 
 };
@@ -234,6 +240,8 @@ bool GpGpuTools::Array1DtoImageFile(T* dataImage,const char* fileName, uint2 dim
 //									CLASS IMAGE CUDA
 //-----------------------------------------------------------------------------------------------
 
+/// \class CGObject
+/// \brief Classe de gestion des types
 class CGObject
 {
 public:
@@ -241,14 +249,23 @@ public:
     CGObject();
     ~CGObject();
 
+    /// \brief  renvoie les caracteristiques de l objets en string
     std::string Id();
+    /// \brief  renvoie le nom de l objet en string
     std::string	Name();
+    /// \brief  affecte le nom
     void		SetName(std::string name);
+    /// \brief  renvoie le type de l objet en string
     std::string	Type();
+    /// \brief  affecte le type de l objet
     void		SetType(std::string type);
+
+    /// \brief  renvoie la classe du template de l objet en string
     std::string	ClassTemplate();
+    /// \brief  Affecte la classe du template de l objet
     void		ClassTemplate(std::string classTemplate);
 
+    /// \brief  renvoie la classe T en string
     template<class T>
     const char* StringClass(T* tt){ return "T";}
 
@@ -259,15 +276,15 @@ private:
     std::string _classTemplate;
 
 };
-
+/// \brief  renvoie la classe float en char*
 template<> inline const char* CGObject::StringClass( float* t ){return "float*";}
-
+/// \brief  renvoie la classe pixel en char*
 template<> inline const char* CGObject::StringClass( pixel* t ){return "pixel*";}
-
+/// \brief  renvoie la classe uint en char*
 template<> inline const char* CGObject::StringClass( uint* t ){	return "uint*";}
-
+/// \brief  renvoie la classe float en char*
 template<> inline const char* CGObject::StringClass(struct float2* t ){	return "float2*";}
-
+/// \brief  renvoie la classe cudaArray en char*
 template<> inline const char* CGObject::StringClass(cudaArray* t ){	return "cudaArray*";}
 
 class struct2D 

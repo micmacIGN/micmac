@@ -2,13 +2,29 @@
 #include "GpGpu/cudaTextureTools.cuh"
 #include "GpGpu/CudaRefTexture.cuh"
 
+/**
+ * \file cudaAppliMicMac.cu
+ * \brief Kernel
+ * \author GC
+ * \version 0.1
+ * \date  mars 2013
+ *
+ * Programme de test pour l'objet de gestion des cha?nes de caract?res Str_t.
+ *
+ */
+
 static __constant__ pCorGpu cH;
 
+/// \fn extern "C" void CopyParamTodevice( pCorGpu param )
+/// \brief copie les paramteres du host vers le device
 extern "C" void CopyParamTodevice( pCorGpu param )
 {
   checkCudaErrors(cudaMemcpyToSymbol(cH, &param, sizeof(pCorGpu)));
 }
 
+/// \fn template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
+/// \brief Kernel fonction GpGpu Cuda
+/// Calcul les vignettes de correlation pour toutes les images
 template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
 {
   __shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
