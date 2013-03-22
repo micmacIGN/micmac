@@ -824,6 +824,35 @@ template  <const int nbb> Im2D_U_INT1  Im2D_Bits<nbb>::gray_im_red(INT & zoom)
     return didb()->gray_im_red(zoom);
 }
 
+const Tabul_Bits_Gen & Tabul_Bits_Gen::tbb(INT nbb,bool msbf)
+{
+    switch (nbb)
+    {
+        case   1 :
+            if  (msbf)
+                return Tabul_Bits<1,true>::The_Only_One;
+            else
+                return Tabul_Bits<1,false>::The_Only_One;
+            
+        case   2 :
+            if  (msbf)
+                return Tabul_Bits<2,true>::The_Only_One;
+            else
+                return Tabul_Bits<2,false>::The_Only_One;
+            
+        case   4 :
+            if  (msbf)
+                return Tabul_Bits<4,true>::The_Only_One;
+            else
+                return Tabul_Bits<4,false>::The_Only_One;
+    };
+    
+    elise_internal_error("Tabul_Bits_Gen::tbb",__FILE__,__LINE__);
+    
+    return  Tabul_Bits<1,false>::The_Only_One;
+}
+
+
 template class Im2D_Bits<1>;
 template class Im2D_Bits<2>;
 template class Im2D_Bits<4>;
@@ -890,77 +919,6 @@ template <> U_INT1  Tabul_Bits<4,false>::out_tab[256][16][2];
     //==============================
 
 
-const Tabul_Bits_Gen & Tabul_Bits_Gen::tbb(INT nbb,bool msbf)
-{
-    switch (nbb)
-    {
-        case   1 :
-            if  (msbf)
-                return Tabul_Bits<1,true>::The_Only_One;
-            else
-                return Tabul_Bits<1,false>::The_Only_One;
-            
-        case   2 :
-            if  (msbf)
-                return Tabul_Bits<2,true>::The_Only_One;
-            else
-                return Tabul_Bits<2,false>::The_Only_One;
-            
-        case   4 :
-            if  (msbf)
-                return Tabul_Bits<4,true>::The_Only_One;
-            else
-                return Tabul_Bits<4,false>::The_Only_One;
-    };
-    
-    elise_internal_error("Tabul_Bits_Gen::tbb",__FILE__,__LINE__);
-    
-    return  Tabul_Bits<1,false>::The_Only_One;
-}
-
-template <const INT nbb>  void DataGenImBits<nbb>::input_rle
-(void * v_out,INT nb,const void* v_in,INT offs_0) const
-{
-    
-    Tabul_Bits<nbb,true>::The_Only_One.input
-    (
-     C_CAST(INT *,v_out),
-     C_CAST(const U_INT1 *,v_in),
-     offs_0,
-     offs_0+nb
-     );
-}
-
-template <const INT nbb>  void DataGenImBits<nbb>::out_rle
-(void * v_out,INT nb,const INT * v_in,INT offs_0) const
-{
-    
-    Tabul_Bits<nbb,true>::The_Only_One.output
-    (
-     C_CAST(U_INT1 *,v_out),
-     v_in,
-     offs_0,
-     offs_0+nb
-     );
-}
-
-template <const INT nbb>  void DataGenImBits<nbb>::out_rle
-(void * v_out,INT nb,const REAL * v_in,INT offs_0) const
-{
-    
-    Tabul_Bits<nbb,true>::The_Only_One.output
-    (
-     C_CAST(U_INT1 *,v_out),
-     v_in,
-     offs_0,
-     offs_0+nb
-     );
-}
-
-template <const INT nbb>  GenIm::type_el  DataGenImBits<nbb>::type() const
-{
-    return type_el_bitm;
-}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
