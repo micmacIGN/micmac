@@ -1,0 +1,345 @@
+<Global
+    Subst="@$#1"
+    NameDecl="@$#1"
+
+    NameCam="@Fuji-L"
+    PrefCal="@PhgrStd"
+    PatternIm="@DSCF((1446|1448|1450|1451|1454))_L_Gray.tif"
+    KeySetOri="@Key-Set-AppuiOri-Polygone-Basic"
+    KeyAssocOri="@Key-Assoc-Im2AppuiOri-Polygone-Basic"
+    DoGrid="@0"
+    FileParamEtal="@param.txt"
+
+    PrefExport="GRID_NoGrid_${PrefCal}"
+    TolLiberteCentre="@5000.0"
+
+    SeuilRejet="10000.00"
+    SeuilPonder="5.3"
+>
+
+   <ParamApero>
+
+
+       <SectionBDD_Observation>
+
+           <BDD_PtsAppuis>
+                  <Id> Id-Appuis-Polyg  </Id>
+                  <KeySet>  ${KeySetOri} </KeySet>
+                  <KeyAssoc>   ${KeyAssocOri} </KeyAssoc>
+<!--
+                  <SzImForInvY > 640 512 </SzImForInvY>
+                  <InvXY > true </InvXY>
+-->
+
+           </BDD_PtsAppuis>
+
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> Id_Calib </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+                           <NameFile>   PhgrStdFinale${NameCam}.xml </NameFile>  <!-- ## -->
+                           <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+
+              <PoseCameraInc>
+                   <PatternName>  ListeNamesIm.xml  </PatternName>  <!-- ## -->
+                   <ByFile>  true </ByFile> 
+	           <CalcNameCalib>  Id_Calib </CalcNameCalib>
+
+                   <PosValueInit>
+                        <PosFromBDAppuis> 
+                              <Id>   Id-Appuis-Polyg  </Id>
+                              <NbTestRansac>  50 </NbTestRansac>
+                        </PosFromBDAppuis>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir </DirectoryChantier>
+             <NameParamEtal> ${FileParamEtal}</NameParamEtal>
+
+        </SectionChantier>
+
+        <SectionSolveur>
+             <ModeControleDescDic> eCDD_Jamais </ModeControleDescDic>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+             <GridOptimKnownDist> true </GridOptimKnownDist>
+
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_0  </Val>
+		              <Val> eLib_PP_CD_00     </Val>
+		              <Val> eLiberte_DR0      </Val>
+		              <Val> eFige_Phgr_Std_Aff      </Val>
+		              <Val> eFige_Phgr_Std_Dec      </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                           <ObsAppuis>
+                              <NameRef> Id-Appuis-Polyg </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Iter     </Show>
+                                 <NbMax>   100    </NbMax>
+                              </Pond>
+                           </ObsAppuis>
+		    </SectionObservations>
+	      </EtapeCompensation>
+
+
+	      <EtapeCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                           <ObsAppuis>
+                              <NameRef> Id-Appuis-Polyg </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Iter     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <SigmaPond>  10 </SigmaPond>
+				 <EcartMax> 1000000 </EcartMax>
+                                 <ModePonderation> eL1Secured </ModePonderation>
+                              </Pond>
+                           </ObsAppuis>
+		    </SectionObservations>
+	      </EtapeCompensation>
+
+
+	      <EtapeCompensation>
+
+<!--
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_1  </Val>
+		              <Val> eLiberte_DR3      </Val>
+		          </ContraintesCamerasInc>
+		          <ContraintesCamerasInc>
+                              <Val> ${LiberteCentre}     </Val>
+                              <TolContrainte> ${TolLiberteCentre}     </TolContrainte>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+-->
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberte_Phgr_Std_Aff  </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_1  </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberte_DR1      </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLib_PP_CD_10     </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLib_PP_CD_11     </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+<!--
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberte_DR2      </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberte_Phgr_Std_Dec  </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+-->
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+                     <IterationsCompensation> 
+                          <MesureErreurTournante >
+                                   <Periode> 10 </Periode>
+                                   <NbIter > 8 </NbIter>
+                                   <!-- Pour l'instant ne pas changer ces valeurs par defaut -->
+                                   <ApplyAppuis>  true</ApplyAppuis>
+                                   <ApplyLiaisons> false </ApplyLiaisons>
+                          </MesureErreurTournante>
+                    </IterationsCompensation>
+
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+
+
+
+
+
+		    <SectionObservations>
+                           <ObsAppuis>
+                              <NameRef> Id-Appuis-Polyg </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Iter     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <SigmaPond> ${SeuilPonder} </SigmaPond>
+				 <EcartMax> ${SeuilRejet} </EcartMax>
+                                 <ModePonderation> eL1Secured </ModePonderation>
+                              </Pond>
+
+                              <RapportObsAppui >
+                                     <FichierTxt> ${PrefExport}_Rapport_${NameCam}.txt </FichierTxt>
+                                     <SeuilColOut> ${SeuilRejet} </SeuilColOut>
+                                     <ROA_FichierImg >
+                                         <Name> ${PrefExport}_ImageResidus_${NameCam}.tif </Name>
+                                         <Sz > 1000  </Sz>
+                                         <Exag > 100 </Exag>
+                                     </ROA_FichierImg>
+                              </RapportObsAppui>
+                           </ObsAppuis>
+		    </SectionObservations>
+                    <SectionExport>
+                       <ExportCalib>
+                           <KeyAssoc> ${PrefExport}_${NameCam}.xml </KeyAssoc>
+                           <KeyIsName> true  </KeyIsName>
+                           <ExportAsGrid>
+                               <DoExport>  ${DoGrid} </DoExport>
+                               <Name>  ${PrefExport}_${NameCam} </Name>
+                               <XML_Supl> capteur.xml  </XML_Supl>
+                               <RabPt> 100 100 </RabPt>
+                               <Step> 10 10 </Step>
+                           </ExportAsGrid>
+                       </ExportCalib>
+                    </SectionExport>
+<!--
+-->
+	      </EtapeCompensation>
+
+<!--
+	      <EtapeCompensation>
+
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                                 <ModePonderation> eL1Secured </ModePonderation>
+                              </Pond>
+                           </ObsLiaisons>
+                           <ObsCentrePDV>
+                                <Pond>
+                                     <EcartMesureIndiv>  50.00 </EcartMesureIndiv>
+                                    <Show> eNSM_Indiv  </Show>
+                                </Pond>
+                           </ObsCentrePDV>
+		    </SectionObservations>
+
+                    <SectionExport>
+                        <ExportPose>
+                            <PatternSel> (.*).tif </PatternSel>
+                            <KeyAssoc>  Key-Assoc-Im2OrPanchro </KeyAssoc>
+                            <AddCalib>  true </AddCalib>
+			    <NbVerif>  10 </NbVerif>
+			    <TolWhenVerif> 1e-3 </TolWhenVerif>
+                        </ExportPose>
+                    </SectionExport>
+
+	      </EtapeCompensation>
+-->
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
