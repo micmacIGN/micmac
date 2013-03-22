@@ -231,7 +231,53 @@ template <const INT nbb> class DataIm2D_Bits :
 };
 
 
+// Methodes deplacees dans le header suite a des erreurs de compilation sous MacOS entre gcc4.0 et gcc4.2 (LLVM)
+// du type : error: explicit specialization of 'TheType' after instantiation
 
+
+template <const INT nbb>  void DataGenImBits<nbb>::input_rle
+(void * v_out,INT nb,const void* v_in,INT offs_0) const
+{
+    
+    Tabul_Bits<nbb,true>::The_Only_One.input
+    (
+     C_CAST(INT *,v_out),
+     C_CAST(const U_INT1 *,v_in),
+     offs_0,
+     offs_0+nb
+     );
+}
+
+template <const INT nbb>  void DataGenImBits<nbb>::out_rle
+(void * v_out,INT nb,const INT * v_in,INT offs_0) const
+{
+    
+    Tabul_Bits<nbb,true>::The_Only_One.output
+    (
+     C_CAST(U_INT1 *,v_out),
+     v_in,
+     offs_0,
+     offs_0+nb
+     );
+}
+
+template <const INT nbb>  void DataGenImBits<nbb>::out_rle
+(void * v_out,INT nb,const REAL * v_in,INT offs_0) const
+{
+    
+    Tabul_Bits<nbb,true>::The_Only_One.output
+    (
+     C_CAST(U_INT1 *,v_out),
+     v_in,
+     offs_0,
+     offs_0+nb
+     );
+}
+
+template <const INT nbb>  GenIm::type_el  DataGenImBits<nbb>::type() const
+{
+    return type_el_bitm;
+}
 
 
 
