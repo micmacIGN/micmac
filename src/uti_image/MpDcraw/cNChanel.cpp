@@ -179,7 +179,7 @@ Fonc_Num  cArgMpDCRaw::FlatField(const cMetaDataPhoto & aMDP,const std::string &
 {
    double aZoomFF = 10.0;
 
-   std::string aNameFF = DirOfFile(aNameFile)+ "Foc"+ ToString(round_ni(aMDP.FocMm())) + "-FlatField.tif";
+   std::string aNameFF = DirOfFile(aNameFile)+ "Foc"+ ToString(round_ni(aMDP.FocMm(true))) + "-FlatField.tif";
   
    if ((!ELISE_fp::exist_file(aNameFF)) || (! UseFF()))
       return 1;
