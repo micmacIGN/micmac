@@ -401,7 +401,7 @@ std::vector<char *>  	ElInitArgMain
 		cout << "*****************************\n";
 		cout << "*  Help for Elise Arg main  *\n";
 		cout << "*****************************\n";
-		cout << "Unamed args : \n";
+		cout << "Unnamed args : \n";
 		LGlob.show(false);
 		cout << "Named args : \n";
 		L1.show(true);

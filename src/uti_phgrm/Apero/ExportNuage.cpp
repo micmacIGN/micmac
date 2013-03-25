@@ -155,6 +155,8 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
               aMode = eModeAGPNormale;
            else if (aNameFile == "NoAttr")
               aMode =  eModeAGPNoAttr;
+           else if (aNameFile == "NoPoint")
+              aMode =  eModeAGPNoPoint;
 
            if (aLastMode!=eModeAGPNone)
            {
@@ -167,7 +169,7 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
                aNameFile = mDC+aNameFile;
            }
 
-           if (aSelector->IsSetIn(aPC->Name()))
+           if (aSelector->IsSetIn(aPC->Name()) && (aMode != eModeAGPNoPoint))
            {
                 if (aMode==eModeAGPIm)
                    anAGP.InitFileColor(aNameFile,-1,aImExpoRef,aNbChan);

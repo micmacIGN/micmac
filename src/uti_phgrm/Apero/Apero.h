@@ -1133,7 +1133,8 @@ typedef enum
   eModeAGPIm,
   eModeAGPHypso,
   eModeAGPNormale,
-  eModeAGPNoAttr
+  eModeAGPNoAttr,
+  eModeAGPNoPoint
 } eModeAGP;
 
 
