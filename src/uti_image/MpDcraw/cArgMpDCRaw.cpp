@@ -343,6 +343,7 @@ void  cArgMpDCRaw::DevJpg()
 
      cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFullNJPG);
      Fonc_Num aFRes = aFTmp.in() / FlatField(aMDP,aFullNJPG);
+
      if (En8B)
         aFRes = Min(255,aFRes);
      ELISE_COPY
@@ -355,7 +356,7 @@ void  cArgMpDCRaw::DevJpg()
      ELISE_fp::RmFile( aTmp );
 }
 
-L_Arg_Opt_Tiff  cArgMpDCRaw:: ArgMTD() const
+L_Arg_Opt_Tiff  cArgMpDCRaw::ArgMTD() const
 {
    return ArgOpTiffMDP(cMetaDataPhoto::CreateExiv2(DirChantier()+CurF1()));
 }

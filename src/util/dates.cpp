@@ -604,6 +604,9 @@ const cMetaDataPhoto & cMetaDataPhoto::CreateExiv2(const std::string & aNameFile
 
 	if ((aF35<=0) || (aFForced))
 	{
+           std::string aNameCam = aMDP->Cam(true);
+           if (aNameCam!="")
+           {
 		cCameraEntry *  aCE = CamOfName(aMDP->Cam());
 		if (aCE)
 		{
@@ -615,6 +618,7 @@ const cMetaDataPhoto & cMetaDataPhoto::CreateExiv2(const std::string & aNameFile
 		{
 			WarnNo35(aMDP->Cam());
 		}
+           }
 	}
 	return *(TheDicoMDP[aNameFile]);
 }
