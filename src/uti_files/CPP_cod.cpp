@@ -79,7 +79,7 @@ void code_file(const char * name,bool coder)
         NewName = StdPrefix(name); 
 
 
-   string MV = string("mv \"") + name + string("\" \"") + NewName +string("\"");
+   string MV = string(SYS_MV)+ " \"" + name + string("\" \"") + NewName +string("\"");
 
     INT NbOctet = sizeofile(name);
     Elise_File_Im  F(name, Pt2di(NbOctet,1),GenIm::u_int1);

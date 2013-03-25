@@ -219,7 +219,7 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
 
     for (int aK=0 ; aK <int(aVM.size()) ; aK++)
     {
-         std::string aSys = "mv " + ToStrBlkCorr(mDir+aVM[aK].mNameIn) + " " + ToStrBlkCorr(mDir+aVM[aK].mNameOut);
+         std::string aSys = string(SYS_MV) + ' ' + ToStrBlkCorr(mDir+aVM[aK].mNameIn) + " " + ToStrBlkCorr(mDir+aVM[aK].mNameOut);
 	 std::cout << aSys << "\n";
 	 if (mExe)
 	 {
