@@ -866,7 +866,7 @@ void cAppliMICMAC::DoImagesBSurH(const cDoImageBSurH& aParBsH)
      double aSeuilBsH = aParBsH.SeuilMasqExport().ValWithDef(0);
 
      Pt2di aPIndex;
-     double aPax[theDimPxMax] ={0,0};
+     // double aPax[theDimPxMax] ={0,0};
 
      for (aPIndex.x=0 ; aPIndex.x<aSz.x ; aPIndex.x++)
      {
@@ -878,7 +878,7 @@ void cAppliMICMAC::DoImagesBSurH(const cDoImageBSurH& aParBsH)
                 Pt3dr aPEucl = aNuage->PtOfIndex(aPIndex);
                 // Pt3dr aQE = aNuage->Euclid2ProfAndIndex(aPEucl);
                 // Pt2dr aPE2(aPEucl.x,aPEucl.y);
-                aPax[0] = aPEucl.z;
+                // aPax[0] = aPEucl.z;
                 std::vector<Pt3dr> aVN;
                 for (int aKPdv=0 ; aKPdv<int(mPrisesDeVue.size()) ; aKPdv++)
                 {
