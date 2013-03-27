@@ -400,11 +400,22 @@ Fonc_Num GradBasik(Fonc_Num f)
    return (Abs(som_masq(f,Fx)) + Abs(som_masq(f,Fy))) / 4.0;
 }
 
+Fonc_Num  MoyRect(Fonc_Num aF,int aSzV)
+{
+    return rect_som(aF,aSzV) / ElSquare(1+2*aSzV);
+}
+
+
+Fonc_Num  EcartType(Fonc_Num aF,int aSzV)
+{
+   Fonc_Num aM
+}
+
 void TestGrad_Nouv_0(int argc,char ** argv)
 {
    std::string aNameIm;
    Pt2di aP0(0,0),aSz;
-   double aSima = 10.0;
+   double aSima = 50.0;
 
    ElInitArgMain
    (
@@ -431,7 +442,7 @@ void TestGrad_Nouv_0(int argc,char ** argv)
 
    Im2D_REAL4 aGrad(aSz.x,aSz.y,-1);
 
-   ELISE_COPY(anImOri.all_pts(), GradBasik(anImOri.in(0))/16.0, aGrad.out());
+   ELISE_COPY(anImOri.all_pts(), GradBasik(anImOri.in(0)), aGrad.out());
    FilterGauss(aGrad,aSima);
 
    ELISE_COPY(aW.all_pts(),Min(255,aGrad.in()*10),aW.ogray());
