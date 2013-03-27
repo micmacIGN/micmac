@@ -687,7 +687,7 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
 /*                                                                   */
 /*********************************************************************/
 
-static void InitVars(double * aVLoc,int aNbLoc,const std::vector<double> * aVInit,const std::string & aName)
+void InitVars(double * aVLoc,int aNbLoc,const std::vector<double> * aVInit,const std::string & aName)
 {
     for (int aK=0 ; aK<aNbLoc ; aK++)
          aVLoc[aK] = 0;
