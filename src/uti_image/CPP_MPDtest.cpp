@@ -330,7 +330,6 @@ void TestMultiEch_Gauss2(int argc,char** argv)
    std::string aNameIm;
    Pt2di aP0(0,0),aSz;
 
-
    ElInitArgMain
    (
         argc,argv,
@@ -383,6 +382,42 @@ void TestMultiEch_Gauss2(int argc,char** argv)
    Tiff_Im::Create8BFromFonc("Scale.tif",aSz,aKMax.in());
    getchar();
 }
+
+
+void TestGrad_Nouv_0(int argc,char ** argv)
+{
+   std::string aNameIm;
+   Pt2di aP0(0,0),aSz;
+
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(aNameIm,"Name Im"),
+        LArgMain()  << EAM(aP0,"P0",true,"")
+                    << EAM(aSz,"Sz",true,"")
+   );
+
+   Tiff_Im aTF = Tiff_Im::StdConvGen(aNameIm,1,false);
+   if (! EAMIsInit(&aSz))
+   {
+      aSz = aTF.sz();
+   }
+   Video_Win  aW = Video_Win::WStd(aSz,1.0);
+
+   Im2D_REAL4 anImOri(aSz.x,aSz.y);
+   Im2D_REAL4 aGMax(aSz.x,aSz.y,-1);
+   Im2D_INT4 aKMax(aSz.x,aSz.y,-1);
+   ELISE_COPY
+   (
+        anImOri.all_pts(),
+        trans(aTF.in(0),aP0),
+        anImOri.out()
+   );
+
+}
+
+
+
 
 
 
