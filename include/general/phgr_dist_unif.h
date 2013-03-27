@@ -59,6 +59,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 */
 
+void InitVars(double * aVLoc,int aNbLoc,const std::vector<double> * aVInit,const std::string & aName) ;
+
 
 class  cDist_Param_Unif_Gen;
 class  cCamera_Param_Unif_Gen;
