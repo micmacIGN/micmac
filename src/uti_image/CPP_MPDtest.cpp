@@ -383,11 +383,39 @@ void TestMultiEch_Gauss2(int argc,char** argv)
    getchar();
 }
 
+Fonc_Num GradBasik(Fonc_Num f)
+{
+    Im2D_REAL8 Fx
+               (  3,3,
+                  " 0  0 0 "
+                  " 0 -1 1 "
+                  " 0  0 0 "
+                );
+    Im2D_REAL8 Fy
+               (  3,3,
+                  "  0  0  0 "
+                  "  0 -1  0 "
+                  "  0  1  0 "
+                );
+   return (Abs(som_masq(f,Fx)) + Abs(som_masq(f,Fy))) / 4.0;
+}
+
+Fonc_Num  MoyRect(Fonc_Num aF,int aSzV)
+{
+    return rect_som(aF,aSzV) / ElSquare(1+2*aSzV);
+}
+
+
+Fonc_Num  EcartType(Fonc_Num aF,int aSzV)
+{
+   Fonc_Num aM
+}
 
 void TestGrad_Nouv_0(int argc,char ** argv)
 {
    std::string aNameIm;
    Pt2di aP0(0,0),aSz;
+   double aSima = 50.0;
 
    ElInitArgMain
    (
@@ -405,14 +433,21 @@ void TestGrad_Nouv_0(int argc,char ** argv)
    Video_Win  aW = Video_Win::WStd(aSz,1.0);
 
    Im2D_REAL4 anImOri(aSz.x,aSz.y);
-   Im2D_REAL4 aGMax(aSz.x,aSz.y,-1);
-   Im2D_INT4 aKMax(aSz.x,aSz.y,-1);
    ELISE_COPY
    (
         anImOri.all_pts(),
         trans(aTF.in(0),aP0),
         anImOri.out()
    );
+
+   Im2D_REAL4 aGrad(aSz.x,aSz.y,-1);
+
+   ELISE_COPY(anImOri.all_pts(), GradBasik(anImOri.in(0)), aGrad.out());
+   FilterGauss(aGrad,aSima);
+
+   ELISE_COPY(aW.all_pts(),Min(255,aGrad.in()*10),aW.ogray());
+   Tiff_Im::Create8BFromFonc("Scale.tif",aSz,aGrad.in());
+   getchar();
 
 }
 
@@ -424,7 +459,7 @@ void TestGrad_Nouv_0(int argc,char ** argv)
 
 int MPDtest_main (int argc,char** argv)
 {
-   TestMultiEch_Deriche(argc,argv);
+   TestGrad_Nouv_0(argc,argv);
 //    TestKL();
 //    BanniereMM3D();
    // AutoCorrel(argv[1]);
