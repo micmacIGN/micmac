@@ -32,12 +32,9 @@ typedef unsigned char pixel;
 
 template<class T> class CuHostData3D;
 
-/*! \class GpGpuTools
- *  \brief classe d outils divers
- *
- *  La classe gere la restructuration de donnees, des outils d'affichages console
- */
-
+/// \class GpGpuTools
+/// \brief classe d outils divers
+/// La classe gere la restructuration de donnees, des outils d'affichages console
 class GpGpuTools
 {
 
@@ -61,25 +58,53 @@ public:
     static bool			Array1DtoImageFile(T* dataImage,const char* fileName, uint2 dimImage);
 
     ///  \brief			Sauvegarder tableau de valeur (multiplier par un facteur) dans un fichier PGN
+    ///  \param         dataImage : Donnees images a ecrire
+    ///  \param         fileName : nom du fichier a ecrire
+    ///  \param         dimImage : dimension de l image
+    ///  \param         factor : facteur multiplicatif
+    ///  \return        true si l ecriture reussie
     template <class T>
     static bool			Array1DtoImageFile(T* dataImage,const char* fileName, uint2 dimImage, float factor );
 
     ///  \brief			Retourne la dossier image de l'utilisateur
+    ///  \return        renvoie un string
     static std::string	GetImagesFolder();
 
     ///  \brief			Divise toutes les valeurs du tableau par un facteur
+    ///  \param         data : Donnees images a ecrire
+    ///  \param         dimImage : dimension du tableau
+    ///  \param         factor : facteur multiplicatif
+    ///  \return        renvoie un pointeur sur le tableau resultant
     template <class T>
-    static T*			DivideArray(T* data, uint2 dimImage, float factor);
+    static T*			MultArray(T* data, uint2 dimImage, float factor);
 
     ///	\brief			Sortie console d'une donnees
+    ///  \param         data : Donnees du tableau a afficher
+    ///  \param         dim : dimension du tableau
+    ///  \param         offset : nombre de chiffre apres la virgule
+    ///  \param         defaut : valeur affichee par un caractere speciale
+    ///  \param         sample : saut dans l'affichage
+    ///  \param         factor : facteur multiplicatif
+    ///  \return        renvoie un pointeur sur le tableau resultant
     template <class T>
     static void			OutputArray(T* data, uint2 dim, uint offset = 1, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
 
-    ///	\brief			Sortie console d'un tableau de donnees
+    ///	\brief			Sortie console d'un tableau de donnees host cuda
+    ///  \param         data : tableau host cuda
+    ///  \param         Z : profondeur du tableau a afficher
+    ///  \param         offset : nombre de chiffre apres la virgule
+    ///  \param         defaut : valeur affichee par un caractere speciale
+    ///  \param         sample : saut dans l'affichage
+    ///  \param         factor : facteur multiplicatif
+    ///  \return        renvoie un pointeur sur le tableau resultant
     template <class T>
     static void			OutputArray(CuHostData3D<T> data, uint Z = 0, uint offset = 1, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
 
     ///	\brief			Sortie console formater d'une valeur
+    /// \param          value : valeur a afficher
+    ///  \param         offset : nombre de chiffre apres la virgule
+    ///  \param         defaut : valeur affichee par un caractere speciale
+    ///  \param         factor : facteur multiplicatif
     template <class T>
     static void			OutputValue(T value, uint offset = 1, float defaut = 0.0f, float factor = 1.0f);
 
@@ -200,7 +225,7 @@ static void OutputArray(CuHostData3D<T> data, uint Z, uint offset, float defaut,
 }
 
 template <class T>
-T* GpGpuTools::DivideArray( T* data, uint2 dim, float factor )
+T* GpGpuTools::MultArray( T* data, uint2 dim, float factor )
 {
     if (factor == 0) return NULL;
 
@@ -227,7 +252,7 @@ bool GpGpuTools::Array1DtoImageFile( T* dataImage,const char* fileName, uint2 di
 template <class T>
 bool GpGpuTools::Array1DtoImageFile(T* dataImage,const char* fileName, uint2 dimImage, float factor)
 {
-    T* image = DivideArray(dataImage, dimImage, factor);
+    T* image = MultArray(dataImage, dimImage, factor);
 
     bool r = Array1DtoImageFile( image, fileName, dimImage );
 
@@ -254,12 +279,12 @@ public:
     /// \brief  renvoie le nom de l objet en string
     std::string	Name();
     /// \brief  affecte le nom
+    /// \param  name : le nom a affecte
     void		SetName(std::string name);
     /// \brief  renvoie le type de l objet en string
     std::string	Type();
     /// \brief  affecte le type de l objet
     void		SetType(std::string type);
-
     /// \brief  renvoie la classe du template de l objet en string
     std::string	ClassTemplate();
     /// \brief  Affecte la classe du template de l objet
@@ -287,17 +312,31 @@ template<> inline const char* CGObject::StringClass(struct float2* t ){	return "
 /// \brief  renvoie la classe cudaArray en char*
 template<> inline const char* CGObject::StringClass(cudaArray* t ){	return "cudaArray*";}
 
-class struct2D 
+
+/// \class struct2D
+/// \brief classe structure de donnees de dimension 2
+class struct2D
 {
 public:
 
     struct2D(){}
     ~struct2D(){}
+    /// \brief  Renvoie la dimension de la structure 2D
     uint2		GetDimension();
+    /// \brief  Initialise la dimension de la structure 2D
+    /// \param  dimension : Dimension d initialisation
     uint2		SetDimension(uint2 dimension);
+    /// \brief  Initialise la dimension de la structure 2D
+    /// \param  dimX : Dimension X d initialisation
+    /// \param  dimY : Dimension Y d initialisation
     uint2		SetDimension(int dimX,int dimY);
+    /// \brief  Initialise la dimension de la structure 2D
+    /// \param  dimX : Dimension X d initialisation
+    /// \param  dimY : Dimension Y d initialisation
     uint2		SetDimension(uint dimX,uint dimY);
+    /// \brief  Renvoie le nombre d elements de la structure
     uint		GetSize();
+    /// \brief  Sortie console de la structure
     void		Output();
 
 private:
@@ -306,6 +345,9 @@ private:
 
 };
 
+
+/// \class struct2DLayered
+/// \brief classe pile de tableau 2D d elements
 class struct2DLayered : public struct2D
 {
 
@@ -313,9 +355,16 @@ public:
 
     struct2DLayered(){}
     ~struct2DLayered(){}
+    /// \brief Renvoie le nombre de tableau 2D
     uint	GetNbLayer();
+    /// \brief Initialise le nombre de tableau 2D
     void	SetNbLayer(uint nbLayer);
+    /// \brief  Initialise la dimension de la structure 2D et le nombre de tableau
+    /// \param  dimension : Dimension d initialisation de la structure 2D
+    /// \param  nbLayer : nombre de tableau
     void	SetDimension(uint2 dimension, uint nbLayer);
+    /// \brief  Initialise la dimension de la structure 2D et le nombre de tableau
+    /// \param  dimension : Dimension d initialisation de la structure 3D
     void	SetDimension(uint3 dimension);
     uint	GetSize();
     void	Output();
@@ -325,6 +374,9 @@ private:
     uint _nbLayers;
 };
 
+
+/// \class CData
+/// \brief Classe Abstraite de donnees
 template <class T> 
 class CData : public CGObject
 {
@@ -332,23 +384,41 @@ class CData : public CGObject
 public:
     CData();
     ~CData(){}
+    /// \brief      Allocation memoire
     virtual bool	Malloc()		= 0;
+    /// \brief      Initialise toutes les elements avec la valeur val
+    /// \param      val : valeur d initialisation
     virtual bool	Memset(int val) = 0;
+    /// \brief      Desalloue la memoire alloue
     virtual bool	Dealloc()		= 0;
+    /// \brief      Sortie console de la classe
     virtual void	OutputInfo()	= 0;
 
-    void	dataNULL();
-    bool	isNULL();
-    T*		pData();
-    T**		ppData();
-    uint	GetSizeofMalloc();
-    void	SetSizeofMalloc(uint sizeofmalloc);
+    /// \brief      Initialise a NULL le pointeur des donnees
+    void            dataNULL();
+    /// \brief      Renvoie True si le pointeur des donnees est NULL
+    bool            isNULL();
+    /// \brief      Renvoie le pointeur des donnees
+    T*              pData();
+    /// \brief      Renvoie le pointeur du pointeur des donnees
+    T**             ppData();
+    /// \brief      Renvoie la taille de la memoire alloue
+    uint            GetSizeofMalloc();
+    /// \brief      Initialise la taille de la memoire alloue
+    /// \param      sizeofmalloc : Taille de l allocation
+    void            SetSizeofMalloc(uint sizeofmalloc);
+    /// \brief      Sortie console des erreurs Cuda
+    /// \param      err :  erreur cuda rencontree
+    /// \param      fonctionName : nom de la fonction ou se trouve l erreur
     virtual bool	ErrorOutput(cudaError_t err,const char* fonctionName);
-    void	MallocInfo();
+    /// \brief      Sortie consolle de l allocation memoire globale Gpu
+    void            MallocInfo();
 
 protected:
 
+    /// \brief Ajout de memoire alloue
     void	AddMemoryOc(uint m);
+    /// \brief Suppression de memoire alloue
     void	SubMemoryOc(uint m);
 
 private:
@@ -442,6 +512,8 @@ T* CData<T>::pData()
     return _data;
 }
 
+/// \class CData2D
+/// \brief Classe abstraite d un tableau d elements structuree en deux dimensions
 template <class T> 
 class CData2D : public struct2D, public CData<T>
 {
@@ -449,15 +521,25 @@ class CData2D : public struct2D, public CData<T>
 public:
 
     CData2D();
+    /// \brief constructeur avec initialisation de la dimension de la structure
+    /// \param dim : Dimension a initialiser
     CData2D(uint2 dim);
     ~CData2D(){}
-    virtual bool	Malloc() = 0;
+    /// \brief Alloue la memoire neccessaire
+    virtual bool	Malloc()        = 0;
+    /// \brief Initialise les elements des images a val
+    /// \param val : Valeur d initialisation
     virtual bool	Memset(int val) = 0;
-    virtual bool	Dealloc() = 0;
-
+    virtual bool	Dealloc()       = 0;
     void			OutputInfo();
+    // \brief      Allocation memoire pour les tous les elements de la structures avec initialisation de la dimension de la structure
+    /// \param dim : Dimension 2D a initialiser
     bool			Malloc(uint2 dim);
+    /// \brief      Desallocation puis re-allocation memoire pour les tous les elements
+    ///             de la structures avec initialisation de la dimension
+    /// \param dim : Dimension 2D a initialiser
     bool			Realloc(uint2 dim);
+    /// \brief      Nombre d elements de la structure
     uint			Sizeof();
 
 };
@@ -503,22 +585,37 @@ bool CData2D<T>::Malloc( uint2 dim )
     return true;
 }
 
+/// \class CData3D
+/// \brief Classe abstraite d un tableau d elements structuree en trois dimensions
 template <class T> 
 class CData3D : public struct2DLayered, public CData<T>
 {
-
 public:
 
     CData3D();
+    /// \brief constructeur avec initialisation de la dimension de la structure
+    /// \param dim : Dimension 2D a initialiser
+    /// \param l : Taille de la 3eme dimension
     CData3D(uint2 dim, uint l);
     ~CData3D(){}
+    /// \brief      Allocation memoire pour les tous les elements de la structures
     virtual bool	Malloc() = 0;
+    /// \brief      Initialise toutes les elements avec la valeur val
+    /// \param      val : valeur d initialisation
     virtual bool	Memset(int val) = 0;
+    /// \brief      Desalloue la memoire alloue
     virtual bool	Dealloc() = 0;
 
     void			OutputInfo();
+    // \brief      Allocation memoire pour les tous les elements de la structures avec initialisation de la dimension de la structure
+    /// \param dim : Dimension 2D a initialiser
+    /// \param l : Taille de la 3eme dimension
     bool			Malloc(uint2 dim, uint l);
+    /// \brief      Desallocation puis re-allocation memoire pour les tous les elements de la structures avec initialisation de la dimension de la structure
+    /// \param dim : Dimension 2D a initialiser
+    /// \param l : Taille de la 3eme dimension
     bool			Realloc(uint2 dim, uint l);
+    /// \brief      Nombre d elements de la structure
     uint			Sizeof();
 
 };
@@ -565,17 +662,30 @@ uint CData3D<T>::Sizeof()
     return GetSize() * sizeof(T);
 }
 
+
+/// \class CuHostData3D
+/// \brief Tableau 3D d elements contenue la memoire du Host.
+/// La gestion memoire est realise par l API Cuda.
+/// La memoire allouee n'est pas pagine.
 template <class T> 
 class CuHostData3D : public CData3D<T>
 {
 public:
     CuHostData3D();
+    /// \brief constructeur avec initialisation de la dimension de la structure
+    /// \param dim : Dimension 2D a initialiser
+    /// \param l : Taille de la 3eme dimension
     CuHostData3D(uint2 dim, uint l);
     ~CuHostData3D(){}
     bool Dealloc();
     bool Malloc();
     bool Memset(int val);
+    /// \brief Remplie le tableau avec la valeur Value
+    /// \param Value : valeur a remplir
     void Fill(T Value);
+    /// \brief Remplie le tableau avec la valeur aleatoire pour chaque element
+    /// \param min : valeur a remplir minimum
+    /// \param max : valeur a remplir maximum
     void FillRandom(T min, T max);
 
 };
@@ -651,6 +761,8 @@ bool CuHostData3D<T>::Dealloc()
     return ErrorOutput(cudaFreeHost(CData3D<T>::pData()),"Dealloc");
 }
 
+/// \class CuDeviceData2D
+/// \brief Cette classe est un tableau de donnee 2D situee dans memoire globale de la carte video
 template <class T> 
 class CuDeviceData2D : public CData2D<T> 
 {
@@ -659,10 +771,16 @@ public:
 
     CuDeviceData2D();
     ~CuDeviceData2D(){}
-    bool Dealloc();
-    bool Malloc();
-    bool Memset(int val);
-    bool CopyDevicetoHost(T* hostData);
+    /// \brief  Desalloue la memoire globale alloue a ce tableau
+    bool        Dealloc();
+    /// \brief  Alloue la memoire globale pour ce tableau en fonction de sa dimension
+    bool        Malloc();
+    /// \brief  Initialise toutes les valeurs du tableau avec la valeur val
+    /// \param  val : valeur d initialisation
+    bool        Memset(int val);
+    /// \brief  Copie toutes les valeurs du tableau dans un tableau du host
+    /// \param  hostData : tableau destination
+    bool        CopyDevicetoHost(T* hostData);
     //void CopyDevicetoHostASync(T* hostData, cudaStream_t stream = 0);
 
 };
@@ -714,6 +832,9 @@ bool CuDeviceData2D<T>::Dealloc()
  *   La classe gere la memoire
  */
 
+
+/// \class CuDeviceData3D
+/// \brief Cette classe est un tableau de donnee 3D situee dans memoire globale de la carte video
 template <class T> 
 class CuDeviceData3D : public CData3D<T> 
 {
@@ -721,20 +842,27 @@ public:
 
     CuDeviceData3D();
     ~CuDeviceData3D(){}
-    /*!
-     *  \brief Desallocation memoire
-     *
-     *  Methode qui permet desallouer la memoire
-     *
-     *  \return true si la desallocation a reussie
-     *  false sinon
-     */
+    /// \brief Desallocation memoire globale
+    /// \return true si la desallocation a reussie false sinon
     bool	Dealloc();
+    /// \brief Allocation de memoire globale
     bool	Malloc();
+    /// \brief Initialise toutes les valeurs du tableau a val
+    /// \param val : valeur d initialisation
     bool	Memset(int val);
+    /// \brief Initialisation asynchrone de toutes les valeurs du tableau a val
+    /// \param val : valeur d initialisation
+    /// \param stream : flux cuda de gestion des appels asynchrone
     bool	MemsetAsync(int val, cudaStream_t stream );
+    /// \brief  Copie toutes les valeurs du tableau dans un tableau du host
+    /// \param  hostData : tableau destination
     bool	CopyDevicetoHost(T* hostData);
+    /// \brief  Copie toutes les valeurs d un tableau dans la structure de donnee de la classe (dans la memoire globale GPU)
+    /// \param  hostData : tableau cible
     bool	CopyHostToDevice(T* hostData);
+    /// \brief  Copie asynchrone de toutes les valeurs du tableau dans un tableau du host
+    /// \param  hostData : tableau destination
+    /// \param stream : flux cuda de gestion des appels asynchrone
     bool	CopyDevicetoHostASync(T* hostData, cudaStream_t stream = 0);
 
 };
@@ -801,18 +929,31 @@ bool CuDeviceData3D<T>::Dealloc()
     return erC == cudaSuccess ? true : false;
 }
 
+
+/// \class  AImageCuda
+/// \brief Cette classe abstraite est une image directement liable a une texture GpGpu
 class AImageCuda : public CData<cudaArray>
 {
 public:
     AImageCuda(){}
     ~AImageCuda(){}
+
+    /// \brief  Lie l image a une texture Gpu
+    /// \param  texRef : reference de la texture a lier
     bool		bindTexture(textureReference& texRef);
+    /// \brief  renvoie le tableau cuda contenant les valeurs de l'image
     cudaArray*	GetCudaArray();
+    /// \brief  Desalloue la memoire globale
     bool		Dealloc();
+    /// \brief  Initialisation de toutes les valeurs du tableau a val
+    /// \param  val : valeur d initialisation
     bool		Memset(int val);
 
 };
 
+
+/// \class  ImageCuda
+/// \brief Cette classe est une image 2D directement liable a une texture GpGpu
 template <class T> 
 class ImageCuda : public CData2D<cudaArray>, public AImageCuda
 {
@@ -821,12 +962,20 @@ public:
 
     ImageCuda();
     ~ImageCuda(){}
-
+    /// \brief Initialise la dimension et les valeurs de l image
+    /// \param dimension : la dimension d initialisation
+    /// \param data : Donnees a copier dans l image
     bool	InitImage(uint2 dimension, T* data);
+    /// \brief Alloue la memoire globale neccessaire
     bool	Malloc();
+    /// \brief Initialise les valeurs de l image avec un tableau de valeur du Host
+    /// \param data : Donnees cible a copier
     bool	copyHostToDevice(T* data);
+    /// \brief Initialise les valeurs de l image a val
+    /// \param val : Valeur d initialisation
     bool	Memset(int val){return AImageCuda::Memset(val);}
     bool	Dealloc(){return AImageCuda::Dealloc();}
+    /// \brief Sortie console de la classe
     void	OutputInfo(){CData2D::OutputInfo();}
 
 private:
@@ -871,6 +1020,8 @@ bool ImageCuda<T>::Malloc()
 //									CLASS IMAGE LAYARED CUDA
 //-----------------------------------------------------------------------------------------------
 
+/// \class ImageLayeredCuda
+/// \brief Cette classe est une pile d'image 2D directement liable a une texture GpGpu
 template <class T> 
 class ImageLayeredCuda : public CData3D<cudaArray>, public AImageCuda
 {
@@ -879,12 +1030,23 @@ public:
 
     ImageLayeredCuda();
     ~ImageLayeredCuda(){}
+    /// \brief Alloue la memoire globale neccessaire
     bool	Malloc();
+    /// \brief Initialise les valeurs des images a val
+    /// \param val : Valeur d initialisation
     bool	Memset(int val){return AImageCuda::Memset(val);}
     bool	Dealloc(){return AImageCuda::Dealloc();}
+    /// \brief Copie des valeurs des images avec un tableau 3D de valeur du Host
+    /// \param data : Donnees cible a copier
     bool	copyHostToDevice(T* data);
+    /// \brief Copie des valeurs des images vers un tableau 3D du Host
+    /// \param data : tableau de destination
     bool	copyDeviceToDevice(T* data);
+    /// \brief Copie asynchrone des valeurs des images avec un tableau 3D de valeur du Host
+    /// \param data : Donnees cible a copier
+    /// \param stream : flux cuda
     bool	copyHostToDeviceASync(T* data, cudaStream_t stream = 0);
+    /// \brief Sortie console de la classe
     void	OutputInfo(){CData3D::OutputInfo();}
 
 private:

@@ -11,38 +11,54 @@
 #define SUPPRESS_NOT_USED_WARN
 #endif
 
+/// \struct Rect
+/// \brief Cette structure represente un rectangle definie par deux points
 struct Rect
 {
+    /// \brief point haut et gauche du rectangle
 	int2 pt0;
+    /// \brief point bas et droite du rectangle
 	int2 pt1;
 
 	__device__ __host__ Rect(){};
+
+    /// \brief Definie les points du rectangle avec des points entiers
+    /// \param p0 : point haut et gauche du rectangle
+    /// \param p1 : point bas et droite du rectangle
 	Rect(int2 p0, int2 p1)
 	{
-
 		pt0 = p0;
 		pt1 = p1;
-	};
+    }
 
-
+    /// \brief Definie les points du rectangle avec des points entiers non signes
+    /// \param p0 : point haut et gauche du rectangle
+    /// \param p1 : point bas et droite du rectangle
 	Rect(uint2 p0, uint2 p1)
 	{
 
 		pt0 = make_int2(p0);
 		pt1 = make_int2(p1);
-	};
+    }
 
+
+    /// \brief Definie les points du rectangle avec des 4 entiers, fonction host et device
+    /// \param p0x : abscisse du point haut et gauche du rectangle
+    /// \param p0y : ordonnee du point haut et gauche du rectangle
+    /// \param p1x : abscisse du point bas et droite du rectangle
+    /// \param p1y : ordonnee du point bas et droite du rectangle
 	__device__ __host__ Rect(int p0x,int p0y,int p1x,int p1y)
 	{
 
 		pt0 = make_int2(p0x,p0y);
 		pt1 = make_int2(p1x,p1y);
-	};
+    }
 
+    /// \brief Renvoie la dimension du rectangle
 	uint2 dimension()
 	{
 		return make_uint2(pt1-pt0);
-	};
+    }
 
 #ifdef __cplusplus
 
