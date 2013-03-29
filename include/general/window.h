@@ -212,7 +212,7 @@ class Video_Win   :  public El_Window
          static Video_Win  WStd(Pt2di sz,REAL zoom,bool all_pal= true,bool SetClikCoord = true);
          static Video_Win  WStd(Pt2di sz,REAL zoom,Video_Win,bool SetClikCoord = true);
 
-         static Video_Win *  PtrWStd(Pt2di sz,bool all_pal= true);
+         static Video_Win *  PtrWStd(Pt2di sz,bool all_pal= true,const Pt2dr & aScale=Pt2dr(1,1));
 
          static Output  WiewAv(Pt2di sz,Pt2di szmax = Pt2di(500,500));
 

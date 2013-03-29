@@ -638,7 +638,7 @@ Elise_Set_Of_Palette RGB_Gray_GlobPal()
 
 
 
-Video_Win * Video_Win::PtrWStd(Pt2di sz,bool all_pal)
+Video_Win * Video_Win::PtrWStd(Pt2di sz,bool all_pal,const Pt2dr & aScale)
 {
         Disc_Pal  Pdisc = Disc_Pal::PNCOL();
         Gray_Pal  Pgr (30);
@@ -650,7 +650,11 @@ Video_Win * Video_Win::PtrWStd(Pt2di sz,bool all_pal)
  
         Video_Display Ecr((char *) NULL);
         Ecr.load(SOP);
-        return new Video_Win (Ecr,SOP,Pt2di(50,50),sz);
+        Video_Win * aRes =  new Video_Win (Ecr,SOP,Pt2di(50,50),sz);
+
+        aRes = aRes->PtrChc(Pt2dr(0,0),aScale);
+
+        return aRes;
 }
 
 Video_Win Video_Win::WStd(Pt2di sz,REAL zoom,bool all_pal,bool SetClikCoord)
