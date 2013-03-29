@@ -110,6 +110,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 
 }
 
+/// \brief Fonction qui lance les kernels de correlation
 extern "C" void	 KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
 {
 
@@ -150,8 +151,7 @@ extern "C" void	 KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks,
     }
 
 }
-
-// Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens	///
+/// \brief Kernel Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens utilisant des fonctions atomiques
 template<int sNbTh> __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, int* dev_NbImgOk, uint2 nbActThr)
 {
 
@@ -232,6 +232,7 @@ template<int sNbTh> __global__ void multiCorrelationKernel(float *dTCost, float*
   dTCost[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
 }
 
+/// \brief Kernel Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens n utilisant pas des fonctions atomiques
 __global__ void multiCorrelationKernelNA(float *dTCost, float* cacheVign, int* dev_NbImgOk, uint2 nbActThr)
 {
 
@@ -305,6 +306,7 @@ __global__ void multiCorrelationKernelNA(float *dTCost, float* cacheVign, int* d
 
 }
 
+/// \brief Fonction qui lance les kernels de multi-Correlation utilisant des fonctions atomiques
 extern "C" void KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, int * dev_NbImgOk, uint2 nbActThr, ushort divideNThreads)
 {
 
@@ -327,6 +329,7 @@ extern "C" void KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 th
 
 }
 
+/// \brief Fonction qui lance les kernels de multi-Correlation n'utilisant pas des fonctions atomiques
 extern "C" void KernelmultiCorrelationNA(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, int * dev_NbImgOk, uint2 nbActThr)
 {
   multiCorrelationKernelNA<<<blocks, threads, 0, stream>>>(dTCost, cacheVign, dev_NbImgOk, nbActThr);
