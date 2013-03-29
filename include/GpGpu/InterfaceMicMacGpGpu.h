@@ -26,8 +26,9 @@ extern "C" textureReference& getMaskD();
 extern "C" textureReference&	getMask();
 extern "C" textureReference&	getImage();
 extern "C" textureReference&	getProjection(int TexSel);
-//extern "C" textureReference&    getCache();
 
+/// \class InterfaceMicMacGpGpu
+/// \brief Class qui lie micmac avec les outils de calculs GpGpu
 class InterfaceMicMacGpGpu
 {
 
@@ -36,35 +37,57 @@ public:
   InterfaceMicMacGpGpu();
   ~InterfaceMicMacGpGpu();
 
-  void	SetSizeBlock( uint Zinter, Rect Ter);
-  void	SetSizeBlock( uint Zinter);
-  void	SetMask(pixel* dataMask, uint2 dimMask);
-  void	SetImages(float* dataImage, uint2 dimImage, int nbLayer);
-  void	SetParameter(Rect Ter, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ);
-
-  void	BasicCorrelation( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
-  void	BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
+  /// \brief    Initialise la taille du bloque terrain et nombre de Z a calculer sur le Gpu
+  void          SetSizeBlock( uint Zinter, Rect Ter);
+  /// \brief    Initialise le nombre de Z a calculer sur le Gpu
+  void          SetSizeBlock( uint Zinter);
+  /// \brief    Initialise les donnees du masque et sa dimension
+  void          SetMask(pixel* dataMask, uint2 dimMask);
+  /// \brief    Initialise les donnees des images, la dimension maximale d'une image et leur nombre
+  void          SetImages(float* dataImage, uint2 dimImage, int nbLayer);
+  /// \brief    Initialise les parametres de correlation
+  void          SetParameter(Rect Ter, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ);
+  /// \brief    Calcul de la correlation en Gpu
+  void          BasicCorrelation( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
+  /// \brief    Calcul asynchrone de la correlation en Gpu
+  void          BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
+  /// \brief    Renvoie les parametres de correlation
   pCorGpu Param();
 
-  void	DeallocMemory();
-  void	MallocInfo();
+  /// \brief    Desalloue toutes la memoire globale alloué pour la correlation sur Gpu
+  void          DeallocMemory();
+  /// \brief    Affiche sur la console la memoire globale alloué pour la correlation sur Gpu
+  void          MallocInfo();
 
-  void	SetHostVolume(float* vCost, float2* vProj);
-  void	SetZToCompute(uint Z);
-  uint	GetZCtoCopy();
-  void	SetZCToCopy(uint Z);
-  bool	GetComputeNextProj();
-  void	SetComputeNextProj(bool compute);
+  /// \brief    Initialise les pointeurs des volumes de couts et des projections
+  void          SetHostVolume(float* vCost, float2* vProj);
+
+
+  /// \brief    Fonction lie au multi-processus
+  ///           Affecte le nombre de Z a calculer pour le processus de Calcul GpGpu
+  void          SetZToCompute(uint Z);
+  /// \brief    Fonction lie au multi-processus
+  ///           Renvoie le nombre de Z a Copier pour le processus Cpu
+  uint          GetZCtoCopy();
+  /// \brief    Fonction lie au multi-processus
+  ///           Affecte le nombre de Z a Copier pour le processus Cpu
+  void          SetZCToCopy(uint Z);
+  /// \brief    Fonction lie au multi-processus
+  ///           Retourne si le calcul des projections doit etre effectuer dans le processus Cpu
+  bool          GetComputeNextProj();
+  /// \brief    Fonction lie au multi-processus
+  ///           Affecte trigger pour le calcul des projections dans le processus Cpu
+  void          SetComputeNextProj(bool compute);
 
 private:
 
-  uint                  GetZToCompute();
-  void			ResizeVolume(int nbLayer, uint interZ);
-  void			ResizeVolumeAsync(int nbLayer, uint interZ);
-  void			AllocMemory(int nStream);
+  uint              GetZToCompute();
+  void              ResizeVolume(int nbLayer, uint interZ);
+  void              ResizeVolumeAsync(int nbLayer, uint interZ);
+  void              AllocMemory(int nStream);
   cudaStream_t*		GetStream(int stream);
   textureReference&	GetTeXProjection(int texSel);
-  void			MTComputeCost();
+  void              MTComputeCost();
 
   cudaStream_t		_stream[NSTREAM];
   pCorGpu		_param;

@@ -268,10 +268,12 @@ bool Options::readMicMacInstall(QString& micmacDossier, int& cpuLu) {
 }
 
 void Options::writeMicMacInstall(const QString& micmacDossier, int cpuFinal) {
+	/*
 	cMicMacConfiguration aMCf;
 	aMCf.DirInstall() = micmacDossier.toStdString();
 	aMCf.NbProcess() = cpuFinal;
 	MakeFileXML(aMCf,(micmacDossier+ELISE_CAR_DIR+micmacInstallFile).toStdString());
+	*/
 }
 
 

@@ -1,10 +1,10 @@
 #include "GpGpu/InterfaceMicMacGpGpu.h"
 
+/// \brief Constructeur InterfaceMicMacGpGpu
 InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
   _texMask(getMask()),
   _texMaskD(getMaskD()),
   _texImages(getImage()),
-  //_texCache(getCache()),
   _texProjections_00(getProjection(0)),
   _texProjections_01(getProjection(1)),
   _texProjections_02(getProjection(2)),
