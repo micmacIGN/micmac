@@ -178,66 +178,10 @@ void TestKL()
 #endif
 
 
-void TestMultiEch_Deriche(int argc,char** argv)
-{
-   std::string aNameIm;
-   Pt2di aP0(0,0),aSz;
 
-std::cout << "AAAAAAAbbbBBB  a\n";
 
-   ElInitArgMain
-   (
-        argc,argv,
-        LArgMain()  << EAMC(aNameIm,"Name Im"),
-        LArgMain()  << EAM(aP0,"P0",true,"")
-                    << EAM(aSz,"Sz",true,"")
-   );
 
-   Tiff_Im aTF = Tiff_Im::StdConvGen(aNameIm,1,false);
-   if (! EAMIsInit(&aSz))
-   {
-      aSz = aTF.sz();
-   }
-   Video_Win  aW = Video_Win::WStd(aSz,1.0);
 
-   Im2D_REAL4 anIm(aSz.x,aSz.y);
-   Im2D_REAL4 aGMax(aSz.x,aSz.y,-1);
-   Im2D_INT4 aKMax(aSz.x,aSz.y,-1);
-   ELISE_COPY
-   (
-        anIm.all_pts(),
-        trans(aTF.in(0),aP0),
-        anIm.out()
-   );
-
-//  1 / alp = aK
-
-   std::vector<Im2D_REAL4> aVG;
-   for (int aK=0 ; aK< 8 ; aK++)
-   {
-       Im2D_REAL4 aG(aSz.x,aSz.y);
-       double anAlpha = 2 / (1.0+aK);
-       Symb_FNum  aSF = deriche(anIm.in_proj(),anAlpha,150);
-       ELISE_COPY
-       (
-            aW.all_pts(),
-            sqrt(Square(aSF.v0()) + Square(aSF.v1())),
-            aG.out()
-       );
-       double aSom;
-       ELISE_COPY(aG.all_pts(),aG.in(),sigma(aSom));
-       aSom /= aSz.x * aSz.y;
-       ELISE_COPY(aG.all_pts(),aG.in()/aSom,aG.out());
-       ELISE_COPY(aW.all_pts(),Min(255,128*pow(aG.in(),0.5)),aW.ogray());
-
-       Fonc_Num aFK =  aK;//  Min(255,round_ni((1/anAlpha -0.5) ));
-       ELISE_COPY(select(aG.all_pts(),aG.in()>aGMax.in()),Virgule(aG.in(),aFK),Virgule(aGMax.out(),aKMax.out()));
-       std::cout << "AAAAAAaaaa   " << aK << "\n" ;  
-   }
-   ELISE_COPY(aW.all_pts(),aKMax.in(),aW.ogray());
-   Tiff_Im::Create8BFromFonc("Scale.tif",aSz,aKMax.in());
-   getchar();
-}
 
 void TestMultiEch_Gauss(int argc,char** argv)
 {
@@ -402,20 +346,141 @@ Fonc_Num GradBasik(Fonc_Num f)
 
 Fonc_Num  MoyRect(Fonc_Num aF,int aSzV)
 {
-    return rect_som(aF,aSzV) / ElSquare(1+2*aSzV);
+   Fonc_Num  aRes = 0;
+   for (int aK=0 ; aK< 9 ; aK++)
+       aRes = aRes + trans(aF,TAB_9_NEIGH[aK]*aSzV);
+    return aRes / 9;
 }
 
 
 Fonc_Num  EcartType(Fonc_Num aF,int aSzV)
 {
-   Fonc_Num aM
+   Fonc_Num  aRes = MoyRect(Square(aF),aSzV) -Square(MoyRect(aF,aSzV));
+
+   return sqrt(Max(0,aRes));
 }
+
+
+
+template <class Type,class TypeBase> class cCalcSzWCorrel
+{
+      public :
+            cCalcSzWCorrel(Fonc_Num aF,Pt2di aSz,Pt2dr aSzWMax);
+            void TestMultiEch_Deriche();
+      private :
+
+            Pt2di                  mSz;
+            Im2D<Type,TypeBase>    mImOri;
+            TIm2D<Type,TypeBase>   mTImOri;
+
+            Im2D<Type,TypeBase>    mImEcT;
+            TIm2D<Type,TypeBase>   mTImEcT;
+            double                 mRatioW;
+            Pt2di                  mSzW;
+            Video_Win *            mW;
+};
+
+
+template <class Type,class TypeBase>  
+cCalcSzWCorrel<Type,TypeBase>::cCalcSzWCorrel(Fonc_Num aFonc,Pt2di aSz,Pt2dr aSzWMax) :
+   mSz        (aSz),
+   mImOri     (aSz.x,aSz.y),
+   mTImOri    (mImOri),
+   mImEcT     (aSz.x,aSz.y),
+   mTImEcT    (mImEcT),
+   mRatioW    (ElMin3(1.0,aSzWMax.x/mSz.x,aSzWMax.y/aSz.y)),
+   mSzW       (round_ni(Pt2dr(mSz)*mRatioW)),
+   mW         ((mRatioW>0) ?  Video_Win::PtrWStd(mSzW,true,Pt2dr(mRatioW,mRatioW)) : 0)
+{
+   ELISE_COPY(mImOri.all_pts(),El_CTypeTraits<Type>::TronqueF(aFonc),mImOri.out());
+   /// ELISE_COPY(mImOri.all_pts(),aFonc,mImOri.out());
+
+   if (mW)
+   {
+      ELISE_COPY(mImOri.all_pts(),mImOri.in(),mW->ogray());
+   }
+
+
+   
+}
+
+
+
+
+template <class Type,class TypeBase>  void cCalcSzWCorrel<Type,TypeBase>::TestMultiEch_Deriche()
+{
+   Im2D_REAL4 aGMax(mSz.x,mSz.y,-1);
+   Im2D_INT4 aKMax(mSz.x,mSz.y,-1);
+
+   std::vector<Im2D_REAL4> aVG;
+   for (int aK=0 ; aK< 8 ; aK++)
+   {
+       Im2D_REAL4 aG(mSz.x,mSz.y);
+       double anAlpha = 1 / (1.0+aK);
+       Symb_FNum  aSF = deriche(mImOri.in_proj(),anAlpha,150);
+       ELISE_COPY
+       (
+            mImOri.all_pts(),
+            sqrt(Square(aSF.v0()) + Square(aSF.v1())),
+            aG.out()
+       );
+       double aSom;
+       ELISE_COPY(aG.all_pts(),aG.in(),sigma(aSom));
+       aSom /= mSz.x * mSz.y;
+       ELISE_COPY(aG.all_pts(),aG.in()/aSom,aG.out());
+       if (mW)
+       {
+          ELISE_COPY(mImOri.all_pts(),Min(255,128*pow(aG.in(),0.5)),mW->ogray());
+       }
+
+       Fonc_Num aFK =  aK;//  Min(255,round_ni((1/anAlpha -0.5) ));
+       ELISE_COPY(select(aG.all_pts(),aG.in()>aGMax.in()),Virgule(aG.in(),aFK),Virgule(aGMax.out(),aKMax.out()));
+       std::cout << "AAAAAAaaaa   " << aK << "\n" ;  
+   }
+   if (mW)
+   {
+      ELISE_COPY(mImOri.all_pts(),aKMax.in(),mW->ogray());
+   }
+   Tiff_Im::Create8BFromFonc("KMaxDeriche.tif",mSz,aKMax.in());
+   getchar();
+}
+
+
+template class cCalcSzWCorrel<U_INT2,INT>;
+template class cCalcSzWCorrel<REAL4,REAL8>;
+
+void Test_CalcSzWCor(int argc,char ** argv)
+{
+   std::string aNameIm;
+   Pt2di aP0(0,0),aSz;
+   // double aBigSig = 100.0;
+
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(aNameIm,"Name Im"),
+        LArgMain()  << EAM(aP0,"P0",true,"")
+                    << EAM(aSz,"Sz",true,"")
+   );
+
+   Tiff_Im aTF = Tiff_Im::StdConvGen(aNameIm,1,false);
+   if (! EAMIsInit(&aSz))
+   {
+      aSz = aTF.sz();
+   }
+   // cCalcSzWCorrel<U_INT2,INT> aCalc(trans(aTF.in_proj(),aP0),aSz,Pt2dr(900,900));
+   cCalcSzWCorrel<U_INT1,INT> aCalc(trans(aTF.in_proj(),aP0),aSz,Pt2dr(900,900));
+
+  aCalc.TestMultiEch_Deriche();
+   std::cout << "AAffffJJJ\n"; getchar();
+}
+
 
 void TestGrad_Nouv_0(int argc,char ** argv)
 {
    std::string aNameIm;
    Pt2di aP0(0,0),aSz;
-   double aSima = 50.0;
+   double aBigSig = 100.0;
 
    ElInitArgMain
    (
@@ -437,18 +502,42 @@ void TestGrad_Nouv_0(int argc,char ** argv)
    (
         anImOri.all_pts(),
         trans(aTF.in(0),aP0),
-        anImOri.out()
+        anImOri.out() | aW.ogray()
    );
 
+std::cout << "JJJjjjjjjjjjjjjjjjjjj\n"; getchar();
    Im2D_REAL4 aGrad(aSz.x,aSz.y,-1);
+   Im2D_REAL4 aGMax(aSz.x,aSz.y,-1);
+   Im2D_INT4 aKMax(aSz.x,aSz.y,-1);
 
    ELISE_COPY(anImOri.all_pts(), GradBasik(anImOri.in(0)), aGrad.out());
-   FilterGauss(aGrad,aSima);
+   FilterGauss(aGrad,aBigSig);
 
-   ELISE_COPY(aW.all_pts(),Min(255,aGrad.in()*10),aW.ogray());
-   Tiff_Im::Create8BFromFonc("Scale.tif",aSz,aGrad.in());
-   getchar();
+   int aK=0;
+   for (int aSzV=1 ; aSzV <= 16 ; aSzV *=2)
+   {
+       Im2D_REAL4 anImFlou(aSz.x,aSz.y);
+       ELISE_COPY(anImOri.all_pts(),anImOri.in(),anImFlou.out());
+       if (aSzV>1)
+       {
+          FilterGauss(anImFlou,aSzV*0.5);
+       }
+       Im2D_REAL4 anImEcart(aSz.x,aSz.y);
+       ELISE_COPY(aW.all_pts(),EcartType(anImFlou.in_proj(),aSzV),anImEcart.out());
 
+
+       ELISE_COPY(aW.all_pts(),Min(255,(anImEcart.in()/aGrad.in())*10),aW.ogray());
+       Tiff_Im::Create8BFromFonc("Scale"+ToString(aSzV)+ ".tif",aSz,(anImEcart.in()/aGrad.in())*10);
+       ELISE_COPY
+       (
+            select(anImEcart.all_pts(),anImEcart.in()>aGMax.in()),
+            Virgule(anImEcart.in(),aK),
+            Virgule(aGMax.out(),aKMax.out())
+       );
+       aK++;
+   }
+
+   Tiff_Im::Create8BFromFonc("KMax.tif",aSz,aKMax.in());
 }
 
 
@@ -459,7 +548,9 @@ void TestGrad_Nouv_0(int argc,char ** argv)
 
 int MPDtest_main (int argc,char** argv)
 {
-   TestGrad_Nouv_0(argc,argv);
+    // TestGrad_Nouv_0(argc,argv);
+   // TestMultiEch_Deriche(argc,argv);
+    Test_CalcSzWCor(argc,argv);
 //    TestKL();
 //    BanniereMM3D();
    // AutoCorrel(argv[1]);
