@@ -401,6 +401,15 @@ cCalcSzWCorrel<Type,TypeBase>::cCalcSzWCorrel(Fonc_Num aFonc,Pt2di aSz,Pt2dr aSz
    }
 
 
+/*
+   ELISE_COPY
+   (
+         mImOri.all_pts(),
+         rect_som(Square(mImOri.in_proj()),1)/9.0
+         El_CTypeTraits<Type>::TronqueF(aFonc),
+         mImEcT.out()
+   );
+*/
    
 }
 
