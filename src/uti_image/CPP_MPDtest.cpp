@@ -69,6 +69,19 @@ Fonc_Num Moy(Fonc_Num aF,int aNb)
    return rect_som(aF,aNb) / ElSquare(1.0+2*aNb);
 }
 
+Fonc_Num Moy1(Fonc_Num aF) {return Moy(aF,1);}
+
+
+Fonc_Num MoyIter(Fonc_Num aF,int aNb,int aNbIter)
+{
+   for (int aK=0; aK<aNbIter ; aK++)
+       aF = Moy(aF,aNb);
+
+   return aF;
+}
+
+
+
 Fonc_Num Correl(Fonc_Num aF1,Fonc_Num aF2,int aNb)
 {
    Symb_FNum aM1 (Moy(aF1,aNb));
@@ -369,48 +382,105 @@ template <class Type,class TypeBase> class cCalcSzWCorrel
             void TestMultiEch_Deriche();
       private :
 
+            Fonc_Num TrK(Fonc_Num aFonc) {return El_CTypeTraits<Type>::TronqueF(aFonc);}
+            Fonc_Num MoyHigh(Fonc_Num aFonc) {return MoyIter(aFonc,2,2);}
+
+            bool                   mIsInt;
             Pt2di                  mSz;
             Im2D<Type,TypeBase>    mImOri;
             TIm2D<Type,TypeBase>   mTImOri;
+            Im2D_U_INT1            mImRes;
+            Fonc_Num               mFIP;
 
             Im2D<Type,TypeBase>    mImEcT;
             TIm2D<Type,TypeBase>   mTImEcT;
             double                 mRatioW;
             Pt2di                  mSzW;
             Video_Win *            mW;
+            Output                 mOWgr;
+            Output                 mOWdisc;
+            double                 mVMax;
+            double                 mEcMin;
+            double                 mEcMax;
+            double                 mEcMoy;
+            double                 mMulEc;
 };
 
 
 template <class Type,class TypeBase>  
 cCalcSzWCorrel<Type,TypeBase>::cCalcSzWCorrel(Fonc_Num aFonc,Pt2di aSz,Pt2dr aSzWMax) :
+   mIsInt     (El_CTypeTraits<Type>::IsIntType()),
    mSz        (aSz),
    mImOri     (aSz.x,aSz.y),
    mTImOri    (mImOri),
+   mImRes     (aSz.x,aSz.y),
+   mFIP       (mImOri.in_proj()),
    mImEcT     (aSz.x,aSz.y),
    mTImEcT    (mImEcT),
    mRatioW    (ElMin3(1.0,aSzWMax.x/mSz.x,aSzWMax.y/aSz.y)),
    mSzW       (round_ni(Pt2dr(mSz)*mRatioW)),
-   mW         ((mRatioW>0) ?  Video_Win::PtrWStd(mSzW,true,Pt2dr(mRatioW,mRatioW)) : 0)
+   mW         ((mRatioW>0) ?  Video_Win::PtrWStd(mSzW,true,Pt2dr(mRatioW,mRatioW)) : 0),
+   mOWgr      (mW ? mW->ogray() : Output::onul(1)),
+   mOWdisc    (mW ? mW->odisc() : Output::onul(1))
 {
-   ELISE_COPY(mImOri.all_pts(),El_CTypeTraits<Type>::TronqueF(aFonc),mImOri.out());
-   /// ELISE_COPY(mImOri.all_pts(),aFonc,mImOri.out());
+   ELISE_COPY
+   (
+       mImOri.all_pts(),
+       TrK(aFonc),
+       mImOri.out() | VMax(mVMax) | mOWgr
+   );
 
-   if (mW)
-   {
-      ELISE_COPY(mImOri.all_pts(),mImOri.in(),mW->ogray());
-   }
+   mMulEc = mIsInt ? (double(El_CTypeTraits<Type>::MaxValue()) / mVMax)   : 1.0;
 
+  
 
-/*
    ELISE_COPY
    (
          mImOri.all_pts(),
-         rect_som(Square(mImOri.in_proj()),1)/9.0
-         El_CTypeTraits<Type>::TronqueF(aFonc),
-         mImEcT.out()
+         TrK(mMulEc*sqrt(Max(1e-5,Moy1(Square(mFIP))-Square(Moy1(mFIP))))),
+         mImEcT.out()  |  VMax(mEcMax) | sigma(mEcMoy) |  (mOWgr << 0)
    );
-*/
+   mEcMoy /= mSz.x * mSz.y;
+
+   if (mW)
+   {
+       ELISE_COPY(mImEcT.all_pts(),255*mImEcT.in()/mEcMax,mOWgr);
+   }
+
+   Fonc_Num anEcFl = MoyByIterSquare(mImEcT.in_proj(),300.0,3);
+
+
+   anEcFl = Max(anEcFl,mEcMoy/3);
+
+   ELISE_COPY
+   (
+         mImOri.all_pts(),
+         Min(255,anEcFl*30),
+         mOWgr
+   );
+
+   ELISE_COPY
+   (
+         mImOri.all_pts(),
+         mImEcT.in() < anEcFl/2,
+         mImRes.out() | mOWdisc
+   );
+
    
+
+  Fonc_Num aFHom = MoyHigh(Square(mFIP))-Square(MoyHigh(mFIP)) <  Square(anEcFl/4.0);
+
+   ELISE_COPY
+   (
+         select(mImOri.all_pts(), aFHom &&  mImRes.in() ),
+         P8COL::red,
+         mOWdisc | mImRes.out()
+   );
+   
+   if (mW)
+   {
+        Tiff_Im::Create8BFromFonc("ImLabel.tif",mSz,mImRes.in());
+   }
 }
 
 
@@ -480,7 +550,7 @@ void Test_CalcSzWCor(int argc,char ** argv)
    // cCalcSzWCorrel<U_INT2,INT> aCalc(trans(aTF.in_proj(),aP0),aSz,Pt2dr(900,900));
    cCalcSzWCorrel<U_INT1,INT> aCalc(trans(aTF.in_proj(),aP0),aSz,Pt2dr(900,900));
 
-  aCalc.TestMultiEch_Deriche();
+  // aCalc.TestMultiEch_Deriche();
    std::cout << "AAffffJJJ\n"; getchar();
 }
 
