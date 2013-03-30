@@ -21,6 +21,7 @@ list( APPEND uti_image_Src_Files
     ${UTI_IMAGE_DIR}/CPP_mmxv.cpp 
     ${UTI_IMAGE_DIR}/CPP_Drunk.cpp 
     ${UTI_IMAGE_DIR}/CPP_Impainting.cpp
+    ${UTI_IMAGE_DIR}/CPP_CalSzWCor.cpp
     ${UTI_IMAGE_DIR}/CPP_MPDtest.cpp )
 
 SOURCE_GROUP(${SrcGrp_Uti_Image}\\outils FILES ${uti_image_Src_Files})

@@ -189,6 +189,8 @@ const std::vector<cMMCom> & getAvailableCommands()
 	   aRes.push_back(cMMCom("MergePly",MergePly_main," Merge ply files"));
        aRes.push_back(cMMCom("MICMAC",MICMAC_main," Computes image matching from oriented images"));
        aRes.push_back(cMMCom("MMPyram",MMPyram_main," Computes pyram for micmac (internal use)",cArgLogCom(2)));
+
+       aRes.push_back(cMMCom("MMCalcSzWCor",CalcSzWCor_main," Compute Image of Size of correlation windows (Atomic tool)",cArgLogCom(2)));
        aRes.push_back(cMMCom("MpDcraw",MpDcraw_main," Interface to dcraw"));
        aRes.push_back(cMMCom("MMInitialModel",MMInitialModel_main,"Initial Model for MicMac "));
        aRes.push_back(cMMCom("MMMergeCloud",MM_FusionNuage_main,"Merging of low resol cloud, in preparation 2 MicMac ",cArgLogCom(2)));

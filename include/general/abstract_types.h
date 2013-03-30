@@ -692,6 +692,11 @@ Fonc_Num rect_som(Fonc_Num f,Box2di,bool aCatFinit = false);
 Fonc_Num rect_som(Fonc_Num f,Pt2di,bool aCatFinit = false);
 Fonc_Num rect_som(Fonc_Num f,INT,bool aCatFinit = false);
 
+Fonc_Num Moy(Fonc_Num,int);
+Fonc_Num Moy1(Fonc_Num aF);
+Fonc_Num MoyIter(Fonc_Num aF,int aSz,int aNbIter);
+
+
 Fonc_Num rect_max(Fonc_Num f,Box2di,bool aCatFinit = false);
 Fonc_Num rect_max(Fonc_Num f,Pt2di,bool aCatFinit = false);
 Fonc_Num rect_max(Fonc_Num f,INT,bool aCatFinit = false);
