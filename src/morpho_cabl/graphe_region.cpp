@@ -66,7 +66,7 @@ template <class TIm1,class TIm2,class Container>  class cCompCnx
         typedef Im2D<TIm2,tBase2>           tIm2;
         typedef TIm2D<TIm2,tBase2>          tTim2;
 
-static void CC(Container & aCont,bool V8,const Pt2di & aSeed,tIm1 anImValue,tIm2 anImMarq,int  anUpdateMarq,ElGrowingSetInd * aSetVois,bool Reset)
+static void DoCC(Container & aCont,bool V8,const Pt2di & aSeed,tIm1 anImValue,tIm2 anImMarq,int  anUpdateMarq,ElGrowingSetInd * aSetVois,bool Reset)
 {
    if (aSetVois)
        aSetVois->clear();
@@ -127,14 +127,14 @@ static void CC(Container & aCont,bool V8,const Pt2di & aSeed,tIm1 anImValue,tIm2
 template  <class TIm1,class TIm2,class Container>
          void CompCnx (Container & aCont,bool V8,const Pt2di & aSeed,TIm1 anImValue,TIm2 anImMarq,int anUpdateMarq,ElGrowingSetInd *aSV=0)
 {
-    cCompCnx<typename TIm1::tElem,typename TIm2::tElem,Container>::CC(aCont,V8,aSeed,anImValue,anImMarq,anUpdateMarq,aSV,false);
+    cCompCnx<typename TIm1::tElem,typename TIm2::tElem,Container>::DoCC(aCont,V8,aSeed,anImValue,anImMarq,anUpdateMarq,aSV,false);
 }
 
 
 template  <class TIm1,class TIm2,class Container>
          void CompCnxCste (Container & aCont,bool V8,const Pt2di & aSeed,TIm1 anImValue,TIm2 anImMarq)
 {
-    cCompCnx<typename TIm1::tElem,typename TIm2::tElem,Container>::CC(aCont,V8,aSeed,anImValue,anImMarq,anImMarq.GetI(aSeed)+1,0,true);
+    cCompCnx<typename TIm1::tElem,typename TIm2::tElem,Container>::DoCC(aCont,V8,aSeed,anImValue,anImMarq,anImMarq.GetI(aSeed)+1,0,true);
 }
 
 
@@ -383,13 +383,14 @@ template <class TypeIm,class TypeBase> Im2D_Bits<1> CreateGr(tGRGraf & mGr,Im2D<
     double aSomT=0;
     double aMaxT=0;
 
+    int aDelta = 1;  // 1 
     for (int aKS=0 ; aKS<int(aVSom.size()) ; aKS++)
     {
         tGRSom * aSom = aVSom[aKS];
         if (aSom && (! aSom->attr().DoneValR()))
         {
             ElTimer aChrono;
-            cSubGrInterv aSG(aSom->attr().ValR()-1,aSom->attr().ValR()+1);
+            cSubGrInterv aSG(aSom->attr().ValR()-aDelta,aSom->attr().ValR()+aDelta);
             ElFifo<tGRSom *> aCC;
             comp_connexe_som(aCC,aSom,aSG);
             int aSzCC = SomSz(aCC);

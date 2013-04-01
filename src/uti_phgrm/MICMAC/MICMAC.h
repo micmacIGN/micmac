@@ -2061,6 +2061,7 @@ class cEtapeMecComp
           const cEtapeProgDyn *       TheEtapeNewPrgD() const; 
           cInterpolateurIm2D<float> * InterpFloat() const;
           bool        MATP() const;
+          bool        UseWAdapt() const;
        private:
 	  void VerifInit(bool,const std::string &);
 	  static cFilePx * GetPred(const tContEMC &,int anInd);
@@ -2110,6 +2111,7 @@ class cEtapeMecComp
           const cEtapeProgDyn *      mTheEtapeNewPrgD; 
           mutable cInterpolateurIm2D<float> * mInterpFloat;
           bool                                mMATP;
+          bool                                mUseWAdapt;
 };
 
 /*****************************************************/
@@ -2541,7 +2543,8 @@ class   cGPU_LoadedImGeom
       float *** VDataIm()   {return mDataIm;}
       float **  VLinDIm()   {return mLinDIm;}
       double  PdsMS() const;
-      double  SomPdsMS() const;
+      double  CumSomPdsMS() const;
+      double  TotSomPdsMS() const;
 
 
       double * Vals()     {return &(mVals[0]);}
@@ -2581,13 +2584,13 @@ class   cGPU_LoadedImGeom
        double SigmaCalc() const {return mSigma;}
        cPriseDeVue * PDV();
 
-       bool Correl(double & Correl,int anX,int anY,const cGPU_LoadedImGeom & aGeoJ) const;
+       bool Correl(double & Correl,int anX,int anY,const cGPU_LoadedImGeom & aGeoJ,int aNbIm) const;
 
        // inline double StatIm(int anX,int anY,tGpuF **) const;
 
-       inline double MoyIm(int anX,int anY) const;
-       inline double MoyQuadIm(int anX,int anY) const;
-       inline double CovIm(int anX,int anY) const;
+       inline double MoyIm(int anX,int anY,int aNbIm) const;
+       inline double MoyQuadIm(int anX,int anY,int aNbIm) const;
+       inline double CovIm(int anX,int anY,int aNbIm) const;
 
        REAL GetValOfDisc(int anX,int anY,int aZ);
 
@@ -2635,7 +2638,8 @@ class   cGPU_LoadedImGeom
        bool                             mOneImage;
        const cOneParamCMS *             mOPCms;
        double                           mPdsMS;
-       double                           mSomPdsMS;
+       double                           mCumSomPdsMS;
+       double                           mTotSomPdsMS;
        float **                         mMyDataIm0;
 
 // tGpuF
@@ -2848,8 +2852,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
         void DoCorrelLeastQuare(const Box2di & aBoxOut,const Box2di & aBoxIn,const cCorrel2DLeastSquare &);
 		void DoGPU_Correl (const Box2di & aBoxInterne,const cMultiCorrelPonctuel *);  
         void DoOneCorrelSym(int anX,int anY);
-        void DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel *);
-        void DoOneCorrelMaxMinIm1Maitre(int anX,int anY,bool aModeMax);
+        void DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel *,int aNbIm,bool VireExtr);
+        void DoOneCorrelMaxMinIm1Maitre(int anX,int anY,bool aModeMax,int aNbIm);
 
 		void DoGPU_Correl_Basik (const Box2di & aBoxInterne); 
 
@@ -2908,6 +2912,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
          }
         
         std::string NameImageMasqOfResol(int aDeZoom) ;
+        std::string NameFileSzW(int aDz);
         bool  AucuneGeom() const;
         eModeGeomMEC ModeGeomMEC() const;
         void TestPointsLiaisons(CamStenope *  anOriRef,CamStenope *  anOri,cGeomImage *) const;
@@ -3389,6 +3394,9 @@ class cAppliMICMAC  : public   cParamMICMAC,
            std::vector<U_INT1 *>  mVDOkTer;
            U_INT1 **              mDOkTer;
 
+           Im2D_U_INT1            mImSzWCor;
+           TIm2D<U_INT1,INT>      mTImSzWCor;
+
            Im2D_U_INT1            mImOkTerDil;
            TIm2D<U_INT1,INT>      mTImOkTerDil;
            std::vector<U_INT1 *>  mVDOkTerDil;
@@ -3490,6 +3498,15 @@ class cAppliMICMAC  : public   cParamMICMAC,
          int                   mTPZoom;
          int                   mTPSzW;
          std::vector<Pt3dr> *  mTP3d;
+         bool                  mCurEtUseWAdapt;
+         int NbScaleOfPt(int anX,int anY)
+         {
+              return  mCurEtUseWAdapt  ?
+                      ElMin(mNbScale,1+mTImSzWCor.get(Pt2di(anX,anY)))  :              
+                      mNbScale;
+
+         }
+
 
 	// GPGPU
 #ifdef CUDA_ENABLED

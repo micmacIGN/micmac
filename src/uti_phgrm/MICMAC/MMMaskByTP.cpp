@@ -405,20 +405,27 @@ void cMMTP::DoMasqAndProfInit(const cMasqueAutoByTieP & aMATP)
 class cResCorTP
 {
     public :
-      cResCorTP (double aCSom,double aCMax) :
+      cResCorTP (double aCSom,double aCMax,double aCMed) :
            mCostSom (aCSom),
-           mCostMax (aCMax)
+           mCostMax (aCMax),
+           mCostMed (aCMed)
       {
       }
       double  CSom() const {return  mCostSom;}
       double  CMax() const {return  mCostMax;}
+      double  CMed() const {return  mCostMed;}
     private :
        double mCostSom;
        double mCostMax;
+       double mCostMed;
 };
 
 cResCorTP cAppliMICMAC::CorrelMasqTP(const cMasqueAutoByTieP & aMATP,int anX,int anY,int aZ)
 {
+
+    int aNbScale =   NbScaleOfPt(anX,anY);
+    double aPdsCum = mVScaIm[aNbScale-1][0]->CumSomPdsMS();
+ // std::cout << "NbSssCalll " << aNbScale << "\n";
 
     std::vector<int> aVOk;
     bool             Ok0 = false;
@@ -427,7 +434,7 @@ cResCorTP cAppliMICMAC::CorrelMasqTP(const cMasqueAutoByTieP & aMATP,int anX,int
          double aSomIm = 0; 
          double aSomI2 = 0; 
          bool AllOk = true;
-         for (int aKS=0 ; aKS<mNbScale ; aKS++)
+         for (int aKS=0 ; aKS<aNbScale ; aKS++)
          {
                Pt2di aSzV0 = mVScaIm[aKS][0]->SzV0();
                cGPU_LoadedImGeom * aLI = mVScaIm[aKS][aKI];
@@ -449,12 +456,11 @@ cResCorTP cAppliMICMAC::CorrelMasqTP(const cMasqueAutoByTieP & aMATP,int anX,int
              aVOk.push_back(aKI);
              if (aKI==0)
                 Ok0 = true;
-             double aSomP = mVScaIm[0][aKI]->SomPdsMS();
-             aSomIm /= aSomP;
-             aSomI2 /= aSomP;
+             aSomIm /= aPdsCum;
+             aSomI2 /= aPdsCum;
              double anEct = aSomI2-ElSquare(aSomIm);
              aSomI2 = sqrt(ElMax(1e0,anEct));
-             for (int aKS=0 ; aKS<mNbScale ; aKS++)
+             for (int aKS=0 ; aKS<aNbScale ; aKS++)
              {
                  cGPU_LoadedImGeom * aLI = mVScaIm[aKS][aKI];
                  cStatOneImage * aStat = aLI->VignetteDone();
@@ -464,16 +470,18 @@ cResCorTP cAppliMICMAC::CorrelMasqTP(const cMasqueAutoByTieP & aMATP,int anX,int
     }
 
     if ((! Ok0) || (aVOk.size() < 2))
-       return cResCorTP(4,4);
+       return cResCorTP(4,4,4);
 
     double aSomDistTot = 0;
     double aMaxDistTot = 0;
+    double aMinDistTot = 4;
+    int aNbCpleOk = aVOk.size() - 1;
     for (int aKK=1 ; aKK<int(aVOk.size()) ; aKK++)
     {
          int aK0 = 0;
          int aK1 = aVOk[aKK];
          double aDistLoc = 0;
-         for (int aKS=0 ; aKS<mNbScale ; aKS++)
+         for (int aKS=0 ; aKS<aNbScale ; aKS++)
          {
              cGPU_LoadedImGeom * aLI0 = mVScaIm[aKS][aK0];
              cGPU_LoadedImGeom * aLI1 = mVScaIm[aKS][aK1];
@@ -484,14 +492,21 @@ cResCorTP cAppliMICMAC::CorrelMasqTP(const cMasqueAutoByTieP & aMATP,int anX,int
          }
          aSomDistTot += aDistLoc;
          aMaxDistTot = ElMax(aMaxDistTot,aDistLoc);
+         aMinDistTot = ElMin(aMinDistTot,aDistLoc);
     }
 
-    aSomDistTot /=  (mVScaIm[0][0]->SomPdsMS() * (aVOk.size()-1));
-    aMaxDistTot /=  mVScaIm[0][0]->SomPdsMS();
+    double aDistMed = aSomDistTot - (aMaxDistTot+aMinDistTot);
+    aSomDistTot /=  (aPdsCum * aNbCpleOk);
+    aMaxDistTot /=  aPdsCum;
+
+    if (aNbCpleOk>2)
+       aDistMed /= aPdsCum*(aNbCpleOk-2);
+    else
+       aDistMed = (aSomDistTot+aMaxDistTot) /2.0;
 
     //  std::cout << "DIISTTT :: " << aMaxDistTot << " " << aSomDistTot << "\n";
     
-    return cResCorTP(aSomDistTot,aMaxDistTot);
+    return cResCorTP(aSomDistTot,aMaxDistTot,aDistMed);
 }
 
 /*
@@ -517,6 +532,7 @@ void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,in
    if (
          (     (aCSom > aMATP.SeuilSomCostCorrel()) 
             || (aCost.CMax() > aMATP.SeuilMaxCostCorrel()) 
+            || (aCost.CMed() > aMATP.SeuilMedCostCorrel()) 
          )
          && (! Final)
       )
@@ -581,6 +597,10 @@ void  cAppliMICMAC::OneIterFinaleMATP(const cMasqueAutoByTieP & aMATP,bool Final
 
 void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTieP & aMATP)
 {
+
+   std::cout <<  "*-*-*-*-*-*- cAppliMICMAC::DoMasqueAutoByTieP    "<< mImSzWCor.sz() << " " << aBox.sz() << mCurEtUseWAdapt << "\n";
+
+
    ElTimer aChrono;
    mMMTP = new cMMTP(aBox,*this);
 
@@ -669,6 +689,15 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
    mMMTP->DoMasqAndProfInit(aMATP);
 
 
+   if (aMATP.DoImageLabel().Val())
+   {
+        Tiff_Im::Create8BFromFonc
+        (
+             FullDirMEC() + "LabelTieP_Num_" + ToString(mCurEtape->Num()) + ".tif",
+             mMMTP->ImProf().sz(),
+             mMMTP->ImProf().in()%256
+        );
+   }
 
    Im2D_Bits<1>  aIL =  TestLabel(mMMTP->ImProf(),cCelTiep::TheNoZ);
 

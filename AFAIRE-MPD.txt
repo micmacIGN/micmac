@@ -1,8 +1,17 @@
+Prochaine lettre :
 
-Ori convert  Doc Grand Leez Centre Bascule PannelIm
+ * Ori convert  Doc Grand Leez Centre Bascule PannelIm
 
+ * Use Case 2D ; refernce TOSCA/CNES IPGP ...
 
-Use Case 2D
+ * Drunk
+
+ * ChImSec ,  Initial +? Auto
+
+=====================================================
+
+Probleme homogeneite Resol & Focal dans ChImSec
+
 
 ===============================================================
 Bascule sur des images quasi panoramiques : probleme stabité intersection de faisceau.

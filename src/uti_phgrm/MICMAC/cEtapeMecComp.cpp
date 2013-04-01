@@ -293,7 +293,8 @@ cEtapeMecComp::cEtapeMecComp
   mTheModPrgD        (0),
   mTheEtapeNewPrgD   (0),
   mInterpFloat       (0),
-  mMATP              (false)
+  mMATP              (false),
+  mUseWAdapt         (false)
 {
 
     
@@ -634,9 +635,17 @@ cEtapeMecComp::cEtapeMecComp
 
       if (mEtape.CorrelAdHoc().IsInit())
       {
-         cTypeCAH aT = mEtape.CorrelAdHoc().Val().TypeCAH();
+         const cCorrelAdHoc & aCAH  = mEtape.CorrelAdHoc().Val();
+
+         cTypeCAH aT = aCAH.TypeCAH();
          if (aT.MasqueAutoByTieP().IsInit())
             mMATP = true;
+
+         if (aCAH.CorrelMultiScale().IsInit())
+         {
+              const cCorrelMultiScale & aCMS = aCAH.CorrelMultiScale().Val();
+              mUseWAdapt = aCMS.UseWAdapt().Val();
+         }
       }
 
 
@@ -715,6 +724,14 @@ bool  cEtapeMecComp::MATP() const
 {
    return mMATP;
 }
+
+
+bool  cEtapeMecComp::UseWAdapt() const
+{
+   return mUseWAdapt;
+}
+
+
 
 cInterpolateurIm2D<float> * cEtapeMecComp::InterpFloat()  const
 {

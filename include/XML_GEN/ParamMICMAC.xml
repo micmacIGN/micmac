@@ -143,6 +143,8 @@ namespace NS_ParamMICMAC{
          <!-- Max des correls a l'image 1; teste pour resoudre pb de parties cachees -->
 	 <eAggregMaxIm1Maitre>  </eAggregMaxIm1Maitre>
 	 <eAggregMinIm1Maitre>  </eAggregMinIm1Maitre>
+         <!-- Pas vrai median, moyenne - Min et Max -->
+	 <eAggregMoyMedIm1Maitre>  </eAggregMoyMedIm1Maitre>
    </enum>
 
    <enum Name="eModeDynamiqueCorrel">
@@ -647,6 +649,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                   <Nb Nb="?" Type="int" Def="-1"> </Nb>  
 
                   <NbMin Nb="?" Type="int" Def="-1"> </NbMin>  
+                  <NbMax Nb="?" Type="int" Def="1000"> </NbMax>  
                   <OnEmpty Nb="?" Type="eOnEmptyImSecApero" Def="eOEISA_error"> </OnEmpty>  
              </ImSecCalcApero>
              <Filter Nb="?" 
@@ -879,6 +882,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                 <SzBlocAH Nb="?" Type="int" Def="40"> </SzBlocAH>
                 <CorrelMultiScale Nb="?">
                       <ModeDense Nb="?" Type="bool"> </ModeDense>
+                      <UseWAdapt Nb="?" Type="bool" Def="false"> </UseWAdapt>
                       <OneParamCMS Nb="+" Container="std::vector">
                            <SzW Nb="1" Type="Pt2di"> </SzW>
                            <!-- A priori Sigma doit etre fonction de  SzW, mais quelle fonction ?? -->
@@ -947,6 +951,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                             <DeltaZ Nb="1" Type="int"> </DeltaZ>
                             <SeuilSomCostCorrel Nb="1" Type="double"> </SeuilSomCostCorrel>
                             <SeuilMaxCostCorrel Nb="1" Type="double"> </SeuilMaxCostCorrel>
+                            <SeuilMedCostCorrel Nb="1" Type="double"> </SeuilMedCostCorrel>
                             <Visu Nb="?" Type="bool" Def="false"> </Visu>
                             <ImPaintResult Nb="?"  Type="eImpaintMethod" Def="eImpaintL2"> </ImPaintResult>
                             <ParamIPMnt Nb="?" Type="double" Def="1.0"> </ParamIPMnt>
@@ -955,6 +960,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                                  <DeZoomRel Nb="1" Type="int"> </DeZoomRel>
                                  <Dilate Nb="1" Type="int">   </Dilate>
                             </TiePMasqIm>
+                            <DoImageLabel Nb="?" Type="bool" Def="false"> </DoImageLabel>
                         </MasqueAutoByTieP> 
                 </TypeCAH>
             </CorrelAdHoc>

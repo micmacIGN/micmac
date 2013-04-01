@@ -1252,7 +1252,7 @@ ElPackHomologue PackFromCplAPF(const cMesureAppuiFlottant1Im & aMes, const cMesu
 const cOneMesureAF1I *  PtsOfName(const cMesureAppuiFlottant1Im &,const std::string & aName);
 
 class cImSecOfMaster;
-const std::list<std::string > * GetBestSec(const cImSecOfMaster&,int aNb=-1,int aNbMin=-1,bool OkAndOutWhenNone=false);
+const std::list<std::string > * GetBestImSec(const cImSecOfMaster&,int aNb=-1,int aNbMin=-1,int aNbMax=1000,bool OkAndOutWhenNone=false);
 };
 
 
