@@ -226,7 +226,7 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
     const std::vector<cOneParamCMS> & aVP = aCMS->OneParamCMS();
 
 
-    mSomPdsMS = 0;
+    double aSomPds = 0;
     for (int aK=0 ; aK<int(aVP.size()) ; aK++)
     {
         if (aK>0)
@@ -235,11 +235,24 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
         }
         
         mMSGLI[aK]->mOPCms = &(aVP[aK]);
+
+        double aPdsK = aVP[aK].Pds();
+        mMSGLI[aK]->mPdsMS = aPdsK/mNbVals;
+        aSomPds += aPdsK;
+        mMSGLI[aK]->mCumSomPdsMS =aSomPds;
+/*
         mMSGLI[aK]->mPdsMS = aVP[aK].Pds();
-        mSomPdsMS += mMSGLI[aK]->mPdsMS;
+        aSomPdsMS +=  mMSGLI[aK]->mPdsMS;
+        mMSGLI[aK]->mCumSomPdsMS = ;
         mMSGLI[aK]->mPdsMS /= mNbVals;
+*/
         mMSGLI[aK]->mMyDataIm0 = mDataIm[aK];
         mMSGLI[aK]->mMaster = this;
+    }
+
+    for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+    {
+        mMSGLI[aK]->mTotSomPdsMS = aSomPds;
     }
 
     mOneImage = (aVP.size()==1);
@@ -392,54 +405,61 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
 		return true;
 	}
 
-double  cGPU_LoadedImGeom::MoyIm(int anX,int anY) const
+double  cGPU_LoadedImGeom::MoyIm(int anX,int anY,int aNbScaleIm) const
 {
     if (! mOPCms)
         return mDSomO [anY][anX] /mNbVals;
 
     double aRes = 0;
-    for (int aK=0 ; aK<int(mMSGLI.size()) ; aK++)
+    for (int aK=0 ; aK<aNbScaleIm ; aK++)
     {
         cGPU_LoadedImGeom * aGLI = mMSGLI[aK];
         aRes += aGLI->mDSomO [anY][anX] * aGLI->mPdsMS;
     }
-    return aRes / mSomPdsMS;
+    return aRes / mMSGLI[aNbScaleIm-1]->mCumSomPdsMS;
 }
-double  cGPU_LoadedImGeom::MoyQuadIm(int anX,int anY) const
+double  cGPU_LoadedImGeom::MoyQuadIm(int anX,int anY,int aNbScaleIm) const
 {
     if (! mOPCms)
         return mDSomO2 [anY][anX] /mNbVals;
 
     double aRes = 0;
-    for (int aK=0 ; aK<int(mMSGLI.size()) ; aK++)
+    for (int aK=0 ; aK<aNbScaleIm ; aK++)
     {
         cGPU_LoadedImGeom * aGLI = mMSGLI[aK];
         aRes += aGLI->mDSomO2 [anY][anX] * aGLI->mPdsMS;
     }
-    return aRes / mSomPdsMS;
+    return aRes / mMSGLI[aNbScaleIm-1]->mCumSomPdsMS;
 }
-double  cGPU_LoadedImGeom::CovIm(int anX,int anY) const
+
+double  cGPU_LoadedImGeom::CovIm(int anX,int anY,int aNbScaleIm) const
 {
     if (! mOPCms)
         return mDSom12 [anY][anX] /mNbVals;
 
     double aRes = 0;
-    for (int aK=0 ; aK<int(mMSGLI.size()) ; aK++)
+    for (int aK=0 ; aK<aNbScaleIm ; aK++)
     {
         cGPU_LoadedImGeom * aGLI = mMSGLI[aK];
         aRes += aGLI->mDSom12 [anY][anX] * aGLI->mPdsMS;
     }
-    return aRes / mSomPdsMS;
+    return aRes / mMSGLI[aNbScaleIm-1]->mCumSomPdsMS;
 }
 
 double  cGPU_LoadedImGeom::PdsMS() const
 {
    return mPdsMS;
 }
-double  cGPU_LoadedImGeom::SomPdsMS() const
+double  cGPU_LoadedImGeom::CumSomPdsMS() const
 {
-   return mSomPdsMS;
+   return mCumSomPdsMS;
 }
+double  cGPU_LoadedImGeom::TotSomPdsMS() const
+{
+   return mTotSomPdsMS;
+}
+/*
+*/
 
 /*
 double MoyQuad() const;
@@ -448,28 +468,29 @@ double Cov(const cGPU_LoadedImGeom & aGeoJ) const;
 
 
 
-	bool   cGPU_LoadedImGeom::Correl(double & aCorrel,int anX,int anY,const  cGPU_LoadedImGeom & aGeoJ) const
+	bool   cGPU_LoadedImGeom::Correl(double & aCorrel,int anX,int anY,const  cGPU_LoadedImGeom & aGeoJ,int aNbScaleIm) const
 	{
+
 		if (! mDOK_Ortho[anY][anX])
 			return false;
 		//double aMI  =  mDSomO [anY][anX] /mNbVals;
-                double aMI  = MoyIm(anX,anY);
+                double aMI  = MoyIm(anX,anY,aNbScaleIm);
 		double aDmI = mAppli.DeltaMoy(aMI);
 		// double aMII =  mDSomO2[anY][anX] /mNbVals - ElSquare(aMI) + ElSquare(aDmI);
-		double aMII =  MoyQuadIm(anX,anY) - ElSquare(aMI) + ElSquare(aDmI);
+		double aMII =  MoyQuadIm(anX,anY,aNbScaleIm) - ElSquare(aMI) + ElSquare(aDmI);
 		if (aMII < mAppli.AhEpsilon()) 
 			return false;
 
 		// double aMJ  =  aGeoJ.mDSomO [anY][anX] /mNbVals;
-		double aMJ  =  aGeoJ.MoyIm(anX,anY);
+		double aMJ  =  aGeoJ.MoyIm(anX,anY,aNbScaleIm);
 		double aDmJ = mAppli.DeltaMoy(aMJ);
 		// double aMJJ =  aGeoJ.mDSomO2[anY][anX] /mNbVals - ElSquare(aMJ) + ElSquare(aDmJ);
-		double aMJJ =  aGeoJ.MoyQuadIm(anX,anY) - ElSquare(aMJ) + ElSquare(aDmJ);
+		double aMJJ =  aGeoJ.MoyQuadIm(anX,anY,aNbScaleIm) - ElSquare(aMJ) + ElSquare(aDmJ);
 		if (aMJJ < mAppli.AhEpsilon()) 
 			return false;
 
 		// double aMIJ =  mDSom12[anY][anX] /mNbVals - aMI * aMJ + aDmI*aDmJ;
-		double aMIJ =  CovIm(anX,anY) - aMI * aMJ + aDmI*aDmJ;
+		double aMIJ =  CovIm(anX,anY,aNbScaleIm) - aMI * aMJ + aDmI*aDmJ;
 
 		aCorrel = aMIJ / sqrt(aMII*aMJJ);
 if (0)
@@ -992,22 +1013,31 @@ if (0)
 
 	}
 
-	void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel * aCMP)
+	void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel * aCMP,int aNbScaleIm,bool VireExtre)
 	{
 		int aNbOk = 0;
 		double aSomCorrel = 0;
 
 		if (mVLI[0]->OkOrtho(anX,anY))
 		{
+                        double aCMax = -2;
+                        double aCMin = 2;
 			for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
 			{
 				double aCor;
-				if (mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0])))
+				if (mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0]),aNbScaleIm))
 				{
 					aNbOk ++;
 					aSomCorrel += aCor;
+                                        ElSetMax(aCMax,aCor);
+                                        ElSetMin(aCMin,aCor);
 				}
 			}
+                        if (VireExtre && (aNbOk>2))
+                        {
+                            aSomCorrel -= aCMax + aCMin;
+                            aNbOk -= 2;
+                        }
 		}
 
 		if (aCMP)
@@ -1050,7 +1080,7 @@ if (0)
 
 
 
-	void cAppliMICMAC::DoOneCorrelMaxMinIm1Maitre(int anX,int anY,bool aModeMax)
+	void cAppliMICMAC::DoOneCorrelMaxMinIm1Maitre(int anX,int anY,bool aModeMax,int aNbScaleIm)
 	{
 		if (mEBI) // Etiq Best Image
 		{
@@ -1059,7 +1089,7 @@ if (0)
 				for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
 				{
 					double aCor;
-					bool Ok = mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0]));
+					bool Ok = mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0]),aNbScaleIm);
 					aCor  = Ok ?  mStatGlob->CorrelToCout(aCor) : mAhDefCost;
 					mSurfOpt->SetCout ( Pt2di(anX,anY),&mZIntCur,aCor, aKIm-1);
 				}
@@ -1079,7 +1109,7 @@ if (0)
 				for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
 				{
 					double aCor;
-					if (mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0])))
+					if (mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0]),aNbScaleIm))
 					{
 						if (aModeMax) 
                                                    ElSetMax(aRes,aCor);
@@ -1112,7 +1142,7 @@ if (0)
 
 		if (aMCP)
 		{
-			ELISE_ASSERT(aModeAgr==eAggregIm1Maitre,"MultiCorrelPonctuel requires eAggregIm1Maitre");
+			ELISE_ASSERT(IsModeIm1Maitre(aModeAgr),"MultiCorrelPonctuel requires eAggregIm1Maitre");
 		}
 
 		if (aModeAgr==eAggregSymetrique)
@@ -1148,6 +1178,13 @@ if (0)
 					for (int anY = mY0UtiTer ; anY < mY1UtiTer ; anY++)
 					{
 
+                                                int aNbScaleIm =  NbScaleOfPt(anX,anY);
+/*
+                                                if (mCurEtUseWAdapt) 
+                                                {
+                                                     ElSetMin(aNbScaleIm,1+mTImSzWCor.get(Pt2di(anX,anY)));
+                                                }
+*/
 						if (mDOkTer[anY][anX])
 						{
 							switch (aModeAgr)
@@ -1157,16 +1194,20 @@ if (0)
 								break;
 
 							case eAggregIm1Maitre :
-								DoOneCorrelIm1Maitre(anX,anY,aMCP);
-								break;
+							     DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,false);
+							break;
 
 							case  eAggregMaxIm1Maitre :
-								DoOneCorrelMaxMinIm1Maitre(anX,anY,true);
+								DoOneCorrelMaxMinIm1Maitre(anX,anY,true,aNbScaleIm);
 						        break;
 
 							case  eAggregMinIm1Maitre :
-								DoOneCorrelMaxMinIm1Maitre(anX,anY,false);
+								DoOneCorrelMaxMinIm1Maitre(anX,anY,false,aNbScaleIm);
 						        break;
+
+							case eAggregMoyMedIm1Maitre :
+							     DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,true);
+							break;
 
 							default :
 								break;

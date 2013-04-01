@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2006]) = {
+const char * (theNameVar_ParamMICMAC[2012]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -145,6 +145,8 @@ const char * (theNameVar_ParamMICMAC[2006]) = {
 "         <!-- Max des correls a l'image 1; teste pour resoudre pb de parties cachees -->\n",
 "	 <eAggregMaxIm1Maitre>  </eAggregMaxIm1Maitre>\n",
 "	 <eAggregMinIm1Maitre>  </eAggregMinIm1Maitre>\n",
+"         <!-- Pas vrai median, moyenne - Min et Max -->\n",
+"	 <eAggregMoyMedIm1Maitre>  </eAggregMoyMedIm1Maitre>\n",
 "   </enum>\n",
 "\n",
 "   <enum Name=\"eModeDynamiqueCorrel\">\n",
@@ -649,6 +651,7 @@ const char * (theNameVar_ParamMICMAC[2006]) = {
 "                  <Nb Nb=\"?\" Type=\"int\" Def=\"-1\"> </Nb>  \n",
 "\n",
 "                  <NbMin Nb=\"?\" Type=\"int\" Def=\"-1\"> </NbMin>  \n",
+"                  <NbMax Nb=\"?\" Type=\"int\" Def=\"1000\"> </NbMax>  \n",
 "                  <OnEmpty Nb=\"?\" Type=\"eOnEmptyImSecApero\" Def=\"eOEISA_error\"> </OnEmpty>  \n",
 "             </ImSecCalcApero>\n",
 "             <Filter Nb=\"?\" \n",
@@ -881,6 +884,7 @@ const char * (theNameVar_ParamMICMAC[2006]) = {
 "                <SzBlocAH Nb=\"?\" Type=\"int\" Def=\"40\"> </SzBlocAH>\n",
 "                <CorrelMultiScale Nb=\"?\">\n",
 "                      <ModeDense Nb=\"?\" Type=\"bool\"> </ModeDense>\n",
+"                      <UseWAdapt Nb=\"?\" Type=\"bool\" Def=\"false\"> </UseWAdapt>\n",
 "                      <OneParamCMS Nb=\"+\" Container=\"std::vector\">\n",
 "                           <SzW Nb=\"1\" Type=\"Pt2di\"> </SzW>\n",
 "                           <!-- A priori Sigma doit etre fonction de  SzW, mais quelle fonction ?? -->\n",
@@ -949,6 +953,7 @@ const char * (theNameVar_ParamMICMAC[2006]) = {
 "                            <DeltaZ Nb=\"1\" Type=\"int\"> </DeltaZ>\n",
 "                            <SeuilSomCostCorrel Nb=\"1\" Type=\"double\"> </SeuilSomCostCorrel>\n",
 "                            <SeuilMaxCostCorrel Nb=\"1\" Type=\"double\"> </SeuilMaxCostCorrel>\n",
+"                            <SeuilMedCostCorrel Nb=\"1\" Type=\"double\"> </SeuilMedCostCorrel>\n",
 "                            <Visu Nb=\"?\" Type=\"bool\" Def=\"false\"> </Visu>\n",
 "                            <ImPaintResult Nb=\"?\"  Type=\"eImpaintMethod\" Def=\"eImpaintL2\"> </ImPaintResult>\n",
 "                            <ParamIPMnt Nb=\"?\" Type=\"double\" Def=\"1.0\"> </ParamIPMnt>\n",
@@ -957,6 +962,7 @@ const char * (theNameVar_ParamMICMAC[2006]) = {
 "                                 <DeZoomRel Nb=\"1\" Type=\"int\"> </DeZoomRel>\n",
 "                                 <Dilate Nb=\"1\" Type=\"int\">   </Dilate>\n",
 "                            </TiePMasqIm>\n",
+"                            <DoImageLabel Nb=\"?\" Type=\"bool\" Def=\"false\"> </DoImageLabel>\n",
 "                        </MasqueAutoByTieP> \n",
 "                </TypeCAH>\n",
 "            </CorrelAdHoc>\n",

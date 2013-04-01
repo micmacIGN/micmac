@@ -159,6 +159,17 @@ int MPDtest_main (int argc,char** argv)
    double aNan = strtod("NAN(teta01)", NULL);
    std::cout << "Nan=" << aNan << "\n";
 
+    float aX = 6e6;
+    for (int aK=0 ; aK<100000; aK++)
+    {
+          float aY = aX + (aK*1e-5);
+          float aDif = (aX-aY);
+          std::cout << "TTT " << aK << " " << aDif  << " " <<  (aK*1e-5) << "\n";
+
+          if (aDif != 0)
+             getchar();
+    }
+
     return EXIT_SUCCESS;
 }
 

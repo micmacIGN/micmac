@@ -71,7 +71,8 @@ typedef enum
   eAggregIm1Maitre,
   eAggregInfoMut,
   eAggregMaxIm1Maitre,
-  eAggregMinIm1Maitre
+  eAggregMinIm1Maitre,
+  eAggregMoyMedIm1Maitre
 } eModeAggregCorr;
 void xml_init(eModeAggregCorr & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModeAggregCorr & aVal);
@@ -1050,12 +1051,16 @@ class cImSecCalcApero
         cTplValGesInit< int > & NbMin();
         const cTplValGesInit< int > & NbMin()const ;
 
+        cTplValGesInit< int > & NbMax();
+        const cTplValGesInit< int > & NbMax()const ;
+
         cTplValGesInit< eOnEmptyImSecApero > & OnEmpty();
         const cTplValGesInit< eOnEmptyImSecApero > & OnEmpty()const ;
     private:
         std::string mKey;
         cTplValGesInit< int > mNb;
         cTplValGesInit< int > mNbMin;
+        cTplValGesInit< int > mNbMax;
         cTplValGesInit< eOnEmptyImSecApero > mOnEmpty;
 };
 cElXMLTree * ToXMLTree(const cImSecCalcApero &);
@@ -1105,6 +1110,9 @@ class cImages
 
         cTplValGesInit< int > & NbMin();
         const cTplValGesInit< int > & NbMin()const ;
+
+        cTplValGesInit< int > & NbMax();
+        const cTplValGesInit< int > & NbMax()const ;
 
         cTplValGesInit< eOnEmptyImSecApero > & OnEmpty();
         const cTplValGesInit< eOnEmptyImSecApero > & OnEmpty()const ;
@@ -1396,6 +1404,9 @@ class cSection_PriseDeVue
         cTplValGesInit< int > & NbMin();
         const cTplValGesInit< int > & NbMin()const ;
 
+        cTplValGesInit< int > & NbMax();
+        const cTplValGesInit< int > & NbMax()const ;
+
         cTplValGesInit< eOnEmptyImSecApero > & OnEmpty();
         const cTplValGesInit< eOnEmptyImSecApero > & OnEmpty()const ;
 
@@ -1565,10 +1576,14 @@ class cCorrelMultiScale
         cTplValGesInit< bool > & ModeDense();
         const cTplValGesInit< bool > & ModeDense()const ;
 
+        cTplValGesInit< bool > & UseWAdapt();
+        const cTplValGesInit< bool > & UseWAdapt()const ;
+
         std::vector< cOneParamCMS > & OneParamCMS();
         const std::vector< cOneParamCMS > & OneParamCMS()const ;
     private:
         cTplValGesInit< bool > mModeDense;
+        cTplValGesInit< bool > mUseWAdapt;
         std::vector< cOneParamCMS > mOneParamCMS;
 };
 cElXMLTree * ToXMLTree(const cCorrelMultiScale &);
@@ -1756,6 +1771,9 @@ class cMasqueAutoByTieP
         double & SeuilMaxCostCorrel();
         const double & SeuilMaxCostCorrel()const ;
 
+        double & SeuilMedCostCorrel();
+        const double & SeuilMedCostCorrel()const ;
+
         cTplValGesInit< bool > & Visu();
         const cTplValGesInit< bool > & Visu()const ;
 
@@ -1773,16 +1791,21 @@ class cMasqueAutoByTieP
 
         cTplValGesInit< cTiePMasqIm > & TiePMasqIm();
         const cTplValGesInit< cTiePMasqIm > & TiePMasqIm()const ;
+
+        cTplValGesInit< bool > & DoImageLabel();
+        const cTplValGesInit< bool > & DoImageLabel()const ;
     private:
         cTplValGesInit< std::string > mGlobFilePt3D;
         std::string mKeyImFilePt3D;
         int mDeltaZ;
         double mSeuilSomCostCorrel;
         double mSeuilMaxCostCorrel;
+        double mSeuilMedCostCorrel;
         cTplValGesInit< bool > mVisu;
         cTplValGesInit< eImpaintMethod > mImPaintResult;
         cTplValGesInit< double > mParamIPMnt;
         cTplValGesInit< cTiePMasqIm > mTiePMasqIm;
+        cTplValGesInit< bool > mDoImageLabel;
 };
 cElXMLTree * ToXMLTree(const cMasqueAutoByTieP &);
 
@@ -1852,6 +1875,9 @@ class cCorrelAdHoc
 
         cTplValGesInit< bool > & ModeDense();
         const cTplValGesInit< bool > & ModeDense()const ;
+
+        cTplValGesInit< bool > & UseWAdapt();
+        const cTplValGesInit< bool > & UseWAdapt()const ;
 
         std::vector< cOneParamCMS > & OneParamCMS();
         const std::vector< cOneParamCMS > & OneParamCMS()const ;
@@ -3023,6 +3049,9 @@ class cEtapeMEC
 
         cTplValGesInit< bool > & ModeDense();
         const cTplValGesInit< bool > & ModeDense()const ;
+
+        cTplValGesInit< bool > & UseWAdapt();
+        const cTplValGesInit< bool > & UseWAdapt()const ;
 
         std::vector< cOneParamCMS > & OneParamCMS();
         const std::vector< cOneParamCMS > & OneParamCMS()const ;
@@ -5141,6 +5170,9 @@ class cParamMICMAC
 
         cTplValGesInit< int > & NbMin();
         const cTplValGesInit< int > & NbMin()const ;
+
+        cTplValGesInit< int > & NbMax();
+        const cTplValGesInit< int > & NbMax()const ;
 
         cTplValGesInit< eOnEmptyImSecApero > & OnEmpty();
         const cTplValGesInit< eOnEmptyImSecApero > & OnEmpty()const ;

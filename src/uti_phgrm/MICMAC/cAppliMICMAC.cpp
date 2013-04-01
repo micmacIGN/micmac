@@ -294,6 +294,8 @@ cAppliMICMAC::cAppliMICMAC
    mLastMAnExp      (0),
    mImOkTerCur (1,1),
    mTImOkTerCur (mImOkTerCur),
+   mImSzWCor    (1,1),
+   mTImSzWCor   (mImSzWCor),
    mImOkTerDil (1,1),
    mTImOkTerDil (mImOkTerDil),
    mAll1ImOkTerDil (1,1),
@@ -859,9 +861,14 @@ bool IsModeIm1Maitre(const eModeAggregCorr & aMode)
 {
     return    (aMode==eAggregIm1Maitre) 
            || (aMode==eAggregMaxIm1Maitre)
-           || (aMode==eAggregMinIm1Maitre);
+           || (aMode==eAggregMinIm1Maitre)
+           || (aMode==eAggregMoyMedIm1Maitre);
 }
 
+std::string  cAppliMICMAC::NameFileSzW(int aDz)
+{
+    return FullDirPyr() + "ImSzW_Dz" + ToString(aDz) + PDV1()->Name() + ".tif";
+}
 
 
 void cAppliMICMAC::InitMecComp()
@@ -904,6 +911,22 @@ void cAppliMICMAC::InitMecComp()
            {
               ElSetMax(mDeZoomMax,aDz);
               ElSetMin(mDeZoomMin,aDz);
+           }
+
+
+           if (anEt->UseWAdapt() && (itE->DeZoom()>0) &&  (! CalledByProcess().Val()))
+           {
+                int aDZ = itE->DeZoom();
+                std::string aNameSzW = NameFileSzW(aDz);
+                if (! ELISE_fp::exist_file(aNameSzW))
+                {
+                    std::string aCom =    MM3dBinFile("MMCalcSzWCor ") 
+                                       + PDV1()->IMIL()->NameFileOfResol(aDZ) 
+                                       + " Out=" + aNameSzW;
+                    system_call(aCom.c_str());
+
+                    // std::cout << "CCCcc " << aCom << "\n"; getchar();
+                }
            }
         }
         if ( IsModeIm1Maitre(itE->AggregCorr().Val()))
@@ -1072,6 +1095,7 @@ void cAppliMICMAC::InitImages()
        const cImSecCalcApero & aISCA = ImSecCalcApero().Val();
        int aNbPDV = mPrisesDeVue.size();  // Car la taille va augmenter
        int aNbMin = aISCA.NbMin().Val();
+       int aNbMax = aISCA.NbMax().Val();
        for (int aKV=0 ; aKV<aNbPDV ; aKV++)
        {
            std::string aNameImSec = WorkDir() + mICNM->Assoc1To1(aISCA.Key(),mPrisesDeVue[aKV]->Name(),true);
@@ -1084,7 +1108,7 @@ void cAppliMICMAC::InitImages()
                                  "ImSecOfMaster",
                                  "ImSecOfMaster"
                               );
-                 const std::list<std::string > * aList =  GetBestSec(aISOM,aISCA.Nb().Val(),aNbMin,true);
+                 const std::list<std::string > * aList =  GetBestImSec(aISOM,aISCA.Nb().Val(),aNbMin,aNbMax,true);
                  if (aList==0) 
                  {
                      std::cout << "NOT ENOUG IMAGE in ImSecCalcApero for " << aNameImSec << "\n";

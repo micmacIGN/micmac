@@ -515,6 +515,11 @@ REAL cStatOneClassEquiv::CoeffCorrelation() const
            return CoeffCorrelMinIm1Maitre();
       break;
 
+      case eAggregMoyMedIm1Maitre :
+           ELISE_ASSERT(false,"No Moy-Md in cStatOneClassEquiv::CoeffCorrelation");
+           return 0.0;
+      break;
+
 
       case eAggregInfoMut : 
       {

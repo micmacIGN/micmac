@@ -46,7 +46,8 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
 
     <Symb> SeuilSCor=0.65 </Symb>
-    <Symb> SeuilMCor=0.8  </Symb>
+    <Symb> SeuilMedCor=0.8  </Symb>
+    <Symb> SeuilMCor=3.0  </Symb>
 
 </DicoLoc>
 
@@ -69,6 +70,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
          <ImSecCalcApero>
                <Key> NKS-Assoc-ImSec@${ImSec} </Key>
                <NbMin>  2 </NbMin>
+               <NbMax>  4 </NbMax>
                <OnEmpty> eOEISA_exit </OnEmpty>
           </ImSecCalcApero>
 <!--
@@ -138,6 +140,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
                      <CorrelMultiScale>
                             <ModeDense> true </ModeDense>
+                            <UseWAdapt> true </UseWAdapt>
                             <OneParamCMS>
                                  <SzW> 1 1 </SzW>
                                  <Sigma> 0 </Sigma>
@@ -148,6 +151,11 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                                  <Sigma> 1.0 </Sigma>
                                  <Pds> 0.5 </Pds>
                             </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 4 4 </SzW>
+                                 <Sigma> 2.0 </Sigma>
+                                 <Pds> 0.25 </Pds>
+                            </OneParamCMS>
                      </CorrelMultiScale>
 
                      <TypeCAH>
@@ -156,6 +164,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                             <DeltaZ >        1                         </DeltaZ>
                             <SeuilSomCostCorrel> ${SeuilSCor}  </SeuilSomCostCorrel>
                             <SeuilMaxCostCorrel> ${SeuilMCor}  </SeuilMaxCostCorrel>
+                            <SeuilMedCostCorrel> ${SeuilMedCor}  </SeuilMedCostCorrel>
                             <Visu> ${Visu} </Visu>
                         </MasqueAutoByTieP>
                      </TypeCAH>
@@ -173,6 +182,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
                      <CorrelMultiScale>
                             <ModeDense> true </ModeDense>
+                            <UseWAdapt> true </UseWAdapt>
                             <OneParamCMS>
                                  <SzW> 1 1 </SzW>
                                  <Sigma> 0 </Sigma>
@@ -183,6 +193,11 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                                  <Sigma> 1.0 </Sigma>
                                  <Pds> 0.5 </Pds>
                             </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 4 4 </SzW>
+                                 <Sigma> 2.0 </Sigma>
+                                 <Pds> 0.25 </Pds>
+                            </OneParamCMS>
                      </CorrelMultiScale>
 
                      <TypeCAH>
@@ -191,6 +206,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                             <DeltaZ >        1                         </DeltaZ>
                             <SeuilSomCostCorrel> ${SeuilSCor}  </SeuilSomCostCorrel>
                             <SeuilMaxCostCorrel> ${SeuilMCor}  </SeuilMaxCostCorrel>
+                            <SeuilMedCostCorrel> ${SeuilMedCor}  </SeuilMedCostCorrel>
                             <Visu> ${Visu} </Visu>
                             <#WHEN  VTEST=${Do2Z}>
                                 <TiePMasqIm>

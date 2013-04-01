@@ -197,6 +197,8 @@ eModeAggregCorr  Str2eModeAggregCorr(const std::string & aName)
       return eAggregMaxIm1Maitre;
    else if (aName=="eAggregMinIm1Maitre")
       return eAggregMinIm1Maitre;
+   else if (aName=="eAggregMoyMedIm1Maitre")
+      return eAggregMoyMedIm1Maitre;
   else
   {
       cout << aName << " is not a correct value for enum eModeAggregCorr\n" ;
@@ -220,6 +222,8 @@ std::string  eToString(const eModeAggregCorr & anObj)
       return  "eAggregMaxIm1Maitre";
    if (anObj==eAggregMinIm1Maitre)
       return  "eAggregMinIm1Maitre";
+   if (anObj==eAggregMoyMedIm1Maitre)
+      return  "eAggregMoyMedIm1Maitre";
  std::cout << "Enum = eModeAggregCorr\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
@@ -2948,6 +2952,17 @@ const cTplValGesInit< int > & cImSecCalcApero::NbMin()const
 }
 
 
+cTplValGesInit< int > & cImSecCalcApero::NbMax()
+{
+   return mNbMax;
+}
+
+const cTplValGesInit< int > & cImSecCalcApero::NbMax()const 
+{
+   return mNbMax;
+}
+
+
 cTplValGesInit< eOnEmptyImSecApero > & cImSecCalcApero::OnEmpty()
 {
    return mOnEmpty;
@@ -2966,6 +2981,8 @@ cElXMLTree * ToXMLTree(const cImSecCalcApero & anObj)
       aRes->AddFils(::ToXMLTree(std::string("Nb"),anObj.Nb().Val())->ReTagThis("Nb"));
    if (anObj.NbMin().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("NbMin"),anObj.NbMin().Val())->ReTagThis("NbMin"));
+   if (anObj.NbMax().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NbMax"),anObj.NbMax().Val())->ReTagThis("NbMax"));
    if (anObj.OnEmpty().IsInit())
       aRes->AddFils(ToXMLTree(std::string("OnEmpty"),anObj.OnEmpty().Val())->ReTagThis("OnEmpty"));
   return aRes;
@@ -2980,6 +2997,8 @@ void xml_init(cImSecCalcApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.Nb(),aTree->Get("Nb",1),int(-1)); //tototo 
 
    xml_init(anObj.NbMin(),aTree->Get("NbMin",1),int(-1)); //tototo 
+
+   xml_init(anObj.NbMax(),aTree->Get("NbMax",1),int(1000)); //tototo 
 
    xml_init(anObj.OnEmpty(),aTree->Get("OnEmpty",1),eOnEmptyImSecApero(eOEISA_error)); //tototo 
 }
@@ -3106,6 +3125,17 @@ cTplValGesInit< int > & cImages::NbMin()
 const cTplValGesInit< int > & cImages::NbMin()const 
 {
    return ImSecCalcApero().Val().NbMin();
+}
+
+
+cTplValGesInit< int > & cImages::NbMax()
+{
+   return ImSecCalcApero().Val().NbMax();
+}
+
+const cTplValGesInit< int > & cImages::NbMax()const 
+{
+   return ImSecCalcApero().Val().NbMax();
 }
 
 
@@ -4013,6 +4043,17 @@ const cTplValGesInit< int > & cSection_PriseDeVue::NbMin()const
 }
 
 
+cTplValGesInit< int > & cSection_PriseDeVue::NbMax()
+{
+   return Images().ImSecCalcApero().Val().NbMax();
+}
+
+const cTplValGesInit< int > & cSection_PriseDeVue::NbMax()const 
+{
+   return Images().ImSecCalcApero().Val().NbMax();
+}
+
+
 cTplValGesInit< eOnEmptyImSecApero > & cSection_PriseDeVue::OnEmpty()
 {
    return Images().ImSecCalcApero().Val().OnEmpty();
@@ -4549,6 +4590,17 @@ const cTplValGesInit< bool > & cCorrelMultiScale::ModeDense()const
 }
 
 
+cTplValGesInit< bool > & cCorrelMultiScale::UseWAdapt()
+{
+   return mUseWAdapt;
+}
+
+const cTplValGesInit< bool > & cCorrelMultiScale::UseWAdapt()const 
+{
+   return mUseWAdapt;
+}
+
+
 std::vector< cOneParamCMS > & cCorrelMultiScale::OneParamCMS()
 {
    return mOneParamCMS;
@@ -4564,6 +4616,8 @@ cElXMLTree * ToXMLTree(const cCorrelMultiScale & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CorrelMultiScale",eXMLBranche);
    if (anObj.ModeDense().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ModeDense"),anObj.ModeDense().Val())->ReTagThis("ModeDense"));
+   if (anObj.UseWAdapt().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("UseWAdapt"),anObj.UseWAdapt().Val())->ReTagThis("UseWAdapt"));
   for
   (       std::vector< cOneParamCMS >::const_iterator it=anObj.OneParamCMS().begin();
       it !=anObj.OneParamCMS().end();
@@ -4578,6 +4632,8 @@ void xml_init(cCorrelMultiScale & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
 
    xml_init(anObj.ModeDense(),aTree->Get("ModeDense",1)); //tototo 
+
+   xml_init(anObj.UseWAdapt(),aTree->Get("UseWAdapt",1),bool(false)); //tototo 
 
    xml_init(anObj.OneParamCMS(),aTree->GetAll("OneParamCMS",false,1));
 }
@@ -5008,6 +5064,17 @@ const double & cMasqueAutoByTieP::SeuilMaxCostCorrel()const
 }
 
 
+double & cMasqueAutoByTieP::SeuilMedCostCorrel()
+{
+   return mSeuilMedCostCorrel;
+}
+
+const double & cMasqueAutoByTieP::SeuilMedCostCorrel()const 
+{
+   return mSeuilMedCostCorrel;
+}
+
+
 cTplValGesInit< bool > & cMasqueAutoByTieP::Visu()
 {
    return mVisu;
@@ -5073,6 +5140,17 @@ const cTplValGesInit< cTiePMasqIm > & cMasqueAutoByTieP::TiePMasqIm()const
    return mTiePMasqIm;
 }
 
+
+cTplValGesInit< bool > & cMasqueAutoByTieP::DoImageLabel()
+{
+   return mDoImageLabel;
+}
+
+const cTplValGesInit< bool > & cMasqueAutoByTieP::DoImageLabel()const 
+{
+   return mDoImageLabel;
+}
+
 cElXMLTree * ToXMLTree(const cMasqueAutoByTieP & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MasqueAutoByTieP",eXMLBranche);
@@ -5082,6 +5160,7 @@ cElXMLTree * ToXMLTree(const cMasqueAutoByTieP & anObj)
    aRes->AddFils(::ToXMLTree(std::string("DeltaZ"),anObj.DeltaZ())->ReTagThis("DeltaZ"));
    aRes->AddFils(::ToXMLTree(std::string("SeuilSomCostCorrel"),anObj.SeuilSomCostCorrel())->ReTagThis("SeuilSomCostCorrel"));
    aRes->AddFils(::ToXMLTree(std::string("SeuilMaxCostCorrel"),anObj.SeuilMaxCostCorrel())->ReTagThis("SeuilMaxCostCorrel"));
+   aRes->AddFils(::ToXMLTree(std::string("SeuilMedCostCorrel"),anObj.SeuilMedCostCorrel())->ReTagThis("SeuilMedCostCorrel"));
    if (anObj.Visu().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Visu"),anObj.Visu().Val())->ReTagThis("Visu"));
    if (anObj.ImPaintResult().IsInit())
@@ -5090,6 +5169,8 @@ cElXMLTree * ToXMLTree(const cMasqueAutoByTieP & anObj)
       aRes->AddFils(::ToXMLTree(std::string("ParamIPMnt"),anObj.ParamIPMnt().Val())->ReTagThis("ParamIPMnt"));
    if (anObj.TiePMasqIm().IsInit())
       aRes->AddFils(ToXMLTree(anObj.TiePMasqIm().Val())->ReTagThis("TiePMasqIm"));
+   if (anObj.DoImageLabel().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DoImageLabel"),anObj.DoImageLabel().Val())->ReTagThis("DoImageLabel"));
   return aRes;
 }
 
@@ -5107,6 +5188,8 @@ void xml_init(cMasqueAutoByTieP & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.SeuilMaxCostCorrel(),aTree->Get("SeuilMaxCostCorrel",1)); //tototo 
 
+   xml_init(anObj.SeuilMedCostCorrel(),aTree->Get("SeuilMedCostCorrel",1)); //tototo 
+
    xml_init(anObj.Visu(),aTree->Get("Visu",1),bool(false)); //tototo 
 
    xml_init(anObj.ImPaintResult(),aTree->Get("ImPaintResult",1),eImpaintMethod(eImpaintL2)); //tototo 
@@ -5114,6 +5197,8 @@ void xml_init(cMasqueAutoByTieP & anObj,cElXMLTree * aTree)
    xml_init(anObj.ParamIPMnt(),aTree->Get("ParamIPMnt",1),double(1.0)); //tototo 
 
    xml_init(anObj.TiePMasqIm(),aTree->Get("TiePMasqIm",1)); //tototo 
+
+   xml_init(anObj.DoImageLabel(),aTree->Get("DoImageLabel",1),bool(false)); //tototo 
 }
 
 
@@ -5319,6 +5404,17 @@ cTplValGesInit< bool > & cCorrelAdHoc::ModeDense()
 const cTplValGesInit< bool > & cCorrelAdHoc::ModeDense()const 
 {
    return CorrelMultiScale().Val().ModeDense();
+}
+
+
+cTplValGesInit< bool > & cCorrelAdHoc::UseWAdapt()
+{
+   return CorrelMultiScale().Val().UseWAdapt();
+}
+
+const cTplValGesInit< bool > & cCorrelAdHoc::UseWAdapt()const 
+{
+   return CorrelMultiScale().Val().UseWAdapt();
 }
 
 
@@ -8997,6 +9093,17 @@ cTplValGesInit< bool > & cEtapeMEC::ModeDense()
 const cTplValGesInit< bool > & cEtapeMEC::ModeDense()const 
 {
    return CorrelAdHoc().Val().CorrelMultiScale().Val().ModeDense();
+}
+
+
+cTplValGesInit< bool > & cEtapeMEC::UseWAdapt()
+{
+   return CorrelAdHoc().Val().CorrelMultiScale().Val().UseWAdapt();
+}
+
+const cTplValGesInit< bool > & cEtapeMEC::UseWAdapt()const 
+{
+   return CorrelAdHoc().Val().CorrelMultiScale().Val().UseWAdapt();
 }
 
 
@@ -16649,6 +16756,17 @@ cTplValGesInit< int > & cParamMICMAC::NbMin()
 const cTplValGesInit< int > & cParamMICMAC::NbMin()const 
 {
    return Section_PriseDeVue().Images().ImSecCalcApero().Val().NbMin();
+}
+
+
+cTplValGesInit< int > & cParamMICMAC::NbMax()
+{
+   return Section_PriseDeVue().Images().ImSecCalcApero().Val().NbMax();
+}
+
+const cTplValGesInit< int > & cParamMICMAC::NbMax()const 
+{
+   return Section_PriseDeVue().Images().ImSecCalcApero().Val().NbMax();
 }
 
 

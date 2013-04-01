@@ -1,52 +1,49 @@
 <!--
    The simplest MicMac exemple
 
+    mm3d MICMAC  /home/mpd/MMM/culture3d/include/XML_MicMac/MM-AllAuto.xml  WorkDir=/media/data1/Jeux-Tests/Rodin-Baiser/ +Im1=F100_img_0161.CR2 +Ori=-All
 
+  A rajouter :
 
-   MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/media/data1/Delphe/DELPHE-TMP-CP/Delphes/12-Tetes-Inc-4341-6/  +Im1=IMG_0015.CR2  +Visu=false +Ori=-Circle
+    - parties cachees
+    - tester Correl MultiPonct
 
+    mm3d MICMAC  /home/mpd/MMM/culture3d/include/XML_MicMac/MM-AllAuto.xml  WorkDir=/media/data1/Jeux-Tests/Lafleur-2/ +Im1=IMG_8356.JPG +Ori=-All +VisuModelTieP=true
 
-   mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/media/data1/Jeux-Tests/Grde-Cmde-Royale/ +Im1=IMGP3454.PEF +Ori=-All
-
-mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./  +ImPat="IMGP3454.PEF"  +Ori=-All +ImSec=-All
-
-   mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/media/data1/Jeux-Tests/Dragon-2/  +Im1=IMGP7528.PEF +Ori=-All +Zoom=2 +Visu=1 +Do2Z=false
-
-    mm3d MICMAC  /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml  WorkDir=/media/data/Jeux-Test/Tortue-Pagode-Hue/ +Im1=IMGP6861.JPG +Visu=0 +DoPly=1
-
-    mm3d MICMAC  /home/marc/MMM/culture3d/include/XML_MicMac/MM-AllAuto.xml  WorkDir=/home/marc/TMP/Delphes/12-Tetes-Inc-4341-6/ +Im1=IMG_0039.CR2 +Ori=-Circle
-
-
-
+    mm3d MICMAC  /home/mpd/MMM/culture3d/include/XML_MicMac/MM-AllAuto.xml  WorkDir=/media/data1/Jeux-Tests/Castle/ +Im1=0010.png +Ori=-All +VisuModelTieP=true
 -->
 
 <ParamMICMAC>
 <DicoLoc>
-   <Symb> Ori="-All"     </Symb>
-   <Symb> Zoom=8     </Symb>
-   <Symb> Im1=IMG_0018.JPG </Symb>
-   <Symb> Do2Z=true        </Symb>
 
-   <Symb>  ReduceExp=3.0 </Symb>
-   <Symb>  DoPly=true  </Symb>
-   <Symb> Visu=false  </Symb>
-
-   <Symb> FEM=2  </Symb>
-   <Symb> DirMEC="All-Auto-${Im1}-Dir"     </Symb>
-   <eSymb>   2Z=* ${Zoom} 2 </eSymb>
-   <eSymb>   ZVE=* ${Zoom} ${ReduceExp} </eSymb>
-   <eSymb>   LEM=+ ${FEM} 1 </eSymb>
-
-   <Symb>  ModeAgr=eAggregMinIm1Maitre  </Symb>
+   <!-- Parametre fondamentaux -->
+      <Symb> Ori="-All"     </Symb>
+      <Symb> Im1=IMG_0018.JPG </Symb>
 
 
-   <Symb> ImTextPly=${Im1}_Scaled_${ZVE}.tif </Symb>
-   <Symb> ImSec=${Ori} </Symb>
-   <eSymb> EtapeFin= ?  ${Do2Z} 4 3 </eSymb>
+   <!-- Parametre a changer eventuellement -->
+      <Symb> ZoomInit=8     </Symb>
+      <Symb> Do2ZTieP=false        </Symb>
+
+      <Symb> SeuilSCor=0.85 </Symb>
+      <Symb> SeuilMedCor=1.2  </Symb>
+      <Symb> SeuilMCor=3.0  </Symb>
+      <Symb> ZoomF=2  </Symb>
+      <Symb> MCP=false </Symb>
+
+   <!-- Parametre a changer en phase de mise au point -->
+      <Symb>  ImLab=false  </Symb>
+      <Symb> VisuModelTieP=false  </Symb>
 
 
-    <Symb> SeuilSCor=0.65 </Symb>
-    <Symb> SeuilMCor=0.8  </Symb>
+    <!--  A ne (probablement) jamais changer -->
+      <Symb> ImSec=${Ori} </Symb>
+      <Symb> DirMEC="All-Auto-${Im1}-Dir"     </Symb>
+    <!--  Parametere calcules : NE JAMAIS CHANGER  -->
+      <eSymb>   2Z=* ${ZoomInit} 2 </eSymb>
+
+      <eSymb>  WithZ2=InfEq ${ZoomF} 2  </eSymb>
+      <eSymb>  WithZ1=InfEq ${ZoomF} 1 </eSymb>
 
 </DicoLoc>
 
@@ -69,12 +66,9 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
          <ImSecCalcApero>
                <Key> NKS-Assoc-ImSec@${ImSec} </Key>
                <NbMin>  2 </NbMin>
-               <OnEmpty> eOEISA_exit </OnEmpty>
+               <NbMax>  4 </NbMax>
+               <OnEmpty> eOEISA_error </OnEmpty>
           </ImSecCalcApero>
-<!--
-          <ImPat> IMG_0055.CR2 </ImPat>
--->
-
      </Images>
 
 
@@ -94,7 +88,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
              <DeZoom >  -1                      </DeZoom>
              <SzW >      1             </SzW>
              <AlgoRegul>  eAlgoMaxOfScore </AlgoRegul>
-             <AggregCorr> eAggregMinIm1Maitre </AggregCorr>
+             <AggregCorr> eAggregMoyMedIm1Maitre </AggregCorr>
 
 
 
@@ -127,7 +121,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
             
         </EtapeMEC>
 	     
-        <#WHEN  VTEST=${Do2Z}>
+        <#WHEN  VTEST=${Do2ZTieP}>
             <EtapeMEC> 
                  <DeZoom >        ${2Z}       </DeZoom> 
                  <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
@@ -138,6 +132,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
                      <CorrelMultiScale>
                             <ModeDense> true </ModeDense>
+                            <UseWAdapt> true </UseWAdapt>
                             <OneParamCMS>
                                  <SzW> 1 1 </SzW>
                                  <Sigma> 0 </Sigma>
@@ -148,6 +143,11 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                                  <Sigma> 1.0 </Sigma>
                                  <Pds> 0.5 </Pds>
                             </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 4 4 </SzW>
+                                 <Sigma> 2.0 </Sigma>
+                                 <Pds> 0.25 </Pds>
+                            </OneParamCMS>
                      </CorrelMultiScale>
 
                      <TypeCAH>
@@ -156,7 +156,8 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                             <DeltaZ >        1                         </DeltaZ>
                             <SeuilSomCostCorrel> ${SeuilSCor}  </SeuilSomCostCorrel>
                             <SeuilMaxCostCorrel> ${SeuilMCor}  </SeuilMaxCostCorrel>
-                            <Visu> ${Visu} </Visu>
+                            <SeuilMedCostCorrel> ${SeuilMedCor}  </SeuilMedCostCorrel>
+                            <Visu> ${VisuModelTieP} </Visu>
                         </MasqueAutoByTieP>
                      </TypeCAH>
                  </CorrelAdHoc>
@@ -164,7 +165,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
         </#WHEN>
 
         <EtapeMEC> 
-                 <DeZoom >        ${Zoom}       </DeZoom> 
+                 <DeZoom >        ${ZoomInit}       </DeZoom> 
                  <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
 	         <ZDilatAlti>  1    </ZDilatAlti>
                  <ZDilatPlani> 1    </ZDilatPlani>
@@ -173,6 +174,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
                      <CorrelMultiScale>
                             <ModeDense> true </ModeDense>
+                            <UseWAdapt> true </UseWAdapt>
                             <OneParamCMS>
                                  <SzW> 1 1 </SzW>
                                  <Sigma> 0 </Sigma>
@@ -182,6 +184,11 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                                  <SzW> 2 2 </SzW>
                                  <Sigma> 1.0 </Sigma>
                                  <Pds> 0.5 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 4 4 </SzW>
+                                 <Sigma> 2.0 </Sigma>
+                                 <Pds> 0.25 </Pds>
                             </OneParamCMS>
                      </CorrelMultiScale>
 
@@ -191,25 +198,28 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                             <DeltaZ >        1                         </DeltaZ>
                             <SeuilSomCostCorrel> ${SeuilSCor}  </SeuilSomCostCorrel>
                             <SeuilMaxCostCorrel> ${SeuilMCor}  </SeuilMaxCostCorrel>
-                            <Visu> ${Visu} </Visu>
-                            <#WHEN  VTEST=${Do2Z}>
+                            <SeuilMedCostCorrel> ${SeuilMedCor}  </SeuilMedCostCorrel>
+                            <Visu> ${VisuModelTieP} </Visu>
+                            <#WHEN  VTEST=${Do2ZTieP}>
                                 <TiePMasqIm>
                                     <DeZoomRel > 2 </DeZoomRel>
                                     <Dilate>   4 </Dilate>
                                 </TiePMasqIm>
                             </#WHEN>
+                            <DoImageLabel> ${ImLab}  </DoImageLabel>
                         </MasqueAutoByTieP>
                      </TypeCAH>
                  </CorrelAdHoc>
         </EtapeMEC>
 
         <EtapeMEC> 
-                 <DeZoom >        ${Zoom}       </DeZoom> 
+                 <DeZoom >        ${ZoomInit}       </DeZoom> 
                  <ModeInterpolation Portee="Globale"> eInterpolBiCub </ModeInterpolation>
                  <AlgoRegul Portee="Globale">  eAlgo2PrgDyn </AlgoRegul>
                  <CorrelAdHoc Portee="Globale">
                      <CorrelMultiScale>
                             <ModeDense> true </ModeDense>
+                            <UseWAdapt> true </UseWAdapt>
                             <OneParamCMS>
                                  <SzW> 1 1 </SzW>
                                  <Sigma> 0 </Sigma>
@@ -220,21 +230,43 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                                  <Sigma> 1.0 </Sigma>
                                  <Pds> 0.5 </Pds>
                             </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 4 4 </SzW>
+                                 <Sigma> 2.0 </Sigma>
+                                 <Pds> 0.25 </Pds>
+                            </OneParamCMS>
                      </CorrelMultiScale>
                      <TypeCAH>
-                           <GPU_Correl> </GPU_Correl>
+                           <#IF VTEST=${MCP}>
+                                <MultiCorrelPonctuel>
+                                    <PdsCorrelStd  > 0.1 </PdsCorrelStd>
+                                    <PdsCorrelPonct> 0.9 </PdsCorrelPonct>
+                                    <DefCost>  0.1</DefCost>  <!-- ?? Val def ... -->
+                                </MultiCorrelPonctuel>
+                                <GPU_Correl> </GPU_Correl>
+                           </#IF>
                      </TypeCAH>
                  </CorrelAdHoc>
         </EtapeMEC>
 
         <EtapeMEC> <DeZoom >       4  </DeZoom> </EtapeMEC> 
-        <EtapeMEC> <DeZoom >       2  </DeZoom> </EtapeMEC> 
-        <EtapeMEC> 
+        <#WHEN  VTEST=${WithZ2}>
+             <EtapeMEC> <DeZoom >       2  </DeZoom> </EtapeMEC> 
+        </#WHEN>
+
+        <#WHEN  VTEST=${WithZ1}>
+            <EtapeMEC> 
+                 <DeZoom >       1  </DeZoom> 
 	         <ZDilatAlti>    2    </ZDilatAlti>
                  <ZDilatPlani>   2    </ZDilatPlani>
-                 <DeZoom >       1  </DeZoom> 
-        </EtapeMEC> 
+            </EtapeMEC> 
+        </#WHEN>
 
+        <EtapeMEC> 
+                 <DeZoom >       ${ZoomF}  </DeZoom> 
+                 <ZPas>          1.0       </ZPas>
+                 <AlgoRegul>  eAlgoDequant </AlgoRegul>
+        </EtapeMEC> 
 
 <!--
 -->
@@ -252,6 +284,9 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
      <TmpMEC>    ${DirMEC}/  </TmpMEC>
      <TmpResult> ${DirMEC}/  </TmpResult>
      <TmpPyr>    Pyram/  </TmpPyr>
+<!--
+     <ByProcess>  1  </ByProcess>
+-->
      <ByProcess>  ${MMNbProc}  </ByProcess>
      <PurgeMECResultBefore>  true </PurgeMECResultBefore>
      <DeZoomDefMinFileAux> 8 </DeZoomDefMinFileAux>

@@ -630,6 +630,22 @@ void cAppliMICMAC::DoOneBloc
 	                cDecoupageInterv2D::SimpleDec(aBoxIn.sz(),aSzMaxChCorr,0);
   Pt2di aSzMaxDec = aDecInterv.SzMaxOut();
 
+
+  mCurEtUseWAdapt =  mCurEtape->UseWAdapt();
+  if (mCurEtUseWAdapt)
+  {
+       mImSzWCor.Resize(aBoxIn.sz());
+       mTImSzWCor = TIm2D<U_INT1,INT>(mImSzWCor);
+       ELISE_ASSERT(mCurEtape->DeZoomTer()==mCurEtape->DeZoomIm(),"ZoomTer!=ZoomIm with UseWAdapt");
+       std::string aNameSzW = NameFileSzW(mCurEtape->DeZoomTer());
+       Tiff_Im aTF(aNameSzW.c_str());
+       ELISE_COPY
+       (
+            mImSzWCor.all_pts(),
+            trans(aTF.in_proj(),aBoxIn._p0),
+            mImSzWCor.out()
+       );
+  }
    
    // Chargement des images
 
