@@ -39,16 +39,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-#ifdef CUDA_ENABLED
-#include "GpGpu/GpGpu.h"
-#endif
-
 namespace NS_ParamMICMAC
 {
 
 #ifdef CUDA_ENABLED
-	uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);};
-	int2  toI2(Pt2dr a){return make_int2((int)a.x,(int)a.y);};
+    uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);}
+    int2  toI2(Pt2dr a){return make_int2((int)a.x,(int)a.y);}
 #endif
 
 	template <class Type,class TBase> 
@@ -1321,6 +1317,13 @@ if (0)
 		CuHostData3D<float>		hVolumeCost(IMmGg.Param().dimTer,interZ);
 		CuHostData3D<float2>	hVolumeProj(IMmGg.Param().dimSTer, interZ*mNbIm);
 
+
+        // DEBUT TEST OPTIMISATION
+        CuHostData3D<float>		hVolumeCostGlobal(IMmGg.Param().dimTer,aZMaxTer - aZMinTer);
+        hVolumeCostGlobal.SetName("hVolumeCostGlobal");
+        // FIN TEST OPTIMISATION
+
+
 		hVolumeCost.SetName("hVolumeCost");
 		hVolumeProj.SetName("hVolumeProj");
 
@@ -1363,6 +1366,10 @@ if (0)
 					setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,hVolumeCost.pData(), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
 					anZComputed += ZtoCopy;
 					IMmGg.SetZCToCopy(0);
+                    // DEBUT TEST OPTIMISATION
+                    int pitchZ =  size(IMmGg.Param().RTer().dimension());
+                    memcpy(hVolumeCostGlobal.pData() + anZComputed * pitchZ,hVolumeCost.pData(), pitchZ * ZtoCopy * sizeof(float));
+                    // FIN TEST OPTIMISATION
 				}
 			}
 			else
@@ -1394,6 +1401,10 @@ if (0)
 		hVolumeCost.Dealloc(); // Attention la liberation de memoire prends un certain temps, tout comme l'allocation... eviter cette manip...!!!
 		hVolumeProj.Dealloc();
 
+        // DEBUT TEST OPTIMISATION
+        GpGpuTools::OutputArray(hVolumeCostGlobal.pData(),hVolumeCost.GetDimension(),3,IMmGg.Param().floatDefault);
+        hVolumeCostGlobal.Dealloc();
+        // FIN TEST OPTIMISATION
 #else
 		ELISE_ASSERT(1,"Sorry, this is not the cuda version");
 #endif

@@ -131,6 +131,8 @@ set(Elise_Src_Files
 	${ORIPHO_DIR}/cOriMntCarto.cpp
 )
 
+set(libElise elise)
+
 # CONSTRUCTION : Lib ELISE
 if(${CUDA_ENABLED})
 	  #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20 -lineinfo)
@@ -139,28 +141,42 @@ if(${CUDA_ENABLED})
         #set(GENCODE_SM21 -gencode=arch=compute_21,code=sm_21 -gencode=arch=compute_21,code=compute_21)
 
         set(libStatGpGpuTools GpGpuTools)
+	  set(libStatGpGpuInterfMicMac GpGpuInterfMicMac)
+	  set(libStatGpGpuOpt GpGpuOpt)
+	  set(ExeGpGpuOpt TestGpGpuOpt)
 
         cuda_add_library(${libStatGpGpuTools}  ${GpGpuTools_Src_Files} STATIC OPTIONS ${GENCODE_SM20})
 
-        INSTALL(TARGETS ${libStatGpGpuTools}
-                LIBRARY DESTINATION ${PROJECT_SOURCE_DIR}/lib/
-                ARCHIVE DESTINATION ${PROJECT_SOURCE_DIR}/lib/)
+	  cuda_add_library(${libStatGpGpuInterfMicMac}  ${uti_phgrm_GpGpu_Src_Files} STATIC OPTIONS ${GENCODE_SM20})
 
-        link_directories(${PROJECT_SOURCE_DIR}/lib/)
+	  cuda_add_library(${libStatGpGpuOpt}  ${uti_phgrm_Opt_GpGpu_Src_Files} STATIC OPTIONS ${GENCODE_SM20})
 
-        cuda_add_library( elise ${Elise_Src_Files} ${IncFiles} OPTIONS ${GENCODE_SM20})
+	  if (Boost_FOUND)
+		  target_link_libraries(${libStatGpGpuInterfMicMac} ${Boost_LIBRARIES} ${Boost_THREADAPI})
+	  endif()
 
-		if (WIN32)
-			target_link_libraries(elise GpGpuTools.lib)
-		else()
-			target_link_libraries(elise GpGpuTools.a)
-		endif()
+	  cuda_add_executable(${ExeGpGpuOpt} ${uti_Test_Opt_GpGpu_Src_Files})
+
+	  target_link_libraries(${ExeGpGpuOpt} ${libStatGpGpuOpt} ${libStatGpGpuTools})
+
+	  INSTALL(TARGETS ${ExeGpGpuOpt} RUNTIME DESTINATION ${Install_Dir})
+
+	  INSTALL(TARGETS ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt}
+		    LIBRARY DESTINATION ${PROJECT_SOURCE_DIR}/lib
+		    ARCHIVE DESTINATION ${PROJECT_SOURCE_DIR}/lib)
+
+	  link_directories(${PROJECT_SOURCE_DIR}/lib/)
+
+	  cuda_add_library( ${libElise} ${Elise_Src_Files} ${IncFiles} OPTIONS ${GENCODE_SM20})
+
+	  target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac})
+
 else()
-	add_library( elise ${Elise_Src_Files} ${IncFiles})
+	add_library( elise ${Elise_Src_Files} ${IncFiles} )
 endif()
 
 # OPTION BUILD : En tetes precompilées pour gcc
-enable_precompiled_headers_GCC(StdAfx.h elise)
+enable_precompiled_headers_GCC(StdAfx.h ${libElise})
 
 # DEFINITION
 add_definitions(-DNO_JPEG -DNO_LCMS)
