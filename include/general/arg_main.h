@@ -482,6 +482,8 @@ int CreateEpip_main(int argc,char ** argv);
 int AperoChImMM_main(int argc,char ** argv);
 int MM_FusionNuage_main(int argc,char ** argv);
 int MMInitialModel_main(int argc,char ** argv);
+int MMAllAuto_main(int argc,char ** argv);
+int MM2DPostSism_Main(int argc,char ** argv);
 int CheckDependencies_main(int argc,char ** argv);
 int NuageBascule_main(int argc,char ** argv);
 int  cod_main(int argc,char ** argv);

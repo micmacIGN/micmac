@@ -42,6 +42,8 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_AperoChImMM.cpp
     ${UTI_PHGRM_DIR}/CPP_MMPyram.cpp
     ${UTI_PHGRM_DIR}/CPP_MMModelInitial.cpp
+    ${UTI_PHGRM_DIR}/CPP_MMAllAuto.cpp
+    ${UTI_PHGRM_DIR}/CPP_MM2DPostSism.cpp
     ${UTI_PHGRM_DIR}/CPP_Apero.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisiePts.cpp
     ${UTI_PHGRM_DIR}/CPP_Bascule.cpp
