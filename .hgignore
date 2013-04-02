@@ -12,6 +12,7 @@ src/file_image/fich_2d_gen.cpp.orig
 src/photogram/ChantierNameAssoc.cpp.orig
 src/util/arg_main.cpp.orig
 src/util/dates.cpp.orig
+CMakeLists.txt.user.*
 build_mingw
 build-vc
 build_vc

@@ -91,18 +91,10 @@ if(${CUDA_ENABLED})
         SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\GpGpu FILES ${GpGpuTools_Src_Files})
 endif()
 
-
-
 list( APPEND uti_phgrm_Src_Files ${Applis_phgrm_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Apero_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_MICMAC_Src_Files} )
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_MaxFlow_Src_Files} )
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Porto_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_ReducHom_Src_Files})
-
-if(${CUDA_ENABLED})
-	list( APPEND uti_phgrm_Src_Files ${uti_phgrm_GpGpu_Src_Files})
-endif()
-
-
 list( APPEND Elise_Src_Files ${uti_phgrm_Src_Files})
