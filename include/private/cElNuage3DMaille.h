@@ -52,6 +52,22 @@ namespace NS_SuperposeImage{
 };
 using namespace NS_SuperposeImage;
 
+cXML_ParamNuage3DMaille CropAndSousEch
+                        (
+                             const cXML_ParamNuage3DMaille & anInit,
+                             Pt2dr & aP0,
+                             double aSc,
+                             Pt2dr & aSz
+                        );
+cXML_ParamNuage3DMaille CropAndSousEch
+                        (
+                             const cXML_ParamNuage3DMaille & anInit,
+                             Pt2dr & aP0,
+                             double aSc
+                        );
+
+
+
 class  cBasculeNuage;
  
 class cLayerNuage3DM
@@ -359,7 +375,7 @@ class cElNuage3DMaille : public cCapture3D
                                        const std::string & aDir,
                                        const std::string & aMasq = "",
                                        double ExagZ         =1.0,
-                                       cParamModifGeomMTDNuage * = 0
+                                       const cParamModifGeomMTDNuage * = 0
                                   );
 /*
 

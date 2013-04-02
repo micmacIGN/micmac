@@ -443,7 +443,7 @@ cElNuage3DMaille * cElNuage3DMaille::FromParam
                        const std::string & aDir,
                        const std::string & aMasqSpec,
                        double ExagZ,
-                       cParamModifGeomMTDNuage * aPMG
+                       const cParamModifGeomMTDNuage * aPMG
                    )
 {
   cXML_ParamNuage3DMaille aParam = aParamOri;
@@ -513,7 +513,7 @@ cElNuage3DMaille * cElNuage3DMaille::FromParam
 
 cElNuage3DMaille * cElNuage3DMaille::FromFileIm(const std::string & aFile)
 {
-   return FromFileIm(aFile,"XML_ParamNuage3DMaille");
+   return FromFileIm(aFile,"XML_ParamNuage3DMaille","",1.0);
 }
 
 cElNuage3DMaille * cElNuage3DMaille::FromFileIm

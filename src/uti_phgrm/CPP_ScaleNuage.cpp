@@ -50,6 +50,7 @@ int ScaleNuage_main(int argc,char ** argv)
     double aSc;
     Pt2dr  aP0(0,0);
     Pt2dr  aSz(-1,-1);
+    bool   Old=false;
 
 
     ElInitArgMain
@@ -60,8 +61,81 @@ int ScaleNuage_main(int argc,char ** argv)
                     << EAMC(aSc,"Scaling factor"),
 	LArgMain()  << EAM(aSz,"Sz",true)	
                     << EAM(aP0,"P0",true)	
+                    << EAM(Old,"Old",true)	
     );	
 
+
+    if (Old)
+    {
+        cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromFileIm(aNameNuage);
+        if (aSz.x <0) 
+        {
+            aSz = Pt2dr(aNuage->Sz());
+        }
+
+        cElNuage3DMaille * aRes = aNuage->ReScaleAndClip(Box2dr(aP0,aP0+aSz),aSc);
+        aRes->Save(aNameOut);
+    }
+    else
+    {
+        cXML_ParamNuage3DMaille aXML =   StdGetObjFromFile<cXML_ParamNuage3DMaille>
+                                         (
+                                               aNameNuage,
+                                               StdGetFileXMLSpec("SuperposImage.xml"),
+                                               "XML_ParamNuage3DMaille",
+                                               "XML_ParamNuage3DMaille"
+                                         );
+         if (aSz.x < 0)
+         {
+              aSz = Pt2dr(aXML.NbPixel());
+         }
+         cXML_ParamNuage3DMaille aNewXML = CropAndSousEch(aXML,aP0,aSc,aSz);
+
+         std::string aNameNewMasq = DirOfFile(aNameNuage) + aNameOut+ "_Masq.tif";
+         aNewXML.Image_Profondeur().Val().Masq() =  aNameNewMasq;
+         Tiff_Im aFileMasq
+                 (
+                     aNameNewMasq.c_str(),
+                     aNewXML.NbPixel(),
+                     GenIm::bits1_msbf,
+                     Tiff_Im::No_Compr,
+                     Tiff_Im::BlackIsZero
+                     
+                 );
+         std::string aNameMasqueIn = DirOfFile(aNameNuage) +aXML.Image_Profondeur().Val().Masq();
+         Tiff_Im aFileMasqIn(aNameMasqueIn.c_str());
+         ELISE_COPY
+         (
+             aFileMasq.all_pts(),
+             StdFoncChScale(aFileMasqIn.in(0),aP0,Pt2dr(aSc,aSc)),
+             aFileMasq.out()
+         );
+
+         std::string aNameProfIn = DirOfFile(aNameNuage) +aXML.Image_Profondeur().Val().Image();
+         Tiff_Im aFileProfIn(aNameProfIn.c_str());
+         std::string aNameNewProf = DirOfFile(aNameNuage) + aNameOut+ "_Prof.tif";
+         aNewXML.Image_Profondeur().Val().Image() =  aNameNewProf;
+         Tiff_Im aFileProf
+                 (
+                     aNameNewProf.c_str(),
+                     aNewXML.NbPixel(),
+                     aFileProfIn.type_el(),
+                     Tiff_Im::No_Compr,
+                     Tiff_Im::BlackIsZero
+                     
+                 );
+         ELISE_COPY
+         (
+             aFileProf.all_pts(),
+                StdFoncChScale(aFileProfIn.in(0)*aFileMasqIn.in(0),aP0,Pt2dr(aSc,aSc))
+             /  Max(1e-8,StdFoncChScale(aFileMasqIn.in(0),aP0,Pt2dr(aSc,aSc))),
+             aFileProf.out()
+         );
+
+         MakeFileXML(aNewXML,aNameOut+".xml");
+
+    }
+/*
     cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromFileIm(aNameNuage);
     if (aSz.x <0) 
     {
@@ -70,6 +144,7 @@ int ScaleNuage_main(int argc,char ** argv)
 
     cElNuage3DMaille * aRes = aNuage->ReScaleAndClip(Box2dr(aP0,aSz),aSc);
     aRes->Save(aNameOut);
+*/
 
 	return EXIT_SUCCESS;
 }
