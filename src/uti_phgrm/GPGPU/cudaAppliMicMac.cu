@@ -2,16 +2,13 @@
 #include "GpGpu/cudaTextureTools.cuh"
 #include "GpGpu/CudaRefTexture.cuh"
 
-/**
- * \file cudaAppliMicMac.cu
- * \brief Kernel
- * \author GC
- * \version 0.1
- * \date  mars 2013
- *
- * Programme de test pour l'objet de gestion des cha?nes de caract?res Str_t.
- *
- */
+
+/// \file cudaAppliMicMac.cu
+/// \brief Kernel
+/// \author GC
+/// \version 0.1
+/// \date  mars 2013
+
 
 static __constant__ pCorGpu cH;
 

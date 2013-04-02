@@ -9,7 +9,7 @@
     #pragma warning(push, 1)
 #endif
 
-#include "GpGpu/GpGpuDefines.h"
+//#include "GpGpu/GpGpuDefines.h"
 
 #ifdef CUDA_ENABLED
 #include "GpGpu/InterfaceMicMacGpGpu.h"
