@@ -8,3 +8,11 @@ set(uti_phgrm_GpGpu_Src_Files
     ${UTI_PHGRM_GPGPU_DIR}/cudaFilters.cu
     #${UTI_PHGRM_GPGPU_DIR}/cudaTextureTools.cu
 )
+
+set(uti_phgrm_Opt_GpGpu_Src_Files
+	 ${UTI_PHGRM_GPGPU_DIR}/GpGpuOptimisation.cu
+)
+
+set(uti_Test_Opt_GpGpu_Src_Files
+	 ${UTI_PHGRM_GPGPU_DIR}/GpGpuOptimisation.cpp
+)
