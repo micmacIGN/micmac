@@ -3,7 +3,7 @@
 
 texture< pixel,	cudaTextureType2D >	TexS_MaskTerD;
 
-extern "C" textureReference& getMaskD(){return TexS_MaskTerD;};
+extern "C" textureReference& getMaskD(){return TexS_MaskTerD;}
 
 __global__ void dilateKernel(pixel* dataOut, int r, uint2 dim, uint2 dimH)
 {
