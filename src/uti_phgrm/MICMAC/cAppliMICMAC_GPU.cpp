@@ -1324,7 +1324,7 @@ if (0)
 		hVolumeCost.SetName("hVolumeCost");
 		hVolumeProj.SetName("hVolumeProj");
 
-		bool multiThreading = true;
+        bool multiThreading = true;
 
 		// Initiation des parametres pour le multithreading
 		if (multiThreading)
