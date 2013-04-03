@@ -93,8 +93,9 @@ file(GLOB_RECURSE IncFiles ${PROJECT_SOURCE_DIR}/include/*.h  )
 
 if(${CUDA_ENABLED})
 
-    file(GLOB_RECURSE IncCudaFiles ${PROJECT_SOURCE_DIR}/include/*.cuh  )
-    list( APPEND IncFiles ${IncCudaFiles})
+
+    #file(GLOB_RECURSE IncCudaFiles ${PROJECT_SOURCE_DIR}/include/*.cuh  )
+    #list( APPEND IncFiles ${IncCudaFiles})
 
 endif()
 
@@ -110,7 +111,9 @@ foreach(source_file ${IncFiles})
 endforeach(source_file)
 
 if(${CUDA_ENABLED})
-    list(REMOVE_ITEM IncFiles "${PROJECT_SOURCE_DIR}/include/GpGpu/GpGpuTools.h")
+	 file(GLOB_RECURSE IncFilesGpGpu ${PROJECT_SOURCE_DIR}/include/GpGpu/*.h  )
+	 list(REMOVE_ITEM IncFiles ${IncFilesGpGpu})
+    #list(REMOVE_ITEM IncFiles "${PROJECT_SOURCE_DIR}/include/GpGpu/GpGpuTools.h")
 endif()
 
 # OPTION BUILD : En tetes precompilées visual studio
@@ -135,11 +138,12 @@ set(libElise elise)
 
 # CONSTRUCTION : Lib ELISE
 if(${CUDA_ENABLED})
-	  #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20 -lineinfo)
-	  set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20)
+
+	  #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20 -lineinfo)	  
         #set(GENCODE_SM20FM -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20 -use_fast_math)
         #set(GENCODE_SM21 -gencode=arch=compute_21,code=sm_21 -gencode=arch=compute_21,code=compute_21)
 
+	  set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20)
         set(libStatGpGpuTools GpGpuTools)
 	  set(libStatGpGpuInterfMicMac GpGpuInterfMicMac)
 	  set(libStatGpGpuOpt GpGpuOpt)
