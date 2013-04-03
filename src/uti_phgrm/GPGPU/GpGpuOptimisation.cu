@@ -138,7 +138,7 @@ template<class T>
 void LaunchKernel()
 {
     int warp    = 32;
-    int nBLine  = 32;
+    int nBLine  = 1;
     int si      = warp * nBLine;
     int longLine= 32;
     uint2 dA    = make_uint2(si,longLine);
