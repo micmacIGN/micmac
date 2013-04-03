@@ -81,9 +81,12 @@ FAIT :
 #include "cInterfModuleImageLoader.h"
 
     // ================
-#include "StdAfx.h"
-// #include  "cParamMICMAC.h"
+
 #include "GpGpu/GpGpu.h"
+#include "StdAfx.h"
+
+// #include  "cParamMICMAC.h"
+
 #include "uti_MICMAC.h"
 template <class T> class cMatrOfSMV;
 
@@ -3512,6 +3515,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 #ifdef CUDA_ENABLED
 		bool					mLoadTextures;
 		InterfaceMicMacGpGpu	IMmGg;
+        InterfMicMacOptGpGpu    IGpuOpt;
 #endif	
 
          cMMTP *  mMMTP;

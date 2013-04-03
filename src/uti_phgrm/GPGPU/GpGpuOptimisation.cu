@@ -200,12 +200,84 @@ void LaunchKernel()
         *hMinCostId = hostPath.pData()[(longLine - i -1)*warp + *hMinCostId];
     }
 
-    printf("\n");
+   // printf("\n");
+}
+
+template <class T>
+void LaunchKernelOptOneDirection(CuHostData3D<T> hostInputValue, int nZ, uint2 dim)
+{
+    //nZ      = 32 doit etre en puissance de 2
+    int nBLine  = dim.x;
+    int si      = nZ * nBLine;
+    int longLine= dim.y;
+    uint2 dA    = make_uint2(si,longLine);
+    dim3 Threads(nZ,1,1);
+    dim3 Blocks(nBLine,1,1);
+
+    //int hPen[PENALITE] = {1,2,3,5,7,8,7};
+    //int hPen[PENALITE] = {0,0,0,0,0,0,0};
+    int hPen[PENALITE] = {1,3,5,7,10,15,20};
+
+    checkCudaErrors(cudaMemcpyToSymbol(penalite, hPen, sizeof(int)*PENALITE));
+
+    int dZ          = 1;
+    CuHostData3D<T> hostOutputValue(dA,dZ);
+    CuHostData3D<int> hostPath(dA,dZ);
+
+    int* hMinCostId = (int*)malloc(sizeof(int));
+
+    hostInputValue.FillRandom(0,256);
+
+    CuDeviceData3D<T> dInputData;
+    CuDeviceData3D<T> dOutputData;
+    CuDeviceData3D<int> dPath;
+    CuDeviceData3D<int> minCostId;
+
+    dInputData.SetName("dInputData");
+    dOutputData.SetName("dOutputData");
+    minCostId.SetName("minCostId");
+    dPath.SetName("dPath");
+
+    dInputData.Realloc(dA,dZ);
+    dOutputData.Realloc(dA,dZ);
+    dOutputData.Memset(0);
+    dPath.Realloc(dA,dZ);
+    dPath.Memset(0);
+    minCostId.Realloc(make_uint2(1),1);
+    minCostId.Memset(0);
+
+    dInputData.CopyHostToDevice(hostInputValue.pData());
+
+    uint2 delta = make_uint2(3,3);
+
+    kernelOptimisation2<T><<<Blocks,Threads>>>(dInputData.pData(),dOutputData.pData(),dPath.pData(),dA, delta,minCostId.pData());
+    getLastCudaError("kernelOptimisation failed");
+
+    dOutputData.CopyDevicetoHost(hostOutputValue.pData());
+    dPath.CopyDevicetoHost(hostPath.pData());
+    minCostId.CopyDevicetoHost(hMinCostId);
+
+//    GpGpuTools::OutputArray(hostInputValue.pData(),dA);
+//    GpGpuTools::OutputArray(hostOutputValue.pData(),dA);
+//    GpGpuTools::OutputArray(hostPath.pData(),dA);
+//    printf("Index min Cost : %d\n",*hMinCostId);
+
+    for(int i=0;i<longLine;i++)
+    {
+        *hMinCostId = hostPath.pData()[(longLine - i -1)*nZ + *hMinCostId];
+    }
+
+}
+
+
+extern "C" void OptimisationOneDirection(CuHostData3D<float> data, int nZ, uint2 dim)
+{
+    LaunchKernelOptOneDirection(data,nZ, dim);
 }
 
 extern "C" void Launch()
 {
-    LaunchKernel<int>();
+    //LaunchKernel<int>();
 }
 
 #endif
