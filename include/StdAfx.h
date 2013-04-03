@@ -119,7 +119,7 @@ using namespace std;
 #include "general/phgr_san.h"
 #include "general/hassan_arrangt.h"
 
-#include "GpGpu/GpGpu.h"
+
 
 //  ==== AJOUT  =====
 
