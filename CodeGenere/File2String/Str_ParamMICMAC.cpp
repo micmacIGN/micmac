@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2012]) = {
+const char * (theNameVar_ParamMICMAC[2013]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -180,6 +180,7 @@ const char * (theNameVar_ParamMICMAC[2012]) = {
 "         <eAlgoOptimDifferentielle> </eAlgoOptimDifferentielle>\n",
 "         <eAlgoDequant> </eAlgoDequant>\n",
 "         <eAlgoLeastSQ> </eAlgoLeastSQ>\n",
+"         <eAlgoTestGPU>  </eAlgoTestGPU>\n",
 "   </enum>\n",
 "\n",
 "   <enum Name=\"eModeInterpolation\">\n",

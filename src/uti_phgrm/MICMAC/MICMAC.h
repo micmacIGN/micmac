@@ -384,6 +384,14 @@ class cSurfaceOptimiseur
                                      const cEquiv1D &        anEqY
                                   );
 
+      static cSurfaceOptimiseur * AllocAlgoTestGPU
+                                  (
+                                     cAppliMICMAC &    mAppli,
+                                     cLoadTer&         mLT,
+                                     const cEquiv1D &        anEqX,
+                                     const cEquiv1D &        anEqY
+                                  );
+
 
       double                  mCsteCost;
       cAppliMICMAC &          mAppli;
