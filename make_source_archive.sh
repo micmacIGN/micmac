@@ -23,8 +23,8 @@ cp -R src $OUT_MICMAC_DIR
 cp CMakeLists.txt $OUT_MICMAC_DIR
 cp Makefile-XML2CPP $OUT_MICMAC_DIR
 cp precompiled_headers.cmake $OUT_MICMAC_DIR
-cp README.fr $OUT_MICMAC_DIR
-cp README.en $OUT_MICMAC_DIR
+cp README $OUT_MICMAC_DIR
+cp LISEZMOI $OUT_MICMAC_DIR
 
 rm -fr $OUT_MICMAC_DIR/include/StdAfx.h.gch
 rm -fr $OUT_MICMAC_DIR/data/Tabul/.svn
