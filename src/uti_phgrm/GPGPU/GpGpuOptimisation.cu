@@ -100,7 +100,7 @@ template<class T> __global__ void kernelReduction(T* g_idata,T* g_odata,  int n)
 }
 
 /// \brief  Fonction Gpu d optimisation
-template<class T> __global__ void kernelOptimisation(T* g_idata,T* g_odata,int* path, uint2 dimLigne, uint2 delta, int* iMinCost )
+template<class T> __global__ void kernelOptimisation(T* g_idata,T* g_odata,int* path, uint2 dimLigne, uint2 delta, float* iMinCost )
 {
     __shared__ T    sdata[32];
     __shared__ uint minCostC[1];
@@ -252,13 +252,13 @@ void LaunchKernelOptOneDirection(CuHostData3D<T> &hostInputValue, int nZ, uint2 
     //================== variables Host ====================
     CuHostData3D<T>     hostOutputValue(dA);
     CuHostData3D<int>   hostPath(dA);
-    CuHostData3D<int>   hMinCostId(dim);
+    CuHostData3D<float>   hMinCostId(dim);
     //______________________________________________________
     //================= Variables Device ===================
     CuDeviceData3D<T>   dInputData(dA,1,"dInputData");
     CuDeviceData3D<T>   dOutputData(dA,1,"dOutputData");
     CuDeviceData3D<int> dPath(dA,1,"dPath");
-    CuDeviceData3D<int> minCostId(make_uint2(nBLine,1),1,"minCostId");
+    CuDeviceData3D<float> minCostId(make_uint2(nBLine,1),1,"minCostId");
     //______________________________________________________
 
     dOutputData.Memset(0);
@@ -280,15 +280,16 @@ void LaunchKernelOptOneDirection(CuHostData3D<T> &hostInputValue, int nZ, uint2 
     for (; ptTer.x < dim.x; ptTer.x++)
         for(ptTer.y = 1; ptTer.y < dim.y ; ptTer.y++)
         {
-            uint2 pt = make_uint2(ptTer.x * nZ + hMinCostId[ptTer - prev],ptTer.y);
-            hMinCostId[ptTer] = hostPath[pt];
+            uint2 pt = make_uint2(ptTer.x * nZ + (uint)hMinCostId[ptTer - prev],ptTer.y);
+            hMinCostId[ptTer] = (float)hostPath[pt];
         }
 
     hMinCostId.OutputValues();
     //hostPath.OutputValues();
 
     //GpGpuTools::Array1DtoImageFile(GpGpuTools::MultArray(hMinCostId.pData(),dim,1.0f/32.0f),"toto.ppm",dim);
-    //GpGpuTools::Array1DtoImageFile(hMinCostId.pData(),"toto.pgm",dim);
+
+    GpGpuTools::Array1DtoImageFile(hMinCostId.pData(),"toto.pgm",dim);
 }
 
 /// \brief Apple exterieur du kernel d optimisation
