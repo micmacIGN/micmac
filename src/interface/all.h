@@ -19,8 +19,14 @@
 #elif defined Q_WS_MAC
     #include <sys/types.h>
 #endif
-#include "GL/gl.h"
-#include "GL/glu.h"
+
+#ifdef ELISE_Darwin
+	#include "OpenGL/gl.h"
+	#include "OpenGL/glu.h"	
+#else
+	#include "GL/gl.h"
+	#include "GL/glu.h"
+#endif
 
 #include <QtOpenGL>
 #include <QtPlugin>

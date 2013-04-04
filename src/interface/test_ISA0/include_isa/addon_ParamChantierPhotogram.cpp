@@ -1,4 +1,3 @@
-#include "StdAfx.h"
 #include "addon_ParamChantierPhotogram.h"
 namespace NS_ParamChantierPhotogram{
 

@@ -2,17 +2,16 @@ cmake_minimum_required(VERSION 2.8)
 
 ADD_SUBDIRECTORY(test_ISA0)
 
-FIND_PACKAGE(Qt4 REQUIRED)
+if ( NOT ${OPENGL_GLU_FOUND} )
+	message( FATAL_ERROR "GLU library could not be found " )
+	return( -1 )
+endif()
+find_package(OpenGL REQUIRED)
 
+SET(QT_USE_QTOPENGL TRUE)
+find_package(Qt4 REQUIRED QtCore QtGui QtOpenGL)
 
 set(interface_directory ${PROJECT_SOURCE_DIR}/src/interface)
-
-if (MSVC)
-	set(interfaceMicmac_LIBS OpenGL32 GLU32)
-    configure_file( ${QT_BINARY_DIR}/assistant.exe ${CMAKE_SOURCE_DIR}/interface/help/assistant.exe COPYONLY)
-else()
-    configure_file( ${QT_BINARY_DIR}/assistant ${CMAKE_SOURCE_DIR}/interface/help/assistant COPYONLY)
-ENDIF()
 
 SET(interfaceMicmac_SOURCES ${interface_directory}/appliThread.cpp
                             ${interface_directory}/assistant.cpp
@@ -37,22 +36,19 @@ SET(interfaceMicmac_HEADERS ${interface_directory}/appliThread.h
                             ${interface_directory}/progressBar.h
                             ${interface_directory}/vueChantier.h)
 
-SET(QT_USE_QTOPENGL TRUE)
-
-find_package(Qt4 REQUIRED QtCore QtGui QtOpenGL)
-
 QT4_WRAP_CPP(interfaceMicmac_HEADERS_MOC ${interfaceMicmac_HEADERS})
 QT4_ADD_RESOURCES(interfaceMicmac_RESOURCES_RCC ressources.qrc)
 
 INCLUDE(${QT_USE_FILE})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
 
-message("librairies X11 : "${X11_LIBRARIES})
-message("librairies Qt : "${QT_LIBRARIES})
+message(STATUS "Opengl libraries : " ${OPENGL_LIBRARIES})
+message(STATUS "librairies X11 : "${X11_LIBRARIES})
+message(STATUS "librairies Qt : "${QT_LIBRARIES})
 
 ADD_EXECUTABLE(interfaceMicmac ${interfaceMicmac_SOURCES}
                                ${interfaceMicmac_HEADERS_MOC})
-TARGET_LINK_LIBRARIES(interfaceMicmac ${OPENGL_LIBRARIES} ${GLU_LIBRARY}
+TARGET_LINK_LIBRARIES(interfaceMicmac ${OPENGL_LIBRARIES}
 									  ${X11_LIBRARIES}
 									  ${QT_LIBRARIES}
                                       elise

@@ -29,8 +29,10 @@ DAMAGE.
 #include "StdAfx.h"
 
 #ifdef NOWARNINGPOISSON
-#pragma GCC diagnostic push
-#pragma GCC diagnostic warning "-w"
+	#ifndef ELISE_Darwin
+		#pragma GCC diagnostic push
+	#endif
+	#pragma GCC diagnostic warning "-w"
 #endif
 ////////////
 // Square //
@@ -955,5 +957,7 @@ void MarchingCubes::SetVertex( int e , const float values[Cube::CORNERS] , float
 float MarchingCubes::Interpolate( float v1 , float v2 ){ return v1/(v1-v2); }
 
 #ifdef NOWARNINGPOISSON
-#pragma GCC diagnostic pop
+	#ifndef ELISE_Darwin
+		#pragma GCC diagnostic pop
+	#endif
 #endif

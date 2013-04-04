@@ -100,7 +100,7 @@ typedef struct sFace
 
 typedef struct PlyProperty {    /* description of a property */
 	
-	char *name;                           /* property name */
+	char *name;							  /* property name */
 	int external_type;                    /* file's data type */
 	int internal_type;                    /* program's data type */
 	int offset;                           /* offset bytes of prop in a struct */

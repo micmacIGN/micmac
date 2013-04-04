@@ -185,7 +185,6 @@ bool cFNuAttrSom::IsArcValide(cFNuAttrSom * aS2)
     if (sizeofile(aNameH.c_str()) < 1000)
        return false;
 
-   int aSom = 0;
    cElNuage3DMaille * aN2 = aS2->mStdN;
    for (int aKP=0 ; aKP< int(mPtsTestRec.size()) ;  aKP++)
    {

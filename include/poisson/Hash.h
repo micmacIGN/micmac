@@ -2,8 +2,10 @@
 	#define HASH_INCLUDED
 
 	#ifdef NOWARNINGPOISSON
-		#pragma GCC diagnostic push
-		#pragma GCC diagnostic warning "-w"
+		#ifndef ELISE_Darwin
+			#pragma GCC diagnostic push
+			#pragma GCC diagnostic warning "-w"
+		#endif
 	#endif
 
 	#ifdef WIN32
@@ -41,5 +43,7 @@
 #endif // HASH_INCLUDED
 
 #ifdef NOWARNINGPOISSON
-	#pragma GCC diagnostic pop
+	#ifndef ELISE_Darwin
+		#pragma GCC diagnostic pop
+	#endif
 #endif

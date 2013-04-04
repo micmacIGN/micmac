@@ -35,8 +35,10 @@ DAMAGE.
 #include "MAT.h"
 
 #ifdef NOWARNINGPOISSON
-#pragma GCC diagnostic push
-#pragma GCC diagnostic warning "-w"
+	#ifndef ELISE_Darwin
+		#pragma GCC diagnostic push
+		#pragma GCC diagnostic warning "-w"
+	#endif
 #endif
 
 #define ITERATION_POWER 1.0/3
@@ -3891,6 +3893,8 @@ long long VertexData::EdgeIndex(const TreeOctNode* node,int eIndex,int maxDepth,
 	return (long long)(idx[0]) | (long long)(idx[1])<<15 | (long long)(idx[2])<<30;
 }
 #ifdef NOWARNINGPOISSON
-#pragma GCC diagnostic pop
+	#ifndef ELISE_Darwin
+		#pragma GCC diagnostic pop
+	#endif
 #endif
 
