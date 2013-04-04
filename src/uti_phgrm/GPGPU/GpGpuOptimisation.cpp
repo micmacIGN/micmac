@@ -34,10 +34,12 @@ void InterfMicMacOptGpGpu::StructureVolumeCost(CuHostData3D<float> &volumeCost)
                 uint idDest  = to1D(ptRTer,dimRVolCost);
                 uint idSrc   = pitchZ * z + to1D(ptTer,dimVolCost);
 
-                *(_volumeCost.pData()+ idDest) = *(volumeCost.pData() + idSrc);
+                *(_volumeCost.pData()+ idDest) = abs(*(volumeCost.pData() + idSrc)-1);
             }
         }
     }
+
+    GpGpuTools::Array1DtoImageFile(_volumeCost.pData(),"dd",dimVolCost);
 
     OptimisationOneDirection(_volumeCost, nbZ, dimVolCost);
 

@@ -15,6 +15,9 @@
 #include "GpGpu/GpGpuTools.h"
 #include "GpGpu/helper_math_extented.cuh"
 
+using namespace std;
+
+
 /// \brief Tableau des penalites pre-calculees
 #define PENALITE 7
 
@@ -102,8 +105,9 @@ template<class T> __global__ void kernelOptimisation(T* g_idata,T* g_odata,int* 
     __shared__ T    sdata[32];
     __shared__ uint minCostC[1];
 
-    uint tid     = threadIdx.x;
-    uint i0      = blockIdx.x * blockDim.x * dimLigne.y + tid;
+    const uint tid = threadIdx.x;
+    const uint pit = blockIdx.x * blockDim.x;
+    uint i0      = pit * dimLigne.y + tid;
     sdata[tid]   = g_idata[i0];
     g_odata[i0]  = sdata[tid];
     path[i0]     = tid;
@@ -116,21 +120,21 @@ template<class T> __global__ void kernelOptimisation(T* g_idata,T* g_odata,int* 
     {
         unsigned int i1 = i0 + dimLigne.x;
 
-
         if(i1<size(dimLigne))
         {
             cost    = g_idata[i1];
-            minCost = cost + sdata[tid] + penalite[0];
+            minCost = cost + sdata[tid];// + penalite[0];
             int iL  = tid;
 
             __syncthreads();
 
             for(int t = -((int)(delta.x)); t < ((int)(delta.y));t++)
             {
+
                 int Tl = tid + t;
                 if( t!=0 && Tl >= 0 && Tl < dimLigne.x)
                 {
-                    T Cost = cost + sdata[Tl] + penalite[abs(t)];
+                    T Cost = cost + sdata[Tl];// + penalite[abs(t)];
                     if(Cost < minCost)
                     {
                         minCost = Cost;
@@ -139,7 +143,7 @@ template<class T> __global__ void kernelOptimisation(T* g_idata,T* g_odata,int* 
                 }
             }
 
-            i0 = (blockIdx.x * blockDim.x + l) * dimLigne.y + tid;
+            i0 = (pit + l) * dimLigne.y + tid;
             g_odata[i0] = minCost;
             sdata[tid]  = minCost;
             path[i0]    = iL;
@@ -149,7 +153,7 @@ template<class T> __global__ void kernelOptimisation(T* g_idata,T* g_odata,int* 
     atomicMin(minCostC,minCost);
     __syncthreads();
     if(minCostC[0] == minCost)
-        *iMinCost = tid;
+        iMinCost[blockIdx.x] = tid;
 }
 
 /// \brief Lance le kernel d optimisation pour le test
@@ -207,91 +211,95 @@ void LaunchKernel()
     dPath.CopyDevicetoHost(hostPath.pData());
     minCostId.CopyDevicetoHost(hMinCostId);
 
-//    GpGpuTools::OutputArray(hostInputValue.pData(),dA);
-//    GpGpuTools::OutputArray(hostOutputValue.pData(),dA);
-//    GpGpuTools::OutputArray(hostPath.pData(),dA);
+    //    GpGpuTools::OutputArray(hostInputValue.pData(),dA);
+    //    GpGpuTools::OutputArray(hostOutputValue.pData(),dA);
+    //    GpGpuTools::OutputArray(hostPath.pData(),dA);
     //printf("Index min Cost : %d\n",*hMinCostId);
 
     for(int i=0;i<longLine;i++)
     {
 
-//        printf("%d, ",*hMinCostId);
+        //        printf("%d, ",*hMinCostId);
         *hMinCostId = hostPath.pData()[(longLine - i -1)*warp + *hMinCostId];
     }
 
-   // printf("\n");
+    // printf("\n");
 }
 
 /// \brief Lance le kernel d optimisation pour une direction
 template <class T>
-void LaunchKernelOptOneDirection(CuHostData3D<T> hostInputValue, int nZ, uint2 dim)
+void LaunchKernelOptOneDirection(CuHostData3D<T> &hostInputValue, int nZ, uint2 dim)
 {
     //nZ      = 32 doit etre en puissance de 2
-    int nBLine  = dim.x;
-    int si      = nZ * nBLine;
-    int longLine= dim.y;
-    uint2 dA    = make_uint2(si,longLine);
-    dim3 Threads(nZ,1,1);
-    dim3 Blocks(nBLine,1,1);
 
-    //int hPen[PENALITE] = {1,2,3,5,7,8,7};
-    //int hPen[PENALITE] = {0,0,0,0,0,0,0};
-    int hPen[PENALITE] = {1,3,5,7,10,15,20};
+    int     nBLine  =   dim.x;
+    int     si      =   nZ * nBLine;
+    int     dimLine =   dim.y;
+    uint2   dA      =   make_uint2(si,dimLine);
+    uint2   delta   =   make_uint2(3,3);
+
+    dim3    Threads(nZ,1,1);
+    dim3    Blocks(nBLine,1,1);
+
+    T hPen[PENALITE];
+
+    for(int i=0;i<PENALITE;i++)
+        hPen[i] = 1;
 
     checkCudaErrors(cudaMemcpyToSymbol(penalite, hPen, sizeof(int)*PENALITE));
 
-    int dZ          = 1;
-    CuHostData3D<T> hostOutputValue(dA,dZ);
-    CuHostData3D<int> hostPath(dA,dZ);
+    //______________________________________________________
+    //================== variables Host ====================
+    CuHostData3D<T>     hostOutputValue(dA);
+    CuHostData3D<int>   hostPath(dA);
+    CuHostData3D<int>   hMinCostId(dim);
+    //______________________________________________________
+    //================= Variables Device ===================
+    CuDeviceData3D<T>   dInputData(dA,1,"dInputData");
+    CuDeviceData3D<T>   dOutputData(dA,1,"dOutputData");
+    CuDeviceData3D<int> dPath(dA,1,"dPath");
+    CuDeviceData3D<int> minCostId(make_uint2(nBLine,1),1,"minCostId");
+    //______________________________________________________
 
-    int* hMinCostId = (int*)malloc(sizeof(int));
-
-    hostInputValue.FillRandom(0,256);
-
-    CuDeviceData3D<T> dInputData;
-    CuDeviceData3D<T> dOutputData;
-    CuDeviceData3D<int> dPath;
-    CuDeviceData3D<int> minCostId;
-
-    dInputData.SetName("dInputData");
-    dOutputData.SetName("dOutputData");
-    minCostId.SetName("minCostId");
-    dPath.SetName("dPath");
-
-    dInputData.Realloc(dA,dZ);
-    dOutputData.Realloc(dA,dZ);
     dOutputData.Memset(0);
-    dPath.Realloc(dA,dZ);
     dPath.Memset(0);
-    minCostId.Realloc(make_uint2(1),1);
     minCostId.Memset(0);
 
     dInputData.CopyHostToDevice(hostInputValue.pData());
-
-    uint2 delta = make_uint2(3,3);
 
     kernelOptimisation<T><<<Blocks,Threads>>>(dInputData.pData(),dOutputData.pData(),dPath.pData(),dA, delta,minCostId.pData());
     getLastCudaError("kernelOptimisation failed");
 
     dOutputData.CopyDevicetoHost(hostOutputValue.pData());
     dPath.CopyDevicetoHost(hostPath.pData());
-    minCostId.CopyDevicetoHost(hMinCostId);
+    minCostId.CopyDevicetoHost(hMinCostId.pData());
 
-//    GpGpuTools::OutputArray(hostInputValue.pData(),dA);
-//    GpGpuTools::OutputArray(hostOutputValue.pData(),dA);
-//    GpGpuTools::OutputArray(hostPath.pData(),dA);
-//    printf("Index min Cost : %d\n",*hMinCostId);
+    uint2 ptTer = make_uint2(0,1);
+    uint2  prev = make_uint2(0,1);
 
-    for(int i=0;i<longLine;i++)
-    {
-        *hMinCostId = hostPath.pData()[(longLine - i -1)*nZ + *hMinCostId];
-    }
+    for (; ptTer.x < dim.x; ptTer.x++)
+        for(ptTer.y = 1; ptTer.y < dim.y ; ptTer.y++)
+        {
+            uint2 pt = make_uint2(ptTer.x * nZ + hMinCostId[ptTer - prev],ptTer.y);
+            hMinCostId[ptTer] = hostPath[pt];
+        }
 
+    hMinCostId.OutputValues();
+    //hostPath.OutputValues();
+
+    //GpGpuTools::Array1DtoImageFile(GpGpuTools::MultArray(hMinCostId.pData(),dim,1.0f/32.0f),"toto.ppm",dim);
+    //GpGpuTools::Array1DtoImageFile(hMinCostId.pData(),"toto.pgm",dim);
 }
 
 /// \brief Apple exterieur du kernel d optimisation
-extern "C" void OptimisationOneDirection(CuHostData3D<float> data, int nZ, uint2 dim)
+extern "C" void OptimisationOneDirection(CuHostData3D<float> &data, int nZ, uint2 dim)
 {
+//    uint2 dim1  = make_uint2(4,32);
+//    int nZ1     = 32;
+//    CuHostData3D<float> data1(make_uint2(dim1.x * nZ1,dim1.y));
+//    data1.FillRandom(0,20);
+//    LaunchKernelOptOneDirection(data1,nZ1, dim1);
+//    data1.Dealloc();
     LaunchKernelOptOneDirection(data,nZ, dim);
 }
 
