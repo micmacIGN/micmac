@@ -2098,6 +2098,10 @@ std::string NameFileStd
        {
            aNbChanSpec = aNbChanIn;
        }
+       if (aTif->bitpp() <=8)
+       {
+            Bits16 = false;
+       }
        if (((aTif->mode_compr() == Tiff_Im::No_Compr)|| (!ExigNoCompr)) && (aNbChanIn==aNbChanSpec))
        {
            delete aTif;

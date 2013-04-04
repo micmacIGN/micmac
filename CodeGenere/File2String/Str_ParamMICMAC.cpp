@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2013]) = {
+const char * (theNameVar_ParamMICMAC[2015]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -1610,6 +1610,8 @@ const char * (theNameVar_ParamMICMAC[2013]) = {
 "	       <DivIm  Nb=\"?\" Type=\"int\" Def=\"16\">    </DivIm>\n",
 "	       <TypeEl Nb=\"1\" Type=\"eTypeImPyram\">    </TypeEl>\n",
 "	</TypePyramImage>\n",
+"        <!-- Genrer des pyramide avec perte min si pas de TypePyramImage -->\n",
+"        <HighPrecPyrIm Type=\"bool\" Def=\"true\" Nb=\"?\"> </HighPrecPyrIm>\n",
 "\n",
 "         <!-- Si raw ou jpg en entree, remplace le TypePyramImage -->\n",
 "        <Correl16Bits Nb=\"?\" Type=\"bool\"> </Correl16Bits> <!-- true -->\n",
