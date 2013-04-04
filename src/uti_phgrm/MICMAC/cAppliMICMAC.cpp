@@ -462,11 +462,11 @@ std::cout << "END TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
 /*
 */
 
+   InitMecComp();
    if ((aMode == eAllocAM_STD) && (! DoNotMasqChantier()))
    {
        FileMasqOfResol(128);
    }
-   InitMecComp();
 /*
 */
    if (! CalledByProcess().Val())
@@ -2011,7 +2011,7 @@ void cAppliMICMAC::TestReducIm(int aDZ)
 
     if (mGPRed2)
     {
-       mGPRed2->ExeParal(mFullDirMEC + "MkRed2MM",-1,false);
+       mGPRed2->ExeParal(mFullDirMEC + "MkRed2MM",-1);
     }
 
 

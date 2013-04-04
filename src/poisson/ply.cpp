@@ -268,7 +268,7 @@ int PlyWritePolygons( char* fileName , CoredMeshData2* mesh , int file_type , co
 	return 1;
 }
 
-#ifdef NOWARNINGPOISSON &
+#ifdef NOWARNINGPOISSON // & Warning sur &
 	#ifndef ELISE_Darwin
 		#pragma GCC diagnostic pop
 	#endif

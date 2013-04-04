@@ -38,23 +38,24 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-void MakeMetaData_XML_GeoI(const std::string & aNameIm)
+void MakeMetaData_XML_GeoI(const std::string & aNameImMasq)
 {
-   std::string aNameXml =  StdPrefix(aNameIm) + ".xml";
-   if (ELISE_fp::exist_file(aNameXml))
+   std::string aNameXml =  StdPrefix(aNameImMasq) + ".xml";
+   if (!ELISE_fp::exist_file(aNameXml))
    {
+
       cFileOriMnt aFOM = StdGetObjFromFile<cFileOriMnt>
                          (
-                               XML_MM_File("ExFileOriXML.xml"),
+                               Basic_XML_MM_File("SampleFileOriXML.xml"),
                                StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
                                "FileOriMnt",
                                "FileOriMnt"
                           );
 
-        aFOM.NameFileMnt() = NameWithoutDir(aNameIm);
-        aFOM.NombrePixels() = Tiff_Im(aNameIm.c_str()).sz();
+        aFOM.NameFileMnt() = NameWithoutDir(aNameImMasq);
+        aFOM.NombrePixels() = Tiff_Im(aNameImMasq.c_str()).sz();
 
-        MakeFileXML(aFOM,aNameIm);
+        MakeFileXML(aFOM,aNameXml);
    }
 }
 
@@ -65,6 +66,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
     MMD_InitArgcArgv(argc,argv);
 
     std::string  aIm1,aIm2,aImMasq;
+    bool Exe=true;
 
 
     ElInitArgMain
@@ -73,7 +75,8 @@ int MM2DPostSism_Main(int argc,char ** argv)
 	LArgMain()  << EAMC(aIm1,"Image 1")
                     << EAMC(aIm2,"Image 2"),
 	LArgMain()  
-                    << EAM(aImMasq,"Masq",true,"Masq of focus zone")
+                    << EAM(aImMasq,"Masq",true,"Masq of focus zone (def=none)")
+                    << EAM(Exe,"Exe",true,"Execute command , def=true (tuning purpose)")
     );
 	
 #if (ELISE_windows)
@@ -86,6 +89,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
 
     std::string aCom =    MM3dBinFile("MICMAC")
                         + XML_MM_File("MM-PostSism.xml")
+                        + " WorkDir=" + aDir
                         + " +Im1=" + aIm1
                         + " +Im2=" + aIm2;
 
@@ -94,8 +98,17 @@ int MM2DPostSism_Main(int argc,char ** argv)
     {
         ELISE_ASSERT(aDir==DirOfFile(aImMasq),"Image not on same directory !!!");
         MakeMetaData_XML_GeoI(aImMasq);
+        aCom = aCom + " +UseMasq=true +Masq=" + StdPrefix(aImMasq);
     }
-   return 0;
+    if (Exe)
+    {
+          system_call(aCom.c_str());
+    }
+    else
+    {
+           std::cout << "COM=[" << aCom << "]\n";
+    }
+    return 0;
 }
 
 

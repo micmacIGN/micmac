@@ -194,6 +194,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("MpDcraw",MpDcraw_main," Interface to dcraw"));
        aRes.push_back(cMMCom("MMInitialModel",MMInitialModel_main,"Initial Model for MicMac ",cArgLogCom(2)));
        aRes.push_back(cMMCom("MMAllAuto",MMAllAuto_main,"Full automatic version for 1 view point, test mode ",cArgLogCom(2)));
+       aRes.push_back(cMMCom("MM2DPosSism",MM2DPostSism_Main,"Simplified interface for post 2D post sismic deformation ",cArgLogCom(2)));
        aRes.push_back(cMMCom("MMMergeCloud",MM_FusionNuage_main,"Merging of low resol cloud, in preparation 2 MicMac ",cArgLogCom(2)));
 
        aRes.push_back(cMMCom("MyRename",MyRename_main,"File renaming using posix regular expression "));
@@ -215,6 +216,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("RepLocBascule",RepLocBascule_main," Tool to define a local repair without changing the orientation"));
        aRes.push_back(cMMCom("SBGlobBascule",SBGlobBascule_main," Tool for 'scene based global' bascule"));
        aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Tool for scaling image"));
+       aRes.push_back(cMMCom("ConvertIm",ConvertIm_main," Tool for convertion inside tiff-format"));
        aRes.push_back(cMMCom("PanelIm",MakePlancheImage_main,"Tool for creating a pannel of images ")); 
        aRes.push_back(cMMCom("ScaleNuage",ScaleNuage_main," Tool for scaling internal representation of point cloud"));
        aRes.push_back(cMMCom("Tapas",Tapas_main," Interface to Apero to compute external and internal orientations",cArgLogCom(3)));
