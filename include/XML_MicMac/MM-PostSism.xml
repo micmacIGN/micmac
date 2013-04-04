@@ -14,6 +14,7 @@
          <Symb> Pas=0.2 </Symb>
          <Symb> Teta0=0 </Symb>
          <Symb> UseMasq=false </Symb>
+         <Symb> UseTeta=false </Symb>
 
 
          <Symb> CorrelMin=0.5 </Symb>
