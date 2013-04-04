@@ -149,7 +149,7 @@ void GpGpuTools::OutputValue( T value, uint offset, float defaut, float factor)
     std::string ES	= "";
     std::string S1	= " ";
 
-    float outO	= fValue(value,factor);
+    float outO	= fValue((float)value,factor);
     float p		= pow(10.0f,(float)(offset-1));
     if(p < 1.0f ) p = 1.0f;
     float out	= floor(outO*p)/p;
@@ -685,7 +685,7 @@ T &CData3D<T>::operator [](uint2 pt)
 template <class T>
 T &CData3D<T>::operator [](uint3 pt)
 {
-    return (CData<T>::pData())[pt.z * GetSize() + to1D(pt,GetDimension())];
+    return (CData<T>::pData())[pt.z * GetSize() + to1D(make_uint2(pt.x,pt.y),GetDimension())];
 }
 template <class T>
 T &CData3D<T>::operator [](uint pt1D)
