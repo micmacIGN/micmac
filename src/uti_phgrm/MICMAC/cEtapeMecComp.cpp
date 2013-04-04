@@ -633,6 +633,11 @@ cEtapeMecComp::cEtapeMecComp
       }
 
 
+      if (mEBI)
+      {
+           ELISE_ASSERT(mEtape.CorrelAdHoc().IsInit(),"EtiqBestImage requires CorrelAdHoc");
+      }
+
       if (mEtape.CorrelAdHoc().IsInit())
       {
          const cCorrelAdHoc & aCAH  = mEtape.CorrelAdHoc().Val();

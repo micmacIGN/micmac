@@ -12,6 +12,11 @@ Prochaine lettre :
 
 Probleme homogeneite Resol & Focal dans ChImSec
 
+paralleliisation des devlt tiff
+PasIsPixel en Geom Fais-Z  (et Fais-Prof ???)
+TypePyramImage pas actif sur jeu de Marseille ????
+
+
 
 ===============================================================
 Bascule sur des images quasi panoramiques : probleme stabité intersection de faisceau.
@@ -23,10 +28,6 @@ Bascule sur des images quasi panoramiques : probleme stabité intersection de fa
 AMELIORER MESSAGE D'ERREUR SUR PAS ASSEZ DE POINTS DS BASCULE
 
 =========================================
-
-
-Commande pour MM-Pyram.xml, Apero-Choix-ImSec.xml, MM-ModelInitial.xml (en // avec makefile)
-
 
 
 =============================

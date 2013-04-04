@@ -1608,6 +1608,8 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
 	       <DivIm  Nb="?" Type="int" Def="16">    </DivIm>
 	       <TypeEl Nb="1" Type="eTypeImPyram">    </TypeEl>
 	</TypePyramImage>
+        <!-- Genrer des pyramide avec perte min si pas de TypePyramImage -->
+        <HighPrecPyrIm Type="bool" Def="true" Nb="?"> </HighPrecPyrIm>
 
          <!-- Si raw ou jpg en entree, remplace le TypePyramImage -->
         <Correl16Bits Nb="?" Type="bool"> </Correl16Bits> <!-- true -->

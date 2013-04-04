@@ -12061,6 +12061,17 @@ const std::list< cTypePyramImage > & cSection_MEC::TypePyramImage()const
 }
 
 
+cTplValGesInit< bool > & cSection_MEC::HighPrecPyrIm()
+{
+   return mHighPrecPyrIm;
+}
+
+const cTplValGesInit< bool > & cSection_MEC::HighPrecPyrIm()const 
+{
+   return mHighPrecPyrIm;
+}
+
+
 cTplValGesInit< bool > & cSection_MEC::Correl16Bits()
 {
    return mCorrel16Bits;
@@ -12116,6 +12127,8 @@ cElXMLTree * ToXMLTree(const cSection_MEC & anObj)
       it++
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("TypePyramImage"));
+   if (anObj.HighPrecPyrIm().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("HighPrecPyrIm"),anObj.HighPrecPyrIm().Val())->ReTagThis("HighPrecPyrIm"));
    if (anObj.Correl16Bits().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Correl16Bits"),anObj.Correl16Bits().Val())->ReTagThis("Correl16Bits"));
   return aRes;
@@ -12543,6 +12556,8 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
   }
 
    xml_init(anObj.TypePyramImage(),aTree->GetAll("TypePyramImage",false,1));
+
+   xml_init(anObj.HighPrecPyrIm(),aTree->Get("HighPrecPyrIm",1),bool(true)); //tototo 
 
    xml_init(anObj.Correl16Bits(),aTree->Get("Correl16Bits",1)); //tototo 
 }
@@ -17288,6 +17303,17 @@ std::list< cTypePyramImage > & cParamMICMAC::TypePyramImage()
 const std::list< cTypePyramImage > & cParamMICMAC::TypePyramImage()const 
 {
    return Section_MEC().TypePyramImage();
+}
+
+
+cTplValGesInit< bool > & cParamMICMAC::HighPrecPyrIm()
+{
+   return Section_MEC().HighPrecPyrIm();
+}
+
+const cTplValGesInit< bool > & cParamMICMAC::HighPrecPyrIm()const 
+{
+   return Section_MEC().HighPrecPyrIm();
 }
 
 
