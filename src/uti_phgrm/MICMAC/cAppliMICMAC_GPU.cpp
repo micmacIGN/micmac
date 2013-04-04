@@ -1294,8 +1294,8 @@ if (0)
 		
 		if(	mNbIm == 0) return;	
 
-		int aZMinTer = mZMinGlob, aZMaxTer = mZMaxGlob;
-		//int aZMinTer = 0, aZMaxTer = 1;
+        //int aZMinTer = mZMinGlob, aZMaxTer = mZMaxGlob;
+        int aZMinTer = -16, aZMaxTer = 16;
 	
 		// definition de la zone rectangulaire de terrain
 		Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
@@ -1322,7 +1322,6 @@ if (0)
         CuHostData3D<float>		hVolumeCostGlobal(IMmGg.Param().dimTer,aZMaxTer - aZMinTer);
         hVolumeCostGlobal.SetName("hVolumeCostGlobal");
         // FIN TEST OPTIMISATION
-
 
 		hVolumeCost.SetName("hVolumeCost");
 		hVolumeProj.SetName("hVolumeProj");
@@ -1394,7 +1393,6 @@ if (0)
 
 				anZComputed += interZ;
 			}
-
 		}
 		IMmGg.SetZCToCopy(0);
 		IMmGg.SetZToCompute(0);
@@ -1402,7 +1400,10 @@ if (0)
 		hVolumeProj.Dealloc();
 
         // DEBUT TEST OPTIMISATION
-        GpGpuTools::OutputArray(hVolumeCostGlobal.pData(),hVolumeCost.GetDimension(),3,IMmGg.Param().floatDefault);
+
+        IGpuOpt.StructureVolumeCost(hVolumeCostGlobal);
+
+        //GpGpuTools::OutputArray(hVolumeCostGlobal.pData(),hVolumeCost.GetDimension(),3,IMmGg.Param().floatDefault);
         hVolumeCostGlobal.Dealloc();
         // FIN TEST OPTIMISATION
 #else
@@ -1534,7 +1535,7 @@ if (0)
 
 	}
 
-};
+}
 
 
 

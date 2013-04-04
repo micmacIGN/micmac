@@ -13,6 +13,7 @@
 
 #ifdef CUDA_ENABLED
 #include "GpGpu/InterfaceMicMacGpGpu.h"
+#include "GpGpu/GpGpuOptimisation.h"
 #endif
 
 #endif // __GPGPU_H__

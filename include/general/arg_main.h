@@ -421,6 +421,7 @@ class cReadObject
 int BatchFDC_main(int argc,char ** argv);
 int MapCmd_main(int argc,char ** argv);
 int MyRename_main(int argc,char ** argv);
+int Genere_Header_TiffFile_main(int argc,char ** argv);
 int TestSet_main(int argc,char ** argv);
 int TestMTD_main(int argc,char ** argv);
 int TestCmds_main(int argc,char ** argv);

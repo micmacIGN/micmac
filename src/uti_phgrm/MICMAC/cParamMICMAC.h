@@ -115,7 +115,8 @@ typedef enum
   eAlgoCoxRoySiPossible,
   eAlgoOptimDifferentielle,
   eAlgoDequant,
-  eAlgoLeastSQ
+  eAlgoLeastSQ,
+  eAlgoTestGPU
 } eAlgoRegul;
 void xml_init(eAlgoRegul & aVal,cElXMLTree * aTree);
 std::string  eToString(const eAlgoRegul & aVal);

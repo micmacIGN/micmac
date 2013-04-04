@@ -197,6 +197,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("MMMergeCloud",MM_FusionNuage_main,"Merging of low resol cloud, in preparation 2 MicMac ",cArgLogCom(2)));
 
        aRes.push_back(cMMCom("MyRename",MyRename_main,"File renaming using posix regular expression "));
+       aRes.push_back(cMMCom("Genere_Header_TiffFile",Genere_Header_TiffFile_main,"Generate Header for internal tiling format "));
 
 
        aRes.push_back(cMMCom("Nuage2Ply",Nuage2Ply_main," Convert depth map into point cloud"));

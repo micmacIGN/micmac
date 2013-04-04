@@ -439,7 +439,7 @@ std::cout << "END TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
    VerifEtapes();
    VerifImages();
 
-   InitMecComp();
+   // InitMecComp();
 
 /*
    if (FCND_CalcHomFromI1I2().IsInit())
@@ -466,6 +466,7 @@ std::cout << "END TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
    {
        FileMasqOfResol(128);
    }
+   InitMecComp();
 /*
 */
    if (! CalledByProcess().Val())
@@ -555,7 +556,6 @@ cAppliMICMAC * cAppliMICMAC::Alloc(int argc,char ** argv,eModeAllocAM aMode)
        }
     }
 
-// std::cout << "AAAAAAAAAAAAAAAAAAAAAAa\n"; getchar();
     {
         cElXMLTree aTreeParam(argv[1]);
         if (aName==0)

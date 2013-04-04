@@ -1,29 +1,46 @@
 #include <iostream>
 #include <cuda_runtime.h>
-using namespace std;
-
 #include <helper_functions.h>
 #include <helper_math.h>
 #include <helper_cuda.h>
+#include "GpGpu/GpGpuOptimisation.h"
 
-extern "C"  void Launch();
+InterfMicMacOptGpGpu::InterfMicMacOptGpGpu(){}
 
-int main()
+InterfMicMacOptGpGpu::~InterfMicMacOptGpGpu(){}
+
+void InterfMicMacOptGpGpu::StructureVolumeCost(CuHostData3D<float> &volumeCost)
 {
-    // Cr�ation du contexte GPGPU
-    cudaDeviceProp deviceProp;
-    // Obtention de l'identifiant de la carte la plus puissante
-    int devID = gpuGetMaxGflopsDeviceId();
-    // Initialisation du contexte
-    checkCudaErrors(cudaSetDevice(devID));
-    // Obtention des propriétés de la carte
-    checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
-    // Affichage des propriétés de la carte
-    printf("\n");
-    printf("GPU Device %d: \"%s\" with compute capability %d.%d\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
-    printf("Maximum Threads Per Block : %d\n", deviceProp.maxThreadsPerBlock);
-    Launch();
+    uint    nbZ         = volumeCost.GetNbLayer();
+    uint2   dimVolCost  = volumeCost.GetDimension();
+    uint2   dimRVolCost = make_uint2(dimVolCost.x*nbZ,dimVolCost.y);
+    uint    pitchZ      = size(dimVolCost);
+    uint2   ptTer       = make_uint2(0);
 
-    return 0;
+    _volumeCost.SetName("_volumeCost");
+    _volumeCost.Realloc(dimRVolCost,1);
+
+//    cudaError err = cudaErrorMemoryAllocation;
+//    _volumeCost.ErrorOutput(err,"StructureVolumeCost");
+//    volumeCost.ErrorOutput(err,"StructureVolumeCost");
+
+    for(; ptTer.x < dimVolCost.x; ptTer.x++)
+    {
+        for(; ptTer.y < dimVolCost.y; ptTer.y++)
+        {
+            for(uint z = 0; z < nbZ; z++)
+            {
+                uint2 ptRTer = make_uint2(nbZ * ptTer.x + z,ptTer.y);
+                uint idDest  = to1D(ptRTer,dimRVolCost);
+                uint idSrc   = pitchZ * z + to1D(ptTer,dimVolCost);
+
+                *(_volumeCost.pData()+ idDest) = *(volumeCost.pData() + idSrc);
+            }
+        }
+    }
+
+    OptimisationOneDirection(_volumeCost, nbZ, dimVolCost);
+
+    //GpGpuTools::OutputArray(_volumeCost.pData(),_volumeCost.GetDimension(),3,0,32);
+    //_volumeCost.Dealloc();
 }
-
