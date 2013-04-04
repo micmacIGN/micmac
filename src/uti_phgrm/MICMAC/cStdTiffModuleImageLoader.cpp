@@ -373,6 +373,33 @@ std::string     cStdTiffModuleImageLoader::CreateFileOfResol(int aDeZoom,bool Fo
    Tiff_Im aFile1 = FileOfResol(1);
    GenIm::type_el aType = aFile1.type_el();
    int aDivIm = 16;
+
+   if (mAppli.HighPrecPyrIm().Val())
+   {
+        if (aType==GenIm::u_int1)
+        {
+            if (aDeZoom==2) 
+            {
+                aType = GenIm::u_int2;
+                aDivIm = 1;
+            }
+            else if (aDeZoom==4) 
+            {
+                aType = GenIm::u_int2;
+                aDivIm = 2;
+            }
+            else 
+            {
+                aType = GenIm::real4;
+            }
+        }
+        else 
+        {
+                aType = GenIm::real4;
+                aDivIm = 1;
+        }
+   }
+
    int aResolSup =1;
 
    for

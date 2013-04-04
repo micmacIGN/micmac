@@ -139,7 +139,7 @@ void MkFMapCmdFileCoul8B
 }
 
 
-void cEl_GPAO::ExeParal(std::string aFileMk,int aNbProc)
+void cEl_GPAO::ExeParal(std::string aFileMk,int aNbProc,bool Supr)
 {
     if (aNbProc<=0)  
        aNbProc = NbProcSys();
@@ -156,7 +156,10 @@ void cEl_GPAO::ExeParal(std::string aFileMk,int aNbProc)
     else
     {
        VoidSystem(aCom.c_str());
-       ELISE_fp::RmFile(aFileMk);
+       if (Supr)
+       {
+           ELISE_fp::RmFile(aFileMk);
+       }
     }
 }
 

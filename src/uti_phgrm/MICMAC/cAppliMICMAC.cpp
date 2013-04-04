@@ -2011,7 +2011,7 @@ void cAppliMICMAC::TestReducIm(int aDZ)
 
     if (mGPRed2)
     {
-       mGPRed2->ExeParal(mFullDirMEC + "MkRed2MM");
+       mGPRed2->ExeParal(mFullDirMEC + "MkRed2MM",-1,false);
     }
 
 
