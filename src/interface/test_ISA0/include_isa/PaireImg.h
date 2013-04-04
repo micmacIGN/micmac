@@ -1,7 +1,6 @@
 #ifndef DEF_PAIREIMG
 #define DEF_PAIREIMG
 
-#include "StdAfx.h"
 #include "addon_ParamChantierPhotogram.h"
 
 class PaireImg{

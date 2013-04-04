@@ -29,8 +29,10 @@ DAMAGE.
 #include "StdAfx.h"
 
 #ifdef NOWARNINGPOISSON
-#pragma GCC diagnostic push
-#pragma GCC diagnostic warning "-w"
+	#ifndef ELISE_Darwin
+		#pragma GCC diagnostic push
+	#endif
+	#pragma GCC diagnostic warning "-w"
 #endif
 
 double PTime( void )
@@ -47,5 +49,7 @@ double PTime( void )
 }
 
 #ifdef NOWARNINGPOISSON
-#pragma GCC diagnostic pop
+	#ifndef ELISE_Darwin
+		#pragma GCC diagnostic pop
+	#endif
 #endif

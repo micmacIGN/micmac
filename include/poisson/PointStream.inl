@@ -199,7 +199,10 @@ void PLYPointStream< Real >::reset( void )
 		}
 		for( int j=0 ; j<nr_props ; j++ )
 		{
-			free( plist[j]->name );
+			if ( plist[j]->name!=NULL ){
+				free( plist[j]->name );
+				plist[j]->name = NULL;
+			}
 			free( plist[j] );
 		}
 		free( plist );

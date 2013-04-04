@@ -40,8 +40,10 @@
 #include "StdAfx.h"
 
 #ifdef NOWARNINGPOISSON
-#pragma GCC diagnostic push
-#pragma GCC diagnostic warning "-w"
+	#ifndef ELISE_Darwin
+		#pragma GCC diagnostic push
+	#endif
+	#pragma GCC diagnostic warning "-w"
 #endif
 
 
@@ -250,7 +252,9 @@ int MergePly_main(int argc,char ** argv)
 }
 
 #ifdef NOWARNINGPOISSON
-#pragma GCC diagnostic pop
+	#ifndef ELISE_Darwin
+		#pragma GCC diagnostic pop
+	#endif
 #endif
 
 

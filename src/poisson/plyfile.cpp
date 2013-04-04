@@ -35,8 +35,10 @@
 #include "StdAfx.h"
 
 #ifdef NOWARNINGPOISSON
-#pragma GCC diagnostic push
-#pragma GCC diagnostic warning "-w"
+	#ifndef ELISE_Darwin
+		#pragma GCC diagnostic push
+	#endif
+	#pragma GCC diagnostic warning "-w"
 #endif
 
 char *type_names[] = {
@@ -106,7 +108,7 @@ int equal_strings(const char *, const char *);
 PlyElement *find_element(PlyFile *, char *);
 
 /* find a property in an element's list */
-PlyProperty *find_property(PlyElement *, char *, int *);
+PlyProperty *find_property(PlyElement *, const char *, int *);
 
 /* write to a file the word describing a PLY file data type */
 void write_scalar_type (FILE *, int);
@@ -1504,7 +1506,7 @@ Open a polygon file for reading.
 	returns a pointer to the property, or NULL if not found
   ******************************************************************************/
   
-  PlyProperty *find_property(PlyElement *elem, char *prop_name, int *index)
+  PlyProperty *find_property(PlyElement *elem, const char *prop_name, int *index)
   {
 	  int i;
 	  
@@ -2725,7 +2727,9 @@ Read an element from a binary file.
 	  
 	  return (ptr);
   }
-  
+
 #ifdef NOWARNINGPOISSON
-#pragma GCC diagnostic pop
+	#ifndef ELISE_Darwin
+		#pragma GCC diagnostic pop
+	#endif
 #endif

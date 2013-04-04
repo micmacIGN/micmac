@@ -46,7 +46,9 @@ OPTION(WITH_DOXYGEN "Generation de documentation" OFF )
 ######################################
 ## 	Trouver les EXES et Libs	##
 ######################################
-
+IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
+    add_definitions(-DELISE_Darwin)
+endif()
 # systeme 32 ou 64 bits
 if (WIN32)
     set(CPU_BITNESS 64)
@@ -59,7 +61,7 @@ else()
         set(CPU_BITNESS 64)
     endif()
 endif()
-# message( "Systeme " ${CMAKE_SYSTEM_NAME} ${CPU_BITNESS} )
+message( STATUS "Systeme is " ${CMAKE_SYSTEM_NAME} ${CPU_BITNESS} )
 
 # DEFINITION : Dossier des exe et Dll nécessaires sous windows
 set(BinAuxWinDir ${PROJECT_SOURCE_DIR}/binaire-aux/BIN_AUX_WIN32)
@@ -115,7 +117,7 @@ else()
 		ERROR_QUIET
 		OUTPUT_STRIP_TRAILING_WHITESPACE
 	)
-	message("Derniere revision mercurial de MicMac : " ${HG_REVISION_DIST})
+	message( STATUS "Derniere revision mercurial de MicMac : " ${HG_REVISION_DIST})
 
 	set(HG_REV ${HG_REVISION_DIST} CACHE STRING "Revision" FORCE)
 endif()
