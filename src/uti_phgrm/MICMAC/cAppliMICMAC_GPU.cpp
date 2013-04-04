@@ -1412,22 +1412,23 @@ if (0)
 		
 	}
 
-	void cAppliMICMAC::DoCorrelAdHoc
-		(
+void cAppliMICMAC::DoCorrelAdHoc
+     (
 		const Box2di & aBox
-		)
-	{
+     )
+{
 
-
-		if (mEBI)
-		{
-			ELISE_ASSERT
-				(
-				mCurEtape->EtapeMEC().AggregCorr().Val() == eAggregMaxIm1Maitre,
-				"EtiqBestImage requires eAggregMaxIm1Maitre,"
-				);
+      const cTypeCAH & aTC  = mCorrelAdHoc->TypeCAH();
+      if (mEBI)
+      {
+            ELISE_ASSERT
+            (
+                   mCurEtape->EtapeMEC().AggregCorr().Val() == eAggregMaxIm1Maitre,
+                   "EtiqBestImage requires eAggregMaxIm1Maitre,"
+            );
+            ELISE_ASSERT(aTC.GPU_Correl().IsInit(),"EtiqBestImage requires GPU_Correl");
 			/// ELISE_ASSERT(mNb_PDVBoxInterne>,);
-		}
+      }
 
 
 		// Pour eventuellement changer si existe algo qui impose une taille
@@ -1450,7 +1451,6 @@ if (0)
 
 		DoInitAdHoc(aBox);
 
-		const cTypeCAH & aTC  = mCorrelAdHoc->TypeCAH();
 
 /*
 		if (aTC.CorrelMultiScale().IsInit())
@@ -1496,7 +1496,7 @@ if (0)
 			DoMasqueAutoByTieP(aBox,aTC.MasqueAutoByTieP().Val());
 		}
 
-	}
+}
 
 
 	void cAppliMICMAC::GlobDoCorrelAdHoc

@@ -3855,6 +3855,9 @@ class cSection_MEC
         std::list< cTypePyramImage > & TypePyramImage();
         const std::list< cTypePyramImage > & TypePyramImage()const ;
 
+        cTplValGesInit< bool > & HighPrecPyrIm();
+        const cTplValGesInit< bool > & HighPrecPyrIm()const ;
+
         cTplValGesInit< bool > & Correl16Bits();
         const cTplValGesInit< bool > & Correl16Bits()const ;
     private:
@@ -3876,6 +3879,7 @@ class cSection_MEC
         std::list< cEtapeMEC > mEtapeMEC;
         cEtapeMEC mGlobEtapeMEC;
         std::list< cTypePyramImage > mTypePyramImage;
+        cTplValGesInit< bool > mHighPrecPyrIm;
         cTplValGesInit< bool > mCorrel16Bits;
 };
 cElXMLTree * ToXMLTree(const cSection_MEC &);
@@ -5315,6 +5319,9 @@ class cParamMICMAC
 
         std::list< cTypePyramImage > & TypePyramImage();
         const std::list< cTypePyramImage > & TypePyramImage()const ;
+
+        cTplValGesInit< bool > & HighPrecPyrIm();
+        const cTplValGesInit< bool > & HighPrecPyrIm()const ;
 
         cTplValGesInit< bool > & Correl16Bits();
         const cTplValGesInit< bool > & Correl16Bits()const ;
