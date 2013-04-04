@@ -8,6 +8,7 @@
 #include <helper_functions.h>
 #include <helper_cuda.h>
 
+
 #include <sstream>     // for ostringstream
 #include <string>
 #include <iostream>
@@ -98,7 +99,7 @@ public:
     ///  \param         factor : facteur multiplicatif
     ///  \return        renvoie un pointeur sur le tableau resultant
     template <class T>
-    static void			OutputArray(CuHostData3D<T> data, uint Z = 0, uint offset = 1, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
+    static void			OutputArray(CuHostData3D<T> &data, uint Z = 0, uint offset = 1, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
 
     ///	\brief			Sortie console formater d'une valeur
     /// \param          value : valeur a afficher
@@ -217,12 +218,20 @@ void GpGpuTools::OutputArray( T* data, uint2 dim, uint offset, float defaut, flo
 
 
 template <class T>
-static void OutputArray(CuHostData3D<T> data, uint Z, uint offset, float defaut, float sample, float factor)
+static void OutputArray(CuHostData3D<T> &data, uint Z, uint offset, float defaut, float sample, float factor)
 {
 
     OutputArray(data.pData() + Z * Sizeof(data.Dimension()),data.Dimension(),offset, defaut, sample, factor );
 
 }
+
+//template <int>
+//static void OutputArray(CuHostData3D<int> data, uint Z, uint offset, float defaut, float sample, float factor)
+//{
+
+//    OutputArray(data.pData() + Z * Sizeof(data.Dimension()),data.Dimension(),offset, defaut, sample, factor );
+
+//}
 
 template <class T>
 T* GpGpuTools::MultArray( T* data, uint2 dim, float factor )
@@ -424,9 +433,9 @@ protected:
 
 private:
 
-    uint	_memoryOc;
-    T*		_data;
-    uint	_sizeofMalloc;
+    uint            _memoryOc;
+    T*              _data;
+    uint            _sizeofMalloc;
 
 };
 
@@ -620,6 +629,11 @@ public:
     /// \brief      Nombre d elements de la structure
     uint			Sizeof();
 
+    T&              operator[](uint2 pt);
+    T&              operator[](uint3 pt);
+    T&              operator[](uint pt1D);
+    T&              operator[](int pt1D);
+
 };
 
 template <class T>
@@ -663,6 +677,26 @@ uint CData3D<T>::Sizeof()
 {
     return GetSize() * sizeof(T);
 }
+template <class T>
+T &CData3D<T>::operator [](uint2 pt)
+{
+    return (CData<T>::pData())[to1D(pt,GetDimension())];
+}
+template <class T>
+T &CData3D<T>::operator [](uint3 pt)
+{
+    return (CData<T>::pData())[pt.z * GetSize() + to1D(pt,GetDimension())];
+}
+template <class T>
+T &CData3D<T>::operator [](uint pt1D)
+{
+    return (CData<T>::pData())[pt1D];
+}
+template <class T>
+T &CData3D<T>::operator [](int pt1D)
+{
+    return this[(uint)pt1D];
+}
 
 
 /// \class CuHostData3D
@@ -677,7 +711,7 @@ public:
     /// \brief constructeur avec initialisation de la dimension de la structure
     /// \param dim : Dimension 2D a initialiser
     /// \param l : Taille de la 3eme dimension
-    CuHostData3D(uint2 dim, uint l);
+    CuHostData3D(uint2 dim, uint l = 1);
     ~CuHostData3D(){}
     bool Dealloc();
     bool Malloc();
@@ -689,6 +723,8 @@ public:
     /// \param min : valeur a remplir minimum
     /// \param max : valeur a remplir maximum
     void FillRandom(T min, T max);
+    /// \brief Affiche un Z du tableau dans la console
+    void OutputValues(uint Z = 0, uint offset = 1, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
 
 };
 
@@ -747,6 +783,13 @@ void CuHostData3D<T>::FillRandom(T min, T max)
         double dRdVal = (float)rand() / std::numeric_limits<int>::max();
         CData3D<T>::pData()[i] = min + rdVal + (T)dRdVal;
     }
+}
+
+template <class T>
+void CuHostData3D<T>::OutputValues(uint Z, uint offset, float defaut, float sample, float factor)
+{
+    T* p   = (CData3D<T>::pData());
+    GpGpuTools::OutputArray( p /*+ Z * CData3D<T>::GetDimension() */,CData3D<T>::GetDimension(),offset, defaut, sample, factor);
 }
 
 template <class T>
@@ -845,6 +888,7 @@ class CuDeviceData3D : public CData3D<T>
 public:
 
     CuDeviceData3D();
+    CuDeviceData3D(uint2 dim,uint l, string name = "NoName");
     ~CuDeviceData3D(){}
     /// \brief Desallocation memoire globale
     /// \return true si la desallocation a reussie false sinon
@@ -912,6 +956,14 @@ CuDeviceData3D<T>::CuDeviceData3D()
 {
     CData3D<T>::dataNULL();
     CGObject::SetType("CuDeviceData3D");
+}
+
+template <class T>
+CuDeviceData3D<T>::CuDeviceData3D(uint2 dim, uint l, string name)
+{
+    CData3D<T>::dataNULL();
+    CGObject::SetType(name);
+    CData3D<T>::Realloc(dim,l);
 }
 
 template <class T>
