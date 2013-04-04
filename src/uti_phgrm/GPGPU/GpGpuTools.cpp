@@ -171,6 +171,11 @@ void struct2DLayered::SetNbLayer( uint nbLayer )
 	_nbLayers = nbLayer;
 }
 
+struct2DLayered::struct2DLayered()
+{
+    SetDimension(make_uint2(0),0);
+}
+
 uint struct2DLayered::GetNbLayer()
 {
 	return _nbLayers;

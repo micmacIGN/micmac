@@ -324,6 +324,8 @@ eAlgoRegul  Str2eAlgoRegul(const std::string & aName)
       return eAlgoDequant;
    else if (aName=="eAlgoLeastSQ")
       return eAlgoLeastSQ;
+   else if (aName=="eAlgoTestGPU")
+      return eAlgoTestGPU;
   else
   {
       cout << aName << " is not a correct value for enum eAlgoRegul\n" ;
@@ -351,6 +353,8 @@ std::string  eToString(const eAlgoRegul & anObj)
       return  "eAlgoDequant";
    if (anObj==eAlgoLeastSQ)
       return  "eAlgoLeastSQ";
+   if (anObj==eAlgoTestGPU)
+      return  "eAlgoTestGPU";
  std::cout << "Enum = eAlgoRegul\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";

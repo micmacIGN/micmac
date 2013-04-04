@@ -11,8 +11,9 @@ set(uti_phgrm_GpGpu_Src_Files
 
 set(uti_phgrm_Opt_GpGpu_Src_Files
 	 ${UTI_PHGRM_GPGPU_DIR}/GpGpuOptimisation.cu
+	 ${UTI_PHGRM_GPGPU_DIR}/GpGpuOptimisation.cpp
 )
 
 set(uti_Test_Opt_GpGpu_Src_Files
-	 ${UTI_PHGRM_GPGPU_DIR}/GpGpuOptimisation.cpp
+	 ${UTI_PHGRM_GPGPU_DIR}/TestGpGpuOptimisation.cpp
 )

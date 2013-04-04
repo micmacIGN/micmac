@@ -353,7 +353,7 @@ class struct2DLayered : public struct2D
 
 public:
 
-    struct2DLayered(){}
+    struct2DLayered();
     ~struct2DLayered(){}
     /// \brief Renvoie le nombre de tableau 2D
     uint	GetNbLayer();
@@ -416,10 +416,11 @@ public:
 
 protected:
 
-    /// \brief Ajout de memoire alloue
-    void	AddMemoryOc(uint m);
-    /// \brief Suppression de memoire alloue
-    void	SubMemoryOc(uint m);
+    /// \brief      Ajout de memoire alloue
+    void            AddMemoryOc(uint m);
+    /// \brief      Suppression de memoire alloue
+    void            SubMemoryOc(uint m);
+
 
 private:
 
@@ -484,7 +485,8 @@ uint CData<T>::GetSizeofMalloc()
 }
 
 template <class T>
-CData<T>::CData()
+CData<T>::CData():
+    _memoryOc(0)
 {
     dataNULL();
 }
@@ -527,17 +529,17 @@ public:
     ~CData2D(){}
     /// \brief Alloue la memoire neccessaire
     virtual bool	Malloc()        = 0;
-    /// \brief Initialise les elements des images a val
-    /// \param val : Valeur d initialisation
+    /// \brief      Initialise les elements des images a val
+    /// \param      val : Valeur d initialisation
     virtual bool	Memset(int val) = 0;
     virtual bool	Dealloc()       = 0;
     void			OutputInfo();
-    // \brief      Allocation memoire pour les tous les elements de la structures avec initialisation de la dimension de la structure
-    /// \param dim : Dimension 2D a initialiser
+    /// \brief       Allocation memoire pour les tous les elements de la structures avec initialisation de la dimension de la structure
+    /// \param      dim : Dimension 2D a initialiser
     bool			Malloc(uint2 dim);
     /// \brief      Desallocation puis re-allocation memoire pour les tous les elements
     ///             de la structures avec initialisation de la dimension
-    /// \param dim : Dimension 2D a initialiser
+    /// \param      dim : Dimension 2D a initialiser
     bool			Realloc(uint2 dim);
     /// \brief      Nombre d elements de la structure
     uint			Sizeof();
@@ -607,13 +609,13 @@ public:
     virtual bool	Dealloc() = 0;
 
     void			OutputInfo();
-    // \brief      Allocation memoire pour les tous les elements de la structures avec initialisation de la dimension de la structure
-    /// \param dim : Dimension 2D a initialiser
-    /// \param l : Taille de la 3eme dimension
+    /// \brief      Allocation memoire pour les tous les elements de la structures avec initialisation de la dimension de la structure
+    /// \param      dim : Dimension 2D a initialiser
+    /// \param      l : Taille de la 3eme dimension
     bool			Malloc(uint2 dim, uint l);
     /// \brief      Desallocation puis re-allocation memoire pour les tous les elements de la structures avec initialisation de la dimension de la structure
-    /// \param dim : Dimension 2D a initialiser
-    /// \param l : Taille de la 3eme dimension
+    /// \param      dim : Dimension 2D a initialiser
+    /// \param      l : Taille de la 3eme dimension
     bool			Realloc(uint2 dim, uint l);
     /// \brief      Nombre d elements de la structure
     uint			Sizeof();
@@ -693,12 +695,14 @@ public:
 template <class T>
 CuHostData3D<T>::CuHostData3D()
 {
+    CData<T>::SetSizeofMalloc(0);
     CGObject::SetType("CuHostData3D");
 }
 
 template <class T>
 CuHostData3D<T>::CuHostData3D( uint2 dim, uint l )
 {
+    CData<T>::SetSizeofMalloc(0);
     CData3D<T>::Realloc(dim,l);
 }
 

@@ -1,5 +1,12 @@
 #ifndef _OPTIMISATION_KERNEL_H_
+/// \brief ....
 #define _OPTIMISATION_KERNEL_H_
+
+/// \file       GpGpuOptimisation.cu
+/// \brief      Kernel optimisation
+/// \author     GC
+/// \version    0.01
+/// \date       Avril 2013
 
 #include <cuda_runtime.h>
 #include <helper_functions.h>
@@ -8,20 +15,28 @@
 #include "GpGpu/GpGpuTools.h"
 #include "GpGpu/helper_math_extented.cuh"
 
+/// \brief Tableau des penalites pre-calculees
 #define PENALITE 7
+
 static __constant__ int penalite[PENALITE];
 
 // Utility class used to avoid linker errors with extern
 // unsized shared memory arrays with templated type
+
+/// \struct SharedMemory
+/// \brief  Structure de donnees partagees pour un block.
+///         Allocation dynamique de la memoire lors du lancement du kernel
 template<class T>
 struct SharedMemory
 {
+    /// \brief ...
     __device__ inline operator       T *()
     {
         extern __shared__ int __smem[];
         return (T *)__smem;
     }
 
+    /// \brief ...
     __device__ inline operator const T *() const
     {
         extern __shared__ int __smem[];
@@ -29,6 +44,7 @@ struct SharedMemory
     }
 };
 
+/// \brief Opere une reduction d un tableau en Cpu
 template<class T>
 T reduceCPU(T *data, int size)
 {
@@ -46,7 +62,8 @@ T reduceCPU(T *data, int size)
     return sum;
 }
 
-template<class T> __global__ void kernelOptimisation(T* g_idata,T* g_odata,  int n)
+/// \brief Opere une reduction d un tableau en Gpu
+template<class T> __global__ void kernelReduction(T* g_idata,T* g_odata,  int n)
 {
 
     T *sdata = SharedMemory<T>();
@@ -79,7 +96,8 @@ template<class T> __global__ void kernelOptimisation(T* g_idata,T* g_odata,  int
     if (tid == 0) g_odata[blockIdx.x] = sdata[0];
 }
 
-template<class T> __global__ void kernelOptimisation2(T* g_idata,T* g_odata,int* path, uint2 dimLigne, uint2 delta, int* iMinCost )
+/// \brief  Fonction Gpu d optimisation
+template<class T> __global__ void kernelOptimisation(T* g_idata,T* g_odata,int* path, uint2 dimLigne, uint2 delta, int* iMinCost )
 {
     __shared__ T    sdata[32];
     __shared__ uint minCostC[1];
@@ -134,11 +152,12 @@ template<class T> __global__ void kernelOptimisation2(T* g_idata,T* g_odata,int*
         *iMinCost = tid;
 }
 
+/// \brief Lance le kernel d optimisation pour le test
 template<class T>
 void LaunchKernel()
 {
     int warp    = 32;
-    int nBLine  = 32;
+    int nBLine  = 1;
     int si      = warp * nBLine;
     int longLine= 32;
     uint2 dA    = make_uint2(si,longLine);
@@ -181,7 +200,7 @@ void LaunchKernel()
 
     uint2 delta = make_uint2(3,3);
 
-    kernelOptimisation2<T><<<Blocks,Threads>>>(dInputData.pData(),dOutputData.pData(),dPath.pData(),dA, delta,minCostId.pData());
+    kernelOptimisation<T><<<Blocks,Threads>>>(dInputData.pData(),dOutputData.pData(),dPath.pData(),dA, delta,minCostId.pData());
     getLastCudaError("kernelOptimisation failed");
 
     dOutputData.CopyDevicetoHost(hostOutputValue.pData());
@@ -200,12 +219,86 @@ void LaunchKernel()
         *hMinCostId = hostPath.pData()[(longLine - i -1)*warp + *hMinCostId];
     }
 
-    printf("\n");
+   // printf("\n");
 }
 
+/// \brief Lance le kernel d optimisation pour une direction
+template <class T>
+void LaunchKernelOptOneDirection(CuHostData3D<T> hostInputValue, int nZ, uint2 dim)
+{
+    //nZ      = 32 doit etre en puissance de 2
+    int nBLine  = dim.x;
+    int si      = nZ * nBLine;
+    int longLine= dim.y;
+    uint2 dA    = make_uint2(si,longLine);
+    dim3 Threads(nZ,1,1);
+    dim3 Blocks(nBLine,1,1);
+
+    //int hPen[PENALITE] = {1,2,3,5,7,8,7};
+    //int hPen[PENALITE] = {0,0,0,0,0,0,0};
+    int hPen[PENALITE] = {1,3,5,7,10,15,20};
+
+    checkCudaErrors(cudaMemcpyToSymbol(penalite, hPen, sizeof(int)*PENALITE));
+
+    int dZ          = 1;
+    CuHostData3D<T> hostOutputValue(dA,dZ);
+    CuHostData3D<int> hostPath(dA,dZ);
+
+    int* hMinCostId = (int*)malloc(sizeof(int));
+
+    hostInputValue.FillRandom(0,256);
+
+    CuDeviceData3D<T> dInputData;
+    CuDeviceData3D<T> dOutputData;
+    CuDeviceData3D<int> dPath;
+    CuDeviceData3D<int> minCostId;
+
+    dInputData.SetName("dInputData");
+    dOutputData.SetName("dOutputData");
+    minCostId.SetName("minCostId");
+    dPath.SetName("dPath");
+
+    dInputData.Realloc(dA,dZ);
+    dOutputData.Realloc(dA,dZ);
+    dOutputData.Memset(0);
+    dPath.Realloc(dA,dZ);
+    dPath.Memset(0);
+    minCostId.Realloc(make_uint2(1),1);
+    minCostId.Memset(0);
+
+    dInputData.CopyHostToDevice(hostInputValue.pData());
+
+    uint2 delta = make_uint2(3,3);
+
+    kernelOptimisation<T><<<Blocks,Threads>>>(dInputData.pData(),dOutputData.pData(),dPath.pData(),dA, delta,minCostId.pData());
+    getLastCudaError("kernelOptimisation failed");
+
+    dOutputData.CopyDevicetoHost(hostOutputValue.pData());
+    dPath.CopyDevicetoHost(hostPath.pData());
+    minCostId.CopyDevicetoHost(hMinCostId);
+
+//    GpGpuTools::OutputArray(hostInputValue.pData(),dA);
+//    GpGpuTools::OutputArray(hostOutputValue.pData(),dA);
+//    GpGpuTools::OutputArray(hostPath.pData(),dA);
+//    printf("Index min Cost : %d\n",*hMinCostId);
+
+    for(int i=0;i<longLine;i++)
+    {
+        *hMinCostId = hostPath.pData()[(longLine - i -1)*nZ + *hMinCostId];
+    }
+
+}
+
+/// \brief Apple exterieur du kernel d optimisation
+extern "C" void OptimisationOneDirection(CuHostData3D<float> data, int nZ, uint2 dim)
+{
+    LaunchKernelOptOneDirection(data,nZ, dim);
+}
+
+/// \brief Apple exterieur du kernel
 extern "C" void Launch()
 {
-    LaunchKernel<int>();
+    //LaunchKernel<int>();
 }
 
 #endif

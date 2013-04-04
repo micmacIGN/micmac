@@ -178,6 +178,7 @@ namespace NS_ParamMICMAC{
          <eAlgoOptimDifferentielle> </eAlgoOptimDifferentielle>
          <eAlgoDequant> </eAlgoDequant>
          <eAlgoLeastSQ> </eAlgoLeastSQ>
+         <eAlgoTestGPU>  </eAlgoTestGPU>
    </enum>
 
    <enum Name="eModeInterpolation">

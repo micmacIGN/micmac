@@ -9,6 +9,7 @@
 #include "GpGpu/GpGpu.h"
 
 #ifdef CUDA_ENABLED
+
 #define BOOST_ALL_NO_LIB 
 
 #include "GpGpu/cudaAppliMicMac.cuh"
@@ -116,8 +117,10 @@ private:
   boost::mutex              _mutex;
   boost::mutex              _mutexC;
   boost::mutex              _mutexCompute;
+  //
   float*                    _vCost;
   float2*                   _vProj;
+
   uint                      _ZCompute;
   uint                      _ZCCopy;
   bool                      _computeNextProj;
