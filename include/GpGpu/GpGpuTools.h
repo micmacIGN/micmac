@@ -685,7 +685,7 @@ T &CData3D<T>::operator [](uint2 pt)
 template <class T>
 T &CData3D<T>::operator [](uint3 pt)
 {
-    return (CData<T>::pData())[pt.z * GetSize() + to1D(make_uint2(pt.x,pt.y),GetDimension())];
+    return (CData<T>::pData())[pt.z * struct2D::GetSize() + to1D(make_uint2(pt.x,pt.y),GetDimension())];
 }
 template <class T>
 T &CData3D<T>::operator [](uint pt1D)
@@ -695,7 +695,7 @@ T &CData3D<T>::operator [](uint pt1D)
 template <class T>
 T &CData3D<T>::operator [](int pt1D)
 {
-    return this[(uint)pt1D];
+    return (CData<T>::pData())[(uint)pt1D];
 }
 
 

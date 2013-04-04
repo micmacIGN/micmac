@@ -284,12 +284,11 @@ void LaunchKernelOptOneDirection(CuHostData3D<T> &hostInputValue, int nZ, uint2 
             hMinCostId[ptTer] = (float)hostPath[pt];
         }
 
-    hMinCostId.OutputValues();
+    //hMinCostId.OutputValues();
     //hostPath.OutputValues();
 
-    //GpGpuTools::Array1DtoImageFile(GpGpuTools::MultArray(hMinCostId.pData(),dim,1.0f/32.0f),"toto.ppm",dim);
+    //GpGpuTools::Array1DtoImageFile(GpGpuTools::MultArray(hMinCostId.pData(),dim,1.0f/32.0f),"toto.pgm",dim);
 
-    GpGpuTools::Array1DtoImageFile(hMinCostId.pData(),"toto.pgm",dim);
 }
 
 /// \brief Apple exterieur du kernel d optimisation
