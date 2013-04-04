@@ -246,6 +246,10 @@ cSurfaceOptimiseur * cSurfaceOptimiseur::Alloc
             aRes = cSurfaceOptimiseur::AllocPrgDyn(mAppli,aLT,anEqX,anEqY);
        break;
 
+       case eAlgoTestGPU :
+            aRes = cSurfaceOptimiseur::AllocAlgoTestGPU(mAppli,aLT,anEqX,anEqY);
+       break;
+
 
        default :
               ELISE_ASSERT(false,"Optimization non supportee");
