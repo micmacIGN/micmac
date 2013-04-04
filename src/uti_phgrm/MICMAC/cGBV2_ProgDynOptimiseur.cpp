@@ -216,23 +216,21 @@ public :
     std::vector<int> mTabul;
 };
 
-class cGBV2_ProgDynOptimiseur
+class cGBV2_ProgDynOptimiseur : public cSurfaceOptimiseur
 {
 public :
     cGBV2_ProgDynOptimiseur
     (
+        cAppliMICMAC &    mAppli,
+        cLoadTer&         mLT,
+        const cEquiv1D &        anEqX,
+        const cEquiv1D &        anEqY,
             Im2D_INT2  aPxMin,
             Im2D_INT2  aPxMax
             );
     ~cGBV2_ProgDynOptimiseur() {}
-    void Local_SetCout(Pt2di aPTer,int aPX,REAL aCost);
-    void Local_SolveOpt
-    (
-            int aNbDir,
-            double aPenteMax,
-            double aRegul,
-            double aRegul_Quad
-            );
+    void Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int aLabel);
+    void Local_SolveOpt(Im2D_U_INT1 aImCor);
 
 
     Im2D_INT2     ImRes() {return mImRes;}
@@ -280,9 +278,14 @@ static cGBV2_CelOptimProgDyn aCelForInit;
 
 cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
 (
+        cAppliMICMAC &    mAppli,
+        cLoadTer&         mLT,
+        const cEquiv1D &        anEqX,
+        const cEquiv1D &        anEqY,
         Im2D_INT2  aPxMin,
         Im2D_INT2  aPxMax
-        ) :
+) :
+    cSurfaceOptimiseur ( mAppli,mLT,1e4,anEqX,anEqY,false,false),
     mXMin                (aPxMin),
     mXMax                (aPxMax),
     mSz                  (mXMin.sz()),
@@ -303,9 +306,9 @@ cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
 {
 }
 
-void cGBV2_ProgDynOptimiseur::Local_SetCout(Pt2di aPTer,int aPX,REAL aCost)
+void cGBV2_ProgDynOptimiseur::Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int aLabel)
 {
-    mMatrCel[aPTer][Px2Point(&aPX)].SetCostInit(CostR2I(aCost));
+    mMatrCel[aPTer][Px2Point(aPX)].SetCostInit(CostR2I(aCost));
 }
 
 void cGBV2_ProgDynOptimiseur::BalayageOneSens
@@ -572,14 +575,14 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
 
 
 
-void cGBV2_ProgDynOptimiseur::Local_SolveOpt
-(
-        int aNbDir,
-        double aPenteMax,
-        double aRegul,
-        double aRegul_Quad
-        )
+void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 {
+
+   int aNbDir = 7;
+   double aPenteMax = 1.0;
+   double aRegul    = 0.1;
+   double aRegul_Quad = 0.0;
+    //=================
     double aVPentes[theDimPxMax];
 
     mCostRegul[0] = aRegul;
@@ -632,6 +635,22 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt
     }
 }
 
+cSurfaceOptimiseur * cSurfaceOptimiseur::AllocAlgoTestGPU
+                     (
+                                     cAppliMICMAC &    mAppli,
+                                     cLoadTer&         mLT,
+                                     const cEquiv1D &        anEqX,
+                                     const cEquiv1D &        anEqY
+                     )
+{
+   return new cGBV2_ProgDynOptimiseur
+              (
+                  mAppli,mLT,
+                  anEqX,anEqY,
+                  mLT.KthNap(0).mImPxMin,
+                  mLT.KthNap(0).mImPxMax
+              );
+}
 
 
 /**************************************************/
