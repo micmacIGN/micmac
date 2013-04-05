@@ -250,6 +250,8 @@ int ConvertIm_main(int argc,char ** argv)
     }
     
     ELISE_COPY(rectangle(Pt2di(0,0),aSzROut),aFin,anOut);
+
+	return EXIT_SUCCESS;
 }
 
 

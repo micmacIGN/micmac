@@ -273,6 +273,14 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #endif
 
 // POISSON
+#ifdef _WIN32
+    #ifdef INT
+        #undef INT
+    #endif
+	#define NOMINMAX
+    #include <Windows.h>
+    #include <Psapi.h>
+#endif // _WIN32
 #include "poisson/Poisson.h"
 
 #include <stdarg.h>

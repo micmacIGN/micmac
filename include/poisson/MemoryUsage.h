@@ -31,7 +31,6 @@ DAMAGE.
 
 #ifdef WIN32
 
-//#include <Windows.h>
 #include <stdAfx.h>
 
 class MemoryInfo{
