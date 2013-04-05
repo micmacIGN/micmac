@@ -38,13 +38,6 @@ See below and http://www.cecill.info.
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
-#if ELISE_windows
-#ifdef INT
-#undef INT
-#endif
-#include "Windows.h"
-#endif
-
 
 extern void NewSplit( const std::string  &  a2Stplit,std::string & aK0,std::vector<std::string>  & aSup);
 

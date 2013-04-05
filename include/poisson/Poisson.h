@@ -1,15 +1,6 @@
 #ifndef __POISSON_H__
 #define __POISSON_H__
 
-//Poisson
-#ifdef _WIN32
-    #ifdef INT
-        #undef INT
-    #endif
-    #include <Windows.h>
-    #include <Psapi.h>
-#endif // _WIN32
-
 #include "poisson/Time.h"
 
 #include <sys/timeb.h>
