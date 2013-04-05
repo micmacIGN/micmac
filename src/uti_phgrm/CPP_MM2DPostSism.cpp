@@ -67,6 +67,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
 
     std::string  aIm1,aIm2,aImMasq;
     bool Exe=true;
+    double aTeta;
 
 
     ElInitArgMain
@@ -76,6 +77,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
                     << EAMC(aIm2,"Image 2"),
 	LArgMain()  
                     << EAM(aImMasq,"Masq",true,"Masq of focus zone (def=none)")
+                    << EAM(aTeta,"Teta",true,"Direction of seism if any (in radian)")
                     << EAM(Exe,"Exe",true,"Execute command , def=true (tuning purpose)")
     );
 	
@@ -100,6 +102,13 @@ int MM2DPostSism_Main(int argc,char ** argv)
         MakeMetaData_XML_GeoI(aImMasq);
         aCom = aCom + " +UseMasq=true +Masq=" + StdPrefix(aImMasq);
     }
+
+    if (EAMIsInit(&aTeta))
+    {
+        aCom = aCom + " +UseTeta=true +Teta=" + ToString(aTeta);
+    }
+
+
     if (Exe)
     {
           system_call(aCom.c_str());
