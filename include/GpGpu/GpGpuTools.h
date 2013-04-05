@@ -7,15 +7,10 @@
 #include <helper_math.h>
 #include <helper_functions.h>
 #include <helper_cuda.h>
-
-
 #include <sstream>     // for ostringstream
 #include <string>
 #include <iostream>
 #include <limits>
-
-using namespace std;
-
 #ifdef _WIN32
 #include <Lmcons.h>
 #else
@@ -25,11 +20,13 @@ using namespace std;
 #include <cmath>
 #endif
 
-#define DISPLAYOUTPUT
-
+using namespace std;
 typedef unsigned char pixel;
+
+#define DISPLAYOUTPUT
 #define TexFloat2Layered texture<float2,cudaTextureType2DLayered>
 
+enum Plans {XY,XZ,YZ,YX,ZX,ZY};
 
 template<class T> class CuHostData3D;
 
@@ -87,8 +84,15 @@ public:
     ///  \param         sample : saut dans l'affichage
     ///  \param         factor : facteur multiplicatif
     ///  \return        renvoie un pointeur sur le tableau resultant
+
+
+    ///	\brief			Obtenir la valeur dans un tableau en fonction de ses coordonnees
     template <class T>
-    static void			OutputArray(T* data, uint2 dim, uint offset = 1, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
+    static T			GetArrayValue(T* data, uint3 pt, uint3 dim);
+
+
+    template <class T>
+    static void			OutputArray(T* data, uint3 dim, uint plan = XY, uint level = 0, Rect rect = NEGARECT, uint offset = 3, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
 
     ///	\brief			Sortie console d'un tableau de donnees host cuda
     ///  \param         data : tableau host cuda
@@ -99,7 +103,7 @@ public:
     ///  \param         factor : facteur multiplicatif
     ///  \return        renvoie un pointeur sur le tableau resultant
     template <class T>
-    static void			OutputArray(CuHostData3D<T> &data, uint Z = 0, uint offset = 1, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
+    static void			OutputArray(CuHostData3D<T> &data, uint Z = 0, uint offset = 3, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
 
     ///	\brief			Sortie console formater d'une valeur
     /// \param          value : valeur a afficher
@@ -107,7 +111,7 @@ public:
     ///  \param         defaut : valeur affichee par un caractere speciale
     ///  \param         factor : facteur multiplicatif
     template <class T>
-    static void			OutputValue(T value, uint offset = 1, float defaut = 0.0f, float factor = 1.0f);
+    static void			OutputValue(T value, uint offset = 3, float defaut = 0.0f, float factor = 1.0f);
 
     ///	\brief			Retour chariot
     static void			OutputReturn(char * out = "");
@@ -196,24 +200,87 @@ void GpGpuTools::OutputValue( T value, uint offset, float defaut, float factor)
 }
 
 template <class T>
-void GpGpuTools::OutputArray( T* data, uint2 dim, uint offset, float defaut, float sample, float factor )
+T GpGpuTools::GetArrayValue(T* data, uint3 pt, uint3 dim)
 {
+    return data[to1D(pt,dim)];
+}
 
+
+template <class T>
+void GpGpuTools::OutputArray(T* data, uint3 dim, uint plan, uint level, Rect rect, uint offset, float defaut, float sample, float factor )
+{
 #ifndef DISPLAYOUTPUT
     return;
 #endif
+    if(rect == NEGARECT)
+    {
+        rect.pt0 = make_int2(0,0);
+        switch (plan) {
+        case XY:
+            rect.pt1.x = dim.x;
+            rect.pt1.y = dim.y;
+            break;
+        case XZ:
+            rect.pt1.x = dim.x;
+            rect.pt1.y = dim.z;
+            break;
+        case YZ:
+            rect.pt1.x = dim.y;
+            rect.pt1.y = dim.z;
+            break;
+        case YX:
+            rect.pt1.x = dim.y;
+            rect.pt1.y = dim.x;
+            break;
+        case ZX:
+            rect.pt1.x = dim.z;
+            rect.pt1.y = dim.x;
+            break;
+        case ZY:
+            rect.pt1.x = dim.z;
+            rect.pt1.y = dim.y;
+            break;
+        default:
+            break;
+        }
+    }
 
     uint2 p;
 
-    for (p.y = 0 ; p.y < dim.y; p.y+= (int)sample)
+    for (p.y = (uint)rect.pt0.y ; p.y < (uint)rect.pt1.y; p.y+= (int)sample)
     {
-        for (p.x = 0; p.x < dim.x ; p.x+= (int)sample)
+        for (p.x = (uint)rect.pt0.x; p.x < (uint)rect.pt1.x ; p.x+= (int)sample)
+        {
+            T value;
+            switch (plan) {
+            case XY:
+                value = GetArrayValue(data,make_uint3(p.x,p.y,level),dim);
+                break;
+            case XZ:
+                value = GetArrayValue(data,make_uint3(p.x,level,p.y),dim);
+                break;
+            case YZ:
+                value = GetArrayValue(data,make_uint3(level,p.x,p.y),dim);
+                break;
+            case YX:
+                value = GetArrayValue(data,make_uint3(p.y,p.x,level),dim);
+                break;
+            case ZX:
+                value = GetArrayValue(data,make_uint3(p.y,level,p.x),dim);
+                break;
+            case ZY:
+                value = GetArrayValue(data,make_uint3(level,p.y,p.x),dim);
+                break;
+            default:
+                value = defaut;
+                break;
+            }
 
-            OutputValue(data[to1D(p,dim)],offset,defaut,factor);
-
+            OutputValue(value,offset,defaut,factor);
+        }
         std::cout << "\n";
     }
-    std::cout << "------------------------------------------\n";
+    std::cout << "==================================================================================\n";
 }	
 
 
@@ -224,14 +291,6 @@ static void OutputArray(CuHostData3D<T> &data, uint Z, uint offset, float defaut
     OutputArray(data.pData() + Z * Sizeof(data.Dimension()),data.Dimension(),offset, defaut, sample, factor );
 
 }
-
-//template <int>
-//static void OutputArray(CuHostData3D<int> data, uint Z, uint offset, float defaut, float sample, float factor)
-//{
-
-//    OutputArray(data.pData() + Z * Sizeof(data.Dimension()),data.Dimension(),offset, defaut, sample, factor );
-
-//}
 
 template <class T>
 T* GpGpuTools::MultArray( T* data, uint2 dim, float factor )
@@ -375,8 +434,12 @@ public:
     /// \brief  Initialise la dimension de la structure 2D et le nombre de tableau
     /// \param  dimension : Dimension d initialisation de la structure 3D
     void	SetDimension(uint3 dimension);
-    uint	GetSize();
-    void	Output();
+    /// \brief  Renvoie la dimension de la structure 3D
+    uint3       GetDimension3D();
+
+    uint        GetSize();
+
+    void        Output();
 
 private:
 
@@ -703,28 +766,44 @@ T &CData3D<T>::operator [](int pt1D)
 /// \brief Tableau 3D d elements contenue la memoire du Host.
 /// La gestion memoire est realise par l API Cuda.
 /// La memoire allouee n'est pas pagine.
+
 template <class T> 
+
 class CuHostData3D : public CData3D<T>
 {
+
 public:
+
     CuHostData3D();
+
     /// \brief constructeur avec initialisation de la dimension de la structure
     /// \param dim : Dimension 2D a initialiser
     /// \param l : Taille de la 3eme dimension
     CuHostData3D(uint2 dim, uint l = 1);
+
+    /// \brief constructeur avec initialisation de la dimension de la structure
+    /// \param dim : Dimension 3D a initialiser
+    CuHostData3D(uint3 dim);
+
     ~CuHostData3D(){}
+
     bool Dealloc();
+
     bool Malloc();
+
     bool Memset(int val);
+
     /// \brief Remplie le tableau avec la valeur Value
     /// \param Value : valeur a remplir
     void Fill(T Value);
+
     /// \brief Remplie le tableau avec la valeur aleatoire pour chaque element
     /// \param min : valeur a remplir minimum
     /// \param max : valeur a remplir maximum
     void FillRandom(T min, T max);
+
     /// \brief Affiche un Z du tableau dans la console
-    void OutputValues(uint Z = 0, uint offset = 1, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
+    void OutputValues(uint level = 0, uint plan = XY, Rect rect = NEGARECT, uint offset = 3, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
 
 };
 
@@ -739,7 +818,16 @@ template <class T>
 CuHostData3D<T>::CuHostData3D( uint2 dim, uint l )
 {
     CData<T>::SetSizeofMalloc(0);
+    CGObject::SetType("CuHostData3D");
     CData3D<T>::Realloc(dim,l);
+}
+
+template <class T>
+CuHostData3D<T>::CuHostData3D(uint3 dim)
+{
+    CData<T>::SetSizeofMalloc(0);
+    CGObject::SetType("CuHostData3D");
+    CData3D<T>::Realloc(make_uint2(dim.x,dim.y),dim.z);
 }
 
 template <class T>
@@ -786,10 +874,9 @@ void CuHostData3D<T>::FillRandom(T min, T max)
 }
 
 template <class T>
-void CuHostData3D<T>::OutputValues(uint Z, uint offset, float defaut, float sample, float factor)
+void CuHostData3D<T>::OutputValues(uint level, uint plan,  Rect rect, uint offset, float defaut, float sample, float factor)
 {
-    T* p   = (CData3D<T>::pData());
-    GpGpuTools::OutputArray( p /*+ Z * CData3D<T>::GetDimension() */,CData3D<T>::GetDimension(),offset, defaut, sample, factor);
+    GpGpuTools::OutputArray(CData3D<T>::pData(), CData3D<T>::GetDimension3D(), plan, level, rect, offset, defaut, sample, factor);
 }
 
 template <class T>

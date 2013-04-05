@@ -126,8 +126,9 @@ std::string CGObject::Id()
 
 uint2 struct2D::GetDimension()
 {
-	return _dimension;
+    return _dimension;
 }
+
 
 uint2 struct2D::SetDimension( uint2 dimension )
 {
@@ -157,7 +158,12 @@ void struct2D::Output()
 
 void struct2DLayered::SetDimension( uint3 dimension )
 {
-	SetDimension(make_uint2(dimension),dimension.z);
+    SetDimension(make_uint2(dimension),dimension.z);
+}
+
+uint3 struct2DLayered::GetDimension3D()
+{
+    return make_uint3(GetDimension().x,GetDimension().y,GetNbLayer());
 }
 
 void struct2DLayered::SetDimension( uint2 dimension, uint nbLayer )

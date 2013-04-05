@@ -37,57 +37,57 @@
 struct pCorGpu
 {
 
-    /// \brief Le nombre de Z calculer en parrallele
-    uint	ZLocInter;
+    /// \brief  Le nombre de Z calculer en parrallele
+    uint        ZLocInter;
 
-    /// \brief Dimension du bloque terrain
-    uint2	dimTer;
-    /// \brief Dimension du bloque terrain + halo
-    uint2	dimDTer;
-    /// \brief Dimension du bloque terrain + halo sous echantilloné
-    uint2	dimSTer;
-    /// \brief Dimension de l'image la plus grande
-    uint2	dimImg;
-    /// \brief Dimension cache des calculs intermédiaires
-    uint2	dimCach;
-    /// \brief Dimension de la vignette
-    uint2	dimVig;
-    /// \brief Rayon de la vignette
-    uint2	rayVig;
-    /// \brief Taille de la vignette en pixel
-    uint	sizeVig;
-    /// \brief Taille du bloque terrain + halo
-    uint	sizeDTer;
-    /// \brief taille reel du terrain
-    uint	sizeTer;
-    /// \brief Taille du bloque terrain + halo sous echantilloné
-    uint	sizeSTer;
-    /// \brief Taille du cache
-    uint	sizeCach;
-    /// \brief Taille du cache des tous les Z
-    uint	sizeCachAll;
-    /// \brief Pas echantillonage du terrain
-    uint	sampProj;
-    /// \brief Valeur incorrect
-    float	floatDefault;
-    /// \brief Valeur entiere incorrect
-    int	IntDefault;
-    /// \brief Nombre d'images
-    uint	nbImages;
-    /// \brief Rectangle du terrain dilaté du rayon de la vignette
-    Rect	rDTer;
-    /// \brief Rectangle du terrain
-    Rect	rTer;
-    /// \brief epsilon
-    float	mAhEpsilon;
+    /// \brief  Dimension du bloque terrain
+    uint2       dimTer;
+    /// \brief  Dimension du bloque terrain + halo
+    uint2       dimDTer;
+    /// \brief  Dimension du bloque terrain + halo sous echantilloné
+    uint2       dimSTer;
+    /// \brief  Dimension de l'image la plus grande
+    uint2       dimImg;
+    /// \brief  Dimension cache des calculs intermédiaires
+    uint2       dimCach;
+    /// \brief  Dimension de la vignette
+    uint2       dimVig;
+    /// \brief  Rayon de la vignette
+    uint2       rayVig;
+    /// \brief  Taille de la vignette en pixel
+    uint        sizeVig;
+    /// \brief  Taille du bloque terrain + halo
+    uint        sizeDTer;
+    /// \brief  taille reel du terrain
+    uint        sizeTer;
+    /// \brief  Taille du bloque terrain + halo sous echantilloné
+    uint        sizeSTer;
+    /// \brief  Taille du cache
+    uint        sizeCach;
+    /// \brief  Taille du cache des tous les Z
+    uint        sizeCachAll;
+    /// \brief  Pas echantillonage du terrain
+    uint        sampProj;
+    /// \brief  Valeur incorrect
+    float       floatDefault;
+    /// \brief  Valeur entiere incorrect
+    int         IntDefault;
+    /// \brief  Nombre d'images
+    uint        nbImages;
+    /// \brief  Rectangle du terrain dilaté du rayon de la vignette
+    Rect        rDTer;
+    /// \brief  Rectangle du terrain
+    Rect        rTer;
+    /// \brief  Epsilon
+    float       mAhEpsilon;
 
-    /// \brief Renvoie le rectangle du terrain dilaté du rayon de la vignette
-    Rect	RDTer() { return rDTer; }
-    /// \brief Renvoie le rectangle du terrain
-    Rect	RTer() { return rTer; }
+    /// \brief  Renvoie le rectangle du terrain dilaté du rayon de la vignette
+    Rect        RDTer() { return rDTer; }
+    /// \brief  Renvoie le rectangle du terrain
+    Rect        RTer() { return rTer; }
 
     /// \brief  Initialise le rectangle du terrain et le nombre de Z a calculer
-    void SetDimension(Rect Ter, uint Zinter)
+    void        SetDimension(Rect Ter, uint Zinter)
     {
 
         rTer		= Ter;

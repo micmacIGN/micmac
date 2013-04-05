@@ -1363,12 +1363,15 @@ if (0)
 				if (ZtoCopy != 0 && anZComputed < aZMaxTer)
 				{
 					setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,hVolumeCost.pData(), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
-					anZComputed += ZtoCopy;
-					IMmGg.SetZCToCopy(0);
+
                     // DEBUT TEST OPTIMISATION
                     int pitchZ =  size(IMmGg.Param().RTer().dimension());
-                    memcpy(hVolumeCostGlobal.pData() + anZComputed * pitchZ,hVolumeCost.pData(), pitchZ * ZtoCopy * sizeof(float));
+                    memcpy(hVolumeCostGlobal.pData() + (anZComputed - aZMinTer) * pitchZ,hVolumeCost.pData(), pitchZ * ZtoCopy * sizeof(float));
                     // FIN TEST OPTIMISATION
+
+                    anZComputed += ZtoCopy;
+					IMmGg.SetZCToCopy(0);
+
 				}
 			}
 			else
@@ -1401,7 +1404,7 @@ if (0)
 
         // DEBUT TEST OPTIMISATION
 
-        IGpuOpt.StructureVolumeCost(hVolumeCostGlobal);
+        IGpuOpt.StructureVolumeCost(hVolumeCostGlobal,IMmGg.Param().floatDefault);
 
         //GpGpuTools::OutputArray(hVolumeCostGlobal.pData(),hVolumeCost.GetDimension(),3,IMmGg.Param().floatDefault);
         hVolumeCostGlobal.Dealloc();

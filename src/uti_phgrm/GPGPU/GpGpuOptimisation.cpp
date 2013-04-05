@@ -9,11 +9,10 @@ InterfMicMacOptGpGpu::InterfMicMacOptGpGpu(){}
 
 InterfMicMacOptGpGpu::~InterfMicMacOptGpGpu(){}
 
-void InterfMicMacOptGpGpu::StructureVolumeCost(CuHostData3D<float> &volumeCost)
+void InterfMicMacOptGpGpu::StructureVolumeCost(CuHostData3D<float> &volumeCost, float defaultValue)
 {
-    uint    nbZ         = volumeCost.GetNbLayer();
-    uint2   dimVolCost  = volumeCost.GetDimension();
-    uint2   dimRVolCost = make_uint2(dimVolCost.x*nbZ,dimVolCost.y);
+    uint3   dimVolCost  = make_uint3(volumeCost.GetDimension().x,volumeCost.GetDimension().y,volumeCost.GetNbLayer());
+    uint2   dimRVolCost = make_uint2(dimVolCost.x*dimVolCost.z,dimVolCost.y);
     uint3   ptTer;
 
     _volumeCost.SetName("_volumeCost");
@@ -21,16 +20,21 @@ void InterfMicMacOptGpGpu::StructureVolumeCost(CuHostData3D<float> &volumeCost)
 
     for(ptTer.x = 0; ptTer.x < dimVolCost.x; ptTer.x++)
         for(ptTer.y = 0; ptTer.y < dimVolCost.y; ptTer.y++)
-            for(ptTer.z = 0; ptTer.z < nbZ; ptTer.z++)
+            for(ptTer.z = 0; ptTer.z < dimVolCost.z; ptTer.z++)
             {
-                uint2 ptRTer = make_uint2(nbZ * ptTer.x + ptTer.z,ptTer.y);
-                _volumeCost[ptRTer] = volumeCost[ptTer];
+                uint2 ptRTer = make_uint2(dimVolCost.z * ptTer.x + ptTer.z,ptTer.y);
+
+                //_volumeCost[ptRTer] = volumeCost[ptTer] == defaultValue ? 1 : abs(1.0f-volumeCost[ptTer]);
+                _volumeCost[ptRTer] = (volumeCost[ptTer] == defaultValue || volumeCost[ptTer] == 0) ? 2 : volumeCost[ptTer];
             }
 
-    //_volumeCost.OutputValues(0,3,0,32);
-    //volumeCost.OutputValues(0,3,0);
+//    volumeCost.OutputValues(0,XY,NEGARECT,3,defaultValue);
+//    volumeCost.OutputValues(0,XZ,NEGARECT,3,defaultValue);
+//    volumeCost.OutputValues(0,ZY,NEGARECT,3,defaultValue);
+//    _volumeCost.OutputValues(0,XY,Rect(0,0,32,dimVolCost.y),3,defaultValue);
 
-    OptimisationOneDirection(_volumeCost, nbZ, dimVolCost);
+
+    OptimisationOneDirection(_volumeCost, dimVolCost, defaultValue);
 
     //_volumeCost.Dealloc();
 }

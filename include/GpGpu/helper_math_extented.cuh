@@ -11,6 +11,8 @@
 #define SUPPRESS_NOT_USED_WARN
 #endif
 
+#define NEGARECT Rect(-1,-1,-1,-1)
+
 /// \struct Rect
 /// \brief Cette structure represente un rectangle definie par deux points
 struct Rect
@@ -58,6 +60,10 @@ struct Rect
 	uint2 dimension()
 	{
 		return make_uint2(pt1-pt0);
+    }
+
+    bool operator==(const Rect &other) const {
+        return ( this->pt0.x == other.pt0.x && this->pt0.y == other.pt0.y && this->pt1.x == other.pt1.x && this->pt1.y == other.pt1.y);
     }
 
 #ifdef __cplusplus
@@ -264,6 +270,11 @@ inline __host__ __device__ uint to1D( uint2 c2D, uint2 dim)
 inline __host__ __device__ uint to1D( int2 c2D, uint2 dim)
 {
 	return c2D.y * dim.x + c2D.x;
+}
+
+inline __host__ __device__ uint to1D( uint3 c2D, uint3 dim)
+{
+    return (dim.y * c2D.z + c2D.y) * dim.x + c2D.x;
 }
 
 
