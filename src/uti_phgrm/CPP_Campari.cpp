@@ -107,7 +107,7 @@ int Campari_main(int argc,char ** argv)
    std::string aCom =     MM3dBinFile( "Apero" )
                        +  XML_MM_File("Apero-Compense.xml")
                        +  std::string(" DirectoryChantier=") + aDir + " "
-                       +  std::string(" +SetIm=") + aPat + " " 
+                       +  std::string(" +SetIm=") + QUOTE(aPat) + " " 
                        +  std::string(" +AeroIn=-") + AeroIn + " " 
                        +  std::string(" +AeroOut=-") + AeroOut + " " 
                       ;

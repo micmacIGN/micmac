@@ -5,6 +5,7 @@
     <DicoLoc>
          <Symb> Im1=XXXX  </Symb>
          <Symb> Im2=XXXX  </Symb>
+         <Symb> Masq=XXXX  </Symb>
 
 
 
@@ -15,12 +16,12 @@
          <Symb> Teta0=0 </Symb>
          <Symb> UseMasq=false </Symb>
          <Symb> UseTeta=false </Symb>
+         <Symb> RegulBase=0.3 </Symb>
 
 
          <Symb> CorrelMin=0.5 </Symb>
          <Symb> GammaCorrel=2 </Symb>
 
-         <Symb> Regul=0.5 </Symb>
          <Symb> PdsF=0.1 </Symb>
 
 
@@ -38,6 +39,7 @@
          <eSymb> NbDirTot=* 2 ${NbDir} </eSymb>
 
 
+         <eSymb> Regul=* ${RegulBase}  ? ${UseTeta} 3 1 </eSymb>
     </DicoLoc>
 <!-- *************************************************************
 Parametres lies au terrain "physique", independamment de la prise de vue
@@ -163,26 +165,39 @@ L'ordre des resolutions : les plus basses aux plus grandes.
 
         </EtapeMEC>
 
-
+         
         <EtapeMEC>
            <DeZoom > 1 </DeZoom>
            <Px1Pas>   0.8  </Px1Pas>
            <Px2Pas>   0.8  </Px2Pas>
+           <Px1Regul> 2.0    </Px1Regul>
+           <Px2Regul> 2.0   </Px2Regul>
+           <SsResolOptim> 16 </SsResolOptim>
         </EtapeMEC>
+
         <EtapeMEC>
            <DeZoom > 1 </DeZoom>
            <Px1Pas>   0.4  </Px1Pas>
            <Px2Pas>   0.4  </Px2Pas>
+           <Px1Regul> 2.0    </Px1Regul>
+           <Px2Regul> 2.0   </Px2Regul>
+           <SsResolOptim> 8 </SsResolOptim>
         </EtapeMEC>
         <EtapeMEC>
            <DeZoom > 1 </DeZoom>
            <Px1Pas>   0.2  </Px1Pas>
            <Px2Pas>   0.2  </Px2Pas>
+           <Px1Regul> 1.0    </Px1Regul>
+           <Px2Regul> 1.0   </Px2Regul>
+           <SsResolOptim> 8 </SsResolOptim>
         </EtapeMEC>
         <EtapeMEC>
            <DeZoom > 1 </DeZoom>
            <Px1Pas>   0.1  </Px1Pas>
            <Px2Pas>   0.1  </Px2Pas>
+           <Px1Regul> 1.0    </Px1Regul>
+           <Px2Regul> 1.0   </Px2Regul>
+           <SsResolOptim> 8 </SsResolOptim>
         </EtapeMEC>
 
         <EtapeMEC>
@@ -190,19 +205,6 @@ L'ordre des resolutions : les plus basses aux plus grandes.
            <Px1Pas>        0.05  </Px1Pas>
            <Px2Pas>        0.05  </Px2Pas>
         </EtapeMEC>
-
-<!--
-        <EtapeMEC>
-           <DeZoom > 1 </DeZoom>
-           <Px1DilatAlti>  4    </Px1DilatAlti>
-           <Px1DilatPlani> 4    </Px1DilatPlani>
-           <Px2DilatAlti>  4    </Px2DilatAlti>
-           <Px2DilatPlani> 4    </Px2DilatPlani>
-           <Px1Pas>        0.01  </Px1Pas>
-           <Px2Pas>        0.01  </Px2Pas>
-        </EtapeMEC>
--->
-
     </Section_MEC>
 
     <Section_Results >
