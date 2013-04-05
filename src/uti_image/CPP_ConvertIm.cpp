@@ -45,26 +45,20 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int ConvertIm_main(int argc,char ** argv)
 {
-    ELISE_ASSERT(argc>=2,"Pas assez d'arg");
-
-
+    MMD_InitArgcArgv(argc,argv);
     Tiff_Im::SetDefTileFile(1000000);
  
 
-    std::string aNameIn = argv[1];
-    Tiff_Im aTifIn = Tiff_Im::BasicConvStd(aNameIn);
+    std::string aNameIn ;
 
     INT aReducX=0;
     INT aReducY=0;
     INT aReducXY=0;
     INT aVisu=0;
-    GenIm::type_el aTypeIn = aTifIn.type_el();
-    GenIm::type_el aTypeOut = aTypeIn;
+    GenIm::type_el aTypeOut ;
     std::string aNameTypeOut ="";
 
-    INT aNbChIn = aTifIn.nb_chan();
-    Tiff_Im::PH_INTER_TYPE aPhInterpIn = aTifIn.phot_interp();
-    Tiff_Im::PH_INTER_TYPE aPhInterpOut = aPhInterpIn;
+    Tiff_Im::PH_INTER_TYPE aPhInterpOut ;
     std::string aNamePITOut ="";
 
     std::string aNameOut;
@@ -72,8 +66,7 @@ int ConvertIm_main(int argc,char ** argv)
 
     Pt2di aP0(0,0);
 
-    Pt2di aSzIn = aTifIn.sz();
-    Pt2di aSzOut = aSzIn;
+    Pt2di aSzOut ;
     Pt2di aSzTF(-1,-1);
 
     REAL aDyn=1.0;
@@ -85,6 +78,7 @@ int ConvertIm_main(int argc,char ** argv)
     std::vector<int> aVPermut;
     int aNoTile = 0;
     std::string aF2 ="";
+
 
     ElInitArgMain
     (
@@ -108,6 +102,14 @@ int ConvertIm_main(int argc,char ** argv)
                     << EAM(aVPermut,"Permut",true)
                     << EAM(aF2,"F2",true)
     );	
+
+    Tiff_Im aTifIn = Tiff_Im::BasicConvStd(aNameIn);
+    INT aNbChIn = aTifIn.nb_chan();
+
+    if (! EAMIsInit(&aTypeOut)) aTypeOut =aTifIn.type_el();
+    if (! EAMIsInit(&aPhInterpOut)) aPhInterpOut =  aTifIn.phot_interp();
+    if (! EAMIsInit(&aSzOut)) aSzOut = aTifIn.sz();
+
     if (aReducXY)
     {
         aReducX = 1;
