@@ -548,9 +548,14 @@ void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,in
    }
 
 
+  int aPer =  100000;
   static int aCpt=0; aCpt++;
-  if ((aCpt%100000)==0)
+  if ((aCpt%aPer)==0)
+  {
      std::cout << "CPT= " << aCpt << "\n";
+     if (0)
+        TheWTiePCor->DumpImage("DumpMMTieP_"+ToString(aCpt/aPer)+".tif");
+  }
 
 }
 

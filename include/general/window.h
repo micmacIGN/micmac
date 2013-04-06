@@ -201,6 +201,9 @@ class Video_Win   :  public El_Window
     friend class ElXim;
     public :
 
+        void DumpImage(const std::string & aName);
+
+
          void raise();
          void lower();
          void move_to(const Pt2di&);
