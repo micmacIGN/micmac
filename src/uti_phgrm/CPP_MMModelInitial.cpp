@@ -48,6 +48,9 @@ int MMInitialModel_main(int argc,char ** argv)
     bool         Visu = false;
     bool         DoPly = false;
 
+    int aZoom = 8;
+    double aReducePly=3.0;
+
 
     ElInitArgMain
     (
@@ -57,6 +60,8 @@ int MMInitialModel_main(int argc,char ** argv)
 	LArgMain()  
                     << EAM(Visu,"Visu",true,"Interactif Visualization (tuning purpose, programm will stop at breakpoint)")
                     << EAM(DoPly,"DoPly",true,"Generate ply ,for tuning purpose, (Def=false)")
+                    << EAM(aZoom,"Zoom",true,"Zoom of computed models, (def=8)")
+                    << EAM(aReducePly,"ReduceExp",true,"Down scaling of cloud , XML and ply, (def = 3)")
     );
 	
 	#if (ELISE_windows)
@@ -84,7 +89,7 @@ int MMInitialModel_main(int argc,char ** argv)
 
     for (int aKIm=0 ; aKIm<int(aSetIm->size()) ; aKIm++)
     {
-           std::string aCom =   MM3dBinFile("MICMAC")
+          std::string aCom =   MM3dBinFile("MICMAC")
                               //  + XML_MM_File("MM-ModelInitial.xml")
                               + XML_MM_File("MM-TieP.xml")
                               + std::string(" WorkDir=") +aDir +  std::string(" ")
@@ -94,9 +99,14 @@ int MMInitialModel_main(int argc,char ** argv)
                               + " +DoPly=" + ToString(DoPly) + " "
                     ;
 
-           if (Visu)
+          if (Visu)
               aCom = aCom + " +Visu=" + ToString(Visu) + " ";
 
+          if (EAMIsInit(&aZoom))
+             aCom = aCom + " +Zoom=" + ToString(aZoom);
+
+          if (EAMIsInit(&aReducePly))
+             aCom = aCom + " +ReduceExp=" + ToString(aReducePly);
           std::cout << "Com = " << aCom << "\n";
           aLCom.push_back(aCom);
   }

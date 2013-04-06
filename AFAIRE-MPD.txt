@@ -8,13 +8,16 @@ Prochaine lettre :
 
  * ChImSec ,  Initial +? Auto
 
+ * Chapter : interactive tool
+
+ * :
+
 =====================================================
 
 Probleme homogeneite Resol & Focal dans ChImSec
-
 paralleliisation des devlt tiff
 PasIsPixel en Geom Fais-Z  (et Fais-Prof ???)
-TypePyramImage pas actif sur jeu de Marseille ????
+NKS & Tile_0_0 : pour que l'utilisateur puisse importer ses mosaique sans les nommer
 
 
 

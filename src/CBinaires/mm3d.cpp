@@ -193,7 +193,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("MMCalcSzWCor",CalcSzWCor_main," Compute Image of Size of correlation windows (Atomic tool)",cArgLogCom(2)));
        aRes.push_back(cMMCom("MpDcraw",MpDcraw_main," Interface to dcraw"));
        aRes.push_back(cMMCom("MMInitialModel",MMInitialModel_main,"Initial Model for MicMac ",cArgLogCom(2)));
-       aRes.push_back(cMMCom("MMAllAuto",MMAllAuto_main,"Full automatic version for 1 view point, test mode ",cArgLogCom(2)));
+       aRes.push_back(cMMCom("MMTestAllAuto",MMAllAuto_main,"Full automatic version for 1 view point, test mode ",cArgLogCom(2)));
        aRes.push_back(cMMCom("MM2DPosSism",MM2DPostSism_Main,"Simplified interface for post 2D post sismic deformation ",cArgLogCom(2)));
        aRes.push_back(cMMCom("MMMergeCloud",MM_FusionNuage_main,"Merging of low resol cloud, in preparation 2 MicMac ",cArgLogCom(2)));
 

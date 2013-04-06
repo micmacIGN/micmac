@@ -111,6 +111,7 @@ void cAppliSM::GetPolyg(Clik aCl)
 void  cAppliSM::DumpImage(const std::string & aName)
 {
 
+/*
     Pt2di aSz = mW->sz();
 
     ElXim  anIm (*mW,aSz);
@@ -128,6 +129,8 @@ void  cAppliSM::DumpImage(const std::string & aName)
         aSz,
         Virgule(aIR.in(),aIG.in(),aIB.in())
    );
+*/
+   mW->DumpImage(aName);
    std::cout << "Dumped " << aName << "\n"; getchar();
 
 }

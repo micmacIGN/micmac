@@ -253,7 +253,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                      <SeuilMasqExport> 0.02 </SeuilMasqExport> 
                      <Name> BSH-${Im1}.tif </Name>
                      <NameNuage> RN${Im1}  </NameNuage>
-                     <ScaleNuage> 3.0  </ScaleNuage>
+                     <ScaleNuage> ${ReduceExp}  </ScaleNuage>
                 </DoImageBSurH>
         </EtapeMEC> 
 
