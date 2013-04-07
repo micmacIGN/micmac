@@ -44,6 +44,10 @@ if (NOT ${BUILD_ONLY_ELISE})
 	add_executable(Dequant  Dequant.c)
 	INSTALL(TARGETS Dequant RUNTIME DESTINATION ${Install_Dir})
 
+	add_executable(vic  vic.c)
+	INSTALL(TARGETS vic RUNTIME DESTINATION ${Install_Dir})
+
+
 	add_executable(Devlop  Devlop.c)
 	INSTALL(TARGETS Devlop RUNTIME DESTINATION ${Install_Dir})
 

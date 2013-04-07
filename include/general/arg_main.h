@@ -489,6 +489,8 @@ int MM2DPostSism_Main(int argc,char ** argv);
 int CheckDependencies_main(int argc,char ** argv);
 int NuageBascule_main(int argc,char ** argv);
 int  cod_main(int argc,char ** argv);
+int  vicod_main(int argc,char ** argv);
+int  genmail_main(int argc,char ** argv);
 int Ori_Txt2Xml_main(int argc,char ** argv);
 int GCP_Txt2Xml_main(int argc,char ** argv);
 int VideoVisage_main(int argc,char ** argv);

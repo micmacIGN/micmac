@@ -55,8 +55,9 @@ Im1D_U_INT1 ImMajic()
 Im1D_U_INT1 Majic = ImMajic();
 string PostCode("dcd");
 
-void code_file(const char * name,bool coder)
+bool code_file(const char * name,bool coder,std::string * ResNewName=0)
 {
+    std::string aStrName(name);
     bool dcdpost = false;
 
     string NewName (name);
@@ -70,7 +71,7 @@ void code_file(const char * name,bool coder)
     }
 
     if (coder == dcdpost)
-       return;
+       return false;
 
 
     if (coder)
@@ -78,8 +79,15 @@ void code_file(const char * name,bool coder)
     else
         NewName = StdPrefix(name); 
 
+    if (ResNewName) * ResNewName = NewName;
 
-   string MV = string(SYS_MV)+ " \"" + name + string("\" \"") + NewName +string("\"");
+    std::string aSauv = "Dup_" + aStrName + ".dup";
+    std::string aCp = "cp " + aStrName  + " " + aSauv;
+    VoidSystem(aCp.c_str());
+
+
+
+    string MV = string(SYS_MV)+ " \"" + name + string("\" \"") + NewName +string("\"");
 
     INT NbOctet = sizeofile(name);
     Elise_File_Im  F(name, Pt2di(NbOctet,1),GenIm::u_int1);
@@ -92,6 +100,9 @@ void code_file(const char * name,bool coder)
 
     // cout << MV.c_str() << "\n";
     VoidSystem(MV.c_str());
+    ELISE_fp::RmFile(aSauv);
+
+    return true;
 }
 
 class FileCode : public ElActionParseDir
@@ -112,12 +123,8 @@ class FileCode : public ElActionParseDir
       bool _coder;
 };
 
-
-
 int cod_main(int argc,char ** argv)
 {
-
-
     string Name;
     INT decoder = 0;
 
@@ -134,7 +141,311 @@ int cod_main(int argc,char ** argv)
     return 0;
 }
 
+void decoder_force(const char * aName,std::string & aNew)
+{
+    bool aOk = code_file(aName,false,&aNew);
+    if (! aOk)
+    {
+        std::cout << "For name " << aName << "\n";
+        ELISE_ASSERT(false,"cannot decode");
+    }
+}
 
+void coder_force(const char * aName)
+{
+    bool aOk = code_file(aName,true);
+    if (! aOk)
+    {
+        std::cout << "For name " << aName << "\n";
+        ELISE_ASSERT(false,"cannot code");
+    }
+}
+
+
+int vicod_main(int argc,char ** argv)
+{
+    string Name;
+    std::string anEdit = "vi";
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain() 	<< EAM(Name) ,
+        LArgMain() 	 << EAM(anEdit,"editor",true)
+    );	
+
+    string aNewName;
+    decoder_force(Name.c_str(),aNewName);
+
+    std::string  aCom = anEdit + " " + aNewName;
+    system_call(aCom.c_str());
+
+    coder_force(aNewName.c_str());
+
+    return 0;
+}
+
+
+//  =========================== GESTION DES ADRESSES MAIL =======================
+
+class cOneEntryMail
+{
+     public : 
+         bool  operator < (const cOneEntryMail & anE2) const
+         {
+               if (mBlackList != anE2.mBlackList)  return mBlackList;
+
+               if (mAffil <anE2.mAffil) return true;
+               if (mAffil >anE2.mAffil) return false;
+               return mName < anE2.mName;
+         }
+         cOneEntryMail(const std::string &,bool IsBlackL);
+         std::string  mAdr;
+         bool         mBlackList;
+         std::string  mId; 
+         std::string  mName;
+         std::string  mAffil;
+};
+
+class cCmpOEM
+{
+    public :
+       bool operator() (const cOneEntryMail * anE1,const cOneEntryMail * anE2)
+       {
+            return (*anE1) < (*anE2);
+       }
+};
+
+
+
+class  cFoncCarBool
+{
+     public :
+        cFoncCarBool  (bool (*aF)(int))
+        {
+            for (int aC=0 ; aC<256 ; aC++)
+               mLut[aC] = aF(aC);
+        }
+        bool operator() (int aC) {return (aC>=0)&&(aC<256) && (mLut[aC]);}
+      private :
+        bool mLut[256];
+};
+
+
+
+bool FoncIsMailSep(int aC)
+{
+   
+   return     isblank(aC)
+           || (aC==',')
+           || (aC==';')
+           || (aC=='<')
+           || (aC=='>')
+           || (aC==':')
+           || (aC=='\'')
+           || (aC=='/')
+           || (aC=='+')
+           || (aC=='"')
+           || (aC=='(')
+           || (aC==')')
+           || (aC=='=')
+           || (aC=='?')
+           || (aC=='[')
+           || (aC==']')
+           || (aC=='#')
+           || (aC=='*')
+/*
+           || (aC=='{')
+           || (aC=='}')
+*/
+           || (!isascii(aC))
+           || (aC==10)
+          ;
+}
+
+cFoncCarBool IsMailSep(FoncIsMailSep);
+
+bool FoncIsMailCar(int aC)
+{
+   return     isalnum(aC)
+           || (aC=='.')
+           || (aC=='@')
+           || (aC=='-')
+           || (aC=='_');
+}
+cFoncCarBool IsMailCar(FoncIsMailCar);
+
+
+
+
+
+
+cOneEntryMail::cOneEntryMail
+(
+   const std::string & anAdr,
+   bool IsBlackL
+) :
+   mAdr (anAdr),
+   mBlackList (IsBlackL)
+{
+   for (const char * aC= mAdr.c_str() ; *aC ; aC++)
+   {
+         mId += isalpha(*aC) ? tolower(*aC) : *aC;
+   }
+   bool Ok = SplitIn2ArroundCar(mId,'@',mName,mAffil,false);
+   if (!Ok)
+   {
+        std::cout << "For adr " << mAdr << "\n";
+        ELISE_ASSERT(false,"cOneEntryMail cannot split");
+   }
+
+   // std::cout << IsBlackL << " Id=[" << mId << "] Name=["  << mName << "] Affil=[" << mAffil << "]\n";
+}
+
+
+typedef enum
+{
+   eModeGMTest,
+   eModeGMCreate
+}
+eTypeGMFile;
+
+class cGenerateMail
+{
+     public :
+        cGenerateMail(int argc,char ** argv);
+     private :
+
+        void ParseFile(const std::string aName,bool aTest);
+
+        std::string mDir;
+        cInterfChantierNameManipulateur * mICNM;
+        const cInterfChantierNameManipulateur::tSet *mNameFile;
+
+        std::map <std::string,cOneEntryMail *> mDicE;
+        std::vector<cOneEntryMail *>           mVE;
+};
+
+
+void cGenerateMail::ParseFile(const std::string aName,bool aTest)
+{
+    bool aBlackL = (aName=="Black-Liste.txt.dcd");
+    std::string aNewName;
+
+    decoder_force(aName.c_str(),aNewName);
+    FILE * aFP = FopenNN(aNewName,"r","cGenerateMail::open");
+
+    int aC;
+    std::string anAdr;
+    int aNbArr=0;
+    while ((aC=fgetc(aFP)) != EOF)
+    {
+          if (aTest)
+          {
+               std::cout << char(aC) ;
+          }
+          bool aSep = IsMailSep(aC);
+          bool aCar = IsMailCar(aC);
+
+          if (aSep==aCar)
+          {
+               std::cout << "\n";
+               std::cout << "in file " << aName << "\n";
+               std::cout << " C= " << char(aC) << " I="  << int(aC) << "\n";
+               fclose(aFP);
+               coder_force(aNewName.c_str());
+               ELISE_ASSERT(false,"Unexptecd char");
+          }
+
+          if (aSep)
+          {
+             if (aNbArr==1)
+             {
+                  cOneEntryMail  anEntr(anAdr,aBlackL);
+                  if (! mDicE[anEntr.mId])  
+                  {
+                      mDicE[anEntr.mId] = new cOneEntryMail(anEntr);
+                      mVE.push_back(mDicE[anEntr.mId]);
+                  }
+                  else
+                  {
+                        std::cout << "Multiple " << anAdr << "\n";
+                  }
+                  if (anEntr.mBlackList)
+                     mDicE[anEntr.mId]->mBlackList = true;
+             }
+             anAdr = "";
+             aNbArr=0;
+          }
+          if (aCar)
+          {
+              anAdr += aC;
+              if (aC=='@') 
+                 aNbArr++;
+          }
+    }
+
+    fclose(aFP);
+    coder_force(aNewName.c_str());
+}
+
+
+
+
+cGenerateMail::cGenerateMail(int argc,char ** argv) :
+    mDir (MMDir() + "Documentation/Mailing/"),
+    mICNM (cInterfChantierNameManipulateur::BasicAlloc(mDir)),
+    mNameFile (mICNM->Get(".*\\.dcd"))
+{
+    for (int aKN=0 ; aKN<int(mNameFile->size()) ; aKN++)
+    {
+        std::string aName = (*mNameFile)[aKN];
+        ParseFile(aName,false);
+        std::cout << "========================= Name File :: " << aName << "\n";
+    }
+
+    cCmpOEM TheCmp;
+    std::sort(mVE.begin(),mVE.end(),TheCmp);
+
+    FILE * aFP =0;
+    int aCptF =0; 
+    int aCptInF =0; 
+    int aNbByF=300;
+    for (int aK=0 ; aK<int(mVE.size()) ; aK++)
+    {
+         if (aFP==0)
+         {
+              aFP = FopenNN("MailList_"+ToString(aCptF)+".txt","w","MailList::open");
+         }
+         if (! mVE[aK]->mBlackList)
+         {
+             fprintf(aFP,"%s",mVE[aK]->mAdr.c_str());
+             if ((aCptInF==aNbByF) || ((aK+1)==int(mVE.size())))
+             {
+                  fprintf(aFP,"\n");
+                  fclose(aFP);
+                  aFP =0;
+                  aCptF++;
+                  aCptInF=0;
+             }
+             else
+             {
+                  aCptInF++;
+                  fprintf(aFP,",\n");
+             }
+         }
+    }
+}
+
+
+int  genmail_main(int argc,char ** argv)
+{
+   MMD_InitArgcArgv(argc,argv);
+
+   cGenerateMail anAppli(argc,argv);
+
+   return 1;
+}
 
 
 
