@@ -41,6 +41,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 namespace NS_ParamMICMAC
 {
 
+bool IsPTest(const Pt2di & aP) {return aP == Pt2di(40,40);}
+
 Pt2di Px2Point(int * aPx) { return Pt2di(aPx[0],0); }
 int CostR2I(double aCost) { return round_ni(aCost*1e4); }
 
@@ -205,7 +207,6 @@ public :
                             + mCostL2 * ElSquare(mNb)
                             )
                         );
-            // std::cout << "COST [" << mNb << "]=" <<  mTabul.back() << "\n";
         }
         return mTabul[aDx];
     }
@@ -233,7 +234,7 @@ public :
     void Local_SolveOpt(Im2D_U_INT1 aImCor);
 
 
-    Im2D_INT2     ImRes() {return mImRes;}
+    // Im2D_INT2     ImRes() {return mImRes;}
 
 private :
 
@@ -264,12 +265,10 @@ private :
     int                                mNbDir;
     double                             mPdsProgr;
 
-    double mCostRegul[2];              // MODIF
-    double mCostRegul_Quad[2];         // MODIF
 
 
-    Im2D_INT2     mImRes;
-    INT2 **       mDataImRes;
+    // Im2D_INT2     mImRes;
+    // INT2 **       mDataImRes;
 
 };
 static cGBV2_CelOptimProgDyn aCelForInit;
@@ -300,14 +299,15 @@ cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
         mYMax.data(),
         aCelForInit
         ),
-    mLMR                 (mSz),
-    mImRes               (mSz.x,mSz.y),
-    mDataImRes           (mImRes.data())
+    mLMR                 (mSz)
+    // mImRes               (mSz.x,mSz.y),
+    // mDataImRes           (mImRes.data())
 {
 }
 
 void cGBV2_ProgDynOptimiseur::Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int aLabel)
 {
+//std::cout << "LSC " << aCost << " " << CostR2I(aCost) << "\n";
     mMatrCel[aPTer][Px2Point(aPX)].SetCostInit(CostR2I(aCost));
 }
 
@@ -578,9 +578,13 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
 void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 {
 
-   int aNbDir = 7;
-   double aPenteMax = 1.0;
-   double aRegul    = 0.1;
+    // double aVPentes[theDimPxMax];
+    const cModulationProgDyn &  aModul = mEtape.EtapeMEC().ModulationProgDyn().Val();
+
+    // std::cout << " ZRrg " << mCostRegul[0] << " Pente " <<  aModul.Px1PenteMax().Val() << "\n";
+
+   double aPenteMax = aModul.Px1PenteMax().Val();
+   double aRegul    =  mCostRegul[0];
    double aRegul_Quad = 0.0;
     //=================
     double aVPentes[theDimPxMax];
@@ -601,8 +605,19 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
         mMaxEc[aKP] = ElMax(1,round_ni(aPente));
     }
 
-    SolveOneEtape(aNbDir);
 
+     
+    for 
+    (
+        std::list<cEtapeProgDyn>::const_iterator itE=aModul.EtapeProgDyn().begin();
+        itE!=aModul.EtapeProgDyn().end();
+        itE++
+    )
+    {
+        SolveOneEtape(itE->NbDir().Val());
+    }
+
+Im2D_INT4 aDupRes(mSz.x,mSz.y);
 
     {
         Pt2di aPTer;
@@ -628,11 +643,23 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                     }
                 }
                 // MODIF
-                mDataImRes[aPTer.y][aPTer.x] = aPRXMin.x ;
+                mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x ;
+aDupRes.data()[aPTer.y][aPTer.x] = aPRXMin.x ;
+
+
             }
         }
 
     }
+
+
+if (0)
+{
+    
+   Video_Win aW = Video_Win::WStd(mSz,5.0);
+   ELISE_COPY(aW.all_pts(),aDupRes.in()*10,aW.ocirc());
+getchar();
+}
 }
 
 cSurfaceOptimiseur * cSurfaceOptimiseur::AllocAlgoTestGPU

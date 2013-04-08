@@ -3,11 +3,11 @@
 #include "GpGpu/CudaRefTexture.cuh"
 
 
-/// \file cudaAppliMicMac.cu
-/// \brief Kernel
-/// \author GC
-/// \version 0.1
-/// \date  mars 2013
+/// \file       cudaAppliMicMac.cu
+/// \brief      Kernel
+/// \author     GC
+/// \version    0.1
+/// \date       mars 2013
 
 
 static __constant__ pCorGpu cH;
