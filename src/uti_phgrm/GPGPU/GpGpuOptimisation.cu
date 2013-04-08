@@ -100,10 +100,10 @@ template<class T> __global__ void kernelReduction(T* g_idata,T* g_odata,  int n)
 }
 
 /// \brief  Fonction Gpu d optimisation
-template<class T> __global__ void kernelOptimisation(T* g_idata,T* g_odata,int* g_oPath, uint2 dimPlanCost, uint2 delta, float* iMinCost)
+template<class T> __global__ void kernelOptiOneDirection(T* g_idata,T* g_odata,int* g_oPath, uint2 dimPlanCost, uint2 delta, float* iMinCost, float defaultValue)
 {
     __shared__ T    sdata[32];
-    __shared__ uint minCostC[1];
+    __shared__ int  minCostC[1];
 
     //const uint  nap = dimPlanCost.y;
 
@@ -111,7 +111,7 @@ template<class T> __global__ void kernelOptimisation(T* g_idata,T* g_odata,int* 
     const uint  pit = blockIdx.x * blockDim.x;
     uint        i0  = pit + tid;
     sdata[tid]      = g_idata[i0];
-    g_odata[i0]     = sdata[tid];
+    g_odata[i0]     = sdata[tid] == defaultValue ? 0 : sdata[tid];
     g_oPath[i0]     = tid;
 
     if(tid == 0) minCostC[0]  = 1e9;
@@ -120,26 +120,27 @@ template<class T> __global__ void kernelOptimisation(T* g_idata,T* g_odata,int* 
 
     for(int l=1;l<dimPlanCost.y;l++)
     {
-        unsigned int i1 = i0 + dimPlanCost.x;
+        uint        i1   = i0 + dimPlanCost.x;
+        int         iL   = tid;
+        const bool  dV   = sdata[tid] == defaultValue;
 
         if(i1<size(dimPlanCost))
         {
             cost    = g_idata[i1];
-            minCost = cost + sdata[tid];// + penalite[0];
-            int iL  = tid;
 
-            __syncthreads();
-
-            if(cost!=2.0f)
+            if(cost!=defaultValue)
             {
+                minCost = dV ? cost : cost + sdata[tid] + penalite[0];
+
+                __syncthreads();
+
                 for(int t = -((int)(delta.x)); t < ((int)(delta.y));t++)
                 {
-
                     int Tl = tid + t;
-                    if( t!=0 && Tl >= 0 && Tl < blockDim.x)
+                    if( t!=0 && Tl >= 0 && Tl < blockDim.x && sdata[Tl] != defaultValue)
                     {
-                        T Cost = cost + sdata[Tl];// + penalite[abs(t)];
-                        if(Cost < minCost)
+                        T Cost = cost + sdata[Tl] + penalite[abs(t)];
+                        if(Cost < minCost || dV)
                         {
                             minCost = Cost;
                             iL      = Tl;
@@ -147,7 +148,8 @@ template<class T> __global__ void kernelOptimisation(T* g_idata,T* g_odata,int* 
                     }
                 }
             }
-
+            else
+                minCost = dV ? 0 : sdata[tid];
 
             i0 = l * dimPlanCost.x + pit + tid;
 
@@ -157,16 +159,19 @@ template<class T> __global__ void kernelOptimisation(T* g_idata,T* g_odata,int* 
         }
     }
 
-    atomicMin(minCostC,minCost);
+    int intCost = (int)(minCost * 1e5f);
+
+    atomicMin(minCostC,intCost);
     __syncthreads();
-    if(minCostC[0] == minCost)
+    if(minCostC[0] == intCost)
         iMinCost[blockIdx.x] = tid;
 }
 
+
 /// \brief Lance le kernel d optimisation pour le test
-template<class T>
-void LaunchKernel()
+template<class T> void LaunchKernel()
 {
+
     int warp    = 32;
     int nBLine  = 1;
     int si      = warp * nBLine;
@@ -211,35 +216,26 @@ void LaunchKernel()
 
     uint2 delta = make_uint2(3,3);
 
-    kernelOptimisation<T><<<Blocks,Threads>>>(dInputData.pData(),dOutputData.pData(),dPath.pData(),dA, delta,minCostId.pData());
+    kernelOptiOneDirection<T><<<Blocks,Threads>>>(dInputData.pData(),dOutputData.pData(),dPath.pData(),dA, delta,minCostId.pData(),0);
     getLastCudaError("kernelOptimisation failed");
 
     dOutputData.CopyDevicetoHost(hostOutputValue.pData());
     dPath.CopyDevicetoHost(hostPath.pData());
     minCostId.CopyDevicetoHost(hMinCostId);
 
-    //    GpGpuTools::OutputArray(hostInputValue.pData(),dA);
-    //    GpGpuTools::OutputArray(hostOutputValue.pData(),dA);
-    //    GpGpuTools::OutputArray(hostPath.pData(),dA);
-    //printf("Index min Cost : %d\n",*hMinCostId);
-
     for(int i=0;i<longLine;i++)
-    {
-
-        //        printf("%d, ",*hMinCostId);
         *hMinCostId = hostPath.pData()[(longLine - i -1)*warp + *hMinCostId];
-    }
 
-    // printf("\n");
 }
 
+
 /// \brief Lance le kernel d optimisation pour une direction
-template <class T>
-void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputValue, uint3 dimVolCost,float defaultValue = 0)
+template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputValue, uint3 dimVolCost,float defaultValue = 0)
 {
     //nZ      = 32 doit etre en puissance de 2
 
     int     nBLine      =   dimVolCost.x;
+    uint2    dimTer      =   make_uint2(dimVolCost.x,dimVolCost.y);
     int     si          =   dimVolCost.z * nBLine;
     int     dimLine     =   dimVolCost.y;
     uint2   diPlanCost  =   make_uint2(si,dimLine);
@@ -251,8 +247,7 @@ void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputValue, uint3 dimVolCost,
     float hPen[PENALITE];
 
     for(int i=0;i<PENALITE;i++)
-        hPen[i] = ((float)(0 / 100.0f));
-
+        hPen[i] = ((float)(1 / 10.0f));
 
 
     //-------- Copie des penalites dans le device ----------
@@ -263,14 +258,14 @@ void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputValue, uint3 dimVolCost,
 
     CuHostData3D<T>         hOutputValue(diPlanCost);
     CuHostData3D<int>       hPath(diPlanCost);
-    CuHostData3D<float>     hMinCostId(make_uint2(dimVolCost.x,1));
+    CuHostData3D<float>     hMinCostId(dimTer);
 
     //----------------- Variables Device -------------------
 
     CuDeviceData3D<T>       dInputData(diPlanCost,1,"dInputData");
     CuDeviceData3D<T>       dOutputData(diPlanCost,1,"dOutputData");
     CuDeviceData3D<int>     dPath(diPlanCost,1,"dPath");
-    CuDeviceData3D<float>   dMinCostId(make_uint2(nBLine,1),1,"minCostId");
+    CuDeviceData3D<float>   dMinCostId(make_uint2(dimVolCost.x,1),1,"minCostId");
 
     //--------- Initialisation des Variables Device ---------
 
@@ -282,27 +277,40 @@ void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputValue, uint3 dimVolCost,
 
     dInputData.CopyHostToDevice(hInputValue.pData());
 
-    kernelOptimisation<T><<<Blocks,Threads>>>(dInputData.pData(),dOutputData.pData(),dPath.pData(),diPlanCost, delta,dMinCostId.pData());
+    kernelOptiOneDirection<T><<<Blocks,Threads>>>(dInputData.pData(),dOutputData.pData(),dPath.pData(),diPlanCost, delta,dMinCostId.pData(),defaultValue);
     getLastCudaError("kernelOptimisation failed");
 
     dOutputData.CopyDevicetoHost(hOutputValue.pData());
     dPath.CopyDevicetoHost(hPath.pData());
     dMinCostId.CopyDevicetoHost(hMinCostId.pData());
 
-//    uint2   ptTer;
-//    uint2   prev = make_uint2(0,1);
-//    for ( ptTer.x = 0; ptTer.x < dimVolCost.x; ptTer.x++)
-//        for(ptTer.y = 1; ptTer.y < dimVolCost.y ; ptTer.y++)
-//        {
-//            uint2 pt = make_uint2(ptTer.x * dimVolCost.z + (uint)hMinCostId[ptTer - prev],ptTer.y);
-//            hMinCostId[ptTer] = (float)hPath[pt];
-//        }
+    uint2   ptTer;
+    uint2   prev = make_uint2(0,1);
+    for ( ptTer.x = 0; ptTer.x < dimTer.x; ptTer.x++)
+        for(ptTer.y = 1; ptTer.y < dimTer.y ; ptTer.y++)
+        {
+            uint2 pt = make_uint2(ptTer.x * dimVolCost.z + (uint)hMinCostId[ptTer - prev],ptTer.y);
+            hMinCostId[ptTer] =  (float)hPath[pt];
+        }
 
-    hMinCostId.OutputValues(0,XY,Rect(0,0,1,1));
-//    hInputValue.OutputValues(0,XY,Rect(0,0,32,dimVolCost.y));
+    for (ptTer.x = 0; ptTer.x < dimTer.x; ptTer.x++)
+        for(ptTer.y = 0; ptTer.y < dimTer.y ; ptTer.y++)
+            if (defaultValue == hInputValue[ptTer])
+                hMinCostId[ptTer] = 0.0f;
+
+    //hMinCostId.OutputValues();
+    //hInputValue.OutputValues(0,XY,Rect(0,0,32,dimVolCost.y));
     //hPath.OutputValues(0,XY,Rect(0,0,dimVolCost.z,dimVolCost.y));
-    hOutputValue.OutputValues(0,XY,Rect(0,0,dimVolCost.z,dimVolCost.y),4);
-//    GpGpuTools::Array1DtoImageFile(GpGpuTools::MultArray(hMinCostId.pData(),dim,1.0f/32.0f),"toto.pgm",dim);
+    //hOutputValue.OutputValues(0,XY,Rect(0,0,dimVolCost.z,dimVolCost.y),4);
+    //GpGpuTools::Array1DtoImageFile(GpGpuTools::MultArray(hMinCostId.pData(),dimTer,1.0f/32.0f),"ZMap.pgm",dimTer);
+
+    hOutputValue.Dealloc();
+    hPath.Dealloc();
+    hMinCostId.Dealloc();
+    dInputData.Dealloc();
+    dOutputData.Dealloc();
+    dPath.Dealloc();
+    dMinCostId.Dealloc();
 
 }
 

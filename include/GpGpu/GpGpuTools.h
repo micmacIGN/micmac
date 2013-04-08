@@ -979,26 +979,26 @@ public:
     ~CuDeviceData3D(){}
     /// \brief Desallocation memoire globale
     /// \return true si la desallocation a reussie false sinon
-    bool	Dealloc();
+    bool        Dealloc();
     /// \brief Allocation de memoire globale
-    bool	Malloc();
+    bool        Malloc();
     /// \brief Initialise toutes les valeurs du tableau a val
     /// \param val : valeur d initialisation
-    bool	Memset(int val);
+    bool        Memset(int val);
     /// \brief Initialisation asynchrone de toutes les valeurs du tableau a val
     /// \param val : valeur d initialisation
     /// \param stream : flux cuda de gestion des appels asynchrone
-    bool	MemsetAsync(int val, cudaStream_t stream );
+    bool        MemsetAsync(int val, cudaStream_t stream );
     /// \brief  Copie toutes les valeurs du tableau dans un tableau du host
     /// \param  hostData : tableau destination
-    bool	CopyDevicetoHost(T* hostData);
+    bool        CopyDevicetoHost(T* hostData);
     /// \brief  Copie toutes les valeurs d un tableau dans la structure de donnee de la classe (dans la memoire globale GPU)
     /// \param  hostData : tableau cible
-    bool	CopyHostToDevice(T* hostData);
+    bool        CopyHostToDevice(T* hostData);
     /// \brief  Copie asynchrone de toutes les valeurs du tableau dans un tableau du host
     /// \param  hostData : tableau destination
     /// \param stream : flux cuda de gestion des appels asynchrone
-    bool	CopyDevicetoHostASync(T* hostData, cudaStream_t stream = 0);
+    bool        CopyDevicetoHostASync(T* hostData, cudaStream_t stream = 0);
 
 };
 
