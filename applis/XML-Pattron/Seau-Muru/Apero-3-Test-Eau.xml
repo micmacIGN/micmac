@@ -1,0 +1,140 @@
+<Global
+    Subst="@$#1"
+>
+   <ParamApero>
+
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id-Hom-Eau  </Id>
+                 <KeySet>  KeyStd-Set-Homol@-Eau  </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>   KeyStd-Assoc-CplIm2HomBin@-Eau   </KeyAssoc>
+             </BDD_PtsLiaisons>
+            <BDD_PtsLiaisons>
+                 <Id>    Id-Hom-Surf-Eau  </Id>
+                 <KeySet> Key-Set-StdHom </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>   Key-Assoc-StdHom  </KeyAssoc>
+             </BDD_PtsLiaisons>
+
+             <BDD_Orient>
+                  <Id>  IdOrInit</Id>
+                  <KeySet>  Key-Set-OrFinale   </KeySet>
+                  <KeyAssoc>  Key-Assoc-Im2OrFinale </KeyAssoc>
+             </BDD_Orient>
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_A </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   Ori-F/FA_AutoCalFinale.xml     </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_B </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   Ori-F/FB_AutoCalFinale.xml   </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+
+              <PoseCameraInc>
+	           <PatternName>    F028_Niv._OuvA.*_MpDcraw8B_GR.ti   </PatternName> 
+	           <CalcNameCalib>  TheKeyCalib_A </CalcNameCalib>
+                   <PosesDeRattachement>  0  </PosesDeRattachement>
+                   <PosValueInit>
+                       <PosFromBDOrient> IdOrInit </PosFromBDOrient>
+                   </PosValueInit>
+              </PoseCameraInc>
+              <PoseCameraInc>
+	           <PatternName>    F028_Niv._OuvB.*_MpDcraw8B_GR.ti   </PatternName> 
+	           <CalcNameCalib>  TheKeyCalib_B </CalcNameCalib>
+                   <PosesDeRattachement>  0  </PosesDeRattachement>
+                   <PosValueInit>
+                       <PosFromBDOrient> IdOrInit </PosFromBDOrient>
+                   </PosValueInit>
+              </PoseCameraInc>
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+              <AllMatSym>  true </AllMatSym>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+              <ModeControleDescDic> eCDD_Jamais </ModeControleDescDic>
+
+<!--
+              <ModeResolution> eSysCreuxMap </ModeResolution> 
+-->
+              <GridOptimKnownDist> true </GridOptimKnownDist>
+              <NormaliseEqSc> true </NormaliseEqSc>
+              <NormaliseEqTr> true </NormaliseEqTr>
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_0  </Val>
+		              <Val> eLib_PP_CD_00     </Val>
+		              <Val> eLiberte_DR0      </Val>
+		              <Val> eFige_Phgr_Std_Aff      </Val>
+		              <Val> eFige_Phgr_Std_Dec      </Val>
+
+		          </ContraintesCamerasInc>
+
+		          <ContraintesPoses>
+			     <NamePose>   .* </NamePose>
+                             <ByPattern> true </ByPattern>
+			     <Val>      ePoseFigee   </Val>
+		          </ContraintesPoses>
+		       </SectionContraintes>
+
+                    </IterationsCompensation>
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id-Hom-Eau </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Percentile     </Show>
+                                 <NbMax>   100    </NbMax>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+<!--
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id-Hom-Surf-Eau </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Indiv     </Show>
+                                 <NbMax>   100    </NbMax>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+-->
+
+                    <SectionExport> </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
