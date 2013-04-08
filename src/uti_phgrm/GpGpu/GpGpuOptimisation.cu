@@ -167,7 +167,6 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_idata,T* g_odata,i
 */
 }
 
-
 /// \brief Lance le kernel d optimisation pour une direction
 template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputValue, uint3 dimVolCost,float defaultValue = 0)
 {
@@ -221,23 +220,25 @@ template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputValue
     dPath.CopyDevicetoHost(hPath.pData());
     dMinCostId.CopyDevicetoHost(hMinCostId.pData());
 
-//    uint2   ptTer;
-//    uint2   prev = make_uint2(0,1);
-//    for ( ptTer.x = 0; ptTer.x < dimTer.x; ptTer.x++)
-//        for(ptTer.y = 1; ptTer.y < dimTer.y ; ptTer.y++)
-//        {
-//            uint2 pt = make_uint2(ptTer.x * dimVolCost.z + (uint)hMinCostId[ptTer - prev],ptTer.y);
-//            hMinCostId[ptTer] =  (float)hPath[pt];
-//        }
-//    for (ptTer.x = 0; ptTer.x < dimTer.x; ptTer.x++)
-//        for(ptTer.y = 0; ptTer.y < dimTer.y ; ptTer.y++)
-//            if (defaultValue == hInputValue[ptTer])
-//                hMinCostId[ptTer] = 0.0f;
-//    hMinCostId.OutputValues();
-//    hInputValue.OutputValues(0,XY,Rect(0,0,32,dimVolCost.y));
-//    hPath.OutputValues(0,XY,Rect(0,0,dimVolCost.z,dimVolCost.y));
-//    hOutputValue.OutputValues(0,XY,Rect(0,0,dimVolCost.z,dimVolCost.y),4);
-//    GpGpuTools::Array1DtoImageFile(GpGpuTools::MultArray(hMinCostId.pData(),dimTer,1.0f/32.0f),"ZMap.pgm",dimTer);
+/*
+    uint2   ptTer;
+    uint2   prev = make_uint2(0,1);
+    for ( ptTer.x = 0; ptTer.x < dimTer.x; ptTer.x++)
+        for(ptTer.y = 1; ptTer.y < dimTer.y ; ptTer.y++)
+        {
+            uint2 pt = make_uint2(ptTer.x * dimVolCost.z + (uint)hMinCostId[ptTer - prev],ptTer.y);
+            hMinCostId[ptTer] =  (float)hPath[pt];
+        }
+    for (ptTer.x = 0; ptTer.x < dimTer.x; ptTer.x++)
+        for(ptTer.y = 0; ptTer.y < dimTer.y ; ptTer.y++)
+            if (defaultValue == hInputValue[ptTer])
+                hMinCostId[ptTer] = 0.0f;
+    hMinCostId.OutputValues();
+    hInputValue.OutputValues(0,XY,Rect(0,0,32,dimVolCost.y));
+    hPath.OutputValues(0,XY,Rect(0,0,dimVolCost.z,dimVolCost.y));
+    hOutputValue.OutputValues(0,XY,Rect(0,0,dimVolCost.z,dimVolCost.y),4);
+    GpGpuTools::Array1DtoImageFile(GpGpuTools::MultArray(hMinCostId.pData(),dimTer,1.0f/32.0f),"ZMap.pgm",dimTer);
+*/
 
     hOutputValue.Dealloc();
     hPath.Dealloc();
@@ -252,12 +253,6 @@ template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputValue
 /// \brief Appel exterieur du kernel d optimisation
 extern "C" void OptimisationOneDirection(CuHostData3D<float> &data, uint3 dimVolCost, float defaultValue)
 {
-    //    uint2 dim1  = make_uint2(4,32);
-    //    int nZ1     = 32;
-    //    CuHostData3D<float> data1(make_uint2(dim1.x * nZ1,dim1.y));
-    //    data1.FillRandom(0,20);
-    //    LaunchKernelOptOneDirection(data1,nZ1, dim1);
-    //    data1.Dealloc();
     LaunchKernelOptOneDirection(data,dimVolCost,defaultValue);
 }
 

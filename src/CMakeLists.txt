@@ -88,8 +88,11 @@ if(${WITH_ETALONPOLY})
 	set( LIB_ETAL_POLYG libEtalPolyg )
 endif()
 
-# ORGANISATION des en-tetes ELISE
+# ORGANISATION des en-tetes ELISE et fichiers Xml
 file(GLOB_RECURSE IncFiles ${PROJECT_SOURCE_DIR}/include/*.h  )
+file(GLOB_RECURSE XmlFiles ${PROJECT_SOURCE_DIR}/include/*.xml  )
+
+list(APPEND IncFiles ${XmlFiles})
 
 # Construction de l'arborescence des fichiers INCLUDE
 foreach(source_file ${IncFiles})
