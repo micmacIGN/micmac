@@ -61,15 +61,16 @@ typedef cSubGrFlagArc<tFNuSubGr>  tFNuSubGrFA;
 //=================================================
 
 /*
-   Un cPtFuNu est +ou- l'agglomeration de + sieur point (une region); il permet d'avoir
+   Un cLinkPtFuNu est +ou- l'agglomeration de + sieur point (une region); il permet d'avoir
    une description resumee du modele 3D
 */
-class cPtFuNu
+
+class cLinkPtFuNu
 {
     public :
-       Pt3dr PR() {return Pt3dr(mPt.x,mPt.y,mPt.z);}
-       Pt3df       mPt;
-       int         mNb;
+       Pt2di  Pt() {return Pt2di(mI,mJ);}
+       cLinkPtFuNu (INT2,INT2,INT2);
+       INT2      mI,mJ,mNb;
 };
 
 class cFNuAttrSom
@@ -85,6 +86,9 @@ class cFNuAttrSom
          );
          bool IsArcValide(cFNuAttrSom *);
          const std::list<cISOM_Vois> & ListVoisInit();
+
+         double   PixelEcartReprojInterpol(cFNuAttrSom * aS2,const Pt2di & aPIm1);
+
         // cFNuAttrSom ();
     private :
         cFNuAttrSom(const cFNuAttrSom &);  // N.I.
@@ -94,7 +98,7 @@ class cFNuAttrSom
         const cISOM_AllVois &  mVoisInit;
         cElNuage3DMaille *     mStdN;
         std::string            mNameIm;
-        std::vector<cPtFuNu>   mPtsTestRec;
+        std::vector<cLinkPtFuNu>   mPtsTestRec;
         int                    mNbSomTest;
         int                    mSeuilNbSomTest;
         Im2D_Bits<1>           mMasqValid;
