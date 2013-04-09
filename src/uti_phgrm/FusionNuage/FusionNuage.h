@@ -44,7 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 //================== HEADER du HEADER ====================
 
-class cFNuAttrSom;
+class cFNuAttrSom;  // Un sommet par image
 class cFNuAttrArc;
 class cFNuAttrArcSym;
 
@@ -60,6 +60,10 @@ typedef cSubGrFlagArc<tFNuSubGr>  tFNuSubGrFA;
 
 //=================================================
 
+/*
+   Un cPtFuNu est +ou- l'agglomeration de + sieur point (une region); il permet d'avoir
+   une description resumee du modele 3D
+*/
 class cPtFuNu
 {
     public :
@@ -86,7 +90,7 @@ class cFNuAttrSom
         cFNuAttrSom(const cFNuAttrSom &);  // N.I.
 
         cAppliFusionNuage *    mAppli;
-        cImSecOfMaster         mSecs;
+        cImSecOfMaster         mSecs;  // Structure mere XML
         const cISOM_AllVois &  mVoisInit;
         cElNuage3DMaille *     mStdN;
         std::string            mNameIm;
