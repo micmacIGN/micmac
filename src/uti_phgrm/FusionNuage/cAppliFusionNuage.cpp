@@ -115,6 +115,10 @@ cAppliFusionNuage::cAppliFusionNuage
     }
     mNbSom = mVSom.size();
 
+    //=============================================================
+    //        CONSTRUCTION DES ARCS DU GRAPHE
+    //=============================================================
+
 
     std::vector<tFNuArc *> aVArc;
     for (int aK1=0 ; aK1 <mNbSom ; aK1++)

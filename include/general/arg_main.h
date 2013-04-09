@@ -314,6 +314,8 @@ class LArgMain
 		}
 		~LArgMain();
 
+                int Size() const;
+
 
 		INT  Init(int argc,char ** argv) const;
                 void  InitIfMatchEq
@@ -347,14 +349,18 @@ class LArgMain
 
 
 // Renvoie eventuellement la parti non consommee
+#define EIAM_VerifInit true
+#define EIAM_AccUnK false
+#define EIAM_NbArgGlobGlob -1 
+
 std::vector<char *>   	ElInitArgMain
 		(
 			int argc,char ** argv,
 			const LArgMain & ,
 			const LArgMain & ,
-                        bool  VerifInit=true,
-                        bool  AccUnK=false,
-			int   aNbArgGlobGlob = -1 // 
+                        bool  VerifInit=EIAM_VerifInit,
+                        bool  AccUnK=EIAM_AccUnK,
+			int   aNbArgGlobGlob = EIAM_NbArgGlobGlob
 		);
 
 void  	ElInitArgMain
