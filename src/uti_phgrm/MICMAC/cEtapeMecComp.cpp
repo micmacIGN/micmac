@@ -1556,7 +1556,6 @@ int cEtapeMecComp::MemSizeCelluleAlgo() const
               return 16;
          case eAlgo2PrgDyn  :
               return 4;
-         // Gerald : Pour execution de eAlgoTestGPU (copie de retour de eAlgo2PrgDyn)
          case eAlgoTestGPU :
               return 4;
          case eAlgoMaxOfScore :
@@ -1577,7 +1576,6 @@ int cEtapeMecComp::MemSizePixelSsCelluleAlgo() const
               return 20;
          case eAlgo2PrgDyn  :
               return 20;
-         // Gerald : pour execution de eAlgoTestGPU (copie de retour de eAlgo2PrgDyn)
          case eAlgoTestGPU :
               return 20;
          case eAlgoMaxOfScore :

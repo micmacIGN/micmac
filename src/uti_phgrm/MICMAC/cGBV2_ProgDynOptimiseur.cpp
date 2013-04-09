@@ -145,7 +145,7 @@ typedef  cSmallMatrixOrVar<cGBV2_CelOptimProgDyn>   tCGBV2_tMatrCelPDyn;
 
 */
 
-
+/// brief Calcul le Z min et max.
 static inline void ComputeIntervaleDelta
 (
         INT & aDzMin,
@@ -240,7 +240,17 @@ private :
 
     void BalayageOneDirection(Pt2dr aDir);
     void BalayageOneLine(const std::vector<Pt2di> & aVPt);
+    void BalayageOneLineGpu(const std::vector<Pt2di> & aVPt);
     void BalayageOneSens
+    (
+            const std::vector<Pt2di> & aVPt,
+            cGBV2_CelOptimProgDyn::eSens,
+            int anIndInit,
+            int aDelta,
+            int aLimite
+            );
+
+    void BalayageOneSensGpu
     (
             const std::vector<Pt2di> & aVPt,
             cGBV2_CelOptimProgDyn::eSens,
@@ -277,37 +287,33 @@ static cGBV2_CelOptimProgDyn aCelForInit;
 
 cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
 (
-        cAppliMICMAC &    mAppli,
-        cLoadTer&         mLT,
-        const cEquiv1D &        anEqX,
-        const cEquiv1D &        anEqY,
-        Im2D_INT2  aPxMin,
-        Im2D_INT2  aPxMax
+        cAppliMICMAC&   mAppli,
+        cLoadTer&       mLT,
+        const cEquiv1D& anEqX,
+        const cEquiv1D& anEqY,
+        Im2D_INT2       aPxMin,
+        Im2D_INT2       aPxMax
 ) :
     cSurfaceOptimiseur ( mAppli,mLT,1e4,anEqX,anEqY,false,false),
-    mXMin                (aPxMin),
-    mXMax                (aPxMax),
-    mSz                  (mXMin.sz()),
-    mNbPx                (1),   // MODIF OK
-    mYMin                (mSz.x,mSz.y,0),
-    mYMax                (mSz.x,mSz.y,1),
-    mMatrCel             (
-        Box2di(Pt2di(0,0),mSz),
-        mXMin.data(),
-        mYMin.data(),
-        mXMax.data(),
-        mYMax.data(),
-        aCelForInit
-        ),
-    mLMR                 (mSz)
-    // mImRes               (mSz.x,mSz.y),
-    // mDataImRes           (mImRes.data())
+    mXMin       (aPxMin),
+    mXMax       (aPxMax),
+    mSz         (mXMin.sz()),
+    mNbPx       (1),
+    mYMin       (mSz.x,mSz.y,0),
+    mYMax       (mSz.x,mSz.y,1),
+    mMatrCel    (
+                    Box2di(Pt2di(0,0),mSz),
+                    mXMin.data(),
+                    mYMin.data(),
+                    mXMax.data(),
+                    mYMax.data(),
+                    aCelForInit),
+    mLMR        (mSz)
 {
 }
 
 void cGBV2_ProgDynOptimiseur::Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int aLabel)
 {
-//std::cout << "LSC " << aCost << " " << CostR2I(aCost) << "\n";
     mMatrCel[aPTer][Px2Point(aPX)].SetCostInit(CostR2I(aCost));
 }
 
@@ -316,12 +322,10 @@ void cGBV2_ProgDynOptimiseur::BalayageOneSens
         const std::vector<Pt2di> &   aVPt,     // vecteur de points
         cGBV2_CelOptimProgDyn::eSens aSens,    // sens du parcourt
         int                          anIndInit,// premier point
-        int                          aDelta,   // delta incremenation de progession
+        int                          aDelta,   // delta incremenation de progression
         int                          aLimite   // Limite de progression
         )
 {
-    //ElTimer aChrono;
-    //static int aCpt=0; aCpt++;
 
     // Initialisation des couts sur les premieres valeurs
     {
@@ -333,16 +337,15 @@ void cGBV2_ProgDynOptimiseur::BalayageOneSens
 
         Pt2di aP0;
 
-        for (aP0.y = aBox0._p0.y ;  aP0.y<aBox0._p1.y; aP0.y++)
-        {
-            for (aP0.x = aBox0._p0.x ; aP0.x<aBox0._p1.x;aP0.x++)
-            {
-                aMat0[aP0].SetBeginCumul(aSens);
-            }
-        }
-    }
+        std::cout << aBox0.P0() << " " << aBox0.P1() << "\n";
+        getchar();
 
-    //double aNb=0.0;
+        for (aP0.y = aBox0._p0.y ;  aP0.y<aBox0._p1.y; aP0.y++)
+
+            for (aP0.x = aBox0._p0.x ; aP0.x<aBox0._p1.x;aP0.x++)
+
+                aMat0[aP0].SetBeginCumul(aSens);
+    }
 
     // Propagation
     int anI0 = anIndInit;
@@ -398,10 +401,10 @@ void cGBV2_ProgDynOptimiseur::BalayageOneSens
                         aBox1._p0.x,
                         aBox1._p1.x
                         );
-                //aNb +=  (1+aDyMax - aDyMin)* (1+aDxMax - aDxMin);
+
                 // Cellule courante
                 cGBV2_CelOptimProgDyn & aCel0 = aMat0[aP0];
-                /*std::cout << aDyMin << " " << aDyMax << " " << aDxMin << " " << aDxMax << "\n";ELISE_ASSERT((aDyMin==0) && (aDyMax==0) && (aDxMin>=-1) && (aDxMax<=1),"!!!");*/
+
                 // Parcours des cellules dans l'intervalle des Deltas
                 for (int aDy=aDyMin ; aDy<=aDyMax; aDy++)
                 {
@@ -418,6 +421,58 @@ void cGBV2_ProgDynOptimiseur::BalayageOneSens
                 }
             }
         }
+        anI0 = anI1;
+    }
+}
+
+void cGBV2_ProgDynOptimiseur::BalayageOneSensGpu(const std::vector<Pt2di> &aVPt, cGBV2_CelOptimProgDyn::eSens aSens, int anIndInit, int aDelta, int aLimite)
+{
+    // Initialisation des couts sur les premieres valeurs -------------------
+
+    // Matrice des cellules
+    tCGBV2_tMatrCelPDyn &  aMat0 = mMatrCel[aVPt[anIndInit]];
+
+    // Le rectangle
+    const Box2di & aBox0 = aMat0.Box();
+    Pt2di aP0;
+
+    for(aP0.x = aBox0._p0.x ; aP0.x<aBox0._p1.x;aP0.x++)
+        aMat0[aP0].SetBeginCumul(aSens);
+
+    // Propagation ------------------------------------------------------------
+    int anI0 = anIndInit;
+    while ((anI0+ aDelta)!= aLimite)
+    {
+        int anI1 = anI0+aDelta;
+
+        tCGBV2_tMatrCelPDyn& aMat1 = mMatrCel[aVPt[anI1]];
+        const Box2di&        aBox1 = aMat1.Box();
+        Pt2di aP1;
+
+        // Met un cout infini aux successeurs
+        for (aP1.x = aBox1._p0.x ; aP1.x<aBox1._p1.x ; aP1.x++)
+            aMat1[aP1].SetCumulInitial(aSens);
+
+        // Propagation
+        tCGBV2_tMatrCelPDyn& aMat0 = mMatrCel[aVPt[anI0]];
+        const Box2di &       aBox0 = aMat0.Box();
+        Pt2di aP0;
+
+        for (aP0.x=aBox0._p0.x ;  aP0.x<aBox0._p1.x ; aP0.x++)
+        {
+            int aDxMin,aDxMax;
+            // Calcul du delta sur X
+            ComputeIntervaleDelta(aDxMin,aDxMax,aP0.x, mMaxEc[0],aBox0._p0.x, aBox0._p1.x, aBox1._p0.x,aBox1._p1.x);
+
+            // Cellule courante
+            cGBV2_CelOptimProgDyn & aCel0 = aMat0[aP0];
+
+            // Parcours des cellules dans l'intervalle des Deltas
+            for (int aDx=aDxMin ; aDx<=aDxMax; aDx++)
+                aMat1[aP0+Pt2di(aDx,0)].UpdateCost(aCel0, aSens, mTabCost[0].Cost(aDx));
+
+        }
+
         anI0 = anI1;
     }
 }
@@ -453,14 +508,10 @@ void cGBV2_ProgDynOptimiseur::BalayageOneLine(const std::vector<Pt2di> & aVPt)
         tCost aCoutMin = tCost(1e9);
 
         //recherche du cout minimum dans le le rectangle
-        for (aP.y = aBox._p0.y ; aP.y<aBox._p1.y; aP.y++)
-        {
-            for (aP.x = aBox._p0.x ; aP.x<aBox._p1.x ; aP.x++)
-            {
+        for (aP.y = aBox._p0.y ; aP.y<aBox._p1.y; aP.y++)        
+            for (aP.x = aBox._p0.x ; aP.x<aBox._p1.x ; aP.x++)          
                 ElSetMin(aCoutMin,aMat[aP].CostPassageForce());
-                // std::cout <<  aMat[aP].CostPassageForce() << " " << aMat[aP].CostInit() << "\n";
-            }
-        }
+
 
         for (aP.y = aBox._p0.y ; aP.y<aBox._p1.y; aP.y++)
         {
@@ -470,14 +521,17 @@ void cGBV2_ProgDynOptimiseur::BalayageOneLine(const std::vector<Pt2di> & aVPt)
                 tCost & aCF = aMat[aP].CostFinal();
                 if (mModeAgr==ePrgDAgrSomme) // Mode somme
                 {
+                    printf("a");
                     aCF += aNewCost;
                 }
                 else if (mModeAgr==ePrgDAgrMax) // Mode max
                 {
+                    printf("b");
                     ElSetMax(aCF,aNewCost);
                 }
                 else if (mModeAgr==ePrgDAgrProgressif) // Mode max
                 {
+                    printf("c");
                     aCF= aNewCost;
                     aMat[aP].SetCostInit
                             (
@@ -490,11 +544,43 @@ void cGBV2_ProgDynOptimiseur::BalayageOneLine(const std::vector<Pt2di> & aVPt)
                 }
                 else  // Mode reinjection
                 {
+                    printf("d");
                     aCF = aNewCost;
                     aMat[aP].SetCostInit(aCF);
                 }
 
             }
+        }
+
+    }
+}
+
+void cGBV2_ProgDynOptimiseur::BalayageOneLineGpu(const std::vector<Pt2di> &aVPt)
+{
+
+    BalayageOneSensGpu(aVPt,cGBV2_CelOptimProgDyn::eAvant,0,1,(int) aVPt.size());
+    BalayageOneSensGpu(aVPt,cGBV2_CelOptimProgDyn::eArriere,(int) (aVPt.size())-1,-1,-1);
+
+    // on parcours la ligne
+    for (int aK=0 ; aK<int(aVPt.size()) ; aK++)
+    {
+        // Matrice des cellules
+        tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aVPt[aK]];
+        // rectancle
+        const Box2di &  aBox = aMat.Box();
+        Pt2di aP;
+        // Cout infini
+        tCost aCoutMin = tCost(1e9);
+
+        //recherche du cout minimum dans le le rectangle
+        for (aP.x = aBox._p0.x ; aP.x<aBox._p1.x ; aP.x++)
+            ElSetMin(aCoutMin,aMat[aP].CostPassageForce());
+
+        for (aP.x = aBox._p0.x ; aP.x<aBox._p1.x ; aP.x++)
+        {
+            tCost  aNewCost = aMat[aP].CostPassageForce()-aCoutMin;
+            tCost & aCF = aMat[aP].CostFinal();
+            aCF += aNewCost;
         }
 
     }
@@ -507,8 +593,14 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
 
     const std::vector<Pt2di> * aVPt;
-    while ((aVPt=mLMR.Next()))
+
+#ifdef CUDA_ENABLED
+     while ((aVPt=mLMR.Next()))
+        BalayageOneLineGpu(*aVPt);
+#else
+     while ((aVPt=mLMR.Next()))
         BalayageOneLine(*aVPt);
+#endif
 }
 
 

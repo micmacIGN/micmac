@@ -100,7 +100,7 @@ template<class T> __global__ void kernelReduction(T* g_idata,T* g_odata,  int n)
 }
 
 /// \brief  Fonction Gpu d optimisation
-template<class T> __global__ void kernelOptiOneDirection(T* g_idata,T* g_odata,int* g_oPath, uint2 dimPlanCost, uint2 delta, float* iMinCost, float defaultValue)
+template<class T> __global__ void kernelOptiOneDirection(T* g_idata,T* g_odata,int* g_oPath, uint2 dimPlanCost, uint2 delta, /*float* iMinCost,*/ float defaultValue)
 {
     __shared__ T    sdata[32];
     //__shared__ int  minCostC[1];
@@ -171,7 +171,6 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_idata,T* g_odata,i
 template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputValue, uint3 dimVolCost,float defaultValue = 0)
 {
     //nZ      = 32 doit etre en puissance de 2
-
     int     nBLine      =   dimVolCost.x;
     uint2   dimTer      =   make_uint2(dimVolCost.x,dimVolCost.y);
     int     si          =   dimVolCost.z * nBLine;
@@ -213,7 +212,7 @@ template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputValue
 
     dInputData.CopyHostToDevice(hInputValue.pData());
 
-    kernelOptiOneDirection<T><<<Blocks,Threads>>>(dInputData.pData(),dOutputData.pData(),dPath.pData(),diPlanCost, delta,dMinCostId.pData(),defaultValue);
+    kernelOptiOneDirection<T><<<Blocks,Threads>>>(dInputData.pData(),dOutputData.pData(),dPath.pData(),diPlanCost, delta,/*dMinCostId.pData(),*/defaultValue);
     getLastCudaError("kernelOptimisation failed");
 
     dOutputData.CopyDevicetoHost(hOutputValue.pData());
@@ -265,10 +264,11 @@ extern "C" void Launch()
     volumeCost.FillRandom(0,2);
     LaunchKernelOptOneDirection(volumeCost,dimVolumeCost,5.0f);
 
-//    data1.OutputValues();
-//    data1.OutputValues(1,YZ);
-//    data1.OutputValues(1,XZ);
-
+    /*
+    data1.OutputValues();
+    data1.OutputValues(1,YZ);
+    data1.OutputValues(1,XZ);
+    */
     volumeCost.Dealloc();
 
     //LaunchKernel<int>();
