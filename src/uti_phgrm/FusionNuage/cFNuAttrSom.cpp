@@ -39,6 +39,20 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "FusionNuage.h"
 
+
+
+//=======================================================
+
+cLinkPtFuNu::cLinkPtFuNu (INT2 anI,INT2 aJ,INT2 aNb) :
+    mI  (anI),
+    mJ  (aJ),
+    mNb (aNb)
+{
+}
+
+//=======================================================
+static Video_Win * TheWSom= 0;
+
 cFNuAttrSom::cFNuAttrSom
 (
        cElNuage3DMaille *aN,
@@ -82,7 +96,7 @@ cFNuAttrSom::cFNuAttrSom
    Pt2di aNb2C = round_up(Pt2dr(aSzN)/aSzCel);
    Pt2di aPK;
 
-   static std::vector<cPtFuNu> aVPTR; aVPTR.clear();
+   static std::vector<cLinkPtFuNu> aVPTR; aVPTR.clear();
    TIm2DBits<1> aTDef(mMasqValid);
    Im2D_U_INT1 anImDist(aSzN.x,aSzN.y);
    TIm2D<U_INT1,INT> aTDist(anImDist);
@@ -90,13 +104,19 @@ cFNuAttrSom::cFNuAttrSom
 
    Chamfer::d32.im_dist(anImDist);
 
-/*
-static Video_Win  aW=Video_Win::WStd(aSzN,3);
-ELISE_COPY(anImDist.all_pts(),mStdN->ImDef().in()!=0,aW.odisc());
-ELISE_COPY(select(anImDist.all_pts(),anImDist.in()>0),P8COL::blue,aW.odisc());
-ELISE_COPY(select(anImDist.all_pts(),anImDist.in()>10),P8COL::yellow,aW.odisc());
-getchar();
-*/
+
+   if (1)
+   {
+      if (TheWSom==0) 
+      {
+         int aZoom = 3;
+         TheWSom =Video_Win::PtrWStd(aSzN*aZoom,true,Pt2dr(aZoom,aZoom));
+      }
+      ELISE_COPY(anImDist.all_pts(),mStdN->ImDef().in()!=0,TheWSom->odisc());
+      ELISE_COPY(select(anImDist.all_pts(),anImDist.in()>0),P8COL::blue,TheWSom->odisc());
+      ELISE_COPY(select(anImDist.all_pts(),anImDist.in()>10),P8COL::yellow,TheWSom->odisc());
+
+   }
 
    mNbSomTest = 0;
 
@@ -114,7 +134,10 @@ getchar();
 
            Pt2dr aPMoy(0,0);
            int aNbSom=0;
-           // aW.draw_rect(Pt2dr(aP0),Pt2dr(aP1),Line_St(aW.pdisc()(P8COL::green)));
+           if (TheWSom)
+           {
+               TheWSom->draw_rect(Pt2dr(aP0),Pt2dr(aP1),Line_St(TheWSom->pdisc()(P8COL::green)));
+           }
            for (aP.x=aP0.x; aP.x<aP1.x ; aP.x++)
            {
                for (aP.y=aP0.y; aP.y<aP1.y ; aP.y++)
@@ -137,7 +160,7 @@ getchar();
                   {
                      if (aTDef.get(aP))
                      {
-                        double aDist = euclid(Pt2dr(aP),aPMoy) - ElMin(5.0,aTDist.get(aP)/2.0);
+                        double aDist = euclid(Pt2dr(aP),aPMoy) - ElMin(6,aTDist.get(aP))/1.8;
                        
                         if (aDist<aDBest)
                         {
@@ -147,13 +170,13 @@ getchar();
                      }
                   }
               }
-              Pt3dr aP3 = mStdN->PtOfIndex(aPBest);
-              cPtFuNu aPF;
-              aPF.mNb = aNbSom;
-              aPF.mPt =  Pt3df(aP3.x,aP3.y,aP3.z);
+              cLinkPtFuNu aPF(aPBest.x,aPBest.y,aNbSom);
               aVPTR.push_back(aPF);
               mNbSomTest += aNbSom;
-              // aW.draw_circle_abs(Pt2dr(aPBest),3.0,aW.pdisc()(P8COL::red));
+              if (TheWSom)
+              {
+                  TheWSom->draw_circle_abs(Pt2dr(aPBest),3.0,TheWSom->pdisc()(P8COL::red));
+              }
            }
        }
    }
@@ -161,8 +184,15 @@ getchar();
    mPtsTestRec = aVPTR;
    mSeuilNbSomTest = round_ni((anAppli->Param().mPercRecMin/100.0) * mNbSomTest);
 
-   std::cout << "aNameIm " << mStdN->Sz()  << " " << aNb2C << " " << mPtsTestRec.size()  << " " << mVoisInit.ISOM_Vois().size()<< "\n";
+
+   if (TheWSom)
+   {
+       std::cout << "aNameIm " << mStdN->Sz()  << " Cels " << aNb2C 
+                 << " Pts " << mPtsTestRec.size()  << " NbV " << mVoisInit.ISOM_Vois().size()<< "\n";
+      // std::cout << "WWwwwww  \n"; getchar();
+   }
 }
+
 
 
 const std::list<cISOM_Vois> & cFNuAttrSom::ListVoisInit()
@@ -185,9 +215,10 @@ bool cFNuAttrSom::IsArcValide(cFNuAttrSom * aS2)
     if (sizeofile(aNameH.c_str()) < 1000)
        return false;
 
-   cElNuage3DMaille * aN2 = aS2->mStdN;
    for (int aKP=0 ; aKP< int(mPtsTestRec.size()) ;  aKP++)
    {
+        std::cout << "Dist Pix = " << PixelEcartReprojInterpol(aS2, mPtsTestRec[aKP].Pt()) << "\n";
+/*
         Pt3dr aPT1 = mPtsTestRec[aKP].PR();
         Pt2dr aPIm2 = aN2->Terrain2Index(aPT1);
         if (aN2->IndexHasContenuForInterpol(aPIm2))
@@ -195,14 +226,35 @@ bool cFNuAttrSom::IsArcValide(cFNuAttrSom * aS2)
             Pt3dr aPT2 =  aN2->PtOfIndexInterpol(aPIm2);
             std::cout << "Dist = " << aPT1  - aPT2 << "\n";
         }
+*/
    }
    
    return true;
 }
 
+
+double TheDefDistPix = 1e10;
+
+double   cFNuAttrSom::PixelEcartReprojInterpol(cFNuAttrSom * aS2,const Pt2di & aPIm1)
+{
+    cElNuage3DMaille * aN2 = aS2->mStdN;
+    Pt3dr aPT1 = mStdN->PtOfIndex(aPIm1);
+    Pt2dr aPIm2 = aN2->Terrain2Index(aPT1);
+    if (aN2->IndexHasContenuForInterpol(aPIm2))
+    {
+       Pt3dr aPT2 = aS2->mStdN->PtOfIndexInterpol(aPIm2);
+       Pt2dr aPIm1Bis = mStdN->Terrain2Index(aPT2);
+
+       return euclid(Pt2dr(aPIm1),aPIm1Bis);
+    }
+    
+
+    return TheDefDistPix;
+}
+
 /*
 cFNuAttrSom::cFNuAttrSom() :
-   mStdN(0)mSecs
+   mStdN(0)mSecs(
 {IsArcValide(
 }
 */

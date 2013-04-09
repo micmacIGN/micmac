@@ -98,6 +98,18 @@ class FBool
          return mVal != F2.mVal;
       }
 
+      bool  BoolCast()
+      {
+           if ((*this)==True) return true;
+           if ((*this)==False) return false;
+
+           ELISE_ASSERT(false,"FBool::BoolCast , val is MayBe");
+           return false;
+      }
+
+
+
+
     private :
        FBool(U_INT1);
        U_INT1    mVal;
