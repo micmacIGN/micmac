@@ -209,6 +209,7 @@ INT LArgMain::Init
 }
 
 
+int LArgMain::Size() const {return _larg.size();}
 
 
 
@@ -372,12 +373,12 @@ const char * GenElArgMain::name() const
 
 std::vector<char *>  	ElInitArgMain
 	(
-	int argc,char ** argv,
-	const LArgMain & LGlob,
-	const LArgMain & L1,
-	bool  VerifInit,
-	bool  AccUnK,
-	int   aNbArgGlobGlob
+	     int argc,char ** argv,
+	     const LArgMain & LGlob,
+	     const LArgMain & L1,
+	     bool  VerifInit,
+	     bool  AccUnK,
+	     int   aNbArgGlobGlob
 	)
 {
 	std::vector<char *> aRes;
@@ -386,7 +387,9 @@ std::vector<char *>  	ElInitArgMain
 	argv++;
 
 	bool Help = false;
-	if (argc==0) Help = true;
+
+// std::cout << "ARGCCCC " << argc << " " <<  LGlob.Size() << "\n";
+	if ((argc==0) && ( LGlob.Size() !=0)) Help = true;
 	for (int aK=0 ; aK<argc ; aK++)
 	{
 		if (std::string(argv[aK])=="-help")

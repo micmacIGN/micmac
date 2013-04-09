@@ -81,7 +81,7 @@ bool code_file(const char * name,bool coder,std::string * ResNewName=0)
 
     if (ResNewName) * ResNewName = NewName;
 
-    std::string aSauv = "Dup_" + aStrName + ".dup";
+    std::string aSauv = DirOfFile(aStrName) + "Dup_" + NameWithoutDir(aStrName) + ".dup";
     std::string aCp = "cp " + aStrName  + " " + aSauv;
     VoidSystem(aCp.c_str());
 
@@ -199,13 +199,18 @@ class cOneEntryMail
                if (mAffil >anE2.mAffil) return false;
                return mName < anE2.mName;
          }
+         static cOneEntryMail * mLastEntry;
+
          cOneEntryMail(const std::string &,bool IsBlackL);
          std::string  mAdr;
          bool         mBlackList;
          std::string  mId; 
          std::string  mName;
          std::string  mAffil;
+         bool         mOk;
 };
+
+cOneEntryMail*  cOneEntryMail::mLastEntry=0;
 
 class cCmpOEM
 {
@@ -298,6 +303,14 @@ cOneEntryMail::cOneEntryMail
         std::cout << "For adr " << mAdr << "\n";
         ELISE_ASSERT(false,"cOneEntryMail cannot split");
    }
+   else
+   {
+        mOk =   (mName!="") && (mAffil!="");
+        if (!mOk)
+        {
+             // std::cout << "NOTOK " << mId << "::"<< mName << "::" << mAffil << "\n";
+        }
+   }
 
    // std::cout << IsBlackL << " Id=[" << mId << "] Name=["  << mName << "] Affil=[" << mAffil << "]\n";
 }
@@ -324,12 +337,20 @@ class cGenerateMail
 
         std::map <std::string,cOneEntryMail *> mDicE;
         std::vector<cOneEntryMail *>           mVE;
+        int mNbByF;
 };
 
 
 void cGenerateMail::ParseFile(const std::string aName,bool aTest)
 {
-    bool aBlackL = (aName=="Black-Liste.txt.dcd");
+    cOneEntryMail::mLastEntry=0;
+
+    bool aBlackL = (NameWithoutDir(aName)=="Black-Liste.txt.dcd");
+
+    if (aBlackL) 
+    {
+          std::cout <<   "     #######  BLACKLIST FILE ####\n";
+    }
     std::string aNewName;
 
     decoder_force(aName.c_str(),aNewName);
@@ -365,10 +386,24 @@ void cGenerateMail::ParseFile(const std::string aName,bool aTest)
                   if (! mDicE[anEntr.mId])  
                   {
                       mDicE[anEntr.mId] = new cOneEntryMail(anEntr);
-                      mVE.push_back(mDicE[anEntr.mId]);
+                      if (anEntr.mOk)
+                      {
+                         mVE.push_back(mDicE[anEntr.mId]);
+                      }
+                      else
+                      {
+                           std::cout << "ERR !! :: For File " << aName  << " For Name " << anAdr ;
+                           if (cOneEntryMail::mLastEntry)
+                              std::cout << " After " <<  cOneEntryMail::mLastEntry->mAdr;
+                           else
+                              std::cout << " (First of File)";
+                           std::cout << "\n";
+                      }
+                      cOneEntryMail::mLastEntry = mDicE[anEntr.mId];
                   }
                   else
                   {
+                      if (0)
                         std::cout << "Multiple " << anAdr << "\n";
                   }
                   if (anEntr.mBlackList)
@@ -397,11 +432,20 @@ cGenerateMail::cGenerateMail(int argc,char ** argv) :
     mICNM (cInterfChantierNameManipulateur::BasicAlloc(mDir)),
     mNameFile (mICNM->Get(".*\\.dcd"))
 {
+    mNbByF=298;
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain() ,
+        LArgMain() << EAM(mNbByF,"NbByF",true)
+    );	
+
+
     for (int aKN=0 ; aKN<int(mNameFile->size()) ; aKN++)
     {
-        std::string aName = (*mNameFile)[aKN];
+        std::string aName = mDir + (*mNameFile)[aKN];
+        std::cout << "========================= begin Name File :: " << aName << "\n";
         ParseFile(aName,false);
-        std::cout << "========================= Name File :: " << aName << "\n";
     }
 
     cCmpOEM TheCmp;
@@ -410,19 +454,25 @@ cGenerateMail::cGenerateMail(int argc,char ** argv) :
     FILE * aFP =0;
     int aCptF =0; 
     int aCptInF =0; 
-    int aNbByF=300;
+
+
+
+
     for (int aK=0 ; aK<int(mVE.size()) ; aK++)
     {
          if (aFP==0)
          {
-              aFP = FopenNN("MailList_"+ToString(aCptF)+".txt","w","MailList::open");
+              aFP = FopenNN(mDir+"MailList_"+ToString(aCptF)+".txt","w","MailList::open");
+              fprintf(aFP,"marc.pierrot-deseilligny@ensg.eu\n");
+
          }
          if (! mVE[aK]->mBlackList)
          {
              fprintf(aFP,"%s",mVE[aK]->mAdr.c_str());
-             if ((aCptInF==aNbByF) || ((aK+1)==int(mVE.size())))
+             if ((aCptInF==mNbByF) || ((aK+1)==int(mVE.size())))
              {
                   fprintf(aFP,"\n");
+                  fprintf(aFP,"marc.deseilligny@gmail.com\n");
                   fclose(aFP);
                   aFP =0;
                   aCptF++;
