@@ -182,6 +182,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("GenXML2Cpp",GenXML2Cpp_main," Do some stuff"));
        aRes.push_back(cMMCom("GrShade",GrShade_main," Compute shading from depth image"));
+       aRes.push_back(cMMCom("StackFlatField",EstimFlatField_main,"Basic Flat Field estimation by image stacking"));
        aRes.push_back(cMMCom("Impaint",Impainting_main,"Basic Impainting"));
        aRes.push_back(cMMCom("Gri2Bin",Gri2Bin_main," Do some stuff"));
        aRes.push_back(cMMCom("MakeGrid",MakeGrid_main," Generate orientations in a grid format"));

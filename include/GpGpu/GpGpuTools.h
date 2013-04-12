@@ -424,16 +424,16 @@ public:
     struct2DLayered();
     ~struct2DLayered(){}
     /// \brief Renvoie le nombre de tableau 2D
-    uint	GetNbLayer();
+    uint        GetNbLayer();
     /// \brief Initialise le nombre de tableau 2D
-    void	SetNbLayer(uint nbLayer);
+    void        SetNbLayer(uint nbLayer);
     /// \brief  Initialise la dimension de la structure 2D et le nombre de tableau
     /// \param  dimension : Dimension d initialisation de la structure 2D
     /// \param  nbLayer : nombre de tableau
-    void	SetDimension(uint2 dimension, uint nbLayer);
+    void        SetDimension(uint2 dimension, uint nbLayer);
     /// \brief  Initialise la dimension de la structure 2D et le nombre de tableau
     /// \param  dimension : Dimension d initialisation de la structure 3D
-    void	SetDimension(uint3 dimension);
+    void        SetDimension(uint3 dimension);
     /// \brief  Renvoie la dimension de la structure 3D
     uint3       GetDimension3D();
 
@@ -454,6 +454,7 @@ class CData : public CGObject
 {
 
 public:
+
     CData();
     ~CData(){}
     /// \brief      Allocation memoire
@@ -465,34 +466,34 @@ public:
     virtual bool	Dealloc()		= 0;
     /// \brief      Sortie console de la classe
     virtual void	OutputInfo()	= 0;
-
-    /// \brief      Initialise a NULL le pointeur des donnees
-    void            dataNULL();
-    /// \brief      Renvoie True si le pointeur des donnees est NULL
-    bool            isNULL();
     /// \brief      Renvoie le pointeur des donnees
     T*              pData();
     /// \brief      Renvoie le pointeur du pointeur des donnees
     T**             ppData();
-    /// \brief      Renvoie la taille de la memoire alloue
-    uint            GetSizeofMalloc();
-    /// \brief      Initialise la taille de la memoire alloue
-    /// \param      sizeofmalloc : Taille de l allocation
-    void            SetSizeofMalloc(uint sizeofmalloc);
     /// \brief      Sortie console des erreurs Cuda
     /// \param      err :  erreur cuda rencontree
     /// \param      fonctionName : nom de la fonction ou se trouve l erreur
     virtual bool	ErrorOutput(cudaError_t err,const char* fonctionName);
     /// \brief      Sortie consolle de l allocation memoire globale Gpu
     void            MallocInfo();
+    /// \brief      Obtenir une valeur aleatoire comprise entre min et max
+    static T        GetRandomValue(T min, T max);
 
 protected:
 
+    /// \brief      Initialise a NULL le pointeur des donnees
+    void            dataNULL();
+    /// \brief      Renvoie True si le pointeur des donnees est NULL
+    bool            isNULL();
     /// \brief      Ajout de memoire alloue
     void            AddMemoryOc(uint m);
     /// \brief      Suppression de memoire alloue
     void            SubMemoryOc(uint m);
-
+    /// \brief      Renvoie la taille de la memoire alloue
+    uint            GetSizeofMalloc();
+    /// \brief      Initialise la taille de la memoire alloue
+    /// \param      sizeofmalloc : Taille de l allocation
+    void            SetSizeofMalloc(uint sizeofmalloc);
 
 private:
 
@@ -548,6 +549,15 @@ template <class T>
 void CData<T>::SetSizeofMalloc( uint sizeofmalloc )
 {
     _sizeofMalloc = sizeofmalloc;
+}
+
+template <class T>
+T CData<T>::GetRandomValue(T min, T max)
+{
+    T mod = abs(max - min);
+    int rdVal  = rand()%((int)mod);
+    double dRdVal = (float)rand() / std::numeric_limits<int>::max();
+    return min + rdVal + (T)dRdVal;
 }
 
 template <class T>
@@ -1231,10 +1241,10 @@ bool ImageLayeredCuda<T>::copyHostToDevice( T* data )
     cudaMemcpy3DParms	p		= { 0 };
     cudaPitchedPtr		pitch	= make_cudaPitchedPtr(data, sizeImagesLayared.width * sizeof(T), sizeImagesLayared.width, sizeImagesLayared.height);
 
-    p.dstArray	= AImageCuda::GetCudaArray();	// Pointeur du tableau de destination
-    p.srcPtr	= pitch;					// Pitch
-    p.extent	= sizeImagesLayared;		// Taille du cube
-    p.kind		= cudaMemcpyHostToDevice;	// Type de copie
+    p.dstArray	= AImageCuda::GetCudaArray();   // Pointeur du tableau de destination
+    p.srcPtr	= pitch;                        // Pitch
+    p.extent	= sizeImagesLayared;            // Taille du cube
+    p.kind		= cudaMemcpyHostToDevice;       // Type de copie
 
     // Copie des images du Host vers le Device
     return CData3D::ErrorOutput(cudaMemcpy3D(&p),"copyHostToDevice") ;
@@ -1249,10 +1259,10 @@ bool ImageLayeredCuda<T>::copyDeviceToDevice(T *data)
     cudaMemcpy3DParms	p		= { 0 };
     cudaPitchedPtr		pitch	= make_cudaPitchedPtr(data, sizeImagesLayared.width * sizeof(T), sizeImagesLayared.width, sizeImagesLayared.height);
 
-    p.dstArray	= AImageCuda::GetCudaArray();	// Pointeur du tableau de destination
-    p.srcPtr	= pitch;					// Pitch
-    p.extent	= sizeImagesLayared;		// Taille du cube
-    p.kind	= cudaMemcpyDeviceToDevice;	// Type de copie
+    p.dstArray	= AImageCuda::GetCudaArray();   // Pointeur du tableau de destination
+    p.srcPtr	= pitch;                        // Pitch
+    p.extent	= sizeImagesLayared;            // Taille du cube
+    p.kind	= cudaMemcpyDeviceToDevice;         // Type de copie
 
     // Copie des images du Host vers le Device
     return CData3D::ErrorOutput(cudaMemcpy3D(&p),"copyDeviceToDevice") ;

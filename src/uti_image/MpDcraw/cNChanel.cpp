@@ -204,7 +204,8 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
    Im2D_REAL4 aFlF(1,1);
    std::string aNameFF = DirOfFile(aNameFile)+ "Foc"+ ToString(round_ni(aMDP.FocMm())) + "-FlatField.tif";
    // Pas de FF en coul pour l'insntnt
-   if (ELISE_fp::exist_file(aNameFF) && anArg.UseFF())
+   if (ELISE_fp::exist_file(aNameFF) && anArg.UseFF() &&  (!  anArg.Cons16B()))
+
    {
        std::cout << "USE FLAT FIELD " << aNameFF << "\n";
        aFlF=Im2D_REAL4::FromFileStd(aNameFF);
@@ -241,7 +242,7 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
                   || (anArg.ExpTimeRef()!=0) 
                   || (anArg.DiaphRef()!=0) 
                   || (anArg.IsoSpeedRef()!=0) 
-                  || HasFlF
+                  // || HasFlF  MPD Avril 2013 : comprend pas, ce fait saturer les images !!
                 ;
 
     // cNChannel  aNC(anArg,aNameFile,anIm,4,TheNameC,&(aVP0[0]),Pt2di(2,2));
