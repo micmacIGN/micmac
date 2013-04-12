@@ -76,6 +76,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 		#define ELISE_X11  (ELISE_unix | ELISE_MacOs)
 	#endif 
 #endif
+/*
+*/
 
 #define ELISE_NO_VIDEO  (! ELISE_X11)
 

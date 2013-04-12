@@ -405,6 +405,7 @@ void cTplImInMem<Type>::SelfSetConvolSepY
 
     for (int anX = 0; anX<mSz.x ; anX+=PackTranspo)
     {
+          anX = ElMin(anX,mSz.x-PackTranspo);   POUR EVITER LES DEBORDEMENTS - MARCHE PAS NON PLUS
          Type * aL0 = aBufIn.data()[0];
          Type * aL1 = aBufIn.data()[1];
          Type * aL2 = aBufIn.data()[2];
