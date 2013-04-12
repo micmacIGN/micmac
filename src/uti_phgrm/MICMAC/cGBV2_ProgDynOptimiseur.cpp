@@ -458,6 +458,7 @@ void cGBV2_ProgDynOptimiseur::BalayageOneSensGpu(const std::vector<Pt2di> &aVPt,
         const Box2di &       aBox0 = aMat0.Box();
         Pt2di aP0;
 
+        //std::cout << "[" << aBox0._p0.x << "," << aBox0._p1.x << "] ";
         for (aP0.x=aBox0._p0.x ;  aP0.x<aBox0._p1.x ; aP0.x++)
         {
             int aDxMin,aDxMax;
