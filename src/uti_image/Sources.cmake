@@ -6,6 +6,7 @@ INCLUDE (${UTI_IMAGE_MPDCRAW_DIR}/Sources.cmake)
 list( APPEND uti_image_Src_Files
     ${UTI_IMAGE_DIR}/CPP_Undist.cpp
     ${UTI_IMAGE_DIR}/CPP_CmpIm.cpp
+    ${UTI_IMAGE_DIR}/CPP_EstimFlatField.cpp
     ${UTI_IMAGE_DIR}/CPP_Dequant.cpp
     ${UTI_IMAGE_DIR}/CPP_Devlop.cpp
     ${UTI_IMAGE_DIR}/CPP_ElDcraw.cpp
