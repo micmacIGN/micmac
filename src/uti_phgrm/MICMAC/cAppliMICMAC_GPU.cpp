@@ -1279,7 +1279,8 @@ if (0)
 					else						
 						mSurfOpt->SetCout(Pt2di(anX,anY),&anZ,defaultCost);
 
-			}
+            }
+
 	}
 
 #endif
@@ -1297,6 +1298,10 @@ if (0)
         int aZMinTer = mZMinGlob, aZMaxTer = mZMaxGlob;
         //int aZMinTer = -16, aZMaxTer = 16;
 	
+
+
+
+
 		// definition de la zone rectangulaire de terrain
 		Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
 
@@ -1397,6 +1402,7 @@ if (0)
 				anZComputed += interZ;
 			}
 		}
+
 		IMmGg.SetZCToCopy(0);
 		IMmGg.SetZToCompute(0);
 		hVolumeCost.Dealloc(); // Attention la liberation de memoire prends un certain temps, tout comme l'allocation... eviter cette manip...!!!

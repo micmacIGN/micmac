@@ -20,6 +20,8 @@ using namespace std;
 
 /// \brief Tableau des penalites pre-calculees
 #define PENALITE 7
+#define WARPSIZE 32
+#define NAPPEMAX 256
 
 static __constant__ float penalite[PENALITE];
 
@@ -103,7 +105,6 @@ template<class T> __global__ void kernelReduction(T* g_idata,T* g_odata,  int n)
 template<class T> __global__ void kernelOptiOneDirection(T* g_idata,T* g_odata,int* g_oPath, uint2 dimPlanCost, uint2 delta, /*float* iMinCost,*/ float defaultValue)
 {
     __shared__ T    sdata[32];
-    //__shared__ int  minCostC[1];
 
     const int   tid = threadIdx.x;
     const uint  pit = blockIdx.x * blockDim.x;
@@ -112,8 +113,6 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_idata,T* g_odata,i
     bool        defV= sdata[tid] == defaultValue;
     g_odata[i0]     = defV ? 0 : sdata[tid];
     g_oPath[i0]     = tid;
-
-    //if(tid == 0) minCostC[0]  = 1e9;
 
     T minCost, cost;
 
@@ -127,11 +126,12 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_idata,T* g_odata,i
             cost = g_idata[i1];
 
             if(cost!=defaultValue)
-            {
+
                 minCost = defV ? cost : cost + sdata[tid] + penalite[0];
 
-                __syncthreads();
+            __syncthreads();
 
+            if(cost!=defaultValue)
                 for(int t = -((int)(delta.x)); t < ((int)(delta.y));t++)
                 {
                     int Tl = tid + t;
@@ -145,7 +145,7 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_idata,T* g_odata,i
                         }
                     }
                 }
-            }
+
             else
                 minCost = defV ? 0 : sdata[tid];
 
@@ -157,17 +157,158 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_idata,T* g_odata,i
             g_oPath[i0] = iL;
         }
     }
+}
 
-/*
-    int intCost = (int)(minCost * 1e5f);
-    atomicMin(minCostC,intCost);
+
+
+template<class T> __device__ void nextCol(T* destData,T* bufferData, int* bufferIndex, T* streamData, int* streamIndex, int tid, int& bufIdId, int& bufDaId, int& idCel, int& idStm)
+{
+
+    bufIdId += 2;
+
+    if(bufIdId >= WARPSIZE)
+    {
+        bufferIndex[tid] = streamIndex[idCel*2 + tid];
+        bufIdId = 0;
+    }
+
     __syncthreads();
-    if(minCostC[0] == intCost)
-        iMinCost[blockIdx.x] = tid;
-*/
+
+    int dimZ    = abs(bufferIndex[bufIdId+1] - bufferIndex[bufIdId]);
+
+    uint celCop = 0;
+
+    if(!tid)
+        printf("dimZ : %d\n",dimZ);
+    while(celCop < dimZ)
+    {
+        uint celACop = min(dimZ - celCop , WARPSIZE - bufDaId);
+
+        if(celACop == 0)
+        {
+            bufferData[tid] = streamData[idStm + tid];
+            bufDaId = 0;
+            if (tid == 0) idStm  += WARPSIZE;
+            celACop = min(dimZ - celCop ,WARPSIZE);
+        }
+
+        __syncthreads();
+
+
+        if (celCop  + tid >= dimZ)
+        {
+            if(celCop  + tid == dimZ)
+                printf("Copie -1  de [%d -> %d] / ",celCop + tid ,WARPSIZE);
+
+            destData[celCop + tid] = -1;
+        }
+        else
+        {
+            //printf("ID : %d, tid : %d, celACop : %d, celCop : %d\n",celCop + tid,tid,celACop,celCop);
+            destData[celCop + tid] = 2;
+        }
+
+        if(tid < celACop)
+        {
+            if(!tid)
+                printf("Copie data  de [%d -> %d] / ",celCop,celCop + celACop);
+            destData[celCop + tid] = 1;//bufferData[bufDaId + tid];
+            bufDaId += celACop;
+        }
+
+        __syncthreads();
+
+        if(!tid)
+            printf("\n");
+
+
+        celCop  += celACop;
+
+    }
+    idCel++;
+}
+
+
+template<class T> __global__ void kernelOptiOneDirection2(T* gInputStream, int* gInputIndex, T* g_odata, uint2 dimPlanCost, uint penteMax, float defaultValue)
+{
+
+    __shared__ T    bufferData[WARPSIZE];
+    __shared__ T    bufferindex[WARPSIZE];
+    __shared__ T    pdata[2][NAPPEMAX];
+    int             idStm   =   0;
+    const int       tid     =   threadIdx.x;
+    int             bufIdId =   WARPSIZE;
+    int             bufDaId =   WARPSIZE;
+    int             idCel   =   0;
+
+    nextCol(pdata[0],bufferData,bufferindex , gInputStream, gInputIndex, tid,bufIdId, bufDaId, idCel, idStm);
+
+    g_odata[tid]  = pdata[0][tid];
+
+    nextCol(pdata[1],bufferData,bufferindex , gInputStream, gInputIndex, tid,bufIdId, bufDaId, idCel, idStm);
+
+    g_odata[WARPSIZE + tid]  = pdata[1][tid];
+
 }
 
 /// \brief Lance le kernel d optimisation pour une direction
+template <class T> void LaunchKernelOptOneDirection2(CuHostData3D<T> &hInputStream, CuHostData3D<int> &hInputindex, uint3 dimVolCost,float defaultValue, int sizeVolumeCost)
+{
+
+    int     nBLine      =   dimVolCost.x;
+    int     si          =   dimVolCost.z * nBLine;
+    int     dimLine     =   dimVolCost.y;
+    uint2   diPlanCost  =   make_uint2(si,dimLine);
+    uint    deltaMax    =   3;
+    dim3    Threads(32,1,1);
+    dim3    Blocks(nBLine,1,1);
+
+    float hPen[PENALITE];
+
+    for(int i=0;i<PENALITE;i++)
+        hPen[i] = ((float)(1 / 10.0f));
+
+    //-------- Copie des penalites dans le device ----------
+
+    checkCudaErrors(cudaMemcpyToSymbol(penalite, hPen, sizeof(float)*PENALITE));
+
+    //----------- Declaration des variables Host -----------
+
+    CuHostData3D<T>         hOutputValue(diPlanCost);
+
+    //----------------- Variables Device -------------------
+
+    uint2   sizeInput   =   make_uint2(sizeVolumeCost,1);
+    uint2   sizeIndex   =   make_uint2(dimVolCost.y*2,1);
+
+    CuDeviceData3D<T>       dInputStream(sizeInput,1,"dInputStream");
+    CuDeviceData3D<int>     dInputIndex(sizeIndex,1,"dInputIndex");
+    CuDeviceData3D<T>       dOutputData(diPlanCost,1,"dOutputData");
+
+    //--------- Initialisation des Variables Device ---------
+
+    dOutputData.Memset(0); //???
+
+    //------- Copie du volume de couts dans le device  -------
+
+    dInputStream.CopyHostToDevice(hInputStream.pData());
+    dInputIndex.CopyHostToDevice(hInputindex.pData());
+
+    kernelOptiOneDirection2<T><<<Blocks,Threads>>>(dInputStream.pData(),dInputIndex.pData(),dOutputData.pData(),diPlanCost, deltaMax,defaultValue);
+    getLastCudaError("kernelOptiOneDirection failed");
+
+    dOutputData.CopyDevicetoHost(hOutputValue.pData());
+    cudaDeviceSynchronize();
+    hOutputValue.OutputValues(0,XY,NEGARECT,3,-1);
+
+    dInputStream.Dealloc();
+    dOutputData.Dealloc();
+
+}
+
+
+/// \brief Lance le kernel d optimisation pour une direction
+
 template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputValue, uint3 dimVolCost,float defaultValue = 0)
 {
     //nZ      = 32 doit etre en puissance de 2
@@ -219,7 +360,7 @@ template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputValue
     dPath.CopyDevicetoHost(hPath.pData());
     dMinCostId.CopyDevicetoHost(hMinCostId.pData());
 
-/*
+    /*
     uint2   ptTer;
     uint2   prev = make_uint2(0,1);
     for ( ptTer.x = 0; ptTer.x < dimTer.x; ptTer.x++)
@@ -255,23 +396,40 @@ extern "C" void OptimisationOneDirection(CuHostData3D<float> &data, uint3 dimVol
     LaunchKernelOptOneDirection(data,dimVolCost,defaultValue);
 }
 
-/// \brief Apple exterieur du kernel
+/// \brief Appel exterieur du kernel
 extern "C" void Launch()
 {
-    uint3 dimVolumeCost  = make_uint3(256,256,32);
+    uint3 dimVolumeCost  = make_uint3(1,32,32);
 
-    CuHostData3D<float> volumeCost(make_uint2(dimVolumeCost.x * dimVolumeCost.z,dimVolumeCost.y));
-    volumeCost.FillRandom(0,2);
-    LaunchKernelOptOneDirection(volumeCost,dimVolumeCost,5.0f);
+    CuHostData3D<int> streamCost(make_uint2(dimVolumeCost.x * dimVolumeCost.z,dimVolumeCost.y));
+    CuHostData3D<int> streamIndex(make_uint2(dimVolumeCost.y*2,1));
 
-    /*
-    data1.OutputValues();
-    data1.OutputValues(1,YZ);
-    data1.OutputValues(1,XZ);
-    */
-    volumeCost.Dealloc();
+    uint si = 0 , sizeStreamCost = 0;
 
-    //LaunchKernel<int>();
+    srand (time(NULL));
+
+    while (si < dimVolumeCost.y){
+
+        int min             = CData<int>::GetRandomValue(0,8);
+        int max             = CData<int>::GetRandomValue(25,31);
+        int dim             = max - min + 1;
+        streamIndex[si*2]   = min;
+        streamIndex[si*2+1] = max;
+
+        for(int i = 0 ; i < dim; i++)
+            streamCost[sizeStreamCost+i] = CData<int>::GetRandomValue(4,128);
+
+        si++;
+        sizeStreamCost += dim;
+
+    }
+
+    //    streamCost.OutputValues();
+
+    LaunchKernelOptOneDirection2(streamCost,streamIndex,dimVolumeCost,5.0f, sizeStreamCost);
+
+    streamCost.Dealloc();
+
 }
 
 #endif
