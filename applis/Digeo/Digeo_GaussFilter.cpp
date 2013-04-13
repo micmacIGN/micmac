@@ -301,7 +301,6 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
 /*                                      */
 /****************************************/
 
-
 template <class Type> 
 void  cTplImInMem<Type>::SetConvolBordX
       (
@@ -325,6 +324,7 @@ void  cTplImInMem<Type>::SetConvolBordX
 }
 
 
+    //  SetConvolSepX(aImIn,aData,-aSzKer,aSzKer,aNbShitXY,aCS);
 template <class Type> 
 void cTplImInMem<Type>::SetConvolSepX
      (
@@ -405,7 +405,12 @@ void cTplImInMem<Type>::SelfSetConvolSepY
 
     for (int anX = 0; anX<mSz.x ; anX+=PackTranspo)
     {
-          anX = ElMin(anX,mSz.x-PackTranspo);   POUR EVITER LES DEBORDEMENTS - MARCHE PAS NON PLUS
+         ELISE_ASSERT(false,"::SelfSetConvolSepY NOT FINISH (bord ...)");
+/*
+         int aDelta = mSz.x-anX;
+         int aDebord = ElMax(0,PackTranspo-anX);
+         anX = ElMin(anX,mSz.x-PackTranspo);   POUR EVITER LES DEBORDEMENTS - MARCHE PAS NON PLUS
+*/
          Type * aL0 = aBufIn.data()[0];
          Type * aL1 = aBufIn.data()[1];
          Type * aL2 = aBufIn.data()[2];
