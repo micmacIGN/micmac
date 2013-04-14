@@ -514,6 +514,28 @@
              <Key>   NKS-Assoc-STD-SZ </Key>
     </KeyedNamesAssociations>
 
+    <!-- Pour le devlopt en 8 Bits :  Gama > 0 donne un gama, Gama < 0 Gama * dyn log  -->
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> .*  </PatternTransform>
+                       <CalcName> 1.0 </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   NKS-Assoc-STD-Gama8Bits </Key>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> .*  </PatternTransform>
+                       <CalcName> 1.0 </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   NKS-Assoc-STD-EpsLog8Bits </Key>
+    </KeyedNamesAssociations>
+
 
                   <!---    SPECIAL RESULTAT MICMAC -->
 

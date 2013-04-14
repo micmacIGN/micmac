@@ -1,7 +1,9 @@
 set(UTI_IMAGE_MPDCRAW_DIR ${UTI_IMAGE_DIR}/MpDcraw)
+set(UTI_IMAGE_DIGEO_DIR ${UTI_IMAGE_DIR}/Digeo)
 set(SrcGrp_Uti_Image uti_image)
 
 INCLUDE (${UTI_IMAGE_MPDCRAW_DIR}/Sources.cmake)
+INCLUDE (${UTI_IMAGE_DIGEO_DIR}/Sources.cmake)
 
 list( APPEND uti_image_Src_Files
     ${UTI_IMAGE_DIR}/CPP_Undist.cpp

@@ -1,8 +1,7 @@
 <GenCpp>
 
 <Verbatim File=".h.cpp">
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 </Verbatim>
 <Verbatim  File=".h">
 #ifndef Define_NotDigeo
@@ -19,7 +18,7 @@ using namespace NS_SuperposeImage;
 </Verbatim>
 
 <Verbatim File=".h.cpp">
-namespace NS_ParamDigeo{
+//namespace NS_ParamDigeo{
 </Verbatim>
 
 
@@ -36,6 +35,11 @@ namespace NS_ParamDigeo{
          <eRDI_11>     </eRDI_11>  
    </enum>
 
+   <enum Name="eTest12345">
+         <eTest12345_A>     </eTest12345_A>  
+         <eTest12345_B>     </eTest12345_B>  
+         <eTest12345_C>     </eTest12345_C>  
+   </enum>
 
 
 
@@ -71,6 +75,7 @@ namespace NS_ParamDigeo{
               <VisuCarac Nb="?"  RefType="ParamVisuCarac" > </VisuCarac>
 
               <KeyOrPat Nb="1" Type="std::string"> </KeyOrPat>
+              <!-- Pas utilise pour l'instant, sans doute prevu pour modele geometrique -->
               <KeyCalcCalib Nb="?" Type="std::string"> </KeyCalcCalib>
               <BoxIm Nb="?" Type="Box2di">  </BoxIm>
 
@@ -87,7 +92,7 @@ namespace NS_ParamDigeo{
               </TypeNumeriqueOfNiv>
 
             <!-- En maximisant la dynamique compatible avec le type d'image,
-                 permet d'avoir une plus grande precision -->
+                 permet d'avoir une plus grande precision; Def = true pour (u_)?int[12] -->
 
               <MaximDyn Nb="?" Type="bool"> </MaximDyn>
               <!-- Parfois l'image contient des valeurs "parasites" qui 
@@ -191,7 +196,7 @@ namespace NS_ParamDigeo{
 insulter si ce n'est pas le cas; sauf si ExigeCodeCompile indique que c'est sciemment -->
             <ExigeCodeCompile Nb="?" Type="bool" Def="true"></ExigeCodeCompile>
             <GenereCodeConvol Nb="?"  AccessorFils="false">
-                   <Dir Nb="?" Type="std::string" Def="applis/Digeo/"> </Dir>
+                   <Dir Nb="?" Type="std::string" Def="src/uti_image/Digeo/"> </Dir>
                    <File Nb="?" Type="std::string" Def="GenConvolSpec"> </File>
                    <ModifGCC Nb="*"  Container="std::vector">
                        <NbByOctave Nb="1" Type="int"> </NbByOctave>
@@ -215,7 +220,7 @@ insulter si ce n'est pas le cas; sauf si ExigeCodeCompile indique que c'est scie
    </ParamDigeo>
 
 <Verbatim File=".h.cpp">
-};
+// };
 </Verbatim>
 <Verbatim File=".h">
 #endif // Define_NotDigeo

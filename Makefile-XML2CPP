@@ -17,7 +17,7 @@ src/uti_phgrm/SaisiePts/cParamSaisiePts.cpp : include/XML_GEN/ParamSaisiePts.xml
 applis/CASA/cParamCasa.cpp : include/XML_GEN/ParamCasa.xml
 	bin/GenXML2Cpp  include/XML_GEN/ParamCasa.xml 3 applis/CASA/cParamCasa
 CodeGenere/File2String/Str_ParamDigeo.cpp : include/XML_GEN/ParamDigeo.xml
-	bin/GenXML2Cpp  include/XML_GEN/ParamDigeo.xml 2 applis/Digeo/cParamApero
+	bin/GenXML2Cpp  include/XML_GEN/ParamDigeo.xml 2 src/uti_image/Digeo/cParamDigeo
 all: src/XML_GEN/ParamChantierPhotogram.cpp\
      CodeGenere/File2String/Str_DefautChantierDescripteur.cpp\
      CodeGenere/File2String/Str_ParamChantierPhotogram.cpp\

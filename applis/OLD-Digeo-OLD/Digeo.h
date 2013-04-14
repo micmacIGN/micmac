@@ -80,14 +80,33 @@ using namespace NS_ParamChantierPhotogram;
 namespace NS_ParamDigeo
 {
 
+//   Represente un image d'une octave a une resolution donnee
 class cImInMem;
 template <class Type> class cTplImInMem ;
-class cImDigeo;
-class cAppliDigeo;
+
+//  Represente une octave !! Contient autant cImInMem que de sigma de gaussienne
 class cOctaveDigeo;
 template <class Type> class cTplOctDig ;
 
+//   Represente une image ; contient autant d'octave que necessaire
+class cImDigeo;
+
+
+/*
+    Class virtuelle , d'interface avec les classe permettant de correler rapidemnt
+  selon une ligne.
+
+        virtual void Convol(Type * Out,Type * In,int aK0,int aK1) :
+
+             - (A faire) : methode par defaut, correlation standar
+
+        static cConvolSpec<Type> * Get(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
+        cConvolSpec(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
+*/
 template <class Type> class cConvolSpec;
+
+class cAppliDigeo;
+
 class cVisuCaracDigeo;
 
 const int PackTranspo = 4;
@@ -257,7 +276,7 @@ template <class Type> class cTplImInMem : public cImInMem
         eTypeExtreSift CalculateDiff(Type***aC,int anX,int anY,int aNiv);
 
 /*
-void  cTplImInMem<Type>::SetConvolBordX :
+        SetConvolBordX :
  
           Pour la "colonne" X, calcul dans ImOut toute les convolution en gerant 
        les effets de bord :
@@ -500,8 +519,7 @@ template <class Type> class cConvolSpec
 
         virtual void Convol(Type * Out,Type * In,int aK0,int aK1) ;
         static cConvolSpec<Type> * Get(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
-
-       cConvolSpec(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
+        cConvolSpec(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
     protected :
 
     private :

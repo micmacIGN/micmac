@@ -37,22 +37,41 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#include "Digeo.h"
 
 
-#ifndef _ELISE_GENERAL_GAUSSIAN_KERNEL  // general
-#define _ELISE_GENERAL_GAUSSIAN_KERNEL
+struct sCaracPt
+{
+     eTypeTopolPt   mType;
+};
 
 
+sCaracPt * CaracTopo()
+{
+   static sCaracPt sCaracPt[256];
+   static bool Init = false;
+
+   if (! Init)
+   {
+       for (int aFlag = 0 ; aFlag<256 ; aFlag++)
+       {
+       }
+
+       Init = true;
+   }
+
+   return sCaracPt;
+
+}
 
 
+/****************************************/
+/*                                      */
+/*             cTplImInMem               */
+/*                                      */
+/****************************************/
 
-
-#endif  /* !_ELISE_GENERAL_GAUSSIAN_KERNEL */
-
-
-
-
-
+ 
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
