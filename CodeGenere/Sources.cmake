@@ -6,6 +6,7 @@ list( APPEND code_genere_file2string_Src_Files
     ${code_genere_file2string_dir}/Str_ParamMICMAC.cpp
     ${code_genere_file2string_dir}/Str_ParamChantierPhotogram.cpp
     ${code_genere_file2string_dir}/Str_ParamApero.cpp
+    ${code_genere_file2string_dir}/Str_ParamDigeo.cpp
     ${code_genere_file2string_dir}/Str_DefautChantierDescripteur.cpp
 )
 

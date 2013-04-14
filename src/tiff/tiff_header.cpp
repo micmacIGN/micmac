@@ -2212,7 +2212,16 @@ std::string NameFileStd
                            // + ((aNbChanSpec==1)? " GB=1 "  : " CB=1 ")
                            + std::string(" " + aNameCoul + aNameReech + "=1 ")
                            + (DoReech ?  std::string(" Cal=" + aNameCal + " ") : "")
-                           + " NameOut=" + aNewName;
+                           + " NameOut=" + aNewName
+                           + " UseFF="  + (  (Bits16||(aNbChanSpec==3)) ? "0" : "1")  // Flat Field en Gray-8Bits
+                         ;
+
+       if (! Bits16)
+       {
+             cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aFullNameOri));
+             aStr = aStr + " Gamma=" + aICNM->Assoc1To1("NKS-Assoc-STD-Gama8Bits",NameWithoutDir(aFullNameOri),true);
+             aStr = aStr + " EpsLog=" +  aICNM->Assoc1To1("NKS-Assoc-STD-EpsLog8Bits",NameWithoutDir(aFullNameOri),true);
+       }
 
 
 

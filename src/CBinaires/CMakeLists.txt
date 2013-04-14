@@ -21,6 +21,9 @@ if (NOT ${BUILD_ONLY_ELISE})
 	add_executable(AperiCloud  AperiCloud.c)
 	INSTALL(TARGETS AperiCloud RUNTIME DESTINATION ${Install_Dir})
 
+	add_executable(Digeo  Digeo.c)
+	INSTALL(TARGETS Digeo RUNTIME DESTINATION ${Install_Dir})
+
 	add_executable(Apero  Apero.c)
 	INSTALL(TARGETS Apero RUNTIME DESTINATION ${Install_Dir})
 	
