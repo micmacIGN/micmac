@@ -583,10 +583,8 @@ void cGBV2_ProgDynOptimiseur::BalayageOneLineGpu(const std::vector<Pt2di> &aVPt)
             tCost & aCF = aMat[aP].CostFinal();
             aCF += aNewCost;
         }
-
     }
 }
-
 
 void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
 {
@@ -603,7 +601,6 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
         BalayageOneLine(*aVPt);
 #endif
 }
-
 
 void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
 {
