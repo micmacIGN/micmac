@@ -43,7 +43,6 @@ struct Rect
 		pt1 = make_int2(p1);
     }
 
-
     /// \brief Definie les points du rectangle avec des 4 entiers, fonction host et device
     /// \param p0x : abscisse du point haut et gauche du rectangle
     /// \param p0y : ordonnee du point haut et gauche du rectangle
@@ -109,6 +108,11 @@ inline __device__ __host__ uint size(int2 v)
 inline __host__ __device__ uint2 operator/(uint2 a, uint2 b)
 {
 	return make_uint2(a.x / b.x, a.y / b.y);
+}
+
+inline __host__ __device__ short diffYX(short2 a)
+{
+    return a.y  - a.x;
 }
 
 inline __host__ __device__ uint2 operator/(uint2 a, int b)
