@@ -1,0 +1,91 @@
+   
+
+
+<ParamDigeo>
+
+    <DicoLoc>
+        <Symb> Im1=IMG_0034.CR2 </Symb>
+        <Symb> NbNivByOct=3     </Symb>
+        <Symb> Sigma0=1.60     </Symb>
+        <Symb> OctaveMax=8     </Symb>
+
+        <Symb> NivFloatIm=1     </Symb>
+        <Symb> MaxDyn=true     </Symb>
+        <Symb> NivInFirstOct=0     </Symb>
+    </DicoLoc>
+
+        <SectionImages>
+           <ImageDigeo>
+              <KeyOrPat>  ${Im1} </KeyOrPat>
+              <BoxIm>   2500 1500 3500 2500  </BoxIm>
+           </ImageDigeo>
+           <PyramideImage>
+              <TypeNumeriqueOfNiv>
+                     <Type> eTN_u_int2 </Type>
+                     <Niv> -2  </Niv>
+              </TypeNumeriqueOfNiv>
+              <TypeNumeriqueOfNiv>
+                     <Type> eTN_float </Type>
+                     <Niv> 2  </Niv>
+              </TypeNumeriqueOfNiv>
+
+
+              <MaximDyn > ${MaxDyn} </MaximDyn>
+             
+              <ReducDemiImage >  eRDI_121 </ReducDemiImage>
+
+              <TypePyramide>
+                  <PyramideGaussienne>
+                       <NbByOctave> ${NbNivByOct} </NbByOctave>
+                       <Sigma0> ${Sigma0} </Sigma0>
+                       <IndexFreqInFirstOctave >  ${NivInFirstOct} </IndexFreqInFirstOctave>
+                       <NivOctaveMax> ${OctaveMax} </NivOctaveMax> 
+                  </PyramideGaussienne>
+              </TypePyramide>
+           </PyramideImage>
+        </SectionImages>
+       
+        <SectionCaracImages>
+           <ComputeCarac> true </ComputeCarac>
+        </SectionCaracImages>
+
+        <!-- Cette section gère les fonctionnalites permettant de faire
+             des tests de perfomances ou de bon fonctionnement
+        -->
+            
+        <SectionTest>
+        </SectionTest>
+
+        <SectionWorkSpace>
+           <DirectoryChantier>  /media/data1/Jeux-Tests/12-Tetes-Inc-4341-6/  </DirectoryChantier>
+
+            <ExigeCodeCompile> false </ExigeCodeCompile>
+            <GenereCodeConvol>
+<!--
+                          <Dir Nb="?" Type="std::string" Def="src/uti_image/Digeo/"> </Dir>
+                          <File Nb="?" Type="std::string" Def="GenConvolSpec"> </File>
+-->
+                          <ModifGCC>
+                              <NbByOctave> 4 </NbByOctave>
+                              <ConvolIncrem> true </ConvolIncrem>
+                          </ModifGCC>
+                          <ModifGCC>
+                              <NbByOctave> 5 </NbByOctave>
+                              <ConvolIncrem> true </ConvolIncrem>
+                          </ModifGCC>
+
+            </GenereCodeConvol>
+<!--
+-->
+
+
+           <ShowTimes> 0 </ShowTimes>
+
+           <!-- Pas de raison, hors mis au point/test, de changer cette val -->
+           <UseConvolSpec> true </UseConvolSpec>
+           <ShowConvolSpec> false </ShowConvolSpec>
+
+
+        </SectionWorkSpace>
+</ParamDigeo>
+
