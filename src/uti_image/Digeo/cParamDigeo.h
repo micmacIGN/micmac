@@ -125,8 +125,11 @@ class cImageDigeo
         cTplValGesInit< std::string > & KeyCalcCalib();
         const cTplValGesInit< std::string > & KeyCalcCalib()const ;
 
-        cTplValGesInit< Box2di > & BoxIm();
-        const cTplValGesInit< Box2di > & BoxIm()const ;
+        cTplValGesInit< Box2di > & BoxImR1();
+        const cTplValGesInit< Box2di > & BoxImR1()const ;
+
+        cTplValGesInit< double > & ResolInit();
+        const cTplValGesInit< double > & ResolInit()const ;
 
         cTplValGesInit< std::string > & Unused();
         const cTplValGesInit< std::string > & Unused()const ;
@@ -137,7 +140,8 @@ class cImageDigeo
         cTplValGesInit< cParamVisuCarac > mVisuCarac;
         std::string mKeyOrPat;
         cTplValGesInit< std::string > mKeyCalcCalib;
-        cTplValGesInit< Box2di > mBoxIm;
+        cTplValGesInit< Box2di > mBoxImR1;
+        cTplValGesInit< double > mResolInit;
         cTplValGesInit< cPredicteurGeom > mPredicteurGeom;
 };
 cElXMLTree * ToXMLTree(const cImageDigeo &);
@@ -171,6 +175,9 @@ class cPyramideGaussienne
         cTplValGesInit< double > & Sigma0();
         const cTplValGesInit< double > & Sigma0()const ;
 
+        cTplValGesInit< double > & SigmaN();
+        const cTplValGesInit< double > & SigmaN()const ;
+
         cTplValGesInit< int > & NbInLastOctave();
         const cTplValGesInit< int > & NbInLastOctave()const ;
 
@@ -197,6 +204,7 @@ class cPyramideGaussienne
     private:
         cTplValGesInit< int > mNbByOctave;
         cTplValGesInit< double > mSigma0;
+        cTplValGesInit< double > mSigmaN;
         cTplValGesInit< int > mNbInLastOctave;
         cTplValGesInit< int > mIndexFreqInFirstOctave;
         int mNivOctaveMax;
@@ -222,6 +230,9 @@ class cTypePyramide
 
         cTplValGesInit< double > & Sigma0();
         const cTplValGesInit< double > & Sigma0()const ;
+
+        cTplValGesInit< double > & SigmaN();
+        const cTplValGesInit< double > & SigmaN()const ;
 
         cTplValGesInit< int > & NbInLastOctave();
         const cTplValGesInit< int > & NbInLastOctave()const ;
@@ -281,6 +292,9 @@ class cPyramideImage
 
         cTplValGesInit< double > & Sigma0();
         const cTplValGesInit< double > & Sigma0()const ;
+
+        cTplValGesInit< double > & SigmaN();
+        const cTplValGesInit< double > & SigmaN()const ;
 
         cTplValGesInit< int > & NbInLastOctave();
         const cTplValGesInit< int > & NbInLastOctave()const ;
@@ -349,6 +363,9 @@ class cSectionImages
 
         cTplValGesInit< double > & Sigma0();
         const cTplValGesInit< double > & Sigma0()const ;
+
+        cTplValGesInit< double > & SigmaN();
+        const cTplValGesInit< double > & SigmaN()const ;
 
         cTplValGesInit< int > & NbInLastOctave();
         const cTplValGesInit< int > & NbInLastOctave()const ;
@@ -587,11 +604,11 @@ class cSauvPyram
         cTplValGesInit< std::string > & Dir();
         const cTplValGesInit< std::string > & Dir()const ;
 
+        cTplValGesInit< bool > & Glob();
+        const cTplValGesInit< bool > & Glob()const ;
+
         cTplValGesInit< std::string > & Key();
         const cTplValGesInit< std::string > & Key()const ;
-
-        cTplValGesInit< bool > & CreateFileWhenExist();
-        const cTplValGesInit< bool > & CreateFileWhenExist()const ;
 
         cTplValGesInit< int > & StripTifFile();
         const cTplValGesInit< int > & StripTifFile()const ;
@@ -603,8 +620,8 @@ class cSauvPyram
         const cTplValGesInit< double > & Dyn()const ;
     private:
         cTplValGesInit< std::string > mDir;
+        cTplValGesInit< bool > mGlob;
         cTplValGesInit< std::string > mKey;
-        cTplValGesInit< bool > mCreateFileWhenExist;
         cTplValGesInit< int > mStripTifFile;
         cTplValGesInit< bool > mForce8B;
         cTplValGesInit< double > mDyn;
@@ -695,11 +712,11 @@ class cSectionWorkSpace
         cTplValGesInit< std::string > & Dir();
         const cTplValGesInit< std::string > & Dir()const ;
 
+        cTplValGesInit< bool > & Glob();
+        const cTplValGesInit< bool > & Glob()const ;
+
         cTplValGesInit< std::string > & Key();
         const cTplValGesInit< std::string > & Key()const ;
-
-        cTplValGesInit< bool > & CreateFileWhenExist();
-        const cTplValGesInit< bool > & CreateFileWhenExist()const ;
 
         cTplValGesInit< int > & StripTifFile();
         const cTplValGesInit< int > & StripTifFile()const ;
@@ -787,6 +804,9 @@ class cParamDigeo
 
         cTplValGesInit< double > & Sigma0();
         const cTplValGesInit< double > & Sigma0()const ;
+
+        cTplValGesInit< double > & SigmaN();
+        const cTplValGesInit< double > & SigmaN()const ;
 
         cTplValGesInit< int > & NbInLastOctave();
         const cTplValGesInit< int > & NbInLastOctave()const ;
@@ -890,11 +910,11 @@ class cParamDigeo
         cTplValGesInit< std::string > & Dir();
         const cTplValGesInit< std::string > & Dir()const ;
 
+        cTplValGesInit< bool > & Glob();
+        const cTplValGesInit< bool > & Glob()const ;
+
         cTplValGesInit< std::string > & Key();
         const cTplValGesInit< std::string > & Key()const ;
-
-        cTplValGesInit< bool > & CreateFileWhenExist();
-        const cTplValGesInit< bool > & CreateFileWhenExist()const ;
 
         cTplValGesInit< int > & StripTifFile();
         const cTplValGesInit< int > & StripTifFile()const ;
