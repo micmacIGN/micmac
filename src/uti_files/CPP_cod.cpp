@@ -259,6 +259,7 @@ bool FoncIsMailSep(int aC)
            || (aC==']')
            || (aC=='#')
            || (aC=='*')
+           || (aC=='!')
 /*
            || (aC=='{')
            || (aC=='}')
@@ -338,6 +339,7 @@ class cGenerateMail
         std::map <std::string,cOneEntryMail *> mDicE;
         std::vector<cOneEntryMail *>           mVE;
         int mNbByF;
+        std::string                            mOnlyFile;
 };
 
 
@@ -346,6 +348,10 @@ void cGenerateMail::ParseFile(const std::string aName,bool aTest)
     cOneEntryMail::mLastEntry=0;
 
     bool aBlackL = (NameWithoutDir(aName)=="Black-Liste.txt.dcd");
+    if (mOnlyFile != "")
+    {
+         aBlackL = (NameWithoutDir(aName) != mOnlyFile);
+    }
 
     if (aBlackL) 
     {
@@ -430,7 +436,8 @@ void cGenerateMail::ParseFile(const std::string aName,bool aTest)
 cGenerateMail::cGenerateMail(int argc,char ** argv) :
     mDir (MMDir() + "Documentation/Mailing/"),
     mICNM (cInterfChantierNameManipulateur::BasicAlloc(mDir)),
-    mNameFile (mICNM->Get(".*\\.dcd"))
+    mNameFile (mICNM->Get(".*\\.dcd")),
+    mOnlyFile ("")
 {
     mNbByF=298;
     ElInitArgMain
@@ -438,6 +445,7 @@ cGenerateMail::cGenerateMail(int argc,char ** argv) :
         argc,argv,
         LArgMain() ,
         LArgMain() << EAM(mNbByF,"NbByF",true)
+                   << EAM(mOnlyFile,"SingleFile",true,"If specified, all but this one will considered as black-list files")
     );	
 
 

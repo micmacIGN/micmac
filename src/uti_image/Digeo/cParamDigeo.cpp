@@ -301,14 +301,25 @@ const cTplValGesInit< std::string > & cImageDigeo::KeyCalcCalib()const
 }
 
 
-cTplValGesInit< Box2di > & cImageDigeo::BoxIm()
+cTplValGesInit< Box2di > & cImageDigeo::BoxImR1()
 {
-   return mBoxIm;
+   return mBoxImR1;
 }
 
-const cTplValGesInit< Box2di > & cImageDigeo::BoxIm()const 
+const cTplValGesInit< Box2di > & cImageDigeo::BoxImR1()const 
 {
-   return mBoxIm;
+   return mBoxImR1;
+}
+
+
+cTplValGesInit< double > & cImageDigeo::ResolInit()
+{
+   return mResolInit;
+}
+
+const cTplValGesInit< double > & cImageDigeo::ResolInit()const 
+{
+   return mResolInit;
 }
 
 
@@ -341,8 +352,10 @@ cElXMLTree * ToXMLTree(const cImageDigeo & anObj)
    aRes->AddFils(::ToXMLTree(std::string("KeyOrPat"),anObj.KeyOrPat())->ReTagThis("KeyOrPat"));
    if (anObj.KeyCalcCalib().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("KeyCalcCalib"),anObj.KeyCalcCalib().Val())->ReTagThis("KeyCalcCalib"));
-   if (anObj.BoxIm().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("BoxIm"),anObj.BoxIm().Val())->ReTagThis("BoxIm"));
+   if (anObj.BoxImR1().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("BoxImR1"),anObj.BoxImR1().Val())->ReTagThis("BoxImR1"));
+   if (anObj.ResolInit().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ResolInit"),anObj.ResolInit().Val())->ReTagThis("ResolInit"));
    if (anObj.PredicteurGeom().IsInit())
       aRes->AddFils(ToXMLTree(anObj.PredicteurGeom().Val())->ReTagThis("PredicteurGeom"));
   return aRes;
@@ -358,7 +371,9 @@ void xml_init(cImageDigeo & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.KeyCalcCalib(),aTree->Get("KeyCalcCalib",1)); //tototo 
 
-   xml_init(anObj.BoxIm(),aTree->Get("BoxIm",1)); //tototo 
+   xml_init(anObj.BoxImR1(),aTree->Get("BoxImR1",1)); //tototo 
+
+   xml_init(anObj.ResolInit(),aTree->Get("ResolInit",1),double(1.0)); //tototo 
 
    xml_init(anObj.PredicteurGeom(),aTree->Get("PredicteurGeom",1)); //tototo 
 }
@@ -422,6 +437,17 @@ cTplValGesInit< double > & cPyramideGaussienne::Sigma0()
 const cTplValGesInit< double > & cPyramideGaussienne::Sigma0()const 
 {
    return mSigma0;
+}
+
+
+cTplValGesInit< double > & cPyramideGaussienne::SigmaN()
+{
+   return mSigmaN;
+}
+
+const cTplValGesInit< double > & cPyramideGaussienne::SigmaN()const 
+{
+   return mSigmaN;
 }
 
 
@@ -519,6 +545,8 @@ cElXMLTree * ToXMLTree(const cPyramideGaussienne & anObj)
       aRes->AddFils(::ToXMLTree(std::string("NbByOctave"),anObj.NbByOctave().Val())->ReTagThis("NbByOctave"));
    if (anObj.Sigma0().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Sigma0"),anObj.Sigma0().Val())->ReTagThis("Sigma0"));
+   if (anObj.SigmaN().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SigmaN"),anObj.SigmaN().Val())->ReTagThis("SigmaN"));
    if (anObj.NbInLastOctave().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("NbInLastOctave"),anObj.NbInLastOctave().Val())->ReTagThis("NbInLastOctave"));
    if (anObj.IndexFreqInFirstOctave().IsInit())
@@ -544,6 +572,8 @@ void xml_init(cPyramideGaussienne & anObj,cElXMLTree * aTree)
    xml_init(anObj.NbByOctave(),aTree->Get("NbByOctave",1),int(3)); //tototo 
 
    xml_init(anObj.Sigma0(),aTree->Get("Sigma0",1),double(1.6)); //tototo 
+
+   xml_init(anObj.SigmaN(),aTree->Get("SigmaN",1)); //tototo 
 
    xml_init(anObj.NbInLastOctave(),aTree->Get("NbInLastOctave",1)); //tototo 
 
@@ -593,6 +623,17 @@ cTplValGesInit< double > & cTypePyramide::Sigma0()
 const cTplValGesInit< double > & cTypePyramide::Sigma0()const 
 {
    return PyramideGaussienne().Val().Sigma0();
+}
+
+
+cTplValGesInit< double > & cTypePyramide::SigmaN()
+{
+   return PyramideGaussienne().Val().SigmaN();
+}
+
+const cTplValGesInit< double > & cTypePyramide::SigmaN()const 
+{
+   return PyramideGaussienne().Val().SigmaN();
 }
 
 
@@ -788,6 +829,17 @@ cTplValGesInit< double > & cPyramideImage::Sigma0()
 const cTplValGesInit< double > & cPyramideImage::Sigma0()const 
 {
    return TypePyramide().PyramideGaussienne().Val().Sigma0();
+}
+
+
+cTplValGesInit< double > & cPyramideImage::SigmaN()
+{
+   return TypePyramide().PyramideGaussienne().Val().SigmaN();
+}
+
+const cTplValGesInit< double > & cPyramideImage::SigmaN()const 
+{
+   return TypePyramide().PyramideGaussienne().Val().SigmaN();
 }
 
 
@@ -1020,6 +1072,17 @@ cTplValGesInit< double > & cSectionImages::Sigma0()
 const cTplValGesInit< double > & cSectionImages::Sigma0()const 
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().Sigma0();
+}
+
+
+cTplValGesInit< double > & cSectionImages::SigmaN()
+{
+   return PyramideImage().TypePyramide().PyramideGaussienne().Val().SigmaN();
+}
+
+const cTplValGesInit< double > & cSectionImages::SigmaN()const 
+{
+   return PyramideImage().TypePyramide().PyramideGaussienne().Val().SigmaN();
 }
 
 
@@ -1668,6 +1731,17 @@ const cTplValGesInit< std::string > & cSauvPyram::Dir()const
 }
 
 
+cTplValGesInit< bool > & cSauvPyram::Glob()
+{
+   return mGlob;
+}
+
+const cTplValGesInit< bool > & cSauvPyram::Glob()const 
+{
+   return mGlob;
+}
+
+
 cTplValGesInit< std::string > & cSauvPyram::Key()
 {
    return mKey;
@@ -1676,17 +1750,6 @@ cTplValGesInit< std::string > & cSauvPyram::Key()
 const cTplValGesInit< std::string > & cSauvPyram::Key()const 
 {
    return mKey;
-}
-
-
-cTplValGesInit< bool > & cSauvPyram::CreateFileWhenExist()
-{
-   return mCreateFileWhenExist;
-}
-
-const cTplValGesInit< bool > & cSauvPyram::CreateFileWhenExist()const 
-{
-   return mCreateFileWhenExist;
 }
 
 
@@ -1727,10 +1790,10 @@ cElXMLTree * ToXMLTree(const cSauvPyram & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SauvPyram",eXMLBranche);
    if (anObj.Dir().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Dir"),anObj.Dir().Val())->ReTagThis("Dir"));
+   if (anObj.Glob().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Glob"),anObj.Glob().Val())->ReTagThis("Glob"));
    if (anObj.Key().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Key"),anObj.Key().Val())->ReTagThis("Key"));
-   if (anObj.CreateFileWhenExist().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("CreateFileWhenExist"),anObj.CreateFileWhenExist().Val())->ReTagThis("CreateFileWhenExist"));
    if (anObj.StripTifFile().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("StripTifFile"),anObj.StripTifFile().Val())->ReTagThis("StripTifFile"));
    if (anObj.Force8B().IsInit())
@@ -1746,9 +1809,9 @@ void xml_init(cSauvPyram & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.Dir(),aTree->Get("Dir",1),std::string("")); //tototo 
 
-   xml_init(anObj.Key(),aTree->Get("Key",1),std::string("Key-Assoc-Pyram-MM")); //tototo 
+   xml_init(anObj.Glob(),aTree->Get("Glob",1),bool(true)); //tototo 
 
-   xml_init(anObj.CreateFileWhenExist(),aTree->Get("CreateFileWhenExist",1),bool(false)); //tototo 
+   xml_init(anObj.Key(),aTree->Get("Key",1),std::string("Key-Assoc-Pyram-MM")); //tototo 
 
    xml_init(anObj.StripTifFile(),aTree->Get("StripTifFile",1),int(100)); //tototo 
 
@@ -1957,6 +2020,17 @@ const cTplValGesInit< std::string > & cSectionWorkSpace::Dir()const
 }
 
 
+cTplValGesInit< bool > & cSectionWorkSpace::Glob()
+{
+   return SauvPyram().Val().Glob();
+}
+
+const cTplValGesInit< bool > & cSectionWorkSpace::Glob()const 
+{
+   return SauvPyram().Val().Glob();
+}
+
+
 cTplValGesInit< std::string > & cSectionWorkSpace::Key()
 {
    return SauvPyram().Val().Key();
@@ -1965,17 +2039,6 @@ cTplValGesInit< std::string > & cSectionWorkSpace::Key()
 const cTplValGesInit< std::string > & cSectionWorkSpace::Key()const 
 {
    return SauvPyram().Val().Key();
-}
-
-
-cTplValGesInit< bool > & cSectionWorkSpace::CreateFileWhenExist()
-{
-   return SauvPyram().Val().CreateFileWhenExist();
-}
-
-const cTplValGesInit< bool > & cSectionWorkSpace::CreateFileWhenExist()const 
-{
-   return SauvPyram().Val().CreateFileWhenExist();
 }
 
 
@@ -2269,6 +2332,17 @@ cTplValGesInit< double > & cParamDigeo::Sigma0()
 const cTplValGesInit< double > & cParamDigeo::Sigma0()const 
 {
    return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().Sigma0();
+}
+
+
+cTplValGesInit< double > & cParamDigeo::SigmaN()
+{
+   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().SigmaN();
+}
+
+const cTplValGesInit< double > & cParamDigeo::SigmaN()const 
+{
+   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().SigmaN();
 }
 
 
@@ -2646,6 +2720,17 @@ const cTplValGesInit< std::string > & cParamDigeo::Dir()const
 }
 
 
+cTplValGesInit< bool > & cParamDigeo::Glob()
+{
+   return SectionWorkSpace().SauvPyram().Val().Glob();
+}
+
+const cTplValGesInit< bool > & cParamDigeo::Glob()const 
+{
+   return SectionWorkSpace().SauvPyram().Val().Glob();
+}
+
+
 cTplValGesInit< std::string > & cParamDigeo::Key()
 {
    return SectionWorkSpace().SauvPyram().Val().Key();
@@ -2654,17 +2739,6 @@ cTplValGesInit< std::string > & cParamDigeo::Key()
 const cTplValGesInit< std::string > & cParamDigeo::Key()const 
 {
    return SectionWorkSpace().SauvPyram().Val().Key();
-}
-
-
-cTplValGesInit< bool > & cParamDigeo::CreateFileWhenExist()
-{
-   return SectionWorkSpace().SauvPyram().Val().CreateFileWhenExist();
-}
-
-const cTplValGesInit< bool > & cParamDigeo::CreateFileWhenExist()const 
-{
-   return SectionWorkSpace().SauvPyram().Val().CreateFileWhenExist();
 }
 
 

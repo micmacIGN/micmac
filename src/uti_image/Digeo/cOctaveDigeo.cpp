@@ -39,6 +39,17 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Digeo.h"
 
+class aClasse
+{
+    int X;
+    int Y;
+
+    aClasse() :
+      Y (1),
+      X (2)
+    {
+    }
+};
 
 /****************************************/
 /*                                      */
@@ -60,7 +71,6 @@ cTplOctDig<Type>::cTplOctDig
    mCube        (0),
    mImBase      (new  cTplImInMem<Type>(mIm,mSzMax,mType,*this,0,-1,-1))
 {
-    std::cout << "cTplOctDig IBASE " << mImBase << "\n";
 }
    
 template <class Type>   cTplOctDig<Type>* cTplOctDig<Type>::OctUp() {return mOctUp;}
@@ -89,6 +99,11 @@ template <class Type>
     return TypeAllocDown(aTypEl,aIm,aNiv,aSzMax);
 }
 
+void cOctaveDigeo::ResizeAllImages(const Pt2di & aP)
+{
+    for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
+       mVIms[aK]->ResizeImage(aP);
+}
 
 
 
@@ -161,7 +176,7 @@ cTplImInMem<Type> * cTplOctDig<Type>::AllocTypedIm(double aResolOctaveBase,int a
   mVTplIms.push_back(aRes);
   mVIms.push_back(aRes);
 
-  std::cout << "::AllocTypedIm " << aResolOctaveBase << " " << aK << " " << IndexSigma << "\n";
+  // std::cout << "::AllocTypedIm " << aResolOctaveBase << " " << aK << " " << IndexSigma << "\n";
 
   return aRes;
 }
@@ -209,13 +224,27 @@ InstantiateClassTplDigeo(cTplOctDig)
 /****************************************/
 
 cOctaveDigeo::cOctaveDigeo(GenIm::type_el aType,cImDigeo & anIm,int aNiv,Pt2di aSzMax) :
-   mType  (aType),
-   mIm    (anIm),
-   mNiv   (aNiv),
-   mSzMax (aSzMax),
-   mNbImOri  (-1)
+   mType     (aType),
+   mIm       (anIm),
+   mNiv      (aNiv),
+   mSzMax    (aSzMax),
+   mNbImOri  (-1),
+   mBoxImCalc  (mIm.BoxImCalc()._p0/mNiv,mIm.BoxImCalc()._p1/mNiv)
 {
 }
+
+
+void cOctaveDigeo::SetBoxInOut(const Box2di & aBoxIn,const Box2di & aBoxOut)
+{
+   mBoxCurIn = Box2dr(Pt2dr(aBoxIn._p0)/mNiv,Pt2dr(aBoxIn._p1)/mNiv);
+   mBoxCurOut = Box2di(aBoxOut._p0/mNiv,aBoxOut._p1/mNiv);
+
+}
+
+const Box2di  &  cOctaveDigeo::BoxImCalc () const {return mBoxImCalc;}
+const Box2dr  &  cOctaveDigeo::BoxCurIn  () const {return mBoxCurIn;}
+const Box2di  &  cOctaveDigeo::BoxCurOut () const {return mBoxCurOut;}
+
 
 
 int cOctaveDigeo::NbImOri() const
@@ -229,6 +258,22 @@ void cOctaveDigeo::SetNbImOri(int aNbImOri)
    mNbImOri = aNbImOri;
 }
 
+/*
+Pt2dr cOctaveDigeo::P0CurMyResol() const
+{
+   return Pt2dr(mIm.P0Cur()) / double (mNiv);
+}
+
+Pt2dr cOctaveDigeo::P0GlobMyResol() const
+{
+   return Pt2dr(mIm.P0Cur()) / double (mNiv);
+}
+
+Pt2dr cOctaveDigeo::SzGlobMyResol() const
+{
+   return round_up(Pt2dr(mIm.BoxImCalc())/mNiv)
+}
+*/
 /*
 void cOctaveDigeo::AddIm(cImInMem * aIm)
 {
