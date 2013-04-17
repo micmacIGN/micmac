@@ -393,7 +393,6 @@ class Tiff_Im : public ElGenFileIm
 	      INT   offset_tile(INT x,INT y,INT kth_ch);
           INT   byte_count_tile(INT x,INT y,INT kth_ch);    
 
-
           // N'initialise pas
           std::vector<Im2DGen *>  VecOfIm(Pt2di aSz);
           std::vector<Im2DGen *>  ReadVecOfIm();
@@ -408,10 +407,10 @@ class Tiff_Im : public ElGenFileIm
           static const ElSTDNS string Str_PackBits_Compr;	// PackBits
           static const ElSTDNS string Str_NoBytePackBits_Compr;	// PackBits
 
-	  static Tiff_Im  StdConv(const ElSTDNS string & Name); // => remis  pour compat  avec certain binaires
+	  static Tiff_Im  StdConv(const ElSTDNS string & Name); // => remis  pour compat  avec certain binaires (=BasicConvStd)
 	  static Tiff_Im  BasicConvStd(const ElSTDNS string & Name);  // Que les tif ou assim
-	  static Tiff_Im  UnivConvStd(const ElSTDNS string & Name);   // cree des tifs cache pour les RAW-JPGS
-          // Convertit les jpg , raw et tif comprs
+	  static Tiff_Im  UnivConvStd(const ElSTDNS string & Name);   // cree des tifs cache pour les RAW-JPGS (uses StdConvGen)
+          // Convertit (avec NameFileStd) les jpg , raw et tif comprs
 	  static Tiff_Im  StdConvGen(const ElSTDNS string & Name,int aNbChan,bool Cons16B,bool ExigNoCompr = true);
 
 	  // Test dand l'ordre aName + ".tif" et aName

@@ -1,20 +1,27 @@
 #define EXTERNAL_TOOLS_SUBDIRECTORY "binaire-aux"
 
 typedef enum {
-	EXT_TOOL_UNDEF = 0,
-	EXT_TOOL_NOT_FOUND = 1,
-	EXT_TOOL_FOUND_IN_PATH = 2, // the tool has been found using the PATH environment variable
-	EXT_TOOL_FOUND_IN_DIR = 4,  // the tool has been found in EXTERNAL_TOOLS_SUBDIRECTORY
+	EXT_TOOL_UNDEF 			 = 0,
+	EXT_TOOL_NOT_FOUND 		 = 1,
+	EXT_TOOL_FOUND_IN_PATH 	 = 2,	// the tool has been found using the PATH environment variable
+	EXT_TOOL_FOUND_IN_DIR 	 = 4, 	// the tool has been found in EXTERNAL_TOOLS_SUBDIRECTORY
+	EXT_TOOL_FOUND_IN_LOC 	 = 8,	// the tool has been specified with a location and was there
+	EXT_TOOL_HAS_EXEC_RIGHTS = 16,	// the tool has no execution rights and they could not be granted by the process
 } ExtToolStatus;
+
+extern std::string g_externalToolItem_errors[];
 
 class ExternalToolItem
 {
-public:
+public:	
 	ExtToolStatus m_status;
 	std::string m_shortName;
 	std::string m_fullName;
 
 	ExternalToolItem( ExtToolStatus i_status=EXT_TOOL_UNDEF, const std::string i_shortName="", const std::string i_fullName="" );
+
+	bool isCallable() const;
+	inline string errorMessage() const;
 
 	// returns the shortest callable name (m_shortName if possible, m_fullName if not)
 	const std::string callName() const;
@@ -53,7 +60,7 @@ private:
 
 #if (ELISE_POSIX)
 	// functions for rights checking/setting (unices only)
-		
+	
 	// process has execution rights on i_filename ?
 	bool hasExecutionRights( const std::string i_filename );
 	
@@ -76,7 +83,6 @@ extern ExternalToolHandler g_externalToolHandler;
 extern const std::string   TheStrSiftPP;
 extern const std::string   TheStrAnnPP;
 
-
 // inline methods
 
 // ExternalToolItem
@@ -88,9 +94,20 @@ inline ExternalToolItem::ExternalToolItem( ExtToolStatus i_status,
 	
 inline const std::string ExternalToolItem::callName() const
 {
-	if ( ( m_status&EXT_TOOL_FOUND_IN_PATH)!=0 ) return m_shortName;
+	if ( ( m_status&EXT_TOOL_FOUND_IN_PATH)!=0 ||
+		 ( m_status&EXT_TOOL_FOUND_IN_LOC)!=0 ) return m_shortName;
 	if ( ( m_status&EXT_TOOL_FOUND_IN_DIR)!=0 ) return m_fullName;
 	return "";
+}
+
+inline bool ExternalToolItem::isCallable() const{ 
+	return ( m_status!=EXT_TOOL_NOT_FOUND && (m_status&EXT_TOOL_HAS_EXEC_RIGHTS)!=0 );
+}
+
+inline string ExternalToolItem::errorMessage() const{ 
+	if ( m_status==EXT_TOOL_NOT_FOUND ) return g_externalToolItem_errors[0];
+	if ( (m_status&EXT_TOOL_HAS_EXEC_RIGHTS)!=0 ) return g_externalToolItem_errors[1];
+	return string();
 }
 
 // ExternalToolHandler

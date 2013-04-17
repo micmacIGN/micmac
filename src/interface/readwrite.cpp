@@ -3387,7 +3387,7 @@ void getMetaData( const string &i_directory, const string &i_image, const string
 {
 	// get a valid name for the tool
 	ExternalToolItem toolItem =  g_externalToolHandler.get( i_tool );
-	if ( toolItem.m_status==EXT_TOOL_NOT_FOUND ) return;
+	if ( toolItem.isCallable() ) return;
 	
 	// run the tool in with a system call
 	string imageFullName = i_directory+'/'+i_image,
