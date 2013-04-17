@@ -1,5 +1,5 @@
 add_executable(mm3d mm3d.cpp)
-target_link_libraries(mm3d elise ${X11_LIBRARIES} ${KAKADU_LIBRARIES} ${WINSOCK2_LIBRAIRIE} dl)
+target_link_libraries(mm3d elise ${X11_LIBRARIES} ${KAKADU_LIBRARIES} ${WINSOCK2_LIBRARY} ${DYN_LIB_LIBRARY})
 
 if (Boost_FOUND)
     target_link_libraries(mm3d ${Boost_LIBRARIES} ${Boost_THREADAPI})

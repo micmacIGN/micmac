@@ -39,7 +39,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-
+#ifdef ELISE_windows
+	inline int isblank( int c ){ return ( c==int(' ') || c==int('\t') ); }
+#endif
 
 Im1D_U_INT1 ImMajic()
 {

@@ -50,7 +50,7 @@ void Siftator::scale_space_format( int i_nbOctaves, int i_nbLevels, int i_firstO
     m_firstOctave = i_firstOctave;
     Real_ max_standard_deviation = m_dsigma0*powf( m_sigmak, m_smin+m_nbStoredLevels-1 );        // max standard deviation used by the gaussian filter
     m_max_neighbour_distance = getGaussianKernel_halfsize( max_standard_deviation );             // distance to the farest neighbour in subsampled image
-    m_max_neighbour_distance = m_max_neighbour_distance*::pow( 2, m_firstOctave+m_nbOctaves-1 ); // distance to farest neighbour in original size image
+    m_max_neighbour_distance = m_max_neighbour_distance*(int)::pow( 2.f, (int)(m_firstOctave+m_nbOctaves-1) ); // distance to farest neighbour in original size image
 }
 
 void Siftator::print_parameters( std::ostream &o ) const
