@@ -147,6 +147,14 @@ int Digeo_main(int argc,char ** argv)
 }
 
 
+cAppliDigeo * DigeoCPP
+              (
+                    const std::string &,
+                    double  
+              )
+{
+}
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

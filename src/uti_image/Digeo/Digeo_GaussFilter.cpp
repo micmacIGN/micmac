@@ -512,7 +512,11 @@ void cTplImInMem<Type>::SetConvolSepXY
     if (mAppli.ExigeCodeCompile().Val() )
     {
        //  std::cout << "CODE-COMPILED " << aCS->IsCompiled() << "\n";
-        ELISE_ASSERT(aCS->IsCompiled(),"cannot find code compiled\n");
+       if (!aCS->IsCompiled()) 
+       {
+          std::cout << "For Sigma = " <<  aSigma << " Increm " << Increm << "\n";
+          ELISE_ASSERT(false,"cannot find code compiled\n");
+       }
     }
 
     ElTimer aChrono;
@@ -686,7 +690,8 @@ void cTplImInMem<Type>::ReduceGaussienne()
           }
           std::cout << "\n";
        }
-       SetConvolSepXY(false,aSigTot,*mOrigOct,aIKerTotD,mNbShift);
+       // SetConvolSepXY(false,aSigTot,*mOrigOct,aIKerTotD,mNbShift);
+       SetConvolSepXY(false,aSigTot,*(mTOct.TypedFirstImage()),aIKerTotD,mNbShift);
        return;
     }
 

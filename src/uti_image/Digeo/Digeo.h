@@ -295,7 +295,7 @@ template <class Type> class cTplImInMem : public cImInMem
         double CalcGrad2Moy();
         Im2DGen Im() ;
         void  SetMereSameDZ(cTplImInMem<Type> *);
-        void  SetOrigOct(cTplImInMem<Type> *);
+        // void  SetOrigOct(cTplImInMem<Type> *);
         // void MakeConvolInit(double aSigm );
         void ReduceGaussienne();
 
@@ -389,7 +389,7 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
          tTIm   mTIm;
          tTImMem *  mTMere;
          tTImMem *  mTFille;
-         tTImMem *  mOrigOct;
+         // tTImMem *  mOrigOct;
          Type **    mData;
          tBase      mDogPC;  // Dif of Gauss du pixel courrant
 
@@ -495,7 +495,7 @@ template <class Type> class cTplOctDig  : public cOctaveDigeo
         std::vector<cTplImInMem<Type> *>  mVTplIms;
         std::vector<Type **>  mVDatas;
         Type ***              mCube;
-        cTplImInMem<Type> *  mImBase;
+        // cTplImInMem<Type> *  mImBase;
     private :
         cTplOctDig(const cTplOctDig<Type> &);  // N.I.
 };
@@ -546,7 +546,7 @@ class cImDigeo
 
         void DoSiftExtract();
 
-        GenIm::type_el  TypeOfDeZoom(int aDZ) const;
+        GenIm::type_el  TypeOfDeZoom(int aDZ,cModifGCC *) const;
 
         std::string                   mName;
         cAppliDigeo &                 mAppli;
@@ -573,6 +573,7 @@ class cImDigeo
         bool                         mG2MoyIsCalc;
         double                       mG2Moy;
         double                       mDyn;
+        Im2DGen *                    mFileInMem;
      private :
         cImDigeo(const cImDigeo &);  // N.I.
         
