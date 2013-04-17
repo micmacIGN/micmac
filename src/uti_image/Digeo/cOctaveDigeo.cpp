@@ -74,8 +74,9 @@ cTplOctDig<Type>::cTplOctDig
    cOctaveDigeo (aTel,aIm,aNiv,aSzMax),
    mOctUp       (anOctUp),
    mCube        (0),
-   mImBase      (new  cTplImInMem<Type>(mIm,mSzMax,mType,*this,0,-1,-1))
+   mImBase      (NULL)
 {
+	mImBase = new cTplImInMem<Type>(mIm,mSzMax,mType,*this,0,-1,-1);
 }
    
 template <class Type>   cTplOctDig<Type>* cTplOctDig<Type>::OctUp() {return mOctUp;}
