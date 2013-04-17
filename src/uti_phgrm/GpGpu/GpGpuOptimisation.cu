@@ -8,86 +8,9 @@
 /// \version    0.01
 /// \date       Avril 2013
 
-#include <cuda_runtime.h>
-#include <helper_functions.h>
-#include <helper_math.h>
-#include <helper_cuda.h>
-#include "GpGpu/GpGpuTools.h"
-#include "GpGpu/helper_math_extented.cuh"
-
-using namespace std;
-
-/// \brief Tableau des penalites pre-calculees
-#define PENALITE 7
-#define WARPSIZE 32
-#define NAPPEMAX 256
-
-#define eAVANT      true
-#define eARRIERE    false
-
-static __constant__ float   penalite[PENALITE];
-static __constant__ ushort  dMapIndex[WARPSIZE];
-
-/// \brief  Fonction Gpu d optimisation
-template<class T> __global__ void kernelOptiOneDirection(T* g_idata,T* g_odata,int* g_oPath, uint2 dimPlanCost, uint2 delta, float defaultValue)
-{
-    __shared__ T    sdata[32];
-
-    const int   tid = threadIdx.x;
-    const uint  pit = blockIdx.x * blockDim.x;
-    uint        i0  = pit + tid;
-    sdata[tid]      = g_idata[i0];
-    bool        defV= sdata[tid] == defaultValue;
-    g_odata[i0]     = defV ? 0 : sdata[tid];
-    g_oPath[i0]     = tid;
-
-    T minCost, cost;
-
-    for(int l=1;l<dimPlanCost.y;l++)
-    {
-        uint        i1   = i0 + dimPlanCost.x;
-        int         iL   = tid;
-
-        if(i1<size(dimPlanCost))
-        {
-            cost = g_idata[i1];
-
-            if(cost!=defaultValue)
-
-                minCost = defV ? cost : cost + sdata[tid] + penalite[0];
-
-            __syncthreads();
-
-            if(cost!=defaultValue)
-                for(int t = -((int)(delta.x)); t < ((int)(delta.y));t++)
-                {
-                    int Tl = tid + t;
-                    if( t!=0 && Tl >= 0 && Tl < blockDim.x && sdata[Tl] != defaultValue)
-                    {
-                        T Cost = cost + sdata[Tl] + penalite[abs(t)];
-                        if(Cost < minCost || defV)
-                        {
-                            minCost = Cost;
-                            iL      = Tl;
-                        }
-                    }
-                }
-
-            else
-                minCost = defV ? 0 : sdata[tid];
-
-            i0 = l * dimPlanCost.x + pit + tid;
-
-            g_odata[i0] = minCost;
-            sdata[tid]  = minCost;
-            defV        = minCost == defaultValue;
-            g_oPath[i0] = iL;
-        }
-    }
-}
+#include "GpGpu/GpGpuStreamData.cuh"
 
 /// brief Calcul le Z min et max.
-
 __device__ void ComputeIntervaleDelta
 (
         short2 & aDz,
@@ -111,106 +34,6 @@ __device__ void ComputeIntervaleDelta
         else
             aDz.y = aDz.x;
 }
-
-template< class T >
-class CDeviceStream
-{
-public:
-
-    __device__ CDeviceStream(T* buf,T* stream):
-        _bufferData(buf),
-        _streamData(stream),
-        _curStreamId(0),
-        _curBufferId(WARPSIZE)
-    {}
-
-    __device__ virtual short getLengthToRead(short2 &index,bool sens)
-    {
-        index = make_short2(0,0);
-        return 1;
-    }
-
-    __device__ short2 read(T* destData, ushort tid, bool sens, T def, bool waitSync = true)
-    {
-        short2  index;
-        ushort  NbCopied = 0 , NbTotalToCopy = getLengthToRead(index, sens);
-        short   PitSens = !sens * WARPSIZE;
-
-        while(NbCopied < NbTotalToCopy)
-        {
-            ushort NbToCopy = GetNbToCopy(NbTotalToCopy,NbCopied, sens);
-
-            if(!NbToCopy)
-            {
-                _bufferData[threadIdx.x] = _streamData[_curStreamId + threadIdx.x - 2 * PitSens];
-                _curBufferId   = PitSens;
-                _curStreamId   = _curStreamId  + vec(sens) * WARPSIZE;
-                NbToCopy = GetNbToCopy(NbTotalToCopy,NbCopied, sens);
-                __syncthreads();
-            }
-
-            ushort idDest = tid + (sens ? NbCopied : NbTotalToCopy - NbCopied - NbToCopy);
-
-            destData[idDest] = (tid < NbToCopy && !(idDest >= NbTotalToCopy)) ? _bufferData[_curBufferId + tid - !sens * NbToCopy] : def ;
-
-            if(waitSync) __syncthreads();
-
-            _curBufferId  = _curBufferId + vec(sens) * NbToCopy;
-            NbCopied     += NbToCopy;
-        }
-       return index;
-    }
-
-private:
-
-    __device__ short vec(bool sens)
-    {
-        return 1 - 2 * !sens;
-    }
-
-    __device__ short GetNbToCopy(ushort nTotal,ushort nCopied, bool sens)
-    {
-        return min(nTotal - nCopied , MaxReadBuffer(sens));
-    }
-
-    __device__ ushort MaxReadBuffer(bool sens)
-    {
-        return sens ? ((ushort)WARPSIZE - _curBufferId) : _curBufferId;
-    }
-
-    T*                          _bufferData;
-    T*                          _streamData;
-    uint                        _curStreamId;
-    ushort                      _curBufferId;
-};
-
-template< class T >
-class CDeviceDataStream : public CDeviceStream<T>
-{
-public:
-
-    __device__ CDeviceDataStream(T* buf,T* stream,short2* bufId,short2* streamId, ushort startIndex = 0):
-        CDeviceStream<T>(buf,stream + startIndex),
-        _streamIndex(bufId,streamId),
-        _startIndex(startIndex)
-    {}
-
-    __device__ short getLengthToRead(short2 &index, bool sens)
-    {
-        _streamIndex.read(&index,0,sens,make_short2(0,0),false);
-        const short leng = diffYX(index) + 1;        
-        return leng;
-    }
-
-    __device__ ushort getStartIndex()
-    {
-        return _startIndex;
-    }
-
-private:
-    CDeviceStream<short2>       _streamIndex;
-    ushort                      _startIndex;
-};
 
 template<class T> __device__ void ScanOneSens(CDeviceDataStream<T> &costStream, bool sens, uint lenghtLine, T pData[][NAPPEMAX], bool& idBuffer, T* gData, ushort penteMax)
 {
@@ -375,4 +198,5 @@ extern "C" void Launch()
     streamCost.Dealloc();
     streamIndex.Dealloc();
 }
+
 #endif
