@@ -3,8 +3,8 @@
 
 	#ifdef NOWARNINGPOISSON
 		#ifndef ELISE_Darwin
-			#pragma GCC diagnostic push
-			#pragma GCC diagnostic warning "-w"
+			// #pragma GCC diagnostic push  MODIF MPD les WARNING SONT NECESSAIR
+			// #pragma GCC diagnostic warning "-w"
 		#endif
 	#endif
 

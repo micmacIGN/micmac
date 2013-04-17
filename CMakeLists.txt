@@ -36,7 +36,7 @@ OPTION(CUDA_ENABLED "Utilisation de cuda" OFF )
 
 # Pas de Warning Poisson
 if(NOT WIN32)
-    OPTION(NOWARNINGPOISSON "Pas warning a la compilation de poisson" ON )
+    OPTION(NOWARNINGPOISSON "Pas warning a la compilation de poisson" OFF )
 endif()
 
 # Utiliser Cuda

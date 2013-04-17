@@ -39,6 +39,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Digeo.h"
 
+/*
+int F()
+{
+}
 class aClasse
 {
     int X;
@@ -50,6 +54,7 @@ class aClasse
     {
     }
 };
+*/
 
 /****************************************/
 /*                                      */
