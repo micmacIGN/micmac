@@ -210,29 +210,6 @@ public:
     // no clipping is done, i_image must fit
     void drawWindow( int i_x, int i_y, const RealImage1 &i_image );
 };
-/*
-// subdivide an area of size i_areaSize into a set of ROI of size i_size (or lesser)
-void clusterize( const ImageSize &i_areaSize, const ImageSize &i_roiSize, std::vector<ImageROI> &o_cluster, std::vector<ImageROI> &o_efficient_cluster, int i_overlapping=0 );
-*/
-inline void real_to_ints( RealImage1::Real v, int64_t &o_mantissa, int &exponent )
-{
-    v = frexp( v, &exponent );
-    o_mantissa = (int64_t)( v*pow( FLT_RADIX, DBL_MANT_DIG ) );
-}
-
-inline ::int64_t mantissa( RealImage1::Real v )
-{
-    int exponent;
-    return (::int64_t)( frexp( v, &exponent )*pow( FLT_RADIX, DBL_MANT_DIG ) );
-}
-
-#ifdef VL_USEFASTMATH
-    inline ::int64_t mantissa( Real_ v )
-    {
-        int exponent;
-        return (::int64_t)( frexp( v, &exponent )*pow( FLT_RADIX, DBL_MANT_DIG ) );
-    }
-#endif
 
 inline int getGaussianKernel_halfsize( Real_ i_standardDeviation ){ return int( ceil( Real_(4.0)*i_standardDeviation ) ); }
 
