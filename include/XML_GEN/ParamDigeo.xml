@@ -77,7 +77,10 @@ using namespace NS_SuperposeImage;
               <KeyOrPat Nb="1" Type="std::string"> </KeyOrPat>
               <!-- Pas utilise pour l'instant, sans doute prevu pour modele geometrique -->
               <KeyCalcCalib Nb="?" Type="std::string"> </KeyCalcCalib>
-              <BoxIm Nb="?" Type="Box2di">  </BoxIm>
+              <!-- La BoxImR1 est donnee / a la resol 1 -->
+              <BoxImR1 Nb="?" Type="Box2di">  </BoxImR1>
+              <!-- ResolInit=0.5 signifie des images deux fois plus grandes -->
+              <ResolInit Nb="?" Type="double" Def="1.0"> </ResolInit>
 
               <!-- Pour l'instant pas utilise, mais pour pouvoir commencer
                   a organiser la structure -->
@@ -107,7 +110,11 @@ using namespace NS_SuperposeImage;
                   <NivPyramBasique Nb="?" Type="int"> </NivPyramBasique>
                   <PyramideGaussienne  Nb="?">
                        <NbByOctave Def="3" Nb="?"  Type="int"> </NbByOctave>
+
                        <Sigma0 Nb="?" Type="double" Def="1.6"> </Sigma0>
+                       <!-- le papier de Lowe semble indiquer un smooting identique à chaque octave -->
+                       <SigmaN Nb="?" Type="double"> </SigmaN>
+
                        <NbInLastOctave Nb="?"  Type="int"> </NbInLastOctave>
                        <!-- Pour la premiere octave on peut supprimer ou rajouter 
                            (avec val<0) des frequence grace a ce tag -->
@@ -179,8 +186,8 @@ using namespace NS_SuperposeImage;
            <DirectoryChantier Nb="?"  Type="std::string" Def="">  </DirectoryChantier>
            <SauvPyram Nb="?">
               <Dir Nb="?" Type="std::string" Def=""> </Dir>
+              <Glob Nb="?" Type="bool" Def="true"> </Glob>
               <Key Nb="?" Type="std::string" Def="Key-Assoc-Pyram-MM"> </Key>
-              <CreateFileWhenExist Nb="?" Type="bool" Def="false">  </CreateFileWhenExist>
               <!-- <=0 si pas used -->
               <StripTifFile Nb="?" Type="int" Def="100"> </StripTifFile>
               <Force8B Nb="?" Type="bool" Def="false">   </Force8B>

@@ -124,7 +124,7 @@ void cAppliDigeo::DoCarac()
 
   }
 
-  Box2di aBox = mVIms[0]->BoxIm();
+  Box2di aBox = mVIms[0]->BoxImCalc();
   Pt2di aSzGlob = aBox.sz();
   int    aBrd=0;
   int    aSzMax = aSzGlob.x + aSzGlob.y;
@@ -149,6 +149,7 @@ void cAppliDigeo::DoCarac()
 
   for (int aKB=0; aKB<mDecoupInt.NbInterv() ; aKB++)
   {
+      std::cout << "Boxes to do " << mDecoupInt.NbInterv()  - aKB << "\n";
       DoOneInterv(aKB);
   }
 
@@ -172,9 +173,10 @@ int cAppliDigeo::NbInterv() const
 void cAppliDigeo::DoOneInterv(int aKB)
 {
    mBoxIn = mDecoupInt.KthIntervIn(aKB);
+   mBoxOut = mDecoupInt.KthIntervOut(aKB);
    for (int aKI=0 ; aKI<int(mVIms.size()) ; aKI++)
    {
-          mVIms[aKI]->LoadImageAndPyram(mBoxIn);
+          mVIms[aKI]->LoadImageAndPyram(mBoxIn,mBoxOut);
           mVIms[aKI]->DoExtract();
    }
 }

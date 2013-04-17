@@ -222,9 +222,11 @@ class cImInMem
 
          void MakeReduce(cImInMem &,eReducDemiImage);
 
+         void ResizeOctave(const Pt2di & aSz);
+         virtual void ResizeImage(const Pt2di & aSz) =0;
 
          // virtual void Resize(const Pt2di & aSz) = 0;
-         virtual void LoadFile(Tiff_Im aFile,const Box2di & aBox) = 0;
+         virtual void LoadFile(Fonc_Num aFile,const Box2di & aBox) = 0;
          virtual Im2DGen Im() = 0;
 
          // La relation mere-fille a meme DZ se fait entre image de mm type
@@ -253,6 +255,7 @@ class cImInMem
      
 
          Im1D_REAL8 mKernelTot;  // Noyaux le reliant a l'image de base de l'octave
+         bool mFirstSauv;
      private :
         cImInMem(const cImInMem &);  // N.I.
 };
@@ -282,13 +285,13 @@ template <class Type> class cTplImInMem : public cImInMem
         //tTIm  & TIm() {return TIm;}
         //const tTIm  & TIm() const {return TIm;}
         tIm  TIm() const {return mIm;}
-        void LoadFile(Tiff_Im aFile,const Box2di & aBox) ;
+        void LoadFile(Fonc_Num aFonc,const Box2di & aBox) ;
         bool InitRandom();
 
         void VMakeReduce_121(cImInMem &);
         void VMakeReduce_010(cImInMem &);
         void VMakeReduce_11(cImInMem &);
-        void Resize(const Pt2di & aSz);
+        void ResizeImage(const Pt2di & aSz);
         double CalcGrad2Moy();
         Im2DGen Im() ;
         void  SetMereSameDZ(cTplImInMem<Type> *);
@@ -437,7 +440,17 @@ class cOctaveDigeo
         virtual void PostPyram() = 0;
 
         virtual cOctaveDigeo * AllocDown(GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax) = 0;
+
+        Pt2dr P0CurMyResol() const;
+        void ResizeAllImages(const Pt2di &);
+
+        const Box2di  &      BoxImCalc () const;
+        const Box2dr  &      BoxCurIn () const;
+        const Box2di  &      BoxCurOut () const;
+
+        void SetBoxInOut(const Box2di & aBoxIn,const Box2di & aBoxOut);
     protected :
+       
         cOctaveDigeo(GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax);
 
 
@@ -447,6 +460,9 @@ class cOctaveDigeo
         std::vector<cImInMem *>  mVIms;
         Pt2di                    mSzMax;
         int                      mNbImOri;  // de NbByOctave()
+        Box2di                   mBoxImCalc;
+        Box2dr                   mBoxCurIn;
+        Box2di                   mBoxCurOut;
      private :
         cOctaveDigeo(const cOctaveDigeo &);  // N.I.
 };
@@ -499,27 +515,32 @@ class cImDigeo
         // void ComputeCarac();
         const std::string  &  Name() const;
         cAppliDigeo &  Appli();
-        Box2di BoxIm() const;
+        const Box2di & BoxImCalc() const;
 
  // Pour pouvoir se dimentionner au "pire" des cas, chaque image est
  // d'abord notifiee de l'existence d'une box
         void NotifUseBox(const Box2di &);
         void AllocImages();
-        void LoadImageAndPyram(const Box2di & aBox);
+        void LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut);
         void DoCalcGradMoy(int aDZ);
 
 
 
        void DoExtract();
-       const cImageDigeo &  IMD();
+       const cImageDigeo &  IMD();  // La structure XML !!!
+       double Resol() const;
        cVisuCaracDigeo  *  CurVisu();
        cOctaveDigeo & GetOctOfDZ(int aDZ); 
        cOctaveDigeo * SVPGetOctOfDZ(int aDZ); 
 
+       const Pt2di& SzCur() const;
+       const Pt2di& P0Cur() const;
 
        void SetDyn(double);
        double Dyn() const;
        double G2Moy() const;
+       const Box2di &   BoxCurIn ();
+       const Box2di &   BoxCurOut ();
      private :
 
 
@@ -533,9 +554,17 @@ class cImDigeo
         int                           mNum;
         std::vector<cImInMem *>       mVIms;
         Tiff_Im *                     mTifF;
-        Pt2di                         mSzGlob;
-        Box2di                        mBoxIm;
+        double                        mResol;
+
+        Pt2di                         mSzGlobR1;
+        Box2di                        mBoxGlobR1;
+        Box2di                        mBoxImR1;
+        Box2di                        mBoxImCalc;
+
         Pt2di                         mSzCur;
+        Pt2di                         mP0Cur;
+        Box2di                        mBoxCurIn;
+        Box2di                        mBoxCurOut;
         std::vector<cOctaveDigeo *>   mOctaves;
         Pt2di                         mSzMax;
         int                           mNiv;
@@ -656,6 +685,7 @@ class cAppliDigeo : public cParamDigeo
        FILE *                            mFileGGC_Cpp;
        cDecoupageInterv2D                mDecoupInt;
        Box2di                            mBoxIn;
+       Box2di                            mBoxOut;
 
      private :
         cAppliDigeo(const cAppliDigeo &);  // N.I.
