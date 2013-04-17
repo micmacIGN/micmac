@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -42,23 +42,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 using namespace NS_ParamChantierPhotogram;
 
 #if ELISE_unix
-	const std::string TheStrSiftPP = "siftpp_tgi.LINUX ";
-	const std::string TheStrAnnPP = "ann_mec_filtre.LINUX ";
+	const std::string TheStrSiftPP = "siftpp_tgi.LINUX";
+	const std::string TheStrAnnPP  = "ann_mec_filtre.LINUX";
 #elif ELISE_MacOs
-	const std::string TheStrSiftPP = "siftpp_tgi.OSX ";
-	const std::string TheStrAnnPP = "ann_samplekey200filtre.OSX ";
+	const std::string TheStrSiftPP = "siftpp_tgi.OSX";
+	const std::string TheStrAnnPP  = "ann_samplekey200filtre.OSX";
 #elif ELISE_windows
-	#if defined( _M_X64 )
-				const std::string TheStrSiftGPU = "SiftGpu\\x64\\SiftGpu_key.exe ";
-				const std::string TheStrAnnGPU = "SiftGpu\\x64\\SiftGpu_Match.exe ";
-				const std::string TheStrSiftPP = "siftpp_tgi.exe ";
-				const std::string TheStrAnnPP = "ann_samplekeyfiltre.exe ";
-	#elif defined( _WIN32 )
-				const std::string TheStrSiftGPU = "SiftGpu\\win32\\SiftGpu_key32.exe ";
-				const std::string TheStrAnnGPU = "SiftGpu\\win32\\SiftGpu_Match32.exe ";
-				const std::string TheStrSiftPP = "siftpp_tgi.exe ";
-				const std::string TheStrAnnPP = "ann_samplekeyfiltre.exe ";
-	#endif
+    const std::string TheStrSiftPP = "siftpp_tgi.exe";
+    const std::string TheStrAnnPP  = "ann_samplekeyfiltre.exe";
 #endif
 
 
@@ -70,7 +61,7 @@ using namespace NS_ParamChantierPhotogram;
 
 
 /*
- 
+
 Voici pour le seuil utilisé sur les prises de vue aériennes :
     ./siftpp image.tif --output image.key --threshold=0.015
 Cela permet de bien réduire le nombre de points extraits.
@@ -79,17 +70,17 @@ Autres options possibles :
  --octaves=O           Number of octaves
  --levels=S            Number of levels per octave
  --first-octave=MINO   Index of the first octave
- --threshold=THR       Keypoint strength threshold : les points pour 
-lesquels la fonction différence de gaussienne est inférieure à ce seuil 
+ --threshold=THR       Keypoint strength threshold : les points pour
+lesquels la fonction différence de gaussienne est inférieure à ce seuil
 sont éliminés
- --edge-threshold=THR  On-edge threshold : c'est pour l'élimination des 
+ --edge-threshold=THR  On-edge threshold : c'est pour l'élimination des
 candidats situés sur des arêtes
 
-J'avais testé des solutions du type de celle que tu proposais au tout 
-début des tests (alors que l'appariement "brut" prenait près de 5h par 
-couple d'images aériennes). Il faudrait que je rejette un oeil là 
-dessus. Ca pourrait notamment être utile pour de grandes images avec de 
-très grandes quantités de points (cf images satellites voire images 
+J'avais testé des solutions du type de celle que tu proposais au tout
+début des tests (alors que l'appariement "brut" prenait près de 5h par
+couple d'images aériennes). Il faudrait que je rejette un oeil là
+dessus. Ca pourrait notamment être utile pour de grandes images avec de
+très grandes quantités de points (cf images satellites voire images
 Marseille 10 cm...).
 
 Arnaud
@@ -179,7 +170,7 @@ class cAppliPastis : public cAppliBatch
        CamStenope *   mCamera2;
        CamStenope *   Cam1(bool Create=true)
        {
-            if ((mCamera1==0)   &&Create) 
+            if ((mCamera1==0)   &&Create)
             {
                 mCamera1= CamOfIm(CurF1());
             }
@@ -199,11 +190,11 @@ class cAppliPastis : public cAppliBatch
        Pt2di          mSzIm1;
        Pt2di          mSzIm2;
 
-       bool OKP1(const Pt2dr & aP) 
+       bool OKP1(const Pt2dr & aP)
        {
              return (aP.x>0)&&(aP.y>0)&&(aP.x<mSzIm1.x)&&(aP.y<mSzIm1.y);
        }
-       bool OKP2(const Pt2dr & aP) 
+       bool OKP2(const Pt2dr & aP)
        {
              return (aP.x>0)&&(aP.y>0)&&(aP.x<mSzIm2.x)&&(aP.y<mSzIm2.y);
        }
@@ -226,8 +217,10 @@ class cAppliPastis : public cAppliBatch
        int           mNbMaxValidGlobH;
        double        mSeuilHGLOB;
        std::string   mNKS;
-	   int           UseSiftGpu;
-
+	   string        mDetectingTool;      // name of the program to be used for dectecting points
+	   string        mDetectingArguments; // arguments to be passed when calling the detecting tool
+	   string        mMatchingTool;       // name of the program to be used for matching points
+	   string        mMatchingArguments;  // arguments to be passed when calling the matching tool
 
        Pt2dr Homogr1to2(const Pt2dr & aP1)
        {
@@ -245,14 +238,14 @@ std::string cAppliPastis::NameKey(const std::string & aFullName)
    std::string aDir,aName;
    SplitDirAndFile(aDir,aName,aFullName);
 
-   return 
+   return
      DirChantier()
    + ICNM()->Assoc1To2(mSiftImplem+"-Pastis-PtInt",aName,ToString(mSzPastis),true);
 }
 
 void cAppliPastis::GenerateKey(const std::string & aName,const std::string & aNameIm)
 {
-	if (mOnlyXML) 
+	if (mOnlyXML)
 		return;
 
 	std::string aNK = NameKey(aNameIm);
@@ -261,23 +254,11 @@ void cAppliPastis::GenerateKey(const std::string & aName,const std::string & aNa
 
 	if (mModeBin==eModeLeBrisPP)
 	{
-
 		std::string OptOut = " -o ";
-		std::string TheStrSiftBin;
-
-		// CHOIX du binaire CPU ou GPU pour le calcul des points clés SIFT
-#if ELISE_windows
-		TheStrSiftBin = UseSiftGpu ? TheStrSiftGPU : TheStrSiftPP;
-#else
-		TheStrSiftBin = TheStrSiftPP;
-#endif
-
-		aCom =	mBinDirAux +
-				TheStrSiftBin +
+		aCom =	g_externalToolHandler.get( mDetectingTool ).callName() + ' ' + mDetectingArguments + ' ' +
 				NameFileStd(aNameIm,1,false) +
 				OptOut +
 				aNK;
-
 	}
 	else if (mModeBin==eModeAutopano)
 	{
@@ -292,31 +273,18 @@ void cAppliPastis::GenerateKey(const std::string & aName,const std::string & aNa
 
 void cAppliPastis::GenerateMatch(const std::string & aNI1,const std::string & aNI2)
 {
-  if (mOnlyXML) 
+  if (mOnlyXML)
      return;
 
   std::string aCom;
-  
-  
+
+
   if (mModeBin==eModeLeBrisPP)
   {
-
-
-std::string TheStrAnnBin;
-
-#if ELISE_windows
-	TheStrAnnBin = UseSiftGpu ? TheStrAnnGPU : TheStrAnnPP;	
-#else
-	TheStrAnnBin = TheStrAnnPP;
-#endif
-
-	aCom =	mBinDirAux +
-			TheStrAnnBin + std::string(" ") +
+	aCom =	g_externalToolHandler.get( mMatchingTool ).callName() + ' ' + mMatchingArguments +
 			NameKey(aNI1) + std::string(" ") +
 			NameKey(aNI2) + std::string(" ") +
 			mNameAPM;
-
-
   }
   else if (mModeBin==eModeAutopano)
   {
@@ -324,7 +292,7 @@ std::string TheStrAnnBin;
 		     + std::string("--maxmatches ") + ToString(mNbMaxMatch) +  std::string(" ")
              + mNameAPM +  std::string(" ")
 		     + NameKey(aNI1) + std::string(" ")
-		     + NameKey(aNI2) + std::string(" "); 
+		     + NameKey(aNI2) + std::string(" ");
   }
 
   System(mNameAPM.c_str(),aCom);
@@ -340,7 +308,7 @@ std::string TheStrAnnBin;
 CamStenope * cAppliPastis::CamOfIm(const std::string & aNameIm)
 {
    std::string aNameCal;
-   
+
    if (ELISE_fp::exist_file(DirChantier()+mKCal))
       aNameCal = mKCal;
    else
@@ -372,7 +340,7 @@ class cCple
          Pt2dr mP2;
          Pt2dr mQ1;  // Points photogram
          Pt2dr mQ2;
-         double mZ;  
+         double mZ;
          double mSPente;
          bool   mOnePenteOut;
          bool  mOK;
@@ -453,11 +421,11 @@ std::list<cCple> FiltrageDup
 
 ElPackHomologue ToLPt(const std::list<cCple> aLC,bool isQ,int aNbIn)
 {
-   
+
    int aNbTot = aLC.size();
    if ((aNbIn <0)  || (aNbIn>aNbTot))
        aNbIn = aNbTot;
-  
+
 
    ElPackHomologue  aRes;
    for (std::list<cCple>::const_iterator itC=aLC.begin();itC!=aLC.end();itC++)
@@ -537,9 +505,9 @@ bool cAppliPastis::ValideGlobH(const std::list<cCple> & aLC)
    if (mSeuilHGLOB <0) return true;
 
    int aNB = aLC.size();
-   if (aNB <= mNbMinValidGlobH) 
+   if (aNB <= mNbMinValidGlobH)
       return false;
-   if (aNB > mNbMaxValidGlobH) 
+   if (aNB > mNbMaxValidGlobH)
       return true;
 
    ElPackHomologue aPackPhgr = ToLPt(aLC,false,1000);
@@ -547,7 +515,7 @@ bool cAppliPastis::ValideGlobH(const std::list<cCple> & aLC)
    cElHomographie aH21 = aH12.Inverse();
 
    double aEcart = 0;
-   for 
+   for
    (
           ElPackHomologue::const_iterator itP=aPackPhgr.begin();
           itP!=aPackPhgr.end();
@@ -585,7 +553,7 @@ std::list<cCple>  cAppliPastis::FiltrageRot(std::list<cCple>  aLC,double aSeuil)
    ElQT<cCple * ,Pt2dr,cPtOfCple> aQT(aGetP1,aBox,20,20);
    std::list<cCple> aNewLC;
    std::vector<cCple* > aVC;
-   for 
+   for
    (
        std::list<cCple>::iterator itC=aLC.begin();
        itC != aLC.end();
@@ -611,9 +579,9 @@ std::list<cCple>  cAppliPastis::FiltrageRot(std::list<cCple>  aLC,double aSeuil)
         double aZ = scal(aDirEpi2,itC->mP2-aPH2);
         aDist =  euclid(itC->mP1,aPr1) + euclid(itC->mP2,aPr2);
 
-        if (aDist<mSeuilDistEpip) 
+        if (aDist<mSeuilDistEpip)
         {
-            itC->mZ = aZ; 
+            itC->mZ = aZ;
             aNewLC.push_back(*itC);
             aQT.insert(&aNewLC.back());
             aVC.push_back(&aNewLC.back());
@@ -621,12 +589,12 @@ std::list<cCple>  cAppliPastis::FiltrageRot(std::list<cCple>  aLC,double aSeuil)
    }
 
    std::cout << "Apres Epip  " << aNewLC.size() << "\n";
-   
+
    int aNbPPV = 10;
    double aDistPPV = sqrt((aNbPPV/2.0)*mSzIm1.x*mSzIm1.y/(PI*aNewLC.size()));
    int aKT= aNewLC.size();
    double aMaxPente = 0;
-   for 
+   for
    (
        std::list<cCple>::iterator itC=aNewLC.begin();
        itC != aNewLC.end();
@@ -685,7 +653,7 @@ std::list<cCple>  cAppliPastis::FiltrageRot(std::list<cCple>  aLC,double aSeuil)
          // getchar();
       }
    }
- 
+
    // std::cout << "Pente Max " << aMaxPente << "\n";
 
    return aLC;
@@ -699,7 +667,7 @@ void cAppliPastis::GenerateXML(std::pair<cCompileCAPI,cCompileCAPI> & aPair)
       System(mNameHomXML.c_str(),aCom);
       GPAO().TaskOfName(mNameHomXML).AddDep(mNameAPM);
       GPAO().TaskOfName("all").AddDep(mNameHomXML);
-          
+
       return;
    }
 
@@ -711,7 +679,7 @@ void cAppliPastis::GenerateXML(std::pair<cCompileCAPI,cCompileCAPI> & aPair)
 
    ELISE_fp aFTxt(mNameAPM.c_str(),ELISE_fp::READ);
    string aBuf; // char aBuf[200]; TEST_OVERFLOW
-   
+
    cTplValGesInit<std::string> aNoStr;
 
     mCamera1=0;
@@ -721,7 +689,7 @@ void cAppliPastis::GenerateXML(std::pair<cCompileCAPI,cCompileCAPI> & aPair)
    // mCam1 = CamOfIm(CurF1());
    // mCam2 = CamOfIm(CurF2());
 
-   // if 
+   // if
 
    bool End= false;
 
@@ -754,7 +722,7 @@ void cAppliPastis::GenerateXML(std::pair<cCompileCAPI,cCompileCAPI> & aPair)
                         sscanf(aBuf.c_str(),"%s %s %s %s",x,y,X,Y); // sscanf(aBuf,"%s %s %s %s",x,y,X,Y); TEST_OVERFLOW
                    break;
                }
-            
+
                Pt2dr aP1(atof(x+aOfset),atof(y+aOfset));
                Pt2dr aP2(atof(X+aOfset),atof(Y+aOfset));
 
@@ -852,7 +820,7 @@ void cAppliPastis::ExecSz(double aSzMaxApp,bool)
 {
   if  (mModeBin== eModeAutopano)
       aSzMaxApp= -1;
-  
+
    std::pair<cCompileCAPI,cCompileCAPI> aPair= ICNM()->APrioriAppar
                                                (CurF1(),CurF2(),mKeyGeom1,mKeyGeom2,aSzMaxApp);
   if (mModeBin==eModeLeBrisPP)
@@ -860,18 +828,18 @@ void cAppliPastis::ExecSz(double aSzMaxApp,bool)
 	  std::string aDir,aN1,aN2;
       SplitDirAndFile(aDir,aN1,NameKey(aPair.first.NameRectif()));
       SplitDirAndFile(aDir,aN2,NameKey(aPair.second.NameRectif()));
-	  
+
       ELISE_fp::MkDirSvp(DirChantier() + "Pastis"+ELISE_CAR_DIR+"LBPp-Match-" + StdPrefix(aN1)+ELISE_CAR_DIR);
-	  
+
       mNameAPM =    DirChantier()
                  +  ICNM()->Assoc1To2(mSiftImplem+"-Pastis-Hom-Txt",aN1,aN2,true);
   }
   else if (mModeBin==eModeAutopano)
   {
-      mNameAPM =   DirChantier() 
+      mNameAPM =   DirChantier()
               + ICNM()->Assoc1To3(mSiftImplem+"-Pastis-Hom-Txt",CurF1(),CurF2(),ToString(mSzPastis),true);
   }
-  
+
    if (mNKS!="")
    {
       mNameHomXML =   DirChantier() + ICNM()->Assoc1To2(mNKS,CurF1(),CurF2(),true);
@@ -881,12 +849,12 @@ void cAppliPastis::ExecSz(double aSzMaxApp,bool)
        std::string aKAssoc =   mSsRes                                  ?
                                "Key-Assoc-SsRes-CpleIm2HomolPastisBin" :
                                "Key-Assoc-CpleIm2HomolPastisBin"       ;
-	  
-      if (mExt!="") 
+
+      if (mExt!="")
       {
          aKAssoc = "KeyStd-Assoc-CplIm2HomBin@" + mExt;
       }
-      mNameHomXML = DirChantier() 
+      mNameHomXML = DirChantier()
 					+ ICNM()->Assoc1To2(aKAssoc,CurF1(),CurF2(),true);
 
       if (mExpBin)
@@ -900,7 +868,7 @@ void cAppliPastis::ExecSz(double aSzMaxApp,bool)
    }
 
 
-   
+
    if (ModeExe()==eExeDoNothing)
    {
        std::cout << CurF1() << " " << CurF2() << "\n";
@@ -915,6 +883,32 @@ void cAppliPastis::ExecSz(double aSzMaxApp,bool)
    }
 }
 
+// a tool string is composed of two string separated by a ':'
+// -the first one conatains the executable name
+// -the second one contains its arguments
+// if there's more than one ':', the first is used
+// io_tool is the source string and will receive the executable name in case of success
+// if no ':' is found, the whole string is the executable name and o_args is set to the null string
+// o_args will receive the arguments in case of success
+// the function returns if the source argument could be processed
+bool process_pastis_tool_string( string &io_tool, string &o_args )
+{
+    if ( io_tool.length()==0 ) return false;
+
+    size_t pos = io_tool.find( ':' );
+    if ( pos==0 ) return false;
+    if ( pos==io_tool.length()-1 ){
+        io_tool.resize( io_tool.length()-1 );
+        pos = string::npos;
+    }
+    if ( pos==string::npos )
+        o_args.clear();
+    else{
+        o_args  = io_tool.substr( pos+1 );
+        io_tool = io_tool.substr( 0, pos );
+    }
+    return true;
+}
 
 cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
    cAppliBatch(argc,argv,4,2,"Pastis","",FBD),
@@ -929,7 +923,8 @@ cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
    mNbMinValidGlobH  (4),
    mNbMaxValidGlobH  (200000),
    mSeuilHGLOB       (-1.0),
-   UseSiftGpu        (0)
+   mDetectingTool     ( TheStrSiftPP ),
+   mMatchingTool      ( TheStrAnnPP )
 {
     std::string aKG12="";
     if (!NivPurgeIsInit())
@@ -978,9 +973,23 @@ cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
                       << EAM(mSsRes,"SsRes",true)
                       << EAM(mExt,"Ext",true)
                       << EAM(mNKS,"NKS",true)
-					  << EAM(UseSiftGpu,"UseGpu",true)
-
+					  << EAM(mDetectingTool,"Detect",true)
+                      << EAM(mMatchingTool,"Match",true)
     );
+
+    if ( !process_pastis_tool_string( mDetectingTool, mDetectingArguments ) ){
+        cerr << "Pastis: ERROR: specified string for the detecting tool is invalid (format is : tool[:arguments] )" << endl;
+        exit( EXIT_FAILURE );
+    }
+    if ( !process_pastis_tool_string( mMatchingTool, mMatchingArguments ) ){
+        cerr << "Pastis: ERROR: specified string for the matching tool is invalid (format is : tool[:arguments] )" << endl;
+        exit( EXIT_FAILURE );
+    }
+    cout << "detect = " << mDetectingTool << " => " << g_externalToolHandler.get( mDetectingTool ).callName() << endl;
+    cout << TheStrSiftPP << " => " << g_externalToolHandler.get( TheStrSiftPP ).callName() << endl;
+    cout << "match = " << mMatchingTool << " => " << g_externalToolHandler.get( mMatchingTool ).callName() <<endl;
+    cout << TheStrAnnPP << " => " << g_externalToolHandler.get( TheStrAnnPP ).callName() << endl;
+
     if (mExpTxt) mExpBin = 0;
 
     if (aKG12!="")
@@ -988,7 +997,7 @@ cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
         mKeyGeom1 = aKG12;
         mKeyGeom2 = aKG12;
     }
-    
+
     if (mFiltreOnlyDupl || mFiltreOnlyHom)
     {
         mSeuilDistEpip=1e15;
@@ -1031,11 +1040,8 @@ int Pastis_main(int argc,char ** argv)
          }
     }
 
-
     argv = & (aNewArgv[0]);
     argc = aNewArgv.size();
-
-
 
     MMD_InitArgcArgv(argc,argv);
 
@@ -1043,7 +1049,7 @@ int Pastis_main(int argc,char ** argv)
 
     aAP.DoAll();
     aAP.Banniere();
-	
+
     return 0;
 }
 
@@ -1061,7 +1067,7 @@ correspondances d'images pour la reconstruction du relief.
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -1072,16 +1078,16 @@ titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
 associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
+développement et à la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à
 manipuler et qui le réserve donc à des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
 logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

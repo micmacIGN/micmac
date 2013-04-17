@@ -42,7 +42,7 @@ bool CheckForMM3D()
 {
 	ExternalToolItem item = g_externalToolHandler.get("mm3d");
 
-	if ( item.m_status==EXT_TOOL_NOT_FOUND ) 
+	if ( item.isCallable()==0 ) 
 	{
 		std::cout << "mm3d NOT FOUND - please set PATH for MM3D_Directory (Linux: PATH=$PATH:MM3D_Directory ; Windows: SET PATH=%PATH%;MM3D_Directory)" << std::endl;
 		return false;

@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -48,10 +48,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int ExpTxt=0;
 int	ByP=-1;
-int UseSiftGpu=0;
+string g_toolsOptions; // contains arguments to pass to Pastis concerning detecting and matching tools
 std::string aDir,aPat,aPatOri;
 std::string aPat2="";
-std::string aFullDir; 
+std::string aFullDir;
 int aFullRes;
 cInterfChantierNameManipulateur * anICNM =0;
 std::string BinPastis;
@@ -96,10 +96,10 @@ std::string RelAllIm()
 
 
 
-std::string NKS() 
-{ 
-    return 
-             std::string(" NKS=NKS-Assoc-CplIm2Hom@") 
+std::string NKS()
+{
+    return
+             std::string(" NKS=NKS-Assoc-CplIm2Hom@")
            + std::string(PostFix)
            + std::string("@")
            + std::string(ExpTxt? "txt" :  "dat") ;
@@ -109,7 +109,7 @@ void DoMkT()
 {
     if (ByP)
     {
-		std::string aSMkSr = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFT + (UseSiftGpu ? "" : std::string(" -j")+ToString(ByP));
+		std::string aSMkSr = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFT + string(" -j")+ToString(ByP);
         System(aSMkSr,true);
     }
 }
@@ -117,32 +117,77 @@ void DoMkT()
 void DoDevelopp(int aSz1,int aSz2)
 {
     std::list<std::string> aList = anICNM->StdGetListOfFile(aPatOri,1);
-	
+
     cEl_GPAO  aGPAO;
-	
+
     for (std::list<std::string>::iterator iT= aList.begin() ; iT!=aList.end() ; iT++)
     {
         std::string  aNOri = anICNM->Dir()+*iT;
         std::string  aNTif = NameFileStd(aNOri,1,false,true,false);
 
         std::string aCom = MMBin() + "PastDevlop " + aNOri + " Sz1=" +ToString(aSz1) + " Sz2="+ToString(aSz2);
-		
+
         aGPAO.GetOrCreate(aNTif,aCom);
         aGPAO.TaskOfName("all").AddDep(aNTif);
     }
-	
+
     aGPAO.GenerateMakeFile(MkFT);
-	
+
     DoMkT();
 }
 
+// cf. CPP_Pastis.cpp
+extern bool process_pastis_tool_string( string &io_tool, string &o_args );
 
+// process "Detect" and "Match" argument the same way Pastis will and check the binaries exist
+// eventually construct a string to give to Pastis
+void check_detect_and_match_tools( string &detectingTool, string &matchingTool )
+{
+    string detectArgs, matchArgs;
+
+    g_toolsOptions.clear();
+    if ( detectingTool.length()!=0 )
+    {
+        if ( !process_pastis_tool_string( detectingTool, detectArgs ) ){
+            cerr << "Tapioca: ERROR: specified string for the detecting tool is invalid (format is : tool[:arguments] )" << endl;
+            exit( EXIT_FAILURE );
+        }
+        else
+        {
+            const ExternalToolItem &item = g_externalToolHandler.get( detectingTool );
+            if ( !item.isCallable() ){
+                cerr << "Tapioca: ERROR: specified detecting tool " << detectingTool << " is needed but " << item.errorMessage() << endl;
+                exit( EXIT_FAILURE );
+            }
+            g_toolsOptions = string( "Detect=" ) + detectingTool;
+            if ( detectArgs.length()!=0 ) g_toolsOptions.append( string(":") + detectArgs );
+        }
+    }
+    if ( matchingTool.length()!=0 )
+    {
+        if ( !process_pastis_tool_string( matchingTool, matchArgs ) ){
+            cerr << "Tapioca: ERROR: specified string for the matching tool is invalid (format is : tool[:arguments] )" << endl;
+            exit( EXIT_FAILURE );
+        }
+        else{
+            const ExternalToolItem &item = g_externalToolHandler.get( matchingTool );
+            if ( !item.isCallable() ){
+                cerr << "Tapioca: ERROR: specified matching tool " << matchingTool << " is needed but " << item.errorMessage() << endl;
+                exit( EXIT_FAILURE );
+            }
+            if ( g_toolsOptions.length()!=0 ) g_toolsOptions.append(" ");
+            g_toolsOptions.append( string( "Match=" ) + matchingTool );
+            if ( matchArgs.length()!=0 ) g_toolsOptions.append( string(":") + matchArgs );
+        }
+    }
+}
 
 int MultiECh(int argc,char ** argv)
 {
     int aSsRes;
     int aNbMinPt=2;
     int DoLowRes = 1;
+    string detectingTool, matchingTool;
 
     ElInitArgMain
     (
@@ -150,18 +195,20 @@ int MultiECh(int argc,char ** argv)
 	LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)")
                      <<EAM(aSsRes,"Size of Low Resolution image")
                      <<EAM(aFullRes,"Siez of High Resolution Images"),
-	LArgMain()  << EAM(ExpTxt,"ExpTxt",true)	
-                    << EAM(ByP,"ByP",true)	
-                    << EAM(PostFix,"PostFix",true)	
-                    << EAM(aNbMinPt,"NbMinPt",true)	
-                    << EAM(DoLowRes,"DLR",true,"Do Low Resolution")	
+	LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
+                    << EAM(ByP,"ByP",true)
+                    << EAM(PostFix,"PostFix",true)
+                    << EAM(aNbMinPt,"NbMinPt",true)
+                    << EAM(DoLowRes,"DLR",true,"Do Low Resolution")
                     << EAM(aPat2,"Pat2",true)
-					<< EAM(UseSiftGpu,"UseGpu",true)
+                    << EAM(detectingTool,"Detect",true)
+                    << EAM(matchingTool,"Match",true)
     );
+
+    check_detect_and_match_tools( detectingTool, matchingTool );
 
     if (aFullRes != -1)
     {
-        // std::cout << "===== EURO COW DO YOU HAVE THIS MESSAGE ?? ==\n";
         std::cout << "Ss-RES = " << aSsRes << " ; Full-Res=" << aFullRes << "\n";
         ELISE_ASSERT(aFullRes>aSsRes,"High Res < Low Res, Probably 2 swap !!");
     }
@@ -170,14 +217,11 @@ int MultiECh(int argc,char ** argv)
 
     DoDevelopp(aSsRes,aFullRes);
 
-
     if (DoLowRes)
     {
-
-
-         std::string aSsR = 
+         std::string aSsR =
                         BinPastis
-                     +  aDir + std::string(" ") 
+                     +  aDir + std::string(" ")
                      +  RelAllIm()     //   +  QUOTE(std::string("NKS-Rel-AllCpleOfPattern@")+ aPat) + std::string(" ")
                      +  ToString(aSsRes) + std::string(" ")
                      +  std::string(" NKS=NKS-Assoc-CplIm2Hom@_SRes@dat")
@@ -185,8 +229,7 @@ int MultiECh(int argc,char ** argv)
                      +  std::string("NbMinPtsExp=2 ")
                      +  std::string("SsRes=1 ")
                      +  std::string("ForceByDico=1 ")
-                     +  std::string("UseGpu=") + ToString(UseSiftGpu);
-
+                     +  g_toolsOptions;
 
          System(aSsR,true);
          DoMkT();
@@ -194,14 +237,14 @@ int MultiECh(int argc,char ** argv)
 
 
     std::string aSFR =  BinPastis
-                     +  aDir + std::string(" ") 
+                     +  aDir + std::string(" ")
                      + QUOTE(std::string("NKS-Rel-SsECh@")+ aPat+ std::string("@")+ToString(aNbMinPt)) + std::string(" ")
                      +  ToString(aFullRes) + std::string(" ")
                      +  StrMkT()
                      +  std::string("NbMinPtsExp=2 ")
                      +  std::string("ForceByDico=1 ")
-                     +  NKS() + std::string(" ")
-					 +  std::string("UseGpu=") + ToString(UseSiftGpu);
+                     +  g_toolsOptions + ' '
+                     +  NKS();
 
     System(aSFR,true);
     DoMkT();
@@ -211,20 +254,26 @@ int MultiECh(int argc,char ** argv)
 
 int All(int argc,char ** argv)
 {
+    string detectingTool, matchingTool;
+
     ElInitArgMain
     (
 	argc,argv,
 	LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)")
                      <<EAMC(aFullRes,"Size of image"),
-	LArgMain()  << EAM(ExpTxt,"ExpTxt",true)	
-                    << EAM(PostFix,"PostFix",true)	
-                    << EAM(ByP,"ByP",true)	
-                    << EAM(aPat2,"Pat2",true)	
+	LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
+                    << EAM(PostFix,"PostFix",true)
+                    << EAM(ByP,"ByP",true)
+                    << EAM(aPat2,"Pat2",true)
+                    << EAM(detectingTool,"Detect",true)
+                    << EAM(matchingTool,"Match",true)
     );
-	
+
+    check_detect_and_match_tools( detectingTool, matchingTool );
+
     StdAdapt2Crochet(aPat2);
     DoDevelopp(-1,aFullRes);
-	
+
     std::string aSFR =  BinPastis
                      +  aDir + std::string(" ")
                      +  RelAllIm()     //   +  QUOTE(std::string("NKS-Rel-AllCpleOfPattern@")+ aPat) + std::string(" ")
@@ -232,13 +281,14 @@ int All(int argc,char ** argv)
                      +  StrMkT()
                      +  std::string("NbMinPtsExp=2 ")
                      +  std::string("ForceByDico=1 ")
+                     +  g_toolsOptions + ' '
                      +  NKS();
 
-	
+
     System(aSFR,true);
-	
+
     DoMkT();
-	
+
     return 0;
 }
 
@@ -247,6 +297,7 @@ int Line(int argc,char ** argv)
     int  aNbAdj;
     bool  ForceAdj= false;
     int isCirc=0;
+    string detectingTool, matchingTool;
 
     ElInitArgMain
     (
@@ -254,12 +305,16 @@ int Line(int argc,char ** argv)
 	LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)")
                      <<EAMC(aFullRes,"Size of image")
                      <<EAMC(aNbAdj,"Number of ajdcent images to look for"),
-	LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export Pts in texte format")	
-                    << EAM(PostFix,"PostFix",true,"Add post fix in directory")	
-                    << EAM(ByP,"ByP",true,"By processe")	
-                    << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")	
-                    << EAM(ForceAdj,"ForceAdSupResol",true,"to force computation even when Resol < Adj")	
+	LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export Pts in texte format")
+                    << EAM(PostFix,"PostFix",true,"Add post fix in directory")
+                    << EAM(ByP,"ByP",true,"By processe")
+                    << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")
+                    << EAM(ForceAdj,"ForceAdSupResol",true,"to force computation even when Resol < Adj")
+                    << EAM(detectingTool,"Detect",true)
+                    << EAM(matchingTool,"Match",true)
     );
+
+    check_detect_and_match_tools( detectingTool, matchingTool );
 
     if ((aFullRes < aNbAdj) && (!ForceAdj) && (aFullRes>0))
     {
@@ -269,7 +324,7 @@ int Line(int argc,char ** argv)
              false,
              "Probable inversion of Resol and Adjacence (use ForceAdSupResol is that's what you mean)"
         );
-       
+
     }
 
 
@@ -278,12 +333,13 @@ int Line(int argc,char ** argv)
    std::string aRel = isCirc ? "NKS-Rel-ChantierCirculaire" : "NKS-Rel-ChantierLineaire";
 
     std::string aSFR =  BinPastis
-                     +  aDir + std::string(" ") 
+                     +  aDir + std::string(" ")
                      +  QUOTE(std::string(aRel + "@")+ aPat+ std::string("@")+ToString(aNbAdj)) + std::string(" ")
                      +  ToString(aFullRes) + std::string(" ")
                      +  StrMkT()
                      +  std::string("NbMinPtsExp=2 ")
                      +  std::string("ForceByDico=1 ")
+                     +  g_toolsOptions + ' '
                      +  NKS();
 
 
@@ -298,23 +354,30 @@ int Line(int argc,char ** argv)
 
 int File(int argc,char ** argv)
 {
+    string detectingTool, matchingTool;
+
     ElInitArgMain
     (
 	argc,argv,
 	LArgMain()  << EAM(aFullDir)
                      <<EAM(aFullRes),
-	LArgMain()  << EAM(ExpTxt,"ExpTxt",true)	
-                    << EAM(PostFix,"PostFix",true)	
-                    << EAM(ByP,"ByP",true)	
+	LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
+                    << EAM(PostFix,"PostFix",true)
+                    << EAM(ByP,"ByP",true)
+                    << EAM(detectingTool,"Detect",true)
+                    << EAM(matchingTool,"Match",true)
     );
 
+    check_detect_and_match_tools( detectingTool, matchingTool );
+
     std::string aSFR =  BinPastis
-                     +  aDir + std::string(" ") 
+                     +  aDir + std::string(" ")
                      +  QUOTE(std::string("NKS-Rel-ByFile@")+  aPat) + std::string(" ")
                      +  ToString(aFullRes) + std::string(" ")
                      +  StrMkT()
                      +  std::string("NbMinPtsExp=2 ")
                      +  std::string("ForceByDico=1 ")
+                     +  g_toolsOptions + ' '
                      +  NKS();
 
 
@@ -327,14 +390,6 @@ int File(int argc,char ** argv)
     return 0;
 }
 
-
-
-
-
-
-
-
-
 int Tapioca_main(int argc,char ** argv)
 {
    MMD_InitArgcArgv(argc,argv);
@@ -346,7 +401,7 @@ int Tapioca_main(int argc,char ** argv)
        argv[1] = argv[0];
        argv++; argc--;
     }
-	
+
     if (argc>=2)
     {
        aFullDir = argv[1];
@@ -355,7 +410,7 @@ int Tapioca_main(int argc,char ** argv)
 	   #endif
        SplitDirAndFile(aDir,aPat,aFullDir);
     }
-	
+
     aPatOri = aPat;
 
      StdAdapt2Crochet(aPat);
@@ -372,7 +427,7 @@ int Tapioca_main(int argc,char ** argv)
 
     cTplValGesInit<std::string>  aTplFCND;
     anICNM = cInterfChantierNameManipulateur::StdAlloc(argc,argv,aDir,aTplFCND);
-	
+
     if (TheType == Type[0])
     {
         int aRes =  MultiECh(argc,argv);
@@ -398,11 +453,10 @@ int Tapioca_main(int argc,char ** argv)
         return aRes;
     }
 
-    std::cout << "TAPIOCA : Bad Value for networks configuration \n";
-    std::cout << "Allowed enumerated values are  : \n";
+    std::cout << "TAPIOCA: ERROR: unknown command : " << TheType << endl;
+    std::cout << "Allowed commands are : \n";
     for (int aK=0 ; aK<aNbType ; aK++)
-        std::cout << "    " << Type[aK] << "\n";
-    std::cout << " ==================================\n";
+        std::cout << "\t" << Type[aK] << "\n";
 
 	return EXIT_FAILURE;
 }
@@ -419,7 +473,7 @@ correspondances d'images pour la reconstruction du relief.
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -430,16 +484,16 @@ titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
 associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
+développement et à la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à
 manipuler et qui le réserve donc à des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
 logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
