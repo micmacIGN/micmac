@@ -1295,12 +1295,8 @@ if (0)
 		
 		if(	mNbIm == 0) return;	
 
-        int aZMinTer = mZMinGlob, aZMaxTer = mZMaxGlob;
-        //int aZMinTer = -16, aZMaxTer = 16;
-	
-
-
-
+        //int aZMinTer = mZMinGlob, aZMaxTer = mZMaxGlob;
+        int aZMinTer = -16, aZMaxTer = 16;
 
 		// definition de la zone rectangulaire de terrain
 		Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
@@ -1324,8 +1320,8 @@ if (0)
 
 
         // DEBUT TEST OPTIMISATION
-//        CuHostData3D<float>		hVolumeCostGlobal(IMmGg.Param().dimTer,aZMaxTer - aZMinTer);
-//        hVolumeCostGlobal.SetName("hVolumeCostGlobal");
+        CuHostData3D<float>		hVolumeCostGlobal(IMmGg.Param().dimTer,aZMaxTer - aZMinTer);
+        hVolumeCostGlobal.SetName("hVolumeCostGlobal");
         // FIN TEST OPTIMISATION
 
 		hVolumeCost.SetName("hVolumeCost");
@@ -1370,8 +1366,8 @@ if (0)
 					setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,hVolumeCost.pData(), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
 
                     // DEBUT TEST OPTIMISATION
-//                    int pitchZ =  size(IMmGg.Param().RTer().dimension());
-//                    memcpy(hVolumeCostGlobal.pData() + (anZComputed - aZMinTer) * pitchZ,hVolumeCost.pData(), pitchZ * ZtoCopy * sizeof(float));
+                    int pitchZ =  size(IMmGg.Param().RTer().dimension());
+                    memcpy(hVolumeCostGlobal.pData() + (anZComputed - aZMinTer) * pitchZ,hVolumeCost.pData(), pitchZ * ZtoCopy * sizeof(float));
                     // FIN TEST OPTIMISATION
 
                     anZComputed += ZtoCopy;
@@ -1409,8 +1405,8 @@ if (0)
 		hVolumeProj.Dealloc();
 
         // DEBUT TEST OPTIMISATION
-//        IGpuOpt.StructureVolumeCost(hVolumeCostGlobal,IMmGg.Param().floatDefault);
-//        hVolumeCostGlobal.Dealloc();
+        IGpuOpt.StructureVolumeCost(hVolumeCostGlobal,IMmGg.Param().floatDefault);
+        hVolumeCostGlobal.Dealloc();
         // FIN TEST OPTIMISATION
 #else
 		ELISE_ASSERT(1,"Sorry, this is not the cuda version");
