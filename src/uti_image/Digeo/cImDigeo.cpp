@@ -59,14 +59,17 @@ cImDigeo::cImDigeo
   mNum         (aNum),
   // mTifF        (new Tiff_Im(Tiff_Im::StdConv(mAppli.DC()+mName))),
   mTifF        (new Tiff_Im(Tiff_Im::StdConvGen(mAppli.DC()+mName,1,true))),
-  mSzGlob      (mTifF->sz()),
-  mBoxIm       (mIMD.BoxIm().ValWithDef(Box2di(Pt2di(0,0),mSzGlob))),
+  mResol       (aIMD.ResolInit().Val()),
+  mSzGlobR1    (mTifF->sz()),
+  mBoxGlobR1   (Pt2di(0,0),mSzGlobR1),
+  mBoxImR1     (Inf(mIMD.BoxImR1().ValWithDef(mBoxGlobR1),mBoxGlobR1)),
+  mBoxImCalc   (round_ni(Pt2dr(mBoxImR1._p0)/mResol),round_ni(Pt2dr(mBoxImR1._p1)/mResol)),
+
   mSzMax       (0,0),
   mVisu        (0),
   mG2MoyIsCalc (false),
   mDyn         (1.0)
 {
-   mBoxIm = Inf(mBoxIm,Box2di(Pt2di(0,0),mSzGlob));
    //Provisoire
    ELISE_ASSERT(! aIMD.PredicteurGeom().IsInit(),"Asservissement pas encore gere");
 
@@ -80,7 +83,7 @@ cImDigeo::cImDigeo
        if ( aIMD.PredicteurGeom().IsInit())
        {
           //Provisoire
-          ELISE_ASSERT(!aIMD.BoxIm().IsInit()," Asservissement et Box Im sec => redondant ?");
+          ELISE_ASSERT(!aIMD.BoxImR1().IsInit()," Asservissement et Box Im sec => redondant ?");
        }
        else
        {
@@ -104,9 +107,15 @@ cImDigeo::cImDigeo
    
 }
 
-Box2di cImDigeo::BoxIm() const
+double cImDigeo::Resol() const
 {
-   return mBoxIm;
+   return mResol;
+}
+
+
+const Box2di & cImDigeo::BoxImCalc() const
+{
+   return mBoxImCalc;
 }
 
 
@@ -219,13 +228,31 @@ void cImDigeo::AllocImages()
 
 
 
-void cImDigeo::LoadImageAndPyram(const Box2di & aBox)
+void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 {
+    mBoxCurIn = aBoxIn;
+    mBoxCurOut = aBoxOut;
     ElTimer aChrono;
-    mSzCur = aBox.sz();
+    mSzCur = aBoxIn.sz();
+    mP0Cur = aBoxIn._p0;
+
+    for (int aK=0 ; aK<int(mOctaves.size()) ; aK++)
+    {
+       mOctaves[aK]->SetBoxInOut(aBoxIn,aBoxOut);
+    }
 
 
-    mOctaves[0]->FirstImage()->LoadFile(*mTifF,aBox);
+    // Fonc_Num aF = trans(aF,aBoxIn._p0);
+    Fonc_Num aF = mTifF->in_proj();
+
+    aF = StdFoncChScale
+         (
+                aF,
+                Pt2dr(aBoxIn._p0) *mResol,
+                Pt2dr(mResol,mResol)
+         );
+
+    mOctaves[0]->FirstImage()->LoadFile(aF,aBoxIn);
     // mVIms[0]->LoadFile(*mTifF,aBox);
 
     double aTLoad = aChrono.uval();
@@ -369,6 +396,8 @@ void cImDigeo::SetDyn(double aDyn)
     mDyn = aDyn;
 }
 
+const Pt2di& cImDigeo::SzCur() const {return mSzCur;}
+const Pt2di& cImDigeo::P0Cur() const {return mP0Cur;}
 
 
 const std::string  &  cImDigeo::Name() const {return mName;}

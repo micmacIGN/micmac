@@ -631,7 +631,7 @@ void cTplImInMem<Type>::MakeConvolInit(double aV)
 template <class Type> 
 void cTplImInMem<Type>::ReduceGaussienne()
 {
-    std::cout << "RRGG :  KinOct " << mKInOct << "\n";
+    //std::cout << "RRGG :  KinOct " << mKInOct << "\n";
     const cPyramideGaussienne aPG = mAppli.TypePyramide().PyramideGaussienne().Val();
     int aSurEch = aPG.SurEchIntegralGauss().Val();
     double anEpsilon = aPG.EpsilonGauss().Val();
@@ -639,7 +639,7 @@ void cTplImInMem<Type>::ReduceGaussienne()
 
     if (mKInOct==0)
     {
-         std::cout << "   do=By=Reduc \n";
+         //std::cout << "   do=By=Reduc \n";
          cTplOctDig<Type>* anOcUp = mTOct.OctUp();
 
          if (anOcUp)
@@ -655,8 +655,8 @@ void cTplImInMem<Type>::ReduceGaussienne()
          return;
     }
 
-    std::cout << "Do By Convol \n";
-    Resize(mOrigOct->Sz());
+    //std::cout << "Do By Convol \n";
+    // ResizeOctave(mOrigOct->Sz());
 
     // Valeur a priori du sigma en delta / au prec
 

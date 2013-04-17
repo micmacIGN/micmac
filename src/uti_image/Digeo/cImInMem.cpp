@@ -66,7 +66,7 @@ cTplImInMem<Type>::cTplImInMem
      mOrigOct (0),
      mData   (0)
 {
-    Resize(aSz); 
+    ResizeImage(aSz); 
 }
 
 template <class Type> void cTplImInMem<Type>::ResizeBasic(const Pt2di & aSz)
@@ -78,7 +78,7 @@ template <class Type> void cTplImInMem<Type>::ResizeBasic(const Pt2di & aSz)
    // ELISE_COPY(mIm.all_pts(),1,mIm.out());
 // std::cout << "SZ = " << aSz << " " << (void *)mIm.data_lin() << "\n";
 }
-template <class Type> void cTplImInMem<Type>::Resize(const Pt2di & aSz)
+template <class Type> void cTplImInMem<Type>::ResizeImage(const Pt2di & aSz)
 {
     ResizeBasic(aSz+Pt2di(PackTranspo,0));
     ResizeBasic(aSz);
@@ -105,10 +105,10 @@ template <class Type> bool cTplImInMem<Type>::InitRandom()
    return true;
 }
  
-template <class Type> void cTplImInMem<Type>::LoadFile(Tiff_Im aFile,const Box2di & aBox)
+template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox)
 {
-    Resize(aBox.sz());
-    ELISE_COPY(mIm.all_pts(), trans(aFile.in(),aBox._p0), mIm.out());
+    ResizeOctave(aBox.sz());
+    ELISE_COPY(mIm.all_pts(), aFonc, mIm.out());
     if (
               mAppli.MaximDyn().ValWithDef(sizeof(Type)<=2) 
            && type_im_integral(mType) 
@@ -273,9 +273,15 @@ cImInMem::cImInMem
     mIndexSigma       (IndexSigma),
     mMere             (0),
     mFille            (0),
-    mKernelTot        (1,1.0)
+    mKernelTot        (1,1.0),
+    mFirstSauv        (true)
 {
  
+}
+
+void  cImInMem::ResizeOctave(const Pt2di & aSz)
+{
+   mOct.ResizeAllImages(aSz);
 }
 
 
@@ -316,13 +322,42 @@ void cImInMem::SauvIm(const std::string & aAdd)
                                 true
                            );
 
-   if ((! ELISE_fp::exist_file(aName)) || (aSP.CreateFileWhenExist().Val()))
+
+   if (mFirstSauv)
    {
       L_Arg_Opt_Tiff aLArgTiff = Tiff_Im::Empty_ARG;
       int aStrip = aSP.StripTifFile().Val();
       if (aStrip>0)
           aLArgTiff = aLArgTiff +  Arg_Tiff(Tiff_Im::AStrip(aStrip));
 
+      Pt2di aSz = mOct.BoxImCalc().sz();
+
+      Tiff_Im aTF
+              (
+                  aName.c_str(),
+                  aSz,
+                  (aSP.Force8B().Val() ? GenIm::u_int1 : Im().TypeEl()),
+                  Tiff_Im::No_Compr,
+                  Tiff_Im::BlackIsZero,
+                  aLArgTiff
+              );
+   }
+   Tiff_Im aTF(aName.c_str());
+
+   const Box2di & aBoxOut = mOct.BoxCurOut();
+   const Pt2dr  aP0In = mOct.BoxCurIn()._p0;
+   Pt2di  aP0Glob = mOct.BoxImCalc()._p0;
+
+   Fonc_Num aFonc = Im().in_proj()[Virgule(FX+aP0Glob.x-aP0In.x,FY+aP0Glob.y-aP0In.y)];
+   aFonc = aSP.Force8B().Val() ? Min(255,aFonc*aSP.Dyn().Val()) : aFonc;
+
+   ELISE_COPY
+   (
+       rectangle(aBoxOut._p0-aP0Glob,aBoxOut._p1-aP0Glob),
+       aFonc,
+       aTF.out()
+   );
+/*
       if (aSP.Force8B().Val())
       {
           Tiff_Im::Create8BFromFonc(aName,mSz,Min(255,Im().in()*aSP.Dyn().Val()));
@@ -331,8 +366,8 @@ void cImInMem::SauvIm(const std::string & aAdd)
       {
           Tiff_Im::CreateFromIm(Im(),aName,aLArgTiff);
       }
-   }
-
+*/
+   mFirstSauv = false;
 }
 
     // ACCESSOR 

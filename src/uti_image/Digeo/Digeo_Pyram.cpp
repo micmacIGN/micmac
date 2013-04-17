@@ -49,7 +49,7 @@ Header-MicMac-eLiSe-25/06/2007*/
  
 template <class Type> template <class TMere> void  cTplImInMem<Type>::MakeReduce_121(const cTplImInMem<TMere> & aMere)
 {
-   Resize(aMere.Sz()/2);
+   ResizeOctave(aMere.Sz()/2);
    TFlux_BordRect2d aRect(Pt2di(0,0),mSz);
 
    Pt2di aPt = aRect.PtsInit();
@@ -127,7 +127,7 @@ template <class Type> void  cTplImInMem<Type>::VMakeReduce_121(cImInMem & aMere)
 
 template <class Type> template <class TMere> void  cTplImInMem<Type>::MakeReduce_010(const cTplImInMem<TMere> & aMere)
 {
-   Resize(aMere.Sz()/2);
+   ResizeOctave(aMere.Sz()/2);
    TFlux_BordRect2d aRect(Pt2di(0,0),mSz);
 
    Pt2di aPt = aRect.PtsInit();
@@ -178,7 +178,7 @@ template <class Type> void  cTplImInMem<Type>::VMakeReduce_010(cImInMem & aMere)
 
 template <class Type> template <class TMere> void  cTplImInMem<Type>::MakeReduce_11(const cTplImInMem<TMere> & aMere)
 {
-   Resize(aMere.Sz()/2);
+   ResizeOctave(aMere.Sz()/2);
    TFlux_BordRect2d aRect(Pt2di(0,0),mSz);
 
    Pt2di aPt = aRect.PtsInit();
