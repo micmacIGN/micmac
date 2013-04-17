@@ -478,6 +478,8 @@ public:
     void            MallocInfo();
     /// \brief      Obtenir une valeur aleatoire comprise entre min et max
     static T        GetRandomValue(T min, T max);
+    /// \brief      Renvoie la taille de la memoire alloue
+    uint            GetSizeofMalloc();
 
 protected:
 
@@ -489,8 +491,6 @@ protected:
     void            AddMemoryOc(uint m);
     /// \brief      Suppression de memoire alloue
     void            SubMemoryOc(uint m);
-    /// \brief      Renvoie la taille de la memoire alloue
-    uint            GetSizeofMalloc();
     /// \brief      Initialise la taille de la memoire alloue
     /// \param      sizeofmalloc : Taille de l allocation
     void            SetSizeofMalloc(uint sizeofmalloc);

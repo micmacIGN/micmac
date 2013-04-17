@@ -235,7 +235,7 @@ endif(EXIV2_EXECUTABLE_NOTFOUND)
 
 if (MINGW)
 	add_definitions(-D__MINGW__)
-	set( WINSOCK2_LIBRAIRIE ws2_32 )
+	set( WINSOCK2_LIBRARY ws2_32 )
 endif()
 
 if(NOT WIN32)
@@ -254,6 +254,9 @@ if(NOT WIN32)
 		#MESSAGE("X11 Found : ${X11_INCLUDE_DIRS} | ${X11_LIBRARIES} | ${X11_LIBRARY_DIRS}")
 	ELSE()
 		add_definitions(-DNO_X11)
+        IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
+            set( DYN_LIB_LIBRARY dl )
+        endif()
 		MESSAGE("X11 Not Found : pas de SaisieMasq")
 	ENDIF()
 
