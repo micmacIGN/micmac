@@ -40,43 +40,11 @@ public:
         return 1;
     }
 
-    __device__ short2 read(T* destData, ushort tid, bool sens, T def, bool waitSync = true)
-    {
-        short2  index;
-        ushort  NbCopied = 0 , NbTotalToCopy = getLengthToRead(index, sens);
-        short   PitSens = !sens * WARPSIZE;
-
-        while(NbCopied < NbTotalToCopy)
-        {
-            ushort NbToCopy = GetNbToCopy(NbTotalToCopy,NbCopied, sens);
-
-            if(!NbToCopy)
-            {
-                _bufferData[threadIdx.x] = _streamData[_curStreamId + threadIdx.x - 2 * PitSens];
-                _curBufferId   = PitSens;
-                _curStreamId   = _curStreamId  + vec(sens) * WARPSIZE;
-                NbToCopy = GetNbToCopy(NbTotalToCopy,NbCopied, sens);
-                __syncthreads();
-            }
-
-            ushort idDest = tid + (sens ? NbCopied : NbTotalToCopy - NbCopied - NbToCopy);
-
-            destData[idDest] = (tid < NbToCopy && !(idDest >= NbTotalToCopy)) ? _bufferData[_curBufferId + tid - !sens * NbToCopy] : def ;
-
-            if(waitSync) __syncthreads();
-
-            _curBufferId  = _curBufferId + vec(sens) * NbToCopy;
-            NbCopied     += NbToCopy;
-        }
-       return index;
-    }
+    __device__ short2 read(T* destData, ushort tid, bool sens, T def, bool waitSync = true);
 
 private:
 
-    __device__ short vec(bool sens)
-    {
-        return 1 - 2 * !sens;
-    }
+    __device__ short vec(bool sens){ return 1 - 2 * !sens; }
 
     __device__ short GetNbToCopy(ushort nTotal,ushort nCopied, bool sens)
     {
@@ -93,6 +61,38 @@ private:
     uint                        _curStreamId;
     ushort                      _curBufferId;
 };
+
+template< class T > __device__
+short2 CDeviceStream<T>::read(T *destData, ushort tid, bool sens, T def, bool waitSync)
+{
+    short2  index;
+    ushort  NbCopied = 0 , NbTotalToCopy = getLengthToRead(index, sens);
+    short   PitSens = !sens * WARPSIZE;
+
+    while(NbCopied < NbTotalToCopy)
+    {
+        ushort NbToCopy = GetNbToCopy(NbTotalToCopy,NbCopied, sens);
+
+        if(!NbToCopy)
+        {
+            _bufferData[threadIdx.x] = _streamData[_curStreamId + threadIdx.x - 2 * PitSens];
+            _curBufferId   = PitSens;
+            _curStreamId   = _curStreamId  + vec(sens) * WARPSIZE;
+            NbToCopy = GetNbToCopy(NbTotalToCopy,NbCopied, sens);
+            __syncthreads();
+        }
+
+        ushort idDest = tid + (sens ? NbCopied : NbTotalToCopy - NbCopied - NbToCopy);
+
+        destData[idDest] = (tid < NbToCopy && !(idDest >= NbTotalToCopy)) ? _bufferData[_curBufferId + tid - !sens * NbToCopy] : def ;
+
+        if(waitSync) __syncthreads();
+
+        _curBufferId  = _curBufferId + vec(sens) * NbToCopy;
+        NbCopied     += NbToCopy;
+    }
+   return index;
+}
 
 template< class T >
 class CDeviceDataStream : public CDeviceStream<T>
@@ -121,5 +121,6 @@ private:
     CDeviceStream<short2>       _streamIndex;
     ushort                      _startIndex;
 };
+
 
 #endif

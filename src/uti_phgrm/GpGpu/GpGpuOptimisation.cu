@@ -11,21 +11,14 @@
 #include "GpGpu/GpGpuStreamData.cuh"
 
 /// brief Calcul le Z min et max.
-__device__ void ComputeIntervaleDelta
-(
-        short2 & aDz,
-        int aZ,
-        int MaxDeltaZ,
-        short2 aZ1,
-        short2 aZ0
-        )
+__device__ void ComputeIntervaleDelta(short2 & aDz, int aZ, int MaxDeltaZ, short2 aZ_Next, short2 aZ_Prev)
 {
-    aDz.x =   aZ0.x-aZ;
-    if (aZ != aZ1.x)
+    aDz.x =   aZ_Prev.x-aZ;
+    if (aZ != aZ_Next.x)
         aDz.x = max(aDz.x,-MaxDeltaZ);
 
-    aDz.y = aZ0.y-1-aZ;
-    if (aZ != aZ1.y-1)
+    aDz.y = aZ_Prev.y-1-aZ;
+    if (aZ != aZ_Next.y-1)
         aDz.y = min(aDz.y,MaxDeltaZ);
 
     if (aDz.x > aDz.y)
@@ -154,7 +147,7 @@ template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputStrea
 /// \brief Appel exterieur du kernel d optimisation
 extern "C" void OptimisationOneDirection(CuHostData3D<float> &data, uint3 dimVolCost, float defaultValue)
 {
-    //LaunchKernelOptOneDirection(data,dimVolCost,defaultValue);
+    //LaunchKernelOptOneDirection(data,dimVolCost,defaultValue);   
 }
 
 /// \brief Appel exterieur du kernel
