@@ -4,6 +4,9 @@ ExternalToolHandler g_externalToolHandler;
 
 using namespace std;
 
+string g_externalToolItem_errors[] = { "cannot be found",
+									   "does not have execution rights (and process cannot grant them)" };
+											   
 // ExternalToolHandler
 
 ExternalToolHandler::ExternalToolHandler()
@@ -113,11 +116,34 @@ bool ExternalToolHandler::checkPathDirectories( string &io_exeName )
 	return false;
 }
 
+// check if i_filename has execution rigths and if not, try to grant them (process owner must own the file)
+// if all this fails returns false
+bool checkExecRights( const string &i_filename )
+{	
+	#if (ELISE_POSIX)
+		if ( !hasExecutionRights( i_filename ) )
+		{
+			cerr << "WARNING: process does not have the right to execute " << i_filename << "" << endl;
+			cerr << "WARNING: trying to grant execution rights on " << i_filename << " ..." << endl;
+			if ( setAllExecutionRights( i_filename, true ) )
+				cerr << "WARNING: execution rights have been successfully granted on " << i_filename << endl;
+			else
+			{
+				cerr << "WARNING: unable to grant execution rights on " << i_filename << ", try :" << endl;
+				cerr << "WARNING: sudo chmod +x "+ i_filename << endl;
+				cerr << "WARNING: to solve this problem" << endl;
+				return false;
+			}
+		}
+	#endif
+	return true;
+}
+
 ExternalToolItem & ExternalToolHandler::addTool( const std::string &i_tool )
 {
 	// this tool has not been queried before, we need to check
 	string exeName = i_tool,
-			fullName;
+					 fullName;
 	ExtToolStatus status = EXT_TOOL_UNDEF;
 
 	#if (ELISE_windows)
@@ -132,37 +158,31 @@ ExternalToolItem & ExternalToolHandler::addTool( const std::string &i_tool )
 		if ( addExe ) exeName.append(".exe");
 	#endif
 
+	// is there's a path in the name we don't look in other directories
+	size_t pos = i_tool.find_last_of( "/\\" );
+	if ( pos!=string::npos ){
+		if ( ELISE_fp::exist_file( i_tool ) ){
+			status = EXT_TOOL_FOUND_IN_LOC; // found in the specified location
+			if ( checkExecRights( fullName ) ) status=(ExtToolStatus)( status|EXT_TOOL_HAS_EXEC_RIGHTS );
+			return ( m_queriedTools[i_tool]=ExternalToolItem( status, i_tool, i_tool ) );
+		}
+	}
+
 	// check EXTERNAL_TOOLS_SUBDIRECTORY directory
 	fullName = _MMDir()+EXTERNAL_TOOLS_SUBDIRECTORY+ELISE_CAR_DIR+exeName;
 	if ( ELISE_fp::exist_file( fullName ) )
-	{
-		#if (ELISE_POSIX)
-			if ( !hasExecutionRights( fullName ) )
-			{
-				cerr << "WARNING: process does not have the right to execute " << fullName << "" << endl;
-				cerr << "WARNING: trying to grant execution rights on " << fullName << " ..." << endl;
-				if ( setAllExecutionRights( fullName, true ) )
-					cerr << "WARNING: execution rights have been successfully granted on " << fullName << endl;
-				else
-				{
-					cerr << "WARNING: unable to grant execution rights on " << fullName << ", try :" << endl;
-					cerr << "WARNING: sudo chmod +x "+ fullName << endl;
-					cerr << "WARNING: to solve this problem" << endl;
-					exit( EXIT_FAILURE );
-				}
-			}
-		#endif
 		status = EXT_TOOL_FOUND_IN_DIR;
-	}
 
-	if ( checkPathDirectories( exeName ) )
-	{
+	if ( checkPathDirectories( exeName ) ){
 		status = ( ExtToolStatus )( status|EXT_TOOL_FOUND_IN_PATH );
 		fullName = exeName;
 	}
 
 	// we searched and found nothing
-	if ( status==EXT_TOOL_UNDEF ) status=EXT_TOOL_NOT_FOUND;
+	if ( status==EXT_TOOL_UNDEF )
+		status=EXT_TOOL_NOT_FOUND;
+	else
+		if ( checkExecRights( fullName ) ) status=(ExtToolStatus)( status|EXT_TOOL_HAS_EXEC_RIGHTS );
 
 	// create the entry
 	return ( m_queriedTools[i_tool]=ExternalToolItem( status, i_tool, fullName ) );
