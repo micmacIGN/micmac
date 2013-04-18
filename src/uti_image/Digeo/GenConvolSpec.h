@@ -2172,7 +2172,6 @@ class cConvolSpec_U_INT2_Num37 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-11]+In[11])
                               +   3*(In[-10]+In[10])
                               +   10*(In[-9]+In[9])
                               +   38*(In[-8]+In[8])
@@ -2182,7 +2181,7 @@ class cConvolSpec_U_INT2_Num37 : public cConvolSpec<U_INT2>
                               +   1503*(In[-4]+In[4])
                               +   2569*(In[-3]+In[3])
                               +   3766*(In[-2]+In[2])
-                              +   4737*(In[-1]+In[1])
+                              +   4738*(In[-1]+In[1])
                               +   5114*(In[0])
                            )>>15;
                In++;
@@ -2190,7 +2189,7 @@ class cConvolSpec_U_INT2_Num37 : public cConvolSpec<U_INT2>
       }
 
       cConvolSpec_U_INT2_Num37(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-11),-11,11,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-10),-10,10,15,false)       {
       }
 };
 
@@ -2207,7 +2206,6 @@ class cConvolSpec_U_INT2_Num38 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-13]+In[13])
                               +   4*(In[-12]+In[12])
                               +   12*(In[-11]+In[11])
                               +   32*(In[-10]+In[10])
@@ -2219,7 +2217,7 @@ class cConvolSpec_U_INT2_Num38 : public cConvolSpec<U_INT2>
                               +   1875*(In[-4]+In[4])
                               +   2631*(In[-3]+In[3])
                               +   3352*(In[-2]+In[2])
-                              +   3876*(In[-1]+In[1])
+                              +   3877*(In[-1]+In[1])
                               +   4070*(In[0])
                            )>>15;
                In++;
@@ -2227,7 +2225,7 @@ class cConvolSpec_U_INT2_Num38 : public cConvolSpec<U_INT2>
       }
 
       cConvolSpec_U_INT2_Num38(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-13),-13,13,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-12),-12,12,15,false)       {
       }
 };
 
@@ -2244,7 +2242,6 @@ class cConvolSpec_U_INT2_Num39 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-16]+In[16])
                               +   3*(In[-15]+In[15])
                               +   8*(In[-14]+In[14])
                               +   18*(In[-13]+In[13])
@@ -2260,14 +2257,14 @@ class cConvolSpec_U_INT2_Num39 : public cConvolSpec<U_INT2>
                               +   2456*(In[-3]+In[3])
                               +   2862*(In[-2]+In[2])
                               +   3137*(In[-1]+In[1])
-                              +   3234*(In[0])
+                              +   3236*(In[0])
                            )>>15;
                In++;
           }
       }
 
       cConvolSpec_U_INT2_Num39(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-16),-16,16,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-15),-15,15,15,false)       {
       }
 };
 
@@ -2284,9 +2281,7 @@ class cConvolSpec_U_INT2_Num40 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-21]+In[21])
-                              +   1*(In[-20]+In[20])
-                              +   3*(In[-19]+In[19])
+                              +   2*(In[-19]+In[19])
                               +   5*(In[-18]+In[18])
                               +   10*(In[-17]+In[17])
                               +   18*(In[-16]+In[16])
@@ -2297,14 +2292,14 @@ class cConvolSpec_U_INT2_Num40 : public cConvolSpec<U_INT2>
                               +   248*(In[-11]+In[11])
                               +   372*(In[-10]+In[10])
                               +   538*(In[-9]+In[9])
-                              +   747*(In[-8]+In[8])
+                              +   746*(In[-8]+In[8])
                               +   997*(In[-7]+In[7])
                               +   1282*(In[-6]+In[6])
-                              +   1585*(In[-5]+In[5])
-                              +   1886*(In[-4]+In[4])
+                              +   1586*(In[-5]+In[5])
+                              +   1887*(In[-4]+In[4])
                               +   2160*(In[-3]+In[3])
-                              +   2378*(In[-2]+In[2])
-                              +   2520*(In[-1]+In[1])
+                              +   2379*(In[-2]+In[2])
+                              +   2521*(In[-1]+In[1])
                               +   2570*(In[0])
                            )>>15;
                In++;
@@ -2312,7 +2307,7 @@ class cConvolSpec_U_INT2_Num40 : public cConvolSpec<U_INT2>
       }
 
       cConvolSpec_U_INT2_Num40(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-21),-21,21,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-19),-19,19,15,false)       {
       }
 };
 
@@ -2358,21 +2353,20 @@ class cConvolSpec_U_INT2_Num42 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-7]+In[7])
                               +   8*(In[-6]+In[6])
                               +   66*(In[-5]+In[5])
                               +   375*(In[-4]+In[4])
                               +   1439*(In[-3]+In[3])
                               +   3759*(In[-2]+In[2])
                               +   6686*(In[-1]+In[1])
-                              +   8100*(In[0])
+                              +   8102*(In[0])
                            )>>15;
                In++;
           }
       }
 
       cConvolSpec_U_INT2_Num42(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-7),-7,7,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-6),-6,6,15,false)       {
       }
 };
 
@@ -2455,7 +2449,6 @@ class cConvolSpec_U_INT2_Num45 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-13]+In[13])
                               +   3*(In[-12]+In[12])
                               +   11*(In[-11]+In[11])
                               +   30*(In[-10]+In[10])
@@ -2468,14 +2461,14 @@ class cConvolSpec_U_INT2_Num45 : public cConvolSpec<U_INT2>
                               +   2634*(In[-3]+In[3])
                               +   3368*(In[-2]+In[2])
                               +   3904*(In[-1]+In[1])
-                              +   4100*(In[0])
+                              +   4102*(In[0])
                            )>>15;
                In++;
           }
       }
 
       cConvolSpec_U_INT2_Num45(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-13),-13,13,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-12),-12,12,15,false)       {
       }
 };
 
@@ -2564,11 +2557,11 @@ class cConvolSpec_U_INT2_Num48 : public cConvolSpec<U_INT2>
                               +   170*(In[-7]+In[7])
                               +   414*(In[-6]+In[6])
                               +   877*(In[-5]+In[5])
-                              +   1621*(In[-4]+In[4])
+                              +   1620*(In[-4]+In[4])
                               +   2613*(In[-3]+In[3])
                               +   3676*(In[-2]+In[2])
                               +   4512*(In[-1]+In[1])
-                              +   4830*(In[0])
+                              +   4832*(In[0])
                            )>>15;
                In++;
           }
@@ -2592,7 +2585,6 @@ class cConvolSpec_U_INT2_Num49 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-16]+In[16])
                               +   2*(In[-15]+In[15])
                               +   4*(In[-14]+In[14])
                               +   10*(In[-13]+In[13])
@@ -2608,14 +2600,14 @@ class cConvolSpec_U_INT2_Num49 : public cConvolSpec<U_INT2>
                               +   2515*(In[-3]+In[3])
                               +   2986*(In[-2]+In[2])
                               +   3310*(In[-1]+In[1])
-                              +   3424*(In[0])
+                              +   3426*(In[0])
                            )>>15;
                In++;
           }
       }
 
       cConvolSpec_U_INT2_Num49(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-16),-16,16,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-15),-15,15,15,false)       {
       }
 };
 
@@ -2632,7 +2624,6 @@ class cConvolSpec_U_INT2_Num50 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-18]+In[18])
                               +   3*(In[-17]+In[17])
                               +   6*(In[-16]+In[16])
                               +   12*(In[-15]+In[15])
@@ -2650,14 +2641,14 @@ class cConvolSpec_U_INT2_Num50 : public cConvolSpec<U_INT2>
                               +   2316*(In[-3]+In[3])
                               +   2616*(In[-2]+In[2])
                               +   2814*(In[-1]+In[1])
-                              +   2882*(In[0])
+                              +   2884*(In[0])
                            )>>15;
                In++;
           }
       }
 
       cConvolSpec_U_INT2_Num50(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-18),-18,18,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-17),-17,17,15,false)       {
       }
 };
 
@@ -2764,7 +2755,6 @@ class cConvolSpec_U_INT2_Num54 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-10]+In[10])
                               +   5*(In[-9]+In[9])
                               +   21*(In[-8]+In[8])
                               +   76*(In[-7]+In[7])
@@ -2774,14 +2764,14 @@ class cConvolSpec_U_INT2_Num54 : public cConvolSpec<U_INT2>
                               +   2492*(In[-3]+In[3])
                               +   3851*(In[-2]+In[2])
                               +   5001*(In[-1]+In[1])
-                              +   5456*(In[0])
+                              +   5458*(In[0])
                            )>>15;
                In++;
           }
       }
 
       cConvolSpec_U_INT2_Num54(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-10),-10,10,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-9),-9,9,15,false)       {
       }
 };
 
@@ -2798,14 +2788,13 @@ class cConvolSpec_U_INT2_Num55 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-12]+In[12])
                               +   3*(In[-11]+In[11])
                               +   9*(In[-10]+In[10])
                               +   31*(In[-9]+In[9])
                               +   88*(In[-8]+In[8])
                               +   222*(In[-7]+In[7])
                               +   496*(In[-6]+In[6])
-                              +   979*(In[-5]+In[5])
+                              +   980*(In[-5]+In[5])
                               +   1709*(In[-4]+In[4])
                               +   2635*(In[-3]+In[3])
                               +   3590*(In[-2]+In[2])
@@ -2817,7 +2806,7 @@ class cConvolSpec_U_INT2_Num55 : public cConvolSpec<U_INT2>
       }
 
       cConvolSpec_U_INT2_Num55(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-12),-12,12,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-11),-11,11,15,false)       {
       }
 };
 
@@ -2834,11 +2823,10 @@ class cConvolSpec_U_INT2_Num56 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-8]+In[8])
                               +   6*(In[-7]+In[7])
                               +   39*(In[-6]+In[6])
                               +   190*(In[-5]+In[5])
-                              +   696*(In[-4]+In[4])
+                              +   697*(In[-4]+In[4])
                               +   1915*(In[-3]+In[3])
                               +   3943*(In[-2]+In[2])
                               +   6081*(In[-1]+In[1])
@@ -2849,7 +2837,7 @@ class cConvolSpec_U_INT2_Num56 : public cConvolSpec<U_INT2>
       }
 
       cConvolSpec_U_INT2_Num56(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-8),-8,8,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-7),-7,7,15,false)       {
       }
 };
 
@@ -2866,14 +2854,13 @@ class cConvolSpec_U_INT2_Num57 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-9]+In[9])
                               +   5*(In[-8]+In[8])
                               +   28*(In[-7]+In[7])
                               +   116*(In[-6]+In[6])
                               +   391*(In[-5]+In[5])
                               +   1054*(In[-4]+In[4])
                               +   2277*(In[-3]+In[3])
-                              +   3949*(In[-2]+In[2])
+                              +   3950*(In[-2]+In[2])
                               +   5495*(In[-1]+In[1])
                               +   6136*(In[0])
                            )>>15;
@@ -2882,7 +2869,7 @@ class cConvolSpec_U_INT2_Num57 : public cConvolSpec<U_INT2>
       }
 
       cConvolSpec_U_INT2_Num57(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-9),-9,9,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-8),-8,8,15,false)       {
       }
 };
 
@@ -2933,7 +2920,6 @@ class cConvolSpec_U_INT2_Num59 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-12]+In[12])
                               +   2*(In[-11]+In[11])
                               +   8*(In[-10]+In[10])
                               +   27*(In[-9]+In[9])
@@ -2944,7 +2930,7 @@ class cConvolSpec_U_INT2_Num59 : public cConvolSpec<U_INT2>
                               +   1683*(In[-4]+In[4])
                               +   2630*(In[-3]+In[3])
                               +   3617*(In[-2]+In[2])
-                              +   4379*(In[-1]+In[1])
+                              +   4380*(In[-1]+In[1])
                               +   4668*(In[0])
                            )>>15;
                In++;
@@ -2952,7 +2938,7 @@ class cConvolSpec_U_INT2_Num59 : public cConvolSpec<U_INT2>
       }
 
       cConvolSpec_U_INT2_Num59(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-12),-12,12,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-11),-11,11,15,false)       {
       }
 };
 
@@ -2969,7 +2955,6 @@ class cConvolSpec_U_INT2_Num60 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-15]+In[15])
                               +   3*(In[-14]+In[14])
                               +   7*(In[-13]+In[13])
                               +   18*(In[-12]+In[12])
@@ -2983,7 +2968,7 @@ class cConvolSpec_U_INT2_Num60 : public cConvolSpec<U_INT2>
                               +   1968*(In[-4]+In[4])
                               +   2546*(In[-3]+In[3])
                               +   3061*(In[-2]+In[2])
-                              +   3417*(In[-1]+In[1])
+                              +   3418*(In[-1]+In[1])
                               +   3546*(In[0])
                            )>>15;
                In++;
@@ -2991,7 +2976,7 @@ class cConvolSpec_U_INT2_Num60 : public cConvolSpec<U_INT2>
       }
 
       cConvolSpec_U_INT2_Num60(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-15),-15,15,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-14),-14,14,15,false)       {
       }
 };
 
@@ -3008,7 +2993,6 @@ class cConvolSpec_U_INT2_Num61 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-17]+In[17])
                               +   2*(In[-16]+In[16])
                               +   6*(In[-15]+In[15])
                               +   13*(In[-14]+In[14])
@@ -3023,7 +3007,7 @@ class cConvolSpec_U_INT2_Num61 : public cConvolSpec<U_INT2>
                               +   1537*(In[-5]+In[5])
                               +   1976*(In[-4]+In[4])
                               +   2403*(In[-3]+In[3])
-                              +   2762*(In[-2]+In[2])
+                              +   2763*(In[-2]+In[2])
                               +   3004*(In[-1]+In[1])
                               +   3090*(In[0])
                            )>>15;
@@ -3032,7 +3016,7 @@ class cConvolSpec_U_INT2_Num61 : public cConvolSpec<U_INT2>
       }
 
       cConvolSpec_U_INT2_Num61(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-17),-17,17,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-16),-16,16,15,false)       {
       }
 };
 
@@ -3078,12 +3062,11 @@ class cConvolSpec_U_INT2_Num63 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-6]+In[6])
                               +   10*(In[-5]+In[5])
                               +   120*(In[-4]+In[4])
-                              +   822*(In[-3]+In[3])
-                              +   3235*(In[-2]+In[2])
-                              +   7358*(In[-1]+In[1])
+                              +   821*(In[-3]+In[3])
+                              +   3236*(In[-2]+In[2])
+                              +   7359*(In[-1]+In[1])
                               +   9676*(In[0])
                            )>>15;
                In++;
@@ -3091,7 +3074,7 @@ class cConvolSpec_U_INT2_Num63 : public cConvolSpec<U_INT2>
       }
 
       cConvolSpec_U_INT2_Num63(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-6),-6,6,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-5),-5,5,15,false)       {
       }
 };
 
@@ -3108,12 +3091,12 @@ class cConvolSpec_U_INT2_Num64 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   5*(In[-6]+In[6])
+                              +   4*(In[-6]+In[6])
                               +   44*(In[-5]+In[5])
                               +   294*(In[-4]+In[4])
                               +   1280*(In[-3]+In[3])
                               +   3658*(In[-2]+In[2])
-                              +   6867*(In[-1]+In[1])
+                              +   6868*(In[-1]+In[1])
                               +   8472*(In[0])
                            )>>15;
                In++;
@@ -3169,12 +3152,11 @@ class cConvolSpec_U_INT2_Num66 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-10]+In[10])
                               +   3*(In[-9]+In[9])
                               +   14*(In[-8]+In[8])
                               +   58*(In[-7]+In[7])
                               +   197*(In[-6]+In[6])
-                              +   548*(In[-5]+In[5])
+                              +   549*(In[-5]+In[5])
                               +   1270*(In[-4]+In[4])
                               +   2439*(In[-3]+In[3])
                               +   3888*(In[-2]+In[2])
@@ -3186,7 +3168,7 @@ class cConvolSpec_U_INT2_Num66 : public cConvolSpec<U_INT2>
       }
 
       cConvolSpec_U_INT2_Num66(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-10),-10,10,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-9),-9,9,15,false)       {
       }
 };
 
@@ -3203,7 +3185,6 @@ class cConvolSpec_U_INT2_Num67 : public cConvolSpec<U_INT2>
           {
                *(Out++) =  (
                                 16384
-                              +   1*(In[-11]+In[11])
                               +   4*(In[-10]+In[10])
                               +   16*(In[-9]+In[9])
                               +   52*(In[-8]+In[8])
@@ -3211,7 +3192,7 @@ class cConvolSpec_U_INT2_Num67 : public cConvolSpec<U_INT2>
                               +   383*(In[-6]+In[6])
                               +   836*(In[-5]+In[5])
                               +   1583*(In[-4]+In[4])
-                              +   2600*(In[-3]+In[3])
+                              +   2601*(In[-3]+In[3])
                               +   3708*(In[-2]+In[2])
                               +   4587*(In[-1]+In[1])
                               +   4924*(In[0])
@@ -3221,7 +3202,7 @@ class cConvolSpec_U_INT2_Num67 : public cConvolSpec<U_INT2>
       }
 
       cConvolSpec_U_INT2_Num67(INT * aFilter):
-           cConvolSpec<U_INT2>(aFilter-(-11),-11,11,15,false)       {
+           cConvolSpec<U_INT2>(aFilter-(-10),-10,10,15,false)       {
       }
 };
 
@@ -3238,24 +3219,22 @@ class cConvolSpec_REAL4_Num36 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000001*(In[-10]+In[10])
-                              +   0.000011*(In[-9]+In[9])
                               +   0.000087*(In[-8]+In[8])
                               +   0.000532*(In[-7]+In[7])
                               +   0.002551*(In[-6]+In[6])
-                              +   0.009614*(In[-5]+In[5])
-                              +   0.028462*(In[-4]+In[4])
-                              +   0.066194*(In[-3]+In[3])
-                              +   0.120951*(In[-2]+In[2])
-                              +   0.173648*(In[-1]+In[1])
-                              +   0.195894*(In[0])
+                              +   0.009615*(In[-5]+In[5])
+                              +   0.028463*(In[-4]+In[4])
+                              +   0.066196*(In[-3]+In[3])
+                              +   0.120954*(In[-2]+In[2])
+                              +   0.173653*(In[-1]+In[1])
+                              +   0.195899*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num36(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-10),-10,10,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-8),-8,8,15,false)       {
       }
 };
 
@@ -3272,26 +3251,24 @@ class cConvolSpec_REAL4_Num37 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000003*(In[-12]+In[12])
-                              +   0.000015*(In[-11]+In[11])
                               +   0.000074*(In[-10]+In[10])
                               +   0.000317*(In[-9]+In[9])
                               +   0.001165*(In[-8]+In[8])
                               +   0.003671*(In[-7]+In[7])
                               +   0.009929*(In[-6]+In[6])
-                              +   0.023041*(In[-5]+In[5])
-                              +   0.045878*(In[-4]+In[4])
-                              +   0.078385*(In[-3]+In[3])
-                              +   0.114918*(In[-2]+In[2])
-                              +   0.144571*(In[-1]+In[1])
-                              +   0.156067*(In[0])
+                              +   0.023042*(In[-5]+In[5])
+                              +   0.045879*(In[-4]+In[4])
+                              +   0.078387*(In[-3]+In[3])
+                              +   0.114922*(In[-2]+In[2])
+                              +   0.144576*(In[-1]+In[1])
+                              +   0.156073*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num37(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-12),-12,12,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-10),-10,10,15,false)       {
       }
 };
 
@@ -3308,29 +3285,26 @@ class cConvolSpec_REAL4_Num38 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000002*(In[-15]+In[15])
-                              +   0.000009*(In[-14]+In[14])
-                              +   0.000035*(In[-13]+In[13])
                               +   0.000116*(In[-12]+In[12])
                               +   0.000354*(In[-11]+In[11])
                               +   0.000978*(In[-10]+In[10])
                               +   0.002456*(In[-9]+In[9])
-                              +   0.005594*(In[-8]+In[8])
-                              +   0.011569*(In[-7]+In[7])
-                              +   0.021715*(In[-6]+In[6])
-                              +   0.036995*(In[-5]+In[5])
-                              +   0.057207*(In[-4]+In[4])
-                              +   0.080296*(In[-3]+In[3])
-                              +   0.102297*(In[-2]+In[2])
-                              +   0.118295*(In[-1]+In[1])
-                              +   0.124165*(In[0])
+                              +   0.005595*(In[-8]+In[8])
+                              +   0.011570*(In[-7]+In[7])
+                              +   0.021717*(In[-6]+In[6])
+                              +   0.036998*(In[-5]+In[5])
+                              +   0.057212*(In[-4]+In[4])
+                              +   0.080303*(In[-3]+In[3])
+                              +   0.102307*(In[-2]+In[2])
+                              +   0.118306*(In[-1]+In[1])
+                              +   0.124177*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num38(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-15),-15,15,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-12),-12,12,15,false)       {
       }
 };
 
@@ -3347,33 +3321,29 @@ class cConvolSpec_REAL4_Num39 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000002*(In[-19]+In[19])
-                              +   0.000005*(In[-18]+In[18])
-                              +   0.000014*(In[-17]+In[17])
-                              +   0.000039*(In[-16]+In[16])
                               +   0.000101*(In[-15]+In[15])
                               +   0.000245*(In[-14]+In[14])
                               +   0.000560*(In[-13]+In[13])
-                              +   0.001203*(In[-12]+In[12])
+                              +   0.001204*(In[-12]+In[12])
                               +   0.002433*(In[-11]+In[11])
-                              +   0.004626*(In[-10]+In[10])
-                              +   0.008275*(In[-9]+In[9])
-                              +   0.013922*(In[-8]+In[8])
-                              +   0.022032*(In[-7]+In[7])
-                              +   0.032798*(In[-6]+In[6])
-                              +   0.045924*(In[-5]+In[5])
-                              +   0.060486*(In[-4]+In[4])
-                              +   0.074936*(In[-3]+In[3])
-                              +   0.087326*(In[-2]+In[2])
-                              +   0.095723*(In[-1]+In[1])
-                              +   0.098698*(In[0])
+                              +   0.004627*(In[-10]+In[10])
+                              +   0.008276*(In[-9]+In[9])
+                              +   0.013924*(In[-8]+In[8])
+                              +   0.022035*(In[-7]+In[7])
+                              +   0.032802*(In[-6]+In[6])
+                              +   0.045930*(In[-5]+In[5])
+                              +   0.060494*(In[-4]+In[4])
+                              +   0.074945*(In[-3]+In[3])
+                              +   0.087337*(In[-2]+In[2])
+                              +   0.095735*(In[-1]+In[1])
+                              +   0.098710*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num39(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-19),-19,19,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-15),-15,15,15,false)       {
       }
 };
 
@@ -3390,37 +3360,33 @@ class cConvolSpec_REAL4_Num40 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000003*(In[-23]+In[23])
-                              +   0.000007*(In[-22]+In[22])
-                              +   0.000016*(In[-21]+In[21])
-                              +   0.000035*(In[-20]+In[20])
                               +   0.000073*(In[-19]+In[19])
                               +   0.000150*(In[-18]+In[18])
                               +   0.000295*(In[-17]+In[17])
                               +   0.000558*(In[-16]+In[16])
                               +   0.001016*(In[-15]+In[15])
                               +   0.001779*(In[-14]+In[14])
-                              +   0.002997*(In[-13]+In[13])
+                              +   0.002998*(In[-13]+In[13])
                               +   0.004858*(In[-12]+In[12])
-                              +   0.007575*(In[-11]+In[11])
-                              +   0.011364*(In[-10]+In[10])
-                              +   0.016402*(In[-9]+In[9])
-                              +   0.022778*(In[-8]+In[8])
-                              +   0.030433*(In[-7]+In[7])
-                              +   0.039119*(In[-6]+In[6])
-                              +   0.048380*(In[-5]+In[5])
-                              +   0.057565*(In[-4]+In[4])
-                              +   0.065899*(In[-3]+In[3])
-                              +   0.072581*(In[-2]+In[2])
-                              +   0.076911*(In[-1]+In[1])
-                              +   0.078411*(In[0])
+                              +   0.007576*(In[-11]+In[11])
+                              +   0.011365*(In[-10]+In[10])
+                              +   0.016404*(In[-9]+In[9])
+                              +   0.022781*(In[-8]+In[8])
+                              +   0.030436*(In[-7]+In[7])
+                              +   0.039124*(In[-6]+In[6])
+                              +   0.048386*(In[-5]+In[5])
+                              +   0.057572*(In[-4]+In[4])
+                              +   0.065907*(In[-3]+In[3])
+                              +   0.072590*(In[-2]+In[2])
+                              +   0.076920*(In[-1]+In[1])
+                              +   0.078420*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num40(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-23),-23,23,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-19),-19,19,15,false)       {
       }
 };
 
@@ -3437,21 +3403,19 @@ class cConvolSpec_REAL4_Num41 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000000*(In[-7]+In[7])
-                              +   0.000006*(In[-6]+In[6])
                               +   0.000171*(In[-5]+In[5])
                               +   0.002557*(In[-4]+In[4])
                               +   0.020874*(In[-3]+In[3])
-                              +   0.093294*(In[-2]+In[2])
-                              +   0.228829*(In[-1]+In[1])
-                              +   0.308540*(In[0])
+                              +   0.093295*(In[-2]+In[2])
+                              +   0.228832*(In[-1]+In[1])
+                              +   0.308543*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num41(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-7),-7,7,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-5),-5,5,15,false)       {
       }
 };
 
@@ -3468,22 +3432,20 @@ class cConvolSpec_REAL4_Num42 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000001*(In[-8]+In[8])
-                              +   0.000020*(In[-7]+In[7])
                               +   0.000244*(In[-6]+In[6])
                               +   0.002027*(In[-5]+In[5])
-                              +   0.011437*(In[-4]+In[4])
-                              +   0.043904*(In[-3]+In[3])
-                              +   0.114703*(In[-2]+In[2])
-                              +   0.204048*(In[-1]+In[1])
-                              +   0.247232*(In[0])
+                              +   0.011438*(In[-4]+In[4])
+                              +   0.043906*(In[-3]+In[3])
+                              +   0.114708*(In[-2]+In[2])
+                              +   0.204057*(In[-1]+In[1])
+                              +   0.247243*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num42(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-8),-8,8,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-6),-6,6,15,false)       {
       }
 };
 
@@ -3500,24 +3462,22 @@ class cConvolSpec_REAL4_Num43 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000001*(In[-10]+In[10])
-                              +   0.000010*(In[-9]+In[9])
                               +   0.000078*(In[-8]+In[8])
                               +   0.000488*(In[-7]+In[7])
                               +   0.002402*(In[-6]+In[6])
                               +   0.009244*(In[-5]+In[5])
                               +   0.027833*(In[-4]+In[4])
-                              +   0.065589*(In[-3]+In[3])
-                              +   0.120978*(In[-2]+In[2])
-                              +   0.174669*(In[-1]+In[1])
-                              +   0.197417*(In[0])
+                              +   0.065590*(In[-3]+In[3])
+                              +   0.120980*(In[-2]+In[2])
+                              +   0.174673*(In[-1]+In[1])
+                              +   0.197421*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num43(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-10),-10,10,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-8),-8,8,15,false)       {
       }
 };
 
@@ -3534,26 +3494,24 @@ class cConvolSpec_REAL4_Num44 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000002*(In[-12]+In[12])
-                              +   0.000013*(In[-11]+In[11])
                               +   0.000066*(In[-10]+In[10])
                               +   0.000290*(In[-9]+In[9])
                               +   0.001087*(In[-8]+In[8])
                               +   0.003488*(In[-7]+In[7])
-                              +   0.009582*(In[-6]+In[6])
-                              +   0.022533*(In[-5]+In[5])
-                              +   0.045355*(In[-4]+In[4])
-                              +   0.078148*(In[-3]+In[3])
-                              +   0.115262*(In[-2]+In[2])
-                              +   0.145528*(In[-1]+In[1])
-                              +   0.157290*(In[0])
+                              +   0.009583*(In[-6]+In[6])
+                              +   0.022534*(In[-5]+In[5])
+                              +   0.045357*(In[-4]+In[4])
+                              +   0.078150*(In[-3]+In[3])
+                              +   0.115266*(In[-2]+In[2])
+                              +   0.145533*(In[-1]+In[1])
+                              +   0.157295*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num44(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-12),-12,12,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-10),-10,10,15,false)       {
       }
 };
 
@@ -3570,29 +3528,26 @@ class cConvolSpec_REAL4_Num45 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000002*(In[-15]+In[15])
-                              +   0.000008*(In[-14]+In[14])
-                              +   0.000031*(In[-13]+In[13])
                               +   0.000105*(In[-12]+In[12])
                               +   0.000325*(In[-11]+In[11])
                               +   0.000913*(In[-10]+In[10])
                               +   0.002326*(In[-9]+In[9])
                               +   0.005369*(In[-8]+In[8])
-                              +   0.011231*(In[-7]+In[7])
-                              +   0.021291*(In[-6]+In[6])
-                              +   0.036579*(In[-5]+In[5])
-                              +   0.056956*(In[-4]+In[4])
-                              +   0.080372*(In[-3]+In[3])
-                              +   0.102787*(In[-2]+In[2])
-                              +   0.119135*(In[-1]+In[1])
-                              +   0.125143*(In[0])
+                              +   0.011232*(In[-7]+In[7])
+                              +   0.021292*(In[-6]+In[6])
+                              +   0.036582*(In[-5]+In[5])
+                              +   0.056960*(In[-4]+In[4])
+                              +   0.080379*(In[-3]+In[3])
+                              +   0.102796*(In[-2]+In[2])
+                              +   0.119145*(In[-1]+In[1])
+                              +   0.125153*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num45(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-15),-15,15,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-12),-12,12,15,false)       {
       }
 };
 
@@ -3609,24 +3564,22 @@ class cConvolSpec_REAL4_Num46 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000000*(In[-10]+In[10])
-                              +   0.000004*(In[-9]+In[9])
                               +   0.000036*(In[-8]+In[8])
                               +   0.000277*(In[-7]+In[7])
                               +   0.001605*(In[-6]+In[6])
                               +   0.007091*(In[-5]+In[5])
                               +   0.023907*(In[-4]+In[4])
                               +   0.061514*(In[-3]+In[3])
-                              +   0.120809*(In[-2]+In[2])
-                              +   0.181115*(In[-1]+In[1])
-                              +   0.207285*(In[0])
+                              +   0.120810*(In[-2]+In[2])
+                              +   0.181116*(In[-1]+In[1])
+                              +   0.207287*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num46(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-10),-10,10,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-8),-8,8,15,false)       {
       }
 };
 
@@ -3643,25 +3596,23 @@ class cConvolSpec_REAL4_Num47 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000002*(In[-11]+In[11])
-                              +   0.000012*(In[-10]+In[10])
                               +   0.000073*(In[-9]+In[9])
                               +   0.000373*(In[-8]+In[8])
                               +   0.001576*(In[-7]+In[7])
                               +   0.005499*(In[-6]+In[6])
                               +   0.015829*(In[-5]+In[5])
-                              +   0.037590*(In[-4]+In[4])
-                              +   0.073654*(In[-3]+In[3])
-                              +   0.119082*(In[-2]+In[2])
-                              +   0.158867*(In[-1]+In[1])
-                              +   0.174888*(In[0])
+                              +   0.037591*(In[-4]+In[4])
+                              +   0.073656*(In[-3]+In[3])
+                              +   0.119086*(In[-2]+In[2])
+                              +   0.158871*(In[-1]+In[1])
+                              +   0.174893*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num47(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-11),-11,11,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-9),-9,9,15,false)       {
       }
 };
 
@@ -3678,27 +3629,25 @@ class cConvolSpec_REAL4_Num48 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000001*(In[-13]+In[13])
-                              +   0.000008*(In[-12]+In[12])
                               +   0.000038*(In[-11]+In[11])
                               +   0.000160*(In[-10]+In[10])
                               +   0.000585*(In[-9]+In[9])
                               +   0.001866*(In[-8]+In[8])
                               +   0.005197*(In[-7]+In[7])
-                              +   0.012623*(In[-6]+In[6])
-                              +   0.026750*(In[-5]+In[5])
-                              +   0.049450*(In[-4]+In[4])
-                              +   0.079745*(In[-3]+In[3])
-                              +   0.112187*(In[-2]+In[2])
-                              +   0.137684*(In[-1]+In[1])
-                              +   0.147411*(In[0])
+                              +   0.012624*(In[-6]+In[6])
+                              +   0.026751*(In[-5]+In[5])
+                              +   0.049451*(In[-4]+In[4])
+                              +   0.079747*(In[-3]+In[3])
+                              +   0.112189*(In[-2]+In[2])
+                              +   0.137687*(In[-1]+In[1])
+                              +   0.147414*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num48(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-13),-13,13,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-11),-11,11,15,false)       {
       }
 };
 
@@ -3715,32 +3664,29 @@ class cConvolSpec_REAL4_Num49 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000002*(In[-18]+In[18])
-                              +   0.000005*(In[-17]+In[17])
-                              +   0.000016*(In[-16]+In[16])
                               +   0.000046*(In[-15]+In[15])
                               +   0.000125*(In[-14]+In[14])
                               +   0.000316*(In[-13]+In[13])
                               +   0.000745*(In[-12]+In[12])
-                              +   0.001641*(In[-11]+In[11])
-                              +   0.003375*(In[-10]+In[10])
+                              +   0.001642*(In[-11]+In[11])
+                              +   0.003376*(In[-10]+In[10])
                               +   0.006481*(In[-9]+In[9])
                               +   0.011617*(In[-8]+In[8])
-                              +   0.019441*(In[-7]+In[7])
-                              +   0.030376*(In[-6]+In[6])
-                              +   0.044313*(In[-5]+In[5])
-                              +   0.060355*(In[-4]+In[4])
-                              +   0.076750*(In[-3]+In[3])
-                              +   0.091122*(In[-2]+In[2])
-                              +   0.101006*(In[-1]+In[1])
-                              +   0.104534*(In[0])
+                              +   0.019442*(In[-7]+In[7])
+                              +   0.030378*(In[-6]+In[6])
+                              +   0.044315*(In[-5]+In[5])
+                              +   0.060358*(In[-4]+In[4])
+                              +   0.076753*(In[-3]+In[3])
+                              +   0.091126*(In[-2]+In[2])
+                              +   0.101011*(In[-1]+In[1])
+                              +   0.104539*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num49(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-18),-18,18,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-15),-15,15,15,false)       {
       }
 };
 
@@ -3757,35 +3703,31 @@ class cConvolSpec_REAL4_Num50 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000002*(In[-21]+In[21])
-                              +   0.000005*(In[-20]+In[20])
-                              +   0.000014*(In[-19]+In[19])
-                              +   0.000033*(In[-18]+In[18])
                               +   0.000078*(In[-17]+In[17])
                               +   0.000174*(In[-16]+In[16])
                               +   0.000370*(In[-15]+In[15])
                               +   0.000749*(In[-14]+In[14])
-                              +   0.001444*(In[-13]+In[13])
+                              +   0.001445*(In[-13]+In[13])
                               +   0.002653*(In[-12]+In[12])
                               +   0.004641*(In[-11]+In[11])
-                              +   0.007733*(In[-10]+In[10])
-                              +   0.012275*(In[-9]+In[9])
-                              +   0.018558*(In[-8]+In[8])
-                              +   0.026726*(In[-7]+In[7])
-                              +   0.036661*(In[-6]+In[6])
-                              +   0.047903*(In[-5]+In[5])
-                              +   0.059622*(In[-4]+In[4])
-                              +   0.070685*(In[-3]+In[3])
-                              +   0.079823*(In[-2]+In[2])
-                              +   0.085863*(In[-1]+In[1])
-                              +   0.087976*(In[0])
+                              +   0.007734*(In[-10]+In[10])
+                              +   0.012276*(In[-9]+In[9])
+                              +   0.018560*(In[-8]+In[8])
+                              +   0.026728*(In[-7]+In[7])
+                              +   0.036665*(In[-6]+In[6])
+                              +   0.047909*(In[-5]+In[5])
+                              +   0.059628*(In[-4]+In[4])
+                              +   0.070692*(In[-3]+In[3])
+                              +   0.079831*(In[-2]+In[2])
+                              +   0.085872*(In[-1]+In[1])
+                              +   0.087986*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num50(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-21),-21,21,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-17),-17,17,15,false)       {
       }
 };
 
@@ -3802,21 +3744,19 @@ class cConvolSpec_REAL4_Num51 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000000*(In[-7]+In[7])
-                              +   0.000002*(In[-6]+In[6])
                               +   0.000075*(In[-5]+In[5])
                               +   0.001546*(In[-4]+In[4])
-                              +   0.016136*(In[-3]+In[3])
-                              +   0.085817*(In[-2]+In[2])
+                              +   0.016137*(In[-3]+In[3])
+                              +   0.085818*(In[-2]+In[2])
                               +   0.233492*(In[-1]+In[1])
-                              +   0.325862*(In[0])
+                              +   0.325864*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num51(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-7),-7,7,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-5),-5,5,15,false)       {
       }
 };
 
@@ -3833,22 +3773,20 @@ class cConvolSpec_REAL4_Num52 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000000*(In[-8]+In[8])
-                              +   0.000002*(In[-7]+In[7])
                               +   0.000048*(In[-6]+In[6])
                               +   0.000681*(In[-5]+In[5])
                               +   0.005931*(In[-4]+In[4])
                               +   0.031881*(In[-3]+In[3])
                               +   0.105868*(In[-2]+In[2])
-                              +   0.217420*(In[-1]+In[1])
-                              +   0.276339*(In[0])
+                              +   0.217421*(In[-1]+In[1])
+                              +   0.276340*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num52(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-8),-8,8,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-6),-6,6,15,false)       {
       }
 };
 
@@ -3865,23 +3803,21 @@ class cConvolSpec_REAL4_Num53 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000000*(In[-9]+In[9])
-                              +   0.000004*(In[-8]+In[8])
                               +   0.000051*(In[-7]+In[7])
                               +   0.000481*(In[-6]+In[6])
                               +   0.003191*(In[-5]+In[5])
                               +   0.014981*(In[-4]+In[4])
-                              +   0.049857*(In[-3]+In[3])
-                              +   0.117648*(In[-2]+In[2])
-                              +   0.196900*(In[-1]+In[1])
-                              +   0.233771*(In[0])
+                              +   0.049858*(In[-3]+In[3])
+                              +   0.117649*(In[-2]+In[2])
+                              +   0.196902*(In[-1]+In[1])
+                              +   0.233773*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num53(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-9),-9,9,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-7),-7,7,15,false)       {
       }
 };
 
@@ -3898,26 +3834,23 @@ class cConvolSpec_REAL4_Num54 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000001*(In[-12]+In[12])
-                              +   0.000004*(In[-11]+In[11])
-                              +   0.000027*(In[-10]+In[10])
                               +   0.000143*(In[-9]+In[9])
                               +   0.000631*(In[-8]+In[8])
                               +   0.002332*(In[-7]+In[7])
                               +   0.007237*(In[-6]+In[6])
-                              +   0.018867*(In[-5]+In[5])
-                              +   0.041323*(In[-4]+In[4])
-                              +   0.076032*(In[-3]+In[3])
-                              +   0.117526*(In[-2]+In[2])
-                              +   0.152621*(In[-1]+In[1])
-                              +   0.166510*(In[0])
+                              +   0.018869*(In[-5]+In[5])
+                              +   0.041326*(In[-4]+In[4])
+                              +   0.076037*(In[-3]+In[3])
+                              +   0.117534*(In[-2]+In[2])
+                              +   0.152631*(In[-1]+In[1])
+                              +   0.166521*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num54(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-12),-12,12,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-9),-9,9,15,false)       {
       }
 };
 
@@ -3934,28 +3867,25 @@ class cConvolSpec_REAL4_Num55 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000001*(In[-14]+In[14])
-                              +   0.000004*(In[-13]+In[13])
-                              +   0.000019*(In[-12]+In[12])
                               +   0.000079*(In[-11]+In[11])
                               +   0.000289*(In[-10]+In[10])
                               +   0.000935*(In[-9]+In[9])
                               +   0.002678*(In[-8]+In[8])
                               +   0.006773*(In[-7]+In[7])
-                              +   0.015136*(In[-6]+In[6])
-                              +   0.029890*(In[-5]+In[5])
-                              +   0.052156*(In[-4]+In[4])
-                              +   0.080417*(In[-3]+In[3])
-                              +   0.109563*(In[-2]+In[2])
-                              +   0.131902*(In[-1]+In[1])
-                              +   0.140318*(In[0])
+                              +   0.015137*(In[-6]+In[6])
+                              +   0.029892*(In[-5]+In[5])
+                              +   0.052158*(In[-4]+In[4])
+                              +   0.080421*(In[-3]+In[3])
+                              +   0.109568*(In[-2]+In[2])
+                              +   0.131908*(In[-1]+In[1])
+                              +   0.140325*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num55(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-14),-14,14,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-11),-11,11,15,false)       {
       }
 };
 
@@ -3972,23 +3902,21 @@ class cConvolSpec_REAL4_Num56 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000002*(In[-9]+In[9])
-                              +   0.000021*(In[-8]+In[8])
                               +   0.000180*(In[-7]+In[7])
-                              +   0.001180*(In[-6]+In[6])
+                              +   0.001181*(In[-6]+In[6])
                               +   0.005790*(In[-5]+In[5])
-                              +   0.021257*(In[-4]+In[4])
-                              +   0.058442*(In[-3]+In[3])
-                              +   0.120331*(In[-2]+In[2])
-                              +   0.185587*(In[-1]+In[1])
-                              +   0.214420*(In[0])
+                              +   0.021258*(In[-4]+In[4])
+                              +   0.058444*(In[-3]+In[3])
+                              +   0.120337*(In[-2]+In[2])
+                              +   0.185595*(In[-1]+In[1])
+                              +   0.214430*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num56(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-9),-9,9,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-7),-7,7,15,false)       {
       }
 };
 
@@ -4005,25 +3933,22 @@ class cConvolSpec_REAL4_Num57 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000000*(In[-11]+In[11])
-                              +   0.000003*(In[-10]+In[10])
-                              +   0.000025*(In[-9]+In[9])
                               +   0.000162*(In[-8]+In[8])
                               +   0.000848*(In[-7]+In[7])
                               +   0.003552*(In[-6]+In[6])
-                              +   0.011932*(In[-5]+In[5])
-                              +   0.032151*(In[-4]+In[4])
-                              +   0.069497*(In[-3]+In[3])
-                              +   0.120524*(In[-2]+In[2])
-                              +   0.167697*(In[-1]+In[1])
-                              +   0.187216*(In[0])
+                              +   0.011933*(In[-5]+In[5])
+                              +   0.032153*(In[-4]+In[4])
+                              +   0.069501*(In[-3]+In[3])
+                              +   0.120530*(In[-2]+In[2])
+                              +   0.167707*(In[-1]+In[1])
+                              +   0.187226*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num57(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-11),-11,11,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-8),-8,8,15,false)       {
       }
 };
 
@@ -4040,26 +3965,24 @@ class cConvolSpec_REAL4_Num58 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000001*(In[-12]+In[12])
-                              +   0.000006*(In[-11]+In[11])
                               +   0.000037*(In[-10]+In[10])
                               +   0.000184*(In[-9]+In[9])
                               +   0.000764*(In[-8]+In[8])
                               +   0.002686*(In[-7]+In[7])
                               +   0.007989*(In[-6]+In[6])
                               +   0.020090*(In[-5]+In[5])
-                              +   0.042721*(In[-4]+In[4])
-                              +   0.076821*(In[-3]+In[3])
-                              +   0.116815*(In[-2]+In[2])
-                              +   0.150213*(In[-1]+In[1])
-                              +   0.163347*(In[0])
+                              +   0.042722*(In[-4]+In[4])
+                              +   0.076822*(In[-3]+In[3])
+                              +   0.116817*(In[-2]+In[2])
+                              +   0.150216*(In[-1]+In[1])
+                              +   0.163349*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num58(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-12),-12,12,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-10),-10,10,15,false)       {
       }
 };
 
@@ -4076,27 +3999,25 @@ class cConvolSpec_REAL4_Num59 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000003*(In[-13]+In[13])
-                              +   0.000015*(In[-12]+In[12])
                               +   0.000064*(In[-11]+In[11])
                               +   0.000243*(In[-10]+In[10])
                               +   0.000815*(In[-9]+In[9])
                               +   0.002409*(In[-8]+In[8])
                               +   0.006268*(In[-7]+In[7])
-                              +   0.014355*(In[-6]+In[6])
-                              +   0.028944*(In[-5]+In[5])
-                              +   0.051370*(In[-4]+In[4])
-                              +   0.080260*(In[-3]+In[3])
-                              +   0.110386*(In[-2]+In[2])
-                              +   0.133648*(In[-1]+In[1])
-                              +   0.142444*(In[0])
+                              +   0.014356*(In[-6]+In[6])
+                              +   0.028945*(In[-5]+In[5])
+                              +   0.051372*(In[-4]+In[4])
+                              +   0.080263*(In[-3]+In[3])
+                              +   0.110390*(In[-2]+In[2])
+                              +   0.133653*(In[-1]+In[1])
+                              +   0.142449*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num59(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-13),-13,13,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-11),-11,11,15,false)       {
       }
 };
 
@@ -4113,9 +4034,6 @@ class cConvolSpec_REAL4_Num60 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000003*(In[-17]+In[17])
-                              +   0.000009*(In[-16]+In[16])
-                              +   0.000028*(In[-15]+In[15])
                               +   0.000080*(In[-14]+In[14])
                               +   0.000216*(In[-13]+In[13])
                               +   0.000542*(In[-12]+In[12])
@@ -4123,21 +4041,21 @@ class cConvolSpec_REAL4_Num60 : public cConvolSpec<REAL4>
                               +   0.002735*(In[-10]+In[10])
                               +   0.005501*(In[-9]+In[9])
                               +   0.010280*(In[-8]+In[8])
-                              +   0.017847*(In[-7]+In[7])
-                              +   0.028788*(In[-6]+In[6])
-                              +   0.043143*(In[-5]+In[5])
-                              +   0.060071*(In[-4]+In[4])
-                              +   0.077709*(In[-3]+In[3])
-                              +   0.093397*(In[-2]+In[2])
-                              +   0.104291*(In[-1]+In[1])
-                              +   0.108198*(In[0])
+                              +   0.017848*(In[-7]+In[7])
+                              +   0.028790*(In[-6]+In[6])
+                              +   0.043146*(In[-5]+In[5])
+                              +   0.060075*(In[-4]+In[4])
+                              +   0.077715*(In[-3]+In[3])
+                              +   0.093404*(In[-2]+In[2])
+                              +   0.104299*(In[-1]+In[1])
+                              +   0.108207*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num60(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-17),-17,17,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-14),-14,14,15,false)       {
       }
 };
 
@@ -4154,34 +4072,30 @@ class cConvolSpec_REAL4_Num61 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000001*(In[-20]+In[20])
-                              +   0.000004*(In[-19]+In[19])
-                              +   0.000011*(In[-18]+In[18])
-                              +   0.000030*(In[-17]+In[17])
                               +   0.000074*(In[-16]+In[16])
                               +   0.000176*(In[-15]+In[15])
-                              +   0.000396*(In[-14]+In[14])
-                              +   0.000842*(In[-13]+In[13])
+                              +   0.000397*(In[-14]+In[14])
+                              +   0.000843*(In[-13]+In[13])
                               +   0.001693*(In[-12]+In[12])
                               +   0.003217*(In[-11]+In[11])
-                              +   0.005781*(In[-10]+In[10])
-                              +   0.009826*(In[-9]+In[9])
-                              +   0.015793*(In[-8]+In[8])
-                              +   0.024006*(In[-7]+In[7])
-                              +   0.034507*(In[-6]+In[6])
-                              +   0.046910*(In[-5]+In[5])
-                              +   0.060307*(In[-4]+In[4])
-                              +   0.073321*(In[-3]+In[3])
-                              +   0.084303*(In[-2]+In[2])
-                              +   0.091667*(In[-1]+In[1])
-                              +   0.094262*(In[0])
+                              +   0.005782*(In[-10]+In[10])
+                              +   0.009827*(In[-9]+In[9])
+                              +   0.015795*(In[-8]+In[8])
+                              +   0.024008*(In[-7]+In[7])
+                              +   0.034511*(In[-6]+In[6])
+                              +   0.046914*(In[-5]+In[5])
+                              +   0.060313*(In[-4]+In[4])
+                              +   0.073328*(In[-3]+In[3])
+                              +   0.084311*(In[-2]+In[2])
+                              +   0.091676*(In[-1]+In[1])
+                              +   0.094271*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num61(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-20),-20,20,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-16),-16,16,15,false)       {
       }
 };
 
@@ -4198,20 +4112,19 @@ class cConvolSpec_REAL4_Num62 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000001*(In[-6]+In[6])
                               +   0.000044*(In[-5]+In[5])
                               +   0.001110*(In[-4]+In[4])
                               +   0.013603*(In[-3]+In[3])
                               +   0.081032*(In[-2]+In[2])
                               +   0.235880*(In[-1]+In[1])
-                              +   0.336660*(In[0])
+                              +   0.336661*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num62(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-6),-6,6,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-5),-5,5,15,false)       {
       }
 };
 
@@ -4228,21 +4141,19 @@ class cConvolSpec_REAL4_Num63 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000000*(In[-7]+In[7])
-                              +   0.000015*(In[-6]+In[6])
                               +   0.000309*(In[-5]+In[5])
                               +   0.003669*(In[-4]+In[4])
                               +   0.025070*(In[-3]+In[3])
-                              +   0.098738*(In[-2]+In[2])
-                              +   0.224562*(In[-1]+In[1])
-                              +   0.295275*(In[0])
+                              +   0.098741*(In[-2]+In[2])
+                              +   0.224569*(In[-1]+In[1])
+                              +   0.295284*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num63(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-7),-7,7,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-5),-5,5,15,false)       {
       }
 };
 
@@ -4259,22 +4170,20 @@ class cConvolSpec_REAL4_Num64 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000000*(In[-8]+In[8])
-                              +   0.000009*(In[-7]+In[7])
                               +   0.000133*(In[-6]+In[6])
                               +   0.001351*(In[-5]+In[5])
                               +   0.008972*(In[-4]+In[4])
-                              +   0.039062*(In[-3]+In[3])
-                              +   0.111640*(In[-2]+In[2])
-                              +   0.209574*(In[-1]+In[1])
-                              +   0.258517*(In[0])
+                              +   0.039063*(In[-3]+In[3])
+                              +   0.111642*(In[-2]+In[2])
+                              +   0.209578*(In[-1]+In[1])
+                              +   0.258522*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num64(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-8),-8,8,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-6),-6,6,15,false)       {
       }
 };
 
@@ -4291,23 +4200,21 @@ class cConvolSpec_REAL4_Num65 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000001*(In[-9]+In[9])
-                              +   0.000008*(In[-8]+In[8])
                               +   0.000086*(In[-7]+In[7])
                               +   0.000697*(In[-6]+In[6])
                               +   0.004082*(In[-5]+In[5])
                               +   0.017327*(In[-4]+In[4])
-                              +   0.053312*(In[-3]+In[3])
-                              +   0.118955*(In[-2]+In[2])
-                              +   0.192518*(In[-1]+In[1])
-                              +   0.226028*(In[0])
+                              +   0.053313*(In[-3]+In[3])
+                              +   0.118957*(In[-2]+In[2])
+                              +   0.192522*(In[-1]+In[1])
+                              +   0.226032*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num65(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-9),-9,9,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-7),-7,7,15,false)       {
       }
 };
 
@@ -4324,25 +4231,23 @@ class cConvolSpec_REAL4_Num66 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000002*(In[-11]+In[11])
-                              +   0.000015*(In[-10]+In[10])
                               +   0.000090*(In[-9]+In[9])
                               +   0.000440*(In[-8]+In[8])
                               +   0.001784*(In[-7]+In[7])
-                              +   0.005999*(In[-6]+In[6])
-                              +   0.016738*(In[-5]+In[5])
-                              +   0.038748*(In[-4]+In[4])
-                              +   0.074434*(In[-3]+In[3])
-                              +   0.118651*(In[-2]+In[2])
-                              +   0.156952*(In[-1]+In[1])
-                              +   0.172292*(In[0])
+                              +   0.006000*(In[-6]+In[6])
+                              +   0.016739*(In[-5]+In[5])
+                              +   0.038750*(In[-4]+In[4])
+                              +   0.074436*(In[-3]+In[3])
+                              +   0.118655*(In[-2]+In[2])
+                              +   0.156957*(In[-1]+In[1])
+                              +   0.172298*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num66(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-11),-11,11,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-9),-9,9,15,false)       {
       }
 };
 
@@ -4359,27 +4264,24 @@ class cConvolSpec_REAL4_Num67 : public cConvolSpec<REAL4>
           {
                *(Out++) =  (
                                  0
-                              +   0.000001*(In[-13]+In[13])
-                              +   0.000005*(In[-12]+In[12])
-                              +   0.000028*(In[-11]+In[11])
                               +   0.000125*(In[-10]+In[10])
                               +   0.000480*(In[-9]+In[9])
                               +   0.001603*(In[-8]+In[8])
                               +   0.004646*(In[-7]+In[7])
-                              +   0.011686*(In[-6]+In[6])
-                              +   0.025504*(In[-5]+In[5])
-                              +   0.048297*(In[-4]+In[4])
-                              +   0.079359*(In[-3]+In[3])
-                              +   0.113147*(In[-2]+In[2])
-                              +   0.139982*(In[-1]+In[1])
-                              +   0.150273*(In[0])
+                              +   0.011687*(In[-6]+In[6])
+                              +   0.025506*(In[-5]+In[5])
+                              +   0.048300*(In[-4]+In[4])
+                              +   0.079364*(In[-3]+In[3])
+                              +   0.113155*(In[-2]+In[2])
+                              +   0.139992*(In[-1]+In[1])
+                              +   0.150284*(In[0])
                            );
                In++;
           }
       }
 
       cConvolSpec_REAL4_Num67(REAL8 * aFilter):
-           cConvolSpec<REAL4>(aFilter-(-13),-13,13,15,false)       {
+           cConvolSpec<REAL4>(aFilter-(-10),-10,10,15,false)       {
       }
 };
 
