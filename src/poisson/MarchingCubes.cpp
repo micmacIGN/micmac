@@ -28,12 +28,6 @@ DAMAGE.
 
 #include "StdAfx.h"
 
-#ifdef NOWARNINGPOISSON
-	#ifndef ELISE_Darwin
-		#pragma GCC diagnostic push
-	#endif
-	#pragma GCC diagnostic warning "-w"
-#endif
 ////////////
 // Square //
 ////////////
@@ -325,7 +319,7 @@ const int MarchingSquares::edges[1<<Square::CORNERS][MAX_EDGES*2+1] = {
 double MarchingSquares::vertexList[Square::EDGES][2];
 int MarchingSquares::GetIndex(const double v[Square::CORNERS],double iso){
 	int idx=0;
-	for(int i=0;i<Square::CORNERS;i++){if(v[i]<iso){idx|=(1<<i);}}
+	for(unsigned int i=0;i<Square::CORNERS;i++){if(v[i]<iso){idx|=(1<<i);}}
 	return idx;
 }
 
@@ -704,7 +698,7 @@ int MarchingCubes::GetIndex(const double v[Cube::CORNERS],double iso){
 }
 int MarchingCubes::GetFaceIndex(const double values[Cube::CORNERS],double iso,int faceIndex){
 	int i,j,x,y,z,idx=0;
-	double v[2][2];
+	double v[2][2] = {{0,0},{0,0}};
 	Cube::FactorFaceIndex(faceIndex,x,y,z);
 	if		(x<0){for(i=0;i<2;i++){for(j=0;j<2;j++){v[i][j]=values[Cube::CornerIndex(0,i,j)];}}}
 	else if	(x>0){for(i=0;i<2;i++){for(j=0;j<2;j++){v[i][j]=values[Cube::CornerIndex(1,i,j)];}}}
@@ -819,7 +813,7 @@ int MarchingCubes::GetIndex(const float v[Cube::CORNERS],float iso){
 }
 int MarchingCubes::GetFaceIndex(const float values[Cube::CORNERS],float iso,int faceIndex){
 	int i,j,x,y,z,idx=0;
-	double v[2][2];
+	double v[2][2] = {{0,0},{0,0}};
 	Cube::FactorFaceIndex(faceIndex,x,y,z);
 	if		(x<0){for(i=0;i<2;i++){for(j=0;j<2;j++){v[i][j]=values[Cube::CornerIndex(0,i,j)];}}}
 	else if	(x>0){for(i=0;i<2;i++){for(j=0;j<2;j++){v[i][j]=values[Cube::CornerIndex(1,i,j)];}}}
@@ -835,7 +829,7 @@ int MarchingCubes::GetFaceIndex(const float values[Cube::CORNERS],float iso,int 
 }
 int MarchingCubes::GetFaceIndex(int mcIndex,int faceIndex){
 	int i,j,x,y,z,idx=0;
-	int v[2][2];
+	int v[2][2] = {{0,0},{0,0}};
 	Cube::FactorFaceIndex(faceIndex,x,y,z);
 	if		(x<0){for(i=0;i<2;i++){for(j=0;j<2;j++){v[i][j]=mcIndex&(1<<MarchingCubes::cornerMap[Cube::CornerIndex(0,i,j)]);}}}
 	else if	(x>0){for(i=0;i<2;i++){for(j=0;j<2;j++){v[i][j]=mcIndex&(1<<MarchingCubes::cornerMap[Cube::CornerIndex(1,i,j)]);}}}
@@ -955,9 +949,3 @@ void MarchingCubes::SetVertex( int e , const float values[Cube::CORNERS] , float
 	}
 }
 float MarchingCubes::Interpolate( float v1 , float v2 ){ return v1/(v1-v2); }
-
-#ifdef NOWARNINGPOISSON
-	#ifndef ELISE_Darwin
-		#pragma GCC diagnostic pop
-	#endif
-#endif

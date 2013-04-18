@@ -202,7 +202,7 @@ void BSplineData<Degree,Real>::setDotTables( int flags )
 			BSplineElements< Degree-1 > db1;
 			b1.differentiate( db1 );
 
-			int start1 , end1;
+			int start1 , end1=0;
 
 			start1 = -1;
 			for( int i=0 ; i<int(b1.size()) ; i++ ) for( int j=0 ; j<=Degree ; j++ )

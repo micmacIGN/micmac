@@ -39,14 +39,6 @@
 
 #include "StdAfx.h"
 
-#ifdef NOWARNINGPOISSON
-	#ifndef ELISE_Darwin
-		#pragma GCC diagnostic push
-	#endif
-	#pragma GCC diagnostic warning "-w"
-#endif
-
-
 //#include "poisson/ply.h"
 
 #if (0)
@@ -250,13 +242,6 @@ int MergePly_main(int argc,char ** argv)
 
 	return EXIT_SUCCESS;
 }
-
-#ifdef NOWARNINGPOISSON
-	#ifndef ELISE_Darwin
-		#pragma GCC diagnostic pop
-	#endif
-#endif
-
 
 /*Footer-MicMac-eLiSe-25/06/2007
  
