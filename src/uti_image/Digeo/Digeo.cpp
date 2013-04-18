@@ -153,6 +153,7 @@ cAppliDigeo * DigeoCPP
                     double  
               )
 {
+   return 0;
 }
 
 
