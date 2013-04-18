@@ -632,14 +632,23 @@ void cTplImInMem<Type>::MakeConvolInit(double aV)
 */
 
 
-template <class Type> 
-void cTplImInMem<Type>::ReduceGaussienne()
+template <class Type> Im1D<typename El_CTypeTraits<Type>::tBase,typename El_CTypeTraits<Type>::tBase> cTplImInMem<Type>::ImGaussianKernel(double aSigma)
 {
-    //std::cout << "RRGG :  KinOct " << mKInOct << "\n";
     const cPyramideGaussienne aPG = mAppli.TypePyramide().PyramideGaussienne().Val();
     int aSurEch = aPG.SurEchIntegralGauss().Val();
     double anEpsilon = aPG.EpsilonGauss().Val();
     mNbShift = aPG.NbShift().Val();
+   
+    Im1D_REAL8 aKerD = GaussianKernelFromResidu(aSigma,anEpsilon,aSurEch);
+
+    return ToOwnKernel(aKerD,mNbShift,true,(tBase *)0);
+}
+
+
+template <class Type> 
+void cTplImInMem<Type>::ReduceGaussienne()
+{
+    //std::cout << "RRGG :  KinOct " << mKInOct << "\n";
 
     if (mKInOct==0)
     {
@@ -658,6 +667,14 @@ void cTplImInMem<Type>::ReduceGaussienne()
 
          return;
     }
+
+    const cPyramideGaussienne aPG = mAppli.TypePyramide().PyramideGaussienne().Val();
+    int aSurEch = aPG.SurEchIntegralGauss().Val();
+    double anEpsilon = aPG.EpsilonGauss().Val();
+    mNbShift = aPG.NbShift().Val();
+
+
+
 
     //std::cout << "Do By Convol \n";
     // ResizeOctave(mOrigOct->Sz());

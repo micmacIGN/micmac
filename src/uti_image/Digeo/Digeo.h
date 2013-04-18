@@ -246,7 +246,7 @@ class cImInMem
          Pt2di            mSz;
          GenIm::type_el   mType;
          int              mResolGlob;
-         double           mResolOctaveBase;
+         double           mResolOctaveBase;  // Le sigma / a la premier image del'octave
          int              mKInOct;
          int              mIndexSigma;
          int              mNbShift;
@@ -268,6 +268,8 @@ template <class Type> class cTplImInMem : public cImInMem
         typedef Im2D<Type,tBase>   tIm;
         typedef TIm2D<Type,tBase>  tTIm;
         typedef cTplImInMem<Type>  tTImMem;
+        Im1D<tBase,tBase> ImGaussianKernel(double aSigma);
+
 
         cTplImInMem(cImDigeo &,const Pt2di & aSz,GenIm::type_el,cTplOctDig<Type> &,double aResolOctaveBase,int aKInOct,int IndexSigma);
 
@@ -585,11 +587,18 @@ template <class Type> class cConvolSpec
         typedef typename El_CTypeTraits<Type>::tBase tBase;
 
         virtual void Convol(Type * Out,Type * In,int aK0,int aK1) ;
+
+        virtual void ConvolCol(Type * Out,Type **In,int aX0,int aX1,int anYIn) ;
+
+
         static cConvolSpec<Type> * GetExisting(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
         static cConvolSpec<Type> * GetOrCreate(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
 
         cConvolSpec(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
         virtual bool IsCompiled() const;
+        int Deb() const;
+        int Fin() const;
+        bool Sym() const;
     protected :
 
     private :
