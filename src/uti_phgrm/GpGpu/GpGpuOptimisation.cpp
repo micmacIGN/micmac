@@ -21,15 +21,8 @@ void InterfMicMacOptGpGpu::StructureVolumeCost(CuHostData3D<float> &volumeCost, 
     for(ptTer.x = 0; ptTer.x < dimVolCost.x; ptTer.x++)
         for(ptTer.y = 0; ptTer.y < dimVolCost.y; ptTer.y++)
             for(ptTer.z = 0; ptTer.z < dimVolCost.z; ptTer.z++)
-                _volumeCost[make_uint2(dimVolCost.z * ptTer.x + ptTer.z,ptTer.y)] = volumeCost[ptTer];
+                _volumeCost[make_uint2(dimVolCost.z * ptTer.x + ptTer.z,ptTer.y)] = volumeCost[ptTer] == defaultValue ?  -1 : (int)(volumeCost[ptTer] * 10000.0f);
 
-/*
-    volumeCost.OutputValues(0,XY,NEGARECT,3,defaultValue);
-    volumeCost.OutputValues(0,XZ,NEGARECT,3,defaultValue);
-    volumeCost.OutputValues(0,ZY,NEGARECT,3,defaultValue);
-    _volumeCost.OutputValues(0,XY,Rect(0,0,32,dimVolCost.y),3,defaultValue);
-*/
-    OptimisationOneDirection(_volumeCost, dimVolCost, defaultValue);
+    //OptimisationOneDirection(_volumeCost, dimVolCost);
 
-    //_volumeCost.Dealloc();
 }

@@ -1295,8 +1295,7 @@ if (0)
 		
 		if(	mNbIm == 0) return;	
 
-        //int aZMinTer = mZMinGlob, aZMaxTer = mZMaxGlob;
-        int aZMinTer = -16, aZMaxTer = 16;
+        int aZMinTer = mZMinGlob, aZMaxTer = mZMaxGlob;
 
 		// definition de la zone rectangulaire de terrain
 		Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
@@ -1315,14 +1314,8 @@ if (0)
 		if (interZ != INTERZ)	IMmGg.SetSizeBlock(interZ);
 		
 		// Allocation de l'espace mémoire pour la tabulation des projections et des couts
-		CuHostData3D<float>		hVolumeCost(IMmGg.Param().dimTer,interZ);
-		CuHostData3D<float2>	hVolumeProj(IMmGg.Param().dimSTer, interZ*mNbIm);
-
-
-        // DEBUT TEST OPTIMISATION
-        CuHostData3D<float>		hVolumeCostGlobal(IMmGg.Param().dimTer,aZMaxTer - aZMinTer);
-        hVolumeCostGlobal.SetName("hVolumeCostGlobal");
-        // FIN TEST OPTIMISATION
+        CuHostData3D<float>		hVolumeCost(IMmGg.Param().dimTer,   interZ);
+        CuHostData3D<float2>	hVolumeProj(IMmGg.Param().dimSTer,  interZ*mNbIm);
 
 		hVolumeCost.SetName("hVolumeCost");
 		hVolumeProj.SetName("hVolumeProj");
@@ -1360,16 +1353,10 @@ if (0)
 				}
 				int ZtoCopy = IMmGg.GetZCtoCopy();
 
-				// Affectation des couts si des nouveaux ont été calculé!
+                // Affectation des couts si des nouveaux ont ete calcule!
 				if (ZtoCopy != 0 && anZComputed < aZMaxTer)
 				{
 					setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,hVolumeCost.pData(), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
-
-                    // DEBUT TEST OPTIMISATION
-                    int pitchZ =  size(IMmGg.Param().RTer().dimension());
-                    memcpy(hVolumeCostGlobal.pData() + (anZComputed - aZMinTer) * pitchZ,hVolumeCost.pData(), pitchZ * ZtoCopy * sizeof(float));
-                    // FIN TEST OPTIMISATION
-
                     anZComputed += ZtoCopy;
 					IMmGg.SetZCToCopy(0);
 
@@ -1404,10 +1391,6 @@ if (0)
 		hVolumeCost.Dealloc(); // Attention la liberation de memoire prends un certain temps, tout comme l'allocation... eviter cette manip...!!!
 		hVolumeProj.Dealloc();
 
-        // DEBUT TEST OPTIMISATION
-        IGpuOpt.StructureVolumeCost(hVolumeCostGlobal,IMmGg.Param().floatDefault);
-        hVolumeCostGlobal.Dealloc();
-        // FIN TEST OPTIMISATION
 #else
 		ELISE_ASSERT(1,"Sorry, this is not the cuda version");
 #endif

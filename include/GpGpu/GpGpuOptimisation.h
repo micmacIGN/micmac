@@ -4,7 +4,7 @@
 #include "GpGpu/GpGpuTools.h"
 
 extern "C" void Launch();
-extern "C" void OptimisationOneDirection(CuHostData3D<float> data, uint3 dimVolCost, float defaultValue = 0);
+extern "C" void OptimisationOneDirection(CuHostData3D<int> &data,CuHostData3D<short2> &index, uint3 dimVolCost);
 
 template <class T>
 void LaunchKernel();
@@ -24,7 +24,7 @@ public:
 
 private:
 
-    CuHostData3D<float> _volumeCost;
+    CuHostData3D<int> _volumeCost;
 };
 
 

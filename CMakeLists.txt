@@ -86,7 +86,7 @@ if (${CUDA_ENABLED})
 	FIND_PACKAGE(CUDA)
 	INCLUDE(FindCUDA)
 	INCLUDE_DIRECTORIES(${CUDA_SDK_ROOT_DIR}/inc)
-	add_definitions(-DCUDA_ENABLED)
+	#add_definitions(-DCUDA_ENABLED)
 	FIND_PACKAGE( Boost 1.46.0 COMPONENTS system serialization thread REQUIRED )
 	#chrono
 	include_directories ( ${Boost_INCLUDE_DIRS} )

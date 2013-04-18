@@ -275,15 +275,11 @@ private :
     int                                mNbDir;
     double                             mPdsProgr;
 
-
-
     // Im2D_INT2     mImRes;
     // INT2 **       mDataImRes;
 
 };
 static cGBV2_CelOptimProgDyn aCelForInit;
-
-
 
 cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
 (
@@ -593,12 +589,81 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
 
     const std::vector<Pt2di> * aVPt;
 
+
+
 #ifdef CUDA_ENABLED
+
+    CuHostData3D<int>       costVolume(make_uint2(256*mSz.y,mSz.x),1);
+    CuHostData3D<short2>    index(make_uint2(mSz.y,mSz.x),1);
+
+    int x = 0;
+    while ((aVPt = mLMR.Next()))
+    {
+        int idStream = 0;
+        for (int aK=0 ; aK<int(aVPt->size()) ; aK++)
+        {
+            // Matrice des cellules
+            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
+            const Box2di &  aBox = aMat.Box();
+            Pt2di aP;
+
+            index[make_uint2(aK,x)] = make_short2(aBox._p0.x,aBox._p0.y);
+
+            for (aP.x = aBox._p0.x ; aP.x<aBox._p1.x ; aP.x++)
+            {
+                uint2 Pt        = make_uint2(idStream,x);
+                costVolume[Pt]  = aMat[aP].GetCostInit();
+                idStream++;
+            }
+        }
+
+        x++;
+    }
+
+    OptimisationOneDirection(costVolume,index,make_uint3(mSz.x,mSz.y,256));
+
+    mLMR.Init(aDirI,Pt2di(0,0),mSz);
+    x = 0;
+    while ((aVPt = mLMR.Next()))
+    {
+        // on parcours la ligne
+        for (int aK=0 ; aK<int(aVPt->size()) ; aK++)
+        {
+            // Matrice des cellules
+            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
+            // rectancle
+            const Box2di &  aBox = aMat.Box();
+            Pt2di aP;
+            // Cout infini
+            tCost aCoutMin = tCost(1e9);
+
+            //recherche du cout minimum dans le le rectangle
+            int idStream = 0;
+
+            for (aP.x = aBox._p0.x ; aP.x<aBox._p1.x ; aP.x++)
+            {
+//                uint2 Pt = make_uint2(idStream,x);
+//                int costInit =  aMat[aP].GetCostInit();
+
+                ElSetMin(aCoutMin,aMat[aP].CostPassageForce());
+
+                idStream++;
+            }
+
+            for (aP.x = aBox._p0.x ; aP.x<aBox._p1.x ; aP.x++)
+            {
+                tCost  aNewCost = aMat[aP].CostPassageForce()-aCoutMin;
+                tCost & aCF = aMat[aP].CostFinal();
+                aCF += aNewCost;
+            }
+        }
+        x++;
+    }
+
+#else
+    //printf("Optimisation CPU\n");
      while ((aVPt=mLMR.Next()))
         BalayageOneLineGpu(*aVPt);
-#else
-     while ((aVPt=mLMR.Next()))
-        BalayageOneLine(*aVPt);
 #endif
 }
 
