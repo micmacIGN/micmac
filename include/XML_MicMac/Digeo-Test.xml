@@ -12,6 +12,7 @@
 
         <Symb> NivFloatIm=4     </Symb>
         <Symb> NivInFirstOct=0     </Symb>
+        <Symb> Incremental=true     </Symb>
 
         <Symb> Sauv=0     </Symb>
         <eSymb> MaxDyn= ! ${Sauv} </eSymb>
@@ -58,7 +59,7 @@
                        <NbShift  Nb="?" Type="int" Def="15"> </NbShift>
                        <SurEchIntegralGauss Nb="?" Type="int" Def="10"> </SurEchIntegralGauss>
 -->
-                       <ConvolIncrem> true </ConvolIncrem>
+                       <ConvolIncrem> ${Incremental} </ConvolIncrem>
                   </PyramideGaussienne>
               </TypePyramide>
            </PyramideImage>
@@ -103,10 +104,10 @@
        </SectionTest>
 
         <SectionWorkSpace>
-<!--
            <DirectoryChantier>  /media/data1/Jeux-Tests/12-Tetes-Inc-4341-6/  </DirectoryChantier>
--->
+<!--
            <DirectoryChantier>  /home/marc/TMP/Delphes/12-Tetes-Inc-4341-6/  </DirectoryChantier>
+-->
            <#WHEN VTEST=${Sauv}>
                <SauvPyram>
                   <Dir> SP/ </Dir>

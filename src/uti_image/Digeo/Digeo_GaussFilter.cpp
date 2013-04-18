@@ -648,11 +648,8 @@ template <class Type> Im1D<typename El_CTypeTraits<Type>::tBase,typename El_CTyp
 template <class Type> 
 void cTplImInMem<Type>::ReduceGaussienne()
 {
-    //std::cout << "RRGG :  KinOct " << mKInOct << "\n";
-
     if (mKInOct==0)
     {
-         //std::cout << "   do=By=Reduc \n";
          cTplOctDig<Type>* anOcUp = mTOct.OctUp();
 
          if (anOcUp)
@@ -668,22 +665,9 @@ void cTplImInMem<Type>::ReduceGaussienne()
          return;
     }
 
+    //==============================================
+
     const cPyramideGaussienne aPG = mAppli.TypePyramide().PyramideGaussienne().Val();
-    int aSurEch = aPG.SurEchIntegralGauss().Val();
-    double anEpsilon = aPG.EpsilonGauss().Val();
-    mNbShift = aPG.NbShift().Val();
-
-
-
-
-    //std::cout << "Do By Convol \n";
-    // ResizeOctave(mOrigOct->Sz());
-
-    // Valeur a priori du sigma en delta / au prec
-
-    double aSigTot = mResolOctaveBase;;
-    int aNbCTot = NbElemForGausKern(aSigTot,aPG.EpsilonGauss().Val()/10) +1 ;
-    Im1D_REAL8 aKerTot=GaussianKernel(aSigTot,aNbCTot,aSurEch);
 
 
     bool isIncrem = aPG.ConvolIncrem().Val();
@@ -691,97 +675,27 @@ void cTplImInMem<Type>::ReduceGaussienne()
        isIncrem = mAppli.ModifGCC()->ConvolIncrem();
 
 
-    if (InitRandom())
-    {
-       return;
-    }
-
     if (! isIncrem)
     {
-       Im1D<tBase,tBase> aIKerTotD =  ToOwnKernel(aKerTot,mNbShift,true,(tBase *)0);
-       if (0)
-       {
-          for (int aK=0 ; aK<aIKerTotD.tx() ; aK++)
-          {
-             std::cout << "  " << aIKerTotD.data()[aK] ;
-          }
-          std::cout << "\n";
-       }
-       // SetConvolSepXY(false,aSigTot,*mOrigOct,aIKerTotD,mNbShift);
-       SetConvolSepXY(false,aSigTot,*(mTOct.TypedFirstImage()),aIKerTotD,mNbShift);
+       Im1D<tBase,tBase> aIKerTotD =  ImGaussianKernel(mResolOctaveBase);
+       SetConvolSepXY(false,mResolOctaveBase,*(mTOct.TypedFirstImage()),aIKerTotD,mNbShift);
        return;
     }
 
-    // ELISE_ASSERT(false,"Pb with convol incrementale\n");
 
 
-
-    double aSigmD =  sqrt(ElSquare(aSigTot) - ElSquare(mTMere->mResolOctaveBase));
-    int aNbCD= NbElemForGausKern(aSigmD,anEpsilon);
-    Im1D_REAL8 aKerD =  DeConvol(aNbCD,mTMere->mKernelTot,aKerTot);
-
-    // Bug ou incoherence dans la deconvol, donne pb
-    if (1)
-    {
-       aKerD = GaussianKernelFromResidu(aSigmD,anEpsilon,aSurEch);
-    }
-// Im1D_REAL8  GaussianKernelFromResidu(double aSigma,double aResidu,int aSurEch)
+    double aSigmD =  sqrt(ElSquare(mResolOctaveBase) - ElSquare(mTMere->mResolOctaveBase));
+    Im1D<tBase,tBase> aIKerD = ImGaussianKernel(aSigmD);
 
 
-    Im1D<tBase,tBase> aIKerD =  ToOwnKernel(aKerD,mNbShift,true,(tBase *)0);
     SetConvolSepXY(true,aSigmD,*mTMere,aIKerD,mNbShift);
 
-    Im1D_REAL8        aRealKerD =  ToRealKernel(aIKerD);
-
-    mKernelTot = Convol(aRealKerD,mTMere->mKernelTot);
-    
-
-
-    if ((mAppli.ShowTimes().Val() > 100) && (mResolGlob<=2))
-    {
-         
 /*
-         std::cout << "       + + + CONVOL + + \n";
-         for (int aK=0 ; aK< mKernelTot.tx() ; aK++)
-         {
-              std::cout <<  mKernelTot.data()[aK]  << ((aK==mKernelTot.tx()/2)? " @@@@@" : "")<< "\n";
-         }
-         std::cout << "       + + + GLOB + + \n";
-         for (int aK=0 ; aK< aKerTot.tx() ; aK++)
-         {
-              std::cout <<  aKerTot.data()[aK]  << ((aK==aKerTot.tx()/2)? " @@@@@" : "")<< "\n";
-         }
-*/
-
-         Im1D_REAL8        aSigKer = GaussianKernel(aSigmD,aNbCD,aSurEch);
-         std::cout << "---------------------------------------------------------\n";
-         std::cout << "  DZ " << mResolGlob << " ; " 
-                   << " K  " << mKInOct
-                   << " Sig-Delta " << aSigmD << " ; "
-                   <<  " NbC-Delta " << aNbCD << " ; "
-                   <<  " NbC-Tot " << aNbCTot << " ; "
-                   << "\n";
+    Im1D_REAL8        aRealKerD =  ToRealKernel(aIKerD);
+    mKernelTot = Convol(aRealKerD,mTMere->mKernelTot);
+*/    
 
 
-         
-         for (int aK=0 ; aK<aKerD.tx() ; aK++)
-         {
-             std::cout << "  " << aIKerD.data()[aK] ;
-         }
-         std::cout << "\n";
-         // if (mAppli.ShowTimes().Val() > 100)
-         if (0)
-         {
-            for (int aK=0 ; aK<aKerD.tx() ; aK++)
-            {
-                 if (aK<aKerD.tx()) std::cout << " Cur= " << aKerD.data()[aK] << " ";
-                 if (aK<aKerD.tx()) std::cout << " ICur= " << aRealKerD.data()[aK] << " ";
-                 if (aK<aKerD.tx()) std::cout << " SCur= " << aSigKer.data()[aK] << " ";
-                 std::cout  << "\n";
-            }
-         }
-         //getchar();
-    }
     
 }
 
