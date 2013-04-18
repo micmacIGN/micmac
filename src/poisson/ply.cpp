@@ -28,17 +28,10 @@ DAMAGE.
 
 #include "StdAfx.h"
 
-#ifdef NOWARNINGPOISSON
-	#ifndef ELISE_Darwin
-		#pragma GCC diagnostic push
-	#endif
-	#pragma GCC diagnostic warning "-w"
-#endif
-
 //
 // PLY data structures
 //
-char *elem_names[] = { "vertex", "face" };
+string elem_names[] = { "vertex", "face" };
 
 typedef struct PlyVertex
 {
@@ -267,10 +260,3 @@ int PlyWritePolygons( char* fileName , CoredMeshData2* mesh , int file_type , co
 	ply_close( ply );
 	return 1;
 }
-
-#ifdef NOWARNINGPOISSON // & Warning sur &
-	#ifndef ELISE_Darwin
-		#pragma GCC diagnostic pop
-	#endif
-#endif
-

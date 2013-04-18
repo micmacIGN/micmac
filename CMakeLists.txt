@@ -34,9 +34,15 @@ OPTION(WITH_ETALONPOLY  "build etalonnage polygone" ON)
 # Utiliser Cuda
 OPTION(CUDA_ENABLED "Utilisation de cuda" OFF )
 
-# Pas de Warning Poisson
-if(NOT WIN32)
-    OPTION(NOWARNINGPOISSON "Pas warning a la compilation de poisson" OFF )
+# Multi thread Poisson avec OpenMP
+OPTION(WITH_OPEN_MP "use OpenMP" OFF )
+
+if ( WITH_OPEN_MP )
+	FIND_PACKAGE(OpenMP REQUIRED)
+	message("using OpenMP for Poisson 3d shell computing")
+	list( APPEND CMAKE_C_FLAGS ${OpenMP_C_FLAGS} )
+	list( APPEND CMAKE_CXX_FLAGS ${OpenMP_CXX_FLAGS} )
+	add_definitions(-DUSE_OPEN_MP)
 endif()
 
 # Utiliser Cuda
@@ -259,12 +265,6 @@ if(NOT WIN32)
         endif()
 		MESSAGE("X11 Not Found : pas de SaisieMasq")
 	ENDIF()
-
-        # Warning POISSON
-        if(${NOWARNINGPOISSON})
-                #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated ")
-                add_definitions(-DNOWARNINGPOISSON)
-        endif()
 ELSE()
 
 	find_program(MAKE_EXECUTABLE make
