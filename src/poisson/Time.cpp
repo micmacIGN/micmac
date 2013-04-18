@@ -28,13 +28,6 @@ DAMAGE.
 
 #include "StdAfx.h"
 
-#ifdef NOWARNINGPOISSON
-	#ifndef ELISE_Darwin
-		#pragma GCC diagnostic push
-	#endif
-	#pragma GCC diagnostic warning "-w"
-#endif
-
 double PTime( void )
 {
 #ifdef WIN32
@@ -47,9 +40,3 @@ double PTime( void )
 	return t.tv_sec + double( t.tv_usec ) / 1000000;
 #endif // WIN32
 }
-
-#ifdef NOWARNINGPOISSON
-	#ifndef ELISE_Darwin
-		#pragma GCC diagnostic pop
-	#endif
-#endif

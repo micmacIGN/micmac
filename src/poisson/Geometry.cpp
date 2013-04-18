@@ -28,12 +28,6 @@ DAMAGE.
 
 #include "StdAfx.h"
 
-#ifdef NOWARNINGPOISSON
-	#ifndef ELISE_Darwin 
-		#pragma GCC diagnostic push
-	#endif
-	#pragma GCC diagnostic warning "-w"
-#endif
 ///////////////////
 // CoredMeshData //
 ///////////////////
@@ -150,9 +144,3 @@ int CoredVectorMeshData2::nextPolygon( std::vector< CoredVertexIndex >& vertices
 }
 int CoredVectorMeshData2::outOfCorePointCount(void){return int(oocPoints.size());}
 int CoredVectorMeshData2::polygonCount( void ) { return int( polygons.size() ); }
-
-#ifdef NOWARNINGPOISSON
-	#ifndef ELISE_Darwin
-		#pragma GCC diagnostic pop
-	#endif
-#endif
