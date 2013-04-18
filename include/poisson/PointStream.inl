@@ -193,16 +193,18 @@ void PLYPointStream< Real >::reset( void )
 			for( int i=0 ; i<PlyOrientedVertex< Real >::ReadComponents ; i++ ) 
 				if( !ply_get_property( _ply , elem_name , &(PlyOrientedVertex< Real >::ReadProperties[i]) ) )
 				{
-					fprintf( stderr , "[ERROR] Failed to find property in ply file: %s\n" , PlyOrientedVertex< Real >::ReadProperties[i].name );
+					fprintf( stderr , "[ERROR] Failed to find property in ply file: %s\n" , PlyOrientedVertex< Real >::ReadProperties[i].name.c_str() );
 					exit( 0 );
 				}
 		}
 		for( int j=0 ; j<nr_props ; j++ )
 		{
+			/* str version
 			if ( plist[j]->name!=NULL ){
 				free( plist[j]->name );
 				plist[j]->name = NULL;
 			}
+			*/
 			free( plist[j] );
 		}
 		free( plist );

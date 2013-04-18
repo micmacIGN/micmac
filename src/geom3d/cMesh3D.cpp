@@ -39,13 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-#ifdef NOWARNINGPOISSON
-	#ifndef ELISE_Darwin 
-		#pragma GCC diagnostic push
-	#endif
-	#pragma GCC diagnostic warning "-w"
-#endif
-
 static const REAL Eps = 1e-7;
 
 //--------------------------------------------------------------------------------------------------------------
@@ -710,9 +703,3 @@ cEdge::cEdge()
 }
 
 cEdge::~cEdge(){}
-
-#ifdef NOWARNINGPOISSON
-	#ifndef ELISE_Darwin
-		#pragma GCC diagnostic pop
-	#endif
-#endif
