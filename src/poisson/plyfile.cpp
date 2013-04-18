@@ -312,7 +312,8 @@ void ply_describe_element(
 	elem->store_prop = (char *) myalloc (sizeof (char) * nprops);
 	
 	for (i = 0; i < nprops; i++) {
-		prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+		//prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+		prop = new(PlyProperty);
 		elem->props[i] = prop;
 		elem->store_prop[i] = NAMED_PROP;
 		copy_property (prop, &prop_list[i]);
@@ -363,7 +364,8 @@ void ply_describe_property(
 	
 	/* copy the new property */
 	
-	elem_prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+	//elem_prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+	elem_prop = new (PlyProperty);
 	elem->props[elem->nprops - 1] = elem_prop;
 	elem->store_prop[elem->nprops - 1] = NAMED_PROP;
 	copy_property (elem_prop, prop);
@@ -413,7 +415,8 @@ void ply_describe_other_properties(
 	/* copy the other properties */
 	
 	for (i = 0; i < other->nprops; i++) {
-		prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+		//prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+		prop = new (PlyProperty);
 		copy_property (prop, other->props[i]);
 		elem->props[elem->nprops] = prop;
 		elem->store_prop[elem->nprops] = OTHER_PROP;
@@ -771,9 +774,9 @@ Specify a comment that will be written in the header.
 			 free(words);
 		 return (NULL);
 	 }
+	 	 
 	 while (words) {
-		 /* parse words */
-		 
+		 /* parse words */			
 		 if (equal_strings (words[0], "format")) {
 			 if (nwords != 3) {
 				 free(words);
@@ -877,7 +880,6 @@ Open a polygon file for reading.
 		  return (NULL);
 	  
 	  /* create the PlyFile data structure */
-	  
 	  plyfile = ply_read (fp, nelems, elem_names);
 	  
 	  /* determine the file type and version */
@@ -928,7 +930,8 @@ Open a polygon file for reading.
 	  /* make a copy of the element's property list */
 	  prop_list = (PlyProperty **) myalloc (sizeof (PlyProperty *) * elem->nprops);
 	  for (i = 0; i < elem->nprops; i++) {
-		  prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+		  //prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+		  prop = new(PlyProperty);
 		  copy_property (prop, elem->props[i]);
 		  prop_list[i] = prop;
 	  }
@@ -1205,14 +1208,15 @@ Open a polygon file for reading.
 	  other = (PlyOtherProp *) myalloc (sizeof (PlyOtherProp));
 	  other->name = _strdup (elem_name);
 	  other->size = elem->other_size;
-	  other->props = (PlyProperty **) myalloc (sizeof(PlyProperty) * elem->nprops);
+	  other->props = (PlyProperty **) myalloc (sizeof(PlyProperty*) * elem->nprops);
 	  
 	  /* save descriptions of each "other" property */
 	  nprops = 0;
 	  for (i = 0; i < elem->nprops; i++) {
 		  if (elem->store_prop[i])
 			  continue;
-		  prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+		  //prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+		  prop = new(PlyProperty);
 		  copy_property (prop, elem->props[i]);
 		  other->props[nprops] = prop;
 		  nprops++;
@@ -1397,7 +1401,7 @@ Open a polygon file for reading.
   
   void ply_free_other_elements (PlyOtherElems *other_elems)
   {
-	  other_elems = other_elems;
+	  other_elems = other_elems; // what ?
   }
   
   
@@ -1420,6 +1424,20 @@ Open a polygon file for reading.
 	  fclose (plyfile->fp);
 	  
 	  /* free up memory associated with the PLY file */
+	  // delete Property in elements
+	  PlyElement *element;
+	  for ( int i=0; i<plyfile->nelems; i++ )
+	  {
+		  element = plyfile->elems[i];
+		  for ( int j=0; j<element->nprops; j++ )
+			  if ( element->props[j]!=NULL )
+			  {
+				delete element->props[j];
+				element->props[j] = NULL;
+			  }
+	  }
+	  // delete property of the other element
+	  
 	  free (plyfile);
   }
   
@@ -2609,17 +2627,18 @@ Read an element from a binary file.
 	  
 	  /* create the new property */
 	  
-	  prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+	  //prop = (PlyProperty *) malloc (sizeof (PlyProperty));
+	  prop = new(PlyProperty);
 	  
 	  if (equal_strings (words[1], "list")) {       /* is a list */
 		  prop->count_external = get_prop_type (words[2]);
 		  prop->external_type = get_prop_type (words[3]);
-		  prop->name = _strdup (words[4]);
+		  prop->name = string (words[4]);
 		  prop->is_list = 1;
 	  }
 	  else {                                        /* not a list */
 		  prop->external_type = get_prop_type (words[1]);
-		  prop->name = _strdup (words[2]);
+		  prop->name = string (words[2]);
 		  prop->is_list = 0;
 	  }
 	  
