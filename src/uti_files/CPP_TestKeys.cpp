@@ -90,6 +90,13 @@ int TestSet_main(int argc,char ** argv)
          std::cout << aName ;
          std::cout  << "\n";
     }
+
+    if (1)
+    {
+         std::list<std::string>  aL = RegexListFileMatch(aDir,aPat,1,false);
+         std::cout << "NB  BY RFLM " << aL.size() << "\n";
+    }
+
  
    
     return 1;

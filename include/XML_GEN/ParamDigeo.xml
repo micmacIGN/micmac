@@ -87,6 +87,8 @@ using namespace NS_SuperposeImage;
               <PredicteurGeom Nb="?" UnionType="true">
                      <Unused Nb="?" Type="std::string"> </Unused> 
               </PredicteurGeom>
+              <!-- Si la taille mémoire de l'image est inférieure a ce seuil, le fichier est lu en 1 bloc-->
+              <NbOctetLimitLoadImageOnce Nb="?" Type="double" Def="1e8"> </NbOctetLimitLoadImageOnce>
            </ImageDigeo>
            <PyramideImage Nb="1">
               <TypeNumeriqueOfNiv Nb="*">
@@ -208,6 +210,7 @@ insulter si ce n'est pas le cas; sauf si ExigeCodeCompile indique que c'est scie
                    <ModifGCC Nb="*"  Container="std::vector">
                        <NbByOctave Nb="1" Type="int"> </NbByOctave>
                        <ConvolIncrem Nb="1" Type="bool"> </ConvolIncrem>
+                       <TypeNum Nb="1" Type="eTypeNumerique"> </TypeNum>
                    </ModifGCC>
             </GenereCodeConvol>
 
