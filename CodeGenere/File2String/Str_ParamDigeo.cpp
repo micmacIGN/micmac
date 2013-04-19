@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamDigeo[239]) = {
+const char * (theNameVar_ParamDigeo[242]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -89,6 +89,8 @@ const char * (theNameVar_ParamDigeo[239]) = {
 "              <PredicteurGeom Nb=\"?\" UnionType=\"true\">\n",
 "                     <Unused Nb=\"?\" Type=\"std::string\"> </Unused> \n",
 "              </PredicteurGeom>\n",
+"              <!-- Si la taille mémoire de l'image est inférieure a ce seuil, le fichier est lu en 1 bloc-->\n",
+"              <NbOctetLimitLoadImageOnce Nb=\"?\" Type=\"double\" Def=\"1e8\"> </NbOctetLimitLoadImageOnce>\n",
 "           </ImageDigeo>\n",
 "           <PyramideImage Nb=\"1\">\n",
 "              <TypeNumeriqueOfNiv Nb=\"*\">\n",
@@ -210,6 +212,7 @@ const char * (theNameVar_ParamDigeo[239]) = {
 "                   <ModifGCC Nb=\"*\"  Container=\"std::vector\">\n",
 "                       <NbByOctave Nb=\"1\" Type=\"int\"> </NbByOctave>\n",
 "                       <ConvolIncrem Nb=\"1\" Type=\"bool\"> </ConvolIncrem>\n",
+"                       <TypeNum Nb=\"1\" Type=\"eTypeNumerique\"> </TypeNum>\n",
 "                   </ModifGCC>\n",
 "            </GenereCodeConvol>\n",
 "\n",

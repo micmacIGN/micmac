@@ -344,6 +344,17 @@ const cTplValGesInit< cPredicteurGeom > & cImageDigeo::PredicteurGeom()const
    return mPredicteurGeom;
 }
 
+
+cTplValGesInit< double > & cImageDigeo::NbOctetLimitLoadImageOnce()
+{
+   return mNbOctetLimitLoadImageOnce;
+}
+
+const cTplValGesInit< double > & cImageDigeo::NbOctetLimitLoadImageOnce()const 
+{
+   return mNbOctetLimitLoadImageOnce;
+}
+
 cElXMLTree * ToXMLTree(const cImageDigeo & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ImageDigeo",eXMLBranche);
@@ -358,6 +369,8 @@ cElXMLTree * ToXMLTree(const cImageDigeo & anObj)
       aRes->AddFils(::ToXMLTree(std::string("ResolInit"),anObj.ResolInit().Val())->ReTagThis("ResolInit"));
    if (anObj.PredicteurGeom().IsInit())
       aRes->AddFils(ToXMLTree(anObj.PredicteurGeom().Val())->ReTagThis("PredicteurGeom"));
+   if (anObj.NbOctetLimitLoadImageOnce().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NbOctetLimitLoadImageOnce"),anObj.NbOctetLimitLoadImageOnce().Val())->ReTagThis("NbOctetLimitLoadImageOnce"));
   return aRes;
 }
 
@@ -376,6 +389,8 @@ void xml_init(cImageDigeo & anObj,cElXMLTree * aTree)
    xml_init(anObj.ResolInit(),aTree->Get("ResolInit",1),double(1.0)); //tototo 
 
    xml_init(anObj.PredicteurGeom(),aTree->Get("PredicteurGeom",1)); //tototo 
+
+   xml_init(anObj.NbOctetLimitLoadImageOnce(),aTree->Get("NbOctetLimitLoadImageOnce",1),double(1e8)); //tototo 
 }
 
 
@@ -1881,11 +1896,23 @@ const bool & cModifGCC::ConvolIncrem()const
    return mConvolIncrem;
 }
 
+
+eTypeNumerique & cModifGCC::TypeNum()
+{
+   return mTypeNum;
+}
+
+const eTypeNumerique & cModifGCC::TypeNum()const 
+{
+   return mTypeNum;
+}
+
 cElXMLTree * ToXMLTree(const cModifGCC & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ModifGCC",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("NbByOctave"),anObj.NbByOctave())->ReTagThis("NbByOctave"));
    aRes->AddFils(::ToXMLTree(std::string("ConvolIncrem"),anObj.ConvolIncrem())->ReTagThis("ConvolIncrem"));
+   aRes->AddFils(::ToXMLTree(std::string("TypeNum"),anObj.TypeNum())->ReTagThis("TypeNum"));
   return aRes;
 }
 
@@ -1896,6 +1923,8 @@ void xml_init(cModifGCC & anObj,cElXMLTree * aTree)
    xml_init(anObj.NbByOctave(),aTree->Get("NbByOctave",1)); //tototo 
 
    xml_init(anObj.ConvolIncrem(),aTree->Get("ConvolIncrem",1)); //tototo 
+
+   xml_init(anObj.TypeNum(),aTree->Get("TypeNum",1)); //tototo 
 }
 
 

@@ -175,6 +175,7 @@ if(${CUDA_ENABLED})
 
 else()
 	 add_library( elise ${Elise_Src_Files} ${IncFiles} )
+	 INSTALL(TARGETS elise ARCHIVE DESTINATION ${Install_Dir_lib} )
 endif()
 
 # OPTION BUILD : En tetes precompilées pour gcc
