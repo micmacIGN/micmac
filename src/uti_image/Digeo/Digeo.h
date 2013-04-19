@@ -246,7 +246,7 @@ class cImInMem
          Pt2di            mSz;
          GenIm::type_el   mType;
          int              mResolGlob;
-         double           mResolOctaveBase;
+         double           mResolOctaveBase;  // Le sigma / a la premier image del'octave
          int              mKInOct;
          int              mIndexSigma;
          int              mNbShift;
@@ -268,6 +268,8 @@ template <class Type> class cTplImInMem : public cImInMem
         typedef Im2D<Type,tBase>   tIm;
         typedef TIm2D<Type,tBase>  tTIm;
         typedef cTplImInMem<Type>  tTImMem;
+        Im1D<tBase,tBase> ImGaussianKernel(double aSigma);
+
 
         cTplImInMem(cImDigeo &,const Pt2di & aSz,GenIm::type_el,cTplOctDig<Type> &,double aResolOctaveBase,int aKInOct,int IndexSigma);
 
@@ -295,7 +297,7 @@ template <class Type> class cTplImInMem : public cImInMem
         double CalcGrad2Moy();
         Im2DGen Im() ;
         void  SetMereSameDZ(cTplImInMem<Type> *);
-        void  SetOrigOct(cTplImInMem<Type> *);
+        // void  SetOrigOct(cTplImInMem<Type> *);
         // void MakeConvolInit(double aSigm );
         void ReduceGaussienne();
 
@@ -389,7 +391,7 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
          tTIm   mTIm;
          tTImMem *  mTMere;
          tTImMem *  mTFille;
-         tTImMem *  mOrigOct;
+         // tTImMem *  mOrigOct;
          Type **    mData;
          tBase      mDogPC;  // Dif of Gauss du pixel courrant
 
@@ -495,7 +497,7 @@ template <class Type> class cTplOctDig  : public cOctaveDigeo
         std::vector<cTplImInMem<Type> *>  mVTplIms;
         std::vector<Type **>  mVDatas;
         Type ***              mCube;
-        cTplImInMem<Type> *  mImBase;
+        // cTplImInMem<Type> *  mImBase;
     private :
         cTplOctDig(const cTplOctDig<Type> &);  // N.I.
 };
@@ -546,7 +548,7 @@ class cImDigeo
 
         void DoSiftExtract();
 
-        GenIm::type_el  TypeOfDeZoom(int aDZ) const;
+        GenIm::type_el  TypeOfDeZoom(int aDZ,cModifGCC *) const;
 
         std::string                   mName;
         cAppliDigeo &                 mAppli;
@@ -573,6 +575,7 @@ class cImDigeo
         bool                         mG2MoyIsCalc;
         double                       mG2Moy;
         double                       mDyn;
+        Im2DGen *                    mFileInMem;
      private :
         cImDigeo(const cImDigeo &);  // N.I.
         
@@ -584,11 +587,18 @@ template <class Type> class cConvolSpec
         typedef typename El_CTypeTraits<Type>::tBase tBase;
 
         virtual void Convol(Type * Out,Type * In,int aK0,int aK1) ;
+
+        virtual void ConvolCol(Type * Out,Type **In,int aX0,int aX1,int anYIn) ;
+
+
         static cConvolSpec<Type> * GetExisting(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
         static cConvolSpec<Type> * GetOrCreate(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
 
         cConvolSpec(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
         virtual bool IsCompiled() const;
+        int Deb() const;
+        int Fin() const;
+        bool Sym() const;
     protected :
 
     private :

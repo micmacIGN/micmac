@@ -136,6 +136,9 @@ class cImageDigeo
 
         cTplValGesInit< cPredicteurGeom > & PredicteurGeom();
         const cTplValGesInit< cPredicteurGeom > & PredicteurGeom()const ;
+
+        cTplValGesInit< double > & NbOctetLimitLoadImageOnce();
+        const cTplValGesInit< double > & NbOctetLimitLoadImageOnce()const ;
     private:
         cTplValGesInit< cParamVisuCarac > mVisuCarac;
         std::string mKeyOrPat;
@@ -143,6 +146,7 @@ class cImageDigeo
         cTplValGesInit< Box2di > mBoxImR1;
         cTplValGesInit< double > mResolInit;
         cTplValGesInit< cPredicteurGeom > mPredicteurGeom;
+        cTplValGesInit< double > mNbOctetLimitLoadImageOnce;
 };
 cElXMLTree * ToXMLTree(const cImageDigeo &);
 
@@ -656,9 +660,13 @@ class cModifGCC
 
         bool & ConvolIncrem();
         const bool & ConvolIncrem()const ;
+
+        eTypeNumerique & TypeNum();
+        const eTypeNumerique & TypeNum()const ;
     private:
         int mNbByOctave;
         bool mConvolIncrem;
+        eTypeNumerique mTypeNum;
 };
 cElXMLTree * ToXMLTree(const cModifGCC &);
 

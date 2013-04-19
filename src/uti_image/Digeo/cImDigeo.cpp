@@ -68,10 +68,27 @@ cImDigeo::cImDigeo
   mSzMax       (0,0),
   mVisu        (0),
   mG2MoyIsCalc (false),
-  mDyn         (1.0)
+  mDyn         (1.0),
+  mFileInMem   (0)
 {
    //Provisoire
    ELISE_ASSERT(! aIMD.PredicteurGeom().IsInit(),"Asservissement pas encore gere");
+
+   Pt2di aSzIR1 = mBoxImR1.sz();
+   double aNbLoad  = (double(aSzIR1.x) * double(aSzIR1.y)  * mTifF->bitpp() ) /8.0;
+   if (aNbLoad<aIMD.NbOctetLimitLoadImageOnce().Val())
+   {
+      mFileInMem = Ptr_D2alloc_im2d(mTifF->type_el(),aSzIR1.x,aSzIR1.y);
+      std::cout << "BEGIN COPY\n";
+      ELISE_COPY
+      (
+           mFileInMem->all_pts(),
+           trans(mTifF->in(),mBoxImR1._p0),
+           mFileInMem->out()
+      );
+      std::cout << "END COPY\n";
+
+   }
 
    // Verification de coherence
    if (aNum==0)
@@ -133,8 +150,11 @@ void cImDigeo::NotifUseBox(const Box2di & aBox)
 
 
 
-GenIm::type_el  cImDigeo::TypeOfDeZoom(int aDZ) const
+GenIm::type_el  cImDigeo::TypeOfDeZoom(int aDZ,cModifGCC * aMGCC) const
 {
+   if (aMGCC)
+      return Xml2EL(aMGCC->TypeNum());
+// std::cout << "cImDigeo::TypeOfDeZoom " << aMGCC << "\n";
    GenIm::type_el aRes = mTifF->type_el();
    if  (! type_im_integral(aRes))  
    {
@@ -164,6 +184,7 @@ GenIm::type_el  cImDigeo::TypeOfDeZoom(int aDZ) const
 
 void cImDigeo::AllocImages()
 {
+   cModifGCC * aMGCC = mAppli.ModifGCC();
    Pt2di aSz = mSzMax;
    mNiv=0;
 
@@ -183,8 +204,8 @@ void cImDigeo::AllocImages()
    for (int aDz = 1 ; aDz <=mNiv ; aDz*=2)
    {
        cOctaveDigeo * anOct =   aLastOct                                                   ?
-                                aLastOct->AllocDown(TypeOfDeZoom(aDz),*this,aDz,aSz)       :
-                                cOctaveDigeo::AllocTop(TypeOfDeZoom(aDz),*this,aDz,aSz)       ;
+                                aLastOct->AllocDown(TypeOfDeZoom(aDz,aMGCC),*this,aDz,aSz)       :
+                                cOctaveDigeo::AllocTop(TypeOfDeZoom(aDz,aMGCC),*this,aDz,aSz)       ;
        mOctaves.push_back(anOct);
        if (aTP.NivPyramBasique().IsInit())
        {
@@ -197,8 +218,8 @@ void cImDigeo::AllocImages()
        {
             const cPyramideGaussienne &  aPG = aTP.PyramideGaussienne().Val();
             int aNbIm = aPG.NbByOctave().Val();
-            if (mAppli.ModifGCC())
-               aNbIm = mAppli.ModifGCC()->NbByOctave();
+            if (aMGCC)
+               aNbIm = aMGCC->NbByOctave();
 
             if (aPG.NbInLastOctave().IsInit() && (aDz*2>mNiv))
                aNbIm = aPG.NbInLastOctave().Val();
@@ -244,13 +265,26 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 
     // Fonc_Num aF = trans(aF,aBoxIn._p0);
     Fonc_Num aF = mTifF->in_proj();
+    if (mFileInMem)
+    {
+       aF = trans(mFileInMem->in_proj(),-mBoxImR1._p0);
+    }
 
-    aF = StdFoncChScale
+// std::cout << "Rrrrrrrrrrr "<< mResol << " " << mFileInMem << "\n";
+    Pt2dr aTrR = Pt2dr(aBoxIn._p0) *mResol;
+    Pt2dr aPSc = Pt2dr(mResol,mResol);
+
+    aF = (mResol==1.0)                   ?
+         trans(aF,aBoxIn._p0)            :
          (
-                aF,
-                Pt2dr(aBoxIn._p0) *mResol,
-                Pt2dr(mResol,mResol)
+              (mResol < 1)                   ?
+              StdFoncChScale_Bilin(aF,aTrR,aPSc)   :
+              StdFoncChScale(aF,aTrR,aPSc) 
          );
+/*
+aF = StdFoncChScale(aF,aTrR,aPSc);
+aF = Max(0,aF);
+*/
 
     mOctaves[0]->FirstImage()->LoadFile(aF,aBoxIn);
     // mVIms[0]->LoadFile(*mTifF,aBox);
@@ -298,6 +332,7 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
     {
         std::cout << "Time,  load : " << aTLoad << " ; Pyram : " << aTPyram << "\n";
     }
+
 }
 
 void cImDigeo::DoExtract()
