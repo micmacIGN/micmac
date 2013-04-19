@@ -130,7 +130,7 @@ endif()
 
 CONFIGURE_FILE (
   "include/general/MM_InstalDir.h.in"
-  "${PROJECT_BINARY_DIR}/include/general/MM_InstalDir.h"
+  "${CMAKE_SOURCE_DIR}/include/general/MM_InstalDir.h"
   )
 
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
@@ -305,6 +305,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
 
 # DEFINITION : du dossier d'installation
 set(Install_Dir ${PROJECT_SOURCE_DIR}/bin)
+set(Install_Dir_lib ${PROJECT_SOURCE_DIR}/lib)
 
 # DEFINITION : du dossier des sources d'Elise
 set(ELISE_DIR src)
