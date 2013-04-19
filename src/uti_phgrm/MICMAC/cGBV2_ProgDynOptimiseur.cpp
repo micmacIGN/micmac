@@ -595,23 +595,25 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
 
     uint    profondeur = 32;
 
-    uint3   dimStream = make_uint3(profondeur,mSz.y,mSz.x);
+    uint3   dimStream = make_uint3(profondeur,mSz.x,mSz.y);
 
     CuHostData3D<uint>      streamCostVolume(dimStream);
-    CuHostData3D<short2>    index(make_uint2(mSz.y,mSz.x),1);
+    CuHostData3D<short2>    index(make_uint2(mSz.x,mSz.y),1);
     CuHostData3D<uint>      hOutputValue_AV(dimStream);
     CuHostData3D<uint>      hOutputValue_AR(dimStream);
 
-    streamCostVolume.Fill(10123);
+    streamCostVolume.Fill(10124);
+    uint line = 0, x = 0;
 
-    uint x = 0;
     while ((aVPt = mLMR.Next()))
     {   
         int  idStream = 0;
 
-        uint Pit      = x * dimStream.y * profondeur ;
+        uint Pit        = x * dimStream.y * profondeur ;
+        uint lenghtLine = int(aVPt->size());
 
-        for (int aK = 0 ; aK < int(aVPt->size()) ; aK++)
+        //printf("lenghtLine = %d\n",lenghtLine);
+        for (uint aK = 0 ; aK < lenghtLine; aK++)
         {
             // Matrice des cellules
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
@@ -624,6 +626,7 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
             //index[make_uint2(aK,x)] = make_short2(aBox._p0.x,aBox._p1.x);
             index[make_uint2(aK,x)] = Z;
 
+
             //for (aP.x = aBox._p0.x ; aP.x < aBox._p1.x ; aP.x++)
             for (aP.x = Z.x ; aP.x < Z.y ; aP.x++)
             {
@@ -635,15 +638,13 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
         x++;
     }
 
-    int line = 40;
+    index.OutputValues(0,XY,Rect(0,line,mSz.x,line+1),0,make_short2(0,0));
 
-//    index.OutputValues(0,XY,Rect(0,line,mSz.y,line+1),0,make_short2(0,0));
+    streamCostVolume.OutputValues(line);
 
-//    streamCostVolume.OutputValues(line);
+    OptimisationOneDirection(streamCostVolume,index,make_uint3(mSz.y,mSz.x,profondeur),hOutputValue_AV,hOutputValue_AR);
 
-    OptimisationOneDirection(streamCostVolume,index,make_uint3(mSz.x,mSz.y,profondeur),hOutputValue_AV,hOutputValue_AR);
-
-//    hOutputValue_AV.OutputValues();
+    //hOutputValue_AV.OutputValues(line);
 
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
     x = 0;
