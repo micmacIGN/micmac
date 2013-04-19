@@ -487,6 +487,7 @@ int TestCam_main(int argc,char ** argv);
 int ScaleNuage_main(int argc,char ** argv);
 int Gri2Bin_main(int argc,char ** argv);
 int XYZ2Im_main(int argc,char ** argv);
+int Im2XYZ_main(int argc,char ** argv);
 
 int MMPyram_main(int argc,char ** argv);
 int CreateEpip_main(int argc,char ** argv);
