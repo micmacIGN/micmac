@@ -46,47 +46,77 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-int XYZ2Im_main(int argc,char ** argv)
+int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
 {
     MMD_InitArgcArgv(argc,argv,2);
 
-    std::string  aNC,aFilePtsIn,aFilePtsOut;
-
+    std::string  aFullNC,aFilePtsIn,aFilePtsOut;
+    std::string XYZ = "X,Y,Z";
+    std::string IJ = "I,J";
 
     ElInitArgMain
     (
            argc,argv,
-           LArgMain()  <<  EAMC(aNC,"Nuage or Cam")
-                      << EAMC(aFilePtsIn,"File In : X,Y,Z ") 
-                      << EAMC(aFilePtsOut,"Out File : I,J"),
+           LArgMain()  <<  EAMC(aFullNC,"Nuage or Cam")
+                      << EAMC(aFilePtsIn,"File In : " + (Ter2Im ? XYZ : IJ))
+                      << EAMC(aFilePtsOut,"Out File : " + (Ter2Im ? IJ : XYZ)),
            LArgMain() 
     );
 
+    std::string aDir,aNC;
 
-    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+    SplitDirAndFile(aDir,aNC,aFullNC);
+
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     cResulMSO aRMso =  anICNM->MakeStdOrient(aNC,false);
-
 
 
     cElNuage3DMaille *  aNuage = aRMso.Nuage();
     ElCamera         * aCam    = aRMso.Cam();
-
+    if (! Ter2Im)
+    {
+        if (aNuage)
+        {
+            std::cout  << "For name " << aFullNC << "\n";
+            ELISE_ASSERT(aNuage!=0,"Is not a MicMac Cloud -XML specif");
+        }
+    }
 
     ELISE_fp aFIn(aFilePtsIn.c_str(),ELISE_fp::READ);
     FILE *  aFOut = FopenNN(aFilePtsOut.c_str(),"w","XYZ2Im");
 
     char * aLine;
+
     while ((aLine = aFIn.std_fgets()))
     {
-         Pt3dr aP;
-         int aNb = sscanf(aLine,"%lf %lf %lf",&aP.x,&aP.y,&aP.z);
-         ELISE_ASSERT(aNb==3,"Could not read 3 double values");
+        if (Ter2Im)
+        {
+            Pt3dr aP;
+            int aNb = sscanf(aLine,"%lf %lf %lf",&aP.x,&aP.y,&aP.z);
+            ELISE_ASSERT(aNb==3,"Could not read 3 double values");
          
-         Pt2dr aPIm;
-         if (aNuage) aPIm = aNuage->Terrain2Index(aP);
-         if (aCam)   aPIm = aCam->R3toF2(aP);
+            Pt2dr aPIm;
+            if (aNuage) aPIm = aNuage->Terrain2Index(aP);
+            if (aCam)   aPIm = aCam->R3toF2(aP);
  
-        fprintf(aFOut,"%lf %lf\n",aPIm.x,aPIm.y);
+            fprintf(aFOut,"%lf %lf\n",aPIm.x,aPIm.y);
+        }
+        else
+        {
+            Pt2dr aPIm;
+            int aNb = sscanf(aLine,"%lf %lf",&aPIm.x,&aPIm.y);
+            ELISE_ASSERT(aNb=2,"Could not read 2 double values");
+
+            if (aNuage->CaptHasData(aPIm))
+            {
+               Pt3dr aP  = aNuage->PreciseCapteur2Terrain(aPIm);
+               fprintf(aFOut,"%lf %lf %f\n",aP.x,aP.y,aP.z);
+            }
+            else
+            {
+                std::cout << "Warn :: " << aPIm << " has no data in cloud\n";
+            }
+        }
      }
 
 
@@ -97,7 +127,15 @@ int XYZ2Im_main(int argc,char ** argv)
 }
 
 
+int XYZ2Im_main(int argc,char ** argv)
+{
+    return TransfoCam_main(argc,argv,true);
+}
 
+int Im2XYZ_main(int argc,char ** argv)
+{
+    return TransfoCam_main(argc,argv,false);
+}
 /*
 int main(int argc,char ** argv)
 {
