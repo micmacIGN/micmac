@@ -81,3 +81,5 @@ CMakeLists.txt.user.0e5f98c
 include/GpGpu/GpGpuDefines.h
 src/uti_phgrm/MICMAC/<
 CMakeLists.txt.orig
+.hgignore.orig
+include/general/MM_InstalDir.h
