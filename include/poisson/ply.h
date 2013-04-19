@@ -46,6 +46,7 @@ extern "C" {
 #include <stdio.h>
 #include <stddef.h>
 #include <string.h>
+#include <string>
     
 #define PLY_ASCII         1      /* ascii PLY file */
 #define PLY_BINARY_BE     2      /* binary PLY file, big endian */
@@ -100,7 +101,7 @@ typedef struct sFace
 
 typedef struct PlyProperty {    /* description of a property */
 	
-	char *name;							  /* property name */
+	string name;							  /* property name */
 	int external_type;                    /* file's data type */
 	int internal_type;                    /* program's data type */
 	int offset;                           /* offset bytes of prop in a struct */
@@ -202,13 +203,13 @@ extern char *my_alloc();
 
 /*** delcaration of routines ***/
 
-extern PlyFile *ply_write(FILE *, int, char **, int);
-extern PlyFile *ply_open_for_writing(char *, int, char **, int, float *);
+extern PlyFile *ply_write(FILE *, int, string *, int);
+extern PlyFile *ply_open_for_writing(char *, int, string *, int, float *);
 extern void ply_describe_element(PlyFile *, char *, int, int, PlyProperty *);
-extern void ply_describe_property(PlyFile *, char *, PlyProperty *);
-extern void ply_element_count(PlyFile *, char *, int);
+extern void ply_describe_property(PlyFile *, const string &, PlyProperty *);
+extern void ply_element_count(PlyFile *, const string &, int);
 extern void ply_header_complete(PlyFile *);
-extern void ply_put_element_setup(PlyFile *, char *);
+extern void ply_put_element_setup(PlyFile *, const string &);
 extern void ply_put_element(PlyFile *, void *);
 extern void ply_put_comment(PlyFile *, char *);
 extern void ply_put_obj_info(PlyFile *, char *);

@@ -92,7 +92,7 @@ public:
 
 
     template <class T>
-    static void			OutputArray(T* data, uint3 dim, uint plan = XY, uint level = 0, Rect rect = NEGARECT, uint offset = 3, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
+    static void			OutputArray(T* data, uint3 dim, uint plan = XY, uint level = 0, Rect rect = NEGARECT, uint offset = 3, T defaut = (T)0.0f, float sample = 1.0f, float factor = 1.0f);
 
     ///	\brief			Sortie console d'un tableau de donnees host cuda
     ///  \param         data : tableau host cuda
@@ -103,7 +103,7 @@ public:
     ///  \param         factor : facteur multiplicatif
     ///  \return        renvoie un pointeur sur le tableau resultant
     template <class T>
-    static void			OutputArray(CuHostData3D<T> &data, uint Z = 0, uint offset = 3, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
+    static void			OutputArray(CuHostData3D<T> &data, uint Z = 0, uint offset = 3, T defaut = (T)0.0f, float sample = 1.0f, float factor = 1.0f);
 
     ///	\brief			Sortie console formater d'une valeur
     /// \param          value : valeur a afficher
@@ -111,7 +111,7 @@ public:
     ///  \param         defaut : valeur affichee par un caractere speciale
     ///  \param         factor : facteur multiplicatif
     template <class T>
-    static void			OutputValue(T value, uint offset = 3, float defaut = 0.0f, float factor = 1.0f);
+    static void			OutputValue(T value, uint offset = 3, T defaut = (T)0.0f, float factor = 1.0f);
 
     ///	\brief			Retour chariot
     static void			OutputReturn(char * out = "");
@@ -141,7 +141,7 @@ void GpGpuTools::Memcpy2Dto1D( T** dataImage2D, T* dataImage1D, uint2 dimDest, u
 }
 
 template <class T>
-void GpGpuTools::OutputValue( T value, uint offset, float defaut, float factor)
+void GpGpuTools::OutputValue( T value, uint offset, T defaut, float factor)
 {
 #ifndef DISPLAYOUTPUT
     return;
@@ -199,6 +199,11 @@ void GpGpuTools::OutputValue( T value, uint offset, float defaut, float factor)
 
 }
 
+template<> inline void GpGpuTools::OutputValue( short2 value, uint offset, short2 defaut, float factor)
+{
+    std::cout << "[" << value.x << "," << value.y << "]";
+}
+
 template <class T>
 T GpGpuTools::GetArrayValue(T* data, uint3 pt, uint3 dim)
 {
@@ -207,7 +212,7 @@ T GpGpuTools::GetArrayValue(T* data, uint3 pt, uint3 dim)
 
 
 template <class T>
-void GpGpuTools::OutputArray(T* data, uint3 dim, uint plan, uint level, Rect rect, uint offset, float defaut, float sample, float factor )
+void GpGpuTools::OutputArray(T* data, uint3 dim, uint plan, uint level, Rect rect, uint offset, T defaut, float sample, float factor )
 {
 #ifndef DISPLAYOUTPUT
     return;
@@ -813,7 +818,7 @@ public:
     void FillRandom(T min, T max);
 
     /// \brief Affiche un Z du tableau dans la console
-    void OutputValues(uint level = 0, uint plan = XY, Rect rect = NEGARECT, uint offset = 3, float defaut = 0.0f, float sample = 1.0f, float factor = 1.0f);
+    void OutputValues(uint level = 0, uint plan = XY, Rect rect = NEGARECT, uint offset = 3, T defaut = (T)0.0f, float sample = 1.0f, float factor = 1.0f);
 
 };
 
@@ -884,7 +889,7 @@ void CuHostData3D<T>::FillRandom(T min, T max)
 }
 
 template <class T>
-void CuHostData3D<T>::OutputValues(uint level, uint plan,  Rect rect, uint offset, float defaut, float sample, float factor)
+void CuHostData3D<T>::OutputValues(uint level, uint plan,  Rect rect, uint offset, T defaut, float sample, float factor)
 {
     GpGpuTools::OutputArray(CData3D<T>::pData(), CData3D<T>::GetDimension3D(), plan, level, rect, offset, defaut, sample, factor);
 }

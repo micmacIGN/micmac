@@ -28,13 +28,6 @@ DAMAGE.
 
 #include "StdAfx.h"
 
-#ifdef NOWARNINGPOISSON
-	#ifndef ELISE_Darwin
-		#pragma GCC diagnostic push
-	#endif
-	#pragma GCC diagnostic warning "-w"
-#endif
-
 char* outputFile=NULL;
 int echoStdout=0;
 void DumpOutput( const char* format , ... )
@@ -346,7 +339,7 @@ int Execute( int argc , char* argv[] )
 				{
 					pt = mesh.oocPoints[polygon[j].idx];
 				}
-#ifndef NOWARNINGPOISSON
+#ifdef USE_OPEN_MP
 				#pragma omp parallel for num_threads( Threads.value )
 #endif
 				for (int k=0; k < nbPts; k++)
@@ -383,7 +376,7 @@ int Execute( int argc , char* argv[] )
 //int Poisson_main( int argc , char* argv[] )
 int Poisson_main( int argc , char** argv )
 {
-	double t = PTime();
+	//double t = PTime();
 	Execute< 2 >( argc , argv );
 
 /* TODO: need OMP
@@ -400,9 +393,3 @@ int Poisson_main( int argc , char** argv )
 
 	return EXIT_SUCCESS;
 }
-
-#ifdef NOWARNINGPOISSON
-	#ifndef ELISE_Darwin
-		#pragma GCC diagnostic pop
-	#endif
-#endif

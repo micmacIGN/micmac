@@ -593,72 +593,99 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
 
 #ifdef CUDA_ENABLED
 
-    CuHostData3D<int>       costVolume(make_uint2(256*mSz.y,mSz.x),1);
-    CuHostData3D<short2>    index(make_uint2(mSz.y,mSz.x),1);
+    uint    profondeur = 32;
 
-    int x = 0;
+    uint3   dimStream = make_uint3(profondeur,mSz.y,mSz.x);
+
+    CuHostData3D<uint>      streamCostVolume(dimStream);
+    CuHostData3D<short2>    index(make_uint2(mSz.y,mSz.x),1);
+    CuHostData3D<uint>      hOutputValue_AV(dimStream);
+    CuHostData3D<uint>      hOutputValue_AR(dimStream);
+
+    streamCostVolume.Fill(10123);
+
+    uint x = 0;
     while ((aVPt = mLMR.Next()))
-    {
-        int idStream = 0;
-        for (int aK=0 ; aK<int(aVPt->size()) ; aK++)
+    {   
+        int  idStream = 0;
+
+        uint Pit      = x * dimStream.y * profondeur ;
+
+        for (int aK = 0 ; aK < int(aVPt->size()) ; aK++)
         {
             // Matrice des cellules
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
             const Box2di &  aBox = aMat.Box();
+
             Pt2di aP;
 
-            index[make_uint2(aK,x)] = make_short2(aBox._p0.x,aBox._p0.y);
+            short2 Z = make_short2(max(-15,aBox._p0.x),min(16,aBox._p1.x));
 
-            for (aP.x = aBox._p0.x ; aP.x<aBox._p1.x ; aP.x++)
+            //index[make_uint2(aK,x)] = make_short2(aBox._p0.x,aBox._p1.x);
+            index[make_uint2(aK,x)] = Z;
+
+            //for (aP.x = aBox._p0.x ; aP.x < aBox._p1.x ; aP.x++)
+            for (aP.x = Z.x ; aP.x < Z.y ; aP.x++)
             {
-                uint2 Pt        = make_uint2(idStream,x);
-                costVolume[Pt]  = aMat[aP].GetCostInit();
+                streamCostVolume[Pit + idStream]  = aMat[aP].GetCostInit();
                 idStream++;
             }
-        }
 
+        }
         x++;
     }
 
-    OptimisationOneDirection(costVolume,index,make_uint3(mSz.x,mSz.y,256));
+    int line = 40;
+
+//    index.OutputValues(0,XY,Rect(0,line,mSz.y,line+1),0,make_short2(0,0));
+
+//    streamCostVolume.OutputValues(line);
+
+    OptimisationOneDirection(streamCostVolume,index,make_uint3(mSz.x,mSz.y,profondeur),hOutputValue_AV,hOutputValue_AR);
+
+//    hOutputValue_AV.OutputValues();
 
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
     x = 0;
     while ((aVPt = mLMR.Next()))
     {
         // on parcours la ligne
-        for (int aK=0 ; aK<int(aVPt->size()) ; aK++)
+
+        int lenghtLine = int(aVPt->size());
+
+        for (int aK=0 ; aK < lenghtLine ; aK++)
         {
-            // Matrice des cellules
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
-            // rectancle
             const Box2di &  aBox = aMat.Box();
             Pt2di aP;
-            // Cout infini
             tCost aCoutMin = tCost(1e9);
-
-            //recherche du cout minimum dans le le rectangle
-            int idStream = 0;
 
             for (aP.x = aBox._p0.x ; aP.x<aBox._p1.x ; aP.x++)
             {
-//                uint2 Pt = make_uint2(idStream,x);
-//                int costInit =  aMat[aP].GetCostInit();
+                uint3   Pt_AV       = make_uint3( aP.x, aK,                  x);
+                uint3   Pt_AR       = make_uint3( aP.x, lenghtLine - aK - 1, x);
+                int     costInit    = aMat[aP].GetCostInit();
 
-                ElSetMin(aCoutMin,aMat[aP].CostPassageForce());
-
-                idStream++;
+                ElSetMin(aCoutMin,hOutputValue_AV[Pt_AV] + hOutputValue_AR[Pt_AR] - costInit);
             }
 
             for (aP.x = aBox._p0.x ; aP.x<aBox._p1.x ; aP.x++)
             {
-                tCost  aNewCost = aMat[aP].CostPassageForce()-aCoutMin;
-                tCost & aCF = aMat[aP].CostFinal();
-                aCF += aNewCost;
+                uint3   Pt_AV       = make_uint3( aP.x, aK,                  x);
+                uint3   Pt_AR       = make_uint3( aP.x, lenghtLine - aK - 1, x);
+                int     costInit    = aMat[aP].GetCostInit();
+                tCost   aNewCost    = hOutputValue_AV[Pt_AV] + hOutputValue_AR[Pt_AR] - costInit - aCoutMin;
+                tCost & aCF         = aMat[aP].CostFinal();
+                aCF                 += aNewCost;
             }
         }
         x++;
     }
+
+    streamCostVolume.Dealloc();
+    index.Dealloc();
+    hOutputValue_AV.Dealloc();
+    hOutputValue_AR.Dealloc();
 
 #else
     //printf("Optimisation CPU\n");

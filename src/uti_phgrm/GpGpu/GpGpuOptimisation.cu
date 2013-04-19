@@ -30,11 +30,18 @@ __device__ void ComputeIntervaleDelta(short2 & aDz, int aZ, int MaxDeltaZ, short
 
 template<class T> __device__ void ScanOneSens(CDeviceDataStream<T> &costStream, bool sens, uint lenghtLine, T pData[][NAPPEMAX], bool& idBuffer, T* gData, ushort penteMax)
 {
-    const ushort    tid     =   threadIdx.x;
+    const ushort    tid     = threadIdx.x;
+    short2          uZ_Prev = costStream.read(pData[idBuffer],tid, sens,0);
+    short           z       = uZ_Prev.x;
 
-    short2 uZ_Prev = costStream.read(pData[idBuffer],tid, sens,0);
+    while( z < uZ_Prev.y )
+    {
+        int Z       = z + tid - uZ_Prev.x;
+        gData[Z]    = pData[idBuffer][Z];
+        z          += min(uZ_Prev.y - z,WARPSIZE);
+    }
 
-    for(int idCurLine = 1; idCurLine < lenghtLine;idCurLine++)
+    for(int idParLine = 1; idParLine < lenghtLine;idParLine++)
     {
         const short2 uZ_Next = costStream.read(pData[2],tid,sens,0);
 
@@ -48,12 +55,13 @@ template<class T> __device__ void ScanOneSens(CDeviceDataStream<T> &costStream, 
             if( Z < uZ_Next.y)
             {
                 ComputeIntervaleDelta(aDz,Z,penteMax,uZ_Next,uZ_Prev);
-                int costMin = 1e9;
-                for(int i = aDz.x ; i < aDz.y; i++)
-                    costMin = min(costMin, pData[2][Z - uZ_Next.x] + pData[idBuffer][Z - uZ_Prev.x+ i]);
+                T costMin = 1e9;
+
+                for(short i = aDz.x ; i < aDz.y; i++)
+                    costMin = min(costMin, pData[2][Z - uZ_Next.x] + pData[idBuffer][Z - uZ_Prev.x + i]);
 
                 pData[!idBuffer][Z - uZ_Next.x] = costMin;
-                gData[costStream.getStartIndex() + idCurLine * WARPSIZE + Z - uZ_Next.x] = costMin;
+                gData[idParLine * 32 + Z - uZ_Next.x] = costMin;
             }
 
             z += min(uZ_Next.y - z,WARPSIZE);
@@ -62,7 +70,6 @@ template<class T> __device__ void ScanOneSens(CDeviceDataStream<T> &costStream, 
         idBuffer = !idBuffer;
         uZ_Prev = uZ_Next;
     }
-
 }
 
 template<class T> __global__ void kernelOptiOneDirection(T* gStream, short2* gStreamId, T* g_odata_AV,T* g_odata_AR, uint3 dimBlockTer, uint penteMax)
@@ -75,14 +82,15 @@ template<class T> __global__ void kernelOptiOneDirection(T* gStream, short2* gSt
     const int       pitStr  =   pit * dimBlockTer.z;
     bool            idBuf   =   false;
 
-    CDeviceDataStream<T> costStream(bufferData, gStream,bufferIndex, gStreamId + pit,pitStr);
+    CDeviceDataStream<T> costStream(bufferData, gStream,bufferIndex, gStreamId + pit, pitStr);
 
-    ScanOneSens<T>(costStream,eAVANT,dimBlockTer.y, pdata,idBuf,g_odata_AV,penteMax);
-    ScanOneSens<T>(costStream,eARRIERE,dimBlockTer.y, pdata,idBuf,g_odata_AR,penteMax);
+    ScanOneSens<T>(costStream,eAVANT,   dimBlockTer.y, pdata,idBuf,g_odata_AV + pitStr,penteMax);
+    ScanOneSens<T>(costStream,eARRIERE, dimBlockTer.y, pdata,idBuf,g_odata_AR + pitStr,penteMax);
+
 }
 
 /// \brief Lance le kernel d optimisation pour une direction
-template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputStream, CuHostData3D<short2> &hInputindex, uint3 dimVolCost)
+template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputStream, CuHostData3D<short2> &hInputindex, uint3 dimVolCost, CuHostData3D<T> &H_AV, CuHostData3D<T> &H_AR)
 {
 
     int     nBLine      =   dimVolCost.x;
@@ -102,80 +110,74 @@ template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputStrea
 
     //---------------------- Copie des penalites dans le device ---------------------------------------
 
-    checkCudaErrors(cudaMemcpyToSymbol(penalite,    hPen,       sizeof(float)*PENALITE));
-    checkCudaErrors(cudaMemcpyToSymbol(dMapIndex,   hMapIndex,  sizeof(ushort)*WARPSIZE));
+    checkCudaErrors(cudaMemcpyToSymbol(penalite,    hPen,       sizeof(float)   * PENALITE));
+    checkCudaErrors(cudaMemcpyToSymbol(dMapIndex,   hMapIndex,  sizeof(ushort)  * WARPSIZE));
 
     //-------------------------------------------------------------------------------------------------
 
-    uint2   sizeInput   =   make_uint2(dimVolCost.x * dimVolCost.z,dimVolCost.y);
-    uint2   sizeIndex   =   make_uint2(dimVolCost.y,dimVolCost.x);
-
-    //    ---------------------- Declaration des variables Host ---------------------------------------
-
-    CuHostData3D<T>         hOutputValue_AV(sizeInput,1);
-    CuHostData3D<T>         hOutputValue_AR(sizeInput,1);
-    hOutputValue_AV.SetName("hOutputValue");
+    uint2   sizeInput   =   make_uint2(dimVolCost.z, dimVolCost.y);
+    uint2   sizeIndex   =   make_uint2(dimVolCost.y, dimVolCost.x);
 
     //---------------------- Variables Device ---------------------------------------------------------
 
-    CuDeviceData3D<T>       dInputStream(   sizeInput,  1, "dInputStream");
-    CuDeviceData3D<short2>  dInputIndex (   sizeIndex,  1, "dInputIndex");
-    CuDeviceData3D<T>       dOutputData_AV( sizeInput,  1, "dOutputData");
-    CuDeviceData3D<T>       dOutputData_AR( sizeInput,  1, "dOutputData");
-
+    CuDeviceData3D<T>       dInputStream    ( sizeInput,  dimVolCost.x, "dInputStream"  );
+    CuDeviceData3D<short2>  dInputIndex     ( sizeIndex,  1,            "dInputIndex"   );
+    CuDeviceData3D<T>       dOutputData_AV  ( sizeInput,  dimVolCost.x, "dOutputData_AV");
+    CuDeviceData3D<T>       dOutputData_AR  ( sizeInput,  dimVolCost.x, "dOutputData_AR");
 
     //  ------------------- Initialisation des Variables Device, est-il necessaire---------------------
 
-    dOutputData_AV.Memset(0);
+    //dOutputData_AV.Memset(0);
 
     //  ------------------- Copie du volume de couts dans le device  ----------------------------------
 
     dInputStream.CopyHostToDevice(  hInputStream.pData());
-    dInputIndex.CopyHostToDevice(   hInputindex.pData());
+    dInputIndex .CopyHostToDevice(  hInputindex .pData());
 
     //-------------------------------------------------------------------------------------------------
 
     kernelOptiOneDirection<T><<<Blocks,Threads>>>
                                                 (
-                                                    dInputStream.pData(),
-                                                    dInputIndex.pData(),
-                                                    dOutputData_AV.pData(),
-                                                    dOutputData_AR.pData(),
-                                                    dimVolCost,deltaMax
-                                                );
+                                                    dInputStream    .pData(),
+                                                    dInputIndex     .pData(),
+                                                    dOutputData_AV  .pData(),
+                                                    dOutputData_AR  .pData(),
+                                                    dimVolCost,
+                                                    deltaMax
+                                                    );
 
     getLastCudaError("kernelOptiOneDirection failed");
 
     //-------------------------------------------------------------------------------------------------
 
-    dOutputData_AV.CopyDevicetoHost(hOutputValue_AV.pData());
-    dOutputData_AR.CopyDevicetoHost(hOutputValue_AR.pData());
+    dOutputData_AV.CopyDevicetoHost(H_AV.pData());
+    dOutputData_AR.CopyDevicetoHost(H_AR.pData());
 
-    dOutputData_AV.Dealloc();
-    dOutputData_AR.Dealloc();
-    dInputStream.Dealloc();
-    dInputIndex.Dealloc();
+    dOutputData_AV  .Dealloc();
+    dOutputData_AR  .Dealloc();
+    dInputStream    .Dealloc();
+    dInputIndex     .Dealloc();
 
-    hOutputValue_AV.Dealloc();
-    hOutputValue_AR.Dealloc();
 }
 
 /// \brief Appel exterieur du kernel d optimisation
-extern "C" void OptimisationOneDirection(CuHostData3D<int> &data,CuHostData3D<short2> &index, uint3 dimVolCost)
+extern "C" void OptimisationOneDirection(CuHostData3D<uint> &data,CuHostData3D<short2> &index, uint3 dimVolCost, CuHostData3D<uint> & H_AV, CuHostData3D<uint> &H_AR)
 {
-    LaunchKernelOptOneDirection(data,index,dimVolCost);
+    LaunchKernelOptOneDirection(data,index,dimVolCost, H_AV, H_AR);
 }
 
 /// \brief Appel exterieur du kernel
 extern "C" void Launch()
 {
-    uint3 dimVolCost  = make_uint3(256,256,32);
+    uint3 dimVolCost  = make_uint3(80,20,32);
 
-    CuHostData3D<int>       streamCost(make_uint2(dimVolCost.x * dimVolCost.z,dimVolCost.y));
-    CuHostData3D<short2>    streamIndex(make_uint2(dimVolCost.y,dimVolCost.x));
+    CuHostData3D<uint>      streamCost  ( make_uint3( dimVolCost.z, dimVolCost.y, dimVolCost.x) );
+    CuHostData3D<uint>      H_AV        ( make_uint3( dimVolCost.z, dimVolCost.y, dimVolCost.x) );
+    CuHostData3D<uint>      H_AR        ( make_uint3( dimVolCost.z, dimVolCost.y, dimVolCost.x) );
+    CuHostData3D<short2>    streamIndex ( make_uint2( dimVolCost.y, dimVolCost.x ));
 
-    streamCost.SetName("streamCost");
-    streamIndex.SetName("streamIndex");
+    streamCost  .SetName("streamCost");
+    streamIndex .SetName("streamIndex");
 
     uint si = 0 , sizeStreamCost = 0;
 
@@ -183,9 +185,10 @@ extern "C" void Launch()
 
     for(int i = 0 ; i < dimVolCost.x ; i++)
     {
-        int pit         = i * dimVolCost.y;
-        int pitLine     = pit * dimVolCost.z;
-
+        int pit         = i     * dimVolCost.y;
+        int pitLine     = pit   * dimVolCost.z;
+        si = 0;
+        sizeStreamCost = 0;
         while (si < dimVolCost.y){
 
             int min                         =  -CData<int>::GetRandomValue(5,16);
@@ -194,15 +197,18 @@ extern "C" void Launch()
             streamIndex[pit + si]           =   make_short2(min,max);
 
             for(int i = 0 ; i < dim; i++)
-                streamCost[pitLine + sizeStreamCost+i] =  CData<int>::GetRandomValue(16,128);
+                streamCost[pitLine + sizeStreamCost + i] =  CData<uint>::GetRandomValue(16,128);
 
             si++;
             sizeStreamCost += dim;
 
         }
     }
-    //streamCost.OutputValues();
-    LaunchKernelOptOneDirection(streamCost,streamIndex,dimVolCost);
+
+    streamCost.OutputValues(20);
+
+    LaunchKernelOptOneDirection(streamCost,streamIndex,dimVolCost,H_AV,H_AR);
+    H_AV.OutputValues(20);
 
     streamCost.Dealloc();
     streamIndex.Dealloc();
