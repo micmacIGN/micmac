@@ -197,11 +197,8 @@ inline void Siftator::write_SiftPoint_binary_legacy( std::ostream &output, const
 	float_value = (float)p.angle; output.write( (char*)&float_value, sizeof( float ) );
 	static unsigned char uchar_desc[m_descriptorSize];
 	int i=m_descriptorSize; const Real_ *itReal=p.descriptor; unsigned char *it_uchar=uchar_desc;
-	while (i--){
-		// __DEL
-		if ( 512*(*itReal)>255 ) std::cout << "crap: " << 512*(*itReal) << std::endl;
+	while (i--)
 		(*it_uchar++)=(unsigned char)( 512*(*itReal++) );
-	}
     output.write( (char*)uchar_desc, m_descriptorSize );
 }
 
