@@ -73,10 +73,8 @@ cTplOctDig<Type>::cTplOctDig
 ) :
    cOctaveDigeo (aTel,aIm,aNiv,aSzMax),
    mOctUp       (anOctUp),
-   mCube        (0),
-   mImBase      (NULL)
+   mCube        (0)
 {
-	mImBase = new cTplImInMem<Type>(mIm,mSzMax,mType,*this,0,-1,-1);
 }
    
 template <class Type>   cTplOctDig<Type>* cTplOctDig<Type>::OctUp() {return mOctUp;}
@@ -173,12 +171,8 @@ cTplImInMem<Type> * cTplOctDig<Type>::AllocTypedIm(double aResolOctaveBase,int a
   {
      aRes->SetMereSameDZ(mVTplIms.back());
   }
-  else
-  {
-     aRes->SetMereSameDZ(mImBase);
-  }
 
-  aRes->SetOrigOct(mImBase);
+  // aRes->SetOrigOct(mImBase);
   mVTplIms.push_back(aRes);
   mVIms.push_back(aRes);
 

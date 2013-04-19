@@ -40,6 +40,113 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Digeo.h"
 
 
+/****************************************/
+/*                                      */
+/*           cConvolSpec                */
+/*                                      */
+/****************************************/
+
+template <class Type> class cSomFiltreSep :
+                                   public Simple_OPBuf1<Type,Type>
+{
+    public :
+        cSomFiltreSep( cConvolSpec<Type> * );
+
+    private :
+       void  calc_buf (Type  ** output,Type  *** input);
+
+        
+        void ConvolLine(int y);
+
+        cConvolSpec<Type> * mConvol;
+        ~cSomFiltreSep();
+        int                 mDeb;
+        int                 mFin;
+        Type  **            mLineFiltered;
+        Type  **            mInPut;
+
+        Simple_OPBuf1<Type,Type> * dup_comp();
+};
+
+template <class Type> cSomFiltreSep<Type>::cSomFiltreSep(cConvolSpec<Type> * aCS ):
+    mConvol  (aCS),
+    mDeb     (aCS->Deb()),
+    mFin     (aCS->Fin()),
+    mLineFiltered (0),
+    mInPut          (0)
+{
+    
+}
+
+template <class Type> cSomFiltreSep<Type>::~cSomFiltreSep()
+{
+   if (mLineFiltered)
+   {
+       DELETE_MATRICE(mLineFiltered,Pt2di(this->x0Buf(),this->y0Buf()),Pt2di(this->x1Buf(),this->y0Buf()));
+   }
+}
+
+template <class Type> Simple_OPBuf1<Type,Type> * cSomFiltreSep<Type>::dup_comp()
+{
+   cSomFiltreSep<Type> * aRes = new cSomFiltreSep<Type>(mConvol);
+
+   aRes->mLineFiltered =  NEW_MATRICE(Pt2di(this->x0Buf(),this->y0Buf()),Pt2di(this->x1Buf(),this->y0Buf()),Type);
+
+   return aRes;
+}
+
+template <class Type> void cSomFiltreSep<Type>::ConvolLine(int y)
+{
+   mConvol->Convol(mLineFiltered[y],mInPut[y],this->x0(),this->x1());
+}
+
+template <class Type> void cSomFiltreSep<Type>::calc_buf (Type  ** output,Type  *** AllInput)
+{
+   mInPut = AllInput[0];
+
+
+   if (this->first_line())
+   {
+      for (INT y=this->y0Buf(); y<this->y1Buf()-1 ; y++)
+           ConvolLine(y);
+   }
+   ConvolLine(this->y1Buf()-1);
+
+
+  
+  mConvol->ConvolCol(output[0],mLineFiltered,this->x0(),this->x1(),0);
+/*
+*/
+   rotate_plus_data(mLineFiltered,mDeb,mFin);
+}
+
+
+
+Fonc_Num LinearSepFilter
+         (
+             Fonc_Num                aFonc,
+             cConvolSpec<INT> *    aFiltrI,
+             cConvolSpec<double> * aFiltrD,
+             bool                  DelKer = false
+         )
+{
+  ELISE_ASSERT(aFiltrI->Sym() && aFiltrD->Sym(),"LinearSepFilter handle only symetric filter");
+
+  int aD = aFiltrI->Fin();
+  
+  ELISE_ASSERT(aFiltrD->Fin() == aD,"Incoh INT/DOUBLE in LinearSepFilter");
+
+  return create_op_buf_simple_tpl
+            (
+                new cSomFiltreSep<INT>(aFiltrI),
+                new cSomFiltreSep<double>(aFiltrD),
+                aFonc,
+                1,
+                Box2di(aD)
+            );
+
+}
+
 
 /****************************************/
 /*                                      */
@@ -148,6 +255,40 @@ inline void SelfShift(INT & aV,const int & aShft)
    aV >>= aShft;
 }
 
+template <class Type>
+          void cConvolSpec<Type>::ConvolCol(Type * Out,Type **In,int aX0,int aX1,int anYIn)
+{
+    Type aV0 = mDataCoeff[0];
+    Type * aL0 = In[anYIn];
+    for (int anX = aX0; anX<aX1 ; anX++)
+    {
+          Out[anX] = aL0[anX] * aV0;
+    }
+
+    for (int aDY= (mSym?1:mDeb)  ; aDY<mFin ; aDY++)
+    {
+        if (aDY)
+        {
+            Type *aLP = In[anYIn+aDY];
+            Type  aVP = mDataCoeff[aDY];
+            if (mSym)
+            {
+                Type *aLM = In[anYIn-aDY];
+                for (int anX = aX0; anX<aX1 ; anX++)
+                {
+                   Out[anX] += aVP * (aLP[anX] + aLM[anX]) ;
+                }
+            }
+            else
+            {
+                for (int anX = aX0; anX<aX1 ; anX++)
+                {
+                   Out[anX] += aVP * aLP[anX];
+                }
+            }
+        }
+    }
+}
 
 
 template <class Type>
@@ -181,6 +322,14 @@ void cConvolSpec<Type>::Convol(Type * Out,Type * In,int aK0,int aK1)
       }
    }
 }
+
+
+
+template <class Type> int cConvolSpec<Type>::Deb() const {return mDeb;}
+template <class Type> int cConvolSpec<Type>::Fin() const {return mFin;}
+template <class Type> bool cConvolSpec<Type>::Sym() const {return mSym;}
+
+
 
 
 template <> std::vector<cConvolSpec<U_INT1> *>  cConvolSpec<U_INT1>::theVec(0);

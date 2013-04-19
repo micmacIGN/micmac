@@ -63,7 +63,7 @@ cTplImInMem<Type>::cTplImInMem
      mTIm (mIm),
      mTMere (0),
      mTFille (0),
-     mOrigOct (0),
+     // mOrigOct (0),
      mData   (0)
 {
     ResizeImage(aSz); 
@@ -200,10 +200,12 @@ template <class Type> Im2DGen cTplImInMem<Type>::Im()
    return TIm();
 }
 
+/*
 template <class Type>  void  cTplImInMem<Type>::SetOrigOct(cTplImInMem<Type> * anOrig)
 {
     mOrigOct = anOrig;
 }
+*/
 
 template <class Type>  void  cTplImInMem<Type>::SetMereSameDZ(cTplImInMem<Type> * aTMere)
 {
@@ -332,8 +334,11 @@ void cImInMem::SauvIm(const std::string & aAdd)
 
       Pt2di aSz = mOct.BoxImCalc().sz();
 
-      Tiff_Im aTF
+      bool isCreate;
+
+      Tiff_Im aTF = Tiff_Im::CreateIfNeeded
               (
+                  isCreate,
                   aName.c_str(),
                   aSz,
                   (aSP.Force8B().Val() ? GenIm::u_int1 : Im().TypeEl()),
@@ -341,6 +346,7 @@ void cImInMem::SauvIm(const std::string & aAdd)
                   Tiff_Im::BlackIsZero,
                   aLArgTiff
               );
+       // std::cout << "CREATE " << aName << " " << isCreate << "\n";
    }
    Tiff_Im aTF(aName.c_str());
 
