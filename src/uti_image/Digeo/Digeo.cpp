@@ -146,15 +146,76 @@ int Digeo_main(int argc,char ** argv)
    return 0;
 }
 
+//
+
+
+class cCreateArgcArgv
+{
+   public  :
+        void AddArg(const std::string & anArg);
+        int ArgC();
+        char** ArgV();
+   private :
+      std::vector<char *>         mVArgs;
+      std::vector<std::string *>  mVStr;
+};
+
+
+void cCreateArgcArgv::AddArg(const std::string & anArg)
+{
+    mVStr.push_back(new std::string(anArg));
+    mVArgs.push_back(const_cast<char *>(mVStr.back()->c_str()));
+}
+int cCreateArgcArgv::ArgC() {return mVArgs.size();}
+char** cCreateArgcArgv::ArgV() {return &(mVArgs[0]);}
 
 cAppliDigeo * DigeoCPP
               (
-                    const std::string &,
-                    double  
+                    const std::string & aFullNameIm,
+                    const cParamAppliDigeo  aParam
               )
 {
-   return 0;
+   AddEntryStringifie
+   (
+        "include/XML_GEN/ParamDigeo.xml",
+         theNameVar_ParamDigeo,
+         true
+   );
+
+   std::string aDir,aNameIm;
+   SplitDirAndFile(aDir,aNameIm,aFullNameIm);
+
+
+   cCreateArgcArgv aCAA;
+   aCAA.AddArg("Digeo");
+   aCAA.AddArg(Basic_XML_MM_File("Digeo-Test.xml"));
+   aCAA.AddArg("+Im1=" +aNameIm);
+   aCAA.AddArg("DirectoryChantier="+aDir);
+
+   aCAA.AddArg("+Sigma0="+ToString(aParam.mSigma0));
+   aCAA.AddArg("+Resol="+ToString(aParam.mResolInit));
+   aCAA.AddArg("+OctaveMax="+ToString(aParam.mOctaveMax));
+   aCAA.AddArg("+NbNivByOct="+ToString(aParam.mNivByOctave));
+   aCAA.AddArg("+ExigeCodeCompile="+ToString(aParam.mExigeCodeCompile));
+   aCAA.AddArg("+NivFloatIm="+ToString(aParam.mNivFloatIm));
+   aCAA.AddArg("+Sauv="+ToString(aParam.mSauvPyram));
+/*
+*/
+
+
+   cAppliDigeo * aRes = NewDigeo(aCAA.ArgC(),aCAA.ArgV(),aCAA.ArgV()[1],0,0,true);
+
+   aRes->AllocImages();
+   aRes->InitAllImage();
+   return aRes;
 }
+
+
+
+/*
+        bool     mExigeCodeCompile;
+        int      mNivFloatIm;        // Ne depend pas de la resolution
+*/
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

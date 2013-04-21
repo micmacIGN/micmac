@@ -36,142 +36,89 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-// #include "anag_all.h"
+
+#include "Digeo.h"
+
+
+static Video_Win aWTesD = Video_Win::WStd(Pt2di(100,100),1.0);
+
+template <class Type,class tBase> void Show_Octave(cTplOctDig<Type> * anOct)
+{
+  const std::vector<cTplImInMem<Type> *> &  aVIm = anOct->cTplOctDig<Type>::VTplIms();
+
+
+  for (int aK=0 ; aK<int(aVIm.size()) ; aK++)
+  {
+       cTplImInMem<Type> & anIm = *(aVIm[aK]);
+       Im2D<Type,tBase> aTIm = anIm.TIm() ;  // L'image qu'il faut manipuler
+       std::cout << "   #  Sz " << aTIm.sz() << " SInit:" <<  anIm.ScaleInit() << " SOct:" << anIm.ScaleInOct() ;
+
+       tBase aVMax;
+       ELISE_COPY(aTIm.all_pts(),aTIm.in(0),VMax(aVMax));
+       ELISE_COPY(aWTesD.all_pts(), aTIm.in(0) * (255.0/aVMax) ,aWTesD.ogray());
+       aWTesD.clik_in();
+
+       std::cout << "\n";
+
+       if ((aK>=1) && (aK<int(aVIm.size()-2)))
+       {
+       }
+  }
+
+}
+
+void TestDigeoExt()
+{
+    std::string aName = "/home/marc/TMP/Delphes/12-Tetes-Inc-4341-6/IMG_0057.CR2";
+    cParamAppliDigeo aParam;
+    aParam.mSauvPyram = true;
+
+    cAppliDigeo * anAD = DigeoCPP(aName,aParam);
+    cImDigeo &  anImD = anAD->SingleImage(); // Ici on ne mape qu'une seule image à la fois
+
+
+    std::cout << "Nb Box to do " << anAD->NbInterv() << "\n";
+    for (int aKBox = 0 ; aKBox<anAD->NbInterv() ; aKBox++)
+    {
+        anAD->LoadOneInterv(aKBox);  // Calcul et memorise la pyramide gaussienne
+        
+        if (aKBox==0)
+        {
+            const std::vector<cOctaveDigeo *> & aVOct = anImD.Octaves();
+            std::cout <<  "= Nombre Octaves " << aVOct.size() << "\n";
+            for (int aKo=0 ; aKo<int(aVOct.size()) ; aKo++)
+            {
+                 cOctaveDigeo & anOct = *(aVOct[aKo]);
+                 const std::vector<cImInMem *> & aVIms = anOct.VIms();
+                 std::cout << " *Oct=" << aKo << " Dz=" << anOct.Niv()  << " NbIm " << aVIms.size();
+
+                  cTplOctDig<U_INT2> * aUI2_Oct = anOct.U_Int2_This();  // entre aUI2_OctaUI2_Oct et  aR4_Oct
+                  cTplOctDig<REAL4> * aR4_Oct = anOct.REAL4_This();     // un et un seul doit etre != 0
+
+                 if (aUI2_Oct !=0) std::cout << " U_INT2 ";
+                 if (aR4_Oct !=0) std::cout << " REAL4 ";
+                 
+                 std::cout << "\n";
+                  
+                 if (aUI2_Oct !=0) 
+                    Show_Octave<U_INT2,INT>(aUI2_Oct);
+                 if (aR4_Oct !=0) 
+                    Show_Octave<REAL4,REAL8>(aR4_Oct);
+            }
+        }
+        std::cout << "Done " << aKBox << " on " << anAD->NbInterv() << "\n";
+    }
+}
+
+
+
+
 
 /*
-void f()
-{
-    FILE * aFP = ElFopen(MMC,"w");
-    ElFclose(aFP);
-}
-
+        bool     mExigeCodeCompile;
+        int      mNivFloatIm;        // Ne depend pas de la resolution
 */
 
-
-#include "StdAfx.h"
-
-#if (ELISE_X11)
-
-
-
-using namespace NS_ParamChantierPhotogram;
-
-#if (0)
-
-
-#endif
-
-
-
-
-
-
-Fonc_Num Correl(Fonc_Num aF1,Fonc_Num aF2,int aNb)
-{
-   Symb_FNum aM1 (Moy(aF1,aNb));
-   Symb_FNum aM2 (Moy(aF2,aNb));
-
-   Fonc_Num aEnct1 = Moy(Square(aF1),aNb) -Square(aM1);
-   Fonc_Num aEnct2 = Moy(Square(aF2),aNb) -Square(aM2);
-
-
-   return (Moy(aF1*aF2,aNb)  -aM1*aM2) / sqrt(Max(1e-5,aEnct1*aEnct2));
-}
-
-void AutoCorrel(const std::string & aName)
-{
-   Tiff_Im aTF(aName.c_str());
-   Pt2di aSz = aTF.sz();
-   Im2D_REAL4 anI(aSz.x,aSz.y);
-   ELISE_COPY(aTF.all_pts(),aTF.in(),anI.out());
-
-   int aNb = 2;
-
-   Fonc_Num aF = 1.0;
-   for (int aK=0 ; aK<4 ; aK++)
-   {
-      aF = Min(aF,Correl(anI.in(0),trans(anI.in(0),TAB_4_NEIGH[aK])*(aNb*2),aNb));
-   }
-  
-   Tiff_Im::Create8BFromFonc
-   (
-       StdPrefix(aName)+"_AutoCor.tif",
-       aSz,
-       Min(255,Max(0,(1+aF)*128))
-   );
-}
-
-
-Im2D_REAL4 Conv2Float(Im2DGen anI)
-{
-   Pt2di aSz = anI.sz();
-   Im2D_REAL4 aRes(aSz.x,aSz.y);
-   ELISE_COPY(anI.all_pts(),anI.in(),aRes.out());
-   return aRes;
-}
-
-
-
-
-void TestKL()
-{
-   Pt2di aSZ(200,200);
-   Im2D_Bits<1> aImMasqF(aSZ.x,aSZ.y,1);
-
-   Im2D_Bits<1> aImMasqDef(aSZ.x,aSZ.y,1);
-   ELISE_COPY(rectangle(Pt2di(70,0),Pt2di(130,200)),0,aImMasqDef.out());
-
-   Im2D<U_INT2,INT> aImVal(aSZ.x,aSZ.y);
-   ELISE_COPY(aImVal.all_pts(),FX,aImVal.out());
-
-   Video_Win aW=Video_Win::WStd(aSZ,3.0);
-   ELISE_COPY(aW.all_pts(),aImVal.in(),aW.ogray());
-   ELISE_COPY(aW.all_pts(),aImMasqDef.in(),aW.odisc());
-   getchar();
-
-
-   aImVal = ImpaintL2(aImMasqDef,aImMasqF,aImVal);
-
-   // NComplKLipsParLBas(aImMasqDef,aImMasqF,aImVal,1.0);
-
-   ELISE_COPY(aW.all_pts(),aImVal.in(),aW.ogray());
-
-   Tiff_Im::Create8BFromFonc("toto.tif",aSZ,aImVal.in());
-   getchar();
-}
-#if (0)
-#endif
-
-
-extern void TestDigeoExt();
-
-
-
-int MPDtest_main (int argc,char** argv)
-{
-   TestDigeoExt();
-   return 0;
-//    TestKL();
-//    BanniereMM3D();
-   // AutoCorrel(argv[1]);
-   double aNan = strtod("NAN(teta01)", NULL);
-   std::cout << "Nan=" << aNan << "\n";
-
-    float aX = 6e6;
-    for (int aK=0 ; aK<100000; aK++)
-    {
-          float aY = aX + (aK*1e-5);
-          float aDif = (aX-aY);
-          std::cout << "TTT " << aK << " " << aDif  << " " <<  (aK*1e-5) << "\n";
-
-          if (aDif != 0)
-             getchar();
-    }
-
-    return EXIT_SUCCESS;
-}
-
-#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

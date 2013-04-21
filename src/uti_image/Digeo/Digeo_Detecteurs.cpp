@@ -384,6 +384,8 @@ void cTplImInMem<Type>::ExtractExtremaDOG
                   mResDifSift = CalculateDiff(aC,anX,anY,0);
               }
            }
+
+// std::cout 
            aLDif++;
            
            if (aInteract)
@@ -430,6 +432,7 @@ template <> INT**    cTplImInMem<U_INT1>::theMDog = 0;
 template <> INT**    cTplImInMem<U_INT2>::theMDog = 0;
 template <> INT**    cTplImInMem<INT>::theMDog = 0;
 template <> double** cTplImInMem<float>::theMDog = 0;
+template <> double** cTplImInMem<double>::theMDog = 0;
 
 
 InstantiateClassTplDigeo(cTplImInMem)

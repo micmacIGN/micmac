@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamDigeo[242]) = {
+const char * (theNameVar_ParamDigeo[241]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -224,7 +224,6 @@ const char * (theNameVar_ParamDigeo[242]) = {
 "           </FenVisu>\n",
 "\n",
 "           <!-- Pas de raison, hors mis au point/test, de changer cette val -->\n",
-"           <UseConvolSpec Nb=\"?\" Type=\"bool\" Def=\"true\"> </UseConvolSpec>\n",
 "           <ShowConvolSpec Nb=\"?\" Type=\"bool\" Def=\"false\"> </ShowConvolSpec>\n",
 "\n",
 "\n",

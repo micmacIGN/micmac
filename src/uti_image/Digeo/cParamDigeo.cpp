@@ -2192,17 +2192,6 @@ const std::list< cFenVisu > & cSectionWorkSpace::FenVisu()const
 }
 
 
-cTplValGesInit< bool > & cSectionWorkSpace::UseConvolSpec()
-{
-   return mUseConvolSpec;
-}
-
-const cTplValGesInit< bool > & cSectionWorkSpace::UseConvolSpec()const 
-{
-   return mUseConvolSpec;
-}
-
-
 cTplValGesInit< bool > & cSectionWorkSpace::ShowConvolSpec()
 {
    return mShowConvolSpec;
@@ -2234,8 +2223,6 @@ cElXMLTree * ToXMLTree(const cSectionWorkSpace & anObj)
       it++
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("FenVisu"));
-   if (anObj.UseConvolSpec().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("UseConvolSpec"),anObj.UseConvolSpec().Val())->ReTagThis("UseConvolSpec"));
    if (anObj.ShowConvolSpec().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ShowConvolSpec"),anObj.ShowConvolSpec().Val())->ReTagThis("ShowConvolSpec"));
   return aRes;
@@ -2258,8 +2245,6 @@ void xml_init(cSectionWorkSpace & anObj,cElXMLTree * aTree)
    xml_init(anObj.ShowTimes(),aTree->Get("ShowTimes",1),int(0)); //tototo 
 
    xml_init(anObj.FenVisu(),aTree->GetAll("FenVisu",false,1));
-
-   xml_init(anObj.UseConvolSpec(),aTree->Get("UseConvolSpec",1),bool(true)); //tototo 
 
    xml_init(anObj.ShowConvolSpec(),aTree->Get("ShowConvolSpec",1),bool(false)); //tototo 
 }
@@ -2889,17 +2874,6 @@ std::list< cFenVisu > & cParamDigeo::FenVisu()
 const std::list< cFenVisu > & cParamDigeo::FenVisu()const 
 {
    return SectionWorkSpace().FenVisu();
-}
-
-
-cTplValGesInit< bool > & cParamDigeo::UseConvolSpec()
-{
-   return SectionWorkSpace().UseConvolSpec();
-}
-
-const cTplValGesInit< bool > & cParamDigeo::UseConvolSpec()const 
-{
-   return SectionWorkSpace().UseConvolSpec();
 }
 
 

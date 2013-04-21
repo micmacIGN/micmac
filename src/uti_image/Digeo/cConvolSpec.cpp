@@ -40,6 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Digeo.h"
 
 
+
 /****************************************/
 /*                                      */
 /*           cConvolSpec                */
@@ -51,6 +52,23 @@ template <class Type> class cSomFiltreSep :
 {
     public :
         cSomFiltreSep( cConvolSpec<Type> * );
+ 
+         void ShowLine(Type * aLine, Video_Win * aW)
+         {
+             int aSzX = this->x1() - this->x0();
+             Im2D<Type,Type> anIm(aSzX,1);
+             for (int anX = this->x0(); anX<this->x1() ; anX++)
+             {
+                  anIm.data()[0][anX-this->x0()] = aLine[anX];
+             }
+             int anY = this->ycur();
+             ELISE_COPY
+             (
+                 rectangle(Pt2di(this->x0(),anY),Pt2di(this->x1(),anY+1)),
+                 trans(anIm.in(),-Pt2di(this->x0(),anY)),
+                 aW->ogray()
+             );
+         }
 
     private :
        void  calc_buf (Type  ** output,Type  *** input);
@@ -82,7 +100,7 @@ template <class Type> cSomFiltreSep<Type>::~cSomFiltreSep()
 {
    if (mLineFiltered)
    {
-       DELETE_MATRICE(mLineFiltered,Pt2di(this->x0Buf(),this->y0Buf()),Pt2di(this->x1Buf(),this->y0Buf()));
+       DELETE_MATRICE(mLineFiltered,Pt2di(this->x0Buf(),this->y0Buf()),Pt2di(this->x1Buf(),this->y1Buf()));
    }
 }
 
@@ -90,21 +108,24 @@ template <class Type> Simple_OPBuf1<Type,Type> * cSomFiltreSep<Type>::dup_comp()
 {
    cSomFiltreSep<Type> * aRes = new cSomFiltreSep<Type>(mConvol);
 
-   aRes->mLineFiltered =  NEW_MATRICE(Pt2di(this->x0Buf(),this->y0Buf()),Pt2di(this->x1Buf(),this->y0Buf()),Type);
+   Pt2di aP0(this->x0Buf(),this->y0Buf());
+   Pt2di aP1(this->x1Buf(),this->y1Buf());
+
+   aRes->mLineFiltered =  NEW_MATRICE(aP0,aP1,Type);
 
    return aRes;
 }
 
 template <class Type> void cSomFiltreSep<Type>::ConvolLine(int y)
 {
+
    mConvol->Convol(mLineFiltered[y],mInPut[y],this->x0(),this->x1());
 }
 
 template <class Type> void cSomFiltreSep<Type>::calc_buf (Type  ** output,Type  *** AllInput)
 {
    mInPut = AllInput[0];
-
-
+   // ShowLine(mInPut[0],aW2Digeo);
    if (this->first_line())
    {
       for (INT y=this->y0Buf(); y<this->y1Buf()-1 ; y++)
@@ -112,12 +133,12 @@ template <class Type> void cSomFiltreSep<Type>::calc_buf (Type  ** output,Type  
    }
    ConvolLine(this->y1Buf()-1);
 
+   // ShowLine(mLineFiltered[0],aW3Digeo);
 
   
   mConvol->ConvolCol(output[0],mLineFiltered,this->x0(),this->x1(),0);
-/*
-*/
-   rotate_plus_data(mLineFiltered,mDeb,mFin);
+  rotate_plus_data(mLineFiltered,this->y0Buf(),this->y1Buf());
+
 }
 
 
@@ -126,20 +147,28 @@ Fonc_Num LinearSepFilter
          (
              Fonc_Num                aFonc,
              cConvolSpec<INT> *    aFiltrI,
-             cConvolSpec<double> * aFiltrD,
-             bool                  DelKer = false
+             cConvolSpec<double> * aFiltrD
          )
 {
   ELISE_ASSERT(aFiltrI->Sym() && aFiltrD->Sym(),"LinearSepFilter handle only symetric filter");
 
-  int aD = aFiltrI->Fin();
+  bool IntF = aFonc.integral_fonc(true);
+  int aD = IntF ? aFiltrI->Fin() :  aFiltrD->Fin() ;
+
   
-  ELISE_ASSERT(aFiltrD->Fin() == aD,"Incoh INT/DOUBLE in LinearSepFilter");
+/*
+  if (aD != aFiltrD->Fin())
+  {
+      std::cout << "FILTRE, SzI " << aFiltrI->Fin() << " " << aFiltrD->Fin() << "\n";
+      ELISE_ASSERT(false,"Incoh INT/DOUBLE in LinearSepFilter");
+  }
+*/
 
   return create_op_buf_simple_tpl
             (
-                new cSomFiltreSep<INT>(aFiltrI),
-                new cSomFiltreSep<double>(aFiltrD),
+
+                IntF ? new cSomFiltreSep<INT>(aFiltrI) : 0,
+                IntF ? 0 : new cSomFiltreSep<double>(aFiltrD),
                 aFonc,
                 1,
                 Box2di(aD)
@@ -147,6 +176,18 @@ Fonc_Num LinearSepFilter
 
 }
 
+Fonc_Num GaussSepFilter(Fonc_Num   aFonc,double aSigma,double anEpsilon)
+{
+  // aFonc=Rconv(aFonc);
+  // std::cout  << " GaussSepFilter " << aFonc.integral_fonc(true) << "\n";
+   if (aSigma==0) return aFonc;
+   return LinearSepFilter
+          (
+              aFonc,
+              IGausCS(aSigma,anEpsilon),
+              RGausCS(aSigma,anEpsilon)
+          );
+}
 
 /****************************************/
 /*                                      */
@@ -189,6 +230,11 @@ cConvolSpec<Type>::cConvolSpec(tBase* aFilter,int aDeb,int aFin,int aNbShit,bool
     theVec->push_back(this);
 */
     theVec.push_back(this);
+}
+
+template <class Type>  typename El_CTypeTraits<Type>::tBase  *  cConvolSpec<Type>::DataCoeff()
+{
+   return mDataCoeff;
 }
 
 
@@ -265,7 +311,8 @@ template <class Type>
           Out[anX] = aL0[anX] * aV0;
     }
 
-    for (int aDY= (mSym?1:mDeb)  ; aDY<mFin ; aDY++)
+
+    for (int aDY= (mSym?1:mDeb)  ; aDY<=mFin ; aDY++)
     {
         if (aDY)
         {
@@ -287,6 +334,10 @@ template <class Type>
                 }
             }
         }
+    }
+    for (int anX = aX0; anX<aX1 ; anX++)
+    {
+          Out[anX] = ShiftDr(Out[anX],mNbShift);
     }
 }
 
@@ -336,6 +387,7 @@ template <> std::vector<cConvolSpec<U_INT1> *>  cConvolSpec<U_INT1>::theVec(0);
 template <> std::vector<cConvolSpec<U_INT2> *>  cConvolSpec<U_INT2>::theVec(0);
 template <> std::vector<cConvolSpec<REAL4> *>  cConvolSpec<REAL4>::theVec(0);
 template <> std::vector<cConvolSpec<INT> *>  cConvolSpec<INT>::theVec(0);
+template <> std::vector<cConvolSpec<REAL8> *>  cConvolSpec<REAL8>::theVec(0);
 
 
 
@@ -481,12 +533,6 @@ void cTplImInMem <Type>::MakeClassConvolSpec
     fprintf(aFileCpp,"};\n");
     fprintf(aFileCpp,"         new %s(theCoeff);\n",aNClass.c_str());
     fprintf(aFileCpp,"   }\n");
-/*
-    {
-       int theCoeff[9] = {1,24,248,990,1570,990,248,24,1};
-       new cConvolSpec_U_INT2_Sig_0_5_12(theCoeff);
-    }
-*/
 }
 
 

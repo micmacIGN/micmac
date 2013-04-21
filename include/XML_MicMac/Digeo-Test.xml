@@ -6,15 +6,16 @@
     <DicoLoc>
         <Symb> Im1=IMG_0034.CR2 </Symb>
         <Symb> NbNivByOct=3     </Symb>
-        <Symb> Resol=0.5     </Symb>
+        <Symb> Resol=1.0     </Symb>
         <Symb> Sigma0=1.60     </Symb>
         <Symb> OctaveMax=8     </Symb>
 
         <Symb> NivFloatIm=4     </Symb>
         <Symb> NivInFirstOct=0     </Symb>
         <Symb> Incremental=true     </Symb>
+        <Symb> ExigeCodeCompile=false     </Symb>
 
-        <Symb> Sauv=0     </Symb>
+        <Symb> Sauv=1     </Symb>
         <eSymb> MaxDyn= ! ${Sauv} </eSymb>
     </DicoLoc>
 
@@ -25,8 +26,8 @@
               -->
               <KeyOrPat>  ${Im1} </KeyOrPat>
               <ResolInit>  ${Resol} </ResolInit>
-
 <!--
+              <NbOctetLimitLoadImageOnce> 1e8 </NbOctetLimitLoadImageOnce>
 -->
            </ImageDigeo>
            <PyramideImage>
@@ -69,7 +70,6 @@
            <!-- Juste pour pouvoir eventuellement squeezer en amont tout le calcul
            -->
            <ComputeCarac> true </ComputeCarac>
-<!--
            <SiftCarac>
                <DoMax> true </DoMax>
                <DoMin> true </DoMin>
@@ -78,6 +78,7 @@
                <RatioAllongMin > 8 </RatioAllongMin>
                <RatioGrad> 0.01 </RatioGrad>
            </SiftCarac>
+<!--
 -->
         </SectionCaracImages>
 
@@ -104,10 +105,10 @@
        </SectionTest>
 
         <SectionWorkSpace>
-           <DirectoryChantier>  /media/data1/Jeux-Tests/12-Tetes-Inc-4341-6/  </DirectoryChantier>
 <!--
-           <DirectoryChantier>  /home/marc/TMP/Delphes/12-Tetes-Inc-4341-6/  </DirectoryChantier>
+           <DirectoryChantier>  /media/data1/Jeux-Tests/12-Tetes-Inc-4341-6/  </DirectoryChantier>
 -->
+           <DirectoryChantier>  /home/marc/TMP/Delphes/12-Tetes-Inc-4341-6/  </DirectoryChantier>
            <#WHEN VTEST=${Sauv}>
                <SauvPyram>
                   <Dir> SP/ </Dir>
@@ -128,7 +129,7 @@
 
 <!-- A priori, on a interet a ce que tous les convol soit compilees; on se fait
 insulter si ce n'est pas le cas; sauf si ExigeCodeCompile indique que c'est sciemment -->
-            <ExigeCodeCompile> true </ExigeCodeCompile>
+            <ExigeCodeCompile> ${ExigeCodeCompile} </ExigeCodeCompile>
 <!--
 -->
 
@@ -136,7 +137,6 @@ insulter si ce n'est pas le cas; sauf si ExigeCodeCompile indique que c'est scie
            <ShowTimes> 0 </ShowTimes>
 
            <!-- Pas de raison, hors mis au point/test, de changer cette val -->
-           <UseConvolSpec> true </UseConvolSpec>
            <ShowConvolSpec> false </ShowConvolSpec>
 
 

@@ -65,31 +65,18 @@ class aClasse
 template <class Type>  
 cTplOctDig<Type>::cTplOctDig
 (
-      cTplOctDig<Type> * anOctUp,
+      cOctaveDigeo  * anOctUp,
       GenIm::type_el aTel,
       cImDigeo & aIm,
       int aNiv,
       Pt2di aSzMax
 ) :
-   cOctaveDigeo (aTel,aIm,aNiv,aSzMax),
-   mOctUp       (anOctUp),
+   cOctaveDigeo (anOctUp,aTel,aIm,aNiv,aSzMax),
    mCube        (0)
 {
+
 }
    
-template <class Type>   cTplOctDig<Type>* cTplOctDig<Type>::OctUp() {return mOctUp;}
-
-template <class Type> 
-    cTplOctDig<Type>* cTplOctDig<Type>::TypeAllocDown
-                       (
-                            GenIm::type_el aTypEl,
-                            cImDigeo &     aIm,
-                            int            aNiv,
-                            Pt2di          aSzMax
-                       )
-{
-   return new cTplOctDig<Type>(this,aTypEl,aIm,aNiv,aSzMax);
-}
 
 template <class Type> 
     cOctaveDigeo* cTplOctDig<Type>::AllocDown
@@ -100,7 +87,8 @@ template <class Type>
                             Pt2di          aSzMax
                        )
 {
-    return TypeAllocDown(aTypEl,aIm,aNiv,aSzMax);
+   // return new cTplOctDig<Type>(this,aTypEl,aIm,aNiv,aSzMax);
+   return cOctaveDigeo::AllocGen(this,aTypEl,aIm,aNiv,aSzMax);
 }
 
 void cOctaveDigeo::ResizeAllImages(const Pt2di & aP)
@@ -111,6 +99,23 @@ void cOctaveDigeo::ResizeAllImages(const Pt2di & aP)
 
 
 
+template <class Type>  
+void  cTplOctDig<Type>::DoSiftExtract(int aK,const cSiftCarac & aSC)
+{
+      if ((aK<1) || (aK+2>=int(mVTplIms.size())))
+      {
+          std::cout << "For k= " << aK << "\n";
+          ELISE_ASSERT(false,"Bad K for DoSiftExtract");
+      }
+      mVTplIms[aK]->ExtractExtremaDOG
+      (
+          aSC,
+          *(mVTplIms[aK-1]),
+          *(mVTplIms[aK+1]),
+          *(mVTplIms[aK+2])
+      );
+}
+
 
 
 template <class Type>  
@@ -119,13 +124,7 @@ void  cTplOctDig<Type>::DoSiftExtract(const cSiftCarac & aSC)
 
    for (int aK=1 ; (aK+2) < int(mVTplIms.size()) ; aK++)
    {
-      mVTplIms[aK]->ExtractExtremaDOG
-      (
-          aSC,
-          *(mVTplIms[aK-1]),
-          *(mVTplIms[aK+1]),
-          *(mVTplIms[aK+2])
-      );
+      DoSiftExtract(aK,aSC);
    }
    
 }
@@ -211,6 +210,26 @@ template <class Type>
 }
 
 
+template <class Type>  cTplOctDig<U_INT2> * cTplOctDig<Type>::U_Int2_This()
+{
+   if (mType==GenIm::u_int2)
+      return reinterpret_cast<cTplOctDig<U_INT2> *> (this);
+   return 0;
+}
+
+template <class Type>  cTplOctDig<REAL4> * cTplOctDig<Type>::REAL4_This()
+{
+   if (mType==GenIm::real4)
+      return reinterpret_cast<cTplOctDig<REAL4> *> (this);
+   return 0;
+}
+
+template <class Type> const std::vector<cTplImInMem<Type> *> &  cTplOctDig<Type>::VTplIms() const {return mVTplIms;}
+
+
+//cOctaveDigeo<U_INT2> * U_Int2_This() ;
+//cOctaveDigeo<REAL4> *  REAL4_Tis() ;
+
 
 // INSTANTIATION FORCEE
 
@@ -223,9 +242,10 @@ InstantiateClassTplDigeo(cTplOctDig)
 /*                                      */
 /****************************************/
 
-cOctaveDigeo::cOctaveDigeo(GenIm::type_el aType,cImDigeo & anIm,int aNiv,Pt2di aSzMax) :
+cOctaveDigeo::cOctaveDigeo(cOctaveDigeo * anOctUp,GenIm::type_el aType,cImDigeo & anIm,int aNiv,Pt2di aSzMax) :
    mType     (aType),
    mIm       (anIm),
+   mOctUp    (anOctUp),
    mNiv      (aNiv),
    mSzMax    (aSzMax),
    mNbImOri  (-1),
@@ -233,6 +253,7 @@ cOctaveDigeo::cOctaveDigeo(GenIm::type_el aType,cImDigeo & anIm,int aNiv,Pt2di a
 {
 }
 
+cOctaveDigeo * cOctaveDigeo::OctUp() {return mOctUp;}
 
 void cOctaveDigeo::SetBoxInOut(const Box2di & aBoxIn,const Box2di & aBoxOut)
 {
@@ -257,6 +278,12 @@ void cOctaveDigeo::SetNbImOri(int aNbImOri)
 {
    mNbImOri = aNbImOri;
 }
+
+const std::vector<cImInMem *> &  cOctaveDigeo::VIms()
+{
+   return mVIms;
+}
+
 
 /*
 Pt2dr cOctaveDigeo::P0CurMyResol() const
@@ -285,8 +312,9 @@ int cOctaveDigeo::NbIm() const { return mVIms.size(); }
 cImInMem * cOctaveDigeo::KthIm(int aK) const { return mVIms.at(aK); }
 int  cOctaveDigeo::Niv() const { return mNiv; }
 
-cOctaveDigeo * cOctaveDigeo::AllocTop
+cOctaveDigeo * cOctaveDigeo::AllocGen
            (
+                cOctaveDigeo * anUp,
                 GenIm::type_el aType,
                 cImDigeo & aIm,
                 int aNiv,
@@ -295,10 +323,10 @@ cOctaveDigeo * cOctaveDigeo::AllocTop
 {
      switch (aType)
      {
-         case GenIm::u_int1 : return new cTplOctDig<U_INT1>(0,aType,aIm,aNiv,aSzMax);
-         case GenIm::u_int2 : return new cTplOctDig<U_INT2>(0,aType,aIm,aNiv,aSzMax);
-         case GenIm::int4 :   return new cTplOctDig<INT>   (0,aType,aIm,aNiv,aSzMax);
-         case GenIm::real4 :  return new cTplOctDig<REAL4> (0,aType,aIm,aNiv,aSzMax);
+         case GenIm::u_int1 : return new cTplOctDig<U_INT1>(anUp,aType,aIm,aNiv,aSzMax);
+         case GenIm::u_int2 : return new cTplOctDig<U_INT2>(anUp,aType,aIm,aNiv,aSzMax);
+         case GenIm::int4 :   return new cTplOctDig<INT>   (anUp,aType,aIm,aNiv,aSzMax);
+         case GenIm::real4 :  return new cTplOctDig<REAL4> (anUp,aType,aIm,aNiv,aSzMax);
 
          default :
            ;
@@ -308,6 +336,16 @@ cOctaveDigeo * cOctaveDigeo::AllocTop
      return 0;
 }
 
+cOctaveDigeo * cOctaveDigeo::AllocTop
+           (
+                GenIm::type_el aType,
+                cImDigeo & aIm,
+                int aNiv,
+                Pt2di aSzMax
+           )
+{
+   return AllocGen(0,aType,aIm,aNiv,aSzMax);
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

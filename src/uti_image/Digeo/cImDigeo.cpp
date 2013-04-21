@@ -39,6 +39,50 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Digeo.h"
 
+Video_Win * aW1Digeo;
+// Video_Win * aW2Digeo;
+// Video_Win * aW3Digeo;
+// Video_Win * aW4Digeo;
+Video_Win * aW5Digeo;
+
+void  calc_norm_grad
+      (
+            double ** out,
+            double *** in,
+            const Simple_OPBuf_Gen & arg
+      )
+{
+    Tjs_El_User.ElAssert
+    (
+          arg.dim_in() == 1,
+          EEM0 << "calc_norm_grad requires dim out = 1 for func"
+    );
+
+   double * l0 = in[0][0];
+   double * l1 = in[0][1];
+
+   double * g2 = out[0];
+
+   for (INT x=arg.x0() ;  x<arg.x1() ; x++)
+   {
+       g2[x] = ElSquare(l0[x+1]-l0[x]) + ElSquare(l1[x]-l0[x]);
+   }
+}
+
+Fonc_Num norm_grad(Fonc_Num f)
+{
+     return create_op_buf_simple_tpl
+            (
+                0,  // Nouvelle syntaxe
+                calc_norm_grad,
+                f,
+                1,
+                Box2di(Pt2di(0,0),Pt2di(1,1))
+            );
+}
+
+
+
 
 /****************************************/
 /*                                      */
@@ -79,15 +123,28 @@ cImDigeo::cImDigeo
    if (aNbLoad<aIMD.NbOctetLimitLoadImageOnce().Val())
    {
       mFileInMem = Ptr_D2alloc_im2d(mTifF->type_el(),aSzIR1.x,aSzIR1.y);
-      std::cout << "BEGIN COPY\n";
       ELISE_COPY
       (
            mFileInMem->all_pts(),
            trans(mTifF->in(),mBoxImR1._p0),
            mFileInMem->out()
       );
-      std::cout << "END COPY\n";
-
+      mG2MoyIsCalc= true;
+      mG2Moy = mFileInMem->MoyGrad();
+   }
+   else
+   {
+        Pt2di aSz = mTifF->sz() - Pt2di(1,1);
+        double aSom;
+        ELISE_COPY
+        (
+              rectangle(Pt2di(0,0),aSz),
+              norm_grad(mTifF->in()),
+              sigma(aSom)
+        );
+        aSom /= aSz.x * double(aSz.y);
+        mG2MoyIsCalc= true;
+        mG2Moy = aSom;
    }
 
    // Verification de coherence
@@ -111,17 +168,7 @@ cImDigeo::cImDigeo
           );
           
        }
-
-/*
- Redondant
-       ELISE_ASSERT
-       (
-            !(mAppli.DigeoDecoupageCarac().IsInit()&&aIMD.BoxIm().IsInit()),
-            "Decoupage + Box Im sec"
-       );
-*/
    }
-   
 }
 
 double cImDigeo::Resol() const
@@ -133,6 +180,11 @@ double cImDigeo::Resol() const
 const Box2di & cImDigeo::BoxImCalc() const
 {
    return mBoxImCalc;
+}
+
+const std::vector<cOctaveDigeo *> &   cImDigeo::Octaves() const
+{
+   return mOctaves;
 }
 
 
@@ -229,7 +281,7 @@ void cImDigeo::AllocImages()
            anOct->SetNbImOri(aNbIm);
             for (int aK=aK0 ; aK< aNbIm+3 ; aK++)
             {
-                double aSigma = ((aLastOct==0) ? aPG.Sigma0().Val() : 1.0)  * pow(2.0,aK/double(aNbIm));
+                double aSigma =  pow(2.0,aK/double(aNbIm));
                 //mVIms.push_back(cImInMem::Alloc (*this,aSz,TypeOfDeZoom(aDz), *anOct,aSigma));
                 mVIms.push_back((anOct->AllocIm(aSigma,aK,aNivDZ*aNbIm+(aK-aK0))));
             }
@@ -251,6 +303,8 @@ void cImDigeo::AllocImages()
 
 void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 {
+    const cTypePyramide & aTP = mAppli.TypePyramide();
+
     mBoxCurIn = aBoxIn;
     mBoxCurOut = aBoxOut;
     ElTimer aChrono;
@@ -270,29 +324,57 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
        aF = trans(mFileInMem->in_proj(),-mBoxImR1._p0);
     }
 
+
+    if (0)
+    {
+        aW1Digeo = Video_Win::PtrWStd(Pt2di(500,300));
+        aW5Digeo = Video_Win::PtrWStd(Pt2di(500,300)); aW5Digeo->set_title("55555");
+
+        Fonc_Num aFT = ((Abs(FX-100-FY)<10)||(Abs(FX-200-FY)<10))*128;
+        aFT = 128 * ((FX-50)>FY);
+        aFT = 255 * (((FX/20)+(FY/30))%2);
+        ELISE_COPY(aW1Digeo->all_pts(),aFT,aW1Digeo->ogray());
+        getchar();
+        ELISE_COPY(aW1Digeo->all_pts(),GaussSepFilter(aFT,5.25,1e-3),aW5Digeo->ogray());
+        getchar();
+    }
+
+
+    if (aTP.PyramideGaussienne().IsInit())
+    {
+        double aSigma = aTP.PyramideGaussienne().Val().Sigma0().Val();
+
+// Dans les deux cas le changement d'echelle rajoute du flou
+        if (mResol > 1.0)
+        {
+           aSigma = sqrt(ElMax(0.0,ElSquare(aSigma)-ElSquare(1/mResol)));
+        }
+        else if (mResol<1.0)
+        {
+           aSigma = sqrt(ElMax(0.0,ElSquare(aSigma)-1.0));
+        }
+
+        aF = GaussSepFilter(aF,aSigma,1e-3);
+    }
+
 // std::cout << "Rrrrrrrrrrr "<< mResol << " " << mFileInMem << "\n";
     Pt2dr aTrR = Pt2dr(aBoxIn._p0) *mResol;
     Pt2dr aPSc = Pt2dr(mResol,mResol);
 
-    aF = (mResol==1.0)                   ?
-         trans(aF,aBoxIn._p0)            :
+    aF = (mResol==1.0)                             ?
+         trans(aF,aBoxIn._p0)                      :
          (
-              (mResol < 1)                   ?
-              StdFoncChScale_Bilin(aF,aTrR,aPSc)   :
-              StdFoncChScale(aF,aTrR,aPSc) 
+            (mResol < 1)                       ?
+            StdFoncChScale_Bilin(aF,aTrR,aPSc) :
+            StdFoncChScale(aF,aTrR,aPSc) 
          );
-/*
-aF = StdFoncChScale(aF,aTrR,aPSc);
-aF = Max(0,aF);
-*/
 
-    mOctaves[0]->FirstImage()->LoadFile(aF,aBoxIn);
+    mOctaves[0]->FirstImage()->LoadFile(aF,aBoxIn,mTifF->type_el());
     // mVIms[0]->LoadFile(*mTifF,aBox);
 
     double aTLoad = aChrono.uval();
     aChrono.reinit();
    
-    const cTypePyramide & aTP = mAppli.TypePyramide();
 /*
     if (aTP.PyramideGaussienne().IsInit())
     {
@@ -366,6 +448,7 @@ void cImDigeo::DoExtract()
     }
 }
 
+
 void cImDigeo::DoCalcGradMoy(int aDZ)
 {
    if (mG2MoyIsCalc)
@@ -387,9 +470,10 @@ void cImDigeo::DoCalcGradMoy(int aDZ)
 
 void cImDigeo::DoSiftExtract()
 {
-    if (!mAppli.SiftCarac().IsInit())
+std::cout << "SIFT " << (mAppli.SiftCarac() != 0) << "\n";
+    if (!mAppli.SiftCarac())
        return;
-    const cSiftCarac &  aSC = mAppli.SiftCarac().Val();
+    const cSiftCarac &  aSC =  *(mAppli.SiftCarac());
     DoCalcGradMoy(aSC.NivEstimGradMoy().Val());
     ELISE_ASSERT(mAppli.PyramideGaussienne().IsInit(),"Sift require Gauss Pyr");
     for (int aKoct=0; aKoct<int(mOctaves.size());aKoct++)
@@ -439,7 +523,12 @@ const std::string  &  cImDigeo::Name() const {return mName;}
 cAppliDigeo &  cImDigeo::Appli() {return mAppli;}
 const cImageDigeo &  cImDigeo::IMD() {return mIMD;}
 cVisuCaracDigeo  *   cImDigeo::CurVisu() {return mVisu;}
-double cImDigeo::G2Moy() const {return mG2Moy;}
+
+double cImDigeo::G2Moy() const 
+{
+   ELISE_ASSERT(mG2MoyIsCalc,"cImDigeo::G2Moy");
+   return mG2Moy;
+}
 
 
 
