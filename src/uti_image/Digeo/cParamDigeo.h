@@ -759,9 +759,6 @@ class cSectionWorkSpace
         std::list< cFenVisu > & FenVisu();
         const std::list< cFenVisu > & FenVisu()const ;
 
-        cTplValGesInit< bool > & UseConvolSpec();
-        const cTplValGesInit< bool > & UseConvolSpec()const ;
-
         cTplValGesInit< bool > & ShowConvolSpec();
         const cTplValGesInit< bool > & ShowConvolSpec()const ;
     private:
@@ -772,7 +769,6 @@ class cSectionWorkSpace
         cTplValGesInit< cGenereCodeConvol > mGenereCodeConvol;
         cTplValGesInit< int > mShowTimes;
         std::list< cFenVisu > mFenVisu;
-        cTplValGesInit< bool > mUseConvolSpec;
         cTplValGesInit< bool > mShowConvolSpec;
 };
 cElXMLTree * ToXMLTree(const cSectionWorkSpace &);
@@ -956,9 +952,6 @@ class cParamDigeo
 
         std::list< cFenVisu > & FenVisu();
         const std::list< cFenVisu > & FenVisu()const ;
-
-        cTplValGesInit< bool > & UseConvolSpec();
-        const cTplValGesInit< bool > & UseConvolSpec()const ;
 
         cTplValGesInit< bool > & ShowConvolSpec();
         const cTplValGesInit< bool > & ShowConvolSpec()const ;

@@ -303,6 +303,68 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
    return aSom;
 }
 
+template <class Type> Im1D<Type,Type> ImageGaussianKernel ( double aSigma, int aNbShift, double anEpsilon, int aSurEch )
+{
+    Im1D_REAL8 aKerD = GaussianKernelFromResidu(aSigma,anEpsilon,aSurEch);
+    return ToOwnKernel(aKerD,aNbShift,true,(Type *)0);
+}
+
+template <class Type,class tBase> cConvolSpec<Type> * 
+         ToCompKer
+         (
+              Im1D<tBase,tBase>   aKern,
+              int                 aNbShitXY,
+              FILE *              aFileH = 0,
+              FILE *              aFileCPP = 0,
+              double              aSigma = 1.0,  // Pour commentaire dans le .h
+              bool                Increm = false  // Pour commentaire dans le .h
+         )
+{
+    int aSzKer = aKern.tx();
+    ELISE_ASSERT(aSzKer%2,"Taille paire pour ::SetConvolSepXY");
+    aSzKer /= 2;
+
+    tBase * aData = aKern.data() + aSzKer;
+    while (aSzKer && (aData[aSzKer]==0) && (aData[-aSzKer]==0))
+          aSzKer--;
+
+    if (aFileH!= 0)
+    {
+       cTplImInMem<Type>::MakeClassConvolSpec
+       (
+           Increm,
+           aSigma,
+           aFileH,
+           aFileCPP,
+           aData,
+           -aSzKer,
+           aSzKer,
+           aNbShitXY
+       );
+    }
+    return   cConvolSpec<Type>::GetOrCreate(aData,-aSzKer,aSzKer,aNbShitXY,false) ;
+}
+
+template <class Type,class tBase> cConvolSpec<Type> *  GaussCS(double aSigma,int aNbShift,double anEpsilon,int aSurEch)
+{
+   return ToCompKer<Type,tBase>
+          (
+                ImageGaussianKernel<tBase>(aSigma,aNbShift,anEpsilon,aSurEch),
+                aNbShift
+          );
+}
+
+
+cConvolSpec<INT>*   IGausCS(double aSigma,double anEpsilon)
+{
+    return GaussCS<int,int>(aSigma,15,anEpsilon,10);
+}
+
+cConvolSpec<double>*  RGausCS(double aSigma,double anEpsilon)
+{
+    return GaussCS<double,double>(aSigma,0,anEpsilon,10);
+}
+
 
 /****************************************/
 /*                                      */
@@ -339,7 +401,6 @@ void cTplImInMem<Type>::SetConvolSepX
      (
           Im2D<Type,tBase> aImOut,
           Im2D<Type,tBase> aImIn,
-          tBase *  aDFilter,int aDebX,int aFinX,
           int  aNbShitX,
           cConvolSpec<Type> * aCS
      )
@@ -347,36 +408,26 @@ void cTplImInMem<Type>::SetConvolSepX
     ELISE_ASSERT(aImOut.sz()==aImIn.sz(),"Sz in SetConvolSepX");
     int aSzX = aImOut.tx();
     int aSzY = aImOut.ty();
-    int aX0 = -aDebX;
-    int aX1 = aSzX-aFinX;
+    int aX0 = - aCS->Deb();
+    int aX1 = aSzX-aCS->Fin();
 
     for (int anX = 0 ; anX <aX0 ; anX++)
     {
-        SetConvolBordX(aImOut,aImIn,anX,aDFilter,aDebX,aFinX);
+        SetConvolBordX(aImOut,aImIn,anX,aCS->DataCoeff(),aCS->Deb(),aCS->Fin());
     }
 
     for (int anX =aX1  ; anX <aSzX ; anX++)
     {
-        SetConvolBordX(aImOut,aImIn,anX,aDFilter,aDebX,aFinX);
+        SetConvolBordX(aImOut,aImIn,anX,aCS->DataCoeff(),aCS->Deb(),aCS->Fin());
     }
    
-    const tBase aSom = InitFromDiv(ShiftG(tBase(1),aNbShitX),(tBase*)0);
+    // const tBase aSom = InitFromDiv(ShiftG(tBase(1),aNbShitX),(tBase*)0);
     for (int anY=0 ; anY<aSzY ; anY++)
     {
         Type * aDOut = aImOut.data()[anY];
         Type * aDIn =  aImIn.data()[anY];
 
-        if (aCS)
-        {
-           aCS->Convol(aDOut,aDIn,aX0,aX1);
-        }
-        else
-        {
-           for (int anX = aX0; anX<aX1 ; anX++)
-           {
-               aDOut[anX] =  ShiftDr(CorrelLine(aSom,aDIn+anX,aDFilter,aDebX,aFinX),aNbShitX);
-           }
-        }
+        aCS->Convol(aDOut,aDIn,aX0,aX1);
     }
 }
 
@@ -385,7 +436,6 @@ template <class Type>
 void cTplImInMem<Type>::SetConvolSepX
      (
           const cTplImInMem<Type> & aImIn,
-          tBase *  aDFilter,int aDebX,int aFinX,
           int  aNbShitX,
           cConvolSpec<Type> * aCS
      )
@@ -393,7 +443,7 @@ void cTplImInMem<Type>::SetConvolSepX
       SetConvolSepX
       (
          mIm,aImIn.mIm, 
-         aDFilter,aDebX,aFinX,aNbShitX,
+         aNbShitX,
          aCS
       );
 }
@@ -402,7 +452,6 @@ void cTplImInMem<Type>::SetConvolSepX
 template <class Type> 
 void cTplImInMem<Type>::SelfSetConvolSepY
      (
-          tBase * aDFilter,int aDebY,int aFinY,
           int  aNbShitY,
           cConvolSpec<Type> * aCS
      )
@@ -429,12 +478,7 @@ void cTplImInMem<Type>::SelfSetConvolSepY
              *(aL2)++ = *(aL++);
              *(aL3)++ = *(aL++);
          }
-         SetConvolSepX
-         (
-            aBufOut,aBufIn, 
-            aDFilter,aDebY,aFinY,aNbShitY,
-            aCS
-         );
+         SetConvolSepX(aBufOut,aBufIn,aNbShitY,aCS);
 
          aL0 = aBufOut.data()[0];
          aL1 = aBufOut.data()[1];
@@ -465,48 +509,18 @@ void cTplImInMem<Type>::SetConvolSepXY
           int  aNbShitXY
      )
 {
+   ELISE_ASSERT(mSz==aImIn.mSz,"Size im diff in ::SetConvolSepXY");
+   //bool aGCC = mAppli.GenereCodeConvol().IsInit();
 
-    ELISE_ASSERT(mSz==aImIn.mSz,"Size im diff in ::SetConvolSepXY");
-    int aSzKer = aKerXY.tx();
-    ELISE_ASSERT(aSzKer%2,"Taille paire pour ::SetConvolSepXY");
-    aSzKer /= 2;
-
-    tBase * aData = aKerXY.data() + aSzKer;
-    // Parfois il y a "betement" des 0 en fin de ligne ...
-    while (aSzKer && (aData[aSzKer]==0) && (aData[-aSzKer]==0))
-          aSzKer--;
-
-    if (mAppli.GenereCodeConvol().IsInit())
-    {
-       MakeClassConvolSpec
-       (
-           Increm,
-           aSigma,
-           mAppli.FileGGC_H(),
-           mAppli.FileGGC_Cpp(),
-           aData,
-           -aSzKer,
-           aSzKer,
-           aNbShitXY
-       );
-       // return;
-    }
-/*
-*/
+   cConvolSpec<Type> * aCS=  ToCompKer<Type,tBase>
+                             (
+                                aKerXY, aNbShitXY,
+                                mAppli.FileGGC_H(),
+                                mAppli.FileGGC_Cpp(),
+                                aSigma, Increm
+                             );
 
 
-
-    if ((mAppli.ShowTimes().Val() > 100) && (mResolGlob==1))
-    {
-        std::cout << "Nb = " << aSzKer << " ;; " ;
-        for (int aK=-aSzKer ; aK<=aSzKer ; aK++)
-            std::cout << aData[aK] << " ";
-         std::cout << "\n";
-    }
-
-    cConvolSpec<Type> * aCS=  mAppli.UseConvolSpec().Val() ?
-                              cConvolSpec<Type>::GetOrCreate(aData,-aSzKer,aSzKer,aNbShitXY,false) :
-                              0 ;
 
     if (mAppli.ShowConvolSpec().Val())
        std::cout << "CS = " << aCS << "\n";
@@ -521,12 +535,12 @@ void cTplImInMem<Type>::SetConvolSepXY
     }
 
     ElTimer aChrono;
-    SetConvolSepX(aImIn,aData,-aSzKer,aSzKer,aNbShitXY,aCS);
+    SetConvolSepX(aImIn,aNbShitXY,aCS);
     
     double aTX = aChrono.uval();
     aChrono.reinit();
 
-    SelfSetConvolSepY(aData,-aSzKer,aSzKer,aNbShitXY,aCS);
+    SelfSetConvolSepY(aNbShitXY,aCS);
 
     double aTY = aChrono.uval();
     aChrono.reinit();
@@ -569,93 +583,35 @@ void TestConvol()
 }
 
 
-/*
-template <class Type> 
-void cTplImInMem<Type>::MakeConvolInit(double aV)
-{
-   // TestConvol();
-    const cPyramideGaussienne aPG = mAppli.TypePyramide().PyramideGaussienne().Val();
-    mNbShift = aPG.NbShift().Val();
-    mTFille->mNbShift = mNbShift;
-    mKernelTot = GaussianKernelFromResidu
-                 (
-                   mResolOctaveBase,
-                   aPG.EpsilonGauss().Val(),
-                   aPG.SurEchIntegralGauss().Val()
-                 );
-    if (aV==0) return;
-    if (aV==-1) aV = mResolOctaveBase;
-
-    ELISE_ASSERT(aV>0,"Bad value in ConvolFirstImage");
-    ElTimer aChrono;
-
-
-
-    Im1D_REAL8  aKR =  GaussianKernelFromResidu
-                       (
-                           aV,
-                           aPG.EpsilonGauss().Val(),
-                           aPG.SurEchIntegralGauss().Val()
-                       );
-    
-    int aShift = aPG.NbShift().Val();
-    Im1D<tBase,tBase> aOwnK =  ToOwnKernel(aKR,aShift,true,(tBase *)0);
-
-    if (mAppli.ShowTimes().Val() > 100)
-    {
-       std::cout << "NB KER GAUSS " << aKR.tx() << "\n";
-       for (int aK=0 ; aK<aKR.tx() ; aK++)
-       {
-            std::cout << " G[" << aK << "]=" << aKR.data()[aK] << " " << aOwnK.data()[aK] << "\n";
-       }
-    }
-
-    int aKInOct = mTFille->mKInOct;
-    mTFille->mKInOct = mKInOct;
-    mTFille->SetConvolSepXY(*this,aOwnK,aShift);
-    mTFille->mKInOct = aKInOct;
-
-    for (int anY=0;anY<mSz.y; anY++)
-    {
-       memcpy
-       (
-          mIm.data()[anY],
-          mTFille->mIm.data()[anY],
-          mSz.x*sizeof(Type)
-       );
-    }
-
-    if (mAppli.ShowTimes().Val() > 100)
-    {
-        std::cout << "Time Convol Init " << aChrono.uval() << "\n";
-    }
-}
-*/
-
 
 template <class Type> Im1D<typename El_CTypeTraits<Type>::tBase,typename El_CTypeTraits<Type>::tBase> cTplImInMem<Type>::ImGaussianKernel(double aSigma)
 {
-    const cPyramideGaussienne aPG = mAppli.TypePyramide().PyramideGaussienne().Val();
-    int aSurEch = aPG.SurEchIntegralGauss().Val();
-    double anEpsilon = aPG.EpsilonGauss().Val();
-    mNbShift = aPG.NbShift().Val();
-   
-    Im1D_REAL8 aKerD = GaussianKernelFromResidu(aSigma,anEpsilon,aSurEch);
-
-    return ToOwnKernel(aKerD,mNbShift,true,(tBase *)0);
+   const cPyramideGaussienne aPG = mAppli.TypePyramide().PyramideGaussienne().Val();
+   return ImageGaussianKernel<typename El_CTypeTraits<Type>::tBase>
+          (
+              aSigma,
+              aPG.NbShift().Val(),
+              aPG.EpsilonGauss().Val(),
+              aPG.SurEchIntegralGauss().Val()
+          );
 }
 
 
 template <class Type> 
 void cTplImInMem<Type>::ReduceGaussienne()
 {
+    const cPyramideGaussienne aPG = mAppli.TypePyramide().PyramideGaussienne().Val();
+    mNbShift =  aPG.NbShift().Val();
+
     if (mKInOct==0)
     {
-         cTplOctDig<Type>* anOcUp = mTOct.OctUp();
+         // cTplOctDig<Type>* anOcUp = mTOct.OctUp();
+         cOctaveDigeo* anOcUp = mTOct.OctUp();
 
          if (anOcUp)
          {
-              cTplImInMem<Type> *  aMere = anOcUp->TypedGetImOfSigma(2.0);
+              // cTplImInMem<Type> *  aMere = anOcUp->TypedGetImOfSigma(2.0);
+              cImInMem *  aMere = anOcUp->GetImOfSigma(2.0);
               VMakeReduce_010(*aMere);
          }
          else
@@ -667,8 +623,6 @@ void cTplImInMem<Type>::ReduceGaussienne()
     }
 
     //==============================================
-
-    const cPyramideGaussienne aPG = mAppli.TypePyramide().PyramideGaussienne().Val();
 
 
     bool isIncrem = aPG.ConvolIncrem().Val();

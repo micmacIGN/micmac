@@ -243,6 +243,7 @@ template  class cTplImInMem<U_INT1>;
 template  class cTplImInMem<U_INT2>;
 template  class cTplImInMem<INT>;
 template  class cTplImInMem<float>;
+template  class cTplImInMem<double>;
 
 /****************************************/
 /*                                      */

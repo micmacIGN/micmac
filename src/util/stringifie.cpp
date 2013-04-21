@@ -370,7 +370,7 @@ cVirtStream *  cVirtStream::StdOpen(const std::string & aName)
 
 
 
-   std::cout <<  "For required file " << aName << "\n";
+   std::cout <<  "For required file [" << aName << "]\n";
    ELISE_ASSERT(false,"Cannot open");
 
    return 0;

@@ -66,6 +66,7 @@ cTplImInMem<Type>::cTplImInMem
      // mOrigOct (0),
      mData   (0)
 {
+
     ResizeImage(aSz); 
 }
 
@@ -105,12 +106,12 @@ template <class Type> bool cTplImInMem<Type>::InitRandom()
    return true;
 }
  
-template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox)
+template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_el aTypeFile)
 {
     ResizeOctave(aBox.sz());
     ELISE_COPY(mIm.all_pts(), aFonc, mIm.out());
     if (
-              mAppli.MaximDyn().ValWithDef(sizeof(Type)<=2) 
+              mAppli.MaximDyn().ValWithDef(nbb_type_num(aTypeFile)<=8)
            && type_im_integral(mType) 
            && (!signed_type_num(mType))
        )
@@ -286,6 +287,16 @@ void  cImInMem::ResizeOctave(const Pt2di & aSz)
    mOct.ResizeAllImages(aSz);
 }
 
+
+double cImInMem::ScaleInOct() const
+{
+   return mResolOctaveBase;
+}
+
+double cImInMem::ScaleInit() const
+{
+    return ScaleInOct() * mOct.Niv();
+}
 
 
 

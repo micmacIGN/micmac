@@ -923,6 +923,12 @@ INT Im2DGen::ty() const
     return DGI()->p1()[1];
 }
 
+double   Im2DGen::MoyGrad() const
+{
+   ELISE_ASSERT(false,"no Im2DGen::MoyGrad");
+   return 0;
+}
+
 INT Im2DGen::vmax() const
 {
 	return DGI()->vmax();
@@ -1211,6 +1217,26 @@ template <class Type,class TyBase>
       return new cTpIm2DInter<Type,TyBase>(*this,aIB);
 }
 
+template <class Type,class TyBase> 
+        double  Im2D<Type,TyBase>::MoyGrad() const
+{
+   int aTX = tx(); 
+   int aTY = ty(); 
+   Type ** aData = data();
+   double aSom = 0.0;
+   for (int anY=1 ; anY<aTY ; anY++)
+   {
+       Type * aLP = aData[anY-1]+1;
+       Type * aLCur = aData[anY]+1;
+       for (int anX=1 ; anX<aTX ; anX++)
+       {
+           aSom += ElSquare(double(*aLCur-aLCur[-1])) +  ElSquare(double(*aLP-*aLCur));
+           aLCur++;
+           aLP++;
+       }
+   }
+   return  aSom / ((aTX-1) * double(aTY-1));
+}
 
 template <class Type,class TyBase> 
         cIm2DInter * Im2D<Type,TyBase>::BiCubIm(double aCoef,double aScale)

@@ -136,6 +136,7 @@ inline int AdjUC(double aV)
 template <> class El_CTypeTraits<INT2>
 {
 		public :
+static std::string   Name() {return "INT2";}
                      static const INT2 MaxValue () { return SHRT_MAX;}
                      static const INT2 MinValue () { return SHRT_MIN;}
                      static Fonc_Num TronqueF(Fonc_Num aFonc) {return Max(tBase(eVMin),Min(tBase(eVMax),aFonc));}
@@ -160,6 +161,7 @@ static tVal TronqueR(double aVal)
 template <> class El_CTypeTraits<INT1>
 {
 		public :
+static std::string   Name() {return "INT1";}
                      static const INT1 MaxValue() {return SCHAR_MAX;}
                      static const INT1 MinValue() {return SCHAR_MIN;}
                      static Fonc_Num TronqueF(Fonc_Num aFonc) {return Max(tBase(eVMin),Min(tBase(eVMax),aFonc));}
@@ -428,6 +430,7 @@ class Im2DGen : public GenIm,
       Box2di ImBox2d(INT Brd) const {return Box2di(Pt2di(Brd,Brd),Pt2di(tx()-Brd,ty()-Brd));}
 
       virtual void TronqueAndSet(const Pt2di &,double aVal);
+      virtual double  MoyGrad() const ;
       virtual INT  vmax() const ;
       virtual INT  vmin() const ;
       virtual cIm2DInter * BilinIm() ;
@@ -548,6 +551,7 @@ template <class Type,class TyBase> class Im2D : public Im2DGen
       const Type *    data_lin() const;
       INT  vmax() const;
       INT  vmin() const;
+      double  MoyGrad() const ;
       virtual  GenIm::type_el TypeEl() const ;
       void raz();
       void dup (Im2D<Type,TyBase> to_dup);

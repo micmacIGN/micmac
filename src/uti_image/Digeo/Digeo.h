@@ -125,10 +125,10 @@ class cImDigeo;
 template <class Type> class cConvolSpec;
 
 class cAppliDigeo;
-
 class cVisuCaracDigeo;
-
 const int PackTranspo = 4;
+class cParamAppliDigeo;
+
 
 typedef enum
 {
@@ -195,6 +195,13 @@ Im1D_REAL8  GaussianKernelFromResidu(double aSigma,double aResidu,int aSurEch);
 // (Pour une image entiere qui sera interpretee comme rationnele de quotient aMul)
 Im1D_INT4 ToIntegerKernel(Im1D_REAL8 aRK,int aMul,bool aForceSym);
 
+cConvolSpec<INT>*   IGausCS(double aSigma,double anEpsilon);
+cConvolSpec<double>*   RGausCS(double aSigma,double anEpsilon);
+
+
+Fonc_Num GaussSepFilter(Fonc_Num   aFonc,double aSigma,double anEpsilon);
+
+
 
 
 
@@ -226,7 +233,7 @@ class cImInMem
          virtual void ResizeImage(const Pt2di & aSz) =0;
 
          // virtual void Resize(const Pt2di & aSz) = 0;
-         virtual void LoadFile(Fonc_Num aFile,const Box2di & aBox) = 0;
+         virtual void LoadFile(Fonc_Num aFile,const Box2di & aBox,GenIm::type_el) = 0;
          virtual Im2DGen Im() = 0;
 
          // La relation mere-fille a meme DZ se fait entre image de mm type
@@ -236,6 +243,9 @@ class cImInMem
          virtual void ReduceGaussienne() = 0;
 
          virtual double CalcGrad2Moy() = 0;
+
+         double ScaleInOct() const;
+         double ScaleInit()  const;
 
      protected :
 
@@ -287,7 +297,7 @@ template <class Type> class cTplImInMem : public cImInMem
         //tTIm  & TIm() {return TIm;}
         //const tTIm  & TIm() const {return TIm;}
         tIm  TIm() const {return mIm;}
-        void LoadFile(Fonc_Num aFonc,const Box2di & aBox) ;
+        void LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_el) ;
         bool InitRandom();
 
         void VMakeReduce_121(cImInMem &);
@@ -308,6 +318,7 @@ template <class Type> class cTplImInMem : public cImInMem
                    cTplImInMem<Type> & aNext1,
                    cTplImInMem<Type> & aNext2
              );
+         static void MakeClassConvolSpec(bool Increm,double aSigma,FILE *,FILE *,tBase* aFilter,int aDeb,int aFin,int aNbShit); 
      private :
 
         void ResizeBasic(const Pt2di & aSz);
@@ -349,7 +360,7 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
              (
                   Im2D<Type,tBase> aImOut,
                   Im2D<Type,tBase> aImIn,
-                  tBase *,int DebX,int aFinX,
+                  // tBase *,int DebX,int aFinX,
                   int  aNbShitX,
                   cConvolSpec<Type> *
              );
@@ -360,7 +371,7 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
         void SetConvolSepX
              (
                   const cTplImInMem<Type> & aImIn,
-                  tBase *,int DebX,int aFinX,
+                  // tBase *,int DebX,int aFinX,
                   int  aNbShitX,
                   cConvolSpec<Type> *
              );
@@ -368,7 +379,6 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
 
         void SelfSetConvolSepY
              (
-                  tBase *,int DebY,int aFinY,
                   int  aNbShitY,
                   cConvolSpec<Type> *
              );
@@ -377,7 +387,6 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
          template <class TMere> void  MakeReduce_010(const cTplImInMem<TMere> &);
          template <class TMere> void  MakeReduce_11(const cTplImInMem<TMere> &);
 
-         void MakeClassConvolSpec(bool Increm,double aSigma,FILE *,FILE *,tBase* aFilter,int aDeb,int aFin,int aNbShit); 
 
 
          void  ExtramDOG(Type *** aC,const Pt2di & aP,bool & isMax,bool & isMin);
@@ -451,13 +460,20 @@ class cOctaveDigeo
         const Box2di  &      BoxCurOut () const;
 
         void SetBoxInOut(const Box2di & aBoxIn,const Box2di & aBoxOut);
+        cOctaveDigeo *  OctUp();
+        const std::vector<cImInMem *> &  VIms();
+
+        virtual cTplOctDig<U_INT2> * U_Int2_This() = 0;
+        virtual cTplOctDig<REAL4> *  REAL4_This() = 0;
     protected :
+        static cOctaveDigeo * AllocGen(cOctaveDigeo * Mere,GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax);
        
-        cOctaveDigeo(GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax);
+        cOctaveDigeo(cOctaveDigeo * OctUp,GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax);
 
 
         GenIm::type_el           mType;
         cImDigeo &               mIm;
+        cOctaveDigeo *           mOctUp;
         int                      mNiv;
         std::vector<cImInMem *>  mVIms;
         Pt2di                    mSzMax;
@@ -473,7 +489,7 @@ class cOctaveDigeo
 template <class Type> class cTplOctDig  : public cOctaveDigeo
 {
     public :
-         cTplOctDig(cTplOctDig<Type> * Up,GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax);
+         cTplOctDig(cOctaveDigeo* Up,GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax);
          cImInMem * AllocIm(double aResolOctaveBase,int aK,int IndexSigma);
          cImInMem * GetImOfSigma(double aSig);
 
@@ -482,18 +498,20 @@ template <class Type> class cTplOctDig  : public cOctaveDigeo
          cImInMem * FirstImage();
          cTplImInMem<Type> * TypedFirstImage();
         
-          cTplOctDig<Type> *  OctUp();
 
-          cOctaveDigeo * AllocDown(GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax) ;
-          cTplOctDig<Type> * TypeAllocDown(GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax);
+         cOctaveDigeo * AllocDown(GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax) ;
          cTplImInMem<Type> * TypedGetImOfSigma(double aSig);
+         cTplOctDig<U_INT2> * U_Int2_This() ;
+         cTplOctDig<REAL4> *  REAL4_This() ;
+
+         const std::vector<cTplImInMem<Type> *> &  VTplIms() const;
+         void DoSiftExtract(int aK,const cSiftCarac &) ;
     private :
 
          void DoSiftExtract(const cSiftCarac &) ;
          void PostPyram() ;
          cTplImInMem<Type> * AllocTypedIm(double aResolOctaveBase,int aK,int IndexSigma);
 
-        cTplOctDig<Type> *                mOctUp;
         std::vector<cTplImInMem<Type> *>  mVTplIms;
         std::vector<Type **>  mVDatas;
         Type ***              mCube;
@@ -543,6 +561,7 @@ class cImDigeo
        double G2Moy() const;
        const Box2di &   BoxCurIn ();
        const Box2di &   BoxCurOut ();
+       const std::vector<cOctaveDigeo *> &   Octaves() const;
      private :
 
 
@@ -599,6 +618,7 @@ template <class Type> class cConvolSpec
         int Deb() const;
         int Fin() const;
         bool Sym() const;
+        tBase *  DataCoeff();
     protected :
 
     private :
@@ -651,6 +671,12 @@ class cVisuCaracDigeo
 class cAppliDigeo : public cParamDigeo
 {
     public : 
+       friend cAppliDigeo * DigeoCPP
+              (
+                    const std::string & aFullNameIm,
+                    const cParamAppliDigeo  aParam
+              );
+
        cAppliDigeo
        ( 
               cResultSubstAndStdGetFile<cParamDigeo> aParam,
@@ -663,7 +689,8 @@ class cAppliDigeo : public cParamDigeo
         void DoAll();
         const std::string & DC() const;
         cInterfChantierNameManipulateur * ICNM();
-        void DoOneInterv(int aK);
+        void DoOneInterv(int aK,bool DoExtract);
+        void LoadOneInterv(int aKB);
         int  NbInterv() const;
 
 
@@ -674,10 +701,13 @@ class cAppliDigeo : public cParamDigeo
 
        cModifGCC *      ModifGCC() const;
 
+       cImDigeo & SingleImage();
+       cSiftCarac *  SiftCarac();
 
 
     private :
-       void DoCarac();
+       void InitAllImage();
+       void DoAllInterv();
        
        static void InitConvolSpec();
 
@@ -697,6 +727,8 @@ class cAppliDigeo : public cParamDigeo
        Box2di                            mBoxIn;
        Box2di                            mBoxOut;
 
+       cSiftCarac *                     mSiftCarac;
+
      private :
         cAppliDigeo(const cAppliDigeo &);  // N.I.
         
@@ -707,7 +739,43 @@ class cAppliDigeo : public cParamDigeo
 template  class aClass<U_INT1>;\
 template  class aClass<U_INT2>;\
 template  class aClass<REAL4>;\
+template  class aClass<REAL8>;\
 template  class aClass<INT>;
+
+// =========================  INTERFACE EXTERNE ======================
+
+
+class cParamAppliDigeo
+{
+    public :
+
+        double   mSigma0;
+        double   mResolInit;  // 0.5 means -1 with usual Sift++ convention ; 1.0 means 0 ....
+        int      mOctaveMax;
+        int      mNivByOctave;
+        bool     mExigeCodeCompile;
+        int      mNivFloatIm;        // Ne depend pas de la resolution
+        bool     mSauvPyram;        // Pour Mise au point, sauve ttes les pyramides
+
+        cParamAppliDigeo() :
+            mSigma0           (1.6),
+            mResolInit        (1.0),
+            mOctaveMax        (32),
+            mNivByOctave      (3),
+            mExigeCodeCompile (false),
+            mNivFloatIm       (4),
+            mSauvPyram        (false)
+        {
+
+        }
+};
+
+cAppliDigeo * DigeoCPP
+              (
+                    const std::string & aFullNameIm,
+                    const cParamAppliDigeo  aParam
+              );
+
 
 
 

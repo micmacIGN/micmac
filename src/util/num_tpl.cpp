@@ -565,6 +565,8 @@ template void rotate_plus_data(U_INT2 **, INT, INT);
 template void binarise(U_INT1 *, U_INT1, INT);
 template void rotate_plus_data(REAL4 **, INT, INT);
 template void rotate_moins_data(REAL4 **, INT, INT);
+template void rotate_moins_data(REAL8 **, INT, INT);
+template void rotate_moins_data(INT4 **, INT, INT);
 
 template void set_cste(char *, char, int);
 

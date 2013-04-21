@@ -63,9 +63,15 @@ cAppliDigeo::cAppliDigeo
     mLastGCC     (IsLastGCC),
     mFileGGC_H   (aMaterAppli ? aMaterAppli->mFileGGC_H : 0),
     mFileGGC_Cpp (aMaterAppli ? aMaterAppli->mFileGGC_Cpp : 0),
-    mDecoupInt   (cDecoupageInterv2D::SimpleDec(Pt2di(10,10),10,0))
+    mDecoupInt   (cDecoupageInterv2D::SimpleDec(Pt2di(10,10),10,0)),
+    mSiftCarac   (cParamDigeo::SiftCarac().PtrVal())
 {
    InitConvolSpec();
+}
+
+cSiftCarac * cAppliDigeo::SiftCarac()
+{
+   return mSiftCarac;
 }
 
 void cAppliDigeo::AllocImages()
@@ -90,6 +96,12 @@ void cAppliDigeo::AllocImages()
    }
 }
 
+cImDigeo & cAppliDigeo::SingleImage()
+{
+    ELISE_ASSERT(mVIms.size()==1,"cAppliDigeo::SingleImage");
+    return *(mVIms[0]);
+}
+
 bool cAppliDigeo::MultiBloc() const
 {
   return DigeoDecoupageCarac().IsInit();
@@ -97,7 +109,7 @@ bool cAppliDigeo::MultiBloc() const
 
 
 
-void cAppliDigeo::DoCarac()
+void cAppliDigeo::InitAllImage()
 {
   if (! ComputeCarac())
       return;
@@ -147,14 +159,10 @@ void cAppliDigeo::DoCarac()
   }
 
 
-  for (int aKB=0; aKB<mDecoupInt.NbInterv() ; aKB++)
-  {
-      std::cout << "Boxes to do " << mDecoupInt.NbInterv()  - aKB << "\n";
-      DoOneInterv(aKB);
-  }
 
   if (GenereCodeConvol().IsInit() &&  mLastGCC)
   {
+       DoAllInterv();
       // fprintf(mFileGGC_H,"}\n");
       ElFclose(mFileGGC_H);
 
@@ -164,21 +172,38 @@ void cAppliDigeo::DoCarac()
   }
 }
 
+void cAppliDigeo::DoAllInterv()
+{
+   for (int aKB=0; aKB<mDecoupInt.NbInterv() ; aKB++)
+   {
+         std::cout << "Boxes to do " << mDecoupInt.NbInterv()  - aKB << "\n";
+         DoOneInterv(aKB,true);
+   }
+}
+
 
 int cAppliDigeo::NbInterv() const
 {
    return mDecoupInt.NbInterv();
 }
 
-void cAppliDigeo::DoOneInterv(int aKB)
+void cAppliDigeo::DoOneInterv(int aKB,bool DoExtract)
 {
    mBoxIn = mDecoupInt.KthIntervIn(aKB);
    mBoxOut = mDecoupInt.KthIntervOut(aKB);
    for (int aKI=0 ; aKI<int(mVIms.size()) ; aKI++)
    {
           mVIms[aKI]->LoadImageAndPyram(mBoxIn,mBoxOut);
-          mVIms[aKI]->DoExtract();
+          if (DoExtract)
+          {
+             mVIms[aKI]->DoExtract();
+          }
    }
+}
+
+void cAppliDigeo::LoadOneInterv(int aKB)
+{
+    DoOneInterv(aKB,false);
 }
 
 
@@ -187,7 +212,8 @@ void cAppliDigeo::DoAll()
 {
      AllocImages();
      ELISE_ASSERT(mVIms.size(),"NoImage selected !!");
-     DoCarac();
+     InitAllImage();
+     DoAllInterv();
 }
 
 
