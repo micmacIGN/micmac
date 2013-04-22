@@ -45,6 +45,8 @@ template<class T> __device__ void ScanOneSens(CDeviceDataStream<T> &costStream, 
     {
         const short2 uZ_Next = costStream.read(pData[2],tid,sens,0);
 
+
+
         short2 aDz;
         short z = uZ_Next.x;
 
@@ -57,8 +59,11 @@ template<class T> __device__ void ScanOneSens(CDeviceDataStream<T> &costStream, 
                 ComputeIntervaleDelta(aDz,Z,penteMax,uZ_Next,uZ_Prev);
                 T costMin = 1e9;
 
-                for(short i = aDz.x ; i < aDz.y; i++)
+                for(short i = aDz.x ; i <= aDz.y; i++)
                     costMin = min(costMin, pData[2][Z - uZ_Next.x] + pData[idBuffer][Z - uZ_Prev.x + i]);
+
+                if(blockIdx.x == 40 /*&& idParLine == 30*/)
+                    printf("%d ", pData[2][Z - uZ_Next.x]);
 
                 pData[!idBuffer][Z - uZ_Next.x] = costMin;
                 gData[idParLine * 32 + Z - uZ_Next.x] = costMin;
@@ -125,9 +130,9 @@ template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputStrea
     CuDeviceData3D<T>       dOutputData_AV  ( sizeInput,  dimVolCost.x, "dOutputData_AV");
     CuDeviceData3D<T>       dOutputData_AR  ( sizeInput,  dimVolCost.x, "dOutputData_AR");
 
-    //  ------------------- Initialisation des Variables Device, est-il necessaire---------------------
+    //  ---- Initialisation des Variables Device, est-il necessaire, a eviter car temps machine -------
 
-    //dOutputData_AV.Memset(0);
+    dOutputData_AV.Memset(0);
 
     //  ------------------- Copie du volume de couts dans le device  ----------------------------------
 
@@ -191,13 +196,13 @@ extern "C" void Launch()
         sizeStreamCost = 0;
         while (si < dimVolCost.y){
 
-            int min                         =  -CData<int>::GetRandomValue(5,16);
-            int max                         =   CData<int>::GetRandomValue(5,16);
+            int min                         =  0;//-CData<int>::GetRandomValue(5,16);
+            int max                         =  1; CData<int>::GetRandomValue(5,16);
             int dim                         =   max - min + 1;            
             streamIndex[pit + si]           =   make_short2(min,max);
 
             for(int i = 0 ; i < dim; i++)
-                streamCost[pitLine + sizeStreamCost + i] =  CData<uint>::GetRandomValue(16,128);
+                streamCost[pitLine + sizeStreamCost + i] = 10123;// CData<uint>::GetRandomValue(16,128);
 
             si++;
             sizeStreamCost += dim;
@@ -205,10 +210,13 @@ extern "C" void Launch()
         }
     }
 
-    streamCost.OutputValues(20);
+    int id = 20;
+
+    streamCost.OutputValues(id);
 
     LaunchKernelOptOneDirection(streamCost,streamIndex,dimVolCost,H_AV,H_AR);
-    H_AV.OutputValues(20);
+
+    H_AV.OutputValues(id);
 
     streamCost.Dealloc();
     streamIndex.Dealloc();
