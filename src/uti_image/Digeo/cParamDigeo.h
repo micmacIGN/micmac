@@ -10,7 +10,9 @@ typedef enum
   eTtpSommet,
   eTtpCuvette,
   eTtpCol,
-  eTtpCorner
+  eTtpCorner,
+  eSiftMaxDog,
+  eSiftMinDog
 } eTypeTopolPt;
 void xml_init(eTypeTopolPt & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeTopolPt & aVal);

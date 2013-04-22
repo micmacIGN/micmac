@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamDigeo[241]) = {
+const char * (theNameVar_ParamDigeo[243]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -29,6 +29,8 @@ const char * (theNameVar_ParamDigeo[241]) = {
 "         <eTtpCuvette>    </eTtpCuvette> \n",
 "         <eTtpCol>        </eTtpCol>\n",
 "         <eTtpCorner>      </eTtpCorner>\n",
+"         <eSiftMaxDog>     </eSiftMaxDog>\n",
+"         <eSiftMinDog>     </eSiftMinDog>\n",
 "   </enum>\n",
 "\n",
 "   <enum Name=\"eReducDemiImage\">\n",

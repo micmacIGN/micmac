@@ -389,6 +389,8 @@ void cImInMem::SauvIm(const std::string & aAdd)
 
     // ACCESSOR 
 
+std::vector<cPtsCaracDigeo> &  cImInMem::VPtsCarac() {return mVPtsCarac;}
+
 GenIm::type_el  cImInMem::TypeEl() const { return mType; }
 Pt2di cImInMem::Sz() const {return mSz;}
 int cImInMem::RGlob() const {return mResolGlob;}

@@ -27,6 +27,8 @@ using namespace NS_SuperposeImage;
          <eTtpCuvette>    </eTtpCuvette> 
          <eTtpCol>        </eTtpCol>
          <eTtpCorner>      </eTtpCorner>
+         <eSiftMaxDog>     </eSiftMaxDog>
+         <eSiftMinDog>     </eSiftMinDog>
    </enum>
 
    <enum Name="eReducDemiImage">

@@ -470,6 +470,8 @@ void cImDigeo::DoCalcGradMoy(int aDZ)
 
 void cImDigeo::DoSiftExtract()
 {
+   ELISE_ASSERT(false,"cImDigeo::DoSiftExtract deprecated");
+/*
 std::cout << "SIFT " << (mAppli.SiftCarac() != 0) << "\n";
     if (!mAppli.SiftCarac())
        return;
@@ -480,6 +482,7 @@ std::cout << "SIFT " << (mAppli.SiftCarac() != 0) << "\n";
     {
          mOctaves[aKoct]->DoSiftExtract(aSC);
     }
+*/
     
 }
 

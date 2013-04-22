@@ -128,6 +128,7 @@ class cAppliDigeo;
 class cVisuCaracDigeo;
 const int PackTranspo = 4;
 class cParamAppliDigeo;
+class cPtsCaracDigeo;
 
 
 typedef enum
@@ -138,6 +139,14 @@ typedef enum
   eTES_TropAllonge,
   eTES_Ok
 } eTypeExtreSift;
+
+class cPtsCaracDigeo
+{
+    public :
+       cPtsCaracDigeo(const Pt2dr & aP,eTypeTopolPt aType);
+       Pt2dr         mPt;
+       eTypeTopolPt  mType;
+};
 
 
    // Permt de shifter les entiers (+ rapide que la div) sans rien faire pour
@@ -248,6 +257,8 @@ class cImInMem
          double ScaleInOct() const;
          double ScaleInit()  const;
 
+         std::vector<cPtsCaracDigeo> & VPtsCarac();
+
      protected :
 
          cImInMem(cImDigeo &,const Pt2di & aSz,GenIm::type_el,cOctaveDigeo &,double aResolOctaveBase,int aKInOct,int IndexSigma);
@@ -267,6 +278,7 @@ class cImInMem
 
          Im1D_REAL8 mKernelTot;  // Noyaux le reliant a l'image de base de l'octave
          bool mFirstSauv;
+         std::vector<cPtsCaracDigeo> mVPtsCarac;
      private :
         cImInMem(const cImInMem &);  // N.I.
 };
@@ -442,6 +454,9 @@ class cOctaveDigeo
         cImInMem * KthIm(int aK) const;
         int                      Niv() const;
 
+        bool OkForSift(int aK) const;
+        void DoAllExtract(int aK);
+
         // void AddIm(cImInMem *);
 
         virtual cImInMem * AllocIm(double aResolOctaveBase,int aK,int IndexSigma) = 0;
@@ -450,7 +465,9 @@ class cOctaveDigeo
         void SetNbImOri(int aNbIm);
         int  NbImOri() const;
 
-        virtual void DoSiftExtract(const cSiftCarac &) = 0;
+        // virtual void DoSiftExtract(const cSiftCarac &) = 0;
+        // virtual void DoSiftExtract(int aK) = 0;
+        virtual void DoSiftExtract(int aK,const cSiftCarac &) = 0;
         virtual void PostPyram() = 0;
 
         virtual cOctaveDigeo * AllocDown(GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax) = 0;
