@@ -390,14 +390,11 @@ void cTplImInMem<Type>::ExtractExtremaDOG
 
            if (mResDifSift==eTES_Ok)
            {
-               mVPtsCarac.push_back
-               (
-                    cPtsCaracDigeo
-                    (
-                        Pt2dr(mIx+mTrX,mIy+mTrY),
-                        isMin ? eSiftMinDog : eSiftMaxDog
-                    )
-               );
+               Pt2dr aP(mIx+mTrX,mIy+mTrY);
+               if (mOct.Pt2Sauv(aP))
+               {
+                  mVPtsCarac.push_back(cPtsCaracDigeo(aP,isMin?eSiftMinDog:eSiftMaxDog));
+               }
 /*
                Pt2dr aDif(aXR-anX,aYR-anY);
                static double aDMax = 0;

@@ -485,6 +485,11 @@ class cOctaveDigeo
 
         virtual cTplOctDig<U_INT2> * U_Int2_This() = 0;
         virtual cTplOctDig<REAL4> *  REAL4_This() = 0;
+
+        bool Pt2Sauv(const Pt2dr&) const;
+        Pt2dr  ToPtImCalc(const Pt2dr& aP0) const;  // Renvoie dans l'image sur/sous-resolue
+
+
     protected :
         static cOctaveDigeo * AllocGen(cOctaveDigeo * Mere,GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax);
        
@@ -554,6 +559,8 @@ class cImDigeo
               const std::string & aName,
               cAppliDigeo &
          );
+
+        bool PtResolCalcSauv(const Pt2dr & aP);
         // void ComputeCarac();
         const std::string  &  Name() const;
         cAppliDigeo &  Appli();
@@ -779,6 +786,7 @@ class cParamAppliDigeo
         bool     mExigeCodeCompile;
         int      mNivFloatIm;        // Ne depend pas de la resolution
         bool     mSauvPyram;        // Pour Mise au point, sauve ttes les pyramides
+        double   mRatioGrad;  // Le gradient doit etre > a mRatioGrad le gradient moyen
 
         cParamAppliDigeo() :
             mSigma0           (1.6),
@@ -787,7 +795,8 @@ class cParamAppliDigeo
             mNivByOctave      (3),
             mExigeCodeCompile (false),
             mNivFloatIm       (4),
-            mSauvPyram        (false)
+            mSauvPyram        (false),
+            mRatioGrad        (0.05)
         {
 
         }

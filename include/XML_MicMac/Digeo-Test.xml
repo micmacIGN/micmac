@@ -16,6 +16,8 @@
         <Symb> ExigeCodeCompile=false     </Symb>
 
         <Symb> Sauv=1     </Symb>
+        <Symb> RatioGrad=0.05     </Symb>
+
         <eSymb> MaxDyn= ! ${Sauv} </eSymb>
     </DicoLoc>
 
@@ -76,7 +78,7 @@
 
                <NivEstimGradMoy> 4 </NivEstimGradMoy>
                <RatioAllongMin > 8 </RatioAllongMin>
-               <RatioGrad> 0.01 </RatioGrad>
+               <RatioGrad> ${RatioGrad} </RatioGrad>
            </SiftCarac>
 <!--
 -->

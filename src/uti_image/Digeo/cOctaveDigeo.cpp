@@ -269,13 +269,22 @@ void cOctaveDigeo::SetBoxInOut(const Box2di & aBoxIn,const Box2di & aBoxOut)
 {
    mBoxCurIn = Box2dr(Pt2dr(aBoxIn._p0)/mNiv,Pt2dr(aBoxIn._p1)/mNiv);
    mBoxCurOut = Box2di(aBoxOut._p0/mNiv,aBoxOut._p1/mNiv);
-
 }
 
 const Box2di  &  cOctaveDigeo::BoxImCalc () const {return mBoxImCalc;}
 const Box2dr  &  cOctaveDigeo::BoxCurIn  () const {return mBoxCurIn;}
 const Box2di  &  cOctaveDigeo::BoxCurOut () const {return mBoxCurOut;}
 
+
+Pt2dr  cOctaveDigeo::ToPtImCalc(const Pt2dr& aP0) const
+{
+   return aP0*double(mNiv) + Pt2dr(mIm.P0Cur());
+}
+
+bool cOctaveDigeo::Pt2Sauv(const Pt2dr& aP0) const
+{
+   return mIm.PtResolCalcSauv(ToPtImCalc(aP0));
+}
 
 
 int cOctaveDigeo::NbImOri() const
