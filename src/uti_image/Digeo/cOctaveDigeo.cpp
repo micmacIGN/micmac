@@ -102,7 +102,7 @@ void cOctaveDigeo::ResizeAllImages(const Pt2di & aP)
 template <class Type>  
 void  cTplOctDig<Type>::DoSiftExtract(int aK,const cSiftCarac & aSC)
 {
-      if ((aK<1) || (aK+2>=int(mVTplIms.size())))
+      if (! OkForSift(aK))
       {
           std::cout << "For k= " << aK << "\n";
           ELISE_ASSERT(false,"Bad K for DoSiftExtract");
@@ -115,6 +115,9 @@ void  cTplOctDig<Type>::DoSiftExtract(int aK,const cSiftCarac & aSC)
           *(mVTplIms[aK+2])
       );
 }
+
+
+
 
 template <class Type>  
 void  cTplOctDig<Type>::DoSiftExtract(int aK)
@@ -291,6 +294,23 @@ const std::vector<cImInMem *> &  cOctaveDigeo::VIms()
    return mVIms;
 }
 
+bool cOctaveDigeo::OkForSift(int aK) const
+{
+  return     (aK>=1) 
+          && (aK+2<int(mVIms.size()))
+          && mAppli.SiftCarac()
+          && mAppli.PyramideGaussienne().IsInit();
+}
+
+
+void cOctaveDigeo::DoAllExtract(int aK)
+{
+    mVIms.at(aK)->VPtsCarac().clear();
+    if (OkForSift(aK))
+    {
+          DoSiftExtract(aK,*(mAppli.SiftCarac()));
+    }
+}
 
 /*
 Pt2dr cOctaveDigeo::P0CurMyResol() const

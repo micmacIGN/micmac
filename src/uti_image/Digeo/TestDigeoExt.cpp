@@ -40,10 +40,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Digeo.h"
 
 
+static Video_Win * aWTesD = 0;
 
 template <class Type,class tBase> void Show_Octave(cTplOctDig<Type> * anOct)
 {
-static Video_Win aWTesD = Video_Win::WStd(Pt2di(100,100),1.0);
+   if (aWTesD==0)
+   {
+       aWTesD = new Video_Win(Video_Win::WStd(Pt2di(1500,1000),1.0));
+   }
   const std::vector<cTplImInMem<Type> *> &  aVIm = anOct->cTplOctDig<Type>::VTplIms();
 
 
@@ -52,18 +56,22 @@ static Video_Win aWTesD = Video_Win::WStd(Pt2di(100,100),1.0);
        cTplImInMem<Type> & anIm = *(aVIm[aK]);
        Im2D<Type,tBase> aTIm = anIm.TIm() ;  // L'image qu'il faut manipuler
        std::cout << "   #  Sz " << aTIm.sz() << " SInit:" <<  anIm.ScaleInit() << " SOct:" << anIm.ScaleInOct() ;
+       std::cout << "\n";
 
        tBase aVMax;
        ELISE_COPY(aTIm.all_pts(),aTIm.in(0),VMax(aVMax));
-       ELISE_COPY(aWTesD.all_pts(), aTIm.in(0) * (255.0/aVMax) ,aWTesD.ogray());
-       aWTesD.clik_in();
+       ELISE_COPY(aWTesD->all_pts(), aTIm.in(0) * (255.0/aVMax) ,aWTesD->ogray());
+       // aWTesD->clik_in();
 
-       std::cout << "\n";
 
+       anOct->DoAllExtract(aK);
+       std::cout << "NB PTS " << anIm.VPtsCarac().size();
+/*
        if ((aK>=1) && (aK<int(aVIm.size()-2)))
        {
             anOct->DoSiftExtract(aK);
        }
+*/
   }
 
 }
