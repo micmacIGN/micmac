@@ -51,9 +51,9 @@ template <class Type,class tBase> void Show_Octave(cTplOctDig<Type> * anOct)
   const std::vector<cTplImInMem<Type> *> &  aVIm = anOct->cTplOctDig<Type>::VTplIms();
 
 
-  for (int aK=0 ; aK<int(aVIm.size()) ; aK++)
+  for (int aKIm=0 ; aKIm<int(aVIm.size()) ; aKIm++)
   {
-       cTplImInMem<Type> & anIm = *(aVIm[aK]);
+       cTplImInMem<Type> & anIm = *(aVIm[aKIm]);
        Im2D<Type,tBase> aTIm = anIm.TIm() ;  // L'image qu'il faut manipuler
        std::cout << "   #  Sz " << aTIm.sz() << " SInit:" <<  anIm.ScaleInit() << " SOct:" << anIm.ScaleInOct() ;
        std::cout << "\n";
@@ -61,26 +61,32 @@ template <class Type,class tBase> void Show_Octave(cTplOctDig<Type> * anOct)
        tBase aVMax;
        ELISE_COPY(aTIm.all_pts(),aTIm.in(0),VMax(aVMax));
        ELISE_COPY(aWTesD->all_pts(), aTIm.in(0) * (255.0/aVMax) ,aWTesD->ogray());
-       // aWTesD->clik_in();
 
 
-       anOct->DoAllExtract(aK);
-       std::cout << "NB PTS " << anIm.VPtsCarac().size();
-/*
-       if ((aK>=1) && (aK<int(aVIm.size()-2)))
+       anOct->DoAllExtract(aKIm);
+ 
+       std::vector<cPtsCaracDigeo> &  aVPC = anIm.VPtsCarac();
+       std::cout << "NB PTS " <<aVPC.size();
+
+       for (int aKP=0 ; aKP< int(anIm.VPtsCarac().size()) ;  aKP++)
        {
-            anOct->DoSiftExtract(aK);
+           cPtsCaracDigeo aPC = aVPC[aKP];
+           int aCoul = (aPC.mType == eSiftMaxDog) ? P8COL::red : P8COL::blue ;
+           //  if (! anOct->Pt2Sauv(aPC.mPt)) aCoul = P8COL::green;
+           aWTesD->draw_circle_abs(aPC.mPt,3.0,aWTesD->pdisc()(aCoul));
        }
-*/
+       aWTesD->clik_in();
   }
 
 }
 
 void TestDigeoExt()
 {
-    std::string aName = "/home/marc/TMP/Delphes/12-Tetes-Inc-4341-6/IMG_0057.CR2";
+    // std::string aName = "/home/marc/TMP/Delphes/12-Tetes-Inc-4341-6/IMG_0057.CR2";
+    std::string aName = "/media/data1/Jeux-Tests/12-Tetes-Inc-4341-6/IMG_0057.CR2";
     cParamAppliDigeo aParam;
     aParam.mSauvPyram = true;
+    aParam.mResolInit = 1.0;
 
     cAppliDigeo * anAD = DigeoCPP(aName,aParam);
     cImDigeo &  anImD = anAD->SingleImage(); // Ici on ne mape qu'une seule image à la fois

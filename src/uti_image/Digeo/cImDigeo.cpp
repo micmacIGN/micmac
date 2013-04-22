@@ -299,6 +299,13 @@ void cImDigeo::AllocImages()
    }
 }
 
+bool cImDigeo::PtResolCalcSauv(const Pt2dr & aP)
+{
+   return    (aP.x>=mBoxCurOut._p0.x)
+          && (aP.x <mBoxCurOut._p1.x)
+          && (aP.y>=mBoxCurOut._p0.y)
+          && (aP.y <mBoxCurOut._p1.y) ;
+}
 
 
 void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
