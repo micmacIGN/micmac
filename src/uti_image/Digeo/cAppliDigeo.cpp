@@ -74,6 +74,12 @@ cSiftCarac * cAppliDigeo::SiftCarac()
    return mSiftCarac;
 }
 
+cSiftCarac * cAppliDigeo::RequireSiftCarac()
+{
+   ELISE_ASSERT(mSiftCarac!=0,"cAppliDigeo::RequireSiftCarac");
+   return mSiftCarac;
+}
+
 void cAppliDigeo::AllocImages()
 {
    for 

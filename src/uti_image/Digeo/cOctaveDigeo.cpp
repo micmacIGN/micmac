@@ -116,6 +116,12 @@ void  cTplOctDig<Type>::DoSiftExtract(int aK,const cSiftCarac & aSC)
       );
 }
 
+template <class Type>  
+void  cTplOctDig<Type>::DoSiftExtract(int aK)
+{
+   DoSiftExtract(aK,*mAppli.RequireSiftCarac());
+}
+
 
 
 template <class Type>  
@@ -245,6 +251,7 @@ InstantiateClassTplDigeo(cTplOctDig)
 cOctaveDigeo::cOctaveDigeo(cOctaveDigeo * anOctUp,GenIm::type_el aType,cImDigeo & anIm,int aNiv,Pt2di aSzMax) :
    mType     (aType),
    mIm       (anIm),
+   mAppli    (mIm.Appli()),
    mOctUp    (anOctUp),
    mNiv      (aNiv),
    mSzMax    (aSzMax),

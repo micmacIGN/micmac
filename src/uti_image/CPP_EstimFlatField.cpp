@@ -63,11 +63,11 @@ int EstimFlatField_main(int argc,char ** argv)
 	LArgMain()  << EAMC(aFullDir,"Images = Dir + Pat")
                     << EAMC(aResol,"Resolution "),
 	LArgMain()  << EAM(aNbMed,"NbMed",true)	
-                    << EAM(aNameOut,"Out",true)
+                    << EAM(aNameOut,"Out",true,"Name of result")
                     << EAM(aDilate,"SousResAdd",true)
                     << EAM(aNbMedSsRes,"NbMedSsRes",true)
                     << EAM(TolMed,"TolMed",true)
-                    << EAM(ByMoy,"ByMoy",true)
+                    << EAM(ByMoy,"ByMoy",true,"Average or median (def=false")
     );
 
     SplitDirAndFile(aDir,aPat,aFullDir);

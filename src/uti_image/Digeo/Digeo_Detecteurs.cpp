@@ -109,6 +109,9 @@ eTypeExtreSift cTplImInMem<Type>::CalculateDiff
           int      aNiv
      )
 {
+std::cout << "NNnniv " << aNiv << "\n";
+    mIx = anX;
+    mIy = anY;
     Type ** aI = aC[0] +anY;
     Type* aIm1 = aI[-1]+anX;
     Type* aI0  = aI[ 0]+anX;
@@ -304,6 +307,7 @@ void cTplImInMem<Type>::ExtractExtremaDOG
            mDogPC = *aLDif;
            bool isMax=false;
            bool isMin=false;
+           mResDifSift = eTES_Uncalc;
 
            if (mDogPC>=aLDif[-1])
            {
@@ -385,7 +389,12 @@ void cTplImInMem<Type>::ExtractExtremaDOG
               }
            }
 
-// std::cout 
+           if (mResDifSift==eTES_Ok)
+           {
+               double aXR = mIx + mTrX;
+               double aYR = mIy + mTrY;
+               std::cout  << "RDSss " << (aXR-anX) << " " << (aYR-anY) << "\n";
+           }
            aLDif++;
            
            if (aInteract)
@@ -412,7 +421,7 @@ void cTplImInMem<Type>::ExtractExtremaDOG
                      mResDifSift
                  );
               }
-          }
+           }
         }
 
    }

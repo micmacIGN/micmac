@@ -132,6 +132,7 @@ class cParamAppliDigeo;
 
 typedef enum
 {
+  eTES_Uncalc,
   eTES_instable,
   eTES_GradFaible,
   eTES_TropAllonge,
@@ -415,6 +416,8 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
           double            mSeuilTr2Det;
           double            mSeuilGrad;
           int               mBrd;
+          int               mIx;
+          int               mIy;
           Pt2dr             mP;
           double            mGX;
           double            mGY;
@@ -473,6 +476,7 @@ class cOctaveDigeo
 
         GenIm::type_el           mType;
         cImDigeo &               mIm;
+        cAppliDigeo &            mAppli;
         cOctaveDigeo *           mOctUp;
         int                      mNiv;
         std::vector<cImInMem *>  mVIms;
@@ -505,9 +509,10 @@ template <class Type> class cTplOctDig  : public cOctaveDigeo
          cTplOctDig<REAL4> *  REAL4_This() ;
 
          const std::vector<cTplImInMem<Type> *> &  VTplIms() const;
-         void DoSiftExtract(int aK,const cSiftCarac &) ;
+         void DoSiftExtract(int aK);
     private :
 
+         void DoSiftExtract(int aK,const cSiftCarac &) ;
          void DoSiftExtract(const cSiftCarac &) ;
          void PostPyram() ;
          cTplImInMem<Type> * AllocTypedIm(double aResolOctaveBase,int aK,int IndexSigma);
@@ -702,6 +707,7 @@ class cAppliDigeo : public cParamDigeo
        cModifGCC *      ModifGCC() const;
 
        cImDigeo & SingleImage();
+       cSiftCarac *  RequireSiftCarac();
        cSiftCarac *  SiftCarac();
 
 

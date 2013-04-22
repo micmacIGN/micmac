@@ -40,10 +40,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Digeo.h"
 
 
-static Video_Win aWTesD = Video_Win::WStd(Pt2di(100,100),1.0);
 
 template <class Type,class tBase> void Show_Octave(cTplOctDig<Type> * anOct)
 {
+static Video_Win aWTesD = Video_Win::WStd(Pt2di(100,100),1.0);
   const std::vector<cTplImInMem<Type> *> &  aVIm = anOct->cTplOctDig<Type>::VTplIms();
 
 
@@ -62,6 +62,7 @@ template <class Type,class tBase> void Show_Octave(cTplOctDig<Type> * anOct)
 
        if ((aK>=1) && (aK<int(aVIm.size()-2)))
        {
+            anOct->DoSiftExtract(aK);
        }
   }
 
