@@ -359,8 +359,8 @@ int File(int argc,char ** argv)
     ElInitArgMain
     (
 	argc,argv,
-	LArgMain()  << EAM(aFullDir)
-                     <<EAM(aFullRes),
+	LArgMain()  << EAMC(aFullDir,"XML-File of pair")
+                     <<EAMC(aFullRes,"Resolution"),
 	LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
                     << EAM(PostFix,"PostFix",true)
                     << EAM(ByP,"ByP",true)

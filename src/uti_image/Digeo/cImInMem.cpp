@@ -162,6 +162,7 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
               SauvIm("ReDyn_");
            }
        }
+
        mImGlob.SetDyn(aMul);
 
     }

@@ -1644,9 +1644,12 @@ std::string XML_MM_File(const std::string & aFile)
 	}
 
 
-	std::string cInterfChantierNameManipulateur::StdKeyOrient(const tKey & aKey)
+	std::string cInterfChantierNameManipulateur::StdKeyOrient(const tKey & aKeyOri)
 	{
-		if (AssocHasKey(aKey)) return aKey;
+		if (AssocHasKey(aKeyOri)) return aKeyOri;
+
+                std::string aKey = aKeyOri;
+                if (aKey.c_str()[0] != '-') aKey = "-" + aKey ;
 		return "NKS-Assoc-Im2Orient@" + aKey;
 	}
 
