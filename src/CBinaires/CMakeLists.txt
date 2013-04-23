@@ -1,17 +1,26 @@
 add_executable(mm3d mm3d.cpp)
-target_link_libraries(mm3d elise ${X11_LIBRARIES} ${KAKADU_LIBRARIES} ${WINSOCK2_LIBRARY} ${DYN_LIB_LIBRARY})
 
-if (Boost_FOUND)
-    target_link_libraries(mm3d ${Boost_LIBRARIES} ${Boost_THREADAPI})
+
+target_link_libraries(mm3d elise ${X11_LIBRARIES} ${WINSOCK2_LIBRARY} ${DYN_LIB_LIBRARY})
+
+if (KAKADU_FOUND)
+    target_link_libraries(mm3d ${KAKADU_LIBRARIES})
+     #c'est tres sale mais c du debug NB 2013/04/22  
+    target_link_libraries(mm3d "/usr/lib/x86_64-linux-gnu/libpthread.so")
+    #message({KAKADU_LIBRARIES} : ${IgnSocle_LIBRARIES})
 endif()
 
 if (TinyXML_FOUND)
     target_link_libraries(mm3d ${TinyXML_LIBRARIES})
 endif()
 
+if (Boost_FOUND)
+    target_link_libraries(mm3d ${Boost_LIBRARIES} ${Boost_THREADAPI})
+endif()
+
 if (IgnSocle_FOUND)
     target_link_libraries(mm3d ${IgnSocle_LIBRARIES})
-    message({IgnSocle_LIBRARIES} : ${IgnSocle_LIBRARIES})
+    #message({IgnSocle_LIBRARIES} : ${IgnSocle_LIBRARIES})
 endif()
 
 INSTALL(TARGETS mm3d RUNTIME DESTINATION ${Install_Dir})
@@ -33,8 +42,6 @@ if (NOT ${BUILD_ONLY_ELISE})
 	add_executable(mmxv mmxv.c)
 	INSTALL(TARGETS mmxv RUNTIME DESTINATION ${Install_Dir})
 
-
-
 	add_executable(Bascule  Bascule.c)
 	INSTALL(TARGETS Bascule RUNTIME DESTINATION ${Install_Dir})
 
@@ -49,7 +56,6 @@ if (NOT ${BUILD_ONLY_ELISE})
 
 	add_executable(vic  vic.c)
 	INSTALL(TARGETS vic RUNTIME DESTINATION ${Install_Dir})
-
 
 	add_executable(Devlop  Devlop.c)
 	INSTALL(TARGETS Devlop RUNTIME DESTINATION ${Install_Dir})
