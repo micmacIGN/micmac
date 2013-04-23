@@ -281,6 +281,14 @@ Pt2dr  cOctaveDigeo::ToPtImCalc(const Pt2dr& aP0) const
    return aP0*double(mNiv) + Pt2dr(mIm.P0Cur());
 }
 
+Pt2dr  cOctaveDigeo::ToPtImR1(const Pt2dr& aP0) const
+{
+   return ToPtImCalc(aP0) *mIm.Resol();
+}
+
+
+
+
 bool cOctaveDigeo::Pt2Sauv(const Pt2dr& aP0) const
 {
    return mIm.PtResolCalcSauv(ToPtImCalc(aP0));
@@ -319,6 +327,14 @@ void cOctaveDigeo::DoAllExtract(int aK)
     {
           DoSiftExtract(aK,*(mAppli.SiftCarac()));
     }
+}
+
+void cOctaveDigeo::DoAllExtract()
+{
+   for (int aKIm=0 ; aKIm<int(mVIms.size()) ; aKIm++)
+   {
+       DoAllExtract(aKIm);
+   }
 }
 
 /*

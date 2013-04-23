@@ -57,6 +57,9 @@ if (NOT ${BUILD_ONLY_ELISE})
 	add_executable(Drunk Drunk.c)
 	INSTALL(TARGETS Drunk RUNTIME DESTINATION ${Install_Dir})
 
+	add_executable(GrapheHom GrapheHom.c)
+	INSTALL(TARGETS GrapheHom RUNTIME DESTINATION ${Install_Dir})
+
 	add_executable(ElDcraw  ElDcraw.c)
 	INSTALL(TARGETS ElDcraw RUNTIME DESTINATION ${Install_Dir})
 

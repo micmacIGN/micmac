@@ -13,12 +13,15 @@
         <Symb> NivFloatIm=4     </Symb>
         <Symb> NivInFirstOct=0     </Symb>
         <Symb> Incremental=true     </Symb>
-        <Symb> ExigeCodeCompile=false     </Symb>
+        <Symb> ExigeCodeCompile=true     </Symb>
 
         <Symb> Sauv=1     </Symb>
         <Symb> RatioGrad=0.05     </Symb>
 
         <eSymb> MaxDyn= ! ${Sauv} </eSymb>
+<!--
+        <eSymb> MaxDyn=false </eSymb>
+-->
     </DicoLoc>
 
         <SectionImages>

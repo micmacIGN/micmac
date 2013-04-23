@@ -506,6 +506,7 @@ int GCP_Txt2Xml_main(int argc,char ** argv);
 int VideoVisage_main(int argc,char ** argv);
 int Poisson_main(int argc,char ** argv);
 int Sift_main(int argc,char ** argv);
+int GrapheHom_main(int argc,char ** argv);
 
 
 

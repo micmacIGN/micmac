@@ -215,7 +215,7 @@ void cTplImInMem<Type>::ExtractExtremaDOG
 
    double aRalm = aSC.RatioAllongMin().Val();
    mSeuilTr2Det = (aRalm+1)*(1+1/aRalm);
-   mSeuilGrad = mImGlob.G2Moy() * ElSquare( aSC.RatioGrad().Val() /mResolOctaveBase);
+   mSeuilGrad = ElSquare(mImGlob.GradMoyCorrecDyn()*(aSC.RatioGrad().Val()/mResolOctaveBase));
 
    if (theMDog==0)
    {

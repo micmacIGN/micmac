@@ -14,6 +14,8 @@ Prochaine lettre :
 
 =====================================================
 
+InCal : si aucune calibration trouvee, insulter comme il se doit
+
 Probleme homogeneite Resol & Focal dans ChImSec
 paralleliisation des devlt tiff
 PasIsPixel en Geom Fais-Z  (et Fais-Prof ???)
