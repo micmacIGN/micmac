@@ -184,7 +184,7 @@ IF(${WITH_MATIS_ORI})
 		OPTION(MICMAC_USE_PROJ4 "Use PROJ4" OFF)
 		#-- recherche de boost
 		SET(Boost_USE_MULTITHREADED ON)
-		FIND_PACKAGE( Boost 1.46.0 COMPONENTS unit_test_framework system filesystem serialization thread  REQUIRED )
+		FIND_PACKAGE( Boost 1.46.0 COMPONENTS unit_test_framework date_time system filesystem serialization thread regex chrono)
 		FIND_PACKAGE(TICPP REQUIRED)
 		IF ( TICPP_FOUND)
 			LINK_DIRECTORIES(${TICPP_LIBRARY_DIRS})
