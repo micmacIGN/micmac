@@ -594,11 +594,12 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
 #ifdef CUDA_ENABLED
 
     uint    depth       =   256;
+
     uint3   dimStream   =   make_uint3(depth,mSz.x,mSz.y);
-    CuHostData3D<uint>      streamCostVolume(dimStream);
-    CuHostData3D<short2>    index(make_uint2(mSz.x,mSz.y),1);
-    CuHostData3D<uint>      hOutputValue_AV(dimStream);
-    CuHostData3D<uint>      hOutputValue_AR(dimStream);
+    CuHostData3D<uint>      streamCostVolume(NOPAGELOCKEDMEMORY,dimStream);
+    CuHostData3D<short2>    index(NOPAGELOCKEDMEMORY,make_uint2(mSz.x,mSz.y),1);
+    CuHostData3D<uint>      hOutputValue_AV(NOPAGELOCKEDMEMORY,dimStream);
+    CuHostData3D<uint>      hOutputValue_AR(NOPAGELOCKEDMEMORY,dimStream);
 
     //streamCostVolume.Fill(10123);
     //uint line = 35;
@@ -613,7 +614,7 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
         {
             // Matrice des cellules
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
-            const Box2di &  aBox = aMat.Box();
+            const Box2di &  aBox        = aMat.Box();
             Pt2di aP;
 
             index[make_uint2(aK,x)] = make_short2(aBox._p0.x,aBox._p1.x);
@@ -653,9 +654,9 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
                 uint3   Pt_AR       = make_uint3( aP.x - aBox._p0.x, lenghtLine - aK - 1, x);
                 int     costInit    = aMat[aP].GetCostInit();
 
-                hOutputValue_AV[Pt_AV] = hOutputValue_AV[Pt_AV] + hOutputValue_AR[Pt_AR] - costInit;
+                int costForce = hOutputValue_AV[Pt_AV] = hOutputValue_AV[Pt_AV] + hOutputValue_AR[Pt_AR] - costInit;
 
-                ElSetMin(aCoutMin,tCost(hOutputValue_AV[Pt_AV]));
+                ElSetMin(aCoutMin,tCost(costForce));
 
 //                if(aCoutMin == tCost(hOutputValue_AV[Pt_AV]))
 //                    FinalZ[make_uint2(aK,x)] = (float)(aP.x - aBox._p0.x)/(float)depth;
@@ -664,10 +665,8 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
             for (aP.x = aBox._p0.x ; aP.x< aBox._p1.x ; aP.x++)
             {
                 uint3   Pt_AV           = make_uint3(aP.x - aBox._p0.x, aK, x);
-                hOutputValue_AV[Pt_AV] -= aCoutMin;
-                tCost   aNewCost        = tCost(hOutputValue_AV[Pt_AV]);
                 tCost & aCF             = aMat[aP].CostFinal();
-                aCF                    += aNewCost;
+                aCF                    += tCost(hOutputValue_AV[Pt_AV] - aCoutMin);
             }
         }
         x++;      

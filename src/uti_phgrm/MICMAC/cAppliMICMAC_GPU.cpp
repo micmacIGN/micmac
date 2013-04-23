@@ -1314,8 +1314,8 @@ if (0)
 		if (interZ != INTERZ)	IMmGg.SetSizeBlock(interZ);
 		
 		// Allocation de l'espace mémoire pour la tabulation des projections et des couts
-        CuHostData3D<float>		hVolumeCost(IMmGg.Param().dimTer,   interZ);
-        CuHostData3D<float2>	hVolumeProj(IMmGg.Param().dimSTer,  interZ*mNbIm);
+        CuHostData3D<float>		hVolumeCost(true,IMmGg.Param().dimTer,   interZ);
+        CuHostData3D<float2>	hVolumeProj(true,IMmGg.Param().dimSTer,  interZ*mNbIm);
 
 		hVolumeCost.SetName("hVolumeCost");
 		hVolumeProj.SetName("hVolumeProj");
