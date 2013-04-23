@@ -39,7 +39,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Digeo.h"
 
+cPtsCaracDigeo::cPtsCaracDigeo(const Pt2dr & aP,eTypeTopolPt aType) :
+  mPt  (aP),
+  mType (aType)
+{
+}
 
+/*
 struct sCaracPt
 {
      eTypeTopolPt   mType;
@@ -63,6 +69,7 @@ sCaracPt * CaracTopo()
    return sCaracPt;
 
 }
+*/
 
 
 /****************************************/

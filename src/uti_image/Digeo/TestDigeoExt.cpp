@@ -40,39 +40,99 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Digeo.h"
 
 
+static Video_Win * aWTesD = 0;
+static Video_Win * aWGlob = 0;
+static bool Clik = false;
 
-template <class Type,class tBase> void Show_Octave(cTplOctDig<Type> * anOct)
+template <class Type,class tBase> void Show_Detail_Octave(cTplOctDig<Type> * anOct)
 {
-static Video_Win aWTesD = Video_Win::WStd(Pt2di(100,100),1.0);
+   if (aWTesD==0)
+   {
+       aWTesD = new Video_Win(Video_Win::WStd(Pt2di(1500,1000),1.0));
+   }
   const std::vector<cTplImInMem<Type> *> &  aVIm = anOct->cTplOctDig<Type>::VTplIms();
 
-
-  for (int aK=0 ; aK<int(aVIm.size()) ; aK++)
+  for (int aKIm=0 ; aKIm<int(aVIm.size()) ; aKIm++)
   {
-       cTplImInMem<Type> & anIm = *(aVIm[aK]);
+       cTplImInMem<Type> & anIm = *(aVIm[aKIm]);
        Im2D<Type,tBase> aTIm = anIm.TIm() ;  // L'image qu'il faut manipuler
        std::cout << "   #  Sz " << aTIm.sz() << " SInit:" <<  anIm.ScaleInit() << " SOct:" << anIm.ScaleInOct() ;
+       std::cout << "\n";
 
        tBase aVMax;
        ELISE_COPY(aTIm.all_pts(),aTIm.in(0),VMax(aVMax));
-       ELISE_COPY(aWTesD.all_pts(), aTIm.in(0) * (255.0/aVMax) ,aWTesD.ogray());
-       aWTesD.clik_in();
+       ELISE_COPY(aWTesD->all_pts(), aTIm.in(0) * (255.0/aVMax) ,aWTesD->ogray());
 
-       std::cout << "\n";
 
-       if ((aK>=1) && (aK<int(aVIm.size()-2)))
+ 
+       std::vector<cPtsCaracDigeo> &  aVPC = anIm.VPtsCarac();
+       std::cout << "NB PTS " <<aVPC.size();
+
+       for (int aKP=0 ; aKP< int(anIm.VPtsCarac().size()) ;  aKP++)
        {
-            anOct->DoSiftExtract(aK);
+           cPtsCaracDigeo aPC = aVPC[aKP];
+           int aCoul = (aPC.mType == eSiftMaxDog) ? P8COL::red : P8COL::blue ;
+           aWTesD->draw_circle_abs(aPC.mPt,3.0,aWTesD->pdisc()(aCoul));
        }
+        if (Clik) aWTesD->clik_in();
   }
 
 }
 
+void Show_Res_Glob(cOctaveDigeo & anOct,cImDigeo & anImD)
+{
+   static int aCpt = 0;
+   if (aWGlob==0)
+   {
+      Tiff_Im aTF = anImD.TifF();
+      aWGlob = new Video_Win(Video_Win::WSzMax(Pt2dr(aTF.sz()),Pt2dr(1500,1500)));
+
+      double aVMax;
+      std::cout << "COMPUTE MAX \n";
+      ELISE_COPY(aTF.all_pts(),aTF.in(),VMax(aVMax));
+      ELISE_COPY(aTF.all_pts(),aTF.in() * (255/aVMax) ,aWGlob->ogray());
+   }
+
+   anOct.DoAllExtract();
+   const std::vector<cImInMem *> &  aVIms = anOct.VIms();
+   for (int aKIm=0 ; aKIm<int(aVIms.size()) ; aKIm++)
+   {
+        cImInMem & anIm = *(aVIms[aKIm]);
+        std::vector<cPtsCaracDigeo> &  aVPC = anIm.VPtsCarac();
+         aCpt += anIm.VPtsCarac().size();
+        for (int aKP=0 ; aKP< int(anIm.VPtsCarac().size()) ;  aKP++)
+        {
+           aWGlob->draw_circle_abs(anOct.ToPtImR1(aVPC[aKP].mPt),3.0,aWGlob->pdisc()(P8COL::green));
+        }
+   }
+
+   std::cout << "NbPtsGot = " << aCpt << "\n";
+}
+
+
+//  ===== Sigma0=1.6 ======
+//  0.5 => 30629
+// 1.0  => 17652
+// 2.0  => 10971
+
+//  ===== Sigma0=1.6 ======
+//  1.0 ==> 20980
+
 void TestDigeoExt()
 {
     std::string aName = "/home/marc/TMP/Delphes/12-Tetes-Inc-4341-6/IMG_0057.CR2";
+    // std::string aName = "/media/data1/Jeux-Tests/12-Tetes-Inc-4341-6/IMG_0057.CR2";
     cParamAppliDigeo aParam;
-    aParam.mSauvPyram = true;
+    aParam.mSauvPyram = false;
+    aParam.mSigma0 = 0;
+/*
+ELISE_ASSERT
+(
+false,
+"AVOIR CAR mSauvPyr => mOdif MaxDy => Pb Seuil Grad"
+);
+*/
+    aParam.mResolInit = 1.0;
 
     cAppliDigeo * anAD = DigeoCPP(aName,aParam);
     cImDigeo &  anImD = anAD->SingleImage(); // Ici on ne mape qu'une seule image à la fois
@@ -82,19 +142,24 @@ void TestDigeoExt()
     for (int aKBox = 0 ; aKBox<anAD->NbInterv() ; aKBox++)
     {
         anAD->LoadOneInterv(aKBox);  // Calcul et memorise la pyramide gaussienne
+        const std::vector<cOctaveDigeo *> & aVOct = anImD.Octaves();
         
         if (aKBox==0)
         {
-            const std::vector<cOctaveDigeo *> & aVOct = anImD.Octaves();
             std::cout <<  "= Nombre Octaves " << aVOct.size() << "\n";
-            for (int aKo=0 ; aKo<int(aVOct.size()) ; aKo++)
-            {
-                 cOctaveDigeo & anOct = *(aVOct[aKo]);
-                 const std::vector<cImInMem *> & aVIms = anOct.VIms();
-                 std::cout << " *Oct=" << aKo << " Dz=" << anOct.Niv()  << " NbIm " << aVIms.size();
+        }
+        for (int aKo=0 ; aKo<int(aVOct.size()) ; aKo++)
+        {
+            cOctaveDigeo & anOct = *(aVOct[aKo]);
+            Show_Res_Glob(anOct,anImD);
 
-                  cTplOctDig<U_INT2> * aUI2_Oct = anOct.U_Int2_This();  // entre aUI2_OctaUI2_Oct et  aR4_Oct
-                  cTplOctDig<REAL4> * aR4_Oct = anOct.REAL4_This();     // un et un seul doit etre != 0
+            const std::vector<cImInMem *> & aVIms = anOct.VIms();
+
+            cTplOctDig<U_INT2> * aUI2_Oct = anOct.U_Int2_This();  // entre aUI2_OctaUI2_Oct et  aR4_Oct
+            cTplOctDig<REAL4> * aR4_Oct = anOct.REAL4_This();     // un et un seul doit etre != 0
+            if (aKBox==0)
+            {
+                 std::cout << " *Oct=" << aKo << " Dz=" << anOct.Niv()  << " NbIm " << aVIms.size();
 
                  if (aUI2_Oct !=0) std::cout << " U_INT2 ";
                  if (aR4_Oct !=0) std::cout << " REAL4 ";
@@ -102,13 +167,15 @@ void TestDigeoExt()
                  std::cout << "\n";
                   
                  if (aUI2_Oct !=0) 
-                    Show_Octave<U_INT2,INT>(aUI2_Oct);
+                    Show_Detail_Octave<U_INT2,INT>(aUI2_Oct);
                  if (aR4_Oct !=0) 
-                    Show_Octave<REAL4,REAL8>(aR4_Oct);
-            }
+                    Show_Detail_Octave<REAL4,REAL8>(aR4_Oct);
+             }
         }
         std::cout << "Done " << aKBox << " on " << anAD->NbInterv() << "\n";
+        if (Clik) aWGlob->clik_in();
     }
+
 }
 
 

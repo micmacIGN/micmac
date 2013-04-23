@@ -11,6 +11,10 @@ eTypeTopolPt  Str2eTypeTopolPt(const std::string & aName)
       return eTtpCol;
    else if (aName=="eTtpCorner")
       return eTtpCorner;
+   else if (aName=="eSiftMaxDog")
+      return eSiftMaxDog;
+   else if (aName=="eSiftMinDog")
+      return eSiftMinDog;
   else
   {
       cout << aName << " is not a correct value for enum eTypeTopolPt\n" ;
@@ -32,6 +36,10 @@ std::string  eToString(const eTypeTopolPt & anObj)
       return  "eTtpCol";
    if (anObj==eTtpCorner)
       return  "eTtpCorner";
+   if (anObj==eSiftMaxDog)
+      return  "eSiftMaxDog";
+   if (anObj==eSiftMinDog)
+      return  "eSiftMinDog";
  std::cout << "Enum = eTypeTopolPt\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";

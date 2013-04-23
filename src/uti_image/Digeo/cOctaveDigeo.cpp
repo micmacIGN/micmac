@@ -102,7 +102,7 @@ void cOctaveDigeo::ResizeAllImages(const Pt2di & aP)
 template <class Type>  
 void  cTplOctDig<Type>::DoSiftExtract(int aK,const cSiftCarac & aSC)
 {
-      if ((aK<1) || (aK+2>=int(mVTplIms.size())))
+      if (! OkForSift(aK))
       {
           std::cout << "For k= " << aK << "\n";
           ELISE_ASSERT(false,"Bad K for DoSiftExtract");
@@ -115,6 +115,9 @@ void  cTplOctDig<Type>::DoSiftExtract(int aK,const cSiftCarac & aSC)
           *(mVTplIms[aK+2])
       );
 }
+
+
+
 
 template <class Type>  
 void  cTplOctDig<Type>::DoSiftExtract(int aK)
@@ -266,13 +269,30 @@ void cOctaveDigeo::SetBoxInOut(const Box2di & aBoxIn,const Box2di & aBoxOut)
 {
    mBoxCurIn = Box2dr(Pt2dr(aBoxIn._p0)/mNiv,Pt2dr(aBoxIn._p1)/mNiv);
    mBoxCurOut = Box2di(aBoxOut._p0/mNiv,aBoxOut._p1/mNiv);
-
 }
 
 const Box2di  &  cOctaveDigeo::BoxImCalc () const {return mBoxImCalc;}
 const Box2dr  &  cOctaveDigeo::BoxCurIn  () const {return mBoxCurIn;}
 const Box2di  &  cOctaveDigeo::BoxCurOut () const {return mBoxCurOut;}
 
+
+Pt2dr  cOctaveDigeo::ToPtImCalc(const Pt2dr& aP0) const
+{
+   return aP0*double(mNiv) + Pt2dr(mIm.P0Cur());
+}
+
+Pt2dr  cOctaveDigeo::ToPtImR1(const Pt2dr& aP0) const
+{
+   return ToPtImCalc(aP0) *mIm.Resol();
+}
+
+
+
+
+bool cOctaveDigeo::Pt2Sauv(const Pt2dr& aP0) const
+{
+   return mIm.PtResolCalcSauv(ToPtImCalc(aP0));
+}
 
 
 int cOctaveDigeo::NbImOri() const
@@ -291,6 +311,31 @@ const std::vector<cImInMem *> &  cOctaveDigeo::VIms()
    return mVIms;
 }
 
+bool cOctaveDigeo::OkForSift(int aK) const
+{
+  return     (aK>=1) 
+          && (aK+2<int(mVIms.size()))
+          && mAppli.SiftCarac()
+          && mAppli.PyramideGaussienne().IsInit();
+}
+
+
+void cOctaveDigeo::DoAllExtract(int aK)
+{
+    mVIms.at(aK)->VPtsCarac().clear();
+    if (OkForSift(aK))
+    {
+          DoSiftExtract(aK,*(mAppli.SiftCarac()));
+    }
+}
+
+void cOctaveDigeo::DoAllExtract()
+{
+   for (int aKIm=0 ; aKIm<int(mVIms.size()) ; aKIm++)
+   {
+       DoAllExtract(aKIm);
+   }
+}
 
 /*
 Pt2dr cOctaveDigeo::P0CurMyResol() const

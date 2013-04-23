@@ -109,7 +109,6 @@ eTypeExtreSift cTplImInMem<Type>::CalculateDiff
           int      aNiv
      )
 {
-std::cout << "NNnniv " << aNiv << "\n";
     mIx = anX;
     mIy = anY;
     Type ** aI = aC[0] +anY;
@@ -216,7 +215,7 @@ void cTplImInMem<Type>::ExtractExtremaDOG
 
    double aRalm = aSC.RatioAllongMin().Val();
    mSeuilTr2Det = (aRalm+1)*(1+1/aRalm);
-   mSeuilGrad = mImGlob.G2Moy() * ElSquare( aSC.RatioGrad().Val() /mResolOctaveBase);
+   mSeuilGrad = ElSquare(mImGlob.GradMoyCorrecDyn()*(aSC.RatioGrad().Val()/mResolOctaveBase));
 
    if (theMDog==0)
    {
@@ -391,9 +390,17 @@ void cTplImInMem<Type>::ExtractExtremaDOG
 
            if (mResDifSift==eTES_Ok)
            {
-               double aXR = mIx + mTrX;
-               double aYR = mIy + mTrY;
-               std::cout  << "RDSss " << (aXR-anX) << " " << (aYR-anY) << "\n";
+               Pt2dr aP(mIx+mTrX,mIy+mTrY);
+               if (mOct.Pt2Sauv(aP))
+               {
+                  mVPtsCarac.push_back(cPtsCaracDigeo(aP,isMin?eSiftMinDog:eSiftMaxDog));
+               }
+/*
+               Pt2dr aDif(aXR-anX,aYR-anY);
+               static double aDMax = 0;
+               ElSetMax(aDMax,euclid(aDif));
+               std::cout  << "RDSss " << aDif << " " << aDMax << "\n";
+*/
            }
            aLDif++;
            

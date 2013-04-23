@@ -162,6 +162,7 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
               SauvIm("ReDyn_");
            }
        }
+
        mImGlob.SetDyn(aMul);
 
     }
@@ -388,6 +389,8 @@ void cImInMem::SauvIm(const std::string & aAdd)
 }
 
     // ACCESSOR 
+
+std::vector<cPtsCaracDigeo> &  cImInMem::VPtsCarac() {return mVPtsCarac;}
 
 GenIm::type_el  cImInMem::TypeEl() const { return mType; }
 Pt2di cImInMem::Sz() const {return mSz;}

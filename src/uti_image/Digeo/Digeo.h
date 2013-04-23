@@ -128,6 +128,7 @@ class cAppliDigeo;
 class cVisuCaracDigeo;
 const int PackTranspo = 4;
 class cParamAppliDigeo;
+class cPtsCaracDigeo;
 
 
 typedef enum
@@ -138,6 +139,14 @@ typedef enum
   eTES_TropAllonge,
   eTES_Ok
 } eTypeExtreSift;
+
+class cPtsCaracDigeo
+{
+    public :
+       cPtsCaracDigeo(const Pt2dr & aP,eTypeTopolPt aType);
+       Pt2dr         mPt;
+       eTypeTopolPt  mType;
+};
 
 
    // Permt de shifter les entiers (+ rapide que la div) sans rien faire pour
@@ -248,6 +257,8 @@ class cImInMem
          double ScaleInOct() const;
          double ScaleInit()  const;
 
+         std::vector<cPtsCaracDigeo> & VPtsCarac();
+
      protected :
 
          cImInMem(cImDigeo &,const Pt2di & aSz,GenIm::type_el,cOctaveDigeo &,double aResolOctaveBase,int aKInOct,int IndexSigma);
@@ -267,6 +278,7 @@ class cImInMem
 
          Im1D_REAL8 mKernelTot;  // Noyaux le reliant a l'image de base de l'octave
          bool mFirstSauv;
+         std::vector<cPtsCaracDigeo> mVPtsCarac;
      private :
         cImInMem(const cImInMem &);  // N.I.
 };
@@ -442,6 +454,10 @@ class cOctaveDigeo
         cImInMem * KthIm(int aK) const;
         int                      Niv() const;
 
+        bool OkForSift(int aK) const;
+        void DoAllExtract(int aK);
+        void DoAllExtract();
+
         // void AddIm(cImInMem *);
 
         virtual cImInMem * AllocIm(double aResolOctaveBase,int aK,int IndexSigma) = 0;
@@ -450,7 +466,9 @@ class cOctaveDigeo
         void SetNbImOri(int aNbIm);
         int  NbImOri() const;
 
-        virtual void DoSiftExtract(const cSiftCarac &) = 0;
+        // virtual void DoSiftExtract(const cSiftCarac &) = 0;
+        // virtual void DoSiftExtract(int aK) = 0;
+        virtual void DoSiftExtract(int aK,const cSiftCarac &) = 0;
         virtual void PostPyram() = 0;
 
         virtual cOctaveDigeo * AllocDown(GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax) = 0;
@@ -468,6 +486,12 @@ class cOctaveDigeo
 
         virtual cTplOctDig<U_INT2> * U_Int2_This() = 0;
         virtual cTplOctDig<REAL4> *  REAL4_This() = 0;
+
+        bool Pt2Sauv(const Pt2dr&) const;
+        Pt2dr  ToPtImCalc(const Pt2dr& aP0) const;  // Renvoie dans l'image sur/sous-resolue
+        Pt2dr  ToPtImR1(const Pt2dr& aP0) const;  // Renvoie les coordonnees dans l'image initiale
+
+
     protected :
         static cOctaveDigeo * AllocGen(cOctaveDigeo * Mere,GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax);
        
@@ -537,6 +561,9 @@ class cImDigeo
               const std::string & aName,
               cAppliDigeo &
          );
+
+        // Est ce que le point a la resolution de calcul doit etre sauve
+        bool PtResolCalcSauv(const Pt2dr & aP);
         // void ComputeCarac();
         const std::string  &  Name() const;
         cAppliDigeo &  Appli();
@@ -562,11 +589,12 @@ class cImDigeo
        const Pt2di& P0Cur() const;
 
        void SetDyn(double);
-       double Dyn() const;
-       double G2Moy() const;
+       double GetDyn() const;
+       double GradMoyCorrecDyn() const;
        const Box2di &   BoxCurIn ();
        const Box2di &   BoxCurOut ();
        const std::vector<cOctaveDigeo *> &   Octaves() const;
+       Tiff_Im TifF();
      private :
 
 
@@ -597,7 +625,7 @@ class cImDigeo
         cVisuCaracDigeo  *  mVisu;
 
         bool                         mG2MoyIsCalc;
-        double                       mG2Moy;
+        double                       mGradMoy;
         double                       mDyn;
         Im2DGen *                    mFileInMem;
      private :
@@ -762,6 +790,7 @@ class cParamAppliDigeo
         bool     mExigeCodeCompile;
         int      mNivFloatIm;        // Ne depend pas de la resolution
         bool     mSauvPyram;        // Pour Mise au point, sauve ttes les pyramides
+        double   mRatioGrad;  // Le gradient doit etre > a mRatioGrad le gradient moyen
 
         cParamAppliDigeo() :
             mSigma0           (1.6),
@@ -770,7 +799,8 @@ class cParamAppliDigeo
             mNivByOctave      (3),
             mExigeCodeCompile (false),
             mNivFloatIm       (4),
-            mSauvPyram        (false)
+            mSauvPyram        (false),
+            mRatioGrad        (0.05)
         {
 
         }
