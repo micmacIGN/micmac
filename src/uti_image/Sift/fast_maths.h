@@ -9,13 +9,8 @@
 
 #define VL_USEFASTMATH
 
-#ifdef VL_USEFASTMATH
-    #ifndef M_PI
-        #define M_PI 3.14159265358979323846
-    #endif
-    typedef double Real_;
-#else
-    typedef float Real_;
+#ifndef M_PI
+	#define M_PI 3.14159265358979323846
 #endif
 
 namespace fast_maths

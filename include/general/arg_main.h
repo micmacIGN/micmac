@@ -456,6 +456,8 @@ int CmpIm_main(int argc,char ** argv);
 int Drunk_main(int argc,char ** argv);
 int CalcSzWCor_main(int argc,char ** argv);
 int Digeo_main(int argc,char ** argv);
+int Sift_main(int argc,char ** argv);
+int Ann_main(int argc,char ** argv);
 
 
 // uti_phgram
@@ -505,7 +507,6 @@ int Ori_Txt2Xml_main(int argc,char ** argv);
 int GCP_Txt2Xml_main(int argc,char ** argv);
 int VideoVisage_main(int argc,char ** argv);
 int Poisson_main(int argc,char ** argv);
-int Sift_main(int argc,char ** argv);
 
 
 

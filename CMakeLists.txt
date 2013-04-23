@@ -310,6 +310,8 @@ set(Install_Dir_lib ${PROJECT_SOURCE_DIR}/lib)
 # DEFINITION : du dossier des sources d'Elise
 set(ELISE_DIR src)
 
+# CONSTRUCTION : Librairie ANN
+include(${PROJECT_SOURCE_DIR}/CodeExterne/ANN/CMakeLists.txt)
 # CONSTRUCTION : Librairie ELISE
 set( code_genere_dir ${PROJECT_SOURCE_DIR}/CodeGenere )
 include(${code_genere_dir}/Sources.cmake)

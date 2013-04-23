@@ -1,6 +1,8 @@
 #ifndef __SIFT__
 #define __SIFT__
 
+typedef double Real_;
+
 #include "RealImage1.h"
 
 #include <list>
@@ -17,9 +19,6 @@ typedef Extremum RefinedPoint;
 // default values for soft-coded parameters
 extern const Real_ default_strength_threshold;
 extern const Real_ default_onedge_threshold;
-
-extern const int  m_maxNbAngles;
-#define DESCRIPTOR_SIZE 128
 
 // thoses constants should be static members of Siftator but they could not be initialize (waiting for c++11)
 
@@ -142,6 +141,14 @@ public:
 	static void write_SiftPoint_binary_legacy( std::ostream &output, const Siftator::SiftPoint &p );
     static void read_SiftPoint_binary_legacy( std::istream &output, Siftator::SiftPoint &p );
 };
+
+typedef Siftator::SiftPoint SiftPoint;
+
+// Sift-related functions
+
+// read/write in sitfpp_tgi format
+bool write_siftPoint_list( const std::string &i_filename, const std::list<Siftator::SiftPoint> &i_list );
+bool read_siftPoint_list( const std::string &i_filename, std::vector<Siftator::SiftPoint> &o_list );
 
 // inline methods
 
