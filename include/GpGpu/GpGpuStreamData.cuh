@@ -66,8 +66,10 @@ template< class T > __device__
 short2 CDeviceStream<T>::read(T *destData, ushort tid, bool sens, T def, bool waitSync)
 {
     short2  index;
-    ushort  NbCopied = 0 , NbTotalToCopy = getLengthToRead(index, sens);
-    short   PitSens = !sens * WARPSIZE;
+    ushort  NbCopied    = 0 , NbTotalToCopy = getLengthToRead(index, sens);
+    short   PitSens     = !sens * WARPSIZE;
+
+    //bool AA = (blockIdx.x==0 && threadIdx.x == 1  && NbTotalToCopy  != 1 && !sens);
 
     while(NbCopied < NbTotalToCopy)
     {
@@ -78,19 +80,26 @@ short2 CDeviceStream<T>::read(T *destData, ushort tid, bool sens, T def, bool wa
             _bufferData[threadIdx.x] = _streamData[_curStreamId + threadIdx.x - 2 * PitSens];
             _curBufferId   = PitSens;
             _curStreamId   = _curStreamId  + vec(sens) * WARPSIZE;
+
             NbToCopy = GetNbToCopy(NbTotalToCopy,NbCopied, sens);
             __syncthreads();
         }
 
         ushort idDest = tid + (sens ? NbCopied : NbTotalToCopy - NbCopied - NbToCopy);
 
-        destData[idDest] = (tid < NbToCopy && !(idDest >= NbTotalToCopy)) ? _bufferData[_curBufferId + tid - !sens * NbToCopy] : def ;
-
+        if(idDest < NAPPEMAX)
+        {
+            if (tid < NbToCopy && idDest < NbTotalToCopy)
+                destData[idDest] = _bufferData[_curBufferId + tid - !sens * NbToCopy];
+            else if (idDest >= NbTotalToCopy)
+                destData[idDest] = def;
+        }
         if(waitSync) __syncthreads();
 
         _curBufferId  = _curBufferId + vec(sens) * NbToCopy;
         NbCopied     += NbToCopy;
-    }
+
+   }
    return index;
 }
 
@@ -99,10 +108,9 @@ class CDeviceDataStream : public CDeviceStream<T>
 {
 public:
 
-    __device__ CDeviceDataStream(T* buf,T* stream,short2* bufId,short2* streamId, ushort startIndex = 0):
-        CDeviceStream<T>(buf,stream + startIndex),
-        _streamIndex(bufId,streamId),
-        _startIndex(startIndex)
+    __device__ CDeviceDataStream(T* buf,T* stream,short2* bufId,short2* streamId):
+        CDeviceStream<T>(buf,stream),
+        _streamIndex(bufId,streamId)
     {}
 
     __device__ short getLengthToRead(short2 &index, bool sens)
@@ -112,14 +120,10 @@ public:
         return leng;
     }
 
-    __device__ ushort getStartIndex()
-    {
-        return _startIndex;
-    }
-
 private:
+
     CDeviceStream<short2>       _streamIndex;
-    ushort                      _startIndex;
+
 };
 
 

@@ -199,6 +199,7 @@ cAppliDigeo * DigeoCPP
    aCAA.AddArg("+ExigeCodeCompile="+ToString(aParam.mExigeCodeCompile));
    aCAA.AddArg("+NivFloatIm="+ToString(aParam.mNivFloatIm));
    aCAA.AddArg("+Sauv="+ToString(aParam.mSauvPyram));
+   aCAA.AddArg("+RatioGrad="+ToString(aParam.mRatioGrad));
 /*
 */
 

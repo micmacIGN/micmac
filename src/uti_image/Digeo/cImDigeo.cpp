@@ -130,7 +130,7 @@ cImDigeo::cImDigeo
            mFileInMem->out()
       );
       mG2MoyIsCalc= true;
-      mG2Moy = mFileInMem->MoyGrad();
+      mGradMoy = sqrt(mFileInMem->MoyG2());
    }
    else
    {
@@ -144,7 +144,7 @@ cImDigeo::cImDigeo
         );
         aSom /= aSz.x * double(aSz.y);
         mG2MoyIsCalc= true;
-        mG2Moy = aSom;
+        mGradMoy = sqrt(aSom);
    }
 
    // Verification de coherence
@@ -169,6 +169,12 @@ cImDigeo::cImDigeo
           
        }
    }
+}
+
+Tiff_Im cImDigeo::TifF()
+{
+   ELISE_ASSERT(mTifF!=0,"cImDigeo::TifF");
+   return *mTifF;
 }
 
 double cImDigeo::Resol() const
@@ -299,6 +305,13 @@ void cImDigeo::AllocImages()
    }
 }
 
+bool cImDigeo::PtResolCalcSauv(const Pt2dr & aP)
+{
+   return    (aP.x>=mBoxCurOut._p0.x)
+          && (aP.x <mBoxCurOut._p1.x)
+          && (aP.y>=mBoxCurOut._p0.y)
+          && (aP.y <mBoxCurOut._p1.y) ;
+}
 
 
 void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
@@ -351,7 +364,7 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
         }
         else if (mResol<1.0)
         {
-           aSigma = sqrt(ElMax(0.0,ElSquare(aSigma)-1.0));
+           aSigma = sqrt(ElMax(0.0,ElSquare(aSigma)-ElSquare(1/mResol)));
         }
 
         aF = GaussSepFilter(aF,aSigma,1e-3);
@@ -462,14 +475,16 @@ void cImDigeo::DoCalcGradMoy(int aDZ)
    }
 
    ElTimer aChrono;
-   mG2Moy = GetOctOfDZ(aDZ).FirstImage()->CalcGrad2Moy();
+   mGradMoy = sqrt(GetOctOfDZ(aDZ).FirstImage()->CalcGrad2Moy());
 
-   std::cout << "Grad = " << sqrt(mG2Moy)/Dyn() <<  " Time =" << aChrono.uval() << "\n";
+   std::cout << "Grad = " << GradMoyCorrecDyn() <<  " Time =" << aChrono.uval() << "\n";
 }
 
 
 void cImDigeo::DoSiftExtract()
 {
+   ELISE_ASSERT(false,"cImDigeo::DoSiftExtract deprecated");
+/*
 std::cout << "SIFT " << (mAppli.SiftCarac() != 0) << "\n";
     if (!mAppli.SiftCarac())
        return;
@@ -480,6 +495,7 @@ std::cout << "SIFT " << (mAppli.SiftCarac() != 0) << "\n";
     {
          mOctaves[aKoct]->DoSiftExtract(aSC);
     }
+*/
     
 }
 
@@ -505,7 +521,7 @@ cOctaveDigeo & cImDigeo::GetOctOfDZ(int aDZ)
 }
 
 
-double cImDigeo::Dyn() const
+double cImDigeo::GetDyn() const
 {
     return mDyn;
 }
@@ -524,10 +540,10 @@ cAppliDigeo &  cImDigeo::Appli() {return mAppli;}
 const cImageDigeo &  cImDigeo::IMD() {return mIMD;}
 cVisuCaracDigeo  *   cImDigeo::CurVisu() {return mVisu;}
 
-double cImDigeo::G2Moy() const 
+double cImDigeo::GradMoyCorrecDyn() const 
 {
    ELISE_ASSERT(mG2MoyIsCalc,"cImDigeo::G2Moy");
-   return mG2Moy;
+   return mGradMoy * mDyn;
 }
 
 

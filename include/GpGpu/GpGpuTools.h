@@ -23,6 +23,9 @@
 using namespace std;
 typedef unsigned char pixel;
 
+#define NOPAGELOCKEDMEMORY false
+
+
 #define DISPLAYOUTPUT
 #define TexFloat2Layered texture<float2,cudaTextureType2DLayered>
 
@@ -473,6 +476,8 @@ public:
     virtual void	OutputInfo()	= 0;
     /// \brief      Renvoie le pointeur des donnees
     T*              pData();
+    /// \brief      Init le pointeur des donnees
+    void            SetPData(T *p);
     /// \brief      Renvoie le pointeur du pointeur des donnees
     T**             ppData();
     /// \brief      Sortie console des erreurs Cuda
@@ -599,6 +604,11 @@ template <class T>
 T* CData<T>::pData()
 {
     return _data;
+}
+template <class T>
+void CData<T>::SetPData(T* p)
+{
+    _data = p;
 }
 
 /// \class CData2D
@@ -789,16 +799,16 @@ class CuHostData3D : public CData3D<T>
 
 public:
 
-    CuHostData3D();
+    CuHostData3D(bool pageLockedmemory);
 
     /// \brief constructeur avec initialisation de la dimension de la structure
     /// \param dim : Dimension 2D a initialiser
     /// \param l : Taille de la 3eme dimension
-    CuHostData3D(uint2 dim, uint l = 1);
+    CuHostData3D(bool pageLockedmemory,uint2 dim, uint l = 1);
 
     /// \brief constructeur avec initialisation de la dimension de la structure
     /// \param dim : Dimension 3D a initialiser
-    CuHostData3D(uint3 dim);
+    CuHostData3D(bool pageLockedmemory,uint3 dim);
 
     ~CuHostData3D(){}
 
@@ -820,17 +830,23 @@ public:
     /// \brief Affiche un Z du tableau dans la console
     void OutputValues(uint level = 0, uint plan = XY, Rect rect = NEGARECT, uint offset = 3, T defaut = (T)0.0f, float sample = 1.0f, float factor = 1.0f);
 
+private:
+
+    bool _pageLockedmemory;
+
 };
 
 template <class T>
-CuHostData3D<T>::CuHostData3D()
+CuHostData3D<T>::CuHostData3D(bool pageLockedmemory):
+    _pageLockedmemory(pageLockedmemory)
 {
     CData<T>::SetSizeofMalloc(0);
     CGObject::SetType("CuHostData3D");
 }
 
 template <class T>
-CuHostData3D<T>::CuHostData3D( uint2 dim, uint l )
+CuHostData3D<T>::CuHostData3D(bool pageLockedmemory, uint2 dim, uint l ):
+    _pageLockedmemory(pageLockedmemory)
 {
     CData<T>::SetSizeofMalloc(0);
     CGObject::SetType("CuHostData3D");
@@ -838,7 +854,8 @@ CuHostData3D<T>::CuHostData3D( uint2 dim, uint l )
 }
 
 template <class T>
-CuHostData3D<T>::CuHostData3D(uint3 dim)
+CuHostData3D<T>::CuHostData3D(bool pageLockedmemory, uint3 dim):
+    _pageLockedmemory(pageLockedmemory)
 {
     CData<T>::SetSizeofMalloc(0);
     CGObject::SetType("CuHostData3D");
@@ -899,7 +916,12 @@ bool CuHostData3D<T>::Malloc()
 {
     CData3D<T>::SetSizeofMalloc(CData3D<T>::Sizeof());
     CData3D<T>::AddMemoryOc(CData3D<T>::GetSizeofMalloc());
-    return ErrorOutput(cudaMallocHost(CData3D<T>::ppData(),CData3D<T>::Sizeof()),"Malloc");
+    if(_pageLockedmemory)
+        return ErrorOutput(cudaMallocHost(CData3D<T>::ppData(),CData3D<T>::Sizeof()),"Malloc");
+    else
+        CData3D<T>::SetPData((T*)malloc(CData3D<T>::Sizeof()));
+
+    return true;
 }
 
 template <class T>
@@ -907,7 +929,11 @@ bool CuHostData3D<T>::Dealloc()
 {
     CData3D<T>::SubMemoryOc(CData3D<T>::GetSizeofMalloc());
     CData3D<T>::SetSizeofMalloc(0);
-    return ErrorOutput(cudaFreeHost(CData3D<T>::pData()),"Dealloc");
+    if(_pageLockedmemory)
+        return ErrorOutput(cudaFreeHost(CData3D<T>::pData()),"Dealloc");
+    else
+        free(CData3D<T>::pData());
+    return true;
 }
 
 /// \class CuDeviceData2D

@@ -923,9 +923,9 @@ INT Im2DGen::ty() const
     return DGI()->p1()[1];
 }
 
-double   Im2DGen::MoyGrad() const
+double   Im2DGen::MoyG2() const
 {
-   ELISE_ASSERT(false,"no Im2DGen::MoyGrad");
+   ELISE_ASSERT(false,"no Im2DGen::MoyG2");
    return 0;
 }
 
@@ -1218,7 +1218,7 @@ template <class Type,class TyBase>
 }
 
 template <class Type,class TyBase> 
-        double  Im2D<Type,TyBase>::MoyGrad() const
+        double  Im2D<Type,TyBase>::MoyG2() const
 {
    int aTX = tx(); 
    int aTY = ty(); 
