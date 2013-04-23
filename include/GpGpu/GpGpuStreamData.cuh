@@ -66,8 +66,8 @@ template< class T > __device__
 short2 CDeviceStream<T>::read(T *destData, ushort tid, bool sens, T def, bool waitSync)
 {
     short2  index;
-    ushort  NbCopied = 0 , NbTotalToCopy = getLengthToRead(index, sens);
-    short   PitSens = !sens * WARPSIZE;
+    ushort  NbCopied    = 0 , NbTotalToCopy = getLengthToRead(index, sens);
+    short   PitSens     = !sens * WARPSIZE;
 
     //bool AA = (blockIdx.x==0 && threadIdx.x == 1  && NbTotalToCopy  != 1 && !sens);
 
