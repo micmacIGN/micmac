@@ -122,7 +122,7 @@ namespace NS_ParamMICMAC
 		codestream.create(m_Input);
 		
 		
-		int dz = aDeZoom;
+        //int dz = aDeZoom;
 		int max_layers = 0;
         int discard_levels = 0;
         while(((1 << discard_levels) & aDeZoom)==0) ++discard_levels;
@@ -133,7 +133,7 @@ namespace NS_ParamMICMAC
 		{
 			reDeZoom = (1<<(discard_levels-minDwtLevels));
 			discard_levels=minDwtLevels;
-			dz = (1 << discard_levels);
+            //dz = (1 << discard_levels);
 			//std::cout << "On fait un dz "<<dz<<" puis on fera un ssech "<<reDeZoom<<std::endl;
 		}
 		//std::cout << "reDeZoom : "<<reDeZoom<<std::endl;
@@ -365,7 +365,7 @@ namespace NS_ParamMICMAC
 		{
 			if (reDeZoom>0)
 			{ 
-				float R2 = reDeZoom*reDeZoom;
+//				float R2 = reDeZoom*reDeZoom;
 				for(int ll=0;ll<reDeZoom;++ll)
 				{
 					decompressor.pull_stripe(stripe_bufs,stripe_heights,sample_gaps,row_gaps,precisions,is_signed);
@@ -584,7 +584,7 @@ namespace NS_ParamMICMAC
 		codestream.create(m_Input);
 		
 		
-		int dz = aDeZoom;
+        //int dz = aDeZoom;
 		int max_layers = 0;
 		int discard_levels = 0;
 		while(((1 << discard_levels) & aDeZoom)==0) ++discard_levels;
@@ -595,7 +595,7 @@ namespace NS_ParamMICMAC
 		{
 			reDeZoom = (1<<(discard_levels-minDwtLevels));
 			discard_levels=minDwtLevels;
-			dz = (1 << discard_levels);
+            //dz = (1 << discard_levels);
 			//std::cout << "On fait un dz "<<dz<<" puis on fera un ssech "<<reDeZoom<<std::endl;
 		}
 		
