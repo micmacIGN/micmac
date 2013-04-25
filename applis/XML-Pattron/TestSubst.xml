@@ -1,0 +1,52 @@
+<Global>
+    <Symb>  a=1 </Symb>
+    <Symb>  b=2 </Symb>
+    <eSymb> c="+ ${a} ${b}" </eSymb>
+
+    <eSymb> AInfB="Inf  ${a} ${b}" </eSymb>
+    <eSymb> ASupB="Sup  ${a} ${b}" </eSymb>
+
+    <eSymb> S1=? ${AInfB} 22 33 </eSymb>
+    <eSymb> S2=? ${ASupB} 22 33 </eSymb>
+
+    <Symb>  C="CCCCC" </Symb>
+    <eSymb>  Expr=+ * 2 3 * 4 5 </eSymb>
+
+     <CatAB>  ${a}${b}${c} ${C} ${AInfB}  ${S1} ${S2}  EPXR=>${Expr}</CatAB>
+
+
+
+     <#WHEN VTEST=${AInfB}>
+           <A> aaaa </A>
+           <A> aaaaaaa </A>
+     </#WHEN>
+     <#WHEN VTEST=${ASupB}>
+           <B> bbbbb </B>
+           <B> bbb </B>
+     </#WHEN>
+
+
+     <#IF VTEST=${ASupB}>
+           <B>  A IS SUP B </B>
+           <B> A is NNOOOTT SUP B </B>
+     </#IF>
+
+     <#SWITCH  VTEST="${a}${b}">
+           <A11 CASE="11"> 11</A11>
+           <A12 CASE="12"> 12  </A12>
+           <A13 CASE="13">13  </A13>
+           <A12 CASE="12"> 12 12 </A12>
+           <AD CASE="DEFAULT"> defff </AD>
+     </#SWITCH>
+
+     <#SWITCH  VTEST="${b}${a}">
+           <A11 CASE="11"> 11</A11>
+           <A12 CASE="12"> 12  </A12>
+           <A13 CASE="13">13  </A13>
+           <A12 CASE="12"> 12 12 </A12>
+           <AD CASE="DEFAULT"> XXX-DEF </AD>
+           <AD CASE="DEFAULT"> YYY-DEF </AD>
+     </#SWITCH>
+
+</Global>
+
