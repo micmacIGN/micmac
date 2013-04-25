@@ -1726,6 +1726,17 @@ void  Video_Win::SetInteractor(EliseStdImageInteractor * anI)
       devw()->mInteractor = anI;
 }
 
+Video_Win  Video_Win::WSzMax(Pt2dr aSzTarget,Pt2dr aSzMax)
+{
+
+    REAL aZoom = aSzMax.RatioMin(aSzTarget);
+
+    Pt2di aSzReal = round_ni(aSzTarget*aZoom);
+
+    return Video_Win::WStd(round_ni(Pt2dr(aSzReal)/aZoom),aZoom);
+    
+}
+
 
 
 Video_Win  Video_Win::chc_fit_sz(Pt2dr aSz,bool ClikCoord)

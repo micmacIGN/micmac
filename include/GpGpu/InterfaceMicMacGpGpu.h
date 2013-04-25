@@ -10,7 +10,9 @@
 
 #ifdef CUDA_ENABLED
 
-#define BOOST_ALL_NO_LIB 
+#ifndef BOOST_ALL_NO_LIB
+    #define BOOST_ALL_NO_LIB
+#endif
 
 #include "GpGpu/cudaAppliMicMac.cuh"
 #include <boost/thread/thread.hpp>

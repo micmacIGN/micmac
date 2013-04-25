@@ -1,4 +1,4 @@
-#include "RealImage1.h"
+#include "Sift.h" // for Real_ definition
 
 #include <iostream>
 #include <cstring>

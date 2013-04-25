@@ -6,6 +6,7 @@
 #include <sstream>
 #include <iomanip>
 #include <limits>
+#include <fstream>
 
 #include "Gauss34.h"
 
@@ -610,4 +611,47 @@ void Siftator::descriptor( RefinedPoint &i_p, Real_ i_angle, Real_ *o_descriptor
             }
         }
     }
+}
+
+bool write_siftPoint_list( const string &i_filename, const list<SiftPoint> &i_list )
+{
+    // TODO: add a field to handle different endiannesses, probably at the end of the file for compatibility
+    ofstream f( i_filename.c_str(), ios::binary );
+
+    if ( !f ) return false;
+
+    uint32_t nbPoints  = i_list.size(),
+			 dimension = m_descriptorSize;
+    f.write( (char*)&nbPoints, 4 );
+    f.write( (char*)&dimension, 4 );
+    list<SiftPoint>::const_iterator it = i_list.begin();
+    while ( nbPoints-- )
+        Siftator::write_SiftPoint_binary_legacy( f, *it++ );
+    f.close();
+    return true;
+}
+
+bool read_siftPoint_list( const string &i_filename, vector<SiftPoint> &o_list )
+{
+    // TODO: see write_siftPoint_list
+    ifstream f( i_filename.c_str(), ios::binary );
+
+    if ( !f ) return false;
+
+    uint32_t nbPoints, dimension;
+    f.read( (char*)&nbPoints, 4 );
+    f.read( (char*)&dimension, 4 );
+    
+    o_list.resize( nbPoints );
+    if ( dimension!=m_descriptorSize ){
+		cerr << "ERROR: read_siftPoint_list " << i_filename << ": descriptor's dimension is " << dimension << " and should be " << m_descriptorSize << endl;
+		return false;
+	}
+	if ( nbPoints==0 ) return true;
+	SiftPoint *itPoint = &o_list[0];
+    while ( nbPoints-- )
+        Siftator::read_SiftPoint_binary_legacy( f, *itPoint++ );
+    f.close();
+
+    return true;
 }

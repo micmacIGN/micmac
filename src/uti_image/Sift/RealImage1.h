@@ -1,9 +1,6 @@
 #ifndef __REALIMAGE1__
 #define __REALIMAGE1__
 
-// __DEL
-#define _DEBUG
-
 #include <cstddef>
 #include <vector>
 #include <string>

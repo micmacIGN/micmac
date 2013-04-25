@@ -156,6 +156,7 @@ const std::vector<cMMCom> & getAvailableCommands()
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
+       aRes.push_back(cMMCom("Ann",Ann_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualisation of camera in ply file",cArgLogCom(2)));
        aRes.push_back(cMMCom("Apero",Apero_main," Compute external and internal orientations"));
        aRes.push_back(cMMCom("Digeo",Digeo_main," In devlopment- Will compute tie points "));
@@ -179,6 +180,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("CenterBascule",CentreBascule_main," Relative to absolute using embedded GPS",cArgLogCom(2)));
 
+       aRes.push_back(cMMCom("GrapheHom",GrapheHom_main,"Compute XML-Visibility graph from approximative orientation ",cArgLogCom(3)));
        aRes.push_back(cMMCom("GCPConvert",GCP_Txt2Xml_main," Convert GCP from Txt 2 XML",cArgLogCom(3)));
        aRes.push_back(cMMCom("OriConvert",Ori_Txt2Xml_main," Convert Orientation from Txt 2 XML",cArgLogCom(3)));
 
