@@ -430,7 +430,7 @@ class Im2DGen : public GenIm,
       Box2di ImBox2d(INT Brd) const {return Box2di(Pt2di(Brd,Brd),Pt2di(tx()-Brd,ty()-Brd));}
 
       virtual void TronqueAndSet(const Pt2di &,double aVal);
-      virtual double  MoyGrad() const ;
+      virtual double  MoyG2() const ; // Grad au carre
       virtual INT  vmax() const ;
       virtual INT  vmin() const ;
       virtual cIm2DInter * BilinIm() ;
@@ -551,7 +551,7 @@ template <class Type,class TyBase> class Im2D : public Im2DGen
       const Type *    data_lin() const;
       INT  vmax() const;
       INT  vmin() const;
-      double  MoyGrad() const ;
+      double  MoyG2() const ;
       virtual  GenIm::type_el TypeEl() const ;
       void raz();
       void dup (Im2D<Type,TyBase> to_dup);

@@ -456,6 +456,7 @@ class cOctaveDigeo
 
         bool OkForSift(int aK) const;
         void DoAllExtract(int aK);
+        void DoAllExtract();
 
         // void AddIm(cImInMem *);
 
@@ -488,6 +489,7 @@ class cOctaveDigeo
 
         bool Pt2Sauv(const Pt2dr&) const;
         Pt2dr  ToPtImCalc(const Pt2dr& aP0) const;  // Renvoie dans l'image sur/sous-resolue
+        Pt2dr  ToPtImR1(const Pt2dr& aP0) const;  // Renvoie les coordonnees dans l'image initiale
 
 
     protected :
@@ -560,6 +562,7 @@ class cImDigeo
               cAppliDigeo &
          );
 
+        // Est ce que le point a la resolution de calcul doit etre sauve
         bool PtResolCalcSauv(const Pt2dr & aP);
         // void ComputeCarac();
         const std::string  &  Name() const;
@@ -586,11 +589,12 @@ class cImDigeo
        const Pt2di& P0Cur() const;
 
        void SetDyn(double);
-       double Dyn() const;
-       double G2Moy() const;
+       double GetDyn() const;
+       double GradMoyCorrecDyn() const;
        const Box2di &   BoxCurIn ();
        const Box2di &   BoxCurOut ();
        const std::vector<cOctaveDigeo *> &   Octaves() const;
+       Tiff_Im TifF();
      private :
 
 
@@ -621,7 +625,7 @@ class cImDigeo
         cVisuCaracDigeo  *  mVisu;
 
         bool                         mG2MoyIsCalc;
-        double                       mG2Moy;
+        double                       mGradMoy;
         double                       mDyn;
         Im2DGen *                    mFileInMem;
      private :

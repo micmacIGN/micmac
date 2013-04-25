@@ -5,7 +5,6 @@ set(UTI_PHGRM_REDUCHOM_DIR ${UTI_PHGRM_DIR}/ReducHom)
 set(UTI_PHGRM_PORTO_DIR ${UTI_PHGRM_DIR}/Porto)
 set(UTI_PHGRM_SAISIEPTS_DIR ${UTI_PHGRM_DIR}/SaisiePts)
 set(UTI_PHGRM_GPGPU_DIR ${UTI_PHGRM_DIR}/GpGpu)
-set(UTI_PHGRM_SIFT_DIR ${UTI_PHGRM_DIR}/Sift)
 
 set(UTI_PHGRM_FUSION_NUAGES ${UTI_PHGRM_DIR}/FusionNuage)
 
@@ -18,7 +17,6 @@ INCLUDE (${UTI_PHGRM_REDUCHOM_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_PORTO_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_SAISIEPTS_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_FUSION_NUAGES}/Sources.cmake)
-INCLUDE (${UTI_PHGRM_SIFT_DIR}/Sources.cmake)
 
 if(${CUDA_ENABLED})
     INCLUDE (${UTI_PHGRM_GPGPU_DIR}/Sources.cmake)
@@ -77,7 +75,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_SaisieBasc.cpp
     ${UTI_PHGRM_DIR}/CPP_ChgSysCo.cpp
     ${UTI_PHGRM_DIR}/CPP_XYZ2Im.cpp
-    ${UTI_PHGRM_DIR}/CPP_Sift.cpp
+    ${UTI_PHGRM_DIR}/CPP_GrapheHom.cpp
 )
 
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM} FILES ${uti_phgrm_Src_Files})
@@ -87,7 +85,6 @@ SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\MicMac FILES ${uti_phgrm_MICMAC_Src_Files})
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\MaxFlow FILES ${uti_phgrm_MaxFlow_Src_Files})
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\Porto FILES ${uti_phgrm_Porto_Src_Files})
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\ReducHom FILES ${uti_phgrm_Porto_Src_Files})
-SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\Sift FILES ${uti_phgrm_Sift_Src_Files})
 
 if(${CUDA_ENABLED})
         SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\GpGpu FILES ${uti_phgrm_GpGpu_Src_Files})
@@ -100,6 +97,5 @@ list( APPEND uti_phgrm_Src_Files ${uti_phgrm_MICMAC_Src_Files} )
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_MaxFlow_Src_Files} )
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Porto_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_ReducHom_Src_Files})
-list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Sift_Src_Files})
 
 list( APPEND Elise_Src_Files ${uti_phgrm_Src_Files})

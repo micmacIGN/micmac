@@ -1,5 +1,3 @@
-#include "RealImage1.h"
-
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
@@ -10,8 +8,6 @@
 #include "Sift.h"
 
 using namespace std;
-
-typedef Siftator::SiftPoint SiftPoint;
 
 class sift_parameters_t {
 public:
@@ -84,51 +80,6 @@ parameter_t g_parameters_list[] = {
     { "no-descriptors",  '\0', false, no_descriptors_func },
     { "",                '\0', false, NULL },
 };
-
-bool write_siftPoint_list( const string i_filename, const list<SiftPoint> &i_list )
-{
-    // TODO: add a field to handle different endiannesses, probably at the end of the file for compatibility
-    ofstream f( i_filename.c_str(), ios::binary );
-
-    if ( !f ) return false;
-
-    uint32_t nbPoints  = i_list.size(),
-			 dimension = m_descriptorSize;
-    f.write( (char*)&nbPoints, 4 );
-    f.write( (char*)&dimension, 4 );
-    list<SiftPoint>::const_iterator it = i_list.begin();
-    while ( nbPoints-- )
-        Siftator::write_SiftPoint_binary_legacy( f, *it++ );
-    f.close();
-    return true;
-}
-
-bool read_siftPoint_list( const string i_filename, list<SiftPoint> &o_list )
-{
-    // TODO: see write_siftPoint_list
-    ifstream f( i_filename.c_str(), ios::binary );
-
-    if ( !f ) return false;
-
-    uint32_t nbPoints, dimension;
-    SiftPoint siftPoint;
-    f.read( (char*)&nbPoints, 4 );
-    f.read( (char*)&dimension, 4 );
-    
-    if ( dimension!=m_descriptorSize ){
-		cerr << "ERROR: read_siftPoint_list " << i_filename << ": descriptor's dimension is " << dimension << " and should be " << m_descriptorSize << endl;
-		return false;
-	}
-
-    while ( nbPoints-- )
-    {
-        Siftator::read_SiftPoint_binary( f, siftPoint );
-        o_list.push_back( siftPoint );
-    }
-    f.close();
-
-    return true;
-}
 
 void process_image( const RealImage1 &i_image, const sift_parameters_t &i_params, const string &i_imageBasename, Siftator &i_gaussPyramid, list<SiftPoint> &o_siftPoints )
 {

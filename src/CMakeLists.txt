@@ -154,12 +154,12 @@ if(${CUDA_ENABLED})
 	 cuda_add_library(${libStatGpGpuOpt}  ${uti_phgrm_Opt_GpGpu_Src_Files} ${IncCudaFiles} STATIC OPTIONS ${GENCODE_SM20})
 
 	 if (Boost_FOUND)
-		  target_link_libraries(${libStatGpGpuInterfMicMac} ${Boost_LIBRARIES} ${Boost_THREADAPI})
+		  target_link_libraries(${libStatGpGpuInterfMicMac} rt ${Boost_LIBRARIES} ${Boost_THREADAPI})
 	 endif()
 
 	 cuda_add_executable(${ExeGpGpuOpt} ${uti_Test_Opt_GpGpu_Src_Files})
 
-	 target_link_libraries(${ExeGpGpuOpt} ${libStatGpGpuOpt} ${libStatGpGpuTools})
+	 target_link_libraries(${ExeGpGpuOpt} rt ${libStatGpGpuOpt} ${libStatGpGpuTools})
 
 	 INSTALL(TARGETS ${ExeGpGpuOpt} RUNTIME DESTINATION ${Install_Dir})
 
@@ -171,7 +171,7 @@ if(${CUDA_ENABLED})
 
 	 cuda_add_library( ${libElise} ${Elise_Src_Files} ${IncFiles} OPTIONS ${GENCODE_SM20})
 
-	 target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt})
+	 target_link_libraries(${libElise} rt ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt})
 
 else()
 	 add_library( elise ${Elise_Src_Files} ${IncFiles} )

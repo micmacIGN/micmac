@@ -5,7 +5,9 @@
 #include <helper_cuda.h>
 #include "GpGpu/GpGpuOptimisation.h"
 
-InterfMicMacOptGpGpu::InterfMicMacOptGpGpu(){}
+InterfMicMacOptGpGpu::InterfMicMacOptGpGpu():
+    _volumeCost(NOPAGELOCKEDMEMORY)
+{}
 
 InterfMicMacOptGpGpu::~InterfMicMacOptGpGpu(){}
 
