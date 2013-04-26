@@ -1043,6 +1043,7 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
 
         Pt3dr  CentreRestit() const;
         virtual bool HasCentre() const;
+        virtual  Pt3dr  Centre() const;
 
 
 
@@ -1381,7 +1382,7 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
          std::vector<Pt2dr>   mContourTer;
 	 bool                 mPIV_Done;
 	 bool                 mIsIntrinseque;
-    private :
+    // protected :
 
         // A priori Micmac privilegie le calcul en geometrie terrain,
 	// dans ce cas TerrainRest2Euclid renvoie l'identite
@@ -1390,8 +1391,10 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
 	//  alors on cette fonction permet de passer de la restite au
 	//  terrain "reel"
 	//
+
+    private :
+
         virtual Pt3dr TerrainRest2Euclid(const Pt2dr & aP,double * aPax) const;
-        virtual  Pt3dr  Centre() const;
 
 
 

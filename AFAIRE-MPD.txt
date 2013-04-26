@@ -1,3 +1,9 @@
+Nouveaux outils :
+
+  MM-PxTransv.xml en outil simplifie
+
+
+=====================================================
 Prochaine lettre :
 
  * Ori convert  Doc Grand Leez Centre Bascule PannelIm
