@@ -2267,6 +2267,17 @@ void xml_init(cRugositeMNT & anObj,cElXMLTree * aTree)
 }
 
 
+cTplValGesInit< bool > & cSection_Terrain::IntervalPaxIsProportion()
+{
+   return mIntervalPaxIsProportion;
+}
+
+const cTplValGesInit< bool > & cSection_Terrain::IntervalPaxIsProportion()const 
+{
+   return mIntervalPaxIsProportion;
+}
+
+
 cTplValGesInit< double > & cSection_Terrain::RatioAltiPlani()
 {
    return mRatioAltiPlani;
@@ -2720,6 +2731,8 @@ const cTplValGesInit< cRugositeMNT > & cSection_Terrain::RugositeMNT()const
 cElXMLTree * ToXMLTree(const cSection_Terrain & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Section_Terrain",eXMLBranche);
+   if (anObj.IntervalPaxIsProportion().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("IntervalPaxIsProportion"),anObj.IntervalPaxIsProportion().Val())->ReTagThis("IntervalPaxIsProportion"));
    if (anObj.RatioAltiPlani().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("RatioAltiPlani"),anObj.RatioAltiPlani().Val())->ReTagThis("RatioAltiPlani"));
    if (anObj.EstimPxPrefZ2Prof().IsInit())
@@ -2742,6 +2755,8 @@ cElXMLTree * ToXMLTree(const cSection_Terrain & anObj)
 void xml_init(cSection_Terrain & anObj,cElXMLTree * aTree)
 {
    if (aTree==0) return;
+
+   xml_init(anObj.IntervalPaxIsProportion(),aTree->Get("IntervalPaxIsProportion",1),bool(false)); //tototo 
 
    xml_init(anObj.RatioAltiPlani(),aTree->Get("RatioAltiPlani",1)); //tototo 
 
@@ -16093,6 +16108,17 @@ cTplValGesInit< cChantierDescripteur > & cParamMICMAC::DicoLoc()
 const cTplValGesInit< cChantierDescripteur > & cParamMICMAC::DicoLoc()const 
 {
    return mDicoLoc;
+}
+
+
+cTplValGesInit< bool > & cParamMICMAC::IntervalPaxIsProportion()
+{
+   return Section_Terrain().IntervalPaxIsProportion();
+}
+
+const cTplValGesInit< bool > & cParamMICMAC::IntervalPaxIsProportion()const 
+{
+   return Section_Terrain().IntervalPaxIsProportion();
 }
 
 

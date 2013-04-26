@@ -1,25 +1,44 @@
 <!-- 
 
-MICMAC MM-PxTransv.xml WorkDir=//media/data2/Aerien/Euro-SDR/Munich/
+MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/home/marc/TMP/Jonathan/UAS_ernage/Images/
 
 
 -->
 <ParamMICMAC>
 
 <DicoLoc>
-   <Symb> Dir="/media/data2/Aerien/Euro-SDR/Munich/"     </Symb>
-   <Symb> Im1="40_0313_PAN.tif"     </Symb>
-   <Symb> Im2="40_0314_PAN.tif"     </Symb>
-   <Symb> Ori=Inpho     </Symb>
+<!-- "VRAI" PARAMETRES -->
+   <Symb> Dir="/home/marc/TMP/Jonathan/UAS_ernage/Images/"     </Symb>
+   <Symb> Im1="R0013413.JPG"     </Symb>
+   <Symb> Im2="R0013414.JPG"     </Symb>
+   <Symb> Ori=Bloc-Basculed     </Symb>
+   <Symb> ModeProf=false </Symb>
+   <Symb> SzW=2 </Symb>
+   <Symb> SzWPx2=3 </Symb>
+
+
+<!-- VALEURS QUASI-FIXE -->
+   <Symb> DirMEC=GeoI-Px/ </Symb>
+
+<!-- MISE EN COMMUN DE CONSTANTES -->
+   <Symb>  Purge=true </Symb>
 
 </DicoLoc>
 
 
 <Section_Terrain>  
-    <IntervParalaxe>
-        <Px1IncCalc>   100.0 </Px1IncCalc>    <!-- metres -->
-        <Px2IncCalc>   0.0 </Px2IncCalc>    <!-- metres -->
-    </IntervParalaxe>
+         <IntervalPaxIsProportion> true </IntervalPaxIsProportion>
+         <IntervParalaxe>
+             <Px1IncCalc>   0.3 </Px1IncCalc>    <!-- proportion .... -->
+             <Px2IncCalc>   0.0 </Px2IncCalc>    <!-- metres -->
+         </IntervParalaxe>
+         <#WHEN VTEST=${ModeProf}>
+             <IntervSpecialZInv>
+                 <MulZMin> 0.5</MulZMin>
+                 <MulZMax> 3 </MulZMax>
+             </IntervSpecialZInv>
+         </#WHEN>
+    
 </Section_Terrain>
 <!--  ************************************************************* 
          Parametres lies a la prise de vue,
@@ -45,6 +64,8 @@ MICMAC MM-PxTransv.xml WorkDir=//media/data2/Aerien/Euro-SDR/Munich/
 -->
 <Section_MEC >
 	<ChantierFullImage1>  true </ChantierFullImage1>
+        <ChantierFullMaskImage1> false</ChantierFullMaskImage1>
+
 	<!-- 
 	     Etape 0, ne sera pas calculee, DeZoom vaut -1,
 	elle permet de donner des valeur par defaut aux autres
@@ -60,7 +81,7 @@ MICMAC MM-PxTransv.xml WorkDir=//media/data2/Aerien/Euro-SDR/Munich/
 	    <DynamiqueCorrel> eCoeffCorrelStd </DynamiqueCorrel>
 	    <AggregCorr> eAggregSymetrique </AggregCorr>
 
-            <SzW >       1               </SzW>
+            <SzW >       ${SzW}               </SzW>
 
 
 	    <!--
@@ -161,8 +182,10 @@ MICMAC MM-PxTransv.xml WorkDir=//media/data2/Aerien/Euro-SDR/Munich/
         </EtapeMEC>
         <EtapeMEC>
             <DeZoom >  8                </DeZoom>
-            <Px1DilatAlti>  1  </Px1DilatAlti>
-	    <Px1DilatPlani> 1  </Px1DilatPlani>
+            <SsResolOptim>  3 </SsResolOptim> 
+            <SzW>  ${SzWPx2} </SzW>
+            <Px1DilatAlti>  0  </Px1DilatAlti>
+	    <Px1DilatPlani> 0  </Px1DilatPlani>
             <Px2DilatAlti>  2  </Px2DilatAlti>
 	    <Px2DilatPlani> 2  </Px2DilatPlani>
         </EtapeMEC>
@@ -176,6 +199,8 @@ MICMAC MM-PxTransv.xml WorkDir=//media/data2/Aerien/Euro-SDR/Munich/
         </EtapeMEC>
         <EtapeMEC>
             <DeZoom >  4                </DeZoom>
+            <SsResolOptim>  4 </SsResolOptim> 
+            <SzW>  ${SzWPx2} </SzW>
             <Px1DilatAlti>  0  </Px1DilatAlti>
 	    <Px1DilatPlani> 0  </Px1DilatPlani>
             <Px2DilatAlti>  2  </Px2DilatAlti>
@@ -192,8 +217,10 @@ MICMAC MM-PxTransv.xml WorkDir=//media/data2/Aerien/Euro-SDR/Munich/
         </EtapeMEC>
         <EtapeMEC>
             <DeZoom >  2                </DeZoom>
+            <SsResolOptim>  6 </SsResolOptim> 
             <Px1DilatAlti>  0  </Px1DilatAlti>
 	    <Px1DilatPlani> 0  </Px1DilatPlani>
+            <SzW>  ${SzWPx2} </SzW>
             <Px2DilatAlti>  2  </Px2DilatAlti>
 	    <Px2DilatPlani> 2  </Px2DilatPlani>
         </EtapeMEC>
@@ -233,7 +260,10 @@ MICMAC MM-PxTransv.xml WorkDir=//media/data2/Aerien/Euro-SDR/Munich/
 -->
 
 
-    <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px2D </GeomMNT>
+    <#IF VTEST=${ModeProf}>
+        <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px2D </GeomMNT>
+        <GeomMNT> eGeomMNTFaisceauIm1ZTerrain_Px2D </GeomMNT>
+    </#IF>
     <DoMEC >  true </DoMEC> 
     <ZoomMakeTA> 8 </ZoomMakeTA>
     <GammaVisu> 2.0 </GammaVisu>
@@ -252,9 +282,9 @@ MICMAC MM-PxTransv.xml WorkDir=//media/data2/Aerien/Euro-SDR/Munich/
 -->
 <Section_WorkSpace >
      <WorkDir >  ${Dir} </WorkDir> 
-     <TmpMEC > GeoI-Px/ </TmpMEC>
-     <TmpPyr > GeoI-Px/ </TmpPyr>
+     <TmpPyr > Pyram/ </TmpPyr>
      <TmpResult > GeoI-Px/ </TmpResult>
+     <TmpMEC > GeoI-Px/ </TmpMEC>
 
      <AvalaibleMemory> 1024 </AvalaibleMemory>
      <SzDalleMin>  400 </SzDalleMin>
@@ -263,6 +293,9 @@ MICMAC MM-PxTransv.xml WorkDir=//media/data2/Aerien/Euro-SDR/Munich/
      <ByProcess>  ${MMNbProc}  </ByProcess>
      <NomChantier> Geom-Im </NomChantier>
      <FirstEtapeMEC> 0 </FirstEtapeMEC>
+
+     <PurgeMECResultBefore>  ${Purge} </PurgeMECResultBefore>
+
 
 <!--
     <FileExportApero2MM> Ori-F/Attr_MM_${NumImC}.xml </FileExportApero2MM>

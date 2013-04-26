@@ -832,6 +832,9 @@ class cSection_Terrain
         friend void xml_init(cSection_Terrain & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< bool > & IntervalPaxIsProportion();
+        const cTplValGesInit< bool > & IntervalPaxIsProportion()const ;
+
         cTplValGesInit< double > & RatioAltiPlani();
         const cTplValGesInit< double > & RatioAltiPlani()const ;
 
@@ -955,6 +958,7 @@ class cSection_Terrain
         cTplValGesInit< cRugositeMNT > & RugositeMNT();
         const cTplValGesInit< cRugositeMNT > & RugositeMNT()const ;
     private:
+        cTplValGesInit< bool > mIntervalPaxIsProportion;
         cTplValGesInit< double > mRatioAltiPlani;
         cTplValGesInit< bool > mEstimPxPrefZ2Prof;
         cTplValGesInit< cIntervAltimetrie > mIntervAltimetrie;
@@ -4989,6 +4993,9 @@ class cParamMICMAC
 
         cTplValGesInit< cChantierDescripteur > & DicoLoc();
         const cTplValGesInit< cChantierDescripteur > & DicoLoc()const ;
+
+        cTplValGesInit< bool > & IntervalPaxIsProportion();
+        const cTplValGesInit< bool > & IntervalPaxIsProportion()const ;
 
         cTplValGesInit< double > & RatioAltiPlani();
         const cTplValGesInit< double > & RatioAltiPlani()const ;
