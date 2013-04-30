@@ -547,7 +547,7 @@ void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,in
         mMMTP->MajOrAdd(aCel);
    }
 
-
+#if (ELISE_X11)
   int aPer =  100000;
   static int aCpt=0; aCpt++;
   if ((aCpt%aPer)==0)
@@ -556,7 +556,7 @@ void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,in
      if (0)
         TheWTiePCor->DumpImage("DumpMMTieP_"+ToString(aCpt/aPer)+".tif");
   }
-
+#endif
 }
 
 /********************************************************************/
