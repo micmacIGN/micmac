@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2015]) = {
+const char * (theNameVar_ParamMICMAC[2018]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -424,6 +424,9 @@ const char * (theNameVar_ParamMICMAC[2015]) = {
 "         independamment de la prise de vue\n",
 "-->\n",
 "     <Section_Terrain Nb=\"1\">  \n",
+"\n",
+"       <!-- Completement redondant avec ZIncIsProp, mais plus general et arrive apres -->\n",
+"       <IntervalPaxIsProportion Type=\"bool\" Nb=\"?\" Def=\"false\"> </IntervalPaxIsProportion>\n",
 "\n",
 "       <!-- En general aucun interet a le fixer soif meme; exception on lance plusieurs MicMac\n",
 "           en Faisceau Z Terrain et on veut les compare facile -->\n",

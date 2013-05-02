@@ -85,7 +85,7 @@ cAppliDigeo * NewDigeo
 
 extern const char * theNameVar_ParamDigeo[];
 
-int Digeo_main(int argc,char ** argv)
+int Digeo_main_(int argc,char ** argv)
 {
    MMD_InitArgcArgv(argc,argv);
 

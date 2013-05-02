@@ -423,6 +423,9 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 -->
      <Section_Terrain Nb="1">  
 
+       <!-- Completement redondant avec ZIncIsProp, mais plus general et arrive apres -->
+       <IntervalPaxIsProportion Type="bool" Nb="?" Def="false"> </IntervalPaxIsProportion>
+
        <!-- En general aucun interet a le fixer soif meme; exception on lance plusieurs MicMac
            en Faisceau Z Terrain et on veut les compare facile -->
        <RatioAltiPlani Nb="?" Type="double"> </RatioAltiPlani>

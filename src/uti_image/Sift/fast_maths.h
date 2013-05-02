@@ -22,7 +22,7 @@ namespace fast_maths
     inline int32_t fast_floor( Real_ x )
     {
         #ifdef VL_USEFASTMATH
-            return ( x>=0 )? int32_t(x) : std::floor(x) ;
+            return ( x>=0 )? int32_t(x) : int32_t(std::floor(x)) ;
         #else
             return int32_t( std::floor(x) ) ;
         #endif
