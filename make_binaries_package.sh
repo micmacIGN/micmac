@@ -6,21 +6,20 @@ cmake ../
 
 OS=$(uname -s)
 
+REV_NUMBER=$(hg log -r tip --template "{rev}")
+NBRP=$(cat /proc/cpuinfo | grep processor | wc -l)
+make install -j$NBRP
+
 # temporaire
 # probleme de compilation du fichier GenConvolSpec.cpp, s'il n'est pas compile seul
 # il peut faire planter gcc sur certaines machines (debian ?)
 if [ $OS = "Linux" ]
 then
-	uname
-	mkdir -p CMakeFile/elise.dir/uti_image/Digeo/
+	uname -a
 	g++ -c ../src/uti_image/Digeo/GenConvolSpec.cpp -I../include -o CMakeFile/elise.dir/uti_image/Digeo/GenConvolSpec.cpp.o
+	make install -j$NBRP
 fi
 #----
-
-REV_NUMBER=$(hg log -r tip --template "{rev}")
-NBRP=$(cat /proc/cpuinfo | grep processor | wc -l)
-make -j$NBRP
-make install
 
 # créer un répertoire pour l'archive
 BIN_DIR=micmac
@@ -33,8 +32,8 @@ cp -r ../data $BIN_DIR
 mkdir $BIN_DIR/include
 cp -r ../include/XML_GEN $BIN_DIR/include
 cp -r ../include/XML_MicMac $BIN_DIR/include
-cp ../README.fr $BIN_DIR
-cp ../README.en $BIN_DIR
+cp ../README $BIN_DIR
+cp ../LISEZMOI $BIN_DIR
 
 # copie les outils tiers
 if [ $OS = "Linux" ]
