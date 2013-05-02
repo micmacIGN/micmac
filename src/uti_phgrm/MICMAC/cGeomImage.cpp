@@ -1712,7 +1712,12 @@ class cGeomFaisZTerMaitre : public cGeomImage_Id
          cGeomImage_Id  (anAppli,aPDV,aTag,aSzIm,aDimPx),
          mGeoRef        (aGeomRef)
       {
+// std::cout << "AAAAAAAAAAAAakkkoooooooooo\n";
       }
+      Pt3dr  Centre() const { return mGeoRef->Centre(); }
+      bool  HasCentre() const { return mGeoRef->HasCentre(); }
+
+
       CamStenope *  GetOri()  const
       {
           return mGeoRef->GetOri();
@@ -1765,6 +1770,10 @@ class cGeomFaisZTerEsclave : public cGeomFaisZTerMaitre
          mDirPx              (0,0)
       {
       }
+
+      Pt3dr  Centre() const { return mGeom->Centre(); }
+      bool  HasCentre() const { return mGeom->HasCentre(); }
+
        std::string Name() const
        {
           return "cGeomFaisZTerMaitre["+mGeom->Name() +"]["+mGeoRef->Name()+"]";

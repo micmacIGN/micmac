@@ -280,13 +280,10 @@ if (MPD_MM())
          double aRatio[theDimPxMax];
          if ((*itFI)->Geom().GetRatioResolAltiPlani(aRatio))
          {
-if (mAp->DebugMM().Val())
-{
-std::cout << "RRRRRRRRR " << aRatio[0] << "\n";
-}
            for (int aK=0; aK<mDimPx ; aK++)
               ElSetMin(mRatioResAltPlani[aK],aRatio[aK]);
          }
+
 
          if ((*itFI)->Geom().HasCentre())
          {
@@ -373,7 +370,6 @@ std::cout << "RRRRRRRRR " << aRatio[0] << "\n";
      }
 
 
-
      if (mAp->Px2Moy().IsInit())
      {
          mV0Px[1] = mAp->Px2Moy().Val();
@@ -395,6 +391,20 @@ std::cout << "RRRRRRRRR " << aRatio[0] << "\n";
      mEcPxZone[0] = mAp->Px1IncZonage().ValWithDef( 0);
      mEcPxZone[1] = mAp->Px2IncZonage().ValWithDef( 0);
       
+
+     if (
+           (    (mAp->GeomMNT() ==eGeomMNTFaisceauIm1ZTerrain_Px2D)
+             || (mAp->GeomMNT() ==eGeomMNTFaisceauIm1ZTerrain_Px1D)
+           )
+          && mAp->IntervalPaxIsProportion().Val()
+        )
+      {
+           ELISE_ASSERT(aNbCentreGot,"aNbCentreGot in GeomMNTFaisceauIm1ZTerrain");
+           Pt3dr aC = aCentre/double(aNbCentreGot);
+           mEcPxInit[0] *= ElAbs(mV0Px[0]-aC.z);
+          
+      }
+
   }
   else if (mAp->ModeGeomMEC() == eGeomMECTerrain)
   {
@@ -451,7 +461,9 @@ std::cout << "RRRRRRRRR " << aRatio[0] << "\n";
      }
 
      mEcPxInit[0]  = mAp->ZIncCalc();
-     if (mAp->ZIncIsProp().ValWithDef(false))
+
+
+     if ( mAp->ZIncIsProp().ValWithDef(false))
      {
           ELISE_ASSERT(aNbCentreGot,"Cannot get Centre with ZIncIsProp");
           Pt3dr aC = aCentre/double(aNbCentreGot);
@@ -462,6 +474,7 @@ std::cout << "RRRRRRRRR " << aRatio[0] << "\n";
 
      mEcPxZone[0] = mAp->ZIncZonage().ValWithDef(0);
   }
+
 
 
   for (int aK=0 ; aK<theDimPxMax ; aK++)
@@ -487,10 +500,10 @@ std::cout << "RRRRRRRRR " << aRatio[0] << "\n";
 
             ELISE_ASSERT((mEcPxInitPlus[0]>0) && (mEcPxInitMoins[0]>0),"Error in IntervSpecialZInv");
 
-if (mAp->DebugMM().Val())
+if ( mAp->DebugMM().Val())
 {
     std::cout << " V0PX " << mV0Px[0] << " " << 1/mV0Px[0] << "\n";
-    std::cout  << "AAA  " << mEcPxInitPlus[0] << " " << mEcPxInitMoins[0] << "\n";
+    std::cout  << "AAA  " << mEcPxInitPlus[0] << " " << mEcPxInitMoins[0] << " " << mEcPxZone[0] << "\n";
 }
 
            // mV0Px[0] =     (aPxMin+aPxMax)/2.0;
