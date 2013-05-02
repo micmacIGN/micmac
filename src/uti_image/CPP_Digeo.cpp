@@ -324,6 +324,84 @@ typedef struct{
 	INT2    type;
 } DigeoPoint;
 
+// same format as siftpp_tgi (not endian-wise)
+// Real_ values are cast to float
+// descriptors are cast from float to unsigned char values d[i]->(unsigned char)(512*d[i])
+inline void write_DigeoPoint_binary_legacy( std::ostream &output, const DigeoPoint &p )
+{
+	float float_value = (float)p.x; output.write( (char*)&float_value, sizeof( float ) );
+	float_value = (float)p.y; output.write( (char*)&float_value, sizeof( float ) );
+	float_value = (float)p.scale; output.write( (char*)&float_value, sizeof( float ) );
+	float_value = (float)p.angle; output.write( (char*)&float_value, sizeof( float ) );
+	static unsigned char uchar_desc[DIGEO_DESCRIPTOR_SIZE];
+	int i=DIGEO_DESCRIPTOR_SIZE; const REAL8 *itReal=p.descriptor; unsigned char *it_uchar=uchar_desc;
+	while (i--)	(*it_uchar++)=(unsigned char)( 512*(*itReal++) );
+    output.write( (char*)uchar_desc, DIGEO_DESCRIPTOR_SIZE );
+}
+
+// same format as siftpp_tgi (not endian-wise)
+// Real_ values are cast to float
+// descriptors are cast from unsigned char to float values d[i]->d[i]/512
+inline void read_DigeoPoint_binary_legacy( std::istream &output, DigeoPoint &p )
+{
+	float float_values[4];
+	output.read( (char*)float_values, 4*sizeof( float ) );
+	p.x 	= (REAL8)float_values[0];
+	p.y 	= (REAL8)float_values[1];
+	p.scale = (REAL8)float_values[2];
+	p.angle = (REAL8)float_values[3];
+	static unsigned char uchar_desc[DIGEO_DESCRIPTOR_SIZE];
+	const REAL8 k = REAL8(1)/REAL8(512);
+    output.read( (char*)uchar_desc, DIGEO_DESCRIPTOR_SIZE );
+	int i=DIGEO_DESCRIPTOR_SIZE; REAL8 *itReal=p.descriptor; unsigned char *it_uchar=uchar_desc;
+	while (i--) (*itReal++)=(REAL8)(*it_uchar++)*k;
+}
+
+bool write_digeo_points( const string &i_filename, const list<DigeoPoint> &i_list )
+{
+	// write in siftpp_tgi format
+	
+    ofstream f( i_filename.c_str(), ios::binary );
+
+    if ( !f ) return false;
+
+    U_INT4 nbPoints  = i_list.size(),
+		   dimension = DIGEO_DESCRIPTOR_SIZE;
+    f.write( (char*)&nbPoints, 4 );
+    f.write( (char*)&dimension, 4 );
+    list<DigeoPoint>::const_iterator it = i_list.begin();
+    while ( nbPoints-- )
+        write_DigeoPoint_binary_legacy( f, *it++ );
+    f.close();
+    return true;
+}
+
+bool read_digeo_points( const string &i_filename, vector<DigeoPoint> &o_list )
+{
+	// read in siftpp_tgi format
+	
+    ifstream f( i_filename.c_str(), ios::binary );
+
+    if ( !f ) return false;
+
+    U_INT4 nbPoints, dimension;
+    f.read( (char*)&nbPoints, 4 );
+    f.read( (char*)&dimension, 4 );
+    
+    o_list.resize( nbPoints );
+    if ( dimension!=DIGEO_DESCRIPTOR_SIZE ){
+		cerr << "ERROR: read_siftPoint_list " << i_filename << ": descriptor's dimension is " << dimension << " and should be " << DIGEO_DESCRIPTOR_SIZE << endl;
+		return false;
+	}
+	if ( nbPoints==0 ) return true;
+	DigeoPoint *itPoint = &o_list[0];
+    while ( nbPoints-- )
+        read_DigeoPoint_binary_legacy( f, *itPoint++ );
+    f.close();
+
+    return true;
+}
+
 template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Type> * anOct, list<DigeoPoint> &o_list)
 {
   Im2D<REAL4,REAL8> imgGradient;
@@ -423,6 +501,9 @@ int Digeo_main( int argc, char **argv )
         std::cout << "Done " << aKBox << " on " << anAD->NbInterv() << "\n";
     }
 	cout << total_list.size() << " points" << endl;
+	if ( !write_digeo_points( outputName, total_list ) ){
+		cerr << "Digeo: ERROR: unable to save points to file " << outputName << endl;
+	}
 	return EXIT_SUCCESS;
 }
 
