@@ -129,7 +129,6 @@ int orientate( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i
 
 	int xi = ((int) (i_p.mPt.x+0.5)) ;
     int yi = ((int) (i_p.mPt.y+0.5)) ;
-    int si = int(i_sigma);
 
     const REAL8 sigmaw = DIGEO_ORIENTATION_WINDOW_FACTOR*i_sigma;
 	const int W = (int)floor( 3*sigmaw );
@@ -217,7 +216,6 @@ void describe( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i
 
 	int xi = int( i_p.mPt.x+0.5 );
     int yi = int( i_p.mPt.y+0.5 );
-    int si = i_sigma;
 
     const REAL8 SBP = DIGEO_DESCRIBE_MAGNIFY*i_sigma;
     const int  W   = (int)floor( sqrt( 2.0 )*SBP*( DIGEO_DESCRIBE_NBP+1 )/2.0+0.5 );
@@ -330,9 +328,8 @@ template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Typ
 {
   Im2D<REAL4,REAL8> imgGradient;
   REAL8 angles[DIGEO_ORIENTATION_NB_MAX_ANGLES];
-  REAL8 descriptor[DIGEO_DESCRIPTOR_SIZE];
   DigeoPoint p;
-  int nbAngles;
+  unsigned int nbAngles;
   const std::vector<cTplImInMem<Type> *> &  aVIm = anOct->cTplOctDig<Type>::VTplIms();
   
   for (int aKIm=0 ; aKIm<int(aVIm.size()) ; aKIm++)
