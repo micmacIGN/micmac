@@ -3,6 +3,20 @@ rm -rf build
 mkdir build
 cd build
 cmake ../
+
+OS=$(uname -s)
+
+# temporaire
+# probleme de compilation du fichier GenConvolSpec.cpp, s'il n'est pas compile seul
+# il peut faire planter gcc sur certaines machines (debian ?)
+if [ $OS = "Linux" ]
+then
+	uname
+	mkdir -p CMakeFile/elise.dir/uti_image/Digeo/
+	g++ -c ../src/uti_image/Digeo/GenConvolSpec.cpp -I../include -o CMakeFile/elise.dir/uti_image/Digeo/GenConvolSpec.cpp.o
+fi
+#----
+
 REV_NUMBER=$(hg log -r tip --template "{rev}")
 NBRP=$(cat /proc/cpuinfo | grep processor | wc -l)
 make -j$NBRP
@@ -23,7 +37,6 @@ cp ../README.fr $BIN_DIR
 cp ../README.en $BIN_DIR
 
 # copie les outils tiers
-OS=$(uname -s)
 if [ $OS = "Linux" ]
 then
 	mkdir $BIN_DIR/binaire-aux
