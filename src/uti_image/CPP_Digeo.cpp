@@ -329,7 +329,7 @@ template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Typ
   Im2D<REAL4,REAL8> imgGradient;
   REAL8 angles[DIGEO_ORIENTATION_NB_MAX_ANGLES];
   DigeoPoint p;
-  unsigned int nbAngles;
+  int nbAngles;
   const std::vector<cTplImInMem<Type> *> &  aVIm = anOct->cTplOctDig<Type>::VTplIms();
   
   for (int aKIm=0 ; aKIm<int(aVIm.size()) ; aKIm++)
@@ -350,7 +350,7 @@ template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Typ
 			   nbAngles = orientate( imgGradient, aVPC[i], anIm.ScaleInOct(), angles );
 			   if ( nbAngles!=0 )
 			   {
-				   for ( unsigned int iAngle=0; iAngle<nbAngles; iAngle++ ){
+				   for ( int iAngle=0; iAngle<nbAngles; iAngle++ ){
 						describe( imgGradient, aVPC[i], anIm.ScaleInOct(), angles[iAngle], p.descriptor );
 						p.angle = angles[iAngle];
 						o_list.push_back( p );
