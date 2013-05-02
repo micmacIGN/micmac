@@ -16,7 +16,7 @@ make install -j$NBRP
 if [ $OS = "Linux" ]
 then
 	uname -a
-	g++ -c ../src/uti_image/Digeo/GenConvolSpec.cpp -I../include -o CMakeFile/elise.dir/uti_image/Digeo/GenConvolSpec.cpp.o
+	g++ -c ../src/uti_image/Digeo/GenConvolSpec.cpp -I../include -o src/CMakeFile/elise.dir/uti_image/Digeo/GenConvolSpec.cpp.o
 	make install -j$NBRP
 fi
 #----
