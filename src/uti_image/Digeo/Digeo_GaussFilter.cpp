@@ -372,6 +372,7 @@ cConvolSpec<double>*  RGausCS(double aSigma,double anEpsilon)
 /*                                      */
 /****************************************/
 
+// anX must not be lesser than 0
 template <class Type> 
 void  cTplImInMem<Type>::SetConvolBordX
       (
@@ -411,12 +412,13 @@ void cTplImInMem<Type>::SetConvolSepX
     int aX0 = - aCS->Deb();
     int aX1 = aSzX-aCS->Fin();
 
-    for (int anX = 0 ; anX <aX0 ; anX++)
+	int anX;
+    for (anX = 0 ; anX <aX0 ; anX++)
     {
         SetConvolBordX(aImOut,aImIn,anX,aCS->DataCoeff(),aCS->Deb(),aCS->Fin());
     }
 
-    for (int anX =aX1  ; anX <aSzX ; anX++)
+    for (anX =std::max(anX,aX1)  ; anX <aSzX ; anX++) // max car aX1 peut être < aX0 voir negatif et faire planter
     {
         SetConvolBordX(aImOut,aImIn,anX,aCS->DataCoeff(),aCS->Deb(),aCS->Fin());
     }
