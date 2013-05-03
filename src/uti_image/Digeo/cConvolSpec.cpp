@@ -218,7 +218,7 @@ cConvolSpec<Type>::cConvolSpec(tBase* aFilter,int aDeb,int aFin,int aNbShit,bool
     }
     else
     {
-        for (int aK=1 ; aK<= aDeb ; aK++)
+        for (int aK=1 ; aK<= aDeb; aK++) // aK<=aFin ou le test est desactivé ?
         {
             if (ElAbs(mDataCoeff[aK]-mDataCoeff[-aK])>1e-6)
                mSym = false;
