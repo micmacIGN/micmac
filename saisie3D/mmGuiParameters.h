@@ -44,8 +44,6 @@ public:
         bool decimateMeshOnMove;
         //! Decimate clouds when moved
         bool decimateCloudOnMove;
-        //! Display cross in the middle of the screen
-        bool displayCross;
 
         //! Color scale option: always show '0'
         bool colorScaleAlwaysShowZero;

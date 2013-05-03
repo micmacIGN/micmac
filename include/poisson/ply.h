@@ -38,15 +38,13 @@
 #define _strdup strdup
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-	
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
 #include <string.h>
 #include <string>
+
+using namespace std;
     
 #define PLY_ASCII         1      /* ascii PLY file */
 #define PLY_BINARY_BE     2      /* binary PLY file, big endian */
@@ -90,8 +88,14 @@ typedef struct sVertex
 	
 typedef struct sPlyOrientedVertex
 {
-	float x, y, z , nx, ny, nz;
+    float x, y, z, nx, ny, nz;
 } sPlyOrientedVertex;
+
+typedef struct sPlyColoredVertex
+{
+    float x, y, z;
+    unsigned char red, green, blue, alpha;
+} sPlyColoredVertex;
 	
 typedef struct sFace 
 {
@@ -201,7 +205,7 @@ extern char *my_alloc();
 #endif
 
 
-/*** delcaration of routines ***/
+/*** declaration of routines ***/
 
 extern PlyFile *ply_write(FILE *, int, string *, int);
 extern PlyFile *ply_open_for_writing(char *, int, string *, int, float *);
@@ -232,9 +236,6 @@ extern void ply_describe_other_properties(PlyFile *, PlyOtherProp *, int);
 
 extern int equal_strings(const char *, const char *);
 
-#ifdef __cplusplus
-}
-#endif
 #include "Geometry.h"
 #include <vector>
 

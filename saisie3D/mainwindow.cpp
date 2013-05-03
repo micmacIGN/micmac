@@ -5,9 +5,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-/*#include <QMdiArea>
-#include <QSignalMapper>
-#include <QMdiSubWindow>*/
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -44,13 +42,6 @@ bool MainWindow::checkForLoadedEntities()
     {
         m_glWidget->displayNewMessage("Drag & drop files on the window to load them!", GLWidget::SCREEN_CENTER_MESSAGE);
         loadedEntities = false;
-    }
-
-    if (mmGui::Parameters().displayCross != loadedEntities)
-    {
-        mmGui::ParamStruct params = mmGui::Parameters();
-        params.displayCross = loadedEntities;
-        mmGui::Set(params);
     }
 
     return loadedEntities;

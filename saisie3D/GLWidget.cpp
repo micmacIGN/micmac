@@ -1,5 +1,6 @@
 ﻿#include <QtGui/QMouseEvent>
 #include <QSettings>
+#include <QMessageBox>
 #include "GLWidget.h"
 #include "GL/glu.h"
 
@@ -14,8 +15,8 @@
 const GLfloat g_trackballScale = 1.f;
 
 //Min and max zoom ratio (relative)
-const float MM_GL_MAX_ZOOM_RATIO = 1.0e6f;
-const float MM_GL_MIN_ZOOM_RATIO = 1.0e-6f;
+const float GL_MAX_ZOOM_RATIO = 1.0e6f;
+const float GL_MIN_ZOOM_RATIO = 1.0e-6f;
 
 ViewportParameters::ViewportParameters()
     : pixelSize(1.0f)
@@ -24,9 +25,10 @@ ViewportParameters::ViewportParameters()
     , defaultLineWidth(1)
     , objectCenteredView(true)
     , pivotPoint(0.0f)
-    , cameraCenter(0.0f)
-    , fov(30.0f)
-    , aspectRatio(1.0f)
+    , m_rot(0)
+    , m_trans(QVector<GLdouble>(3,0))
+    , m_scale(1)
+
 {
     //viewMat.toIdentity();
 }
@@ -39,9 +41,9 @@ ViewportParameters::ViewportParameters(const ViewportParameters& params)
     , defaultLineWidth(params.defaultLineWidth)
     , objectCenteredView(params.objectCenteredView)
     , pivotPoint(params.pivotPoint)
-    , cameraCenter(params.cameraCenter)
-    , fov(params.fov)
-    , aspectRatio(params.aspectRatio)
+    , m_rot(params.m_rot)
+    , m_trans(params.m_trans)
+    , m_scale(params.m_scale)
 {
 }
 
@@ -50,7 +52,7 @@ bool g_mouseLeftDown = false;
 GLfloat g_tmpMatix[9],
         g_rotationOx[9],
         g_rotationOy[9],
-        g_rotationMatix[9] = { 1, 0, 0,
+        g_rotationMatrix[9] = { 1, 0, 0,
                                0, 1, 0,
                                0, 0, 1 },
         g_inverseRotationMatrix[9] = { 1, 0, 0,
@@ -281,7 +283,12 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent)
       , m_validModelviewMatrix(false)
       , m_updateFBO(true)
       , m_bFitCloud(true)
+      , m_params(ViewportParameters())
 {
+    m_minX = m_minY = m_minZ = FLT_MAX;
+    m_maxX = m_maxY = m_maxZ = FLT_MIN;
+    m_cX = m_cY = m_cZ = m_diam = 0.f;
+
     setCloudLoaded(false);
     setMouseTracking(true);
 
@@ -300,7 +307,17 @@ void GLWidget::initializeGL()
                   mmColor::defaultBkgColor[2] / 255.0f,
                   1.f );*/
 
-    glClearDepth( 1.f );
+    if (m_params.getRot()==0)
+    {
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        m_params.modifRot() = new GLdouble[16];
+        glGetDoublev(GL_MODELVIEW_MATRIX, m_params.modifRot());
+    }
+
+    m_boule = makeBoule();
+
+    //glClearDepth( 1.f );
     glEnable( GL_DEPTH_TEST );
     glDepthFunc( GL_LEQUAL );
 
@@ -310,15 +327,28 @@ void GLWidget::initializeGL()
 
     glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
 
+
+
     m_initialized = true;
 }
 
-void GLWidget::resizeGL(int w, int h) {
-    m_glWidth  = (float)w;
-    m_glHeight = (float)h;
+void GLWidget::resizeGL(int width, int height)
+{
+    if (width==0 || height==0) return;
 
-    glViewport( 0, 0, w, h );
-    /*glMatrixMode( GL_PROJECTION );
+    m_glWidth  = (float)width;
+    m_glHeight = (float)height;
+
+    glViewport( 0, 0, width, height );
+
+    int h = qMin(double(height), double(width)*(m_maxY-m_minY)/(m_maxX-m_minX));
+    int w = h*(m_maxX-m_minX)/(m_maxY-m_minY);
+
+    //glViewport((width - w) / 2, (height - h) / 2, w, h);
+
+    winZ = w * m_minZ / (m_maxX-m_minX);
+
+   /* glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
     gluPerspective( 45.f, (GLfloat)w/(GLfloat)h, 0.1f, 100.f );*/
 }
@@ -369,21 +399,13 @@ void GLWidget::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
 
-    static GLfloat trans44[16], rot44[16], tmp[16];
-    m33_to_m44( g_rotationMatix, rot44 );
-    setTranslate( 0.f, 0.f, -7.f, trans44 );
-
-    mult( trans44, rot44, tmp );
-    transpose( tmp, g_glMatrix );
-    glLoadMatrixf( g_glMatrix );
-
     //if (m_updateFBO)
     //{
-        draw3D(mmGui::Parameters().displayCross);
+        draw3D();
         m_updateFBO=false;
     //}
 
-    glPointSize(5);
+    glPointSize(2);
 
     glBegin(GL_POINTS);
     for(int aK=0; aK< m_ply.size(); aK++)
@@ -398,6 +420,8 @@ void GLWidget::paintGL() {
     }
     glEnd();
 
+
+
     //current messages (if valid)
     if (!m_messagesToDisplay.empty())
     {
@@ -411,9 +435,6 @@ void GLWidget::paintGL() {
         //glColor3f((float)col[0]/(float)MAX_COLOR_COMP,(float)col[1]/(float)MAX_COLOR_COMP,(float)col[2]/(float)MAX_COLOR_COMP);
         glColor3f(1.f,1.f,1.f);
 
-        int ll_currentHeight = m_glHeight-10; //lower left
-        int uc_currentHeight = 10; //upper center
-
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
         while (it != m_messagesToDisplay.end())
         {
@@ -424,32 +445,13 @@ void GLWidget::paintGL() {
             }
             else
             {*/
-                switch(it->position)
-                {
-                case LOWER_LEFT_MESSAGE:
-                    {
-                        renderText(10, ll_currentHeight, it->message,m_font);
-                        int messageHeight = QFontMetrics(m_font).height();
-                        ll_currentHeight -= (messageHeight*5)/4; //add a 25% margin
-                    }
-                    break;
-                case UPPER_CENTER_MESSAGE:
-                    {
-                        QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                        renderText((m_glWidth-rect.width())/2, uc_currentHeight+rect.height(), it->message,m_font);
-                        uc_currentHeight += (rect.height()*5)/4; //add a 25% margin
-                    }
-                    break;
-                case SCREEN_CENTER_MESSAGE:
-                    {
-                        QFont newFont(m_font);
-                        newFont.setPointSize(12);
-                        QRect rect = QFontMetrics(newFont).boundingRect(it->message);
-                        //only one message supported in the screen center (for the moment ;)
-                        renderText((m_glWidth-rect.width())/2, (m_glHeight-rect.height())/2, it->message,newFont);
-                    }
-                    break;
-                }
+
+                QFont newFont(m_font);
+                newFont.setPointSize(12);
+                QRect rect = QFontMetrics(newFont).boundingRect(it->message);
+                //only one message supported in the screen center (for the moment ;)
+                renderText((m_glWidth-rect.width())/2, (m_glHeight-rect.height())/2, it->message,newFont);
+
                 ++it;
             //}
         }
@@ -494,34 +496,14 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         g_mouseOldX = event->x();
         g_mouseOldY = event->y();
     }
+
+    lastPos = event->pos();
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if ( !( event->buttons()&Qt::LeftButton ) )
         g_mouseLeftDown = false;
-}
-
-void GLWidget::mouseMoveEvent(QMouseEvent *event)
-{
-    if ( g_mouseLeftDown )
-    {
-        int dx = event->x()-g_mouseOldX,
-            dy = event->y()-g_mouseOldY;
-        g_mouseOldX = event->x();
-        g_mouseOldY = event->y();
-
-        setRotateOx_m33( ( g_trackballScale*dy )/m_glHeight, g_rotationOx );
-        setRotateOy_m33( ( g_trackballScale*dx )/m_glWidth, g_rotationOy );
-        mult_m33( g_rotationOx, g_rotationMatix, g_tmpMatix );
-        mult_m33( g_rotationOy, g_tmpMatix, g_rotationMatix );
-        inverse_m33( g_rotationMatix, g_inverseRotationMatrix );
-
-        GLfloat minv[9];
-        mult_m33( g_rotationMatix, g_inverseRotationMatrix, minv );
-
-        this->updateGL();
-    }
 }
 
 /*void GLWidget::keyPressEvent(QKeyEvent* event) {
@@ -541,6 +523,27 @@ void GLWidget::addPly( const QString &i_ply_file ) {
     a_ply.loadPly( i_ply_file.toStdString() );
     m_ply.push_back(a_ply);
     if (!hasCloudLoaded()) setCloudLoaded(true);
+
+    //compute bounding box
+
+    int nbPts = a_ply.getVertexNumber();
+    for (int aK=0; aK < nbPts; ++aK)
+    {
+        Cloud_::Vertex vert = a_ply.getVertex(aK);
+
+        if (vert.x() > m_maxX) m_maxX = vert.x();
+        if (vert.x() < m_minX) m_minX = vert.x();
+        if (vert.y() > m_maxY) m_maxY = vert.y();
+        if (vert.y() < m_minY) m_minY = vert.y();
+        if (vert.z() > m_maxZ) m_maxZ = vert.z();
+        if (vert.z() < m_minZ) m_minZ = vert.z();
+    }
+
+    m_cX = (m_minX + m_maxX) * .5f;
+    m_cY = (m_minY + m_maxY) * .5f;
+    m_cZ = (m_minZ + m_maxZ) * .5f;
+
+    m_diam = sqrt((m_cX-m_minX)*(m_cX-m_minX)+(m_cY-m_minY)*(m_cY-m_minY)+(m_cZ-m_minZ)*(m_cZ-m_minZ));
 }
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -624,7 +627,7 @@ void GLWidget::displayNewMessage(const QString& message,
 
     MessageToDisplay mess;
     mess.message = message;
-    mess.messageValidity_sec = 500; //TODO: ccTimer::Sec()+displayMaxDelay_sec;
+    mess.messageValidity_sec = 500; //TODO: Timer::Sec()+displayMaxDelay_sec;
     mess.position = pos;
     mess.type = type;
     m_messagesToDisplay.push_back(mess);
@@ -654,8 +657,7 @@ void GLWidget::drawGradientBackground()
     glEnd();
 }
 
-//void GLWidget::draw3D(CC_DRAW_CONTEXT& context, bool doDrawCross, ccFrameBufferObject* fbo/*=0*/)
-void GLWidget::draw3D(bool doDrawCross)
+void GLWidget::draw3D()
 {
     makeCurrent();
 
@@ -712,10 +714,7 @@ void GLWidget::draw3D(bool doDrawCross)
     // TODO:if (m_interactionMode == TRANSFORM_ENTITY)
     // TODO:    context.flags |= CC_VIRTUAL_TRANS_ENABLED;
 
-    glEnable(GL_DEPTH_TEST);
-
-    if (doDrawCross)
-        drawCross();
+    //glEnable(GL_DEPTH_TEST);
 
     /****************************************/
     /****    PASS: 3D/FOREGROUND/LIGHT   ****/
@@ -733,13 +732,23 @@ void GLWidget::draw3D(bool doDrawCross)
     glMatrixMode(GL_PROJECTION);
     glLoadMatrixd(getProjectionMatd());
 
+
+
+
     //then, the modelview matrix
     glMatrixMode(GL_MODELVIEW);
+
+    static GLfloat trans44[16], rot44[16], tmp[16];
+    m33_to_m44( g_rotationMatrix, rot44 );
+    setTranslate( 0.f, 0.f, -7.f, trans44 );
+
+    mult( trans44, rot44, tmp );
+    transpose( tmp, g_glMatrix );
+    glLoadMatrixf( g_glMatrix );
+
    //TODO: glLoadMatrixd(getModelViewMatd());
 
-    //we activate the current shader (if any)
-    //TODO: if (m_activeShader)
-    //TODO:    m_activeShader->start();
+
 
     //we draw 3D entities
     //TOTOTODODODO
@@ -750,10 +759,10 @@ void GLWidget::draw3D(bool doDrawCross)
     }
     m_winDBRoot->draw(context);*/
 
-    if (m_bFitCloud)
+    if (m_bFitCloud && m_bCloudLoaded)
         zoomGlobal();
     else
-        glScalef(m_params.zoom, m_params.zoom, m_params.zoom);
+        zoom();
 
     //for connected items
     emit drawing3D();
@@ -788,18 +797,6 @@ void GLWidget::setStandardOrthoCenter()
     glLoadIdentity();
 }
 
-void GLWidget::drawCross()
-{
-    //cross OpenGL drawing
-    glColor3ubv(mmColor::lightGrey);
-    glBegin(GL_LINES);
-    glVertex3f(0.0,-10.0,0.0);
-    glVertex3f(0.0,10.0,0.0);
-    glVertex3f(-10.0,0.0,0.0);
-    glVertex3f(10.0,0.0,0.0);
-    glEnd();
-}
-
 void GLWidget::glEnableSunLight()
 {
     //glLightfv(GL_LIGHT0,GL_DIFFUSE,ccGui::Parameters().lightDiffuseColor);
@@ -829,49 +826,51 @@ void GLWidget::redraw()
 
 void GLWidget::zoomGlobal()
 {
-    //compute bounding box
-    float cX, cY, cZ;
-    float minX, maxX, minY, maxY, minZ, maxZ;
-    float zNear, zFar, diam;
-    minX = minY = minZ = FLT_MAX;
-    maxX = maxY = maxZ = FLT_MIN;
+    GLdouble fAspect = (GLdouble) m_glWidth/ m_glHeight;
 
-    for (int aK=0; aK < m_ply.size(); ++aK)
-    {
-        int nbPts = m_ply[aK].getVertexNumber();
-        for (int bK=0; bK < nbPts; ++bK)
-        {
-            Cloud_::Vertex vert = m_ply[aK].getVertex(bK);
-
-            if (vert.x() > maxX) maxX = vert.x();
-            if (vert.x() < minX) minX = vert.x();
-            if (vert.y() > maxY) maxY = vert.y();
-            if (vert.y() < minY) minY = vert.y();
-            if (vert.z() > maxZ) maxZ = vert.z();
-            if (vert.z() < minZ) minZ = vert.z();
-        }
-    }
-
-    cX = (minX + maxX) * .5f;
-    cY = (minY + maxY) * .5f;
-    cZ = (minZ + maxZ) * .5f;
-
-    diam = sqrt((cX-minX)*(cX-minX)+(cY-minY)*(cY-minY)+(cZ-minZ)*(cZ-minZ));
-
-    zNear = 0.0;
-    zFar  = zNear + diam;
-
-    GLdouble left   = cX - diam;
-    GLdouble right  = cX + diam;
-    GLdouble bottom = cY - diam;
-    GLdouble top    = cY + diam;
+    GLdouble left   = m_cX - m_diam*fAspect;
+    GLdouble right  = m_cX + m_diam*fAspect;
+    GLdouble bottom = m_cY - m_diam;
+    GLdouble top    = m_cY + m_diam;
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(left, right, bottom, top, zNear, zFar);
+    glOrtho(left, right, bottom, top, -1.0, 1.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    /*static int prevent_loop = 0 ;
+
+    if (glGetError() != GL_NO_ERROR)
+    {
+       if (!prevent_loop) {
+           QMessageBox msgBox;
+           QString text = "OpenGL error detected.\n\n";
+           msgBox.setText(text);
+           msgBox.exec();
+
+          prevent_loop = 1 ;
+       }
+    }*/
+}
+
+void GLWidget::zoom()
+{
+    GLdouble zoom = m_params.zoom;
+    GLdouble fAspect = (GLdouble) m_glWidth/ m_glHeight;
+
+    GLdouble left   = m_cX - m_diam*fAspect*zoom;
+    GLdouble right  = m_cX + m_diam*fAspect*zoom;
+    GLdouble bottom = m_cY - m_diam*zoom;
+    GLdouble top    = m_cY + m_diam*zoom;
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    glOrtho(left, right, bottom, top, -zoom, zoom);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 }
 
 void GLWidget::setView(MM_VIEW_ORIENTATION orientation, bool forceRedraw/*=true*/)
@@ -982,10 +981,10 @@ void GLWidget::updateZoom(float zoomFactor)
 
 void GLWidget::setZoom(float value)
 {
-    if (value < MM_GL_MIN_ZOOM_RATIO)
-        value = MM_GL_MIN_ZOOM_RATIO;
-    else if (value > MM_GL_MAX_ZOOM_RATIO)
-        value = MM_GL_MAX_ZOOM_RATIO;
+    if (value < GL_MIN_ZOOM_RATIO)
+        value = GL_MIN_ZOOM_RATIO;
+    else if (value > GL_MAX_ZOOM_RATIO)
+        value = GL_MAX_ZOOM_RATIO;
 
     if (m_params.zoom != value)
     {
@@ -1097,7 +1096,7 @@ void GLWidget::recalcProjectionMatrix()
     Vector3 pivotPoint = (m_params.objectCenteredView ? m_params.pivotPoint : bbCenter);
 
     //distance between camera and pivot point
-    float CP = (m_params.cameraCenter-pivotPoint).norm();
+    float CP = pivotPoint.norm();
     //distance between pivot point and DB farthest point
     float MP = (bbCenter-pivotPoint).norm() + bbHalfDiag;
 
@@ -1117,4 +1116,334 @@ void GLWidget::recalcProjectionMatrix()
     glGetDoublev(GL_PROJECTION_MATRIX, m_projMatd);
 
     m_validProjectionMatrix = true;
+}
+
+GLdouble*& ViewportParameters::modifRot() { return m_rot; }
+QVector<GLdouble>& ViewportParameters::modifTrans() { return m_trans; }
+
+const GLdouble* ViewportParameters::getRot() const { return m_rot; }
+const QVector<GLdouble>& ViewportParameters::getTrans() const { return m_trans; }
+const GLdouble& ViewportParameters::getScale() const { return m_scale; }
+
+void GLWidget::glCircle3i(GLint radius, GLdouble * m)
+{
+    //dessine un cercle de rayon 1 et d'axe z
+    //m : orientation finale du cercle pour dessiner l'arrière-plan en plus foncé
+    //recherche des angles limites d'arrière-plan
+    int precision = 100;
+    double i1 = 0;
+    double i2 = 0;
+    double lim = (m[6]!=0)? -atan(-m[2]/m[6]) : PI/2.0;	//R31/R32
+    if (m[6]>0)
+    {
+        i1 = lim*precision/2/PI;
+        i2 = lim*precision/2/PI + 50;
+    }
+    else if (m[6]<0)
+    {
+        i1 = lim*precision/2/PI - 50;
+        i2 = lim*precision/2/PI;
+    }
+    else if (m[6]==0 && -m[2]>0)
+    {
+        i1 = 25;
+        i2 = 75;
+    }
+    else if (m[6]==0 && -m[2]<0)
+    {
+        i1 = -25;
+        i2 = 25;
+    }
+    else if (m[6]==0 && m[2]==0)
+    {
+        i1 = 0;
+        i2 = precision;
+    }
+
+    //dessin
+    glDisable(GL_TEXTURE_2D);
+    glLineWidth(3);
+    glBegin(GL_LINE_LOOP);
+    double angle;
+    qglColor(QColor(155,200,255));
+    for (int i=i1; i <i2; i++)
+    {
+        angle = i*2*PI/precision;
+        glVertex2f(cos(angle)*radius, sin(angle)*radius);
+    }
+    if (m[6]!=0 || m[2]!=0)
+    {	//(m[6]==0 && m[2]==0) => cercle d'axe z : tous les points sont visibles
+        qglColor(QColor(78,100,128));
+        if (i2>=100) i2 -= 100;
+        else i1 += 100;	//i1<0
+        for (int i=i2; i <i1; i++)
+        {
+            angle = i*2*PI/precision;
+            glVertex2f(cos(angle)*radius, sin(angle)*radius);
+        }
+    }
+    glEnd();
+    glLineWidth(1);
+}
+
+void multTransposeMatrix(const GLdouble* m)
+{
+    GLdouble* m2 = new GLdouble[16];
+    for (int i=0; i<4; ++i)
+    for (int j=0; j<4; ++j)
+        m2[4*i+j] = m[4*j+i];
+    glMultMatrixd(m2);
+    delete m2;
+}
+
+//récupération des signaux de la souris/////////////////////////////////////////
+pair<QVector<double>,QVector<double> > GLWidget::getMouseDirection (const QPoint& P, GLdouble * matrice) const {
+    //récupère la direction et le point d'origine d'un clic souris P en coordonnées chantier (selon matrice)
+        //vecteur clic en coordonnées observateur
+    GLint * view = new GLint[4];
+    glGetIntegerv(GL_VIEWPORT, view);
+    double taille = min(view[2], view[3]);
+    double window_x = P.x()-view[0] - double(view[2])/2.0;
+    double window_y = (view[3] - P.y()+view[1]) - double(view[3])/2.0;
+        double x = m_maxX * window_x / (taille/2.0);
+        double y = m_maxY * window_y / (taille/2.0);
+        QVector<double> ray_pnt(4,0);
+            ray_pnt[3] = 1;
+        QVector<double> ray_vec(4,0);
+            ray_vec[0] = x;
+            ray_vec[1] = y;
+            ray_vec[2] =  -m_minZ;
+    delete view;
+
+        QVector<double> ray_pnt2(4,0);
+        QVector<double> ray_vec2(4,0);
+        for (int i=0; i<4; i++) {
+        for (int j=0; j<4; j++) {
+                        ray_pnt2[i] += matrice[j*4+i] * ray_pnt.at(j);	//P2=n*P, n est selon les colonnes
+                        ray_vec2[i] += matrice[j*4+i] * ray_vec.at(j);
+        }
+    }
+    double norm_vec2 = 0;
+    for (int i=0; i<3; i++)
+                norm_vec2 += ray_vec2.at(i) * ray_vec2.at(i);
+    norm_vec2 = sqrt(norm_vec2);
+    for (int i=0; i<3; i++)
+        ray_vec2[i] /= norm_vec2;
+
+        return pair<QVector<double>,QVector<double> >(ray_pnt2,ray_vec2);
+}
+
+QVector<double> GLWidget::getSpherePoint(const QPoint& mouse) const
+{
+    //point sur la sphère pointé par la souris (ref de la sphère)
+        //direction du pointeur
+    GLdouble * m = new GLdouble[16];
+    GLdouble sc = min(m_maxX-m_minX,m_maxY-m_minY)/m_minZ*(m_maxZ+m_minZ)/8.0;
+    glPushMatrix();
+    glLoadIdentity();
+    glScaled(1.0/sc,1.0/sc,1.0/sc);
+    multTransposeMatrix(m_params.getRot());
+    glTranslated(0, 0, +(m_minZ+m_maxZ)/2);
+    glGetDoublev(GL_MODELVIEW_MATRIX, m);
+    glPopMatrix();
+    pair<QVector<double>,QVector<double> > pa = getMouseDirection (mouse, m);
+    QVector<double> P = pa.first;
+    QVector<double> V = pa.second;
+    //point sur la sphère
+    QVector<double> C(3,0);
+    QVector<double> diff(3);
+    for (int i=0; i<3; i++)
+                diff[i] = P.at(i) - C.at(i);	//diff = P-C
+    double scal1 = 0;	//scal1 = <V;P-C>
+    double D1 = 0;	//D1 = |P-C|²
+    double D2 = 0;	//D2 = |V|²
+    for (int i=0; i<3; i++)
+    {
+        scal1 += V.at(i) * diff.at(i);
+        D1 += diff.at(i) * diff.at(i);
+        D2 += V.at(i) * V.at(i);
+    }
+    double delta = scal1*scal1 - (D1-1.0f)*D2;
+    /*if (delta<0) {
+        return getPlanPoint(pa);
+    }*/
+    delete [] m;
+    delta = sqrt(delta);
+    double lambda1 = (-scal1 - delta)/D2;
+    double lambda2 = (-scal1 + delta)/D2;	//point de l'autre côté de la sphère
+    double lambda = (abs(lambda1)<abs(lambda2)) ? lambda1 : lambda2;	//c'est le plus proche de P
+
+    QVector<double> M(3);
+    for (int i=0; i<3; i++)
+                M[i] = P.at(i) + lambda*V.at(i);	//M = P + lambda*C
+    return M;
+}
+
+GLuint GLWidget::makeBoule()
+{
+    //dessin des cercles de la boule
+    GLuint list = glGenLists(1);
+    //parametres->incrNbGLLists();
+    //GLuint list = parametres->getNbGLLists();
+    glNewList(list, GL_COMPILE);
+    glMatrixMode(GL_MODELVIEW);
+
+    glPushMatrix();
+    glCircle3i(1, m_params.modifRot());
+
+    GLdouble * m = new GLdouble[16];	//pb avec glGet
+    for (int i=0; i<4; i++)
+    {
+        for (int j=0; j<4; j++)
+        {
+            if (j==1) m[i+4*j] = m_params.getRot()[i+4*(j+1)];
+            else if (j==2) m[i+4*j] = -m_params.getRot()[i+4*(j-1)];
+            else m[i+4*j] = m_params.getRot()[i+4*j];
+        }
+    }
+    glRotated(90, 1, 0, 0);
+    glCircle3i(1, m);
+
+    GLdouble * n = new GLdouble[16];
+    for (int i=0; i<4; i++)
+    {
+        for (int j=0; j<4; j++)
+        {
+            if (j==0) n[i+4*j] = -m[i+4*(j+2)];
+            else if (j==2) n[i+4*j] = m[i+4*(j-2)];
+            else n[i+4*j] = m[i+4*j];
+        }
+    }
+    glRotated(90, 0, 1, 0);
+    glCircle3i(1, n);
+    glPopMatrix();
+
+    delete [] m;
+    delete [] n;
+    glEndList();
+    return list;
+}
+
+void GLWidget::setRotation(GLdouble* R) {
+        m_params.modifRot() = R;
+    //boule = makeBoule();
+    update();
+}
+
+void GLWidget::setTranslation(const QVector<GLdouble>& T)
+{
+    if (T.at(0)==m_params.getTrans().at(0) &&
+        T.at(1)==m_params.getTrans().at(1) &&
+        T.at(2)==m_params.getTrans().at(2))
+        return;
+
+    //si la translation est > à la moitié de la fenêtre + la moitié de l'objet, ça ne sert à rien
+    QVector<GLdouble> Tverif(3);
+    glPushMatrix();
+    glLoadIdentity();
+    glMultMatrixd(m_params.getRot());
+    GLdouble * m = new GLdouble[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, m);
+    for (int i=0; i<3; i++) {
+    for (int j=0; j<3; j++) {
+                Tverif[i] = m[j*4+i] * T.at(j);	//m'
+    }}
+    glPopMatrix();
+    /*double l = max(max(zoneChantierEtCam[1]-zoneChantierEtCam[0], zoneChantierEtCam[3]-zoneChantierEtCam[2]), zoneChantierEtCam[5]-zoneChantierEtCam[4])*sqrt(2)/2.0;
+    for (int i=0; i<3; i++) {
+        double tmax = l/2.0 + (espace[2*i+1] - espace[2*i])/2.0;
+        if (abs(Tverif[i])>tmax) return;
+    }*/
+
+    for (int i=0; i<3; i++)
+        m_params.modifTrans()[i] = T.at(i);
+    update();
+}
+
+void GLWidget::convertRotation(int direction, const GLdouble& R, bool anti)
+{	//0 à 2
+    //!anti : rotation selon la sphère, anti : rotation selon l'écran
+    GLdouble* Rf = new GLdouble[16];
+    QVector<GLdouble> axe(3,0);
+    axe[direction] = 1;
+
+    //la rotation dépend de la rotation courante
+    glPushMatrix();
+    glLoadIdentity();
+    if (anti)
+        glRotated(R, axe.at(0), axe.at(1), axe.at(2));
+    glMultMatrixd(m_params.getRot());
+    if (!anti)
+        glRotated(R, axe.at(0), axe.at(1), axe.at(2));
+    glGetDoublev(GL_MODELVIEW_MATRIX, Rf);
+    glPopMatrix();
+
+    setRotation(Rf);
+}
+
+void GLWidget::convertTranslation(int direction, const GLdouble& T)
+{	//0 à 2
+    QVector<GLdouble> Tf(3);
+
+    //la direction finale de la translation dépend de la rotation courante
+    for (int i=0; i<3; i++)
+    {
+        Tf[i] = T * m_params.getRot()[i*4+direction] / m_params.getScale();
+    }
+    glPopMatrix();
+
+    for (int i=0; i<3; i++)
+        Tf[i] = m_params.getTrans().at(i) + Tf.at(i);
+
+    setTranslation(Tf);
+}
+
+void GLWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    /*if (event->x()<0 || event->y()<0 || event->x()>width() || event->y()>height())
+        return;
+    if (event->buttons() & Qt::LeftButton)
+    {
+        //point sur la sphère
+        QVector<double> C(3,0);
+        QVector<double> M = getSpherePoint(event->pos());
+
+        if (M.count()==0) return;
+
+        //nouvel angle
+        int coordy = posSphere.first - 1;
+        if (coordy<0) coordy += 3;
+        int coordx = coordy - 1;
+        if (coordx<0) coordx += 3;
+        double angle = atan2(M.at(coordy)-C.at(coordy), M.at(coordx)-C.at(coordx))*180/PI;
+        convertRotation(posSphere.first, angle - posSphere.second, false);	//rotation suivant la sphère
+    }
+    else if (event->buttons() & Qt::RightButton)
+    {
+        double dx = event->x() - lastPos.x();
+        double dy = event->y() - lastPos.y();
+        GLdouble coeff = (-m_params.getTrans().at(2) + (m_minZ+m_maxZ)/2.0) / winZ;
+        convertTranslation(0, dx*coeff);
+        convertTranslation(1, -dy*coeff);
+    }
+    lastPos = event->pos();*/
+
+    if ( g_mouseLeftDown )
+    {
+        int dx = event->x()-g_mouseOldX,
+            dy = event->y()-g_mouseOldY;
+        g_mouseOldX = event->x();
+        g_mouseOldY = event->y();
+
+        setRotateOx_m33( ( g_trackballScale*dy )/m_glHeight, g_rotationOx );
+        setRotateOy_m33( ( g_trackballScale*dx )/m_glWidth, g_rotationOy );
+        mult_m33( g_rotationOx, g_rotationMatrix, g_tmpMatix );
+        mult_m33( g_rotationOy, g_tmpMatix, g_rotationMatrix );
+        inverse_m33( g_rotationMatrix, g_inverseRotationMatrix );
+
+        GLfloat minv[9];
+        mult_m33( g_rotationMatrix, g_inverseRotationMatrix, minv );
+
+        this->updateGL();
+    }
 }

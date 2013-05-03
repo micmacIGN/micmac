@@ -31,8 +31,11 @@
 		  WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.   
 		  
 */
-
-#include "StdAfx.h"
+#ifndef TWEAK
+    #include "StdAfx.h"
+#else
+    #include "../../include/poisson/ply.h"
+#endif
 
 string type_names[] = {
 	"invalid",
@@ -216,7 +219,6 @@ PlyFile *ply_write(
 	return (plyfile);
 }
 
-
 /******************************************************************************
 Open a polygon file for writing.
 
@@ -260,7 +262,7 @@ PlyFile *ply_open_for_writing(
 	
 	/* create the actual PlyFile structure */
 	
-	plyfile = ply_write (fp, nelems, elem_names, file_type);
+    plyfile = ply_write (fp, nelems, elem_names, file_type);
 	if (plyfile == NULL)
 		return (NULL);
 	
@@ -1758,7 +1760,7 @@ Read an element from a binary file.
 	 }
  }
  
- 
+
  /******************************************************************************
  Write to a file the word that represents a PLY data type.
  

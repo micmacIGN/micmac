@@ -13,7 +13,9 @@
 //! Model view matrix size (OpenGL)
 static const unsigned OPENGL_MATRIX_SIZE = 16;
 
-class ViewportParameters// : public ccSerializableObject
+using namespace std;
+
+class ViewportParameters
 {
 public:
     //! Default constructor
@@ -48,20 +50,44 @@ public:
     //! Rotation pivot point (for object-centered view modes)
     Vector3 pivotPoint;
 
-    //! Camera center (for perspective mode)
-    Vector3 cameraCenter;
+    GLdouble*&                  modifRot();
+    QVector<GLdouble>&          modifTrans();
 
-    //! Camera F.O.V. (field of view - for perspective mode only)
-    float fov;
-    //! Camera aspect ratio (for perspective mode only)
-    float aspectRatio;
+    const GLdouble*             getRot() const;
+    const QVector<GLdouble>&    getTrans() const;
+    const GLdouble&             getScale() const;
+
+private:
+
+    GLdouble*           m_rot;
+    QVector<GLdouble>   m_trans;
+    GLdouble            m_scale;
+
 };
 
-class GLWidget : public QGLWidget {
+class GLWidget : public QGLWidget
+{
 private:
     QVector <Cloud_::Cloud> m_ply;
 
     Q_OBJECT // must include this if you use Qt signals/slots
+
+    void                glCircle3i(GLint radius, GLdouble * m);
+    GLuint              makeBoule();
+    QVector<GLdouble>   getSpherePoint(const QPoint& P) const;
+    pair<QVector<double>,QVector<double> > getMouseDirection (const QPoint& P, GLdouble * matrice) const;
+
+    void                setRotation(GLdouble* R);
+    void                setTranslation(const QVector<GLdouble>& T);
+
+    void                convertRotation(int direction, const GLdouble& R, bool anti);
+    void                convertTranslation(int direction, const GLdouble& T);
+
+    //!bounding box
+    GLdouble            m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ;
+    GLdouble            m_cX, m_cY, m_cZ, m_diam;
+    QPoint              lastPos;
+
 
 public:
     GLWidget(QWidget *parent = NULL);
@@ -128,6 +154,7 @@ public:
 
 public slots:
     void zoomGlobal();
+    void zoom();
     void redraw();
 
     //called when recieving mouse wheel is rotated
@@ -165,7 +192,7 @@ protected:
 
     void getContext(glDrawContext& context);
 
-    void draw3D(bool doDrawCross);
+    void draw3D();
 
     void drawGradientBackground();
 
@@ -173,8 +200,6 @@ protected:
     void recalcModelViewMatrix();
     void recalcProjectionMatrix();
     void setStandardOrthoCenter();
-
-    void drawCross();
 
     //! GL context width
     int m_glWidth;
@@ -231,7 +256,7 @@ protected:
     };
 
     //! List of messages to display
-    std::list<MessageToDisplay> m_messagesToDisplay;
+    list<MessageToDisplay> m_messagesToDisplay;
 
     //! Point list for polygonal selection
     QVector < QPoint > m_polygon;
@@ -242,6 +267,11 @@ protected:
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
 
+    pair<int,double>  posSphere;
+
+    double winZ;
+
+    GLuint  m_boule;
 };
 
 

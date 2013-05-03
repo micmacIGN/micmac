@@ -61,7 +61,6 @@ void mmGui::ParamStruct::reset()
     drawBackgroundGradient      = true;
     decimateMeshOnMove          = true;
     decimateCloudOnMove         = true;
-    displayCross                = true;
 
     colorScaleAlwaysSymmetrical	= true;
     colorScaleAlwaysShowZero	= true;
@@ -88,7 +87,6 @@ mmGui::ParamStruct& mmGui::ParamStruct::operator =(const mmGui::ParamStruct& par
     drawBackgroundGradient      = params.drawBackgroundGradient;
     decimateMeshOnMove          = params.decimateMeshOnMove;
     decimateCloudOnMove         = params.decimateCloudOnMove;
-    displayCross                = params.displayCross;
     colorScaleAlwaysSymmetrical	= params.colorScaleAlwaysSymmetrical;
     colorScaleAlwaysShowZero	= params.colorScaleAlwaysShowZero;
     colorScaleSquareSize		= params.colorScaleSquareSize;
@@ -119,7 +117,6 @@ void mmGui::ParamStruct::fromPersistentSettings()
     drawBackgroundGradient  = settings.value("backgroundGradient", true).toBool();
     decimateMeshOnMove      = settings.value("meshDecimation", true).toBool();
     decimateCloudOnMove     = settings.value("cloudDecimation", true).toBool();
-    displayCross            = settings.value("crossDisplayed", true).toBool();
 
     colorScaleAlwaysSymmetrical	= settings.value("colorScaleAlwaysSymmetrical", true).toBool();
     colorScaleAlwaysShowZero	= settings.value("colorScaleAlwaysShowZero", true).toBool();
@@ -150,7 +147,6 @@ void mmGui::ParamStruct::toPersistentSettings()
     settings.setValue("backgroundGradient",drawBackgroundGradient);
     settings.setValue("meshDecimation",decimateMeshOnMove);
     settings.setValue("cloudDecimation",decimateCloudOnMove);
-    settings.setValue("crossDisplayed",displayCross);
     settings.setValue("colorScaleAlwaysSymmetrical", colorScaleAlwaysSymmetrical);
     settings.setValue("colorScaleAlwaysShowZero", colorScaleAlwaysShowZero);
     settings.setValue("colorScaleSquareSize", colorScaleSquareSize);
