@@ -3,9 +3,6 @@
 
 #include "../Sift/Sift.h"
 
-// __DEL
-#define _DEBUG
-
 #include <vector>
 #include <list>
 #include <string>

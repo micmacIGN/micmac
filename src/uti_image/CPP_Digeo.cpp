@@ -39,46 +39,50 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Digeo/Digeo.h"
 
-// __DEL
-template <class tData>
-bool savePGM( const std::string &i_filename, tData *data, INT w, INT h, int xOffset=1 )
-{
-    ofstream f( i_filename.c_str(), ios::binary );
-    if ( !f ) return false;
-
-    const char LF_char = 10;
-    char str[10];
-    f.put( 'P' ); f.put( '5' ); f.put( LF_char );
-    // write width
-	w /= xOffset;
-    sprintf( str, "%d\n", w );
-    f.write( str, strlen(str) );
-    // write height
-    sprintf( str, "%d\n", h );
-    f.write( str, strlen(str) );
-    // write maxvalue
-    sprintf( str, "%u\n", 255 );
-    f.write( str, strlen(str) );
-    // write data
-    unsigned int i = w*h;
-    unsigned char *buffer   = new unsigned char[i],
-                  *itBuffer = buffer;
-    const tData *itData = data;
-    const tData maxValue = 255;
-	while ( i-- )
-	{
-        *itBuffer++ = ( unsigned char )( ( *itData )*maxValue );
-		itData += xOffset;
-	}
-    f.write( (char*)buffer, w*h );
-    delete [] buffer;
-
-    return true;
-}
-
 #ifndef M_PI
 	#define M_PI 3.14159265358979323846
 #endif
+
+#define DIGEO_ORIENTATION_NB_BINS 36
+#define DIGEO_ORIENTATION_NB_MAX_ANGLES 4
+#define DIGEO_ORIENTATION_WINDOW_FACTOR 1.5
+#define DIGEO_DESCRIPTOR_SIZE 128
+#define DIGEO_DESCRIBE_NBO 8
+#define DIGEO_DESCRIBE_NBP 4
+#define DIGEO_DESCRIBE_MAGNIFY 3.
+#define DIGEO_DESCRIBE_THRESHOLD 0.2
+
+typedef struct{
+    REAL8	x, y,
+			scale,
+			angle,
+			descriptor[DIGEO_DESCRIPTOR_SIZE];
+	INT2    type;
+} DigeoPoint;
+
+// fait le boulot pour une octave quand ses points d'intéret ont été calculés
+// ajoute les points à o_list (on passe la même liste à toutes les octaves)
+template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Type> * anOct, list<DigeoPoint> &o_list);
+
+// calcul le gradient d'une image, le résultat est forcément en REAL4, peut-être faut-il la templatiser
+// le gradient fait le double de la largeur de l'image source car il contient deux valeurs pour un pixel (la norme puis l'orientation du gradient)
+template <class tData, class tComp>
+void gradient( const Im2D<tData,tComp> &i_image, Im2D<REAL4,REAL8> &o_gradient );
+
+// calcul les angles d'orientation pour un point (au plus DIGEO_NB_MAX_ANGLES angles)
+int orientate( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i_sigma, REAL8 o_angles[DIGEO_ORIENTATION_NB_MAX_ANGLES] );
+
+// calcul le descripteur d'un point
+void describe( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i_sigma, REAL8 i_angle, REAL8 *o_descriptor );
+
+// lit/écrit une liste de point au format siftpp_tgi
+inline void write_DigeoPoint_binary_legacy( std::ostream &output, const DigeoPoint &p );
+inline void read_DigeoPoint_binary_legacy( std::istream &output, DigeoPoint &p );
+// lit/écrit un point au format siftpp_tgi
+bool write_digeo_points( const string &i_filename, const list<DigeoPoint> &i_list );
+bool read_digeo_points( const string &i_filename, vector<DigeoPoint> &o_list );
+
+//----------
 
 template <class tData, class tComp>
 void gradient( const Im2D<tData,tComp> &i_image, Im2D<REAL4,REAL8> &o_gradient )
@@ -112,15 +116,6 @@ void gradient( const Im2D<tData,tComp> &i_image, Im2D<REAL4,REAL8> &o_gradient )
         src+=2; dst+=4;
     }
 }
-
-#define DIGEO_ORIENTATION_NB_BINS 36
-#define DIGEO_ORIENTATION_NB_MAX_ANGLES 4
-#define DIGEO_ORIENTATION_WINDOW_FACTOR 1.5
-#define DIGEO_DESCRIPTOR_SIZE 128
-#define DIGEO_DESCRIBE_NBO 8
-#define DIGEO_DESCRIBE_NBP 4
-#define DIGEO_DESCRIBE_MAGNIFY 3.
-#define DIGEO_DESCRIBE_THRESHOLD 0.2
 
 // return the number of possible orientations (cannot be greater than DIGEO_NB_MAX_ANGLES)
 int orientate( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i_sigma, REAL8 o_angles[DIGEO_ORIENTATION_NB_MAX_ANGLES] )
@@ -316,14 +311,6 @@ void describe( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i
     }
 }
 
-typedef struct{
-    REAL8	x, y,
-			scale,
-			angle,
-			descriptor[DIGEO_DESCRIPTOR_SIZE];
-	INT2    type;
-} DigeoPoint;
-
 // same format as siftpp_tgi (not endian-wise)
 // Real_ values are cast to float
 // descriptors are cast from float to unsigned char values d[i]->(unsigned char)(512*d[i])
@@ -424,7 +411,7 @@ template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Typ
 		   gradient( aTIm, imgGradient );
 		   for ( unsigned int i=0; i<aVPC.size(); i++ )
 		   {
-			   p.x=aVPC[i].mPt.x; p.y=aVPC[i].mPt.y; p.type=(INT2)aVPC[i].mType;
+			   p.x=aVPC[i].mPt.x*anOct->Niv(); p.y=aVPC[i].mPt.y*anOct->Niv(); p.type=(INT2)aVPC[i].mType;
 			   nbAngles = orientate( imgGradient, aVPC[i], anIm.ScaleInOct(), angles );
 			   if ( nbAngles!=0 )
 			   {
@@ -435,12 +422,6 @@ template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Typ
 				   }
 			   }
 		   }
-		   /*
-		   // __DEL
-		   stringstream ss;
-		   ss << "d:\\jeremie\\data\\grad_" << anOct->Niv() << '_' << aKIm << ".pgm";
-		   savePGM<REAL4>( ss.str(), imgGradient.data_lin(), imgGradient.sz().x, imgGradient.sz().y, 2 );
-		   */
 	   }
   }
 }
