@@ -75,6 +75,13 @@ int orientate( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i
 // calcul le descripteur d'un point
 void describe( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i_sigma, REAL8 i_angle, REAL8 *o_descriptor );
 
+// = normalizeDescriptor + truncateDescriptor + normalizeDescriptor
+void normalize_and_truncate( REAL8 *io_descriptor );
+
+void normalizeDescriptor( REAL8 *io_descriptor );
+// tronque à DIGEO_DESCRIBE_THRESHOLD
+void truncateDescriptor( REAL8 *io_descriptor );
+
 // lit/écrit une liste de point au format siftpp_tgi
 inline void write_DigeoPoint_binary_legacy( std::ostream &output, const DigeoPoint &p );
 inline void read_DigeoPoint_binary_legacy( std::istream &output, DigeoPoint &p );
@@ -389,6 +396,44 @@ bool read_digeo_points( const string &i_filename, vector<DigeoPoint> &o_list )
     return true;
 }
 
+void normalizeDescriptor( REAL8 *io_descriptor )
+{
+    REAL8 norm    = 0;
+    int   i       = DIGEO_DESCRIPTOR_SIZE;
+    REAL8 *itDesc = io_descriptor;
+    while ( i-- ){
+        norm += ( *itDesc )*( *itDesc );
+        itDesc++;
+    }
+    
+    norm = std::sqrt( norm )+std::numeric_limits<REAL8>::epsilon();
+
+    i      = DIGEO_DESCRIPTOR_SIZE;
+    itDesc = io_descriptor;
+    while ( i-- ){
+        *itDesc = ( *itDesc )/norm;
+        itDesc++;
+    }
+}
+
+void truncateDescriptor( REAL8 *io_descriptor )
+{
+    int    i      = DIGEO_DESCRIPTOR_SIZE;
+    REAL8 *itDesc = io_descriptor;
+    while ( i-- ){
+        if ( ( *itDesc )>DIGEO_DESCRIBE_THRESHOLD )
+            ( *itDesc )=DIGEO_DESCRIBE_THRESHOLD;
+        itDesc++;
+    }
+}
+
+void normalize_and_truncate( REAL8 *io_descriptor )
+{	
+	normalizeDescriptor( io_descriptor );
+	truncateDescriptor( io_descriptor );
+	normalizeDescriptor( io_descriptor );
+}
+
 template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Type> * anOct, list<DigeoPoint> &o_list)
 {
   Im2D<REAL4,REAL8> imgGradient;
@@ -417,6 +462,7 @@ template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Typ
 			   {
 				   for ( int iAngle=0; iAngle<nbAngles; iAngle++ ){
 						describe( imgGradient, aVPC[i], anIm.ScaleInOct(), angles[iAngle], p.descriptor );
+						normalize_and_truncate( p.descriptor );
 						p.angle = angles[iAngle];
 						o_list.push_back( p );
 				   }
