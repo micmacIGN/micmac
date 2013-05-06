@@ -92,11 +92,11 @@ bool read_digeo_points( const string &i_filename, vector<DigeoPoint> &o_list );
 //----------
 
 template <class tData, class tComp>
-void gradient( const Im2D<tData,tComp> &i_image, Im2D<REAL4,REAL8> &o_gradient )
+void gradient( const Im2D<tData,tComp> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient )
 {
     o_gradient.Resize( Pt2di( i_image.sz().x*2, i_image.sz().y ) );
 
-	const REAL8 coef = REAL8(0.5)/REAL8( numeric_limits<U_INT2>::max() );
+	const REAL8 coef = REAL8(0.5)/i_maxValue;
     const int c1 = -i_image.sz().x;
     int offset = i_image.sz().x+1;
     const tData *src = i_image.data_lin()+offset;
@@ -453,7 +453,7 @@ template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Typ
        std::cout << "NB PTS " <<aVPC.size()<<endl;
 	   if ( aVPC.size()!=0 )
 	   {
-		   gradient( aTIm, imgGradient );
+		   gradient( aTIm, anOct->GetMaxValue(), imgGradient );
 		   for ( unsigned int i=0; i<aVPC.size(); i++ )
 		   {
 			   p.x=aVPC[i].mPt.x*anOct->Niv(); p.y=aVPC[i].mPt.y*anOct->Niv(); p.type=(INT2)aVPC[i].mType;

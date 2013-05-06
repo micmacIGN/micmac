@@ -531,6 +531,16 @@ void cImDigeo::SetDyn(double aDyn)
     mDyn = aDyn;
 }
 
+REAL8 cImDigeo::GetMaxValue() const
+{
+    return mMaxValue;
+}
+
+void cImDigeo::SetMaxValue(REAL8 i_maxValue)
+{
+    mMaxValue = i_maxValue;
+}
+
 const Pt2di& cImDigeo::SzCur() const {return mSzCur;}
 const Pt2di& cImDigeo::P0Cur() const {return mP0Cur;}
 
