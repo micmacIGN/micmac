@@ -42,27 +42,10 @@ public:
     //! Line width
     float defaultLineWidth;
 
-    //! Whether view is centered on displayed scene (true) or on the user eye (false)
-    /** Always true for ortho. mode.
-    **/
-    bool objectCenteredView;
+    Vector3 cameraCenter;
 
     //! Rotation pivot point (for object-centered view modes)
     Vector3 pivotPoint;
-
-    GLdouble*&                  modifRot();
-    QVector<GLdouble>&          modifTrans();
-
-    const GLdouble*             getRot() const;
-    const QVector<GLdouble>&    getTrans() const;
-    const GLdouble&             getScale() const;
-
-private:
-
-    GLdouble*           m_rot;
-    QVector<GLdouble>   m_trans;
-    GLdouble            m_scale;
-
 };
 
 class GLWidget : public QGLWidget
@@ -73,12 +56,16 @@ private:
     Q_OBJECT // must include this if you use Qt signals/slots
 
     void                glCircle3i(GLint radius, GLdouble * m);
-    GLuint              makeBoule();
+
     QVector<GLdouble>   getSpherePoint(const QPoint& P) const;
     pair<QVector<double>,QVector<double> > getMouseDirection (const QPoint& P, GLdouble * matrice) const;
 
     void                setRotation(GLdouble* R);
     void                setTranslation(const QVector<GLdouble>& T);
+
+    void                setXRotation(int angle);
+    void                setYRotation(int angle);
+    void                setZRotation(int angle);
 
     void                convertRotation(int direction, const GLdouble& R, bool anti);
     void                convertTranslation(int direction, const GLdouble& T);
@@ -87,7 +74,6 @@ private:
     GLdouble            m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ;
     GLdouble            m_cX, m_cY, m_cZ, m_diam;
     QPoint              lastPos;
-
 
 public:
     GLWidget(QWidget *parent = NULL);
@@ -130,7 +116,7 @@ public:
     void setCloudLoaded(bool isLoaded) { m_bCloudLoaded = isLoaded; }
 
     //! Sets camera to a predefined view (top, bottom, etc.)
-    void setView(MM_VIEW_ORIENTATION orientation, bool redraw=true);
+    void setView(MM_VIEW_ORIENTATION orientation);
 
     //! Invalidate current visualization state
     /** Forces view matrix update and 3D/FBO display.
@@ -139,8 +125,8 @@ public:
 
     void invalidateViewport();
 
-    //! Returns the current (OpenGL) view matrix as a double array
-    const double* getModelViewMatd();
+    //! Returns the current (OpenGL) view matrix as a float array
+    const float* getModelViewMatf();
 
     //! Updates current zoom
     void updateZoom(float zoomFactor);
@@ -151,9 +137,13 @@ public:
     //! Returns the current (OpenGL) projection matrix as a double array
     const double* getProjectionMatd();
 
+    //! Sets pivot point
+    void setPivotPoint(const Vector3& P);
+
+    void updateConstellationCenterAndZoom();
+
 
 public slots:
-    void zoomGlobal();
     void zoom();
     void redraw();
 
@@ -172,6 +162,16 @@ signals:
 
     //! Signal emitted when the mouse wheel is rotated
     void mouseWheelRotated(float wheelDelta_deg);
+
+    //! Signal emitted when the camera position is changed
+    void cameraPosChanged(const Vector3&);
+
+     //! Signal emitted when the pivot position is changed
+    void pivotPointChanged(const Vector3&);
+
+
+
+
 
 protected:
     void initializeGL();
@@ -197,7 +197,6 @@ protected:
     void drawGradientBackground();
 
     //Projections controls
-    void recalcModelViewMatrix();
     void recalcProjectionMatrix();
     void setStandardOrthoCenter();
 
@@ -205,13 +204,6 @@ protected:
     int m_glWidth;
     //! GL context height
     int m_glHeight;
-
-    //! Sun light position
-    /** Relative to screen.
-    **/
-    float m_sunLightPos[4];
-
-    void glEnableSunLight();
 
     //! Returns current font size
     virtual int getFontPointSize() const;
@@ -225,7 +217,7 @@ protected:
     bool m_bCloudLoaded;
 
     //! Complete visualization matrix (GL style - double version)
-    double m_viewMatd[OPENGL_MATRIX_SIZE];
+    float m_viewMatd[OPENGL_MATRIX_SIZE];
 
     //! Whether the projection matrix is valid (or need to be recomputed)
     bool m_validProjectionMatrix;
