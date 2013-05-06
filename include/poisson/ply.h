@@ -35,10 +35,8 @@
 
 
 #ifndef WIN32
-#define _strdup strdup
-#endif
+    #define _strdup strdup
 
-#if (!ELISE_windows)
 	#ifdef __cplusplus
 	extern "C" {
 	#endif
@@ -242,7 +240,7 @@ extern void ply_describe_other_properties(PlyFile *, PlyOtherProp *, int);
 
 extern int equal_strings(const char *, const char *);
 
-#if (!ELISE_windows)
+#ifndef WIN32
 	#ifdef __cplusplus
 	}
 	#endif
