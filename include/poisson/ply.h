@@ -38,6 +38,12 @@
 #define _strdup strdup
 #endif
 
+#if (!ELISE_windows)
+	#ifdef __cplusplus
+	extern "C" {
+	#endif
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -235,6 +241,12 @@ extern void ply_free_other_elements (PlyOtherElems *);
 extern void ply_describe_other_properties(PlyFile *, PlyOtherProp *, int);
 
 extern int equal_strings(const char *, const char *);
+
+#if (!ELISE_windows)
+	#ifdef __cplusplus
+	}
+	#endif
+#endif
 
 #include "Geometry.h"
 #include <vector>
