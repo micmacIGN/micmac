@@ -11,7 +11,7 @@
 //! Static unique instance of mmGui
 static mmGui* s_gui = 0;
 
-const int c_fColorArraySize = 4*sizeof(float);
+const int c_fColorArraySize  = 4*sizeof(float);
 const int c_ubColorArraySize = 3*sizeof(unsigned char);
 
 const mmGui::ParamStruct& mmGui::Parameters()
@@ -50,7 +50,6 @@ void mmGui::ParamStruct::reset()
     memcpy(lightAmbientColor,   mmColor::night,				    c_fColorArraySize);
     memcpy(lightSpecularColor,  mmColor::darker,				c_fColorArraySize);
     memcpy(lightDiffuseColor,   mmColor::lighter,				c_fColorArraySize);
-    memcpy(meshSpecular,        mmColor::middle,				c_fColorArraySize);
     memcpy(pointsDefaultCol,    mmColor::defaultColor,			c_ubColorArraySize);
     memcpy(textDefaultCol,      mmColor::defaultColor,			c_ubColorArraySize);
     memcpy(backgroundCol,       mmColor::defaultBkgColor,		c_ubColorArraySize);
@@ -76,7 +75,6 @@ mmGui::ParamStruct& mmGui::ParamStruct::operator =(const mmGui::ParamStruct& par
     memcpy(lightDiffuseColor,   params.lightDiffuseColor,   c_fColorArraySize);
     memcpy(lightAmbientColor,   params.lightAmbientColor,   c_fColorArraySize);
     memcpy(lightSpecularColor,  params.lightSpecularColor,  c_fColorArraySize);
-    memcpy(meshSpecular,		params.meshSpecular,        c_fColorArraySize);
     memcpy(pointsDefaultCol,    params.pointsDefaultCol,    c_ubColorArraySize);
     memcpy(textDefaultCol,      params.textDefaultCol,      c_ubColorArraySize);
     memcpy(backgroundCol,       params.backgroundCol,       c_ubColorArraySize);
@@ -106,7 +104,6 @@ void mmGui::ParamStruct::fromPersistentSettings()
     memcpy(lightAmbientColor,   settings.value("lightAmbientColor",     QByteArray((const char*)mmColor::night,                 c_fColorArraySize)).toByteArray().data(), c_fColorArraySize);
     memcpy(lightSpecularColor,  settings.value("lightSpecularColor",    QByteArray((const char*)mmColor::middle,                c_fColorArraySize)).toByteArray().data(), c_fColorArraySize);
     memcpy(lightDiffuseColor,   settings.value("lightDiffuseColor",     QByteArray((const char*)mmColor::lighter,               c_fColorArraySize)).toByteArray().data(), c_fColorArraySize);
-    memcpy(meshSpecular,        settings.value("meshSpecular",          QByteArray((const char*)mmColor::middle,				c_fColorArraySize)).toByteArray().data(), c_fColorArraySize);
     memcpy(pointsDefaultCol,    settings.value("pointsDefaultColor",    QByteArray((const char*)mmColor::defaultColor,          c_ubColorArraySize)).toByteArray().data(), c_ubColorArraySize);
     memcpy(textDefaultCol,      settings.value("textDefaultColor",      QByteArray((const char*)mmColor::defaultColor,          c_ubColorArraySize)).toByteArray().data(), c_ubColorArraySize);
     memcpy(backgroundCol,       settings.value("backgroundColor",       QByteArray((const char*)mmColor::defaultBkgColor,       c_ubColorArraySize)).toByteArray().data(), c_ubColorArraySize);
@@ -114,9 +111,9 @@ void mmGui::ParamStruct::fromPersistentSettings()
     memcpy(labelCol,			settings.value("labelColor",			QByteArray((const char*)mmColor::defaultLabelColor,     c_ubColorArraySize)).toByteArray().data(), c_ubColorArraySize);
     memcpy(bbDefaultCol,        settings.value("bbDefaultColor",        QByteArray((const char*)mmColor::yellow,                c_ubColorArraySize)).toByteArray().data(), c_ubColorArraySize);
 
-    drawBackgroundGradient  = settings.value("backgroundGradient", true).toBool();
-    decimateMeshOnMove      = settings.value("meshDecimation", true).toBool();
-    decimateCloudOnMove     = settings.value("cloudDecimation", true).toBool();
+    drawBackgroundGradient      = settings.value("backgroundGradient", true).toBool();
+    decimateMeshOnMove          = settings.value("meshDecimation", true).toBool();
+    decimateCloudOnMove         = settings.value("cloudDecimation", true).toBool();
 
     colorScaleAlwaysSymmetrical	= settings.value("colorScaleAlwaysSymmetrical", true).toBool();
     colorScaleAlwaysShowZero	= settings.value("colorScaleAlwaysShowZero", true).toBool();
@@ -137,7 +134,6 @@ void mmGui::ParamStruct::toPersistentSettings()
     settings.setValue("lightDiffuseColor",QByteArray((const char*)lightDiffuseColor,c_fColorArraySize));
     settings.setValue("lightAmbientColor",QByteArray((const char*)lightAmbientColor,c_fColorArraySize));
     settings.setValue("lightSpecularColor",QByteArray((const char*)lightSpecularColor,c_fColorArraySize));
-    settings.setValue("meshFrontDiff",QByteArray((const char*)meshFrontDiff,c_fColorArraySize));
     settings.setValue("pointsDefaultColor",QByteArray((const char*)pointsDefaultCol,c_ubColorArraySize));
     settings.setValue("textDefaultColor",QByteArray((const char*)textDefaultCol,c_ubColorArraySize));
     settings.setValue("backgroundColor",QByteArray((const char*)backgroundCol,c_ubColorArraySize));
@@ -153,7 +149,6 @@ void mmGui::ParamStruct::toPersistentSettings()
     settings.setValue("defaultFontSize", defaultFontSize);
     settings.setValue("displayedNumPrecision", displayedNumPrecision);
     settings.setValue("labelsTransparency", labelsTransparency);
-
 
     settings.endGroup();
 }

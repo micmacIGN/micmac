@@ -6,7 +6,6 @@
 
 #include "Cloud.h"
 
-
 #include <cmath>
 #include <limits>
 #include <iostream>
@@ -21,9 +20,8 @@ const float GL_MIN_ZOOM_RATIO = 1.0e-6f;
 ViewportParameters::ViewportParameters()
     : pixelSize(1.0f)
     , zoom(1.0f)
-    , defaultPointSize(1)
-    , defaultLineWidth(1)
-    , pivotPoint(0.0f)
+    , defaultPointSize(1.0f)
+    , defaultLineWidth(1.0f)
 {
     //viewMat.toIdentity();
 }
@@ -33,7 +31,6 @@ ViewportParameters::ViewportParameters(const ViewportParameters& params)
     , zoom(params.zoom)
     , defaultPointSize(params.defaultPointSize)
     , defaultLineWidth(params.defaultLineWidth)
-    , pivotPoint(params.pivotPoint)
 {
 }
 
@@ -167,16 +164,12 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent)
       , m_interactionMode(TRANSFORM_CAMERA)
       , m_font(font())
       , m_bCloudLoaded(false)
-      , m_validModelviewMatrix(false)
-      , m_updateFBO(true)
-      , m_bFitCloud(true)
       , m_params(ViewportParameters())
 {
     m_minX = m_minY = m_minZ = FLT_MAX;
     m_maxX = m_maxY = m_maxZ = FLT_MIN;
     m_cX = m_cY = m_cZ = m_diam = 0.f;
 
-    setCloudLoaded(false);
     setMouseTracking(true);
 
     //drag & drop handling
@@ -185,7 +178,7 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent)
 
 void GLWidget::initializeGL()
 {
-    if (m_initialized)
+    if (m_bInitialized)
         return;
 
     glShadeModel( GL_SMOOTH );
@@ -200,7 +193,7 @@ void GLWidget::initializeGL()
 
     glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
 
-    m_initialized = true;
+    m_bInitialized = true;
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -213,7 +206,7 @@ void GLWidget::resizeGL(int width, int height)
     glViewport( 0, 0, width, height );
 }
 
-void GLWidget::getContext(glDrawContext& context)
+/*void GLWidget::getContext(glDrawContext& context)
 {
     //display size
     context.glW = m_glWidth;
@@ -236,7 +229,7 @@ void GLWidget::getContext(glDrawContext& context)
 
     //default font size
     setFontPointSize(1);
-}
+}*/
 
 void GLWidget::paintGL()
 {
@@ -245,7 +238,7 @@ void GLWidget::paintGL()
 
     draw3D();
 
-    glPointSize(1);
+    glPointSize(m_params.defaultPointSize);
 
     glBegin(GL_POINTS);
     for(int aK=0; aK< m_ply.size(); aK++)
@@ -292,7 +285,7 @@ void GLWidget::paintGL()
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_LIGHTING);
         glDisable(GL_TEXTURE_2D);
-        glColor3f(1,0,0);
+        glColor3f(0,1,0);
 
         glBegin(GL_LINE_LOOP);
         for (int aK = 0;aK < m_polygon.size(); ++aK)
@@ -317,6 +310,13 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         g_mouseLeftDown = true;
         g_mouseOldX = event->x();
         g_mouseOldY = event->y();
+
+        if (m_interactionMode == SEGMENT_POINTS)
+            m_polygon.push_back(event->pos());
+    }
+    else if ( (event->buttons()&Qt::RightButton)&&(m_interactionMode == SEGMENT_POINTS) )
+    {
+        m_polygon.clear();
     }
 
     lastPos = event->pos();
@@ -328,16 +328,22 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
         g_mouseLeftDown = false;
 }
 
-/*void GLWidget::keyPressEvent(QKeyEvent* event) {
-    switch(event->key()) {
+void GLWidget::keyPressEvent(QKeyEvent* event)
+{
+    switch(event->key())
+    {
     case Qt::Key_Escape:
         close();
+        break;
+    case Qt::Key_Space:
+        //to do: segment point cloud
+        segment(true);
         break;
     default:
         event->ignore();
         break;
     }
-}*/
+}
 
 void GLWidget::addPly( const QString &i_ply_file ) {
 
@@ -365,18 +371,11 @@ void GLWidget::addPly( const QString &i_ply_file ) {
     m_cY = (m_minY + m_maxY) * .5f;
     m_cZ = (m_minZ + m_maxZ) * .5f;
 
-    cout << "center " << m_cX <<" "<<m_cY <<" "<<m_cZ << endl;
+    //cout << "center " << m_cX <<" "<< m_cY <<" "<< m_cZ << endl;
 
-    m_params.pivotPoint.x = m_cX;
-    m_params.pivotPoint.y = m_cY;
-    m_params.pivotPoint.z = m_cZ;
+    m_diam = max(m_maxX-m_minX, max(m_maxY-m_minY, m_maxZ-m_minZ));
 
-    m_diam = max(m_maxX-m_minX, max(m_maxY-m_minY, m_maxZ-m_minZ));//sqrt((m_cX-m_minX)*(m_cX-m_minX)+(m_cY-m_minY)*(m_cY-m_minY)+(m_cZ-m_minZ)*(m_cZ-m_minZ));
-
-    invalidateViewport();
-    invalidateVisualization();
-
-    redraw();
+    updateGL();
 }
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -444,7 +443,7 @@ void GLWidget::displayNewMessage(const QString& message,
 
     MessageToDisplay mess;
     mess.message = message;
-    mess.messageValidity_sec = 500; //TODO: Timer::Sec()+displayMaxDelay_sec;
+    mess.messageValidity_sec = 5; //TODO: Timer::Sec()+displayMaxDelay_sec;
     mess.position = pos;
     mess.type = type;
     m_messagesToDisplay.push_back(mess);
@@ -541,26 +540,23 @@ int GLWidget::getFontPointSize() const
     return m_font.pointSize();
 }
 
-void GLWidget::redraw()
-{
-    m_updateFBO=true;
-    updateGL();
-}
-
 void GLWidget::zoom()
 {
     GLdouble zoom = m_params.zoom;
     GLdouble fAspect = (GLdouble) m_glWidth/ m_glHeight;
 
     GLdouble left   = -zoom*fAspect;
-    GLdouble right  = zoom*fAspect;
-    GLdouble bottom = -zoom;
-    GLdouble top    = zoom;
+    GLdouble right  =  zoom*fAspect;
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    glOrtho(left, right, bottom, top, -zoom, zoom);
+    glOrtho(left, right, -zoom, zoom, -zoom, zoom);
+}
+
+void GLWidget::setInteractionMode(INTERACTION_MODE mode)
+{
+    m_interactionMode = mode;
 }
 
 void GLWidget::setView(MM_VIEW_ORIENTATION orientation)
@@ -621,28 +617,17 @@ void GLWidget::setView(MM_VIEW_ORIENTATION orientation)
     gluLookAt(eye[0],eye[1],eye[2],0.0,0.0,0.0,top[0],top[1],top[2]);
     glPopMatrix();
 
-
-    invalidateVisualization();
-
-    redraw();
-}
-
-void GLWidget::invalidateVisualization()
-{
-    m_validModelviewMatrix=false;
-    m_updateFBO=true;
+    updateGL();
 }
 
 void GLWidget::onWheelEvent(float wheelDelta_deg)
 {
-    m_bFitCloud = false;
-
     //convert degrees in zoom 'power'
     static const float c_defaultDeg2Zoom = 20.0f;
     float zoomFactor = pow(1.1f,wheelDelta_deg / c_defaultDeg2Zoom);
     updateZoom(zoomFactor);
 
-    redraw();
+    updateGL();
 }
 
 void GLWidget::updateZoom(float zoomFactor)
@@ -661,15 +646,7 @@ void GLWidget::setZoom(float value)
     if (m_params.zoom != value)
     {
         m_params.zoom = value;
-        invalidateViewport();
-        invalidateVisualization();
     }
-}
-
-void GLWidget::invalidateViewport()
-{
-    m_validProjectionMatrix=false;
-    m_updateFBO=true;
 }
 
 void GLWidget::wheelEvent(QWheelEvent* event)
@@ -693,10 +670,29 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     if (event->x()<0 || event->y()<0 || event->x()>width() || event->y()>height())
         return;
 
+    if (m_interactionMode == SEGMENT_POINTS)
+    {
+        int sz = m_polygon.size();
+
+        if (sz <2)
+           return;
+        else if (sz == 2)
+            m_polygon.push_back(event->pos());
+        else
+            //we replace last point by the current one
+            m_polygon[sz-1] = event->pos();
+
+        updateGL();
+
+        //event->ignore();
+        return;
+    }
+
     if ( g_mouseLeftDown )
     {
         int dx = event->x()-g_mouseOldX,
             dy = event->y()-g_mouseOldY;
+
         g_mouseOldX = event->x();
         g_mouseOldY = event->y();
 
@@ -709,6 +705,146 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         GLfloat minv[9];
         mult_m33( g_rotationMatrix, g_inverseRotationMatrix, minv );
 
-        this->updateGL();
+        updateGL();
     }
+}
+
+//Polyline objects are considered as 2D polylines !
+bool isPointInsidePoly(const QPoint& P, const QVector < QPoint > poly)
+{
+    //nombre de sommets
+    unsigned vertices=poly.size();
+    if (vertices<2)
+        return false;
+
+    bool inside = false;
+
+    QPoint A = poly[0];
+    for (unsigned i=1;i<=vertices;++i)
+    {
+        QPoint B = poly[i%vertices];
+
+        //Point Inclusion in Polygon Test (inspired from W. Randolph Franklin - WRF)
+        if (((B.y()<=P.y()) && (P.y()<A.y())) ||
+                ((A.y()<=P.y()) && (P.y()<B.y())))
+        {
+            float ABy = A.y()-B.y();
+            float t = (P.x()-B.x())*ABy-(A.x()-B.x())*(P.y()-B.y());
+            if (ABy<0)
+                t=-t;
+
+            if (t<0)
+                inside = !inside;
+        }
+
+        A=B;
+    }
+
+    return inside;
+}
+
+void GLWidget::segment(bool inside)
+{
+    if (m_polygon.size() < 2)
+    {
+        //displayNewMessage("No polyline defined!",UPPER_CENTER_MESSAGE, MANUAL_SEGMENTATION_MESSAGE);
+        return;
+    }
+
+    //viewing parameters
+    double MM[16], MP[16];
+
+    glMatrixMode(GL_MODELVIEW);
+    glGetDoublev(GL_PROJECTION_MATRIX, (GLdouble*) &MM);
+
+    glMatrixMode(GL_PROJECTION);
+    glGetDoublev(GL_MODELVIEW_MATRIX, (GLdouble*) &MP);
+
+    const float half_w = (float)m_glWidth * 0.5f;
+    const float half_h = (float)m_glHeight * 0.5f;
+
+    int VP[4];
+    makeCurrent();
+    glGetIntegerv(GL_VIEWPORT, VP);
+
+    QPoint P2D;
+    bool pointInside;
+
+    int cpt_inside = 0;
+    int cpt_outside = 0;
+    int cpt_total = 0;
+    for (int aK=0; aK < m_ply.size(); ++aK)
+    {
+        Cloud_::Cloud a_cloud = m_ply[aK];
+
+        cpt_total += a_cloud.getVertexNumber();
+
+        for (int bK=0; bK < a_cloud.getVertexNumber();++bK)
+        {
+            Cloud_::Vertex P = a_cloud.getVertex( bK );  //attention constructeur par copie absent ?
+
+            GLdouble xp,yp,zp;
+            gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
+            P2D.setX(xp - half_w);
+            P2D.setY(yp - half_h);
+
+            pointInside = isPointInsidePoly(P2D,m_polygon);
+
+            if ((inside && !pointInside)||(!inside && pointInside))
+                cpt_inside++;
+            else
+                cpt_outside++;
+
+        }
+    }
+
+    cout << " nombre de points a l'interieur: " << cpt_inside <<endl;
+    cout << " nombre de points a l'exterieur: " << cpt_outside <<endl;
+    cout << " nombre de points total: " << cpt_inside <<endl;
+
+   /* const double* MM = m_associatedWin->getModelViewMatd(); //viewMat
+    const double* MP = m_associatedWin->getProjectionMatd(); //projMat
+    const float half_w = (float)m_associatedWin->width() * 0.5f;
+    const float half_h = (float)m_associatedWin->height() * 0.5f;
+
+    int VP[4];
+    m_associatedWin->getViewportArray(VP);
+
+    CCVector3 P;
+    CCVector2 P2D;
+    bool pointInside;
+
+    //for each selected entity
+    for (ccHObject::Container::iterator p=m_toSegment.begin();p!=m_toSegment.end();++p)
+    {
+        ccGenericPointCloud* cloud = ccHObjectCaster::ToGenericPointCloud(*p);
+        assert(cloud);
+
+        ccGenericPointCloud::VisibilityTableType* vis = cloud->getTheVisibilityArray();
+        assert(vis);
+
+        unsigned i,cloudSize = cloud->size();
+
+        //we project each point and we check if it falls inside the segmentation polyline
+        for (i=0;i<cloudSize;++i)
+        {
+            cloud->getPoint(i,P);
+
+            GLdouble xp,yp,zp;
+            gluProject(P.x,P.y,P.z,MM,MP,VP,&xp,&yp,&zp);
+            P2D.x = xp - half_w;
+            P2D.y = yp - half_h;
+
+            pointInside = CCLib::ManualSegmentationTools::isPointInsidePoly(P2D,m_segmentationPoly);
+
+            if ((inside && !pointInside)||(!inside && pointInside))
+                vis->setValue(i,0); //hiddenValue=0
+        }
+    }
+
+    m_somethingHasChanged = true;
+    validButton->setEnabled(true);
+    validAndDeleteButton->setEnabled(true);
+    razButton->setEnabled(true);
+    pauseSegmentationMode(true); */
 }
