@@ -92,8 +92,6 @@ QStatusBar
      <property name="title">
       <string>Lights</string>
      </property>
-     <addaction name="actionToggleSunLight"/>
-     <addaction name="actionToggleCustomLight"/>
     </widget>
     <widget class="QMenu" name="menuStandard_views">
      <property name="title">
@@ -134,6 +132,7 @@ QStatusBar
     <addaction name="actionFullScreen"/>
     <addaction name="separator"/>
     <addaction name="menuSelected"/>
+    <addaction name="actionTogglePoints_selection"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -191,34 +190,6 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
-   </property>
-  </action>
-  <action name="actionToggleSunLight">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Sun</string>
-   </property>
-   <property name="shortcut">
-    <string>F6</string>
-   </property>
-   <property name="shortcutContext">
-    <enum>Qt::ApplicationShortcut</enum>
-   </property>
-  </action>
-  <action name="actionToggleCustomLight">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Custom</string>
-   </property>
-   <property name="shortcut">
-    <string>F7</string>
-   </property>
-   <property name="shortcutContext">
-    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="actionHelpShortcuts">
@@ -381,6 +352,20 @@ QStatusBar
   <action name="actionDummyAction">
    <property name="text">
     <string>DummyAction</string>
+   </property>
+  </action>
+  <action name="actionTogglePoints_selection">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Points selection</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle between Points selection mode and standard mode</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
    </property>
   </action>
  </widget>

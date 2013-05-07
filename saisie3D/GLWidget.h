@@ -34,18 +34,10 @@ public:
     //! Current zoom
     float zoom;
 
-    //! Visualization matrix (rotation only)
-    //ccGLMatrix viewMat;
-
     //! Point size
     float defaultPointSize;
     //! Line width
     float defaultLineWidth;
-
-    Vector3 cameraCenter;
-
-    //! Rotation pivot point (for object-centered view modes)
-    Vector3 pivotPoint;
 };
 
 class GLWidget : public QGLWidget
@@ -54,21 +46,6 @@ private:
     QVector <Cloud_::Cloud> m_ply;
 
     Q_OBJECT // must include this if you use Qt signals/slots
-
-    void                glCircle3i(GLint radius, GLdouble * m);
-
-    QVector<GLdouble>   getSpherePoint(const QPoint& P) const;
-    pair<QVector<double>,QVector<double> > getMouseDirection (const QPoint& P, GLdouble * matrice) const;
-
-    void                setRotation(GLdouble* R);
-    void                setTranslation(const QVector<GLdouble>& T);
-
-    void                setXRotation(int angle);
-    void                setYRotation(int angle);
-    void                setZRotation(int angle);
-
-    void                convertRotation(int direction, const GLdouble& R, bool anti);
-    void                convertTranslation(int direction, const GLdouble& T);
 
     //!bounding box
     GLdouble            m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ;
@@ -93,11 +70,7 @@ public:
     };
 
     //! Message type
-    enum MessageType {  CUSTOM_MESSAGE,
-                        SCREEN_SIZE_MESSAGE,
-                        SUN_LIGHT_STATE_MESSAGE,
-                        CUSTOM_LIGHT_STATE_MESSAGE,
-                        MANUAL_TRANSFORMATION_MESSAGE,
+    enum MessageType {  CUSTOM_MESSAGE,                       
                         MANUAL_SEGMENTATION_MESSAGE
     };
 
@@ -118,34 +91,18 @@ public:
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(MM_VIEW_ORIENTATION orientation);
 
-    //! Invalidate current visualization state
-    /** Forces view matrix update and 3D/FBO display.
-    **/
-    void invalidateVisualization();
-
-    void invalidateViewport();
-
-    //! Returns the current (OpenGL) view matrix as a float array
-    const float* getModelViewMatf();
-
     //! Updates current zoom
     void updateZoom(float zoomFactor);
 
     //! Sets current zoom
     void setZoom(float value);
 
-    //! Returns the current (OpenGL) projection matrix as a double array
-    const double* getProjectionMatd();
+    void setInteractionMode(INTERACTION_MODE mode);
 
-    //! Sets pivot point
-    void setPivotPoint(const Vector3& P);
-
-    void updateConstellationCenterAndZoom();
-
+    void segment(bool inside);
 
 public slots:
     void zoom();
-    void redraw();
 
     //called when recieving mouse wheel is rotated
     void onWheelEvent(float wheelDelta_deg);
@@ -155,23 +112,8 @@ signals:
     //! Signal emitted when files are dropped on the window
     void filesDropped(const QStringList& filenames);
 
-    //! Signal emitted during 3D pass of OpenGL display process
-    /** Any object connected to this slot can draw additional stuff in 3D.
-    **/
-    void drawing3D();
-
     //! Signal emitted when the mouse wheel is rotated
     void mouseWheelRotated(float wheelDelta_deg);
-
-    //! Signal emitted when the camera position is changed
-    void cameraPosChanged(const Vector3&);
-
-     //! Signal emitted when the pivot position is changed
-    void pivotPointChanged(const Vector3&);
-
-
-
-
 
 protected:
     void initializeGL();
@@ -180,24 +122,22 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
-    //void keyPressEvent(QKeyEvent *event);
+    void keyPressEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent* event);
 
     //! Initialization state
-    bool m_initialized;
+    bool m_bInitialized;
 
     //inherited from QWidget (drag & drop support)
     virtual void dragEnterEvent(QDragEnterEvent* event);
     virtual void dropEvent(QDropEvent* event);
 
-    void getContext(glDrawContext& context);
+    //void getContext(glDrawContext& context);
 
     void draw3D();
 
     void drawGradientBackground();
 
-    //Projections controls
-    void recalcProjectionMatrix();
     void setStandardOrthoCenter();
 
     //! GL context width
@@ -215,21 +155,6 @@ protected:
 
     //! States if a cloud is already loaded
     bool m_bCloudLoaded;
-
-    //! Complete visualization matrix (GL style - double version)
-    float m_viewMatd[OPENGL_MATRIX_SIZE];
-
-    //! Whether the projection matrix is valid (or need to be recomputed)
-    bool m_validProjectionMatrix;
-
-    //! Whether the model veiw matrix is valid (or need to be recomputed)
-    bool m_validModelviewMatrix;
-
-    //! Projection matrix (GL style - double version)
-    double m_projMatd[OPENGL_MATRIX_SIZE];
-
-    //! Whether FBO should be updated (or simply displayed as a texture = faster!)
-    bool m_updateFBO;
 
     //! Current interaction mode (with mouse)
     INTERACTION_MODE m_interactionMode;
@@ -253,17 +178,8 @@ protected:
     //! Point list for polygonal selection
     QVector < QPoint > m_polygon;
 
-    //! Fit view to point cloud
-    bool m_bFitCloud;
-
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
-
-    pair<int,double>  posSphere;
-
-    double winZ;
-
-    GLuint  m_boule;
 };
 
 
