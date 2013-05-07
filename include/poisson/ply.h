@@ -35,8 +35,6 @@
 
 
 #ifndef WIN32
-    #define _strdup strdup
-
 	#ifdef __cplusplus
 	extern "C" {
 	#endif

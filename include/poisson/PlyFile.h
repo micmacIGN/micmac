@@ -35,13 +35,11 @@
 
 
 #ifndef WIN32
-#define _strdup strdup
-#endif
+	#ifdef __cplusplus
+	extern "C" {
+	#endif
+#endif //WIN32
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-	
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -114,7 +112,10 @@ extern void ply_describe_other_properties(PlyFile *, PlyOtherProp *, int);
 
 extern int equal_strings(const char *, const char *);
 
-#ifdef __cplusplus
-}
+#ifndef WIN32
+	#ifdef __cplusplus
+	}
+	#endif
 #endif
+
 #endif // PLY_FILE_INCLUDED
