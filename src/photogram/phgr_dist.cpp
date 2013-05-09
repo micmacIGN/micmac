@@ -1682,7 +1682,7 @@ cDistCamStenopeGrid * cDistCamStenopeGrid::Alloc
                           bool  doInv
                       )
 {
-   //std::cout << "STTTTeppGrid " << aStepGr << "\n";
+std::cout << "STTTTeppGrid " << aStepGr << "\n";
 
     aStepGr = aStepGr * (euclid(aCS.Sz()) /6000.0);
 
@@ -1707,8 +1707,9 @@ cDistCamStenopeGrid * cDistCamStenopeGrid::Alloc
    aCS.Dist().SetDist22Gen_UsePreConditionner(false);
    aCS.Dist().SetDist22Gen_SupressPreCondInInverse(true);
 
-//std::cout << "xxAAAA " <<  aCS.Sz() <<  " PASS " << (aStepGr/aCS.ScaleCamNorm()) / aCS.ScaleAfnt()<<"\n";
-//std::cout << "Zigwy "  << aStepGr << " " << aCS.ScaleCamNorm() << " " << aCS.ScaleAfnt() << "\n";
+// std::cout << "xxAAAA " <<  aCS.Sz() <<  " PASS " << (aStepGr/aCS.ScaleCamNorm()) / aCS.ScaleAfnt()<<"\n";
+// std::cout << "Zigwy "  << aStepGr << " " << aCS.ScaleCamNorm() << " " << aCS.ScaleAfnt() << "\n";
+// getchar();
 
 
    cDbleGrid * aGrid2 = new cDbleGrid
@@ -1722,7 +1723,7 @@ cDistCamStenopeGrid * cDistCamStenopeGrid::Alloc
                                doDir,
                                doInv
                            ); 
-//std::cout << "wwwBBBB\n";
+// std::cout << "wwwBBBB\n";
 
 
    aCS.Dist().SetDist22Gen_UsePreConditionner(aVUPC);

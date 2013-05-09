@@ -37,85 +37,91 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
+#include <algorithm>
+
+/*
+Parametre de Tapas :
+  
+   - calibration In : en base de donnees ou deja existantes.
+
+
+*/
+
+// bin/Tapioca MulScale "../micmac_data/ExempleDoc/Boudha/IMG_[0-9]{4}.tif" 300 -1 ExpTxt=1
+// bin/Tapioca All  "../micmac_data/ExempleDoc/Boudha/IMG_[0-9]{4}.tif" -1  ExpTxt=1
+// bin/Tapioca Line  "../micmac_data/ExempleDoc/Boudha/IMG_[0-9]{4}.tif" -1   3 ExpTxt=1
+// bin/Tapioca File  "../micmac_data/ExempleDoc/Boudha/MesCouples.xml" -1  ExpTxt=1
 
 #define DEF_OFSET -12349876
 
+#define  NbModele 10
 
-int Nuage2Ply_main(int argc,char ** argv)
+
+int  FixSizeImage(int aZoom,std::string aFile,double aLargMin,int aZoomMax)
 {
-    std::string aNameNuage,aNameOut,anAttr1;
-    std::vector<string> aVCom;
-    int aBin  = 1;
-    std::string aMask;
+   cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFile);
+   Pt2di aSz = aMDP.SzImTifOrXif();
+   double aLargFile =  ElMin(aSz.x,aSz.y);
+   while (  ((aLargFile/aZoom)<(aLargMin*2)) && (aZoom>aZoomMax))
+         aZoom /= 2;
 
-    int DoPly = 1;
-    int DoXYZ = 0;
-	int DoNrm = 0;
+   return aZoom;
+}
 
-    double aSc=1.0;
-    double aDyn = 1.0;
-    double aExagZ = 1.0;
-    Pt2dr  aP0(0,0);
-    Pt2dr  aSz(-1,-1);
-    double aRatio = 1.0;
-    bool aDoMesh = false;
 
+int MMTestOrient_main(int argc,char ** argv)
+{
+    MMD_InitArgcArgv(argc,argv);
+
+    std::string anIm1,anIm2;
+    std::string AeroIn= "";
+    std::string aDir="./";
+    int Zoom0=32;
+    int ZoomF=2;
+
+    double LargMin=30.0;
 
     ElInitArgMain
     (
 	argc,argv,
-	LArgMain()  << EAMC(aNameNuage,"Name of XML file"),
-	LArgMain()  << EAM(aSz,"Sz",true,"Sz (to crop)")	
-                    << EAM(aP0,"P0",true,"Origin (to crop)")	
-                    << EAM(aNameOut,"Out",true,"Name of refult (default toto.xml => toto.ply)")
-                    << EAM(aSc,"Scale",true,"Do change the scale of result (def=1, 2 mean smaller)")
-                    << EAM(anAttr1,"Attr",true,"Image to colour the point")
-                    << EAM(aVCom,"Comments",true,"Commentary to add in the ply file (Def=None)" )
-                    << EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
-                    << EAM(aMask,"Mask",true,"Supplementary mask image")
-                    << EAM(aDyn,"Dyn",true,"Dynamic of attribute")
-                    << EAM(DoPly,"DoPly",true,"Do Ply , def = true")
-                    << EAM(DoXYZ,"DoXYZ",true,"Do XYZ, export as RGB image where R=X,G=Y,B=Z")
-                    << EAM(DoNrm,"Normale",true,"Add normale (Def=false, usuable for Poisson)")
-                    << EAM(aExagZ,"ExagZ",true,"To exagerate the depth, Def=1.0")
-                    << EAM(aRatio,"RatioAttrCarte",true,"")
-                    << EAM(aDoMesh,"Mesh",true)
-    );	
+	LArgMain()  << EAMC(anIm1,"First Image")
+                    << EAMC(anIm2,"Second Images")
+                    << EAMC(AeroIn,"Orientation"),
+	LArgMain()  << EAM(aDir,"Dir",true,"Directory, Def=./")	
+                    << EAM(Zoom0,"Zoom0",true,"Zoom init, pow of 2  in [128,8], Def depend of size")
+                    << EAM(ZoomF,"ZoomF",true,"Zoom init,  pow of 2  in [4,1], Def=2")
+    );
 
-    if (aNameOut=="")
-      aNameOut = StdPrefix(aNameNuage) + ".ply";
 
-    cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromFileIm(aNameNuage,"XML_ParamNuage3DMaille",aMask,aExagZ);
-    if (aSz.x <0) 
-        aSz = Pt2dr(aNuage->SzUnique());
-
-    if (anAttr1!="")
+    if (! EAMIsInit(&Zoom0))
     {
-       anAttr1 = NameFileStd(anAttr1,3,false,true);
-       aNuage->Std_AddAttrFromFile(anAttr1,aDyn,aRatio);
+         Zoom0 = FixSizeImage(128,aDir+anIm1,LargMin,4);
     }
 
-     cElNuage3DMaille * aRes = aNuage->ReScaleAndClip(Box2dr(aP0,aSz),aSc);
-     std::list<std::string > aLComment(aVCom.begin(), aVCom.end());
+#if (ELISE_windows)
+     replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+#endif
 
-    if (DoPly)
-    {
 
-       if (aDoMesh) 
-       {
-           aRes->AddExportMesh();
-       }
 
-        aRes->PlyPutFile( aNameOut, aLComment, (aBin!=0), DoNrm );
-    }
-    if (DoXYZ)
-    {
-        aRes->NuageXZGCOL(StdPrefix(aNameNuage));
-    }
 
-    cElWarning::ShowWarns(DirOfFile(aNameNuage)  + "WarnNuage2Ply.txt");
-	
-	return EXIT_SUCCESS;
+   std::string aCom =     MM3dBinFile( "MICMAC" ) + " " 
+                       +  Basic_XML_MM_File("MM-PxTransv.xml")
+                       +  std::string(" WorkDir=") + aDir + " "
+                       +  std::string(" +Im1=") + QUOTE(anIm1) + " " 
+                       +  std::string(" +Im2=") + QUOTE(anIm2) + " " 
+                       +  std::string(" +AeroIn=-") + AeroIn + " " 
+                       +  std::string(" +Zoom0=") + ToString(Zoom0) + " " 
+                       +  std::string(" +ZoomF=") + ToString(ZoomF) + " " 
+                      ;
+
+
+   int aRes = system_call(aCom.c_str());
+
+
+   BanniereMM3D();
+
+   return aRes;
 }
 
 

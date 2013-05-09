@@ -70,7 +70,7 @@ int ScaleNuage_main(int argc,char ** argv)
         cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromFileIm(aNameNuage);
         if (aSz.x <0) 
         {
-            aSz = Pt2dr(aNuage->Sz());
+            aSz = Pt2dr(aNuage->SzUnique());
         }
 
         cElNuage3DMaille * aRes = aNuage->ReScaleAndClip(Box2dr(aP0,aP0+aSz),aSc);

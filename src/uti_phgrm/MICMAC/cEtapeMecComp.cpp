@@ -280,8 +280,9 @@ cEtapeMecComp::cEtapeMecComp
   mCaracZ          (0),
   mIsOptDiffer     (anEtape.AlgoRegul().ValWithDef(eAlgoCoxRoy)==eAlgoOptimDifferentielle),
   mIsOptDequant    (anEtape.AlgoRegul().ValWithDef(eAlgoCoxRoy)==eAlgoDequant),
+  mIsOptIdentite    (anEtape.AlgoRegul().ValWithDef(eAlgoCoxRoy)==eAlgoIdentite),
   mIsOtpLeastSQ    (anEtape.AlgoRegul().ValWithDef(eAlgoCoxRoy)==eAlgoLeastSQ),
-  mIsOptimCont     (mIsOptDiffer || mIsOptDequant),
+  mIsOptimCont     (mIsOptDiffer || mIsOptDequant || mIsOptIdentite),
   mIsOptimReel     (mIsOptimCont || mIsOtpLeastSQ),
   mGenImageCorrel  ((!mIsOptimCont) && (anEtape.GenImagesCorrel().ValWithDef(mIsLast))),
   mPrec            (aVEtPrec.empty() ?0  : aVEtPrec.back()),
@@ -294,7 +295,8 @@ cEtapeMecComp::cEtapeMecComp
   mTheEtapeNewPrgD   (0),
   mInterpFloat       (0),
   mMATP              (false),
-  mUseWAdapt         (false)
+  mUseWAdapt         (false),
+  mNameXMLNuage      ("")
 {
 
     
@@ -302,7 +304,7 @@ cEtapeMecComp::cEtapeMecComp
      {
         ELISE_ASSERT
         (
-           isLastEtape,
+           (isLastEtape || mIsOptIdentite),
            "Optimisation differentielle uniquement en derniere etape"
         );
      }
@@ -434,6 +436,8 @@ cEtapeMecComp::cEtapeMecComp
       mGeomTer.SetStep(aVPas);
 
 
+      // CreateMNTInit();
+/*
        if (!mAppli.DoNothingBut().IsInit())
        {
            for (int aK=0 ; aK<int(mFilesPx.size()) ; aK++)
@@ -441,6 +445,7 @@ cEtapeMecComp::cEtapeMecComp
               mFilesPx[aK]->CreateMNTInit();
            }
        }
+*/
 
 
       if ((mNbNappesEp==0) && (aVEtPrec.size() > 1)  && (mAlgoRegul!=eAlgoLeastSQ))
@@ -572,6 +577,7 @@ cEtapeMecComp::cEtapeMecComp
                  mEBI = mArgMaskAuto->EtiqBestImage().PtrVal();
              }
 
+
              if (
                     (mTheModPrgD->EtapeProgDyn().size()==1)
                  && (( NbNappesEp() ==1) && (NumSeuleNapEp() ==0))
@@ -692,7 +698,32 @@ cEtapeMecComp::cEtapeMecComp
            }
      }
      mUsePC = (mPredPC!=0) && (mEtape.UsePartiesCachee().ValWithDef(true));
+
+
+    // CreateMNTInit();
 }
+
+void  cEtapeMecComp::CreateMNTInit()
+{
+       if (!mAppli.DoNothingBut().IsInit())
+       {
+           for (int aK=0 ; aK<int(mFilesPx.size()) ; aK++)
+           {
+              mFilesPx[aK]->CreateMNTInit();
+           }
+       }
+}
+
+
+
+int  cEtapeMecComp::MultiplierNbSizeCellule() const
+{
+   if (mEBI)
+      return  mAppli.NbApproxVueActive();
+
+   return 1;
+}
+
 
 void cEtapeMecComp::SetCaracOfZoom()
 {
@@ -1045,11 +1076,21 @@ bool cEtapeMecComp::IsOptDequant() const
 {
    return mIsOptDequant;
 }
+
+bool cEtapeMecComp::IsOptIdentite() const
+{
+   return mIsOptIdentite;
+}
+
 bool cEtapeMecComp::IsOptimReel() const
 {
    return mIsOptimReel;
 }
 
+const std::string &  cEtapeMecComp::NameXMLNuage() const
+{
+    return mNameXMLNuage;
+}
 
 
 
@@ -1560,6 +1601,7 @@ int cEtapeMecComp::MemSizeCelluleAlgo() const
               return 4;
          case eAlgoMaxOfScore :
          case eAlgoDequant :
+         case eAlgoIdentite :
               return 0;
          default :
               ELISE_ASSERT(false,"Optimization non supportee");
@@ -1579,6 +1621,7 @@ int cEtapeMecComp::MemSizePixelSsCelluleAlgo() const
          case eAlgoTestGPU :
               return 20;
          case eAlgoMaxOfScore :
+         case eAlgoIdentite :
               return (int) (4*mFilesPx.size());
          case eAlgoDequant :
               return (int) (12*mFilesPx.size());
@@ -1655,6 +1698,7 @@ cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXMLNuage(const cExportNuage & an
                                   true
                               );
         MakeFileXML(aNuage,aName);
+        mNameXMLNuage = aName;
     }
     if (anEN.PlyFile().IsInit())
     {

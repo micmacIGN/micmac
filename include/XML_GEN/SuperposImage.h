@@ -3720,6 +3720,239 @@ cElXMLTree * ToXMLTree(const cSectionName &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cFMNtBySort
+{
+    public:
+        friend void xml_init(cFMNtBySort & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< double > & PercFusion();
+        const cTplValGesInit< double > & PercFusion()const ;
+    private:
+        cTplValGesInit< double > mPercFusion;
+};
+cElXMLTree * ToXMLTree(const cFMNtBySort &);
+
+class cFMNT_GesNoVal
+{
+    public:
+        friend void xml_init(cFMNT_GesNoVal & anObj,cElXMLTree * aTree);
+
+
+        double & PenteMax();
+        const double & PenteMax()const ;
+
+        double & GainNoVal();
+        const double & GainNoVal()const ;
+
+        double & Trans();
+        const double & Trans()const ;
+    private:
+        double mPenteMax;
+        double mGainNoVal;
+        double mTrans;
+};
+cElXMLTree * ToXMLTree(const cFMNT_GesNoVal &);
+
+class cFMNT_ProgDyn
+{
+    public:
+        friend void xml_init(cFMNT_ProgDyn & anObj,cElXMLTree * aTree);
+
+
+        double & Regul();
+        const double & Regul()const ;
+
+        double & Sigma0();
+        const double & Sigma0()const ;
+
+        int & NbDir();
+        const int & NbDir()const ;
+
+        double & PenteMax();
+        const double & PenteMax()const ;
+
+        double & GainNoVal();
+        const double & GainNoVal()const ;
+
+        double & Trans();
+        const double & Trans()const ;
+
+        cTplValGesInit< cFMNT_GesNoVal > & FMNT_GesNoVal();
+        const cTplValGesInit< cFMNT_GesNoVal > & FMNT_GesNoVal()const ;
+    private:
+        double mRegul;
+        double mSigma0;
+        int mNbDir;
+        cTplValGesInit< cFMNT_GesNoVal > mFMNT_GesNoVal;
+};
+cElXMLTree * ToXMLTree(const cFMNT_ProgDyn &);
+
+class cFMNtByMaxEvid
+{
+    public:
+        friend void xml_init(cFMNtByMaxEvid & anObj,cElXMLTree * aTree);
+
+
+        double & SigmaPds();
+        const double & SigmaPds()const ;
+
+        cTplValGesInit< double > & SigmaZ();
+        const cTplValGesInit< double > & SigmaZ()const ;
+
+        cTplValGesInit< double > & MaxDif();
+        const cTplValGesInit< double > & MaxDif()const ;
+
+        double & Regul();
+        const double & Regul()const ;
+
+        double & Sigma0();
+        const double & Sigma0()const ;
+
+        int & NbDir();
+        const int & NbDir()const ;
+
+        double & PenteMax();
+        const double & PenteMax()const ;
+
+        double & GainNoVal();
+        const double & GainNoVal()const ;
+
+        double & Trans();
+        const double & Trans()const ;
+
+        cTplValGesInit< cFMNT_GesNoVal > & FMNT_GesNoVal();
+        const cTplValGesInit< cFMNT_GesNoVal > & FMNT_GesNoVal()const ;
+
+        cTplValGesInit< cFMNT_ProgDyn > & FMNT_ProgDyn();
+        const cTplValGesInit< cFMNT_ProgDyn > & FMNT_ProgDyn()const ;
+    private:
+        double mSigmaPds;
+        cTplValGesInit< double > mSigmaZ;
+        cTplValGesInit< double > mMaxDif;
+        cTplValGesInit< cFMNT_ProgDyn > mFMNT_ProgDyn;
+};
+cElXMLTree * ToXMLTree(const cFMNtByMaxEvid &);
+
+class cSpecAlgoFMNT
+{
+    public:
+        friend void xml_init(cSpecAlgoFMNT & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< double > & PercFusion();
+        const cTplValGesInit< double > & PercFusion()const ;
+
+        cTplValGesInit< cFMNtBySort > & FMNtBySort();
+        const cTplValGesInit< cFMNtBySort > & FMNtBySort()const ;
+
+        double & SigmaPds();
+        const double & SigmaPds()const ;
+
+        cTplValGesInit< double > & SigmaZ();
+        const cTplValGesInit< double > & SigmaZ()const ;
+
+        cTplValGesInit< double > & MaxDif();
+        const cTplValGesInit< double > & MaxDif()const ;
+
+        double & Regul();
+        const double & Regul()const ;
+
+        double & Sigma0();
+        const double & Sigma0()const ;
+
+        int & NbDir();
+        const int & NbDir()const ;
+
+        double & PenteMax();
+        const double & PenteMax()const ;
+
+        double & GainNoVal();
+        const double & GainNoVal()const ;
+
+        double & Trans();
+        const double & Trans()const ;
+
+        cTplValGesInit< cFMNT_GesNoVal > & FMNT_GesNoVal();
+        const cTplValGesInit< cFMNT_GesNoVal > & FMNT_GesNoVal()const ;
+
+        cTplValGesInit< cFMNT_ProgDyn > & FMNT_ProgDyn();
+        const cTplValGesInit< cFMNT_ProgDyn > & FMNT_ProgDyn()const ;
+
+        cTplValGesInit< cFMNtByMaxEvid > & FMNtByMaxEvid();
+        const cTplValGesInit< cFMNtByMaxEvid > & FMNtByMaxEvid()const ;
+    private:
+        cTplValGesInit< cFMNtBySort > mFMNtBySort;
+        cTplValGesInit< cFMNtByMaxEvid > mFMNtByMaxEvid;
+};
+cElXMLTree * ToXMLTree(const cSpecAlgoFMNT &);
+
+class cParamAlgoFusionMNT
+{
+    public:
+        friend void xml_init(cParamAlgoFusionMNT & anObj,cElXMLTree * aTree);
+
+
+        double & FMNTSeuilCorrel();
+        const double & FMNTSeuilCorrel()const ;
+
+        double & FMNTGammaCorrel();
+        const double & FMNTGammaCorrel()const ;
+
+        cTplValGesInit< double > & PercFusion();
+        const cTplValGesInit< double > & PercFusion()const ;
+
+        cTplValGesInit< cFMNtBySort > & FMNtBySort();
+        const cTplValGesInit< cFMNtBySort > & FMNtBySort()const ;
+
+        double & SigmaPds();
+        const double & SigmaPds()const ;
+
+        cTplValGesInit< double > & SigmaZ();
+        const cTplValGesInit< double > & SigmaZ()const ;
+
+        cTplValGesInit< double > & MaxDif();
+        const cTplValGesInit< double > & MaxDif()const ;
+
+        double & Regul();
+        const double & Regul()const ;
+
+        double & Sigma0();
+        const double & Sigma0()const ;
+
+        int & NbDir();
+        const int & NbDir()const ;
+
+        double & PenteMax();
+        const double & PenteMax()const ;
+
+        double & GainNoVal();
+        const double & GainNoVal()const ;
+
+        double & Trans();
+        const double & Trans()const ;
+
+        cTplValGesInit< cFMNT_GesNoVal > & FMNT_GesNoVal();
+        const cTplValGesInit< cFMNT_GesNoVal > & FMNT_GesNoVal()const ;
+
+        cTplValGesInit< cFMNT_ProgDyn > & FMNT_ProgDyn();
+        const cTplValGesInit< cFMNT_ProgDyn > & FMNT_ProgDyn()const ;
+
+        cTplValGesInit< cFMNtByMaxEvid > & FMNtByMaxEvid();
+        const cTplValGesInit< cFMNtByMaxEvid > & FMNtByMaxEvid()const ;
+
+        cSpecAlgoFMNT & SpecAlgoFMNT();
+        const cSpecAlgoFMNT & SpecAlgoFMNT()const ;
+    private:
+        double mFMNTSeuilCorrel;
+        double mFMNTGammaCorrel;
+        cSpecAlgoFMNT mSpecAlgoFMNT;
+};
+cElXMLTree * ToXMLTree(const cParamAlgoFusionMNT &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cSectionGestionChantier
 {
     public:
@@ -3735,13 +3968,21 @@ class cSectionGestionChantier
         cTplValGesInit< std::string > & ParalMkF();
         const cTplValGesInit< std::string > & ParalMkF()const ;
 
-        cTplValGesInit< std::string > & InterneParalDoOnlyOneRes();
-        const cTplValGesInit< std::string > & InterneParalDoOnlyOneRes()const ;
+        cTplValGesInit< bool > & InterneCalledByProcess();
+        const cTplValGesInit< bool > & InterneCalledByProcess()const ;
+
+        cTplValGesInit< std::string > & InterneSingleImage();
+        const cTplValGesInit< std::string > & InterneSingleImage()const ;
+
+        cTplValGesInit< int > & InterneSingleBox();
+        const cTplValGesInit< int > & InterneSingleBox()const ;
     private:
         cTplValGesInit< int > mSzDalles;
         cTplValGesInit< int > mRecouvrtDalles;
         cTplValGesInit< std::string > mParalMkF;
-        cTplValGesInit< std::string > mInterneParalDoOnlyOneRes;
+        cTplValGesInit< bool > mInterneCalledByProcess;
+        cTplValGesInit< std::string > mInterneSingleImage;
+        cTplValGesInit< int > mInterneSingleBox;
 };
 cElXMLTree * ToXMLTree(const cSectionGestionChantier &);
 
@@ -3769,8 +4010,59 @@ class cParamFusionMNT
         cSectionName & SectionName();
         const cSectionName & SectionName()const ;
 
+        double & FMNTSeuilCorrel();
+        const double & FMNTSeuilCorrel()const ;
+
+        double & FMNTGammaCorrel();
+        const double & FMNTGammaCorrel()const ;
+
         cTplValGesInit< double > & PercFusion();
         const cTplValGesInit< double > & PercFusion()const ;
+
+        cTplValGesInit< cFMNtBySort > & FMNtBySort();
+        const cTplValGesInit< cFMNtBySort > & FMNtBySort()const ;
+
+        double & SigmaPds();
+        const double & SigmaPds()const ;
+
+        cTplValGesInit< double > & SigmaZ();
+        const cTplValGesInit< double > & SigmaZ()const ;
+
+        cTplValGesInit< double > & MaxDif();
+        const cTplValGesInit< double > & MaxDif()const ;
+
+        double & Regul();
+        const double & Regul()const ;
+
+        double & Sigma0();
+        const double & Sigma0()const ;
+
+        int & NbDir();
+        const int & NbDir()const ;
+
+        double & PenteMax();
+        const double & PenteMax()const ;
+
+        double & GainNoVal();
+        const double & GainNoVal()const ;
+
+        double & Trans();
+        const double & Trans()const ;
+
+        cTplValGesInit< cFMNT_GesNoVal > & FMNT_GesNoVal();
+        const cTplValGesInit< cFMNT_GesNoVal > & FMNT_GesNoVal()const ;
+
+        cTplValGesInit< cFMNT_ProgDyn > & FMNT_ProgDyn();
+        const cTplValGesInit< cFMNT_ProgDyn > & FMNT_ProgDyn()const ;
+
+        cTplValGesInit< cFMNtByMaxEvid > & FMNtByMaxEvid();
+        const cTplValGesInit< cFMNtByMaxEvid > & FMNtByMaxEvid()const ;
+
+        cSpecAlgoFMNT & SpecAlgoFMNT();
+        const cSpecAlgoFMNT & SpecAlgoFMNT()const ;
+
+        cParamAlgoFusionMNT & ParamAlgoFusionMNT();
+        const cParamAlgoFusionMNT & ParamAlgoFusionMNT()const ;
 
         cParamGenereStr & GenereRes();
         const cParamGenereStr & GenereRes()const ;
@@ -3787,15 +4079,21 @@ class cParamFusionMNT
         cTplValGesInit< std::string > & ParalMkF();
         const cTplValGesInit< std::string > & ParalMkF()const ;
 
-        cTplValGesInit< std::string > & InterneParalDoOnlyOneRes();
-        const cTplValGesInit< std::string > & InterneParalDoOnlyOneRes()const ;
+        cTplValGesInit< bool > & InterneCalledByProcess();
+        const cTplValGesInit< bool > & InterneCalledByProcess()const ;
+
+        cTplValGesInit< std::string > & InterneSingleImage();
+        const cTplValGesInit< std::string > & InterneSingleImage()const ;
+
+        cTplValGesInit< int > & InterneSingleBox();
+        const cTplValGesInit< int > & InterneSingleBox()const ;
 
         cSectionGestionChantier & SectionGestionChantier();
         const cSectionGestionChantier & SectionGestionChantier()const ;
     private:
         cTplValGesInit< cChantierDescripteur > mDicoLoc;
         cSectionName mSectionName;
-        cTplValGesInit< double > mPercFusion;
+        cParamAlgoFusionMNT mParamAlgoFusionMNT;
         cParamGenereStr mGenereRes;
         cParamGenereStrVois mGenereInput;
         cSectionGestionChantier mSectionGestionChantier;

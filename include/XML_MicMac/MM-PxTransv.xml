@@ -1,21 +1,23 @@
 <!-- 
 
-MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/home/marc/TMP/Jonathan/UAS_ernage/Images/
+MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/media/data2/Aerien/Euro-SDR/Munich/
 
+MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/media/data2/Aerien/Jo-Pb/
 
 -->
 <ParamMICMAC>
 
 <DicoLoc>
 <!-- "VRAI" PARAMETRES -->
-   <Symb> Dir="/home/marc/TMP/Jonathan/UAS_ernage/Images/"     </Symb>
-   <Symb> Im1="R0013413.JPG"     </Symb>
-   <Symb> Im2="R0013414.JPG"     </Symb>
-   <Symb> Ori=Bloc-Basculed     </Symb>
-   <Symb> ModeProf=false </Symb>
+   <Symb> Im1="R0023168.JPG"     </Symb>
+   <Symb> Im2="R0023167.JPG"     </Symb>
+   <Symb> AeroIn=sub     </Symb>
+   <Symb> ModeProf=true </Symb>
    <Symb> SzW=2 </Symb>
    <Symb> SzWPx2=3 </Symb>
 
+   <Symb> Zoom0=32 </Symb> <!-- 128 64 32 16 -->
+   <Symb> ZoomF=4 </Symb>  <!-- 4 2 1 -->
 
 <!-- VALEURS QUASI-FIXE -->
    <Symb> DirMEC=GeoI-Px/ </Symb>
@@ -23,6 +25,17 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/home
 <!-- MISE EN COMMUN DE CONSTANTES -->
    <Symb>  Purge=true </Symb>
 
+   <eSymb> 2Zoom0=/ ${Zoom0} 2 </eSymb>
+   <eSymb> 4Zoom0=/ ${Zoom0} 4 </eSymb>
+   <eSymb> 8Zoom0=/ ${Zoom0} 8 </eSymb>
+
+    <eSymb> Do2Zoom0= Sup ${2Zoom0} 8 </eSymb>
+    <eSymb> Do4Zoom0= Sup ${4Zoom0} 8 </eSymb>
+    <eSymb> Do8Zoom0= Sup ${8Zoom0} 8 </eSymb>
+
+    <eSymb> DoZoom1= InfEq ${ZoomF} 1 </eSymb>
+    <eSymb> DoZoom2= InfEq ${ZoomF} 2 </eSymb>
+    <eSymb> DoZoom4= InfEq ${ZoomF} 4 </eSymb>
 </DicoLoc>
 
 
@@ -53,7 +66,7 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/home
      </Images>
      <NomsGeometrieImage>
          <FCND_Mode_GeomIm>
-               <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-${Ori}  </FCND_GeomCalc>  
+               <FCND_GeomCalc>  NKS-Assoc-Im2Orient@${AeroIn}  </FCND_GeomCalc>  
          </FCND_Mode_GeomIm>
      </NomsGeometrieImage>
 
@@ -65,6 +78,8 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/home
 <Section_MEC >
 	<ChantierFullImage1>  true </ChantierFullImage1>
         <ChantierFullMaskImage1> false</ChantierFullMaskImage1>
+        <PasIsInPixel>  true </PasIsInPixel>
+
 
 	<!-- 
 	     Etape 0, ne sera pas calculee, DeZoom vaut -1,
@@ -120,6 +135,7 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/home
                       <NbDir>   6               </NbDir>
                   </EtapeProgDyn>
                   <Px1PenteMax>   5.0    </Px1PenteMax>
+                  <Px2PenteMax>   0.001    </Px2PenteMax>
             </ModulationProgDyn>
 
             <GenImagesCorrel> true </GenImagesCorrel>
@@ -128,10 +144,19 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/home
 
 
 	<EtapeMEC>
-            <DeZoom >  64    </DeZoom>
+            <DeZoom >  ${Zoom0}    </DeZoom>
+	    <Px1Pas>   1     </Px1Pas>
+            <Px2DilatAlti>  0  </Px2DilatAlti>
+	    <Px2DilatPlani> 0  </Px2DilatPlani>
         </EtapeMEC>
 	<EtapeMEC>
-            <DeZoom >  64    </DeZoom>
+            <DeZoom >  ${Zoom0}    </DeZoom>
+            <Px2DilatAlti>  0  </Px2DilatAlti>
+	    <Px2DilatPlani> 0  </Px2DilatPlani>
+        </EtapeMEC>
+
+	<EtapeMEC>
+            <DeZoom >  ${Zoom0}    </DeZoom>
             <Px1DilatAlti>  1  </Px1DilatAlti>
 	    <Px1DilatPlani> 1  </Px1DilatPlani>
             <Px2DilatAlti>  5  </Px2DilatAlti>
@@ -139,38 +164,58 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/home
         </EtapeMEC>
 
 
-        <EtapeMEC>
-            <DeZoom >  32                </DeZoom>
-            <Px1DilatAlti>  3  </Px1DilatAlti>
-	    <Px1DilatPlani> 4  </Px1DilatPlani>
-            <Px2DilatAlti>  0  </Px2DilatAlti>
-	    <Px2DilatPlani> 0  </Px2DilatPlani>
-        </EtapeMEC>
-        <EtapeMEC>
-            <DeZoom >  32                </DeZoom>
-            <Px1DilatAlti>  1  </Px1DilatAlti>
-	    <Px1DilatPlani> 1  </Px1DilatPlani>
-            <Px2DilatAlti>  2  </Px2DilatAlti>
-	    <Px2DilatPlani> 2  </Px2DilatPlani>
-        </EtapeMEC>
+        <#WHEN VTEST=${Do2Zoom0}>
+            <EtapeMEC>
+                <DeZoom >  ${2Zoom0}  </DeZoom>
+                <Px1DilatAlti>  3  </Px1DilatAlti>
+	        <Px1DilatPlani> 4  </Px1DilatPlani>
+                <Px2DilatAlti>  0  </Px2DilatAlti>
+	        <Px2DilatPlani> 0  </Px2DilatPlani>
+            </EtapeMEC>
+            <EtapeMEC>
+                <DeZoom >  ${2Zoom0}   </DeZoom>
+                <Px1DilatAlti>  1  </Px1DilatAlti>
+	        <Px1DilatPlani> 1  </Px1DilatPlani>
+                <Px2DilatAlti>  2  </Px2DilatAlti>
+	        <Px2DilatPlani> 2  </Px2DilatPlani>
+            </EtapeMEC>
+        </#WHEN>
 
 
 
-        <EtapeMEC>
-            <DeZoom >  16                </DeZoom>
-            <Px1DilatAlti>  3  </Px1DilatAlti>
-	    <Px1DilatPlani> 4  </Px1DilatPlani>
-            <Px2DilatAlti>  0  </Px2DilatAlti>
-	    <Px2DilatPlani> 0  </Px2DilatPlani>
-        </EtapeMEC>
-        <EtapeMEC>
-            <DeZoom >  16                </DeZoom>
-            <Px1DilatAlti>  1  </Px1DilatAlti>
-	    <Px1DilatPlani> 1  </Px1DilatPlani>
-            <Px2DilatAlti>  2  </Px2DilatAlti>
-	    <Px2DilatPlani> 2  </Px2DilatPlani>
-        </EtapeMEC>
+        <#WHEN VTEST=${Do4Zoom0}>
+            <EtapeMEC>
+                <DeZoom >  ${4Zoom0}    </DeZoom>
+                <Px1DilatAlti>  3  </Px1DilatAlti>
+	        <Px1DilatPlani> 4  </Px1DilatPlani>
+                <Px2DilatAlti>  0  </Px2DilatAlti>
+	        <Px2DilatPlani> 0  </Px2DilatPlani>
+            </EtapeMEC>
+            <EtapeMEC>
+                <DeZoom >  ${4Zoom0}   </DeZoom>
+                <Px1DilatAlti>  1  </Px1DilatAlti>
+	        <Px1DilatPlani> 1  </Px1DilatPlani>
+                <Px2DilatAlti>  2  </Px2DilatAlti>
+	        <Px2DilatPlani> 2  </Px2DilatPlani>
+            </EtapeMEC>
+        </#WHEN>
 
+        <#WHEN VTEST=${Do8Zoom0}>
+            <EtapeMEC>
+                <DeZoom >  ${8Zoom0}    </DeZoom>
+                <Px1DilatAlti>  3  </Px1DilatAlti>
+	        <Px1DilatPlani> 4  </Px1DilatPlani>
+                <Px2DilatAlti>  0  </Px2DilatAlti>
+	        <Px2DilatPlani> 0  </Px2DilatPlani>
+            </EtapeMEC>
+            <EtapeMEC>
+                <DeZoom >  ${8Zoom0}   </DeZoom>
+                <Px1DilatAlti>  1  </Px1DilatAlti>
+	        <Px1DilatPlani> 1  </Px1DilatPlani>
+                <Px2DilatAlti>  2  </Px2DilatAlti>
+	        <Px2DilatPlani> 2  </Px2DilatPlani>
+            </EtapeMEC>
+        </#WHEN>
 
 
         <EtapeMEC>
@@ -190,49 +235,68 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/home
 	    <Px2DilatPlani> 2  </Px2DilatPlani>
         </EtapeMEC>
 
-        <EtapeMEC>
-            <DeZoom >  4                </DeZoom>
-            <Px1DilatAlti>  3  </Px1DilatAlti>
-	    <Px1DilatPlani> 4  </Px1DilatPlani>
-            <Px2DilatAlti>  0  </Px2DilatAlti>
-	    <Px2DilatPlani> 0  </Px2DilatPlani>
-        </EtapeMEC>
-        <EtapeMEC>
-            <DeZoom >  4                </DeZoom>
-            <SsResolOptim>  4 </SsResolOptim> 
-            <SzW>  ${SzWPx2} </SzW>
-            <Px1DilatAlti>  0  </Px1DilatAlti>
-	    <Px1DilatPlani> 0  </Px1DilatPlani>
-            <Px2DilatAlti>  2  </Px2DilatAlti>
-	    <Px2DilatPlani> 2  </Px2DilatPlani>
-        </EtapeMEC>
+        <#WHEN  VTEST=${DoZoom4}>
+            <EtapeMEC>
+                <DeZoom >  4                </DeZoom>
+                <Px1DilatAlti>  2  </Px1DilatAlti>
+	        <Px1DilatPlani> 2  </Px1DilatPlani>
+                <Px2DilatAlti>  0  </Px2DilatAlti>
+	        <Px2DilatPlani> 0  </Px2DilatPlani>
+            </EtapeMEC>
+            <EtapeMEC>
+                <DeZoom >  4                </DeZoom>
+                <SsResolOptim>  4 </SsResolOptim> 
+                <SzW>  ${SzWPx2} </SzW>
+                <Px1DilatAlti>  0  </Px1DilatAlti>
+	        <Px1DilatPlani> 0  </Px1DilatPlani>
+                <Px2DilatAlti>  2  </Px2DilatAlti>
+	        <Px2DilatPlani> 2  </Px2DilatPlani>
+            </EtapeMEC>
+        </#WHEN>
 
 
-        <EtapeMEC>
-            <DeZoom >  2                </DeZoom>
-            <Px1DilatAlti>  3  </Px1DilatAlti>
-	    <Px1DilatPlani> 4  </Px1DilatPlani>
-            <Px2DilatAlti>  0  </Px2DilatAlti>
-	    <Px2DilatPlani> 0  </Px2DilatPlani>
-        </EtapeMEC>
-        <EtapeMEC>
-            <DeZoom >  2                </DeZoom>
-            <SsResolOptim>  6 </SsResolOptim> 
-            <Px1DilatAlti>  0  </Px1DilatAlti>
-	    <Px1DilatPlani> 0  </Px1DilatPlani>
-            <SzW>  ${SzWPx2} </SzW>
-            <Px2DilatAlti>  2  </Px2DilatAlti>
-	    <Px2DilatPlani> 2  </Px2DilatPlani>
-        </EtapeMEC>
+        <#WHEN  VTEST=${DoZoom2}>
+            <EtapeMEC>
+                <DeZoom >  2                </DeZoom>
+                <Px1DilatAlti>  2  </Px1DilatAlti>
+	        <Px1DilatPlani> 2  </Px1DilatPlani>
+                <Px2DilatAlti>  0  </Px2DilatAlti>
+	        <Px2DilatPlani> 0  </Px2DilatPlani>
+            </EtapeMEC>
+            <EtapeMEC>
+                <DeZoom >  2                </DeZoom>
+                <SsResolOptim>  6 </SsResolOptim> 
+                <Px1DilatAlti>  0  </Px1DilatAlti>
+	        <Px1DilatPlani> 0  </Px1DilatPlani>
+                <SzW>  ${SzWPx2} </SzW>
+                <Px2DilatAlti>  2  </Px2DilatAlti>
+	        <Px2DilatPlani> 2  </Px2DilatPlani>
+            </EtapeMEC>
+        </#WHEN>
 
 
-        <EtapeMEC>
-            <DeZoom >  1                </DeZoom>
-            <Px1DilatAlti>  3  </Px1DilatAlti>
-	    <Px1DilatPlani> 4  </Px1DilatPlani>
-            <Px2DilatAlti>  0  </Px2DilatAlti>
-	    <Px2DilatPlani> 0  </Px2DilatPlani>
-        </EtapeMEC>
+        <#WHEN  VTEST=${DoZoom1}>
+            <EtapeMEC>
+                <DeZoom >  1                </DeZoom>
+                <Px1DilatAlti>  2  </Px1DilatAlti>
+	        <Px1DilatPlani> 2  </Px1DilatPlani>
+                <Px2DilatAlti>  0  </Px2DilatAlti>
+	        <Px2DilatPlani> 0  </Px2DilatPlani>
+            </EtapeMEC>
+
+            <EtapeMEC>
+                <DeZoom >  1                </DeZoom>
+                <Px1DilatAlti>  0  </Px1DilatAlti>
+	        <Px1DilatPlani> 0  </Px1DilatPlani>
+                <SsResolOptim>  8 </SsResolOptim> 
+                <SzW>  ${SzWPx2} </SzW>
+                <Px2DilatAlti>  1  </Px2DilatAlti>
+	        <Px2DilatPlani> 3  </Px2DilatPlani>
+            </EtapeMEC>
+        </#WHEN>
+
+
+
 
 <!--
 	<EtapeMEC> 
@@ -281,7 +345,7 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/home
      du "chantier" sur la machine
 -->
 <Section_WorkSpace >
-     <WorkDir >  ${Dir} </WorkDir> 
+     <WorkDir >  XXX </WorkDir> 
      <TmpPyr > Pyram/ </TmpPyr>
      <TmpResult > GeoI-Px/ </TmpResult>
      <TmpMEC > GeoI-Px/ </TmpMEC>

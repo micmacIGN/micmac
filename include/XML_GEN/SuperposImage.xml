@@ -1026,11 +1026,18 @@ namespace NS_SuperposeImage{
 
   </Param_Traj_AJ>
 
+  <!-- Pour generer un ensemble de chaine; est l'union des KeySet (ensembles de filtres 
+       sur des fichiers existant) et des chaine literrale KeyString; encapsulee par GetStrFromGenStr
+  -->
   <ParamGenereStr Nb="1"  Class="true"  ToReference="true"  UnionType="true">
          <KeySet Nb="*"  Type="std::string"> </KeySet> 
          <KeyString Nb="*"  Type="std::string"> </KeyString> 
   </ParamGenereStr>
 
+   <!--  Pour genere les chaines de caracters "voisine" d'une autre; ces voisins sont fait des voisins
+        "fixes", calcule comme ParamGenereStr, et de voisin "variable" calcules par KeyRel;
+         encapsule dans la fonction GetStrFromGenStrRel
+    -->
   <ParamGenereStrVois Nb="1"  Class="true"  ToReference="true"  UnionType="true">
          <KeyRel Nb="*"  Type="std::string"> </KeyRel> 
          <KeyString Nb="*"  Type="std::string"> </KeyString> 
@@ -1045,19 +1052,55 @@ namespace NS_SuperposeImage{
 
        <SectionName Nb="1">
 
-             <!-- calcule le nuage carte de prof a partir de deux noms de fichiers l'un venant de
+             <!-- calcule le nuage carte de prof input a partir de deux noms de fichiers l'un venant de
                   GenereRes , l'autre de GenereInput 
              -->
              <KeyNuage Type="std::string" Nb="1"> </KeyNuage>
-             <!-- Doit genere le nom du fichier xml de nuage -->
+             <!-- Doit genere le nom du fichier XML-resultat, a partir d'un declencheur -->
              <KeyResult   Type="std::string" Nb="1"> </KeyResult>
 
+             <!-- Definit le modele de geometrie resultant, c'est un cle d'association
+                 par defaut il sera pris sur le premier input-->
              <ModeleNuageResult Type="std::string" Nb="?"> </ModeleNuageResult>
        </SectionName>
 
-       <PercFusion Nb="?" Type="double" Def="50.0"> </PercFusion>
 
+       <ParamAlgoFusionMNT Nb="1">
+           <FMNTSeuilCorrel Nb="1" Type="double"> </FMNTSeuilCorrel>
+           <FMNTGammaCorrel Nb="1" Type="double"> </FMNTGammaCorrel>
+           <SpecAlgoFMNT Nb="1" UnionType="true">
+                <FMNtBySort Nb="?">
+                       <PercFusion Nb="?" Type="double" Def="50.0"> </PercFusion>
+                </FMNtBySort>
+                <FMNtByMaxEvid Nb="?">
+                       <SigmaPds  Type="double" Nb="1"> </SigmaPds>
+                       <SigmaZ    Type="double" Nb="?"> </SigmaZ> <!-- Par defaut SigmaZ=SigmaPds -->
+                       <MaxDif Type="double" Nb="?" Def="1e9"> </MaxDif>
+                       <FMNT_ProgDyn Nb="?">
+                            <Regul Nb="1" Type="double"> </Regul>
+                            <!-- Le cout de regul pour dun delta Z = D est
+                                 (sqrt(1 +D/S0) -1) * 2S0  ; c.a.d un cout concave, qui
+                                 en 0 est nul et de pente 1
+                             -->
+                            <Sigma0 Nb="1" Type="double"> </Sigma0>
+                            <NbDir Nb="1" Type="int"> </NbDir>
+                            <FMNT_GesNoVal Nb="?">
+                                <PenteMax Nb="1" Type="double"> </PenteMax>
+                                <!-- GainNoVal : proportion du gain max; Gain 0 privilegie le NoVal -->
+                                <GainNoVal Nb="1" Type="double"> </GainNoVal>
+                                <Trans Nb="1" Type="double"> </Trans>
+                            </FMNT_GesNoVal>
+                       </FMNT_ProgDyn>
+                </FMNtByMaxEvid>
+           </SpecAlgoFMNT>
+       </ParamAlgoFusionMNT>
+
+
+       <!-- Decrit tout les fichiers qui vont declencher un calcul, le nom du resultat sera
+           calculer avec KeyResult  -->
        <GenereRes Nb="1" RefType="ParamGenereStr"> </GenereRes>
+          
+       <!-- Pour chaque declencheur, genere les inputs -->
        <GenereInput Nb="1" RefType="ParamGenereStrVois"> </GenereInput>
 
       <!-- Gestion du // par MkF -->
@@ -1068,7 +1111,9 @@ namespace NS_SuperposeImage{
              <ParalMkF Nb="?" Type="std::string"> </ParalMkF>
 
              <!-- Ne pas utiliser, usage interne a la paralellisation -->
-             <InterneParalDoOnlyOneRes Nb="?" Type="std::string" Def=""> </InterneParalDoOnlyOneRes>
+             <InterneCalledByProcess  Nb="?" Type="bool" Def="false"> </InterneCalledByProcess>
+             <InterneSingleImage Nb="?" Type="std::string" Def=""> </InterneSingleImage>
+             <InterneSingleBox Nb="?" Type="int" Def="-1"> </InterneSingleBox>
        </SectionGestionChantier>
 
 

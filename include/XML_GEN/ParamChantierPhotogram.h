@@ -36,6 +36,7 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeFichierApp & anOb
 typedef enum
 {
   eOriTxtAgiSoft,
+  eOriBluh,
   eOriTxtInFile,
   eNbTypeOriTxt
 } eTypeFichierOriTxt;
@@ -1548,6 +1549,30 @@ class cCalibrationInterneUnif
         std::vector< double > mEtats;
 };
 cElXMLTree * ToXMLTree(const cCalibrationInterneUnif &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cTestNewGrid
+{
+    public:
+        friend void xml_init(cTestNewGrid & anObj,cElXMLTree * aTree);
+
+
+        std::string & A();
+        const std::string & A()const ;
+
+        Im2D_INT1 & Im();
+        const Im2D_INT1 & Im()const ;
+
+        std::string & Z();
+        const std::string & Z()const ;
+    private:
+        std::string mA;
+        Im2D_INT1 mIm;
+        std::string mZ;
+};
+cElXMLTree * ToXMLTree(const cTestNewGrid &);
 
 /******************************************************/
 /******************************************************/

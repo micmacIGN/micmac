@@ -144,6 +144,14 @@ template  <class Type,class Type_Base> class  TIm2D : public GTIm2D
 {
      protected :
      public :
+         void Resize(const Pt2di & aP)  
+         {
+              _the_im.Resize(aP);
+              _tx = aP.x;
+              _ty = aP.y;
+              _d = _the_im.data();
+         }
+
          typedef TIm2D<Type,Type_Base>  tTheType;
 
          double Val(const int & x,const int & y) const { return _d[y][x]; }
@@ -151,8 +159,8 @@ template  <class Type,class Type_Base> class  TIm2D : public GTIm2D
 
           std::string  NameType() {return El_CTypeTraits<Type>::Name();}
 
-          Type **                     _d;
           Im2D<Type,Type_Base>    _the_im;
+          Type **                     _d;
 
 		  typedef Type tValueElem;
 		  Type * adr_data(Pt2di p) {return _d[p.y]+p.x;}
@@ -378,15 +386,26 @@ template  <class Type,class Type_Base> class  TIm2D : public GTIm2D
 
           TIm2D(Im2D<Type,Type_Base> TheIm) :
               GTIm2D  (TheIm.tx(),TheIm.ty()),
-              _d      (TheIm.data()),
-              _the_im (TheIm)
+              _the_im (TheIm),
+              _d      (TheIm.data())
           {
           }
 
+          TIm2D(Pt2di aSz) :
+              GTIm2D  (aSz.x,aSz.y),
+              _the_im (aSz.x,aSz.y),
+              _d      (_the_im.data())
+          {
+          }
+
+
+
+
+
 		  TIm2D(Type ** Data,Pt2di P0,Pt2di P1) :
 				  GTIm2D(P1.x,P1.y,P0.x,P0.y),
-		          _d    (Data),
-				  _the_im (1,1)
+				  _the_im (1,1),
+		                  _d    (Data)
 		  {
 		  }
 	      void SetData(Type ** Data) { _d =Data;}

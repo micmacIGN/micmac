@@ -392,18 +392,6 @@ if (MPD_MM())
      mEcPxZone[1] = mAp->Px2IncZonage().ValWithDef( 0);
       
 
-     if (
-           (    (mAp->GeomMNT() ==eGeomMNTFaisceauIm1ZTerrain_Px2D)
-             || (mAp->GeomMNT() ==eGeomMNTFaisceauIm1ZTerrain_Px1D)
-           )
-          && mAp->IntervalPaxIsProportion().Val()
-        )
-      {
-           ELISE_ASSERT(aNbCentreGot,"aNbCentreGot in GeomMNTFaisceauIm1ZTerrain");
-           Pt3dr aC = aCentre/double(aNbCentreGot);
-           mEcPxInit[0] *= ElAbs(mV0Px[0]-aC.z);
-          
-      }
 
   }
   else if (mAp->ModeGeomMEC() == eGeomMECTerrain)
@@ -473,6 +461,18 @@ if (MPD_MM())
      }
 
      mEcPxZone[0] = mAp->ZIncZonage().ValWithDef(0);
+  }
+
+  if (
+           (    (mAp->GeomMNT() ==eGeomMNTFaisceauIm1ZTerrain_Px2D)
+             || (mAp->GeomMNT() ==eGeomMNTFaisceauIm1ZTerrain_Px1D)
+           )
+          && mAp->IntervalPaxIsProportion().Val()
+        )
+  {
+           ELISE_ASSERT(aNbCentreGot,"aNbCentreGot in GeomMNTFaisceauIm1ZTerrain");
+           Pt3dr aC = aCentre/double(aNbCentreGot);
+           mEcPxInit[0] *= ElAbs(mV0Px[0]-aC.z);
   }
 
 

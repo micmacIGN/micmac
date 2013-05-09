@@ -74,16 +74,10 @@ template <class Type,class TBase>
               const std::string &             aDir,
               const cXML_ParamNuage3DMaille & aNuage,
               Fonc_Num  aFMasq,
-              Fonc_Num  aFProf
+              Fonc_Num  aFProf,
+              bool   WithEmptyData
          );
 
-/*
-         cElNuage3DMaille_FromImProf
-         (
-               
-               const cXML_ParamNuage3DMaille & aNuage
-         );
-*/
 
          bool HasProfondeur() const { return true; }
 
@@ -112,14 +106,12 @@ template <class Type,class TBase>
               mTIm.oset
               (
                     anI,
-                    // ElStdTypeScal<TBase>::RtoT((aProf-mProf0)/ mResolProf)
                     ElStdTypeScal<TBase>::RtoT(PReel2Tab(aProf))
               );
          }
 
          bool SetProfOfIndexIfSup(const tIndex2D & anI,double aProf)
          {
-              // TBase aV = ElStdTypeScal<TBase>::RtoT((aProf-mProf0)/ mResolProf);
               TBase aV = ElStdTypeScal<TBase>::RtoT(PReel2Tab(aProf));
               if (aV > mTIm.get(anI))
               {
@@ -137,6 +129,7 @@ template <class Type,class TBase>
 
          Pt3dr Loc_IndexAndProfPixel2Euclid(const Pt2dr & anI,const double & anInvProf) const
          {
+
              return Loc_IndexAndProf2Euclid(anI,this->PTab2PReel(anInvProf));
          }
 
@@ -198,11 +191,7 @@ template <class Type,class TBase>  void  cElNuage3DMaille_FromImProf<Type,TBase>
                      __FILE__
                );
           }
-          // std::cout << " PIm " << itVN->IndIm() << "\n";
-          // std::cout << itVN->Profondeur() << " " << PTab2PReel(itVN->Profondeur()) << "\n";
-          // std::cout << euclid(aP1-aP2) << " "  << aP1 << aP2 << "\n";
     }
-    // std::cout << "\n";
 }
   
 
@@ -223,11 +212,12 @@ template <class Type,class TBase>  cElNuage3DMaille_FromImProf<Type,TBase>::cElN
      const std::string &             aDir,
      const cXML_ParamNuage3DMaille & aNuage,
      Fonc_Num  aFMasq,
-     Fonc_Num  aFProf
+     Fonc_Num  aFProf,
+     bool      WithEmpyData
 
 )  :
-   cElNuage3DMaille(aDir,aNuage,aFMasq), 
-   mIm        (mSz.x,mSz.y),
+   cElNuage3DMaille(aDir,aNuage,aFMasq,WithEmpyData), 
+   mIm        (mSzData.x,mSzData.y),
    mTIm       (mIm),
    mProf0     (aNuage.Image_Profondeur().Val().OrigineAlti()),
    mResolProf (aNuage.Image_Profondeur().Val().ResolutionAlti())
@@ -266,7 +256,8 @@ template <class Type,class TBase>
               const cXML_ParamNuage3DMaille & aNuage,
               Fonc_Num  aFMasq,
               Fonc_Num  aFProf,
-              bool      aFaiscAndZ
+              bool      aFaiscAndZ,
+              bool      WithEmptyData
          );
 
 
@@ -287,6 +278,16 @@ template <class Type,class TBase>
                                         const cXML_ParamNuage3DMaille &,
                                         Im2D_REAL4 anImPds
                                     ) ;
+
+          double   ProfEuclidOfIndex(const tIndex2D & anI) const
+          {
+               return CorZInv(this->ProfOfIndex(anI));
+          }
+          void SetProfEuclidOfIndex(const tIndex2D & anI,double aProf)
+          {
+               this->SetProfOfIndex(anI,CorZInv(aProf));
+          }
+
 
      private :
         inline double CorZInv(const double & aZ) const
@@ -319,7 +320,8 @@ template <class Type,class TBase> cElN3D_EpipGen<Type,TBase> *  cElN3D_EpipGen<T
                      this->mParams,
                      Fonc_Num(0),
                      Fonc_Num(El_CTypeTraits<Type>::TronqueR(-1e5)),
-                     mProfIsZ
+                     mProfIsZ,
+                     this->mEmptyData
                      // const_cast<cElN3D_EpipGen<Type,TBase> *>(this)->mImDef.in(),
                      // const_cast<cElN3D_EpipGen<Type,TBase> *>(this)->mIm.in()
                );
@@ -337,10 +339,11 @@ template <class Type,class TBase>  cElN3D_EpipGen<Type,TBase>::cElN3D_EpipGen
         const cXML_ParamNuage3DMaille & aNuage,
         Fonc_Num  aFMasq,
         Fonc_Num  aFProf,
-        bool      aProfIsZ
+        bool      aProfIsZ,
+        bool      WithEmptyData
 
 )  :
-   cElNuage3DMaille_FromImProf<Type,TBase>(aDir,aNuage,aFMasq,aFProf), 
+   cElNuage3DMaille_FromImProf<Type,TBase>(aDir,aNuage,aFMasq,aFProf,WithEmptyData), 
    mProfIsZ   (aProfIsZ)
 {
 	mCentre	   = this->mCam->OrigineProf();
@@ -365,7 +368,8 @@ template <class Type,class TBase> cElNuage3DMaille * cElN3D_EpipGen<Type,TBase>:
                   aNewParam,
                   anImPds.in(0) > 0.1,
                   this->ReScaleAndClip(this->mImDef.in(0)*this->mIm.in(0),aBox._p0,aScale)/Max(1e-5,anImPds.in()),
-                  mProfIsZ
+                  mProfIsZ,
+                  this->mEmptyData
               );
 }
 
@@ -443,7 +447,8 @@ cElNuage3DMaille * cElNuage3DMaille::FromParam
                        const std::string & aDir,
                        const std::string & aMasqSpec,
                        double ExagZ,
-                       const cParamModifGeomMTDNuage * aPMG
+                       const cParamModifGeomMTDNuage * aPMG,
+                       bool  WithEmptyData
                    )
 {
   cXML_ParamNuage3DMaille aParam = aParamOri;
@@ -470,9 +475,16 @@ cElNuage3DMaille * cElNuage3DMaille::FromParam
   if (aMasqSpec!="")
          aMasq = aMasqSpec;
 
-  Fonc_Num aFMasq =   trans(Tiff_Im::BasicConvStd(aMasq).in(0),aBox._p0);
-  Tiff_Im aTP = Tiff_Im::BasicConvStd(aDir+aParam.Image_Profondeur().Val().Image());
-  Fonc_Num aFProf =  trans(aTP.in_proj()*ExagZ,aBox._p0);
+  GenIm::type_el aTypeEl = GenIm::real4;
+  Fonc_Num aFMasq = 0;
+  Fonc_Num aFProf = 1;
+  if (! WithEmptyData)
+  {
+     aFMasq =   trans(Tiff_Im::BasicConvStd(aMasq).in(0),aBox._p0);
+     Tiff_Im aTP = Tiff_Im::BasicConvStd(aDir+aParam.Image_Profondeur().Val().Image());
+     aFProf =  trans(aTP.in_proj()*ExagZ,aBox._p0);
+     aTypeEl = aTP.type_el();
+  }
 
 
    if (aParam.Image_Profondeur().IsInit())
@@ -490,13 +502,13 @@ cElNuage3DMaille * cElNuage3DMaille::FromParam
 
        if (aFaiscClassik || aProfIsZ)
        {
-           switch (aTP.type_el())
+           switch (aTypeEl)
            {
                case GenIm::int2 :
-                    return new cElN3D_EpipGen<INT2,INT>(aDir,aParam,aFMasq,aFProf,aProfIsZ);
+                    return new cElN3D_EpipGen<INT2,INT>(aDir,aParam,aFMasq,aFProf,aProfIsZ,WithEmptyData);
                break;
                case GenIm::real4 :
-                    return new cElN3D_EpipGen<float,double>(aDir,aParam,aFMasq,aFProf,aProfIsZ);
+                    return new cElN3D_EpipGen<float,double>(aDir,aParam,aFMasq,aFProf,aProfIsZ,WithEmptyData);
                break;
 
                default :
@@ -540,6 +552,101 @@ cElNuage3DMaille * cElNuage3DMaille::FromFileIm
                 ExagZ
          );
 }
+
+
+cXML_ParamNuage3DMaille XML_Nuage(const std::string & aName)
+{
+    return StdGetObjFromFile<cXML_ParamNuage3DMaille>
+           (
+                aName,
+                StdGetFileXMLSpec("SuperposImage.xml"),
+                "XML_ParamNuage3DMaille",
+                "XML_ParamNuage3DMaille"
+           );
+}
+
+
+Fonc_Num Pix2Z(const cXML_ParamNuage3DMaille & aCloud,Fonc_Num aF)
+{
+   const cImage_Profondeur & aIP = aCloud.Image_Profondeur().Val();
+   return aIP.OrigineAlti() + aIP.ResolutionAlti() * aF ;
+}
+
+Fonc_Num Z2Pix(const cXML_ParamNuage3DMaille & aCloud,Fonc_Num aF)
+{
+   const cImage_Profondeur & aIP = aCloud.Image_Profondeur().Val();
+   return (aF-aIP.OrigineAlti()) /  aIP.ResolutionAlti()  ;
+}
+
+Fonc_Num Pix2Pix(const cXML_ParamNuage3DMaille &Out,Fonc_Num aF,const cXML_ParamNuage3DMaille & In)
+{
+   return Z2Pix(Out,Pix2Z(In,aF));
+}
+
+Fonc_Num Pix2Pix
+         (
+             const cXML_ParamNuage3DMaille &Out,
+             const cXML_ParamNuage3DMaille & In,
+             const std::string & aDir
+         )
+{
+   const cImage_Profondeur & aIP = In.Image_Profondeur().Val();
+   return Pix2Pix
+          (
+             Out,
+             Tiff_Im::StdConvGen(aDir+aIP.Image(),1,true,false).in(),
+             In
+          );
+}
+/*
+*/
+
+cElNuage3DMaille * NuageWithoutDataWithModel(const std::string & aName,const std::string & aModel)
+{
+   cXML_ParamNuage3DMaille aParam =   XML_Nuage(aName);
+
+   if (aModel!="")
+   {
+       cXML_ParamNuage3DMaille aPMod =   XML_Nuage(aModel);
+       aParam.Image_Profondeur().Val().OrigineAlti() = aPMod.Image_Profondeur().Val().OrigineAlti();
+       aParam.Image_Profondeur().Val().ResolutionAlti() = aPMod.Image_Profondeur().Val().ResolutionAlti();
+   }
+
+   return cElNuage3DMaille::FromParam
+           (
+                 aParam,
+                 DirOfFile(aName),
+                 "",
+                 1.0,
+                 (cParamModifGeomMTDNuage *) 0,
+                 true
+           );
+}
+cElNuage3DMaille * NuageWithoutData(const std::string & aName)
+{
+    return NuageWithoutDataWithModel(aName,"");
+}
+
+bool GeomCompatForte(cElNuage3DMaille * aN1,cElNuage3DMaille *aN2)
+{
+    if (aN1->SzGeom() != aN2->SzGeom()) return false;
+
+    Box2dr aBox (Pt2dr(1,1),Pt2dr(aN1->SzGeom())-Pt2dr(1,1));
+
+    for (int aK = 0 ; aK< 10 ; aK++)
+    {
+         Pt2dr aP = aBox.RandomlyGenereInside();
+
+         Pt3dr aQ3_1 = aN1->Loc_IndexAndProfPixel2Euclid(aP,10.0);
+         Pt3dr aQ3_2 = aN2->Loc_IndexAndProfPixel2Euclid(aP,10.0);
+
+         if (euclid(aQ3_1-aQ3_2) > 1e-5) return false;
+    }
+
+    return true;
+}
+
+
 
 
 

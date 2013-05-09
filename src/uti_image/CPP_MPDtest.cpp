@@ -146,27 +146,35 @@ void TestKL()
 extern void TestDigeoExt();
 
 
+void TestXMLNuageNodData()
+{
+    std::string aN1 = "/media/data2/Aerien/Euro-SDR/Munich/Cloud-Fusion/CF-42_0502_PAN.xml";
+    std::string aN2 = "/media/data2/Aerien/Euro-SDR/Munich/MEC2Im-true-42_0502_PAN.tif-41_0420_PAN.tif/NuageImProf_LeChantier_Etape_8.xml";
+    for (int aK=0 ; aK<1000 ; aK++)
+    {
+       cElNuage3DMaille * aC1 =  NuageWithoutData(aN1);
+       // cElNuage3DMaille * aC2 =  NuageWithoutData(aN2);
+       cElNuage3DMaille * aC2 =  NuageWithoutDataWithModel(aN2,aN1);
+       cElNuage3DMaille * aC3 =  NuageWithoutData(aN2);
+       std::cout << "C1= " << aC1->SzData()  << " " << aC2->SzData()  << "\n";
+       std::cout << "C1= " << aC1->SzGeom()  << " " << aC2->SzGeom()  << "\n";
+       std::cout << "COMPAT " <<   GeomCompatForte(aC1,aC2) << "\n";
+       std::cout << "COMPAT " <<   GeomCompatForte(aC1,aC3) << "\n";
+       // std::cout << "C1= " << aC1->SzUnique()  << " " << aC2->SzUnique()  << "\n";
+       getchar();
+       delete aC1;
+    }
+}
+
+
 
 int MPDtest_main (int argc,char** argv)
 {
-   TestDigeoExt();
+   TestXMLNuageNodData();
    return 0;
 //    TestKL();
 //    BanniereMM3D();
    // AutoCorrel(argv[1]);
-   double aNan = strtod("NAN(teta01)", NULL);
-   std::cout << "Nan=" << aNan << "\n";
-
-    float aX = 6e6;
-    for (int aK=0 ; aK<100000; aK++)
-    {
-          float aY = aX + (aK*1e-5);
-          float aDif = (aX-aY);
-          std::cout << "TTT " << aK << " " << aDif  << " " <<  (aK*1e-5) << "\n";
-
-          if (aDif != 0)
-             getchar();
-    }
 
     return EXIT_SUCCESS;
 }

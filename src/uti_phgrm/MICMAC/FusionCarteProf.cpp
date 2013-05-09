@@ -48,11 +48,13 @@ using namespace NS_SuperposeImage;
 /*                                                                   */
 /*********************************************************************/
 
-template <class Type> class  cLoadedCP;
-template <class Type> class cFusionCarteProf;
+template <class Type> class  cLoadedCP;        // Represente une carte de profondeur chargee
+template <class Type> class cFusionCarteProf;  // Represente l'appli globale
 
 class cElPile;
 
+class fPPile;  // Functeur : renvoie le poids
+class fZPile;  // Functer : renvoie le Z
     //=================================
 
 class cElPile
@@ -64,28 +66,38 @@ class cElPile
         {
         }
 
-        const double & Z() const {return mZ;}
-        const double & P() const {return mP;}
+        void InitTmp(const cTplCelNapPrgDyn<cElPile> & aCel)
+        {
+            *this = aCel.ArgAux();
+        }
+        cElPile() :
+           mZ(0), 
+           mP(-1) 
+        {
+        }
+
+        const float & Z() const {return mZ;}
+        const float & P() const {return mP;}
     private :
-        double mZ;
-        double mP;
+        float mZ;
+        float mP;
 };
 
 bool operator < (const cElPile & aP1, const cElPile & aP2) {return aP1.Z() < aP2.Z();}
 
-class PPile
+class fPPile
 {
     public :
        double operator ()(const cElPile & aPile) const {return aPile.P();}
 };
-static PPile ThePPile;
-class ZPile
+static fPPile ThePPile;
+class fZPile
 {
     public :
        typedef double tValue;
        double operator ()(const cElPile & aPile) const {return aPile.Z();}
 };
-static ZPile TheZPile;
+static fZPile TheZPile;
 
 
 
@@ -98,18 +110,25 @@ template <class Type> class  cLoadedCP
         typedef  Type  tNum;
         typedef  typename El_CTypeTraits<tNum>::tBase  tNBase;
 
+        //typedef  float  tNum;
+        // typedef  double  tNBase;
+
         cLoadedCP(cFusionCarteProf<Type> &, const std::string & anId,const std::string & aFus);
         const cXML_ParamNuage3DMaille & Nuage() {return mNuage;}
 
-        cElPile  ElPile(const Pt2dr &) const;
+        cElPile  CreatePile(const Pt2dr &) const;
+        double   PdsLinear(const Pt2dr &) const;
 
         void  SetSz(const Pt2di & aSz);
         bool  ReLoad(const Box2dr & aBoxTer) ;
+        const  cImage_Profondeur & IP() {return mIP;}
 
     private :
 
         cFusionCarteProf<Type>  & mFCP;
         const cParamFusionMNT & mParam;
+        const cParamAlgoFusionMNT & mPAlg;
+        double                      mSeuilC;
         cInterfChantierNameManipulateur * mICNM;
 
         std::string   mNameNuage;
@@ -139,33 +158,86 @@ template <class Type> class  cLoadedCP
         std::string        mNameCorrel;
         Im2D_U_INT1        mImCorrel;
         TIm2D<U_INT1,INT>  mTImCorrel;
+        bool               mZIsInv;
+
 
 };
 
 
 
+static const double MulCost = 1e3;
 
 template <class Type> class cFusionCarteProf
 {
      public :
-          typedef  Type  tNum;
-          typedef  typename El_CTypeTraits<tNum>::tBase  tNBase;
+        int ToICost(double aCost) {return round_ni(MulCost * aCost);}
 
-          cFusionCarteProf(const cResultSubstAndStdGetFile<cParamFusionMNT>  & aP);
+        typedef  Type  tNum;
+        typedef  typename El_CTypeTraits<tNum>::tBase  tNBase;
+
+      //=================================================================
+      // Interface pour utiliser la prog dyn
+      //=================================================================
+         //-------- Pre-requis 
+            typedef  cElPile tArgCelTmp;
+            typedef  cElPile tArgNappe;
+
+         //-------- Pas pre-requis mais aide a la declaration
+            typedef  cTplCelNapPrgDyn<tArgNappe>    tCelNap;
+            typedef  cTplCelOptProgDyn<tArgCelTmp>  tCelOpt;
+
+         //-------- Pre-requis 
+           void DoConnexion
+           (
+                  const Pt2di & aPIn, const Pt2di & aPOut,
+                  ePrgSens aSens,int aRab,int aMul,
+                  tCelOpt*Input,int aInZMin,int aInZMax,
+                  tCelOpt*Ouput,int aOutZMin,int aOutZMax
+           );
+           void GlobInitDir(cProg2DOptimiser<cFusionCarteProf> &);
+
+          // -- Comlement
+                void DoConexTrans
+                     (
+                                  tCelOpt & aCelIn,
+                                  tCelOpt & aCelOut,
+                                  ePrgSens aSens
+                     );
+
+      //=================================================================
+
+      // typedef  float  tNum;
+      // typedef  double  tNBase;
+
+          cFusionCarteProf(const cResultSubstAndStdGetFile<cParamFusionMNT>  & aP,const std::string & aCom);
           const cParamFusionMNT & Param() {return mParam;}
           cInterfChantierNameManipulateur *ICNM() {return mICNM;}
      private :
 
+          std::vector<cElPile> ComputeEvidence(const std::vector<cElPile> & aPile);
+          cElPile ComputeOneEvidence(const std::vector<cElPile> & aPile,const cElPile aP0);
+          const cElPile * BestElem(const std::vector<cElPile> & aPile);
+
+           double ToZSauv(double aZ) const;
+
           void DoOneBloc(int aKB,const Box2di & aBoxIn,const Box2di & aBoxOut);
           void DoOneFusion(const std::string &);
           void DoCalc();
-          void DoMake();
 
           cParamFusionMNT mParam;
-          double          mPerc;
+          std::string     mCom;
+          const cSpecAlgoFMNT & mSpecA;
+          const cFMNtBySort *    mFBySort;
+          const cFMNtByMaxEvid * mFByEv;
+          const cFMNT_ProgDyn  * mFPrgD;
+          const cFMNT_GesNoVal * mFNoVal;
+          double                 mSigmaP;
+          double                 mSigmaZ;
           cInterfChantierNameManipulateur * mICNM;
           std::vector<std::string>          mGenRes;
-          bool                              mCalledByMkf;
+          bool                                    mCalledByMkf;
+          bool                                    mDoByMkF;
+          bool                                    mGenereMkF;
           std::vector<cLoadedCP<Type> *>          mVC;
           std::vector<cLoadedCP<Type> *>          mVCL;
           cXML_ParamNuage3DMaille                 mNuage;
@@ -178,8 +250,8 @@ template <class Type> class cFusionCarteProf
           Pt2di                                   mSzCur;
           std::string                             mNameTif;
           std::string                             mNameMasq;
-
-          
+          bool                                    mZIsInv;
+          std::list<std::string>                  mListCom;
 };
 
 
@@ -192,6 +264,8 @@ template <class Type> class cFusionCarteProf
 template <class Type>  cLoadedCP<Type>::cLoadedCP(cFusionCarteProf<Type> & aFCP, const std::string & anId,const std::string & aFus) :
   mFCP     (aFCP),
   mParam   (aFCP.Param()),
+  mPAlg    (mParam.ParamAlgoFusionMNT()),
+  mSeuilC  (mPAlg.FMNTSeuilCorrel()),
   mICNM    (aFCP.ICNM()),
 
   mNameNuage  (mICNM->Dir()+mICNM->Assoc1To2(mParam.KeyNuage(),anId,aFus,true)),
@@ -222,29 +296,15 @@ template <class Type>  cLoadedCP<Type>::cLoadedCP(cFusionCarteProf<Type> & aFCP,
   mHasCorrel (mIP.Correl().IsInit()),
   mNameCorrel (mHasCorrel ? mDirNuage+mIP.Correl().Val() : ""),
   mImCorrel   (1,1),
-  mTImCorrel  (mImCorrel)
+  mTImCorrel  (mImCorrel),
+  mZIsInv     (false)
 
 {
+
+
+   if (mNuage.ModeFaisceauxImage().IsInit())
+      mZIsInv = mNuage.ModeFaisceauxImage().Val().ZIsInverse();
 }
-/*
-   mImCP.Resize(mSz);
-   mTImCP = TIm2D<tNum,tNBase>(mImCP);
-   ELISE_COPY(mImCP.all_pts(),mTifCP.in(),mImCP.out());
-
-   mImMasq = Im2D_Bits<1>(mSz.x,mSz.y);
-   ELISE_COPY(mImMasq.all_pts(),mTifMasq.in(),mImMasq.out());
-   mTImMasq = TIm2DBits<1>(mImMasq);
-
-   if (mHasCorrel)
-   {
-       Tiff_Im aTifCorrel = Tiff_Im::StdConv(mNameCorrel);
-       mImCorrel.Resize(mSz);
-       ELISE_COPY(mImCorrel.all_pts(),aTifCorrel.in(),mImCorrel.out());
-       mTImCorrel = Im2D<U_INT1,INT>(mImCorrel);
-   }
-   std::cout << mNameCP << " " << mSz << "\n";
-*/
-
 
 template <class Type> void  cLoadedCP<Type>::SetSz(const Pt2di & aSz)
 {
@@ -266,7 +326,6 @@ template <class Type> void  cLoadedCP<Type>::SetSz(const Pt2di & aSz)
 
 template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer) 
 {
-   // Box2dr aRBoxImCur = aBoxTer.BoxImage(mAfM2CGlob);
    mBoxImCur =  R2I(aBoxTer.BoxImage(mAfM2CGlob));
    if (InterVide(mBoxImCur,mBoxImGlob))
    {
@@ -290,33 +349,40 @@ template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer)
    return true;
 }
 
-template <class Type> cElPile  cLoadedCP<Type>::ElPile(const Pt2dr & aPTer) const
+template <class Type> double  cLoadedCP<Type>::PdsLinear(const Pt2dr & aPTer) const
 {
    Pt2dr aPIm = mAfM2CCur(aPTer);
    double aPds = mTImMasq.get(round_ni(aPIm),0);
-   double aZ = 0;
    if (aPds > 0)
    {
        if (mHasCorrel)
        {
            aPds = mTImCorrel.getprojR(aPIm);
            aPds = (aPds -128.0) / 128.0;
-
-           if (aPds<0) aPds = (aPds+1) / 100.0;
-           else if (aPds<0.5)
-               aPds = 0.01 + aPds;
-           else 
-               aPds = 0.51 + (aPds-0.5) * 10;
-           aPds = ElMax(0.0,aPds);
-           aPds = pow(aPds,2);
-
-           if (aPds < 1e-4) aPds = 0.0;
+           aPds = (aPds-mSeuilC)/(1.0-mSeuilC);
        }
+       return ElMin(1.0,ElMax(0.0,aPds));
    }
+   return 0;
+}
+
+
+template <class Type> cElPile  cLoadedCP<Type>::CreatePile(const Pt2dr & aPTer) const
+{
+   Pt2dr aPIm = mAfM2CCur(aPTer);
+   double aPds = PdsLinear(aPTer);
+   //double aPds = mTImMasq.get(round_ni(aPIm),0);
+   double aZ = 0;
 
    if (aPds > 0)
    {
+      aPds = pow(aPds,mPAlg.FMNTGammaCorrel());
+   }
+   if (aPds > 0)
+   {
        aZ = mIP.OrigineAlti() +  mTImCP.getprojR(aPIm) * mIP.ResolutionAlti();
+       if (mZIsInv)
+          aZ= 1.0/aZ;
    }
    return cElPile(aZ,aPds);
 }
@@ -330,6 +396,69 @@ template <class Type> cElPile  cLoadedCP<Type>::ElPile(const Pt2dr & aPTer) cons
 /*                      cFusionCarteProf                              */
 /*                                                                    */
 /**********************************************************************/
+
+template <class Type> cElPile  cFusionCarteProf<Type>::ComputeOneEvidence(const std::vector<cElPile> & aPile,const cElPile aP0)
+{
+    double aSomPp = 0;
+    double aSomPz = 0;
+    double aSomZ = 0;
+    const float & aZ0 = aP0.Z();
+    for (int aKp=0 ; aKp<int(aPile.size()) ; aKp++)
+    {
+        const cElPile & aPilK = aPile[aKp];
+        const float & aPk = aPilK.P();
+        if (aPk)
+        {
+            const float & aZk = aPilK.Z();
+            double aDz = ElAbs(aZ0-aZk);
+            if (aDz<mFByEv->MaxDif().Val())
+            {
+                 double aPp = exp(-ElSquare(aDz/mSigmaP)) * aPk;
+                 double aPz = exp(-ElSquare(aDz/mSigmaZ)) * aPk;
+
+                 aSomPp += aPp;
+                 aSomPz += aPz;
+                 aSomZ += aPz * aZk;
+            }
+        }
+    }
+
+    if (aSomPz>0) 
+       aSomZ /= aSomPz;
+    else
+       aSomPp =0;
+
+    return cElPile(aSomZ,aSomPp);
+}
+
+template <class Type> std::vector<cElPile>  cFusionCarteProf<Type>::ComputeEvidence(const std::vector<cElPile> & aPile)
+{
+    std::vector<cElPile> aRes;
+    for (int aKp=0 ; aKp<int(aPile.size()) ; aKp++)
+    {
+         aRes.push_back(ComputeOneEvidence(aPile,aPile[aKp]));
+    }
+    return aRes;
+}
+
+
+template <class Type> const cElPile * cFusionCarteProf<Type>::BestElem(const std::vector<cElPile> & aPile)
+{
+    int aBesK=0 ;
+    float aBestP=-1;
+
+    for (int aKp=0 ; aKp<int(aPile.size()) ; aKp++)
+    {
+        if (aPile[aKp].P() > aBestP)
+        {
+           aBesK = aKp;
+           aBestP= aPile[aKp].P();
+        }
+        
+    }
+    return &(aPile[aBesK]);
+}
+ 
 
 template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string & anId)
 {
@@ -348,6 +477,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
         ELISE_ASSERT(false,"No data in DoOneFusion");
     }
 
+ 
     for (int aK=0 ; aK<int(aStrFus.size()) ; aK++)
     {
           mVC.push_back(new cLoadedCP<Type>(*this,anId,aStrFus[aK]));
@@ -357,7 +487,8 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
     {
        mNuage = StdGetObjFromFile<cXML_ParamNuage3DMaille>
                 (
-                     mParam.ModeleNuageResult().Val(),
+                     //mParam.ModeleNuageResult().Val(),
+                     mICNM->Assoc1To1(mParam.ModeleNuageResult().Val(),anId,true),
                      StdGetFileXMLSpec("SuperposImage.xml"),
                      "XML_ParamNuage3DMaille",
                      "XML_ParamNuage3DMaille"
@@ -366,7 +497,29 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
     else
     {
          mNuage = mVC[0]->Nuage();
+         double aSomResolAlti = 0;
+         double aSomOriAlti = 0;
+         for (int aK=0 ; aK<int(mVC.size()) ; aK++)
+         {
+              double aResol = mVC[aK]->IP().ResolutionAlti();
+              double anOri = mVC[aK]->IP().OrigineAlti();
+
+              //  std::cout << "VVVa " <<  aK << " " << anOri  << " " << aResol << "\n";
+              aSomResolAlti += aResol;
+              aSomOriAlti += anOri;
+         }
+
+         aSomResolAlti /=  mVC.size();
+         aSomOriAlti /=  mVC.size();
+         //  std::cout << "MOYYYY " << aSomOriAlti  << " " << aSomResolAlti << "\n";
+
+         mNuage.Image_Profondeur().Val().ResolutionAlti() = aSomResolAlti;
+         mNuage.Image_Profondeur().Val().OrigineAlti() = aSomOriAlti;
     }
+   mZIsInv = false;
+   if (mNuage.ModeFaisceauxImage().IsInit())
+      mZIsInv = mNuage.ModeFaisceauxImage().Val().ZIsInverse();
+
     mIP = &(mNuage.Image_Profondeur().Val());
     mIP->Image() = NameWithoutDir(mNameTif) ;
     mIP->Masq() =  NameWithoutDir(mNameMasq);
@@ -376,8 +529,34 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
     mAfC2MGlob = mAfM2CGlob.inv();
     mSzGlob = mNuage.NbPixel();
 
+    if (! mCalledByMkf)
+    {
+       bool IsModified;
+       Im2D<tNum,tNBase> aITest(1,1);
+       Tiff_Im::CreateIfNeeded
+       (
+              IsModified,
+              mNameTif,
+              mSzGlob,
+              aITest.TypeEl(),
+              Tiff_Im::No_Compr,
+              Tiff_Im::BlackIsZero
+       );
 
-   cDecoupageInterv2D aDecoup = cDecoupageInterv2D::SimpleDec
+       Tiff_Im  aTifMasq = Tiff_Im::CreateIfNeeded
+                         (
+                             IsModified,
+                             mNameMasq,
+                             mSzGlob,
+                             GenIm::bits1_msbf,
+                             Tiff_Im::No_Compr,
+                             Tiff_Im::BlackIsZero
+                         );
+       MakeFileXML(mNuage,aNameNuage);
+    }
+
+
+    cDecoupageInterv2D aDecoup = cDecoupageInterv2D::SimpleDec
                                 (
                                      mSzGlob,
                                      mParam.SzDalles().Val(),
@@ -386,16 +565,37 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
 
    for (int aKI=0 ; aKI<aDecoup.NbInterv() ; aKI++)
    {
-       DoOneBloc
-       (
-           aDecoup.NbInterv()-aKI,
-           aDecoup.KthIntervIn(aKI),
-           aDecoup.KthIntervOut(aKI)
-       );
+
+       if (mGenereMkF)
+       {
+            std::string aNewCom =   mCom 
+                                  + std::string(" InterneCalledByProcess=true")
+                                  + std::string(" InterneSingleImage=") +  anId
+                                  + std::string(" InterneSingleBox=") + ToString(aKI);
+            mListCom.push_back(aNewCom);
+       }
+       else
+       {
+           if ((!mCalledByMkf) || (mParam.InterneSingleBox().Val()==aKI))
+           {
+              DoOneBloc
+              (
+                  aDecoup.NbInterv()-aKI,
+                  aDecoup.KthIntervIn(aKI),
+                  aDecoup.KthIntervOut(aKI)
+              );
+           }
+       }
    }
 
-   MakeFileXML(mNuage,aNameNuage);
    DeleteAndClear(mVC);
+}
+
+
+template <class Type> double cFusionCarteProf<Type>::ToZSauv(double aZ) const
+{
+   if (mZIsInv) aZ = 1/aZ;
+   return  (aZ -mIP->OrigineAlti()) / mIP->ResolutionAlti();
 }
 
 template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2di & aBoxIn,const Box2di & aBoxOut)
@@ -424,6 +624,41 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
           mVCL.push_back(mVC[aK]);
    }
 
+   cProg2DOptimiser<cFusionCarteProf>  * aPrgD = 0;
+   TIm2D<INT2,INT>  aTIm0(Pt2di(1,1));
+   TIm2D<INT2,INT>  aTImNb(Pt2di(1,1));
+   
+
+   if (mFPrgD)
+   {
+      aTIm0.Resize(mSzCur);
+      aTImNb.Resize(mSzCur);
+
+      Pt2di aQ0;
+      for (aQ0.y = 0 ; aQ0.y < mSzCur.y; aQ0.y++)
+      {
+           for (aQ0.x = 0 ; aQ0.x < mSzCur.x; aQ0.x++)
+           {
+               int aNbOk =0;
+               for (int aKI=0 ; aKI<int(mVCL.size()); aKI++)
+               {
+                   Pt2dr aT0 = mAfC2MCur(Pt2dr(aQ0));
+                   double aPds =  mVCL[aKI]->PdsLinear(aT0);
+                   if (aPds >0) 
+                   {
+                      aNbOk ++;
+                   }
+               }
+               aTIm0.oset(aQ0,-1); // Bug dans prog dyn si nappes vides
+               aTImNb.oset(aQ0,aNbOk);
+           }
+      }
+      aPrgD = new cProg2DOptimiser<cFusionCarteProf>(*this,aTIm0._the_im,aTImNb._the_im,0,1);
+  }
+   
+
+
+
    std::vector<cElPile> aPCel;
    Pt2di aQ0;
    for (aQ0.y = 0 ; aQ0.y < mSzCur.y; aQ0.y++)
@@ -434,7 +669,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
             aPCel.clear();
             for (int aKI=0 ; aKI<int(mVCL.size()); aKI++)
             {
-                cElPile anEl = mVCL[aKI]->ElPile(aT0);
+                cElPile anEl = mVCL[aKI]->CreatePile(aT0);
                 if (anEl.P()>0)
                 {
                    aPCel.push_back(anEl);
@@ -445,147 +680,210 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
             if (aPCel.size() >0)
             {
                 std::sort(aPCel.begin(),aPCel.end());
+                std::vector<cElPile> aNewV;
+                const cElPile * aBestP = 0;
 
-                double aSomP = SomPerc(aPCel,ThePPile);
-                aZ = GenValPdsPercentile(aPCel,mPerc,TheZPile,ThePPile,aSomP);
-                aZ = (aZ -mIP->OrigineAlti()) / mIP->ResolutionAlti();
+                if (mFBySort)
+                {
+                   double aSomP = SomPerc(aPCel,ThePPile);
+                   aZ = GenValPdsPercentile(aPCel,mFBySort->PercFusion().Val(),TheZPile,ThePPile,aSomP);
+                }
+                else if (mFByEv)
+                {
+                    aNewV =   ComputeEvidence(aPCel);
+                    aBestP = BestElem(aNewV);
+                    aZ = aBestP->Z();
+                }
+                if (aPrgD)
+                {
+                    //typedef  cTplCelNapPrgDyn<tArgNappe>    tCelNap;
+                    // cTplCelNapPrgDyn
+                    tCelNap * aCol =  aPrgD->Nappe().Data()[aQ0.y][aQ0.x];
+                    ELISE_ASSERT(int(aNewV.size()) ==aTImNb.get(aQ0),"Incoh aPCel.size() ==aTImNb.get(aQ0)");
+
+                    for (int aK=0 ; aK< int(aPCel.size()) ; aK++)
+                    {
+                         // aCol[aK].SetOwnCost(ToICost(0));
+                         aCol[aK].SetOwnCost(ToICost(aBestP->P()-aNewV[aK].P()));
+                         // aCol[aK].SetOwnCost(ToICost(ElAbs(aQ0.x-aK)%3));
+                         aCol[aK].ArgAux() = aNewV[aK];
+                    }
+//std::cout << "Bestt Ppp " << aBestP->P() << " " << aNewV.size() << "\n";
+                    double aCostNV = mFNoVal  ?
+                                     (aBestP->P()* mFNoVal->GainNoVal()) :
+                                     (10+aNewV.size()+aBestP->P() * 2);
+                    aCol[-1].SetOwnCost(ToICost(aCostNV));
+                }
+                else
+                {
+                   aZ = ToZSauv(aZ);
+                   //   if (:mZIsInv) aZ = 1/aZ;
+                   //   aZ = (aZ -mIP->OrigineAlti()) / mIP->ResolutionAlti();
+                }
                 Ok=1;
             }
-            aTImFus.oset(aQ0,(tNBase)aZ);
+            if (! aPrgD)
+            {
+               aTImFus.oset(aQ0,(tNBase)aZ);
+            }
             aTImMasq.oset(aQ0,(tNBase)Ok);
         }
+   }
+
+
+   if (aPrgD)
+   {
+       aPrgD->DoOptim(mFPrgD->NbDir());
+       Im2D_INT2 aSol(mSzCur.x,mSzCur.y);
+       INT2 ** aDSol = aSol.data();
+       aPrgD->TranfereSol(aDSol);
+       for (aQ0.y = 0 ; aQ0.y < mSzCur.y; aQ0.y++)
+       {
+            for (aQ0.x = 0 ; aQ0.x < mSzCur.x; aQ0.x++)
+            {
+                int aZ = aDSol[aQ0.y][aQ0.x];
+                tCelNap & aCol =  aPrgD->Nappe().Data()[aQ0.y][aQ0.x][aZ];
+                if (aZ>=0)
+                {
+                   aTImFus.oset(aQ0,ToZSauv(aCol.ArgAux().Z()));
+                }
+                else
+                {
+                     aTImMasq.oset(aQ0,0);
+                }
+            }
+       }
    }
 
    if (1)
    {
         Im2D_Bits<1>       aIm1(mSzCur.x,mSzCur.y,1);
         TIm2DBits<1>       aTIm1(aIm1);
-        ComplKLipsParLBas ( aTIm1, aTImMasq, aTImFus);
+        ComplKLipsParLBas (aImMasq, aIm1,aImFus,1.0);
    }
 
-   bool IsModified;
-   Tiff_Im  aTifFusion = Tiff_Im::CreateIfNeeded
-                         (
-                             IsModified,
-                             mNameTif,
-                             mSzGlob,
-                             aImFus.TypeEl(),
-                             Tiff_Im::No_Compr,
-                             Tiff_Im::BlackIsZero
-                         );
 
 
    ELISE_COPY
    (
        rectangle(aBoxOut._p0,aBoxOut._p1),
        trans(aImFus.in(),-aBoxIn._p0),
-       aTifFusion.out()
+       Tiff_Im(mNameTif.c_str()).out()
    );
 
-   Tiff_Im  aTifMasq = Tiff_Im::CreateIfNeeded
-                         (
-                             IsModified,
-                             mNameMasq,
-                             mSzGlob,
-                             aImMasq.TypeEl(),
-                             Tiff_Im::No_Compr,
-                             Tiff_Im::BlackIsZero
-                         );
+
    ELISE_COPY
    (
        rectangle(aBoxOut._p0,aBoxOut._p1),
        trans(aImMasq.in(),-aBoxIn._p0),
-       aTifMasq.out()
+       Tiff_Im(mNameMasq.c_str()).out()
    );
 
    // std::cout << "ENnnndd \n"; getchar();
 }
-/*
+
+template <class Type>   void cFusionCarteProf<Type>::DoConexTrans
+                             (
+                                  tCelOpt & aCelIn,
+                                  tCelOpt & aCelOut,
+                                  ePrgSens aSens
+                             )
 {
+    aCelOut.UpdateCostOneArc(aCelIn,aSens,(mFNoVal?mFNoVal->Trans():0));
+}
 
-    Im2D<tNum,tNBase>  aImFus(mSz.x,mSz.y);
-    TIm2D<tNum,tNBase> aTImFus(aImFus);
-
-    Im2D_Bits<1>       aImMasq(mSz.x,mSz.y);
-    TIm2DBits<1>       aTImMasq(aImMasq);
-   // Prepare le decoupage par bloc 
-    mVCL = mVC;
-
-    std::vector<cElPile> aPCel;
-    Pt2di aQ0;
-    for (aQ0.y = 0 ; aQ0.y < mSz.y; aQ0.y++)
+template <class Type>   void cFusionCarteProf<Type>::DoConnexion
+                             (
+                                    const Pt2di & aPIn, const Pt2di & aPOut,
+                                    ePrgSens aSens,int aRab,int aMul,
+                                    tCelOpt*aTabInput,int aInZMin,int aInZMax,
+                                    tCelOpt*aTabOuput,int aOutZMin,int aOutZMax
+                             )
+{
+    double aSig0 = mFPrgD->Sigma0();
+    for (int aZIn=0 ; aZIn<aInZMax ; aZIn++)
     {
-        if ((aQ0.y%100)==0) 
-             std::cout << "Reste " << mSz.y - aQ0.y << "\n";
-        for (aQ0.x = 0 ; aQ0.x < mSz.x; aQ0.x++)
+        tCelOpt & anInp = aTabInput[aZIn];
+        const  cElPile & aPIn = anInp.ArgAux();
+        for (int aZOut=0 ; aZOut<aOutZMax ; aZOut++)
         {
-            Pt2dr aT0 = mAfC2M(Pt2dr(aQ0));
-            aPCel.clear();
-            for (int aKI=0 ; aKI<int(mVCL.size()); aKI++)
+            tCelOpt & anOut = aTabOuput[aZOut];
+            const  cElPile & aPOut = anOut.ArgAux();
+            double aDZ = ElAbs(aPIn.Z()-aPOut.Z());
+            if ((mFNoVal==0) || (aDZ < mFNoVal->PenteMax()))
             {
-                cElPile anEl = mVCL[aKI]->ElPile(aT0);
-                if (anEl.P()>0)
-                {
-                   aPCel.push_back(anEl);
-                }
+                 double aCost = (sqrt(1+aDZ/aSig0)-1) * 2*aSig0 * mFPrgD->Regul();
+                 anOut.UpdateCostOneArc(anInp,aSens,ToICost(aCost));
             }
-            int Ok= 0;
-            double aZ=0;
-            if (aPCel.size() >0)
-            {
-                std::sort(aPCel.begin(),aPCel.end());
-
-                double aSomP = SomPerc(aPCel,ThePPile);
-                aZ = GenValPdsPercentile(aPCel,50.0,TheZPile,ThePPile,aSomP);
-                aZ = (aZ -mIP->OrigineAlti()) / mIP->ResolutionAlti();
-                Ok=1;
-            }
-            else
-            {
-            }
-            aTImFus.oset(aQ0,aZ);
-            aTImMasq.oset(aQ0,Ok);
         }
     }
 
-    Tiff_Im::CreateFromIm(aImFus,aNameTif);
-    Tiff_Im::CreateFromIm(aImMasq,mNameMasq);
-
-
+    aTabOuput[-1].UpdateCostOneArc(aTabInput[-1],aSens,0);
+    for (int aZIn=0 ; aZIn<aInZMax ; aZIn++)
+    {
+        DoConexTrans(aTabInput[aZIn],aTabOuput[-1],aSens);
+    }
+    for (int aZOut=0 ; aZOut<aOutZMax ; aZOut++)
+    {
+        DoConexTrans(aTabInput[-1],aTabOuput[aZOut],aSens);
+    }
 }
-*/
+
+
+template <class Type> void cFusionCarteProf<Type>::GlobInitDir(cProg2DOptimiser<cFusionCarteProf> &)
+{
+    // std::cout << "===========DO ONE DIR \n";
+}
+
+
 
 template <class Type> void cFusionCarteProf<Type>::DoCalc()
 {
    for (int aKS=0 ; aKS<int(mGenRes.size()) ; aKS++)
    {
-       DoOneFusion(mGenRes[aKS]);
+       if ((!mCalledByMkf) || (mGenRes[aKS]==mParam.InterneSingleImage().Val()))
+       {
+          DoOneFusion(mGenRes[aKS]);
+       }
    }
     
-}
-
-template <class Type> void cFusionCarteProf<Type>::DoMake()
-{
 }
 
 
 
 template <class Type> cFusionCarteProf<Type>::cFusionCarteProf
 (
-       const cResultSubstAndStdGetFile<cParamFusionMNT>  & aParam
+       const cResultSubstAndStdGetFile<cParamFusionMNT>  & aParam,
+       const std::string &                                 aCom
 )  :
-     mParam   (*(aParam.mObj)),
-     mPerc    (mParam.PercFusion().Val()),
-     mICNM    (aParam.mICNM),
-     mGenRes  (GetStrFromGenStr(mICNM,mParam.GenereRes())),
-     mCalledByMkf  (mParam.InterneParalDoOnlyOneRes().Val() != "")
+     mParam        (*(aParam.mObj)),
+     mCom          (aCom),
+     mSpecA        (mParam.SpecAlgoFMNT()),
+     mFBySort      (mSpecA.FMNtBySort().PtrVal()),
+     mFByEv        (mSpecA.FMNtByMaxEvid().PtrVal()),
+     mFPrgD        (mFByEv ? mFByEv->FMNT_ProgDyn().PtrVal() : 0),
+     mFNoVal       (mFPrgD ? mFPrgD->FMNT_GesNoVal().PtrVal() : 0),
+     mICNM         (aParam.mICNM),
+     mGenRes       (GetStrFromGenStr(mICNM,mParam.GenereRes())),
+     mCalledByMkf  (mParam.InterneCalledByProcess().Val()),
+     mDoByMkF      (mParam.ParalMkF().IsInit()),
+     mGenereMkF    ((!mCalledByMkf) && mDoByMkF)
 {
-    if (mCalledByMkf)
+// std::cout << "mCalledByMkf " << mCalledByMkf << "\n"; getchar();
+    if (mFByEv)
     {
-         mGenRes.clear();
-         mGenRes.push_back(mParam.InterneParalDoOnlyOneRes().Val());
+          mSigmaP = mFByEv->SigmaPds();
+          mSigmaZ =  mFByEv->SigmaZ().ValWithDef(mSigmaP);
     }
-    if ((mParam.ParalMkF().Val() != "") && (! mCalledByMkf))
+
+    DoCalc();
+
+    if (mGenereMkF)
+    {
+        cEl_GPAO::DoComInParal(mListCom,mParam.ParalMkF().Val());
+    }
+/*
+    if (mParam.ParalMkF().IsInit()  && (! mCalledByMkf))
     {
         DoMake();
     }
@@ -593,6 +891,7 @@ template <class Type> cFusionCarteProf<Type>::cFusionCarteProf
     {
         DoCalc();
     }
+*/
 }
 
 
@@ -601,16 +900,15 @@ template <class Type> cFusionCarteProf<Type>::cFusionCarteProf
 /*
 */
 
-#if ELISE_windows
-int __cdecl main(int argc,char ** argv)
-#else
-int main(int argc,char ** argv)
-#endif 
+int FusionCarteProf_main(int argc,char ** argv)
 {
   ELISE_ASSERT(argc>=2,"Not Enough args to FusionMNT.cpp");
   MMD_InitArgcArgv(argc,argv);
 
   Tiff_Im::SetDefTileFile(50000);
+
+  std::string aCom0 = "mm3d "+ MakeStrFromArgcARgv(argc,argv);
+  // std::cout << aCom0 << "\n"; getchar();
 
 
   cResultSubstAndStdGetFile<cParamFusionMNT> aP2
@@ -624,7 +922,7 @@ int main(int argc,char ** argv)
                                               "FileChantierNameDescripteur"
                                            );
 
-  cFusionCarteProf<INT2>  aFCP(aP2);
+  cFusionCarteProf<float>  aFCP(aP2,aCom0);
   return 0;
 }
 

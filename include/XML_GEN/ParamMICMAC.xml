@@ -179,6 +179,9 @@ namespace NS_ParamMICMAC{
          <eAlgoDequant> </eAlgoDequant>
          <eAlgoLeastSQ> </eAlgoLeastSQ>
          <eAlgoTestGPU>  </eAlgoTestGPU>
+ <!-- Peut sembler bizare, l'interet est lorque l'on veut utiliser des fonctionnalités
+     annexes t.q les partie cachees, en reentrant d'un MNT externe -->
+         <eAlgoIdentite> </eAlgoIdentite>
    </enum>
 
    <enum Name="eModeInterpolation">
@@ -487,6 +490,15 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
              <Px1IncZonage Nb="?" Type="double">    </Px1IncZonage>
              <Px2IncZonage Nb="?" Type="double">    </Px2IncZonage>
        </IntervParalaxe>
+
+
+       <!-- Remplace le MNT INIT , sera plus general, pour l'instant implementation minimaliste,
+            exige un nuage superposable a celui du calcul 
+        -->
+       <NuageXMLInit Nb="?">
+             <NameNuageXML Nb="1" Type="std::string">       </NameNuageXML>
+             <CanAdaptGeom Nb="?" Type="bool" Def="false">  </CanAdaptGeom>
+       </NuageXMLInit>
 
        <!-- Adapte a la geometrie faisceau -->
        <IntervSpecialZInv Nb="?">
@@ -1754,6 +1766,10 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
 
 
          <DoMEC Nb="?" Def="true" Type="bool">  </DoMEC>
+         <!-- Le DoMEC ne se fera que si le fichier n'existe pas -->
+         <NonExistingFileDoMEC Nb="?"  Type="std::string"> </NonExistingFileDoMEC>
+
+
          <!-- FDC=File Description de Chantier -->
          <DoFDC Nb="?" Def="false" Type="bool">  </DoFDC>
 	 <!-- Si true genere le xml apres inclusion des fichier

@@ -317,10 +317,21 @@ cAppliMICMAC::cAppliMICMAC
    mSurfOpt        (0),
    mCorrelAdHoc    (0),
    mGIm1IsInPax    (ModeGeomIsIm1InvarPx(*aParam.mObj)),
-   mGPRed2         (0)
+   mGPRed2         (0),
+   mDoTheMEC       (true)
    // mInterpolTabule (10,8,0.0,eTabul_Bilin)
    // mInterpolTabule (10,8,0.0,eTabul_Bicub)
 {
+
+        mDoTheMEC = DoMEC().Val();
+        if (
+                  NonExistingFileDoMEC().IsInit()
+              &&  ELISE_fp::exist_file(WorkDir()+ NonExistingFileDoMEC().Val())
+              &&  (!CalledByProcess().Val())
+           )
+        {
+            mDoTheMEC = false; 
+        }
 	// NO_WARN
 	mICNM			= ( ( UseICNM( (cParamMICMAC &)(*this) ) ) ? aParam.mICNM : NULL );
 	mWM				= WithMessage().Val();
@@ -480,8 +491,11 @@ std::cout << "END TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
     // Optionnel permet de generer le fichier apres modif 
     if  ((! CalledByProcess().Val()) && (mModeAlloc==eAllocAM_STD))
     {
+/*
+        FAIT DANS LE InitMecCOMP pour etre fait avant le CreateMNTInit
         if (! DoNotOriMNT())
            GenereOrientationMnt();
+*/
 	if (! DoNotExtendParam())
             SauvParam();
         if (! DoNotFDC())
@@ -967,6 +981,13 @@ void cAppliMICMAC::InitMecComp()
       (*itE)->SetCaracOfZoom();
    }
 
+
+   if  ((! CalledByProcess().Val()) && (mModeAlloc==eAllocAM_STD) && (! DoNotOriMNT()))
+   {
+        GenereOrientationMnt();
+   }
+   if (mEtape00) 
+       mEtape00->CreateMNTInit();
 }
 
 cCaracOfDeZoom * cAppliMICMAC::GetCaracOfDZ(int aDZ) const
@@ -1280,12 +1301,20 @@ void cAppliMICMAC::AddAnImage(const std::string & aName)
         {
             std::string aN1 = WorkDir()+ mPDV1->NameGeom();
             std::string aN2 = WorkDir()+ aNameGeom;
-            // std::cout << aN1 << " " << aN2 << "\n";
+            ElCamera * aCam1 = Cam_Gen_From_File(aN1,"OrientationConique",mICNM);
+            ElCamera * aCam2 = Cam_Gen_From_File(aN2,"OrientationConique",mICNM);
+            double aProp = aCam1->RatioInterSol(*aCam2);
+            // std::cout << aN1 << " " << aN2 << " " << aProp << "\n";
+            if (aProp < aSel.RecouvrMin())
+               return;
+
+/*
             Ori3D_Std anO1(aN1.c_str());
             Ori3D_Std anO2(aN2.c_str());
             std::string  aN0 =  mPDV1->Name();
             if (anO1.PropInter(anO2) < aSel.RecouvrMin())
                return;
+*/
             // std::cout  << aN0 << " " << aName <<  "  " << anO1.PropInter(anO2) << "\n";
         }
     }
@@ -1466,6 +1495,12 @@ inline cPriseDeVue * PDVNN(const cPriseDeVue * aPDV,int aNum)
    return const_cast<cPriseDeVue *>(aPDV);
 }
 
+
+const cEtapeMecComp * cAppliMICMAC::FirstVraiEtape() const
+{
+   ELISE_ASSERT(!mEtapesMecComp.empty(),"cAppliMICMAC::FirstVraiEtape");
+   return mEtapesMecComp.front();
+}
 
 
 
@@ -1654,12 +1689,20 @@ bool cAppliMICMAC::IsOptDequant() const
 {
    return mIsOptDequant;
 }
+bool cAppliMICMAC::IsOptIdentite() const
+{
+   return mIsOptIdentite;
+}
 
 int cAppliMICMAC::CurSurEchWCor() const
 {
    return mCurSurEchWCor;
 }
 
+bool cAppliMICMAC::DoTheMEC() const
+{
+   return mDoTheMEC;
+}
 
 const cInterfaceVisualisation * cAppliMICMAC::PtrVI() const
 {

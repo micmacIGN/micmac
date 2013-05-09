@@ -1285,6 +1285,12 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const  cElRegex_Ptr & aPtr)
    return  cElXMLTree::ValueNode(aNameTag,aPtr->NameExpr());
 }
 
+#define NEW_IM_XML true
+
+extern void PutDataInXMLString(std::ostringstream & anOs,const void * aData,int aNbOct);
+const void * GetDataInXMLString(std::istringstream & aStream,int aNbExpOct);
+
+
 
 template <class T1,class T2>
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const Im2D<T1,T2> & anIm)
@@ -1297,10 +1303,19 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const Im2D<T1,T2> & anIm)
    anOs << anIm.tx() << " ";
    anOs << anIm.ty() << "\n";
 
-   cConvertBaseXXX aCvtr = cConvertBaseXXX::StdBase64();
-   aCvtr.PutNC(anIm.data_lin(), anIm.tx()*anIm.ty()* sizeof(T1) ,anOs);
+   int aNbOctet = anIm.tx()*anIm.ty()* sizeof(T1);
 
-   aCvtr.Close(anOs);
+   if (NEW_IM_XML)
+   {
+      PutDataInXMLString(anOs,anIm.data_lin(),aNbOctet);
+   }
+   else
+   {
+      cConvertBaseXXX aCvtr = cConvertBaseXXX::StdBase64();
+      aCvtr.PutNC(anIm.data_lin(),aNbOctet,anOs);
+
+      aCvtr.Close(anOs);
+   }
 
 
    cElXMLTree * aRes =  cElXMLTree::ValueNode(aNameTag,anOs.str());
@@ -1314,11 +1329,20 @@ template <class T1,class T2> void xml_init( Im2D<T1,T2>  & anIm,cElXMLTree * aTr
     int aTx,aTy;
     anIs >> aTx;
     anIs >> aTy;
-    anIm =  Im2D<T1,T2>(aTx,aTy);
+    int aNbOctets = aTx*aTy* sizeof(T1);
 
-    cConvertBaseXXX aCvtr = cConvertBaseXXX::StdBase64();
-
-    aCvtr.GetNC(anIm.data_lin(),anIm.tx()*anIm.ty()* sizeof(T1) ,anIs);
+    const void * aData = GetDataInXMLString(anIs,aNbOctets);
+    if (aData)
+    {
+        anIm =  Im2D<T1,T2>(aTx,aTy);
+        memcpy(anIm.data_lin(),aData,aNbOctets);
+    }
+    else
+    {
+       anIm =  Im2D<T1,T2>(aTx,aTy);
+       cConvertBaseXXX aCvtr = cConvertBaseXXX::StdBase64();
+       aCvtr.GetNC(anIm.data_lin(),aNbOctets ,anIs);
+    }
 }
 
 
@@ -1327,6 +1351,12 @@ template void xml_init(Im2D<REAL4,REAL8>  & anIm,cElXMLTree * aTree);
 
 template cElXMLTree * ToXMLTree(const std::string & aNameTag,const Im2D<REAL8,REAL8> & anIm);
 template void xml_init(Im2D<REAL8,REAL8>  & anIm,cElXMLTree * aTree);
+
+template cElXMLTree * ToXMLTree(const std::string & aNameTag,const Im2D<U_INT1,INT> & anIm);
+template void xml_init(Im2D<U_INT1,INT>  & anIm,cElXMLTree * aTree);
+
+template cElXMLTree * ToXMLTree(const std::string & aNameTag,const Im2D<INT1,INT> & anIm);
+template void xml_init(Im2D<INT1,INT>  & anIm,cElXMLTree * aTree);
 
 
 

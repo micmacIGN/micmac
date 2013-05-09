@@ -116,7 +116,8 @@ typedef enum
   eAlgoOptimDifferentielle,
   eAlgoDequant,
   eAlgoLeastSQ,
-  eAlgoTestGPU
+  eAlgoTestGPU,
+  eAlgoIdentite
 } eAlgoRegul;
 void xml_init(eAlgoRegul & aVal,cElXMLTree * aTree);
 std::string  eToString(const eAlgoRegul & aVal);
@@ -704,6 +705,23 @@ class cIntervParalaxe
 };
 cElXMLTree * ToXMLTree(const cIntervParalaxe &);
 
+class cNuageXMLInit
+{
+    public:
+        friend void xml_init(cNuageXMLInit & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameNuageXML();
+        const std::string & NameNuageXML()const ;
+
+        cTplValGesInit< bool > & CanAdaptGeom();
+        const cTplValGesInit< bool > & CanAdaptGeom()const ;
+    private:
+        std::string mNameNuageXML;
+        cTplValGesInit< bool > mCanAdaptGeom;
+};
+cElXMLTree * ToXMLTree(const cNuageXMLInit &);
+
 class cIntervSpecialZInv
 {
     public:
@@ -901,6 +919,15 @@ class cSection_Terrain
         cTplValGesInit< cIntervParalaxe > & IntervParalaxe();
         const cTplValGesInit< cIntervParalaxe > & IntervParalaxe()const ;
 
+        std::string & NameNuageXML();
+        const std::string & NameNuageXML()const ;
+
+        cTplValGesInit< bool > & CanAdaptGeom();
+        const cTplValGesInit< bool > & CanAdaptGeom()const ;
+
+        cTplValGesInit< cNuageXMLInit > & NuageXMLInit();
+        const cTplValGesInit< cNuageXMLInit > & NuageXMLInit()const ;
+
         double & MulZMin();
         const double & MulZMin()const ;
 
@@ -963,6 +990,7 @@ class cSection_Terrain
         cTplValGesInit< bool > mEstimPxPrefZ2Prof;
         cTplValGesInit< cIntervAltimetrie > mIntervAltimetrie;
         cTplValGesInit< cIntervParalaxe > mIntervParalaxe;
+        cTplValGesInit< cNuageXMLInit > mNuageXMLInit;
         cTplValGesInit< cIntervSpecialZInv > mIntervSpecialZInv;
         cTplValGesInit< cPlanimetrie > mPlanimetrie;
         cTplValGesInit< std::string > mFileOriMnt;
@@ -4427,6 +4455,9 @@ class cSection_Results
         cTplValGesInit< bool > & DoMEC();
         const cTplValGesInit< bool > & DoMEC()const ;
 
+        cTplValGesInit< std::string > & NonExistingFileDoMEC();
+        const cTplValGesInit< std::string > & NonExistingFileDoMEC()const ;
+
         cTplValGesInit< bool > & DoFDC();
         const cTplValGesInit< bool > & DoFDC()const ;
 
@@ -4516,6 +4547,7 @@ class cSection_Results
         cTplValGesInit< std::string > mRepereCorrel;
         cTplValGesInit< std::string > mTagRepereCorrel;
         cTplValGesInit< bool > mDoMEC;
+        cTplValGesInit< std::string > mNonExistingFileDoMEC;
         cTplValGesInit< bool > mDoFDC;
         cTplValGesInit< bool > mGenereXMLComp;
         cTplValGesInit< int > mZoomMakeTA;
@@ -5063,6 +5095,15 @@ class cParamMICMAC
         cTplValGesInit< cIntervParalaxe > & IntervParalaxe();
         const cTplValGesInit< cIntervParalaxe > & IntervParalaxe()const ;
 
+        std::string & NameNuageXML();
+        const std::string & NameNuageXML()const ;
+
+        cTplValGesInit< bool > & CanAdaptGeom();
+        const cTplValGesInit< bool > & CanAdaptGeom()const ;
+
+        cTplValGesInit< cNuageXMLInit > & NuageXMLInit();
+        const cTplValGesInit< cNuageXMLInit > & NuageXMLInit()const ;
+
         double & MulZMin();
         const double & MulZMin()const ;
 
@@ -5431,6 +5472,9 @@ class cParamMICMAC
 
         cTplValGesInit< bool > & DoMEC();
         const cTplValGesInit< bool > & DoMEC()const ;
+
+        cTplValGesInit< std::string > & NonExistingFileDoMEC();
+        const cTplValGesInit< std::string > & NonExistingFileDoMEC()const ;
 
         cTplValGesInit< bool > & DoFDC();
         const cTplValGesInit< bool > & DoFDC()const ;

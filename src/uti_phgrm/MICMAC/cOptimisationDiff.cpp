@@ -127,7 +127,7 @@ void cAppliMICMAC::OptimisationContinue()
    {
       ELISE_ASSERT
       (
-          mIsOptDequant,
+          mIsOptDequant || mIsOptIdentite,
           "Unkown mode in cAppliMICMAC::OptimisationContinue"
       );
    }

@@ -77,7 +77,7 @@ cFNuAttrSom::cFNuAttrSom
    /*                                        */
    /******************************************/
 
-   Pt2di aSzN = mStdN->Sz();
+   Pt2di aSzN = mStdN->SzUnique();
    mMasqValid = Im2D_Bits<1>(aSzN.x,aSzN.y,1);
    ELISE_COPY(mMasqValid.all_pts(),mStdN->ImDef().in(),mMasqValid.out());
    if (aImBsH.sz().x > 1)
@@ -187,7 +187,7 @@ cFNuAttrSom::cFNuAttrSom
 
    if (TheWSom)
    {
-       std::cout << "aNameIm " << mStdN->Sz()  << " Cels " << aNb2C 
+       std::cout << "aNameIm " << mStdN->SzUnique()  << " Cels " << aNb2C 
                  << " Pts " << mPtsTestRec.size()  << " NbV " << mVoisInit.ISOM_Vois().size()<< "\n";
       // std::cout << "WWwwwww  \n"; getchar();
    }

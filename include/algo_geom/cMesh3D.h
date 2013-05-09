@@ -199,7 +199,7 @@ class cZBuf
 		
 		cElNuage3DMaille * &	Nuage() {return mNuage;}
 
-		void					setSelfSz(){mSzRes = mNuage->Sz();} //temp
+		void					setSelfSz(){mSzRes = mNuage->SzUnique();} //temp
 		void					setMaxAngle(double aAngle){mMaxAngle = aAngle;}
 
 		Pt2di					Sz(){return mSzRes;}

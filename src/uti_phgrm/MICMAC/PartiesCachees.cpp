@@ -1154,7 +1154,7 @@ void cAppliMICMAC::MakePartiesCachees()
          return;
       if (DoNothingBut().IsInit()  && (! ButDoPartiesCachees().Val()) && (! ButDoOrtho().Val()))
       {
-         if (! DoMEC().Val())
+         if (! mDoTheMEC)
             return;
       }
    }

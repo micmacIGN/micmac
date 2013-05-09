@@ -326,6 +326,8 @@ eAlgoRegul  Str2eAlgoRegul(const std::string & aName)
       return eAlgoLeastSQ;
    else if (aName=="eAlgoTestGPU")
       return eAlgoTestGPU;
+   else if (aName=="eAlgoIdentite")
+      return eAlgoIdentite;
   else
   {
       cout << aName << " is not a correct value for enum eAlgoRegul\n" ;
@@ -355,6 +357,8 @@ std::string  eToString(const eAlgoRegul & anObj)
       return  "eAlgoLeastSQ";
    if (anObj==eAlgoTestGPU)
       return  "eAlgoTestGPU";
+   if (anObj==eAlgoIdentite)
+      return  "eAlgoIdentite";
  std::cout << "Enum = eAlgoRegul\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
@@ -1921,6 +1925,46 @@ void xml_init(cIntervParalaxe & anObj,cElXMLTree * aTree)
 }
 
 
+std::string & cNuageXMLInit::NameNuageXML()
+{
+   return mNameNuageXML;
+}
+
+const std::string & cNuageXMLInit::NameNuageXML()const 
+{
+   return mNameNuageXML;
+}
+
+
+cTplValGesInit< bool > & cNuageXMLInit::CanAdaptGeom()
+{
+   return mCanAdaptGeom;
+}
+
+const cTplValGesInit< bool > & cNuageXMLInit::CanAdaptGeom()const 
+{
+   return mCanAdaptGeom;
+}
+
+cElXMLTree * ToXMLTree(const cNuageXMLInit & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"NuageXMLInit",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameNuageXML"),anObj.NameNuageXML())->ReTagThis("NameNuageXML"));
+   if (anObj.CanAdaptGeom().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("CanAdaptGeom"),anObj.CanAdaptGeom().Val())->ReTagThis("CanAdaptGeom"));
+  return aRes;
+}
+
+void xml_init(cNuageXMLInit & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.NameNuageXML(),aTree->Get("NameNuageXML",1)); //tototo 
+
+   xml_init(anObj.CanAdaptGeom(),aTree->Get("CanAdaptGeom",1),bool(false)); //tototo 
+}
+
+
 double & cIntervSpecialZInv::MulZMin()
 {
    return mMulZMin;
@@ -2520,6 +2564,39 @@ const cTplValGesInit< cIntervParalaxe > & cSection_Terrain::IntervParalaxe()cons
 }
 
 
+std::string & cSection_Terrain::NameNuageXML()
+{
+   return NuageXMLInit().Val().NameNuageXML();
+}
+
+const std::string & cSection_Terrain::NameNuageXML()const 
+{
+   return NuageXMLInit().Val().NameNuageXML();
+}
+
+
+cTplValGesInit< bool > & cSection_Terrain::CanAdaptGeom()
+{
+   return NuageXMLInit().Val().CanAdaptGeom();
+}
+
+const cTplValGesInit< bool > & cSection_Terrain::CanAdaptGeom()const 
+{
+   return NuageXMLInit().Val().CanAdaptGeom();
+}
+
+
+cTplValGesInit< cNuageXMLInit > & cSection_Terrain::NuageXMLInit()
+{
+   return mNuageXMLInit;
+}
+
+const cTplValGesInit< cNuageXMLInit > & cSection_Terrain::NuageXMLInit()const 
+{
+   return mNuageXMLInit;
+}
+
+
 double & cSection_Terrain::MulZMin()
 {
    return IntervSpecialZInv().Val().MulZMin();
@@ -2741,6 +2818,8 @@ cElXMLTree * ToXMLTree(const cSection_Terrain & anObj)
       aRes->AddFils(ToXMLTree(anObj.IntervAltimetrie().Val())->ReTagThis("IntervAltimetrie"));
    if (anObj.IntervParalaxe().IsInit())
       aRes->AddFils(ToXMLTree(anObj.IntervParalaxe().Val())->ReTagThis("IntervParalaxe"));
+   if (anObj.NuageXMLInit().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.NuageXMLInit().Val())->ReTagThis("NuageXMLInit"));
    if (anObj.IntervSpecialZInv().IsInit())
       aRes->AddFils(ToXMLTree(anObj.IntervSpecialZInv().Val())->ReTagThis("IntervSpecialZInv"));
    if (anObj.Planimetrie().IsInit())
@@ -2765,6 +2844,8 @@ void xml_init(cSection_Terrain & anObj,cElXMLTree * aTree)
    xml_init(anObj.IntervAltimetrie(),aTree->Get("IntervAltimetrie",1)); //tototo 
 
    xml_init(anObj.IntervParalaxe(),aTree->Get("IntervParalaxe",1)); //tototo 
+
+   xml_init(anObj.NuageXMLInit(),aTree->Get("NuageXMLInit",1)); //tototo 
 
    xml_init(anObj.IntervSpecialZInv(),aTree->Get("IntervSpecialZInv",1)); //tototo 
 
@@ -14247,6 +14328,17 @@ const cTplValGesInit< bool > & cSection_Results::DoMEC()const
 }
 
 
+cTplValGesInit< std::string > & cSection_Results::NonExistingFileDoMEC()
+{
+   return mNonExistingFileDoMEC;
+}
+
+const cTplValGesInit< std::string > & cSection_Results::NonExistingFileDoMEC()const 
+{
+   return mNonExistingFileDoMEC;
+}
+
+
 cTplValGesInit< bool > & cSection_Results::DoFDC()
 {
    return mDoFDC;
@@ -14551,6 +14643,8 @@ cElXMLTree * ToXMLTree(const cSection_Results & anObj)
       aRes->AddFils(::ToXMLTree(std::string("TagRepereCorrel"),anObj.TagRepereCorrel().Val())->ReTagThis("TagRepereCorrel"));
    if (anObj.DoMEC().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("DoMEC"),anObj.DoMEC().Val())->ReTagThis("DoMEC"));
+   if (anObj.NonExistingFileDoMEC().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NonExistingFileDoMEC"),anObj.NonExistingFileDoMEC().Val())->ReTagThis("NonExistingFileDoMEC"));
    if (anObj.DoFDC().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("DoFDC"),anObj.DoFDC().Val())->ReTagThis("DoFDC"));
    if (anObj.GenereXMLComp().IsInit())
@@ -14615,6 +14709,8 @@ void xml_init(cSection_Results & anObj,cElXMLTree * aTree)
    xml_init(anObj.TagRepereCorrel(),aTree->Get("TagRepereCorrel",1),std::string("RepereCartesien")); //tototo 
 
    xml_init(anObj.DoMEC(),aTree->Get("DoMEC",1),bool(true)); //tototo 
+
+   xml_init(anObj.NonExistingFileDoMEC(),aTree->Get("NonExistingFileDoMEC",1)); //tototo 
 
    xml_init(anObj.DoFDC(),aTree->Get("DoFDC",1),bool(false)); //tototo 
 
@@ -16364,6 +16460,39 @@ const cTplValGesInit< cIntervParalaxe > & cParamMICMAC::IntervParalaxe()const
 }
 
 
+std::string & cParamMICMAC::NameNuageXML()
+{
+   return Section_Terrain().NuageXMLInit().Val().NameNuageXML();
+}
+
+const std::string & cParamMICMAC::NameNuageXML()const 
+{
+   return Section_Terrain().NuageXMLInit().Val().NameNuageXML();
+}
+
+
+cTplValGesInit< bool > & cParamMICMAC::CanAdaptGeom()
+{
+   return Section_Terrain().NuageXMLInit().Val().CanAdaptGeom();
+}
+
+const cTplValGesInit< bool > & cParamMICMAC::CanAdaptGeom()const 
+{
+   return Section_Terrain().NuageXMLInit().Val().CanAdaptGeom();
+}
+
+
+cTplValGesInit< cNuageXMLInit > & cParamMICMAC::NuageXMLInit()
+{
+   return Section_Terrain().NuageXMLInit();
+}
+
+const cTplValGesInit< cNuageXMLInit > & cParamMICMAC::NuageXMLInit()const 
+{
+   return Section_Terrain().NuageXMLInit();
+}
+
+
 double & cParamMICMAC::MulZMin()
 {
    return Section_Terrain().IntervSpecialZInv().Val().MulZMin();
@@ -17714,6 +17843,17 @@ cTplValGesInit< bool > & cParamMICMAC::DoMEC()
 const cTplValGesInit< bool > & cParamMICMAC::DoMEC()const 
 {
    return Section_Results().DoMEC();
+}
+
+
+cTplValGesInit< std::string > & cParamMICMAC::NonExistingFileDoMEC()
+{
+   return Section_Results().NonExistingFileDoMEC();
+}
+
+const cTplValGesInit< std::string > & cParamMICMAC::NonExistingFileDoMEC()const 
+{
+   return Section_Results().NonExistingFileDoMEC();
 }
 
 
