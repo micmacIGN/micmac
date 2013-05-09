@@ -988,6 +988,15 @@ void cAppliMICMAC::InitMecComp()
    }
    if (mEtape00) 
        mEtape00->CreateMNTInit();
+   for
+   (
+        tContEMC::const_iterator itE = mEtapesMecComp.begin();
+        itE != mEtapesMecComp.end();
+        itE++
+   )
+   {
+      (*itE)->CreateMNTInit();
+   }
 }
 
 cCaracOfDeZoom * cAppliMICMAC::GetCaracOfDZ(int aDZ) const
