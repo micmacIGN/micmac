@@ -5,9 +5,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-/*#include <QMdiArea>
-#include <QSignalMapper>
-#include <QMdiSubWindow>*/
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -27,6 +25,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(m_glWidget,	SIGNAL(mouseWheelRotated(float)),			this,       SLOT(echoMouseWheelRotate(float)));
 
+
+    //"Points selection" menu
+    connect(ui->actionTogglePoints_selection, SIGNAL(toggled(bool)), this, SLOT(togglePointsSelection(bool)));
+
+
     connectActions();
 }
 
@@ -44,13 +47,6 @@ bool MainWindow::checkForLoadedEntities()
     {
         m_glWidget->displayNewMessage("Drag & drop files on the window to load them!", GLWidget::SCREEN_CENTER_MESSAGE);
         loadedEntities = false;
-    }
-
-    if (mmGui::Parameters().displayCross != loadedEntities)
-    {
-        mmGui::ParamStruct params = mmGui::Parameters();
-        params.displayCross = loadedEntities;
-        mmGui::Set(params);
     }
 
     return loadedEntities;
@@ -73,7 +69,20 @@ void MainWindow::toggleFullScreen(bool state)
         showFullScreen();
     else
         showNormal();
-    m_glWidget->redraw();
+    m_glWidget->updateGL();
+}
+
+void MainWindow::togglePointsSelection(bool state)
+{
+    /*QMessageBox msgBox;
+    QString text = "Point selection on\n";
+    msgBox.setText(text);
+    msgBox.exec();/**/
+
+    if (state)
+        m_glWidget->setInteractionMode(GLWidget::SEGMENT_POINTS);
+    else
+        m_glWidget->setInteractionMode(GLWidget::TRANSFORM_CAMERA);
 }
 
 void MainWindow::doActionDisplayShortcuts()
@@ -81,8 +90,6 @@ void MainWindow::doActionDisplayShortcuts()
     QMessageBox msgBox;
     QString text;
     text += "Shortcuts:\n\n";
-    text += "F6 : Toggle sun light\n";
-    text += "F7 : Toggle custom light\n";
     text += "F11: Toggle full screen\n";
     text += "\n";
     text += "Ctrl+D: Display parameters\n";
@@ -98,6 +105,7 @@ void MainWindow::doActionDisplayShortcuts()
 void MainWindow::connectActions()
 {
     connect(ui->actionFullScreen, SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
+
     connect(ui->actionHelpShortcuts, SIGNAL(triggered()), this, SLOT(doActionDisplayShortcuts()));
 
     connect(ui->actionSetViewTop,					SIGNAL(triggered()),						this,	SLOT(setTopView()));
@@ -148,14 +156,4 @@ void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
         return;
 
     sendingWindow->onWheelEvent(wheelDelta_deg);
-    /*QList<QMdiSubWindow *> windows = m_mdiArea->subWindowList();
-    for (int i = 0; i < windows.size(); ++i)
-    {
-        GLWidget *child = static_cast<GLWidget*>(windows.at(i)->widget());
-        if (child != sendingWindow)
-        {
-            child->onWheelEvent(wheelDelta_deg);
-            child->redraw();
-        }
-    }*/
 }

@@ -1,6 +1,10 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#ifndef PI
+#define PI  3.14159265358979323846
+#endif
+
 template <class Type> inline Type ElMax (Type v1,Type v2) {return (v1>v2) ? v1 : v2;}
 template <class Type> inline Type ElMin (Type v1,Type v2) {return (v1<v2) ? v1 : v2;}
 

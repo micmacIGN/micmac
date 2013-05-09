@@ -19,13 +19,6 @@ public:
         //! Light specular color (RGBA)
         float lightSpecularColor[4];
 
-        //! Default mesh diffuse color (front)
-        float meshFrontDiff[4];
-        //! Default mesh diffuse color (back)
-        float meshBackDiff[4];
-        //! Default mesh specular color
-        float meshSpecular[4];
-
         //! Default text color
         unsigned char textDefaultCol[3];
         //! Default 3D points color
@@ -44,8 +37,6 @@ public:
         bool decimateMeshOnMove;
         //! Decimate clouds when moved
         bool decimateCloudOnMove;
-        //! Display cross in the middle of the screen
-        bool displayCross;
 
         //! Color scale option: always show '0'
         bool colorScaleAlwaysShowZero;
@@ -101,12 +92,8 @@ struct glDrawContext
     unsigned short flags;       //drawing options (see below)
     int glW;                    //GL screen width
     int glH;                    //GL screen height
-    //ccGenericGLDisplay* _win;   //GL window ref.
 
     //default materials
-    //ccMaterial defaultMat; //default material
-    float defaultMeshFrontDiff[4];
-    float defaultMeshBackDiff[4];
     unsigned char pointsDefaultCol[3];
     unsigned char textDefaultCol[3];
     unsigned char labelDefaultCol[3];
@@ -126,26 +113,15 @@ struct glDrawContext
     //for displaying labels
     unsigned labelsTransparency;
 
-    //VBO
-    //vboStruct vbo;
-
-    //transparency
-    //GLenum sourceBlend;
-    //GLenum destBlend;
-
     //Default constructor
     glDrawContext()
     : flags(0)
     , glW(0)
     , glH(0)
-    //, _win(0)
     , decimateCloudOnMove(true)
-    //, sfColorScaleToDisplay(0)
     , greyForNanScalarValues(true)
     , dispNumberPrecision(6)
     , labelsTransparency(100)
-    //, sourceBlend(GL_SRC_ALPHA)
-    //, destBlend(GL_ONE_MINUS_SRC_ALPHA)
     {
         colorRampTitle[0]=0;
     }

@@ -337,6 +337,7 @@ void cOctaveDigeo::DoAllExtract()
    }
 }
 
+REAL8 cOctaveDigeo::GetMaxValue() const{ return mIm.GetMaxValue(); }
 /*
 Pt2dr cOctaveDigeo::P0CurMyResol() const
 {

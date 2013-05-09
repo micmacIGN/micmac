@@ -36,6 +36,7 @@ private slots:
 protected slots:
     void doActionDisplayShortcuts();
     void toggleFullScreen(bool);
+    void togglePointsSelection(bool state);
 
     //default views
     void setFrontView();

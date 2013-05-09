@@ -163,9 +163,22 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
            }
        }
 
-       mImGlob.SetDyn(aMul);
-
+		mImGlob.SetDyn(aMul);
+		mImGlob.SetMaxValue( aMaxT-1 );
     }
+    else
+    {
+		Type aMaxV = numeric_limits<Type>::min();
+		for (int aY=0 ; aY<mSz.y ; aY++)
+		{
+			Type * aL = mData[aY];
+			for (int aX=0 ; aX<mSz.x ; aX++)
+			  ElSetMax(aMaxV,aL[aX]);
+		}
+
+		mImGlob.SetDyn(1);
+		mImGlob.SetMaxValue( (REAL8)aMaxV );
+	}
 
    if (mAppli.SectionTest().IsInit())
    {
