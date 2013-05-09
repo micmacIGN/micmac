@@ -37,6 +37,10 @@
     #include "../../include/poisson/ply.h"
 #endif
 
+#if (! ELISE_windows)  // MODIF MPD, pas tres propre pour compile sous Linux
+#define _strdup strdup
+#endif
+
 string type_names[] = {
 	"invalid",
 	"char",
