@@ -1,12 +1,14 @@
 #define EXTERNAL_TOOLS_SUBDIRECTORY "binaire-aux"
+#define INTERNAL_TOOLS_SUBDIRECTORY "bin"
 
 typedef enum {
 	EXT_TOOL_UNDEF 			 = 0,
-	EXT_TOOL_NOT_FOUND 		 = 1,
+	EXT_TOOL_NOT_FOUND 		 = 1,	// the tool has been researched and not found
 	EXT_TOOL_FOUND_IN_PATH 	 = 2,	// the tool has been found using the PATH environment variable
-	EXT_TOOL_FOUND_IN_DIR 	 = 4, 	// the tool has been found in EXTERNAL_TOOLS_SUBDIRECTORY
-	EXT_TOOL_FOUND_IN_LOC 	 = 8,	// the tool has been specified with a location and was there
-	EXT_TOOL_HAS_EXEC_RIGHTS = 16,	// the tool has no execution rights and they could not be granted by the process
+	EXT_TOOL_FOUND_IN_EXTERN = 4, 	// the tool has been found in EXTERNAL_TOOLS_SUBDIRECTORY
+	EXT_TOOL_FOUND_IN_INTERN = 8, 	// the tool has been found in INTERNAL_TOOLS_SUBDIRECTORY
+	EXT_TOOL_FOUND_IN_LOC 	 = 16,	// the tool has been specified with a location and was there
+	EXT_TOOL_HAS_EXEC_RIGHTS = 32,	// the tool has no execution rights and they could not be granted by the process
 } ExtToolStatus;
 
 extern std::string g_externalToolItem_errors[];
@@ -31,6 +33,7 @@ public:
 // It can check the presence of a specified tool from its short name,
 // It looks in :
 //		- the PATH environment variable
+//		- the Micmac-specific internal tool subdirectory
 //		- the Micmac-specific external tool subdirectory
 class ExternalToolHandler
 {
@@ -91,14 +94,8 @@ inline ExternalToolItem::ExternalToolItem( ExtToolStatus i_status,
 										   const std::string i_shortName,
 										   const std::string i_fullName ):
 	m_status( i_status ), m_shortName( i_shortName ), m_fullName( i_fullName ){}
-	
-inline const std::string ExternalToolItem::callName() const
-{
-	if ( ( m_status&EXT_TOOL_FOUND_IN_PATH)!=0 ||
-		 ( m_status&EXT_TOOL_FOUND_IN_LOC)!=0 ) return m_shortName;
-	if ( ( m_status&EXT_TOOL_FOUND_IN_DIR)!=0 ) return m_fullName;
-	return "";
-}
+
+inline const std::string ExternalToolItem::callName() const{ return m_fullName; }
 
 inline bool ExternalToolItem::isCallable() const{ 
 	return ( m_status!=EXT_TOOL_NOT_FOUND && (m_status&EXT_TOOL_HAS_EXEC_RIGHTS)!=0 );

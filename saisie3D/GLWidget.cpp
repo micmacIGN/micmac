@@ -1,10 +1,10 @@
 ﻿#include <QtGui/QMouseEvent>
 #include <QSettings>
+#include <QMessageBox>
 #include "GLWidget.h"
 #include "GL/glu.h"
 
 #include "Cloud.h"
-
 
 #include <cmath>
 #include <limits>
@@ -14,19 +14,14 @@
 const GLfloat g_trackballScale = 1.f;
 
 //Min and max zoom ratio (relative)
-const float MM_GL_MAX_ZOOM_RATIO = 1.0e6f;
-const float MM_GL_MIN_ZOOM_RATIO = 1.0e-6f;
+const float GL_MAX_ZOOM_RATIO = 1.0e6f;
+const float GL_MIN_ZOOM_RATIO = 1.0e-6f;
 
 ViewportParameters::ViewportParameters()
     : pixelSize(1.0f)
     , zoom(1.0f)
-    , defaultPointSize(1)
-    , defaultLineWidth(1)
-    , objectCenteredView(true)
-    , pivotPoint(0.0f)
-    , cameraCenter(0.0f)
-    , fov(30.0f)
-    , aspectRatio(1.0f)
+    , defaultPointSize(1.0f)
+    , defaultLineWidth(1.0f)
 {
     //viewMat.toIdentity();
 }
@@ -34,14 +29,8 @@ ViewportParameters::ViewportParameters()
 ViewportParameters::ViewportParameters(const ViewportParameters& params)
     : pixelSize(params.pixelSize)
     , zoom(params.zoom)
-    //, viewMat(params.viewMat)
     , defaultPointSize(params.defaultPointSize)
     , defaultLineWidth(params.defaultLineWidth)
-    , objectCenteredView(params.objectCenteredView)
-    , pivotPoint(params.pivotPoint)
-    , cameraCenter(params.cameraCenter)
-    , fov(params.fov)
-    , aspectRatio(params.aspectRatio)
 {
 }
 
@@ -50,7 +39,7 @@ bool g_mouseLeftDown = false;
 GLfloat g_tmpMatix[9],
         g_rotationOx[9],
         g_rotationOy[9],
-        g_rotationMatix[9] = { 1, 0, 0,
+        g_rotationMatrix[9] = { 1, 0, 0,
                                0, 1, 0,
                                0, 0, 1 },
         g_inverseRotationMatrix[9] = { 1, 0, 0,
@@ -67,32 +56,6 @@ GLfloat g_angleOx = 0.f,
 
 using namespace std;
 
-inline void m33_to_gl( const float i_m[9], GLfloat o_m[16] )
-{
-    o_m[0]=i_m[0];		o_m[1]=i_m[3];		o_m[2]=i_m[6];		o_m[3]=0.f;
-    o_m[4]=i_m[1];		o_m[5]=i_m[4];		o_m[6]=i_m[7];		o_m[7]=0.f;
-    o_m[8]=i_m[2];		o_m[9]=i_m[5];		o_m[10]=i_m[8];		o_m[11]=0.f;
-    o_m[12]=0.f;		o_m[13]=0.f;		o_m[14]=0.f;		o_m[15]=1.f;
-}
-
-inline void setRotateOx( const float i_angle, GLfloat *o_m )
-{
-    GLfloat co = (GLfloat)cos( i_angle ),
-            si = (GLfloat)sin( i_angle );
-    o_m[0] =1.f;		o_m[1] =0;		o_m[2] =0;		o_m[3] =0;
-    o_m[4] =0.f;		o_m[5] =co;		o_m[6] =-si;	o_m[7] =0;
-    o_m[8] =0.f;		o_m[9] =si;		o_m[10]=co;		o_m[11]=0;
-    o_m[12]=0.f;		o_m[13]=0;		o_m[14]=0;		o_m[15]=1;
-}
-
-inline void setIdentity( GLfloat o_m[16] )
-{
-    o_m[0] =1.f;	o_m[1] =0.f;	o_m[2] =0.f;	o_m[3] =0.f;
-    o_m[4] =0.f;	o_m[5] =1.f;	o_m[6] =0.f;	o_m[7] =0.f;
-    o_m[8] =0.f;	o_m[9] =0.f;	o_m[10]=1.f;	o_m[11]=0.f;
-    o_m[12]=0.f;	o_m[13]=0.f;	o_m[14]=0.f;	o_m[15]=1.f;
-}
-
 inline void setRotateOx_m33( const float i_angle, GLfloat o_m[9] )
 {
     GLfloat co = (GLfloat)cos( i_angle ),
@@ -102,36 +65,6 @@ inline void setRotateOx_m33( const float i_angle, GLfloat o_m[9] )
     o_m[6]=0.f;		o_m[7]=si;		o_m[8]=co;
 }
 
-inline void setRotateOx_t( const float i_angle, GLfloat *o_m )
-{
-    GLfloat co = (GLfloat)cos( i_angle ),
-            si = (GLfloat)sin( i_angle );
-    o_m[0]=0;		o_m[4]=0;		o_m[8]=0;		o_m[12]=0;
-    o_m[1]=0;		o_m[5]=co;		o_m[9]=-si;		o_m[13]=0;
-    o_m[2]=0;		o_m[6]=si;		o_m[10]=co;		o_m[14]=0;
-    o_m[3]=0;		o_m[7]=0;		o_m[11]=0;		o_m[15]=1;
-}
-
-inline void setRotateOy( const float i_angle, GLfloat *o_m )
-{
-    GLfloat co = (GLfloat)cos( i_angle ),
-            si = (GLfloat)sin( i_angle );
-    o_m[0]=co;		o_m[1]=0;		o_m[2]=si;		o_m[3]=0;
-    o_m[4]=0;		o_m[5]=1;		o_m[6]=0;		o_m[7]=0;
-    o_m[8]=-si;		o_m[9]=0;		o_m[10]=co;		o_m[11]=0;
-    o_m[12]=0;		o_m[13]=0;		o_m[14]=0;		o_m[15]=1;
-}
-
-inline void setRotateOz( const float i_angle, GLfloat *o_m )
-{
-    GLfloat co = (GLfloat)cos( i_angle ),
-            si = (GLfloat)sin( i_angle );
-    o_m[0] =co;		o_m[1] =-si;	o_m[2] =0.f;	o_m[3] =0.f;
-    o_m[4] =si;		o_m[5] =co;		o_m[6] =0.f;	o_m[7] =0.f;
-    o_m[8] =0.f;	o_m[9] =0;		o_m[10]=1.f;	o_m[11]=0.f;
-    o_m[12]=0.f;	o_m[13]=0;		o_m[14]=0.f;	o_m[15]=1.f;
-}
-
 inline void setRotateOy_m33( const float i_angle, GLfloat o_m[9] )
 {
     GLfloat co = (GLfloat)cos( i_angle ),
@@ -139,36 +72,6 @@ inline void setRotateOy_m33( const float i_angle, GLfloat o_m[9] )
     o_m[0]=co;		o_m[1]=0;		o_m[2]=si;
     o_m[3]=0;		o_m[4]=1;		o_m[5]=0;
     o_m[6]=-si;		o_m[7]=0;		o_m[8]=co;
-}
-
-inline void setRotateOz_m33( const float i_angle, GLfloat o_m[9] )
-{
-    GLfloat co = (GLfloat)cos( i_angle ),
-            si = (GLfloat)sin( i_angle );
-    o_m[0]=co;		o_m[1]=-si;		o_m[2]=0;
-    o_m[3]=si;		o_m[4]=co;		o_m[5]=0;
-    o_m[6]=0;		o_m[7]=0;		o_m[8]=1.f;
-}
-
-inline void setRotateOy_t( const float i_angle, GLfloat *o_m )
-{
-    GLfloat co = (GLfloat)cos( i_angle ),
-            si = (GLfloat)sin( i_angle );
-    o_m[0]=co;		o_m[4]=0;		o_m[8]=si;		o_m[12]=0;
-    o_m[1]=0;		o_m[5]=1;		o_m[9]=0;		o_m[13]=0;
-    o_m[2]=-si;		o_m[6]=0;		o_m[10]=co;		o_m[14]=0;
-    o_m[3]=0;		o_m[7]=0;		o_m[11]=0;		o_m[15]=1;
-}
-
-
-inline void setRotate( const float i_angle, const float i_x, const float i_y, const float i_z, GLfloat o_m[16] )
-{
-    GLfloat co = (GLfloat)cos( i_angle ),
-            si = (GLfloat)sin( i_angle );
-    o_m[0]=i_x*i_x+(1-i_x*i_x)*co;		o_m[1]=i_x*i_y*(1-co)-i_x*si;		o_m[2]=i_x*i_z*(1-co)+i_z*si;		o_m[3]=0;
-    o_m[4]=i_x*i_y*(1-co)+i_z*si;		o_m[5]=i_y*i_y+(1-i_y*i_y)*co;		o_m[6]=i_y*i_z*(1-co)-i_x*si;		o_m[7]=0;
-    o_m[8]=i_x*i_z*(1-co)-i_y*si;		o_m[9]=i_y*i_z*(1-co)+i_x*si;		o_m[10]=i_z*i_z+(1-i_z*i_z)*co;		o_m[11]=0;
-    o_m[12]=0;							o_m[13]=0;							o_m[14]=0;							o_m[15]=1;
 }
 
 inline void setRotate_m33( const float i_angle, const float i_u[3], GLfloat o_m[9] )
@@ -205,27 +108,12 @@ inline void mult( const GLfloat i_a[16], const GLfloat i_b[16], GLfloat o_m[16] 
      o_m[12]=i_a[12]*i_b[0]+i_a[13]*i_b[4]+i_a[14]*i_b[8]+i_a[15]*i_b[12]; o_m[13]=i_a[12]*i_b[1]+i_a[13]*i_b[5]+i_a[14]*i_b[9]+i_a[15]*i_b[13]; o_m[14]=i_a[12]*i_b[2]+i_a[13]*i_b[6]+i_a[14]*i_b[10]+i_a[15]*i_b[14]; o_m[15]=i_a[12]*i_b[3]+i_a[13]*i_b[7]+i_a[14]*i_b[11]+i_a[15]*i_b[15];
  }
 
-inline void mult_m44_v( const GLfloat i_m[16], const GLfloat i_v[4], GLfloat o_v[4] )
- {
-     o_v[0] = i_m[0]*i_v[0]+i_m[1]*i_v[1]+i_m[2]*i_v[2]+i_m[3]*i_v[3];
-     o_v[1] = i_m[4]*i_v[0]+i_m[5]*i_v[1]+i_m[5]*i_v[2]+i_m[7]*i_v[3];
-     o_v[2] = i_m[8]*i_v[0]+i_m[9]*i_v[1]+i_m[10]*i_v[2]+i_m[11]*i_v[3];
-     o_v[3] = i_m[12]*i_v[0]+i_m[13]*i_v[1]+i_m[14]*i_v[2]+i_m[15]*i_v[3];
- }
-
 inline void mult_m33( const GLfloat i_a[9], const GLfloat i_b[9], GLfloat o_m[9] )
  {
      o_m[0]=i_a[0]*i_b[0]+i_a[1]*i_b[3]+i_a[2]*i_b[6];		o_m[1]=i_a[0]*i_b[1]+i_a[1]*i_b[4]+i_a[2]*i_b[7];		o_m[2]=i_a[0]*i_b[2]+i_a[1]*i_b[5]+i_a[2]*i_b[8];
      o_m[3]=i_a[3]*i_b[0]+i_a[4]*i_b[3]+i_a[5]*i_b[6];		o_m[4]=i_a[3]*i_b[1]+i_a[4]*i_b[4]+i_a[5]*i_b[7];		o_m[5]=i_a[3]*i_b[2]+i_a[4]*i_b[5]+i_a[5]*i_b[8];
      o_m[6]=i_a[6]*i_b[0]+i_a[7]*i_b[3]+i_a[8]*i_b[6];		o_m[7]=i_a[6]*i_b[1]+i_a[7]*i_b[4]+i_a[8]*i_b[7];		o_m[8]=i_a[6]*i_b[2]+i_a[7]*i_b[5]+i_a[8]*i_b[8];
  }
-
-inline void mult_m33_v( const GLfloat i_m[9], const GLfloat i_v[3], GLfloat o_vv[3] )
-{
-    o_vv[0]=i_m[0]*i_v[0]+i_m[1]*i_v[1]+i_m[2]*i_v[2];
-    o_vv[1]=i_m[3]*i_v[0]+i_m[4]*i_v[1]+i_m[5]*i_v[2];
-    o_vv[2]=i_m[6]*i_v[0]+i_m[7]*i_v[1]+i_m[8]*i_v[2];
-}
 
 inline bool inverse_m33( const GLfloat i_a[9], GLfloat i_b[9] )
 {
@@ -273,16 +161,15 @@ inline void transpose_m33( const GLfloat i_a[9], GLfloat o_m[9] )
 }
 
 GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent)
-     // , m_glWidth(0)
-     // , m_glHeight(0)
       , m_interactionMode(TRANSFORM_CAMERA)
       , m_font(font())
       , m_bCloudLoaded(false)
-      , m_validModelviewMatrix(false)
-      , m_updateFBO(true)
-      , m_bFitCloud(true)
+      , m_params(ViewportParameters())
 {
-    setCloudLoaded(false);
+    m_minX = m_minY = m_minZ = FLT_MAX;
+    m_maxX = m_maxY = m_maxZ = FLT_MIN;
+    m_cX = m_cY = m_cZ = m_diam = 0.f;
+
     setMouseTracking(true);
 
     //drag & drop handling
@@ -291,16 +178,12 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent)
 
 void GLWidget::initializeGL()
 {
-    if (m_initialized)
+    if (m_bInitialized)
         return;
 
     glShadeModel( GL_SMOOTH );
-   /* glClearColor( mmColor::defaultBkgColor[0] / 255.0f,
-                  mmColor::defaultBkgColor[1] / 255.0f,
-                  mmColor::defaultBkgColor[2] / 255.0f,
-                  1.f );*/
 
-    glClearDepth( 1.f );
+    glClearDepth( 100.f );
     glEnable( GL_DEPTH_TEST );
     glDepthFunc( GL_LEQUAL );
 
@@ -310,25 +193,24 @@ void GLWidget::initializeGL()
 
     glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
 
-    m_initialized = true;
+    m_bInitialized = true;
 }
 
-void GLWidget::resizeGL(int w, int h) {
-    m_glWidth  = (float)w;
-    m_glHeight = (float)h;
+void GLWidget::resizeGL(int width, int height)
+{
+    if (width==0 || height==0) return;
 
-    glViewport( 0, 0, w, h );
-    /*glMatrixMode( GL_PROJECTION );
-    glLoadIdentity();
-    gluPerspective( 45.f, (GLfloat)w/(GLfloat)h, 0.1f, 100.f );*/
+    m_glWidth  = (float)width;
+    m_glHeight = (float)height;
+
+    glViewport( 0, 0, width, height );
 }
 
-void GLWidget::getContext(glDrawContext& context)
+/*void GLWidget::getContext(glDrawContext& context)
 {
     //display size
     context.glW = m_glWidth;
     context.glH = m_glHeight;
-    //context._win = this;
     context.flags = 0;
 
     const mmGui::ParamStruct& guiParams = mmGui::Parameters();
@@ -336,23 +218,10 @@ void GLWidget::getContext(glDrawContext& context)
     //decimation options
     context.decimateCloudOnMove = guiParams.decimateCloudOnMove;
 
-    //scalar field colorbar
-    //context.sfColorScaleToDisplay = 0;
-
     //text display
     context.dispNumberPrecision = guiParams.displayedNumPrecision;
     context.labelsTransparency = guiParams.labelsTransparency;
 
-    //default materials
-    /*context.defaultMat.name = "default";
-    memcpy(context.defaultMat.diffuseFront,guiParams.meshFrontDiff,sizeof(float)*4);
-    memcpy(context.defaultMat.diffuseBack,guiParams.meshBackDiff,sizeof(float)*4);
-    memcpy(context.defaultMat.ambient,ccColor::bright,sizeof(float)*4);
-    memcpy(context.defaultMat.specular,guiParams.meshSpecular,sizeof(float)*4);
-    memcpy(context.defaultMat.emission,ccColor::night,sizeof(float)*4);
-    context.defaultMat.shininessFront = 30;
-    context.defaultMat.shininessBack = 50;*/
-    //default colors
     memcpy(context.pointsDefaultCol,guiParams.pointsDefaultCol,sizeof(unsigned char)*3);
     memcpy(context.textDefaultCol,guiParams.textDefaultCol,sizeof(unsigned char)*3);
     memcpy(context.labelDefaultCol,guiParams.labelCol,sizeof(unsigned char)*3);
@@ -360,30 +229,16 @@ void GLWidget::getContext(glDrawContext& context)
 
     //default font size
     setFontPointSize(1);
+}*/
 
-    //VBO
-    //context.vbo = m_vbo;
-}
-
-void GLWidget::paintGL() {
+void GLWidget::paintGL()
+{
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
 
-    static GLfloat trans44[16], rot44[16], tmp[16];
-    m33_to_m44( g_rotationMatix, rot44 );
-    setTranslate( 0.f, 0.f, -7.f, trans44 );
+    draw3D();
 
-    mult( trans44, rot44, tmp );
-    transpose( tmp, g_glMatrix );
-    glLoadMatrixf( g_glMatrix );
-
-    //if (m_updateFBO)
-    //{
-        draw3D(mmGui::Parameters().displayCross);
-        m_updateFBO=false;
-    //}
-
-    glPointSize(5);
+    glPointSize(m_params.defaultPointSize);
 
     glBegin(GL_POINTS);
     for(int aK=0; aK< m_ply.size(); aK++)
@@ -393,7 +248,7 @@ void GLWidget::paintGL() {
             Cloud_::Vertex vert = m_ply[aK].getVertex(bK);
             qglColor( vert.m_color );
             //glColor3ub( vert.m_color.red(), vert.m_color.green(), vert.m_color.blue() );
-            glVertex3f( vert.x(), vert.y(), vert.z() );
+            glVertex3f( (vert.x() - m_cX)/m_diam, (vert.y() - m_cY)/m_diam, (vert.z()-m_cZ)/m_diam );
         }
     }
     glEnd();
@@ -401,57 +256,19 @@ void GLWidget::paintGL() {
     //current messages (if valid)
     if (!m_messagesToDisplay.empty())
     {
-        //int currentTime_sec = ccTimer::Sec();
-        //ccLog::Print(QString("[paintGL] Current time: %1 s.").arg(currentTime_sec));
-
-        //if fbo --> override color
         //Some versions of Qt seem to need glColorf instead of glColorub! (see https://bugreports.qt-project.org/browse/QTBUG-6217)
-        //glColor3ubv(m_fbo && m_activeGLFilter ? ccColor::black : textCol);
-        //unsigned char* col =(m_fbo && m_activeGLFilter ? ccColor::black : textCol);
-        //glColor3f((float)col[0]/(float)MAX_COLOR_COMP,(float)col[1]/(float)MAX_COLOR_COMP,(float)col[2]/(float)MAX_COLOR_COMP);
         glColor3f(1.f,1.f,1.f);
-
-        int ll_currentHeight = m_glHeight-10; //lower left
-        int uc_currentHeight = 10; //upper center
 
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
         while (it != m_messagesToDisplay.end())
         {
-            //no more valid? we delete the message
-            /*if (it->messageValidity_sec < currentTime_sec)
-            {
-                it = m_messagesToDisplay.erase(it);
-            }
-            else
-            {*/
-                switch(it->position)
-                {
-                case LOWER_LEFT_MESSAGE:
-                    {
-                        renderText(10, ll_currentHeight, it->message,m_font);
-                        int messageHeight = QFontMetrics(m_font).height();
-                        ll_currentHeight -= (messageHeight*5)/4; //add a 25% margin
-                    }
-                    break;
-                case UPPER_CENTER_MESSAGE:
-                    {
-                        QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                        renderText((m_glWidth-rect.width())/2, uc_currentHeight+rect.height(), it->message,m_font);
-                        uc_currentHeight += (rect.height()*5)/4; //add a 25% margin
-                    }
-                    break;
-                case SCREEN_CENTER_MESSAGE:
-                    {
-                        QFont newFont(m_font);
-                        newFont.setPointSize(12);
-                        QRect rect = QFontMetrics(newFont).boundingRect(it->message);
-                        //only one message supported in the screen center (for the moment ;)
-                        renderText((m_glWidth-rect.width())/2, (m_glHeight-rect.height())/2, it->message,newFont);
-                    }
-                    break;
-                }
-                ++it;
-            //}
+            QFont newFont(m_font);
+            newFont.setPointSize(12);
+            QRect rect = QFontMetrics(newFont).boundingRect(it->message);
+            //only one message supported in the screen center (for the moment ;)
+            renderText((m_glWidth-rect.width())/2, (m_glHeight-rect.height())/2, it->message,newFont);
+
+            ++it;
         }
     }
 
@@ -468,7 +285,7 @@ void GLWidget::paintGL() {
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_LIGHTING);
         glDisable(GL_TEXTURE_2D);
-        glColor3f(1,0,0);
+        glColor3f(0,1,0);
 
         glBegin(GL_LINE_LOOP);
         for (int aK = 0;aK < m_polygon.size(); ++aK)
@@ -493,7 +310,16 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         g_mouseLeftDown = true;
         g_mouseOldX = event->x();
         g_mouseOldY = event->y();
+
+        if (m_interactionMode == SEGMENT_POINTS)
+            m_polygon.push_back(event->pos());
     }
+    else if ( (event->buttons()&Qt::RightButton)&&(m_interactionMode == SEGMENT_POINTS) )
+    {
+        m_polygon.clear();
+    }
+
+    lastPos = event->pos();
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
@@ -502,38 +328,22 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
         g_mouseLeftDown = false;
 }
 
-void GLWidget::mouseMoveEvent(QMouseEvent *event)
+void GLWidget::keyPressEvent(QKeyEvent* event)
 {
-    if ( g_mouseLeftDown )
+    switch(event->key())
     {
-        int dx = event->x()-g_mouseOldX,
-            dy = event->y()-g_mouseOldY;
-        g_mouseOldX = event->x();
-        g_mouseOldY = event->y();
-
-        setRotateOx_m33( ( g_trackballScale*dy )/m_glHeight, g_rotationOx );
-        setRotateOy_m33( ( g_trackballScale*dx )/m_glWidth, g_rotationOy );
-        mult_m33( g_rotationOx, g_rotationMatix, g_tmpMatix );
-        mult_m33( g_rotationOy, g_tmpMatix, g_rotationMatix );
-        inverse_m33( g_rotationMatix, g_inverseRotationMatrix );
-
-        GLfloat minv[9];
-        mult_m33( g_rotationMatix, g_inverseRotationMatrix, minv );
-
-        this->updateGL();
-    }
-}
-
-/*void GLWidget::keyPressEvent(QKeyEvent* event) {
-    switch(event->key()) {
     case Qt::Key_Escape:
         close();
+        break;
+    case Qt::Key_Space:
+        //to do: segment point cloud
+        segment(true);
         break;
     default:
         event->ignore();
         break;
     }
-}*/
+}
 
 void GLWidget::addPly( const QString &i_ply_file ) {
 
@@ -541,6 +351,31 @@ void GLWidget::addPly( const QString &i_ply_file ) {
     a_ply.loadPly( i_ply_file.toStdString() );
     m_ply.push_back(a_ply);
     if (!hasCloudLoaded()) setCloudLoaded(true);
+
+    //compute bounding box
+
+    int nbPts = a_ply.getVertexNumber();
+    for (int aK=0; aK < nbPts; ++aK)
+    {
+        Cloud_::Vertex vert = a_ply.getVertex(aK);
+
+        if (vert.x() > m_maxX) m_maxX = vert.x();
+        if (vert.x() < m_minX) m_minX = vert.x();
+        if (vert.y() > m_maxY) m_maxY = vert.y();
+        if (vert.y() < m_minY) m_minY = vert.y();
+        if (vert.z() > m_maxZ) m_maxZ = vert.z();
+        if (vert.z() < m_minZ) m_minZ = vert.z();
+    }
+
+    m_cX = (m_minX + m_maxX) * .5f;
+    m_cY = (m_minY + m_maxY) * .5f;
+    m_cZ = (m_minZ + m_maxZ) * .5f;
+
+    //cout << "center " << m_cX <<" "<< m_cY <<" "<< m_cZ << endl;
+
+    m_diam = max(m_maxX-m_minX, max(m_maxY-m_minY, m_maxZ-m_minZ));
+
+    updateGL();
 }
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -583,22 +418,6 @@ void GLWidget::dropEvent(QDropEvent *event)
         event->acceptProposedAction();
     }
 
-    /*QString filename("none");
-    if (event->mimeData()->hasFormat("FileNameW"))
-    {
-    QByteArray data = event->mimeData()->data("FileNameW");
-    filename = QString::fromUtf16((ushort*)data.data(), data.size() / 2);
-    event->acceptProposedAction();
-    }
-    else if (event->mimeData()->hasFormat("FileName"))
-    {
-    filename = event->mimeData()->data("FileNameW");
-    event->acceptProposedAction();
-    }
-
-    std::cout << QString("Drop file(s): %1").arg(filename));
-    //*/
-
     event->ignore();
 }
 
@@ -624,7 +443,7 @@ void GLWidget::displayNewMessage(const QString& message,
 
     MessageToDisplay mess;
     mess.message = message;
-    mess.messageValidity_sec = 500; //TODO: ccTimer::Sec()+displayMaxDelay_sec;
+    mess.messageValidity_sec = 5; //TODO: Timer::Sec()+displayMaxDelay_sec;
     mess.position = pos;
     mess.type = type;
     m_messagesToDisplay.push_back(mess);
@@ -654,21 +473,12 @@ void GLWidget::drawGradientBackground()
     glEnd();
 }
 
-//void GLWidget::draw3D(CC_DRAW_CONTEXT& context, bool doDrawCross, ccFrameBufferObject* fbo/*=0*/)
-void GLWidget::draw3D(bool doDrawCross)
+void GLWidget::draw3D()
 {
     makeCurrent();
 
-    //if a FBO is activated
-   // TODO
-    /* if (fbo)
-    {
-        fbo->start();
-        ccGLUtils::CatchGLError("glWidget::paintGL/FBO start");
-    }*/
-
     setStandardOrthoCenter();
-    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
 
     glPointSize(m_params.defaultPointSize);
     glLineWidth(m_params.defaultLineWidth);
@@ -692,86 +502,18 @@ void GLWidget::draw3D(bool doDrawCross)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    /****************************************/
-    /****  PASS: 2D/BACKGROUND/NO LIGHT  ****/
-    /****************************************/
-    /*context.flags = CC_DRAW_2D;
-    if (m_interactionMode == TRANSFORM_ENTITY)
-    context.flags |= CC_VIRTUAL_TRANS_ENABLED;
-
-    //we draw 2D entities
-    if (m_globalDBRoot)
-    m_globalDBRoot->draw(context);
-    m_winDBRoot->draw(context);
-    //*/
-
-    /****************************************/
-    /****  PASS: 3D/BACKGROUND/NO LIGHT  ****/
-    /****************************************/
-    // TODO: context.flags = CC_DRAW_3D | CC_DRAW_FOREGROUND;
-    // TODO:if (m_interactionMode == TRANSFORM_ENTITY)
-    // TODO:    context.flags |= CC_VIRTUAL_TRANS_ENABLED;
-
-    glEnable(GL_DEPTH_TEST);
-
-    if (doDrawCross)
-        drawCross();
-
-    /****************************************/
-    /****    PASS: 3D/FOREGROUND/LIGHT   ****/
-    /****************************************/
-    //TODO: if (m_sunLightEnabled)
-    //TODO:     context.flags |= CC_LIGHT_ENABLED;
-    //TODO: if (m_lodActivated)
-     //TODO:    context.flags |= CC_LOD_ACTIVATED;
-
-    //we enable absolute sun light (if activated)
-   //TODO:  if (m_sunLightEnabled)
-        //glEnableSunLight();
-
-    //we setup projection matrix
-    glMatrixMode(GL_PROJECTION);
-    glLoadMatrixd(getProjectionMatd());
+    zoom();
 
     //then, the modelview matrix
     glMatrixMode(GL_MODELVIEW);
-   //TODO: glLoadMatrixd(getModelViewMatd());
 
-    //we activate the current shader (if any)
-    //TODO: if (m_activeShader)
-    //TODO:    m_activeShader->start();
+    static GLfloat trans44[16], rot44[16], tmp[16];
+    m33_to_m44( g_rotationMatrix, rot44 );
+    setTranslate( 0.f, 0.f, 0.f, trans44 );
 
-    //we draw 3D entities
-    //TOTOTODODODO
-    /*if (m_globalDBRoot)
-    {
-        m_globalDBRoot->draw(context);
-
-    }
-    m_winDBRoot->draw(context);*/
-
-    if (m_bFitCloud)
-        zoomGlobal();
-    else
-        glScalef(m_params.zoom, m_params.zoom, m_params.zoom);
-
-    //for connected items
-    emit drawing3D();
-
-    //we disable shader
-    //if (m_activeShader)
-    //    m_activeShader->stop();
-
-    //we disable lights
-    //if (m_sunLightEnabled)
-    glDisable(GL_LIGHT0);
-
-    //we disable fbo
-   /* TODO if (fbo)
-    {
-        fbo->stop();
-        ccGLUtils::CatchGLError("glWidget::paintGL/FBO stop");
-    } */
+    mult( trans44, rot44, tmp );
+    transpose( tmp, g_glMatrix );
+    glLoadMatrixf( g_glMatrix );
 
     update();
 }
@@ -788,29 +530,6 @@ void GLWidget::setStandardOrthoCenter()
     glLoadIdentity();
 }
 
-void GLWidget::drawCross()
-{
-    //cross OpenGL drawing
-    glColor3ubv(mmColor::lightGrey);
-    glBegin(GL_LINES);
-    glVertex3f(0.0,-10.0,0.0);
-    glVertex3f(0.0,10.0,0.0);
-    glVertex3f(-10.0,0.0,0.0);
-    glVertex3f(10.0,0.0,0.0);
-    glEnd();
-}
-
-void GLWidget::glEnableSunLight()
-{
-    //glLightfv(GL_LIGHT0,GL_DIFFUSE,ccGui::Parameters().lightDiffuseColor);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE,  mmColor::dark);
-    glLightfv(GL_LIGHT0, GL_AMBIENT,  mmColor::night);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, mmColor::middle);
-    glLightfv(GL_LIGHT0, GL_POSITION, m_sunLightPos);
-    glLightModelf(GL_LIGHT_MODEL_TWO_SIDE,GL_TRUE);
-    glEnable(GL_LIGHT0);
-}
-
 void GLWidget::setFontPointSize(int pixelSize)
 {
     m_font.setPointSize(pixelSize);
@@ -821,60 +540,26 @@ int GLWidget::getFontPointSize() const
     return m_font.pointSize();
 }
 
-void GLWidget::redraw()
+void GLWidget::zoom()
 {
-    m_updateFBO=true;
-    updateGL();
-}
+    GLdouble zoom = m_params.zoom;
+    GLdouble fAspect = (GLdouble) m_glWidth/ m_glHeight;
 
-void GLWidget::zoomGlobal()
-{
-    //compute bounding box
-    float cX, cY, cZ;
-    float minX, maxX, minY, maxY, minZ, maxZ;
-    float zNear, zFar, diam;
-    minX = minY = minZ = FLT_MAX;
-    maxX = maxY = maxZ = FLT_MIN;
-
-    for (int aK=0; aK < m_ply.size(); ++aK)
-    {
-        int nbPts = m_ply[aK].getVertexNumber();
-        for (int bK=0; bK < nbPts; ++bK)
-        {
-            Cloud_::Vertex vert = m_ply[aK].getVertex(bK);
-
-            if (vert.x() > maxX) maxX = vert.x();
-            if (vert.x() < minX) minX = vert.x();
-            if (vert.y() > maxY) maxY = vert.y();
-            if (vert.y() < minY) minY = vert.y();
-            if (vert.z() > maxZ) maxZ = vert.z();
-            if (vert.z() < minZ) minZ = vert.z();
-        }
-    }
-
-    cX = (minX + maxX) * .5f;
-    cY = (minY + maxY) * .5f;
-    cZ = (minZ + maxZ) * .5f;
-
-    diam = sqrt((cX-minX)*(cX-minX)+(cY-minY)*(cY-minY)+(cZ-minZ)*(cZ-minZ));
-
-    zNear = 0.0;
-    zFar  = zNear + diam;
-
-    GLdouble left   = cX - diam;
-    GLdouble right  = cX + diam;
-    GLdouble bottom = cY - diam;
-    GLdouble top    = cY + diam;
+    GLdouble left   = -zoom*fAspect;
+    GLdouble right  =  zoom*fAspect;
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(left, right, bottom, top, zNear, zFar);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
 
+    glOrtho(left, right, -zoom, zoom, -zoom, zoom);
 }
 
-void GLWidget::setView(MM_VIEW_ORIENTATION orientation, bool forceRedraw/*=true*/)
+void GLWidget::setInteractionMode(INTERACTION_MODE mode)
+{
+    m_interactionMode = mode;
+}
+
+void GLWidget::setView(MM_VIEW_ORIENTATION orientation)
 {
     makeCurrent();
 
@@ -926,52 +611,23 @@ void GLWidget::setView(MM_VIEW_ORIENTATION orientation, bool forceRedraw/*=true*
         break;
     }
 
-    //ccGLMatrix result;
-
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
     gluLookAt(eye[0],eye[1],eye[2],0.0,0.0,0.0,top[0],top[1],top[2]);
-    //glGetFloatv(GL_MODELVIEW_MATRIX, result.data());
-    //result.data()[14] = 0.0; //annoying value (?!)
     glPopMatrix();
 
-    //return result;
-
-
-    invalidateVisualization();
-
-    //we emit the 'baseViewMatChanged' signal
-    //emit baseViewMatChanged();
-
-    if (forceRedraw)
-        redraw();
+    updateGL();
 }
-
-void GLWidget::invalidateVisualization()
-{
-    m_validModelviewMatrix=false;
-    m_updateFBO=true;
-}
-
-/*const double* GLWidget::getModelViewMatd()
-{
-    if (!m_validModelviewMatrix)
-        recalcModelViewMatrix();
-
-    return m_viewMatd;
-}*/
 
 void GLWidget::onWheelEvent(float wheelDelta_deg)
 {
-    m_bFitCloud = false;
-
     //convert degrees in zoom 'power'
     static const float c_defaultDeg2Zoom = 20.0f;
     float zoomFactor = pow(1.1f,wheelDelta_deg / c_defaultDeg2Zoom);
     updateZoom(zoomFactor);
 
-    redraw();
+    updateGL();
 }
 
 void GLWidget::updateZoom(float zoomFactor)
@@ -982,23 +638,15 @@ void GLWidget::updateZoom(float zoomFactor)
 
 void GLWidget::setZoom(float value)
 {
-    if (value < MM_GL_MIN_ZOOM_RATIO)
-        value = MM_GL_MIN_ZOOM_RATIO;
-    else if (value > MM_GL_MAX_ZOOM_RATIO)
-        value = MM_GL_MAX_ZOOM_RATIO;
+    if (value < GL_MIN_ZOOM_RATIO)
+        value = GL_MIN_ZOOM_RATIO;
+    else if (value > GL_MAX_ZOOM_RATIO)
+        value = GL_MAX_ZOOM_RATIO;
 
     if (m_params.zoom != value)
     {
         m_params.zoom = value;
-        invalidateViewport();
-        invalidateVisualization();
     }
-}
-
-void GLWidget::invalidateViewport()
-{
-    //m_validProjectionMatrix=false;
-    m_updateFBO=true;
 }
 
 void GLWidget::wheelEvent(QWheelEvent* event)
@@ -1017,104 +665,186 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     emit mouseWheelRotated(wheelDelta_deg);
 }
 
-const double* GLWidget::getProjectionMatd()
+void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    if (!m_validProjectionMatrix)
-        recalcProjectionMatrix();
+    if (event->x()<0 || event->y()<0 || event->x()>width() || event->y()>height())
+        return;
 
-    return m_projMatd;
+    if (m_interactionMode == SEGMENT_POINTS)
+    {
+        int sz = m_polygon.size();
+
+        if (sz <2)
+           return;
+        else if (sz == 2)
+            m_polygon.push_back(event->pos());
+        else
+            //we replace last point by the current one
+            m_polygon[sz-1] = event->pos();
+
+        updateGL();
+
+        //event->ignore();
+        return;
+    }
+
+    if ( g_mouseLeftDown )
+    {
+        int dx = event->x()-g_mouseOldX,
+            dy = event->y()-g_mouseOldY;
+
+        g_mouseOldX = event->x();
+        g_mouseOldY = event->y();
+
+        setRotateOx_m33( ( g_trackballScale*dy )/m_glHeight, g_rotationOx );
+        setRotateOy_m33( ( g_trackballScale*dx )/m_glWidth, g_rotationOy );
+        mult_m33( g_rotationOx, g_rotationMatrix, g_tmpMatix );
+        mult_m33( g_rotationOy, g_tmpMatix, g_rotationMatrix );
+        inverse_m33( g_rotationMatrix, g_inverseRotationMatrix );
+
+        GLfloat minv[9];
+        mult_m33( g_rotationMatrix, g_inverseRotationMatrix, minv );
+
+        updateGL();
+    }
 }
 
-void GLWidget::recalcModelViewMatrix()
+//Polyline objects are considered as 2D polylines !
+bool isPointInsidePoly(const QPoint& P, const QVector < QPoint > poly)
 {
-    makeCurrent();
+    //nombre de sommets
+    unsigned vertices=poly.size();
+    if (vertices<2)
+        return false;
+
+    bool inside = false;
+
+    QPoint A = poly[0];
+    for (unsigned i=1;i<=vertices;++i)
+    {
+        QPoint B = poly[i%vertices];
+
+        //Point Inclusion in Polygon Test (inspired from W. Randolph Franklin - WRF)
+        if (((B.y()<=P.y()) && (P.y()<A.y())) ||
+                ((A.y()<=P.y()) && (P.y()<B.y())))
+        {
+            float ABy = A.y()-B.y();
+            float t = (P.x()-B.x())*ABy-(A.x()-B.x())*(P.y()-B.y());
+            if (ABy<0)
+                t=-t;
+
+            if (t<0)
+                inside = !inside;
+        }
+
+        A=B;
+    }
+
+    return inside;
+}
+
+void GLWidget::segment(bool inside)
+{
+    if (m_polygon.size() < 2)
+    {
+        //displayNewMessage("No polyline defined!",UPPER_CENTER_MESSAGE, MANUAL_SEGMENTATION_MESSAGE);
+        return;
+    }
+
+    //viewing parameters
+    double MM[16], MP[16];
 
     glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    //apply zoom
-    float totalZoom = m_params.zoom / m_params.pixelSize;
-    glScalef(totalZoom,totalZoom,totalZoom);
-
- /*   if (m_params.objectCenteredView)
-    {
-        //place origin on camera center
-        glTranslatef(-m_params.cameraCenter.x, -m_params.cameraCenter.y, -m_params.cameraCenter.z);
-
-        //go back to initial origin
-        glTranslatef(m_params.pivotPoint.x, m_params.pivotPoint.y, m_params.pivotPoint.z);
-
-        //rotation (viewMat is simply a rotation matrix around the pivot here!)
-        glMultMatrixf(m_params.viewMat.data());
-
-        //place origin on pivot point
-        glTranslatef(-m_params.pivotPoint.x, -m_params.pivotPoint.y, -m_params.pivotPoint.z);
-    }
-    else
-    {
-        //rotation (viewMat is the rotation around the camera center here - no pivot)
-        glMultMatrixf(m_params.viewMat.data());
-
-        //place origin on camera center
-        glTranslatef(-m_params.cameraCenter.x, -m_params.cameraCenter.y, -m_params.cameraCenter.z);
-    }*/
-
-    //we save visualization matrix
-    //glGetFloatv(GL_MODELVIEW_MATRIX, m_viewMat.data());
-    glGetDoublev(GL_MODELVIEW_MATRIX, m_viewMatd);
-
-    m_validModelviewMatrix=true;
-}
-
-void GLWidget::recalcProjectionMatrix()
-{
-    makeCurrent();
+    glGetDoublev(GL_PROJECTION_MATRIX, (GLdouble*) &MM);
 
     glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+    glGetDoublev(GL_MODELVIEW_MATRIX, (GLdouble*) &MP);
 
-    float bbHalfDiag = 1.0f;
-    Vector3 bbCenter(0.0f);
+    const float half_w = (float)m_glWidth * 0.5f;
+    const float half_h = (float)m_glHeight * 0.5f;
 
-    //compute center of viewed objects constellation
+    int VP[4];
+    makeCurrent();
+    glGetIntegerv(GL_VIEWPORT, VP);
 
-    //TODO !!!
-    /*
-    if (m_globalDBRoot)
+    QPoint P2D;
+    bool pointInside;
+
+    int cpt_inside = 0;
+    int cpt_outside = 0;
+    int cpt_total = 0;
+    for (int aK=0; aK < m_ply.size(); ++aK)
     {
-        //get whole bounding-box
-        ccBBox box = m_globalDBRoot->getBB(true, true, this);
-        if (box.isValid())
+        Cloud_::Cloud a_cloud = m_ply[aK];
+
+        cpt_total += a_cloud.getVertexNumber();
+
+        for (int bK=0; bK < a_cloud.getVertexNumber();++bK)
         {
-            //get bbox center
-            bbCenter = box.getCenter();
-            //get half bbox diagonal length
-            bbHalfDiag = box.getDiagNorm()*0.5;
+            Cloud_::Vertex P = a_cloud.getVertex( bK );  //attention constructeur par copie absent ?
+
+            GLdouble xp,yp,zp;
+            gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
+            P2D.setX(xp - half_w);
+            P2D.setY(yp - half_h);
+
+            pointInside = isPointInsidePoly(P2D,m_polygon);
+
+            if ((inside && !pointInside)||(!inside && pointInside))
+                cpt_inside++;
+            else
+                cpt_outside++;
+
         }
-    }*/
+    }
 
-    //virtual pivot point (i.e. to handle viewer-based mode smoothly)
-    Vector3 pivotPoint = (m_params.objectCenteredView ? m_params.pivotPoint : bbCenter);
+    cout << " nombre de points a l'interieur: " << cpt_inside <<endl;
+    cout << " nombre de points a l'exterieur: " << cpt_outside <<endl;
+    cout << " nombre de points total: " << cpt_inside <<endl;
 
-    //distance between camera and pivot point
-    float CP = (m_params.cameraCenter-pivotPoint).norm();
-    //distance between pivot point and DB farthest point
-    float MP = (bbCenter-pivotPoint).norm() + bbHalfDiag;
+   /* const double* MM = m_associatedWin->getModelViewMatd(); //viewMat
+    const double* MP = m_associatedWin->getProjectionMatd(); //projMat
+    const float half_w = (float)m_associatedWin->width() * 0.5f;
+    const float half_h = (float)m_associatedWin->height() * 0.5f;
 
-    //max distance (camera to 'farthest' point)
-    float maxDist = CP + MP;
+    int VP[4];
+    m_associatedWin->getViewportArray(VP);
 
-    float maxDist_pix = maxDist / m_params.pixelSize * m_params.zoom;
-    maxDist_pix = std::max<float>(maxDist_pix,1.0f);
+    CCVector3 P;
+    CCVector2 P2D;
+    bool pointInside;
 
-    float halfW = static_cast<float>(m_glWidth)*0.5f;
-    float halfH = static_cast<float>(m_glHeight)*0.5f;
+    //for each selected entity
+    for (ccHObject::Container::iterator p=m_toSegment.begin();p!=m_toSegment.end();++p)
+    {
+        ccGenericPointCloud* cloud = ccHObjectCaster::ToGenericPointCloud(*p);
+        assert(cloud);
 
-    glOrtho(-halfW,halfW,-halfH,halfH,-maxDist_pix,maxDist_pix);
+        ccGenericPointCloud::VisibilityTableType* vis = cloud->getTheVisibilityArray();
+        assert(vis);
 
-    //we save projection matrix
-    //glGetFloatv(GL_PROJECTION_MATRIX, m_projMat.data());
-    glGetDoublev(GL_PROJECTION_MATRIX, m_projMatd);
+        unsigned i,cloudSize = cloud->size();
 
-    m_validProjectionMatrix = true;
+        //we project each point and we check if it falls inside the segmentation polyline
+        for (i=0;i<cloudSize;++i)
+        {
+            cloud->getPoint(i,P);
+
+            GLdouble xp,yp,zp;
+            gluProject(P.x,P.y,P.z,MM,MP,VP,&xp,&yp,&zp);
+            P2D.x = xp - half_w;
+            P2D.y = yp - half_h;
+
+            pointInside = CCLib::ManualSegmentationTools::isPointInsidePoly(P2D,m_segmentationPoly);
+
+            if ((inside && !pointInside)||(!inside && pointInside))
+                vis->setValue(i,0); //hiddenValue=0
+        }
+    }
+
+    m_somethingHasChanged = true;
+    validButton->setEnabled(true);
+    validAndDeleteButton->setEnabled(true);
+    razButton->setEnabled(true);
+    pauseSegmentationMode(true); */
 }
