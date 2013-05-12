@@ -351,6 +351,19 @@
         <Key>   NKS-Assoc-Cste </Key>
     </KeyedNamesAssociations>
 
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.([a-z,A-Z,0-9]{3,4}) </PatternTransform>
+                <CalcName>  $1  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Prefix </Key>
+    </KeyedNamesAssociations>
+
+
     <KeyedNamesAssociations>
         <IsParametrized>  true </IsParametrized>
         <Calcs>
@@ -366,6 +379,10 @@
         </Calcs>
         <Key>   NKS-Assoc-AddPost </Key>
     </KeyedNamesAssociations>
+
+
+
+
 
     <KeyedNamesAssociations>
         <IsParametrized>  true </IsParametrized>

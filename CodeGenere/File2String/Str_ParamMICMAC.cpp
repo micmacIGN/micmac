@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2034]) = {
+const char * (theNameVar_ParamMICMAC[2042]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -1758,6 +1758,14 @@ const char * (theNameVar_ParamMICMAC[2034]) = {
 "             <AnamDeZoomMasq Nb=\"?\" Type=\"int\" Def=\"16\"> </AnamDeZoomMasq>\n",
 "             <!-- Limite +ou- Pi/3 -->\n",
 "             <AnamLimAngleVisib Nb=\"?\" Type=\"double\" Def=\"1.05\"> </AnamLimAngleVisib>\n",
+"             <MakeMaskImNadir Nb=\"?\">\n",
+"                 <DynIncid Nb=\"?\" Type=\"double\" Def=\"1e4\"> </DynIncid>\n",
+"<!-- A priori si on fait des masque image, on ne veut pas utiliser cela en geometrie terrain -->\n",
+"                 <MakeAlsoMaskTerrain Type=\"bool\" Nb=\"?\" Def=\"false\"> </MakeAlsoMaskTerrain>\n",
+"                 <KBest  Nb=\"1\" Type=\"int\">   </KBest>\n",
+"                  <!-- de 0 a 1 , effet de l'inc Z sur les angles -->\n",
+"                 <IncertAngle  Nb=\"?\" Type=\"double\" Def=\"0.1\"> </IncertAngle>\n",
+"             </MakeMaskImNadir>\n",
 "         </AnamorphoseGeometrieMNT>\n",
 "\n",
 "         <!-- Utile  pour un chgt de rep temp a la correl (redressement, \n",

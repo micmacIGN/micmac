@@ -4256,6 +4256,31 @@ class cAnamSurfaceAnalytique
 };
 cElXMLTree * ToXMLTree(const cAnamSurfaceAnalytique &);
 
+class cMakeMaskImNadir
+{
+    public:
+        friend void xml_init(cMakeMaskImNadir & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< double > & DynIncid();
+        const cTplValGesInit< double > & DynIncid()const ;
+
+        cTplValGesInit< bool > & MakeAlsoMaskTerrain();
+        const cTplValGesInit< bool > & MakeAlsoMaskTerrain()const ;
+
+        int & KBest();
+        const int & KBest()const ;
+
+        cTplValGesInit< double > & IncertAngle();
+        const cTplValGesInit< double > & IncertAngle()const ;
+    private:
+        cTplValGesInit< double > mDynIncid;
+        cTplValGesInit< bool > mMakeAlsoMaskTerrain;
+        int mKBest;
+        cTplValGesInit< double > mIncertAngle;
+};
+cElXMLTree * ToXMLTree(const cMakeMaskImNadir &);
+
 class cAnamorphoseGeometrieMNT
 {
     public:
@@ -4276,10 +4301,26 @@ class cAnamorphoseGeometrieMNT
 
         cTplValGesInit< double > & AnamLimAngleVisib();
         const cTplValGesInit< double > & AnamLimAngleVisib()const ;
+
+        cTplValGesInit< double > & DynIncid();
+        const cTplValGesInit< double > & DynIncid()const ;
+
+        cTplValGesInit< bool > & MakeAlsoMaskTerrain();
+        const cTplValGesInit< bool > & MakeAlsoMaskTerrain()const ;
+
+        int & KBest();
+        const int & KBest()const ;
+
+        cTplValGesInit< double > & IncertAngle();
+        const cTplValGesInit< double > & IncertAngle()const ;
+
+        cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir();
+        const cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir()const ;
     private:
         cTplValGesInit< cAnamSurfaceAnalytique > mAnamSurfaceAnalytique;
         cTplValGesInit< int > mAnamDeZoomMasq;
         cTplValGesInit< double > mAnamLimAngleVisib;
+        cTplValGesInit< cMakeMaskImNadir > mMakeMaskImNadir;
 };
 cElXMLTree * ToXMLTree(const cAnamorphoseGeometrieMNT &);
 
@@ -4442,6 +4483,21 @@ class cSection_Results
 
         cTplValGesInit< double > & AnamLimAngleVisib();
         const cTplValGesInit< double > & AnamLimAngleVisib()const ;
+
+        cTplValGesInit< double > & DynIncid();
+        const cTplValGesInit< double > & DynIncid()const ;
+
+        cTplValGesInit< bool > & MakeAlsoMaskTerrain();
+        const cTplValGesInit< bool > & MakeAlsoMaskTerrain()const ;
+
+        int & KBest();
+        const int & KBest()const ;
+
+        cTplValGesInit< double > & IncertAngle();
+        const cTplValGesInit< double > & IncertAngle()const ;
+
+        cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir();
+        const cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir()const ;
 
         cTplValGesInit< cAnamorphoseGeometrieMNT > & AnamorphoseGeometrieMNT();
         const cTplValGesInit< cAnamorphoseGeometrieMNT > & AnamorphoseGeometrieMNT()const ;
@@ -5460,6 +5516,21 @@ class cParamMICMAC
 
         cTplValGesInit< double > & AnamLimAngleVisib();
         const cTplValGesInit< double > & AnamLimAngleVisib()const ;
+
+        cTplValGesInit< double > & DynIncid();
+        const cTplValGesInit< double > & DynIncid()const ;
+
+        cTplValGesInit< bool > & MakeAlsoMaskTerrain();
+        const cTplValGesInit< bool > & MakeAlsoMaskTerrain()const ;
+
+        int & KBest();
+        const int & KBest()const ;
+
+        cTplValGesInit< double > & IncertAngle();
+        const cTplValGesInit< double > & IncertAngle()const ;
+
+        cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir();
+        const cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir()const ;
 
         cTplValGesInit< cAnamorphoseGeometrieMNT > & AnamorphoseGeometrieMNT();
         const cTplValGesInit< cAnamorphoseGeometrieMNT > & AnamorphoseGeometrieMNT()const ;

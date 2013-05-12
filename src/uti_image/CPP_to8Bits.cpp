@@ -281,7 +281,7 @@ cout << "Types = "
                 fRes = fRes + Offset;
             fRes = fRes * Dyn;
             std::cout << "SIGNED " << signed_type_num(aType) << " DO " << DefOffset << "\n";
-            if ( DefOffset && (UseSigne&&signed_type_num(aType)))
+            if ( (Offset==0) &&  DefOffset && (UseSigne&&signed_type_num(aType)))
             {
                 fRes = fRes+128;
             }

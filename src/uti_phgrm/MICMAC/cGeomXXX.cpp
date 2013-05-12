@@ -252,7 +252,7 @@ if (MPD_MM())
   {
       if ((aSelName==0) || (aSelName->IsSetIn((*itFI)->Name())))
       {
-         if (mAp->Anam() || mAp->RC())
+         if (mAp->AnamSA() || mAp->RC())
          {
               aNbPxMoyGot++;
               for (int aD=0 ; aD<mDimPx ; aD++)
@@ -737,7 +737,7 @@ if ( mAp->DebugMM().Val())
 
   for (tCsteIterPDV itFI=mAp->PdvBegin(); itFI!=mAp->PdvEnd(); itFI++)  
   {
-      (*itFI)->Geom().InitAnam(mResol,mBoxEngl);
+      (*itFI)->Geom().InitAnamSA(mResol,mBoxEngl);
   }
 
   cGeomDiscR2::SetDeZoom(1.0);

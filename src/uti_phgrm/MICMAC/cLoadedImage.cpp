@@ -1922,7 +1922,7 @@ void cLoadedImage::MakePC
          for (aP.x=0 ; aP.x< aSzCur.x ; aP.x++)
          {
 // std::cout << aP << aGeoT.DiscToR2(aP) << "\n";
-             if (! aGeomI.IsInMasqAnam(aGeoT.DiscToR2(aP)))
+             if (! aGeomI.IsInMasqAnamSA(aGeoT.DiscToR2(aP)))
                 mTImPC.oset(aP,mSeuilPC);
          }
       }

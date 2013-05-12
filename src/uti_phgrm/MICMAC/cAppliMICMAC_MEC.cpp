@@ -131,7 +131,7 @@ void cAppliMICMAC::DoAllMEC()
                      )
                )
             {
-               MakeRedrLocAnam();
+               MakeRedrLocAnamSA();
             }
         }
      }
@@ -694,7 +694,7 @@ void cAppliMICMAC::DoOneBloc
           }
           mPDVBoxGlobAct.push_back(*itFI);
 
-          if (mCurEtape->UsePC() || (*itFI)->Geom().UseMasqAnam())
+          if (mCurEtape->UsePC() || (*itFI)->Geom().UseMasqTerAnamSA())
           {
               (*itFI)->LoadedIm().MakePC
                        (
@@ -703,7 +703,7 @@ void cAppliMICMAC::DoOneBloc
                            mCurEtape->PredPC(),
                            aBoxIn,
                            mCurEtape->UsePC(),
-                           (*itFI)->Geom().UseMasqAnam()
+                           (*itFI)->Geom().UseMasqTerAnamSA()
                        );
           }
        }
