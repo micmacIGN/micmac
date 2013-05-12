@@ -527,7 +527,7 @@ void cAppliMICMAC::MakePartiesCachees
                    for (aP.x=aX0 ; aP.x<aX1 ; aP.x++)
                    {
                       Pt2dr aPImCur =  aGT.DiscToR2(aP);
-                      if (aTImMasq.get(aP) && aGeoI.IsInMasqAnam(aPImCur))
+                      if (aTImMasq.get(aP) && aGeoI.IsInMasqAnamSA(aPImCur))
                       {
                          int aZ = aTImZ.get(aP);
                          Pt2dr aPIm2 =   aPImC

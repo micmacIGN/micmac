@@ -51,12 +51,12 @@ Pt3dr cAppliMICMAC::ToRedr
       )
 {
    Pt3dr aPTerInit =  ToMnt(aFOMInit,aPDiscInit);
-   Pt3dr aPTerRedr =  mAnam->ToOrLoc(aPTerInit);
+   Pt3dr aPTerRedr =  mAnamSA->ToOrLoc(aPTerInit);
  
    return FromMnt(aFOMCible,aPTerRedr);
 }
 
-void cAppliMICMAC::MakeRedrLocAnam()
+void cAppliMICMAC::MakeRedrLocAnamSA()
 {
 //FOM : lire XML;
 
@@ -65,14 +65,14 @@ void cAppliMICMAC::MakeRedrLocAnam()
       return;
     const cRedrLocAnam & aRLA =  anET.RedrLocAnam().Val();
 
-   if (! mAnam) return;
-   if (! mAnam->HasOrthoLoc()) return;
+   if (! mAnamSA) return;
+   if (! mAnamSA->HasOrthoLoc()) return;
 
-   if (! mAnam->OrthoLocIsXCste())
+   if (! mAnamSA->OrthoLocIsXCste())
    {
       cElWarning::OrhoLocOnlyXCste.AddWarn
       (
-            "For file anam : " + mNameAnam,
+            "For file anam : " + mNameAnamSA,
            __LINE__,
            __FILE__
 
@@ -135,7 +135,7 @@ void cAppliMICMAC::MakeRedrLocAnam()
            {
                Pt3dr aPDiscInit(aCor[aKP].x,aCor[aKP].y,aPxExtr[aKZ]);
                Pt3dr aPTerInit =  ToMnt(aFOMInit,aPDiscInit);
-               Pt3dr aPTerRedr =  mAnam->ToOrLoc(aPTerInit);
+               Pt3dr aPTerRedr =  mAnamSA->ToOrLoc(aPTerInit);
                //  Pt3dr aPDiscRedr = FromMnt(aFOMCible,aPTerRedr);
 
                aPtSupR.SetSup(Proj(aPTerRedr));

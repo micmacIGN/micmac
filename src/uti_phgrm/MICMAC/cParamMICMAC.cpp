@@ -13681,6 +13681,76 @@ void xml_init(cAnamSurfaceAnalytique & anObj,cElXMLTree * aTree)
 }
 
 
+cTplValGesInit< double > & cMakeMaskImNadir::DynIncid()
+{
+   return mDynIncid;
+}
+
+const cTplValGesInit< double > & cMakeMaskImNadir::DynIncid()const 
+{
+   return mDynIncid;
+}
+
+
+cTplValGesInit< bool > & cMakeMaskImNadir::MakeAlsoMaskTerrain()
+{
+   return mMakeAlsoMaskTerrain;
+}
+
+const cTplValGesInit< bool > & cMakeMaskImNadir::MakeAlsoMaskTerrain()const 
+{
+   return mMakeAlsoMaskTerrain;
+}
+
+
+int & cMakeMaskImNadir::KBest()
+{
+   return mKBest;
+}
+
+const int & cMakeMaskImNadir::KBest()const 
+{
+   return mKBest;
+}
+
+
+cTplValGesInit< double > & cMakeMaskImNadir::IncertAngle()
+{
+   return mIncertAngle;
+}
+
+const cTplValGesInit< double > & cMakeMaskImNadir::IncertAngle()const 
+{
+   return mIncertAngle;
+}
+
+cElXMLTree * ToXMLTree(const cMakeMaskImNadir & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MakeMaskImNadir",eXMLBranche);
+   if (anObj.DynIncid().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DynIncid"),anObj.DynIncid().Val())->ReTagThis("DynIncid"));
+   if (anObj.MakeAlsoMaskTerrain().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("MakeAlsoMaskTerrain"),anObj.MakeAlsoMaskTerrain().Val())->ReTagThis("MakeAlsoMaskTerrain"));
+   aRes->AddFils(::ToXMLTree(std::string("KBest"),anObj.KBest())->ReTagThis("KBest"));
+   if (anObj.IncertAngle().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("IncertAngle"),anObj.IncertAngle().Val())->ReTagThis("IncertAngle"));
+  return aRes;
+}
+
+void xml_init(cMakeMaskImNadir & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.DynIncid(),aTree->Get("DynIncid",1),double(1e4)); //tototo 
+
+   xml_init(anObj.MakeAlsoMaskTerrain(),aTree->Get("MakeAlsoMaskTerrain",1),bool(false)); //tototo 
+
+   xml_init(anObj.KBest(),aTree->Get("KBest",1)); //tototo 
+
+   xml_init(anObj.IncertAngle(),aTree->Get("IncertAngle",1),double(0.1)); //tototo 
+}
+
+
 std::string & cAnamorphoseGeometrieMNT::NameFile()
 {
    return AnamSurfaceAnalytique().Val().NameFile();
@@ -13735,6 +13805,61 @@ const cTplValGesInit< double > & cAnamorphoseGeometrieMNT::AnamLimAngleVisib()co
    return mAnamLimAngleVisib;
 }
 
+
+cTplValGesInit< double > & cAnamorphoseGeometrieMNT::DynIncid()
+{
+   return MakeMaskImNadir().Val().DynIncid();
+}
+
+const cTplValGesInit< double > & cAnamorphoseGeometrieMNT::DynIncid()const 
+{
+   return MakeMaskImNadir().Val().DynIncid();
+}
+
+
+cTplValGesInit< bool > & cAnamorphoseGeometrieMNT::MakeAlsoMaskTerrain()
+{
+   return MakeMaskImNadir().Val().MakeAlsoMaskTerrain();
+}
+
+const cTplValGesInit< bool > & cAnamorphoseGeometrieMNT::MakeAlsoMaskTerrain()const 
+{
+   return MakeMaskImNadir().Val().MakeAlsoMaskTerrain();
+}
+
+
+int & cAnamorphoseGeometrieMNT::KBest()
+{
+   return MakeMaskImNadir().Val().KBest();
+}
+
+const int & cAnamorphoseGeometrieMNT::KBest()const 
+{
+   return MakeMaskImNadir().Val().KBest();
+}
+
+
+cTplValGesInit< double > & cAnamorphoseGeometrieMNT::IncertAngle()
+{
+   return MakeMaskImNadir().Val().IncertAngle();
+}
+
+const cTplValGesInit< double > & cAnamorphoseGeometrieMNT::IncertAngle()const 
+{
+   return MakeMaskImNadir().Val().IncertAngle();
+}
+
+
+cTplValGesInit< cMakeMaskImNadir > & cAnamorphoseGeometrieMNT::MakeMaskImNadir()
+{
+   return mMakeMaskImNadir;
+}
+
+const cTplValGesInit< cMakeMaskImNadir > & cAnamorphoseGeometrieMNT::MakeMaskImNadir()const 
+{
+   return mMakeMaskImNadir;
+}
+
 cElXMLTree * ToXMLTree(const cAnamorphoseGeometrieMNT & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"AnamorphoseGeometrieMNT",eXMLBranche);
@@ -13744,6 +13869,8 @@ cElXMLTree * ToXMLTree(const cAnamorphoseGeometrieMNT & anObj)
       aRes->AddFils(::ToXMLTree(std::string("AnamDeZoomMasq"),anObj.AnamDeZoomMasq().Val())->ReTagThis("AnamDeZoomMasq"));
    if (anObj.AnamLimAngleVisib().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("AnamLimAngleVisib"),anObj.AnamLimAngleVisib().Val())->ReTagThis("AnamLimAngleVisib"));
+   if (anObj.MakeMaskImNadir().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.MakeMaskImNadir().Val())->ReTagThis("MakeMaskImNadir"));
   return aRes;
 }
 
@@ -13756,6 +13883,8 @@ void xml_init(cAnamorphoseGeometrieMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.AnamDeZoomMasq(),aTree->Get("AnamDeZoomMasq",1),int(16)); //tototo 
 
    xml_init(anObj.AnamLimAngleVisib(),aTree->Get("AnamLimAngleVisib",1),double(1.05)); //tototo 
+
+   xml_init(anObj.MakeMaskImNadir(),aTree->Get("MakeMaskImNadir",1)); //tototo 
 }
 
 
@@ -14281,6 +14410,61 @@ cTplValGesInit< double > & cSection_Results::AnamLimAngleVisib()
 const cTplValGesInit< double > & cSection_Results::AnamLimAngleVisib()const 
 {
    return AnamorphoseGeometrieMNT().Val().AnamLimAngleVisib();
+}
+
+
+cTplValGesInit< double > & cSection_Results::DynIncid()
+{
+   return AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().DynIncid();
+}
+
+const cTplValGesInit< double > & cSection_Results::DynIncid()const 
+{
+   return AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().DynIncid();
+}
+
+
+cTplValGesInit< bool > & cSection_Results::MakeAlsoMaskTerrain()
+{
+   return AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().MakeAlsoMaskTerrain();
+}
+
+const cTplValGesInit< bool > & cSection_Results::MakeAlsoMaskTerrain()const 
+{
+   return AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().MakeAlsoMaskTerrain();
+}
+
+
+int & cSection_Results::KBest()
+{
+   return AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().KBest();
+}
+
+const int & cSection_Results::KBest()const 
+{
+   return AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().KBest();
+}
+
+
+cTplValGesInit< double > & cSection_Results::IncertAngle()
+{
+   return AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().IncertAngle();
+}
+
+const cTplValGesInit< double > & cSection_Results::IncertAngle()const 
+{
+   return AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().IncertAngle();
+}
+
+
+cTplValGesInit< cMakeMaskImNadir > & cSection_Results::MakeMaskImNadir()
+{
+   return AnamorphoseGeometrieMNT().Val().MakeMaskImNadir();
+}
+
+const cTplValGesInit< cMakeMaskImNadir > & cSection_Results::MakeMaskImNadir()const 
+{
+   return AnamorphoseGeometrieMNT().Val().MakeMaskImNadir();
 }
 
 
@@ -17799,6 +17983,61 @@ cTplValGesInit< double > & cParamMICMAC::AnamLimAngleVisib()
 const cTplValGesInit< double > & cParamMICMAC::AnamLimAngleVisib()const 
 {
    return Section_Results().AnamorphoseGeometrieMNT().Val().AnamLimAngleVisib();
+}
+
+
+cTplValGesInit< double > & cParamMICMAC::DynIncid()
+{
+   return Section_Results().AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().DynIncid();
+}
+
+const cTplValGesInit< double > & cParamMICMAC::DynIncid()const 
+{
+   return Section_Results().AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().DynIncid();
+}
+
+
+cTplValGesInit< bool > & cParamMICMAC::MakeAlsoMaskTerrain()
+{
+   return Section_Results().AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().MakeAlsoMaskTerrain();
+}
+
+const cTplValGesInit< bool > & cParamMICMAC::MakeAlsoMaskTerrain()const 
+{
+   return Section_Results().AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().MakeAlsoMaskTerrain();
+}
+
+
+int & cParamMICMAC::KBest()
+{
+   return Section_Results().AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().KBest();
+}
+
+const int & cParamMICMAC::KBest()const 
+{
+   return Section_Results().AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().KBest();
+}
+
+
+cTplValGesInit< double > & cParamMICMAC::IncertAngle()
+{
+   return Section_Results().AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().IncertAngle();
+}
+
+const cTplValGesInit< double > & cParamMICMAC::IncertAngle()const 
+{
+   return Section_Results().AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().IncertAngle();
+}
+
+
+cTplValGesInit< cMakeMaskImNadir > & cParamMICMAC::MakeMaskImNadir()
+{
+   return Section_Results().AnamorphoseGeometrieMNT().Val().MakeMaskImNadir();
+}
+
+const cTplValGesInit< cMakeMaskImNadir > & cParamMICMAC::MakeMaskImNadir()const 
+{
+   return Section_Results().AnamorphoseGeometrieMNT().Val().MakeMaskImNadir();
 }
 
 

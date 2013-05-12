@@ -103,6 +103,8 @@ class cInterfSurfaceAnalytique
     // troisiemme coordonnee (genre faisceau de normal)
      public :
 
+         static cInterfSurfaceAnalytique * Id(); // renvoie une surface identite, utile pour beneficier
+                                                 // de certaine fonction MicMac passant par l'interface
 
          virtual Pt3dr E2UVL(const Pt3dr & aP) const = 0;
          virtual Pt3dr UVL2E(const Pt3dr & aP) const = 0;

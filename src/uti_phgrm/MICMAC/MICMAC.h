@@ -1014,12 +1014,14 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
 
     // Pour l'instant seul la geometrie conique accepte les anamorphose,
     // car cela necessite des adaptation pas encore faite pour les autres
-        virtual bool AcceptAnam() const;
+        virtual bool AcceptAnamSA() const;
         friend class cAppliMICMAC;
-        bool  UseMasqAnam();
-        virtual bool IsInMasqAnam(Pt2dr aPTer);
+        bool  UseMasqTerAnamSA();
+        virtual bool IsInMasqAnamSA(Pt2dr aPTer);
+        virtual double IncidTerrain(Pt2dr aPTer);
 
-        std::string NameMasqAnam(const std::string & aPost) const;
+
+        std::string NameMasqAnamSA(const std::string & aPost) const;
 
 
          inline double Px1(const REAL * aPx) const {return (mDimPx > 1) ? aPx[1] : 0;}
@@ -1330,7 +1332,7 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
 
          virtual Pt2dr P1P2ToPx(Pt2dr aP1,Pt2dr aP2) const;
 	 virtual std::string Name() const;
-         virtual void InitAnam(double aResol,const Box2dr &  aBoxTer);
+         virtual void InitAnamSA(double aResol,const Box2dr &  aBoxTer);
    protected :
 
         virtual void InstPostInit();
@@ -1365,14 +1367,25 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
          );
          const cAppliMICMAC & mAppli;
          cPriseDeVue &        mPDV;
-         cInterfSurfaceAnalytique * mAnam;
+         cInterfSurfaceAnalytique * mAnamSA;
          const cChCoCart *          mRC;
          const cChCoCart *          mRCI;
          int                        mAnDeZoomM;
-         bool                       mABTIsInit;
-         cParamMasqAnam             mAnamPMasq;
+
+         bool                       mAnamSAIsInit;
+         bool                       mUseTerMasqAnam;
+         bool                       mDoImMasqAnam;
+
+
+         cParamMasqAnam             mAnamSAPMasq;
+// Parametres utilises pour seuiles sur l'incidences
          Im2D_INT1                  mMTA;
          TIm2D<INT1,INT>            mTMTA;
+
+// Parametres utilises pour ordonner sur l'incidence et prendre les K Meilleur Nadir
+         double                     mDynIncidTerr;
+         TIm2D<INT2,INT>            mTIncidTerr;
+
          const int            mDimPx;
          eTagGeometrie        mModeGeom;
 
@@ -2740,6 +2753,9 @@ class cAppliMICMAC  : public   cParamMICMAC,
 {
      public :
 
+        cAnamorphoseGeometrieMNT * AnaGeomMNT() const;
+        cMakeMaskImNadir * MMImNadir() const;
+
 
      // Pour borner a priori la taille memoire prise par certains algos, on a besoin de savoir
      // le nombre d'image, avant de charge le terrain, c'est donc approximatif et putot majorant
@@ -2925,8 +2941,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
          int   NbPtsWFixe () const;
          int   SzWFixe    () const;
          int   CurSurEchWCor() const;
-         cInterfSurfaceAnalytique * Anam() const;
-         cXmlOneSurfaceAnalytique * XmlAnam() const;
+         cInterfSurfaceAnalytique * AnamSA() const;
+         cXmlOneSurfaceAnalytique * XmlAnamSA() const;
          const cChCoCart *  RC() const;
          const cChCoCart *  RCI() const;
          bool UseAlgoSpecifCorrelRect() const;
@@ -3044,9 +3060,10 @@ class cAppliMICMAC  : public   cParamMICMAC,
              const std::string  & aNameSpecXML
         );
 	void InitDirectories();
-	void InitAnam();
+	void InitAnamSA();
 	void InitImages();
 	void PostInitGeom();
+        void InitNadirRank();
 	void InitMecComp();
         void InitMemPart();
         void SauvMemPart();
@@ -3112,7 +3129,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
                  double aZMax
              );
        
-        void MakeRedrLocAnam();
+        void MakeRedrLocAnamSA();
         Pt3dr ToRedr(const cFileOriMnt & aFOMInit,const cFileOriMnt & aFOMCible,const Pt3dr &aPDiscInit);
 
         ///========================================
@@ -3485,9 +3502,9 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
         cStdMapName2Name *  mMapEquiv;
         // Pour "deformation" de la geometrie de calcul
-        cInterfSurfaceAnalytique * mAnam;
-        cXmlOneSurfaceAnalytique * mXmlAnam;
-        std::string                mNameAnam;
+        cInterfSurfaceAnalytique * mAnamSA;
+        cXmlOneSurfaceAnalytique * mXmlAnamSA;
+        std::string                mNameAnamSA;
         cChCoCart *  mRepCorrel;
         cChCoCart *  mRepInvCorrel;
 
@@ -3548,6 +3565,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
          cMMTP *  mMMTP;
 
          bool  mDoTheMEC;
+         cAnamorphoseGeometrieMNT * mAnaGeomMNT;
+         cMakeMaskImNadir         * mMakeMaskImNadir;
 
 };
 

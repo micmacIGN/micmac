@@ -1756,6 +1756,14 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
              <AnamDeZoomMasq Nb="?" Type="int" Def="16"> </AnamDeZoomMasq>
              <!-- Limite +ou- Pi/3 -->
              <AnamLimAngleVisib Nb="?" Type="double" Def="1.05"> </AnamLimAngleVisib>
+             <MakeMaskImNadir Nb="?">
+                 <DynIncid Nb="?" Type="double" Def="1e4"> </DynIncid>
+<!-- A priori si on fait des masque image, on ne veut pas utiliser cela en geometrie terrain -->
+                 <MakeAlsoMaskTerrain Type="bool" Nb="?" Def="false"> </MakeAlsoMaskTerrain>
+                 <KBest  Nb="1" Type="int">   </KBest>
+                  <!-- de 0 a 1 , effet de l'inc Z sur les angles -->
+                 <IncertAngle  Nb="?" Type="double" Def="0.1"> </IncertAngle>
+             </MakeMaskImNadir>
          </AnamorphoseGeometrieMNT>
 
          <!-- Utile  pour un chgt de rep temp a la correl (redressement, 

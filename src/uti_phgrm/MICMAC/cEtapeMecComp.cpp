@@ -1789,9 +1789,9 @@ void cEtapeMecComp::RemplitXMLNuage
        aNuage.RepereGlob().SetVal(mAppli.RC()->El2Xml());
     }
 
-    if (mAppli.XmlAnam())
+    if (mAppli.XmlAnamSA())
     {
-        aNuage.Anam().SetVal(*(mAppli.XmlAnam()));
+        aNuage.Anam().SetVal(*(mAppli.XmlAnamSA()));
     }
 
     // ELISE_ASSERT(mAppli.DimPx()==1,"cEtapeMecComp::RemplitXMLNuage with DimPx>1");
