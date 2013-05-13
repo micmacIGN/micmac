@@ -804,6 +804,8 @@ cSurfaceOptimiseur * cSurfaceOptimiseur::AllocNewPrgDyn
              const cMultiCorrelPonctuel & aMCP = aCAH->MultiCorrelPonctuel().Val();
              ELISE_ASSERT(! EtiqImage,"Incompatibilite  : MultiCorrelPonctuel / EtiqImage");
              cTabValArgGlob anArg(aMCP,ValUndefCPONT,aMCP.DefCost().Val());
+
+
              switch (aAppli.NbVueAct()-1)
              {
                   case 0 :

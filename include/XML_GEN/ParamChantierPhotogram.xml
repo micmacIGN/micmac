@@ -37,7 +37,8 @@ namespace NS_ParamChantierPhotogram{
 
    <enum Name="eTypeFichierOriTxt">
        <eOriTxtAgiSoft>   </eOriTxtAgiSoft>
-       <eOriTxtInFile>       </eOriTxtInFile>
+       <eOriBluh>         </eOriBluh>
+       <eOriTxtInFile>    </eOriTxtInFile>
        <eNbTypeOriTxt>    </eNbTypeOriTxt>
    </enum>
 
@@ -568,6 +569,11 @@ namespace NS_ParamChantierPhotogram{
    <!--
         Export des grids
    -->
+   <TestNewGrid  Nb="1"  Class="true" ToReference="true">
+       <A Nb="1" Type="std::string"> </A>
+       <Im     Nb="1" Type="Im2D_INT1">       </Im>
+       <Z Nb="1" Type="std::string"> </Z>
+   </TestNewGrid>
 
    <GridDeform2D Nb="1"  Class="true" ToReference="true">
        <Origine Nb="1" Type="Pt2dr"> </Origine>

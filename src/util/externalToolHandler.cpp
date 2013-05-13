@@ -143,7 +143,8 @@ ExternalToolItem & ExternalToolHandler::addTool( const std::string &i_tool )
 {
 	// this tool has not been queried before, we need to check
 	string exeName = i_tool,
-					 fullName;
+					 fullName,
+					 testName;
 	ExtToolStatus status = EXT_TOOL_UNDEF;
 
 	#if (ELISE_windows)
@@ -169,10 +170,22 @@ ExternalToolItem & ExternalToolHandler::addTool( const std::string &i_tool )
 	}
 
 	// check EXTERNAL_TOOLS_SUBDIRECTORY directory
-	fullName = _MMDir()+EXTERNAL_TOOLS_SUBDIRECTORY+ELISE_CAR_DIR+exeName;
-	if ( ELISE_fp::exist_file( fullName ) )
-		status = EXT_TOOL_FOUND_IN_DIR;
+	testName = _MMDir()+EXTERNAL_TOOLS_SUBDIRECTORY+ELISE_CAR_DIR+exeName;
+	if ( ELISE_fp::exist_file( testName ) ){
+		status = ( ExtToolStatus )( status|EXT_TOOL_FOUND_IN_EXTERN );
+		fullName = testName;
+	}
+	
+	// check INTERNAL_TOOLS_SUBDIRECTORY directory
+	// INTERNAL_TOOLS_SUBDIRECTORY prevails upon EXTERNAL_TOOLS_SUBDIRECTORY
+	testName = _MMDir()+INTERNAL_TOOLS_SUBDIRECTORY+ELISE_CAR_DIR+exeName;
+	if ( ELISE_fp::exist_file( testName ) ){
+		status = ( ExtToolStatus )( status|EXT_TOOL_FOUND_IN_INTERN );
+		fullName = testName;
+	}
 
+	// PATH directories prevails upon INTERNAL_TOOLS_SUBDIRECTORY and EXTERNAL_TOOLS_SUBDIRECTORY
+	// except for excluded directories (in m_excludedDirectories) which are ignored
 	if ( checkPathDirectories( exeName ) ){
 		status = ( ExtToolStatus )( status|EXT_TOOL_FOUND_IN_PATH );
 		fullName = exeName;
@@ -195,16 +208,7 @@ string printResult( const string &i_tool )
 
 	if ( item.m_status==EXT_TOOL_NOT_FOUND ) return ( printLine+" NOT FOUND" );
 
-	if ( ( item.m_status&EXT_TOOL_FOUND_IN_PATH )!=0 )
-	{
-		printLine.append( "LOCAL");
-		if ( ( item.m_status&EXT_TOOL_FOUND_IN_DIR )!=0 )
-			printLine.append( ", DEFAULT -> using LOCAL");
-	}
-	else if ( ( item.m_status&EXT_TOOL_FOUND_IN_DIR )!=0 )
-		printLine.append( "DEFAULT");
-
-	printLine = printLine+" ("+item.m_fullName+")";
+	printLine = printLine+" found ("+item.m_fullName+")";
 	return printLine;
 }
 
@@ -215,10 +219,8 @@ int CheckDependencies_main(int argc,char ** argv)
 	cout << printResult( "exiv2" ) << endl;
 	cout << printResult( "convert" ) << endl;
 	
-	string siftName = TheStrSiftPP.substr( 0, TheStrSiftPP.length()-1 ),
-		   annName  = TheStrAnnPP.substr( 0, TheStrAnnPP.length()-1 );
-	cout << printResult( siftName ) << endl;
-	cout << printResult( annName ) << endl;
+	cout << printResult( TheStrSiftPP ) << endl;
+	cout << printResult( TheStrAnnPP ) << endl;
 
 	return EXIT_SUCCESS;
 }

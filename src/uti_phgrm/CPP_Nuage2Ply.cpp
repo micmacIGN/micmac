@@ -87,7 +87,7 @@ int Nuage2Ply_main(int argc,char ** argv)
 
     cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromFileIm(aNameNuage,"XML_ParamNuage3DMaille",aMask,aExagZ);
     if (aSz.x <0) 
-        aSz = Pt2dr(aNuage->Sz());
+        aSz = Pt2dr(aNuage->SzUnique());
 
     if (anAttr1!="")
     {

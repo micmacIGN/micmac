@@ -254,10 +254,41 @@ class cSTRVirtStream : public cVirtStream
        }
 
 
+        const char * Ending() {return mCur;}
 
   private :
      const char *  mCur;
      const char *  mC0;
+};
+
+
+/*******************************************************/
+/*                                                     */
+/*                      cIStStrVirstream               */
+/*                                                     */
+/*******************************************************/
+
+class cIStStrVirstream : public cVirtStream
+{
+   public :
+      int my_getc() 
+      {
+         char aC;
+         mISS >> aC;
+         return  aC;
+      }
+      int my_eof() {return CHAR_MIN;}
+      void my_ungetc(int aC)  
+      {
+           mISS.putback(aC);
+      }
+      cIStStrVirstream(std::istringstream & anISS) :
+         cVirtStream  ("cIStStrVirstream",false,false),
+         mISS         (anISS)
+      {
+      }
+  private :
+     std::istringstream & mISS;
 };
 
 
@@ -300,6 +331,13 @@ class cFILEVirtStream : public cVirtStream
        {
        }
 
+       void fread(void *dest,int aNbOct)
+       {
+            int aGot = ::fread(dest,1,aNbOct,mFP);
+            ELISE_ASSERT(aNbOct==aGot,"cFILEVirtStream::fread");
+       }
+
+
 /*
 isFilePredef,bool isFileSpec) :
          cVirtStream (aName,isFilePredef,isFileSpec),
@@ -341,6 +379,16 @@ const  std::string & cVirtStream::Name()
    return mName;
 }
 
+void cVirtStream::fread(void *dest,int aNbOct)
+{
+   ELISE_ASSERT(false,"No cVirtStream::fread");
+}
+const char * cVirtStream::Ending()
+{
+   ELISE_ASSERT(false,"No cVirtStream::fread");
+   return 0;
+}
+
 extern void d(const char * n);
 
 cVirtStream *  cVirtStream::StdOpen(const std::string & aName)
@@ -374,6 +422,16 @@ cVirtStream *  cVirtStream::StdOpen(const std::string & aName)
    ELISE_ASSERT(false,"Cannot open");
 
    return 0;
+}
+
+cVirtStream  * cVirtStream::VStreamFromCharPtr(const char* aCharPtr)
+{
+   return new cSTRVirtStream(aCharPtr,"VStreamFromCharPtr",false,false);
+}
+
+cVirtStream * cVirtStream::VStreamFromIsStream(std::istringstream & anISS)
+{
+    return new cIStStrVirstream(anISS);
 }
 
 

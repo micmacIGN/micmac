@@ -220,16 +220,19 @@ cElNuage3DMaille::cElNuage3DMaille
 (
     const std::string &             aDir,
     const cXML_ParamNuage3DMaille & aParam,
-    Fonc_Num aFDef
+    Fonc_Num aFDef,
+    bool     WithEmpyData
 ) :
+   mEmptyData     (WithEmpyData),
    mDir           (aDir),
    mICNM          (cInterfChantierNameManipulateur::StdAlloc(0,0,mDir,cTplValGesInit<std::string>(),0)),
    mParams        (*(new cXML_ParamNuage3DMaille(aParam))),
-   mSz            (mParams.NbPixel()),
-   mImDef         (mSz.x,mSz.y,0),
+   mSzGeom        (mParams.NbPixel()),
+   mSzData        (WithEmpyData ? Pt2di(1,1) : mSzGeom),
+   mImDef         (mSzData.x,mSzData.y,0),
    mNbPts         (0),
    mTImDef        (mImDef),
-   mImDefInterp   (mSz.x,mSz.y,0),
+   mImDefInterp   (mSzData.x,mSzData.y,0),
    mTImDefInterp  (mImDefInterp),
    mCam           (Cam_Gen_From_XML(mParams.Orientation(),mICNM)),
    mImEtire       (1,1),
@@ -271,9 +274,9 @@ cElNuage3DMaille::cElNuage3DMaille
          mImDef.out() | sigma(mNbPts)
     );
     Pt2di aP;
-    for (aP.x = 0 ; aP.x<mSz.x-1 ; aP.x++)
+    for (aP.x = 0 ; aP.x<mSzData.x-1 ; aP.x++)
     {
-        for (aP.y = 0 ; aP.y<mSz.y-1 ; aP.y++)
+        for (aP.y = 0 ; aP.y<mSzData.y-1 ; aP.y++)
         {
               UpdateDefInterp(aP);
         }
@@ -300,6 +303,16 @@ bool  cElNuage3DMaille::CaptHasData(const Pt2dr & aP) const
    return IndexHasContenuForInterpol(aP); 
 }
 
+void cElNuage3DMaille::AssertNoEmptyData() const
+{
+    ELISE_ASSERT(!mEmptyData,"cElNuage3DMaille::AssertNoEmptyData");
+}
+
+const Pt2di &  cElNuage3DMaille::SzUnique() const
+{
+    AssertNoEmptyData();
+    return mSzGeom;
+}
 
 
 
@@ -328,17 +341,18 @@ double cElNuage3DMaille::ResolSolOfPt(const Pt3dr & aP) const
 
 double cElNuage3DMaille::ResolSolGlob() const
 {
+   AssertNoEmptyData();
    if (! mResolGlobCalc)
    {
       int aNb = 20;
-      Pt2di aDec = mSz/ aNb;
+      Pt2di aDec = mSzData/ aNb;
       double aSomRes = 0.0;
       double aSomPds = 0.0;
 
       Pt2di aP;
-      for (aP.x =0 ; aP.x<mSz.x ; aP.x+=aDec.x)
+      for (aP.x =0 ; aP.x<mSzData.x ; aP.x+=aDec.x)
       {
-          for (aP.y =0 ; aP.y<mSz.y ; aP.y+=aDec.y)
+          for (aP.y =0 ; aP.y<mSzData.y ; aP.y+=aDec.y)
           {
                if (IndexHasContenu(aP))
                {
@@ -441,9 +455,10 @@ void cElNuage3DMaille::GenTri(std::vector<tTri> & aMesh,const tIndex2D &aP,int a
 
 void cElNuage3DMaille::AddExportMesh()
 {
+   AssertNoEmptyData();
    mGenerMesh = true;
    mNbTri = 0;
-   mNumPts.Resize(mSz);
+   mNumPts.Resize(mSzData);
    ELISE_COPY(mNumPts.all_pts(),-1,mNumPts.out());
    mTNumP = TIm2D<INT4,INT>(mNumPts);
    int aNum = 0;
@@ -534,6 +549,7 @@ ElCamera *   cElNuage3DMaille::Cam() const
 cElNuage3DMaille::~cElNuage3DMaille()
 {
    DeleteAndClear (mAttrs);
+   delete mCam;
 }
 
 
@@ -758,21 +774,22 @@ void cElNuage3DMaille::PlyPutFile
 
 void cElNuage3DMaille::NuageXZGCOL(const std::string & aName)
 {
+   AssertNoEmptyData();
    std::string aNameXYZ = aName+"_XYZ.tif";
 
    L_Arg_Opt_Tiff aL;
    aL = aL+Arg_Tiff(Tiff_Im::ANoStrip());
 
-   Tiff_Im aXYZ(aNameXYZ.c_str(),mSz,GenIm::real4,Tiff_Im::No_Compr,Tiff_Im::RGB,aL);
+   Tiff_Im aXYZ(aNameXYZ.c_str(),mSzData,GenIm::real4,Tiff_Im::No_Compr,Tiff_Im::RGB,aL);
     
-   Im2D_REAL4 aImX(mSz.x,mSz.y,0.0);
-   Im2D_REAL4 aImY(mSz.x,mSz.y,0.0);
-   Im2D_REAL4 aImZ(mSz.x,mSz.y,0.0);
+   Im2D_REAL4 aImX(mSzData.x,mSzData.y,0.0);
+   Im2D_REAL4 aImY(mSzData.x,mSzData.y,0.0);
+   Im2D_REAL4 aImZ(mSzData.x,mSzData.y,0.0);
 
    Pt2di anI;
-   for (anI.x=0 ; anI.x<mSz.x ; anI.x++)
+   for (anI.x=0 ; anI.x<mSzData.x ; anI.x++)
    {
-      for (anI.y=0 ; anI.y<mSz.y ; anI.y++)
+      for (anI.y=0 ; anI.y<mSzData.y ; anI.y++)
       {
             if (IndexHasContenu(anI))
             {
@@ -852,13 +869,13 @@ void cElNuage3DMaille::PlyPutDataVertex(FILE * aFP, bool aModeBin, int aAddNorma
 
 cElNuage3DMaille::tIndex2D  cElNuage3DMaille::End() const
 {
-     return Pt2di(0,mSz.y);
+     return Pt2di(0,mSzData.y);
 }
 
 void  cElNuage3DMaille::IncrIndSsFiltre(tIndex2D & aP) const
 {
     aP.x++;
-    if (aP.x==mSz.x)
+    if (aP.x==mSzData.x)
     {
        aP.y++;
        aP.x=0;
@@ -868,7 +885,7 @@ void  cElNuage3DMaille::IncrIndSsFiltre(tIndex2D & aP) const
 void  cElNuage3DMaille::IncrIndex(tIndex2D & aP) const
 {
     IncrIndSsFiltre(aP);
-    while (aP.y<mSz.y)
+    while (aP.y<mSzData.y)
     {
         if (IndexHasContenu(aP)) return;
         IncrIndSsFiltre(aP);
@@ -880,14 +897,14 @@ void  cElNuage3DMaille::IncrIndex(tIndex2D & aP) const
 
 void  cElNuage3DMaille::SetPtOfIndex(const tIndex2D & anIndex,const Pt3dr & aP3) 
 {
-    AssertInside(anIndex);
+    AssertInsideData(anIndex);
     mTImDef.oset(anIndex,1);
     V_SetPtOfIndex(anIndex,Glob2Loc(aP3));
     UpdateVoisAfterModif(anIndex);
 }
 void  cElNuage3DMaille::SetNoValue(const tIndex2D & anIndex) 
 {
-    AssertInside(anIndex);
+    AssertInsideData(anIndex);
     mTImDef.oset(anIndex,0);
     UpdateVoisAfterModif(anIndex);
 }
@@ -912,7 +929,7 @@ void cElNuage3DMaille::UpdateVoisAfterModif(const Pt2di & aP)
    {
        for (aQ.y=aP.y-1 ; aQ.y<=aP.y; aQ.y++)
        {
-           if (IndexInside(aQ))
+           if (IndexInsideData(aQ))
            {
                UpdateDefInterp(aQ);
            }
@@ -922,9 +939,13 @@ void cElNuage3DMaille::UpdateVoisAfterModif(const Pt2di & aP)
 
        // -----------   ASSERTION   ---------------
 
-void   cElNuage3DMaille::AssertInside(const tIndex2D & anI) const
+void   cElNuage3DMaille::AssertInsideData(const tIndex2D & anI) const
 {
-   ELISE_ASSERT(IndexInside(anI),"cElNuage3DMaille::AssertInside");
+   ELISE_ASSERT(IndexInsideData(anI),"cElNuage3DMaille::AssertInside");
+}
+void   cElNuage3DMaille::AssertInsideGeom(const tIndex2D & anI) const
+{
+   ELISE_ASSERT(IndexInsideGeom(anI),"cElNuage3DMaille::AssertInside");
 }
 
 void   cElNuage3DMaille::AssertCamInit() const
@@ -1202,6 +1223,7 @@ void cElNuage3DMaille::AddAttrFromFile
            double aScale
      )
 {
+    AssertNoEmptyData();
     Tiff_Im aTF = Tiff_Im::UnivConvStd(aName);
     GenIm::type_el aTEl = aTF.type_el();
     int aNbC = aTF.nb_chan();
@@ -1214,7 +1236,7 @@ void cElNuage3DMaille::AddAttrFromFile
        Output anAdd =  Output::onul(1);
        if (aFlagChannel & (1<<aK))
        {
-            Im2DGen * anI = Ptr_D2alloc_im2d(aTEl,mSz.x,mSz.y);
+            Im2DGen * anI = Ptr_D2alloc_im2d(aTEl,mSzData.x,mSzData.y);
             anAdd  = anI->out();
             std::string aProp = "Unknown";
             if (aNbProp)
@@ -1279,6 +1301,18 @@ Pt2dr   cElNuage3DMaille::Terrain2Index(const Pt3dr & aPt) const
 {
     return mCam->R3toF2(Glob2Loc(aPt));
 }
+
+
+double   cElNuage3DMaille::ProfEuclidOfIndex(const tIndex2D & anI) const 
+{
+    return ProfOfIndex(anI);
+}
+
+void     cElNuage3DMaille::SetProfEuclidOfIndex(const tIndex2D & anI,double aProf) 
+{
+   SetProfOfIndex(anI,aProf);
+}
+
 
 void   cElNuage3DMaille::SetProfOfIndex(const tIndex2D & aP,double)
 {
@@ -1404,7 +1438,9 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
             std::vector<Im2DGen *> * aVAttr
        ) 
 {
-    std::cout << "CCCCC " << mSz << "\n";
+    AssertNoEmptyData();
+    aN2->AssertNoEmptyData();
+    std::cout << "CCCCC " << mSzData << "\n";
     if (anAAB) 
         SupprTriInv = true;
     cBasculeNuage aBasc(this,aN2);
@@ -1418,7 +1454,7 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
     if (aCoeffEtire > 0)
         aBasc.SetDynEtirement(aCoeffEtire);
     Pt2di anOfOut;
-    Im2D_REAL4  aMntBasc = aBasc.Basculer(anOfOut,Pt2di(0,0),aN2->Sz(),aBasculeDef);
+    Im2D_REAL4  aMntBasc = aBasc.Basculer(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef);
     cElNuage3DMaille * aNuageRes = this; 
 
     if (AutoResize)
@@ -1426,7 +1462,7 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
          aNuageRes = ReScaleAndClip(Box2dr(anOfOut,anOfOut+aMntBasc.sz()),1.0);
          anOfOut = Pt2di(0,0);
     }
-    std::cout << "DDDDDD " << aNuageRes->mSz  << " " << mSz << "\n";
+    std::cout << "DDDDDD " << aNuageRes->mSzData  << " " << mSzData << "\n";
 
 
     aNuageRes->FinishBasculeInThis
@@ -1458,6 +1494,7 @@ void   cElNuage3DMaille::FinishBasculeInThis
             int aLabel
        ) 
 {
+    AssertNoEmptyData();
     TIm2D<float,double>  aTMB(aMntBasc);
 
 
@@ -1466,9 +1503,9 @@ void   cElNuage3DMaille::FinishBasculeInThis
     // std::cout << anOfOut << "\n";
 
     Pt2di aP;
-    for (aP.x=0 ; aP.x<mSz.x ; aP.x++)
+    for (aP.x=0 ; aP.x<mSzData.x ; aP.x++)
     {
-        for (aP.y=0 ; aP.y<mSz.y ; aP.y++)
+        for (aP.y=0 ; aP.y<mSzData.y ; aP.y++)
         {
              SetProfOfIndex(aP,0);
              float aV = (float)aTMB.get(aP-anOfOut,aBasculeDef);
@@ -1516,7 +1553,7 @@ void   cElNuage3DMaille::FinishBasculeInThis
     }
     if (aCoeffEtire > 0)
     {
-      mImEtire = Im2D_U_INT1(mSz.x,mSz.y,255);
+      mImEtire = Im2D_U_INT1(mSzData.x,mSzData.y,255);
       Im2D_U_INT1 aIE =  aBasc.ImEtirement();
       ELISE_COPY
       (
@@ -1602,7 +1639,6 @@ std::cout << "AAAA " << aGeomOut.NbPixel() << "\n";
     }
 
    
-std::cout << "BBBBB " << aGeomOut.NbPixel() << "\n";
 
    cElNuage3DMaille *  aNOut = cElNuage3DMaille::FromParam(aGeomOut,aDirIn,"",1.0,(cParamModifGeomMTDNuage *)0);
    cElNuage3DMaille *  aNIn = cElNuage3DMaille::FromParam(aGeomIn,aDirIn);

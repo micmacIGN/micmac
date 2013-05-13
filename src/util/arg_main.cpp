@@ -47,9 +47,21 @@ using namespace NS_ParamChantierPhotogram;
 #define SzBuf 2000
 static char buf[SzBuf];
 
+std::string MakeStrFromArgcARgv(int  argc,char** argv)
+{
+   std::string aRes;
+   for (int aK=0 ; aK<argc ; aK++)
+      aRes = aRes + std::string(argv[aK]) + " ";
+
+   return aRes;
+}
+
 
 static int Argc=-1;
 static char ** Argv=0;
+static std::string GlobArcArgv;
+
+
 void MemoArg(int argc,char** argv)   
 {
 	static bool First  = false;
@@ -59,6 +71,7 @@ void MemoArg(int argc,char** argv)
 	MMD_InitArgcArgv(argc,argv);
 	Argc = argc;
 	Argv = argv;
+        GlobArcArgv = MakeStrFromArgcARgv(argc,argv);
 }
 
 void ShowArgs()

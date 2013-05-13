@@ -69,6 +69,7 @@ int TestCam_main(int argc,char ** argv)
     std::string aNameCam;
     std::string aNameDir;
     std::string aNameTag = "OrientationConique";
+    bool ExtP = false;
 
     double X,Y,Z;
     bool aModeGrid = false;
@@ -85,6 +86,7 @@ int TestCam_main(int argc,char ** argv)
                     << EAM(aNameTag,"Tag",true,"Tag to get cam")	
                     << EAM(aModeGrid,"Grid",true,"Test Grid Mode")	
                     << EAM(Out,"Out",true,"To Regenerate an orientation file")	
+                    << EAM(ExtP,"ExtP",true,"Detail on external parameter")	
     );
 
     SplitDirAndFile(aNameDir,aNameCam,aFullName);
@@ -99,6 +101,20 @@ int TestCam_main(int argc,char ** argv)
 
    ElCamera * aCam  = Gen_Cam_Gen_From_File(aModeGrid,aFullName,aNameTag,anICNM);
 
+   CamStenope * aCS = aCam->CS();
+
+   if (ExtP)
+   {
+       std::cout << "  ###########  EXTERNAL ##############\n";
+       if (aCS)
+       {
+           std::cout << "Center " << aCS->VraiOpticalCenter() << "\n";
+       }
+       std::cout <<  "  I : " << aCS->L3toR3(Pt3dr(1,0,0)) - aCS->L3toR3(Pt3dr(0,0,0)) << "\n";
+       std::cout <<  "  J : " << aCS->L3toR3(Pt3dr(0,1,0)) - aCS->L3toR3(Pt3dr(0,0,0))<< "\n";
+       std::cout <<  "  K : " << aCS->L3toR3(Pt3dr(0,0,1)) - aCS->L3toR3(Pt3dr(0,0,0))<< "\n";
+       std::cout << "\n";
+   }
    
 
 

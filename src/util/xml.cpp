@@ -450,6 +450,176 @@ void VirerBlancFinal(std::string & aStr)
 }
 
 
+/*
+   Une sequence binaire est faite de TheNbDieseBinSeq '#',
+   puis 4 caractere qui seront utilise peut etre plus tard ,
+   pour l'instant '0000' . Elle contient des #, donc ne peut jamais
+   apparaitres dans les sequences binaire 
+*/
+                                //0123456789012345678901234567890123
+static const char *  TheBinSeq = "#0ArTuQdI(RvO6z{Z[a924]Uh}mBgD)k37";
+static std::vector<const void *>  TheVecDataXMLBin;
+
+const void * GetXMLDataBin(int aK)
+{
+   ELISE_ASSERT((aK>=0)&&(aK<int(TheVecDataXMLBin.size())),"GetXMLDataBin");
+   return TheVecDataXMLBin[aK];
+}
+
+inline int LengthBinSeq()
+{
+    static int aRes = strlen(TheBinSeq);
+    return aRes;
+}
+
+
+typedef const char * tConstCharPtr;
+inline bool AnalyseBinSeq(tConstCharPtr & aSeq,const int &   aCar)
+{
+   if (*aSeq!=aCar) 
+   {
+      aSeq = TheBinSeq;
+      return false;
+   }
+
+   aSeq++;
+
+   if (*aSeq==0) 
+   {
+      aSeq = TheBinSeq;
+      return true;
+   }
+  
+   return false;
+}
+
+/*
+   Dans le fichier 
+      TheBinSeq0000[%NbOct]lkjslkfbeiuriouerio....
+   En sortie
+      TheBinSeq0000[%NbOct][%Num]
+
+   Avec 
+      TheVecDataXMLBin[%Num]=lkjslkfbeiuriouerio.....
+*/
+
+int GetNumEntreCrochet(cVirtStream * aFp,std::string * aPush)
+{
+   int aC= XML_fgetcNN(aFp);
+   if (aPush)
+    *aPush += char(aC);
+   ELISE_ASSERT(aC=='[',"Expected [ in binary sequence count");
+   int aNb = 0;
+   bool Cont = true;
+   while (Cont)
+   {
+       aC = XML_fgetcNN(aFp);
+       if (aPush)
+         *aPush += char(aC);
+       if (isdigit(aC))
+       {
+          aNb  = aNb *10 + (aC-'0') ;
+       }
+       else if (aC==']')
+       {
+          Cont = false;
+       }
+       else
+       {
+             ELISE_ASSERT(false,"Expected ] in binary sequence count");
+       } 
+   }
+   return aNb;
+}
+
+void cElXMLToken::GetSequenceBinaire(cVirtStream * aFp)
+{
+   for (int aK=0 ; aK<4 ; aK++)
+   {
+        int aC= XML_fgetcNN(aFp);
+        mVal += char(aC);
+        ELISE_ASSERT(aC=='0',"cElXMLToken::GetSequenceBinaire expect 0000");
+   }
+   int aNb = GetNumEntreCrochet(aFp,&mVal);
+   void * aPtr = malloc(aNb);
+   TheVecDataXMLBin.push_back(aPtr);
+   aFp->fread(aPtr,aNb);
+   mVal = mVal + "["+ToString(int(TheVecDataXMLBin.size()-1)) + "]";
+   
+}
+
+
+void PutCharPtrWithTraitSeqBinaire(FILE * aFp,const  char * aVal)
+{
+    while (*aVal)
+    {
+         if ((*aVal=='#') && (!strncmp(aVal,TheBinSeq,LengthBinSeq())))
+         {
+              fprintf(aFp,"%s",TheBinSeq);
+              aVal += LengthBinSeq();
+              for (int aK=0 ; aK<4 ; aK++) 
+              {
+                  fputc(*aVal,aFp);
+                  aVal++;
+              }
+              cVirtStream*  aVStr = cVirtStream::VStreamFromCharPtr(aVal);
+              int aNbOct = GetNumEntreCrochet(aVStr,0);
+              int anAdr = GetNumEntreCrochet(aVStr,0);
+              fprintf(aFp,"[%d]",aNbOct);
+              fwrite(GetXMLDataBin(anAdr),1,aNbOct,aFp);
+              aVal = aVStr->Ending();
+              delete aVStr;
+         }
+         else
+         {
+            fputc(*aVal,aFp);
+            aVal++;
+         }
+    }
+    // fprintf(aFp,"%s",aVal);
+}
+
+void PutDataInXMLString(std::ostringstream & anOs,const void * aData,int aNbOct)
+{
+    anOs << TheBinSeq  << "0000" << "["<<aNbOct<<"][" <<TheVecDataXMLBin.size() << "]";
+    TheVecDataXMLBin.push_back(aData);
+}
+
+const void * GetDataInXMLString(std::istringstream & aStream,int aNbExpOct)
+{
+  char aC = ' ';
+  while (isspace(aC))
+  {
+      aStream >> aC;
+  }
+  if (aC=='#')
+  {
+     const char * aStr = TheBinSeq+1;
+     while (*aStr)
+     {
+         aStream >> aC;
+         ELISE_ASSERT(*aStr==aC,"Bad binary sequence");
+         aStr++;
+     }
+     for (int aK=0 ; aK<4 ; aK++)
+     {
+         aStream >> aC;
+         ELISE_ASSERT(aC=='0',"GetDataInXMLString, expect 0000");
+     }
+     cVirtStream*  aVStr = cVirtStream::VStreamFromIsStream(aStream);
+     int aNbOct = GetNumEntreCrochet(aVStr,0);
+     ELISE_ASSERT(aNbOct==aNbExpOct,"Incoheren byte count in GetDataInXMLString");
+     int anAdr = GetNumEntreCrochet(aVStr,0);
+
+     delete aVStr;
+     return GetXMLDataBin(anAdr);
+  }
+
+  aStream.putback(aC);
+  return 0;
+}
+
+
 cElXMLToken::cElXMLToken
 	(
 	cArgCreatXLMTree & anArg,
@@ -459,6 +629,9 @@ cElXMLToken::cElXMLToken
 {
 	XML_passer_blanc(aFp);
 	int aC = aFp->my_getc();
+        const char * CurBinSeq = TheBinSeq;
+
+        // AnalyseBinSeq(CurBinSeq,aC);
 
 	if (aC==aFp->my_eof())
 	{
@@ -495,6 +668,10 @@ cElXMLToken::cElXMLToken
 				return;
 			}
 			mVal += char(aC);
+                       if (AnalyseBinSeq(CurBinSeq,aC))
+                       {
+                            GetSequenceBinaire(aFp);
+                       }
 		}
 		else
 		{
@@ -1575,7 +1752,13 @@ void cElXMLTree::Show
 		itF != mFils.end();
 		itF++
 			)
+                {
+                      PutCharPtrWithTraitSeqBinaire(aFile,(*itF)->mValTag.c_str());
+/*
+void PutCharWithSeqBinaire(FILE * aFp,const std::string & aVal)
 			fprintf(aFile,"%s",(*itF)->mValTag.c_str());
+*/
+                }
 		fprintf(aFile,"</%s>\n",mValTag.c_str());
 		return;
 	}
