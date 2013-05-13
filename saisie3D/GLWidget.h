@@ -101,6 +101,9 @@ public:
 
     void segment(bool inside);
 
+    void clearPolyline();
+    void closePolyline();
+
 public slots:
     void zoom();
 
@@ -155,6 +158,9 @@ protected:
 
     //! States if a cloud is already loaded
     bool m_bCloudLoaded;
+
+    //! States if selection polyline is closed
+    bool m_bPolyIsClosed;
 
     //! Current interaction mode (with mouse)
     INTERACTION_MODE m_interactionMode;

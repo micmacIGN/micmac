@@ -22,17 +22,14 @@ ViewportParameters::ViewportParameters()
     , zoom(1.0f)
     , defaultPointSize(1.0f)
     , defaultLineWidth(1.0f)
-{
-    //viewMat.toIdentity();
-}
+{}
 
 ViewportParameters::ViewportParameters(const ViewportParameters& params)
     : pixelSize(params.pixelSize)
     , zoom(params.zoom)
     , defaultPointSize(params.defaultPointSize)
     , defaultLineWidth(params.defaultLineWidth)
-{
-}
+{}
 
 int g_mouseOldX, g_mouseOldY;
 bool g_mouseLeftDown = false;
@@ -165,6 +162,7 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent)
       , m_font(font())
       , m_bCloudLoaded(false)
       , m_params(ViewportParameters())
+      , m_bPolyIsClosed(false)
 {
     m_minX = m_minY = m_minZ = FLT_MAX;
     m_maxX = m_maxY = m_maxZ = FLT_MIN;
@@ -206,31 +204,6 @@ void GLWidget::resizeGL(int width, int height)
     glViewport( 0, 0, width, height );
 }
 
-/*void GLWidget::getContext(glDrawContext& context)
-{
-    //display size
-    context.glW = m_glWidth;
-    context.glH = m_glHeight;
-    context.flags = 0;
-
-    const mmGui::ParamStruct& guiParams = mmGui::Parameters();
-
-    //decimation options
-    context.decimateCloudOnMove = guiParams.decimateCloudOnMove;
-
-    //text display
-    context.dispNumberPrecision = guiParams.displayedNumPrecision;
-    context.labelsTransparency = guiParams.labelsTransparency;
-
-    memcpy(context.pointsDefaultCol,guiParams.pointsDefaultCol,sizeof(unsigned char)*3);
-    memcpy(context.textDefaultCol,guiParams.textDefaultCol,sizeof(unsigned char)*3);
-    memcpy(context.labelDefaultCol,guiParams.labelCol,sizeof(unsigned char)*3);
-    memcpy(context.bbDefaultCol,guiParams.bbDefaultCol,sizeof(unsigned char)*3);
-
-    //default font size
-    setFontPointSize(1);
-}*/
-
 void GLWidget::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -246,9 +219,11 @@ void GLWidget::paintGL()
         for(int bK=0; bK< m_ply[aK].getVertexNumber(); bK++)
         {
             Cloud_::Vertex vert = m_ply[aK].getVertex(bK);
-            qglColor( vert.m_color );
-            //glColor3ub( vert.m_color.red(), vert.m_color.green(), vert.m_color.blue() );
-            glVertex3f( (vert.x() - m_cX)/m_diam, (vert.y() - m_cY)/m_diam, (vert.z()-m_cZ)/m_diam );
+            if (vert.isVisible())
+            {
+                qglColor( vert.getColor() );
+                glVertex3f( vert.x(), vert.y(), vert.z() );
+            }
         }
     }
     glEnd();
@@ -287,7 +262,7 @@ void GLWidget::paintGL()
         glDisable(GL_TEXTURE_2D);
         glColor3f(0,1,0);
 
-        glBegin(GL_LINE_LOOP);
+        glBegin(m_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
         for (int aK = 0;aK < m_polygon.size(); ++aK)
         {
             glVertex2f(m_polygon[aK].x(), m_polygon[aK].y());
@@ -311,12 +286,21 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         g_mouseOldX = event->x();
         g_mouseOldY = event->y();
 
-        if (m_interactionMode == SEGMENT_POINTS)
-            m_polygon.push_back(event->pos());
+        if ((m_interactionMode == SEGMENT_POINTS) && !m_bPolyIsClosed )
+        {
+            if (m_polygon.size() < 2)
+                m_polygon.push_back(event->pos());
+            else
+            {
+                m_polygon[m_polygon.size()-1] = event->pos();
+                m_polygon.push_back(event->pos());
+            }
+        }
     }
     else if ( (event->buttons()&Qt::RightButton)&&(m_interactionMode == SEGMENT_POINTS) )
     {
-        m_polygon.clear();
+        closePolyline();
+
     }
 
     lastPos = event->pos();
@@ -333,11 +317,13 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
     switch(event->key())
     {
     case Qt::Key_Escape:
-        close();
+        clearPolyline();
         break;
     case Qt::Key_Space:
-        //to do: segment point cloud
         segment(true);
+        break;
+    case Qt::Key_Delete:
+        segment(false);
         break;
     default:
         event->ignore();
@@ -345,15 +331,12 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
     }
 }
 
-void GLWidget::addPly( const QString &i_ply_file ) {
-
-    Cloud_::Cloud a_ply;
+void GLWidget::addPly( const QString &i_ply_file )
+{
+    Cloud_::Cloud a_ply, a_res;
     a_ply.loadPly( i_ply_file.toStdString() );
-    m_ply.push_back(a_ply);
-    if (!hasCloudLoaded()) setCloudLoaded(true);
 
     //compute bounding box
-
     int nbPts = a_ply.getVertexNumber();
     for (int aK=0; aK < nbPts; ++aK)
     {
@@ -371,9 +354,28 @@ void GLWidget::addPly( const QString &i_ply_file ) {
     m_cY = (m_minY + m_maxY) * .5f;
     m_cZ = (m_minZ + m_maxZ) * .5f;
 
-    //cout << "center " << m_cX <<" "<< m_cY <<" "<< m_cZ << endl;
-
     m_diam = max(m_maxX-m_minX, max(m_maxY-m_minY, m_maxZ-m_minZ));
+
+    //center and scale cloud
+    Cloud_::Pt3D pt3d;
+    for (int aK=0; aK < nbPts; ++aK)
+    {
+        Cloud_::Vertex vert = a_ply.getVertex(aK);
+        Cloud_::Vertex vert_res = vert;
+
+        pt3d.setX( (vert.x() - m_cX) / m_diam );
+        pt3d.setY( (vert.y() - m_cY) / m_diam );
+        pt3d.setZ( (vert.z() - m_cZ) / m_diam );
+
+        vert_res.setCoord(pt3d);
+        vert_res.setColor(vert.getColor());
+
+        a_res.addVertex(vert_res);
+    }
+
+    m_ply.push_back(a_res);
+
+    if (!hasCloudLoaded()) setCloudLoaded(true);
 
     updateGL();
 }
@@ -670,13 +672,13 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     if (event->x()<0 || event->y()<0 || event->x()>width() || event->y()>height())
         return;
 
-    if (m_interactionMode == SEGMENT_POINTS)
+    if ((m_interactionMode == SEGMENT_POINTS) && !m_bPolyIsClosed)
     {
         int sz = m_polygon.size();
 
-        if (sz <2)
+        if (sz == 0)
            return;
-        else if (sz == 2)
+        else if (sz == 1)
             m_polygon.push_back(event->pos());
         else
             //we replace last point by the current one
@@ -687,9 +689,10 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         //event->ignore();
         return;
     }
-
-    if ( g_mouseLeftDown )
+    else if ( g_mouseLeftDown )
     {
+        clearPolyline();
+
         int dx = event->x()-g_mouseOldX,
             dy = event->y()-g_mouseOldY;
 
@@ -709,10 +712,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
-//Polyline objects are considered as 2D polylines !
 bool isPointInsidePoly(const QPoint& P, const QVector < QPoint > poly)
 {
-    //nombre de sommets
     unsigned vertices=poly.size();
     if (vertices<2)
         return false;
@@ -746,13 +747,11 @@ bool isPointInsidePoly(const QPoint& P, const QVector < QPoint > poly)
 void GLWidget::segment(bool inside)
 {
     if (m_polygon.size() < 2)
-    {
-        //displayNewMessage("No polyline defined!",UPPER_CENTER_MESSAGE, MANUAL_SEGMENTATION_MESSAGE);
         return;
-    }
 
     //viewing parameters
     double MM[16], MP[16];
+    int VP[4];
 
     glMatrixMode(GL_MODELVIEW);
     glGetDoublev(GL_PROJECTION_MATRIX, (GLdouble*) &MM);
@@ -760,91 +759,52 @@ void GLWidget::segment(bool inside)
     glMatrixMode(GL_PROJECTION);
     glGetDoublev(GL_MODELVIEW_MATRIX, (GLdouble*) &MP);
 
-    const float half_w = (float)m_glWidth * 0.5f;
-    const float half_h = (float)m_glHeight * 0.5f;
-
-    int VP[4];
     makeCurrent();
     glGetIntegerv(GL_VIEWPORT, VP);
 
     QPoint P2D;
     bool pointInside;
 
-    int cpt_inside = 0;
-    int cpt_outside = 0;
-    int cpt_total = 0;
+    QVector < QPoint > polyg;
+    for (int aK=0; aK < m_polygon.size(); ++aK)
+    {
+        polyg.push_back(QPoint(m_polygon[aK].x(), m_glHeight- m_polygon[aK].y()));
+    }
+
     for (int aK=0; aK < m_ply.size(); ++aK)
     {
         Cloud_::Cloud a_cloud = m_ply[aK];
 
-        cpt_total += a_cloud.getVertexNumber();
-
         for (int bK=0; bK < a_cloud.getVertexNumber();++bK)
         {
-            Cloud_::Vertex P = a_cloud.getVertex( bK );  //attention constructeur par copie absent ?
+            Cloud_::Vertex P = a_cloud.getVertex( bK );
 
             GLdouble xp,yp,zp;
             gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
-            P2D.setX(xp - half_w);
-            P2D.setY(yp - half_h);
 
-            pointInside = isPointInsidePoly(P2D,m_polygon);
+            P2D.setX(xp);
+            P2D.setY(yp);
 
-            if ((inside && !pointInside)||(!inside && pointInside))
-                cpt_inside++;
-            else
-                cpt_outside++;
-
-        }
-    }
-
-    cout << " nombre de points a l'interieur: " << cpt_inside <<endl;
-    cout << " nombre de points a l'exterieur: " << cpt_outside <<endl;
-    cout << " nombre de points total: " << cpt_inside <<endl;
-
-   /* const double* MM = m_associatedWin->getModelViewMatd(); //viewMat
-    const double* MP = m_associatedWin->getProjectionMatd(); //projMat
-    const float half_w = (float)m_associatedWin->width() * 0.5f;
-    const float half_h = (float)m_associatedWin->height() * 0.5f;
-
-    int VP[4];
-    m_associatedWin->getViewportArray(VP);
-
-    CCVector3 P;
-    CCVector2 P2D;
-    bool pointInside;
-
-    //for each selected entity
-    for (ccHObject::Container::iterator p=m_toSegment.begin();p!=m_toSegment.end();++p)
-    {
-        ccGenericPointCloud* cloud = ccHObjectCaster::ToGenericPointCloud(*p);
-        assert(cloud);
-
-        ccGenericPointCloud::VisibilityTableType* vis = cloud->getTheVisibilityArray();
-        assert(vis);
-
-        unsigned i,cloudSize = cloud->size();
-
-        //we project each point and we check if it falls inside the segmentation polyline
-        for (i=0;i<cloudSize;++i)
-        {
-            cloud->getPoint(i,P);
-
-            GLdouble xp,yp,zp;
-            gluProject(P.x,P.y,P.z,MM,MP,VP,&xp,&yp,&zp);
-            P2D.x = xp - half_w;
-            P2D.y = yp - half_h;
-
-            pointInside = CCLib::ManualSegmentationTools::isPointInsidePoly(P2D,m_segmentationPoly);
+            pointInside = isPointInsidePoly(P2D,polyg);
 
             if ((inside && !pointInside)||(!inside && pointInside))
-                vis->setValue(i,0); //hiddenValue=0
+                m_ply[aK].getVertex(bK).setVisible(false);
         }
     }
+}
 
-    m_somethingHasChanged = true;
-    validButton->setEnabled(true);
-    validAndDeleteButton->setEnabled(true);
-    razButton->setEnabled(true);
-    pauseSegmentationMode(true); */
+void GLWidget::clearPolyline()
+{
+    m_polygon.clear();
+    m_bPolyIsClosed = false;
+}
+
+void GLWidget::closePolyline()
+{
+    //remove last point if needed
+    int sz = m_polygon.size();
+    if ((sz > 2) &&  (m_polygon[sz-1] == m_polygon[sz-2]))
+        m_polygon.resize(sz-1);
+
+    m_bPolyIsClosed = true;
 }

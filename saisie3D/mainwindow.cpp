@@ -25,7 +25,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(m_glWidget,	SIGNAL(mouseWheelRotated(float)),			this,       SLOT(echoMouseWheelRotate(float)));
 
-
     //"Points selection" menu
     connect(ui->actionTogglePoints_selection, SIGNAL(toggled(bool)), this, SLOT(togglePointsSelection(bool)));
 
@@ -97,7 +96,9 @@ void MainWindow::doActionDisplayShortcuts()
     text += "\n";
     text += "F5 : Points selection mode\n";
     text += "    - left click : add a point to polyline ";
-    text += "    - right click: remove polyline\n";
+    text += "    - right click: close polyline\n";
+    text += "    - escape: delete polyline\n";
+    text += "    - space bar: keep points inside polyline\n";
     msgBox.setText(text);
     msgBox.exec();
 }

@@ -6,10 +6,10 @@
 
 #include <QFileInfo>
 
+#include "d:\culture3D\include\poisson\ply.h"
+
 using namespace std;
 using namespace Cloud_;
-
-#include "d:\culture3D\include\poisson\ply.h"
 
 static PlyProperty colored_vert_props[] = {
     {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,x), 0, 0, 0, 0},
@@ -61,8 +61,9 @@ Pt3D &Pt3D::operator=(const Pt3D &pt)
 
 Vertex::Vertex(Pt3D pos, QColor col)
 {
-    m_position = pos;
-    m_color = col;
+    m_position  = pos;
+    m_color     = col;
+    m_bVisible  = true;
 }
 
 /*!
@@ -124,20 +125,17 @@ bool Cloud::loadPly( const string &i_filename )
                 ply_get_element_setup(thePlyFile,elem_name,7,colored_vert_props);
                 ply_get_element (thePlyFile, (void *) vlist[j]);
 
-                //printf ("vertex: %g %g %g %u %u %u\n", vlist[j]->x, vlist[j]->y, vlist[j]->z, vlist[j]->r, vlist[j]->g, vlist[j]->b);
-                printf ("vertex: %g %g %g %u %u %u\n", vlist[j]->x, vlist[j]->y, vlist[j]->z, vlist[j]->red, vlist[j]->green, vlist[j]->blue);
+                #ifdef _DEBUG
+                    printf ("vertex: %g %g %g %u %u %u\n", vlist[j]->x, vlist[j]->y, vlist[j]->z, vlist[j]->red, vlist[j]->green, vlist[j]->blue);
+                #endif
 
-                Pt3D thePt( vlist[j]->x, vlist[j]->y, vlist[j]->z );
-                QColor theColor( vlist[j]->red, vlist[j]->green, vlist[j]->blue );
-
-                addVertex( Vertex (thePt, theColor) );
-
+                addVertex( Vertex (Pt3D ( vlist[j]->x, vlist[j]->y, vlist[j]->z ), QColor( vlist[j]->red, vlist[j]->green, vlist[j]->blue )) );
             }
         }
     }
 
     #ifdef _DEBUG
-        cout << "nombre de points dans le cloud: " << getVertexNumber() << endl;
+        cout << "nombre de points dans le nuage: " << getVertexNumber() << endl;
     #endif
 
     ply_close (thePlyFile);
@@ -155,7 +153,7 @@ int Cloud::getVertexNumber()
     return m_vertices.size();
 }
 
-Vertex Cloud::getVertex(unsigned int nb_vert)
+Vertex& Cloud::getVertex(unsigned int nb_vert)
 {
     if (m_vertices.size() > nb_vert)
     {
