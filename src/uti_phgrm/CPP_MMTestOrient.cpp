@@ -99,7 +99,7 @@ int MMTestOrient_main(int argc,char ** argv)
     }
 
 #if (ELISE_windows)
-     replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+     replace( aDir.begin(), aDir.end(), '\\', '/' );
 #endif
 
 
