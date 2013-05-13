@@ -11,6 +11,14 @@
 
 #include "StdAfx.h"
 
+#ifndef BYTE
+    #define BYTE unsigned char
+#endif
+
+#ifndef UINT
+    #define UINT unsigned int
+#endif
+
 using namespace std;
 
 typedef RealImage1::Real PixReal;
