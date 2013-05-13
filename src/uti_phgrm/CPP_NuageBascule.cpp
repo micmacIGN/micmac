@@ -53,41 +53,78 @@ cXML_ParamNuage3DMaille NuageFromFile(const std::string & aFileNuage)
            );
 }
 
+Box2di BoxEnglobMasq(Tiff_Im aTF)
+{
+    int aXMin,aXMax,aYMin,aYMax;
+    ELISE_COPY
+    (
+        select(aTF.all_pts(),aTF.in_bool()),
+        Virgule(FX,FY),
+        Virgule
+        (
+            VMin(aXMin)|VMax(aXMax),
+            VMin(aYMin)|VMax(aYMax)
+        )
+    );
 
+    if (aXMin > aXMax)
+    {
+         std::cout << "For FILE : " << aTF.name() << "\n";
+         ELISE_ASSERT(false,"Masq is empty");
+    }
+
+    return Box2di(Pt2di(aXMin,aYMin),Pt2di(aXMax,aYMax));
+}
+
+Box2di BoxEnglobMasq(const std::string & aName)
+{
+   return BoxEnglobMasq(Tiff_Im(aName.c_str()));
+}
 
 int  NuageBascule_main(int argc,char ** argv)
 {
 
-    ELISE_ASSERT(argc>=2,"Not Enough args to Nuage Bascule");
+    // ELISE_ASSERT(argc>=2,"Not Enough args to Nuage Bascule");
     MMD_InitArgcArgv(argc,argv);
 
     std::string  aNameIn,aNameOut,aNameRes,aToto;
-    int AutoResize=1;
+    bool  AutoResize=true;
+    bool  AutoClipIn=true;
 
     ElInitArgMain
     (
 	argc,argv,
 	LArgMain()  << EAMC(aNameIn,"Name of input depth map")
                     << EAMC(aNameOut,"Name of outptut depth map")
-                    << EAMC(aNameRes,"Name result")
-                    << EAMC(AutoResize,"Clip result to minimal size"),
+                    << EAMC(aNameRes,"Name result"),
 	LArgMain()  
-                    << EAM(aToto,"Unused",true)	
+                    << EAM(AutoResize,"AutoResize",true,"Clip result to minimal size, Def = true")
+                    << EAM(AutoClipIn,"AutoClipIn",true,"Clip result to minimal size")
     );
 
 
     cXML_ParamNuage3DMaille  aNuageIn =  NuageFromFile(aNameIn);
     cXML_ParamNuage3DMaille  aNuageOut =  NuageFromFile(aNameOut);
 
+    if (! EAMIsInit(&AutoClipIn)) 
+       AutoClipIn = aNuageIn.Image_Profondeur().IsInit();
+
+    Box2di * aBoxIn = 0;
+    if (AutoClipIn)
+    {
+          aBoxIn = new Box2di(BoxEnglobMasq(DirOfFile(aNameIn) + aNuageIn.Image_Profondeur().Val().Masq()));
+          std::cout << "BoxClipIn " << aBoxIn->_p0 << aBoxIn->_p1;
+    }
 
 
-   cElNuage3DMaille *  aN = BasculeNuageAutoReSize(aNuageOut,aNuageIn,DirOfFile(aNameIn),NameWithoutDir(aNameRes),AutoResize!=0);
-   aN->Save(NameWithoutDir(aNameRes));
+   cElNuage3DMaille *  aN = BasculeNuageAutoReSize(aNuageOut,aNuageIn,DirOfFile(aNameIn),NameWithoutDir(aNameRes),AutoResize,aBoxIn);
+   aN->Save(aNameRes);
 
-   std::cout << "N=" << aN << "\n";
+   std::cout << "N=" << aN  << " => " << NameWithoutDir(aNameRes) << "\n";
 
    
-   return 0;
+    delete aBoxIn;
+    return 0;
 }
 
 

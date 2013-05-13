@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1135]) = {
+const char * (theNameVar_SuperposImage[1136]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1044,6 +1044,7 @@ const char * (theNameVar_SuperposImage[1135]) = {
 "         <KeyRel Nb=\"*\"  Type=\"std::string\"> </KeyRel> \n",
 "         <KeyString Nb=\"*\"  Type=\"std::string\"> </KeyString> \n",
 "         <KeySet Nb=\"*\"  Type=\"std::string\"> </KeySet> \n",
+"         <UseIt Nb=\"?\" Type=\"bool\" Def=\"false\"> </UseIt> <!-- Pour anihilier dans EtapeMEC -->\n",
 "  </ParamGenereStrVois>\n",
 "\n",
 "  <ParamFusionMNT  Nb=\"1\" Class=\"true\">\n",

@@ -3686,10 +3686,14 @@ class cParamGenereStrVois
 
         std::list< std::string > & KeySet();
         const std::list< std::string > & KeySet()const ;
+
+        cTplValGesInit< bool > & UseIt();
+        const cTplValGesInit< bool > & UseIt()const ;
     private:
         std::list< std::string > mKeyRel;
         std::list< std::string > mKeyString;
         std::list< std::string > mKeySet;
+        cTplValGesInit< bool > mUseIt;
 };
 cElXMLTree * ToXMLTree(const cParamGenereStrVois &);
 

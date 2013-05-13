@@ -10352,6 +10352,17 @@ const std::list< std::string > & cParamGenereStrVois::KeySet()const
    return mKeySet;
 }
 
+
+cTplValGesInit< bool > & cParamGenereStrVois::UseIt()
+{
+   return mUseIt;
+}
+
+const cTplValGesInit< bool > & cParamGenereStrVois::UseIt()const 
+{
+   return mUseIt;
+}
+
 cElXMLTree * ToXMLTree(const cParamGenereStrVois & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ParamGenereStrVois",eXMLBranche);
@@ -10373,6 +10384,8 @@ cElXMLTree * ToXMLTree(const cParamGenereStrVois & anObj)
       it++
   ) 
       aRes->AddFils(::ToXMLTree(std::string("KeySet"),(*it))->ReTagThis("KeySet"));
+   if (anObj.UseIt().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("UseIt"),anObj.UseIt().Val())->ReTagThis("UseIt"));
   return aRes;
 }
 
@@ -10385,6 +10398,8 @@ void xml_init(cParamGenereStrVois & anObj,cElXMLTree * aTree)
    xml_init(anObj.KeyString(),aTree->GetAll("KeyString",false,1));
 
    xml_init(anObj.KeySet(),aTree->GetAll("KeySet",false,1));
+
+   xml_init(anObj.UseIt(),aTree->Get("UseIt",1),bool(false)); //tototo 
 }
 
 

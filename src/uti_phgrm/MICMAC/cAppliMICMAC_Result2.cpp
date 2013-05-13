@@ -47,11 +47,14 @@ namespace NS_ParamMICMAC
 /*                                                       */
 /*********************************************************/
 
-bool IsPBUG(const Pt2di & aP)
+static bool IsPBUG(const Pt2di & aP)
 {
+    return false;
+/*
    return       (aP==Pt2di(97,293))
             ||  (aP==Pt2di(98,293))
          ;
+*/
 }
 
 void cAppliMICMAC::InitNadirRank()
@@ -62,46 +65,66 @@ void cAppliMICMAC::InitNadirRank()
 
    cGeomDiscFPx aGDF = *mGeomDFPxInit;
    aGDF.SetDeZoom(mAnaGeomMNT->AnamDeZoomMasq().Val());
-
    Pt2di aSz = aGDF.SzDz();
-   TIm2D<REAL4,REAL8> aImKNad(aSz);
-   Pt2di aPDisc;
+
    int aKB = mMakeMaskImNadir->KBest();
-   std::vector<double> aVAngles;
-   for (aPDisc.x=0 ; aPDisc.x<aSz.x ; aPDisc.x++)
+   std::string aNameKNad = FullDirMEC()+"AnamImGlobKAngle_K" +ToString(aKB) + ".tif";
+   if (! ELISE_fp::exist_file(aNameKNad))
    {
-       for (aPDisc.y=0 ; aPDisc.y<aSz.y ; aPDisc.y++)
-       {
-            aVAngles.clear();
-            Pt2dr aPTer = aGDF.DiscToR2(aPDisc);
-            for (int aKV=0 ; aKV<int(mPrisesDeVue.size()) ; aKV++)
-            {
-                double anA = mPrisesDeVue[aKV]->Geom().IncidTerrain(aPTer);
-                if (anA >=0)
-                  aVAngles.push_back(anA);
-            }
-            // aImKNad.oset(aPDisc,KthVal(&(aVAngles[0]),aVAngles.size(),aKB));
-            if (IsPBUG(aPDisc))
-            {
-                std::cout << "========  " << aPDisc  << " N: " << aVAngles.size() << " K: " << aKB << " ====\n";
-                for (int aKV=0 ; aKV<int(aVAngles.size()) ; aKV++)
-                    std::cout << "  " << aVAngles[aKV] << "\n";
+      TIm2D<REAL4,REAL8> aImKNad(aSz);
+      Pt2di aPDisc;
+      std::vector<double> aVAngles;
+      for (aPDisc.x=0 ; aPDisc.x<aSz.x ; aPDisc.x++)
+      {
+          for (aPDisc.y=0 ; aPDisc.y<aSz.y ; aPDisc.y++)
+          {
+               aVAngles.clear();
+               Pt2dr aPTer = aGDF.DiscToR2(aPDisc);
+               for (int aKV=0 ; aKV<int(mPrisesDeVue.size()) ; aKV++)
+               {
+                   double anA = mPrisesDeVue[aKV]->Geom().IncidTerrain(aPTer);
+                   if (anA >=0)
+                     aVAngles.push_back(anA);
+               }
+
+               // aImKNad.oset(aPDisc,KthVal(&(aVAngles[0]),aVAngles.size(),aKB));
+               if (IsPBUG(aPDisc))
+               {
+                   std::cout << "========  " << aPDisc  << " N: " << aVAngles.size() << " K: " << aKB << " ====\n";
+                   for (int aKV=0 ; aKV<int(aVAngles.size()) ; aKV++)
+                       std::cout << "  " << aVAngles[aKV] << "\n";
                     
-            }
-            double aVal = KthValGen(&(aVAngles[0]),aVAngles.size(),aKB);
-            aImKNad.oset(aPDisc,aVal);
-            if (IsPBUG(aPDisc))
-            {
-                std::cout <<  "  ##  " << aVal <<  " " << aKB << " ##\n";
-            }
-       }
+               }
+               double aVal = KthValGen(&(aVAngles[0]),aVAngles.size(),aKB,0.0);
+               aImKNad.oset(aPDisc,aVal);
+               if (IsPBUG(aPDisc))
+               {
+                   std::cout <<  "  ##  " << aVal <<  " " << aKB << " ##\n";
+               }
+          }
+      }
+
+      Tiff_Im::CreateFromIm(aImKNad._the_im,aNameKNad);
+       std::cout << aGDF.P0() << " " <<  aGDF.P1()  << aGDF.SzDz() << "\n";
    }
 
-   Tiff_Im::CreateFromIm(aImKNad._the_im,FullDirMEC()+"TestKangle.tif");
+   {
+      TIm2D<REAL4,REAL8> aImKNad(Pt2di(1,1));
+      for (int aKV=0 ; aKV<int(mPrisesDeVue.size()) ; aKV++)
+      {
+          bool aLoad = false;
+          if (! mPrisesDeVue[aKV]->Geom().MasqImNadirIsDone())
+          {
+              if (! aLoad)
+              {
+                  aLoad = true;
+                  aImKNad = TIm2D<REAL4,REAL8>(Im2D_REAL4::FromFileStd(aNameKNad));
+              }
+              mPrisesDeVue[aKV]->Geom().DoMasImNadir(aImKNad,aGDF);
+          }
+      }
+   }
 
-
-   std::cout << aGDF.P0() << " " <<  aGDF.P1()  << aGDF.SzDz() << "\n";
-   getchar();
 
 }
 

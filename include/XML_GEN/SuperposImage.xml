@@ -1042,6 +1042,7 @@ namespace NS_SuperposeImage{
          <KeyRel Nb="*"  Type="std::string"> </KeyRel> 
          <KeyString Nb="*"  Type="std::string"> </KeyString> 
          <KeySet Nb="*"  Type="std::string"> </KeySet> 
+         <UseIt Nb="?" Type="bool" Def="false"> </UseIt> <!-- Pour anihilier dans EtapeMEC -->
   </ParamGenereStrVois>
 
   <ParamFusionMNT  Nb="1" Class="true">

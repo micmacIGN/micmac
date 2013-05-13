@@ -286,13 +286,14 @@ template <class TVal> TVal MinTab(TVal * Data,int aNb)
 
 template <class TVal> TVal KthVal(TVal * Data,int aNb,int aKth)
 {
-   ELISE_ASSERT(aKth>=0 && (aKth<aNb-1),"KthVal");
+   ELISE_ASSERT(aKth>=0 && (aKth<=aNb-1),"KthVal");
    SplitArrounKthValue(Data,aNb,aKth);
    return MinTab(Data+aKth,aNb-aKth);
 }
 
-template <class TVal> TVal KthValGen(TVal * Data,int aNb,int aKth)
+template <class TVal> TVal KthValGen(TVal * Data,int aNb,int aKth,const TVal & aDef)
 {
+    if (aNb==0) return aDef;
     if (aKth <=0) return  MinTab(Data,aNb);
     if (aKth >= (aNb-1)) return  MaxTab(Data,aNb);
     return KthVal(Data,aNb,aKth);

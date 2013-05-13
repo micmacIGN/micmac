@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-void MakeMetaData_XML_GeoI(const std::string & aNameImMasq)
+void MakeMetaData_XML_GeoI(const std::string & aNameImMasq,double aResol)
 {
    std::string aNameXml =  StdPrefix(aNameImMasq) + ".xml";
    if (!ELISE_fp::exist_file(aNameXml))
@@ -54,9 +54,17 @@ void MakeMetaData_XML_GeoI(const std::string & aNameImMasq)
 
         aFOM.NameFileMnt() = NameWithoutDir(aNameImMasq);
         aFOM.NombrePixels() = Tiff_Im(aNameImMasq.c_str()).sz();
+        if (aResol>0) 
+        {
+           aFOM.ResolutionPlani() = Pt2dr(aResol,aResol);
+        }
 
         MakeFileXML(aFOM,aNameXml);
    }
+}
+void MakeMetaData_XML_GeoI(const std::string & aNameImMasq)
+{
+     MakeMetaData_XML_GeoI(aNameImMasq,-1);
 }
 
 

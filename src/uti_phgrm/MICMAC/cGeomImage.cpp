@@ -119,6 +119,18 @@ double cGeomImage::IncidTerrain(Pt2dr aPTer)
    return 0;
 }
 
+void  cGeomImage::DoMasImNadir(TIm2D<REAL4,REAL8> &,cGeomDiscFPx &)
+{
+    ELISE_ASSERT(false,"cGeomImage::DoMasImNadir");
+}
+
+bool cGeomImage::MasqImNadirIsDone()
+{
+
+   ELISE_ASSERT(false,"cGeomImage::MasqImNadirIsDone");
+   return false;
+}
+
 void cGeomImage::InitAnamSA(double aResol,const Box2dr & aBoxTer)
 {
 }
@@ -1300,6 +1312,11 @@ class cGeomImage_DHD_Px : public cGeomImage
 class cGeomImage_Terrain_Ori : public cGeomImage
 {
     public :
+      std::string NameMasqImNadir()
+      {
+           return mAppli.FullDirPyr() + "MasqNadir_K" + ToString(mAppli.MMImNadir()->KBest()) +  "_" + mPDV.Name() + ".tif";
+      }
+
       cGeomImage_Terrain_Ori
       (
           const cAppliMICMAC & anAppli,
@@ -1311,7 +1328,9 @@ class cGeomImage_Terrain_Ori : public cGeomImage
          cGeomImage (anAppli,aPDV,eTagGeom_TerrainOri,aSzIm,1),
          mOri       (anOri),
          mIsCarto   (isCarto),
-         mOLiLi     (mOri->CastOliLib())
+         mOLiLi     (mOri->CastOliLib()),
+         mLoadIncT  (false),
+         mNameIncTerTif   (NameMasqAnamSA("_IncidTer.tif"))
       {
           if (mIsCarto)
           {
@@ -1327,6 +1346,9 @@ class cGeomImage_Terrain_Ori : public cGeomImage
       bool IsInMasqAnamSA(Pt2dr aPTer) ;
       void Init0MasqAnamSA();
       void InitAnamSA(double aResol,const Box2dr & aBoxTer);
+      bool MasqImNadirIsDone();
+      void DoMasImNadir(TIm2D<REAL4,REAL8> &,cGeomDiscFPx &);
+
 
       std::vector<Pt2dr>  EmpriseImage() const
       {
@@ -1429,9 +1451,10 @@ class cGeomImage_Terrain_Ori : public cGeomImage
        }
 
        CamStenope * mOri;
-       bool      mIsCarto;
+       bool         mIsCarto;
        Ori3D_Std *  mOLiLi;
-
+       bool         mLoadIncT;
+       std::string  mNameIncTerTif;
        // Champs speciaux Anam
 
        CamStenope *  GetOri()  const
@@ -1487,6 +1510,80 @@ class cGeomImage_Terrain_Ori : public cGeomImage
        }
 };
 
+bool cGeomImage_Terrain_Ori::MasqImNadirIsDone()
+{
+   return ELISE_fp::exist_file(NameMasqImNadir());
+}
+
+
+void cGeomImage_Terrain_Ori::DoMasImNadir(TIm2D<REAL4,REAL8> & aImKN,cGeomDiscFPx & aGDF)
+{
+// mNameMasqImNadir
+      Pt2dr aSzImR1 = Pt2dr(mOri->Sz());
+      Pt2di aSzR = round_up(aSzImR1/mAnDeZoomM);
+      Im2D_Bits<1> aMaskN(aSzR.x,aSzR.y,0);
+      TIm2DBits<1> aTMaskN(aMaskN);
+
+      Pt2di aPRed ;
+      double aPx0[2] = {0,0};
+      double aFact = 1 +  mAppli.MMImNadir()->IncertAngle().Val();
+
+      for (aPRed.x=0 ; aPRed.x<aSzR.x; aPRed.x++)
+      {
+          for (aPRed.y=0 ; aPRed.y<aSzR.y; aPRed.y++)
+          {
+              Pt2di aPIm = aPRed * mAnDeZoomM;
+              Pt2dr aPTer = ImageAndPx2Obj_Euclid(Pt2dr(aPIm),aPx0);
+              double anIncIm =  IncidTerrain(aPTer);
+              if (anIncIm>=0)
+              {
+                  Pt2dr aPK = aGDF.R2ToRDisc(aPTer);
+                  double aKInc = aImKN.getr(aPK,-1);
+// std::cout << "IINNC  " << anIncIm  << " " << aKInc << aPK << " " << aImKN._the_im.sz() << "\n";
+                  if (anIncIm  < (aKInc * aFact))
+                  {
+                     aTMaskN.oset(aPRed,1);
+                  }
+              }
+	      // Pt3dr aPTer  = mOri->
+          }
+      }
+
+      static Video_Win * aW = 0; 
+      // if (aW==0)  aW =  Video_Win::PtrWStd(Pt2di(700,500));
+      if (aW)
+      {
+          std::cout << mPDV.Name() << "\n";
+          aW->set_title(mPDV.Name().c_str());
+          ELISE_COPY(aW->all_pts(),P8COL::red,aW->odisc());
+          ELISE_COPY(aMaskN.all_pts(),aMaskN.in(),aW->odisc());
+          getchar();
+      }
+
+      Tiff_Im aTF
+              (
+                 NameMasqImNadir().c_str(),
+                 aSzR,
+                 GenIm::bits1_msbf,
+                 Tiff_Im::No_Compr,
+                 Tiff_Im::BlackIsZero
+              );
+       Fonc_Num aF = aMaskN.in(0);
+       int aNbDil = mAppli.MMImNadir()->Dilat32().Val();
+       if (aNbDil >0) aF = dilat_32(aF,aNbDil);
+
+       int aNbErod = mAppli.MMImNadir()->Erod32().Val();
+       if (aNbErod >0) aF = erod_32(aF,aNbErod);
+
+       ELISE_COPY
+       (
+           aTF.all_pts(),
+           aMaskN.in(0),
+           aTF.out()
+       );
+       MakeMetaData_XML_GeoI(NameMasqImNadir(),mAnDeZoomM);
+}
+
 void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
 {
   if (! mAnamSA) 
@@ -1494,7 +1591,6 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
 
   std::string aNameXML =  NameMasqAnamSA("_Mtd.xml");
   std::string aNameTerTif =  NameMasqAnamSA("_MasqTer.tif");
-  std::string aNameIncTerTif =  NameMasqAnamSA("_IncidTer.tif");
   // std::cout << "XXMMLNAME " << aNameXML << "\n";
   // std::cout << aNameTerTif << "\n\n";
 
@@ -1689,7 +1785,7 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
 
       if (mDoImMasqAnam)
       {
-         Tiff_Im::CreateFromIm(mTIncidTerr._the_im,aNameIncTerTif);
+         Tiff_Im::CreateFromIm(mTIncidTerr._the_im,mNameIncTerTif);
       }
 
 
@@ -1726,10 +1822,12 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
       mMTA   = Im2D_INT1::FromFileStd(aNameTerTif);
       mTMTA  = TIm2D<INT1,INT>    (mMTA);
   }
+/*
   if (mDoImMasqAnam)
   {
-     mTIncidTerr = TIm2D<INT2,INT>(Im2D_INT2::FromFileStd(aNameIncTerTif));  
+     mTIncidTerr = TIm2D<INT2,INT>(Im2D_INT2::FromFileStd(mNameIncTerTif));  
   }
+*/
   // Pt3dr aP(0,0,0);
   // std::cout << Objet2ImageInit_Euclid(Pt2dr(0,0),0)
 }
@@ -1737,6 +1835,14 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
 
 double cGeomImage_Terrain_Ori::IncidTerrain(Pt2dr aPTer)
 {
+   ELISE_ASSERT(mDoImMasqAnam,"cGeomImage_Terrain_Ori::IncidTerrain");
+   if (! mLoadIncT)
+   {
+       mLoadIncT = true;
+       mTIncidTerr = TIm2D<INT2,INT>(Im2D_INT2::FromFileStd(mNameIncTerTif));
+   }
+
+
    aPTer = (aPTer-mAnamSAPMasq.BoxTer()._p0)/mAnamSAPMasq.Resol();
 
    Pt2di aPIT = round_down(aPTer);

@@ -10395,6 +10395,17 @@ const cTplValGesInit< cImageSelecteur > & cEtapeMEC::ImageSelecteur()const
 }
 
 
+cTplValGesInit< cParamGenereStrVois > & cEtapeMEC::RelSelecteur()
+{
+   return mRelSelecteur;
+}
+
+const cTplValGesInit< cParamGenereStrVois > & cEtapeMEC::RelSelecteur()const 
+{
+   return mRelSelecteur;
+}
+
+
 cTplValGesInit< bool > & cEtapeMEC::Gen8Bits_Px1()
 {
    return mGen8Bits_Px1;
@@ -11514,6 +11525,8 @@ cElXMLTree * ToXMLTree(const cEtapeMEC & anObj)
       aRes->AddFils(ToXMLTree(anObj.PostFiltrageDiscont().Val())->ReTagThis("PostFiltrageDiscont"));
    if (anObj.ImageSelecteur().IsInit())
       aRes->AddFils(ToXMLTree(anObj.ImageSelecteur().Val())->ReTagThis("ImageSelecteur"));
+   if (anObj.RelSelecteur().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.RelSelecteur().Val())->ReTagThis("RelSelecteur"));
    if (anObj.Gen8Bits_Px1().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Gen8Bits_Px1"),anObj.Gen8Bits_Px1().Val())->ReTagThis("Gen8Bits_Px1"));
    if (anObj.Offset8Bits_Px1().IsInit())
@@ -11726,6 +11739,8 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.PostFiltrageDiscont(),aTree->Get("PostFiltrageDiscont",1)); //tototo 
 
    xml_init(anObj.ImageSelecteur(),aTree->Get("ImageSelecteur",1)); //tototo 
+
+   xml_init(anObj.RelSelecteur(),aTree->Get("RelSelecteur",1)); //tototo 
 
    xml_init(anObj.Gen8Bits_Px1(),aTree->Get("Gen8Bits_Px1",1)); //tototo 
 
@@ -12557,6 +12572,10 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
         xml_init(aVal.ImageSelecteur(),(*itLTr)->Get("ImageSelecteur",1)); //tototo 
         if ((*itLTr)->HasFilsPorteeGlob("ImageSelecteur"))
           anObj.mGlobEtapeMEC.ImageSelecteur() = aVal.ImageSelecteur();
+
+        xml_init(aVal.RelSelecteur(),(*itLTr)->Get("RelSelecteur",1)); //tototo 
+        if ((*itLTr)->HasFilsPorteeGlob("RelSelecteur"))
+          anObj.mGlobEtapeMEC.RelSelecteur() = aVal.RelSelecteur();
 
         xml_init(aVal.Gen8Bits_Px1(),(*itLTr)->Get("Gen8Bits_Px1",1)); //tototo 
         if ((*itLTr)->HasFilsPorteeGlob("Gen8Bits_Px1"))
@@ -13724,6 +13743,28 @@ const cTplValGesInit< double > & cMakeMaskImNadir::IncertAngle()const
    return mIncertAngle;
 }
 
+
+cTplValGesInit< int > & cMakeMaskImNadir::Dilat32()
+{
+   return mDilat32;
+}
+
+const cTplValGesInit< int > & cMakeMaskImNadir::Dilat32()const 
+{
+   return mDilat32;
+}
+
+
+cTplValGesInit< int > & cMakeMaskImNadir::Erod32()
+{
+   return mErod32;
+}
+
+const cTplValGesInit< int > & cMakeMaskImNadir::Erod32()const 
+{
+   return mErod32;
+}
+
 cElXMLTree * ToXMLTree(const cMakeMaskImNadir & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MakeMaskImNadir",eXMLBranche);
@@ -13734,6 +13775,10 @@ cElXMLTree * ToXMLTree(const cMakeMaskImNadir & anObj)
    aRes->AddFils(::ToXMLTree(std::string("KBest"),anObj.KBest())->ReTagThis("KBest"));
    if (anObj.IncertAngle().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("IncertAngle"),anObj.IncertAngle().Val())->ReTagThis("IncertAngle"));
+   if (anObj.Dilat32().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Dilat32"),anObj.Dilat32().Val())->ReTagThis("Dilat32"));
+   if (anObj.Erod32().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Erod32"),anObj.Erod32().Val())->ReTagThis("Erod32"));
   return aRes;
 }
 
@@ -13748,6 +13793,10 @@ void xml_init(cMakeMaskImNadir & anObj,cElXMLTree * aTree)
    xml_init(anObj.KBest(),aTree->Get("KBest",1)); //tototo 
 
    xml_init(anObj.IncertAngle(),aTree->Get("IncertAngle",1),double(0.1)); //tototo 
+
+   xml_init(anObj.Dilat32(),aTree->Get("Dilat32",1),int(6)); //tototo 
+
+   xml_init(anObj.Erod32(),aTree->Get("Erod32",1),int(3)); //tototo 
 }
 
 
@@ -13847,6 +13896,28 @@ cTplValGesInit< double > & cAnamorphoseGeometrieMNT::IncertAngle()
 const cTplValGesInit< double > & cAnamorphoseGeometrieMNT::IncertAngle()const 
 {
    return MakeMaskImNadir().Val().IncertAngle();
+}
+
+
+cTplValGesInit< int > & cAnamorphoseGeometrieMNT::Dilat32()
+{
+   return MakeMaskImNadir().Val().Dilat32();
+}
+
+const cTplValGesInit< int > & cAnamorphoseGeometrieMNT::Dilat32()const 
+{
+   return MakeMaskImNadir().Val().Dilat32();
+}
+
+
+cTplValGesInit< int > & cAnamorphoseGeometrieMNT::Erod32()
+{
+   return MakeMaskImNadir().Val().Erod32();
+}
+
+const cTplValGesInit< int > & cAnamorphoseGeometrieMNT::Erod32()const 
+{
+   return MakeMaskImNadir().Val().Erod32();
 }
 
 
@@ -14454,6 +14525,28 @@ cTplValGesInit< double > & cSection_Results::IncertAngle()
 const cTplValGesInit< double > & cSection_Results::IncertAngle()const 
 {
    return AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().IncertAngle();
+}
+
+
+cTplValGesInit< int > & cSection_Results::Dilat32()
+{
+   return AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().Dilat32();
+}
+
+const cTplValGesInit< int > & cSection_Results::Dilat32()const 
+{
+   return AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().Dilat32();
+}
+
+
+cTplValGesInit< int > & cSection_Results::Erod32()
+{
+   return AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().Erod32();
+}
+
+const cTplValGesInit< int > & cSection_Results::Erod32()const 
+{
+   return AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().Erod32();
 }
 
 
@@ -18027,6 +18120,28 @@ cTplValGesInit< double > & cParamMICMAC::IncertAngle()
 const cTplValGesInit< double > & cParamMICMAC::IncertAngle()const 
 {
    return Section_Results().AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().IncertAngle();
+}
+
+
+cTplValGesInit< int > & cParamMICMAC::Dilat32()
+{
+   return Section_Results().AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().Dilat32();
+}
+
+const cTplValGesInit< int > & cParamMICMAC::Dilat32()const 
+{
+   return Section_Results().AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().Dilat32();
+}
+
+
+cTplValGesInit< int > & cParamMICMAC::Erod32()
+{
+   return Section_Results().AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().Erod32();
+}
+
+const cTplValGesInit< int > & cParamMICMAC::Erod32()const 
+{
+   return Section_Results().AnamorphoseGeometrieMNT().Val().MakeMaskImNadir().Val().Erod32();
 }
 
 

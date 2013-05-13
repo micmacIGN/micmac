@@ -679,7 +679,8 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
                        const cXML_ParamNuage3DMaille & aGeomIn,
                        const std::string & aDirIn,
                        const std::string &  aNameRes,
-                       bool  AutoResize
+                       bool  AutoResize,
+                       const Box2di  * aBoxClipIn = 0
                     );
 
 template <class Type> void WriteType(FILE * aFP,Type f)

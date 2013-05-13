@@ -3410,6 +3410,9 @@ class cEtapeMEC
         cTplValGesInit< cImageSelecteur > & ImageSelecteur();
         const cTplValGesInit< cImageSelecteur > & ImageSelecteur()const ;
 
+        cTplValGesInit< cParamGenereStrVois > & RelSelecteur();
+        const cTplValGesInit< cParamGenereStrVois > & RelSelecteur()const ;
+
         cTplValGesInit< bool > & Gen8Bits_Px1();
         const cTplValGesInit< bool > & Gen8Bits_Px1()const ;
 
@@ -3745,6 +3748,7 @@ class cEtapeMEC
         cTplValGesInit< cPostFiltragePx > mPostFiltragePx;
         cTplValGesInit< cPostFiltrageDiscont > mPostFiltrageDiscont;
         cTplValGesInit< cImageSelecteur > mImageSelecteur;
+        cTplValGesInit< cParamGenereStrVois > mRelSelecteur;
         cTplValGesInit< bool > mGen8Bits_Px1;
         cTplValGesInit< int > mOffset8Bits_Px1;
         cTplValGesInit< double > mDyn8Bits_Px1;
@@ -4273,11 +4277,19 @@ class cMakeMaskImNadir
 
         cTplValGesInit< double > & IncertAngle();
         const cTplValGesInit< double > & IncertAngle()const ;
+
+        cTplValGesInit< int > & Dilat32();
+        const cTplValGesInit< int > & Dilat32()const ;
+
+        cTplValGesInit< int > & Erod32();
+        const cTplValGesInit< int > & Erod32()const ;
     private:
         cTplValGesInit< double > mDynIncid;
         cTplValGesInit< bool > mMakeAlsoMaskTerrain;
         int mKBest;
         cTplValGesInit< double > mIncertAngle;
+        cTplValGesInit< int > mDilat32;
+        cTplValGesInit< int > mErod32;
 };
 cElXMLTree * ToXMLTree(const cMakeMaskImNadir &);
 
@@ -4313,6 +4325,12 @@ class cAnamorphoseGeometrieMNT
 
         cTplValGesInit< double > & IncertAngle();
         const cTplValGesInit< double > & IncertAngle()const ;
+
+        cTplValGesInit< int > & Dilat32();
+        const cTplValGesInit< int > & Dilat32()const ;
+
+        cTplValGesInit< int > & Erod32();
+        const cTplValGesInit< int > & Erod32()const ;
 
         cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir();
         const cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir()const ;
@@ -4495,6 +4513,12 @@ class cSection_Results
 
         cTplValGesInit< double > & IncertAngle();
         const cTplValGesInit< double > & IncertAngle()const ;
+
+        cTplValGesInit< int > & Dilat32();
+        const cTplValGesInit< int > & Dilat32()const ;
+
+        cTplValGesInit< int > & Erod32();
+        const cTplValGesInit< int > & Erod32()const ;
 
         cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir();
         const cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir()const ;
@@ -5528,6 +5552,12 @@ class cParamMICMAC
 
         cTplValGesInit< double > & IncertAngle();
         const cTplValGesInit< double > & IncertAngle()const ;
+
+        cTplValGesInit< int > & Dilat32();
+        const cTplValGesInit< int > & Dilat32()const ;
+
+        cTplValGesInit< int > & Erod32();
+        const cTplValGesInit< int > & Erod32()const ;
 
         cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir();
         const cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir()const ;

@@ -470,9 +470,17 @@ cEtapeMecComp::cEtapeMecComp
          );
       }
 
+
+      if (mEtape.RelSelecteur().IsInit())
+      {
+          ELISE_ASSERT (ModeGeomIsIm1InvarPx(mAppli),"RelSelecteur requires master image")
+          mSelectByRel =  GetStrFromGenStrRel(mAppli.ICNM(),mEtape.RelSelecteur().Val(),mAppli.PDV1()->Name());
+         // aPDV->SetMaitre(IsModeIm1Maitre(mEtape.AggregCorr().Val()));
+      }
+
+
       if (mEtape.ImageSelecteur().IsInit())
       {
-         // cImageSelecteur & aIS = mEtape.ImageSelecteur().Val();
          mPatternModeExcl = mEtape.ImageSelecteur().Val().ModeExclusion();
          std::list<string> aLPat  = mEtape.ImageSelecteur().Val().PatternSel();
          for 
@@ -850,6 +858,13 @@ Tiff_Im cEtapeMecComp::LastFileCorrelOK() const
 bool cEtapeMecComp::SelectImage(cPriseDeVue * aPDV) const
 {
     aPDV->SetMaitre(IsModeIm1Maitre(mEtape.AggregCorr().Val()));
+
+    if (mEtape.RelSelecteur().IsInit())
+    {
+       if ((! BoolFind(mSelectByRel,aPDV->Name())) && (aPDV!=mAppli.PDV1()))
+          return false;
+    }
+
     const std::string & aName = aPDV->Name();
     bool aRes = mPatternModeExcl;
     for

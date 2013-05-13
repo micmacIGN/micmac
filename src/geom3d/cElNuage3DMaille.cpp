@@ -555,6 +555,8 @@ cElNuage3DMaille::~cElNuage3DMaille()
 
 void cElNuage3DMaille::Save(const std::string & aName)
 {
+  mDir = DirOfFile(aName);
+
    std::string    aNameM= NameWithoutDir(aName + "_Masq.tif");
    std::string    aNameP= NameWithoutDir(aName + "_Prof.tif");
    if ( mParams.Image_Point3D().IsInit())
@@ -579,8 +581,11 @@ void cElNuage3DMaille::Save(const std::string & aName)
      ELISE_ASSERT(false,"cElNuage3DMaille::Save");
    }
 
+
    Tiff_Im::CreateFromIm(mImDef,mDir+aNameM);
    V_Save(aNameP);
+
+// std::cout << "AAAAA " << mDir+aNameM << " " << aNameP << "\n"; getchar();
 
    cXML_ParamNuage3DMaille aParam = mParams;
    for (int aKG=0 ; aKG<int(mGrpAttr.size()) ; aKG++)
@@ -600,7 +605,7 @@ void cElNuage3DMaille::Save(const std::string & aName)
    }
 
 
-   MakeFileXML(aParam,mDir+aName+".xml");
+   MakeFileXML(aParam,aName+".xml");
 
 }
 
@@ -1123,6 +1128,8 @@ cElNuage3DMaille * cElNuage3DMaille::ReScaleAndClip(Box2dr aBox,double aScale)
 {
     Pt2dr aTr = aBox._p0;
     Pt2dr aSz = aBox.sz();
+
+// std::cout << "ReScaleAndClippppp " << aScale << aTr << aSz <<"\n";
     cXML_ParamNuage3DMaille aNewParam = CropAndSousEch(mParams,aTr,aScale,aSz);
 
     Im2D_REAL4  aImPds(round_up(aSz.x),round_up(aSz.y));
@@ -1598,7 +1605,8 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
                        const cXML_ParamNuage3DMaille & aGeomIn,
                        const std::string & aDirIn,
                        const std::string &  aNameRes,
-                       bool  AutoResize
+                       bool  AutoResize,
+                       const Box2di  * aBoxClipIn
                     )
 {
    Tiff_Im::SetDefTileFile(100000);
@@ -1641,11 +1649,19 @@ std::cout << "AAAA " << aGeomOut.NbPixel() << "\n";
    
 
    cElNuage3DMaille *  aNOut = cElNuage3DMaille::FromParam(aGeomOut,aDirIn,"",1.0,(cParamModifGeomMTDNuage *)0);
-   cElNuage3DMaille *  aNIn = cElNuage3DMaille::FromParam(aGeomIn,aDirIn);
+
+   cParamModifGeomMTDNuage * aParamIn = 0;
+   if (aBoxClipIn!=0) 
+   {
+      aParamIn = new cParamModifGeomMTDNuage(1.0,Box2dr(aBoxClipIn->_p0,aBoxClipIn->_p1));
+   }
+   cElNuage3DMaille *  aNIn = cElNuage3DMaille::FromParam(aGeomIn,aDirIn,"",1.0,aParamIn);
+   delete aParamIn;
 
 
     double aDynEtir = 10.0;
     double aSeuilEtir = 1.5;
+
 
     cElNuage3DMaille * aRes = aNOut->BasculeInThis(aNIn,true,aDynEtir,0,0,-1,AutoResize,&aVAttrIm);
 

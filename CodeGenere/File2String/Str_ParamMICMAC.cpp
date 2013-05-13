@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2042]) = {
+const char * (theNameVar_ParamMICMAC[2047]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -1248,6 +1248,9 @@ const char * (theNameVar_ParamMICMAC[2042]) = {
 "                   <PatternSel Nb=\"*\" Type=\"std::string\"> </PatternSel>\n",
 "            </ImageSelecteur>\n",
 "\n",
+"         <!-- Si on doit selectionner selon une relation / a image1 -->\n",
+"            <RelSelecteur Nb=\"?\" RefType=\"ParamGenereStrVois\" RefFile=\"SuperposImage.xml\"> </RelSelecteur>\n",
+"\n",
 "          <!--\n",
 "               Generation de visualisation des resultat intermediaires\n",
 "          -->\n",
@@ -1765,6 +1768,8 @@ const char * (theNameVar_ParamMICMAC[2042]) = {
 "                 <KBest  Nb=\"1\" Type=\"int\">   </KBest>\n",
 "                  <!-- de 0 a 1 , effet de l'inc Z sur les angles -->\n",
 "                 <IncertAngle  Nb=\"?\" Type=\"double\" Def=\"0.1\"> </IncertAngle>\n",
+"                 <Dilat32 Nb=\"?\" Type=\"int\" Def=\"6\"> </Dilat32>\n",
+"                 <Erod32 Nb=\"?\" Type=\"int\"  Def=\"3\"> </Erod32>\n",
 "             </MakeMaskImNadir>\n",
 "         </AnamorphoseGeometrieMNT>\n",
 "\n",

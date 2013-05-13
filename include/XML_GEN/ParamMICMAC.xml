@@ -1246,6 +1246,9 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
                    <PatternSel Nb="*" Type="std::string"> </PatternSel>
             </ImageSelecteur>
 
+         <!-- Si on doit selectionner selon une relation / a image1 -->
+            <RelSelecteur Nb="?" RefType="ParamGenereStrVois" RefFile="SuperposImage.xml"> </RelSelecteur>
+
           <!--
                Generation de visualisation des resultat intermediaires
           -->
@@ -1763,6 +1766,8 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
                  <KBest  Nb="1" Type="int">   </KBest>
                   <!-- de 0 a 1 , effet de l'inc Z sur les angles -->
                  <IncertAngle  Nb="?" Type="double" Def="0.1"> </IncertAngle>
+                 <Dilat32 Nb="?" Type="int" Def="6"> </Dilat32>
+                 <Erod32 Nb="?" Type="int"  Def="3"> </Erod32>
              </MakeMaskImNadir>
          </AnamorphoseGeometrieMNT>
 

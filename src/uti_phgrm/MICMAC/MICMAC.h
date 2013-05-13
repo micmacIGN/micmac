@@ -1020,6 +1020,9 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
         virtual bool IsInMasqAnamSA(Pt2dr aPTer);
         virtual double IncidTerrain(Pt2dr aPTer);
 
+        virtual bool MasqImNadirIsDone();
+        virtual void DoMasImNadir(TIm2D<REAL4,REAL8> &,cGeomDiscFPx &);
+
 
         std::string NameMasqAnamSA(const std::string & aPost) const;
 
@@ -2114,6 +2117,7 @@ class cEtapeMecComp
           int                     mNumSeuleNapEp;
           int                     mNbNappesEp;
 
+          std::vector<std::string> mSelectByRel;
           bool                    mPatternModeExcl;
           std::list<cSetName *>   mListAutomDeSel;
           int                     mSzGeomDerivable;
