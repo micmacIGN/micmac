@@ -2316,7 +2316,9 @@ Pt3dr ElCamera::PtFromPlanAndIm(const cElPlan3D  & aPlan,const Pt2dr& aP) const
 }
 
 
-ElCamera::~ElCamera() {}
+ElCamera::~ElCamera() 
+{
+}
 
 //    Cam = R1 M1
 //    Cam = R2 M2

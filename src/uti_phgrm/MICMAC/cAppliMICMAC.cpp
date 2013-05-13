@@ -308,8 +308,8 @@ cAppliMICMAC::cAppliMICMAC
    mVisu     (0),
    mOriPtLoc_Read (false),
    mMapEquiv (NULL),
-   mAnam          (0),
-   mXmlAnam        (0),
+   mAnamSA         (0),
+   mXmlAnamSA      (0),
    mRepCorrel      (0),
    mRepInvCorrel   (0),
    mFileBoxMasqIsBoxTer (""),
@@ -317,10 +317,23 @@ cAppliMICMAC::cAppliMICMAC
    mSurfOpt        (0),
    mCorrelAdHoc    (0),
    mGIm1IsInPax    (ModeGeomIsIm1InvarPx(*aParam.mObj)),
-   mGPRed2         (0)
+   mGPRed2         (0),
+   mDoTheMEC       (true),
+   mAnaGeomMNT     (0),
+   mMakeMaskImNadir  (0)
    // mInterpolTabule (10,8,0.0,eTabul_Bilin)
    // mInterpolTabule (10,8,0.0,eTabul_Bicub)
 {
+
+        mDoTheMEC = DoMEC().Val();
+        if (
+                  NonExistingFileDoMEC().IsInit()
+              &&  ELISE_fp::exist_file(WorkDir()+ NonExistingFileDoMEC().Val())
+              &&  (!CalledByProcess().Val())
+           )
+        {
+            mDoTheMEC = false; 
+        }
 	// NO_WARN
 	mICNM			= ( ( UseICNM( (cParamMICMAC &)(*this) ) ) ? aParam.mICNM : NULL );
 	mWM				= WithMessage().Val();
@@ -392,7 +405,7 @@ cAppliMICMAC::cAppliMICMAC
       mNameExe = aNameExeEnv;
 
    InitDirectories();
-   InitAnam();
+   InitAnamSA();
    InitImages();
 /*
    {
@@ -434,6 +447,8 @@ std::cout << "END TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
    double aLogDZ = log2(mGeomDFPxInit->SzDz().XtY() / NbPixDefFilesAux().Val());
    mDeZoomFilesAux = ElMax(DeZoomDefMinFileAux().Val(),(1<<ElMax(0,(round_ni(aLogDZ)))));
    PostInitGeom();
+
+   InitNadirRank();
 
 
    VerifEtapes();
@@ -480,8 +495,11 @@ std::cout << "END TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
     // Optionnel permet de generer le fichier apres modif 
     if  ((! CalledByProcess().Val()) && (mModeAlloc==eAllocAM_STD))
     {
+/*
+        FAIT DANS LE InitMecCOMP pour etre fait avant le CreateMNTInit
         if (! DoNotOriMNT())
            GenereOrientationMnt();
+*/
 	if (! DoNotExtendParam())
             SauvParam();
         if (! DoNotFDC())
@@ -967,6 +985,22 @@ void cAppliMICMAC::InitMecComp()
       (*itE)->SetCaracOfZoom();
    }
 
+
+   if  ((! CalledByProcess().Val()) && (mModeAlloc==eAllocAM_STD) && (! DoNotOriMNT()))
+   {
+        GenereOrientationMnt();
+   }
+   if (mEtape00) 
+       mEtape00->CreateMNTInit();
+   for
+   (
+        tContEMC::const_iterator itE = mEtapesMecComp.begin();
+        itE != mEtapesMecComp.end();
+        itE++
+   )
+   {
+      (*itE)->CreateMNTInit();
+   }
 }
 
 cCaracOfDeZoom * cAppliMICMAC::GetCaracOfDZ(int aDZ) const
@@ -988,28 +1022,38 @@ cCaracOfDeZoom * cAppliMICMAC::GetCaracOfDZ(int aDZ) const
 /*****************************************/
 /*       Initialise les images           */
 /*****************************************/
+
+cAnamorphoseGeometrieMNT * cAppliMICMAC::AnaGeomMNT() const {return mAnaGeomMNT;}
+cMakeMaskImNadir * cAppliMICMAC::MMImNadir() const {return mMakeMaskImNadir;}
     
-void cAppliMICMAC::InitAnam() 
+void cAppliMICMAC::InitAnamSA() 
 {
     if(! AnamorphoseGeometrieMNT().IsInit())
       return;
+
+    mAnaGeomMNT = AnamorphoseGeometrieMNT().PtrVal();
+    mMakeMaskImNadir = mAnaGeomMNT->MakeMaskImNadir().PtrVal();
 
     ELISE_ASSERT( GeomMNT() == eGeomMNTEuclid,"Anamophose incompatible avec Non-Euclid");
 
     const cAnamorphoseGeometrieMNT & aAGM = AnamorphoseGeometrieMNT().Val();
     if (aAGM.AnamSurfaceAnalytique().IsInit())
     {
-       mXmlAnam = new  cXmlOneSurfaceAnalytique;
+       mXmlAnamSA = new  cXmlOneSurfaceAnalytique;
        const cAnamSurfaceAnalytique & anASA = aAGM.AnamSurfaceAnalytique().Val();
-       mNameAnam = WorkDir()+anASA.NameFile();
-       mAnam = SFromFile
+       mNameAnamSA = WorkDir()+anASA.NameFile();
+       mAnamSA = SFromFile
                (
-                     mNameAnam,
+                     mNameAnamSA,
                      anASA.Id(),
                      "",
-                     mXmlAnam
+                     mXmlAnamSA
                );
        ELISE_ASSERT(!mRepCorrel,"Anam and RepCorrel incompatibles");
+    }
+    else
+    {
+         mAnamSA = cInterfSurfaceAnalytique::Id();
     }
 }
 
@@ -1280,12 +1324,20 @@ void cAppliMICMAC::AddAnImage(const std::string & aName)
         {
             std::string aN1 = WorkDir()+ mPDV1->NameGeom();
             std::string aN2 = WorkDir()+ aNameGeom;
-            // std::cout << aN1 << " " << aN2 << "\n";
+            ElCamera * aCam1 = Cam_Gen_From_File(aN1,"OrientationConique",mICNM);
+            ElCamera * aCam2 = Cam_Gen_From_File(aN2,"OrientationConique",mICNM);
+            double aProp = aCam1->RatioInterSol(*aCam2);
+            // std::cout << aN1 << " " << aN2 << " " << aProp << "\n";
+            if (aProp < aSel.RecouvrMin())
+               return;
+
+/*
             Ori3D_Std anO1(aN1.c_str());
             Ori3D_Std anO2(aN2.c_str());
             std::string  aN0 =  mPDV1->Name();
             if (anO1.PropInter(anO2) < aSel.RecouvrMin())
                return;
+*/
             // std::cout  << aN0 << " " << aName <<  "  " << anO1.PropInter(anO2) << "\n";
         }
     }
@@ -1295,12 +1347,12 @@ void cAppliMICMAC::AddAnImage(const std::string & aName)
      mPrisesDeVue.push_back(new cPriseDeVue(*this,aName,aIMIL,mNbPDV,aNameGeom,theGotGeom->ModG()));
 
 // InitAnam
-     if (mAnam)
+     if (mAnamSA)
      {
          ELISE_ASSERT
          (
-              mPrisesDeVue.back()->Geom().AcceptAnam(),
-              "Geometrie do not handle anamorphose\n"
+              mPrisesDeVue.back()->Geom().AcceptAnamSA(),
+              "Acquisition Geometrie do not handle anamorphose\n"
          );
      }
      if ( mNbPDV == 0)
@@ -1466,6 +1518,12 @@ inline cPriseDeVue * PDVNN(const cPriseDeVue * aPDV,int aNum)
    return const_cast<cPriseDeVue *>(aPDV);
 }
 
+
+const cEtapeMecComp * cAppliMICMAC::FirstVraiEtape() const
+{
+   ELISE_ASSERT(!mEtapesMecComp.empty(),"cAppliMICMAC::FirstVraiEtape");
+   return mEtapesMecComp.front();
+}
 
 
 
@@ -1654,12 +1712,20 @@ bool cAppliMICMAC::IsOptDequant() const
 {
    return mIsOptDequant;
 }
+bool cAppliMICMAC::IsOptIdentite() const
+{
+   return mIsOptIdentite;
+}
 
 int cAppliMICMAC::CurSurEchWCor() const
 {
    return mCurSurEchWCor;
 }
 
+bool cAppliMICMAC::DoTheMEC() const
+{
+   return mDoTheMEC;
+}
 
 const cInterfaceVisualisation * cAppliMICMAC::PtrVI() const
 {
@@ -1671,8 +1737,8 @@ bool cAppliMICMAC::FullIm1() const
    return mFullIm1;
 }
 
-cInterfSurfaceAnalytique * cAppliMICMAC::Anam() const { return mAnam; }
-cXmlOneSurfaceAnalytique * cAppliMICMAC::XmlAnam() const { return mXmlAnam; }
+cInterfSurfaceAnalytique * cAppliMICMAC::AnamSA() const { return mAnamSA; }
+cXmlOneSurfaceAnalytique * cAppliMICMAC::XmlAnamSA() const { return mXmlAnamSA; }
 const cChCoCart  * cAppliMICMAC::RC() const { return mRepCorrel; }
 const cChCoCart  * cAppliMICMAC::RCI() const { return mRepInvCorrel; }
 

@@ -68,6 +68,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 //#include <strstream>    
 
+std::string MakeStrFromArgcARgv(int  argc,char** argv);
+
 void MemoArg(int,char**);
 void ShowArgs();
 
@@ -466,6 +468,7 @@ int Apero_main(int argc,char ** argv);
 int Bascule_main(int argc,char ** argv);
 int CmpCalib_main(int argc,char ** argv);
 int Campari_main(int argc,char ** argv);
+int MMTestOrient_main(int argc,char ** argv);
 int ChgSysCo_main(int argc,char ** argv);
 int GCPBascule_main(int argc,char ** argv);
 int CentreBascule_main(int argc,char ** argv);
@@ -474,6 +477,7 @@ int Malt_main(int argc,char ** argv);
 int Mascarpone_main(int argc,char ** argv);
 int MergePly_main(int argc,char ** argv);
 int MICMAC_main(int argc,char ** argv);
+int FusionCarteProf_main(int argc,char ** argv);
 int Nuage2Ply_main(int argc,char ** argv);
 int Pasta_main(int argc,char ** argv);
 int Pastis_main(int argc,char ** argv);

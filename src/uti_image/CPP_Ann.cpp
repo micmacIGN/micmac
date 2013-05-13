@@ -70,5 +70,5 @@ int Ann_main( int argc, char **argv )
 	
 	cout << matchedCoupleIndices.size() << " matches" << endl;
 
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
 }

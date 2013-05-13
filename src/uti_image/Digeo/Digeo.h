@@ -274,7 +274,6 @@ class cImInMem
          int              mNbShift;
          cImInMem *       mMere;
          cImInMem *       mFille;
-     
 
          Im1D_REAL8 mKernelTot;  // Noyaux le reliant a l'image de base de l'octave
          bool mFirstSauv;
@@ -491,7 +490,7 @@ class cOctaveDigeo
         Pt2dr  ToPtImCalc(const Pt2dr& aP0) const;  // Renvoie dans l'image sur/sous-resolue
         Pt2dr  ToPtImR1(const Pt2dr& aP0) const;  // Renvoie les coordonnees dans l'image initiale
 
-
+		REAL8 GetMaxValue() const;
     protected :
         static cOctaveDigeo * AllocGen(cOctaveDigeo * Mere,GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax);
        
@@ -590,6 +589,8 @@ class cImDigeo
 
        void SetDyn(double);
        double GetDyn() const;
+       void SetMaxValue(REAL8);
+       REAL8 GetMaxValue() const;
        double GradMoyCorrecDyn() const;
        const Box2di &   BoxCurIn ();
        const Box2di &   BoxCurOut ();
@@ -627,6 +628,7 @@ class cImDigeo
         bool                         mG2MoyIsCalc;
         double                       mGradMoy;
         double                       mDyn;
+		REAL8			  			 mMaxValue; // valeur max d'un pixel, utilisée pour la normalisation du gradient
         Im2DGen *                    mFileInMem;
      private :
         cImDigeo(const cImDigeo &);  // N.I.

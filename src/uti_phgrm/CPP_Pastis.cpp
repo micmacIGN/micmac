@@ -281,7 +281,7 @@ void cAppliPastis::GenerateMatch(const std::string & aNI1,const std::string & aN
 
   if (mModeBin==eModeLeBrisPP)
   {
-	aCom =	g_externalToolHandler.get( mMatchingTool ).callName() + ' ' + mMatchingArguments +
+	aCom =	g_externalToolHandler.get( mMatchingTool ).callName() + ' ' + mMatchingArguments + ' ' +
 			NameKey(aNI1) + std::string(" ") +
 			NameKey(aNI2) + std::string(" ") +
 			mNameAPM;
@@ -985,10 +985,6 @@ cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
         cerr << "Pastis: ERROR: specified string for the matching tool is invalid (format is : tool[:arguments] )" << endl;
         exit( EXIT_FAILURE );
     }
-    cout << "detect = " << mDetectingTool << " => " << g_externalToolHandler.get( mDetectingTool ).callName() << endl;
-    cout << TheStrSiftPP << " => " << g_externalToolHandler.get( TheStrSiftPP ).callName() << endl;
-    cout << "match = " << mMatchingTool << " => " << g_externalToolHandler.get( mMatchingTool ).callName() <<endl;
-    cout << TheStrAnnPP << " => " << g_externalToolHandler.get( TheStrAnnPP ).callName() << endl;
 
     if (mExpTxt) mExpBin = 0;
 

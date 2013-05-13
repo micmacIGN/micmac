@@ -47,6 +47,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_SaisiePts.cpp
     ${UTI_PHGRM_DIR}/CPP_Bascule.cpp
     ${UTI_PHGRM_DIR}/CPP_Campari.cpp
+    ${UTI_PHGRM_DIR}/CPP_MMTestOrient.cpp
     ${UTI_PHGRM_DIR}/CPP_CmpCalib.cpp
     ${UTI_PHGRM_DIR}/CPP_Gri2Bin.cpp
     ${UTI_PHGRM_DIR}/CPP_GCPBascule.cpp

@@ -503,7 +503,7 @@ void cAppliMICMAC::InitCostCalcCorrel()
   mCostPPV    = 0.5 * mCostBilin;
   mCostBicub  = 3.0 * mCostBilin;
   mCostSinCardElem =  mCostBilin;
-  mCostGeom = (mAnam ? 15.0 : 2) * mCostBilin;
+  mCostGeom = (mAnamSA ? 4.0 : 2) * mCostBilin;
   mCostTabul = mCostBilin;
   //
 

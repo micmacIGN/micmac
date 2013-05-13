@@ -655,7 +655,7 @@ class cPriseDeVue
             // la zone Terrain est accedee via mAppli
             // aLT sert a calculer PXmin et PXmax pour convertir
             // l'emprise terrain en emprise image
-            bool LoadImageMM (const cLoadTer& aLT,
+            bool LoadImageMM (bool ForTest, const cLoadTer& aLT,
 							  const Pt2di & aSzMaxGeomTer,
 							  bool IsFirstLoaded);
             const cLoadedImage & LoadedIm() const;
@@ -1014,12 +1014,14 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
 
     // Pour l'instant seul la geometrie conique accepte les anamorphose,
     // car cela necessite des adaptation pas encore faite pour les autres
-        virtual bool AcceptAnam() const;
+        virtual bool AcceptAnamSA() const;
         friend class cAppliMICMAC;
-        bool  UseMasqAnam();
-        virtual bool IsInMasqAnam(Pt2dr aPTer);
+        bool  UseMasqTerAnamSA();
+        virtual bool IsInMasqAnamSA(Pt2dr aPTer);
+        virtual double IncidTerrain(Pt2dr aPTer);
 
-        std::string NameMasqAnam(const std::string & aPost) const;
+
+        std::string NameMasqAnamSA(const std::string & aPost) const;
 
 
          inline double Px1(const REAL * aPx) const {return (mDimPx > 1) ? aPx[1] : 0;}
@@ -1043,6 +1045,7 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
 
         Pt3dr  CentreRestit() const;
         virtual bool HasCentre() const;
+        virtual  Pt3dr  Centre() const;
 
 
 
@@ -1329,7 +1332,7 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
 
          virtual Pt2dr P1P2ToPx(Pt2dr aP1,Pt2dr aP2) const;
 	 virtual std::string Name() const;
-         virtual void InitAnam(double aResol,const Box2dr &  aBoxTer);
+         virtual void InitAnamSA(double aResol,const Box2dr &  aBoxTer);
    protected :
 
         virtual void InstPostInit();
@@ -1364,14 +1367,25 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
          );
          const cAppliMICMAC & mAppli;
          cPriseDeVue &        mPDV;
-         cInterfSurfaceAnalytique * mAnam;
+         cInterfSurfaceAnalytique * mAnamSA;
          const cChCoCart *          mRC;
          const cChCoCart *          mRCI;
          int                        mAnDeZoomM;
-         bool                       mABTIsInit;
-         cParamMasqAnam             mAnamPMasq;
+
+         bool                       mAnamSAIsInit;
+         bool                       mUseTerMasqAnam;
+         bool                       mDoImMasqAnam;
+
+
+         cParamMasqAnam             mAnamSAPMasq;
+// Parametres utilises pour seuiles sur l'incidences
          Im2D_INT1                  mMTA;
          TIm2D<INT1,INT>            mTMTA;
+
+// Parametres utilises pour ordonner sur l'incidence et prendre les K Meilleur Nadir
+         double                     mDynIncidTerr;
+         TIm2D<INT2,INT>            mTIncidTerr;
+
          const int            mDimPx;
          eTagGeometrie        mModeGeom;
 
@@ -1381,7 +1395,7 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
          std::vector<Pt2dr>   mContourTer;
 	 bool                 mPIV_Done;
 	 bool                 mIsIntrinseque;
-    private :
+    // protected :
 
         // A priori Micmac privilegie le calcul en geometrie terrain,
 	// dans ce cas TerrainRest2Euclid renvoie l'identite
@@ -1390,8 +1404,10 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
 	//  alors on cette fonction permet de passer de la restite au
 	//  terrain "reel"
 	//
+
+    private :
+
         virtual Pt3dr TerrainRest2Euclid(const Pt2dr & aP,double * aPax) const;
-        virtual  Pt3dr  Centre() const;
 
 
 
@@ -1959,6 +1975,7 @@ class  cCompileNuagePredicteur
 class cEtapeMecComp
 {
        public:
+          int  MultiplierNbSizeCellule() const;
           std::string NameMasqCarteProf() const;
 
           void RemplitOri(cFileOriMnt &) const;
@@ -1967,6 +1984,7 @@ class cEtapeMecComp
           cXML_ParamNuage3DMaille DoRemplitXMLNuage(const cExportNuage &) const;
           void RemplitXMLNuage(const cTplValGesInit<cMTD_Nuage_Maille> &,cXML_ParamNuage3DMaille &,eModeExportNuage) const;
 
+          const std::string &  NameXMLNuage() const;
 
           ~cEtapeMecComp();
 	  cEtapeMecComp
@@ -1977,6 +1995,7 @@ class cEtapeMecComp
 	       const cGeomDiscFPx & aGeomTerrain,
                const tContEMC &     aVEtPrec
           );
+          void CreateMNTInit();
       // Accesseur
           Pt2di SzFile() const;
           INT   Num()    const;
@@ -2038,6 +2057,7 @@ class cEtapeMecComp
           cCaracOfDeZoom &  CaracOfZ();
           bool  IsOptDiffer() const;
           bool  IsOptDequant() const;
+          bool  IsOptIdentite() const;
           bool  IsOptimCont() const;
           bool  IsOptimReel() const;
 
@@ -2106,6 +2126,7 @@ class cEtapeMecComp
           cCaracOfDeZoom *        mCaracZ;
           bool                    mIsOptDiffer;
           bool                    mIsOptDequant;
+          bool                    mIsOptIdentite;
           bool                    mIsOtpLeastSQ;
           bool                    mIsOptimCont;
           bool                    mIsOptimReel;
@@ -2123,6 +2144,7 @@ class cEtapeMecComp
           mutable cInterpolateurIm2D<float> * mInterpFloat;
           bool                                mMATP;
           bool                                mUseWAdapt;
+          mutable std::string                 mNameXMLNuage;
 };
 
 /*****************************************************/
@@ -2731,6 +2753,13 @@ class cAppliMICMAC  : public   cParamMICMAC,
 {
      public :
 
+        cAnamorphoseGeometrieMNT * AnaGeomMNT() const;
+        cMakeMaskImNadir * MMImNadir() const;
+
+
+     // Pour borner a priori la taille memoire prise par certains algos, on a besoin de savoir
+     // le nombre d'image, avant de charge le terrain, c'est donc approximatif et putot majorant
+     int NbApproxVueActive();
 
       void DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTieP & aMATP);
       void CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,int aZ,bool Final);
@@ -2797,6 +2826,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
         bool  IsOptimCont() const;
         bool  IsOptimReel() const;
         bool  IsOptDequant() const;
+        bool  IsOptIdentite() const;
 
         const std::string & DirImagesInit() const;
         const std::string & DirMasqueIms() const;
@@ -2805,6 +2835,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
         const cGeomDiscFPx &  GeomDFPx() const;
         const cGeomDiscFPx &  GeomDFPxInit() const;
         const cEtapeMecComp * CurEtape() const; 
+        const cEtapeMecComp * FirstVraiEtape() const; 
         cCaracOfDeZoom *      GetCurCaracOfDZ() const;
 	const std::string & FullDirMEC() const;
 	const std::string & FullDirPyr() const;
@@ -2910,11 +2941,12 @@ class cAppliMICMAC  : public   cParamMICMAC,
          int   NbPtsWFixe () const;
          int   SzWFixe    () const;
          int   CurSurEchWCor() const;
-         cInterfSurfaceAnalytique * Anam() const;
-         cXmlOneSurfaceAnalytique * XmlAnam() const;
+         cInterfSurfaceAnalytique * AnamSA() const;
+         cXmlOneSurfaceAnalytique * XmlAnamSA() const;
          const cChCoCart *  RC() const;
          const cChCoCart *  RCI() const;
          bool UseAlgoSpecifCorrelRect() const;
+         bool DoTheMEC() const;
 
 
          Pt2di Px2Point(int * aPx) const
@@ -3028,9 +3060,10 @@ class cAppliMICMAC  : public   cParamMICMAC,
              const std::string  & aNameSpecXML
         );
 	void InitDirectories();
-	void InitAnam();
+	void InitAnamSA();
 	void InitImages();
 	void PostInitGeom();
+        void InitNadirRank();
 	void InitMecComp();
         void InitMemPart();
         void SauvMemPart();
@@ -3096,12 +3129,13 @@ class cAppliMICMAC  : public   cParamMICMAC,
                  double aZMax
              );
        
-        void MakeRedrLocAnam();
+        void MakeRedrLocAnamSA();
         Pt3dr ToRedr(const cFileOriMnt & aFOMInit,const cFileOriMnt & aFOMCible,const Pt3dr &aPDiscInit);
 
         ///========================================
 
         void GenereOrientationMnt();
+        void GenereOrientationMnt(cEtapeMecComp *);
         void SauvParam();
         void MakeFileFDC();
 	void DoAllMEC();  // Dans cAppliMICMAC_MEC.cpp
@@ -3225,6 +3259,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
          bool                   mIsOptDiffer;
          bool                   mIsOptDequant;
+         bool                   mIsOptIdentite;
          bool                   mIsOptimCont;
 
          cCaracOfDeZoom *       mCurCarDZ;
@@ -3271,6 +3306,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
         cLineariseProj          mLineProj;
         //  cStatOneClassEquiv *         mStatN;
         cStatGlob          *         mStatGlob;
+        int                          mNbApproxVueActive;
        
 
        // Permet de diffuser aux processus fils les resultats
@@ -3466,9 +3502,9 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
         cStdMapName2Name *  mMapEquiv;
         // Pour "deformation" de la geometrie de calcul
-        cInterfSurfaceAnalytique * mAnam;
-        cXmlOneSurfaceAnalytique * mXmlAnam;
-        std::string                mNameAnam;
+        cInterfSurfaceAnalytique * mAnamSA;
+        cXmlOneSurfaceAnalytique * mXmlAnamSA;
+        std::string                mNameAnamSA;
         cChCoCart *  mRepCorrel;
         cChCoCart *  mRepInvCorrel;
 
@@ -3527,6 +3563,10 @@ class cAppliMICMAC  : public   cParamMICMAC,
 #endif	
 
          cMMTP *  mMMTP;
+
+         bool  mDoTheMEC;
+         cAnamorphoseGeometrieMNT * mAnaGeomMNT;
+         cMakeMaskImNadir         * mMakeMaskImNadir;
 
 };
 

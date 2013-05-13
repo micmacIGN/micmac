@@ -103,7 +103,7 @@ void cAppliMICMAC::DoAllMEC()
      )
      { 
         OneEtapeSetCur(**itE);
-        if (DoMEC().Val()  && (!DoNothingBut().IsInit()))
+        if (mDoTheMEC  && (!DoNothingBut().IsInit()))
            DoOneEtapeMEC(**itE);
         if (
                  ( (*itE)->Num()>=FirstEtapeMEC().Val())
@@ -115,7 +115,7 @@ void cAppliMICMAC::DoAllMEC()
 
 
             if (
-                      (DoMEC().Val()  && (!DoNothingBut().IsInit()))
+                      (mDoTheMEC  && (!DoNothingBut().IsInit()))
                  ||   (DoNothingBut().IsInit() && (ButDoOrtho().Val()||ButDoPartiesCachees().Val()))
                  ||   ( Paral_Pc_NbProcess().IsInit())
                )
@@ -126,12 +126,12 @@ void cAppliMICMAC::DoAllMEC()
 
             if (     (! CalledByProcess().Val())
                  &&  (
-                            (DoMEC().Val()  && (!DoNothingBut().IsInit()))
+                            (mDoTheMEC  && (!DoNothingBut().IsInit()))
                         ||  (DoNothingBut().IsInit() &&  ButDoRedrLocAnam().Val())
                      )
                )
             {
-               MakeRedrLocAnam();
+               MakeRedrLocAnamSA();
             }
         }
      }
@@ -299,6 +299,7 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
 
      mIsOptDiffer = anEtape.IsOptDiffer();
      mIsOptDequant = anEtape.IsOptDequant();
+     mIsOptIdentite = anEtape.IsOptIdentite();
      mIsOptimCont = anEtape.IsOptimCont();
 
      mCurCarDZ =  GetCaracOfDZ(mCurEtape->DeZoomTer());
@@ -527,6 +528,26 @@ void cAppliMICMAC::SauvFileChantier(Fonc_Num aF,Tiff_Im aFile) const
 }
 
 
+int cAppliMICMAC::NbApproxVueActive()
+{
+  if (mNbApproxVueActive<0)
+  {
+      mNbApproxVueActive = 0;
+      for (tCsteIterPDV itFI=PdvBegin(); itFI!=PdvEnd(); itFI++)
+      {
+          // bool Loaded = false;
+          if (
+                   (mCurEtape->SelectImage(*itFI))
+               &&  (*itFI)->LoadImageMM(true,*mLTer,Pt2di(0,0), itFI==PdvBegin())
+             )
+          {
+             mNbApproxVueActive++;
+          }
+       }
+  }
+  return mNbApproxVueActive;
+}
+
 
 void cAppliMICMAC::DoOneBloc
      (
@@ -536,11 +557,13 @@ void cAppliMICMAC::DoOneBloc
           const Box2di & aBoxGlob
      )
 {
+
     std::cout << "DO ONE BLOC " << aBoxOut._p0 << " " << aBoxOut._p1 << " " << aBoxIn._p0  << " MATP " << mCurEtape->MATP() << "\n";
    //  mStatN =0;
    mStatGlob =0;
    mLTer = 0;
    mSurfOpt = 0;
+   mNbApproxVueActive = -1;
 
 #ifdef CUDA_ENABLED
    mLoadTextures = true;
@@ -550,8 +573,12 @@ void cAppliMICMAC::DoOneBloc
    mBoxIn = aBoxIn;
    mBoxOut = aBoxOut;
    mLTer = new cLoadTer(mDimPx,aBoxIn.sz(),*mCurEtape);
+
    double aNbCel = mCurEtape->LoadNappesAndSetGeom(*mLTer,aBoxIn);
 
+
+   int aSzCel = mCurEtape->MultiplierNbSizeCellule();
+   //std::cout << "SzzEcccell " <<  aSzCel*aNbCel <<"\n"; 
 
    int aLMin = ElMin(aBoxOut._p1.x-aBoxOut._p0.x,aBoxOut._p1.y-aBoxOut._p0.y);
 
@@ -564,7 +591,7 @@ void cAppliMICMAC::DoOneBloc
 
    if (
                  (!mCurEtape->MATP() )
-              && aNbCel>NbCelluleMax().Val()
+              && (aNbCel*aSzCel) >NbCelluleMax().Val()
           // && (aBoxOut._p1.x-aBoxOut._p0.x) > (3*mSzRec+5)  // Evite recursion trop profonde, voir infinie
           // && (aBoxOut._p1.y-aBoxOut._p0.y) > (3*mSzRec+5)
       )
@@ -656,7 +683,7 @@ void cAppliMICMAC::DoOneBloc
        // bool Loaded = false;
        if (
                 (mCurEtape->SelectImage(*itFI))
-            &&  (*itFI)->LoadImageMM(*mLTer,aSzMaxDec,isFirstImLoaded)
+            &&  (*itFI)->LoadImageMM(false,*mLTer,aSzMaxDec,isFirstImLoaded)
           )
        {
          // Loaded = true;
@@ -667,7 +694,7 @@ void cAppliMICMAC::DoOneBloc
           }
           mPDVBoxGlobAct.push_back(*itFI);
 
-          if (mCurEtape->UsePC() || (*itFI)->Geom().UseMasqAnam())
+          if (mCurEtape->UsePC() || (*itFI)->Geom().UseMasqTerAnamSA())
           {
               (*itFI)->LoadedIm().MakePC
                        (
@@ -676,7 +703,7 @@ void cAppliMICMAC::DoOneBloc
                            mCurEtape->PredPC(),
                            aBoxIn,
                            mCurEtape->UsePC(),
-                           (*itFI)->Geom().UseMasqAnam()
+                           (*itFI)->Geom().UseMasqTerAnamSA()
                        );
           }
        }
@@ -873,7 +900,7 @@ void cAppliMICMAC::DoImagesBSurH(const cDoImageBSurH& aParBsH)
      cElNuage3DMaille *  aNuage = aFullNuage->ReScaleAndClip(aDownScale);
 
 
-     Pt2di aSz = aNuage->Sz();
+     Pt2di aSz = aNuage->SzUnique();
      Im2D_U_INT1 aRes(aSz.x,aSz.y);
      TIm2D<U_INT1,INT> aTRes(aRes);
 

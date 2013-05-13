@@ -179,6 +179,9 @@ namespace NS_ParamMICMAC{
          <eAlgoDequant> </eAlgoDequant>
          <eAlgoLeastSQ> </eAlgoLeastSQ>
          <eAlgoTestGPU>  </eAlgoTestGPU>
+ <!-- Peut sembler bizare, l'interet est lorque l'on veut utiliser des fonctionnalités
+     annexes t.q les partie cachees, en reentrant d'un MNT externe -->
+         <eAlgoIdentite> </eAlgoIdentite>
    </enum>
 
    <enum Name="eModeInterpolation">
@@ -423,6 +426,9 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 -->
      <Section_Terrain Nb="1">  
 
+       <!-- Completement redondant avec ZIncIsProp, mais plus general et arrive apres -->
+       <IntervalPaxIsProportion Type="bool" Nb="?" Def="false"> </IntervalPaxIsProportion>
+
        <!-- En general aucun interet a le fixer soif meme; exception on lance plusieurs MicMac
            en Faisceau Z Terrain et on veut les compare facile -->
        <RatioAltiPlani Nb="?" Type="double"> </RatioAltiPlani>
@@ -484,6 +490,15 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
              <Px1IncZonage Nb="?" Type="double">    </Px1IncZonage>
              <Px2IncZonage Nb="?" Type="double">    </Px2IncZonage>
        </IntervParalaxe>
+
+
+       <!-- Remplace le MNT INIT , sera plus general, pour l'instant implementation minimaliste,
+            exige un nuage superposable a celui du calcul 
+        -->
+       <NuageXMLInit Nb="?">
+             <NameNuageXML Nb="1" Type="std::string">       </NameNuageXML>
+             <CanAdaptGeom Nb="?" Type="bool" Def="false">  </CanAdaptGeom>
+       </NuageXMLInit>
 
        <!-- Adapte a la geometrie faisceau -->
        <IntervSpecialZInv Nb="?">
@@ -1741,6 +1756,14 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
              <AnamDeZoomMasq Nb="?" Type="int" Def="16"> </AnamDeZoomMasq>
              <!-- Limite +ou- Pi/3 -->
              <AnamLimAngleVisib Nb="?" Type="double" Def="1.05"> </AnamLimAngleVisib>
+             <MakeMaskImNadir Nb="?">
+                 <DynIncid Nb="?" Type="double" Def="1e4"> </DynIncid>
+<!-- A priori si on fait des masque image, on ne veut pas utiliser cela en geometrie terrain -->
+                 <MakeAlsoMaskTerrain Type="bool" Nb="?" Def="false"> </MakeAlsoMaskTerrain>
+                 <KBest  Nb="1" Type="int">   </KBest>
+                  <!-- de 0 a 1 , effet de l'inc Z sur les angles -->
+                 <IncertAngle  Nb="?" Type="double" Def="0.1"> </IncertAngle>
+             </MakeMaskImNadir>
          </AnamorphoseGeometrieMNT>
 
          <!-- Utile  pour un chgt de rep temp a la correl (redressement, 
@@ -1751,6 +1774,10 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
 
 
          <DoMEC Nb="?" Def="true" Type="bool">  </DoMEC>
+         <!-- Le DoMEC ne se fera que si le fichier n'existe pas -->
+         <NonExistingFileDoMEC Nb="?"  Type="std::string"> </NonExistingFileDoMEC>
+
+
          <!-- FDC=File Description de Chantier -->
          <DoFDC Nb="?" Def="false" Type="bool">  </DoFDC>
 	 <!-- Si true genere le xml apres inclusion des fichier

@@ -10442,6 +10442,713 @@ void xml_init(cSectionName & anObj,cElXMLTree * aTree)
 }
 
 
+cTplValGesInit< double > & cFMNtBySort::PercFusion()
+{
+   return mPercFusion;
+}
+
+const cTplValGesInit< double > & cFMNtBySort::PercFusion()const 
+{
+   return mPercFusion;
+}
+
+cElXMLTree * ToXMLTree(const cFMNtBySort & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"FMNtBySort",eXMLBranche);
+   if (anObj.PercFusion().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PercFusion"),anObj.PercFusion().Val())->ReTagThis("PercFusion"));
+  return aRes;
+}
+
+void xml_init(cFMNtBySort & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.PercFusion(),aTree->Get("PercFusion",1),double(50.0)); //tototo 
+}
+
+
+double & cFMNT_GesNoVal::PenteMax()
+{
+   return mPenteMax;
+}
+
+const double & cFMNT_GesNoVal::PenteMax()const 
+{
+   return mPenteMax;
+}
+
+
+double & cFMNT_GesNoVal::GainNoVal()
+{
+   return mGainNoVal;
+}
+
+const double & cFMNT_GesNoVal::GainNoVal()const 
+{
+   return mGainNoVal;
+}
+
+
+double & cFMNT_GesNoVal::Trans()
+{
+   return mTrans;
+}
+
+const double & cFMNT_GesNoVal::Trans()const 
+{
+   return mTrans;
+}
+
+cElXMLTree * ToXMLTree(const cFMNT_GesNoVal & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"FMNT_GesNoVal",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("PenteMax"),anObj.PenteMax())->ReTagThis("PenteMax"));
+   aRes->AddFils(::ToXMLTree(std::string("GainNoVal"),anObj.GainNoVal())->ReTagThis("GainNoVal"));
+   aRes->AddFils(::ToXMLTree(std::string("Trans"),anObj.Trans())->ReTagThis("Trans"));
+  return aRes;
+}
+
+void xml_init(cFMNT_GesNoVal & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.PenteMax(),aTree->Get("PenteMax",1)); //tototo 
+
+   xml_init(anObj.GainNoVal(),aTree->Get("GainNoVal",1)); //tototo 
+
+   xml_init(anObj.Trans(),aTree->Get("Trans",1)); //tototo 
+}
+
+
+double & cFMNT_ProgDyn::Regul()
+{
+   return mRegul;
+}
+
+const double & cFMNT_ProgDyn::Regul()const 
+{
+   return mRegul;
+}
+
+
+double & cFMNT_ProgDyn::Sigma0()
+{
+   return mSigma0;
+}
+
+const double & cFMNT_ProgDyn::Sigma0()const 
+{
+   return mSigma0;
+}
+
+
+int & cFMNT_ProgDyn::NbDir()
+{
+   return mNbDir;
+}
+
+const int & cFMNT_ProgDyn::NbDir()const 
+{
+   return mNbDir;
+}
+
+
+double & cFMNT_ProgDyn::PenteMax()
+{
+   return FMNT_GesNoVal().Val().PenteMax();
+}
+
+const double & cFMNT_ProgDyn::PenteMax()const 
+{
+   return FMNT_GesNoVal().Val().PenteMax();
+}
+
+
+double & cFMNT_ProgDyn::GainNoVal()
+{
+   return FMNT_GesNoVal().Val().GainNoVal();
+}
+
+const double & cFMNT_ProgDyn::GainNoVal()const 
+{
+   return FMNT_GesNoVal().Val().GainNoVal();
+}
+
+
+double & cFMNT_ProgDyn::Trans()
+{
+   return FMNT_GesNoVal().Val().Trans();
+}
+
+const double & cFMNT_ProgDyn::Trans()const 
+{
+   return FMNT_GesNoVal().Val().Trans();
+}
+
+
+cTplValGesInit< cFMNT_GesNoVal > & cFMNT_ProgDyn::FMNT_GesNoVal()
+{
+   return mFMNT_GesNoVal;
+}
+
+const cTplValGesInit< cFMNT_GesNoVal > & cFMNT_ProgDyn::FMNT_GesNoVal()const 
+{
+   return mFMNT_GesNoVal;
+}
+
+cElXMLTree * ToXMLTree(const cFMNT_ProgDyn & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"FMNT_ProgDyn",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Regul"),anObj.Regul())->ReTagThis("Regul"));
+   aRes->AddFils(::ToXMLTree(std::string("Sigma0"),anObj.Sigma0())->ReTagThis("Sigma0"));
+   aRes->AddFils(::ToXMLTree(std::string("NbDir"),anObj.NbDir())->ReTagThis("NbDir"));
+   if (anObj.FMNT_GesNoVal().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.FMNT_GesNoVal().Val())->ReTagThis("FMNT_GesNoVal"));
+  return aRes;
+}
+
+void xml_init(cFMNT_ProgDyn & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.Regul(),aTree->Get("Regul",1)); //tototo 
+
+   xml_init(anObj.Sigma0(),aTree->Get("Sigma0",1)); //tototo 
+
+   xml_init(anObj.NbDir(),aTree->Get("NbDir",1)); //tototo 
+
+   xml_init(anObj.FMNT_GesNoVal(),aTree->Get("FMNT_GesNoVal",1)); //tototo 
+}
+
+
+double & cFMNtByMaxEvid::SigmaPds()
+{
+   return mSigmaPds;
+}
+
+const double & cFMNtByMaxEvid::SigmaPds()const 
+{
+   return mSigmaPds;
+}
+
+
+cTplValGesInit< double > & cFMNtByMaxEvid::SigmaZ()
+{
+   return mSigmaZ;
+}
+
+const cTplValGesInit< double > & cFMNtByMaxEvid::SigmaZ()const 
+{
+   return mSigmaZ;
+}
+
+
+cTplValGesInit< double > & cFMNtByMaxEvid::MaxDif()
+{
+   return mMaxDif;
+}
+
+const cTplValGesInit< double > & cFMNtByMaxEvid::MaxDif()const 
+{
+   return mMaxDif;
+}
+
+
+double & cFMNtByMaxEvid::Regul()
+{
+   return FMNT_ProgDyn().Val().Regul();
+}
+
+const double & cFMNtByMaxEvid::Regul()const 
+{
+   return FMNT_ProgDyn().Val().Regul();
+}
+
+
+double & cFMNtByMaxEvid::Sigma0()
+{
+   return FMNT_ProgDyn().Val().Sigma0();
+}
+
+const double & cFMNtByMaxEvid::Sigma0()const 
+{
+   return FMNT_ProgDyn().Val().Sigma0();
+}
+
+
+int & cFMNtByMaxEvid::NbDir()
+{
+   return FMNT_ProgDyn().Val().NbDir();
+}
+
+const int & cFMNtByMaxEvid::NbDir()const 
+{
+   return FMNT_ProgDyn().Val().NbDir();
+}
+
+
+double & cFMNtByMaxEvid::PenteMax()
+{
+   return FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
+}
+
+const double & cFMNtByMaxEvid::PenteMax()const 
+{
+   return FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
+}
+
+
+double & cFMNtByMaxEvid::GainNoVal()
+{
+   return FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+}
+
+const double & cFMNtByMaxEvid::GainNoVal()const 
+{
+   return FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+}
+
+
+double & cFMNtByMaxEvid::Trans()
+{
+   return FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
+}
+
+const double & cFMNtByMaxEvid::Trans()const 
+{
+   return FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
+}
+
+
+cTplValGesInit< cFMNT_GesNoVal > & cFMNtByMaxEvid::FMNT_GesNoVal()
+{
+   return FMNT_ProgDyn().Val().FMNT_GesNoVal();
+}
+
+const cTplValGesInit< cFMNT_GesNoVal > & cFMNtByMaxEvid::FMNT_GesNoVal()const 
+{
+   return FMNT_ProgDyn().Val().FMNT_GesNoVal();
+}
+
+
+cTplValGesInit< cFMNT_ProgDyn > & cFMNtByMaxEvid::FMNT_ProgDyn()
+{
+   return mFMNT_ProgDyn;
+}
+
+const cTplValGesInit< cFMNT_ProgDyn > & cFMNtByMaxEvid::FMNT_ProgDyn()const 
+{
+   return mFMNT_ProgDyn;
+}
+
+cElXMLTree * ToXMLTree(const cFMNtByMaxEvid & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"FMNtByMaxEvid",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("SigmaPds"),anObj.SigmaPds())->ReTagThis("SigmaPds"));
+   if (anObj.SigmaZ().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SigmaZ"),anObj.SigmaZ().Val())->ReTagThis("SigmaZ"));
+   if (anObj.MaxDif().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("MaxDif"),anObj.MaxDif().Val())->ReTagThis("MaxDif"));
+   if (anObj.FMNT_ProgDyn().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.FMNT_ProgDyn().Val())->ReTagThis("FMNT_ProgDyn"));
+  return aRes;
+}
+
+void xml_init(cFMNtByMaxEvid & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.SigmaPds(),aTree->Get("SigmaPds",1)); //tototo 
+
+   xml_init(anObj.SigmaZ(),aTree->Get("SigmaZ",1)); //tototo 
+
+   xml_init(anObj.MaxDif(),aTree->Get("MaxDif",1),double(1e9)); //tototo 
+
+   xml_init(anObj.FMNT_ProgDyn(),aTree->Get("FMNT_ProgDyn",1)); //tototo 
+}
+
+
+cTplValGesInit< double > & cSpecAlgoFMNT::PercFusion()
+{
+   return FMNtBySort().Val().PercFusion();
+}
+
+const cTplValGesInit< double > & cSpecAlgoFMNT::PercFusion()const 
+{
+   return FMNtBySort().Val().PercFusion();
+}
+
+
+cTplValGesInit< cFMNtBySort > & cSpecAlgoFMNT::FMNtBySort()
+{
+   return mFMNtBySort;
+}
+
+const cTplValGesInit< cFMNtBySort > & cSpecAlgoFMNT::FMNtBySort()const 
+{
+   return mFMNtBySort;
+}
+
+
+double & cSpecAlgoFMNT::SigmaPds()
+{
+   return FMNtByMaxEvid().Val().SigmaPds();
+}
+
+const double & cSpecAlgoFMNT::SigmaPds()const 
+{
+   return FMNtByMaxEvid().Val().SigmaPds();
+}
+
+
+cTplValGesInit< double > & cSpecAlgoFMNT::SigmaZ()
+{
+   return FMNtByMaxEvid().Val().SigmaZ();
+}
+
+const cTplValGesInit< double > & cSpecAlgoFMNT::SigmaZ()const 
+{
+   return FMNtByMaxEvid().Val().SigmaZ();
+}
+
+
+cTplValGesInit< double > & cSpecAlgoFMNT::MaxDif()
+{
+   return FMNtByMaxEvid().Val().MaxDif();
+}
+
+const cTplValGesInit< double > & cSpecAlgoFMNT::MaxDif()const 
+{
+   return FMNtByMaxEvid().Val().MaxDif();
+}
+
+
+double & cSpecAlgoFMNT::Regul()
+{
+   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Regul();
+}
+
+const double & cSpecAlgoFMNT::Regul()const 
+{
+   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Regul();
+}
+
+
+double & cSpecAlgoFMNT::Sigma0()
+{
+   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Sigma0();
+}
+
+const double & cSpecAlgoFMNT::Sigma0()const 
+{
+   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Sigma0();
+}
+
+
+int & cSpecAlgoFMNT::NbDir()
+{
+   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().NbDir();
+}
+
+const int & cSpecAlgoFMNT::NbDir()const 
+{
+   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().NbDir();
+}
+
+
+double & cSpecAlgoFMNT::PenteMax()
+{
+   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
+}
+
+const double & cSpecAlgoFMNT::PenteMax()const 
+{
+   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
+}
+
+
+double & cSpecAlgoFMNT::GainNoVal()
+{
+   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+}
+
+const double & cSpecAlgoFMNT::GainNoVal()const 
+{
+   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+}
+
+
+double & cSpecAlgoFMNT::Trans()
+{
+   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
+}
+
+const double & cSpecAlgoFMNT::Trans()const 
+{
+   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
+}
+
+
+cTplValGesInit< cFMNT_GesNoVal > & cSpecAlgoFMNT::FMNT_GesNoVal()
+{
+   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal();
+}
+
+const cTplValGesInit< cFMNT_GesNoVal > & cSpecAlgoFMNT::FMNT_GesNoVal()const 
+{
+   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal();
+}
+
+
+cTplValGesInit< cFMNT_ProgDyn > & cSpecAlgoFMNT::FMNT_ProgDyn()
+{
+   return FMNtByMaxEvid().Val().FMNT_ProgDyn();
+}
+
+const cTplValGesInit< cFMNT_ProgDyn > & cSpecAlgoFMNT::FMNT_ProgDyn()const 
+{
+   return FMNtByMaxEvid().Val().FMNT_ProgDyn();
+}
+
+
+cTplValGesInit< cFMNtByMaxEvid > & cSpecAlgoFMNT::FMNtByMaxEvid()
+{
+   return mFMNtByMaxEvid;
+}
+
+const cTplValGesInit< cFMNtByMaxEvid > & cSpecAlgoFMNT::FMNtByMaxEvid()const 
+{
+   return mFMNtByMaxEvid;
+}
+
+cElXMLTree * ToXMLTree(const cSpecAlgoFMNT & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SpecAlgoFMNT",eXMLBranche);
+   if (anObj.FMNtBySort().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.FMNtBySort().Val())->ReTagThis("FMNtBySort"));
+   if (anObj.FMNtByMaxEvid().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.FMNtByMaxEvid().Val())->ReTagThis("FMNtByMaxEvid"));
+  return aRes;
+}
+
+void xml_init(cSpecAlgoFMNT & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.FMNtBySort(),aTree->Get("FMNtBySort",1)); //tototo 
+
+   xml_init(anObj.FMNtByMaxEvid(),aTree->Get("FMNtByMaxEvid",1)); //tototo 
+}
+
+
+double & cParamAlgoFusionMNT::FMNTSeuilCorrel()
+{
+   return mFMNTSeuilCorrel;
+}
+
+const double & cParamAlgoFusionMNT::FMNTSeuilCorrel()const 
+{
+   return mFMNTSeuilCorrel;
+}
+
+
+double & cParamAlgoFusionMNT::FMNTGammaCorrel()
+{
+   return mFMNTGammaCorrel;
+}
+
+const double & cParamAlgoFusionMNT::FMNTGammaCorrel()const 
+{
+   return mFMNTGammaCorrel;
+}
+
+
+cTplValGesInit< double > & cParamAlgoFusionMNT::PercFusion()
+{
+   return SpecAlgoFMNT().FMNtBySort().Val().PercFusion();
+}
+
+const cTplValGesInit< double > & cParamAlgoFusionMNT::PercFusion()const 
+{
+   return SpecAlgoFMNT().FMNtBySort().Val().PercFusion();
+}
+
+
+cTplValGesInit< cFMNtBySort > & cParamAlgoFusionMNT::FMNtBySort()
+{
+   return SpecAlgoFMNT().FMNtBySort();
+}
+
+const cTplValGesInit< cFMNtBySort > & cParamAlgoFusionMNT::FMNtBySort()const 
+{
+   return SpecAlgoFMNT().FMNtBySort();
+}
+
+
+double & cParamAlgoFusionMNT::SigmaPds()
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().SigmaPds();
+}
+
+const double & cParamAlgoFusionMNT::SigmaPds()const 
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().SigmaPds();
+}
+
+
+cTplValGesInit< double > & cParamAlgoFusionMNT::SigmaZ()
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().SigmaZ();
+}
+
+const cTplValGesInit< double > & cParamAlgoFusionMNT::SigmaZ()const 
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().SigmaZ();
+}
+
+
+cTplValGesInit< double > & cParamAlgoFusionMNT::MaxDif()
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().MaxDif();
+}
+
+const cTplValGesInit< double > & cParamAlgoFusionMNT::MaxDif()const 
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().MaxDif();
+}
+
+
+double & cParamAlgoFusionMNT::Regul()
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Regul();
+}
+
+const double & cParamAlgoFusionMNT::Regul()const 
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Regul();
+}
+
+
+double & cParamAlgoFusionMNT::Sigma0()
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Sigma0();
+}
+
+const double & cParamAlgoFusionMNT::Sigma0()const 
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Sigma0();
+}
+
+
+int & cParamAlgoFusionMNT::NbDir()
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().NbDir();
+}
+
+const int & cParamAlgoFusionMNT::NbDir()const 
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().NbDir();
+}
+
+
+double & cParamAlgoFusionMNT::PenteMax()
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
+}
+
+const double & cParamAlgoFusionMNT::PenteMax()const 
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
+}
+
+
+double & cParamAlgoFusionMNT::GainNoVal()
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+}
+
+const double & cParamAlgoFusionMNT::GainNoVal()const 
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+}
+
+
+double & cParamAlgoFusionMNT::Trans()
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
+}
+
+const double & cParamAlgoFusionMNT::Trans()const 
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
+}
+
+
+cTplValGesInit< cFMNT_GesNoVal > & cParamAlgoFusionMNT::FMNT_GesNoVal()
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal();
+}
+
+const cTplValGesInit< cFMNT_GesNoVal > & cParamAlgoFusionMNT::FMNT_GesNoVal()const 
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal();
+}
+
+
+cTplValGesInit< cFMNT_ProgDyn > & cParamAlgoFusionMNT::FMNT_ProgDyn()
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn();
+}
+
+const cTplValGesInit< cFMNT_ProgDyn > & cParamAlgoFusionMNT::FMNT_ProgDyn()const 
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn();
+}
+
+
+cTplValGesInit< cFMNtByMaxEvid > & cParamAlgoFusionMNT::FMNtByMaxEvid()
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid();
+}
+
+const cTplValGesInit< cFMNtByMaxEvid > & cParamAlgoFusionMNT::FMNtByMaxEvid()const 
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid();
+}
+
+
+cSpecAlgoFMNT & cParamAlgoFusionMNT::SpecAlgoFMNT()
+{
+   return mSpecAlgoFMNT;
+}
+
+const cSpecAlgoFMNT & cParamAlgoFusionMNT::SpecAlgoFMNT()const 
+{
+   return mSpecAlgoFMNT;
+}
+
+cElXMLTree * ToXMLTree(const cParamAlgoFusionMNT & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ParamAlgoFusionMNT",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("FMNTSeuilCorrel"),anObj.FMNTSeuilCorrel())->ReTagThis("FMNTSeuilCorrel"));
+   aRes->AddFils(::ToXMLTree(std::string("FMNTGammaCorrel"),anObj.FMNTGammaCorrel())->ReTagThis("FMNTGammaCorrel"));
+   aRes->AddFils(ToXMLTree(anObj.SpecAlgoFMNT())->ReTagThis("SpecAlgoFMNT"));
+  return aRes;
+}
+
+void xml_init(cParamAlgoFusionMNT & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.FMNTSeuilCorrel(),aTree->Get("FMNTSeuilCorrel",1)); //tototo 
+
+   xml_init(anObj.FMNTGammaCorrel(),aTree->Get("FMNTGammaCorrel",1)); //tototo 
+
+   xml_init(anObj.SpecAlgoFMNT(),aTree->Get("SpecAlgoFMNT",1)); //tototo 
+}
+
+
 cTplValGesInit< int > & cSectionGestionChantier::SzDalles()
 {
    return mSzDalles;
@@ -10475,14 +11182,36 @@ const cTplValGesInit< std::string > & cSectionGestionChantier::ParalMkF()const
 }
 
 
-cTplValGesInit< std::string > & cSectionGestionChantier::InterneParalDoOnlyOneRes()
+cTplValGesInit< bool > & cSectionGestionChantier::InterneCalledByProcess()
 {
-   return mInterneParalDoOnlyOneRes;
+   return mInterneCalledByProcess;
 }
 
-const cTplValGesInit< std::string > & cSectionGestionChantier::InterneParalDoOnlyOneRes()const 
+const cTplValGesInit< bool > & cSectionGestionChantier::InterneCalledByProcess()const 
 {
-   return mInterneParalDoOnlyOneRes;
+   return mInterneCalledByProcess;
+}
+
+
+cTplValGesInit< std::string > & cSectionGestionChantier::InterneSingleImage()
+{
+   return mInterneSingleImage;
+}
+
+const cTplValGesInit< std::string > & cSectionGestionChantier::InterneSingleImage()const 
+{
+   return mInterneSingleImage;
+}
+
+
+cTplValGesInit< int > & cSectionGestionChantier::InterneSingleBox()
+{
+   return mInterneSingleBox;
+}
+
+const cTplValGesInit< int > & cSectionGestionChantier::InterneSingleBox()const 
+{
+   return mInterneSingleBox;
 }
 
 cElXMLTree * ToXMLTree(const cSectionGestionChantier & anObj)
@@ -10494,8 +11223,12 @@ cElXMLTree * ToXMLTree(const cSectionGestionChantier & anObj)
       aRes->AddFils(::ToXMLTree(std::string("RecouvrtDalles"),anObj.RecouvrtDalles().Val())->ReTagThis("RecouvrtDalles"));
    if (anObj.ParalMkF().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ParalMkF"),anObj.ParalMkF().Val())->ReTagThis("ParalMkF"));
-   if (anObj.InterneParalDoOnlyOneRes().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("InterneParalDoOnlyOneRes"),anObj.InterneParalDoOnlyOneRes().Val())->ReTagThis("InterneParalDoOnlyOneRes"));
+   if (anObj.InterneCalledByProcess().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("InterneCalledByProcess"),anObj.InterneCalledByProcess().Val())->ReTagThis("InterneCalledByProcess"));
+   if (anObj.InterneSingleImage().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("InterneSingleImage"),anObj.InterneSingleImage().Val())->ReTagThis("InterneSingleImage"));
+   if (anObj.InterneSingleBox().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("InterneSingleBox"),anObj.InterneSingleBox().Val())->ReTagThis("InterneSingleBox"));
   return aRes;
 }
 
@@ -10509,7 +11242,11 @@ void xml_init(cSectionGestionChantier & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.ParalMkF(),aTree->Get("ParalMkF",1)); //tototo 
 
-   xml_init(anObj.InterneParalDoOnlyOneRes(),aTree->Get("InterneParalDoOnlyOneRes",1),std::string("")); //tototo 
+   xml_init(anObj.InterneCalledByProcess(),aTree->Get("InterneCalledByProcess",1),bool(false)); //tototo 
+
+   xml_init(anObj.InterneSingleImage(),aTree->Get("InterneSingleImage",1),std::string("")); //tototo 
+
+   xml_init(anObj.InterneSingleBox(),aTree->Get("InterneSingleBox",1),int(-1)); //tototo 
 }
 
 
@@ -10568,14 +11305,201 @@ const cSectionName & cParamFusionMNT::SectionName()const
 }
 
 
+double & cParamFusionMNT::FMNTSeuilCorrel()
+{
+   return ParamAlgoFusionMNT().FMNTSeuilCorrel();
+}
+
+const double & cParamFusionMNT::FMNTSeuilCorrel()const 
+{
+   return ParamAlgoFusionMNT().FMNTSeuilCorrel();
+}
+
+
+double & cParamFusionMNT::FMNTGammaCorrel()
+{
+   return ParamAlgoFusionMNT().FMNTGammaCorrel();
+}
+
+const double & cParamFusionMNT::FMNTGammaCorrel()const 
+{
+   return ParamAlgoFusionMNT().FMNTGammaCorrel();
+}
+
+
 cTplValGesInit< double > & cParamFusionMNT::PercFusion()
 {
-   return mPercFusion;
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtBySort().Val().PercFusion();
 }
 
 const cTplValGesInit< double > & cParamFusionMNT::PercFusion()const 
 {
-   return mPercFusion;
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtBySort().Val().PercFusion();
+}
+
+
+cTplValGesInit< cFMNtBySort > & cParamFusionMNT::FMNtBySort()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtBySort();
+}
+
+const cTplValGesInit< cFMNtBySort > & cParamFusionMNT::FMNtBySort()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtBySort();
+}
+
+
+double & cParamFusionMNT::SigmaPds()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().SigmaPds();
+}
+
+const double & cParamFusionMNT::SigmaPds()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().SigmaPds();
+}
+
+
+cTplValGesInit< double > & cParamFusionMNT::SigmaZ()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().SigmaZ();
+}
+
+const cTplValGesInit< double > & cParamFusionMNT::SigmaZ()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().SigmaZ();
+}
+
+
+cTplValGesInit< double > & cParamFusionMNT::MaxDif()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().MaxDif();
+}
+
+const cTplValGesInit< double > & cParamFusionMNT::MaxDif()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().MaxDif();
+}
+
+
+double & cParamFusionMNT::Regul()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Regul();
+}
+
+const double & cParamFusionMNT::Regul()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Regul();
+}
+
+
+double & cParamFusionMNT::Sigma0()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Sigma0();
+}
+
+const double & cParamFusionMNT::Sigma0()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Sigma0();
+}
+
+
+int & cParamFusionMNT::NbDir()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().NbDir();
+}
+
+const int & cParamFusionMNT::NbDir()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().NbDir();
+}
+
+
+double & cParamFusionMNT::PenteMax()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
+}
+
+const double & cParamFusionMNT::PenteMax()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
+}
+
+
+double & cParamFusionMNT::GainNoVal()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+}
+
+const double & cParamFusionMNT::GainNoVal()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+}
+
+
+double & cParamFusionMNT::Trans()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
+}
+
+const double & cParamFusionMNT::Trans()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
+}
+
+
+cTplValGesInit< cFMNT_GesNoVal > & cParamFusionMNT::FMNT_GesNoVal()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal();
+}
+
+const cTplValGesInit< cFMNT_GesNoVal > & cParamFusionMNT::FMNT_GesNoVal()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal();
+}
+
+
+cTplValGesInit< cFMNT_ProgDyn > & cParamFusionMNT::FMNT_ProgDyn()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn();
+}
+
+const cTplValGesInit< cFMNT_ProgDyn > & cParamFusionMNT::FMNT_ProgDyn()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn();
+}
+
+
+cTplValGesInit< cFMNtByMaxEvid > & cParamFusionMNT::FMNtByMaxEvid()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid();
+}
+
+const cTplValGesInit< cFMNtByMaxEvid > & cParamFusionMNT::FMNtByMaxEvid()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid();
+}
+
+
+cSpecAlgoFMNT & cParamFusionMNT::SpecAlgoFMNT()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT();
+}
+
+const cSpecAlgoFMNT & cParamFusionMNT::SpecAlgoFMNT()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT();
+}
+
+
+cParamAlgoFusionMNT & cParamFusionMNT::ParamAlgoFusionMNT()
+{
+   return mParamAlgoFusionMNT;
+}
+
+const cParamAlgoFusionMNT & cParamFusionMNT::ParamAlgoFusionMNT()const 
+{
+   return mParamAlgoFusionMNT;
 }
 
 
@@ -10634,14 +11558,36 @@ const cTplValGesInit< std::string > & cParamFusionMNT::ParalMkF()const
 }
 
 
-cTplValGesInit< std::string > & cParamFusionMNT::InterneParalDoOnlyOneRes()
+cTplValGesInit< bool > & cParamFusionMNT::InterneCalledByProcess()
 {
-   return SectionGestionChantier().InterneParalDoOnlyOneRes();
+   return SectionGestionChantier().InterneCalledByProcess();
 }
 
-const cTplValGesInit< std::string > & cParamFusionMNT::InterneParalDoOnlyOneRes()const 
+const cTplValGesInit< bool > & cParamFusionMNT::InterneCalledByProcess()const 
 {
-   return SectionGestionChantier().InterneParalDoOnlyOneRes();
+   return SectionGestionChantier().InterneCalledByProcess();
+}
+
+
+cTplValGesInit< std::string > & cParamFusionMNT::InterneSingleImage()
+{
+   return SectionGestionChantier().InterneSingleImage();
+}
+
+const cTplValGesInit< std::string > & cParamFusionMNT::InterneSingleImage()const 
+{
+   return SectionGestionChantier().InterneSingleImage();
+}
+
+
+cTplValGesInit< int > & cParamFusionMNT::InterneSingleBox()
+{
+   return SectionGestionChantier().InterneSingleBox();
+}
+
+const cTplValGesInit< int > & cParamFusionMNT::InterneSingleBox()const 
+{
+   return SectionGestionChantier().InterneSingleBox();
 }
 
 
@@ -10661,8 +11607,7 @@ cElXMLTree * ToXMLTree(const cParamFusionMNT & anObj)
    if (anObj.DicoLoc().IsInit())
       aRes->AddFils(ToXMLTree(anObj.DicoLoc().Val())->ReTagThis("DicoLoc"));
    aRes->AddFils(ToXMLTree(anObj.SectionName())->ReTagThis("SectionName"));
-   if (anObj.PercFusion().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("PercFusion"),anObj.PercFusion().Val())->ReTagThis("PercFusion"));
+   aRes->AddFils(ToXMLTree(anObj.ParamAlgoFusionMNT())->ReTagThis("ParamAlgoFusionMNT"));
    aRes->AddFils(ToXMLTree(anObj.GenereRes())->ReTagThis("GenereRes"));
    aRes->AddFils(ToXMLTree(anObj.GenereInput())->ReTagThis("GenereInput"));
    aRes->AddFils(ToXMLTree(anObj.SectionGestionChantier())->ReTagThis("SectionGestionChantier"));
@@ -10677,7 +11622,7 @@ void xml_init(cParamFusionMNT & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.SectionName(),aTree->Get("SectionName",1)); //tototo 
 
-   xml_init(anObj.PercFusion(),aTree->Get("PercFusion",1),double(50.0)); //tototo 
+   xml_init(anObj.ParamAlgoFusionMNT(),aTree->Get("ParamAlgoFusionMNT",1)); //tototo 
 
    xml_init(anObj.GenereRes(),aTree->Get("GenereRes",1)); //tototo 
 

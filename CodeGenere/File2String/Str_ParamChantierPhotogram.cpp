@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1386]) = {
+const char * (theNameVar_ParamChantierPhotogram[1392]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -39,7 +39,8 @@ const char * (theNameVar_ParamChantierPhotogram[1386]) = {
 "\n",
 "   <enum Name=\"eTypeFichierOriTxt\">\n",
 "       <eOriTxtAgiSoft>   </eOriTxtAgiSoft>\n",
-"       <eOriTxtInFile>       </eOriTxtInFile>\n",
+"       <eOriBluh>         </eOriBluh>\n",
+"       <eOriTxtInFile>    </eOriTxtInFile>\n",
 "       <eNbTypeOriTxt>    </eNbTypeOriTxt>\n",
 "   </enum>\n",
 "\n",
@@ -570,6 +571,11 @@ const char * (theNameVar_ParamChantierPhotogram[1386]) = {
 "   <!--\n",
 "        Export des grids\n",
 "   -->\n",
+"   <TestNewGrid  Nb=\"1\"  Class=\"true\" ToReference=\"true\">\n",
+"       <A Nb=\"1\" Type=\"std::string\"> </A>\n",
+"       <Im     Nb=\"1\" Type=\"Im2D_INT1\">       </Im>\n",
+"       <Z Nb=\"1\" Type=\"std::string\"> </Z>\n",
+"   </TestNewGrid>\n",
 "\n",
 "   <GridDeform2D Nb=\"1\"  Class=\"true\" ToReference=\"true\">\n",
 "       <Origine Nb=\"1\" Type=\"Pt2dr\"> </Origine>\n",

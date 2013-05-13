@@ -35,7 +35,7 @@ set(uti_phgrm_MICMAC_Src_Files
     ${UTI_PHGRM_MICMAC_DIR}/cStatNDistrib.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cStdTiffModuleImageLoader.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cSurfaceOptimiseur.cpp
-#    ${UTI_PHGRM_MICMAC_DIR}/FusionCarteProf.cpp
+    ${UTI_PHGRM_MICMAC_DIR}/FusionCarteProf.cpp
 #    ${UTI_PHGRM_MICMAC_DIR}/GenParamMICMAC.cpp
 #    ${UTI_PHGRM_MICMAC_DIR}/GrilleXml2Bin.cpp
     ${UTI_PHGRM_MICMAC_DIR}/Jp2ImageLoader.cpp

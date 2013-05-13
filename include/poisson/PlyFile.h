@@ -35,13 +35,11 @@
 
 
 #ifndef WIN32
-#define _strdup strdup
-#endif
+	#ifdef __cplusplus
+	extern "C" {
+	#endif
+#endif //WIN32
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-	
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -82,109 +80,6 @@ extern "C" {
 #define  PLY_LIST    1
 	
 #define PLY_STRIP_COMMENT_HEADER 0
-//TODO: rm matthieu
-#ifdef taratata
-typedef struct PlyProperty {    /* description of a property */
-	
-	string name;                           /* property name */
-	int external_type;                    /* file's data type */
-	int internal_type;                    /* program's data type */
-	int offset;                           /* offset bytes of prop in a struct */
-	
-	int is_list;                          /* 1 = list, 0 = scalar */
-	int count_external;                   /* file's count type */
-	int count_internal;                   /* program's count type */
-	int count_offset;                     /* offset byte for list count */
-	
-} PlyProperty;
-
-typedef struct PlyElement {     /* description of an element */
-	char *name;                   /* element name */
-	int num;                      /* number of elements in this object */
-	int size;                     /* size of element (bytes) or -1 if variable */
-	int nprops;                   /* number of properties for this element */
-	PlyProperty **props;          /* list of properties in the file */
-	char *store_prop;             /* flags: property wanted by user? */
-	int other_offset;             /* offset to un-asked-for props, or -1 if none*/
-	int other_size;               /* size of other_props structure */
-} PlyElement;
-
-typedef struct PlyOtherProp {   /* describes other properties in an element */
-	char *name;                   /* element name */
-	int size;                     /* size of other_props */
-	int nprops;                   /* number of properties in other_props */
-	PlyProperty **props;          /* list of properties in other_props */
-} PlyOtherProp;
-
-typedef struct OtherData { /* for storing other_props for an other element */
-	void *other_props;
-} OtherData;
-
-typedef struct OtherElem {     /* data for one "other" element */
-	char *elem_name;             /* names of other elements */
-	int elem_count;              /* count of instances of each element */
-	OtherData **other_data;      /* actual property data for the elements */
-	PlyOtherProp *other_props;   /* description of the property data */
-} OtherElem;
-
-typedef struct PlyOtherElems {  /* "other" elements, not interpreted by user */
-	int num_elems;                /* number of other elements */
-	OtherElem *other_list;        /* list of data for other elements */
-} PlyOtherElems;
-
-typedef struct PlyFile {        /* description of PLY file */
-	FILE *fp;                     /* file pointer */
-	int file_type;                /* ascii or binary */
-	float version;                /* version number of file */
-	int nelems;                   /* number of elements of object */
-	PlyElement **elems;           /* list of elements */
-	int num_comments;             /* number of comments */
-	char **comments;              /* list of comments */
-	int num_obj_info;             /* number of items of object information */
-	char **obj_info;              /* list of object info items */
-	PlyElement *which_elem;       /* which element we're currently writing */
-	PlyOtherElems *other_elems;   /* "other" elements from a PLY file */
-} PlyFile;
-#endif	
-	/* memory allocation */
-extern char *my_alloc();
-#define myalloc(mem_size) my_alloc((mem_size), __LINE__, __FILE__)
-
-#ifndef ALLOCN
-#define REALLOCN(PTR,TYPE,OLD_N,NEW_N)							\
-{										\
-	if ((OLD_N) == 0)                                           		\
-{   ALLOCN((PTR),TYPE,(NEW_N));}                            		\
-	else									\
-{								    		\
-	(PTR) = (TYPE *)realloc((PTR),(NEW_N)*sizeof(TYPE));			\
-	if (((PTR) == NULL) && ((NEW_N) != 0))					\
-{									\
-	fprintf(stderr, "Memory reallocation failed on line %d in %s\n", 	\
-	__LINE__, __FILE__);                             		\
-	fprintf(stderr, "  tried to reallocate %d->%d\n",       		\
-	(OLD_N), (NEW_N));                              		\
-	exit(-1);								\
-}									\
-	if ((NEW_N)>(OLD_N))							\
-	memset((char *)(PTR)+(OLD_N)*sizeof(TYPE), 0,			\
-	((NEW_N)-(OLD_N))*sizeof(TYPE));				\
-}										\
-}
-
-#define  ALLOCN(PTR,TYPE,N) 					\
-{ (PTR) = (TYPE *) calloc(((unsigned)(N)),sizeof(TYPE));\
-	if ((PTR) == NULL) {    				\
-	fprintf(stderr, "Memory allocation failed on line %d in %s\n", \
-	__LINE__, __FILE__);                           \
-	exit(-1);                                             \
-	}							\
-}
-
-
-#define FREE(PTR)  { free((PTR)); (PTR) = NULL; }
-#endif
-
 
 /*** delcaration of routines ***/
 
@@ -217,7 +112,10 @@ extern void ply_describe_other_properties(PlyFile *, PlyOtherProp *, int);
 
 extern int equal_strings(const char *, const char *);
 
-#ifdef __cplusplus
-}
+#ifndef WIN32
+	#ifdef __cplusplus
+	}
+	#endif
 #endif
+
 #endif // PLY_FILE_INCLUDED

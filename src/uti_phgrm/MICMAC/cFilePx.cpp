@@ -626,6 +626,39 @@ void cFilePx::CreateMNTInit()
                                  );
                  ELISE_COPY(aFile.all_pts(),aFMnt,aFile.out());
             }
+            else if (mAppli.NuageXMLInit().IsInit())
+            {
+                  const cNuageXMLInit & aNX = mAppli.NuageXMLInit().Val();
+                  ELISE_ASSERT(!aNX.CanAdaptGeom().Val(),"Cannot adpat Geom");
+
+                  std::string aNameOri = aNX.NameNuageXML() ;
+                  std::string aNameCible =  mAppli.FirstVraiEtape()->NameXMLNuage();
+
+                  cElNuage3DMaille * aClOri =  NuageWithoutData(aNameOri);
+                  cElNuage3DMaille * aClTest = NuageWithoutDataWithModel(aNameCible,aNameOri);
+
+                  if (GeomCompatForte(aClOri,aClTest))
+                  {
+                     cXML_ParamNuage3DMaille aXmlOri = XML_Nuage(aNameOri);
+                     cXML_ParamNuage3DMaille aXmlCible = XML_Nuage(aNameCible);
+                     // Fonc_Num aF = Pix2Pix(aXmlCible,,aXmlOri);
+                     // std::cout << "TEST mAppli.NuageXMLInit " <<  aNameOri << " " << aXmlOri.Image_Profondeur().Val().ResolutionAlti() << "\n";
+                     // std::cout << "UUU "  << aNameCible <<  " " << aXmlCible.Image_Profondeur().Val().ResolutionAlti() << "\n";
+                     ELISE_COPY
+                     (
+                        aFile.all_pts(),
+                        Pix2Pix(aXmlCible,aXmlOri,DirOfFile(aNameOri)),
+                        aFile.out()
+                     );
+                     // std::cout << "AKKKKkkk " << aFile.name() << DirOfFile(aNameOri) << "\n";
+                     // getchar();
+                  }
+                  else
+                  {
+                      ELISE_ASSERT(aNX.CanAdaptGeom().Val(),"Geom incompatible in NuageXMLInit");
+                  }
+
+            }
             else
             {
                  ELISE_COPY(aFile.all_pts(),0,aFile.out());
@@ -938,7 +971,7 @@ std::cout << "SUUUUUUUUUUUPPPPRESS\n";
     aNappe.mVPxMinAvRedr = aNappe.mVPxMin;
     aNappe.mVPxMaxAvRedr = aNappe.mVPxMax;
 
-    bool isForCont = mAppli.IsOptimCont();
+    bool isForCont = mAppli.IsOptimCont() ;//  && (!mAppli.IsOptIdentite());
     ELISE_ASSERT
     (
           ! (mRedrPx && (isForCont)),
@@ -949,7 +982,30 @@ std::cout << "SUUUUUUUUUUUPPPPRESS\n";
     aNappe.mRMoyPx = 0;
 
 
-    if (mRedrPx || isForCont)
+    if (mAppli.IsOptIdentite())
+    {
+       ELISE_COPY
+       (
+             aIPxPrec.all_pts(),
+             aIPxPrec.in(),
+                aNappe.mPxInit.out()
+             |  aNappe.mImPxMin.out()
+             |  (aNappe.mImPxMax.out() << (1+aIPxPrec.in()))
+             |  (aNappe.mPxRedr.out())
+       );
+/*
+        aNappe.mPxInit.all_pts(),
+        Max
+        (
+           aNappe.mImPxMin.in(),
+           Min
+           (
+                aNappe.mImPxMax.in()-1,
+                aNappe.mPxInit.in()
+           )
+*/
+    }
+    else if (mRedrPx || isForCont)
     {
 
         int aIPx0[theDimPxMax] ={0,0};
@@ -964,7 +1020,7 @@ std::cout << "SUUUUUUUUUUUPPPPRESS\n";
         TIm2D<REAL4,REAL8> aTRedrCur(aNappe.mPxRedr);
 
 
-        if (mDeqRedrPx  ||  mAppli.IsOptimCont())
+        if (mDeqRedrPx  || mAppli.IsOptimCont() )
         {
            bool Filtrage = mRedrPx;
            // Filtrage Median en Amonnt

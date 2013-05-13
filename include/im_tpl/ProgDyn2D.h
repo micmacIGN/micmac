@@ -332,6 +332,7 @@ template <class TArg>  void cProg2DOptimiser<TArg>::TransfertNapOpt(const std::v
        int aZMin = mLineZMin[aKP]*mMul       ;
        int aZMax = mLineZMax[aKP]*mMul + mRab;
 
+       ELISE_ASSERT(aZMin<aZMax,"Empty Nap in cProg2DOptimiser<TArg>::TransfertNapOpt");
        
        tCostPrgD aMinCostF = (tCostPrgD)1e9;
        if (!VersOpt)

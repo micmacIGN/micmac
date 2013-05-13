@@ -291,6 +291,12 @@ template <class TVal> TVal KthVal(TVal * Data,int aNb,int aKth)
    return MinTab(Data+aKth,aNb-aKth);
 }
 
+template <class TVal> TVal KthValGen(TVal * Data,int aNb,int aKth)
+{
+    if (aKth <=0) return  MinTab(Data,aNb);
+    if (aKth >= (aNb-1)) return  MaxTab(Data,aNb);
+    return KthVal(Data,aNb,aKth);
+}
 
 #endif  // _ELISE_EXT_STL_NUMERICS_H
 

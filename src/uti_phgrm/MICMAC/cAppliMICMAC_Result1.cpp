@@ -824,7 +824,44 @@ Fonc_Num  cAppliMICMAC::AdaptFoncFileOriMnt
 
 
 
+void cAppliMICMAC::GenereOrientationMnt()
+{
+   for
+   (
+        tContEMC::const_iterator itE = mEtapesMecComp.begin();
+        itE != mEtapesMecComp.end();
+        itE++
+   )
+   {
+        GenereOrientationMnt(*itE);
+   }
+}
 
+void cAppliMICMAC::GenereOrientationMnt(cEtapeMecComp * itE)
+{
+        cFileOriMnt aFOM = OrientFromOneEtape(*itE);
+        std::string aName =   
+		        FullDirMEC()
+	              + std::string("Z_Num") 
+                      + ToString((itE)->Num())
+		      + std::string("_DeZoom")
+		      + ToString((itE)->DeZoomTer())
+		      + std::string("_")
+		      + NameChantier()
+                      + std::string(".xml");
+         cElXMLTree * aTree = ToXMLTree(aFOM);
+         FILE * aFP = ElFopen(aName.c_str(),"w");
+         ELISE_ASSERT(aFP!=0,"cAppliMICMAC::GenereOrientationMnt");
+
+         aTree->Show("      ",aFP,0,0,true);
+
+         delete aTree;
+         ElFclose(aFP);
+
+         (itE)->DoRemplitXML_MTD_Nuage();
+}
+
+/*
 void cAppliMICMAC::GenereOrientationMnt()
 {
    for
@@ -855,8 +892,8 @@ void cAppliMICMAC::GenereOrientationMnt()
 
          (*itE)->DoRemplitXML_MTD_Nuage();
    }
-
 }
+*/
 
 void cAppliMICMAC::SauvParam()
 {

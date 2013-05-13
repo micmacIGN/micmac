@@ -116,7 +116,8 @@ typedef enum
   eAlgoOptimDifferentielle,
   eAlgoDequant,
   eAlgoLeastSQ,
-  eAlgoTestGPU
+  eAlgoTestGPU,
+  eAlgoIdentite
 } eAlgoRegul;
 void xml_init(eAlgoRegul & aVal,cElXMLTree * aTree);
 std::string  eToString(const eAlgoRegul & aVal);
@@ -704,6 +705,23 @@ class cIntervParalaxe
 };
 cElXMLTree * ToXMLTree(const cIntervParalaxe &);
 
+class cNuageXMLInit
+{
+    public:
+        friend void xml_init(cNuageXMLInit & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameNuageXML();
+        const std::string & NameNuageXML()const ;
+
+        cTplValGesInit< bool > & CanAdaptGeom();
+        const cTplValGesInit< bool > & CanAdaptGeom()const ;
+    private:
+        std::string mNameNuageXML;
+        cTplValGesInit< bool > mCanAdaptGeom;
+};
+cElXMLTree * ToXMLTree(const cNuageXMLInit &);
+
 class cIntervSpecialZInv
 {
     public:
@@ -832,6 +850,9 @@ class cSection_Terrain
         friend void xml_init(cSection_Terrain & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< bool > & IntervalPaxIsProportion();
+        const cTplValGesInit< bool > & IntervalPaxIsProportion()const ;
+
         cTplValGesInit< double > & RatioAltiPlani();
         const cTplValGesInit< double > & RatioAltiPlani()const ;
 
@@ -898,6 +919,15 @@ class cSection_Terrain
         cTplValGesInit< cIntervParalaxe > & IntervParalaxe();
         const cTplValGesInit< cIntervParalaxe > & IntervParalaxe()const ;
 
+        std::string & NameNuageXML();
+        const std::string & NameNuageXML()const ;
+
+        cTplValGesInit< bool > & CanAdaptGeom();
+        const cTplValGesInit< bool > & CanAdaptGeom()const ;
+
+        cTplValGesInit< cNuageXMLInit > & NuageXMLInit();
+        const cTplValGesInit< cNuageXMLInit > & NuageXMLInit()const ;
+
         double & MulZMin();
         const double & MulZMin()const ;
 
@@ -955,10 +985,12 @@ class cSection_Terrain
         cTplValGesInit< cRugositeMNT > & RugositeMNT();
         const cTplValGesInit< cRugositeMNT > & RugositeMNT()const ;
     private:
+        cTplValGesInit< bool > mIntervalPaxIsProportion;
         cTplValGesInit< double > mRatioAltiPlani;
         cTplValGesInit< bool > mEstimPxPrefZ2Prof;
         cTplValGesInit< cIntervAltimetrie > mIntervAltimetrie;
         cTplValGesInit< cIntervParalaxe > mIntervParalaxe;
+        cTplValGesInit< cNuageXMLInit > mNuageXMLInit;
         cTplValGesInit< cIntervSpecialZInv > mIntervSpecialZInv;
         cTplValGesInit< cPlanimetrie > mPlanimetrie;
         cTplValGesInit< std::string > mFileOriMnt;
@@ -4224,6 +4256,31 @@ class cAnamSurfaceAnalytique
 };
 cElXMLTree * ToXMLTree(const cAnamSurfaceAnalytique &);
 
+class cMakeMaskImNadir
+{
+    public:
+        friend void xml_init(cMakeMaskImNadir & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< double > & DynIncid();
+        const cTplValGesInit< double > & DynIncid()const ;
+
+        cTplValGesInit< bool > & MakeAlsoMaskTerrain();
+        const cTplValGesInit< bool > & MakeAlsoMaskTerrain()const ;
+
+        int & KBest();
+        const int & KBest()const ;
+
+        cTplValGesInit< double > & IncertAngle();
+        const cTplValGesInit< double > & IncertAngle()const ;
+    private:
+        cTplValGesInit< double > mDynIncid;
+        cTplValGesInit< bool > mMakeAlsoMaskTerrain;
+        int mKBest;
+        cTplValGesInit< double > mIncertAngle;
+};
+cElXMLTree * ToXMLTree(const cMakeMaskImNadir &);
+
 class cAnamorphoseGeometrieMNT
 {
     public:
@@ -4244,10 +4301,26 @@ class cAnamorphoseGeometrieMNT
 
         cTplValGesInit< double > & AnamLimAngleVisib();
         const cTplValGesInit< double > & AnamLimAngleVisib()const ;
+
+        cTplValGesInit< double > & DynIncid();
+        const cTplValGesInit< double > & DynIncid()const ;
+
+        cTplValGesInit< bool > & MakeAlsoMaskTerrain();
+        const cTplValGesInit< bool > & MakeAlsoMaskTerrain()const ;
+
+        int & KBest();
+        const int & KBest()const ;
+
+        cTplValGesInit< double > & IncertAngle();
+        const cTplValGesInit< double > & IncertAngle()const ;
+
+        cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir();
+        const cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir()const ;
     private:
         cTplValGesInit< cAnamSurfaceAnalytique > mAnamSurfaceAnalytique;
         cTplValGesInit< int > mAnamDeZoomMasq;
         cTplValGesInit< double > mAnamLimAngleVisib;
+        cTplValGesInit< cMakeMaskImNadir > mMakeMaskImNadir;
 };
 cElXMLTree * ToXMLTree(const cAnamorphoseGeometrieMNT &);
 
@@ -4411,6 +4484,21 @@ class cSection_Results
         cTplValGesInit< double > & AnamLimAngleVisib();
         const cTplValGesInit< double > & AnamLimAngleVisib()const ;
 
+        cTplValGesInit< double > & DynIncid();
+        const cTplValGesInit< double > & DynIncid()const ;
+
+        cTplValGesInit< bool > & MakeAlsoMaskTerrain();
+        const cTplValGesInit< bool > & MakeAlsoMaskTerrain()const ;
+
+        int & KBest();
+        const int & KBest()const ;
+
+        cTplValGesInit< double > & IncertAngle();
+        const cTplValGesInit< double > & IncertAngle()const ;
+
+        cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir();
+        const cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir()const ;
+
         cTplValGesInit< cAnamorphoseGeometrieMNT > & AnamorphoseGeometrieMNT();
         const cTplValGesInit< cAnamorphoseGeometrieMNT > & AnamorphoseGeometrieMNT()const ;
 
@@ -4422,6 +4510,9 @@ class cSection_Results
 
         cTplValGesInit< bool > & DoMEC();
         const cTplValGesInit< bool > & DoMEC()const ;
+
+        cTplValGesInit< std::string > & NonExistingFileDoMEC();
+        const cTplValGesInit< std::string > & NonExistingFileDoMEC()const ;
 
         cTplValGesInit< bool > & DoFDC();
         const cTplValGesInit< bool > & DoFDC()const ;
@@ -4512,6 +4603,7 @@ class cSection_Results
         cTplValGesInit< std::string > mRepereCorrel;
         cTplValGesInit< std::string > mTagRepereCorrel;
         cTplValGesInit< bool > mDoMEC;
+        cTplValGesInit< std::string > mNonExistingFileDoMEC;
         cTplValGesInit< bool > mDoFDC;
         cTplValGesInit< bool > mGenereXMLComp;
         cTplValGesInit< int > mZoomMakeTA;
@@ -4990,6 +5082,9 @@ class cParamMICMAC
         cTplValGesInit< cChantierDescripteur > & DicoLoc();
         const cTplValGesInit< cChantierDescripteur > & DicoLoc()const ;
 
+        cTplValGesInit< bool > & IntervalPaxIsProportion();
+        const cTplValGesInit< bool > & IntervalPaxIsProportion()const ;
+
         cTplValGesInit< double > & RatioAltiPlani();
         const cTplValGesInit< double > & RatioAltiPlani()const ;
 
@@ -5055,6 +5150,15 @@ class cParamMICMAC
 
         cTplValGesInit< cIntervParalaxe > & IntervParalaxe();
         const cTplValGesInit< cIntervParalaxe > & IntervParalaxe()const ;
+
+        std::string & NameNuageXML();
+        const std::string & NameNuageXML()const ;
+
+        cTplValGesInit< bool > & CanAdaptGeom();
+        const cTplValGesInit< bool > & CanAdaptGeom()const ;
+
+        cTplValGesInit< cNuageXMLInit > & NuageXMLInit();
+        const cTplValGesInit< cNuageXMLInit > & NuageXMLInit()const ;
 
         double & MulZMin();
         const double & MulZMin()const ;
@@ -5413,6 +5517,21 @@ class cParamMICMAC
         cTplValGesInit< double > & AnamLimAngleVisib();
         const cTplValGesInit< double > & AnamLimAngleVisib()const ;
 
+        cTplValGesInit< double > & DynIncid();
+        const cTplValGesInit< double > & DynIncid()const ;
+
+        cTplValGesInit< bool > & MakeAlsoMaskTerrain();
+        const cTplValGesInit< bool > & MakeAlsoMaskTerrain()const ;
+
+        int & KBest();
+        const int & KBest()const ;
+
+        cTplValGesInit< double > & IncertAngle();
+        const cTplValGesInit< double > & IncertAngle()const ;
+
+        cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir();
+        const cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir()const ;
+
         cTplValGesInit< cAnamorphoseGeometrieMNT > & AnamorphoseGeometrieMNT();
         const cTplValGesInit< cAnamorphoseGeometrieMNT > & AnamorphoseGeometrieMNT()const ;
 
@@ -5424,6 +5543,9 @@ class cParamMICMAC
 
         cTplValGesInit< bool > & DoMEC();
         const cTplValGesInit< bool > & DoMEC()const ;
+
+        cTplValGesInit< std::string > & NonExistingFileDoMEC();
+        const cTplValGesInit< std::string > & NonExistingFileDoMEC()const ;
 
         cTplValGesInit< bool > & DoFDC();
         const cTplValGesInit< bool > & DoFDC()const ;

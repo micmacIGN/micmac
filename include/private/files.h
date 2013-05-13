@@ -1530,9 +1530,15 @@ class cElXMLAttr
 class cVirtStream
 {
    public :
+       
       virtual int my_getc() =0 ;
       virtual int my_eof() = 0;
       virtual void my_ungetc(int)=0;
+
+       virtual const char * Ending(); // Permet pour les string-file de reprendre 
+                                      // la lecture la ou elle s'est arretee
+
+      virtual void fread(void *dest,int aNbOct);
 
       bool IsFilePredef() const ;
       bool IsFileSpec() const ;
@@ -1541,6 +1547,8 @@ class cVirtStream
       virtual ~cVirtStream();
        cVirtStream(const std::string & aName,bool isPreDef,bool IsSpec);
       const std::string & Name();
+      static cVirtStream * VStreamFromCharPtr(const char* aCharPtr);
+      static cVirtStream * VStreamFromIsStream(std::istringstream &);
    private :
       std::string mName;
       bool         mIsPredef;
@@ -1558,6 +1566,7 @@ class cElXMLToken
                 const std::list<cElXMLAttr> & Attrs() const;
 	        void Show(FILE *,int);
                     
+                void GetSequenceBinaire(cVirtStream * aFp);
 	private :
 		std::string            mVal;
 		eElXMLKindToken        mKind;

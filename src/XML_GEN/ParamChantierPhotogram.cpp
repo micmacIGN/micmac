@@ -93,6 +93,8 @@ eTypeFichierOriTxt  Str2eTypeFichierOriTxt(const std::string & aName)
 {
    if (aName=="eOriTxtAgiSoft")
       return eOriTxtAgiSoft;
+   else if (aName=="eOriBluh")
+      return eOriBluh;
    else if (aName=="eOriTxtInFile")
       return eOriTxtInFile;
    else if (aName=="eNbTypeOriTxt")
@@ -112,6 +114,8 @@ std::string  eToString(const eTypeFichierOriTxt & anObj)
 {
    if (anObj==eOriTxtAgiSoft)
       return  "eOriTxtAgiSoft";
+   if (anObj==eOriBluh)
+      return  "eOriBluh";
    if (anObj==eOriTxtInFile)
       return  "eOriTxtInFile";
    if (anObj==eNbTypeOriTxt)
@@ -3917,6 +3921,59 @@ void xml_init(cCalibrationInterneUnif & anObj,cElXMLTree * aTree)
    xml_init(anObj.Params(),aTree->GetAll("Params",false,1));
 
    xml_init(anObj.Etats(),aTree->GetAll("Etats",false,1));
+}
+
+
+std::string & cTestNewGrid::A()
+{
+   return mA;
+}
+
+const std::string & cTestNewGrid::A()const 
+{
+   return mA;
+}
+
+
+Im2D_INT1 & cTestNewGrid::Im()
+{
+   return mIm;
+}
+
+const Im2D_INT1 & cTestNewGrid::Im()const 
+{
+   return mIm;
+}
+
+
+std::string & cTestNewGrid::Z()
+{
+   return mZ;
+}
+
+const std::string & cTestNewGrid::Z()const 
+{
+   return mZ;
+}
+
+cElXMLTree * ToXMLTree(const cTestNewGrid & anObj)
+{
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"TestNewGrid",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("A"),anObj.A())->ReTagThis("A"));
+   aRes->AddFils(::ToXMLTree(std::string("Im"),anObj.Im())->ReTagThis("Im"));
+   aRes->AddFils(::ToXMLTree(std::string("Z"),anObj.Z())->ReTagThis("Z"));
+  return aRes;
+}
+
+void xml_init(cTestNewGrid & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+
+   xml_init(anObj.A(),aTree->Get("A",1)); //tototo 
+
+   xml_init(anObj.Im(),aTree->Get("Im",1)); //tototo 
+
+   xml_init(anObj.Z(),aTree->Get("Z",1)); //tototo 
 }
 
 
