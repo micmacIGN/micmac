@@ -15,14 +15,12 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp\
         GLWidget.cpp \
-    mmGuiParameters.cpp \
     Cloud.cpp \
     ../src/poisson/plyfile.cpp
 
 HEADERS  += mainwindow.h\
             GLWidget.h \
     util.h \
-    mmGuiParameters.h \
     mmVector3.h
 
 FORMS    += \
