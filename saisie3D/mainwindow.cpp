@@ -91,14 +91,12 @@ void MainWindow::doActionDisplayShortcuts()
     text += "Shortcuts:\n\n";
     text += "F11: Toggle full screen\n";
     text += "\n";
-    text += "Ctrl+D: Display parameters\n";
-    text += "Ctrl+C: Camera parameters\n";
-    text += "\n";
-    text += "F5 : Points selection mode\n";
+    text += "F5 : Toggle rotation mode / selection mode\n";
     text += "    - left click : add a point to polyline ";
     text += "    - right click: close polyline\n";
     text += "    - escape: delete polyline\n";
     text += "    - space bar: keep points inside polyline\n";
+    text += "    - delete key: keep points outside polyline\n";
     msgBox.setText(text);
     msgBox.exec();
 }

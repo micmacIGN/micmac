@@ -7,7 +7,6 @@
 
 #include "Cloud.h"
 #include "util.h"
-#include "mmGuiParameters.h"
 #include "mmVector3.h"
 
 //! Model view matrix size (OpenGL)
@@ -47,9 +46,6 @@ private:
 
     Q_OBJECT // must include this if you use Qt signals/slots
 
-    //!bounding box
-    GLdouble            m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ;
-    GLdouble            m_cX, m_cY, m_cZ, m_diam;
     QPoint              lastPos;
 
 public:

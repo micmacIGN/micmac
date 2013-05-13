@@ -11,6 +11,16 @@
 using namespace std;
 using namespace Cloud_;
 
+static PlyProperty colored_a_vert_props[] = {
+    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,x), 0, 0, 0, 0},
+    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,y), 0, 0, 0, 0},
+    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,z), 0, 0, 0, 0},
+    {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha,red), 0, 0, 0, 0},
+    {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha,green), 0, 0, 0, 0},
+    {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha,blue), 0, 0, 0, 0},
+    {"alpha", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha,alpha), 0, 0, 0, 0}
+};
+
 static PlyProperty colored_vert_props[] = {
     {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,x), 0, 0, 0, 0},
     {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,y), 0, 0, 0, 0},
@@ -18,18 +28,7 @@ static PlyProperty colored_vert_props[] = {
     {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertex,red), 0, 0, 0, 0},
     {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertex,green), 0, 0, 0, 0},
     {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertex,blue), 0, 0, 0, 0},
-    {"alpha", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertex,alpha), 0, 0, 0, 0}
 };
-
-/*static PlyProperty colored_vert_props[] = {
-    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,x), 0, 0, 0, 0},
-    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,y), 0, 0, 0, 0},
-    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,z), 0, 0, 0, 0},
-    {"r",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,r), 0, 0, 0, 0},
-    {"g",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,g), 0, 0, 0, 0},
-    {"b",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,b), 0, 0, 0, 0},
-    {"a",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,a), 0, 0, 0, 0}
-};*/
 
 static PlyProperty oriented_vert_props[] = {
     {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,x ), 0, 0, 0, 0},
@@ -81,7 +80,7 @@ bool Cloud::loadPly( const string &i_filename )
     int num_elems;
     char *elem_name;
     PlyProperty **plist=NULL;
-    sPlyColoredVertex **vlist=NULL;
+    sPlyColoredVertexWithAlpha **vlist=NULL;
 
     thePlyFile = ply_open_for_reading( const_cast<char *>(i_filename.c_str()), &nelems, &elist, &file_type, &version);
 
@@ -110,19 +109,19 @@ bool Cloud::loadPly( const string &i_filename )
         if (equal_strings ("vertex", elem_name))
         {
             // create a vertex list to hold all the vertices
-            vlist = (sPlyColoredVertex **) malloc (sizeof (sPlyColoredVertex *) * num_elems);
+            vlist = (sPlyColoredVertexWithAlpha **) malloc (sizeof (sPlyColoredVertexWithAlpha *) * num_elems);
 
             // set up for getting vertex elements
             for (int j = 0; j < 7 ;++j)
-                ply_get_property (thePlyFile, elem_name, &colored_vert_props[j]);
+                ply_get_property (thePlyFile, elem_name, &colored_a_vert_props[j]);
 
             // grab all the vertex elements
             for (int j = 0; j < num_elems; j++)
             {
                 // grab an element from the file
-                vlist[j] = (sPlyColoredVertex *) malloc (sizeof (sPlyColoredVertex));
+                vlist[j] = (sPlyColoredVertexWithAlpha *) malloc (sizeof (sPlyColoredVertexWithAlpha));
 
-                ply_get_element_setup(thePlyFile,elem_name,7,colored_vert_props);
+                ply_get_element_setup(thePlyFile,elem_name,7,colored_a_vert_props);
                 ply_get_element (thePlyFile, (void *) vlist[j]);
 
                 #ifdef _DEBUG
