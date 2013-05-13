@@ -96,8 +96,15 @@ typedef struct sPlyOrientedVertex
 typedef struct sPlyColoredVertex
 {
     float x, y, z;
-    unsigned char red, green, blue, alpha;
+    unsigned char red, green, blue;
 } sPlyColoredVertex;
+
+typedef struct sPlyColoredVertexWithAlpha
+{
+    float x, y, z;
+    unsigned char red, green, blue, alpha;
+} sPlyColoredVertexWithAlpha;
+
 	
 typedef struct sFace 
 {

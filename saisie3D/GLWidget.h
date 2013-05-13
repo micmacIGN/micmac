@@ -7,7 +7,6 @@
 
 #include "Cloud.h"
 #include "util.h"
-#include "mmGuiParameters.h"
 #include "mmVector3.h"
 
 //! Model view matrix size (OpenGL)
@@ -47,9 +46,6 @@ private:
 
     Q_OBJECT // must include this if you use Qt signals/slots
 
-    //!bounding box
-    GLdouble            m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ;
-    GLdouble            m_cX, m_cY, m_cZ, m_diam;
     QPoint              lastPos;
 
 public:
@@ -100,6 +96,9 @@ public:
     void setInteractionMode(INTERACTION_MODE mode);
 
     void segment(bool inside);
+
+    void clearPolyline();
+    void closePolyline();
 
 public slots:
     void zoom();
@@ -155,6 +154,9 @@ protected:
 
     //! States if a cloud is already loaded
     bool m_bCloudLoaded;
+
+    //! States if selection polyline is closed
+    bool m_bPolyIsClosed;
 
     //! Current interaction mode (with mouse)
     INTERACTION_MODE m_interactionMode;

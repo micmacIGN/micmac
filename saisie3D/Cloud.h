@@ -18,6 +18,10 @@ namespace Cloud_
             float y() {return m_y;}
             float z() {return m_z;}
 
+            void setX(float aX){m_x = aX;}
+            void setY(float aY){m_y = aY;}
+            void setZ(float aZ){m_z = aZ;}
+
             Pt3D &operator=(const Pt3D &);
 
         private:
@@ -35,16 +39,23 @@ namespace Cloud_
             float y() {return m_position.y();}
             float z() {return m_position.z();}
 
-            Pt3D m_position;
-            QColor m_color;
+            Pt3D   getCoord()   {return m_position;}
+            QColor getColor()   {return m_color;}
+            bool   isVisible()  {return m_bVisible;}
+
+            void setCoord(Pt3D const &aPt)      {m_position = aPt;}
+            void setColor(QColor const &aCol)   {m_color = aCol;}
+            void setVisible(bool aVis)          {m_bVisible = aVis;}
+
+        private:
+            Pt3D    m_position;
+            QColor  m_color;
+            bool    m_bVisible;
 
     };
 
     class Cloud
     {
-        private:
-            std::vector<Vertex> m_vertices;
-
         public:
             Cloud(){}
 
@@ -52,8 +63,11 @@ namespace Cloud_
             bool    loadPly( const std::string & );
 
             void    addVertex( const Vertex & );
-            Vertex  getVertex( unsigned int );
+            Vertex& getVertex( unsigned int );
             int     getVertexNumber();
+
+        private:
+            std::vector<Vertex> m_vertices;
     };
 
 }

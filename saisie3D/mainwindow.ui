@@ -88,11 +88,6 @@ QStatusBar
     <property name="title">
      <string>Options</string>
     </property>
-    <widget class="QMenu" name="menuLights">
-     <property name="title">
-      <string>Lights</string>
-     </property>
-    </widget>
     <widget class="QMenu" name="menuStandard_views">
      <property name="title">
       <string>Standard views</string>
@@ -104,34 +99,10 @@ QStatusBar
      <addaction name="actionSetViewRight"/>
      <addaction name="actionSetViewBottom"/>
     </widget>
-    <widget class="QMenu" name="menuSelected">
-     <property name="title">
-      <string>Selected entity</string>
-     </property>
-     <widget class="QMenu" name="menuSelectSF">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="title">
-       <string>Current S.F.</string>
-      </property>
-      <addaction name="actionDummyAction"/>
-     </widget>
-     <addaction name="actionShowColors"/>
-     <addaction name="actionShowNormals"/>
-     <addaction name="separator"/>
-     <addaction name="actionShowScalarField"/>
-     <addaction name="actionShowColorRamp"/>
-     <addaction name="menuSelectSF"/>
-    </widget>
-    <addaction name="actionDisplayParameters"/>
-    <addaction name="actionEditCamera"/>
     <addaction name="separator"/>
     <addaction name="menuStandard_views"/>
-    <addaction name="menuLights"/>
     <addaction name="actionFullScreen"/>
     <addaction name="separator"/>
-    <addaction name="menuSelected"/>
     <addaction name="actionTogglePoints_selection"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
@@ -145,27 +116,6 @@ QStatusBar
    <addaction name="menuAbout"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="actionDisplayParameters">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/images/ccLightParams.png</normaloff>:/images/ccLightParams.png</iconset>
-   </property>
-   <property name="text">
-    <string>Display parameters</string>
-   </property>
-   <property name="toolTip">
-    <string>Set display parameters (light, materials, etc.)</string>
-   </property>
-   <property name="statusTip">
-    <string>Set display parameters (light, materials, etc.)</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+D</string>
-   </property>
-   <property name="shortcutContext">
-    <enum>Qt::ApplicationShortcut</enum>
-   </property>
-  </action>
   <action name="actionFullScreen">
    <property name="checkable">
     <bool>true</bool>
@@ -178,18 +128,6 @@ QStatusBar
    </property>
    <property name="shortcutContext">
     <enum>Qt::ApplicationShortcut</enum>
-   </property>
-  </action>
-  <action name="actionEditCamera">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/images/ccCamera.png</normaloff>:/images/ccCamera.png</iconset>
-   </property>
-   <property name="text">
-    <string>Camera parameters</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+C</string>
    </property>
   </action>
   <action name="actionHelpShortcuts">
@@ -291,67 +229,6 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>2</string>
-   </property>
-  </action>
-  <action name="actionShowColors">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Show Colors</string>
-   </property>
-   <property name="shortcut">
-    <string>C</string>
-   </property>
-   <property name="shortcutContext">
-    <enum>Qt::ApplicationShortcut</enum>
-   </property>
-  </action>
-  <action name="actionShowNormals">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Show Normals</string>
-   </property>
-   <property name="shortcut">
-    <string>N</string>
-   </property>
-   <property name="shortcutContext">
-    <enum>Qt::ApplicationShortcut</enum>
-   </property>
-  </action>
-  <action name="actionShowColorRamp">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Show Color ramp</string>
-   </property>
-   <property name="shortcut">
-    <string>R</string>
-   </property>
-   <property name="shortcutContext">
-    <enum>Qt::ApplicationShortcut</enum>
-   </property>
-  </action>
-  <action name="actionShowScalarField">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Show Scalar field</string>
-   </property>
-   <property name="shortcut">
-    <string>S</string>
-   </property>
-   <property name="shortcutContext">
-    <enum>Qt::ApplicationShortcut</enum>
-   </property>
-  </action>
-  <action name="actionDummyAction">
-   <property name="text">
-    <string>DummyAction</string>
    </property>
   </action>
   <action name="actionTogglePoints_selection">

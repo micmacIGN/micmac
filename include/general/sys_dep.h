@@ -199,7 +199,7 @@ Header-MicMac-eLiSe-25/06/2007*/
  *   ISO/IEC 14881:1998 (E) (autrement dit la norme ANSI/C++).
  *
  */
-#if ELISE_windows
+#if (ELISE_windows)&&(!ELISE_MinGW)
 	#define STRICT_ANSI_FRIEND_TPL 0
 #else
 	#define STRICT_ANSI_FRIEND_TPL 1
