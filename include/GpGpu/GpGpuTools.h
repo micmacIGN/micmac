@@ -338,7 +338,7 @@ bool GpGpuTools::Array1DtoImageFile(T* dataImage,const char* fileName, uint2 dim
 }
 
 //-----------------------------------------------------------------------------------------------
-//									CLASS IMAGE CUDA
+//									CLASS CUDA
 //-----------------------------------------------------------------------------------------------
 
 /// \class CGObject
@@ -614,14 +614,14 @@ void CData<T>::SetPData(T* p)
 /// \class CData2D
 /// \brief Classe abstraite d un tableau d elements structuree en deux dimensions
 template <class T> 
-class CData2D : public struct2D, public CData<T>
+class CData2D : public struct2D, virtual public CData<T>
 {
 
 public:
 
     CData2D();
-    /// \brief constructeur avec initialisation de la dimension de la structure
-    /// \param dim : Dimension a initialiser
+    /// \brief      constructeur avec initialisation de la dimension de la structure
+    /// \param      dim : Dimension a initialiser
     CData2D(uint2 dim);
     ~CData2D(){}
     /// \brief Alloue la memoire neccessaire
@@ -1116,7 +1116,7 @@ bool CuDeviceData3D<T>::Dealloc()
 
 /// \class  AImageCuda
 /// \brief Cette classe abstraite est une image directement liable a une texture GpGpu
-class AImageCuda : public CData<cudaArray>
+class AImageCuda : virtual public CData<cudaArray>
 {
 public:
     AImageCuda(){}

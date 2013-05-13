@@ -21,7 +21,8 @@ using namespace std;
 static __constant__ float   penalite[PENALITE];
 static __constant__ ushort  dMapIndex[WARPSIZE];
 
-
+/// \class CDeviceStream
+/// \brief Classe gerant un fluc de données en memoire video
 template< class T >
 class CDeviceStream
 {
