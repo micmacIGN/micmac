@@ -273,11 +273,16 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #endif
 
 // POISSON
-#ifdef _WIN32
+#if (ELISE_windows)
     #ifdef INT
         #undef INT
     #endif
-	#define NOMINMAX
+	#ifndef NOMINMAX
+		#define NOMINMAX
+	#endif
+	#if (ELISE_MinGW)
+		#define _WIN32_WINNT 0x0500 // this is for windows 2000 and higher
+	#endif
     #include <Windows.h>
     #include <Psapi.h>
 #endif // _WIN32

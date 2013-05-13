@@ -1,7 +1,7 @@
 #ifndef HASH_INCLUDED
 	#define HASH_INCLUDED
 
-	#ifdef WIN32
+	#if (ELISE_windows)&&(!ELISE_MinGW)
 		#include <hash_map>
 		using stdext::hash_map;
 	#else // !WIN32

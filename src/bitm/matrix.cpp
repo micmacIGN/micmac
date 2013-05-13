@@ -42,7 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-#if ELISE_windows
+#if (ELISE_windows)&&(!ELISE_MinGW)
 	// disable "potential divide by 0" warning in method void ElMatrix::SetColSchmidtOrthog(INT NbIter)
 	#pragma warning( disable : 4723 )
 #endif

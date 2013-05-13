@@ -2862,20 +2862,20 @@ void Octree< Degree >::SetIsoCorners( Real isoValue , TreeOctNode* leaf , Sorted
 
 		if( mcid )
 		{
-#ifdef WIN32
+#if (ELISE_windows)&&(!ELISE_MinGW)
 			InterlockedOr( (volatile unsigned long long*)&(parent->nodeData.mcIndex) , mcid );
 #else // !WIN32
-#pragma omp atomic
+			#pragma omp atomic
 			parent->nodeData.mcIndex |= mcid;
 #endif // WIN32
 			while( 1 )
 			{
 				if( parent->parent && parent->parent->d>=_minDepth && (parent-parent->parent->children)==c )
 				{
-#ifdef WIN32
+#if (ELISE_windows)&&(!ELISE_MinGW)
 					InterlockedOr( (volatile unsigned long long*)&(parent->parent->nodeData.mcIndex) , mcid );
 #else // !WIN32
-#pragma omp atomic
+					#pragma omp atomic
 					parent->parent->nodeData.mcIndex |= mcid;
 #endif // WIN32
 					parent = parent->parent;

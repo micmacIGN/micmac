@@ -579,58 +579,78 @@ void SparseSymmetricMatrix<T>::Multiply( const Vector<T2>& In , Vector<T2>& Out 
 		for( int t=0 ; t<threads ; t++ ) _out += OutScratch[t][i];
 	}
 }
-#ifdef WIN32
-#ifndef _AtomicIncrement_
-#define _AtomicIncrement_
-#ifdef INT
-	#undef INT
-#endif
-#include <windows.h>
-inline void AtomicIncrement( volatile float* ptr , float addend )
-{
-	float newValue = *ptr;
-	LONG& _newValue = *( (LONG*)&newValue );
-	LONG  _oldValue;
-	for( ;; )
+
+#if (ELISE_windows)&&(!ELISE_MinGW)
+	#ifndef _AtomicIncrement_
+	#define _AtomicIncrement_
+	#ifdef INT
+		#undef INT
+	#endif
+	#include <windows.h>
+	inline void AtomicIncrement( volatile float* ptr , float addend )
 	{
-		_oldValue = _newValue;
-		newValue += addend;
-		_newValue = InterlockedCompareExchange( (LONG*) ptr , _newValue , _oldValue );
-		if( _newValue==_oldValue ) break;
+		float newValue = *ptr;
+		LONG& _newValue = *( (LONG*)&newValue );
+		LONG  _oldValue;
+		for( ;; )
+		{
+			_oldValue = _newValue;
+			newValue += addend;
+			_newValue = InterlockedCompareExchange( (LONG*) ptr , _newValue , _oldValue );
+			if( _newValue==_oldValue ) break;
+		}
 	}
-}
-inline void AtomicIncrement( volatile double* ptr , double addend )
-//inline void AtomicIncrement( double* ptr , double addend )
-{
-	double newValue = *ptr;
-	LONGLONG& _newValue = *( (LONGLONG*)&newValue );
-	LONGLONG  _oldValue;
-	do
+	inline void AtomicIncrement( volatile double* ptr , double addend )
+	//inline void AtomicIncrement( double* ptr , double addend )
 	{
-		_oldValue = _newValue;
-		newValue += addend;
-		_newValue = InterlockedCompareExchange64( (LONGLONG*) ptr , _newValue , _oldValue );
+		double newValue = *ptr;
+		LONGLONG& _newValue = *( (LONGLONG*)&newValue );
+		LONGLONG  _oldValue;
+		do
+		{
+			_oldValue = _newValue;
+			newValue += addend;
+			_newValue = InterlockedCompareExchange64( (LONGLONG*) ptr , _newValue , _oldValue );
+		}
+		while( _newValue!=_oldValue );
 	}
-	while( _newValue!=_oldValue );
-}
-#endif // _AtomicIncrement_
-template< class T >
-void MultiplyAtomic( const SparseSymmetricMatrix< T >& A , const Vector< float >& In , Vector< float >& Out , int threads , const int* partition=NULL )
-{
-	Out.SetZero();
-	const float* in = &In[0];
-	float* out = &Out[0];
-	if( partition )
-#ifdef USE_OPEN_MP
-	#pragma omp parallel for num_threads( threads )
-#endif
-		for( int t=0 ; t<threads ; t++ )
-			for( int i=partition[t] ; i<partition[t+1] ; i++ )
+	#endif // _AtomicIncrement_
+	template< class T >
+	void MultiplyAtomic( const SparseSymmetricMatrix< T >& A , const Vector< float >& In , Vector< float >& Out , int threads , const int* partition=NULL )
+	{
+		Out.SetZero();
+		const float* in = &In[0];
+		float* out = &Out[0];
+		if( partition )
+	#ifdef USE_OPEN_MP
+		#pragma omp parallel for num_threads( threads )
+	#endif
+			for( int t=0 ; t<threads ; t++ )
+				for( int i=partition[t] ; i<partition[t+1] ; i++ )
+				{
+					const MatrixEntry< T >* temp = A[i];
+					const MatrixEntry< T >* end = temp + A.rowSizes[i];
+					const float& in_i = in[i];
+					float out_i = 0.;
+					for( ; temp!=end ; temp++ )
+					{
+						int j = temp->N;
+						float v = temp->Value;
+						out_i += v * in[j];
+						AtomicIncrement( out+j , v * in_i );
+					}
+					AtomicIncrement( out+i , out_i );
+				}
+		else
+	#ifdef USE_OPEN_MP
+		#pragma omp parallel for num_threads( threads )
+	#endif
+			for( int i=0 ; i<A.rows ; i++ )
 			{
 				const MatrixEntry< T >* temp = A[i];
 				const MatrixEntry< T >* end = temp + A.rowSizes[i];
 				const float& in_i = in[i];
-				float out_i = 0.;
+				float out_i = 0.f;
 				for( ; temp!=end ; temp++ )
 				{
 					int j = temp->N;
@@ -640,39 +660,39 @@ void MultiplyAtomic( const SparseSymmetricMatrix< T >& A , const Vector< float >
 				}
 				AtomicIncrement( out+i , out_i );
 			}
-	else
-#ifdef USE_OPEN_MP
-	#pragma omp parallel for num_threads( threads )
-#endif
-		for( int i=0 ; i<A.rows ; i++ )
-		{
-			const MatrixEntry< T >* temp = A[i];
-			const MatrixEntry< T >* end = temp + A.rowSizes[i];
-			const float& in_i = in[i];
-			float out_i = 0.f;
-			for( ; temp!=end ; temp++ )
-			{
-				int j = temp->N;
-				float v = temp->Value;
-				out_i += v * in[j];
-				AtomicIncrement( out+j , v * in_i );
-			}
-			AtomicIncrement( out+i , out_i );
-		}
-}
-template< class T >
-void MultiplyAtomic( const SparseSymmetricMatrix< T >& A , const Vector< double >& In , Vector< double >& Out , int threads , const int* partition=NULL )
-{
-	Out.SetZero();
-	const double* in = &In[0];
-	double* out = &Out[0];
+	}
+	template< class T >
+	void MultiplyAtomic( const SparseSymmetricMatrix< T >& A , const Vector< double >& In , Vector< double >& Out , int threads , const int* partition=NULL )
+	{
+		Out.SetZero();
+		const double* in = &In[0];
+		double* out = &Out[0];
 
-	if( partition )
-#ifdef USE_OPEN_MP
-	#pragma omp parallel for num_threads( threads )
-#endif
-		for( int t=0 ; t<threads ; t++ )
-			for( int i=partition[t] ; i<partition[t+1] ; i++ )
+		if( partition )
+	#ifdef USE_OPEN_MP
+		#pragma omp parallel for num_threads( threads )
+	#endif
+			for( int t=0 ; t<threads ; t++ )
+				for( int i=partition[t] ; i<partition[t+1] ; i++ )
+				{
+					const MatrixEntry< T >* temp = A[i];
+					const MatrixEntry< T >* end = temp + A.rowSizes[i];
+					const double& in_i = in[i];
+					double out_i = 0.;
+					for( ; temp!=end ; temp++ )
+					{
+						int j = temp->N;
+						T v = temp->Value;
+						out_i += v * in[j];
+						AtomicIncrement( out+j , v * in_i );
+					}
+					AtomicIncrement( out+i , out_i );
+				}
+		else
+	#ifdef USE_OPEN_MP
+		#pragma omp parallel for num_threads( threads )
+	#endif
+			for( int i=0 ; i<A.rows ; i++ )
 			{
 				const MatrixEntry< T >* temp = A[i];
 				const MatrixEntry< T >* end = temp + A.rowSizes[i];
@@ -687,133 +707,115 @@ void MultiplyAtomic( const SparseSymmetricMatrix< T >& A , const Vector< double 
 				}
 				AtomicIncrement( out+i , out_i );
 			}
-	else
-#ifdef USE_OPEN_MP
-	#pragma omp parallel for num_threads( threads )
-#endif
-		for( int i=0 ; i<A.rows ; i++ )
-		{
-			const MatrixEntry< T >* temp = A[i];
-			const MatrixEntry< T >* end = temp + A.rowSizes[i];
-			const double& in_i = in[i];
-			double out_i = 0.;
-			for( ; temp!=end ; temp++ )
-			{
-				int j = temp->N;
-				T v = temp->Value;
-				out_i += v * in[j];
-				AtomicIncrement( out+j , v * in_i );
-			}
-			AtomicIncrement( out+i , out_i );
-		}
-}
-
-template< class T >
-template< class T2 >
-int SparseSymmetricMatrix< T >::SolveAtomic( const SparseSymmetricMatrix< T >& A , const Vector< T2 >& b , int iters , Vector< T2 >& x , T2 eps , int reset , int threads , bool solveNormal )
-{
-	eps *= eps;
-	int dim = b.Dimensions();
-	if( reset )
-	{
-		x.Resize( dim );
-		x.SetZero();
 	}
-	Vector< T2 > r( dim ) , d( dim ) , q( dim );
-	Vector< T2 > temp;
-	if( solveNormal ) temp.Resize( dim );
-	T2 *_x = &x[0] , *_r = &r[0] , *_d = &d[0] , *_q = &q[0];
-	const T2* _b = &b[0];
 
-	std::vector< int > partition( threads+1 );
+	template< class T >
+	template< class T2 >
+	int SparseSymmetricMatrix< T >::SolveAtomic( const SparseSymmetricMatrix< T >& A , const Vector< T2 >& b , int iters , Vector< T2 >& x , T2 eps , int reset , int threads , bool solveNormal )
 	{
-		int eCount = 0;
-		for( int i=0 ; i<A.rows ; i++ ) eCount += A.rowSizes[i];
-		partition[0] = 0;
-#ifdef USE_OPEN_MP
-	#pragma omp parallel for num_threads( threads )
-#endif
-		for( int t=0 ; t<threads ; t++ )
+		eps *= eps;
+		int dim = b.Dimensions();
+		if( reset )
 		{
-			int _eCount = 0;
-			for( int i=0 ; i<A.rows ; i++ )
+			x.Resize( dim );
+			x.SetZero();
+		}
+		Vector< T2 > r( dim ) , d( dim ) , q( dim );
+		Vector< T2 > temp;
+		if( solveNormal ) temp.Resize( dim );
+		T2 *_x = &x[0] , *_r = &r[0] , *_d = &d[0] , *_q = &q[0];
+		const T2* _b = &b[0];
+
+		std::vector< int > partition( threads+1 );
+		{
+			int eCount = 0;
+			for( int i=0 ; i<A.rows ; i++ ) eCount += A.rowSizes[i];
+			partition[0] = 0;
+	#ifdef USE_OPEN_MP
+		#pragma omp parallel for num_threads( threads )
+	#endif
+			for( int t=0 ; t<threads ; t++ )
 			{
-				_eCount += A.rowSizes[i];
-				if( _eCount*threads>=eCount*(t+1) )
+				int _eCount = 0;
+				for( int i=0 ; i<A.rows ; i++ )
 				{
-					partition[t+1] = i;
-					break;
+					_eCount += A.rowSizes[i];
+					if( _eCount*threads>=eCount*(t+1) )
+					{
+						partition[t+1] = i;
+						break;
+					}
 				}
 			}
+			partition[threads] = A.rows;
 		}
-		partition[threads] = A.rows;
-	}
-	if( solveNormal )
-	{
-		MultiplyAtomic( A , x , temp , threads , &partition[0] );
-		MultiplyAtomic( A , temp , r , threads , &partition[0] );
-		MultiplyAtomic( A , b , temp , threads , &partition[0] );
-#ifdef USE_OPEN_MP
-	#pragma omp parallel for num_threads( threads ) schedule( static )
-#endif
-		for( int i=0 ; i<dim ; i++ ) _d[i] = _r[i] = temp[i] - _r[i];
-	}
-	else
-	{
-		MultiplyAtomic( A , x , r , threads , &partition[0] );
-#ifdef USE_OPEN_MP
-	#pragma omp parallel for num_threads( threads ) schedule( static )
-#endif
-		for( int i=0 ; i<dim ; i++ ) _d[i] = _r[i] = _b[i] - _r[i];
-	}
-	double delta_new = 0 , delta_0;
-	for( size_t i=0 ; i<dim ; i++ ) delta_new += _r[i] * _r[i];
-	delta_0 = delta_new;
-	if( delta_new<eps )
-	{
-		fprintf( stderr , "[WARNING] Initial residual too low: %g < %f\n" , delta_new , eps );
-		return 0;
-	}
-	int ii;
-	for( ii=0; ii<iters && delta_new>eps*delta_0 ; ii++ )
-	{
-		if( solveNormal ) MultiplyAtomic( A , d , temp , threads , &partition[0] ) , MultiplyAtomic( A , temp , q , threads , &partition[0] );
-		else              MultiplyAtomic( A , d , q , threads , &partition[0] );
-        double dDotQ = 0;
-		for( int i=0 ; i<dim ; i++ ) dDotQ += _d[i] * _q[i];
-		T2 alpha = T2( delta_new / dDotQ );
-#ifdef USE_OPEN_MP
-	#pragma omp parallel for num_threads( threads ) schedule( static )
-#endif
-		for( int i=0 ; i<dim ; i++ ) _x[i] += _d[i] * alpha;
-		if( (ii%50)==(50-1) )
+		if( solveNormal )
 		{
-			r.Resize( dim );
-			if( solveNormal ) MultiplyAtomic( A , x , temp , threads , &partition[0] ) , MultiplyAtomic( A , temp , r , threads , &partition[0] );
-			else              MultiplyAtomic( A , x , r , threads , &partition[0] );
-#ifdef USE_OPEN_MP
-	#pragma omp parallel for num_threads( threads ) schedule( static )
-#endif
-			for( int i=0 ; i<dim ; i++ ) _r[i] = _b[i] - _r[i];
+			MultiplyAtomic( A , x , temp , threads , &partition[0] );
+			MultiplyAtomic( A , temp , r , threads , &partition[0] );
+			MultiplyAtomic( A , b , temp , threads , &partition[0] );
+	#ifdef USE_OPEN_MP
+		#pragma omp parallel for num_threads( threads ) schedule( static )
+	#endif
+			for( int i=0 ; i<dim ; i++ ) _d[i] = _r[i] = temp[i] - _r[i];
 		}
 		else
-#ifdef USE_OPEN_MP
-	#pragma omp parallel for num_threads( threads ) schedule( static )
-#endif
-			for( int i=0 ; i<dim ; i++ ) _r[i] -= _q[i] * alpha;
-
-		double delta_old = delta_new;
-		delta_new = 0;
+		{
+			MultiplyAtomic( A , x , r , threads , &partition[0] );
+	#ifdef USE_OPEN_MP
+		#pragma omp parallel for num_threads( threads ) schedule( static )
+	#endif
+			for( int i=0 ; i<dim ; i++ ) _d[i] = _r[i] = _b[i] - _r[i];
+		}
+		double delta_new = 0 , delta_0;
 		for( size_t i=0 ; i<dim ; i++ ) delta_new += _r[i] * _r[i];
-		T2 beta = T2( delta_new / delta_old );
-#ifdef USE_OPEN_MP
-	#pragma omp parallel for num_threads( threads ) schedule( static )
-#endif
-		for( int i=0 ; i<dim ; i++ ) _d[i] = _r[i] + _d[i] * beta;
+		delta_0 = delta_new;
+		if( delta_new<eps )
+		{
+			fprintf( stderr , "[WARNING] Initial residual too low: %g < %f\n" , delta_new , eps );
+			return 0;
+		}
+		int ii;
+		for( ii=0; ii<iters && delta_new>eps*delta_0 ; ii++ )
+		{
+			if( solveNormal ) MultiplyAtomic( A , d , temp , threads , &partition[0] ) , MultiplyAtomic( A , temp , q , threads , &partition[0] );
+			else              MultiplyAtomic( A , d , q , threads , &partition[0] );
+			double dDotQ = 0;
+			for( int i=0 ; i<dim ; i++ ) dDotQ += _d[i] * _q[i];
+			T2 alpha = T2( delta_new / dDotQ );
+	#ifdef USE_OPEN_MP
+		#pragma omp parallel for num_threads( threads ) schedule( static )
+	#endif
+			for( int i=0 ; i<dim ; i++ ) _x[i] += _d[i] * alpha;
+			if( (ii%50)==(50-1) )
+			{
+				r.Resize( dim );
+				if( solveNormal ) MultiplyAtomic( A , x , temp , threads , &partition[0] ) , MultiplyAtomic( A , temp , r , threads , &partition[0] );
+				else              MultiplyAtomic( A , x , r , threads , &partition[0] );
+	#ifdef USE_OPEN_MP
+		#pragma omp parallel for num_threads( threads ) schedule( static )
+	#endif
+				for( int i=0 ; i<dim ; i++ ) _r[i] = _b[i] - _r[i];
+			}
+			else
+	#ifdef USE_OPEN_MP
+		#pragma omp parallel for num_threads( threads ) schedule( static )
+	#endif
+				for( int i=0 ; i<dim ; i++ ) _r[i] -= _q[i] * alpha;
+
+			double delta_old = delta_new;
+			delta_new = 0;
+			for( size_t i=0 ; i<dim ; i++ ) delta_new += _r[i] * _r[i];
+			T2 beta = T2( delta_new / delta_old );
+	#ifdef USE_OPEN_MP
+		#pragma omp parallel for num_threads( threads ) schedule( static )
+	#endif
+			for( int i=0 ; i<dim ; i++ ) _d[i] = _r[i] + _d[i] * beta;
+		}
+		return ii;
 	}
-	return ii;
-}
-#endif // WIN32
+#endif // (ELISE_windows)||(!ELISE_MinGW)
+
 template< class T >
 template< class T2 >
 int SparseSymmetricMatrix< T >::Solve( const SparseSymmetricMatrix<T>& A , const Vector<T2>& b , int iters , Vector<T2>& x , MapReduceVector< T2 >& scratch , T2 eps , int reset , bool addDCTerm , bool solveNormal )

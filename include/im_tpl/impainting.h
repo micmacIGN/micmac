@@ -121,7 +121,7 @@ template  <class Type,class Type_Base>
        for (int Ind=IndDeb ; Ind!=IndOut ; Ind+=Incr)
        {
             Pt2di aP2Cur = mVPts[Ind];
-            Type aValOfZMin = mTImVal.get(aP2Cur);
+            Type aValOfZMin = (Type)mTImVal.get(aP2Cur);
             double aZMin = mTImBuf.get(aP2Cur);
             for (int aKV = 0 ; aKV<8 ; aKV++)
             {
@@ -132,7 +132,7 @@ template  <class Type,class Type_Base>
                      if (aZAugm < aZMin)
                      {
                           aZMin = aZAugm;
-                          aValOfZMin = mTImVal.get(aPVois);
+                          aValOfZMin = (Type)mTImVal.get(aPVois);
                           aNbUpdate++;
                      }
                 }

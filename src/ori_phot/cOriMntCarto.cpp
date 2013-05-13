@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -50,7 +50,7 @@ static std::string  LireTexte(FILE * aFp,const char *  Expected)
     VoidFscanf ( aFp, "%s", Buf);
 
     std::string aRes(Buf);
-    if (Expected) 
+    if (Expected)
        ELISE_ASSERT
        (
              aRes==std::string(Expected),
@@ -62,7 +62,11 @@ static std::string  LireTexte(FILE * aFp,const char *  Expected)
 static long long int LireInt(FILE * aFp)
 {
     long long int aVal;
-    VoidFscanf ( aFp, "%lld",&aVal);
+    #if (ELISE_MinGW)
+        VoidFscanf ( aFp, "%I64d",&aVal);
+    #else
+        VoidFscanf ( aFp, "%lld",&aVal);
+    #endif
     return aVal;
 }
 
@@ -113,11 +117,11 @@ cOriMntCarto::cOriMntCarto
     mResolZ  = StdLireIntAsReal(aFp);
 
 // Je ne connais plus le sens de Z0
-    ELISE_ASSERT(mZ0==0,"cOriMntCarto Z0!=0"); 
+    ELISE_ASSERT(mZ0==0,"cOriMntCarto Z0!=0");
 }
 
 REAL cOriMntCarto:: ResolZ() const {return mResolZ; }
-REAL cOriMntCarto:: ResolPlani() const 
+REAL cOriMntCarto:: ResolPlani() const
 {
    return ElMin(mResol.x,mResol.y);
 }
@@ -146,13 +150,25 @@ void cOriMntCarto::ToFile(const std::string & aName)
    FILE * aFP = ElFopen(aName.c_str(),"w");
    ELISE_ASSERT(aFP!=0,"Cant open file in cOriMntCarto::ToFile");
    fprintf(aFP,"CARTO\n");
-   fprintf(aFP,"%lld %lld\n",ToStdInt(mOrigine.x),ToStdInt(mOrigine.y));
+    #if (ELISE_MinGW)
+        fprintf(aFP,"%I64d %I64d\n",ToStdInt(mOrigine.x),ToStdInt(mOrigine.y));
+    #else
+        fprintf(aFP,"%lld %lld\n",ToStdInt(mOrigine.x),ToStdInt(mOrigine.y));
+    #endif
    fprintf(aFP,"%d\n",mZoneLambert);
    fprintf(aFP,"%d %d\n",mSz.x,mSz.y);
-   fprintf(aFP,"%lld %lld\n",ToStdInt(mResol.x),ToStdInt(mResol.y));
+    #if (ELISE_MinGW)
+        fprintf(aFP,"%I64d %I64d\n",ToStdInt(mResol.x),ToStdInt(mResol.y));
+    #else
+        fprintf(aFP,"%lld %lld\n",ToStdInt(mResol.x),ToStdInt(mResol.y));
+    #endif
 
    fprintf(aFP,"\nMNT\n");
-   fprintf(aFP,"%lld %lld\n",ToStdInt(mZ0),ToStdInt(mResolZ));
+    #if (ELISE_MinGW)
+        fprintf(aFP,"%I64d %I64d\n",ToStdInt(mZ0),ToStdInt(mResolZ));
+    #else
+        fprintf(aFP,"%lld %lld\n",ToStdInt(mZ0),ToStdInt(mResolZ));
+    #endif
    ElFclose(aFP);
 }
 
@@ -188,7 +204,7 @@ correspondances d'images pour la reconstruction du relief.
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -199,16 +215,16 @@ titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
 associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
+développement et à la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à
 manipuler et qui le réserve donc à des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
 logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
