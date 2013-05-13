@@ -110,7 +110,7 @@ void AdaptDist2PPaEqPPs(NS_ParamChantierPhotogram::cCalibDistortion & aCD)
 
 	    std::vector<double> & aVParam = aCIU.Params();
 	    aVParam = aCIR.CoeffDist();
-            while (aVParam.size() < 5) 
+            while (aVParam.size() < 5)
                   aVParam.push_back(0);
 
             aVParam.push_back(aCIPS.P1().Val());
@@ -1515,47 +1515,83 @@ int orecrit_fictexte_orientation (const  char *fic, or_orientation *ori )
 	     (*ori).heure, (*ori).minute, (*ori).seconde ) ;
 
     Lbuf[0] =  (INTByte8) ( (*ori).altisol * 1000.0 + 0.5 ) ;
-    fprintf ( fp,"%lld\n", Lbuf[0] ) ;
+    #if (ELISE_MinGW)
+        fprintf ( fp,"%I64d\n", Lbuf[0] ) ;
+    #else
+        fprintf ( fp,"%lld\n", Lbuf[0] ) ;
+    #endif
 
     Lbuf[0] = (INTByte8) ( (*ori).origine[0] * 1000.0 + 0.5 ) ;
     Lbuf[1] = (INTByte8) ( (*ori).origine[1] * 1000.0 + 0.5 ) ;
-    fprintf ( fp,"%lld %lld\n", Lbuf[0], Lbuf[1] ) ;
+    #if (ELISE_MinGW)
+        fprintf ( fp,"%I64d %I64d\n", Lbuf[0], Lbuf[1] ) ;
+    #else
+        fprintf ( fp,"%lld %lld\n", Lbuf[0], Lbuf[1] ) ;
+    #endif
 
     fprintf ( fp,"%d\n", (*ori).lambert ) ;
 
     Lbuf[0] = (INTByte8) ( (*ori).sommet[0] * 1000.0 + 0.5 ) ;
     Lbuf[1] = (INTByte8) ( (*ori).sommet[1] * 1000.0 + 0.5 ) ;
     Lbuf[2] = (INTByte8) ( (*ori).sommet[2] * 1000.0 + 0.5 ) ;
-    fprintf ( fp,"%lld %lld %lld\n", Lbuf[0], Lbuf[1], Lbuf[2] ) ;
+    #if (ELISE_MinGW)
+        fprintf ( fp,"%I64d %I64d %I64d\n", Lbuf[0], Lbuf[1], Lbuf[2] ) ;
+    #else
+        fprintf ( fp,"%lld %lld %lld\n", Lbuf[0], Lbuf[1], Lbuf[2] ) ;
+    #endif
 
     Lbuf[0] =  (INTByte8) ( ((*ori).focale/(*ori).pix[0]) * 1000.0 + 0.5 ) ;
-    fprintf ( fp, "%lld\n", Lbuf[0] ) ;
+    #if (ELISE_MinGW)
+        fprintf ( fp, "%I64d\n", Lbuf[0] ) ;
+    #else
+        fprintf ( fp, "%lld\n", Lbuf[0] ) ;
+    #endif
 
     Lbuf[0] = (INTByte8) ( (*ori).vi[0] * 1000000000.0 + 0.5 ) ;
     Lbuf[1] = (INTByte8) ( (*ori).vi[1] * 1000000000.0 + 0.5 ) ;
     Lbuf[2] = (INTByte8) ( (*ori).vi[2] * 1000000000.0 + 0.5 ) ;
-    fprintf ( fp,"%lld %lld %lld\n", Lbuf[0], Lbuf[1], Lbuf[2] ) ;
+    #if (ELISE_MinGW)
+        fprintf ( fp,"%I64d %I64d %I64d\n", Lbuf[0], Lbuf[1], Lbuf[2] ) ;
+    #else
+        fprintf ( fp,"%lld %lld %lld\n", Lbuf[0], Lbuf[1], Lbuf[2] ) ;
+    #endif
 
     Lbuf[0] = (INTByte8) ( (*ori).vj[0] * 1000000000.0 + 0.5 ) ;
     Lbuf[1] = (INTByte8) ( (*ori).vj[1] * 1000000000.0 + 0.5 ) ;
     Lbuf[2] = (INTByte8) ( (*ori).vj[2] * 1000000000.0 + 0.5 ) ;
-    fprintf ( fp,"%lld %lld %lld\n", Lbuf[0], Lbuf[1], Lbuf[2] ) ;
+    #if (ELISE_MinGW)
+        fprintf ( fp,"%I64d %I64d %I64d\n", Lbuf[0], Lbuf[1], Lbuf[2] ) ;
+    #else
+        fprintf ( fp,"%lld %lld %lld\n", Lbuf[0], Lbuf[1], Lbuf[2] ) ;
+    #endif
 
     Lbuf[0] = (INTByte8) ( (*ori).vk[0] * 1000000000.0 + 0.5 ) ;
     Lbuf[1] = (INTByte8) ( (*ori).vk[1] * 1000000000.0 + 0.5 ) ;
     Lbuf[2] = (INTByte8) ( (*ori).vk[2] * 1000000000.0 + 0.5 ) ;
-    fprintf ( fp,"%lld %lld %lld\n", Lbuf[0], Lbuf[1], Lbuf[2] ) ;
+    #if (ELISE_MinGW)
+        fprintf ( fp,"%I64d %I64d %I64d\n", Lbuf[0], Lbuf[1], Lbuf[2] ) ;
+    #else
+        fprintf ( fp,"%lld %lld %lld\n", Lbuf[0], Lbuf[1], Lbuf[2] ) ;
+    #endif
 
 
     Lbuf[0] = (INTByte8) ( (*ori).pix[0] * 1000000.0 + 0.5 ) ;
     Lbuf[1] = (INTByte8) ( (*ori).pix[1] * 1000000.0 + 0.5 ) ;
-    fprintf ( fp,"%lld %lld\n", Lbuf[0], Lbuf[1] ) ;
+    #if (ELISE_MinGW)
+        fprintf ( fp,"%I64d %I64d\n", Lbuf[0], Lbuf[1] ) ;
+    #else
+        fprintf ( fp,"%lld %lld\n", Lbuf[0], Lbuf[1] ) ;
+    #endif
 
     fprintf ( fp, "%d %d\n", (*ori).ins, (*ori).inl ) ;
 
     Lbuf[0] = (INTByte8) ( (*ori).ipp[0] * 1000.0 + 0.5 ) ;
     Lbuf[1] = (INTByte8) ( (*ori).ipp[1] * 1000.0 + 0.5 ) ;
-    fprintf ( fp,"%lld %lld\n", Lbuf[0], Lbuf[1] ) ;
+    #if (ELISE_MinGW)
+        fprintf ( fp,"%I64d %I64d\n", Lbuf[0], Lbuf[1] ) ;
+    #else
+        fprintf ( fp,"%lld %lld\n", Lbuf[0], Lbuf[1] ) ;
+    #endif
 
     gr = &((*ori).gt2p) ;
     gtaille = (*gr).ns * (*gr).nl ;
@@ -1569,7 +1605,11 @@ int orecrit_fictexte_orientation (const  char *fic, or_orientation *ori )
     {
       Lbuf[0] = (INTByte8) ((*gr).dx[ii]*1000000.0 + 0.5) ;
       Lbuf[1] = (INTByte8) ((*gr).dy[ii]*1000000.0 + 0.5) ;
-      fprintf ( fp, "%lld %lld\n", Lbuf[0], Lbuf[1] ) ;
+      #if (ELISE_MinGW)
+        fprintf ( fp, "%I64d %I64d\n", Lbuf[0], Lbuf[1] ) ;
+      #else
+        fprintf ( fp, "%lld %lld\n", Lbuf[0], Lbuf[1] ) ;
+      #endif
     }
 
     gr = &((*ori).gp2t) ;
@@ -1578,7 +1618,11 @@ int orecrit_fictexte_orientation (const  char *fic, or_orientation *ori )
     {
       Lbuf[0] = (INTByte8) ((*gr).dx[ii]*1000000.0 + 0.5) ;
       Lbuf[1] = (INTByte8) ((*gr).dy[ii]*1000000.0 + 0.5) ;
-      fprintf ( fp, "%lld %lld\n", Lbuf[0], Lbuf[1] ) ;
+      #if (ELISE_MinGW)
+        fprintf ( fp, "%I64d %I64d\n", Lbuf[0], Lbuf[1] ) ;
+      #else
+        fprintf ( fp, "%lld %lld\n", Lbuf[0], Lbuf[1] ) ;
+      #endif
     }
 #endif
 
@@ -3147,7 +3191,7 @@ cConvExplicite MakeExplicite(eConventionsOrientation aConv)
           default :
                ELISE_ASSERT(false,"Unknown eConventionsOrientation");
           break;
-      
+
 */
 
 
@@ -3192,7 +3236,7 @@ class cDistFromCIC
 	   cCam_Polyn4 *            CamPolyn4();
 	   cCam_Polyn5 *            CamPolyn5();
 	   cCamera_Param_Unif_Gen * CamUnif();
-           
+
 
 
        private :
@@ -3288,7 +3332,7 @@ cCamera_Param_Unif_Gen *  cDistFromCIC::CamUnif()
 
 
     if (mCamDR_PPas)   return mCamDR_PPas;
-    if (mCamFras_PPas) 
+    if (mCamFras_PPas)
     {
        return mCamFras_PPas;
     }
@@ -3894,7 +3938,7 @@ ElMatrix<double>   Std_RAff_C2M
       }
       // std::cout << "\n";
   }
-  
+
 
 
 
@@ -3910,7 +3954,7 @@ ElRotation3D  Std_RAff_C2M
 {
   bool TrueRot;
   ElMatrix<double> aM =  Std_RAff_C2M(aCE.ParamRotation(),aConv,TrueRot);
-  
+
   return ElRotation3D(aCE.Centre(),aM,TrueRot);
 }
 
@@ -4075,7 +4119,7 @@ int XML_orlit_fictexte_orientation (const char *fic, or_orientation *ori,bool Qu
                 {
                    cCamStenopeDistRadPol* aCDR =  aDF.CamDRad();
                    ElDistRadiale_PolynImpair & aPDR = aCDR->DRad();
-                    
+
                    std::cout  <<  "CCC " <<  aPDR.Direct(B) << "\n";
                    double aR = euclid(aPDR.Centre()-B);
                    std::cout << "RAY " << aR << " DIST " << aPDR.DistDirecte(aR) * aR << "\n";
@@ -4089,7 +4133,7 @@ int XML_orlit_fictexte_orientation (const char *fic, or_orientation *ori,bool Qu
                    std::cout  << " C6  " << aPDR.Coeff(3) << "\n";
                    std::cout  << " C6  " << aPDR.Coeff(4) << "\n";
 
-                   //for (int aK=0 ; aK<1400 ; aK+=50) 
+                   //for (int aK=0 ; aK<1400 ; aK+=50)
                    //   std::cout  << aK  << "   " << aPDR.DistDirecte(aK) << "\n";
                 }
 
@@ -4172,7 +4216,7 @@ cCamera_Param_Unif_Gen *  Std_Cal_Unif
     cConvExplicite aConv = MakeExplicite(aKnownC);
     cDistFromCIC  aDF(aCIC,&aConv,false);
 
-    cCamera_Param_Unif_Gen * aRes = aDF.CamUnif(); 
+    cCamera_Param_Unif_Gen * aRes = aDF.CamUnif();
     if (aCIC.OrIntGlob().IsInit())
     {
         aRes->SetIntrImaC2M(AfGC2M(aCIC));
@@ -4386,7 +4430,7 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
 */
 
    aRes->SetScanImaM2C(AffCur(anOC));
- 
+
    eConventionsOrientation aConvEnum = eConvApero_DistM2C;
    aConvEnum = anOC.ConvOri().KnownConv().ValWithDef(aConvEnum);
    aConvEnum = anOC.Externe().KnownConv().ValWithDef(aConvEnum);
@@ -4394,7 +4438,7 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
 */
    cConvExplicite aConv = MakeExplicite(anOC.ConvOri());
 
-   // inv car les camera elise ont une (putain de) convention M2C 
+   // inv car les camera elise ont une (putain de) convention M2C
    aRes->SetOrientation(::Std_RAff_C2M(anOC.Externe(),aConv).inv());
 
 
@@ -4423,7 +4467,7 @@ ElCamera * Cam_Gen_From_XML (const cOrientationConique  & anOC,cInterfChantierNa
 {
    return Gen_Cam_Gen_From_XML(false,anOC,anICNM);
 }
-           
+
 ElCamera * Gen_Cam_Gen_From_File
            (
                   bool CanUseGr,

@@ -279,4 +279,7 @@ inline void RoiWindow_2d::set_along_y( const RoiWindow_1d &window1d ){
     memcpy( &m_y0, &window1d.m_x0, 4*sizeof(int) );
 }
 
+#undef BYTE
+#undef UINT
+
 #endif // __REALIMAGE1__

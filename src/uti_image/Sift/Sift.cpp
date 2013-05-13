@@ -10,6 +10,14 @@
 
 #include "Gauss34.h"
 
+#ifndef BYTE
+    #define BYTE unsigned char
+#endif
+
+#ifndef UINT
+    #define UINT unsigned int
+#endif
+
 using namespace std;
 
 Siftator::Siftator( int i_nbOctaves, int i_nbLevels, int i_firstOctave ):
@@ -357,7 +365,7 @@ int Siftator::orientations( RefinedPoint &i_p, Real_ o_angles[m_maxNbAngles] )
     Real_ dx, dy, r2,
          wgt, mod, ang;
     int  offset;
-    RealImage1::Real *p = m_gradients[si+1].data()+( xi+yi*m_width )*2;    
+    RealImage1::Real *p = m_gradients[si+1].data()+( xi+yi*m_width )*2;
     std::fill( m_histo, m_histo+m_nbBins, 0 );
     for ( int ys=std::max( -W, 1-yi ); ys<=std::min( W, m_height-2-yi ); ys++ )
     {
@@ -369,7 +377,7 @@ int Siftator::orientations( RefinedPoint &i_p, Real_ o_angles[m_maxNbAngles] )
 
             // limit to a circular window
             if ( r2>=W*W+0.5 ) continue;
-    
+
             wgt    = fast_maths::fast_expn( r2/( 2*sigmaw*sigmaw ) );
             offset = ( xs+ys*m_width )*2;
             mod    = p[offset];
@@ -380,7 +388,7 @@ int Siftator::orientations( RefinedPoint &i_p, Real_ o_angles[m_maxNbAngles] )
 
         }
     }
-	
+
     Real_ prev;
     #ifdef __ORIGINAL__
         // smooth histogram  (Lowe style)
@@ -415,7 +423,7 @@ int Siftator::orientations( RefinedPoint &i_p, Real_ o_angles[m_maxNbAngles] )
             *itHisto = ( prev+( *itHisto )+first )/3.; itHisto++;
         }
     #endif
-    
+
     // find histogram's peaks
     // peaks are values > 80% of histoMax and > to both its neighbours
     Real_ histoMax = 0.8*( *std::max_element( m_histo, m_histo+m_nbBins ) );
@@ -641,7 +649,7 @@ bool read_siftPoint_list( const string &i_filename, vector<SiftPoint> &o_list )
     uint32_t nbPoints, dimension;
     f.read( (char*)&nbPoints, 4 );
     f.read( (char*)&dimension, 4 );
-    
+
     o_list.resize( nbPoints );
     if ( dimension!=m_descriptorSize ){
 		cerr << "ERROR: read_siftPoint_list " << i_filename << ": descriptor's dimension is " << dimension << " and should be " << m_descriptorSize << endl;
