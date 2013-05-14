@@ -158,7 +158,9 @@ if(${CUDA_ENABLED})
 	 if (Boost_FOUND)
 
 		  target_link_libraries(${libStatGpGpuInterfMicMac}  ${Boost_LIBRARIES} ${Boost_THREADAPI})
-		  target_link_libraries(${libStatGpGpuInterfMicMac}  rt pthread )
+		  if (NOT WIN32)
+			target_link_libraries(${libStatGpGpuInterfMicMac}  rt pthread )
+		  endif()
 	 endif()
 
 	 cuda_add_executable(${ExeGpGpuOpt} ${uti_Test_Opt_GpGpu_Src_Files})
