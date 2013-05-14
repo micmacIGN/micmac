@@ -25,13 +25,15 @@ public:
     bool checkForLoadedEntities();
 
 public slots:
-    //! Tries to load (and then adds to main db) a list of entity (files)
+    //! Tries to load a list of files
     /** \param filenames list of all filenames
     **/
     void addFiles(const QStringList& filenames);
 
 private slots:
     //void on_pushButton_clicked();
+
+    void on_actionUndo_triggered();
 
 protected slots:
     void doActionDisplayShortcuts();

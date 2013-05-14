@@ -80,6 +80,7 @@ public:
                                    MessagePosition pos,
                                    MessageType type=CUSTOM_MESSAGE);
 
+    //! States if a cloud is loaded
     bool hasCloudLoaded(){return m_bCloudLoaded;}
 
     void setCloudLoaded(bool isLoaded) { m_bCloudLoaded = isLoaded; }
@@ -99,6 +100,10 @@ public:
 
     void clearPolyline();
     void closePolyline();
+
+    void undoAll();
+
+    GLdouble m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_cX, m_cY, m_cZ, m_diam;
 
 public slots:
     void zoom();

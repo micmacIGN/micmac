@@ -1660,7 +1660,7 @@ std::cout << "AAAA " << aGeomOut.NbPixel() << "\n";
 
 
     double aDynEtir = 10.0;
-    double aSeuilEtir = 1.5;
+    double aSeuilEtir = 5.5;
 
 
     cElNuage3DMaille * aRes = aNOut->BasculeInThis(aNIn,true,aDynEtir,0,0,-1,AutoResize,&aVAttrIm);

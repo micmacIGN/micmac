@@ -28,6 +28,9 @@ MainWindow::MainWindow(QWidget *parent) :
     //"Points selection" menu
     connect(ui->actionTogglePoints_selection, SIGNAL(toggled(bool)), this, SLOT(togglePointsSelection(bool)));
 
+    //QShortcut *m_shortcutUndoFunct = new QShortcut(QKeySequence(tr("Ctrl+Z")),this);
+
+    //connect(ui->actionUndo,SIGNAL(activated()), this, SLOT(on_actionUndo_triggered()));
 
     connectActions();
 }
@@ -97,22 +100,23 @@ void MainWindow::doActionDisplayShortcuts()
     text += "    - escape: delete polyline\n";
     text += "    - space bar: keep points inside polyline\n";
     text += "    - delete key: keep points outside polyline\n";
+    text += "    - Ctrl + Z: undo all past selections\n";
     msgBox.setText(text);
     msgBox.exec();
 }
 
 void MainWindow::connectActions()
 {
-    connect(ui->actionFullScreen, SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
+    connect(ui->actionFullScreen,       SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
 
-    connect(ui->actionHelpShortcuts, SIGNAL(triggered()), this, SLOT(doActionDisplayShortcuts()));
+    connect(ui->actionHelpShortcuts,    SIGNAL(triggered()),   this, SLOT(doActionDisplayShortcuts()));
 
-    connect(ui->actionSetViewTop,					SIGNAL(triggered()),						this,	SLOT(setTopView()));
-    connect(ui->actionSetViewBottom,				SIGNAL(triggered()),						this,	SLOT(setBottomView()));
-    connect(ui->actionSetViewFront,					SIGNAL(triggered()),						this,	SLOT(setFrontView()));
-    connect(ui->actionSetViewBack,					SIGNAL(triggered()),						this,	SLOT(setBackView()));
-    connect(ui->actionSetViewLeft,					SIGNAL(triggered()),						this,	SLOT(setLeftView()));
-    connect(ui->actionSetViewRight,					SIGNAL(triggered()),						this,	SLOT(setRightView()));
+    connect(ui->actionSetViewTop,		SIGNAL(triggered()),   this, SLOT(setTopView()));
+    connect(ui->actionSetViewBottom,	SIGNAL(triggered()),   this, SLOT(setBottomView()));
+    connect(ui->actionSetViewFront,		SIGNAL(triggered()),   this, SLOT(setFrontView()));
+    connect(ui->actionSetViewBack,		SIGNAL(triggered()),   this, SLOT(setBackView()));
+    connect(ui->actionSetViewLeft,		SIGNAL(triggered()),   this, SLOT(setLeftView()));
+    connect(ui->actionSetViewRight,		SIGNAL(triggered()),   this, SLOT(setRightView()));
 }
 
 void MainWindow::setTopView()
@@ -155,4 +159,9 @@ void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
         return;
 
     sendingWindow->onWheelEvent(wheelDelta_deg);
+}
+
+void MainWindow::on_actionUndo_triggered()
+{
+     m_glWidget->undoAll();
 }
