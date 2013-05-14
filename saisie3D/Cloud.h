@@ -57,17 +57,28 @@ namespace Cloud_
     class Cloud
     {
         public:
-            Cloud(){}
+            Cloud();
 
             // renvoie true si le fichier a pu être lu
             bool    loadPly( const std::string & );
 
             void    addVertex( const Vertex & );
             Vertex& getVertex( unsigned int );
-            int     getVertexNumber();
+            void    setVertex( unsigned int, Vertex const & );
+            int     size();
+
+            void    setTranslation( const Pt3D & aPt ) {m_translation = aPt;}
+            Pt3D    getTranslation(){return m_translation;}
+
+            void    setScale( const float & aS ) {m_scale = aS;}
+            float   getScale(){return m_scale;}
+
+            void    clear();
 
         private:
             std::vector<Vertex> m_vertices;
+            Pt3D m_translation;
+            float m_scale;
     };
 
 }

@@ -104,6 +104,7 @@ QStatusBar
     <addaction name="actionFullScreen"/>
     <addaction name="separator"/>
     <addaction name="actionTogglePoints_selection"/>
+    <addaction name="actionUndo"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -115,7 +116,6 @@ QStatusBar
    <addaction name="menuOptions"/>
    <addaction name="menuAbout"/>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
   <action name="actionFullScreen">
    <property name="checkable">
     <bool>true</bool>
@@ -243,6 +243,29 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>F5</string>
+   </property>
+  </action>
+  <action name="actionUndo">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Undo selection</string>
+   </property>
+   <property name="toolTip">
+    <string>Undo all past selections</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+   <property name="visible">
+    <bool>true</bool>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
    </property>
   </action>
  </widget>

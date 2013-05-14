@@ -17,6 +17,8 @@ const GLfloat g_trackballScale = 1.f;
 const float GL_MAX_ZOOM_RATIO = 1.0e6f;
 const float GL_MIN_ZOOM_RATIO = 1.0e-6f;
 
+using namespace Cloud_;
+
 ViewportParameters::ViewportParameters()
     : pixelSize(1.0f)
     , zoom(1.0f)
@@ -164,6 +166,11 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent)
       , m_params(ViewportParameters())
       , m_bPolyIsClosed(false)
 {
+    m_minX = m_minY = m_minZ = FLT_MAX;
+    m_maxX = m_maxY = m_maxZ = FLT_MIN;
+    m_cX = m_cY = m_cZ = m_diam = 0.f;
+
+
     setMouseTracking(true);
 
     //drag & drop handling
@@ -212,9 +219,9 @@ void GLWidget::paintGL()
     glBegin(GL_POINTS);
     for(int aK=0; aK< m_ply.size(); aK++)
     {
-        for(int bK=0; bK< m_ply[aK].getVertexNumber(); bK++)
+        for(int bK=0; bK< m_ply[aK].size(); bK++)
         {
-            Cloud_::Vertex vert = m_ply[aK].getVertex(bK);
+            Vertex vert = m_ply[aK].getVertex(bK);
             if (vert.isVisible())
             {
                 qglColor( vert.getColor() );
@@ -296,7 +303,6 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     else if ( (event->buttons()&Qt::RightButton)&&(m_interactionMode == SEGMENT_POINTS) )
     {
         closePolyline();
-
     }
 
     lastPos = event->pos();
@@ -329,50 +335,73 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
 
 void GLWidget::addPly( const QString &i_ply_file )
 {
-    GLdouble minX, maxX, minY, maxY, minZ, maxZ, cX, cY, cZ, diam;
-
-    minX = minY = minZ = FLT_MAX;
-    maxX = maxY = maxZ = FLT_MIN;
-    cX = cY = cZ = diam = 0.f;
-
-    Cloud_::Cloud a_ply, a_res;
+    Cloud a_ply, a_res;
     a_ply.loadPly( i_ply_file.toStdString() );
 
     //compute bounding box
-    int nbPts = a_ply.getVertexNumber();
+    int nbPts = a_ply.size();
     for (int aK=0; aK < nbPts; ++aK)
     {
-        Cloud_::Vertex vert = a_ply.getVertex(aK);
+        Vertex vert = a_ply.getVertex(aK);
 
-        if (vert.x() > maxX) maxX = vert.x();
-        if (vert.x() < minX) minX = vert.x();
-        if (vert.y() > maxY) maxY = vert.y();
-        if (vert.y() < minY) minY = vert.y();
-        if (vert.z() > maxZ) maxZ = vert.z();
-        if (vert.z() < minZ) minZ = vert.z();
+        if (vert.x() > m_maxX) m_maxX = vert.x();
+        if (vert.x() < m_minX) m_minX = vert.x();
+        if (vert.y() > m_maxY) m_maxY = vert.y();
+        if (vert.y() < m_minY) m_minY = vert.y();
+        if (vert.z() > m_maxZ) m_maxZ = vert.z();
+        if (vert.z() < m_minZ) m_minZ = vert.z();
     }
 
-    cX = (minX + maxX) * .5f;
-    cY = (minY + maxY) * .5f;
-    cZ = (minZ + maxZ) * .5f;
+    m_cX = (m_minX + m_maxX) * .5f;
+    m_cY = (m_minY + m_maxY) * .5f;
+    m_cZ = (m_minZ + m_maxZ) * .5f;
 
-    diam = max(maxX-minX, max(maxY-minY, maxZ-minZ));
+    m_diam = max(m_maxX-m_minX, max(m_maxY-m_minY, m_maxZ-m_minZ));
 
     //center and scale cloud
-    Cloud_::Pt3D pt3d;
+    Pt3D pt3d;
     for (int aK=0; aK < nbPts; ++aK)
     {
-        Cloud_::Vertex vert = a_ply.getVertex(aK);
-        Cloud_::Vertex vert_res = vert;
+        Vertex vert = a_ply.getVertex(aK);
+        Vertex vert_res = vert;
 
-        pt3d.setX( (vert.x() - cX) / diam );
-        pt3d.setY( (vert.y() - cY) / diam );
-        pt3d.setZ( (vert.z() - cZ) / diam );
+        pt3d.setX( (vert.x() - m_cX) / m_diam );
+        pt3d.setY( (vert.y() - m_cY) / m_diam );
+        pt3d.setZ( (vert.z() - m_cZ) / m_diam );
 
         vert_res.setCoord(pt3d);
         vert_res.setColor(vert.getColor());
 
         a_res.addVertex(vert_res);
+    }
+
+    a_res.setTranslation(Pt3D(m_cX, m_cY, m_cZ));
+    a_res.setScale((float) m_diam);
+
+    //translate and scale back clouds if needed
+    for (int aK=0; aK< m_ply.size();++aK)
+    {
+        if (m_ply[aK].getScale()) //cloud has been scaled
+        {
+            Pt3D translation = m_ply[aK].getTranslation();
+            float scale = m_ply[aK].getScale();
+
+            for (int bK=0; bK < m_ply[aK].size();++bK)
+            {
+                Vertex vert = m_ply[aK].getVertex(bK);
+
+                pt3d.setX( ((vert.x() * scale + translation.x()) - m_cX) / m_diam);
+                pt3d.setY( ((vert.y() * scale + translation.y()) - m_cY) / m_diam);
+                pt3d.setZ( ((vert.z() * scale + translation.z()) - m_cZ) / m_diam);
+
+                vert.setCoord(pt3d);
+
+                m_ply[aK].setVertex(bK, vert);
+            }
+
+            m_ply[aK].setTranslation(Pt3D(m_cX, m_cY, m_cZ));
+            m_ply[aK].setScale((float) m_diam);
+        }
     }
 
     m_ply.push_back(a_res);
@@ -763,7 +792,7 @@ void GLWidget::segment(bool inside)
     {
         Cloud_::Cloud a_cloud = m_ply[aK];
 
-        for (int bK=0; bK < a_cloud.getVertexNumber();++bK)
+        for (int bK=0; bK < a_cloud.size();++bK)
         {
             Cloud_::Vertex P = a_cloud.getVertex( bK );
 
@@ -795,4 +824,17 @@ void GLWidget::closePolyline()
         m_polygon.resize(sz-1);
 
     m_bPolyIsClosed = true;
+}
+
+void GLWidget::undoAll()
+{
+    clearPolyline();
+
+    for (int aK=0; aK < m_ply.size(); ++aK)
+    {
+        for (int bK=0; bK < m_ply[aK].size();++bK)
+        {
+            m_ply[aK].getVertex(bK).setVisible(true);
+        }
+    }
 }
