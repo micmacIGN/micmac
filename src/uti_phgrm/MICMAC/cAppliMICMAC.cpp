@@ -446,8 +446,8 @@ std::cout << "END TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
    *mGeomDFPxInit =  *mGeomDFPx;
    double aLogDZ = log2(mGeomDFPxInit->SzDz().XtY() / NbPixDefFilesAux().Val());
    mDeZoomFilesAux = ElMax(DeZoomDefMinFileAux().Val(),(1<<ElMax(0,(round_ni(aLogDZ)))));
-   PostInitGeom();
 
+   PostInitGeom();
    InitNadirRank();
 
 
@@ -1053,7 +1053,25 @@ void cAppliMICMAC::InitAnamSA()
     }
     else
     {
-         mAnamSA = cInterfSurfaceAnalytique::Id();
+      // Il y a un probleme avec l'utilisation des surfaces analytique identite car une surface doit etre telle que
+      // la surface moyenne est L=0, donc elle doit etre centree sur le ZMoyen, qui est inconnu ici; repousser la
+      // creation des surface semble aussi assez complique; bref ca se mord la queue de facon difficile a contourner,
+      // Le choix qui est fait est d'imposer la connaissance du Z moyen dans cette configuration aerienne standard;
+      // ceci n'étant utilise que pour la creation d'image nadir, ce sera encapsule dans un appel global, il restera
+      // a traiter aussi la cas des repere locaux qui doivente etre considere comme une surface analytique semi triviale
+      // c'est un peu une usine a gaz ....
+
+         ELISE_ASSERT(mRepCorrel==0,"Ajouter gestion du repere correl sur Masque Image Nadir");
+
+         double aZMoy = -1e30;
+         if (IntervAltimetrie().IsInit())
+         {
+             cIntervAltimetrie * anIA= IntervAltimetrie().PtrVal();
+             if (anIA->ZMoyen().IsInit())
+                aZMoy = anIA->ZMoyen().Val();
+         }
+         ELISE_ASSERT(aZMoy>-1e29,"No ZMoyen in Nadir Masq");
+         mAnamSA = cInterfSurfaceAnalytique::Identite(aZMoy);
     }
 }
 

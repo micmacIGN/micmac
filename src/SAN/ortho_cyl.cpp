@@ -52,13 +52,15 @@ using namespace NS_SuperposeImage;
 class cSurfAnalIdent : public cInterfSurfaceAnalytique
 {
     public :
-        cSurfAnalIdent() : 
-                 cInterfSurfaceAnalytique (true) 
+        cSurfAnalIdent(double aZRef) : 
+                 cInterfSurfaceAnalytique (true) ,
+                 mZRef                    (aZRef),
+                 mVec                     (0,0,mZRef)
          {
          }
 
-        Pt3dr E2UVL(const Pt3dr & aP) const {return aP;}
-        Pt3dr UVL2E(const Pt3dr & aP) const {return aP;}
+        Pt3dr E2UVL(const Pt3dr & aP) const {return aP - mVec;}
+        Pt3dr UVL2E(const Pt3dr & aP) const {return aP + mVec;}
         void AdaptBox(Pt2dr & aP0,Pt2dr & aP1) const {}
 
         NS_SuperposeImage::cXmlDescriptionAnalytique Xml()  const
@@ -74,7 +76,7 @@ class cSurfAnalIdent : public cInterfSurfaceAnalytique
         {
             std::vector<cInterSurfSegDroite> aRes;
 
-            double aZ0 = aSeg.P0().z;
+            double aZ0 = aSeg.P0().z -mZRef;
             double aDZ = aSeg.TgNormee().z;
 
             if (aDZ==0) return aRes;
@@ -89,12 +91,15 @@ class cSurfAnalIdent : public cInterfSurfaceAnalytique
             );
             return aRes;
         }
+    private :
+       double mZRef;
+       Pt3dr  mVec;
 
 };
 
-cInterfSurfaceAnalytique * cInterfSurfaceAnalytique::Id()
+cInterfSurfaceAnalytique * cInterfSurfaceAnalytique::Identite(double aZRef)
 {
-    static cInterfSurfaceAnalytique * aRes = new cSurfAnalIdent;
+    static cInterfSurfaceAnalytique * aRes = new cSurfAnalIdent(aZRef);
     return aRes;
 }
 
