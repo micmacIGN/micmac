@@ -103,8 +103,9 @@ class cInterfSurfaceAnalytique
     // troisiemme coordonnee (genre faisceau de normal)
      public :
 
-         static cInterfSurfaceAnalytique * Id(); // renvoie une surface identite, utile pour beneficier
-                                                 // de certaine fonction MicMac passant par l'interface
+         // renvoie une surface identite, utile pour beneficier
+         // de certaine fonction MicMac passant par l'interface
+         static cInterfSurfaceAnalytique * Identite(double aZ); 
 
          virtual Pt3dr E2UVL(const Pt3dr & aP) const = 0;
          virtual Pt3dr UVL2E(const Pt3dr & aP) const = 0;
@@ -123,7 +124,8 @@ class cInterfSurfaceAnalytique
 // Pour gerer d'eventuels pb de topologie, a la faculte de modifier la boite
          virtual void AdaptBox(Pt2dr & aP0,Pt2dr & aP1) const = 0;
 
-       // Renvoie la liste des intersections de la droite et de la nappe Z=Z0
+       // Renvoie, sous forme de leurs abscisses curvilignes
+       //  la liste des intersections de la droite et de la nappe Z=Z0
        // si aucune "vraie" solution renvoie la droite des moindre carres et IsVraiSol = false
        // Peut etre un jour ecrire un valeur par defaut fonctionnant par dichotomie (sinon
        //  mettre virtuelle pure)
@@ -335,7 +337,8 @@ class cProjOrthoCylindrique : public cInterfSurfaceAnalytique
          inline Pt3dr Ab2Loc(const Pt3dr &) const;
 
          inline Pt3dr Cyl2Loc(const Pt3dr &) const;
-         inline Pt3dr Loc2Cyl(const Pt3dr &) const;   // X'  ,  Y'*D/(D-Z') , Z'
+         inline Pt3dr Loc2Cyl(const Pt3dr &) const;   
+         // X'  ,  Y'*D/(D-Z') , Z'
          // UVL         <----->             X'Y'Z'          <----->   XYZ 
          // Cylindrique                     Local                     Abs                                
          //                                              => mRToE =>

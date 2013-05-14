@@ -362,7 +362,7 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
         double aUV = scal(aU,aV);
 
          // De memoire, la + grande des VP de l'affinite
-        double aCoeff = sqrt(aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)));
+        double aCoeff = sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2);
         aCoefEtire = ElMin(254,round_ni(aCoeff*mDynEtire));
         if (aDet<0)
             aCoefEtire = 254;

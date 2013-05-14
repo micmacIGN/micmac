@@ -876,7 +876,9 @@ void AddKeySet
          const std::string &              aKey
      )
 {
+
     const std::vector<std::string>  * aSet = anICNM->Get(aKey);
+
     aRes.insert(aSet->begin(),aSet->end());
 }
 

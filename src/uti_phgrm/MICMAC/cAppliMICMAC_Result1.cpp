@@ -161,8 +161,8 @@ void cAppliMICMAC::MakeFileTA()
 
 
     Pt2di aSzOr = OrthoTA().Val() ? aSzClip : Pt2di(1,1);
-    Im2D_U_INT2 aImPriOr(aSzOr.x,aSzOr.y,60000);
-    U_INT2 ** aDPI = aImPriOr.data();
+    Im2D_REAL4 aImPriOr(aSzOr.x,aSzOr.y,60000);
+    REAL4 ** aDPI = aImPriOr.data();
 
 
     Im2D_Bits<1>  aImOKIm1(1,1);
@@ -286,7 +286,12 @@ void cAppliMICMAC::MakeFileTA()
                              double aTeta1 = acos(scal(aTNCur,aNormEucl));
                              double aTeta2 = acos(scal(aTNCentr,aTNCur));
 
+/*
+std::cout << aPdsT1*aTeta1+aPdsT2*aTeta2 << "\n";
                              int aPri = ElMin(60000,round_ni((aPdsT1*aTeta1+aPdsT2*aTeta2)*50));
+*/
+                             double aPri = aPdsT1*aTeta1+aPdsT2*aTeta2;
+
                              if (aPri<aDPI[aY][aX])
                              {
                                aDPI[aY][aX] = aPri;
