@@ -415,7 +415,7 @@ if (MPD_MM())
      {
         mV0Px[0] = mAp->ExpA2Mm().ProfInVertLoc().Val();
      }
-     else if (mAp->ZMoyen().IsInit())
+     else if (mAp->ZMoyen().IsInit()  && (! mAp->AnamSA()))
      {
          mV0Px[0] = mAp->ZMoyen().Val();
      }
@@ -753,6 +753,7 @@ if ( mAp->DebugMM().Val())
       cout << "----STEP en Z " << (1/aZ0-1/aZ1) << " " <<  mV0Px[0] << " " <<  mStepAbs[0] << "\n";
       cout << " RESOL " <<  mResol << " " << mRatioResAltPlani[0] << "\n";
   }
+
 
 
 
