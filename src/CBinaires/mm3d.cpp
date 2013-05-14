@@ -42,6 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define DEF_OFSET -12349876
 
+
 typedef int (*tCommande)  (int,char**);
 
 std::string StrToLower(const std::string & aStr)
@@ -149,6 +150,7 @@ class cMMCom
 
 
 
+int SampleLibElise_main(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -273,9 +275,11 @@ const std::vector<cMMCom> & getAvailableCommands()
 	   aRes.push_back(cMMCom("RechCibleDRad",RechCibleDRad_main," Do some stuff"));
 	   aRes.push_back(cMMCom("RechCibleInit",RechCibleInit_main," Do some stuff"));
 	   aRes.push_back(cMMCom("ScriptCalib",ScriptCalib_main," Do some stuff"));
+
 #endif
 
 #endif
+	   aRes.push_back(cMMCom("TestLib",SampleLibElise_main," To call the programm illustrating the library"));
    }
    return aRes;
 }
@@ -301,10 +305,38 @@ class cSuggest
         std::vector<cMMCom>  mRes;
 };
 
+int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs);
 
-int main(int argc,char ** argv)
+// =========================================================
+
+extern int  Sample_W0_main(int argc,char ** argv);
+extern int  Sample_LSQ0_main(int argc,char ** argv);
+
+const std::vector<cMMCom> & TestLibAvailableCommands()
 {
-   const std::vector<cMMCom> & aVComs = getAvailableCommands();
+   static std::vector<cMMCom> aRes;
+   aRes.push_back(cMMCom("W0",Sample_W0_main,"Test on Graphic Windows "));
+   aRes.push_back(cMMCom("LSQ0",Sample_LSQ0_main,"Basic Test on Least Square libray "));
+   return aRes;
+}
+
+int SampleLibElise_main(int argc,char ** argv)
+{
+
+    std::cout << "TEST ELISE LIB\n";
+
+    GenMain(argc,argv,TestLibAvailableCommands());
+    
+
+    return 1;
+}
+
+
+//=====================================
+
+
+int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
+{
    if ((argc==1) || ((argc==2) && (std::string(argv[1])=="-help")))
    {
        std::cout << "mm3d : Allowed commands \n";
@@ -374,6 +406,12 @@ int main(int argc,char ** argv)
    std::cout << "For command = " << argv[1] << "\n";
    ELISE_ASSERT(false,"Unkown command in mm3d");
    return -1;
+}
+
+
+int main(int argc,char ** argv)
+{
+    return GenMain(argc,argv, getAvailableCommands());
 }
 
 
