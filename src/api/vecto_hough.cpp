@@ -504,7 +504,7 @@ template <class Type> Im2D_INT4  Hough_Mappped_Comp<Type>::CalcPds()
                        )
                    );
 
-         Fonc_Num RT = (polar(FInit,0));
+         Fonc_Num RT = (Polar_Def_Opun::polar(FInit,0));
          if (mParam.mGradUseFiltreMaxLocDir)
          {
             Symb_FNum RT2 = RMaxLocDir
