@@ -30,103 +30,81 @@ Francais :
 
 English :
 
-    MicMac is an open source software specialized in image matching
+    MicMa cis an open source software specialized in image matching
     for research in geographic information. MicMac is built on the
     eLiSe image library. MicMac is governed by the  "Cecill-B licence".
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
+#include <algorithm>
 
-#define DEF_OFSET -12349876
 
 
-void Banniere_Tarama()
+// Example of using solvers defined in   include/general/optim.h
+
+
+int  Abdou_main(int argc,char ** argv)
 {
- std::cout << "*******************************************\n";
- std::cout << "*          T-ableau d'                    *\n";
- std::cout << "*          A-ssemblage pour               *\n";
+  //=====================  PARAMETRES EN DUR ==============
+
+   std::string aDir = "/media/data1/Jeux-Tests/Tortue-Pagode-Hue/";
+   std::string aPatIm = "IMGP687.*JPG";
+   std::string anOrient = "All";
+
+  //===================== 
+
+    // Permet de manipuler les ensemble de nom de fichier
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
 
-
- // pour Mic               *\n";
- // std::cout << "*          M                                
-}
-
-int Tarama_main(int argc,char ** argv)
-{
-	NoInit = "XXXXXXXXXX";
-
-    // MemoArg(argc,argv);
-    MMD_InitArgcArgv(argc,argv);
-    std::string  aDir,aPat,aFullDir;
-    std::string Aero;
-    int  Zoom=8;
-    std::string  NOREP = "NO-REPERE";
-    std::string Repere= NOREP;
-    std::string DirOut="TA";
-    double   aZMoy=0;
-    int     aKNadir=-1;
-
-    ElInitArgMain
-    (
-	argc,argv,
-	LArgMain()  << EAMC(aFullDir,"Full Imaeg (Dir+Pat)")
-                    << EAMC(Aero,"Orientation"),
-	LArgMain()  
-                    << EAM(Zoom,"Zoom",true,"Resolution, (Def=8, must be pow of 2)")	
-                    << EAM(Repere,"Repere",true,"local repair as created with RepLocBascule")	
-                    << EAM(DirOut,"Out",true,"drectory for output (Deg=TA)")	
-                    << EAM(aZMoy,"ZMoy",true,"Average value of Z")	
-                    << EAM(aKNadir,"KNadir",true,"KBest image od Nadir (when exist)")	
-    );
-
-	
-	#if (ELISE_windows)
-		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
-	#endif
-    SplitDirAndFile(aDir,aPat,aFullDir);
-	    
-	MMD_InitArgcArgv(argc,argv);
-   
-    std::string aCom =   MM3dBinFile( "MICMAC" )
-                       + MMDir() + std::string("include/XML_MicMac/MM-TA.xml ")
-                       + std::string(" WorkDir=") +aDir +  std::string(" ")
-                       + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
-                       + std::string(" +Zoom=") + ToString(Zoom)
-                       + std::string(" +Aero=") + Aero
-                       + std::string(" +DirMEC=") + DirOut
-              ;
-
-    if (EAMIsInit(&aKNadir))
-       aCom = aCom + " +KBestMasqNadir=" + ToString(aKNadir);
-
-    if (EAMIsInit(&aZMoy))
+    const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
+    std::cout << "Nmbre Imgae " << aSetIm->size() << "\n";
+    if (0)
     {
-        aCom = aCom + " +FileZMoy=File-ZMoy.xml"
-                    + " +ZMoy=" + ToString(aZMoy);
+        for (int aK=0 ; aK<int(aSetIm->size()) ; aK++)
+            std::cout <<  "   "  << (*aSetIm)[aK] << "\n";
     }
 
-   if (Repere!=NOREP)
-   {
-     bool IsOrthoXCste;
-     if (RepereIsAnam(aDir+Repere,IsOrthoXCste))
-     {
-        aCom =    aCom
-               +  std::string(" +FileAnam=") + "MM-Anam.xml"
-               +  std::string(" +ParamAnam=") + Repere;
-     }
-     else
-     {
-            aCom =     aCom    + std::string(" +Repere=") + Repere ;
-     }
-   }
+    std::string aIm0 = (*aSetIm)[0];
+    std::string aIm1 = (*aSetIm)[1];
 
-   std::cout << "Com = " << aCom << "\n";
-   int aRes = system_call(aCom.c_str());
+    std::string aNameOri0 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+anOrient,aIm0,true);
+    std::cout << "For image " << aIm0 << " Orient=" << aNameOri0  << "\n";
+    CamStenope * aCam0 = CamOrientGenFromFile(aNameOri0,aICNM);
 
+    CamStenope * aCam1 = CamOrientGenFromFile(aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+anOrient,aIm1,true),aICNM);
+
+    std::cout << "Focale is " << aCam0->Focale()  << " Centre=" << aCam0->VraiOpticalCenter() << "\n";
+    std::cout << "Focale is " << aCam1->Focale()  << " Centre=" << aCam1->VraiOpticalCenter() << "\n";
+
+
+
+    Pt2dr aPCentrIm0(aCam0->Sz()/2.0);
+
+    for (int aK =1 ; aK< 100 ; aK++)
+    {
+        Pt3dr aPTer = aCam0->ImEtProf2Terrain(aPCentrIm0,aK);
+        Pt2dr aPIm1 = aCam1->R3toF2(aPTer);
+        std::cout << aPIm1 << "\n";
+
+    }
+    
+    Pt2dr aPCentrIm1(aCam0->Sz()/2.0);
    
-   return aRes;
+    double aDist;
+
+    Pt3dr aPTer = aCam0->PseudoInter(aPCentrIm0,*aCam1,aPCentrIm1,&aDist);
+
+     std::cout << "Dist Inter " << aDist << "\n";
+
+     std::cout << " REPROJ; " << aPCentrIm0  << " " << aCam0->R3toF2(aPTer) << "\n";
+
+    // Pt3dr aP 
+  
+    
+
+   return 0;
 }
 
 

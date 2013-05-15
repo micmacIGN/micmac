@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2047]) = {
+const char * (theNameVar_ParamMICMAC[2049]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -1791,12 +1791,14 @@ const char * (theNameVar_ParamMICMAC[2047]) = {
 "	 et modif par lignes de commandes-->\n",
 "	 <GenereXMLComp Nb=\"?\" Def=\"true\" Type=\"bool\"> </GenereXMLComp>\n",
 "\n",
+"         <TAUseMasqNadirKBest Nb=\"?\" Type=\"int\"> </TAUseMasqNadirKBest>\n",
 "	 <ZoomMakeTA Nb=\"?\"  Type=\"int\"> </ZoomMakeTA>\n",
 "         <SaturationTA  Nb=\"?\" Type=\"double\" Def=\"50.0\"> </SaturationTA>\n",
 "         <!-- Si true le TA ressemble + a une ortho, avec prise en compte du nadir, la\n",
 "          coloration est   un etiquettage -->\n",
 "         <OrthoTA Nb=\"?\" Type=\"bool\" Def=\"false\"> </OrthoTA>\n",
 "	 <ZoomMakeMasq Nb=\"?\"  Type=\"int\"> </ZoomMakeMasq>\n",
+"         \n",
 "\n",
 "         <!-- Si true le masque terrain n'est calcule qu'a la resolution necessaire, cela fait gagner un temps\n",
 "              non negligeable en proportion lorque l'on s'arrete a des resol basse; false par defaut au cas\n",
