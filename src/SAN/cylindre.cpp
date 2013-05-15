@@ -464,7 +464,7 @@ Pt3dr cCylindreRevolution::E2UVL(const Pt3dr & aP) const
     double aX = scal(aPP0,mU);
     double aY = scal(aPP0,mV);
     double aZ = scal(aPP0,mW);
-    Pt2dr aRhoTeta = polar(Pt2dr(aX,aY),0);  // Rho teta
+    Pt2dr aRhoTeta = Pt2dr::polar(Pt2dr(aX,aY),0);  // Rho teta
 
     // On renvoie Teta-Z-Rho pour : 
     //   1 etre direct

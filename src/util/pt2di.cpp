@@ -220,12 +220,12 @@ REAL  angle_de_droite_nor(const Pt2dr & p1,const Pt2dr & p2)
       return angle_de_droite_nor(p2*p1.conj());
 }
 
-Pt2dr polar(const Pt2dr & p,REAL AngDef)
-{
-    if ((p.x==0) && (p.y== 0))
-       return Pt2dr(0,AngDef);
-    return Pt2dr(hypot(p.x,p.y),atan2(p.y,p.x));
-}
+// Pt2dr polar(const Pt2dr & p,REAL AngDef)
+// {
+//     if ((p.x==0) && (p.y== 0))
+//        return Pt2dr(0,AngDef);
+//     return Pt2dr(hypot(p.x,p.y),atan2(p.y,p.x));
+// }
 
 template<class Type>  bool
       Pt2d<Type>::in_sect_angulaire(const Pt2d<Type> & p1,const Pt2d<Type> & p2) const
