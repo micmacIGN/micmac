@@ -2,9 +2,16 @@ Nouveaux outils :
 
   MM-PxTransv.xml en outil simplifie
 
+  Exemple EDF en outil non simplifie
+
   MNE urbain en chaine simplifiee ?? 
 
+
+   
+
 Corriger Tapas RadialBasic "R.*.JPG" Out=All-Rel Incal=Sample4Calib-Rel dans cmd_UAS_Grand-Leez.txt 
+
+
 
 
 

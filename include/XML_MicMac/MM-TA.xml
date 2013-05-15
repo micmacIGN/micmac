@@ -11,7 +11,7 @@
            <Symb>   DirMEC="TA"  </Symb>
            <Symb>   FileAnam=EmptyXML.xml  </Symb>
            <Symb>   FileZMoy=EmptyXML.xml  </Symb>
-            
+           <Symb>   KBestMasqNadir=-1  </Symb>
   </DicoLoc>
 
 
@@ -84,6 +84,7 @@
 
     <ZoomMakeTA> ${Zoom} </ZoomMakeTA>
     <SaturationTA > 0.0 </SaturationTA>
+    <TAUseMasqNadirKBest>  ${KBestMasqNadir} </TAUseMasqNadirKBest>
     <OrthoTA> true </OrthoTA>
     <MakeImCptTA> true </MakeImCptTA>
 

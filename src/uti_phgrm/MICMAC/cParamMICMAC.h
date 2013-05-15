@@ -4544,6 +4544,9 @@ class cSection_Results
         cTplValGesInit< bool > & GenereXMLComp();
         const cTplValGesInit< bool > & GenereXMLComp()const ;
 
+        cTplValGesInit< int > & TAUseMasqNadirKBest();
+        const cTplValGesInit< int > & TAUseMasqNadirKBest()const ;
+
         cTplValGesInit< int > & ZoomMakeTA();
         const cTplValGesInit< int > & ZoomMakeTA()const ;
 
@@ -4630,6 +4633,7 @@ class cSection_Results
         cTplValGesInit< std::string > mNonExistingFileDoMEC;
         cTplValGesInit< bool > mDoFDC;
         cTplValGesInit< bool > mGenereXMLComp;
+        cTplValGesInit< int > mTAUseMasqNadirKBest;
         cTplValGesInit< int > mZoomMakeTA;
         cTplValGesInit< double > mSaturationTA;
         cTplValGesInit< bool > mOrthoTA;
@@ -5582,6 +5586,9 @@ class cParamMICMAC
 
         cTplValGesInit< bool > & GenereXMLComp();
         const cTplValGesInit< bool > & GenereXMLComp()const ;
+
+        cTplValGesInit< int > & TAUseMasqNadirKBest();
+        const cTplValGesInit< int > & TAUseMasqNadirKBest()const ;
 
         cTplValGesInit< int > & ZoomMakeTA();
         const cTplValGesInit< int > & ZoomMakeTA()const ;

@@ -242,7 +242,7 @@ void  EHFS_ScoreGrad::MakeImGradRhoTeta
     for (INT y=0; y<= 2* mNbYMax ; y++)
         for (INT x=0; x<=mNbX ; x++)
         {
-            Pt2dr rt = polar(Pt2dr(dGx[y][x],dGy[y][x]),PI); 
+            Pt2dr rt = Pt2dr::polar(Pt2dr(dGx[y][x],dGy[y][x]),PI); 
             dRho[y][x] = ElMin(255,round_ni(rt.x));
             dTeta[y][x] =  mod(round_ni(rt.y*128.0/PI),256);
         }
