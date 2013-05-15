@@ -939,7 +939,7 @@ INT Filtr_Incr_NormDeriche:: Filters
                  Max
                  (
                      0,
-                     polar(deriche(ImsIn[iChIn].in_proj(),FactDer),0).v0()*Dyn
+                     Polar_Def_Opun::polar(deriche(ImsIn[iChIn].in_proj(),FactDer),0).v0()*Dyn
                  )
              ),
              ImsOut[iChOut].out()
@@ -978,7 +978,7 @@ INT Filtr_Incr_AngDeriche:: Filters
           ELISE_COPY
           (
              rectangle(p0,p1),
-             polar(deriche(ImsIn[iChIn].in_proj(),FactDer,20),0).v1() * (256.0/(2*PI)),
+             Polar_Def_Opun::polar(deriche(ImsIn[iChIn].in_proj(),FactDer,20),0).v1() * (256.0/(2*PI)),
              ImsOut[iChOut].out()
           );
           iChOut++;

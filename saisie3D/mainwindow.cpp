@@ -76,11 +76,6 @@ void MainWindow::toggleFullScreen(bool state)
 
 void MainWindow::togglePointsSelection(bool state)
 {
-    /*QMessageBox msgBox;
-    QString text = "Point selection on\n";
-    msgBox.setText(text);
-    msgBox.exec();/**/
-
     if (state)
         m_glWidget->setInteractionMode(GLWidget::SEGMENT_POINTS);
     else
@@ -93,6 +88,7 @@ void MainWindow::doActionDisplayShortcuts()
     QString text;
     text += "Shortcuts:\n\n";
     text += "F11: Toggle full screen\n";
+    text += "Key +/-: increase/decrease point size\n";
     text += "\n";
     text += "F5 : Toggle rotation mode / selection mode\n";
     text += "    - left click : add a point to polyline ";
@@ -101,6 +97,7 @@ void MainWindow::doActionDisplayShortcuts()
     text += "    - space bar: keep points inside polyline\n";
     text += "    - delete key: keep points outside polyline\n";
     text += "    - Ctrl + Z: undo all past selections\n";
+
     msgBox.setText(text);
     msgBox.exec();
 }
@@ -151,9 +148,6 @@ void MainWindow::setRightView()
 
 void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
 {
-   // if (checkBoxCameraLink->checkState() != Qt::Checked)
-      //  return;
-
     GLWidget* sendingWindow = dynamic_cast<GLWidget*>(sender());
     if (!sendingWindow)
         return;
