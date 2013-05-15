@@ -617,7 +617,7 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
         x++;
     }
 
-    OptimisationOneDirection(streamCostVolume,index,make_uint3(mSz.y,mSz.x,depth),hOutputCost,hOutputCost);
+    OptimisationOneDirection(streamCostVolume,index,make_uint3(mSz.y,mSz.x,depth),hOutputCost);
 
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
     x = 0;
