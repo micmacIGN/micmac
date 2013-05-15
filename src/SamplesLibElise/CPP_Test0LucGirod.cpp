@@ -48,8 +48,8 @@ int  PtsHom_main(int argc,char ** argv)
 {
   //=====================  PARAMETRES EN DUR ==============
 
-   std::string aDir = "/media/data1/Jeux-Tests/Tortue-Pagode-Hue/";
-   std::string aPatIm = "IMGP687.*JPG";
+   std::string aDir = "C:/Users/Luc Girod/Desktop/TFE/Vignettage/vignette_sift3";
+   std::string aPatIm = ".*JPG";
    std::string Prefix = "";
    // std::string Prefix =  "_SRes" ; 
    std::string Extension = "dat";
@@ -60,7 +60,7 @@ int  PtsHom_main(int argc,char ** argv)
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
 
-
+//On parcours toutes les paires d'images différentes (->testé dans le if)
     for (int aK1=0 ; aK1<int(aSetIm->size()) ; aK1++)
     {
         for (int aK2=0 ; aK2<int(aSetIm->size()) ; aK2++)
