@@ -113,6 +113,11 @@ cGeomImage::cGeomImage
 
 }
 
+std::string cGeomImage::NameMasqImNadir(int aKB)
+{
+    return mAppli.FullDirPyr() + "MasqNadir_K" + ToString(aKB) +  "_" + mPDV.Name() + ".tif";
+}
+
 double cGeomImage::IncidTerrain(Pt2dr aPTer)
 {
    ELISE_ASSERT(false,"cGeomImage::IncidTerrain");
@@ -1312,10 +1317,18 @@ class cGeomImage_DHD_Px : public cGeomImage
 class cGeomImage_Terrain_Ori : public cGeomImage
 {
     public :
+/*
+      std::string NameMasqImNadir(int aBK)
+      {
+           return mAppli.FullDirPyr() + "MasqNadir_K" + ToString(aKB) +  "_" + mPDV.Name() + ".tif";
+      }
+*/
+
       std::string NameMasqImNadir()
       {
-           return mAppli.FullDirPyr() + "MasqNadir_K" + ToString(mAppli.MMImNadir()->KBest()) +  "_" + mPDV.Name() + ".tif";
+           return cGeomImage::NameMasqImNadir(mAppli.MMImNadir()->KBest());
       }
+
 
       cGeomImage_Terrain_Ori
       (

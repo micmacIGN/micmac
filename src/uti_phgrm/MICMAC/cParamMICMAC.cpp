@@ -14638,6 +14638,17 @@ const cTplValGesInit< bool > & cSection_Results::GenereXMLComp()const
 }
 
 
+cTplValGesInit< int > & cSection_Results::TAUseMasqNadirKBest()
+{
+   return mTAUseMasqNadirKBest;
+}
+
+const cTplValGesInit< int > & cSection_Results::TAUseMasqNadirKBest()const 
+{
+   return mTAUseMasqNadirKBest;
+}
+
+
 cTplValGesInit< int > & cSection_Results::ZoomMakeTA()
 {
    return mZoomMakeTA;
@@ -14926,6 +14937,8 @@ cElXMLTree * ToXMLTree(const cSection_Results & anObj)
       aRes->AddFils(::ToXMLTree(std::string("DoFDC"),anObj.DoFDC().Val())->ReTagThis("DoFDC"));
    if (anObj.GenereXMLComp().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("GenereXMLComp"),anObj.GenereXMLComp().Val())->ReTagThis("GenereXMLComp"));
+   if (anObj.TAUseMasqNadirKBest().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("TAUseMasqNadirKBest"),anObj.TAUseMasqNadirKBest().Val())->ReTagThis("TAUseMasqNadirKBest"));
    if (anObj.ZoomMakeTA().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ZoomMakeTA"),anObj.ZoomMakeTA().Val())->ReTagThis("ZoomMakeTA"));
    if (anObj.SaturationTA().IsInit())
@@ -14992,6 +15005,8 @@ void xml_init(cSection_Results & anObj,cElXMLTree * aTree)
    xml_init(anObj.DoFDC(),aTree->Get("DoFDC",1),bool(false)); //tototo 
 
    xml_init(anObj.GenereXMLComp(),aTree->Get("GenereXMLComp",1),bool(true)); //tototo 
+
+   xml_init(anObj.TAUseMasqNadirKBest(),aTree->Get("TAUseMasqNadirKBest",1)); //tototo 
 
    xml_init(anObj.ZoomMakeTA(),aTree->Get("ZoomMakeTA",1)); //tototo 
 
@@ -18230,6 +18245,17 @@ cTplValGesInit< bool > & cParamMICMAC::GenereXMLComp()
 const cTplValGesInit< bool > & cParamMICMAC::GenereXMLComp()const 
 {
    return Section_Results().GenereXMLComp();
+}
+
+
+cTplValGesInit< int > & cParamMICMAC::TAUseMasqNadirKBest()
+{
+   return Section_Results().TAUseMasqNadirKBest();
+}
+
+const cTplValGesInit< int > & cParamMICMAC::TAUseMasqNadirKBest()const 
+{
+   return Section_Results().TAUseMasqNadirKBest();
 }
 
 
