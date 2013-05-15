@@ -1789,12 +1789,14 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
 	 et modif par lignes de commandes-->
 	 <GenereXMLComp Nb="?" Def="true" Type="bool"> </GenereXMLComp>
 
+         <TAUseMasqNadirKBest Nb="?" Type="int"> </TAUseMasqNadirKBest>
 	 <ZoomMakeTA Nb="?"  Type="int"> </ZoomMakeTA>
          <SaturationTA  Nb="?" Type="double" Def="50.0"> </SaturationTA>
          <!-- Si true le TA ressemble + a une ortho, avec prise en compte du nadir, la
           coloration est   un etiquettage -->
          <OrthoTA Nb="?" Type="bool" Def="false"> </OrthoTA>
 	 <ZoomMakeMasq Nb="?"  Type="int"> </ZoomMakeMasq>
+         
 
          <!-- Si true le masque terrain n'est calcule qu'a la resolution necessaire, cela fait gagner un temps
               non negligeable en proportion lorque l'on s'arrete a des resol basse; false par defaut au cas

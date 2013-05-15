@@ -1,6 +1,7 @@
 set(SamplesLibElise_Src_Files
     ${SAMPLESLIBELISE_DIR}/CPP_Windows0Main.cpp
     ${SAMPLESLIBELISE_DIR}/CPP_LSQMain.cpp
+    ${SAMPLESLIBELISE_DIR}/CPP_TestAbdou.cpp
 )
 
 # JE NE SAIS PAS SI CA SERT ???
