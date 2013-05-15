@@ -1,0 +1,2 @@
+Thies directory contains basic examples of how to use some class and function od Elise lib.
+
