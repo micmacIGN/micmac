@@ -2,11 +2,11 @@
 
 #include <fstream>
 #include <iostream>
-//#include <cstdlib>
 
 #include <QFileInfo>
 
 #include "d:\culture3D\include\poisson\ply.h"
+
 
 using namespace std;
 using namespace Cloud_;
@@ -39,26 +39,7 @@ static PlyProperty oriented_vert_props[] = {
     {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,nz), 0, 0, 0, 0}
 };
 
-Pt3D::Pt3D(){}
-
-Pt3D::Pt3D(float x, float y, float z)
-{
-    m_x = x; m_y = y; m_z = z;
-}
-
-/*!
-    Assigns a copy of \a Pt3D to this Pt3D, and returns a reference to it.
-*/
-Pt3D &Pt3D::operator=(const Pt3D &pt)
-{
-    m_x = pt.m_x;
-    m_y = pt.m_y;
-    m_z = pt.m_z;
-
-    return *this;
-}
-
-Vertex::Vertex(Pt3D pos, QColor col)
+Vertex::Vertex(Vector3 pos, QColor col)
 {
     m_position  = pos;
     m_color     = col;
@@ -132,14 +113,14 @@ bool Cloud::loadPly( const string &i_filename )
                             printf ("vertex: %g %g %g %u %u %u\n", vlist[j]->x, vlist[j]->y, vlist[j]->z, vlist[j]->red, vlist[j]->green, vlist[j]->blue);
                         #endif
 
-                        addVertex( Vertex (Pt3D ( vlist[j]->x, vlist[j]->y, vlist[j]->z ), QColor( vlist[j]->red, vlist[j]->green, vlist[j]->blue )) );
+                        addVertex( Vertex (Vector3 ( vlist[j]->x, vlist[j]->y, vlist[j]->z ), QColor( vlist[j]->red, vlist[j]->green, vlist[j]->blue )) );
                     }
                     break;
                 }
 
             case 6:
                 {
-                    //can be (x y z r g b) or (x y z nx ny nz)
+                    // can be (x y z r g b) or (x y z nx ny nz)
 
                     // create a vertex list to hold all the vertices
                     sPlyColoredVertex **ulist = (sPlyColoredVertex **) malloc (sizeof (sPlyColoredVertex *) * num_elems);
@@ -161,7 +142,7 @@ bool Cloud::loadPly( const string &i_filename )
                             printf ("vertex: %g %g %g %u %u %u\n", ulist[j]->x, ulist[j]->y, ulist[j]->z, ulist[j]->red, ulist[j]->green, ulist[j]->blue);
                         #endif
 
-                        addVertex( Vertex (Pt3D ( ulist[j]->x, ulist[j]->y, ulist[j]->z ), QColor( ulist[j]->red, ulist[j]->green, ulist[j]->blue )) );
+                        addVertex( Vertex (Vector3 ( ulist[j]->x, ulist[j]->y, ulist[j]->z ), QColor( ulist[j]->red, ulist[j]->green, ulist[j]->blue )) );
                     }
                     break;
                 }

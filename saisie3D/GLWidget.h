@@ -34,9 +34,9 @@ public:
     float zoom;
 
     //! Point size
-    float defaultPointSize;
+    float PointSize;
     //! Line width
-    float defaultLineWidth;
+    float LineWidth;
 };
 
 class GLWidget : public QGLWidget
@@ -44,9 +44,9 @@ class GLWidget : public QGLWidget
 private:
     QVector <Cloud_::Cloud> m_ply;
 
-    Q_OBJECT // must include this if you use Qt signals/slots
+    Q_OBJECT
 
-    QPoint              lastPos;
+    QPoint              m_lastPos;
 
 public:
     GLWidget(QWidget *parent = NULL);
@@ -96,19 +96,24 @@ public:
 
     void setInteractionMode(INTERACTION_MODE mode);
 
+    //! Segment points with polyline
     void segment(bool inside);
 
     void clearPolyline();
     void closePolyline();
 
+     //! Undo all past selection actions
     void undoAll();
+
+    //! Increase or decrease point size
+    void ptSizeUp(bool);
 
     GLdouble m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_cX, m_cY, m_cZ, m_diam;
 
 public slots:
     void zoom();
 
-    //called when recieving mouse wheel is rotated
+    //called when receiving mouse wheel is rotated
     void onWheelEvent(float wheelDelta_deg);
 
 signals:
@@ -136,8 +141,6 @@ protected:
     virtual void dragEnterEvent(QDragEnterEvent* event);
     virtual void dropEvent(QDropEvent* event);
 
-    //void getContext(glDrawContext& context);
-
     void draw3D();
 
     void drawGradientBackground();
@@ -148,11 +151,6 @@ protected:
     int m_glWidth;
     //! GL context height
     int m_glHeight;
-
-    //! Returns current font size
-    virtual int getFontPointSize() const;
-    //! Sets current font size
-    virtual void setFontPointSize(int pixelSize);
 
     //! Default font
     QFont m_font;
@@ -188,9 +186,6 @@ protected:
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
 };
-
-
-
 
 #endif  /* _GLWIDGET_H */
 

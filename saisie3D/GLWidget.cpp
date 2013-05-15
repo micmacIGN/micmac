@@ -22,18 +22,17 @@ using namespace Cloud_;
 ViewportParameters::ViewportParameters()
     : pixelSize(1.0f)
     , zoom(1.0f)
-    , defaultPointSize(1.0f)
-    , defaultLineWidth(1.0f)
+    , PointSize(1.0f)
+    , LineWidth(1.0f)
 {}
 
 ViewportParameters::ViewportParameters(const ViewportParameters& params)
     : pixelSize(params.pixelSize)
     , zoom(params.zoom)
-    , defaultPointSize(params.defaultPointSize)
-    , defaultLineWidth(params.defaultLineWidth)
+    , PointSize(params.PointSize)
+    , LineWidth(params.LineWidth)
 {}
 
-int g_mouseOldX, g_mouseOldY;
 bool g_mouseLeftDown = false;
 GLfloat g_tmpMatix[9],
         g_rotationOx[9],
@@ -170,7 +169,6 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent)
     m_maxX = m_maxY = m_maxZ = FLT_MIN;
     m_cX = m_cY = m_cZ = m_diam = 0.f;
 
-
     setMouseTracking(true);
 
     //drag & drop handling
@@ -192,7 +190,8 @@ void GLWidget::initializeGL()
     glDisable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
+    //glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
+    glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST );
 
     m_bInitialized = true;
 }
@@ -214,7 +213,7 @@ void GLWidget::paintGL()
 
     draw3D();
 
-    glPointSize(m_params.defaultPointSize);
+    glPointSize(m_params.PointSize);
 
     glBegin(GL_POINTS);
     for(int aK=0; aK< m_ply.size(); aK++)
@@ -286,8 +285,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     if ( event->buttons()&Qt::LeftButton )
     {
         g_mouseLeftDown = true;
-        g_mouseOldX = event->x();
-        g_mouseOldY = event->y();
+        m_lastPos = event->pos();
 
         if ((m_interactionMode == SEGMENT_POINTS) && !m_bPolyIsClosed )
         {
@@ -305,7 +303,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         closePolyline();
     }
 
-    lastPos = event->pos();
+    m_lastPos = event->pos();
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
@@ -326,6 +324,12 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
         break;
     case Qt::Key_Delete:
         segment(false);
+        break;
+    case Qt::Key_Plus:
+        ptSizeUp(true);
+        break;
+    case Qt::Key_Minus:
+        ptSizeUp(false);
         break;
     default:
         event->ignore();
@@ -359,15 +363,15 @@ void GLWidget::addPly( const QString &i_ply_file )
     m_diam = max(m_maxX-m_minX, max(m_maxY-m_minY, m_maxZ-m_minZ));
 
     //center and scale cloud
-    Pt3D pt3d;
+    Vector3 pt3d;
     for (int aK=0; aK < nbPts; ++aK)
     {
         Vertex vert = a_ply.getVertex(aK);
         Vertex vert_res = vert;
 
-        pt3d.setX( (vert.x() - m_cX) / m_diam );
-        pt3d.setY( (vert.y() - m_cY) / m_diam );
-        pt3d.setZ( (vert.z() - m_cZ) / m_diam );
+        pt3d.x = (vert.x() - m_cX) / m_diam;
+        pt3d.y = (vert.y() - m_cY) / m_diam;
+        pt3d.z = (vert.z() - m_cZ) / m_diam;
 
         vert_res.setCoord(pt3d);
         vert_res.setColor(vert.getColor());
@@ -375,7 +379,7 @@ void GLWidget::addPly( const QString &i_ply_file )
         a_res.addVertex(vert_res);
     }
 
-    a_res.setTranslation(Pt3D(m_cX, m_cY, m_cZ));
+    a_res.setTranslation(Vector3(m_cX, m_cY, m_cZ));
     a_res.setScale((float) m_diam);
 
     //translate and scale back clouds if needed
@@ -383,23 +387,23 @@ void GLWidget::addPly( const QString &i_ply_file )
     {
         if (m_ply[aK].getScale()) //cloud has been scaled
         {
-            Pt3D translation = m_ply[aK].getTranslation();
+            Vector3 translation = m_ply[aK].getTranslation();
             float scale = m_ply[aK].getScale();
 
             for (int bK=0; bK < m_ply[aK].size();++bK)
             {
                 Vertex vert = m_ply[aK].getVertex(bK);
 
-                pt3d.setX( ((vert.x() * scale + translation.x()) - m_cX) / m_diam);
-                pt3d.setY( ((vert.y() * scale + translation.y()) - m_cY) / m_diam);
-                pt3d.setZ( ((vert.z() * scale + translation.z()) - m_cZ) / m_diam);
+                pt3d.x = ((vert.x() * scale + translation.x) - m_cX) / m_diam;
+                pt3d.y = ((vert.y() * scale + translation.y) - m_cY) / m_diam;
+                pt3d.z = ((vert.z() * scale + translation.z) - m_cZ) / m_diam;
 
                 vert.setCoord(pt3d);
 
                 m_ply[aK].setVertex(bK, vert);
             }
 
-            m_ply[aK].setTranslation(Pt3D(m_cX, m_cY, m_cZ));
+            m_ply[aK].setTranslation(Vector3(m_cX, m_cY, m_cZ));
             m_ply[aK].setScale((float) m_diam);
         }
     }
@@ -431,16 +435,17 @@ void GLWidget::dropEvent(QDropEvent *event)
         for (int i=0;i<fileNames.size();++i)
         {
             fileNames[i] = fileNames[i].trimmed();
-#if defined(_WIN32) || defined(WIN32)
-            fileNames[i].remove("file:///");
-#else
-            fileNames[i].remove("file://");
-#endif
-            //fileNames[i] = QUrl(fileNames[i].trimmed()).toLocalFile(); //toLocalFile removes the end of filenames sometimes!
-#ifdef _DEBUG
-            QString formatedMessage = QString("File dropped: %1").arg(fileNames[i]);
-            printf(" %s\n",qPrintable(formatedMessage));
-#endif
+
+            #if defined(_WIN32) || defined(WIN32)
+                 fileNames[i].remove("file:///");
+            #else
+                 fileNames[i].remove("file://");
+            #endif
+
+            #ifdef _DEBUG
+                 QString formatedMessage = QString("File dropped: %1").arg(fileNames[i]);
+                 printf(" %s\n",qPrintable(formatedMessage));
+            #endif
         }
 
         if (!fileNames.empty())
@@ -513,8 +518,8 @@ void GLWidget::draw3D()
     setStandardOrthoCenter();
     glEnable(GL_DEPTH_TEST);
 
-    glPointSize(m_params.defaultPointSize);
-    glLineWidth(m_params.defaultLineWidth);
+    glPointSize(m_params.PointSize);
+    glLineWidth(m_params.LineWidth);
 
     //gradient color background
     drawGradientBackground();
@@ -547,16 +552,6 @@ void GLWidget::setStandardOrthoCenter()
     glOrtho(-halfW,halfW,-halfH,halfH,-maxS,maxS);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-}
-
-void GLWidget::setFontPointSize(int pixelSize)
-{
-    m_font.setPointSize(pixelSize);
-}
-
-int GLWidget::getFontPointSize() const
-{
-    return m_font.pointSize();
 }
 
 void GLWidget::zoom()
@@ -662,10 +657,7 @@ void GLWidget::setZoom(float value)
     else if (value > GL_MAX_ZOOM_RATIO)
         value = GL_MAX_ZOOM_RATIO;
 
-    if (m_params.zoom != value)
-    {
-        m_params.zoom = value;
-    }
+    m_params.zoom = value;
 }
 
 void GLWidget::wheelEvent(QWheelEvent* event)
@@ -710,20 +702,16 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     {
         clearPolyline();
 
-        int dx = event->x()-g_mouseOldX,
-            dy = event->y()-g_mouseOldY;
+        QPoint dp = event->pos()-m_lastPos;
 
-        g_mouseOldX = event->x();
-        g_mouseOldY = event->y();
+        m_lastPos = event->pos();
 
-        setRotateOx_m33( ( g_trackballScale*dy )/m_glHeight, g_rotationOx );
-        setRotateOy_m33( ( g_trackballScale*dx )/m_glWidth, g_rotationOy );
+        setRotateOx_m33( ( g_trackballScale*dp.y() )/m_glHeight, g_rotationOx );
+        setRotateOy_m33( ( g_trackballScale*dp.x() )/m_glWidth, g_rotationOy );
+
         mult_m33( g_rotationOx, g_rotationMatrix, g_tmpMatix );
         mult_m33( g_rotationOy, g_tmpMatix, g_rotationMatrix );
         inverse_m33( g_rotationMatrix, g_inverseRotationMatrix );
-
-        GLfloat minv[9];
-        mult_m33( g_rotationMatrix, g_inverseRotationMatrix, minv );
 
         updateGL();
     }
@@ -771,12 +759,12 @@ void GLWidget::segment(bool inside)
     int VP[4];
 
     glMatrixMode(GL_MODELVIEW);
-    glGetDoublev(GL_PROJECTION_MATRIX, (GLdouble*) &MM);
+    glGetDoublev(GL_MODELVIEW_MATRIX, (GLdouble*) &MM);
 
     glMatrixMode(GL_PROJECTION);
-    glGetDoublev(GL_MODELVIEW_MATRIX, (GLdouble*) &MP);
+    glGetDoublev(GL_PROJECTION_MATRIX, (GLdouble*) &MP);
 
-    makeCurrent();
+    //makeCurrent();
     glGetIntegerv(GL_VIEWPORT, VP);
 
     QPoint P2D;
@@ -796,16 +784,19 @@ void GLWidget::segment(bool inside)
         {
             Cloud_::Vertex P = a_cloud.getVertex( bK );
 
-            GLdouble xp,yp,zp;
-            gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
+            if (P.isVisible())
+            {
+                GLdouble xp,yp,zp;
+                gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
 
-            P2D.setX(xp);
-            P2D.setY(yp);
+                P2D.setX(xp);
+                P2D.setY(yp);
 
-            pointInside = isPointInsidePoly(P2D,polyg);
+                pointInside = isPointInsidePoly(P2D,polyg);
 
-            if ((inside && !pointInside)||(!inside && pointInside))
-                m_ply[aK].getVertex(bK).setVisible(false);
+                if ((inside && !pointInside)||(!inside && pointInside))
+                    m_ply[aK].getVertex(bK).setVisible(false);
+            }
         }
     }
 }
@@ -837,4 +828,15 @@ void GLWidget::undoAll()
             m_ply[aK].getVertex(bK).setVisible(true);
         }
     }
+}
+
+void GLWidget::ptSizeUp(bool up)
+{
+    if (up)
+        m_params.PointSize++;
+    else
+        m_params.PointSize--;
+
+    if (m_params.PointSize == 0)
+        m_params.PointSize = 1;
 }
