@@ -156,6 +156,10 @@ void cAppliMICMAC::MakeFileTA()
 // getchar();
     Im2D_U_INT1 aImCpt(aSzClip.x,aSzClip.y,0);
     U_INT1 ** aDCpt = aImCpt.data();
+    Im2D_U_INT1 aImLabel(aSzClip.x,aSzClip.y,255);
+    U_INT1 ** aDataLabel = aImLabel.data();
+
+
     Im2D_U_INT1 aImGray(aSzClip.x,aSzClip.y,0);
     U_INT1 ** aDGr = aImGray.data();
 
@@ -186,6 +190,8 @@ void cAppliMICMAC::MakeFileTA()
     int aLabel = 0;
     cSetName *  aSelector = mICNM->KeyOrPatSelector(FilterTA());
 
+    int aNKB = TAUseMasqNadirKBest().ValWithDef(-1);
+
     for (tCsteIterPDV itFI=PdvBegin(); itFI!=PdvEnd(); itFI++)
     {
         if (aSelector->IsSetIn((*itFI)->Name()))
@@ -207,6 +213,7 @@ void cAppliMICMAC::MakeFileTA()
 #endif 
 		std::cout << "mWM : Preparation de l'image " << num << " / "<< NbPdv()<<std::endl;
 	  }
+          TIm2D<U_INT1,INT> aMasqNadir(Pt2di(1,1));
 	  ++num;
           cGeomImageData  aGID = (*itFI)->Geom().SauvData();
 
@@ -251,6 +258,13 @@ void cAppliMICMAC::MakeFileTA()
          double aPdsT1 = 0.7;
          double aPdsT2 = 0.3;
 
+          if (aNKB >= 0)
+          {
+               aMasqNadir= TIm2D<U_INT1,INT>(Im2D_U_INT1::FromFileStd(aGeomIm.NameMasqImNadir(aNKB)));
+               // std::cout << "NNaddirr " << aMasqNadir.sz() << " " <<  aIm.sz() << "\n";
+               ELISE_ASSERT(euclid(aMasqNadir.sz(),aIm.sz()) <2,"Taille incoherente dans masq nadir TA");
+          }
+
           for (int aX = aP0.x; aX< aP1.x ; aX++)
           {
               for (int aY = aP0.y; aY< aP1.y ; aY++)
@@ -262,7 +276,11 @@ void cAppliMICMAC::MakeFileTA()
                       Pt2dr aP = aGeomIm.CurObj2Im(aP2Ter,aPx0);
                       // Pt2dr aP = aGeomIm.CurObj2Im(aGeomDFPx.DiscToR2(Pt2di(aX,aY)),aPx0);
 
-                      if (aTIm.inside_rab(aP,3))
+                      bool Ok = aTIm.inside_rab(aP,3);
+                      if (aNKB>=0) Ok = Ok && aMasqNadir.get(round_ni(aP),0);
+
+
+                      if (Ok)
                       {
                          int aV = round_ni(aTIm.getr(aP,-1));
 
@@ -296,8 +314,9 @@ std::cout << aPdsT1*aTeta1+aPdsT2*aTeta2 << "\n";
                              {
                                aDPI[aY][aX] = aPri;
                                aDGr [aY][aX] = aV;
-                               aDCpt[aY][aX] = aLabel;
+                               aDataLabel[aY][aX] = aLabel;
                              }
+                             aDCpt[aY][aX]++;
                          }
                       }
                  }
@@ -333,6 +352,11 @@ std::cout << aPdsT1*aTeta1+aPdsT2*aTeta2 << "\n";
     {
         std::string aNameCpt = DirOfFile(aNameTA) + "Cpt" + NameWithoutDir(aNameTA);
         Tiff_Im::CreateFromIm(aImCpt,aNameCpt);
+        if (OrthoTA().Val())
+        {
+             std::string aNameLabel = DirOfFile(aNameTA) + "Label" + NameWithoutDir(aNameTA);
+             Tiff_Im::CreateFromIm(aImLabel,aNameLabel);
+        }
     }
 }
 
