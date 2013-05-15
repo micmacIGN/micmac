@@ -341,8 +341,6 @@ Pt2d<double> Pt2d<Type>::polar( const Pt2d<double> & p,REAL AngDef )
 	return Pt2dr(hypot(p.x,p.y),atan2(p.y,p.x));
 }
 
-
-
 template <class Type>
  Type  dist4(const Pt2d<Type> & p){return ElAbs(p.x)+  ElAbs(p.y);}
 
@@ -633,6 +631,8 @@ template <class Type> void assert_not_nul(const Pt2d<Type> &){}
 REAL  angle(const Pt2dr & p);  
 REAL  angle(const Pt2dr & p1,const Pt2dr & p2);
 
+
+// La fonction polar est maintenant dans la classe Pt2d !!!
 // Pt2dr polar(const Pt2dr & p,REAL AngDef);
 
 // angle de droite (entre -pi/2 et pi/2),

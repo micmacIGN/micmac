@@ -707,7 +707,7 @@ Output Hough_Mapped_Grad
 
 
    Symb_FNum aGrad = deriche(aFonc,aParam.mFactCaniche,20);
-   Symb_FNum aRho = polar(aGrad,0).v0();
+   Symb_FNum aRho = Polar_Def_Opun::polar(aGrad,0).v0();
 
    return Output::onul() <<
           create_op_buf_simple_tpl

@@ -378,7 +378,7 @@ Fonc_Num  OneItereFiltrageImMicMac
        case eFiltrageDeriche :
        {
             aFonc = deriche(aFonc.v0(),1/aSz);
-            aFonc = polar(aFonc,0).v0();
+            aFonc = Polar_Def_Opun::polar(aFonc,0).v0();
             return aFonc;
        }
        break;
