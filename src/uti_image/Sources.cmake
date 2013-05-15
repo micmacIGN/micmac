@@ -13,6 +13,7 @@ list( APPEND uti_image_Src_Files ${uti_image_Sift_Src_Files})
 list( APPEND uti_image_Src_Files ${uti_image_Ann_Src_Files})
 
 list( APPEND uti_image_Src_Files
+	${UTI_IMAGE_DIR}/CPP_Vignette.cpp
     ${UTI_IMAGE_DIR}/CPP_Undist.cpp
     ${UTI_IMAGE_DIR}/CPP_CmpIm.cpp
     ${UTI_IMAGE_DIR}/CPP_EstimFlatField.cpp

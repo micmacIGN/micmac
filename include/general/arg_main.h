@@ -458,6 +458,7 @@ int CmpIm_main(int argc,char ** argv);
 int Drunk_main(int argc,char ** argv);
 int CalcSzWCor_main(int argc,char ** argv);
 int Digeo_main(int argc,char ** argv);
+int Vignette_main(int argc,char ** argv);
 int Sift_main(int argc,char ** argv);
 int Ann_main(int argc,char ** argv);
 
