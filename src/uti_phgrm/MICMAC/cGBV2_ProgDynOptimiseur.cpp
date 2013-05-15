@@ -518,17 +518,17 @@ void cGBV2_ProgDynOptimiseur::BalayageOneLine(const std::vector<Pt2di> & aVPt)
                 tCost & aCF = aMat[aP].CostFinal();
                 if (mModeAgr==ePrgDAgrSomme) // Mode somme
                 {
-                    printf("a");
+
                     aCF += aNewCost;
                 }
                 else if (mModeAgr==ePrgDAgrMax) // Mode max
                 {
-                    printf("b");
+
                     ElSetMax(aCF,aNewCost);
                 }
                 else if (mModeAgr==ePrgDAgrProgressif) // Mode max
                 {
-                    printf("c");
+
                     aCF= aNewCost;
                     aMat[aP].SetCostInit
                             (
@@ -541,7 +541,7 @@ void cGBV2_ProgDynOptimiseur::BalayageOneLine(const std::vector<Pt2di> & aVPt)
                 }
                 else  // Mode reinjection
                 {
-                    printf("d");
+
                     aCF = aNewCost;
                     aMat[aP].SetCostInit(aCF);
                 }
@@ -589,20 +589,13 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
 
     const std::vector<Pt2di> * aVPt;
 
-
-
 #ifdef CUDA_ENABLED
 
     uint    depth       =   256;
-
     uint3   dimStream   =   make_uint3(depth,mSz.x,mSz.y);
     CuHostData3D<uint>      streamCostVolume(NOPAGELOCKEDMEMORY,dimStream);
     CuHostData3D<short2>    index(NOPAGELOCKEDMEMORY,make_uint2(mSz.x,mSz.y),1);
-    CuHostData3D<uint>      hOutputValue_AV(NOPAGELOCKEDMEMORY,dimStream);
-    CuHostData3D<uint>      hOutputValue_AR(NOPAGELOCKEDMEMORY,dimStream);
-
-    //streamCostVolume.Fill(10123);
-    //uint line = 35;
+    CuHostData3D<uint>      hOutputCost(NOPAGELOCKEDMEMORY,dimStream);
     uint x = 0;
 
     while ((aVPt = mLMR.Next()))
@@ -624,17 +617,11 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
         x++;
     }
 
-//    index.OutputValues(0,XY,Rect(0,line,mSz.x,line+1),0,make_short2(0,0));
-    //streamCostVolume.OutputValues(line);
-
-    OptimisationOneDirection(streamCostVolume,index,make_uint3(mSz.y,mSz.x,depth),hOutputValue_AV,hOutputValue_AR);
-
-//    hOutputValue_AV.OutputValues(line);
-//    hOutputValue_AR.OutputValues(line);
-    //CuHostData3D<float>      FinalZ(make_uint3(mSz.y,mSz.x,1));
+    OptimisationOneDirection(streamCostVolume,index,make_uint3(mSz.y,mSz.x,depth),hOutputCost,hOutputCost);
 
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
     x = 0;
+
     while ((aVPt = mLMR.Next()))
     {
         // on parcours la ligne
@@ -645,43 +632,21 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
             const Box2di &  aBox = aMat.Box();
             Pt2di aP;
-            tCost aCoutMin = tCost(1e9);
-            //short2 Z = make_short2(max(-15,aBox._p0.x),min(16,aBox._p1.x));
-
-            for (aP.x = aBox._p0.x ; aP.x< aBox._p1.x ; aP.x++)
-            {
-                uint3   Pt_AV       = make_uint3( aP.x - aBox._p0.x, aK,                  x);
-                uint3   Pt_AR       = make_uint3( aP.x - aBox._p0.x, lenghtLine - aK - 1, x);
-                int     costInit    = aMat[aP].GetCostInit();
-
-                int costForce = hOutputValue_AV[Pt_AV] = hOutputValue_AV[Pt_AV] + hOutputValue_AR[Pt_AR] - costInit;
-
-                ElSetMin(aCoutMin,tCost(costForce));
-
-//                if(aCoutMin == tCost(hOutputValue_AV[Pt_AV]))
-//                    FinalZ[make_uint2(aK,x)] = (float)(aP.x - aBox._p0.x)/(float)depth;
-            }
 
             for (aP.x = aBox._p0.x ; aP.x< aBox._p1.x ; aP.x++)
             {
                 uint3   Pt_AV           = make_uint3(aP.x - aBox._p0.x, aK, x);
                 tCost & aCF             = aMat[aP].CostFinal();
-                aCF                    += tCost(hOutputValue_AV[Pt_AV] - aCoutMin);
+                aCF                    += tCost(hOutputCost[Pt_AV]);// - aCoutMin;
             }
         }
         x++;      
     }
 
-    //hOutputValue_AV.OutputValues(line);
-    //FinalZ.OutputValues();
-
-    //GpGpuTools::Array1DtoImageFile(FinalZ.pData(),"toto.pgm",FinalZ.GetDimension());
-
     streamCostVolume.Dealloc();
     index.Dealloc();
-    hOutputValue_AV.Dealloc();
-    hOutputValue_AR.Dealloc();
-    //FinalZ.Dealloc();
+    hOutputCost.Dealloc();
+
 
 #else
     //printf("Optimisation CPU\n");

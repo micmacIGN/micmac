@@ -204,6 +204,7 @@ template <class Type> class Pt2d : public  ElStdTypeScal<Type>
         return   Pt2d<Type>(ElStdTypeScal<Type>::RtoT(cos(teta)*rho),ElStdTypeScal<Type>::RtoT(sin(teta)*rho));
      }
 
+	 static Pt2d<double> polar(const Pt2d<double> & p,REAL AngDef);
 
  // Operateurs
 
@@ -331,6 +332,16 @@ template <class Type> class Pt2d : public  ElStdTypeScal<Type>
           void Verif_adr_xy();
      
 };
+
+template <class Type>
+Pt2d<double> Pt2d<Type>::polar( const Pt2d<double> & p,REAL AngDef )
+{
+	if ((p.x==0) && (p.y== 0))
+		return Pt2dr(0,AngDef);
+	return Pt2dr(hypot(p.x,p.y),atan2(p.y,p.x));
+}
+
+
 
 template <class Type>
  Type  dist4(const Pt2d<Type> & p){return ElAbs(p.x)+  ElAbs(p.y);}
@@ -622,7 +633,7 @@ template <class Type> void assert_not_nul(const Pt2d<Type> &){}
 REAL  angle(const Pt2dr & p);  
 REAL  angle(const Pt2dr & p1,const Pt2dr & p2);
 
-Pt2dr polar(const Pt2dr & p,REAL AngDef);
+// Pt2dr polar(const Pt2dr & p,REAL AngDef);
 
 // angle de droite (entre -pi/2 et pi/2),
 //  angle de droite non oriente (entre 0 et pi/2, symetrique)
