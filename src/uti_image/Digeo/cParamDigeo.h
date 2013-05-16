@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #ifndef Define_NotDigeo
 #define Define_NotDigeo
-#include "XML_GEN/all.h"
 using namespace NS_ParamChantierPhotogram;
 using namespace NS_SuperposeImage;
 //namespace NS_ParamDigeo{

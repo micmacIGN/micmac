@@ -328,7 +328,7 @@ void SortedTreeNodes::setEdgeTable( EdgeTableData& eData , const TreeOctNode* ro
 					int ac = Square::AntipodalCornerIndex( Square::CornerIndex( i , j ) );
 					for( int cc=0 ; cc<Square::CORNERS ; cc++ )
 					{
-						int ii , jj , x , y , z;
+						int ii , jj , x=0 , y=0 , z=0;
 						Square::FactorCornerIndex( cc , ii , jj );
 						ii += i , jj += j;
 						switch( o )
@@ -344,7 +344,7 @@ void SortedTreeNodes::setEdgeTable( EdgeTableData& eData , const TreeOctNode* ro
 						// Set all edge indices
 						for( int cc=0 ; cc<Square::CORNERS ; cc++ )
 						{
-							int ii , jj , aii , ajj , x , y , z;
+							int ii , jj , aii , ajj , x=0 , y=0 , z=0;
 							Square::FactorCornerIndex( cc , ii , jj );
 							Square::FactorCornerIndex( Square::AntipodalCornerIndex( cc ) , aii , ajj );
 							ii += i , jj += j;
@@ -419,7 +419,7 @@ int SortedTreeNodes::getMaxEdgeCount( const TreeOctNode* rootNode , int depth , 
 				int ac = Square::AntipodalCornerIndex( Square::CornerIndex( i , j ) );
 				for( int cc=0 ; cc<Square::CORNERS ; cc++ )
 				{
-					int ii , jj , x , y , z;
+					int ii , jj , x=0 , y=0 , z=0;
 					Square::FactorCornerIndex( cc , ii , jj );
 					ii += i , jj += j;
 					switch( o )
@@ -2987,7 +2987,7 @@ int Octree<Degree>::IsBoundaryEdge(const TreeOctNode* node,int edgeIndex,int sub
 template<int Degree>
 int Octree<Degree>::IsBoundaryEdge( const TreeOctNode* node , int dir , int x , int y , int subdivideDepth )
 {
-	int d , o[3] , idx1 , idx2 , mask;
+	int d , o[3] , idx1=0 , idx2=0 , mask;
 
 	if( subdivideDepth<0 ) return 0;
 	if( node->d<=subdivideDepth ) return 1;
@@ -3314,7 +3314,7 @@ int Octree<Degree>::GetRootIndex( const TreeOctNode* node , int edgeIndex , int 
 		finest->depthAndOffset(d,off);
 		ri.node=finest;
 		ri.edgeIndex=finestIndex;
-		int offset,eIndex[2];
+		int offset,eIndex[2]={0,0};
 		offset = BinaryNode< Real >::CenterIndex( d , off[o] );
 		switch(o){
 				case 0:

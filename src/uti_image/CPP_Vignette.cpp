@@ -168,7 +168,7 @@ int  Vignette_main(int argc,char ** argv)
 
    L2SysSurResol aSys(6);
 
-   for(int i=0;i<G1.size();i++){
+   for(unsigned int i=0;i<G1.size();i++){
 	   {
 			 double aPds[6]={(G2[i]*pow(D2[i],2)-G1[i]*pow(D1[i],2)),(G2[i]*pow(D2[i],4)-G1[i]*pow(D1[i],4)),(G2[i]*pow(D2[i],6)-G1[i]*pow(D1[i],6)),(G2[i]*X2[i]-G1[i]*X1[i]),(G2[i]*Y2[i]-G1[i]*Y1[i]),1};
 			 aSys.AddEquation(1,aPds,G1[i]-G2[i]);
