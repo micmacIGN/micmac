@@ -46,7 +46,7 @@ template<class T> __device__ void ReadOneSens(CDeviceDataStream<T> &costStream, 
     }
 }
 
-template<class T> __device__ void ScanOneSens(CDeviceDataStream<T> &costStream, bool sens, uint lenghtLine, T pData[][NAPPEMAX], bool& idBuffer, T* gData, ushort penteMax, uint3 dimBlockTer)
+template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &costStream, uint lenghtLine, T pData[][NAPPEMAX], bool& idBuffer, T* gData, ushort penteMax, uint3 dimBlockTer)
 {
     const ushort    tid     = threadIdx.x;
     short2          uZ_Prev = costStream.read(pData[idBuffer],tid, sens,0);
@@ -127,8 +127,8 @@ template<class T> __global__ void kernelOptiOneDirection(T* gStream, short2* gSt
 
     CDeviceDataStream<T> costStream(bufferData, gStream + pitStr,bufferIndex, gStreamId + pit);
 
-    ScanOneSens<T>(costStream,eAVANT,   dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
-    ScanOneSens<T>(costStream,eARRIERE, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
+    ScanOneSens<T,eAVANT>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
+    ScanOneSens<T,eARRIERE>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
 //        ReadOneSens<T>(costStream,eAVANT,   dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
 //        ReadOneSens<T>(costStream,eARRIERE, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
 
@@ -210,7 +210,7 @@ extern "C" void Launch()
     uint3   dimVolCost  = make_uint3(80,4,prof );
 
     CuHostData3D<uint>      H_StreamCost      ( NOPAGELOCKEDMEMORY, make_uint3( dimVolCost.z, dimVolCost.y, dimVolCost.x) );
-    CuHostData3D<uint>      H_ForceCostVol      ( NOPAGELOCKEDMEMORY, make_uint3( dimVolCost.z, dimVolCost.y, dimVolCost.x) );
+    CuHostData3D<uint>      H_ForceCostVol    ( NOPAGELOCKEDMEMORY, make_uint3( dimVolCost.z, dimVolCost.y, dimVolCost.x) );
     CuHostData3D<short2>    H_StreamIndex     ( NOPAGELOCKEDMEMORY, make_uint2( dimVolCost.y, dimVolCost.x ));
 
     H_StreamCost  .SetName("streamCost");
