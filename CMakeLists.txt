@@ -258,13 +258,15 @@ if(NOT WIN32)
 
 	# VERIFICATION si X11 est présent sous MacOS et Linux
 	FIND_PACKAGE(X11)
+	
+	IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
+		set( DYN_LIB_LIBRARY dl )
+	endif()
+	
 	IF (X11_FOUND)
 		#MESSAGE("X11 Found : ${X11_INCLUDE_DIRS} | ${X11_LIBRARIES} | ${X11_LIBRARY_DIRS}")
 	ELSE()
 		add_definitions(-DNO_X11)
-        IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
-            set( DYN_LIB_LIBRARY dl )
-        endif()
 		MESSAGE("X11 Not Found : pas de SaisieMasq")
 	ENDIF()
 ELSE()

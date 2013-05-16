@@ -165,6 +165,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("AperoChImSecMM",AperoChImMM_main,"Select secondary images for MicMac",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("Apero2PMVS",Apero2PMVS_main,"Convert Orientation from Apero-Micmac workflow to PMVS format"));
+	   aRes.push_back(cMMCom("Vignette",Vignette_main,"IN DEV : Compute the vignette correction parameters from tie points"));
        aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene",cArgLogCom(2)));
        aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
        aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero, for compensation of heterogenous measures",cArgLogCom(2)));
@@ -312,6 +313,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs);
 extern int  Sample_W0_main(int argc,char ** argv);
 extern int  Sample_LSQ0_main(int argc,char ** argv);
 extern int  Abdou_main(int argc,char ** argv);
+extern int  PtsHom_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -319,6 +321,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("W0",Sample_W0_main,"Test on Graphic Windows "));
    aRes.push_back(cMMCom("LSQ0",Sample_LSQ0_main,"Basic Test on Least Square libray "));
    aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou "));
+   aRes.push_back(cMMCom("PtsHom",PtsHom_main,"Exemples fonctions utilisation pts homologues "));
    return aRes;
 }
 
