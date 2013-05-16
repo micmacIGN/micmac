@@ -608,6 +608,7 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
             // Matrice des cellules
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
             const Box2di &  aBox        = aMat.Box();
+
             Pt2di aP;
 
             index[make_uint2(aK,x)] = make_short2(aBox._p0.x,aBox._p1.x);
