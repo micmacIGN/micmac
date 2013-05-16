@@ -1810,7 +1810,7 @@ extern bool AutorizeTagSpecial(const std::string &);
 
 void  cElXMLTree::StdShow(const std::string & aNameFile)
 {
-	FILE * aFP = ElFopen(aNameFile.c_str(),"w");
+	FILE * aFP = ElFopen(aNameFile.c_str(),"wb");
 	if (aFP==0)
 	{
 		std::cout << "FILE=[" << aNameFile << "]\n";
@@ -2405,7 +2405,7 @@ bool GetOneModifLC
 /***********************************************************/
 
 cElXMLFileIn::cElXMLFileIn(const std::string & aName) :
-mFp (ElFopen(aName.c_str(),"w")),
+mFp (ElFopen(aName.c_str(),"wb")),
 	mCurIncr   (0),
 	mStrIncr   ("   ")
 {
