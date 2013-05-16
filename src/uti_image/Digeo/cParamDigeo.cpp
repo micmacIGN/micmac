@@ -1,4 +1,3 @@
-#include "StdAfx.h"
 #include "cParamDigeo.h"
 //namespace NS_ParamDigeo{
 eTypeTopolPt  Str2eTypeTopolPt(const std::string & aName)
