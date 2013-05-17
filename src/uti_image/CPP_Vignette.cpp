@@ -40,6 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "hassan/reechantillonnage.h"
 #include <algorithm>
 
+
+
 vector<vector<double>> PtsHom(string aDir,string aPatIm,string Prefix,string Extension)
 {
 
@@ -52,7 +54,7 @@ vector<vector<double>> PtsHom(string aDir,string aPatIm,string Prefix,string Ext
 //On parcours toutes les paires d'images différentes (->testé dans le if)
     for (int aK1=0 ; aK1<int(aSetIm->size()) ; aK1++)
     {
-		cout<<(*aSetIm)[aK1]<<endl;
+		cout<<"Getting homologous points from: "<<(*aSetIm)[aK1]<<endl;
 		//
 		    
 		//Reading the image and creating the objects to be manipulated
@@ -149,17 +151,22 @@ vector<vector<double>> PtsHom(string aDir,string aPatIm,string Prefix,string Ext
 }
 
 
-// Example of using solvers defined in   include/general/optim.h
+void Vignette_correct(string aDir,string aPatIm,double *aParam){
 
-void Vignette_Solve(L2SysSurResol & aSys)
+
+}
+
+double Vignette_Solve(L2SysSurResol & aSys)
 {
     bool Ok;
     Im1D_REAL8 aSol = aSys.GSSR_Solve(&Ok);
-    std::cout << "=== Ok is " << Ok << "\n";
+    std::cout << "=== 1 if system is solvable -> " << Ok << "\n";
+
     if (Ok)
     {
         double * aData = aSol.data();
-        std::cout << "    Sol " << aData[0] << " " << aData[1] << " " << aData[2] << "\n";
+        std::cout << "Vignette parameters : " << aData[0] << " " << aData[1] << " " << aData[2] << "\n";
+		return *aData;
     }
 }
 
@@ -169,13 +176,13 @@ int  Vignette_main(int argc,char ** argv)
    // Create L2SysSurResol to solve least square equation with 2 unknown
 
  
-	std::string aFullPattern;
+	std::string aFullPattern,DirOut="Vignette/";
 	  //Reading the arguments
         ElInitArgMain
         (
             argc,argv,
             LArgMain()  << EAMC(aFullPattern,"Images Pattern"),
-            LArgMain()  //<< EAM(DirOut,"Out",true,"Output folder (end with /) and/or prefix (end with another char)")
+            LArgMain()  << EAM(DirOut,"Out",true,"Output folder (end with /) and/or prefix (end with another char)")
                     );
 		std::string aDir,aPatIm;
 		SplitDirAndFile(aDir,aPatIm,aFullPattern);
@@ -208,9 +215,9 @@ int  Vignette_main(int argc,char ** argv)
 				 aSys.AddEquation(1,aPds,aPtsHomol[6][i]-aPtsHomol[7][i]);
 	   }
 	}
-	//System has 6 unknowns and nbPtsSIFT equations (significantly more than enough)
+	//System has 3 unknowns and nbPtsSIFT equations (significantly more than enough)
 
-   Vignette_Solve(aSys);
+   double aParam = Vignette_Solve(aSys);
 
 
    return 0;
