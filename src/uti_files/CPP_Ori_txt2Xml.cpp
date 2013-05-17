@@ -666,6 +666,7 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     std::vector<std::string> aPrePost;
     std::vector<int>         aVCpt;
     
+    std::string   aNameConvOri;
 
     ElInitArgMain
     (
@@ -677,6 +678,8 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
                       << EAM(aStrChSys,"ChSys",true,"Change coordinate file")
                       << EAM(mFileCalib,"Calib",true,"External XML calibration file")
                       << EAM(mAddCalib,"AddCalib",true,"Try to add calibration, def=true")
+                      << EAM(aNameConvOri,"ConvOri",true,"Orientation convenetion (like eConvAngPhotoMGrade ...)")
+
                       << EAM(aPrePost,"PrePost",true,"[Prefix,Postfix] to generate name of image from id")
                       << EAM(mKeyName2Image,"KN2I",true,"Key 2 compute Name Image from Id in file")
                       << EAM(mDistNeigh,"DN",true,"Neighbooring distance for Image Graphe")
@@ -706,6 +709,8 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
                       << EAM(mAltiSol,"AltiSol",true,"Average altitude of ground")
                       << EAM(mProf,"Prof",true,"Average Prof of images")
     );
+
+
 
     if (! EAMIsInit(&mAddDelaunay))
        mAddDelaunay = EAMIsInit(&mNameCple);
@@ -762,6 +767,9 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
         bool Ok = cReadObject::ReadFormat(mComment,mFormat,aStrType,false);
         ELISE_ASSERT(Ok,"Arg0 is not a valid format specif");
     }
+
+    if (EAMIsInit(&aNameConvOri))
+        mConvOri = Str2eConventionsOrientation(aNameConvOri);
 
     // cCalibrationInternConique aCIO;
     bool CalibIsInit = EAMIsInit(&mFileCalib) && mAddCalib;

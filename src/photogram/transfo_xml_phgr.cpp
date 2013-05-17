@@ -338,6 +338,9 @@ double UneUniteEnRadian(eUniteAngulaire aUnit)
       case eUniteAngleDegre : return  UnRadianEnDegre;
       case eUniteAngleGrade : return   UnRadianEnGrade;
       case eUniteAngleRadian : return 1.0; ;
+      case eUniteAngleUnknown : 
+             ELISE_ASSERT(false,"Rotation format supports only matrixes (no angles)");
+           return 1.0; ;
       default :  ;
    }
    ELISE_ASSERT(false,"ToRadian , unkown eUniteAngulaire");

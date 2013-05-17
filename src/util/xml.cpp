@@ -105,6 +105,7 @@ static double FDiv(const std::vector<double> & aV)
    ELISE_ASSERT(aV[1]!=0,"Null divisor in / (Polonaise invert)");
    return aV[0]/aV[1];
 }
+static double FMoins(const std::vector<double> & aV) { return aV[0]-aV[1]; }
 
 const std::vector<cOpPolI> & OpPolI()
 {
@@ -122,6 +123,7 @@ const std::vector<cOpPolI> & OpPolI()
        aRes.push_back(cOpPolI(0,"true",FTrue));
        aRes.push_back(cOpPolI(0,"false",FFalse));
        aRes.push_back(cOpPolI(1,"!",FNot));
+       aRes.push_back(cOpPolI(2,"-",FMoins));
    }
    return aRes;
 }

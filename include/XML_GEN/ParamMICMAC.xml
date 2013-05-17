@@ -657,6 +657,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 		  <I2FromI1SensDirect Nb="1" Type="bool"> </I2FromI1SensDirect>
 	     </FCND_CalcIm2fromIm1>
 
+
              <ImPat Nb="*" Type="std::string">   </ImPat>
              <!-- Utilise le mecanisem ImSecOfMaster d'Apero -->
              <ImSecCalcApero Nb="?">
@@ -668,6 +669,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                   <NbMax Nb="?" Type="int" Def="1000"> </NbMax>  
                   <OnEmpty Nb="?" Type="eOnEmptyImSecApero" Def="eOEISA_error"> </OnEmpty>  
              </ImSecCalcApero>
+             <RelGlobSelecteur Nb="?" RefType="ParamGenereStrVois" RefFile="SuperposImage.xml"> </RelGlobSelecteur>
              <Filter Nb="?" 
                      RefType="NameFilter"
                      RefFile="ParamChantierPhotogram.xml"

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2049]) = {
+const char * (theNameVar_ParamMICMAC[2051]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -659,6 +659,7 @@ const char * (theNameVar_ParamMICMAC[2049]) = {
 "		  <I2FromI1SensDirect Nb=\"1\" Type=\"bool\"> </I2FromI1SensDirect>\n",
 "	     </FCND_CalcIm2fromIm1>\n",
 "\n",
+"\n",
 "             <ImPat Nb=\"*\" Type=\"std::string\">   </ImPat>\n",
 "             <!-- Utilise le mecanisem ImSecOfMaster d'Apero -->\n",
 "             <ImSecCalcApero Nb=\"?\">\n",
@@ -670,6 +671,7 @@ const char * (theNameVar_ParamMICMAC[2049]) = {
 "                  <NbMax Nb=\"?\" Type=\"int\" Def=\"1000\"> </NbMax>  \n",
 "                  <OnEmpty Nb=\"?\" Type=\"eOnEmptyImSecApero\" Def=\"eOEISA_error\"> </OnEmpty>  \n",
 "             </ImSecCalcApero>\n",
+"             <RelGlobSelecteur Nb=\"?\" RefType=\"ParamGenereStrVois\" RefFile=\"SuperposImage.xml\"> </RelGlobSelecteur>\n",
 "             <Filter Nb=\"?\" \n",
 "                     RefType=\"NameFilter\"\n",
 "                     RefFile=\"ParamChantierPhotogram.xml\"\n",
