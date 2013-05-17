@@ -156,7 +156,7 @@ void Vignette_correct(string aDir,string aPatIm,double *aParam){
 
 }
 
-double Vignette_Solve(L2SysSurResol & aSys)
+double* Vignette_Solve(L2SysSurResol & aSys)
 {
     bool Ok;
     Im1D_REAL8 aSol = aSys.GSSR_Solve(&Ok);
@@ -164,10 +164,11 @@ double Vignette_Solve(L2SysSurResol & aSys)
 
     if (Ok)
     {
-        double * aData = aSol.data();
+        double* aData = aSol.data();
         std::cout << "Vignette parameters : " << aData[0] << " " << aData[1] << " " << aData[2] << "\n";
-		return *aData;
-    }
+		return aData;
+    }else{
+		return 0;}
 }
 
 int  Vignette_main(int argc,char ** argv)
@@ -217,7 +218,14 @@ int  Vignette_main(int argc,char ** argv)
 	}
 	//System has 3 unknowns and nbPtsSIFT equations (significantly more than enough)
 
-   double aParam = Vignette_Solve(aSys);
+   double* aParam = Vignette_Solve(aSys);
+
+   if (aParam==0){
+	   cout<<"Could'nt compute vignette parameters"<<endl;
+   }else{
+	   cout<<"Correcting the images"<<endl;
+	   Vignette_correct(aDir,aPatIm, aParam);
+   }
 
 
    return 0;
