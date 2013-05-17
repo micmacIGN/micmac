@@ -60,7 +60,7 @@ namespace Reechantillonnage
       INT x_max = x_min+1;
       INT y_max = y_min+1;
 
-      if( x_min < 0 || y_min < 0 // || x_max >= tx || y_max > ty )
+      if( x_min < 0 || y_min < 0 ) // || x_max >= tx || y_max > ty )
           return 0;
 
       REAL p_x_x_min = p.x  - x_min;
