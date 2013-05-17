@@ -46,7 +46,7 @@ vector<vector<double> > PtsHom(string aDir,string aPatIm,string Prefix,string Ex
 {
 
 	vector<double> D1,X1,Y1,D2,X2,Y2,G1,G2;
-
+	Pt2di aSz;
     // Permet de manipuler les ensemble de nom de fichier
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
@@ -59,8 +59,8 @@ vector<vector<double> > PtsHom(string aDir,string aPatIm,string Prefix,string Ex
 		    
 		//Reading the image and creating the objects to be manipulated
 			Tiff_Im aTF1= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK1],1,false);
-			Pt2di aSz1 = aTF1.sz();
-			Im2D_U_INT1  aIm1(aSz1.x,aSz1.y);
+			aSz = aTF1.sz();
+			Im2D_U_INT1  aIm1(aSz.x,aSz.y);
 			ELISE_COPY
 				(
 				   aTF1.all_pts(),
@@ -74,8 +74,7 @@ vector<vector<double> > PtsHom(string aDir,string aPatIm,string Prefix,string Ex
         for (int aK2=0 ; aK2<int(aSetIm->size()) ; aK2++)
         {
 			Tiff_Im aTF2= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK2],1,false);
-			Pt2di aSz2 = aTF2.sz();
-			Im2D_U_INT1  aIm2(aSz2.x,aSz2.y);
+			Im2D_U_INT1  aIm2(aSz.x,aSz.y);
 			ELISE_COPY
 				(
 				   aTF2.all_pts(),
@@ -114,12 +113,12 @@ vector<vector<double> > PtsHom(string aDir,string aPatIm,string Prefix,string Ex
 							   X2.push_back(itP->P2().x);
 							   Y2.push_back(itP->P2().y);
 							   //Compute the distance between the point and the center of the image
-							   double x0=aSz1.x/2;
-							   double y0=aSz1.y/2;
+							   double x0=aSz.x/2;
+							   double y0=aSz.y/2;
 							   double D=sqrt(pow(itP->P1().x-x0,2)+pow(itP->P1().y-y0,2));
 							   D1.push_back(D);
-							   x0=aSz2.x/2;
-							   y0=aSz2.y/2;
+							   x0=aSz.x/2;
+							   y0=aSz.y/2;
 							   D=sqrt(pow(itP->P2().x-x0,2)+pow(itP->P2().y-y0,2));
 							   D2.push_back(D);
 							   //Go looking for grey value of the point
@@ -146,13 +145,48 @@ vector<vector<double> > PtsHom(string aDir,string aPatIm,string Prefix,string Ex
 	aPtsHomol.push_back(Y2);
 	aPtsHomol.push_back(G1);
 	aPtsHomol.push_back(G2);
-
+	vector<double> SZ;SZ.push_back(aSz.x);SZ.push_back(aSz.y);
+	aPtsHomol.push_back(SZ);
    return aPtsHomol;
 }
 
 
-void Vignette_correct(string aDir,string aPatIm,double *aParam){
+void Vignette_correct(Pt2di aSz,double *aParam){//string aDir,string aPatIm,double *aParam){
 
+	std::cout<<"This is yet to be coded"<<endl;
+	string aNameOut="vignette.tif";
+	Im2D_U_INT1  aImVignette(aSz.x,aSz.y);
+	U_INT1 ** aDataVignette = aImVignette.data();
+
+	for (int aY=0 ; aY<aSz.y  ; aY++)
+		{
+			for (int aX=0 ; aX<aSz.x  ; aX++)
+			{
+				double x0=aSz.x/2;
+				double y0=aSz.y/2;
+				double D=pow(aX-x0,2)+pow(aY-y0,2);
+				aDataVignette[aY][aX] = (aParam[0]*D+aParam[1]*pow(D,2)+aParam[2]*pow(D,3)); //Radial function of vignette
+				if (aX==0 && aY==0){std::cout<<"D2 ="<<D<<" D4="<<pow(D,2)<<" D6="<<pow(D,3)<<endl;}
+			}
+	}
+
+	 Tiff_Im  aTOut
+		(
+			aNameOut.c_str(),
+			aSz,
+			GenIm::u_int1,
+			Tiff_Im::No_Compr,
+			Tiff_Im::RGB
+		);
+
+
+     ELISE_COPY
+		 (
+			 aTOut.all_pts(),
+			 Virgule(aImVignette.in(),aImVignette.in(),aImVignette.in()),
+			 aTOut.out()
+		 );
+	  
 
 }
 
@@ -160,7 +194,6 @@ double* Vignette_Solve(L2SysSurResol & aSys)
 {
     bool Ok;
     Im1D_REAL8 aSol = aSys.GSSR_Solve(&Ok);
-    std::cout << "=== 1 if system is solvable -> " << Ok << "\n";
 
     if (Ok)
     {
@@ -224,7 +257,8 @@ int  Vignette_main(int argc,char ** argv)
 	   cout<<"Could'nt compute vignette parameters"<<endl;
    }else{
 	   cout<<"Correcting the images"<<endl;
-	   Vignette_correct(aDir,aPatIm, aParam);
+	   Pt2di aSz;aSz.x=aPtsHomol[8][0];aSz.y=aPtsHomol[8][1];
+	   Vignette_correct(aSz,aParam);
    }
 
 
