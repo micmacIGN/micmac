@@ -138,7 +138,7 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk)
                 aDataROut[aY][aX] = 0;
                 aDataGOut[aY][aX] = 0;
                 aDataBOut[aY][aX] = 0;
-            }else{	*/		
+            }else{	
 			aDataROut[aY][aX] = Reechantillonnage::biline(aDataR, aX, aY, ptOut);
 			aDataGOut[aY][aX] = Reechantillonnage::biline(aDataG, aX, aY, ptOut);
 			aDataBOut[aY][aX] = Reechantillonnage::biline(aDataB, aX, aY, ptOut);
