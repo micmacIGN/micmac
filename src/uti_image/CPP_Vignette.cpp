@@ -159,7 +159,7 @@ void Vignette_Solve(L2SysSurResol & aSys)
     if (Ok)
     {
         double * aData = aSol.data();
-        std::cout << "    Sol " << aData[0] << " " << aData[1] << " " << aData[2] << " " <<  aData[3] << " " <<  aData[4] << " " <<  aData[5]<<"\n";
+        std::cout << "    Sol " << aData[0] << " " << aData[1] << " " << aData[2] << "\n";
     }
 }
 
@@ -168,25 +168,6 @@ int  Vignette_main(int argc,char ** argv)
    std::cout << "Correting the vignetting effect \n";
    // Create L2SysSurResol to solve least square equation with 2 unknown
 
-
-
-/*Truc initial
-	   L2SysSurResol aSys(2);
-
-   {
-         double aPds[2] = {1,1};
-         aSys.AddEquation(0.5,aPds,1);  // Add obs X + Y =1,  with pds 0.5
-   }
-
-   // System is not solvable now ....
-   Vignette_Solve(aSys);
-
-   {
-         double aPds[2] = {1,-1};
-         aSys.AddEquation(1,aPds,1);  // Add obs X - Y =1,  with pds 1
-   }
-
-   */
  
 	std::string aFullPattern;
 	  //Reading the arguments
@@ -210,79 +191,6 @@ int  Vignette_main(int argc,char ** argv)
 
 	vector<vector<double>> aPtsHomol=PtsHom(aDir,aPatIm,Prefix,Extension);
 	//aPtsHomol est l'ensemble des vecteurs D1,X1,Y1,D2,X2,Y2,G1,G2;
-/*
-	 ifstream myReadFile;
-	  double output;
-
-	 myReadFile.open("gamma.txt");
-	 if (myReadFile.is_open()) {	
-		 while (!myReadFile.eof()) {
-			G2.push_back(1);
-			myReadFile >> output;
-			G1.push_back(output);
-									}
-								}
-	 myReadFile.close();
-
-	  myReadFile.open("D1.txt");
-	 if (myReadFile.is_open()) {	
-		 while (!myReadFile.eof()) {
-			myReadFile >> output;
-			D1.push_back(output);
-									}
-								}
-	  myReadFile.close();
-
-	   myReadFile.open("D2.txt");
-	 if (myReadFile.is_open()) {	
-		 while (!myReadFile.eof()) {
-			myReadFile >> output;
-			D2.push_back(output);
-									}
-								}
-	  myReadFile.close();
-
-	   myReadFile.open("X1.txt");
-	 if (myReadFile.is_open()) {	
-		 while (!myReadFile.eof()) {
-			myReadFile >> output;
-			X1.push_back(output);
-									}
-								}
-	  myReadFile.close();
-
-	   myReadFile.open("Y1.txt");
-	 if (myReadFile.is_open()) {	
-		 while (!myReadFile.eof()) {
-			myReadFile >> output;
-			Y1.push_back(output);
-									}
-								}
-	  myReadFile.close();
-
-	   myReadFile.open("X2.txt");
-	 if (myReadFile.is_open()) {	
-		 while (!myReadFile.eof()) {
-			myReadFile >> output;
-			X2.push_back(output);
-									}
-								}
-	  myReadFile.close();
-
-	   myReadFile.open("Y2.txt");
-	 if (myReadFile.is_open()) {	
-		 while (!myReadFile.eof()) {
-			myReadFile >> output;
-			Y2.push_back(output);
-									}
-								}
-	  myReadFile.close();
-
-	 cout<<G1.size()<<endl;
-	  cout<<G2.size()<<endl;
-	   cout<<D1.size()<<endl;
-		cout<<D2.size()<<endl;
-*/
 
 //For Each SIFT point
 
