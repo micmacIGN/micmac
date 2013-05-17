@@ -64,8 +64,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_DIGEO_H_
 #define _ELISE_DIGEO_H_
 
-
-#include "StdAfx.h"
 #include "cParamDigeo.h"
 
 using namespace NS_ParamChantierPhotogram;

@@ -128,13 +128,24 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk)
         for (int aX=0 ; aX<aSz.x  ; aX++)
         {
 			ptOut=aCam->DistDirecte(Pt2dr(aX,aY));
-
+			//If outside of image, paint in black
+            double aXDist1=floor(ptOut.x);
+            double aXDist2=floor(ptOut.x)+1;
+            double aYDist1=floor(ptOut.y);
+            double aYDist2=floor(ptOut.y)+1;
+            if (aXDist1<0 || aXDist2>aCam->Sz().x-1 || aYDist1<0 || aYDist2>aCam->Sz().y-1 )
+            {
+                aDataROut[aY][aX] = 0;
+                aDataGOut[aY][aX] = 0;
+                aDataBOut[aY][aX] = 0;
+            }else{	
 			aDataROut[aY][aX] = Reechantillonnage::biline(aDataR, aX, aY, ptOut);
 			aDataGOut[aY][aX] = Reechantillonnage::biline(aDataG, aX, aY, ptOut);
 			aDataBOut[aY][aX] = Reechantillonnage::biline(aDataB, aX, aY, ptOut);
+			}
         }
     }
-	
+
     Tiff_Im  aTOut
              (
                   aNameOut.c_str(),

@@ -1,9 +1,7 @@
 <GenCpp>
 
-<Verbatim File=".h.cpp">
-#include "StdAfx.h"
-</Verbatim>
 <Verbatim  File=".h">
+#include "StdAfx.h"
 #ifndef Define_NotDigeo
 #define Define_NotDigeo
 </Verbatim>

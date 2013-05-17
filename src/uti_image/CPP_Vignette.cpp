@@ -37,8 +37,116 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "../../include/StdAfx.h"
+#include "hassan/reechantillonnage.h"
 #include <algorithm>
 
+vector<vector<double> > PtsHom(string aDir,string aPatIm,string Prefix,string Extension)
+{
+
+	vector<double> D1,X1,Y1,D2,X2,Y2,G1,G2;
+
+    // Permet de manipuler les ensemble de nom de fichier
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
+
+//On parcours toutes les paires d'images différentes (->testé dans le if)
+    for (int aK1=0 ; aK1<int(aSetIm->size()) ; aK1++)
+    {
+		cout<<(*aSetIm)[aK1]<<endl;
+		//
+		    
+		//Reading the image and creating the objects to be manipulated
+			Tiff_Im aTF1= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK1],1,false);
+			Pt2di aSz1 = aTF1.sz();
+			Im2D_U_INT1  aIm1(aSz1.x,aSz1.y);
+			ELISE_COPY
+				(
+				   aTF1.all_pts(),
+				   aTF1.in(),
+				   aIm1.out()
+				);
+
+			U_INT1 ** aData1 = aIm1.data();
+
+
+        for (int aK2=0 ; aK2<int(aSetIm->size()) ; aK2++)
+        {
+			Tiff_Im aTF2= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK2],1,false);
+			Pt2di aSz2 = aTF2.sz();
+			Im2D_U_INT1  aIm2(aSz2.x,aSz2.y);
+			ELISE_COPY
+				(
+				   aTF2.all_pts(),
+				   aTF2.in(),
+				   aIm2.out()
+				);
+
+			U_INT1 ** aData2 = aIm2.data();
+
+
+            if (aK1!=aK2)
+            {
+               std::string aNamePack =  aDir +  aICNM->Assoc1To2
+                                        (
+                                           "NKS-Assoc-CplIm2Hom@"+ Prefix + "@"+Extension,
+                                           (*aSetIm)[aK1],
+                                           (*aSetIm)[aK2],
+                                           true
+                                        );
+
+				   bool Exist = ELISE_fp::exist_file(aNamePack);
+                   if (Exist)
+                   {
+                      ElPackHomologue aPack = ElPackHomologue::FromFile(aNamePack);
+
+                           for 
+                           (
+                               ElPackHomologue::const_iterator itP=aPack.begin();
+                               itP!=aPack.end();
+                               itP++
+                           )
+                           {
+
+							   X1.push_back(itP->P1().x);
+							   Y1.push_back(itP->P1().y);
+							   X2.push_back(itP->P2().x);
+							   Y2.push_back(itP->P2().y);
+							   //Compute the distance between the point and the center of the image
+							   double x0=aSz1.x/2;
+							   double y0=aSz1.y/2;
+							   double D=sqrt(pow(itP->P1().x-x0,2)+pow(itP->P1().y-y0,2));
+							   D1.push_back(D);
+							   x0=aSz2.x/2;
+							   y0=aSz2.y/2;
+							   D=sqrt(pow(itP->P2().x-x0,2)+pow(itP->P2().y-y0,2));
+							   D2.push_back(D);
+							   //Go looking for grey value of the point
+							   double G = Reechantillonnage::biline(aData1, 1,1, itP->P1());
+							   G1.push_back(G);
+							   G = Reechantillonnage::biline(aData2, 1,1, itP->P2());
+							   G2.push_back(G);
+
+                     // std::cout << aNamePack  << " " << aPack.size() << "\n";
+                   }
+				   }
+                   else
+                      std::cout  << "     # NO PACK FOR  : " << aNamePack  << "\n";
+            }
+        }
+    }
+
+	vector<vector<double> > aPtsHomol;
+	aPtsHomol.push_back(D1);
+	aPtsHomol.push_back(X1);
+	aPtsHomol.push_back(Y1);
+	aPtsHomol.push_back(D2);
+	aPtsHomol.push_back(X2);
+	aPtsHomol.push_back(Y2);
+	aPtsHomol.push_back(G1);
+	aPtsHomol.push_back(G2);
+
+   return aPtsHomol;
+}
 
 
 // Example of using solvers defined in   include/general/optim.h
@@ -51,127 +159,53 @@ void Vignette_Solve(L2SysSurResol & aSys)
     if (Ok)
     {
         double * aData = aSol.data();
-        std::cout << "    Sol " << aData[0] << " " << aData[1] << " " << aData[2] << " " <<  aData[3] << " " <<  aData[4] << " " <<  aData[5]<<"\n";
+        std::cout << "    Sol " << aData[0] << " " << aData[1] << " " << aData[2] << "\n";
     }
 }
 
 int  Vignette_main(int argc,char ** argv)
 {
-   std::cout << "Basic solver test \n";
+   std::cout << "Correting the vignetting effect \n";
    // Create L2SysSurResol to solve least square equation with 2 unknown
 
-    bool ProvoqErr = false;
-    ElInitArgMain
-    (
-        argc,argv,
-        LArgMain()  ,
-        LArgMain()  << EAM(ProvoqErr,"GenErr",true,"Generate error")
-    );
+ 
+	std::string aFullPattern;
+	  //Reading the arguments
+        ElInitArgMain
+        (
+            argc,argv,
+            LArgMain()  << EAMC(aFullPattern,"Images Pattern"),
+            LArgMain()  //<< EAM(DirOut,"Out",true,"Output folder (end with /) and/or prefix (end with another char)")
+                    );
+		std::string aDir,aPatIm;
+		SplitDirAndFile(aDir,aPatIm,aFullPattern);
 
 
-/*Truc initial
-	   L2SysSurResol aSys(2);
+   //=====================  PARAMETRES EN DUR ==============
 
-   {
-         double aPds[2] = {1,1};
-         aSys.AddEquation(0.5,aPds,1);  // Add obs X + Y =1,  with pds 0.5
-   }
+   std::string Prefix = "";
+   // std::string Prefix =  "_SRes" ; 
+   std::string Extension = "dat";
 
-   // System is not solvable now ....
-   Vignette_Solve(aSys);
+  //===================== 
 
-   {
-         double aPds[2] = {1,-1};
-         aSys.AddEquation(1,aPds,1);  // Add obs X - Y =1,  with pds 1
-   }
-
-   */
-
-
-	   vector<double> D1,X1,Y1,D2,X2,Y2,G1,G2;
-
-
- ifstream myReadFile;
-  double output;
-
- myReadFile.open("gamma.txt");
- if (myReadFile.is_open()) {	
-	 while (!myReadFile.eof()) {
-		G2.push_back(1);
-		myReadFile >> output;
-		G1.push_back(output);
-								}
-							}
- myReadFile.close();
-
-  myReadFile.open("D1.txt");
- if (myReadFile.is_open()) {	
-	 while (!myReadFile.eof()) {
-		myReadFile >> output;
-		D1.push_back(output);
-								}
-							}
-  myReadFile.close();
-
-   myReadFile.open("D2.txt");
- if (myReadFile.is_open()) {	
-	 while (!myReadFile.eof()) {
-		myReadFile >> output;
-		D2.push_back(output);
-								}
-							}
-  myReadFile.close();
-
-   myReadFile.open("X1.txt");
- if (myReadFile.is_open()) {	
-	 while (!myReadFile.eof()) {
-		myReadFile >> output;
-		X1.push_back(output);
-								}
-							}
-  myReadFile.close();
-
-   myReadFile.open("Y1.txt");
- if (myReadFile.is_open()) {	
-	 while (!myReadFile.eof()) {
-		myReadFile >> output;
-		Y1.push_back(output);
-								}
-							}
-  myReadFile.close();
-
-   myReadFile.open("X2.txt");
- if (myReadFile.is_open()) {	
-	 while (!myReadFile.eof()) {
-		myReadFile >> output;
-		X2.push_back(output);
-								}
-							}
-  myReadFile.close();
-
-   myReadFile.open("Y2.txt");
- if (myReadFile.is_open()) {	
-	 while (!myReadFile.eof()) {
-		myReadFile >> output;
-		Y2.push_back(output);
-								}
-							}
-  myReadFile.close();
-
- cout<<G1.size()<<endl;
-  cout<<G2.size()<<endl;
-   cout<<D1.size()<<endl;
-    cout<<D2.size()<<endl;
-
+	vector<vector<double> > aPtsHomol=PtsHom(aDir,aPatIm,Prefix,Extension);
+	//aPtsHomol est l'ensemble des vecteurs D1,X1,Y1,D2,X2,Y2,G1,G2;
 
 //For Each SIFT point
 
-   L2SysSurResol aSys(6);
-
-   for(int i=0;i<G1.size();i++){
+   L2SysSurResol aSys(3);
+   cout<<"Total number of points used in least square : "<<aPtsHomol[0].size()<<endl;
+   for(int i=0;i<int(aPtsHomol[0].size());i++){
 	   {
-			 double aPds[6]={(G2[i]*pow(D2[i],2)-G1[i]*pow(D1[i],2)),(G2[i]*pow(D2[i],4)-G1[i]*pow(D1[i],4)),(G2[i]*pow(D2[i],6)-G1[i]*pow(D1[i],6)),(G2[i]*X2[i]-G1[i]*X1[i]),(G2[i]*Y2[i]-G1[i]*Y1[i]),1};
-			 aSys.AddEquation(1,aPds,G1[i]-G2[i]);
+		   double aPds[3]={(aPtsHomol[7][i]*pow(aPtsHomol[3][i],2)-aPtsHomol[6][i]*pow(aPtsHomol[0][i],2)),
+						   (aPtsHomol[7][i]*pow(aPtsHomol[3][i],4)-aPtsHomol[6][i]*pow(aPtsHomol[0][i],4)),
+						   (aPtsHomol[7][i]*pow(aPtsHomol[3][i],6)-aPtsHomol[6][i]*pow(aPtsHomol[0][i],6)),
+						   //(aPtsHomol[7][i]*pow(aPtsHomol[3][i],8)-aPtsHomol[6][i]*pow(aPtsHomol[0][i],8)),
+						   //(aPtsHomol[7][i]*aPtsHomol[4][i]-aPtsHomol[6][i]*aPtsHomol[1][i]),
+						   //(aPtsHomol[7][i]*aPtsHomol[5][i]-aPtsHomol[6][i]*aPtsHomol[2][i])
+						};
+				 aSys.AddEquation(1,aPds,aPtsHomol[6][i]-aPtsHomol[7][i]);
 	   }
 	}
 	//System has 6 unknowns and nbPtsSIFT equations (significantly more than enough)
@@ -181,7 +215,6 @@ int  Vignette_main(int argc,char ** argv)
 
    return 0;
 }
-
 
 
 

@@ -37,7 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "Digeo.h"
+//#include "Digeo.h"
 
 
 
@@ -451,7 +451,7 @@ template <> double** cTplImInMem<float>::theMDog = 0;
 template <> double** cTplImInMem<double>::theMDog = 0;
 
 
-InstantiateClassTplDigeo(cTplImInMem)
+//InstantiateClassTplDigeo(cTplImInMem)
 
 
 

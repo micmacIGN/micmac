@@ -175,7 +175,9 @@ void Siftator::getExtrema( list<Extremum> &o_extrema )
                      *itScale1,
                      *itScale2;
     RealImage1::Real v;
-    Extremum extremum; extremum.o=m_iTrueOctave;
+    Extremum extremum;
+	extremum.rx=extremum.ry=extremum.rs=0;
+	extremum.o=m_iTrueOctave;
     int x, y, iDoG;
 
     bool isMax, isMin;

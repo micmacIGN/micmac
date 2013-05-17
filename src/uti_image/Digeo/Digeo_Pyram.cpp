@@ -37,7 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "Digeo.h"
+//#include "Digeo.h"
 
 
 /****************************************/
@@ -235,15 +235,6 @@ template <class Type> void  cTplImInMem<Type>::VMakeReduce_11(cImInMem & aMere)
 
     ELISE_ASSERT(false,"::VMakeReduce");
 }
-
-
-
-
-template  class cTplImInMem<U_INT1>;
-template  class cTplImInMem<U_INT2>;
-template  class cTplImInMem<INT>;
-template  class cTplImInMem<float>;
-template  class cTplImInMem<double>;
 
 /****************************************/
 /*                                      */

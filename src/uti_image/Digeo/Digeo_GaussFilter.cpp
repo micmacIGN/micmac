@@ -37,7 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "Digeo.h"
+//#include "Digeo.h"
 
 // Test
 
@@ -657,7 +657,7 @@ void cTplImInMem<Type>::ReduceGaussienne()
 }
 
 
-InstantiateClassTplDigeo(cTplImInMem)
+//InstantiateClassTplDigeo(cTplImInMem)
 
 /*
 template  class cTplImInMem<U_INT1>;
