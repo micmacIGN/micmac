@@ -41,15 +41,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-// Reading Homologous point associated to a set og image
+// Reading Homologous point associated to a set of images
 
 
 int  PtsHom_main(int argc,char ** argv)
 {
   //=====================  PARAMETRES EN DUR ==============
 
-   std::string aDir = "C:/Users/Luc Girod/Desktop/TFE/Vignettage/vignette_sift3";
-   std::string aPatIm = ".*JPG";
+   std::string aDir = "C:/Users/Luc Girod/Desktop/TFE/Vignettage/vignette_sift3/";
+   std::string aPatIm = ".*NEF";
    std::string Prefix = "";
    // std::string Prefix =  "_SRes" ; 
    std::string Extension = "dat";
@@ -63,6 +63,7 @@ int  PtsHom_main(int argc,char ** argv)
 //On parcours toutes les paires d'images différentes (->testé dans le if)
     for (int aK1=0 ; aK1<int(aSetIm->size()) ; aK1++)
     {
+		cout<<(*aSetIm)[aK1]<<endl;
         for (int aK2=0 ; aK2<int(aSetIm->size()) ; aK2++)
         {
             if (aK1!=aK2)
@@ -92,7 +93,7 @@ int  PtsHom_main(int argc,char ** argv)
                            )
                            {
                               if (aNb<10)
-                                 std::cout  << itP->P1() << itP->P2() << "\n";
+								  std::cout  << itP->P1() << itP->P2() <<"\n";
                               aNb++;
                            }
                       }
