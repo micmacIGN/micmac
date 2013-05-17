@@ -719,9 +719,12 @@ class cTplValGesInit
           }
           cTplValGesInit(const Type & aVal) : 
                 mVal(aVal),
-                mIsInit(false) 
+                mIsInit(true) 
           {
           }
+
+/*
+*/
 	  void SetNoInit() {mIsInit=false;}
           void SetVal(const Type & aVal) {mVal=aVal;mIsInit=true;}
           void SetValIfNotInit(const Type & aVal) 

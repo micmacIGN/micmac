@@ -40,7 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "hassan/reechantillonnage.h"
 #include <algorithm>
 
-vector<vector<double>> PtsHom(string aDir,string aPatIm,string Prefix,string Extension)
+vector<vector<double> > PtsHom(string aDir,string aPatIm,string Prefix,string Extension)
 {
 
 	vector<double> D1,X1,Y1,D2,X2,Y2,G1,G2;
@@ -135,7 +135,7 @@ vector<vector<double>> PtsHom(string aDir,string aPatIm,string Prefix,string Ext
         }
     }
 
-	vector<vector<double>> aPtsHomol;
+	vector<vector<double> > aPtsHomol;
 	aPtsHomol.push_back(D1);
 	aPtsHomol.push_back(X1);
 	aPtsHomol.push_back(Y1);
@@ -189,14 +189,14 @@ int  Vignette_main(int argc,char ** argv)
 
   //===================== 
 
-	vector<vector<double>> aPtsHomol=PtsHom(aDir,aPatIm,Prefix,Extension);
+	vector<vector<double> > aPtsHomol=PtsHom(aDir,aPatIm,Prefix,Extension);
 	//aPtsHomol est l'ensemble des vecteurs D1,X1,Y1,D2,X2,Y2,G1,G2;
 
 //For Each SIFT point
 
    L2SysSurResol aSys(3);
    cout<<"Total number of points used in least square : "<<aPtsHomol[0].size()<<endl;
-   for(int i=0;i<aPtsHomol[0].size();i++){
+   for(int i=0;i<int(aPtsHomol[0].size());i++){
 	   {
 		   double aPds[3]={(aPtsHomol[7][i]*pow(aPtsHomol[3][i],2)-aPtsHomol[6][i]*pow(aPtsHomol[0][i],2)),
 						   (aPtsHomol[7][i]*pow(aPtsHomol[3][i],4)-aPtsHomol[6][i]*pow(aPtsHomol[0][i],4)),

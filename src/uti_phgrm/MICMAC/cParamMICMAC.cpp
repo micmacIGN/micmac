@@ -3261,6 +3261,17 @@ const cTplValGesInit< cImSecCalcApero > & cImages::ImSecCalcApero()const
 }
 
 
+cTplValGesInit< cParamGenereStrVois > & cImages::RelGlobSelecteur()
+{
+   return mRelGlobSelecteur;
+}
+
+const cTplValGesInit< cParamGenereStrVois > & cImages::RelGlobSelecteur()const 
+{
+   return mRelGlobSelecteur;
+}
+
+
 cTplValGesInit< cNameFilter > & cImages::Filter()
 {
    return mFilter;
@@ -3332,6 +3343,8 @@ cElXMLTree * ToXMLTree(const cImages & anObj)
       aRes->AddFils(::ToXMLTree(std::string("ImPat"),(*it))->ReTagThis("ImPat"));
    if (anObj.ImSecCalcApero().IsInit())
       aRes->AddFils(ToXMLTree(anObj.ImSecCalcApero().Val())->ReTagThis("ImSecCalcApero"));
+   if (anObj.RelGlobSelecteur().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.RelGlobSelecteur().Val())->ReTagThis("RelGlobSelecteur"));
    if (anObj.Filter().IsInit())
       aRes->AddFils(ToXMLTree(anObj.Filter().Val())->ReTagThis("Filter"));
    if (anObj.AutoSelectionneImSec().IsInit())
@@ -3356,6 +3369,8 @@ void xml_init(cImages & anObj,cElXMLTree * aTree)
    xml_init(anObj.ImPat(),aTree->GetAll("ImPat",false,1));
 
    xml_init(anObj.ImSecCalcApero(),aTree->Get("ImSecCalcApero",1)); //tototo 
+
+   xml_init(anObj.RelGlobSelecteur(),aTree->Get("RelGlobSelecteur",1)); //tototo 
 
    xml_init(anObj.Filter(),aTree->Get("Filter",1)); //tototo 
 
@@ -4173,6 +4188,17 @@ cTplValGesInit< cImSecCalcApero > & cSection_PriseDeVue::ImSecCalcApero()
 const cTplValGesInit< cImSecCalcApero > & cSection_PriseDeVue::ImSecCalcApero()const 
 {
    return Images().ImSecCalcApero();
+}
+
+
+cTplValGesInit< cParamGenereStrVois > & cSection_PriseDeVue::RelGlobSelecteur()
+{
+   return Images().RelGlobSelecteur();
+}
+
+const cTplValGesInit< cParamGenereStrVois > & cSection_PriseDeVue::RelGlobSelecteur()const 
+{
+   return Images().RelGlobSelecteur();
 }
 
 
@@ -17255,6 +17281,17 @@ cTplValGesInit< cImSecCalcApero > & cParamMICMAC::ImSecCalcApero()
 const cTplValGesInit< cImSecCalcApero > & cParamMICMAC::ImSecCalcApero()const 
 {
    return Section_PriseDeVue().Images().ImSecCalcApero();
+}
+
+
+cTplValGesInit< cParamGenereStrVois > & cParamMICMAC::RelGlobSelecteur()
+{
+   return Section_PriseDeVue().Images().RelGlobSelecteur();
+}
+
+const cTplValGesInit< cParamGenereStrVois > & cParamMICMAC::RelGlobSelecteur()const 
+{
+   return Section_PriseDeVue().Images().RelGlobSelecteur();
 }
 
 

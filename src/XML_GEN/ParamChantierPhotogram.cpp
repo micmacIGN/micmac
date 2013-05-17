@@ -441,6 +441,8 @@ eUniteAngulaire  Str2eUniteAngulaire(const std::string & aName)
       return eUniteAngleGrade;
    else if (aName=="eUniteAngleRadian")
       return eUniteAngleRadian;
+   else if (aName=="eUniteAngleUnknown")
+      return eUniteAngleUnknown;
   else
   {
       cout << aName << " is not a correct value for enum eUniteAngulaire\n" ;
@@ -460,6 +462,8 @@ std::string  eToString(const eUniteAngulaire & anObj)
       return  "eUniteAngleGrade";
    if (anObj==eUniteAngleRadian)
       return  "eUniteAngleRadian";
+   if (anObj==eUniteAngleUnknown)
+      return  "eUniteAngleUnknown";
  std::cout << "Enum = eUniteAngulaire\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
@@ -3654,6 +3658,8 @@ eConventionsOrientation  Str2eConventionsOrientation(const std::string & aName)
       return eConvAngPhotoMGrade;
    else if (aName=="eConvAngLPSDegre")
       return eConvAngLPSDegre;
+   else if (aName=="eConvMatrixInpho")
+      return eConvMatrixInpho;
   else
   {
       cout << aName << " is not a correct value for enum eConventionsOrientation\n" ;
@@ -3691,6 +3697,8 @@ std::string  eToString(const eConventionsOrientation & anObj)
       return  "eConvAngPhotoMGrade";
    if (anObj==eConvAngLPSDegre)
       return  "eConvAngLPSDegre";
+   if (anObj==eConvMatrixInpho)
+      return  "eConvMatrixInpho";
  std::cout << "Enum = eConventionsOrientation\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
@@ -5322,89 +5330,89 @@ void xml_init(cOrientationExterneRigide & anObj,cElXMLTree * aTree)
 }
 
 
-bool & cConvExplicite::SensYVideo()
+cTplValGesInit< bool > & cConvExplicite::SensYVideo()
 {
    return mSensYVideo;
 }
 
-const bool & cConvExplicite::SensYVideo()const 
+const cTplValGesInit< bool > & cConvExplicite::SensYVideo()const 
 {
    return mSensYVideo;
 }
 
 
-bool & cConvExplicite::DistSenC2M()
+cTplValGesInit< bool > & cConvExplicite::DistSenC2M()
 {
    return mDistSenC2M;
 }
 
-const bool & cConvExplicite::DistSenC2M()const 
+const cTplValGesInit< bool > & cConvExplicite::DistSenC2M()const 
 {
    return mDistSenC2M;
 }
 
 
-bool & cConvExplicite::MatrSenC2M()
+cTplValGesInit< bool > & cConvExplicite::MatrSenC2M()
 {
    return mMatrSenC2M;
 }
 
-const bool & cConvExplicite::MatrSenC2M()const 
+const cTplValGesInit< bool > & cConvExplicite::MatrSenC2M()const 
 {
    return mMatrSenC2M;
 }
 
 
-Pt3dr & cConvExplicite::ColMul()
+cTplValGesInit< Pt3dr > & cConvExplicite::ColMul()
 {
    return mColMul;
 }
 
-const Pt3dr & cConvExplicite::ColMul()const 
+const cTplValGesInit< Pt3dr > & cConvExplicite::ColMul()const 
 {
    return mColMul;
 }
 
 
-Pt3dr & cConvExplicite::LigMul()
+cTplValGesInit< Pt3dr > & cConvExplicite::LigMul()
 {
    return mLigMul;
 }
 
-const Pt3dr & cConvExplicite::LigMul()const 
+const cTplValGesInit< Pt3dr > & cConvExplicite::LigMul()const 
 {
    return mLigMul;
 }
 
 
-eUniteAngulaire & cConvExplicite::UniteAngles()
+cTplValGesInit< eUniteAngulaire > & cConvExplicite::UniteAngles()
 {
    return mUniteAngles;
 }
 
-const eUniteAngulaire & cConvExplicite::UniteAngles()const 
+const cTplValGesInit< eUniteAngulaire > & cConvExplicite::UniteAngles()const 
 {
    return mUniteAngles;
 }
 
 
-Pt3di & cConvExplicite::NumAxe()
+cTplValGesInit< Pt3di > & cConvExplicite::NumAxe()
 {
    return mNumAxe;
 }
 
-const Pt3di & cConvExplicite::NumAxe()const 
+const cTplValGesInit< Pt3di > & cConvExplicite::NumAxe()const 
 {
    return mNumAxe;
 }
 
 
-bool & cConvExplicite::SensCardan()
+cTplValGesInit< bool > & cConvExplicite::SensCardan()
 {
    return mSensCardan;
 }
 
-const bool & cConvExplicite::SensCardan()const 
+const cTplValGesInit< bool > & cConvExplicite::SensCardan()const 
 {
    return mSensCardan;
 }
@@ -5423,14 +5431,22 @@ const cTplValGesInit< eConventionsOrientation > & cConvExplicite::Convention()co
 cElXMLTree * ToXMLTree(const cConvExplicite & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ConvExplicite",eXMLBranche);
-   aRes->AddFils(::ToXMLTree(std::string("SensYVideo"),anObj.SensYVideo())->ReTagThis("SensYVideo"));
-   aRes->AddFils(::ToXMLTree(std::string("DistSenC2M"),anObj.DistSenC2M())->ReTagThis("DistSenC2M"));
-   aRes->AddFils(::ToXMLTree(std::string("MatrSenC2M"),anObj.MatrSenC2M())->ReTagThis("MatrSenC2M"));
-   aRes->AddFils(ToXMLTree(std::string("ColMul"),anObj.ColMul())->ReTagThis("ColMul"));
-   aRes->AddFils(ToXMLTree(std::string("LigMul"),anObj.LigMul())->ReTagThis("LigMul"));
-   aRes->AddFils(ToXMLTree(std::string("UniteAngles"),anObj.UniteAngles())->ReTagThis("UniteAngles"));
-   aRes->AddFils(::ToXMLTree(std::string("NumAxe"),anObj.NumAxe())->ReTagThis("NumAxe"));
-   aRes->AddFils(::ToXMLTree(std::string("SensCardan"),anObj.SensCardan())->ReTagThis("SensCardan"));
+   if (anObj.SensYVideo().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SensYVideo"),anObj.SensYVideo().Val())->ReTagThis("SensYVideo"));
+   if (anObj.DistSenC2M().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DistSenC2M"),anObj.DistSenC2M().Val())->ReTagThis("DistSenC2M"));
+   if (anObj.MatrSenC2M().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("MatrSenC2M"),anObj.MatrSenC2M().Val())->ReTagThis("MatrSenC2M"));
+   if (anObj.ColMul().IsInit())
+      aRes->AddFils(ToXMLTree(std::string("ColMul"),anObj.ColMul().Val())->ReTagThis("ColMul"));
+   if (anObj.LigMul().IsInit())
+      aRes->AddFils(ToXMLTree(std::string("LigMul"),anObj.LigMul().Val())->ReTagThis("LigMul"));
+   if (anObj.UniteAngles().IsInit())
+      aRes->AddFils(ToXMLTree(std::string("UniteAngles"),anObj.UniteAngles().Val())->ReTagThis("UniteAngles"));
+   if (anObj.NumAxe().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NumAxe"),anObj.NumAxe().Val())->ReTagThis("NumAxe"));
+   if (anObj.SensCardan().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SensCardan"),anObj.SensCardan().Val())->ReTagThis("SensCardan"));
    if (anObj.Convention().IsInit())
       aRes->AddFils(ToXMLTree(std::string("Convention"),anObj.Convention().Val())->ReTagThis("Convention"));
   return aRes;
@@ -5440,21 +5456,21 @@ void xml_init(cConvExplicite & anObj,cElXMLTree * aTree)
 {
    if (aTree==0) return;
 
-   xml_init(anObj.SensYVideo(),aTree->Get("SensYVideo",1)); //tototo 
+   xml_init(anObj.SensYVideo(),aTree->Get("SensYVideo",1),bool(true)); //tototo 
 
-   xml_init(anObj.DistSenC2M(),aTree->Get("DistSenC2M",1)); //tototo 
+   xml_init(anObj.DistSenC2M(),aTree->Get("DistSenC2M",1),bool(false)); //tototo 
 
-   xml_init(anObj.MatrSenC2M(),aTree->Get("MatrSenC2M",1)); //tototo 
+   xml_init(anObj.MatrSenC2M(),aTree->Get("MatrSenC2M",1),bool(true)); //tototo 
 
-   xml_init(anObj.ColMul(),aTree->Get("ColMul",1)); //tototo 
+   xml_init(anObj.ColMul(),aTree->Get("ColMul",1),Pt3dr(Pt3dr(1,1,1))); //tototo 
 
-   xml_init(anObj.LigMul(),aTree->Get("LigMul",1)); //tototo 
+   xml_init(anObj.LigMul(),aTree->Get("LigMul",1),Pt3dr(Pt3dr(1,1,1))); //tototo 
 
-   xml_init(anObj.UniteAngles(),aTree->Get("UniteAngles",1)); //tototo 
+   xml_init(anObj.UniteAngles(),aTree->Get("UniteAngles",1),eUniteAngulaire(eUniteAngleDegre)); //tototo 
 
-   xml_init(anObj.NumAxe(),aTree->Get("NumAxe",1)); //tototo 
+   xml_init(anObj.NumAxe(),aTree->Get("NumAxe",1),Pt3di(Pt3di(2,1,0))); //tototo 
 
-   xml_init(anObj.SensCardan(),aTree->Get("SensCardan",1)); //tototo 
+   xml_init(anObj.SensCardan(),aTree->Get("SensCardan",1),bool(true)); //tototo 
 
    xml_init(anObj.Convention(),aTree->Get("Convention",1),eConventionsOrientation(eConvInconnue)); //tototo 
 }
@@ -5471,89 +5487,89 @@ const cTplValGesInit< eConventionsOrientation > & cConvOri::KnownConv()const
 }
 
 
-bool & cConvOri::SensYVideo()
+cTplValGesInit< bool > & cConvOri::SensYVideo()
 {
    return ConvExplicite().Val().SensYVideo();
 }
 
-const bool & cConvOri::SensYVideo()const 
+const cTplValGesInit< bool > & cConvOri::SensYVideo()const 
 {
    return ConvExplicite().Val().SensYVideo();
 }
 
 
-bool & cConvOri::DistSenC2M()
+cTplValGesInit< bool > & cConvOri::DistSenC2M()
 {
    return ConvExplicite().Val().DistSenC2M();
 }
 
-const bool & cConvOri::DistSenC2M()const 
+const cTplValGesInit< bool > & cConvOri::DistSenC2M()const 
 {
    return ConvExplicite().Val().DistSenC2M();
 }
 
 
-bool & cConvOri::MatrSenC2M()
+cTplValGesInit< bool > & cConvOri::MatrSenC2M()
 {
    return ConvExplicite().Val().MatrSenC2M();
 }
 
-const bool & cConvOri::MatrSenC2M()const 
+const cTplValGesInit< bool > & cConvOri::MatrSenC2M()const 
 {
    return ConvExplicite().Val().MatrSenC2M();
 }
 
 
-Pt3dr & cConvOri::ColMul()
+cTplValGesInit< Pt3dr > & cConvOri::ColMul()
 {
    return ConvExplicite().Val().ColMul();
 }
 
-const Pt3dr & cConvOri::ColMul()const 
+const cTplValGesInit< Pt3dr > & cConvOri::ColMul()const 
 {
    return ConvExplicite().Val().ColMul();
 }
 
 
-Pt3dr & cConvOri::LigMul()
+cTplValGesInit< Pt3dr > & cConvOri::LigMul()
 {
    return ConvExplicite().Val().LigMul();
 }
 
-const Pt3dr & cConvOri::LigMul()const 
+const cTplValGesInit< Pt3dr > & cConvOri::LigMul()const 
 {
    return ConvExplicite().Val().LigMul();
 }
 
 
-eUniteAngulaire & cConvOri::UniteAngles()
+cTplValGesInit< eUniteAngulaire > & cConvOri::UniteAngles()
 {
    return ConvExplicite().Val().UniteAngles();
 }
 
-const eUniteAngulaire & cConvOri::UniteAngles()const 
+const cTplValGesInit< eUniteAngulaire > & cConvOri::UniteAngles()const 
 {
    return ConvExplicite().Val().UniteAngles();
 }
 
 
-Pt3di & cConvOri::NumAxe()
+cTplValGesInit< Pt3di > & cConvOri::NumAxe()
 {
    return ConvExplicite().Val().NumAxe();
 }
 
-const Pt3di & cConvOri::NumAxe()const 
+const cTplValGesInit< Pt3di > & cConvOri::NumAxe()const 
 {
    return ConvExplicite().Val().NumAxe();
 }
 
 
-bool & cConvOri::SensCardan()
+cTplValGesInit< bool > & cConvOri::SensCardan()
 {
    return ConvExplicite().Val().SensCardan();
 }
 
-const bool & cConvOri::SensCardan()const 
+const cTplValGesInit< bool > & cConvOri::SensCardan()const 
 {
    return ConvExplicite().Val().SensCardan();
 }
@@ -5688,89 +5704,89 @@ const cTplValGesInit< eConventionsOrientation > & cOrientationConique::KnownConv
 }
 
 
-bool & cOrientationConique::SensYVideo()
+cTplValGesInit< bool > & cOrientationConique::SensYVideo()
 {
    return ConvOri().ConvExplicite().Val().SensYVideo();
 }
 
-const bool & cOrientationConique::SensYVideo()const 
+const cTplValGesInit< bool > & cOrientationConique::SensYVideo()const 
 {
    return ConvOri().ConvExplicite().Val().SensYVideo();
 }
 
 
-bool & cOrientationConique::DistSenC2M()
+cTplValGesInit< bool > & cOrientationConique::DistSenC2M()
 {
    return ConvOri().ConvExplicite().Val().DistSenC2M();
 }
 
-const bool & cOrientationConique::DistSenC2M()const 
+const cTplValGesInit< bool > & cOrientationConique::DistSenC2M()const 
 {
    return ConvOri().ConvExplicite().Val().DistSenC2M();
 }
 
 
-bool & cOrientationConique::MatrSenC2M()
+cTplValGesInit< bool > & cOrientationConique::MatrSenC2M()
 {
    return ConvOri().ConvExplicite().Val().MatrSenC2M();
 }
 
-const bool & cOrientationConique::MatrSenC2M()const 
+const cTplValGesInit< bool > & cOrientationConique::MatrSenC2M()const 
 {
    return ConvOri().ConvExplicite().Val().MatrSenC2M();
 }
 
 
-Pt3dr & cOrientationConique::ColMul()
+cTplValGesInit< Pt3dr > & cOrientationConique::ColMul()
 {
    return ConvOri().ConvExplicite().Val().ColMul();
 }
 
-const Pt3dr & cOrientationConique::ColMul()const 
+const cTplValGesInit< Pt3dr > & cOrientationConique::ColMul()const 
 {
    return ConvOri().ConvExplicite().Val().ColMul();
 }
 
 
-Pt3dr & cOrientationConique::LigMul()
+cTplValGesInit< Pt3dr > & cOrientationConique::LigMul()
 {
    return ConvOri().ConvExplicite().Val().LigMul();
 }
 
-const Pt3dr & cOrientationConique::LigMul()const 
+const cTplValGesInit< Pt3dr > & cOrientationConique::LigMul()const 
 {
    return ConvOri().ConvExplicite().Val().LigMul();
 }
 
 
-eUniteAngulaire & cOrientationConique::UniteAngles()
+cTplValGesInit< eUniteAngulaire > & cOrientationConique::UniteAngles()
 {
    return ConvOri().ConvExplicite().Val().UniteAngles();
 }
 
-const eUniteAngulaire & cOrientationConique::UniteAngles()const 
+const cTplValGesInit< eUniteAngulaire > & cOrientationConique::UniteAngles()const 
 {
    return ConvOri().ConvExplicite().Val().UniteAngles();
 }
 
 
-Pt3di & cOrientationConique::NumAxe()
+cTplValGesInit< Pt3di > & cOrientationConique::NumAxe()
 {
    return ConvOri().ConvExplicite().Val().NumAxe();
 }
 
-const Pt3di & cOrientationConique::NumAxe()const 
+const cTplValGesInit< Pt3di > & cOrientationConique::NumAxe()const 
 {
    return ConvOri().ConvExplicite().Val().NumAxe();
 }
 
 
-bool & cOrientationConique::SensCardan()
+cTplValGesInit< bool > & cOrientationConique::SensCardan()
 {
    return ConvOri().ConvExplicite().Val().SensCardan();
 }
 
-const bool & cOrientationConique::SensCardan()const 
+const cTplValGesInit< bool > & cOrientationConique::SensCardan()const 
 {
    return ConvOri().ConvExplicite().Val().SensCardan();
 }

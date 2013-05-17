@@ -176,7 +176,7 @@ void cAppliApero::ExportMesuresFromCarteProf
                              );
                      }
                  }
-                 aXmlApp.NameImage() = aPose2Compl->Name();
+                 aXmlApp.NameImage().SetVal(aPose2Compl->Name());
                  for 
                  (
                       ElPackHomologue::const_iterator itH=aPackH.begin();

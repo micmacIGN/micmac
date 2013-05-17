@@ -1153,6 +1153,9 @@ class cImages
         cTplValGesInit< cImSecCalcApero > & ImSecCalcApero();
         const cTplValGesInit< cImSecCalcApero > & ImSecCalcApero()const ;
 
+        cTplValGesInit< cParamGenereStrVois > & RelGlobSelecteur();
+        const cTplValGesInit< cParamGenereStrVois > & RelGlobSelecteur()const ;
+
         cTplValGesInit< cNameFilter > & Filter();
         const cTplValGesInit< cNameFilter > & Filter()const ;
 
@@ -1173,6 +1176,7 @@ class cImages
         cTplValGesInit< cFCND_CalcIm2fromIm1 > mFCND_CalcIm2fromIm1;
         std::list< std::string > mImPat;
         cTplValGesInit< cImSecCalcApero > mImSecCalcApero;
+        cTplValGesInit< cParamGenereStrVois > mRelGlobSelecteur;
         cTplValGesInit< cNameFilter > mFilter;
         cTplValGesInit< cAutoSelectionneImSec > mAutoSelectionneImSec;
         cTplValGesInit< cListImByDelta > mImSecByDelta;
@@ -1445,6 +1449,9 @@ class cSection_PriseDeVue
 
         cTplValGesInit< cImSecCalcApero > & ImSecCalcApero();
         const cTplValGesInit< cImSecCalcApero > & ImSecCalcApero()const ;
+
+        cTplValGesInit< cParamGenereStrVois > & RelGlobSelecteur();
+        const cTplValGesInit< cParamGenereStrVois > & RelGlobSelecteur()const ;
 
         cTplValGesInit< cNameFilter > & Filter();
         const cTplValGesInit< cNameFilter > & Filter()const ;
@@ -5316,6 +5323,9 @@ class cParamMICMAC
 
         cTplValGesInit< cImSecCalcApero > & ImSecCalcApero();
         const cTplValGesInit< cImSecCalcApero > & ImSecCalcApero()const ;
+
+        cTplValGesInit< cParamGenereStrVois > & RelGlobSelecteur();
+        const cTplValGesInit< cParamGenereStrVois > & RelGlobSelecteur()const ;
 
         cTplValGesInit< cNameFilter > & Filter();
         const cTplValGesInit< cNameFilter > & Filter()const ;

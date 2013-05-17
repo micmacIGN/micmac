@@ -105,6 +105,7 @@ static double FDiv(const std::vector<double> & aV)
    ELISE_ASSERT(aV[1]!=0,"Null divisor in / (Polonaise invert)");
    return aV[0]/aV[1];
 }
+static double FMoins(const std::vector<double> & aV) { return aV[0]-aV[1]; }
 
 const std::vector<cOpPolI> & OpPolI()
 {
@@ -122,6 +123,7 @@ const std::vector<cOpPolI> & OpPolI()
        aRes.push_back(cOpPolI(0,"true",FTrue));
        aRes.push_back(cOpPolI(0,"false",FFalse));
        aRes.push_back(cOpPolI(1,"!",FNot));
+       aRes.push_back(cOpPolI(2,"-",FMoins));
    }
    return aRes;
 }
@@ -1810,7 +1812,7 @@ extern bool AutorizeTagSpecial(const std::string &);
 
 void  cElXMLTree::StdShow(const std::string & aNameFile)
 {
-	FILE * aFP = ElFopen(aNameFile.c_str(),"wb");
+	FILE * aFP = ElFopen(aNameFile.c_str(),"w");
 	if (aFP==0)
 	{
 		std::cout << "FILE=[" << aNameFile << "]\n";
@@ -2405,7 +2407,7 @@ bool GetOneModifLC
 /***********************************************************/
 
 cElXMLFileIn::cElXMLFileIn(const std::string & aName) :
-mFp (ElFopen(aName.c_str(),"wb")),
+mFp (ElFopen(aName.c_str(),"w")),
 	mCurIncr   (0),
 	mStrIncr   ("   ")
 {

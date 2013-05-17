@@ -2462,7 +2462,6 @@ int			istat ;
 /*
 if (aBug)
 {
-   std::cout << "FFFFF " << i0 << " " << j0 <<  " " << fx << " " << fy << "\n";
    std::cout << p0 << " " << p1 << " " << p2 << " " << p3 << "\n";
    std::cout << (*gr).ns  << " " << (*gr).nl << "\n";
 }
@@ -3142,6 +3141,24 @@ cConvExplicite MakeExplicite(eConventionsOrientation aConv)
           }
           break;
 
+          case eConvMatrixInpho :
+          {
+	     aRes.SensYVideo() = ConvIsSensVideo(aConv);
+	     aRes.DistSenC2M() = false;
+             aRes.MatrSenC2M() = false;
+	     aRes.ColMul() = Pt3dr(1,-1,-1);
+	     aRes.LigMul() = Pt3dr(1,1,1);
+             aRes.UniteAngles() =  eUniteAngleUnknown;
+	     aRes.NumAxe() = Pt3di(0,1,2);
+	     aRes.SensCardan() = true;
+	     aRes.Convention().SetVal(aConv);
+          }
+          break;
+
+
+
+
+
           case eConvAngLPSDegre :
           {
 	     aRes.SensYVideo() = ConvIsSensVideo(aConv);
@@ -3221,7 +3238,7 @@ class cDistFromCIC
 
            Pt2dr CorrY(Pt2dr aP)
            {
-                 return  mConv.SensYVideo() ? aP  : Pt2dr(aP.x,mCIC.SzIm().y-aP.y);
+                 return  mConv.SensYVideo().Val() ? aP  : Pt2dr(aP.x,mCIC.SzIm().y-aP.y);
            }
 	   CamStenope * Cam();
 
@@ -3450,7 +3467,7 @@ cDistFromCIC::cDistFromCIC
 
 	  mConv = MakeExplicite(aCIC.KnownConv().Val());
     }
-    bool aC2M = mConv.DistSenC2M();
+    bool aC2M = mConv.DistSenC2M().Val();
 
 
     const std::vector<cCalibDistortion> &aVCD = aCIC.CalibDistortion();
@@ -3894,12 +3911,12 @@ ElMatrix<double>   Std_RAff_C2M
       double aVTeta[3];
       aRVect.CodageAngulaire().Val().to_tab(aVTeta);
       int  aKTeta[3];
-      aConv.NumAxe().to_tab(aKTeta);
+      aConv.NumAxe().Val().to_tab(aKTeta);
       for (int aK=0 ; aK<3 ; aK++)
       {
-          double aTeta = ToRadian(aVTeta[aK],aConv.UniteAngles());
+          double aTeta = ToRadian(aVTeta[aK],aConv.UniteAngles().Val());
           ElMatrix<double> aDM = ElMatrix<double>::Rotation3D(aTeta,aKTeta[aK]);
-	  if (aConv.SensCardan())
+	  if (aConv.SensCardan().Val())
              aM = aM * aDM;
           else
 	     aM = aDM * aM;
@@ -3912,7 +3929,7 @@ ElMatrix<double>   Std_RAff_C2M
 
 
 
-   if ( !aConv.MatrSenC2M())
+   if ( !aConv.MatrSenC2M().Val())
    {
       if (TrueRot)
          aM.self_transpose();
@@ -3922,8 +3939,8 @@ ElMatrix<double>   Std_RAff_C2M
 
   double aCMul[3],aLMul[3];
 
-  aConv.ColMul().to_tab(aCMul);
-  aConv.LigMul().to_tab(aLMul);
+  aConv.ColMul().Val().to_tab(aCMul);
+  aConv.LigMul().Val().to_tab(aLMul);
 
 
   // std::cout << "AAaaaAaaaaaaaaaaaaaaaaaaa\n";
@@ -4313,7 +4330,7 @@ CamStenope * Std_Cal_From_File
 
 static std::map<std::string,CamStenope *> theDic;
 
-ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC,cInterfChantierNameManipulateur * anICNM)
+ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC,cInterfChantierNameManipulateur * anICNM,const std::string & aDir)
 {
    ElCamera * aRes = 0;
    cCalibrationInternConique  aCIC;
@@ -4346,6 +4363,7 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
       {
           ELISE_ASSERT(anOC.FileInterne().IsInit(),"Cam_Gen_From_XML, Interne :  ni Val ni File");
           std::string  aName = anOC.FileInterne().Val();
+
           if (anICNM)
           {
              if (anOC.RelativeNameFI().Val())
@@ -4372,6 +4390,8 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
              else
              {
                 anICNM->StdTransfoNameFile(aName);
+                if ((aDir !="") && (!ELISE_fp::exist_file(aName)) && (ELISE_fp::exist_file(aDir+ aName)))
+                   aName = aDir+aName;
              }
           }
           if (theDic[aName]==0)
@@ -4489,7 +4509,7 @@ ElCamera * Gen_Cam_Gen_From_File
 
 
 
-       ElCamera * aRes = Gen_Cam_Gen_From_XML(CanUseGr,anOC,anICNM);
+       ElCamera * aRes = Gen_Cam_Gen_From_XML(CanUseGr,anOC,anICNM,DirOfFile(aNameFile));
        return aRes;
    }
    if ((StdPostfix(aNameFile)=="ori") || (StdPostfix(aNameFile)=="ORI") )
