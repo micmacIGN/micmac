@@ -233,7 +233,7 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
         mMSGLI[aK]->mOPCms = &(aVP[aK]);
 
         double aPdsK = aVP[aK].Pds();
-        mMSGLI[aK]->mPdsMS = aPdsK/mNbVals;
+        mMSGLI[aK]->mPdsMS = aPdsK/  mMSGLI[aK]->mNbVals;
         aSomPds += aPdsK;
         mMSGLI[aK]->mCumSomPdsMS =aSomPds;
 /*
@@ -406,12 +406,18 @@ double  cGPU_LoadedImGeom::MoyIm(int anX,int anY,int aNbScaleIm) const
     if (! mOPCms)
         return mDSomO [anY][anX] /mNbVals;
 
+// double aSP=0;
     double aRes = 0;
     for (int aK=0 ; aK<aNbScaleIm ; aK++)
     {
         cGPU_LoadedImGeom * aGLI = mMSGLI[aK];
         aRes += aGLI->mDSomO [anY][anX] * aGLI->mPdsMS;
+
+        // aSP += aGLI->mPdsMS *  aGLI->mNbVals;
+        //  std::cout << " IMMM " << aGLI->mDSomO [anY][anX] << "  " << aGLI->mPdsMS << "\n";
     }
+
+    // std::cout << " RES " << aRes << " SPD " <<  mMSGLI[aNbScaleIm-1]->mCumSomPdsMS  << " " << aSP << "\n";
     return aRes / mMSGLI[aNbScaleIm-1]->mCumSomPdsMS;
 }
 double  cGPU_LoadedImGeom::MoyQuadIm(int anX,int anY,int aNbScaleIm) const
@@ -474,6 +480,8 @@ double Cov(const cGPU_LoadedImGeom & aGeoJ) const;
 		double aDmI = mAppli.DeltaMoy(aMI);
 		// double aMII =  mDSomO2[anY][anX] /mNbVals - ElSquare(aMI) + ElSquare(aDmI);
 		double aMII =  MoyQuadIm(anX,anY,aNbScaleIm) - ElSquare(aMI) + ElSquare(aDmI);
+
+//std::cout << "##2## NBSSSS " << aNbScaleIm  << " " <<   aMII << " " <<  MoyIm(anX,anY,aNbScaleIm) << " " << MoyQuadIm(anX,anY,aNbScaleIm)  << "\n";
 		if (aMII < mAppli.AhEpsilon()) 
 			return false;
 
@@ -489,6 +497,9 @@ double Cov(const cGPU_LoadedImGeom & aGeoJ) const;
 		double aMIJ =  CovIm(anX,anY,aNbScaleIm) - aMI * aMJ + aDmI*aDmJ;
 
 		aCorrel = aMIJ / sqrt(aMII*aMJJ);
+
+///std::cout << "#################  NBSSSS " << aNbScaleIm  << " " <<   mDOK_Ortho[anY][anX] << "\n";
+
 if (0)
 {
    static double aNb=0; aNb++;
@@ -888,6 +899,11 @@ bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
              U_INT1 ** aDLocOkTerDil = (aKIm==0) ? aDOkIm0TerDil : mDOkTerDil;
 
 
+             // Pendant longtemps, il y a eu un bug quasi invisible, aSzV0=mCurSzV0 ....
+             bool OldBug = false;
+             Pt2di aSzV0 =  OldBug ? mCurSzV0 : aGLI_K.SzV0();
+             Pt2di aSzErod = mCurSzVMax;
+
              // Calcul de l'ortho image et de l'image OK Ortho
              double aStep = 1.0/ElMax(1,mGpuSzD); // Histoire de ne pas diviser par 0
              double anIndX = 0.0;
@@ -925,13 +941,14 @@ bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
                    }
                    anIndX += aStep;
              }
-             SelfErode(aGLI_K.ImOK_Ortho(), mCurSzV0,aBoxUtiLocIm);
+
+             SelfErode(aGLI_K.ImOK_Ortho(), aSzErod ,aBoxUtiLocIm);
 
              if (    (aMode==eModeMom_2_22)
                   || ((aKIm==0) &&  (aMode==eModeMom_12_2_22))
              )
              {
-                   MomOrdre2(aGLI_K.ImOrtho(),aGLI_K.ImSomO(),aGLI_K.ImSomO2(),mCurSzV0,aBoxUtiLocIm);
+                   MomOrdre2(aGLI_K.ImOrtho(),aGLI_K.ImSomO(),aGLI_K.ImSomO2(),aSzV0 ,aBoxUtiLocIm);
              }
              else if (aMode==eModeMom_12_2_22) 
              {
@@ -943,7 +960,7 @@ bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
                          aGLI_K.ImSom12(),
                          aGLI_K.ImSomO(),
                          aGLI_K.ImSomO2(),
-                         mCurSzV0,
+                         aSzV0 ,
                          aBoxUtiLocIm
                    );
             }
@@ -1049,7 +1066,6 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
                   {
                        double aVal = EcartNormalise(aV0,mVLI[aK]->ImOrtho(anX,anY));
                        aVNorm.push_back(AdaptCostPonct(round_ni(aVal*127)));
-                  
                   }
                   else
                   {
@@ -1176,6 +1192,7 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
 					{
 
                                                 int aNbScaleIm =  NbScaleOfPt(anX,anY);
+
 /*
                                                 if (mCurEtUseWAdapt) 
                                                 {
