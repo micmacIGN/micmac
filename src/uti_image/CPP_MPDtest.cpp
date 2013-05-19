@@ -170,7 +170,36 @@ void TestXMLNuageNodData()
 
 int MPDtest_main (int argc,char** argv)
 {
-   TestXMLNuageNodData();
+    double x = 44682000;
+    double y = 53342000;
+
+    std::cout << "X/X-1" << (x)*(1/x) -1 << "\n";
+    std::cout << "X+ 0.1  : " <<  (((x+0.1)-x)-0.1)  << "\n";
+
+     double x10 = x * 0.1;
+     x10 = x10*10;
+
+std::cout << (x10 -x)*1e30 << "\n";
+
+    Pt2dr mI00(44682000,53342000);
+    Pt2dr mI10(0.1,0);
+    Pt2dr mI01(0,0.1);
+
+    REAL delta = mI10 ^ mI01;
+
+    Pt2dr  Inv10 = Pt2dr(mI01.y,-mI10.y) /delta;
+    Pt2dr  Inv01 = Pt2dr(-mI01.x,mI10.x) /delta;
+
+     std::cout << Inv10 -Pt2dr(10,0) << "\n";
+
+    Pt2dr aTr =  -(Inv10*mI00.x+Inv01*mI00.y);
+
+    printf("%lf %lf\n",aTr.x,aTr.y);
+    std::cout << aTr << aTr.x - round_ni(aTr.x) << " " << aTr.y - round_ni(aTr.y) << "\n";
+
+
+
+   // TestXMLNuageNodData();
    return 0;
 //    TestKL();
 //    BanniereMM3D();

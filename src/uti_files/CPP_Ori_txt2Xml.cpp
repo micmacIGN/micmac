@@ -272,6 +272,7 @@ class cAppli_Ori_Txt2Xml_main
          bool                 mCalibByFile;
          double               mAltiSol;
          double               mProf;
+         Pt2dr                mOffsetXY;
 };
 
 void cAppli_Ori_Txt2Xml_main::operator()(tSomVois* aS1,tSomVois* aS2,bool)  // Delaunay Call back
@@ -650,7 +651,8 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     mW               (0),
     mLine            (3),
     mConvOri         (eConvAngPhotoMDegre),
-    mCalibByFile     (true)
+    mCalibByFile     (true),
+    mOffsetXY        (0,0)
 {
 
     bool Help;
@@ -708,6 +710,7 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
                       << EAM(mCalibByFile,"CBF",true,"Export calib as a link to existing file")
                       << EAM(mAltiSol,"AltiSol",true,"Average altitude of ground")
                       << EAM(mProf,"Prof",true,"Average Prof of images")
+                      << EAM(mOffsetXY,"OffsetXY",true,"Offset to substract from X,Y (To avoid possible round off error)")
     );
 
 
@@ -970,6 +973,12 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
     {
         if (aReadApp.Decode(aLine) && (aCpt>=mCptMin) && (aCpt<mCptMax))
         {
+
+           if (aReadApp.IsDef(aReadApp.mPt) && (EAMIsInit(&mOffsetXY)))
+           {
+              aReadApp.mPt.x -= mOffsetXY.x;
+              aReadApp.mPt.y -= mOffsetXY.y;
+           }
            {
               if (mNbCam==0) 
                  mHasWPK = aReadApp.IsDef(aReadApp.mWPK);
@@ -979,6 +988,7 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
            mVCam.push_back(&aNewCam);
            aNewCam.mNum = mNbCam;
            aNewCam.mNameIm = mICNM->Assoc1To1(mKeyName2Image,aReadApp.mName,true);
+
            aNewCam.mNameOri = NameOrientation(mOriOut,aNewCam);
 
 
