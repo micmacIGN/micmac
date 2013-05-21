@@ -41,6 +41,8 @@ endfunction(enable_precompiled_headers_msvc)
 
 function(enable_precompiled_headers_GCC PRECOMPILED_HEADER TARGET_NAME)
 	if(WITH_HEADER_PRECOMP)
+#ne marche pas avec Clang
+#if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
 		IF(CMAKE_COMPILER_IS_GNUCXX)
 			GET_FILENAME_COMPONENT(_name ${PRECOMPILED_HEADER} NAME)
 
