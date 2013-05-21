@@ -272,6 +272,7 @@ class cAppli_Ori_Txt2Xml_main
          bool                 mCalibByFile;
          double               mAltiSol;
          double               mProf;
+         Pt2dr                mOffsetXY;
 };
 
 void cAppli_Ori_Txt2Xml_main::operator()(tSomVois* aS1,tSomVois* aS2,bool)  // Delaunay Call back
@@ -650,7 +651,8 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     mW               (0),
     mLine            (3),
     mConvOri         (eConvAngPhotoMDegre),
-    mCalibByFile     (true)
+    mCalibByFile     (true),
+    mOffsetXY        (0,0)
 {
 
     bool Help;
@@ -666,6 +668,7 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     std::vector<std::string> aPrePost;
     std::vector<int>         aVCpt;
     
+    std::string   aNameConvOri;
 
     ElInitArgMain
     (
@@ -677,6 +680,8 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
                       << EAM(aStrChSys,"ChSys",true,"Change coordinate file")
                       << EAM(mFileCalib,"Calib",true,"External XML calibration file")
                       << EAM(mAddCalib,"AddCalib",true,"Try to add calibration, def=true")
+                      << EAM(aNameConvOri,"ConvOri",true,"Orientation convenetion (like eConvAngPhotoMGrade ...)")
+
                       << EAM(aPrePost,"PrePost",true,"[Prefix,Postfix] to generate name of image from id")
                       << EAM(mKeyName2Image,"KN2I",true,"Key 2 compute Name Image from Id in file")
                       << EAM(mDistNeigh,"DN",true,"Neighbooring distance for Image Graphe")
@@ -705,7 +710,10 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
                       << EAM(mCalibByFile,"CBF",true,"Export calib as a link to existing file")
                       << EAM(mAltiSol,"AltiSol",true,"Average altitude of ground")
                       << EAM(mProf,"Prof",true,"Average Prof of images")
+                      << EAM(mOffsetXY,"OffsetXY",true,"Offset to substract from X,Y (To avoid possible round off error)")
     );
+
+
 
     if (! EAMIsInit(&mAddDelaunay))
        mAddDelaunay = EAMIsInit(&mNameCple);
@@ -762,6 +770,9 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
         bool Ok = cReadObject::ReadFormat(mComment,mFormat,aStrType,false);
         ELISE_ASSERT(Ok,"Arg0 is not a valid format specif");
     }
+
+    if (EAMIsInit(&aNameConvOri))
+        mConvOri = Str2eConventionsOrientation(aNameConvOri);
 
     // cCalibrationInternConique aCIO;
     bool CalibIsInit = EAMIsInit(&mFileCalib) && mAddCalib;
@@ -962,6 +973,12 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
     {
         if (aReadApp.Decode(aLine) && (aCpt>=mCptMin) && (aCpt<mCptMax))
         {
+
+           if (aReadApp.IsDef(aReadApp.mPt) && (EAMIsInit(&mOffsetXY)))
+           {
+              aReadApp.mPt.x -= mOffsetXY.x;
+              aReadApp.mPt.y -= mOffsetXY.y;
+           }
            {
               if (mNbCam==0) 
                  mHasWPK = aReadApp.IsDef(aReadApp.mWPK);
@@ -971,6 +988,7 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
            mVCam.push_back(&aNewCam);
            aNewCam.mNum = mNbCam;
            aNewCam.mNameIm = mICNM->Assoc1To1(mKeyName2Image,aReadApp.mName,true);
+
            aNewCam.mNameOri = NameOrientation(mOriOut,aNewCam);
 
 

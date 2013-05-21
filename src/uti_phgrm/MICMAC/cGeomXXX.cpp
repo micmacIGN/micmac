@@ -107,9 +107,18 @@ void cGeomDiscR2::SetDeZoom(REAL aDz)
    mResolDz  = mResol * aDz;
    mSzDz = round_ni((mP1-mP0)/mResolDz);
    SetClipInit();
-   mDerX = RDiscToR2(Pt2dr(1,0))-RDiscToR2(Pt2dr(0,0));
-   mDerY = RDiscToR2(Pt2dr(0,1))-RDiscToR2(Pt2dr(0,0));
+
+   // Cette formule genere des erreurd d'arrondi qui, sur le calcul final de la boite
+   // peuvent avoir une consequence non negligeable
+   //  mDerX = RDiscToR2(Pt2dr(1,0))-RDiscToR2(Pt2dr(0,0));
+   //  mDerY = RDiscToR2(Pt2dr(0,1))-RDiscToR2(Pt2dr(0,0));
+
+   mDerX = Pt2dr (mResolDz,0);
+   mDerY =  Pt2dr (0,(mInvY?-1:1)*mResolDz);
 }
+
+// std::cout << "DDDD "  << Pt2dr (mResolDz,0) <<  Pt2dr (0,(mInvY?-1:1)*mResolDz) << "\n";
+// std::cout << "ddDDd " << aResolP   << mDerX << mDerY << "\n";
 
 double cGeomDiscR2::ResolDz() const { return mResolDz; }
 double cGeomDiscR2::ResolZ1() const { return mResol; }
@@ -871,6 +880,11 @@ void cGeomDiscFPx::SetOriResolPlani(Pt2dr & aOriP,Pt2dr & aResolP) const
 {
   aOriP = RDiscToR2(Pt2dr(0,0));
   aResolP = RDiscToR2(Pt2dr(1,1))-aOriP;
+
+  aResolP =  mDerX + mDerY;
+
+//  std::cout << "DDDD "  << Pt2dr (mResolDz,0) <<  Pt2dr (0,(mInvY?-1:1)*mResolDz) << "\n";
+//  std::cout << "ddDDd " << aResolP   -( mDerX + mDerY) << "\n";
 }
 
 

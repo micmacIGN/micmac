@@ -1204,6 +1204,19 @@ void cAppliMICMAC::InitImages()
        }
 
    }
+
+   if (RelGlobSelecteur().IsInit())
+   {
+       int aNbPDV = mPrisesDeVue.size();  // Car la taille va augmenter
+       for (int aKV=0 ; aKV<aNbPDV ; aKV++)
+       {
+           std::vector<std::string> aSBR =  GetStrFromGenStrRel(ICNM(),RelGlobSelecteur().Val(),mPrisesDeVue[aKV]->Name());
+           for (int aKV2=0 ; aKV2<int(aSBR.size()) ; aKV2++)
+           {
+               AddAnImage(aSBR[aKV2]);
+           }
+       }
+   }
 }
 
 

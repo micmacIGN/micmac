@@ -123,7 +123,8 @@ cCalibDistortion cGeneratorState_DRadScaleTr::ToXmlStruct(const cDist_Param_Unif
 
 cTplValGesInit<double>  ValDefDouble(const double & aV)
 {
-    cTplValGesInit<double> aRes(aV);
+    // cTplValGesInit<double> aRes(aV);
+    cTplValGesInit<double> aRes;
     if (aV==0)  
        aRes.SetNoInit();
     else

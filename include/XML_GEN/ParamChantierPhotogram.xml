@@ -116,6 +116,7 @@ namespace NS_ParamChantierPhotogram{
         <eUniteAngleDegre >     </eUniteAngleDegre>
         <eUniteAngleGrade >     </eUniteAngleGrade>
         <eUniteAngleRadian >     </eUniteAngleRadian>
+        <eUniteAngleUnknown >     </eUniteAngleUnknown>
    </enum>
 
    <enum Name="eDegreLiberteCPP">
@@ -532,6 +533,9 @@ namespace NS_ParamChantierPhotogram{
 	   <eConvAngPhotoMDegre >            </eConvAngPhotoMDegre>
 	   <eConvAngPhotoMGrade >            </eConvAngPhotoMGrade>   
 	   <eConvAngLPSDegre >             </eConvAngLPSDegre>
+
+                 <!-- Inpho Not Tested for angles -->
+	   <eConvMatrixInpho>             </eConvMatrixInpho>
    </enum>
 
 
@@ -753,16 +757,16 @@ namespace NS_ParamChantierPhotogram{
         <ConvOri Nb="1" UnionType="true">
 	      <KnownConv Nb="?" Type="eConventionsOrientation"> </KnownConv>
 	      <ConvExplicite  Nb="?">
-	           <SensYVideo Nb="1" Type="bool">   </SensYVideo>
+	           <SensYVideo Nb="?" Type="bool" Def="true">   </SensYVideo>
 
-		   <DistSenC2M Nb="1" Type="bool" >   </DistSenC2M>
-		   <MatrSenC2M Nb="1" Type="bool">   </MatrSenC2M>
-		   <ColMul Nb="1" Type="Pt3dr">      </ColMul>
-		   <LigMul Nb="1" Type="Pt3dr">      </LigMul>
+		   <DistSenC2M Nb="?" Type="bool" Def="false">   </DistSenC2M>
+		   <MatrSenC2M Nb="?" Type="bool" Def="true">   </MatrSenC2M>
+		   <ColMul Nb="?" Type="Pt3dr" Def="Pt3dr(1,1,1)">      </ColMul>
+		   <LigMul Nb="?" Type="Pt3dr" Def="Pt3dr(1,1,1)">      </LigMul>
 
-		   <UniteAngles Nb="1" Type="eUniteAngulaire">  </UniteAngles>
-                   <NumAxe  Nb="1" Type="Pt3di">  </NumAxe>
-                   <SensCardan Nb="1" Type="bool"> </SensCardan>
+		   <UniteAngles Nb="?" Type="eUniteAngulaire" Def="eUniteAngleDegre">  </UniteAngles>
+                   <NumAxe  Nb="?" Type="Pt3di" Def="Pt3di(2,1,0)">  </NumAxe>
+                   <SensCardan Nb="?" Type="bool" Def="true"> </SensCardan>
 		   <!-- Essentiellement usage interne pour coherence -->
 	           <Convention Nb="?" Type="eConventionsOrientation" Def="eConvInconnue"> </Convention>
 	      </ConvExplicite>

@@ -233,7 +233,7 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
         mMSGLI[aK]->mOPCms = &(aVP[aK]);
 
         double aPdsK = aVP[aK].Pds();
-        mMSGLI[aK]->mPdsMS = aPdsK/mNbVals;
+        mMSGLI[aK]->mPdsMS = aPdsK/  mMSGLI[aK]->mNbVals;
         aSomPds += aPdsK;
         mMSGLI[aK]->mCumSomPdsMS =aSomPds;
 /*
@@ -379,39 +379,45 @@ cStatOneImage * cGPU_LoadedImGeom::ValueVignettByDeriv(int anX,int anY,int aZ,in
     return & mBufVignette;
 }
 
-	bool   cGPU_LoadedImGeom::InitValNorms(int anX,int anY)
-	{
-		if (! mDOK_Ortho[anY][anX])
-			return false;
+bool   cGPU_LoadedImGeom::InitValNorms(int anX,int anY)
+{
+    if (! mDOK_Ortho[anY][anX])
+       return false;
 
 
-		mMoy   = mDSomO[anY][anX] / mNbVals;
-		//  double aDMoy = mEpsAddMoy + mMoy * mEpsMulMoy;
-		double aDMoy = mAppli.DeltaMoy(mMoy);
+       mMoy   = mDSomO[anY][anX] / mNbVals;
+       //  double aDMoy = mEpsAddMoy + mMoy * mEpsMulMoy;
+       double aDMoy = mAppli.DeltaMoy(mMoy);
 
-		mSigma  = mDSomO2[anY][anX] / mNbVals - QSquare(mMoy) + QSquare(aDMoy);
-		mMoy += aDMoy;
+       mSigma  = mDSomO2[anY][anX] / mNbVals - QSquare(mMoy) + QSquare(aDMoy);
+       mMoy += aDMoy;
 
 
-		if (mSigma < mAppli.AhEpsilon()) 
-			return false;
+       if (mSigma < mAppli.AhEpsilon()) 
+          return false;
 
-		mSigma = sqrt(mSigma);
+       mSigma = sqrt(mSigma);
 
-		return true;
-	}
+       return true;
+}
 
 double  cGPU_LoadedImGeom::MoyIm(int anX,int anY,int aNbScaleIm) const
 {
     if (! mOPCms)
         return mDSomO [anY][anX] /mNbVals;
 
+// double aSP=0;
     double aRes = 0;
     for (int aK=0 ; aK<aNbScaleIm ; aK++)
     {
         cGPU_LoadedImGeom * aGLI = mMSGLI[aK];
         aRes += aGLI->mDSomO [anY][anX] * aGLI->mPdsMS;
+
+        // aSP += aGLI->mPdsMS *  aGLI->mNbVals;
+        //  std::cout << " IMMM " << aGLI->mDSomO [anY][anX] << "  " << aGLI->mPdsMS << "\n";
     }
+
+    // std::cout << " RES " << aRes << " SPD " <<  mMSGLI[aNbScaleIm-1]->mCumSomPdsMS  << " " << aSP << "\n";
     return aRes / mMSGLI[aNbScaleIm-1]->mCumSomPdsMS;
 }
 double  cGPU_LoadedImGeom::MoyQuadIm(int anX,int anY,int aNbScaleIm) const
@@ -474,6 +480,8 @@ double Cov(const cGPU_LoadedImGeom & aGeoJ) const;
 		double aDmI = mAppli.DeltaMoy(aMI);
 		// double aMII =  mDSomO2[anY][anX] /mNbVals - ElSquare(aMI) + ElSquare(aDmI);
 		double aMII =  MoyQuadIm(anX,anY,aNbScaleIm) - ElSquare(aMI) + ElSquare(aDmI);
+
+//std::cout << "##2## NBSSSS " << aNbScaleIm  << " " <<   aMII << " " <<  MoyIm(anX,anY,aNbScaleIm) << " " << MoyQuadIm(anX,anY,aNbScaleIm)  << "\n";
 		if (aMII < mAppli.AhEpsilon()) 
 			return false;
 
@@ -489,6 +497,9 @@ double Cov(const cGPU_LoadedImGeom & aGeoJ) const;
 		double aMIJ =  CovIm(anX,anY,aNbScaleIm) - aMI * aMJ + aDmI*aDmJ;
 
 		aCorrel = aMIJ / sqrt(aMII*aMJJ);
+
+///std::cout << "#################  NBSSSS " << aNbScaleIm  << " " <<   mDOK_Ortho[anY][anX] << "\n";
+
 if (0)
 {
    static double aNb=0; aNb++;
@@ -761,50 +772,50 @@ if (0)
 
 	double MAXDIST = 0.0;
 
-	bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
-	{
-		mZIntCur =aZ;
-		mZTerCur  = DequantZ(mZIntCur); 
+bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
+{
+    mZIntCur =aZ;
+    mZTerCur  = DequantZ(mZIntCur); 
 
-		mImOkTerCur.raz();
+    mImOkTerCur.raz();
 
-		mX0UtiTer = mX1Ter + 1;
-		mY0UtiTer = mY1Ter + 1;
-		mX1UtiTer = mX0Ter;
-		mY1UtiTer = mY0Ter;
+    mX0UtiTer = mX1Ter + 1;
+    mY0UtiTer = mY1Ter + 1;
+    mX1UtiTer = mX0Ter;
+    mY1UtiTer = mY0Ter;
 
-		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
-		{
-			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
-			{
-				mDOkTer[anY][anX] =
-					(mZIntCur >= mTabZMin[anY][anX])
-					&& (mZIntCur <  mTabZMax[anY][anX])
-					&& IsInTer(anX,anY)
-					;
+    for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+    {
+        for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+        {
+             mDOkTer[anY][anX] =
+                                   (mZIntCur >= mTabZMin[anY][anX])
+                                   && (mZIntCur <  mTabZMax[anY][anX])
+                                   && IsInTer(anX,anY)
+                                   ;
 
 
-				if ( mDOkTer[anY][anX])
-				{
-					ElSetMin(mX0UtiTer,anX);
-					ElSetMax(mX1UtiTer,anX);
-					ElSetMin(mY0UtiTer,anY);
-					ElSetMax(mY1UtiTer,anY);
-				}
+              if ( mDOkTer[anY][anX])
+              {
+                     ElSetMin(mX0UtiTer,anX);
+                     ElSetMax(mX1UtiTer,anX);
+                     ElSetMin(mY0UtiTer,anY);
+                     ElSetMax(mY1UtiTer,anY);
+              }
 
-			}
-		}
+        }
+    }
 
-		mX1UtiTer ++;
-		mY1UtiTer ++;
+    mX1UtiTer ++;
+    mY1UtiTer ++;
 
-		if (mX0UtiTer >= mX1UtiTer)
+    if (mX0UtiTer >= mX1UtiTer)
 			return false;
 
-		int aKFirstIm = 0;
-		U_INT1 ** aDOkIm0TerDil = mDOkTerDil;
-		if (mGIm1IsInPax)
-		{
+    int aKFirstIm = 0;
+    U_INT1 ** aDOkIm0TerDil = mDOkTerDil;
+    if (mGIm1IsInPax)
+    {
 			if (mFirstZIsInit)
 			{
 				aKFirstIm = 1;
@@ -817,142 +828,149 @@ if (0)
 				mY1UtiTer = mY1Ter;
 				aDOkIm0TerDil = mAll1DOkTerDil;
 			}
-		}
+    }
 
-		mX0UtiDilTer = mX0UtiTer - mCurSzVMax.x;
-		mY0UtiDilTer = mY0UtiTer - mCurSzVMax.y;
-		mX1UtiDilTer = mX1UtiTer + mCurSzVMax.x;
-		mY1UtiDilTer = mY1UtiTer + mCurSzVMax.y;
+    mX0UtiDilTer = mX0UtiTer - mCurSzVMax.x;
+    mY0UtiDilTer = mY0UtiTer - mCurSzVMax.y;
+    mX1UtiDilTer = mX1UtiTer + mCurSzVMax.x;
+    mY1UtiDilTer = mY1UtiTer + mCurSzVMax.y;
 
-		mX0UtiLocIm = mX0UtiTer - mDilX0Ter;
-		mX1UtiLocIm = mX1UtiTer - mDilX0Ter;
-		mY0UtiLocIm = mY0UtiTer - mDilY0Ter;
-		mY1UtiLocIm = mY1UtiTer - mDilY0Ter;
+    mX0UtiLocIm = mX0UtiTer - mDilX0Ter;
+    mX1UtiLocIm = mX1UtiTer - mDilX0Ter;
+    mY0UtiLocIm = mY0UtiTer - mDilY0Ter;
+    mY1UtiLocIm = mY1UtiTer - mDilY0Ter;
 
-		mX0UtiDilLocIm = mX0UtiDilTer - mDilX0Ter;
-		mX1UtiDilLocIm = mX1UtiDilTer - mDilX0Ter;
-		mY0UtiDilLocIm = mY0UtiDilTer - mDilY0Ter;
-		mY1UtiDilLocIm = mY1UtiDilTer - mDilY0Ter;
-
-
-		Box2di aBoxUtiLocIm(Pt2di(mX0UtiLocIm,mY0UtiLocIm),Pt2di(mX1UtiLocIm,mY1UtiLocIm));
-		Box2di aBoxUtiDilLocIm(Pt2di(mX0UtiDilLocIm,mY0UtiDilLocIm),Pt2di(mX1UtiDilLocIm,mY1UtiDilLocIm));
-
-		Dilate(mImOkTerCur,mImOkTerDil,mCurSzVMax,aBoxUtiDilLocIm);
-
-		cInterpolateurIm2D<float> * anInt = CurEtape()->InterpFloat();
-
-		cGPU_LoadedImGeom * aGLI_00 =  mNbIm ? mVLI[0] : 0 ;
-		if (aMode==eModeMom_12_2_22)
-		{
-			ELISE_ASSERT(aGLI_00!=0,"Incohe eModeMom_12_2_22 with no Im in cAppliMICMAC::InitZ");
-		}
-
-		for (int aKIm= aKFirstIm ; aKIm<mNbIm ; aKIm++)
-		{
-			cGPU_LoadedImGeom & aGLI_0 = *(mVLI[aKIm]);
-			const cGeomImage * aGeom=aGLI_0.Geom();
+    mX0UtiDilLocIm = mX0UtiDilTer - mDilX0Ter;
+    mX1UtiDilLocIm = mX1UtiDilTer - mDilX0Ter;
+    mY0UtiDilLocIm = mY0UtiDilTer - mDilY0Ter;
+    mY1UtiDilLocIm = mY1UtiDilTer - mDilY0Ter;
 
 
-			// Tabulation des projections image au pas de mGpuSzD
-			if (mGpuSzD)
-			{
-				int aNbX = (mX1UtiDilTer-mX0UtiDilTer +mGpuSzD) / mGpuSzD;
-				int aNbY = (mY1UtiDilTer-mY0UtiDilTer +mGpuSzD) / mGpuSzD;
+    Box2di aBoxUtiLocIm(Pt2di(mX0UtiLocIm,mY0UtiLocIm),Pt2di(mX1UtiLocIm,mY1UtiLocIm));
+    Box2di aBoxUtiDilLocIm(Pt2di(mX0UtiDilLocIm,mY0UtiDilLocIm),Pt2di(mX1UtiDilLocIm,mY1UtiDilLocIm));
+
+    Dilate(mImOkTerCur,mImOkTerDil,mCurSzVMax,aBoxUtiDilLocIm);
+
+    cInterpolateurIm2D<float> * anInt = CurEtape()->InterpFloat();
+
+    cGPU_LoadedImGeom * aGLI_00 =  mNbIm ? mVLI[0] : 0 ;
+    if (aMode==eModeMom_12_2_22)
+    {
+          ELISE_ASSERT(aGLI_00!=0,"Incohe eModeMom_12_2_22 with no Im in cAppliMICMAC::InitZ");
+    }
+
+    for (int aKIm= aKFirstIm ; aKIm<mNbIm ; aKIm++)
+    {
+        cGPU_LoadedImGeom & aGLI_0 = *(mVLI[aKIm]);
+        const cGeomImage * aGeom=aGLI_0.Geom();
 
 
-				for (int aKX = 0; aKX <= aNbX ; aKX++)
-				{
-					for (int aKY = 0; aKY <= aNbY ; aKY++)
-					{
-						Pt2dr aPTer  = DequantPlani(mX0UtiDilTer+aKX*mGpuSzD,mY0UtiDilTer+aKY*mGpuSzD);
-						Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&mZTerCur);
-						Pt2di anI(aKX,aKY);
-						mTGeoX.oset(anI,aPIm.x);
-						mTGeoY.oset(anI,aPIm.y);
-					}
-				}
-			}
-
-                        const std::vector<cGPU_LoadedImGeom *> &  aVGLI = aGLI_0.MSGLI();
-
-                        for (int aKScale = 0; aKScale<int(aVGLI.size()) ; aKScale++)
-                        {
-                             cGPU_LoadedImGeom & aGLI_K = *(aVGLI[aKScale]);
-
-                             ELISE_ASSERT(aGLI_0.VDataIm()==aGLI_K.VDataIm(),"Internal incohe in MulScale correl");
-			     float ** aDataIm =  aGLI_0.VDataIm()[aKScale];
-			     tGpuF ** aDOrtho = aGLI_K.DataOrtho();
-			     U_INT1 ** aOkOr =  aGLI_K.DataOKOrtho();
-
-			     U_INT1 ** aDLocOkTerDil = (aKIm==0) ? aDOkIm0TerDil : mDOkTerDil;
+        // Tabulation des projections image au pas de mGpuSzD
+        if (mGpuSzD)
+        {
+            int aNbX = (mX1UtiDilTer-mX0UtiDilTer +mGpuSzD) / mGpuSzD;
+            int aNbY = (mY1UtiDilTer-mY0UtiDilTer +mGpuSzD) / mGpuSzD;
 
 
-			     double aStep = 1.0/ElMax(1,mGpuSzD); // Histoire de ne pas diviser par 0
-			     double anIndX = 0.0;
-			     for (int anX = mX0UtiDilTer ; anX <  mX1UtiDilTer ; anX++)
-			     {
-				     double anIndY = 0.0;
-				     for (int anY = mY0UtiDilTer ; anY < mY1UtiDilTer ; anY++)
-				     {
-					     aOkOr[anY][anX] = 0;
-					     aDOrtho[anY][anX] = 0.0;
-					     if (aDLocOkTerDil[anY][anX])
-					     {
-						     Pt2dr aPIm;
-						     if (mGpuSzD)
-						     {
-							     Pt2dr anInd(anIndX,anIndY);
-							     aPIm = Pt2dr( mTGeoX.getr(anInd), mTGeoY.getr(anInd)) ;
-						     }
-						     else
-						     {
-							     Pt2dr aPTer  = DequantPlani(anX,anY);
-							     aPIm = aGeom->CurObj2Im(aPTer,&mZTerCur);
-						     }
+            for (int aKX = 0; aKX <= aNbX ; aKX++)
+            {
+                 for (int aKY = 0; aKY <= aNbY ; aKY++)
+                 {
+                      Pt2dr aPTer  = DequantPlani(mX0UtiDilTer+aKX*mGpuSzD,mY0UtiDilTer+aKY*mGpuSzD);
+                      Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&mZTerCur);
+                      Pt2di anI(aKX,aKY);
+                      mTGeoX.oset(anI,aPIm.x);
+                      mTGeoY.oset(anI,aPIm.y);
+                 }
+            }
+        }
+
+        const std::vector<cGPU_LoadedImGeom *> &  aVGLI = aGLI_0.MSGLI();
+
+        for (int aKScale = 0; aKScale<int(aVGLI.size()) ; aKScale++)
+        {
+             cGPU_LoadedImGeom & aGLI_K = *(aVGLI[aKScale]);
+
+             ELISE_ASSERT(aGLI_0.VDataIm()==aGLI_K.VDataIm(),"Internal incohe in MulScale correl");
+             float ** aDataIm =  aGLI_0.VDataIm()[aKScale];
+             tGpuF ** aDOrtho = aGLI_K.DataOrtho();
+             U_INT1 ** aOkOr =  aGLI_K.DataOKOrtho();
+
+             U_INT1 ** aDLocOkTerDil = (aKIm==0) ? aDOkIm0TerDil : mDOkTerDil;
 
 
-                                                     // Peu importe aGLI_0 ou aGLI_K
-						     if (aGLI_0.IsOk(aPIm.x,aPIm.y))
-						     {
-							     aDOrtho[anY][anX] = (tGpuF)anInt->GetVal(aDataIm,aPIm);
-							     aOkOr[anY][anX] =  1;
-						     }
-					     }
-					     anIndY += aStep;
+             // Pendant longtemps, il y a eu un bug quasi invisible, aSzV0=mCurSzV0 ....
+             bool OldBug = false;
+             Pt2di aSzV0 =  OldBug ? mCurSzV0 : aGLI_K.SzV0();
+             Pt2di aSzErod = mCurSzVMax;
 
-				     }
-				     anIndX += aStep;
-			     }
+             // Calcul de l'ortho image et de l'image OK Ortho
+             double aStep = 1.0/ElMax(1,mGpuSzD); // Histoire de ne pas diviser par 0
+             double anIndX = 0.0;
+             for (int anX = mX0UtiDilTer ; anX <  mX1UtiDilTer ; anX++)
+             {
+                   double anIndY = 0.0;
+                   for (int anY = mY0UtiDilTer ; anY < mY1UtiDilTer ; anY++)
+                   {
+                       aOkOr[anY][anX] = 0;
+                       aDOrtho[anY][anX] = 0.0;
+                       if (aDLocOkTerDil[anY][anX])
+                       {
+                           Pt2dr aPIm;
+                           if (mGpuSzD)
+                           {
+                               Pt2dr anInd(anIndX,anIndY);
+                               aPIm = Pt2dr( mTGeoX.getr(anInd), mTGeoY.getr(anInd)) ;
+                           }
+                           else
+                           {
+                               Pt2dr aPTer  = DequantPlani(anX,anY);
+                               aPIm = aGeom->CurObj2Im(aPTer,&mZTerCur);
+                           }
 
-			     SelfErode(aGLI_K.ImOK_Ortho(), mCurSzV0,aBoxUtiLocIm);
-			     if (    (aMode==eModeMom_2_22)
-				     || ((aKIm==0) &&  (aMode==eModeMom_12_2_22))
-				     )
-			     {
-				     MomOrdre2(aGLI_K.ImOrtho(),aGLI_K.ImSomO(),aGLI_K.ImSomO2(),mCurSzV0,aBoxUtiLocIm);
-			     }
-			     else if (aMode==eModeMom_12_2_22) 
-			     {
-				     // std::cout << "KIM " << aKIm << "\n";
-				     Mom12_22
-				     (
-					     aGLI_00->KiemeMSGLI(aKScale)->ImOrtho(),
-					     aGLI_K.ImOrtho(),
-					     aGLI_K.ImSom12(),
-					     aGLI_K.ImSomO(),
-					     aGLI_K.ImSomO2(),
-					     mCurSzV0,
-					     aBoxUtiLocIm
-				   );
-			     }
-                        }
-		}
 
-		mFirstZIsInit = true;
+                           // Peu importe aGLI_0 ou aGLI_K
+                           if (aGLI_0.IsOk(aPIm.x,aPIm.y))
+                           {
+                               aDOrtho[anY][anX] = (tGpuF)anInt->GetVal(aDataIm,aPIm);
+                               aOkOr[anY][anX] =  1;
+                           }
+                       }
+                       anIndY += aStep;
 
-		return true;
-	}
+                   }
+                   anIndX += aStep;
+             }
+
+             SelfErode(aGLI_K.ImOK_Ortho(), aSzErod ,aBoxUtiLocIm);
+
+             if (    (aMode==eModeMom_2_22)
+                  || ((aKIm==0) &&  (aMode==eModeMom_12_2_22))
+             )
+             {
+                   MomOrdre2(aGLI_K.ImOrtho(),aGLI_K.ImSomO(),aGLI_K.ImSomO2(),aSzV0 ,aBoxUtiLocIm);
+             }
+             else if (aMode==eModeMom_12_2_22) 
+             {
+                   // std::cout << "KIM " << aKIm << "\n";
+                   Mom12_22
+                   (
+                         aGLI_00->KiemeMSGLI(aKScale)->ImOrtho(),
+                         aGLI_K.ImOrtho(),
+                         aGLI_K.ImSom12(),
+                         aGLI_K.ImSomO(),
+                         aGLI_K.ImSomO2(),
+                         aSzV0 ,
+                         aBoxUtiLocIm
+                   );
+            }
+        }
+    }
+
+    mFirstZIsInit = true;
+
+    return true;
+}
 
 	void cAppliMICMAC::DoOneCorrelSym(int anX,int anY)
 	{
@@ -1009,70 +1027,69 @@ if (0)
 
 	}
 
-	void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel * aCMP,int aNbScaleIm,bool VireExtre)
+void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel * aCMP,int aNbScaleIm,bool VireExtre)
+{
+    int aNbOk = 0;
+    double aSomCorrel = 0;
+
+    if (mVLI[0]->OkOrtho(anX,anY))
+    {
+        double aCMax = -2;
+        double aCMin = 2;
+	for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
 	{
-		int aNbOk = 0;
-		double aSomCorrel = 0;
-
-		if (mVLI[0]->OkOrtho(anX,anY))
-		{
-                        double aCMax = -2;
-                        double aCMin = 2;
-			for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
-			{
-				double aCor;
-				if (mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0]),aNbScaleIm))
-				{
-					aNbOk ++;
-					aSomCorrel += aCor;
-                                        ElSetMax(aCMax,aCor);
-                                        ElSetMin(aCMin,aCor);
-				}
-			}
-                        if (VireExtre && (aNbOk>2))
-                        {
-                            aSomCorrel -= aCMax + aCMin;
-                            aNbOk -= 2;
-                        }
-		}
-
-		if (aCMP)
-		{
-			std::vector<INT1> aVNorm;
-			if (mVLI[0]->OkOrtho(anX,anY))
-			{
-				tGpuF aV0 = mVLI[0]->ImOrtho(anX,anY);
-				for (int aK=1 ; aK<mNbIm ; aK++)
-				{
-					if (mVLI[aK]->OkOrtho(anX,anY))
-					{
-						double aVal = EcartNormalise(aV0,mVLI[aK]->ImOrtho(anX,anY));
-						aVNorm.push_back(AdaptCostPonct(round_ni(aVal*127)));
-
-					}
-					else
-					{
-						aVNorm.push_back(ValUndefCPONT);
-					}
-				}
-			}
-			else
-			{
-				for (int aK=1 ; aK<mNbIm ; aK++)
-				{
-					aVNorm.push_back(ValUndefCPONT);
-				}
-			}
-			mSurfOpt->Local_VecInt1(Pt2di(anX,anY),&mZIntCur,aVNorm);
-		}
-
-		mSurfOpt->SetCout
-			(
-			Pt2di(anX,anY),
-			&mZIntCur,
-			aNbOk ? mStatGlob->CorrelToCout(aSomCorrel/aNbOk) : mAhDefCost
-			);
+             double aCor;
+             if (mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0]),aNbScaleIm))
+             {
+                 aNbOk ++;
+                 aSomCorrel += aCor;
+                 ElSetMax(aCMax,aCor);
+                 ElSetMin(aCMin,aCor);
+             }
 	}
+        if (VireExtre && (aNbOk>2))
+        {
+            aSomCorrel -= aCMax + aCMin;
+            aNbOk -= 2;
+        }
+    }
+
+    if (aCMP)
+    {
+        std::vector<INT1> aVNorm;
+        if (mVLI[0]->OkOrtho(anX,anY))
+        {
+             tGpuF aV0 = mVLI[0]->ImOrtho(anX,anY);
+             for (int aK=1 ; aK<mNbIm ; aK++)
+             {
+                  if (mVLI[aK]->OkOrtho(anX,anY))
+                  {
+                       double aVal = EcartNormalise(aV0,mVLI[aK]->ImOrtho(anX,anY));
+                       aVNorm.push_back(AdaptCostPonct(round_ni(aVal*127)));
+                  }
+                  else
+                  {
+                       aVNorm.push_back(ValUndefCPONT);
+                  }
+             }
+        }
+        else
+        {
+            for (int aK=1 ; aK<mNbIm ; aK++)
+            {
+                 aVNorm.push_back(ValUndefCPONT);
+            }
+        }
+        mSurfOpt->Local_VecInt1(Pt2di(anX,anY),&mZIntCur,aVNorm);
+    }
+
+    mSurfOpt->SetCout
+    (
+         Pt2di(anX,anY),
+         &mZIntCur,
+         aNbOk ? mStatGlob->CorrelToCout(aSomCorrel/aNbOk) : mAhDefCost
+    );
+}
 
 
 
@@ -1175,6 +1192,7 @@ if (0)
 					{
 
                                                 int aNbScaleIm =  NbScaleOfPt(anX,anY);
+
 /*
                                                 if (mCurEtUseWAdapt) 
                                                 {

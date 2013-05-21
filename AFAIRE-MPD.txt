@@ -7,6 +7,9 @@ Nouveaux outils :
   MNE urbain en chaine simplifiee ?? 
 
 
+
+float => double dans les ply ....
+
    
 
 Corriger Tapas RadialBasic "R.*.JPG" Out=All-Rel Incal=Sample4Calib-Rel dans cmd_UAS_Grand-Leez.txt 

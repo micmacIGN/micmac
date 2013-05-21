@@ -226,6 +226,13 @@ ElCamera * cGeomImage::GetCamera(const Pt2di & aSz,bool & ToDel) const
 }
 
 
+void ShowAff(const ElAffin2D & anAff)
+{
+   printf("[00] : %9.15f %9.15f \n",anAff.I00().x,anAff.I00().y);
+   printf("[10] : %9.15f %9.15f \n",anAff.I10().x,anAff.I10().y);
+   printf("[01] : %9.15f %9.15f \n",anAff.I01().x,anAff.I01().y);
+}
+
 void cGeomImage::RemplitOriXMLNuage
            (
                 const cMTD_Nuage_Maille &,
@@ -256,13 +263,27 @@ void cGeomImage::RemplitOriXMLNuage
                 Pt2dr(0.0,aResol.y)
              );
 
+
 /*
+static int aCpt; aCpt++;  std::cout << "CCCCPT=" << aCpt<<"\n";
+if (aCpt==8)
 {
-   std::cout << "EEEEEEEEEEE  " << anAffC2M(Pt2dr(1,0)) -  anAffC2M(Pt2dr(0,0)) << "\n";
-   std::cout << "EEEEEEEEEEE  " << anAffC2M(Pt2dr(0,1)) -  anAffC2M(Pt2dr(0,0)) << "\n";
+   ShowAff(anAffC2M);
    ElAffin2D aInv = anAffC2M.inv();
-   std::cout << "FFFFFFFFFFF  " << aInv(Pt2dr(1,0)) -  aInv(Pt2dr(0,0)) << "\n";
-   std::cout << "FFFFFFFFFFF  " << aInv(Pt2dr(0,1)) -  aInv(Pt2dr(0,0)) << "\n";
+   ShowAff(aInv);
+
+   double aXD=0.1;
+   float aXF=0.1;
+   printf("XXXXX %9.15f %9.15f %9.15f\n",aResol.x,aXD,aXF);
+   double X = (aResol.x *10 -1) /10;
+   std::cout << "OOOO " << anOrigine << anOrigine*X<< "\n";
+
+   std::cout << anAffC2M.I00() << anAffC2M.I00() - Pt2dr(round_ni(anAffC2M.I00())) << "\n";
+   std::cout << aInv.I00() << aInv.I00() - Pt2dr(round_ni(aInv.I00())) << "\n";
+
+    ElAffin2D anII = aInv.inv();
+   std::cout << anAffC2M.I00() - anII.I00() << "\n";
+getchar();
 }
 */
 

@@ -1851,6 +1851,11 @@ void ElCamera::SetIntrImaC2M(const tOrIntIma & aOrC2M)
 
 void ElCamera::SetSz(const Pt2di &aSz)
 {
+/*
+static int aCpt = 0; aCpt++;
+std::cout << "Organge " << aCpt << "\n";
+if (aCpt>=8) getchar();
+*/
 
    if (mSz.x != -1)
    {
@@ -1912,6 +1917,12 @@ const std::vector<Pt2dr> &  ElCamera::ContourUtile()
 
 const Pt2di & ElCamera::Sz() const
 {
+/*
+static int aCpt=0; aCpt++;
+std::cout << "SIZE " << aCpt  << " " << mIdCam << "\n";
+if (aCpt == 16) getchar();
+*/
+
    ELISE_ASSERT((mSz.x>0),"ElCamera::Sz non initialisee");
    return mSz;
 }
@@ -1991,7 +2002,7 @@ void  ElCamera::HeritComplAndSz(const ElCamera & aCam)
 void  ElCamera::CamHeritGen(const ElCamera & aCam,bool WithCompl,bool WithOrientInterne)
 {
    SetIdCam(aCam.IdCam());
-// std::cout << "HHHHHH ii " << this << "\n";
+ //  std::cout << "HHHHHH ii " << this << "\n"; dd
 
    if (WithOrientInterne)
    {

@@ -153,7 +153,8 @@ typedef enum
 {
   eUniteAngleDegre,
   eUniteAngleGrade,
-  eUniteAngleRadian
+  eUniteAngleRadian,
+  eUniteAngleUnknown
 } eUniteAngulaire;
 void xml_init(eUniteAngulaire & aVal,cElXMLTree * aTree);
 std::string  eToString(const eUniteAngulaire & aVal);
@@ -1460,7 +1461,8 @@ typedef enum
   eConvAngSurvey,
   eConvAngPhotoMDegre,
   eConvAngPhotoMGrade,
-  eConvAngLPSDegre
+  eConvAngLPSDegre,
+  eConvMatrixInpho
 } eConventionsOrientation;
 void xml_init(eConventionsOrientation & aVal,cElXMLTree * aTree);
 std::string  eToString(const eConventionsOrientation & aVal);
@@ -2097,41 +2099,41 @@ class cConvExplicite
         friend void xml_init(cConvExplicite & anObj,cElXMLTree * aTree);
 
 
-        bool & SensYVideo();
-        const bool & SensYVideo()const ;
+        cTplValGesInit< bool > & SensYVideo();
+        const cTplValGesInit< bool > & SensYVideo()const ;
 
-        bool & DistSenC2M();
-        const bool & DistSenC2M()const ;
+        cTplValGesInit< bool > & DistSenC2M();
+        const cTplValGesInit< bool > & DistSenC2M()const ;
 
-        bool & MatrSenC2M();
-        const bool & MatrSenC2M()const ;
+        cTplValGesInit< bool > & MatrSenC2M();
+        const cTplValGesInit< bool > & MatrSenC2M()const ;
 
-        Pt3dr & ColMul();
-        const Pt3dr & ColMul()const ;
+        cTplValGesInit< Pt3dr > & ColMul();
+        const cTplValGesInit< Pt3dr > & ColMul()const ;
 
-        Pt3dr & LigMul();
-        const Pt3dr & LigMul()const ;
+        cTplValGesInit< Pt3dr > & LigMul();
+        const cTplValGesInit< Pt3dr > & LigMul()const ;
 
-        eUniteAngulaire & UniteAngles();
-        const eUniteAngulaire & UniteAngles()const ;
+        cTplValGesInit< eUniteAngulaire > & UniteAngles();
+        const cTplValGesInit< eUniteAngulaire > & UniteAngles()const ;
 
-        Pt3di & NumAxe();
-        const Pt3di & NumAxe()const ;
+        cTplValGesInit< Pt3di > & NumAxe();
+        const cTplValGesInit< Pt3di > & NumAxe()const ;
 
-        bool & SensCardan();
-        const bool & SensCardan()const ;
+        cTplValGesInit< bool > & SensCardan();
+        const cTplValGesInit< bool > & SensCardan()const ;
 
         cTplValGesInit< eConventionsOrientation > & Convention();
         const cTplValGesInit< eConventionsOrientation > & Convention()const ;
     private:
-        bool mSensYVideo;
-        bool mDistSenC2M;
-        bool mMatrSenC2M;
-        Pt3dr mColMul;
-        Pt3dr mLigMul;
-        eUniteAngulaire mUniteAngles;
-        Pt3di mNumAxe;
-        bool mSensCardan;
+        cTplValGesInit< bool > mSensYVideo;
+        cTplValGesInit< bool > mDistSenC2M;
+        cTplValGesInit< bool > mMatrSenC2M;
+        cTplValGesInit< Pt3dr > mColMul;
+        cTplValGesInit< Pt3dr > mLigMul;
+        cTplValGesInit< eUniteAngulaire > mUniteAngles;
+        cTplValGesInit< Pt3di > mNumAxe;
+        cTplValGesInit< bool > mSensCardan;
         cTplValGesInit< eConventionsOrientation > mConvention;
 };
 cElXMLTree * ToXMLTree(const cConvExplicite &);
@@ -2145,29 +2147,29 @@ class cConvOri
         cTplValGesInit< eConventionsOrientation > & KnownConv();
         const cTplValGesInit< eConventionsOrientation > & KnownConv()const ;
 
-        bool & SensYVideo();
-        const bool & SensYVideo()const ;
+        cTplValGesInit< bool > & SensYVideo();
+        const cTplValGesInit< bool > & SensYVideo()const ;
 
-        bool & DistSenC2M();
-        const bool & DistSenC2M()const ;
+        cTplValGesInit< bool > & DistSenC2M();
+        const cTplValGesInit< bool > & DistSenC2M()const ;
 
-        bool & MatrSenC2M();
-        const bool & MatrSenC2M()const ;
+        cTplValGesInit< bool > & MatrSenC2M();
+        const cTplValGesInit< bool > & MatrSenC2M()const ;
 
-        Pt3dr & ColMul();
-        const Pt3dr & ColMul()const ;
+        cTplValGesInit< Pt3dr > & ColMul();
+        const cTplValGesInit< Pt3dr > & ColMul()const ;
 
-        Pt3dr & LigMul();
-        const Pt3dr & LigMul()const ;
+        cTplValGesInit< Pt3dr > & LigMul();
+        const cTplValGesInit< Pt3dr > & LigMul()const ;
 
-        eUniteAngulaire & UniteAngles();
-        const eUniteAngulaire & UniteAngles()const ;
+        cTplValGesInit< eUniteAngulaire > & UniteAngles();
+        const cTplValGesInit< eUniteAngulaire > & UniteAngles()const ;
 
-        Pt3di & NumAxe();
-        const Pt3di & NumAxe()const ;
+        cTplValGesInit< Pt3di > & NumAxe();
+        const cTplValGesInit< Pt3di > & NumAxe()const ;
 
-        bool & SensCardan();
-        const bool & SensCardan()const ;
+        cTplValGesInit< bool > & SensCardan();
+        const cTplValGesInit< bool > & SensCardan()const ;
 
         cTplValGesInit< eConventionsOrientation > & Convention();
         const cTplValGesInit< eConventionsOrientation > & Convention()const ;
@@ -2213,29 +2215,29 @@ class cOrientationConique
         cTplValGesInit< eConventionsOrientation > & KnownConv();
         const cTplValGesInit< eConventionsOrientation > & KnownConv()const ;
 
-        bool & SensYVideo();
-        const bool & SensYVideo()const ;
+        cTplValGesInit< bool > & SensYVideo();
+        const cTplValGesInit< bool > & SensYVideo()const ;
 
-        bool & DistSenC2M();
-        const bool & DistSenC2M()const ;
+        cTplValGesInit< bool > & DistSenC2M();
+        const cTplValGesInit< bool > & DistSenC2M()const ;
 
-        bool & MatrSenC2M();
-        const bool & MatrSenC2M()const ;
+        cTplValGesInit< bool > & MatrSenC2M();
+        const cTplValGesInit< bool > & MatrSenC2M()const ;
 
-        Pt3dr & ColMul();
-        const Pt3dr & ColMul()const ;
+        cTplValGesInit< Pt3dr > & ColMul();
+        const cTplValGesInit< Pt3dr > & ColMul()const ;
 
-        Pt3dr & LigMul();
-        const Pt3dr & LigMul()const ;
+        cTplValGesInit< Pt3dr > & LigMul();
+        const cTplValGesInit< Pt3dr > & LigMul()const ;
 
-        eUniteAngulaire & UniteAngles();
-        const eUniteAngulaire & UniteAngles()const ;
+        cTplValGesInit< eUniteAngulaire > & UniteAngles();
+        const cTplValGesInit< eUniteAngulaire > & UniteAngles()const ;
 
-        Pt3di & NumAxe();
-        const Pt3di & NumAxe()const ;
+        cTplValGesInit< Pt3di > & NumAxe();
+        const cTplValGesInit< Pt3di > & NumAxe()const ;
 
-        bool & SensCardan();
-        const bool & SensCardan()const ;
+        cTplValGesInit< bool > & SensCardan();
+        const cTplValGesInit< bool > & SensCardan()const ;
 
         cTplValGesInit< eConventionsOrientation > & Convention();
         const cTplValGesInit< eConventionsOrientation > & Convention()const ;
