@@ -73,8 +73,8 @@ void GpGpuTools::OutputInfoGpuMemory()
 {
 	size_t free;  
 	size_t total;  
-	cudaMemGetInfo(&free, &total);
-	cout << "Free memory video : " << (float)free / pow(2.0f,20) << "/" << (float)total / pow(2.0f,20) << "mb" << endl;
+    checkCudaErrors( cudaMemGetInfo(&free, &total));
+    cout << "Memoire video       : " << (float)free / pow(2.0f,20) << " / " << (float)total / pow(2.0f,20) << "Mo" << endl;
 }
 
 std::string CGObject::Name()
@@ -121,14 +121,13 @@ void CGObject::ClassTemplate( std::string classTemplate )
 
 std::string CGObject::Id()
 {
-	return " NAME : " + Name() + ", " + "TYPE : " + Type() + "/" + ClassTemplate() + "\n";
+    return " NAME : " + Name() + ", " + "TYPE : " + Type() + "/" + ClassTemplate();
 }
 
 uint2 struct2D::GetDimension()
 {
     return _dimension;
 }
-
 
 uint2 struct2D::SetDimension( uint2 dimension )
 {
@@ -153,7 +152,7 @@ uint struct2D::GetSize()
 
 void struct2D::Output()
 {
-	std::cout << "Dimension : " << GpGpuTools::toStr(_dimension) << "\n";
+    std::cout << "Dimension 2D        : " << GpGpuTools::toStr(_dimension) << "\n";
 }
 
 void struct2DLayered::SetDimension( uint3 dimension )
@@ -195,8 +194,8 @@ uint struct2DLayered::GetSize()
 
 void struct2DLayered::Output()
 {
-	struct2D::Output();
-	std::cout << "Nombre de calques : " << GetNbLayer() << "\n";
+	struct2D::Output();                 
+    std::cout << "Nombre de calques   : " << GetNbLayer() << "\n";
 }
 
 bool  AImageCuda::bindTexture( textureReference& texRef )
