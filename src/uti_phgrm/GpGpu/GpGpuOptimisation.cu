@@ -10,6 +10,7 @@
 
 #include "GpGpu/GpGpuStreamData.cuh"
 
+
 /// brief Calcul le Z min et max.
 __device__ void ComputeIntervaleDelta(short2 & aDz, int aZ, int MaxDeltaZ, short2 aZ_Next, short2 aZ_Prev)
 {
@@ -28,7 +29,7 @@ __device__ void ComputeIntervaleDelta(short2 & aDz, int aZ, int MaxDeltaZ, short
             aDz.y = aDz.x;
 }
 
-template<class T> __device__ void ReadOneSens(CDeviceDataStream<T> &costStream, bool sens, uint lenghtLine, T pData[][NAPPEMAX], bool& idBuffer, T* gData, ushort penteMax, uint3 dimBlockTer)
+template<class T, bool sens > __device__ void ReadOneSens(CDeviceDataStream<T> &costStream, uint lenghtLine, T pData[][NAPPEMAX], bool& idBuffer, T* gData, ushort penteMax, uint3 dimBlockTer)
 {
     const ushort    tid     = threadIdx.x;
 
@@ -198,9 +199,10 @@ template<class T> __global__ void kernelOptiOneDirection(T* gStream, short2* gSt
 
     CDeviceDataStream<T> costStream(bufferData, gStream + pitStr,bufferIndex, gStreamId + pit);
 
-   ScanOneSens<T,eAVANT>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
+    ReadOneSens<T,eAVANT>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
+   //ScanOneSens<T,eAVANT>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
    // DebugScanOneSens<T,eAVANT>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
-   ScanOneSens<T,eARRIERE>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
+   //ScanOneSens<T,eARRIERE>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
 
 }
 

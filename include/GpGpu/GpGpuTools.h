@@ -549,6 +549,7 @@ bool CData<T>::ErrorOutput( cudaError_t err,const char* fonctionName )
         checkCudaErrors( err );
         std::cout << "\n";
         std::cout << "--------------------------------------------------------------------------------------\n";
+        exit(1);
         return false;
     }
 
