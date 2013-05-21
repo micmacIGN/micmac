@@ -33,6 +33,16 @@
         <SzCaptMm>   16.0 24.0 </SzCaptMm>
         <ShortName> ND5000  </ShortName>
    </CameraEntry>
+      <CameraEntry>
+        <Name>  NIKON D90  </Name>
+        <SzCaptMm>   15.8 23.6 </SzCaptMm>
+        <ShortName> ND5000  </ShortName>
+   </CameraEntry>
+      <CameraEntry>
+        <Name>  Video HD NIKON D90  </Name>
+        <SzCaptMm>   15.8 23.6 </SzCaptMm>
+        <ShortName> ND90VIDEO  </ShortName>
+   </CameraEntry>
    <CameraEntry>
         <Name>  NIKON D300   </Name>
         <SzCaptMm>   16.0 24.0 </SzCaptMm>

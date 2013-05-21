@@ -40,9 +40,19 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "hassan/reechantillonnage.h"
 #include <algorithm>
 
+void Vodka_Banniere()
+{
+    std::cout <<  "\n";
+    std::cout <<  " *********************************\n";
+    std::cout <<  " *     V-ignette                 *\n";
+    std::cout <<  " *     O-f                       *\n";
+    std::cout <<  " *     D-igital                  *\n";
+    std::cout <<  " *     K-amera                   *\n";
+    std::cout <<  " *     A-nalysis                 *\n";
+    std::cout <<  " *********************************\n\n";
+}
 
-
-vector<vector<double> > PtsHom(string aDir,string aPatIm,string Prefix,string Extension)
+vector<vector<double> > ReadPtsHom(string aDir,string aPatIm,string Extension)
 {
 
 	vector<double> D1,X1,Y1,D2,X2,Y2,G1,G2;
@@ -84,12 +94,12 @@ vector<vector<double> > PtsHom(string aDir,string aPatIm,string Prefix,string Ex
 
 			U_INT1 ** aData2 = aIm2.data();
 
-
+			string prefixe="";
             if (aK1!=aK2)
             {
                std::string aNamePack =  aDir +  aICNM->Assoc1To2
                                         (
-                                           "NKS-Assoc-CplIm2Hom@"+ Prefix + "@"+Extension,
+                                           "NKS-Assoc-CplIm2Hom@"+prefixe + "@" + Extension,
                                            (*aSetIm)[aK1],
                                            (*aSetIm)[aK2],
                                            true
@@ -151,43 +161,73 @@ vector<vector<double> > PtsHom(string aDir,string aPatIm,string Prefix,string Ex
 }
 
 
-void Vignette_correct(Pt2di aSz,double *aParam){//string aDir,string aPatIm,double *aParam){
+void Vignette_correct(string aDir,string aPatIm,double *aParam,string aDirOut){
 
-	std::cout<<"This is yet to be coded"<<endl;
-	string aNameOut="vignette.tif";
-	Im2D_U_INT1  aImVignette(aSz.x,aSz.y);
-	U_INT1 ** aDataVignette = aImVignette.data();
+	//Bulding the output file system
+    ELISE_fp::MkDirRec(aDir + aDirOut);
+	//Reading input files
+    list<string> ListIm=RegexListFileMatch(aDir,aPatIm,1,false);
+    int nbIm=ListIm.size();
 
-	for (int aY=0 ; aY<aSz.y  ; aY++)
-		{
-			for (int aX=0 ; aX<aSz.x  ; aX++)
-			{
-				double x0=aSz.x/2;
-				double y0=aSz.y/2;
-				double D=pow(aX-x0,2)+pow(aY-y0,2);
-				aDataVignette[aY][aX] = (aParam[0]*D+aParam[1]*pow(D,2)+aParam[2]*pow(D,3)); //Radial function of vignette
-				if (aX==0 && aY==0){std::cout<<"D2 ="<<D<<" D4="<<pow(D,2)<<" D6="<<pow(D,3)<<endl;}
-			}
-	}
+    for(int i=1;i<=nbIm;i++)
+	{
+	    string aNameIm=ListIm.front();
+        ListIm.pop_front();
+		string aNameOut=aDir + aDirOut + aNameIm +"_vodka.tif";
 
-	 Tiff_Im  aTOut
+		//Reading the image and creating the objects to be manipulated
+		Tiff_Im aTF= Tiff_Im::StdConvGen(aDir + aNameIm,3,false);
+		Pt2di aSz = aTF.sz();
+
+		Im2D_U_INT1  aImR(aSz.x,aSz.y);
+		Im2D_U_INT1  aImG(aSz.x,aSz.y);
+		Im2D_U_INT1  aImB(aSz.x,aSz.y);
+
+		ELISE_COPY
 		(
-			aNameOut.c_str(),
-			aSz,
-			GenIm::u_int1,
-			Tiff_Im::No_Compr,
-			Tiff_Im::RGB
+		   aTF.all_pts(),
+		   aTF.in(),
+		   Virgule(aImR.out(),aImG.out(),aImB.out())
 		);
 
+		U_INT1 ** aDataR = aImR.data();
+		U_INT1 ** aDataG = aImG.data();
+		U_INT1 ** aDataB = aImB.data();
 
-     ELISE_COPY
-		 (
-			 aTOut.all_pts(),
-			 Virgule(aImVignette.in(),aImVignette.in(),aImVignette.in()),
-			 aTOut.out()
-		 );
+		for (int aY=0 ; aY<aSz.y  ; aY++)
+			{
+				for (int aX=0 ; aX<aSz.x  ; aX++)
+				{
+					double x0=aSz.x/2;
+					double y0=aSz.y/2;
+					double D=pow(aX-x0,2)+pow(aY-y0,2);
+					double R = aDataR[aY][aX] + 255*(aParam[0]*D+aParam[1]*pow(D,2)+aParam[2]*pow(D,3));
+					double G = aDataG[aY][aX] + 255*(aParam[0]*D+aParam[1]*pow(D,2)+aParam[2]*pow(D,3));
+					double B = aDataB[aY][aX] + 255*(aParam[0]*D+aParam[1]*pow(D,2)+aParam[2]*pow(D,3));
+					if(R>255){aDataR[aY][aX]=255;}else{aDataR[aY][aX]=R;}
+					if(G>255){aDataG[aY][aX]=255;}else{aDataG[aY][aX]=G;}
+					if(B>255){aDataB[aY][aX]=255;}else{aDataB[aY][aX]=B;}
+				}
+		}
+
+		 Tiff_Im  aTOut
+			(
+				aNameOut.c_str(),
+				aSz,
+				GenIm::u_int1,
+				Tiff_Im::No_Compr,
+				Tiff_Im::RGB
+			);
+
+
+		 ELISE_COPY
+			 (
+				 aTOut.all_pts(),
+				 Virgule(aImR.in(),aImG.in(),aImB.in()),
+				 aTOut.out()
+			 );
 	  
-
+	}
 }
 
 double* Vignette_Solve(L2SysSurResol & aSys)
@@ -210,27 +250,23 @@ int  Vignette_main(int argc,char ** argv)
    // Create L2SysSurResol to solve least square equation with 2 unknown
 
  
-	std::string aFullPattern,DirOut="Vignette/";
+	std::string aFullPattern,aDirOut="Vignette/";
+	bool InTxt=false;
 	  //Reading the arguments
         ElInitArgMain
         (
             argc,argv,
             LArgMain()  << EAMC(aFullPattern,"Images Pattern"),
-            LArgMain()  << EAM(DirOut,"Out",true,"Output folder (end with /) and/or prefix (end with another char)")
+            LArgMain()  << EAM(aDirOut,"Out",true,"Output folder (end with /) and/or prefix (end with another char)")
+						<< EAM(InTxt,"InTxt",true,"True if homologous points have been exported in txt (Defaut=false)")
                     );
 		std::string aDir,aPatIm;
 		SplitDirAndFile(aDir,aPatIm,aFullPattern);
 
+		std::string Extension = "dat";
+		if (InTxt){Extension="txt";}
 
-   //=====================  PARAMETRES EN DUR ==============
-
-   std::string Prefix = "";
-   // std::string Prefix =  "_SRes" ; 
-   std::string Extension = "dat";
-
-  //===================== 
-
-	vector<vector<double> > aPtsHomol=PtsHom(aDir,aPatIm,Prefix,Extension);
+	vector<vector<double> > aPtsHomol=ReadPtsHom(aDir,aPatIm,Extension);
 	//aPtsHomol est l'ensemble des vecteurs D1,X1,Y1,D2,X2,Y2,G1,G2;
 
 //For Each SIFT point
@@ -242,7 +278,6 @@ int  Vignette_main(int argc,char ** argv)
 		   double aPds[3]={(aPtsHomol[7][i]*pow(aPtsHomol[3][i],2)-aPtsHomol[6][i]*pow(aPtsHomol[0][i],2)),
 						   (aPtsHomol[7][i]*pow(aPtsHomol[3][i],4)-aPtsHomol[6][i]*pow(aPtsHomol[0][i],4)),
 						   (aPtsHomol[7][i]*pow(aPtsHomol[3][i],6)-aPtsHomol[6][i]*pow(aPtsHomol[0][i],6)),
-						   //(aPtsHomol[7][i]*pow(aPtsHomol[3][i],8)-aPtsHomol[6][i]*pow(aPtsHomol[0][i],8)),
 						   //(aPtsHomol[7][i]*aPtsHomol[4][i]-aPtsHomol[6][i]*aPtsHomol[1][i]),
 						   //(aPtsHomol[7][i]*aPtsHomol[5][i]-aPtsHomol[6][i]*aPtsHomol[2][i])
 						};
@@ -258,10 +293,10 @@ int  Vignette_main(int argc,char ** argv)
    }else{
 	   cout<<"Correcting the images"<<endl;
 	   Pt2di aSz;aSz.x=aPtsHomol[8][0];aSz.y=aPtsHomol[8][1];
-	   Vignette_correct(aSz,aParam);
+	   Vignette_correct(aDir,aPatIm,aParam,aDirOut);
    }
 
-
+   Vodka_Banniere();
    return 0;
 }
 
