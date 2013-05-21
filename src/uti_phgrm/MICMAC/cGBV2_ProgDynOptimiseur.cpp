@@ -591,6 +591,7 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
 
 #ifdef CUDA_ENABLED
 
+
     uint    depth       =   256;
     uint3   dimStream   =   make_uint3(depth,mSz.x,mSz.y);
     CuHostData3D<uint>      streamCostVolume(NOPAGELOCKEDMEMORY,dimStream);
@@ -612,6 +613,7 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
             Pt2di aP;
 
             index[make_uint2(aK,x)] = make_short2(aBox._p0.x,aBox._p1.x);
+
             for (aP.x = aBox._p0.x ; aP.x <= aBox._p1.x ; aP.x++,idStream++)
                 streamCostVolume[Pit + idStream]  = aMat[aP].GetCostInit();
         }
@@ -624,22 +626,17 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
     x = 0;
 
     while ((aVPt = mLMR.Next()))
-    {
-        // on parcours la ligne
+    {     
         int lenghtLine = int(aVPt->size());
 
-        for (int aK= 0 ; aK < lenghtLine ; aK++)
+        for (int aK= 0 ; aK < lenghtLine ; aK++) // on parcours la ligne
         {
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
             const Box2di &  aBox = aMat.Box();
-            Pt2di aP;
 
-            for (aP.x = aBox._p0.x ; aP.x< aBox._p1.x ; aP.x++)
-            {
-                uint3   Pt_AV           = make_uint3(aP.x - aBox._p0.x, aK, x);
-                tCost & aCF             = aMat[aP].CostFinal();
-                aCF                    += tCost(hOutputCost[Pt_AV]);// - aCoutMin;
-            }
+            for ( int aPx = aBox._p0.x ; aPx < aBox._p1.x ; aPx++)
+                aMat[Pt2di(aPx,0)].CostFinal() += tCost(hOutputCost[make_uint3(aPx - aBox._p0.x, aK, x)]);
+
         }
         x++;      
     }
@@ -647,8 +644,6 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
     streamCostVolume.Dealloc();
     index.Dealloc();
     hOutputCost.Dealloc();
-
-
 #else
     //printf("Optimisation CPU\n");
      while ((aVPt=mLMR.Next()))

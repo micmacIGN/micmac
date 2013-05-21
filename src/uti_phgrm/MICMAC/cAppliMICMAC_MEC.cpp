@@ -88,7 +88,7 @@ void cAppliMICMAC::DoAllMEC()
 	int devID = gpuGetMaxGflopsDeviceId();
 	// Initialisation du contexte 
 	checkCudaErrors(cudaSetDevice(devID));
-	// Obtention des propriétés de la carte
+    // Obtention des proprietes de la carte
 	checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
 	// Affichage des propriétés de la carte
 	printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
@@ -101,7 +101,7 @@ void cAppliMICMAC::DoAllMEC()
 		itE != mEtapesMecComp.end();
 		itE++
      )
-     { 
+     {          
         OneEtapeSetCur(**itE);
         if (mDoTheMEC  && (!DoNothingBut().IsInit()))
            DoOneEtapeMEC(**itE);
@@ -139,7 +139,7 @@ void cAppliMICMAC::DoAllMEC()
 #ifdef CUDA_ENABLED
 
 	checkCudaErrors( cudaDeviceReset() );
-	printf("Reset Device GPGPU.");
+    printf("Reset Device GpGpu.\n");
 
 #endif
 }

@@ -105,6 +105,11 @@ inline __device__ __host__ uint size(int2 v)
 	return v.x * v.y;
 }
 
+inline __device__ __host__ uint size(uint3 v)
+{
+    return v.x * v.y * v.z;
+}
+
 inline __host__ __device__ uint2 operator/(uint2 a, uint2 b)
 {
 	return make_uint2(a.x / b.x, a.y / b.y);
