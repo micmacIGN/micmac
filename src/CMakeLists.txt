@@ -156,7 +156,6 @@ if(${CUDA_ENABLED})
 	 cuda_add_library(${libStatGpGpuOpt}  ${uti_phgrm_Opt_GpGpu_Src_Files} ${IncCudaFiles} STATIC OPTIONS ${GENCODE_SM20})
 
 	 if (Boost_FOUND)
-
 		  target_link_libraries(${libStatGpGpuInterfMicMac}  ${Boost_LIBRARIES} ${Boost_THREADAPI})
 		  if (NOT WIN32)
 			target_link_libraries(${libStatGpGpuInterfMicMac}  rt pthread )
@@ -165,13 +164,7 @@ if(${CUDA_ENABLED})
 
 	 cuda_add_executable(${ExeGpGpuOpt} ${uti_Test_Opt_GpGpu_Src_Files})
 
-	 target_link_libraries(${ExeGpGpuOpt}  ${libStatGpGpuOpt} ${libStatGpGpuTools})
-
-	 INSTALL(TARGETS ${ExeGpGpuOpt} RUNTIME DESTINATION ${Install_Dir})
-
-	 INSTALL(TARGETS ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt}
-		    LIBRARY DESTINATION ${PROJECT_SOURCE_DIR}/lib
-		    ARCHIVE DESTINATION ${PROJECT_SOURCE_DIR}/lib)
+	 target_link_libraries(${ExeGpGpuOpt}  ${libStatGpGpuOpt} ${libStatGpGpuTools})	 
 
 	 link_directories(${PROJECT_SOURCE_DIR}/lib/)
 
@@ -179,12 +172,18 @@ if(${CUDA_ENABLED})
 
 	 target_link_libraries(${libElise}  ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt})
 
+	 INSTALL(TARGETS ${ExeGpGpuOpt} RUNTIME DESTINATION ${Install_Dir})
+
+	 INSTALL(TARGETS ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt}
+		    LIBRARY DESTINATION ${PROJECT_SOURCE_DIR}/lib
+		    ARCHIVE DESTINATION ${PROJECT_SOURCE_DIR}/lib)
+
 else()
 	 add_library( elise ${Elise_Src_Files} ${IncFiles} )
 	 INSTALL(TARGETS elise ARCHIVE DESTINATION ${Install_Dir_lib} )
 endif()
 
-# OPTION BUILD : En tetes precompilées pour gcc
+# OPTION BUILD : En tetes precompilees pour gcc
 enable_precompiled_headers_GCC(StdAfx.h ${libElise})
 
 # DEFINITION

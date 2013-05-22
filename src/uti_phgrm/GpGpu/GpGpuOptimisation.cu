@@ -41,7 +41,8 @@ template<class T, bool sens > __device__ void ReadOneSens(CDeviceDataStream<T> &
         while( z < uZ.y )
         {
             int Z       = z + tid - uZ.x;
-            gData[idParLine * dimBlockTer.z + Z]    = pData[0][Z];
+            if(Z < NAPPEMAX )
+                gData[idParLine * dimBlockTer.z + Z]    = pData[0][Z];
             z          += min(uZ.y - z,WARPSIZE);
         }
     }
@@ -149,12 +150,22 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
             {
                 ComputeIntervaleDelta(aDz,Z,penteMax,uZ_Next,uZ_Prev);
                 T costMin   = 1e9;
-                T costInit  = pData[2][Z - uZ_Next.x];
+
+                short ZId = Z - uZ_Next.x;
+
+
+                T costInit  = ZId < NAPPEMAX ? pData[2][Z - uZ_Next.x] : 0;
+
 
                 for(short i = aDz.x ; i <= aDz.y; i++)
-                    costMin = min(costMin, costInit + pData[idBuffer][Z - uZ_Prev.x + i]);
+                {
+                    short idZprev = Z - uZ_Prev.x + i;
+                    if(idZprev < NAPPEMAX)
+                        costMin = min(costMin, costInit + pData[idBuffer][Z - uZ_Prev.x + i]);
+                }
 
-                pData[!idBuffer][Z - uZ_Next.x] = costMin;
+                if(ZId < NAPPEMAX)
+                    pData[!idBuffer][Z - uZ_Next.x] = costMin;
 
                 int idGData     = (sens ? idParLine : lenghtLine -  idParLine - 1) * dimBlockTer.z + Z - uZ_Next.x;
                 int cost        = sens ? costMin : costMin + gCostVol[idGData] - costInit;
@@ -197,10 +208,10 @@ template<class T> __global__ void kernelOptiOneDirection(T* gStream, short2* gSt
     const int       pitStr  =   pit * dimBlockTer.z;
     bool            idBuf   =   false;
 
-    CDeviceDataStream<T> costStream(bufferData, gStream + pitStr,bufferIndex, gStreamId + pit);
+    CDeviceDataStream<T> costStream(bufferData, gStream + pitStr,bufferIndex, gStreamId + pit, size(dimBlockTer) - pitStr, dimBlockTer.x * dimBlockTer.y - pit);
 
-    ReadOneSens<T,eAVANT>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
-   //ScanOneSens<T,eAVANT>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
+   // ReadOneSens<T,eAVANT>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
+   ScanOneSens<T,eAVANT>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
    // DebugScanOneSens<T,eAVANT>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
    //ScanOneSens<T,eARRIERE>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
 

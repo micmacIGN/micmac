@@ -28,11 +28,12 @@ class CDeviceStream
 {
 public:
 
-    __device__ CDeviceStream(T* buf,T* stream):
+    __device__ CDeviceStream(T* buf,T* stream, uint sizeStream):
         _bufferData(buf),
         _streamData(stream),
         _curStreamId(0),
-        _curBufferId(WARPSIZE)
+        _curBufferId(WARPSIZE),
+        _sizeStream(sizeStream)
     {}
 
     __device__ virtual short getLengthToRead(short2 &index,bool sens)
@@ -61,13 +62,14 @@ private:
     T*                          _streamData;
     uint                        _curStreamId;
     ushort                      _curBufferId;
+    uint                        _sizeStream;
 };
 
 template< class T > __device__
 short2 CDeviceStream<T>::read(T *destData, ushort tid, bool sens, T def, bool waitSync)
 {
     short2  index;
-    ushort  NbCopied    = 0 , NbTotalToCopy = getLengthToRead(index, sens);
+    ushort  NbCopied    = 0 , NbTotalToCopy = getLengthToRead(index, sens);// ERREUR ICI....
     short   PitSens     = !sens * WARPSIZE;
 
     //bool AA = (blockIdx.x==0 && threadIdx.x == 1  && NbTotalToCopy  != 1 && !sens);
@@ -78,7 +80,9 @@ short2 CDeviceStream<T>::read(T *destData, ushort tid, bool sens, T def, bool wa
 
         if(!NbToCopy)
         {
-            _bufferData[threadIdx.x] = _streamData[_curStreamId + threadIdx.x - 2 * PitSens];
+            uint idStream =_curStreamId + threadIdx.x - 2 * PitSens;
+            if(idStream < _sizeStream)
+                _bufferData[threadIdx.x] = _streamData[idStream]; // ERREUR ICI....
             _curBufferId   = PitSens;
             _curStreamId   = _curStreamId  + vec(sens) * WARPSIZE;
 
@@ -109,9 +113,9 @@ class CDeviceDataStream : public CDeviceStream<T>
 {
 public:
 
-    __device__ CDeviceDataStream(T* buf,T* stream,short2* bufId,short2* streamId):
-        CDeviceStream<T>(buf,stream),
-        _streamIndex(bufId,streamId)
+    __device__ CDeviceDataStream(T* buf,T* stream,short2* bufId,short2* streamId, uint sizeStream, uint sizeStreamId):
+        CDeviceStream<T>(buf,stream,sizeStream),
+        _streamIndex(bufId,streamId,sizeStreamId)
     {}
 
     __device__ short getLengthToRead(short2 &index, bool sens)
