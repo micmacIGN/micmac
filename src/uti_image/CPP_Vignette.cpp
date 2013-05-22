@@ -55,16 +55,17 @@ void Vodka_Banniere()
 vector<vector<double> > ReadPtsHom(string aDir,string aPatIm,string Extension)
 {
 
-	vector<double> D1,X1,Y1,D2,X2,Y2,G1,G2;
+	vector<double> D1,D2,G1,G2;//X1,Y1,X2,Y2,
 	Pt2di aSz;
     // Permet de manipuler les ensemble de nom de fichier
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
 
 //On parcours toutes les paires d'images différentes (->testé dans le if)
+	int cpt=0;
     for (int aK1=0 ; aK1<int(aSetIm->size()) ; aK1++)
     {
-		cout<<"Getting homologous points from: "<<(*aSetIm)[aK1]<<endl;
+		std::cout<<"Getting homologous points from: "<<(*aSetIm)[aK1]<<endl;
 		//
 		    
 		//Reading the image and creating the objects to be manipulated
@@ -117,27 +118,28 @@ vector<vector<double> > ReadPtsHom(string aDir,string aPatIm,string Extension)
                                itP++
                            )
                            {
-
-							   X1.push_back(itP->P1().x);
-							   Y1.push_back(itP->P1().y);
-							   X2.push_back(itP->P2().x);
-							   Y2.push_back(itP->P2().y);
+							   cpt++;
 							   //Compute the distance between the point and the center of the image
 							   double x0=aSz.x/2;
 							   double y0=aSz.y/2;
-							   double D=sqrt(pow(itP->P1().x-x0,2)+pow(itP->P1().y-y0,2));
-							   D1.push_back(D);
-							   x0=aSz.x/2;
-							   y0=aSz.y/2;
-							   D=sqrt(pow(itP->P2().x-x0,2)+pow(itP->P2().y-y0,2));
-							   D2.push_back(D);
-							   //Go looking for grey value of the point
-							   double G = Reechantillonnage::biline(aData1, 1,1, itP->P1());
-							   G1.push_back(G);
-							   G = Reechantillonnage::biline(aData2, 1,1, itP->P2());
-							   G2.push_back(G);
+							   double Dist1=sqrt(pow(itP->P1().x-x0,2)+pow(itP->P1().y-y0,2));
+							   double Dist2=sqrt(pow(itP->P2().x-x0,2)+pow(itP->P2().y-y0,2));
+							   //Check that the distances are different-> point relevent
+							   double rap=Dist1/Dist2;
 
-                     // std::cout << aNamePack  << " " << aPack.size() << "\n";
+							   if(1){//(Dist1>aSz.x/3 || Dist2>aSz.x/3)){// && (rap<0.75 || rap>1.33)){Filtre à mettre en place?
+								   D1.push_back(Dist1);
+								   D2.push_back(Dist2);
+								   //X1.push_back(itP->P1().x);Unused, was for possible linear shift in vignette
+								   //Y1.push_back(itP->P1().y);
+								   //X2.push_back(itP->P2().x);
+								   //Y2.push_back(itP->P2().y);
+								   //Go looking for grey value of the point
+								   double G = Reechantillonnage::biline(aData1, aSz.x, aSz.y, itP->P1());
+								   G1.push_back(G);
+								   G = Reechantillonnage::biline(aData2, aSz.x, aSz.y, itP->P2());
+								   G2.push_back(G);
+							   }
                    }
 				   }
                    else
@@ -145,21 +147,22 @@ vector<vector<double> > ReadPtsHom(string aDir,string aPatIm,string Extension)
             }
         }
     }
-
+	int nbpts=G1.size();
+	std::cout<<"Total number of points used in least square : "<<nbpts<<" out of "<<cpt<<endl;
 	vector<vector<double> > aPtsHomol;
+	vector<double> SZ;
+	SZ.push_back(aSz.x);SZ.push_back(aSz.y);
 	aPtsHomol.push_back(D1);
-	aPtsHomol.push_back(X1);
-	aPtsHomol.push_back(Y1);
 	aPtsHomol.push_back(D2);
-	aPtsHomol.push_back(X2);
-	aPtsHomol.push_back(Y2);
 	aPtsHomol.push_back(G1);
 	aPtsHomol.push_back(G2);
-	vector<double> SZ;SZ.push_back(aSz.x);SZ.push_back(aSz.y);
 	aPtsHomol.push_back(SZ);
+	//aPtsHomol.push_back(X1);
+	//aPtsHomol.push_back(Y1);
+	//aPtsHomol.push_back(X2);
+	//aPtsHomol.push_back(Y2);
    return aPtsHomol;
 }
-
 
 void Vignette_correct(string aDir,string aPatIm,double *aParam,string aDirOut){
 
@@ -230,8 +233,25 @@ void Vignette_correct(string aDir,string aPatIm,double *aParam,string aDirOut){
 	}
 }
 
-double* Vignette_Solve(L2SysSurResol & aSys)
+double* Vignette_Solve(vector<vector<double> > & aPtsHomol)
 {
+
+	   // Create L2SysSurResol to solve least square equation with 3 unknown
+	L2SysSurResol aSys(3);
+
+  	//For Each SIFT point
+	for(int i=0;i<int(aPtsHomol[0].size());i++){
+				 double aPds[3]={(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2)),
+								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4)),
+								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6)),
+								 //(aPtsHomol[7][i]*aPtsHomol[4][i]-aPtsHomol[6][i]*aPtsHomol[1][i]),
+								 //(aPtsHomol[7][i]*aPtsHomol[5][i]-aPtsHomol[6][i]*aPtsHomol[2][i])
+								};
+				 aSys.AddEquation(1,aPds,aPtsHomol[2][i]-aPtsHomol[3][i]);
+	}
+
+	//System has 3 unknowns and nbPtsSIFT equations (significantly more than enough)
+
     bool Ok;
     Im1D_REAL8 aSol = aSys.GSSR_Solve(&Ok);
 
@@ -246,12 +266,9 @@ double* Vignette_Solve(L2SysSurResol & aSys)
 
 int  Vignette_main(int argc,char ** argv)
 {
-   std::cout << "Correting the vignetting effect \n";
-   // Create L2SysSurResol to solve least square equation with 2 unknown
 
- 
 	std::string aFullPattern,aDirOut="Vignette/";
-	bool InTxt=false;
+	bool InTxt=false,DoCor=false;
 	  //Reading the arguments
         ElInitArgMain
         (
@@ -259,41 +276,69 @@ int  Vignette_main(int argc,char ** argv)
             LArgMain()  << EAMC(aFullPattern,"Images Pattern"),
             LArgMain()  << EAM(aDirOut,"Out",true,"Output folder (end with /) and/or prefix (end with another char)")
 						<< EAM(InTxt,"InTxt",true,"True if homologous points have been exported in txt (Defaut=false)")
-                    );
+						<< EAM(DoCor,"DoCor",true,"Use the computed parameters to correct the images (Defaut=false)")
+        );
 		std::string aDir,aPatIm;
 		SplitDirAndFile(aDir,aPatIm,aFullPattern);
 
 		std::string Extension = "dat";
 		if (InTxt){Extension="txt";}
+		
+		std::cout << "Computing the parameters of the vignette effect \n";
 
+//Avec Points homol
 	vector<vector<double> > aPtsHomol=ReadPtsHom(aDir,aPatIm,Extension);
-	//aPtsHomol est l'ensemble des vecteurs D1,X1,Y1,D2,X2,Y2,G1,G2;
+	//aPtsHomol est l'ensemble des vecteurs D1,D2,G1,G2,SZ;
+	double* aParam = Vignette_Solve(aPtsHomol);
 
-//For Each SIFT point
 
-   L2SysSurResol aSys(3);
-   cout<<"Total number of points used in least square : "<<aPtsHomol[0].size()<<endl;
-   for(int i=0;i<int(aPtsHomol[0].size());i++){
-	   {
-		   double aPds[3]={(aPtsHomol[7][i]*pow(aPtsHomol[3][i],2)-aPtsHomol[6][i]*pow(aPtsHomol[0][i],2)),
-						   (aPtsHomol[7][i]*pow(aPtsHomol[3][i],4)-aPtsHomol[6][i]*pow(aPtsHomol[0][i],4)),
-						   (aPtsHomol[7][i]*pow(aPtsHomol[3][i],6)-aPtsHomol[6][i]*pow(aPtsHomol[0][i],6)),
-						   //(aPtsHomol[7][i]*aPtsHomol[4][i]-aPtsHomol[6][i]*aPtsHomol[1][i]),
-						   //(aPtsHomol[7][i]*aPtsHomol[5][i]-aPtsHomol[6][i]*aPtsHomol[2][i])
-						};
-				 aSys.AddEquation(1,aPds,aPtsHomol[6][i]-aPtsHomol[7][i]);
-	   }
-	}
-	//System has 3 unknowns and nbPtsSIFT equations (significantly more than enough)
+//Avec Stack
+		/*
+		string cmdStack="mm3d StackFlatField " + aFullPattern + " 16";
+		system_call(cmdStack.c_str());
 
-   double* aParam = Vignette_Solve(aSys);
+		Tiff_Im aTF= Tiff_Im::StdConvGen(aDir + "FlatField.tif",1,true);
+			Pt2di aSz = aTF.sz();
+			Im2D_U_INT1  aIm(aSz.x,aSz.y);
+			ELISE_COPY
+				(
+				   aTF.all_pts(),
+				   aTF.in(),
+				   aIm.out()
+				);
+
+			U_INT1 ** aData = aIm.data();
+		
+		L2SysSurResol aSys(3);
+		int x0=aSz.x/2;
+		int y0=aSz.y/2;
+		cout<<"Size=["<<aSz.x<<" - "<<aSz.y<<"]"<<endl;
+		int cpt=0;
+		for (int aY=0 ; aY<aSz.y  ; aY=aY+8)
+			{
+				for (int aX=0 ; aX<aSz.x  ; aX=aX+8)
+				{
+					double Dist=sqrt(pow(aX-x0,2)+pow(aY-y0,2));
+					double aPds[3]={pow(Dist,2),pow(Dist,4),pow(Dist,6)};
+					aSys.AddEquation(1,aPds,aData[aY][aX]);
+cpt++;
+				}
+			}
+cout<<cpt<<" points"<<endl;
+double* aParam = Vignette_Solve(aSys);
+*/
+
 
    if (aParam==0){
 	   cout<<"Could'nt compute vignette parameters"<<endl;
-   }else{
+   }else{ 
+	   if (DoCor){
+	   //Correction des images avec les params calculés
 	   cout<<"Correcting the images"<<endl;
-	   Pt2di aSz;aSz.x=aPtsHomol[8][0];aSz.y=aPtsHomol[8][1];
+	   Pt2di aSz;aSz.x=aPtsHomol[4][0];aSz.y=aPtsHomol[4][1];
 	   Vignette_correct(aDir,aPatIm,aParam,aDirOut);
+	   
+				}
    }
 
    Vodka_Banniere();
