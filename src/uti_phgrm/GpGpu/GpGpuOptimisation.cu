@@ -209,11 +209,9 @@ template<class T> __global__ void kernelOptiOneDirection(T* gStream, short2* gSt
     bool            idBuf   =   false;
 
     CDeviceDataStream<T> costStream(bufferData, gStream + pitStr,bufferIndex, gStreamId + pit, size(dimBlockTer) - pitStr, dimBlockTer.x * dimBlockTer.y - pit);
-
-   // ReadOneSens<T,eAVANT>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
+ 
    ScanOneSens<T,eAVANT>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
-   // DebugScanOneSens<T,eAVANT>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
-   //ScanOneSens<T,eARRIERE>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
+   ScanOneSens<T,eARRIERE>(costStream, dimBlockTer.y, pdata,idBuf,g_odata + pitStr,penteMax, dimBlockTer);
 
 }
 
