@@ -53,14 +53,14 @@ namespace Reechantillonnage
 
 /************************************************************************************/
 
-   template<class Type> Type biline (Type** im, INT tx, INT ty, Pt2dr p)
+   template<class Type> Type biline (Type** im, INT tx, INT ty, Pt2dr p)//tx ty la taille de l'image en x et y
    {
       INT x_min = (INT)(p.x);
       INT y_min = (INT)(p.y);
       INT x_max = x_min+1;
       INT y_max = y_min+1;
 
-      if( x_min < 0 || y_min < 0 ) // || x_max >= tx || y_max > ty )
+      if( x_min < 0 || y_min < 0  || x_max > tx-1 || y_max > ty-1 )
           return 0;
 
       REAL p_x_x_min = p.x  - x_min;
