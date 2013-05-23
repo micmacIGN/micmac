@@ -1,0 +1,186 @@
+<Global
+    Subst="@$#1"
+    NameDecl="@$#1"
+
+    NumC="05042"
+    Pattern="(([0-9]{5})|(0504[0-4])|(0483[0-4])|(0525[2-6]))"
+
+    AeroNav="-A0-Navig-RTL"
+    AeroIn="-A2-AppLiais-RTL"
+    AeroOut="-A3-AppuisLiaisonGPS-RTL"
+
+>
+   <ParamApero>
+
+
+       <SectionBDD_Observation>
+
+            <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> Key-Set-HomolPastisBin  </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>  Key-Assoc-CpleIm2HomolPastisBin   </KeyAssoc>
+            </BDD_PtsLiaisons>
+
+            <BDD_ObsAppuisFlottant >
+                  <Id> Id-Appui </Id>
+                  <KeySetOrPat>  ^Mesure-Appuis.xml </KeySetOrPat>
+            </BDD_ObsAppuisFlottant>
+
+            <BDD_Centre>
+                  <Id > Id-Centre </Id>
+                  <KeySet>  KeyStd-Set-Orient@${AeroNav} </KeySet>
+                  <KeyAssoc>  KeyStd-Assoc-Im2Orient@${AeroNav} </KeyAssoc>
+                  <CalcOffsetCentre>
+                       <IdBase> BiaisSimple </IdBase>
+                       <KeyCalcBande> KeyStd-Assoc-Cste@BiaisChantier  </KeyCalcBande>
+                       <OffsetUnknown>  false </OffsetUnknown>
+                   </CalcOffsetCentre>
+            </BDD_Centre>
+
+            <BDD_Orient>
+                  <Id>  IdOrInit</Id>
+                  <KeySet>  KeyStd-Set-Orient@${AeroIn} </KeySet>
+                  <KeyAssoc>  KeyStd-Assoc-Im2Orient@${AeroIn} </KeyAssoc>
+             </BDD_Orient>
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_${Focale} </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   Ori${AeroIn}/F070_AutoCal.xml    </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>   F${Focale}_${PrefixImages}${Pattern}${PostfixDraw}.tif   </PatternName> 
+	           <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+                   <IdBDCentre> Id-Centre </IdBDCentre>
+
+                   <PosValueInit>
+	               <PosFromBDOrient> IdOrInit </PosFromBDOrient>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+              <PointFlottantInc>
+                  <Id> Id-Appui </Id>
+                  <KeySetOrPat>  ^Dico-RTL-Appuis.xml </KeySetOrPat>
+              </PointFlottantInc>
+
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+              <ModeControleDescDic> eCDD_Jamais </ModeControleDescDic>
+              <AllMatSym>  true </AllMatSym>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+              <GridOptimKnownDist> true </GridOptimKnownDist>
+              <NormaliseEqSc> true </NormaliseEqSc>
+              <NormaliseEqTr> true </NormaliseEqTr>
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_0  </Val>
+		              <Val> eLib_PP_CD_00     </Val>
+		              <Val> eLiberte_DR0      </Val>
+		              <Val> eFige_Phgr_Std_Aff      </Val>
+		              <Val> eFige_Phgr_Std_Dec      </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_1  </Val>
+		              <Val> eLib_PP_CD_11     </Val>
+		              <Val> eLiberte_DR3      </Val>
+		              <Val> eLiberte_Phgr_Std_Aff      </Val>
+		              <Val> eLiberte_Phgr_Std_Dec      </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <SectionObservations>
+                        <ObsAppuisFlottant>
+                             <NameRef> Id-Appui </NameRef>
+                             <PondIm > 
+                                  <EcartMesureIndiv>  0.5 </EcartMesureIndiv>
+                                  <Show> eNSM_Paquet     </Show>
+                             </PondIm>
+                             <PtsShowDet> .* </PtsShowDet>
+                      </ObsAppuisFlottant>
+                      <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  10.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+                                 <ModePonderation>  eL1Secured </ModePonderation>
+                                 <SigmaPond> 2.0 </SigmaPond>
+                                 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                      </ObsLiaisons>
+                      <ObsCentrePDV >
+                              <PatternApply> .* </PatternApply>
+                              <Pond>
+                                  <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                  <Show> eNSM_Indiv     </Show>
+                                  <SigmaPond> 2 </SigmaPond>
+                                  <ModePonderation> eL1Secured </ModePonderation>
+                              </Pond>
+                              <PondAlti>
+                                  <EcartMesureIndiv>  5.0 </EcartMesureIndiv>
+                                  <Show> eNSM_Indiv     </Show>
+                                  <SigmaPond> 10 </SigmaPond>
+                                  <ModePonderation> eL1Secured </ModePonderation>
+                              </PondAlti>
+                      </ObsCentrePDV>
+                    </SectionObservations>
+
+
+                    <SectionExport>
+                        <ExportPose>
+                            <PatternSel> (.*).tif </PatternSel>
+                            <KeyAssoc> KeyStd-Assoc-Im2Orient@${AeroOut} </KeyAssoc>
+                            <AddCalib>  true </AddCalib>
+                            <NbVerif>  10 </NbVerif>
+                            <TolWhenVerif> 1e-3 </TolWhenVerif>
+                            <FileExtern> KeyStd-Assoc-Im2AutoCal@${AeroOut} </FileExtern>
+                            <FileExternIsKey> true </FileExternIsKey>
+                            <ModeAngulaire> true </ModeAngulaire>
+                        </ExportPose>
+                        <ExportCalib>
+                             <KeyAssoc>  KeyStd-Assoc-CleCal2AutoCal@${AeroOut} </KeyAssoc>
+                             <KeyIsName> false </KeyIsName>
+                        </ExportCalib>
+                    </SectionExport>
+	      </EtapeCompensation>
+	</SectionCompensation>
+   </ParamApero>
+</Global>
+

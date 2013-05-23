@@ -1,0 +1,159 @@
+<!--
+    Pattron pour le calcul de MNT a partir d'un ensemble de vue convergentes simples.
+ 
+    N Images , toutes convergentes vers la meme zones, angle suffisant pour que l'on puisse
+    faire une mise en place directe.
+-->
+
+<Global>
+   <ChantierDescripteur
+        Subst="@$#1"
+        NameDecl="@$#1"
+
+        PrefixImages="img_"
+        PostfixImages="_MpDcraw8B_GR"
+        CorPostfixImages="_MpDcraw16B_GR"
+        PatternNumeroGlob="[0-9]{4}"
+        PatternNumeroLoc="[0-9]{4}"
+        NumeroMaitresse="2698"
+
+        Calib="AutoCal-Canon-15.xml"
+        CalibCoul="Bayer-Canon-15.xml"
+
+        PatternAllIm="${PrefixImages}${PatternNumeroLoc}${PostfixImages}\.tif"
+        ImMaitresse="${PrefixImages}${NumeroMaitresse}${PostfixImages}\.tif"
+
+
+
+        SzSiftInit="500"
+        SzSift="1500"
+        NbJob="2"
+   >
+
+<!--   BATCH  -->
+
+        <BatchChantDesc>
+              <Key> Batch </Key>
+
+
+              <Line>  bin/MapCmd bin/MpDcraw "P=${ThisDir}(.*).cr2" 16B=0 Cal=${CalibCoul} GR=1  Dyn=0.01 Gamma=-32  EpsLog=0.3 ExpTimeRef=0.16 DiaphRef=5.6 IsoSpeedRef=100  16B=0   M=MkToto "T=\$1_MpDcraw8B_GR.tif"
+</Line>
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+              <Line> mv ${ThisDir}*.cr2 ${ThisDir}CR2/ </Line>
+
+
+              <Line> bin/Pastis  ${ThisDir}  Key-Rel-Init-All-Cples ${SzSiftInit} MkF=MkToto FiltreOnlyDupl=1 SsRes=1 NbMinPtsExp=2 </Line>
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+              <Line> bin/Pastis  ${ThisDir}  Key-Rel-All-Cples-Filtr-SsEch ${SzSift} MkF=MkToto  FiltreOnlyDupl=1</Line>
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+              <Line> bin/Apero ${ThisDir}Apero1-Pastis.xml </Line>
+              <Line>  bin/MapCmd bin/MpDcraw "P=${ThisDir}(.*).cr2" 16B=1 Cal=${CalibCoul} GR=1   M=MkToto "T=\$1_MpDcraw8B_GR.tif" </Line>
+
+              <Line> bin/MICMAC ${ThisDir}param-GeoIm.xml </Line>
+        </BatchChantDesc>
+
+
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+
+
+    <KeyedSetsOfNames >
+          <Sets>
+                 <PatternAccepteur> ${PatternAllIm}  </PatternAccepteur>
+          </Sets>
+          <Key> Key-Set-All-Im </Key>
+    </KeyedSetsOfNames>
+
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+
+
+
+
+<!--   Associations   -->
+<!--   Associations   -->
+<!--   Associations   -->
+
+   <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ${PatternAllIm}  </PatternTransform>
+                       <CalcName> ${Calib} </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   Key-Assoc-CalibOfIm </Key>
+   </KeyedNamesAssociations>
+
+
+
+<!--   Relations   -->
+<!--   Relations   -->
+<!--   Relations   -->
+
+
+    <KeyedSetsORels>
+       <Sets >
+            <ByAdjacence>
+                <KeySets>  Key-Set-All-Im   </KeySets>
+                <DeltaMax > 10000  </DeltaMax>
+                <DeltaMin > -10000 </DeltaMin>
+            </ByAdjacence>
+       </Sets>
+       <Key  > Key-Rel-Init-All-Cples </Key>
+    </KeyedSetsORels>
+
+    <KeyedSetsORels>
+       <Sets >
+            <ByAdjacence>
+                <KeySets>  Key-Set-All-Im   </KeySets>
+                <DeltaMax > 10000  </DeltaMax>
+                <DeltaMin > -10000 </DeltaMin>
+                <Filtre> 
+                     <FiltreByRelSsEch>
+                        <KeySet >  Key-Set-SsRes-HomolPastisBin          </KeySet>
+                        <KeyAssocCple>  Key-Assoc-SsRes-CpleIm2HomolPastisBin   </KeyAssocCple>
+                        <SeuilBasNbPts> 2 </SeuilBasNbPts>
+                        <SeuilHautNbPts> 2 </SeuilHautNbPts>
+                        <NbMinCple> 100000 </NbMinCple>
+                     </FiltreByRelSsEch>
+                </Filtre>
+            </ByAdjacence>
+       </Sets>
+       <Key  > Key-Rel-All-Cples-Filtr-SsEch </Key>
+    </KeyedSetsORels>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)_MpDcraw16B_GR\.tif  </PatternTransform>
+                <CalcName>  Ori-F/OrFinale-$1_MpDcraw8B_GR.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Ori-F/OrFinale-(.*)_MpDcraw8B_GR\.xml </PatternTransform>
+                <CalcName>  $1_MpDcraw16B_GR.tif  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-16B-Im2OrFinale </Key>
+    </KeyedNamesAssociations>
+                                         
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform>   img_([0-9]{4}).*\.tif@(.*)  </PatternTransform>
+                <CalcName>  Ori-F/Attr$2_MM_$1.xml  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Attr-MM </Key>
+    </KeyedNamesAssociations>
+                                         
+
+  </ChantierDescripteur>
+</Global>
