@@ -834,7 +834,7 @@ else
     cPoseCam * aCam2PL = 0;
     double aLambdaRot=1;
 
-    CamStenope & aCS1 =   * (mCalib->PIF().CurPIF());
+    CamStenope* aCS1 =    (mCalib->PIF().CurPIF());
 
     double  aProfPose = -1;
     double  anAltiSol = ALTISOL_UNDEF();
@@ -895,7 +895,7 @@ else
 
 
 
-       aPack = aCS1.F2toPtDirRayonL3(aPack,&aCS2);
+       aPack = aCS1->F2toPtDirRayonL3(aPack,&aCS2);
        cResMepRelCoplan aRMRC = aPack.MepRelCoplan(1.0,aPP.L2EstimPlan().Val());
        cElemMepRelCoplan & aSP = aRMRC.BestSol();
 
@@ -911,9 +911,9 @@ else
            aM1 = aPP.Ap1().Ter();
            aM2 = aPP.Ap2().Ter();
            aM3 = aPP.Ap3().Ter();
-           aIm1 = aCS1.F2toPtDirRayonL3(aPP.Ap1().Im());
-           aIm2 = aCS1.F2toPtDirRayonL3(aPP.Ap2().Im());
-           aIm3 = aCS1.F2toPtDirRayonL3(aPP.Ap3().Im());
+           aIm1 = aCS1->F2toPtDirRayonL3(aPP.Ap1().Im());
+           aIm2 = aCS1->F2toPtDirRayonL3(aPP.Ap2().Im());
+           aIm3 = aCS1->F2toPtDirRayonL3(aPP.Ap3().Im());
        }
        else if (aPP.DirPlan().IsInit())
        {
@@ -1104,7 +1104,7 @@ else
 
             // ElPackHomologue aPack = anAppli.PackPhgrmFromCple(&aCS1,aNamePose,&aCS2,aName2);
 	    ElPackHomologue aPack;
-	    mAppli.InitPackPhgrm(aLI.IdBD(),aPack,mName,&aCS1,aName2,&aCS2);
+	    mAppli.InitPackPhgrm(aLI.IdBD(),aPack,mName,aCS1,aName2,&aCS2);
 	    double aProfC = aLI.ProfSceneCouple().ValWithDef(aProfI);
 
             if (aK==0)
