@@ -52,14 +52,13 @@ void Vodka_Banniere()
     std::cout <<  " *********************************\n\n";
 }
 
-vector<vector<double> > ReadPtsHom(string aDir,string aPatIm,string Extension)
+vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,string Extension)
 {
 
 	vector<double> D1,D2,G1,G2;//X1,Y1,X2,Y2,
 	Pt2di aSz;
     // Permet de manipuler les ensemble de nom de fichier
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
 
 //On parcours toutes les paires d'images différentes (->testé dans le if)
 	int cpt=0;
@@ -164,18 +163,16 @@ vector<vector<double> > ReadPtsHom(string aDir,string aPatIm,string Extension)
    return aPtsHomol;
 }
 
-void Vignette_correct(string aDir,string aPatIm,double *aParam,string aDirOut){
+void Vignette_correct(string aDir,std::vector<std::string> * aSetIm,vector<double> aParam,string aDirOut){
 
 	//Bulding the output file system
     ELISE_fp::MkDirRec(aDir + aDirOut);
 	//Reading input files
-    list<string> ListIm=RegexListFileMatch(aDir,aPatIm,1,false);
-    int nbIm=ListIm.size();
-
-    for(int i=1;i<=nbIm;i++)
+    int nbIm=(aSetIm)->size();
+    for(int i=0;i<nbIm;i++)
 	{
-	    string aNameIm=ListIm.front();
-        ListIm.pop_front();
+	    string aNameIm=(*aSetIm)[i];
+		cout<<"Correcting "<<aNameIm<<endl;
 		string aNameOut=aDir + aDirOut + aNameIm +"_vodka.tif";
 
 		//Reading the image and creating the objects to be manipulated
@@ -233,7 +230,7 @@ void Vignette_correct(string aDir,string aPatIm,double *aParam,string aDirOut){
 	}
 }
 
-double* Vignette_Solve(vector<vector<double> > & aPtsHomol)
+vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
 {
 
 	   // Create L2SysSurResol to solve least square equation with 3 unknown
@@ -255,13 +252,16 @@ double* Vignette_Solve(vector<vector<double> > & aPtsHomol)
     bool Ok;
     Im1D_REAL8 aSol = aSys.GSSR_Solve(&Ok);
 
+	vector<double> aParam;
     if (Ok)
     {
         double* aData = aSol.data();
         std::cout << "Vignette parameters : " << aData[0] << " " << aData[1] << " " << aData[2] << "\n";
-		return aData;
-    }else{
-		return 0;}
+		aParam.push_back(aData[0]);
+		aParam.push_back(aData[1]);
+		aParam.push_back(aData[2]);
+    }
+		return aParam;
 }
 
 int  Vignette_main(int argc,char ** argv)
@@ -283,64 +283,95 @@ int  Vignette_main(int argc,char ** argv)
 
 		std::string Extension = "dat";
 		if (InTxt){Extension="txt";}
-		
-		std::cout << "Computing the parameters of the vignette effect \n";
 
-//Avec Points homol
-	vector<vector<double> > aPtsHomol=ReadPtsHom(aDir,aPatIm,Extension);
-	//aPtsHomol est l'ensemble des vecteurs D1,D2,G1,G2,SZ;
-	double* aParam = Vignette_Solve(aPtsHomol);
+		cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+		const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
 
-
-//Avec Stack
-		/*
-		string cmdStack="mm3d StackFlatField " + aFullPattern + " 16";
-		system_call(cmdStack.c_str());
-
-		Tiff_Im aTF= Tiff_Im::StdConvGen(aDir + "FlatField.tif",1,true);
-			Pt2di aSz = aTF.sz();
-			Im2D_U_INT1  aIm(aSz.x,aSz.y);
-			ELISE_COPY
-				(
-				   aTF.all_pts(),
-				   aTF.in(),
-				   aIm.out()
-				);
-
-			U_INT1 ** aData = aIm.data();
-		
-		L2SysSurResol aSys(3);
-		int x0=aSz.x/2;
-		int y0=aSz.y/2;
-		cout<<"Size=["<<aSz.x<<" - "<<aSz.y<<"]"<<endl;
-		int cpt=0;
-		for (int aY=0 ; aY<aSz.y  ; aY=aY+8)
-			{
-				for (int aX=0 ; aX<aSz.x  ; aX=aX+8)
-				{
-					double Dist=sqrt(pow(aX-x0,2)+pow(aY-y0,2));
-					double aPds[3]={pow(Dist,2),pow(Dist,4),pow(Dist,6)};
-					aSys.AddEquation(1,aPds,aData[aY][aX]);
-cpt++;
-				}
+		vector<vector<string> > listOfListIm;
+		vector<vector<double> > vectOfDiaphFoc;
+		for (int j=0;j<aSetIm->size();j++){
+			std::string aFullName=(*aSetIm)[j];
+			const cMetaDataPhoto & infoIm = cMetaDataPhoto::CreateExiv2(aFullName);
+			vector<double> diaphFoc;diaphFoc.push_back(infoIm.Diaph());diaphFoc.push_back(infoIm.FocMm());
+			//Creating a new list of images for each combination of Diaph & Foc
+			cout<<"Getting Diaph and Focal from "<<aFullName<<endl;
+			if (vectOfDiaphFoc.size()==0){
+				vectOfDiaphFoc.push_back(diaphFoc);
+				vector<string>newSetOfIm;
+				newSetOfIm.push_back(aFullName);
+				listOfListIm.push_back(newSetOfIm);
+			}else{
+				for (int i=0;i<vectOfDiaphFoc.size();i++){
+					if (diaphFoc==vectOfDiaphFoc[i]){
+						listOfListIm[i].push_back(aFullName); 
+						break;
+						}else{if(i==vectOfDiaphFoc.size()-1){
+								vectOfDiaphFoc.push_back(diaphFoc);
+								vector<string>newSetOfIm;
+								newSetOfIm.push_back(aFullName);
+								listOfListIm.push_back(newSetOfIm);
+								break;
+							}else{continue;}}
+					}
 			}
-cout<<cpt<<" points"<<endl;
-double* aParam = Vignette_Solve(aSys);
-*/
+		}
+		cout<<"Number of different sets of images with the same Diaph-Focal combination : "<<listOfListIm.size()<<endl;
+		for(int i=0;i<listOfListIm.size();i++){
+			std::cout << "Computing the parameters of the vignette effect for the set of "<<listOfListIm[i].size()<<" images with Diaph="<<vectOfDiaphFoc[i][0]<<" and Foc="<<vectOfDiaphFoc[i][1]<<endl;
+
+		//Avec Points homol
+			vector<vector<double> > aPtsHomol=ReadPtsHom(aDir, & listOfListIm[i],Extension);
+			//aPtsHomol est l'ensemble des vecteurs D1,D2,G1,G2,SZ;
+			vector<double> aParam = Vignette_Solve(aPtsHomol);
+			
+		//Avec Stack
+				/*
+				string cmdStack="mm3d StackFlatField " + aFullPattern + " 16";
+				system_call(cmdStack.c_str());
+
+				Tiff_Im aTF= Tiff_Im::StdConvGen(aDir + "FlatField.tif",1,true);
+					Pt2di aSz = aTF.sz();
+					Im2D_U_INT1  aIm(aSz.x,aSz.y);
+					ELISE_COPY
+						(
+						   aTF.all_pts(),
+						   aTF.in(),
+						   aIm.out()
+						);
+
+					U_INT1 ** aData = aIm.data();
+		
+				L2SysSurResol aSys(3);
+				int x0=aSz.x/2;
+				int y0=aSz.y/2;
+				cout<<"Size=["<<aSz.x<<" - "<<aSz.y<<"]"<<endl;
+				int cpt=0;
+				for (int aY=0 ; aY<aSz.y  ; aY=aY+8)
+					{
+						for (int aX=0 ; aX<aSz.x  ; aX=aX+8)
+						{
+							double Dist=sqrt(pow(aX-x0,2)+pow(aY-y0,2));
+							double aPds[3]={pow(Dist,2),pow(Dist,4),pow(Dist,6)};
+							aSys.AddEquation(1,aPds,aData[aY][aX]);
+		cpt++;
+						}
+					}
+		cout<<cpt<<" points"<<endl;
+		double* aParam = Vignette_Solve(aSys);
+		*/
 
 
-   if (aParam==0){
-	   cout<<"Could'nt compute vignette parameters"<<endl;
-   }else{ 
-	   if (DoCor){
-	   //Correction des images avec les params calculés
-	   cout<<"Correcting the images"<<endl;
-	   Pt2di aSz;aSz.x=aPtsHomol[4][0];aSz.y=aPtsHomol[4][1];
-	   Vignette_correct(aDir,aPatIm,aParam,aDirOut);
+		   if (aParam.size()==0){
+			   cout<<"Could'nt compute vignette parameters"<<endl;
+		   }else{ 
+			   if (DoCor){
+			   //Correction des images avec les params calculés
+			   cout<<"Correcting the images"<<endl;
+			   Vignette_correct(aDir, & listOfListIm[i],aParam,aDirOut);
 	   
+						}
 				}
-   }
-
+		}
    Vodka_Banniere();
    return 0;
 }
