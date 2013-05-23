@@ -4,7 +4,7 @@
 #include "GpGpu/GpGpuTools.h"
 
 extern "C" void Launch();
-extern "C" void OptimisationOneDirection(CuHostData3D<uint> &data,CuHostData3D<short2> &index, uint3 dimVolCost,CuHostData3D<uint> & H_AV);
+extern "C" void OptimisationOneDirection(CuHostData3D<uint> &data,CuHostData3D<short2> &index, uint nBLine,CuHostData3D<uint> & h_ForceCostVol, CuHostData3D<uint3>  rStrPar);
 
 template <class T>
 void LaunchKernel();
