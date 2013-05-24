@@ -592,8 +592,7 @@ cPreCondGrid ElDistortion22_Gen::GetAsPreCond() const
     return aRes;
 }
 
-
-cCalibDistortion  ElDistortion22_Gen::XmlDistNoVal()
+cCalibDistortion GlobXmlDistNoVal()
 {
    cCalibDistortion  aRes;
 
@@ -605,10 +604,41 @@ cCalibDistortion  ElDistortion22_Gen::XmlDistNoVal()
    return aRes;
 }
 
-cCalibDistortion ElDistortion22_Gen::ToXmlStruct(const ElCamera *) const
+cCalibrationInterneRadiale CIR(const Pt2dr & aC)
 {
-  return XmlDistNoVal();
+   cCalibrationInterneRadiale aCIR;
+   aCIR.CDist() = aC;
+   aCIR.PPaEqPPs().SetNoInit();
+
+   return aCIR;
 }
+cCalibDistortion FromCIR(const cCalibrationInterneRadiale & aCIR)
+{
+    cCalibDistortion  aRes = GlobXmlDistNoVal();
+    aRes.ModRad().SetVal(aCIR);
+
+    return aRes;
+}
+
+
+cCalibDistortion  ElDistortion22_Gen::XmlDistNoVal()
+{
+   return GlobXmlDistNoVal();
+}
+
+
+
+cCalibDistortion  ElDistortion22_Gen::ToXmlStruct(const ElCamera * aCam) const
+{
+   return FromCIR(CIR(aCam->Sz()/2.0));
+}
+/*
+   cCalibDistortion aRes ;
+   cModNoDist aNoDist;
+   aRes.ModNoDist().SetVal(aNoDist);
+
+   return aRes;
+*/
 
 
 /*************************************************/
@@ -647,7 +677,7 @@ bool ElDistortion22_Triviale::IsId() const {return true;}
 
 cCalibDistortion ElDistortion22_Triviale::ToXmlStruct(const ElCamera * aCam) const
 {
-   cCalibDistortion aRes = ElDistortion22_Gen::ToXmlStruct(aCam);
+   cCalibDistortion aRes =XmlDistNoVal(); //  ElDistortion22_Gen::BasicToXmlStruct(aCam);
    cModNoDist aNoDist;
    aRes.ModNoDist().SetVal(aNoDist);
 
@@ -1041,11 +1071,12 @@ REAL ElDistRadiale_PolynImpair::RMaxCroissant(REAL aBorne)
 }
 
 
+
+
+
 cCalibrationInterneRadiale  ElDistRadiale_PolynImpair::ToXmlDradStruct() const
 {
-   cCalibrationInterneRadiale aCIR;
-   aCIR.CDist() = Centre();
-   aCIR.PPaEqPPs().SetNoInit();
+    cCalibrationInterneRadiale aCIR = CIR(Centre());
 
     int aNbcNN = NbCoeffNN();
     for (int aKC=0; aKC<aNbcNN ;  aKC++)
@@ -1059,10 +1090,7 @@ cCalibrationInterneRadiale  ElDistRadiale_PolynImpair::ToXmlDradStruct() const
 
 cCalibDistortion ElDistRadiale_PolynImpair::ToXmlStruct(const ElCamera * aCam) const
 {
-   cCalibDistortion aRes = ElDistortion22_Gen::ToXmlStruct(aCam);
-   aRes.ModRad().SetVal(ToXmlDradStruct());
-
-   return aRes;
+    return FromCIR(ToXmlDradStruct());
 }
 
 
@@ -1148,7 +1176,7 @@ cCalibrationInternePghrStd cDistModStdPhpgr::ToXmlPhgrStdStruct() const
 
 cCalibDistortion cDistModStdPhpgr::ToXmlStruct(const ElCamera * aCam) const
 {
-   cCalibDistortion aRes = ElDistortion22_Gen::ToXmlStruct(aCam);
+   cCalibDistortion aRes = XmlDistNoVal() ; // ElDistortion22_Gen::BasicToXmlStruct(aCam);
    aRes.ModPhgrStd().SetVal(ToXmlPhgrStdStruct());
 
    return aRes;
@@ -1862,7 +1890,7 @@ std::string cDistCamStenopeGrid::Type() const
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -1878,17 +1906,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

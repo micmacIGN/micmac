@@ -434,6 +434,7 @@ int TestSet_main(int argc,char ** argv);
 int TestMTD_main(int argc,char ** argv);
 int TestCmds_main(int argc,char ** argv);
 int Apero2PMVS_main(int argc,char ** argv);
+int Ori2XML_main(int argc,char ** argv);
 
 // uti_images
 int Undist_main(int argc,char ** argv);

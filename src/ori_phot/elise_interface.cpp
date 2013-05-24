@@ -1062,6 +1062,8 @@ cCamera_Orilib::cCamera_Orilib
     SetSz(anOri->SzIm());
     SetOrientation(aRot.inv());
     SetAltiSol(anOri->altisol());
+
+    // std::cout << "ProfORI " << mProfondeur <<  I << "\n";
 }
 
 Ori3D_Std * cCamera_Orilib::CastOliLib()
