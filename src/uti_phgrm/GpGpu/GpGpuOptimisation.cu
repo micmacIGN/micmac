@@ -65,7 +65,8 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
     for(int idParLine = 1; idParLine < lenghtLine;idParLine++)
     {
 
-        idStreamOut = idStreamOut + (sens? 1 : -1) * abs(uZ_Prev.y - uZ_Prev.x);
+
+        idStreamOut += (sens? 1 : -1) * (abs(uZ_Prev.y - uZ_Prev.x) + 1);
 
         const short2 uZ_Next = costStream.read(pData[2],tid,sens,0);
         short2 aDz;
@@ -107,7 +108,6 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
 
             }
 
-
             z += min(uZ_Next.y - z,WARPSIZE);
         }
 
@@ -127,9 +127,11 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
         idBuffer    = !idBuffer;
         uZ_Prev     = uZ_Next;
     }
+
+    idStreamOut += (abs(uZ_Prev.y - uZ_Prev.x) + 1);
 }
 
-template<class T> __global__ void kernelOptiOneDirection(T* gStream, short2* gStreamId, T* g_ForceCostVol, uint3* g_RecStrParam, uint penteMax)
+template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2* g_StrId, T* g_ForceCostVol, uint3* g_RecStrParam, uint penteMax)
 {
     __shared__ T        bufferData[WARPSIZE];
     __shared__ short2   bufferIndex[WARPSIZE];
@@ -138,7 +140,7 @@ template<class T> __global__ void kernelOptiOneDirection(T* gStream, short2* gSt
     __shared__ uint     pit_Stream;
     __shared__ uint     sizeLine;
 
-    uint                idStreamOut;
+    uint                idStreamOut = 0;
 
     if(!threadIdx.x)
     {
@@ -146,15 +148,20 @@ template<class T> __global__ void kernelOptiOneDirection(T* gStream, short2* gSt
         pit_Stream          = recStrParam.x;
         pit_Id              = recStrParam.y;
         sizeLine            = recStrParam.z;
+        //printf(" %d ] sizeLine : %d | pit_Stream : %d | pit_Id : %d \n",blockIdx.x,sizeLine,pit_Stream ,pit_Id);
     }
 
     __syncthreads();
 
     bool idBuf      =   false;
 
-    CDeviceDataStream<T> costStream(bufferData, gStream + pit_Stream,bufferIndex, gStreamId + pit_Id, sizeLine * NAPPEMAX, sizeLine);
+    CDeviceDataStream<T> costStream(bufferData, g_StrCostVol + pit_Stream,bufferIndex, g_StrId + pit_Id, sizeLine * NAPPEMAX, sizeLine);
 
     ScanOneSens<T,eAVANT>   (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, idStreamOut);
+
+//    if(!threadIdx.x)
+//        printf(" idStreamOut : %d \n",idStreamOut);
+
     ScanOneSens<T,eARRIERE> (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, idStreamOut);
 
 }
@@ -164,7 +171,6 @@ template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputStrea
 {
 
     uint    deltaMax    =   3;
-
     uint    dimDeltaMax =   deltaMax * 2 + 1;
     dim3    Threads(32,1,1);
     dim3    Blocks(nBLine,1,1);

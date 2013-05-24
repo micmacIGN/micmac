@@ -597,11 +597,13 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
 
     while ((aVPt = mLMR.Next()))
     {
-        uint lenghtLine = int(aVPt->size());
+        uint lenghtLine = (uint)(aVPt->size());
 
         rStrPar[idLine].x = pitStream;
         rStrPar[idLine].y = pitIdStream;
         rStrPar[idLine].z = lenghtLine;
+
+        //printf("idLine : %d | lenghtLine : %d\n",idLine,lenghtLine);
 
         sizeStreamLine = sizeStreamId = 0;
 
@@ -609,7 +611,7 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
         {
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
             const Box2di &  aBox        = aMat.Box();           
-            sizeStreamLine += abs(aBox._p1.x-aBox._p0.x);
+            sizeStreamLine += abs(aBox._p1.x-aBox._p0.x) + 1;
         }
 
         pitIdStream += iDivUp(lenghtLine,WARPSIZE) * WARPSIZE;
@@ -620,10 +622,10 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
 
     NbLine = idLine;
 
-    printf("NbLine : %d | pitStream : %d\n",NbLine,pitStream);
+    //printf("NbLine : %d | pitStream : %d\n",NbLine,pitStream);
 
-    CuHostData3D<uint>      strCostVolume(pitStream);
-    CuHostData3D<short2>    strIndex(pitIdStream);
+    CuHostData3D<uint>      h_strCostVolume(pitStream);
+    CuHostData3D<short2>    h_strIndex(pitIdStream);
     CuHostData3D<uint>      h_OutForceCostVol(pitStream);
 
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
@@ -631,7 +633,7 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
 
     while ((aVPt = mLMR.Next()))
     {
-        uint  idInStream   = 0;
+        uint  idStream   = 0;
 
         for (uint aK = 0 ; aK < rStrPar[idLine].z ; aK++)
         {
@@ -639,41 +641,40 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
             const Box2di &  aBox        = aMat.Box();
 
-            strIndex[rStrPar[idLine].y + aK] = make_short2(aBox._p0.x,aBox._p1.x);
+            h_strIndex[rStrPar[idLine].y + aK] = make_short2(aBox._p0.x,aBox._p1.x);
 
             for (int aPx = aBox._p0.x ; aPx <= aBox._p1.x ; aPx++)
-                strCostVolume[rStrPar[idLine].x + idInStream + aPx - aBox._p0.x]  = aMat[Pt2di(aPx,0)].GetCostInit();
+                h_strCostVolume[rStrPar[idLine].x + idStream + aPx - aBox._p0.x]  = aMat[Pt2di(aPx,0)].GetCostInit();
 
-            idInStream += abs(aBox._p1.x-aBox._p0.x);
+            idStream += abs(aBox._p1.x-aBox._p0.x) + 1;
         }
         idLine++;
     }
 
-    OptimisationOneDirection(strCostVolume,strIndex,NbLine,h_OutForceCostVol, rStrPar);
+    OptimisationOneDirection(h_strCostVolume,h_strIndex,NbLine,h_OutForceCostVol, rStrPar);
 
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
     idLine = 0;
 
     while ((aVPt = mLMR.Next()))
     {
-        int     lenghtLine  = int(aVPt->size());
-        uint    idOutStream = 0;
+        uint    idStream = 0;
 
-        for (int aK= 0 ; aK < lenghtLine ; aK++) // on parcours la ligne
+        for (uint aK= 0 ; aK < rStrPar[idLine].z; aK++) // on parcours la ligne
         {
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
             const Box2di &  aBox = aMat.Box();
 
             for ( int aPx = aBox._p0.x ; aPx < aBox._p1.x ; aPx++)
-                aMat[Pt2di(aPx,0)].CostFinal() += tCost(h_OutForceCostVol[rStrPar[idLine].x + idOutStream + aPx - aBox._p0.x]);
+                aMat[Pt2di(aPx,0)].CostFinal() += tCost(h_OutForceCostVol[rStrPar[idLine].x + idStream + aPx - aBox._p0.x]);
 
-            idOutStream += abs(aBox._p1.x - aBox._p0.x );
+            idStream += abs(aBox._p1.x - aBox._p0.x ) + 1;
         }
         idLine++;
     }
 
-    strCostVolume.Dealloc();
-    strIndex.Dealloc();
+    h_strCostVolume.Dealloc();
+    h_strIndex.Dealloc();
     h_OutForceCostVol.Dealloc();
     rStrPar.Dealloc();
 
