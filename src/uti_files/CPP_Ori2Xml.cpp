@@ -1,4 +1,4 @@
-/*Header-MicMac-eLiSe-25/06/2007peroChImMM_main
+/*Header-MicMac-eLiSe-25/06/2007
 
     MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
     eLiSe  : ELements of an Image Software Environnement
@@ -36,92 +36,93 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+
 #include "StdAfx.h"
 
-int MMInitialModel_main(int argc,char ** argv)
+
+/*********************************************/
+/*                                           */
+/*                ::                         */
+/*                                           */
+/*********************************************/
+
+
+int Ori2XML_main(int argc,char ** argv)
 {
     MMD_InitArgcArgv(argc,argv);
 
-    std::string  aDir,aPat,aFullDir;
-    std::string  AeroIn;
-    std::string  ImSec;
-    bool         Visu = false;
-    bool         DoPly = false;
-
-    int aZoom = 8;
-    bool aDo2Z = true;
-    double aReducePly=3.0;
+    std::string aFullOri,anOut;
+    std::string toto;
 
 
     ElInitArgMain
     (
-	argc,argv,
-	LArgMain()  << EAMC(aFullDir,"Dir + Pattern")
-                    << EAMC(AeroIn,"Orientation"),
-	LArgMain()  
-                    << EAM(Visu,"Visu",true,"Interactif Visualization (tuning purpose, programm will stop at breakpoint)")
-                    << EAM(DoPly,"DoPly",true,"Generate ply ,for tuning purpose, (Def=false)")
-                    << EAM(aZoom,"Zoom",true,"Zoom of computed models, (def=8)")
-                    << EAM(aReducePly,"ReduceExp",true,"Down scaling of cloud , XML and ply, (def = 3)")
-                    << EAM(aDo2Z,"Do2Z",true,"Excute a first step at 2*Zoom (Def=true)")
+           argc,argv,
+           LArgMain() << EAMC(aFullOri,"Full pattern") 
+                      << EAMC(anOut,"Dir for result"),
+           LArgMain() << EAM(toto,"toto",true)
     );
-	
-	#if (ELISE_windows)
-		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
-	#endif
-    SplitDirAndFile(aDir,aPat,aFullDir);
-    cInterfChantierNameManipulateur * aICNM =  cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
-    if (! EAMIsInit(&ImSec))
-       ImSec = AeroIn;
+    std::string aDir,aFileOriIn;
+    SplitDirAndFile(aDir,aFileOriIn,aFullOri);
 
-    // Genere les pryramides pour que le paral ne s'ecrase pas les 1 les autres
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+   std::string aKeyOut = "NKS-Assoc-Im2Orient@-" + anOut;
+
+
+    const std::vector<std::string> * aVName = anICNM->Get(aFileOriIn);
+
+    for (int aK=0 ; aK<int(aVName->size()) ; aK++)
     {
-         std::string aComPyr =  MM3dBinFile("MMPyram")
-                                + QUOTE(aFullDir) + " "
-                                + AeroIn + " " 
-                                + "ImSec=" +ImSec;
+        std::string aNameIn = (*aVName)[aK];
+        std::string aNameFile = StdPrefix(aNameIn) + ".tif";
 
-         VoidSystem(aComPyr.c_str());
+        CamStenope * aCam = CamStenope::StdCamFromFile(true,aNameIn,anICNM);
+        // CamStenope * aCam = CamOrientGenFromFile(aNameIn,anICNM);
+
+
+        std::string aNameOut = anICNM->Assoc1To1(aKeyOut,aNameFile,true);
+        std::cout << "FFF= " << aCam->Focale() << " " << aNameOut  << "\n";
+        //cCalibrationInternConique  aCIO = aCam->ExportCalibInterne2XmlStruct(aCam->Sz());
+        cOrientationConique anOC = aCam->StdExportCalibGlob();
+
+        MakeFileXML(anOC,aDir+aNameOut);
     }
 
-    const cInterfChantierNameManipulateur::tSet * aSetIm = aICNM->Get(aPat);
+/*
+    CamStenope * aCam = CamStenope::StdCamFromFile(true,aFileOriIn,anICNM);
 
-    std::list<std::string> aLCom;
+    std::cout << "FFF= " << aCam->Focale() << "\n";
 
-    for (int aKIm=0 ; aKIm<int(aSetIm->size()) ; aKIm++)
+
+    if (aFileOriOut=="")
     {
-          std::string aCom =   MM3dBinFile("MICMAC")
-                              //  + XML_MM_File("MM-ModelInitial.xml")
-                              + XML_MM_File("MM-TieP.xml")
-                              + std::string(" WorkDir=") +aDir +  std::string(" ")
-                              + std::string(" +Im1=") + QUOTE((*aSetIm)[aKIm]) + std::string(" ")
-                              + std::string(" +Ori=-") + AeroIn
-                              + std::string(" +ImSec=-") + ImSec
-                              + " +DoPly=" + ToString(DoPly) + " "
-                    ;
+        aFileOriOut =StdPrefix(aFileOriIn) + ".xml";
+    }
 
-          if (Visu)
-              aCom = aCom + " +Visu=" + ToString(Visu) + " ";
+    Ori3D_Std anOri(aFileOriIn.c_str());
+    if (aCal=="")
+    {
+       ElRotation3D aR = anOri.GetOrientation();
+       XML_SauvFile(aR,aFileOriOut,"Ori2XML",true);
+    }
+    else
+    {
+        CamStenope * aCS=0;
+        aCS = Std_Cal_From_File(aCal);
 
-          if (EAMIsInit(&aZoom))
-             aCom = aCom + " +Zoom=" + ToString(aZoom);
 
-          if (EAMIsInit(&aDo2Z))
-             aCom = aCom + " +Do2Z=" + ToString(aDo2Z);
+       aCS->SetOrientation(anOri.GetOrientation().inv());
+       cOrientationConique anOC = aCS->ExportCalibGlob(anOri.SzIm(),1,1,3,true,(char *)0);
 
-          if (EAMIsInit(&aReducePly))
-             aCom = aCom + " +ReduceExp=" + ToString(aReducePly);
-          std::cout << "Com = " << aCom << "\n";
-          aLCom.push_back(aCom);
-  }
+       MakeFileXML(anOC,aFileOriOut);
+    }
+*/
 
-  cEl_GPAO::DoComInParal(aLCom,"MkMMInit");
- // int aRes = system_call(aCom.c_str());
-
-   
-   return 0;
+    return 0;
 }
+
 
 
 

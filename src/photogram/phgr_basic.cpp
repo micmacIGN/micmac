@@ -2610,6 +2610,7 @@ cOrientationConique  ElCamera::StdExportCalibGlob() const
 }
 cOrientationConique  ElCamera::StdExportCalibGlob(bool ModeMatr) const
 {
+   // std::cout << "PROFONDEUR " << mProfondeur << "\n";
    return ExportCalibGlob
           (
                Sz(),
@@ -2733,7 +2734,10 @@ cOrientationConique  ElCamera::ExportCalibGlob
    cCalibrationInternConique aCIC = ExportCalibInterne2XmlStruct(aSzIm);
    cOrientationExterneRigide anOER = From_Std_RAff_C2M(_orient.inv(),aModeMatr);
    anOER.AltiSol().SetVal(AltiSol);
-   anOER.Profondeur().SetVal(Prof);
+   if (Prof >0)
+      anOER.Profondeur().SetVal(Prof);
+   else
+      anOER.Profondeur().SetNoInit();
 
 
     if (VitesseIsInit())
