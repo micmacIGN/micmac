@@ -1,0 +1,28 @@
+================================================================================
+================================================================================
+================================================================================
+
+ /media/Iomega3/DRAIX/Roubine-Detail/AperoPB.xml
+
+  L'image F050_IMG_5993_MpDcraw8B_GR.tif se met mal en place sur 
+   F050_IMG_5990_MpDcraw8B_GR.tif
+
+  Pourtant pt de liaison dense et bon.
+
+  Ts les autres couples semblent fonctionner.
+
+
+================================================================================
+================================================================================
+================================================================================
+
+/data/DonDenis/  
+  L'image F120_SG1L7916_MpDcraw8B_GR.tif a des residus bcp + fort. Aucun pb
+  specifique detectes. Qq points faux dans les coins, mais tres marginaux et
+  qui ne posent pas de pb par ailleurs. Si on les supprime (par RayonUtile)
+  ca semble pas améliorer.
+
+================================================================================
+================================================================================
+================================================================================
+Arc de triomphe :  PB + ou- resolu (GL et PtProj), a verifier ....

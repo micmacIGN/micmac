@@ -1,0 +1,137 @@
+<!--
+    Pattron pour le calcul de MNT a partir d'un ensemble de vue convergentes simples.
+ 
+    N Images , toutes convergentes vers la meme zones, angle suffisant pour que l'on puisse
+    faire une mise en place directe.
+-->
+
+<Global>
+   <ChantierDescripteur
+        Subst="@$#1"
+        NameDecl="@$#1"
+
+        PrefixImages="${SamsungPrefix}"
+        PostfixImages="${GrayBasicPostfix}"
+
+
+        TheCalibGdAngle="DRadFinalePentax50mm.xml"
+
+
+        NumeroMaitresse="6455"
+        NumeroSaisiePlan="6456"
+        PatternNumeroSec="645(6)"
+
+
+        EnteteMaitresse="${PrefixImages}${NumeroMaitresse}${PostfixImages}"
+        ImSaisieStd="${PrefixImages}${NumeroSaisiePlan}${PostfixImages}.tif"
+        ImSecondaires="${PrefixImages}${PatternNumeroSec}${PostfixImages}.tif"
+
+        ImMaitresse="${EnteteMaitresse}.tif"
+        PatternAllIm="(${ImMaitresse})|(${ImSecondaires})"
+        MasqMaitresse="${EnteteMaitresse}_Masq.tif"
+        XMLMasqMaitresse="${EnteteMaitresse}_Masq.xml"
+   >
+
+<!--   BATCH  -->
+
+        <BatchChantDesc>
+              <Key> Batch </Key>
+
+              <Requirement>
+                 <ExeRequired>
+                    <Exe> bin/Pastis </Exe>
+                    <Make> Makefile </Make>
+                 </ExeRequired>
+                 <ExeRequired>
+                    <Exe> bin/Apero </Exe>
+                    <Make> AperiMake </Make>
+                 </ExeRequired>
+                 <ExeRequired>
+                    <Exe> bin/MICMAC </Exe>
+                    <Make> MakeMICMAC </Make>
+                 </ExeRequired>
+
+                 <FileRequired>
+                     <Pattern> ^${TheCalibGdAngle} </Pattern>
+
+                      <Pattern> ^${MasqMaitresse} </Pattern>
+                     <Pattern> ^${XMLMasqMaitresse} </Pattern>
+
+                     <Pattern> ^${ImMaitresse} </Pattern>
+                     <Pattern> ^${ImSaisieStd} </Pattern>
+                     <Pattern>
+                       Homol/Hom_${ImMaitresse}-${ImSaisieStd}.xml
+                     </Pattern>
+
+                     <Pattern> ^Apero1-Pastis.xml  </Pattern>
+                     <Pattern> ^param-GeoIm.xml </Pattern>
+                 </FileRequired>
+
+                 <FileRequired>
+                     <Pattern> ^${PatternAllIm} </Pattern>
+                     <NbMin>   2 </NbMin>
+                     <NbMax>   100000000 </NbMax>
+                 </FileRequired>
+              </Requirement>
+
+              <Line> bin/Pastis  ${ThisDir}  AllCpleImages -1 MkF=MkToto </Line>
+              <Line> make all -f MkToto -j2  </Line>
+              <Line> bin/Apero ${ThisDir}Apero1-Pastis.xml </Line>
+              <Line> bin/MICMAC ${ThisDir}param-GeoIm.xml </Line>
+        </BatchChantDesc>
+
+
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+
+
+    <KeyedSetsOfNames >
+          <Sets>
+                 <PatternAccepteur> ${PatternAllIm}  </PatternAccepteur>
+          </Sets>
+          <Key> AllImages </Key>
+    </KeyedSetsOfNames>
+
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+
+
+
+
+<!--   Associations   -->
+<!--   Associations   -->
+<!--   Associations   -->
+
+   <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ${PatternAllIm}  </PatternTransform>
+                       <CalcName> ${TheCalibGdAngle} </CalcName>
+                 </Direct>
+             </Calcs>
+
+             <Key>   Key-Assoc-CalibOfIm </Key>
+   </KeyedNamesAssociations>
+
+
+<!--   Relations   -->
+<!--   Relations   -->
+<!--   Relations   -->
+
+
+    <KeyedSetsORels>
+       <Sets >
+            <ByAdjacence>
+                <KeySets>  AllImages   </KeySets>
+                <DeltaMax > 10000  </DeltaMax>
+                <DeltaMin > -10000 </DeltaMin>
+            </ByAdjacence>
+       </Sets>
+       <Key  > AllCpleImages </Key>
+    </KeyedSetsORels>
+
+  </ChantierDescripteur>
+</Global>
