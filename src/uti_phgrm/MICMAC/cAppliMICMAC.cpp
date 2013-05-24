@@ -1464,6 +1464,11 @@ cEl_GPAO *    cAppliMICMAC::GPRed2() const
    return mGPRed2;
 }
 
+bool   cAppliMICMAC::CMS_ModeEparse() const
+{
+    return   mCMS_ModeEparse;
+}
+
 
 
 /*****************************************/

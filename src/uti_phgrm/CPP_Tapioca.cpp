@@ -193,8 +193,8 @@ int MultiECh(int argc,char ** argv)
     (
 	argc,argv,
 	LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)")
-                     <<EAM(aSsRes,"Size of Low Resolution image")
-                     <<EAM(aFullRes,"Siez of High Resolution Images"),
+                     <<EAMC(aSsRes,"Size of Low Resolution image")
+                     <<EAMC(aFullRes,"Siez of High Resolution Images"),
 	LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
                     << EAM(ByP,"ByP",true)
                     << EAM(PostFix,"PostFix",true)
