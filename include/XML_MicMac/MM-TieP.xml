@@ -42,7 +42,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
    <Symb> ImTextPly=${Im1}_Scaled_${ZVE}.tif </Symb>
    <Symb> ImSec=${Ori} </Symb>
-   <eSymb> EtapeFin= ?  ${Do2Z} 4 3 </eSymb>
+   <eSymb> EtapeFin=   ?  ${Do2Z} 4 3  </eSymb>
 
 
     <Symb> SeuilSCor=0.65 </Symb>
@@ -252,7 +252,10 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                      <Offset> 0  </Offset>
                      <SeuilMasqExport> 0.02 </SeuilMasqExport> 
                      <Name> BSH-${Im1}.tif </Name>
+<!--
                      <NameNuage> RN${Im1}  </NameNuage>
+-->
+                     <NameNuage> ${ThisDir}${DirMEC}/RN${Im1}  </NameNuage>
                      <ScaleNuage> ${ReduceExp}  </ScaleNuage>
                 </DoImageBSurH>
         </EtapeMEC> 
@@ -283,9 +286,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
        <NameMkF> Make_Cmd_Tiep-${Im1}.txt </NameMkF>
        <OneCmdPar>
                 <OneCmdSer>  echo   ${ThisDir} </OneCmdSer>
-<!--
                 <OneCmdSer>  ${MMDir}bin/mm3d ScaleNuage  ${ThisDir}${DirMEC}/NuageImProf_LeChantier_Etape_${EtapeFin}.xml  RN${Im1} ${ReduceExp} </OneCmdSer>
--->
                 <#WHEN  VTEST=${DoPly}>
                      <OneCmdSer>  ${MMDir}bin/mm3d ScaleIm    ${ThisDir}/${Im1}  ${ZVE} F8B=true Out=${ThisDir}/${ImTextPly}  </OneCmdSer>
                      <OneCmdSer>  ${MMDir}bin/mm3d Nuage2Ply   ${ThisDir}${DirMEC}/RN${Im1}.xml   Attr=${ThisDir}/${ImTextPly} </OneCmdSer>

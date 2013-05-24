@@ -605,12 +605,12 @@ class ElProjStenope : public ElProj32 ,
 class ElDistortion22_Gen
 {
      public :
+        virtual NS_ParamChantierPhotogram::cCalibDistortion ToXmlStruct(const ElCamera *) const;
         void SetName(const char * aName);
         virtual std::string Type() const;
         std::string Name() const;
 
         static NS_ParamChantierPhotogram::cCalibDistortion  XmlDistNoVal();
-        virtual NS_ParamChantierPhotogram::cCalibDistortion ToXmlStruct(const ElCamera *) const;
         virtual  NS_ParamChantierPhotogram::cPreCondGrid GetAsPreCond() const;
         static ElDistortion22_Gen * AllocPreC
                 (const NS_ParamChantierPhotogram::cPreCondGrid&);
@@ -728,6 +728,7 @@ private :
         bool   mDist22Gen_SupressPreCondInInverse;
 protected :
         const char * mName;
+private :
 };
 
 

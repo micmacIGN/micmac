@@ -269,6 +269,7 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
 
 
      mCorrelAdHoc = anEM.CorrelAdHoc().PtrVal();
+     mCMS_ModeEparse = false;
      if (mCorrelAdHoc)
      {
          // C'est pour court circuiter les algo cd ChCorrel, c'est indépendant de ce qui est fait dans le code specifique
@@ -284,6 +285,7 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
          ELISE_ASSERT(mCurSurEchWCor==1,"Sur ech in GPU");
 
         mCMS = mCorrelAdHoc->CorrelMultiScale().PtrVal();
+        mCMS_ModeEparse = ! mCMS->ModeDense().ValWithDef( mModeIm1Maitre);
 /*
          ELISE_ASSERT(mCurEtape->EtapeMEC().AggregCorr().Val()==eAggregSymetrique,"Aggreg non sym in GPU");
          ELISE_ASSERT(mCurEtape->EtapeMEC().ModeInterpolation().Val()==eInterpolMPD,"Interp non MPD in GPU");
