@@ -491,7 +491,8 @@ void MakeTiffRed2Binaire
           Tiff_Im::COMPR_TYPE,
           GenIm::type_el,
           Pt2di                 aSzTile,
-          Pt2di                 aSzRed=Pt2di(-1,-1)
+          Pt2di                 aSzRed=Pt2di(-1,-1),
+          bool                  DynOType=false
      );
 
 void MakeTiffRed2BinaireWithCaracIdent

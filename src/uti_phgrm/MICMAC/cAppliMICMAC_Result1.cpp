@@ -465,12 +465,24 @@ Tiff_Im cAppliMICMAC::FileMasqOfResol(int aDeZoom)
 
 Fonc_Num cAppliMICMAC::FoncSsPIMasqOfResol(int aDz)
 {
-   return   FileMasqOfResol(aDz).in(0);
+if(0)
+{
+   Tiff_Im aTF =  FileMasqOfResol(aDz);
+   Video_Win aW  = Video_Win::WStd(aTF.sz(),1.0);
+   ELISE_COPY(aW.all_pts(), aTF.in(),aW.ogray());
+   std::cout << "Donne Grayyy " << aTF.name() << "\n"; getchar();
+
+   ELISE_COPY(aW.all_pts(), aTF.in_bool_proj(),aW.odisc());
+   std::cout << "Donne disc \n"; getchar();
+
+
+}
+   return   FileMasqOfResol(aDz).in_bool_proj();
 }
 
 Fonc_Num cAppliMICMAC::FoncMasqOfResol(int aDz)
 {
-   Fonc_Num aFRes =  FileMasqOfResol(aDz).in(0);
+   Fonc_Num aFRes =  FileMasqOfResol(aDz).in_bool_proj();
 
    cCaracOfDeZoom * aCarac = GetCaracOfDZ(aDz);
    if (aCarac->HasMasqPtsInt())
@@ -478,7 +490,7 @@ Fonc_Num cAppliMICMAC::FoncMasqOfResol(int aDz)
        Tiff_Im aFInt = Tiff_Im::BasicConvStd(aCarac->NameMasqInt());
        aFRes = aFRes && aFInt.in(0);
    }
- 
+
    return aFRes;
 }
 
@@ -618,11 +630,13 @@ void cAppliMICMAC::MakeDefImMasq(int aDeZoomCible)
     aGeomDFPx.SetDeZoom(aDeZoomCible);
 
 
+    GenIm::type_el aTypeMask = Xml2EL(TypeMasque().Val());
+
     Tiff_Im aFileMasq
             (
                 aNameMasq.c_str(),
                 aGeomDFPx.SzDz(),
-                Xml2EL(TypeMasque().Val()),
+                aTypeMask,
                 Xml2EL(ComprMasque().Val()),
                 // GenIm::bits1_msbf,
 		// Tiff_Im::No_Compr,
@@ -692,10 +706,13 @@ void cAppliMICMAC::MakeDefImMasq(int aDeZoomCible)
      aFoncMasq = aFoncMasq && aImCont.in();
    }
 
+    int aVMin,aVMax;
+    min_max_type_num(aTypeMask,aVMin,aVMax);
+    // std::cout << "HhhhhhhhhhhhhhhHHHh   "<< aVMax << "\n"; getchar();
     ELISE_COPY
     (
           aFileMasq.all_pts(),
-          aFoncMasq,
+          (aFoncMasq!=0) * (aVMax-1),
           aFileMasq.out() 
     );
     std::cout << ">>  Done Masq Resol 1 " << aNameMasq  <<  "\n";
