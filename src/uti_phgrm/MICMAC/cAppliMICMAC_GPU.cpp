@@ -1300,12 +1300,12 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
 
 
 
-	void cAppliMICMAC::DoGPU_Correl
+void cAppliMICMAC::DoGPU_Correl
 		(
 		const Box2di & aBox,
 		const cMultiCorrelPonctuel * aMCP
 		)
-	{
+{
 		eModeInitZ aModeInitZ = eModeMom_2_22;
 		eModeAggregCorr aModeAgr = mCurEtape->EtapeMEC().AggregCorr().Val();
 
@@ -1342,7 +1342,8 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
 
 		for (int aZ=mZMinGlob ; aZ<mZMaxGlob ; aZ++)
 		{
-			if (InitZ(aZ,aModeInitZ))
+                        bool OkZ = InitZ(aZ,aModeInitZ);
+			if (OkZ)
 			{
 				for (int anX = mX0UtiTer ; anX <  mX1UtiTer ; anX++)
 				{
@@ -1390,7 +1391,7 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
 				}
 			}
 		}
-	}
+}
 
 #ifdef  CUDA_ENABLED
 	void cAppliMICMAC::Tabul_Projection( float2* TabProj, int Z, Rect zone, uint sample, uint interZ)

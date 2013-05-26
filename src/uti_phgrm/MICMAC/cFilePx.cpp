@@ -774,6 +774,7 @@ void cFilePx::LoadNappeEstim
            Box2di aBoxIn
      )
 {
+
 // Boite englobante homologue en px prec, un peu elargie
     Pt2di aP0Prec = aBoxIn._p0 /mRatioDzPrec - Pt2di(2,2);
     Pt2di aP1Prec = aBoxIn._p1 /mRatioDzPrec + Pt2di(2,2);
@@ -1184,6 +1185,8 @@ std::cout << "SUUUUUUUUUUUPPPPRESS\n";
         ),
         aNappe.mPxRes.out()| aNappe.mPxInit.out()
     );
+
+
 }
 
 

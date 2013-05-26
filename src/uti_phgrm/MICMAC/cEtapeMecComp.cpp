@@ -1233,6 +1233,27 @@ double cEtapeMecComp::LoadNappesAndSetGeom
           aISsPIMasq.out()
    );
 
+
+if (0)
+{
+     int aSM = 0;
+     for (int anX=0 ; anX <aISsPIMasq.sz().x ; anX++)
+     {
+        for (int anY=0 ; anY <aISsPIMasq.sz().y ; anY++)
+        {
+            int M = aISsPIMasq.get(anX,anY);
+            aSM += M;
+        }
+     }
+     std::cout << "HHHHhh0000===Sss M " << aSM  << " " << aBoxIn._p0 << " " << DeZoomTer()<< "\n";
+     getchar();
+
+    static Video_Win aW= Video_Win::WStd(aISsPIMasq.sz(),1.0);
+    ELISE_COPY(aW.all_pts(),aISsPIMasq.in(),aW.odisc());
+    std::cout << "aISsPIMasq\n";
+    getchar();
+}
+
    ELISE_COPY(aIMasq.border(1),0,aIMasq.out()|aISsPIMasq.out());
 
    // Le + simple pour traiter de maniere generique les dimensions

@@ -589,7 +589,8 @@ void MakeTiffRed2BinaireWithCaracIdent
         aTifIn.mode_compr(),
         aTifIn.type_el(),
         aTifIn.sz_tile(),
-        aSzRed
+        aSzRed,
+        true
     );
 }
 
@@ -602,7 +603,8 @@ void MakeTiffRed2Binaire
           Tiff_Im::COMPR_TYPE   aModeCompr,
           GenIm::type_el        aType,
           Pt2di                 aSzTileFile,
-          Pt2di                 aSzRed
+          Pt2di                 aSzRed,
+          bool                  DynOType
      )
 {
     // Tiff_Im aTifIn = Tiff_Im::StdConvGen(aNameFul.c_str(),-1,true,true);
@@ -634,10 +636,18 @@ void MakeTiffRed2Binaire
     aSeuil = ElMax(0,ElMin(15,aSeuil));
     aFonc = reduc_binaire_gen(aFonc,true,true,1,false,0) > aSeuil;
 
+    int aMul = 1;
+    if (DynOType)
+    {
+        int aVMin,aVMax;
+        min_max_type_num(aType,aVMin,aVMax);
+        aMul = aVMax-1;
+    }
+
     ELISE_COPY
     (
         rectangle(Pt2di(0,0),aSzRed*2+Pt2di(2,2)),
-        aFonc,
+        aFonc * aMul,
         Filtre_Out_RedBin(aTifRed.out())
     );
 }

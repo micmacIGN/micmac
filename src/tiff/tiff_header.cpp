@@ -1272,7 +1272,7 @@ void DATA_Tiff_Ifd::set_value_tile
    tFileOffset offs_cur = fp.tell();
 
    fp.seek_begin(offset_file+nt*4);
-   tFileOffset old_value = fp.read_INT4();
+   tFileOffset old_value = fp.read_FileOffset4();
 
    Tjs_El_User.ElAssert
    (
