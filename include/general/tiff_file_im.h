@@ -109,10 +109,10 @@ class Tiff_Im : public ElGenFileIm
                 OFSS_IFD0   = 4,
                 SZ_TAG      = 12,
 
-                UN_INIT_TILE = -1
 
         } VERSION;
 
+        static const tFileOffset UN_INIT_TILE;
 
         typedef enum
         {
@@ -390,8 +390,8 @@ class Tiff_Im : public ElGenFileIm
 		  bool OkFor_un_load_pack_bit_U_INT1();
 		  bool OkFor_un_load_pack_bit_U_INT2();
 
-	      INT   offset_tile(INT x,INT y,INT kth_ch);
-          INT   byte_count_tile(INT x,INT y,INT kth_ch);    
+	  tFileOffset   offset_tile(INT x,INT y,INT kth_ch);
+          tFileOffset   byte_count_tile(INT x,INT y,INT kth_ch);    
 
           // N'initialise pas
           std::vector<Im2DGen *>  VecOfIm(Pt2di aSz);

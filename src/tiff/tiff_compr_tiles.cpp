@@ -136,7 +136,7 @@ class Tiff_Tiles_Cpr : public Tiff_Tiles
 
           virtual ~Tiff_Tiles_Cpr();
           GenIm           _gi;
-          INT              _offs_deb;
+          tFileOffset     _offs_deb;
           INT _tx;
 };
 
@@ -173,7 +173,7 @@ Tiff_Tiles_Cpr::~Tiff_Tiles_Cpr()
          DELETE_MATRICE_ORI
          (
              _matr_packed,
-             _dti->_line_byte_sz_tiles,
+             _dti->_line_byte_sz_tiles.Byte4AbsLLO(),
              _dti->_sz_tile.y
          );
 }
@@ -188,14 +188,13 @@ void Tiff_Tiles_Cpr::use_this_tile(class Fich_Im2d * f2d,bool read_mode)
      if (read_mode)
         _pfob = Tiff_Tiles::init_pfob(dti,tf2d,read_mode);
 
-     _tx = (dti->_sz_tile.x+7+dti->_nb_chan_per_tile)
-               *dti->_sz_byte_pel_unpacked;
+     _tx = (dti->_sz_tile.x+7+dti->_nb_chan_per_tile) *dti->_sz_byte_pel_unpacked;
 
      _un_packed = STD_NEW_TAB_USER(_tx,U_INT1);
      MEM_RAZ(_un_packed,_tx);
 
      if (dti->_nbb_ch0 < 8)
-         _packed = STD_NEW_TAB_USER(dti->_line_byte_sz_tiles,U_INT1);
+         _packed = STD_NEW_TAB_USER(dti->_line_byte_sz_tiles.Byte4AbsLLO(),U_INT1);
      else
        _packed = _un_packed;
 
@@ -205,7 +204,7 @@ void Tiff_Tiles_Cpr::use_this_tile(class Fich_Im2d * f2d,bool read_mode)
      {
          _matr_packed = NEW_MATRICE_ORI
                         (
-                            dti->_line_byte_sz_tiles,
+                            dti->_line_byte_sz_tiles.Byte4AbsLLO(),
                             dti->_sz_tile.y,
                             U_INT1
                         );
@@ -228,8 +227,8 @@ void Tiff_Tiles_Cpr::seek_pack_line(Fich_Im2d * f2d,INT y0,INT y1,bool read_mode
          (
               _pfob,
               0,
-              dti->_line_byte_sz_tiles,
-              dti->_line_el_sz_tiles
+              dti->_line_byte_sz_tiles.Byte4AbsLLO(),
+              dti->_line_el_sz_tiles.Byte4AbsLLO()
          );
      }
 }
@@ -321,7 +320,7 @@ void Tiff_Tiles_Cpr::w_end_line(Fich_Im2d * f2d,INT y)
            (
                  _matr_packed[y],
                  _un_packed,
-                 dti->_line_el_sz_tiles,
+                 dti->_line_el_sz_tiles.IntBasicLLO(),
                  dti->_nbb_ch0,
                  dti->_msbit_first
            );
@@ -330,7 +329,7 @@ void Tiff_Tiles_Cpr::w_end_line(Fich_Im2d * f2d,INT y)
         {
            // MODIF 26/12/00
            // convert(_matr_packed[y],_un_packed,dti->_line_el_sz_tiles);
-           convert(_matr_packed[y],_un_packed,dti->_line_byte_sz_tiles);
+           convert(_matr_packed[y],_un_packed,dti->_line_byte_sz_tiles.IntBasicLLO());
         }
     }
     else
@@ -341,8 +340,8 @@ void Tiff_Tiles_Cpr::w_end_line(Fich_Im2d * f2d,INT y)
            (
                     tf2d->_stdpf,
                     _un_packed,
-                    dti->_line_byte_sz_tiles,
-                    dti->_line_el_sz_tiles
+                    dti->_line_byte_sz_tiles.IntBasicLLO(),
+                    dti->_line_el_sz_tiles.IntBasicLLO()
             );
         }
         else
@@ -353,7 +352,7 @@ void Tiff_Tiles_Cpr::w_end_line(Fich_Im2d * f2d,INT y)
                  (
                      _packed,
                      _un_packed,
-                     dti->_line_el_sz_tiles,
+                     dti->_line_el_sz_tiles.IntBasicLLO(),
                      dti->_nbb_ch0,
                      dti->_msbit_first
                  );
@@ -362,8 +361,8 @@ void Tiff_Tiles_Cpr::w_end_line(Fich_Im2d * f2d,INT y)
               (
                     tf2d->_stdpf,
                     _packed,
-                    dti->_line_byte_sz_tiles,
-                    dti->_line_el_sz_tiles
+                    dti->_line_byte_sz_tiles.IntBasicLLO(),
+                    dti->_line_el_sz_tiles.IntBasicLLO()
               );
          }
     }
@@ -402,7 +401,7 @@ void Tiff_Tiles_Cpr::w_end_tile(Fich_Im2d * f2d)
                     (
                           _un_packed,
                           _matr_packed[y],
-                          dti->_line_el_sz_tiles,
+                          dti->_line_el_sz_tiles.IntBasicLLO(),
                           dti->_nbb_ch0,
                           dti->_msbit_first
                     );
@@ -410,8 +409,8 @@ void Tiff_Tiles_Cpr::w_end_tile(Fich_Im2d * f2d)
                     (
                         tf2d->_stdpf,
                         _un_packed,
-                        dti->_line_byte_sz_tiles,
-                        dti->_line_el_sz_tiles
+                        dti->_line_byte_sz_tiles.IntBasicLLO(),
+                        dti->_line_el_sz_tiles.IntBasicLLO()
                     );
                 }
                 else
@@ -420,8 +419,8 @@ void Tiff_Tiles_Cpr::w_end_tile(Fich_Im2d * f2d)
                     (
                         tf2d->_stdpf,
                         _matr_packed[y],
-                        dti->_line_byte_sz_tiles,
-                        dti->_line_el_sz_tiles
+                        dti->_line_byte_sz_tiles.IntBasicLLO(),
+                        dti->_line_el_sz_tiles.IntBasicLLO()
                     );
                 }
            }
@@ -431,8 +430,8 @@ void Tiff_Tiles_Cpr::w_end_tile(Fich_Im2d * f2d)
                 (
                     tf2d->_stdpf,
                     _matr_packed[y],
-                    dti->_line_byte_sz_tiles,
-                    dti->_line_el_sz_tiles
+                    dti->_line_byte_sz_tiles.IntBasicLLO(),
+                    dti->_line_el_sz_tiles.IntBasicLLO()
                 );
            }
     }
@@ -480,8 +479,8 @@ void Tiff_Tiles_Cpr::r_new_line(Fich_Im2d * f2d,INT)
          (
             _pfob,
             _un_packed,
-            dti->_line_byte_sz_tiles,
-            dti->_line_el_sz_tiles
+            dti->_line_byte_sz_tiles.Byte4AbsLLO(),
+            dti->_line_el_sz_tiles.Byte4AbsLLO()
          );
      }
      else
@@ -490,8 +489,8 @@ void Tiff_Tiles_Cpr::r_new_line(Fich_Im2d * f2d,INT)
          (
             _pfob,
             _packed,
-            dti->_line_byte_sz_tiles,
-            dti->_line_el_sz_tiles
+            dti->_line_byte_sz_tiles.Byte4AbsLLO(),
+            dti->_line_el_sz_tiles.Byte4AbsLLO()
          );
          if (_packed != _un_packed)
          {
@@ -499,7 +498,7 @@ void Tiff_Tiles_Cpr::r_new_line(Fich_Im2d * f2d,INT)
              (
                  _un_packed,
                  _packed,
-                 dti->_line_el_sz_tiles,
+                 dti->_line_el_sz_tiles.IntBasicLLO(),
                  dti->_nbb_ch0,
                  dti->_msbit_first
              );

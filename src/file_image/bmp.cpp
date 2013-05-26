@@ -80,10 +80,10 @@ class Data_BMP_File : public RC_Object
 
        INT              _version;
        INT              _szofile;   // why not !!
-       INT              _offs_im;
+       tFileOffset      _offs_im;
 
        INT              _sz_header;
-       INT              _offs_cmap;
+       tFileOffset              _offs_cmap;
        INT              _szx;
        INT              _szy;
        INT              _bits_pp;
@@ -215,7 +215,7 @@ cout << "sz_header "<< _sz_header << "\n";
 //----------------------------
 
 
-    ASSERT_INTERNAL(_offs_cmap == (INT)fp.tell(),"incoherence in BMP file");
+    ASSERT_INTERNAL(_offs_cmap == fp.tell(),"incoherence in BMP file");
     if (_sz_cmap)
     {
        Elise_colour * tec = NEW_VECTEUR(0,_sz_cmap,Elise_colour);
@@ -243,7 +243,7 @@ cout << "sz_header "<< _sz_header << "\n";
        DELETE_VECTOR(tec,0);
     }
 
-    ASSERT_INTERNAL(_offs_im == (INT) fp.tell(),"incoherence in BMP file");
+    ASSERT_INTERNAL(_offs_im ==  fp.tell(),"incoherence in BMP file");
 
     fp.close();
 }
@@ -265,18 +265,18 @@ class BMP_Rle_8_PFOB : public Packed_Flux_Of_Byte
          }
      private :
 
-         virtual INT tell()
+         virtual tFileOffset tell()
          {
               return _fp.tell();
          }
 
-         virtual INT Read(U_INT1 * res,INT nb);
+         virtual tFileOffset Read(U_INT1 * res,tFileOffset nb);
 
          Data_BMP_File::mode_rle _mode;
          Data_BMP_File *         _bmp;
 
          ELISE_fp  _fp;
-         INT    _nb_buffered;
+         tFileOffset    _nb_buffered;
          INT    _rle_val;
          bool   _pad;
          INT    _nb_tot;
@@ -298,9 +298,10 @@ BMP_Rle_8_PFOB::BMP_Rle_8_PFOB(Data_BMP_File * bmp) :
        _fp.seek_begin(bmp->_offs_im);
 }
 
-INT BMP_Rle_8_PFOB::Read(U_INT1 * res,INT nb)
+tFileOffset BMP_Rle_8_PFOB::Read(U_INT1 * res,tFileOffset nbo)
 {
-    for (INT i=0 ; i < nb ;)
+    int nb = nbo.IntBasicLLO();
+    for (int i=0 ; i < nb ;)
     {
         if (_nb_buffered == 0)
            _mode =  Data_BMP_File::transition;
@@ -355,7 +356,7 @@ INT BMP_Rle_8_PFOB::Read(U_INT1 * res,INT nb)
 
               case Data_BMP_File::rle:
               {
-                   INT nb_to_read = ElMin(nb-i,_nb_buffered);
+                   INT nb_to_read = ElMin(nb-i,_nb_buffered.IntBasicLLO());
                     memset(res+i,_rle_val,nb_to_read);
                     i+= nb_to_read;
                    _nb_buffered -= nb_to_read;
@@ -365,7 +366,7 @@ INT BMP_Rle_8_PFOB::Read(U_INT1 * res,INT nb)
 
               case Data_BMP_File::absolute:
               {
-                   INT nb_to_read = ElMin(nb-i,_nb_buffered);
+                   INT nb_to_read = ElMin(nb-i,_nb_buffered.IntBasicLLO());
                    _fp.read(res+i,sizeof(U_INT1),nb_to_read);
                    i += nb_to_read;
                    _nb_buffered -= nb_to_read;
@@ -400,7 +401,7 @@ class BMP_tile : public Tile_F2d
     void r_new_line(Fich_Im2d *,INT y)
     {
          y = _bmp->_szy-y-1;
-        _pfob->AseekFp(y*_szl+_bmp->_offs_im);
+        _pfob->AseekFp(tFileOffset(y)*_szl+_bmp->_offs_im);
     }
 
     void w_new_line(Fich_Im2d * f,INT y)
@@ -484,7 +485,7 @@ BMP_file_2d::BMP_file_2d
                             (
                                 bmpf->_name,
                                 bmpf->_nb_chan,
-                                bmpf->_offs_im,
+                                bmpf->_offs_im.IntBasicLLO(),
                                 read_mode                ?
                                      ELISE_fp::READ      :
                                      ELISE_fp::READ_WRITE

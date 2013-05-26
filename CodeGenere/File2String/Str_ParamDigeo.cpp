@@ -1,11 +1,9 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamDigeo[243]) = {
+const char * (theNameVar_ParamDigeo[241]) = {
 "<GenCpp>\n",
 "\n",
-"<Verbatim File=\".h.cpp\">\n",
-"#include \"StdAfx.h\"\n",
-"</Verbatim>\n",
 "<Verbatim  File=\".h\">\n",
+"#include \"StdAfx.h\"\n",
 "#ifndef Define_NotDigeo\n",
 "#define Define_NotDigeo\n",
 "</Verbatim>\n",

@@ -59,7 +59,7 @@ class Data_TGA_File : public RC_Object
           const char * why_cant_use_it();
 
           INT nb_byte_per_pix () const {return _nb_byte_pix;}
-          INT offset_image() const {return _offs_im;}
+          tFileOffset offset_image() const {return _offs_im;}
 
           bool  top_to_down   () const   {return _top_to_down;}
           bool  left_to_right () const   {return _left_to_right;}
@@ -111,8 +111,8 @@ class Data_TGA_File : public RC_Object
           bool             _top_to_down;
           bool             _left_to_right;
 
-          INT              _offs_pal;
-          INT              _offs_im;
+          tFileOffset              _offs_pal;
+          tFileOffset              _offs_im;
 
           Std_Bitm_Fich_Im_2d::r_special_transf  _r_spec_transf;
           Std_Bitm_Fich_Im_2d::w_special_transf  _w_spec_transf;
@@ -467,18 +467,18 @@ class TGA_RLE_Flx_byte : public Packed_Flux_Of_Byte
 
     private :
 
-        virtual INT tell()
+        virtual tFileOffset tell()
         {
             return _fp.tell();
         }
 
-        INT             _nb_buffered;
+        tFileOffset             _nb_buffered;
         U_INT1          _buf_rle[3];
         bool            _rle_state;
         ELISE_fp         _fp;
 
 
-        INT Read(U_INT1 * cbuf,INT nb_el);
+        tFileOffset Read(U_INT1 * cbuf,tFileOffset nb_el);
 
         bool      compressed() const { return true;}
 };
@@ -492,13 +492,14 @@ TGA_RLE_Flx_byte::TGA_RLE_Flx_byte(Data_TGA_File * dtga) :
 }
 
 
-INT TGA_RLE_Flx_byte::Read(U_INT1 * cbuf,INT nb_el)
+tFileOffset TGA_RLE_Flx_byte::Read(U_INT1 * cbuf,tFileOffset nb_elo)
 {
+   int nb_el = nb_elo.IntBasicLLO();
    INT nb_el_red = -12345; // warn init
 
     for
     ( 
-        INT sum_nb_el =0;
+        int sum_nb_el =0;
         sum_nb_el < nb_el;
         sum_nb_el += nb_el_red
     )
@@ -511,7 +512,7 @@ INT TGA_RLE_Flx_byte::Read(U_INT1 * cbuf,INT nb_el)
            if (_rle_state)
               _fp.read(_buf_rle,_sz_el,1); 
        }
-       nb_el_red = ElMin(_nb_buffered,nb_el-sum_nb_el);
+       nb_el_red = ElMin(_nb_buffered.IntBasicLLO(),nb_el-sum_nb_el);
        _nb_buffered -= nb_el_red;
 
        if (_rle_state)

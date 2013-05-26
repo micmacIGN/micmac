@@ -3195,6 +3195,9 @@ class cEtapeMEC
         cTplValGesInit< eAlgoRegul > & AlgoRegul();
         const cTplValGesInit< eAlgoRegul > & AlgoRegul()const ;
 
+        cTplValGesInit< bool > & ExportZAbs();
+        const cTplValGesInit< bool > & ExportZAbs()const ;
+
         cTplValGesInit< eAlgoRegul > & AlgoWenCxRImpossible();
         const cTplValGesInit< eAlgoRegul > & AlgoWenCxRImpossible()const ;
 
@@ -3705,6 +3708,7 @@ class cEtapeMEC
         cTplValGesInit< int > mSzWInt;
         cTplValGesInit< int > mSurEchWCor;
         cTplValGesInit< eAlgoRegul > mAlgoRegul;
+        cTplValGesInit< bool > mExportZAbs;
         cTplValGesInit< eAlgoRegul > mAlgoWenCxRImpossible;
         cTplValGesInit< bool > mCoxRoy8Cnx;
         cTplValGesInit< bool > mCoxRoyUChar;

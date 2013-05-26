@@ -63,7 +63,7 @@ template <class Type> class Tile_UL_PCKB
             ElSTDNS vector<Type> &  	Vals
      	); 
 
-		void UpdateSize(INT sz)
+		void UpdateSize(unsigned int sz)
 		{
 			ElSetMax(sz_buf,sz);
 		}
@@ -72,7 +72,7 @@ template <class Type> class Tile_UL_PCKB
 		{
 			buf = NEW_VECTEUR(0,sz_buf,U_INT1);
 		}
-		void read (ELISE_fp &,INT nb);
+		void read (ELISE_fp &,tFileOffset nb);
 
         Type GetAValAndIncr()
         {
@@ -84,7 +84,7 @@ template <class Type> class Tile_UL_PCKB
 	private :
 		U_INT1 * buf;	
 		U_INT1 * cur;	
-		INT 	sz_buf;
+		unsigned int 	sz_buf;
 		INT      nb_tot;
 		bool     indexe ;
 };
@@ -141,7 +141,7 @@ template <class Type> void Tile_UL_PCKB<Type>::UCompr
 
 
 
-template <class Type>  void Tile_UL_PCKB<Type>::read (ELISE_fp & fp,INT nb)
+template <class Type>  void Tile_UL_PCKB<Type>::read (ELISE_fp & fp,tFileOffset nb)
 {
 	fp.read(buf,sizeof(U_INT1),nb);
 	cur = buf;
@@ -206,7 +206,7 @@ template <class Type> PackB_IM<Type> UnLoadPackBit<Type>::Do(DATA_Tiff_Ifd &aDTI
 				 aDTI.offset_tile(Tilx,Tily,0) != Tiff_Im::UN_INIT_TILE,   
 				EEM0 << "Use of uncomplete Tiff file"
 			);
-			TUP.back().UpdateSize(aDTI.byte_count_tile(Tilx,Tily,0));
+			TUP.back().UpdateSize(aDTI.byte_count_tile(Tilx,Tily,0).Byte4AbsLLO());
 		}
 		TUP.back().init();
 	}

@@ -280,7 +280,8 @@ cEtapeMecComp::cEtapeMecComp
   mCaracZ          (0),
   mIsOptDiffer     (anEtape.AlgoRegul().ValWithDef(eAlgoCoxRoy)==eAlgoOptimDifferentielle),
   mIsOptDequant    (anEtape.AlgoRegul().ValWithDef(eAlgoCoxRoy)==eAlgoDequant),
-  mIsOptIdentite    (anEtape.AlgoRegul().ValWithDef(eAlgoCoxRoy)==eAlgoIdentite),
+  mIsExportZAbs    (anEtape.ExportZAbs().Val()),
+  mIsOptIdentite   (anEtape.AlgoRegul().ValWithDef(eAlgoCoxRoy)==eAlgoIdentite),
   mIsOtpLeastSQ    (anEtape.AlgoRegul().ValWithDef(eAlgoCoxRoy)==eAlgoLeastSQ),
   mIsOptimCont     (mIsOptDiffer || mIsOptDequant || mIsOptIdentite),
   mIsOptimReel     (mIsOptimCont || mIsOtpLeastSQ),
@@ -299,6 +300,10 @@ cEtapeMecComp::cEtapeMecComp
   mNameXMLNuage      ("")
 {
 
+     if (mIsExportZAbs)
+     {
+          ELISE_ASSERT(mIsOptimCont && isLastEtape,"ExportZAbs requires continuous optimisation && last step");
+     }
     
      if (mIsOptimCont)
      {
@@ -1092,6 +1097,11 @@ bool cEtapeMecComp::IsOptDequant() const
    return mIsOptDequant;
 }
 
+bool cEtapeMecComp::IsExportZAbs() const
+{
+   return mIsExportZAbs;
+}
+
 bool cEtapeMecComp::IsOptIdentite() const
 {
    return mIsOptIdentite;
@@ -1264,7 +1274,7 @@ double cEtapeMecComp::LoadNappesAndSetGeom
 
 void cEtapeMecComp::RemplitOri(cFileOriMnt & aFOM) const
 {
-   mGeomTer.RemplitOri(aFOM);
+   mGeomTer.RemplitOri(aFOM,mIsExportZAbs);
    if (mFilesPx.size())
       mFilesPx[0]->RemplitOri(aFOM);
    aFOM.NameFileMasque().SetVal(mAppli.NameImageMasqOfResol(mEtape.DeZoom()));

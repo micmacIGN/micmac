@@ -58,7 +58,7 @@ class Pseudo_Tiff_Arg
         Pseudo_Tiff_Arg();
         Pseudo_Tiff_Arg
         (
-              INT              offs0,
+              tFileOffset      offs0,
               Pt2di            sz,
               GenIm::type_el   type_im,
               INT              nb_chan,
@@ -69,7 +69,7 @@ class Pseudo_Tiff_Arg
         );
 
         bool             _bidon;
-        INT              _offs0;
+        tFileOffset      _offs0;
         Pt2di            _sz;
         GenIm::type_el   _type_im;
         INT              _nb_chan;
@@ -84,7 +84,7 @@ class Pseudo_Tiff_Arg
         INT  nb_tile_y() const;
         INT  nb_plan() const;
         INT  chan_by_plan() const;
-        INT  sz_tot() const;
+        tFileOffset  sz_tot() const;
 
 };
 
@@ -255,7 +255,7 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
 
                   INT   * _vals;
                   INT     _nb;
-                  INT     _offs;
+                  tFileOffset     _offs;
            };
 
            void            show();
@@ -265,8 +265,8 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
 	   std::string     NameTileFile(Pt2di aITF);
            Disc_Pal              pal();
 
-           INT   offset_tile(INT x,INT y,INT kth_ch);
-           INT   byte_count_tile(INT x,INT y,INT kth_ch);
+           tFileOffset   offset_tile(INT x,INT y,INT kth_ch);
+           tFileOffset   byte_count_tile(INT x,INT y,INT kth_ch);
            inline INT   num_tile(INT x,INT y,INT kth_ch);
 
            GenIm::type_el  type_el();
@@ -276,9 +276,9 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
                     INT x,
                     INT y,
                     INT kth_ch,
-                    INT value,
-                    INT offset_file,
-                    INT * tab_val 
+                    tFileOffset value,
+                    tFileOffset offset_file,
+                    tFileOffset * tab_val 
                 );
            void set_offs_tile
                 (
@@ -286,7 +286,7 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
                     INT x,
                     INT y,
                     INT kth_ch,
-                    INT offs
+                    tFileOffset offs
                 );
 
            void set_count_tile
@@ -295,7 +295,7 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
                     INT x,
                     INT y,
                     INT kth_ch,
-                    INT nb_byte
+                    tFileOffset nb_byte
                 );
 
 
@@ -341,11 +341,11 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
               // once uncompressed, padding included
 
                         // number of numerical values
-           INT                         _padded_line_el_sz_tiles;  
-           INT                         _line_el_sz_tiles;  
-           INT                         _line_byte_sz_tiles;  
-           INT                         _byte_sz_tiles;  
-           INT                         _nb_chan_per_tile;
+           tFileOffset                         _padded_line_el_sz_tiles;  
+           tFileOffset                         _line_el_sz_tiles;  
+           tFileOffset                         _line_byte_sz_tiles;  
+           tFileOffset                         _byte_sz_tiles;  
+           int                                 _nb_chan_per_tile;
            
 
            INT    *                    _palette;
@@ -356,15 +356,15 @@ class DATA_Tiff_Ifd : public ElDataGenFileIm
            Pt2dr                       _resol;
            INT                         _res_unit;
            Pt2di                       _nb_tile;
-           INT                         _nb_tile_tot;
+           tFileOffset                 _nb_tile_tot;
 
            INT *                       _bits_p_chanel;
            INT                         _nbb_ch0;
            INT                         _nbb_tot;// sum of _bits_p_chanel
-           INT *                       _tiles_offset;
-           INT                         _offs_toffs;
-           INT *                       _tiles_byte_count;
-           INT                         _offs_bcount;
+           tFileOffset *               _tiles_offset;
+           tFileOffset                 _offs_toffs;
+           tFileOffset *               _tiles_byte_count;
+           tFileOffset                 _offs_bcount;
            INT                         _nb_chanel;
            INT                         _mode_compr;
            INT                         _phot_interp;

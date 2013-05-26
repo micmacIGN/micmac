@@ -48,7 +48,7 @@ Pseudo_Tiff_Arg::Pseudo_Tiff_Arg() :
 
 Pseudo_Tiff_Arg::Pseudo_Tiff_Arg
                  (
-                     INT              offs0,
+                     tFileOffset      offs0,
                      Pt2di            sz,
                      GenIm::type_el   type_im,
                      INT              nb_chan,
@@ -115,9 +115,9 @@ INT Pseudo_Tiff_Arg::chan_by_plan()  const
    return _chunk_conf ? _nb_chan : 1 ;
 }
 
-INT Pseudo_Tiff_Arg::sz_tot() const
+tFileOffset Pseudo_Tiff_Arg::sz_tot() const
 {
-    INT res = _offs0;
+    tFileOffset res = _offs0;
 
     INT nb_pl = nb_plan();
     INT nb_tx = nb_tile_x();
@@ -384,10 +384,13 @@ class TIFF_TAG_VALUE
           static void skeep_value(ELISE_fp);
 
 
-          INT  get_offset(ELISE_fp);
+          tFileOffset  get_offset(ELISE_fp);
 
           std::string getstring(ELISE_fp);
           INT * get_tabi(ELISE_fp);
+          tFileOffset * get_taboffset(ELISE_fp);
+
+
           INT  iget1v() ; // only for tags with exactly
           REAL  rget1v(); // 1 values of integer of real type
 
@@ -462,13 +465,30 @@ INT * TIFF_TAG_VALUE::read_values
     return tab;
 }
 
-INT  TIFF_TAG_VALUE::get_offset(ELISE_fp fp)
+tFileOffset  TIFF_TAG_VALUE::get_offset(ELISE_fp fp)
 {
     if (_dereferenced)
-       return _ivalues[0];
+    {
+       return tFileOffset::FromReinterpretInt(_ivalues[0]);
+    }
     else
        return fp.tell()-4;
 }
+
+
+tFileOffset * TIFF_TAG_VALUE::get_taboffset(ELISE_fp fp)
+{
+   tFileOffset * aRes =  STD_NEW_TAB_USER(_nb_log,tFileOffset);
+
+   int * aRI = get_tabi(fp);
+
+   for (int aK=0 ; aK<_nb_log ; aK++)
+       aRes[aK] = tFileOffset::FromReinterpretInt(aRI[aK]);
+
+   return aRes;
+}
+
+
 
 INT * TIFF_TAG_VALUE::get_tabi(ELISE_fp fp)
 {
@@ -482,8 +502,8 @@ INT * TIFF_TAG_VALUE::get_tabi(ELISE_fp fp)
 
     if (_dereferenced)
     {
-         INT offs_cur = fp.tell();
-         fp.seek_begin(_ivalues[0]);
+         tFileOffset offs_cur = fp.tell();
+         fp.seek_begin(tFileOffset::FromReinterpretInt(_ivalues[0]));
 
          TIFF_TAG_VALUE::read_values
          (
@@ -549,8 +569,8 @@ TIFF_TAG_VALUE::TIFF_TAG_VALUE(ELISE_fp fp)
                    << "Didn't know TIFF rationnal coul have more than "
 	           << (INT) _NB_MAX_RVALUES  << " values"
          );
-         INT offs_goto = fp.read_INT4();
-         INT off_cur   = fp.tell();
+         tFileOffset offs_goto = fp.read_FileOffset4();
+         tFileOffset off_cur   = fp.tell();
          fp.seek_begin(offs_goto);
          for (INT k =0; k < _nb_log ; k++)
          {
@@ -659,8 +679,11 @@ class TAG_TIF
           void write_string0(ELISE_fp,const std::string &);
           void write_value_0
               (ELISE_fp,const INT   *,INT nb,Tiff_Im::FIELD_TYPE);
+          void Offset_write_value_0 (ELISE_fp,const tFileOffset   *,INT nb);
           void write_value_0
               (ELISE_fp,const REAL  *,INT nb,Tiff_Im::FIELD_TYPE);
+
+
           virtual void   pseudo_read
                        (
                            DATA_Tiff_Ifd * Di,
@@ -706,7 +729,7 @@ class TAG_TIF
 
 
           Tiff_Im::FIELD_TYPE    _type_field;
-          INT                       _offset_tag;   
+          tFileOffset               _offset_tag;   
           INT                       _nb;
           const      INT *          _ivals;
           const      REAL *         _rvals;
@@ -753,6 +776,19 @@ void TAG_TIF::write_header_value
      fp.write_U_INT2(_id);
      fp.write_U_INT2(type);
      fp.write_INT4(nb);
+}
+
+void TAG_TIF::Offset_write_value_0 (ELISE_fp fp,const tFileOffset   * v,INT nb)
+{
+// std::cout << "SZOF " << sizeof(tFileOffset) << " " << sizeof(int) << "\n";
+    ELISE_ASSERT(sizeof(tByte4AbsFileOffset)==sizeof(int),"write_value_0 tFileOffset/int");
+
+    int* aTabOffsetI = STD_NEW_TAB_USER(nb,INT);
+    for (int aK=0 ; aK<nb ; aK++)
+    {
+         aTabOffsetI[aK] = v[aK].ToReinterpretInt();
+    }
+    write_value_0(fp,aTabOffsetI,nb,Tiff_Im::eLONG);
 }
 
 void TAG_TIF::write_value_0
@@ -826,11 +862,11 @@ void TAG_TIF::write_value_dereferenced(ELISE_fp fp)
     if (_offset_tag == -1)
       return;
 
-    INT where = fp.tell();
+    tFileOffset where = fp.tell();
     fp.seek_begin(_offset_tag);
 
 
-    fp.write_INT4(where);
+    fp.write_FileOffset4(where);
     fp.seek_end(0);
 
 
@@ -854,23 +890,21 @@ void TAG_TIF::write_value_dereferenced(ELISE_fp fp)
 
 void TAG_TIF::write_tiles_offset(DATA_Tiff_Ifd * Di,ELISE_fp fp)
 {
-     write_value_0
+     Offset_write_value_0
      (
           fp,
           Di->_tiles_offset,
-          Di->_nb_tile_tot,
-          Tiff_Im::eLONG
+          Di->_nb_tile_tot.IntBasicLLO()
      );
 }
 
 void TAG_TIF::write_tiles_byte_count(DATA_Tiff_Ifd * Di,ELISE_fp fp)
 {
-     write_value_0
+     Offset_write_value_0
      (
           fp,
           Di->_tiles_byte_count,
-          Di->_nb_tile_tot,
-          Tiff_Im::eLONG
+          Di->_nb_tile_tot.IntBasicLLO()
      );
 }
 
@@ -878,14 +912,14 @@ void TAG_TIF::tag_set_tile_offset
      (DATA_Tiff_Ifd * Di,TIFF_TAG_VALUE & v,ELISE_fp fp,const char *) 
 {
       Di->_offs_toffs = v.get_offset(fp);
-      Di->_tiles_offset = v.get_tabi(fp);
+      Di->_tiles_offset = v.get_taboffset(fp);
 }
 
 void TAG_TIF::tag_set_tile_byte_count
      (DATA_Tiff_Ifd * Di,TIFF_TAG_VALUE & v,ELISE_fp fp,const char * ) 
 {
       Di->_offs_bcount = v.get_offset(fp);
-      Di->_tiles_byte_count = v.get_tabi(fp);
+      Di->_tiles_byte_count = v.get_taboffset(fp);
 }
 
 
@@ -969,7 +1003,7 @@ void  lire_all_tiff_tag(DATA_Tiff_Ifd * DTIfd,const Pseudo_Tiff_Arg & pta)
 
 void   write_all_tiff_tag(DATA_Tiff_Ifd * DTIfd,ELISE_fp fp)
 {
-       INT where = fp.tell();
+       tFileOffset where = fp.tell();
        fp.write_U_INT2(0);  // nb tag, will fil once I know how
                             // many are really used
        INT nb_tag = 0;
@@ -1881,10 +1915,10 @@ void   TAG_TIF_TILE_OFFS::pseudo_read(DATA_Tiff_Ifd * Di,const Pseudo_Tiff_Arg &
     INT nb_tile = pta.nb_tile();
     INT nb_plan = pta.nb_plan();
 
-    Di->_tiles_offset =     STD_NEW_TAB_USER(nb_tile*nb_plan,INT);
-    Di->_tiles_byte_count = STD_NEW_TAB_USER(nb_tile*nb_plan,INT);
+    Di->_tiles_offset =     STD_NEW_TAB_USER(nb_tile*nb_plan,tFileOffset);
+    Di->_tiles_byte_count = STD_NEW_TAB_USER(nb_tile*nb_plan,tFileOffset);
 
-    INT offs = pta._offs0;
+    tFileOffset offs = pta._offs0;
 
     INT k =0;
     INT nb_tx = pta.nb_tile_x();

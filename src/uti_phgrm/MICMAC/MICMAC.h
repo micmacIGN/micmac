@@ -895,7 +895,7 @@ class cGeomDiscFPx : public  cGeomDiscR2
 
          const REAL *  V0Px() const;
 
-         void RemplitOri(cFileOriMnt & aFOM) const;
+         void RemplitOri(cFileOriMnt & aFOM,bool DoZAbs) const;
 
          Pt2di NbPixel() const;
          double OrigineAlti() const ;
@@ -2065,6 +2065,7 @@ class cEtapeMecComp
           bool  IsOptIdentite() const;
           bool  IsOptimCont() const;
           bool  IsOptimReel() const;
+          bool  IsExportZAbs() const;
 
           // aP0 - aP1 : definit la zone a basculer
 	  void AllBasculeMnt(Pt2di aP0,Pt2di aP1,float **,INT2 **,Pt2di aSzData);
@@ -2132,6 +2133,7 @@ class cEtapeMecComp
           cCaracOfDeZoom *        mCaracZ;
           bool                    mIsOptDiffer;
           bool                    mIsOptDequant;
+          bool                    mIsExportZAbs;
           bool                    mIsOptIdentite;
           bool                    mIsOtpLeastSQ;
           bool                    mIsOptimCont;
