@@ -153,7 +153,6 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2
         pit_Stream          = recStrParam.x;
         pit_Id              = recStrParam.y;
         sizeLine            = recStrParam.z;
-        //printf(" %d ] sizeLine : %d | pit_Stream : %d | pit_Id : %d \n",blockIdx.x,sizeLine,pit_Stream ,pit_Id);
     }
 
     __syncthreads();
