@@ -11,12 +11,13 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = saisie3D
 TEMPLATE = app
 
+DEFINES += TWEAK
 
 SOURCES += main.cpp\
         mainwindow.cpp\
         GLWidget.cpp \
     Cloud.cpp \
-    ../src/poisson/plyfile.cpp
+    ../poisson/plyfile.cpp
 
 HEADERS  += mainwindow.h\
             GLWidget.h \
@@ -29,6 +30,8 @@ FORMS    += \
 RESOURCES += \
     icones/icones.qrc
 	
+INCLUDE += ../include/
+
 #Don't warn about sprintf, fopen etc being 'unsafe'
 DEFINES += _CRT_SECURE_NO_WARNINGS
 

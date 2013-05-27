@@ -9,9 +9,6 @@
 #include "util.h"
 #include "mmVector3.h"
 
-//! Model view matrix size (OpenGL)
-static const unsigned OPENGL_MATRIX_SIZE = 16;
-
 using namespace std;
 
 class ViewportParameters
