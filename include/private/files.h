@@ -166,10 +166,14 @@ class  ELISE_fp
          U_INT2 read_U_INT2();
          INT2 read_INT2();
          INT4   read_INT4();
+         tFileOffset read_FileOffset4();
+         tFileOffset read_FileOffset8();
          REAL4   read_REAL4();
          REAL8   read_REAL8();
 
 
+         void write_FileOffset4(tFileOffset);
+         void write_FileOffset8(tFileOffset);
          void write_U_INT1(INT);
          void write_U_INT2(INT);
          void write_INT4(INT);
@@ -256,17 +260,17 @@ class  ELISE_fp
          }
          bool close(bool svp = false);
          bool closed() const;
-         bool seek(long offset,mode_seek,bool svp = false);
+         bool seek(tRelFileOffset,mode_seek,bool svp = false);
 
-         bool seek_cur(long offset,bool svp = false)
+         bool seek_cur(tRelFileOffset offset,bool svp = false)
          {
               return seek(offset,scurrent,svp);
          }
-         bool seek_begin(long offset,bool svp = false)
+         bool seek_begin(tRelFileOffset offset,bool svp = false)
          {
               return seek(offset,sbegin,svp);
          }
-         bool seek_end(long offset,bool svp = false)
+         bool seek_end(tRelFileOffset offset,bool svp = false)
          {
               return seek(offset,send,svp);
          }
@@ -284,12 +288,12 @@ class  ELISE_fp
          }
 
 
-         void read(void *,size_t size,size_t nb,const char * format=0);
-         void write(const void *,size_t size,size_t nb);
+         void read(void *,tFileOffset size,tFileOffset nb,const char * format=0);
+         void write(const void *,tFileOffset size,tFileOffset nb);
          void str_write(const char *);
-         void write_dummy(size_t nb);  // write nb byte (when you just need
+         void write_dummy(tFileOffset  nb);  // write nb byte (when you just need
                                        // to extend size of file
-         unsigned long int tell();
+         tFileOffset tell();
          INT  fgetc(); // name it fgetc because getc is a macro 
 
 		  
@@ -333,8 +337,8 @@ class  ELISE_fp
          static void InterneMkDirRec(const  std::string  & aName );
 };
 
-template <class Type> void  WritePtr(ELISE_fp & aFile,INT aNb,const Type * aPtr);
-template <class Type> void  ReadPtr(ELISE_fp & aFile,INT aNb,Type * aPtr);
+template <class Type> void  WritePtr(ELISE_fp & aFile,tFileOffset aNb,const Type * aPtr);
+template <class Type> void  ReadPtr(ELISE_fp & aFile,tFileOffset aNb,Type * aPtr);
 
 bool FileStrictPlusRecent(const std::string & aF1,const std::string & aF2);
 
@@ -360,7 +364,7 @@ class Flux_Of_Byte  : public Mcheck
           virtual U_INT1 Getc()       = 0;
           virtual void Putc(U_INT1) = 0;
           virtual ~Flux_Of_Byte();
-          virtual INT tell() = 0;
+          virtual tFileOffset  tell() = 0;
 
       private :
 };
@@ -375,7 +379,7 @@ class UnPacked_FOB  : public Flux_Of_Byte
           virtual ~UnPacked_FOB();
           virtual U_INT1 Getc();
           virtual void Putc(U_INT1);
-          virtual INT tell();
+          virtual tFileOffset  tell();
 
       private :
           class Packed_Flux_Of_Byte * _packed;
@@ -392,14 +396,14 @@ class Packed_Flux_Of_Byte : public Mcheck
           virtual ~Packed_Flux_Of_Byte();
           virtual bool      compressed() const = 0;
 
-          virtual INT Read(U_INT1 * res,INT nb) = 0;
+          virtual tFileOffset Read(U_INT1 * res,tFileOffset nb) = 0;
 
           // def value : fatal error 
-          virtual INT Write(const U_INT1 * res,INT nb);
-          virtual INT Rseek(INT nb) ;  // only forward, nb relative
+          virtual tFileOffset Write(const U_INT1 * res,tFileOffset nb);
+          virtual tRelFileOffset Rseek(tRelFileOffset nb) ;  // only forward, nb relative
                                        // to curent position
 
-          virtual void  AseekFp(INT nb) ; 
+          virtual void  AseekFp(tFileOffset nb) ; 
              //   !!!!!!!!
              // absolute seek of File * in byte, not in number of el
              // def value => Erreur fatale
@@ -409,7 +413,7 @@ class Packed_Flux_Of_Byte : public Mcheck
 
           inline INT sz_el() const {return _sz_el;}
 
-          virtual INT        tell()=0;   // debug pupose
+          virtual tFileOffset         tell()=0;   // debug pupose
 
            
       protected :
@@ -424,31 +428,31 @@ class Std_Packed_Flux_Of_Byte : public Packed_Flux_Of_Byte
 
           // return the number of bits really readen
 
-          virtual void  AseekFp(INT nb) ; // absolute seek of File *
-          virtual void  Aseek(INT nb) ; // absolute seek / offset 0, in szel
+          virtual void  AseekFp(tFileOffset nb) ; // absolute seek of File *
+          virtual void  Aseek(tFileOffset nb) ; // absolute seek / offset 0, in szel
           Std_Packed_Flux_Of_Byte
           (
                  const char * name,
                  INT sz_el,
-                 INT off_0,
+                 tFileOffset off_0,
                  ELISE_fp::mode_open
           );
 
           ELISE_fp & fp();
-          virtual INT        tell();   // debug pupose
+          virtual tFileOffset         tell();   // debug pupose
           virtual ~Std_Packed_Flux_Of_Byte();
 
 
       private :
           virtual bool      compressed()  const;
 
-          virtual INT Read(U_INT1 * res,INT nb) ;
-          virtual INT Write(const U_INT1 * res,INT nb);
-          virtual INT Rseek(INT nb) ;  // forward or backward, nb relative
+          virtual tFileOffset Read(U_INT1 * res,tFileOffset  nb) ;
+          virtual tFileOffset Write(const U_INT1 * res,tFileOffset  nb);
+          virtual tRelFileOffset Rseek(tRelFileOffset  nb) ;  // forward or backward, nb relative
                                        // to curent position, in szel
 
           ELISE_fp   _fp;
-          INT        _offset_0;
+          tFileOffset        _offset_0;
 };
 
 
@@ -462,30 +466,30 @@ class Mem_Packed_Flux_Of_Byte : public Packed_Flux_Of_Byte
 
           virtual ~Mem_Packed_Flux_Of_Byte();
 
-          INT nbbyte () const {return _nb*sz_el();}
-          INT operator [] (INT k)
+          tFileOffset nbbyte () const {return _nb* tFileOffset(sz_el());}
+          INT operator [] (tFileOffset k)
           {
               El_Internal.ElAssert
               (
-                  (k>=0) && (k<_nb*sz_el()),
+                  (k.BasicLLO()>=0) && (k<_nb*tFileOffset(sz_el())),
                   EEM0 << "Out of range in Mem_Packed_Flux_Of_Byte"
               );
-              return _data[k];
+              return _data[k.BasicLLO()];
           }
           void reset();
 
       private :
-          virtual INT        tell();   // debug pupose
-          virtual INT Write(const U_INT1 * res,INT nb);
+          virtual tFileOffset         tell();   // debug pupose
+          virtual tFileOffset Write(const U_INT1 * res,tFileOffset nb);
           virtual bool      compressed()  const;
 
           // For now, I do not need it, so : not implanted 
           // But can, of course, be added
 
-          virtual INT Read(U_INT1 * res,INT nb) ;
+          virtual tFileOffset Read(U_INT1 * res,tFileOffset nb) ;
 
-          INT        _nb;
-          INT        _sz;
+          tFileOffset        _nb;
+          tFileOffset        _sz;
           U_INT1 *   _data;
 };
 
@@ -507,7 +511,7 @@ class  BitsPacked_PFOB : public Packed_Flux_Of_Byte
              bool read_mode,
              INT  nb_el
        );
-       virtual INT        tell();   // debug pupose
+       virtual tFileOffset         tell();   // debug pupose
 
     protected :
 
@@ -535,20 +539,20 @@ class  BitsPacked_PFOB : public Packed_Flux_Of_Byte
 
        U_INT1 _v_buf;
        INT    _i_buf;  // index of val buffered in v_buf
-       INT    _nb_el;
+       tFileOffset    _nb_el;
 
        void flush_write();
 
-       virtual void  AseekFp(INT nb) ; 
-       virtual INT Read(U_INT1 * res,INT nb) ;
-       virtual INT Write(const U_INT1 * res,INT nb) ;
-       virtual INT Rseek(INT nb) ;  
+       virtual void  AseekFp(tFileOffset nb) ; 
+       virtual tFileOffset Read(U_INT1 * res,tFileOffset nb) ;
+       virtual tFileOffset Write(const U_INT1 * res,tFileOffset nb) ;
+       virtual tRelFileOffset Rseek(tRelFileOffset nb) ;  
        
     private :
        
-       INT _Read(U_INT1 * res,INT nb) ;
-       INT _Write(const U_INT1 * res,INT nb) ;
-       INT _Rseek(INT nb) ;  
+       tFileOffset _Read(U_INT1 * res,tFileOffset nb) ;
+       tFileOffset _Write(const U_INT1 * res,tFileOffset nb) ;
+       tRelFileOffset _Rseek(tRelFileOffset nb) ;  
 
 };
 
@@ -565,7 +569,7 @@ class Flux_Of_VarLI :  public Mcheck
           virtual ~Flux_Of_VarLI();
 
           static Flux_Of_VarLI * new_flx(Flux_Of_Byte *,bool msbf,bool flx_flush);
-          INT tell();
+          tFileOffset  tell();
 
       protected :
           Flux_Of_VarLI(Flux_Of_Byte *,bool flx_flush);
@@ -627,7 +631,7 @@ class Flux_OutVarLI  :  public Mcheck
           virtual  ~Flux_OutVarLI();
           virtual void  reset() = 0;
 
-          INT tell();
+          tFileOffset  tell();
           INT kth();
 
       protected :
@@ -690,21 +694,21 @@ class Packed_LZW_Decompr_Flow :  public Packed_Flux_Of_Byte
                                        // pass 8 with tiff is required
         );
 
-         virtual INT Read(U_INT1 * res,INT nb);
-         virtual INT Write(const U_INT1 * res,INT nb);
-         void Write(const INT * res,INT nb); // convert to U_INT1 *
-         virtual INT Rseek(INT nb);
+         virtual tFileOffset Read(U_INT1 * res,tFileOffset nb);
+         virtual tFileOffset Write(const U_INT1 * res,tFileOffset nb);
+         void Write(const INT * res,tFileOffset nb); // convert to U_INT1 *
+         virtual tRelFileOffset Rseek(tRelFileOffset nb);
          void    assert_end_code(); 
          void    reset();
 
-         virtual INT tell();
+         virtual tFileOffset  tell();
 
    private :
         void init();
        virtual bool      compressed() const ;
         U_INT1  *            _buf;
-        INT                        _nb_buffered;
-        INT                        _deb_buffered;
+        tFileOffset                        _nb_buffered;
+        tFileOffset                        _deb_buffered;
         Flux_Of_VarLI   *          _flxi;
         Flux_OutVarLI   *          _flxo;
         class LZW_decoder *        _decoder;
@@ -725,11 +729,11 @@ class Pack_Bits_Flow :  public Packed_Flux_Of_Byte
               INT  tx
         );
 
-         virtual INT Read(U_INT1 * res,INT nb);
-         virtual INT Write(const U_INT1 * res,INT nb);
+         virtual tFileOffset Read(U_INT1 * res,tFileOffset nb);
+         virtual tFileOffset Write(const U_INT1 * res,tFileOffset nb);
          void    reset();
 
-         virtual INT tell();
+         virtual tFileOffset  tell();
 
    private :
        virtual bool      compressed() const ;

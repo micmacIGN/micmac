@@ -24,7 +24,7 @@ using namespace std;
 typedef unsigned char pixel;
 
 #define NOPAGELOCKEDMEMORY false
-
+#define WARPSIZE 32
 
 #define DISPLAYOUTPUT
 #define TexFloat2Layered texture<float2,cudaTextureType2DLayered>
@@ -802,16 +802,22 @@ class CuHostData3D : public CData3D<T>
 
 public:
 
-    CuHostData3D(bool pageLockedmemory);
+    CuHostData3D(bool pageLockedmemory = NOPAGELOCKEDMEMORY);
+
+    /// \brief constructeur avec initialisation de la dimension de la structure
+    /// \param dimX : Dimension 1D a initialiser
+    /// \param dimY : Dimension 1D a initialiser
+    /// \param l : Taille de la 3eme dimension
+    CuHostData3D(uint dimX, uint dimY = 1, uint l = 1, bool pageLockedmemory = NOPAGELOCKEDMEMORY);
 
     /// \brief constructeur avec initialisation de la dimension de la structure
     /// \param dim : Dimension 2D a initialiser
     /// \param l : Taille de la 3eme dimension
-    CuHostData3D(bool pageLockedmemory,uint2 dim, uint l = 1);
+    CuHostData3D(uint2 dim, uint l = 1, bool pageLockedmemory = NOPAGELOCKEDMEMORY);
 
     /// \brief constructeur avec initialisation de la dimension de la structure
     /// \param dim : Dimension 3D a initialiser
-    CuHostData3D(bool pageLockedmemory,uint3 dim);
+    CuHostData3D(uint3 dim,bool pageLockedmemory = NOPAGELOCKEDMEMORY );
 
     ~CuHostData3D(){}
 
@@ -848,7 +854,16 @@ CuHostData3D<T>::CuHostData3D(bool pageLockedmemory):
 }
 
 template <class T>
-CuHostData3D<T>::CuHostData3D(bool pageLockedmemory, uint2 dim, uint l ):
+CuHostData3D<T>::CuHostData3D(uint dimX, uint dimY, uint l, bool pageLockedmemory):
+    _pageLockedmemory(pageLockedmemory)
+{
+    CData<T>::SetSizeofMalloc(0);
+    CGObject::SetType("CuHostData3D");
+    CData3D<T>::Realloc(make_uint2(dimX,dimY),l);
+}
+
+template <class T>
+CuHostData3D<T>::CuHostData3D(uint2 dim, uint l, bool pageLockedmemory ):
     _pageLockedmemory(pageLockedmemory)
 {
     CData<T>::SetSizeofMalloc(0);
@@ -857,7 +872,7 @@ CuHostData3D<T>::CuHostData3D(bool pageLockedmemory, uint2 dim, uint l ):
 }
 
 template <class T>
-CuHostData3D<T>::CuHostData3D(bool pageLockedmemory, uint3 dim):
+CuHostData3D<T>::CuHostData3D(uint3 dim, bool pageLockedmemory):
     _pageLockedmemory(pageLockedmemory)
 {
     CData<T>::SetSizeofMalloc(0);
@@ -1020,6 +1035,7 @@ public:
 
     CuDeviceData3D();
     CuDeviceData3D(uint2 dim,uint l, string name = "NoName");
+    CuDeviceData3D(uint dim, string name = "NoName");
     ~CuDeviceData3D(){}
     /// \brief Desallocation memoire globale
     /// \return true si la desallocation a reussie false sinon
@@ -1095,6 +1111,14 @@ CuDeviceData3D<T>::CuDeviceData3D(uint2 dim, uint l, string name)
     CData3D<T>::dataNULL();
     CGObject::SetType(name);
     CData3D<T>::Realloc(dim,l);
+}
+
+template <class T>
+CuDeviceData3D<T>::CuDeviceData3D(uint dim, string name)
+{
+    CData3D<T>::dataNULL();
+    CGObject::SetType(name);
+    CData3D<T>::Realloc(make_uint2(dim,1),1);
 }
 
 template <class T>

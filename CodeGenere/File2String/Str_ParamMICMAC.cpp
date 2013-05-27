@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2051]) = {
+const char * (theNameVar_ParamMICMAC[2053]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -1053,6 +1053,8 @@ const char * (theNameVar_ParamMICMAC[2051]) = {
 "            <SurEchWCor Nb=\"?\"  Type=\"int\"> </SurEchWCor>\n",
 "\n",
 "	    <AlgoRegul Nb=\"?\" Type=\"eAlgoRegul\"> </AlgoRegul>\n",
+"            <!-- Uniquemenet accepte pour les algos continus -->\n",
+"            <ExportZAbs Nb=\"?\" Type=\"bool\" Def=\"false\"> </ExportZAbs>\n",
 "	    <AlgoWenCxRImpossible Nb=\"?\" Type=\"eAlgoRegul\"> </AlgoWenCxRImpossible>\n",
 "\n",
 "\n",

@@ -335,7 +335,7 @@ bool cPriseDeVue::LoadImageMM
                  aSzMaxInGeomTer,
                  mIMIL,
                  aDZ,
-                 FileImMasqOfResol(aDZ).in(0),
+                 FileImMasqOfResol(aDZ).in_bool_proj(),
 		 IsFirstLoaded
              );
 
@@ -784,7 +784,7 @@ Fonc_Num  cPriseDeVue::FoncMasq(std::string  & aName) const
            if (ELISE_fp::exist_file(aFullNM))
            {
                aName = aName + "_"+StdPrefix(aNameM);
-               aFRes = aFRes && Tiff_Im(aFullNM.c_str()).in();
+               aFRes = aFRes && Tiff_Im(aFullNM.c_str()).in_bool();
            }
            else
            {
@@ -825,11 +825,12 @@ Tiff_Im     cPriseDeVue::FileImMasqOfResol(int aDz) const
       std::cout << "PDV--Make Masq " << aName << "\n";
       if (aDz==1)
       {
+           GenIm::type_el aTypeMask=Xml2EL(mAppli.TypeMasque().Val());
            Tiff_Im aFile
                    (
                        aName.c_str(),
                        aSz,
-                       Xml2EL(mAppli.TypeMasque().Val()),
+                       aTypeMask,
                        Xml2EL(mAppli.ComprMasque().Val()),
                        // GenIm::bits1_msbf,
 			// Tiff_Im::No_Compr,
@@ -841,10 +842,13 @@ Tiff_Im     cPriseDeVue::FileImMasqOfResol(int aDz) const
                    );
             // int aBrd = 3;
             std::string  aNameBid;
+            int aVMin,aVMax;
+            min_max_type_num(aTypeMask,aVMin,aVMax);
+
             ELISE_COPY
             (
                rectangle(Pt2di(0,0),aSz),
-               FoncMasq(aNameBid),
+               FoncMasq(aNameBid) * (aVMax-1),
                aFile.out()
             );
 

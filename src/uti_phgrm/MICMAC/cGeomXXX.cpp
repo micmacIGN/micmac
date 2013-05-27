@@ -888,12 +888,18 @@ void cGeomDiscFPx::SetOriResolPlani(Pt2dr & aOriP,Pt2dr & aResolP) const
 }
 
 
-void cGeomDiscFPx::RemplitOri(cFileOriMnt & aFOM) const
+void cGeomDiscFPx::RemplitOri(cFileOriMnt & aFOM,bool DoZAbs) const
 {
   aFOM.NombrePixels()    = NbPixel();
   SetOriResolPlani(aFOM.OriginePlani() ,aFOM.ResolutionPlani());
   aFOM.OrigineAlti()     = OrigineAlti();
   aFOM.ResolutionAlti()  = ResolutionAlti();
+
+  if (DoZAbs)
+  {
+      aFOM.OrigineAlti()     = 0;
+      aFOM.ResolutionAlti()  = 1.0;
+  }
 
 /*
   aFOM.NombrePixels()    = mSzDz;

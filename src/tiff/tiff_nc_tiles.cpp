@@ -69,7 +69,7 @@ void Tiff_Tiles::new_tile(Fich_Im2d * f2d,bool read_mode)
 {
      Tiff_file_2d * tf2d = SAFE_DYNC(Tiff_file_2d *,f2d);
      DATA_Tiff_Ifd * dti = tf2d->_dti;
-     INT offs = Tiff_Im::UN_INIT_TILE;
+     tFileOffset offs = Tiff_Im::UN_INIT_TILE;
 
      if (dti->mUseFileTile)
      {

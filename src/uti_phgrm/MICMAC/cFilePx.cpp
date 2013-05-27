@@ -774,6 +774,7 @@ void cFilePx::LoadNappeEstim
            Box2di aBoxIn
      )
 {
+
 // Boite englobante homologue en px prec, un peu elargie
     Pt2di aP0Prec = aBoxIn._p0 /mRatioDzPrec - Pt2di(2,2);
     Pt2di aP1Prec = aBoxIn._p1 /mRatioDzPrec + Pt2di(2,2);
@@ -972,6 +973,7 @@ std::cout << "SUUUUUUUUUUUPPPPRESS\n";
     aNappe.mVPxMaxAvRedr = aNappe.mVPxMax;
 
     bool isForCont = mAppli.IsOptimCont() ;//  && (!mAppli.IsOptIdentite());
+    bool doExportZAbs =  mAppli.CurEtape()->IsExportZAbs();
     ELISE_ASSERT
     (
           ! (mRedrPx && (isForCont)),
@@ -1058,6 +1060,7 @@ std::cout << "SUUUUUUUUUUUPPPPRESS\n";
            double aSomPx=0;
            double aSom1=0;
            TIm2DBits<1> aTM(aIMasq);
+// std::cout << " IFX " << isForCont << "WWwwwXX " << aNappe.FromDiscPx(0) << " " << aNappe.FromDiscPx(1) << " " << mRatioStepPrec << "\n"; getchar();
            for (int anX=0 ; anX<aSz.x ; anX++)
            {
            // On evite de refaire le calcul en utilisant le fait qu'on
@@ -1076,7 +1079,7 @@ std::cout << "SUUUUUUUUUUUPPPPRESS\n";
                       aSomPx += aPx;
                       aSom1  += 1.0;
                    }
-                   if (! isForCont)
+                   if ((! isForCont) || doExportZAbs)
                    {
                        aPx =  aNappe.FromDiscPx(aPx) ;
                    }
@@ -1182,6 +1185,8 @@ std::cout << "SUUUUUUUUUUUPPPPRESS\n";
         ),
         aNappe.mPxRes.out()| aNappe.mPxInit.out()
     );
+
+
 }
 
 

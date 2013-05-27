@@ -42,11 +42,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_UTIL_H
 #define _ELISE_UTIL_H
 
+class tFileOffset;
+
 extern const  std::string  TheFileMMDIR;  // MicMacInstalDir
 void MMD_InitArgcArgv(int argc,char ** argv,int aNbArgMin=-1);
 int NbProcSys();
 
-extern void mem_raz(void *,INT);
+extern void mem_raz(void *,tFileOffset);
 
 #define MEM_RAZ(x,nb) mem_raz((void *)(x),(nb)*sizeof(*(x)))
 
@@ -766,6 +768,147 @@ class cTplValGesInit
           bool mIsInit;
 };
           
+
+//typedef long long int tFileOffset;
+typedef long int tLowLevelFileOffset;
+typedef unsigned int  tByte4AbsFileOffset;
+// typedef long long  int tLowLevelRelFileOffset;
+
+class tFileOffset
+{
+    public :
+
+        
+         const tLowLevelFileOffset & AbsLLO() const
+         {
+               tLowLevelFileOffset aLLO = mLLO.Val();
+               ELISE_ASSERT(aLLO>=0,"AbsLLO neg");
+               return mLLO.Val();
+         }
+         tByte4AbsFileOffset   Byte4AbsLLO() const
+         {
+               tLowLevelFileOffset aLLO = mLLO.Val();
+               ELISE_ASSERT((aLLO>=0) && (aLLO<=0xFFFFFFFFl),"Byt4LLO too big");
+               return aLLO;
+         }
+         const tLowLevelFileOffset & BasicLLO() const
+         {
+               return mLLO.Val();
+         }
+         int  IntBasicLLO() const
+         {
+               tLowLevelFileOffset aLLO = mLLO.Val();
+               ELISE_ASSERT((aLLO>-0x7FFFFFFFl) && (aLLO<0x7FFFFFFFl),"Byt4LLO too big");
+               return aLLO;
+         }
+
+         tFileOffset ()
+         {
+             mLLO.SetNoInit();
+         }
+         tFileOffset (const tLowLevelFileOffset & aLLO) :
+           mLLO(aLLO)
+         {
+         }
+
+         tFileOffset operator + (const tFileOffset & anO2) const
+         {
+               return mLLO.Val() + anO2.mLLO.Val();
+         }
+         tFileOffset operator - (const tFileOffset & anO2) const
+         {
+               return mLLO.Val() - anO2.mLLO.Val();
+         }
+         tFileOffset operator / (const tFileOffset & anO2) const
+         {
+               return mLLO.Val() / anO2.mLLO.Val();
+         }
+         tFileOffset operator * (const tFileOffset & anO2) const
+         {
+               return mLLO.Val() * anO2.mLLO.Val();
+         }
+
+         bool operator < (const tFileOffset & anO2) const
+         {
+               return mLLO.Val() < anO2.mLLO.Val();
+         }
+         bool operator > (const tFileOffset & anO2) const
+         {
+               return mLLO.Val() > anO2.mLLO.Val();
+         }
+         bool operator == (const tFileOffset & anO2) const
+         {
+               return mLLO.Val() == anO2.mLLO.Val();
+         }
+         bool operator != (const tFileOffset & anO2) const
+         {
+               return mLLO.Val() != anO2.mLLO.Val();
+         }
+
+         void operator ++ (int)
+         {
+              mLLO.SetVal(mLLO.Val()+1);
+         }
+         void operator +=  (const tFileOffset & anO2)
+         {
+              mLLO.SetVal(mLLO.Val()+anO2.mLLO.Val());
+         }
+         void operator -=  (const tFileOffset & anO2)
+         {
+              mLLO.SetVal(mLLO.Val()-anO2.mLLO.Val());
+         }
+         void operator *=  (const tFileOffset & anO2)
+         {
+              mLLO.SetVal(mLLO.Val()*anO2.mLLO.Val());
+         }
+
+
+/*
+         void SetLLO(const tLowLevelFileOffset & aLLO)
+         {
+              mLLO.SetVal(aLLO);
+         }
+*/
+         bool IsInit() const
+         {
+              return mLLO.IsInit();
+         }
+
+// Deux interface bas niveaus, "tres sales", poiur assurer la communication avec le stockage
+// en int des offset dans les tiffs qui est necessaire pour utiliser le service de tag generiques
+         static  tFileOffset FromReinterpretInt(int anI)
+         {
+               tByte4AbsFileOffset anUI;
+               memcpy(&anUI,&anI,sizeof(tByte4AbsFileOffset));
+               return tFileOffset(anUI);
+         }
+         int ToReinterpretInt() const
+         {
+              int aRes;
+              tByte4AbsFileOffset anOfs4 = Byte4AbsLLO();
+              memcpy(&aRes,&anOfs4,sizeof(tByte4AbsFileOffset));
+              return aRes;
+         }
+    private :
+        cTplValGesInit<tLowLevelFileOffset> mLLO;
+};
+
+inline std::ostream & operator << (std::ostream & ofs,const tFileOffset  &anOffs)
+{
+    ofs << anOffs.BasicLLO();
+    return ofs;
+}
+
+typedef tFileOffset tRelFileOffset;
+
+
+// typedef unsigned int tFileOffset;
+/*
+*/
+ 
+
+tFileOffset RelToAbs(tRelFileOffset anOff);
+
 
 /*****************************************************/
 /*                                                   */

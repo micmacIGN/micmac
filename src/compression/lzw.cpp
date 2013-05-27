@@ -148,7 +148,7 @@ class LZW_decoder : public Mcheck
                // return the "string" associated to the code
                // eventually : return 0 + set nb to 0 (clear code)
 
-           const LZW_TYPE * new_code (INT & nb,INT code);
+           const LZW_TYPE * new_code (int & nb,INT code);
 
 
                // On all the protocol I know, the end code is
@@ -205,7 +205,7 @@ class LZW_decoder : public Mcheck
 
             LZW_INST_RESET  _inst_reset;
 
-            const LZW_TYPE * str_of_code (INT & nb, INT code);
+            const LZW_TYPE * str_of_code (int & nb, INT code);
 
             // return code of current buffer
             INT code_of_cur_string();
@@ -256,7 +256,7 @@ class LZW_decoder : public Mcheck
             INT      _nb_val_init ; // = 1<<_nb_bits_init
 
             INT      _nb_bits_max;  // 12 with tif and gif
-            INT      _nb_val_max;   // 1 <<nb_bits_max
+            int      _nb_val_max;   // 1 <<nb_bits_max
             INT      _nb_hval;      //  2* _nb_val_max  , why not ?
 
 
@@ -375,15 +375,15 @@ LZW_decoder::LZW_decoder
    _nb_val_init     = 1 << nb_bits_init;
    _nb_bits_max     = nb_bits_max;
    _nb_val_max      = 1 << nb_bits_max;
-   _entries         = NEW_VECTEUR(0,_nb_val_max,entry);
-   _buf_res         = NEW_VECTEUR(0,_nb_val_max+1,LZW_TYPE);
-   _buf_write       =  read ? 0 : NEW_VECTEUR(0,_nb_val_max,LZW_TYPE);
-   _nb_hval         =  _nb_val_max * 2;
+   _entries         = NEW_VECTEUR(0,nb_val_max(),entry);
+   _buf_res         = NEW_VECTEUR(0,nb_val_max()+1,LZW_TYPE);
+   _buf_write       =  read ? 0 : NEW_VECTEUR(0,nb_val_max(),LZW_TYPE);
+   _nb_hval         =  nb_val_max() * 2;
    _htab            =  read ? 0 : NEW_VECTEUR(0,_nb_hval,INT2);
 
    _clear_code      = _nb_val_init;     // TIFF_GIF
    _end_code        = _nb_val_init +1;  // TIFF_GIF
-   _val_clear_write = _nb_val_max -4;   // prudent
+   _val_clear_write = nb_val_max() -4;   // prudent
 
    _read            = read;
 
@@ -393,7 +393,7 @@ LZW_decoder::LZW_decoder
         _entries[i].next = NO_NEXT;
    }
 
-   for (INT code = 0; code<_nb_val_max ; code++)
+   for (int code = 0; code<_nb_val_max ; code++)
      _entries[code].code =  code;
 
    re_init();
@@ -459,7 +459,7 @@ void LZW_decoder::re_init()
      parsing of linked list.
 */
 
-const LZW_TYPE * LZW_decoder::str_of_code (INT & nb, INT code)
+const LZW_TYPE * LZW_decoder::str_of_code (int & nb, INT code)
 {
 
    ASSERT_INTERNAL((code< _cur_sz), "incoherenve in LZW decoding");
@@ -626,7 +626,7 @@ void LZW_decoder::write_codes(LZW_TYPE c,wcodes & res,bool end)
         //    READ
         //=====================================
 
-const LZW_TYPE * LZW_decoder::new_code (INT & nb,INT code)
+const LZW_TYPE * LZW_decoder::new_code (int & nb,INT code)
 {
   ASSERT_INTERNAL(code != _end_code ,"LZW : unexcpected end code");
 
@@ -708,7 +708,7 @@ void LZW_decoder::augment_bits()
 /*                                                                */
 /******************************************************************/
 
-INT Packed_LZW_Decompr_Flow::tell()
+tFileOffset Packed_LZW_Decompr_Flow::tell()
 {
     return
            _read           ?
@@ -769,7 +769,7 @@ void Packed_LZW_Decompr_Flow::assert_end_code()
 {
      INT code =_flxi->nexti(_decoder->nb_bit_cur());
 
-     if (    _nb_buffered
+     if (    _nb_buffered.BasicLLO()
           || (! _decoder->is_it_end_code(code))
         )
         elise_internal_error
@@ -780,13 +780,13 @@ void Packed_LZW_Decompr_Flow::assert_end_code()
         );
 }
 
-INT Packed_LZW_Decompr_Flow::Read(U_INT1 * res,INT nb)
+tFileOffset Packed_LZW_Decompr_Flow::Read(U_INT1 * res,tFileOffset nbo)
 {
-
-      INT sum_nb_added = ElMin(nb,_nb_buffered);
+      int nb = nbo.IntBasicLLO();
+      int sum_nb_added = ElMin(nb,_nb_buffered.IntBasicLLO());
       _nb_buffered -= sum_nb_added;
       if (res)
-         memcpy(res,_buf+_deb_buffered,sum_nb_added);
+         memcpy(res,_buf+_deb_buffered.BasicLLO(),sum_nb_added);
       _deb_buffered += sum_nb_added;
 
       if (sum_nb_added == nb)
@@ -794,8 +794,8 @@ INT Packed_LZW_Decompr_Flow::Read(U_INT1 * res,INT nb)
 
       const U_INT1 * decoded  = 0; // warning init
 
-      INT      nb_decoded     = 0;
-      INT      nb_transfered  = 0;
+      int      nb_decoded     = 0;
+      int      nb_transfered  = 0;
 
       while (sum_nb_added < nb)
       {
@@ -812,14 +812,25 @@ INT Packed_LZW_Decompr_Flow::Read(U_INT1 * res,INT nb)
       }
       _deb_buffered = 0;
       _nb_buffered = nb_decoded - nb_transfered;
-      memcpy(_buf,decoded+nb_transfered,_nb_buffered);
+      memcpy(_buf,decoded+nb_transfered,_nb_buffered.Byte4AbsLLO());
 
       return nb;
 }
 
-INT Packed_LZW_Decompr_Flow::Rseek(INT nb)
+tFileOffset RelToAbs(tRelFileOffset anOff)
 {
-      INT sum_nb_added = ElMin(nb,_nb_buffered);
+/*
+   ELISE_ASSERT(anOff.>=0,"RelToAbs Offset");
+   return tFileOffset(anOff);
+*/
+    return anOff.AbsLLO();
+}
+
+
+tRelFileOffset Packed_LZW_Decompr_Flow::Rseek(tRelFileOffset nbr)
+{
+      tFileOffset nb = RelToAbs(nbr);
+      tFileOffset sum_nb_added = ElMin(nb,_nb_buffered);
       _nb_buffered -= sum_nb_added;
       _deb_buffered += sum_nb_added;
 
@@ -829,8 +840,8 @@ INT Packed_LZW_Decompr_Flow::Rseek(INT nb)
 
       const U_INT1 * decoded  = 0; // warning init
 
-      INT      nb_decoded     = 0;
-      INT      nb_transfered  = 0;
+      int      nb_decoded     = 0;
+      int      nb_transfered  = 0;
 
       while (sum_nb_added < nb)
       {
@@ -840,12 +851,12 @@ INT Packed_LZW_Decompr_Flow::Rseek(INT nb)
                             _flxi->nexti(_decoder->nb_bit_cur())
                        );
 
-              nb_transfered = ElMin(nb_decoded,nb-sum_nb_added);
+              nb_transfered = ElMin(nb_decoded,(nb-sum_nb_added).IntBasicLLO());
               sum_nb_added += nb_transfered;
       }
       _deb_buffered = 0;
       _nb_buffered = nb_decoded - nb_transfered;
-      memcpy(_buf,decoded+nb_transfered,_nb_buffered);
+      memcpy(_buf,decoded+nb_transfered,_nb_buffered.Byte4AbsLLO());
 
       return nb;
 }
@@ -864,11 +875,12 @@ Packed_LZW_Decompr_Flow::~Packed_LZW_Decompr_Flow()
      }
 }
 
-INT Packed_LZW_Decompr_Flow::Write(const U_INT1 * vals,INT nb)
+tFileOffset Packed_LZW_Decompr_Flow::Write(const U_INT1 * vals,tFileOffset nbo)
 {
+    int nb = nbo.IntBasicLLO();
     LZW_decoder::wcodes wc;
 
-    for (INT i=0 ; i<nb ; i++)
+    for (int i=0 ; i<nb ; i++)
     {
         _decoder->write_codes(vals[i],wc,false);
         for (INT j =0; j<wc.nbc; j++)
@@ -877,14 +889,15 @@ INT Packed_LZW_Decompr_Flow::Write(const U_INT1 * vals,INT nb)
     return nb;
 }
 
-void  Packed_LZW_Decompr_Flow::Write(const INT * vals,INT nb)
+void  Packed_LZW_Decompr_Flow::Write(const INT * vals,tFileOffset nbo)
 {
-    const INT sz_buf = 100;
+    int nb = nbo.IntBasicLLO();
+    const int sz_buf = 100;
     U_INT1 buf[sz_buf];
 
-   for (INT i=0 ; i<nb; i+= sz_buf)
+   for (int i=0 ; i<nb; i+= sz_buf)
    {
-       INT nb_loc = ElMin(sz_buf,nb-i);
+       int nb_loc = ElMin(sz_buf,nb-i);
        convert(buf,vals+i,nb_loc);
        Write(buf,nb_loc);
    }
@@ -950,11 +963,11 @@ cout << "=============================== \n";
 
         for (INT i=0; i<nbc -1 ; i++)
         {
-             INT nb_decoded;
+             int nb_decoded;
 
              const U_INT1  * decoded = dec->new_code(nb_decoded,code[i]);
              cout << "IN " << code[i] << " : ";
-             for(INT j=0 ; j<nb_decoded ; j++)
+             for(int j=0 ; j<nb_decoded ; j++)
                 cout << (char)('0'+decoded[j]) ;
              cout << "\n";
         }

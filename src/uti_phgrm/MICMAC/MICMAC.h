@@ -895,7 +895,7 @@ class cGeomDiscFPx : public  cGeomDiscR2
 
          const REAL *  V0Px() const;
 
-         void RemplitOri(cFileOriMnt & aFOM) const;
+         void RemplitOri(cFileOriMnt & aFOM,bool DoZAbs) const;
 
          Pt2di NbPixel() const;
          double OrigineAlti() const ;
@@ -2065,6 +2065,7 @@ class cEtapeMecComp
           bool  IsOptIdentite() const;
           bool  IsOptimCont() const;
           bool  IsOptimReel() const;
+          bool  IsExportZAbs() const;
 
           // aP0 - aP1 : definit la zone a basculer
 	  void AllBasculeMnt(Pt2di aP0,Pt2di aP1,float **,INT2 **,Pt2di aSzData);
@@ -2132,6 +2133,7 @@ class cEtapeMecComp
           cCaracOfDeZoom *        mCaracZ;
           bool                    mIsOptDiffer;
           bool                    mIsOptDequant;
+          bool                    mIsExportZAbs;
           bool                    mIsOptIdentite;
           bool                    mIsOtpLeastSQ;
           bool                    mIsOptimCont;
@@ -2614,11 +2616,25 @@ class   cGPU_LoadedImGeom
        tImGpu  ImSomO2();
        tImGpu  ImSom12();
 
-       bool InitValNorms(int anX,int anY);
+       bool InitValNorms(int anX,int anY,int aNbScaleIm);
        double ValNorm(int anX,int anY) const 
        {
             return (mDOrtho[anY][anX]-mMoy) / mSigma;
        }
+       double ValOrthoBasik(int anX,int anY) const 
+       {
+            return mDOrtho[anY][anX] ;
+       }
+       double SumO(int anX,int anY) const 
+       {
+            return mDSomO[anY][anX] ;
+       }
+       double SumO2(int anX,int anY) const 
+       {
+            return mDSomO2[anY][anX] ;
+       }
+
+
        double MoyCal() const {return mMoy;}
        double SigmaCalc() const {return mSigma;}
        cPriseDeVue * PDV();
@@ -2759,6 +2775,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 {
      public :
 
+        bool   CMS_ModeEparse() const;
         cAnamorphoseGeometrieMNT * AnaGeomMNT() const;
         cMakeMaskImNadir * MMImNadir() const;
 
@@ -2899,7 +2916,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
         void DoCorrelLeastQuare(const Box2di & aBoxOut,const Box2di & aBoxIn,const cCorrel2DLeastSquare &);
 		void DoGPU_Correl (const Box2di & aBoxInterne,const cMultiCorrelPonctuel *);  
-        void DoOneCorrelSym(int anX,int anY);
+        void DoOneCorrelSym(int anX,int anY,int aNbScale);
         void DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel *,int aNbIm,bool VireExtr);
         void DoOneCorrelMaxMinIm1Maitre(int anX,int anY,bool aModeMax,int aNbIm);
 
@@ -3532,7 +3549,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
        cSurfaceOptimiseur *    mSurfOpt;
        const cCorrelAdHoc *      mCorrelAdHoc;
        const cCorrelMultiScale*  mCMS;
-       bool                      mCMS_ModeDense;
+       bool                      mCMS_ModeEparse;
 
        bool                  mGIm1IsInPax;
        cEl_GPAO *            mGPRed2;

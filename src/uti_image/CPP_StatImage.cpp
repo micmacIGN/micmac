@@ -1,4 +1,4 @@
-/*Header-MicMac-eLiSe-25/06/2007peroChImMM_main
+/*Header-MicMac-eLiSe-25/06/2007
 
     MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
     eLiSe  : ELements of an Image Software Environnement
@@ -36,91 +36,58 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
+#include "StAfx.h"
 
-int MMInitialModel_main(int argc,char ** argv)
+
+static Pt2di PDef(-1,-1);
+
+main(int argc,char ** argv)
 {
-    MMD_InitArgcArgv(argc,argv);
 
-    std::string  aDir,aPat,aFullDir;
-    std::string  AeroIn;
-    std::string  ImSec;
-    bool         Visu = false;
-    bool         DoPly = false;
-
-    int aZoom = 8;
-    bool aDo2Z = true;
-    double aReducePly=3.0;
+	string Name;
+        Pt2di p0(0,0),p1 = PDef;
 
 
-    ElInitArgMain
-    (
-	argc,argv,
-	LArgMain()  << EAMC(aFullDir,"Dir + Pattern")
-                    << EAMC(AeroIn,"Orientation"),
-	LArgMain()  
-                    << EAM(Visu,"Visu",true,"Interactif Visualization (tuning purpose, programm will stop at breakpoint)")
-                    << EAM(DoPly,"DoPly",true,"Generate ply ,for tuning purpose, (Def=false)")
-                    << EAM(aZoom,"Zoom",true,"Zoom of computed models, (def=8)")
-                    << EAM(aReducePly,"ReduceExp",true,"Down scaling of cloud , XML and ply, (def = 3)")
-                    << EAM(aDo2Z,"Do2Z",true,"Excute a first step at 2*Zoom (Def=true)")
-    );
-	
-	#if (ELISE_windows)
-		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
-	#endif
-    SplitDirAndFile(aDir,aPat,aFullDir);
-    cInterfChantierNameManipulateur * aICNM =  cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
-    if (! EAMIsInit(&ImSec))
-       ImSec = AeroIn;
+	ElInitArgMain
+	(
+		argc,argv,
+		LArgMain() 	<< EAM(Name) ,
+		LArgMain()      <<  EAM(p0,"p0",true)
+		                <<  EAM(p1,"p1",true)
+	);	
 
-    // Genere les pryramides pour que le paral ne s'ecrase pas les 1 les autres
-    {
-         std::string aComPyr =  MM3dBinFile("MMPyram")
-                                + QUOTE(aFullDir) + " "
-                                + AeroIn + " " 
-                                + "ImSec=" +ImSec;
+	Tiff_Im tiff = Tiff_Im::StdConv(Name);
 
-         VoidSystem(aComPyr.c_str());
-    }
+        if (p1 == PDef) 
+           p1 = tiff.sz();
 
-    const cInterfChantierNameManipulateur::tSet * aSetIm = aICNM->Get(aPat);
+        INT NbB = tiff.NbBits();
+        INT NbV = 1<<NbB;
 
-    std::list<std::string> aLCom;
+        Im1D_INT4  H(NbV);
+        ELISE_COPY(H.all_pts(),0,H.out());
 
-    for (int aKIm=0 ; aKIm<int(aSetIm->size()) ; aKIm++)
-    {
-          std::string aCom =   MM3dBinFile("MICMAC")
-                              //  + XML_MM_File("MM-ModelInitial.xml")
-                              + XML_MM_File("MM-TieP.xml")
-                              + std::string(" WorkDir=") +aDir +  std::string(" ")
-                              + std::string(" +Im1=") + QUOTE((*aSetIm)[aKIm]) + std::string(" ")
-                              + std::string(" +Ori=-") + AeroIn
-                              + std::string(" +ImSec=-") + ImSec
-                              + " +DoPly=" + ToString(DoPly) + " "
-                    ;
+        ELISE_COPY
+        (
+             rectangle(p0,p1),
+             1,
+             H.histo().chc(tiff.in())
+        );
 
-          if (Visu)
-              aCom = aCom + " +Visu=" + ToString(Visu) + " ";
+        INT NbR = (p1.x-p0.x) * (p1.y-p0.y);
 
-          if (EAMIsInit(&aZoom))
-             aCom = aCom + " +Zoom=" + ToString(aZoom);
 
-          if (EAMIsInit(&aDo2Z))
-             aCom = aCom + " +Do2Z=" + ToString(aDo2Z);
 
-          if (EAMIsInit(&aReducePly))
-             aCom = aCom + " +ReduceExp=" + ToString(aReducePly);
-          std::cout << "Com = " << aCom << "\n";
-          aLCom.push_back(aCom);
-  }
+        for (INT v=0 ; v<NbV ; v++)
+        {
+            INT nb = H.data()[v] ;
+            if (nb != 0)
+                cout << "  " << v << " : " 
+                     << ((nb* 100.0) / NbR)
+                     << " %" << endl;
+        }
 
-  cEl_GPAO::DoComInParal(aLCom,"MkMMInit");
- // int aRes = system_call(aCom.c_str());
-
-   
-   return 0;
 }
 
 
