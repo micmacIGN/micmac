@@ -591,19 +591,20 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
 
 #ifdef CUDA_ENABLED
 
-    CuHostData3D<uint3> rStrPar((uint)sqrt((float)mSz.x * mSz.x + mSz.y * mSz.y));
+    // A DETERMINER la taille maximale du nombre de lignes!!!
+    uint sizeMaxLine = (uint)2*sqrt((float)mSz.x * mSz.x + mSz.y * mSz.y);
+
+    CuHostData3D<uint3> rStrPar(sizeMaxLine);
 
     uint idLine = 0, sizeStreamId = 0,sizeStreamLine, pitStream = 0, pitIdStream = 0 , NbLine = 0 ;
 
     while ((aVPt = mLMR.Next()))
     {
-        uint lenghtLine = (uint)(aVPt->size());
+        uint lenghtLine = (uint)(aVPt->size());   
 
         rStrPar[idLine].x = pitStream;
         rStrPar[idLine].y = pitIdStream;
         rStrPar[idLine].z = lenghtLine;
-
-        //printf("idLine : %d | lenghtLine : %d\n",idLine,lenghtLine);
 
         sizeStreamLine = sizeStreamId = 0;
 
@@ -621,8 +622,6 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
     }
 
     NbLine = idLine;
-
-    //printf("NbLine : %d | pitStream : %d\n",NbLine,pitStream);
 
     CuHostData3D<uint>      h_strCostVolume(pitStream);
     CuHostData3D<short2>    h_strIndex(pitIdStream);
