@@ -55,7 +55,6 @@ public:
 
     //! Interaction mode (with the mouse!)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
-                            TRANSFORM_ENTITY,
                             SEGMENT_POINTS
     };
 
