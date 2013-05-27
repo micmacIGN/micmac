@@ -65,8 +65,7 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
     for(int idParLine = 1; idParLine < lenghtLine;idParLine++)
     {
 
-
-        idStreamOut += (sens? 1 : -1) * (abs(uZ_Prev.y - uZ_Prev.x) + 1);
+        idStreamOut += (sens? 1 : -1) * count(uZ_Prev);
 
         const short2 uZ_Next = costStream.read(pData[2],tid,sens,0);
         short2 aDz;
@@ -116,10 +115,8 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
             z = uZ_Next.x;
             while( z < uZ_Next.y )
             {
-                int Z = z + tid;
-                //int idGData     = (lenghtLine -  idParLine - 1) * dimBlockTer.z + Z - uZ_Next.x;
-                int idGData     = idStreamOut + Z - uZ_Next.x;
-                g_ForceCostVol[idGData]  -= minCost;
+                int idGData  = idStreamOut + z - uZ_Next.x + tid;
+                g_ForceCostVol[idGData] -= minCost;
                 z += min(uZ_Next.y - z,WARPSIZE);
             }
         }
@@ -128,7 +125,7 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
         uZ_Prev     = uZ_Next;
     }
 
-    idStreamOut += (abs(uZ_Prev.y - uZ_Prev.x) + 1);
+    idStreamOut += count(uZ_Prev);
 }
 
 template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2* g_StrId, T* g_ForceCostVol, uint3* g_RecStrParam, uint penteMax)
@@ -141,6 +138,7 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2
     __shared__ uint     sizeLine;
 
     uint                idStreamOut = 0;
+    bool                idBuf        = false;
 
     if(!threadIdx.x)
     {
@@ -153,15 +151,9 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2
 
     __syncthreads();
 
-    bool idBuf      =   false;
-
     CDeviceDataStream<T> costStream(bufferData, g_StrCostVol + pit_Stream,bufferIndex, g_StrId + pit_Id, sizeLine * NAPPEMAX, sizeLine);
 
     ScanOneSens<T,eAVANT>   (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, idStreamOut);
-
-//    if(!threadIdx.x)
-//        printf(" idStreamOut : %d \n",idStreamOut);
-
     ScanOneSens<T,eARRIERE> (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, idStreamOut);
 
 }
@@ -184,25 +176,31 @@ template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputStrea
     for(int i=0;i<PENALITE;i++)
         hPen[i] = ((float)(1 / 10.0f));
 
-    //================ Copie des penalites dans le device ============================
+
+    //      Copie des penalites dans le device                              ---------------
+
 
     checkCudaErrors(cudaMemcpyToSymbol(penalite,    hPen,       sizeof(float)   * PENALITE));
     checkCudaErrors(cudaMemcpyToSymbol(dMapIndex,   hMapIndex,  sizeof(ushort)  * WARPSIZE));
 
-    //======================== Variables Device ======================================
 
-    CuDeviceData3D<T>       d_InputStream    ( hInputStream.GetSize(),  "d_InputStream"  );
-    CuDeviceData3D<short2>  d_InputIndex     ( hInputindex.GetSize(),   "d_InputIndex"   );
-    CuDeviceData3D<uint3>   d_RecStrParam    ( rStrPar.GetSize(),       "d_InputStream"  );
-    CuDeviceData3D<T>       d_ForceCostVol   ( hInputStream.GetSize(),  "d_ForceCostVol" );
+    //      Declaration et allocation memoire des variables Device          ---------------
 
-    //  ============== Copie du volume de couts dans le device  ======================
+
+    CuDeviceData3D<T>       d_InputStream    ( hInputStream .GetSize(), "d_InputStream"  );
+    CuDeviceData3D<short2>  d_InputIndex     ( hInputindex  .GetSize(), "d_InputIndex"   );
+    CuDeviceData3D<uint3>   d_RecStrParam    ( rStrPar      .GetSize(), "d_InputStream"  );
+    CuDeviceData3D<T>       d_ForceCostVol   ( hInputStream .GetSize(), "d_ForceCostVol" );
+
+
+    //      Copie du volume de couts dans le device                         ---------------
+
 
     d_InputStream.CopyHostToDevice(  hInputStream.pData());
     d_InputIndex .CopyHostToDevice(  hInputindex .pData());
     d_RecStrParam.CopyHostToDevice(  rStrPar     .pData());
 
-    //================================================================================
+    //                                                                      ---------------
 
     kernelOptiOneDirection<T><<<Blocks,Threads>>>
                                                 (
@@ -215,8 +213,12 @@ template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputStrea
 
     getLastCudaError("kernelOptiOneDirection failed");
 
-    //============================================================================--
+    //                                                                      ---------------
+
     d_ForceCostVol.CopyDevicetoHost(h_ForceCostVol.pData());
+
+
+    //      Declaration et allocation memoire des variables Device          ---------------
 
     d_ForceCostVol  .Dealloc();
     d_InputStream   .Dealloc();
