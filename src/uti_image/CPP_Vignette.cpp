@@ -291,7 +291,7 @@ int  Vignette_main(int argc,char ** argv)
 
 		vector<vector<string> > listOfListIm;
 		vector<vector<double> > vectOfDiaphFoc;
-		for (int j=0;j<aSetIm->size();j++){
+		for (int j=0;j<(int)aSetIm->size();j++){
 			std::string aFullName=(*aSetIm)[j];
 			const cMetaDataPhoto & infoIm = cMetaDataPhoto::CreateExiv2(aFullName);
 			vector<double> diaphFoc;diaphFoc.push_back(infoIm.Diaph());diaphFoc.push_back(infoIm.FocMm());
@@ -303,11 +303,11 @@ int  Vignette_main(int argc,char ** argv)
 				newSetOfIm.push_back(aFullName);
 				listOfListIm.push_back(newSetOfIm);
 			}else{
-				for (int i=0;i<vectOfDiaphFoc.size();i++){
+				for (int i=0;i<(int)vectOfDiaphFoc.size();i++){
 					if (diaphFoc==vectOfDiaphFoc[i]){
 						listOfListIm[i].push_back(aFullName); 
 						break;
-						}else{if(i==vectOfDiaphFoc.size()-1){
+						}else{if(i==(int)vectOfDiaphFoc.size()-1){
 								vectOfDiaphFoc.push_back(diaphFoc);
 								vector<string>newSetOfIm;
 								newSetOfIm.push_back(aFullName);
@@ -318,7 +318,7 @@ int  Vignette_main(int argc,char ** argv)
 			}
 		}
 		cout<<"Number of different sets of images with the same Diaph-Focal combination : "<<listOfListIm.size()<<endl;
-		for(int i=0;i<listOfListIm.size();i++){
+		for(int i=0;i<(int)listOfListIm.size();i++){
 			std::cout << "Computing the parameters of the vignette effect for the set of "<<listOfListIm[i].size()<<" images with Diaph="<<vectOfDiaphFoc[i][0]<<" and Foc="<<vectOfDiaphFoc[i][1]<<endl;
 
 		//Avec Points homol
