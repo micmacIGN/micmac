@@ -4,7 +4,7 @@
 #include <QMainWindow>
 
 #include "GLWidget.h"
-#include "StdAfx.h"
+
 
 namespace Ui {
 class MainWindow;

@@ -11,6 +11,8 @@
 #include <iostream>
 #include <algorithm>
 
+#include "../include/StdAfx.h"
+
 const GLfloat g_trackballScale = 1.f;
 
 //Min and max zoom ratio (relative)
@@ -166,6 +168,22 @@ inline void transpose_m33( const GLfloat i_a[9], GLfloat o_m[9] )
     o_m[0]=i_a[0];	o_m[3]=i_a[1];	o_m[6]=i_a[2];
     o_m[1]=i_a[3];	o_m[4]=i_a[4];	o_m[7]=i_a[5];
     o_m[2]=i_a[6];	o_m[5]=i_a[7];	o_m[8]=i_a[8];
+}
+
+inline void crossprod( const GLdouble u[3], const GLdouble v[3], GLdouble o_m[3] )
+{
+    o_m[0] = u[1]*v[2] - u[2]*v[1];
+    o_m[1] = u[2]*v[0] - u[0]*v[2];
+    o_m[2] = u[0]*v[1] - u[1]*v[0];
+}
+
+inline void normalize( GLdouble o_m[3] )
+{
+    GLdouble norm = sqrt((double) (o_m[0]*o_m[0] + o_m[1]*o_m[1] + o_m[2]*o_m[2]));
+
+    o_m[0] = o_m[0]/norm;
+    o_m[1] = o_m[1]/norm;
+    o_m[2] = o_m[2]/norm;
 }
 
 GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent)
@@ -596,57 +614,76 @@ void GLWidget::setView(MM_VIEW_ORIENTATION orientation)
 
     GLdouble eye[3] = {0.0, 0.0, 0.0};
     GLdouble top[3] = {0.0, 0.0, 0.0};
+    GLdouble s[3]   = {0.0, 0.0, 0.0};
+    GLdouble u[3]   = {0.0, 0.0, 0.0};
 
-    //we look at (0,0,0) by default
     switch (orientation)
     {
     case MM_TOP_VIEW:
-        eye[2] = 1.0;
-        top[1] = 1.0;
+        eye[2] = -1.0;
+        top[1] =  1.0;
         break;
     case MM_BOTTOM_VIEW:
-        eye[2] = -1.0;
+        eye[2] =  1.0;
         top[1] = -1.0;
         break;
     case MM_FRONT_VIEW:
-        eye[1] = -1.0;
+        eye[1] = 1.0;
         top[2] = 1.0;
         break;
     case MM_BACK_VIEW:
-        eye[1] = 1.0;
-        top[2] = 1.0;
+        eye[1] = -1.0;
+        top[2] =  1.0;
         break;
     case MM_LEFT_VIEW:
-        eye[0] = -1.0;
+        eye[0] = 1.0;
         top[2] = 1.0;
         break;
     case MM_RIGHT_VIEW:
-        eye[0] = 1.0;
-        top[2] = 1.0;
+        eye[0] = -1.0;
+        top[2] =  1.0;
         break;
     case MM_ISO_VIEW_1:
-        eye[0] = -1.0;
-        eye[1] = -1.0;
-        eye[2] = 1.0;
-        top[0] = 1.0;
-        top[1] = 1.0;
-        top[2] = 1.0;
+        eye[0] =  1.0;
+        eye[1] =  1.0;
+        eye[2] = -1.0;
+        top[0] =  1.0;
+        top[1] =  1.0;
+        top[2] =  1.0;
+        normalize(eye);
+        normalize(top);
         break;
     case MM_ISO_VIEW_2:
-        eye[0] = 1.0;
-        eye[1] = 1.0;
-        eye[2] = 1.0;
+        eye[0] = -1.0;
+        eye[1] = -1.0;
+        eye[2] = -1.0;
         top[0] = -1.0;
         top[1] = -1.0;
-        top[2] = 1.0;
+        top[2] =  1.0;
+        normalize(eye);
+        normalize(top);
         break;
     }
 
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-    gluLookAt(eye[0],eye[1],eye[2],0.0,0.0,0.0,top[0],top[1],top[2]);
-    glPopMatrix();
+    crossprod(eye, top, s);
+    crossprod(s, eye, u);
+
+    g_rotationMatrix[0] = s[0];
+    g_rotationMatrix[1] = s[1];
+    g_rotationMatrix[2] = s[2];
+
+    g_rotationMatrix[3] = u[0];
+    g_rotationMatrix[4] = u[1];
+    g_rotationMatrix[5] = u[2];
+
+    g_rotationMatrix[6] = -eye[0];
+    g_rotationMatrix[7] = -eye[1];
+    g_rotationMatrix[8] = -eye[2];
+
+
+    g_translationMatrix[0] = m_cX;
+    g_translationMatrix[1] = m_cY;
+    g_translationMatrix[2] = m_cZ;
 
     updateGL();
 }
@@ -720,8 +757,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     }
     else
     {
-        //clearPolyline();
-
         QPoint dp = event->pos()-m_lastPos;
 
         m_lastPos = event->pos();
@@ -733,12 +768,11 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
             mult_m33( g_rotationOx, g_rotationMatrix, g_tmpMatrix );
             mult_m33( g_rotationOy, g_tmpMatrix, g_rotationMatrix );
-            //inverse_m33( g_rotationMatrix, g_inverseRotationMatrix );
         }
         else if ( g_mouseRightDown )
         {
-            g_translationMatrix[0] = dp.x()/m_glWidth;
-            g_translationMatrix[1] = dp.y()/m_glHeight;
+           g_translationMatrix[0] = m_cX - dp.x()/m_glWidth;
+           g_translationMatrix[1] = m_cY - dp.y()/m_glHeight;
         }
 
         updateGL();
