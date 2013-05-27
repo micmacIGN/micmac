@@ -28,10 +28,6 @@ MainWindow::MainWindow(QWidget *parent) :
     //"Points selection" menu
     connect(ui->actionTogglePoints_selection, SIGNAL(toggled(bool)), this, SLOT(togglePointsSelection(bool)));
 
-    //QShortcut *m_shortcutUndoFunct = new QShortcut(QKeySequence(tr("Ctrl+Z")),this);
-
-    //connect(ui->actionUndo,SIGNAL(activated()), this, SLOT(on_actionUndo_triggered()));
-
     connectActions();
 }
 
@@ -79,7 +75,10 @@ void MainWindow::togglePointsSelection(bool state)
     if (state)
         m_glWidget->setInteractionMode(GLWidget::SEGMENT_POINTS);
     else
+    {
         m_glWidget->setInteractionMode(GLWidget::TRANSFORM_CAMERA);
+        m_glWidget->clearPolyline();
+    }
 }
 
 void MainWindow::doActionDisplayShortcuts()
@@ -90,7 +89,7 @@ void MainWindow::doActionDisplayShortcuts()
     text += "F11: Toggle full screen\n";
     text += "Key +/-: increase/decrease point size\n";
     text += "\n";
-    text += "F5 : Toggle rotation mode / selection mode\n";
+    text += "F5: Toggle rotation mode / selection mode\n";
     text += "    - left click : add a point to polyline ";
     text += "    - right click: close polyline\n";
     text += "    - escape: delete polyline\n";

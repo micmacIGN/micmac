@@ -83,3 +83,4 @@ src/uti_phgrm/MICMAC/<
 CMakeLists.txt.orig
 .hgignore.orig
 include/general/MM_InstalDir.h
+Build_MinGW/
