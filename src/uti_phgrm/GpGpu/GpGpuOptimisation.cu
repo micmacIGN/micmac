@@ -10,6 +10,11 @@
 
 #include "GpGpu/GpGpuStreamData.cuh"
 
+__device__ float sign(bool sens)
+{
+    return sens ? 1 : -1;
+}
+
 /// brief Calcul le Z min et max.
 __device__ void ComputeIntervaleDelta(short2 & aDz, int aZ, int MaxDeltaZ, short2 aZ_Next, short2 aZ_Prev)
 {
@@ -47,12 +52,12 @@ template<class T, bool sens > __device__ void ReadOneSens(CDeviceDataStream<T> &
     }
 }
 
-template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &costStream, uint lenghtLine, T pData[][NAPPEMAX], bool& idBuffer, T* g_ForceCostVol, ushort penteMax, uint& idStreamOut )
+template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &costStream, uint lenghtLine, T pData[][NAPPEMAX], bool& idBuffer, T* g_ForceCostVol, ushort penteMax, int& pitStrOut )
 {
     const ushort    tid     = threadIdx.x;
     short2          uZ_Prev = costStream.read(pData[idBuffer],tid, sens,0);
     short           z       = uZ_Prev.x;
-    __shared__ T    minCost;
+    __shared__ T    globMinCost;
 
     if(sens)
         while( z < uZ_Prev.y )
@@ -62,16 +67,17 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
             z += min(uZ_Prev.y - z,WARPSIZE);
         }
 
-    for(int idParLine = 1; idParLine < lenghtLine;idParLine++)
+    for(int idLine = 1; idLine < lenghtLine;idLine++)
     {
 
-        idStreamOut += (sens? 1 : -1) * count(uZ_Prev);
-
         const short2 uZ_Next = costStream.read(pData[2],tid,sens,0);
+
+        pitStrOut += sens ? count(uZ_Prev) : -count(uZ_Next);
+
         short2 aDz;
         short z = uZ_Next.x;
 
-        if(!tid) minCost = 1e9;
+        if(!tid) globMinCost = 1e9;
 
         while( z < uZ_Next.y )
         {
@@ -96,14 +102,13 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
                 if(ZId < NAPPEMAX)
                     pData[!idBuffer][Z - uZ_Next.x] = costMin;
 
-                //int idGData     = (sens ? idParLine : lenghtLine -  idParLine - 1) * dimBlockTer.z + Z - uZ_Next.x;
-                int idGData     = idStreamOut + Z - uZ_Next.x;
+                int idGData     = pitStrOut + Z - uZ_Next.x;
                 int cost        = sens ? costMin : costMin + g_ForceCostVol[idGData] - costInit;
 
                 g_ForceCostVol[idGData]  = cost;
 
                 if(!sens)
-                    atomicMin(&minCost,cost);
+                    atomicMin(&globMinCost,cost);
 
             }
 
@@ -115,8 +120,12 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
             z = uZ_Next.x;
             while( z < uZ_Next.y )
             {
-                int idGData  = idStreamOut + z - uZ_Next.x + tid;
-                g_ForceCostVol[idGData] -= minCost;
+                int Z = z + tid;
+                if( Z < uZ_Next.y)
+                {
+                    int idGData     = pitStrOut + Z - uZ_Next.x;
+                    g_ForceCostVol[idGData] -= globMinCost;
+                }
                 z += min(uZ_Next.y - z,WARPSIZE);
             }
         }
@@ -124,8 +133,6 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
         idBuffer    = !idBuffer;
         uZ_Prev     = uZ_Next;
     }
-
-    idStreamOut += count(uZ_Prev);
 }
 
 template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2* g_StrId, T* g_ForceCostVol, uint3* g_RecStrParam, uint penteMax)
@@ -137,8 +144,8 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2
     __shared__ uint     pit_Stream;
     __shared__ uint     sizeLine;
 
-    uint                idStreamOut = 0;
-    bool                idBuf        = false;
+    int                 pitStrOut   = 0;
+    bool                idBuf       = false;
 
     if(!threadIdx.x)
     {
@@ -153,8 +160,8 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2
 
     CDeviceDataStream<T> costStream(bufferData, g_StrCostVol + pit_Stream,bufferIndex, g_StrId + pit_Id, sizeLine * NAPPEMAX, sizeLine);
 
-    ScanOneSens<T,eAVANT>   (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, idStreamOut);
-    ScanOneSens<T,eARRIERE> (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, idStreamOut);
+    ScanOneSens<T,eAVANT>   (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
+    ScanOneSens<T,eARRIERE> (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
 
 }
 

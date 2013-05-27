@@ -610,7 +610,7 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
         for (uint aK = 0 ; aK < lenghtLine; aK++)
         {
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
-            const Box2di &  aBox        = aMat.Box();           
+            const Box2di &  aBox        = aMat.Box();
             sizeStreamLine += abs(aBox._p1.x-aBox._p0.x) + 1;
         }
 
