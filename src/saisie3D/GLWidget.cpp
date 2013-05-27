@@ -34,15 +34,17 @@ ViewportParameters::ViewportParameters(const ViewportParameters& params)
 {}
 
 bool g_mouseLeftDown = false;
-GLfloat g_tmpMatix[9],
+bool g_mouseRightDown = false;
+GLfloat g_tmpMatrix[9],
         g_rotationOx[9],
         g_rotationOy[9],
         g_rotationMatrix[9] = { 1, 0, 0,
                                0, 1, 0,
                                0, 0, 1 },
-        g_inverseRotationMatrix[9] = { 1, 0, 0,
+        g_translationMatrix[3] = { 0, 0, 0 },
+       /* g_inverseRotationMatrix[9] = { 1, 0, 0,
                                        0, 1, 0,
-                                       0, 0, 1 },
+                                       0, 0, 1 },*/
         g_glMatrix[16];
 
 const GLfloat g_u[] = { 1.f, 0.f, 0.f },
@@ -95,6 +97,14 @@ inline void setTranslate( const float i_x, const float i_y, const float i_z, GLf
      o_m[0] =1.;	 o_m[1] =0.f;	o_m[2] =0.f;	 o_m[3] =i_x;
      o_m[4] =0.f;	 o_m[5] =1.f;	o_m[6] =0.f;	 o_m[7] =i_y;
      o_m[8] =0.f;	 o_m[9] =0.f;	o_m[10]=1.f;	 o_m[11]=i_z;
+     o_m[12]=0.f;	 o_m[13]=0.f;	o_m[14]=0.f;	 o_m[15]=1.f;
+}
+
+inline void setTranslate_m3( const GLfloat *i_a, GLfloat o_m[16] )
+{
+     o_m[0] =1.;	 o_m[1] =0.f;	o_m[2] =0.f;	 o_m[3] =i_a[0];
+     o_m[4] =0.f;	 o_m[5] =1.f;	o_m[6] =0.f;	 o_m[7] =i_a[1];
+     o_m[8] =0.f;	 o_m[9] =0.f;	o_m[10]=1.f;	 o_m[11]=i_a[2];
      o_m[12]=0.f;	 o_m[13]=0.f;	o_m[14]=0.f;	 o_m[15]=1.f;
 }
 
@@ -282,34 +292,38 @@ void GLWidget::paintGL()
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
+    m_lastPos = event->pos();
+
     if ( event->buttons()&Qt::LeftButton )
     {
         g_mouseLeftDown = true;
-        m_lastPos = event->pos();
 
         if ((m_interactionMode == SEGMENT_POINTS) && !m_bPolyIsClosed )
         {
             if (m_polygon.size() < 2)
-                m_polygon.push_back(event->pos());
+                m_polygon.push_back(m_lastPos);
             else
             {
-                m_polygon[m_polygon.size()-1] = event->pos();
-                m_polygon.push_back(event->pos());
+                m_polygon[m_polygon.size()-1] = m_lastPos;
+                m_polygon.push_back(m_lastPos);
             }
         }
     }
-    else if ( (event->buttons()&Qt::RightButton)&&(m_interactionMode == SEGMENT_POINTS) )
+    else if (event->buttons()&Qt::RightButton)
     {
-        closePolyline();
+        if (m_interactionMode == TRANSFORM_CAMERA)
+            g_mouseRightDown = true;
+        else
+            closePolyline();
     }
-
-    m_lastPos = event->pos();
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if ( !( event->buttons()&Qt::LeftButton ) )
         g_mouseLeftDown = false;
+    if ( !( event->buttons()&Qt::RightButton ) )
+        g_mouseRightDown = false;
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -330,6 +344,9 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
         break;
     case Qt::Key_Minus:
         ptSizeUp(false);
+        break;
+    case Qt::Key_F5:
+        clearPolyline();
         break;
     default:
         event->ignore();
@@ -533,7 +550,7 @@ void GLWidget::draw3D()
 
     static GLfloat trans44[16], rot44[16], tmp[16];
     m33_to_m44( g_rotationMatrix, rot44 );
-    setTranslate( 0.f, 0.f, 0.f, trans44 );
+    setTranslate_m3( g_translationMatrix, trans44 );
 
     mult( trans44, rot44, tmp );
     transpose( tmp, g_glMatrix );
@@ -681,37 +698,48 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     if (event->x()<0 || event->y()<0 || event->x()>width() || event->y()>height())
         return;
 
-    if ((m_interactionMode == SEGMENT_POINTS) && !m_bPolyIsClosed)
+    if ((m_interactionMode == SEGMENT_POINTS) )
     {
-        int sz = m_polygon.size();
+        if(!m_bPolyIsClosed)
+        {
+            int sz = m_polygon.size();
 
-        if (sz == 0)
-           return;
-        else if (sz == 1)
-            m_polygon.push_back(event->pos());
-        else
-            //we replace last point by the current one
-            m_polygon[sz-1] = event->pos();
+            if (sz == 0)
+               return;
+            else if (sz == 1)
+                m_polygon.push_back(event->pos());
+            else
+                //we replace last point by the current one
+                m_polygon[sz-1] = event->pos();
 
-        updateGL();
+            updateGL();
+        }
 
-        //event->ignore();
+        event->ignore();
         return;
     }
-    else if ( g_mouseLeftDown )
+    else
     {
-        clearPolyline();
+        //clearPolyline();
 
         QPoint dp = event->pos()-m_lastPos;
 
         m_lastPos = event->pos();
 
-        setRotateOx_m33( ( g_trackballScale*dp.y() )/m_glHeight, g_rotationOx );
-        setRotateOy_m33( ( g_trackballScale*dp.x() )/m_glWidth, g_rotationOy );
+        if ( g_mouseLeftDown )
+        {
+            setRotateOx_m33( ( g_trackballScale*dp.y() )/m_glHeight, g_rotationOx );
+            setRotateOy_m33( ( g_trackballScale*dp.x() )/m_glWidth, g_rotationOy );
 
-        mult_m33( g_rotationOx, g_rotationMatrix, g_tmpMatix );
-        mult_m33( g_rotationOy, g_tmpMatix, g_rotationMatrix );
-        inverse_m33( g_rotationMatrix, g_inverseRotationMatrix );
+            mult_m33( g_rotationOx, g_rotationMatrix, g_tmpMatrix );
+            mult_m33( g_rotationOy, g_tmpMatrix, g_rotationMatrix );
+            //inverse_m33( g_rotationMatrix, g_inverseRotationMatrix );
+        }
+        else if ( g_mouseRightDown )
+        {
+            g_translationMatrix[0] = dp.x()/m_glWidth;
+            g_translationMatrix[1] = dp.y()/m_glHeight;
+        }
 
         updateGL();
     }
