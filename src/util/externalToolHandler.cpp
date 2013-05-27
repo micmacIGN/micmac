@@ -218,6 +218,7 @@ int CheckDependencies_main(int argc,char ** argv)
 	cout << printResult( "exiftool" ) << endl;
 	cout << printResult( "exiv2" ) << endl;
 	cout << printResult( "convert" ) << endl;
+	cout << printResult( "proj" ) << endl;
 	
 	cout << printResult( TheStrSiftPP ) << endl;
 	cout << printResult( TheStrAnnPP ) << endl;

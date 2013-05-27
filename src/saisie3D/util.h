@@ -5,9 +5,6 @@
 #define PI  3.14159265358979323846
 #endif
 
-template <class Type> inline Type ElMax (Type v1,Type v2) {return (v1>v2) ? v1 : v2;}
-template <class Type> inline Type ElMin (Type v1,Type v2) {return (v1<v2) ? v1 : v2;}
-
 //! Color components type (R,G and B)
 typedef unsigned char colorType;
 
@@ -31,19 +28,12 @@ namespace mmColor
     static const colorType yellow[3]		=	{MAX_COLOR_COMP,MAX_COLOR_COMP,0};
 
     // Predefined materials
-    static const float bright[4]			    =	{1.0f,1.0f,1.0f,1.0f};
-    static const float lighter[4]			    =	{0.83f,0.83f,0.83f,1.0f};
     static const float light[4]				    =	{0.66f,0.66f,0.66f,1.0f};
     static const float middle[4]			    =	{0.5f,0.5f,0.5f,1.0f};
     static const float dark[4]				    =	{0.34f,0.34f,0.34f,1.0f};
-    static const float darker[4]			    =	{0.17f,0.17f,0.17f,1.0f};
-    static const float night[4]				    =	{0.0F,0.0F,0.0F,1.0F};
 
     // Default foreground color
-    static const colorType defaultColor[3]			=   {MAX_COLOR_COMP,MAX_COLOR_COMP,MAX_COLOR_COMP};
     static const colorType defaultBkgColor[3]		=   {10,102,151};
-    static const colorType defaultHistBkgColor[3]	=   {51,0,51};
-    static const colorType defaultLabelColor[3]		=   {255,255,0};
 }
 
 //! View orientation
