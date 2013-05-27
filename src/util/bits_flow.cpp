@@ -65,7 +65,7 @@ Flux_Of_VarLI::~Flux_Of_VarLI()
         delete _flx_byte;
 }
 
-INT Flux_Of_VarLI::tell()
+tFileOffset Flux_Of_VarLI::tell()
 {
     return _flx_byte->tell();
 }
@@ -158,7 +158,7 @@ Flux_OutVarLI * Flux_OutVarLI::new_flx
         return new LSBF_Flux_OutVarLI(flx_byte,flx_flush);
 };
 
-INT Flux_OutVarLI::tell()
+tFileOffset Flux_OutVarLI::tell()
 {
    return _flx->tell();
 }
@@ -218,7 +218,7 @@ INT LSBitFirst_Flux_Of_VarLI::nexti(INT nb)
 /*                                                 */
 /***************************************************/
 
-INT BitsPacked_PFOB::tell()
+tFileOffset BitsPacked_PFOB::tell()
 {
    return _pfob->tell();
 }
@@ -264,7 +264,7 @@ bool BitsPacked_PFOB::compressed() const
 }
 
 
-void  BitsPacked_PFOB::AseekFp(INT nb)
+void  BitsPacked_PFOB::AseekFp(tFileOffset nb)
 {
 
      _i_buf =   0 ;
@@ -277,8 +277,9 @@ BitsPacked_PFOB::~BitsPacked_PFOB()
      delete _pfob;
 }
 
-INT BitsPacked_PFOB::_Read(U_INT1 * res,INT nb) 
+tFileOffset BitsPacked_PFOB::_Read(U_INT1 * res,tFileOffset nbo) 
 {
+    int nb = nbo.IntBasicLLO();
     ELISE_ASSERT(nb>=0,"Read-neg-in-BitsPacked_PFOB");
     for (int i = 0 ; i<nb ; i++)
     {
@@ -290,13 +291,14 @@ INT BitsPacked_PFOB::_Read(U_INT1 * res,INT nb)
    return nb;
 }
 
-INT BitsPacked_PFOB::Read(U_INT1 * res,INT nb) 
+tFileOffset BitsPacked_PFOB::Read(U_INT1 * res,tFileOffset nb) 
 {
     return _Read(res,nb*_nb_el);
 }
 
-INT BitsPacked_PFOB::_Write(const U_INT1 * data,INT nb) 
+tFileOffset BitsPacked_PFOB::_Write(const U_INT1 * data,tFileOffset nbo) 
 {
+    int nb = nbo.IntBasicLLO();
     if (El_User_Dyn.active())
     {
          INT index = index_values_out_of_range
@@ -336,7 +338,7 @@ INT BitsPacked_PFOB::_Write(const U_INT1 * data,INT nb)
 
 }
 
-INT BitsPacked_PFOB::Write(const U_INT1 * data,INT nb) 
+tFileOffset BitsPacked_PFOB::Write(const U_INT1 * data,tFileOffset nb) 
 {
     return _Write(data,nb*_nb_el);
 }
@@ -378,8 +380,9 @@ INT BitsPacked_PFOB::_Rseek(INT nb_el)
 
 // bool DebugRseek = false;
 
-INT BitsPacked_PFOB::_Rseek(INT nb_el) 
+tRelFileOffset BitsPacked_PFOB::_Rseek(tRelFileOffset nb_elo) 
 {
+      int nb_el = nb_elo.IntBasicLLO();
       // _i_buf += nb_el;
       int aNbSeek = Elise_div(_i_buf+nb_el-1,_nb_pb)-Elise_div(_i_buf-1,_nb_pb);
      _i_buf = mod(_i_buf+nb_el,_nb_pb);
@@ -398,7 +401,7 @@ INT BitsPacked_PFOB::_Rseek(INT nb_el)
 
 
 
-INT BitsPacked_PFOB::Rseek(INT nb) 
+tRelFileOffset BitsPacked_PFOB::Rseek(tRelFileOffset nb) 
 {
    return _Rseek(nb*_nb_el);
 }

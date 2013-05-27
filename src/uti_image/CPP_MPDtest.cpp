@@ -170,33 +170,30 @@ void TestXMLNuageNodData()
 
 int MPDtest_main (int argc,char** argv)
 {
-    double x = 44682000;
-    //double y = 53342000;
 
-    std::cout << "X/X-1" << (x)*(1/x) -1 << "\n";
-    std::cout << "X+ 0.1  : " <<  (((x+0.1)-x)-0.1)  << "\n";
+std::cout << "AAAA\n";
+    Tiff_Im  aFile
+             (
+                 "toto.tif",
+                 Pt2di(2000,3000),
+                  GenIm::u_int2,
+                  Tiff_Im::No_Compr,
+                  Tiff_Im::BlackIsZero
+             );
 
-     double x10 = x * 0.1;
-     x10 = x10*10;
+/*
+Tiff_Im  aFile("/media/data2/Aerien/Euro-SDR/VaihingenEnz_GSD20cm/MEC-Final/Z_000_DeZoom64_LeChantier.tif");
+*/
 
-std::cout << (x10 -x)*1e30 << "\n";
+std::cout << "BBBB\n";
 
-    Pt2dr mI00(44682000,53342000);
-    Pt2dr mI10(0.1,0);
-    Pt2dr mI01(0,0.1);
 
-    REAL delta = mI10 ^ mI01;
+    ELISE_COPY(rectangle(Pt2di(20,20),Pt2di(100,100)),FX,aFile.out());
 
-    Pt2dr  Inv10 = Pt2dr(mI01.y,-mI10.y) /delta;
-    Pt2dr  Inv01 = Pt2dr(-mI01.x,mI10.x) /delta;
-
-     std::cout << Inv10 -Pt2dr(10,0) << "\n";
-
-    Pt2dr aTr =  -(Inv10*mI00.x+Inv01*mI00.y);
-
-    printf("%lf %lf\n",aTr.x,aTr.y);
-    std::cout << aTr << aTr.x - round_ni(aTr.x) << " " << aTr.y - round_ni(aTr.y) << "\n";
-
+std::cout << "CCCCC SzL " << sizeof(long) << "\n";
+int aDif;
+    ELISE_COPY(rectangle(Pt2di(-20,-20),Pt2di(100,100)),aFile.in_proj(),sigma(aDif));
+std::cout << "DDDD  " << aDif << "\n";
 
 
    // TestXMLNuageNodData();

@@ -65,7 +65,7 @@ class Data_Elise_File_Im : public ElDataGenFileIm
            INT *      sz,      // tx,ty for usual images
            GenIm::type_el,     // U_INT1,INT ....
            INT        dim_out, // 1 for gray level, 3 for RVB ...
-           INT        offset_0, // size of header to pass
+           tFileOffset        offset_0, // size of header to pass
            INT        szd0   ,// = -1,
            bool       create  // false
       );
@@ -77,12 +77,12 @@ class Data_Elise_File_Im : public ElDataGenFileIm
       Tprov_INT  *     _tprov_sz;
       INT *            _sz;
       INT              _szd0;
-      INT              _sz_tot;
+      tFileOffset              _sz_tot;
       INT              _dim_out;
       GenIm::type_el   _type_el;
       GenIm::type_el   _type_el_if_bits;
       INT              _nbb; 
-      INT              _offset_0;
+      tFileOffset      _offset_0;
       
       virtual   Fonc_Num in()     ;
       virtual   Fonc_Num in(REAL) ;
@@ -99,7 +99,7 @@ Data_Elise_File_Im::Data_Elise_File_Im
                INT *      sz,      
                GenIm::type_el type_el, 
                INT        dim_out, 
-               INT        offset_0 ,
+               tFileOffset        offset_0 ,
                INT        szd0,
                bool       create
 )
@@ -144,8 +144,8 @@ Data_Elise_File_Im::Data_Elise_File_Im
           ELISE_fp::if_not_exist_create_0(name,&status);
 
 
-          INT byte_to_add = _sz_tot - status.st_size;
-          if (byte_to_add>0)
+          tFileOffset byte_to_add = _sz_tot - status.st_size;
+          if (byte_to_add.BasicLLO()>0)
           {
              ELISE_fp fp(name,ELISE_fp::READ_WRITE);
              fp.seek_end(0);
@@ -589,7 +589,7 @@ Elise_File_Im::Elise_File_Im
                INT *      sz,      
                GenIm::type_el type_el,
                INT        dim_out, 
-               INT        offset_0,
+               tFileOffset        offset_0,
                INT        szd0 ,
                bool       create
 ) :
@@ -606,7 +606,7 @@ Elise_File_Im::Elise_File_Im
          const char *     name,
          INT              sz,     
          GenIm::type_el type,     
-         INT    offset_0 ,
+         tFileOffset    offset_0 ,
          bool       create
 )  :  ElGenFileIm(0)
 {
@@ -619,7 +619,7 @@ Elise_File_Im::Elise_File_Im
          const char *     name,
          Pt2di      sz,     
          GenIm::type_el type,     
-         INT    offset_0 ,
+         tFileOffset    offset_0 ,
          bool       create
 )  :  ElGenFileIm(0)
 {
@@ -635,7 +635,7 @@ Elise_File_Im::Elise_File_Im
          const char *     name,
          Pt3di      sz,     
          GenIm::type_el type,     
-         INT    offset_0 ,
+         tFileOffset    offset_0 ,
          bool       create
 )  :  ElGenFileIm(0)
 {

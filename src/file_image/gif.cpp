@@ -132,7 +132,7 @@ class Data_GifIm : public ElDataGenFileIm
         bool        _interlaced;
         bool        _sorted_col_tab;
         INT         _sz_col_tab;
-        FILE_offset _offs_data;
+        tFileOffset _offs_data;
 
 
         virtual   Fonc_Num in()     ;
@@ -205,7 +205,7 @@ class GIF_char_flow : public Flux_Of_Byte
       INT  _i_pack;
       bool _read;
 
-      virtual INT tell() {return _fp.tell();}
+      virtual tFileOffset tell() {return _fp.tell();}
 };
 
 

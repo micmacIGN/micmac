@@ -312,6 +312,61 @@ template <class Type,class TypeBase> void  MomOrdre2
     }
 }
 
+
+
+template <class Type,class TypeBase> void  MomOrdre2_Creux
+                                           (
+                                                Im2D<Type,TypeBase> anIm,
+                                                Im2D<Type,TypeBase> aISom,
+                                                Im2D<Type,TypeBase> aISom2,
+                                                const Pt2di &aSzV,
+                                                const Box2di & aBox
+                                           )
+{
+    TIm2D<Type,TypeBase> aTSom(aISom);
+    TIm2D<Type,TypeBase> aTS2(aISom2);
+
+    Pt2di  aP;
+    for (aP.y=aBox._p0.y ; aP.y<aBox._p1.y; aP.y++)
+    {
+        Type * aLPrec = anIm.data()[aP.y-aSzV.y] +aBox._p0.x;
+        Type * aD0 = aLPrec-aSzV.x;
+        Type * aD1 = aLPrec       ;
+        Type * aD2 = aLPrec+aSzV.x;
+
+        Type * aLCur  = anIm.data()[aP.y] +aBox._p0.x;
+        Type * aD3 = aLCur-aSzV.x;
+        Type * aD4 = aLCur       ;
+        Type * aD5 = aLCur+aSzV.x;
+
+
+        Type * aLNext = anIm.data()[aP.y+aSzV.y] +aBox._p0.x;
+        Type * aD6 = aLNext-aSzV.x;
+        Type * aD7 = aLNext       ;
+        Type * aD8 = aLNext+aSzV.x;
+
+
+        for (aP.x=aBox._p0.x ; aP.x<aBox._p1.x; aP.x++)
+        {
+           Type aV0 = *(aD0++);
+           Type aV1 = *(aD1++);
+           Type aV2 = *(aD2++);
+           Type aV3 = *(aD3++);
+           Type aV4 = *(aD4++);
+           Type aV5 = *(aD5++);
+           Type aV6 = *(aD6++);
+           Type aV7 = *(aD7++);
+           Type aV8 = *(aD8++);
+           aTSom.oset(aP,aV0+aV1+aV2+aV3+aV4+aV5+aV6+aV7+aV8);
+           aTS2.oset(aP,  aV0*aV0 + aV1*aV1 + aV2*aV2
+                        + aV3*aV3 + aV4*aV4 + aV5*aV5
+                        + aV6*aV6 + aV7*aV7 + aV8*aV8);
+        }
+    }
+}
+
+
+
    //  ================================================================
    //  ================================================================
    //  ================================================================
@@ -430,6 +485,75 @@ template <class Type,class TypeBase> void  Mom12_22
          aTSom22.oset(aP,aCum->Som22());
     }
 }
+
+
+template <class Type,class TypeBase> void  Mom12_22_creux
+                                           (
+                                                Im2D<Type,TypeBase> anIm1,
+                                                Im2D<Type,TypeBase> anIm2,
+                                                Im2D<Type,TypeBase> aISom12,
+                                                Im2D<Type,TypeBase> aISom2,
+                                                Im2D<Type,TypeBase> aISom22,
+                                                const Pt2di &aSzV,
+                                                const Box2di & aBox
+                                           )
+{
+    TIm2D<Type,TypeBase> aTSom12(aISom12);
+    TIm2D<Type,TypeBase> aTS2(aISom2);
+    TIm2D<Type,TypeBase> aTS22(aISom22);
+
+    Pt2di  aP;
+    for (aP.y=aBox._p0.y ; aP.y<aBox._p1.y; aP.y++)
+    {
+        Type * aLPrec1 = anIm1.data()[aP.y-aSzV.y] +aBox._p0.x;
+          Type * a1D0 = aLPrec1-aSzV.x;
+          Type * a1D1 = aLPrec1       ;
+          Type * a1D2 = aLPrec1+aSzV.x;
+        Type * aLCur1  = anIm1.data()[aP.y] +aBox._p0.x;
+          Type * a1D3 = aLCur1-aSzV.x;
+          Type * a1D4 = aLCur1       ;
+          Type * a1D5 = aLCur1+aSzV.x;
+        Type * aLNext1 = anIm1.data()[aP.y+aSzV.y] +aBox._p0.x;
+          Type * a1D6 = aLNext1-aSzV.x;
+          Type * a1D7 = aLNext1       ;
+          Type * a1D8 = aLNext1+aSzV.x;
+
+        Type * aLPrec2 = anIm2.data()[aP.y-aSzV.y] +aBox._p0.x;
+          Type * a2D0 = aLPrec2-aSzV.x;
+          Type * a2D1 = aLPrec2       ;
+          Type * a2D2 = aLPrec2+aSzV.x;
+        Type * aLCur2  = anIm2.data()[aP.y] +aBox._p0.x;
+          Type * a2D3 = aLCur2-aSzV.x;
+          Type * a2D4 = aLCur2       ;
+          Type * a2D5 = aLCur2+aSzV.x;
+        Type * aLNext2 = anIm2.data()[aP.y+aSzV.y] +aBox._p0.x;
+          Type * a2D6 = aLNext2-aSzV.x;
+          Type * a2D7 = aLNext2       ;
+          Type * a2D8 = aLNext2+aSzV.x;
+
+        for (aP.x=aBox._p0.x ; aP.x<aBox._p1.x; aP.x++)
+        {
+           Type a2V0 = *(a2D0++);
+           Type a2V1 = *(a2D1++);
+           Type a2V2 = *(a2D2++);
+           Type a2V3 = *(a2D3++);
+           Type a2V4 = *(a2D4++);
+           Type a2V5 = *(a2D5++);
+           Type a2V6 = *(a2D6++);
+           Type a2V7 = *(a2D7++);
+           Type a2V8 = *(a2D8++);
+           aTS2.oset(aP,a2V0+a2V1+a2V2+a2V3+a2V4+a2V5+a2V6+a2V7+a2V8);
+           aTS22.oset(aP,  a2V0*a2V0 + a2V1*a2V1 + a2V2*a2V2
+                        + a2V3*a2V3 + a2V4*a2V4 + a2V5*a2V5
+                        + a2V6*a2V6 + a2V7*a2V7 + a2V8*a2V8);
+           aTSom12.oset(aP,    a2V0**(a1D0++) + a2V1**(a1D1++) + a2V2**(a1D2++)
+                            +  a2V3**(a1D3++) + a2V4**(a1D4++) + a2V5**(a1D5++)
+                            +  a2V6**(a1D6++) + a2V7**(a1D7++) + a2V8**(a1D8++));
+        }
+    }
+}
+
+
 
 
 #endif // _ELISE_EX_OPER_ASSOC_EXTERN_H_

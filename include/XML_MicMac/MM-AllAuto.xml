@@ -12,7 +12,6 @@
 
     mm3d MICMAC  /home/mpd/MMM/culture3d/include/XML_MicMac/MM-AllAuto.xml  WorkDir=/media/data1/Jeux-Tests/Castle/ +Im1=0010.png +Ori=-All +VisuModelTieP=true
 -->
-
 <ParamMICMAC>
 <DicoLoc>
 
@@ -22,6 +21,7 @@
 
 
    <!-- Parametre a changer eventuellement -->
+      <Symb>  CmsDense=true </Symb>
       <Symb> ZoomInit=8     </Symb>
       <Symb> Do2ZTieP=false        </Symb>
 
@@ -44,6 +44,7 @@
 
       <eSymb>  WithZ2=InfEq ${ZoomF} 2  </eSymb>
       <eSymb>  WithZ1=InfEq ${ZoomF} 1 </eSymb>
+
 
 </DicoLoc>
 
@@ -131,8 +132,8 @@
                      <SzBlocAH> 400000 </SzBlocAH>
 
                      <CorrelMultiScale>
-                            <ModeDense> true </ModeDense>
-                            <UseWAdapt> true </UseWAdapt>
+                            <ModeDense> ${CmsDense} </ModeDense>
+                            <UseWAdapt> false </UseWAdapt>
                             <OneParamCMS>
                                  <SzW> 1 1 </SzW>
                                  <Sigma> 0 </Sigma>
@@ -141,12 +142,12 @@
                             <OneParamCMS>
                                  <SzW> 2 2 </SzW>
                                  <Sigma> 1.0 </Sigma>
-                                 <Pds> 0.5 </Pds>
+                                 <Pds> 0.4 </Pds>
                             </OneParamCMS>
                             <OneParamCMS>
                                  <SzW> 4 4 </SzW>
                                  <Sigma> 2.0 </Sigma>
-                                 <Pds> 0.25 </Pds>
+                                 <Pds> 0.16 </Pds>
                             </OneParamCMS>
                      </CorrelMultiScale>
 
@@ -173,7 +174,7 @@
                      <SzBlocAH> 400000 </SzBlocAH>
 
                      <CorrelMultiScale>
-                            <ModeDense> true </ModeDense>
+                            <ModeDense> ${CmsDense} </ModeDense>
                             <UseWAdapt> true </UseWAdapt>
                             <OneParamCMS>
                                  <SzW> 1 1 </SzW>
@@ -218,7 +219,7 @@
                  <AlgoRegul Portee="Globale">  eAlgo2PrgDyn </AlgoRegul>
                  <CorrelAdHoc Portee="Globale">
                      <CorrelMultiScale>
-                            <ModeDense> true </ModeDense>
+                            <ModeDense> ${CmsDense} </ModeDense>
                             <UseWAdapt> true </UseWAdapt>
                             <OneParamCMS>
                                  <SzW> 1 1 </SzW>

@@ -92,7 +92,7 @@ int ScaleNuage_main(int argc,char ** argv)
          cXML_ParamNuage3DMaille aNewXML = CropAndSousEch(aXML,aP0,aSc,aSz);
 
          std::string aNameNewMasq = DirOfFile(aNameNuage) + aNameOut+ "_Masq.tif";
-         aNewXML.Image_Profondeur().Val().Masq() =  aNameNewMasq;
+         aNewXML.Image_Profondeur().Val().Masq() =  NameWithoutDir(aNameNewMasq);
          Tiff_Im aFileMasq
                  (
                      aNameNewMasq.c_str(),
@@ -114,7 +114,7 @@ int ScaleNuage_main(int argc,char ** argv)
          std::string aNameProfIn = DirOfFile(aNameNuage) +aXML.Image_Profondeur().Val().Image();
          Tiff_Im aFileProfIn(aNameProfIn.c_str());
          std::string aNameNewProf = DirOfFile(aNameNuage) + aNameOut+ "_Prof.tif";
-         aNewXML.Image_Profondeur().Val().Image() =  aNameNewProf;
+         aNewXML.Image_Profondeur().Val().Image() =  NameWithoutDir(aNameNewProf);
          Tiff_Im aFileProf
                  (
                      aNameNewProf.c_str(),
@@ -132,7 +132,7 @@ int ScaleNuage_main(int argc,char ** argv)
              aFileProf.out()
          );
 
-         MakeFileXML(aNewXML,aNameOut+".xml");
+         MakeFileXML(aNewXML,DirOfFile(aNameNuage) + aNameOut+".xml");
 
     }
 /*

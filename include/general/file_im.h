@@ -123,7 +123,7 @@ class Elise_File_Im : public ElGenFileIm
                INT *      sz,         // tx,ty for usual images
                GenIm::type_el,        // U_INT1,INT ....
                INT        dim_out,    // 1 for gray level, 3 for RVB ...
-               INT        offset_0,   // size of header to pass
+               tFileOffset        offset_0,   // size of header to pass
                INT        _szd0 = -1,  // see just down
                bool       create = false      // if does not exist
          );
@@ -153,7 +153,7 @@ class Elise_File_Im : public ElGenFileIm
                const char *     name,
                INT        sz,      // tx,ty for usual images
                GenIm::type_el,      // U_INT1,INT ....
-               INT    offset_0 = 0,  // size of header to pass
+               tFileOffset    offset_0 = 0,  // size of header to pass
                bool       create = false      // if does not exist
          );
          // for simple 2d-file
@@ -162,7 +162,7 @@ class Elise_File_Im : public ElGenFileIm
                const char *     name,
                Pt2di       sz,      // tx,ty for usual images
                GenIm::type_el,      // U_INT1,INT ....
-               INT    offset_0 = 0,  // size of header to pass
+               tFileOffset    offset_0 = 0,  // size of header to pass
                bool       create = false      // if does not exist
          );
 
@@ -172,7 +172,7 @@ class Elise_File_Im : public ElGenFileIm
                const char *     name,
                Pt3di       sz,      // tx,ty for usual images
                GenIm::type_el,      // U_INT1,INT ....
-               INT    offset_0 = 0,  // size of header to pass
+               tFileOffset    offset_0 = 0,  // size of header to pass
                bool       create = false      // if does not exist
          );
 
@@ -239,7 +239,7 @@ class Elise_Tiled_File_Im_2D : public ElGenFileIm
                Pt2di            sz_tiles               ,
                bool             clip_last_tile = DefCLT,         // false ,
                bool             chunk          = DefChunk,       // true  ,
-               INT              offset_0       = DefOffset0,     // 0     ,  
+               tFileOffset              offset_0       = DefOffset0,     // 0     ,  
                bool             create         = DefCreate,      // false ,
                bool             byte_ordered   = DefByteOrdered  // true
          );

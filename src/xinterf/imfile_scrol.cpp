@@ -64,10 +64,10 @@ template <class Type > class TilesIMFL
 	private :
 
 	
-		INT 				_offs;
+		tFileOffset 				_offs;
 		Pt2di 				_sz;
 		Pt2di 				_itile;
-		INT  			    _szbyte;
+		tFileOffset  			    _szbyte;
 		INT 				_nb_chan;
 		LoadedTilesIMFL<Type>  *  _loaded;
 		

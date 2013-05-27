@@ -591,59 +591,93 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
 
 #ifdef CUDA_ENABLED
 
+    CuHostData3D<uint3> rStrPar((uint)sqrt(mSz.x * mSz.x + mSz.y * mSz.y));
 
-    uint    depth       =   256;
-    uint3   dimStream   =   make_uint3(depth,mSz.x,mSz.y);
-    CuHostData3D<uint>      streamCostVolume(NOPAGELOCKEDMEMORY,dimStream);
-    CuHostData3D<short2>    index(NOPAGELOCKEDMEMORY,make_uint2(mSz.x,mSz.y),1);
-    CuHostData3D<uint>      hOutputCost(NOPAGELOCKEDMEMORY,dimStream);
-    uint x = 0;
+    uint idLine = 0, sizeStreamId = 0,sizeStreamLine, pitStream = 0, pitIdStream = 0 , NbLine = 0 ;
 
     while ((aVPt = mLMR.Next()))
-    {   
-        int  idStream   = 0;
-        uint Pit        = x * mSz.x * depth ;
-        uint lenghtLine = int(aVPt->size());
+    {
+        uint lenghtLine = (uint)(aVPt->size());
+
+        rStrPar[idLine].x = pitStream;
+        rStrPar[idLine].y = pitIdStream;
+        rStrPar[idLine].z = lenghtLine;
+
+        //printf("idLine : %d | lenghtLine : %d\n",idLine,lenghtLine);
+
+        sizeStreamLine = sizeStreamId = 0;
+
         for (uint aK = 0 ; aK < lenghtLine; aK++)
+        {
+            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
+            const Box2di &  aBox        = aMat.Box();           
+            sizeStreamLine += abs(aBox._p1.x-aBox._p0.x) + 1;
+        }
+
+        pitIdStream += iDivUp(lenghtLine,WARPSIZE) * WARPSIZE;
+        pitStream   += iDivUp(sizeStreamLine,WARPSIZE) * WARPSIZE;
+
+        idLine++;
+    }
+
+    NbLine = idLine;
+
+    //printf("NbLine : %d | pitStream : %d\n",NbLine,pitStream);
+
+    CuHostData3D<uint>      h_strCostVolume(pitStream);
+    CuHostData3D<short2>    h_strIndex(pitIdStream);
+    CuHostData3D<uint>      h_OutForceCostVol(pitStream);
+
+    mLMR.Init(aDirI,Pt2di(0,0),mSz);
+    idLine = 0;
+
+    while ((aVPt = mLMR.Next()))
+    {
+        uint  idStream   = 0;
+
+        for (uint aK = 0 ; aK < rStrPar[idLine].z ; aK++)
         {
             // Matrice des cellules
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
             const Box2di &  aBox        = aMat.Box();
 
-            Pt2di aP;
+            h_strIndex[rStrPar[idLine].y + aK] = make_short2(aBox._p0.x,aBox._p1.x);
 
-            index[make_uint2(aK,x)] = make_short2(aBox._p0.x,aBox._p1.x);
+            for (int aPx = aBox._p0.x ; aPx <= aBox._p1.x ; aPx++)
+                h_strCostVolume[rStrPar[idLine].x + idStream + aPx - aBox._p0.x]  = aMat[Pt2di(aPx,0)].GetCostInit();
 
-            for (aP.x = aBox._p0.x ; aP.x <= aBox._p1.x ; aP.x++,idStream++)
-                streamCostVolume[Pit + idStream]  = aMat[aP].GetCostInit();
+            idStream += abs(aBox._p1.x-aBox._p0.x) + 1;
         }
-        x++;
+        idLine++;
     }
 
-    OptimisationOneDirection(streamCostVolume,index,make_uint3(mSz.y,mSz.x,depth),hOutputCost);
+    OptimisationOneDirection(h_strCostVolume,h_strIndex,NbLine,h_OutForceCostVol, rStrPar);
 
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
-    x = 0;
+    idLine = 0;
 
     while ((aVPt = mLMR.Next()))
-    {     
-        int lenghtLine = int(aVPt->size());
+    {
+        uint    idStream = 0;
 
-        for (int aK= 0 ; aK < lenghtLine ; aK++) // on parcours la ligne
+        for (uint aK= 0 ; aK < rStrPar[idLine].z; aK++) // on parcours la ligne
         {
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
             const Box2di &  aBox = aMat.Box();
 
             for ( int aPx = aBox._p0.x ; aPx < aBox._p1.x ; aPx++)
-                aMat[Pt2di(aPx,0)].CostFinal() += tCost(hOutputCost[make_uint3(aPx - aBox._p0.x, aK, x)]);
+                aMat[Pt2di(aPx,0)].CostFinal() += tCost(h_OutForceCostVol[rStrPar[idLine].x + idStream + aPx - aBox._p0.x]);
 
+            idStream += abs(aBox._p1.x - aBox._p0.x ) + 1;
         }
-        x++;      
+        idLine++;
     }
 
-    streamCostVolume.Dealloc();
-    index.Dealloc();
-    hOutputCost.Dealloc();
+    h_strCostVolume.Dealloc();
+    h_strIndex.Dealloc();
+    h_OutForceCostVol.Dealloc();
+    rStrPar.Dealloc();
+
 #else
     //printf("Optimisation CPU\n");
      while ((aVPt=mLMR.Next()))

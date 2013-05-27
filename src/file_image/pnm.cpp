@@ -111,7 +111,7 @@ Elise_File_Im  Elise_File_Im::pnm(const char * name)
      if (last_c != '\n')
          pgm_eol(fp);
 
-     INT offs = fp.tell();
+     tFileOffset offs = fp.tell();
      fp.close();
 
      GenIm::type_el  aType = GenIm::u_int1;
@@ -172,7 +172,7 @@ Elise_File_Im Elise_File_Im::pnm
          sprintf(buf,"%d\n",vmax);
          fp.str_write(buf);
     }
-    INT offs0 = fp.tell();
+    tFileOffset offs0 = fp.tell();
     fp.close();
 
     INT txy[2];

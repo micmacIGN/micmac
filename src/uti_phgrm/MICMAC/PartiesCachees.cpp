@@ -415,7 +415,7 @@ void cAppliMICMAC::MakePartiesCachees
        return;
     }
 
-   std::cout << "PC-Name " << aPdv.Name() << " Z " << aZMin << " - " << aZMax<<  "\n";
+   std::cout << "PC-Name " << aPdv.Name() << " Z " << aZMin << " # " << aZMax<<  "\n";
 
 
    const cFilePx & aFP = mCurEtape->KPx(0);
@@ -458,7 +458,7 @@ void cAppliMICMAC::MakePartiesCachees
       ELISE_COPY
       (
          rectangle(Pt2di(0,0),aSzIm),
-         trans(Virgule(aTFP.in(0),aTFM.in(0)),aP0),
+         trans(Virgule(aTFP.in(0),aTFM.in_bool()),aP0),
          Virgule(aImZ.out(),aImMasq.out())
       );
 
@@ -475,7 +475,7 @@ void cAppliMICMAC::MakePartiesCachees
       Tiff_Im aFileMasqGeomIm = aPdv.FileImMasqOfResol(aZoomMasqI);
       Pt2di aSzMGI = aFileMasqGeomIm.sz();
       Im2D_Bits<1> aImMGI(aSzMGI.x,aSzMGI.y);
-      ELISE_COPY(aImMGI.all_pts(),aFileMasqGeomIm.in(),aImMGI.out());
+      ELISE_COPY(aImMGI.all_pts(),aFileMasqGeomIm.in_bool_proj(),aImMGI.out());
       TIm2DBits<1>  aTImMGI(aImMGI);
 ///std::cout << "MADSSSsssssssssssssssskkkKKK  " << aMasqIm.name() << aMasqIm.sz() << aSzPdv << "\n";
 
@@ -570,6 +570,7 @@ void cAppliMICMAC::MakePartiesCachees
       }
 
       Pt2di aNewSz = aNewP1-aNewP0;
+
       if ((!FullIm) && (aNewSz.x>0) &&  (aNewSz.y>0))
       {
           Im2D_INT2 aNewImZ(aNewSz.x,aNewSz.y);
@@ -1110,7 +1111,7 @@ void cAppliMICMAC::GetIntervZ(const Box2di & aBox,double & aZMin,double & aZMax,
   Tiff_Im aTFM = FileMasqOfResol(mCurEtape->DeZoomTer());
 
   Symb_FNum  aFZ  (Rconv(aTFP.in()));
-  Symb_FNum  aFM  (Rconv(aTFM.in(0)));
+  Symb_FNum  aFM  (Rconv(aTFM.in_bool_proj()));
 
 
   Symb_FNum  aFMZ (aFM * aFZ);

@@ -9607,6 +9607,17 @@ const cTplValGesInit< eAlgoRegul > & cEtapeMEC::AlgoRegul()const
 }
 
 
+cTplValGesInit< bool > & cEtapeMEC::ExportZAbs()
+{
+   return mExportZAbs;
+}
+
+const cTplValGesInit< bool > & cEtapeMEC::ExportZAbs()const 
+{
+   return mExportZAbs;
+}
+
+
 cTplValGesInit< eAlgoRegul > & cEtapeMEC::AlgoWenCxRImpossible()
 {
    return mAlgoWenCxRImpossible;
@@ -11451,6 +11462,8 @@ cElXMLTree * ToXMLTree(const cEtapeMEC & anObj)
       aRes->AddFils(::ToXMLTree(std::string("SurEchWCor"),anObj.SurEchWCor().Val())->ReTagThis("SurEchWCor"));
    if (anObj.AlgoRegul().IsInit())
       aRes->AddFils(ToXMLTree(std::string("AlgoRegul"),anObj.AlgoRegul().Val())->ReTagThis("AlgoRegul"));
+   if (anObj.ExportZAbs().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ExportZAbs"),anObj.ExportZAbs().Val())->ReTagThis("ExportZAbs"));
    if (anObj.AlgoWenCxRImpossible().IsInit())
       aRes->AddFils(ToXMLTree(std::string("AlgoWenCxRImpossible"),anObj.AlgoWenCxRImpossible().Val())->ReTagThis("AlgoWenCxRImpossible"));
    if (anObj.CoxRoy8Cnx().IsInit())
@@ -11665,6 +11678,8 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.SurEchWCor(),aTree->Get("SurEchWCor",1)); //tototo 
 
    xml_init(anObj.AlgoRegul(),aTree->Get("AlgoRegul",1)); //tototo 
+
+   xml_init(anObj.ExportZAbs(),aTree->Get("ExportZAbs",1),bool(false)); //tototo 
 
    xml_init(anObj.AlgoWenCxRImpossible(),aTree->Get("AlgoWenCxRImpossible",1)); //tototo 
 
@@ -12398,6 +12413,10 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
         xml_init(aVal.AlgoRegul(),(*itLTr)->Get("AlgoRegul",1)); //tototo 
         if ((*itLTr)->HasFilsPorteeGlob("AlgoRegul"))
           anObj.mGlobEtapeMEC.AlgoRegul() = aVal.AlgoRegul();
+
+        xml_init(aVal.ExportZAbs(),(*itLTr)->Get("ExportZAbs",1),bool(false)); //tototo 
+        if ((*itLTr)->HasFilsPorteeGlob("ExportZAbs"))
+          anObj.mGlobEtapeMEC.ExportZAbs() = aVal.ExportZAbs();
 
         xml_init(aVal.AlgoWenCxRImpossible(),(*itLTr)->Get("AlgoWenCxRImpossible",1)); //tototo 
         if ((*itLTr)->HasFilsPorteeGlob("AlgoWenCxRImpossible"))

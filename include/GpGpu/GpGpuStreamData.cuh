@@ -12,7 +12,7 @@ using namespace std;
 
 /// \brief Tableau des penalites pre-calculees
 #define PENALITE 7
-#define WARPSIZE 32
+
 #define NAPPEMAX 256
 
 #define eAVANT      true

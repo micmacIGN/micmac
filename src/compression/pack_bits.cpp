@@ -290,7 +290,7 @@ bool Pack_Bits_Flow::compressed() const
     return true;
 }
 
-INT Pack_Bits_Flow::Read(U_INT1 * ,INT nb)
+tFileOffset Pack_Bits_Flow::Read(U_INT1 * ,tFileOffset nb)
 {
     El_Internal.ElAssert
     (
@@ -301,15 +301,16 @@ INT Pack_Bits_Flow::Read(U_INT1 * ,INT nb)
 }
 
 
-INT Pack_Bits_Flow::Write(const U_INT1 * vals ,INT nb)
+tFileOffset Pack_Bits_Flow::Write(const U_INT1 * vals ,tFileOffset nbo)
 {
+    int nb = nbo.IntBasicLLO();
     El_Internal.ElAssert
     (
        ! _read,
        EEM0 << "bad call to Pack_Bits_Flow::Write"
     );
 
-    for (INT i = 0; i< nb ; i++)
+    for (int i = 0; i< nb ; i++)
     {
         _buf[_n++] = vals[i];
         if (_n == _tx)
@@ -325,7 +326,7 @@ void Pack_Bits_Flow::reset()
    _n = 0;
 }
 
-INT Pack_Bits_Flow::tell()
+tFileOffset Pack_Bits_Flow::tell()
 {
     El_Internal.ElAssert
     (

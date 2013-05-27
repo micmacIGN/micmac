@@ -403,6 +403,15 @@ INT4  ELISE_fp::read_INT4 ()
 	return c;
 }
 
+tFileOffset ELISE_fp::read_FileOffset8()
+{
+	tFileOffset  c;
+	read(&c,sizeof(tFileOffset ),1);
+	if (!_byte_ordered)
+		byte_inv_2(&c);
+	return c;
+}
+
 INT2  ELISE_fp::read_INT2 ()
 {
 	INT2  c;
@@ -454,6 +463,20 @@ std::string  ELISE_fp::read(std::string *)
 	}
 
 	return aRes;
+}
+
+void ELISE_fp::write_FileOffset4(tFileOffset anOffs)
+{
+   tByte4AbsFileOffset anO4 = anOffs.Byte4AbsLLO();
+   write(&anO4,sizeof(tByte4AbsFileOffset),1);
+}
+
+tFileOffset ELISE_fp::read_FileOffset4()
+{
+    tByte4AbsFileOffset anO4;
+    read(&anO4,sizeof(tByte4AbsFileOffset),1);
+  
+    return anO4;
 }
 
 
@@ -564,21 +587,16 @@ void  ELISE_fp::str_write(const char * str)
 }
 
 
-void  ELISE_fp::write_dummy(size_t nb_byte)
+void  ELISE_fp::write_dummy(tFileOffset nb_byte)
 {
-	static const INT sz_buf = 500;
+	static const int sz_buf = 500;
 	U_INT1   buf_local[sz_buf];
 
 
-	for
-		(
-		INT nb = 0;
-	nb<(INT)nb_byte ;
-	nb += sz_buf
-		)
+	for ( tFileOffset nb = 0; nb<nb_byte ; nb += sz_buf)
 	{
-		INT nb_loc = ElMin(sz_buf,(INT)nb_byte-nb);
-		if (!nb)
+		tFileOffset nb_loc = ElMin(tFileOffset(sz_buf),(nb_byte-nb));
+		if (!nb.BasicLLO())
 			MEM_RAZ(buf_local,nb_loc);
 		write(buf_local,sizeof(U_INT1),nb_loc);
 	}
@@ -722,7 +740,7 @@ bool  ELISE_fp::close(bool svp)
 	return res;
 }
 
-bool ELISE_fp::seek(long offset, mode_seek mode,bool svp)
+bool ELISE_fp::seek(tRelFileOffset offset, mode_seek mode,bool svp)
 {
 	bool res = (lseek(_fd,offset,code_mope_seek[(int) mode])>=0);
 	if (! svp)
@@ -730,10 +748,12 @@ bool ELISE_fp::seek(long offset, mode_seek mode,bool svp)
 	return res;
 }
 
-void ELISE_fp::read(void *ptr, size_t size, size_t nmemb)
+void ELISE_fp::read(void *ptr, tFileOffset size, tFileOffset nmemb)
 {
 	if (nmemb)
 	{
+
+
 		set_last_act_read(true);
 		char * c = (char *) ptr;
 		int  nb = size * nmemb;
@@ -769,7 +789,7 @@ INT ELISE_fp::fgetc()
 	}
 }
 
-void ELISE_fp::write(const void *ptr, size_t size, size_t nmemb)
+void ELISE_fp::write(const void *ptr, tFileOffset size, tFileOffset nmemb)
 {
 	set_last_act_read(false);
 	if (nmemb)
@@ -785,6 +805,7 @@ void ELISE_fp::write(const void *ptr, size_t size, size_t nmemb)
 
 unsigned long int ELISE_fp::tell()
 {
+ELISE_ASSERT(false,"ELISE_fp::tell Old File obsolete");
 	return lseek(_fd,0,SEEK_CUR);
 }
 
@@ -804,6 +825,7 @@ mNameFile ("NoName???"),
 
 bool   ELISE_fp::open(const char * name,mode_open mode,bool  svp)
 {
+        mNameFile = std::string(name);
 	_fp = ElFopen(name,name_mope_open[(INT)mode]);
 	DebugFileOpen(1,name);
 	if (_fp == (FILE *) NULL)
@@ -865,40 +887,47 @@ bool  ELISE_fp::close(bool svp)
 	return res;
 }
 
-bool ELISE_fp::seek(long offset, mode_seek mode,bool svp)
+bool ELISE_fp::seek(tRelFileOffset offset, mode_seek mode,bool svp)
 {
-	bool res = (fseek(_fp,offset,code_mope_seek[(int) mode]) >=0);
+  static int aCpt=0; aCpt++;
+
+/*
+if (mNameFile=="./MEC-Final/Z_Num9_DeZoom1_LeChantier.tif")
+   std::cout << "Seekkk " << ftell(_fp) << " " << offset << "\n";
+*/
+
+
+	bool res = (fseek(_fp,offset.BasicLLO(),code_mope_seek[(int) mode]) >=0);
 	if (! svp)
 	{
 		if (! res)
 		{
-			std::cout << " Name= "  << mNameFile << "\n";
+			std::cout << " Name= "  << mNameFile  << " " << aCpt << " " << offset << "\n";
 			ASSERT_TJS_USER(res , "Error while file seeking");
 		}
 	}
 	return res;
 }
 
-void ELISE_fp::read(void *ptr, size_t size, size_t nmemb,const char* format)
+void ELISE_fp::read(void *ptr,tFileOffset size, tFileOffset nmemb,const char* format)
 {
 	set_last_act_read(true);
 	if (mIsModeBin)
 	{
-		if (nmemb)
+		if (nmemb.BasicLLO())
 		{
-			size_t nb_read = fread(ptr,size,nmemb,_fp);
+//std::cout <<  "Teeell " << tell()  << " " << ftell(_fp) << " " << _fp << " " << mNameFile << "\n";
+//std::cout <<  "Teeell " << tell()  << " " << ftell(_fp) << " " << _fp << " " << mNameFile << "\n";
+			tFileOffset nb_read = fread(ptr,size.BasicLLO(),nmemb.BasicLLO(),_fp);
+//std::cout <<  size <<  " " << nmemb  << " " << nb_read << " " << ftell(_fp) << "\n";
 			if (nb_read != nmemb)
 			{
-				Tjs_El_User.ElAssert
-					(
-					false,
-					EEM0 <<  "Error while file reading |\n"
-					<<  "    FILE = " <<  mNameFile.c_str() << "  pos = " << (INT) tell()  << "|\n"
-					<<  " reading " <<  (INT) nmemb << " , got " << (INT) nb_read << "|"
+			        std::cout <<  "Error while file reading |\n"
+					<<  "    FILE = " <<  mNameFile.c_str() << "  pos = " << tell().BasicLLO()  << "|\n"
+					<<  " reading " <<   nmemb.BasicLLO() << " , got " << nb_read.BasicLLO() << "|";
+                                 ELISE_ASSERT(false,"Error while file reading");
 
-					);
 			}
-			ASSERT_TJS_USER(nb_read == nmemb,"Error while file reading");
 		}
 	}
 	else
@@ -915,25 +944,25 @@ INT  ELISE_fp::fgetc()
 	return ::fgetc(_fp);
 }
 
-void ELISE_fp::write(const void *ptr, size_t size, size_t nmemb)
+void ELISE_fp::write(const void *ptr,tFileOffset size, tFileOffset nmemb)
 {
 	set_last_act_read(false);
-	if (nmemb)
+	if (nmemb.BasicLLO())
 	{
-		if (fwrite(ptr,size,nmemb,_fp) != nmemb)
+		if (tFileOffset(fwrite(ptr,size.BasicLLO(),nmemb.BasicLLO(),_fp)) != nmemb)
 		{
 			std::cout << " For file = " << mNameFile << "\n";
-			ASSERT_TJS_USER
-				(
+			ELISE_ASSERT
+                        (
 				false,
 				"Error while file reading"
-				);
+                        );
 		}
 	}
 }
 
 
-unsigned long int ELISE_fp::tell()
+tFileOffset ELISE_fp::tell()
 {
 	return ftell(_fp);
 }
@@ -994,7 +1023,7 @@ UnPacked_FOB::~UnPacked_FOB()
 }
 
 
-INT UnPacked_FOB::tell()
+tFileOffset UnPacked_FOB::tell()
 {
 	return _packed->tell();
 }
@@ -1015,29 +1044,27 @@ Packed_Flux_Of_Byte::~Packed_Flux_Of_Byte()
 {
 }
 
-INT  Packed_Flux_Of_Byte::Rseek(INT nb_el)
+tRelFileOffset  Packed_Flux_Of_Byte::Rseek(tRelFileOffset nb_elr)
 {
+        tFileOffset nb_el = RelToAbs(nb_elr);
 	static const INT sz_buf = 500;
 	U_INT1   buf_local[sz_buf];
-	INT  nb_el_buf = sz_buf / _sz_el;
+	tFileOffset  nb_el_buf = sz_buf / _sz_el;
 
-	ASSERT_INTERNAL
-		(nb_el_buf != 0,"Insufficient buf in Packed_Flux_Of_Byte::Rseek");
+	ELISE_ASSERT (nb_el_buf != 0,"Insufficient buf in Packed_Flux_Of_Byte::Rseek");
 
-	ASSERT_INTERNAL
-		(nb_el>=0,"Rseek-neg in Packed_Flux_Of_Byte");
 	for
-		(
-		INT nb_tot_el = 0;
-	nb_tot_el<nb_el ;
-	nb_tot_el += nb_el_buf
-		)
+        (
+		tFileOffset nb_tot_el = 0;
+                nb_tot_el<nb_el ;
+                nb_tot_el += nb_el_buf
+        )
 		Read(buf_local,ElMin(nb_el_buf,nb_el-nb_tot_el));
 
 	return nb_el;
 }
 
-void Packed_Flux_Of_Byte::AseekFp(INT)
+void Packed_Flux_Of_Byte::AseekFp(tFileOffset)
 {
 	elise_internal_error
 		(
@@ -1046,7 +1073,7 @@ void Packed_Flux_Of_Byte::AseekFp(INT)
 		);
 }
 
-INT Packed_Flux_Of_Byte::Write(const U_INT1 *,INT)
+tFileOffset Packed_Flux_Of_Byte::Write(const U_INT1 *,tFileOffset)
 {
 	elise_internal_error
 		(
@@ -1074,7 +1101,7 @@ Std_Packed_Flux_Of_Byte::Std_Packed_Flux_Of_Byte
 	(
 	const char * name,
 	INT sz_el,
-	INT offset_0,
+	tFileOffset offset_0,
 	ELISE_fp::mode_open mode
 	) :
 Packed_Flux_Of_Byte(sz_el)
@@ -1085,29 +1112,29 @@ Packed_Flux_Of_Byte(sz_el)
 }
 
 
-INT Std_Packed_Flux_Of_Byte::Read(U_INT1 * res,INT nb)
+tFileOffset Std_Packed_Flux_Of_Byte::Read(U_INT1 * res,tFileOffset nb)
 {
 	_fp.read(res,_sz_el,nb);
 	return nb;
 }
 
-INT Std_Packed_Flux_Of_Byte::Write(const U_INT1 * res,INT nb)
+tFileOffset Std_Packed_Flux_Of_Byte::Write(const U_INT1 * res,tFileOffset nb)
 {
 	_fp.write((const void *)res,_sz_el,nb);
 	return nb;
 }
 
-INT Std_Packed_Flux_Of_Byte::Rseek(INT nb)
+tRelFileOffset Std_Packed_Flux_Of_Byte::Rseek(tRelFileOffset nb)
 {
-	_fp.seek(_sz_el*nb,ELISE_fp::scurrent);
+	_fp.seek((nb*_sz_el).BasicLLO(),ELISE_fp::scurrent);
 
 	// std::cout  << "f_Byte::Rseek NB= " << nb << "W= " << _fp.tell() << "\n";
 	return nb;
 }
 
-void  Std_Packed_Flux_Of_Byte::Aseek(INT nb)
+void  Std_Packed_Flux_Of_Byte::Aseek(tFileOffset nb)
 {
-	_fp.seek(_offset_0+_sz_el*nb,ELISE_fp::sbegin);
+	_fp.seek((_offset_0+nb*_sz_el).BasicLLO(),ELISE_fp::sbegin);
 }
 
 
@@ -1116,12 +1143,12 @@ Std_Packed_Flux_Of_Byte::~Std_Packed_Flux_Of_Byte()
 	_fp.close();
 }
 
-void Std_Packed_Flux_Of_Byte::AseekFp(INT nb)
+void Std_Packed_Flux_Of_Byte::AseekFp(tFileOffset nb)
 {
 	_fp.seek(nb,ELISE_fp::sbegin);
 }
 
-INT Std_Packed_Flux_Of_Byte::tell()
+tFileOffset Std_Packed_Flux_Of_Byte::tell()
 {
 	return _fp.tell();
 }
@@ -1159,20 +1186,20 @@ Mem_Packed_Flux_Of_Byte::~Mem_Packed_Flux_Of_Byte()
 }
 
 
-INT Mem_Packed_Flux_Of_Byte::Write(const U_INT1 * vals,INT n)
+tFileOffset Mem_Packed_Flux_Of_Byte::Write(const U_INT1 * vals,tFileOffset n)
 {
 	if (_nb +n > _sz)
 	{
 		while (_nb+n > _sz)
 			_sz *= 2;
-		U_INT1 * newd   = NEW_VECTEUR(0,_sz*sz_el(),U_INT1);
-		convert(newd,_data,_nb*sz_el());
+		U_INT1 * newd   = NEW_VECTEUR(0,(_sz*sz_el()).IntBasicLLO(),U_INT1);
+		convert(newd,_data,(_nb*sz_el()).IntBasicLLO());
 
 		DELETE_VECTOR(_data,0);
 		_data = newd;
 	}
 
-	convert(_data+_nb*sz_el(),vals,n*sz_el());
+	convert(_data+(_nb*sz_el()).BasicLLO(),vals,(n*sz_el()).IntBasicLLO());
 	_nb += n;
 	return n;
 }
@@ -1183,7 +1210,7 @@ void  Mem_Packed_Flux_Of_Byte::reset()
 }
 
 
-INT Mem_Packed_Flux_Of_Byte::Read(U_INT1 * ,INT)
+tFileOffset Mem_Packed_Flux_Of_Byte::Read(U_INT1 * ,tFileOffset)
 {
 	El_Internal.ElAssert
 		(
@@ -1194,7 +1221,7 @@ INT Mem_Packed_Flux_Of_Byte::Read(U_INT1 * ,INT)
 }
 
 
-INT Mem_Packed_Flux_Of_Byte::tell()
+tFileOffset Mem_Packed_Flux_Of_Byte::tell()
 {
 	El_Internal.ElAssert
 		(
@@ -1742,21 +1769,21 @@ std::vector<Pt2di> ELISE_fp::read(std::vector<Pt2di> *)
 }
 
 
-template <class Type> void  WritePtr(ELISE_fp & aFile,INT aNb,const Type * aPtr)
+template <class Type> void  WritePtr(ELISE_fp & aFile,tFileOffset aNb,const Type * aPtr)
 {
-	for (INT k=0 ; k< aNb ; k++)
-		aFile.write(aPtr[k]);
+	for (tFileOffset k=0 ; k< aNb ; k++)
+		aFile.write(aPtr[k.AbsLLO()]);
 }
 
 
-template <class Type> void  ReadPtr(ELISE_fp & aFile,INT aNb,Type * aPtr)
+template <class Type> void  ReadPtr(ELISE_fp & aFile,tFileOffset aNb,Type * aPtr)
 {
-	for (INT k=0 ; k< aNb ; k++)
-		aPtr[k] = aFile.read((Type *) 0);
+	for (tFileOffset k=0 ; k< aNb ; k++)
+		aPtr[k.AbsLLO()] = aFile.read((Type *) 0);
 }
 
-template void WritePtr(ELISE_fp & aFile,INT aNb,const REAL8 *);
-template void ReadPtr(ELISE_fp & aFile,INT aNb,REAL8 *);
+template void WritePtr(ELISE_fp & aFile,tFileOffset aNb,const REAL8 *);
+template void ReadPtr(ELISE_fp & aFile,tFileOffset aNb,REAL8 *);
 
 
 cPackNupletsHom cPackNupletsHom::read(ELISE_fp & aFile)
