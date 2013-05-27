@@ -26,7 +26,7 @@ public:
 	inline string errorMessage() const;
 
 	// returns the shortest callable name (m_shortName if possible, m_fullName if not)
-	const std::string callName() const;
+	const std::string &callName() const;
 };
 
 // This class is an handler for external tools
@@ -95,7 +95,7 @@ inline ExternalToolItem::ExternalToolItem( ExtToolStatus i_status,
 										   const std::string i_fullName ):
 	m_status( i_status ), m_shortName( i_shortName ), m_fullName( i_fullName ){}
 
-inline const std::string ExternalToolItem::callName() const{ return m_fullName; }
+inline const std::string &ExternalToolItem::callName() const{ return m_fullName; }
 
 inline bool ExternalToolItem::isCallable() const{ 
 	return ( m_status!=EXT_TOOL_NOT_FOUND && (m_status&EXT_TOOL_HAS_EXEC_RIGHTS)!=0 );

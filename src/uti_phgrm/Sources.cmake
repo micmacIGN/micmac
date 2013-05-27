@@ -74,6 +74,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_SaisieAppuisPredic.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieAppuisInit.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieBasc.cpp
+    ${UTI_PHGRM_DIR}/CPP_SysCoordPolyn.cpp
     ${UTI_PHGRM_DIR}/CPP_ChgSysCo.cpp
     ${UTI_PHGRM_DIR}/CPP_XYZ2Im.cpp
     ${UTI_PHGRM_DIR}/CPP_GrapheHom.cpp
