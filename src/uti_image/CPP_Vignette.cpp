@@ -36,6 +36,7 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+
 #include "../../include/StdAfx.h"
 #include "hassan/reechantillonnage.h"
 #include <algorithm>
@@ -123,8 +124,11 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 							   double y0=aSz.y/2;
 							   double Dist1=sqrt(pow(itP->P1().x-x0,2)+pow(itP->P1().y-y0,2));
 							   double Dist2=sqrt(pow(itP->P2().x-x0,2)+pow(itP->P2().y-y0,2));
-							   //Check that the distances are different-> point relevent
-                               //double rap=Dist1/Dist2;
+							   //Go looking for grey value of the point
+							   double Grey1 = Reechantillonnage::biline(aData1, aSz.x, aSz.y, itP->P1());
+							   double Grey2 = Reechantillonnage::biline(aData2, aSz.x, aSz.y, itP->P2());
+							   //Check that the distances are different-> might be used in filter?
+							   //double rap=Dist1/Dist2;
 
 							   if(1){//(Dist1>aSz.x/3 || Dist2>aSz.x/3)){// && (rap<0.75 || rap>1.33)){Filtre à mettre en place?
 								   D1.push_back(Dist1);
@@ -133,11 +137,8 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 								   //Y1.push_back(itP->P1().y);
 								   //X2.push_back(itP->P2().x);
 								   //Y2.push_back(itP->P2().y);
-								   //Go looking for grey value of the point
-								   double G = Reechantillonnage::biline(aData1, aSz.x, aSz.y, itP->P1());
-								   G1.push_back(G);
-								   G = Reechantillonnage::biline(aData2, aSz.x, aSz.y, itP->P2());
-								   G2.push_back(G);
+								   G1.push_back(Grey1);
+								   G2.push_back(Grey2);
 							   }
                    }
 				   }
@@ -267,7 +268,7 @@ vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
 int  Vignette_main(int argc,char ** argv)
 {
 
-	std::string aFullPattern,aDirOut="Vignette/";
+	std::string aFullPattern,aDirOut="Vignette/",InVig;
 	bool InTxt=false,DoCor=false;
 	  //Reading the arguments
         ElInitArgMain
@@ -275,6 +276,7 @@ int  Vignette_main(int argc,char ** argv)
             argc,argv,
             LArgMain()  << EAMC(aFullPattern,"Images Pattern"),
             LArgMain()  << EAM(aDirOut,"Out",true,"Output folder (end with /) and/or prefix (end with another char)")
+						//<< EAM(InVig,"InVig",true,"Input vignette parameters")
 						<< EAM(InTxt,"InTxt",true,"True if homologous points have been exported in txt (Defaut=false)")
 						<< EAM(DoCor,"DoCor",true,"Use the computed parameters to correct the images (Defaut=false)")
         );
@@ -289,7 +291,7 @@ int  Vignette_main(int argc,char ** argv)
 
 		vector<vector<string> > listOfListIm;
 		vector<vector<double> > vectOfDiaphFoc;
-        for (int j=0;j<(int)aSetIm->size();j++){
+		for (int j=0;j<(int)aSetIm->size();j++){
 			std::string aFullName=(*aSetIm)[j];
 			const cMetaDataPhoto & infoIm = cMetaDataPhoto::CreateExiv2(aFullName);
 			vector<double> diaphFoc;diaphFoc.push_back(infoIm.Diaph());diaphFoc.push_back(infoIm.FocMm());
@@ -301,11 +303,11 @@ int  Vignette_main(int argc,char ** argv)
 				newSetOfIm.push_back(aFullName);
 				listOfListIm.push_back(newSetOfIm);
 			}else{
-                for (int i=0;i<(int)vectOfDiaphFoc.size();i++){
+				for (int i=0;i<(int)vectOfDiaphFoc.size();i++){
 					if (diaphFoc==vectOfDiaphFoc[i]){
 						listOfListIm[i].push_back(aFullName); 
 						break;
-                        }else{if(i==(int)vectOfDiaphFoc.size()-1){
+						}else{if(i==(int)vectOfDiaphFoc.size()-1){
 								vectOfDiaphFoc.push_back(diaphFoc);
 								vector<string>newSetOfIm;
 								newSetOfIm.push_back(aFullName);
@@ -316,7 +318,7 @@ int  Vignette_main(int argc,char ** argv)
 			}
 		}
 		cout<<"Number of different sets of images with the same Diaph-Focal combination : "<<listOfListIm.size()<<endl;
-        for(int i=0;i<(int)listOfListIm.size();i++){
+		for(int i=0;i<(int)listOfListIm.size();i++){
 			std::cout << "Computing the parameters of the vignette effect for the set of "<<listOfListIm[i].size()<<" images with Diaph="<<vectOfDiaphFoc[i][0]<<" and Foc="<<vectOfDiaphFoc[i][1]<<endl;
 
 		//Avec Points homol
@@ -364,6 +366,7 @@ int  Vignette_main(int argc,char ** argv)
 		   if (aParam.size()==0){
 			   cout<<"Could'nt compute vignette parameters"<<endl;
 		   }else{ 
+			   //Il faut maintenant ecrire un fichier xml contenant foc+diaph+les params de vignette
 			   if (DoCor){
 			   //Correction des images avec les params calculés
 			   cout<<"Correcting the images"<<endl;
