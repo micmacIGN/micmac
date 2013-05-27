@@ -402,12 +402,12 @@ cout << "Types = "
         SplitDirAndFile(aDir,aNewName,aNameOut);
         ELISE_fp::MkDir(aDir+"Tmp-MM-Dir/");
 
-        std::string aCom =  std::string("convert ")
+        std::string aCom =  g_externalToolHandler.get( "convert" ).callName() + " "
                            + aNameOut +  std::string(" ")
                            + aDir+"Tmp-MM-Dir/"+StdPrefix(aNewName) + std::string(".gif ");
 
         system_call(aCom.c_str());
-        aCom  = "\\rm " + aNameOut;
+        aCom  = string( SYS_RM ) + aNameOut;
         system_call(aCom.c_str());
    }
 
