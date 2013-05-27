@@ -177,24 +177,19 @@ template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputStrea
         hPen[i] = ((float)(1 / 10.0f));
 
 
-    //      Copie des penalites dans le device                              ---------------
-
+    //      Copie des penalites dans le device                              ---------------		-
 
     checkCudaErrors(cudaMemcpyToSymbol(penalite,    hPen,       sizeof(float)   * PENALITE));
     checkCudaErrors(cudaMemcpyToSymbol(dMapIndex,   hMapIndex,  sizeof(ushort)  * WARPSIZE));
 
-
-    //      Declaration et allocation memoire des variables Device          ---------------
-
+    //      Declaration et allocation memoire des variables Device          ---------------		-
 
     CuDeviceData3D<T>       d_InputStream    ( hInputStream .GetSize(), "d_InputStream"  );
     CuDeviceData3D<short2>  d_InputIndex     ( hInputindex  .GetSize(), "d_InputIndex"   );
     CuDeviceData3D<uint3>   d_RecStrParam    ( rStrPar      .GetSize(), "d_InputStream"  );
     CuDeviceData3D<T>       d_ForceCostVol   ( hInputStream .GetSize(), "d_ForceCostVol" );
 
-
-    //      Copie du volume de couts dans le device                         ---------------
-
+    //      Copie du volume de couts dans le device                         ---------------		-
 
     d_InputStream.CopyHostToDevice(  hInputStream.pData());
     d_InputIndex .CopyHostToDevice(  hInputindex .pData());
@@ -216,7 +211,6 @@ template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputStrea
     //                                                                      ---------------
 
     d_ForceCostVol.CopyDevicetoHost(h_ForceCostVol.pData());
-
 
     //      Declaration et allocation memoire des variables Device          ---------------
 
@@ -247,12 +241,12 @@ extern "C" void Launch()
 
     uint si = 0 , sizeStreamCost = 0;
 
-    srand (time(NULL));
+    srand ((uint)time(NULL));
 
-    for(int i = 0 ; i < dimVolCost.x ; i++)
+    for(uint i = 0 ; i < dimVolCost.x ; i++)
     {
-        int pit         = i     * dimVolCost.y;
-        int pitLine     = pit   * dimVolCost.z;
+        uint pit         = i     * dimVolCost.y;
+        uint pitLine     = pit   * dimVolCost.z;
         si =  sizeStreamCost = 0;
 
         while (si < dimVolCost.y){
