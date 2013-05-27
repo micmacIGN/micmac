@@ -129,7 +129,10 @@ if (NOT ${BUILD_ONLY_ELISE})
 																		
 	add_executable(ScaleNuage  ScaleNuage.c)
 	INSTALL(TARGETS ScaleNuage RUNTIME DESTINATION ${Install_Dir})
-
+	
+	add_executable(SysCoordPolyn  SysCoordPolyn.c)
+	INSTALL(TARGETS SysCoordPolyn RUNTIME DESTINATION ${Install_Dir})
+	
 	add_executable(Tapas  Tapas.c)
 	INSTALL(TARGETS Tapas RUNTIME DESTINATION ${Install_Dir})
 
