@@ -84,22 +84,25 @@ short2 CDeviceStream<T>::read(T *destData, ushort tid, bool sens, T def, bool wa
             if(idStream < _sizeStream)
                 _bufferData[threadIdx.x] = _streamData[idStream]; // ERREUR ICI....
             _curBufferId   = PitSens;
-            _curStreamId   = _curStreamId  + vec(sens) * WARPSIZE;
+            //_curStreamId   = _curStreamId  + vec(sens) * WARPSIZE;
+            _curStreamId   = _curStreamId  + (vec(sens)<<5);
 
             NbToCopy = GetNbToCopy(NbTotalToCopy,NbCopied, sens);
-            __syncthreads();
+            //__syncthreads(); // A verifier mais apriori dans le meme WARP
         }
 
         ushort idDest = tid + (sens ? NbCopied : NbTotalToCopy - NbCopied - NbToCopy);
 
-        if(idDest < NAPPEMAX)
+        //if(idDest < NAPPEMAX)
+
+        if(!(idDest>>8))
         {
             if (tid < NbToCopy && idDest < NbTotalToCopy)
                 destData[idDest] = _bufferData[_curBufferId + tid - !sens * NbToCopy];
             else if (idDest >= NbTotalToCopy)
                 destData[idDest] = def;
         }
-        if(waitSync) __syncthreads();
+        //if(waitSync) __syncthreads(); // A verifier mais apriori dans le meme WARP
 
         _curBufferId  = _curBufferId + vec(sens) * NbToCopy;
         NbCopied     += NbToCopy;

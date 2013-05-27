@@ -66,7 +66,7 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
             g_ForceCostVol[Z]    = pData[idBuffer][Z];
             z += min(uZ_Prev.y - z,WARPSIZE);
         }
-
+    //#pragma unroll
     for(int idLine = 1; idLine < lenghtLine;idLine++)
     {
 
@@ -90,16 +90,21 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
 
                 short ZId = Z - uZ_Next.x;
 
-                T costInit  = ZId < NAPPEMAX ? pData[2][Z - uZ_Next.x] : 0;
+                //T costInit  = ZId < NAPPEMAX ? pData[2][ZId] : 0;
+                bool bound  = !(ZId>>8);
+                T costInit  = bound ? pData[2][ZId] : 0;
 
+                //#pragma unroll
                 for(short i = aDz.x ; i <= aDz.y; i++)
                 {
                     short idZprev = Z - uZ_Prev.x + i;
-                    if(idZprev < NAPPEMAX)
-                        costMin = min(costMin, costInit + pData[idBuffer][Z - uZ_Prev.x + i]);
+                    //if(idZprev < NAPPEMAX)
+                    if(!(idZprev>>8))
+                        costMin = min(costMin, costInit + pData[idBuffer][idZprev]);
                 }
 
-                if(ZId < NAPPEMAX)
+                //if(ZId < NAPPEMAX)
+                if(bound)
                     pData[!idBuffer][Z - uZ_Next.x] = costMin;
 
                 int idGData     = pitStrOut + Z - uZ_Next.x;
@@ -168,25 +173,27 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2
 template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputStream, CuHostData3D<short2> &hInputindex, uint nBLine, CuHostData3D<T> &h_ForceCostVol, CuHostData3D<uint3>  rStrPar)
 {
 
+    //printf("result : %d\n",255>>8);
+
     uint    deltaMax    =   3;
-    uint    dimDeltaMax =   deltaMax * 2 + 1;
+//    uint    dimDeltaMax =   deltaMax * 2 + 1;
     dim3    Threads(32,1,1);
     dim3    Blocks(nBLine,1,1);
 
-    float   hPen[PENALITE];
-    ushort  hMapIndex[WARPSIZE];
+//    float   hPen[PENALITE];
+//    ushort  hMapIndex[WARPSIZE];
 
-    for(int i=0 ; i < WARPSIZE; i++)
-        hMapIndex[i] = i / dimDeltaMax;
+//    for(int i=0 ; i < WARPSIZE; i++)
+//        hMapIndex[i] = i / dimDeltaMax;
 
-    for(int i=0;i<PENALITE;i++)
-        hPen[i] = ((float)(1 / 10.0f));
+//    for(int i=0;i<PENALITE;i++)
+//        hPen[i] = ((float)(1 / 10.0f));
 
 
-    //      Copie des penalites dans le device                              ---------------		-
+//    //      Copie des penalites dans le device                              ---------------		-
 
-    checkCudaErrors(cudaMemcpyToSymbol(penalite,    hPen,       sizeof(float)   * PENALITE));
-    checkCudaErrors(cudaMemcpyToSymbol(dMapIndex,   hMapIndex,  sizeof(ushort)  * WARPSIZE));
+//    checkCudaErrors(cudaMemcpyToSymbol(penalite,    hPen,       sizeof(float)   * PENALITE));
+//    checkCudaErrors(cudaMemcpyToSymbol(dMapIndex,   hMapIndex,  sizeof(ushort)  * WARPSIZE));
 
     //      Declaration et allocation memoire des variables Device          ---------------		-
 
