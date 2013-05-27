@@ -144,9 +144,9 @@ int SysCoordPolyn_main(int argc,char ** argv)
    std::cout << "DIF MAX " << aDifMax 
              << " DIF-MOY " << (aDifMoy/aVTestIn.size()) 
              << " DMax Polyn-XML " << aDMaxPolXML
-
              << "\n";
 
+   return EXIT_SUCCESS;
 }
 
 
