@@ -285,7 +285,7 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
          ELISE_ASSERT(mCurSurEchWCor==1,"Sur ech in GPU");
 
         mCMS = mCorrelAdHoc->CorrelMultiScale().PtrVal();
-        mCMS_ModeEparse = ! mCMS->ModeDense().ValWithDef( mModeIm1Maitre);
+        mCMS_ModeEparse = (mCMS!=0) && (! mCMS->ModeDense().ValWithDef( mModeIm1Maitre));
 /*
          ELISE_ASSERT(mCurEtape->EtapeMEC().AggregCorr().Val()==eAggregSymetrique,"Aggreg non sym in GPU");
          ELISE_ASSERT(mCurEtape->EtapeMEC().ModeInterpolation().Val()==eInterpolMPD,"Interp non MPD in GPU");

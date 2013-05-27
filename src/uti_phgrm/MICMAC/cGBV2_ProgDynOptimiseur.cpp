@@ -591,7 +591,7 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
 
 #ifdef CUDA_ENABLED
 
-    CuHostData3D<uint3> rStrPar((uint)sqrt(mSz.x * mSz.x + mSz.y * mSz.y));
+    CuHostData3D<uint3> rStrPar((uint)sqrt((float)mSz.x * mSz.x + mSz.y * mSz.y));
 
     uint idLine = 0, sizeStreamId = 0,sizeStreamLine, pitStream = 0, pitIdStream = 0 , NbLine = 0 ;
 
