@@ -84,3 +84,10 @@ CMakeLists.txt.orig
 .hgignore.orig
 include/general/MM_InstalDir.h
 Build_MinGW/
+include/general/phgr_dist_unif.h.orig
+include/private/bitm_bits.h.orig
+precompiled_headers.cmake.orig
+src/bitm/im2d_bits.cpp.orig
+src/photogram/phgr_ebner_brown_dist.cpp.orig
+src/uti_phgrm/MICMAC/cGBV2_ProgDynOptimiseur.cpp.orig
+src/uti_phgrm/GpGpu/GpGpuOptimisation.cu.autosave
