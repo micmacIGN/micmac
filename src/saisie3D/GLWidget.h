@@ -20,18 +20,12 @@ public:
     //! Copy constructor
     ViewportParameters(const ViewportParameters& params);
 
-    //! Current pixel size (in 'current unit'/pixel)
-    /** This scale is valid eveywhere in ortho. mode
-        or at the focal distance in perspective mode.
-        Warning: doesn't take current zoom into account!
-    **/
-    float pixelSize;
-
     //! Current zoom
     float zoom;
 
     //! Point size
     float PointSize;
+
     //! Line width
     float LineWidth;
 };

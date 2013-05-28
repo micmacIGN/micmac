@@ -2,13 +2,36 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QFileDialog>
+#include <QDir>
 
 #include "GLWidget.h"
 
+#include "StdAfx.h"
+#include "general/ptxd.h"
+#include "private/cElNuage3DMaille.h"
+
+#ifdef Int
+    #undef Int
+#endif
 
 namespace Ui {
 class MainWindow;
 }
+
+class cLoader
+{
+    public:
+
+        cLoader();
+        ~cLoader();
+
+        QStringList m_FilenamesIn;
+        QStringList m_FilenamesOut;
+
+        void SetFilenamesOut();
+};
+
 
 class MainWindow : public QMainWindow
 {
@@ -25,6 +48,8 @@ public:
     **/
     bool checkForLoadedEntities();
 
+    QStringList m_FilenameOut;
+
 public slots:
     //! Tries to load a list of files
     /** \param filenames list of all filenames
@@ -32,8 +57,6 @@ public slots:
     void addFiles(const QStringList& filenames);
 
 private slots:
-    //void on_pushButton_clicked();
-
     void on_actionUndo_triggered();
 
 protected slots:
@@ -51,6 +74,12 @@ protected slots:
 
     void echoMouseWheelRotate(float);
 
+    void loadCameras();
+    void exportMasks();
+    void loadAndExport();
+
+    cElNuage3DMaille * &	Camera(int aK) {return m_Cameras[aK];}
+
 protected:
 
     //! Connects all QT actions to slots
@@ -59,6 +88,8 @@ protected:
 private:
     Ui::MainWindow *ui;
     GLWidget *m_glWidget;
+    QDir m_Dir;
+    QVector <cElNuage3DMaille *> m_Cameras;
+    cLoader IO;
 };
-
 #endif // MAINWINDOW_H
