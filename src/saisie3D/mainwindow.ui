@@ -105,6 +105,10 @@ QStatusBar
     <addaction name="separator"/>
     <addaction name="actionTogglePoints_selection"/>
     <addaction name="actionUndo"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoad_camera"/>
+    <addaction name="actionExport_mask"/>
+    <addaction name="actionLoad_and_Export"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -124,7 +128,7 @@ QStatusBar
     <string>Full screen</string>
    </property>
    <property name="shortcut">
-    <string>F11</string>
+    <string>F3</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::ApplicationShortcut</enum>
@@ -242,7 +246,7 @@ QStatusBar
     <string>Toggle between Points selection mode and standard mode</string>
    </property>
    <property name="shortcut">
-    <string>F5</string>
+    <string>F2</string>
    </property>
   </action>
   <action name="actionUndo">
@@ -266,6 +270,30 @@ QStatusBar
    </property>
    <property name="iconVisibleInMenu">
     <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionLoad_camera">
+   <property name="text">
+    <string>Load camera(s)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionExport_mask">
+   <property name="text">
+    <string>Export mask(s)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
+  </action>
+  <action name="actionLoad_and_Export">
+   <property name="text">
+    <string>Load and Export</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
  </widget>

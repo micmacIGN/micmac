@@ -11,7 +11,7 @@
 #include <iostream>
 #include <algorithm>
 
-#include "../include/StdAfx.h"
+#include "../../include/StdAfx.h"
 
 const GLfloat g_trackballScale = 1.f;
 
@@ -22,15 +22,13 @@ const float GL_MIN_ZOOM_RATIO = 1.0e-6f;
 using namespace Cloud_;
 
 ViewportParameters::ViewportParameters()
-    : pixelSize(1.0f)
-    , zoom(1.0f)
+    : zoom(1.0f)
     , PointSize(1.0f)
     , LineWidth(1.0f)
 {}
 
 ViewportParameters::ViewportParameters(const ViewportParameters& params)
-    : pixelSize(params.pixelSize)
-    , zoom(params.zoom)
+    : zoom(params.zoom)
     , PointSize(params.PointSize)
     , LineWidth(params.LineWidth)
 {}
