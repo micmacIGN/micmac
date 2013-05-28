@@ -41,6 +41,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "hassan/reechantillonnage.h"
 #include <algorithm>
 
+
+
+
+
 void Vodka_Banniere()
 {
     std::cout <<  "\n";
@@ -378,8 +382,6 @@ int  Vignette_main(int argc,char ** argv)
    Vodka_Banniere();
    return 0;
 }
-
-
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
