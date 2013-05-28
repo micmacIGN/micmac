@@ -36,24 +36,24 @@ public:
         _sizeStream(sizeStream)
     {}
 
-    __device__ virtual short getLengthToRead(short2 &index,bool sens)
+    __device__ virtual short getLengthToRead(short2 &index, bool sens)
     {
         index = make_short2(0,0);
         return 1;
     }
 
-    __device__ short2 read(T* destData, ushort tid, bool sens, T def, bool waitSync = true);
+    template<bool sens> __device__ short2 read(T* destData, ushort tid, T def);
 
 private:
 
-    __device__ short vec(bool sens){ return 1 - 2 * !sens; }
+    template<bool sens> __device__ short vec(){ return 1 - 2 * !sens; }
 
-    __device__ short GetNbToCopy(ushort nTotal,ushort nCopied, bool sens)
+    template<bool sens> __device__ short GetNbToCopy(ushort nTotal,ushort nCopied)
     {
-        return min(nTotal - nCopied , MaxReadBuffer(sens));
+        return min(nTotal - nCopied , MaxReadBuffer<sens>());
     }
 
-    __device__ ushort MaxReadBuffer(bool sens)
+    template<bool sens> __device__ ushort MaxReadBuffer()
     {
         return sens ? ((ushort)WARPSIZE - _curBufferId) : _curBufferId;
     }
@@ -65,46 +65,38 @@ private:
     uint                        _sizeStream;
 };
 
-template< class T > __device__
-short2 CDeviceStream<T>::read(T *destData, ushort tid, bool sens, T def, bool waitSync)
+template< class T > template<bool sens>  __device__
+short2 CDeviceStream<T>::read(T *destData, ushort tid, T def)
 {
     short2  index;
-    ushort  NbCopied    = 0 , NbTotalToCopy = getLengthToRead(index, sens);// ERREUR ICI....
+    ushort  NbCopied    = 0 , NbTotalToCopy = getLengthToRead(index,sens);
     short   PitSens     = !sens * WARPSIZE;
-
-    //bool AA = (blockIdx.x==0 && threadIdx.x == 1  && NbTotalToCopy  != 1 && !sens);
 
     while(NbCopied < NbTotalToCopy)
     {
-        ushort NbToCopy = GetNbToCopy(NbTotalToCopy,NbCopied, sens);
+        ushort NbToCopy = GetNbToCopy<sens>(NbTotalToCopy,NbCopied);
 
         if(!NbToCopy)
         {
             uint idStream =_curStreamId + threadIdx.x - 2 * PitSens;
             if(idStream < _sizeStream)
-                _bufferData[threadIdx.x] = _streamData[idStream]; // ERREUR ICI....
-            _curBufferId   = PitSens;
-            //_curStreamId   = _curStreamId  + vec(sens) * WARPSIZE;
-            _curStreamId   = _curStreamId  + (vec(sens)<<5);
+                _bufferData[threadIdx.x] = _streamData[idStream];
+            _curBufferId   = PitSens;            
+            _curStreamId   = _curStreamId  + (vec<sens>()<<5); // * 32
 
-            NbToCopy = GetNbToCopy(NbTotalToCopy,NbCopied, sens);
-            //__syncthreads(); // A verifier mais apriori dans le meme WARP
+            NbToCopy = GetNbToCopy<sens>(NbTotalToCopy,NbCopied);
         }
 
         ushort idDest = tid + (sens ? NbCopied : NbTotalToCopy - NbCopied - NbToCopy);
 
-        //if(idDest < NAPPEMAX)
-
-        if(!(idDest>>8))
+        if(!(idDest>>8)) // < 256
         {
             if (tid < NbToCopy && idDest < NbTotalToCopy)
                 destData[idDest] = _bufferData[_curBufferId + tid - !sens * NbToCopy];
             else if (idDest >= NbTotalToCopy)
                 destData[idDest] = def;
         }
-        //if(waitSync) __syncthreads(); // A verifier mais apriori dans le meme WARP
-
-        _curBufferId  = _curBufferId + vec(sens) * NbToCopy;
+        _curBufferId  = _curBufferId + vec<sens>() * NbToCopy;
         NbCopied     += NbToCopy;
 
    }
@@ -123,9 +115,12 @@ public:
 
     __device__ short getLengthToRead(short2 &index, bool sens)
     {
-        _streamIndex.read(&index,0,sens,make_short2(0,0),false);
-        const short leng = diffYX(index) + 1;
-        return leng;
+        if(sens == eAVANT)
+            _streamIndex.read<eAVANT>(&index,0,make_short2(0,0));
+        else
+            _streamIndex.read<eARRIERE>(&index,0,make_short2(0,0));
+
+        return diffYX(index) + 1;
     }
 
 private:
