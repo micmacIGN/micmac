@@ -20,6 +20,8 @@ TEMPLATE = app
 
 DEFINES += TWEAK
 
+
+
 SOURCES += main.cpp\
         mainwindow.cpp\
         GLWidget.cpp \
@@ -45,8 +47,8 @@ DEPENDPATH += $$PWD/../../include
 
 CONFIG(debug, debug|release)
 {
-unix|win32: LIBS += -L$$PWD/../../bin -lelise
+unix|win32: LIBS += -L$$PWD/../../lib -lelise
 
 win32: PRE_TARGETDEPS += $$PWD/../../bin/elise.lib
-else:unix: PRE_TARGETDEPS += $$PWD/../../bin/libelise.a
+else:unix: PRE_TARGETDEPS += $$PWD/../../lib/libelise.a
 }

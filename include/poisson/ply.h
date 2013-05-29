@@ -33,6 +33,11 @@
 #ifndef __PLY_H__
 #define __PLY_H__
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <stddef.h>
+#include <string.h>
+#include <string>
 
 #ifndef WIN32
 	#ifdef __cplusplus
@@ -40,11 +45,7 @@
 	#endif
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <string.h>
-#include <string>
+
 
 using namespace std;
     

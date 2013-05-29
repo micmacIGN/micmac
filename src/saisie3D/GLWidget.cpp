@@ -1,6 +1,7 @@
 ﻿#include <QtGui/QMouseEvent>
 #include <QSettings>
 #include <QMessageBox>
+#include <QMimeData>
 #include "GLWidget.h"
 #include "GL/glu.h"
 
@@ -847,7 +848,7 @@ void GLWidget::segment(bool inside)
             if (P.isVisible())
             {
                 GLdouble xp,yp,zp;
-                gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
+                //gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
 
                 P2D.setX(xp);
                 P2D.setY(yp);
