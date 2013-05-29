@@ -69,7 +69,7 @@ extern bool BugDG;
 namespace NS_ParamChantierPhotogram
 {
    class cOrientationConique;
-};
+}
 
 using namespace std;
 
@@ -259,6 +259,7 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 
 #include "../src/uti_phgrm/MICMAC/cParamMICMAC.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
+#include "GpGpu/GBV2_ProgDynOptimiseur.h"
 #include "../src/uti_phgrm/Porto/Porto.h"
 
 #include "../src/uti_phgrm/SaisiePts/cParamSaisiePts.h"
