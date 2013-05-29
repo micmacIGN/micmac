@@ -5,7 +5,7 @@
 
 #include <QFileInfo>
 
-#include "d:\culture3D\include\poisson\ply.h"
+#include "poisson/ply.h"
 
 
 using namespace std;

@@ -600,7 +600,7 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
 
     while ((aVPt = mLMR.Next()))
     {
-        uint lenghtLine = (uint)(aVPt->size());   
+        uint lenghtLine = (uint)(aVPt->size());
 
         rStrPar[idLine].x = pitStream;
         rStrPar[idLine].y = pitIdStream;
@@ -672,10 +672,10 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
         idLine++;
     }
 
-    h_strCostVolume.Dealloc();
-    h_strIndex.Dealloc();
-    h_OutForceCostVol.Dealloc();
-    rStrPar.Dealloc();
+    h_strCostVolume     .Dealloc();
+    h_strIndex          .Dealloc();
+    h_OutForceCostVol   .Dealloc();
+    rStrPar             .Dealloc();
 
 #else
     //printf("Optimisation CPU\n");

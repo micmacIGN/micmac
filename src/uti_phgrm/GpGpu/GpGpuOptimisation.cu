@@ -96,7 +96,7 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
             {
                 short idZprev = Z - uZ_Prev.x + i;
                 if(!(idZprev>>8)) // < NAPPEMAX
-                    costMin = min(costMin, costInit + pData[idBuffer][idZprev]);
+                    costMin = min(costMin, costInit + pData[idBuffer][idZprev] /*+ abs((int)i) * 5000*/);
             }
 
             if(bound)
@@ -213,9 +213,7 @@ template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputStrea
 
     d_ForceCostVol.CopyDevicetoHost(h_ForceCostVol.pData());
 
-    //      Declaration et allocation memoire des variables Device          ---------------     -
-
-    GpGpuTools::OutputInfoGpuMemory();
+    //      De-allocation memoire des variables Device                      ---------------     -
 
     d_ForceCostVol  .Dealloc();
     d_InputStream   .Dealloc();

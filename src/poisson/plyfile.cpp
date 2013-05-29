@@ -34,7 +34,7 @@
 #ifndef TWEAK
     #include "StdAfx.h"
 #else
-    #include "../../include/poisson/ply.h"
+    #include "poisson/ply.h"
 #endif
 
 #if (! ELISE_windows)  // MODIF MPD, pas tres propre pour compile sous Linux
