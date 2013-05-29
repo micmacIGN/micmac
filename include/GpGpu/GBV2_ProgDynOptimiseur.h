@@ -60,6 +60,7 @@ public :
     }
     const tCost & CostFinal() const { return mCostFinal; }
     tCost & CostFinal() { return mCostFinal; }
+	void	AddToCostFinal(tCost cost ) { mCostFinal+= cost; }
 private :
     cGBV2_CelOptimProgDyn(const cGBV2_CelOptimProgDyn &);
     tCost   mCostCum[2];
@@ -157,7 +158,7 @@ private :
 
 #ifdef CUDA_ENABLED
     void SolveAllDirectionGpu(int aNbDir);
-    template<bool dir> void copyCells(const std::vector<Pt2di>* aVPt,Pt2di aDirI, CuHostData3D<uint> &h_strCostVolume, CuHostData3D<uint3> &rStrPar, CuHostData3D<short2> &h_strIndex, CuHostData3D<uint> &h_OutForceCostVol);
+    template<bool dir> void copyCells(const std::vector<Pt2di>* aVPt,Pt2di aDirI, CuHostData3D<uint> &h_strCostVolume, CuHostData3D<uint3> &rStrPar, CuHostData3D<short2> &h_strIndex, uint* h_OutForceCostVol);
 #endif
 
     Im2D_INT2                          mXMin;
