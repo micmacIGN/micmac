@@ -403,6 +403,7 @@ int  Vignette_main(int argc,char ** argv)
 
 			   //Il faut maintenant ecrire un fichier xml contenant foc+diaph+les params de vignette
 			   cout<<"--- Writing XML"<<endl;
+#if ELISE_windows
 			   ofstream file_out(OutCal, ios::out | ios::app);
 					if(file_out)  // if file successfully opened
 					{
@@ -416,6 +417,7 @@ int  Vignette_main(int argc,char ** argv)
 						file_out.close();
 					}
 					else{ cerr << "Couldn't wrie file" << endl;}
+#endif
 			   if (DoCor){
 			   //Correction des images avec les params calculés
 			   cout<<"Correcting the images"<<endl;

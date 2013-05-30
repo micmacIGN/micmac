@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include    "GpGpu/GpGpu.h"
-#include    "StdAfx.h"
+#include    "GpGpu/GBV2_ProgDynOptimiseur.h"
 
 #define     MAT_TO_STREAM true
 #define     STREAM_TO_MAT false

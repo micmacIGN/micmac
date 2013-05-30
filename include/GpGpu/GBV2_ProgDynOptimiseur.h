@@ -2,6 +2,7 @@
 #define H_GBV2_PROGDUNOPTIMISEUR
 
 #include "GpGpu/GpGpu.h"
+#include  "StdAfx.h"
 
 namespace NS_ParamMICMAC
 {
