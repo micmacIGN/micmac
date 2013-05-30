@@ -132,6 +132,7 @@ public :
 
     // Im2D_INT2     ImRes() {return mImRes;}
 
+
 private :
 
     void BalayageOneDirection(Pt2dr aDir);
@@ -157,8 +158,9 @@ private :
     void SolveOneEtape(int aNbDir);
 
 #ifdef CUDA_ENABLED
-    void SolveAllDirectionGpu(int aNbDir);
-    template<bool dir> void copyCells(const std::vector<Pt2di>* aVPt,Pt2di aDirI, CuHostData3D<uint> &h_strCostVolume, CuHostData3D<uint3> &rStrPar, CuHostData3D<short2> &h_strIndex, uint* h_OutForceCostVol);
+    void SolveAllDirectionGpu(int aNbDir);    
+    void copyCells(bool dirCopy,Pt2di aDirI, CuHostData3D<uint> h_OutForceCostVol,  CuHostData3D<uint> h_strCostVolume, CuHostData3D<uint3> rStrPar, CuHostData3D<short2> h_strIndex);
+    InterfMicMacOptGpGpu               IGpuOpt;
 #endif
 
     Im2D_INT2                          mXMin;
@@ -170,16 +172,13 @@ private :
     cMatrOfSMV<cGBV2_CelOptimProgDyn>  mMatrCel;
     cLineMapRect                       mLMR;
     cGBV2_TabulCost                    mTabCost[theDimPxMax];
-    // int                             mCostActu[theDimPxMax];
     int                                mMaxEc[theDimPxMax];
     eModeAggregProgDyn                 mModeAgr;
     int                                mNbDir;
     double                             mPdsProgr;
 
-    InterfMicMacOptGpGpu               IGpuOpt;
 
-    // Im2D_INT2     mImRes;
-    // INT2 **       mDataImRes;
+
 
 };
 }

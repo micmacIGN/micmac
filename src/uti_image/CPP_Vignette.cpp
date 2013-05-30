@@ -61,7 +61,7 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 	Pt2di aSz;
 	//Looking for maxs of vectOfExpTimeISO
 	double maxExpTime=0, maxISO=0;
-	for (int i=0;i<vectOfExpTimeISO.size();i++){
+    for (int i=0;i<(int)vectOfExpTimeISO.size();i++){
 		if(vectOfExpTimeISO[i][0]>maxExpTime){maxExpTime=vectOfExpTimeISO[i][0];}
 		if(vectOfExpTimeISO[i][1]>maxISO){maxISO=vectOfExpTimeISO[i][1];}
 	}
@@ -403,19 +403,19 @@ int  Vignette_main(int argc,char ** argv)
 
 			   //Il faut maintenant ecrire un fichier xml contenant foc+diaph+les params de vignette
 			   cout<<"--- Writing XML"<<endl;
-			   ofstream file_out(OutCal, ios::out | ios::app);
-					if(file_out)  // if file successfully opened
-					{
-						file_out << endl <<"<SetParam> " <<endl;
-							file_out << "    <Aperture> " << vectOfDiaphFoc[i][0] << " </Aperture>"<<endl;
-							file_out << "    <Focal> " << vectOfDiaphFoc[i][1] << " </Focal>"<<endl;
-								file_out << "    <p1> " << aParam[0] << " </p1>"<<endl;
-								file_out << "    <p2> " << aParam[1] << " </p2>"<<endl;
-								file_out << "    <p3> " << aParam[2] << " </p3>"<<endl;
-						file_out << "</SetParam> " <<endl;
-						file_out.close();
-					}
-					else{ cerr << "Couldn't wrie file" << endl;}
+//			   ofstream file_out(OutCal, ios::out | ios::app);
+//					if(file_out)  // if file successfully opened
+//					{
+//						file_out << endl <<"<SetParam> " <<endl;
+//							file_out << "    <Aperture> " << vectOfDiaphFoc[i][0] << " </Aperture>"<<endl;
+//							file_out << "    <Focal> " << vectOfDiaphFoc[i][1] << " </Focal>"<<endl;
+//								file_out << "    <p1> " << aParam[0] << " </p1>"<<endl;
+//								file_out << "    <p2> " << aParam[1] << " </p2>"<<endl;
+//								file_out << "    <p3> " << aParam[2] << " </p3>"<<endl;
+//						file_out << "</SetParam> " <<endl;
+//						file_out.close();
+//					}
+//                    else{ cerr << "Couldn't write file" << endl;}
 			   if (DoCor){
 			   //Correction des images avec les params calculés
 			   cout<<"Correcting the images"<<endl;
