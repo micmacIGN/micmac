@@ -496,6 +496,7 @@ void cGBV2_ProgDynOptimiseur::copyCells(bool dirCopy, Pt2di aDirI,CuHostData3D<u
 
         for (uint aK= 0 ; aK < rStrPar[idLine].z; aK++)
         {
+            // Matrice des cellules
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
             const Box2di &  aBox = aMat.Box();
 
@@ -512,7 +513,9 @@ void cGBV2_ProgDynOptimiseur::copyCells(bool dirCopy, Pt2di aDirI,CuHostData3D<u
             }
             pitStream += abs(aBox._p1.x - aBox._p0.x ) + 1;
         }
+
         idLine++;
+
     }
 }
 
