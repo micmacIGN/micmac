@@ -61,7 +61,7 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 	Pt2di aSz;
 	//Looking for maxs of vectOfExpTimeISO
 	double maxExpTime=0, maxISO=0;
-	for (int i=0;i<vectOfExpTimeISO.size();i++){
+	for (int i=0;i<int(vectOfExpTimeISO.size());i++){
 		if(vectOfExpTimeISO[i][0]>maxExpTime){maxExpTime=vectOfExpTimeISO[i][0];}
 		if(vectOfExpTimeISO[i][1]>maxISO){maxISO=vectOfExpTimeISO[i][1];}
 	}
@@ -403,7 +403,7 @@ int  Vignette_main(int argc,char ** argv)
 
 			   //Il faut maintenant ecrire un fichier xml contenant foc+diaph+les params de vignette
 			   cout<<"--- Writing XML"<<endl;
-			   ofstream file_out(OutCal, ios::out | ios::app);
+			   std::ofstream file_out(OutCal.c_str(), ios::out | ios::app);
 					if(file_out)  // if file successfully opened
 					{
 						file_out << endl <<"<SetParam> " <<endl;

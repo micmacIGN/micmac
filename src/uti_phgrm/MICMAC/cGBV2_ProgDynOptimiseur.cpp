@@ -40,11 +40,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include    "GpGpu/GpGpu.h"
 #include    "StdAfx.h"
 
+
+
 #define     MAT_TO_HOST true
 #define     HOST_TO_MAT false
 
 namespace NS_ParamMICMAC
 {
+#ifdef CUDA_ENABLED
 
 Pt2di Px2Point(int * aPx) { return Pt2di(aPx[0],0); }
 bool IsPTest(const Pt2di & aP) {return aP == Pt2di(40,40);}
@@ -724,6 +727,20 @@ cSurfaceOptimiseur * cSurfaceOptimiseur::AllocAlgoTestGPU
 /**************************************************/
 
 
+#else
+cSurfaceOptimiseur * cSurfaceOptimiseur::AllocAlgoTestGPU
+                     (
+                                     cAppliMICMAC &    mAppli,
+                                     cLoadTer&         mLT,
+                                     const cEquiv1D &        anEqX,
+                                     const cEquiv1D &        anEqY
+                     )
+
+{
+    ELISE_ASSERT(false,"cSurfaceOptimiseur::AllocAlgoTestGPU");
+    return 0;
+}
+#endif
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007
