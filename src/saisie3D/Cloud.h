@@ -37,9 +37,10 @@ namespace Cloud_
     {
         public:
             Cloud();
+            Cloud(std::vector<Vertex> const &);
 
             // renvoie true si le fichier a pu être lu
-            bool    loadPly( const std::string & );
+            static Cloud* loadPly( std::string );
 
             void    addVertex( const Vertex & );
             Vertex& getVertex( unsigned int );
