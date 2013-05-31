@@ -160,8 +160,9 @@ private :
 
 #ifdef CUDA_ENABLED
     void SolveAllDirectionGpu(int aNbDir);    
-    void copyCells(bool dirCopy,Pt2di aDirI, CuHostData3D<uint> h_OutForceCostVol,  CuHostData3D<uint> h_strCostVolume, CuHostData3D<uint3> rStrPar, CuHostData3D<short2> h_strIndex);
+    void copyCells(bool dirCopy, Pt2di aDirI,Data2Optimiz  &d2Opt);// CuHostData3D<uint> h_OutForceCostVol,  CuHostData3D<uint> h_strCostVolume, CuHostData3D<uint3> rStrPar, CuHostData3D<short2> h_strIndex);
     InterfMicMacOptGpGpu               IGpuOpt;
+    Data2Optimiz                       _d2Opt;
 #endif
 
     Im2D_INT2                          mXMin;
