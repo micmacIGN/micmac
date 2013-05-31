@@ -1,10 +1,10 @@
 Nouveaux outils :
 
   MM-PxTransv.xml en outil simplifie
+  Exemple EDF en outil non simplifie
 
 Ori2Xml
 
-  Exemple EDF en outil non simplifie
 
   MNE urbain en chaine simplifiee ??,
 
