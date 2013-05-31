@@ -79,7 +79,7 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 		//Reading the image and creating the objects to be manipulated
 			Tiff_Im aTF1= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK1],1,false);
 			aSz = aTF1.sz();
-			Im2D_U_INT1  aIm1(aSz.x,aSz.y);
+			Im2D_REAL16  aIm1(aSz.x,aSz.y);
 			ELISE_COPY
 				(
 				   aTF1.all_pts(),
@@ -87,13 +87,13 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 				   aIm1.out()
 				);
 
-			U_INT1 ** aData1 = aIm1.data();
+			REAL16 ** aData1 = aIm1.data();
 
 
         for (int aK2=0 ; aK2<int(aSetIm->size()) ; aK2++)
         {
 			Tiff_Im aTF2= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK2],1,false);
-			Im2D_U_INT1  aIm2(aSz.x,aSz.y);
+			Im2D_REAL16  aIm2(aSz.x,aSz.y);
 			ELISE_COPY
 				(
 				   aTF2.all_pts(),
@@ -101,7 +101,7 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 				   aIm2.out()
 				);
 
-			U_INT1 ** aData2 = aIm2.data();
+			REAL16 ** aData2 = aIm2.data();
 
 			string prefixe="";
             if (aK1!=aK2)
@@ -133,8 +133,8 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 							   double Dist1=sqrt(pow(itP->P1().x-x0,2)+pow(itP->P1().y-y0,2));
 							   double Dist2=sqrt(pow(itP->P2().x-x0,2)+pow(itP->P2().y-y0,2));
 							   //Go looking for grey value of the point, adjusted to ISO and Exposure time induced variations
-							   double Grey1 =(vectOfExpTimeISO[aK1][0]*vectOfExpTimeISO[aK1][1])/(maxExpTime*maxISO)*Reechantillonnage::plus_proche_voisin(aData1, aSz.x, aSz.y, itP->P1());//(aData1[(int)floor(itP->P1().y)][(int)floor(itP->P1().x)]);
-							   double Grey2 =(vectOfExpTimeISO[aK2][0]*vectOfExpTimeISO[aK2][1])/(maxExpTime*maxISO)*Reechantillonnage::plus_proche_voisin(aData2, aSz.x, aSz.y, itP->P2());//(aData2[(int)floor(itP->P2().y)][(int)floor(itP->P2().x)]);
+							   double Grey1 =(vectOfExpTimeISO[aK1][0]*vectOfExpTimeISO[aK1][1])/(maxExpTime*maxISO)*Reechantillonnage::biline(aData1, aSz.x, aSz.y, itP->P1());
+							   double Grey2 =(vectOfExpTimeISO[aK2][0]*vectOfExpTimeISO[aK2][1])/(maxExpTime*maxISO)*Reechantillonnage::biline(aData2, aSz.x, aSz.y, itP->P2());
 							   //Check that the distances are different-> might be used in filter?
 							   //double rap=Dist1/Dist2;
 							   if(1){//(Dist1>aSz.x/3 || Dist2>aSz.x/3)){// && (rap<0.75 || rap>1.33)){Filtre à mettre en place?
@@ -242,17 +242,14 @@ void Vignette_correct(string aDir,std::vector<std::string> * aSetIm,vector<doubl
 vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
 {
 
-	   // Create L2SysSurResol to solve least square equation with 3 unknown
+	// Create L2SysSurResol to solve least square equation with 3 unknown
 	L2SysSurResol aSys(3);
-	int cptprob=0;
+
   	//For Each SIFT point
 	for(int i=0;i<int(aPtsHomol[0].size());i++){
-		//if(aPtsHomol[2][i]-aPtsHomol[3][i]!=0){cptprob++; cout<<"PROBLEME n°"<<cptprob<<" sur "<<aPtsHomol[0].size()<<" points"<< " with G1="<<aPtsHomol[2][i]<< " et G2="<<aPtsHomol[3][i]<< " Dist1="<<aPtsHomol[0][i] << " Dist2="<<aPtsHomol[1][i] <<endl;}
 				 double aPds[3]={(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2)),
 								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4)),
-								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6)),
-								 //(aPtsHomol[7][i]*aPtsHomol[4][i]-aPtsHomol[6][i]*aPtsHomol[1][i]),
-								 //(aPtsHomol[7][i]*aPtsHomol[5][i]-aPtsHomol[6][i]*aPtsHomol[2][i])
+								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6))
 								};
 				 aSys.AddEquation(1,aPds,aPtsHomol[2][i]-aPtsHomol[3][i]);
 	}
