@@ -8,8 +8,7 @@
 #include "Cloud.h"
 #include "util.h"
 #include "mmVector3.h"
-
-using namespace std;
+#include "Data.h"
 
 class ViewportParameters
 {
@@ -33,16 +32,18 @@ public:
 class GLWidget : public QGLWidget
 {
 private:
-    QVector <Cloud_::Cloud> m_ply;
+    //QVector <Cloud_::Cloud> m_ply;
 
     Q_OBJECT
 
     QPoint              m_lastPos;
 
 public:
-    GLWidget(QWidget *parent = NULL);
 
-    void addPly( const QString & );
+    GLWidget(QWidget *parent = NULL, cData* data = NULL);
+
+    void setData(cData* data) {m_Data = data;}
+   // void addPly( const QString & );
 
     //! Interaction mode (with the mouse!)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
@@ -97,8 +98,6 @@ public:
 
     //! Increase or decrease point size
     void ptSizeUp(bool);
-
-    GLdouble m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_cX, m_cY, m_cZ, m_diam;
 
 public slots:
     void zoom();
@@ -175,6 +174,8 @@ protected:
 
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
+
+    cData *m_Data;
 };
 
 #endif  /* _GLWIDGET_H */

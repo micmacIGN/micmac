@@ -2,14 +2,13 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QFileDialog>
 #include <QDir>
 
 #include "GLWidget.h"
+#include "Data.h"
 
-#include "StdAfx.h"
-#include "general/ptxd.h"
-#include "private/cElNuage3DMaille.h"
+//for cEngine
+#include "Cloud.h"
 
 #ifdef Int
     #undef Int
@@ -19,19 +18,48 @@ namespace Ui {
 class MainWindow;
 }
 
-class cLoader
+class cLoader : QObject
 {
     public:
 
         cLoader();
         ~cLoader();
 
+        cElNuage3DMaille * loadCamera(string aFile);
+        Cloud* loadCloud( string i_ply_file );
+
+        vector <cElNuage3DMaille *> loadCameras();
+
+        void setDir(QDir aDir){m_Dir = aDir;}
+
         QStringList m_FilenamesIn;
         QStringList m_FilenamesOut;
+
+        QDir        m_Dir;
 
         void SetFilenamesOut();
 };
 
+class cEngine
+{
+    public:
+
+        cEngine();
+        ~cEngine();
+
+        void addFiles(QStringList);
+        void loadCameras();
+
+        void doMasks();
+
+        cData*   getData()  {return m_Data;}
+
+        cLoader *m_Loader;
+
+    private:
+
+        cData   *m_Data;
+};
 
 class MainWindow : public QMainWindow
 {
@@ -41,14 +69,13 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-
     //! Checks for loaded entities
     /** If none, a message is displayed to invite the user
         to drag & drop files.
     **/
     bool checkForLoadedEntities();
 
-    QStringList m_FilenameOut;
+    //cEngine* getEngine(){return m_Engine;}
 
 public slots:
     //! Tries to load a list of files
@@ -78,8 +105,6 @@ protected slots:
     void exportMasks();
     void loadAndExport();
 
-    cElNuage3DMaille * &	Camera(int aK) {return m_Cameras[aK];}
-
 protected:
 
     //! Connects all QT actions to slots
@@ -87,9 +112,9 @@ protected:
 
 private:
     Ui::MainWindow *ui;
+
     GLWidget *m_glWidget;
-    QDir m_Dir;
-    QVector <cElNuage3DMaille *> m_Cameras;
-    cLoader IO;
+
+    cEngine  *m_Engine;
 };
 #endif // MAINWINDOW_H
