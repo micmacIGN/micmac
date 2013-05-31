@@ -40,7 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../include/StdAfx.h"
 #include "hassan/reechantillonnage.h"
 #include <algorithm>
-
+#include <functional>
+#include <numeric>
 
 void Vodka_Banniere()
 {
@@ -78,7 +79,7 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 		//Reading the image and creating the objects to be manipulated
 			Tiff_Im aTF1= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK1],1,false);
 			aSz = aTF1.sz();
-			Im2D_U_INT1  aIm1(aSz.x,aSz.y);
+			Im2D_REAL16  aIm1(aSz.x,aSz.y);
 			ELISE_COPY
 				(
 				   aTF1.all_pts(),
@@ -86,13 +87,13 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 				   aIm1.out()
 				);
 
-			U_INT1 ** aData1 = aIm1.data();
+			REAL16 ** aData1 = aIm1.data();
 
 
         for (int aK2=0 ; aK2<int(aSetIm->size()) ; aK2++)
         {
 			Tiff_Im aTF2= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK2],1,false);
-			Im2D_U_INT1  aIm2(aSz.x,aSz.y);
+			Im2D_REAL16  aIm2(aSz.x,aSz.y);
 			ELISE_COPY
 				(
 				   aTF2.all_pts(),
@@ -100,7 +101,7 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 				   aIm2.out()
 				);
 
-			U_INT1 ** aData2 = aIm2.data();
+			REAL16 ** aData2 = aIm2.data();
 
 			string prefixe="";
             if (aK1!=aK2)
@@ -132,9 +133,8 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 							   double Dist1=sqrt(pow(itP->P1().x-x0,2)+pow(itP->P1().y-y0,2));
 							   double Dist2=sqrt(pow(itP->P2().x-x0,2)+pow(itP->P2().y-y0,2));
 							   //Go looking for grey value of the point, adjusted to ISO and Exposure time induced variations
-							   double Grey1 =(vectOfExpTimeISO[aK1][0]*vectOfExpTimeISO[aK1][1])/(maxExpTime*maxISO)*(Reechantillonnage::biline(aData1, aSz.x, aSz.y, itP->P1()));
-							   double Grey2 =(vectOfExpTimeISO[aK2][0]*vectOfExpTimeISO[aK2][1])/(maxExpTime*maxISO)*(Reechantillonnage::biline(aData2, aSz.x, aSz.y, itP->P2()));
-
+							   double Grey1 =(vectOfExpTimeISO[aK1][0]*vectOfExpTimeISO[aK1][1])/(maxExpTime*maxISO)*Reechantillonnage::biline(aData1, aSz.x, aSz.y, itP->P1());
+							   double Grey2 =(vectOfExpTimeISO[aK2][0]*vectOfExpTimeISO[aK2][1])/(maxExpTime*maxISO)*Reechantillonnage::biline(aData2, aSz.x, aSz.y, itP->P2());
 							   //Check that the distances are different-> might be used in filter?
 							   //double rap=Dist1/Dist2;
 							   if(1){//(Dist1>aSz.x/3 || Dist2>aSz.x/3)){// && (rap<0.75 || rap>1.33)){Filtre à mettre en place?
@@ -242,16 +242,14 @@ void Vignette_correct(string aDir,std::vector<std::string> * aSetIm,vector<doubl
 vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
 {
 
-	   // Create L2SysSurResol to solve least square equation with 3 unknown
+	// Create L2SysSurResol to solve least square equation with 3 unknown
 	L2SysSurResol aSys(3);
 
   	//For Each SIFT point
 	for(int i=0;i<int(aPtsHomol[0].size());i++){
 				 double aPds[3]={(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2)),
 								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4)),
-								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6)),
-								 //(aPtsHomol[7][i]*aPtsHomol[4][i]-aPtsHomol[6][i]*aPtsHomol[1][i]),
-								 //(aPtsHomol[7][i]*aPtsHomol[5][i]-aPtsHomol[6][i]*aPtsHomol[2][i])
+								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6))
 								};
 				 aSys.AddEquation(1,aPds,aPtsHomol[2][i]-aPtsHomol[3][i]);
 	}
@@ -265,11 +263,20 @@ vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
     if (Ok)
     {
         double* aData = aSol.data();
-        std::cout << "Vignette parameters : " << aData[0] << " " << aData[1] << " " << aData[2] << "\n";
+        std::cout << "Vignette parameters : (" << aData[0] << ")*D^2+(" << aData[1] << ")*D^4+(" << aData[2] << ")*D^6"<<endl;
 		aParam.push_back(aData[0]);
 		aParam.push_back(aData[1]);
 		aParam.push_back(aData[2]);
     }
+
+	//Erreur moyenne
+	vector<double> erreur;
+	for(int i=0;i<int(aPtsHomol[0].size());i++){
+		erreur.push_back(255*(aPtsHomol[2][i]-aPtsHomol[3][i]-(aParam[0]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2))+aParam[1]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4))+aParam[2]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6)))));
+	}
+	double sum = std::accumulate(erreur.begin(),erreur.end(),0.0);
+    double ErMoy=sum/erreur.size();
+	cout<<"Mean error = "<<ErMoy<<endl;
 		return aParam;
 }
 
@@ -403,21 +410,19 @@ int  Vignette_main(int argc,char ** argv)
 
 			   //Il faut maintenant ecrire un fichier xml contenant foc+diaph+les params de vignette
 			   cout<<"--- Writing XML"<<endl;
-#if ELISE_windows
-			   ofstream file_out(OutCal, ios::out | ios::app);
+			   std::ofstream file_out(OutCal.c_str(), ios::out | ios::app);
 					if(file_out)  // if file successfully opened
 					{
-						file_out << endl <<"<SetParam> " <<endl;
+						file_out <<"<SetParam> " <<endl;
 							file_out << "    <Aperture> " << vectOfDiaphFoc[i][0] << " </Aperture>"<<endl;
 							file_out << "    <Focal> " << vectOfDiaphFoc[i][1] << " </Focal>"<<endl;
 								file_out << "    <p1> " << aParam[0] << " </p1>"<<endl;
 								file_out << "    <p2> " << aParam[1] << " </p2>"<<endl;
 								file_out << "    <p3> " << aParam[2] << " </p3>"<<endl;
-						file_out << "</SetParam> " <<endl;
+						file_out << "</SetParam> " <<endl<<endl;
 						file_out.close();
 					}
-					else{ cerr << "Couldn't wrie file" << endl;}
-#endif
+					else{ cerr << "Couldn't write file" << endl;}
 			   if (DoCor){
 			   //Correction des images avec les params calculés
 			   cout<<"Correcting the images"<<endl;
