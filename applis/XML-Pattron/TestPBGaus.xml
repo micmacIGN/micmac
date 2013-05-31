@@ -1,0 +1,107 @@
+<!--
+FR9906F45_vx005_00075.tif
+FR9906F45_vx005_00087.tif
+FR9906F45_vx005_00088.tif
+FR9906F45_vx007_00126.tif
+FR9906F45_vx008_00139.tif
+FR9906F45_vx009_00156.tif
+
+
+-->
+<ParamDigeo>
+
+     <DicoLoc >
+     </DicoLoc>
+
+     <SectionImages>
+           <ImageDigeo>
+<!--
+              <KeyOrPat>  toto.tif </KeyOrPat>
+-->
+               <KeyOrPat>  F020_DSC_1956_MpDcraw8B_GB.tif </KeyOrPat>
+               <VisuCarac>
+                   <Dir> Pyr/ </Dir>
+                   <Dyn> 1 </Dyn>
+                </VisuCarac>
+
+<!--
+               <BoxIm>   1000 1000 3000 3000 </BoxIm>
+-->
+           </ImageDigeo>
+           <PyramideImage>
+
+              <TypeNumeriqueOfNiv>
+                 <Type> eTN_float </Type>
+                 <Niv> 1 </Niv>
+              </TypeNumeriqueOfNiv>
+<!--
+              <ValMaxForDyn> 4096</ValMaxForDyn>
+-->
+
+              <ReducDemiImage> eRDI_121 </ReducDemiImage>
+
+              <TypePyramide>
+                  <!-- <NivPyramBasique> 32 </NivPyramBasique> -->
+                  <PyramideGaussienne>
+                       <NbByOctave> 3 </NbByOctave>
+                       <NivOctaveMax  > 16 </NivOctaveMax> 
+<!--
+                       <ConvolFirstImage>  1.0 </ConvolFirstImage> 
+                       <SurEchIntegralGauss > 10 </SurEchIntegralGauss>
+-->
+                       <ConvolIncrem>  true </ConvolIncrem>
+                  </PyramideGaussienne>
+              </TypePyramide>
+           </PyramideImage>
+     </SectionImages>
+
+     <SectionCaracImages>
+          <ComputeCarac> true </ComputeCarac>
+          <SiftCarac>
+               <DoMax> true </DoMax>
+               <DoMin> true </DoMin>
+           </SiftCarac>
+
+     </SectionCaracImages>
+
+     <SectionTest >
+<!--
+         <GenereCarroyage >
+            <PerX> 200 </PerX>
+            <PerY> 200 </PerY>
+        </GenereCarroyage>
+-->
+        <VerifExtrema> false </VerifExtrema>
+     </SectionTest>
+
+
+     <SectionWorkSpace>
+           <DirectoryChantier> /mnt/data/DigeoTEST/Coque/ </DirectoryChantier>
+           <SauvPyram>
+               <Key> Key-Assoc-Pyram-MM </Key>
+               <Dir>  Pyr/ </Dir>
+               <CreateFileWhenExist> false </CreateFileWhenExist>
+               <Force8B>  true  </Force8B>
+<!--
+-->
+               <Dyn>  0.004 </Dyn>
+           </SauvPyram>
+<!--
+-->
+           <ShowTimes> 10 </ShowTimes>
+<!--
+           <DigeoDecoupageCarac>
+                <SzDalle> 2000 </SzDalle>
+                <Bord>  100   </Bord>
+           </DigeoDecoupageCarac>
+-->
+
+
+            <UseConvolSpec> true </UseConvolSpec>
+            <ShowConvolSpec> false </ShowConvolSpec>
+
+     </SectionWorkSpace>
+
+
+
+</ParamDigeo>
