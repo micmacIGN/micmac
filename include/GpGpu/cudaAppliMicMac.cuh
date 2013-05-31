@@ -33,7 +33,7 @@
 
 
 /// \struct pCorGpu
-/// \param La structure contenant tous les parametres necessaires a la correlation
+/// \param  La structure contenant tous les parametres necessaires a la correlation
 struct pCorGpu
 {
 
