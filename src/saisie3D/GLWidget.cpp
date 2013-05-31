@@ -185,17 +185,14 @@ inline void normalize( GLdouble o_m[3] )
     o_m[2] = o_m[2]/norm;
 }
 
-GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent)
+GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
       , m_interactionMode(TRANSFORM_CAMERA)
       , m_font(font())
       , m_bCloudLoaded(false)
       , m_params(ViewportParameters())
       , m_bPolyIsClosed(false)
+      , m_Data(data)
 {
-    m_minX = m_minY = m_minZ = FLT_MAX;
-    m_maxX = m_maxY = m_maxZ = FLT_MIN;
-    m_cX = m_cY = m_cZ = m_diam = 0.f;
-
     setMouseTracking(true);
 
     //drag & drop handling
@@ -242,20 +239,26 @@ void GLWidget::paintGL()
 
     glPointSize(m_params.PointSize);
 
-    glBegin(GL_POINTS);
-    for(int aK=0; aK< m_ply.size(); aK++)
+    if (hasCloudLoaded())
     {
-        for(int bK=0; bK< m_ply[aK].size(); bK++)
+        glBegin(GL_POINTS);
+        //for(int aK=0; aK< m_ply.size(); aK++)
+        for(int aK=0; aK< m_Data->NbClouds(); aK++)
         {
-            Vertex vert = m_ply[aK].getVertex(bK);
-            if (vert.isVisible())
+            //for(int bK=0; bK< m_ply[aK].size(); bK++)
+            for(int bK=0; bK< m_Data->getCloud(aK)->size(); bK++)
             {
-                qglColor( vert.getColor() );
-                glVertex3f( vert.x(), vert.y(), vert.z() );
+                //Vertex vert = m_ply[aK].getVertex(bK);
+                Vertex vert = m_Data->getCloud(aK)->getVertex(bK);
+                if (vert.isVisible())
+                {
+                    qglColor( vert.getColor() );
+                    glVertex3f( vert.x(), vert.y(), vert.z() );
+                }
             }
         }
+        glEnd();
     }
-    glEnd();
 
     //current messages (if valid)
     if (!m_messagesToDisplay.empty())
@@ -371,83 +374,18 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
     }
 }
 
-void GLWidget::addPly( const QString &i_ply_file )
+/*void GLWidget::addPly( const QString &i_ply_file )
 {
     Cloud a_ply, a_res;
     a_ply.loadPly( i_ply_file.toStdString() );
 
-    //compute bounding box
-    int nbPts = a_ply.size();
-    for (int aK=0; aK < nbPts; ++aK)
-    {
-        Vertex vert = a_ply.getVertex(aK);
 
-        if (vert.x() > m_maxX) m_maxX = vert.x();
-        if (vert.x() < m_minX) m_minX = vert.x();
-        if (vert.y() > m_maxY) m_maxY = vert.y();
-        if (vert.y() < m_minY) m_minY = vert.y();
-        if (vert.z() > m_maxZ) m_maxZ = vert.z();
-        if (vert.z() < m_minZ) m_minZ = vert.z();
-    }
-
-    m_cX = (m_minX + m_maxX) * .5f;
-    m_cY = (m_minY + m_maxY) * .5f;
-    m_cZ = (m_minZ + m_maxZ) * .5f;
-
-    m_diam = max(m_maxX-m_minX, max(m_maxY-m_minY, m_maxZ-m_minZ));
-
-    //center and scale cloud
-    Vector3 pt3d;
-    for (int aK=0; aK < nbPts; ++aK)
-    {
-        Vertex vert = a_ply.getVertex(aK);
-        Vertex vert_res = vert;
-
-        pt3d.x = (vert.x() - m_cX) / m_diam;
-        pt3d.y = (vert.y() - m_cY) / m_diam;
-        pt3d.z = (vert.z() - m_cZ) / m_diam;
-
-        vert_res.setCoord(pt3d);
-        vert_res.setColor(vert.getColor());
-
-        a_res.addVertex(vert_res);
-    }
-
-    a_res.setTranslation(Vector3(m_cX, m_cY, m_cZ));
-    a_res.setScale((float) m_diam);
-
-    //translate and scale back clouds if needed
-    for (int aK=0; aK< m_ply.size();++aK)
-    {
-        if (m_ply[aK].getScale()) //cloud has been scaled
-        {
-            Vector3 translation = m_ply[aK].getTranslation();
-            float scale = m_ply[aK].getScale();
-
-            for (int bK=0; bK < m_ply[aK].size();++bK)
-            {
-                Vertex vert = m_ply[aK].getVertex(bK);
-
-                pt3d.x = ((vert.x() * scale + translation.x) - m_cX) / m_diam;
-                pt3d.y = ((vert.y() * scale + translation.y) - m_cY) / m_diam;
-                pt3d.z = ((vert.z() * scale + translation.z) - m_cZ) / m_diam;
-
-                vert.setCoord(pt3d);
-
-                m_ply[aK].setVertex(bK, vert);
-            }
-
-            m_ply[aK].setTranslation(Vector3(m_cX, m_cY, m_cZ));
-            m_ply[aK].setScale((float) m_diam);
-        }
-    }
-
-    m_ply.push_back(a_res);
+    //m_ply.push_back(a_res);
 
     if (!hasCloudLoaded()) setCloudLoaded(true);
 
     updateGL();
-}
+}*/
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
 {
@@ -680,9 +618,9 @@ void GLWidget::setView(MM_VIEW_ORIENTATION orientation)
     g_rotationMatrix[8] = -eye[2];
 
 
-    g_translationMatrix[0] = m_cX;
-    g_translationMatrix[1] = m_cY;
-    g_translationMatrix[2] = m_cZ;
+    g_translationMatrix[0] = m_Data->m_cX;
+    g_translationMatrix[1] = m_Data->m_cY;
+    g_translationMatrix[2] = m_Data->m_cZ;
 
     updateGL();
 }
@@ -770,8 +708,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         }
         else if ( g_mouseRightDown )
         {
-           g_translationMatrix[0] = m_cX - dp.x()/m_glWidth;
-           g_translationMatrix[1] = m_cY - dp.y()/m_glHeight;
+         //  g_translationMatrix[0] = m_Data->m_cX - dp.x()/m_glWidth;
+         //  g_translationMatrix[1] = m_Data->m_cY - dp.y()/m_glHeight;
         }
 
         updateGL();
@@ -837,18 +775,18 @@ void GLWidget::segment(bool inside)
         polyg.push_back(QPoint(m_polygon[aK].x(), m_glHeight - m_polygon[aK].y()));
     }
 
-    for (int aK=0; aK < m_ply.size(); ++aK)
+    for (int aK=0; aK < m_Data->NbClouds(); ++aK)
     {
-        Cloud_::Cloud a_cloud = m_ply[aK];
+        Cloud_::Cloud *a_cloud = m_Data->getCloud(aK);
 
-        for (int bK=0; bK < a_cloud.size();++bK)
+        for (int bK=0; bK < a_cloud->size();++bK)
         {
-            Cloud_::Vertex P = a_cloud.getVertex( bK );
+            Cloud_::Vertex P = a_cloud->getVertex( bK );
 
             if (P.isVisible())
             {
                 GLdouble xp,yp,zp;
-                //gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
+                gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
 
                 P2D.setX(xp);
                 P2D.setY(yp);
@@ -856,7 +794,7 @@ void GLWidget::segment(bool inside)
                 pointInside = isPointInsidePoly(P2D,polyg);
 
                 if ((inside && !pointInside)||(!inside && pointInside))
-                    m_ply[aK].getVertex(bK).setVisible(false);
+                    m_Data->getCloud(aK)->getVertex(bK).setVisible(false);
             }
         }
     }
@@ -882,11 +820,11 @@ void GLWidget::undoAll()
 {
     clearPolyline();
 
-    for (int aK=0; aK < m_ply.size(); ++aK)
+    for (int aK=0; aK < m_Data->NbClouds(); ++aK)
     {
-        for (int bK=0; bK < m_ply[aK].size();++bK)
+        for (int bK=0; bK < m_Data->getCloud(aK)->size();++bK)
         {
-            m_ply[aK].getVertex(bK).setVisible(true);
+            m_Data->getCloud(aK)->getVertex(bK).setVisible(true);
         }
     }
 }

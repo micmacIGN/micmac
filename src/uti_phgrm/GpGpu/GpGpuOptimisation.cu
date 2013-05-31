@@ -9,6 +9,7 @@
 /// \date       Avril 2013
 
 #include "GpGpu/GpGpuStreamData.cuh"
+#include "GpGpu/GpGpuOptimisation.h"
 
 __device__ float sign(bool sens)
 {
@@ -81,26 +82,24 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
         short   Z = uZ_Next.x + tid;
         if(!tid) globMinCost = 1e9;
 
+        short Z_Id  = Z - uZ_Next.x;
+
         while( Z < uZ_Next.y )
         {
 
             ComputeIntervaleDelta(aDz,Z,penteMax,uZ_Next,uZ_Prev);
             T costMin   = 1e9;
 
-            short Z_Id  = Z - uZ_Next.x;
+            T costInit  = pData[2][Z_Id];
 
-            bool bound  = !(Z_Id>>8); // < NAPPEMAX
-            T costInit  = bound ? pData[2][Z_Id] : 0;
+            const short Z_P_Id = Z - uZ_Prev.x;
+            aDz.y = min(aDz.y,(short)NAPPEMAX - Z_P_Id);
 
             for(short i = aDz.x ; i <= aDz.y; i++)//#pragma unroll
-            {
-                short idZprev = Z - uZ_Prev.x + i;
-                if(!(idZprev>>8)) // < NAPPEMAX
-                    costMin = min(costMin, costInit + pData[idBuffer][idZprev] /*+ abs((int)i) * 5000*/);
-            }
+                costMin = min(costMin, costInit + pData[idBuffer][Z_P_Id + i] /*+ abs((int)i) * 5000*/);
 
-            if(bound)
-                pData[!idBuffer][Z_Id] = costMin;
+
+            pData[!idBuffer][Z_Id] = costMin;
 
             int idGData     = pitStrOut + Z_Id;
             int cost        = sens ? costMin : costMin + g_ForceCostVol[idGData] - costInit;
@@ -111,6 +110,8 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
                 atomicMin(&globMinCost,cost);
 
             Z += min(uZ_Next.y - Z,WARPSIZE);
+
+            if((Z_Id  = Z - uZ_Next.x)>>8) break;
         }
 
         if(!sens)
@@ -160,12 +161,12 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2
 }
 
 /// \brief Lance le kernel d optimisation pour une direction
-template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputStream, CuHostData3D<short2> &hInputindex, uint nBLine, CuHostData3D<T> &h_ForceCostVol, CuHostData3D<uint3>  rStrPar)
+template <class T> void LaunchKernelOptOneDirection(Data2Optimiz &D2O)
 {
 
     uint    deltaMax    =   3;
     dim3    Threads(WARPSIZE,1,1);
-    dim3    Blocks(nBLine,1,1);
+    dim3    Blocks(D2O.nbLines,1,1);
 
 /*
     uint    dimDeltaMax =   deltaMax * 2 + 1;
@@ -185,25 +186,25 @@ template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputStrea
 */
     //      Declaration et allocation memoire des variables Device          ---------------		-
 
-    CuDeviceData3D<T>       d_InputStream    ( hInputStream .GetSize(), "d_InputStream"  );
-    CuDeviceData3D<short2>  d_InputIndex     ( hInputindex  .GetSize(), "d_InputIndex"   );
-    CuDeviceData3D<uint3>   d_RecStrParam    ( rStrPar      .GetSize(), "d_InputStream"  );
-    CuDeviceData3D<T>       d_ForceCostVol   ( hInputStream .GetSize(), "d_ForceCostVol" );
+    CuDeviceData3D<T>       d_InputStream    ( D2O.hS_InitCostVol   .GetSize(), "d_InputStream"  );
+    CuDeviceData3D<short2>  d_InputIndex     ( D2O.hS_Index         .GetSize(), "d_InputIndex"   );
+    CuDeviceData3D<uint3>   d_Param          ( D2O.h__Param         .GetSize(), "d_RecStrParam"  );
+    CuDeviceData3D<T>       d_ForceCostVol   ( D2O.hS_ForceCostVol  .GetSize(), "d_ForceCostVol" );
 
     //      Copie du volume de couts dans le device                         ---------------		-
 
-    d_InputStream.CopyHostToDevice(  hInputStream.pData());
-    d_InputIndex .CopyHostToDevice(  hInputindex .pData());
-    d_RecStrParam.CopyHostToDevice(  rStrPar     .pData());
+    d_InputStream.CopyHostToDevice(  D2O.hS_InitCostVol .pData());
+    d_InputIndex .CopyHostToDevice(  D2O.hS_Index       .pData());
+    d_Param      .CopyHostToDevice(  D2O.h__Param       .pData());
 
     //      Kernel optimisation                                             ---------------     -
 
     kernelOptiOneDirection<T><<<Blocks,Threads>>>
                                                 (
-                                                    d_InputStream    .pData(),
-                                                    d_InputIndex     .pData(),
-                                                    d_ForceCostVol   .pData(),
-                                                    d_RecStrParam    .pData(),
+                                                    d_InputStream   .pData(),
+                                                    d_InputIndex    .pData(),
+                                                    d_ForceCostVol  .pData(),
+                                                    d_Param         .pData(),
                                                     deltaMax
                                                     );
 
@@ -211,25 +212,37 @@ template <class T> void LaunchKernelOptOneDirection(CuHostData3D<T> &hInputStrea
 
     //      Copie des couts de passage forcé du device vers le host         ---------------     -
 
-    d_ForceCostVol.CopyDevicetoHost(h_ForceCostVol.pData());
+    d_ForceCostVol.CopyDevicetoHost(D2O.hS_ForceCostVol.pData());
 
     //      De-allocation memoire des variables Device                      ---------------     -
 
     d_ForceCostVol  .Dealloc();
     d_InputStream   .Dealloc();
     d_InputIndex    .Dealloc();
-    d_RecStrParam   .Dealloc();
+    d_Param         .Dealloc();
 }
 
 /// \brief Appel exterieur du kernel d optimisation
-extern "C" void OptimisationOneDirection(CuHostData3D<uint> &data,CuHostData3D<short2> &index, uint nBLine, CuHostData3D<uint> & h_ForceCostVol, CuHostData3D<uint3>  rStrPar)
+extern "C" void OptimisationOneDirection(Data2Optimiz &d2O)
 {
-    LaunchKernelOptOneDirection(data,index,nBLine, h_ForceCostVol, rStrPar);
+    LaunchKernelOptOneDirection<uint>(d2O);
 }
 
 /// \brief Appel exterieur du kernel
 extern "C" void Launch()
 {
+
+    printf("Test Template\n");
+
+    Data2Optimiz2<CuHostData3D>     H_D2O;
+    Data2Optimiz2<CuDeviceData3D>   D_D2O;
+
+    H_D2O.ReallocIf(2,2);
+
+    H_D2O.hS_ForceCostVol.FillRandom(0,5);
+    H_D2O.hS_ForceCostVol.OutputValues();
+
+    /*
     uint    prof        = 40;
     uint3   dimVolCost  = make_uint3(80,4,prof );
 
@@ -275,6 +288,7 @@ extern "C" void Launch()
 
     H_StreamCost.Dealloc();
     H_StreamIndex.Dealloc();
+    */
 }
 
 #endif

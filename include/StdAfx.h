@@ -259,9 +259,6 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 
 #include "../src/uti_phgrm/MICMAC/cParamMICMAC.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
-#ifdef CUDA_ENABLED
-#include "GpGpu/GBV2_ProgDynOptimiseur.h"
-#endif
 #include "../src/uti_phgrm/Porto/Porto.h"
 
 #include "../src/uti_phgrm/SaisiePts/cParamSaisiePts.h"
