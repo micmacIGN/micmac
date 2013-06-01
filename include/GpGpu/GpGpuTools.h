@@ -714,7 +714,9 @@ public:
     /// \brief      Desallocation puis re-allocation memoire pour les tous les elements de la structures avec initialisation de la dimension de la structure
     /// \param      dim : Dimension 2D a initialiser
     /// \param      l : Taille de la 3eme dimension
-    bool			Realloc(uint2 dim, uint l);
+    bool			Realloc(uint2 dim, uint l);    
+    bool			Realloc(uint size);
+    bool			ReallocIf(uint size);
     /// \brief      Nombre d elements de la structure
     uint			Sizeof();
 
@@ -761,6 +763,20 @@ bool CData3D<T>::Realloc( uint2 dim, uint l )
     bool dB = Dealloc();
     bool dM = Malloc(dim,l);
     return (dB && dM);
+}
+
+template <class T>
+bool CData3D<T>::Realloc(uint size)
+{
+    return Realloc(make_uint2(size,1),1);
+}
+
+template <class T>
+bool CData3D<T>::ReallocIf(uint size)
+{
+    if(size>CData3D<T>::GetSize())
+        return Realloc(make_uint2(size,1),1);
+    return false;
 }
 
 template <class T>

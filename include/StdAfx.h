@@ -69,7 +69,7 @@ extern bool BugDG;
 namespace NS_ParamChantierPhotogram
 {
    class cOrientationConique;
-};
+}
 
 using namespace std;
 

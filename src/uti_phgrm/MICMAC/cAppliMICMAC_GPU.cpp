@@ -1513,16 +1513,16 @@ void cAppliMICMAC::DoGPU_Correl
 		while( anZComputed < aZMaxTer )
 		{
 			if (multiThreading)
-			{	// le calcul de correlation est effectué dans un thread parallèle �  celui-ci, il s'effectue quand des projections ont été calculées!								
+            {	// le calcul de correlation est effectue dans un thread parallele celui-ci, il s'effectue quand des projections ont été calculées!
 				// Tabulation des projections si la demande est faite
-				if ( IMmGg.GetComputeNextProj() && anZProjection <= anZComputed + interZ && anZProjection < aZMaxTer)
+                if ( IMmGg.GetComputeNextProj() && anZProjection <= anZComputed + interZ && anZProjection < aZMaxTer)
 				{
-					int intZ = (uint)abs(aZMaxTer - anZProjection );
+                    int intZ = abs(aZMaxTer - anZProjection );
 					
 					if (interZ >= intZ  &&  anZProjection != (aZMaxTer - 1) )
 						interZ = intZ;
 
-					hVolumeProj.Memset(IMmGg.Param().IntDefault);
+                    hVolumeProj.Memset(IMmGg.Param().IntDefault);
 					Tabul_Projection(hVolumeProj.pData(), anZProjection, IMmGg.Param().RDTer(),IMmGg.Param().sampProj, interZ);
 					
 					IMmGg.SetComputeNextProj(false);	
@@ -1532,7 +1532,7 @@ void cAppliMICMAC::DoGPU_Correl
 				int ZtoCopy = IMmGg.GetZCtoCopy();
 
                 // Affectation des couts si des nouveaux ont ete calcule!
-				if (ZtoCopy != 0 && anZComputed < aZMaxTer)
+                if (ZtoCopy != 0 && anZComputed < aZMaxTer)
 				{
 					setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,hVolumeCost.pData(), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
                     anZComputed += ZtoCopy;

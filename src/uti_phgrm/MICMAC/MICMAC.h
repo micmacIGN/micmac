@@ -3581,8 +3581,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 	// GPGPU
 #ifdef CUDA_ENABLED
 		bool					mLoadTextures;
-		InterfaceMicMacGpGpu	IMmGg;
-        InterfMicMacOptGpGpu    IGpuOpt;
+		InterfaceMicMacGpGpu	IMmGg;        
 #endif	
 
          cMMTP *  mMMTP;

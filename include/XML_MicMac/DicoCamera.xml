@@ -128,6 +128,13 @@
         <SzCaptMm>    2.6  3.8  </SzCaptMm>
         <ShortName> AppleI4  </ShortName>
    </CameraEntry>
+   
+   <CameraEntry>
+        <Name> Sony C6603 </Name>
+        <SzCaptMm> 2.5 4.4  </SzCaptMm>
+        <ShortName> Sony XperiaZ 16.9 </ShortName>
+   </CameraEntry>
+   
 
    <CameraEntry>
         <Name>  Canon PowerShot S90 </Name>
