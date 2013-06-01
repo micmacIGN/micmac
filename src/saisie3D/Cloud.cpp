@@ -5,7 +5,7 @@
 
 #include <QFileInfo>
 
-#include "d:\culture3D\include\poisson\ply.h"
+#include "poisson/ply.h"
 
 
 using namespace std;
@@ -49,8 +49,10 @@ Vertex::Vertex(Vector3 pos, QColor col)
 /*!
     Read a ply file, store the point cloud and returns true if success.
 */
-bool Cloud::loadPly( const string &i_filename )
+Cloud* Cloud::loadPly( string i_filename )
 {
+    vector <Vertex> ptList;
+
     PlyFile * thePlyFile;
 
     int nelems;
@@ -62,18 +64,17 @@ bool Cloud::loadPly( const string &i_filename )
     char *elem_name;
     PlyProperty **plist=NULL;
 
-
     thePlyFile = ply_open_for_reading( const_cast<char *>(i_filename.c_str()), &nelems, &elist, &file_type, &version);
 
     elem_name = elist[0];
     plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
 
     #ifdef _DEBUG
-        cout << "file "		<< i_filename	<< endl;
-        cout << "version "	<< version		<< endl;
-        cout << "type "		<< file_type	<< endl;
-        cout << "nb elem "	<< nelems		<< endl;
-        cout << "num elem "	<< num_elems	<< endl;
+        printf ("file %s\n"    , i_filename);
+        printf ("version %\n"  , version);
+        printf ("type %d\n"	   , file_type);
+        printf ("nb elem %d\n" , nelems);
+        printf ("num elem %d\n", num_elems);
     #endif
 
     for (int i = 0; i < nelems; i++)
@@ -113,7 +114,7 @@ bool Cloud::loadPly( const string &i_filename )
                             printf ("vertex: %g %g %g %u %u %u\n", vlist[j]->x, vlist[j]->y, vlist[j]->z, vlist[j]->red, vlist[j]->green, vlist[j]->blue);
                         #endif
 
-                        addVertex( Vertex (Vector3 ( vlist[j]->x, vlist[j]->y, vlist[j]->z ), QColor( vlist[j]->red, vlist[j]->green, vlist[j]->blue )) );
+                        ptList.push_back( Vertex (Vector3 ( vlist[j]->x, vlist[j]->y, vlist[j]->z ), QColor( vlist[j]->red, vlist[j]->green, vlist[j]->blue )));
                     }
                     break;
                 }
@@ -142,8 +143,13 @@ bool Cloud::loadPly( const string &i_filename )
                             printf ("vertex: %g %g %g %u %u %u\n", ulist[j]->x, ulist[j]->y, ulist[j]->z, ulist[j]->red, ulist[j]->green, ulist[j]->blue);
                         #endif
 
-                        addVertex( Vertex (Vector3 ( ulist[j]->x, ulist[j]->y, ulist[j]->z ), QColor( ulist[j]->red, ulist[j]->green, ulist[j]->blue )) );
+                        ptList.push_back( Vertex (Vector3 ( ulist[j]->x, ulist[j]->y, ulist[j]->z ), QColor( ulist[j]->red, ulist[j]->green, ulist[j]->blue )));
                     }
+                    break;
+                }
+             default:
+                {
+                    printf("unable to load a ply unless number of properties is 6 or 7\n");
                     break;
                 }
             }
@@ -151,12 +157,12 @@ bool Cloud::loadPly( const string &i_filename )
     }
 
     #ifdef _DEBUG
-        cout << "nombre de points dans le nuage: " << size() << endl;
+        printf("verification - nombre de points dans le nuage: %d\n", ptList.size() );
     #endif
 
     ply_close (thePlyFile);
 
-    return true;
+    return new Cloud(ptList);
 }
 
 void Cloud::addVertex(const Vertex &vert)
@@ -177,11 +183,11 @@ Vertex& Cloud::getVertex(unsigned int nb_vert)
     }
     else
     {
-        cout << "error accessing point cloud vector in Cloud::getVertex" << endl;
+        printf("error accessing point cloud vector in Cloud::getVertex");
     }
 }
 
-void    Cloud::setVertex( unsigned int idx, Vertex const & vertex)
+void Cloud::setVertex( unsigned int idx, Vertex const & vertex)
 {
     if (idx < m_vertices.size())
     {
@@ -195,7 +201,18 @@ void Cloud::clear()
 }
 
 Cloud::Cloud()
+    : m_scale(0.),
+      m_translation()
+{}
+
+Cloud::Cloud(vector<Vertex> const & vVertex)
 {
+    for (unsigned int aK=0; aK< vVertex.size(); aK++)
+    {
+        addVertex(vVertex[aK]);
+    }
+
+    m_translation = Vector3();
     m_scale = 0.f;
 }
 

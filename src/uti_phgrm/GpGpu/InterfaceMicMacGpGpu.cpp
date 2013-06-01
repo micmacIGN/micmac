@@ -239,7 +239,7 @@ void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2
   ResizeVolume(nbLayer,_param.ZLocInter);
   uint Z = 0;
 
-  /*--------------- calcul de dimension du kernel de correlation ---------------*/
+  //            calcul de dimension du kernel de correlation                ---------------
 
   dim3	threads( BLOCKDIM, BLOCKDIM, 1);
   uint2	thd2D		= make_uint2(threads);
@@ -247,13 +247,14 @@ void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2
   uint2	block2D		= iDivUp(_param.dimDTer,actiThsCo);
   dim3	blocks(block2D.x , block2D.y, nbLayer * _param.ZLocInter);
 
-  /*-------------	calcul de dimension du kernel de multi-correlation ------------*/
+  //            Calcul de dimension du kernel de multi-correlation          ---------------
 
   ushort  sNbTh,BLDIM;
   dim3    threads_mC,blocks_mC;
   uint2   actiThs,block2D_mC;
 
-  //-------------	calcul de dimension du kernel de multi-correlation ------------
+  //            Calcul de dimension du kernel de multi-correlation          ---------------
+
   if(_useAtomicFunction)
     {
       // Calcul pour eviter la limitation de nombre de threads par block (ici 1024)

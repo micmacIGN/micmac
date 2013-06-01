@@ -90,3 +90,6 @@ precompiled_headers.cmake.orig
 src/bitm/im2d_bits.cpp.orig
 src/photogram/phgr_ebner_brown_dist.cpp.orig
 src/uti_phgrm/MICMAC/cGBV2_ProgDynOptimiseur.cpp.orig
+src/uti_phgrm/GpGpu/GpGpuOptimisation.cu.autosave
+src/saisie3D-build-Desktop_Qt_5_0_1_GCC_64bit-Release/
+src/saisie3D/

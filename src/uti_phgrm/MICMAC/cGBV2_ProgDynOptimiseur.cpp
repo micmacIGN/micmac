@@ -36,93 +36,27 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
+
+#include    "GpGpu/GpGpu.h"
+#include    "GpGpu/GBV2_ProgDynOptimiseur.h"
+
+#define     MAT_TO_STREAM true
+#define     STREAM_TO_MAT false
+
+//enum actionCell
+//{
+//    MAT_TO_STREAM,
+//    STREAM_TO_MAT,
+//    SCAN_MAT
+//};
 
 namespace NS_ParamMICMAC
 {
 
+Pt2di Px2Point(int * aPx) { return Pt2di(aPx[0],0); }
 bool IsPTest(const Pt2di & aP) {return aP == Pt2di(40,40);}
 
-Pt2di Px2Point(int * aPx) { return Pt2di(aPx[0],0); }
-int CostR2I(double aCost) { return round_ni(aCost*1e4); }
-
-
-/**************************************************/
-/*                                                */
-/*       cGBV2_CelOptimProgDyn                         */
-/*                                                */
-/**************************************************/
-typedef unsigned int tCost;
-
-class cGBV2_CelOptimProgDyn
-{
-public :
-    cGBV2_CelOptimProgDyn() :
-        mCostFinal (0)
-    {
-    }
-    typedef enum
-    {
-        eAvant = 0,
-        eArriere = 1
-    } eSens;
-    void SetCostInit(int aCost)
-    {
-        mCostInit = aCost;
-    }
-    void SetBeginCumul(eSens aSens)
-    {
-        mCostCum[aSens] = mCostInit;
-    }
-    void SetCumulInitial(eSens aSens)
-    {
-        mCostCum[aSens] = int(1e9) ;
-    }
-    void UpdateCost
-    (
-            const cGBV2_CelOptimProgDyn& aCel2,
-            eSens aSens,
-            int aCostTrans
-            )
-    {
-        ElSetMin
-                (
-                    mCostCum[aSens],
-                    mCostInit + aCostTrans + aCel2.mCostCum[aSens]
-                    );
-    }
-
-    tCost CostPassageForce() const
-    {
-        return mCostCum[eAvant] + mCostCum[eArriere] - mCostInit;
-    }
-    tCost GetCostInit() const
-    {
-        return mCostInit;
-    }
-    const tCost & CostFinal() const { return mCostFinal; }
-    tCost & CostFinal() { return mCostFinal; }
-private :
-    cGBV2_CelOptimProgDyn(const cGBV2_CelOptimProgDyn &);
-    tCost   mCostCum[2];
-    tCost   mCostInit;
-    tCost   mCostFinal;
-};
-
-typedef  cSmallMatrixOrVar<cGBV2_CelOptimProgDyn>   tCGBV2_tMatrCelPDyn;
-
-
-
-
-/**************************************************/
-/*                                                */
-/*                     ::                         */
-/*                                                */
-/**************************************************/
-
-
 //  COPIE TEL QUEL DEPUIS /home/mpd/ELISE/applis/Anag/SimpleProgDyn.cpp
-
 /*
     Soit Z dans l'intervalle ouvert I1 [aZ1Min,aZ1Max[,
     on recherche dans l'intervalle ouvert I0 [aZ0Min,aZ0Max[,
@@ -177,108 +111,6 @@ static inline void ComputeIntervaleDelta
     }
 }
 
-/**************************************************/
-/*                                                */
-/*               cProgDynOptimiseur               */
-/*                                                */
-/**************************************************/
-
-
-class cGBV2_TabulCost
-{
-public :
-    void Reset(double aCostL1,double aCostL2)
-    {
-        mNb=0;
-        mTabul = std::vector<int>();
-        mCostL1 = aCostL1;
-        mCostL2 = aCostL2;
-    }
-    inline int Cost(int aDx)
-    {
-        aDx = ElAbs(aDx);
-        for (;mNb<=aDx; mNb++)
-        {
-            mTabul.push_back
-                    (
-                        CostR2I
-                        (
-                            mCostL1 * mNb
-                            + mCostL2 * ElSquare(mNb)
-                            )
-                        );
-        }
-        return mTabul[aDx];
-    }
-
-    double           mCostL1;
-    double           mCostL2;
-    int              mNb;
-    std::vector<int> mTabul;
-};
-
-class cGBV2_ProgDynOptimiseur : public cSurfaceOptimiseur
-{
-public :
-    cGBV2_ProgDynOptimiseur
-    (
-        cAppliMICMAC &    mAppli,
-        cLoadTer&         mLT,
-        const cEquiv1D &        anEqX,
-        const cEquiv1D &        anEqY,
-            Im2D_INT2  aPxMin,
-            Im2D_INT2  aPxMax
-            );
-    ~cGBV2_ProgDynOptimiseur() {}
-    void Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int aLabel);
-    void Local_SolveOpt(Im2D_U_INT1 aImCor);
-
-
-    // Im2D_INT2     ImRes() {return mImRes;}
-
-private :
-
-    void BalayageOneDirection(Pt2dr aDir);
-    void BalayageOneLine(const std::vector<Pt2di> & aVPt);
-    void BalayageOneLineGpu(const std::vector<Pt2di> & aVPt);
-    void BalayageOneSens
-    (
-            const std::vector<Pt2di> & aVPt,
-            cGBV2_CelOptimProgDyn::eSens,
-            int anIndInit,
-            int aDelta,
-            int aLimite
-            );
-
-    void BalayageOneSensGpu
-    (
-            const std::vector<Pt2di> & aVPt,
-            cGBV2_CelOptimProgDyn::eSens,
-            int anIndInit,
-            int aDelta,
-            int aLimite
-            );
-    void SolveOneEtape(int aNbDir);
-
-    Im2D_INT2                          mXMin;
-    Im2D_INT2                          mXMax;
-    Pt2di                              mSz;
-    int                                mNbPx;
-    Im2D_INT2                          mYMin;
-    Im2D_INT2                          mYMax;
-    cMatrOfSMV<cGBV2_CelOptimProgDyn>  mMatrCel;
-    cLineMapRect                       mLMR;
-    cGBV2_TabulCost                    mTabCost[theDimPxMax];
-    // int                             mCostActu[theDimPxMax];
-    int                                mMaxEc[theDimPxMax];
-    eModeAggregProgDyn                 mModeAgr;
-    int                                mNbDir;
-    double                             mPdsProgr;
-
-    // Im2D_INT2     mImRes;
-    // INT2 **       mDataImRes;
-
-};
 static cGBV2_CelOptimProgDyn aCelForInit;
 
 cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
@@ -310,7 +142,7 @@ cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
 
 void cGBV2_ProgDynOptimiseur::Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int aLabel)
 {
-    mMatrCel[aPTer][Px2Point(aPX)].SetCostInit(CostR2I(aCost));
+    mMatrCel[aPTer][Px2Point(aPX)].SetCostInit(cGBV2_TabulCost::CostR2I(aCost));
 }
 
 void cGBV2_ProgDynOptimiseur::BalayageOneSens
@@ -588,100 +420,10 @@ void cGBV2_ProgDynOptimiseur::BalayageOneDirection(Pt2dr aDirR)
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
 
     const std::vector<Pt2di> * aVPt;
-
-#ifdef CUDA_ENABLED
-
-    // A DETERMINER la taille maximale du nombre de lignes!!!
-    uint sizeMaxLine = (uint)2*sqrt((float)mSz.x * mSz.x + mSz.y * mSz.y);
-
-    CuHostData3D<uint3> rStrPar(sizeMaxLine);
-
-    uint idLine = 0, sizeStreamId = 0,sizeStreamLine, pitStream = 0, pitIdStream = 0 , NbLine = 0 ;
-
-    while ((aVPt = mLMR.Next()))
-    {
-        uint lenghtLine = (uint)(aVPt->size());   
-
-        rStrPar[idLine].x = pitStream;
-        rStrPar[idLine].y = pitIdStream;
-        rStrPar[idLine].z = lenghtLine;
-
-        sizeStreamLine = sizeStreamId = 0;
-
-        for (uint aK = 0 ; aK < lenghtLine; aK++)
-        {
-            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
-            const Box2di &  aBox        = aMat.Box();
-            sizeStreamLine += abs(aBox._p1.x-aBox._p0.x) + 1;
-        }
-
-        pitIdStream += iDivUp(lenghtLine,WARPSIZE) * WARPSIZE;
-        pitStream   += iDivUp(sizeStreamLine,WARPSIZE) * WARPSIZE;
-
-        idLine++;
-    }
-
-    NbLine = idLine;
-
-    CuHostData3D<uint>      h_strCostVolume(pitStream);
-    CuHostData3D<short2>    h_strIndex(pitIdStream);
-    CuHostData3D<uint>      h_OutForceCostVol(pitStream);
-
-    mLMR.Init(aDirI,Pt2di(0,0),mSz);
-    idLine = 0;
-
-    while ((aVPt = mLMR.Next()))
-    {
-        uint  idStream   = 0;
-
-        for (uint aK = 0 ; aK < rStrPar[idLine].z ; aK++)
-        {
-            // Matrice des cellules
-            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
-            const Box2di &  aBox        = aMat.Box();
-
-            h_strIndex[rStrPar[idLine].y + aK] = make_short2(aBox._p0.x,aBox._p1.x);
-
-            for (int aPx = aBox._p0.x ; aPx <= aBox._p1.x ; aPx++)
-                h_strCostVolume[rStrPar[idLine].x + idStream + aPx - aBox._p0.x]  = aMat[Pt2di(aPx,0)].GetCostInit();
-
-            idStream += abs(aBox._p1.x-aBox._p0.x) + 1;
-        }
-        idLine++;
-    }
-
-    OptimisationOneDirection(h_strCostVolume,h_strIndex,NbLine,h_OutForceCostVol, rStrPar);
-
-    mLMR.Init(aDirI,Pt2di(0,0),mSz);
-    idLine = 0;
-
-    while ((aVPt = mLMR.Next()))
-    {
-        uint    idStream = 0;
-
-        for (uint aK= 0 ; aK < rStrPar[idLine].z; aK++) // on parcours la ligne
-        {
-            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
-            const Box2di &  aBox = aMat.Box();
-
-            for ( int aPx = aBox._p0.x ; aPx < aBox._p1.x ; aPx++)
-                aMat[Pt2di(aPx,0)].CostFinal() += tCost(h_OutForceCostVol[rStrPar[idLine].x + idStream + aPx - aBox._p0.x]);
-
-            idStream += abs(aBox._p1.x - aBox._p0.x ) + 1;
-        }
-        idLine++;
-    }
-
-    h_strCostVolume.Dealloc();
-    h_strIndex.Dealloc();
-    h_OutForceCostVol.Dealloc();
-    rStrPar.Dealloc();
-
-#else
     //printf("Optimisation CPU\n");
      while ((aVPt=mLMR.Next()))
         BalayageOneLineGpu(*aVPt);
-#endif
+
 }
 
 void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
@@ -696,6 +438,9 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
         mTabCost[aKP].Reset(0,0);
     }
 
+#ifdef CUDA_ENABLED
+    SolveAllDirectionGpu(aNbDir);
+#else
     // Parcours dans toutes les directions
     for (int aKDir=0 ; aKDir<mNbDir ; aKDir++)
     {
@@ -717,6 +462,7 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
         // Balayage dans une direction aP
         BalayageOneDirection(aP);
     }
+#endif
 
     {
         Pt2di aPTer;
@@ -744,7 +490,97 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
         }
     }
 }
+#ifdef CUDA_ENABLED
 
+void cGBV2_ProgDynOptimiseur::copyCells(bool dirCopy, Pt2di aDirI,Data2Optimiz  &d2Opt)
+// CuHostData3D<uint> h_OutForceCostVol,  CuHostData3D<uint> h_strCostVolume, CuHostData3D<uint3> rStrPar, CuHostData3D<short2> h_strIndex)
+{
+    mLMR.Init(aDirI,Pt2di(0,0),mSz);
+    const std::vector<Pt2di>* aVPt;
+    uint idLine = 0;
+    while ((aVPt = mLMR.Next()))
+    {
+        uint    pitStrm = 0;
+        uint    lLine   = aVPt->size();
+
+        for (uint aK= 0 ; aK < lLine; aK++)
+        {
+
+            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
+
+            short2 dZ = make_short2(aMat.Box()._p0.x,aMat.Box()._p1.x);
+
+            if(dirCopy == MAT_TO_STREAM)
+                d2Opt.hS_Index[d2Opt.h__Param[idLine].y + aK] = dZ;
+
+            uint idStrm = d2Opt.h__Param[idLine].x + pitStrm - dZ.x;
+
+            for ( int aPx = dZ.x ; aPx < dZ.y ; aPx++)
+                if (dirCopy == MAT_TO_STREAM)
+                    d2Opt.hS_InitCostVol[idStrm + aPx]  = aMat[Pt2di(aPx,0)].GetCostInit();
+                else
+                    aMat[Pt2di(aPx,0)].AddToCostFinal(d2Opt.hS_ForceCostVol[idStrm + aPx]);
+
+            pitStrm += count(dZ);
+        }
+
+        idLine++;
+
+    }
+}
+
+void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
+{
+
+    const std::vector<Pt2di> * aVPt;
+    uint sizeMaxLine = (uint)(1.5f*sqrt((float)mSz.x * mSz.x + mSz.y * mSz.y));
+
+    _d2Opt.ReallocParam(sizeMaxLine);
+
+    int aKDir = 0;
+    while (aKDir < aNbDir)
+    {
+
+        Pt2di aDirI = Pt2di(vunit(Pt2dr::FromPolar(100.0,(aKDir*PI)/aNbDir)) * 20.0);
+
+        uint nbLine = 0, sizeStreamLine, pitStream = 0, pitIdStream = 0 ;
+
+        mLMR.Init(aDirI,Pt2di(0,0),mSz);
+
+        while ((aVPt = mLMR.Next()))
+        {
+            uint lenghtLine = (uint)(aVPt->size());
+
+            _d2Opt.SetParamLine(nbLine,pitStream,pitIdStream,lenghtLine);
+
+            sizeStreamLine = 0;
+
+            for (uint aK = 0 ; aK < lenghtLine; aK++)
+                sizeStreamLine += abs(mMatrCel[(*aVPt)[aK]].Box()._p1.x-mMatrCel[(*aVPt)[aK]].Box()._p0.x) + 1;
+
+            pitIdStream += iDivUp(lenghtLine,       WARPSIZE) * WARPSIZE;
+            pitStream   += iDivUp(sizeStreamLine,   WARPSIZE) * WARPSIZE;
+
+            nbLine++;
+        }
+
+        _d2Opt.SetNbLine(nbLine);
+
+        _d2Opt.ReallocIf(pitStream,pitIdStream);
+
+        copyCells(MAT_TO_STREAM, aDirI, _d2Opt);
+
+        OptimisationOneDirection(_d2Opt);
+
+        copyCells(STREAM_TO_MAT, aDirI, _d2Opt);
+
+        aKDir++;
+    }
+
+    _d2Opt.Dealloc();
+
+}
+#endif
 
 
 void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
