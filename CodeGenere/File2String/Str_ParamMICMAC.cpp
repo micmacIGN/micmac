@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2053]) = {
+const char * (theNameVar_ParamMICMAC[2057]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -508,9 +508,13 @@ const char * (theNameVar_ParamMICMAC[2053]) = {
 "             <MulZMax Nb=\"1\" Type=\"double\"> </MulZMax>\n",
 "       </IntervSpecialZInv>\n",
 "\n",
-"       <!-- Adapte  a la geometrie terrain -->\n",
+"        <!-- limite le nombre de decimale des fichiers de geo-ref, mis a true par defaut car\n",
+"         on suppose (espere) que ce ne posera pas de pb de compat -->\n",
+"        <AutoRoundGeoref Nb=\"?\" Type=\"bool\" Def=\"true\"> </AutoRoundGeoref>\n",
 "\n",
+"       <!-- Adapte  a la geometrie terrain -->\n",
 "        <Planimetrie Nb=\"?\">\n",
+"\n",
 "             <!-- \n",
 "                   La zone terrain est definie par l'union de Box Terrain\n",
 "                (si elle existe) et de la projection en terrain, avec la\n",

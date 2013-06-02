@@ -3095,13 +3095,13 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
 	std::string ChMpDCraw(const cPriseDeVue *) const;
 
-        void VerifOneEtapes(const cEtapeMEC & anEt) const;
+        void VerifOneEtapes(const cEtapeMEC & anEt) ;
         void VerifEtapesSucc
              (
                   const cEtapeMEC & anEt0,
                   const cEtapeMEC & anEt1
-             ) const;
-        void VerifEtapes() const;
+             ) ;
+        void VerifEtapes() ;
         void VerifTPyr() const;
         void VerifImages() const;
 

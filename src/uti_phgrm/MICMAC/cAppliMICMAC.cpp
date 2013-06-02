@@ -442,6 +442,7 @@ std::cout << "END TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
       return;
 
 
+   VerifEtapes();
    mGeomDFPx->PostInit();
    *mGeomDFPxInit =  *mGeomDFPx;
    double aLogDZ = log2(mGeomDFPxInit->SzDz().XtY() / NbPixDefFilesAux().Val());
@@ -451,7 +452,6 @@ std::cout << "END TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
    InitNadirRank();
 
 
-   VerifEtapes();
    VerifImages();
 
    // InitMecComp();
@@ -697,7 +697,7 @@ void cAppliMICMAC::VerifEtapesSucc
      (
           const cEtapeMEC & anEt0,
           const cEtapeMEC & anEt1
-     ) const
+     ) 
 {
    ELISE_ASSERT
    (
@@ -708,7 +708,7 @@ void cAppliMICMAC::VerifEtapesSucc
 }
 
 // A 
-void cAppliMICMAC::VerifOneEtapes(const cEtapeMEC & anEt) const 
+void cAppliMICMAC::VerifOneEtapes(const cEtapeMEC & anEt) 
 {
      INT aDZ = anEt.DeZoom();
      ELISE_ASSERT
@@ -719,8 +719,21 @@ void cAppliMICMAC::VerifOneEtapes(const cEtapeMEC & anEt) const
 
 }
 
-void cAppliMICMAC::VerifEtapes() const
+
+void cAppliMICMAC::VerifEtapes() 
 {
+std::cout << "==============================cAppliMICMAC::VerifEtapes \n";
+   mDeZoomMax =1;
+   mDeZoomMin =1<<20;
+   for (std::list<cEtapeMEC>::const_iterator itE=  EtapeMEC().begin() ;  itE!= EtapeMEC().end() ; itE++)
+   {
+         int aDz = itE->DeZoom();
+         if (aDz !=-1)
+         {
+              ElSetMax(mDeZoomMax,aDz);
+              ElSetMin(mDeZoomMin,aDz);
+         }
+    }
    std::list<cEtapeMEC>::const_iterator itE = EtapeMEC().begin();
    ELISE_ASSERT(itE->DeZoom()==-1,"Etape Init, Resol != -1");
 
@@ -738,6 +751,7 @@ void cAppliMICMAC::VerifEtapes() const
          itPrec = itE;
          itE++;
     }
+
 }
 
 void cAppliMICMAC::VerifImages() const
@@ -889,10 +903,10 @@ std::string  cAppliMICMAC::NameFileSzW(int aDz)
 }
 
 
+
+
 void cAppliMICMAC::InitMecComp()
 {
-   mDeZoomMax =1;
-   mDeZoomMin =1<<20;
    mHasOneModeIm1Maitre = false;
    std::list<cEtapeMEC>::iterator itE = EtapeMEC().begin();
    itE++;
@@ -925,11 +939,6 @@ void cAppliMICMAC::InitMecComp()
                     );
            mEtapesMecComp.push_back ( anEt);
            int aDz = anEt->EtapeMEC().DeZoom();
-           if (aDz !=-1)
-           {
-              ElSetMax(mDeZoomMax,aDz);
-              ElSetMin(mDeZoomMin,aDz);
-           }
 
 
            if (anEt->UseWAdapt() && (itE->DeZoom()>0) &&  (! CalledByProcess().Val()))
