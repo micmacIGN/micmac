@@ -8,6 +8,8 @@ Nouveaux outils :
 
   Semi-Big Tiff
 
+   Ori2Xml
+
   MNE urbain en chaine simplifiee ??,
 
   Rajouter un critere de Scale Variation, melange au B/H , dans le choix des "meilleures" image secondaire,

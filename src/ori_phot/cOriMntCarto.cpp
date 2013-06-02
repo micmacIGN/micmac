@@ -85,12 +85,12 @@ double  cOriMntCarto:: StdLireIntAsReal(FILE * aFp)
 
 REAL cOriMntCarto::ToUniteOri(REAL aV)
 {
-   return UniteFile * ll_round_ni(aV/UniteFile);
+   return UniteFile * lround_ni(aV/UniteFile);
 }
 
 long long INT  cOriMntCarto::ToStdInt(REAL aV)
 {
-    return ll_round_ni(aV/UniteFile);
+    return lround_ni(aV/UniteFile);
 }
 
 

@@ -171,7 +171,14 @@ void TestXMLNuageNodData()
 int MPDtest_main (int argc,char** argv)
 {
 
-std::cout << "AAAA\n";
+   while(1)
+   {
+       double aV;
+       cin >> aV;
+       std::cout << "Round " << StdRound(aV) << "\n";
+   }
+
+
     Tiff_Im  aFile
              (
                  "toto.tif",

@@ -135,51 +135,62 @@ template <class Type> void GccUse(const Type & ) {}
 
 
 // return the smallest integral value >= r
-inline INT round_up(REAL r)
+template<class Type> inline Type Tpl_round_up(REAL r)
 {
-       INT i = (INT) r;
+       Type i = (Type) r;
        return i + (i < r);
 }
+inline INT round_up(REAL r) { return Tpl_round_up<int>(r); }
+inline long int lround_up(REAL r) { return Tpl_round_up<long int>(r); }
+
 
 // return the smallest integral value > r
-inline INT round_Uup(REAL r)
+template<class Type> inline Type Tpl_round_Uup(REAL r)
 {
-       INT i = (INT) r;
+       Type i = (Type) r;
        return i + (i <= r);
 }
+inline INT round_Uup(REAL r) { return Tpl_round_Uup<int>(r); }
 
 
 // return the highest integral value <= r
-inline INT round_down(REAL r)
+template<class Type> inline Type Tpl_round_down(REAL r)
 {
-       INT i = (INT) r;
+       Type i = (Type) r;
        return i - (i > r);
 }
+inline INT round_down(REAL r) { return Tpl_round_down<int>(r); }
+inline long int lround_down(REAL r) { return Tpl_round_down<long int>(r); }
 
 // return the highest integral value < r
-inline INT round_Ddown(REAL r)
+template<class Type> inline Type Tpl_round_Ddown(REAL r)
 {
-       INT i = (INT) r;
+       Type i = (Type) r;
        return i - (i >= r);
 }
+inline INT round_Ddown(REAL r) { return Tpl_round_Ddown<int>(r); }
 
 
 
 // return the integral value closest to r
 // if r = i +0.5 (i integer) return i+1
-inline INT round_ni(REAL r)
+template<class Type> inline Type Tpl_round_ni(REAL r)
 {
-       INT i = (INT) r;
+       Type i = (Type) r;
        i -= (i > r);
        return i+ ((i+0.5) <= r) ;
 }
 
+inline INT round_ni(REAL r) { return Tpl_round_ni<int>(r); }
+inline long int lround_ni(REAL r) { return Tpl_round_ni<long int>(r); }
+/*
 inline INTByte8 ll_round_ni(REAL r)
 {
        INTByte8 i = (INTByte8) r;
        i -= (i > r);
        return i+ ((i+0.5) <= r) ;
 }
+*/
 
 
 
@@ -261,6 +272,10 @@ inline REAL mod_real(REAL a,REAL b)
    while (res<0) res += b;
    return res;
 }
+
+double StdRound(const double & aD,int aNbDigit,int * aTabR,int aSizeR);
+double StdRound(const double & aD);
+
 
 REAL angle_mod_real(REAL a,REAL b);
 

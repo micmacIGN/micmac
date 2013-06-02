@@ -203,6 +203,11 @@ cGeomDiscFPx::cGeomDiscFPx
 {
 }
 
+double RoundAppli(const cAppliMICMAC & anAp,double aRes)
+{
+   double aZ = anAp.DeZoomMin();
+   return  StdRound(aRes*aZ) /aZ;
+}
 
 /*************************************************************************/
 /*       Initialise les parametres  definissant la geometrie terrain     */
@@ -219,6 +224,7 @@ if (MPD_MM())
     std::cout << "VOIR===PB Z<0 en Prof Champs \n";
 }
 
+  bool doAutoRound  = mAp->AutoRoundGeoref().Val();
 
   cFileOriMnt * aFileExt = 0;
   if (mAp->FileOriMnt().IsInit())
@@ -324,6 +330,12 @@ if (MPD_MM())
   }
   ELISE_ASSERT(aNbResolGot," Resolution pas trouvee");
   mResol /= aNbResolGot;
+  double aResolNotRound = mResol;
+  if (doAutoRound)
+  {
+     mResol = RoundAppli(*mAp,mResol);
+     std::cout << "=====ZOOOM " << mAp->DeZoomMin() <<  " " << mAp->DeZoomMax() << "\n";
+  }
   if (aFileExt)
   {
        mResol = ElAbs(aFileExt->ResolutionPlani().x);
@@ -337,7 +349,7 @@ if (MPD_MM())
   else if (mAp->Planimetrie().IsInit())
   {
      if  (mAp->RatioResolImage().IsInit())
-         mResol *= mAp->RatioResolImage().Val();
+         mResol = RoundAppli(*mAp,aResolNotRound*mAp->RatioResolImage().Val());
      if  (mAp->ResolutionTerrain().IsInit())
          mResol = mAp->ResolutionTerrain().Val();
   } 

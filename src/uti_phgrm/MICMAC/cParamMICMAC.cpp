@@ -2630,6 +2630,17 @@ const cTplValGesInit< cIntervSpecialZInv > & cSection_Terrain::IntervSpecialZInv
 }
 
 
+cTplValGesInit< bool > & cSection_Terrain::AutoRoundGeoref()
+{
+   return mAutoRoundGeoref;
+}
+
+const cTplValGesInit< bool > & cSection_Terrain::AutoRoundGeoref()const 
+{
+   return mAutoRoundGeoref;
+}
+
+
 cTplValGesInit< Box2dr > & cSection_Terrain::BoxTerrain()
 {
    return Planimetrie().Val().BoxTerrain();
@@ -2822,6 +2833,8 @@ cElXMLTree * ToXMLTree(const cSection_Terrain & anObj)
       aRes->AddFils(ToXMLTree(anObj.NuageXMLInit().Val())->ReTagThis("NuageXMLInit"));
    if (anObj.IntervSpecialZInv().IsInit())
       aRes->AddFils(ToXMLTree(anObj.IntervSpecialZInv().Val())->ReTagThis("IntervSpecialZInv"));
+   if (anObj.AutoRoundGeoref().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("AutoRoundGeoref"),anObj.AutoRoundGeoref().Val())->ReTagThis("AutoRoundGeoref"));
    if (anObj.Planimetrie().IsInit())
       aRes->AddFils(ToXMLTree(anObj.Planimetrie().Val())->ReTagThis("Planimetrie"));
    if (anObj.FileOriMnt().IsInit())
@@ -2848,6 +2861,8 @@ void xml_init(cSection_Terrain & anObj,cElXMLTree * aTree)
    xml_init(anObj.NuageXMLInit(),aTree->Get("NuageXMLInit",1)); //tototo 
 
    xml_init(anObj.IntervSpecialZInv(),aTree->Get("IntervSpecialZInv",1)); //tototo 
+
+   xml_init(anObj.AutoRoundGeoref(),aTree->Get("AutoRoundGeoref",1),bool(true)); //tototo 
 
    xml_init(anObj.Planimetrie(),aTree->Get("Planimetrie",1)); //tototo 
 
@@ -16860,6 +16875,17 @@ cTplValGesInit< cIntervSpecialZInv > & cParamMICMAC::IntervSpecialZInv()
 const cTplValGesInit< cIntervSpecialZInv > & cParamMICMAC::IntervSpecialZInv()const 
 {
    return Section_Terrain().IntervSpecialZInv();
+}
+
+
+cTplValGesInit< bool > & cParamMICMAC::AutoRoundGeoref()
+{
+   return Section_Terrain().AutoRoundGeoref();
+}
+
+const cTplValGesInit< bool > & cParamMICMAC::AutoRoundGeoref()const 
+{
+   return Section_Terrain().AutoRoundGeoref();
 }
 
 

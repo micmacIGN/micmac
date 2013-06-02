@@ -506,9 +506,13 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
              <MulZMax Nb="1" Type="double"> </MulZMax>
        </IntervSpecialZInv>
 
-       <!-- Adapte  a la geometrie terrain -->
+        <!-- limite le nombre de decimale des fichiers de geo-ref, mis a true par defaut car
+         on suppose (espere) que ce ne posera pas de pb de compat -->
+        <AutoRoundGeoref Nb="?" Type="bool" Def="true"> </AutoRoundGeoref>
 
+       <!-- Adapte  a la geometrie terrain -->
         <Planimetrie Nb="?">
+
              <!-- 
                    La zone terrain est definie par l'union de Box Terrain
                 (si elle existe) et de la projection en terrain, avec la
