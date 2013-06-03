@@ -140,10 +140,6 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 							   if(1){//(Dist1>aSz.x/3 || Dist2>aSz.x/3)){// && (rap<0.75 || rap>1.33)){Filtre à mettre en place?
 								   D1.push_back(Dist1);
 								   D2.push_back(Dist2);
-								   //X1.push_back(itP->P1().x);Unused, was for possible linear shift in vignette
-								   //Y1.push_back(itP->P1().y);
-								   //X2.push_back(itP->P2().x);
-								   //Y2.push_back(itP->P2().y);
 								   G1.push_back(Grey1);
 								   G2.push_back(Grey2);
 							   }
@@ -164,10 +160,6 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 	aPtsHomol.push_back(G1);
 	aPtsHomol.push_back(G2);
 	aPtsHomol.push_back(SZ);
-	//aPtsHomol.push_back(X1);
-	//aPtsHomol.push_back(Y1);
-	//aPtsHomol.push_back(X2);
-	//aPtsHomol.push_back(Y2);
    return aPtsHomol;
 }
 
@@ -244,9 +236,10 @@ vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
 
 	// Create L2SysSurResol to solve least square equation with 3 unknown
 	L2SysSurResol aSys(3);
+	int nbPtsSIFT=aPtsHomol[0].size();
 
   	//For Each SIFT point
-	for(int i=0;i<int(aPtsHomol[0].size());i++){
+	for(int i=0;i<int(nbPtsSIFT);i++){
 				 double aPds[3]={(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2)),
 								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4)),
 								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6))
