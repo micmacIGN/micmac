@@ -493,7 +493,6 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
 #ifdef CUDA_ENABLED
 
 void cGBV2_ProgDynOptimiseur::copyCells(bool dirCopy, Pt2di aDirI,Data2Optimiz  &d2Opt)
-// CuHostData3D<uint> h_OutForceCostVol,  CuHostData3D<uint> h_strCostVolume, CuHostData3D<uint3> rStrPar, CuHostData3D<short2> h_strIndex)
 {
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
     const std::vector<Pt2di>* aVPt;
