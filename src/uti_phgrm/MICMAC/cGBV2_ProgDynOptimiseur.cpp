@@ -43,13 +43,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define     MAT_TO_STREAM true
 #define     STREAM_TO_MAT false
 
-//enum actionCell
-//{
-//    MAT_TO_STREAM,
-//    STREAM_TO_MAT,
-//    SCAN_MAT
-//};
-
 namespace NS_ParamMICMAC
 {
 
@@ -535,49 +528,63 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
     const std::vector<Pt2di> * aVPt;
     uint sizeMaxLine = (uint)(1.5f*sqrt((float)mSz.x * mSz.x + mSz.y * mSz.y));
 
-    _d2Opt.ReallocParam(sizeMaxLine);
+    IGpuOpt.ReallocParam(sizeMaxLine);
 
-    int aKDir = 0;
+    int aKDir = 0;//, aKPreDir = 0;
     while (aKDir < aNbDir)
     {
 
-        Pt2di aDirI = Pt2di(vunit(Pt2dr::FromPolar(100.0,(aKDir*PI)/aNbDir)) * 20.0);
-
-        uint nbLine = 0, sizeStreamLine, pitStream = 0, pitIdStream = 0 ;
-
-        mLMR.Init(aDirI,Pt2di(0,0),mSz);
-
-        while ((aVPt = mLMR.Next()))
+//        if(IGpuOpt.GetPreCompNextDir() && aKPreDir < aNbDir && aKPreDir <= aKDir )
         {
-            uint lenghtLine = (uint)(aVPt->size());
+            Pt2di aDirI = Pt2di(vunit(Pt2dr::FromPolar(100.0,(aKDir*PI)/aNbDir)) * 20.0);
 
-            _d2Opt.SetParamLine(nbLine,pitStream,pitIdStream,lenghtLine);
+            uint nbLine = 0, sizeStreamLine, pitStream = 0, pitIdStream = 0 ;
 
-            sizeStreamLine = 0;
+            mLMR.Init(aDirI,Pt2di(0,0),mSz);
 
-            for (uint aK = 0 ; aK < lenghtLine; aK++)
-                sizeStreamLine += abs(mMatrCel[(*aVPt)[aK]].Box()._p1.x-mMatrCel[(*aVPt)[aK]].Box()._p0.x) + 1;
+            while ((aVPt = mLMR.Next()))
+            {
+                uint lenghtLine = (uint)(aVPt->size());
 
-            pitIdStream += iDivUp(lenghtLine,       WARPSIZE) * WARPSIZE;
-            pitStream   += iDivUp(sizeStreamLine,   WARPSIZE) * WARPSIZE;
+                IGpuOpt.Data2Opt().SetParamLine(nbLine,pitStream,pitIdStream,lenghtLine);
 
-            nbLine++;
+                sizeStreamLine = 0;
+
+                for (uint aK = 0 ; aK < lenghtLine; aK++)
+                    sizeStreamLine += abs(mMatrCel[(*aVPt)[aK]].Box()._p1.x-mMatrCel[(*aVPt)[aK]].Box()._p0.x) + 1;
+
+                pitIdStream += iDivUp(lenghtLine,       WARPSIZE) * WARPSIZE;
+                pitStream   += iDivUp(sizeStreamLine,   WARPSIZE) * WARPSIZE;
+
+                nbLine++;
+            }
+
+            IGpuOpt.Data2Opt().SetNbLine(nbLine);
+
+            IGpuOpt.Data2Opt().ReallocIf(pitStream,pitIdStream);
+
+            copyCells<MAT_TO_STREAM>( aDirI, IGpuOpt.Data2Opt());
+
+//            IGpuOpt.SetDirToCompute(true);
+//            IGpuOpt.SetPreCompNextDir(false);
+
+            //aKPreDir++;
         }
 
-        _d2Opt.SetNbLine(nbLine);
+        IGpuOpt.oneDirOptGpGpu();
 
-        _d2Opt.ReallocIf(pitStream,pitIdStream);
+        //if(IGpuOpt.GetDirToCopy())
+        {
+            Pt2di aDirI = Pt2di(vunit(Pt2dr::FromPolar(100.0,(aKDir*PI)/aNbDir)) * 20.0);
 
-        copyCells<MAT_TO_STREAM>( aDirI, _d2Opt);
+            copyCells<STREAM_TO_MAT>( aDirI, IGpuOpt.Data2Opt());
 
-        OptimisationOneDirection(_d2Opt);
-
-        copyCells<STREAM_TO_MAT>( aDirI, _d2Opt);
-
-        aKDir++;
+            //IGpuOpt.SetDirToCopy(false);
+            aKDir++;
+        }
     }
 
-    _d2Opt.Dealloc();
+    IGpuOpt.Data2Opt().Dealloc();
 
 }
 #endif
