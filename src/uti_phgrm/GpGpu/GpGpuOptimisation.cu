@@ -9,12 +9,8 @@
 /// \date       Avril 2013
 
 #include "GpGpu/GpGpuStreamData.cuh"
-#include "GpGpu/GpGpuOptimisation.h"
-
-__device__ float sign(bool sens)
-{
-    return sens ? 1 : -1;
-}
+//#include "GpGpu/GpGpuOptimisation.h"
+#include "GpGpu/data2Optimize.h"
 
 /// brief Calcul le Z min et max.
 __device__ void ComputeIntervaleDelta(short2 & aDz, int aZ, int MaxDeltaZ, short2 aZ_Next, short2 aZ_Prev)
@@ -160,72 +156,20 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2
 
 }
 
-/// \brief Lance le kernel d optimisation pour une direction
-template <class T> void LaunchKernelOptOneDirection(Data2Optimiz<CuHostData3D> &D2O)
-{
-
-    uint    deltaMax    =   3;
-    dim3    Threads(WARPSIZE,1,1);
-    dim3    Blocks(D2O.nbLines,1,1);
-
-/*
-    uint    dimDeltaMax =   deltaMax * 2 + 1;
-    float   hPen[PENALITE];
-    ushort  hMapIndex[WARPSIZE];
-
-    for(int i=0 ; i < WARPSIZE; i++)
-        hMapIndex[i] = i / dimDeltaMax;
-
-    for(int i=0;i<PENALITE;i++)
-        hPen[i] = ((float)(1 / 10.0f));
-
-    //      Copie des penalites dans le device                              ---------------		-
-
-    checkCudaErrors(cudaMemcpyToSymbol(penalite,    hPen,       sizeof(float)   * PENALITE));
-    checkCudaErrors(cudaMemcpyToSymbol(dMapIndex,   hMapIndex,  sizeof(ushort)  * WARPSIZE));
-*/
-    //      Declaration et allocation memoire des variables Device          ---------------		-
-
-    CuDeviceData3D<T>       d_InputStream    ( D2O.hS_InitCostVol   .GetSize(), "d_InputStream"  );
-    CuDeviceData3D<short2>  d_InputIndex     ( D2O.hS_Index         .GetSize(), "d_InputIndex"   );
-    CuDeviceData3D<uint3>   d_Param          ( D2O.h__Param         .GetSize(), "d_RecStrParam"  );
-    CuDeviceData3D<T>       d_ForceCostVol   ( D2O.hS_ForceCostVol  .GetSize(), "d_ForceCostVol" );
-
-    //      Copie du volume de couts dans le device                         ---------------		-
-
-    d_InputStream.CopyHostToDevice(  D2O.hS_InitCostVol .pData());
-    d_InputIndex .CopyHostToDevice(  D2O.hS_Index       .pData());
-    d_Param      .CopyHostToDevice(  D2O.h__Param       .pData());
-
-    //      Kernel optimisation                                             ---------------     -
-
-    kernelOptiOneDirection<T><<<Blocks,Threads>>>
-                                                (
-                                                    d_InputStream   .pData(),
-                                                    d_InputIndex    .pData(),
-                                                    d_ForceCostVol  .pData(),
-                                                    d_Param         .pData(),
-                                                    deltaMax
-                                                    );
-
-    getLastCudaError("kernelOptiOneDirection failed");
-
-    //      Copie des couts de passage forcé du device vers le host         ---------------     -
-
-    d_ForceCostVol.CopyDevicetoHost(D2O.hS_ForceCostVol.pData());
-
-    //      De-allocation memoire des variables Device                      ---------------     -
-
-    d_ForceCostVol  .Dealloc();
-    d_InputStream   .Dealloc();
-    d_InputIndex    .Dealloc();
-    d_Param         .Dealloc();
-}
-
-/// \brief Appel exterieur du kernel d optimisation
 extern "C" void OptimisationOneDirection(Data2Optimiz<CuHostData3D> &d2O)
 {
-    LaunchKernelOptOneDirection<uint>(d2O);
+    uint deltaMax = 3;
+    dim3 Threads(WARPSIZE,1,1);
+    dim3 Blocks(d2O.nbLines,1,1);
+
+    kernelOptiOneDirection<uint><<<Blocks,Threads>>>
+                                                (
+                                                    d2O.hS_InitCostVol  .pData(),
+                                                    d2O.hS_Index        .pData(),
+                                                    d2O.hS_ForceCostVol .pData(),
+                                                    d2O.h__Param        .pData(),
+                                                    deltaMax
+                                                    );
 }
 
 /// \brief Appel exterieur du kernel
