@@ -72,7 +72,7 @@ double StdRound(const double & aD,int aNbDigit,int * aTabR,int aSizeR)
 {
    int aL10 = round_down(log10(aD)) - aNbDigit+1;
 
-   double aP10 = pow(10,aL10);
+   double aP10 = pow(10.0,aL10);
    double aVI = aD/aP10;
 
    int aBestK = -1;
