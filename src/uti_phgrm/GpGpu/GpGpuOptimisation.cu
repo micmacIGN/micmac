@@ -161,7 +161,7 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2
 }
 
 /// \brief Lance le kernel d optimisation pour une direction
-template <class T> void LaunchKernelOptOneDirection(Data2Optimiz &D2O)
+template <class T> void LaunchKernelOptOneDirection(Data2Optimiz<CuHostData3D> &D2O)
 {
 
     uint    deltaMax    =   3;
@@ -223,7 +223,7 @@ template <class T> void LaunchKernelOptOneDirection(Data2Optimiz &D2O)
 }
 
 /// \brief Appel exterieur du kernel d optimisation
-extern "C" void OptimisationOneDirection(Data2Optimiz &d2O)
+extern "C" void OptimisationOneDirection(Data2Optimiz<CuHostData3D> &d2O)
 {
     LaunchKernelOptOneDirection<uint>(d2O);
 }
@@ -234,8 +234,8 @@ extern "C" void Launch()
 
     printf("Test Template\n");
 
-    Data2Optimiz2<CuHostData3D>     H_D2O;
-    Data2Optimiz2<CuDeviceData3D>   D_D2O;
+    Data2Optimiz<CuHostData3D>     H_D2O;
+    Data2Optimiz<CuDeviceData3D>   D_D2O;
 
     H_D2O.ReallocIf(2,2);
 

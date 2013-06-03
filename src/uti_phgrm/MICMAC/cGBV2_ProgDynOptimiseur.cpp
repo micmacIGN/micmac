@@ -492,7 +492,8 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
 }
 #ifdef CUDA_ENABLED
 
-void cGBV2_ProgDynOptimiseur::copyCells(bool dirCopy, Pt2di aDirI,Data2Optimiz  &d2Opt)
+template<bool dirCopy>
+void cGBV2_ProgDynOptimiseur::copyCells(Pt2di aDirI, Data2Optimiz<CuHostData3D> &d2Opt)
 {
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
     const std::vector<Pt2di>* aVPt;
@@ -567,11 +568,11 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
         _d2Opt.ReallocIf(pitStream,pitIdStream);
 
-        copyCells(MAT_TO_STREAM, aDirI, _d2Opt);
+        copyCells<MAT_TO_STREAM>( aDirI, _d2Opt);
 
         OptimisationOneDirection(_d2Opt);
 
-        copyCells(STREAM_TO_MAT, aDirI, _d2Opt);
+        copyCells<STREAM_TO_MAT>( aDirI, _d2Opt);
 
         aKDir++;
     }
