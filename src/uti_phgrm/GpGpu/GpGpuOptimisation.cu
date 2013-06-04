@@ -9,12 +9,8 @@
 /// \date       Avril 2013
 
 #include "GpGpu/GpGpuStreamData.cuh"
-#include "GpGpu/GpGpuOptimisation.h"
-
-__device__ float sign(bool sens)
-{
-    return sens ? 1 : -1;
-}
+//#include "GpGpu/GpGpuOptimisation.h"
+#include "GpGpu/data2Optimize.h"
 
 /// brief Calcul le Z min et max.
 __device__ void ComputeIntervaleDelta(short2 & aDz, int aZ, int MaxDeltaZ, short2 aZ_Next, short2 aZ_Prev)
@@ -53,10 +49,10 @@ template<class T, bool sens > __device__ void ReadOneSens(CDeviceDataStream<T> &
     }
 }
 
-template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &costStream, uint lenghtLine, T pData[][NAPPEMAX], bool& idBuffer, T* g_ForceCostVol, ushort penteMax, int& pitStrOut )
+template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &costStream, uint lenghtLine, T pData[][NAPPEMAX], bool& idBuf, T* g_ForceCostVol, ushort penteMax, int& pitStrOut )
 {
     const ushort    tid     = threadIdx.x;
-    short2          uZ_Prev = costStream.read<sens>(pData[idBuffer],tid, 0);
+    short2          uZ_Prev = costStream.read<sens>(pData[idBuf],tid, 0);
     short           Z       = uZ_Prev.x + tid;
     __shared__ T    globMinCost;
 
@@ -64,7 +60,7 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
         while( Z < uZ_Prev.y )
         {
             int idGData        = Z - uZ_Prev.x;
-            g_ForceCostVol[idGData]    = pData[idBuffer][idGData];
+            g_ForceCostVol[idGData]    = pData[idBuf][idGData];
             Z += min(uZ_Prev.y - Z,WARPSIZE);
         }
 
@@ -74,37 +70,35 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
         short2 uZ_Next  = costStream.read<sens>(pData[2],tid,0);
         ushort nbZ_Next = count(uZ_Next);
 
-
         pitStrOut += sens ? count(uZ_Prev) : -nbZ_Next;
 
         short2 aDz;
 
+        T* g_LFCV = g_ForceCostVol + pitStrOut;
+
         short   Z = uZ_Next.x + tid;
         if(!tid) globMinCost = 1e9;
 
-        short Z_Id  = Z - uZ_Next.x;
+        short Z_Id  = tid;
 
         while( Z < uZ_Next.y )
         {
 
             ComputeIntervaleDelta(aDz,Z,penteMax,uZ_Next,uZ_Prev);
-            T costMin   = 1e9;
+            T costMin           = 1e9;
+            const T costInit    = pData[2][Z_Id];
+            const short Z_P_Id  = Z - uZ_Prev.x;
 
-            T costInit  = pData[2][Z_Id];
-
-            const short Z_P_Id = Z - uZ_Prev.x;
             aDz.y = min(aDz.y,(short)NAPPEMAX - Z_P_Id);
 
-            for(short i = aDz.x ; i <= aDz.y; i++)//#pragma unroll
-                costMin = min(costMin, costInit + pData[idBuffer][Z_P_Id + i] /*+ abs((int)i) * 5000*/);
+            for(short i = aDz.x ; i <= aDz.y; i++)
+                costMin = min(costMin, costInit + pData[idBuf][Z_P_Id + i]);
 
+            pData[!idBuf][Z_Id] = costMin;
 
-            pData[!idBuffer][Z_Id] = costMin;
+            const T cost        = sens ? costMin : costMin + g_LFCV[Z_Id] - costInit;
 
-            int idGData     = pitStrOut + Z_Id;
-            int cost        = sens ? costMin : costMin + g_ForceCostVol[idGData] - costInit;
-
-            g_ForceCostVol[idGData]  = cost;
+            g_LFCV[Z_Id]        = cost;
 
             if(!sens)
                 atomicMin(&globMinCost,cost);
@@ -117,16 +111,18 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
         if(!sens)
         {
             Z = uZ_Next.x + tid;
+            short Z_Id  = tid;
+            T* g_LFCV = g_ForceCostVol + pitStrOut;
 
             while( Z < uZ_Next.y )
-            {
-                int idGData     = pitStrOut + Z - uZ_Next.x;
-                g_ForceCostVol[idGData] -= globMinCost;
+            {             
+                g_LFCV[Z_Id] -= globMinCost;
                 Z += min(uZ_Next.y - Z,WARPSIZE);
+                if((Z_Id  = Z - uZ_Next.x)>>8) break;
             }
         }
 
-        idBuffer    = !idBuffer;
+        idBuf    = !idBuf;
         uZ_Prev     = uZ_Next;
     }
 }
@@ -160,72 +156,20 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2
 
 }
 
-/// \brief Lance le kernel d optimisation pour une direction
-template <class T> void LaunchKernelOptOneDirection(Data2Optimiz &D2O)
+extern "C" void OptimisationOneDirection(Data2Optimiz<CuHostData3D> &d2O)
 {
+    uint deltaMax = 3;
+    dim3 Threads(WARPSIZE,1,1);
+    dim3 Blocks(d2O.nbLines,1,1);
 
-    uint    deltaMax    =   3;
-    dim3    Threads(WARPSIZE,1,1);
-    dim3    Blocks(D2O.nbLines,1,1);
-
-/*
-    uint    dimDeltaMax =   deltaMax * 2 + 1;
-    float   hPen[PENALITE];
-    ushort  hMapIndex[WARPSIZE];
-
-    for(int i=0 ; i < WARPSIZE; i++)
-        hMapIndex[i] = i / dimDeltaMax;
-
-    for(int i=0;i<PENALITE;i++)
-        hPen[i] = ((float)(1 / 10.0f));
-
-    //      Copie des penalites dans le device                              ---------------		-
-
-    checkCudaErrors(cudaMemcpyToSymbol(penalite,    hPen,       sizeof(float)   * PENALITE));
-    checkCudaErrors(cudaMemcpyToSymbol(dMapIndex,   hMapIndex,  sizeof(ushort)  * WARPSIZE));
-*/
-    //      Declaration et allocation memoire des variables Device          ---------------		-
-
-    CuDeviceData3D<T>       d_InputStream    ( D2O.hS_InitCostVol   .GetSize(), "d_InputStream"  );
-    CuDeviceData3D<short2>  d_InputIndex     ( D2O.hS_Index         .GetSize(), "d_InputIndex"   );
-    CuDeviceData3D<uint3>   d_Param          ( D2O.h__Param         .GetSize(), "d_RecStrParam"  );
-    CuDeviceData3D<T>       d_ForceCostVol   ( D2O.hS_ForceCostVol  .GetSize(), "d_ForceCostVol" );
-
-    //      Copie du volume de couts dans le device                         ---------------		-
-
-    d_InputStream.CopyHostToDevice(  D2O.hS_InitCostVol .pData());
-    d_InputIndex .CopyHostToDevice(  D2O.hS_Index       .pData());
-    d_Param      .CopyHostToDevice(  D2O.h__Param       .pData());
-
-    //      Kernel optimisation                                             ---------------     -
-
-    kernelOptiOneDirection<T><<<Blocks,Threads>>>
+    kernelOptiOneDirection<uint><<<Blocks,Threads>>>
                                                 (
-                                                    d_InputStream   .pData(),
-                                                    d_InputIndex    .pData(),
-                                                    d_ForceCostVol  .pData(),
-                                                    d_Param         .pData(),
+                                                    d2O.hS_InitCostVol  .pData(),
+                                                    d2O.hS_Index        .pData(),
+                                                    d2O.hS_ForceCostVol .pData(),
+                                                    d2O.h__Param        .pData(),
                                                     deltaMax
                                                     );
-
-    getLastCudaError("kernelOptiOneDirection failed");
-
-    //      Copie des couts de passage forcé du device vers le host         ---------------     -
-
-    d_ForceCostVol.CopyDevicetoHost(D2O.hS_ForceCostVol.pData());
-
-    //      De-allocation memoire des variables Device                      ---------------     -
-
-    d_ForceCostVol  .Dealloc();
-    d_InputStream   .Dealloc();
-    d_InputIndex    .Dealloc();
-    d_Param         .Dealloc();
-}
-
-/// \brief Appel exterieur du kernel d optimisation
-extern "C" void OptimisationOneDirection(Data2Optimiz &d2O)
-{
-    LaunchKernelOptOneDirection<uint>(d2O);
 }
 
 /// \brief Appel exterieur du kernel
@@ -234,8 +178,8 @@ extern "C" void Launch()
 
     printf("Test Template\n");
 
-    Data2Optimiz2<CuHostData3D>     H_D2O;
-    Data2Optimiz2<CuDeviceData3D>   D_D2O;
+    Data2Optimiz<CuHostData3D>     H_D2O;
+    Data2Optimiz<CuDeviceData3D>   D_D2O;
 
     H_D2O.ReallocIf(2,2);
 

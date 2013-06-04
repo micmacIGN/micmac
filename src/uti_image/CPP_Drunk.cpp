@@ -88,7 +88,7 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk)
 
     //Processing the image
     string aNameIm=ListIm.front();
-    string aNameOut=aNameDir + DirOut + aNameIm;
+    string aNameOut=aNameDir + DirOut + aNameIm + ".tif";
 
     //Loading the camera
     string aNameCam="Ori-"+aOri+"/Orientation-"+aNameIm+".xml";
