@@ -36,11 +36,18 @@ public:
         _sizeStream(sizeStream)
     {}
 
-    __device__ virtual short getLengthToRead(short2 &index, bool sens)
+    __device__ virtual short getLen2ReadAV(short2 &index)
     {
         index = make_short2(0,0);
         return 1;
     }
+
+    __device__ virtual short getLen2ReadAR(short2 &index)
+    {
+        index = make_short2(0,0);
+        return 1;
+    }
+
 
     template<bool sens> __device__ short2 read(T* destData, ushort tid, T def);
 
@@ -69,7 +76,7 @@ template< class T > template<bool sens>  __device__
 short2 CDeviceStream<T>::read(T *destData, ushort tid, T def)
 {
     short2  index;
-    ushort  NbCopied    = 0 , NbTotalToCopy = getLengthToRead(index,sens);
+    ushort  NbCopied    = 0 , NbTotalToCopy = sens ? getLen2ReadAV(index) : getLen2ReadAR(index);
     short   PitSens     = !sens * WARPSIZE;
 
     while(NbCopied < NbTotalToCopy)
@@ -96,6 +103,7 @@ short2 CDeviceStream<T>::read(T *destData, ushort tid, T def)
             else if (idDest >= NbTotalToCopy)
                 destData[idDest] = def;
         }
+
         _curBufferId  = _curBufferId + vec<sens>() * NbToCopy;
         NbCopied     += NbToCopy;
 
@@ -113,12 +121,19 @@ public:
         _streamIndex(bufId,streamId,sizeStreamId)
     {}
 
-    __device__ short getLengthToRead(short2 &index, bool sens)
+
+    __device__ short getLen2ReadAV(short2 &index)
+    {       
+
+        _streamIndex.read<eAVANT>(&index,0,make_short2(0,0));
+
+        return diffYX(index) + 1;
+    }
+
+    __device__ short getLen2ReadAR(short2 &index)
     {
-        if(sens == eAVANT)
-            _streamIndex.read<eAVANT>(&index,0,make_short2(0,0));
-        else
-            _streamIndex.read<eARRIERE>(&index,0,make_short2(0,0));
+
+        _streamIndex.read<eARRIERE>(&index,0,make_short2(0,0));
 
         return diffYX(index) + 1;
     }
