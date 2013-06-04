@@ -64,11 +64,53 @@ template <> Pt2d<int>::Pt2d(const Pt2d<double>& p) : x (round_ni(p.x)), y (round
 
 #include <cstring>
 
+long int lPowi(int aN,int anExp)
+{
+    long int aRes = 1;
+    for (int anE=0 ; anE<anExp ; anE++)
+        aRes *= aN;
+    return aRes;
+}
 
-#define SizeTabRound 18
-int TabRound[SizeTabRound] = {10,11,12,14,15,16,18,20,25,30,35,40,50,60,70,80,90,100};
+cDecimal::cDecimal(int aMant,int aPow) :
+   mMant (aMant),
+   mExp  (aPow)
+{
+}
 
-double StdRound(const double & aD,int aNbDigit,int * aTabR,int aSizeR)
+double cDecimal::RVal() const
+{
+   return mMant * pow(10,mExp);
+}
+
+
+long int cDecimal::Mul10() const
+{
+    return lPowi(10,mExp);
+}
+long int cDecimal::Div10() const
+{
+    return lPowi(10,-mExp);
+}
+
+double cDecimal::Arrondi(double aV0) const
+{
+    long int aD10 =  Div10();
+    long double aV = aV0;
+    aV *= aD10;
+    long int aLMant = Mul10() * (long int) mMant;
+    return (lround_ni(aV/aLMant) * aLMant) / aD10;
+}
+
+
+//==============================================================
+//==============================================================
+//==============================================================
+
+#define SizeTabRound 25
+int TabRound[SizeTabRound] = {10,11,12,14,15,16,18,20,22,25,28,30,32,35,40,45,50,55,60,65,70,75,80,90,100};
+
+cDecimal StdRound(const double & aD,int aNbDigit,int * aTabR,int aSizeR)
 {
    int aL10 = round_down(log10(aD)) - aNbDigit+1;
 
@@ -86,10 +128,11 @@ double StdRound(const double & aD,int aNbDigit,int * aTabR,int aSizeR)
            aBestK = aTabR[aK];
        }
    }
-   return aBestK * aP10;
+   return  cDecimal(aBestK,aL10);
+   // aBestK * aP10;
 }
 
-double StdRound(const double & aD)
+cDecimal StdRound(const double & aD)
 {
    return StdRound(aD,2,TabRound,SizeTabRound);
 }

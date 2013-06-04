@@ -166,17 +166,24 @@ void TestXMLNuageNodData()
     }
 }
 
+void TestRound()
+{
+   while(1)
+   {
+       double aV,aBig;
+       cin >> aV >> aBig;
+       cDecimal aD  = StdRound(aV);
+       double Arrond = aD.Arrondi(aBig);
+       printf("%9.9f %9.9f\n",aD.RVal(),Arrond);
+       std::cout << "Round " << aD.RVal() << "\n";
+   }
+}
 
 
 int MPDtest_main (int argc,char** argv)
 {
 
-   while(1)
-   {
-       double aV;
-       cin >> aV;
-       std::cout << "Round " << StdRound(aV) << "\n";
-   }
+   TestRound();
 
 
     Tiff_Im  aFile

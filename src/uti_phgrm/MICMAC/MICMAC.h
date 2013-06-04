@@ -912,6 +912,8 @@ class cGeomDiscFPx : public  cGeomDiscR2
      private :
          int GetEcartInitialGen(double aPas,int aKPx,double anEcart) const;
 
+         void  SetRoundResol(double aRes);
+
 
        /**********************************/
        /*   Partie Data                  */
@@ -931,6 +933,8 @@ class cGeomDiscFPx : public  cGeomDiscR2
          REAL   mStepAbs[theDimPxMax];
          REAL   mRatioResAltPlani[theDimPxMax];
          double  mCorrectDerivee;
+         cDecimal mRDec;
+         bool    mRRIsInit;
 };
 
 // Dans cGeomImage 

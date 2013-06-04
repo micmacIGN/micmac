@@ -199,15 +199,12 @@ cGeomDiscFPx::cGeomDiscFPx
 (
     const  cAppliMICMAC & anAppli
 ) :
-   cGeomDiscR2 (anAppli)
+   cGeomDiscR2 (anAppli),
+   mRDec       (0,0),
+   mRRIsInit   (false)
 {
 }
 
-double RoundAppli(const cAppliMICMAC & anAp,double aRes)
-{
-   double aZ = anAp.DeZoomMin();
-   return  StdRound(aRes*aZ) /aZ;
-}
 
 /*************************************************************************/
 /*       Initialise les parametres  definissant la geometrie terrain     */
@@ -216,6 +213,16 @@ double RoundAppli(const cAppliMICMAC & anAp,double aRes)
 /*************************************************************************/
 typedef std::list<cListePointsInclus> tLPI;
 typedef std::list<Pt2dr> tLPt;
+
+
+void  cGeomDiscFPx::SetRoundResol(double aRes)
+{
+   double aZ = mAp->DeZoomMin();
+   mRDec = StdRound(aRes*aZ);
+   mRRIsInit = true;
+   mResol = mRDec.RVal() /aZ;
+}
+
 
 void cGeomDiscFPx::PostInit()
 {
@@ -333,7 +340,8 @@ if (MPD_MM())
   double aResolNotRound = mResol;
   if (doAutoRound)
   {
-     mResol = RoundAppli(*mAp,mResol);
+     SetRoundResol(mResol);
+     //mResol = RoundAppli(*mAp,mResol);
      std::cout << "=====ZOOOM " << mAp->DeZoomMin() <<  " " << mAp->DeZoomMax() << "\n";
   }
   if (aFileExt)
@@ -349,7 +357,9 @@ if (MPD_MM())
   else if (mAp->Planimetrie().IsInit())
   {
      if  (mAp->RatioResolImage().IsInit())
-         mResol = RoundAppli(*mAp,aResolNotRound*mAp->RatioResolImage().Val());
+     {
+         SetRoundResol(aResolNotRound*mAp->RatioResolImage().Val());
+     }
      if  (mAp->ResolutionTerrain().IsInit())
          mResol = mAp->ResolutionTerrain().Val();
   } 

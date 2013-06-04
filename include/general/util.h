@@ -273,8 +273,26 @@ inline REAL mod_real(REAL a,REAL b)
    return res;
 }
 
-double StdRound(const double & aD,int aNbDigit,int * aTabR,int aSizeR);
-double StdRound(const double & aD);
+class cDecimal
+{
+    public :
+        cDecimal(int aMant,int aPow);
+        double RVal() const;
+        const int &    Mant() const;
+        const int &   Exp() const;
+        double Arrondi(double aV) const;
+      // T.Q RVAl = mMant * Mul10() / Div10()
+        long int Mul10() const;
+        long int Div10() const;
+    public :
+        int mMant;
+        int mExp;
+};
+
+
+
+cDecimal StdRound(const double & aD,int aNbDigit,int * aTabR,int aSizeR);
+cDecimal StdRound(const double & aD);
 
 
 REAL angle_mod_real(REAL a,REAL b);
