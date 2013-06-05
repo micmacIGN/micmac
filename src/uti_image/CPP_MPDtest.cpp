@@ -190,6 +190,7 @@ void Test_Arrondi_LG()
 
     Im2D_REAL16 anIm(aSz.x,aSz.y);
     TIm2D<REAL16,REAL16> aTIm(anIm);
+
     ELISE_COPY(anIm.all_pts(),aVTest,anIm.out());
 
     while (1)
