@@ -703,7 +703,7 @@ if (0)
 
 		//////////////////////////////////////////////////////////////////////////
 
-		Rect rMask(-1,-1,-1,-1);
+        Rect rMask(NEGARECT);
 		pixel *maskTab = new pixel[size(Ter.dimension())];
 
 		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)

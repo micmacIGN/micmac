@@ -134,6 +134,7 @@ public :
     // Im2D_INT2     ImRes() {return mImRes;}
 
 
+    Pt2di direction(int aNbDir, int aKDir);
 private :
 
     void BalayageOneDirection(Pt2dr aDir);
@@ -160,7 +161,7 @@ private :
 
 #ifdef CUDA_ENABLED
     void SolveAllDirectionGpu(int aNbDir);    
-    template<bool dirCopy> void copyCells(Pt2di aDirI,Data2Optimiz<CuHostData3D>  &d2Opt);// CuHostData3D<uint> h_OutForceCostVol,  CuHostData3D<uint> h_strCostVolume, CuHostData3D<uint3> rStrPar, CuHostData3D<short2> h_strIndex);
+    template<bool dirCopy> void copyCells(Pt2di aDirI,Data2Optimiz<CuHostData3D,2>  &d2Opt, uint idBuf = 0);
     InterfOptimizGpGpu               IGpuOpt;
     //Data2Optimiz<CuHostData3D>         _d2Opt;
 #endif
