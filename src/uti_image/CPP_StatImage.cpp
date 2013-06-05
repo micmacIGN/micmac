@@ -36,32 +36,55 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StAfx.h"
+#include "StdAfx.h"
 
 
-static Pt2di PDef(-1,-1);
-
-main(int argc,char ** argv)
+int  StatIm_main(int argc,char ** argv)
 {
 
 	string Name;
-        Pt2di p0(0,0),p1 = PDef;
+        Pt2di aP0;
+        Pt2di aSz(1,1);
 
+
+    
 
 
 	ElInitArgMain
 	(
-		argc,argv,
-		LArgMain() 	<< EAM(Name) ,
-		LArgMain()      <<  EAM(p0,"p0",true)
-		                <<  EAM(p1,"p1",true)
+                argc,argv,
+                LArgMain() 	<< EAMC(Name,"Name of Image") 
+                                << EAMC(aP0,"Point or Origine of rectange"),
+		LArgMain()      <<  EAM(aSz,"Sz",true,"Sz of rectangle (Def=[1,1])")
 	);	
 
 	Tiff_Im tiff = Tiff_Im::StdConv(Name);
 
-        if (p1 == PDef) 
-           p1 = tiff.sz();
 
+        Symb_FNum aTF (Rconv(tiff.in()));
+
+        double aSP,aSomZ,aSomZ2,aZMin,aZMax;
+        ELISE_COPY
+        (
+            rectangle(aP0,aP0+aSz),
+            Virgule(1,aTF,Square(aTF)),
+            Virgule
+            (
+                 sigma(aSP),
+                 sigma(aSomZ)|VMax(aZMax)|VMin(aZMin),
+                 sigma(aSomZ2)
+            )
+        );
+
+        aSomZ /= aSP;
+        aSomZ2 /= aSP;
+        aSomZ2 -= ElSquare(aSomZ);
+
+        std::cout << "ZMoy=" << aSomZ << " ; Sigma=" << sqrt(ElMax(0.0,aSomZ2)) << "\n";
+        std::cout << "ZMinMax=[" << aZMin << " , " << aZMax << "]\n";
+        
+
+/*
         INT NbB = tiff.NbBits();
         INT NbV = 1<<NbB;
 
@@ -87,7 +110,9 @@ main(int argc,char ** argv)
                      << ((nb* 100.0) / NbR)
                      << " %" << endl;
         }
+*/
 
+   return 1;
 }
 
 

@@ -5,26 +5,137 @@
 #include <helper_cuda.h>
 #include "GpGpu/GpGpuOptimisation.h"
 
-InterfMicMacOptGpGpu::InterfMicMacOptGpGpu():
-    _volumeCost(NOPAGELOCKEDMEMORY)
-{}
-
-InterfMicMacOptGpGpu::~InterfMicMacOptGpGpu(){}
-
-void InterfMicMacOptGpGpu::StructureVolumeCost(CuHostData3D<float> &volumeCost, float defaultValue)
+InterfOptimizGpGpu::InterfOptimizGpGpu()
 {
-    uint3   dimVolCost  = make_uint3(volumeCost.GetDimension().x,volumeCost.GetDimension().y,volumeCost.GetNbLayer());
-    uint2   dimRVolCost = make_uint2(dimVolCost.x*dimVolCost.z,dimVolCost.y);
-    uint3   ptTer;
 
-    _volumeCost.SetName("_volumeCost");
-    _volumeCost.Realloc(dimRVolCost,1);
-
-    for(ptTer.x = 0; ptTer.x < dimVolCost.x; ptTer.x++)
-        for(ptTer.y = 0; ptTer.y < dimVolCost.y; ptTer.y++)
-            for(ptTer.z = 0; ptTer.z < dimVolCost.z; ptTer.z++)
-                _volumeCost[make_uint2(dimVolCost.z * ptTer.x + ptTer.z,ptTer.y)] = volumeCost[ptTer] == defaultValue ?  -1 : (int)(volumeCost[ptTer] * 10000.0f);
-
-    //OptimisationOneDirection(_volumeCost, dimVolCost);
+//    SetDirToCompute(false);
+//    SetDirToCopy(false);
+//    SetPreCompNextDir(true);
+//    _gpGpuThreadOpti = new boost::thread(&InterfOptimizGpGpu::threadFuncOptimi,this);
 
 }
+
+InterfOptimizGpGpu::~InterfOptimizGpGpu(){
+
+//    _gpGpuThreadOpti->interrupt();
+//    delete _gpGpuThreadOpti;
+
+}
+
+void InterfOptimizGpGpu::Dealloc()
+{
+    _H_data2Opt.Dealloc();
+    _D_data2Opt.Dealloc();
+}
+
+void InterfOptimizGpGpu::oneDirOptGpGpu()
+{
+
+    /*
+        uint    dimDeltaMax =   deltaMax * 2 + 1;
+        float   hPen[PENALITE];
+        ushort  hMapIndex[WARPSIZE];
+
+        for(int i=0 ; i < WARPSIZE; i++)
+            hMapIndex[i] = i / dimDeltaMax;
+
+        for(int i=0;i<PENALITE;i++)
+            hPen[i] = ((float)(1 / 10.0f));
+
+        //      Copie des penalites dans le device                              ---------------		-
+
+        checkCudaErrors(cudaMemcpyToSymbol(penalite,    hPen,       sizeof(float)   * PENALITE));
+        checkCudaErrors(cudaMemcpyToSymbol(dMapIndex,   hMapIndex,  sizeof(ushort)  * WARPSIZE));
+    */
+
+    _D_data2Opt.SetNbLine(_H_data2Opt.nbLines);
+    _D_data2Opt.ReallocIf(_H_data2Opt);
+
+    //      Copie du volume de couts dans le device                         ---------------		-
+    _D_data2Opt.CopyHostToDevice(_H_data2Opt);
+
+    //      Kernel optimisation                                             ---------------     -
+    OptimisationOneDirection(_D_data2Opt);
+    getLastCudaError("kernelOptiOneDirection failed");
+
+    //      Copie des couts de passage forcé du device vers le host         ---------------     -
+    _D_data2Opt.CopyDevicetoHost(_H_data2Opt);
+
+}
+
+void InterfOptimizGpGpu::ReallocParam(uint size)
+{
+    _H_data2Opt.ReallocParam(size);
+    _D_data2Opt.ReallocParam(size);
+}
+
+void InterfOptimizGpGpu::SetDirToCompute(bool compute)
+{
+    boost::lock_guard<boost::mutex> guard(_mutexCompu);
+    _compute = compute;
+}
+
+bool InterfOptimizGpGpu::GetDirToCompute()
+{
+    boost::lock_guard<boost::mutex> guard(_mutexCompu);
+    return _compute;
+}
+
+void InterfOptimizGpGpu::SetDirToCopy(bool copy)
+{
+    boost::lock_guard<boost::mutex> guard(_mutexCopy);
+    _copy = copy;
+}
+
+bool InterfOptimizGpGpu::GetDirToCopy()
+{
+    boost::lock_guard<boost::mutex> guard(_mutexCopy);
+    return _copy;
+}
+
+bool InterfOptimizGpGpu::GetPreCompNextDir()
+{
+    boost::lock_guard<boost::mutex> guard(_mutexPreCompute);
+    return _precompute;
+
+}
+
+void InterfOptimizGpGpu::SetPreCompNextDir(bool precompute)
+{
+
+    boost::lock_guard<boost::mutex> guard(_mutexPreCompute);
+    _precompute = precompute;
+}
+
+void InterfOptimizGpGpu::threadFuncOptimi()
+{
+    while(true)
+    {
+
+
+        if(GetDirToCompute())
+        {
+
+            SetDirToCompute(false);
+
+            _D_data2Opt.SetNbLine(_H_data2Opt.nbLines);
+            _D_data2Opt.ReallocIf(_H_data2Opt);
+
+            //      Copie du volume de couts dans le device                         ---------------		-
+            _D_data2Opt.CopyHostToDevice(_H_data2Opt);
+
+            SetPreCompNextDir(true);
+
+            //      Kernel optimisation                                             ---------------     -
+            OptimisationOneDirection(_D_data2Opt);
+            getLastCudaError("kernelOptiOneDirection failed");
+
+            //      Copie des couts de passage forcé du device vers le host         ---------------     -
+            _D_data2Opt.CopyDevicetoHost(_H_data2Opt);
+
+            SetDirToCopy(true);
+
+        }
+    }
+}
+

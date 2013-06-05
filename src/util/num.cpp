@@ -64,6 +64,81 @@ template <> Pt2d<int>::Pt2d(const Pt2d<double>& p) : x (round_ni(p.x)), y (round
 
 #include <cstring>
 
+long int lPowi(int aN,int anExp)
+{
+    long int aRes = 1;
+    for (int anE=0 ; anE<anExp ; anE++)
+        aRes *= aN;
+    return aRes;
+}
+
+cDecimal::cDecimal(int aMant,int aPow) :
+   mMant (aMant),
+   mExp  (aPow)
+{
+}
+
+double cDecimal::RVal() const
+{
+   return mMant * pow(10.0,mExp);
+}
+
+
+long int cDecimal::Mul10() const
+{
+    return lPowi(10,mExp);
+}
+long int cDecimal::Div10() const
+{
+    return lPowi(10,-mExp);
+}
+
+double cDecimal::Arrondi(double aV0) const
+{
+    long int aD10 =  Div10();
+    long double aV = aV0;
+    aV *= aD10;
+    long int aLMant = Mul10() * (long int) mMant;
+    return (lround_ni(aV/aLMant) * aLMant) / aD10;
+}
+
+
+//==============================================================
+//==============================================================
+//==============================================================
+
+#define SizeTabRound 25
+int TabRound[SizeTabRound] = {10,11,12,14,15,16,18,20,22,25,28,30,32,35,40,45,50,55,60,65,70,75,80,90,100};
+
+cDecimal StdRound(const double & aD,int aNbDigit,int * aTabR,int aSizeR)
+{
+   int aL10 = round_down(log10(aD)) - aNbDigit+1;
+
+   double aP10 = pow(10.0,aL10);
+   double aVI = aD/aP10;
+
+   int aBestK = -1;
+   double aDifMin=1e20;
+   for (int aK=0 ; aK<aSizeR ; aK++)
+   {
+       double aDif = ElAbs(aVI-aTabR[aK]);
+       if (aDif < aDifMin)
+       {
+           aDifMin=aDif;
+           aBestK = aTabR[aK];
+       }
+   }
+   return  cDecimal(aBestK,aL10);
+   // aBestK * aP10;
+}
+
+cDecimal StdRound(const double & aD)
+{
+   return StdRound(aD,2,TabRound,SizeTabRound);
+}
+
+
+
 FBool::FBool(U_INT1 aVl) :
     mVal (aVl)
 {
@@ -376,11 +451,11 @@ INT  inv_bits_order(INT val,INT nbb)
 
 double arrondi_inf(double aVal,double aPer)
 {
-   return aPer * round_down(aVal/aPer);
+   return aPer * lround_down(aVal/aPer);
 }
 double arrondi_sup(double aVal,double aPer)
 {
-   return aPer * round_up(aVal/aPer);
+   return aPer * lround_up(aVal/aPer);
 }
 
 
