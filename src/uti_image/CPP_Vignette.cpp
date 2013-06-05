@@ -285,7 +285,7 @@ while(nbRANSAC<500)
 								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4)),
 								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6))
 								};
-				 aSys.AddEquation(aPtsHomol[1][i]+aPtsHomol[0][i],aPds,aPtsHomol[2][i]-aPtsHomol[3][i]);
+				 aSys.AddEquation(fabs(aPtsHomol[1][i]-aPtsHomol[0][i]),aPds,aPtsHomol[2][i]-aPtsHomol[3][i]);//fabs(aPtsHomol[1][i]-aPtsHomol[0][i])
 	}
 
 	//Computing the result
@@ -298,8 +298,8 @@ while(nbRANSAC<500)
 		vector<double> erreur;
 		for(int i=0;i<int(nbPtsSIFT);i++){
 					 double aComputedVal=aData[0]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2))
-							+aData[1]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4))
-							+aData[2]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6));
+										+aData[1]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4))
+										+aData[2]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6));
 					 double aInputVal=aPtsHomol[2][i]-aPtsHomol[3][i];	
 					 if(fabs(aComputedVal-aInputVal)<5){
 						nbInliers++;

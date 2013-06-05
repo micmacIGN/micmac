@@ -80,7 +80,7 @@ cDecimal::cDecimal(int aMant,int aPow) :
 
 double cDecimal::RVal() const
 {
-   return mMant * pow(10,mExp);
+   return mMant * pow(10.0,mExp);
 }
 
 
