@@ -160,14 +160,14 @@ extern "C" void OptimisationOneDirection(Data2Optimiz<CuHostData3D> &d2O)
 {
     uint deltaMax = 3;
     dim3 Threads(WARPSIZE,1,1);
-    dim3 Blocks(d2O.nbLines,1,1);
+    dim3 Blocks(d2O._nbLines,1,1);
 
     kernelOptiOneDirection<uint><<<Blocks,Threads>>>
                                                 (
-                                                    d2O.hS_InitCostVol  .pData(),
-                                                    d2O.hS_Index        .pData(),
-                                                    d2O.hS_ForceCostVol .pData(),
-                                                    d2O.h__Param        .pData(),
+                                                    d2O._s_InitCostVol  .pData(),
+                                                    d2O._s_Index        .pData(),
+                                                    d2O._s_ForceCostVol .pData(),
+                                                    d2O._param[0]        .pData(),
                                                     deltaMax
                                                     );
 }
@@ -178,13 +178,13 @@ extern "C" void Launch()
 
     printf("Test Template\n");
 
-    Data2Optimiz<CuHostData3D>     H_D2O;
-    Data2Optimiz<CuDeviceData3D>   D_D2O;
+//    Data2Optimiz<CuHostData3D>     H_D2O;
+//    Data2Optimiz<CuDeviceData3D>   D_D2O;
 
-    H_D2O.ReallocIf(2,2);
+//    H_D2O.ReallocIf(2,2);
 
-    H_D2O.hS_ForceCostVol.FillRandom(0,5);
-    H_D2O.hS_ForceCostVol.OutputValues();
+//    H_D2O._s_ForceCostVol.FillRandom(0,5);
+//    H_D2O._s_ForceCostVol.OutputValues();
 
     /*
     uint    prof        = 40;
