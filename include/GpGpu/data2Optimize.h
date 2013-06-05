@@ -40,14 +40,14 @@ struct Data2Optimiz
     }
 
     void ReallocParam(uint size)
-    {       
+    {
         for(uint i = 0;i < NBUFFER;i++)
             _param[i].Realloc(size);
     }
 
     void SetParamLine(uint id, uint pStr,uint pIdStr, uint lLine, uint idbuf = 0)
     {
-        _param[idbuf] = make_uint3(pStr,pIdStr,lLine);
+        _param[idbuf][id] = make_uint3(pStr,pIdStr,lLine);
     }
 
     void ReallocIf(uint pStr,uint pIdStr)

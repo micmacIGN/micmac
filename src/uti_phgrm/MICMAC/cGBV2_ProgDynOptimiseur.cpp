@@ -533,6 +533,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
     const std::vector<Pt2di> * aVPt;
     uint sizeMaxLine = (uint)(1.5f*sqrt((float)mSz.x * mSz.x + mSz.y * mSz.y));
 
+    //IGpuOpt.createThreadOptGpGpu();
     IGpuOpt.ReallocParam(sizeMaxLine);
     IGpuOpt.SetPreCompNextDir(true);
     int aKDir = 0, aKPreDir = 0;
@@ -540,9 +541,9 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
     while (aKDir < aNbDir)
     {
 
-        if(IGpuOpt.GetPreCompNextDir() && aKPreDir < aNbDir && aKPreDir <= aKDir + 1 )
+        if(  aKPreDir < aNbDir && aKPreDir <= aKDir + 1 && IGpuOpt.GetPreCompNextDir() )
         {
-            printf("Precompute[%d]  : %d\n",idPreCo,aKPreDir);
+            //printf("Precompute[%d]  : %d\n",idPreCo,aKPreDir);
 
             Pt2di aDirI = direction(aNbDir, aKPreDir);
 
@@ -571,7 +572,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
             IGpuOpt.Data2Opt().ReallocInputIf(pitStream,pitIdStream);
 
-            copyCells<MAT_TO_STREAM>( aDirI, IGpuOpt.Data2Opt());
+            copyCells<MAT_TO_STREAM>( aDirI, IGpuOpt.Data2Opt(),idPreCo);
 
             IGpuOpt.SetCompute(true);
             IGpuOpt.SetPreCompNextDir(false);
@@ -585,7 +586,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
         if(IGpuOpt.GetDirToCopy() && aKDir < aNbDir)
         {
 
-            printf("Copy[%d]         : %d\n",idCo,aKDir);
+            //printf("Copy[%d]         : %d\n",idCo,aKDir);
             copyCells<STREAM_TO_MAT>( direction(aNbDir,aKDir), IGpuOpt.Data2Opt(),idCo);
 
             IGpuOpt.SetDirToCopy(false);
@@ -597,7 +598,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
     IGpuOpt.SetPreCompNextDir(false);
     IGpuOpt.SetDirToCopy(false);
     IGpuOpt.Dealloc();
-
+    //IGpuOpt.deleteThreadOptGpGpu();
 }
 #endif
 

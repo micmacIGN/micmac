@@ -30,6 +30,8 @@ public:
     void            oneDirOptGpGpu();
     void            ReallocParam(uint size);
 
+    void            createThreadOptGpGpu();
+    void            deleteThreadOptGpGpu();
 
     void            SetCompute(bool compute);
     bool            GetCompute();
@@ -55,6 +57,9 @@ private:
     bool            _compute;
     bool            _copy;
     bool            _precompute;
+
+    bool            _idbuf;
+    uint            _idDir;
 
 };
 
