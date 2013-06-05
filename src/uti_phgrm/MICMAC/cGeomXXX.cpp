@@ -199,7 +199,9 @@ cGeomDiscFPx::cGeomDiscFPx
 (
     const  cAppliMICMAC & anAppli
 ) :
-   cGeomDiscR2 (anAppli)
+   cGeomDiscR2 (anAppli),
+   mRDec       (0,0),
+   mRRIsInit   (false)
 {
 }
 
@@ -212,6 +214,16 @@ cGeomDiscFPx::cGeomDiscFPx
 typedef std::list<cListePointsInclus> tLPI;
 typedef std::list<Pt2dr> tLPt;
 
+
+void  cGeomDiscFPx::SetRoundResol(double aRes)
+{
+   double aZ = mAp->DeZoomMin();
+   mRDec = StdRound(aRes*aZ);
+   mRRIsInit = true;
+   mResol = mRDec.RVal() /aZ;
+}
+
+
 void cGeomDiscFPx::PostInit()
 {
 if (MPD_MM())
@@ -219,6 +231,7 @@ if (MPD_MM())
     std::cout << "VOIR===PB Z<0 en Prof Champs \n";
 }
 
+  bool doAutoRound  = mAp->AutoRoundGeoref().Val();
 
   cFileOriMnt * aFileExt = 0;
   if (mAp->FileOriMnt().IsInit())
@@ -324,6 +337,13 @@ if (MPD_MM())
   }
   ELISE_ASSERT(aNbResolGot," Resolution pas trouvee");
   mResol /= aNbResolGot;
+  double aResolNotRound = mResol;
+  if (doAutoRound)
+  {
+     SetRoundResol(mResol);
+     //mResol = RoundAppli(*mAp,mResol);
+     std::cout << "=====ZOOOM " << mAp->DeZoomMin() <<  " " << mAp->DeZoomMax() << "\n";
+  }
   if (aFileExt)
   {
        mResol = ElAbs(aFileExt->ResolutionPlani().x);
@@ -337,7 +357,9 @@ if (MPD_MM())
   else if (mAp->Planimetrie().IsInit())
   {
      if  (mAp->RatioResolImage().IsInit())
-         mResol *= mAp->RatioResolImage().Val();
+     {
+         SetRoundResol(aResolNotRound*mAp->RatioResolImage().Val());
+     }
      if  (mAp->ResolutionTerrain().IsInit())
          mResol = mAp->ResolutionTerrain().Val();
   } 

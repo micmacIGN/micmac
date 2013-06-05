@@ -485,33 +485,36 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
 }
 #ifdef CUDA_ENABLED
 
-void cGBV2_ProgDynOptimiseur::copyCells(bool dirCopy, Pt2di aDirI,CuHostData3D<uint> h_OutForceCostVol,  CuHostData3D<uint> h_strCostVolume, CuHostData3D<uint3> rStrPar, CuHostData3D<short2> h_strIndex)
+template<bool dirCopy>
+void cGBV2_ProgDynOptimiseur::copyCells(Pt2di aDirI, Data2Optimiz<CuHostData3D> &d2Opt)
 {
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
     const std::vector<Pt2di>* aVPt;
     uint idLine = 0;
     while ((aVPt = mLMR.Next()))
     {
-        uint    pitStream = 0;
+        uint    pitStrm = 0;
+        uint    lLine   = aVPt->size();
 
-        for (uint aK= 0 ; aK < rStrPar[idLine].z; aK++)
+        for (uint aK= 0 ; aK < lLine; aK++)
         {
-            // Matrice des cellules
+
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
-            const Box2di &  aBox = aMat.Box();
+
+            short2 dZ = make_short2(aMat.Box()._p0.x,aMat.Box()._p1.x);
 
             if(dirCopy == MAT_TO_STREAM)
-                h_strIndex[rStrPar[idLine].y + aK] = make_short2(aBox._p0.x,aBox._p1.x);
+                d2Opt.hS_Index[d2Opt.h__Param[idLine].y + aK] = dZ;
 
-            for ( int aPx = aBox._p0.x ; aPx < aBox._p1.x ; aPx++)
-            {
-                uint idStream = rStrPar[idLine].x + pitStream + aPx - aBox._p0.x;
+            uint idStrm = d2Opt.h__Param[idLine].x + pitStrm - dZ.x;
+
+            for ( int aPx = dZ.x ; aPx < dZ.y ; aPx++)
                 if (dirCopy == MAT_TO_STREAM)
-                    h_strCostVolume[idStream]  = aMat[Pt2di(aPx,0)].GetCostInit();
+                    d2Opt.hS_InitCostVol[idStrm + aPx]  = aMat[Pt2di(aPx,0)].GetCostInit();
                 else
-                    aMat[Pt2di(aPx,0)].CostFinal() += tCost(h_OutForceCostVol[idStream]);
-            }
-            pitStream += abs(aBox._p1.x - aBox._p0.x ) + 1;
+                    aMat[Pt2di(aPx,0)].AddToCostFinal(d2Opt.hS_ForceCostVol[idStrm + aPx]);
+
+            pitStrm += count(dZ);
         }
 
         idLine++;
@@ -523,64 +526,66 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 {
 
     const std::vector<Pt2di> * aVPt;
-    uint sizeMaxLine = (uint)(2.0f*sqrt((float)mSz.x * mSz.x + mSz.y * mSz.y));
+    uint sizeMaxLine = (uint)(1.5f*sqrt((float)mSz.x * mSz.x + mSz.y * mSz.y));
 
-    CuHostData3D<uint3>     rStrPar(sizeMaxLine);
-    CuHostData3D<uint>      h_strCostVolume((uint)1);
-    CuHostData3D<short2>    h_strIndex((uint)1);
-    CuHostData3D<uint>      h_OutForceCostVol((uint)1);
+    IGpuOpt.ReallocParam(sizeMaxLine);
 
-    for (int aKDir=0 ; aKDir<aNbDir ; aKDir++)
+    int aKDir = 0;//, aKPreDir = 0;
+    while (aKDir < aNbDir)
     {
-        mPdsProgr = (1.0+aKDir) / aNbDir;
-        double aTeta =   (aKDir*PI)/aNbDir;
 
-        Pt2dr aDirR = Pt2dr::FromPolar(100.0,aTeta);
-        Pt2di aDirI = Pt2di(vunit(aDirR) * 20.0);
-
-        uint nbLine = 0, sizeStreamId = 0,sizeStreamLine, pitStream = 0, pitIdStream = 0 ;
-
-        mLMR.Init(aDirI,Pt2di(0,0),mSz);
-
-        while ((aVPt = mLMR.Next()))
+//        if(IGpuOpt.GetPreCompNextDir() && aKPreDir < aNbDir && aKPreDir <= aKDir )
         {
-            uint lenghtLine = (uint)(aVPt->size());
+            Pt2di aDirI = Pt2di(vunit(Pt2dr::FromPolar(100.0,(aKDir*PI)/aNbDir)) * 20.0);
 
-            rStrPar[nbLine].x = pitStream;
-            rStrPar[nbLine].y = pitIdStream;
-            rStrPar[nbLine].z = lenghtLine;
+            uint nbLine = 0, sizeStreamLine, pitStream = 0, pitIdStream = 0 ;
 
-            sizeStreamLine = sizeStreamId = 0;
+            mLMR.Init(aDirI,Pt2di(0,0),mSz);
 
-            for (uint aK = 0 ; aK < lenghtLine; aK++)
+            while ((aVPt = mLMR.Next()))
             {
-                tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
-                const Box2di &  aBox        = aMat.Box();
-                sizeStreamLine += abs(aBox._p1.x-aBox._p0.x) + 1;
+                uint lenghtLine = (uint)(aVPt->size());
+
+                IGpuOpt.Data2Opt().SetParamLine(nbLine,pitStream,pitIdStream,lenghtLine);
+
+                sizeStreamLine = 0;
+
+                for (uint aK = 0 ; aK < lenghtLine; aK++)
+                    sizeStreamLine += abs(mMatrCel[(*aVPt)[aK]].Box()._p1.x-mMatrCel[(*aVPt)[aK]].Box()._p0.x) + 1;
+
+                pitIdStream += iDivUp(lenghtLine,       WARPSIZE) * WARPSIZE;
+                pitStream   += iDivUp(sizeStreamLine,   WARPSIZE) * WARPSIZE;
+
+                nbLine++;
             }
 
-            pitIdStream += iDivUp(lenghtLine,WARPSIZE) * WARPSIZE;
-            pitStream   += iDivUp(sizeStreamLine,WARPSIZE) * WARPSIZE;
+            IGpuOpt.Data2Opt().SetNbLine(nbLine);
 
-            nbLine++;
+            IGpuOpt.Data2Opt().ReallocIf(pitStream,pitIdStream);
+
+            copyCells<MAT_TO_STREAM>( aDirI, IGpuOpt.Data2Opt());
+
+//            IGpuOpt.SetDirToCompute(true);
+//            IGpuOpt.SetPreCompNextDir(false);
+
+            //aKPreDir++;
         }
 
-        h_strCostVolume.ReallocIf(pitStream);
-        h_OutForceCostVol.ReallocIf(pitStream);
-        h_strIndex.ReallocIf(pitIdStream);
+        IGpuOpt.oneDirOptGpGpu();
 
-        copyCells(MAT_TO_STREAM, aDirI, h_OutForceCostVol,h_strCostVolume, rStrPar, h_strIndex);
+        //if(IGpuOpt.GetDirToCopy())
+        {
+            Pt2di aDirI = Pt2di(vunit(Pt2dr::FromPolar(100.0,(aKDir*PI)/aNbDir)) * 20.0);
 
-        OptimisationOneDirection(h_strCostVolume,h_strIndex,nbLine,h_OutForceCostVol, rStrPar);
+            copyCells<STREAM_TO_MAT>( aDirI, IGpuOpt.Data2Opt());
 
-        copyCells(STREAM_TO_MAT, aDirI, h_OutForceCostVol,h_strCostVolume, rStrPar, h_strIndex);
-
+            //IGpuOpt.SetDirToCopy(false);
+            aKDir++;
+        }
     }
 
-   h_strCostVolume     .Dealloc();
-   h_strIndex          .Dealloc();
-   h_OutForceCostVol   .Dealloc();
-   rStrPar              .Dealloc();
+    IGpuOpt.Data2Opt().Dealloc();
+
 }
 #endif
 

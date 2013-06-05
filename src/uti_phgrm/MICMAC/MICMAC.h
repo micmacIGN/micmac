@@ -912,6 +912,8 @@ class cGeomDiscFPx : public  cGeomDiscR2
      private :
          int GetEcartInitialGen(double aPas,int aKPx,double anEcart) const;
 
+         void  SetRoundResol(double aRes);
+
 
        /**********************************/
        /*   Partie Data                  */
@@ -931,6 +933,8 @@ class cGeomDiscFPx : public  cGeomDiscR2
          REAL   mStepAbs[theDimPxMax];
          REAL   mRatioResAltPlani[theDimPxMax];
          double  mCorrectDerivee;
+         cDecimal mRDec;
+         bool    mRRIsInit;
 };
 
 // Dans cGeomImage 
@@ -3095,13 +3099,13 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
 	std::string ChMpDCraw(const cPriseDeVue *) const;
 
-        void VerifOneEtapes(const cEtapeMEC & anEt) const;
+        void VerifOneEtapes(const cEtapeMEC & anEt) ;
         void VerifEtapesSucc
              (
                   const cEtapeMEC & anEt0,
                   const cEtapeMEC & anEt1
-             ) const;
-        void VerifEtapes() const;
+             ) ;
+        void VerifEtapes() ;
         void VerifTPyr() const;
         void VerifImages() const;
 

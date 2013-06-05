@@ -79,7 +79,7 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 		//Reading the image and creating the objects to be manipulated
 			Tiff_Im aTF1= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK1],1,false);
 			aSz = aTF1.sz();
-			Im2D_U_INT1  aIm1(aSz.x,aSz.y);
+			Im2D_REAL16  aIm1(aSz.x,aSz.y);
 			ELISE_COPY
 				(
 				   aTF1.all_pts(),
@@ -87,13 +87,12 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 				   aIm1.out()
 				);
 
-			U_INT1 ** aData1 = aIm1.data();
-
+			REAL16 ** aData1 = aIm1.data();
 
         for (int aK2=0 ; aK2<int(aSetIm->size()) ; aK2++)
         {
 			Tiff_Im aTF2= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK2],1,false);
-			Im2D_U_INT1  aIm2(aSz.x,aSz.y);
+			Im2D_REAL16  aIm2(aSz.x,aSz.y);
 			ELISE_COPY
 				(
 				   aTF2.all_pts(),
@@ -101,7 +100,7 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 				   aIm2.out()
 				);
 
-			U_INT1 ** aData2 = aIm2.data();
+			REAL16 ** aData2 = aIm2.data();
 
 			string prefixe="";
             if (aK1!=aK2)
@@ -133,17 +132,13 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 							   double Dist1=sqrt(pow(itP->P1().x-x0,2)+pow(itP->P1().y-y0,2));
 							   double Dist2=sqrt(pow(itP->P2().x-x0,2)+pow(itP->P2().y-y0,2));
 							   //Go looking for grey value of the point, adjusted to ISO and Exposure time induced variations
-							   double Grey1 =(vectOfExpTimeISO[aK1][0]*vectOfExpTimeISO[aK1][1])/(maxExpTime*maxISO)*Reechantillonnage::plus_proche_voisin(aData1, aSz.x, aSz.y, itP->P1());//(aData1[(int)floor(itP->P1().y)][(int)floor(itP->P1().x)]);
-							   double Grey2 =(vectOfExpTimeISO[aK2][0]*vectOfExpTimeISO[aK2][1])/(maxExpTime*maxISO)*Reechantillonnage::plus_proche_voisin(aData2, aSz.x, aSz.y, itP->P2());//(aData2[(int)floor(itP->P2().y)][(int)floor(itP->P2().x)]);
+							   double Grey1 =(vectOfExpTimeISO[aK1][0]*vectOfExpTimeISO[aK1][1])/(maxExpTime*maxISO)*Reechantillonnage::biline(aData1, aSz.x, aSz.y, itP->P1());
+							   double Grey2 =(vectOfExpTimeISO[aK2][0]*vectOfExpTimeISO[aK2][1])/(maxExpTime*maxISO)*Reechantillonnage::biline(aData2, aSz.x, aSz.y, itP->P2());
 							   //Check that the distances are different-> might be used in filter?
 							   //double rap=Dist1/Dist2;
 							   if(1){//(Dist1>aSz.x/3 || Dist2>aSz.x/3)){// && (rap<0.75 || rap>1.33)){Filtre à mettre en place?
 								   D1.push_back(Dist1);
 								   D2.push_back(Dist2);
-								   //X1.push_back(itP->P1().x);Unused, was for possible linear shift in vignette
-								   //Y1.push_back(itP->P1().y);
-								   //X2.push_back(itP->P2().x);
-								   //Y2.push_back(itP->P2().y);
 								   G1.push_back(Grey1);
 								   G2.push_back(Grey2);
 							   }
@@ -155,7 +150,7 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
         }
     }
 	int nbpts=G1.size();
-	std::cout<<"Total number of points used in least square : "<<nbpts<<" out of "<<cpt<<endl;
+	std::cout<<"Total number tie points: "<<nbpts<<" out of "<<cpt<<endl;
 	vector<vector<double> > aPtsHomol;
 	vector<double> SZ;
 	SZ.push_back(aSz.x);SZ.push_back(aSz.y);
@@ -164,10 +159,6 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 	aPtsHomol.push_back(G1);
 	aPtsHomol.push_back(G2);
 	aPtsHomol.push_back(SZ);
-	//aPtsHomol.push_back(X1);
-	//aPtsHomol.push_back(Y1);
-	//aPtsHomol.push_back(X2);
-	//aPtsHomol.push_back(Y2);
    return aPtsHomol;
 }
 
@@ -241,18 +232,17 @@ void Vignette_correct(string aDir,std::vector<std::string> * aSetIm,vector<doubl
 
 vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
 {
-
-	   // Create L2SysSurResol to solve least square equation with 3 unknown
+//Least Square
+/*
+	// Create L2SysSurResol to solve least square equation with 3 unknown
 	L2SysSurResol aSys(3);
-	int cptprob=0;
+	int nbPtsSIFT=aPtsHomol[0].size();
+
   	//For Each SIFT point
-	for(int i=0;i<int(aPtsHomol[0].size());i++){
-		//if(aPtsHomol[2][i]-aPtsHomol[3][i]!=0){cptprob++; cout<<"PROBLEME n°"<<cptprob<<" sur "<<aPtsHomol[0].size()<<" points"<< " with G1="<<aPtsHomol[2][i]<< " et G2="<<aPtsHomol[3][i]<< " Dist1="<<aPtsHomol[0][i] << " Dist2="<<aPtsHomol[1][i] <<endl;}
+	for(int i=0;i<int(nbPtsSIFT);i++){
 				 double aPds[3]={(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2)),
 								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4)),
-								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6)),
-								 //(aPtsHomol[7][i]*aPtsHomol[4][i]-aPtsHomol[6][i]*aPtsHomol[1][i]),
-								 //(aPtsHomol[7][i]*aPtsHomol[5][i]-aPtsHomol[6][i]*aPtsHomol[2][i])
+								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6))
 								};
 				 aSys.AddEquation(1,aPds,aPtsHomol[2][i]-aPtsHomol[3][i]);
 	}
@@ -266,13 +256,83 @@ vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
     if (Ok)
     {
         double* aData = aSol.data();
-        std::cout << "Vignette parameters : (" << aData[0] << ")*D^2+(" << aData[1] << ")*D^4+(" << aData[2] << ")*D^6"<<endl;
 		aParam.push_back(aData[0]);
 		aParam.push_back(aData[1]);
 		aParam.push_back(aData[2]);
     }
 
+*/
+
+
+//RANSAC
+	
+vector<double> aParam;
+double ErMoyMin=10, nbInliersMax=0;
+int nbPtsSIFT=aPtsHomol[0].size();
+int nbRANSAC=0;
+srand(time(NULL));//Initiate the rand value
+while(nbRANSAC<500)
+{
+	nbRANSAC++;
+	L2SysSurResol aSys(3);
+
+	//For 3 SIFT points
+	for(int k=0;int(k)<25;k++){
+		
+		int i=rand() % nbPtsSIFT;//Rand choice of a point
+
+				 double aPds[3]={(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2)),
+								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4)),
+								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6))
+								};
+				 aSys.AddEquation(fabs(aPtsHomol[1][i]-aPtsHomol[0][i]),aPds,aPtsHomol[2][i]-aPtsHomol[3][i]);//fabs(aPtsHomol[1][i]-aPtsHomol[0][i])
+	}
+
+	//Computing the result
+	bool Ok;
+    Im1D_REAL8 aSol = aSys.GSSR_Solve(&Ok);
+	double* aData = aSol.data();
+	if (Ok){
+  		//For Each SIFT point, test if in acceptable error field->compute score
+		double nbInliers=0;
+		vector<double> erreur;
+		for(int i=0;i<int(nbPtsSIFT);i++){
+					 double aComputedVal=aData[0]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2))
+										+aData[1]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4))
+										+aData[2]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6));
+					 double aInputVal=aPtsHomol[2][i]-aPtsHomol[3][i];	
+					 if(fabs(aComputedVal-aInputVal)<5){
+						nbInliers++;
+						erreur.push_back(fabs(aComputedVal-aInputVal));
+					 }
+
+		}
+		double sum = std::accumulate(erreur.begin(),erreur.end(),0.0);
+		double ErMoy=sum/erreur.size();
+
+		//if(nbInliers/nbPtsSIFT>0.20 && ErMoy<ErMoyMin){
+		if(nbInliers>nbInliersMax){
+			nbInliersMax=nbInliers;
+			cout<<"New Best Score (at "<<nbRANSAC<<"th iteration) is : "<<nbInliersMax/nbPtsSIFT*100<<"% of points used with Mean Error="<<ErMoy<<endl;
+			//ErMoyMin=ErMoy;
+			//cout<<"New Best Score (at "<<nbRANSAC<<"th iteration) is : "<<ErMoyMin<<" With "<<nbInliers/nbPtsSIFT*100<<"% of points used"<<endl;
+			aParam.clear();
+			aParam.push_back(aData[0]);
+			aParam.push_back(aData[1]);
+			aParam.push_back(aData[2]);
+		}
+	}
+}
+
+std::cout << "RANSAC score is : "<<nbInliersMax/nbPtsSIFT*100<<endl;
+//end RANSAC
+
+
+	if(aParam.size()==3){ std::cout << "Vignette parameters, with x dist from image center : (" << aParam[0] << ")*x^2+(" << aParam[1] << ")*x^4+(" << aParam[2] << ")*x^6"<<endl;}
+
+
 	//Erreur moyenne
+	/*
 	vector<double> erreur;
 	for(int i=0;i<int(aPtsHomol[0].size());i++){
 		erreur.push_back(255*(aPtsHomol[2][i]-aPtsHomol[3][i]-(aParam[0]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2))+aParam[1]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4))+aParam[2]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6)))));
@@ -280,6 +340,8 @@ vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
 	double sum = std::accumulate(erreur.begin(),erreur.end(),0.0);
     double ErMoy=sum/erreur.size();
 	cout<<"Mean error = "<<ErMoy<<endl;
+	*/
+
 		return aParam;
 }
 

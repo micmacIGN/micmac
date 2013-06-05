@@ -140,7 +140,7 @@ if(${CUDA_ENABLED})
 	 list(APPEND IncCudaFiles ${IncuhCudaFiles})
 
 	 #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20 -lineinfo)
-	 #set(GENCODE_SM20FM -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20 -use_fast_math)
+	 #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20 -use_fast_math)
 	 #set(GENCODE_SM21 -gencode=arch=compute_21,code=sm_21 -gencode=arch=compute_21,code=compute_21)
 
 	 set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20)
@@ -164,7 +164,7 @@ if(${CUDA_ENABLED})
 
 	 cuda_add_executable(${ExeGpGpuOpt} ${uti_Test_Opt_GpGpu_Src_Files})
 
-	 target_link_libraries(${ExeGpGpuOpt}  ${libStatGpGpuOpt} ${libStatGpGpuTools})	 
+	 target_link_libraries(${ExeGpGpuOpt} ${Boost_LIBRARIES} ${Boost_THREADAPI} ${libStatGpGpuOpt} ${libStatGpGpuTools})
 
 	 link_directories(${PROJECT_SOURCE_DIR}/lib/)
 
