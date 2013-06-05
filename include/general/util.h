@@ -1259,6 +1259,10 @@ class cElHour
       int    H() const;
       int    M() const;
       double S() const;
+      
+      bool operator==( const cElHour &i_b ) const;
+      bool operator!=( const cElHour &i_b ) const;
+      
     private :
        int mH;
        int mM;
@@ -1291,6 +1295,9 @@ class cElDate
 	int    DifInDay(const cElDate&) const;
 	double DifInSec(const cElDate&) const;
 
+		bool operator==( const cElDate &i_b ) const;
+		bool operator!=( const cElDate &i_b ) const;
+      
     private :
          int mD;
          int mM;
@@ -1430,6 +1437,7 @@ void ShowFClose();
 
 void GetSubset(std::vector<std::vector<int> > & aRes,int aNb,int aMax);
 
+bool ElGetStrSys( const std::string & i_base_cmd, std::string &o_result );
 
 void BanniereGlobale();
 
