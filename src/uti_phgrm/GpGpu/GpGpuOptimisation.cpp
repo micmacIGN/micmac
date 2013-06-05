@@ -5,7 +5,8 @@
 #include <helper_cuda.h>
 #include "GpGpu/GpGpuOptimisation.h"
 
-InterfOptimizGpGpu::InterfOptimizGpGpu()
+InterfOptimizGpGpu::InterfOptimizGpGpu():
+    _idbuf(false)
 {
     _gpGpuThreadOpti = new boost::thread(&InterfOptimizGpGpu::threadFuncOptimi,this);
     SetDirToCopy(false);
@@ -15,9 +16,13 @@ InterfOptimizGpGpu::InterfOptimizGpGpu()
 
 InterfOptimizGpGpu::~InterfOptimizGpGpu(){
 
-    _gpGpuThreadOpti->interrupt();
-    delete _gpGpuThreadOpti;
 
+    _gpGpuThreadOpti->interrupt();
+    //_gpGpuThreadOpti->join();
+    delete _gpGpuThreadOpti;
+    _mutexCompu.unlock();
+    _mutexCopy.unlock();
+    _mutexPreCompute.unlock();
 }
 
 void InterfOptimizGpGpu::Dealloc()
@@ -63,46 +68,52 @@ void InterfOptimizGpGpu::oneDirOptGpGpu()
 
 void InterfOptimizGpGpu::ReallocParam(uint size)
 {
+    _idbuf  = true;
+    _idDir  = 0;
     _H_data2Opt.ReallocParam(size);
     _D_data2Opt.ReallocParam(size);
+}
+
+void InterfOptimizGpGpu::createThreadOptGpGpu()
+{
+    _gpGpuThreadOpti = new boost::thread(&InterfOptimizGpGpu::threadFuncOptimi,this);
+}
+
+void InterfOptimizGpGpu::deleteThreadOptGpGpu()
+{
+    _gpGpuThreadOpti->interrupt();
+    delete _gpGpuThreadOpti;
 }
 
 void InterfOptimizGpGpu::SetCompute(bool compute)
 {
     boost::lock_guard<boost::mutex> guard(_mutexCompu);
     _compute = compute;
-    _mutexCompu.unlock();
 }
 
 bool InterfOptimizGpGpu::GetCompute()
 {
     boost::lock_guard<boost::mutex> guard(_mutexCompu);
-    bool compute = _compute;
-    _mutexCompu.unlock();
-    return compute;
+    return _compute;
 }
 
 void InterfOptimizGpGpu::SetDirToCopy(bool copy)
 {
     boost::lock_guard<boost::mutex> guard(_mutexCopy);
     _copy = copy;
-    _mutexCopy.unlock();
+
 }
 
 bool InterfOptimizGpGpu::GetDirToCopy()
 {
     boost::lock_guard<boost::mutex> guard(_mutexCopy);
-    bool copy = _copy;
-    _mutexCopy.unlock();
-    return copy;
+    return _copy;
 }
 
 bool InterfOptimizGpGpu::GetPreCompNextDir()
 {
     boost::lock_guard<boost::mutex> guard(_mutexPreCompute);
-    bool precompute = _precompute;
-    _mutexPreCompute.unlock();
-    return precompute;
+    return _precompute;
 
 }
 
@@ -110,25 +121,26 @@ void InterfOptimizGpGpu::SetPreCompNextDir(bool precompute)
 {
     boost::lock_guard<boost::mutex> guard(_mutexPreCompute);
     _precompute = precompute;
-    _mutexPreCompute.unlock();
 }
 
 void InterfOptimizGpGpu::threadFuncOptimi()
 {
-    bool idbuf   = false;
+    bool idbuf  = false;
     uint idDir  = 0;
+
     while(true)
     {
-        if(GetCompute() && !GetDirToCopy())
+        boost::this_thread::sleep(boost::posix_time::microsec(1));
+        if(!GetDirToCopy() && GetCompute())
         {
-            printf("compute[%d]      : %d\n",idbuf,idDir);
+            //printf("compute[%d]      : %d\n",idbuf,idDir);
             SetCompute(false);
 
             _D_data2Opt.SetNbLine(_H_data2Opt._nbLines);
             _H_data2Opt.ReallocOutputIf(_H_data2Opt._s_InitCostVol.GetSize());
             _D_data2Opt.ReallocIf(_H_data2Opt);
 
-            //      Transfert des données vers le device                         ---------------		-
+            //      Transfert des données vers le device                            ---------------		-
             _D_data2Opt.CopyHostToDevice(_H_data2Opt,idbuf);
 
             SetPreCompNextDir(true);
@@ -138,8 +150,7 @@ void InterfOptimizGpGpu::threadFuncOptimi()
             getLastCudaError("kernelOptiOneDirection failed");
 
             //      Copie des couts de passage forcé du device vers le host         ---------------     -
-            //_D_data2Opt.CopyDevicetoHost(_H_data2Opt);
-            _D_data2Opt.CopyDevicetoHost(_H_data2Opt._s_ForceCostVol.pData());
+            _D_data2Opt.CopyDevicetoHost(_H_data2Opt);
 
             SetDirToCopy(true);
             idbuf =! idbuf;
