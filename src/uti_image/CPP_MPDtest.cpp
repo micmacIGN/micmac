@@ -49,6 +49,8 @@ void f()
 
 
 #include "StdAfx.h"
+#include "hassan/reechantillonnage.h"
+
 
 #if (ELISE_X11)
 
@@ -180,9 +182,46 @@ void TestRound()
 }
 
 
+
+void Test_Arrondi_LG()
+{
+    Pt2di aSz(100,100);
+    double aVTest = 117;
+
+    Im2D_REAL16 anIm(aSz.x,aSz.y);
+    TIm2D<REAL16,REAL16> aTIm(anIm);
+
+    ELISE_COPY(anIm.all_pts(),aVTest,anIm.out());
+
+    while (1)
+    {
+         Pt2dr aP0 = Pt2dr(10,10) + Pt2dr(NRrandom3(),NRrandom3()) *50.123456701765;
+         double aV0 = aTIm.getr(aP0);
+         double aV1 = Reechantillonnage::biline(anIm.data(),aSz.x,aSz.y,aP0);
+         
+         std::cout << " TEST " << (aV0-aVTest) * 1e50 << " " << (aV1-aVTest) * 1e50  << " " << aP0 << "\n";
+         getchar();
+    }
+}
+
 int MPDtest_main (int argc,char** argv)
 {
+    Test_Arrondi_LG();
 
+   while (1)
+   {
+       double x;
+       double y ;
+         std::cin >> x >> y;
+       double V = 177;
+
+       double aRes = x*y*V ;
+       aRes += x*(1-y) * V;
+       aRes += (1-x)*(1-y) * V;
+       aRes += (1-x)*y * V;
+
+      printf("%15.15f\n",aRes);
+   }
    TestRound();
 
 
