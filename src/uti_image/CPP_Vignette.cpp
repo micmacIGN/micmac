@@ -42,6 +42,27 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <algorithm>
 #include <functional>
 #include <numeric>
+#include <math.h>
+
+
+double binomial(double n, double k)
+{
+    double num, den ;
+    if ( n < k ) 
+    {
+       return(0) ; 
+    }
+    else 
+    {
+	den = 1;
+	num = 1 ; 
+	for (int i =  1  ; i <= k   ; i = i+1)
+	    den =    den * i;
+	for (int j = n-k+1; j<=n; j=j+1)	
+	    num = num * j;
+	return(num/den);
+    } 
+}
 
 void Vodka_Banniere()
 {
@@ -267,18 +288,20 @@ vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
 //RANSAC
 	
 vector<double> aParam;
-//double ErMoyMin=10;
-double nbInliersMax=0;
+double ErMoyMin=10, nbInliersMax=0,ErMin=10,aScoreMax=0;;
 int nbPtsSIFT=aPtsHomol[0].size();
 int nbRANSAC=0;
 srand(time(NULL));//Initiate the rand value
-while(nbRANSAC<500)
+double maxRansac=binomial(nbPtsSIFT,18);
+cout<<maxRansac<<endl;
+while(nbRANSAC<100000)
 {
+	if(nbRANSAC==(0 % 5000)){cout<<"RANSAC progress : "<<nbRANSAC/5000<<" %"<<endl;}
 	nbRANSAC++;
 	L2SysSurResol aSys(3);
 
 	//For 3 SIFT points
-	for(int k=0;int(k)<25;k++){
+	for(int k=0;int(k)<18;k++){
 		
 		int i=rand() % nbPtsSIFT;//Rand choice of a point
 
@@ -286,35 +309,45 @@ while(nbRANSAC<500)
 								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4)),
 								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6))
 								};
-				 aSys.AddEquation(fabs(aPtsHomol[1][i]-aPtsHomol[0][i]),aPds,aPtsHomol[2][i]-aPtsHomol[3][i]);//fabs(aPtsHomol[1][i]-aPtsHomol[0][i])
+				 double poids=sqrt(fabs(aPtsHomol[1][i]-aPtsHomol[0][i]));
+				 aSys.AddEquation(poids,aPds,aPtsHomol[2][i]-aPtsHomol[3][i]);//fabs(aPtsHomol[1][i]-aPtsHomol[0][i])
 	}
 
 	//Computing the result
 	bool Ok;
     Im1D_REAL8 aSol = aSys.GSSR_Solve(&Ok);
 	double* aData = aSol.data();
-	if (Ok){
+		//Filter if computed vignette is >255 or <0 in the corners
+		double distMax=sqrt(pow(aPtsHomol[4][0]/2,2)+pow(aPtsHomol[4][1]/2,2));
+		double valCoin=255*(aData[0]*pow(distMax,2)+aData[1]*pow(distMax,4)+aData[2]*pow(distMax,6));
+	if (Ok && aData[0]>0 && 0<=valCoin && valCoin<255){
   		//For Each SIFT point, test if in acceptable error field->compute score
-		double nbInliers=0;
+		double nbInliers=0,aScore;
 		vector<double> erreur;
+
+		//Computing the distance from computed surface and data points
 		for(int i=0;i<int(nbPtsSIFT);i++){
 					 double aComputedVal=aData[0]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2))
 										+aData[1]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4))
 										+aData[2]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6));
 					 double aInputVal=aPtsHomol[2][i]-aPtsHomol[3][i];	
+					 //Selecting inliers
 					 if(fabs(aComputedVal-aInputVal)<5){
 						nbInliers++;
 						erreur.push_back(fabs(aComputedVal-aInputVal));
 					 }
-
 		}
 		double sum = std::accumulate(erreur.begin(),erreur.end(),0.0);
 		double ErMoy=sum/erreur.size();
-
-		//if(nbInliers/nbPtsSIFT>0.20 && ErMoy<ErMoyMin){
-		if(nbInliers>nbInliersMax){
+		aScore=nbInliers/ErMoy;
+		//if(nbInliers/nbPtsSIFT>0.20 && aScoreMax<aScore){
+		//if(nbInliers>nbInliersMax && ErMoy<=ErMin){
+		if(aScore>aScoreMax){
+			cout<<valCoin<<endl;
 			nbInliersMax=nbInliers;
-			cout<<"New Best Score (at "<<nbRANSAC<<"th iteration) is : "<<nbInliersMax/nbPtsSIFT*100<<"% of points used with Mean Error="<<ErMoy<<endl;
+			ErMin=ErMoy;
+			aScoreMax=aScore;
+			cout<<"New Best Score (at "<<nbRANSAC<<"th iteration) is : "<<aScoreMax<< " with " <<nbInliersMax/nbPtsSIFT*100<<"% of points used and Mean Error="<<ErMoy<<endl;
 			//ErMoyMin=ErMoy;
 			//cout<<"New Best Score (at "<<nbRANSAC<<"th iteration) is : "<<ErMoyMin<<" With "<<nbInliers/nbPtsSIFT*100<<"% of points used"<<endl;
 			aParam.clear();
@@ -325,7 +358,7 @@ while(nbRANSAC<500)
 	}
 }
 
-std::cout << "RANSAC score is : "<<nbInliersMax/nbPtsSIFT*100<<endl;
+std::cout << "RANSAC score is : "<<aScoreMax<<endl;
 //end RANSAC
 
 
