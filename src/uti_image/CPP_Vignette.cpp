@@ -281,8 +281,20 @@ vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
 		aParam.push_back(aData[1]);
 		aParam.push_back(aData[2]);
     }
+	
 
-*/
+	//Erreur moyenne
+	
+	vector<double> erreur;
+	for(int i=0;i<int(aPtsHomol[0].size());i++){
+		erreur.push_back(255*(aPtsHomol[2][i]-aPtsHomol[3][i]-(aParam[0]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2))+aParam[1]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4))+aParam[2]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6)))));
+	}
+	double sum = std::accumulate(erreur.begin(),erreur.end(),0.0);
+    double ErMoy=sum/erreur.size();
+	cout<<"Mean error = "<<ErMoy<<endl;
+*/	
+//End Least Square
+
 
 
 //RANSAC
@@ -290,18 +302,19 @@ vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
 vector<double> aParam;
 double ErMoyMin=10, nbInliersMax=0,ErMin=10,aScoreMax=0;;
 int nbPtsSIFT=aPtsHomol[0].size();
-int nbRANSAC=0;
+int nbRANSACinitialised=0;
+int nbRANSACaccepted=0;
+int nbRANSACmax=10000;
 srand(time(NULL));//Initiate the rand value
-double maxRansac=binomial(nbPtsSIFT,18);
-cout<<maxRansac<<endl;
-while(nbRANSAC<100000)
+while(nbRANSACinitialised<nbRANSACmax || nbRANSACaccepted<500)
 {
-	if(nbRANSAC==(0 % 5000)){cout<<"RANSAC progress : "<<nbRANSAC/5000<<" %"<<endl;}
-	nbRANSAC++;
+	nbRANSACinitialised++;
+	if(nbRANSACinitialised % 500==0 && nbRANSACinitialised<=nbRANSACmax){cout<<"RANSAC progress : "<<nbRANSACinitialised/100<<" %"<<endl;}
+
 	L2SysSurResol aSys(3);
 
 	//For 3 SIFT points
-	for(int k=0;int(k)<18;k++){
+	for(int k=0;int(k)<3*((rand() % 8)+3);k++){
 		
 		int i=rand() % nbPtsSIFT;//Rand choice of a point
 
@@ -309,7 +322,7 @@ while(nbRANSAC<100000)
 								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4)),
 								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6))
 								};
-				 double poids=sqrt(fabs(aPtsHomol[1][i]-aPtsHomol[0][i]));
+				 double poids=1;//sqrt(max(aPtsHomol[1][i],aPtsHomol[0][i]));//sqrt(fabs(aPtsHomol[1][i]-aPtsHomol[0][i]));
 				 aSys.AddEquation(poids,aPds,aPtsHomol[2][i]-aPtsHomol[3][i]);//fabs(aPtsHomol[1][i]-aPtsHomol[0][i])
 	}
 
@@ -321,6 +334,8 @@ while(nbRANSAC<100000)
 		double distMax=sqrt(pow(aPtsHomol[4][0]/2,2)+pow(aPtsHomol[4][1]/2,2));
 		double valCoin=255*(aData[0]*pow(distMax,2)+aData[1]*pow(distMax,4)+aData[2]*pow(distMax,6));
 	if (Ok && aData[0]>0 && 0<=valCoin && valCoin<255){
+		nbRANSACaccepted++;
+		if (nbRANSACaccepted % 50==0 && nbRANSACinitialised>nbRANSACmax){cout<<"Difficult config RANSAC progress : "<<nbRANSACaccepted/5<<"%"<<endl;}
   		//For Each SIFT point, test if in acceptable error field->compute score
 		double nbInliers=0,aScore;
 		vector<double> erreur;
@@ -331,23 +346,23 @@ while(nbRANSAC<100000)
 										+aData[1]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4))
 										+aData[2]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6));
 					 double aInputVal=aPtsHomol[2][i]-aPtsHomol[3][i];	
+						erreur.push_back(fabs(aComputedVal-aInputVal)*(min(aPtsHomol[0][i],aPtsHomol[1][i]))/(distMax));
 					 //Selecting inliers
 					 if(fabs(aComputedVal-aInputVal)<5){
 						nbInliers++;
-						erreur.push_back(fabs(aComputedVal-aInputVal));
 					 }
 		}
 		double sum = std::accumulate(erreur.begin(),erreur.end(),0.0);
 		double ErMoy=sum/erreur.size();
 		aScore=nbInliers/ErMoy;
 		//if(nbInliers/nbPtsSIFT>0.20 && aScoreMax<aScore){
-		//if(nbInliers>nbInliersMax && ErMoy<=ErMin){
+		//if(nbInliers>nbInliersMax){
 		if(aScore>aScoreMax){
 			cout<<valCoin<<endl;
 			nbInliersMax=nbInliers;
 			ErMin=ErMoy;
 			aScoreMax=aScore;
-			cout<<"New Best Score (at "<<nbRANSAC<<"th iteration) is : "<<aScoreMax<< " with " <<nbInliersMax/nbPtsSIFT*100<<"% of points used and Mean Error="<<ErMoy<<endl;
+			cout<<"New Best Score (at "<<nbRANSACinitialised<<"th iteration) is : "<<aScoreMax<< " with " <<nbInliersMax/nbPtsSIFT*100<<"% of points used and Mean Error="<<ErMoy<<endl;
 			//ErMoyMin=ErMoy;
 			//cout<<"New Best Score (at "<<nbRANSAC<<"th iteration) is : "<<ErMoyMin<<" With "<<nbInliers/nbPtsSIFT*100<<"% of points used"<<endl;
 			aParam.clear();
@@ -359,22 +374,11 @@ while(nbRANSAC<100000)
 }
 
 std::cout << "RANSAC score is : "<<aScoreMax<<endl;
+
 //end RANSAC
 
 
 	if(aParam.size()==3){ std::cout << "Vignette parameters, with x dist from image center : (" << aParam[0] << ")*x^2+(" << aParam[1] << ")*x^4+(" << aParam[2] << ")*x^6"<<endl;}
-
-
-	//Erreur moyenne
-	/*
-	vector<double> erreur;
-	for(int i=0;i<int(aPtsHomol[0].size());i++){
-		erreur.push_back(255*(aPtsHomol[2][i]-aPtsHomol[3][i]-(aParam[0]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2))+aParam[1]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4))+aParam[2]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6)))));
-	}
-	double sum = std::accumulate(erreur.begin(),erreur.end(),0.0);
-    double ErMoy=sum/erreur.size();
-	cout<<"Mean error = "<<ErMoy<<endl;
-	*/
 
 		return aParam;
 }
