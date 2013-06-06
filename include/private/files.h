@@ -154,6 +154,8 @@ class  ELISE_fp
          static void MkDirRec(const std::string &  aName );
          static bool IsDirectory(const std::string &  aName );
          static void AssertIsDirectory(const std::string &  aName );
+         
+         static bool lastModificationDate(const std::string &i_filename, cElDate &o_date ); // returns if the date could be retrieved
 
 	 static void RmFile(const std::string &);
 	 static void PurgeDir(const std::string &);

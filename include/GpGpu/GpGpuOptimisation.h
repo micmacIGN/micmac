@@ -4,16 +4,12 @@
 #include "GpGpu/GpGpuTools.h"
 #include "GpGpu/data2Optimize.h"
 
-//#ifndef BOOST_ALL_NO_LIB
-//    #define BOOST_ALL_NO_LIB
-//#endif
-
 #include <boost/thread/thread.hpp>
 
 template <class T>
 void LaunchKernel();
 
-#define HOST_Data2Opti Data2Optimiz<CuHostData3D>
+#define HOST_Data2Opti Data2Optimiz<CuHostData3D,2>
 #define DEVC_Data2Opti Data2Optimiz<CuDeviceData3D>
 
 extern "C" void Launch();
@@ -34,13 +30,17 @@ public:
     void            oneDirOptGpGpu();
     void            ReallocParam(uint size);
 
+    void            createThreadOptGpGpu();
+    void            deleteThreadOptGpGpu();
 
-    void            SetDirToCompute(bool compute);
-    bool            GetDirToCompute();
+    void            SetCompute(bool compute);
+    bool            GetCompute();
+
     void            SetDirToCopy(bool copy);
     bool            GetDirToCopy();
-    bool            GetPreCompNextDir();
+
     void            SetPreCompNextDir(bool precompute);
+    bool            GetPreCompNextDir();
 
 private:
 
@@ -57,6 +57,9 @@ private:
     bool            _compute;
     bool            _copy;
     bool            _precompute;
+
+    bool            _idbuf;
+    uint            _idDir;
 
 };
 
