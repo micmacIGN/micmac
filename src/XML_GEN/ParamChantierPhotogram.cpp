@@ -1023,6 +1023,17 @@ const cTplValGesInit< Pt2dr > & cFileOriMnt::OrigineTgtLoc()const
    return mOrigineTgtLoc;
 }
 
+
+cTplValGesInit< int > & cFileOriMnt::Rounding()
+{
+   return mRounding;
+}
+
+const cTplValGesInit< int > & cFileOriMnt::Rounding()const 
+{
+   return mRounding;
+}
+
 cElXMLTree * ToXMLTree(const cFileOriMnt & anObj)
 {
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"FileOriMnt",eXMLBranche);
@@ -1039,6 +1050,8 @@ cElXMLTree * ToXMLTree(const cFileOriMnt & anObj)
    aRes->AddFils(ToXMLTree(std::string("Geometrie"),anObj.Geometrie())->ReTagThis("Geometrie"));
    if (anObj.OrigineTgtLoc().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("OrigineTgtLoc"),anObj.OrigineTgtLoc().Val())->ReTagThis("OrigineTgtLoc"));
+   if (anObj.Rounding().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Rounding"),anObj.Rounding().Val())->ReTagThis("Rounding"));
   return aRes;
 }
 
@@ -1065,6 +1078,8 @@ void xml_init(cFileOriMnt & anObj,cElXMLTree * aTree)
    xml_init(anObj.Geometrie(),aTree->Get("Geometrie",1)); //tototo 
 
    xml_init(anObj.OrigineTgtLoc(),aTree->Get("OrigineTgtLoc",1)); //tototo 
+
+   xml_init(anObj.Rounding(),aTree->Get("Rounding",1)); //tototo 
 }
 
 

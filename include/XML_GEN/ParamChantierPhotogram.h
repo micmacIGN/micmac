@@ -359,6 +359,9 @@ class cFileOriMnt
 
         cTplValGesInit< Pt2dr > & OrigineTgtLoc();
         const cTplValGesInit< Pt2dr > & OrigineTgtLoc()const ;
+
+        cTplValGesInit< int > & Rounding();
+        const cTplValGesInit< int > & Rounding()const ;
     private:
         std::string mNameFileMnt;
         cTplValGesInit< std::string > mNameFileMasque;
@@ -370,6 +373,7 @@ class cFileOriMnt
         cTplValGesInit< int > mNumZoneLambert;
         eModeGeomMNT mGeometrie;
         cTplValGesInit< Pt2dr > mOrigineTgtLoc;
+        cTplValGesInit< int > mRounding;
 };
 cElXMLTree * ToXMLTree(const cFileOriMnt &);
 

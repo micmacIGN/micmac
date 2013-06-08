@@ -91,6 +91,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
    <Symb>ButDoOrtho=false </Symb>
   
    <Symb>  FileDoNothing=EmptyXML.xml  </Symb>
+   <Symb>  UseImSec=false  </Symb>
+   <Symb>  CorMS=false  </Symb>
+   <Symb> ModeAgrCor=eAggregSymetrique </Symb>
 
 
     <!-- NOUVELLE FONCTIONNALITE SYMBOLE EVALUE, NOTATION POLONAISE INVERSE -->
@@ -146,6 +149,11 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                   <Min>  ${ImMin}  </Min>
                   <Max>  ${ImMax} </Max>
               </Filter>
+           </#WHEN>
+           <#WHEN VTEST=${UseImSec}>
+               <ImSecCalcApero>
+                  <Key> NKS-Assoc-ImSec@-${Ori} </Key>
+               </ImSecCalcApero>
            </#WHEN>
      </Images>
 
@@ -204,6 +212,12 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
             </ImageSelecteur>
 
 
+            <AggregCorr> ${ModeAgrCor} </AggregCorr>
+            <CorrelAdHoc>
+                 <TypeCAH>
+                      <GPU_Correl> </GPU_Correl>
+                 </TypeCAH>
+            </CorrelAdHoc>
             
         </EtapeMEC>
 	     
@@ -274,6 +288,32 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                         <KeyCalcPC> NKS-Assoc-AddDirAndPref@${DirQO}@PC_ </KeyCalcPC>
                         <IncludeFileLoc>  ${FileOthoQ} </IncludeFileLoc>
                    </GenerePartiesCachees>
+                   <#WHEN VTEST=${CorMS}>
+                       <SzW> 1 </SzW>
+                       <CorrelAdHoc Portee="Globale">
+                           <CorrelMultiScale>
+                                  <ModeDense> true </ModeDense>
+                                  <OneParamCMS>
+                                       <SzW> 1 1 </SzW>
+                                       <Sigma> 0 </Sigma>
+                                       <Pds> 1.0 </Pds>
+                                  </OneParamCMS>
+                                  <OneParamCMS>
+                                       <SzW> 2 2 </SzW>
+                                       <Sigma> 1.0 </Sigma>
+                                       <Pds> 0.5 </Pds>
+                                  </OneParamCMS>
+                                  <OneParamCMS>
+                                       <SzW> 2 2 </SzW>
+                                       <Sigma> 1.0 </Sigma>
+                                       <Pds> 0.25 </Pds>
+                                  </OneParamCMS>
+                           </CorrelMultiScale>
+                            <TypeCAH>
+                                  <GPU_Correl> </GPU_Correl>
+                            </TypeCAH>
+                       </CorrelAdHoc>
+                   </#WHEN>
 
         </EtapeMEC>
 

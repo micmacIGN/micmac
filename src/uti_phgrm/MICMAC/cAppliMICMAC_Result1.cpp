@@ -897,9 +897,11 @@ void cAppliMICMAC::GenereOrientationMnt(cEtapeMecComp * itE)
                       + std::string(".xml");
          cElXMLTree * aTree = ToXMLTree(aFOM);
          FILE * aFP = ElFopen(aName.c_str(),"w");
+//XMLPushPrec
          ELISE_ASSERT(aFP!=0,"cAppliMICMAC::GenereOrientationMnt");
 
          aTree->Show("      ",aFP,0,0,true);
+// XMLPopPrec
 
          delete aTree;
          ElFclose(aFP);

@@ -1139,7 +1139,16 @@ void Debug2XmlT(int aLine)
     std::cout << " Debug2XmlT " << aLine << "\n";
 }
 
-#define XML_PRECISION(OS) OS.precision(18);
+static std::vector<int> mVPrec;
+void  XMLPushPrec(int aPrec) {mVPrec.push_back(aPrec);}
+void  XMLPopPrec(){ mVPrec.pop_back();}
+int CurPrec()
+{
+   if (mVPrec.empty()) return 18;
+   return mVPrec.back();
+}
+
+#define XML_PRECISION(OS) OS.precision(CurPrec());
 
 #define DEBUG_2XMLT  
 //Debug2XmlT(__LINE__);

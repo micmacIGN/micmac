@@ -264,6 +264,7 @@ inline INT arrondi_sup(INT a,INT b)
 
 double arrondi_inf(double aVal,double aPer);
 double arrondi_sup(double aVal,double aPer);
+double arrondi_ni(double aVal,double aPer);
 
 inline REAL mod_real(REAL a,REAL b)
 {

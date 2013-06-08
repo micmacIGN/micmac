@@ -908,11 +908,24 @@ class cGeomDiscFPx : public  cGeomDiscR2
          {
               return mRatioResAltPlani;
          }
+         double RoundCoord(const double & aV);
+         Pt2dr  RoundCoord(const Pt2dr  & aP) ;
+         Box2dr RoundCoord(const Box2dr  & aP) ;
+         int    MaxPrecision() const;
+         bool   TronkExport() const;
+
+
 
      private :
          int GetEcartInitialGen(double aPas,int aKPx,double anEcart) const;
 
          void  SetRoundResol(double aRes);
+         void  SetUnroundResol(double aRes);
+         void  SetResol(double aRes,bool Round);
+         // double RoundCoord(const double & aV) const;
+         // double RoundCoord(const Pt2dr & aV) const;
+         // double RoundCoord(const Box2dr & aV) const;
+
 
 
        /**********************************/
@@ -935,6 +948,9 @@ class cGeomDiscFPx : public  cGeomDiscR2
          double  mCorrectDerivee;
          cDecimal mRDec;
          bool    mRRIsInit;
+         bool    mRCoordIsInit;
+         int     mMaxPrecision;
+         bool    mTronkExport;
 };
 
 // Dans cGeomImage 

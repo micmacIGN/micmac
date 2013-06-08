@@ -184,6 +184,16 @@ void cGeomDiscR2::Show(const std::string  & aMes) const
         << " SzCl " <<  SzClip() << "\n";
 }
 
+int cGeomDiscFPx::MaxPrecision() const 
+{
+   ELISE_ASSERT(mTronkExport,"cGeomDiscFPx::MaxPrecision");
+   return mMaxPrecision;
+}
+bool cGeomDiscFPx::TronkExport() const
+{
+   return mTronkExport;
+}
+
 const Pt2dr & cGeomDiscR2::P0() const {return mP0;}
 const Pt2dr & cGeomDiscR2::P1() const {return mP1;}
 
@@ -199,9 +209,11 @@ cGeomDiscFPx::cGeomDiscFPx
 (
     const  cAppliMICMAC & anAppli
 ) :
-   cGeomDiscR2 (anAppli),
-   mRDec       (0,0),
-   mRRIsInit   (false)
+   cGeomDiscR2     (anAppli),
+   mRDec           (0,0),
+   mRRIsInit       (false),
+   mRCoordIsInit   (false),
+   mMaxPrecision   (0)
 {
 }
 
@@ -219,9 +231,46 @@ void  cGeomDiscFPx::SetRoundResol(double aRes)
 {
    double aZ = mAp->DeZoomMin();
    mRDec = StdRound(aRes*aZ);
+   ElSetMax(mMaxPrecision,-mRDec.Exp());
    mRRIsInit = true;
    mResol = mRDec.RVal() /aZ;
 }
+
+void  cGeomDiscFPx::SetUnroundResol(double aRes)
+{
+   mResol = aRes;
+   mRRIsInit = false;
+}
+
+void cGeomDiscFPx::SetResol(double aRes,bool Round)
+{
+   if (Round)
+      SetRoundResol(aRes);
+   else
+      SetUnroundResol(aRes);
+}
+
+double cGeomDiscFPx::RoundCoord(const double & aV) 
+{
+   if (! mRCoordIsInit) return aV;
+   if (mRRIsInit)
+   {
+       ElSetMax(mMaxPrecision,round_up(-mRDec.Exp() + log10(1e-5+ElAbs(aV))));
+       return mRDec.Arrondi(aV);
+   }
+   return arrondi_ni(aV,mResol);
+}
+
+Pt2dr  cGeomDiscFPx::RoundCoord(const Pt2dr  & aP)
+{
+   return Pt2dr(RoundCoord(aP.x),RoundCoord(aP.y));
+}
+
+Box2dr  cGeomDiscFPx::RoundCoord(const Box2dr  & aBox)
+{
+   return Box2dr(RoundCoord(aBox._p0),RoundCoord(aBox._p1));
+}
+
 
 
 void cGeomDiscFPx::PostInit()
@@ -231,7 +280,6 @@ if (MPD_MM())
     std::cout << "VOIR===PB Z<0 en Prof Champs \n";
 }
 
-  bool doAutoRound  = mAp->AutoRoundGeoref().Val();
 
   cFileOriMnt * aFileExt = 0;
   if (mAp->FileOriMnt().IsInit())
@@ -338,15 +386,11 @@ if (MPD_MM())
   ELISE_ASSERT(aNbResolGot," Resolution pas trouvee");
   mResol /= aNbResolGot;
   double aResolNotRound = mResol;
-  if (doAutoRound)
-  {
-     SetRoundResol(mResol);
-     //mResol = RoundAppli(*mAp,mResol);
-     std::cout << "=====ZOOOM " << mAp->DeZoomMin() <<  " " << mAp->DeZoomMax() << "\n";
-  }
+  SetResol(mResol,mAp->GeoRefAutoRoundResol().ValWithDef(mAp->ModeGeomMEC()==eGeomMECTerrain)) ;
   if (aFileExt)
   {
-       mResol = ElAbs(aFileExt->ResolutionPlani().x);
+       SetUnroundResol(ElAbs(aFileExt->ResolutionPlani().x));
+       // mResol = ElAbs(aFileExt->ResolutionPlani().x);
        //  Attention -(-x) != x  avec les flottant 
        ELISE_ASSERT
        (
@@ -358,11 +402,15 @@ if (MPD_MM())
   {
      if  (mAp->RatioResolImage().IsInit())
      {
-         SetRoundResol(aResolNotRound*mAp->RatioResolImage().Val());
+         SetResol(aResolNotRound*mAp->RatioResolImage().Val(),mAp->GeoRefAutoRoundResol().ValWithDef(false));
      }
      if  (mAp->ResolutionTerrain().IsInit())
-         mResol = mAp->ResolutionTerrain().Val();
+     {
+         SetUnroundResol(mAp->ResolutionTerrain().Val());
+     }
+     //     mResol = mAp->ResolutionTerrain().Val();
   } 
+  mRCoordIsInit =  mAp->GeoRefAutoRoundBox().ValWithDef(true);
 
 
   //  Calcul des intervalles de paralaxe
@@ -652,6 +700,7 @@ if ( mAp->DebugMM().Val())
       )
   {
      aBox = mAp->BoxTerrain().Val();
+     mRCoordIsInit =  mAp->GeoRefAutoRoundBox().ValWithDef(false);
      isBoxInit = true;
   }
 
@@ -757,6 +806,7 @@ if ( mAp->DebugMM().Val())
   {
       aBox = mBoxEngl;
   }
+  aBox = RoundCoord(aBox);
   mP0 = aBox._p0;
   mP1 = aBox._p1;
   mBoxEngl  = aBox;  // A priori redondance entre les 2
@@ -786,6 +836,10 @@ if ( mAp->DebugMM().Val())
   }
 
 
+  mTronkExport = mRRIsInit && mRCoordIsInit;
+  std::cout << "PReccccccc " << mMaxPrecision << "\n";
+  std::cout.precision(mMaxPrecision+1) ;
+  std::cout << "PpppQQ " << mResol << aBox._p0 << aBox._p1 << "\n";
 
 
   delete aFileExt;

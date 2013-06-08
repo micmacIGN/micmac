@@ -2088,6 +2088,11 @@ void AddEntryStringifie(const std::string &,const char ** aTab,bool formal);
 
 double PolonaiseInverse(const std::string & aStr);
 
+void  XMLPushPrec(int aPrec);
+void  XMLPopPrec();
+
+
+
 
 //   const char * GetEntryStringifie(const std::string &);
 

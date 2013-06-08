@@ -937,8 +937,11 @@ class cSection_Terrain
         cTplValGesInit< cIntervSpecialZInv > & IntervSpecialZInv();
         const cTplValGesInit< cIntervSpecialZInv > & IntervSpecialZInv()const ;
 
-        cTplValGesInit< bool > & AutoRoundGeoref();
-        const cTplValGesInit< bool > & AutoRoundGeoref()const ;
+        cTplValGesInit< bool > & GeoRefAutoRoundResol();
+        const cTplValGesInit< bool > & GeoRefAutoRoundResol()const ;
+
+        cTplValGesInit< bool > & GeoRefAutoRoundBox();
+        const cTplValGesInit< bool > & GeoRefAutoRoundBox()const ;
 
         cTplValGesInit< Box2dr > & BoxTerrain();
         const cTplValGesInit< Box2dr > & BoxTerrain()const ;
@@ -995,7 +998,8 @@ class cSection_Terrain
         cTplValGesInit< cIntervParalaxe > mIntervParalaxe;
         cTplValGesInit< cNuageXMLInit > mNuageXMLInit;
         cTplValGesInit< cIntervSpecialZInv > mIntervSpecialZInv;
-        cTplValGesInit< bool > mAutoRoundGeoref;
+        cTplValGesInit< bool > mGeoRefAutoRoundResol;
+        cTplValGesInit< bool > mGeoRefAutoRoundBox;
         cTplValGesInit< cPlanimetrie > mPlanimetrie;
         cTplValGesInit< std::string > mFileOriMnt;
         cTplValGesInit< cRugositeMNT > mRugositeMNT;
@@ -5212,8 +5216,11 @@ class cParamMICMAC
         cTplValGesInit< cIntervSpecialZInv > & IntervSpecialZInv();
         const cTplValGesInit< cIntervSpecialZInv > & IntervSpecialZInv()const ;
 
-        cTplValGesInit< bool > & AutoRoundGeoref();
-        const cTplValGesInit< bool > & AutoRoundGeoref()const ;
+        cTplValGesInit< bool > & GeoRefAutoRoundResol();
+        const cTplValGesInit< bool > & GeoRefAutoRoundResol()const ;
+
+        cTplValGesInit< bool > & GeoRefAutoRoundBox();
+        const cTplValGesInit< bool > & GeoRefAutoRoundBox()const ;
 
         cTplValGesInit< Box2dr > & BoxTerrain();
         const cTplValGesInit< Box2dr > & BoxTerrain()const ;
