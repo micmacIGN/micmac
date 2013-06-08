@@ -58,8 +58,12 @@ InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
 InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
 {
   _gpuThread->interrupt();
-  _gpuThread->join();
+  //_gpuThread->join();
   delete _gpuThread;
+
+  _mutex.unlock();
+  _mutexC.unlock();
+  _mutexCompute.unlock();
 
   for (int s = 0;s<NSTREAM;s++)
     checkCudaErrors( cudaStreamDestroy(*(GetStream(s))));

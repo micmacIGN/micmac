@@ -55,6 +55,12 @@ struct Rect
 		pt1 = make_int2(p1x,p1y);
     }
 
+    __device__ __host__ Rect(const Rect& rect)
+    {
+        pt0 = rect.pt0;
+        pt1 = rect.pt1;
+    }
+
     /// \brief Renvoie la dimension du rectangle
 	uint2 dimension()
 	{
