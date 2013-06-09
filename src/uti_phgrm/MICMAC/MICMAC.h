@@ -775,7 +775,7 @@ class cGeomDiscR2
 {
        // defini dans GeomXXX.cpp
      public :
-         cGeomDiscR2 (const cAppliMICMAC &);
+         cGeomDiscR2 (cAppliMICMAC &);
 
          // Service essentiel offert par la classe
          Pt2dr    DiscToR2(const  Pt2di & aPRas) const;
@@ -821,7 +821,7 @@ class cGeomDiscR2
        /**********************************/
 
          // Un *, et non un &, pour autoriser le X(const X&)  standard
-         const cAppliMICMAC *   mAp;
+         cAppliMICMAC *   mAp;
          // Zone Terrain et resolution initiale
          Pt2dr                  mP0;
          Pt2dr                  mP1;
@@ -869,7 +869,7 @@ class cGeomDiscFPx : public  cGeomDiscR2
 
          double  CorrectDerivee() const;
 
-         cGeomDiscFPx(const cAppliMICMAC &);
+         cGeomDiscFPx(cAppliMICMAC &);
 
          double RatioResAltiPlani() const;
          double PasPx0() const;
@@ -911,8 +911,10 @@ class cGeomDiscFPx : public  cGeomDiscR2
          double RoundCoord(const double & aV);
          Pt2dr  RoundCoord(const Pt2dr  & aP) ;
          Box2dr RoundCoord(const Box2dr  & aP) ;
-         int    MaxPrecision() const;
+
          bool   TronkExport() const;
+
+
 
 
 
@@ -949,7 +951,6 @@ class cGeomDiscFPx : public  cGeomDiscR2
          cDecimal mRDec;
          bool    mRRIsInit;
          bool    mRCoordIsInit;
-         int     mMaxPrecision;
          bool    mTronkExport;
 };
 
@@ -2795,6 +2796,11 @@ class cAppliMICMAC  : public   cParamMICMAC,
 {
      public :
 
+         //int    MaxPrecision() const;
+         void AddPrecisionOfArrondi(const cDecimal &, double aVal);
+         void AddPrecisionOfDec(const cDecimal &,double aMul);
+         void UpdatePrecision(int aP);
+
         bool   CMS_ModeEparse() const;
         cAnamorphoseGeometrieMNT * AnaGeomMNT() const;
         cMakeMaskImNadir * MMImNadir() const;
@@ -3610,6 +3616,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
          cAnamorphoseGeometrieMNT * mAnaGeomMNT;
          cMakeMaskImNadir         * mMakeMaskImNadir;
 
+         int     mMaxPrecision;
 };
 
 std::string  StdNameFromCple

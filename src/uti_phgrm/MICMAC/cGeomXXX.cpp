@@ -55,7 +55,7 @@ bool IsModeInvY(const eModeGeomMNT & aMode)
 
 cGeomDiscR2::cGeomDiscR2
 (
-    const cAppliMICMAC & anAppli
+    cAppliMICMAC & anAppli
 ) :
   mAp    (&anAppli),
   mInvY  (IsModeInvY(anAppli.GeomMNT()))
@@ -184,11 +184,13 @@ void cGeomDiscR2::Show(const std::string  & aMes) const
         << " SzCl " <<  SzClip() << "\n";
 }
 
+/*
 int cGeomDiscFPx::MaxPrecision() const 
 {
    ELISE_ASSERT(mTronkExport,"cGeomDiscFPx::MaxPrecision");
    return mMaxPrecision;
 }
+*/
 bool cGeomDiscFPx::TronkExport() const
 {
    return mTronkExport;
@@ -207,13 +209,12 @@ const Pt2dr & cGeomDiscR2::P1() const {return mP1;}
 
 cGeomDiscFPx::cGeomDiscFPx
 (
-    const  cAppliMICMAC & anAppli
+    cAppliMICMAC & anAppli
 ) :
    cGeomDiscR2     (anAppli),
    mRDec           (0,0),
    mRRIsInit       (false),
-   mRCoordIsInit   (false),
-   mMaxPrecision   (0)
+   mRCoordIsInit   (false)
 {
 }
 
@@ -231,7 +232,7 @@ void  cGeomDiscFPx::SetRoundResol(double aRes)
 {
    double aZ = mAp->DeZoomMin();
    mRDec = StdRound(aRes*aZ);
-   ElSetMax(mMaxPrecision,-mRDec.Exp());
+   mAp->AddPrecisionOfDec(mRDec,aZ);
    mRRIsInit = true;
    mResol = mRDec.RVal() /aZ;
 }
@@ -250,12 +251,33 @@ void cGeomDiscFPx::SetResol(double aRes,bool Round)
       SetUnroundResol(aRes);
 }
 
+void cAppliMICMAC::AddPrecisionOfArrondi(const cDecimal & aDec, double aVal)
+{
+   long int anI = lround_ni( ((long double) aVal)  / ((long double) aDec.RVal())  );
+
+   int aP = round_up(log10(1+anI)) +  round_up(ElAbs(log10(1+aDec.Mant())));
+   UpdatePrecision(aP);
+}
+void cAppliMICMAC::AddPrecisionOfDec(const cDecimal & aDec,double aZ)
+{
+   int aP = round_up(ElAbs(log10(1+aDec.Mant()))) + round_up(ElAbs(log10(aZ)));
+   UpdatePrecision(aP);
+}
+
+void cAppliMICMAC::UpdatePrecision(int aP)
+{
+   ElSetMax(mMaxPrecision,aP);
+   // std::cout  << "UUUUdapPPP  "<< aP << " ===  " << mMaxPrecision << "\n";
+}
+
+
+
 double cGeomDiscFPx::RoundCoord(const double & aV) 
 {
    if (! mRCoordIsInit) return aV;
    if (mRRIsInit)
    {
-       ElSetMax(mMaxPrecision,round_up(-mRDec.Exp() + log10(1e-5+ElAbs(aV))));
+       mAp->AddPrecisionOfArrondi(mRDec, aV);
        return mRDec.Arrondi(aV);
    }
    return arrondi_ni(aV,mResol);
@@ -837,9 +859,16 @@ if ( mAp->DebugMM().Val())
 
 
   mTronkExport = mRRIsInit && mRCoordIsInit;
+  if (mTronkExport)
+  {
+     mV0Px[0] = mRDec.Arrondi(mV0Px[0]);
+     mAp->AddPrecisionOfArrondi(mRDec,mV0Px[0]);
+  }
+/*
   std::cout << "PReccccccc " << mMaxPrecision << "\n";
   std::cout.precision(mMaxPrecision+1) ;
   std::cout << "PpppQQ " << mResol << aBox._p0 << aBox._p1 << "\n";
+*/
 
 
   delete aFileExt;
@@ -886,6 +915,16 @@ void cGeomDiscFPx::SetStep(const REAL * aVStep)
    {
        mStepRel[aD] = aVStep[aD] ;
        mStepAbs[aD] = mStepRel[aD] * mResolDz * mRatioResAltPlani[aD];
+       if ((aD==0) && mTronkExport)
+       {
+           double aRatioDZ = mResolDz /mAp->DeZoomMin();
+           cDecimal aSAr = StdRound(mStepAbs[0]/aRatioDZ);
+           mStepAbs[0] =  aSAr.RVal() * aRatioDZ;
+           mStepRel[0] = mStepAbs[0] / (mResolDz * mRatioResAltPlani[aD]);
+           mAp->AddPrecisionOfDec(aSAr,aRatioDZ);
+       }
+/*
+*/
        // std::cout <<  mStepRel[aD] << " " << mStepAbs[aD] << "\n";
    }
 }

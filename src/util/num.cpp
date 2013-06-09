@@ -98,6 +98,11 @@ const int & cDecimal::Exp() const
    return mExp;
 }
 
+const int & cDecimal::Mant() const
+{
+   return mMant;
+}
+
 double cDecimal::Arrondi(double aV0) const
 {
     long int aD10 =  Div10();
