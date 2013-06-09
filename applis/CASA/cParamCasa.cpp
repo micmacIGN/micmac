@@ -24,15 +24,19 @@ const std::string & cNuageByImage::NameXMLNuage()const
 
 cElXMLTree * ToXMLTree(const cNuageByImage & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"NuageByImage",eXMLBranche);
    if (anObj.NameMasqSup().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("NameMasqSup"),anObj.NameMasqSup().Val())->ReTagThis("NameMasqSup"));
    aRes->AddFils(::ToXMLTree(std::string("NameXMLNuage"),anObj.NameXMLNuage())->ReTagThis("NameXMLNuage"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cNuageByImage & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.NameMasqSup(),aTree->Get("NameMasqSup",1)); //tototo 
@@ -86,6 +90,7 @@ const cTplValGesInit< Pt2di > & cSectionLoadNuage::SzW()const
 
 cElXMLTree * ToXMLTree(const cSectionLoadNuage & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionLoadNuage",eXMLBranche);
   for
   (       std::list< cNuageByImage >::const_iterator it=anObj.NuageByImage().begin();
@@ -97,11 +102,14 @@ cElXMLTree * ToXMLTree(const cSectionLoadNuage & anObj)
    aRes->AddFils(::ToXMLTree(std::string("DistZone"),anObj.DistZone())->ReTagThis("DistZone"));
    if (anObj.SzW().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("SzW"),anObj.SzW().Val())->ReTagThis("SzW"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cSectionLoadNuage & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.NuageByImage(),aTree->GetAll("NuageByImage",false,1));
@@ -137,14 +145,18 @@ const int & cSectionEstimSurf::NbRansac()const
 
 cElXMLTree * ToXMLTree(const cSectionEstimSurf & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionEstimSurf",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("TypeSurf"),anObj.TypeSurf())->ReTagThis("TypeSurf"));
    aRes->AddFils(::ToXMLTree(std::string("NbRansac"),anObj.NbRansac())->ReTagThis("NbRansac"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cSectionEstimSurf & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.TypeSurf(),aTree->Get("TypeSurf",1)); //tototo 
@@ -253,15 +265,19 @@ const cSectionEstimSurf & cSectionInitModele::SectionEstimSurf()const
 
 cElXMLTree * ToXMLTree(const cSectionInitModele & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionInitModele",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name())->ReTagThis("Name"));
    aRes->AddFils(ToXMLTree(anObj.SectionLoadNuage())->ReTagThis("SectionLoadNuage"));
    aRes->AddFils(ToXMLTree(anObj.SectionEstimSurf())->ReTagThis("SectionEstimSurf"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cSectionInitModele & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.Name(),aTree->Get("Name",1)); //tototo 
@@ -306,6 +322,7 @@ const cTplValGesInit< std::string > & cEtapeCompensation::Export()const
 
 cElXMLTree * ToXMLTree(const cEtapeCompensation & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"EtapeCompensation",eXMLBranche);
   for
   (       std::list< double >::const_iterator it=anObj.Sigma().begin();
@@ -317,11 +334,14 @@ cElXMLTree * ToXMLTree(const cEtapeCompensation & anObj)
       aRes->AddFils(::ToXMLTree(std::string("NbIter"),anObj.NbIter().Val())->ReTagThis("NbIter"));
    if (anObj.Export().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Export"),anObj.Export().Val())->ReTagThis("Export"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.Sigma(),aTree->GetAll("Sigma",false,1));
@@ -355,6 +375,7 @@ const cTplValGesInit< double > & cSectionCompensation::CoherenceOrientation()con
 
 cElXMLTree * ToXMLTree(const cSectionCompensation & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionCompensation",eXMLBranche);
   for
   (       std::list< cEtapeCompensation >::const_iterator it=anObj.EtapeCompensation().begin();
@@ -364,11 +385,14 @@ cElXMLTree * ToXMLTree(const cSectionCompensation & anObj)
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("EtapeCompensation"));
    if (anObj.CoherenceOrientation().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("CoherenceOrientation"),anObj.CoherenceOrientation().Val())->ReTagThis("CoherenceOrientation"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
@@ -444,6 +468,7 @@ const std::string & cParamCasa::DirectoryChantier()const
 
 cElXMLTree * ToXMLTree(const cParamCasa & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ParamCasa",eXMLBranche);
    if (anObj.DicoLoc().IsInit())
       aRes->AddFils(ToXMLTree(anObj.DicoLoc().Val())->ReTagThis("DicoLoc"));
@@ -455,11 +480,14 @@ cElXMLTree * ToXMLTree(const cParamCasa & anObj)
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("SectionInitModele"));
    aRes->AddFils(ToXMLTree(anObj.SectionCompensation())->ReTagThis("SectionCompensation"));
    aRes->AddFils(::ToXMLTree(std::string("DirectoryChantier"),anObj.DirectoryChantier())->ReTagThis("DirectoryChantier"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cParamCasa & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.DicoLoc(),aTree->Get("DicoLoc",1)); //tototo 

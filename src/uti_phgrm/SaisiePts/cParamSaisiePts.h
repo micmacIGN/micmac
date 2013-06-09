@@ -40,6 +40,8 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eEtatPointeImage & anO
 class cContenuPt
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cContenuPt & anObj,cElXMLTree * aTree);
 
 
@@ -53,6 +55,8 @@ cElXMLTree * ToXMLTree(const cContenuPt &);
 class cPointGlob
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cPointGlob & anObj,cElXMLTree * aTree);
 
 
@@ -120,6 +124,8 @@ cElXMLTree * ToXMLTree(const cPointGlob &);
 class cSetPointGlob
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSetPointGlob & anObj,cElXMLTree * aTree);
 
 
@@ -136,6 +142,8 @@ cElXMLTree * ToXMLTree(const cSetPointGlob &);
 class cOneSaisie
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cOneSaisie & anObj,cElXMLTree * aTree);
 
 
@@ -157,6 +165,8 @@ cElXMLTree * ToXMLTree(const cOneSaisie &);
 class cSaisiePointeIm
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSaisiePointeIm & anObj,cElXMLTree * aTree);
 
 
@@ -177,6 +187,8 @@ cElXMLTree * ToXMLTree(const cSaisiePointeIm &);
 class cSetOfSaisiePointeIm
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSetOfSaisiePointeIm & anObj,cElXMLTree * aTree);
 
 
@@ -193,6 +205,8 @@ cElXMLTree * ToXMLTree(const cSetOfSaisiePointeIm &);
 class cSectionWindows
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSectionWindows & anObj,cElXMLTree * aTree);
 
 
@@ -225,6 +239,8 @@ cElXMLTree * ToXMLTree(const cSectionWindows &);
 class cImportFromDico
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cImportFromDico & anObj,cElXMLTree * aTree);
 
 
@@ -246,6 +262,8 @@ cElXMLTree * ToXMLTree(const cImportFromDico &);
 class cSectionInOut
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSectionInOut & anObj,cElXMLTree * aTree);
 
 
@@ -298,6 +316,8 @@ cElXMLTree * ToXMLTree(const cSectionInOut &);
 class cSectionImages
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSectionImages & anObj,cElXMLTree * aTree);
 
 
@@ -322,6 +342,8 @@ cElXMLTree * ToXMLTree(const cSectionImages &);
 class cProfEstimator
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cProfEstimator & anObj,cElXMLTree * aTree);
 
 
@@ -339,6 +361,8 @@ cElXMLTree * ToXMLTree(const cProfEstimator &);
 class cSectionTerrain
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSectionTerrain & anObj,cElXMLTree * aTree);
 
 
@@ -365,6 +389,8 @@ cElXMLTree * ToXMLTree(const cSectionTerrain &);
 class cParamSaisiePts
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cParamSaisiePts & anObj,cElXMLTree * aTree);
 
 

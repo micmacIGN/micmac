@@ -41,6 +41,28 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+cGlobXmlGen::cGlobXmlGen() :
+   mPrec (-1)
+{
+}
+
+
+static std::vector<int> mVPrec;
+void  XMLPushContext(const cGlobXmlGen & aGXml)
+{
+    if (aGXml.mPrec>=0)
+       mVPrec.push_back(aGXml.mPrec);
+}
+void  XMLPopContext(const cGlobXmlGen & aGXml)
+{ 
+    if (aGXml.mPrec>=0)
+       mVPrec.pop_back();
+}
+int CurPrec()
+{
+   if (mVPrec.empty()) return 18;
+   return mVPrec.back();
+}
 
 /***********************************************************/
 /*                                                         */
@@ -586,12 +608,14 @@ void cElXMLTree::GenCppClass
       }
    }
    fprintf(aFileH,"    public:\n");
+   fprintf(aFileH,"        cGlobXmlGen mGXml;\n\n");
    fprintf
    (
        aFileH,
        "        friend void xml_init(%s & anObj,cElXMLTree * aTree);\n\n",
        aNOC.c_str()
    );
+
 
    std::list<cElXMLTree *> aListH;
    GenAccessor(true,this,0,aFileH,aListH,true);
@@ -659,6 +683,7 @@ void cElXMLTree::GenCppClass
          aFileCpp,
           "cElXMLTree * ToXMLTree(const %s & anObj)\n"
          "{\n"
+         "  XMLPushContext(anObj.mGXml);\n"
          "  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,\"%s\",eXMLBranche);\n",
          aNOC.c_str(),
          mValTag.c_str()
@@ -748,6 +773,8 @@ void cElXMLTree::GenCppClass
    fprintf
    ( 
         aFileCpp, 
+        "  aRes->mGXml = anObj.mGXml;\n"
+        "  XMLPopContext(anObj.mGXml);\n"
         "  return aRes;\n"
         "}\n\n"
    );
@@ -756,6 +783,7 @@ void cElXMLTree::GenCppClass
 
    fprintf(aFileCpp,"void xml_init(%s & anObj,cElXMLTree * aTree)\n",aNOC.c_str());
    fprintf(aFileCpp,"{\n");
+   fprintf(aFileCpp,"   anObj.mGXml = aTree->mGXml;\n");
    fprintf(aFileCpp,"   if (aTree==0) return;\n");
 
    for
@@ -1139,14 +1167,7 @@ void Debug2XmlT(int aLine)
     std::cout << " Debug2XmlT " << aLine << "\n";
 }
 
-static std::vector<int> mVPrec;
-void  XMLPushPrec(int aPrec) {mVPrec.push_back(aPrec);}
-void  XMLPopPrec(){ mVPrec.pop_back();}
-int CurPrec()
-{
-   if (mVPrec.empty()) return 18;
-   return mVPrec.back();
-}
+
 
 #define XML_PRECISION(OS) OS.precision(CurPrec());
 
