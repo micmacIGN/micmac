@@ -904,25 +904,26 @@ void cAppliMICMAC::GenereOrientationMnt(cEtapeMecComp * itE)
          FILE * aFP = ElFopen(aName.c_str(),"w");
 
          
-//XMLPushPrec
          ELISE_ASSERT(aFP!=0,"cAppliMICMAC::GenereOrientationMnt");
 
          aTree->Show("      ",aFP,0,0,true);
-// XMLPopPrec
 
          delete aTree;
          ElFclose(aFP);
 
          (itE)->DoRemplitXML_MTD_Nuage();
 
-         std::string aNameTFW = StdPrefix(aName) + ".tfw";
-         std::ofstream aFtfw(aNameTFW.c_str());
-         if (aFOM.mGXml.mPrec >=0)
-            aFtfw.precision(aFOM.mGXml.mPrec);
-          aFtfw << aFOM.ResolutionPlani().x << " " << 0 << "\n";
-          aFtfw << 0 << " " << aFOM.ResolutionPlani().y << "\n";
-          aFtfw << aFOM.OriginePlani().x << " " << aFOM.OriginePlani().y << "\n";
-          aFtfw.close();
+         // TFW
+         {
+             std::string aNameTFW = StdPrefix(aName) + ".tfw";
+             std::ofstream aFtfw(aNameTFW.c_str());
+             if (aFOM.mGXml.mPrec >=0)
+                aFtfw.precision(aFOM.mGXml.mPrec);
+              aFtfw << aFOM.ResolutionPlani().x << " " << 0 << "\n";
+              aFtfw << 0 << " " << aFOM.ResolutionPlani().y << "\n";
+              aFtfw << aFOM.OriginePlani().x << " " << aFOM.OriginePlani().y << "\n";
+              aFtfw.close();
+          }
 }
 
 /*
