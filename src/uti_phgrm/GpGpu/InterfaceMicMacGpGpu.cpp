@@ -171,7 +171,7 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
   // Lancement des algo GPGPU
 
   // Re-dimensionner les strucutres de données si elles ont été modifiées
-  ResizeVolume(nbLayer,_param.ZLocInter);
+  ResizeInputVolume(nbLayer,_param.ZLocInter);
 
   // Calcul de dimension des threads des kernels
   //--------------- calcul de dimension du kernel de correlation ---------------
@@ -227,7 +227,6 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
       KernelmultiCorrelationNA( *(GetStream(s)),blocks_mC_NA, threads_mC_NA,  _volumeCost[s].pData(), _volumeCach[s].pData(), _volumeNIOk[s].pData(), actiThs_NA);
     }
 
-
   // Copier les resultats de calcul des couts du device vers le host!
   _volumeCost[s].CopyDevicetoHost(hostVolumeCost);
 
@@ -240,7 +239,7 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
 void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj, int nbLayer, uint interZ )
 {
 
-  ResizeVolume(nbLayer,_param.ZLocInter);
+  ResizeInputVolume(nbLayer,_param.ZLocInter);
   uint Z = 0;
 
   //            calcul de dimension du kernel de correlation                ---------------
@@ -314,7 +313,7 @@ void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2
     checkCudaErrors(cudaDeviceSynchronize());
 }
 
-void InterfaceMicMacGpGpu::ResizeVolume( int nbLayer, uint interZ )
+void InterfaceMicMacGpGpu::ResizeInputVolume( int nbLayer, uint interZ )
 {
   for (int s = 0;s<NSTREAM;s++)
     {
@@ -337,6 +336,10 @@ void InterfaceMicMacGpGpu::ResizeVolume( int nbLayer, uint interZ )
       _volumeNIOk[s].Memset(0);
   }
 }
+
+//void InterfaceMicMacGpGpu::ResizeOutputVolume(int nbLayer, uint interZ)
+//{
+//}
 
 void InterfaceMicMacGpGpu::ResizeVolumeAsync(int nbLayer, uint interZ)
 {
