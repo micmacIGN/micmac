@@ -725,7 +725,12 @@ cFileOriMnt cAppliMICMAC::OrientFromOneEtape(const cEtapeMecComp & anEtape) cons
    mPDV1->Geom().RemplitOri(aFOM);
    anEtape.RemplitOri(aFOM); ;
 
-    return aFOM;
+   if (mGeomDFPx->TronkExport())
+   {
+       aFOM.mGXml.mPrec =  mMaxPrecision+1;
+   }
+
+   return aFOM;
 }
 
 cFileOriMnt cAppliMICMAC::OrientFromParams(int aDz,REAL aStepZ)
@@ -897,6 +902,8 @@ void cAppliMICMAC::GenereOrientationMnt(cEtapeMecComp * itE)
                       + std::string(".xml");
          cElXMLTree * aTree = ToXMLTree(aFOM);
          FILE * aFP = ElFopen(aName.c_str(),"w");
+
+         
          ELISE_ASSERT(aFP!=0,"cAppliMICMAC::GenereOrientationMnt");
 
          aTree->Show("      ",aFP,0,0,true);
@@ -905,6 +912,18 @@ void cAppliMICMAC::GenereOrientationMnt(cEtapeMecComp * itE)
          ElFclose(aFP);
 
          (itE)->DoRemplitXML_MTD_Nuage();
+
+         // TFW
+         {
+             std::string aNameTFW = StdPrefix(aName) + ".tfw";
+             std::ofstream aFtfw(aNameTFW.c_str());
+             if (aFOM.mGXml.mPrec >=0)
+                aFtfw.precision(aFOM.mGXml.mPrec);
+              aFtfw << aFOM.ResolutionPlani().x << " " << 0 << "\n";
+              aFtfw << 0 << " " << aFOM.ResolutionPlani().y << "\n";
+              aFtfw << aFOM.OriginePlani().x << " " << aFOM.OriginePlani().y << "\n";
+              aFtfw.close();
+          }
 }
 
 /*

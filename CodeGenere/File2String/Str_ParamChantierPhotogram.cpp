@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1396]) = {
+const char * (theNameVar_ParamChantierPhotogram[1399]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -214,6 +214,9 @@ const char * (theNameVar_ParamChantierPhotogram[1396]) = {
 "          <NumZoneLambert  Nb=\"?\" Type=\"int\">           </NumZoneLambert>\n",
 "          <Geometrie   Nb=\"1\" Type=\"eModeGeomMNT\">      </Geometrie>\n",
 "          <OrigineTgtLoc Nb=\"?\"  Type=\"Pt2dr\">          </OrigineTgtLoc>\n",
+"\n",
+"          <!-- Indicate that coordinates can safely be rounded as std::cout.precision(Rounding()) -->\n",
+"          <Rounding  Nb=\"?\" Type=\"int\"> </Rounding>\n",
 "\n",
 "          \n",
 "    </FileOriMnt>\n",

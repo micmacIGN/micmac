@@ -111,14 +111,18 @@ const cTplValGesInit< std::string > & cContenuPt::None()const
 
 cElXMLTree * ToXMLTree(const cContenuPt & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ContenuPt",eXMLBranche);
    if (anObj.None().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("None"),anObj.None().Val())->ReTagThis("None"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cContenuPt & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.None(),aTree->Get("None",1)); //tototo 
@@ -280,6 +284,7 @@ const cTplValGesInit< bool > & cPointGlob::FromDico()const
 
 cElXMLTree * ToXMLTree(const cPointGlob & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"PointGlob",eXMLBranche);
    aRes->AddFils(ToXMLTree(std::string("Type"),anObj.Type())->ReTagThis("Type"));
    aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name())->ReTagThis("Name"));
@@ -305,11 +310,14 @@ cElXMLTree * ToXMLTree(const cPointGlob & anObj)
       aRes->AddFils(::ToXMLTree(std::string("Disparu"),anObj.Disparu().Val())->ReTagThis("Disparu"));
    if (anObj.FromDico().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("FromDico"),anObj.FromDico().Val())->ReTagThis("FromDico"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cPointGlob & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.Type(),aTree->Get("Type",1)); //tototo 
@@ -352,6 +360,7 @@ const std::list< cPointGlob > & cSetPointGlob::PointGlob()const
 
 cElXMLTree * ToXMLTree(const cSetPointGlob & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SetPointGlob",eXMLBranche);
   for
   (       std::list< cPointGlob >::const_iterator it=anObj.PointGlob().begin();
@@ -359,11 +368,14 @@ cElXMLTree * ToXMLTree(const cSetPointGlob & anObj)
       it++
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("PointGlob"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cSetPointGlob & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.PointGlob(),aTree->GetAll("PointGlob",false,1));
@@ -404,15 +416,19 @@ const Pt2dr & cOneSaisie::PtIm()const
 
 cElXMLTree * ToXMLTree(const cOneSaisie & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"OneSaisie",eXMLBranche);
    aRes->AddFils(ToXMLTree(std::string("Etat"),anObj.Etat())->ReTagThis("Etat"));
    aRes->AddFils(::ToXMLTree(std::string("NamePt"),anObj.NamePt())->ReTagThis("NamePt"));
    aRes->AddFils(::ToXMLTree(std::string("PtIm"),anObj.PtIm())->ReTagThis("PtIm"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cOneSaisie & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.Etat(),aTree->Get("Etat",1)); //tototo 
@@ -446,6 +462,7 @@ const std::list< cOneSaisie > & cSaisiePointeIm::OneSaisie()const
 
 cElXMLTree * ToXMLTree(const cSaisiePointeIm & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SaisiePointeIm",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("NameIm"),anObj.NameIm())->ReTagThis("NameIm"));
   for
@@ -454,11 +471,14 @@ cElXMLTree * ToXMLTree(const cSaisiePointeIm & anObj)
       it++
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("OneSaisie"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cSaisiePointeIm & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.NameIm(),aTree->Get("NameIm",1)); //tototo 
@@ -479,6 +499,7 @@ const std::list< cSaisiePointeIm > & cSetOfSaisiePointeIm::SaisiePointeIm()const
 
 cElXMLTree * ToXMLTree(const cSetOfSaisiePointeIm & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SetOfSaisiePointeIm",eXMLBranche);
   for
   (       std::list< cSaisiePointeIm >::const_iterator it=anObj.SaisiePointeIm().begin();
@@ -486,11 +507,14 @@ cElXMLTree * ToXMLTree(const cSetOfSaisiePointeIm & anObj)
       it++
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("SaisiePointeIm"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cSetOfSaisiePointeIm & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.SaisiePointeIm(),aTree->GetAll("SaisiePointeIm",false,1));
@@ -553,6 +577,7 @@ const cTplValGesInit< bool > & cSectionWindows::RefInvis()const
 
 cElXMLTree * ToXMLTree(const cSectionWindows & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionWindows",eXMLBranche);
    if (anObj.SzTotIm().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("SzTotIm"),anObj.SzTotIm().Val())->ReTagThis("SzTotIm"));
@@ -564,11 +589,14 @@ cElXMLTree * ToXMLTree(const cSectionWindows & anObj)
       aRes->AddFils(::ToXMLTree(std::string("ShowDet"),anObj.ShowDet().Val())->ReTagThis("ShowDet"));
    if (anObj.RefInvis().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("RefInvis"),anObj.RefInvis().Val())->ReTagThis("RefInvis"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cSectionWindows & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.SzTotIm(),aTree->Get("SzTotIm",1),Pt2di(Pt2di(700,600))); //tototo 
@@ -617,16 +645,20 @@ const cTplValGesInit< double > & cImportFromDico::LargeurFlou()const
 
 cElXMLTree * ToXMLTree(const cImportFromDico & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ImportFromDico",eXMLBranche);
    aRes->AddFils(ToXMLTree(std::string("TypePt"),anObj.TypePt())->ReTagThis("TypePt"));
    aRes->AddFils(::ToXMLTree(std::string("File"),anObj.File())->ReTagThis("File"));
    if (anObj.LargeurFlou().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("LargeurFlou"),anObj.LargeurFlou().Val())->ReTagThis("LargeurFlou"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cImportFromDico & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.TypePt(),aTree->Get("TypePt",1)); //tototo 
@@ -748,6 +780,7 @@ const cTplValGesInit< bool > & cSectionInOut::EnterName()const
 
 cElXMLTree * ToXMLTree(const cSectionInOut & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionInOut",eXMLBranche);
    if (anObj.Prefix2Add2IdPt().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Prefix2Add2IdPt"),anObj.Prefix2Add2IdPt().Val())->ReTagThis("Prefix2Add2IdPt"));
@@ -777,11 +810,14 @@ cElXMLTree * ToXMLTree(const cSectionInOut & anObj)
       aRes->AddFils(::ToXMLTree(std::string("NameAuto"),anObj.NameAuto().Val())->ReTagThis("NameAuto"));
    if (anObj.EnterName().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("EnterName"),anObj.EnterName().Val())->ReTagThis("EnterName"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cSectionInOut & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.Prefix2Add2IdPt(),aTree->Get("Prefix2Add2IdPt",1),std::string("")); //tototo 
@@ -840,17 +876,21 @@ const cTplValGesInit< std::string > & cSectionImages::KeyAssocOri()const
 
 cElXMLTree * ToXMLTree(const cSectionImages & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionImages",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("SetOfImages"),anObj.SetOfImages())->ReTagThis("SetOfImages"));
    if (anObj.ForceGray().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ForceGray"),anObj.ForceGray().Val())->ReTagThis("ForceGray"));
    if (anObj.KeyAssocOri().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("KeyAssocOri"),anObj.KeyAssocOri().Val())->ReTagThis("KeyAssocOri"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cSectionImages & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.SetOfImages(),aTree->Get("SetOfImages",1)); //tototo 
@@ -884,16 +924,20 @@ const cTplValGesInit< std::string > & cProfEstimator::ZMoyenInIma()const
 
 cElXMLTree * ToXMLTree(const cProfEstimator & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ProfEstimator",eXMLBranche);
    if (anObj.ZMoyen().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ZMoyen"),anObj.ZMoyen().Val())->ReTagThis("ZMoyen"));
    if (anObj.ZMoyenInIma().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ZMoyenInIma"),anObj.ZMoyenInIma().Val())->ReTagThis("ZMoyenInIma"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cProfEstimator & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.ZMoyen(),aTree->Get("ZMoyen",1)); //tototo 
@@ -947,16 +991,20 @@ const cTplValGesInit< cProfEstimator > & cSectionTerrain::ProfEstimator()const
 
 cElXMLTree * ToXMLTree(const cSectionTerrain & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionTerrain",eXMLBranche);
    if (anObj.IntervPercProf().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("IntervPercProf"),anObj.IntervPercProf().Val())->ReTagThis("IntervPercProf"));
    if (anObj.ProfEstimator().IsInit())
       aRes->AddFils(ToXMLTree(anObj.ProfEstimator().Val())->ReTagThis("ProfEstimator"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cSectionTerrain & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.IntervPercProf(),aTree->Get("IntervPercProf",1),double(10.0)); //tototo 
@@ -1274,6 +1322,7 @@ const std::string & cParamSaisiePts::DirectoryChantier()const
 
 cElXMLTree * ToXMLTree(const cParamSaisiePts & anObj)
 {
+  XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ParamSaisiePts",eXMLBranche);
    if (anObj.DicoLoc().IsInit())
       aRes->AddFils(ToXMLTree(anObj.DicoLoc().Val())->ReTagThis("DicoLoc"));
@@ -1282,11 +1331,14 @@ cElXMLTree * ToXMLTree(const cParamSaisiePts & anObj)
    aRes->AddFils(ToXMLTree(anObj.SectionImages())->ReTagThis("SectionImages"));
    aRes->AddFils(ToXMLTree(anObj.SectionTerrain())->ReTagThis("SectionTerrain"));
    aRes->AddFils(::ToXMLTree(std::string("DirectoryChantier"),anObj.DirectoryChantier())->ReTagThis("DirectoryChantier"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
 void xml_init(cParamSaisiePts & anObj,cElXMLTree * aTree)
 {
+   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
    xml_init(anObj.DicoLoc(),aTree->Get("DicoLoc",1)); //tototo 

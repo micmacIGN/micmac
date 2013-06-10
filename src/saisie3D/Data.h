@@ -16,7 +16,7 @@ class cData
         ~cData();
 
         void addCamera(cElNuage3DMaille *);
-        void addCloud(Cloud *);
+        void centerCloud(Cloud *);
 
         void addCameras(vector <cElNuage3DMaille *>);
 

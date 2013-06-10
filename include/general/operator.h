@@ -207,6 +207,11 @@ class OperAssocMixte : public OperBinMixte
      }
 
 
+     long double red_tab (const long double  * vals,INT nb) const
+     {
+         ELISE_ASSERT(false,"No Red Tab Long Double");
+         return 0;
+     }
 
 
      inline void  set_neutre(REAL& v) const {v = rneutre();}

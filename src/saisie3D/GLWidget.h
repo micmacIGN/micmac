@@ -42,7 +42,7 @@ public:
 
     GLWidget(QWidget *parent = NULL, cData* data = NULL);
 
-    void setData(cData* data) {m_Data = data;}
+    void setData(cData* data);
    // void addPly( const QString & );
 
     //! Interaction mode (with the mouse!)

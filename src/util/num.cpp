@@ -80,7 +80,7 @@ cDecimal::cDecimal(int aMant,int aPow) :
 
 double cDecimal::RVal() const
 {
-   return mMant * pow(10,mExp);
+   return mMant * pow(10.0,mExp);
 }
 
 
@@ -93,13 +93,23 @@ long int cDecimal::Div10() const
     return lPowi(10,-mExp);
 }
 
+const int & cDecimal::Exp() const
+{
+   return mExp;
+}
+
+const int & cDecimal::Mant() const
+{
+   return mMant;
+}
+
 double cDecimal::Arrondi(double aV0) const
 {
     long int aD10 =  Div10();
     long double aV = aV0;
     aV *= aD10;
     long int aLMant = Mul10() * (long int) mMant;
-    return (lround_ni(aV/aLMant) * aLMant) / aD10;
+    return (lround_ni(aV/aLMant) * aLMant) / (long double) aD10;
 }
 
 
@@ -451,13 +461,17 @@ INT  inv_bits_order(INT val,INT nbb)
 
 double arrondi_inf(double aVal,double aPer)
 {
-   return aPer * lround_down(aVal/aPer);
+   return ((long double)aPer) * lround_down(aVal/aPer);
 }
 double arrondi_sup(double aVal,double aPer)
 {
-   return aPer * lround_up(aVal/aPer);
+   return ((long double)aPer) * lround_up(aVal/aPer);
 }
 
+double arrondi_ni(double aVal,double aPer)
+{
+   return ((long double)aPer) * lround_ni(aVal/aPer);
+}
 
 
 REAL Pow(REAL x,INT i)
