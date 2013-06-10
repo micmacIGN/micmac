@@ -95,4 +95,5 @@ void cData::centerCloud(Cloud * aCloud)
     }
 
     m_Clouds.push_back(a_res);
+    m_oClouds.push_back(aCloud);
 }

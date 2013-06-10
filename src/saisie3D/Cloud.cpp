@@ -39,6 +39,13 @@ static PlyProperty oriented_vert_props[] = {
     {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,nz), 0, 0, 0, 0}
 };
 
+Vertex::Vertex()
+{
+    m_position = Vector3();
+    m_color    = QColor();
+    m_bVisible  = true;
+}
+
 Vertex::Vertex(Vector3 pos, QColor col)
 {
     m_position  = pos;
