@@ -25,6 +25,7 @@ class cData
 
         cElNuage3DMaille * & getCamera(int aK) {return m_Cameras[aK];}
         Cloud * & getCloud(int aK) {return m_Clouds[aK];}
+        Cloud * & getOriginalCloud(int aK) {return m_oClouds[aK];}
 
         //Bounding box, center and diameter of all clouds
         double m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_cX, m_cY, m_cZ, m_diam;
@@ -32,7 +33,8 @@ class cData
    private:
 
         vector <cElNuage3DMaille *> m_Cameras;
-        vector <Cloud *> m_Clouds;
+        vector <Cloud *> m_Clouds;  //centered and scaled clouds
+        vector <Cloud *> m_oClouds; //original clouds
 };
 
 #endif // DATA_H
