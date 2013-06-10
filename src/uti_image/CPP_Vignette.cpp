@@ -221,13 +221,13 @@ void Vignette_correct(string aDir,std::vector<std::string> * aSetIm,vector<doubl
 					double x0=aSz.x/2;
 					double y0=aSz.y/2;
 					double D=pow(aX-x0,2)+pow(aY-y0,2);
-					double aCor=255*(aParam[0]*D+aParam[1]*pow(D,2)+aParam[2]*pow(D,3));
-					double R = aDataR[aY][aX] + aCor;
-					double G = aDataG[aY][aX] + aCor;
-					double B = aDataB[aY][aX] + aCor;
-					if(R>255){aDataR[aY][aX]=255;}else if(aCor<0){continue;}else{aDataR[aY][aX]=R;}
-					if(G>255){aDataG[aY][aX]=255;}else if(aCor<0){continue;}else{aDataG[aY][aX]=G;}
-					if(B>255){aDataB[aY][aX]=255;}else if(aCor<0){continue;}else{aDataB[aY][aX]=B;}
+					double aCor=1+aParam[0]*D+aParam[1]*pow(D,2)+aParam[2]*pow(D,3);
+					double R = aDataR[aY][aX] * aCor;
+					double G = aDataG[aY][aX] * aCor;
+					double B = aDataB[aY][aX] * aCor;
+					if(R>255){aDataR[aY][aX]=255;}else if(aCor<1){continue;}else{aDataR[aY][aX]=R;}
+					if(G>255){aDataG[aY][aX]=255;}else if(aCor<1){continue;}else{aDataG[aY][aX]=G;}
+					if(B>255){aDataB[aY][aX]=255;}else if(aCor<1){continue;}else{aDataB[aY][aX]=B;}
 				}
 		}
 
@@ -253,6 +253,7 @@ void Vignette_correct(string aDir,std::vector<std::string> * aSetIm,vector<doubl
 
 vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
 {
+	double distMax=sqrt(pow(aPtsHomol[4][0]/2,2)+pow(aPtsHomol[4][1]/2,2));
 //Least Square
 /*
 	// Create L2SysSurResol to solve least square equation with 3 unknown
@@ -287,14 +288,18 @@ vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
 	
 	vector<double> erreur;
 	for(int i=0;i<int(aPtsHomol[0].size());i++){
-		erreur.push_back(255*(aPtsHomol[2][i]-aPtsHomol[3][i]-(aParam[0]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2))+aParam[1]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4))+aParam[2]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6)))));
-	}
+		double aComputedVal=aData[0]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2))
+										+aData[1]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4))
+										+aData[2]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6));
+		double aInputVal=aPtsHomol[2][i]-aPtsHomol[3][i];	
+		erreur.push_back(fabs(aComputedVal-aInputVal)*(min(aPtsHomol[0][i],aPtsHomol[1][i]))/(distMax));
+		}
 	double sum = std::accumulate(erreur.begin(),erreur.end(),0.0);
     double ErMoy=sum/erreur.size();
 	cout<<"Mean error = "<<ErMoy<<endl;
-*/	
+	
 //End Least Square
-
+*/
 
 
 //RANSAC
@@ -331,7 +336,6 @@ while(nbRANSACinitialised<nbRANSACmax || nbRANSACaccepted<500)
     Im1D_REAL8 aSol = aSys.GSSR_Solve(&Ok);
 	double* aData = aSol.data();
 		//Filter if computed vignette is >255 or <0 in the corners
-		double distMax=sqrt(pow(aPtsHomol[4][0]/2,2)+pow(aPtsHomol[4][1]/2,2));
 		double valCoin=255*(aData[0]*pow(distMax,2)+aData[1]*pow(distMax,4)+aData[2]*pow(distMax,6));
 	if (Ok && aData[0]>0 && 0<=valCoin && valCoin<255){
 		nbRANSACaccepted++;
@@ -354,7 +358,7 @@ while(nbRANSACinitialised<nbRANSACmax || nbRANSACaccepted<500)
 		}
 		double sum = std::accumulate(erreur.begin(),erreur.end(),0.0);
 		double ErMoy=sum/erreur.size();
-		aScore=nbInliers/ErMoy;
+		aScore=(nbInliers/nbPtsSIFT)/ErMoy;
 		//if(nbInliers/nbPtsSIFT>0.20 && aScoreMax<aScore){
 		//if(nbInliers>nbInliersMax){
 		if(aScore>aScoreMax){
