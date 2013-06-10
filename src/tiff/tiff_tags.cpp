@@ -215,7 +215,7 @@ const char * Tiff_Im::name_phot_interp(INT phi)
     (
         0,
         EEM0 
-           << "Unvalid Tiff Compression Mode in Tiff_Im::name_phot_interp"
+           << "Unvalid photogram Mode in Tiff_Im::name_phot_interp"
     );
     return 0;
 }
