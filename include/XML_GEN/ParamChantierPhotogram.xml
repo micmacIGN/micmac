@@ -213,6 +213,9 @@ namespace NS_ParamChantierPhotogram{
           <Geometrie   Nb="1" Type="eModeGeomMNT">      </Geometrie>
           <OrigineTgtLoc Nb="?"  Type="Pt2dr">          </OrigineTgtLoc>
 
+          <!-- Indicate that coordinates can safely be rounded as std::cout.precision(Rounding()) -->
+          <Rounding  Nb="?" Type="int"> </Rounding>
+
           
     </FileOriMnt>
 

@@ -45,6 +45,12 @@ namespace NS_ParamChantierPhotogram {
   class cXmlDataBase;
 };
 
+class cGlobXmlGen
+{
+    public :
+       cGlobXmlGen();
+       INT1   mPrec;  // Gere la precision dans l'ecriture des fichiers
+};
 
 class cElXMLTree;
 class Fich_Im2d;
@@ -154,6 +160,8 @@ class  ELISE_fp
          static void MkDirRec(const std::string &  aName );
          static bool IsDirectory(const std::string &  aName );
          static void AssertIsDirectory(const std::string &  aName );
+         
+         static bool lastModificationDate(const std::string &i_filename, cElDate &o_date ); // returns if the date could be retrieved
 
 	 static void RmFile(const std::string &);
 	 static void PurgeDir(const std::string &);
@@ -1599,6 +1607,7 @@ class cElXMLTree
 {
 	public :
 
+         cGlobXmlGen mGXml;
          
          std::list<cElXMLTree *>  Interprete();
 
@@ -2087,6 +2096,10 @@ void AddEntryStringifie(const std::string &,const char ** aTab,bool formal);
 
 
 double PolonaiseInverse(const std::string & aStr);
+
+void  XMLPushContext(const cGlobXmlGen & aGXml);
+void  XMLPopContext(const cGlobXmlGen & aGXml);
+
 
 
 //   const char * GetEntryStringifie(const std::string &);

@@ -49,18 +49,32 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                                 */
 /*******************************************************************/
 
+Pt2dlr ToPt2dlr(const Pt2dlr & aP) {return aP;}
+Pt2dlr ToPt2dlr(const Pt2di & aP) {return Pt2dlr(aP.x,aP.y);}
+Pt2dlr ToPt2dlr(const Pt2dr & aP) {return Pt2dlr(aP.x,aP.y);}
 
-template <class Type>  Box2d<Type>::Box2d(Pt2di P0,Pt2di P1) : _p0 (P0), _p1 (P1)
+
+template <class Type>  Box2d<Type>::Box2d(Pt2di P0,Pt2di P1) : _p0 (P0.x,P0.y), _p1 (P1.x,P1.y)
 {
      pt_set_min_max(_p0,_p1);
 }
 
 
 static Pt2di BoxUp(Pt2dr aP,INT  *) {return round_up(aP);}
-static Pt2dr BoxUp(Pt2dr aP,REAL *) {return          aP;}
-
+static Pt2dr BoxUp(Pt2dr aP,REAL *) {return aP;}
+static Pt2dlr BoxUp(Pt2dr aP,long double *){return ToPt2dlr(aP);}
 static Pt2di BoxDown(Pt2dr aP,INT  *) {return round_down(aP);}
-static Pt2dr BoxDown(Pt2dr aP,REAL *) {return            aP;}
+static Pt2dr BoxDown(Pt2dr aP,REAL *) {return aP;}
+static Pt2dlr BoxDown(Pt2dr aP,long double *){return ToPt2dlr(aP);}
+
+// static Pt2di BoxUp(Pt2dlr aP,INT  *) {return round_up(aP);}
+// static Pt2dr BoxUp(Pt2dlr aP,REAL *) {return aP;}
+// static Pt2dlr BoxUp(Pt2dlr aP,long double *){return ToPt2dlr(aP);}
+// static Pt2di BoxDown(Pt2dlr aP,INT  *) {return round_down(aP);}
+// static Pt2dr BoxDown(Pt2dlr aP,REAL *) {return aP;}
+// static Pt2dlr BoxDown(Pt2dlr aP,long double *){return ToPt2dlr(aP);}
+
+
 
 
 
@@ -70,13 +84,13 @@ template <class Type>
    Pt2d<Type> aC4[4];
    Corners(aC4);
    
-   Pt2dr aP0=aMap(Pt2dr(aC4[0]));
+   Pt2dr aP0=aMap(ToPt2dr(aC4[0]));
    Pt2dr aP1= aP0;
 
    for (int aK=1 ; aK<4 ; aK++)
    {
-      aP0.SetInf(aMap(Pt2dr(aC4[aK])));
-      aP1.SetSup(aMap(Pt2dr(aC4[aK])));
+      aP0.SetInf(aMap(ToPt2dr(aC4[aK])));
+      aP1.SetSup(aMap(ToPt2dr(aC4[aK])));
    }
    return  Box2d<double>(aP0,aP1);
 }
@@ -90,6 +104,13 @@ template <class Type>   Box2d<Type>::Box2d(Pt2dr P0,Pt2dr P1)
      _p1 = BoxUp  (P1,(Type *)0);
 }
 
+template <class Type>   Box2d<Type>::Box2d(Pt2dlr P0,Pt2dlr P1) 
+{
+     pt_set_min_max(P0,P1);
+     _p0 = Pt2d<Type>(P0.x,P0.y);
+     _p1 = Pt2d<Type>(P1.x,P1.y);
+     //  _p1 = BoxUp  (P1,(Type *)0);
+}
 
 template <class Type>   Box2d<Type>::Box2d(Pt2d<Type> P)
 {
@@ -173,10 +194,10 @@ template <class Type> double Box2d<Type>::Interiorite(const Pt2dr & aP) const
 {
    return ElMin4
           (
-                ElMax(0.0,aP.x-_p0.x),
-                ElMax(0.0,aP.y-_p0.y),
-                ElMax(0.0,_p1.x-aP.x),
-                ElMax(0.0,_p1.y-aP.y)
+                ElMax(0.0,double(aP.x-_p0.x)),
+                ElMax(0.0,double(aP.y-_p0.y)),
+                ElMax(0.0,double(_p1.x-aP.x)),
+                ElMax(0.0,double(_p1.y-aP.y))
           );
 }
 
@@ -280,7 +301,7 @@ template <class Type>
    Corners(Corn);
 
    for (INT aK=0 ; aK<4 ; aK++)
-       if (aTri.Inside(Pt2dr(Corn[aK])))
+       if (aTri.Inside(ToPt2dr(Corn[aK])))
            return true;
 
   if (
@@ -403,6 +424,13 @@ template <> Box2dr::R_fonc_Pt2dr Box2dr::_Tab_FreemSquareDist[9] =
                           &Box2dr::Freem6SquareDist,
                           &Box2dr::Freem7SquareDist,
                           &Box2dr::Freem8SquareDist
+                     };
+
+
+typedef Box2d<long double>  Box2dlr;
+template <> Box2dlr::R_fonc_Pt2dr Box2dlr::_Tab_FreemSquareDist[9] =
+                     {
+                          0,0,0, 0,0,0, 0,0,0
                      };
 
 
@@ -534,6 +562,7 @@ template <class Type> class BoxFreemanCompil
 
 template <> BoxFreemanCompil<INT> BoxFreemanCompil<INT>::TheBFC(4);
 template <> BoxFreemanCompil<REAL> BoxFreemanCompil<REAL>::TheBFC(4);
+template <> BoxFreemanCompil<long double> BoxFreemanCompil<long double>::TheBFC(4);
 
 //template <> BoxFreemanCompil<INT> BoxFreemanCompil<INT>::TheBFC=BoxFreemanCompil<INT>();
 //template <> BoxFreemanCompil<REAL> BoxFreemanCompil<REAL>::TheBFC=BoxFreemanCompil<REAL>();
@@ -774,7 +803,7 @@ template <class Type>  bool Box2d<Type>::Include(const Seg2d  & s)  const
 
 template <class Type> Flux_Pts Box2d<Type>::Flux() const
 {
-   return rectangle(Pt2di(_p0), Pt2di(_p1));
+   return rectangle(ToPt2di(_p0), ToPt2di(_p1));
 }
 
 
@@ -815,8 +844,8 @@ void Box2d<Type>::PtsDisc(std::vector<Pt2dr> & aV,INT aNbPts)
 
    for (INT aKC=0 ; aKC<4 ; aKC++)
    {
-       Pt2dr aC0 = Pt2dr(aVCorn[aKC]);
-       Pt2dr aC1 = Pt2dr(aVCorn[(aKC+1)%4]);
+       Pt2dr aC0 = ToPt2dr(aVCorn[aKC]);
+       Pt2dr aC1 = ToPt2dr(aVCorn[(aKC+1)%4]);
        for (INT aKP=0 ; aKP<= aNbPts ; aKP++)
        {
             REAL aPds = (aNbPts-aKP) /REAL(aNbPts);
@@ -862,6 +891,7 @@ template class BoxFreemanCompil<INT>;
 template class BoxFreemanCompil<REAL>;
 template class Box2d<INT>;
 template class Box2d<REAL>;
+template class Box2d<long double>;
 template bool InterVide(const Box2d<INT> & b1, const Box2d<INT> & b2);
 template bool InterVide(const Box2d<REAL> & b1, const Box2d<REAL> & b2);
 

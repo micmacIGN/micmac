@@ -366,10 +366,17 @@ bool ElGetStrSys( const std::string & i_base_cmd, std::string &o_result )
 	if ( f==NULL ) return false;
 	
 	// read popen's output
-	char buffer[500];
-	memset( buffer, 0, 500 ) ;
-	while ( fread( buffer, 1, 500, f ) )
-		o_result.append( buffer );	
+	char buffer[501];
+	size_t nbRead;
+	while ( feof( f )==0 )
+	{
+		nbRead = fread( buffer, 1, 500, f );
+		if ( nbRead>0 )
+		{
+			buffer[nbRead-1] = '\0';
+			o_result.append( string( buffer ) );
+		}
+	}
 	pclose( f );
 	
 	return true;
