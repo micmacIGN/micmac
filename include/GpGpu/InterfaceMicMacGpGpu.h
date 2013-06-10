@@ -85,7 +85,8 @@ public:
 private:
 
   uint              GetZToCompute();
-  void              ResizeVolume(int nbLayer, uint interZ);
+  void              ResizeInputVolume(int nbLayer, uint interZ);
+  //void              ResizeOutputVolume(int nbLayer, uint interZ);
   void              ResizeVolumeAsync(int nbLayer, uint interZ);
   void              AllocMemory(int nStream);
   cudaStream_t*		GetStream(int stream);
