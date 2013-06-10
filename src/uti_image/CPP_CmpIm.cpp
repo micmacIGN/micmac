@@ -48,6 +48,7 @@ int CmpIm_main(int argc,char ** argv)
      std::string aName1;
      std::string aName2;
      std::string  aFileDiff="";
+     bool  OkSzDif= false;
      double aDyn=1.0;
      Pt2di  aBrd(0,0);
      
@@ -59,15 +60,20 @@ int CmpIm_main(int argc,char ** argv)
            LArgMain()  << EAM(aFileDiff,"FileDiff",true,"File to generate image of difference")
                        << EAM(aDyn,"Dyn",true,"Dynamic of difference")
                        << EAM(aBrd,"Brd",true,"Border to eliminate")
+                       << EAM(OkSzDif,"OkSzDif",true,"Process files with different sizes")
     );	
 
     Tiff_Im aFile1 = Tiff_Im::BasicConvStd(aName1);
     Tiff_Im aFile2 = Tiff_Im::BasicConvStd(aName2);
 
+    Pt2di aSz = aFile1.sz();
     if (aFile1.sz() != aFile2.sz())
     {
        std::cout << "Tailles Differentes " << aFile1.sz() << aFile2.sz() << "\n";
-       return -1;
+       if (OkSzDif)
+           aSz = Inf( aFile1.sz(),aFile2.sz());
+       else
+          return -1;
     }
 
     Symb_FNum aFDif(Rconv(Abs(aFile1.in()-aFile2.in())));
@@ -78,7 +84,7 @@ int CmpIm_main(int argc,char ** argv)
     ELISE_COPY
     (
         //aFile1.all_pts(),
-        rectangle(aBrd,aFile1.sz()-aBrd),
+        rectangle(aBrd,aSz-aBrd),
         Virgule
         (
               Rconv(aFDif),
@@ -100,7 +106,7 @@ int CmpIm_main(int argc,char ** argv)
             Tiff_Im::Create8BFromFonc
             (
                aFileDiff,
-               aFile1.sz(),
+               aSz,
                Max(0,Min(255,128+round_ni(aDyn*(aFile1.in()-aFile2.in()))))
             );
        }
