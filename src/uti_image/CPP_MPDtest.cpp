@@ -206,6 +206,17 @@ void Test_Arrondi_LG()
 
 int MPDtest_main (int argc,char** argv)
 {
+    int aT = 12;
+    double aV =  3.44e7 + aT/1e5;
+
+    for (int aP=0 ; aP < 20 ; aP++)
+    {
+        std::cout.precision(aP);
+        std::cout << "P=" << aP << " " << aV << "\n";
+    }
+    getchar();
+
+
     Test_Arrondi_LG();
 
    while (1)

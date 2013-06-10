@@ -157,6 +157,8 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                                  <Pds> 0.25 </Pds>
                             </OneParamCMS>
                      </CorrelMultiScale>
+<!--
+-->
 
                      <TypeCAH>
                         <MasqueAutoByTieP>
