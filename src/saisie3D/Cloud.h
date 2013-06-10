@@ -12,6 +12,7 @@ namespace Cloud_
     class Vertex
     {
         public:
+            Vertex();
             Vertex(Vector3, QColor);
 
             float x() {return m_position.x;}
