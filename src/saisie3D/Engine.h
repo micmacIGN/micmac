@@ -6,6 +6,7 @@
 
 #include "Cloud.h"
 #include "Data.h"
+#include "StdAfx.h"
 
 class cLoader : QObject
 {
@@ -21,12 +22,14 @@ class cLoader : QObject
 
         void setDir(QDir aDir){m_Dir = aDir;}
 
+        void SetFilenamesOut();
+        QStringList GetFilenamesOut() {return m_FilenamesOut;}
+
+    private:
         QStringList m_FilenamesIn;
         QStringList m_FilenamesOut;
 
         QDir        m_Dir;
-
-        void SetFilenamesOut();
 };
 
 class cEngine
@@ -44,10 +47,9 @@ class cEngine
 
         cData*   getData()  {return m_Data;}
 
-        cLoader *m_Loader;
-
     private:
 
+        cLoader *m_Loader;
         cData   *m_Data;
 };
 
