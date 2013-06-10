@@ -255,12 +255,12 @@ void cAppliMICMAC::AddPrecisionOfArrondi(const cDecimal & aDec, double aVal)
 {
    long int anI = lround_ni( ((long double) aVal)  / ((long double) aDec.RVal())  );
 
-   int aP = round_up(log10(1+anI)) +  round_up(ElAbs(log10(1+aDec.Mant())));
+   int aP = round_up(log10((long double)(1.+anI))) +  round_up(ElAbs(log10((long double)(1.+aDec.Mant()))));
    UpdatePrecision(aP);
 }
 void cAppliMICMAC::AddPrecisionOfDec(const cDecimal & aDec,double aZ)
 {
-   int aP = round_up(ElAbs(log10(1+aDec.Mant()))) + round_up(ElAbs(log10(aZ)));
+   int aP = round_up(ElAbs(log10((long double)(1.+aDec.Mant())))) + round_up(ElAbs(log10(aZ)));
    UpdatePrecision(aP);
 }
 

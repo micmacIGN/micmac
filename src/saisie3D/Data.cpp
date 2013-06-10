@@ -8,7 +8,10 @@ cData::cData()
 }
 
 cData::~cData()
-{}
+{
+    for (int aK=0; aK < NbCameras();++aK) delete m_Cameras[aK];
+    for (int aK=0; aK < NbClouds();++aK) delete m_Clouds[aK];
+}
 
 void cData::addCamera(cElNuage3DMaille * aNuage)
 {
@@ -21,9 +24,9 @@ void cData::addCameras(vector <cElNuage3DMaille *> aNuages)
         m_Cameras.push_back(aNuages[aK]);
 }
 
-void cData::addCloud(Cloud * aCloud)
+void cData::centerCloud(Cloud * aCloud)
 {
-    Cloud a_res;
+    Cloud *a_res = new Cloud();
 
     //compute bounding box
     int nbPts = aCloud->size();
@@ -59,11 +62,11 @@ void cData::addCloud(Cloud * aCloud)
         vert_res.setCoord(pt3d);
         vert_res.setColor(vert.getColor());
 
-        a_res.addVertex(vert_res);
+        a_res->addVertex(vert_res);
     }
 
-    a_res.setTranslation(Vector3(m_cX, m_cY, m_cZ));
-    a_res.setScale((float) m_diam);
+    a_res->setTranslation(Vector3(m_cX, m_cY, m_cZ));
+    a_res->setScale((float) m_diam);
 
     //translate and scale back clouds if needed
     for (int aK=0; aK< NbClouds();++aK)
@@ -91,5 +94,5 @@ void cData::addCloud(Cloud * aCloud)
         }
     }
 
-    m_Clouds.push_back(aCloud);
+    m_Clouds.push_back(a_res);
 }
