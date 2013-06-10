@@ -153,10 +153,16 @@ template <> class TCompl<double>
 template <> class TCompl<float>
 {
     public :
-        typedef int  TypeCompl;
-        static float FromC(int aV) {return (float)aV;} 
+        typedef double  TypeCompl;
+        static float FromC(double aV) {return (float)aV;} 
 };
 
+template <> class TCompl<long double>
+{
+    public :
+        typedef double  TypeCompl;
+        static long double FromC(double aV) {return (long double)aV;} 
+};
 
 
 template <class Type> class Pt2d : public  ElStdTypeScal<Type>
@@ -406,6 +412,7 @@ template <class Type>Pt2d<Type> Sup3 (const Pt2d<Type> & p1,const Pt2d<Type> & p
 
 typedef  Pt2d<INT> Pt2di;
 typedef  Pt2d<REAL> Pt2dr;
+typedef  Pt2d<long double> Pt2dlr;
 typedef  Pt2d<float> Pt2df;
 double DMaxCoins(Pt2dr aSzIm,Pt2dr aC);
 double DMaxCoins(Pt2dr aP0,Pt2dr aP1,Pt2dr aC);
@@ -898,6 +905,13 @@ template <class Type> Box2d<Type> Inf(const Box2d<Type> & b1, const Box2d<Type> 
 template <class Type> bool InterVide(const Box2d<Type> & b1, const Box2d<Type> & b2);
 
 
+inline Pt2dr ToPt2dr(const Pt2dr & aP) {return aP;}
+inline Pt2dr ToPt2dr(const Pt2di & aP) {return Pt2dr(aP.x,aP.y);}
+inline Pt2dr ToPt2dr(const Pt2dlr & aP){return Pt2dr(aP.x,aP.y);}
+inline Pt2di ToPt2di(const Pt2dr & aP) {return Pt2di(round_ni(aP.x),round_ni(aP.y));}
+inline Pt2di ToPt2di(const Pt2di & aP) {return aP;}
+inline Pt2di ToPt2di(const Pt2dlr & aP){return Pt2di(round_ni(aP.x),round_ni(aP.y));}
+
 
 class Flux_Pts;
 template <class Type> class Box2d
@@ -921,10 +935,10 @@ template <class Type> class Box2d
      Pt2d<Type>  _p1;
      Pt2d<Type> milieu() const { return (_p0+_p1) / 2;}
      Pt2d<Type> sz() const { return _p1 - _p0;}
-     Pt2d<Type> FromCoordLoc(Pt2dr aP) const { return Pt2d<Type>(Pt2dr(_p0)+aP.mcbyc(Pt2dr(sz())));}
+     Pt2d<Type> FromCoordLoc(Pt2dr aP) const { return Pt2d<Type>(ToPt2dr(_p0)+aP.mcbyc(ToPt2dr(sz())));}
 
 
-     Pt2dr ToCoordLoc(Pt2dr aP) const { return (aP-Pt2dr(_p0)).dcbyc(Pt2dr(sz()));}
+     Pt2dr ToCoordLoc(Pt2dr aP) const { return (aP-ToPt2dr(_p0)).dcbyc(ToPt2dr(sz()));}
 
      Type   hauteur() const { return _p1.y-_p0.y;}
      Type   largeur() const { return _p1.x-_p0.x;}
@@ -949,6 +963,7 @@ template <class Type> class Box2d
      Box2d(const Pt2d<Type> *,INT aNb);
      Box2d(Pt2di,Pt2di);
      Box2d(Pt2dr,Pt2dr);  // cast up and down
+     Box2d(Pt2dlr,Pt2dlr);  // cast up and down
      Box2d(const Type *,const Type *,INT);
      bool include_in(const Box2d<Type> & b2) const;
      Box2d<Type>  erode(Pt2d<Type>) const;      
@@ -973,6 +988,10 @@ template <class Type> class Box2d
 		return (pt.x>=_p0.x) && (pt.y>=_p0.y) && (pt.x<_p1.x) && (pt.y<_p1.y);
      }
      bool contains(const Pt2d<double> & pt) const
+     {
+		return (pt.x>=_p0.x) && (pt.y>=_p0.y) && (pt.x<_p1.x) && (pt.y<_p1.y);
+     }
+     bool contains(const Pt2d<long double> & pt) const
      {
 		return (pt.x>=_p0.x) && (pt.y>=_p0.y) && (pt.x<_p1.x) && (pt.y<_p1.y);
      }

@@ -8,6 +8,8 @@ namespace NS_Casa{
 class cNuageByImage
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cNuageByImage & anObj,cElXMLTree * aTree);
 
 
@@ -25,6 +27,8 @@ cElXMLTree * ToXMLTree(const cNuageByImage &);
 class cSectionLoadNuage
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSectionLoadNuage & anObj,cElXMLTree * aTree);
 
 
@@ -50,6 +54,8 @@ cElXMLTree * ToXMLTree(const cSectionLoadNuage &);
 class cSectionEstimSurf
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSectionEstimSurf & anObj,cElXMLTree * aTree);
 
 
@@ -67,6 +73,8 @@ cElXMLTree * ToXMLTree(const cSectionEstimSurf &);
 class cSectionInitModele
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSectionInitModele & anObj,cElXMLTree * aTree);
 
 
@@ -109,6 +117,8 @@ cElXMLTree * ToXMLTree(const cSectionInitModele &);
 class cEtapeCompensation
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree);
 
 
@@ -130,6 +140,8 @@ cElXMLTree * ToXMLTree(const cEtapeCompensation &);
 class cSectionCompensation
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree);
 
 
@@ -150,6 +162,8 @@ cElXMLTree * ToXMLTree(const cSectionCompensation &);
 class cParamCasa
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cParamCasa & anObj,cElXMLTree * aTree);
 
 

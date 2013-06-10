@@ -45,6 +45,12 @@ namespace NS_ParamChantierPhotogram {
   class cXmlDataBase;
 };
 
+class cGlobXmlGen
+{
+    public :
+       cGlobXmlGen();
+       INT1   mPrec;  // Gere la precision dans l'ecriture des fichiers
+};
 
 class cElXMLTree;
 class Fich_Im2d;
@@ -1601,6 +1607,7 @@ class cElXMLTree
 {
 	public :
 
+         cGlobXmlGen mGXml;
          
          std::list<cElXMLTree *>  Interprete();
 
@@ -2089,6 +2096,10 @@ void AddEntryStringifie(const std::string &,const char ** aTab,bool formal);
 
 
 double PolonaiseInverse(const std::string & aStr);
+
+void  XMLPushContext(const cGlobXmlGen & aGXml);
+void  XMLPopContext(const cGlobXmlGen & aGXml);
+
 
 
 //   const char * GetEntryStringifie(const std::string &);

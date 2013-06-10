@@ -320,7 +320,8 @@ cAppliMICMAC::cAppliMICMAC
    mGPRed2         (0),
    mDoTheMEC       (true),
    mAnaGeomMNT     (0),
-   mMakeMaskImNadir  (0)
+   mMakeMaskImNadir  (0),
+   mMaxPrecision     (0)
    // mInterpolTabule (10,8,0.0,eTabul_Bilin)
    // mInterpolTabule (10,8,0.0,eTabul_Bicub)
 {

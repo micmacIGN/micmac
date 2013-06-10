@@ -25,13 +25,15 @@ SOURCES += main.cpp\
         GLWidget.cpp \
 		Cloud.cpp \
 		../poisson/plyfile.cpp \
-    Data.cpp
+    Data.cpp \
+    Engine.cpp
 
 HEADERS  += mainwindow.h\
             GLWidget.h \
 			util.h \
 			mmVector3.h \
-    Data.h
+    Data.h \
+    Engine.h
 
 FORMS    += \
     mainwindow.ui
@@ -45,15 +47,15 @@ DEFINES += _CRT_SECURE_NO_WARNINGS
 INCLUDEPATH += $$PWD/../../include
 DEPENDPATH += $$PWD/../../include
 
-CONFIG(debug, debug|release)
+CONFIG(release, release|debug)
 {
-unix|win32: LIBS += -L$$PWD/../../bin -lelise
-
-win32: PRE_TARGETDEPS += $$PWD/../../bin/elise.lib
-else:unix: PRE_TARGETDEPS += $$PWD/../../bin/libelise.a
-}else{
 unix|win32: LIBS += -L$$PWD/../../lib -lelise
 
 win32: PRE_TARGETDEPS += $$PWD/../../lib/elise.lib
 else:unix: PRE_TARGETDEPS += $$PWD/../../lib/libelise.a
+}else{
+unix|win32: LIBS += -L$$PWD/../../bin -lelise
+
+win32: PRE_TARGETDEPS += $$PWD/../../bin/elise.lib
+else:unix: PRE_TARGETDEPS += $$PWD/../../bin/libelise.a
 }

@@ -1537,7 +1537,6 @@ void cAppliMICMAC::DoGPU_Correl
 					setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,hVolumeCost.pData(), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
                     anZComputed += ZtoCopy;
 					IMmGg.SetZCToCopy(0);
-
 				}
 			}
 			else

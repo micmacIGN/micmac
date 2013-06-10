@@ -508,7 +508,8 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 
         <!-- limite le nombre de decimale des fichiers de geo-ref, mis a true par defaut car
          on suppose (espere) que ce ne posera pas de pb de compat -->
-        <AutoRoundGeoref Nb="?" Type="bool" Def="true"> </AutoRoundGeoref>
+        <GeoRefAutoRoundResol Nb="?" Type="bool"> </GeoRefAutoRoundResol>
+        <GeoRefAutoRoundBox Nb="?" Type="bool"> </GeoRefAutoRoundBox>
 
        <!-- Adapte  a la geometrie terrain -->
         <Planimetrie Nb="?">
