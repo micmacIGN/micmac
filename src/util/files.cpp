@@ -378,6 +378,25 @@ void ELISE_fp::if_not_exist_create_0(const char * name,struct stat * status )
 
 }
 
+#if ( ELISE_POSIX )
+bool ELISE_fp::lastModificationDate(const std::string &i_filename, cElDate &o_date )
+{
+    struct stat sb;
+	if ( stat( i_filename.c_str(), &sb )==-1) return false;
+    struct tm *t = localtime( &sb.st_mtime );
+    
+    o_date = cElDate( t->tm_mday, t->tm_mon, t->tm_year+1900, cElHour( t->tm_hour, t->tm_min, t->tm_sec ) );
+    return true;
+}
+#endif
+#if ( ELISE_Windows )
+bool ELISE_fp::lastModificationDate(const std::string &i_filename, cElDate &o_date )
+{
+	return false;
+}
+#endif
+
+
 const int ELISE_fp::code_mope_seek[3] = {SEEK_SET,SEEK_CUR,SEEK_END};
 
 U_INT1 ELISE_fp::read_U_INT1()

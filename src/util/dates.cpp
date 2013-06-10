@@ -163,6 +163,16 @@ double cElHour::InSec() const
 	return  3600.0*mH + 60.0*mM + mS;
 }
 
+bool cElHour::operator==( const cElHour &i_b ) const
+{
+	return ( (mH==i_b.mH ) && (mM==i_b.mM) && (mS==i_b.mS) );
+}
+
+bool cElHour::operator!=( const cElHour &i_b ) const
+{
+	return !( *this==i_b );
+}
+
 template <>  std::string ToString(const cElHour & aH)
 {
 	return   ToString(aH.H())+ std::string(":")
@@ -305,6 +315,15 @@ bool operator < (const cElDate & aD1, const cElDate & aD2)
 }
 
 
+bool cElDate::operator ==( const cElDate &i_b ) const
+{
+	return ( (mD==i_b.mD ) && (mM==i_b.mM) && (mY==i_b.mY) && (mH==i_b.mH) );
+}
+
+bool cElDate::operator !=( const cElDate &i_b ) const
+{
+	return !( *this==i_b );
+}
 
 int  cElDate::DifInDay(const cElDate& aD2) const
 {

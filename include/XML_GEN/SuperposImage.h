@@ -34,6 +34,8 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeBoxFusion & anObj
 class cIntervLutConvertion
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cIntervLutConvertion & anObj,cElXMLTree * aTree);
 
 
@@ -54,6 +56,8 @@ cElXMLTree * ToXMLTree(const cIntervLutConvertion &);
 class cLutConvertion
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cLutConvertion & anObj,cElXMLTree * aTree);
 
 
@@ -70,6 +74,8 @@ cElXMLTree * ToXMLTree(const cLutConvertion &);
 class cWindowSelection
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cWindowSelection & anObj,cElXMLTree * aTree);
 
 
@@ -94,6 +100,8 @@ cElXMLTree * ToXMLTree(const cWindowSelection &);
 class cMasqTerrain
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cMasqTerrain & anObj,cElXMLTree * aTree);
 
 
@@ -118,6 +126,8 @@ cElXMLTree * ToXMLTree(const cMasqTerrain &);
 class cBoxPixMort
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cBoxPixMort & anObj,cElXMLTree * aTree);
 
 
@@ -138,6 +148,8 @@ cElXMLTree * ToXMLTree(const cBoxPixMort &);
 class cFlattField
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cFlattField & anObj,cElXMLTree * aTree);
 
 
@@ -158,6 +170,8 @@ cElXMLTree * ToXMLTree(const cFlattField &);
 class cChannelCmpCol
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cChannelCmpCol & anObj,cElXMLTree * aTree);
 
 
@@ -194,6 +208,8 @@ cElXMLTree * ToXMLTree(const cChannelCmpCol &);
 class cImageCmpCol
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cImageCmpCol & anObj,cElXMLTree * aTree);
 
 
@@ -250,6 +266,8 @@ cElXMLTree * ToXMLTree(const cImageCmpCol &);
 class cShowCalibsRel
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cShowCalibsRel & anObj,cElXMLTree * aTree);
 
 
@@ -270,6 +288,8 @@ cElXMLTree * ToXMLTree(const cShowCalibsRel &);
 class cImResultCC_Gray
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cImResultCC_Gray & anObj,cElXMLTree * aTree);
 
 
@@ -283,6 +303,8 @@ cElXMLTree * ToXMLTree(const cImResultCC_Gray &);
 class cImResultCC_RVB
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cImResultCC_RVB & anObj,cElXMLTree * aTree);
 
 
@@ -296,6 +318,8 @@ cElXMLTree * ToXMLTree(const cImResultCC_RVB &);
 class cImResultCC_Cnes
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cImResultCC_Cnes & anObj,cElXMLTree * aTree);
 
 
@@ -333,6 +357,8 @@ cElXMLTree * ToXMLTree(const cImResultCC_Cnes &);
 class cImResultCC_PXs
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cImResultCC_PXs & anObj,cElXMLTree * aTree);
 
 
@@ -362,6 +388,8 @@ cElXMLTree * ToXMLTree(const cImResultCC_PXs &);
 class cPondThom
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cPondThom & anObj,cElXMLTree * aTree);
 
 
@@ -379,6 +407,8 @@ cElXMLTree * ToXMLTree(const cPondThom &);
 class cThomBidouille
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cThomBidouille & anObj,cElXMLTree * aTree);
 
 
@@ -396,6 +426,8 @@ cElXMLTree * ToXMLTree(const cThomBidouille &);
 class cMPDBidouille
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cMPDBidouille & anObj,cElXMLTree * aTree);
 
 
@@ -409,6 +441,8 @@ cElXMLTree * ToXMLTree(const cMPDBidouille &);
 class cThomAgreg
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cThomAgreg & anObj,cElXMLTree * aTree);
 
 
@@ -435,6 +469,8 @@ cElXMLTree * ToXMLTree(const cThomAgreg &);
 class cImResultCC_Thom
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cImResultCC_Thom & anObj,cElXMLTree * aTree);
 
 
@@ -489,6 +525,8 @@ cElXMLTree * ToXMLTree(const cImResultCC_Thom &);
 class cImResultCC
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cImResultCC & anObj,cElXMLTree * aTree);
 
 
@@ -518,6 +556,8 @@ cElXMLTree * ToXMLTree(const cImResultCC &);
 class cResultCompCol
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cResultCompCol & anObj,cElXMLTree * aTree);
 
 
@@ -569,6 +609,8 @@ cElXMLTree * ToXMLTree(const cResultCompCol &);
 class cEspaceResultSuperpCol
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cEspaceResultSuperpCol & anObj,cElXMLTree * aTree);
 
 
@@ -593,6 +635,8 @@ cElXMLTree * ToXMLTree(const cEspaceResultSuperpCol &);
 class cImages2Verif
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cImages2Verif & anObj,cElXMLTree * aTree);
 
 
@@ -614,6 +658,8 @@ cElXMLTree * ToXMLTree(const cImages2Verif &);
 class cVisuEcart
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cVisuEcart & anObj,cElXMLTree * aTree);
 
 
@@ -648,6 +694,8 @@ cElXMLTree * ToXMLTree(const cVisuEcart &);
 class cVerifHoms
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cVerifHoms & anObj,cElXMLTree * aTree);
 
 
@@ -686,6 +734,8 @@ cElXMLTree * ToXMLTree(const cVerifHoms &);
 class cImSec
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cImSec & anObj,cElXMLTree * aTree);
 
 
@@ -765,6 +815,8 @@ cElXMLTree * ToXMLTree(const cImSec &);
 class cCreateCompColoree
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cCreateCompColoree & anObj,cElXMLTree * aTree);
 
 
@@ -858,6 +910,8 @@ cElXMLTree * ToXMLTree(const cCreateCompColoree &);
 class cSauvegardeMR2A
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSauvegardeMR2A & anObj,cElXMLTree * aTree);
 
 
@@ -882,6 +936,8 @@ cElXMLTree * ToXMLTree(const cSauvegardeMR2A &);
 class cGenereModeleRaster2Analytique
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cGenereModeleRaster2Analytique & anObj,cElXMLTree * aTree);
 
 
@@ -951,6 +1007,8 @@ cElXMLTree * ToXMLTree(const cGenereModeleRaster2Analytique &);
 class cBayerGridDirecteEtInverse
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cBayerGridDirecteEtInverse & anObj,cElXMLTree * aTree);
 
 
@@ -975,6 +1033,8 @@ cElXMLTree * ToXMLTree(const cBayerGridDirecteEtInverse &);
 class cBayerCalibGeom
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cBayerCalibGeom & anObj,cElXMLTree * aTree);
 
 
@@ -999,6 +1059,8 @@ cElXMLTree * ToXMLTree(const cBayerCalibGeom &);
 class cSpecifEtalRelOneChan
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSpecifEtalRelOneChan & anObj,cElXMLTree * aTree);
 
 
@@ -1019,6 +1081,8 @@ cElXMLTree * ToXMLTree(const cSpecifEtalRelOneChan &);
 class cSpecifEtalRadiom
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSpecifEtalRadiom & anObj,cElXMLTree * aTree);
 
 
@@ -1035,6 +1099,8 @@ cElXMLTree * ToXMLTree(const cSpecifEtalRadiom &);
 class cPolyNRadiom
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cPolyNRadiom & anObj,cElXMLTree * aTree);
 
 
@@ -1055,6 +1121,8 @@ cElXMLTree * ToXMLTree(const cPolyNRadiom &);
 class cEtalRelOneChan
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cEtalRelOneChan & anObj,cElXMLTree * aTree);
 
 
@@ -1071,6 +1139,8 @@ cElXMLTree * ToXMLTree(const cEtalRelOneChan &);
 class cColorCalib
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cColorCalib & anObj,cElXMLTree * aTree);
 
 
@@ -1087,6 +1157,8 @@ cElXMLTree * ToXMLTree(const cColorCalib &);
 class cOneGridECG
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cOneGridECG & anObj,cElXMLTree * aTree);
 
 
@@ -1107,6 +1179,8 @@ cElXMLTree * ToXMLTree(const cOneGridECG &);
 class cEvalComposeGrid
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cEvalComposeGrid & anObj,cElXMLTree * aTree);
 
 
@@ -1139,6 +1213,8 @@ cElXMLTree * ToXMLTree(const cEvalComposeGrid &);
 class cCalcNomFromCouple
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cCalcNomFromCouple & anObj,cElXMLTree * aTree);
 
 
@@ -1163,6 +1239,8 @@ cElXMLTree * ToXMLTree(const cCalcNomFromCouple &);
 class cCalcNomFromOne
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cCalcNomFromOne & anObj,cElXMLTree * aTree);
 
 
@@ -1183,6 +1261,8 @@ cElXMLTree * ToXMLTree(const cCalcNomFromOne &);
 class cOneResync
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cOneResync & anObj,cElXMLTree * aTree);
 
 
@@ -1211,6 +1291,8 @@ cElXMLTree * ToXMLTree(const cOneResync &);
 class cReSynchronImage
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cReSynchronImage & anObj,cElXMLTree * aTree);
 
 
@@ -1247,6 +1329,8 @@ cElXMLTree * ToXMLTree(const cReSynchronImage &);
 class cXmlCylindreRevolution
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cXmlCylindreRevolution & anObj,cElXMLTree * aTree);
 
 
@@ -1271,6 +1355,8 @@ cElXMLTree * ToXMLTree(const cXmlCylindreRevolution &);
 class cXmlOrthoCyl
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cXmlOrthoCyl & anObj,cElXMLTree * aTree);
 
 
@@ -1299,6 +1385,8 @@ cElXMLTree * ToXMLTree(const cXmlOrthoCyl &);
 class cXmlDescriptionAnalytique
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cXmlDescriptionAnalytique & anObj,cElXMLTree * aTree);
 
 
@@ -1319,6 +1407,8 @@ cElXMLTree * ToXMLTree(const cXmlDescriptionAnalytique &);
 class cXmlOneSurfaceAnalytique
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cXmlOneSurfaceAnalytique & anObj,cElXMLTree * aTree);
 
 
@@ -1343,6 +1433,8 @@ cElXMLTree * ToXMLTree(const cXmlOneSurfaceAnalytique &);
 class cXmlModeleSurfaceComplexe
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cXmlModeleSurfaceComplexe & anObj,cElXMLTree * aTree);
 
 
@@ -1359,6 +1451,8 @@ cElXMLTree * ToXMLTree(const cXmlModeleSurfaceComplexe &);
 class cMapByKey
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cMapByKey & anObj,cElXMLTree * aTree);
 
 
@@ -1379,6 +1473,8 @@ cElXMLTree * ToXMLTree(const cMapByKey &);
 class cOneAutomMapN2N
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cOneAutomMapN2N & anObj,cElXMLTree * aTree);
 
 
@@ -1400,6 +1496,8 @@ cElXMLTree * ToXMLTree(const cOneAutomMapN2N &);
 class cMapN2NByAutom
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cMapN2NByAutom & anObj,cElXMLTree * aTree);
 
 
@@ -1416,6 +1514,8 @@ cElXMLTree * ToXMLTree(const cMapN2NByAutom &);
 class cMapName2Name
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cMapName2Name & anObj,cElXMLTree * aTree);
 
 
@@ -1445,6 +1545,8 @@ cElXMLTree * ToXMLTree(const cMapName2Name &);
 class cImage_Point3D
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cImage_Point3D & anObj,cElXMLTree * aTree);
 
 
@@ -1462,6 +1564,8 @@ cElXMLTree * ToXMLTree(const cImage_Point3D &);
 class cImage_Profondeur
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cImage_Profondeur & anObj,cElXMLTree * aTree);
 
 
@@ -1495,6 +1599,8 @@ cElXMLTree * ToXMLTree(const cImage_Profondeur &);
 class cPN3M_Nuage
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cPN3M_Nuage & anObj,cElXMLTree * aTree);
 
 
@@ -1515,6 +1621,8 @@ cElXMLTree * ToXMLTree(const cPN3M_Nuage &);
 class cAttributsNuage3D
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cAttributsNuage3D & anObj,cElXMLTree * aTree);
 
 
@@ -1543,6 +1651,8 @@ cElXMLTree * ToXMLTree(const cAttributsNuage3D &);
 class cModeFaisceauxImage
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cModeFaisceauxImage & anObj,cElXMLTree * aTree);
 
 
@@ -1564,6 +1674,8 @@ cElXMLTree * ToXMLTree(const cModeFaisceauxImage &);
 class cPM3D_ParamSpecifs
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cPM3D_ParamSpecifs & anObj,cElXMLTree * aTree);
 
 
@@ -1593,6 +1705,8 @@ cElXMLTree * ToXMLTree(const cPM3D_ParamSpecifs &);
 class cVerifNuage
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cVerifNuage & anObj,cElXMLTree * aTree);
 
 
@@ -1617,6 +1731,8 @@ cElXMLTree * ToXMLTree(const cVerifNuage &);
 class cXML_ParamNuage3DMaille
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cXML_ParamNuage3DMaille & anObj,cElXMLTree * aTree);
 
 
@@ -1690,6 +1806,8 @@ cElXMLTree * ToXMLTree(const cXML_ParamNuage3DMaille &);
 class cMasqMesures
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cMasqMesures & anObj,cElXMLTree * aTree);
 
 
@@ -1710,6 +1828,8 @@ cElXMLTree * ToXMLTree(const cMasqMesures &);
 class cCielVisible
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cCielVisible & anObj,cElXMLTree * aTree);
 
 
@@ -1726,6 +1846,8 @@ cElXMLTree * ToXMLTree(const cCielVisible &);
 class cXML_ParamOmbrageNuage
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cXML_ParamOmbrageNuage & anObj,cElXMLTree * aTree);
 
 
@@ -1757,6 +1879,8 @@ cElXMLTree * ToXMLTree(const cXML_ParamOmbrageNuage &);
 class cFTrajParamInit2Actuelle
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cFTrajParamInit2Actuelle & anObj,cElXMLTree * aTree);
 
 
@@ -1777,6 +1901,8 @@ cElXMLTree * ToXMLTree(const cFTrajParamInit2Actuelle &);
 class cPtTrajecto
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cPtTrajecto & anObj,cElXMLTree * aTree);
 
 
@@ -1805,6 +1931,8 @@ cElXMLTree * ToXMLTree(const cPtTrajecto &);
 class cFichier_Trajecto
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cFichier_Trajecto & anObj,cElXMLTree * aTree);
 
 
@@ -1835,6 +1963,8 @@ cElXMLTree * ToXMLTree(const cFichier_Trajecto &);
 class cSectionEntree
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSectionEntree & anObj,cElXMLTree * aTree);
 
 
@@ -1879,6 +2009,8 @@ cElXMLTree * ToXMLTree(const cSectionEntree &);
 class cBoucheTrou
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cBoucheTrou & anObj,cElXMLTree * aTree);
 
 
@@ -1900,6 +2032,8 @@ cElXMLTree * ToXMLTree(const cBoucheTrou &);
 class cSectionFiltrageIn
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSectionFiltrageIn & anObj,cElXMLTree * aTree);
 
 
@@ -1933,6 +2067,8 @@ cElXMLTree * ToXMLTree(const cSectionFiltrageIn &);
 class cSectionSorties
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSectionSorties & anObj,cElXMLTree * aTree);
 
 
@@ -1981,6 +2117,8 @@ cElXMLTree * ToXMLTree(const cSectionSorties &);
 class cNoiseSSI
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cNoiseSSI & anObj,cElXMLTree * aTree);
 
 
@@ -2006,6 +2144,8 @@ cElXMLTree * ToXMLTree(const cNoiseSSI &);
 class cSectionSimulImage
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSectionSimulImage & anObj,cElXMLTree * aTree);
 
 
@@ -2034,6 +2174,8 @@ cElXMLTree * ToXMLTree(const cSectionSimulImage &);
 class cGlobRappInit
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cGlobRappInit & anObj,cElXMLTree * aTree);
 
 
@@ -2063,6 +2205,8 @@ cElXMLTree * ToXMLTree(const cGlobRappInit &);
 class cSectionEgalisation
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSectionEgalisation & anObj,cElXMLTree * aTree);
 
 
@@ -2162,6 +2306,8 @@ cElXMLTree * ToXMLTree(const cSectionEgalisation &);
 class cCreateOrtho
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cCreateOrtho & anObj,cElXMLTree * aTree);
 
 
@@ -2360,6 +2506,8 @@ cElXMLTree * ToXMLTree(const cCreateOrtho &);
 class cMetaDataPartiesCachees
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cMetaDataPartiesCachees & anObj,cElXMLTree * aTree);
 
 
@@ -2396,6 +2544,8 @@ cElXMLTree * ToXMLTree(const cMetaDataPartiesCachees &);
 class cPVPN_Orientation
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cPVPN_Orientation & anObj,cElXMLTree * aTree);
 
 
@@ -2412,6 +2562,8 @@ cElXMLTree * ToXMLTree(const cPVPN_Orientation &);
 class cPVPN_ImFixe
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cPVPN_ImFixe & anObj,cElXMLTree * aTree);
 
 
@@ -2432,6 +2584,8 @@ cElXMLTree * ToXMLTree(const cPVPN_ImFixe &);
 class cPVPN_Camera
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cPVPN_Camera & anObj,cElXMLTree * aTree);
 
 
@@ -2452,6 +2606,8 @@ cElXMLTree * ToXMLTree(const cPVPN_Camera &);
 class cPVPN_Fond
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cPVPN_Fond & anObj,cElXMLTree * aTree);
 
 
@@ -2468,6 +2624,8 @@ cElXMLTree * ToXMLTree(const cPVPN_Fond &);
 class cPVPN_Nuages
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cPVPN_Nuages & anObj,cElXMLTree * aTree);
 
 
@@ -2484,6 +2642,8 @@ cElXMLTree * ToXMLTree(const cPVPN_Nuages &);
 class cParamVisuProjNuage
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cParamVisuProjNuage & anObj,cElXMLTree * aTree);
 
 
@@ -2543,6 +2703,8 @@ cElXMLTree * ToXMLTree(const cParamVisuProjNuage &);
 class cPoinAvionJaune
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cPoinAvionJaune & anObj,cElXMLTree * aTree);
 
 
@@ -2563,6 +2725,8 @@ cElXMLTree * ToXMLTree(const cPoinAvionJaune &);
 class cValueAvionJaune
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cValueAvionJaune & anObj,cElXMLTree * aTree);
 
 
@@ -2591,6 +2755,8 @@ cElXMLTree * ToXMLTree(const cValueAvionJaune &);
 class cValueXYAvionJaune
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cValueXYAvionJaune & anObj,cElXMLTree * aTree);
 
 
@@ -2623,6 +2789,8 @@ cElXMLTree * ToXMLTree(const cValueXYAvionJaune &);
 class cnavigation
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cnavigation & anObj,cElXMLTree * aTree);
 
 
@@ -2667,6 +2835,8 @@ cElXMLTree * ToXMLTree(const cnavigation &);
 class cimage
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cimage & anObj,cElXMLTree * aTree);
 
 
@@ -2691,6 +2861,8 @@ cElXMLTree * ToXMLTree(const cimage &);
 class cgeometrieAPriori
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cgeometrieAPriori & anObj,cElXMLTree * aTree);
 
 
@@ -2719,6 +2891,8 @@ cElXMLTree * ToXMLTree(const cgeometrieAPriori &);
 class cAvionJauneDocument
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cAvionJauneDocument & anObj,cElXMLTree * aTree);
 
 
@@ -2792,6 +2966,8 @@ cElXMLTree * ToXMLTree(const cAvionJauneDocument &);
 class cTrAJ2_GenerateOrient
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cTrAJ2_GenerateOrient & anObj,cElXMLTree * aTree);
 
 
@@ -2832,6 +3008,8 @@ cElXMLTree * ToXMLTree(const cTrAJ2_GenerateOrient &);
 class cTrAJ2_ModeliseVitesse
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cTrAJ2_ModeliseVitesse & anObj,cElXMLTree * aTree);
 
 
@@ -2848,6 +3026,8 @@ cElXMLTree * ToXMLTree(const cTrAJ2_ModeliseVitesse &);
 class cTrAJ2_SectionImages
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cTrAJ2_SectionImages & anObj,cElXMLTree * aTree);
 
 
@@ -2876,6 +3056,8 @@ cElXMLTree * ToXMLTree(const cTrAJ2_SectionImages &);
 class cGenerateTabExemple
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cGenerateTabExemple & anObj,cElXMLTree * aTree);
 
 
@@ -2913,6 +3095,8 @@ cElXMLTree * ToXMLTree(const cGenerateTabExemple &);
 class cFullDate
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cFullDate & anObj,cElXMLTree * aTree);
 
 
@@ -2970,6 +3154,8 @@ cElXMLTree * ToXMLTree(const cFullDate &);
 class cSectionTime
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSectionTime & anObj,cElXMLTree * aTree);
 
 
@@ -3027,6 +3213,8 @@ cElXMLTree * ToXMLTree(const cSectionTime &);
 class cTrajAngles
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cTrajAngles & anObj,cElXMLTree * aTree);
 
 
@@ -3072,6 +3260,8 @@ cElXMLTree * ToXMLTree(const cTrajAngles &);
 class cGetImInLog
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cGetImInLog & anObj,cElXMLTree * aTree);
 
 
@@ -3085,6 +3275,8 @@ cElXMLTree * ToXMLTree(const cGetImInLog &);
 class cTrAJ2_SectionLog
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cTrAJ2_SectionLog & anObj,cElXMLTree * aTree);
 
 
@@ -3240,6 +3432,8 @@ cElXMLTree * ToXMLTree(const cTrAJ2_SectionLog &);
 class cLearnByExample
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cLearnByExample & anObj,cElXMLTree * aTree);
 
 
@@ -3273,6 +3467,8 @@ cElXMLTree * ToXMLTree(const cLearnByExample &);
 class cLearnByStatDiff
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cLearnByStatDiff & anObj,cElXMLTree * aTree);
 
 
@@ -3286,6 +3482,8 @@ cElXMLTree * ToXMLTree(const cLearnByStatDiff &);
 class cLearnOffset
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cLearnOffset & anObj,cElXMLTree * aTree);
 
 
@@ -3324,6 +3522,8 @@ cElXMLTree * ToXMLTree(const cLearnOffset &);
 class cMatchNearestIm
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cMatchNearestIm & anObj,cElXMLTree * aTree);
 
 
@@ -3341,6 +3541,8 @@ cElXMLTree * ToXMLTree(const cMatchNearestIm &);
 class cMatchByName
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cMatchByName & anObj,cElXMLTree * aTree);
 
 
@@ -3354,6 +3556,8 @@ cElXMLTree * ToXMLTree(const cMatchByName &);
 class cAlgoMatch
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cAlgoMatch & anObj,cElXMLTree * aTree);
 
 
@@ -3380,6 +3584,8 @@ cElXMLTree * ToXMLTree(const cAlgoMatch &);
 class cTrAJ2_SectionMatch
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cTrAJ2_SectionMatch & anObj,cElXMLTree * aTree);
 
 
@@ -3458,6 +3664,8 @@ cElXMLTree * ToXMLTree(const cTrAJ2_SectionMatch &);
 class cTraJ2_FilesInputi_Appuis
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cTraJ2_FilesInputi_Appuis & anObj,cElXMLTree * aTree);
 
 
@@ -3487,6 +3695,8 @@ cElXMLTree * ToXMLTree(const cTraJ2_FilesInputi_Appuis &);
 class cTrAJ2_ConvertionAppuis
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cTrAJ2_ConvertionAppuis & anObj,cElXMLTree * aTree);
 
 
@@ -3579,6 +3789,8 @@ cElXMLTree * ToXMLTree(const cTrAJ2_ConvertionAppuis &);
 class cTrAJ2_ExportProjImage
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cTrAJ2_ExportProjImage & anObj,cElXMLTree * aTree);
 
 
@@ -3611,6 +3823,8 @@ cElXMLTree * ToXMLTree(const cTrAJ2_ExportProjImage &);
 class cParam_Traj_AJ
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cParam_Traj_AJ & anObj,cElXMLTree * aTree);
 
 
@@ -3655,6 +3869,8 @@ cElXMLTree * ToXMLTree(const cParam_Traj_AJ &);
 class cParamGenereStr
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cParamGenereStr & anObj,cElXMLTree * aTree);
 
 
@@ -3675,6 +3891,8 @@ cElXMLTree * ToXMLTree(const cParamGenereStr &);
 class cParamGenereStrVois
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cParamGenereStrVois & anObj,cElXMLTree * aTree);
 
 
@@ -3703,6 +3921,8 @@ cElXMLTree * ToXMLTree(const cParamGenereStrVois &);
 class cSectionName
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSectionName & anObj,cElXMLTree * aTree);
 
 
@@ -3727,6 +3947,8 @@ cElXMLTree * ToXMLTree(const cSectionName &);
 class cFMNtBySort
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cFMNtBySort & anObj,cElXMLTree * aTree);
 
 
@@ -3740,6 +3962,8 @@ cElXMLTree * ToXMLTree(const cFMNtBySort &);
 class cFMNT_GesNoVal
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cFMNT_GesNoVal & anObj,cElXMLTree * aTree);
 
 
@@ -3761,6 +3985,8 @@ cElXMLTree * ToXMLTree(const cFMNT_GesNoVal &);
 class cFMNT_ProgDyn
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cFMNT_ProgDyn & anObj,cElXMLTree * aTree);
 
 
@@ -3795,6 +4021,8 @@ cElXMLTree * ToXMLTree(const cFMNT_ProgDyn &);
 class cFMNtByMaxEvid
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cFMNtByMaxEvid & anObj,cElXMLTree * aTree);
 
 
@@ -3841,6 +4069,8 @@ cElXMLTree * ToXMLTree(const cFMNtByMaxEvid &);
 class cSpecAlgoFMNT
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSpecAlgoFMNT & anObj,cElXMLTree * aTree);
 
 
@@ -3894,6 +4124,8 @@ cElXMLTree * ToXMLTree(const cSpecAlgoFMNT &);
 class cParamAlgoFusionMNT
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cParamAlgoFusionMNT & anObj,cElXMLTree * aTree);
 
 
@@ -3960,6 +4192,8 @@ cElXMLTree * ToXMLTree(const cParamAlgoFusionMNT &);
 class cSectionGestionChantier
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cSectionGestionChantier & anObj,cElXMLTree * aTree);
 
 
@@ -3996,6 +4230,8 @@ cElXMLTree * ToXMLTree(const cSectionGestionChantier &);
 class cParamFusionMNT
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cParamFusionMNT & anObj,cElXMLTree * aTree);
 
 

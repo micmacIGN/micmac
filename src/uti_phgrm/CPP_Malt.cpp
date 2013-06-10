@@ -127,6 +127,8 @@ class cAppliMalt
           double      mLargMin;
           Pt2dr       mSzGlob;
           std::string  mMasqIm;
+          bool        mUseImSec;
+          bool        mCorMS;
 };
 
 
@@ -167,7 +169,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mImOrtho      (""),
     mIsSperik     (false),
     mLargMin      (25.0),
-    mSzGlob       (0,0)
+    mSzGlob       (0,0),
+    mUseImSec     (false),
+    mCorMS        (false)
 {
   ELISE_ASSERT(argc >= 2,"Not enough arg");
 
@@ -186,8 +190,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
         LArgMain()  << EAMC(aMode,"Mode of correlation (must be in allowed enumerated values)")
                     << EAMC(mFullName,"Full Name (Dir+Pattern)")
                     << EAMC(mOri,"Orientation"),
-        LArgMain()  << EAM(mImMaster,"Master",true," Master image must  exist iff Mode=GeomImage")
+        LArgMain()  << EAM(mImMaster,"Master",true," Master image must  exist iff Mode=GeomImage, enter AUTO for using ")
                     << EAM(mSzW,"SzW",true,"Correlation Window Size (1 means 3x3)")
+                    << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, avalaible in image geometry")
                     << EAM(mZRegul,"Regul",true,"Regularization factor")
                     << EAM(mDirMEC,"DirMEC",true,"Subdirectory where the results will be stored")
                     << EAM(mDirOrthoF,"DirOF","Subdirectory for ortho (def in Ortho-${DirMEC}) ")
@@ -219,15 +224,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq")
   );
 
-  if ((mImMaster!="") != (mType==eGeomImage))
-  {
-      std::cout << "Master Image =[" << mImMaster << "] , mode = " << mStrType << "\n";
-      ELISE_ASSERT
-      (
-          false,
-          "Incoherence : master image must exit iff mode==GeomImage"
-      );
-  }
+  mUseImSec = (mImMaster == std::string("AUTO"));
+
 
   if (mEtapeInit!=1) 
      mPurge = false;
@@ -250,10 +248,28 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   #endif
   SplitDirAndFile(mDir,mIms,mFullName);
 
+
+  if (mUseImSec)
+  {
+     ELISE_ASSERT((mType==eGeomImage),"Illegal combinaison with UseImSec");
+     mImMaster = mIms;
+  }
+  else if ((mImMaster!="") != (mType==eGeomImage))
+  {
+      std::cout << "Master Image =[" << mImMaster << "] , mode = " << mStrType << "\n";
+      ELISE_ASSERT
+      (
+          false,
+          "Incoherence : master image must exit iff mode==GeomImage"
+      );
+  }
+
+
+
   mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
   mSetIm = mICNM->Get(mIms);
   mNbIm = mSetIm->size();
-  ELISE_ASSERT(mNbIm>=2,"Not Enough image in Pattern");
+  ELISE_ASSERT((mNbIm>=2)|mUseImSec,"Not Enough image in Pattern");
 
   std::string aKeyOri = "NKS-Assoc-Im2Orient@-" + mOri;
   for (int aKIm = 0; aKIm<mNbIm ; aKIm++)
@@ -471,12 +487,22 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   if (mZoomInit <= 16)
      mCom = mCom + std::string(" +FileZ16==EmptyXML.xml");
 
+  if (mUseImSec)
+      mCom = mCom + std::string(" +UseImSec=true");
+  if (mCorMS)
+      mCom = mCom + std::string(" +CorMS=true");
+
   if (EAMIsInit(&mZMoy))
   {
         mCom = mCom + " +FileZMoy=File-ZMoy.xml"
                     + " +ZMoy=" + ToString(mZMoy);
   }
 
+
+  if (mType==eGeomImage)
+  {
+       mCom = mCom + " +ModeAgrCor=eAggregMoyMedIm1Maitre";
+  }
   
                
   std::cout << mCom << "\n";
