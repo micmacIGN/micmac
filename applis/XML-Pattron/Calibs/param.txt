@@ -1,0 +1,56 @@
+# |============================================|
+# |                                            |
+# |   PARAMETRES OBLIGATOIRES                  |
+# |                                            |
+# |============================================|
+#
+#  NOMS ET EMPLACEMENT DE FICHIERS
+#
+Directory=ThisDir
+ByP=2
+#Directory=/Dos/souchon/pva2009/syst2_80/CamerasAP/Rouge/
+NameCamera=Canon-24
+#NameCamera=Syst2_09_80_Rouge
+#  36 / 5634 = 6.39 Mic
+#  100 / 6.39 = 15649
+#ModeC2M=0
+#
+#
+IncFormeInit=0.5
+DistConfDrad=15.0
+IncFormeDrad=0.5
+#
+# img_0069_MpDcraw8B_GR.tif
+#
+PrefixeNomImage=img_
+PostfixeNomImage=_MpDcraw8B_GR.tif
+ListeImagesInit=[0582,0584,0585,0586,0587]
+PatternImage=[0-9]{4}
+#CiblesRejetees=[114,441,841,1131,1141]
+#CiblesRejetees=[153,415,841,1131,1141]
+#CiblesRejetees=[1131,1141,153,841,441,415,442]
+#
+SeuilCorrel=0.8
+#
+FocaleInit=3755
+#CibDirU=[0,1,0]
+#CibDirV=[0,0,1]
+#
+#
+# |============================================|
+# |                                            |
+# |   PARAMETRES AYANT DES VALEUR PAR DEFAUT   |
+# |                                            |
+# |============================================|
+#  NOM DES FICHIERS DECRIVANT LE POLYGONE
+#
+PolygoneDirectory=/media/MYPASSPORT/Calib/References/IGN-Polygone-nouveau/
+NamePointePolygone=IGN-2009-PointeImage.txt
+NameImPolygone=IGN-2009.tif
+NameCible3DPolygone=IGN-2009.xml
+#
+Zoom=-1
+#
+FenetreInit=127
+#
+#
