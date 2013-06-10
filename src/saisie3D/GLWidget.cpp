@@ -387,6 +387,12 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
     updateGL();
 }*/
 
+void GLWidget::setData(cData *data)
+{
+    m_Data = data;
+    setCloudLoaded(true);
+}
+
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
 {
     const QMimeData* mimeData = event->mimeData();
