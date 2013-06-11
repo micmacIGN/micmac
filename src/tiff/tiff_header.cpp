@@ -801,7 +801,8 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
        // No def values tags
 
     _sz = Pt2di(-1,-1);
-    _phot_interp = (Tiff_Im::PH_INTER_TYPE) -1;
+    //  _phot_interp = (Tiff_Im::PH_INTER_TYPE) -1;
+    _phot_interp = Tiff_Im::BlackIsZero;  // Be lenient because IFP stugart do not know standard
     _tiles_offset = 0;
     _tiles_byte_count = 0;
     _palette = 0;
@@ -883,6 +884,31 @@ std::cout << "XIFtif:APRES Date " << ToString(mExifTiff_Date) << "\n";
     // also _tiles_byte_count is a required TAGS , it appears to be absent
     // of some files. As I do not need it for now ...
 
+
+    if (!(  (_sz.x != -1) && (_sz.y != -1)
+             && ((_tiles_offset != 0) || mUseFileTile)
+             && (_resol.x != -1) && (_resol.y != -1)
+             && (_phot_interp != (Tiff_Im::PH_INTER_TYPE) -1)
+          )
+       )
+    {
+         std::cout << "Sz " << _sz 
+                    << " TileOffset " << _tiles_offset
+                    << " Resol " <<   _resol 
+                    << " Ph Interp " << _phot_interp 
+                    << "\n";
+          // Les tags vraiment necessaires
+          if (!(  (_sz.x != -1) && (_sz.y != -1)
+                   && ((_tiles_offset != 0) || mUseFileTile)
+               )
+             )
+          {
+               ELISE_ASSERT(false,"uncomplete TIFF Information File Directory");
+          }
+    }
+
+
+/*
     Tjs_El_User.ElAssert
     (
                 (_sz.x != -1) && (_sz.y != -1)  
@@ -892,6 +918,7 @@ std::cout << "XIFtif:APRES Date " << ToString(mExifTiff_Date) << "\n";
           && (_phot_interp != (Tiff_Im::PH_INTER_TYPE) -1),
           EEM0 << "uncomplete TIFF Information File Directory"
     );
+*/
 
 
     if (_phot_interp==Tiff_Im::RGBPalette)
