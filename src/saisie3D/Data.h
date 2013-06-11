@@ -3,7 +3,6 @@
 
 #include "StdAfx.h"
 #include "general/ptxd.h"
-#include "private/cElNuage3DMaille.h"
 #include "Cloud.h"
 
 using namespace Cloud_;
@@ -15,15 +14,15 @@ class cData
         cData();
         ~cData();
 
-        void addCamera(cElNuage3DMaille *);
+        void addCamera(CamStenope *);
         void centerCloud(Cloud *);
 
-        void addCameras(vector <cElNuage3DMaille *>);
+        void addCameras(vector <CamStenope *>);
 
         int NbCameras(){return m_Cameras.size();}
         int NbClouds(){return m_Clouds.size();}
 
-        cElNuage3DMaille * & getCamera(int aK) {return m_Cameras[aK];}
+        CamStenope * & getCamera(int aK) {return m_Cameras[aK];}
         Cloud * & getCloud(int aK) {return m_Clouds[aK];}
         Cloud * & getOriginalCloud(int aK) {return m_oClouds[aK];}
 
@@ -32,9 +31,9 @@ class cData
 
    private:
 
-        vector <cElNuage3DMaille *> m_Cameras;
-        vector <Cloud *> m_Clouds;  //centered and scaled clouds
-        vector <Cloud *> m_oClouds; //original clouds
+        vector <CamStenope *> m_Cameras;
+        vector <Cloud *>    m_Clouds;  //centered and scaled clouds
+        vector <Cloud *>    m_oClouds; //original clouds
 };
 
 #endif // DATA_H

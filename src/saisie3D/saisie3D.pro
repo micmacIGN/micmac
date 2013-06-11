@@ -47,15 +47,20 @@ DEFINES += _CRT_SECURE_NO_WARNINGS
 INCLUDEPATH += $$PWD/../../include
 DEPENDPATH += $$PWD/../../include
 
-CONFIG(release, release|debug)
+CONFIG(release)
 {
 unix|win32: LIBS += -L$$PWD/../../lib -lelise
 
 win32: PRE_TARGETDEPS += $$PWD/../../lib/elise.lib
 else:unix: PRE_TARGETDEPS += $$PWD/../../lib/libelise.a
-}else{
+}
+
+CONFIG(debug)
+{
 unix|win32: LIBS += -L$$PWD/../../bin -lelise
 
 win32: PRE_TARGETDEPS += $$PWD/../../bin/elise.lib
 else:unix: PRE_TARGETDEPS += $$PWD/../../bin/libelise.a
 }
+
+

@@ -15,7 +15,7 @@ void cLoader::SetFilenamesOut()
     {
         QFileInfo fi(m_FilenamesIn[aK]);
 
-        m_FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_mask.tif");
+        m_FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_masq.tif");
     }
 }
 
@@ -24,9 +24,9 @@ Cloud* cLoader::loadCloud( string i_ply_file )
     return Cloud::loadPly( i_ply_file );
 }
 
-vector <cElNuage3DMaille *> cLoader::loadCameras()
+vector <CamStenope *> cLoader::loadCameras()
 {
-   vector <cElNuage3DMaille *> a_res;
+   vector <CamStenope *> a_res;
 
    m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Camera Files"),m_Dir.path(), tr("Files (*.xml)"));
 
@@ -40,9 +40,15 @@ vector <cElNuage3DMaille *> cLoader::loadCameras()
    return a_res;
 }
 
-cElNuage3DMaille *  cLoader::loadCamera(string aFile)
+
+CamStenope*  cLoader::loadCamera(string aNameFile)
 {
-   return cElNuage3DMaille::FromFileIm(aFile);
+    // cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(m_Dir.dirName().toStdString());
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc("D:/data/Boudha_dataset/Boudha/");
+    aNameFile = "Ori-RadialBasic/Orientation-IMG_5582.tif.xml";
+    CamStenope * elCam =  CamOrientGenFromFile(aNameFile,anICNM);
+    //delete anICNM;
+    return elCam;
 }
 
 cEngine::cEngine():
@@ -73,8 +79,7 @@ void cEngine::doMasks()
 
     for (int cK=0;cK < m_Data->NbCameras();++cK)
     {
-        cElNuage3DMaille * aElNuage3D = m_Data->getCamera(cK);
-        ElCamera* aCam  = aElNuage3D->Cam();
+        CamStenope* aCam = m_Data->getCamera(cK);
 
         Im2D_BIN mask = Im2D_BIN (aCam->Sz().x, aCam->Sz().y, 0);
 
@@ -85,19 +90,20 @@ void cEngine::doMasks()
 
             for (int bK=0; bK < pCloud->size();++bK)
             {
-                vert = pCloud->getVertex(bK);
-                orig_vert = pOCloud->getVertex(bK);
+                vert = pCloud->getVertex(bK);                
 
                 if (vert.isVisible())
                 {
+                    orig_vert = pOCloud->getVertex(bK);
                     Pt3dr pt(orig_vert.x(),orig_vert.y(),orig_vert.z());
 
-                    if (aElNuage3D->PIsVisibleInImage(pt))
-                    {
-                        ptIm = aElNuage3D->Terrain2Index(pt);
+                    //if (aCam->PIsVisibleInImage(pt))
+                    //{
 
-                        mask.set(floor(ptIm.x), floor(ptIm.y), 1);
-                    }
+                        ptIm = aCam->Ter2Capteur(pt);
+                        cout << "ptIm: " << ptIm.x <<" " << ptIm.y << endl;
+                       // mask.set(floor(ptIm.x), floor(ptIm.y), 1);
+                    //}
                 }
             }
         }

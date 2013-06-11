@@ -15,12 +15,13 @@ class cLoader : QObject
         cLoader();
         ~cLoader();
 
-        cElNuage3DMaille * loadCamera(string aFile);
+        CamStenope * loadCamera(string aNameFile);
+        vector <CamStenope *> loadCameras();
+
         Cloud* loadCloud( string i_ply_file );
 
-        vector <cElNuage3DMaille *> loadCameras();
-
         void setDir(QDir aDir){m_Dir = aDir;}
+        QDir getDir(){return m_Dir;}
 
         void SetFilenamesOut();
         QStringList GetFilenamesOut() {return m_FilenamesOut;}

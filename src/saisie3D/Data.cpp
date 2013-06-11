@@ -10,18 +10,22 @@ cData::cData()
 cData::~cData()
 {
     for (int aK=0; aK < NbCameras();++aK) delete m_Cameras[aK];
-    for (int aK=0; aK < NbClouds();++aK) delete m_Clouds[aK];
+    for (int aK=0; aK < NbClouds();++aK)
+    {
+        delete m_Clouds[aK];
+        delete m_oClouds[aK];
+    }
 }
 
-void cData::addCamera(cElNuage3DMaille * aNuage)
+void cData::addCamera(CamStenope * aCam)
 {
-    m_Cameras.push_back(aNuage);
+    m_Cameras.push_back(aCam);
 }
 
-void cData::addCameras(vector <cElNuage3DMaille *> aNuages)
+void cData::addCameras(vector <CamStenope *> aCameras)
 {
-    for (int aK=0; aK < aNuages.size();++aK)
-        m_Cameras.push_back(aNuages[aK]);
+    for (int aK=0; aK < aCameras.size();++aK)
+        m_Cameras.push_back(aCameras[aK]);
 }
 
 void cData::centerCloud(Cloud * aCloud)

@@ -1,13 +1,7 @@
-﻿#include <QLayout>
-#include <QMessageBox>
-#include <QFileDialog>
+﻿#include <QMessageBox>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
-#include "StdAfx.h"
-#include "general/ptxd.h"
-#include "private/cElNuage3DMaille.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
