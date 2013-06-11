@@ -336,8 +336,8 @@ while(nbRANSACinitialised<nbRANSACmax || nbRANSACaccepted<500)
     Im1D_REAL8 aSol = aSys.GSSR_Solve(&Ok);
 	double* aData = aSol.data();
 		//Filter if computed vignette is >255 or <0 in the corners
-		double valCoin=255*(aData[0]*pow(distMax,2)+aData[1]*pow(distMax,4)+aData[2]*pow(distMax,6));
-	if (Ok && aData[0]>0 && 0<=valCoin && valCoin<255){
+		double valCoin=(1+aData[0]*pow(distMax,2)+aData[1]*pow(distMax,4)+aData[2]*pow(distMax,6));
+	if (Ok && aData[0]>0 && 1<=valCoin){
 		nbRANSACaccepted++;
 		if (nbRANSACaccepted % 50==0 && nbRANSACinitialised>nbRANSACmax){cout<<"Difficult config RANSAC progress : "<<nbRANSACaccepted/5<<"%"<<endl;}
   		//For Each SIFT point, test if in acceptable error field->compute score

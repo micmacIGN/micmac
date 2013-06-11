@@ -461,7 +461,7 @@ std::cout << "CCMMM = " << aBoxClip._p0 << " " << aBoxClip._p1 << "\n"; getchar(
                if ( mShowMes)
                {
                   mCout << "   -- BEGIN BLOC  "
-                        << "  Bloc= " << mKBox 
+                        << "  Bloc= " << mKBox+1 
                         << ", Out of " << aDecInterv.NbInterv()  
                         << aDecInterv.KthIntervOut(mKBox)._p0
                         << aDecInterv.KthIntervOut(mKBox)._p1
