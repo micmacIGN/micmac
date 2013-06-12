@@ -164,7 +164,7 @@ if(${CUDA_ENABLED})
 
 	 cuda_add_executable(${ExeGpGpuOpt} ${uti_Test_Opt_GpGpu_Src_Files})
 
-	 target_link_libraries(${ExeGpGpuOpt} ${Boost_LIBRARIES} ${Boost_THREADAPI} ${libStatGpGpuOpt} ${libStatGpGpuTools})
+	 target_link_libraries(${ExeGpGpuOpt}  ${Boost_LIBRARIES} ${Boost_THREADAPI} ${libStatGpGpuOpt} rt pthread ${libStatGpGpuTools})
 
 	 link_directories(${PROJECT_SOURCE_DIR}/lib/)
 
