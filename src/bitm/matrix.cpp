@@ -1148,6 +1148,7 @@ template Pt2d<Type> operator * (const ElMatrix<Type> & M,const Pt2d<Type> &p);\
 template Pt3d<INT> operator * (const ElMatrix<INT> & M,const Pt3d<INT> &p);
 template ElMatrix<INT> MatFromCol (Pt3d<INT>,Pt3d<INT>,Pt3d<INT>);
 template ElMatrix<REAL> MatFromCol (Pt2d<REAL>,Pt2d<REAL>);
+template ElMatrix<REAL16> MatFromCol (Pt2d<REAL16>,Pt2d<REAL16>);
 template ElMatrix<Fonc_Num> MatFromCol (Pt2d<Fonc_Num>,Pt2d<Fonc_Num>);
 
 
