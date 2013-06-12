@@ -57,7 +57,9 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         //set default working directory as first file folder
         QFileInfo fi(filenames[0]);
-        m_Engine->setDir(fi.dir());
+        QDir Dir = fi.dir();
+        Dir.cdUp();
+        m_Engine->setDir(Dir);
 
         checkForLoadedEntities();
     }
