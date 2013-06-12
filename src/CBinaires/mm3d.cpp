@@ -161,11 +161,10 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Ann",Ann_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualisation of camera in ply file",cArgLogCom(2)));
        aRes.push_back(cMMCom("Apero",Apero_main," Compute external and internal orientations"));
+	   aRes.push_back(cMMCom("Arsenic",Arsenic_main," IN DEV : Radiometric equalization from tie points"));
        aRes.push_back(cMMCom("Digeo",Digeo_main," In devlopment- Will compute tie points "));
-
        aRes.push_back(cMMCom("AperoChImSecMM",AperoChImMM_main,"Select secondary images for MicMac",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("Apero2PMVS",Apero2PMVS_main,"Convert Orientation from Apero-Micmac workflow to PMVS format"));
-	   aRes.push_back(cMMCom("Vodka",Vignette_main,"IN DEV : Compute the vignette correction parameters from tie points"));
        aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene",cArgLogCom(2)));
        aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
        aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero, for compensation of heterogenous measures",cArgLogCom(2)));
@@ -204,19 +203,19 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("MMCalcSzWCor",CalcSzWCor_main," Compute Image of Size of correlation windows (Atomic tool)",cArgLogCom(2)));
        aRes.push_back(cMMCom("MpDcraw",MpDcraw_main," Interface to dcraw"));
 
-       aRes.push_back(cMMCom("MMTestOrient",MMTestOrient_main,"Tool for testing quality of orientation"));
-       aRes.push_back(cMMCom("MMInitialModel",MMInitialModel_main,"Initial Model for MicMac ",cArgLogCom(2)));
-       aRes.push_back(cMMCom("MMTestAllAuto",MMAllAuto_main,"Full automatic version for 1 view point, test mode ",cArgLogCom(2)));
-       aRes.push_back(cMMCom("MM2DPosSism",MM2DPostSism_Main,"Simplified interface for post 2D post sismic deformation ",cArgLogCom(2)));
-       aRes.push_back(cMMCom("MMMergeCloud",MM_FusionNuage_main,"Merging of low resol cloud, in preparation 2 MicMac ",cArgLogCom(2)));
+       aRes.push_back(cMMCom("MMTestOrient",MMTestOrient_main," Tool for testing quality of orientation"));
+       aRes.push_back(cMMCom("MMInitialModel",MMInitialModel_main," Initial Model for MicMac ",cArgLogCom(2)));
+       aRes.push_back(cMMCom("MMTestAllAuto",MMAllAuto_main," Full automatic version for 1 view point, test mode ",cArgLogCom(2)));
+       aRes.push_back(cMMCom("MM2DPosSism",MM2DPostSism_Main," Simplified interface for post 2D post sismic deformation ",cArgLogCom(2)));
+       aRes.push_back(cMMCom("MMMergeCloud",MM_FusionNuage_main," Merging of low resol cloud, in preparation 2 MicMac ",cArgLogCom(2)));
 
-       aRes.push_back(cMMCom("MergeDepthMap",FusionCarteProf_main,"Merging of individual, stackable, depth maps "));
-       aRes.push_back(cMMCom("MyRename",MyRename_main,"File renaming using posix regular expression "));
-       aRes.push_back(cMMCom("Genere_Header_TiffFile",Genere_Header_TiffFile_main,"Generate Header for internal tiling format "));
+       aRes.push_back(cMMCom("MergeDepthMap",FusionCarteProf_main," Merging of individual, stackable, depth maps "));
+       aRes.push_back(cMMCom("MyRename",MyRename_main," File renaming using posix regular expression "));
+       aRes.push_back(cMMCom("Genere_Header_TiffFile",Genere_Header_TiffFile_main," Generate Header for internal tiling format "));
 
 
        aRes.push_back(cMMCom("Nuage2Ply",Nuage2Ply_main," Convert depth map into point cloud"));
-       aRes.push_back(cMMCom("NuageBascule",NuageBascule_main,"To Change geometry of depth map "));
+       aRes.push_back(cMMCom("NuageBascule",NuageBascule_main," To Change geometry of depth map "));
 
 
 
@@ -247,15 +246,16 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("tiff_info",tiff_info_main," Tool for giving information about a tiff file"));
        aRes.push_back(cMMCom("to8Bits",to8Bits_main," Tool for converting 16 or 32 bit image in a 8 bit image."));
+	   aRes.push_back(cMMCom("Vodka",Vignette_main," IN DEV : Compute the vignette correction parameters from tie points"));
        aRes.push_back(cMMCom("mmxv",mmxv_main," Interface to xv (due to problem in tiff lib)"));
        aRes.push_back(cMMCom("CmpIm",CmpIm_main," Tool basic for comparison of images"));
        aRes.push_back(cMMCom("Undist",Undist_main," Tool for removing images distortion"));
 
        aRes.push_back(cMMCom("CheckDependencies",CheckDependencies_main," check dependencies to third-party tools"));
-       aRes.push_back(cMMCom("VV",VideoVisage_main,"A very simplified tool for 3D model of visage out of video, just for fun"));
+       aRes.push_back(cMMCom("VV",VideoVisage_main," A very simplified tool for 3D model of visage out of video, just for fun"));
 
-       aRes.push_back(cMMCom("XYZ2Im",XYZ2Im_main,"tool to transform a 3D point (text file) to their 2D proj in cam or cloud"));
-       aRes.push_back(cMMCom("Im2XYZ",Im2XYZ_main,"tool to transform a 2D point (text file) to their 3D cloud homologous"));
+       aRes.push_back(cMMCom("XYZ2Im",XYZ2Im_main," tool to transform a 3D point (text file) to their 2D proj in cam or cloud"));
+       aRes.push_back(cMMCom("Im2XYZ",Im2XYZ_main," tool to transform a 2D point (text file) to their 3D cloud homologous"));
 
 #if (ELISE_X11)
        aRes.push_back(cMMCom("MPDtest",MPDtest_main," My own test"));

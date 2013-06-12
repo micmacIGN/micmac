@@ -153,8 +153,8 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 							   double Dist1=sqrt(pow(itP->P1().x-x0,2)+pow(itP->P1().y-y0,2));
 							   double Dist2=sqrt(pow(itP->P2().x-x0,2)+pow(itP->P2().y-y0,2));
 							   //Go looking for grey value of the point, adjusted to ISO and Exposure time induced variations
-							   double Grey1 =(vectOfExpTimeISO[aK1][0]*vectOfExpTimeISO[aK1][1])/(maxExpTime*maxISO)*Reechantillonnage::biline(aData1, aSz.x, aSz.y, itP->P1());
-							   double Grey2 =(vectOfExpTimeISO[aK2][0]*vectOfExpTimeISO[aK2][1])/(maxExpTime*maxISO)*Reechantillonnage::biline(aData2, aSz.x, aSz.y, itP->P2());
+							   double Grey1 =sqrt((vectOfExpTimeISO[aK1][0]*vectOfExpTimeISO[aK1][1])/(maxExpTime*maxISO))*Reechantillonnage::biline(aData1, aSz.x, aSz.y, itP->P1());
+							   double Grey2 =sqrt((vectOfExpTimeISO[aK2][0]*vectOfExpTimeISO[aK2][1])/(maxExpTime*maxISO))*Reechantillonnage::biline(aData2, aSz.x, aSz.y, itP->P2());
 							   //Check that the distances are different-> might be used in filter?
 							   //double rap=Dist1/Dist2;
 							   if(1){//(Dist1>aSz.x/3 || Dist2>aSz.x/3)){// && (rap<0.75 || rap>1.33)){Filtre à mettre en place?
