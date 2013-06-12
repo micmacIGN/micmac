@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<BaseDataCD>
+     <BasesPt3dr>
+         <NameBase> BiaisSimple </NameBase>
+         <Pt3drEntries > 
+             <Key> BiaisChantier </Key>
+             <Val> 14.31 -0.60 -1.63 </Val>
+<!--
+             <Val> 14.07 -0.57 -1.12 </Val>
+ <Val> 14.31 -0.60 -1.63 </Val>
+CENTRE MEDIAN = [-0.2475710674,-0.02817252406,-0.5154401877]
+-->
+         </Pt3drEntries> 
+     </BasesPt3dr>
+</BaseDataCD>
