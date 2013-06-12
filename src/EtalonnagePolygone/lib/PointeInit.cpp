@@ -1040,9 +1040,7 @@ void cPointeInit::Test()
 	    cPt2Im & aC = mPt2Is.back();
             aC.mPtIm.mPt = aPU;
             aC.mPtIm.mEtat = eCur;
-	    if ( 
-	          (aC.mPtPol.mEtat == eInexistant) // ShowProj
-	       )
+	    if (aC.mPtPol.mEtat == eInexistant) // ShowProj
 	    {
 
                    const cCiblePolygoneEtal *  aCPE = ShowProj(&aPU,0);

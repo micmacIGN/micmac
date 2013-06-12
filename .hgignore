@@ -94,3 +94,4 @@ src/uti_phgrm/GpGpu/GpGpuOptimisation.cu.autosave
 src/saisie3D-build-Desktop_Qt_5_0_1_GCC_64bit-Release/
 src/saisie3D/
 src/uti_image/CPP_Vignette.cpp.orig
+build_clang/

@@ -318,8 +318,8 @@ class cIncVectUnite
       ) :
            mCRot      (aCRot),
            mRho       (ToSpherique(anOrientInit.tr()-aCRot ,mRho,mTeta,mPhi)),
-           mTeta      (mTeta),
-           mPhi       (mPhi),
+           //mTeta      (mTeta),
+           //mPhi       (mPhi),
            mTeta0     (mTeta),
            mPhi0      (mPhi),
 	   mIndTeta   (anAlloc.CurInc()),
@@ -367,9 +367,9 @@ class cIncVectUnite
       };
 
       Pt3dr      mCRot;
-      REAL       mRho;
       REAL       mTeta;
       REAL       mPhi;
+      REAL       mRho;
       REAL       mTeta0;
       REAL       mPhi0;
 

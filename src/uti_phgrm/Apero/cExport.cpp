@@ -204,7 +204,7 @@ void cAppliApero::ExportSauvAutom()
       if (! mParam.SauvAutomBasic().Val())
          return;
       aPref = "Tmp-MM-Dir/";
-      aStrS=="Autom";
+      aStrS ="Autom";
    }
    aStrS = "-Sauv-" + aStrS + "-" + ToString(mNumSauvAuto);
    

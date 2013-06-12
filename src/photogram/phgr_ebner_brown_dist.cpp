@@ -1211,16 +1211,21 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
 template <> const std::string  cDist_Ebner::TheName="Ebner";
 template <> const int   cDist_Ebner::TheType= (int) eModeleEbner;
 
-template class cDist_Param_Unif<cEbnersModel_Generator<double>,cEbnersModel_Generator<Fonc_Num>,12,1> ;
-template class cCamera_Param_Unif<cEbnersModel_Generator<double>,cEbnersModel_Generator<Fonc_Num>,12,1> ;
-template class cPIF_Unif<cEbnersModel_Generator<double>,cEbnersModel_Generator<Fonc_Num>,12,1> ;
-
 template <> const int 
    cPIF_Unif<cEbnersModel_Generator<double>,cEbnersModel_Generator<Fonc_Num>,12,1>::mDegrePolyn[12]
           = { 1,1,2,2,2,2,     3,3,3, 3, 4, 4};
          //   1,2,3,4,5,6,     7,8,9,10,11,12};
+         
+template class cDist_Param_Unif<cEbnersModel_Generator<double>,cEbnersModel_Generator<Fonc_Num>,12,1> ;
+template class cCamera_Param_Unif<cEbnersModel_Generator<double>,cEbnersModel_Generator<Fonc_Num>,12,1> ;
+template class cPIF_Unif<cEbnersModel_Generator<double>,cEbnersModel_Generator<Fonc_Num>,12,1> ;
 
 
+
+template <> const int 
+   cPIF_Unif<cDRadModel_Generator<double>,cDRadModel_Generator<Fonc_Num>,5,1>::mDegrePolyn[5]={3,5,7,9,11};
+template <> const int 
+   cPIF_Unif<cFraserModel_Generator<double>,cFraserModel_Generator<Fonc_Num>,9,1>::mDegrePolyn[9]={3,5,7,9,11,2,2,1,1};
 
 template <> const std::string  cDist_DRad_PPaEqPPs::TheName="DRad_PPaEqPPs";
 template <> const std::string  cDist_Fraser_PPaEqPPs::TheName="Fraser_PPaEqPPs";
@@ -1232,12 +1237,6 @@ template class cCamera_Param_Unif<cDRadModel_Generator<double>,cDRadModel_Genera
 template class cCamera_Param_Unif<cFraserModel_Generator<double>,cFraserModel_Generator<Fonc_Num>,9,1> ;
 template class cPIF_Unif<cDRadModel_Generator<double>,cDRadModel_Generator<Fonc_Num>,5,1> ;
 template class cPIF_Unif<cFraserModel_Generator<double>,cFraserModel_Generator<Fonc_Num>,9,1> ;
-
-
-template <> const int 
-   cPIF_Unif<cDRadModel_Generator<double>,cDRadModel_Generator<Fonc_Num>,5,1>::mDegrePolyn[5]={3,5,7,9,11};
-template <> const int 
-   cPIF_Unif<cFraserModel_Generator<double>,cFraserModel_Generator<Fonc_Num>,9,1>::mDegrePolyn[9]={3,5,7,9,11,2,2,1,1};
 
 
 
@@ -1258,63 +1257,68 @@ template class cPIF_Unif<cDCBrownModel_Generator<double>,cDCBrownModel_Generator
 template <> const std::string  cDist_Polyn2::TheName="Polyn2";
 template <> const int   cDist_Polyn2::TheType= (int) eModelePolyDeg2;
 
+template <> const int 
+   cPIF_Unif<cDistGen_Deg2_Generator<double>,cDistGen_Deg2_Generator<Fonc_Num>,6,3>::mDegrePolyn[6]
+          = { 1,1,2,2,2,2};
+          
 template class cDist_Param_Unif<cDistGen_Deg2_Generator<double>,cDistGen_Deg2_Generator<Fonc_Num>,6,3> ;
 template class cCamera_Param_Unif<cDistGen_Deg2_Generator<double>,cDistGen_Deg2_Generator<Fonc_Num>,6,3> ;
 template class cPIF_Unif<cDistGen_Deg2_Generator<double>,cDistGen_Deg2_Generator<Fonc_Num>,6,3> ;
 
-template <> const int 
-   cPIF_Unif<cDistGen_Deg2_Generator<double>,cDistGen_Deg2_Generator<Fonc_Num>,6,3>::mDegrePolyn[6]
-          = { 1,1,2,2,2,2};
 
 
 template <> const std::string  cDist_Polyn3::TheName="Polyn3";
 template <> const int   cDist_Polyn3::TheType= (int) eModelePolyDeg3;
 
+template <> const int 
+   cPIF_Unif<cDistGen_Deg3_Generator<double>,cDistGen_Deg3_Generator<Fonc_Num>,14,3>::mDegrePolyn[14]
+          = { 1,1,2,2,2,2,3,3,3,3,3,3,3,3};
+          
 template class cDist_Param_Unif<cDistGen_Deg3_Generator<double>,cDistGen_Deg3_Generator<Fonc_Num>,14,3> ;
 template class cCamera_Param_Unif<cDistGen_Deg3_Generator<double>,cDistGen_Deg3_Generator<Fonc_Num>,14,3> ;
 template class cPIF_Unif<cDistGen_Deg3_Generator<double>,cDistGen_Deg3_Generator<Fonc_Num>,14,3> ;
 
-template <> const int 
-   cPIF_Unif<cDistGen_Deg3_Generator<double>,cDistGen_Deg3_Generator<Fonc_Num>,14,3>::mDegrePolyn[14]
-          = { 1,1,2,2,2,2,3,3,3,3,3,3,3,3};
 
 
 
 template <> const std::string  cDist_Polyn4::TheName="Polyn4";
 template <> const int   cDist_Polyn4::TheType= (int) eModelePolyDeg4;
 
+template <> const int 
+   cPIF_Unif<cDistGen_Deg4_Generator<double>,cDistGen_Deg4_Generator<Fonc_Num>,24,3>::mDegrePolyn[24]
+          = { 1,1,2,2,2,2,3,3,3,3,3,3,3,3 ,4,4,4,4,4  ,4,4,4,4,4};
+          
 template class cDist_Param_Unif<cDistGen_Deg4_Generator<double>,cDistGen_Deg4_Generator<Fonc_Num>,24,3> ;
 template class cCamera_Param_Unif<cDistGen_Deg4_Generator<double>,cDistGen_Deg4_Generator<Fonc_Num>,24,3> ;
 template class cPIF_Unif<cDistGen_Deg4_Generator<double>,cDistGen_Deg4_Generator<Fonc_Num>,24,3> ;
 
-template <> const int 
-   cPIF_Unif<cDistGen_Deg4_Generator<double>,cDistGen_Deg4_Generator<Fonc_Num>,24,3>::mDegrePolyn[24]
-          = { 1,1,2,2,2,2,3,3,3,3,3,3,3,3 ,4,4,4,4,4  ,4,4,4,4,4};
 
 
 template <> const std::string  cDist_Polyn5::TheName="Polyn5";
 template <> const int   cDist_Polyn5::TheType= (int) eModelePolyDeg5;
 
+template <> const int 
+   cPIF_Unif<cDistGen_Deg5_Generator<double>,cDistGen_Deg5_Generator<Fonc_Num>,36,3>::mDegrePolyn[36]
+          = { 1,1,2,2,2,2,3,3,3,3,3,3,3,3 ,4,4,4,4,4  ,4,4,4,4,4   ,5,5,5,5,5,5   ,5,5,5,5,5,5};
+          
 template class cDist_Param_Unif<cDistGen_Deg5_Generator<double>,cDistGen_Deg5_Generator<Fonc_Num>,36,3> ;
 template class cCamera_Param_Unif<cDistGen_Deg5_Generator<double>,cDistGen_Deg5_Generator<Fonc_Num>,36,3> ;
 template class cPIF_Unif<cDistGen_Deg5_Generator<double>,cDistGen_Deg5_Generator<Fonc_Num>,36,3> ;
 
-template <> const int 
-   cPIF_Unif<cDistGen_Deg5_Generator<double>,cDistGen_Deg5_Generator<Fonc_Num>,36,3>::mDegrePolyn[36]
-          = { 1,1,2,2,2,2,3,3,3,3,3,3,3,3 ,4,4,4,4,4  ,4,4,4,4,4   ,5,5,5,5,5,5   ,5,5,5,5,5,5};
 
 
 
 template <> const std::string  cDist_Polyn6::TheName="Polyn6";
 template <> const int   cDist_Polyn6::TheType= (int) eModelePolyDeg6;
 
+template <> const int 
+   cPIF_Unif<cDistGen_Deg6_Generator<double>,cDistGen_Deg6_Generator<Fonc_Num>,50,3>::mDegrePolyn[50]
+          = { 1,1,2,2,2,2,3,3,3,3,3,3,3,3 ,4,4,4,4,4  ,4,4,4,4,4   ,5,5,5,5,5,5   ,5,5,5,5,5,5  ,6,6,6,6,6,6,6 ,6,6,6,6,6,6,6 };
+          
 template class cDist_Param_Unif<cDistGen_Deg6_Generator<double>,cDistGen_Deg6_Generator<Fonc_Num>,50,3> ;
 template class cCamera_Param_Unif<cDistGen_Deg6_Generator<double>,cDistGen_Deg6_Generator<Fonc_Num>,50,3> ;
 template class cPIF_Unif<cDistGen_Deg6_Generator<double>,cDistGen_Deg6_Generator<Fonc_Num>,50,3> ;
 
-template <> const int 
-   cPIF_Unif<cDistGen_Deg6_Generator<double>,cDistGen_Deg6_Generator<Fonc_Num>,50,3>::mDegrePolyn[50]
-          = { 1,1,2,2,2,2,3,3,3,3,3,3,3,3 ,4,4,4,4,4  ,4,4,4,4,4   ,5,5,5,5,5,5   ,5,5,5,5,5,5  ,6,6,6,6,6,6,6 ,6,6,6,6,6,6,6 };
 
 
 
@@ -1322,14 +1326,15 @@ template <> const int
 template <> const std::string  cDist_Polyn7::TheName="Polyn7";
 template <> const int   cDist_Polyn7::TheType= (int) eModelePolyDeg7;
 
-template class cDist_Param_Unif<cDistGen_Deg7_Generator<double>,cDistGen_Deg7_Generator<Fonc_Num>,66,3> ;
-template class cCamera_Param_Unif<cDistGen_Deg7_Generator<double>,cDistGen_Deg7_Generator<Fonc_Num>,66,3> ;
-template class cPIF_Unif<cDistGen_Deg7_Generator<double>,cDistGen_Deg7_Generator<Fonc_Num>,66,3> ;
-
 template <> const int 
    cPIF_Unif<cDistGen_Deg7_Generator<double>,cDistGen_Deg7_Generator<Fonc_Num>,66,3>::mDegrePolyn[66]
           = { 1,1,2,2,2,2,3,3,3,3,3,3,3,3 ,4,4,4,4,4  ,4,4,4,4,4   ,5,5,5,5,5,5   ,5,5,5,5,5,5  ,6,6,6,6,6,6,6 ,6,6,6,6,6,6,6 
               ,7,7,7,7,7,7,7,7   ,7,7,7,7,7,7,7,7  };
+              
+template class cDist_Param_Unif<cDistGen_Deg7_Generator<double>,cDistGen_Deg7_Generator<Fonc_Num>,66,3> ;
+template class cCamera_Param_Unif<cDistGen_Deg7_Generator<double>,cDistGen_Deg7_Generator<Fonc_Num>,66,3> ;
+template class cPIF_Unif<cDistGen_Deg7_Generator<double>,cDistGen_Deg7_Generator<Fonc_Num>,66,3> ;
+
 
 
 
@@ -1876,14 +1881,10 @@ template class cDistGen_FishEye_Generator<aType,A,B,C,NBV>;
 #define INSTANT_ONE_Num_FE(PREC,A,B,C,NBV)\
 INSTANT_ONE_Type_FE(PREC<double>,A,B,C,NBV)\
 INSTANT_ONE_Type_FE(PREC<Fonc_Num>,A,B,C,NBV)\
+template <> const int cPIF_Unif<cDistGen_FishEye_Generator<PREC<double>,A,B,C,NBV>,cDistGen_FishEye_Generator<PREC<Fonc_Num>,A,B,C,NBV>,NBV,1>::mDegrePolyn[NBV]={-1};\
 template class cDist_Param_Unif<cDistGen_FishEye_Generator<PREC<double>,A,B,C,NBV>,cDistGen_FishEye_Generator<PREC<Fonc_Num>,A,B,C,NBV>,NBV,1> ;\
 template class cCamera_Param_Unif<cDistGen_FishEye_Generator<PREC<double>,A,B,C,NBV>,cDistGen_FishEye_Generator<PREC<Fonc_Num>,A,B,C,NBV>,NBV,1>;\
-template class cPIF_Unif<cDistGen_FishEye_Generator<PREC<double>,A,B,C,NBV>,cDistGen_FishEye_Generator<PREC<Fonc_Num>,A,B,C,NBV>,NBV,1>;\
-template <> const int cPIF_Unif<cDistGen_FishEye_Generator<PREC<double>,A,B,C,NBV>,cDistGen_FishEye_Generator<PREC<Fonc_Num>,A,B,C,NBV>,NBV,1>::mDegrePolyn[NBV]={-1};
-
-
-INSTANT_ONE_Num_FE(cFELinear_Precond,10,5,5,50)
-INSTANT_ONE_Num_FE(cFEEquiSolid_Precond,10,5,5,50)
+template class cPIF_Unif<cDistGen_FishEye_Generator<PREC<double>,A,B,C,NBV>,cDistGen_FishEye_Generator<PREC<Fonc_Num>,A,B,C,NBV>,NBV,1>;
 
 template <> const std::string  cDistLin_FishEye_10_5_5::TheName="FishEye_10_5_5";
 template <> const int   cDistLin_FishEye_10_5_5::TheType= (int) eModele_FishEye_10_5_5;
@@ -1891,6 +1892,10 @@ template <> const int   cDistLin_FishEye_10_5_5::TheType= (int) eModele_FishEye_
 
 template <> const std::string  cDistEquiSol_FishEye_10_5_5::TheName="EquiSolid_FishEye_10_5_5";
 template <> const int   cDistEquiSol_FishEye_10_5_5::TheType= (int) eModele_EquiSolid_FishEye_10_5_5;
+
+INSTANT_ONE_Num_FE(cFELinear_Precond,10,5,5,50)
+INSTANT_ONE_Num_FE(cFEEquiSolid_Precond,10,5,5,50)
+
 
 
 

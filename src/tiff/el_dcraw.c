@@ -8303,8 +8303,16 @@ void CLASS convert_to_rgb()
 	  out_cam[i][j] += out_rgb[output_color-1][i][k] * rgb_cam[k][j];
   }
   if (verbose)
-    fprintf (stderr, raw_color ? _("Building histograms...\n") :
+  {
+	  if ( raw_color )
+		fprintf(stderr, _("Building histograms...\n") );
+	  else
+		fprintf(stderr, _("Converting to %s colorspace...\n"), name[output_color-1] );
+	/*
+	fprintf (stderr, raw_color ? _("Building histograms...\n") :
 	_("Converting to %s colorspace...\n"), name[output_color-1]);
+	*/
+  }
 
   memset (histogram, 0, sizeof histogram);
   for (img=image[0], row=0; row < height; row++)
