@@ -5,8 +5,6 @@ cLoader::cLoader()
    m_FilenamesOut()
 {}
 
-cLoader::~cLoader(){}
-
 void cLoader::SetFilenamesOut()
 {
     m_FilenamesOut.clear();
@@ -28,7 +26,7 @@ vector <CamStenope *> cLoader::loadCameras()
 {
    vector <CamStenope *> a_res;
 
-   m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Camera Files"),m_Dir.path(), tr("Files (*.xml)"));
+   m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Camera Files"), m_Dir.path(), tr("Files (*.xml)"));
 
    for (int aK=0;aK < m_FilenamesIn.size();++aK)
    {
@@ -40,14 +38,17 @@ vector <CamStenope *> cLoader::loadCameras()
    return a_res;
 }
 
+// File structure is assumed to be a typical Micmac workspace structure:
+// .ply files are in /MEC folder and orientations files in /Ori- folder
+// /MEC and /Ori- are in the main working directory (m_Dir)
 
-CamStenope*  cLoader::loadCamera(string aNameFile)
+CamStenope* cLoader::loadCamera(string aNameFile)
 {
-    // cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(m_Dir.dirName().toStdString());
-    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc("D:/data/Boudha_dataset/Boudha/");
-    aNameFile = "Ori-RadialBasic/Orientation-IMG_5582.tif.xml";
-    CamStenope * elCam =  CamOrientGenFromFile(aNameFile,anICNM);
-    return elCam;
+    string DirChantier = (m_Dir.absolutePath()+ QDir::separator()).toStdString();
+
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
+
+    return CamOrientGenFromFile(aNameFile.substr(DirChantier.size(),aNameFile.size()),anICNM);
 }
 
 cEngine::cEngine():

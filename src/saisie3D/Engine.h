@@ -13,7 +13,6 @@ class cLoader : QObject
     public:
 
         cLoader();
-        ~cLoader();
 
         CamStenope * loadCamera(string aNameFile);
         vector <CamStenope *> loadCameras();
