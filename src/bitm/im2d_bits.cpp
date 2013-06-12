@@ -728,6 +728,11 @@ template  <const int nbb> Im2D_Bits<nbb>::Im2D_Bits(INT tx,INT ty,INT v_init) :
 {
 }
 
+template  <const int nbb> Im2D_Bits<nbb>::Im2D_Bits(Pt2di pt,INT v_init) :
+Im2DGen(new DataIm2D_Bits<nbb>(pt.x,pt.y,true,v_init,0))
+{
+}
+
 template  <const int nbb> DataIm2D_Bits<nbb> * Im2D_Bits<nbb>::didb() const
 {
    return (DataIm2D_Bits<nbb> *) _ptr;

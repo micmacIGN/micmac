@@ -654,6 +654,7 @@ template <const int nbb> class Im2D_Bits : public Im2DGen
       Im2D_Bits(Im2D_BitsIntitDataLin,INT tx, INT ty,void * aDataLin);
       Im2D_Bits(INT tx, INT ty);
       Im2D_Bits(INT tx, INT ty,INT v_init);
+      Im2D_Bits(Pt2di pt, INT v_init);
       INT  vmax() const;
       U_INT1 **   data();
       U_INT1 **   data() const;
