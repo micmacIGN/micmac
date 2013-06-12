@@ -153,6 +153,8 @@ void Apero2PMVS(string aFullPattern, string aOri)
         fprintf(f,"%0.6f %0.6f %0.6f %0.6f\n", P(0,2),P(1,2),P(2,2),P(3,2));
         fclose(f);
 
+		delete aCS;
+		delete anICNM;
     }//end of "for each image"
 
     //Undistorting the images with Drunk

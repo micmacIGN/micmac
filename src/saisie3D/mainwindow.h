@@ -28,12 +28,8 @@ public:
     **/
     bool checkForLoadedEntities();
 
-    //cEngine* getEngine(){return m_Engine;}
-
 public slots:
-    //! Tries to load a list of files
-    /** \param filenames list of all filenames
-    **/
+    //! Try to load a list of files
     void addFiles(const QStringList& filenames);
 
 private slots:

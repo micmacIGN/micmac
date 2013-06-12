@@ -5,14 +5,10 @@
 #include "GLWidget.h"
 #include "GL/glu.h"
 
-#include "Cloud.h"
-
 #include <cmath>
 #include <limits>
 #include <iostream>
 #include <algorithm>
-
-#include "../../include/StdAfx.h"
 
 const GLfloat g_trackballScale = 1.f;
 
@@ -21,6 +17,7 @@ const float GL_MAX_ZOOM_RATIO = 1.0e6f;
 const float GL_MIN_ZOOM_RATIO = 1.0e-6f;
 
 using namespace Cloud_;
+using namespace std;
 
 ViewportParameters::ViewportParameters()
     : zoom(1.0f)
@@ -33,6 +30,8 @@ ViewportParameters::ViewportParameters(const ViewportParameters& params)
     , PointSize(params.PointSize)
     , LineWidth(params.LineWidth)
 {}
+
+ViewportParameters::~ViewportParameters(){}
 
 bool g_mouseLeftDown = false;
 bool g_mouseRightDown = false;
@@ -54,8 +53,6 @@ GLfloat g_uu[3], g_vv[3];
 
 GLfloat g_angleOx = 0.f,
         g_angleOy  = 0.f;
-
-using namespace std;
 
 inline void setRotateOx_m33( const float i_angle, GLfloat o_m[9] )
 {
@@ -198,6 +195,8 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
     //drag & drop handling
     setAcceptDrops(true);
 }
+
+GLWidget::~GLWidget(){ delete m_Data; }
 
 void GLWidget::initializeGL()
 {
@@ -374,19 +373,6 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
     }
 }
 
-/*void GLWidget::addPly( const QString &i_ply_file )
-{
-    Cloud a_ply, a_res;
-    a_ply.loadPly( i_ply_file.toStdString() );
-
-
-    //m_ply.push_back(a_res);
-
-    if (!hasCloudLoaded()) setCloudLoaded(true);
-
-    updateGL();
-}*/
-
 void GLWidget::setData(cData *data)
 {
     m_Data = data;
@@ -473,8 +459,9 @@ void GLWidget::drawGradientBackground()
     QSettings settings;
     settings.beginGroup("OpenGL");
 
-    const unsigned char* bkgCol = mmColor::defaultBkgColor;
-    const unsigned char* forCol = mmColor::white;
+    const unsigned char BkgColor[3]		=   {10,102,151};
+
+    const unsigned char* bkgCol = BkgColor;
 
     //Gradient "texture" drawing
     glBegin(GL_QUADS);
@@ -483,7 +470,7 @@ void GLWidget::drawGradientBackground()
     glVertex2f(-w,h);
     glVertex2f(w,h);
     //and the inverse of points color for gradient end
-    glColor3ub(255-forCol[0],255-forCol[1],255-forCol[2]);
+    glColor3ub(0,0,0);
     glVertex2f(w,-h);
     glVertex2f(-w,-h);
     glEnd();
@@ -551,7 +538,7 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
     m_interactionMode = mode;
 }
 
-void GLWidget::setView(MM_VIEW_ORIENTATION orientation)
+void GLWidget::setView(VIEW_ORIENTATION orientation)
 {
     makeCurrent();
 
@@ -562,50 +549,29 @@ void GLWidget::setView(MM_VIEW_ORIENTATION orientation)
 
     switch (orientation)
     {
-    case MM_TOP_VIEW:
+    case TOP_VIEW:
         eye[2] = -1.0;
         top[1] =  1.0;
         break;
-    case MM_BOTTOM_VIEW:
+    case BOTTOM_VIEW:
         eye[2] =  1.0;
         top[1] = -1.0;
         break;
-    case MM_FRONT_VIEW:
+    case FRONT_VIEW:
         eye[1] = 1.0;
         top[2] = 1.0;
         break;
-    case MM_BACK_VIEW:
+    case BACK_VIEW:
         eye[1] = -1.0;
         top[2] =  1.0;
         break;
-    case MM_LEFT_VIEW:
+    case LEFT_VIEW:
         eye[0] = 1.0;
         top[2] = 1.0;
         break;
-    case MM_RIGHT_VIEW:
+    case RIGHT_VIEW:
         eye[0] = -1.0;
         top[2] =  1.0;
-        break;
-    case MM_ISO_VIEW_1:
-        eye[0] =  1.0;
-        eye[1] =  1.0;
-        eye[2] = -1.0;
-        top[0] =  1.0;
-        top[1] =  1.0;
-        top[2] =  1.0;
-        normalize(eye);
-        normalize(top);
-        break;
-    case MM_ISO_VIEW_2:
-        eye[0] = -1.0;
-        eye[1] = -1.0;
-        eye[2] = -1.0;
-        top[0] = -1.0;
-        top[1] = -1.0;
-        top[2] =  1.0;
-        normalize(eye);
-        normalize(top);
-        break;
     }
 
     crossprod(eye, top, s);
