@@ -30,6 +30,7 @@ class cLoader : QObject
         QStringList m_FilenamesIn;
         QStringList m_FilenamesOut;
 
+        //! Working directory (where the ply files are stored)
         QDir        m_Dir;
 };
 
@@ -40,10 +41,16 @@ class cEngine
         cEngine();
         ~cEngine();
 
-        void addFiles(QStringList);
+        //! Set working directory
         void setDir(QDir aDir){m_Loader->setDir(aDir);}
+
+        //! Load point cloud .ply files
+        void loadClouds(QStringList);
+
+        //! Load cameras orientation files
         void loadCameras();
 
+        //! Compute mask binary images: projection of visible points into loaded cameras
         void doMasks();
 
         cData*   getData()  {return m_Data;}

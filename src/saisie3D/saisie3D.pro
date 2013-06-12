@@ -23,17 +23,15 @@ DEFINES += TWEAK
 SOURCES += main.cpp\
         mainwindow.cpp\
         GLWidget.cpp \
-		Cloud.cpp \
-		../poisson/plyfile.cpp \
-    Data.cpp \
-    Engine.cpp
+        Cloud.cpp \
+        ../poisson/plyfile.cpp \
+        Data.cpp \
+        Engine.cpp
 
 HEADERS  += mainwindow.h\
             GLWidget.h \
-			util.h \
-			mmVector3.h \
-    Data.h \
-    Engine.h
+            Data.h \
+            Engine.h
 
 FORMS    += \
     mainwindow.ui
