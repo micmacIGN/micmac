@@ -5,10 +5,16 @@
 #include <QGLContext>
 #include <QUrl>
 
-#include "Cloud.h"
-#include "util.h"
-#include "mmVector3.h"
 #include "Data.h"
+
+//! View orientation
+enum VIEW_ORIENTATION {  TOP_VIEW,	/**< Top view (eye: +Z) **/
+                         BOTTOM_VIEW,	/**< Bottom view **/
+                         FRONT_VIEW,	/**< Front view **/
+                         BACK_VIEW,	/**< Back view **/
+                         LEFT_VIEW,	/**< Left view **/
+                         RIGHT_VIEW	/**< Right view **/
+};
 
 class ViewportParameters
 {
@@ -18,6 +24,9 @@ public:
 
     //! Copy constructor
     ViewportParameters(const ViewportParameters& params);
+
+    //! Destructor
+    ~ViewportParameters();
 
     //! Current zoom
     float zoom;
@@ -40,10 +49,14 @@ private:
 
 public:
 
+    //! Default constructor
     GLWidget(QWidget *parent = NULL, cData* data = NULL);
 
+    //! Destructor
+    ~GLWidget();
+
+    //! Set data to display
     void setData(cData* data);
-   // void addPly( const QString & );
 
     //! Interaction mode (with the mouse!)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
@@ -74,10 +87,11 @@ public:
     //! States if a cloud is loaded
     bool hasCloudLoaded(){return m_bCloudLoaded;}
 
+    //! Sets cloud state as loaded
     void setCloudLoaded(bool isLoaded) { m_bCloudLoaded = isLoaded; }
 
     //! Sets camera to a predefined view (top, bottom, etc.)
-    void setView(MM_VIEW_ORIENTATION orientation);
+    void setView(VIEW_ORIENTATION orientation);
 
     //! Updates current zoom
     void updateZoom(float zoomFactor);
@@ -90,7 +104,10 @@ public:
     //! Segment points with polyline
     void segment(bool inside);
 
+    //! Delete current polyline
     void clearPolyline();
+
+    //! Close polyline
     void closePolyline();
 
      //! Undo all past selection actions
@@ -102,7 +119,7 @@ public:
 public slots:
     void zoom();
 
-    //called when receiving mouse wheel is rotated
+    //! called when receiving mouse wheel is rotated
     void onWheelEvent(float wheelDelta_deg);
 
 signals:
@@ -175,6 +192,7 @@ protected:
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
 
+    //! Data to display
     cData *m_Data;
 };
 

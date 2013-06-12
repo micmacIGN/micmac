@@ -1754,10 +1754,10 @@ class ElCamera : public cCapture3D
 };
 
 
-// Represente les camera a projection parallele (focale infini),
+// Represente les cameras a projection parallele (focale infinie),
 //
-//  La focale et le point principal sont indissociable de la translation,
-//  ce sont des parametre extrinseque represente dans la transaltion
+//  La focale et le point principal sont indissociables de la translation,
+//  ce sont des parametres extrinseques representes dans la translation
 //  (via le R3toL3/L3toR3)
 
 class cCameraOrtho : public ElCamera

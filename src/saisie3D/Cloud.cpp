@@ -41,12 +41,12 @@ static PlyProperty oriented_vert_props[] = {
 
 Vertex::Vertex()
 {
-    m_position = Vector3();
+    m_position = Pt3dr(0.,0.,0.);
     m_color    = QColor();
     m_bVisible  = true;
 }
 
-Vertex::Vertex(Vector3 pos, QColor col)
+Vertex::Vertex(Pt3dr pos, QColor col)
 {
     m_position  = pos;
     m_color     = col;
@@ -121,7 +121,7 @@ Cloud* Cloud::loadPly( string i_filename )
                             printf ("vertex: %g %g %g %u %u %u\n", vlist[j]->x, vlist[j]->y, vlist[j]->z, vlist[j]->red, vlist[j]->green, vlist[j]->blue);
                         #endif
 
-                        ptList.push_back( Vertex (Vector3 ( vlist[j]->x, vlist[j]->y, vlist[j]->z ), QColor( vlist[j]->red, vlist[j]->green, vlist[j]->blue )));
+                        ptList.push_back( Vertex (Pt3dr ( vlist[j]->x, vlist[j]->y, vlist[j]->z ), QColor( vlist[j]->red, vlist[j]->green, vlist[j]->blue )));
                     }
                     break;
                 }
@@ -150,7 +150,7 @@ Cloud* Cloud::loadPly( string i_filename )
                             printf ("vertex: %g %g %g %u %u %u\n", ulist[j]->x, ulist[j]->y, ulist[j]->z, ulist[j]->red, ulist[j]->green, ulist[j]->blue);
                         #endif
 
-                        ptList.push_back( Vertex (Vector3 ( ulist[j]->x, ulist[j]->y, ulist[j]->z ), QColor( ulist[j]->red, ulist[j]->green, ulist[j]->blue )));
+                        ptList.push_back( Vertex (Pt3dr ( ulist[j]->x, ulist[j]->y, ulist[j]->z ), QColor( ulist[j]->red, ulist[j]->green, ulist[j]->blue )));
                     }
                     break;
                 }
@@ -219,7 +219,7 @@ Cloud::Cloud(vector<Vertex> const & vVertex)
         addVertex(vVertex[aK]);
     }
 
-    m_translation = Vector3();
+    m_translation = Pt3dr(0.,0.,0.);
     m_scale = 0.f;
 }
 

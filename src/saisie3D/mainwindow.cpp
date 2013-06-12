@@ -1,13 +1,7 @@
-﻿#include <QLayout>
-#include <QMessageBox>
-#include <QFileDialog>
+﻿#include <QMessageBox>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
-#include "StdAfx.h"
-#include "general/ptxd.h"
-#include "private/cElNuage3DMaille.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -55,7 +49,7 @@ void MainWindow::addFiles(const QStringList& filenames)
             printf("adding files %s", filenames[0]);
         #endif
 
-        m_Engine->addFiles(filenames);
+        m_Engine->loadClouds(filenames);
 
         m_glWidget->setData(m_Engine->getData());
 
@@ -142,32 +136,32 @@ void MainWindow::connectActions()
 
 void MainWindow::setTopView()
 {
-    m_glWidget->setView(MM_TOP_VIEW);
+    m_glWidget->setView(TOP_VIEW);
 }
 
 void MainWindow::setBottomView()
 {
-    m_glWidget->setView(MM_BOTTOM_VIEW);
+    m_glWidget->setView(BOTTOM_VIEW);
 }
 
 void MainWindow::setFrontView()
 {
-    m_glWidget->setView(MM_FRONT_VIEW);
+    m_glWidget->setView(FRONT_VIEW);
 }
 
 void MainWindow::setBackView()
 {
-    m_glWidget->setView(MM_BACK_VIEW);
+    m_glWidget->setView(BACK_VIEW);
 }
 
 void MainWindow::setLeftView()
 {
-    m_glWidget->setView(MM_LEFT_VIEW);
+    m_glWidget->setView(LEFT_VIEW);
 }
 
 void MainWindow::setRightView()
 {
-    m_glWidget->setView(MM_RIGHT_VIEW);
+    m_glWidget->setView(RIGHT_VIEW);
 }
 
 void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)

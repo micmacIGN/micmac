@@ -10,18 +10,22 @@ cData::cData()
 cData::~cData()
 {
     for (int aK=0; aK < NbCameras();++aK) delete m_Cameras[aK];
-    for (int aK=0; aK < NbClouds();++aK) delete m_Clouds[aK];
+    for (int aK=0; aK < NbClouds();++aK)
+    {
+        delete m_Clouds[aK];
+        delete m_oClouds[aK];
+    }
 }
 
-void cData::addCamera(cElNuage3DMaille * aNuage)
+void cData::addCamera(CamStenope * aCam)
 {
-    m_Cameras.push_back(aNuage);
+    m_Cameras.push_back(aCam);
 }
 
-void cData::addCameras(vector <cElNuage3DMaille *> aNuages)
+void cData::addCameras(vector <CamStenope *> aCameras)
 {
-    for (int aK=0; aK < aNuages.size();++aK)
-        m_Cameras.push_back(aNuages[aK]);
+    for (int aK=0; aK < aCameras.size();++aK)
+        m_Cameras.push_back(aCameras[aK]);
 }
 
 void cData::centerCloud(Cloud * aCloud)
@@ -49,7 +53,7 @@ void cData::centerCloud(Cloud * aCloud)
     m_diam = max(m_maxX-m_minX, max(m_maxY-m_minY, m_maxZ-m_minZ));
 
     //center and scale cloud
-    Vector3 pt3d;
+    Pt3dr pt3d;
     for (int aK=0; aK < nbPts; ++aK)
     {
         Vertex vert = aCloud->getVertex(aK);
@@ -65,7 +69,7 @@ void cData::centerCloud(Cloud * aCloud)
         a_res->addVertex(vert_res);
     }
 
-    a_res->setTranslation(Vector3(m_cX, m_cY, m_cZ));
+    a_res->setTranslation(Pt3dr(m_cX, m_cY, m_cZ));
     a_res->setScale((float) m_diam);
 
     //translate and scale back clouds if needed
@@ -73,7 +77,7 @@ void cData::centerCloud(Cloud * aCloud)
     {
         if (getCloud(aK)->getScale()) //cloud has been scaled
         {
-            Vector3 translation = getCloud(aK)->getTranslation();
+            Pt3dr translation = getCloud(aK)->getTranslation();
             float scale = getCloud(aK)->getScale();
 
             for (int bK=0; bK < getCloud(aK)->size();++bK)
@@ -89,7 +93,7 @@ void cData::centerCloud(Cloud * aCloud)
                 getCloud(aK)->setVertex(bK, vert);
             }
 
-            getCloud(aK)->setTranslation(Vector3(m_cX, m_cY, m_cZ));
+            getCloud(aK)->setTranslation(Pt3dr(m_cX, m_cY, m_cZ));
             getCloud(aK)->setScale((float) m_diam);
         }
     }
