@@ -51,6 +51,9 @@ CamStenope* cLoader::loadCamera(string aNameFile)
     return CamOrientGenFromFile(aNameFile.substr(DirChantier.size(),aNameFile.size()),anICNM);
 }
 
+//****************************************
+//   cEngine
+
 cEngine::cEngine():
     m_Data(new cData),
     m_Loader(new cLoader)
@@ -62,6 +65,14 @@ cEngine::~cEngine()
    delete m_Loader;
 }
 
+void cEngine::loadClouds(QStringList filenames)
+{
+    for (int i=0;i<filenames.size();++i)
+    {
+        getData()->centerCloud(m_Loader->loadCloud(filenames[i].toStdString()));
+    }
+}
+
 void cEngine::loadCameras()
 {
     m_Data->addCameras(m_Loader->loadCameras());
@@ -69,41 +80,41 @@ void cEngine::loadCameras()
 
 void cEngine::doMasks()
 {
-    if ((m_Data->NbCameras()==0) || (m_Data->NbClouds()==0)) return;
+    if (m_Data->NbClouds()==0) return;
 
-    if (m_Data->NbCameras() != m_Loader->GetFilenamesOut().size()) return;
-
+    CamStenope* pCam;
     Cloud *pCloud, *pOCloud;
     Vertex vert, orig_vert;
     Pt2dr ptIm;
 
     for (int cK=0;cK < m_Data->NbCameras();++cK)
     {
-        CamStenope* pCam = m_Data->getCamera(cK);
+        pCam = m_Data->getCamera(cK);
 
         Im2D_BIN mask = Im2D_BIN (pCam->Sz(), 0);
 
         for (int aK=0; aK < m_Data->NbClouds();++aK)
         {
-            pCloud = m_Data->getCloud(aK);
+            pCloud  = m_Data->getCloud(aK);
             pOCloud = m_Data->getOriginalCloud(aK);
 
             for (int bK=0; bK < pCloud->size();++bK)
             {
                 vert = pCloud->getVertex(bK);                
 
-                if (vert.isVisible())
+                if (vert.isVisible())  //visible = selected in GLWidget
                 {
                     orig_vert = pOCloud->getVertex(bK);
-                    Pt3dr pt(orig_vert.x(),orig_vert.y(),orig_vert.z());
+                   // orig_vert.setCoord(Pt3dr(orig_vert.x(), orig_vert.y(), orig_vert.z()));
+                    Pt3dr pt(orig_vert.getCoord());
 
-                    if (pCam->PIsVisibleInImage(pt))
-                    {
-
-                        ptIm = pCam->Ter2Capteur(pt);
-                        //cout << "ptIm: " << ptIm.x <<" " << ptIm.y << endl;
-                        mask.set(floor(ptIm.x), floor(ptIm.y), 1);
-                    }
+                   // if (pCam->PIsVisibleInImage(pt)) //visible = projected inside image
+                   // {
+                        //ptIm = pCam->Ter2Capteur(pt);
+                        ptIm = pCam->R3toC2(pt);
+                        cout << "ptIm: " << ptIm.x << " " << ptIm.y << endl;
+                        //mask.set(floor(ptIm.x), floor(ptIm.y), 1);
+                    //}
                 }
             }
         }
@@ -117,18 +128,6 @@ void cEngine::doMasks()
 
         #ifdef _DEBUG
             printf ("Done\n");
-        #endif
-
-        delete pCam;
-        delete pCloud;
-        delete pOCloud;
-    }
-}
-
-void cEngine::loadClouds(QStringList filenames)
-{
-    for (int i=0;i<filenames.size();++i)
-    {
-        getData()->centerCloud(m_Loader->loadCloud(filenames[i].toStdString()));
+        #endif  
     }
 }

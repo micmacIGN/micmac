@@ -41,10 +41,12 @@ RESOURCES += \
 	
 #Don't warn about sprintf, fopen etc being 'unsafe'
 DEFINES += _CRT_SECURE_NO_WARNINGS
+win32: DEFINES += ELISE_windows
 
 INCLUDEPATH += $$PWD/../../include
 DEPENDPATH += $$PWD/../../include
 
+#comment to run debug
 CONFIG(release)
 {
 unix|win32: LIBS += -L$$PWD/../../lib -lelise
@@ -52,6 +54,7 @@ unix|win32: LIBS += -L$$PWD/../../lib -lelise
 win32: PRE_TARGETDEPS += $$PWD/../../lib/elise.lib
 else:unix: PRE_TARGETDEPS += $$PWD/../../lib/libelise.a
 }
+#end of section to comment
 
 CONFIG(debug)
 {
@@ -60,5 +63,3 @@ unix|win32: LIBS += -L$$PWD/../../bin -lelise
 win32: PRE_TARGETDEPS += $$PWD/../../bin/elise.lib
 else:unix: PRE_TARGETDEPS += $$PWD/../../bin/libelise.a
 }
-
-
