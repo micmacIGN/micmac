@@ -251,6 +251,59 @@ void Vignette_correct(string aDir,std::vector<std::string> * aSetIm,vector<doubl
 	}
 }
 
+void Write_Vignette(string aDir, string aNameOut,vector<double> aParam,string aDirOut, vector<double> Sz){
+/*
+	//Bulding the output file system
+    ELISE_fp::MkDirRec(aDir + aDirOut);
+	
+		//Reading the image and creating the objects to be manipulated
+		Pt2di aSz; aSz.x=Sz[0]; aSz.y=Sz[1];
+		aNameOut=aDirOut + aNameOut;
+		Tiff_Im aTF=Tiff_Im::Tiff_Im(aNameOut, aSz, GenIm::real4, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero, ###########);
+		
+		Im2D_REAL4  aIm(aSz.x,aSz.y);
+
+		ELISE_COPY
+		(
+		   aTF.all_pts(),
+		   aTF.in(),
+		   aIm.out()
+		);
+
+		REAL4 ** aData = aIm.data();
+
+		for (int aY=0 ; aY<aSz.y  ; aY++)
+			{
+				for (int aX=0 ; aX<aSz.x  ; aX++)
+				{
+					double x0=aSz.x/2;
+					double y0=aSz.y/2;
+					double D=pow(aX-x0,2)+pow(aY-y0,2);
+					double aCor=1+aParam[0]*D+aParam[1]*pow(D,2)+aParam[2]*pow(D,3);
+					if(aCor<1){aData[aY][aX]=1;}else{aData[aY][aX]=aCor;}
+				}
+		}
+
+		 Tiff_Im  aTOut
+			(
+				aNameOut.c_str(),
+				aSz,
+				GenIm::real16,
+				Tiff_Im::No_Compr,
+				Tiff_Im::RGB
+			);
+
+
+		 ELISE_COPY
+			 (
+				 aTOut.all_pts(),
+				 aIm.in(),
+				 aTOut.out()
+			 );
+	  
+*/	
+}
+
 vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
 {
 	double distMax=sqrt(pow(aPtsHomol[4][0]/2,2)+pow(aPtsHomol[4][1]/2,2));
@@ -514,7 +567,17 @@ int  Vignette_main(int argc,char ** argv)
 		   if (aParam.size()==0){
 			   cout<<"Could'nt compute vignette parameters"<<endl;
 		   }else{ 
+			   /*
+			   //Creating a flatfield tif file
+				   //Creating the numerical format for the output files names
+						char foc[4],dia[3];
+						sprintf(foc, "%04d", vectOfDiaphFoc[i][0]);
+						sprintf(dia, "%03d", 10*vectOfDiaphFoc[i][1]);
 
+			   string aNameOut="Foc" + (string)foc + "Diaph" + (string)dia + ".tif";
+
+			   Write_Vignette(aDir, aNameOut, aParam, aDirOut, aPtsHomol[4]);
+			   */
 			   //Il faut maintenant ecrire un fichier xml contenant foc+diaph+les params de vignette
 			   cout<<"--- Writing XML"<<endl;
 			   std::ofstream file_out(OutCal.c_str(), ios::out | ios::app);

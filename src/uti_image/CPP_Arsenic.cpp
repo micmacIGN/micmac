@@ -59,7 +59,7 @@ void Arsenic_Banniere()
 vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,string Extension)
 {
 
-	vector<double> NbPtsCouple,G1,G2;//Elements of output (distance from SIFT pts to center for Im1 and Im2, and respective grey lvl 
+	vector<double> NbPtsCouple,Gr1,Gr2,R1,G1,B1,R2,G2,B2;//Elements of output (distance from SIFT pts to center for Im1 and Im2, and respective grey lvl 
 	Pt2di aSz;
 
     // Permet de manipuler les ensemble de nom de fichier
@@ -71,32 +71,40 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 		std::cout<<"Getting homologous points from: "<<(*aSetIm)[aK1]<<endl;
 		    
 		//Reading the image and creating the objects to be manipulated
-			Tiff_Im aTF1= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK1],1,false);
+			Tiff_Im aTF1= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK1],3,false);
 			aSz = aTF1.sz();
-			Im2D_REAL16  aIm1(aSz.x,aSz.y);
+			Im2D_REAL16  aIm1R(aSz.x,aSz.y);
+			Im2D_REAL16  aIm1G(aSz.x,aSz.y);
+			Im2D_REAL16  aIm1B(aSz.x,aSz.y);
 			ELISE_COPY
 				(
 				   aTF1.all_pts(),
 				   aTF1.in(),
-				   aIm1.out()
+				   Virgule(aIm1R.out(),aIm1G.out(),aIm1B.out())
 				);
 
-			REAL16 ** aData1 = aIm1.data();
+			REAL16 ** aDataR1 = aIm1R.data();
+			REAL16 ** aDataG1 = aIm1G.data();
+			REAL16 ** aDataB1 = aIm1B.data();
 
         for (int aK2=0 ; aK2<int(aSetIm->size()) ; aK2++)
         {
 			if (aK1!=aK2)
             {
-			Tiff_Im aTF2= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK2],1,false);
-			Im2D_REAL16  aIm2(aSz.x,aSz.y);
+			Tiff_Im aTF2= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK2],3,false);
+			Im2D_REAL16  aIm2R(aSz.x,aSz.y);
+			Im2D_REAL16  aIm2G(aSz.x,aSz.y);
+			Im2D_REAL16  aIm2B(aSz.x,aSz.y);
 			ELISE_COPY
 				(
 				   aTF2.all_pts(),
 				   aTF2.in(),
-				   aIm2.out()
+				   Virgule(aIm2R.out(),aIm2G.out(),aIm2B.out())
 				);
 
-			REAL16 ** aData2 = aIm2.data();
+			REAL16 ** aDataR2 = aIm2R.data();
+			REAL16 ** aDataG2 = aIm2G.data();
+			REAL16 ** aDataB2 = aIm2B.data();
 
 			string prefixe="";
             
@@ -122,10 +130,20 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 							{
 								cpt++;
 								//Go looking for grey value of the point, adjusted to ISO and Exposure time induced variations
-								double Grey1 =Reechantillonnage::biline(aData1, aSz.x, aSz.y, itP->P1());
-								double Grey2 =Reechantillonnage::biline(aData2, aSz.x, aSz.y, itP->P2());
-							G1.push_back(Grey1);
-							G2.push_back(Grey2);
+								double Red1   =Reechantillonnage::biline(aDataR1, aSz.x, aSz.y, itP->P1());
+								double Green1 =Reechantillonnage::biline(aDataG1, aSz.x, aSz.y, itP->P1());
+								double Blue1  =Reechantillonnage::biline(aDataB1, aSz.x, aSz.y, itP->P1());
+								double Red2   =Reechantillonnage::biline(aDataR2, aSz.x, aSz.y, itP->P2());
+								double Green2 =Reechantillonnage::biline(aDataG2, aSz.x, aSz.y, itP->P2());
+								double Blue2  =Reechantillonnage::biline(aDataB2, aSz.x, aSz.y, itP->P2());;
+							Gr1.push_back((Red1+Green1+Blue1)/3);
+							Gr2.push_back((Red2+Green2+Blue2)/3);
+							R1.push_back(Red1);
+							G1.push_back(Green1);
+							B1.push_back(Blue1);
+							R2.push_back(Red2);
+							G2.push_back(Green2);
+							B2.push_back(Blue2);
 							}
 						NbPtsCouple.push_back(double(cpt));
 				   }
@@ -141,34 +159,90 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 	vector<double> SZ;
 	SZ.push_back(aSz.x);SZ.push_back(aSz.y);
 	aPtsHomol.push_back(NbPtsCouple);
+	aPtsHomol.push_back(Gr1);
+	aPtsHomol.push_back(R1);
 	aPtsHomol.push_back(G1);
+	aPtsHomol.push_back(B1);
+	aPtsHomol.push_back(Gr2);
+	aPtsHomol.push_back(R2);
 	aPtsHomol.push_back(G2);
+	aPtsHomol.push_back(B2);
 	aPtsHomol.push_back(SZ);
    return aPtsHomol;
 }
 
-vector<double> Egalisation_factors(vector<vector<double> > aPtsHomol)
+vector<vector<double> > Egalisation_factors(vector<vector<double> > aPtsHomol, int nbIm)
 {
-vector<double> K;
+vector<vector<double> > K;
+vector<double> Kgr,KR,KG,KB;
 
-double sum1 = std::accumulate(aPtsHomol[1].begin(),aPtsHomol[1].begin()+aPtsHomol[0][0]-1,0.0);
-double sum2 = std::accumulate(aPtsHomol[2].begin(),aPtsHomol[2].begin()+aPtsHomol[0][0]-1,0.0);
-K.push_back(sum1/sum2);
-int nbParcouru=aPtsHomol[0][0];
-for (int i=1;i<int(aPtsHomol[0].size());i++){
+//int aNbIm=(1+sqrt(1+4*aPtsHomol[0].size()))/2;
+int nbParcouru=0;
+for (int i=0;i<int(aPtsHomol[0].size());i++){
+	if(aPtsHomol[0][i]!=0){//if there are homologous points between images
 	//cout<<aPtsHomol[1].size()<<endl;
 	//cout<<"nbPoints : "<<aPtsHomol[0][i]<<endl;
 	//cout<<"load from "<<nbParcouru<<" to "<<nbParcouru+aPtsHomol[0][i]-1<<endl;
-	sum1 = std::accumulate(aPtsHomol[1].begin()+nbParcouru,aPtsHomol[1].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
-	sum2 = std::accumulate(aPtsHomol[2].begin()+nbParcouru,aPtsHomol[2].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
+	double sumGr1 = std::accumulate(aPtsHomol[1].begin()+nbParcouru,aPtsHomol[1].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
+	double sumR1  = std::accumulate(aPtsHomol[2].begin()+nbParcouru,aPtsHomol[2].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
+	double sumG1  = std::accumulate(aPtsHomol[3].begin()+nbParcouru,aPtsHomol[3].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
+	double sumB1  = std::accumulate(aPtsHomol[4].begin()+nbParcouru,aPtsHomol[4].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
+	double sumGr2 = std::accumulate(aPtsHomol[5].begin()+nbParcouru,aPtsHomol[5].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
+	double sumR2  = std::accumulate(aPtsHomol[6].begin()+nbParcouru,aPtsHomol[6].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
+	double sumG2  = std::accumulate(aPtsHomol[7].begin()+nbParcouru,aPtsHomol[7].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
+	double sumB2  = std::accumulate(aPtsHomol[8].begin()+nbParcouru,aPtsHomol[8].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
 	nbParcouru=nbParcouru+aPtsHomol[0][i];
-	K.push_back(sum1/sum2);
+	Kgr.push_back(sumGr1/sumGr2);
+	KR.push_back(sumR1/sumR2);
+	KG.push_back(sumG1/sumG2);
+	KB.push_back(sumB1/sumB2);
+	}else{
+		  Kgr.push_back(0);
+		  KR.push_back(0);
+		  KG.push_back(0);
+		  KB.push_back(0);}
+}
+K.push_back(Kgr);K.push_back(KR);K.push_back(KG);K.push_back(KB);
+
+//Find transitions if not everything intervisible
+while (*std::min_element(K[0].begin(),K[0].end())==0){
+for (int i=0;i<int(aPtsHomol[0].size());i++){
+	if(aPtsHomol[0][i]==0){
+		long aScoreMax=0;
+		int numImage1=(i/(nbIm-1));
+		int numImage2=i-numImage1*(nbIm-1);
+		int numImageLiaison;
+		int ifSupMe1=0,ifSupMe2=0;
+		for(int j=0;j<nbIm;j++){
+			if(j==numImage1){ifSupMe1=1;continue;}
+			if(j==numImage2){ifSupMe2=1;continue;}
+			int nbPt1j=aPtsHomol[0][numImage1*(nbIm-1)+j-ifSupMe1];
+			int nbPt2j=aPtsHomol[0][numImage2*(nbIm-1)+j-ifSupMe2];
+			if(nbPt1j!=0 && nbPt2j!=0){
+				long aScore=(nbPt1j+nbPt2j)/(fabs(double(nbPt1j-nbPt2j))+1);//sum of nb of homologous points with third party image, weighted by propotions
+				if(aScoreMax<aScore){aScoreMax=aScore;numImageLiaison=j;}
+			}
+		}
+		if(aScoreMax=!0){
+			cout<<"Link created between "<<numImage1<<" and "<<numImage2<<endl;
+			int ifSupMe=0,ifSupMe2=0;
+			if(numImageLiaison>numImage1){ifSupMe1=1;}
+			if(numImageLiaison>numImage2){ifSupMe2=1;}
+			K[0][i]=K[0][numImage1*(nbIm-1)+numImageLiaison-ifSupMe1]*K[0][numImage2*(nbIm-1)+numImageLiaison-ifSupMe2];
+			K[1][i]=K[1][numImage1*(nbIm-1)+numImageLiaison-ifSupMe1]*K[1][numImage2*(nbIm-1)+numImageLiaison-ifSupMe2];
+			K[2][i]=K[2][numImage1*(nbIm-1)+numImageLiaison-ifSupMe1]*K[2][numImage2*(nbIm-1)+numImageLiaison-ifSupMe2];
+			K[3][i]=K[3][numImage1*(nbIm-1)+numImageLiaison-ifSupMe1]*K[3][numImage2*(nbIm-1)+numImageLiaison-ifSupMe2];
+		}
+
+	}
+
+}
 }
 
 return K;
 }
 
-void Egal_correct(string aDir,std::vector<std::string> * aSetIm,vector<double> K_used,string aDirOut)
+void Egal_correct(string aDir,std::vector<std::string> * aSetIm,vector<vector<double> > K_used,string aDirOut)
 {
 	//Bulding the output file system
     ELISE_fp::MkDirRec(aDir + aDirOut);
@@ -199,18 +273,17 @@ void Egal_correct(string aDir,std::vector<std::string> * aSetIm,vector<double> K
 		U_INT1 ** aDataG = aImG.data();
 		U_INT1 ** aDataB = aImB.data();
 		
-		double aCor=K_used[i];
-		cout<<"Correction factor for image n"<<i<<" ="<<aCor<<endl;
+		double aCorR=K_used[0][i];
+		double aCorG=K_used[1][i];
+		double aCorB=K_used[2][i];
+		cout<<"Correction factors for image n"<<i<<" =(R * "<<aCorR<<" - G * "<<aCorG<<" - B * "<<aCorB<<" )"<<endl;
 		for (int aY=0 ; aY<aSz.y  ; aY++)
 			{
 				for (int aX=0 ; aX<aSz.x  ; aX++)
 				{
-					double x0=aSz.x/2;
-					double y0=aSz.y/2;
-					double D=pow(aX-x0,2)+pow(aY-y0,2);
-					double R = aDataR[aY][aX] * aCor;
-					double G = aDataG[aY][aX] * aCor;
-					double B = aDataB[aY][aX] * aCor;
+					double R = aDataR[aY][aX] * aCorR;
+					double G = aDataG[aY][aX] * aCorG;
+					double B = aDataB[aY][aX] * aCorB;
 					if(R>255){aDataR[aY][aX]=255;}else{aDataR[aY][aX]=R;}
 					if(G>255){aDataG[aY][aX]=255;}else{aDataG[aY][aX]=G;}
 					if(B>255){aDataB[aY][aX]=255;}else{aDataB[aY][aX]=B;}
@@ -262,29 +335,40 @@ int  Arsenic_main(int argc,char ** argv)
 		const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
 
 		std::vector<std::string> aVectIm=*aSetIm;
-	
+		int nbIm=aVectIm.size();
+
+		//Reading homologous points
 		vector<vector<double> > aPtsHomol=ReadPtsHom(aDir, & aVectIm, Extension);
 
 		cout<<"Computing equalization factors"<<endl;
-		vector<double> K=Egalisation_factors(aPtsHomol);
-		
+		vector<vector<double> > K=Egalisation_factors(aPtsHomol,nbIm);
+
 		cout<<"Choosing correction to apply"<<endl;
 		double Kmax = 0;
-		int imMax=0;
-		for(int i=0;i<int(K.size());i++)
+		int imkMax=0;
+		for(int i=0;i<int(K[0].size());i++)
 		{
-		if(K[i]>Kmax){Kmax=K[i];imMax=i;}
-		cout<<K[i]<<endl;
+		if(K[0][i]>Kmax){Kmax=K[0][i];imkMax=i;}
+		//cout<<K[0][i]<<endl;
 		}
-		
-		int nbIm=aVectIm.size();
-		vector<double> K_used;
+
+		int imMax=(imkMax/(nbIm-1));
+		cout<<"Brightest image ="<<aVectIm[imMax]<<endl;
+		vector<vector<double> >K_used;
+		vector<double> KR_used,KG_used,KB_used;
 		for(int i=0;i<int(nbIm);i++)
 		{
-			if(i<imMax/(nbIm-1)){K_used.push_back(K[(imMax/(nbIm-1))*(nbIm-1)+i]);}
-			else if(i>imMax/(nbIm-1)){K_used.push_back(K[(imMax/(nbIm-1))*(nbIm-1)+i-1]);}
-			else{K_used.push_back(1);}
+			if(i<imMax){KR_used.push_back(K[1][imMax*(nbIm-1)+i]);
+						KG_used.push_back(K[2][imMax*(nbIm-1)+i]);
+						KB_used.push_back(K[3][imMax*(nbIm-1)+i]);}
+			else if(i>imMax){KR_used.push_back(K[1][imMax*(nbIm-1)+i-1]);
+							 KG_used.push_back(K[2][imMax*(nbIm-1)+i-1]);
+							 KB_used.push_back(K[3][imMax*(nbIm-1)+i-1]);}
+			else{KR_used.push_back(1);KG_used.push_back(1);KB_used.push_back(1);}
 		}
+
+		K_used.push_back(KR_used);K_used.push_back(KG_used);K_used.push_back(KB_used);
+
 		if(DoCor){
 			Egal_correct(aDir, & aVectIm, K_used, aDirOut);
 		}
@@ -292,7 +376,6 @@ int  Arsenic_main(int argc,char ** argv)
 
 		return 0;
 }
-
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
