@@ -829,6 +829,25 @@ template  <const int nbb> Im2D_U_INT1  Im2D_Bits<nbb>::gray_im_red(INT & zoom)
     return didb()->gray_im_red(zoom);
 }
 
+#if ElTemplateInstantiation
+#endif
+
+#define  Declare_TBB(NBB,MSBF)\
+template <> Tabul_Bits<NBB,MSBF> Tabul_Bits<NBB,MSBF>::The_Only_One(123456);\
+template <> Tabul_Bits<NBB,MSBF>::tLineInputTab *  Tabul_Bits<NBB,MSBF>::input_tab=0;\
+template <> Tabul_Bits<NBB,MSBF>::tLineOutputTab *  Tabul_Bits<NBB,MSBF>::out_tab=0;
+
+Declare_TBB(1,true)
+Declare_TBB(1,false)
+Declare_TBB(2,true)
+Declare_TBB(2,false)
+Declare_TBB(4,true)
+Declare_TBB(4,false)
+
+template <> GenIm::type_el DataGenImBits<1>::type_el_bitm = GenIm::bits1_msbf;
+template <> GenIm::type_el DataGenImBits<2>::type_el_bitm = GenIm::bits2_msbf;
+template <> GenIm::type_el DataGenImBits<4>::type_el_bitm = GenIm::bits4_msbf;
+
 const Tabul_Bits_Gen & Tabul_Bits_Gen::tbb(INT nbb,bool msbf)
 {
     switch (nbb)
@@ -857,7 +876,6 @@ const Tabul_Bits_Gen & Tabul_Bits_Gen::tbb(INT nbb,bool msbf)
     return  Tabul_Bits<1,false>::The_Only_One;
 }
 
-
 template class Im2D_Bits<1>;
 template class Im2D_Bits<2>;
 template class Im2D_Bits<4>;
@@ -865,24 +883,6 @@ template class Im2D_Bits<4>;
 template class DataGenImBits<1>;
 template class DataGenImBits<2>;
 template class DataGenImBits<4>;
-#if ElTemplateInstantiation
-#endif
-
-#define  Declare_TBB(NBB,MSBF)\
-template <> Tabul_Bits<NBB,MSBF> Tabul_Bits<NBB,MSBF>::The_Only_One(123456);\
-template <> Tabul_Bits<NBB,MSBF>::tLineInputTab *  Tabul_Bits<NBB,MSBF>::input_tab=0;\
-template <> Tabul_Bits<NBB,MSBF>::tLineOutputTab *  Tabul_Bits<NBB,MSBF>::out_tab=0;
-
-Declare_TBB(1,true)
-Declare_TBB(1,false)
-Declare_TBB(2,true)
-Declare_TBB(2,false)
-Declare_TBB(4,true)
-Declare_TBB(4,false)
-
-template <> GenIm::type_el DataGenImBits<1>::type_el_bitm = GenIm::bits1_msbf;
-template <> GenIm::type_el DataGenImBits<2>::type_el_bitm = GenIm::bits2_msbf;
-template <> GenIm::type_el DataGenImBits<4>::type_el_bitm = GenIm::bits4_msbf;
 
 #if (0)
 // template <> int cTestTPL<int>::theTab[4] ={0,1,2,3};
