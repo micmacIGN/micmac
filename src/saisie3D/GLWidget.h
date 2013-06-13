@@ -40,10 +40,9 @@ public:
 
 class GLWidget : public QGLWidget
 {
-private:
-    //QVector <Cloud_::Cloud> m_ply;
-
     Q_OBJECT
+
+private:
 
     QPoint              m_lastPos;
 
@@ -69,20 +68,13 @@ public:
                             SCREEN_CENTER_MESSAGE
     };
 
-    //! Message type
-    enum MessageType {  CUSTOM_MESSAGE,                       
-                        MANUAL_SEGMENTATION_MESSAGE
-    };
-
     //! Displays a status message in the bottom-left corner
     /** WARNING: currently, 'append' is not supported for SCREEN_CENTER_MESSAGE
         \param message message (if message is empty and append is 'false', all messages will be cleared)
         \param pos message position on screen
-        \param type message type (if not custom, only one message of this type at a time is accepted)
     **/
     virtual void displayNewMessage(const QString& message,
-                                   MessagePosition pos,
-                                   MessageType type=CUSTOM_MESSAGE);
+                                   MessagePosition pos);
 
     //! States if a cloud is loaded
     bool hasCloudLoaded(){return m_bCloudLoaded;}
@@ -99,7 +91,11 @@ public:
     //! Sets current zoom
     void setZoom(float value);
 
+    //! Switch between move mode and selection mode
     void setInteractionMode(INTERACTION_MODE mode);
+
+    //! Shows axis or not
+    void showAxis(bool show);
 
      //! Shows ball or not
     void showBall(bool show);
@@ -158,6 +154,7 @@ protected:
     //! Draw ball
     void drawBall();
 
+    //! Draw widget gradient background
     void drawGradientBackground();
 
     void setStandardOrthoCenter();
@@ -195,15 +192,13 @@ protected:
         QString message;
         //! Message position on screen
         MessagePosition position;
-        //! Message type
-        MessageType type;
     };
 
     //! Trihedron GL list
     GLuint m_trihedronGLList;
 
     //! Ball GL list
-    GLuint m_pivotGLList;
+    GLuint m_ballGLList;
 
     //! List of messages to display
     list<MessageToDisplay> m_messagesToDisplay;

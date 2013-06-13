@@ -192,7 +192,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
       , m_bDrawAxis(false)
       , m_bDrawBall(true)
       , m_trihedronGLList(GL_INVALID_LIST_ID)
-      , m_pivotGLList(GL_INVALID_LIST_ID)
+      , m_ballGLList(GL_INVALID_LIST_ID)
       , m_params(ViewportParameters())
       , m_bPolyIsClosed(false)
       , m_Data(data)
@@ -213,10 +213,10 @@ GLWidget::~GLWidget()
         glDeleteLists(m_trihedronGLList,1);
         m_trihedronGLList = GL_INVALID_LIST_ID;
     }
-    if (m_pivotGLList != GL_INVALID_LIST_ID)
+    if (m_ballGLList != GL_INVALID_LIST_ID)
     {
-        glDeleteLists(m_pivotGLList,1);
-        m_pivotGLList = GL_INVALID_LIST_ID;
+        glDeleteLists(m_ballGLList,1);
+        m_ballGLList = GL_INVALID_LIST_ID;
     }
 }
 
@@ -301,8 +301,9 @@ void GLWidget::paintGL()
     }
     else
     {
-        if (m_bDrawAxis) drawAxis();
         if (m_bDrawBall) drawBall();
+        else if (m_bDrawAxis) drawAxis();
+
     }
 
     if (m_interactionMode == SEGMENT_POINTS)
@@ -451,8 +452,7 @@ void GLWidget::dropEvent(QDropEvent *event)
 }
 
 void GLWidget::displayNewMessage(const QString& message,
-                                 MessagePosition pos,
-                                 MessageType type/*=CUSTOM_MESSAGE*/)
+                                 MessagePosition pos)
 {
     if (message.isEmpty())
     {
@@ -473,7 +473,6 @@ void GLWidget::displayNewMessage(const QString& message,
     MessageToDisplay mess;
     mess.message = message;
     mess.position = pos;
-    mess.type = type;
     m_messagesToDisplay.push_back(mess);
 }
 
@@ -681,7 +680,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             else if (sz == 1)
                 m_polygon.push_back(event->pos());
             else
-                //we replace last point by the current one
+                //replace last point by the current one
                 m_polygon[sz-1] = event->pos();
 
             updateGL();
@@ -707,8 +706,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         else if ( g_mouseRightDown )
         {
             m_bObjectCenteredView = false;
-         //  g_translationMatrix[0] = m_Data->m_cX - dp.x()/m_glWidth;
-         //  g_translationMatrix[1] = m_Data->m_cY - dp.y()/m_glHeight;
+            g_translationMatrix[0] += dp.x()*m_Data->m_diam/m_glHeight;
+            g_translationMatrix[1] += dp.y()*m_Data->m_diam/m_glHeight;
         }
 
         updateGL();
@@ -762,7 +761,6 @@ void GLWidget::segment(bool inside)
     glMatrixMode(GL_PROJECTION);
     glGetDoublev(GL_PROJECTION_MATRIX, (GLdouble*) &MP);
 
-    //makeCurrent();
     glGetIntegerv(GL_VIEWPORT, VP);
 
     QPoint P2D;
@@ -857,13 +855,13 @@ void GLWidget::drawAxis()
         glBegin(GL_LINES);
         glColor3f(1.0f,0.0f,0.0f);
         glVertex3f(0.0f,0.0f,0.0f);
-        glVertex3f(0.5f,0.0f,0.0f);
+        glVertex3f(0.4f,0.0f,0.0f);
         glColor3f(0.0f,1.0f,0.0f);
         glVertex3f(0.0f,0.0f,0.0f);
-        glVertex3f(0.0f,0.5f,0.0f);
+        glVertex3f(0.0f,0.4f,0.0f);
         glColor3f(0.0f,0.7f,1.0f);
         glVertex3f(0.0f,0.0f,0.0f);
-        glVertex3f(0.0f,0.0f,0.5f);
+        glVertex3f(0.0f,0.0f,0.4f);
         glEnd();
 
         glPopAttrib();
@@ -905,13 +903,13 @@ void GLWidget::drawBall()
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
 
-    //compute actual symbol radius
+    //compute ball radius
     float scale = 0.0005f * (float) min(m_glWidth,m_glHeight);
 
-    if (m_pivotGLList == GL_INVALID_LIST_ID)
+    if (m_ballGLList == GL_INVALID_LIST_ID)
     {
-        m_pivotGLList = glGenLists(1);
-        glNewList(m_pivotGLList, GL_COMPILE);
+        m_ballGLList = glGenLists(1);
+        glNewList(m_ballGLList, GL_COMPILE);
 
         //draw 3 circles
         glPushAttrib(GL_LINE_BIT);
@@ -947,17 +945,25 @@ void GLWidget::drawBall()
         glEndList();
     }
 
-    //constant scale
     glScalef(scale,scale,scale);
 
-    glCallList(m_pivotGLList);
+    glCallList(m_ballGLList);
 
     glPopMatrix();
+}
+
+void GLWidget::showAxis(bool show)
+{
+    m_bDrawAxis = show;
+    if (m_bDrawAxis) m_bDrawBall = false;
+
+    updateGL();
 }
 
 void GLWidget::showBall(bool show)
 {
     m_bDrawBall = show;
+    if (m_bDrawBall) m_bDrawAxis = false;
 
     updateGL();
 }

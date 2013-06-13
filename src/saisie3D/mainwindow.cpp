@@ -34,7 +34,7 @@ bool MainWindow::checkForLoadedEntities()
 
     if (!m_glWidget->hasCloudLoaded())
     {
-        m_glWidget->displayNewMessage("Drag & drop files on the window to load them!", GLWidget::SCREEN_CENTER_MESSAGE);
+        m_glWidget->displayNewMessage("Drag & drop .ply file(s) on the window to load them!", GLWidget::SCREEN_CENTER_MESSAGE);
         loadedEntities = false;
     }
 
@@ -79,6 +79,11 @@ void MainWindow::toggleShowBall(bool state)
     m_glWidget->showBall(state);
 }
 
+void MainWindow::toggleShowAxis(bool state)
+{
+    m_glWidget->showAxis(state);
+}
+
 void MainWindow::togglePointsSelection(bool state)
 {
     if (state)
@@ -97,7 +102,9 @@ void MainWindow::doActionDisplayShortcuts()
     text += "Shortcuts:\n\n";
     text += "F2: move mode / selection mode\n";
     text += "F3: full screen\n";
-    text += "F4: show ball\n";
+    text += "F5: show axis\n";
+    text += "F6: show ball\n";
+    text += "F7: hide all (axis and ball)\n";
     text += "\n";
     text += "Key +/-: increase/decrease point size\n";
     text += "\n";
@@ -124,7 +131,8 @@ void MainWindow::connectActions()
     connect(m_glWidget,	SIGNAL(mouseWheelRotated(float)),			this,       SLOT(echoMouseWheelRotate(float)));
 
     connect(ui->actionFullScreen,       SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
-    connect(ui->actionShow_ball,       SIGNAL(toggled(bool)), this, SLOT(toggleShowBall(bool)));
+    connect(ui->actionShow_axis,        SIGNAL(toggled(bool)), this, SLOT(toggleShowAxis(bool)));
+    connect(ui->actionShow_ball,        SIGNAL(toggled(bool)), this, SLOT(toggleShowBall(bool)));
 
     connect(ui->actionHelpShortcuts,    SIGNAL(triggered()),   this, SLOT(doActionDisplayShortcuts()));
 
