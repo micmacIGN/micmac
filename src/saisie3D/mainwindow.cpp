@@ -74,6 +74,11 @@ void MainWindow::toggleFullScreen(bool state)
     m_glWidget->updateGL();
 }
 
+void MainWindow::toggleShowBall(bool state)
+{
+    m_glWidget->showBall(state);
+}
+
 void MainWindow::togglePointsSelection(bool state)
 {
     if (state)
@@ -90,8 +95,9 @@ void MainWindow::doActionDisplayShortcuts()
     QMessageBox msgBox;
     QString text;
     text += "Shortcuts:\n\n";
-    text += "F2: toggle move mode / selection mode\n";
-    text += "F3: toggle full screen\n";
+    text += "F2: move mode / selection mode\n";
+    text += "F3: full screen\n";
+    text += "F4: show ball\n";
     text += "\n";
     text += "Key +/-: increase/decrease point size\n";
     text += "\n";
@@ -118,6 +124,7 @@ void MainWindow::connectActions()
     connect(m_glWidget,	SIGNAL(mouseWheelRotated(float)),			this,       SLOT(echoMouseWheelRotate(float)));
 
     connect(ui->actionFullScreen,       SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
+    connect(ui->actionShow_ball,       SIGNAL(toggled(bool)), this, SLOT(toggleShowBall(bool)));
 
     connect(ui->actionHelpShortcuts,    SIGNAL(triggered()),   this, SLOT(doActionDisplayShortcuts()));
 

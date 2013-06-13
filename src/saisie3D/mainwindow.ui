@@ -102,6 +102,7 @@ QStatusBar
     <addaction name="separator"/>
     <addaction name="menuStandard_views"/>
     <addaction name="actionFullScreen"/>
+    <addaction name="actionShow_ball"/>
     <addaction name="separator"/>
     <addaction name="actionTogglePoints_selection"/>
     <addaction name="actionUndo"/>
@@ -294,6 +295,17 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionShow_ball">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show ball</string>
+   </property>
+   <property name="shortcut">
+    <string>F4</string>
    </property>
   </action>
  </widget>

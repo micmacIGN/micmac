@@ -38,6 +38,7 @@ private slots:
 protected slots:
     void doActionDisplayShortcuts();
     void toggleFullScreen(bool);
+    void toggleShowBall(bool);
     void togglePointsSelection(bool state);
 
     //default views
