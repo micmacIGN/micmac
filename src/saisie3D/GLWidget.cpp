@@ -16,6 +16,9 @@ const GLfloat g_trackballScale = 1.f;
 const float GL_MAX_ZOOM_RATIO = 1.0e6f;
 const float GL_MIN_ZOOM_RATIO = 1.0e-6f;
 
+//invalid GL list index
+const GLuint GL_INVALID_LIST_ID = (~0);
+
 using namespace Cloud_;
 using namespace std;
 
@@ -186,9 +189,14 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
       , m_interactionMode(TRANSFORM_CAMERA)
       , m_font(font())
       , m_bCloudLoaded(false)
+      , m_bDrawAxis(false)
+      , m_bDrawBall(true)
+      , m_trihedronGLList(GL_INVALID_LIST_ID)
+      , m_pivotGLList(GL_INVALID_LIST_ID)
       , m_params(ViewportParameters())
       , m_bPolyIsClosed(false)
       , m_Data(data)
+      , m_bObjectCenteredView(true)
 {
     setMouseTracking(true);
 
@@ -196,7 +204,21 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
     setAcceptDrops(true);
 }
 
-GLWidget::~GLWidget(){ delete m_Data; }
+GLWidget::~GLWidget()
+{
+    delete m_Data;
+
+    if (m_trihedronGLList != GL_INVALID_LIST_ID)
+    {
+        glDeleteLists(m_trihedronGLList,1);
+        m_trihedronGLList = GL_INVALID_LIST_ID;
+    }
+    if (m_pivotGLList != GL_INVALID_LIST_ID)
+    {
+        glDeleteLists(m_pivotGLList,1);
+        m_pivotGLList = GL_INVALID_LIST_ID;
+    }
+}
 
 void GLWidget::initializeGL()
 {
@@ -276,6 +298,11 @@ void GLWidget::paintGL()
 
             ++it;
         }
+    }
+    else
+    {
+        if (m_bDrawAxis) drawAxis();
+        if (m_bDrawBall) drawBall();
     }
 
     if (m_interactionMode == SEGMENT_POINTS)
@@ -445,7 +472,6 @@ void GLWidget::displayNewMessage(const QString& message,
 
     MessageToDisplay mess;
     mess.message = message;
-    mess.messageValidity_sec = 5; //TODO: Timer::Sec()+displayMaxDelay_sec;
     mess.position = pos;
     mess.type = type;
     m_messagesToDisplay.push_back(mess);
@@ -671,7 +697,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         m_lastPos = event->pos();
 
         if ( g_mouseLeftDown )
-        {
+        {         
             setRotateOx_m33( ( g_trackballScale*dp.y() )/m_glHeight, g_rotationOx );
             setRotateOy_m33( ( g_trackballScale*dp.x() )/m_glWidth, g_rotationOy );
 
@@ -680,6 +706,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         }
         else if ( g_mouseRightDown )
         {
+            m_bObjectCenteredView = false;
          //  g_translationMatrix[0] = m_Data->m_cX - dp.x()/m_glWidth;
          //  g_translationMatrix[1] = m_Data->m_cY - dp.y()/m_glHeight;
         }
@@ -810,4 +837,127 @@ void GLWidget::ptSizeUp(bool up)
 
     if (m_params.PointSize == 0)
         m_params.PointSize = 1;
+}
+
+void GLWidget::drawAxis()
+{
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+
+    if (m_trihedronGLList == GL_INVALID_LIST_ID)
+    {
+        m_trihedronGLList = glGenLists(1);
+        glNewList(m_trihedronGLList, GL_COMPILE);
+
+        glPushAttrib(GL_LINE_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_LINE_SMOOTH);
+        glEnable(GL_DEPTH_TEST);
+
+        //trihedra OpenGL drawing
+        glBegin(GL_LINES);
+        glColor3f(1.0f,0.0f,0.0f);
+        glVertex3f(0.0f,0.0f,0.0f);
+        glVertex3f(0.5f,0.0f,0.0f);
+        glColor3f(0.0f,1.0f,0.0f);
+        glVertex3f(0.0f,0.0f,0.0f);
+        glVertex3f(0.0f,0.5f,0.0f);
+        glColor3f(0.0f,0.7f,1.0f);
+        glVertex3f(0.0f,0.0f,0.0f);
+        glVertex3f(0.0f,0.0f,0.5f);
+        glEnd();
+
+        glPopAttrib();
+
+        glEndList();
+    }
+    glCallList(m_trihedronGLList);
+
+    glPopMatrix();
+}
+
+//draw a unit circle in a given plane (0=YZ, 1 = XZ, 2=XY)
+void glDrawUnitCircle(unsigned char dim, int steps = 64)
+{
+    float thetaStep = static_cast<float>(2.0*PI/(double)steps);
+    float theta = 0.0f;
+    unsigned char dimX = (dim<2 ? dim+1 : 0);
+    unsigned char dimY = (dimX<2 ? dimX+1 : 0);
+
+    GLfloat P[4];
+
+    for (int i=0;i<4;++i) P[i] = 0.0f;
+
+    glBegin(GL_LINE_LOOP);
+    for (int i=0;i<steps;++i)
+    {
+        P[dimX] = cos(theta);
+        P[dimY] = sin(theta);
+        glVertex3fv(P);
+        theta += thetaStep;
+    }
+    glEnd();
+}
+
+void GLWidget::drawBall()
+{
+    if (!m_bObjectCenteredView) return;
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+
+    //compute actual symbol radius
+    float scale = 0.0005f * (float) min(m_glWidth,m_glHeight);
+
+    if (m_pivotGLList == GL_INVALID_LIST_ID)
+    {
+        m_pivotGLList = glGenLists(1);
+        glNewList(m_pivotGLList, GL_COMPILE);
+
+        //draw 3 circles
+        glPushAttrib(GL_LINE_BIT);
+        glEnable(GL_LINE_SMOOTH);
+        glPushAttrib(GL_COLOR_BUFFER_BIT);
+        glEnable(GL_BLEND);
+        const float c_alpha = 0.6f;
+        glLineWidth(1.0f);
+
+        glColor4f(1.0f,0.0f,0.0f,c_alpha);
+        glDrawUnitCircle(0);
+        glBegin(GL_LINES);
+        glVertex3f(-1.0f,0.0f,0.0f);
+        glVertex3f( 1.0f,0.0f,0.0f);
+        glEnd();
+
+        glColor4f(0.0f,1.0f,0.0f,c_alpha);
+        glDrawUnitCircle(1);
+        glBegin(GL_LINES);
+        glVertex3f(0.0f,-1.0f,0.0f);
+        glVertex3f(0.0f, 1.0f,0.0f);
+        glEnd();
+
+        glColor4f(0.0f,0.7f,1.0f,c_alpha);
+        glDrawUnitCircle(2);
+        glBegin(GL_LINES);
+        glVertex3f(0.0f,0.0f,-1.0f);
+        glVertex3f(0.0f,0.0f, 1.0f);
+        glEnd();
+
+        glPopAttrib();
+
+        glEndList();
+    }
+
+    //constant scale
+    glScalef(scale,scale,scale);
+
+    glCallList(m_pivotGLList);
+
+    glPopMatrix();
+}
+
+void GLWidget::showBall(bool show)
+{
+    m_bDrawBall = show;
+
+    updateGL();
 }

@@ -101,6 +101,9 @@ public:
 
     void setInteractionMode(INTERACTION_MODE mode);
 
+     //! Shows ball or not
+    void showBall(bool show);
+
     //! Segment points with polyline
     void segment(bool inside);
 
@@ -149,6 +152,12 @@ protected:
 
     void draw3D();
 
+    //! Draw frame axis
+    void drawAxis();
+
+    //! Draw ball
+    void drawBall();
+
     void drawGradientBackground();
 
     void setStandardOrthoCenter();
@@ -164,6 +173,15 @@ protected:
     //! States if a cloud is already loaded
     bool m_bCloudLoaded;
 
+    //! States if frame axis should be drawn
+    bool m_bDrawAxis;
+
+    //! States if ball should be drawn
+    bool m_bDrawBall;
+
+    //! States if view is centered on object
+    bool m_bObjectCenteredView;
+
     //! States if selection polyline is closed
     bool m_bPolyIsClosed;
 
@@ -175,13 +193,17 @@ protected:
     {
         //! Message
         QString message;
-        //! Message end time (sec)
-        int messageValidity_sec;
         //! Message position on screen
         MessagePosition position;
         //! Message type
         MessageType type;
     };
+
+    //! Trihedron GL list
+    GLuint m_trihedronGLList;
+
+    //! Ball GL list
+    GLuint m_pivotGLList;
 
     //! List of messages to display
     list<MessageToDisplay> m_messagesToDisplay;
