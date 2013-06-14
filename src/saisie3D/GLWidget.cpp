@@ -264,19 +264,26 @@ void GLWidget::paintGL()
     if (hasCloudLoaded())
     {
         glBegin(GL_POINTS);
-        //for(int aK=0; aK< m_ply.size(); aK++)
+
         for(int aK=0; aK< m_Data->NbClouds(); aK++)
         {
-            //for(int bK=0; bK< m_ply[aK].size(); bK++)
             for(int bK=0; bK< m_Data->getCloud(aK)->size(); bK++)
             {
-                //Vertex vert = m_ply[aK].getVertex(bK);
                 Vertex vert = m_Data->getCloud(aK)->getVertex(bK);
                 if (vert.isVisible())
                 {
                     qglColor( vert.getColor() );
                     glVertex3f( vert.x(), vert.y(), vert.z() );
                 }
+                else
+                {
+                   QColor col = vert.getColor();
+                   col.setAlphaF(0.1f);
+                   col.setRedF(1.0f);
+                   qglColor( col );
+                   glVertex3f( vert.x(), vert.y(), vert.z() );
+                }
+
             }
         }
         glEnd();
