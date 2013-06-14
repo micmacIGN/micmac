@@ -194,6 +194,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
       , m_bMessages(true)
       , m_trihedronGLList(GL_INVALID_LIST_ID)
       , m_ballGLList(GL_INVALID_LIST_ID)
+      , m_nbGLLists(0)
       , m_params(ViewportParameters())
       , m_bPolyIsClosed(false)
       , m_Data(data)
@@ -283,7 +284,6 @@ void GLWidget::paintGL()
                    qglColor( col );
                    glVertex3f( vert.x(), vert.y(), vert.z() );
                 }
-
             }
         }
         glEnd();
@@ -338,6 +338,8 @@ void GLWidget::paintGL()
         if (m_bDrawBall) drawBall();
         else if (m_bDrawAxis) drawAxis();
     }
+
+    drawCams();
 
     if (m_interactionMode == SEGMENT_POINTS)
     {
@@ -932,7 +934,8 @@ void GLWidget::drawBall()
 
     if (m_ballGLList == GL_INVALID_LIST_ID)
     {
-        m_ballGLList = glGenLists(1);
+        incrNbGLLists();
+        m_ballGLList = getNbGLLists(); //glGenLists(1);
         glNewList(m_ballGLList, GL_COMPILE);
 
         //draw 3 circles
@@ -972,6 +975,88 @@ void GLWidget::drawBall()
     glScalef(scale,scale,scale);
 
     glCallList(m_ballGLList);
+
+    glPopMatrix();
+}
+
+void GLWidget::drawCams()
+{
+    float scale = 1.f;
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+
+    incrNbGLLists();
+    GLuint list = getNbGLLists();
+    glNewList(list, GL_COMPILE);
+
+    glLineWidth(2);
+    glPointSize(7);
+    if (m_Data->NbClouds())
+    {
+        scale = 0.005*m_Data->getCloud(0)->getScale();
+    }
+    for (int i=0; i<m_Data->NbCameras();i++)
+    {
+        CamStenope * pCam = m_Data->getCamera(i);
+
+        REAL f = pCam->Focale();
+        Pt3dr C  = pCam->VraiOpticalCenter();
+        Pt3dr P1 = pCam->ImEtProf2Terrain(Pt2dr(0,0),scale*f);
+        Pt3dr P2 = pCam->ImEtProf2Terrain(Pt2dr(pCam->Sz().x,0),scale*f);
+        Pt3dr P3 = pCam->ImEtProf2Terrain(Pt2dr(0,pCam->Sz().y),scale*f);
+        Pt3dr P4 = pCam->ImEtProf2Terrain(Pt2dr(pCam->Sz().x,pCam->Sz().y),scale*f);
+
+        //translation
+        if (m_Data->NbClouds())
+        {
+            Pt3dr translation = m_Data->getCloud(0)->getTranslation();
+
+            C = C + translation;
+            P1 = P1 + translation;
+            P2 = P2 + translation;
+            P3 = P3 + translation;
+            P4 = P4 + translation;
+        }
+
+        glBegin(GL_LINES);
+            //perspective cone
+            qglColor(QColor(0,0,0));
+            glVertex3d(C.x, C.y, C.z);
+            glVertex3d(P1.x, P1.y, P1.z);
+
+            glVertex3d(C.x, C.y, C.z);
+            glVertex3d(P2.x, P2.y, P2.z);
+
+            glVertex3d(C.x, C.y, C.z);
+            glVertex3d(P3.x, P3.y, P3.z);
+
+            glVertex3d(C.x, C.y, C.z);
+            glVertex3d(P4.x, P4.y, P4.z);
+
+            //Image
+            qglColor(QColor(255,0,0));
+            glVertex3d(P1.x, P1.y, P1.z);
+            glVertex3d(P2.x, P2.y, P2.z);
+
+            glVertex3d(P4.x, P4.y, P4.z);
+            glVertex3d(P2.x, P2.y, P2.z);
+
+            glVertex3d(P3.x, P3.y, P3.z);
+            glVertex3d(P1.x, P1.y, P1.z);
+
+            glVertex3d(P4.x, P4.y, P4.z);
+            glVertex3d(P3.x, P3.y, P3.z);
+       glEnd();
+
+       glBegin(GL_POINTS);
+           glVertex3d(C.x, C.y, C.z);
+       glEnd();
+    }
+
+    glEndList();
+
+    glCallList(list);
 
     glPopMatrix();
 }

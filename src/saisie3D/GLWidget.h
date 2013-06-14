@@ -165,10 +165,17 @@ protected:
     //! Draw ball
     void drawBall();
 
+    //! Draw ball
+    void drawCams();
+
     //! Draw widget gradient background
     void drawGradientBackground();
 
     void setStandardOrthoCenter();
+
+    GLuint getNbGLLists() { return m_nbGLLists; }
+    void incrNbGLLists() { m_nbGLLists++; }
+    void resetNbGLLists(){ m_nbGLLists = 0; }
 
     //! GL context width
     int m_glWidth;
@@ -213,6 +220,8 @@ protected:
 
     //! Ball GL list
     GLuint m_ballGLList;
+
+    int m_nbGLLists;
 
     //! List of messages to display
     list<MessageToDisplay> m_messagesToDisplay;
