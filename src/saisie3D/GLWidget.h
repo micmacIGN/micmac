@@ -8,12 +8,12 @@
 #include "Data.h"
 
 //! View orientation
-enum VIEW_ORIENTATION {  TOP_VIEW,	/**< Top view (eye: +Z) **/
+enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
                          BOTTOM_VIEW,	/**< Bottom view **/
                          FRONT_VIEW,	/**< Front view **/
-                         BACK_VIEW,	/**< Back view **/
-                         LEFT_VIEW,	/**< Left view **/
-                         RIGHT_VIEW	/**< Right view **/
+                         BACK_VIEW,     /**< Back view **/
+                         LEFT_VIEW,     /**< Left view **/
+                         RIGHT_VIEW     /**< Right view **/
 };
 
 class ViewportParameters
@@ -105,6 +105,9 @@ public:
     //! States if information messages should be displayed
     bool showMessages();
 
+    void showSelectionMessages();
+    void showMoveMessages();
+
     //! Segment points with polyline
     void segment(bool inside);
 
@@ -193,7 +196,7 @@ protected:
     //! Current interaction mode (with mouse)
     INTERACTION_MODE m_interactionMode;
 
-    //! Temporary Message to display in the lower-left corner
+    //! Temporary Message to display
     struct MessageToDisplay
     {
         //! Message
