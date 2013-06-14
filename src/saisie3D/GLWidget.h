@@ -44,7 +44,7 @@ class GLWidget : public QGLWidget
 
 private:
 
-    QPoint              m_lastPos;
+    QPoint m_lastPos;
 
 public:
 
@@ -99,13 +99,16 @@ public:
     //! Shows ball or not
     void showBall(bool show);
 
-    //! Shows information messages or not
+    //! Shows help messages or not
     void showMessages(bool show);
 
-    //! States if information messages should be displayed
+    //! States if help messages should be displayed
     bool showMessages();
 
+    //! Display help messages for selection mode
     void showSelectionMessages();
+
+    //! Display help messages for move mode
     void showMoveMessages();
 
     //! Segment points with polyline
