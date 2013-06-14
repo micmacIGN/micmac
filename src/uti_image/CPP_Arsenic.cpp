@@ -171,6 +171,28 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
    return aPtsHomol;
 }
 
+double oneParamRANSAC(vector<double> im1, vector<double> im2){
+
+	srand(time(NULL));//Initiate the rand value
+	double aScoreMax=5;
+	double bestK=1;
+	for(unsigned i=0;i<100;i++){
+		int j=rand() % im1.size();
+		double K=im1[j]/im2[j];
+
+		//Counting Inliers
+		double nbInliers=0;
+		double aScore=0;
+		for(unsigned m=0;m<im1.size();m++){
+			if(fabs((im1[m]/im2[m])/K-1)<0.50){nbInliers++;aScore=aScore+fabs((im1[m]/im2[m])-K);}
+		}
+		aScore=aScore/nbInliers;
+		if(0.3<nbInliers/im1.size() && aScoreMax>aScore){aScoreMax=aScore;bestK=K;}
+	}
+	//cout<<aScoreMax<< " - ";
+return bestK;
+}
+
 vector<vector<double> > Egalisation_factors(vector<vector<double> > aPtsHomol, int nbIm)
 {
 vector<vector<double> > K;
@@ -179,31 +201,49 @@ vector<double> Kgr,KR,KG,KB;
 //int aNbIm=(1+sqrt(1+4*aPtsHomol[0].size()))/2;
 int nbParcouru=0;
 for (int i=0;i<int(aPtsHomol[0].size());i++){
+
+	//Mutliplication factor between an image an itself is 1 (obviously)
+	if ((i/(nbIm))*(nbIm)==i){
+	//Add 1 for K(i,i)
+			//cout<<"i = "<<i<<" and (i/(nbIm))*(nbIm) = "<<(i/(nbIm))*(nbIm)<<endl;
+			Kgr.push_back(1);
+			KR.push_back(1);
+			KG.push_back(1);
+			KB.push_back(1);
+		}
 	if(aPtsHomol[0][i]!=0){//if there are homologous points between images
-	//cout<<aPtsHomol[1].size()<<endl;
-	//cout<<"nbPoints : "<<aPtsHomol[0][i]<<endl;
-	//cout<<"load from "<<nbParcouru<<" to "<<nbParcouru+aPtsHomol[0][i]-1<<endl;
-	double sumGr1 = std::accumulate(aPtsHomol[1].begin()+nbParcouru,aPtsHomol[1].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
-	double sumR1  = std::accumulate(aPtsHomol[2].begin()+nbParcouru,aPtsHomol[2].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
-	double sumG1  = std::accumulate(aPtsHomol[3].begin()+nbParcouru,aPtsHomol[3].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
-	double sumB1  = std::accumulate(aPtsHomol[4].begin()+nbParcouru,aPtsHomol[4].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
-	double sumGr2 = std::accumulate(aPtsHomol[5].begin()+nbParcouru,aPtsHomol[5].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
-	double sumR2  = std::accumulate(aPtsHomol[6].begin()+nbParcouru,aPtsHomol[6].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
-	double sumG2  = std::accumulate(aPtsHomol[7].begin()+nbParcouru,aPtsHomol[7].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
-	double sumB2  = std::accumulate(aPtsHomol[8].begin()+nbParcouru,aPtsHomol[8].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
-	nbParcouru=nbParcouru+aPtsHomol[0][i];
-	Kgr.push_back(sumGr1/sumGr2);
-	KR.push_back(sumR1/sumR2);
-	KG.push_back(sumG1/sumG2);
-	KB.push_back(sumB1/sumB2);
-	}else{
-		  Kgr.push_back(0);
-		  KR.push_back(0);
-		  KG.push_back(0);
-		  KB.push_back(0);}
+		vector<double> GrIm1(aPtsHomol[1].begin()+nbParcouru,aPtsHomol[1].begin()+nbParcouru+aPtsHomol[0][i]-1);
+		vector<double> RIm1(aPtsHomol[2].begin()+nbParcouru,aPtsHomol[2].begin()+nbParcouru+aPtsHomol[0][i]-1);
+		vector<double> GIm1(aPtsHomol[3].begin()+nbParcouru,aPtsHomol[3].begin()+nbParcouru+aPtsHomol[0][i]-1);
+		vector<double> BIm1(aPtsHomol[4].begin()+nbParcouru,aPtsHomol[4].begin()+nbParcouru+aPtsHomol[0][i]-1);
+		vector<double> GrIm2(aPtsHomol[5].begin()+nbParcouru,aPtsHomol[5].begin()+nbParcouru+aPtsHomol[0][i]-1);
+		vector<double> RIm2(aPtsHomol[6].begin()+nbParcouru,aPtsHomol[6].begin()+nbParcouru+aPtsHomol[0][i]-1);
+		vector<double> GIm2(aPtsHomol[7].begin()+nbParcouru,aPtsHomol[7].begin()+nbParcouru+aPtsHomol[0][i]-1);
+		vector<double> BIm2(aPtsHomol[8].begin()+nbParcouru,aPtsHomol[8].begin()+nbParcouru+aPtsHomol[0][i]-1);
+		nbParcouru=nbParcouru+aPtsHomol[0][i];
+
+		//cout<<"finding optimal correction factor with RANSAC for couple "<<i<<endl;
+		Kgr.push_back(oneParamRANSAC(GrIm1, GrIm2));
+		KR.push_back(oneParamRANSAC(RIm1, RIm2));
+		KG.push_back(oneParamRANSAC(GIm1, GIm2));
+		KB.push_back(oneParamRANSAC(BIm1, BIm2));
+
+		}else{
+			Kgr.push_back(0);
+			KR.push_back(0);
+			KG.push_back(0);
+			KB.push_back(0);
+			}
+
 }
+			//Add 1 for K(last,last)
+			Kgr.push_back(1);
+			KR.push_back(1);
+			KG.push_back(1);
+			KB.push_back(1);
 K.push_back(Kgr);K.push_back(KR);K.push_back(KG);K.push_back(KB);
 
+/*
 //Find transitions if not everything intervisible
 while (*std::min_element(K[0].begin(),K[0].end())==0){
 for (int i=0;i<int(aPtsHomol[0].size());i++){
@@ -238,8 +278,78 @@ for (int i=0;i<int(aPtsHomol[0].size());i++){
 
 }
 }
+vector<vector<double> >K_used;
+vector<double> KR_used,KG_used,KB_used;
+for(int i=0;i<int(nbIm);i++)
+{
+	if(i<imMax){KR_used.push_back(K[1][imMax*(nbIm-1)+i]);
+				KG_used.push_back(K[2][imMax*(nbIm-1)+i]);
+				KB_used.push_back(K[3][imMax*(nbIm-1)+i]);}
+	else if(i>imMax){KR_used.push_back(K[1][imMax*(nbIm-1)+i-1]);
+						KG_used.push_back(K[2][imMax*(nbIm-1)+i-1]);
+						KB_used.push_back(K[3][imMax*(nbIm-1)+i-1]);}
+	else{KR_used.push_back(1);KG_used.push_back(1);KB_used.push_back(1);}
+}
 
-return K;
+K_used.push_back(KR_used);K_used.push_back(KG_used);K_used.push_back(KB_used);
+*/
+
+//Counting the amount of available equations:
+
+cout<<"Choosing correction to apply"<<endl;
+
+//Selecting the brightest image for reference
+	int imkMax;
+	int imMax;
+	double Kmax = 0;
+	for(int i=0;i<int(K[0].size());i++)
+	{
+		if(K[0][i]>Kmax){Kmax=K[0][i];imkMax=i;}
+		//cout<<K[0][i]<<endl;
+	}
+	imMax=(imkMax/(nbIm));
+	cout<<"The brightest image is n°"<<imMax<<endl;
+
+
+
+cout<<"Solving the system"<<endl;
+vector<vector<double> > aParam3Chan;
+
+for (unsigned aChan=1;aChan<=3;aChan++){
+// Create L2SysSurResol to solve least square equation with nbIm unknown (equa is Kij*Ki-Kj=0)
+	L2SysSurResol aSys(nbIm);
+	//The brightest image is fixed:
+	//double coefsFixe[nbImCst]={0.0};
+	vector<double> coefsFixe(nbIm,0.0);
+		coefsFixe[imMax]=1;
+		double coefsFixeAr[6]={coefsFixe[0],coefsFixe[1],coefsFixe[2],coefsFixe[3],coefsFixe[4],coefsFixe[5]};
+		aSys.AddEquation(10000,coefsFixeAr,1);
+  	//For Each K
+	for(unsigned i=0;i<int(nbIm*nbIm);i++){
+			int numImage1=(i/(nbIm));
+			int numImage2=i-numImage1*(nbIm);
+			//double coefs[nbImCst]={0.0};
+			vector<double> coefs(nbIm,0.0);
+			coefs[numImage1]=K[aChan][i];
+			coefs[numImage2]=-1;
+			double coefsAr[6]={coefs[0],coefs[1],coefs[2],coefs[3],coefs[4],coefs[5]};
+			//std::copy ( coefs.begin(), coefs.end(), coefsAr[0] );
+			//cout<<sizeof(coefsAr) / sizeof(double)<<endl;
+			aSys.AddEquation(1,coefsAr,0);//coefs doit être un double * ......
+	}
+	bool Ok;
+    Im1D_REAL8 aSol = aSys.GSSR_Solve(&Ok);
+	vector<double> aParam;
+    if (Ok)
+    {
+        double* aData = aSol.data();
+		for(unsigned i=0;i<int(nbIm);i++){
+			aParam.push_back(aData[i]);
+		}
+		aParam3Chan.push_back(aParam);
+    }
+}
+return aParam3Chan;
 }
 
 void Egal_correct(string aDir,std::vector<std::string> * aSetIm,vector<vector<double> > K_used,string aDirOut)
@@ -343,34 +453,9 @@ int  Arsenic_main(int argc,char ** argv)
 		cout<<"Computing equalization factors"<<endl;
 		vector<vector<double> > K=Egalisation_factors(aPtsHomol,nbIm);
 
-		cout<<"Choosing correction to apply"<<endl;
-		double Kmax = 0;
-		int imkMax=0;
-		for(int i=0;i<int(K[0].size());i++)
-		{
-		if(K[0][i]>Kmax){Kmax=K[0][i];imkMax=i;}
-		//cout<<K[0][i]<<endl;
-		}
-
-		int imMax=(imkMax/(nbIm-1));
-		cout<<"Brightest image ="<<aVectIm[imMax]<<endl;
-		vector<vector<double> >K_used;
-		vector<double> KR_used,KG_used,KB_used;
-		for(int i=0;i<int(nbIm);i++)
-		{
-			if(i<imMax){KR_used.push_back(K[1][imMax*(nbIm-1)+i]);
-						KG_used.push_back(K[2][imMax*(nbIm-1)+i]);
-						KB_used.push_back(K[3][imMax*(nbIm-1)+i]);}
-			else if(i>imMax){KR_used.push_back(K[1][imMax*(nbIm-1)+i-1]);
-							 KG_used.push_back(K[2][imMax*(nbIm-1)+i-1]);
-							 KB_used.push_back(K[3][imMax*(nbIm-1)+i-1]);}
-			else{KR_used.push_back(1);KG_used.push_back(1);KB_used.push_back(1);}
-		}
-
-		K_used.push_back(KR_used);K_used.push_back(KG_used);K_used.push_back(KB_used);
 
 		if(DoCor){
-			Egal_correct(aDir, & aVectIm, K_used, aDirOut);
+			Egal_correct(aDir, & aVectIm, K, aDirOut);
 		}
 		Arsenic_Banniere();
 
