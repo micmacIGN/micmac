@@ -101,9 +101,11 @@ QStatusBar
     </widget>
     <addaction name="separator"/>
     <addaction name="menuStandard_views"/>
+    <addaction name="actionHelpShortcuts"/>
     <addaction name="actionFullScreen"/>
     <addaction name="actionShow_axis"/>
     <addaction name="actionShow_ball"/>
+    <addaction name="actionShow_help_messages"/>
     <addaction name="separator"/>
     <addaction name="actionTogglePoints_selection"/>
     <addaction name="actionUndo"/>
@@ -112,15 +114,7 @@ QStatusBar
     <addaction name="actionExport_mask"/>
     <addaction name="actionLoad_and_Export"/>
    </widget>
-   <widget class="QMenu" name="menuAbout">
-    <property name="title">
-     <string>Help</string>
-    </property>
-    <addaction name="separator"/>
-    <addaction name="actionHelpShortcuts"/>
-   </widget>
    <addaction name="menuOptions"/>
-   <addaction name="menuAbout"/>
   </widget>
   <action name="actionFullScreen">
    <property name="checkable">
@@ -130,7 +124,7 @@ QStatusBar
     <string>Full screen</string>
    </property>
    <property name="shortcut">
-    <string>F3</string>
+    <string>F2</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::ApplicationShortcut</enum>
@@ -248,7 +242,7 @@ QStatusBar
     <string>Toggle between Points selection mode and standard mode</string>
    </property>
    <property name="shortcut">
-    <string>F2</string>
+    <string>F6</string>
    </property>
   </action>
   <action name="actionUndo">
@@ -306,7 +300,7 @@ QStatusBar
     <string>Show ball</string>
    </property>
    <property name="shortcut">
-    <string>F6</string>
+    <string>F4</string>
    </property>
   </action>
   <action name="actionShow_axis">
@@ -315,6 +309,17 @@ QStatusBar
    </property>
    <property name="text">
     <string>Show axis</string>
+   </property>
+   <property name="shortcut">
+    <string>F3</string>
+   </property>
+  </action>
+  <action name="actionShow_help_messages">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show help messages</string>
    </property>
    <property name="shortcut">
     <string>F5</string>
