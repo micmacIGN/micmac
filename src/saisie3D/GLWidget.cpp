@@ -191,6 +191,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
       , m_bCloudLoaded(false)
       , m_bDrawAxis(false)
       , m_bDrawBall(true)
+      , m_bMessages(true)
       , m_trihedronGLList(GL_INVALID_LIST_ID)
       , m_ballGLList(GL_INVALID_LIST_ID)
       , m_params(ViewportParameters())
@@ -290,11 +291,44 @@ void GLWidget::paintGL()
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
         while (it != m_messagesToDisplay.end())
         {
-            QFont newFont(m_font);
-            newFont.setPointSize(12);
-            QRect rect = QFontMetrics(newFont).boundingRect(it->message);
-            //only one message supported in the screen center (for the moment ;)
-            renderText((m_glWidth-rect.width())/2, (m_glHeight-rect.height())/2, it->message,newFont);
+            int ll_currentHeight = m_glHeight-10; //lower left
+            int uc_currentHeight = 10;            //upper center
+
+            switch(it->position)
+            {
+            case LOWER_LEFT_MESSAGE:
+                {
+                    m_font.setPointSize(10);
+                    renderText(10, ll_currentHeight, it->message,m_font);
+                    int messageHeight = QFontMetrics(m_font).height();
+                    //ll_currentHeight -= (messageHeight*5)/4; //add a 25% margin
+                }
+                break;
+            case LOWER_CENTER_MESSAGE:
+                {
+                    m_font.setPointSize(10);
+                    QRect rect = QFontMetrics(m_font).boundingRect(it->message);
+                    renderText((m_glWidth-rect.width())/2, ll_currentHeight, it->message,m_font);
+                    //int messageHeight = QFontMetrics(m_font).height();
+                    //ll_currentHeight -= (messageHeight*5)/4; //add a 25% margin
+                }
+                break;
+            case UPPER_CENTER_MESSAGE:
+                {
+                    m_font.setPointSize(10);
+                    QRect rect = QFontMetrics(m_font).boundingRect(it->message);
+                    renderText((m_glWidth-rect.width())/2, uc_currentHeight+rect.height(), it->message,m_font);
+                    //uc_currentHeight += (rect.height()*5)/4; //add a 25% margin
+                }
+                break;
+            case SCREEN_CENTER_MESSAGE:
+                {
+                    m_font.setPointSize(12);
+                    QRect rect = QFontMetrics(m_font).boundingRect(it->message);
+                    renderText((m_glWidth-rect.width())/2, (m_glHeight-rect.height())/2, it->message,m_font);
+                }
+                break;
+            }
 
             ++it;
         }
@@ -967,3 +1001,10 @@ void GLWidget::showBall(bool show)
 
     updateGL();
 }
+
+void GLWidget::showMessages(bool show)
+{
+    m_bMessages = show;
+}
+
+bool GLWidget::showMessages(){return m_bMessages;}

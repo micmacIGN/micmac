@@ -64,6 +64,7 @@ public:
 
     //! Default message positions on screen
     enum MessagePosition {  LOWER_LEFT_MESSAGE,
+                            LOWER_CENTER_MESSAGE,
                             UPPER_CENTER_MESSAGE,
                             SCREEN_CENTER_MESSAGE
     };
@@ -97,8 +98,14 @@ public:
     //! Shows axis or not
     void showAxis(bool show);
 
-     //! Shows ball or not
+    //! Shows ball or not
     void showBall(bool show);
+
+    //! Shows information messages or not
+    void showMessages(bool show);
+
+    //! States if information messages should be displayed
+    bool showMessages();
 
     //! Segment points with polyline
     void segment(bool inside);
@@ -175,6 +182,9 @@ protected:
 
     //! States if ball should be drawn
     bool m_bDrawBall;
+
+    //! States if messages should be displayed
+    bool m_bMessages;
 
     //! States if view is centered on object
     bool m_bObjectCenteredView;
