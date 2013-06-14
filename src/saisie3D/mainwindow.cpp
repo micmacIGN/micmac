@@ -97,10 +97,7 @@ void MainWindow::togglePointsSelection(bool state)
 
         if (m_glWidget->hasCloudLoaded()&&m_glWidget->showMessages())
         {
-            m_glWidget->displayNewMessage(QString());
-            m_glWidget->displayNewMessage("Selection mode",GLWidget::UPPER_CENTER_MESSAGE);
-            m_glWidget->displayNewMessage("Left click: add contour point / Right click: close / Echap: delete polyline",GLWidget::LOWER_CENTER_MESSAGE);
-            m_glWidget->displayNewMessage("Space: keep points inside polyline / Suppr: keep points outside polyline",GLWidget::LOWER_CENTER_MESSAGE);
+            m_glWidget->showSelectionMessages();
         }
     }
     else
@@ -110,9 +107,7 @@ void MainWindow::togglePointsSelection(bool state)
         if (m_glWidget->hasCloudLoaded()&&m_glWidget->showMessages())
         {
             m_glWidget->clearPolyline();
-            m_glWidget->displayNewMessage(QString());
-            m_glWidget->displayNewMessage("Move mode",GLWidget::UPPER_CENTER_MESSAGE);
-            m_glWidget->displayNewMessage("Left click: rotate viewpoint / Right click: translate viewpoint",GLWidget::LOWER_CENTER_MESSAGE);
+            m_glWidget->showMoveMessages();
         }
     }
 }

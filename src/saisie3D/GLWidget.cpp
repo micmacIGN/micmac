@@ -330,7 +330,6 @@ void GLWidget::paintGL()
     {
         if (m_bDrawBall) drawBall();
         else if (m_bDrawAxis) drawAxis();
-
     }
 
     if (m_interactionMode == SEGMENT_POINTS)
@@ -990,9 +989,29 @@ void GLWidget::showMessages(bool show)
 {
     m_bMessages = show;
 
-    if (!m_bMessages) displayNewMessage(QString());
+    if (show)
+    {
+        if (m_interactionMode == TRANSFORM_CAMERA) showMoveMessages();
+        else showSelectionMessages();
+    }
+    else displayNewMessage(QString());
 
     updateGL();
 }
 
 bool GLWidget::showMessages(){return m_bMessages;}
+
+void GLWidget::showSelectionMessages()
+{
+    displayNewMessage(QString());
+    displayNewMessage("Selection mode",UPPER_CENTER_MESSAGE);
+    displayNewMessage("Left click: add contour point / Right click: close / Echap: delete polyline",LOWER_CENTER_MESSAGE);
+    displayNewMessage("Space: keep points inside polyline / Suppr: keep points outside polyline",LOWER_CENTER_MESSAGE);
+}
+
+void GLWidget::showMoveMessages()
+{
+    displayNewMessage(QString());
+    displayNewMessage("Move mode",UPPER_CENTER_MESSAGE);
+    displayNewMessage("Left click: rotate viewpoint / Right click: translate viewpoint",LOWER_CENTER_MESSAGE);
+}
