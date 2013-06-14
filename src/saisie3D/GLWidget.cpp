@@ -288,37 +288,30 @@ void GLWidget::paintGL()
         //Some versions of Qt seem to need glColorf instead of glColorub! (see https://bugreports.qt-project.org/browse/QTBUG-6217)
         glColor3f(1.f,1.f,1.f);
 
+        int fontSize = 10;
+        int l_currentHeight = m_glHeight-fontSize*m_messagesToDisplay.size(); //lower
+        int uc_currentHeight = 10;            //upper center
+
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
         while (it != m_messagesToDisplay.end())
         {
-            int ll_currentHeight = m_glHeight-10; //lower left
-            int uc_currentHeight = 10;            //upper center
-
             switch(it->position)
             {
-            case LOWER_LEFT_MESSAGE:
-                {
-                    m_font.setPointSize(10);
-                    renderText(10, ll_currentHeight, it->message,m_font);
-                    int messageHeight = QFontMetrics(m_font).height();
-                    //ll_currentHeight -= (messageHeight*5)/4; //add a 25% margin
-                }
-                break;
             case LOWER_CENTER_MESSAGE:
                 {
-                    m_font.setPointSize(10);
+                    m_font.setPointSize(fontSize);
                     QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                    renderText((m_glWidth-rect.width())/2, ll_currentHeight, it->message,m_font);
-                    //int messageHeight = QFontMetrics(m_font).height();
-                    //ll_currentHeight -= (messageHeight*5)/4; //add a 25% margin
+                    renderText((m_glWidth-rect.width())/2, l_currentHeight, it->message,m_font);
+                    int messageHeight = QFontMetrics(m_font).height();
+                    l_currentHeight += (messageHeight*5)/4; //add a 25% margin
                 }
                 break;
             case UPPER_CENTER_MESSAGE:
                 {
-                    m_font.setPointSize(10);
+                    m_font.setPointSize(fontSize);
                     QRect rect = QFontMetrics(m_font).boundingRect(it->message);
                     renderText((m_glWidth-rect.width())/2, uc_currentHeight+rect.height(), it->message,m_font);
-                    //uc_currentHeight += (rect.height()*5)/4; //add a 25% margin
+                    uc_currentHeight += (rect.height()*5)/4; //add a 25% margin
                 }
                 break;
             case SCREEN_CENTER_MESSAGE:
@@ -490,16 +483,7 @@ void GLWidget::displayNewMessage(const QString& message,
 {
     if (message.isEmpty())
     {
-
-        std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
-        while (it != m_messagesToDisplay.end())
-        {
-            //same position? we remove the message
-            if (it->position == pos)
-                it = m_messagesToDisplay.erase(it);
-            else
-                ++it;
-        }
+        m_messagesToDisplay.clear();
 
         return;
     }
@@ -1005,6 +989,10 @@ void GLWidget::showBall(bool show)
 void GLWidget::showMessages(bool show)
 {
     m_bMessages = show;
+
+    if (!m_bMessages) displayNewMessage(QString());
+
+    updateGL();
 }
 
 bool GLWidget::showMessages(){return m_bMessages;}

@@ -63,19 +63,17 @@ public:
     };
 
     //! Default message positions on screen
-    enum MessagePosition {  LOWER_LEFT_MESSAGE,
-                            LOWER_CENTER_MESSAGE,
+    enum MessagePosition {  LOWER_CENTER_MESSAGE,
                             UPPER_CENTER_MESSAGE,
                             SCREEN_CENTER_MESSAGE
     };
 
-    //! Displays a status message in the bottom-left corner
-    /** WARNING: currently, 'append' is not supported for SCREEN_CENTER_MESSAGE
-        \param message message (if message is empty and append is 'false', all messages will be cleared)
+    //! Displays a status message
+    /** \param message message (if message is empty, all messages will be cleared)
         \param pos message position on screen
     **/
     virtual void displayNewMessage(const QString& message,
-                                   MessagePosition pos);
+                                   MessagePosition pos = SCREEN_CENTER_MESSAGE);
 
     //! States if a cloud is loaded
     bool hasCloudLoaded(){return m_bCloudLoaded;}
