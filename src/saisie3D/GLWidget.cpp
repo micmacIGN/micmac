@@ -191,8 +191,9 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
       , m_bCloudLoaded(false)
       , m_bDrawAxis(false)
       , m_bDrawBall(true)
+      , m_bMessages(true)
       , m_trihedronGLList(GL_INVALID_LIST_ID)
-      , m_pivotGLList(GL_INVALID_LIST_ID)
+      , m_ballGLList(GL_INVALID_LIST_ID)
       , m_params(ViewportParameters())
       , m_bPolyIsClosed(false)
       , m_Data(data)
@@ -213,10 +214,10 @@ GLWidget::~GLWidget()
         glDeleteLists(m_trihedronGLList,1);
         m_trihedronGLList = GL_INVALID_LIST_ID;
     }
-    if (m_pivotGLList != GL_INVALID_LIST_ID)
+    if (m_ballGLList != GL_INVALID_LIST_ID)
     {
-        glDeleteLists(m_pivotGLList,1);
-        m_pivotGLList = GL_INVALID_LIST_ID;
+        glDeleteLists(m_ballGLList,1);
+        m_ballGLList = GL_INVALID_LIST_ID;
     }
 }
 
@@ -287,22 +288,48 @@ void GLWidget::paintGL()
         //Some versions of Qt seem to need glColorf instead of glColorub! (see https://bugreports.qt-project.org/browse/QTBUG-6217)
         glColor3f(1.f,1.f,1.f);
 
+        int fontSize = 10;
+        int l_currentHeight = m_glHeight-fontSize*m_messagesToDisplay.size(); //lower
+        int uc_currentHeight = 10;            //upper center
+
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
         while (it != m_messagesToDisplay.end())
         {
-            QFont newFont(m_font);
-            newFont.setPointSize(12);
-            QRect rect = QFontMetrics(newFont).boundingRect(it->message);
-            //only one message supported in the screen center (for the moment ;)
-            renderText((m_glWidth-rect.width())/2, (m_glHeight-rect.height())/2, it->message,newFont);
+            switch(it->position)
+            {
+            case LOWER_CENTER_MESSAGE:
+                {
+                    m_font.setPointSize(fontSize);
+                    QRect rect = QFontMetrics(m_font).boundingRect(it->message);
+                    renderText((m_glWidth-rect.width())/2, l_currentHeight, it->message,m_font);
+                    int messageHeight = QFontMetrics(m_font).height();
+                    l_currentHeight += (messageHeight*5)/4; //add a 25% margin
+                }
+                break;
+            case UPPER_CENTER_MESSAGE:
+                {
+                    m_font.setPointSize(fontSize);
+                    QRect rect = QFontMetrics(m_font).boundingRect(it->message);
+                    renderText((m_glWidth-rect.width())/2, uc_currentHeight+rect.height(), it->message,m_font);
+                    uc_currentHeight += (rect.height()*5)/4; //add a 25% margin
+                }
+                break;
+            case SCREEN_CENTER_MESSAGE:
+                {
+                    m_font.setPointSize(12);
+                    QRect rect = QFontMetrics(m_font).boundingRect(it->message);
+                    renderText((m_glWidth-rect.width())/2, (m_glHeight-rect.height())/2, it->message,m_font);
+                }
+                break;
+            }
 
             ++it;
         }
     }
     else
     {
-        if (m_bDrawAxis) drawAxis();
         if (m_bDrawBall) drawBall();
+        else if (m_bDrawAxis) drawAxis();
     }
 
     if (m_interactionMode == SEGMENT_POINTS)
@@ -451,21 +478,11 @@ void GLWidget::dropEvent(QDropEvent *event)
 }
 
 void GLWidget::displayNewMessage(const QString& message,
-                                 MessagePosition pos,
-                                 MessageType type/*=CUSTOM_MESSAGE*/)
+                                 MessagePosition pos)
 {
     if (message.isEmpty())
     {
-
-        std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
-        while (it != m_messagesToDisplay.end())
-        {
-            //same position? we remove the message
-            if (it->position == pos)
-                it = m_messagesToDisplay.erase(it);
-            else
-                ++it;
-        }
+        m_messagesToDisplay.clear();
 
         return;
     }
@@ -473,7 +490,6 @@ void GLWidget::displayNewMessage(const QString& message,
     MessageToDisplay mess;
     mess.message = message;
     mess.position = pos;
-    mess.type = type;
     m_messagesToDisplay.push_back(mess);
 }
 
@@ -681,7 +697,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             else if (sz == 1)
                 m_polygon.push_back(event->pos());
             else
-                //we replace last point by the current one
+                //replace last point by the current one
                 m_polygon[sz-1] = event->pos();
 
             updateGL();
@@ -707,8 +723,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         else if ( g_mouseRightDown )
         {
             m_bObjectCenteredView = false;
-         //  g_translationMatrix[0] = m_Data->m_cX - dp.x()/m_glWidth;
-         //  g_translationMatrix[1] = m_Data->m_cY - dp.y()/m_glHeight;
+            g_translationMatrix[0] += dp.x()*m_Data->m_diam/m_glHeight;
+            g_translationMatrix[1] += dp.y()*m_Data->m_diam/m_glHeight;
         }
 
         updateGL();
@@ -762,7 +778,6 @@ void GLWidget::segment(bool inside)
     glMatrixMode(GL_PROJECTION);
     glGetDoublev(GL_PROJECTION_MATRIX, (GLdouble*) &MP);
 
-    //makeCurrent();
     glGetIntegerv(GL_VIEWPORT, VP);
 
     QPoint P2D;
@@ -857,13 +872,13 @@ void GLWidget::drawAxis()
         glBegin(GL_LINES);
         glColor3f(1.0f,0.0f,0.0f);
         glVertex3f(0.0f,0.0f,0.0f);
-        glVertex3f(0.5f,0.0f,0.0f);
+        glVertex3f(0.4f,0.0f,0.0f);
         glColor3f(0.0f,1.0f,0.0f);
         glVertex3f(0.0f,0.0f,0.0f);
-        glVertex3f(0.0f,0.5f,0.0f);
+        glVertex3f(0.0f,0.4f,0.0f);
         glColor3f(0.0f,0.7f,1.0f);
         glVertex3f(0.0f,0.0f,0.0f);
-        glVertex3f(0.0f,0.0f,0.5f);
+        glVertex3f(0.0f,0.0f,0.4f);
         glEnd();
 
         glPopAttrib();
@@ -905,13 +920,13 @@ void GLWidget::drawBall()
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
 
-    //compute actual symbol radius
+    //compute ball radius
     float scale = 0.0005f * (float) min(m_glWidth,m_glHeight);
 
-    if (m_pivotGLList == GL_INVALID_LIST_ID)
+    if (m_ballGLList == GL_INVALID_LIST_ID)
     {
-        m_pivotGLList = glGenLists(1);
-        glNewList(m_pivotGLList, GL_COMPILE);
+        m_ballGLList = glGenLists(1);
+        glNewList(m_ballGLList, GL_COMPILE);
 
         //draw 3 circles
         glPushAttrib(GL_LINE_BIT);
@@ -947,17 +962,56 @@ void GLWidget::drawBall()
         glEndList();
     }
 
-    //constant scale
     glScalef(scale,scale,scale);
 
-    glCallList(m_pivotGLList);
+    glCallList(m_ballGLList);
 
     glPopMatrix();
+}
+
+void GLWidget::showAxis(bool show)
+{
+    m_bDrawAxis = show;
+    if (m_bDrawAxis) m_bDrawBall = false;
+
+    updateGL();
 }
 
 void GLWidget::showBall(bool show)
 {
     m_bDrawBall = show;
+    if (m_bDrawBall) m_bDrawAxis = false;
 
     updateGL();
+}
+
+void GLWidget::showMessages(bool show)
+{
+    m_bMessages = show;
+
+    if (show)
+    {
+        if (m_interactionMode == TRANSFORM_CAMERA) showMoveMessages();
+        else showSelectionMessages();
+    }
+    else displayNewMessage(QString());
+
+    updateGL();
+}
+
+bool GLWidget::showMessages(){return m_bMessages;}
+
+void GLWidget::showSelectionMessages()
+{
+    displayNewMessage(QString());
+    displayNewMessage("Selection mode",UPPER_CENTER_MESSAGE);
+    displayNewMessage("Left click: add contour point / Right click: close / Echap: delete polyline",LOWER_CENTER_MESSAGE);
+    displayNewMessage("Space: keep points inside polyline / Suppr: keep points outside polyline",LOWER_CENTER_MESSAGE);
+}
+
+void GLWidget::showMoveMessages()
+{
+    displayNewMessage(QString());
+    displayNewMessage("Move mode",UPPER_CENTER_MESSAGE);
+    displayNewMessage("Left click: rotate viewpoint / Right click: translate viewpoint",LOWER_CENTER_MESSAGE);
 }

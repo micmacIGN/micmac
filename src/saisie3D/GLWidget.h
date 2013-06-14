@@ -8,12 +8,12 @@
 #include "Data.h"
 
 //! View orientation
-enum VIEW_ORIENTATION {  TOP_VIEW,	/**< Top view (eye: +Z) **/
+enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
                          BOTTOM_VIEW,	/**< Bottom view **/
                          FRONT_VIEW,	/**< Front view **/
-                         BACK_VIEW,	/**< Back view **/
-                         LEFT_VIEW,	/**< Left view **/
-                         RIGHT_VIEW	/**< Right view **/
+                         BACK_VIEW,     /**< Back view **/
+                         LEFT_VIEW,     /**< Left view **/
+                         RIGHT_VIEW     /**< Right view **/
 };
 
 class ViewportParameters
@@ -40,10 +40,9 @@ public:
 
 class GLWidget : public QGLWidget
 {
-private:
-    //QVector <Cloud_::Cloud> m_ply;
-
     Q_OBJECT
+
+private:
 
     QPoint              m_lastPos;
 
@@ -64,25 +63,17 @@ public:
     };
 
     //! Default message positions on screen
-    enum MessagePosition {  LOWER_LEFT_MESSAGE,
+    enum MessagePosition {  LOWER_CENTER_MESSAGE,
                             UPPER_CENTER_MESSAGE,
                             SCREEN_CENTER_MESSAGE
     };
 
-    //! Message type
-    enum MessageType {  CUSTOM_MESSAGE,                       
-                        MANUAL_SEGMENTATION_MESSAGE
-    };
-
-    //! Displays a status message in the bottom-left corner
-    /** WARNING: currently, 'append' is not supported for SCREEN_CENTER_MESSAGE
-        \param message message (if message is empty and append is 'false', all messages will be cleared)
+    //! Displays a status message
+    /** \param message message (if message is empty, all messages will be cleared)
         \param pos message position on screen
-        \param type message type (if not custom, only one message of this type at a time is accepted)
     **/
     virtual void displayNewMessage(const QString& message,
-                                   MessagePosition pos,
-                                   MessageType type=CUSTOM_MESSAGE);
+                                   MessagePosition pos = SCREEN_CENTER_MESSAGE);
 
     //! States if a cloud is loaded
     bool hasCloudLoaded(){return m_bCloudLoaded;}
@@ -99,10 +90,23 @@ public:
     //! Sets current zoom
     void setZoom(float value);
 
+    //! Switch between move mode and selection mode
     void setInteractionMode(INTERACTION_MODE mode);
 
-     //! Shows ball or not
+    //! Shows axis or not
+    void showAxis(bool show);
+
+    //! Shows ball or not
     void showBall(bool show);
+
+    //! Shows information messages or not
+    void showMessages(bool show);
+
+    //! States if information messages should be displayed
+    bool showMessages();
+
+    void showSelectionMessages();
+    void showMoveMessages();
 
     //! Segment points with polyline
     void segment(bool inside);
@@ -158,6 +162,7 @@ protected:
     //! Draw ball
     void drawBall();
 
+    //! Draw widget gradient background
     void drawGradientBackground();
 
     void setStandardOrthoCenter();
@@ -179,6 +184,9 @@ protected:
     //! States if ball should be drawn
     bool m_bDrawBall;
 
+    //! States if messages should be displayed
+    bool m_bMessages;
+
     //! States if view is centered on object
     bool m_bObjectCenteredView;
 
@@ -188,22 +196,20 @@ protected:
     //! Current interaction mode (with mouse)
     INTERACTION_MODE m_interactionMode;
 
-    //! Temporary Message to display in the lower-left corner
+    //! Temporary Message to display
     struct MessageToDisplay
     {
         //! Message
         QString message;
         //! Message position on screen
         MessagePosition position;
-        //! Message type
-        MessageType type;
     };
 
     //! Trihedron GL list
     GLuint m_trihedronGLList;
 
     //! Ball GL list
-    GLuint m_pivotGLList;
+    GLuint m_ballGLList;
 
     //! List of messages to display
     list<MessageToDisplay> m_messagesToDisplay;

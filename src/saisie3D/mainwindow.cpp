@@ -30,11 +30,11 @@ MainWindow::~MainWindow()
 bool MainWindow::checkForLoadedEntities()
 {
     bool loadedEntities = true;
-    m_glWidget->displayNewMessage(QString(), GLWidget::SCREEN_CENTER_MESSAGE); //clear (any) message in the middle area
+    m_glWidget->displayNewMessage(QString()); //clear (any) message in the middle area
 
     if (!m_glWidget->hasCloudLoaded())
     {
-        m_glWidget->displayNewMessage("Drag & drop files on the window to load them!", GLWidget::SCREEN_CENTER_MESSAGE);
+        m_glWidget->displayNewMessage("Drag & drop .ply file(s) on the window to load them!");
         loadedEntities = false;
     }
 
@@ -79,14 +79,36 @@ void MainWindow::toggleShowBall(bool state)
     m_glWidget->showBall(state);
 }
 
+void MainWindow::toggleShowAxis(bool state)
+{
+    m_glWidget->showAxis(state);
+}
+
+void MainWindow::toggleShowMessages(bool state)
+{
+    m_glWidget->showMessages(state);
+}
+
 void MainWindow::togglePointsSelection(bool state)
 {
     if (state)
+    {
         m_glWidget->setInteractionMode(GLWidget::SEGMENT_POINTS);
+
+        if (m_glWidget->hasCloudLoaded()&&m_glWidget->showMessages())
+        {
+            m_glWidget->showSelectionMessages();
+        }
+    }
     else
     {
         m_glWidget->setInteractionMode(GLWidget::TRANSFORM_CAMERA);
-        m_glWidget->clearPolyline();
+
+        if (m_glWidget->hasCloudLoaded()&&m_glWidget->showMessages())
+        {
+            m_glWidget->clearPolyline();
+            m_glWidget->showMoveMessages();
+        }
     }
 }
 
@@ -95,9 +117,11 @@ void MainWindow::doActionDisplayShortcuts()
     QMessageBox msgBox;
     QString text;
     text += "Shortcuts:\n\n";
-    text += "F2: move mode / selection mode\n";
-    text += "F3: full screen\n";
+    text += "F2: full screen\n";
+    text += "F3: show axis\n";
     text += "F4: show ball\n";
+    text += "F5: show help messages\n";
+    text += "F6: move mode / selection mode\n";
     text += "\n";
     text += "Key +/-: increase/decrease point size\n";
     text += "\n";
@@ -121,10 +145,12 @@ void MainWindow::connectActions()
 {
     connect(m_glWidget,	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
 
-    connect(m_glWidget,	SIGNAL(mouseWheelRotated(float)),			this,       SLOT(echoMouseWheelRotate(float)));
+    connect(m_glWidget,	SIGNAL(mouseWheelRotated(float)),      this, SLOT(echoMouseWheelRotate(float)));
 
     connect(ui->actionFullScreen,       SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
-    connect(ui->actionShow_ball,       SIGNAL(toggled(bool)), this, SLOT(toggleShowBall(bool)));
+    connect(ui->actionShow_axis,        SIGNAL(toggled(bool)), this, SLOT(toggleShowAxis(bool)));
+    connect(ui->actionShow_ball,        SIGNAL(toggled(bool)), this, SLOT(toggleShowBall(bool)));
+    connect(ui->actionShow_help_messages,SIGNAL(toggled(bool)), this, SLOT(toggleShowMessages(bool)));
 
     connect(ui->actionHelpShortcuts,    SIGNAL(triggered()),   this, SLOT(doActionDisplayShortcuts()));
 

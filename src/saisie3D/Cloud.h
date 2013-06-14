@@ -21,6 +21,8 @@ namespace Cloud_
 
             Pt3dr   getCoord()   {return m_position;}
             QColor  getColor()   {return m_color;}
+
+            //! States if a point is visible (ie: selected)
             bool    isVisible()  {return m_bVisible;}
 
             void setCoord(Pt3dr const &aPt)     {m_position = aPt;}
@@ -28,7 +30,7 @@ namespace Cloud_
             void setVisible(bool aVis)          {m_bVisible = aVis;}
 
         private:
-            Pt3dr m_position;
+            Pt3dr   m_position;
             QColor  m_color;
             bool    m_bVisible;
 

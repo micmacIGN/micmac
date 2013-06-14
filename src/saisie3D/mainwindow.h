@@ -23,7 +23,7 @@ public:
     ~MainWindow();
 
     //! Checks for loaded entities
-    /** If none, a message is displayed to invite the user
+    /** If none, a message is displayed to invite user
         to drag & drop files.
     **/
     bool checkForLoadedEntities();
@@ -38,7 +38,9 @@ private slots:
 protected slots:
     void doActionDisplayShortcuts();
     void toggleFullScreen(bool);
+    void toggleShowAxis(bool);
     void toggleShowBall(bool);
+    void toggleShowMessages(bool);
     void togglePointsSelection(bool state);
 
     //default views
