@@ -259,7 +259,7 @@ void Write_Vignette(string aDir, string aNameOut,vector<double> aParam,string aD
 		//Reading the image and creating the objects to be manipulated
 		Pt2di aSz; aSz.x=Sz[0]; aSz.y=Sz[1];
 		aNameOut=aDirOut + aNameOut;
-		Tiff_Im aTF=Tiff_Im::Tiff_Im(aNameOut.c_str(), aSz, GenIm::real4, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
+		Tiff_Im aTF=Tiff_Im(aNameOut.c_str(), aSz, GenIm::real4, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
 
 		Im2D_REAL4  aIm(aSz.x,aSz.y);
 
