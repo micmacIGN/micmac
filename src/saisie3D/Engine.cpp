@@ -105,16 +105,14 @@ void cEngine::doMasks()
                 if (vert.isVisible())  //visible = selected in GLWidget
                 {
                     orig_vert = pOCloud->getVertex(bK);
-                   // orig_vert.setCoord(Pt3dr(orig_vert.x(), orig_vert.y(), orig_vert.z()));
+
                     Pt3dr pt(orig_vert.getCoord());
 
-                   // if (pCam->PIsVisibleInImage(pt)) //visible = projected inside image
-                   // {
-                        //ptIm = pCam->Ter2Capteur(pt);
-                        ptIm = pCam->R3toC2(pt);
-                        cout << "ptIm: " << ptIm.x << " " << ptIm.y << endl;
-                        //mask.set(floor(ptIm.x), floor(ptIm.y), 1);
-                    //}
+                    if (pCam->PIsVisibleInImage(pt)) //visible = projected inside image
+                    {
+                        ptIm = pCam->Ter2Capteur(pt);
+                        mask.set(floor(ptIm.x), floor(ptIm.y), 1);
+                    }
                 }
             }
         }

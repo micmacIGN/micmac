@@ -105,6 +105,7 @@ QStatusBar
     <addaction name="actionFullScreen"/>
     <addaction name="actionShow_axis"/>
     <addaction name="actionShow_ball"/>
+    <addaction name="actionShow_cams"/>
     <addaction name="actionShow_help_messages"/>
     <addaction name="separator"/>
     <addaction name="actionTogglePoints_selection"/>
@@ -242,7 +243,7 @@ QStatusBar
     <string>Toggle between Points selection mode and standard mode</string>
    </property>
    <property name="shortcut">
-    <string>F6</string>
+    <string>F7</string>
    </property>
   </action>
   <action name="actionUndo">
@@ -320,6 +321,17 @@ QStatusBar
    </property>
    <property name="text">
     <string>Show help messages</string>
+   </property>
+   <property name="shortcut">
+    <string>F6</string>
+   </property>
+  </action>
+  <action name="actionShow_cams">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show cams</string>
    </property>
    <property name="shortcut">
     <string>F5</string>

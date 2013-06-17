@@ -40,6 +40,7 @@ protected slots:
     void toggleFullScreen(bool);
     void toggleShowAxis(bool);
     void toggleShowBall(bool);
+    void toggleShowCams(bool);
     void toggleShowMessages(bool);
     void togglePointsSelection(bool state);
 
