@@ -10,43 +10,20 @@ using namespace std;
 
 int main()
 {
-    /*
-    //printf("TestGpGpu");
-    // Cr�ation du contexte GPGPU
-    cudaDeviceProp deviceProp;
-    // Obtention de l'identifiant de la carte la plus puissante
-    int devID = gpuGetMaxGflopsDeviceId();
-    // Initialisation du contexte
-    checkCudaErrors(cudaSetDevice(devID));
-    // Obtention des propriétés de la carte
-    checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
-    // Affichage des propriétés de la carte
-//    printf("\n");
-//    printf("GPU Device %d: \"%s\" with compute capability %d.%d\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
-//    printf("Maximum Threads Per Block : %d\n", deviceProp.maxThreadsPerBlock);
-    Launch();
-    */
+    GpGpuMultiThreadingCpu QQ;
 
-    boost::signal<void()> mySignal;
 
-    GpGpuMultiThreadingCpu myClass;
-    mySignal.connect(boost::bind(&GpGpuMultiThreadingCpu::doSomething, boost::ref(myClass)));
+     cout << "boost::lockfree::queue 1 is ";
 
-    char caract = 0;
+     if (!QQ.spsc_queue_1.is_lock_free())
+         cout << "not ";
 
-    printf("-------\n");
+     cout << "lockfree" << endl;
 
-    // launches a thread and executes myClass.loop() there
-    boost::thread t(boost::bind(&GpGpuMultiThreadingCpu::loop, boost::ref(myClass)));
+     QQ.createThread();
 
-    t.detach();
-
-    // calls myClass.doSomething() in this thread, but loop() executes it in the other
-    for(int i = 0 ; i < 3; i++)
-
-    mySignal();
-
-    std::cin >> caract;
+     cout << "produced " << QQ.producer_count << " objects." << endl;
+     cout << "consumed " << QQ.consumerProducer_count << " objects." << endl;
 
     return 0;
 }
