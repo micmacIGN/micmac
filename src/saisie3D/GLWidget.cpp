@@ -191,6 +191,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
       , m_bCloudLoaded(false)
       , m_bDrawAxis(false)
       , m_bDrawBall(true)
+      , m_bDrawCams(true)
       , m_bMessages(true)
       , m_trihedronGLList(GL_INVALID_LIST_ID)
       , m_ballGLList(GL_INVALID_LIST_ID)
@@ -339,7 +340,7 @@ void GLWidget::paintGL()
         else if (m_bDrawAxis) drawAxis();
     }
 
-    drawCams();
+    if (m_bDrawCams) drawCams();
 
     if (m_interactionMode == SEGMENT_POINTS)
     {
@@ -935,7 +936,7 @@ void GLWidget::drawBall()
     if (m_ballGLList == GL_INVALID_LIST_ID)
     {
         incrNbGLLists();
-        m_ballGLList = getNbGLLists(); //glGenLists(1);
+        m_ballGLList = getNbGLLists();
         glNewList(m_ballGLList, GL_COMPILE);
 
         //draw 3 circles
@@ -1058,6 +1059,7 @@ void GLWidget::drawCams()
 
     glCallList(list);
 
+    glLineWidth(m_params.LineWidth);
     glPopMatrix();
 }
 
@@ -1073,6 +1075,13 @@ void GLWidget::showBall(bool show)
 {
     m_bDrawBall = show;
     if (m_bDrawBall) m_bDrawAxis = false;
+
+    updateGL();
+}
+
+void GLWidget::showCams(bool show)
+{
+    m_bDrawCams = show;
 
     updateGL();
 }

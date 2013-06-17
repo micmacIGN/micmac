@@ -99,6 +99,9 @@ public:
     //! Shows ball or not
     void showBall(bool show);
 
+    //! Shows cams or not
+    void showCams(bool show);
+
     //! Shows help messages or not
     void showMessages(bool show);
 
@@ -193,6 +196,9 @@ protected:
 
     //! States if ball should be drawn
     bool m_bDrawBall;
+
+    //! States if cams should be drawn
+    bool m_bDrawCams;
 
     //! States if messages should be displayed
     bool m_bMessages;
