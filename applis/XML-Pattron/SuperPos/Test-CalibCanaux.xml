@@ -1,0 +1,187 @@
+<CreateCompColoree
+     Subst="@$#1"
+     NameDecl="@$#1"
+
+     --Master="@ESS277_vx026_00160.tif"
+     Master="@ESS277_vx007_00074.tif"
+     NbTestRansac="5000"
+     NbPtsRansac="500"
+
+    Pond1="10 5"
+    Pond2="2 0.5"
+    PixM_HG="5 5"
+    PixM_BD="5 15"
+
+    VoilPan="0"
+    DynPan="1.0"
+>
+
+
+     <MapCCC>
+        <ActivateCmdMap>  false </ActivateCmdMap>
+        <ModeCmdMapeur>
+            <CM_Set>
+                 <KeySet>   Key-Set-Superp-RVB </KeySet>
+                 <NameVarMap>   Master  </NameVarMap>
+            </CM_Set>
+        </ModeCmdMapeur>
+        <ByMkF> MakeSup  </ByMkF>
+        <KeyTargetMkF> Key-Assoc-Target-Im2PXS </KeyTargetMkF>
+     </MapCCC>
+
+     <DicoLoc >
+     </DicoLoc>
+
+     <ShowCalibsRel>
+            <Channel> 1  </Channel>
+            <Channel> 2  </Channel>
+            <Channel> 3  </Channel>
+            <Channel> 4  </Channel>
+
+            <MaxRatio>   2.0  </MaxRatio>
+     </ShowCalibsRel>
+
+        <!-- Si pas donne, Bi Lin -->
+     <!-- 
+     <ParamBiCub> -0.5 </ParamBiCub> 
+     -->
+
+      <ScaleFus> 2.0 </ScaleFus>
+      <TailleBloc>  5000 </TailleBloc>
+      <CorDist> false </CorDist>
+
+
+
+      <EspaceResultSuperpCol>
+          <EnglobBoxMaitresse>     3000 2000  4500  3500 </EnglobBoxMaitresse> 
+<!--
+          <EnglobImMaitre> </EnglobImMaitre> 
+-->
+      </EspaceResultSuperpCol>
+
+
+
+
+
+     <!-- Le modele de deformation est transforme en un grille dont
+       le pas est fixe par StepGrid
+     -->
+     <StepGrid>  50.0 </StepGrid>
+     <WorkDir>  ThisDir  </WorkDir>
+
+
+
+
+     <KeyCalcNameCalib>  Key-Assoc-CalibOfIm </KeyCalcNameCalib>
+
+    <ImMaitresse>
+         <NameOrKey> ${Master} </NameOrKey>
+         <ChannelCmpCol>
+             <Dyn> 1.0 </Dyn>
+             <Offset> -72 </Offset>
+             <In> 0 </In> 
+             <Out> 0 </Out>
+         </ChannelCmpCol>
+    </ImMaitresse>
+
+  <ImSec>
+        <Im>
+             <BoxPixMort >
+                   <HautG> ${PixM_HG} </HautG>
+                   <BasD>  ${PixM_BD} </BasD>
+              </BoxPixMort>
+
+             <NameOrKey> Key-Assoc-Im2L </NameOrKey>
+             <ChannelCmpCol>
+                 <Dyn> ${DynPan} </Dyn>
+                 <Offset> ${VoilPan} </Offset>
+                 <In> 0 </In>
+                 <Out> 1 </Out>
+             </ChannelCmpCol>
+        </Im>
+
+        <KeyCalcNameCorresp>  Key-Assoc-CpleIm2HomolPastis8BitsBin </KeyCalcNameCorresp>
+        <NbTestRansacEstimH > ${NbTestRansac} </NbTestRansacEstimH>
+        <NbPtsRansacEstimH > ${NbPtsRansac} </NbPtsRansacEstimH>
+
+        <PonderaL2Iter>  ${Pond1} </PonderaL2Iter>
+        <PonderaL2Iter>  ${Pond2} </PonderaL2Iter>
+   </ImSec>
+  <ImSec>
+        <Im>
+             <BoxPixMort >
+                   <HautG> ${PixM_HG} </HautG>
+                   <BasD>  ${PixM_BD} </BasD>
+              </BoxPixMort>
+
+             <NameOrKey> Key-Assoc-Im2M </NameOrKey>
+             <ChannelCmpCol>
+                 <Dyn> ${DynPan} </Dyn>
+                 <Offset> ${VoilPan} </Offset>
+                 <In> 0 </In>
+                 <Out> 2 </Out>
+             </ChannelCmpCol>
+        </Im>
+
+        <KeyCalcNameCorresp>  Key-Assoc-CpleIm2HomolPastis8BitsBin </KeyCalcNameCorresp>
+        <NbTestRansacEstimH > ${NbTestRansac} </NbTestRansacEstimH>
+        <NbPtsRansacEstimH > ${NbPtsRansac} </NbPtsRansacEstimH>
+
+        <PonderaL2Iter>  ${Pond1} </PonderaL2Iter>
+        <PonderaL2Iter>  ${Pond2} </PonderaL2Iter>
+   </ImSec>
+  <ImSec>
+        <Im>
+             <BoxPixMort >
+                   <HautG> ${PixM_HG} </HautG>
+                   <BasD>  ${PixM_BD} </BasD>
+              </BoxPixMort>
+
+             <NameOrKey> Key-Assoc-Im2N </NameOrKey>
+             <ChannelCmpCol>
+                 <Dyn> ${DynPan} </Dyn>
+                 <Offset> ${VoilPan} </Offset>
+                 <In> 0 </In>
+                 <Out> 3 </Out>
+             </ChannelCmpCol>
+        </Im>
+
+        <KeyCalcNameCorresp>  Key-Assoc-CpleIm2HomolPastis8BitsBin </KeyCalcNameCorresp>
+        <NbTestRansacEstimH > ${NbTestRansac} </NbTestRansacEstimH>
+        <NbPtsRansacEstimH > ${NbPtsRansac} </NbPtsRansacEstimH>
+
+        <PonderaL2Iter>  ${Pond1} </PonderaL2Iter>
+        <PonderaL2Iter>  ${Pond2} </PonderaL2Iter>
+   </ImSec>
+  <ImSec>
+        <Im>
+             <BoxPixMort >
+                   <HautG> ${PixM_HG} </HautG>
+                   <BasD>  ${PixM_BD} </BasD>
+              </BoxPixMort>
+
+             <NameOrKey> Key-Assoc-Im2O </NameOrKey>
+             <ChannelCmpCol>
+                 <Dyn> ${DynPan} </Dyn>
+                 <Offset> ${VoilPan} </Offset>
+                 <In> 0 </In>
+                 <Out> 4 </Out>
+             </ChannelCmpCol>
+        </Im>
+
+        <KeyCalcNameCorresp>  Key-Assoc-CpleIm2HomolPastis8BitsBin </KeyCalcNameCorresp>
+        <NbTestRansacEstimH > ${NbTestRansac} </NbTestRansacEstimH>
+        <NbPtsRansacEstimH > ${NbPtsRansac} </NbPtsRansacEstimH>
+
+        <PonderaL2Iter>  ${Pond1} </PonderaL2Iter>
+        <PonderaL2Iter>  ${Pond2} </PonderaL2Iter>
+   </ImSec>
+
+
+
+
+</CreateCompColoree>
+
+
+
+
