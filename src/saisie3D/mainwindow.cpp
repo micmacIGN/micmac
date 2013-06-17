@@ -84,6 +84,11 @@ void MainWindow::toggleShowAxis(bool state)
     m_glWidget->showAxis(state);
 }
 
+void MainWindow::toggleShowCams(bool state)
+{
+    m_glWidget->showCams(state);
+}
+
 void MainWindow::toggleShowMessages(bool state)
 {
     m_glWidget->showMessages(state);
@@ -120,8 +125,9 @@ void MainWindow::doActionDisplayShortcuts()
     text += "F2: full screen\n";
     text += "F3: show axis\n";
     text += "F4: show ball\n";
-    text += "F5: show help messages\n";
-    text += "F6: move mode / selection mode\n";
+    text += "F5: show cameras\n";
+    text += "F6: show help messages\n";
+    text += "F7: move mode / selection mode\n";
     text += "\n";
     text += "Key +/-: increase/decrease point size\n";
     text += "\n";
@@ -150,6 +156,7 @@ void MainWindow::connectActions()
     connect(ui->actionFullScreen,       SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
     connect(ui->actionShow_axis,        SIGNAL(toggled(bool)), this, SLOT(toggleShowAxis(bool)));
     connect(ui->actionShow_ball,        SIGNAL(toggled(bool)), this, SLOT(toggleShowBall(bool)));
+    connect(ui->actionShow_cams,        SIGNAL(toggled(bool)), this, SLOT(toggleShowCams(bool)));
     connect(ui->actionShow_help_messages,SIGNAL(toggled(bool)), this, SLOT(toggleShowMessages(bool)));
 
     connect(ui->actionHelpShortcuts,    SIGNAL(triggered()),   this, SLOT(doActionDisplayShortcuts()));
