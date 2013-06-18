@@ -193,10 +193,10 @@ double oneParamRANSAC(vector<double> im1, vector<double> im2){
 return bestK;
 }
 
-vector<vector<double> > Egalisation_factors(vector<vector<double> > aPtsHomol, int nbIm)
+vector<vector<double> > Egalisation_factors(vector<vector<double> > aPtsHomol, int nbIm, int aMasterNum)
 {
 vector<vector<double> > K;
-vector<double> Kgr,KR,KG,KB;
+vector<double> Kgr,KR,KG,KB,Gr;
 
 //int aNbIm=(1+sqrt(1+4*aPtsHomol[0].size()))/2;
 int nbParcouru=0;
@@ -210,8 +210,10 @@ for (int i=0;i<int(aPtsHomol[0].size());i++){
 			KR.push_back(1);
 			KG.push_back(1);
 			KB.push_back(1);
+			Gr.push_back(0);
 		}
 	if(aPtsHomol[0][i]!=0){//if there are homologous points between images
+		//Ransac
 		vector<double> GrIm1(aPtsHomol[1].begin()+nbParcouru,aPtsHomol[1].begin()+nbParcouru+aPtsHomol[0][i]-1);
 		vector<double> RIm1(aPtsHomol[2].begin()+nbParcouru,aPtsHomol[2].begin()+nbParcouru+aPtsHomol[0][i]-1);
 		vector<double> GIm1(aPtsHomol[3].begin()+nbParcouru,aPtsHomol[3].begin()+nbParcouru+aPtsHomol[0][i]-1);
@@ -228,11 +230,32 @@ for (int i=0;i<int(aPtsHomol[0].size());i++){
 		KG.push_back(oneParamRANSAC(GIm1, GIm2));
 		KB.push_back(oneParamRANSAC(BIm1, BIm2));
 
+		//Finding the brightest image step 1 : recording grey values
+		double sumGr1 = std::accumulate(aPtsHomol[1].begin()+nbParcouru,aPtsHomol[1].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
+		Gr.push_back(sumGr1/aPtsHomol[0][i]);
+		//Moyenne des Gr1/Gr2
+		/*
+			double sumGr1 = std::accumulate(aPtsHomol[1].begin()+nbParcouru,aPtsHomol[1].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
+			double sumR1  = std::accumulate(aPtsHomol[2].begin()+nbParcouru,aPtsHomol[2].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
+			double sumG1  = std::accumulate(aPtsHomol[3].begin()+nbParcouru,aPtsHomol[3].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
+			double sumB1  = std::accumulate(aPtsHomol[4].begin()+nbParcouru,aPtsHomol[4].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
+			double sumGr2 = std::accumulate(aPtsHomol[5].begin()+nbParcouru,aPtsHomol[5].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
+			double sumR2  = std::accumulate(aPtsHomol[6].begin()+nbParcouru,aPtsHomol[6].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
+			double sumG2  = std::accumulate(aPtsHomol[7].begin()+nbParcouru,aPtsHomol[7].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
+			double sumB2  = std::accumulate(aPtsHomol[8].begin()+nbParcouru,aPtsHomol[8].begin()+nbParcouru+aPtsHomol[0][i]-1,0.0);
+			nbParcouru=nbParcouru+aPtsHomol[0][i];
+			Kgr.push_back(sumGr1/sumGr2);
+			KR.push_back(sumR1/sumR2);
+			KG.push_back(sumG1/sumG2);
+			KB.push_back(sumB1/sumB2);
+			*/
 		}else{
 			Kgr.push_back(0);
 			KR.push_back(0);
 			KG.push_back(0);
 			KB.push_back(0);
+			Gr.push_back(0);
+
 			}
 
 }
@@ -299,17 +322,17 @@ K_used.push_back(KR_used);K_used.push_back(KG_used);K_used.push_back(KB_used);
 cout<<"Choosing correction to apply"<<endl;
 
 //Selecting the brightest image for reference
-	int imkMax;
-	int imMax;
-	double Kmax = 0;
-	for(int i=0;i<int(K[0].size());i++)
+if(aMasterNum==-1){
+	int imGMax;
+	double Gmax = 0;
+	for(int i=0;i<int(Gr.size());i++)
 	{
-		if(K[0][i]>Kmax){Kmax=K[0][i];imkMax=i;}
+		if(Gr[i]>Gmax){Gmax=Gr[i];imGMax=i;}
 		//cout<<K[0][i]<<endl;
 	}
-	imMax=(imkMax/(nbIm));
-	cout<<"The brightest image is n°"<<imMax<<endl;
-
+	aMasterNum=(imGMax/(nbIm));
+	cout<<"The brightest image is NUM "<<aMasterNum<<endl;
+}
 
 
 cout<<"Solving the system"<<endl;
@@ -318,24 +341,26 @@ vector<vector<double> > aParam3Chan;
 for (unsigned aChan=1;aChan<=3;aChan++){
 // Create L2SysSurResol to solve least square equation with nbIm unknown (equa is Kij*Ki-Kj=0)
 	L2SysSurResol aSys(nbIm);
+
 	//The brightest image is fixed:
-	//double coefsFixe[nbImCst]={0.0};
 	vector<double> coefsFixe(nbIm,0.0);
-		coefsFixe[imMax]=1;
-		double coefsFixeAr[6]={coefsFixe[0],coefsFixe[1],coefsFixe[2],coefsFixe[3],coefsFixe[4],coefsFixe[5]};
+		coefsFixe[aMasterNum]=1;
+		double * coefsFixeAr=&coefsFixe[0];
 		aSys.AddEquation(10000,coefsFixeAr,1);
-  	//For Each K
+
+  	//For Each K, add equation
 	for(unsigned i=0;i<int(nbIm*nbIm);i++){
 			int numImage1=(i/(nbIm));
 			int numImage2=i-numImage1*(nbIm);
-			//double coefs[nbImCst]={0.0};
 			vector<double> coefs(nbIm,0.0);
+			if(numImage1==numImage2 || K[aChan][i]==0){
+			}else{
 			coefs[numImage1]=K[aChan][i];
 			coefs[numImage2]=-1;
-			double coefsAr[6]={coefs[0],coefs[1],coefs[2],coefs[3],coefs[4],coefs[5]};
-			//std::copy ( coefs.begin(), coefs.end(), coefsAr[0] );
-			//cout<<sizeof(coefsAr) / sizeof(double)<<endl;
-			aSys.AddEquation(1,coefsAr,0);//coefs doit être un double * ......
+			}
+			//cout<<coefs[0]<< " " <<coefs[1]<< " " <<coefs[2]<< " " <<coefs[3]<< " " <<coefs[4]<< " " <<coefs[5]<< " " <<coefs[6]<< " " <<coefs[7]<< " " <<coefs[8]<< " " <<coefs[9]<< " " <<coefs[10]<< " " <<coefs[11]<< " " <<coefs[12]<< " " <<coefs[13]<< " " <<coefs[14]<< " " <<coefs[15]<< " " <<coefs[16]<<endl;
+			double * coefsAr=&coefs[0];
+			aSys.AddEquation(1,coefsAr,0);
 	}
 	bool Ok;
     Im1D_REAL8 aSol = aSys.GSSR_Solve(&Ok);
@@ -423,7 +448,7 @@ void Egal_correct(string aDir,std::vector<std::string> * aSetIm,vector<vector<do
 int  Arsenic_main(int argc,char ** argv)
 {
 
-	std::string aFullPattern,aDirOut="Egal/";
+	std::string aFullPattern,aDirOut="Egal/",aMaster="";
 	bool InTxt=false,DoCor=false;
 	  //Reading the arguments
         ElInitArgMain
@@ -434,6 +459,7 @@ int  Arsenic_main(int argc,char ** argv)
 						//<< EAM(InVig,"InVig",true,"Input vignette parameters")
 						<< EAM(InTxt,"InTxt",true,"True if homologous points have been exported in txt (Defaut=false)")
 						<< EAM(DoCor,"DoCor",true,"Use the computed parameters to correct the images (Defaut=false)")
+						<< EAM(aMaster,"Master",true,"Manually define a Master Image (to be used a reference)")
         );
 		std::string aDir,aPatIm;
 		SplitDirAndFile(aDir,aPatIm,aFullPattern);
@@ -446,12 +472,16 @@ int  Arsenic_main(int argc,char ** argv)
 
 		std::vector<std::string> aVectIm=*aSetIm;
 		int nbIm=aVectIm.size();
-
+		//Looking for master image NUM:
+		int aMasterNum=-1;
+		for (int i=0;i<int(nbIm);i++){
+			if(aVectIm[i]==aMaster){aMasterNum=i;cout<<"Found Master image "<<aMaster<<" as image NUM "<<i<<endl;}
+		}
 		//Reading homologous points
 		vector<vector<double> > aPtsHomol=ReadPtsHom(aDir, & aVectIm, Extension);
 
 		cout<<"Computing equalization factors"<<endl;
-		vector<vector<double> > K=Egalisation_factors(aPtsHomol,nbIm);
+		vector<vector<double> > K=Egalisation_factors(aPtsHomol,nbIm,aMasterNum);
 
 
 		if(DoCor){
