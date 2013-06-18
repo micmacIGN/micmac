@@ -11,6 +11,8 @@
 #include "GpGpu/GpGpuOptimisation.h"
 
 
+#define ITERACUDA 20
+
 class GpGpuMultiThreadingCpu
 {
 public:
@@ -28,9 +30,8 @@ public:
     boost::atomic_int consumer_count;
     boost::atomic_int consumerProducer_count;
 
-
-    boost::lockfree::spsc_queue<int, boost::lockfree::capacity<2> > spsc_queue_1;
-    boost::lockfree::spsc_queue<int, boost::lockfree::capacity<2> > spsc_queue_2;
+    boost::lockfree::spsc_queue<CuHostData3D<uint>, boost::lockfree::capacity<2> > spsc_queue_1;
+    boost::lockfree::spsc_queue<CuHostData3D<uint>, boost::lockfree::capacity<2> > spsc_queue_2;
     boost::atomic<bool> done;
     boost::atomic<bool> done_2;
 
@@ -42,14 +43,13 @@ public:
 
 private:
 
-
-
-
     void precomputeCpu();
     void copyResult();
     void threadComputeGpGpu();
     void launchKernel();
 
+    CuHostData3D<uint> producResult;
+    CuHostData3D<uint> consumResult;
 
 };
 
