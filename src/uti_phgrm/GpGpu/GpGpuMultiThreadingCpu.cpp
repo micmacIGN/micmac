@@ -21,8 +21,8 @@ void GpGpuMultiThreadingCpu::producer()
 {
     srand (time(NULL));
     for (int i = 0; i != iterations; ++i) {
-        //int value = ++producer_count;
-           int rdVal  = rand()%((int)1024);
+        ++producer_count;
+        int rdVal  = rand()%((int)1024);
 
         while (!spsc_queue_1.push(rdVal))
             ;
@@ -37,10 +37,24 @@ void GpGpuMultiThreadingCpu::ConsumerProducer()
         while (spsc_queue_1.pop(value))
         {
 
-            while (!spsc_queue_2.push(value))
+            int* pvalue = new int;
+
+            *pvalue = value;
+
+            CuDeviceData3D<int> devValue(1,"devValue");
+
+            devValue.CopyHostToDevice(pvalue);
+
+            Launch(devValue.pData());
+
+            devValue.CopyDevicetoHost(pvalue);
+
+            while (!spsc_queue_2.push(*pvalue))
                 ;
-            printf("ConsumerProducer : %d\n",value);
+            printf("ConsProd 1 : %d\n",value);
             ++consumerProducer_count;
+
+            delete pvalue;
         }
     }
 
@@ -49,7 +63,7 @@ void GpGpuMultiThreadingCpu::ConsumerProducer()
 
         while (!spsc_queue_2.push(value))
             ;
-        printf("ConsumerProducer : %d\n",value);
+        printf("ConsProd 2 : %d\n",value);
         ++consumerProducer_count;
     }
 }
@@ -61,14 +75,14 @@ void GpGpuMultiThreadingCpu::Consumer()
         while (spsc_queue_2.pop(value))
         {
 
-            printf("Consumer : %d\n",value);
+            printf("Consumer 1 : %d\n",value);
             ++consumer_count;
         }
     }
 
     while (spsc_queue_2.pop(value))
     {
-        printf("Consumer : %d\n",value);
+        printf("Consumer 2 : %d\n",value);
         ++consumer_count;
     }
 

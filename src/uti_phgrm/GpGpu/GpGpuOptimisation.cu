@@ -172,7 +172,20 @@ extern "C" void OptimisationOneDirection(Data2Optimiz<CuHostData3D> &d2O)
                                                     );
 }
 
+__global__ void TestGpu(int *value)
+{
+    //printf("otot");
+    value[0] = value[0] + 1;
+}
+
 /// \brief Appel exterieur du kernel
-extern "C" void Launch(){}
+extern "C" void Launch(int *value){
+
+    dim3 Threads(1);
+    dim3 Blocks(1);
+
+    TestGpu<<<Blocks,Threads>>>(value);
+
+}
 
 #endif
