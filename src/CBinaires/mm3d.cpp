@@ -249,6 +249,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 	   aRes.push_back(cMMCom("Vodka",Vignette_main," IN DEV : Compute the vignette correction parameters from tie points"));
        aRes.push_back(cMMCom("mmxv",mmxv_main," Interface to xv (due to problem in tiff lib)"));
        aRes.push_back(cMMCom("CmpIm",CmpIm_main," Tool basic for comparison of images"));
+       aRes.push_back(cMMCom("ImMire",GenMire_main," For generation of some synthetic calibration image"));
        aRes.push_back(cMMCom("Undist",Undist_main," Tool for removing images distortion"));
 
        aRes.push_back(cMMCom("CheckDependencies",CheckDependencies_main," check dependencies to third-party tools"));

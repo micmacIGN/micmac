@@ -464,6 +464,8 @@ int Vignette_main(int argc,char ** argv);
 int Arsenic_main(int argc,char ** argv);
 int Sift_main(int argc,char ** argv);
 int Ann_main(int argc,char ** argv);
+int GenMire_main (int argc,char** argv);
+
 
 
 // uti_phgram

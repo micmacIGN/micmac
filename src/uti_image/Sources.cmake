@@ -22,6 +22,7 @@ list( APPEND uti_image_Src_Files
     ${UTI_IMAGE_DIR}/CPP_Devlop.cpp
     ${UTI_IMAGE_DIR}/CPP_ElDcraw.cpp
     ${UTI_IMAGE_DIR}/CPP_GenXML2Cpp.cpp
+    ${UTI_IMAGE_DIR}/CPP_GenMire.cpp
     ${UTI_IMAGE_DIR}/CPP_GrShade.cpp
     ${UTI_IMAGE_DIR}/CPP_MpDcraw.cpp
     ${UTI_IMAGE_DIR}/CPP_PastDevlop.cpp
