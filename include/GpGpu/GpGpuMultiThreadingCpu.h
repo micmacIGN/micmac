@@ -8,6 +8,7 @@
 #include <boost/atomic.hpp>
 
 #include "GpGpu/GpGpuTools.h"
+#include "GpGpu/GpGpuOptimisation.h"
 
 
 class GpGpuMultiThreadingCpu
