@@ -12,7 +12,7 @@ int main()
 {
     GpGpuMultiThreadingCpu QQ;
 
-
+    srand (time(NULL));
      cout << "boost::lockfree::queue 1 is ";
 
      if (!QQ.spsc_queue_1.is_lock_free())

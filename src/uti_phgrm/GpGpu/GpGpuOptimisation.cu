@@ -172,16 +172,16 @@ extern "C" void OptimisationOneDirection(Data2Optimiz<CuHostData3D> &d2O)
                                                     );
 }
 
-__global__ void TestGpu(int *value)
+__global__ void TestGpu(uint *value)
 {
     //printf("otot");
-    value[0] = value[0] + 1;
+    value[threadIdx.x] = value[threadIdx.x] + 1;
 }
 
 /// \brief Appel exterieur du kernel
-extern "C" void Launch(int *value){
+extern "C" void Launch(uint *value){
 
-    dim3 Threads(1);
+    dim3 Threads(SIZECU);
     dim3 Blocks(1);
 
     TestGpu<<<Blocks,Threads>>>(value);
