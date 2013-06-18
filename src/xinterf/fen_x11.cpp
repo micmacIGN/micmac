@@ -1150,14 +1150,26 @@ Data_Elise_Video_Win::Data_Elise_Video_Win
 
 //-OK-   std::cout << "xazerty   10 \n"; getchar();
 
+    // Modif GM: je n'ai rien compris au code, mais je constate sous MacOS
+    // une erreur :
+    /*
+     X Error of failed request:  BadMatch (invalid parameter attributes)
+     Major opcode of failed request:  73 (X_GetImage)
+     Serial number of failed request:  20
+     Current serial number in output stream:  20
+     */ 
+    // lorsque l'on passe dans le if(1) ci-dessus
+    // empiriquement, l'erreur ne se produit pas si on utilise
+    // XDefaultRootWindow(_devd->_disp) plutot que _w
     _xi = XGetImage
-          (
-              _devd->_disp,
-              _w,
-              0,0,
-              sz.x,1,
-              AllPlanes,ZPixmap
-          );
+    (
+     _devd->_disp,
+     /*_w*/XDefaultRootWindow(_devd->_disp),
+     0,0,
+     sz.x,1,
+     AllPlanes,ZPixmap
+     );
+    
 //-OK-  std::cout << "xazerty   11 \n"; getchar();
     _bli = (U_INT1 *)_xi->data;
 //-OK-  std::cout << "xazerty   12 \n"; getchar();
