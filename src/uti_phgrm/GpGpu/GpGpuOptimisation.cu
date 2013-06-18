@@ -173,66 +173,6 @@ extern "C" void OptimisationOneDirection(Data2Optimiz<CuHostData3D> &d2O)
 }
 
 /// \brief Appel exterieur du kernel
-extern "C" void Launch()
-{
-
-    printf("Test Template\n");
-
-//    Data2Optimiz<CuHostData3D>     H_D2O;
-//    Data2Optimiz<CuDeviceData3D>   D_D2O;
-
-//    H_D2O.ReallocIf(2,2);
-
-//    H_D2O._s_ForceCostVol.FillRandom(0,5);
-//    H_D2O._s_ForceCostVol.OutputValues();
-
-    /*
-    uint    prof        = 40;
-    uint3   dimVolCost  = make_uint3(80,4,prof );
-
-    CuHostData3D<uint>      H_StreamCost      ( make_uint3( dimVolCost.z, dimVolCost.y, dimVolCost.x) );
-    CuHostData3D<uint>      H_ForceCostVol    ( make_uint3( dimVolCost.z, dimVolCost.y, dimVolCost.x) );
-    CuHostData3D<short2>    H_StreamIndex     ( make_uint2( dimVolCost.y, dimVolCost.x ));
-
-    H_StreamCost  .SetName("streamCost");
-    H_StreamIndex .SetName("streamIndex");
-
-    uint si = 0 , sizeStreamCost = 0;
-
-    srand ((uint)time(NULL));
-
-    for(uint i = 0 ; i < dimVolCost.x ; i++)
-    {
-        uint pit         = i     * dimVolCost.y;
-        uint pitLine     = pit   * dimVolCost.z;
-        si =  sizeStreamCost = 0;
-
-        while (si < dimVolCost.y){
-
-            int min                         =  -CData<int>::GetRandomValue(prof / 4,prof / 2 -1);
-            int max                         =   CData<int>::GetRandomValue(prof / 4,prof / 2 -1);
-            int dim                         =   max - min + 1;
-            H_StreamIndex[pit + si]         =   make_short2(min,max);
-
-            for(int i = 0 ; i < dim; i++)
-                H_StreamCost[pitLine + sizeStreamCost + i] = i+1;//CData<uint>::GetRandomValue(16,128);
-
-            si++;
-            sizeStreamCost += dim;
-
-        }
-    }
-
-    int id = 0;
-    H_StreamCost.OutputValues(id);
-
-    //LaunchKernelOptOneDirection(H_StreamCost,H_StreamIndex,H_ForceCostVol);
-
-    H_ForceCostVol.OutputValues(id);
-
-    H_StreamCost.Dealloc();
-    H_StreamIndex.Dealloc();
-    */
-}
+extern "C" void Launch(){}
 
 #endif

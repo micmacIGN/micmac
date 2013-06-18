@@ -63,7 +63,7 @@ template <class Type>   Type operator , (Type,Type)
 
 #ifndef PI
 // const REAL PI =  3.14159265358979323846;
-// Je met un define car j'ai un doute sur le fonctionnenment quans
+// Je mets un define car j'ai un doute sur le fonctionnement quand
 // on initialise d'autres constantes a partir de PI
 #define PI  3.14159265358979323846
 #endif
@@ -90,8 +90,8 @@ class Neigh_Rel;
 
 class Flux_Pts : public  PRC0
 {
-   // &Arg_Flux_Pts_Comp : a reference, juste to allow
-   // the definition of  the class in another file.
+   // &Arg_Flux_Pts_Comp : a reference, just to allow
+   // the definition of the class in another file.
 
 
    public :
