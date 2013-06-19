@@ -54,7 +54,7 @@ Vertex::Vertex(Pt3dr pos, QColor col)
 }
 
 /*!
-    Read a ply file, store the point cloud
+    Read a ply file, store the point cloud and returns true if success.
 */
 Cloud* Cloud::loadPly( string i_filename )
 {
