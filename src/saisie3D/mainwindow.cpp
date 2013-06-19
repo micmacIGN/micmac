@@ -34,7 +34,7 @@ bool MainWindow::checkForLoadedEntities()
 
     if (!m_glWidget->hasCloudLoaded())
     {
-        m_glWidget->displayNewMessage("Drag & drop .ply file(s) on the window to load them!");
+        m_glWidget->displayNewMessage("Drag & drop .ply files on the window to load them!");
         loadedEntities = false;
     }
 
@@ -52,8 +52,6 @@ void MainWindow::addFiles(const QStringList& filenames)
         m_Engine->loadClouds(filenames);
 
         m_glWidget->setData(m_Engine->getData());
-
-        m_glWidget->updateGL();
 
         //set default working directory as first file folder
         QFileInfo fi(filenames[0]);
@@ -120,8 +118,15 @@ void MainWindow::togglePointsSelection(bool state)
 void MainWindow::doActionDisplayShortcuts()
 {
     QMessageBox msgBox;
+    msgBox.setWindowTitle("Saisie3D - shortcuts");
     QString text;
-    text += "Shortcuts:\n\n";
+    text += "File menu:\n\n";
+    text += "Ctrl+P: open .ply files\n";
+    text += "Ctrl+O: open .xml camera files\n";
+    text += "Ctrl+E: export mask files\n";
+    text += "Ctrl+S: open .xml camera and export mask files\n";
+    text += "Ctrl+Q: quit\n\n";
+    text += "View:\n\n";
     text += "F2: full screen\n";
     text += "F3: show axis\n";
     text += "F4: show ball\n";
@@ -129,19 +134,16 @@ void MainWindow::doActionDisplayShortcuts()
     text += "F6: show help messages\n";
     text += "F7: move mode / selection mode\n";
     text += "\n";
-    text += "Key +/-: increase/decrease point size\n";
-    text += "\n";
-    text += "Selection mode:\n";
+    text += "Key +/-: increase/decrease point size\n\n";
+    text += "Selection mode:\n\n";
     text += "    - Left click : add a point to polyline\n";
     text += "    - Right click: close polyline\n";
     text += "    - Echap: delete polyline\n";
     text += "    - Space bar: keep points inside polyline\n";
-    text += "    - Suppr: keep points outside polyline\n";
-    text += "    - Ctrl+Z: undo all past selections\n";
-    text += "\n";
-    text += "Ctrl+O: open camera(s) file(s)\n";
-    text += "Ctrl+E: export mask(s) file(s)\n";
-    text += "Ctrl+S: open camera(s) and export mask(s)\n";
+    text += "    - Shift+Space: add points inside polyline\n";
+    text += "    - Del: keep points outside polyline\n";
+    text += "    - Shift+Del: remove points inside polyline\n";
+    text += "    - Ctrl+Z: undo all past selections\n";  
 
     msgBox.setText(text);
     msgBox.exec();
@@ -153,6 +155,7 @@ void MainWindow::connectActions()
 
     connect(m_glWidget,	SIGNAL(mouseWheelRotated(float)),      this, SLOT(echoMouseWheelRotate(float)));
 
+    //View menu
     connect(ui->actionFullScreen,       SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
     connect(ui->actionShow_axis,        SIGNAL(toggled(bool)), this, SLOT(toggleShowAxis(bool)));
     connect(ui->actionShow_ball,        SIGNAL(toggled(bool)), this, SLOT(toggleShowBall(bool)));
@@ -171,9 +174,12 @@ void MainWindow::connectActions()
     //"Points selection" menu
     connect(ui->actionTogglePoints_selection, SIGNAL(toggled(bool)), this, SLOT(togglePointsSelection(bool)));
 
+    //File menu
+    connect(ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
     connect(ui->actionLoad_camera,		SIGNAL(triggered()),   this, SLOT(loadCameras()));
     connect(ui->actionExport_mask,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
     connect(ui->actionLoad_and_Export,	SIGNAL(triggered()),   this, SLOT(loadAndExport()));
+    connect(ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
 }
 
 void MainWindow::setTopView()
@@ -218,6 +224,15 @@ void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
 void MainWindow::on_actionUndo_triggered()
 {
      m_glWidget->undoAll();
+}
+
+void MainWindow::loadPlys()
+{
+    m_Engine->loadPlys();
+
+    m_glWidget->setData(m_Engine->getData());
+
+    checkForLoadedEntities();
 }
 
 void MainWindow::loadCameras()

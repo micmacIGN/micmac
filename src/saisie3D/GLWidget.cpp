@@ -381,13 +381,21 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     {
         g_mouseLeftDown = true;
 
-        if ((m_interactionMode == SEGMENT_POINTS) && !m_bPolyIsClosed )
+        if (m_interactionMode == SEGMENT_POINTS)
         {
-            if (m_polygon.size() < 2)
-                m_polygon.push_back(m_lastPos);
+            if (!m_bPolyIsClosed )
+            {
+                if (m_polygon.size() < 2)
+                    m_polygon.push_back(m_lastPos);
+                else
+                {
+                    m_polygon[m_polygon.size()-1] = m_lastPos;
+                    m_polygon.push_back(m_lastPos);
+                }
+            }
             else
             {
-                m_polygon[m_polygon.size()-1] = m_lastPos;
+                clearPolyline();
                 m_polygon.push_back(m_lastPos);
             }
         }
@@ -441,6 +449,7 @@ void GLWidget::setData(cData *data)
 {
     m_Data = data;
     setCloudLoaded(true);
+    updateGL();
 }
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -801,11 +810,11 @@ void GLWidget::segment(bool inside)
 
     for (int aK=0; aK < m_Data->NbClouds(); ++aK)
     {
-        Cloud_::Cloud *a_cloud = m_Data->getCloud(aK);
+        Cloud *a_cloud = m_Data->getCloud(aK);
 
         for (int bK=0; bK < a_cloud->size();++bK)
         {
-            Cloud_::Vertex P = a_cloud->getVertex( bK );
+            Vertex P = a_cloud->getVertex( bK );
 
             if (P.isVisible())
             {
@@ -817,8 +826,10 @@ void GLWidget::segment(bool inside)
 
                 pointInside = isPointInsidePoly(P2D,polyg);
 
-                if ((inside && !pointInside)||(!inside && pointInside))
-                    m_Data->getCloud(aK)->getVertex(bK).setVisible(false);
+                if (((inside && !pointInside)||(!inside && pointInside)))
+                    a_cloud->getVertex(bK).setVisible(false);
+                else
+                    a_cloud->getVertex(bK).setVisible(true);
             }
         }
     }
@@ -995,7 +1006,7 @@ void GLWidget::drawCams()
     glPointSize(7);
     if (m_Data->NbClouds())
     {
-        scale = 0.005*m_Data->getCloud(0)->getScale();
+        scale = 0.0005*m_Data->getCloud(0)->getScale();
     }
     for (int i=0; i<m_Data->NbCameras();i++)
     {
