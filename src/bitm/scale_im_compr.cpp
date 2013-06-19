@@ -564,7 +564,7 @@ class Reducteur_Im_Compr  : public StdGray_Scale_Im_Compr
  	    PackB_IM<U_INT1>   pbim () {return _pbim;}
 	private : 
 
-        INT                       _zoom;
+        //INT                       _zoom;
  	    PackB_IM<U_INT1>          _pbim;
  		Data_PackB_IM<U_INT1> *   _dpbim;
 		U_INT1 *                  _line;
@@ -587,7 +587,7 @@ Reducteur_Im_Compr::Reducteur_Im_Compr
 	INT 				zoom
 ) :
 	StdGray_Scale_Im_Compr  (PBIM,PBIM.sz()/zoom),
-	_zoom                   (zoom),
+	//_zoom                   (zoom),
 	 _pbim					(_SzW.x,_SzW.y,0,-128),
 	_dpbim					(_pbim.dpim()),
 	_line					(NEW_VECTEUR(-RAB,_SzW.x+RAB,U_INT1))

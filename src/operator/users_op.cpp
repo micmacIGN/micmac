@@ -56,7 +56,7 @@ Arg_Comp_Simple_OP_UN::Arg_Comp_Simple_OP_UN
    int         dim_out,
    int         sz_buf
 )  :
-         _integer    (integer_fonc),
+         //_integer    (integer_fonc),
          _dim_in     (dim_in),
          _dim_out    (dim_out),
          _sz_buf     (sz_buf)
@@ -71,7 +71,7 @@ Arg_Comp_Simple_OP_BIN::Arg_Comp_Simple_OP_BIN
    int         dim_out,
    int         sz_buf
 )  :
-         _integer    (integer_fonc),
+         //_integer    (integer_fonc),
          _dim_in1    (dim_in1),
          _dim_in2    (dim_in2),
          _dim_out    (dim_out),

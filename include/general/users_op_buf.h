@@ -63,7 +63,7 @@ class   Arg_Comp_Simple_OP_UN
             (bool integer_fonc,int dim_in,int dim_out,INT sz_buf);
 
         private :
-            const bool      _integer;
+            //const bool      _integer;
             const INT        _dim_in;
             const INT       _dim_out;
             const INT       _sz_buf;
@@ -161,7 +161,7 @@ class   Arg_Comp_Simple_OP_BIN
             (bool integer_fonc,int dim_in1,INT dim_in2,int dim_out,INT sz_buf);
 
         private :
-            const bool    _integer;
+            //const bool    _integer;
             const INT     _dim_in1;
             const INT     _dim_in2;
             const INT     _dim_out;

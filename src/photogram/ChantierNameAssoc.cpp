@@ -1238,7 +1238,7 @@ std::string XML_MM_File(const std::string & aFile)
 		) :
 	cInterfChantierNameManipulateur(0,0,aDir),
 		mGlob                          (aGlob),
-		mOrig                          (anOrig),
+		//mOrig                          (anOrig),
 		mSets (cInterfChantierSetNC::StdCalcFromXML(aGlob,aCD.KeyedSetsOfNames())),
 		mAssoc (cInterfChantierNC::StdCalcFromXML(aGlob,aCD.KeyedNamesAssociations())),
 		mAncCompute (0),
