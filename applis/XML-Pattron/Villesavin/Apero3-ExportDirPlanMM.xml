@@ -1,0 +1,145 @@
+<Global
+    Subst="@$#1"
+    NameDecl="@$#1"
+    PatChap="img_(269[0-9]|27[0-6][0-9]|277[0-4])_MpDcraw8B_GR.tif"
+>
+   <ParamApero>
+
+
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> Key-Set-HomolPastisBin  </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>  Key-Assoc-CpleIm2HomolPastisBin   </KeyAssoc>
+             </BDD_PtsLiaisons>
+             <BDD_Orient>
+                  <Id>  IdOrFinale </Id>
+                  <KeySet>   Key-Set-OrFinale       </KeySet>
+                  <KeyAssoc> Key-Assoc-Im2OrFinale  </KeyAssoc>
+             </BDD_Orient>
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>    Orient/AutoCalibVillesavin-Cannon15.xml </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>  ^${PatternAllIm} </PatternName>
+	           <CalcNameCalib>  TheKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+	               <PosFromBDOrient> IdOrFinale </PosFromBDOrient>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+		    <SectionObservations>
+		    </SectionObservations>
+
+                   <SectionExport>
+
+                       <ExportAttrPose>
+                          <KeyAssoc> Key-Assoc-Attr-MM </KeyAssoc>
+                          <PatternApply> img_(2796|2760|2770|2846|2730|2735|2740|2745|2750|2755)_MpDcraw8B_GR.tif </PatternApply>
+                      </ExportAttrPose>
+
+                       <ExportAttrPose>
+                          <KeyAssoc> Key-Assoc-Attr-MM </KeyAssoc>
+                          <AttrSup>     1   </AttrSup>
+                          <PatternApply> img_(2796|2790|2835|2785|2787|2829|2831|2833|2781|2821|2824|2846|2722|2728|2720|2782)_MpDcraw8B_GR.tif </PatternApply>
+                          <ExportDirVerticaleLocale> 
+                              <KeyCalculMasq>  Key-Assoc-Std-MultiMasq-Image </KeyCalculMasq>
+                              <IdBdl >Id_Pastis_Hom </IdBdl>
+                              <Pond>
+                                   <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                   <ModePonderation>  eL1Secured </ModePonderation>
+                                   <SigmaPond> 2.0 </SigmaPond>
+                                   <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                          </ExportDirVerticaleLocale>
+                      </ExportAttrPose>
+
+                       <ExportAttrPose>
+                          <KeyAssoc> Key-Assoc-Attr-MM </KeyAssoc>
+                          <AttrSup>     2   </AttrSup>
+                          <PatternApply> img_(2790|2785|2846|2782)_MpDcraw8B_GR.tif </PatternApply>
+                          <ExportDirVerticaleLocale> 
+                              <KeyCalculMasq>  Key-Assoc-Std-MultiMasq-Image </KeyCalculMasq>
+                              <IdBdl >Id_Pastis_Hom </IdBdl>
+                              <Pond>
+                                   <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                   <ModePonderation>  eL1Secured </ModePonderation>
+                                   <SigmaPond> 2.0 </SigmaPond>
+                                   <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                          </ExportDirVerticaleLocale>
+                      </ExportAttrPose>
+
+                       <ExportAttrPose>
+                          <KeyAssoc> Key-Assoc-Attr-MM </KeyAssoc>
+                          <AttrSup>     3   </AttrSup>
+                          <PatternApply> img_(2790|2787)_MpDcraw8B_GR.tif </PatternApply>
+                          <ExportDirVerticaleLocale> 
+                              <KeyCalculMasq>  Key-Assoc-Std-MultiMasq-Image </KeyCalculMasq>
+                              <IdBdl >Id_Pastis_Hom </IdBdl>
+                              <Pond>
+                                   <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                   <ModePonderation>  eL1Secured </ModePonderation>
+                                   <SigmaPond> 2.0 </SigmaPond>
+                                   <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                          </ExportDirVerticaleLocale>
+                      </ExportAttrPose>
+
+                       <ExportAttrPose>
+                          <KeyAssoc> Key-Assoc-Attr-MM </KeyAssoc>
+                          <AttrSup>     3   </AttrSup>
+                          <PatternApply> img_(2782)_MpDcraw8B_GR.tif </PatternApply>
+                          <ExportDirVerticaleLocale> 
+                              <AttrSup>     3P   </AttrSup>
+                              <KeyCalculMasq>  Key-Assoc-Std-MultiMasq-Image </KeyCalculMasq>
+                              <IdBdl >Id_Pastis_Hom </IdBdl>
+                              <Pond>
+                                   <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                   <ModePonderation>  eL1Secured </ModePonderation>
+                                   <SigmaPond> 2.0 </SigmaPond>
+                                   <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                          </ExportDirVerticaleLocale>
+                      </ExportAttrPose>
+
+
+
+
+
+                   </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
