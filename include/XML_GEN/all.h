@@ -811,7 +811,7 @@ class cStdChantierMonoManipulateur : public cInterfChantierNameManipulateur
 
 
 	 cInterfChantierNameManipulateur * mGlob;
-         eOriSCMN                mOrig;
+         //eOriSCMN                mOrig;
          cInterfChantierSetNC  * mSets;
 	 cInterfChantierNC  * mAssoc;
 	 std::map<tKey,cStdChantierRel *> mRels;

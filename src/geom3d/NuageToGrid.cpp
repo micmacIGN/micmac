@@ -141,10 +141,10 @@ class cLoadImDist
 		Pt2dr               mStep;
 		Pt2di               mSzIm;
 
-		REAL               mT0;
-		REAL               mT1;
-		REAL               mP0;
-		REAL               mP1;
+		//REAL               mT0;
+		//REAL               mT1;
+		//REAL               mP0;
+		//REAL               mP1;
 		REAL               mCurZ;
 		REAL               minZSup;
 

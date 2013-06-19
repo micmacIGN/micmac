@@ -230,7 +230,7 @@ class Flux_Pts_Convertion : public Flux_Pts_Computed
      private :
 
           Flux_Pts_Computed *       _flx;
-          Pack_Of_Pts::type_pack    _type;
+          //Pack_Of_Pts::type_pack    _type;
           Pack_Of_Pts *             _pack_res;
 
 

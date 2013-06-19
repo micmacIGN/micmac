@@ -681,7 +681,7 @@ class Line_1d_Map_Rect_Comp : public Std_Flux_Of_Points<INT>
 
         INT   _x0;         // limit of rectangle
         INT   _x1;         // limit of rectangle
-        INT   _dx;         // the direction of the line
+        //INT   _dx;         // the direction of the line
         bool  _first;
 };
 
@@ -689,7 +689,7 @@ Line_1d_Map_Rect_Comp::Line_1d_Map_Rect_Comp(INT  dx,INT  x0,INT  x1) :
           Std_Flux_Of_Points<INT>(1,ElAbs(x0-x1)),
           _x0    (ElMin(x0,x1)),
           _x1    (ElMax(x0,x1)),
-          _dx    (dx),
+          //_dx    (dx),
           _first (true)
 {
     _pack->set_nb(_x1-_x0);

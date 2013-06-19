@@ -158,7 +158,7 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
             }
         }
     }
-	int nbpts=G1.size();
+	//int nbpts=G1.size();
 	vector<vector<double> > aPtsHomol;
 	vector<double> SZ;
 	SZ.push_back(aSz.x);SZ.push_back(aSz.y);

@@ -206,7 +206,7 @@ std::list<Appar23> cTypeEnglob_Appuis::CreateFromXML
 
 cOneAppuiMul::cOneAppuiMul(const Pt3dr & aPTer,int aNum) :
     mPTer  (aPTer),
-    mNum   (aNum),
+    //mNum   (aNum),
     mPt    (0,1.0)
 {
 }

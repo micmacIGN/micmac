@@ -402,7 +402,7 @@ class cCalibCam_ModeleRadial : public  cCalibCam
      private :
 
         cParamIFDistRadiale &      mPIF;
-	cCamStenopeDistRadPol &    mCamInit;
+	//cCamStenopeDistRadPol &    mCamInit;
 };
 
 
@@ -416,8 +416,8 @@ cCalibCam_ModeleRadial::cCalibCam_ModeleRadial
        cCamStenopeDistRadPol &            aCamInit
 ) :
    cCalibCam (aCIC,false,aKeyId,anAppli,aCCI,aPIF,aCamInit,aCIC.SzIm()),
-   mPIF      (aPIF),
-   mCamInit  (aCamInit)
+   mPIF      (aPIF)//,
+   //mCamInit  (aCamInit)
 {
 }
 
@@ -466,7 +466,7 @@ class cCalibCam_ModeleUnif : public  cCalibCam
      private :
 
         cPIF_Unif_Gen &             mPIF;
-	cCamera_Param_Unif_Gen &    mCamInit;
+	//cCamera_Param_Unif_Gen &    mCamInit;
 };
 
 void cCalibCam_ModeleUnif::Inspect()
@@ -486,8 +486,8 @@ cCalibCam_ModeleUnif::cCalibCam_ModeleUnif
        cCamera_Param_Unif_Gen &            aCamInit
 ) :
    cCalibCam (aCIC,isFE,aKeyId,anAppli,aCCI,aPIF,aCamInit,aCIC.SzIm()),
-   mPIF      (aPIF),
-   mCamInit  (aCamInit)
+   mPIF      (aPIF)//,
+   //mCamInit  (aCamInit)
 {
 }
 
@@ -687,7 +687,7 @@ class cCalibCam_PhgrStd : public  cCalibCam
      private :
 
         cParamIFDistStdPhgr &      mPIF;
-	cCamStenopeModStdPhpgr &    mCamInit;
+	//cCamStenopeModStdPhpgr &    mCamInit;
 };
 
 cCalibCam_PhgrStd::cCalibCam_PhgrStd
@@ -700,8 +700,8 @@ cCalibCam_PhgrStd::cCalibCam_PhgrStd
        cCamStenopeModStdPhpgr &            aCamInit
 ) :
    cCalibCam (aCIC,false,aKeyId,anAppli,aCCI,aPIF,aCamInit,aCIC.SzIm()),
-   mPIF      (aPIF),
-   mCamInit  (aCamInit)
+   mPIF      (aPIF)//,
+   //mCamInit  (aCamInit)
 {
 }
 

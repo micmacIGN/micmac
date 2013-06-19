@@ -344,15 +344,15 @@ class EHFS_ScoreGrad : public ElHoughFiltSeg
 
 		 REAL             mCostChgt;
 
-		 REAL             mEcarTeta;
+		 //REAL             mEcarTeta;
          Im1D_REAL8       mPdsTeta;
          REAL8 *          mDataPdsTeta;
 
-		 REAL8            mEcarMaxLoc;
+		 //REAL8            mEcarMaxLoc;
          Im1D_REAL8       mPdsMaxLoc;
          REAL8 *          mDataPdsMaxLoc;
 
-		 REAL8            mSeuilGrad;
+		 //REAL8            mSeuilGrad;
          Im1D_REAL8       mPdsRho;
          REAL8 *          mDataPdsRho;    
 

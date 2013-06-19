@@ -1065,7 +1065,7 @@ class ElDistPolyDegre2 : public ElDistortion22_Gen
 
 		PolyDegre2XY mPolX;
 		PolyDegre2XY mPolY;
-		REAL         mEpsilon;
+		//REAL         mEpsilon;
 };
 
 
@@ -1730,7 +1730,7 @@ class ElCamera : public cCapture3D
 
          std::string  mIdCam;
 
-         double      mPrecisionEmpriseSol;
+         //double      mPrecisionEmpriseSol;
          cElPolygone mEmpriseSol;
          Box2dr      mBoxSol;
 
