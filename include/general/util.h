@@ -1229,7 +1229,7 @@ class cAppliBatch
 	std::string  mDirSauv;
 	std::string  mDirTmp;
 
-        bool         mFileByICNM;
+        //bool         mFileByICNM;
 	std::string  mPatF1;
 	std::string  mPatF2;
 	std::string  mCurF1;

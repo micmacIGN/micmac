@@ -396,8 +396,8 @@ class Gif_Fich_Im2d  : public Std_Bitm_Fich_Im_2d
 
    public :
        Gif_Fich_Im2d(Flux_Pts_Computed * flx,Data_GifIm *);
-   private :
-       Data_GifIm * _dgi;
+   //private :
+   //    Data_GifIm * _dgi;
 };
 
 
@@ -520,8 +520,8 @@ Gif_Fich_Im2d::Gif_Fich_Im2d
           dgi->name(),
           alloc_im1d(GenIm::u_int1,flx->sz_buf()),
           true
-     ),
-     _dgi (dgi)
+     )//,
+     //_dgi (dgi)
 {
      init_tile(new Gif_Tile_F2d(dgi),0,1,true);
 }

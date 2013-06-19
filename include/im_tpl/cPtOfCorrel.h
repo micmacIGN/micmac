@@ -141,8 +141,8 @@ class cRepartPtInteret
        TIm2D<INT4,INT4> mTPy;
        double    mValRejet;
        double    mDRejMax;
-       double    mDRejCur;
-       double    mDEvCur;
+       //double    mDRejCur;
+       //double    mDEvCur;
        double    mDEvMax;
        Im2D_REAL4  mLastImPond;
 };

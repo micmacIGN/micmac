@@ -1287,8 +1287,8 @@ ElDistPolyDegre2::ElDistPolyDegre2
     REAL EpsilonInv         
 )  :
     mPolX    (aPolX),
-    mPolY    (aPolY),
-    mEpsilon (EpsilonInv)
+    mPolY    (aPolY)//,
+    //mEpsilon (EpsilonInv)
 {
 }
 

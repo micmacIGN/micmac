@@ -1439,7 +1439,7 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
     mProfondeurIsDef (false),
     mProfondeur       (0),
     mIdCam               ("NoName"),
-    mPrecisionEmpriseSol (1e30), 
+    //mPrecisionEmpriseSol (1e30), 
     mRayonUtile (-1),
     mHasDomaineSpecial  (false),
     mDoneScanContU      (false),

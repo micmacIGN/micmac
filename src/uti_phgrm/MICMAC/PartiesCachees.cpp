@@ -111,7 +111,7 @@ class cMicMacZbuf : public cZBuffer
         bool SelectPBascul(const Pt2dr & aP)   const;
 
 
-        const  cAppliMICMAC &            mAppli;
+        //const  cAppliMICMAC &            mAppli;
         Pt2di                mTrGT;
         const cGeomDiscFPx & mGeoT;
         cGeomImage &     mGeom;
@@ -160,7 +160,7 @@ cMicMacZbuf::cMicMacZbuf
         Pt2dr(0,0),
         Pt2dr(aCurEtape->DeZoomTer(),aCurEtape->DeZoomTer())
   ) ,
-  mAppli  (anAppli),
+  //mAppli  (anAppli),
   mTrGT   (aTrGT),
   mGeoT   (aGeomTer),
   mGeom   (aPdv.Geom()),
