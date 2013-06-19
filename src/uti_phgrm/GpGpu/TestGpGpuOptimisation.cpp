@@ -10,8 +10,8 @@ using namespace std;
 
 int main()
 {
-    GpGpuMultiThreadingCpu< CuHostData3D<uint>, CuDeviceData3D<uint> >  JobCpuGpGpu;
-    JobCpuGpGpu.createThread();
+    JobCpuGpuTest JobCpuGpGpu;
+    JobCpuGpGpu.launchJob();
 
 //    cout << "produced " << QQ.producer_count << " objects." << endl;
 //    cout << "consumed " << QQ.consumerProducer_count << " objects." << endl;

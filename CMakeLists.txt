@@ -95,7 +95,7 @@ if (${CUDA_ENABLED})
 	#IFNOT(${WITH_IGN_ORI})
 	set(Boost_USE_STATIC_LIBS TRUE)
 	set(BOOST_USE_SYSTEM FALSE)
-	FIND_PACKAGE( Boost 1.48.0 COMPONENTS system serialization thread signals REQUIRED )
+	FIND_PACKAGE( Boost 1.48.0 COMPONENTS system serialization thread REQUIRED )
 	#chrono
 	 IF(NOT ${WITH_IGN_ORI})
 		  include_directories ( ${Boost_INCLUDE_DIRS} )
