@@ -1,0 +1,98 @@
+
+-1- Terminer l'optimisation par descente sur la ligne des moindres
+carres (traquer LAMBDA MIN pour voir le fichier). 99% du boulot
+est fait (= calcul du score f(Lambda)) , reste une minim par
+recherche dico.  Le gain semble faible ...
+
+
+-2- Ajouter une post-init, en remplacement de celle de powel qui
+a l'air un peu lourde (la tester quand meme). Pour le faire :
+   - faire un blocage de tous les parametres, sauf derniere orient;
+   - faire iteration courante;
+Voir si pas trop lourd avec cholesky, gaussj ...  Si necessaire ajouter
+opt speciale (ou reord tempo des var en cholesky ...)/
+
+
+-3- Pour PDV genre RODIN, tester une force de rappel entre centre et/ou
+matrice.
+
+
+
+======================================================================
+PB altis sol apres bascult
+Orientation en rotation pr basculement
+
+
+
+
+Calcul du PMOY :
+
+  1- ajouter ponderation
+  2- calculer moy des inv de prof de champs
+  3- donner un masque optionnel
+
+
+
+
+
+SIFT->Point multiples + Filtrage points multiples.
+
+Operation dans Apero car necessaire d'avoir une
+souplesse de mise en place. Au moins 3 cas a traiter :
+
+ 1- Cas "standard" (type Golf2) avec mise en place
+ par liaison
+
+ 2-Cas StPaul/StPierre avec utilisation de courtes
+ focales jointes.
+
+ 3- Cas Croco, aucun filtrage possible (a voir,
+  si utilisable);
+
+
+Ensuite ecriture d'un frontal a Apero pour simplifier
+le filtrage.
+
+
+A-Nouvelle possibilite de mise en place;
+ 
+  A1- On donne une image "centrale"
+  A2- Sont chargee les images ayant au moins une image 
+      commune avec elle;
+  A3- Sont chargee en tant que fichier, les points
+      homologues joignant les image;
+  A4- La mise en place se fait avec un strategie de type
+      "Arbre de poids max";
+       
+      Le calcul de l'arbre se fait :
+
+B- Ecriture d'une nouvelle (encore !) classe de point 
+de liaison multiple utilisable pour :
+
+  - 1 le filtrage
+  - 2 l'utilisation recurente 
+
+
+========================================
+
+1- Tests crocos ...
+
+2- Ajouter "nouvelle" mep dans Apero (pb : calcul de plan ?)
+
+
+4- SIFT / vs points multiples :
+   4-1  Fusion des sift (et ? Porto.tif)
+   4-2  Utilisation par Apero.
+
+
+          FAIT-FAIT-FAIT-FAIT- FAIT-FAIT-FAIT-FAIT-
+          FAIT-FAIT-FAIT-FAIT- FAIT-FAIT-FAIT-FAIT-
+          FAIT-FAIT-FAIT-FAIT- FAIT-FAIT-FAIT-FAIT-
+
+0- Export format binaire dans Pastis   => FAITS
+
+3- Mise en place progessive () : ca a l'air de marcher,
+mais ca n'ameliore pas vraiment (avec mise en place
+progressive, les valeurs init ont des residus plus
+fort qu'avec une montee directe; in fine ca converge
+vers le meme point)
