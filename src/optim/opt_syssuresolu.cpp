@@ -392,12 +392,14 @@ void cGenSysSurResol::ShowGSR(int aMode)
 tSysCho  cGenSysSurResol::GetElemQuad(int i,int j) const
 {
    ELISE_ASSERT(false,"cGenSysSurResol::GetElemQuad");
-   return  * ((double *)0);
+   //return  * ((double *)0);
+   return  * ((double *)&i); // this is never reached but this silent clang's warning about non-volatile pointer 
 }
 tSysCho  cGenSysSurResol::GetElemLin(int i) const
 {
    ELISE_ASSERT(false,"cGenSysSurResol::GetElemLin");
-   return  * ((double *)0);
+   //return  * ((double *)0);
+   return  * ((double *)&i); // same as before
 }
 
 void  cGenSysSurResol::SetElemQuad(int i,int j,const tSysCho& )

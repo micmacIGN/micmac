@@ -659,7 +659,7 @@ class cOneAppuiMul
          int   NbInter() const;
      private :
          Pt3dr   mPTer;
-         int     mNum;
+         //int     mNum;
          std::vector<double>      mVPds;
          std::vector<cPoseCam *>  mPoses;
          cNupletPtsHomologues     mPt;
@@ -1376,7 +1376,7 @@ class cOneAppuisFlottant
        Pt3dr mPt;
        Pt3dr mInc;
        Pt3dr mPtRes;
-       cBdAppuisFlottant & mBDF;
+       //cBdAppuisFlottant & mBDF;
 
 };
 

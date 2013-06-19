@@ -64,8 +64,8 @@ cOneAppuisFlottant::cOneAppuisFlottant
     mHasGround (HasGround),
     mPt    (aPt),
     mInc   (anInc),
-    mPtRes (mPt),
-    mBDF   (aBDF)
+    mPtRes (mPt)//,
+    //mBDF   (aBDF)
 {
     // std::cout << "XXXXXXXXXX " << mPt << mName << " HG:: " << mHasGround  << "\n";
     // getchar();
