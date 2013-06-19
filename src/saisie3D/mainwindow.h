@@ -54,6 +54,7 @@ protected slots:
 
     void echoMouseWheelRotate(float);
 
+    void loadPlys();
     void loadCameras();
     void exportMasks();
     void loadAndExport();
