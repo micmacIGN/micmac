@@ -26,7 +26,9 @@ typedef unsigned char pixel;
 #define NOPAGELOCKEDMEMORY false
 #define WARPSIZE 32
 
+
 #define SIZECU 1
+#define NWARP 512
 
 #define DISPLAYOUTPUT
 #define TexFloat2Layered texture<float2,cudaTextureType2DLayered>
