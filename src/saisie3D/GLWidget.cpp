@@ -1,14 +1,4 @@
-﻿#include <QtGui/QMouseEvent>
-#include <QSettings>
-#include <QMessageBox>
-#include <QMimeData>
-#include "GLWidget.h"
-#include "GL/glu.h"
-
-#include <cmath>
-#include <limits>
-#include <iostream>
-#include <algorithm>
+﻿#include "GLWidget.h"
 
 const GLfloat g_trackballScale = 1.f;
 

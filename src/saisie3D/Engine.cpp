@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "general/bitm.h"
 
 cLoader::cLoader()
  : m_FilenamesIn(),
@@ -119,7 +120,9 @@ void cEngine::doMasks()
     {
         pCam = m_Data->getCamera(cK);
 
-        Im2D_BIN mask = Im2D_BIN (pCam->Sz(), 0);
+        //Pt2di camS = pCam->Sz();
+        Im2D_BIN mask = Im2D_BIN(pCam->Sz(), 0);
+        //Im2D_BIN mask(camS,(INT)1);
 
         for (int aK=0; aK < m_Data->NbClouds();++aK)
         {

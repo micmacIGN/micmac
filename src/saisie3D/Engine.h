@@ -6,7 +6,8 @@
 
 #include "Cloud.h"
 #include "Data.h"
-#include "StdAfx.h"
+//#include "StdAfx.h"
+#include "general/bitm.h"
 
 class cLoader : QObject
 {

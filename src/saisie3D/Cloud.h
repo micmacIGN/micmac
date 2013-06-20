@@ -4,8 +4,13 @@
 #include <vector>
 #include <string>
 
-#include <QColor>
 #include "StdAfx.h"
+
+#ifdef Int
+    #undef Int
+#endif
+#include <QColor>
+
 
 namespace Cloud_
 {

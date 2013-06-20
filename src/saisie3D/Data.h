@@ -2,7 +2,6 @@
 #define DATA_H
 
 #include "StdAfx.h"
-#include "general/ptxd.h"
 #include "Cloud.h"
 
 using namespace Cloud_;
