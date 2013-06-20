@@ -6,9 +6,9 @@
 #include "GLWidget.h"
 #include "Engine.h"
 
-#ifdef Int
-    #undef Int
-#endif
+//#ifdef Int
+//    #undef Int
+//#endif
 
 namespace Ui {
 class MainWindow;

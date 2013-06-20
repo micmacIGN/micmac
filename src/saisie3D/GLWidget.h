@@ -1,9 +1,19 @@
 ﻿#ifndef _GLWIDGET_H
 #define _GLWIDGET_H
 
+
+#include <cmath>
+#include <limits>
+#include <iostream>
+#include <algorithm>
+#include "GL/glu.h"
 #include <QtOpenGL/QGLWidget>
 #include <QGLContext>
 #include <QUrl>
+#include <QtGui/QMouseEvent>
+#include <QSettings>
+#include <QMessageBox>
+#include <QMimeData>
 
 #include "Data.h"
 
