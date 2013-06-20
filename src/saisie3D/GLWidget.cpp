@@ -179,6 +179,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
       , m_interactionMode(TRANSFORM_CAMERA)
       , m_font(font())
       , m_bCloudLoaded(false)
+      , m_bCameraLoaded(false)
       , m_bDrawAxis(false)
       , m_bDrawBall(true)
       , m_bDrawCams(true)
@@ -288,26 +289,26 @@ void GLWidget::paintGL()
         glColor3f(1.f,1.f,1.f);
 
         int fontSize = 10;
-        int l_currentHeight = m_glHeight-fontSize*m_messagesToDisplay.size(); //lower
+        int lc_currentHeight = m_glHeight- fontSize*m_messagesToDisplay.size(); //lower center
         int uc_currentHeight = 10;            //upper center
 
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
         while (it != m_messagesToDisplay.end())
         {
+            m_font.setPointSize(fontSize);
+
             switch(it->position)
             {
             case LOWER_CENTER_MESSAGE:
                 {
-                    m_font.setPointSize(fontSize);
                     QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                    renderText((m_glWidth-rect.width())/2, l_currentHeight, it->message,m_font);
+                    renderText((m_glWidth-rect.width())/2, lc_currentHeight, it->message,m_font);
                     int messageHeight = QFontMetrics(m_font).height();
-                    l_currentHeight += (messageHeight*5)/4; //add a 25% margin
+                    lc_currentHeight += (messageHeight*5)/4; //add a 25% margin
                 }
                 break;
             case UPPER_CENTER_MESSAGE:
                 {
-                    m_font.setPointSize(fontSize);
                     QRect rect = QFontMetrics(m_font).boundingRect(it->message);
                     renderText((m_glWidth-rect.width())/2, uc_currentHeight+rect.height(), it->message,m_font);
                     uc_currentHeight += (rect.height()*5)/4; //add a 25% margin
@@ -319,7 +320,6 @@ void GLWidget::paintGL()
                     QRect rect = QFontMetrics(m_font).boundingRect(it->message);
                     renderText((m_glWidth-rect.width())/2, (m_glHeight-rect.height())/2, it->message,m_font);
                 }
-                break;
             }
 
             ++it;
@@ -374,7 +374,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
         if (m_interactionMode == SEGMENT_POINTS)
         {
-            if (!m_bPolyIsClosed )
+            if (!m_bPolyIsClosed)
             {
                 if (m_polygon.size() < 2)
                     m_polygon.push_back(m_lastPos);
@@ -410,7 +410,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
 {
-    switch(event->key())
+   switch(event->key())
     {
     case Qt::Key_Escape:
         clearPolyline();
@@ -432,7 +432,6 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
         break;
     default:
         event->ignore();
-        break;
     }
 }
 
@@ -556,7 +555,7 @@ void GLWidget::draw3D()
     transpose( tmp, g_glMatrix );
     glLoadMatrixf( g_glMatrix );
 
-    //update();
+    update();
 }
 
 void GLWidget::setStandardOrthoCenter()
@@ -645,8 +644,6 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
     g_translationMatrix[0] = m_Data->m_cX;
     g_translationMatrix[1] = m_Data->m_cY;
     g_translationMatrix[2] = m_Data->m_cZ;
-
-    //updateGL();
 }
 
 void GLWidget::onWheelEvent(float wheelDelta_deg)
@@ -745,7 +742,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 bool isPointInsidePoly(const QPoint& P, const QVector < QPoint > poly)
 {
     unsigned vertices=poly.size();
-    if (vertices<2)
+    if (vertices<3)
         return false;
 
     bool inside = false;
@@ -774,9 +771,9 @@ bool isPointInsidePoly(const QPoint& P, const QVector < QPoint > poly)
     return inside;
 }
 
-void GLWidget::segment(bool inside)
+void GLWidget::segment(bool inside, bool add)
 {
-    if (m_polygon.size() < 2)
+    if (m_polygon.size() < 3)
         return;
 
     //viewing parameters
@@ -808,7 +805,7 @@ void GLWidget::segment(bool inside)
         {
             Vertex P = a_cloud->getVertex( bK );
 
-            if (P.isVisible())
+            if (add)
             {
                 GLdouble xp,yp,zp;
                 gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
@@ -818,10 +815,28 @@ void GLWidget::segment(bool inside)
 
                 pointInside = isPointInsidePoly(P2D,polyg);
 
-                if (((inside && !pointInside)||(!inside && pointInside)))
-                    a_cloud->getVertex(bK).setVisible(false);
-                else
+                if (pointInside||P.isVisible())
                     a_cloud->getVertex(bK).setVisible(true);
+                else
+                    a_cloud->getVertex(bK).setVisible(false);
+            }
+            else
+            {
+                if (P.isVisible())
+                {
+                    GLdouble xp,yp,zp;
+                    gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
+
+                    P2D.setX(xp);
+                    P2D.setY(yp);
+
+                    pointInside = isPointInsidePoly(P2D,polyg);
+
+                    if (((inside && !pointInside)||(!inside && pointInside)))
+                        a_cloud->getVertex(bK).setVisible(false);
+                    else
+                        a_cloud->getVertex(bK).setVisible(true);
+                }
             }
         }
     }
@@ -1110,7 +1125,7 @@ void GLWidget::showSelectionMessages()
     displayNewMessage(QString());
     displayNewMessage("Selection mode",UPPER_CENTER_MESSAGE);
     displayNewMessage("Left click: add contour point / Right click: close / Echap: delete polyline",LOWER_CENTER_MESSAGE);
-    displayNewMessage("Space: keep points inside polyline / Suppr: keep points outside polyline",LOWER_CENTER_MESSAGE);
+    displayNewMessage("Space: keep points inside polyline / Shift+Space: add points inside polyline / Suppr: keep points outside polyline",LOWER_CENTER_MESSAGE);
 }
 
 void GLWidget::showMoveMessages()
