@@ -47,7 +47,6 @@ namespace Cloud_
             Cloud();
             Cloud(std::vector<Vertex> const &);
 
-            // renvoie true si le fichier a pu être lu
             static Cloud* loadPly( std::string );
 
             void    addVertex( const Vertex & );

@@ -51,6 +51,9 @@ class cEngine
         //! Load point cloud .ply files
         void loadPlys();
 
+        //! Load cameras .xml files
+        void loadCameras(QStringList);
+
         //! Load cameras orientation files
         void loadCameras();
 

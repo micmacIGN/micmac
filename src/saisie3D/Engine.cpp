@@ -27,7 +27,7 @@ vector <Cloud *> cLoader::loadClouds()
 {
    vector <Cloud *> a_res;
 
-   QStringList FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Ply Files"), m_Dir.path(), tr("Files (*.ply)"));
+   QStringList FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Cloud Files"), m_Dir.path(), tr("Files (*.ply)"));
 
    for (int aK=0;aK < FilenamesIn.size();++aK)
    {
@@ -44,7 +44,6 @@ vector <Cloud *> cLoader::loadClouds()
 
    return a_res;
 }
-
 
 vector <CamStenope *> cLoader::loadCameras()
 {
@@ -100,6 +99,14 @@ void cEngine::loadClouds(QStringList filenames)
 void cEngine::loadPlys()
 {
     m_Data->addClouds(m_Loader->loadClouds());
+}
+
+void cEngine::loadCameras(QStringList filenames)
+{
+    for (int i=0;i<filenames.size();++i)
+    {
+        m_Data->addCamera(m_Loader->loadCamera(filenames[i].toStdString()));
+    }
 }
 
 void cEngine::loadCameras()

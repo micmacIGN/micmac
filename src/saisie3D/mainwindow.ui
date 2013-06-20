@@ -114,7 +114,6 @@ QStatusBar
     </property>
     <addaction name="actionTogglePoints_selection"/>
     <addaction name="actionAdd_points"/>
-    <addaction name="actionDelete_points"/>
     <addaction name="actionUndo"/>
    </widget>
    <widget class="QMenu" name="menuFile">
@@ -360,17 +359,6 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>Shift+Space</string>
-   </property>
-  </action>
-  <action name="actionDelete_points">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Delete points</string>
-   </property>
-   <property name="shortcut">
-    <string>Shift+Del</string>
    </property>
   </action>
   <action name="actionExit">
