@@ -246,6 +246,7 @@ void GLWidget::resizeGL(int width, int height)
 
 void GLWidget::paintGL()
 {
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
 
@@ -555,7 +556,7 @@ void GLWidget::draw3D()
     transpose( tmp, g_glMatrix );
     glLoadMatrixf( g_glMatrix );
 
-    update();
+    //update();
 }
 
 void GLWidget::setStandardOrthoCenter()
@@ -645,7 +646,7 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
     g_translationMatrix[1] = m_Data->m_cY;
     g_translationMatrix[2] = m_Data->m_cZ;
 
-    updateGL();
+    //updateGL();
 }
 
 void GLWidget::onWheelEvent(float wheelDelta_deg)
@@ -713,18 +714,19 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         }
 
         event->ignore();
-        return;
     }
-    else
+    else if (g_mouseLeftDown || g_mouseRightDown)
     {
+
         QPoint dp = event->pos()-m_lastPos;
 
         m_lastPos = event->pos();
 
         if ( g_mouseLeftDown )
         {         
-            setRotateOx_m33( ( g_trackballScale*dp.y() )/m_glHeight, g_rotationOx );
-            setRotateOy_m33( ( g_trackballScale*dp.x() )/m_glWidth, g_rotationOy );
+            float speedRot = 2.5f;
+            setRotateOx_m33( ( speedRot * g_trackballScale*dp.y() )/m_glHeight, g_rotationOx );
+            setRotateOy_m33( ( speedRot * g_trackballScale*dp.x() )/m_glWidth, g_rotationOy );
 
             mult_m33( g_rotationOx, g_rotationMatrix, g_tmpMatrix );
             mult_m33( g_rotationOy, g_tmpMatrix, g_rotationMatrix );
