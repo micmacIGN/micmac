@@ -10,11 +10,8 @@
 #include "GpGpu/GpGpuTools.h"
 #include "GpGpu/GpGpuOptimisation.h"
 
-
-#define ITERACUDA 8
-
-#define SIZERING 2
-
+#define ITERACUDA   2
+#define SIZERING    2
 
 template< class H, class D >
 class GpGpuMultiThreadingCpu
@@ -25,46 +22,43 @@ public:
     ~GpGpuMultiThreadingCpu();
 
     void launchJob();
-    D&  GetDataDevice(){return _devicePrecompute;}
+    D&  GetDeviIN() {return _devi_IN;}
+    H*  GetHostIn() {return _host_IN;}
+    H*  GetHostOut(){return _host_OUT;}
 
 private:
 
     virtual void InitPrecompute()           = 0;
-    virtual void Precompute(uint idBuffer)  = 0;
-    virtual void GpuCompute(H* host_In,H* host_Out) = 0;
+    virtual void Precompute(H* hostIn)      = 0;
+    virtual void GpuCompute()               = 0;
 
     void producer(void);
     void ConsProd(void);
     void Consumer(void);
 
-    int                 producer_count;
     const int           iterations;
-    boost::atomic_int   consumer_count;
-    boost::atomic_int   consumerProducer_count;
 
-    boost::lockfree::spsc_queue<CuHostData3D<uint> *, boost::lockfree::capacity<SIZERING> > spsc_queue_1;
-    boost::lockfree::spsc_queue<CuHostData3D<uint> *, boost::lockfree::capacity<SIZERING> > spsc_queue_2;
+    boost::lockfree::spsc_queue<H*, boost::lockfree::capacity<SIZERING> > spsc_queue_1;
+    boost::lockfree::spsc_queue<H*, boost::lockfree::capacity<SIZERING> > spsc_queue_2;
     boost::atomic<bool> done_PreComp;
     boost::atomic<bool> done_GPU;
 
-    boost::thread *producer_thread;
-    boost::thread *consProd_thread;
-    boost::thread *consumer_thread;
+    boost::thread*  _producer_thread;
+    boost::thread*  _consProd_thread;
+    boost::thread*  _consumer_thread;
 
-    H _ringBuffer[SIZERING+1];
+    H               _ringBuffer[SIZERING+1];
 
-    H *_hostPrecompute;
-    H *_hostResult;
-    D _devicePrecompute;
+    H*              _host_IN;
+    H*              _host_OUT;
+    D               _devi_IN;
+    D               _devi_OUT;
 
 };
 
 template< class H, class D >
-GpGpuMultiThreadingCpu<H,D>::GpGpuMultiThreadingCpu():
-    //producer_count(0),
+GpGpuMultiThreadingCpu<H,D>::GpGpuMultiThreadingCpu():    
     iterations(ITERACUDA),
-    consumer_count(0),
-    consumerProducer_count(0),
     done_PreComp(false),
     done_GPU(false)
 {
@@ -73,18 +67,15 @@ GpGpuMultiThreadingCpu<H,D>::GpGpuMultiThreadingCpu():
     for(int i = 0 ; i < SIZERING + 1; i++)
     {
         _ringBuffer[i].Realloc(NWARP * WARPSIZE);
-        _ringBuffer[i].FillRandom((uint)0,(uint)128);
+       // _ringBuffer[i].FillRandom((uint)0,(uint)128);
     }
 
-    _hostResult = new H((uint)NWARP * WARPSIZE);
-    _devicePrecompute.Realloc(NWARP * WARPSIZE);
+    _host_OUT = new H((uint)NWARP * WARPSIZE);
+    _devi_IN.Realloc(NWARP * WARPSIZE);
 }
 
 template< class H, class D >
-GpGpuMultiThreadingCpu<H,D>::~GpGpuMultiThreadingCpu()
-{
-
-}
+GpGpuMultiThreadingCpu<H,D>::~GpGpuMultiThreadingCpu(){}
 
 template< class H, class D >
 void GpGpuMultiThreadingCpu<H,D>::producer()
@@ -93,52 +84,37 @@ void GpGpuMultiThreadingCpu<H,D>::producer()
 
     for (int i = 0; i != iterations; ++i)
     {
-        Precompute(Idbuf);
+        Precompute(_ringBuffer + Idbuf);
+
+        (_ringBuffer + Idbuf)->OutputValues();
 
         while (!spsc_queue_1.push(_ringBuffer + Idbuf));
 
-        //(_ringBuffer + Idbuf)->OutputValues();
-
         Idbuf = (Idbuf + 1)%(SIZERING+1);
-
-    }
-
+    }   
 }
 
 template< class H, class D >
 void GpGpuMultiThreadingCpu<H,D>::ConsProd()
 {
-
-
     while (!done_PreComp) {
-        while (spsc_queue_1.pop(_hostPrecompute))
+        while (spsc_queue_1.pop(_host_IN))
         {
+            GetDeviIN().CopyHostToDevice(_host_IN->pData());
 
-//            _devicePrecompute.CopyHostToDevice(_hostPrecompute->pData());
+            GpuCompute();
 
-//            Launch(_devicePrecompute.pData());
+            GetDeviIN().CopyDevicetoHost(_host_OUT->pData());
 
-//            _devicePrecompute.CopyDevicetoHost(_hostResult->pData());
-
-            GpuCompute(_hostPrecompute,_hostResult);
-
-            while (!spsc_queue_2.push(_hostResult))
-                ;
-
-            ++consumerProducer_count;
+            while (!spsc_queue_2.push(_host_OUT))
+                ;         
         }
     }
 
-    while (spsc_queue_1.pop(_hostPrecompute))
-    {
+    while (spsc_queue_1.pop(_host_IN))
+        while (!spsc_queue_2.push(_host_IN));
 
-        while (!spsc_queue_2.push(_hostPrecompute))
-            ;
-        //printf("ConsProd 2 : %d\n",(*value)[0]);
-        ++consumerProducer_count;
-    }
-
-    _devicePrecompute.Dealloc();
+    _devi_IN.Dealloc();
 
 }
 
@@ -148,32 +124,24 @@ void GpGpuMultiThreadingCpu<H,D>::Consumer()
     H  *result;
 
     while (!done_GPU)
-        while (spsc_queue_2.pop(result))
-            ++consumer_count;
+        while (spsc_queue_2.pop(result));
 
-    //result->OutputValues();
+    result->OutputValues();
 }
-
-
-template< class H, class D >
-void GpGpuMultiThreadingCpu<H,D>::Precompute(uint idBuffer)
-{
-}
-
 
 template< class H, class D >
 void GpGpuMultiThreadingCpu<H,D>::launchJob()
 {
 
-    producer_thread = new boost::thread(&GpGpuMultiThreadingCpu::producer,this);
-    consProd_thread = new boost::thread(&GpGpuMultiThreadingCpu::ConsProd,this);
-    consumer_thread = new boost::thread(&GpGpuMultiThreadingCpu::Consumer,this);
+    _producer_thread = new boost::thread(&GpGpuMultiThreadingCpu::producer,this);
+    _consProd_thread = new boost::thread(&GpGpuMultiThreadingCpu::ConsProd,this);
+    _consumer_thread = new boost::thread(&GpGpuMultiThreadingCpu::Consumer,this);
 
-    producer_thread->join();
+    _producer_thread->join();
     done_PreComp = true;
-    consProd_thread->join();
+    _consProd_thread->join();
     done_GPU = true;
-    consumer_thread->join();
+    _consumer_thread->join();
 
 }
 
@@ -188,20 +156,19 @@ public:
 
  private:
     virtual void InitPrecompute();
-    virtual void Precompute(uint idBuffer);
-    virtual void GpuCompute(UINT3D* host_In,UINT3D* host_Out)
-    {
-
-        GetDataDevice().CopyHostToDevice(host_In->pData());
-
-        //Launch((uint*)GetDataDevice().pData());
-
-        GetDataDevice().CopyDevicetoHost(host_Out->pData());
-
-     }
+    virtual void Precompute(UINT3D* hostIn);
+    virtual void GpuCompute(){ Launch((uint*)GetDeviIN().pData()); }
 
 };
 
+void JobCpuGpuTest::InitPrecompute(){}
+
+void JobCpuGpuTest::Precompute(UINT3D* hostIn)
+{
+
+    hostIn->FillRandom((uint)0,(uint)128);
+
+}
 
 
 #endif //__GPGPU_MULTITHREADING_CPU_H__
