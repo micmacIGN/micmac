@@ -125,6 +125,7 @@ QStatusBar
     <addaction name="actionLoad_camera"/>
     <addaction name="actionExport_mask"/>
     <addaction name="actionLoad_and_Export"/>
+    <addaction name="actionSave_selection"/>
     <addaction name="actionExit"/>
    </widget>
    <addaction name="menuFile"/>
@@ -304,7 +305,7 @@ QStatusBar
     <string>Load and Export</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+S</string>
+    <string>Ctrl+Shift+S</string>
    </property>
   </action>
   <action name="actionShow_ball">
@@ -390,6 +391,17 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>.</string>
+   </property>
+  </action>
+  <action name="actionSave_selection">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Save selection stack</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
  </widget>

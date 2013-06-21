@@ -46,6 +46,10 @@ public:
 
     //! Line width
     float LineWidth;
+
+    //! Rotation angles
+    float angleX;
+    float angleY;
 };
 
 class GLWidget : public QGLWidget
@@ -148,6 +152,9 @@ public:
     //! Increase or decrease point size
     void ptSizeUp(bool);
 
+    //! Save viewing directions and polylines in Filename
+    void saveSelectionInfos(QString Filename);
+
 public slots:
     void zoom();
 
@@ -198,6 +205,10 @@ protected:
     GLuint getNbGLLists() { return m_nbGLLists; }
     void incrNbGLLists() { m_nbGLLists++; }
     void resetNbGLLists(){ m_nbGLLists = 0; }
+
+    void storeInfos(bool inside, bool add);
+
+    void setAngles(float angleX, float angleY);
 
     //! GL context width
     int m_glWidth;
@@ -260,8 +271,14 @@ protected:
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
 
+    //! Input infos list
+    QVector < cSaisieInfos > m_infos;
+
     //! Data to display
     cData *m_Data;
+
+    //! acceleration factor
+    float m_speed;
 };
 
 #endif  /* _GLWIDGET_H */

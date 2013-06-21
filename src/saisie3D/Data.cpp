@@ -65,9 +65,9 @@ void cData::centerCloud(Cloud * aCloud)
         Vertex vert = aCloud->getVertex(aK);
         Vertex vert_res = vert;
 
-        pt3d.x = (vert.x() - m_cX) / m_diam;
-        pt3d.y = (vert.y() - m_cY) / m_diam;
-        pt3d.z = (vert.z() - m_cZ) / m_diam;
+        pt3d.x = (vert.x() - m_cX);// / m_diam;
+        pt3d.y = (vert.y() - m_cY);// / m_diam;
+        pt3d.z = (vert.z() - m_cZ);// / m_diam;
 
         vert_res.setCoord(pt3d);
         vert_res.setColor(vert.getColor());
@@ -106,4 +106,20 @@ void cData::centerCloud(Cloud * aCloud)
 
     m_Clouds.push_back(a_res);
     m_oClouds.push_back(aCloud);
+}
+
+//********************************************************************************
+
+cSaisieInfos::cSaisieInfos(){}
+
+cSaisieInfos::~cSaisieInfos(){}
+
+cSaisieInfos::cSaisieInfos(float rotX, float rotY, float translation[], float scale, QVector<QPoint> polyline, SELECTION_MODE selMode)
+{
+    m_rotationX = rotX;
+    m_rotationY = rotY;
+    m_translation = translation;
+    m_scale = scale;
+    m_poly = polyline;
+    m_selection_mode = selMode;
 }
