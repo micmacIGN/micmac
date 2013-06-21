@@ -8,7 +8,9 @@
 #include <boost/atomic.hpp>
 
 #include "GpGpu/GpGpuTools.h"
-#include "GpGpu/GpGpuOptimisation.h"
+//#include "GpGpu/GpGpuOptimisation.h"
+
+extern "C" void Launch(uint* value);
 
 #define ITERACUDA   2
 #define SIZERING    2
@@ -64,11 +66,8 @@ GpGpuMultiThreadingCpu<H,D>::GpGpuMultiThreadingCpu():
 {
 
     srand (time(NULL));
-    for(int i = 0 ; i < SIZERING + 1; i++)
-    {
+    for(int i = 0 ; i < SIZERING + 1; i++)    
         _ringBuffer[i].Realloc(NWARP * WARPSIZE);
-       // _ringBuffer[i].FillRandom((uint)0,(uint)128);
-    }
 
     _host_OUT = new H((uint)NWARP * WARPSIZE);
     _devi_IN.Realloc(NWARP * WARPSIZE);
@@ -126,7 +125,7 @@ void GpGpuMultiThreadingCpu<H,D>::Consumer()
     while (!done_GPU)
         while (spsc_queue_2.pop(result));
 
-    result->OutputValues();
+    //result->OutputValues();
 }
 
 template< class H, class D >
@@ -145,9 +144,10 @@ void GpGpuMultiThreadingCpu<H,D>::launchJob()
 
 }
 
-#define UINT3D CuHostData3D<uint>
+#define HOST_UINT3D CuHostData3D<uint>
+#define DEVI_UINT3D CuDeviceData3D<uint>
 
-class JobCpuGpuTest : public GpGpuMultiThreadingCpu< UINT3D, CuDeviceData3D<uint> >
+class JobCpuGpuTest : public GpGpuMultiThreadingCpu< HOST_UINT3D, DEVI_UINT3D >
 {
 public:
 
@@ -155,20 +155,10 @@ public:
     ~JobCpuGpuTest(){}
 
  private:
-    virtual void InitPrecompute();
-    virtual void Precompute(UINT3D* hostIn);
-    virtual void GpuCompute(){ Launch((uint*)GetDeviIN().pData()); }
-
+    virtual void InitPrecompute(){}
+    virtual void Precompute(HOST_UINT3D* hostIn){hostIn->FillRandom((uint)0,(uint)128);}
+    virtual void GpuCompute(){Launch((uint*)GetDeviIN().pData());}
 };
-
-void JobCpuGpuTest::InitPrecompute(){}
-
-void JobCpuGpuTest::Precompute(UINT3D* hostIn)
-{
-
-    hostIn->FillRandom((uint)0,(uint)128);
-
-}
 
 
 #endif //__GPGPU_MULTITHREADING_CPU_H__
