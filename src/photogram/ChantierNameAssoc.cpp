@@ -426,8 +426,11 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 		{
 			// if the /proc filesystem is not available, try using the "which" command
 			bool whichSucceed = ElGetStrSys( "which "+ std::string( argv[0] ), aFulArg0 );
-			// remove the which's ending '\n'
-			aFulArg0.resize( aFulArg0.size()-1 );
+			
+            // modif Greg: il y a un probleme sous MacOS, on perd le 'd' de mm3d
+            // remove the which's ending '\n'
+			if (aFulArg0[aFulArg0.size()-1] == '\n')
+                aFulArg0.resize( aFulArg0.size()-1 );
 						
 			// if which failed then we're doomed
 			ELISE_ASSERT( whichSucceed, "MMD_InitArgcArgv : unable to retrieve binaries directory" );
@@ -445,6 +448,7 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 		}
 		CurrentProgramFullName = aFulArg0;
 #endif
+        
 		if ( argc>1 ) CurrentProgramFullName.append( std::string( " " )+argv[1] );
 
 
