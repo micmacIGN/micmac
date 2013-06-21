@@ -31,7 +31,8 @@ SOURCES += main.cpp\
 HEADERS  += mainwindow.h\
             GLWidget.h \
             Data.h \
-            Engine.h
+            Engine.h \
+    Cloud.h
 
 FORMS    += \
     mainwindow.ui
@@ -50,6 +51,7 @@ DEPENDPATH += $$PWD/../../include
 CONFIG(release)
 {
 unix|win32: LIBS += -L$$PWD/../../lib -lelise
+unix: LIBS += -lGLU
 
 win32: PRE_TARGETDEPS += $$PWD/../../lib/elise.lib
 else:unix: PRE_TARGETDEPS += $$PWD/../../lib/libelise.a
@@ -59,7 +61,8 @@ else:unix: PRE_TARGETDEPS += $$PWD/../../lib/libelise.a
 CONFIG(debug)
 {
 unix|win32: LIBS += -L$$PWD/../../bin -lelise
+unix: LIBS += -lGLU
 
-win32: PRE_TARGETDEPS += $$PWD/../../bin/elise.lib
-else:unix: PRE_TARGETDEPS += $$PWD/../../bin/libelise.a
+win32: PRE_TARGETDEPS += $$PWD/../../lib/elise.lib
+else:unix: PRE_TARGETDEPS += $$PWD/../../lib/libelise.a
 }

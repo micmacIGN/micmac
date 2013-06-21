@@ -1,12 +1,5 @@
 #include "GpGpu/GpGpuMultiThreadingCpu.h"
 
-void JobCpuGpuTest::InitPrecompute()
-{
-}
-
-void JobCpuGpuTest::Precompute(uint idBuffer)
-{
-}
 
 
 //void JobCpuGpuTest::GpuCompute(UINT3D* host_In,UINT3D* host_Out)

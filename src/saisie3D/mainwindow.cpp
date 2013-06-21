@@ -32,9 +32,9 @@ bool MainWindow::checkForLoadedEntities()
     bool loadedEntities = true;
     m_glWidget->displayNewMessage(QString()); //clear (any) message in the middle area
 
-    if (!m_glWidget->hasCloudLoaded())
+    if (!m_glWidget->hasDataLoaded())
     {
-        m_glWidget->displayNewMessage("Drag & drop .ply files on the window to load them!");
+        m_glWidget->displayNewMessage("Drag & drop files on window to load them!");
         loadedEntities = false;
     }
 
@@ -45,19 +45,30 @@ void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
     {
+        QFileInfo fi(filenames[0]);
+
+        //set default working directory as first file subfolder
+        QDir Dir = fi.dir();
+        Dir.cdUp();
+        m_Engine->setDir(Dir);
+
         #ifdef _DEBUG
             printf("adding files %s", filenames[0]);
         #endif
 
-        m_Engine->loadClouds(filenames);
+        if (fi.suffix() == "ply")
+        {
+            m_Engine->loadClouds(filenames);
 
-        m_glWidget->setData(m_Engine->getData());
+            m_glWidget->setData(m_Engine->getData());
+        }
+        else if (fi.suffix() == "xml")
+        {
+            m_Engine->loadCameras(filenames);
 
-        //set default working directory as first file folder
-        QFileInfo fi(filenames[0]);
-        QDir Dir = fi.dir();
-        Dir.cdUp();
-        m_Engine->setDir(Dir);
+            m_glWidget->setCameraLoaded(true);
+            m_glWidget->updateGL();
+        }
 
         checkForLoadedEntities();
     }
@@ -69,7 +80,6 @@ void MainWindow::toggleFullScreen(bool state)
         showFullScreen();
     else
         showNormal();
-    m_glWidget->updateGL();
 }
 
 void MainWindow::toggleShowBall(bool state)
@@ -117,10 +127,7 @@ void MainWindow::togglePointsSelection(bool state)
 
 void MainWindow::doActionDisplayShortcuts()
 {
-    QMessageBox msgBox;
-    msgBox.setWindowTitle("Saisie3D - shortcuts");
-    QString text;
-    text += "File menu:\n\n";
+    QString text = "File menu:\n\n";
     text += "Ctrl+P: open .ply files\n";
     text += "Ctrl+O: open .xml camera files\n";
     text += "Ctrl+E: export mask files\n";
@@ -142,11 +149,10 @@ void MainWindow::doActionDisplayShortcuts()
     text += "    - Space bar: keep points inside polyline\n";
     text += "    - Shift+Space: add points inside polyline\n";
     text += "    - Del: keep points outside polyline\n";
-    text += "    - Shift+Del: remove points inside polyline\n";
-    text += "    - Ctrl+Z: undo all past selections\n";  
+    text += "    - . : delete closest point in polyline\n";
+    text += "    - Ctrl+Z: undo all past selections";
 
-    msgBox.setText(text);
-    msgBox.exec();
+    QMessageBox::information(NULL, "Saisie3D - shortcuts", text);
 }
 
 void MainWindow::connectActions()
@@ -173,6 +179,8 @@ void MainWindow::connectActions()
 
     //"Points selection" menu
     connect(ui->actionTogglePoints_selection, SIGNAL(toggled(bool)), this, SLOT(togglePointsSelection(bool)));
+    connect(ui->actionAdd_points,       SIGNAL(triggered()),   this, SLOT(addPoints()));
+    connect(ui->actionDelete_point,     SIGNAL(triggered()),   this, SLOT(deletePoint()));
 
     //File menu
     connect(ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
@@ -180,6 +188,16 @@ void MainWindow::connectActions()
     connect(ui->actionExport_mask,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
     connect(ui->actionLoad_and_Export,	SIGNAL(triggered()),   this, SLOT(loadAndExport()));
     connect(ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
+}
+
+void MainWindow::addPoints()
+{
+    m_glWidget->segment(true, true);
+}
+
+void MainWindow::deletePoint()
+{
+    m_glWidget->deletePoint();
 }
 
 void MainWindow::setTopView()
