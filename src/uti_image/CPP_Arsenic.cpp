@@ -202,14 +202,14 @@ return bestK;
 }
 
 
-vector<vector<double> > Egalisation_factors(vector<vector<double> > aPtsHomol, int nbIm, int aMasterNum){
+vector<vector<double> > Egalisation_factors(vector<vector<double> > aPtsHomol, int nbIm, int aMasterNum, int aDegPoly){
 
 	vector<vector<double> > Gr(nbIm);
-	int nbParam=3;//nb param per in the model
-// Create L2SysSurResol to solve least square equation with nbIm unknown (equa is Kij*Ki-Kj=0)
-	L2SysSurResol aSysR(nbParam*nbIm);
-	L2SysSurResol aSysG(nbParam*nbIm);
-	L2SysSurResol aSysB(nbParam*nbIm);
+
+// Create L2SysSurResol to solve least square equation with nbIm unknown
+	L2SysSurResol aSysRInit(nbIm);
+	L2SysSurResol aSysGInit(nbIm);
+	L2SysSurResol aSysBInit(nbIm);
 
 	
 //Finding and Selecting the brightest image for reference
@@ -241,26 +241,164 @@ if(aMasterNum==-1){
 	}
 	cout<<"The brightest image (chosen as Master) is NUM "<<aMasterNum<<endl;
 }
-		
-	//The brightest image is fixed, using superbig weight in least square:
-	vector<double> aCoefsFixe(nbParam*nbIm,0.0);
-	aCoefsFixe[nbParam*aMasterNum]=1;
+
+//Solve with equation : ( model is : alpha1*G1-alpha2*G2=0 )
+
+for(int i=0;i<int(nbIm);i++){
+	double grMax=*max_element(Gr[i].begin(),Gr[i].end());
+	vector<double> aCoefsFixe(nbIm,0.0);
+	aCoefsFixe[i]=1;
 	double * coefsFixeAr=&aCoefsFixe[0];
-	aSysR.AddEquation(pow(float(nbParcouru),4),coefsFixeAr,1);
-	aSysG.AddEquation(pow(float(nbParcouru),4),coefsFixeAr,1);
-	aSysB.AddEquation(pow(float(nbParcouru),4),coefsFixeAr,1);
+	aSysRInit.AddEquation(pow(float(nbParcouru),1),coefsFixeAr,255/grMax);
+	aSysGInit.AddEquation(pow(float(nbParcouru),1),coefsFixeAr,255/grMax);
+	aSysBInit.AddEquation(pow(float(nbParcouru),1),coefsFixeAr,255/grMax);
+}
+
+
+//The brightest image is fixed, using superbig weight in least square:
+double grMax=*max_element(Gr[aMasterNum].begin(),Gr[aMasterNum].end());
+cout<<grMax<<endl;
+vector<double> aCoefsFixe(nbIm,0.0);
+aCoefsFixe[aMasterNum]=1;
+double * coefsFixeAr=&aCoefsFixe[0];
+aSysRInit.AddEquation(pow(float(nbParcouru),3),coefsFixeAr,255/grMax);
+aSysGInit.AddEquation(pow(float(nbParcouru),3),coefsFixeAr,255/grMax);
+aSysBInit.AddEquation(pow(float(nbParcouru),3),coefsFixeAr,255/grMax);
+
+cout<<"Solution of zeros preventing equations written"<<endl;
+
+nbParcouru=0;
+//For each linked couples :
+for (int i=0;i<int(aPtsHomol[0].size());i++){
+
+	int numImage1=(i/(nbIm));
+	int numImage2=i-numImage1*(nbIm);
+if (numImage1!=numImage2){
+		if(aPtsHomol[0][i]!=0){//if there are homologous points between images
+		vector<double> RIm1(aPtsHomol[2].begin()+nbParcouru,aPtsHomol[2].begin()+nbParcouru+aPtsHomol[0][i]-1);
+		vector<double> GIm1(aPtsHomol[3].begin()+nbParcouru,aPtsHomol[3].begin()+nbParcouru+aPtsHomol[0][i]-1);
+		vector<double> BIm1(aPtsHomol[4].begin()+nbParcouru,aPtsHomol[4].begin()+nbParcouru+aPtsHomol[0][i]-1);
+		vector<double> RIm2(aPtsHomol[6].begin()+nbParcouru,aPtsHomol[6].begin()+nbParcouru+aPtsHomol[0][i]-1);
+		vector<double> GIm2(aPtsHomol[7].begin()+nbParcouru,aPtsHomol[7].begin()+nbParcouru+aPtsHomol[0][i]-1);
+		vector<double> BIm2(aPtsHomol[8].begin()+nbParcouru,aPtsHomol[8].begin()+nbParcouru+aPtsHomol[0][i]-1);
+		nbParcouru=nbParcouru+aPtsHomol[0][i];
+		
+		//adding equations for each point 
+		for (int j=0;j<int(RIm1.size());j++){
+			vector<double> aCoefsR(nbIm, 0.0);
+			vector<double> aCoefsG(nbIm, 0.0);
+			vector<double> aCoefsB(nbIm, 0.0);
+			aCoefsR[numImage1]=RIm1[j];
+			aCoefsG[numImage1]=GIm1[j];
+			aCoefsB[numImage1]=BIm1[j];
+					
+			aCoefsR[numImage2]=-RIm2[j];
+			aCoefsG[numImage2]=-GIm2[j];
+			aCoefsB[numImage2]=-BIm2[j];
+			
+			double * coefsArR=&aCoefsR[0];
+			double * coefsArG=&aCoefsG[0];
+			double * coefsArB=&aCoefsB[0];
+			double aPds=1;
+			if(numImage1==aMasterNum || numImage2==aMasterNum){aPds=20;}
+			aSysRInit.AddEquation(aPds,coefsArR,0);
+			aSysGInit.AddEquation(aPds,coefsArG,0);
+			aSysBInit.AddEquation(aPds,coefsArB,0);
+		}
+	}
+}
+}
+
+cout<<"Solving the initial system"<<endl;
+vector<vector<double> > aParam3Chan;
+
+bool Ok1,Ok2,Ok3;
+Im1D_REAL8 aSolR = aSysRInit.GSSR_Solve(&Ok1);
+Im1D_REAL8 aSolG = aSysGInit.GSSR_Solve(&Ok2);
+Im1D_REAL8 aSolB = aSysBInit.GSSR_Solve(&Ok3);
+vector<double> aParamR, aParamG, aParamB;
+
+if (Ok1 && Ok2 && Ok3)
+{
+    double* aDataR = aSolR.data();
+    double* aDataG = aSolG.data();
+    double* aDataB = aSolB.data();
+	cout<<aSysRInit.ResiduOfSol(aDataR)<<endl;
+	cout<<aSysGInit.ResiduOfSol(aDataG)<<endl;
+	cout<<aSysBInit.ResiduOfSol(aDataB)<<endl;
+	for(unsigned i=0;i<int(nbIm);i++){
+		cout<<"For im NUM "<<i<<" CorR = "<<aDataR[i]<<" CorG = "<<aDataG[i]<<" CorB = "<<aDataB[i]<<endl;
+		aParamR.push_back(aDataR[i]);
+		aParamG.push_back(aDataG[i]);
+		aParamB.push_back(aDataB[i]);
+	}
+	//Normalize the result :
+	double maxFactorR=1/(*max_element(aParamR.begin(),aParamR.end()));
+	double maxFactorG=1/(*max_element(aParamG.begin(),aParamG.end()));
+	double maxFactorB=1/(*max_element(aParamB.begin(),aParamB.end()));
+	for(unsigned i=0;i<int(nbIm);i++){
+		if(maxFactorR>1){aParamR[i]=aParamR[i]*maxFactorR;}
+		if(maxFactorG>1){aParamG[i]=aParamG[i]*maxFactorG;}
+		if(maxFactorB>1){aParamB[i]=aParamB[i]*maxFactorB;}
+	}
+	aParam3Chan.push_back(aParamR);
+	aParam3Chan.push_back(aParamG);
+	aParam3Chan.push_back(aParamB);
+}
+
+
+//return aParam3Chan;
+
+
+//Introducing more parameters (model is : alpha1*G1+beta1*G1*X1+gamma1*G1*Y1-alpha2*G2-beta2*G2*X2-gamma2*G2*Y2=0 )
+
+
+	int nbParam=aDegPoly*2+1;//nb param per in the model
+// Create L2SysSurResol to solve least square equation with nbIm unknown (equa is Kij*Ki-Kj=0)
+	L2SysSurResol aSysR(nbParam*nbIm);
+	L2SysSurResol aSysG(nbParam*nbIm);
+	L2SysSurResol aSysB(nbParam*nbIm);
+
+
+for(int i=0;i<int(nbIm);i++){
+	double grMax=*max_element(Gr[i].begin(),Gr[i].end());
+	vector<double> aCoefsFixe(nbParam*nbIm,0.0);
+	aCoefsFixe[nbParam*i]=1;
+	double * coefsFixeAr=&aCoefsFixe[0];
+	aSysR.AddEquation(pow(float(nbParcouru),2),coefsFixeAr,aParam3Chan[0][i]);
+	aSysG.AddEquation(pow(float(nbParcouru),2),coefsFixeAr,aParam3Chan[1][i]);
+	aSysB.AddEquation(pow(float(nbParcouru),2),coefsFixeAr,aParam3Chan[2][i]);
+	for (int a=1;a<nbParam;a++){
+		vector<double> aCoefsFixe(nbParam*nbIm,0.0);
+		aCoefsFixe[nbParam*i+a]=1;
+		double * coefsFixeAr=&aCoefsFixe[0];
+		aSysR.AddEquation(pow(float(nbParcouru),3),coefsFixeAr,0);
+		aSysG.AddEquation(pow(float(nbParcouru),3),coefsFixeAr,0);
+		aSysB.AddEquation(pow(float(nbParcouru),3),coefsFixeAr,0);
+	}
+}
+
+/*
+		//The brightest image is fixed, using superbig weight in least square:
+	vector<double> aCoefsFixe2(nbParam*nbIm,0.0);
+	aCoefsFixe2[nbParam*aMasterNum]=1;
+	double * coefsFixe2Ar=&aCoefsFixe2[0];
+	aSysR.AddEquation(pow(float(nbParcouru),1),coefsFixe2Ar,255/grMax);
+	aSysG.AddEquation(pow(float(nbParcouru),1),coefsFixe2Ar,255/grMax);
+	aSysB.AddEquation(pow(float(nbParcouru),1),coefsFixe2Ar,255/grMax);
 	for (int a=1;a<nbParam;a++){
 		vector<double> aCoefsFixe(nbParam*nbIm,0.0);
 		aCoefsFixe[nbParam*aMasterNum+a]=1;
 		double * coefsFixeAr=&aCoefsFixe[0];
-		aSysR.AddEquation(pow(float(nbParcouru),4),coefsFixeAr,0);
-		aSysG.AddEquation(pow(float(nbParcouru),4),coefsFixeAr,0);
-		aSysB.AddEquation(pow(float(nbParcouru),4),coefsFixeAr,0);
+		aSysR.AddEquation(pow(float(nbParcouru),3),coefsFixeAr,0);
+		aSysG.AddEquation(pow(float(nbParcouru),3),coefsFixeAr,0);
+		aSysB.AddEquation(pow(float(nbParcouru),3),coefsFixeAr,0);
 	}
+*/
 
-
-cout<<" --- Getting the equations from homologous points (model is : alpha1*G1+beta1*G1*X1+gamma1*G1*Y1-alpha2*G2-beta2*G2*X2-gamma2*G2*Y2=0 )"<<endl;
+cout<<" --- Getting the equations from homologous points (model is : G1*poly(X1) + G1*poly(Y1) - G2*poly(X2) - G2*poly(Y2) = 0 )"<<endl;
 nbParcouru=0;
+//For each linked couples :
 for (int i=0;i<int(aPtsHomol[0].size());i++){
 
 	int numImage1=(i/(nbIm));
@@ -288,29 +426,31 @@ if (numImage1!=numImage2){
 			aCoefsR[nbParam*numImage1]=RIm1[j];
 			aCoefsG[nbParam*numImage1]=GIm1[j];
 			aCoefsB[nbParam*numImage1]=BIm1[j];
-			aCoefsR[nbParam*numImage1+1]=RIm1[j]*X1[j];
-			aCoefsG[nbParam*numImage1+1]=GIm1[j]*X1[j];
-			aCoefsB[nbParam*numImage1+1]=BIm1[j]*X1[j];
-			aCoefsR[nbParam*numImage1+2]=RIm1[j]*Y1[j];
-			aCoefsG[nbParam*numImage1+2]=GIm1[j]*Y1[j];
-			aCoefsB[nbParam*numImage1+2]=BIm1[j]*Y1[j];
-					
 			aCoefsR[nbParam*numImage2]=-RIm2[j];
 			aCoefsG[nbParam*numImage2]=-GIm2[j];
 			aCoefsB[nbParam*numImage2]=-BIm2[j];
-			aCoefsR[nbParam*numImage2+1]=-RIm2[j]*X2[j];
-			aCoefsG[nbParam*numImage2+1]=-GIm2[j]*X2[j];
-			aCoefsB[nbParam*numImage2+1]=-BIm2[j]*X2[j];
-			aCoefsR[nbParam*numImage2+2]=-RIm2[j]*Y2[j];
-			aCoefsG[nbParam*numImage2+2]=-GIm2[j]*Y2[j];
-			aCoefsB[nbParam*numImage2+2]=-BIm2[j]*Y2[j];
+			for(int k=1;k<=((nbParam-1)/2);k++){
+				aCoefsR[nbParam*numImage1+2*k-1]=RIm1[j]*pow(X1[j],k);
+				aCoefsG[nbParam*numImage1+2*k-1]=GIm1[j]*pow(X1[j],k);
+				aCoefsB[nbParam*numImage1+2*k-1]=BIm1[j]*pow(X1[j],k);
+				aCoefsR[nbParam*numImage1+2*k]=RIm1[j]*pow(Y1[j],k);
+				aCoefsG[nbParam*numImage1+2*k]=GIm1[j]*pow(Y1[j],k);
+				aCoefsB[nbParam*numImage1+2*k]=BIm1[j]*pow(Y1[j],k);
 
-			//if(((j % 50) ==0)&& numImage1==0){cout<<aCoefsR[0]<<" - "<<aCoefsR[1]<<" - "<<aCoefsR[2]<<" - "<<aCoefsR[3]<<" - "<<aCoefsR[4]<<" - "<<aCoefsR[5]<<" - "<<aCoefsR[6]<<" - "<<aCoefsR[7]<<" - "<<aCoefsR[8]<<" - "<<aCoefsR[9]<<" - "<<aCoefsR[10]<<" - "<<aCoefsR[11]<<" - "<<aCoefsR[12]<<" - "<<aCoefsR[13]<<" - "<<aCoefsR[14]<<" - "<<aCoefsR[15]<<" - "<<aCoefsR[16]<<" - "<<aCoefsR[17]<<" - "<<aCoefsR[18]<<" - "<<aCoefsR[19]<<" - "<<aCoefsR[20]<<" - "<<aCoefsR[21]<<" - "<<aCoefsR[22]<<" - "<<aCoefsR[23]<<endl;}
+				aCoefsR[nbParam*numImage2+2*k-1]=-RIm2[j]*pow(X2[j],k);
+				aCoefsG[nbParam*numImage2+2*k-1]=-GIm2[j]*pow(X2[j],k);
+				aCoefsB[nbParam*numImage2+2*k-1]=-BIm2[j]*pow(X2[j],k);
+				aCoefsR[nbParam*numImage2+2*k]=-RIm2[j]*pow(Y2[j],k);
+				aCoefsG[nbParam*numImage2+2*k]=-GIm2[j]*pow(Y2[j],k);
+				aCoefsB[nbParam*numImage2+2*k]=-BIm2[j]*pow(Y2[j],k);
+			}
+					
+			//cout<<aCoefsR[0]<<" - "<<aCoefsR[1]<<" - "<<aCoefsR[2]<<" - "<<aCoefsR[3]<<" - "<<aCoefsR[4]<<" - "<<aCoefsR[5]<<" - "<<aCoefsR[6]<<" - "<<aCoefsR[7]<<" - "<<aCoefsR[8]<<" - "<<aCoefsR[9]<<" - "<<aCoefsR[10]<<" - "<<aCoefsR[11]<<" - "<<aCoefsR[12]<<" - "<<aCoefsR[13]<<" - "<<aCoefsR[14]<<" - "<<aCoefsR[15]<<" - "<<aCoefsR[16]<<" - "<<aCoefsR[17]<<endl;
 			double * coefsArR=&aCoefsR[0];
 			double * coefsArG=&aCoefsG[0];
 			double * coefsArB=&aCoefsB[0];
 			double aPds=1;
-			if(numImage1==aMasterNum || numImage2==aMasterNum){aPds=2;}
+			if(numImage1==aMasterNum || numImage2==aMasterNum){aPds=1;}
 			aSysR.AddEquation(aPds,coefsArR,0);
 			aSysG.AddEquation(aPds,coefsArG,0);
 			aSysB.AddEquation(aPds,coefsArB,0);
@@ -319,14 +459,14 @@ if (numImage1!=numImage2){
 }
 }
 
-cout<<"Solving the system"<<endl;
-vector<vector<double> > aParam3Chan;
+cout<<"Solving the final system"<<endl;
+//Clearing the output vector
+aParam3Chan.clear();
+aParamR.clear(); aParamG.clear(); aParamB.clear();
 
-bool Ok1,Ok2,Ok3;
-Im1D_REAL8 aSolR = aSysR.GSSR_Solve(&Ok1);
-Im1D_REAL8 aSolG = aSysG.GSSR_Solve(&Ok2);
-Im1D_REAL8 aSolB = aSysB.GSSR_Solve(&Ok3);
-vector<double> aParamR, aParamG, aParamB;
+aSolR = aSysR.GSSR_Solve(&Ok1);
+aSolG = aSysG.GSSR_Solve(&Ok2);
+aSolB = aSysB.GSSR_Solve(&Ok3);
 
 if (Ok1 && Ok2 && Ok3)
 {
@@ -338,6 +478,16 @@ if (Ok1 && Ok2 && Ok3)
 		aParamG.push_back(aDataG[i]);
 		aParamB.push_back(aDataB[i]);
 	}
+	//Normalize the result :
+	double maxFactorR=1/(*max_element(aParamR.begin(),aParamR.end()));
+	double maxFactorG=1/(*max_element(aParamG.begin(),aParamG.end()));
+	double maxFactorB=1/(*max_element(aParamB.begin(),aParamB.end()));
+	for(unsigned i=0;i<int(nbParam*nbIm);i++){
+		if(maxFactorR>1){aParamR[i]=aParamR[i]*maxFactorR;}
+		if(maxFactorG>1){aParamG[i]=aParamG[i]*maxFactorG;}
+		if(maxFactorB>1){aParamB[i]=aParamB[i]*maxFactorB;}
+	}
+	//Creating output
 	aParam3Chan.push_back(aParamR);
 	aParam3Chan.push_back(aParamG);
 	aParam3Chan.push_back(aParamB);
@@ -351,7 +501,8 @@ void Egal_correct(string aDir,std::vector<std::string> * aSetIm,vector<vector<do
     ELISE_fp::MkDirRec(aDir + aDirOut);
 	//Reading input files
     int nbIm=(aSetIm)->size();
-	int nbParam=3;
+	int nbParam=aParam3chan[0].size()/nbIm;
+	cout<<nbParam<<endl;
     for(int i=0;i<nbIm;i++)
 	{
 	    string aNameIm=(*aSetIm)[i];
@@ -376,17 +527,24 @@ void Egal_correct(string aDir,std::vector<std::string> * aSetIm,vector<vector<do
 		U_INT1 ** aDataR = aImR.data();
 		U_INT1 ** aDataG = aImG.data();
 		U_INT1 ** aDataB = aImB.data();
-
-		cout<<"Correction factors for image n"<<i<<" -> R : "<<aParam3chan[0][0+nbParam*i]<<" / "<<aParam3chan[0][1+nbParam*i]<<" / "<<aParam3chan[0][2+nbParam*i]<<endl;
-		cout<<"Correction factors for image n"<<i<<" -> G : "<<aParam3chan[1][0+nbParam*i]<<" / "<<aParam3chan[1][1+nbParam*i]<<" / "<<aParam3chan[1][2+nbParam*i]<<endl;
-		cout<<"Correction factors for image n"<<i<<" -> B : "<<aParam3chan[2][0+nbParam*i]<<" / "<<aParam3chan[2][1+nbParam*i]<<" / "<<aParam3chan[2][2+nbParam*i]<<endl;
+		
+		//cout<<"Correction factors for image n"<<i<<" -> R : "<<aParam3chan[0][0+nbParam*i]<<endl;//" + "<<aParam3chan[0][1+nbParam*i]<<" * X + "<<aParam3chan[0][2+nbParam*i]<<" * Y + "<<aParam3chan[0][3+nbParam*i]<<" * X^2 + "<<aParam3chan[0][4+nbParam*i]<<" * Y^2 + "<<aParam3chan[0][5+nbParam*i]<<" * X^3 + "<<aParam3chan[0][6+nbParam*i]<<" * Y^3"<<endl;
+		//cout<<"Correction factors for image n"<<i<<" -> G : "<<aParam3chan[1][0+nbParam*i]<<endl;//" + "<<aParam3chan[1][1+nbParam*i]<<" * X + "<<aParam3chan[1][2+nbParam*i]<<" * Y + "<<aParam3chan[1][3+nbParam*i]<<" * X^2 + "<<aParam3chan[1][4+nbParam*i]<<" * Y^2 + "<<aParam3chan[1][5+nbParam*i]<<" * X^3 + "<<aParam3chan[1][6+nbParam*i]<<" * Y^3"<<endl;
+		//cout<<"Correction factors for image n"<<i<<" -> B : "<<aParam3chan[2][0+nbParam*i]<<endl;//" + "<<aParam3chan[2][1+nbParam*i]<<" * X + "<<aParam3chan[2][2+nbParam*i]<<" * Y + "<<aParam3chan[2][3+nbParam*i]<<" * X^2 + "<<aParam3chan[2][4+nbParam*i]<<" * Y^2 + "<<aParam3chan[2][5+nbParam*i]<<" * X^3 + "<<aParam3chan[2][6+nbParam*i]<<" * Y^3"<<endl;
 		for (int aY=0 ; aY<aSz.y  ; aY++)
 			{
 				for (int aX=0 ; aX<aSz.x  ; aX++)
 				{
-					double R = aDataR[aY][aX] * aParam3chan[0][nbParam*i] + aDataR[aY][aX] * aX * aParam3chan[0][1+nbParam*i] + aDataR[aY][aX] * aY * aParam3chan[0][2+nbParam*i];
-					double G = aDataG[aY][aX] * aParam3chan[1][nbParam*i] + aDataG[aY][aX] * aX * aParam3chan[1][1+nbParam*i] + aDataG[aY][aX] * aY * aParam3chan[1][2+nbParam*i];
-					double B = aDataB[aY][aX] * aParam3chan[2][nbParam*i] + aDataB[aY][aX] * aX * aParam3chan[2][1+nbParam*i] + aDataB[aY][aX] * aY * aParam3chan[2][2+nbParam*i];
+
+					double corR=aParam3chan[0][nbParam*i],corG=aParam3chan[1][nbParam*i],corB=aParam3chan[2][nbParam*i];
+					for(int j=1;j<=(nbParam-1)/2;j++){
+						corR = corR + pow(float(aX),j) * aParam3chan[0][2*j-1+nbParam*i] + pow(float(aY),j) * aParam3chan[0][2*j+nbParam*i] ;
+						corG = corG + pow(float(aX),j) * aParam3chan[1][2*j-1+nbParam*i] + pow(float(aY),j) * aParam3chan[1][2*j+nbParam*i] ;
+						corB = corB + pow(float(aX),j) * aParam3chan[2][2*j-1+nbParam*i] + pow(float(aY),j) * aParam3chan[2][2*j+nbParam*i] ;
+					}
+					double R = aDataR[aY][aX] * corR;
+					double G = aDataG[aY][aX] * corG;
+					double B = aDataB[aY][aX] * corB;
 					if(R>255){aDataR[aY][aX]=255;}else if(R<0){aDataR[aY][aX]=0;}else{aDataR[aY][aX]=R;}
 					if(G>255){aDataG[aY][aX]=255;}else if(G<0){aDataG[aY][aX]=0;}else{aDataG[aY][aX]=G;}
 					if(B>255){aDataB[aY][aX]=255;}else if(B<0){aDataB[aY][aX]=0;}else{aDataB[aY][aX]=B;}
@@ -418,6 +576,7 @@ int  Arsenic_main(int argc,char ** argv)
 
 	std::string aFullPattern,aDirOut="Egal/",aMaster="";
 	bool InTxt=false,DoCor=false;
+	int aDegPoly=3;
 	  //Reading the arguments
         ElInitArgMain
         (
@@ -428,6 +587,7 @@ int  Arsenic_main(int argc,char ** argv)
 						<< EAM(InTxt,"InTxt",true,"True if homologous points have been exported in txt (Defaut=false)")
 						<< EAM(DoCor,"DoCor",true,"Use the computed parameters to correct the images (Defaut=false)")
 						<< EAM(aMaster,"Master",true,"Manually define a Master Image (to be used a reference)")
+						<< EAM(aDegPoly,"DegPoly",true,"Set the dergree of the corretion polynom (Def=3)")
         );
 		std::string aDir,aPatIm;
 		SplitDirAndFile(aDir,aPatIm,aFullPattern);
@@ -449,7 +609,7 @@ int  Arsenic_main(int argc,char ** argv)
 		vector<vector<double> > aPtsHomol=ReadPtsHom(aDir, & aVectIm, Extension);
 
 		cout<<"Computing equalization factors"<<endl;
-		vector<vector<double> > aParam3chan=Egalisation_factors(aPtsHomol,nbIm,aMasterNum);
+		vector<vector<double> > aParam3chan=Egalisation_factors(aPtsHomol,nbIm,aMasterNum,aDegPoly);
 		if(aParam3chan.size()!=3){
 			cout<<"Couldn't compute parameters "<<aParam3chan.size()<<endl;
 		}else{
