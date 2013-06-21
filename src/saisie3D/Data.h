@@ -2,7 +2,6 @@
 #define DATA_H
 
 #include "StdAfx.h"
-#include "general/ptxd.h"
 #include "Cloud.h"
 
 using namespace Cloud_;
@@ -15,9 +14,11 @@ class cData
         ~cData();
 
         void addCamera(CamStenope *);
+        void addCloud(Cloud *);
         void centerCloud(Cloud *);
 
         void addCameras(vector <CamStenope *>);
+        void addClouds(vector <Cloud *>);
 
         int NbCameras(){return m_Cameras.size();}
         int NbClouds(){return m_Clouds.size();}

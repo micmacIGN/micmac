@@ -360,9 +360,12 @@ for (INT aTest =0 ; aTest < 100 ; aTest ++)
              Val = 0;
         }
         else if (aRan < 0.5)
+	;
+	/*
         {
-             Val = Val;
+             Val = Val; 
         }
+	*/
         else
             Val *=  3 * aR.cNRrandom3() -1;
      

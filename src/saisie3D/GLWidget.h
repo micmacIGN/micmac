@@ -1,9 +1,19 @@
 ﻿#ifndef _GLWIDGET_H
 #define _GLWIDGET_H
 
+
+#include <cmath>
+#include <limits>
+#include <iostream>
+#include <algorithm>
 #include <QtOpenGL/QGLWidget>
 #include <QGLContext>
+#include "GL/glu.h"
 #include <QUrl>
+#include <QtGui/QMouseEvent>
+#include <QSettings>
+#include <QMessageBox>
+#include <QMimeData>
 
 #include "Data.h"
 
@@ -75,11 +85,17 @@ public:
     virtual void displayNewMessage(const QString& message,
                                    MessagePosition pos = SCREEN_CENTER_MESSAGE);
 
+    //! States if data (cloud or camera) is loaded
+    bool hasDataLoaded(){return m_bCloudLoaded||m_bCameraLoaded;}
+
     //! States if a cloud is loaded
     bool hasCloudLoaded(){return m_bCloudLoaded;}
 
     //! Sets cloud state as loaded
     void setCloudLoaded(bool isLoaded) { m_bCloudLoaded = isLoaded; }
+
+    //! Sets camera state as loaded
+    void setCameraLoaded(bool isLoaded) { m_bCameraLoaded = isLoaded; }
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
@@ -115,7 +131,10 @@ public:
     void showMoveMessages();
 
     //! Segment points with polyline
-    void segment(bool inside);
+    void segment(bool inside, bool add = false);
+
+    //! Delete mouse closest point
+    void deletePoint();
 
     //! Delete current polyline
     void clearPolyline();
@@ -190,6 +209,9 @@ protected:
 
     //! States if a cloud is already loaded
     bool m_bCloudLoaded;
+
+    //! States if a camera is already loaded
+    bool m_bCameraLoaded;
 
     //! States if frame axis should be drawn
     bool m_bDrawAxis;

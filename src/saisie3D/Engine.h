@@ -6,7 +6,7 @@
 
 #include "Cloud.h"
 #include "Data.h"
-#include "StdAfx.h"
+#include "general/bitm.h"
 
 class cLoader : QObject
 {
@@ -18,6 +18,7 @@ class cLoader : QObject
         vector <CamStenope *> loadCameras();
 
         Cloud* loadCloud( string i_ply_file );
+        vector <Cloud *> loadClouds();
 
         void setDir(QDir aDir){m_Dir = aDir;}
         QDir getDir(){return m_Dir;}
@@ -45,6 +46,12 @@ class cEngine
 
         //! Load point cloud .ply files
         void loadClouds(QStringList);
+
+        //! Load point cloud .ply files
+        void loadPlys();
+
+        //! Load cameras .xml files
+        void loadCameras(QStringList);
 
         //! Load cameras orientation files
         void loadCameras();

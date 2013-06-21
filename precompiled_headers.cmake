@@ -42,15 +42,25 @@ endfunction(enable_precompiled_headers_msvc)
 function(enable_precompiled_headers_GCC PRECOMPILED_HEADER TARGET_NAME)
 	if(WITH_HEADER_PRECOMP)
 #ne marche pas avec Clang
-#if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-		IF(CMAKE_COMPILER_IS_GNUCXX)
+		if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+		  SET(EXT_HP pth)
+		  SET(OPTION_HP "-ccl -emit-pth")
+		endif()
+		if(CMAKE_COMPILER_IS_GNUCXX)
+		  #Message("Gcc")
+		  SET(EXT_HP gch)
+		  SET(OPTION_HP "-x c++-header")
+		endif()
+
+		IF(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+#		IF(CMAKE_COMPILER_IS_GNUCXX)
 			GET_FILENAME_COMPONENT(_name ${PRECOMPILED_HEADER} NAME)
 
 			#SET(_source "${CMAKE_CURRENT_SOURCE_DIR}/${PRECOMPILED_HEADER}")
 			SET(_source "${PROJECT_SOURCE_DIR}/include/${PRECOMPILED_HEADER}")
 
-			#SET(_outdir "${CMAKE_CURRENT_SOURCE_DIR}/${_name}.gch")
-			SET(_outdir "${PROJECT_SOURCE_DIR}/include/${_name}.gch")
+			#SET(_outdir "${CMAKE_CURRENT_SOURCE_DIR}/${_name}.${EXT_HP}")
+			SET(_outdir "${PROJECT_SOURCE_DIR}/include/${_name}.${EXT_HP}")
 			MAKE_DIRECTORY(${_outdir})
 			SET(_output "${_outdir}/.c++")
 
@@ -66,15 +76,16 @@ function(enable_precompiled_headers_GCC PRECOMPILED_HEADER TARGET_NAME)
 			LIST(APPEND _compiler_FLAGS ${_directory_flags})
 
 			SEPARATE_ARGUMENTS(_compiler_FLAGS)
-			#MESSAGE("${CMAKE_CXX_COMPILER} -DPCHCOMPILE ${_compiler_FLAGS} -x c++-header -o ${_output} ${_source}")
+			#MESSAGE("${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} ${OPTION_HP} -o ${_output} ${_source}")
 			ADD_CUSTOM_COMMAND(
-				OUTPUT ${_output}
+				OUTPUT ${_output}				
 				COMMAND ${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} -x c++-header -o ${_output} ${_source}
 				DEPENDS ${_source} IMPLICIT_DEPENDS CXX ${_source})
-				ADD_CUSTOM_TARGET(${TARGET_NAME}_gch DEPENDS ${_output})
+				ADD_CUSTOM_TARGET(${TARGET_NAME}_${EXT_HP} DEPENDS ${_output})
 
-			ADD_DEPENDENCIES(${TARGET_NAME} ${TARGET_NAME}_gch)
-			SET_TARGET_PROPERTIES(${TARGET_NAME}_gch PROPERTIES COMPILE_FLAGS "-include ${_name} -Winvalid-pch")
-		ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+			ADD_DEPENDENCIES(${TARGET_NAME} ${TARGET_NAME}_${EXT_HP})
+			SET_TARGET_PROPERTIES(${TARGET_NAME}_${EXT_HP} PROPERTIES COMPILE_FLAGS "-include ${_name} -Winvalid-pch")
+		#ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+		endif()
 	endif(WITH_HEADER_PRECOMP)
 endfunction(enable_precompiled_headers_GCC)

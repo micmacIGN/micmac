@@ -421,7 +421,7 @@ class TGA_tile : public Tile_F2d
 
         Data_TGA_File * _dtga;
         bool    _t_to_d;
-        bool    _l_to_r;
+        //bool    _l_to_r;
 
 
     // redefine, just to avoid useless call to new line
@@ -453,8 +453,8 @@ TGA_tile::TGA_tile(Data_TGA_File * dtga,bool t_to_d,bool l_to_r) :
           (dtga->name(),dtga->_nb_byte_pix,dtga->_offs_im,ELISE_fp::READ)
    ),
    _dtga     (dtga),
-   _t_to_d   (t_to_d),
-   _l_to_r   (l_to_r)
+   _t_to_d   (t_to_d)//,
+   //_l_to_r   (l_to_r)
 {
 }
 

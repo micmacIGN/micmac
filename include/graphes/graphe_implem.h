@@ -267,7 +267,8 @@ template <class  AttrSom,class AttrArc>
                                                  ;  
            a && (&(a->s2()) !=  (TSom *) &(s2))  ; 
            a=a->_next
-      );
+     )
+     ;
 
       return a;
 }

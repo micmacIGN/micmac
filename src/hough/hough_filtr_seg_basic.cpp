@@ -149,7 +149,7 @@ class EHFS_PrgDyn
              );
 
     private :
-        INT mNbMax;
+        //INT mNbMax;
         typedef std::vector<SetState_EHFS_PD>  tChem;
         void ComputeGain(ElHoughFiltSeg &,INT Nb);
 

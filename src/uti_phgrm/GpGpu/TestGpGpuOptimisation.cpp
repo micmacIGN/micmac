@@ -10,20 +10,11 @@ using namespace std;
 
 int main()
 {
-    GpGpuMultiThreadingCpu QQ;
+    JobCpuGpuTest JobCpuGpGpu;
+    JobCpuGpGpu.launchJob();
 
-
-     cout << "boost::lockfree::queue 1 is ";
-
-     if (!QQ.spsc_queue_1.is_lock_free())
-         cout << "not ";
-
-     cout << "lockfree" << endl;
-
-     QQ.createThread();
-
-     cout << "produced " << QQ.producer_count << " objects." << endl;
-     cout << "consumed " << QQ.consumerProducer_count << " objects." << endl;
+//    cout << "produced " << QQ.producer_count << " objects." << endl;
+//    cout << "consumed " << QQ.consumerProducer_count << " objects." << endl;
 
     return 0;
 }
