@@ -1,7 +1,5 @@
 ﻿#include "GLWidget.h"
 
-const GLfloat g_trackballScale = 1.f;
-
 //Min and max zoom ratio (relative)
 const float GL_MAX_ZOOM_RATIO = 1.0e6f;
 const float GL_MIN_ZOOM_RATIO = 1.0e-6f;
@@ -28,6 +26,7 @@ ViewportParameters::~ViewportParameters(){}
 
 bool g_mouseLeftDown = false;
 bool g_mouseRightDown = false;
+
 GLfloat g_tmpMatrix[9],
         g_rotationOx[9],
         g_rotationOy[9],
@@ -35,17 +34,8 @@ GLfloat g_tmpMatrix[9],
                                0, 1, 0,
                                0, 0, 1 },
         g_translationMatrix[3] = { 0, 0, 0 },
-       /* g_inverseRotationMatrix[9] = { 1, 0, 0,
-                                       0, 1, 0,
-                                       0, 0, 1 },*/
+
         g_glMatrix[16];
-
-const GLfloat g_u[] = { 1.f, 0.f, 0.f },
-              g_v[] = { 0.f, 1.f, 0.f };
-GLfloat g_uu[3], g_vv[3];
-
-GLfloat g_angleOx = 0.f,
-        g_angleOy  = 0.f;
 
 inline void setRotateOx_m33( const float i_angle, GLfloat o_m[9] )
 {
@@ -63,32 +53,6 @@ inline void setRotateOy_m33( const float i_angle, GLfloat o_m[9] )
     o_m[0]=co;		o_m[1]=0;		o_m[2]=si;
     o_m[3]=0;		o_m[4]=1;		o_m[5]=0;
     o_m[6]=-si;		o_m[7]=0;		o_m[8]=co;
-}
-
-inline void setRotate_m33( const float i_angle, const float i_u[3], GLfloat o_m[9] )
-{
-    GLfloat co = (GLfloat)cos( i_angle ),
-            si = (GLfloat)sin( i_angle );
-    o_m[0]=i_u[0]*i_u[0]+(1-i_u[0]*i_u[0])*co;		o_m[1]=i_u[0]*i_u[1]*(1-co)-i_u[0]*si;			o_m[2]=i_u[0]*i_u[2]*(1-co)+i_u[1]*si;
-    o_m[3]=i_u[0]*i_u[1]*(1-co)+i_u[2]*si;			o_m[4]=i_u[1]*i_u[1]+(1-i_u[1]*i_u[1])*co;		o_m[5]=i_u[1]*i_u[2]*(1-co)-i_u[0]*si;
-    o_m[6]=i_u[0]*i_u[2]*(1-co)-i_u[1]*si;			o_m[7]=i_u[1]*i_u[2]*(1-co)+i_u[0]*si;			o_m[8]=i_u[2]*i_u[2]+(1-i_u[2]*i_u[2])*co;
-}
-
-inline void setRotate_m33( const float i_angle, const float i_x, const float i_y, const float i_z, GLfloat o_m[9] )
-{
-    GLfloat co = (GLfloat)cos( i_angle ),
-            si = (GLfloat)sin( i_angle );
-    o_m[0]=i_x*i_x+(1-i_x*i_x)*co;		o_m[1]=i_x*i_y*(1-co)-i_x*si;		o_m[2]=i_x*i_z*(1-co)+i_z*si;
-    o_m[3]=i_x*i_y*(1-co)+i_z*si;		o_m[4]=i_y*i_y+(1-i_y*i_y)*co;		o_m[5]=i_y*i_z*(1-co)-i_x*si;
-    o_m[6]=i_x*i_z*(1-co)-i_y*si;		o_m[7]=i_y*i_z*(1-co)+i_x*si;		o_m[8]=i_z*i_z+(1-i_z*i_z)*co;
-}
-
-inline void setTranslate( const float i_x, const float i_y, const float i_z, GLfloat o_m[16] )
-{
-     o_m[0] =1.;	 o_m[1] =0.f;	o_m[2] =0.f;	 o_m[3] =i_x;
-     o_m[4] =0.f;	 o_m[5] =1.f;	o_m[6] =0.f;	 o_m[7] =i_y;
-     o_m[8] =0.f;	 o_m[9] =0.f;	o_m[10]=1.f;	 o_m[11]=i_z;
-     o_m[12]=0.f;	 o_m[13]=0.f;	o_m[14]=0.f;	 o_m[15]=1.f;
 }
 
 inline void setTranslate_m3( const GLfloat *i_a, GLfloat o_m[16] )
@@ -114,28 +78,6 @@ inline void mult_m33( const GLfloat i_a[9], const GLfloat i_b[9], GLfloat o_m[9]
      o_m[6]=i_a[6]*i_b[0]+i_a[7]*i_b[3]+i_a[8]*i_b[6];		o_m[7]=i_a[6]*i_b[1]+i_a[7]*i_b[4]+i_a[8]*i_b[7];		o_m[8]=i_a[6]*i_b[2]+i_a[7]*i_b[5]+i_a[8]*i_b[8];
  }
 
-inline bool inverse_m33( const GLfloat i_a[9], GLfloat i_b[9] )
-{
-    bool invertible = true;
-
-    i_b[0] = i_a[4]*i_a[8]-i_a[5]*i_a[7];
-    i_b[3] = i_a[5]*i_a[6]-i_a[3]*i_a[8];
-    i_b[6] = i_a[3]*i_a[7]-i_a[4]*i_a[6];
-
-    GLfloat det = i_a[0]*i_b[0]+i_a[1]*i_b[3]+i_a[2]*i_b[6];
-    if ( det<numeric_limits<GLfloat>::epsilon() ){
-        det = 1.f;
-        invertible = false;
-    }
-
-    i_b[1]=( i_a[2]*i_a[7]-i_a[1]*i_a[8] )/det; i_b[2]=( i_a[1]*i_a[5]-i_a[2]*i_a[4] )/det;
-    i_b[4]=( i_a[0]*i_a[8]-i_a[2]*i_a[6] )/det; i_b[5]=( i_a[2]*i_a[3]-i_a[0]*i_a[5] )/det;
-    i_b[7]=( i_a[1]*i_a[6]-i_a[0]*i_a[7] )/det; i_b[8]=( i_a[0]*i_a[4]-i_a[1]*i_a[3] )/det;
-    i_b[0]/=det; i_b[3]/=det; i_b[6]/=det;
-
-    return invertible;
-}
-
 inline void m33_to_m44( const GLfloat i_m[9], GLfloat o_m[16] )
 {
     o_m[0]=i_m[0];		o_m[4]=i_m[3];		o_m[8] =i_m[6];		o_m[12]=0.f;
@@ -150,13 +92,6 @@ inline void transpose( const GLfloat *i_a, GLfloat *o_m )
     o_m[1]=i_a[4];		o_m[5]=i_a[5];		o_m[9]=i_a[6];		o_m[13]=i_a[7];
     o_m[2]=i_a[8];		o_m[6]=i_a[9];		o_m[10]=i_a[10];	o_m[14]=i_a[11];
     o_m[3]=i_a[12];		o_m[7]=i_a[13];		o_m[11]=i_a[14];	o_m[15]=i_a[15];
-}
-
-inline void transpose_m33( const GLfloat i_a[9], GLfloat o_m[9] )
-{
-    o_m[0]=i_a[0];	o_m[3]=i_a[1];	o_m[6]=i_a[2];
-    o_m[1]=i_a[3];	o_m[4]=i_a[4];	o_m[7]=i_a[5];
-    o_m[2]=i_a[6];	o_m[5]=i_a[7];	o_m[8]=i_a[8];
 }
 
 inline void crossprod( const GLdouble u[3], const GLdouble v[3], GLdouble o_m[3] )
@@ -191,6 +126,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
       , m_bPolyIsClosed(false)
       , m_Data(data)
       , m_bObjectCenteredView(true)
+      , m_speed(2.5f)
 {
     setMouseTracking(true);
 
@@ -247,7 +183,6 @@ void GLWidget::resizeGL(int width, int height)
 
 void GLWidget::paintGL()
 {
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
 
@@ -325,7 +260,8 @@ void GLWidget::paintGL()
             ++it;
         }
     }
-    else
+
+    if (m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE)
     {
         if (m_bDrawBall) drawBall();
         else if (m_bDrawAxis) drawAxis();
@@ -438,7 +374,18 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
 void GLWidget::setData(cData *data)
 {
     m_Data = data;
-    setCloudLoaded(true);
+
+    if (m_Data->NbClouds())
+    {
+        setCloudLoaded(true);
+        setZoom(m_Data->getCloud(0)->getScale());
+    }
+
+    if (m_Data->NbCameras())
+    {
+        setCameraLoaded(true);
+    }
+
     updateGL();
 }
 
@@ -554,8 +501,6 @@ void GLWidget::draw3D()
     mult( trans44, rot44, tmp );
     transpose( tmp, g_glMatrix );
     glLoadMatrixf( g_glMatrix );
-
-    update();
 }
 
 void GLWidget::setStandardOrthoCenter()
@@ -582,6 +527,8 @@ void GLWidget::zoom()
     glLoadIdentity();
 
     glOrtho(left, right, -zoom, zoom, -zoom, zoom);
+
+    update();
 }
 
 void GLWidget::setInteractionMode(INTERACTION_MODE mode)
@@ -640,7 +587,6 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
     g_rotationMatrix[7] = -eye[1];
     g_rotationMatrix[8] = -eye[2];
 
-
     g_translationMatrix[0] = m_Data->m_cX;
     g_translationMatrix[1] = m_Data->m_cY;
     g_translationMatrix[2] = m_Data->m_cZ;
@@ -653,7 +599,7 @@ void GLWidget::onWheelEvent(float wheelDelta_deg)
     float zoomFactor = pow(1.1f,wheelDelta_deg / c_defaultDeg2Zoom);
     updateZoom(zoomFactor);
 
-    updateGL();
+    update();
 }
 
 void GLWidget::updateZoom(float zoomFactor)
@@ -714,14 +660,17 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     }
     else if (g_mouseLeftDown || g_mouseRightDown)
     {
-
         QPoint dp = event->pos()-m_lastPos;
 
         if ( g_mouseLeftDown )
-        {         
-            float speedRot = 2.5f;
-            setRotateOx_m33( ( speedRot * g_trackballScale*dp.y() )/m_glHeight, g_rotationOx );
-            setRotateOy_m33( ( speedRot * g_trackballScale*dp.x() )/m_glWidth, g_rotationOy );
+        {
+            float angleX =  m_speed * (float) dp.y() / (float) m_glHeight;
+            float angleY =  m_speed * (float) dp.x() / (float) m_glWidth;
+
+            setAngles(angleX, angleY);
+
+            setRotateOx_m33( angleX, g_rotationOx );
+            setRotateOy_m33( angleY, g_rotationOy );
 
             mult_m33( g_rotationOx, g_rotationMatrix, g_tmpMatrix );
             mult_m33( g_rotationOy, g_tmpMatrix, g_rotationMatrix );
@@ -729,11 +678,11 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         else if ( g_mouseRightDown )
         {
             m_bObjectCenteredView = false;
-            g_translationMatrix[0] += dp.x()*m_Data->m_diam/m_glHeight;
-            g_translationMatrix[1] += dp.y()*m_Data->m_diam/m_glHeight;
+            g_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/m_glHeight;
+            g_translationMatrix[1] += m_speed * dp.y()*m_Data->m_diam/m_glHeight;
         }
 
-        updateGL();
+        update();
     }
 
     m_lastPos = event->pos();
@@ -776,6 +725,8 @@ void GLWidget::segment(bool inside, bool add)
     if (m_polygon.size() < 3)
         return;
 
+    cSaisieInfos::SELECTION_MODE selection_mode;
+
     //viewing parameters
     double MM[16], MP[16];
     int VP[4];
@@ -807,6 +758,8 @@ void GLWidget::segment(bool inside, bool add)
 
             if (add)
             {
+                selection_mode = cSaisieInfos::ADD;
+
                 GLdouble xp,yp,zp;
                 gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
 
@@ -822,6 +775,9 @@ void GLWidget::segment(bool inside, bool add)
             }
             else
             {
+                if (inside) selection_mode = cSaisieInfos::INSIDE;
+                else selection_mode = cSaisieInfos::OUTSIDE;
+
                 if (P.isVisible())
                 {
                     GLdouble xp,yp,zp;
@@ -840,6 +796,13 @@ void GLWidget::segment(bool inside, bool add)
             }
         }
     }
+
+    float tr[3];
+    tr[0] = g_translationMatrix[0];
+    tr[1] = g_translationMatrix[1];
+    tr[2] = g_translationMatrix[2];
+
+    m_infos.push_back(cSaisieInfos(m_params.angleX, m_params.angleY, tr, m_params.zoom, m_polygon, selection_mode));
 }
 
 void GLWidget::deletePoint()
@@ -978,8 +941,8 @@ void GLWidget::drawBall()
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
 
-    //compute ball radius
-    float scale = 0.0005f * (float) min(m_glWidth,m_glHeight);
+    // ball radius
+    float scale = 0.01f * (float) m_glWidth/ (float) m_glHeight;
 
     if (m_ballGLList == GL_INVALID_LIST_ID)
     {
@@ -1164,3 +1127,20 @@ void GLWidget::showMoveMessages()
     displayNewMessage("Move mode",UPPER_CENTER_MESSAGE);
     displayNewMessage("Left click: rotate viewpoint / Right click: translate viewpoint",LOWER_CENTER_MESSAGE);
 }
+
+void GLWidget::setAngles(float angleX, float angleY)
+{
+    m_params.angleX = angleX;
+    m_params.angleY = angleY;
+}
+
+void GLWidget::saveSelectionInfos(QString Filename)
+{
+    for (int aK=0; aK < m_infos.size() ; ++aK )
+    {
+        //TODO: if (m_infos[aK].pose == m_infos[aK-1].pose) aK++;
+              //else write block pose
+    }
+
+}
+

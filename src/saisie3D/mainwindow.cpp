@@ -131,7 +131,8 @@ void MainWindow::doActionDisplayShortcuts()
     text += "Ctrl+P: open .ply files\n";
     text += "Ctrl+O: open .xml camera files\n";
     text += "Ctrl+E: export mask files\n";
-    text += "Ctrl+S: open .xml camera and export mask files\n";
+    text += "Ctrl+Maj+S: open .xml camera and export mask files\n";
+    text += "Ctrl+S: save .xml selection stack\n";
     text += "Ctrl+Q: quit\n\n";
     text += "View:\n\n";
     text += "F2: full screen\n";
@@ -187,6 +188,7 @@ void MainWindow::connectActions()
     connect(ui->actionLoad_camera,		SIGNAL(triggered()),   this, SLOT(loadCameras()));
     connect(ui->actionExport_mask,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
     connect(ui->actionLoad_and_Export,	SIGNAL(triggered()),   this, SLOT(loadAndExport()));
+    connect(ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveInfos()));
     connect(ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
 }
 
@@ -267,6 +269,11 @@ void MainWindow::loadAndExport()
 {
     loadCameras();
     exportMasks();
+}
+
+void MainWindow::saveSelectionInfos()
+{
+    m_glWidget->saveSelectionInfos("SelectionInfos.xml");
 }
 
 
