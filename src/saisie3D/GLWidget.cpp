@@ -1,14 +1,4 @@
-﻿#include <QtGui/QMouseEvent>
-#include <QSettings>
-#include <QMessageBox>
-#include <QMimeData>
-#include "GLWidget.h"
-#include "GL/glu.h"
-
-#include <cmath>
-#include <limits>
-#include <iostream>
-#include <algorithm>
+﻿#include "GLWidget.h"
 
 const GLfloat g_trackballScale = 1.f;
 
@@ -189,6 +179,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
       , m_interactionMode(TRANSFORM_CAMERA)
       , m_font(font())
       , m_bCloudLoaded(false)
+      , m_bCameraLoaded(false)
       , m_bDrawAxis(false)
       , m_bDrawBall(true)
       , m_bDrawCams(true)
@@ -256,6 +247,7 @@ void GLWidget::resizeGL(int width, int height)
 
 void GLWidget::paintGL()
 {
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
 
@@ -297,26 +289,26 @@ void GLWidget::paintGL()
         glColor3f(1.f,1.f,1.f);
 
         int fontSize = 10;
-        int l_currentHeight = m_glHeight-fontSize*m_messagesToDisplay.size(); //lower
+        int lc_currentHeight = m_glHeight- fontSize*m_messagesToDisplay.size(); //lower center
         int uc_currentHeight = 10;            //upper center
 
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
         while (it != m_messagesToDisplay.end())
         {
+            m_font.setPointSize(fontSize);
+
             switch(it->position)
             {
             case LOWER_CENTER_MESSAGE:
                 {
-                    m_font.setPointSize(fontSize);
                     QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                    renderText((m_glWidth-rect.width())/2, l_currentHeight, it->message,m_font);
+                    renderText((m_glWidth-rect.width())/2, lc_currentHeight, it->message,m_font);
                     int messageHeight = QFontMetrics(m_font).height();
-                    l_currentHeight += (messageHeight*5)/4; //add a 25% margin
+                    lc_currentHeight += (messageHeight*5)/4; //add a 25% margin
                 }
                 break;
             case UPPER_CENTER_MESSAGE:
                 {
-                    m_font.setPointSize(fontSize);
                     QRect rect = QFontMetrics(m_font).boundingRect(it->message);
                     renderText((m_glWidth-rect.width())/2, uc_currentHeight+rect.height(), it->message,m_font);
                     uc_currentHeight += (rect.height()*5)/4; //add a 25% margin
@@ -328,7 +320,6 @@ void GLWidget::paintGL()
                     QRect rect = QFontMetrics(m_font).boundingRect(it->message);
                     renderText((m_glWidth-rect.width())/2, (m_glHeight-rect.height())/2, it->message,m_font);
                 }
-                break;
             }
 
             ++it;
@@ -381,13 +372,21 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     {
         g_mouseLeftDown = true;
 
-        if ((m_interactionMode == SEGMENT_POINTS) && !m_bPolyIsClosed )
+        if (m_interactionMode == SEGMENT_POINTS)
         {
-            if (m_polygon.size() < 2)
-                m_polygon.push_back(m_lastPos);
+            if (!m_bPolyIsClosed)
+            {
+                if (m_polygon.size() < 2)
+                    m_polygon.push_back(m_lastPos);
+                else
+                {
+                    m_polygon[m_polygon.size()-1] = m_lastPos;
+                    m_polygon.push_back(m_lastPos);
+                }
+            }
             else
             {
-                m_polygon[m_polygon.size()-1] = m_lastPos;
+                clearPolyline();
                 m_polygon.push_back(m_lastPos);
             }
         }
@@ -411,7 +410,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
 {
-    switch(event->key())
+   switch(event->key())
     {
     case Qt::Key_Escape:
         clearPolyline();
@@ -433,7 +432,6 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
         break;
     default:
         event->ignore();
-        break;
     }
 }
 
@@ -441,6 +439,7 @@ void GLWidget::setData(cData *data)
 {
     m_Data = data;
     setCloudLoaded(true);
+    updateGL();
 }
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -645,8 +644,6 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
     g_translationMatrix[0] = m_Data->m_cX;
     g_translationMatrix[1] = m_Data->m_cY;
     g_translationMatrix[2] = m_Data->m_cZ;
-
-    updateGL();
 }
 
 void GLWidget::onWheelEvent(float wheelDelta_deg)
@@ -714,18 +711,17 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         }
 
         event->ignore();
-        return;
     }
-    else
+    else if (g_mouseLeftDown || g_mouseRightDown)
     {
-        QPoint dp = event->pos()-m_lastPos;
 
-        m_lastPos = event->pos();
+        QPoint dp = event->pos()-m_lastPos;
 
         if ( g_mouseLeftDown )
         {         
-            setRotateOx_m33( ( g_trackballScale*dp.y() )/m_glHeight, g_rotationOx );
-            setRotateOy_m33( ( g_trackballScale*dp.x() )/m_glWidth, g_rotationOy );
+            float speedRot = 2.5f;
+            setRotateOx_m33( ( speedRot * g_trackballScale*dp.y() )/m_glHeight, g_rotationOx );
+            setRotateOy_m33( ( speedRot * g_trackballScale*dp.x() )/m_glWidth, g_rotationOy );
 
             mult_m33( g_rotationOx, g_rotationMatrix, g_tmpMatrix );
             mult_m33( g_rotationOy, g_tmpMatrix, g_rotationMatrix );
@@ -739,12 +735,14 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         updateGL();
     }
+
+    m_lastPos = event->pos();
 }
 
 bool isPointInsidePoly(const QPoint& P, const QVector < QPoint > poly)
 {
     unsigned vertices=poly.size();
-    if (vertices<2)
+    if (vertices<3)
         return false;
 
     bool inside = false;
@@ -773,9 +771,9 @@ bool isPointInsidePoly(const QPoint& P, const QVector < QPoint > poly)
     return inside;
 }
 
-void GLWidget::segment(bool inside)
+void GLWidget::segment(bool inside, bool add)
 {
-    if (m_polygon.size() < 2)
+    if (m_polygon.size() < 3)
         return;
 
     //viewing parameters
@@ -801,13 +799,13 @@ void GLWidget::segment(bool inside)
 
     for (int aK=0; aK < m_Data->NbClouds(); ++aK)
     {
-        Cloud_::Cloud *a_cloud = m_Data->getCloud(aK);
+        Cloud *a_cloud = m_Data->getCloud(aK);
 
         for (int bK=0; bK < a_cloud->size();++bK)
         {
-            Cloud_::Vertex P = a_cloud->getVertex( bK );
+            Vertex P = a_cloud->getVertex( bK );
 
-            if (P.isVisible())
+            if (add)
             {
                 GLdouble xp,yp,zp;
                 gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
@@ -817,10 +815,60 @@ void GLWidget::segment(bool inside)
 
                 pointInside = isPointInsidePoly(P2D,polyg);
 
-                if ((inside && !pointInside)||(!inside && pointInside))
-                    m_Data->getCloud(aK)->getVertex(bK).setVisible(false);
+                if (pointInside||P.isVisible())
+                    a_cloud->getVertex(bK).setVisible(true);
+                else
+                    a_cloud->getVertex(bK).setVisible(false);
+            }
+            else
+            {
+                if (P.isVisible())
+                {
+                    GLdouble xp,yp,zp;
+                    gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
+
+                    P2D.setX(xp);
+                    P2D.setY(yp);
+
+                    pointInside = isPointInsidePoly(P2D,polyg);
+
+                    if (((inside && !pointInside)||(!inside && pointInside)))
+                        a_cloud->getVertex(bK).setVisible(false);
+                    else
+                        a_cloud->getVertex(bK).setVisible(true);
+                }
             }
         }
+    }
+}
+
+void GLWidget::deletePoint()
+{
+    float dist2 = FLT_MAX;
+    int dx, dy, d2;
+    int idx = -1;
+
+    for (int aK =0; aK < m_polygon.size();++aK)
+    {
+        dx = m_polygon[aK].x()-m_lastPos.x();
+        dy = m_polygon[aK].y()-m_lastPos.y();
+        d2 = dx*dx +dy*dy;
+
+        if (d2 < dist2)
+        {
+            dist2 = d2;
+            idx = aK;
+        }
+    }
+
+    if (idx !=  -1)
+    {
+        for (int aK =idx; aK < m_polygon.size()-1;++aK)
+        {
+            m_polygon[aK] = m_polygon[aK+1];
+        }
+
+        m_polygon.pop_back();
     }
 }
 
@@ -995,7 +1043,7 @@ void GLWidget::drawCams()
     glPointSize(7);
     if (m_Data->NbClouds())
     {
-        scale = 0.005*m_Data->getCloud(0)->getScale();
+        scale = 0.0005*m_Data->getCloud(0)->getScale();
     }
     for (int i=0; i<m_Data->NbCameras();i++)
     {
@@ -1107,7 +1155,7 @@ void GLWidget::showSelectionMessages()
     displayNewMessage(QString());
     displayNewMessage("Selection mode",UPPER_CENTER_MESSAGE);
     displayNewMessage("Left click: add contour point / Right click: close / Echap: delete polyline",LOWER_CENTER_MESSAGE);
-    displayNewMessage("Space: keep points inside polyline / Suppr: keep points outside polyline",LOWER_CENTER_MESSAGE);
+    displayNewMessage("Space: keep points inside polyline / Shift+Space: add points inside polyline / Suppr: keep points outside polyline",LOWER_CENTER_MESSAGE);
 }
 
 void GLWidget::showMoveMessages()

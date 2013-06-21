@@ -52,7 +52,7 @@ using namespace NS_ParamChantierPhotogram;
 /*                                                          */
 /************************************************************/
 
-static const std::string  NoDefStr = "x@@%?&!88!$£";
+static const std::string  NoDefStr = "x@@%?&!88!$\243";
 
 
 cParamRechCible::cParamRechCible

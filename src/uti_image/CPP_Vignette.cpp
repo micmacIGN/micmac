@@ -358,7 +358,7 @@ vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
 //RANSAC
 	
 vector<double> aParam;
-double ErMoyMin=10, nbInliersMax=0,ErMin=10,aScoreMax=0;;
+double /*ErMoyMin=10,*/ nbInliersMax=0,ErMin=10,aScoreMax=0;;
 int nbPtsSIFT=aPtsHomol[0].size();
 int nbRANSACinitialised=0;
 int nbRANSACaccepted=0;

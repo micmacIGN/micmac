@@ -26,6 +26,10 @@ typedef unsigned char pixel;
 #define NOPAGELOCKEDMEMORY false
 #define WARPSIZE 32
 
+
+#define SIZECU  1
+#define NWARP   1
+
 #define DISPLAYOUTPUT
 #define TexFloat2Layered texture<float2,cudaTextureType2DLayered>
 
@@ -930,8 +934,8 @@ template <class T>
 void CuHostData3D<T>::FillRandom(T min, T max)
 {
     T mod = abs(max - min);
-    srand (time(NULL));
-    for(int i=0;i<CData3D<T>::GetSize();i++)
+    //srand (time(NULL));
+    for(uint i=0;i<CData3D<T>::GetSize();i++)
     {
         int rdVal  = rand()%((int)mod);
         double dRdVal = (float)rand() / std::numeric_limits<int>::max();

@@ -188,7 +188,11 @@ template <const INT nbb> class DataIm2D_Bits :
 
        inline INT get(INT x,INT y) const;
        inline INT get_def(INT x,INT y,INT v) const;
-       inline void set(INT x,INT y,INT val) const;
+       inline void set(INT x,INT y,INT val) const
+    {
+        U_INT1 * adr_x = _data[y] +  x / nb_per_byte;
+        *adr_x =  Tabul_Bits<nbb,true>::out_tab[*adr_x][val][x%nb_per_byte];
+    }
 
       virtual void out_pts_integer(Const_INT_PP coord,INT nb,const void *) ;
       virtual void input_pts_integer(void *,Const_INT_PP coord,INT nb) const;
@@ -229,6 +233,38 @@ template <const INT nbb> class DataIm2D_Bits :
                    );
 
 };
+
+
+template <const INT nbb>  DataIm2D_Bits<nbb>::DataIm2D_Bits
+(
+ INT Tx,
+ INT Ty,
+ bool to_init ,
+ INT  v_init,
+ void * aDataLin
+ ) :
+DataGenImBits<nbb>(Tx,Ty,aDataLin),
+DataIm2DGen(Tx,Ty)
+{
+    _data =  STD_NEW_TAB_USER(ty(),U_INT1 *);
+    
+    for (int y = 0 ; y<ty() ; y++)
+        _data[y] = this->_data_lin + y *this->_sz_line;
+    
+    if (to_init)
+    {
+        Tjs_El_User.ElAssert
+        (
+         (v_init<this->vmax()) && (v_init>=this->vmin()),
+         EEM0 << "Bad init value in Im2D_Bits \n"
+         << "|  Got " << v_init << ", expected >= " << this->vmin() << " and < " << this->vmax()
+         );
+        for (INT b=0; b<nb_per_byte ; b++)
+            set(b,0,v_init);
+        U_INT1  v0 = this->_data_lin[0];
+        set_cste(this->_data_lin,v0,this->_sz_line*ty());
+    }
+}
 
 
 // Methodes deplacees dans le header suite a des erreurs de compilation sous MacOS entre gcc4.0 et gcc4.2 (LLVM)

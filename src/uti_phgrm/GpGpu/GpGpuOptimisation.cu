@@ -9,7 +9,6 @@
 /// \date       Avril 2013
 
 #include "GpGpu/GpGpuStreamData.cuh"
-//#include "GpGpu/GpGpuOptimisation.h"
 #include "GpGpu/data2Optimize.h"
 
 /// brief Calcul le Z min et max.
@@ -172,17 +171,19 @@ extern "C" void OptimisationOneDirection(Data2Optimiz<CuHostData3D> &d2O)
                                                     );
 }
 
-__global__ void TestGpu(int *value)
-{
-    //printf("otot");
-    value[0] = value[0] + 1;
+__global__ void TestGpu(uint *value)
+{    
+    uint id = blockIdx.x * WARPSIZE + threadIdx.x;
+    //for(int i = 0 ; i < 4096; i++)
+        //value[id] = sqrt((float)value[id]) * sqrt((float)value[id]) + sqrt((float)value[id]);
+        value[id]++;
 }
 
 /// \brief Appel exterieur du kernel
-extern "C" void Launch(int *value){
+extern "C" void Launch(uint *value){
 
-    dim3 Threads(1);
-    dim3 Blocks(1);
+    dim3 Threads(WARPSIZE);
+    dim3 Blocks(NWARP);
 
     TestGpu<<<Blocks,Threads>>>(value);
 

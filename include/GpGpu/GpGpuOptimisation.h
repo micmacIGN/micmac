@@ -3,6 +3,7 @@
 
 #include "GpGpu/GpGpuTools.h"
 #include "GpGpu/data2Optimize.h"
+#include "GpGpu/GpGpuMultiThreadingCpu.h"
 
 #include <boost/thread/thread.hpp>
 
@@ -12,12 +13,12 @@ void LaunchKernel();
 #define HOST_Data2Opti Data2Optimiz<CuHostData3D,2>
 #define DEVC_Data2Opti Data2Optimiz<CuDeviceData3D>
 
-extern "C" void Launch(int* value);
+extern "C" void Launch(uint* value);
 extern "C" void OptimisationOneDirection(DEVC_Data2Opti  &d2O);
 
 /// \class InterfMicMacOptGpGpu
 /// \brief Class qui permet a micmac de lancer les calculs d optimisations sur le Gpu
-class InterfOptimizGpGpu
+class InterfOptimizGpGpu : public GpGpuMultiThreadingCpu<CuHostData3D<uint>,CuDeviceData3D<uint> >
 {
 public:
     InterfOptimizGpGpu();
@@ -42,7 +43,13 @@ public:
     void            SetPreCompNextDir(bool precompute);
     bool            GetPreCompNextDir();
 
+
+
 private:
+
+    virtual void    InitPrecompute(){}
+    virtual void    Precompute(HOST_UINT3D* hostIn){}
+    virtual void    GpuCompute(){}
 
     void            threadFuncOptimi();
 
