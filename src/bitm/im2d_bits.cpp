@@ -365,13 +365,15 @@ template <const INT nbb>
             v                                        ;
 }
 
+// Greg: deplace dans le header pour cause d'erreur de compilation sous MacOS
+/*
 template <const INT nbb>
          void DataIm2D_Bits<nbb>::set(INT x,INT y,INT val) const
 {
     U_INT1 * adr_x = _data[y] +  x / nb_per_byte;
     *adr_x =  Tabul_Bits<nbb,true>::out_tab[*adr_x][val][x%nb_per_byte];
 }
-
+*/
 
 template <const INT nbb> void DataIm2D_Bits<nbb>::out_pts_integer
               (Const_INT_PP pts,INT nb,const void * i)
@@ -455,6 +457,8 @@ template <const INT nbb>  INT  DataIm2D_Bits<nbb>::dim() const
     return 2;
 }
 
+// Deplace dans le header pour pb de correlation MacOS
+/*
 template <const INT nbb>  DataIm2D_Bits<nbb>::DataIm2D_Bits
                           (
                                INT Tx,
@@ -485,6 +489,7 @@ template <const INT nbb>  DataIm2D_Bits<nbb>::DataIm2D_Bits
          set_cste(this->_data_lin,v0,this->_sz_line*ty());
     }
 }
+ */
 
 
 
