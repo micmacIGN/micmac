@@ -1,0 +1,166 @@
+<Global
+    Subst="@$#1"
+    NameDecl="@$#1"
+
+
+    ImPb="F100_img_39(06|08|10|12|34).tif"
+>
+   <ParamApero>
+
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> Key-Set-HomolPastisBin  </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>  Key-Assoc-CpleIm2HomolPastisBin   </KeyAssoc>
+
+             </BDD_PtsLiaisons>
+             <BDD_Orient >
+                  <Id> Key-Ori-Finale </Id>
+                  <KeySet>    Key-Set-OrFinale </KeySet>
+                  <KeyAssoc>  Key-Assoc-Im2OrFinale </KeyAssoc>
+             </BDD_Orient>
+
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_024 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   Ori-F/F024_AutoCalFinale.xml   </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_100 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   Ori-F/F100_AutoCalFinale.xml  </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>  ^${ImMaitresse} </PatternName>
+	           <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+		        <PosFromBDOrient>  Key-Ori-Finale </PosFromBDOrient>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>  F(024|100)_${PrefixImages}${PatternNumero}${PostfixImagesDebay}\.${TifPost} </PatternName> 
+	           <PatternRefuteur>  ^(${ImMaitresse}|${ImPb}) </PatternRefuteur>
+	           <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+
+                   <PosesDeRattachement>  0  </PosesDeRattachement>
+
+		   <PosValueInit>
+		        <PosFromBDOrient>  Key-Ori-Finale </PosFromBDOrient>
+		   </PosValueInit>
+              </PoseCameraInc>
+
+              <PoseCameraInc>
+                   <PatternName>  ${ImPb} </PatternName>
+                   <InitNow> false </InitNow>
+                   <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+
+
+                   <MEP_SPEC_MST>
+                           <Show> true </Show>
+                   </MEP_SPEC_MST>
+
+
+                   <PosValueInit>
+                        <PoseFromLiaisons>
+                             <LiaisonsInit>
+                                 <NameCam> ###   </NameCam>
+                                 <IdBD> Id_Pastis_Hom  </IdBD>
+                             </LiaisonsInit>
+                        </PoseFromLiaisons>
+                   </PosValueInit>
+
+              </PoseCameraInc>
+
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                    <IterationsCompensation>
+                          <Pose2Init>
+                                 <ProfMin> [6] </ProfMin>
+                                 <Show> true </Show>
+                          </Pose2Init>
+
+		          <SectionContraintes>
+		              <ContraintesPoses>
+			         <NamePose>   .* </NamePose>
+                                 <ByPattern> true </ByPattern>
+                                 <PatternRefuteur> ${ImPb} </PatternRefuteur>
+			         <Val>      ePoseFigee   </Val>
+		              </ContraintesPoses>
+
+                               <ContraintesCamerasInc>
+                                  <Val> eLiberteFocale_0  </Val>
+                                  <Val> eLib_PP_CD_00     </Val>
+                                  <Val> eLiberte_DR0      </Val>
+
+                              </ContraintesCamerasInc>
+		          </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+                    <SectionExport>
+                        <ExportPose>
+                            <PatternSel> (.*).tif </PatternSel>
+                            <KeyAssoc> Key-Assoc-Im2OrFinale </KeyAssoc>
+                            <AddCalib>  true </AddCalib>
+                            <NbVerif>  10 </NbVerif>
+                            <TolWhenVerif> 1e-3 </TolWhenVerif>
+                            <FileExtern> Key-Assoc-Im2AutoCalFinale </FileExtern>
+                            <FileExternIsKey> true </FileExternIsKey>
+                        </ExportPose>
+                    </SectionExport>
+
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
