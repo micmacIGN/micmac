@@ -1,0 +1,12 @@
+<FileOriMnt>
+      <NameFileMnt>/mnt/data/Archi/Monastier/120/Cyl/Z_Num4_DeZoom8_Geom-Im.tif</NameFileMnt>
+      <NameFileMasque>/mnt/data/Archi/Monastier/120/Cyl/Masq_Geom-Im_DeZoom8.tif</NameFileMasque>
+      <NombrePixels>850 1010</NombrePixels>
+      <OriginePlani>-1.14680537366906354 3.09198578395328871</OriginePlani>
+      <ResolutionPlani>0.00569598314146824158 -0.00569598314146801954</ResolutionPlani>
+      <OrigineAlti>0</OrigineAlti>
+      <ResolutionAlti>0.00284799157073407526</ResolutionAlti>
+      <NumZoneLambert>-1</NumZoneLambert>
+      <Geometrie>eGeomMNTEuclid</Geometrie>
+      <OrigineTgtLoc>0 0</OrigineTgtLoc>
+</FileOriMnt>
