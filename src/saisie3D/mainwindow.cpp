@@ -149,7 +149,8 @@ void MainWindow::doActionDisplayShortcuts()
     text += "    - Space bar: keep points inside polyline\n";
     text += "    - Shift+Space: add points inside polyline\n";
     text += "    - Del: keep points outside polyline\n";
-    text += "    - Ctrl+Z: undo all past selections\n";  
+    text += "    - . : delete closest point in polyline\n";
+    text += "    - Ctrl+Z: undo all past selections";
 
     QMessageBox::information(NULL, "Saisie3D - shortcuts", text);
 }
@@ -179,6 +180,7 @@ void MainWindow::connectActions()
     //"Points selection" menu
     connect(ui->actionTogglePoints_selection, SIGNAL(toggled(bool)), this, SLOT(togglePointsSelection(bool)));
     connect(ui->actionAdd_points,       SIGNAL(triggered()),   this, SLOT(addPoints()));
+    connect(ui->actionDelete_point,     SIGNAL(triggered()),   this, SLOT(deletePoint()));
 
     //File menu
     connect(ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
@@ -191,6 +193,11 @@ void MainWindow::connectActions()
 void MainWindow::addPoints()
 {
     m_glWidget->segment(true, true);
+}
+
+void MainWindow::deletePoint()
+{
+    m_glWidget->deletePoint();
 }
 
 void MainWindow::setTopView()

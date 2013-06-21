@@ -133,6 +133,9 @@ public:
     //! Segment points with polyline
     void segment(bool inside, bool add = false);
 
+    //! Delete mouse closest point
+    void deletePoint();
+
     //! Delete current polyline
     void clearPolyline();
 
