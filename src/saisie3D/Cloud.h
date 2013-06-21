@@ -4,8 +4,13 @@
 #include <vector>
 #include <string>
 
-#include <QColor>
 #include "StdAfx.h"
+
+#ifdef Int
+    #undef Int
+#endif
+#include <QColor>
+
 
 namespace Cloud_
 {
@@ -42,7 +47,6 @@ namespace Cloud_
             Cloud();
             Cloud(std::vector<Vertex> const &);
 
-            // renvoie true si le fichier a pu être lu
             static Cloud* loadPly( std::string );
 
             void    addVertex( const Vertex & );

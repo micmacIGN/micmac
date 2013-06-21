@@ -6,7 +6,7 @@
 
 #include "Cloud.h"
 #include "Data.h"
-#include "StdAfx.h"
+#include "general/bitm.h"
 
 class cLoader : QObject
 {
@@ -49,6 +49,9 @@ class cEngine
 
         //! Load point cloud .ply files
         void loadPlys();
+
+        //! Load cameras .xml files
+        void loadCameras(QStringList);
 
         //! Load cameras orientation files
         void loadCameras();

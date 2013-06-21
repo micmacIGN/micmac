@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "general/bitm.h"
 
 cLoader::cLoader()
  : m_FilenamesIn(),
@@ -26,7 +27,7 @@ vector <Cloud *> cLoader::loadClouds()
 {
    vector <Cloud *> a_res;
 
-   QStringList FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Ply Files"), m_Dir.path(), tr("Files (*.ply)"));
+   QStringList FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Cloud Files"), m_Dir.path(), tr("Files (*.ply)"));
 
    for (int aK=0;aK < FilenamesIn.size();++aK)
    {
@@ -43,7 +44,6 @@ vector <Cloud *> cLoader::loadClouds()
 
    return a_res;
 }
-
 
 vector <CamStenope *> cLoader::loadCameras()
 {
@@ -101,6 +101,14 @@ void cEngine::loadPlys()
     m_Data->addClouds(m_Loader->loadClouds());
 }
 
+void cEngine::loadCameras(QStringList filenames)
+{
+    for (int i=0;i<filenames.size();++i)
+    {
+        m_Data->addCamera(m_Loader->loadCamera(filenames[i].toStdString()));
+    }
+}
+
 void cEngine::loadCameras()
 {
     m_Data->addCameras(m_Loader->loadCameras());
@@ -119,7 +127,9 @@ void cEngine::doMasks()
     {
         pCam = m_Data->getCamera(cK);
 
-        Im2D_BIN mask = Im2D_BIN (pCam->Sz(), 0);
+        //Pt2di camS = pCam->Sz();
+        Im2D_BIN mask = Im2D_BIN(pCam->Sz(), 0);
+        //Im2D_BIN mask(camS,(INT)1);
 
         for (int aK=0; aK < m_Data->NbClouds();++aK)
         {

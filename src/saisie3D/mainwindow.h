@@ -6,10 +6,6 @@
 #include "GLWidget.h"
 #include "Engine.h"
 
-#ifdef Int
-    #undef Int
-#endif
-
 namespace Ui {
 class MainWindow;
 }
@@ -43,6 +39,9 @@ protected slots:
     void toggleShowCams(bool);
     void toggleShowMessages(bool);
     void togglePointsSelection(bool state);
+
+    void addPoints();
+    void deletePoint();
 
     //default views
     void setFrontView();
