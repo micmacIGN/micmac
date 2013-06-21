@@ -717,8 +717,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         QPoint dp = event->pos()-m_lastPos;
 
-        m_lastPos = event->pos();
-
         if ( g_mouseLeftDown )
         {         
             float speedRot = 2.5f;
@@ -737,6 +735,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         updateGL();
     }
+
+    m_lastPos = event->pos();
 }
 
 bool isPointInsidePoly(const QPoint& P, const QVector < QPoint > poly)
@@ -839,6 +839,36 @@ void GLWidget::segment(bool inside, bool add)
                 }
             }
         }
+    }
+}
+
+void GLWidget::deletePoint()
+{
+    float dist2 = FLT_MAX;
+    int dx, dy, d2;
+    int idx = -1;
+
+    for (int aK =0; aK < m_polygon.size();++aK)
+    {
+        dx = m_polygon[aK].x()-m_lastPos.x();
+        dy = m_polygon[aK].y()-m_lastPos.y();
+        d2 = dx*dx +dy*dy;
+
+        if (d2 < dist2)
+        {
+            dist2 = d2;
+            idx = aK;
+        }
+    }
+
+    if (idx !=  -1)
+    {
+        for (int aK =idx; aK < m_polygon.size()-1;++aK)
+        {
+            m_polygon[aK] = m_polygon[aK+1];
+        }
+
+        m_polygon.pop_back();
     }
 }
 

@@ -41,6 +41,7 @@ protected slots:
     void togglePointsSelection(bool state);
 
     void addPoints();
+    void deletePoint();
 
     //default views
     void setFrontView();

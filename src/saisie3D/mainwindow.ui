@@ -114,6 +114,7 @@ QStatusBar
     </property>
     <addaction name="actionTogglePoints_selection"/>
     <addaction name="actionAdd_points"/>
+    <addaction name="actionDelete_point"/>
     <addaction name="actionUndo"/>
    </widget>
    <widget class="QMenu" name="menuFile">
@@ -378,6 +379,17 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="actionDelete_point">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Delete point</string>
+   </property>
+   <property name="shortcut">
+    <string>.</string>
    </property>
   </action>
  </widget>
