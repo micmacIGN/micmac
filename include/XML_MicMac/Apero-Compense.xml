@@ -31,6 +31,15 @@
            <Symb>  GrIncGr=XXXX </Symb>
            <Symb>  GrIncIm=XXXX </Symb>
 
+           <Symb>  CPI=false </Symb>
+           <Symb>  CPIInput=false </Symb>
+           <Symb>  AllFree=false </Symb>
+           <Symb>  FocFree=false </Symb>
+           <Symb>  PPFree=false </Symb>
+           <Symb>  AffineFree=false </Symb>
+
+
+           <eSymb>  NotCPI=! ${CPI} </eSymb>
 
        </DicoLoc>
 
@@ -62,13 +71,22 @@
                 <CalValueInit>
                          <CalFromFileExtern>
                               <NameFile>   ####  </NameFile>
-                              <NameTag>    CalibrationInternConique </NameTag>
+                              <#IF  VTEST=${CPIInput}>
+                                   <NameTag> Interne</NameTag>
+                                   <NameTag>    CalibrationInternConique </NameTag>
+                              </#IF>
                               <AutorizeNonExisting > false </AutorizeNonExisting>
                          </CalFromFileExtern>
                 </CalValueInit>
                 <CalibPerPose>
-                   <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
-                   <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${CalibIn}/AutoCal@.xml  </KeyInitFromPose>
+                       <#IF VTEST=${CPI}>
+                           <KeyPose2Cal> NKS-Assoc-Id                       </KeyPose2Cal>
+                           <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
+                       </#IF>
+                       <#IF VTEST=${CPIInput}>
+                           <KeyInitFromPose> NKS-Assoc-Im2Orient@${AeroIn} </KeyInitFromPose>
+                           <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${CalibIn}/AutoCal@.xml  </KeyInitFromPose>
+                       </#IF>
                 </CalibPerPose>
                 <RayIsRelatifDiag  > true </RayIsRelatifDiag>
                 <RayApplyOnlyFE > true </RayApplyOnlyFE>
@@ -140,10 +158,55 @@
                    <IterationsCompensation>
                        <SectionContraintes>
                           <ContraintesCamerasInc>
-                              <Val> ${LibParamInterne}  </Val>
+                              <Val> eAllParamFiges  </Val>
                           </ContraintesCamerasInc>
                        </SectionContraintes>
                     </IterationsCompensation>
+
+                    <#WHEN VTEST=${FocFree}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLiberteFocale_1  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${PPFree}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLib_PP_CD_10  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+
+                    <#WHEN VTEST=${AffineFree}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLiberte_Phgr_Std_Aff  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+                    <#WHEN VTEST=${AllFree}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eAllParamLibres  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
 
 
                     <IterationsCompensation> </IterationsCompensation>
@@ -192,13 +255,17 @@
                                 <AddCalib>  true </AddCalib>
                                 <NbVerif>  10 </NbVerif>
                                 <TolWhenVerif> 1e-3 </TolWhenVerif>
-                                <FileExtern> NKS-Assoc-FromFocMm@Ori${AeroOut}/AutoCal@.xml </FileExtern>
-                                <FileExternIsKey> true </FileExternIsKey>
+                                <#WHEN VTEST=${NotCPI}>
+                                    <FileExtern> NKS-Assoc-FromFocMm@Ori${AeroOut}/AutoCal@.xml </FileExtern>
+                                    <FileExternIsKey> true </FileExternIsKey>
+                                </#WHEN>
                             </ExportPose>
-                             <ExportCalib>
-                                 <KeyAssoc>  NKS-Assoc-FromKeyCal@Ori${AeroOut}/AutoCal@.xml </KeyAssoc>
-                                 <KeyIsName> false </KeyIsName>
-                            </ExportCalib>
+                            <#WHEN VTEST=${NotCPI}>
+                                 <ExportCalib>
+                                     <KeyAssoc>  NKS-Assoc-FromKeyCal@Ori${AeroOut}/AutoCal@.xml </KeyAssoc>
+                                     <KeyIsName> false </KeyIsName>
+                                </ExportCalib>
+                            </#WHEN>
                     </SectionExport>
 	      </EtapeCompensation>
 	</SectionCompensation>
