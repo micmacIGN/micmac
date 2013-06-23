@@ -55,6 +55,7 @@ int GCPBascule_main(int argc,char ** argv)
     std::string DicoPts;
     std::string MesureIm;
     bool        ModeL1 = false;
+    bool        CPI = false;
 
 
     ElInitArgMain
@@ -67,6 +68,7 @@ int GCPBascule_main(int argc,char ** argv)
                     << EAMC(MesureIm,"File for Image Measurements"),
 	LArgMain()  
                     <<  EAM(ModeL1,"L1",true,"L1 minimisation vs L2; (Def=false)")
+                    <<  EAM(CPI,"CPI",true,"when Calib Per Image has to be used")
     );
 		
 	#if (ELISE_windows)
@@ -90,6 +92,8 @@ int GCPBascule_main(int argc,char ** argv)
      {
         aCom = aCom+ std::string(" +L2Basc=") + ToString(!ModeL1);
      }
+
+    if (CPI) aCom += " +CPI=true ";
 
 
    std::cout << "Com = " << aCom << "\n";

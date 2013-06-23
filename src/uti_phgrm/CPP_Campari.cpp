@@ -82,6 +82,13 @@ int Campari_main(int argc,char ** argv)
     std::string AeroIn= "";
     std::string AeroOut="";
 
+    bool  CPI1 = false;
+    bool  CPI2 = false;
+    bool  FocFree = false;
+    bool  PPFree = false;
+    bool  AffineFree = false;
+    bool  AllFree = false;
+
 
    std::vector<std::string> GCP;
 
@@ -92,6 +99,12 @@ int Campari_main(int argc,char ** argv)
                     << EAMC(AeroIn,"Input Orientation")
                     << EAMC(AeroOut,"Output Orientation"),
 	LArgMain()  << EAM(GCP,"GCP",true,"[GrMes.xml,GrUncertainty,ImMes.xml,ImUnc]")	
+                    << EAM(CPI1,"CPI1",true,"Calib Perm Im, Firt time")
+                    << EAM(CPI2,"CPI2",true,"Calib Perm Im, After first time, reusing Calib Per Im As input")
+                    << EAM(FocFree,"FocFree",true,"Foc Free, Def = false")
+                    << EAM(PPFree,"PPFree",true,"Principal Point Free, Def = false")
+                    << EAM(AffineFree,"AffineFree",true,"Affine Parameter, Def = false")
+                    << EAM(AllFree,"AllFree",true,"Affine Parameter, Def = false")
     );
 
 
@@ -112,6 +125,13 @@ int Campari_main(int argc,char ** argv)
                        +  std::string(" +AeroOut=-") + AeroOut + " " 
                       ;
 
+    if (CPI1) aCom       += " +CPI=true ";
+    if (CPI2) aCom       += " +CPIInput=true ";
+    if (FocFree) aCom    += " +FocFree=true ";
+    if (FocFree) aCom    += " +PPFree=true ";
+    if (AffineFree) aCom += " +AffineFree=true ";
+    if (AllFree) aCom    += " +AllFree=true ";
+
 
     if (EAMIsInit(&GCP))
     {
@@ -130,6 +150,7 @@ int Campari_main(int argc,char ** argv)
     }
 
 
+   std::cout << aCom << "\n";
    int aRes = system_call(aCom.c_str());
 
 
