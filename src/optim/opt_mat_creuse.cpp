@@ -496,7 +496,8 @@ tSysCho  cElMatCreuseStrFixe::LowGetElem(INT aX,INT aY)  const
        "No cElMatCreuseStrFixe::LowAddElem"
    );
    //return *((double*)0);
-   return *((double*)&aX); // this is bad news anyway but avoid clang's warning
+   // return *((double*)&aX); // this is bad news anyway but avoid clang's warning
+   return (tSysCho)0; // should avoid any warning ?
 }
 void cElMatCreuseStrFixe::LowSetElem(INT aX,INT aY,const tSysCho &)
 {
