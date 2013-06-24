@@ -13,12 +13,15 @@
 
 QT       += core gui opengl
 
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = saisie3D
 TEMPLATE = app
 
 DEFINES += TWEAK
+
+
 
 SOURCES += main.cpp\
         mainwindow.cpp\
@@ -52,6 +55,9 @@ CONFIG(release)
 {
 unix|win32: LIBS += -L$$PWD/../../lib -lelise
 unix: LIBS += -lGLU -lGLEW
+unix: QMAKE_CXXFLAGS += -Wall -Wno-ignored-qualifiers -Wno-unused-parameter
+#unix: QMAKE_CXXFLAGS += -w
+
 
 win32: PRE_TARGETDEPS += $$PWD/../../lib/elise.lib
 else:unix: PRE_TARGETDEPS += $$PWD/../../lib/libelise.a
@@ -62,6 +68,9 @@ CONFIG(debug)
 {
 unix|win32: LIBS += -L$$PWD/../../bin -lelise
 unix: LIBS += -lGLU -lGLEW
+#unix: QMAKE_CXXFLAGS_RELEASE += -Wno-return-type
+unix: QMAKE_CXXFLAGS += -Wall -Wno-ignored-qualifiers -Wno-unused-parameter
+#unix: QMAKE_CXXFLAGS += -w
 
 win32: PRE_TARGETDEPS += $$PWD/../../lib/elise.lib
 else:unix: PRE_TARGETDEPS += $$PWD/../../lib/libelise.a

@@ -1,9 +1,9 @@
 #ifndef DATA_H
 #define DATA_H
 
+
 #include "StdAfx.h"
 #include "Cloud.h"
-//#include <QSettings>
 #include <QVector>
 #include <QPoint>
 

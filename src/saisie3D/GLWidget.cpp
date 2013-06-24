@@ -444,6 +444,8 @@ void GLWidget::setData(cData *data)
 
     setBufferGl();
 
+    printf("setDATA");
+
       if (m_Data->NbClouds())
     {
         setCloudLoaded(true);

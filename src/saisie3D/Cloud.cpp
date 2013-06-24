@@ -69,7 +69,8 @@ Cloud* Cloud::loadPly( string i_filename )
     int nprops;
     int num_elems;
     char *elem_name;
-    PlyProperty **plist=NULL;
+    PlyProperty ** plist = NULL;
+    (void)plist;
 
     thePlyFile = ply_open_for_reading( const_cast<char *>(i_filename.c_str()), &nelems, &elist, &file_type, &version);
 
@@ -192,6 +193,8 @@ Vertex& Cloud::getVertex(unsigned int nb_vert)
     {
         printf("error accessing point cloud vector in Cloud::getVertex");
     }
+
+    return m_vertices[0];
 }
 
 void Cloud::setVertex( unsigned int idx, Vertex const & vertex)
@@ -208,11 +211,13 @@ void Cloud::clear()
 }
 
 Cloud::Cloud()
-    : m_scale(0.),
-      m_translation()
+    :
+      m_translation(),
+      m_scale(0.)
 {}
 
 Cloud::Cloud(vector<Vertex> const & vVertex)
+
 {
     for (unsigned int aK=0; aK< vVertex.size(); aK++)
     {
