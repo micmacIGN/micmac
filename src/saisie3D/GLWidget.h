@@ -6,9 +6,14 @@
 #include <limits>
 #include <iostream>
 #include <algorithm>
+#include "GL/glew.h"
 #include <QtOpenGL/QGLWidget>
+#include <QtOpenGL/QGLBuffer>
 #include <QGLContext>
-#include "GL/glu.h"
+
+//
+
+
 #include <QUrl>
 #include <QtGui/QMouseEvent>
 #include <QSettings>
@@ -148,6 +153,7 @@ public:
     //! Increase or decrease point size
     void ptSizeUp(bool);
 
+    void setBufferGl(bool onlyColor = false);
 public slots:
     void zoom();
 
@@ -262,6 +268,10 @@ protected:
 
     //! Data to display
     cData *m_Data;
+
+private:
+    QGLBuffer   m_vertexbuffer;
+    QGLBuffer   m_vertexColor;
 };
 
 #endif  /* _GLWIDGET_H */
