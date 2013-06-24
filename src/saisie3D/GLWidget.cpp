@@ -212,6 +212,8 @@ void GLWidget::calculateFPS()
 
 void GLWidget::paintGL()
 {
+    calculateFPS();
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
 
@@ -322,7 +324,7 @@ void GLWidget::paintGL()
         glMatrixMode(GL_MODELVIEW);
     }
 
-   // calculateFPS();
+
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
@@ -1239,6 +1241,15 @@ void GLWidget::setAngles(float angleX, float angleY)
 {
     m_params.angleX = angleX;
     m_params.angleY = angleY;
+}
+
+void GLWidget::showFps()
+{
+
+    QString res;
+    res.setNum(_fps);
+    displayNewMessage(QString());
+    displayNewMessage(res);
 }
 
 void GLWidget::saveSelectionInfos(QString Filename)

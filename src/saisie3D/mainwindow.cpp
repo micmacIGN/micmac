@@ -123,6 +123,9 @@ void MainWindow::togglePointsSelection(bool state)
             m_glWidget->showMoveMessages();
         }
     }
+
+
+
 }
 
 void MainWindow::doActionDisplayShortcuts()
