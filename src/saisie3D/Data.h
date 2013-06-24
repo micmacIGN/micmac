@@ -3,8 +3,9 @@
 
 #include "StdAfx.h"
 #include "Cloud.h"
-#include <QSettings>
+//#include <QSettings>
 #include <QVector>
+#include <QPoint>
 
 using namespace Cloud_;
 
