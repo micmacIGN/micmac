@@ -54,10 +54,8 @@ DEPENDPATH += $$PWD/../../include
 CONFIG(release)
 {
 unix|win32: LIBS += -L$$PWD/../../lib -lelise
-unix: LIBS += -lGLU -lGLEW
+unix: LIBS += -lGLU -lGLEW -lglut
 unix: QMAKE_CXXFLAGS += -Wall -Wno-ignored-qualifiers -Wno-unused-parameter
-#unix: QMAKE_CXXFLAGS += -w
-
 
 win32: PRE_TARGETDEPS += $$PWD/../../lib/elise.lib
 else:unix: PRE_TARGETDEPS += $$PWD/../../lib/libelise.a
@@ -67,10 +65,9 @@ else:unix: PRE_TARGETDEPS += $$PWD/../../lib/libelise.a
 CONFIG(debug)
 {
 unix|win32: LIBS += -L$$PWD/../../bin -lelise
-unix: LIBS += -lGLU -lGLEW
-#unix: QMAKE_CXXFLAGS_RELEASE += -Wno-return-type
+unix: LIBS += -lGLU -lGLEW -lglut
 unix: QMAKE_CXXFLAGS += -Wall -Wno-ignored-qualifiers -Wno-unused-parameter
-#unix: QMAKE_CXXFLAGS += -w
+
 
 win32: PRE_TARGETDEPS += $$PWD/../../lib/elise.lib
 else:unix: PRE_TARGETDEPS += $$PWD/../../lib/libelise.a
