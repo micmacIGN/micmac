@@ -9,14 +9,15 @@
 
 #ifndef  WIN32
     #include "GL/glew.h"
-#else
-    #include "GL/glu.h"
 #endif
+
 #include <QtOpenGL/QGLWidget>
 #include <QtOpenGL/QGLBuffer>
 #include <QGLContext>
 
-
+#ifdef WIN32
+    #include "GL/glu.h"
+#endif
 
 #include <QUrl>
 #include <QtGui/QMouseEvent>
@@ -112,9 +113,6 @@ public:
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
-
-    //! Updates current zoom
-    void updateZoom(float zoomFactor);
 
     //! Sets current zoom
     void setZoom(float value);
