@@ -216,15 +216,17 @@ void GLWidget::calculateFPS()
       //  Reset frame count
       _frameCount = 0;
 
-      //cout << "fps : " << _fps << endl;
+      if (_fps > 1e-3)
+      {
+          displayNewMessage("",LOWER_LEFT_MESSAGE);
+          displayNewMessage("fps: " + QString::number(_fps),LOWER_LEFT_MESSAGE);
+      }
     }
 
 }
 
 void GLWidget::paintGL()
 {
-    calculateFPS();
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
 
@@ -270,27 +272,34 @@ void GLWidget::paintGL()
 
             switch(it->position)
             {
+            case LOWER_LEFT_MESSAGE:
+            {
+                renderText(10, lc_currentHeight, it->message,m_font);
+                int messageHeight = QFontMetrics(m_font).height();
+                lc_currentHeight -= (messageHeight*5)/4; //add a 25% margin
+            }
+                break;
             case LOWER_CENTER_MESSAGE:
-                {
-                    QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                    renderText((m_glWidth-rect.width())/2, lc_currentHeight, it->message,m_font);
-                    int messageHeight = QFontMetrics(m_font).height();
-                    lc_currentHeight += (messageHeight*5)/4; //add a 25% margin
-                }
+            {
+                QRect rect = QFontMetrics(m_font).boundingRect(it->message);
+                renderText((m_glWidth-rect.width())/2, lc_currentHeight, it->message,m_font);
+                int messageHeight = QFontMetrics(m_font).height();
+                lc_currentHeight += (messageHeight*5)/4; //add a 25% margin
+            }
                 break;
             case UPPER_CENTER_MESSAGE:
-                {
-                    QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                    renderText((m_glWidth-rect.width())/2, uc_currentHeight+rect.height(), it->message,m_font);
-                    uc_currentHeight += (rect.height()*5)/4; //add a 25% margin
-                }
+            {
+                QRect rect = QFontMetrics(m_font).boundingRect(it->message);
+                renderText((m_glWidth-rect.width())/2, uc_currentHeight+rect.height(), it->message,m_font);
+                uc_currentHeight += (rect.height()*5)/4; //add a 25% margin
+            }
                 break;
             case SCREEN_CENTER_MESSAGE:
-                {
-                    m_font.setPointSize(12);
-                    QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                    renderText((m_glWidth-rect.width())/2, (m_glHeight-rect.height())/2, it->message,m_font);
-                }
+            {
+                m_font.setPointSize(12);
+                QRect rect = QFontMetrics(m_font).boundingRect(it->message);
+                renderText((m_glWidth-rect.width())/2, (m_glHeight-rect.height())/2, it->message,m_font);
+            }
             }
 
             ++it;
@@ -335,7 +344,8 @@ void GLWidget::paintGL()
         glMatrixMode(GL_MODELVIEW);
     }
 
-
+    if (m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE)
+       calculateFPS();
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
