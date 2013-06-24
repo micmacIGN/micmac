@@ -188,7 +188,7 @@ void MainWindow::connectActions()
     connect(ui->actionLoad_camera,		SIGNAL(triggered()),   this, SLOT(loadCameras()));
     connect(ui->actionExport_mask,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
     connect(ui->actionLoad_and_Export,	SIGNAL(triggered()),   this, SLOT(loadAndExport()));
-    connect(ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveInfos()));
+    connect(ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
     connect(ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
 }
 
