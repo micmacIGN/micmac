@@ -191,6 +191,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
       , m_bPolyIsClosed(false)
       , m_Data(data)
       , m_bObjectCenteredView(true)
+      , m_vertexbuffer(QGLBuffer::VertexBuffer)
 {
     setMouseTracking(true);
 
@@ -253,33 +254,27 @@ void GLWidget::paintGL()
 
     draw3D();
 
-    glPointSize(m_params.PointSize);
-
     if (hasCloudLoaded())
     {
-        glBegin(GL_POINTS);
 
-        for(int aK=0; aK< m_Data->NbClouds(); aK++)
-        {
-            for(int bK=0; bK< m_Data->getCloud(aK)->size(); bK++)
-            {
-                Vertex vert = m_Data->getCloud(aK)->getVertex(bK);
-                if (vert.isVisible())
-                {
-                    qglColor( vert.getColor() );
-                    glVertex3f( vert.x(), vert.y(), vert.z() );
-                }
-                else
-                {
-                   QColor col = vert.getColor();
-                   col.setAlphaF(0.1f);
-                   col.setRedF(1.0f);
-                   qglColor( col );
-                   glVertex3f( vert.x(), vert.y(), vert.z() );
-                }
-            }
-        }
-        glEnd();
+        glPointSize(m_params.PointSize);
+
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
+
+        m_vertexbuffer.bind();
+        glVertexPointer(3, GL_FLOAT, 0, NULL);
+        m_vertexbuffer.release();
+
+        m_vertexColor.bind();
+        glColorPointer(3, GL_FLOAT, 0, NULL);
+        m_vertexColor.release();
+
+        glDrawArrays( GL_POINTS, 0, m_Data->getCloud(0)->size()*3 );
+
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_COLOR_ARRAY);
+
     }
 
     //current messages (if valid)
@@ -435,11 +430,86 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
     }
 }
 
+void GLWidget::setBufferGl(bool onlyColor)
+{
+
+    if(m_vertexbuffer.isCreated() && !onlyColor)
+        m_vertexbuffer.destroy();
+    if(m_vertexColor.isCreated())
+        m_vertexColor.destroy();
+
+    int sizeClouds = m_Data->GetSizeClouds();
+
+    GLfloat* vertices = NULL, *colors = NULL;
+
+    if(!onlyColor)
+        vertices   = new GLfloat[sizeClouds*3];
+
+    colors     = new GLfloat[sizeClouds*3];
+    int pitchV = 0;
+
+    for (int aK=0; aK < m_Data->NbClouds();++aK){
+
+        Cloud* pcloud = m_Data->getCloud(aK);
+        uint sizeCloud = pcloud->size();
+
+        for(int bK=0; bK< (int)sizeCloud; bK++)
+        {
+            Vertex vert = pcloud->getVertex(bK);
+            QColor colo = vert.getColor();
+            if(!onlyColor)
+            {
+                vertices[pitchV+bK*3 + 0 ] = vert.x();
+                vertices[pitchV+bK*3 + 1 ] = vert.y();
+                vertices[pitchV+bK*3 + 2 ] = vert.z();
+            }
+            if(vert.isVisible())
+            {
+                colors[pitchV+bK*3 + 0 ]   = colo.redF();
+                colors[pitchV+bK*3 + 1 ]   = colo.greenF();
+                colors[pitchV+bK*3 + 2 ]   = colo.blueF();
+                //colors[bK*3 + 3 ]   = 1.0f;
+            }
+            else
+            {
+                colors[pitchV+bK*3 + 0 ]   = colo.redF()*2;
+                colors[pitchV+bK*3 + 1 ]   = colo.greenF();
+                colors[pitchV+bK*3 + 2 ]   = colo.blueF();
+                //colors[bK*3 + 3 ]   = 0.45f;
+            }
+        }
+
+        pitchV += sizeCloud;
+    }
+
+    if(!onlyColor)
+    {
+        m_vertexbuffer.create();
+        m_vertexbuffer.setUsagePattern(QGLBuffer::StaticDraw);
+        m_vertexbuffer.bind();
+        m_vertexbuffer.allocate(vertices, sizeClouds* 3 * sizeof(GLfloat));
+        m_vertexbuffer.release();
+    }
+
+    m_vertexColor.create();
+    m_vertexColor.setUsagePattern(QGLBuffer::StaticDraw);
+    m_vertexColor.bind();
+    m_vertexColor.allocate(colors, sizeClouds* 3 * sizeof(GLfloat));
+    m_vertexColor.release();
+
+    if(!onlyColor)
+        delete [] vertices;
+    delete [] colors;
+}
+
 void GLWidget::setData(cData *data)
 {
     m_Data = data;
+
+    setBufferGl();
+
     setCloudLoaded(true);
-    updateGL();
+    update();
 }
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -555,7 +625,7 @@ void GLWidget::draw3D()
     transpose( tmp, g_glMatrix );
     glLoadMatrixf( g_glMatrix );
 
-    update();
+    //update();
 }
 
 void GLWidget::setStandardOrthoCenter()
@@ -582,6 +652,8 @@ void GLWidget::zoom()
     glLoadIdentity();
 
     glOrtho(left, right, -zoom, zoom, -zoom, zoom);
+
+    update();
 }
 
 void GLWidget::setInteractionMode(INTERACTION_MODE mode)
@@ -653,7 +725,7 @@ void GLWidget::onWheelEvent(float wheelDelta_deg)
     float zoomFactor = pow(1.1f,wheelDelta_deg / c_defaultDeg2Zoom);
     updateZoom(zoomFactor);
 
-    updateGL();
+    //updateGL();
 }
 
 void GLWidget::updateZoom(float zoomFactor)
@@ -707,7 +779,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 //replace last point by the current one
                 m_polygon[sz-1] = event->pos();
 
-            updateGL();
+            update();
         }
 
         event->ignore();
@@ -733,7 +805,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             g_translationMatrix[1] += dp.y()*m_Data->m_diam/m_glHeight;
         }
 
-        updateGL();
+        update();
     }
 
     m_lastPos = event->pos();
@@ -838,8 +910,12 @@ void GLWidget::segment(bool inside, bool add)
                         a_cloud->getVertex(bK).setVisible(true);
                 }
             }
-        }
+        }                
+
+
+        setBufferGl(true);
     }
+
 }
 
 void GLWidget::deletePoint()
@@ -1116,7 +1192,7 @@ void GLWidget::showAxis(bool show)
     m_bDrawAxis = show;
     if (m_bDrawAxis) m_bDrawBall = false;
 
-    updateGL();
+    update();
 }
 
 void GLWidget::showBall(bool show)
@@ -1124,14 +1200,14 @@ void GLWidget::showBall(bool show)
     m_bDrawBall = show;
     if (m_bDrawBall) m_bDrawAxis = false;
 
-    updateGL();
+    update();
 }
 
 void GLWidget::showCams(bool show)
 {
     m_bDrawCams = show;
 
-    updateGL();
+    update();
 }
 
 void GLWidget::showMessages(bool show)
@@ -1145,7 +1221,7 @@ void GLWidget::showMessages(bool show)
     }
     else displayNewMessage(QString());
 
-    updateGL();
+    update();
 }
 
 bool GLWidget::showMessages(){return m_bMessages;}

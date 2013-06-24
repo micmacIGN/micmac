@@ -34,6 +34,15 @@ void cData::addClouds(vector <Cloud *> aClouds)
         centerCloud(aClouds[aK]);
 }
 
+int cData::GetSizeClouds()
+{
+    int sizeClouds = 0;
+    for (int aK=0; aK < NbClouds();++aK)
+        sizeClouds += getCloud(aK)->size();
+
+    return sizeClouds;
+}
+
 void cData::centerCloud(Cloud * aCloud)
 {
     Cloud *a_res = new Cloud();
