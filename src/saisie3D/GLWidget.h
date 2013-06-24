@@ -7,15 +7,16 @@
 #include <iostream>
 #include <algorithm>
 
-#ifndef  WIN32
+#ifndef  WIN32    
     #include "GL/glew.h"
+    #include "GL/glut.h"
 #endif
 
 #include <QtOpenGL/QGLWidget>
 #include <QtOpenGL/QGLBuffer>
 #include <QGLContext>
 
-#ifdef WIN32
+#ifdef  WIN32
     #include "GL/glu.h"
 #endif
 
@@ -287,9 +288,19 @@ protected:
 
     //! acceleration factor
     float m_speed;
+
 private:
+    void        calculateFPS();
+
     QGLBuffer   m_vertexbuffer;
     QGLBuffer   m_vertexColor;
+
+    uint        _frameCount;
+    uint        _previousTime;
+    uint        _currentTime;
+
+    float       _fps;
+
 };
 
 #endif  /* _GLWIDGET_H */

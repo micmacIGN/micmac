@@ -185,18 +185,29 @@ void GLWidget::resizeGL(int width, int height)
 //-------------------------------------------------------------------------
 // Calculates the frames per second
 //-------------------------------------------------------------------------
-void calculateFPS()
+void GLWidget::calculateFPS()
 {
-//    static float framesPerSecond    = 0.0f;       // This will store our fps
-//    float lastTime   = 0.0f;       // This will hold the time from the last frame
-//    float currentTime = 0;//GetTickCount() * 0.001f;
-//    ++framesPerSecond;
-//    if( currentTime - lastTime > 1.0f )
-//    {
-//        lastTime = currentTime;
-//        cout << "\nCurrent Frames Per Second: " << framesPerSecond;
-//        framesPerSecond = 0;
-//    }
+    //  Increase frame count
+       _frameCount++;
+
+       //  Get the number of milliseconds since glutInit called
+       //  (or first call to glutGet(GLUT ELAPSED TIME)).
+       _currentTime = glutGet(GLUT_ELAPSED_TIME);
+
+       //  Calculate time passed
+       int timeInterval = _currentTime - _previousTime;
+
+       if(timeInterval > 1000)
+       {
+           //  calculate the number of frames per second
+           _fps = _frameCount / (timeInterval / 1000.0f);
+
+           //  Set time
+           _previousTime = _currentTime;
+
+           //  Reset frame count
+           _frameCount = 0;
+       }
 }
 
 void GLWidget::paintGL()
