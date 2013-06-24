@@ -127,7 +127,11 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_params(ViewportParameters())
   , m_Data(data)
   , m_speed(2.5f)
-  , m_vertexbuffer(QGLBuffer::VertexBuffer)
+  , m_vertexbuffer(QGLBuffer::VertexBuffer)  
+  , _frameCount(0)
+  , _previousTime(0)
+  , _currentTime(0)
+  , _fps(0.0f)
 {
     setMouseTracking(true);
 
@@ -708,12 +712,6 @@ void GLWidget::onWheelEvent(float wheelDelta_deg)
     setZoom(m_params.zoom*zoomFactor);
 
     update();
-}
-
-void GLWidget::updateZoom(float zoomFactor)
-{
-    if (zoomFactor>0.0 && zoomFactor!=1.0)
-        setZoom(m_params.zoom*zoomFactor);
 }
 
 void GLWidget::setZoom(float value)
