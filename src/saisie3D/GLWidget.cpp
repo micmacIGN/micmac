@@ -110,24 +110,24 @@ inline void normalize( GLdouble o_m[3] )
     o_m[2] = o_m[2]/norm;
 }
 
-GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
-      , m_interactionMode(TRANSFORM_CAMERA)
-      , m_font(font())
-      , m_bCloudLoaded(false)
-      , m_bCameraLoaded(false)
-      , m_bDrawAxis(false)
-      , m_bDrawBall(true)
-      , m_bDrawCams(true)
-      , m_bMessages(true)
-      , m_trihedronGLList(GL_INVALID_LIST_ID)
-      , m_ballGLList(GL_INVALID_LIST_ID)
-      , m_nbGLLists(0)
-      , m_params(ViewportParameters())
-      , m_bPolyIsClosed(false)
-      , m_Data(data)
-      , m_bObjectCenteredView(true)
-      , m_speed(2.5f)
-	  , m_vertexbuffer(QGLBuffer::VertexBuffer)
+GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)      
+  , m_font(font())
+  , m_bCloudLoaded(false)
+  , m_bCameraLoaded(false)
+  , m_bDrawAxis(false)
+  , m_bDrawBall(true)
+  , m_bDrawCams(true)
+  , m_bMessages(true)
+  , m_bObjectCenteredView(true)
+  , m_bPolyIsClosed(false)
+  , m_interactionMode(TRANSFORM_CAMERA)
+  , m_trihedronGLList(GL_INVALID_LIST_ID)
+  , m_ballGLList(GL_INVALID_LIST_ID)
+  , m_nbGLLists(0)
+  , m_params(ViewportParameters())
+  , m_Data(data)
+  , m_speed(2.5f)
+  , m_vertexbuffer(QGLBuffer::VertexBuffer)
 {
     setMouseTracking(true);
 
@@ -187,16 +187,16 @@ void GLWidget::resizeGL(int width, int height)
 //-------------------------------------------------------------------------
 void calculateFPS()
 {
-    static float framesPerSecond    = 0.0f;       // This will store our fps
-    static float lastTime   = 0.0f;       // This will hold the time from the last frame
-    float currentTime = GetTickCount() * 0.001f;
-    ++framesPerSecond;
-    //if( currentTime - lastTime > 1.0f )
-    //{
-        lastTime = currentTime;
-        cout << "\nCurrent Frames Per Second: " << framesPerSecond;
-        framesPerSecond = 0;
-    //}
+//    static float framesPerSecond    = 0.0f;       // This will store our fps
+//    float lastTime   = 0.0f;       // This will hold the time from the last frame
+//    float currentTime = 0;//GetTickCount() * 0.001f;
+//    ++framesPerSecond;
+//    if( currentTime - lastTime > 1.0f )
+//    {
+//        lastTime = currentTime;
+//        cout << "\nCurrent Frames Per Second: " << framesPerSecond;
+//        framesPerSecond = 0;
+//    }
 }
 
 void GLWidget::paintGL()
@@ -815,7 +815,7 @@ void GLWidget::segment(bool inside, bool add)
     if ((m_polygon.size() < 3) || (!m_bPolyIsClosed))
         return;
 
-    cSaisieInfos::SELECTION_MODE selection_mode;
+    cSaisieInfos::SELECTION_MODE selection_mode = cSaisieInfos::NONE;
 
     //viewing parameters
     double MM[16], MP[16];

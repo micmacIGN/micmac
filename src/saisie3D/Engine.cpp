@@ -77,9 +77,9 @@ CamStenope* cLoader::loadCamera(string aNameFile)
 //****************************************
 //   cEngine
 
-cEngine::cEngine():
-    m_Data(new cData),
-    m_Loader(new cLoader)
+cEngine::cEngine():    
+    m_Loader(new cLoader),
+    m_Data(new cData)
 {}
 
 cEngine::~cEngine()

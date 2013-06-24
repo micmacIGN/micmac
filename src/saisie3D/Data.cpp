@@ -24,13 +24,13 @@ void cData::addCamera(CamStenope * aCam)
 
 void cData::addCameras(vector <CamStenope *> aCameras)
 {
-    for (int aK=0; aK < aCameras.size();++aK)
+    for (uint aK=0; aK < aCameras.size();++aK)
         m_Cameras.push_back(aCameras[aK]);
 }
 
 void cData::addClouds(vector <Cloud *> aClouds)
 {
-    for (int aK=0; aK < aClouds.size();++aK)
+    for (uint aK=0; aK < aClouds.size();++aK)
         centerCloud(aClouds[aK]);
 }
 

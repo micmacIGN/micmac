@@ -7,15 +7,15 @@
 #include <iostream>
 #include <algorithm>
 
-#include <QtOpenGL/QGLWidget>
-#include <QtOpenGL/QGLBuffer>
-#include <QGLContext>
-
 #ifndef  WIN32
     #include "GL/glew.h"
 #else
     #include "GL/glu.h"
 #endif
+#include <QtOpenGL/QGLWidget>
+#include <QtOpenGL/QGLBuffer>
+#include <QGLContext>
+
 
 
 #include <QUrl>
