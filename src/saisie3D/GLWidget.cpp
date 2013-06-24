@@ -667,7 +667,7 @@ void GLWidget::onWheelEvent(float wheelDelta_deg)
     float zoomFactor = pow(1.1f,wheelDelta_deg / c_defaultDeg2Zoom);
     updateZoom(zoomFactor);
 
-    updateGL();
+    update();
 }
 
 void GLWidget::updateZoom(float zoomFactor)
@@ -721,7 +721,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 //replace last point by the current one
                 m_polygon[sz-1] = event->pos();
 
-            updateGL();
+            update();
         }
 
         event->ignore();
@@ -751,7 +751,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             g_translationMatrix[1] += m_speed * dp.y()*m_Data->m_diam/m_glHeight;
         }
 
-        updateGL();
+        update();
     }
 
     m_lastPos = event->pos();
@@ -1151,7 +1151,7 @@ void GLWidget::showAxis(bool show)
     m_bDrawAxis = show;
     if (m_bDrawAxis) m_bDrawBall = false;
 
-    updateGL();
+    update();
 }
 
 void GLWidget::showBall(bool show)
@@ -1159,14 +1159,14 @@ void GLWidget::showBall(bool show)
     m_bDrawBall = show;
     if (m_bDrawBall) m_bDrawAxis = false;
 
-    updateGL();
+    update();
 }
 
 void GLWidget::showCams(bool show)
 {
     m_bDrawCams = show;
 
-    updateGL();
+    update();
 }
 
 void GLWidget::showMessages(bool show)
@@ -1180,7 +1180,7 @@ void GLWidget::showMessages(bool show)
     }
     else displayNewMessage(QString());
 
-    updateGL();
+    update();
 }
 
 bool GLWidget::showMessages(){return m_bMessages;}
@@ -1198,4 +1198,20 @@ void GLWidget::showMoveMessages()
     displayNewMessage(QString());
     displayNewMessage("Move mode",UPPER_CENTER_MESSAGE);
     displayNewMessage("Left click: rotate viewpoint / Right click: translate viewpoint",LOWER_CENTER_MESSAGE);
+}
+
+void GLWidget::setAngles(float angleX, float angleY)
+{
+    m_params.angleX = angleX;
+    m_params.angleY = angleY;
+}
+
+void GLWidget::saveSelectionInfos(QString Filename)
+{
+    for (int aK=0; aK < m_infos.size() ; ++aK )
+    {
+        //TODO: if (m_infos[aK].pose == m_infos[aK-1].pose) aK++;
+              //else write block pose
+    }
+
 }

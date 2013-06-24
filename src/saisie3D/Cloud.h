@@ -11,7 +11,6 @@
 #endif
 #include <QColor>
 
-
 namespace Cloud_
 {
     class Vertex
