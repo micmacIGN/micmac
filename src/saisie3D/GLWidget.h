@@ -6,9 +6,14 @@
 #include <limits>
 #include <iostream>
 #include <algorithm>
+#include "GL/glew.h"
 #include <QtOpenGL/QGLWidget>
+#include <QtOpenGL/QGLBuffer>
 #include <QGLContext>
-#include "GL/glu.h"
+
+//
+
+
 #include <QUrl>
 #include <QtGui/QMouseEvent>
 #include <QSettings>
@@ -155,6 +160,7 @@ public:
     //! Save viewing directions and polylines in Filename
     void saveSelectionInfos(QString Filename);
 
+    void setBufferGl(bool onlyColor = false);
 public slots:
     void zoom();
 
@@ -279,6 +285,9 @@ protected:
 
     //! acceleration factor
     float m_speed;
+private:
+    QGLBuffer   m_vertexbuffer;
+    QGLBuffer   m_vertexColor;
 };
 
 #endif  /* _GLWIDGET_H */
