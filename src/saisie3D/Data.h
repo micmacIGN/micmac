@@ -52,7 +52,8 @@ class cSaisieInfos
         //! Selection mode
         enum SELECTION_MODE { INSIDE,
                               OUTSIDE,
-                              ADD
+                              ADD,
+                              NONE
         };
 
         cSaisieInfos(float rotX, float rotY, float translation[3], float scale, QVector <QPoint> polyline, SELECTION_MODE);
