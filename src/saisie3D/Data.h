@@ -29,6 +29,8 @@ class cData
         Cloud * & getCloud(int aK) {return m_Clouds[aK];}
         Cloud * & getOriginalCloud(int aK) {return m_oClouds[aK];}
 
+        int     GetSizeClouds();
+
         //Bounding box, center and diameter of all clouds
         double m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_cX, m_cY, m_cZ, m_diam;
 
