@@ -187,27 +187,35 @@ void GLWidget::resizeGL(int width, int height)
 //-------------------------------------------------------------------------
 void GLWidget::calculateFPS()
 {
+
     //  Increase frame count
-       _frameCount++;
+    _frameCount++;
 
-       //  Get the number of milliseconds since glutInit called
-       //  (or first call to glutGet(GLUT ELAPSED TIME)).
-       _currentTime = glutGet(GLUT_ELAPSED_TIME);
+    //  Get the number of milliseconds since glutInit called
+    //  (or first call to glutGet(GLUT ELAPSED TIME)).
+    #ifndef WIN32
+        _currentTime = glutGet(GLUT_ELAPSED_TIME);
+    #else
+        _currentTime = GetTickCount();
+    #endif
 
-       //  Calculate time passed
-       int timeInterval = _currentTime - _previousTime;
+    //  Calculate time passed
+    int timeInterval = _currentTime - _previousTime;
 
-       if(timeInterval > 1000)
-       {
-           //  calculate the number of frames per second
-           _fps = _frameCount / (timeInterval / 1000.0f);
+    if(timeInterval > 1000)
+    {
+      //  calculate the number of frames per second
+      _fps = _frameCount / (timeInterval / 1000.0f);
 
-           //  Set time
-           _previousTime = _currentTime;
+      //  Set time
+      _previousTime = _currentTime;
 
-           //  Reset frame count
-           _frameCount = 0;
-       }
+      //  Reset frame count
+      _frameCount = 0;
+
+      cout << "fps : " << _fps << endl;
+    }
+
 }
 
 void GLWidget::paintGL()
@@ -322,7 +330,7 @@ void GLWidget::paintGL()
         glMatrixMode(GL_MODELVIEW);
     }
 
-   // calculateFPS();
+    calculateFPS();
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
