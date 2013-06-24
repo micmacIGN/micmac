@@ -142,6 +142,8 @@ public:
     //! Display help messages for move mode
     void showMoveMessages();
 
+    void        showFps();
+
     //! Segment points with polyline
     void segment(bool inside, bool add = false);
 
@@ -290,6 +292,8 @@ protected:
     float m_speed;
 
 private:
+
+
     void        calculateFPS();
 
     QGLBuffer   m_vertexbuffer;

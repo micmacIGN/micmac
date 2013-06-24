@@ -187,9 +187,8 @@ void GLWidget::resizeGL(int width, int height)
 //-------------------------------------------------------------------------
 void GLWidget::calculateFPS()
 {
-
     //  Increase frame count
-    _frameCount++;
+       _frameCount++;
 
     //  Get the number of milliseconds since glutInit called
     //  (or first call to glutGet(GLUT ELAPSED TIME)).
@@ -213,13 +212,15 @@ void GLWidget::calculateFPS()
       //  Reset frame count
       _frameCount = 0;
 
-      cout << "fps : " << _fps << endl;
+      //cout << "fps : " << _fps << endl;
     }
 
 }
 
 void GLWidget::paintGL()
 {
+    calculateFPS();
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
 
@@ -330,7 +331,7 @@ void GLWidget::paintGL()
         glMatrixMode(GL_MODELVIEW);
     }
 
-    calculateFPS();
+
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
@@ -707,6 +708,12 @@ void GLWidget::onWheelEvent(float wheelDelta_deg)
     setZoom(m_params.zoom*zoomFactor);
 
     update();
+}
+
+void GLWidget::updateZoom(float zoomFactor)
+{
+    if (zoomFactor>0.0 && zoomFactor!=1.0)
+        setZoom(m_params.zoom*zoomFactor);
 }
 
 void GLWidget::setZoom(float value)
