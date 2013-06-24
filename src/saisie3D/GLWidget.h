@@ -88,7 +88,8 @@ public:
     };
 
     //! Default message positions on screen
-    enum MessagePosition {  LOWER_CENTER_MESSAGE,
+    enum MessagePosition {  LOWER_LEFT_MESSAGE,
+                            LOWER_CENTER_MESSAGE,
                             UPPER_CENTER_MESSAGE,
                             SCREEN_CENTER_MESSAGE
     };
