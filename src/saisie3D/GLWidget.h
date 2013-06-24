@@ -115,9 +115,6 @@ public:
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
 
-    //! Updates current zoom
-    void updateZoom(float zoomFactor);
-
     //! Sets current zoom
     void setZoom(float value);
 

@@ -695,17 +695,10 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
 void GLWidget::onWheelEvent(float wheelDelta_deg)
 {
     //convert degrees in zoom 'power'
-    static const float c_defaultDeg2Zoom = 20.0f;
-    float zoomFactor = pow(1.1f,wheelDelta_deg / c_defaultDeg2Zoom);
-    updateZoom(zoomFactor);
+    float zoomFactor = pow(1.1f,wheelDelta_deg *.05f);
+    setZoom(m_params.zoom*zoomFactor);
 
     update();
-}
-
-void GLWidget::updateZoom(float zoomFactor)
-{
-    if (zoomFactor>0.0 && zoomFactor!=1.0)
-        setZoom(m_params.zoom*zoomFactor);
 }
 
 void GLWidget::setZoom(float value)
