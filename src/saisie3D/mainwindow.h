@@ -1,6 +1,8 @@
 ﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-#include "GL/glew.h"
+#ifndef  WIN32
+    #include "GL/glew.h"
+#endif
 #include <QMainWindow>
 
 #include "GLWidget.h"

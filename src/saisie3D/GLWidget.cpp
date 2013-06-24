@@ -160,7 +160,7 @@ void GLWidget::initializeGL()
 
     glClearDepth( 100.f );
     glEnable( GL_DEPTH_TEST );
-    glDepthFunc( GL_LEQUAL );
+    glDepthFunc( GL_LESS );
 
     //transparency off by default
     glDisable(GL_BLEND);
@@ -180,6 +180,23 @@ void GLWidget::resizeGL(int width, int height)
     m_glHeight = (float)height;
 
     glViewport( 0, 0, width, height );
+}
+
+//-------------------------------------------------------------------------
+// Calculates the frames per second
+//-------------------------------------------------------------------------
+void calculateFPS()
+{
+    static float framesPerSecond    = 0.0f;       // This will store our fps
+    static float lastTime   = 0.0f;       // This will hold the time from the last frame
+    float currentTime = GetTickCount() * 0.001f;
+    ++framesPerSecond;
+    //if( currentTime - lastTime > 1.0f )
+    //{
+        lastTime = currentTime;
+        cout << "\nCurrent Frames Per Second: " << framesPerSecond;
+        framesPerSecond = 0;
+    //}
 }
 
 void GLWidget::paintGL()
@@ -293,6 +310,8 @@ void GLWidget::paintGL()
         glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
     }
+
+   // calculateFPS();
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
@@ -444,7 +463,7 @@ void GLWidget::setData(cData *data)
 
     setBufferGl();
 
-    printf("setDATA");
+    //printf("setDATA");
 
       if (m_Data->NbClouds())
     {
@@ -750,7 +769,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         {
             m_bObjectCenteredView = false;
             g_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/m_glHeight;
-            g_translationMatrix[1] += m_speed * dp.y()*m_Data->m_diam/m_glHeight;
+            g_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/m_glHeight;
         }
 
         update();
@@ -793,7 +812,7 @@ bool isPointInsidePoly(const QPoint& P, const QVector < QPoint > poly)
 
 void GLWidget::segment(bool inside, bool add)
 {
-    if (m_polygon.size() < 3)
+    if ((m_polygon.size() < 3) || (!m_bPolyIsClosed))
         return;
 
     cSaisieInfos::SELECTION_MODE selection_mode;
@@ -889,7 +908,7 @@ void GLWidget::deletePoint()
     {
         dx = m_polygon[aK].x()-m_lastPos.x();
         dy = m_polygon[aK].y()-m_lastPos.y();
-        d2 = dx*dx +dy*dy;
+        d2 = dx*dx + dy*dy;
 
         if (d2 < dist2)
         {
@@ -898,7 +917,7 @@ void GLWidget::deletePoint()
         }
     }
 
-    if (idx !=  -1)
+    if (idx != -1)
     {
         for (int aK =idx; aK < m_polygon.size()-1;++aK)
         {
@@ -919,8 +938,11 @@ void GLWidget::closePolyline()
 {
     //remove last point if needed
     int sz = m_polygon.size();
-    if ((sz > 2) &&  (m_polygon[sz-1] == m_polygon[sz-2]))
+    if ((sz > 2) && (m_polygon[sz-1] == m_polygon[sz-2]))
         m_polygon.resize(sz-1);
+
+    sz = m_polygon.size();
+    if (sz > 3) m_polygon.resize(sz-1);
 
     m_bPolyIsClosed = true;
 }
@@ -1016,7 +1038,7 @@ void GLWidget::drawBall()
     glPushMatrix();
 
     // ball radius
-    float scale = 0.01f * (float) m_glWidth/ (float) m_glHeight;
+    float scale = 0.05f * (float) m_glWidth/ (float) m_glHeight;
 
     if (m_ballGLList == GL_INVALID_LIST_ID)
     {

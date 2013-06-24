@@ -6,12 +6,16 @@
 #include <limits>
 #include <iostream>
 #include <algorithm>
-#include "GL/glew.h"
+
 #include <QtOpenGL/QGLWidget>
 #include <QtOpenGL/QGLBuffer>
 #include <QGLContext>
 
-//
+#ifndef  WIN32
+    #include "GL/glew.h"
+#else
+    #include "GL/glu.h"
+#endif
 
 
 #include <QUrl>
