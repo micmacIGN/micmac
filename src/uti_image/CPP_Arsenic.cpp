@@ -38,6 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../include/StdAfx.h"
+#include "../src/uti_image/Arsenic.h"
 #include "hassan/reechantillonnage.h"
 #include <algorithm>
 #include <functional>
@@ -56,9 +57,9 @@ void Arsenic_Banniere()
     std::cout <<  " *     C-orrection                *\n";
     std::cout <<  " **********************************\n\n";
 }
-vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,string Extension)
+PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,string Extension, bool useMasq)
 {
-
+	PtsHom aPtsHomol;
 	vector<double> NbPtsCouple,Gr1,Gr2,R1,G1,B1,R2,G2,B2,X1,Y1,X2,Y2;//Elements of output (distance from SIFT pts to center for Im1 and Im2, and respective grey lvl 
 	Pt2di aSz;
 
@@ -69,7 +70,6 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
     for (int aK1=0 ; aK1<int(aSetIm->size()) ; aK1++)
     {
 		std::cout<<"Getting homologous points from: "<<(*aSetIm)[aK1]<<endl;
-		    
 		//Reading the image and creating the objects to be manipulated
 			Tiff_Im aTF1= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK1],3,false);
 			aSz = aTF1.sz();
@@ -86,6 +86,22 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 			REAL16 ** aDataR1 = aIm1R.data();
 			REAL16 ** aDataG1 = aIm1G.data();
 			REAL16 ** aDataB1 = aIm1B.data();
+
+		//read masq if activeted
+		Im2D_U_INT1  aMasq(aSz.x,aSz.y);
+		unsigned char ** aMasqData;
+		if(useMasq){
+			Tiff_Im aTFMasq= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK1] + "_Masq.tif",1,false);
+			ELISE_COPY
+				(
+				   aTFMasq.all_pts(),
+				   aTFMasq.in(),
+				   aMasq.out()
+				);
+
+			aMasqData = aMasq.data();
+			}
+
 
         for (int aK2=0 ; aK2<int(aSetIm->size()) ; aK2++)
         {
@@ -128,6 +144,9 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 								itP++
 							)
 							{
+								if(useMasq){
+									if(Reechantillonnage::biline(aMasqData, aSz.x, aSz.y, itP->P1())<0.2){continue;}
+								}
 								cpt++;
 								//Go looking for grey value of the point, adjusted to ISO and Exposure time induced variations
 								double Red1   =Reechantillonnage::biline(aDataR1, aSz.x, aSz.y, itP->P1());
@@ -136,46 +155,32 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 								double Red2   =Reechantillonnage::biline(aDataR2, aSz.x, aSz.y, itP->P2());
 								double Green2 =Reechantillonnage::biline(aDataG2, aSz.x, aSz.y, itP->P2());
 								double Blue2  =Reechantillonnage::biline(aDataB2, aSz.x, aSz.y, itP->P2());;
-							Gr1.push_back((Red1+Green1+Blue1)/3);
-							Gr2.push_back((Red2+Green2+Blue2)/3);
-							R1.push_back(Red1);
-							G1.push_back(Green1);
-							B1.push_back(Blue1);
-							R2.push_back(Red2);
-							G2.push_back(Green2);
-							B2.push_back(Blue2);
-							X1.push_back(itP->P1().x);
-							Y1.push_back(itP->P1().y);
-							X2.push_back(itP->P2().x);
-							Y2.push_back(itP->P2().y);
+							aPtsHomol.Gr1.push_back((Red1+Green1+Blue1)/3);
+							aPtsHomol.Gr2.push_back((Red2+Green2+Blue2)/3);
+							aPtsHomol.R1.push_back(Red1);
+							aPtsHomol.G1.push_back(Green1);
+							aPtsHomol.B1.push_back(Blue1);
+							aPtsHomol.R2.push_back(Red2);
+							aPtsHomol.G2.push_back(Green2);
+							aPtsHomol.B2.push_back(Blue2);
+							aPtsHomol.X1.push_back(itP->P1().x);
+							aPtsHomol.Y1.push_back(itP->P1().y);
+							aPtsHomol.X2.push_back(itP->P2().x);
+							aPtsHomol.Y2.push_back(itP->P2().y);
 							}
-						NbPtsCouple.push_back(double(cpt));
+							aPtsHomol.NbPtsCouple.push_back(cpt);
 				   }
                    else{
                       std::cout  << "     # NO PACK FOR  : " << aNamePack  << "\n";
-					  NbPtsCouple.push_back(0);
+					  aPtsHomol.NbPtsCouple.push_back(0);
 				   }
             }
         }
     }
-	//int nbpts=G1.size();
-	vector<vector<double> > aPtsHomol;
+	int nbpts=Gr1.size();
+	cout<<"--- nbpts"<<" pts read"<<endl;
 	vector<double> SZ;
 	SZ.push_back(aSz.x);SZ.push_back(aSz.y);
-	aPtsHomol.push_back(NbPtsCouple);
-	aPtsHomol.push_back(Gr1);
-	aPtsHomol.push_back(R1);
-	aPtsHomol.push_back(G1);
-	aPtsHomol.push_back(B1);
-	aPtsHomol.push_back(Gr2);
-	aPtsHomol.push_back(R2);
-	aPtsHomol.push_back(G2);
-	aPtsHomol.push_back(B2);
-	aPtsHomol.push_back(SZ);
-	aPtsHomol.push_back(X1);
-	aPtsHomol.push_back(Y1);
-	aPtsHomol.push_back(X2);
-	aPtsHomol.push_back(Y2);
    return aPtsHomol;
 }
 
@@ -201,8 +206,7 @@ double oneParamRANSAC(vector<double> im1, vector<double> im2){
 return bestK;
 }
 
-
-vector<vector<double> > Egalisation_factors(vector<vector<double> > aPtsHomol, int nbIm, int aMasterNum, int aDegPoly){
+Param3Chan Egalisation_factors(PtsHom aPtsHomol, int nbIm, int aMasterNum, int aDegPoly){
 
 	vector<vector<double> > Gr(nbIm);
 
@@ -214,17 +218,17 @@ vector<vector<double> > Egalisation_factors(vector<vector<double> > aPtsHomol, i
 	
 //Finding and Selecting the brightest image for reference
 int nbParcouru=0;
-for (int i=0;i<int(aPtsHomol[0].size());i++){
+for (int i=0;i<int(aPtsHomol.NbPtsCouple.size());i++){
 
 	int numImage1=(i/(nbIm));
 	int numImage2=i-numImage1*(nbIm);
 
 if (numImage1!=numImage2){
-	if(aPtsHomol[0][i]!=0){//if there are homologous points between images
-		vector<double> GrIm1(aPtsHomol[1].begin()+nbParcouru,aPtsHomol[1].begin()+nbParcouru+aPtsHomol[0][i]-1);
-		vector<double> GrIm2(aPtsHomol[5].begin()+nbParcouru,aPtsHomol[5].begin()+nbParcouru+aPtsHomol[0][i]-1);
+	if(aPtsHomol.NbPtsCouple[i]!=0){//if there are homologous points between images
+		vector<double> GrIm1(aPtsHomol.Gr1.begin()+nbParcouru,aPtsHomol.Gr1.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
+		vector<double> GrIm2(aPtsHomol.Gr2.begin()+nbParcouru,aPtsHomol.Gr2.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
 		
-		nbParcouru=nbParcouru+aPtsHomol[0][i];
+		nbParcouru=nbParcouru+aPtsHomol.NbPtsCouple[i];
 
 		std::copy (GrIm1.begin(),GrIm1.end(),back_inserter(Gr[numImage1]));
 		std::copy (GrIm2.begin(),GrIm2.end(),back_inserter(Gr[numImage2]));
@@ -269,19 +273,19 @@ cout<<"Solution of zeros preventing equations written"<<endl;
 
 nbParcouru=0;
 //For each linked couples :
-for (int i=0;i<int(aPtsHomol[0].size());i++){
+for (int i=0;i<int(aPtsHomol.NbPtsCouple.size());i++){
 
 	int numImage1=(i/(nbIm));
 	int numImage2=i-numImage1*(nbIm);
 if (numImage1!=numImage2){
-		if(aPtsHomol[0][i]!=0){//if there are homologous points between images
-		vector<double> RIm1(aPtsHomol[2].begin()+nbParcouru,aPtsHomol[2].begin()+nbParcouru+aPtsHomol[0][i]-1);
-		vector<double> GIm1(aPtsHomol[3].begin()+nbParcouru,aPtsHomol[3].begin()+nbParcouru+aPtsHomol[0][i]-1);
-		vector<double> BIm1(aPtsHomol[4].begin()+nbParcouru,aPtsHomol[4].begin()+nbParcouru+aPtsHomol[0][i]-1);
-		vector<double> RIm2(aPtsHomol[6].begin()+nbParcouru,aPtsHomol[6].begin()+nbParcouru+aPtsHomol[0][i]-1);
-		vector<double> GIm2(aPtsHomol[7].begin()+nbParcouru,aPtsHomol[7].begin()+nbParcouru+aPtsHomol[0][i]-1);
-		vector<double> BIm2(aPtsHomol[8].begin()+nbParcouru,aPtsHomol[8].begin()+nbParcouru+aPtsHomol[0][i]-1);
-		nbParcouru=nbParcouru+aPtsHomol[0][i];
+	if(aPtsHomol.NbPtsCouple[i]!=0){//if there are homologous points between images
+		vector<double> RIm1(aPtsHomol.R1.begin()+nbParcouru,aPtsHomol.R1.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
+		vector<double> GIm1(aPtsHomol.G1.begin()+nbParcouru,aPtsHomol.G1.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
+		vector<double> BIm1(aPtsHomol.B1.begin()+nbParcouru,aPtsHomol.B1.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
+		vector<double> RIm2(aPtsHomol.R2.begin()+nbParcouru,aPtsHomol.R2.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
+		vector<double> GIm2(aPtsHomol.G2.begin()+nbParcouru,aPtsHomol.G2.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
+		vector<double> BIm2(aPtsHomol.B2.begin()+nbParcouru,aPtsHomol.B2.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
+		nbParcouru=nbParcouru+aPtsHomol.NbPtsCouple[i];
 		
 		//adding equations for each point 
 		for (int j=0;j<int(RIm1.size());j++){
@@ -310,7 +314,8 @@ if (numImage1!=numImage2){
 }
 
 cout<<"Solving the initial system"<<endl;
-vector<vector<double> > aParam3Chan;
+Param3Chan aParam3Chan;
+//vector<vector<double> > aParam3Chan;
 
 bool Ok1,Ok2,Ok3;
 Im1D_REAL8 aSolR = aSysRInit.GSSR_Solve(&Ok1);
@@ -327,7 +332,7 @@ if (Ok1 && Ok2 && Ok3)
 	cout<<aSysGInit.ResiduOfSol(aDataG)<<endl;
 	cout<<aSysBInit.ResiduOfSol(aDataB)<<endl;
 	for(unsigned i=0;i<int(nbIm);i++){
-		cout<<"For im NUM "<<i<<" CorR = "<<aDataR[i]<<" CorG = "<<aDataG[i]<<" CorB = "<<aDataB[i]<<endl;
+		//cout<<"For im NUM "<<i<<" CorR = "<<aDataR[i]<<" CorG = "<<aDataG[i]<<" CorB = "<<aDataB[i]<<endl;
 		aParamR.push_back(aDataR[i]);
 		aParamG.push_back(aDataG[i]);
 		aParamB.push_back(aDataB[i]);
@@ -341,9 +346,9 @@ if (Ok1 && Ok2 && Ok3)
 		if(maxFactorG>1){aParamG[i]=aParamG[i]*maxFactorG;}
 		if(maxFactorB>1){aParamB[i]=aParamB[i]*maxFactorB;}
 	}
-	aParam3Chan.push_back(aParamR);
-	aParam3Chan.push_back(aParamG);
-	aParam3Chan.push_back(aParamB);
+	aParam3Chan.parRed  =aParamR;
+	aParam3Chan.parGreen=aParamG;
+	aParam3Chan.parBlue =aParamB;
 }
 
 
@@ -365,9 +370,9 @@ for(int i=0;i<int(nbIm);i++){
 	vector<double> aCoefsFixe(nbParam*nbIm,0.0);
 	aCoefsFixe[nbParam*i]=1;
 	double * coefsFixeAr=&aCoefsFixe[0];
-	aSysR.AddEquation(pow(float(nbParcouru),2),coefsFixeAr,aParam3Chan[0][i]);
-	aSysG.AddEquation(pow(float(nbParcouru),2),coefsFixeAr,aParam3Chan[1][i]);
-	aSysB.AddEquation(pow(float(nbParcouru),2),coefsFixeAr,aParam3Chan[2][i]);
+	aSysR.AddEquation(pow(float(nbParcouru),2),coefsFixeAr,aParam3Chan.parRed[i]);
+	aSysG.AddEquation(pow(float(nbParcouru),2),coefsFixeAr,aParam3Chan.parGreen[i]);
+	aSysB.AddEquation(pow(float(nbParcouru),2),coefsFixeAr,aParam3Chan.parBlue[i]);
 	for (int a=1;a<nbParam;a++){
 		vector<double> aCoefsFixe(nbParam*nbIm,0.0);
 		aCoefsFixe[nbParam*i+a]=1;
@@ -383,41 +388,41 @@ for(int i=0;i<int(nbIm);i++){
 	vector<double> aCoefsFixe2(nbParam*nbIm,0.0);
 	aCoefsFixe2[nbParam*aMasterNum]=1;
 	double * coefsFixe2Ar=&aCoefsFixe2[0];
-	aSysR.AddEquation(pow(float(nbParcouru),1),coefsFixe2Ar,255/grMax);
-	aSysG.AddEquation(pow(float(nbParcouru),1),coefsFixe2Ar,255/grMax);
-	aSysB.AddEquation(pow(float(nbParcouru),1),coefsFixe2Ar,255/grMax);
+	aSysR.AddEquation(pow(float(nbParcouru),3),coefsFixe2Ar,255/grMax);
+	aSysG.AddEquation(pow(float(nbParcouru),3),coefsFixe2Ar,255/grMax);
+	aSysB.AddEquation(pow(float(nbParcouru),3),coefsFixe2Ar,255/grMax);
 	for (int a=1;a<nbParam;a++){
 		vector<double> aCoefsFixe(nbParam*nbIm,0.0);
 		aCoefsFixe[nbParam*aMasterNum+a]=1;
 		double * coefsFixeAr=&aCoefsFixe[0];
-		aSysR.AddEquation(pow(float(nbParcouru),3),coefsFixeAr,0);
-		aSysG.AddEquation(pow(float(nbParcouru),3),coefsFixeAr,0);
-		aSysB.AddEquation(pow(float(nbParcouru),3),coefsFixeAr,0);
+		aSysR.AddEquation(pow(float(nbParcouru),4),coefsFixeAr,0);
+		aSysG.AddEquation(pow(float(nbParcouru),4),coefsFixeAr,0);
+		aSysB.AddEquation(pow(float(nbParcouru),4),coefsFixeAr,0);
 	}
 */
 
 cout<<" --- Getting the equations from homologous points (model is : G1*poly(X1) + G1*poly(Y1) - G2*poly(X2) - G2*poly(Y2) = 0 )"<<endl;
 nbParcouru=0;
 //For each linked couples :
-for (int i=0;i<int(aPtsHomol[0].size());i++){
+for (int i=0;i<int(aPtsHomol.NbPtsCouple.size());i++){
 
 	int numImage1=(i/(nbIm));
 	int numImage2=i-numImage1*(nbIm);
 
 if (numImage1!=numImage2){
-	if(aPtsHomol[0][i]!=0){//if there are homologous points between images
-		vector<double> RIm1(aPtsHomol[2].begin()+nbParcouru,aPtsHomol[2].begin()+nbParcouru+aPtsHomol[0][i]-1);
-		vector<double> GIm1(aPtsHomol[3].begin()+nbParcouru,aPtsHomol[3].begin()+nbParcouru+aPtsHomol[0][i]-1);
-		vector<double> BIm1(aPtsHomol[4].begin()+nbParcouru,aPtsHomol[4].begin()+nbParcouru+aPtsHomol[0][i]-1);
-		vector<double> RIm2(aPtsHomol[6].begin()+nbParcouru,aPtsHomol[6].begin()+nbParcouru+aPtsHomol[0][i]-1);
-		vector<double> GIm2(aPtsHomol[7].begin()+nbParcouru,aPtsHomol[7].begin()+nbParcouru+aPtsHomol[0][i]-1);
-		vector<double> BIm2(aPtsHomol[8].begin()+nbParcouru,aPtsHomol[8].begin()+nbParcouru+aPtsHomol[0][i]-1);
-		vector<double> X1(aPtsHomol[10].begin()+nbParcouru,aPtsHomol[10].begin()+nbParcouru+aPtsHomol[0][i]-1);
-		vector<double> Y1(aPtsHomol[11].begin()+nbParcouru,aPtsHomol[11].begin()+nbParcouru+aPtsHomol[0][i]-1);
-		vector<double> X2(aPtsHomol[12].begin()+nbParcouru,aPtsHomol[12].begin()+nbParcouru+aPtsHomol[0][i]-1);
-		vector<double> Y2(aPtsHomol[13].begin()+nbParcouru,aPtsHomol[13].begin()+nbParcouru+aPtsHomol[0][i]-1);
-		nbParcouru=nbParcouru+aPtsHomol[0][i];
-		
+	if(aPtsHomol.NbPtsCouple[i]!=0){//if there are homologous points between images
+		vector<double> RIm1(aPtsHomol.R1.begin()+nbParcouru,aPtsHomol.R1.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
+		vector<double> GIm1(aPtsHomol.G1.begin()+nbParcouru,aPtsHomol.G1.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
+		vector<double> BIm1(aPtsHomol.B1.begin()+nbParcouru,aPtsHomol.B1.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
+		vector<double> RIm2(aPtsHomol.R2.begin()+nbParcouru,aPtsHomol.R2.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
+		vector<double> GIm2(aPtsHomol.G2.begin()+nbParcouru,aPtsHomol.G2.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
+		vector<double> BIm2(aPtsHomol.B2.begin()+nbParcouru,aPtsHomol.B2.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
+		vector<double> X1(aPtsHomol.X1.begin()+nbParcouru,aPtsHomol.X1.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
+		vector<double> Y1(aPtsHomol.Y1.begin()+nbParcouru,aPtsHomol.Y1.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
+		vector<double> X2(aPtsHomol.X2.begin()+nbParcouru,aPtsHomol.X2.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
+		vector<double> Y2(aPtsHomol.Y2.begin()+nbParcouru,aPtsHomol.Y2.begin()+nbParcouru+aPtsHomol.NbPtsCouple[i]-1);
+		nbParcouru=nbParcouru+aPtsHomol.NbPtsCouple[i];														 
+																									 
 		//adding equations for each point 
 		for (int j=0;j<int(RIm1.size());j++){
 			vector<double> aCoefsR(nbParam*nbIm, 0.0);
@@ -461,7 +466,6 @@ if (numImage1!=numImage2){
 
 cout<<"Solving the final system"<<endl;
 //Clearing the output vector
-aParam3Chan.clear();
 aParamR.clear(); aParamG.clear(); aParamB.clear();
 
 aSolR = aSysR.GSSR_Solve(&Ok1);
@@ -488,20 +492,20 @@ if (Ok1 && Ok2 && Ok3)
 		if(maxFactorB>1){aParamB[i]=aParamB[i]*maxFactorB;}
 	}
 	//Creating output
-	aParam3Chan.push_back(aParamR);
-	aParam3Chan.push_back(aParamG);
-	aParam3Chan.push_back(aParamB);
+	aParam3Chan.parRed=aParamR;
+	aParam3Chan.parGreen=aParamG;
+	aParam3Chan.parBlue=aParamB;
 }
 return aParam3Chan;
 }
 
-void Egal_correct(string aDir,std::vector<std::string> * aSetIm,vector<vector<double> >  aParam3chan,string aDirOut)
+void Egal_correct(string aDir,std::vector<std::string> * aSetIm,Param3Chan  aParam3chan,string aDirOut)
 {
 	//Bulding the output file system
     ELISE_fp::MkDirRec(aDir + aDirOut);
 	//Reading input files
     int nbIm=(aSetIm)->size();
-	int nbParam=aParam3chan[0].size()/nbIm;
+	int nbParam=aParam3chan.size()/nbIm;
 	cout<<nbParam<<endl;
     for(int i=0;i<nbIm;i++)
 	{
@@ -536,11 +540,11 @@ void Egal_correct(string aDir,std::vector<std::string> * aSetIm,vector<vector<do
 				for (int aX=0 ; aX<aSz.x  ; aX++)
 				{
 
-					double corR=aParam3chan[0][nbParam*i],corG=aParam3chan[1][nbParam*i],corB=aParam3chan[2][nbParam*i];
+					double corR=aParam3chan.parRed[nbParam*i],corG=aParam3chan.parGreen[nbParam*i],corB=aParam3chan.parBlue[nbParam*i];
 					for(int j=1;j<=(nbParam-1)/2;j++){
-						corR = corR + pow(float(aX),j) * aParam3chan[0][2*j-1+nbParam*i] + pow(float(aY),j) * aParam3chan[0][2*j+nbParam*i] ;
-						corG = corG + pow(float(aX),j) * aParam3chan[1][2*j-1+nbParam*i] + pow(float(aY),j) * aParam3chan[1][2*j+nbParam*i] ;
-						corB = corB + pow(float(aX),j) * aParam3chan[2][2*j-1+nbParam*i] + pow(float(aY),j) * aParam3chan[2][2*j+nbParam*i] ;
+						corR = corR + pow(float(aX),j) *   aParam3chan.parRed[2*j-1+nbParam*i] + pow(float(aY),j) *   aParam3chan.parRed[2*j+nbParam*i] ;
+						corG = corG + pow(float(aX),j) * aParam3chan.parGreen[2*j-1+nbParam*i] + pow(float(aY),j) * aParam3chan.parGreen[2*j+nbParam*i] ;
+						corB = corB + pow(float(aX),j) *  aParam3chan.parBlue[2*j-1+nbParam*i] + pow(float(aY),j) *  aParam3chan.parBlue[2*j+nbParam*i] ;
 					}
 					double R = aDataR[aY][aX] * corR;
 					double G = aDataG[aY][aX] * corG;
@@ -575,7 +579,7 @@ int  Arsenic_main(int argc,char ** argv)
 {
 
 	std::string aFullPattern,aDirOut="Egal/",aMaster="";
-	bool InTxt=false,DoCor=false;
+	bool InTxt=false,DoCor=false,useMasq=false;
 	int aDegPoly=3;
 	  //Reading the arguments
         ElInitArgMain
@@ -588,6 +592,7 @@ int  Arsenic_main(int argc,char ** argv)
 						<< EAM(DoCor,"DoCor",true,"Use the computed parameters to correct the images (Defaut=false)")
 						<< EAM(aMaster,"Master",true,"Manually define a Master Image (to be used a reference)")
 						<< EAM(aDegPoly,"DegPoly",true,"Set the dergree of the corretion polynom (Def=3)")
+						<< EAM(useMasq,"useMasq",true,"Activate the use of masqs (1 per image) (Def=false)")
         );
 		std::string aDir,aPatIm;
 		SplitDirAndFile(aDir,aPatIm,aFullPattern);
@@ -606,12 +611,12 @@ int  Arsenic_main(int argc,char ** argv)
 			if(aVectIm[i]==aMaster){aMasterNum=i;cout<<"Found Master image "<<aMaster<<" as image NUM "<<i<<endl;}
 		}
 		//Reading homologous points
-		vector<vector<double> > aPtsHomol=ReadPtsHom(aDir, & aVectIm, Extension);
+		PtsHom aPtsHomol=ReadPtsHom(aDir, & aVectIm, Extension,useMasq);
 
 		cout<<"Computing equalization factors"<<endl;
-		vector<vector<double> > aParam3chan=Egalisation_factors(aPtsHomol,nbIm,aMasterNum,aDegPoly);
-		if(aParam3chan.size()!=3){
-			cout<<"Couldn't compute parameters "<<aParam3chan.size()<<endl;
+		Param3Chan aParam3chan=Egalisation_factors(aPtsHomol,nbIm,aMasterNum,aDegPoly);
+		if(aParam3chan.size()==0){
+			cout<<"Couldn't compute parameters "<<endl;
 		}else{
 
 		if(DoCor){
