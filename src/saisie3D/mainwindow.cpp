@@ -200,6 +200,7 @@ void MainWindow::connectActions()
 void MainWindow::addPoints()
 {
     m_glWidget->segment(true, true);
+    m_glWidget->update();
 }
 
 void MainWindow::deletePoint()
@@ -249,6 +250,7 @@ void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
 void MainWindow::on_actionUndo_triggered()
 {
      m_glWidget->undoAll();
+     m_glWidget->update();
 }
 
 void MainWindow::loadPlys()
