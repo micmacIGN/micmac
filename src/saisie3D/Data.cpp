@@ -2,9 +2,7 @@
 
 cData::cData()
 {
-    m_minX = m_minY = m_minZ = FLT_MAX;
-    m_maxX = m_maxY = m_maxZ = FLT_MIN;
-    m_cX = m_cY = m_cZ = m_diam = 0.f;
+    reset();
 }
 
 cData::~cData()
@@ -44,9 +42,7 @@ void cData::clearClouds()
     m_Clouds.clear();
     m_oClouds.clear();
 
-    m_minX = m_minY = m_minZ = FLT_MAX;
-    m_maxX = m_maxY = m_maxZ = FLT_MIN;
-    m_cX = m_cY = m_cZ = m_diam = 0.f;
+    reset();
 }
 
 void cData::clearCameras()
@@ -56,6 +52,11 @@ void cData::clearCameras()
 
     m_Cameras.clear();
 
+    reset();
+}
+
+void cData::reset()
+{
     m_minX = m_minY = m_minZ = FLT_MAX;
     m_maxX = m_maxY = m_maxZ = FLT_MIN;
     m_cX = m_cY = m_cZ = m_diam = 0.f;
