@@ -41,8 +41,8 @@ static PlyProperty oriented_vert_props[] = {
 
 Vertex::Vertex()
 {
-    m_position  = Pt3dr(0.,0.,0.);
-    m_color     = QColor();
+    m_position = Pt3dr(0.,0.,0.);
+    m_color    = QColor();
     m_bVisible  = true;
 }
 
@@ -137,6 +137,7 @@ Cloud* Cloud::loadPly( string i_filename )
                     // set up for getting vertex elements
                     for (int j = 0; j < nprops ;++j)
                         ply_get_property (thePlyFile, elem_name, &colored_vert_props[j]);
+
 
                     // grab all the vertex elements
                     for (int j = 0; j < num_elems; j++)
