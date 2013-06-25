@@ -160,18 +160,8 @@ void GLWidget::initializeGL()
     if (m_bInitialized)
         return;
 
-    glShadeModel( GL_SMOOTH );
-
-    glClearDepth( 100.f );
+//    glClearDepth( 100.f );
     glEnable( GL_DEPTH_TEST );
-    glDepthFunc( GL_LESS );
-
-    //transparency off by default
-    glDisable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    //glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
-    glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST );
 
     m_bInitialized = true;
 }
@@ -203,12 +193,12 @@ void GLWidget::calculateFPS()
     #endif
 
     //  Calculate time passed
-    int timeInterval = _currentTime - _previousTime;
+    int deltaTime = _currentTime - _previousTime;
 
-    if(timeInterval > 1000)
+    if(deltaTime > 1000)
     {
       //  calculate the number of frames per second
-      _fps = _frameCount / (timeInterval / 1000.0f);
+      _fps = _frameCount / (deltaTime / 1000.0f);
 
       //  Set time
       _previousTime = _currentTime;
@@ -234,8 +224,6 @@ void GLWidget::paintGL()
     if (hasCloudLoaded())
     {
 
-        glPointSize(m_params.PointSize);
-
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_COLOR_ARRAY);
 
@@ -253,7 +241,6 @@ void GLWidget::paintGL()
         glDisableClientState(GL_COLOR_ARRAY);
 
     }
-
 
     //current messages (if valid)
     if (!m_messagesToDisplay.empty())
@@ -387,7 +374,10 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         if (m_interactionMode == TRANSFORM_CAMERA)
             g_mouseRightDown = true;
         else
+        {
             closePolyline();
+            update();
+        }
     }
 }
 
@@ -408,6 +398,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
         break;
     case Qt::Key_Space:
         segment(true);
+        update();
         break;
     case Qt::Key_Delete:
         segment(false);
@@ -610,9 +601,6 @@ void GLWidget::draw3D()
     setStandardOrthoCenter();
     //glEnable(GL_DEPTH_TEST);
 
-    glPointSize(m_params.PointSize);
-    glLineWidth(m_params.LineWidth);
-
     //gradient color background
     drawGradientBackground();
     //we clear background
@@ -658,7 +646,6 @@ void GLWidget::zoom()
 
     glOrtho(left, right, -zoom, zoom, -zoom, zoom);
 
-    update();
 }
 
 void GLWidget::setInteractionMode(INTERACTION_MODE mode)
@@ -992,7 +979,7 @@ void GLWidget::closePolyline()
         if (sz > 2) m_polygon.resize(sz-1);
 
         m_bPolyIsClosed = true;
-    }
+    }    
 }
 
 void GLWidget::undoAll()
@@ -1017,6 +1004,11 @@ void GLWidget::ptSizeUp(bool up)
 
     if (m_params.PointSize == 0)
         m_params.PointSize = 1;
+
+    glPointSize(m_params.PointSize);
+
+    update();
+
 }
 
 void GLWidget::drawAxis()
@@ -1214,6 +1206,7 @@ void GLWidget::drawCams()
 
     glCallList(list);
 
+    glPointSize(m_params.PointSize);
     glLineWidth(m_params.LineWidth);
     glPopMatrix();
 }

@@ -24,7 +24,7 @@ void cData::addCamera(CamStenope * aCam)
 
 void cData::addCameras(vector <CamStenope *> aCameras)
 {
-    for (uint aK=0; aK < aCameras.size();++aK)
+    for (uint aK=0; aK < (uint)aCameras.size();++aK)
         m_Cameras.push_back(aCameras[aK]);
 }
 
@@ -36,7 +36,7 @@ void cData::addClouds(vector <Cloud *> aClouds)
 
 void cData::clearClouds()
 {
-    for (uint aK=0; aK < NbClouds();++aK)
+    for (uint aK=0; aK < (uint)NbClouds();++aK)
     {
         delete m_Clouds[aK];
         delete m_oClouds[aK];
@@ -51,7 +51,7 @@ void cData::clearClouds()
 
 void cData::clearCameras()
 {
-    for (uint aK=0; aK < NbCameras();++aK)
+    for (uint aK=0; aK < (uint)NbCameras();++aK)
         delete m_Cameras[aK];
 
     m_Cameras.clear();

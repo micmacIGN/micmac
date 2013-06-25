@@ -61,6 +61,7 @@ void MainWindow::addFiles(const QStringList& filenames)
             m_Engine->loadClouds(filenames);
 
             m_glWidget->setData(m_Engine->getData());
+            m_glWidget->update();
         }
         else if (fi.suffix() == "xml")
         {
@@ -124,8 +125,7 @@ void MainWindow::togglePointsSelection(bool state)
         }
     }
 
-
-
+    m_glWidget->update();
 }
 
 void MainWindow::doActionDisplayShortcuts()
