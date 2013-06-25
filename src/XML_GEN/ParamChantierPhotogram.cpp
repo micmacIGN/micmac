@@ -13268,4 +13268,49 @@ void xml_init(cListImByDelta & anObj,cElXMLTree * aTree)
    xml_init(anObj.Delta(),aTree->GetAll("Delta",false,1));
 }
 
+
+cTplValGesInit< std::string > & cMMUserEnvironment::TiePDetect()
+{
+   return mTiePDetect;
+}
+
+const cTplValGesInit< std::string > & cMMUserEnvironment::TiePDetect()const 
+{
+   return mTiePDetect;
+}
+
+
+cTplValGesInit< std::string > & cMMUserEnvironment::TiePMatch()
+{
+   return mTiePMatch;
+}
+
+const cTplValGesInit< std::string > & cMMUserEnvironment::TiePMatch()const 
+{
+   return mTiePMatch;
+}
+
+cElXMLTree * ToXMLTree(const cMMUserEnvironment & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MMUserEnvironment",eXMLBranche);
+   if (anObj.TiePDetect().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("TiePDetect"),anObj.TiePDetect().Val())->ReTagThis("TiePDetect"));
+   if (anObj.TiePMatch().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("TiePMatch"),anObj.TiePMatch().Val())->ReTagThis("TiePMatch"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cMMUserEnvironment & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.TiePDetect(),aTree->Get("TiePDetect",1)); //tototo 
+
+   xml_init(anObj.TiePMatch(),aTree->Get("TiePMatch",1)); //tototo 
+}
+
 };
