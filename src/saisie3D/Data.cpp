@@ -7,12 +7,13 @@ cData::cData()
 
 cData::~cData()
 {
-    for (int aK=0; aK < NbCameras();++aK) delete m_Cameras[aK];
-    for (int aK=0; aK < NbClouds();++aK)
-    {
-        delete m_Clouds[aK];
-        delete m_oClouds[aK];
-    }
+    // BUG when the apli is closed!!!
+//    for (int aK=0; aK < NbCameras();++aK) delete m_Cameras[aK];
+//    for (int aK=0; aK < NbClouds();++aK)
+//    {
+//        delete m_Clouds[aK];
+//        delete m_oClouds[aK];
+//    }
 }
 
 void cData::addCamera(CamStenope * aCam)
@@ -73,7 +74,7 @@ int cData::GetSizeClouds()
 
 void cData::centerCloud(Cloud * aCloud)
 {
-    Cloud *a_res = new Cloud();
+   // Cloud *a_res = new Cloud();
 
     //compute bounding box
     int nbPts = aCloud->size();

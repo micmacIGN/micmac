@@ -139,6 +139,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
 
 GLWidget::~GLWidget()
 {
+    if (m_trihedronGLList != GL_INVALID_LIST_ID)
     {
         glDeleteLists(m_trihedronGLList,1);
         m_trihedronGLList = GL_INVALID_LIST_ID;
