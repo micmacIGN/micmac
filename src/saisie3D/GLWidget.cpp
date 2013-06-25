@@ -394,6 +394,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
         break;
     case Qt::Key_Space:
         segment(true);
+        update();
         break;
     case Qt::Key_Delete:
         segment(false);
@@ -409,10 +410,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
         break;
     default:
         event->ignore();
-        return;
     }
-
-   update();
 }
 
 void GLWidget::setBufferGl(bool onlyColor)
@@ -999,6 +997,9 @@ void GLWidget::ptSizeUp(bool up)
         m_params.PointSize = 1;
 
     glPointSize(m_params.PointSize);
+
+    update();
+
 }
 
 void GLWidget::drawAxis()
@@ -1071,6 +1072,7 @@ void GLWidget::drawBall()
     glPushMatrix();
 
     // ball radius
+    //float scale = 0.05f * (float) m_glWidth/ (float) m_glHeight;
     float scale = m_Data->m_diam / 6.0f;
 
     if (m_ballGLList == GL_INVALID_LIST_ID)
