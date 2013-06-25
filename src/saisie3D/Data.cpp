@@ -7,8 +7,10 @@ cData::cData()
 
 cData::~cData()
 {
+    // BUG when the apli is closed!!!
    for (int aK=0; aK < NbCameras();++aK) delete m_Cameras[aK];
-   for (int aK=0; aK < NbClouds();++aK) delete m_Clouds[aK];
+   for (int aK=0; aK < NbClouds();++aK)
+      delete m_Clouds[aK];
 
    m_Cameras.clear();
    m_Clouds.clear();
