@@ -33,8 +33,6 @@ GLfloat g_tmpMatrix[9],
         g_rotationMatrix[9] = { 1, 0, 0,
                                0, 1, 0,
                                0, 0, 1 },
-        g_translationMatrix[3] = { 0, 0, 0 },
-
         g_glMatrix[16];
 
 inline void setRotateOx_m33( const float i_angle, GLfloat o_m[9] )
@@ -141,7 +139,6 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
 
 GLWidget::~GLWidget()
 {
-     if (m_trihedronGLList != GL_INVALID_LIST_ID)
     {
         glDeleteLists(m_trihedronGLList,1);
         m_trihedronGLList = GL_INVALID_LIST_ID;
@@ -497,6 +494,10 @@ void GLWidget::setData(cData *data)
     {
         setCloudLoaded(true);
         setZoom(m_Data->getCloud(0)->getScale());
+
+        m_params.m_translationMatrix[0] = -m_Data->m_cX;
+        m_params.m_translationMatrix[1] = -m_Data->m_cY;
+        m_params.m_translationMatrix[2] = -m_Data->m_cZ;
     }
 
     if (m_Data->NbCameras())
@@ -609,9 +610,10 @@ void GLWidget::draw3D()
 
     static GLfloat trans44[16], rot44[16], tmp[16];
     m33_to_m44( g_rotationMatrix, rot44 );
-    setTranslate_m3( g_translationMatrix, trans44 );
+    setTranslate_m3(  m_params.m_translationMatrix, trans44 );
 
-    mult( trans44, rot44, tmp );
+    //mult( trans44, rot44, tmp );
+    mult( rot44, trans44, tmp );
     transpose( tmp, g_glMatrix );
     glLoadMatrixf( g_glMatrix );
 
@@ -710,9 +712,9 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
     g_rotationMatrix[7] = -eye[1];
     g_rotationMatrix[8] = -eye[2];
 
-    g_translationMatrix[0] = m_Data->m_cX;
-    g_translationMatrix[1] = m_Data->m_cY;
-    g_translationMatrix[2] = m_Data->m_cZ;
+    m_params.m_translationMatrix[0] = m_Data->m_cX;
+    m_params.m_translationMatrix[1] = m_Data->m_cY;
+    m_params.m_translationMatrix[2] = m_Data->m_cZ;
 }
 
 void GLWidget::onWheelEvent(float wheelDelta_deg)
@@ -795,8 +797,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         else if ( g_mouseRightDown )
         {
             m_bObjectCenteredView = false;
-            g_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/m_glHeight;
-            g_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/m_glHeight;
+            m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/m_glHeight;
+            m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/m_glHeight;
         }
 
         update();
@@ -917,12 +919,7 @@ void GLWidget::segment(bool inside, bool add)
         setBufferGl(true);
     }
 
-    float tr[3];
-    tr[0] = g_translationMatrix[0];
-    tr[1] = g_translationMatrix[1];
-    tr[2] = g_translationMatrix[2];
-
-    m_infos.push_back(cSaisieInfos(m_params.angleX, m_params.angleY, tr, m_params.zoom, m_polygon, selection_mode));
+    //m_infos.push_back(cSaisieInfos(m_params, m_polygon, selection_mode));
 }
 
 void GLWidget::deletePoint()
