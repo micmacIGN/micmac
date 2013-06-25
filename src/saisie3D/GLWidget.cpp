@@ -1079,7 +1079,7 @@ void GLWidget::drawBall()
 
     // ball radius
     //float scale = 0.05f * (float) m_glWidth/ (float) m_glHeight;
-    float scale = m_Data->m_diam / 6.0f;
+    float scale = m_Data->m_diam / 1.5f;
 
     if (m_ballGLList == GL_INVALID_LIST_ID)
     {
