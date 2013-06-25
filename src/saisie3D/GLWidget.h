@@ -183,6 +183,8 @@ signals:
     //! Signal emitted when the mouse wheel is rotated
     void mouseWheelRotated(float wheelDelta_deg);
 
+    void SelectedPoint(uint idCloud, uint idVertex,bool selected);
+
 protected:
     void initializeGL();
     void resizeGL(int w, int h);

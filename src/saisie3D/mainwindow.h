@@ -30,6 +30,8 @@ public slots:
     //! Try to load a list of files
     void addFiles(const QStringList& filenames);
 
+    void SelectedPoint(uint idC,uint idV,bool select);
+
 private slots:
     void on_actionUndo_triggered();
 

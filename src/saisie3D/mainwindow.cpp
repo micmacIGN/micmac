@@ -75,6 +75,11 @@ void MainWindow::addFiles(const QStringList& filenames)
     }
 }
 
+void MainWindow::SelectedPoint(uint idC, uint idV, bool select)
+{
+    m_Engine->getData()->getCloud(idC)->getVertex(idV).setVisible(select);
+}
+
 void MainWindow::toggleFullScreen(bool state)
 {
     if (state)
@@ -197,6 +202,9 @@ void MainWindow::connectActions()
     connect(ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
     connect(ui->actionUnload_all,       SIGNAL(triggered()),   this, SLOT(unloadAll()));
     connect(ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
+
+
+    connect(m_glWidget,SIGNAL(SelectedPoint(uint,uint,bool)),this,SLOT(SelectedPoint(uint,uint,bool)));
 }
 
 void MainWindow::addPoints()

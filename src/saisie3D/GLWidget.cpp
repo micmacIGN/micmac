@@ -895,6 +895,8 @@ void GLWidget::segment(bool inside, bool add)
                     P.setVisible(true);
                 else
                     P.setVisible(false);
+
+                //emit SelectedPoint((uint)aK,(uint)bK,true);
             }
             else
             {
@@ -913,8 +915,10 @@ void GLWidget::segment(bool inside, bool add)
 
                     if (((inside && !pointInside)||(!inside && pointInside)))
                         P.setVisible(false);
+                        //emit SelectedPoint((uint)aK,(uint)bK,false);
                     else
                         P.setVisible(true);
+                        //emit SelectedPoint((uint)aK,(uint)bK,true);
                 }
             }
         }                
