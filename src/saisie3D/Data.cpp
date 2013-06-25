@@ -96,6 +96,7 @@ void cData::centerCloud(Cloud * aCloud)
     m_diam = max(m_maxX-m_minX, max(m_maxY-m_minY, m_maxZ-m_minZ));
 
     //center and scale cloud
+#ifdef toto
     Pt3dr pt3d;
     for (int aK=0; aK < nbPts; ++aK)
     {
@@ -143,21 +144,11 @@ void cData::centerCloud(Cloud * aCloud)
 
     m_Clouds.push_back(a_res);
     m_oClouds.push_back(aCloud);
+#endif //toto
+    aCloud->setScale((float) m_diam);
+    m_Clouds.push_back(aCloud);
+    m_oClouds.push_back(aCloud);
 }
 
-//********************************************************************************
 
-cSaisieInfos::cSaisieInfos(){}
-
-cSaisieInfos::~cSaisieInfos(){}
-
-cSaisieInfos::cSaisieInfos(float rotX, float rotY, float translation[], float scale, QVector<QPoint> polyline, SELECTION_MODE selMode)
-{
-    m_rotationX = rotX;
-    m_rotationY = rotY;
-    m_translation = translation;
-    m_scale = scale;
-    m_poly = polyline;
-    m_selection_mode = selMode;
-}
 
