@@ -39,11 +39,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../include/StdAfx.h"
 #include "hassan/reechantillonnage.h"
+#include "../src/uti_image/Arsenic.h"
 #include <algorithm>
 #include <functional>
 #include <numeric>
 #include <math.h>
-
 
 double binomial(double n, double k)
 {
@@ -76,10 +76,9 @@ void Vodka_Banniere()
     std::cout <<  " *********************************\n\n";
 }
 
-vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,std::vector<std::vector<double> > vectOfExpTimeISO,string Extension)
+PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,std::vector<std::vector<double> > vectOfExpTimeISO,string Extension)
 {
-
-	vector<double> D1,D2,G1,G2;//Elements of output (distance from SIFT pts to center for Im1 and Im2, and respective grey lvl 
+	PtsHom aPtsHomol;
 	Pt2di aSz;
 	//Looking for maxs of vectOfExpTimeISO
 	double maxExpTime=0, maxISO=0;
@@ -158,10 +157,10 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
 							   //Check that the distances are different-> might be used in filter?
 							   //double rap=Dist1/Dist2;
 							   if(1){//(Dist1>aSz.x/3 || Dist2>aSz.x/3)){// && (rap<0.75 || rap>1.33)){Filtre à mettre en place?
-								   D1.push_back(Dist1);
-								   D2.push_back(Dist2);
-								   G1.push_back(Grey1);
-								   G2.push_back(Grey2);
+								   aPtsHomol.Dist1.push_back(Dist1);
+								   aPtsHomol.Dist2.push_back(Dist2);
+								   aPtsHomol.Gr1.push_back(Grey1);
+								   aPtsHomol.Gr2.push_back(Grey2);
 							   }
                    }
 				   }
@@ -170,16 +169,10 @@ vector<vector<double> > ReadPtsHom(string aDir,std::vector<std::string> * aSetIm
             }
         }
     }
-	int nbpts=G1.size();
+	int nbpts=aPtsHomol.size();
 	std::cout<<"Total number tie points: "<<nbpts<<" out of "<<cpt<<endl;
-	vector<vector<double> > aPtsHomol;
-	vector<double> SZ;
-	SZ.push_back(aSz.x);SZ.push_back(aSz.y);
-	aPtsHomol.push_back(D1);
-	aPtsHomol.push_back(D2);
-	aPtsHomol.push_back(G1);
-	aPtsHomol.push_back(G2);
-	aPtsHomol.push_back(SZ);
+	aPtsHomol.SZ=aSz;
+
    return aPtsHomol;
 }
 
@@ -251,13 +244,12 @@ void Vignette_correct(string aDir,std::vector<std::string> * aSetIm,vector<doubl
 	}
 }
 
-void Write_Vignette(string aDir, string aNameOut,vector<double> aParam,string aDirOut, vector<double> Sz){
+void Write_Vignette(string aDir, string aNameOut,vector<double> aParam,string aDirOut, Pt2di aSz){
 
 	//Bulding the output file system
     ELISE_fp::MkDirRec(aDir + aDirOut);
 
 		//Reading the image and creating the objects to be manipulated
-		Pt2di aSz; aSz.x=Sz[0]; aSz.y=Sz[1];
 		aNameOut=aDirOut + aNameOut;
 		Tiff_Im aTF=Tiff_Im(aNameOut.c_str(), aSz, GenIm::real4, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
 
@@ -304,9 +296,9 @@ void Write_Vignette(string aDir, string aNameOut,vector<double> aParam,string aD
 
 }
 
-vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
+vector<double> Vignette_Solve(PtsHom aPtsHomol)
 {
-	double distMax=sqrt(pow(aPtsHomol[4][0]/2,2)+pow(aPtsHomol[4][1]/2,2));
+	double distMax=sqrt(pow(float(aPtsHomol.SZ.x)/2,2)+pow(float(aPtsHomol.SZ.y)/2,2));
 //Least Square
 /*
 	// Create L2SysSurResol to solve least square equation with 3 unknown
@@ -359,7 +351,7 @@ vector<double> Vignette_Solve(vector<vector<double> > aPtsHomol)
 	
 vector<double> aParam;
 double /*ErMoyMin=10,*/ nbInliersMax=0,ErMin=10,aScoreMax=0;;
-int nbPtsSIFT=aPtsHomol[0].size();
+int nbPtsSIFT=aPtsHomol.size();
 int nbRANSACinitialised=0;
 int nbRANSACaccepted=0;
 int nbRANSACmax=10000;
@@ -376,12 +368,12 @@ while(nbRANSACinitialised<nbRANSACmax || nbRANSACaccepted<500)
 		
 		int i=rand() % nbPtsSIFT;//Rand choice of a point
 
-				 double aPds[3]={(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2)),
-								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4)),
-								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6))
+		double aPds[3]={(aPtsHomol.Gr2[i]*pow(aPtsHomol.Dist2[i],2)-aPtsHomol.Gr1[i]*pow(aPtsHomol.Dist1[i],2)),
+						(aPtsHomol.Gr2[i]*pow(aPtsHomol.Dist2[i],4)-aPtsHomol.Gr1[i]*pow(aPtsHomol.Dist1[i],4)),
+						(aPtsHomol.Gr2[i]*pow(aPtsHomol.Dist2[i],6)-aPtsHomol.Gr1[i]*pow(aPtsHomol.Dist1[i],6))
 								};
 				 double poids=1;//sqrt(max(aPtsHomol[1][i],aPtsHomol[0][i]));//sqrt(fabs(aPtsHomol[1][i]-aPtsHomol[0][i]));
-				 aSys.AddEquation(poids,aPds,aPtsHomol[2][i]-aPtsHomol[3][i]);//fabs(aPtsHomol[1][i]-aPtsHomol[0][i])
+				 aSys.AddEquation(poids,aPds,aPtsHomol.Gr1[i]-aPtsHomol.Gr2[i]);//fabs(aPtsHomol[1][i]-aPtsHomol[0][i])
 	}
 
 	//Computing the result
@@ -399,11 +391,11 @@ while(nbRANSACinitialised<nbRANSACmax || nbRANSACaccepted<500)
 
 		//Computing the distance from computed surface and data points
 		for(int i=0;i<int(nbPtsSIFT);i++){
-					 double aComputedVal=aData[0]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2))
-										+aData[1]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4))
-										+aData[2]*(aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6));
-					 double aInputVal=aPtsHomol[2][i]-aPtsHomol[3][i];	
-						erreur.push_back(fabs(aComputedVal-aInputVal)*(min(aPtsHomol[0][i],aPtsHomol[1][i]))/(distMax));
+					 double aComputedVal=aData[0]*(aPtsHomol.Gr2[i]*pow(aPtsHomol.Dist2[i],2)-aPtsHomol.Gr1[i]*pow(aPtsHomol.Dist1[i],2))
+										+aData[1]*(aPtsHomol.Gr2[i]*pow(aPtsHomol.Dist2[i],4)-aPtsHomol.Gr1[i]*pow(aPtsHomol.Dist1[i],4))
+										+aData[2]*(aPtsHomol.Gr2[i]*pow(aPtsHomol.Dist2[i],6)-aPtsHomol.Gr1[i]*pow(aPtsHomol.Dist1[i],6));
+					 double aInputVal=aPtsHomol.Gr1[i]-aPtsHomol.Gr2[i];	
+					 erreur.push_back(fabs(aComputedVal-aInputVal)*(min(aPtsHomol.Dist1[i],aPtsHomol.Dist2[i]))/(distMax));
 					 //Selecting inliers
 					 if(fabs(aComputedVal-aInputVal)<5){
 						nbInliers++;
@@ -523,7 +515,7 @@ int  Vignette_main(int argc,char ** argv)
 			std::cout << "--- Computing the parameters of the vignette effect for the set of "<<listOfListIm[i].size()<<" images with Diaph="<<vectOfDiaphFoc[i][0]<<" and Foc="<<vectOfDiaphFoc[i][1]<<endl<<endl;
 
 		//Avec Points homol
-			vector<vector<double> > aPtsHomol=ReadPtsHom(aDir, & listOfListIm[i], vectOfvectOfExpTimeISO[i],Extension);
+			PtsHom aPtsHomol=ReadPtsHom(aDir, & listOfListIm[i], vectOfvectOfExpTimeISO[i],Extension);
 			//aPtsHomol est l'ensemble des vecteurs D1,D2,G1,G2,SZ;
 			vector<double> aParam = Vignette_Solve(aPtsHomol);
 			
@@ -576,7 +568,7 @@ int  Vignette_main(int argc,char ** argv)
 						
 			   string aNameOut="Foc" + (string)foc + "Diaph" + (string)dia + ".tif";
 
-			   Write_Vignette(aDir, aNameOut, aParam, aDirOut, aPtsHomol[4]);
+			   Write_Vignette(aDir, aNameOut, aParam, aDirOut, aPtsHomol.SZ);
 			   
 			   //Il faut maintenant ecrire un fichier xml contenant foc+diaph+les params de vignette
 			   cout<<"--- Writing XML"<<endl;
