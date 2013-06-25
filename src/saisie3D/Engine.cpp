@@ -119,8 +119,8 @@ void cEngine::doMasks()
     if (m_Data->NbClouds()==0) return;
 
     CamStenope* pCam;
-    Cloud *pCloud, *pOCloud;
-    Vertex vert, orig_vert;
+    Cloud *pCloud;
+    Vertex vert;
     Pt2dr ptIm;
 
     for (int cK=0;cK < m_Data->NbCameras();++cK)
