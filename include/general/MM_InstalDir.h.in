@@ -1,0 +1,2 @@
+#define  TheMicMacInstallDir "@PROJECT_SOURCE_DIR@/"
+
