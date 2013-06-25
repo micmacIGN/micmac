@@ -50,7 +50,6 @@ namespace Cloud_
 
             void    addVertex( const Vertex & );
             Vertex& getVertex( unsigned int );
-            void    setVertex( unsigned int, Vertex const & );
             int     size();
 
             void    setTranslation( const Pt3dr & aPt ) {m_translation = aPt;}

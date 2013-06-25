@@ -7,10 +7,8 @@ cData::cData()
 
 cData::~cData()
 {
-    // BUG when the apli is closed!!!
    for (int aK=0; aK < NbCameras();++aK) delete m_Cameras[aK];
-   for (int aK=0; aK < NbClouds();++aK)
-      delete m_Clouds[aK];
+   for (int aK=0; aK < NbClouds();++aK)  delete m_Clouds[aK];
 
    m_Cameras.clear();
    m_Clouds.clear();
@@ -56,7 +54,7 @@ void cData::clearCameras()
 void cData::reset()
 {
     m_minX = m_minY = m_minZ = FLT_MAX;
-    m_maxX = m_maxY = m_maxZ = FLT_MIN;
+    m_maxX = m_maxY = m_maxZ = -FLT_MAX;
     m_cX = m_cY = m_cZ = m_diam = 0.f;
 }
 

@@ -894,7 +894,7 @@ void GLWidget::segment(bool inside, bool add)
                 if (pointInside||P.isVisible())
                     P.setVisible(true);
                 else
-                    a_cloud->getVertex(bK).setVisible(false);
+                    P.setVisible(false);
             }
             else
             {
@@ -912,9 +912,9 @@ void GLWidget::segment(bool inside, bool add)
                     pointInside = isPointInsidePoly(P2D,polyg);
 
                     if (((inside && !pointInside)||(!inside && pointInside)))
-                        a_cloud->getVertex(bK).setVisible(false);
+                        P.setVisible(false);
                     else
-                        a_cloud->getVertex(bK).setVisible(true);
+                        P.setVisible(true);
                 }
             }
         }                

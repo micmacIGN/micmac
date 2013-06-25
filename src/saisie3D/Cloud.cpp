@@ -41,8 +41,8 @@ static PlyProperty oriented_vert_props[] = {
 
 Vertex::Vertex()
 {
-    m_position = Pt3dr(0.,0.,0.);
-    m_color    = QColor();
+    m_position  = Pt3dr(0.,0.,0.);
+    m_color     = QColor();
     m_bVisible  = true;
 }
 
@@ -119,10 +119,10 @@ Cloud* Cloud::loadPly( string i_filename )
                         ply_get_element (thePlyFile, (void *) vlist[j]);
 
                         #ifdef _DEBUG
-                            printf ("vertex: %g %g %g %u %u %u\n", vlist[j]->x, vlist[j]->y, vlist[j]->z, vlist[j]->red, vlist[j]->green, vlist[j]->blue);
+                        printf ("vertex: %g %g %g %u %u %u %u\n", vlist[j]->x, vlist[j]->y, vlist[j]->z, vlist[j]->red, vlist[j]->green, vlist[j]->blue, vlist[j]->alpha);
                         #endif
 
-                        ptList.push_back( Vertex (Pt3dr ( vlist[j]->x, vlist[j]->y, vlist[j]->z ), QColor( vlist[j]->red, vlist[j]->green, vlist[j]->blue )));
+                            ptList.push_back( Vertex (Pt3dr ( vlist[j]->x, vlist[j]->y, vlist[j]->z ), QColor( vlist[j]->red, vlist[j]->green, vlist[j]->blue, vlist[j]->alpha )));
                     }
                     break;
                 }
@@ -195,14 +195,6 @@ Vertex& Cloud::getVertex(unsigned int nb_vert)
     }
 
     return m_vertices[0];
-}
-
-void Cloud::setVertex( unsigned int idx, Vertex const & vertex)
-{
-    if (idx < m_vertices.size())
-    {
-        m_vertices[idx] = vertex;
-    }
 }
 
 void Cloud::clear()
