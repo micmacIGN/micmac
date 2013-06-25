@@ -206,6 +206,11 @@ void Test_Arrondi_LG()
 
 int MPDtest_main (int argc,char** argv)
 {
+    std::cout << MMUserEnv().TiePDetect().ValWithDef("toto") << "\n";
+    std::cout << MMUserEnv().TiePMatch().ValWithDef("titi") << "\n";
+    getchar();
+
+
     int aT = 12;
     double aV =  3.44e7 + aT/1e5;
 
