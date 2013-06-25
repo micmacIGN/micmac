@@ -1035,6 +1035,9 @@ void GLWidget::drawAxis()
 
         glEndList();
     }
+
+    glTranslatef(m_Data->m_cX,m_Data->m_cY,m_Data->m_cZ);
+
     glCallList(m_trihedronGLList);
 
     glPopMatrix();
@@ -1114,6 +1117,7 @@ void GLWidget::drawBall()
         glEndList();
     }
 
+    glTranslatef(m_Data->m_cX,m_Data->m_cY,m_Data->m_cZ);
     glScalef(scale,scale,scale);
 
     glCallList(m_ballGLList);
