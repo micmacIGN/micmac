@@ -43,6 +43,6 @@ class cData
    private:
 
         vector <CamStenope *> m_Cameras;
-        vector <Cloud *>      m_Clouds;  //centered and scaled clouds
+        vector <Cloud *>      m_Clouds;
 };
 #endif // DATA_H

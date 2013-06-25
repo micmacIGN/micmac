@@ -389,28 +389,31 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
 {
    switch(event->key())
     {
-    case Qt::Key_Escape:
-        clearPolyline();
-        break;
-    case Qt::Key_Space:
-        segment(true);
-        update();
-        break;
-    case Qt::Key_Delete:
-        segment(false);
-        break;
-    case Qt::Key_Plus:
-        ptSizeUp(true);
-        break;
-    case Qt::Key_Minus:
-        ptSizeUp(false);
-        break;
-    case Qt::Key_F5:
-        clearPolyline();
-        break;
-    default:
-        event->ignore();
+        case Qt::Key_Escape:
+            clearPolyline();
+            break;
+        case Qt::Key_Space:
+            segment(true);
+            break;
+        case Qt::Key_Delete:
+            segment(false);
+            break;
+        case Qt::Key_Plus:
+            ptSizeUp(true);
+            break;
+        case Qt::Key_Minus:
+            ptSizeUp(false);
+            break;
+        case Qt::Key_F5:
+            clearPolyline();
+            break;
+        default:
+        {
+            event->ignore();
+            return;
+        }
     }
+   update();
 }
 
 void GLWidget::setBufferGl(bool onlyColor)
@@ -422,6 +425,8 @@ void GLWidget::setBufferGl(bool onlyColor)
         m_vertexColor.destroy();
 
     int sizeClouds = m_Data->getSizeClouds();
+
+    if (sizeClouds == 0) return;
 
     GLfloat* vertices = NULL, *colors = NULL;
 
@@ -888,8 +893,8 @@ void GLWidget::segment(bool inside, bool add)
 
                 if (pointInside||P.isVisible())
                     P.setVisible(true);
-//                else
-//                    a_cloud->getVertex(bK).setVisible(false);
+                else
+                    a_cloud->getVertex(bK).setVisible(false);
             }
             else
             {
@@ -983,6 +988,8 @@ void GLWidget::undoAll()
             m_Data->getCloud(aK)->getVertex(bK).setVisible(true);
         }
     }
+
+    setBufferGl();
 }
 
 void GLWidget::ptSizeUp(bool up)
