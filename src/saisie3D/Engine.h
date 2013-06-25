@@ -69,4 +69,30 @@ class cEngine
         cData   *m_Data;
 };
 
+class cSaisieInfos
+{
+    public:
+
+        cSaisieInfos();
+        ~cSaisieInfos();
+
+        //! Selection mode
+        enum SELECTION_MODE { INSIDE,
+                              OUTSIDE,
+                              ADD,
+                              NONE
+        };
+
+        //cSaisieInfos(ViewportParameters aParams, QVector <QPoint> aPolyline, SELECTION_MODE);
+
+    private:
+         //Ortho camera infos
+         //ViewportParameters  m_params;
+
+         //polyline infos
+         QVector <QPoint>    m_poly;
+         SELECTION_MODE      m_selection_mode;
+};
+
+
 #endif // ENGINE_H

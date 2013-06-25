@@ -27,6 +27,7 @@
 #include <QMimeData>
 
 #include "Data.h"
+#include "Engine.h"
 
 //! View orientation
 enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/

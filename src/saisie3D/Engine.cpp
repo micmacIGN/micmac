@@ -173,3 +173,19 @@ void cEngine::unloadAll()
     m_Data->clearClouds();
     m_Data->clearCameras();
 }
+
+//********************************************************************************
+
+cSaisieInfos::cSaisieInfos(){}
+
+cSaisieInfos::~cSaisieInfos(){}
+
+/*cSaisieInfos::cSaisieInfos(ViewportParameters, QVector<QPoint> polyline, SELECTION_MODE selMode)
+{
+    m_rotationX = rotX;
+    m_rotationY = rotY;
+    m_translation = translation;
+    m_scale = scale;
+    m_poly = polyline;
+    m_selection_mode = selMode;
+}*/
