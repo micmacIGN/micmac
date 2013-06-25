@@ -141,9 +141,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
 
 GLWidget::~GLWidget()
 {
-    delete m_Data;
-
-    if (m_trihedronGLList != GL_INVALID_LIST_ID)
+     if (m_trihedronGLList != GL_INVALID_LIST_ID)
     {
         glDeleteLists(m_trihedronGLList,1);
         m_trihedronGLList = GL_INVALID_LIST_ID;
@@ -495,8 +493,6 @@ void GLWidget::setData(cData *data)
 
     setBufferGl();
 
-    //printf("setDATA");
-
       if (m_Data->NbClouds())
     {
         setCloudLoaded(true);
@@ -626,9 +622,8 @@ void GLWidget::setStandardOrthoCenter()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     float halfW = float(m_glWidth)*0.5;
-    float halfH = float(m_glHeight)*0.5;
-    float maxS = ElMax(halfW,halfH);
-    glOrtho(-halfW,halfW,-halfH,halfH,-maxS,maxS);
+    float halfH = float(m_glHeight)*0.5;   
+    glOrtho(-halfW,halfW,-halfH,halfH,-100.0f, 100.0f);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
@@ -644,7 +639,7 @@ void GLWidget::zoom()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    glOrtho(left, right, -zoom, zoom, -zoom, zoom);
+    glOrtho(left, right, -zoom, zoom, -100.0f, 100.0f);
 
 }
 
@@ -1078,7 +1073,8 @@ void GLWidget::drawBall()
     glPushMatrix();
 
     // ball radius
-    float scale = 0.05f * (float) m_glWidth/ (float) m_glHeight;
+    //float scale = 0.05f * (float) m_glWidth/ (float) m_glHeight;
+    float scale = m_Data->m_diam / 6.0f;
 
     if (m_ballGLList == GL_INVALID_LIST_ID)
     {
