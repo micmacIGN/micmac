@@ -113,6 +113,7 @@ void MainWindow::togglePointsSelection(bool state)
         {
             m_glWidget->showSelectionMessages();
         }
+        m_glWidget->showBall(false);
     }
     else
     {
@@ -123,6 +124,7 @@ void MainWindow::togglePointsSelection(bool state)
             m_glWidget->clearPolyline();
             m_glWidget->showMoveMessages();
         }
+        m_glWidget->showBall(true);
     }
 
     m_glWidget->update();
