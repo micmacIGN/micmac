@@ -4999,5 +4999,27 @@ cElXMLTree * ToXMLTree(const cListImByDelta &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cMMUserEnvironment
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cMMUserEnvironment & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< std::string > & TiePDetect();
+        const cTplValGesInit< std::string > & TiePDetect()const ;
+
+        cTplValGesInit< std::string > & TiePMatch();
+        const cTplValGesInit< std::string > & TiePMatch()const ;
+    private:
+        cTplValGesInit< std::string > mTiePDetect;
+        cTplValGesInit< std::string > mTiePMatch;
+};
+cElXMLTree * ToXMLTree(const cMMUserEnvironment &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 };
 #endif // Define_NotPCP

@@ -141,8 +141,22 @@ extern bool process_pastis_tool_string( string &io_tool, string &o_args );
 
 // process "Detect" and "Match" argument the same way Pastis will and check the binaries exist
 // eventually construct a string to give to Pastis
+
+void InitMatchingTools(std::string & detectingTool,std::string& matchingTool) 
+{
+    if (! EAMIsInit(&detectingTool) &&   MMUserEnv().TiePDetect().IsInit())
+       detectingTool = MMUserEnv().TiePDetect().Val();
+
+    if (! EAMIsInit(&matchingTool) &&   MMUserEnv().TiePMatch().IsInit())
+       matchingTool = MMUserEnv().TiePMatch().Val();
+
+    //  std::cout << "TOOLS " << detectingTool << " " << matchingTool << "\n"; getchar();
+}
+
 void check_detect_and_match_tools( string &detectingTool, string &matchingTool )
 {
+    InitMatchingTools(detectingTool,matchingTool);
+
     string detectArgs, matchArgs;
 
     g_toolsOptions.clear();
@@ -182,6 +196,7 @@ void check_detect_and_match_tools( string &detectingTool, string &matchingTool )
     }
 }
 
+
 int MultiECh(int argc,char ** argv)
 {
     int aSsRes;
@@ -204,6 +219,8 @@ int MultiECh(int argc,char ** argv)
                     << EAM(detectingTool,"Detect",true)
                     << EAM(matchingTool,"Match",true)
     );
+
+
 
     check_detect_and_match_tools( detectingTool, matchingTool );
 
