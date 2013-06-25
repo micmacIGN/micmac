@@ -877,7 +877,7 @@ void GLWidget::segment(bool inside, bool add)
 
         for (int bK=0; bK < a_cloud->size();++bK)
         {
-            Vertex P = a_cloud->getVertex( bK );
+            Vertex &P = a_cloud->getVertex( bK );
 
             if (add)
             {
