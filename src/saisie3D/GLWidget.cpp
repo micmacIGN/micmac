@@ -133,7 +133,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _currentTime(0)
   , _fps(0.0f)
 {
-    setMouseTracking(true);
+    //setMouseTracking(true);
 
     //drag & drop handling
     setAcceptDrops(true);
@@ -254,6 +254,7 @@ void GLWidget::paintGL()
         glDisableClientState(GL_COLOR_ARRAY);
 
     }
+
 
     //current messages (if valid)
     if (!m_messagesToDisplay.empty())
@@ -601,7 +602,7 @@ void GLWidget::draw3D()
     makeCurrent();
 
     setStandardOrthoCenter();
-    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
 
     glPointSize(m_params.PointSize);
     glLineWidth(m_params.LineWidth);
@@ -657,6 +658,17 @@ void GLWidget::zoom()
 void GLWidget::setInteractionMode(INTERACTION_MODE mode)
 {
     m_interactionMode = mode;
+
+    switch (mode) {
+    case TRANSFORM_CAMERA:
+        setMouseTracking(false);
+        break;
+    case SEGMENT_POINTS:
+        setMouseTracking(true);
+        break;
+    default:
+        break;
+    }
 }
 
 void GLWidget::setView(VIEW_ORIENTATION orientation)
