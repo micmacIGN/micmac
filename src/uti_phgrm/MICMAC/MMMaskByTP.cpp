@@ -56,13 +56,13 @@ static Video_Win *  TheWTiePCor = 0;
 static double       TheScaleW = 1.0;
 static Pt2di TheMaxSzW(1000,800);
 
-void ShowPoint(Pt2dr aP,int aCoul,int aModeCoul)
+void ShowPoint(Pt2dr aP,int aCoul,int aModeCoul,int aRab=0)
 {
 #ifdef ELISE_X11
    if (TheWTiePCor)
    {
-       Pt2dr aP0 = aP - Pt2dr(0,0);
-       Pt2dr aP1 = aP + Pt2dr(1,1);
+       Pt2dr aP0 = aP - Pt2dr(aRab,aRab);
+       Pt2dr aP1 = aP + Pt2dr(aRab+1,aRab+1);
        if (aModeCoul==0)
           TheWTiePCor->fill_rect(aP0,aP1,TheWTiePCor->pdisc()(aCoul));
        else if (aModeCoul==1)
@@ -300,7 +300,7 @@ cMMTP::cMMTP(const Box2di & aBox,cAppliMICMAC & anAppli) :
    mHeapCTP          (TheCmpCTP),
    mImProf           (mSzTiep.x,mSzTiep.y,0),
    mTImProf          (mImProf),
-   mImMasqInit       (mSzTiep.x,mSzTiep.y),
+   mImMasqInit       (mSzTiep.x,mSzTiep.y,1),
    mTImMasqInit      (mImMasqInit),
    mImMasqFinal      (mSzTiep.x,mSzTiep.y),
    mTImMasqFinal     (mImMasqFinal),
@@ -514,17 +514,27 @@ cResCorTP cAppliMICMAC::CorrelMasqTP(const cMasqueAutoByTieP & aMATP,int anX,int
 
 void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,int aZ,bool Final)
 {
+   static int aCptR[5] ={0,0,0,0,0};
+   {
+       for (int aK=0 ; aK<5 ; aK++ )
+           std::cout <<  " K"<<aK << "=" << aCptR[aK];
+   }
+
+    aCptR[0] ++;
+
    if (!mMMTP->Inside(anX,anY,aZ))
      return;
-
+   aCptR[1] ++;
 
    if (Final && (! mMMTP->InMasqFinal(Pt2di(anX,anY))))
       return;
+   aCptR[2] ++;
 
    cCelTiep & aCel =  mMMTP->Cel(anX,anY);
 
    if (aCel.ZIsExplored(aZ)) 
       return;
+   aCptR[3] ++;
    aCel.SetZExplored(aZ);
 
    cResCorTP aCost = CorrelMasqTP(aMATP,anX,anY,aZ) ;
@@ -539,6 +549,7 @@ void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,in
    {
       return ;
    }
+   aCptR[4] ++;
    if (aCSom < aCel.CostCorel())
    {
         aCel.SetCostCorel(aCSom);
@@ -646,6 +657,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
            Im2D_REAL4 * anI = mVLI[0]->FloatIm(aKS);
            ELISE_COPY(anI->all_pts(),Max(0,Min(255,anI->in()/50)),TheWTiePCor->ogray());
        }
+       // std::cout << "DONE COPY IMAGE \n"; getchar();
 /*
        {
            ELISE_COPY(TheWTiePCor->all_pts(),mMMTP->ImMasquageInput().in(),TheWTiePCor->odisc());
@@ -683,8 +695,12 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
 
            MakeDerivAllGLI(aXIm,aYIm,aZIm);
            CTPAddCell(aMATP,aXIm,aYIm,aZIm,false);
+
+           ShowPoint(Pt2dr(aXIm,aYIm),P8COL::red,0,2);
        }
    }
+
+   std::cout << "DONE INIT PTS \n"; getchar();
 
 
    OneIterFinaleMATP(aMATP,false);
