@@ -61,6 +61,9 @@ public:
     //! Rotation angles
     float angleX;
     float angleY;
+
+    //! Translation matrix
+    GLfloat m_translationMatrix[3];
 };
 
 class GLWidget : public QGLWidget

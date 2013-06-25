@@ -35,6 +35,8 @@ class cData
 
         int     GetSizeClouds();
 
+        void reset();
+
         //Bounding box, center and diameter of all clouds
         double m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_cX, m_cY, m_cZ, m_diam;
 
