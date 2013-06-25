@@ -78,11 +78,12 @@ Cloud* Cloud::loadPly( string i_filename )
     plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
 
     #ifdef _DEBUG
-        printf ("file %s\n"    , i_filename);
+        //printf ("file %s\n"    , i_filename);
         printf ("version %\n"  , version);
         printf ("type %d\n"	   , file_type);
         printf ("nb elem %d\n" , nelems);
         printf ("num elem %d\n", num_elems);
+
     #endif
 
     for (int i = 0; i < nelems; i++)
@@ -137,6 +138,7 @@ Cloud* Cloud::loadPly( string i_filename )
                     // set up for getting vertex elements
                     for (int j = 0; j < nprops ;++j)
                         ply_get_property (thePlyFile, elem_name, &colored_vert_props[j]);
+
 
                     // grab all the vertex elements
                     for (int j = 0; j < num_elems; j++)
