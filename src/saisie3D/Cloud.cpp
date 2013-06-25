@@ -217,7 +217,6 @@ Cloud::Cloud()
 {}
 
 Cloud::Cloud(vector<Vertex> const & vVertex)
-
 {
     for (unsigned int aK=0; aK< vVertex.size(); aK++)
     {

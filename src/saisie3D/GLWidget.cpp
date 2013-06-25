@@ -421,7 +421,7 @@ void GLWidget::setBufferGl(bool onlyColor)
     if(m_vertexColor.isCreated())
         m_vertexColor.destroy();
 
-    int sizeClouds = m_Data->GetSizeClouds();
+    int sizeClouds = m_Data->getSizeClouds();
 
     GLfloat* vertices = NULL, *colors = NULL;
 
@@ -451,14 +451,12 @@ void GLWidget::setBufferGl(bool onlyColor)
                 colors[pitchV+bK*3 + 0 ]   = colo.redF();
                 colors[pitchV+bK*3 + 1 ]   = colo.greenF();
                 colors[pitchV+bK*3 + 2 ]   = colo.blueF();
-                //colors[bK*3 + 3 ]   = 1.0f;
             }
             else
             {
                 colors[pitchV+bK*3 + 0 ]   = colo.redF()*2;
                 colors[pitchV+bK*3 + 1 ]   = colo.greenF();
                 colors[pitchV+bK*3 + 2 ]   = colo.blueF();
-                //colors[bK*3 + 3 ]   = 0.45f;
             }
         }
 
