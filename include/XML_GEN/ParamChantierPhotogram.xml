@@ -1382,6 +1382,11 @@ namespace NS_ParamChantierPhotogram{
 
 
 
+    <MMUserEnvironment Nb="1" Class="true" ToReference="true">
+         <TiePDetect Nb="?" Type="std::string">  </TiePDetect>  <!-- Ou mm3d:Digeo mm3d:Sift -->
+         <TiePMatch  Nb="?" Type="std::string">  </TiePMatch> <!-- Ou  mm3d:Ann -->
+    </MMUserEnvironment>
+
 
   
 <Verbatim File=".h.cpp">

@@ -393,13 +393,15 @@ tSysCho  cGenSysSurResol::GetElemQuad(int i,int j) const
 {
    ELISE_ASSERT(false,"cGenSysSurResol::GetElemQuad");
    //return  * ((double *)0);
-   return  * ((double *)&i); // this is never reached but this silent clang's warning about non-volatile pointer 
+   // return  * ((double *)&i); // this is never reached but this silent clang's warning about non-volatile pointer 
+   return  (tSysCho) 0; // MPD : Will, hopefully, avoid all the warnings 
 }
 tSysCho  cGenSysSurResol::GetElemLin(int i) const
 {
    ELISE_ASSERT(false,"cGenSysSurResol::GetElemLin");
    //return  * ((double *)0);
-   return  * ((double *)&i); // same as before
+   // return  * ((double *)&i); // same as before
+   return  (tSysCho) 0;   // same as before
 }
 
 void  cGenSysSurResol::SetElemQuad(int i,int j,const tSysCho& )

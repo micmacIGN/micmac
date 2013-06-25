@@ -456,6 +456,8 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 }
 
 
+
+
 int NbProcSys()
 {
 #if ELISE_windows
@@ -469,6 +471,41 @@ int NbProcSys()
 }
 
 namespace NS_ParamChantierPhotogram{
+
+
+std::string Basic_XML_User_File(const std::string & aName)
+{
+   return MMDir() + "include"+ELISE_CAR_DIR+"XML_User"+ELISE_CAR_DIR+ aName;
+}
+std::string XML_User_Or_MicMac(const std::string & aName)
+{
+  std::string aRes = Basic_XML_User_File(aName);
+  if ( ELISE_fp::exist_file(aRes))
+     return aRes;
+  return Basic_XML_MM_File(aName);
+}
+const cMMUserEnvironment & MMUserEnv()
+{
+    static cMMUserEnvironment * aRes = 0;
+    if (aRes ==0)
+    {
+        std::string aName = XML_User_Or_MicMac("MM-Environment.xml");
+        cMMUserEnvironment aMME =  StdGetObjFromFile<cMMUserEnvironment>
+                                   (
+                                       aName,
+                                       StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                                       "MMUserEnvironment",
+                                       "MMUserEnvironment"
+                    );
+        aRes = new cMMUserEnvironment(aMME);
+
+    }
+    return *aRes;
+}
+
+
+
+
 
 std::string MM3DStr = "mm3d";
 

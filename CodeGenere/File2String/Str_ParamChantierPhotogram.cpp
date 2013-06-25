@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1399]) = {
+const char * (theNameVar_ParamChantierPhotogram[1404]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1383,6 +1383,11 @@ const char * (theNameVar_ParamChantierPhotogram[1399]) = {
 "    </ListImByDelta>\n",
 "\n",
 "\n",
+"\n",
+"    <MMUserEnvironment Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"         <TiePDetect Nb=\"?\" Type=\"std::string\">  </TiePDetect>  <!-- Ou mm3d:Digeo mm3d:Sift -->\n",
+"         <TiePMatch  Nb=\"?\" Type=\"std::string\">  </TiePMatch> <!-- Ou  mm3d:Ann -->\n",
+"    </MMUserEnvironment>\n",
 "\n",
 "\n",
 "  \n",
