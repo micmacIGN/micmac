@@ -56,6 +56,8 @@ class cEngine
         //! Load cameras orientation files
         void loadCameras();
 
+        void unloadAll();
+
         //! Compute mask binary images: projection of visible points into loaded cameras
         void doMasks();
 

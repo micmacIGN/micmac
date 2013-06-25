@@ -23,6 +23,9 @@ class cData
         void addCameras(vector <CamStenope *>);
         void addClouds(vector <Cloud *>);
 
+        void clearCameras();
+        void clearClouds();
+
         int NbCameras(){return m_Cameras.size();}
         int NbClouds(){return m_Clouds.size();}
 

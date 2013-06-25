@@ -136,6 +136,7 @@ void MainWindow::doActionDisplayShortcuts()
     text += "Ctrl+E: export mask files\n";
     text += "Ctrl+Maj+S: open .xml camera and export mask files\n";
     text += "Ctrl+S: save .xml selection stack\n";
+    text += "Ctrl+X: unload clouds and cameras\n";
     text += "Ctrl+Q: quit\n\n";
     text += "View:\n\n";
     text += "F2: full screen\n";
@@ -152,7 +153,7 @@ void MainWindow::doActionDisplayShortcuts()
     text += "    - Echap: delete polyline\n";
     text += "    - Space bar: keep points inside polyline\n";
     text += "    - Shift+Space: add points inside polyline\n";
-    text += "    - Del: keep points outside polyline\n";
+    text += "    - Del: delete points inside polyline\n";
     text += "    - . : delete closest point in polyline\n";
     text += "    - Ctrl+Z: undo all past selections";
 
@@ -192,6 +193,7 @@ void MainWindow::connectActions()
     connect(ui->actionExport_mask,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
     connect(ui->actionLoad_and_Export,	SIGNAL(triggered()),   this, SLOT(loadAndExport()));
     connect(ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
+    connect(ui->actionUnload_all,       SIGNAL(triggered()),   this, SLOT(unloadAll()));
     connect(ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
 }
 
@@ -277,6 +279,11 @@ void MainWindow::loadAndExport()
 void MainWindow::saveSelectionInfos()
 {
     m_glWidget->saveSelectionInfos("SelectionInfos.xml");
+}
+
+void MainWindow::unloadAll()
+{
+    m_Engine->unloadAll();
 }
 
 

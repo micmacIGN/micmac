@@ -218,8 +218,7 @@ void GLWidget::calculateFPS()
 
       if (_fps > 1e-3)
       {
-          displayNewMessage("",LOWER_LEFT_MESSAGE);
-          displayNewMessage("fps: " + QString::number(_fps),LOWER_LEFT_MESSAGE);
+          m_messageFPS = "fps: " + QString::number(_fps);
       }
     }
 
@@ -272,34 +271,34 @@ void GLWidget::paintGL()
 
             switch(it->position)
             {
-            case LOWER_LEFT_MESSAGE:
-            {
-                renderText(10, lc_currentHeight, it->message,m_font);
-                int messageHeight = QFontMetrics(m_font).height();
-                lc_currentHeight -= (messageHeight*5)/4; //add a 25% margin
-            }
-                break;
-            case LOWER_CENTER_MESSAGE:
-            {
-                QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                renderText((m_glWidth-rect.width())/2, lc_currentHeight, it->message,m_font);
-                int messageHeight = QFontMetrics(m_font).height();
-                lc_currentHeight += (messageHeight*5)/4; //add a 25% margin
-            }
-                break;
-            case UPPER_CENTER_MESSAGE:
-            {
-                QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                renderText((m_glWidth-rect.width())/2, uc_currentHeight+rect.height(), it->message,m_font);
-                uc_currentHeight += (rect.height()*5)/4; //add a 25% margin
-            }
-                break;
-            case SCREEN_CENTER_MESSAGE:
-            {
-                m_font.setPointSize(12);
-                QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                renderText((m_glWidth-rect.width())/2, (m_glHeight-rect.height())/2, it->message,m_font);
-            }
+                case LOWER_LEFT_MESSAGE:
+                {
+                    renderText(10, lc_currentHeight, it->message,m_font);
+                    int messageHeight = QFontMetrics(m_font).height();
+                    lc_currentHeight -= (messageHeight*5)/4; //add a 25% margin
+                }
+                    break;
+                case LOWER_CENTER_MESSAGE:
+                {
+                    QRect rect = QFontMetrics(m_font).boundingRect(it->message);
+                    renderText((m_glWidth-rect.width())/2, lc_currentHeight, it->message,m_font);
+                    int messageHeight = QFontMetrics(m_font).height();
+                    lc_currentHeight += (messageHeight*5)/4; //add a 25% margin
+                }
+                    break;
+                case UPPER_CENTER_MESSAGE:
+                {
+                    QRect rect = QFontMetrics(m_font).boundingRect(it->message);
+                    renderText((m_glWidth-rect.width())/2, uc_currentHeight+rect.height(), it->message,m_font);
+                    uc_currentHeight += (rect.height()*5)/4; //add a 25% margin
+                }
+                    break;
+                case SCREEN_CENTER_MESSAGE:
+                {
+                    m_font.setPointSize(12);
+                    QRect rect = QFontMetrics(m_font).boundingRect(it->message);
+                    renderText((m_glWidth-rect.width())/2, (m_glHeight-rect.height())/2, it->message,m_font);
+                }
             }
 
             ++it;
@@ -344,8 +343,15 @@ void GLWidget::paintGL()
         glMatrixMode(GL_MODELVIEW);
     }
 
-    if (m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE)
+    if ((m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE) && m_bMessages)
+    {
        calculateFPS();
+
+       glColor4f(0.0f,0.7f,1.0f,0.6f);
+       int fontSize = 10;
+       m_font.setPointSize(fontSize);
+       renderText(10,  m_glHeight- fontSize, m_messageFPS,m_font);
+    }
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
@@ -963,15 +969,18 @@ void GLWidget::clearPolyline()
 
 void GLWidget::closePolyline()
 {
-    //remove last point if needed
-    int sz = m_polygon.size();
-    if ((sz > 2) && (m_polygon[sz-1] == m_polygon[sz-2]))
-        m_polygon.resize(sz-1);
+    if (!m_bPolyIsClosed)
+    {
+        //remove last point if needed
+        int sz = m_polygon.size();
+        if ((sz > 2) && (m_polygon[sz-1] == m_polygon[sz-2]))
+            m_polygon.resize(sz-1);
 
-    sz = m_polygon.size();
-    if (sz > 3) m_polygon.resize(sz-1);
+        sz = m_polygon.size();
+        if (sz > 2) m_polygon.resize(sz-1);
 
-    m_bPolyIsClosed = true;
+        m_bPolyIsClosed = true;
+    }
 }
 
 void GLWidget::undoAll()
@@ -1241,7 +1250,7 @@ void GLWidget::showSelectionMessages()
     displayNewMessage(QString());
     displayNewMessage("Selection mode",UPPER_CENTER_MESSAGE);
     displayNewMessage("Left click: add contour point / Right click: close / Echap: delete polyline",LOWER_CENTER_MESSAGE);
-    displayNewMessage("Space: keep points inside polyline / Shift+Space: add points inside polyline / Suppr: keep points outside polyline",LOWER_CENTER_MESSAGE);
+    displayNewMessage("Space/Shift+Space: keep/add points inside polyline / Suppr: delete points inside polyline",LOWER_CENTER_MESSAGE);
 }
 
 void GLWidget::showMoveMessages()

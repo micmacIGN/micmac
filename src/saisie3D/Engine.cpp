@@ -167,3 +167,9 @@ void cEngine::doMasks()
         #endif  
     }
 }
+
+void cEngine::unloadAll()
+{
+    m_Data->clearClouds();
+    m_Data->clearCameras();
+}

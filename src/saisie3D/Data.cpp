@@ -34,6 +34,33 @@ void cData::addClouds(vector <Cloud *> aClouds)
         centerCloud(aClouds[aK]);
 }
 
+void cData::clearClouds()
+{
+    for (uint aK=0; aK < NbClouds();++aK)
+    {
+        delete m_Clouds[aK];
+        delete m_oClouds[aK];
+    }
+    m_Clouds.clear();
+    m_oClouds.clear();
+
+    m_minX = m_minY = m_minZ = FLT_MAX;
+    m_maxX = m_maxY = m_maxZ = FLT_MIN;
+    m_cX = m_cY = m_cZ = m_diam = 0.f;
+}
+
+void cData::clearCameras()
+{
+    for (uint aK=0; aK < NbCameras();++aK)
+        delete m_Cameras[aK];
+
+    m_Cameras.clear();
+
+    m_minX = m_minY = m_minZ = FLT_MAX;
+    m_maxX = m_maxY = m_maxZ = FLT_MIN;
+    m_cX = m_cY = m_cZ = m_diam = 0.f;
+}
+
 int cData::GetSizeClouds()
 {
     int sizeClouds = 0;
@@ -132,3 +159,4 @@ cSaisieInfos::cSaisieInfos(float rotX, float rotY, float translation[], float sc
     m_poly = polyline;
     m_selection_mode = selMode;
 }
+

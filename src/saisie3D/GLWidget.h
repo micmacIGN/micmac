@@ -275,6 +275,8 @@ protected:
     //! List of messages to display
     list<MessageToDisplay> m_messagesToDisplay;
 
+    QString m_messageFPS;
+
     //! Point list for polygonal selection
     QVector < QPoint > m_polygon;
 

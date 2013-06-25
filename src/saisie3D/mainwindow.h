@@ -57,6 +57,7 @@ protected slots:
 
     void loadPlys();
     void loadCameras();
+    void unloadAll();
     void exportMasks();
     void loadAndExport();
     void saveSelectionInfos();
