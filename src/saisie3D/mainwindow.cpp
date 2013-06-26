@@ -112,6 +112,11 @@ void MainWindow::toggleShowBall(bool state)
     m_glWidget->showBall(state);
 }
 
+void MainWindow::toggleShowBBox(bool state)
+{
+    m_glWidget->showBBox(state);
+}
+
 void MainWindow::toggleShowAxis(bool state)
 {
     m_glWidget->showAxis(state);
@@ -178,11 +183,13 @@ void MainWindow::doActionDisplayShortcuts()
     text += "    - Left click : add a point to polyline\n";
     text += "    - Right click: close polyline\n";
     text += "    - Echap: delete polyline\n";
-    text += "    - Space bar: keep points inside polyline\n";
-    text += "    - Shift+Space: add points inside polyline\n";
+    text += "    - Space bar: add points inside polyline\n";
     text += "    - Del: delete points inside polyline\n";
     text += "    - . : delete closest point in polyline\n";
-    text += "    - Ctrl+Z: undo all past selections";
+    text += "    - Ctrl+A: select all\n";
+    text += "    - Ctrl+D: select none\n";
+    text += "    - Ctrl+R: undo all past selections\n";
+    text += "    - Ctrl+I: invert selection\n";
 
     QMessageBox::information(NULL, "Saisie3D - shortcuts", text);
 }
@@ -198,6 +205,7 @@ void MainWindow::connectActions()
     connect(ui->actionShow_axis,        SIGNAL(toggled(bool)), this, SLOT(toggleShowAxis(bool)));
     connect(ui->actionShow_ball,        SIGNAL(toggled(bool)), this, SLOT(toggleShowBall(bool)));
     connect(ui->actionShow_cams,        SIGNAL(toggled(bool)), this, SLOT(toggleShowCams(bool)));
+    connect(ui->actionShow_bounding_box,SIGNAL(toggled(bool)), this, SLOT(toggleShowBBox(bool)));
     connect(ui->actionShow_help_messages,SIGNAL(toggled(bool)), this, SLOT(toggleShowMessages(bool)));
 
     connect(ui->actionHelpShortcuts,    SIGNAL(triggered()),   this, SLOT(doActionDisplayShortcuts()));
@@ -241,6 +249,7 @@ void MainWindow::addPoints()
 void MainWindow::selectNone()
 {
     m_glWidget->Select(NONE);
+    m_glWidget->clearPolyline();
     m_glWidget->update();
 }
 
@@ -305,12 +314,6 @@ void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
         return;
 
     sendingWindow->onWheelEvent(wheelDelta_deg);
-}
-
-void MainWindow::on_actionUndo_triggered()
-{
-     m_glWidget->undoAll();
-     m_glWidget->update();
 }
 
 void MainWindow::loadPlys()

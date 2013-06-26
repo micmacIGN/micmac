@@ -19,7 +19,7 @@ public:
   {
     for( int count = 0; count < 5; count++ )
     {
-      sleep( 1 );
+      //sleep( 1 );
       std::cout << "Ping long!" << std::endl;
     }
   }
@@ -52,14 +52,12 @@ public slots:
 
     void slot_finished();
 
-private slots:
-    void on_actionUndo_triggered();
-
 protected slots:
     void doActionDisplayShortcuts();
     void toggleFullScreen(bool);
     void toggleShowAxis(bool);
     void toggleShowBall(bool);
+    void toggleShowBBox(bool);
     void toggleShowCams(bool);
     void toggleShowMessages(bool);
     void togglePointsSelection(bool state);
