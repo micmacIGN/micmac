@@ -131,6 +131,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _currentTime(0)
   , _fps(0.0f)
   , m_selection_mode(NONE)
+  , m_bFirstAdd(true)
 {
     //setMouseTracking(true);
 
@@ -398,9 +399,6 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             break;
         case Qt::Key_Minus:
             ptSizeUp(false);
-            break;
-        case Qt::Key_F5:
-            clearPolyline();
             break;
         default:
         {
@@ -861,17 +859,18 @@ void GLWidget::getProjection(Pt2df &P2D, Vertex P)
 
 void GLWidget::Select(int mode)
 {
-    if ((m_polygon.size() < 3) || (!m_bPolyIsClosed))
-        return;
-
     Pt2df P2D;
     bool pointInside;
     std::vector < Pt2df > polyg;
 
     if(mode == ADD || mode == SUB)
+    {
+        if ((m_polygon.size() < 3) || (!m_bPolyIsClosed))
+            return;
+
         for (int aK=0; aK < (int) m_polygon.size(); ++aK)
             polyg.push_back(Pt2df(m_polygon[aK].x, m_glHeight - m_polygon[aK].y));
-
+    }
 
     for (int aK=0; aK < m_Data->NbClouds(); ++aK)
     {
@@ -885,12 +884,18 @@ void GLWidget::Select(int mode)
             case ADD:
                 getProjection(P2D, P);
                 pointInside = isPointInsidePoly(P2D,polyg);
-                emit SelectedPoint((uint)aK,(uint)bK,pointInside);
+                if (m_bFirstAdd)
+                    emit SelectedPoint((uint)aK,(uint)bK,pointInside);
+                else
+                    emit SelectedPoint((uint)aK,(uint)bK,pointInside||P.isVisible());
                 break;
             case SUB:
-                getProjection(P2D, P);
-                pointInside = isPointInsidePoly(P2D,polyg);
-                emit SelectedPoint((uint)aK,(uint)bK,!pointInside);
+                if (P.isVisible())
+                {
+                    getProjection(P2D, P);
+                    pointInside = isPointInsidePoly(P2D,polyg);
+                    emit SelectedPoint((uint)aK,(uint)bK,!pointInside);
+                }
                 break;
             case INVERT:
                 emit SelectedPoint((uint)aK,(uint)bK,!P.isVisible());
@@ -906,6 +911,8 @@ void GLWidget::Select(int mode)
 
         setBufferGl(true);
     }
+
+    if ((mode == ADD) && (m_bFirstAdd)) m_bFirstAdd = false;
 
     //m_infos.push_back(cSaisieInfos(m_params, m_polygon, selection_mode));
 }

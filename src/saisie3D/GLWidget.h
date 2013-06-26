@@ -266,6 +266,8 @@ protected:
     //! Current interaction mode (with mouse)
     INTERACTION_MODE m_interactionMode;
 
+    bool m_bFirstAdd;
+
     //! Temporary Message to display
     struct MessageToDisplay
     {
