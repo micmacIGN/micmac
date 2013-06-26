@@ -176,7 +176,7 @@ PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,std::vector<std:
    return aPtsHomol;
 }
 
-void Vignette_correct2(string aDir,std::vector<std::string> * aSetIm, DiaphFoc diaphFoc,string aDirOut){
+void Vignette_correct(string aDir,std::vector<std::string> * aSetIm, DiaphFoc diaphFoc,string aDirOut){
 
 	//Reading vignette files
 
@@ -265,7 +265,8 @@ void Vignette_correct2(string aDir,std::vector<std::string> * aSetIm, DiaphFoc d
 
 }
 
-void Vignette_correct(string aDir,std::vector<std::string> * aSetIm,vector<double> aParam,string aDirOut){
+/*
+void Vignette_correct_old(string aDir,std::vector<std::string> * aSetIm,vector<double> aParam,string aDirOut){
 
 	//Reading input files
     int nbIm=(aSetIm)->size();
@@ -330,6 +331,7 @@ void Vignette_correct(string aDir,std::vector<std::string> * aSetIm,vector<doubl
 	  
 	}
 }
+*/
 
 void Write_Vignette(string aDir, string aNameOut,vector<double> aParam,string aDirOut, Pt2di aSz){
 
@@ -671,7 +673,7 @@ int  Vignette_main(int argc,char ** argv)
 			if (DoCor && vectOfDiaphFoc[i].isComputed==1){
 			//Correction des images avec les params calculés
 			cout<<"Correcting the images"<<endl;
-			Vignette_correct2(aDir, & listOfListIm[i],vectOfDiaphFoc[i],aDirOut);
+			Vignette_correct(aDir, & listOfListIm[i],vectOfDiaphFoc[i],aDirOut);
 	   
 			}
 		}
