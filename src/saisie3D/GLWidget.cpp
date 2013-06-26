@@ -11,7 +11,7 @@ using namespace Cloud_;
 using namespace std;
 
 bool g_mouseLeftDown = false;
-bool g_mouseWheelDown = false;
+bool g_mouseMiddleDown = false;
 bool g_mouseRightDown = false;
 
 GLfloat g_tmpMatrix[9],
@@ -380,7 +380,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     else if (event->buttons()&Qt::MiddleButton)
     {
         if (m_interactionMode == TRANSFORM_CAMERA)
-            g_mouseWheelDown = true;
+            g_mouseMiddleDown = true;
     }
 }
 
@@ -391,7 +391,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     if ( !( event->buttons()&Qt::RightButton ) )
         g_mouseRightDown = false;
     if ( !( event->buttons()&Qt::MiddleButton ) )
-        g_mouseWheelDown = false;
+         g_mouseMiddleDown = false;
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -783,14 +783,14 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         event->ignore();
     }
-    else if (g_mouseLeftDown || g_mouseRightDown)
+    else if (g_mouseLeftDown || g_mouseMiddleDown|| g_mouseRightDown)
     {
         Pt2df dp = pos-m_lastPos;
 
-        if ( g_mouseLeftDown )
+        if ( g_mouseLeftDown ) // rotation autour de X et Y
         {
-            float angleX =  m_speed * (float) dp.y / (float) m_glHeight;
-            float angleY =  m_speed * (float) dp.x / (float) m_glWidth;
+            float angleX =  m_speed * dp.y / (float) m_glHeight;
+            float angleY =  m_speed * dp.x / (float) m_glWidth;
 
             setAngles(angleX, angleY, m_params.angleZ);
 
@@ -800,21 +800,23 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             mult_m33( g_rotationOx, g_rotationMatrix, g_tmpMatrix );
             mult_m33( g_rotationOy, g_tmpMatrix, g_rotationMatrix );
         }
-        else if ( g_mouseRightDown )
+        else if ( g_mouseMiddleDown ) // translation
         {
             m_bObjectCenteredView = false;
-            m_params.m_translationMatrix[0] += m_speed * dp.x*m_Data->m_diam/m_glHeight;
-            m_params.m_translationMatrix[1] -= m_speed * dp.y*m_Data->m_diam/m_glHeight;
+            m_params.m_translationMatrix[0] += m_speed * dp.x*m_Data->m_diam/(float)m_glWidth;
+            m_params.m_translationMatrix[1] -= m_speed * dp.y*m_Data->m_diam/(float)m_glHeight;
         }
-        else if ( g_mouseWheelDown )
+        else if ( g_mouseRightDown ) // rotation autour de Z
         {
-            float angleZ =  m_speed * (float) dp.y / (float) m_glHeight;
+            float angleZ =  m_speed * dp.x / (float) m_glWidth;
 
             setAngles( m_params.angleX,  m_params.angleY, angleZ);
 
             setRotateOz_m33( angleZ, g_rotationOz );
 
-            mult_m33( g_rotationOz, g_rotationMatrix, g_rotationMatrix );
+            mult_m33( g_rotationOz, g_rotationMatrix, g_tmpMatrix );
+
+            for (int i = 0; i < 9; ++i) g_rotationMatrix[i] = g_tmpMatrix[i];
         }
 
         update();

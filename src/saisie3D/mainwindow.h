@@ -5,7 +5,7 @@
 #endif
 #include <QMainWindow>
 #include <QFutureWatcher>
-#include <QtConcurrent>
+#include <QtConcurrentRun>
 #include <QProgressDialog>
 
 #include "GLWidget.h"
@@ -34,8 +34,6 @@ public slots:
     void addFiles(const QStringList& filenames);
 
     void selectedPoint(uint idC,uint idV,bool select);
-
-    void slot_finished();
 
 protected slots:
     void doActionDisplayShortcuts();

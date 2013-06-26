@@ -10,9 +10,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ProgressDialog = new QProgressDialog();
-    connect(&this->FutureWatcher, SIGNAL(finished()), this, SLOT(slot_finished()));
-    connect(&this->FutureWatcher, SIGNAL(finished()), this->ProgressDialog , SLOT(cancel()));
+    ProgressDialog = new QProgressDialog("Load clouds","Stop",0,0,this);
+    ProgressDialog->setMinimum(0);
+    ProgressDialog->setMaximum(0);
+
+    connect(&FutureWatcher, SIGNAL(finished()),ProgressDialog , SLOT(cancel()));
 
     m_glWidget = new GLWidget(this,m_Engine->getData());
 
@@ -67,8 +69,6 @@ void MainWindow::addFiles(const QStringList& filenames)
             QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadClouds,filenames);
 
             this->FutureWatcher.setFuture(future);
-            this->ProgressDialog->setMinimum(0);
-            this->ProgressDialog->setMaximum(0);
             this->ProgressDialog->setWindowModality(Qt::WindowModal);
             this->ProgressDialog->exec();
 
@@ -89,11 +89,6 @@ void MainWindow::addFiles(const QStringList& filenames)
 void MainWindow::selectedPoint(uint idC, uint idV, bool select)
 {
     m_Engine->getData()->getCloud(idC)->getVertex(idV).setVisible(select);
-}
-
-void MainWindow::slot_finished()
-{
-    std::cout << "Finshed" << std::endl;
 }
 
 void MainWindow::toggleFullScreen(bool state)
@@ -171,12 +166,13 @@ void MainWindow::doActionDisplayShortcuts()
     text += "F2: full screen\n";
     text += "F3: show axis\n";
     text += "F4: show ball\n";
-    text += "F5: show cameras\n";
-    text += "F6: show help messages\n";
-    text += "F7: move mode / selection mode\n";
+    text += "F5: show bounding box\n";
+    text += "F6: show cameras\n";
+    text += "F7: show help messages\n";
     text += "\n";
     text += "Key +/-: increase/decrease point size\n\n";
-    text += "Selection mode:\n\n";
+    text += "Selection menu:\n\n";
+    text += "F8: move mode / selection mode\n";
     text += "    - Left click : add a point to polyline\n";
     text += "    - Right click: close polyline\n";
     text += "    - Echap: delete polyline\n";
