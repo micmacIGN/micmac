@@ -1,0 +1,96 @@
+<!--
+Apero   /home/marc/MMM/culture3d/include/XML_MicMac/Apero-ChCo.xml DirectoryChantier=/home/marc/TMP/Mini-Cuxha/ "+SetIm=IMG_020[0-9].jpg"    +AeroIn=-RTL-Compens  +AeroOut=Test-CHC +ChC=SysCoRTL.xml@SysCoLambert-CC44.xml
+    Innovation
+
+
+/home/marc/MMM/culture3d/bin/mm3d Apero /home/marc/MMM/culture3d/include/XML_MicMac/Apero-ChCo.xml  DirectoryChantier=./  +SetIm=IMG_020[0-9].jpg  +AeroIn=-RTL-Compense  +AeroOut=-L93  +ChC=SysCoRTL.xml@Lambert93  +ChCFR=0
+
+-->
+
+<Global >
+   <ParamApero>
+
+       <DicoLoc>
+           <Symb>  AeroIn=YYY </Symb>
+           <Symb>  AeroOut=YYY </Symb>
+           <Symb>  SetIm=YYY </Symb>
+           <Symb>  ChC=YYY </Symb>
+
+
+           <Symb>  ChCFR=false </Symb>
+       </DicoLoc>
+
+       <SectionBDD_Observation>
+             <BDD_Orient>
+                  <Id>  Or-Init   </Id>
+                  <KeySet>  NKS-Set-Orient@${AeroIn} </KeySet>
+                  <KeyAssoc>  NKS-Assoc-Im2Orient@${AeroIn} </KeyAssoc>
+             </BDD_Orient>
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+             <CalibrationCameraInc>
+                <Name> GenerateKC-Others   </Name>
+                <CalValueInit>
+                         <CalFromFileExtern>
+                              <NameFile>   ####  </NameFile>
+                              <NameTag>    CalibrationInternConique </NameTag>
+                              <AutorizeNonExisting > false </AutorizeNonExisting>
+                         </CalFromFileExtern>
+                </CalValueInit>
+                <CalibPerPose>
+                   <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
+                   <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${AeroIn}/AutoCal@.xml  </KeyInitFromPose>
+                </CalibPerPose>
+             </CalibrationCameraInc>
+
+             <PoseCameraInc>
+                   <PatternName>    ${SetIm} </PatternName>
+                   <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
+                   <PosValueInit>
+                       <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                   </PosValueInit>
+             </PoseCameraInc>
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> YYYY </DirectoryChantier>
+             <GenereErreurOnContraineCam> false </GenereErreurOnContraineCam>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+        </SectionSolveur>
+
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+		    <SectionObservations>
+		    </SectionObservations>
+
+                    <SectionExport>
+                            <ExportPose>
+                                <ChC> ${ChC} </ChC>
+                                <ChCForceRot>  ${ChCFR}</ChCForceRot>
+                                <PatternSel> (.*) </PatternSel>
+                                <KeyAssoc> NKS-Assoc-Im2Orient@${AeroOut} </KeyAssoc>
+                                <AddCalib>  true </AddCalib>
+                                <NbVerif>  10 </NbVerif>
+                                <TolWhenVerif> 1e-3 </TolWhenVerif>
+                                <FileExtern> NKS-Assoc-FromFocMm@Ori${AeroOut}/AutoCal@.xml </FileExtern>
+                                <FileExternIsKey> true </FileExternIsKey>
+                            </ExportPose>
+                             <ExportCalib>
+                                 <KeyAssoc>  NKS-Assoc-FromKeyCal@Ori${AeroOut}/AutoCal@.xml </KeyAssoc>
+                                 <KeyIsName> false </KeyIsName>
+                            </ExportCalib>
+                    </SectionExport>
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
