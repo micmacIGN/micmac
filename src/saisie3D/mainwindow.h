@@ -5,7 +5,7 @@
 #endif
 #include <QMainWindow>
 #include <QFutureWatcher>
-#include <QtConcurrent>
+#include <QtConcurrentRun>
 #include <QProgressDialog>
 
 #include "GLWidget.h"
