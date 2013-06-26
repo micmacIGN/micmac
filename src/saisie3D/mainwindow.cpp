@@ -50,7 +50,6 @@ void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
     {
-
         QFileInfo fi(filenames[0]);
 
         //set default working directory as first file subfolder
@@ -93,7 +92,7 @@ void MainWindow::selectedPoint(uint idC, uint idV, bool select)
 
 void MainWindow::slot_finished()
 {
-    std::cout << "Finshed" << std::endl;
+    std::cout << "Finished" << std::endl;
 }
 
 void MainWindow::toggleFullScreen(bool state)
@@ -133,7 +132,6 @@ void MainWindow::togglePointsSelection(bool state)
 {
     if (state)
     {
-
         m_glWidget->setInteractionMode(GLWidget::SEGMENT_POINTS);
 
         if (m_glWidget->hasCloudLoaded()&&m_glWidget->showMessages())
@@ -171,12 +169,13 @@ void MainWindow::doActionDisplayShortcuts()
     text += "F2: full screen\n";
     text += "F3: show axis\n";
     text += "F4: show ball\n";
-    text += "F5: show cameras\n";
-    text += "F6: show help messages\n";
-    text += "F7: move mode / selection mode\n";
+    text += "F5: show bounding box\n";
+    text += "F6: show cameras\n";
+    text += "F7: show help messages\n";
     text += "\n";
     text += "Key +/-: increase/decrease point size\n\n";
-    text += "Selection mode:\n\n";
+    text += "Selection menu:\n\n";
+    text += "F8: move mode / selection mode\n";
     text += "    - Left click : add a point to polyline\n";
     text += "    - Right click: close polyline\n";
     text += "    - Echap: delete polyline\n";
