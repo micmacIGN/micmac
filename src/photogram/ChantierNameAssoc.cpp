@@ -2364,7 +2364,6 @@ std::string XML_MM_File(const std::string & aFile)
 
 		mArgTr.SetDico("MMDir",MMDir(),true);
 		mArgTr.SetDico("MMNbProc",ToString(MMNbProc()),true);
-
 		mArgTr.SetDico("MMCmdRmFile",SYS_RM,true);
 
 
