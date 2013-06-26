@@ -587,6 +587,13 @@ void SparseSymmetricMatrix<T>::Multiply( const Vector<T2>& In , Vector<T2>& Out 
 		#undef INT
 	#endif
 	#include <windows.h>
+
+	#if (ELISE_windows_xp)
+		#include <intrin.h>
+		#pragma intrinsic(_InterlockedCompareExchange64)
+		#define InterlockedCompareExchange64 _InterlockedCompareExchange64
+	#endif
+
 	inline void AtomicIncrement( volatile float* ptr , float addend )
 	{
 		float newValue = *ptr;
