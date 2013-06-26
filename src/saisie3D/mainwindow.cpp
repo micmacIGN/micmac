@@ -10,9 +10,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ProgressDialog = new QProgressDialog();
-    connect(&this->FutureWatcher, SIGNAL(finished()), this, SLOT(slot_finished()));
-    connect(&this->FutureWatcher, SIGNAL(finished()), this->ProgressDialog , SLOT(cancel()));
+    ProgressDialog = new QProgressDialog("Load clouds","Stop",0,0,this);
+    ProgressDialog->setMinimum(0);
+    ProgressDialog->setMaximum(0);
+
+    connect(&FutureWatcher, SIGNAL(finished()),ProgressDialog , SLOT(cancel()));
 
     m_glWidget = new GLWidget(this,m_Engine->getData());
 
@@ -50,6 +52,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
     {
+
         QFileInfo fi(filenames[0]);
 
         //set default working directory as first file subfolder
@@ -66,8 +69,6 @@ void MainWindow::addFiles(const QStringList& filenames)
             QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadClouds,filenames);
 
             this->FutureWatcher.setFuture(future);
-            this->ProgressDialog->setMinimum(0);
-            this->ProgressDialog->setMaximum(0);
             this->ProgressDialog->setWindowModality(Qt::WindowModal);
             this->ProgressDialog->exec();
 
@@ -88,11 +89,6 @@ void MainWindow::addFiles(const QStringList& filenames)
 void MainWindow::selectedPoint(uint idC, uint idV, bool select)
 {
     m_Engine->getData()->getCloud(idC)->getVertex(idV).setVisible(select);
-}
-
-void MainWindow::slot_finished()
-{
-    std::cout << "Finished" << std::endl;
 }
 
 void MainWindow::toggleFullScreen(bool state)
@@ -132,6 +128,7 @@ void MainWindow::togglePointsSelection(bool state)
 {
     if (state)
     {
+
         m_glWidget->setInteractionMode(GLWidget::SEGMENT_POINTS);
 
         if (m_glWidget->hasCloudLoaded()&&m_glWidget->showMessages())
