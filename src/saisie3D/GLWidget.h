@@ -73,7 +73,7 @@ class GLWidget : public QGLWidget
 
 private:
 
-    QPoint m_lastPos;
+    Pt2df m_lastPos;
 
 public:
 
