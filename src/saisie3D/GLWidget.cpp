@@ -342,7 +342,7 @@ void GLWidget::paintGL()
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
-    Pt2df m_lastPos = Pt2df(event->pos().x(),event->pos().y());
+    m_lastPos = Pt2df(event->pos().x(),event->pos().y());
 
     if ( event->buttons()&Qt::LeftButton )
     {
@@ -778,13 +778,12 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     }
     else if (g_mouseLeftDown || g_mouseRightDown)
     {
-
-        QPoint dp = event->pos()-m_lastPos;
+        Pt2df dp = pos-m_lastPos;
 
         if ( g_mouseLeftDown )
         {
-            float angleX =  m_speed * (float) dp.y() / (float) m_glHeight;
-            float angleY =  m_speed * (float) dp.x() / (float) m_glWidth;
+            float angleX =  m_speed * (float) dp.y / (float) m_glHeight;
+            float angleY =  m_speed * (float) dp.x / (float) m_glWidth;
 
             setAngles(angleX, angleY);
 
@@ -797,14 +796,14 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         else if ( g_mouseRightDown )
         {
             m_bObjectCenteredView = false;
-            m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/m_glHeight;
-            m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/m_glHeight;
+            m_params.m_translationMatrix[0] += m_speed * dp.x*m_Data->m_diam/m_glHeight;
+            m_params.m_translationMatrix[1] -= m_speed * dp.y*m_Data->m_diam/m_glHeight;
         }
 
         update();
     }
 
-    m_lastPos = event->pos();
+    m_lastPos = pos;
 }
 
 bool isPointInsidePoly(const Pt2df& P, const std::vector< Pt2df > poly)
@@ -925,8 +924,8 @@ void GLWidget::deletePolylinePoint()
 
     for (int aK =0; aK < (int) m_polygon.size();++aK)
     {
-        dx = m_polygon[aK].x-m_lastPos.x();
-        dy = m_polygon[aK].y-m_lastPos.y();
+        dx = m_polygon[aK].x-m_lastPos.x;
+        dy = m_polygon[aK].y-m_lastPos.y;
         d2 = dx*dx + dy*dy;
 
         if (d2 < dist2)
