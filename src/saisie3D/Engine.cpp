@@ -171,9 +171,9 @@ void cEngine::unloadAll()
 
 //********************************************************************************
 
-cSaisieInfos::cSaisieInfos(){}
+cSelectInfos::cSelectInfos(){}
 
-cSaisieInfos::~cSaisieInfos(){}
+cSelectInfos::~cSelectInfos(){}
 
 /*cSaisieInfos::cSaisieInfos(ViewportParameters, QVector<QPoint> polyline, SELECTION_MODE selMode)
 {
