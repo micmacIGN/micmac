@@ -8,13 +8,6 @@
 #include "Data.h"
 #include "general/bitm.h"
 
-#ifndef  WIN32
-    #include "GL/glew.h"
-    #include "GL/glut.h"
-#else
-    #include "GL/glu.h"
-#endif
-
 //! Selection mode
 enum SELECTION_MODE { SUB,
                       ADD,
@@ -113,7 +106,7 @@ public:
     float angleZ;
 
     //! Translation matrix
-    GLfloat m_translationMatrix[3];
+    float m_translationMatrix[3];
 };
 
 class cSelectInfos

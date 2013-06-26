@@ -63,16 +63,14 @@ void MainWindow::addFiles(const QStringList& filenames)
         #endif
 
         if (fi.suffix() == "ply")
-        {
+        {            
+            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadClouds,filenames);
 
-            m_Engine->loadClouds(filenames);
-//            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadClouds,filenames);
-
-//            this->FutureWatcher.setFuture(future);
-//            this->ProgressDialog->setMinimum(0);
-//            this->ProgressDialog->setMaximum(0);
-//            this->ProgressDialog->setWindowModality(Qt::WindowModal);
-//            this->ProgressDialog->exec();
+            this->FutureWatcher.setFuture(future);
+            this->ProgressDialog->setMinimum(0);
+            this->ProgressDialog->setMaximum(0);
+            this->ProgressDialog->setWindowModality(Qt::WindowModal);
+            this->ProgressDialog->exec();
 
             m_glWidget->setData(m_Engine->getData());
             m_glWidget->update();
