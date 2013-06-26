@@ -35,8 +35,6 @@ public slots:
 
     void selectedPoint(uint idC,uint idV,bool select);
 
-    void slot_finished();
-
 protected slots:
     void doActionDisplayShortcuts();
     void toggleFullScreen(bool);
