@@ -51,14 +51,6 @@ void MainWindow::addFiles(const QStringList& filenames)
     if (filenames.size())
     {
 
-//        QFuture<void> future = QtConcurrent::run(&this->MyObject, &MyClass::LongFunction);
-//        this->FutureWatcher.setFuture(future);
-
-        this->ProgressDialog->setMinimum(0);
-        this->ProgressDialog->setMaximum(0);
-        this->ProgressDialog->setWindowModality(Qt::WindowModal);
-        this->ProgressDialog->exec();
-
         QFileInfo fi(filenames[0]);
 
         //set default working directory as first file subfolder
@@ -72,7 +64,15 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         if (fi.suffix() == "ply")
         {
+
             m_Engine->loadClouds(filenames);
+//            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadClouds,filenames);
+
+//            this->FutureWatcher.setFuture(future);
+//            this->ProgressDialog->setMinimum(0);
+//            this->ProgressDialog->setMaximum(0);
+//            this->ProgressDialog->setWindowModality(Qt::WindowModal);
+//            this->ProgressDialog->exec();
 
             m_glWidget->setData(m_Engine->getData());
             m_glWidget->update();
@@ -80,7 +80,6 @@ void MainWindow::addFiles(const QStringList& filenames)
         else if (fi.suffix() == "xml")
         {
             m_Engine->loadCameras(filenames);
-
             m_glWidget->setCameraLoaded(true);
             m_glWidget->updateGL();
         }
@@ -239,6 +238,8 @@ void MainWindow::connectActions()
 
     connect(m_glWidget,SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
 }
+
+
 
 void MainWindow::addPoints()
 {
