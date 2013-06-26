@@ -57,10 +57,10 @@ void Arsenic_Banniere()
     std::cout <<  " *     C-orrection                *\n";
     std::cout <<  " **********************************\n\n";
 }
+
 PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,string Extension, bool useMasq)
 {
 	PtsHom aPtsHomol;
-	vector<double> NbPtsCouple,Gr1,Gr2,R1,G1,B1,R2,G2,B2,X1,Y1,X2,Y2;//Elements of output (distance from SIFT pts to center for Im1 and Im2, and respective grey lvl 
 	Pt2di aSz;
 
     // Permet de manipuler les ensemble de nom de fichier
@@ -177,10 +177,9 @@ PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,string Extension
             }
         }
     }
-	int nbpts=Gr1.size();
-	cout<<"--- nbpts"<<" pts read"<<endl;
-	vector<double> SZ;
-	SZ.push_back(aSz.x);SZ.push_back(aSz.y);
+	int nbPts=aPtsHomol.Gr1.size();
+	cout<<"--- Nb Pts read : "<<nbPts<<endl;
+	//aPtsHomol.SZ=aSz;
    return aPtsHomol;
 }
 
@@ -204,6 +203,43 @@ double oneParamRANSAC(vector<double> im1, vector<double> im2){
 	}
 	//cout<<aScoreMax<< " - ";
 return bestK;
+}
+
+Param3Chan SolveAndArrange(L2SysSurResol aSysR,L2SysSurResol aSysG,L2SysSurResol aSysB, int nbIm){
+	
+Param3Chan aParam3Chan;
+
+bool Ok1,Ok2,Ok3;
+Im1D_REAL8 aSolR = aSysR.GSSR_Solve(&Ok1);
+Im1D_REAL8 aSolG = aSysG.GSSR_Solve(&Ok2);
+Im1D_REAL8 aSolB = aSysB.GSSR_Solve(&Ok3);
+
+if (Ok1 && Ok2 && Ok3)
+{
+    double* aDataR = aSolR.data();
+    double* aDataG = aSolG.data();
+    double* aDataB = aSolB.data();
+	//cout<<aSysRInit.ResiduOfSol(aDataR)<<endl;
+	//cout<<aSysGInit.ResiduOfSol(aDataG)<<endl;
+	//cout<<aSysBInit.ResiduOfSol(aDataB)<<endl;
+	for(unsigned i=0;i<int(nbIm);i++){
+		//cout<<"For im NUM "<<i<<" CorR = "<<aDataR[i]<<" CorG = "<<aDataG[i]<<" CorB = "<<aDataB[i]<<endl;
+		aParam3Chan.parRed.push_back(aDataR[i]);
+		aParam3Chan.parGreen.push_back(aDataG[i]);
+		aParam3Chan.parBlue.push_back(aDataB[i]);
+	}
+	//Normalize the result :
+	double maxFactorR=1/(*max_element(aParam3Chan.parRed.begin(),aParam3Chan.parRed.end()));
+	double maxFactorG=1/(*max_element(aParam3Chan.parGreen.begin(),aParam3Chan.parGreen.end()));
+	double maxFactorB=1/(*max_element(aParam3Chan.parBlue.begin(),aParam3Chan.parBlue.end()));
+	for(unsigned i=0;i<int(nbIm);i++){
+		if(maxFactorR>1){aParam3Chan.parRed[i]  =aParam3Chan.parRed[i]  *maxFactorR;}
+		if(maxFactorG>1){aParam3Chan.parGreen[i]=aParam3Chan.parGreen[i]*maxFactorG;}
+		if(maxFactorB>1){aParam3Chan.parBlue[i] =aParam3Chan.parBlue[i] *maxFactorB;}
+	}
+}
+
+	return aParam3Chan;
 }
 
 Param3Chan Egalisation_factors(PtsHom aPtsHomol, int nbIm, int aMasterNum, int aDegPoly){
@@ -295,7 +331,6 @@ if (numImage1!=numImage2){
 			aCoefsR[numImage1]=RIm1[j];
 			aCoefsG[numImage1]=GIm1[j];
 			aCoefsB[numImage1]=BIm1[j];
-					
 			aCoefsR[numImage2]=-RIm2[j];
 			aCoefsG[numImage2]=-GIm2[j];
 			aCoefsB[numImage2]=-BIm2[j];
@@ -314,52 +349,16 @@ if (numImage1!=numImage2){
 }
 
 cout<<"Solving the initial system"<<endl;
-Param3Chan aParam3Chan;
-//vector<vector<double> > aParam3Chan;
 
-bool Ok1,Ok2,Ok3;
-Im1D_REAL8 aSolR = aSysRInit.GSSR_Solve(&Ok1);
-Im1D_REAL8 aSolG = aSysGInit.GSSR_Solve(&Ok2);
-Im1D_REAL8 aSolB = aSysBInit.GSSR_Solve(&Ok3);
-vector<double> aParamR, aParamG, aParamB;
-
-if (Ok1 && Ok2 && Ok3)
-{
-    double* aDataR = aSolR.data();
-    double* aDataG = aSolG.data();
-    double* aDataB = aSolB.data();
-	cout<<aSysRInit.ResiduOfSol(aDataR)<<endl;
-	cout<<aSysGInit.ResiduOfSol(aDataG)<<endl;
-	cout<<aSysBInit.ResiduOfSol(aDataB)<<endl;
-	for(unsigned i=0;i<int(nbIm);i++){
-		//cout<<"For im NUM "<<i<<" CorR = "<<aDataR[i]<<" CorG = "<<aDataG[i]<<" CorB = "<<aDataB[i]<<endl;
-		aParamR.push_back(aDataR[i]);
-		aParamG.push_back(aDataG[i]);
-		aParamB.push_back(aDataB[i]);
-	}
-	//Normalize the result :
-	double maxFactorR=1/(*max_element(aParamR.begin(),aParamR.end()));
-	double maxFactorG=1/(*max_element(aParamG.begin(),aParamG.end()));
-	double maxFactorB=1/(*max_element(aParamB.begin(),aParamB.end()));
-	for(unsigned i=0;i<int(nbIm);i++){
-		if(maxFactorR>1){aParamR[i]=aParamR[i]*maxFactorR;}
-		if(maxFactorG>1){aParamG[i]=aParamG[i]*maxFactorG;}
-		if(maxFactorB>1){aParamB[i]=aParamB[i]*maxFactorB;}
-	}
-	aParam3Chan.parRed  =aParamR;
-	aParam3Chan.parGreen=aParamG;
-	aParam3Chan.parBlue =aParamB;
-}
+Param3Chan aParam3Chan=SolveAndArrange(aSysRInit, aSysGInit, aSysBInit, nbIm);
 
 
-//return aParam3Chan;
+/*****************************************************************************************************/
+/*Introducing more parameters (model is : G1*poly(X1) + G1*poly(Y1) - G2*poly(X2) - G2*poly(Y2) = 0 )*/
+/*****************************************************************************************************/
 
-
-//Introducing more parameters (model is : alpha1*G1+beta1*G1*X1+gamma1*G1*Y1-alpha2*G2-beta2*G2*X2-gamma2*G2*Y2=0 )
-
-
-	int nbParam=aDegPoly*2+1;//nb param per in the model
-// Create L2SysSurResol to solve least square equation with nbIm unknown (equa is Kij*Ki-Kj=0)
+	int nbParam=aDegPoly*2+1;//nb param in the model
+// Create L2SysSurResol to solve least square equation with nbParam*nbIm unknown
 	L2SysSurResol aSysR(nbParam*nbIm);
 	L2SysSurResol aSysG(nbParam*nbIm);
 	L2SysSurResol aSysB(nbParam*nbIm);
@@ -465,37 +464,9 @@ if (numImage1!=numImage2){
 }
 
 cout<<"Solving the final system"<<endl;
-//Clearing the output vector
-aParamR.clear(); aParamG.clear(); aParamB.clear();
 
-aSolR = aSysR.GSSR_Solve(&Ok1);
-aSolG = aSysG.GSSR_Solve(&Ok2);
-aSolB = aSysB.GSSR_Solve(&Ok3);
+aParam3Chan=SolveAndArrange(aSysR, aSysG, aSysB, nbIm);
 
-if (Ok1 && Ok2 && Ok3)
-{
-    double* aDataR = aSolR.data();
-    double* aDataG = aSolG.data();
-    double* aDataB = aSolB.data();
-	for(unsigned i=0;i<int(nbParam*nbIm);i++){
-		aParamR.push_back(aDataR[i]);
-		aParamG.push_back(aDataG[i]);
-		aParamB.push_back(aDataB[i]);
-	}
-	//Normalize the result :
-	double maxFactorR=1/(*max_element(aParamR.begin(),aParamR.end()));
-	double maxFactorG=1/(*max_element(aParamG.begin(),aParamG.end()));
-	double maxFactorB=1/(*max_element(aParamB.begin(),aParamB.end()));
-	for(unsigned i=0;i<int(nbParam*nbIm);i++){
-		if(maxFactorR>1){aParamR[i]=aParamR[i]*maxFactorR;}
-		if(maxFactorG>1){aParamG[i]=aParamG[i]*maxFactorG;}
-		if(maxFactorB>1){aParamB[i]=aParamB[i]*maxFactorB;}
-	}
-	//Creating output
-	aParam3Chan.parRed=aParamR;
-	aParam3Chan.parGreen=aParamG;
-	aParam3Chan.parBlue=aParamB;
-}
 return aParam3Chan;
 }
 
@@ -605,24 +576,25 @@ int  Arsenic_main(int argc,char ** argv)
 
 		std::vector<std::string> aVectIm=*aSetIm;
 		int nbIm=aVectIm.size();
+
 		//Looking for master image NUM:
 		int aMasterNum=-1;
 		for (int i=0;i<int(nbIm);i++){
 			if(aVectIm[i]==aMaster){aMasterNum=i;cout<<"Found Master image "<<aMaster<<" as image NUM "<<i<<endl;}
 		}
+
 		//Reading homologous points
 		PtsHom aPtsHomol=ReadPtsHom(aDir, & aVectIm, Extension,useMasq);
 
 		cout<<"Computing equalization factors"<<endl;
 		Param3Chan aParam3chan=Egalisation_factors(aPtsHomol,nbIm,aMasterNum,aDegPoly);
+
 		if(aParam3chan.size()==0){
 			cout<<"Couldn't compute parameters "<<endl;
-		}else{
-
-		if(DoCor){
+		}else if(DoCor){
 			Egal_correct(aDir, & aVectIm, aParam3chan, aDirOut);
 		}
-		}
+		
 		Arsenic_Banniere();
 
 		return 0;

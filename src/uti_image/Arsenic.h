@@ -2,6 +2,15 @@
 #define ARSENIC_H
 //#include "StdAfx.h"
 
+class DiaphFoc
+{
+public:
+	DiaphFoc(){}
+	~DiaphFoc(){}
+	double diaph,foc;
+	bool isComputed;
+
+};
 
 class Param3Chan
 {
