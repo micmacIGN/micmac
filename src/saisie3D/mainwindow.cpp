@@ -112,6 +112,7 @@ void MainWindow::togglePointsSelection(bool state)
 {
     if (state)
     {
+
         m_glWidget->setInteractionMode(GLWidget::SEGMENT_POINTS);
 
         if (m_glWidget->hasCloudLoaded()&&m_glWidget->showMessages())
@@ -191,8 +192,14 @@ void MainWindow::connectActions()
 
     //"Points selection" menu
     connect(ui->actionTogglePoints_selection, SIGNAL(toggled(bool)), this, SLOT(togglePointsSelection(bool)));
-    connect(ui->actionAdd_points,       SIGNAL(triggered()),   this, SLOT(addPoints()));
-    connect(ui->actionDelete_point,     SIGNAL(triggered()),   this, SLOT(deletePoint()));
+    connect(ui->actionAdd_points,       SIGNAL(triggered()),   this, SLOT(addPoints()));    
+    connect(ui->actionSelect_none,      SIGNAL(triggered()),   this, SLOT(selectNone()));
+    connect(ui->actionInvertSelected,   SIGNAL(triggered()),   this, SLOT(invertSelected()));
+    connect(ui->actionSelectAll,        SIGNAL(triggered()),   this, SLOT(selectAll()));
+    connect(ui->actionReset,            SIGNAL(triggered()),   this, SLOT(selectAll()));
+    connect(ui->actionRemove_from_selection,            SIGNAL(triggered()),   this, SLOT(removeFromSelection()));
+
+    connect(ui->actionDeletePolylinepoint,SIGNAL(triggered()),   this, SLOT(deletePolylinePoint()));
 
     //File menu
     connect(ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
@@ -203,19 +210,42 @@ void MainWindow::connectActions()
     connect(ui->actionUnload_all,       SIGNAL(triggered()),   this, SLOT(unloadAll()));
     connect(ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
 
-
     connect(m_glWidget,SIGNAL(SelectedPoint(uint,uint,bool)),this,SLOT(SelectedPoint(uint,uint,bool)));
 }
 
 void MainWindow::addPoints()
 {
-    m_glWidget->segment(true, true);
+    m_glWidget->Select(ADD);
     m_glWidget->update();
 }
 
-void MainWindow::deletePoint()
+void MainWindow::selectNone()
 {
-    m_glWidget->deletePoint();
+    m_glWidget->Select(NONE);
+    m_glWidget->update();
+}
+
+void MainWindow::invertSelected()
+{
+    m_glWidget->Select(INVERT);
+    m_glWidget->update();
+}
+
+void MainWindow::selectAll()
+{
+    m_glWidget->Select(ALL);
+    m_glWidget->update();
+}
+
+void MainWindow::removeFromSelection()
+{
+    m_glWidget->Select(SUB);
+    m_glWidget->update();
+}
+
+void MainWindow::deletePolylinePoint()
+{
+    m_glWidget->deletePolylinePoint();
 }
 
 void MainWindow::setTopView()

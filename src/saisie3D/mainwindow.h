@@ -45,7 +45,12 @@ protected slots:
     void togglePointsSelection(bool state);
 
     void addPoints();
-    void deletePoint();
+    void selectNone();
+    void invertSelected();
+    void selectAll();
+    void removeFromSelection();
+
+    void deletePolylinePoint();
 
     //default views
     void setFrontView();

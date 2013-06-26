@@ -108,7 +108,7 @@ inline void normalize( GLdouble o_m[3] )
     o_m[2] = o_m[2]/norm;
 }
 
-GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)      
+GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_font(font())
   , m_bCloudLoaded(false)
   , m_bCameraLoaded(false)
@@ -130,6 +130,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _previousTime(0)
   , _currentTime(0)
   , _fps(0.0f)
+  , m_selection_mode(NONE)
 {
     //setMouseTracking(true);
 
@@ -392,12 +393,6 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
         case Qt::Key_Escape:
             clearPolyline();
             break;
-        case Qt::Key_Space:
-            segment(true);
-            break;
-        case Qt::Key_Delete:
-            segment(false);
-            break;
         case Qt::Key_Plus:
             ptSizeUp(true);
             break;
@@ -459,9 +454,9 @@ void GLWidget::setBufferGl(bool onlyColor)
             }
             else
             {
-                colors[pitchV+bK*3 + 0 ]   = colo.redF()*2;
-                colors[pitchV+bK*3 + 1 ]   = colo.greenF();
-                colors[pitchV+bK*3 + 2 ]   = colo.blueF();
+                colors[pitchV+bK*3 + 0 ]   = colo.redF()*1.5;
+                colors[pitchV+bK*3 + 1 ]   = colo.greenF()*0.6;
+                colors[pitchV+bK*3 + 2 ]   = colo.blueF()*0.6;
             }
         }
 
@@ -658,6 +653,7 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
         setMouseTracking(false);
         break;
     case SEGMENT_POINTS:
+        setProjectionMatrix();
         setMouseTracking(true);
         break;
     default:
@@ -845,33 +841,37 @@ bool isPointInsidePoly(const Pt2df& P, const std::vector< Pt2df > poly)
     return inside;
 }
 
-void GLWidget::segment(bool inside, bool add)
+void GLWidget::setProjectionMatrix()
+{
+    glMatrixMode(GL_MODELVIEW);
+    glGetDoublev(GL_MODELVIEW_MATRIX, (GLdouble*) &_MM);
+
+    glMatrixMode(GL_PROJECTION);
+    glGetDoublev(GL_PROJECTION_MATRIX, (GLdouble*) &_MP);
+
+    glGetIntegerv(GL_VIEWPORT, _VP);
+}
+
+void GLWidget::getProjection(Pt2df &P2D, Vertex P)
+{
+    GLdouble xp,yp,zp;
+    gluProject(P.x(),P.y(),P.z(),_MM,_MP,_VP,&xp,&yp,&zp);
+    P2D = Pt2df(xp,yp);
+}
+
+void GLWidget::Select(int mode)
 {
     if ((m_polygon.size() < 3) || (!m_bPolyIsClosed))
         return;
 
-    cSaisieInfos::SELECTION_MODE selection_mode = cSaisieInfos::NONE;
-
-    //viewing parameters
-    double MM[16], MP[16];
-    int VP[4];
-
-    glMatrixMode(GL_MODELVIEW);
-    glGetDoublev(GL_MODELVIEW_MATRIX, (GLdouble*) &MM);
-
-    glMatrixMode(GL_PROJECTION);
-    glGetDoublev(GL_PROJECTION_MATRIX, (GLdouble*) &MP);
-
-    glGetIntegerv(GL_VIEWPORT, VP);
-
     Pt2df P2D;
     bool pointInside;
-
     std::vector < Pt2df > polyg;
-    for (int aK=0; aK < (int) m_polygon.size(); ++aK)
-    {
-        polyg.push_back(Pt2df(m_polygon[aK].x, m_glHeight - m_polygon[aK].y));
-    }
+
+    if(mode == ADD || mode == SUB)
+        for (int aK=0; aK < (int) m_polygon.size(); ++aK)
+            polyg.push_back(Pt2df(m_polygon[aK].x, m_glHeight - m_polygon[aK].y));
+
 
     for (int aK=0; aK < m_Data->NbClouds(); ++aK)
     {
@@ -880,38 +880,29 @@ void GLWidget::segment(bool inside, bool add)
         for (int bK=0; bK < a_cloud->size();++bK)
         {
             Vertex &P = a_cloud->getVertex( bK );
-
-            if (add)
+            switch (mode)
             {
-                selection_mode = cSaisieInfos::ADD;
-
-                GLdouble xp,yp,zp;
-                gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
-
-                P2D = Pt2df(xp,yp);
-
+            case ADD:
+                getProjection(P2D, P);
                 pointInside = isPointInsidePoly(P2D,polyg);
-
-                emit SelectedPoint((uint)aK,(uint)bK,pointInside||P.isVisible());
+                emit SelectedPoint((uint)aK,(uint)bK,pointInside);
+                break;
+            case SUB:
+                getProjection(P2D, P);
+                pointInside = isPointInsidePoly(P2D,polyg);
+                emit SelectedPoint((uint)aK,(uint)bK,!pointInside);
+                break;
+            case INVERT:
+                emit SelectedPoint((uint)aK,(uint)bK,!P.isVisible());
+                break;
+            case ALL:
+                emit SelectedPoint((uint)aK,(uint)bK, true);
+                break;
+            case NONE:
+                emit SelectedPoint((uint)aK,(uint)bK,false);
+                break;
             }
-            else
-            {
-                if (inside) selection_mode = cSaisieInfos::INSIDE;
-                else selection_mode = cSaisieInfos::OUTSIDE;
-
-                if (P.isVisible())
-                {
-                    GLdouble xp,yp,zp;
-                    gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
-
-                    P2D = Pt2df(xp,yp);
-
-                    pointInside = isPointInsidePoly(P2D,polyg);
-
-                    emit SelectedPoint((uint)aK,(uint)bK,!((inside && !pointInside)||(!inside && pointInside)));
-                }
-            }
-        }                
+        }
 
         setBufferGl(true);
     }
@@ -919,7 +910,7 @@ void GLWidget::segment(bool inside, bool add)
     //m_infos.push_back(cSaisieInfos(m_params, m_polygon, selection_mode));
 }
 
-void GLWidget::deletePoint()
+void GLWidget::deletePolylinePoint()
 {
     float dist2 = FLT_MAX;
     int dx, dy, d2;
