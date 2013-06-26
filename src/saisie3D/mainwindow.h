@@ -33,7 +33,7 @@ public slots:
     //! Try to load a list of files
     void addFiles(const QStringList& filenames);
 
-    void SelectedPoint(uint idC,uint idV,bool select);
+    void selectedPoint(uint idC,uint idV,bool select);
 
     void slot_finished();
 

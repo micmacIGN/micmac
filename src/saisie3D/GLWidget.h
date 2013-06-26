@@ -7,9 +7,18 @@
 #include <iostream>
 #include <algorithm>
 
+#ifndef  WIN32
+    #include "GL/glew.h"
+    #include "GL/glut.h"
+#endif
+
 #include <QtOpenGL/QGLWidget>
 #include <QtOpenGL/QGLBuffer>
 #include <QGLContext>
+
+#ifdef WIN32
+    #include "GL/glu.h"
+#endif
 
 #include <QUrl>
 #include <QtGui/QMouseEvent>
