@@ -246,6 +246,7 @@ void MainWindow::removeFromSelection()
 void MainWindow::deletePolylinePoint()
 {
     m_glWidget->deletePolylinePoint();
+    m_glWidget->update();
 }
 
 void MainWindow::setTopView()
