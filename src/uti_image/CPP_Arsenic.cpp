@@ -58,10 +58,36 @@ void Arsenic_Banniere()
     std::cout <<  " **********************************\n\n";
 }
 
-PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,string Extension, bool useMasq)
+PtsHom ReadPtsHom3D(string aDir,std::vector<std::string> * aSetIm,string Extension, bool useMasq, string InVig)
+{
+	PtsHom aPtsHomol;
+	//On parcours toutes les paires d'images différentes (->testé dans le if)
+    for (int aK1=0 ; aK1<int(aSetIm->size()) ; aK1++)
+    {
+
+		//Ouverture du Masq1
+		//Parcours des points de l'image
+		//Si pts dans le masq, on va chercher sa position 3D
+			//On test la position dans toutes les autres images
+				for (int aK2=0 ; aK2<int(aSetIm->size()) ; aK2++)
+				{	
+					if (aK1!=aK2)
+					 {
+
+				}
+				//Ouverture du Masq2
+				//Si pt dans masq, on va chercher sa position 3D
+					//Si position 3D1~=3D2 -->pt validé homologue, on l'ajout au PtsHom (Gr1, R1, G1, B1, X1, Y1, idem 2, NbPtsCouple++)
+	}
+		return aPtsHomol;
+}
+
+PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,string Extension, bool useMasq, string InVig)
 {
 	PtsHom aPtsHomol;
 	Pt2di aSz;
+	//REAL4 ** aDataV1;
+	//REAL4 ** aDataV2;
 
     // Permet de manipuler les ensemble de nom de fichier
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
@@ -69,13 +95,40 @@ PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,string Extension
 //On parcours toutes les paires d'images différentes (->testé dans le if)
     for (int aK1=0 ; aK1<int(aSetIm->size()) ; aK1++)
     {
+		/*
+		//Read InVig
+		if (InVig!=""){
+			const cMetaDataPhoto & infoIm = cMetaDataPhoto::CreateExiv2(aDir + (*aSetIm)[aK1]);
+			char foc[5],dia[4];
+			sprintf(foc, "%04d", int(infoIm.FocMm()));
+			sprintf(dia, "%03d", int(infoIm.Diaph()));
+			string aNameVignette=InVig + "Foc" + (string)foc + "Diaph" + (string)dia + ".tif";
+			std::ofstream file_out(aNameVignette.c_str());
+			if(!file_out){
+				cout<<"Couldn't find vignette tif file for "<<(*aSetIm)[aK1]<<" (Foc = "<<foc<<" Diaph = "<<dia<<endl;
+			}else{
+			//Reading the vignette
+			Tiff_Im aTFV1= Tiff_Im::StdConvGen(aNameVignette,1,false);
+			aSz = aTFV1.sz();
+			Im2D_REAL4  aImV1(aSz.x,aSz.y);
+			ELISE_COPY
+				(
+				   aTFV1.all_pts(),
+				   aTFV1.in(),
+				   aImV1.out()
+				);
+
+			aDataV1 = aImV1.data();
+			}
+		}
+*/
 		std::cout<<"Getting homologous points from: "<<(*aSetIm)[aK1]<<endl;
 		//Reading the image and creating the objects to be manipulated
 			Tiff_Im aTF1= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK1],3,false);
 			aSz = aTF1.sz();
-			Im2D_REAL16  aIm1R(aSz.x,aSz.y);
-			Im2D_REAL16  aIm1G(aSz.x,aSz.y);
-			Im2D_REAL16  aIm1B(aSz.x,aSz.y);
+			Im2D_REAL4  aIm1R(aSz.x,aSz.y);
+			Im2D_REAL4  aIm1G(aSz.x,aSz.y);
+			Im2D_REAL4  aIm1B(aSz.x,aSz.y);
 			ELISE_COPY
 				(
 				   aTF1.all_pts(),
@@ -83,9 +136,9 @@ PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,string Extension
 				   Virgule(aIm1R.out(),aIm1G.out(),aIm1B.out())
 				);
 
-			REAL16 ** aDataR1 = aIm1R.data();
-			REAL16 ** aDataG1 = aIm1G.data();
-			REAL16 ** aDataB1 = aIm1B.data();
+			REAL4 ** aDataR1 = aIm1R.data();
+			REAL4 ** aDataG1 = aIm1G.data();
+			REAL4 ** aDataB1 = aIm1B.data();
 
 		//read masq if activeted
 		Im2D_U_INT1  aMasq(aSz.x,aSz.y);
@@ -108,9 +161,9 @@ PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,string Extension
 			if (aK1!=aK2)
             {
 			Tiff_Im aTF2= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK2],3,false);
-			Im2D_REAL16  aIm2R(aSz.x,aSz.y);
-			Im2D_REAL16  aIm2G(aSz.x,aSz.y);
-			Im2D_REAL16  aIm2B(aSz.x,aSz.y);
+			Im2D_REAL4  aIm2R(aSz.x,aSz.y);
+			Im2D_REAL4  aIm2G(aSz.x,aSz.y);
+			Im2D_REAL4  aIm2B(aSz.x,aSz.y);
 			ELISE_COPY
 				(
 				   aTF2.all_pts(),
@@ -118,9 +171,9 @@ PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,string Extension
 				   Virgule(aIm2R.out(),aIm2G.out(),aIm2B.out())
 				);
 
-			REAL16 ** aDataR2 = aIm2R.data();
-			REAL16 ** aDataG2 = aIm2G.data();
-			REAL16 ** aDataB2 = aIm2B.data();
+			REAL4 ** aDataR2 = aIm2R.data();
+			REAL4 ** aDataG2 = aIm2G.data();
+			REAL4 ** aDataB2 = aIm2B.data();
 
 			string prefixe="";
             
@@ -549,7 +602,7 @@ void Egal_correct(string aDir,std::vector<std::string> * aSetIm,Param3Chan  aPar
 int  Arsenic_main(int argc,char ** argv)
 {
 
-	std::string aFullPattern,aDirOut="Egal/",aMaster="";
+	std::string aFullPattern,aDirOut="Egal/",aMaster="",InVig="";
 	bool InTxt=false,DoCor=false,useMasq=false;
 	int aDegPoly=3;
 	  //Reading the arguments
@@ -558,7 +611,7 @@ int  Arsenic_main(int argc,char ** argv)
             argc,argv,
             LArgMain()  << EAMC(aFullPattern,"Images Pattern"),
             LArgMain()  << EAM(aDirOut,"Out",true,"Output folder (end with /) and/or prefix (end with another char)")
-						//<< EAM(InVig,"InVig",true,"Input vignette parameters")
+						<< EAM(InVig,"InVig",true,"Input vignette tif file folder")
 						<< EAM(InTxt,"InTxt",true,"True if homologous points have been exported in txt (Defaut=false)")
 						<< EAM(DoCor,"DoCor",true,"Use the computed parameters to correct the images (Defaut=false)")
 						<< EAM(aMaster,"Master",true,"Manually define a Master Image (to be used a reference)")
@@ -584,7 +637,7 @@ int  Arsenic_main(int argc,char ** argv)
 		}
 
 		//Reading homologous points
-		PtsHom aPtsHomol=ReadPtsHom(aDir, & aVectIm, Extension,useMasq);
+		PtsHom aPtsHomol=ReadPtsHom(aDir, & aVectIm, Extension, useMasq, InVig);
 
 		cout<<"Computing equalization factors"<<endl;
 		Param3Chan aParam3chan=Egalisation_factors(aPtsHomol,nbIm,aMasterNum,aDegPoly);
