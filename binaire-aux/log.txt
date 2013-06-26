@@ -1,0 +1,9 @@
+[LibMATIS] IGN / Laboratoire MATIS
+[LibMATIS] Machine 32 bits de type Intel / AMD.
+[LibMATIS] Extensions images reconnues en lecture : "/" ; "imd" ; "img" ; "mos" ; "pgm" ; "pnm" ; "ppm" ; "rle" ; "thm" ; "tif" ; "tiff" ; 
+[LibMATIS] Extensions images reconnues en ecriture : "imd" ; "img" ; "pgm" ; "pnm" ; "ppm" ; "rle" ; "tif" ; "tiff" ; 
+[LibMATIS] Heure lancement : Ven 20 Sept 2012 17:16.5
+[LibMATIS] Programme compile en mode RELEASE ; warnings ACTIVES.
+[LibMATIS] Heure de fin : Ven 20 Sept 2012 17:16.5
+[LibMATIS] Temps CPU : 0 min 0 s 6
+[LibMATIS] Fin.
