@@ -299,7 +299,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 <!--
                      <OneCmdSer> \rm ${ThisDir}/${ImTextPly} </OneCmdSer>
 -->
-                     <OneCmdSer> ${MMCmdRmFile} ${ThisDir}/${ImTextPly} </OneCmdSer>
+                     <OneCmdSer> ${MMCmdRmFile} ${ThisDir}${ImTextPly} </OneCmdSer>
                 </#WHEN>
        </OneCmdPar>
     </PostProcess>
