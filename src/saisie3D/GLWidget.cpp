@@ -10,26 +10,14 @@ const GLuint GL_INVALID_LIST_ID = (~0);
 using namespace Cloud_;
 using namespace std;
 
-ViewportParameters::ViewportParameters()
-    : zoom(1.0f)
-    , PointSize(1.0f)
-    , LineWidth(1.0f)
-{}
-
-ViewportParameters::ViewportParameters(const ViewportParameters& params)
-    : zoom(params.zoom)
-    , PointSize(params.PointSize)
-    , LineWidth(params.LineWidth)
-{}
-
-ViewportParameters::~ViewportParameters(){}
-
 bool g_mouseLeftDown = false;
+bool g_mouseWheelDown = false;
 bool g_mouseRightDown = false;
 
 GLfloat g_tmpMatrix[9],
 g_rotationOx[9],
 g_rotationOy[9],
+g_rotationOz[9],
 g_rotationMatrix[9] = { 1, 0, 0,
                         0, 1, 0,
                         0, 0, 1 },
@@ -51,6 +39,15 @@ inline void setRotateOy_m33( const float i_angle, GLfloat o_m[9] )
     o_m[0]=co;		o_m[1]=0;		o_m[2]=si;
     o_m[3]=0;		o_m[4]=1;		o_m[5]=0;
     o_m[6]=-si;		o_m[7]=0;		o_m[8]=co;
+}
+
+inline void setRotateOz_m33( const float i_angle, GLfloat o_m[9] )
+{
+    GLfloat co = (GLfloat)cos( i_angle ),
+            si = (GLfloat)sin( i_angle );
+    o_m[0]=co;		o_m[1]=si;		o_m[2]=0;
+    o_m[3]=-si;		o_m[4]=co;		o_m[5]=0;
+    o_m[6]=0;		o_m[7]=0;		o_m[8]=1;
 }
 
 inline void setTranslate_m3( const GLfloat *i_a, GLfloat o_m[16] )
@@ -380,6 +377,11 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             update();
         }
     }
+    else if (event->buttons()&Qt::MiddleButton)
+    {
+        if (m_interactionMode == TRANSFORM_CAMERA)
+            g_mouseWheelDown = true;
+    }
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
@@ -388,6 +390,8 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
         g_mouseLeftDown = false;
     if ( !( event->buttons()&Qt::RightButton ) )
         g_mouseRightDown = false;
+    if ( !( event->buttons()&Qt::MiddleButton ) )
+        g_mouseWheelDown = false;
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -788,7 +792,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             float angleX =  m_speed * (float) dp.y / (float) m_glHeight;
             float angleY =  m_speed * (float) dp.x / (float) m_glWidth;
 
-            setAngles(angleX, angleY);
+            setAngles(angleX, angleY, m_params.angleZ);
 
             setRotateOx_m33( angleX, g_rotationOx );
             setRotateOy_m33( angleY, g_rotationOy );
@@ -801,6 +805,16 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             m_bObjectCenteredView = false;
             m_params.m_translationMatrix[0] += m_speed * dp.x*m_Data->m_diam/m_glHeight;
             m_params.m_translationMatrix[1] -= m_speed * dp.y*m_Data->m_diam/m_glHeight;
+        }
+        else if ( g_mouseWheelDown )
+        {
+            float angleZ =  m_speed * (float) dp.y / (float) m_glHeight;
+
+            setAngles( m_params.angleX,  m_params.angleY, angleZ);
+
+            setRotateOz_m33( angleZ, g_rotationOz );
+
+            mult_m33( g_rotationOz, g_rotationMatrix, g_rotationMatrix );
         }
 
         update();
@@ -887,28 +901,28 @@ void GLWidget::Select(int mode)
                 getProjection(P2D, P);
                 pointInside = isPointInsidePoly(P2D,polyg);
                 if (m_bFirstAdd)
-                    emit SelectedPoint((uint)aK,(uint)bK,pointInside);
+                    emit selectedPoint((uint)aK,(uint)bK,pointInside);
                 else
-                    emit SelectedPoint((uint)aK,(uint)bK,pointInside||P.isVisible());
+                    emit selectedPoint((uint)aK,(uint)bK,pointInside||P.isVisible());
                 break;
             case SUB:
                 if (P.isVisible())
                 {
                     getProjection(P2D, P);
                     pointInside = isPointInsidePoly(P2D,polyg);
-                    emit SelectedPoint((uint)aK,(uint)bK,!pointInside);
+                    emit selectedPoint((uint)aK,(uint)bK,!pointInside);
                 }
                 break;
             case INVERT:
                 if (m_previousAction == NONE)  m_bFirstAdd = true;
-                emit SelectedPoint((uint)aK,(uint)bK,!P.isVisible());
+                emit selectedPoint((uint)aK,(uint)bK,!P.isVisible());
                 break;
             case ALL:
                 m_bFirstAdd = true;
-                emit SelectedPoint((uint)aK,(uint)bK, true);
+                emit selectedPoint((uint)aK,(uint)bK, true);
                 break;
             case NONE:
-                emit SelectedPoint((uint)aK,(uint)bK,false);
+                emit selectedPoint((uint)aK,(uint)bK,false);
                 break;
             }
         }
@@ -1342,18 +1356,9 @@ void GLWidget::showMoveMessages()
     displayNewMessage("Left click: rotate viewpoint / Right click: translate viewpoint",LOWER_CENTER_MESSAGE);
 }
 
-void GLWidget::setAngles(float angleX, float angleY)
+void GLWidget::setAngles(float angleX, float angleY, float angleZ)
 {
     m_params.angleX = angleX;
     m_params.angleY = angleY;
-}
-
-void GLWidget::saveSelectionInfos(QString Filename)
-{
-    for (int aK=0; aK < m_infos.size() ; ++aK )
-    {
-        //TODO: if (m_infos[aK].pose == m_infos[aK-1].pose) aK++;
-        //else write block pose
-    }
-
+    m_params.angleZ = angleZ;
 }

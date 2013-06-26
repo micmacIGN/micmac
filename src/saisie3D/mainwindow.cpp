@@ -89,7 +89,7 @@ void MainWindow::addFiles(const QStringList& filenames)
     }
 }
 
-void MainWindow::SelectedPoint(uint idC, uint idV, bool select)
+void MainWindow::selectedPoint(uint idC, uint idV, bool select)
 {
     m_Engine->getData()->getCloud(idC)->getVertex(idV).setVisible(select);
 }
@@ -237,7 +237,7 @@ void MainWindow::connectActions()
     connect(ui->actionUnload_all,       SIGNAL(triggered()),   this, SLOT(unloadAll()));
     connect(ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
 
-    connect(m_glWidget,SIGNAL(SelectedPoint(uint,uint,bool)),this,SLOT(SelectedPoint(uint,uint,bool)));
+    connect(m_glWidget,SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
 }
 
 void MainWindow::addPoints()
@@ -343,13 +343,14 @@ void MainWindow::loadAndExport()
 
 void MainWindow::saveSelectionInfos()
 {
-    m_glWidget->saveSelectionInfos("SelectionInfos.xml");
+    m_Engine->saveSelectInfos("SelectionInfos.xml");
 }
 
 void MainWindow::unloadAll()
 {
     m_Engine->unloadAll();
     m_glWidget->setCloudLoaded(false);
+    m_glWidget->setCameraLoaded(false);
     m_glWidget->setBufferGl();
     m_glWidget->update();
 }

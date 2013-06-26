@@ -163,11 +163,37 @@ void cEngine::doMasks()
     }
 }
 
+void cEngine::saveSelectInfos(string)
+{
+   /* for (int aK=0; aK < m_infos.size() ; ++aK )
+    {
+        //TODO: if (m_infos[aK].pose == m_infos[aK-1].pose) aK++;
+        //else write block pose
+    }*/
+}
+
 void cEngine::unloadAll()
 {
     m_Data->clearClouds();
     m_Data->clearCameras();
 }
+
+
+//********************************************************************************
+
+ViewportParameters::ViewportParameters()
+    : zoom(1.0f)
+    , PointSize(1.0f)
+    , LineWidth(1.0f)
+{}
+
+ViewportParameters::ViewportParameters(const ViewportParameters& params)
+    : zoom(params.zoom)
+    , PointSize(params.PointSize)
+    , LineWidth(params.LineWidth)
+{}
+
+ViewportParameters::~ViewportParameters(){}
 
 //********************************************************************************
 
@@ -175,12 +201,9 @@ cSelectInfos::cSelectInfos(){}
 
 cSelectInfos::~cSelectInfos(){}
 
-/*cSaisieInfos::cSaisieInfos(ViewportParameters, QVector<QPoint> polyline, SELECTION_MODE selMode)
+cSelectInfos::cSelectInfos(ViewportParameters par, std::vector<Pt2df> polyline, SELECTION_MODE selMode)
 {
-    m_rotationX = rotX;
-    m_rotationY = rotY;
-    m_translation = translation;
-    m_scale = scale;
+    m_params = par;
     m_poly = polyline;
     m_selection_mode = selMode;
-}*/
+}

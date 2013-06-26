@@ -8,6 +8,13 @@
 #include "Data.h"
 #include "general/bitm.h"
 
+#ifndef  WIN32
+    #include "GL/glew.h"
+    #include "GL/glut.h"
+#else
+    #include "GL/glu.h"
+#endif
+
 //! Selection mode
 enum SELECTION_MODE { SUB,
                       ADD,
@@ -28,17 +35,17 @@ public:
     Cloud* loadCloud( string i_ply_file );
     vector <Cloud *> loadClouds();
 
-    void setDir(QDir aDir){m_Dir = aDir;}
-    QDir getDir(){return m_Dir;}
+    void        setDir(QDir aDir){m_Dir = aDir;}
+    QDir        getDir(){return m_Dir;}
 
-    void SetFilenamesOut();
+    void        SetFilenamesOut();
     QStringList GetFilenamesOut() {return m_FilenamesOut;}
 
 private:
     QStringList m_FilenamesIn;
     QStringList m_FilenamesOut;
 
-    //! Working directory (where the ply files are stored)
+    //! Working directory
     QDir        m_Dir;
 };
 
@@ -69,12 +76,44 @@ public:
     //! Compute mask binary images: projection of visible points into loaded cameras
     void doMasks();
 
+    void saveSelectInfos(string);
+
     cData*   getData()  {return m_Data;}
 
 private:
 
     cLoader *m_Loader;
     cData   *m_Data;
+};
+
+class ViewportParameters
+{
+public:
+    //! Default constructor
+    ViewportParameters();
+
+    //! Copy constructor
+    ViewportParameters(const ViewportParameters& params);
+
+    //! Destructor
+    ~ViewportParameters();
+
+    //! Current zoom
+    float zoom;
+
+    //! Point size
+    float PointSize;
+
+    //! Line width
+    float LineWidth;
+
+    //! Rotation angles
+    float angleX;
+    float angleY;
+    float angleZ;
+
+    //! Translation matrix
+    GLfloat m_translationMatrix[3];
 };
 
 class cSelectInfos
@@ -84,13 +123,11 @@ public:
     cSelectInfos();
     ~cSelectInfos();
 
-
-
-    //cSaisieInfos(ViewportParameters aParams, QVector <QPoint> aPolyline, SELECTION_MODE);
+    cSelectInfos(ViewportParameters aParams, std::vector <Pt2df> aPolyline, SELECTION_MODE);
 
 private:
     //Ortho camera infos
-    //ViewportParameters  m_params;
+    ViewportParameters  m_params;
 
     //polyline infos
     std::vector <Pt2df>    m_poly;

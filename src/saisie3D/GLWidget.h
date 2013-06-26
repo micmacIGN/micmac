@@ -7,18 +7,9 @@
 #include <iostream>
 #include <algorithm>
 
-#ifndef  WIN32    
-    #include "GL/glew.h"
-    #include "GL/glut.h"
-#endif
-
 #include <QtOpenGL/QGLWidget>
 #include <QtOpenGL/QGLBuffer>
 #include <QGLContext>
-
-#ifdef  WIN32
-    #include "GL/glu.h"
-#endif
 
 #include <QUrl>
 #include <QtGui/QMouseEvent>
@@ -36,35 +27,6 @@ enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
                          BACK_VIEW,     /**< Back view **/
                          LEFT_VIEW,     /**< Left view **/
                          RIGHT_VIEW     /**< Right view **/
-};
-
-class ViewportParameters
-{
-public:
-    //! Default constructor
-    ViewportParameters();
-
-    //! Copy constructor
-    ViewportParameters(const ViewportParameters& params);
-
-    //! Destructor
-    ~ViewportParameters();
-
-    //! Current zoom
-    float zoom;
-
-    //! Point size
-    float PointSize;
-
-    //! Line width
-    float LineWidth;
-
-    //! Rotation angles
-    float angleX;
-    float angleY;
-
-    //! Translation matrix
-    GLfloat m_translationMatrix[3];
 };
 
 class GLWidget : public QGLWidget
@@ -153,7 +115,7 @@ public:
     //! Display help messages for move mode
     void showMoveMessages();
 
-    //! Segment points with polyline
+    //! Select points with polyline
     void Select(int mode);
 
     //! Delete mouse closest point
@@ -171,12 +133,10 @@ public:
     //! Increase or decrease point size
     void ptSizeUp(bool);
 
-    //! Save viewing directions and polylines in Filename
-    void saveSelectionInfos(QString Filename);
-
     void setBufferGl(bool onlyColor = false);
 
     void getProjection(Pt2df &P2D, Vertex P);
+
 public slots:
     void zoom();
 
@@ -191,7 +151,7 @@ signals:
     //! Signal emitted when the mouse wheel is rotated
     void mouseWheelRotated(float wheelDelta_deg);
 
-    void SelectedPoint(uint idCloud, uint idVertex,bool selected);
+    void selectedPoint(uint idCloud, uint idVertex,bool selected);
 
 protected:
     void initializeGL();
@@ -235,7 +195,7 @@ protected:
 
     void storeInfos(bool inside, bool add);
 
-    void setAngles(float angleX, float angleY);
+    void setAngles(float angleX, float angleY, float angleZ);
 
     //! GL context width
     int m_glWidth;
@@ -306,9 +266,6 @@ protected:
 
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
-
-    //! Input infos list
-    QVector < cSelectInfos > m_infos;
 
     //! Data to display
     cData *m_Data;
