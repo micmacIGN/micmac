@@ -5,26 +5,11 @@
 #endif
 #include <QMainWindow>
 #include <QFutureWatcher>
-#include <QFuture>
+#include <QtConcurrent>
 #include <QProgressDialog>
 
 #include "GLWidget.h"
 #include "Engine.h"
-
-class MyClass
-{
-public:
-
-  void LongFunction()
-  {
-    for( int count = 0; count < 5; count++ )
-    {
-      sleep( 1 );
-      std::cout << "Ping long!" << std::endl;
-    }
-  }
-};
-
 
 namespace Ui {
 class MainWindow;
@@ -47,6 +32,7 @@ public:
 public slots:
     //! Try to load a list of files
     void addFiles(const QStringList& filenames);
+
 
     void SelectedPoint(uint idC,uint idV,bool select);
 
@@ -102,7 +88,7 @@ private:
     cEngine*                m_Engine;
 
     QFutureWatcher<void>    FutureWatcher;
-    MyClass                 MyObject;
     QProgressDialog*        ProgressDialog;
+
 };
 #endif // MAINWINDOW_H
