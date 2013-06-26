@@ -192,6 +192,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                                  <Sigma> 0 </Sigma>
                                  <Pds> 1.0 </Pds>
                             </OneParamCMS>
+<!--
                             <OneParamCMS>
                                  <SzW> 2 2 </SzW>
                                  <Sigma> 1.0 </Sigma>
@@ -202,6 +203,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                                  <Sigma> 2.0 </Sigma>
                                  <Pds> 0.25 </Pds>
                             </OneParamCMS>
+-->
                      </CorrelMultiScale>
 
                      <TypeCAH>
