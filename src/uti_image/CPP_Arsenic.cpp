@@ -79,7 +79,11 @@ PtsHom ReadPtsHom3D(string aDir,std::vector<std::string> * aSetIm,string Extensi
 				//Si pt dans masq, on va chercher sa position 3D
 					//Si position 3D1~=3D2 -->pt validé homologue, on l'ajout au PtsHom (Gr1, R1, G1, B1, X1, Y1, idem 2, NbPtsCouple++)
 	}
+	}
+
+
 		return aPtsHomol;
+
 }
 
 PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,string Extension, bool useMasq, string InVig)
