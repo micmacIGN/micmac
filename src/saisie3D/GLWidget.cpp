@@ -313,9 +313,9 @@ void GLWidget::paintGL()
         glColor3f(0,1,0);
 
         glBegin(m_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
-        for (int aK = 0;aK < m_polygon.size(); ++aK)
+        for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
         {
-            glVertex2f(m_polygon[aK].x(), m_polygon[aK].y());
+            glVertex2f(m_polygon[aK].x, m_polygon[aK].y);
         }
         glEnd();
 
@@ -340,7 +340,7 @@ void GLWidget::paintGL()
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
-    m_lastPos = event->pos();
+    Pt2df m_lastPos = Pt2df(event->pos().x(),event->pos().y());
 
     if ( event->buttons()&Qt::LeftButton )
     {
@@ -389,28 +389,31 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
 {
    switch(event->key())
     {
-    case Qt::Key_Escape:
-        clearPolyline();
-        break;
-    case Qt::Key_Space:
-        segment(true);
-        update();
-        break;
-    case Qt::Key_Delete:
-        segment(false);
-        break;
-    case Qt::Key_Plus:
-        ptSizeUp(true);
-        break;
-    case Qt::Key_Minus:
-        ptSizeUp(false);
-        break;
-    case Qt::Key_F5:
-        clearPolyline();
-        break;
-    default:
-        event->ignore();
+        case Qt::Key_Escape:
+            clearPolyline();
+            break;
+        case Qt::Key_Space:
+            segment(true);
+            break;
+        case Qt::Key_Delete:
+            segment(false);
+            break;
+        case Qt::Key_Plus:
+            ptSizeUp(true);
+            break;
+        case Qt::Key_Minus:
+            ptSizeUp(false);
+            break;
+        case Qt::Key_F5:
+            clearPolyline();
+            break;
+        default:
+        {
+            event->ignore();
+            return;
+        }
     }
+   update();
 }
 
 void GLWidget::setBufferGl(bool onlyColor)
@@ -421,7 +424,9 @@ void GLWidget::setBufferGl(bool onlyColor)
     if(m_vertexColor.isCreated())
         m_vertexColor.destroy();
 
-    int sizeClouds = m_Data->GetSizeClouds();
+    int sizeClouds = m_Data->getSizeClouds();
+
+    if (sizeClouds == 0) return;
 
     GLfloat* vertices = NULL, *colors = NULL;
 
@@ -451,14 +456,12 @@ void GLWidget::setBufferGl(bool onlyColor)
                 colors[pitchV+bK*3 + 0 ]   = colo.redF();
                 colors[pitchV+bK*3 + 1 ]   = colo.greenF();
                 colors[pitchV+bK*3 + 2 ]   = colo.blueF();
-                //colors[bK*3 + 3 ]   = 1.0f;
             }
             else
             {
                 colors[pitchV+bK*3 + 0 ]   = colo.redF()*2;
                 colors[pitchV+bK*3 + 1 ]   = colo.greenF();
                 colors[pitchV+bK*3 + 2 ]   = colo.blueF();
-                //colors[bK*3 + 3 ]   = 0.45f;
             }
         }
 
@@ -758,6 +761,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     if (event->x()<0 || event->y()<0 || event->x()>width() || event->y()>height())
         return;
 
+    Pt2df pos = Pt2df(event->pos().x(),event->pos().y());
+
     if ((m_interactionMode == SEGMENT_POINTS) )
     {
         if(!m_bPolyIsClosed)
@@ -767,10 +772,10 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             if (sz == 0)
                return;
             else if (sz == 1)
-                m_polygon.push_back(event->pos());
+                m_polygon.push_back(pos);
             else
                 //replace last point by the current one
-                m_polygon[sz-1] = event->pos();
+                m_polygon[sz-1] = pos;
 
             update();
         }
@@ -808,7 +813,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     m_lastPos = event->pos();
 }
 
-bool isPointInsidePoly(const QPoint& P, const QVector < QPoint > poly)
+bool isPointInsidePoly(const Pt2df& P, const std::vector< Pt2df > poly)
 {
     unsigned vertices=poly.size();
     if (vertices<3)
@@ -816,17 +821,17 @@ bool isPointInsidePoly(const QPoint& P, const QVector < QPoint > poly)
 
     bool inside = false;
 
-    QPoint A = poly[0];
+    Pt2df A = poly[0];
     for (unsigned i=1;i<=vertices;++i)
     {
-        QPoint B = poly[i%vertices];
+        Pt2df B = poly[i%vertices];
 
         //Point Inclusion in Polygon Test (inspired from W. Randolph Franklin - WRF)
-        if (((B.y()<=P.y()) && (P.y()<A.y())) ||
-                ((A.y()<=P.y()) && (P.y()<B.y())))
+        if (((B.y <= P.y) && (P.y<A.y)) ||
+                ((A.y <= P.y) && (P.y<B.y)))
         {
-            float ABy = A.y()-B.y();
-            float t = (P.x()-B.x())*ABy-(A.x()-B.x())*(P.y()-B.y());
+            float ABy = A.y-B.y;
+            float t = (P.x-B.x)*ABy-(A.x-B.x)*(P.y-B.y);
             if (ABy<0)
                 t=-t;
 
@@ -859,13 +864,13 @@ void GLWidget::segment(bool inside, bool add)
 
     glGetIntegerv(GL_VIEWPORT, VP);
 
-    QPoint P2D;
+    Pt2df P2D;
     bool pointInside;
 
-    QVector < QPoint > polyg;
-    for (int aK=0; aK < m_polygon.size(); ++aK)
+    std::vector < Pt2df > polyg;
+    for (int aK=0; aK < (int) m_polygon.size(); ++aK)
     {
-        polyg.push_back(QPoint(m_polygon[aK].x(), m_glHeight - m_polygon[aK].y()));
+        polyg.push_back(Pt2df(m_polygon[aK].x, m_glHeight - m_polygon[aK].y));
     }
 
     for (int aK=0; aK < m_Data->NbClouds(); ++aK)
@@ -874,7 +879,7 @@ void GLWidget::segment(bool inside, bool add)
 
         for (int bK=0; bK < a_cloud->size();++bK)
         {
-            Vertex P = a_cloud->getVertex( bK );
+            Vertex &P = a_cloud->getVertex( bK );
 
             if (add)
             {
@@ -883,15 +888,11 @@ void GLWidget::segment(bool inside, bool add)
                 GLdouble xp,yp,zp;
                 gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
 
-                P2D.setX(xp);
-                P2D.setY(yp);
+                P2D = Pt2df(xp,yp);
 
                 pointInside = isPointInsidePoly(P2D,polyg);
 
-                if (pointInside||P.isVisible())
-                    a_cloud->getVertex(bK).setVisible(true);
-                else
-                    a_cloud->getVertex(bK).setVisible(false);
+                emit SelectedPoint((uint)aK,(uint)bK,pointInside||P.isVisible());
             }
             else
             {
@@ -903,19 +904,14 @@ void GLWidget::segment(bool inside, bool add)
                     GLdouble xp,yp,zp;
                     gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
 
-                    P2D.setX(xp);
-                    P2D.setY(yp);
+                    P2D = Pt2df(xp,yp);
 
                     pointInside = isPointInsidePoly(P2D,polyg);
 
-                    if (((inside && !pointInside)||(!inside && pointInside)))
-                        a_cloud->getVertex(bK).setVisible(false);
-                    else
-                        a_cloud->getVertex(bK).setVisible(true);
+                    emit SelectedPoint((uint)aK,(uint)bK,!((inside && !pointInside)||(!inside && pointInside)));
                 }
             }
         }                
-
 
         setBufferGl(true);
     }
@@ -929,10 +925,10 @@ void GLWidget::deletePoint()
     int dx, dy, d2;
     int idx = -1;
 
-    for (int aK =0; aK < m_polygon.size();++aK)
+    for (int aK =0; aK < (int) m_polygon.size();++aK)
     {
-        dx = m_polygon[aK].x()-m_lastPos.x();
-        dy = m_polygon[aK].y()-m_lastPos.y();
+        dx = m_polygon[aK].x-m_lastPos.x();
+        dy = m_polygon[aK].y-m_lastPos.y();
         d2 = dx*dx + dy*dy;
 
         if (d2 < dist2)
@@ -944,7 +940,7 @@ void GLWidget::deletePoint()
 
     if (idx != -1)
     {
-        for (int aK =idx; aK < m_polygon.size()-1;++aK)
+        for (int aK =idx; aK < (int)m_polygon.size()-1;++aK)
         {
             m_polygon[aK] = m_polygon[aK+1];
         }
@@ -986,6 +982,8 @@ void GLWidget::undoAll()
             m_Data->getCloud(aK)->getVertex(bK).setVisible(true);
         }
     }
+
+    setBufferGl();
 }
 
 void GLWidget::ptSizeUp(bool up)
@@ -1075,7 +1073,7 @@ void GLWidget::drawBall()
 
     // ball radius
     //float scale = 0.05f * (float) m_glWidth/ (float) m_glHeight;
-    float scale = m_Data->m_diam / 6.0f;
+    float scale = m_Data->m_diam / 1.5f;
 
     if (m_ballGLList == GL_INVALID_LIST_ID)
     {

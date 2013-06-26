@@ -183,6 +183,8 @@ signals:
     //! Signal emitted when the mouse wheel is rotated
     void mouseWheelRotated(float wheelDelta_deg);
 
+    void SelectedPoint(uint idCloud, uint idVertex,bool selected);
+
 protected:
     void initializeGL();
     void resizeGL(int w, int h);
@@ -282,7 +284,7 @@ protected:
     QString m_messageFPS;
 
     //! Point list for polygonal selection
-    QVector < QPoint > m_polygon;
+    std::vector < Pt2df > m_polygon;
 
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;

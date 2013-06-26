@@ -75,6 +75,11 @@ void MainWindow::addFiles(const QStringList& filenames)
     }
 }
 
+void MainWindow::SelectedPoint(uint idC, uint idV, bool select)
+{
+    m_Engine->getData()->getCloud(idC)->getVertex(idV).setVisible(select);
+}
+
 void MainWindow::toggleFullScreen(bool state)
 {
     if (state)
@@ -113,6 +118,7 @@ void MainWindow::togglePointsSelection(bool state)
         {
             m_glWidget->showSelectionMessages();
         }
+        m_glWidget->showBall(false);
     }
     else
     {
@@ -123,6 +129,7 @@ void MainWindow::togglePointsSelection(bool state)
             m_glWidget->clearPolyline();
             m_glWidget->showMoveMessages();
         }
+        m_glWidget->showBall(true);
     }
 
     m_glWidget->update();
@@ -195,11 +202,15 @@ void MainWindow::connectActions()
     connect(ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
     connect(ui->actionUnload_all,       SIGNAL(triggered()),   this, SLOT(unloadAll()));
     connect(ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
+
+
+    connect(m_glWidget,SIGNAL(SelectedPoint(uint,uint,bool)),this,SLOT(SelectedPoint(uint,uint,bool)));
 }
 
 void MainWindow::addPoints()
 {
     m_glWidget->segment(true, true);
+    m_glWidget->update();
 }
 
 void MainWindow::deletePoint()
@@ -249,6 +260,7 @@ void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
 void MainWindow::on_actionUndo_triggered()
 {
      m_glWidget->undoAll();
+     m_glWidget->update();
 }
 
 void MainWindow::loadPlys()
@@ -284,6 +296,9 @@ void MainWindow::saveSelectionInfos()
 void MainWindow::unloadAll()
 {
     m_Engine->unloadAll();
+    m_glWidget->setCloudLoaded(false);
+    m_glWidget->setBufferGl();
+    m_glWidget->update();
 }
 
 

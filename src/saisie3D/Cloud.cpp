@@ -119,10 +119,10 @@ Cloud* Cloud::loadPly( string i_filename )
                         ply_get_element (thePlyFile, (void *) vlist[j]);
 
                         #ifdef _DEBUG
-                            printf ("vertex: %g %g %g %u %u %u\n", vlist[j]->x, vlist[j]->y, vlist[j]->z, vlist[j]->red, vlist[j]->green, vlist[j]->blue);
+                        printf ("vertex: %g %g %g %u %u %u %u\n", vlist[j]->x, vlist[j]->y, vlist[j]->z, vlist[j]->red, vlist[j]->green, vlist[j]->blue, vlist[j]->alpha);
                         #endif
 
-                        ptList.push_back( Vertex (Pt3dr ( vlist[j]->x, vlist[j]->y, vlist[j]->z ), QColor( vlist[j]->red, vlist[j]->green, vlist[j]->blue )));
+                            ptList.push_back( Vertex (Pt3dr ( vlist[j]->x, vlist[j]->y, vlist[j]->z ), QColor( vlist[j]->red, vlist[j]->green, vlist[j]->blue, vlist[j]->alpha )));
                     }
                     break;
                 }
@@ -137,6 +137,7 @@ Cloud* Cloud::loadPly( string i_filename )
                     // set up for getting vertex elements
                     for (int j = 0; j < nprops ;++j)
                         ply_get_property (thePlyFile, elem_name, &colored_vert_props[j]);
+
 
                     // grab all the vertex elements
                     for (int j = 0; j < num_elems; j++)
@@ -197,14 +198,6 @@ Vertex& Cloud::getVertex(unsigned int nb_vert)
     return m_vertices[0];
 }
 
-void Cloud::setVertex( unsigned int idx, Vertex const & vertex)
-{
-    if (idx < m_vertices.size())
-    {
-        m_vertices[idx] = vertex;
-    }
-}
-
 void Cloud::clear()
 {
     m_vertices.clear();
@@ -217,7 +210,6 @@ Cloud::Cloud()
 {}
 
 Cloud::Cloud(vector<Vertex> const & vVertex)
-
 {
     for (unsigned int aK=0; aK< vVertex.size(); aK++)
     {
