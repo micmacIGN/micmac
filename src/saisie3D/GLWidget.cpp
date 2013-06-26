@@ -115,7 +115,8 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_bDrawAxis(false)
   , m_bDrawBall(true)
   , m_bDrawCams(true)
-  , m_bMessages(true)
+  , m_bDrawMessages(true)
+  , m_bDrawBbox(false)
   , m_bObjectCenteredView(true)
   , m_bPolyIsClosed(false)
   , m_interactionMode(TRANSFORM_CAMERA)
@@ -132,6 +133,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _currentTime(0)
   , _fps(0.0f)
   , m_selection_mode(NONE)
+  , m_previousAction(NONE)
 {
     //setMouseTracking(true);
 
@@ -237,7 +239,6 @@ void GLWidget::paintGL()
 
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_COLOR_ARRAY);
-
     }
 
     //current messages (if valid)
@@ -299,6 +300,8 @@ void GLWidget::paintGL()
 
     if (m_bDrawCams) drawCams();
 
+    if (m_bDrawBbox) drawBbox();
+
     if (m_interactionMode == SEGMENT_POINTS)
     {
         glMatrixMode(GL_PROJECTION);
@@ -329,7 +332,7 @@ void GLWidget::paintGL()
         glMatrixMode(GL_MODELVIEW);
     }
 
-    if ((m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE) && m_bMessages)
+    if ((m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE) && m_bDrawMessages)
     {
         calculateFPS();
 
@@ -897,9 +900,11 @@ void GLWidget::Select(int mode)
                 }
                 break;
             case INVERT:
+                if (m_previousAction == NONE)  m_bFirstAdd = true;
                 emit SelectedPoint((uint)aK,(uint)bK,!P.isVisible());
                 break;
             case ALL:
+                m_bFirstAdd = true;
                 emit SelectedPoint((uint)aK,(uint)bK, true);
                 break;
             case NONE:
@@ -913,6 +918,7 @@ void GLWidget::Select(int mode)
 
     if ((mode == ADD) && (m_bFirstAdd)) m_bFirstAdd = false;
 
+    m_previousAction = mode;
     //m_infos.push_back(cSaisieInfos(m_params, m_polygon, selection_mode));
 }
 
@@ -966,21 +972,6 @@ void GLWidget::closePolyline()
 
         m_bPolyIsClosed = true;
     }
-}
-
-void GLWidget::undoAll()
-{
-    clearPolyline();
-
-    for (int aK=0; aK < m_Data->NbClouds(); ++aK)
-    {
-        for (int bK=0; bK < m_Data->getCloud(aK)->size();++bK)
-        {
-            m_Data->getCloud(aK)->getVertex(bK).setVisible(true);
-        }
-    }
-
-    setBufferGl();
 }
 
 void GLWidget::ptSizeUp(bool up)
@@ -1161,41 +1152,127 @@ void GLWidget::drawCams()
         }
 
         glBegin(GL_LINES);
-        //perspective cone
-        qglColor(QColor(0,0,0));
-        glVertex3d(C.x, C.y, C.z);
-        glVertex3d(P1.x, P1.y, P1.z);
+            //perspective cone
+            qglColor(QColor(0,0,0));
+            glVertex3d(C.x, C.y, C.z);
+            glVertex3d(P1.x, P1.y, P1.z);
 
-        glVertex3d(C.x, C.y, C.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+            glVertex3d(C.x, C.y, C.z);
+            glVertex3d(P2.x, P2.y, P2.z);
 
-        glVertex3d(C.x, C.y, C.z);
-        glVertex3d(P3.x, P3.y, P3.z);
+            glVertex3d(C.x, C.y, C.z);
+            glVertex3d(P3.x, P3.y, P3.z);
 
-        glVertex3d(C.x, C.y, C.z);
-        glVertex3d(P4.x, P4.y, P4.z);
+            glVertex3d(C.x, C.y, C.z);
+            glVertex3d(P4.x, P4.y, P4.z);
 
-        //Image
-        qglColor(QColor(255,0,0));
-        glVertex3d(P1.x, P1.y, P1.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+            //Image
+            qglColor(QColor(255,0,0));
+            glVertex3d(P1.x, P1.y, P1.z);
+            glVertex3d(P2.x, P2.y, P2.z);
 
-        glVertex3d(P4.x, P4.y, P4.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+            glVertex3d(P4.x, P4.y, P4.z);
+            glVertex3d(P2.x, P2.y, P2.z);
 
-        glVertex3d(P3.x, P3.y, P3.z);
-        glVertex3d(P1.x, P1.y, P1.z);
+            glVertex3d(P3.x, P3.y, P3.z);
+            glVertex3d(P1.x, P1.y, P1.z);
 
-        glVertex3d(P4.x, P4.y, P4.z);
-        glVertex3d(P3.x, P3.y, P3.z);
+            glVertex3d(P4.x, P4.y, P4.z);
+            glVertex3d(P3.x, P3.y, P3.z);
         glEnd();
 
         glBegin(GL_POINTS);
-        glVertex3d(C.x, C.y, C.z);
+            glVertex3d(C.x, C.y, C.z);
         glEnd();
     }
 
     glEndList();
+
+    glCallList(list);
+
+    glPointSize(m_params.PointSize);
+    glLineWidth(m_params.LineWidth);
+    glPopMatrix();
+}
+
+void GLWidget::drawBbox()
+{
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+
+    incrNbGLLists();
+    GLuint list = getNbGLLists();
+    glNewList(list, GL_COMPILE);
+
+    glLineWidth(1);
+
+    if (m_Data->NbClouds())
+    {
+        float minX, minY, minZ, maxX, maxY, maxZ;
+
+        minX = m_Data->m_minX;
+        minY = m_Data->m_minY;
+        minZ = m_Data->m_minZ;
+        maxX = m_Data->m_maxX;
+        maxY = m_Data->m_maxY;
+        maxZ = m_Data->m_maxZ;
+
+        Pt3dr P1(minX, minY, minZ);
+        Pt3dr P2(minX, minY, maxZ);
+        Pt3dr P3(minX, maxY, maxZ);
+        Pt3dr P4(minX, maxY, minZ);
+        Pt3dr P5(maxX, minY, minZ);
+        Pt3dr P6(maxX, maxY, minZ);
+        Pt3dr P7(maxX, maxY, maxZ);
+        Pt3dr P8(maxX, minY, maxZ);
+
+        glBegin(GL_LINES);
+
+        qglColor(QColor("orange"));
+
+            glVertex3d(P1.x, P1.y, P1.z);
+            glVertex3d(P2.x, P2.y, P2.z);
+
+            glVertex3d(P3.x, P3.y, P3.z);
+            glVertex3d(P2.x, P2.y, P2.z);
+
+            glVertex3d(P1.x, P1.y, P1.z);
+            glVertex3d(P4.x, P4.y, P4.z);
+
+            glVertex3d(P1.x, P1.y, P1.z);
+            glVertex3d(P5.x, P5.y, P5.z);
+
+            glVertex3d(P7.x, P7.y, P7.z);
+            glVertex3d(P3.x, P3.y, P3.z);
+
+            glVertex3d(P7.x, P7.y, P7.z);
+            glVertex3d(P6.x, P6.y, P6.z);
+
+            glVertex3d(P8.x, P8.y, P8.z);
+            glVertex3d(P5.x, P5.y, P5.z);
+
+            glVertex3d(P7.x, P7.y, P7.z);
+            glVertex3d(P8.x, P8.y, P8.z);
+
+            glVertex3d(P5.x, P5.y, P5.z);
+            glVertex3d(P6.x, P6.y, P6.z);
+
+            glVertex3d(P4.x, P4.y, P4.z);
+            glVertex3d(P6.x, P6.y, P6.z);
+
+            glVertex3d(P8.x, P8.y, P8.z);
+            glVertex3d(P2.x, P2.y, P2.z);
+
+            glVertex3d(P4.x, P4.y, P4.z);
+            glVertex3d(P3.x, P3.y, P3.z);
+
+
+        glEnd();
+
+        glPopAttrib();
+
+        glEndList();
+    }
 
     glCallList(list);
 
@@ -1227,9 +1304,16 @@ void GLWidget::showCams(bool show)
     update();
 }
 
+void GLWidget::showBBox(bool show)
+{
+    m_bDrawBbox = show;
+
+    update();
+}
+
 void GLWidget::showMessages(bool show)
 {
-    m_bMessages = show;
+    m_bDrawMessages = show;
 
     if (show)
     {
@@ -1241,14 +1325,14 @@ void GLWidget::showMessages(bool show)
     update();
 }
 
-bool GLWidget::showMessages(){return m_bMessages;}
+bool GLWidget::showMessages(){return m_bDrawMessages;}
 
 void GLWidget::showSelectionMessages()
 {
     displayNewMessage(QString());
     displayNewMessage("Selection mode",UPPER_CENTER_MESSAGE);
     displayNewMessage("Left click: add contour point / Right click: close / Echap: delete polyline",LOWER_CENTER_MESSAGE);
-    displayNewMessage("Space/Shift+Space: keep/add points inside polyline / Suppr: delete points inside polyline",LOWER_CENTER_MESSAGE);
+    displayNewMessage("Space: add points inside polyline / Suppr: delete points inside polyline",LOWER_CENTER_MESSAGE);
 }
 
 void GLWidget::showMoveMessages()

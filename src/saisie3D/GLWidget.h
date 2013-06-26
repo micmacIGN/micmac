@@ -141,6 +141,9 @@ public:
     //! Shows help messages or not
     void showMessages(bool show);
 
+    //! Shows bounding box or not
+    void showBBox(bool show);
+
     //! States if help messages should be displayed
     bool showMessages();
 
@@ -218,6 +221,9 @@ protected:
     //! Draw ball
     void drawCams();
 
+    //! Draw bounding box
+    void drawBbox();
+
     //! Draw widget gradient background
     void drawGradientBackground();
 
@@ -255,7 +261,10 @@ protected:
     bool m_bDrawCams;
 
     //! States if messages should be displayed
-    bool m_bMessages;
+    bool m_bDrawMessages;
+
+    //! States if Bounding box should be displayed
+    bool m_bDrawBbox;
 
     //! States if view is centered on object
     bool m_bObjectCenteredView;
@@ -267,6 +276,8 @@ protected:
     INTERACTION_MODE m_interactionMode;
 
     bool m_bFirstAdd;
+
+    int m_previousAction;
 
     //! Temporary Message to display
     struct MessageToDisplay
