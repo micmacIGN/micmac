@@ -79,7 +79,7 @@ void MainWindow::addFiles(const QStringList& filenames)
         {
             m_Engine->loadCameras(filenames);
             m_glWidget->setCameraLoaded(true);
-            m_glWidget->updateGL();
+            m_glWidget->update();
         }
 
         checkForLoadedEntities();
