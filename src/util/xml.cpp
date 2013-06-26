@@ -848,7 +848,6 @@ mNF           (aNF),
                replace( aNFW.begin(), aNFW.end(),  '/','\\' );
 #endif
 
-std::cout << "NNNNNNNNNNNNFFFF  " << aNFW << "\n"; getchar();
 		SetDico("ThisDir",aNFW,false);
 
 		// SetDico("ThisFile",aNFile);
