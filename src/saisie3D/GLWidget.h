@@ -73,7 +73,7 @@ class GLWidget : public QGLWidget
 
 private:
 
-    QPoint m_lastPos;
+    Pt2df m_lastPos;
 
 public:
 
@@ -97,6 +97,9 @@ public:
                             UPPER_CENTER_MESSAGE,
                             SCREEN_CENTER_MESSAGE
     };
+
+    void    setSelectionMode(int mode ) {m_selection_mode = mode; }
+    int     getSelectionMode()          {return m_selection_mode;}
 
     //! Displays a status message
     /** \param message message (if message is empty, all messages will be cleared)
@@ -148,10 +151,10 @@ public:
     void showMoveMessages();
 
     //! Segment points with polyline
-    void segment(bool inside, bool add = false);
+    void Select(int mode);
 
     //! Delete mouse closest point
-    void deletePoint();
+    void deletePolylinePoint();
 
     //! Delete current polyline
     void clearPolyline();
@@ -169,6 +172,8 @@ public:
     void saveSelectionInfos(QString Filename);
 
     void setBufferGl(bool onlyColor = false);
+
+    void getProjection(Pt2df &P2D, Vertex P);
 public slots:
     void zoom();
 
@@ -261,6 +266,8 @@ protected:
     //! Current interaction mode (with mouse)
     INTERACTION_MODE m_interactionMode;
 
+    bool m_bFirstAdd;
+
     //! Temporary Message to display
     struct MessageToDisplay
     {
@@ -290,7 +297,7 @@ protected:
     ViewportParameters m_params;
 
     //! Input infos list
-    QVector < cSaisieInfos > m_infos;
+    QVector < cSelectInfos > m_infos;
 
     //! Data to display
     cData *m_Data;
@@ -300,7 +307,7 @@ protected:
 
 private:
 
-
+    void        setProjectionMatrix();
     void        calculateFPS();
 
     QGLBuffer   m_vertexbuffer;
@@ -311,6 +318,12 @@ private:
     uint        _currentTime;
 
     float       _fps;
+
+    int         m_selection_mode;
+
+    double      _MM[16];
+    double      _MP[16];
+    int         _VP[4];
 
 };
 

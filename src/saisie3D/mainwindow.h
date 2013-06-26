@@ -4,9 +4,27 @@
     #include "GL/glew.h"
 #endif
 #include <QMainWindow>
+#include <QFutureWatcher>
+#include <QFuture>
+#include <QProgressDialog>
 
 #include "GLWidget.h"
 #include "Engine.h"
+
+class MyClass
+{
+public:
+
+  void LongFunction()
+  {
+    for( int count = 0; count < 5; count++ )
+    {
+      sleep( 1 );
+      std::cout << "Ping long!" << std::endl;
+    }
+  }
+};
+
 
 namespace Ui {
 class MainWindow;
@@ -32,6 +50,8 @@ public slots:
 
     void SelectedPoint(uint idC,uint idV,bool select);
 
+    void slot_finished();
+
 private slots:
     void on_actionUndo_triggered();
 
@@ -45,7 +65,12 @@ protected slots:
     void togglePointsSelection(bool state);
 
     void addPoints();
-    void deletePoint();
+    void selectNone();
+    void invertSelected();
+    void selectAll();
+    void removeFromSelection();
+
+    void deletePolylinePoint();
 
     //default views
     void setFrontView();
@@ -72,8 +97,12 @@ protected:
 private:
     Ui::MainWindow *ui;
 
-    GLWidget *m_glWidget;
+    GLWidget*               m_glWidget;
 
-    cEngine  *m_Engine;
+    cEngine*                m_Engine;
+
+    QFutureWatcher<void>    FutureWatcher;
+    MyClass                 MyObject;
+    QProgressDialog*        ProgressDialog;
 };
 #endif // MAINWINDOW_H

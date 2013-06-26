@@ -10,6 +10,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    ProgressDialog = new QProgressDialog();
+    connect(&this->FutureWatcher, SIGNAL(finished()), this, SLOT(slot_finished()));
+    connect(&this->FutureWatcher, SIGNAL(finished()), this->ProgressDialog , SLOT(cancel()));
+
     m_glWidget = new GLWidget(this,m_Engine->getData());
 
     QHBoxLayout* layout = new QHBoxLayout();
@@ -29,6 +33,7 @@ MainWindow::~MainWindow()
 
 bool MainWindow::checkForLoadedEntities()
 {
+
     bool loadedEntities = true;
     m_glWidget->displayNewMessage(QString()); //clear (any) message in the middle area
 
@@ -45,6 +50,15 @@ void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
     {
+
+//        QFuture<void> future = QtConcurrent::run(&this->MyObject, &MyClass::LongFunction);
+//        this->FutureWatcher.setFuture(future);
+
+        this->ProgressDialog->setMinimum(0);
+        this->ProgressDialog->setMaximum(0);
+        this->ProgressDialog->setWindowModality(Qt::WindowModal);
+        this->ProgressDialog->exec();
+
         QFileInfo fi(filenames[0]);
 
         //set default working directory as first file subfolder
@@ -80,6 +94,11 @@ void MainWindow::SelectedPoint(uint idC, uint idV, bool select)
     m_Engine->getData()->getCloud(idC)->getVertex(idV).setVisible(select);
 }
 
+void MainWindow::slot_finished()
+{
+    std::cout << "Finshed" << std::endl;
+}
+
 void MainWindow::toggleFullScreen(bool state)
 {
     if (state)
@@ -112,6 +131,7 @@ void MainWindow::togglePointsSelection(bool state)
 {
     if (state)
     {
+
         m_glWidget->setInteractionMode(GLWidget::SEGMENT_POINTS);
 
         if (m_glWidget->hasCloudLoaded()&&m_glWidget->showMessages())
@@ -191,8 +211,14 @@ void MainWindow::connectActions()
 
     //"Points selection" menu
     connect(ui->actionTogglePoints_selection, SIGNAL(toggled(bool)), this, SLOT(togglePointsSelection(bool)));
-    connect(ui->actionAdd_points,       SIGNAL(triggered()),   this, SLOT(addPoints()));
-    connect(ui->actionDelete_point,     SIGNAL(triggered()),   this, SLOT(deletePoint()));
+    connect(ui->actionAdd_points,       SIGNAL(triggered()),   this, SLOT(addPoints()));    
+    connect(ui->actionSelect_none,      SIGNAL(triggered()),   this, SLOT(selectNone()));
+    connect(ui->actionInvertSelected,   SIGNAL(triggered()),   this, SLOT(invertSelected()));
+    connect(ui->actionSelectAll,        SIGNAL(triggered()),   this, SLOT(selectAll()));
+    connect(ui->actionReset,            SIGNAL(triggered()),   this, SLOT(selectAll()));
+    connect(ui->actionRemove_from_selection,            SIGNAL(triggered()),   this, SLOT(removeFromSelection()));
+
+    connect(ui->actionDeletePolylinepoint,SIGNAL(triggered()),   this, SLOT(deletePolylinePoint()));
 
     //File menu
     connect(ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
@@ -203,19 +229,43 @@ void MainWindow::connectActions()
     connect(ui->actionUnload_all,       SIGNAL(triggered()),   this, SLOT(unloadAll()));
     connect(ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
 
-
     connect(m_glWidget,SIGNAL(SelectedPoint(uint,uint,bool)),this,SLOT(SelectedPoint(uint,uint,bool)));
 }
 
 void MainWindow::addPoints()
 {
-    m_glWidget->segment(true, true);
+    m_glWidget->Select(ADD);
     m_glWidget->update();
 }
 
-void MainWindow::deletePoint()
+void MainWindow::selectNone()
 {
-    m_glWidget->deletePoint();
+    m_glWidget->Select(NONE);
+    m_glWidget->update();
+}
+
+void MainWindow::invertSelected()
+{
+    m_glWidget->Select(INVERT);
+    m_glWidget->update();
+}
+
+void MainWindow::selectAll()
+{
+    m_glWidget->Select(ALL);
+    m_glWidget->update();
+}
+
+void MainWindow::removeFromSelection()
+{
+    m_glWidget->Select(SUB);
+    m_glWidget->update();
+}
+
+void MainWindow::deletePolylinePoint()
+{
+    m_glWidget->deletePolylinePoint();
+    m_glWidget->update();
 }
 
 void MainWindow::setTopView()
