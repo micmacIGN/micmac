@@ -843,7 +843,14 @@ mNF           (aNF),
 	if (mModifDico)
 	{
 
-		SetDico("ThisDir",mNF,false);
+               std::string aNFW = aNF;
+#if (ELISE_windows)
+               replace( aNFW.begin(), aNFW.end(),  '/','\\' );
+#endif
+
+std::cout << "NNNNNNNNNNNNFFFF  " << aNFW << "\n"; getchar();
+		SetDico("ThisDir",aNFW,false);
+
 		// SetDico("ThisFile",aNFile);
 	}
 }
