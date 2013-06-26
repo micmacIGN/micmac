@@ -69,6 +69,12 @@ PtsHom ReadPtsHom3D(string aDir,std::vector<std::string> * aSetIm,string Extensi
 		//Parcours des points de l'image
 		//Si pts dans le masq, on va chercher sa position 3D
 			//On test la position dans toutes les autres images
+				for (int aK2=0 ; aK2<int(aSetIm->size()) ; aK2++)
+				{	
+					if (aK1!=aK2)
+					 {
+
+				}
 				//Ouverture du Masq2
 				//Si pt dans masq, on va chercher sa position 3D
 					//Si position 3D1~=3D2 -->pt validé homologue, on l'ajout au PtsHom (Gr1, R1, G1, B1, X1, Y1, idem 2, NbPtsCouple++)
