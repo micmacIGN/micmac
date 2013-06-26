@@ -284,7 +284,7 @@ protected:
     QString m_messageFPS;
 
     //! Point list for polygonal selection
-    QVector < QPoint > m_polygon;
+    std::vector < Pt2df > m_polygon;
 
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;

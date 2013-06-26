@@ -313,9 +313,9 @@ void GLWidget::paintGL()
         glColor3f(0,1,0);
 
         glBegin(m_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
-        for (int aK = 0;aK < m_polygon.size(); ++aK)
+        for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
         {
-            glVertex2f(m_polygon[aK].x(), m_polygon[aK].y());
+            glVertex2f(m_polygon[aK].x, m_polygon[aK].y);
         }
         glEnd();
 
@@ -340,7 +340,7 @@ void GLWidget::paintGL()
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
-    m_lastPos = event->pos();
+    Pt2df m_lastPos = Pt2df(event->pos().x(),event->pos().y());
 
     if ( event->buttons()&Qt::LeftButton )
     {
@@ -761,6 +761,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     if (event->x()<0 || event->y()<0 || event->x()>width() || event->y()>height())
         return;
 
+    Pt2df pos = Pt2df(event->pos().x(),event->pos().y());
+
     if ((m_interactionMode == SEGMENT_POINTS) )
     {
         if(!m_bPolyIsClosed)
@@ -770,10 +772,10 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             if (sz == 0)
                return;
             else if (sz == 1)
-                m_polygon.push_back(event->pos());
+                m_polygon.push_back(pos);
             else
                 //replace last point by the current one
-                m_polygon[sz-1] = event->pos();
+                m_polygon[sz-1] = pos;
 
             update();
         }
@@ -811,7 +813,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     m_lastPos = event->pos();
 }
 
-bool isPointInsidePoly(const QPoint& P, const QVector < QPoint > poly)
+bool isPointInsidePoly(const Pt2df& P, const std::vector< Pt2df > poly)
 {
     unsigned vertices=poly.size();
     if (vertices<3)
@@ -819,17 +821,17 @@ bool isPointInsidePoly(const QPoint& P, const QVector < QPoint > poly)
 
     bool inside = false;
 
-    QPoint A = poly[0];
+    Pt2df A = poly[0];
     for (unsigned i=1;i<=vertices;++i)
     {
-        QPoint B = poly[i%vertices];
+        Pt2df B = poly[i%vertices];
 
         //Point Inclusion in Polygon Test (inspired from W. Randolph Franklin - WRF)
-        if (((B.y()<=P.y()) && (P.y()<A.y())) ||
-                ((A.y()<=P.y()) && (P.y()<B.y())))
+        if (((B.y <= P.y) && (P.y<A.y)) ||
+                ((A.y <= P.y) && (P.y<B.y)))
         {
-            float ABy = A.y()-B.y();
-            float t = (P.x()-B.x())*ABy-(A.x()-B.x())*(P.y()-B.y());
+            float ABy = A.y-B.y;
+            float t = (P.x-B.x)*ABy-(A.x-B.x)*(P.y-B.y);
             if (ABy<0)
                 t=-t;
 
@@ -862,13 +864,13 @@ void GLWidget::segment(bool inside, bool add)
 
     glGetIntegerv(GL_VIEWPORT, VP);
 
-    QPoint P2D;
+    Pt2df P2D;
     bool pointInside;
 
-    QVector < QPoint > polyg;
-    for (int aK=0; aK < m_polygon.size(); ++aK)
+    std::vector < Pt2df > polyg;
+    for (int aK=0; aK < (int) m_polygon.size(); ++aK)
     {
-        polyg.push_back(QPoint(m_polygon[aK].x(), m_glHeight - m_polygon[aK].y()));
+        polyg.push_back(Pt2df(m_polygon[aK].x, m_glHeight - m_polygon[aK].y));
     }
 
     for (int aK=0; aK < m_Data->NbClouds(); ++aK)
@@ -886,17 +888,11 @@ void GLWidget::segment(bool inside, bool add)
                 GLdouble xp,yp,zp;
                 gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
 
-                P2D.setX(xp);
-                P2D.setY(yp);
+                P2D = Pt2df(xp,yp);
 
                 pointInside = isPointInsidePoly(P2D,polyg);
 
-                if (pointInside||P.isVisible())
-                    P.setVisible(true);
-                else
-                    P.setVisible(false);
-
-                //emit SelectedPoint((uint)aK,(uint)bK,true);
+                emit SelectedPoint((uint)aK,(uint)bK,pointInside||P.isVisible());
             }
             else
             {
@@ -908,17 +904,11 @@ void GLWidget::segment(bool inside, bool add)
                     GLdouble xp,yp,zp;
                     gluProject(P.x(),P.y(),P.z(),MM,MP,VP,&xp,&yp,&zp);
 
-                    P2D.setX(xp);
-                    P2D.setY(yp);
+                    P2D = Pt2df(xp,yp);
 
                     pointInside = isPointInsidePoly(P2D,polyg);
 
-                    if (((inside && !pointInside)||(!inside && pointInside)))
-                        P.setVisible(false);
-                        //emit SelectedPoint((uint)aK,(uint)bK,false);
-                    else
-                        P.setVisible(true);
-                        //emit SelectedPoint((uint)aK,(uint)bK,true);
+                    emit SelectedPoint((uint)aK,(uint)bK,!((inside && !pointInside)||(!inside && pointInside)));
                 }
             }
         }                
@@ -935,10 +925,10 @@ void GLWidget::deletePoint()
     int dx, dy, d2;
     int idx = -1;
 
-    for (int aK =0; aK < m_polygon.size();++aK)
+    for (int aK =0; aK < (int) m_polygon.size();++aK)
     {
-        dx = m_polygon[aK].x()-m_lastPos.x();
-        dy = m_polygon[aK].y()-m_lastPos.y();
+        dx = m_polygon[aK].x-m_lastPos.x();
+        dy = m_polygon[aK].y-m_lastPos.y();
         d2 = dx*dx + dy*dy;
 
         if (d2 < dist2)
@@ -950,7 +940,7 @@ void GLWidget::deletePoint()
 
     if (idx != -1)
     {
-        for (int aK =idx; aK < m_polygon.size()-1;++aK)
+        for (int aK =idx; aK < (int)m_polygon.size()-1;++aK)
         {
             m_polygon[aK] = m_polygon[aK+1];
         }
