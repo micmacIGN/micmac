@@ -10,6 +10,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    ProgressDialog = new QProgressDialog();
+    connect(&this->FutureWatcher, SIGNAL(finished()), this, SLOT(slot_finished()));
+    connect(&this->FutureWatcher, SIGNAL(finished()), this->ProgressDialog , SLOT(cancel()));
+
     m_glWidget = new GLWidget(this,m_Engine->getData());
 
     QHBoxLayout* layout = new QHBoxLayout();
@@ -29,6 +33,7 @@ MainWindow::~MainWindow()
 
 bool MainWindow::checkForLoadedEntities()
 {
+
     bool loadedEntities = true;
     m_glWidget->displayNewMessage(QString()); //clear (any) message in the middle area
 
@@ -45,6 +50,15 @@ void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
     {
+
+//        QFuture<void> future = QtConcurrent::run(&this->MyObject, &MyClass::LongFunction);
+//        this->FutureWatcher.setFuture(future);
+
+        this->ProgressDialog->setMinimum(0);
+        this->ProgressDialog->setMaximum(0);
+        this->ProgressDialog->setWindowModality(Qt::WindowModal);
+        this->ProgressDialog->exec();
+
         QFileInfo fi(filenames[0]);
 
         //set default working directory as first file subfolder
@@ -78,6 +92,11 @@ void MainWindow::addFiles(const QStringList& filenames)
 void MainWindow::SelectedPoint(uint idC, uint idV, bool select)
 {
     m_Engine->getData()->getCloud(idC)->getVertex(idV).setVisible(select);
+}
+
+void MainWindow::slot_finished()
+{
+    std::cout << "Finshed" << std::endl;
 }
 
 void MainWindow::toggleFullScreen(bool state)
