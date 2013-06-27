@@ -583,16 +583,6 @@ void SparseSymmetricMatrix<T>::Multiply( const Vector<T2>& In , Vector<T2>& Out 
 #if (ELISE_windows)&&(!ELISE_MinGW)
 	#ifndef _AtomicIncrement_
 	#define _AtomicIncrement_
-	#ifdef INT
-		#undef INT
-	#endif
-	#include <windows.h>
-
-	#if (ELISE_windows_xp)
-		#include <intrin.h>
-		#pragma intrinsic(_InterlockedCompareExchange64)
-		#define InterlockedCompareExchange64 _InterlockedCompareExchange64
-	#endif
 
 	inline void AtomicIncrement( volatile float* ptr , float addend )
 	{
@@ -607,6 +597,7 @@ void SparseSymmetricMatrix<T>::Multiply( const Vector<T2>& In , Vector<T2>& Out 
 			if( _newValue==_oldValue ) break;
 		}
 	}
+	
 	inline void AtomicIncrement( volatile double* ptr , double addend )
 	//inline void AtomicIncrement( double* ptr , double addend )
 	{
