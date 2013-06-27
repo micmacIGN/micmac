@@ -29,6 +29,12 @@ public:
     **/
     bool checkForLoadedEntities();
 
+    static void progress(int var, void *obj);
+
+signals:
+
+    void progressInc(int val);
+
 public slots:
     //! Try to load a list of files
     void addFiles(const QStringList& filenames);
@@ -76,7 +82,12 @@ protected:
     void connectActions();
 
 private:
-    Ui::MainWindow *ui;
+
+    void emitProgress(int progress);
+
+    //int                    GetValue(){return _value;}
+
+    Ui::MainWindow          *ui;
 
     GLWidget*               m_glWidget;
 
@@ -84,5 +95,7 @@ private:
 
     QFutureWatcher<void>    FutureWatcher;
     QProgressDialog*        ProgressDialog;
+
+    //int                     _value;
 };
 #endif // MAINWINDOW_H

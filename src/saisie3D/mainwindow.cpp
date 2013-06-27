@@ -12,9 +12,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ProgressDialog = new QProgressDialog("Load clouds","Stop",0,0,this);
     ProgressDialog->setMinimum(0);
-    ProgressDialog->setMaximum(0);
+    ProgressDialog->setMaximum(100);
 
-    connect(&FutureWatcher, SIGNAL(finished()),ProgressDialog , SLOT(cancel()));
+    connect(&FutureWatcher, SIGNAL(finished()),ProgressDialog,SLOT(cancel()));
+    connect(this,SIGNAL(progressInc(int)),ProgressDialog,SLOT(setValue(int)));
 
     m_glWidget = new GLWidget(this,m_Engine->getData());
 
@@ -48,6 +49,18 @@ bool MainWindow::checkForLoadedEntities()
     return loadedEntities;
 }
 
+void MainWindow::emitProgress(int progress)
+{
+    emit progressInc(progress);
+}
+
+void MainWindow::progress(int var, void* obj)
+{
+    MainWindow* ca = (MainWindow*)obj;
+
+    ca->emitProgress(var);
+}
+
 void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
@@ -66,7 +79,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         if (fi.suffix() == "ply")
         {            
-            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadClouds,filenames);
+            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadClouds,filenames,&this->progress,this);
 
             this->FutureWatcher.setFuture(future);
             this->ProgressDialog->setWindowModality(Qt::WindowModal);

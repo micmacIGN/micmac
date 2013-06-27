@@ -202,11 +202,9 @@ void GLWidget::paintGL()
     }
 
 //    Ralentissement du a la drawball!!!
-//    if (m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE)
-//    {
-//        if (m_bDrawBall) drawBall();
-//        else if (m_bDrawAxis) drawAxis();
-//    }
+    if (m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE)
+    if (m_bDrawBall) drawBall();
+    else if (m_bDrawAxis) drawAxis();
 
     if (m_bDrawCams) drawCams();
 

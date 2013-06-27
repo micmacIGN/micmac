@@ -56,7 +56,7 @@ Vertex::Vertex(Pt3dr pos, QColor col)
 /*!
     Read a ply file, store the point cloud
 */
-Cloud* Cloud::loadPly( string i_filename )
+Cloud* Cloud::loadPly(string i_filename , void (*incre)(int,void*), void* obj)
 {
     vector <Vertex> ptList;
 
@@ -87,6 +87,8 @@ Cloud* Cloud::loadPly( string i_filename )
 
     for (int i = 0; i < nelems; i++)
     {
+
+
         // get the description of the first element
         elem_name = elist[i];
         plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
@@ -138,10 +140,21 @@ Cloud* Cloud::loadPly( string i_filename )
                     for (int j = 0; j < nprops ;++j)
                         ply_get_property (thePlyFile, elem_name, &colored_vert_props[j]);
 
+                    int prog = -1;
 
                     // grab all the vertex elements
                     for (int j = 0; j < num_elems; j++)
                     {
+                        if (incre != NULL)
+                        {
+                            int p = (float)j / num_elems  * 100;
+                            if(prog < p  )
+                            {
+                                prog = p;
+                                incre(prog,obj);
+                            }
+                        }
+
                         // grab an element from the file
                         ulist[j] = (sPlyColoredVertex *) malloc (sizeof (sPlyColoredVertex));
 

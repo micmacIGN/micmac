@@ -18,9 +18,9 @@ void cLoader::SetFilenamesOut()
     }
 }
 
-Cloud* cLoader::loadCloud( string i_ply_file )
+Cloud* cLoader::loadCloud( string i_ply_file, void (*incre)(int,void*), void* obj )
 {
-    return Cloud::loadPly( i_ply_file );
+    return Cloud::loadPly( i_ply_file, incre, obj );
 }
 
 vector <Cloud *> cLoader::loadClouds()
@@ -88,11 +88,11 @@ cEngine::~cEngine()
    delete m_Loader;
 }
 
-void cEngine::loadClouds(QStringList filenames)
+void cEngine::loadClouds(QStringList filenames, void (*incre)(int,void*), void* obj)
 {
     for (int i=0;i<filenames.size();++i)
     {
-        getData()->getBB(m_Loader->loadCloud(filenames[i].toStdString()));
+        getData()->getBB(m_Loader->loadCloud(filenames[i].toStdString(), incre,obj));
     }
 }
 
