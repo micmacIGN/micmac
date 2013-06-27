@@ -132,7 +132,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _fps(0.0f)
   , m_selection_mode(NONE)
 {
-    //setMouseTracking(true);
+    setMouseTracking(true);
 
     //drag & drop handling
     setAcceptDrops(true);
@@ -785,7 +785,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     }
     else if (g_mouseLeftDown || g_mouseMiddleDown|| g_mouseRightDown)
     {
-        QPoint dp = pos-m_lastPos;
+        QPoint dp = event->pos()-m_lastPos;
 
         if ( g_mouseLeftDown ) // rotation autour de X et Y
         {
@@ -822,7 +822,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         update();
     }
 
-    m_lastPos = pos;
+    m_lastPos = event->pos();
 }
 
 bool isPointInsidePoly(const QPoint& P, const QVector< QPoint> poly)
