@@ -40,8 +40,6 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _m_g_mouseMiddleDown(false)
   , _m_g_mouseRightDown(false)
 {
-   // setMouseTracking(true);
-
     _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
     _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
     _m_g_rotationMatrix[5] = _m_g_rotationMatrix[6] = _m_g_rotationMatrix[7] = 0;
@@ -69,7 +67,6 @@ void GLWidget::initializeGL()
     if (m_bInitialized)
         return;
 
-    //    glClearDepth( 100.f );
     glEnable( GL_DEPTH_TEST );
 
     m_bInitialized = true;
@@ -128,7 +125,32 @@ void GLWidget::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
 
-    draw3D();
+    //makeCurrent();
+
+    setStandardOrthoCenter();
+
+    // semble regler le positionnement des points mais pas dans tous les cas
+    // dans certaine rotation, les points auraient des profondeurs incorrectes!
+    glEnable(GL_DEPTH_TEST);
+
+    //gradient color background
+    drawGradientBackground();
+    //we clear background
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    zoom();
+
+    //then, the modelview matrix
+    glMatrixMode(GL_MODELVIEW);
+
+    static GLfloat trans44[16], rot44[16], tmp[16];
+    m33_to_m44( _m_g_rotationMatrix, rot44 );
+    setTranslate_m3(  m_params.m_translationMatrix, trans44 );
+
+    //mult( trans44, rot44, tmp );
+    mult( rot44, trans44, tmp );
+    transpose( tmp, _m_g_glMatrix );
+    glLoadMatrixf( _m_g_glMatrix );
 
     if (hasCloudLoaded())
     {
@@ -202,7 +224,7 @@ void GLWidget::paintGL()
     }
 
 //    Ralentissement du a la drawball!!!
-    if (m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE)
+    //if (m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE)
     if (m_bDrawBall) drawBall();
     else if (m_bDrawAxis) drawAxis();
 
@@ -486,56 +508,19 @@ void GLWidget::drawGradientBackground()
     int w = (m_glWidth>>1)+1;
     int h = (m_glHeight>>1)+1;
 
-    QSettings settings;
-    settings.beginGroup("OpenGL");
-
-    const unsigned char BkgColor[3]		=   {10,102,151};
-
-    const unsigned char* bkgCol = BkgColor;
+    const unsigned char BkgColor[3] = {colorBG0.red(),colorBG0.green(),colorBG0.blue()};
 
     //Gradient "texture" drawing
     glBegin(GL_QUADS);
     //user-defined background color for gradient start
-    glColor3ubv(bkgCol);
+    glColor3ubv(BkgColor);
     glVertex2f(-w,h);
     glVertex2f(w,h);
     //and the inverse of points color for gradient end
-    glColor3ub(0,0,0);
+    glColor3ub(colorBG1.red(),colorBG1.green(),colorBG1.blue());
     glVertex2f(w,-h);
     glVertex2f(-w,-h);
     glEnd();
-}
-
-void GLWidget::draw3D()
-{
-    makeCurrent();
-
-    setStandardOrthoCenter();
-
-
-    // semble regler le positionnement des points mais pas dans tous les cas
-    // dans certaine rotation, les points auraient des profondeurs incorrectes!
-    glEnable(GL_DEPTH_TEST);
-
-    //gradient color background
-    drawGradientBackground();
-    //we clear background
-    glClear(GL_DEPTH_BUFFER_BIT);
-
-    zoom();
-
-    //then, the modelview matrix
-    glMatrixMode(GL_MODELVIEW);
-
-    static GLfloat trans44[16], rot44[16], tmp[16];
-    m33_to_m44( _m_g_rotationMatrix, rot44 );
-    setTranslate_m3(  m_params.m_translationMatrix, trans44 );
-
-    //mult( trans44, rot44, tmp );
-    mult( rot44, trans44, tmp );
-    transpose( tmp, _m_g_glMatrix );
-    glLoadMatrixf( _m_g_glMatrix );
-
 }
 
 void GLWidget::setStandardOrthoCenter()
@@ -982,6 +967,11 @@ void GLWidget::drawBall()
 
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
+
+    glEnable (GL_LINE_SMOOTH);
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
 
     // ball radius
     //float scale = 0.05f * (float) m_glWidth/ (float) m_glHeight;

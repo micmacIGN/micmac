@@ -11,9 +11,14 @@
 #include "GLWidget.h"
 #include "Engine.h"
 
+class GLWidget;
+
 namespace Ui {
 class MainWindow;
 }
+
+const QColor colorBG0(30,132,181);
+const QColor colorBG1(70,70,70);
 
 class MainWindow : public QMainWindow
 {

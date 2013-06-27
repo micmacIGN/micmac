@@ -10,6 +10,19 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    ui->OpenglLayout->setLineWidth(5);
+    ui->OpenglLayout->setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
+
+
+    QString style = "border: 2px solid white;"
+                    "border-radius: 5px;"
+                    "background: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 rgb(%1,%2,%3), stop:1 rgb(%4,%5,%6));";
+
+    style = style.arg(colorBG0.red()).arg(colorBG0.green()).arg(colorBG0.blue());
+    style = style.arg(colorBG1.red()).arg(colorBG1.green()).arg(colorBG1.blue());
+
+    ui->OpenglLayout->setStyleSheet(style);
+
     ProgressDialog = new QProgressDialog("Load clouds","Stop",0,0,this);
     ProgressDialog->setMinimum(0);
     ProgressDialog->setMaximum(100);

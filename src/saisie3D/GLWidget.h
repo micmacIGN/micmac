@@ -28,6 +28,7 @@
 #include "Data.h"
 #include "Engine.h"
 #include "3DTools.h"
+#include "mainwindow.h"
 
 //! View orientation
 enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
@@ -178,8 +179,6 @@ protected:
     //inherited from QWidget (drag & drop support)
     virtual void dragEnterEvent(QDragEnterEvent* event);
     virtual void dropEvent(QDropEvent* event);
-
-    void draw3D();
 
     //! Draw frame axis
     void drawAxis();

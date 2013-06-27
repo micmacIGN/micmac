@@ -63,13 +63,7 @@ QStatusBar
        <bool>true</bool>
       </property>
       <property name="styleSheet">
-       <string notr="true">QFrame{
-	border: 2px solid white;
-	border-radius: 10px;
-	background: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 rgb(10,102,151), stop:1 rgb(0,0,0));
- }
-
-</string>
+       <string notr="true"/>
       </property>
      </widget>
     </item>
@@ -81,7 +75,7 @@ QStatusBar
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>21</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuOptions">
