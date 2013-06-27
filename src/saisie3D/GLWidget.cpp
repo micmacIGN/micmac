@@ -317,7 +317,7 @@ void GLWidget::paintGL()
         glBegin(m_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
         for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
         {
-            glVertex2f(m_polygon[aK].x, m_polygon[aK].y);
+            glVertex2f(m_polygon[aK].x(), m_polygon[aK].y());
         }
         glEnd();
 
@@ -342,7 +342,7 @@ void GLWidget::paintGL()
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
-    m_lastPos = Pt2df((float)event->pos().x(),(float)event->pos().y());
+    m_lastPos = event->pos();
 
     if ( event->buttons()&Qt::LeftButton )
     {
@@ -762,7 +762,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     if (event->x()<0 || event->y()<0 || event->x()>width() || event->y()>height())
         return;
 
-    Pt2df pos = Pt2df((float)event->pos().x(),(float)event->pos().y());
+    QPoint pos = event->pos();
 
     if ((m_interactionMode == SEGMENT_POINTS) )
     {
@@ -785,12 +785,12 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     }
     else if (g_mouseLeftDown || g_mouseMiddleDown|| g_mouseRightDown)
     {
-        Pt2df dp = pos-m_lastPos;
+        QPoint dp = pos-m_lastPos;
 
         if ( g_mouseLeftDown ) // rotation autour de X et Y
         {
-            float angleX =  m_speed * dp.y / (float) m_glHeight;
-            float angleY =  m_speed * dp.x / (float) m_glWidth;
+            float angleX =  m_speed * dp.y() / (float) m_glHeight;
+            float angleY =  m_speed * dp.x() / (float) m_glWidth;
 
             setAngles(angleX, angleY, m_params.angleZ);
 
@@ -803,12 +803,12 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         else if ( g_mouseMiddleDown ) // translation
         {
             m_bObjectCenteredView = false;
-            m_params.m_translationMatrix[0] += m_speed * dp.x*m_Data->m_diam/(float)m_glWidth;
-            m_params.m_translationMatrix[1] -= m_speed * dp.y*m_Data->m_diam/(float)m_glHeight;
+            m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/(float)m_glWidth;
+            m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/(float)m_glHeight;
         }
         else if ( g_mouseRightDown ) // rotation autour de Z
         {
-            float angleZ =  m_speed * dp.x / (float) m_glWidth;
+            float angleZ =  m_speed * dp.x() / (float) m_glWidth;
 
             setAngles( m_params.angleX,  m_params.angleY, angleZ);
 
@@ -825,7 +825,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     m_lastPos = pos;
 }
 
-bool isPointInsidePoly(const Pt2df& P, const std::vector< Pt2df > poly)
+bool isPointInsidePoly(const QPoint& P, const QVector< QPoint> poly)
 {
     unsigned vertices=poly.size();
     if (vertices<3)
@@ -833,17 +833,17 @@ bool isPointInsidePoly(const Pt2df& P, const std::vector< Pt2df > poly)
 
     bool inside = false;
 
-    Pt2df A = poly[0];
+    QPoint A = poly[0];
     for (unsigned i=1;i<=vertices;++i)
     {
-        Pt2df B = poly[i%vertices];
+        QPoint B = poly[i%vertices];
 
         //Point Inclusion in Polygon Test (inspired from W. Randolph Franklin - WRF)
-        if (((B.y <= P.y) && (P.y<A.y)) ||
-                ((A.y <= P.y) && (P.y<B.y)))
+        if (((B.y() <= P.y()) && (P.y()<A.y())) ||
+                ((A.y() <= P.y()) && (P.y()<B.y())))
         {
-            float ABy = A.y-B.y;
-            float t = (P.x-B.x)*ABy-(A.x-B.x)*(P.y-B.y);
+            float ABy = A.y()-B.y();
+            float t = (P.x()-B.x())*ABy-(A.x()-B.x())*(P.y()-B.y());
             if (ABy<0)
                 t=-t;
 
@@ -868,18 +868,18 @@ void GLWidget::setProjectionMatrix()
     glGetIntegerv(GL_VIEWPORT, _VP);
 }
 
-void GLWidget::getProjection(Pt2df &P2D, Vertex P)
+void GLWidget::getProjection(QPoint &P2D, Vertex P)
 {
     GLdouble xp,yp,zp;
     gluProject(P.x(),P.y(),P.z(),_MM,_MP,_VP,&xp,&yp,&zp);
-    P2D = Pt2df(xp,yp);
+    P2D = QPoint(xp,yp);
 }
 
 void GLWidget::Select(int mode)
 {
-    Pt2df P2D;
+    QPoint P2D;
     bool pointInside;
-    std::vector < Pt2df > polyg;
+    QVector< QPoint> polyg;
 
     if(mode == ADD || mode == SUB)
     {
@@ -887,7 +887,7 @@ void GLWidget::Select(int mode)
             return;
 
         for (int aK=0; aK < (int) m_polygon.size(); ++aK)
-            polyg.push_back(Pt2df(m_polygon[aK].x, m_glHeight - m_polygon[aK].y));
+            polyg.push_back(QPoint(m_polygon[aK].x(), m_glHeight - m_polygon[aK].y()));
     }
 
     for (int aK=0; aK < m_Data->NbClouds(); ++aK)
@@ -946,8 +946,8 @@ void GLWidget::deletePolylinePoint()
 
     for (int aK =0; aK < (int) m_polygon.size();++aK)
     {
-        dx = m_polygon[aK].x-m_lastPos.x;
-        dy = m_polygon[aK].y-m_lastPos.y;
+        dx = m_polygon[aK].x()-m_lastPos.x();
+        dy = m_polygon[aK].y()-m_lastPos.y();
         d2 = dx*dx + dy*dy;
 
         if (d2 < dist2)
@@ -956,18 +956,9 @@ void GLWidget::deletePolylinePoint()
             idx = aK;
         }
     }
-
     if (idx != -1)
         m_polygon.erase (m_polygon.begin() + idx);
-//    if (idx != -1)
-//    {
-//        for (int aK =idx; aK < (int)m_polygon.size()-1;++aK)
-//        {
-//            m_polygon[aK] = m_polygon[aK+1];
-//        }
 
-//        m_polygon.pop_back();
-//    }
 }
 
 void GLWidget::clearPolyline()
