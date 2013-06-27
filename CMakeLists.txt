@@ -74,16 +74,20 @@ message( STATUS "Systeme is " ${CMAKE_SYSTEM_NAME} ${CPU_BITNESS} )
 
 if ( CMAKE_SYSTEM_NAME MATCHES "Windows" )
 	message( STATUS "Windows version : "  ${CMAKE_SYSTEM_VERSION} )
-	if ( ${CMAKE_SYSTEM_VERSION}<=5.1 )
+	string(REGEX REPLACE "^([0-9]+)\\.[0-9]+" "\\1" major "${CMAKE_SYSTEM_VERSION}")
+	string(REGEX REPLACE "^[0-9]+\\.([0-9]+)" "\\1" minor "${CMAKE_SYSTEM_VERSION}")
+	set( windows_version EXPR  )
+	MATH(EXPR windows_version "${major} * 1000 + ${minor}" )
+	if ( ${windows_version} LESS 5012 )
         set( WINDOWS_XP 1 )
     endif()
-endif()
-
-if ( WINDOWS_XP )
-	add_definitions( -DELISE_windows_xp=1 )
-	message( STATUS "Windows XP compatibility : enabled" )
-else()
-    message( STATUS "Windows XP compatibility : disabled" )
+	
+	if ( WINDOWS_XP )
+		add_definitions( -DELISE_windows_xp=1 )
+		message( STATUS "Windows XP compatibility : enabled" )
+	else()
+		message( STATUS "Windows XP compatibility : disabled" )
+	endif()
 endif()
 
 # DEFINITION : Dossier des exe et Dll nécessaires sous windows
