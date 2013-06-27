@@ -10,101 +10,6 @@ const GLuint GL_INVALID_LIST_ID = (~0);
 using namespace Cloud_;
 using namespace std;
 
-bool g_mouseLeftDown = false;
-bool g_mouseMiddleDown = false;
-bool g_mouseRightDown = false;
-
-GLfloat g_tmpMatrix[9],
-g_rotationOx[9],
-g_rotationOy[9],
-g_rotationOz[9],
-g_rotationMatrix[9] = { 1, 0, 0,
-                        0, 1, 0,
-                        0, 0, 1 },
-g_glMatrix[16];
-
-inline void setRotateOx_m33( const float i_angle, GLfloat o_m[9] )
-{
-    GLfloat co = (GLfloat)cos( i_angle ),
-            si = (GLfloat)sin( i_angle );
-    o_m[0]=1.f;		o_m[1]=0.f;		o_m[2]=0.f;
-    o_m[3]=0.f;		o_m[4]=co;		o_m[5]=-si;
-    o_m[6]=0.f;		o_m[7]=si;		o_m[8]=co;
-}
-
-inline void setRotateOy_m33( const float i_angle, GLfloat o_m[9] )
-{
-    GLfloat co = (GLfloat)cos( i_angle ),
-            si = (GLfloat)sin( i_angle );
-    o_m[0]=co;		o_m[1]=0;		o_m[2]=si;
-    o_m[3]=0;		o_m[4]=1;		o_m[5]=0;
-    o_m[6]=-si;		o_m[7]=0;		o_m[8]=co;
-}
-
-inline void setRotateOz_m33( const float i_angle, GLfloat o_m[9] )
-{
-    GLfloat co = (GLfloat)cos( i_angle ),
-            si = (GLfloat)sin( i_angle );
-    o_m[0]=co;		o_m[1]=si;		o_m[2]=0;
-    o_m[3]=-si;		o_m[4]=co;		o_m[5]=0;
-    o_m[6]=0;		o_m[7]=0;		o_m[8]=1;
-}
-
-inline void setTranslate_m3( const GLfloat *i_a, GLfloat o_m[16] )
-{
-    o_m[0] =1.;	 o_m[1] =0.f;	o_m[2] =0.f;	 o_m[3] =i_a[0];
-    o_m[4] =0.f;	 o_m[5] =1.f;	o_m[6] =0.f;	 o_m[7] =i_a[1];
-    o_m[8] =0.f;	 o_m[9] =0.f;	o_m[10]=1.f;	 o_m[11]=i_a[2];
-    o_m[12]=0.f;	 o_m[13]=0.f;	o_m[14]=0.f;	 o_m[15]=1.f;
-}
-
-inline void mult( const GLfloat i_a[16], const GLfloat i_b[16], GLfloat o_m[16] )
-{
-    o_m[0] =i_a[0]*i_b[0]+i_a[1]*i_b[4]+i_a[2]*i_b[8]+i_a[3]*i_b[12];     o_m[1] =i_a[0]*i_b[1]+i_a[1]*i_b[5]+i_a[2]*i_b[9]+i_a[3]*i_b[13];     o_m[2] =i_a[0]*i_b[2]+i_a[1]*i_b[6]+i_a[2]*i_b[10]+i_a[3]*i_b[14];     o_m[3] =i_a[0]*i_b[3]+i_a[1]*i_b[7]+i_a[2]*i_b[11]+i_a[3]*i_b[15];
-    o_m[4] =i_a[4]*i_b[0]+i_a[5]*i_b[4]+i_a[6]*i_b[8]+i_a[7]*i_b[12];     o_m[5] =i_a[4]*i_b[1]+i_a[5]*i_b[5]+i_a[6]*i_b[9]+i_a[7]*i_b[13];     o_m[6] =i_a[4]*i_b[2]+i_a[5]*i_b[6]+i_a[6]*i_b[10]+i_a[7]*i_b[14];     o_m[7] =i_a[4]*i_b[3]+i_a[5]*i_b[7]+i_a[6]*i_b[11]+i_a[7]*i_b[15];
-    o_m[8] =i_a[8]*i_b[0]+i_a[9]*i_b[4]+i_a[10]*i_b[8]+i_a[11]*i_b[12];   o_m[9] =i_a[8]*i_b[1]+i_a[8]*i_b[5]+i_a[10]*i_b[9]+i_a[11]*i_b[13];   o_m[10]=i_a[8]*i_b[2]+i_a[9]*i_b[6]+i_a[10]*i_b[10]+i_a[11]*i_b[14];   o_m[11]=i_a[8]*i_b[3]+i_a[9]*i_b[7]+i_a[10]*i_b[11]+i_a[11]*i_b[15];
-    o_m[12]=i_a[12]*i_b[0]+i_a[13]*i_b[4]+i_a[14]*i_b[8]+i_a[15]*i_b[12]; o_m[13]=i_a[12]*i_b[1]+i_a[13]*i_b[5]+i_a[14]*i_b[9]+i_a[15]*i_b[13]; o_m[14]=i_a[12]*i_b[2]+i_a[13]*i_b[6]+i_a[14]*i_b[10]+i_a[15]*i_b[14]; o_m[15]=i_a[12]*i_b[3]+i_a[13]*i_b[7]+i_a[14]*i_b[11]+i_a[15]*i_b[15];
-}
-
-inline void mult_m33( const GLfloat i_a[9], const GLfloat i_b[9], GLfloat o_m[9] )
-{
-    o_m[0]=i_a[0]*i_b[0]+i_a[1]*i_b[3]+i_a[2]*i_b[6];		o_m[1]=i_a[0]*i_b[1]+i_a[1]*i_b[4]+i_a[2]*i_b[7];		o_m[2]=i_a[0]*i_b[2]+i_a[1]*i_b[5]+i_a[2]*i_b[8];
-    o_m[3]=i_a[3]*i_b[0]+i_a[4]*i_b[3]+i_a[5]*i_b[6];		o_m[4]=i_a[3]*i_b[1]+i_a[4]*i_b[4]+i_a[5]*i_b[7];		o_m[5]=i_a[3]*i_b[2]+i_a[4]*i_b[5]+i_a[5]*i_b[8];
-    o_m[6]=i_a[6]*i_b[0]+i_a[7]*i_b[3]+i_a[8]*i_b[6];		o_m[7]=i_a[6]*i_b[1]+i_a[7]*i_b[4]+i_a[8]*i_b[7];		o_m[8]=i_a[6]*i_b[2]+i_a[7]*i_b[5]+i_a[8]*i_b[8];
-}
-
-inline void m33_to_m44( const GLfloat i_m[9], GLfloat o_m[16] )
-{
-    o_m[0]=i_m[0];		o_m[4]=i_m[3];		o_m[8] =i_m[6];		o_m[12]=0.f;
-    o_m[1]=i_m[1];		o_m[5]=i_m[4];		o_m[9] =i_m[7];		o_m[13]=0.f;
-    o_m[2]=i_m[2];		o_m[6]=i_m[5];		o_m[10]=i_m[8];		o_m[14]=0.f;
-    o_m[3]=0.f;			o_m[7]=0.f;			o_m[11]=0.f;		o_m[15]=1.f;
-}
-
-inline void transpose( const GLfloat *i_a, GLfloat *o_m )
-{
-    o_m[0]=i_a[0];		o_m[4]=i_a[1];		o_m[8]=i_a[2];		o_m[12]=i_a[3];
-    o_m[1]=i_a[4];		o_m[5]=i_a[5];		o_m[9]=i_a[6];		o_m[13]=i_a[7];
-    o_m[2]=i_a[8];		o_m[6]=i_a[9];		o_m[10]=i_a[10];	o_m[14]=i_a[11];
-    o_m[3]=i_a[12];		o_m[7]=i_a[13];		o_m[11]=i_a[14];	o_m[15]=i_a[15];
-}
-
-inline void crossprod( const GLdouble u[3], const GLdouble v[3], GLdouble o_m[3] )
-{
-    o_m[0] = u[1]*v[2] - u[2]*v[1];
-    o_m[1] = u[2]*v[0] - u[0]*v[2];
-    o_m[2] = u[0]*v[1] - u[1]*v[0];
-}
-
-inline void normalize( GLdouble o_m[3] )
-{
-    GLdouble norm = sqrt((double) (o_m[0]*o_m[0] + o_m[1]*o_m[1] + o_m[2]*o_m[2]));
-
-    o_m[0] = o_m[0]/norm;
-    o_m[1] = o_m[1]/norm;
-    o_m[2] = o_m[2]/norm;
-}
-
 GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_font(font())
   , m_bCloudLoaded(false)
@@ -130,9 +35,16 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _previousTime(0)
   , _currentTime(0)
   , _fps(0.0f)
-  , m_selection_mode(NONE)
+  , _m_selection_mode(NONE)
+  , _m_g_mouseLeftDown(false)
+  , _m_g_mouseMiddleDown(false)
+  , _m_g_mouseRightDown(false)
 {
-    setMouseTracking(true);
+   // setMouseTracking(true);
+
+    _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
+    _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
+    _m_g_rotationMatrix[5] = _m_g_rotationMatrix[6] = _m_g_rotationMatrix[7] = 0;
 
     //drag & drop handling
     setAcceptDrops(true);
@@ -289,11 +201,12 @@ void GLWidget::paintGL()
         }
     }
 
-    if (m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE)
-    {
-        if (m_bDrawBall) drawBall();
-        else if (m_bDrawAxis) drawAxis();
-    }
+//    Ralentissement du a la drawball!!!
+//    if (m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE)
+//    {
+//        if (m_bDrawBall) drawBall();
+//        else if (m_bDrawAxis) drawAxis();
+//    }
 
     if (m_bDrawCams) drawCams();
 
@@ -346,7 +259,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
     if ( event->buttons()&Qt::LeftButton )
     {
-        g_mouseLeftDown = true;
+        _m_g_mouseLeftDown = true;
 
         if (m_interactionMode == SEGMENT_POINTS)
         {
@@ -370,7 +283,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     else if (event->buttons()&Qt::RightButton)
     {
         if (m_interactionMode == TRANSFORM_CAMERA)
-            g_mouseRightDown = true;
+            _m_g_mouseRightDown = true;
         else
         {
             closePolyline();
@@ -380,18 +293,18 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     else if (event->buttons()&Qt::MiddleButton)
     {
         if (m_interactionMode == TRANSFORM_CAMERA)
-            g_mouseMiddleDown = true;
+            _m_g_mouseMiddleDown = true;
     }
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if ( !( event->buttons()&Qt::LeftButton ) )
-        g_mouseLeftDown = false;
+        _m_g_mouseLeftDown = false;
     if ( !( event->buttons()&Qt::RightButton ) )
-        g_mouseRightDown = false;
+        _m_g_mouseRightDown = false;
     if ( !( event->buttons()&Qt::MiddleButton ) )
-         g_mouseMiddleDown = false;
+         _m_g_mouseMiddleDown = false;
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -600,7 +513,11 @@ void GLWidget::draw3D()
     makeCurrent();
 
     setStandardOrthoCenter();
-    //glEnable(GL_DEPTH_TEST);
+
+
+    // semble regler le positionnement des points mais pas dans tous les cas
+    // dans certaine rotation, les points auraient des profondeurs incorrectes!
+    glEnable(GL_DEPTH_TEST);
 
     //gradient color background
     drawGradientBackground();
@@ -613,13 +530,13 @@ void GLWidget::draw3D()
     glMatrixMode(GL_MODELVIEW);
 
     static GLfloat trans44[16], rot44[16], tmp[16];
-    m33_to_m44( g_rotationMatrix, rot44 );
+    m33_to_m44( _m_g_rotationMatrix, rot44 );
     setTranslate_m3(  m_params.m_translationMatrix, trans44 );
 
     //mult( trans44, rot44, tmp );
     mult( rot44, trans44, tmp );
-    transpose( tmp, g_glMatrix );
-    glLoadMatrixf( g_glMatrix );
+    transpose( tmp, _m_g_glMatrix );
+    glLoadMatrixf( _m_g_glMatrix );
 
 }
 
@@ -705,17 +622,17 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
     crossprod(eye, top, s);
     crossprod(s, eye, u);
 
-    g_rotationMatrix[0] = s[0];
-    g_rotationMatrix[1] = s[1];
-    g_rotationMatrix[2] = s[2];
+    _m_g_rotationMatrix[0] = s[0];
+    _m_g_rotationMatrix[1] = s[1];
+    _m_g_rotationMatrix[2] = s[2];
 
-    g_rotationMatrix[3] = u[0];
-    g_rotationMatrix[4] = u[1];
-    g_rotationMatrix[5] = u[2];
+    _m_g_rotationMatrix[3] = u[0];
+    _m_g_rotationMatrix[4] = u[1];
+    _m_g_rotationMatrix[5] = u[2];
 
-    g_rotationMatrix[6] = -eye[0];
-    g_rotationMatrix[7] = -eye[1];
-    g_rotationMatrix[8] = -eye[2];
+    _m_g_rotationMatrix[6] = -eye[0];
+    _m_g_rotationMatrix[7] = -eye[1];
+    _m_g_rotationMatrix[8] = -eye[2];
 
     m_params.m_translationMatrix[0] = m_Data->m_cX;
     m_params.m_translationMatrix[1] = m_Data->m_cY;
@@ -783,40 +700,40 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         event->ignore();
     }
-    else if (g_mouseLeftDown || g_mouseMiddleDown|| g_mouseRightDown)
+    else if (_m_g_mouseLeftDown || _m_g_mouseMiddleDown|| _m_g_mouseRightDown)
     {
         QPoint dp = event->pos()-m_lastPos;
 
-        if ( g_mouseLeftDown ) // rotation autour de X et Y
+        if ( _m_g_mouseLeftDown ) // rotation autour de X et Y
         {
             float angleX =  m_speed * dp.y() / (float) m_glHeight;
             float angleY =  m_speed * dp.x() / (float) m_glWidth;
 
             setAngles(angleX, angleY, m_params.angleZ);
 
-            setRotateOx_m33( angleX, g_rotationOx );
-            setRotateOy_m33( angleY, g_rotationOy );
+            setRotateOx_m33( angleX, _m_g_rotationOx );
+            setRotateOy_m33( angleY, _m_g_rotationOy );
 
-            mult_m33( g_rotationOx, g_rotationMatrix, g_tmpMatrix );
-            mult_m33( g_rotationOy, g_tmpMatrix, g_rotationMatrix );
+            mult_m33( _m_g_rotationOx, _m_g_rotationMatrix, _m_g_tmpMatrix );
+            mult_m33( _m_g_rotationOy, _m_g_tmpMatrix, _m_g_rotationMatrix );
         }
-        else if ( g_mouseMiddleDown ) // translation
+        else if ( _m_g_mouseMiddleDown ) // translation
         {
             m_bObjectCenteredView = false;
             m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/(float)m_glWidth;
             m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/(float)m_glHeight;
         }
-        else if ( g_mouseRightDown ) // rotation autour de Z
+        else if ( _m_g_mouseRightDown ) // rotation autour de Z
         {
             float angleZ =  m_speed * dp.x() / (float) m_glWidth;
 
             setAngles( m_params.angleX,  m_params.angleY, angleZ);
 
-            setRotateOz_m33( angleZ, g_rotationOz );
+            setRotateOz_m33( angleZ, _m_g_rotationOz );
 
-            mult_m33( g_rotationOz, g_rotationMatrix, g_tmpMatrix );
+            mult_m33( _m_g_rotationOz, _m_g_rotationMatrix, _m_g_tmpMatrix );
 
-            for (int i = 0; i < 9; ++i) g_rotationMatrix[i] = g_tmpMatrix[i];
+            for (int i = 0; i < 9; ++i) _m_g_rotationMatrix[i] = _m_g_tmpMatrix[i];
         }
 
         update();

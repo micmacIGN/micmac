@@ -35,7 +35,8 @@ HEADERS  += mainwindow.h\
             GLWidget.h \
             Data.h \
             Engine.h \
-    Cloud.h
+		3DTools.h \
+		Cloud.h
 
 FORMS    += \
     mainwindow.ui

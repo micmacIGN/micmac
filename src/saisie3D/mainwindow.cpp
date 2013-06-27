@@ -76,8 +76,14 @@ void MainWindow::addFiles(const QStringList& filenames)
             m_glWidget->update();
         }
         else if (fi.suffix() == "xml")
-        {
-            m_Engine->loadCameras(filenames);
+        {          
+
+            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadCameras,filenames);
+
+            this->FutureWatcher.setFuture(future);
+            this->ProgressDialog->setWindowModality(Qt::WindowModal);
+            this->ProgressDialog->exec();
+
             m_glWidget->setCameraLoaded(true);
             m_glWidget->update();
         }

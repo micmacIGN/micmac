@@ -1,7 +1,6 @@
 ﻿#ifndef _GLWIDGET_H
 #define _GLWIDGET_H
 
-
 #include <cmath>
 #include <limits>
 #include <iostream>
@@ -28,6 +27,7 @@
 
 #include "Data.h"
 #include "Engine.h"
+#include "3DTools.h"
 
 //! View orientation
 enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
@@ -69,8 +69,8 @@ public:
                             SCREEN_CENTER_MESSAGE
     };
 
-    void    setSelectionMode(int mode ) {m_selection_mode = mode; }
-    int     getSelectionMode()          {return m_selection_mode;}
+    void    setSelectionMode(int mode ) {_m_selection_mode = mode; }
+    int     getSelectionMode()          {return _m_selection_mode;}
 
     //! Displays a status message
     /** \param message message (if message is empty, all messages will be cleared)
@@ -296,11 +296,21 @@ private:
 
     float       _fps;
 
-    int         m_selection_mode;
+    int         _m_selection_mode;
 
     double      _MM[16];
     double      _MP[16];
     int         _VP[4];
+
+    bool        _m_g_mouseLeftDown    ;
+    bool        _m_g_mouseMiddleDown  ;
+    bool        _m_g_mouseRightDown   ;
+    GLfloat     _m_g_tmpMatrix[9];
+    GLfloat     _m_g_rotationOx[9];
+    GLfloat     _m_g_rotationOy[9];
+    GLfloat     _m_g_rotationOz[9];
+    GLfloat     _m_g_rotationMatrix[9];
+    GLfloat     _m_g_glMatrix[16];
 
 };
 
