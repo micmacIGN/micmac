@@ -44,7 +44,7 @@ class GLWidget : public QGLWidget
 
 private:
 
-    Pt2df m_lastPos;
+    QPoint m_lastPos;
 
 public:
 
@@ -144,7 +144,7 @@ public:
 
     void setBufferGl(bool onlyColor = false);
 
-    void getProjection(Pt2df &P2D, Vertex P);
+    void getProjection(QPoint &P2D, Vertex P);
 
 public slots:
     void zoom();
@@ -271,7 +271,7 @@ protected:
     QString m_messageFPS;
 
     //! Point list for polygonal selection
-    std::vector < Pt2df > m_polygon;
+    QVector < QPoint > m_polygon;
 
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
