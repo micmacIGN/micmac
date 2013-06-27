@@ -342,7 +342,7 @@ void GLWidget::paintGL()
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
-    m_lastPos = Pt2df(event->pos().x(),event->pos().y());
+    m_lastPos = Pt2df((float)event->pos().x(),(float)event->pos().y());
 
     if ( event->buttons()&Qt::LeftButton )
     {
@@ -762,7 +762,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     if (event->x()<0 || event->y()<0 || event->x()>width() || event->y()>height())
         return;
 
-    Pt2df pos = Pt2df(event->pos().x(),event->pos().y());
+    Pt2df pos = Pt2df((float)event->pos().x(),(float)event->pos().y());
 
     if ((m_interactionMode == SEGMENT_POINTS) )
     {
@@ -958,14 +958,16 @@ void GLWidget::deletePolylinePoint()
     }
 
     if (idx != -1)
-    {
-        for (int aK =idx; aK < (int)m_polygon.size()-1;++aK)
-        {
-            m_polygon[aK] = m_polygon[aK+1];
-        }
+        m_polygon.erase (m_polygon.begin() + idx);
+//    if (idx != -1)
+//    {
+//        for (int aK =idx; aK < (int)m_polygon.size()-1;++aK)
+//        {
+//            m_polygon[aK] = m_polygon[aK+1];
+//        }
 
-        m_polygon.pop_back();
-    }
+//        m_polygon.pop_back();
+//    }
 }
 
 void GLWidget::clearPolyline()
