@@ -12,7 +12,6 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/media
    <Symb> Im1="R0023168.JPG"     </Symb>
    <Symb> Im2="R0023167.JPG"     </Symb>
    <Symb> AeroIn=sub     </Symb>
-   <Symb> ModeProf=true </Symb>
    <Symb> SzW=2 </Symb>
    <Symb> SzWPx2=3 </Symb>
 
@@ -21,6 +20,29 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/media
 
 <!-- VALEURS QUASI-FIXE -->
    <Symb> DirMEC=GeoI-Px/ </Symb>
+
+<!-- VALEUR LIEE a la GEOMETRIE -->
+<!--
+    eGeomImageOri      eGeomImageGrille
+-->
+
+
+   <Symb> Conik=true   </Symb>                   <!-- true -->
+   <eSymb>NonConik=! ${Conik} </eSymb>           <!--  ??? -->
+   <Symb> PxIsProp=${Conik}          </Symb>     <!-- ??  -->
+   <Symb> Px1Inc=0.3                 </Symb>     <!-- 0.3 -->
+   <Symb> Px1Moy=11XXXX                 </Symb>     <!-- ?? -->
+   <Symb> ModeOrientStd=${Conik}     </Symb>     <!-- true -->
+   <Symb> PostFixOri=22XXXXX             </Symb>     <!-- ??   -->
+   <Symb> ModeProfSouhaite=true             </Symb>     <!-- true -->
+   <Symb> ModeOriIm=eGeomImageOri  </Symb>     <!-- eGeomImageOri -->
+   <eSymb> ModeProfReel= *  ${ModeProfSouhaite}  ${Conik} </eSymb>
+
+
+
+
+
+
 
 <!-- MISE EN COMMUN DE CONSTANTES -->
    <Symb>  Purge=true </Symb>
@@ -40,12 +62,16 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/media
 
 
 <Section_Terrain>  
-         <IntervalPaxIsProportion> true </IntervalPaxIsProportion>
+         <IntervalPaxIsProportion> ${PxIsProp} </IntervalPaxIsProportion>
+
          <IntervParalaxe>
-             <Px1IncCalc>   0.3 </Px1IncCalc>    <!-- proportion .... -->
+             <Px1IncCalc>   ${Px1Inc} </Px1IncCalc>    <!-- proportion .... -->
              <Px2IncCalc>   0.0 </Px2IncCalc>    <!-- metres -->
+             <#WHEN VTEST=${NonConik}>
+                    <Px1Moy> ${Px1Moy}     </Px1Moy>
+             </#WHEN>
          </IntervParalaxe>
-         <#WHEN VTEST=${ModeProf}>
+         <#WHEN VTEST=${ModeProfReel}>
              <IntervSpecialZInv>
                  <MulZMin> 0.5</MulZMin>
                  <MulZMax> 3 </MulZMax>
@@ -59,16 +85,22 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/media
          par le correlateur
 -->
 <Section_PriseDeVue >
-     <GeomImages> eGeomImageOri </GeomImages> 
+     <GeomImages> ${ModeOriIm} </GeomImages> 
      <Images >  
           <Im1 >   ${Im1} </Im1>  
           <ImPat > ${Im2}     </ImPat>  
      </Images>
-     <NomsGeometrieImage>
-         <FCND_Mode_GeomIm>
-               <FCND_GeomCalc>  NKS-Assoc-Im2Orient@${AeroIn}  </FCND_GeomCalc>  
-         </FCND_Mode_GeomIm>
-     </NomsGeometrieImage>
+     <#IF VTEST=${ModeOrientStd}>
+          <NomsGeometrieImage>
+              <FCND_Mode_GeomIm>
+                    <FCND_GeomCalc>  NKS-Assoc-Im2Orient@${AeroIn}  </FCND_GeomCalc>  
+              </FCND_Mode_GeomIm>
+          </NomsGeometrieImage>
+          <NomsGeometrieImage>
+                <PatternSel>  (.*)\.[0-9,a-z,A-Z,_]{3,4} </PatternSel>
+                <PatNameGeom> $1.${PostFixOri}    </PatNameGeom>
+          </NomsGeometrieImage>
+     </#IF>
 
 </Section_PriseDeVue>
 <!--  *************************************************************
@@ -324,7 +356,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/media
 -->
 
 
-    <#IF VTEST=${ModeProf}>
+    <#IF VTEST=${ModeProfReel}>
         <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px2D </GeomMNT>
         <GeomMNT> eGeomMNTFaisceauIm1ZTerrain_Px2D </GeomMNT>
     </#IF>

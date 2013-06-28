@@ -170,8 +170,10 @@ eModeGeomMEC CalculGeomMEC(const cParamMICMAC & aParam)
                  switch (aParam.GeomMNT())
                  {
                     case eGeomMNTCarto :
+/*-
                     case eGeomMNTFaisceauIm1PrCh_Px1D :
                     case eGeomMNTFaisceauIm1PrCh_Px2D :
+*/
                     {
                         ELISE_ASSERT
                         (
