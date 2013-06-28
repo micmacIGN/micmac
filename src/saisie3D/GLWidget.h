@@ -1,4 +1,4 @@
-﻿#ifndef _GLWIDGET_H
+#ifndef _GLWIDGET_H
 #define _GLWIDGET_H
 
 
@@ -7,9 +7,13 @@
 #include <iostream>
 #include <algorithm>
 
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
 #ifndef  WIN32    
-    #include "GL/glew.h"
-    #include "GL/glut.h"
+#include "GL/glew.h"
+#include "GL/glut.h"
+#endif
 #endif
 
 #include <QtOpenGL/QGLWidget>
