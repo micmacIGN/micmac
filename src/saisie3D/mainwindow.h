@@ -1,7 +1,10 @@
-﻿#ifndef MAINWINDOW_H
+#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
+
 #ifndef  WIN32
-    #include "GL/glew.h"
+#ifndef __APPLE__
+#include "GL/glew.h"
+#endif
 #endif
 #include <QMainWindow>
 
