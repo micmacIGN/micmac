@@ -31,9 +31,6 @@ OPTION(BUILD_ONLY_ELISE "Projet Elise uniquement" OFF )
 # construire l'interface graphique
 OPTION(WITH_ETALONPOLY  "build etalonnage polygone" ON)
 
-# force la compatibilité Windows XP
-OPTION(WINDOWS_XP  "Force Windows XP compatibility" OFF)
-
 # Utiliser Cuda
 OPTION(CUDA_ENABLED "Utilisation de cuda" OFF )
 
@@ -71,24 +68,6 @@ else()
     endif()
 endif()
 message( STATUS "Systeme is " ${CMAKE_SYSTEM_NAME} ${CPU_BITNESS} )
-
-if ( CMAKE_SYSTEM_NAME MATCHES "Windows" )
-	message( STATUS "Windows version : "  ${CMAKE_SYSTEM_VERSION} )
-	string(REGEX REPLACE "^([0-9]+)\\.[0-9]+" "\\1" major "${CMAKE_SYSTEM_VERSION}")
-	string(REGEX REPLACE "^[0-9]+\\.([0-9]+)" "\\1" minor "${CMAKE_SYSTEM_VERSION}")
-	set( windows_version EXPR  )
-	MATH(EXPR windows_version "${major} * 1000 + ${minor}" )
-	if ( ${windows_version} LESS 5012 )
-        set( WINDOWS_XP 1 )
-    endif()
-	
-	if ( WINDOWS_XP )
-		add_definitions( -DELISE_windows_xp=1 )
-		message( STATUS "Windows XP compatibility : enabled" )
-	else()
-		message( STATUS "Windows XP compatibility : disabled" )
-	endif()
-endif()
 
 # DEFINITION : Dossier des exe et Dll nécessaires sous windows
 set(BinAuxWinDir ${PROJECT_SOURCE_DIR}/binaire-aux/BIN_AUX_WIN32)
