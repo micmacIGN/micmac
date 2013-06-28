@@ -17,8 +17,11 @@ namespace Ui {
 class MainWindow;
 }
 
-const QColor colorBG0(30,132,181);
-const QColor colorBG1(70,70,70);
+//const QColor colorBG0(30,132,181);
+//const QColor colorBG1(70,70,70);
+
+const QColor colorBG0(50,50,53);
+const QColor colorBG1(92,90,90);
 
 class MainWindow : public QMainWindow
 {

@@ -70,6 +70,9 @@ QStatusBar
    </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -77,6 +80,15 @@ QStatusBar
      <width>800</width>
      <height>25</height>
     </rect>
+   </property>
+   <property name="mouseTracking">
+    <bool>true</bool>
+   </property>
+   <property name="acceptDrops">
+    <bool>false</bool>
+   </property>
+   <property name="defaultUp">
+    <bool>false</bool>
    </property>
    <widget class="QMenu" name="menuOptions">
     <property name="title">
@@ -104,6 +116,9 @@ QStatusBar
     <addaction name="actionShow_help_messages"/>
    </widget>
    <widget class="QMenu" name="menuSelection">
+    <property name="tearOffEnabled">
+     <bool>false</bool>
+    </property>
     <property name="title">
      <string>Selection</string>
     </property>
@@ -252,6 +267,9 @@ QStatusBar
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Points selection</string>
    </property>
@@ -313,6 +331,9 @@ QStatusBar
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Show ball</string>
    </property>
@@ -336,7 +357,7 @@ QStatusBar
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>Show help messages</string>
