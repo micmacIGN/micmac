@@ -608,7 +608,7 @@ void SparseSymmetricMatrix<T>::Multiply( const Vector<T2>& In , Vector<T2>& Out 
 		{
 			_oldValue = _newValue;
 			newValue += addend;
-			_newValue = InterlockedCompareExchange64( (LONGLONG*) ptr , _newValue , _oldValue );
+			_newValue = _InterlockedCompareExchange64( (LONGLONG*) ptr , _newValue , _oldValue );
 		}
 		while( _newValue!=_oldValue );
 	}
