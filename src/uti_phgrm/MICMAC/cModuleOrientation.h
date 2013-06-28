@@ -47,9 +47,9 @@ class ModuleOrientation
 public:
   ModuleOrientation(std::string const &/*nom*/){;}
   virtual ~ModuleOrientation(){;}
-  virtual void ImageAndPx2Obj(double /*c*/, double /*l*/, const double */*z*/,
+  virtual void ImageAndPx2Obj(double /*c*/, double /*l*/, const double * /*z*/,
                               double &/*x*/, double &/*y*/)const{;};
-  virtual void Objet2ImageInit(double /*x*/, double /*y*/, const double */*z*/,
+  virtual void Objet2ImageInit(double /*x*/, double /*y*/, const double * /*z*/,
                                double &/*c*/, double &/*l*/)const{;};
   virtual double GetResolMoyenne() const {return 1.;}
   virtual bool GetPxMoyenne(double * /*aPxMoy*/) const {return false;}
