@@ -1229,12 +1229,15 @@ void GLWidget::showMessages(bool show)
 {
     m_bDrawMessages = show;
 
-    if (show)
+    if (m_bDrawMessages)
     {
-        if (m_interactionMode == TRANSFORM_CAMERA) showMoveMessages();
-        else showSelectionMessages();
+        if (m_interactionMode == TRANSFORM_CAMERA)
+            showMoveMessages();
+        else if (m_interactionMode == SEGMENT_POINTS)
+            showSelectionMessages();
     }
-    else displayNewMessage(QString());
+    else
+        displayNewMessage(QString());
 
     update();
 }
@@ -1263,7 +1266,8 @@ void GLWidget::setAngles(float angleX, float angleY, float angleZ)
     m_params.angleZ = angleZ;
 }
 
-void GLWidget::saveSelectionInfos(QString /*Filename*/)
+/*
+void GLWidget::saveSelectionInfos(QString Filename)
 {
     for (int aK=0; aK < m_infos.size() ; ++aK )
     {
@@ -1272,3 +1276,4 @@ void GLWidget::saveSelectionInfos(QString /*Filename*/)
     }
 
 }
+*/

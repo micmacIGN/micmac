@@ -18,6 +18,7 @@
 #include <QtOpenGL/QGLWidget>
 #include <QtOpenGL/QGLBuffer>
 #include <QGLContext>
+#include <QDebug>
 
 #ifdef WIN32
     #include "GL/glu.h"

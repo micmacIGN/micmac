@@ -10,12 +10,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ui->OpenglLayout->setLineWidth(5);
-    ui->OpenglLayout->setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
-
-
-    QString style = "border: 2px solid white;"
-                    "border-radius: 5px;"
+    QString style = "border: 2px solid gray;"
+                    "border-radius: 1px;"
                     "background: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 rgb(%1,%2,%3), stop:1 rgb(%4,%5,%6));";
 
     style = style.arg(colorBG0.red()).arg(colorBG0.green()).arg(colorBG0.blue());
@@ -31,6 +27,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this,SIGNAL(progressInc(int)),ProgressDialog,SLOT(setValue(int)));
 
     m_glWidget = new GLWidget(this,m_Engine->getData());
+
+    toggleShowMessages(ui->actionShow_help_messages->isChecked());
+    toggleShowBall(ui->actionShow_ball->isChecked());
+    toggleShowAxis(ui->actionShow_axis->isChecked());
+    toggleShowBBox(ui->actionShow_bounding_box->isChecked());
+
+    //addAction(ui->actionTogglePoints_selection);
 
     QHBoxLayout* layout = new QHBoxLayout();
     layout->addWidget(m_glWidget);
@@ -58,6 +61,8 @@ bool MainWindow::checkForLoadedEntities()
         m_glWidget->displayNewMessage("Drag & drop files on window to load them!");
         loadedEntities = false;
     }
+    else
+        toggleShowMessages(ui->actionShow_help_messages->isChecked());
 
     return loadedEntities;
 }
@@ -115,6 +120,8 @@ void MainWindow::addFiles(const QStringList& filenames)
         }
 
         checkForLoadedEntities();
+
+        update();
     }
 }
 
@@ -160,7 +167,6 @@ void MainWindow::togglePointsSelection(bool state)
 {
     if (state)
     {
-
         m_glWidget->setInteractionMode(GLWidget::SEGMENT_POINTS);
 
         if (m_glWidget->hasCloudLoaded()&&m_glWidget->showMessages())
@@ -243,7 +249,7 @@ void MainWindow::connectActions()
     connect(ui->actionSetViewRight,		SIGNAL(triggered()),   this, SLOT(setRightView()));
 
     //"Points selection" menu
-    connect(ui->actionTogglePoints_selection, SIGNAL(toggled(bool)), this, SLOT(togglePointsSelection(bool)));
+    connect(ui->actionTogglePoints_selection, SIGNAL(triggered(bool)), this, SLOT(togglePointsSelection(bool)));
     connect(ui->actionAdd_points,       SIGNAL(triggered()),   this, SLOT(addPoints()));    
     connect(ui->actionSelect_none,      SIGNAL(triggered()),   this, SLOT(selectNone()));
     connect(ui->actionInvertSelected,   SIGNAL(triggered()),   this, SLOT(invertSelected()));
@@ -264,8 +270,6 @@ void MainWindow::connectActions()
 
     connect(m_glWidget,SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
 }
-
-
 
 void MainWindow::addPoints()
 {
@@ -349,6 +353,8 @@ void MainWindow::loadPlys()
 
     m_glWidget->setData(m_Engine->getData());
 
+    m_glWidget->setBufferGl();
+
     checkForLoadedEntities();
 }
 
@@ -376,9 +382,12 @@ void MainWindow::saveSelectionInfos()
 void MainWindow::unloadAll()
 {
     m_Engine->unloadAll();
+
     m_glWidget->setCloudLoaded(false);
     m_glWidget->setCameraLoaded(false);
+    checkForLoadedEntities();
     m_glWidget->setBufferGl();
+
     m_glWidget->update();
 }
 
