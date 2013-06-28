@@ -1229,12 +1229,15 @@ void GLWidget::showMessages(bool show)
 {
     m_bDrawMessages = show;
 
-    if (show)
+    if (m_bDrawMessages)
     {
-        if (m_interactionMode == TRANSFORM_CAMERA) showMoveMessages();
-        else showSelectionMessages();
+        if (m_interactionMode == TRANSFORM_CAMERA)
+            showMoveMessages();
+        else if (m_interactionMode == SEGMENT_POINTS)
+            showSelectionMessages();
     }
-    else displayNewMessage(QString());
+    else
+        displayNewMessage(QString());
 
     update();
 }
