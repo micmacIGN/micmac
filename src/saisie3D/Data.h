@@ -4,8 +4,6 @@
 
 #include "StdAfx.h"
 #include "Cloud.h"
-#include <QVector>
-#include <QPoint>
 
 using namespace Cloud_;
 

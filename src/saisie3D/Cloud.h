@@ -46,7 +46,7 @@ namespace Cloud_
             Cloud();
             Cloud(std::vector<Vertex> const &);
 
-            static Cloud* loadPly( std::string );
+            static Cloud* loadPly(std::string,  void (*incre)(int, void *) = NULL, void *obj = NULL);
 
             void    addVertex( const Vertex & );
             Vertex& getVertex( unsigned int );

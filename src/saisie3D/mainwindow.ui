@@ -63,13 +63,7 @@ QStatusBar
        <bool>true</bool>
       </property>
       <property name="styleSheet">
-       <string notr="true">QFrame{
-	border: 2px solid white;
-	border-radius: 10px;
-	background: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 rgb(10,102,151), stop:1 rgb(0,0,0));
- }
-
-</string>
+       <string notr="true"/>
       </property>
      </widget>
     </item>
@@ -81,7 +75,7 @@ QStatusBar
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>21</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuOptions">
@@ -105,6 +99,7 @@ QStatusBar
     <addaction name="actionFullScreen"/>
     <addaction name="actionShow_axis"/>
     <addaction name="actionShow_ball"/>
+    <addaction name="actionShow_bounding_box"/>
     <addaction name="actionShow_cams"/>
     <addaction name="actionShow_help_messages"/>
    </widget>
@@ -114,8 +109,13 @@ QStatusBar
     </property>
     <addaction name="actionTogglePoints_selection"/>
     <addaction name="actionAdd_points"/>
-    <addaction name="actionDelete_point"/>
-    <addaction name="actionUndo"/>
+    <addaction name="actionRemove_from_selection"/>
+    <addaction name="actionSelectAll"/>
+    <addaction name="actionSelect_none"/>
+    <addaction name="actionReset"/>
+    <addaction name="actionInvertSelected"/>
+    <addaction name="separator"/>
+    <addaction name="actionDeletePolylinepoint"/>
    </widget>
    <widget class="QMenu" name="menuFile">
     <property name="title">
@@ -259,10 +259,10 @@ QStatusBar
     <string>Toggle between Points selection mode and standard mode</string>
    </property>
    <property name="shortcut">
-    <string>F7</string>
+    <string>F8</string>
    </property>
   </action>
-  <action name="actionUndo">
+  <action name="actionSelectAll">
    <property name="checkable">
     <bool>false</bool>
    </property>
@@ -270,13 +270,13 @@ QStatusBar
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Undo selection</string>
+    <string>Select all</string>
    </property>
    <property name="toolTip">
-    <string>Undo all past selections</string>
+    <string>select all vertex</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Z</string>
+    <string>Ctrl+A</string>
    </property>
    <property name="visible">
     <bool>true</bool>
@@ -335,11 +335,14 @@ QStatusBar
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Show help messages</string>
    </property>
    <property name="shortcut">
-    <string>F6</string>
+    <string>F7</string>
    </property>
   </action>
   <action name="actionShow_cams">
@@ -350,18 +353,15 @@ QStatusBar
     <string>Show cams</string>
    </property>
    <property name="shortcut">
-    <string>F5</string>
+    <string>F6</string>
    </property>
   </action>
   <action name="actionAdd_points">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
    <property name="text">
     <string>Add points</string>
    </property>
    <property name="shortcut">
-    <string>Shift+Space</string>
+    <string>Space</string>
    </property>
   </action>
   <action name="actionExit">
@@ -373,9 +373,6 @@ QStatusBar
    </property>
   </action>
   <action name="actionLoad_plys">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
    <property name="text">
     <string>Load ply file(s)</string>
    </property>
@@ -383,21 +380,18 @@ QStatusBar
     <string>Ctrl+P</string>
    </property>
   </action>
-  <action name="actionDelete_point">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
+  <action name="actionDeletePolylinepoint">
    <property name="text">
-    <string>Delete point</string>
+    <string>Delete Polyline point</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete Polyline point</string>
    </property>
    <property name="shortcut">
     <string>.</string>
    </property>
   </action>
   <action name="actionSave_selection">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
    <property name="text">
     <string>Save selection stack</string>
    </property>
@@ -406,14 +400,54 @@ QStatusBar
    </property>
   </action>
   <action name="actionUnload_all">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
    <property name="text">
     <string>Unload all</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+X</string>
+   </property>
+  </action>
+  <action name="actionSelect_none">
+   <property name="text">
+    <string>Select none</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="actionReset">
+   <property name="text">
+    <string>Reset</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionInvertSelected">
+   <property name="text">
+    <string>Invert</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="actionRemove_from_selection">
+   <property name="text">
+    <string>Remove from selection</string>
+   </property>
+   <property name="shortcut">
+    <string>Del</string>
+   </property>
+  </action>
+  <action name="actionShow_bounding_box">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show bounding box</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
    </property>
   </action>
  </widget>

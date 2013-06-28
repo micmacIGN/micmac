@@ -1,7 +1,6 @@
 #ifndef _GLWIDGET_H
 #define _GLWIDGET_H
 
-
 #include <cmath>
 #include <limits>
 #include <iostream>
@@ -20,7 +19,7 @@
 #include <QtOpenGL/QGLBuffer>
 #include <QGLContext>
 
-#ifdef  WIN32
+#ifdef WIN32
     #include "GL/glu.h"
 #endif
 
@@ -32,6 +31,8 @@
 
 #include "Data.h"
 #include "Engine.h"
+#include "3DTools.h"
+#include "mainwindow.h"
 
 //! View orientation
 enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
@@ -40,35 +41,6 @@ enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
                          BACK_VIEW,     /**< Back view **/
                          LEFT_VIEW,     /**< Left view **/
                          RIGHT_VIEW     /**< Right view **/
-};
-
-class ViewportParameters
-{
-public:
-    //! Default constructor
-    ViewportParameters();
-
-    //! Copy constructor
-    ViewportParameters(const ViewportParameters& params);
-
-    //! Destructor
-    ~ViewportParameters();
-
-    //! Current zoom
-    float zoom;
-
-    //! Point size
-    float PointSize;
-
-    //! Line width
-    float LineWidth;
-
-    //! Rotation angles
-    float angleX;
-    float angleY;
-
-    //! Translation matrix
-    GLfloat m_translationMatrix[3];
 };
 
 class GLWidget : public QGLWidget
@@ -101,6 +73,9 @@ public:
                             UPPER_CENTER_MESSAGE,
                             SCREEN_CENTER_MESSAGE
     };
+
+    void    setSelectionMode(int mode ) {_m_selection_mode = mode; }
+    int     getSelectionMode()          {return _m_selection_mode;}
 
     //! Displays a status message
     /** \param message message (if message is empty, all messages will be cleared)
@@ -142,6 +117,9 @@ public:
     //! Shows help messages or not
     void showMessages(bool show);
 
+    //! Shows bounding box or not
+    void showBBox(bool show);
+
     //! States if help messages should be displayed
     bool showMessages();
 
@@ -151,11 +129,11 @@ public:
     //! Display help messages for move mode
     void showMoveMessages();
 
-    //! Segment points with polyline
-    void segment(bool inside, bool add = false);
+    //! Select points with polyline
+    void Select(int mode);
 
     //! Delete mouse closest point
-    void deletePoint();
+    void deletePolylinePoint();
 
     //! Delete current polyline
     void clearPolyline();
@@ -169,10 +147,10 @@ public:
     //! Increase or decrease point size
     void ptSizeUp(bool);
 
-    //! Save viewing directions and polylines in Filename
-    void saveSelectionInfos(QString Filename);
-
     void setBufferGl(bool onlyColor = false);
+
+    void getProjection(QPoint &P2D, Vertex P);
+
 public slots:
     void zoom();
 
@@ -187,7 +165,7 @@ signals:
     //! Signal emitted when the mouse wheel is rotated
     void mouseWheelRotated(float wheelDelta_deg);
 
-    void SelectedPoint(uint idCloud, uint idVertex,bool selected);
+    void selectedPoint(uint idCloud, uint idVertex,bool selected);
 
 protected:
     void initializeGL();
@@ -206,8 +184,6 @@ protected:
     virtual void dragEnterEvent(QDragEnterEvent* event);
     virtual void dropEvent(QDropEvent* event);
 
-    void draw3D();
-
     //! Draw frame axis
     void drawAxis();
 
@@ -216,6 +192,9 @@ protected:
 
     //! Draw ball
     void drawCams();
+
+    //! Draw bounding box
+    void drawBbox();
 
     //! Draw widget gradient background
     void drawGradientBackground();
@@ -228,7 +207,7 @@ protected:
 
     void storeInfos(bool inside, bool add);
 
-    void setAngles(float angleX, float angleY);
+    void setAngles(float angleX, float angleY, float angleZ);
 
     //! GL context width
     int m_glWidth;
@@ -254,7 +233,10 @@ protected:
     bool m_bDrawCams;
 
     //! States if messages should be displayed
-    bool m_bMessages;
+    bool m_bDrawMessages;
+
+    //! States if Bounding box should be displayed
+    bool m_bDrawBbox;
 
     //! States if view is centered on object
     bool m_bObjectCenteredView;
@@ -264,6 +246,10 @@ protected:
 
     //! Current interaction mode (with mouse)
     INTERACTION_MODE m_interactionMode;
+
+    bool m_bFirstAdd;
+
+    int m_previousAction;
 
     //! Temporary Message to display
     struct MessageToDisplay
@@ -293,9 +279,6 @@ protected:
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
 
-    //! Input infos list
-    QVector < cSaisieInfos > m_infos;
-
     //! Data to display
     cData *m_Data;
 
@@ -304,7 +287,7 @@ protected:
 
 private:
 
-
+    void        setProjectionMatrix();
     void        calculateFPS();
 
     QGLBuffer   m_vertexbuffer;
@@ -315,6 +298,22 @@ private:
     uint        _currentTime;
 
     float       _fps;
+
+    int         _m_selection_mode;
+
+    double      _MM[16];
+    double      _MP[16];
+    int         _VP[4];
+
+    bool        _m_g_mouseLeftDown    ;
+    bool        _m_g_mouseMiddleDown  ;
+    bool        _m_g_mouseRightDown   ;
+    GLfloat     _m_g_tmpMatrix[9];
+    GLfloat     _m_g_rotationOx[9];
+    GLfloat     _m_g_rotationOy[9];
+    GLfloat     _m_g_rotationOz[9];
+    GLfloat     _m_g_rotationMatrix[9];
+    GLfloat     _m_g_glMatrix[16];
 
 };
 

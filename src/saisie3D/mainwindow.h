@@ -7,13 +7,21 @@
 #endif
 #endif
 #include <QMainWindow>
+#include <QFutureWatcher>
+#include <QtConcurrentRun>
+#include <QProgressDialog>
 
 #include "GLWidget.h"
 #include "Engine.h"
 
+class GLWidget;
+
 namespace Ui {
 class MainWindow;
 }
+
+const QColor colorBG0(30,132,181);
+const QColor colorBG1(70,70,70);
 
 class MainWindow : public QMainWindow
 {
@@ -29,26 +37,35 @@ public:
     **/
     bool checkForLoadedEntities();
 
+    static void progress(int var, void *obj);
+
+signals:
+
+    void progressInc(int val);
+
 public slots:
     //! Try to load a list of files
     void addFiles(const QStringList& filenames);
 
-    void SelectedPoint(uint idC,uint idV,bool select);
-
-private slots:
-    void on_actionUndo_triggered();
+    void selectedPoint(uint idC,uint idV,bool select);
 
 protected slots:
     void doActionDisplayShortcuts();
     void toggleFullScreen(bool);
     void toggleShowAxis(bool);
     void toggleShowBall(bool);
+    void toggleShowBBox(bool);
     void toggleShowCams(bool);
     void toggleShowMessages(bool);
     void togglePointsSelection(bool state);
 
     void addPoints();
-    void deletePoint();
+    void selectNone();
+    void invertSelected();
+    void selectAll();
+    void removeFromSelection();
+
+    void deletePolylinePoint();
 
     //default views
     void setFrontView();
@@ -73,10 +90,20 @@ protected:
     void connectActions();
 
 private:
-    Ui::MainWindow *ui;
 
-    GLWidget *m_glWidget;
+    void emitProgress(int progress);
 
-    cEngine  *m_Engine;
+    //int                    GetValue(){return _value;}
+
+    Ui::MainWindow          *ui;
+
+    GLWidget*               m_glWidget;
+
+    cEngine*                m_Engine;
+
+    QFutureWatcher<void>    FutureWatcher;
+    QProgressDialog*        ProgressDialog;
+
+    //int                     _value;
 };
 #endif // MAINWINDOW_H

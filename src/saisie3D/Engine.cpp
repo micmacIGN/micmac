@@ -18,9 +18,9 @@ void cLoader::SetFilenamesOut()
     }
 }
 
-Cloud* cLoader::loadCloud( string i_ply_file )
+Cloud* cLoader::loadCloud( string i_ply_file, void (*incre)(int,void*), void* obj )
 {
-    return Cloud::loadPly( i_ply_file );
+    return Cloud::loadPly( i_ply_file, incre, obj );
 }
 
 vector <Cloud *> cLoader::loadClouds()
@@ -88,11 +88,11 @@ cEngine::~cEngine()
    delete m_Loader;
 }
 
-void cEngine::loadClouds(QStringList filenames)
+void cEngine::loadClouds(QStringList filenames, void (*incre)(int,void*), void* obj)
 {
     for (int i=0;i<filenames.size();++i)
     {
-        getData()->getBB(m_Loader->loadCloud(filenames[i].toStdString()));
+        getData()->getBB(m_Loader->loadCloud(filenames[i].toStdString(), incre,obj));
     }
 }
 
@@ -163,24 +163,47 @@ void cEngine::doMasks()
     }
 }
 
+void cEngine::saveSelectInfos(string)
+{
+   /* for (int aK=0; aK < m_infos.size() ; ++aK )
+    {
+        //TODO: if (m_infos[aK].pose == m_infos[aK-1].pose) aK++;
+        //else write block pose
+    }*/
+}
+
 void cEngine::unloadAll()
 {
     m_Data->clearClouds();
     m_Data->clearCameras();
 }
 
+
 //********************************************************************************
 
-cSaisieInfos::cSaisieInfos(){}
+ViewportParameters::ViewportParameters()
+    : zoom(1.0f)
+    , PointSize(1.0f)
+    , LineWidth(1.0f)
+{}
 
-cSaisieInfos::~cSaisieInfos(){}
+ViewportParameters::ViewportParameters(const ViewportParameters& params)
+    : zoom(params.zoom)
+    , PointSize(params.PointSize)
+    , LineWidth(params.LineWidth)
+{}
 
-/*cSaisieInfos::cSaisieInfos(ViewportParameters, QVector<QPoint> polyline, SELECTION_MODE selMode)
+ViewportParameters::~ViewportParameters(){}
+
+//********************************************************************************
+
+cSelectInfos::cSelectInfos(){}
+
+cSelectInfos::~cSelectInfos(){}
+
+cSelectInfos::cSelectInfos(ViewportParameters par, std::vector<Pt2df> polyline, SELECTION_MODE selMode)
 {
-    m_rotationX = rotX;
-    m_rotationY = rotY;
-    m_translation = translation;
-    m_scale = scale;
+    m_params = par;
     m_poly = polyline;
     m_selection_mode = selMode;
-}*/
+}

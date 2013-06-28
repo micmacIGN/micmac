@@ -408,7 +408,8 @@ if (MPD_MM())
   ELISE_ASSERT(aNbResolGot," Resolution pas trouvee");
   mResol /= aNbResolGot;
   double aResolNotRound = mResol;
-  SetResol(mResol,mAp->GeoRefAutoRoundResol().ValWithDef(mAp->ModeGeomMEC()==eGeomMECTerrain)) ;
+  // SetResol(mResol,mAp->GeoRefAutoRoundResol().ValWithDef(mAp->ModeGeomMEC()==eGeomMECTerrain)) ;
+  SetResol(mResol,mAp->GeoRefAutoRoundResol().ValWithDef(mAp->GeomMNT()==eGeomMNTEuclid)) ;
   if (aFileExt)
   {
        SetUnroundResol(ElAbs(aFileExt->ResolutionPlani().x));
@@ -870,6 +871,7 @@ if ( mAp->DebugMM().Val())
   std::cout << "PpppQQ " << mResol << aBox._p0 << aBox._p1 << "\n";
 */
 
+  /// std::cout << "RESOOL " << mResol << " " << mRRIsInit << " " << mRCoordIsInit << "\n"; getchar();
 
   delete aFileExt;
 }
