@@ -12,6 +12,19 @@ public:
 
 };
 
+class ArsenicImage
+{
+public:
+	ArsenicImage(){}
+	~ArsenicImage(){}
+	Im2D_REAL4 RChan;
+	Im2D_REAL4 GChan;
+	Im2D_REAL4 BChan;
+	Im2D_INT1 Mask;
+	cElNuage3DMaille* info3D;
+	Pt2di SZ;
+};
+
 class Param3Chan
 {
 public:
