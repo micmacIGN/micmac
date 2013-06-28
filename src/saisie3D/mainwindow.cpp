@@ -33,14 +33,18 @@ MainWindow::MainWindow(QWidget *parent) :
     toggleShowAxis(ui->actionShow_axis->isChecked());
     toggleShowBBox(ui->actionShow_bounding_box->isChecked());
 
-    //addAction(ui->actionTogglePoints_selection);
+    //ui->toolBar->addAction(ui->actionTogglePoints_selection);
+//    ui->actionShow_help_messages->setShortcutContext(Qt::ApplicationShortcut);
+//    ui->menuBar->addAction(ui->actionShow_help_messages);
+//    ui->menuFile->addAction(ui->actionShow_help_messages);
+//    ui->toolBar->addAction(ui->actionShow_help_messages);
+//    addAction(ui->actionShow_help_messages);
+//    m_glWidget->addAction(ui->actionShow_help_messages);
 
     QHBoxLayout* layout = new QHBoxLayout();
     layout->addWidget(m_glWidget);
-
-    ui->OpenglLayout->setLayout(layout);
-
     connectActions();
+    ui->OpenglLayout->setLayout(layout);
 }
 
 MainWindow::~MainWindow()
@@ -49,6 +53,54 @@ MainWindow::~MainWindow()
     delete m_glWidget;
     delete m_Engine;
 }
+
+
+void MainWindow::connectActions()
+{
+    connect(m_glWidget,	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
+
+    connect(m_glWidget,	SIGNAL(mouseWheelRotated(float)),      this, SLOT(echoMouseWheelRotate(float)));
+
+    //View menu
+    connect(ui->actionFullScreen,       SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
+    connect(ui->actionShow_axis,        SIGNAL(toggled(bool)), this, SLOT(toggleShowAxis(bool)));
+    connect(ui->actionShow_ball,        SIGNAL(toggled(bool)), this, SLOT(toggleShowBall(bool)));
+    connect(ui->actionShow_cams,        SIGNAL(toggled(bool)), this, SLOT(toggleShowCams(bool)));
+    connect(ui->actionShow_bounding_box,SIGNAL(toggled(bool)), this, SLOT(toggleShowBBox(bool)));
+    connect(ui->actionShow_help_messages,SIGNAL(toggled(bool)), this, SLOT(toggleShowMessages(bool)));
+
+    connect(ui->actionHelpShortcuts,    SIGNAL(triggered()),   this, SLOT(doActionDisplayShortcuts()));
+
+    connect(ui->actionSetViewTop,		SIGNAL(triggered()),   this, SLOT(setTopView()));
+    connect(ui->actionSetViewBottom,	SIGNAL(triggered()),   this, SLOT(setBottomView()));
+    connect(ui->actionSetViewFront,		SIGNAL(triggered()),   this, SLOT(setFrontView()));
+    connect(ui->actionSetViewBack,		SIGNAL(triggered()),   this, SLOT(setBackView()));
+    connect(ui->actionSetViewLeft,		SIGNAL(triggered()),   this, SLOT(setLeftView()));
+    connect(ui->actionSetViewRight,		SIGNAL(triggered()),   this, SLOT(setRightView()));
+
+    //"Points selection" menu
+    connect(ui->actionTogglePoints_selection, SIGNAL(triggered(bool)), this, SLOT(togglePointsSelection(bool)));
+    connect(ui->actionAdd_points,       SIGNAL(triggered()),   this, SLOT(addPoints()));
+    connect(ui->actionSelect_none,      SIGNAL(triggered()),   this, SLOT(selectNone()));
+    connect(ui->actionInvertSelected,   SIGNAL(triggered()),   this, SLOT(invertSelected()));
+    connect(ui->actionSelectAll,        SIGNAL(triggered()),   this, SLOT(selectAll()));
+    connect(ui->actionReset,            SIGNAL(triggered()),   this, SLOT(selectAll()));
+    connect(ui->actionRemove_from_selection,            SIGNAL(triggered()),   this, SLOT(removeFromSelection()));
+
+    connect(ui->actionDeletePolylinepoint,SIGNAL(triggered()),   this, SLOT(deletePolylinePoint()));
+
+    //File menu
+    connect(ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
+    connect(ui->actionLoad_camera,		SIGNAL(triggered()),   this, SLOT(loadCameras()));
+    connect(ui->actionExport_mask,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
+    connect(ui->actionLoad_and_Export,	SIGNAL(triggered()),   this, SLOT(loadAndExport()));
+    connect(ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
+    connect(ui->actionUnload_all,       SIGNAL(triggered()),   this, SLOT(unloadAll()));
+    connect(ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
+
+    connect(m_glWidget,SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
+}
+
 
 bool MainWindow::checkForLoadedEntities()
 {
@@ -97,8 +149,11 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         if (fi.suffix() == "ply")
         {            
+#ifdef WIN32
+            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadCloudsWin,filenames);
+#else
             QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadClouds,filenames,&this->progress,this);
-
+#endif
             this->FutureWatcher.setFuture(future);
             this->ProgressDialog->setWindowModality(Qt::WindowModal);
             this->ProgressDialog->exec();
@@ -121,7 +176,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         checkForLoadedEntities();
 
-        update();
+
     }
 }
 
@@ -225,51 +280,6 @@ void MainWindow::doActionDisplayShortcuts()
     QMessageBox::information(NULL, "Saisie3D - shortcuts", text);
 }
 
-void MainWindow::connectActions()
-{
-    connect(m_glWidget,	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
-
-    connect(m_glWidget,	SIGNAL(mouseWheelRotated(float)),      this, SLOT(echoMouseWheelRotate(float)));
-
-    //View menu
-    connect(ui->actionFullScreen,       SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
-    connect(ui->actionShow_axis,        SIGNAL(toggled(bool)), this, SLOT(toggleShowAxis(bool)));
-    connect(ui->actionShow_ball,        SIGNAL(toggled(bool)), this, SLOT(toggleShowBall(bool)));
-    connect(ui->actionShow_cams,        SIGNAL(toggled(bool)), this, SLOT(toggleShowCams(bool)));
-    connect(ui->actionShow_bounding_box,SIGNAL(toggled(bool)), this, SLOT(toggleShowBBox(bool)));
-    connect(ui->actionShow_help_messages,SIGNAL(toggled(bool)), this, SLOT(toggleShowMessages(bool)));
-
-    connect(ui->actionHelpShortcuts,    SIGNAL(triggered()),   this, SLOT(doActionDisplayShortcuts()));
-
-    connect(ui->actionSetViewTop,		SIGNAL(triggered()),   this, SLOT(setTopView()));
-    connect(ui->actionSetViewBottom,	SIGNAL(triggered()),   this, SLOT(setBottomView()));
-    connect(ui->actionSetViewFront,		SIGNAL(triggered()),   this, SLOT(setFrontView()));
-    connect(ui->actionSetViewBack,		SIGNAL(triggered()),   this, SLOT(setBackView()));
-    connect(ui->actionSetViewLeft,		SIGNAL(triggered()),   this, SLOT(setLeftView()));
-    connect(ui->actionSetViewRight,		SIGNAL(triggered()),   this, SLOT(setRightView()));
-
-    //"Points selection" menu
-    connect(ui->actionTogglePoints_selection, SIGNAL(triggered(bool)), this, SLOT(togglePointsSelection(bool)));
-    connect(ui->actionAdd_points,       SIGNAL(triggered()),   this, SLOT(addPoints()));    
-    connect(ui->actionSelect_none,      SIGNAL(triggered()),   this, SLOT(selectNone()));
-    connect(ui->actionInvertSelected,   SIGNAL(triggered()),   this, SLOT(invertSelected()));
-    connect(ui->actionSelectAll,        SIGNAL(triggered()),   this, SLOT(selectAll()));
-    connect(ui->actionReset,            SIGNAL(triggered()),   this, SLOT(selectAll()));
-    connect(ui->actionRemove_from_selection,            SIGNAL(triggered()),   this, SLOT(removeFromSelection()));
-
-    connect(ui->actionDeletePolylinepoint,SIGNAL(triggered()),   this, SLOT(deletePolylinePoint()));
-
-    //File menu
-    connect(ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
-    connect(ui->actionLoad_camera,		SIGNAL(triggered()),   this, SLOT(loadCameras()));
-    connect(ui->actionExport_mask,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
-    connect(ui->actionLoad_and_Export,	SIGNAL(triggered()),   this, SLOT(loadAndExport()));
-    connect(ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
-    connect(ui->actionUnload_all,       SIGNAL(triggered()),   this, SLOT(unloadAll()));
-    connect(ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
-
-    connect(m_glWidget,SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
-}
 
 void MainWindow::addPoints()
 {
@@ -349,13 +359,20 @@ void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
 
 void MainWindow::loadPlys()
 {
-    m_Engine->loadPlys();
 
-    m_glWidget->setData(m_Engine->getData());
 
-    m_glWidget->setBufferGl();
 
-    checkForLoadedEntities();
+    QStringList FilenamesIn  = QFileDialog::getOpenFileNames(NULL, tr("Open Cloud Files"),QString(), tr("Files (*.ply)"));
+    //FilenamesIn << "/home/gchoqueux/Documents/Ply/NuageImProf_Geom_DSC_3135_Etape_7.ply";
+
+//    QFileDialog fileDia(this, tr("Open Cloud Files"),QString(), tr("Files (*.ply)"));
+
+//    while(fileDia.exec());
+//        FilenamesIn = fileDia.selectedFiles();
+
+
+    addFiles(FilenamesIn);
+
 }
 
 void MainWindow::loadCameras()

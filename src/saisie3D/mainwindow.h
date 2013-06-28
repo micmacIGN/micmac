@@ -23,8 +23,8 @@ class MainWindow;
 //const QColor colorBG0(30,132,181);
 //const QColor colorBG1(70,70,70);
 
-const QColor colorBG0(50,50,53);
-const QColor colorBG1(92,90,90);
+const QColor colorBG0(65,65,60);
+const QColor colorBG1(120,115,115);
 
 class MainWindow : public QMainWindow
 {
@@ -47,12 +47,13 @@ signals:
     void progressInc(int val);
 
 public slots:
+
     //! Try to load a list of files
     void addFiles(const QStringList& filenames);
-
     void selectedPoint(uint idC,uint idV,bool select);
 
-protected slots:
+//protected slots:
+
     void doActionDisplayShortcuts();
     void toggleFullScreen(bool);
     void toggleShowAxis(bool);
@@ -90,7 +91,8 @@ protected slots:
 protected:
 
     //! Connects all QT actions to slots
-    void connectActions();
+    void connectActions();  
+
 
 private:
 
