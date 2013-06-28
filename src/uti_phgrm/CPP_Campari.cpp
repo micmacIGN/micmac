@@ -125,7 +125,7 @@ int Campari_main(int argc,char ** argv)
                        +  std::string(" +AeroOut=-") + AeroOut + " " 
                       ;
 
-    if (CPI1) aCom       += " +CPI=true ";
+    if (CPI1 || CPI2) aCom       += " +CPI=true ";
     if (CPI2) aCom       += " +CPIInput=true ";
     if (FocFree) aCom    += " +FocFree=true ";
     if (FocFree) aCom    += " +PPFree=true ";
