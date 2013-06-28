@@ -1,4 +1,4 @@
-﻿#include "GLWidget.h"
+#include "GLWidget.h"
 
 //Min and max zoom ratio (relative)
 const float GL_MAX_ZOOM_RATIO = 1.0e6f;
@@ -1277,7 +1277,7 @@ void GLWidget::setAngles(float angleX, float angleY)
     m_params.angleY = angleY;
 }
 
-void GLWidget::saveSelectionInfos(QString Filename)
+void GLWidget::saveSelectionInfos(QString /*Filename*/)
 {
     for (int aK=0; aK < m_infos.size() ; ++aK )
     {
