@@ -214,9 +214,6 @@ string printResult( const string &i_tool )
 
 int CheckDependencies_main(int argc,char ** argv)
 {
-	#if (ELISE_windows_xp)
-		cout << "Windows XP compatible" << endl;
-	#endif
 	#ifdef USE_OPEN_MP
 		cout << "OpenMP is enabled" << endl;
 	#endif
