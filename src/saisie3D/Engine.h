@@ -69,6 +69,7 @@ public:
 
     cData*   getData()  {return m_Data;}
 
+    void loadCloudsWin(QStringList filenames);
 private:
 
     cLoader *m_Loader;

@@ -149,11 +149,11 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         if (fi.suffix() == "ply")
         {            
-
-
-//            m_Engine->loadClouds(filenames);
+#ifdef WIN32
+            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadCloudsWin,filenames);
+#else
             QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadClouds,filenames,&this->progress,this);
-
+#endif
             this->FutureWatcher.setFuture(future);
             this->ProgressDialog->setWindowModality(Qt::WindowModal);
             this->ProgressDialog->exec();

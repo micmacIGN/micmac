@@ -74,6 +74,14 @@ void cEngine::loadClouds(QStringList filenames, void (*incre)(int,void*), void* 
     }
 }
 
+void cEngine::loadCloudsWin(QStringList filenames)
+{
+    for (int i=0;i<filenames.size();++i)
+    {
+        getData()->getBB(m_Loader->loadCloud(filenames[i].toStdString()));
+    }
+}
+
 void cEngine::loadCameras(QStringList filenames)
 {
     for (int i=0;i<filenames.size();++i)
