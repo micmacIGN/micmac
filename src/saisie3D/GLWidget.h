@@ -309,7 +309,7 @@ private:
     bool        _m_g_mouseLeftDown    ;
     bool        _m_g_mouseMiddleDown  ;
     bool        _m_g_mouseRightDown   ;
-    GLfloat     _m_g_tmpMatrix[9];
+    GLfloat     _m_g_tmpoMatrix[9];
     GLfloat     _m_g_rotationOx[9];
     GLfloat     _m_g_rotationOy[9];
     GLfloat     _m_g_rotationOz[9];

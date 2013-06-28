@@ -25,8 +25,7 @@ public:
     CamStenope * loadCamera(string aNameFile);
     vector <CamStenope *> loadCameras();
 
-    Cloud* loadCloud(string i_ply_file , void (*incre)(int, void *) = NULL, void* obj = NULL);
-    vector <Cloud *> loadClouds();
+    Cloud*      loadCloud(string i_ply_file , void (*incre)(int, void *) = NULL, void* obj = NULL);
 
     void        setDir(QDir aDir){m_Dir = aDir;}
     QDir        getDir(){return m_Dir;}
@@ -54,9 +53,6 @@ public:
 
     //! Load point cloud .ply files
     void loadClouds(QStringList, void (*incre)(int, void *) = NULL, void *obj = NULL);
-
-    //! Load point cloud .ply files
-    void loadPlys();
 
     //! Load cameras .xml files
     void loadCameras(QStringList);

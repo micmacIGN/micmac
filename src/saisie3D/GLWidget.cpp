@@ -392,9 +392,9 @@ void GLWidget::setBufferGl(bool onlyColor)
             }
             else
             {
-                colors[pitchV+bK*3 + 0 ]   = colo.redF()*1.5;
+                colors[pitchV+bK*3 + 0 ]   = colo.redF()*0.7;
                 colors[pitchV+bK*3 + 1 ]   = colo.greenF()*0.6;
-                colors[pitchV+bK*3 + 2 ]   = colo.blueF()*0.6;
+                colors[pitchV+bK*3 + 2 ]   = colo.blueF()*0.8;
             }
         }
 
@@ -697,8 +697,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             setRotateOx_m33( angleX, _m_g_rotationOx );
             setRotateOy_m33( angleY, _m_g_rotationOy );
 
-            mult_m33( _m_g_rotationOx, _m_g_rotationMatrix, _m_g_tmpMatrix );
-            mult_m33( _m_g_rotationOy, _m_g_tmpMatrix, _m_g_rotationMatrix );
+            mult_m33( _m_g_rotationOx, _m_g_rotationMatrix, _m_g_tmpoMatrix );
+            mult_m33( _m_g_rotationOy, _m_g_tmpoMatrix, _m_g_rotationMatrix );
         }
         else if ( _m_g_mouseMiddleDown ) // translation
         {
@@ -714,9 +714,9 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
             setRotateOz_m33( angleZ, _m_g_rotationOz );
 
-            mult_m33( _m_g_rotationOz, _m_g_rotationMatrix, _m_g_tmpMatrix );
+            mult_m33( _m_g_rotationOz, _m_g_rotationMatrix, _m_g_tmpoMatrix );
 
-            for (int i = 0; i < 9; ++i) _m_g_rotationMatrix[i] = _m_g_tmpMatrix[i];
+            for (int i = 0; i < 9; ++i) _m_g_rotationMatrix[i] = _m_g_tmpoMatrix[i];
         }
 
         update();

@@ -9,7 +9,6 @@ int main(int argc, char *argv[]) {
 	
     MainWindow w;
     w.show();
-
     w.checkForLoadedEntities();
 
     return app.exec();
