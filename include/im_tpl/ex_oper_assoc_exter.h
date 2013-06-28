@@ -253,9 +253,9 @@ class cArgSommeRapide1Im
       // Definition des types element d'entree et cumul : Prerequis
         typedef tElImage     tElem;
         typedef cCumulSomIm  tCumul;
-        void OnNewLine(int anY) {}
+        void OnNewLine(int /*anY*/) {}
 
-        void UseAggreg(const std::complex<int> & aP,const cCumulSomIm & aCSI)
+        void UseAggreg(const std::complex<int> & /*aP*/,const cCumulSomIm & /*aCSI*/)
         {
         };
         void Init(const std::complex<int> & aP,tElImage & anEl)
@@ -301,10 +301,10 @@ class cArgSommeRapideIteree
       // Definition des types element d'entree et cumul : Prerequis
         typedef int     tElem;
         typedef cCumulSomIm  tCumul;
-        void OnNewLine(int anY) {}
+        void OnNewLine(int /*anY*/) {}
 
-        void UseAggreg(const std::complex<int> & aP,const cCumulSomIm & aCSI) {};
-        void Init(const std::complex<int> & aP,int & anEl)
+        void UseAggreg(const std::complex<int> & /*aP*/,const cCumulSomIm & /*aCSI*/) {};
+        void Init(const std::complex<int> & /*aP*/,int & anEl)
         {
             anEl =  mOPB.GetNext()->Som();
         }

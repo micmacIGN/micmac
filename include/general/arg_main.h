@@ -103,7 +103,7 @@ template <class Type> inline std::istream &  ElStdRead (std::istream &is,Type & 
 extern bool Str2Bool(bool & aRes,const std::string & aStr);
 extern bool Str2BoolForce(const std::string & aStr);
 
-template <> inline std::istream & ElStdRead (std::istream &is, bool & aVal, const ElGramArgMain & G)
+template <> inline std::istream & ElStdRead (std::istream &is, bool & aVal, const ElGramArgMain & /*G*/)
 {
    std::string aStr ;
    is >> aStr;
