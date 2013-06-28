@@ -804,7 +804,7 @@ class cTplValGesInit
           
 
 //typedef long long int tFileOffset;
-typedef long int tLowLevelFileOffset;
+typedef int64_t tLowLevelFileOffset;
 typedef unsigned int  tByte4AbsFileOffset;
 // typedef long long  int tLowLevelRelFileOffset;
 
@@ -822,8 +822,8 @@ class tFileOffset
          tByte4AbsFileOffset   Byte4AbsLLO() const
          {
                tLowLevelFileOffset aLLO = mLLO.Val();
-               ELISE_ASSERT((aLLO>=0) && (aLLO<=0xFFFFFFFFl),"Byt4LLO too big");
-               return aLLO;
+               ELISE_ASSERT((aLLO>=0) && (aLLO<=0xFFFFFFFFll),"Byt4LLO too big");
+               return (tByte4AbsFileOffset)aLLO;
          }
          const tLowLevelFileOffset & BasicLLO() const
          {
@@ -832,8 +832,8 @@ class tFileOffset
          int  IntBasicLLO() const
          {
                tLowLevelFileOffset aLLO = mLLO.Val();
-               ELISE_ASSERT((aLLO>-0x7FFFFFFFl) && (aLLO<0x7FFFFFFFl),"Byt4LLO too big");
-               return aLLO;
+               ELISE_ASSERT((aLLO>-0x7FFFFFFFll) && (aLLO<0x7FFFFFFFll),"Byt4LLO too big");
+               return (int)aLLO;
          }
 
          tFileOffset ()
