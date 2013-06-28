@@ -292,7 +292,7 @@ ENDIF()
 
 # DEFINITION : des preprocesseurs windows
 IF (MSVC)
-	add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
+	add_definitions( "/Zm131 /W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
 
 	if(MSVC80 OR MSVC90 OR MSVC10)
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
