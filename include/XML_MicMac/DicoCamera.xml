@@ -13,6 +13,11 @@
         <ShortName> C60D </ShortName>
    </CameraEntry>
    <CameraEntry>
+        <Name> Canon EOS 650D  </Name>
+        <SzCaptMm>   14.9 22.3 </SzCaptMm>
+        <ShortName> C60D </ShortName>
+   </CameraEntry>
+   <CameraEntry>
         <Name> Canon EOS 7D  </Name>
         <SzCaptMm>   16.0 24.0 </SzCaptMm>
         <ShortName> C7D </ShortName>

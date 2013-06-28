@@ -135,6 +135,7 @@ class cCelTiep
               SetCostCorel(4.0);
       }
 
+      int NbCel() const {return mNbCel;}
       void InitCel()
       {
           mNbCel =0;
@@ -427,6 +428,8 @@ cResCorTP cAppliMICMAC::CorrelMasqTP(const cMasqueAutoByTieP & aMATP,int anX,int
     double aPdsCum = mVScaIm[aNbScale-1][0]->CumSomPdsMS();
  // std::cout << "NbSssCalll " << aNbScale << "\n";
 
+static int aCptCMT =0 ; aCptCMT++;
+
     std::vector<int> aVOk;
     bool             Ok0 = false;
     for (int aKI=0 ; aKI<mNbIm ; aKI++)
@@ -469,8 +472,11 @@ cResCorTP cAppliMICMAC::CorrelMasqTP(const cMasqueAutoByTieP & aMATP,int anX,int
          }
     }
 
+//std::cout << "AAAAAAAAAAAAA " << Ok0 << " " << aVOk.size() << "\n";
+
     if ((! Ok0) || (aVOk.size() < 2))
        return cResCorTP(4,4,4);
+//std::cout << "BBBbbbb\n";
 
     double aSomDistTot = 0;
     double aMaxDistTot = 0;
@@ -515,9 +521,11 @@ cResCorTP cAppliMICMAC::CorrelMasqTP(const cMasqueAutoByTieP & aMATP,int anX,int
 void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,int aZ,bool Final)
 {
    static int aCptR[5] ={0,0,0,0,0};
+   if (0)
    {
        for (int aK=0 ; aK<5 ; aK++ )
            std::cout <<  " K"<<aK << "=" << aCptR[aK];
+       std::cout << "\n";
    }
 
     aCptR[0] ++;
@@ -532,12 +540,16 @@ void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,in
 
    cCelTiep & aCel =  mMMTP->Cel(anX,anY);
 
+
+   // std::cout << "NBCCCEL " << aCel.NbCel() << " " << aZ << "\n";
+
    if (aCel.ZIsExplored(aZ)) 
       return;
    aCptR[3] ++;
    aCel.SetZExplored(aZ);
 
    cResCorTP aCost = CorrelMasqTP(aMATP,anX,anY,aZ) ;
+   // std::cout << "Cots " << aCost.CSom() << " " << aCost.CMax() << " " << aCost.CMed()  << "\n";
    double aCSom = aCost.CSom();
    if (
          (     (aCSom > aMATP.SeuilSomCostCorrel()) 
@@ -657,7 +669,6 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
            Im2D_REAL4 * anI = mVLI[0]->FloatIm(aKS);
            ELISE_COPY(anI->all_pts(),Max(0,Min(255,anI->in()/50)),TheWTiePCor->ogray());
        }
-       // std::cout << "DONE COPY IMAGE \n"; getchar();
 /*
        {
            ELISE_COPY(TheWTiePCor->all_pts(),mMMTP->ImMasquageInput().in(),TheWTiePCor->odisc());
@@ -696,11 +707,10 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
            MakeDerivAllGLI(aXIm,aYIm,aZIm);
            CTPAddCell(aMATP,aXIm,aYIm,aZIm,false);
 
-           ShowPoint(Pt2dr(aXIm,aYIm),P8COL::red,0,2);
+           ShowPoint(Pt2dr(aXIm,aYIm),P8COL::red,0);
        }
    }
 
-   std::cout << "DONE INIT PTS \n"; getchar();
 
 
    OneIterFinaleMATP(aMATP,false);
