@@ -3065,6 +3065,7 @@ using namespace NS_ParamChantierPhotogram;
 
 cConvExplicite MakeExplicite(eConventionsOrientation aConv)
 {
+std::cout << "CONNVvv " << aConv << " " <<  eConvAngPhotoMDegre << "\n";
    cConvExplicite aRes;
    {
       switch (aConv)
