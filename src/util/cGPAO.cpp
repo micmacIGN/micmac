@@ -47,7 +47,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*********************************************************/
 
 
-void cEl_GPAO::DoComInParal(const std::list<std::string> & aL,std::string  FileMk , int   aNbProc ,bool Exe)
+void cEl_GPAO::DoComInParal(const std::list<std::string> & aL,std::string  FileMk , int   aNbProc ,bool Exe,bool MoinsK)
 {
     if (aNbProc<=0)  
        aNbProc = NbProcSys();
@@ -72,7 +72,8 @@ void cEl_GPAO::DoComInParal(const std::list<std::string> & aL,std::string  FileM
 
     aGPAO.GenerateMakeFile(FileMk);
 
-    std::string aCom = g_externalToolHandler.get( "make" ).callName()+" all -f " + FileMk + " -j" + ToString(aNbProc);
+    std::string aCom = g_externalToolHandler.get( "make" ).callName()+" all -f " + FileMk + " -j" + ToString(aNbProc) + " ";
+    if (MoinsK) aCom = aCom + " -k ";
     if (Exe)
     {
         VoidSystem(aCom.c_str());
