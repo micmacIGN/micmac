@@ -88,6 +88,18 @@
 	  </Sets>
           <Key> NKS-Set-Homol </Key>
     </KeyedSetsOfNames>
+    <KeyedSetsOfNames >
+          <IsParametrized>  true </IsParametrized>
+          <Sets>
+                 <PatternAccepteur> Pastis#3/#3\.(#2)  </PatternAccepteur>
+                 <SubDir>   Homol#1/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+          </Sets>
+          <Key> NKS-Set-Homol-Filtered </Key>
+    </KeyedSetsOfNames>
+<!--
+-->
+
 
     <KeyedSetsOfNames>
           <IsParametrized>  true </IsParametrized>
@@ -97,6 +109,16 @@
 	  </Sets>
           <Key> NKS-Set-Orient </Key>
     </KeyedSetsOfNames>
+
+     <KeyedSetsOfNames>
+           <IsParametrized>  true </IsParametrized>
+           <Sets>
+                   <PatternAccepteur> Orientation-#2.xml  </PatternAccepteur>
+                   <SubDir>   Ori#1/ </SubDir>
+           </Sets>
+           <Key> NKS-Set-Orient-Filtered </Key>
+     </KeyedSetsOfNames>
+
 
     <KeyedSetsOfNames>
           <IsParametrized>  true </IsParametrized>

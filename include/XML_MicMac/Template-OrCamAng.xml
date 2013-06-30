@@ -16,7 +16,10 @@
                </ParamRotation>
           </Externe>
           <ConvOri>
+               <KnownConv> eConvApero_DistM2C </KnownConv>
+<!--
                <KnownConv> eConvInconnue </KnownConv>
+-->
           </ConvOri>
      </OrientationConique>
 </ExportAPERO>

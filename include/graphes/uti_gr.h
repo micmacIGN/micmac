@@ -128,6 +128,7 @@ template <class TSubGr> class cSubGrFlagSom : public  ElSubGraphe<typename TSubG
           }
           bool   inS(typename TSubGr::TSom & aS)  { return aS.flag_kth(mFlag) && (mSub.inS(aS)); }
           bool   inA(typename TSubGr::TArc & anA) { return mSub.inA(anA);}
+          // Pt2dr pt(TSom & aSom) {return mSub.pt(aSom);}
      private :
           TSubGr & mSub;
           int mFlag;
@@ -143,6 +144,7 @@ template <class TSubGr> class cSubGrFlagArc : public  ElSubGraphe<typename TSubG
           }
           bool   inS(typename TSubGr::TSom & aS)  { return mSub.inS(aS); }
           bool   inA(typename TSubGr::TArc & anA) { return anA.flag_kth(mFlag) && mSub.inA(anA);}
+          Pt2dr pt(typename TSubGr::TSom & aSom) {return mSub.pt(aSom);}
      private :
           TSubGr & mSub;
           int mFlag;
