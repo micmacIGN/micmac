@@ -585,11 +585,11 @@ int  Vignette_main(int argc,char ** argv)
 				vectOfvectOfExpTimeISO.push_back(vectOfExpTimeISO);
 			}else{
 				for (int i=0;i<(int)vectOfDiaphFoc.size();i++){
-					cout<<"Banane! "<<vectOfDiaphFoc.size()<<endl;
+					//cout<<"Banane! "<<vectOfDiaphFoc.size()<<endl;
 					if (diaphFoc.diaph==vectOfDiaphFoc[i].diaph && diaphFoc.foc==vectOfDiaphFoc[i].foc){
 						listOfListIm[i].push_back(aFullName);
 						vectOfvectOfExpTimeISO[i].push_back(expTimeISO);
-						cout<<"Added "<<listOfListIm[i]<<" as "<<listOfListIm[i].size()<<"th image to group "<<i<<endl;
+						//cout<<"Added "<<listOfListIm[i]<<" as "<<listOfListIm[i].size()<<"th image to group "<<i<<endl;
 						break;
 						}else{if(i==(int)vectOfDiaphFoc.size()-1){
 								diaphFoc.isComputed=false;
