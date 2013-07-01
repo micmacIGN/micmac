@@ -67,7 +67,7 @@ vector<ArsenicImage> LoadGrpImages(string aDir, std::vector<std::string> * aVect
 
 	for (int aK1=0 ; aK1<nbIm ; aK1++)
     {
-		string cmdConv=MMDir() + "bin/ScaleIm " + (*aVectIm)[aK1] + " 24 F8B=1";
+		string cmdConv=MMDir() + "bin/ScaleIm " + (*aVectIm)[aK1] + " 8 F8B=1";
 		ListConvert.push_back(cmdConv);
 
 		VectMasq.push_back("Masq-TieP-" + (*aVectIm)[aK1] + "/RN" + (*aVectIm)[aK1] + "_Masq.tif");
