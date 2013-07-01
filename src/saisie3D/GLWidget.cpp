@@ -42,7 +42,9 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
 {
     _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
     _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
-    _m_g_rotationMatrix[5] = _m_g_rotationMatrix[6] = _m_g_rotationMatrix[7] = 0;
+    _m_g_rotationMatrix[5] = _m_g_rotationMatrix[6] = _m_g_rotationMatrix[7] = 0;  
+
+    _time.start();
 
     //drag & drop handling
     setAcceptDrops(true);
@@ -90,13 +92,7 @@ void GLWidget::calculateFPS()
     //  Increase frame count
     _frameCount++;
 
-    //  Get the number of milliseconds since glutInit called
-    //  (or first call to glutGet(GLUT ELAPSED TIME)).
-#ifndef WIN32
-    _currentTime = glutGet(GLUT_ELAPSED_TIME);
-#else
-    _currentTime = GetTickCount();
-#endif
+    _currentTime = _time.elapsed();
 
     //  Calculate time passed
     int deltaTime = _currentTime - _previousTime;
@@ -262,14 +258,15 @@ void GLWidget::paintGL()
         glMatrixMode(GL_MODELVIEW);
     }
 
-    if ((m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE) && m_bDrawMessages)
+    //if ((m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE) && m_bDrawMessages)
     {
         calculateFPS();
 
-        glColor4f(0.0f,0.7f,1.0f,0.6f);
+        glColor4f(0.8f,0.9f,1.0f,0.9f);
+
         int fontSize = 10;
         m_font.setPointSize(fontSize);
-        renderText(10,  m_glHeight- fontSize, m_messageFPS,m_font);
+        renderText(10, m_glHeight- fontSize, m_messageFPS,m_font);
     }
 }
 
