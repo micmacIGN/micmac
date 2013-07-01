@@ -512,7 +512,7 @@ void cGBV2_ProgDynOptimiseur::copyCells(Pt2di aDirI, Data2Optimiz<CuHostData3D,2
                 if (dirCopy == MAT_TO_STREAM)
                     d2Opt._s_InitCostVol[idStrm + aPx]  = aMat[Pt2di(aPx,0)].GetCostInit();
                 else
-                    aMat[Pt2di(aPx,0)].AddToCostFinal(d2Opt._s_ForceCostVol[0][idStrm + aPx]);
+                    aMat[Pt2di(aPx,0)].AddToCostFinal(d2Opt._s_ForceCostVol[idBuf][idStrm + aPx]);
 
             pitStrm += count(dZ);
         }

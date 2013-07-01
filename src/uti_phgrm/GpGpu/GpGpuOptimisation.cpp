@@ -131,13 +131,13 @@ void InterfOptimizGpGpu::threadFuncOptimi()
     while(true)
     {
         boost::this_thread::sleep(boost::posix_time::microsec(1));
-        if(!GetDirToCopy() && GetCompute())
+        if(/*!GetDirToCopy() && */GetCompute())
         {
             //printf("compute[%d]      : %d\n",idbuf,idDir);
             SetCompute(false);
 
             _D_data2Opt.SetNbLine(_H_data2Opt._nbLines);
-            _H_data2Opt.ReallocOutputIf(_H_data2Opt._s_InitCostVol.GetSize(),0);
+            _H_data2Opt.ReallocOutputIf(_H_data2Opt._s_InitCostVol.GetSize(),idbuf);
             _D_data2Opt.ReallocIf(_H_data2Opt);
 
             //      Transfert des données vers le device                            ---------------		-
@@ -150,7 +150,7 @@ void InterfOptimizGpGpu::threadFuncOptimi()
             getLastCudaError("kernelOptiOneDirection failed");
 
             //      Copie des couts de passage forcé du device vers le host         ---------------     -
-            _D_data2Opt.CopyDevicetoHost(_H_data2Opt,0);
+            _D_data2Opt.CopyDevicetoHost(_H_data2Opt,idbuf);
 
             SetDirToCopy(true);
             idbuf =! idbuf;
