@@ -10,14 +10,14 @@ struct Data2Optimiz
 {
     U<uint3>     _param[NBUFFER];
     U<uint>      _s_InitCostVol;
-    U<uint>      _s_ForceCostVol;
+    U<uint>      _s_ForceCostVol[NBUFFER];
     U<short2>    _s_Index;
     uint         _nbLines;
     bool         _idBuffer;
 
     Data2Optimiz():
         _s_InitCostVol((uint)1),
-        _s_ForceCostVol((uint)1),
+        //_s_ForceCostVol((uint)1),
         _s_Index((uint)1),
         _idBuffer(false)
     {
@@ -28,15 +28,14 @@ struct Data2Optimiz
 
     void Dealloc()
     {
-        _s_InitCostVol  .Dealloc();
-        _s_ForceCostVol .Dealloc();
+        _s_InitCostVol  .Dealloc();        
         _s_Index        .Dealloc();
-        _param[0]       .Dealloc();
-    }
 
-    void SwitchBuffer()
-    {
-        _idBuffer = !_idBuffer;
+        for(uint i = 0;i < NBUFFER;i++)
+        {
+            _param[i]           .Dealloc();
+            _s_ForceCostVol[i]  .Dealloc();
+        }
     }
 
     void ReallocParam(uint size)
@@ -52,9 +51,9 @@ struct Data2Optimiz
 
     void ReallocIf(uint pStr,uint pIdStr)
     {
-        _s_InitCostVol  .ReallocIf(pStr);
-        _s_ForceCostVol .ReallocIf(pStr);
-        _s_Index        .ReallocIf(pIdStr);
+        _s_InitCostVol      .ReallocIf(pStr);
+        _s_ForceCostVol[0]  .ReallocIf(pStr);
+        _s_Index            .ReallocIf(pIdStr);
     }
 
     void ReallocInputIf(uint pStr,uint pIdStr)
@@ -64,9 +63,9 @@ struct Data2Optimiz
 
     }
 
-    void ReallocOutputIf(uint pStr)
+    void ReallocOutputIf(uint pStr, uint idbuf = 0)
     {
-        _s_ForceCostVol .ReallocIf(pStr);
+        _s_ForceCostVol[idbuf] .ReallocIf(pStr);
     }
 
     void ReallocIf(Data2Optimiz<CuHostData3D,2> &d2o)
@@ -79,9 +78,9 @@ struct Data2Optimiz
         ReallocInputIf(d2o._s_InitCostVol.GetSize(),d2o._s_Index.GetSize());
     }
 
-    void ReallocOutputIf(Data2Optimiz<CuHostData3D,2> &d2o)
+    void ReallocOutputIf(Data2Optimiz<CuHostData3D,2> &d2o, uint idbuf = 0)
     {
-        ReallocOutputIf(d2o._s_InitCostVol.GetSize());
+        ReallocOutputIf(d2o._s_InitCostVol.GetSize(),idbuf);
     }
 
     void SetNbLine(uint nbl)
@@ -96,15 +95,11 @@ struct Data2Optimiz
         _param[0].CopyHostToDevice(         d2o._param[idbuf]  .pData());
     }
 
-    void CopyDevicetoHost(Data2Optimiz<CuHostData3D,2> &d2o)
+    void CopyDevicetoHost(Data2Optimiz<CuHostData3D,2> &d2o, uint idbuf = 0)
     {
-         _s_ForceCostVol.CopyDevicetoHost(d2o._s_ForceCostVol.pData());
+         _s_ForceCostVol[0].CopyDevicetoHost(d2o._s_ForceCostVol[idbuf].pData());
     }
 
-    void CopyDevicetoHost(uint *forceCost)
-    {
-         _s_ForceCostVol.CopyDevicetoHost(forceCost);
-    }
 };
 
 #endif //__DATA2OPTIMIZ_H__

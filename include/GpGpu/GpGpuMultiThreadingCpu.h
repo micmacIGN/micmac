@@ -15,6 +15,23 @@ extern "C" void Launch(uint* value);
 #define ITERACUDA   2
 #define SIZERING    2
 
+
+class DataBuffer
+{
+    /*  Gerer les donnees d entres au niveau du host
+     *  Les donnes a traiter
+     *  les parametres
+     *      - les constants
+     *      - les non constants
+     *
+     *
+    */
+
+    virtual void AllocHostIn()   = 0;
+    virtual void AllocDeviceIn() = 0;
+
+};
+
 template< class H, class D >
 class GpGpuMultiThreadingCpu
 {

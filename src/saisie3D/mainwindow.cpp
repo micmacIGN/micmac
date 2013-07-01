@@ -169,6 +169,8 @@ void MainWindow::addFiles(const QStringList& filenames)
         checkForLoadedEntities();
 
     }
+
+    this->setWindowState(Qt::WindowActive);
 }
 
 void MainWindow::selectedPoint(uint idC, uint idV, bool select)
