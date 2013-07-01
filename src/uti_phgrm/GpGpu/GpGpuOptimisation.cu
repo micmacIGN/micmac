@@ -163,10 +163,10 @@ extern "C" void OptimisationOneDirection(Data2Optimiz<CuHostData3D> &d2O)
 
     kernelOptiOneDirection<uint><<<Blocks,Threads>>>
                                                 (
-                                                    d2O._s_InitCostVol  .pData(),
-                                                    d2O._s_Index        .pData(),
-                                                    d2O._s_ForceCostVol .pData(),
-                                                    d2O._param[0]       .pData(),
+                                                    d2O._s_InitCostVol      .pData(),
+                                                    d2O._s_Index            .pData(),
+                                                    d2O._s_ForceCostVol[0]  .pData(),
+                                                    d2O._param[0]           .pData(),
                                                     deltaMax
                                                     );
 }
