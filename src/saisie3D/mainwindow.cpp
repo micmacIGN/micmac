@@ -33,14 +33,6 @@ MainWindow::MainWindow(QWidget *parent) :
     toggleShowAxis(ui->actionShow_axis->isChecked());
     toggleShowBBox(ui->actionShow_bounding_box->isChecked());
 
-    //ui->toolBar->addAction(ui->actionTogglePoints_selection);
-//    ui->actionShow_help_messages->setShortcutContext(Qt::ApplicationShortcut);
-//    ui->menuBar->addAction(ui->actionShow_help_messages);
-//    ui->menuFile->addAction(ui->actionShow_help_messages);
-//    ui->toolBar->addAction(ui->actionShow_help_messages);
-//    addAction(ui->actionShow_help_messages);
-//    m_glWidget->addAction(ui->actionShow_help_messages);
-
     QHBoxLayout* layout = new QHBoxLayout();
     layout->addWidget(m_glWidget);
     connectActions();
@@ -175,7 +167,6 @@ void MainWindow::addFiles(const QStringList& filenames)
         }
 
         checkForLoadedEntities();
-
 
     }
 }
@@ -360,16 +351,7 @@ void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
 void MainWindow::loadPlys()
 {
 
-
-
     QStringList FilenamesIn  = QFileDialog::getOpenFileNames(NULL, tr("Open Cloud Files"),QString(), tr("Files (*.ply)"));
-    //FilenamesIn << "/home/gchoqueux/Documents/Ply/NuageImProf_Geom_DSC_3135_Etape_7.ply";
-
-//    QFileDialog fileDia(this, tr("Open Cloud Files"),QString(), tr("Files (*.ply)"));
-
-//    while(fileDia.exec());
-//        FilenamesIn = fileDia.selectedFiles();
-
 
     addFiles(FilenamesIn);
 
@@ -404,7 +386,6 @@ void MainWindow::unloadAll()
     m_glWidget->setCameraLoaded(false);
     checkForLoadedEntities();
     m_glWidget->setBufferGl();
-
     m_glWidget->update();
 }
 
