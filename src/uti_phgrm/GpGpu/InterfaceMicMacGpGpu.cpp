@@ -12,7 +12,7 @@ InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
   _texProjections_04(getProjection(4)),
   _texProjections_05(getProjection(5)),
   _texProjections_06(getProjection(6)),
-  _texProjections_07(getProjection(7)),
+  _texProjections_07(getProjection(7)),  
   _useAtomicFunction(USEATOMICFUNCT)
 {
   for (int s = 0;s<NSTREAM;s++)
@@ -41,11 +41,19 @@ InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
       GetTeXProjection(s).normalized		= false;
 
     }
+
   // Parametres texture des Images
   _texImages.addressMode[0]	= cudaAddressModeWrap;
   _texImages.addressMode[1]	= cudaAddressModeWrap;
   _texImages.filterMode		= cudaFilterModeLinear; //cudaFilterModeLinear cudaFilterModePoint
   _texImages.normalized		= false;
+
+  _hVolumeCost[0].SetName("_hVolumeCost0");
+  _hVolumeCost[1].SetName("_hVolumeCost1");
+  _hVolumeCost[0].SetPageLockedMemory(true);
+  _hVolumeCost[1].SetPageLockedMemory(true);
+
+  _hVolumeProj.SetName("_hVolumeProj");
 
   // Parametres texture des Caches
   //  _texCache.addressMode[0]	= cudaAddressModeWrap;
@@ -123,6 +131,8 @@ void InterfaceMicMacGpGpu::DeallocMemory()
   _mask.Dealloc();
   _LayeredImages.Dealloc();
 
+
+
 #ifdef USEDILATEMASK
   delete [] _dilateMask;
 #endif
@@ -166,7 +176,7 @@ void InterfaceMicMacGpGpu::SetImages( float* dataImage, uint2 dimImage, int nbLa
   _LayeredImages.bindTexture(_texImages);
 }
 
-void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* hostVolumeProj, int nbLayer, uint interZ )
+void InterfaceMicMacGpGpu::BasicCorrelation(int nbLayer, uint idBuf )
 {
   // Lancement des algo GPGPU
 
@@ -183,21 +193,16 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
   const uint s = 0;     // Affection du stream de calcul
 
   // Copier les projections du host --> device
-  _LayeredProjection[s].copyHostToDevice(hostVolumeProj);
+  _LayeredProjection[s].copyHostToDevice(_hVolumeProj.pData());
+
   // Indique que la copie est terminée pour le thread de calcul des projections
   SetComputeNextProj(true);
+
   // Lié de données de projections du device avec la texture de projections
   _LayeredProjection[s].bindTexture(GetTeXProjection(s));
 
   // Lancement du calcul de correlation
   KernelCorrelation(s, *(GetStream(s)),blocks, threads,  _volumeNIOk[s].pData(), _volumeCach[s].pData(), actiThsCo);
-
-  /*
-  ImageLayeredCuda<float> textureCache;
-  textureCache.Realloc(_param.dimCach,_param.nbImages * _param.ZLocInter);
-  textureCache.copyDeviceToDevice(_volumeCach[s].pData());
-  textureCache.bindTexture(_texCache);
-*/
 
   // Libérer la texture de projection
   checkCudaErrors( cudaUnbindTexture(&(GetTeXProjection(s))));
@@ -228,12 +233,8 @@ void InterfaceMicMacGpGpu::BasicCorrelation( float* hostVolumeCost, float2* host
     }
 
   // Copier les resultats de calcul des couts du device vers le host!
-  _volumeCost[s].CopyDevicetoHost(hostVolumeCost);
+  _volumeCost[s].CopyDevicetoHost(_hVolumeCost[idBuf].pData());
 
-  /*
-  checkCudaErrors( cudaUnbindTexture(&_texCache));
-  textureCache.Dealloc();
-  */
 }
 
 void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj, int nbLayer, uint interZ )
@@ -390,25 +391,23 @@ cudaStream_t* InterfaceMicMacGpGpu::GetStream( int stream )
 
 void InterfaceMicMacGpGpu::MTComputeCost()
 {
-  bool gpuThreadLoop = true;
+  bool gpuThreadLoop    = true;
+  _idBuf                = false;
 
   while (gpuThreadLoop)
     {
-      if (GetZToCompute()!=0 && GetZCtoCopy()==0)
+      if (GetZToCompute()!=0 /*&& GetZCtoCopy()==0*/)
         {
           uint interZ = GetZToCompute();
           SetZToCompute(0);
-          BasicCorrelation(_vCost, _vProj, _param.nbImages, interZ);
+          BasicCorrelation(_param.nbImages, _idBuf);
+          _idBuf = !_idBuf;
+
+          while(GetZCtoCopy() > 0);
           //BasicCorrelationStream(_vCost, _vProj, _param.nbImages, interZ);
           SetZCToCopy(interZ);
         }
     }
-}
-
-void InterfaceMicMacGpGpu::SetHostVolume( float* vCost, float2* vProj )
-{
-  _vCost = vCost;
-  _vProj = vProj;
 }
 
 uint InterfaceMicMacGpGpu::GetZToCompute()
@@ -446,6 +445,47 @@ void InterfaceMicMacGpGpu::SetComputeNextProj( bool compute )
 {
   boost::lock_guard<boost::mutex> guard(_mutexCompute);
   _computeNextProj = compute;
+}
+
+void InterfaceMicMacGpGpu::ReallocInputProjection(uint2 dim, uint l)
+{
+    _hVolumeProj.Realloc(dim,l);
+}
+
+void InterfaceMicMacGpGpu::ReallocOutCost(uint2 dim, uint l)
+{
+    _hVolumeCost[0].Realloc(dim,l);
+    _hVolumeCost[1].Realloc(dim,l);
+}
+
+void InterfaceMicMacGpGpu::MemsetProj()
+{
+    _hVolumeProj.Memset(Param().IntDefault);
+}
+
+float *InterfaceMicMacGpGpu::OuputCost(uint id)
+{
+    return _hVolumeCost[id].pData();
+}
+
+float2 *InterfaceMicMacGpGpu::InputProj()
+{
+    return _hVolumeProj.pData();
+}
+
+void InterfaceMicMacGpGpu::DeallocVolumes()
+{
+    if(!_hVolumeCost[0].GetSizeofMalloc())
+        _hVolumeCost[0].Dealloc();
+    if(!_hVolumeCost[1].GetSizeofMalloc())
+        _hVolumeCost[1].Dealloc();
+    if(!_hVolumeProj.GetSizeofMalloc())
+        _hVolumeProj.Dealloc();
+}
+
+void InterfaceMicMacGpGpu::SetIdBuf(bool id)
+{
+    _idBuf = id;
 }
 
 void InterfaceMicMacGpGpu::MallocInfo()
