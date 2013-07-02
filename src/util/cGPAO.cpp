@@ -291,7 +291,7 @@ void cElTask::GenerateMakeFile(FILE * aFP) const
     for (int aK=0;aK<int(mDeps.size());aK++)
        fprintf(aFP,"%s ", mDeps[aK]->mName.c_str());
     fprintf(aFP,"\n");
-
+	
     for 
     (
        std::list<std::string>::const_iterator itBR=mBR.begin();
@@ -299,6 +299,15 @@ void cElTask::GenerateMakeFile(FILE * aFP) const
        itBR++
     )
     {
+		#if (ELISE_windows)
+			// avoid a '\' at the end of a line in a makefile
+			if ( *(itBR->rbegin())=='\\' )
+			{
+					string str = *itBR+' ';
+					fprintf(aFP,"\t %s\n",str.c_str());
+			}
+			else
+		#endif
         fprintf(aFP,"\t %s\n",itBR->c_str());
     }
 }

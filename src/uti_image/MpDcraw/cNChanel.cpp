@@ -181,8 +181,13 @@ Fonc_Num  cArgMpDCRaw::FlatField(const cMetaDataPhoto & aMDP,const std::string &
 
    std::string aNameFF = DirOfFile(aNameFile)+ "Foc"+ ToString(round_ni(aMDP.FocMm(true))) + "-FlatField.tif";
   
+// std::cout <<  "TESTT FFFFFFF\n";
    if ((!ELISE_fp::exist_file(aNameFF)) || (! UseFF()))
+   {
+// std::cout <<  "  NOFFFFFFf \n";
       return 1;
+   }
+// std::cout <<  "  Wittttttttttttthh     FFFFFFf \n";
 
 
    Im2D_REAL4 aFlF=Im2D_REAL4::FromFileStd(aNameFF);

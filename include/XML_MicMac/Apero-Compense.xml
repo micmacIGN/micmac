@@ -18,7 +18,7 @@
 
            <eSymb>  MaxResTieP=* ${SigmaTieP} ${FactMaxRes}  </eSymb>
 
-           <Symb>  SauvAutom=SauvAutom </Symb>
+           <Symb>  SauvAutom="" </Symb>
            <Symb>  PropDiagU=1.0  </Symb>
 
 

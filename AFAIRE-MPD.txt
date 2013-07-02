@@ -6,6 +6,7 @@ Nouveaux outils :
 
   Exemple EDF en outil non simplifie
 
+ Incidence Max dans Malt       
 
   Orient from GPS : solution initiale + compensation ds campari.
 

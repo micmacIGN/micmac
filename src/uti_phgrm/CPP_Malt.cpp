@@ -129,6 +129,7 @@ class cAppliMalt
           std::string  mMasqIm;
           bool        mUseImSec;
           bool        mCorMS;
+          double      mIncidMax;
 };
 
 
@@ -222,6 +223,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mIsSperik,"Spherik",true,"If true the surface for redressing are spheres")
                     << EAM(mLargMin,"WMI",true,"Mininum width of reduced images (to fix ZoomInit)")
                     << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq")
+                    << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image")
   );
 
   mUseImSec = (mImMaster == std::string("AUTO"));
@@ -272,11 +274,20 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   ELISE_ASSERT((mNbIm>=2)|mUseImSec,"Not Enough image in Pattern");
 
   std::string aKeyOri = "NKS-Assoc-Im2Orient@-" + mOri;
+  double aSomZM = 0;
+  int    aNbZM = 0;
+
   for (int aKIm = 0; aKIm<mNbIm ; aKIm++)
   {
      const std::string & aNameIm = (*mSetIm)[aKIm];
      std::string aNameOri =  mICNM->Assoc1To1(aKeyOri,aNameIm,true);
      CamStenope *  aCS = CamOrientGenFromFile(aNameOri,mICNM);
+
+     if (aCS->AltisSolIsDef())
+     {
+        aSomZM += aCS->GetAltiSol();
+        aNbZM++;
+     }
 
      Pt2di aCorns[4];
      Box2di aBx(Pt2di(0,0), aCS->Sz());
@@ -287,6 +298,17 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
      
      mSzGlob = mSzGlob + aP0;
+  }
+  
+  bool ZMoyInit = EAMIsInit(&mZMoy) ;
+  if (!ZMoyInit)
+  {
+      if (EAMIsInit(&mIncidMax))
+      {
+           ELISE_ASSERT(aNbZM!=0,"Cannit get ZMOy with Inc Max");
+           ZMoyInit = true;
+           mZMoy /= aNbZM;
+      }
   }
   mSzGlob = mSzGlob / double(mNbIm);
 
@@ -492,7 +514,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   if (mCorMS)
       mCom = mCom + std::string(" +CorMS=true");
 
-  if (EAMIsInit(&mZMoy))
+
+  if (ZMoyInit)
   {
         mCom = mCom + " +FileZMoy=File-ZMoy.xml"
                     + " +ZMoy=" + ToString(mZMoy);
@@ -527,6 +550,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
        if (mImOrtho !="") mComOA =  mComOA + std::string(" +ImOrtho=") + mImOrtho;
        std::cout << "\n\n" << mComOA << "\n";
   }
+
+  if (EAMIsInit(&mIncidMax))
+     mCom   =  mCom + " +DoAnam=true +IncidMax=" + ToString(mIncidMax);
 }
 
      // mDirOrthoF = "Ortho-" + mDirMEC;
