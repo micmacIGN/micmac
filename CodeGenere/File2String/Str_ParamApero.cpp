@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1464]) = {
+const char * (theNameVar_ParamApero[1467]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1231,6 +1231,9 @@ const char * (theNameVar_ParamApero[1464]) = {
 "                         <!-- Points de verifications -->\n",
 "		     </ExportCalib>\n",
 "		     <ExportPose Nb=\"*\" AccessorFils=\"false\" >\n",
+"                          <Force2ObsOnC Nb=\"?\">\n",
+"                              <WhenExist Nb=\"?\" Type=\"bool\" Def=\"false\"> </WhenExist> <!-- Si false et pas => erreur -->\n",
+"                          </Force2ObsOnC>\n",
 "                          <ChC Nb=\"?\" Type=\"std::string\"> </ChC>\n",
 "                          <ChCForceRot Nb=\"?\" Type=\"bool\" Def=\"false\"> </ChCForceRot>\n",
 "                          <KeyAssoc  Nb=\"1\" Type=\"std::string\"> </KeyAssoc>\n",

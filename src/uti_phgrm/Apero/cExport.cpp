@@ -321,6 +321,25 @@ void cAppliApero::ExportPose(const cExportPose & anEP,const std::string & aPref)
                //const char * aNAux = aNXml.c_str();
 
 	       cOrientationConique anOC = aCS2->ExportCalibGlob(aSzIm,aZ,aP,aNbV,aMM,aNAux,aPVerifDet);
+
+               if (anEP.Force2ObsOnC().IsInit())
+               {
+                  const cForce2ObsOnC & aFOC = anEP.Force2ObsOnC().Val();
+                  if (aPC->HasObsOnCentre())
+                  {
+                       anOC.Externe().Centre() = aPC->ObsCentre();
+                  }
+                  else
+                  {
+                     if (!aFOC.WhenExist().Val())
+                     {
+                          std::cout << "For camera " << aPC->Name() << "\n";
+                          ELISE_ASSERT(false,"Camera has no center in Force2ObsOnC");
+                     }
+                  }
+               }
+
+
                if (aPC->FidExist())
                {
                     anOC.OrIntImaM2C().SetVal(El2Xml(aPC->OrIntM2C())) ;

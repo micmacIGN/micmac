@@ -907,7 +907,7 @@ int FusionCarteProf_main(int argc,char ** argv)
 
   Tiff_Im::SetDefTileFile(50000);
 
-  std::string aCom0 = "mm3d "+ MakeStrFromArgcARgv(argc,argv);
+  std::string aCom0 = MMBin() + "mm3d "+ MakeStrFromArgcARgv(argc,argv);
   // std::cout << aCom0 << "\n"; getchar();
 
 
