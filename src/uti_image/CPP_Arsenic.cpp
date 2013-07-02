@@ -58,24 +58,35 @@ void Arsenic_Banniere()
     std::cout <<  " **********************************\n\n";
 }
 
-vector<ArsenicImage> LoadGrpImages(string aDir, std::vector<std::string> * aVectIm, int SzMMInit)
+vector<ArsenicImage> LoadGrpImages(string aDir, std::string aPatIm, int SzMMInit, string InVig)
 {
+	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+	const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
+	std::vector<std::string> aVectIm=*aSetIm;
+
 	//Scaling the images the comply with MM-Initial-Model
-	list<string> ListConvert;
+	list<string> ListConvert, ListVig;
 	vector<std::string> VectImSc,VectMasq;
-	int nbIm=aVectIm->size();
+	int nbIm=aVectIm.size();
 	char SzMMInitch[3];sprintf(SzMMInitch, "%02d", SzMMInit);
+	//If a vignette correction is entered
+	string postfix="";
+	if(InVig!=""){
+		string cmdVig=MMDir() + "bin/mm3d Vodka " + aPatIm + " DoCor=1 Out=" + InVig + " InCal=" + InVig;
+		postfix="_Vodka.tif";
+		ListVig.push_back(cmdVig);
+		cEl_GPAO::DoComInParal(ListVig,aDir + "MkVig");
+	}
+
+
 	for (int aK1=0 ; aK1<nbIm ; aK1++)
     {
-		string cmdConv=MMDir() + "bin/ScaleIm " + (*aVectIm)[aK1] + " " + (string)SzMMInitch + " F8B=1";
+		string cmdConv=MMDir() + "bin/ScaleIm " + InVig + (aVectIm)[aK1] + postfix + " " + (string)SzMMInitch + " F8B=1 Out=" + (aVectIm)[aK1] + "_Scaled.tif";
 		ListConvert.push_back(cmdConv);
 
-		VectMasq.push_back("Masq-TieP-" + (*aVectIm)[aK1] + "/RN" + (*aVectIm)[aK1] + "_Masq.tif");
-		if (IsPostfixed((*aVectIm)[aK1])) 
-			  VectImSc.push_back(StdPrefix((*aVectIm)[aK1])+std::string("_Scaled.tif"));
-		   else
-			  VectImSc.push_back((*aVectIm)[aK1]+std::string("_Scaled.tif"));
-			}
+		VectMasq.push_back("Masq-TieP-" + (aVectIm)[aK1] + "/RN" + (aVectIm)[aK1] + "_Masq.tif");
+		VectImSc.push_back((aVectIm)[aK1]+std::string("_Scaled.tif"));
+	}
 	cEl_GPAO::DoComInParal(ListConvert,aDir + "MkScale24");
 
 	vector<ArsenicImage> aGrIm;
@@ -84,7 +95,7 @@ vector<ArsenicImage> LoadGrpImages(string aDir, std::vector<std::string> * aVect
 	{
 		ArsenicImage aIm;
 		//reading 3D info
-		cElNuage3DMaille * info3D1 = cElNuage3DMaille::FromFileIm("Masq-TieP-" + (*aVectIm)[aK1] + "/NuageImProf_LeChantier_Etape_4.xml");
+		cElNuage3DMaille * info3D1 = cElNuage3DMaille::FromFileIm("Masq-TieP-" + (aVectIm)[aK1] + "/NuageImProf_LeChantier_Etape_4.xml");
 		//cElNuage3DMaille * info3D1 = cElNuage3DMaille::FromFileIm("MM-Malt-Img-" + StdPrefix((*aVectIm)[aK1]) + "/NuageImProf_STD-MALT_Etape_7.xml");
 
 		aIm.info3D=info3D1;
@@ -114,23 +125,6 @@ vector<ArsenicImage> LoadGrpImages(string aDir, std::vector<std::string> * aVect
 		aIm.RChan=aIm1R;
 		aIm.GChan=aIm1G;
 		aIm.BChan=aIm1B;
-
-		/*
-		REAL4 ** aDataR = aIm1R.data();
-		REAL4 ** aDataG = aIm1G.data();
-		REAL4 ** aDataB = aIm1B.data();		
-		vector<vector<float> > aDataMatR(aSz.y),aDataMatG(aSz.y),aDataMatB(aSz.y);
-		for (int aY=0 ; aY<aSz.y  ; aY++)
-		{
-			for (int aX=0 ; aX<aSz.x  ; aX++)
-			{
-				aDataMatR[aY].push_back(aDataR[aY][aX]);
-				aDataMatG[aY].push_back(aDataG[aY][aX]);
-				aDataMatB[aY].push_back(aDataB[aY][aX]);
-			}}
-		aGrIm.RChans.push_back(aDataMatR);
-		aGrIm.GChans.push_back(aDataMatG);
-		aGrIm.BChans.push_back(aDataMatB);*/
 		aIm.SZ=aSz;
 		aGrIm.push_back(aIm);
 	}
@@ -142,16 +136,18 @@ double DistBetween(Pt3d<double> aP1, Pt3d<double> aP2 ){
 	return (double)std::sqrt(pow(double(aP1.x-aP2.x),2)+pow(double(aP1.y-aP2.y),2)+pow(double(aP1.z-aP2.z),2));
 }
 
-PtsHom ReadPtsHom3D(string aDir,std::vector<std::string> * aVectIm,string Extension, bool useMasq, string InVig, int SzMMInit)
+PtsHom ReadPtsHom3D(string aDir,string aPatIm,string Extension, bool useMasq, string InVig, int SzMMInit)
 {
+	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+	const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
+	std::vector<std::string> aVectIm=*aSetIm;
 	PtsHom aPtsHomol;
-	int nbIm=aVectIm->size();
+	int nbIm=aVectIm.size();
 	vector<int> NbPtsCoupleInit(nbIm*nbIm,0);
 	aPtsHomol.NbPtsCouple=NbPtsCoupleInit;
 
 	//Loading all images
-	vector<ArsenicImage> aGrIm=LoadGrpImages(aDir, aVectIm, SzMMInit);
-		std::cout<<aGrIm[0].Mask.data()[5][5]<<endl;
+	vector<ArsenicImage> aGrIm=LoadGrpImages(aDir, aPatIm, SzMMInit, InVig);
 	std::cout<<"===== "<<aGrIm.size()<< " images loaded"<<endl;
 
 	//On parcours toutes les paires d'images différentes (->testé dans le if)
@@ -171,7 +167,7 @@ PtsHom ReadPtsHom3D(string aDir,std::vector<std::string> * aVectIm,string Extens
 						//Testing the position of the point in other images	
 						vector<double> distances(nbIm,10000000); //distances between original 3D point and reprojection from other images
 						vector<Pt2dr> pos2DOtherIm(nbIm);
-						for (int aK2=0 ; aK2<int(aVectIm->size()) ; aK2++)
+						for (int aK2=0 ; aK2<int(nbIm) ; aK2++)
 						{
 							if (aK1!=aK2)
 							{//cout<<aK2<<" "<<aY<<" "<<aX<<endl;
@@ -190,7 +186,7 @@ PtsHom ReadPtsHom3D(string aDir,std::vector<std::string> * aVectIm,string Extens
 						}
 						//cout<<distances<<endl;
 						double distMin=*min_element(distances.begin(),distances.end());//cout<<"distmin"<<distMin<<endl;
-						for (int aK2=0 ; aK2<int(aVectIm->size()) ; aK2++){
+						for (int aK2=0 ; aK2<int(nbIm) ; aK2++){
 							if(fabs(distances[aK2]/distMin-1)<0.20 && distances[aK2]!=10000000 && distMin<0.020){//id pos3DPtIm1~=pos3DPtIm2 -->pt is considered homologous,it is added to PtsHom (Gr1, R1, G1, B1, X1, Y1, idem 2, NbPtsCouple++)
 								//cout<<"YES aK1 = " <<aK1<<" aK2 = " <<aK2<< " pos = " <<(aK1*nbIm)+aK2<<" pix1 = "<<aX<<" - "<<aY<<" pix2 = "<<pos2DOtherIm[aK2].x<<" - "<<pos2DOtherIm[aK2].y<<" with dist = "<<distances[aK2]<<endl;
 								aPtsHomol.X1.push_back(SzMMInit*pos2DPtIm1.x) ;
@@ -672,7 +668,7 @@ cout<<aParam3Chan.parBlue<<endl;
 return aParam3Chan;
 }
 
-void Egal_correct(string aDir,std::vector<std::string> * aSetIm,Param3Chan  aParam3chan,string aDirOut)
+void Egal_correct(string aDir,std::vector<std::string> * aSetIm,Param3Chan  aParam3chan,string aDirOut, string InVig)
 {
 	//Bulding the output file system
     ELISE_fp::MkDirRec(aDir + aDirOut);
@@ -680,11 +676,12 @@ void Egal_correct(string aDir,std::vector<std::string> * aSetIm,Param3Chan  aPar
     int nbIm=(aSetIm)->size();
 	int nbParam=aParam3chan.size()/nbIm;
 	cout<<nbParam<<endl;
+	string suffix="";if(InVig!=""){suffix="_Vodka.tif";}
     for(int i=0;i<nbIm;i++)
 	{
-	    string aNameIm=(*aSetIm)[i];
+	    string aNameIm=InVig + (*aSetIm)[i] + suffix;
 		cout<<"Correcting "<<aNameIm<<endl;
-		string aNameOut=aDir + aDirOut + aNameIm +"_egal.tif";
+		string aNameOut=aDir + aDirOut + (*aSetIm)[i] +"_egal.tif";
 
 		//Reading the image and creating the objects to be manipulated
 		Tiff_Im aTF= Tiff_Im::StdConvGen(aDir + aNameIm,3,false);
@@ -788,7 +785,7 @@ int  Arsenic_main(int argc,char ** argv)
 		}
 
 		//Reading homologous points
-		PtsHom aPtsHomol=ReadPtsHom3D(aDir, & aVectIm, Extension, useMasq, InVig,SzMMInit);
+		PtsHom aPtsHomol=ReadPtsHom3D(aDir, aPatIm, Extension, useMasq, InVig, SzMMInit);
 		
 		cout<<"Computing equalization factors"<<endl;
 		Param3Chan aParam3chan=Egalisation_factors(aPtsHomol,nbIm,aMasterNum,aDegPoly);
@@ -796,7 +793,7 @@ int  Arsenic_main(int argc,char ** argv)
 		if(aParam3chan.size()==0){
 			cout<<"Couldn't compute parameters "<<endl;
 		}else if(DoCor){
-			Egal_correct(aDir, & aVectIm, aParam3chan, aDirOut);
+			Egal_correct(aDir, & aVectIm, aParam3chan, aDirOut, InVig);
 		}
 		
 		Arsenic_Banniere();
