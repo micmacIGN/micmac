@@ -1,0 +1,347 @@
+/*eLiSe06/05/99
+  
+     Copyright (C) 1999 Marc PIERROT DESEILLIGNY
+
+   eLiSe : Elements of a Linux Image Software Environment
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS  
+Internet: Marc.Pierrot-Deseilligny@ign.fr
+   Phone: (33) 01 43 98 81 28
+eLiSe06/05/99*/
+
+
+
+#include <limits.h>
+#include <float.h>
+
+
+#include "general/all.h"
+#include "private/all.h"
+
+
+/****************************************************************/
+/*                                                              */
+/*     Elementary definition                                    */
+/*                                                              */
+/****************************************************************/
+
+      // plus_elem
+
+class plus_elem
+{
+  public :
+    static inline  int    op(int a,int b)       {return a + b;}
+    static inline  double op(double a,double b) {return a + b;}
+
+    static inline  void    op_eq(int &a,int b)        { a += b;}
+    static inline  void    op_eq(double &a,double b)  { a += b;}
+
+    static const double r_neutre = 0.0;
+    static const int    i_neutre = 0;
+
+    static inline Fonc_Num opf(Fonc_Num f1,Fonc_Num f2) { return f1+f2;}
+};
+
+      // mul_elem
+
+class mul_elem
+{
+  public :
+    static inline  int    op(int a,int b)       {return a * b;}
+    static inline  double op(double a,double b) {return a * b;}
+
+    static inline  void    op_eq(int &a,int b)        { a *= b;}
+    static inline  void    op_eq(double &a,double b)  { a *= b;}
+
+    static const double r_neutre = 1.0;
+    static const int    i_neutre = 1;
+
+    static inline Fonc_Num opf(Fonc_Num f1,Fonc_Num f2) { return f1*f2;}
+};
+
+      // max_elem
+
+class max_elem
+{
+  public :
+    static inline  int    op(int a,int b)       {return (a>b) ? a : b;}
+    static inline  double op(double a,double b) {return (a>b) ? a : b;}
+
+    static inline  void    op_eq(int &a,int b)        { if(a<b) a = b;}
+    static inline  void    op_eq(double &a,double b)  { if(a<b) a = b;}
+
+    static const REAL    r_neutre = DBL_MIN;
+    static const INT     i_neutre = INT_MIN ;
+
+    static inline Fonc_Num opf(Fonc_Num f1,Fonc_Num f2) { return Max(f1,f2);}
+};
+
+      // min_elem
+
+class min_elem
+{
+  public :
+    static inline  int    op(int a,int b)       {return (a<b) ? a : b;}
+    static inline  double op(double a,double b) {return (a<b) ? a : b;}
+
+    static inline  void    op_eq(int &a,int b)        { if(a>b) a = b;}
+    static inline  void    op_eq(double &a,double b)  { if(a>b) a = b;}
+
+    static const REAL    r_neutre = DBL_MAX;
+    static const INT     i_neutre = INT_MAX ;
+
+    static inline Fonc_Num opf(Fonc_Num f1,Fonc_Num f2) { return Min(f1,f2);}
+};
+
+
+/****************************************************************/
+/*                                                              */
+/*     Reduction on a segment                                   */
+/*                                                              */
+/****************************************************************/
+/*
+    Effectue une dilatation (mono-dimentionnelle) en niveau de gris.
+
+    Il est necessaire que :
+
+        * tous les tableau (in,out,buf_av, buf_ar) soit
+          des espaces memoires distincts; la seule exception
+          concerne in et out qui peuvent etre eventuellement egaux;
+
+        * tous les tableaux soit indexables sur
+                 x_min+dx0 <= x <x_max+dx1
+
+        * x_min < x_max, dx0 <= dx1 (en fait, je ne sais pas
+          si c'est vraiment necessaire, mais je sais que
+          je n'ai pas envie d'y reflechir);
+
+
+    Fonctionnellement, on a, a la fin :
+
+
+            *  pour  x_min <= X < x_max
+
+                     out[X] =  Max in(X+dx) (avec dx0 <= dx <= dx1);
+
+    L'algorithme utilise est celui de Truc-Muche (voir reference
+    Pierre Soille) qui en utilisant une "bufferisation avant-arriere"
+    a un temps de calcul independant de |dx1-dx0|.
+
+
+    Globalement, je ne suis pas sur que ce soit vraiment tres utile,
+    mais qu'est-ce que c'est joli comme algo !
+
+
+    N.B: Ca pourrait etre programme de maniere + generique car le principe
+    de l'algo est adaptable a tout operateur associatif. Cela dit:
+         - Min est facilement emulable par - (Max(-f));
+         - || et && ne sont que des cas particulier de Max et Min;
+         - + a son propre algo, sans doute plus rapide;
+         - * a peu d'interet (et a la rigueur emulable par
+             exp(Sigma(log(f))))
+         - reste la cas de &,| et ^; a voir ? Mais faire des "reduction
+           associative" ultra-rapide pour les operateurs bits a bits,
+           c'est sans doute pas une priorite.
+*/
+
+
+//  Should be function template; but my version of compiler does not 
+//  support explicit instanciation of function template; so : a class
+
+template <class elem,class Type>  class tpl_red_seg
+{
+   public :
+     static void f
+     (
+            Type * out,
+            const Type * in,
+            Type * buf_av,
+            Type * buf_ar,
+            INT    x_min,
+            INT    x_max,
+            INT    dx0,
+            INT    dx1
+     );
+};
+
+template <class elem,class Type> void tpl_red_seg<elem,Type>::f
+(
+      Type * out,
+      const Type * in,
+      Type * buf_av,
+      Type * buf_ar,
+      INT    x_min,
+      INT    x_max,
+      INT    dx0,
+      INT    dx1
+)
+{
+    INT  per;
+    INT  X_max,X_min;
+
+    per = dx1-dx0 + 1;
+    X_min = x_min + dx0;
+    X_max = x_max + dx1;
+
+    // une passe en avant;
+
+    buf_av[X_min] = in[X_min];
+    for (INT4 x =X_min+1; x<X_max ; x++)
+        if (x%per)
+           buf_av[x] = elem::op(buf_av[x-1],in[x]);
+        else
+           buf_av[x] = in[x];
+
+
+    // une passe en arriere;
+
+    buf_ar[X_max-1] =  in[X_max-1];
+    for (INT4 x = X_max-2; x >= X_min ; x--)
+        if ((x+1)%per)
+           buf_ar[x] = elem::op(buf_ar[x+1],in[x]);
+        else
+           buf_ar[x] = in[x];
+
+
+    // Conclusion :
+
+    for (INT4 x=x_min ; x<x_max ; x++)
+        out[x] = elem::op(buf_ar[x+dx0],buf_av[x+dx1]);
+}
+
+
+
+
+/****************************************************************/
+/*                                                              */
+/*     OpMIxteTpl                                               */
+/*                                                              */
+/****************************************************************/
+
+
+template <class elem> class  OpMIxteTpl : public OperAssocMixte
+{
+     public :
+
+static OpMIxteTpl The_only_one;
+
+    //***********************
+    // Operator on functions
+    //***********************
+
+     Fonc_Num opf(Fonc_Num f1,Fonc_Num f2) const {return elem::opf(f1,f2);}
+
+    //***********************
+    // reduction on a segment
+    //***********************
+ 
+     void reduce_seg
+        ( INT * out, const INT * in, INT * buf_av, INT * buf_ar,
+          INT   x_min, INT   x_max, INT  dx0, INT   dx1)  const
+      {
+          tpl_red_seg<elem,INT>::f(out,in,buf_av,buf_ar,x_min,x_max,dx0,dx1);
+      }
+
+     void reduce_seg
+        ( REAL * out, const REAL * in, REAL * buf_av, REAL * buf_ar,
+          INT   x_min, INT   x_max, INT  dx0, INT   dx1)  const
+      {
+          tpl_red_seg<elem,REAL>::f(out,in,buf_av,buf_ar,x_min,x_max,dx0,dx1);
+      }
+
+
+    //******************
+    // neutral element 
+    //******************
+
+double rneutre() const { return elem::r_neutre;}
+int    ineutre() const { return elem::i_neutre;}
+
+    //******************
+    // Reduction 
+    //******************
+          
+REAL red_tab(const REAL * tab,INT nb,REAL    v_init) const
+{
+   for(int i = 0; i<nb; i++)
+      elem::op_eq(v_init,tab[i]);
+
+   return v_init;
+}
+
+INT red_tab(const INT * tab,INT nb,INT    v_init) const
+{
+    for(int i = 0; i<nb; i++)
+       elem::op_eq(v_init,tab[i]);
+
+    return v_init;
+}
+
+    //******************
+    //  t0 = t1 op t2
+    //******************
+
+void t0_eg_t1_op_t2(REAL * t0,const REAL * t1,const REAL *t2,INT nb) const
+{
+     for(int i=0; i<nb ; i++)
+        t0[i] = elem::op(t1[i],t2[i]);
+}
+
+void t0_eg_t1_op_t2(REAL * t0,const INT  * t1,const REAL *t2,INT nb) const
+{
+     for(int i=0; i<nb ; i++)
+         t0[i] = elem::op((REAL)t1[i],t2[i]);
+}
+
+void t0_eg_t1_op_t2(REAL * t0,const REAL  * t1,const INT *t2,INT nb) const
+{
+     for(int i=0; i<nb ; i++)
+        t0[i] = elem::op(t1[i],(REAL)t2[i]);
+}
+
+void t0_eg_t1_op_t2(INT * t0,const INT  * t1,const INT *t2,INT nb) const
+{
+     for(int i=0; i<nb ; i++)
+        t0[i] = elem::op(t1[i],t2[i]);
+}
+
+
+    //**************************
+    //   
+    //**************************
+
+};
+
+OpMIxteTpl<plus_elem>  OpMIxteTpl<plus_elem>::The_only_one;
+const OperAssocMixte & OpSum =  OpMIxteTpl<plus_elem>::The_only_one;
+
+OpMIxteTpl<mul_elem>  OpMIxteTpl<mul_elem>::The_only_one;
+const OperAssocMixte & OpMul =  OpMIxteTpl<mul_elem>::The_only_one;
+
+
+OpMIxteTpl<max_elem>  OpMIxteTpl<max_elem>::The_only_one;
+const OperAssocMixte & OpMax =  OpMIxteTpl<max_elem>::The_only_one;
+
+OpMIxteTpl<min_elem>  OpMIxteTpl<min_elem>::The_only_one;
+const OperAssocMixte & OpMin =  OpMIxteTpl<min_elem>::The_only_one;
+
+
+
+
+
+
+
