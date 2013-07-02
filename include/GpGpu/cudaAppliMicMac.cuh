@@ -108,7 +108,7 @@ struct pCorGpu
     }
 
     /// \brief  Initialise les param?tres invariants pendant le calcul
-    void SetParamInva(uint2 dV,uint2 dRV, uint2 dI, float mAhEpsilon, uint samplingZ, int uvINTDef, uint nLayer)
+    void SetParamInva(uint2 dV,uint2 dRV, uint2 dI, float tmAhEpsilon, uint samplingZ, int uvINTDef, uint nLayer)
     {
         float uvDef;
         memset(&uvDef,uvINTDef,sizeof(float));
@@ -121,7 +121,7 @@ struct pCorGpu
         sampProj		= samplingZ;					// Pas echantillonage du terrain
         floatDefault	= uvDef;						// UV Terrain incorrect
         IntDefault		= uvINTDef;
-        mAhEpsilon		= mAhEpsilon;
+        mAhEpsilon		= tmAhEpsilon;
 
     }
 
