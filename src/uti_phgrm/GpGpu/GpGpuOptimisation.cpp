@@ -137,7 +137,7 @@ void InterfOptimizGpGpu::threadFuncOptimi()
             SetCompute(false);
 
             _D_data2Opt.SetNbLine(_H_data2Opt._nbLines);
-            _H_data2Opt.ReallocOutputIf(_H_data2Opt._s_InitCostVol.GetSize());
+            _H_data2Opt.ReallocOutputIf(_H_data2Opt._s_InitCostVol.GetSize(),0);
             _D_data2Opt.ReallocIf(_H_data2Opt);
 
             //      Transfert des données vers le device                            ---------------		-
@@ -150,7 +150,7 @@ void InterfOptimizGpGpu::threadFuncOptimi()
             getLastCudaError("kernelOptiOneDirection failed");
 
             //      Copie des couts de passage forcé du device vers le host         ---------------     -
-            _D_data2Opt.CopyDevicetoHost(_H_data2Opt);
+            _D_data2Opt.CopyDevicetoHost(_H_data2Opt,0);
 
             SetDirToCopy(true);
             idbuf =! idbuf;
