@@ -29,6 +29,7 @@
 #include <QSettings>
 #include <QMessageBox>
 #include <QMimeData>
+#include <QTime>
 
 #include "Data.h"
 #include "Engine.h"
@@ -294,9 +295,9 @@ private:
     QGLBuffer   m_vertexbuffer;
     QGLBuffer   m_vertexColor;
 
-    uint        _frameCount;
-    uint        _previousTime;
-    uint        _currentTime;
+    int        _frameCount;
+    int        _previousTime;
+    int        _currentTime;
 
     float       _fps;
 
@@ -315,6 +316,7 @@ private:
     GLfloat     _m_g_rotationOz[9];
     GLfloat     _m_g_rotationMatrix[9];
     GLfloat     _m_g_glMatrix[16];
+    QTime       _time;
 
 };
 
