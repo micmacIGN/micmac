@@ -488,6 +488,7 @@ int Nuage2Ply_main(int argc,char ** argv);
 int Pasta_main(int argc,char ** argv);
 int Pastis_main(int argc,char ** argv);
 int Porto_main(int argc,char ** argv);
+int Prep4masq_main(int argc,char ** argv);
 int ReducHom_main(int argc,char ** argv);
 int RepLocBascule_main(int argc,char ** argv);
 int SBGlobBascule_main(int argc,char ** argv);
