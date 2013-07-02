@@ -14,7 +14,7 @@
            <Symb>  LibParamInterne=eAllParamFiges  </Symb>
            <Symb>  SigmaTieP=1  </Symb>
 
-           <Symb>  SauvAutom=SauvAutom </Symb>
+           <Symb>  SauvAutom="" </Symb>
            <Symb>  PropDiagU=1.0  </Symb>
            <Symb>  MaxResTieP=5  </Symb>
 

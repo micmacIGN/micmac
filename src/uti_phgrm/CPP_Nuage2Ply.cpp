@@ -84,10 +84,16 @@ int Nuage2Ply_main(int argc,char ** argv)
 
     if (aNameOut=="")
       aNameOut = StdPrefix(aNameNuage) + ".ply";
-
+	
     cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromFileIm(aNameNuage,"XML_ParamNuage3DMaille",aMask,aExagZ);
     if (aSz.x <0) 
         aSz = Pt2dr(aNuage->SzUnique());
+
+	if ( ( anAttr1.length()!=0 ) && ( !ELISE_fp::exist_file( anAttr1 ) ) )
+	{
+		cerr << "ERROR: colour image [" << anAttr1 << "] does not exist" << endl;
+		return EXIT_FAILURE;
+	}
 
     if (anAttr1!="")
     {
