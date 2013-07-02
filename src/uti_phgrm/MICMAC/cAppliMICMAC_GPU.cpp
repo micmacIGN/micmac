@@ -695,7 +695,7 @@ if (0)
 			if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
 				IMmGg.SetImages(fdataImg1D, dimImgMax, mNbIm);
 
-			if (fdataImg1D != NULL) delete[] fdataImg1D;
+			if (fdataImg1D != NULL) delete[] fdataImg1D;          
 
 			IMmGg.SetParameter(Ter, mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT, INTERZ);
 			
@@ -1424,7 +1424,7 @@ void cAppliMICMAC::DoGPU_Correl
 							int iD	= (abs(Z - anZ) * mNbIm  +   aKIm )* sizSTabProj  + to1D(r,dimSTabProj);
 // 							int aZMin	= mTabZMin[an.y][an.x];int aZMax	= mTabZMax[an.y][an.x];if ((aGLI.IsVisible(an.x ,an.y )) /*&& (aZMin <= anZ)&&(anZ <=aZMax) */)
 
-							const double aZReel	= DequantZ(anZ);			// Déquantification  de X, Y et Z 
+                            const double aZReel	= DequantZ(anZ);			// Dequantification  de X, Y et Z
 							Pt2dr aPTer	= DequantPlani(an.x,an.y);
 							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image 			
 							
@@ -1454,8 +1454,9 @@ void cAppliMICMAC::DoGPU_Correl
 						double cost = (double)tabCost[rSiTer * abs(anZ - (int)z0) + rDiTer.x * (anY - zone.pt0.y) + anX -  zone.pt0.x];
 						mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : defaultCost);																									
 					}
-					else						
+                    else
 						mSurfOpt->SetCout(Pt2di(anX,anY),&anZ,defaultCost);
+
 
             }
 
