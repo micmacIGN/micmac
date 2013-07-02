@@ -51,11 +51,11 @@ public:
   /// \brief    Initialise les parametres de correlation
   void          SetParameter(Rect Ter, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ);
   /// \brief    Calcul de la correlation en Gpu
-  void          BasicCorrelation( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
+  void          BasicCorrelation(int nbLayer, uint idBuf = 0);
   /// \brief    Calcul asynchrone de la correlation en Gpu
   void          BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
   /// \brief    Renvoie les parametres de correlation
-  pCorGpu Param();
+  pCorGpu       Param();
 
   /// \brief    Desalloue toutes la memoire globale alloué pour la correlation sur Gpu
   void          DeallocMemory();
@@ -63,7 +63,7 @@ public:
   void          MallocInfo();
 
   /// \brief    Initialise les pointeurs des volumes de couts et des projections
-  void          SetHostVolume(float* vCost, float2* vProj);
+  //void          SetHostVolume(float* vCost1, float* vCost1, float2* vProj);
 
 
   /// \brief    Fonction lie au multi-processus
@@ -82,6 +82,20 @@ public:
   ///           Affecte trigger pour le calcul des projections dans le processus Cpu
   void          SetComputeNextProj(bool compute);
 
+  void          ReallocInputProjection(uint2 dim, uint l);
+
+  void          ReallocOutCost(uint2 dim, uint l);
+
+  void          MemsetProj();
+
+  float*        OuputCost(uint id = 0);
+
+  float2*       InputProj();
+
+  void          DeallocVolumes();
+
+  void          SetIdBuf(bool id);
+
 private:
 
   uint              GetZToCompute();
@@ -93,7 +107,7 @@ private:
   textureReference&	GetTeXProjection(int texSel);
   void              MTComputeCost();
 
-  cudaStream_t		_stream[NSTREAM];
+  cudaStream_t  _stream[NSTREAM];
   pCorGpu		_param;
 
   CuDeviceData3D<float>	_volumeCost[NSTREAM];	// volume des couts
@@ -121,13 +135,18 @@ private:
   boost::mutex              _mutexC;
   boost::mutex              _mutexCompute;
   //
-  float*                    _vCost;
-  float2*                   _vProj;
+//  float                     _vCost[2];
+//  float2*                   _vProj;
+
+  CuHostData3D<float>		_hVolumeCost[2];
+  CuHostData3D<float2>      _hVolumeProj;
 
   uint                      _ZCompute;
   uint                      _ZCCopy;
   bool                      _computeNextProj;
   bool                      _useAtomicFunction;
+
+  bool                      _idBuf;
 
 
 #ifdef USEDILATEMASK	

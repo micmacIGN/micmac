@@ -152,6 +152,7 @@ void InterfOptimizGpGpu::threadFuncOptimi()
             //      Copie des couts de passage forcé du device vers le host         ---------------     -
             _D_data2Opt.CopyDevicetoHost(_H_data2Opt,idbuf);
 
+            while(GetDirToCopy());
             SetDirToCopy(true);
             idbuf =! idbuf;
             idDir++;
