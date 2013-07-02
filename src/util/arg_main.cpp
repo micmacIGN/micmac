@@ -719,7 +719,7 @@ void cAppliBatch::DoPurge()
 		ELISE_fp::MkDir(mDirSauv);
 		for (int aK=0 ; aK<int(mPatSauv.size()) ; aK++)
 		{
-			std::string aCom =     std::string("mv ")
+			std::string aCom =     std::string(SYS_MV)+' '
 				+  mDirTmp+mPatSauv[aK] + std::string(" ")
 				+  mDirSauv;
 			System(aCom,true);
