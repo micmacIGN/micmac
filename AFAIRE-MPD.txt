@@ -1,8 +1,10 @@
 Nouveaux outils :
 
+  Incidence Max dans Malt
+  GPS orient rapide
   Environnement MicMac
 
-  MM-PxTransv.xml en outil simplifie
+  MM-PxTransv.xml en outil simplifie et en push brum
 
   Exemple EDF en outil non simplifie
 
