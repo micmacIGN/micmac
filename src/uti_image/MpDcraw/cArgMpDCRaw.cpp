@@ -313,6 +313,7 @@ void  cArgMpDCRaw::DevJpg()
                          +   std::string(" -depth ") + (En8B ? "8 " : "16 ")
                          +   aTmp;
 
+   //std::cout << aCom << "\n";
 
     VoidSystem(aCom.c_str());
 
@@ -346,6 +347,7 @@ void  cArgMpDCRaw::DevJpg()
 
      if (En8B)
         aFRes = Min(255,aFRes);
+
      ELISE_COPY
      (
           aFTmp.all_pts(),
