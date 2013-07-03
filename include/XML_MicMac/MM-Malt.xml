@@ -116,6 +116,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
     <Symb>  DoAnam=false </Symb>
     <Symb>  IncidMax=false </Symb>
 
+
+    <eSymb>  NotZoom8="Neq 8 ${ZoomFinal}" </eSymb>
+
 </DicoLoc>
 
 <!--  M2 : Describe the ground zone where the matching is to be done -->
@@ -287,14 +290,16 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                                 <ReInjectMask>  false   </ReInjectMask>
                          </ArgMaskAuto>
                    </ModulationProgDyn>
-                   <GenerePartiesCachees >
-                        <SeuilUsePC> 4 </SeuilUsePC>
-                        <ByMkF> true </ByMkF>
-                        <KeyCalcPC> NKS-Assoc-AddDirAndPref@${DirQO}@PC_ </KeyCalcPC>
-                        <IncludeFileLoc>  ${FileOthoQ} </IncludeFileLoc>
-                   </GenerePartiesCachees>
+                   <#WHEN VTEST=${NotZoom8}>
+                        <GenerePartiesCachees >
+                             <SeuilUsePC> 4 </SeuilUsePC>
+                             <ByMkF> true </ByMkF>
+                             <KeyCalcPC> NKS-Assoc-AddDirAndPref@${DirQO}@PC_ </KeyCalcPC>
+                             <IncludeFileLoc>  ${FileOthoQ} </IncludeFileLoc>
+                        </GenerePartiesCachees>
+                   </#WHEN>
                    <#WHEN VTEST=${CorMS}>
-                       <SzW> 1 </SzW>
+                       <SzW Portee="Globale"> 1 </SzW>
                        <CorrelAdHoc Portee="Globale">
                            <CorrelMultiScale>
                                   <ModeDense> true </ModeDense>
@@ -325,9 +330,11 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
         <IncludeFileLoc>  ${FileZ4PC} </IncludeFileLoc>
         <IncludeFileLoc>  ${FileZ2PC} </IncludeFileLoc>
 
-        <EtapeMEC> 
+        <#WHEN VTEST=${NotZoom8}>
+            <EtapeMEC> 
                 <DeZoom >        ${ZoomFinal}        </DeZoom> 
-        </EtapeMEC>
+            </EtapeMEC>
+        </#WHEN>
 
         <IncludeFileLoc>  ${FileZ1Raff} </IncludeFileLoc>
 

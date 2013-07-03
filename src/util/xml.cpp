@@ -92,6 +92,9 @@ class cOpPolI
 static double FTrue(const std::vector<double> & aV) { return 1; }
 static double FFalse(const std::vector<double> & aV) { return 0; }
 static double FNot(const std::vector<double> & aV) { return aV[0]==0; }
+
+static double FEq(const std::vector<double> & aV) { return aV[0]==aV[1]; }
+static double FNotEq(const std::vector<double> & aV) { return aV[0]!=aV[1]; }
     
 static double FSom(const std::vector<double> & aV) { return aV[0]+aV[1]; }
 static double FMul(const std::vector<double> & aV) { return aV[0]*aV[1]; }
@@ -124,6 +127,8 @@ const std::vector<cOpPolI> & OpPolI()
        aRes.push_back(cOpPolI(0,"false",FFalse));
        aRes.push_back(cOpPolI(1,"!",FNot));
        aRes.push_back(cOpPolI(2,"-",FMoins));
+       aRes.push_back(cOpPolI(2,"Eq",FEq));
+       aRes.push_back(cOpPolI(2,"Neq",FNotEq));
    }
    return aRes;
 }
