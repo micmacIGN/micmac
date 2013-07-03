@@ -2,9 +2,13 @@ Nouveaux outils :
 
   Environnement MicMac
 
-  MM-PxTransv.xml en outil simplifie
+  MM-PxTransv.xml en outil simplifie + Push Broom
 
   Exemple EDF en outil non simplifie
+
+ Incidence Max dans Malt       
+
+  Orient from GPS : solution initiale + compensation ds campari.
 
   StatIm
 

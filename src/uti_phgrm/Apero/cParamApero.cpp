@@ -11236,6 +11236,58 @@ void xml_init(cExportCalib & anObj,cElXMLTree * aTree)
 }
 
 
+cTplValGesInit< bool > & cForce2ObsOnC::WhenExist()
+{
+   return mWhenExist;
+}
+
+const cTplValGesInit< bool > & cForce2ObsOnC::WhenExist()const 
+{
+   return mWhenExist;
+}
+
+cElXMLTree * ToXMLTree(const cForce2ObsOnC & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Force2ObsOnC",eXMLBranche);
+   if (anObj.WhenExist().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("WhenExist"),anObj.WhenExist().Val())->ReTagThis("WhenExist"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cForce2ObsOnC & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.WhenExist(),aTree->Get("WhenExist",1),bool(false)); //tototo 
+}
+
+
+cTplValGesInit< bool > & cExportPose::WhenExist()
+{
+   return Force2ObsOnC().Val().WhenExist();
+}
+
+const cTplValGesInit< bool > & cExportPose::WhenExist()const 
+{
+   return Force2ObsOnC().Val().WhenExist();
+}
+
+
+cTplValGesInit< cForce2ObsOnC > & cExportPose::Force2ObsOnC()
+{
+   return mForce2ObsOnC;
+}
+
+const cTplValGesInit< cForce2ObsOnC > & cExportPose::Force2ObsOnC()const 
+{
+   return mForce2ObsOnC;
+}
+
+
 cTplValGesInit< std::string > & cExportPose::ChC()
 {
    return mChC;
@@ -11404,6 +11456,8 @@ cElXMLTree * ToXMLTree(const cExportPose & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ExportPose",eXMLBranche);
+   if (anObj.Force2ObsOnC().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.Force2ObsOnC().Val())->ReTagThis("Force2ObsOnC"));
    if (anObj.ChC().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ChC"),anObj.ChC().Val())->ReTagThis("ChC"));
    if (anObj.ChCForceRot().IsInit())
@@ -11442,6 +11496,8 @@ void xml_init(cExportPose & anObj,cElXMLTree * aTree)
 {
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+
+   xml_init(anObj.Force2ObsOnC(),aTree->Get("Force2ObsOnC",1)); //tototo 
 
    xml_init(anObj.ChC(),aTree->Get("ChC",1)); //tototo 
 

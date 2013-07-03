@@ -111,6 +111,11 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
     <Symb>  UseImMaxMin="false" </Symb>
     <Symb>  ImMin="XXXXXX" </Symb>
     <Symb>  ImMax="XXXXXX" </Symb>
+
+
+    <Symb>  DoAnam=false </Symb>
+    <Symb>  IncidMax=false </Symb>
+
 </DicoLoc>
 
 <!--  M2 : Describe the ground zone where the matching is to be done -->
@@ -361,6 +366,13 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
             <ButDoMemPart>  true </ButDoMemPart>
         </DoNothingBut>
     </#WHEN>
+
+    <#WHEN VTEST=${DoAnam}>
+          <AnamorphoseGeometrieMNT>
+              <AnamLimAngleVisib> ${IncidMax} </AnamLimAngleVisib>
+          </AnamorphoseGeometrieMNT>
+    </#WHEN>
+
 <!--
     <RepereCorrel>  Repere.xml </RepereCorrel>
  <DoNothingBut>

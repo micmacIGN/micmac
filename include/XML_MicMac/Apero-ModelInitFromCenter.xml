@@ -257,6 +257,8 @@ Apero /home/mpd/MMM/culture3d/include/XML_MicMac/Apero-ModelInitFromCenter.xml  
 
                     <SectionExport>
                             <ExportPose>
+                                <Force2ObsOnC>
+                                </Force2ObsOnC>
                                 <PatternSel> ${ImSauv} </PatternSel>
                                 <KeyAssoc> NKS-Assoc-Im2Orient@-${AeroOut} </KeyAssoc>
                                 <AddCalib>  true </AddCalib>

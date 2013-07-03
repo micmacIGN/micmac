@@ -309,7 +309,7 @@ void  cArgMpDCRaw::DevJpg()
 	 std::string  aCom =     std::string("\"")+g_externalToolHandler.get( "convert" ).callName()+ "\" "
                          +   aFullNJPG +  std::string(" ")
                          +   std::string(" -compress None ")
-                         +   (mConsCol ? " " :   (std::string(" -colorspace ") + (EnGray ? "Gray " : "RGB ")))
+                         +   (mConsCol ? " " :   (std::string(" -colorspace ") + (EnGray ? "Gray " : "sRGB ")))
                          +   std::string(" -depth ") + (En8B ? "8 " : "16 ")
                          +   aTmp;
 

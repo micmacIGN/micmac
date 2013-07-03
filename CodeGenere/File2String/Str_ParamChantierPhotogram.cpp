@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1404]) = {
+const char * (theNameVar_ParamChantierPhotogram[1414]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -740,6 +740,15 @@ const char * (theNameVar_ParamChantierPhotogram[1404]) = {
 "\n",
 "   <OrientationConique  Nb=\"1\" Class=\"true\" ToReference=\"true\" >\n",
 "\n",
+"       <!-- modif Greg pour pouvoir utiliser des grilles comme dans MicMac -->\n",
+"       <OrientationFile Nb=\"?\">\n",
+"           <!--GeomImages Nb=\"1\" Type=\"eModeGeomImage\" RefFile=\"ParamMICMAC.xml\"> </GeomImages-->\n",
+"           <NameFileOri Nb=\"1\" Type=\"std::string\"></NameFileOri>\n",
+"       </OrientationFile>\n",
+"       \n",
+"       <!-- fin modif Greg-->\n",
+"       \n",
+"       \n",
 "        <!--\n",
 "              Orientation interne par image.\n",
 "\n",
@@ -1387,6 +1396,7 @@ const char * (theNameVar_ParamChantierPhotogram[1404]) = {
 "    <MMUserEnvironment Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "         <TiePDetect Nb=\"?\" Type=\"std::string\">  </TiePDetect>  <!-- Ou mm3d:Digeo mm3d:Sift -->\n",
 "         <TiePMatch  Nb=\"?\" Type=\"std::string\">  </TiePMatch> <!-- Ou  mm3d:Ann -->\n",
+"         <UserName  Nb=\"?\" Type=\"std::string\" Def=\"Anonymous\">  </UserName> <!-- Ou  mm3d:Ann -->\n",
 "    </MMUserEnvironment>\n",
 "\n",
 "\n",
