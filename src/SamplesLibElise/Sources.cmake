@@ -3,6 +3,7 @@ set(SamplesLibElise_Src_Files
     ${SAMPLESLIBELISE_DIR}/CPP_LSQMain.cpp
     ${SAMPLESLIBELISE_DIR}/CPP_TestAbdou.cpp
     ${SAMPLESLIBELISE_DIR}/CPP_Test0LucGirod.cpp
+    ${SAMPLESLIBELISE_DIR}/CPP_LucasModifNuage.cpp
 )
 
 # JE NE SAIS PAS SI CA SERT ???
