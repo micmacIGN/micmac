@@ -116,7 +116,9 @@ cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
         Im2D_INT2       aPxMax
 ) :
     cSurfaceOptimiseur ( mAppli,mLT,1e4,anEqX,anEqY,false,false),
+#ifdef CUDA_ENABLED
     IGpuOpt     (true),
+#endif
     mXMin       (aPxMin),
     mXMax       (aPxMax),
     mSz         (mXMin.sz()),
