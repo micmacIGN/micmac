@@ -3775,6 +3775,21 @@ class cExportCalib
 };
 cElXMLTree * ToXMLTree(const cExportCalib &);
 
+class cForce2ObsOnC
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cForce2ObsOnC & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< bool > & WhenExist();
+        const cTplValGesInit< bool > & WhenExist()const ;
+    private:
+        cTplValGesInit< bool > mWhenExist;
+};
+cElXMLTree * ToXMLTree(const cForce2ObsOnC &);
+
 class cExportPose
 {
     public:
@@ -3782,6 +3797,12 @@ class cExportPose
 
         friend void xml_init(cExportPose & anObj,cElXMLTree * aTree);
 
+
+        cTplValGesInit< bool > & WhenExist();
+        const cTplValGesInit< bool > & WhenExist()const ;
+
+        cTplValGesInit< cForce2ObsOnC > & Force2ObsOnC();
+        const cTplValGesInit< cForce2ObsOnC > & Force2ObsOnC()const ;
 
         cTplValGesInit< std::string > & ChC();
         const cTplValGesInit< std::string > & ChC()const ;
@@ -3828,6 +3849,7 @@ class cExportPose
         cTplValGesInit< double > & TolWhenVerif();
         const cTplValGesInit< double > & TolWhenVerif()const ;
     private:
+        cTplValGesInit< cForce2ObsOnC > mForce2ObsOnC;
         cTplValGesInit< std::string > mChC;
         cTplValGesInit< bool > mChCForceRot;
         std::string mKeyAssoc;

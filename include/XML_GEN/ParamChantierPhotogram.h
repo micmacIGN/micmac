@@ -2241,6 +2241,24 @@ cElXMLTree * ToXMLTree(const cOrientationExterneRigide &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cOrientationFile
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cOrientationFile & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameFileOri();
+        const std::string & NameFileOri()const ;
+    private:
+        std::string mNameFileOri;
+};
+cElXMLTree * ToXMLTree(const cOrientationFile &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cConvExplicite
 {
     public:
@@ -2345,6 +2363,12 @@ class cOrientationConique
         friend void xml_init(cOrientationConique & anObj,cElXMLTree * aTree);
 
 
+        std::string & NameFileOri();
+        const std::string & NameFileOri()const ;
+
+        cTplValGesInit< cOrientationFile > & OrientationFile();
+        const cTplValGesInit< cOrientationFile > & OrientationFile()const ;
+
         cTplValGesInit< cAffinitePlane > & OrIntImaM2C();
         const cTplValGesInit< cAffinitePlane > & OrIntImaM2C()const ;
 
@@ -2402,6 +2426,7 @@ class cOrientationConique
         cConvOri & ConvOri();
         const cConvOri & ConvOri()const ;
     private:
+        cTplValGesInit< cOrientationFile > mOrientationFile;
         cTplValGesInit< cAffinitePlane > mOrIntImaM2C;
         cTplValGesInit< eTypeProjectionCam > mTypeProj;
         cTplValGesInit< cCalibrationInternConique > mInterne;
@@ -5012,9 +5037,13 @@ class cMMUserEnvironment
 
         cTplValGesInit< std::string > & TiePMatch();
         const cTplValGesInit< std::string > & TiePMatch()const ;
+
+        cTplValGesInit< std::string > & UserName();
+        const cTplValGesInit< std::string > & UserName()const ;
     private:
         cTplValGesInit< std::string > mTiePDetect;
         cTplValGesInit< std::string > mTiePMatch;
+        cTplValGesInit< std::string > mUserName;
 };
 cElXMLTree * ToXMLTree(const cMMUserEnvironment &);
 

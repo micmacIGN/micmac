@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
-
+#include "../uti_phgrm/MICMAC/cCameraModuleOrientation.h"
 
 
 /* define ENSEA pour enlever les routines inutiles pour l'ENSEA
@@ -4337,7 +4337,14 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
    cCalibrationInternConique  aCIC;
    if (anOC.TypeProj().ValWithDef(eProjStenope) == eProjStenope)
    {
-      if (anOC.Interne().IsInit())
+       if (anOC.OrientationFile().IsInit())
+       {
+           std::cout << "Chargement de : "<<anOC.OrientationFile().Val().NameFileOri()<<std::endl;
+           aRes = new cCameraModuleOrientation(new OrientationGrille(anOC.OrientationFile().Val().NameFileOri()),anOC.Interne().Val().SzIm());
+           std::cout << "Fin du chargement de la grille"<<std::endl;
+	   return aRes;
+       }
+      else if (anOC.Interne().IsInit())
       {
          double aRayonInv=-1;
          aCIC = anOC.Interne().Val();

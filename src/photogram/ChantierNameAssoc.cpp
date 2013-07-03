@@ -2328,7 +2328,8 @@ std::string XML_MM_File(const std::string & aFile)
 
 	bool MPD_MM()
 	{
-		static bool aRes = ELISE_fp::exist_file(MMDir()+"MPD.txt");
+		//static bool aRes = ELISE_fp::exist_file(MMDir()+"MPD.txt");
+		static bool aRes = MMUserEnv().UserName().Val() == "MPD";
 		return aRes;
 	}
 
