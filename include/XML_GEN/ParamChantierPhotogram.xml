@@ -1394,6 +1394,7 @@ namespace NS_ParamChantierPhotogram{
     <MMUserEnvironment Nb="1" Class="true" ToReference="true">
          <TiePDetect Nb="?" Type="std::string">  </TiePDetect>  <!-- Ou mm3d:Digeo mm3d:Sift -->
          <TiePMatch  Nb="?" Type="std::string">  </TiePMatch> <!-- Ou  mm3d:Ann -->
+         <UserName  Nb="?" Type="std::string" Def="Anonymous">  </UserName> <!-- Ou  mm3d:Ann -->
     </MMUserEnvironment>
 
 

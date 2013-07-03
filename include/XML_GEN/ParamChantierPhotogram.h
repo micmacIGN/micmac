@@ -5037,9 +5037,13 @@ class cMMUserEnvironment
 
         cTplValGesInit< std::string > & TiePMatch();
         const cTplValGesInit< std::string > & TiePMatch()const ;
+
+        cTplValGesInit< std::string > & UserName();
+        const cTplValGesInit< std::string > & UserName()const ;
     private:
         cTplValGesInit< std::string > mTiePDetect;
         cTplValGesInit< std::string > mTiePMatch;
+        cTplValGesInit< std::string > mUserName;
 };
 cElXMLTree * ToXMLTree(const cMMUserEnvironment &);
 

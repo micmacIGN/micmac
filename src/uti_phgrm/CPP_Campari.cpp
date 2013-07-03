@@ -89,8 +89,12 @@ int Campari_main(int argc,char ** argv)
     bool  AffineFree = false;
     bool  AllFree = false;
 
+    double aSigmaTieP = 1;
+    double aFactResElimTieP = 5;
+
 
    std::vector<std::string> GCP;
+   std::vector<std::string> EmGPS;
 
     ElInitArgMain
     (
@@ -99,6 +103,9 @@ int Campari_main(int argc,char ** argv)
                     << EAMC(AeroIn,"Input Orientation")
                     << EAMC(AeroOut,"Output Orientation"),
 	LArgMain()  << EAM(GCP,"GCP",true,"[GrMes.xml,GrUncertainty,ImMes.xml,ImUnc]")	
+                    << EAM(EmGPS,"EmGPS",true,"Embedded GPS [Gps-Dir,GpsUnc]")
+                    << EAM(aSigmaTieP,"SigmaTieP","Sigma use for TieP weighting (def = 1)")
+                    << EAM(aFactResElimTieP,"FactElimTieP","Fact eliminitaion of tipe (prop to SigmaTieP, Def=5)")
                     << EAM(CPI1,"CPI1",true,"Calib Perm Im, Firt time")
                     << EAM(CPI2,"CPI2",true,"Calib Perm Im, After first time, reusing Calib Per Im As input")
                     << EAM(FocFree,"FocFree",true,"Foc Free, Def = false")
@@ -148,6 +155,16 @@ int Campari_main(int argc,char ** argv)
                + std::string("+GrIncGr=") + ToString(aGcpGrU) + " "
                + std::string("+GrIncIm=") + ToString(aGcpImU) + " ";
     }
+
+    if (EAMIsInit(&EmGPS))
+    {
+        ELISE_ASSERT(EmGPS.size()==2,"Mandatory part of EmGPS requires 2 arguments");
+        double aGpsU = RequireFromString<double>(EmGPS[1],"GCP-Ground uncertainty");
+        aCom = aCom +  " +BDDC=" + EmGPS[0];
+                    +  " +SigmGPS=" + ToString(aGpsU);
+    }
+
+    if (EAMIsInit(&aSigmaTieP)) aCom = aCom + " +SigmaTieP=" + ToString(aSigmaTieP);
 
 
    std::cout << aCom << "\n";

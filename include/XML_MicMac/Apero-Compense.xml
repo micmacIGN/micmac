@@ -13,10 +13,13 @@
 
            <Symb>  LibParamInterne=eAllParamFiges  </Symb>
            <Symb>  SigmaTieP=1  </Symb>
+           <Symb>  FactMaxRes=5  </Symb>
 
-           <Symb>  SauvAutom=SauvAutom </Symb>
+
+           <eSymb>  MaxResTieP=* ${SigmaTieP} ${FactMaxRes}  </eSymb>
+
+           <Symb>  SauvAutom="" </Symb>
            <Symb>  PropDiagU=1.0  </Symb>
-           <Symb>  MaxResTieP=5  </Symb>
 
 
            <Symb>  Ext=dat </Symb>
@@ -30,6 +33,10 @@
            <Symb>  FileGCP-Im=XXXX </Symb>
            <Symb>  GrIncGr=XXXX </Symb>
            <Symb>  GrIncIm=XXXX </Symb>
+
+           <Symb>  WithCenter=false </Symb>
+           <Symb>  BDDC=XXXX </Symb>
+           <Symb>  SigmGPS=XXXX </Symb>
 
            <Symb>  CPI=false </Symb>
            <Symb>  CPIInput=false </Symb>
@@ -63,6 +70,16 @@
                           <KeySetOrPat>  ${FileGCP-Im} </KeySetOrPat>
                    </BDD_ObsAppuisFlottant>
              </#WHEN>
+
+             <#WHEN  VTEST=${WithCenter}>
+                   <BDD_Centre>
+                          <Id>  Id-Centre   </Id>
+                          <KeySet>    NKS-Set-Orient@-${BDDC} </KeySet>
+                          <KeyAssoc>  NKS-Assoc-Im2Orient@-${BDDC} </KeyAssoc>
+                    </BDD_Centre>
+             </#WHEN>
+
+               
        </SectionBDD_Observation>
 
        <SectionInconnues>
@@ -96,6 +113,10 @@
              <PoseCameraInc>
                    <PatternName>    ${SetIm} </PatternName>
                    <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
+                   <#WHEN  VTEST=${WithCenter}>
+                         <IdBDCentre> Id-Centre </IdBDCentre>
+                   </#WHEN>
+                   
                    <PosValueInit>
                        <PosFromBDOrient> Or-Init </PosFromBDOrient>
                    </PosValueInit>
@@ -244,6 +265,17 @@
                                       <ShowMax> true </ShowMax>
                                       <ShowSom>  true</ShowSom>
                                 </ObsAppuisFlottant>
+                          </#WHEN>
+
+                          <#WHEN  VTEST=${WithCenter}>
+                               <ObsCentrePDV>
+                                   <PatternApply> .* </PatternApply>
+                                   <Pond>
+                                          <EcartMesureIndiv>  ${SigmGPS}  </EcartMesureIndiv>
+                                          <Show> eNSM_Indiv     </Show>
+                                          <ModePonderation> ePondL2 </ModePonderation>
+                                   </Pond>
+                              </ObsCentrePDV>
                           </#WHEN>
 
 		    </SectionObservations>
