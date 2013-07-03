@@ -13345,6 +13345,17 @@ const cTplValGesInit< std::string > & cMMUserEnvironment::TiePMatch()const
    return mTiePMatch;
 }
 
+
+cTplValGesInit< std::string > & cMMUserEnvironment::UserName()
+{
+   return mUserName;
+}
+
+const cTplValGesInit< std::string > & cMMUserEnvironment::UserName()const 
+{
+   return mUserName;
+}
+
 cElXMLTree * ToXMLTree(const cMMUserEnvironment & anObj)
 {
   XMLPushContext(anObj.mGXml);
@@ -13353,6 +13364,8 @@ cElXMLTree * ToXMLTree(const cMMUserEnvironment & anObj)
       aRes->AddFils(::ToXMLTree(std::string("TiePDetect"),anObj.TiePDetect().Val())->ReTagThis("TiePDetect"));
    if (anObj.TiePMatch().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("TiePMatch"),anObj.TiePMatch().Val())->ReTagThis("TiePMatch"));
+   if (anObj.UserName().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("UserName"),anObj.UserName().Val())->ReTagThis("UserName"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -13366,6 +13379,8 @@ void xml_init(cMMUserEnvironment & anObj,cElXMLTree * aTree)
    xml_init(anObj.TiePDetect(),aTree->Get("TiePDetect",1)); //tototo 
 
    xml_init(anObj.TiePMatch(),aTree->Get("TiePMatch",1)); //tototo 
+
+   xml_init(anObj.UserName(),aTree->Get("UserName",1),std::string("Anonymous")); //tototo 
 }
 
 };

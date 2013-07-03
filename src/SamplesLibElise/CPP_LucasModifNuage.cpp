@@ -30,98 +30,63 @@ Francais :
 
 English :
 
-    MicMac is an open source software specialized in image matching
+    MicMa cis an open source software specialized in image matching
     for research in geographic information. MicMac is built on the
     eLiSe image library. MicMac is governed by the  "Cecill-B licence".
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
+#include <algorithm>
 
-#define DEF_OFSET -12349876
 
 
-int Nuage2Ply_main(int argc,char ** argv)
+// Example of using solvers defined in   include/general/optim.h
+
+
+int  LucasChCloud_main(int argc,char ** argv)
 {
-    std::string aNameNuage,aNameOut,anAttr1;
-    std::vector<string> aVCom;
-    int aBin  = 1;
-    std::string aMask;
-
-    int DoPly = 1;
-    int DoXYZ = 0;
-	int DoNrm = 0;
-
-    double aSc=1.0;
-    double aDyn = 1.0;
-    double aExagZ = 1.0;
-    Pt2dr  aP0(0,0);
-    Pt2dr  aSz(-1,-1);
-    double aRatio = 1.0;
-    bool aDoMesh = false;
+  //=====================  PARAMETRES EN DUR ==============
 
 
+    std::string aNameNuage,aNameOut;
     ElInitArgMain
     (
-	argc,argv,
-	LArgMain()  << EAMC(aNameNuage,"Name of XML file"),
-	LArgMain()  << EAM(aSz,"Sz",true,"Sz (to crop)")	
-                    << EAM(aP0,"P0",true,"Origin (to crop)")	
-                    << EAM(aNameOut,"Out",true,"Name of refult (default toto.xml => toto.ply)")
-                    << EAM(aSc,"Scale",true,"Do change the scale of result (def=1, 2 mean smaller)")
-                    << EAM(anAttr1,"Attr",true,"Image to colour the point")
-                    << EAM(aVCom,"Comments",true,"Commentary to add in the ply file (Def=None)" )
-                    << EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
-                    << EAM(aMask,"Mask",true,"Supplementary mask image")
-                    << EAM(aDyn,"Dyn",true,"Dynamic of attribute")
-                    << EAM(DoPly,"DoPly",true,"Do Ply , def = true")
-                    << EAM(DoXYZ,"DoXYZ",true,"Do XYZ, export as RGB image where R=X,G=Y,B=Z")
-                    << EAM(DoNrm,"Normale",true,"Add normale (Def=false, usuable for Poisson)")
-                    << EAM(aExagZ,"ExagZ",true,"To exagerate the depth, Def=1.0")
-                    << EAM(aRatio,"RatioAttrCarte",true,"")
-                    << EAM(aDoMesh,"Mesh",true)
-    );	
+        argc,argv,
+        LArgMain()  << EAMC(aNameNuage,"Name input "),
+        LArgMain()  << EAM(aNameOut,"Out",true)
+    );
 
-    if (aNameOut=="")
-      aNameOut = StdPrefix(aNameNuage) + ".ply";
-	
-    cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromFileIm(aNameNuage,"XML_ParamNuage3DMaille",aMask,aExagZ);
-    if (aSz.x <0) 
-        aSz = Pt2dr(aNuage->SzUnique());
 
-	if ( ( anAttr1.length()!=0 ) && ( !ELISE_fp::exist_file( anAttr1 ) ) )
-	{
-		cerr << "ERROR: colour image [" << anAttr1 << "] does not exist" << endl;
-		return EXIT_FAILURE;
-	}
 
-    if (anAttr1!="")
-    {
-       anAttr1 = NameFileStd(anAttr1,3,false,true);
-       aNuage->Std_AddAttrFromFile(anAttr1,aDyn,aRatio);
-    }
+    if (! EAMIsInit(&aNameOut))
+       aNameOut = DirOfFile(aNameNuage) + "TestScale_" + NameWithoutDir(aNameNuage);
 
-     cElNuage3DMaille * aRes = aNuage->ReScaleAndClip(Box2dr(aP0,aSz),aSc);
-     std::list<std::string > aLComment(aVCom.begin(), aVCom.end());
 
-    if (DoPly)
-    {
+  cXML_ParamNuage3DMaille aXML =   StdGetObjFromFile<cXML_ParamNuage3DMaille>
+                                         (
+                                               aNameNuage,
+                                               StdGetFileXMLSpec("SuperposImage.xml"),
+                                               "XML_ParamNuage3DMaille",
+                                               "XML_ParamNuage3DMaille"
+                                         );
 
-       if (aDoMesh) 
-       {
-           aRes->AddExportMesh();
-       }
 
-        aRes->PlyPutFile( aNameOut, aLComment, (aBin!=0), DoNrm );
-    }
-    if (DoXYZ)
-    {
-        aRes->NuageXZGCOL(StdPrefix(aNameNuage));
-    }
+   double aScale = 2;
+   cRepereCartesien aRep;
 
-    cElWarning::ShowWarns(DirOfFile(aNameNuage)  + "WarnNuage2Ply.txt");
-	
-	return EXIT_SUCCESS;
+   aRep.Ori() = Pt3dr(0,0,0);
+   aRep.Ox() = Pt3dr(aScale,0,0);
+   aRep.Oy() = Pt3dr(0,aScale,0);
+   aRep.Oz() = Pt3dr(0,0,aScale);
+
+    aXML.RepereGlob().SetVal(aRep);
+  
+    
+
+   MakeFileXML(aXML,aNameOut);
+
+   return 0;
 }
 
 

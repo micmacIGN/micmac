@@ -130,19 +130,19 @@ extern "C" void	 KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks,
       getLastCudaError("Basic Correlation kernel failed stream 3");
       break;
     case 4:
-      correlationKernel<3><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+      correlationKernel<4><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
       getLastCudaError("Basic Correlation kernel failed stream 4");
       break;
     case 5:
-      correlationKernel<3><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+      correlationKernel<5><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
       getLastCudaError("Basic Correlation kernel failed stream 5");
       break;
     case 6:
-      correlationKernel<3><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+      correlationKernel<6><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
       getLastCudaError("Basic Correlation kernel failed stream 6");
       break;
     case 7:
-      correlationKernel<3><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+      correlationKernel<7><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
       getLastCudaError("Basic Correlation kernel failed stream 7");
       break;
     }
