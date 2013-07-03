@@ -307,7 +307,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       {
            ELISE_ASSERT(aNbZM!=0,"Cannit get ZMOy with Inc Max");
            ZMoyInit = true;
-           mZMoy /= aNbZM;
+           mZMoy = aSomZM / aNbZM;
+
       }
   }
   mSzGlob = mSzGlob / double(mNbIm);
@@ -527,6 +528,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
        mCom = mCom + " +ModeAgrCor=eAggregMoyMedIm1Maitre";
   }
   
+  if (EAMIsInit(&mIncidMax))
+     mCom   =  mCom + " +DoAnam=true +IncidMax=" + ToString(mIncidMax);
                
   std::cout << mCom << "\n";
   // cInZRegulterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
@@ -551,8 +554,6 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
        std::cout << "\n\n" << mComOA << "\n";
   }
 
-  if (EAMIsInit(&mIncidMax))
-     mCom   =  mCom + " +DoAnam=true +IncidMax=" + ToString(mIncidMax);
 }
 
      // mDirOrthoF = "Ortho-" + mDirMEC;

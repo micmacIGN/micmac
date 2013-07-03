@@ -1714,7 +1714,11 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
            Pt2dr aMil = mOri->Sz() / 2.0;
            ElSeg3D aSegA = mOri->F2toRayonR3(aMil);
            cTplValGesInit<Pt3dr> aPGI3A = mAnamSA->InterDemiDroiteVisible(aSegA,0);
-           ELISE_ASSERT(aPGI3A.IsInit(),"Milieu a Pb dans Anam");
+           if (! aPGI3A.IsInit())
+           {
+               std::cout << "For Image=" << mPDV.Name() << "\n";
+               ELISE_ASSERT(false,"Milieu a Pb dans Anam");
+            }
            Pt3dr aP3A = aPGI3A.Val();
            Pt2dr aP2A(aP3A.x,aP3A.y);
 
