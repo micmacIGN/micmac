@@ -738,6 +738,15 @@ namespace NS_ParamChantierPhotogram{
 
    <OrientationConique  Nb="1" Class="true" ToReference="true" >
 
+       <!-- modif Greg pour pouvoir utiliser des grilles comme dans MicMac -->
+       <OrientationFile Nb="?">
+           <!--GeomImages Nb="1" Type="eModeGeomImage" RefFile="ParamMICMAC.xml"> </GeomImages-->
+           <NameFileOri Nb="1" Type="std::string"></NameFileOri>
+       </OrientationFile>
+       
+       <!-- fin modif Greg-->
+       
+       
         <!--
               Orientation interne par image.
 

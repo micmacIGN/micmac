@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1404]) = {
+const char * (theNameVar_ParamChantierPhotogram[1413]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -740,6 +740,15 @@ const char * (theNameVar_ParamChantierPhotogram[1404]) = {
 "\n",
 "   <OrientationConique  Nb=\"1\" Class=\"true\" ToReference=\"true\" >\n",
 "\n",
+"       <!-- modif Greg pour pouvoir utiliser des grilles comme dans MicMac -->\n",
+"       <OrientationFile Nb=\"?\">\n",
+"           <!--GeomImages Nb=\"1\" Type=\"eModeGeomImage\" RefFile=\"ParamMICMAC.xml\"> </GeomImages-->\n",
+"           <NameFileOri Nb=\"1\" Type=\"std::string\"></NameFileOri>\n",
+"       </OrientationFile>\n",
+"       \n",
+"       <!-- fin modif Greg-->\n",
+"       \n",
+"       \n",
 "        <!--\n",
 "              Orientation interne par image.\n",
 "\n",

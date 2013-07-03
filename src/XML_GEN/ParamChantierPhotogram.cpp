@@ -5633,6 +5633,35 @@ void xml_init(cOrientationExterneRigide & anObj,cElXMLTree * aTree)
 }
 
 
+std::string & cOrientationFile::NameFileOri()
+{
+   return mNameFileOri;
+}
+
+const std::string & cOrientationFile::NameFileOri()const 
+{
+   return mNameFileOri;
+}
+
+cElXMLTree * ToXMLTree(const cOrientationFile & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"OrientationFile",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameFileOri"),anObj.NameFileOri())->ReTagThis("NameFileOri"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cOrientationFile & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.NameFileOri(),aTree->Get("NameFileOri",1)); //tototo 
+}
+
+
 cTplValGesInit< bool > & cConvExplicite::SensYVideo()
 {
    return mSensYVideo;
@@ -5927,6 +5956,28 @@ void xml_init(cConvOri & anObj,cElXMLTree * aTree)
 }
 
 
+std::string & cOrientationConique::NameFileOri()
+{
+   return OrientationFile().Val().NameFileOri();
+}
+
+const std::string & cOrientationConique::NameFileOri()const 
+{
+   return OrientationFile().Val().NameFileOri();
+}
+
+
+cTplValGesInit< cOrientationFile > & cOrientationConique::OrientationFile()
+{
+   return mOrientationFile;
+}
+
+const cTplValGesInit< cOrientationFile > & cOrientationConique::OrientationFile()const 
+{
+   return mOrientationFile;
+}
+
+
 cTplValGesInit< cAffinitePlane > & cOrientationConique::OrIntImaM2C()
 {
    return mOrIntImaM2C;
@@ -6139,6 +6190,8 @@ cElXMLTree * ToXMLTree(const cOrientationConique & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"OrientationConique",eXMLBranche);
+   if (anObj.OrientationFile().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.OrientationFile().Val())->ReTagThis("OrientationFile"));
    if (anObj.OrIntImaM2C().IsInit())
       aRes->AddFils(ToXMLTree(anObj.OrIntImaM2C().Val())->ReTagThis("OrIntImaM2C"));
    if (anObj.TypeProj().IsInit())
@@ -6162,6 +6215,8 @@ void xml_init(cOrientationConique & anObj,cElXMLTree * aTree)
 {
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+
+   xml_init(anObj.OrientationFile(),aTree->Get("OrientationFile",1)); //tototo 
 
    xml_init(anObj.OrIntImaM2C(),aTree->Get("OrIntImaM2C",1)); //tototo 
 

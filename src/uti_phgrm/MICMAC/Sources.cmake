@@ -25,6 +25,7 @@ set(uti_phgrm_MICMAC_Src_Files
     ${UTI_PHGRM_MICMAC_DIR}/cModeleAnalytiqueComp.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cNewProgDyn.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cOptimisationDiff.cpp
+    ${UTI_PHGRM_MICMAC_DIR}/cCameraModuleOrientation.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cOrientationCon.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cOrientationGrille.cpp
     ${UTI_PHGRM_MICMAC_DIR}/cOrientationRTO.cpp
