@@ -241,8 +241,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
      exit(-1);
 
   {
-      int TabZF[3] ={1,2,4};
-      VerifIn(mZoomFinal,TabZF,3,"ZoomFinal");
+      int TabZF[4] ={1,2,4,8};
+      VerifIn(mZoomFinal,TabZF,4,"ZoomFinal");
   }
     
   #if (ELISE_windows)
@@ -499,6 +499,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
        mCom = mCom + std::string(" +FileZ2PC=MM-Zoom2-PC.xml") ;
   }
   else if (mZoomFinal==4)
+  {
+       mCom = mCom + std::string(" +FileZ4PC=EmptyXML.xml") ;
+  }
+  else if (mZoomFinal==8)
   {
        mCom = mCom + std::string(" +FileZ4PC=EmptyXML.xml") ;
   }
