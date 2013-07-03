@@ -21,7 +21,7 @@ extern "C" void OptimisationOneDirection(DEVC_Data2Opti  &d2O);
 class InterfOptimizGpGpu : public GpGpuMultiThreadingCpu<CuHostData3D<uint>,CuDeviceData3D<uint> >
 {
 public:
-    InterfOptimizGpGpu();
+    InterfOptimizGpGpu(bool UseMultiThreading = true);
     ~InterfOptimizGpGpu();
 
 
@@ -43,7 +43,7 @@ public:
     void            SetPreCompNextDir(bool precompute);
     bool            GetPreCompNextDir();
 
-
+    bool            UseMultiThreading();
 
 private:
 
@@ -67,6 +67,7 @@ private:
 
     bool            _idbuf;
     uint            _idDir;
+    bool            _multiThreading;
 
 };
 
