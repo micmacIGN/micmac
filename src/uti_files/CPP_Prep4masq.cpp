@@ -78,7 +78,7 @@ int Prep4masq_main(int argc,char ** argv)
 		for(int i=0;i<int(aVectIm.size());i++){
 			//to make the file to manualy modify
 			string aNameMasq=StdPrefix(aVectIm[i]) + "_Masq.tif";
-			string cmdconv=MMDir() + "binaire-aux/convert -monochrome " + aVectIm[i] + " " + aNameMasq;
+			string cmdconv=MMDir() + "binaire-aux/convert -colorspace gray " + aVectIm[i] + " " + aNameMasq;
 			ListConvert.push_back(cmdconv);
 
 			//to read Size
@@ -87,7 +87,7 @@ int Prep4masq_main(int argc,char ** argv)
 
 			cout<<"--- Writing XML"<<endl;
 			string NameXML=StdPrefix(aVectIm[i]) + "_Masq.xml";
-			std::ofstream file_out(NameXML.c_str(), ios::out | ios::app);
+			std::ofstream file_out(NameXML.c_str(), ios::out);
 				if(file_out)  // if file successfully opened
 				{
 					file_out <<"<FileOriMnt>" <<endl;
