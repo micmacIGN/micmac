@@ -68,11 +68,12 @@ vector<ArsenicImage> LoadGrpImages(string aDir, std::string aPatIm, int SzMMInit
 	list<string> ListConvert, ListVig;
 	vector<std::string> VectImSc,VectMasq;
 	int nbIm=aVectIm.size();
-	char SzMMInitch[3];sprintf(SzMMInitch, "%02d", SzMMInit);
+	char SzMMInitch[3];sprintf(SzMMInitch, "%02d", SzMMInit);string SzMMInitStr=(string)SzMMInitch;
+	if(SzMMInit<10){SzMMInitStr=SzMMInitStr.substr(1,1);}
 	//If a vignette correction is entered
 	string postfix="";
 	if(InVig!=""){
-		string cmdVig=MMDir() + "bin/mm3d Vodka " + aPatIm + " DoCor=1 Out=" + InVig + " InCal=" + InVig;
+		string cmdVig=MMDir() + "bin/mm3d Vodka \"" + aPatIm + "\" DoCor=1 Out=" + InVig + " InCal=" + InVig;
 		postfix="_Vodka.tif";
 		ListVig.push_back(cmdVig);
 		cEl_GPAO::DoComInParal(ListVig,aDir + "MkVig");
@@ -81,13 +82,14 @@ vector<ArsenicImage> LoadGrpImages(string aDir, std::string aPatIm, int SzMMInit
 
 	for (int aK1=0 ; aK1<nbIm ; aK1++)
     {
-		string cmdConv=MMDir() + "bin/ScaleIm " + InVig + (aVectIm)[aK1] + postfix + " " + (string)SzMMInitch + " F8B=1 Out=" + (aVectIm)[aK1] + "_Scaled.tif";
+		string cmdConv=MMDir() + "bin/ScaleIm " + InVig + (aVectIm)[aK1] + postfix + " " + SzMMInitStr + " F8B=1 Out=" + (aVectIm)[aK1] + "_Scaled.tif";
 		ListConvert.push_back(cmdConv);
 
-		VectMasq.push_back("Masq-TieP-" + (aVectIm)[aK1] + "/RN" + (aVectIm)[aK1] + "_Masq.tif");
+		//VectMasq.push_back("Masq-TieP-" + (aVectIm)[aK1] + "/RN" + (aVectIm)[aK1] + "_Masq.tif");
+		VectMasq.push_back("MM-Malt-Img-" + StdPrefix((aVectIm)[aK1]) + "/Masq_STD-MALT_DeZoom" + SzMMInitStr + ".tif");
 		VectImSc.push_back((aVectIm)[aK1]+std::string("_Scaled.tif"));
 	}
-	cEl_GPAO::DoComInParal(ListConvert,aDir + "MkScale24");
+	cEl_GPAO::DoComInParal(ListConvert,aDir + "MkScale");
 
 	vector<ArsenicImage> aGrIm;
 
@@ -95,8 +97,10 @@ vector<ArsenicImage> LoadGrpImages(string aDir, std::string aPatIm, int SzMMInit
 	{
 		ArsenicImage aIm;
 		//reading 3D info
-		cElNuage3DMaille * info3D1 = cElNuage3DMaille::FromFileIm("Masq-TieP-" + (aVectIm)[aK1] + "/NuageImProf_LeChantier_Etape_4.xml");
-		//cElNuage3DMaille * info3D1 = cElNuage3DMaille::FromFileIm("MM-Malt-Img-" + StdPrefix((*aVectIm)[aK1]) + "/NuageImProf_STD-MALT_Etape_7.xml");
+		string arr[] = {"NaN", "7" ,  "6" , "NaN" , "5" , "NaN" , "NaN" , "NaN" , "4"};
+		vector<string> numZoom(arr, arr+9);
+		//cElNuage3DMaille * info3D1 = cElNuage3DMaille::FromFileIm("Masq-TieP-" + aVectIm[aK1] + "/NuageImProf_LeChantier_Etape_4.xml");
+		cElNuage3DMaille * info3D1 = cElNuage3DMaille::FromFileIm("MM-Malt-Img-" + StdPrefix(aVectIm[aK1]) + "/NuageImProf_STD-MALT_Etape_"+ numZoom[SzMMInit] + ".xml");
 
 		aIm.info3D=info3D1;
 
@@ -150,6 +154,7 @@ PtsHom ReadPtsHom3D(string aDir,string aPatIm,string Extension, bool useMasq, st
 	vector<ArsenicImage> aGrIm=LoadGrpImages(aDir, aPatIm, SzMMInit, InVig);
 	std::cout<<"===== "<<aGrIm.size()<< " images loaded"<<endl;
 
+
 	//On parcours toutes les paires d'images différentes (->testé dans le if)
     for (int aK1=0 ; aK1<nbIm ; aK1++)
     {
@@ -163,7 +168,7 @@ PtsHom ReadPtsHom3D(string aDir,string aPatIm,string Extension, bool useMasq, st
 				
 				Pt2dr pos2DPtIm1;pos2DPtIm1.x=aX;pos2DPtIm1.y=aY;
 				if(aGrIm[aK1].Mask.data()[aY][aX]==0){continue;}else{//If pts in masq, go look for 3D position
-					Pt3d<double> pos3DPtIm1=aGrIm[aK1].info3D->PreciseCapteur2Terrain(pos2DPtIm1);					
+					Pt3d<double> pos3DPtIm1=aGrIm[aK1].info3D->PreciseCapteur2Terrain(pos2DPtIm1);	
 						//Testing the position of the point in other images	
 						vector<double> distances(nbIm,10000000); //distances between original 3D point and reprojection from other images
 						vector<Pt2dr> pos2DOtherIm(nbIm);
@@ -185,9 +190,9 @@ PtsHom ReadPtsHom3D(string aDir,string aPatIm,string Extension, bool useMasq, st
 							}
 						}
 						//cout<<distances<<endl;
-						double distMin=*min_element(distances.begin(),distances.end());//cout<<"distmin"<<distMin<<endl;
+						double distMin=aGrIm[0].info3D->ResolSolOfPt(pos3DPtIm1)/8;
 						for (int aK2=0 ; aK2<int(nbIm) ; aK2++){
-							if(fabs(distances[aK2]/distMin-1)<0.20 && distances[aK2]!=10000000 && distMin<0.020){//id pos3DPtIm1~=pos3DPtIm2 -->pt is considered homologous,it is added to PtsHom (Gr1, R1, G1, B1, X1, Y1, idem 2, NbPtsCouple++)
+							if(distances[aK2]<distMin){//id pos3DPtIm1~=pos3DPtIm2 -->pt is considered homologous,it is added to PtsHom (Gr1, R1, G1, B1, X1, Y1, idem 2, NbPtsCouple++)
 								//cout<<"YES aK1 = " <<aK1<<" aK2 = " <<aK2<< " pos = " <<(aK1*nbIm)+aK2<<" pix1 = "<<aX<<" - "<<aY<<" pix2 = "<<pos2DOtherIm[aK2].x<<" - "<<pos2DOtherIm[aK2].y<<" with dist = "<<distances[aK2]<<endl;
 								aPtsHomol.X1.push_back(SzMMInit*pos2DPtIm1.x) ;
 								aPtsHomol.Y1.push_back(SzMMInit*pos2DPtIm1.y) ;
@@ -218,6 +223,8 @@ PtsHom ReadPtsHom3D(string aDir,string aPatIm,string Extension, bool useMasq, st
 	}
 
 		cout<<aPtsHomol.NbPtsCouple<<endl;
+		vector<int> NOPtsCouple(nbIm*nbIm,0);
+		ELISE_ASSERT(aPtsHomol.NbPtsCouple!=NOPtsCouple,"No homologous points (resolution of MMInitialModel might be too small");
 		return aPtsHomol;
 
 }
@@ -572,9 +579,9 @@ for(int i=0;i<int(nbIm);i++){
 		vector<double> aCoefsFixe(nbParam*nbIm,0.0);
 		aCoefsFixe[nbParam*i+a]=1;
 		double * coefsFixeAr=&aCoefsFixe[0];
-		aSysR.AddEquation(pow(float(nbParcouru),3),coefsFixeAr,0);
-		aSysG.AddEquation(pow(float(nbParcouru),3),coefsFixeAr,0);
-		aSysB.AddEquation(pow(float(nbParcouru),3),coefsFixeAr,0);
+		aSysR.AddEquation(pow(float(nbParcouru),0),coefsFixeAr,0);
+		aSysG.AddEquation(pow(float(nbParcouru),0),coefsFixeAr,0);
+		aSysB.AddEquation(pow(float(nbParcouru),0),coefsFixeAr,0);
 	}
 }
 
