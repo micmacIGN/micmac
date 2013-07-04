@@ -90,7 +90,7 @@ cGeomImage::cGeomImage
   mDimPx      (aDimPx),
   mPIV_Done   (false),
   mCoeffDilNonE (0.0)
-{
+{    
    mSzImInit   =aSzIm;
 //  std::cout <<  "KKKKK " << aPDV.Name() << " " << aSzIm << "\n";
 /*
@@ -1958,6 +1958,7 @@ class cGeomFaisZTerMaitre : public cGeomImage_Id
          cGeomImage_Id  (anAppli,aPDV,aTag,aSzIm,aDimPx),
          mGeoRef        (aGeomRef)
       {
+
 // std::cout << "AAAAAAAAAAAAakkkoooooooooo\n";
       }
       Pt3dr  Centre() const { return mGeoRef->Centre(); }
@@ -1972,6 +1973,14 @@ class cGeomFaisZTerMaitre : public cGeomImage_Id
        {
           return "cGeomFaisZTerMaitre::" +mGeoRef->Name();
        }
+    
+    
+    
+    // Par defaut erreur fatale si pas mode Image_Nuage
+    void RemplitOriXMLNuage(const cMTD_Nuage_Maille & mtd,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &aNuage ,eModeExportNuage mode) const
+    {
+        mGeoRef->RemplitOriXMLNuage(mtd,aGT,aNuage,mode);
+    }
 
     protected :
       bool GetPxMoyenne_NonEuclid(double * aPxMoy,bool MakeInvIfNeeded) const
@@ -2547,6 +2556,18 @@ class cGeomImage_Module : public cGeomImage
        delete mModule;
     }
     std::string Name() const {return "Mod::" +mNameModule;}
+    
+    
+    
+    // Par defaut erreur fatale si pas mode Image_Nuage
+    void RemplitOriXMLNuage(const cMTD_Nuage_Maille & mtd,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &aNuage ,eModeExportNuage mode) const
+    {
+        cGeomImage::RemplitOriXMLNuage(mtd,aGT,aNuage,mode);
+        cOrientationFile oriFile;
+        oriFile.NameFileOri()=mModule->GetFilename();
+        aNuage.Orientation().OrientationFile().SetVal(oriFile);
+        aNuage.Orientation().TypeProj().SetVal(eProjStenope);
+    }
 
   private:
     ModuleOrientation * mModule;
