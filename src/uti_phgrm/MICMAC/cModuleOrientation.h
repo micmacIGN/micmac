@@ -45,7 +45,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 class ModuleOrientation
 {
 public:
-  ModuleOrientation(std::string const &/*nom*/){;}
+  ModuleOrientation(std::string const &nom){mFileName=nom;}
   virtual ~ModuleOrientation(){;}
   virtual void ImageAndPx2Obj(double /*c*/, double /*l*/, const double * /*z*/,
                               double &/*x*/, double &/*y*/)const{;};
@@ -53,6 +53,10 @@ public:
                                double &/*c*/, double &/*l*/)const{;};
   virtual double GetResolMoyenne() const {return 1.;}
   virtual bool GetPxMoyenne(double * /*aPxMoy*/) const {return false;}
+    
+    std::string GetFilename()const{return mFileName;}
+private:
+    std::string mFileName;
 };
 
 #endif

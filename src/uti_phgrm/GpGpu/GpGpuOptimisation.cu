@@ -58,6 +58,7 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
     if(sens)
         while( Z < uZ_Prev.y )
         {
+            if(Z>>8) break; // A SIMPLIFIER , DEPASSEMENT SUR RAMSES
             int idGData        = Z - uZ_Prev.x;
             g_ForceCostVol[idGData]    = pData[idBuf][idGData];
             Z += min(uZ_Prev.y - Z,WARPSIZE);
@@ -85,10 +86,12 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
 
             ComputeIntervaleDelta(aDz,Z,penteMax,uZ_Next,uZ_Prev);
             T costMin           = 1e9;
+
             const T costInit    = pData[2][Z_Id];
+
             const short Z_P_Id  = Z - uZ_Prev.x;
 
-            aDz.y = min(aDz.y,(short)NAPPEMAX - Z_P_Id);
+            aDz.y = min(aDz.y,(short)NAPPEMAX - 1 - Z_P_Id);
 
             for(short i = aDz.x ; i <= aDz.y; i++)
                 costMin = min(costMin, costInit + pData[idBuf][Z_P_Id + i]);
@@ -105,6 +108,7 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
             Z += min(uZ_Next.y - Z,WARPSIZE);
 
             if((Z_Id  = Z - uZ_Next.x)>>8) break;
+
         }
 
         if(!sens)
@@ -114,7 +118,7 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
             T* g_LFCV = g_ForceCostVol + pitStrOut;
 
             while( Z < uZ_Next.y )
-            {             
+            {
                 g_LFCV[Z_Id] -= globMinCost;
                 Z += min(uZ_Next.y - Z,WARPSIZE);
                 if((Z_Id  = Z - uZ_Next.x)>>8) break;

@@ -139,13 +139,12 @@ if(${CUDA_ENABLED})
 	 file(GLOB_RECURSE IncCudaFiles ${PROJECT_SOURCE_DIR}/include/*.h  )
 	 list(APPEND IncCudaFiles ${IncuhCudaFiles})
 
-	 #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20 -lineinfo)
 	 #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20 -use_fast_math)
-	 #set(GENCODE_SM21 -gencode=arch=compute_21,code=sm_21 -gencode=arch=compute_21,code=compute_21)
-
 	 #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20)
 
-	 set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20)
+	 set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -lineinfo)
+	 #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20)
+
 	 set(libStatGpGpuTools GpGpuTools)
 	 set(libStatGpGpuInterfMicMac GpGpuInterfMicMac)
 	 set(libStatGpGpuOpt GpGpuOpt)
