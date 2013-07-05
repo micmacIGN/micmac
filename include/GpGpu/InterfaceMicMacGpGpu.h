@@ -17,6 +17,7 @@
 #include "GpGpu/cudaAppliMicMac.cuh"
 #include <boost/thread/thread.hpp>
 #include "GpGpu/GpGpuTools.h"
+#include "GpGpu/GpGpuMultiThreadingCpu.h"
 
 extern "C" void	CopyParamTodevice(pCorGpu h);
 extern "C" void	KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd);
@@ -32,7 +33,7 @@ extern "C" textureReference&	getProjection(int TexSel);
 
 /// \class InterfaceMicMacGpGpu
 /// \brief Class qui lie micmac avec les outils de calculs GpGpu
-class InterfaceMicMacGpGpu
+class InterfaceMicMacGpGpu : public CSimpleJobCpuGpu< uint>
 {
 
 public:
@@ -62,26 +63,6 @@ public:
   /// \brief    Affiche sur la console la memoire globale alloué pour la correlation sur Gpu
   void          MallocInfo();
 
-  /// \brief    Initialise les pointeurs des volumes de couts et des projections
-  //void          SetHostVolume(float* vCost1, float* vCost1, float2* vProj);
-
-
-  /// \brief    Fonction lie au multi-processus
-  ///           Affecte le nombre de Z a calculer pour le processus de Calcul GpGpu
-  void          SetZToCompute(uint Z);
-  /// \brief    Fonction lie au multi-processus
-  ///           Renvoie le nombre de Z a Copier pour le processus Cpu
-  uint          GetZCtoCopy();
-  /// \brief    Fonction lie au multi-processus
-  ///           Affecte le nombre de Z a Copier pour le processus Cpu
-  void          SetZCToCopy(uint Z);
-  /// \brief    Fonction lie au multi-processus
-  ///           Retourne si le calcul des projections doit etre effectuer dans le processus Cpu
-  bool          GetComputeNextProj();
-  /// \brief    Fonction lie au multi-processus
-  ///           Affecte trigger pour le calcul des projections dans le processus Cpu
-  void          SetComputeNextProj(bool compute);
-
   void          ReallocInputProjection(uint2 dim, uint l);
 
   void          ReallocOutCost(uint2 dim, uint l);
@@ -98,14 +79,14 @@ public:
 
 private:
 
-  uint              GetZToCompute();
   void              ResizeInputVolume(int nbLayer, uint interZ);
-  //void              ResizeOutputVolume(int nbLayer, uint interZ);
   void              ResizeVolumeAsync(int nbLayer, uint interZ);
   void              AllocMemory(int nStream);
   cudaStream_t*		GetStream(int stream);
   textureReference&	GetTeXProjection(int texSel);
-  void              MTComputeCost();
+
+  void              threadCompute();
+  void              freezeCompute();
 
   cudaStream_t  _stream[NSTREAM];
   pCorGpu		_param;
@@ -130,20 +111,10 @@ private:
   textureReference&         _texProjections_05;
   textureReference&         _texProjections_06;
   textureReference&         _texProjections_07;
-  boost::thread*            _gpuThread;
-  boost::mutex              _mutex;
-  boost::mutex              _mutexC;
-  boost::mutex              _mutexCompute;
-  //
-//  float                     _vCost[2];
-//  float2*                   _vProj;
 
   CuHostData3D<float>		_hVolumeCost[2];
   CuHostData3D<float2>      _hVolumeProj;
 
-  uint                      _ZCompute;
-  uint                      _ZCCopy;
-  bool                      _computeNextProj;
   bool                      _useAtomicFunction;
 
   bool                      _idBuf;

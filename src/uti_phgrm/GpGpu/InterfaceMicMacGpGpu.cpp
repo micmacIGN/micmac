@@ -18,10 +18,9 @@ InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
   for (int s = 0;s<NSTREAM;s++)
     checkCudaErrors( cudaStreamCreate(GetStream(s)));
 
-  _gpuThread = new boost::thread(&InterfaceMicMacGpGpu::MTComputeCost,this);
-  //_gpuThread->detach();
-  SetZCToCopy(0);
-  SetZToCompute(0);
+  setThread( new boost::thread(&InterfaceMicMacGpGpu::threadCompute,this));
+
+  freezeCompute();
 
   _volumeCost->SetName("_volumeCost");
   _volumeCach->SetName("_volumeCach");
@@ -29,7 +28,6 @@ InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
   _mask.CData2D::SetName("_mask");
   _LayeredImages.CData3D::SetName("_LayeredImages");
   _LayeredProjection->CData3D::SetName("_LayeredProjection");
-
 
   // Parametres texture des projections
   for (int s = 0;s<NSTREAM;s++)
@@ -65,14 +63,6 @@ InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
 
 InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
 {
-  _gpuThread->interrupt();
-  //_gpuThread->join();
-  delete _gpuThread;
-
-  _mutex.unlock();
-  _mutexC.unlock();
-  _mutexCompute.unlock();
-
   for (int s = 0;s<NSTREAM;s++)
     checkCudaErrors( cudaStreamDestroy(*(GetStream(s))));
 
@@ -196,7 +186,7 @@ void InterfaceMicMacGpGpu::BasicCorrelation(int nbLayer, uint idBuf )
   _LayeredProjection[s].copyHostToDevice(_hVolumeProj.pData());
 
   // Indique que la copie est terminée pour le thread de calcul des projections
-  SetComputeNextProj(true);
+  SetPreComp(true);
 
   // Lié de données de projections du device avec la texture de projections
   _LayeredProjection[s].bindTexture(GetTeXProjection(s));
@@ -285,7 +275,7 @@ void InterfaceMicMacGpGpu::BasicCorrelationStream( float* hostVolumeCost, float2
       for (uint s = 0;s<nstream;s++)
           _LayeredProjection[s].copyHostToDeviceASync(hostVolumeProj + (Z  + s) *_LayeredProjection->GetSize(),*(GetStream(s)));
 
-      if (Z == 0) SetComputeNextProj(true); // A faire quand toutes les copies asynchrones sont terminées!!
+      if (Z == 0) SetPreComp(true); // A faire quand toutes les copies asynchrones sont terminées!!
 
       for (uint s = 0;s<nstream;s++)
         {
@@ -338,10 +328,6 @@ void InterfaceMicMacGpGpu::ResizeInputVolume( int nbLayer, uint interZ )
   }
 }
 
-//void InterfaceMicMacGpGpu::ResizeOutputVolume(int nbLayer, uint interZ)
-//{
-//}
-
 void InterfaceMicMacGpGpu::ResizeVolumeAsync(int nbLayer, uint interZ)
 {
   for (int s = 0;s<NSTREAM;s++)
@@ -389,62 +375,32 @@ cudaStream_t* InterfaceMicMacGpGpu::GetStream( int stream )
   return &(_stream[stream]);
 }
 
-void InterfaceMicMacGpGpu::MTComputeCost()
+void InterfaceMicMacGpGpu::threadCompute()
 {
   bool gpuThreadLoop    = true;
   _idBuf                = false;
 
   while (gpuThreadLoop)
     {
-      if (GetZToCompute()!=0 /*&& GetZCtoCopy()==0*/)
+      if (GetCompute()!=0)
         {
-          uint interZ = GetZToCompute();
-          SetZToCompute(0);
+          uint interZ = GetCompute();
+          SetCompute(0);
           BasicCorrelation(_param.nbImages, _idBuf);
           _idBuf = !_idBuf;
 
-          while(GetZCtoCopy() > 0);
+          while(GetDataToCopy());
           //BasicCorrelationStream(_vCost, _vProj, _param.nbImages, interZ);
-          SetZCToCopy(interZ);
+          SetDataToCopy(interZ);
         }
-    }
+  }
 }
 
-uint InterfaceMicMacGpGpu::GetZToCompute()
+void InterfaceMicMacGpGpu::freezeCompute()
 {
-  boost::lock_guard<boost::mutex> guard(_mutex);
-  return _ZCompute;
-}
-
-void InterfaceMicMacGpGpu::SetZToCompute( uint Z )
-{
-  boost::lock_guard<boost::mutex> guard(_mutex);
-  _ZCompute = Z;
-}
-
-uint InterfaceMicMacGpGpu::GetZCtoCopy()
-{
-  boost::lock_guard<boost::mutex> guard(_mutexC);
-  return _ZCCopy;
-
-}
-
-void InterfaceMicMacGpGpu::SetZCToCopy( uint Z )
-{
-  boost::lock_guard<boost::mutex> guard(_mutexC);
-  _ZCCopy = Z;
-}
-
-bool InterfaceMicMacGpGpu::GetComputeNextProj()
-{
-  boost::lock_guard<boost::mutex> guard(_mutexCompute);
-  return _computeNextProj;
-}
-
-void InterfaceMicMacGpGpu::SetComputeNextProj( bool compute )
-{
-  boost::lock_guard<boost::mutex> guard(_mutexCompute);
-  _computeNextProj = compute;
+    SetDataToCopy(0);
+    SetCompute(0);
+    SetPreComp(false);
 }
 
 void InterfaceMicMacGpGpu::ReallocInputProjection(uint2 dim, uint l)
