@@ -18,10 +18,10 @@ extern "C" void OptimisationOneDirection(DEVC_Data2Opti  &d2O);
 
 /// \class InterfMicMacOptGpGpu
 /// \brief Class qui permet a micmac de lancer les calculs d optimisations sur le Gpu
-class InterfOptimizGpGpu : public GpGpuMultiThreadingCpu<CuHostData3D<uint>,CuDeviceData3D<uint> >
+class InterfOptimizGpGpu : public CSimpleJobCpuGpu<bool>
 {
 public:
-    InterfOptimizGpGpu(bool UseMultiThreading = true);
+    InterfOptimizGpGpu();
     ~InterfOptimizGpGpu();
 
 
@@ -31,43 +31,17 @@ public:
     void            oneDirOptGpGpu();
     void            ReallocParam(uint size);
 
-    void            createThreadOptGpGpu();
-    void            deleteThreadOptGpGpu();
-
-    void            SetCompute(bool compute);
-    bool            GetCompute();
-
-    void            SetDirToCopy(bool copy);
-    bool            GetDirToCopy();
-
-    void            SetPreCompNextDir(bool precompute);
-    bool            GetPreCompNextDir();
-
-    bool            UseMultiThreading();
-
 private:
 
-    virtual void    InitPrecompute(){}
-    virtual void    Precompute(HOST_UINT3D* hostIn){}
-    virtual void    GpuCompute(){}
-
-    void            threadFuncOptimi();
+    void            threadCompute();
+    void            freezeCompute();
 
     HOST_Data2Opti  _H_data2Opt;
     DEVC_Data2Opti  _D_data2Opt;
-    boost::thread*  _gpGpuThreadOpti;
-
-    boost::mutex    _mutexCompu;
-    boost::mutex    _mutexCopy;
-    boost::mutex    _mutexPreCompute;
-
-    bool            _compute;
-    bool            _copy;
-    bool            _precompute;
 
     bool            _idbuf;
     uint            _idDir;
-    bool            _multiThreading;
+
 
 };
 
