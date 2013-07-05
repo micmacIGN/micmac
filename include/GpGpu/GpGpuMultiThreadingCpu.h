@@ -8,7 +8,6 @@
 #include <boost/atomic.hpp>
 
 #include "GpGpu/GpGpuTools.h"
-//#include "GpGpu/GpGpuOptimisation.h"
 
 extern "C" void Launch(uint* value);
 
@@ -23,8 +22,6 @@ public:
     CSimpleJobCpuGpu(bool useMultiThreading = true);
     ~CSimpleJobCpuGpu();
 
-//protected:
-
     void            SetCompute(T toBeComputed);
     bool            GetCompute();
 
@@ -36,13 +33,18 @@ public:
 
     bool            UseMultiThreading();
 
+protected:
+
+    void            setThread(boost::thread* Thread);
+
 private:
 
+    boost::thread*  _gpGpuThread;
+
     virtual void    threadCompute() = 0;
+    virtual void    freezeCompute() = 0;
 
     bool            _useMultiThreading;
-
-    boost::thread*  _gpGpuThread;
 
     boost::mutex    _mutexCompu;
     boost::mutex    _mutexCopy;
@@ -53,6 +55,83 @@ private:
     bool            _precompute;
 
 };
+
+template< class T >
+CSimpleJobCpuGpu<T>::CSimpleJobCpuGpu(bool useMultiThreading):
+    _useMultiThreading(useMultiThreading)
+{
+
+}
+template< class T >
+CSimpleJobCpuGpu<T>::~CSimpleJobCpuGpu()
+{
+    if(UseMultiThreading())
+    {
+        _gpGpuThread->interrupt();
+        //_gpGpuThread->join();
+        delete _gpGpuThread;
+    }
+    _mutexCompu.unlock();
+    _mutexCopy.unlock();
+    _mutexPreCompute.unlock();
+}
+
+template< class T >
+void CSimpleJobCpuGpu<T>::SetCompute(T toBeComputed)
+{
+    boost::lock_guard<boost::mutex> guard(_mutexCompu);
+    _compute = toBeComputed;
+}
+
+template< class T >
+bool CSimpleJobCpuGpu<T>::GetCompute()
+{
+    boost::lock_guard<boost::mutex> guard(_mutexCompu);
+    return _compute;
+}
+
+template< class T >
+void CSimpleJobCpuGpu<T>::SetDataToCopy(T toBeCopy)
+{
+    boost::lock_guard<boost::mutex> guard(_mutexCopy);
+    _copy = toBeCopy;
+
+}
+
+template< class T >
+bool CSimpleJobCpuGpu<T>::GetDataToCopy()
+{
+    boost::lock_guard<boost::mutex> guard(_mutexCopy);
+    return _copy;
+}
+
+template< class T >
+void CSimpleJobCpuGpu<T>::SetPreComp(bool canBePreCompute)
+{
+    boost::lock_guard<boost::mutex> guard(_mutexPreCompute);
+    _precompute = canBePreCompute;
+}
+
+template< class T >
+bool CSimpleJobCpuGpu<T>::GetPreComp()
+{
+    boost::lock_guard<boost::mutex> guard(_mutexPreCompute);
+    return _precompute;
+
+}
+
+template< class T >
+bool CSimpleJobCpuGpu<T>::UseMultiThreading()
+{
+    return _useMultiThreading;
+}
+
+template< class T >
+void CSimpleJobCpuGpu<T>::setThread(boost::thread *Thread)
+{
+    _gpGpuThread = Thread;
+}
+
 
 
 class DataBuffer
