@@ -366,7 +366,7 @@ vector<PtsHom> ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,string E
 
 		//read masq if activeted
 		Im2D_U_INT1  aMasq(aSz.x,aSz.y);
-		unsigned char ** aMasqData;
+        unsigned char ** aMasqData = NULL;
 		if(useMasq){
 			Tiff_Im aTFMasq= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK1] + "_Masq.tif",1,false);
 			ELISE_COPY
@@ -498,7 +498,7 @@ if (Ok1 && Ok2 && Ok3)
 	//cout<<aSysRInit.ResiduOfSol(aDataR)<<endl;
 	//cout<<aSysGInit.ResiduOfSol(aDataG)<<endl;
 	//cout<<aSysBInit.ResiduOfSol(aDataB)<<endl;
-	for(unsigned i=0;i<int(nbIm*nbParam);i++){
+    for(int i=0;i<int(nbIm*nbParam);i++){
 		//cout<<"For im NUM "<<i<<" CorR = "<<aDataR[i]<<" CorG = "<<aDataG[i]<<" CorB = "<<aDataB[i]<<endl;
 		aParam3Chan.parRed.push_back(aDataR[i]);
 		aParam3Chan.parGreen.push_back(aDataG[i]);
@@ -509,7 +509,7 @@ if (Ok1 && Ok2 && Ok3)
 		double maxFactorR=1/(*max_element(aParam3Chan.parRed.begin(),aParam3Chan.parRed.end()));
 		double maxFactorG=1/(*max_element(aParam3Chan.parGreen.begin(),aParam3Chan.parGreen.end()));
 		double maxFactorB=1/(*max_element(aParam3Chan.parBlue.begin(),aParam3Chan.parBlue.end()));
-		for(unsigned i=0;i<int(nbIm);i++){
+        for(int i=0;i<int(nbIm);i++){
 			if(maxFactorR>1){aParam3Chan.parRed[i]  =aParam3Chan.parRed[i]  *maxFactorR;}
 			if(maxFactorG>1){aParam3Chan.parGreen[i]=aParam3Chan.parGreen[i]*maxFactorG;}
 			if(maxFactorB>1){aParam3Chan.parBlue[i] =aParam3Chan.parBlue[i] *maxFactorB;}
@@ -699,7 +699,7 @@ for(int nbRANSAC=0 ; nbRANSAC<int(nbRANSACMax) ; nbRANSAC++){
 
 
 	for(int i=0;i<int(nbIm);i++){
-		double grMax=*max_element(Gr[i].begin(),Gr[i].end());
+        //double grMax=*max_element(Gr[i].begin(),Gr[i].end());
 		vector<double> aCoefsFixe(nbParam*nbIm,0.0);
 		aCoefsFixe[nbParam*i]=1;
 		double * coefsFixeAr=&aCoefsFixe[0];
