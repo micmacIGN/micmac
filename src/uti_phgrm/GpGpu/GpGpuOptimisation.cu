@@ -181,6 +181,7 @@ extern "C" void OptimisationOneDirection(Data2Optimiz<CuHostData3D> &d2O)
                                                     d2O._param[0]           .pData(),
                                                     deltaMax
                                                     );
+    getLastCudaError("kernelOptiOneDirection failed");
 }
 
 __global__ void TestGpu(uint *value)

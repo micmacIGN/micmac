@@ -116,9 +116,6 @@ cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
         Im2D_INT2       aPxMax
 ) :
     cSurfaceOptimiseur ( mAppli,mLT,1e4,anEqX,anEqY,false,false),
-#ifdef CUDA_ENABLED
-    IGpuOpt     (true),
-#endif
     mXMin       (aPxMin),
     mXMax       (aPxMax),
     mSz         (mXMin.sz()),
@@ -538,13 +535,13 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
     int aKDir = 0;
     if (IGpuOpt.UseMultiThreading())
     {
-        IGpuOpt.SetPreCompNextDir(true);
+        IGpuOpt.SetPreComp(true);
         int aKPreDir = 0;
         bool idPreCo = false, idCo = false;
         while (aKDir < aNbDir)
         {
 
-            if(  aKPreDir < aNbDir && aKPreDir <= aKDir + 1 && IGpuOpt.GetPreCompNextDir() )
+            if(  aKPreDir < aNbDir && aKPreDir <= aKDir + 1 && IGpuOpt.GetPreComp() )
             {
 
                 Pt2di aDirI = direction(aNbDir, aKPreDir);
@@ -577,24 +574,24 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
                 copyCells<MAT_TO_STREAM>( aDirI, IGpuOpt.Data2Opt(),idPreCo);
 
                 IGpuOpt.SetCompute(true);
-                IGpuOpt.SetPreCompNextDir(false);
+                IGpuOpt.SetPreComp(false);
 
                 aKPreDir++;
                 idPreCo = !idPreCo;
             }
 
-            if(IGpuOpt.GetDirToCopy() && aKDir < aNbDir)
+            if(IGpuOpt.GetDataToCopy() && aKDir < aNbDir)
             {
                 copyCells<STREAM_TO_MAT>( direction(aNbDir,aKDir), IGpuOpt.Data2Opt(),idCo);
-                IGpuOpt.SetDirToCopy(false);
+                IGpuOpt.SetDataToCopy(false);
                 aKDir++;
                 idCo = !idCo;
             }
         }
 
         IGpuOpt.SetCompute(false);
-        IGpuOpt.SetPreCompNextDir(false);
-        IGpuOpt.SetDirToCopy(false);
+        IGpuOpt.SetPreComp(false);
+        IGpuOpt.SetDataToCopy(false);
      }
     else
     {
