@@ -1432,11 +1432,11 @@ void cAppliMICMAC::DoGPU_Correl
 								TabProj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
 				
 						}
-					}
-				}
+                    }
+                }
 			}
 		}
-	}
+    }
 
 	void cAppliMICMAC::setVolumeCost(Rect Ter, uint z0, uint z1, double defaultCost, float* tabCost, Rect zone, float valdefault)
 	{
@@ -1466,7 +1466,7 @@ void cAppliMICMAC::DoGPU_Correl
 
 	void cAppliMICMAC::DoGPU_Correl_Basik
 		(
-		const Box2di & aBox
+        const Box2di & aBox
 		)
 	{
 
