@@ -37,11 +37,8 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 
   uint pitZ,modZ;
 
-  if (oI(ptProj,0))
-    {
-      //cacheImg[threadIdx.y][threadIdx.x]  = cH.floatDefault;
-      return;
-    }
+  if (oI(ptProj,0)) return;
+
   else
     {
       pitZ  = blockIdx.z / cH.nbImages;
