@@ -290,7 +290,7 @@ vector<PtsHom> ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,string E
 
 		//read masq if activeted
 		Im2D_U_INT1  aMasq(aSz.x,aSz.y);
-		unsigned char ** aMasqData;
+        unsigned char ** aMasqData = NULL;
 		if(useMasq){
 			Tiff_Im aTFMasq= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK1] + "_Masq.tif",1,false);
 			ELISE_COPY
