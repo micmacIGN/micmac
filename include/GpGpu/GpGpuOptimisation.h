@@ -42,7 +42,6 @@ private:
     bool            _idbuf;
     uint            _idDir;
 
-
 };
 
 

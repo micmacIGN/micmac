@@ -1498,13 +1498,12 @@ void cAppliMICMAC::DoGPU_Correl
         /// !!!! a remplacer par reallocif !!!!
         IMmGg.ReallocOutCost(IMmGg.Param().dimTer,interZ);
 
-        bool multiThreading = true;
 
 		// Initiation des parametres pour le multithreading
-        if (multiThreading)
+        if (IMmGg.UseMultiThreading())
         {
             IMmGg.SetIdBuf(false);
-			IMmGg.SetComputeNextProj(true);
+            IMmGg.SetPreComp(true);
         }
 
 		int anZProjection = aZMinTer, anZComputed= aZMinTer;
@@ -1513,10 +1512,10 @@ void cAppliMICMAC::DoGPU_Correl
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		while( anZComputed < aZMaxTer )
 		{
-			if (multiThreading)
+            if (IMmGg.UseMultiThreading())
             {	// le calcul de correlation est effectue dans un thread parallele celui-ci, il s'effectue quand des projections ont été calculées!
 				// Tabulation des projections si la demande est faite
-                if ( IMmGg.GetComputeNextProj() && anZProjection <= anZComputed + interZ && anZProjection < aZMaxTer)
+                if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + interZ && anZProjection < aZMaxTer)
 				{
                     int intZ = abs(aZMaxTer - anZProjection );
 					
@@ -1526,12 +1525,12 @@ void cAppliMICMAC::DoGPU_Correl
                     IMmGg.MemsetProj();
                     Tabul_Projection(IMmGg.InputProj(), anZProjection, IMmGg.Param().RDTer(),IMmGg.Param().sampProj, interZ);
 					
-					IMmGg.SetComputeNextProj(false);	
-					IMmGg.SetZToCompute(interZ);
+                    IMmGg.SetPreComp(false);
+                    IMmGg.SetCompute(interZ);
 					anZProjection+= interZ;
 				}
 
-				int ZtoCopy = IMmGg.GetZCtoCopy();
+                int ZtoCopy = (int)IMmGg.GetDataToCopy();
 
                 // Affectation des couts si des nouveaux ont ete calcule!
                 if (ZtoCopy != 0 && anZComputed < aZMaxTer)
@@ -1539,7 +1538,7 @@ void cAppliMICMAC::DoGPU_Correl
                     setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,IMmGg.OuputCost(idBuf), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
                     anZComputed += ZtoCopy;
                     idBuf = !idBuf;
-					IMmGg.SetZCToCopy(0);
+                    IMmGg.SetDataToCopy(0);
 				}
 			}
 			else
@@ -1566,8 +1565,8 @@ void cAppliMICMAC::DoGPU_Correl
 			}
 		}
 
-		IMmGg.SetZCToCopy(0);
-		IMmGg.SetZToCompute(0);
+        IMmGg.SetDataToCopy(0);
+        IMmGg.SetCompute(0);
         // Attention la liberation de memoire prends un certain temps, tout comme l'allocation... eviter cette manip...!!!
         IMmGg.DeallocVolumes();
 

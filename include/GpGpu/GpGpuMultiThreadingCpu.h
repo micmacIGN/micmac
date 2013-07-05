@@ -23,10 +23,10 @@ public:
     ~CSimpleJobCpuGpu();
 
     void            SetCompute(T toBeComputed);
-    bool            GetCompute();
+    T               GetCompute();
 
     void            SetDataToCopy(T toBeCopy);
-    bool            GetDataToCopy();
+    T               GetDataToCopy();
 
     void            SetPreComp(bool canBePreCompute);
     bool            GetPreComp();
@@ -84,7 +84,7 @@ void CSimpleJobCpuGpu<T>::SetCompute(T toBeComputed)
 }
 
 template< class T >
-bool CSimpleJobCpuGpu<T>::GetCompute()
+T CSimpleJobCpuGpu<T>::GetCompute()
 {
     boost::lock_guard<boost::mutex> guard(_mutexCompu);
     return _compute;
@@ -99,7 +99,7 @@ void CSimpleJobCpuGpu<T>::SetDataToCopy(T toBeCopy)
 }
 
 template< class T >
-bool CSimpleJobCpuGpu<T>::GetDataToCopy()
+T CSimpleJobCpuGpu<T>::GetDataToCopy()
 {
     boost::lock_guard<boost::mutex> guard(_mutexCopy);
     return _copy;

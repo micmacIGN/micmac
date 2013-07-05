@@ -558,7 +558,7 @@ double ScoreRANSAC(Param3Chan aParam3Chan, vector<PtsHom> aVectPtsHomol, int nbI
 		if(G2Poly2R>255){G2Poly2R=255;}if(G2Poly2G>255){G2Poly2G=255;}if(G2Poly2B>255){G2Poly2B=255;}
 		if(G1Poly1R<0){G1Poly1R=0;}if(G1Poly1G<0){G1Poly1G=0;}if(G1Poly1B<0){G1Poly1B=0;}
 		if(G2Poly2R<0){G2Poly2R=0;}if(G2Poly2G<0){G2Poly2G=0;}if(G2Poly2B<0){G2Poly2B=0;}
-		if(G1Poly1R+G1Poly1G+G1Poly1B==0 && G2Poly2R+G2Poly2G+G2Poly2B==0 || G1Poly1R+G1Poly1G+G1Poly1B==765 && G2Poly2R+G2Poly2G+G2Poly2B==765){nbBlack++;error=error+1000;}
+        if(G1Poly1R+G1Poly1G+G1Poly1B==0 && G2Poly2R+G2Poly2G+G2Poly2B==0 || G1Poly1R+G1Poly1G+G1Poly1B==765 && G2Poly2R+G2Poly2G+G2Poly2B==765){nbBlack++;error=error+1000;}
 		error=error+fabs(G1Poly1R-G2Poly2R)+fabs(G1Poly1G-G2Poly2G)+fabs(G1Poly1B-G2Poly2B);
 		errorCouple=errorCouple+fabs(G1Poly1R-G2Poly2R)+fabs(G1Poly1G-G2Poly2G)+fabs(G1Poly1B-G2Poly2B);
 	
