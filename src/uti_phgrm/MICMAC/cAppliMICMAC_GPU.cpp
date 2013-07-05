@@ -1476,8 +1476,6 @@ void cAppliMICMAC::DoGPU_Correl
 
         int aZMinTer = mZMinGlob, aZMaxTer = mZMaxGlob;
 
-        printf("%d %d")
-
 		// definition de la zone rectangulaire de terrain
 		Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
 
