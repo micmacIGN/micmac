@@ -48,7 +48,15 @@ template<class T, bool sens > __device__ void ReadOneSens(CDeviceDataStream<T> &
     }
 }
 
-template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &costStream, uint lenghtLine, T pData[][NAPPEMAX], bool& idBuf, T* g_ForceCostVol, ushort penteMax, int& pitStrOut )
+template<class T, bool sens > __device__
+void ScanOneSens(
+        CDeviceDataStream<T> &costStream,
+        uint    lenghtLine,
+        T       pData[][NAPPEMAX],
+        bool&   idBuf,
+        T*      g_ForceCostVol,
+        ushort  penteMax,
+        int&    pitStrOut )
 {
     const ushort    tid     = threadIdx.x;
     short2          uZ_Prev = costStream.read<sens>(pData[idBuf],tid, 0);
@@ -58,7 +66,7 @@ template<class T, bool sens > __device__ void ScanOneSens(CDeviceDataStream<T> &
     if(sens)
         while( Z < uZ_Prev.y )
         {
-            if(Z>>8) break; // A SIMPLIFIER , DEPASSEMENT SUR RAMSES
+            if(Z>>8) break; // ERREUR DEPASSEMENT A SIMPLIFIER , DEPASSEMENT SUR RAMSES
             int idGData        = Z - uZ_Prev.x;
             g_ForceCostVol[idGData]    = pData[idBuf][idGData];
             Z += min(uZ_Prev.y - Z,WARPSIZE);
