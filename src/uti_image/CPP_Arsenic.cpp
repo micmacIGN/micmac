@@ -141,6 +141,68 @@ double DistBetween(Pt3d<double> aP1, Pt3d<double> aP2 ){
 	return (double)std::sqrt(pow(double(aP1.x-aP2.x),2)+pow(double(aP1.y-aP2.y),2)+pow(double(aP1.z-aP2.z),2));
 }
 
+void drawTP(PtsHom aPtsHomol, string aDir, string aNameOut)
+{
+		//Bulding the output file system
+		ELISE_fp::MkDirRec(aDir + "TP/");
+		Pt2di aSz=aPtsHomol.SZ;
+		cout<<aSz.x<<" "<<aSz.y<<endl;
+		//Reading the image and creating the objects to be manipulated
+		aNameOut=aDir + "TP/"+ aNameOut +".tif";
+		Tiff_Im aTF=Tiff_Im(aNameOut.c_str(), aSz, GenIm::u_int1, Tiff_Im::No_Compr, Tiff_Im::RGB);
+
+		Im2D_U_INT1  aImR(aSz.x,aSz.y);
+		Im2D_U_INT1  aImG(aSz.x,aSz.y);
+		Im2D_U_INT1  aImB(aSz.x,aSz.y);
+
+		ELISE_COPY
+		(
+		   aTF.all_pts(),
+		   aTF.in(),
+		   Virgule(aImR.out(),aImG.out(),aImB.out())
+		);
+
+		U_INT1 ** aDataR = aImR.data();
+		U_INT1 ** aDataG = aImG.data();
+		U_INT1 ** aDataB = aImB.data();
+
+		for (int aY=0 ; aY<aSz.y  ; aY++)
+			{
+				for (int aX=0 ; aX<aSz.x  ; aX++)
+				{
+					aDataR[aY][aX]=0;
+					aDataG[aY][aX]=0;
+					aDataB[aY][aX]=0;
+				}
+		}
+		for (int i=0;i<aPtsHomol.size();i++)
+		{
+			//cout<<int(aPtsHomol.Y1[i])<<" "<<int(aPtsHomol.X1[i])<<endl;
+			aDataR[int(aPtsHomol.Y1[i]/2)][int(aPtsHomol.X1[i]/2)]=255;
+			aDataG[int(aPtsHomol.Y1[i]/2)][int(aPtsHomol.X1[i]/2)]=255;
+			aDataB[int(aPtsHomol.Y1[i]/2)][int(aPtsHomol.X1[i]/2)]=255;
+		}
+		
+		 Tiff_Im  aTOut
+			(
+				aNameOut.c_str(),
+				aSz,
+				GenIm::u_int1,
+				Tiff_Im::No_Compr,
+				Tiff_Im::RGB
+			);
+
+
+		 ELISE_COPY
+			 (
+				 aTOut.all_pts(),
+				 Virgule(aImR.in(),aImG.in(),aImB.in()),
+				 aTOut.out()
+			 );
+
+
+}
+
 vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm,string Extension, string InVig, int ResolModel)
 {
 	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
@@ -216,6 +278,7 @@ vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm,string Extension, string I
 								aVectPtsHomol[(aK1*nbIm)+aK2].G2.push_back(Green2);
 								aVectPtsHomol[(aK1*nbIm)+aK2].B2.push_back(Blue2);
 								aVectPtsHomol[(aK1*nbIm)+aK2].NbPtsCouple++;
+								aVectPtsHomol[(aK1*nbIm)+aK2].SZ=aGrIm[aK1].SZ;
 							}else{}//cout<<"NOT aK1 = " <<aK1<<" aK2 = " <<aK2<< " pos = " <<(aK1*nbIm)+aK2<<" aX = "<<aX<<" aY = "<<aY<<" with dist = "<<distances[aK2]<<endl;}
 						}
 				}
@@ -223,6 +286,19 @@ vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm,string Extension, string I
 		}
 	}
 
+
+		/*drawTP(aVectPtsHomol[1], aDir, "1-2");
+		drawTP(aVectPtsHomol[2], aDir, "1-3");
+		drawTP(aVectPtsHomol[3], aDir, "1-4");
+		drawTP(aVectPtsHomol[4], aDir, "2-1");
+		drawTP(aVectPtsHomol[6], aDir, "2-3");
+		drawTP(aVectPtsHomol[7], aDir, "2-4");
+		drawTP(aVectPtsHomol[8], aDir, "3-1");
+		drawTP(aVectPtsHomol[9], aDir, "3-2");
+		drawTP(aVectPtsHomol[11], aDir, "3-4");
+		drawTP(aVectPtsHomol[12], aDir, "4-1");
+		drawTP(aVectPtsHomol[13], aDir, "4-2");
+		drawTP(aVectPtsHomol[14], aDir, "4-3");*/
 		int nbPtsHomols=0;
 		for(int i=0 ; i<int(aVectPtsHomol.size()) ; i++){nbPtsHomols=nbPtsHomols + aVectPtsHomol[i].NbPtsCouple;}
 		ELISE_ASSERT(nbPtsHomols!=0,"No homologous points (resolution of MMInitialModel might be too small");
@@ -447,12 +523,13 @@ if (Ok1 && Ok2 && Ok3)
 double ScoreRANSAC(Param3Chan aParam3Chan, vector<PtsHom> aVectPtsHomol, int nbIm)
 {
 	double error=0;
+	vector<double> vErrorCouple;
 	int nbParam=aParam3Chan.size()/nbIm;
 	int degPoly=(nbParam-1)/(2);
 	double nbPts=0, nbBlack=0;
 	for(int indCouple=0 ; indCouple<int(aVectPtsHomol.size()) ; indCouple++)
 	{
-
+		double errorCouple=0;
 		int numImage1=(indCouple/(nbIm));
 		int numImage2=indCouple-numImage1*(nbIm);
 
@@ -481,16 +558,19 @@ double ScoreRANSAC(Param3Chan aParam3Chan, vector<PtsHom> aVectPtsHomol, int nbI
 		if(G2Poly2R>255){G2Poly2R=255;}if(G2Poly2G>255){G2Poly2G=255;}if(G2Poly2B>255){G2Poly2B=255;}
 		if(G1Poly1R<0){G1Poly1R=0;}if(G1Poly1G<0){G1Poly1G=0;}if(G1Poly1B<0){G1Poly1B=0;}
 		if(G2Poly2R<0){G2Poly2R=0;}if(G2Poly2G<0){G2Poly2G=0;}if(G2Poly2B<0){G2Poly2B=0;}
-		if(G1Poly1R+G1Poly1G+G1Poly1B==0 || G2Poly2R+G2Poly2G+G2Poly2B==0){nbBlack++;}
-		error=error+fabs(G1Poly1R+G1Poly1G+G1Poly1B-G2Poly2R-G2Poly2G-G2Poly2B);
+		if(G1Poly1R+G1Poly1G+G1Poly1B==0 && G2Poly2R+G2Poly2G+G2Poly2B==0 || G1Poly1R+G1Poly1G+G1Poly1B==765 && G2Poly2R+G2Poly2G+G2Poly2B==765){nbBlack++;error=error+1000;}
+		error=error+fabs(G1Poly1R-G2Poly2R)+fabs(G1Poly1G-G2Poly2G)+fabs(G1Poly1B-G2Poly2B);
+		errorCouple=errorCouple+fabs(G1Poly1R-G2Poly2R)+fabs(G1Poly1G-G2Poly2G)+fabs(G1Poly1B-G2Poly2B);
 	
 		}
+		vErrorCouple.push_back(errorCouple);
 	}
 	//cout<<"Error = "<<error<<endl;
 	double ratioBlack=double(nbBlack/nbPts);
 	if(ratioBlack==0){ratioBlack=0.01;}
 	//if(double(nbBlack/nbPts)>0.5){return -1;cout<<double(nbBlack/nbPts)<<endl;}else{
 	ELISE_ASSERT(error!=0,"Error=0, something is wrong");
+	//cout<<"Error per couple : " <<vErrorCouple<<endl;
 	return (3*nbPts)/(error);//*ratioBlack);//}
 		
 }
@@ -716,7 +796,6 @@ for(int nbRANSAC=0 ; nbRANSAC<int(nbRANSACMax) ; nbRANSAC++){
 	double aScore=ScoreRANSAC(aParam3ChanRANSAC, aVectPtsHomol, nbIm);//cout<<aScore<<endl;
 	if(aScore==-1){nbRANSACMax++;if(nbRANSACMax % 100==0 ){cout<<"Total nb of iteration iteration increased to = "<<nbRANSACMax<<" at iteration "<<nbRANSAC<<endl;}}
 	else if(aScoreMax<aScore){aScoreMax=aScore;aParam3Chan=aParam3ChanRANSAC;cout<<"New highest score : "<<aScoreMax<<" at iteration "<<nbRANSAC<<endl;}
-
 }
 	cout<<"Final RANSAC Score : "<<aScoreMax<<endl;
 	cout<<aParam3Chan.parRed<<endl;
