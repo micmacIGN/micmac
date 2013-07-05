@@ -439,7 +439,9 @@ vector<double> Vignette_Solve(PtsHom aPtsHomol)
 //RANSAC
 	
 vector<double> aParam;
-double /*ErMoyMin=10,*/ nbInliersMax=0,ErMin=10,aScoreMax=0;;
+double nbInliersMax=0,aScoreMax=0;
+//double ErMin = 10;
+
 int nbPtsSIFT=aPtsHomol.size();
 int nbRANSACinitialised=0;
 int nbRANSACaccepted=0;
@@ -500,7 +502,7 @@ while(nbRANSACinitialised<nbRANSACmax || nbRANSACaccepted<500)
 		if(aScore>aScoreMax){
 			cout<<valCoin<<endl;
 			nbInliersMax=nbInliers;
-			ErMin=ErMoy;
+            //ErMin=ErMoy;
 			aScoreMax=aScore;
 			cout<<"New Best Score (at "<<nbRANSACinitialised<<"th iteration) is : "<<aScoreMax<< " with " <<nbInliersMax/nbPtsSIFT*100<<"% of points used and Mean Error="<<ErMoy<<endl;
 			aParam.clear();
