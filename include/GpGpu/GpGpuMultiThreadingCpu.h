@@ -15,6 +15,45 @@ extern "C" void Launch(uint* value);
 #define ITERACUDA   2
 #define SIZERING    2
 
+template< class T >
+class CSimpleJobCpuGpu
+{
+public:
+
+    CSimpleJobCpuGpu(bool useMultiThreading = true);
+    ~CSimpleJobCpuGpu();
+
+//protected:
+
+    void            SetCompute(T toBeComputed);
+    bool            GetCompute();
+
+    void            SetDataToCopy(T toBeCopy);
+    bool            GetDataToCopy();
+
+    void            SetPreComp(bool canBePreCompute);
+    bool            GetPreComp();
+
+    bool            UseMultiThreading();
+
+private:
+
+    virtual void    threadCompute() = 0;
+
+    bool            _useMultiThreading;
+
+    boost::thread*  _gpGpuThread;
+
+    boost::mutex    _mutexCompu;
+    boost::mutex    _mutexCopy;
+    boost::mutex    _mutexPreCompute;
+
+    T               _compute;
+    T               _copy;
+    bool            _precompute;
+
+};
+
 
 class DataBuffer
 {

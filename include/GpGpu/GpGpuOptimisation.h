@@ -18,7 +18,7 @@ extern "C" void OptimisationOneDirection(DEVC_Data2Opti  &d2O);
 
 /// \class InterfMicMacOptGpGpu
 /// \brief Class qui permet a micmac de lancer les calculs d optimisations sur le Gpu
-class InterfOptimizGpGpu : public GpGpuMultiThreadingCpu<CuHostData3D<uint>,CuDeviceData3D<uint> >
+class InterfOptimizGpGpu //: public CSimpleJobCpuGpu<bool>
 {
 public:
     InterfOptimizGpGpu(bool UseMultiThreading = true);
@@ -47,10 +47,7 @@ public:
 
 private:
 
-    virtual void    InitPrecompute(){}
-    virtual void    Precompute(HOST_UINT3D* hostIn){}
-    virtual void    GpuCompute(){}
-
+    //virtual void    threadCompute();
     void            threadFuncOptimi();
 
     HOST_Data2Opti  _H_data2Opt;
