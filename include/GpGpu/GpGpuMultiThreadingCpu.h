@@ -35,14 +35,17 @@ public:
 
 protected:
 
-    void            setThread(boost::thread* Thread);
 
+    void            setThread(boost::thread* Thread);
+    void            createJob();
 private:
 
     boost::thread*  _gpGpuThread;
 
     virtual void    threadCompute() = 0;
     virtual void    freezeCompute() = 0;
+
+    void            LaunchJob();
 
     bool            _useMultiThreading;
 
@@ -59,9 +62,8 @@ private:
 template< class T >
 CSimpleJobCpuGpu<T>::CSimpleJobCpuGpu(bool useMultiThreading):
     _useMultiThreading(useMultiThreading)
-{
+{}
 
-}
 template< class T >
 CSimpleJobCpuGpu<T>::~CSimpleJobCpuGpu()
 {
@@ -130,6 +132,22 @@ template< class T >
 void CSimpleJobCpuGpu<T>::setThread(boost::thread *Thread)
 {
     _gpGpuThread = Thread;
+}
+
+template< class T >
+void CSimpleJobCpuGpu<T>::createJob()
+{
+    if(UseMultiThreading())
+    {
+        setThread(new boost::thread(&CSimpleJobCpuGpu::LaunchJob,this));
+        freezeCompute();
+    }
+}
+
+template< class T >
+void CSimpleJobCpuGpu<T>::LaunchJob()
+{
+    threadCompute();
 }
 
 

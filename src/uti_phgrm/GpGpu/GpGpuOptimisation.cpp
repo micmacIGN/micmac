@@ -3,12 +3,7 @@
 InterfOptimizGpGpu::InterfOptimizGpGpu():
     _idbuf(false)
 {
-
-    if(UseMultiThreading())
-    {
-        setThread(new boost::thread(&InterfOptimizGpGpu::threadCompute,this));
-        freezeCompute();
-    }
+    createJob();
 }
 
 InterfOptimizGpGpu::~InterfOptimizGpGpu(){}

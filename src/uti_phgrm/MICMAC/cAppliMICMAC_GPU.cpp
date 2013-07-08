@@ -656,8 +656,6 @@ if (0)
 		if (mLoadTextures)//		Mise en calque des images	
 		{
 			IMmGg.DeallocMemory();
-
-			//IMmGg.MallocInfo();
 			
 			mLoadTextures		= false;
 			float*	fdataImg1D	= NULL;	
@@ -675,7 +673,7 @@ if (0)
 				// Obtention de l'image courante
 				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 			
-				// Obtention des données images
+                // Obtention des donnees images
 				float **aDataIm	= aGLI.DataIm0();
 				float*	data	= aGLI.LinDIm0();
 				uint2 dimImg	= toUi2(aGLI.getSizeImage());
@@ -712,7 +710,7 @@ if (0)
 			{
 				uint idMask		= Ter.dimension().x * (anY - mY0Ter) + anX - mX0Ter;
 				if (IsInTer(anX,anY))
-				{
+				{                   
 				    if ( aEq(rMask.pt0, -1))
 						rMask.pt0 = make_int2(anX,anY);
 
@@ -736,10 +734,10 @@ if (0)
 		rMask.pt1.x++;
 		rMask.pt1.y++;
 
-		IMmGg.SetSizeBlock(INTERZ,rMask);
+        IMmGg.SetSizeBlock(INTERZ,rMask);
 
 		if (IMmGg.Param().MaskNoNULL())
-		{
+		{            
 			uint2 rDimTer = IMmGg.Param().dimTer;
 
 			pixel *SubMaskTab = new pixel[size(rDimTer)];
@@ -1496,6 +1494,8 @@ void cAppliMICMAC::DoGPU_Correl
         IMmGg.ReallocInputProjection(IMmGg.Param().dimSTer,interZ*mNbIm);
 
         /// !!!! a remplacer par reallocif !!!!
+        ///
+        //cout << "ALLOC\n";
         IMmGg.ReallocOutCost(IMmGg.Param().dimTer,interZ);
 
 
@@ -1511,12 +1511,12 @@ void cAppliMICMAC::DoGPU_Correl
 
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		while( anZComputed < aZMaxTer )
-		{
+		{            
             if (IMmGg.UseMultiThreading())
             {	// le calcul de correlation est effectue dans un thread parallele celui-ci, il s'effectue quand des projections ont été calculées!
 				// Tabulation des projections si la demande est faite
                 if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + interZ && anZProjection < aZMaxTer)
-				{
+				{                    
                     int intZ = abs(aZMaxTer - anZProjection );
 					
 					if (interZ >= intZ  &&  anZProjection != (aZMaxTer - 1) )
@@ -1539,6 +1539,7 @@ void cAppliMICMAC::DoGPU_Correl
                     anZComputed += ZtoCopy;
                     idBuf = !idBuf;
                     IMmGg.SetDataToCopy(0);
+
 				}
 			}
 			else
@@ -1568,6 +1569,7 @@ void cAppliMICMAC::DoGPU_Correl
         IMmGg.SetDataToCopy(0);
         IMmGg.SetCompute(0);
         // Attention la liberation de memoire prends un certain temps, tout comme l'allocation... eviter cette manip...!!!
+        //cout << "DEALLOC\n";
         IMmGg.DeallocVolumes();
 
 #else
