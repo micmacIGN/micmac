@@ -141,7 +141,7 @@ double DistBetween(Pt3d<double> aP1, Pt3d<double> aP2 ){
 	return (double)std::sqrt(pow(double(aP1.x-aP2.x),2)+pow(double(aP1.y-aP2.y),2)+pow(double(aP1.z-aP2.z),2));
 }
 
-void drawTP(PtsHom aPtsHomol, string aDir, string aNameOut)
+void drawTP(PtsHom aPtsHomol, string aDir, string aNameOut, int ResolModel)
 {
 		//Bulding the output file system
 		ELISE_fp::MkDirRec(aDir + "TP/");
@@ -178,9 +178,9 @@ void drawTP(PtsHom aPtsHomol, string aDir, string aNameOut)
 		for (int i=0;i<aPtsHomol.size();i++)
 		{
 			//cout<<int(aPtsHomol.Y1[i])<<" "<<int(aPtsHomol.X1[i])<<endl;
-			aDataR[int(aPtsHomol.Y1[i]/2)][int(aPtsHomol.X1[i]/2)]=255;
-			aDataG[int(aPtsHomol.Y1[i]/2)][int(aPtsHomol.X1[i]/2)]=255;
-			aDataB[int(aPtsHomol.Y1[i]/2)][int(aPtsHomol.X1[i]/2)]=255;
+			aDataR[int(aPtsHomol.Y1[i]/ResolModel)][int(aPtsHomol.X1[i]/ResolModel)]=255;
+			aDataG[int(aPtsHomol.Y1[i]/ResolModel)][int(aPtsHomol.X1[i]/ResolModel)]=255;
+			aDataB[int(aPtsHomol.Y1[i]/ResolModel)][int(aPtsHomol.X1[i]/ResolModel)]=255;
 		}
 		
 		 Tiff_Im  aTOut
@@ -287,18 +287,26 @@ vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm,string Extension, string I
 	}
 
 
-		/*drawTP(aVectPtsHomol[1], aDir, "1-2");
-		drawTP(aVectPtsHomol[2], aDir, "1-3");
-		drawTP(aVectPtsHomol[3], aDir, "1-4");
-		drawTP(aVectPtsHomol[4], aDir, "2-1");
-		drawTP(aVectPtsHomol[6], aDir, "2-3");
-		drawTP(aVectPtsHomol[7], aDir, "2-4");
-		drawTP(aVectPtsHomol[8], aDir, "3-1");
-		drawTP(aVectPtsHomol[9], aDir, "3-2");
-		drawTP(aVectPtsHomol[11], aDir, "3-4");
-		drawTP(aVectPtsHomol[12], aDir, "4-1");
-		drawTP(aVectPtsHomol[13], aDir, "4-2");
-		drawTP(aVectPtsHomol[14], aDir, "4-3");*/
+		//drawTP(aVectPtsHomol[1], aDir, "1-2",ResolModel);
+		//drawTP(aVectPtsHomol[2], aDir, "1-3",ResolModel);
+		//drawTP(aVectPtsHomol[3], aDir, "1-4",ResolModel);
+		//drawTP(aVectPtsHomol[4], aDir, "1-5",ResolModel);
+		//drawTP(aVectPtsHomol[5], aDir, "2-1",ResolModel);
+		//drawTP(aVectPtsHomol[7], aDir, "2-3",ResolModel);
+		//drawTP(aVectPtsHomol[8], aDir, "2-4",ResolModel);
+		//drawTP(aVectPtsHomol[9], aDir, "2-5",ResolModel);
+		//drawTP(aVectPtsHomol[10], aDir, "3-1",ResolModel);
+		//drawTP(aVectPtsHomol[11], aDir, "3-2",ResolModel);
+		//drawTP(aVectPtsHomol[13], aDir, "3-4",ResolModel);
+		//drawTP(aVectPtsHomol[14], aDir, "3-5",ResolModel);
+		//drawTP(aVectPtsHomol[15], aDir, "4-1",ResolModel);
+		//drawTP(aVectPtsHomol[16], aDir, "4-2",ResolModel);
+		//drawTP(aVectPtsHomol[17], aDir, "4-3",ResolModel);
+		//drawTP(aVectPtsHomol[19], aDir, "4-5",ResolModel);
+		//drawTP(aVectPtsHomol[20], aDir, "5-1",ResolModel);
+		//drawTP(aVectPtsHomol[21], aDir, "5-2",ResolModel);
+		//drawTP(aVectPtsHomol[22], aDir, "5-3",ResolModel);
+		//drawTP(aVectPtsHomol[23], aDir, "5-4",ResolModel);
 		int nbPtsHomols=0;
 		for(int i=0 ; i<int(aVectPtsHomol.size()) ; i++){nbPtsHomols=nbPtsHomols + aVectPtsHomol[i].NbPtsCouple;}
 		ELISE_ASSERT(nbPtsHomols!=0,"No homologous points (resolution of MMInitialModel might be too small");
