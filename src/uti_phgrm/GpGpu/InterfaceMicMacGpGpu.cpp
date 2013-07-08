@@ -18,9 +18,7 @@ InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
   for (int s = 0;s<NSTREAM;s++)
     checkCudaErrors( cudaStreamCreate(GetStream(s)));
 
-  setThread( new boost::thread(&InterfaceMicMacGpGpu::threadCompute,this));
-
-  freezeCompute();
+  createJob();
 
   _volumeCost->SetName("_volumeCost");
   _volumeCach->SetName("_volumeCach");
@@ -76,16 +74,18 @@ void InterfaceMicMacGpGpu::SetSizeBlock( uint Zinter, Rect Ter)
 
   _param.SetDimension(Ter,Zinter);
 
-  CopyParamTodevice(_param);
+  //if(Param().MaskNoNULL())
+  {
+      CopyParamTodevice(_param);
 
-  for (int s = 0;s<NSTREAM;s++)
-    {
-      _LayeredProjection[s].Realloc(_param.dimSTer,_param.nbImages * _param.ZLocInter);
+      for (int s = 0;s<NSTREAM;s++)
+        {
+          _LayeredProjection[s].Realloc(_param.dimSTer,_param.nbImages * _param.ZLocInter);
 
-      if (oldSizeTer < _param.sizeDTer)
-        AllocMemory(s);
-    }
-
+          if (oldSizeTer < _param.sizeDTer)
+            AllocMemory(s);
+        }
+  }
 }
 
 void InterfaceMicMacGpGpu::SetSizeBlock( uint Zinter )
@@ -383,7 +383,7 @@ void InterfaceMicMacGpGpu::threadCompute()
   while (gpuThreadLoop)
     {
       if (GetCompute()!=0)
-        {
+        {          
           uint interZ = GetCompute();
           SetCompute(0);
           BasicCorrelation(_param.nbImages, _idBuf);
