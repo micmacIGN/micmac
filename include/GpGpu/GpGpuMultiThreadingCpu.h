@@ -69,8 +69,7 @@ CSimpleJobCpuGpu<T>::~CSimpleJobCpuGpu()
 {
     if(UseMultiThreading())
     {
-        _gpGpuThread->interrupt();
-        //_gpGpuThread->join();
+        _gpGpuThread->interrupt();        
         delete _gpGpuThread;
     }
     _mutexCompu.unlock();
@@ -139,7 +138,7 @@ void CSimpleJobCpuGpu<T>::createJob()
 {
     if(UseMultiThreading())
     {
-        setThread(new boost::thread(&CSimpleJobCpuGpu::LaunchJob,this));
+        setThread(new boost::thread(&CSimpleJobCpuGpu::LaunchJob,this));        
         freezeCompute();
     }
 }
