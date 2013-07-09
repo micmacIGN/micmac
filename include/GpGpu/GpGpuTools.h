@@ -934,7 +934,7 @@ void CuHostData3D<T>::Fill(T Value)
 template <class T>
 void CuHostData3D<T>::FillRandom(T min, T max)
 {
-    T mod = abs(max - min);
+    T mod = abs((float)max - (float)min);
     //srand (time(NULL));
     for(uint i=0;i<CData3D<T>::GetSize();i++)
     {

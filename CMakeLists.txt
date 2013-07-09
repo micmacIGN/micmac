@@ -95,7 +95,7 @@ if (${CUDA_ENABLED})
 	#IFNOT(${WITH_IGN_ORI})
 	set(Boost_USE_STATIC_LIBS TRUE)
 	set(BOOST_USE_SYSTEM FALSE)
-	FIND_PACKAGE( Boost 1.48.0 COMPONENTS system serialization thread REQUIRED )
+	FIND_PACKAGE( Boost 1.48.0 COMPONENTS system serialization thread date_time chrono REQUIRED )
 	#chrono
 	 IF(NOT ${WITH_IGN_ORI})
 		  include_directories ( ${Boost_INCLUDE_DIRS} )
@@ -292,7 +292,10 @@ ENDIF()
 
 # DEFINITION : des preprocesseurs windows
 IF (MSVC)
-	add_definitions( "-Zm131 /W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
+
+	# Zm131 -> Erreur de compilation sous windows 7 avec Cuda et Boost
+	#add_definitions( "-Zm131 /W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
+	add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
 
 	if(MSVC80 OR MSVC90 OR MSVC10)
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")

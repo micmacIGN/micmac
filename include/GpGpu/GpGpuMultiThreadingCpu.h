@@ -4,8 +4,8 @@
 #include <stdio.h>
 
 #include <boost/thread/thread.hpp>
-#include <boost/lockfree/spsc_queue.hpp>
-#include <boost/atomic.hpp>
+// #include <boost/lockfree/spsc_queue.hpp>
+// #include <boost/atomic.hpp>
 
 #include "GpGpu/GpGpuTools.h"
 
@@ -149,18 +149,18 @@ void CSimpleJobCpuGpu<T>::LaunchJob()
     threadCompute();
 }
 
-
+/*
 
 class DataBuffer
 {
-    /*  Gerer les donnees d entres au niveau du host
-     *  Les donnes a traiter
-     *  les parametres
-     *      - les constants
-     *      - les non constants
-     *
-     *
-    */
+    //  Gerer les donnees d entres au niveau du host
+//        Les donnes a traiter
+//       les parametres
+//            - les constants
+//           - les non constants
+     
+     
+    
 
     virtual void AllocHostIn()   = 0;
     virtual void AllocDeviceIn() = 0;
@@ -311,7 +311,7 @@ public:
     virtual void Precompute(HOST_UINT3D* hostIn){hostIn->FillRandom((uint)0,(uint)128);}
     virtual void GpuCompute(){Launch((uint*)GetDeviIN().pData());}
 };
-
+*/
 
 #endif //__GPGPU_MULTITHREADING_CPU_H__
 
