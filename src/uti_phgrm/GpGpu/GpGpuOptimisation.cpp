@@ -1,9 +1,8 @@
 #include "GpGpu/GpGpuOptimisation.h"
 
-InterfOptimizGpGpu::InterfOptimizGpGpu():
-    _idbuf(false)
+InterfOptimizGpGpu::InterfOptimizGpGpu()
 {
-    createJob();
+    CreateJob();
 }
 
 InterfOptimizGpGpu::~InterfOptimizGpGpu(){}
@@ -34,7 +33,8 @@ void InterfOptimizGpGpu::oneDirOptGpGpu()
 
 void InterfOptimizGpGpu::ReallocParam(uint size)
 {
-    _idbuf  = true;
+    //_idbuf  = true;
+    ResetIdBuffer();
     _idDir  = 0;
     _H_data2Opt.ReallocParam(size);
     _D_data2Opt.ReallocParam(size);

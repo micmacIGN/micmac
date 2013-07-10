@@ -1498,16 +1498,10 @@ void cAppliMICMAC::DoGPU_Correl
         //cout << "ALLOC\n";
         IMmGg.ReallocOutCost(IMmGg.Param().dimTer,interZ);
 
-
 		// Initiation des parametres pour le multithreading
-        if (IMmGg.UseMultiThreading())
-        {
-            IMmGg.SetIdBuf(false);
-            IMmGg.SetPreComp(true);
-        }
+        IMmGg.InitJob();
 
 		int anZProjection = aZMinTer, anZComputed= aZMinTer;
-        bool idBuf = false;
 
 		// Parcourt de l'intervalle de Z compris dans la nappe globale
 		while( anZComputed < aZMaxTer )
@@ -1522,7 +1516,9 @@ void cAppliMICMAC::DoGPU_Correl
 					if (interZ >= intZ  &&  anZProjection != (aZMaxTer - 1) )
 						interZ = intZ;
 
+                    // MODIFICATION TEST PERFORMANCE
                     IMmGg.MemsetProj();
+                    // FIN MODIFICATION TEST PERFORMANCE
                     Tabul_Projection(IMmGg.InputProj(), anZProjection, IMmGg.Param().RDTer(),IMmGg.Param().sampProj, interZ);
 					
                     IMmGg.SetPreComp(false);
@@ -1535,17 +1531,17 @@ void cAppliMICMAC::DoGPU_Correl
                 // Affectation des couts si des nouveaux ont ete calcule!
                 if (ZtoCopy != 0 && anZComputed < aZMaxTer)
 				{
-                    setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,IMmGg.OuputCost(idBuf), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
+                    setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,IMmGg.OuputCost(!IMmGg.GetIdBuf()), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
                     anZComputed += ZtoCopy;
-                    idBuf = !idBuf;
                     IMmGg.SetDataToCopy(0);
-
 				}
 			}
 			else
 			{
 				// Re-initialisation du tableau de projection
+                // MODIFICATION TEST PERFORMANCE
                 IMmGg.MemsetProj();
+                // FIN MODIFICATION TEST PERFORMANCE
                 Tabul_Projection(IMmGg.InputProj(), anZComputed, IMmGg.Param().RDTer(),IMmGg.Param().sampProj, interZ);
 				// Kernel Correlation
                 IMmGg.BasicCorrelation(mNbIm);
