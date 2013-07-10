@@ -58,6 +58,7 @@ void ScanOneSens(
         ushort  penteMax,
         int&    pitStrOut )
 {
+
     const ushort    tid     = threadIdx.x;
     short2          uZ_Prev = costStream.read<sens>(pData[idBuf],tid, 0);
     short           Z       = uZ_Prev.x + tid;
@@ -139,16 +140,10 @@ void ScanOneSens(
         idBuf    = !idBuf;
         uZ_Prev     = uZ_Next;
     }
+
 }
 template<class T > __device__
-void ScanOneSensAV(
-        CDeviceDataStream<T> &costStream,
-        uint    lenghtLine,
-        T       pData[][NAPPEMAX],
-        bool&   idBuf,
-        T*      g_ForceCostVol,
-        ushort  penteMax,
-        int&    pitStrOut )
+void ScanOneSensAV(CDeviceDataStream<T> &costStream, uint lenghtLine,T pData[][NAPPEMAX],bool& idBuf,T* g_ForceCostVol, ushort  penteMax, int&    pitStrOut )
 {
     const ushort    tid     = threadIdx.x;
     short2          uZ_Prev = costStream.readAV(pData[idBuf],tid, 0);
@@ -210,14 +205,7 @@ void ScanOneSensAV(
 }
 
 template<class T> __device__
-void ScanOneSensAR(
-        CDeviceDataStream<T> &costStream,
-        uint    lenghtLine,
-        T       pData[][NAPPEMAX],
-        bool&   idBuf,
-        T*      g_ForceCostVol,
-        ushort  penteMax,
-        int&    pitStrOut )
+void ScanOneSensAR(CDeviceDataStream<T> &costStream,uint lenghtLine,T pData[][NAPPEMAX],bool& idBuf,T* g_ForceCostVol,ushort  penteMax,int&    pitStrOut )
 {
     const ushort    tid     = threadIdx.x;
     short2          uZ_Prev = costStream.readAR(pData[idBuf],tid, 0);
@@ -315,7 +303,7 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2
     CDeviceDataStream<T> costStream(bufferData, g_StrCostVol + pit_Stream,bufferIndex, g_StrId + pit_Id, sizeLine * NAPPEMAX, sizeLine);
 
     ScanOneSens<T,eAVANT>   (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
-    ScanOneSens<T,eARRIERE> (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
+      ScanOneSens<T,eARRIERE> (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
 
 //    ScanOneSensAV<T>   (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
 //    ScanOneSensAR<T> (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);

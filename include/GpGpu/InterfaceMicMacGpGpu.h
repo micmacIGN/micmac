@@ -21,8 +21,7 @@
 
 extern "C" void	CopyParamTodevice(pCorGpu h);
 extern "C" void	KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd);
-extern "C" void	KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, uint* dev_NbImgOk, uint2 nbActThr, ushort divideNThreads);
-extern "C" void	KernelmultiCorrelationNA(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, uint* dev_NbImgOk, uint2 nbActThr);
+extern "C" void	KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, uint* dev_NbImgOk, uint2 nbActThr);
 
 extern "C" void dilateKernel(pixel* HostDataOut, short r, uint2 dim);
 extern "C" textureReference& getMaskD();
@@ -52,7 +51,7 @@ public:
   /// \brief    Initialise les parametres de correlation
   void          SetParameter(Rect Ter, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ);
   /// \brief    Calcul de la correlation en Gpu
-  void          BasicCorrelation(int nbLayer, uint idBuf = 0);
+  void          BasicCorrelation(int nbLayer);
   /// \brief    Calcul asynchrone de la correlation en Gpu
   void          BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
   /// \brief    Renvoie les parametres de correlation
@@ -75,7 +74,7 @@ public:
 
   void          DeallocVolumes();
 
-  void          SetIdBuf(bool id);
+  void          InitJob();
 
 private:
 
@@ -114,11 +113,6 @@ private:
 
   CuHostData3D<float>		_hVolumeCost[2];
   CuHostData3D<float2>      _hVolumeProj;
-
-  bool                      _useAtomicFunction;
-
-  bool                      _idBuf;
-
 
 #ifdef USEDILATEMASK	
 public:

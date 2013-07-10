@@ -33,11 +33,17 @@ public:
 
     bool            UseMultiThreading();
 
+    bool            GetIdBuf();
+    void            SwitchIdBuffer();
+    void            ResetIdBuffer();
+
+
 protected:
 
+    void            SetThread(boost::thread* Thread);
+    void            CreateJob();
+    void            KillJob();
 
-    void            setThread(boost::thread* Thread);
-    void            createJob();
 private:
 
     boost::thread*  _gpGpuThread;
@@ -57,24 +63,20 @@ private:
     T               _copy;
     bool            _precompute;
 
+    bool            _idBufferHostIn;
+
 };
 
 template< class T >
 CSimpleJobCpuGpu<T>::CSimpleJobCpuGpu(bool useMultiThreading):
-    _useMultiThreading(useMultiThreading)
+    _useMultiThreading(useMultiThreading),
+    _idBufferHostIn(false)
 {}
 
 template< class T >
 CSimpleJobCpuGpu<T>::~CSimpleJobCpuGpu()
 {
-    if(UseMultiThreading())
-    {
-        _gpGpuThread->interrupt();        
-        delete _gpGpuThread;
-    }
-    _mutexCompu.unlock();
-    _mutexCopy.unlock();
-    _mutexPreCompute.unlock();
+    KillJob();
 }
 
 template< class T >
@@ -118,7 +120,6 @@ bool CSimpleJobCpuGpu<T>::GetPreComp()
 {
     boost::lock_guard<boost::mutex> guard(_mutexPreCompute);
     return _precompute;
-
 }
 
 template< class T >
@@ -128,19 +129,50 @@ bool CSimpleJobCpuGpu<T>::UseMultiThreading()
 }
 
 template< class T >
-void CSimpleJobCpuGpu<T>::setThread(boost::thread *Thread)
+bool CSimpleJobCpuGpu<T>::GetIdBuf()
+{
+    return _idBufferHostIn;
+}
+
+template< class T >
+void CSimpleJobCpuGpu<T>::SwitchIdBuffer()
+{
+    _idBufferHostIn = !_idBufferHostIn;
+}
+
+template< class T >
+void CSimpleJobCpuGpu<T>::ResetIdBuffer()
+{
+    _idBufferHostIn = false;
+}
+
+template< class T >
+void CSimpleJobCpuGpu<T>::SetThread(boost::thread *Thread)
 {
     _gpGpuThread = Thread;
 }
 
 template< class T >
-void CSimpleJobCpuGpu<T>::createJob()
+void CSimpleJobCpuGpu<T>::CreateJob()
 {
     if(UseMultiThreading())
     {
-        setThread(new boost::thread(&CSimpleJobCpuGpu::LaunchJob,this));        
+        SetThread(new boost::thread(&CSimpleJobCpuGpu::LaunchJob,this));
         freezeCompute();
     }
+}
+
+template< class T >
+void CSimpleJobCpuGpu<T>::KillJob()
+{
+    if(UseMultiThreading())
+    {
+        _gpGpuThread->interrupt();
+        delete _gpGpuThread;
+    }
+    _mutexCompu.unlock();
+    _mutexCopy.unlock();
+    _mutexPreCompute.unlock();
 }
 
 template< class T >

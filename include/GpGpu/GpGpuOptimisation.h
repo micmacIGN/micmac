@@ -39,7 +39,6 @@ private:
     HOST_Data2Opti  _H_data2Opt;
     DEVC_Data2Opti  _D_data2Opt;
 
-    bool            _idbuf;
     uint            _idDir;
 
 };

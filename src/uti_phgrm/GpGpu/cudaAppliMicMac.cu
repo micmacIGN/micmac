@@ -26,7 +26,6 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 {
   __shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
 
-
   // Coordonnées du terrain global avec bordure // __umul24!!!! A voir
   const uint2 ptHTer = make_uint2(blockIdx) * nbActThrd + make_uint2(threadIdx);
 
@@ -227,7 +226,7 @@ template<int sNbTh> __global__ void multiCorrelationKernel(float *dTCost, float*
 }
 
 /// \brief Kernel Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens n utilisant pas des fonctions atomiques
-__global__ void multiCorrelationKernelNA(float *dTCost, float* cacheVign, int* dev_NbImgOk, uint2 nbActThr)
+__global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, int* dev_NbImgOk, uint2 nbActThr)
 {
 
   __shared__ float aSV [ SBLOCKDIM ][ SBLOCKDIM ];		// Somme des valeurs
@@ -300,33 +299,11 @@ __global__ void multiCorrelationKernelNA(float *dTCost, float* cacheVign, int* d
 
 }
 
-/// \brief Fonction qui lance les kernels de multi-Correlation utilisant des fonctions atomiques
-extern "C" void KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, int * dev_NbImgOk, uint2 nbActThr, ushort divideNThreads)
-{
-
-  switch (divideNThreads)
-    {
-    case 1:
-      multiCorrelationKernel<1><<<blocks, threads, 0, stream>>>(dTCost, cacheVign, dev_NbImgOk, nbActThr);
-      break;
-    case 2:
-      multiCorrelationKernel<2><<<blocks, threads, 0, stream>>>(dTCost, cacheVign, dev_NbImgOk, nbActThr);
-      break;
-    case 3:
-      multiCorrelationKernel<3><<<blocks, threads, 0, stream>>>(dTCost, cacheVign, dev_NbImgOk, nbActThr);
-      break;
-    default :
-      multiCorrelationKernel<3><<<blocks, threads, 0, stream>>>(dTCost, cacheVign, dev_NbImgOk, nbActThr);
-    }
-
-  getLastCudaError("Multi-Correlation kernel failed");
-
-}
 
 /// \brief Fonction qui lance les kernels de multi-Correlation n'utilisant pas des fonctions atomiques
-extern "C" void KernelmultiCorrelationNA(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, int * dev_NbImgOk, uint2 nbActThr)
+extern "C" void KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, int * dev_NbImgOk, uint2 nbActThr)
 {
-  multiCorrelationKernelNA<<<blocks, threads, 0, stream>>>(dTCost, cacheVign, dev_NbImgOk, nbActThr);
+  multiCorrelationKernel<<<blocks, threads, 0, stream>>>(dTCost, cacheVign, dev_NbImgOk, nbActThr);
   getLastCudaError("Multi-Correlation NON ATOMIC kernel failed");
 
 }
