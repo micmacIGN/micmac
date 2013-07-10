@@ -317,19 +317,17 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2
     ScanOneSens<T,eAVANT>   (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
     ScanOneSens<T,eARRIERE> (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
 
-
-
 //    ScanOneSensAV<T>   (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
 //    ScanOneSensAR<T> (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
 
 }
 
-extern "C" void OptimisationOneDirection(Data2Optimiz<CuHostData3D> &d2O)
+extern "C" void OptimisationOneDirection(Data2Optimiz<CuDeviceData3D> &d2O)
 {
     uint deltaMax = 3;
     dim3 Threads(WARPSIZE,1,1);
     dim3 Blocks(d2O._nbLines,1,1);
-
+	
     kernelOptiOneDirection<uint><<<Blocks,Threads>>>
                                                 (
                                                     d2O._s_InitCostVol      .pData(),
