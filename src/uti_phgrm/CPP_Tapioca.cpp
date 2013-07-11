@@ -458,9 +458,7 @@ void DoDetectKeypoints( string i_detectingTool, int i_resolution )
         SplitDirAndFile( grayscaleDirectory, grayscaleBasename, pastisGrayscaleFilename );
         getKeypointFilename( grayscaleBasename, i_resolution, aKeypointsFileArray[iImage] );
         keypointsFilename = aKeypointsFileArray[iImage];
-        
-        cout << (*iT) << " => " << pastisGrayscaleFilename << " => " << keypointsFilename << endl;
-        
+                
         command = g_externalToolHandler.get( i_detectingTool ).callName() + ' ' + detectingToolArguments + ' ' +
 					pastisGrayscaleFilename + " -o " + keypointsFilename;
         
@@ -505,7 +503,7 @@ size_t normalizeGraph( vector<vector<int> > i_graph, int i_threshold  )
 	for ( j=1; j<n; j++ )
 		for ( i=0; i<j; i++ )
 		{
-			if ( i_graph[i][j]+i_graph[j][i]>i_threshold )
+			if ( i_graph[i][j]+i_graph[j][i]>=i_threshold )
 			{
 				i_graph[j][i] = 1;
 				count++;
@@ -531,8 +529,23 @@ void setLabel( vector<vector<int> > &i_graph, vector<int> &i_labels, size_t i_in
 	}
 }
 
+// delete points with a scale less than i_threshold
+void delete_out_of_bound_scales( vector<SiftPoint> &io_points, REAL i_minScale, REAL i_maxScale )
+{
+	vector<SiftPoint> points( io_points.size() );
+	size_t nbKeptPoints = 0;
+	for ( size_t iPoint=0; iPoint<io_points.size(); iPoint++ )
+	{
+		if ( io_points[iPoint].scale>=i_minScale && 
+			 io_points[iPoint].scale<=i_maxScale )
+			points[nbKeptPoints++]=io_points[iPoint];
+	}
+	points.resize( nbKeptPoints );
+	points.swap( io_points );
+}
+		
 // load all keypoints from their files and construct the proximity graph
-void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerImage, int i_threshold )
+void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerImage, REAL i_minScale, REAL i_maxScale, int i_nbRequiredMatches )
 {
 	size_t nbImages = aFileList.size();
 	string keypointsFilename;
@@ -540,7 +553,8 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
 	vector<SiftPoint> 		   all_keypoints; 		// a big vector with all keypoints of all images
 	vector<int> 	  		   all_image_indices;	// contains the index of the image from which the keypoint is from
 	size_t iImage = 0,
-		   nbTotalKeypoints = 0;
+		   nbTotalKeypoints = 0,
+		   addedPoints;
 	
 	// read all keypoints files
 	cout << "--------------------> read all keypoints files" << endl;
@@ -553,18 +567,27 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
 			continue;
 		}
 		
-		cout << keypointsFilename << " has " << keypoints_per_image[iImage].size() << " keypoints" << endl;
-		
-		if ( keypoints_per_image[iImage].size()>i_nbMaxPointsPerImage )
+		cout << keypointsFilename << endl;
+		cout << "\t- " << keypoints_per_image[iImage].size() << " keypoints" << endl;
+		if ( i_minScale!=std::numeric_limits<REAL>::min() || i_maxScale!=std::numeric_limits<REAL>::max() )
+		{
+			delete_out_of_bound_scales( keypoints_per_image[iImage], i_minScale, i_maxScale );
+			cout << "\t- " << keypoints_per_image[iImage].size() << " inside scale bounds" << endl;
+		}
+				
+		if ( keypoints_per_image[iImage].size()>=i_nbMaxPointsPerImage )
 		{
 			SiftPoint *data = &( keypoints_per_image[iImage][0] );
 			size_t nbPoints = keypoints_per_image[iImage].size();
 			std::copy( data+nbPoints-i_nbMaxPointsPerImage, data+nbPoints, data );
 			keypoints_per_image[iImage].resize( i_nbMaxPointsPerImage );
-			nbTotalKeypoints += i_nbMaxPointsPerImage;
+			addedPoints = i_nbMaxPointsPerImage;
 		}
 		else
-			nbTotalKeypoints += keypoints_per_image[iImage].size();
+			addedPoints = keypoints_per_image[iImage].size();
+		
+		nbTotalKeypoints += addedPoints;
+		cout << "\t- " << keypoints_per_image[iImage].size() << " added" << endl;
 	}
 	
 	if ( nbTotalKeypoints==0 )
@@ -625,7 +648,8 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     annClose(); // done with ANN
     
     // stats
-    size_t nbChecks = normalizeGraph( graph, i_threshold );
+    cout << nbBadNeighbours << '/' << nbTotalKeypoints << " rejected points (neighbours from the same image)" << endl;
+    size_t nbChecks = normalizeGraph( graph, i_nbRequiredMatches );
     cout << nbChecks << " / " << ( nbImages*(nbImages-1) )/2 << endl;
     
     vector<int> labels( nbImages, -1 );
@@ -642,9 +666,12 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
 // it generates an XML file to process with the "File" option
 int Graph_(int argc,char ** argv)
 {
-    int  nbThreads = NbProcSys(); // default is the number of cores of the system
-    REAL minScale = 0;
+    int nbThreads = NbProcSys(); // default is the number of cores of the system
     int maxDimensionResize = -1;
+    int nbMaxPoints = 200;
+    REAL minScaleThreshold = std::numeric_limits<REAL>::min(),
+		 maxScaleThreshold = std::numeric_limits<REAL>::max();
+	int nbRequiredMatches = 1;
     string outputFile = "tapioca_connectivity_graph.xml"; // default XML filename for the graph
     string detectingTool, detectingToolArguments;
     
@@ -659,10 +686,13 @@ int Graph_(int argc,char ** argv)
 	LArgMain()  << EAMC(aFullDir,"Full images' pattern (directory+pattern)")
                 << EAMC(maxDimensionResize,"processing size of image  (for the greater dimension)"),
                 
-	LArgMain()  << EAM(nbThreads,"ByP",true,"By processe")
-                << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
-                << EAM(minScale, "MinScale", "minimum scale from points to be used")
-				<< EAM(outputFile,"Out",true,"Export Pts in texte format")
+	LArgMain()  << EAM(nbThreads, "ByP", true, "By processe")
+                << EAM(detectingTool, PASTIS_DETECT_ARGUMENT_NAME.c_str(), true, "executable used to detect keypoints")
+                << EAM(nbMaxPoints, "MaxPoint", true, "number of points used per image to construct the graph (default 200)")
+                << EAM(minScaleThreshold, "MinScale", true, "if specified, points with a lesser scale are ignored")
+                << EAM(maxScaleThreshold, "MaxScale", true, "if specified, points with a greater scale are ignored")
+                << EAM(nbRequiredMatches, "NbRequired", true, "number of matches to create a connexion between two images (default 1)")
+				<< EAM(outputFile, "Out", true, "name of the produced XML file")
     );
     
     // if no output filename is given, use the default one in "chantier" directory
@@ -683,7 +713,9 @@ int Graph_(int argc,char ** argv)
     cout << "maxDimensionResize = " << maxDimensionResize << endl;
     cout << "------" << endl;
     cout << "nbThreads          = " << nbThreads << endl;
-    cout << "minScale           = " << minScale << endl;
+    cout << "nbMaxPoints        = " << nbMaxPoints << endl;
+    cout << "minScaleThreshold  = " << minScaleThreshold << endl;
+    cout << "maxScaleThreshold  = " << maxScaleThreshold << endl;
     cout << "outputFile         = " << outputFile << endl;
     cout << "detectingTool      = " << detectingTool << endl;
     cout << "g_toolsOptions     = " << g_toolsOptions << endl;
@@ -696,7 +728,7 @@ int Graph_(int argc,char ** argv)
     
     cout << "--------------------> DoDetectKeypoints" << endl;
     
-    DoConstructGraph( outputFile, 200, 0 );
+    DoConstructGraph( outputFile, nbMaxPoints, minScaleThreshold, maxScaleThreshold, nbRequiredMatches );
     
 /*
     check_detect_and_match_tools( detectingTool, matchingTool );
