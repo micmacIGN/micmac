@@ -909,7 +909,8 @@ void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm,vector<Pts
 				for (int aX=0 ; aX<aSz.x  ; aX++)
 				{
 					Pt2dr aPt; aPt.x=double(aX/ResolModel); aPt.y=double(aY/ResolModel);
-					if(aPt.x>aSzMod.x){cout<<"aPt.x = "<<aPt.x<<" aSzMod.x = "<<aSzMod.x<<endl;}
+					if(aPt.x>aSzMod.x-2){aPt.x=aSzMod.x-2;}
+					if(aPt.y>aSzMod.y-2){aPt.y=aSzMod.y-2;}
 					double R = aDataR[aY][aX]*Reechantillonnage::biline(aCorR, aSzMod.x, aSzMod.y, aPt);
 					double G = aDataG[aY][aX]*Reechantillonnage::biline(aCorG, aSzMod.x, aSzMod.y, aPt);
 					double B = aDataB[aY][aX]*Reechantillonnage::biline(aCorB, aSzMod.x, aSzMod.y, aPt);
