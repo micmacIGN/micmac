@@ -36,6 +36,28 @@ private:
   
 };
 
+class PtsRadioTie
+{
+	public:
+	PtsRadioTie(){}
+	~PtsRadioTie(){}
+	vector<double> kR;
+	vector<double> kG;
+	vector<double> kB;
+	vector<Pt2dr> Pos;
+	int size(){	return this->Pos.size();};
+private:
+  
+};
+
+class CorrectionFields
+{
+	public:
+	vector<ElMatrix<double> > Rfield;
+	vector<ElMatrix<double> > Gfield;
+	vector<ElMatrix<double> > Bfield;
+	int size(){	return this->Rfield.size();};
+};
 
 class PtsHom
 {
