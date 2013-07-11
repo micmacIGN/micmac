@@ -33,7 +33,6 @@ void InterfOptimizGpGpu::oneDirOptGpGpu()
 
 void InterfOptimizGpGpu::ReallocParam(uint size)
 {
-    //_idbuf  = true;
     ResetIdBuffer();
     _idDir  = 0;
     _H_data2Opt.ReallocParam(size);
@@ -42,7 +41,6 @@ void InterfOptimizGpGpu::ReallocParam(uint size)
 
 void InterfOptimizGpGpu::threadCompute()
 {
-    bool idbuf  = false;
 
     while(true)
     {
@@ -51,11 +49,11 @@ void InterfOptimizGpGpu::threadCompute()
         {
             SetCompute(false);
             _D_data2Opt.SetNbLine(_H_data2Opt._nbLines);
-            _H_data2Opt.ReallocOutputIf(_H_data2Opt._s_InitCostVol.GetSize(),idbuf);
+            _H_data2Opt.ReallocOutputIf(_H_data2Opt._s_InitCostVol.GetSize(),GetIdBuf());
             _D_data2Opt.ReallocIf(_H_data2Opt);
 
             //      Transfert des données vers le device                            ---------------		-
-            _D_data2Opt.CopyHostToDevice(_H_data2Opt,idbuf);
+            _D_data2Opt.CopyHostToDevice(_H_data2Opt,GetIdBuf());
 
             SetPreComp(true);
 
@@ -63,12 +61,10 @@ void InterfOptimizGpGpu::threadCompute()
             OptimisationOneDirection(_D_data2Opt);
 
             //      Copie des couts de passage forcé du device vers le host         ---------------     -
-            _D_data2Opt.CopyDevicetoHost(_H_data2Opt,idbuf);
-
+            _D_data2Opt.CopyDevicetoHost(_H_data2Opt,GetIdBuf());
+            SwitchIdBuffer();
             while(GetDataToCopy());
-            SetDataToCopy(true);
-            idbuf =! idbuf;
-
+            SetDataToCopy(true);        
         }
     }
 }

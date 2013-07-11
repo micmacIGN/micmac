@@ -355,13 +355,11 @@ cudaStream_t* InterfaceMicMacGpGpu::GetStream( int stream )
 }
 
 void InterfaceMicMacGpGpu::threadCompute()
-{
-  bool gpuThreadLoop    = true;
+{  
   ResetIdBuffer();
-
-  while (gpuThreadLoop)
+  while (true)
     {
-      if (GetCompute()!=0)
+      if (GetCompute())
         {          
           uint interZ = GetCompute();
           SetCompute(0);

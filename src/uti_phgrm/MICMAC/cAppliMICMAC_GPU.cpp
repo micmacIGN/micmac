@@ -1562,8 +1562,7 @@ void cAppliMICMAC::DoGPU_Correl
 			}
 		}
 
-        IMmGg.SetDataToCopy(0);
-        IMmGg.SetCompute(0);
+        IMmGg.freezeCompute();
         // Attention la liberation de memoire prends un certain temps, tout comme l'allocation... eviter cette manip...!!!
         //cout << "DEALLOC\n";
         IMmGg.DeallocVolumes();

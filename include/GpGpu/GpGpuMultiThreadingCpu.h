@@ -36,7 +36,7 @@ public:
     bool            GetIdBuf();
     void            SwitchIdBuffer();
     void            ResetIdBuffer();
-
+    virtual void    freezeCompute() = 0;
 
 protected:
 
@@ -49,7 +49,7 @@ private:
     boost::thread*  _gpGpuThread;
 
     virtual void    threadCompute() = 0;
-    virtual void    freezeCompute() = 0;
+
 
     void            LaunchJob();
 

@@ -75,6 +75,7 @@ public:
   void          DeallocVolumes();
 
   void          InitJob();
+  void          freezeCompute();
 
 private:
 
@@ -85,7 +86,6 @@ private:
   textureReference&	GetTeXProjection(int texSel);
 
   void              threadCompute();
-  void              freezeCompute();
 
   cudaStream_t  _stream[NSTREAM];
   pCorGpu		_param;

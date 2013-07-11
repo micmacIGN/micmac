@@ -19,6 +19,24 @@ extern "C" void CopyParamTodevice( pCorGpu param )
   checkCudaErrors(cudaMemcpyToSymbol(cH, &param, sizeof(pCorGpu)));
 }
 
+__global__ void SummedAreaTable()
+{
+    __shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
+
+    const uint2 ptHTer  = make_uint2(blockIdx) * WARPSIZE + make_uint2(threadIdx);
+    const uint z        = threadIdx.z;
+
+    if (oSE(ptHTer,cH.dimDTer)) return;
+
+    const float2 ptProj = GetProjection<0>(ptHTer,cH.sampProj,z);
+
+    cacheImg[threadIdx.y][threadIdx.x] = GetImageValue(ptProj,z);
+
+    cacheImg[threadIdx.y][threadIdx.x] =  cacheImg[threadIdx.y][threadIdx.x] +1;
+
+}
+
+
 /// \fn template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
 /// \brief Kernel fonction GpGpu Cuda
 /// Calcul les vignettes de correlation pour toutes les images
@@ -71,15 +89,9 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
         aSVV += (val*val);	// Somme des carrés des vals image cte
       }
 
-#ifdef FLOATMATH
   aSV   = fdividef(aSV,(float)cH.sizeVig );
   aSVV  = fdividef(aSVV,(float)cH.sizeVig );
   aSVV -=	(aSV * aSV);
-#else
-  aSV	/=	cH.sizeVig;
-  aSVV  /=	cH.sizeVig;
-  aSVV  -=	(aSV * aSV);
-#endif
 
   if ( aSVV <= cH.mAhEpsilon) return;
 
@@ -143,86 +155,6 @@ extern "C" void	 KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks,
       break;
     }
 
-}
-/// \brief Kernel Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens utilisant des fonctions atomiques
-template<int sNbTh> __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, int* dev_NbImgOk, uint2 nbActThr)
-{
-
-  const ushort BB = ( 4 - sNbTh ) * SBLOCKDIM / 3;
-  __shared__ float aSV [ BB ][ BB ];		// Somme des valeurs
-  __shared__ float aSVV[ BB  ][ BB ];		// Somme des carrés des valeurs
-  __shared__ float resu[ BB/2 ][ BB/2 ];		// resultat
-  __shared__ ushort nbIm[ BB/2][ BB/2 ];		// nombre d'images correcte
-
-  // coordonnées des threads
-  const uint2 t = make_uint2(threadIdx);
-
-  if ( threadIdx.z == 0)
-    {
-      aSV [t.y][t.x]		= 0.0f;
-      aSVV[t.y][t.x]		= 0.0f;
-      resu[t.y/2][t.x/2]	= 0.0f;
-      nbIm[t.y/2][t.x/2]	= 0;
-    }
-
-  __syncthreads();
-
-  if ( oSE( t, nbActThr))	return; // si le thread est inactif, il sort
-
-  // Coordonnées 2D du cache vignette
-  const uint2 ptCach = make_uint2(blockIdx) * nbActThr  + t;
-
-  // Si le thread est en dehors du cache
-  if ( oSE(ptCach, cH.dimCach))	return;
-
-  const uint2	ptTer	= ptCach / cH.dimVig;						// Coordonnées 2D du terrain
-
-  if(tex2D(TexS_MaskTer, ptTer.x, ptTer.y) == 0) return;
-
-  const uint	iTer	= blockIdx.z * cH.sizeTer + to1D(ptTer, cH.dimTer);	// Coordonnées 1D dans le terrain
-  const uint2   thTer	= t / cH.dimVig;									// Coordonnées 2D du terrain dans le repere des threads
-  const bool	mThrd	= aEq(t - thTer*cH.dimVig,0) && threadIdx.z == 0;
-
-  if (mThrd)
-    nbIm[thTer.y][thTer.x] = (ushort)dev_NbImgOk[iTer];
-
-  __syncthreads();
-
-  if (nbIm[thTer.y][thTer.x] < 2) return;
-
-  const uint sizLayer = (blockIdx.z * cH.nbImages + threadIdx.z) * cH.sizeCach;	// Taille du cache vignette pour une image
-
-  const uint2 cc    = ptTer * cH.dimVig;					// coordonnées 2D 1er pixel de la vignette
-  const int iCC     = sizLayer + to1D( cc, cH.dimCach );			// coordonnées 1D 1er pixel de la vignette
-
-  if (cacheVign[iCC]== cH.floatDefault) return;					// sortir si la vignette incorrecte
-
-  const uint iCach  = sizLayer + to1D( ptCach, cH.dimCach );		// Coordonnées 1D du cache vignette
-  const float val   = cacheVign[iCach];
-
-  atomicAdd( &(aSV[t.y][t.x]), val);
-  atomicAdd(&(aSVV[t.y][t.x]), val * val);
-  __syncthreads();
-
-  if ( threadIdx.z != 0) return;
-
-#ifdef FLOATMATH
-  atomicAdd(&(resu[thTer.y][thTer.x]),aSVV[t.y][t.x] - fdividef(aSV[t.y][t.x] * aSV[t.y][t.x],(float)nbIm[thTer.y][thTer.x]));
-#else
-  atomicAdd(&(resu[thTer.y][thTer.x]),aSVV[t.y][t.x] - ((aSV[t.y][t.x] * aSV[t.y][t.x])/ nbIm[thTer.y][thTer.x]));
-#endif
-
-  if ( !mThrd ) return;
-  __syncthreads();
-
-  // Normalisation pour le ramener a un equivalent de 1-Correl
-#ifdef FLOATMATH
-  const float cost = fdividef( resu[thTer.y][thTer.x], (float)( nbIm[thTer.y][thTer.x] -1.0f) * (cH.sizeVig));
-#else
-  const float cost = resu[thTer.y][thTer.x]/ (( nbIm[thTer.y][thTer.x] -1.0f) * ((float)cH.sizeVig));
-#endif
-
-  dTCost[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
 }
 
 /// \brief Kernel Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens n utilisant pas des fonctions atomiques

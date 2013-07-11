@@ -30,11 +30,11 @@ public:
     void            Dealloc();
     void            oneDirOptGpGpu();
     void            ReallocParam(uint size);
+    void            freezeCompute();
 
 private:
 
     void            threadCompute();
-    void            freezeCompute();
 
     HOST_Data2Opti  _H_data2Opt;
     DEVC_Data2Opti  _D_data2Opt;

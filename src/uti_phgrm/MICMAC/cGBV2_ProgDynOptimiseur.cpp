@@ -530,18 +530,22 @@ Pt2di cGBV2_ProgDynOptimiseur::direction(int aNbDir, int aKDir)
 void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 {
     const std::vector<Pt2di> * aVPt;
+
     uint sizeMaxLine = (uint)(1.5f*sqrt((float)mSz.x * mSz.x + mSz.y * mSz.y));
+
     IGpuOpt.ReallocParam(sizeMaxLine);
+
     int aKDir = 0;
+
     if (IGpuOpt.UseMultiThreading())
     {
         IGpuOpt.SetPreComp(true);
         int aKPreDir = 0;
-        bool idPreCo = false, idCo = false;
+        bool idPreCo = false;
         while (aKDir < aNbDir)
         {
 
-            if(  aKPreDir < aNbDir && aKPreDir <= aKDir + 1 && IGpuOpt.GetPreComp() )
+            if( aKPreDir <= aKDir + 1 && aKPreDir < aNbDir &&  IGpuOpt.GetPreComp() )
             {
 
                 Pt2di aDirI = direction(aNbDir, aKPreDir);
@@ -582,16 +586,14 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
             if(IGpuOpt.GetDataToCopy() && aKDir < aNbDir)
             {
-                copyCells<STREAM_TO_MAT>( direction(aNbDir,aKDir), IGpuOpt.Data2Opt(),idCo);
+                copyCells<STREAM_TO_MAT>( direction(aNbDir,aKDir), IGpuOpt.Data2Opt(),!IGpuOpt.GetIdBuf());
                 IGpuOpt.SetDataToCopy(false);
-                aKDir++;
-                idCo = !idCo;
+                aKDir++;          
             }
         }
 
-        IGpuOpt.SetCompute(false);
-        IGpuOpt.SetPreComp(false);
-        IGpuOpt.SetDataToCopy(false);
+        IGpuOpt.freezeCompute();
+
      }
     else
     {

@@ -45,7 +45,7 @@ if ( WITH_OPEN_MP )
 	add_definitions(-DUSE_OPEN_MP)
 endif()
 
-# Utiliser Cuda
+# Utiliser Doxygen
 OPTION(WITH_DOXYGEN "Generation de documentation" OFF )
 
 
@@ -55,19 +55,6 @@ OPTION(WITH_DOXYGEN "Generation de documentation" OFF )
 IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
     add_definitions(-DELISE_Darwin)
 endif()
-# systeme 32 ou 64 bits
-if (WIN32)
-    set(CPU_BITNESS 64)
-    if (CMAKE_CL_64)
-        set(CPU_BITNESS 32)
-    endif()
-else()
-    set(CPU_BITNESS 32)
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(CPU_BITNESS 64)
-    endif()
-endif()
-message( STATUS "Systeme is " ${CMAKE_SYSTEM_NAME} ${CPU_BITNESS} )
 
 # DEFINITION : Dossier des exe et Dll nécessaires sous windows
 set(BinAuxWinDir ${PROJECT_SOURCE_DIR}/binaire-aux/BIN_AUX_WIN32)
@@ -293,9 +280,12 @@ ENDIF()
 # DEFINITION : des preprocesseurs windows
 IF (MSVC)
 
-	# Zm131 -> Erreur de compilation sous windows 7 avec Cuda et Boost
-	#add_definitions( "-Zm131 /W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
-	add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
+	# Zm131 -> Erreur de compilation sous windows 7 avec Cuda et Boost		
+        if (${CUDA_ENABLED})
+            add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
+        else()
+            add_definitions( "-Zm131 /W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
+        endif()
 
 	if(MSVC80 OR MSVC90 OR MSVC10)
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
