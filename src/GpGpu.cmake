@@ -7,8 +7,8 @@
  #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20 -use_fast_math)
  #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20)
 
- set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -lineinfo)
- #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20)
+  #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -lineinfo)
+set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20)
 
  set(libStatGpGpuTools GpGpuTools)
  set(libStatGpGpuInterfMicMac GpGpuInterfMicMac)
@@ -30,7 +30,11 @@
 
  cuda_add_executable(${TestExeGpGpuOpt} ${uti_Test_Opt_GpGpu_Src_Files})
 
- target_link_libraries(${TestExeGpGpuOpt}  ${Boost_LIBRARIES} ${Boost_THREADAPI} ${libStatGpGpuOpt} rt pthread ${libStatGpGpuTools})
+ target_link_libraries(${TestExeGpGpuOpt}  ${Boost_LIBRARIES} ${Boost_THREADAPI} ${libStatGpGpuOpt} ${libStatGpGpuTools})
+
+ if (NOT WIN32)
+	target_link_libraries(${TestExeGpGpuOpt}  rt pthread )
+ endif()
 
  link_directories(${PROJECT_SOURCE_DIR}/lib/)
 

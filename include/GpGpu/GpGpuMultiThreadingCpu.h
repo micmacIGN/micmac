@@ -4,8 +4,8 @@
 #include <stdio.h>
 
 #include <boost/thread/thread.hpp>
-#include <boost/lockfree/spsc_queue.hpp>
-#include <boost/atomic.hpp>
+// #include <boost/lockfree/spsc_queue.hpp>
+// #include <boost/atomic.hpp>
 
 #include "GpGpu/GpGpuTools.h"
 
@@ -33,9 +33,16 @@ public:
 
     bool            UseMultiThreading();
 
+    bool            GetIdBuf();
+    void            SwitchIdBuffer();
+    void            ResetIdBuffer();
+
+
 protected:
 
-    void            setThread(boost::thread* Thread);
+    void            SetThread(boost::thread* Thread);
+    void            CreateJob();
+    void            KillJob();
 
 private:
 
@@ -43,6 +50,8 @@ private:
 
     virtual void    threadCompute() = 0;
     virtual void    freezeCompute() = 0;
+
+    void            LaunchJob();
 
     bool            _useMultiThreading;
 
@@ -54,26 +63,20 @@ private:
     T               _copy;
     bool            _precompute;
 
+    bool            _idBufferHostIn;
+
 };
 
 template< class T >
 CSimpleJobCpuGpu<T>::CSimpleJobCpuGpu(bool useMultiThreading):
-    _useMultiThreading(useMultiThreading)
-{
+    _useMultiThreading(useMultiThreading),
+    _idBufferHostIn(false)
+{}
 
-}
 template< class T >
 CSimpleJobCpuGpu<T>::~CSimpleJobCpuGpu()
 {
-    if(UseMultiThreading())
-    {
-        _gpGpuThread->interrupt();
-        //_gpGpuThread->join();
-        delete _gpGpuThread;
-    }
-    _mutexCompu.unlock();
-    _mutexCopy.unlock();
-    _mutexPreCompute.unlock();
+    KillJob();
 }
 
 template< class T >
@@ -117,7 +120,6 @@ bool CSimpleJobCpuGpu<T>::GetPreComp()
 {
     boost::lock_guard<boost::mutex> guard(_mutexPreCompute);
     return _precompute;
-
 }
 
 template< class T >
@@ -127,23 +129,70 @@ bool CSimpleJobCpuGpu<T>::UseMultiThreading()
 }
 
 template< class T >
-void CSimpleJobCpuGpu<T>::setThread(boost::thread *Thread)
+bool CSimpleJobCpuGpu<T>::GetIdBuf()
+{
+    return _idBufferHostIn;
+}
+
+template< class T >
+void CSimpleJobCpuGpu<T>::SwitchIdBuffer()
+{
+    _idBufferHostIn = !_idBufferHostIn;
+}
+
+template< class T >
+void CSimpleJobCpuGpu<T>::ResetIdBuffer()
+{
+    _idBufferHostIn = false;
+}
+
+template< class T >
+void CSimpleJobCpuGpu<T>::SetThread(boost::thread *Thread)
 {
     _gpGpuThread = Thread;
 }
 
+template< class T >
+void CSimpleJobCpuGpu<T>::CreateJob()
+{
+    if(UseMultiThreading())
+    {
+        SetThread(new boost::thread(&CSimpleJobCpuGpu::LaunchJob,this));
+        freezeCompute();
+    }
+}
 
+template< class T >
+void CSimpleJobCpuGpu<T>::KillJob()
+{
+    if(UseMultiThreading())
+    {
+        _gpGpuThread->interrupt();
+        delete _gpGpuThread;
+    }
+    _mutexCompu.unlock();
+    _mutexCopy.unlock();
+    _mutexPreCompute.unlock();
+}
+
+template< class T >
+void CSimpleJobCpuGpu<T>::LaunchJob()
+{
+    threadCompute();
+}
+
+/*
 
 class DataBuffer
 {
-    /*  Gerer les donnees d entres au niveau du host
-     *  Les donnes a traiter
-     *  les parametres
-     *      - les constants
-     *      - les non constants
-     *
-     *
-    */
+    //  Gerer les donnees d entres au niveau du host
+//        Les donnes a traiter
+//       les parametres
+//            - les constants
+//           - les non constants
+     
+     
+    
 
     virtual void AllocHostIn()   = 0;
     virtual void AllocDeviceIn() = 0;
@@ -294,7 +343,7 @@ public:
     virtual void Precompute(HOST_UINT3D* hostIn){hostIn->FillRandom((uint)0,(uint)128);}
     virtual void GpuCompute(){Launch((uint*)GetDeviIN().pData());}
 };
-
+*/
 
 #endif //__GPGPU_MULTITHREADING_CPU_H__
 
