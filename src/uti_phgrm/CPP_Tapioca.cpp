@@ -45,6 +45,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 // bin/Tapioca File  "../micmac_data/ExempleDoc/Boudha/MesCouples.xml" -1  ExpTxt=1
 
 #define DEF_OFSET -12349876
+// cf. CPP_Pastis.cpp
+extern const string PASTIS_MATCH_ARGUMENT_NAME;
+extern const string PASTIS_DETECT_ARGUMENT_NAME;
+extern bool process_pastis_tool_string( string &io_tool, string &o_args );
 
 int ExpTxt=0;
 int	ByP=-1;
@@ -58,11 +62,13 @@ std::string BinPastis;
 std::string MkFT;
 std::string PostFix;
 std::string TheType = "XXXX";
+list<string> aFileList;				// all filenames matching input pattern, computed by DoDevelopp
+vector<string> aKeypointsFileArray; // keypoints filenames associated to files in aFileList and a specified resolution, computed by DoDetectKeypoints
 
 std::string StrMkT() { return (ByP ? (" MkF=" + MkFT +" ") : "") ; }
 
-#define aNbType 4
-std::string  Type[aNbType] = {"MulScale","All","Line","File"};
+#define aNbType 5
+std::string  Type[aNbType] = {"MulScale","All","Line","File","Graph"};
 
 /*
 void StdAdapt2Crochet(std::string & aStr)
@@ -109,91 +115,102 @@ void DoMkT()
 {
     if (ByP)
     {
-		std::string aSMkSr = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFT + string(" -j")+ToString(ByP);
+		std::string aSMkSr = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFT + string(" -j")+ToString(ByP)+" -s";
         System(aSMkSr,true);
     }
 }
 
 void DoDevelopp(int aSz1,int aSz2)
 {
-    std::list<std::string> aList = anICNM->StdGetListOfFile(aPatOri,1);
+    aFileList = anICNM->StdGetListOfFile(aPatOri,1);
 
     cEl_GPAO  aGPAO;
-
-    for (std::list<std::string>::iterator iT= aList.begin() ; iT!=aList.end() ; iT++)
+	string post;
+	string taskName;
+	int iImage = 0;
+    for (std::list<std::string>::const_iterator iT= aFileList.begin() ; iT!=aFileList.end() ; iT++, iImage++)
     {
         std::string  aNOri = anICNM->Dir()+*iT;
         std::string  aNTif = NameFileStd(aNOri,1,false,true,false);
 
         std::string aCom = MMBin() + "PastDevlop " + aNOri + " Sz1=" +ToString(aSz1) + " Sz2="+ToString(aSz2);
 
-        aGPAO.GetOrCreate(aNTif,aCom);
-        aGPAO.TaskOfName("all").AddDep(aNTif);
+		taskName = string( "T" ) + ToString( iImage ) + "_";
+        aGPAO.GetOrCreate( taskName, aCom ); // always call PastDevlop (in case asked resolution changed)
+        aGPAO.TaskOfName("all").AddDep( taskName );
     }
 
     aGPAO.GenerateMakeFile(MkFT);
-
+		
     DoMkT();
 }
 
-// cf. CPP_Pastis.cpp
-extern bool process_pastis_tool_string( string &io_tool, string &o_args );
 
-// process "Detect" and "Match" argument the same way Pastis will and check the binaries exist
-// eventually construct a string to give to Pastis
+void getPastisGrayscaleFilename( const string &i_baseName, int i_resolution, string &o_grayscaleFilename )
+{	
+	if ( i_resolution<=0 )
+	{ 
+		o_grayscaleFilename = NameFileStd( aDir+i_baseName, 1, false, true, false );
+		return;
+	}
+	
+	Tiff_Im aFileInit = Tiff_Im::StdConvGen( aDir+i_baseName, 1, false ); 
+	Pt2di 	imageSize = aFileInit.sz();
+	
+	double scaleFactor = double( i_resolution ) / double( ElMax( imageSize.x, imageSize.y ) );
+	double round_ = 10;
+	int    round_scaleFactor = round_ni( ( 1/scaleFactor )*round_ );
+	
+	o_grayscaleFilename = aDir + "Pastis" + ELISE_CAR_DIR + std::string( "Resol" ) + ToString( round_scaleFactor )
+							+ std::string("_Teta0_") + StdPrefixGen( i_baseName ) + ".tif";
+}
 
-void InitMatchingTools(std::string & detectingTool,std::string& matchingTool) 
+void InitDetectingTool( std::string & detectingTool )
 {
-    if (! EAMIsInit(&detectingTool) &&   MMUserEnv().TiePDetect().IsInit())
-       detectingTool = MMUserEnv().TiePDetect().Val();
+    if ( ( !EAMIsInit(&detectingTool) ) && MMUserEnv().TiePDetect().IsInit() )
+		detectingTool = MMUserEnv().TiePDetect().Val();
+}
 
-    if (! EAMIsInit(&matchingTool) &&   MMUserEnv().TiePMatch().IsInit())
-       matchingTool = MMUserEnv().TiePMatch().Val();
+void InitMatchingTool( std::string& matchingTool )
+{
+    if ( ( !EAMIsInit(&matchingTool) ) && MMUserEnv().TiePMatch().IsInit() )
+		matchingTool = MMUserEnv().TiePMatch().Val();
+}
 
-    //  std::cout << "TOOLS " << detectingTool << " " << matchingTool << "\n"; getchar();
+// check a tool to be used by Pastis and add it to g_toolsOptions if it succeed
+// i_toolType is "Detect" or "Match" for now, it must be handle by Pastis as an argument
+void check_pastis_tool( string &io_tool, const string &i_toolType )
+{
+    if ( io_tool.length()==0 ) return;
+    
+	string extractedArguments;
+	if ( !process_pastis_tool_string( io_tool, extractedArguments ) ){
+		cerr << "Tapioca: ERROR: specified string \"" << io_tool << "\" for \"" << i_toolType << "\" tool is invalid (format is : tool[:arguments] )" << endl;
+		exit( EXIT_FAILURE );
+	}
+	else
+	{
+		const ExternalToolItem &item = g_externalToolHandler.get( io_tool );
+		if ( !item.isCallable() ){
+			cerr << "Tapioca: ERROR: specified tool \"" << io_tool << "\" is needed by \"" << i_toolType << "\" but " << item.errorMessage() << endl;
+			exit( EXIT_FAILURE );
+		}
+		
+		if ( extractedArguments.length()!=0 ) io_tool.append( string(":") + extractedArguments ); 
+		if ( g_toolsOptions.length()!=0 ) g_toolsOptions.append( string(" ") );
+		g_toolsOptions.append( i_toolType+'='+io_tool );  
+	}
 }
 
 void check_detect_and_match_tools( string &detectingTool, string &matchingTool )
 {
-    InitMatchingTools(detectingTool,matchingTool);
-
-    string detectArgs, matchArgs;
-
     g_toolsOptions.clear();
-    if ( detectingTool.length()!=0 )
-    {
-        if ( !process_pastis_tool_string( detectingTool, detectArgs ) ){
-            cerr << "Tapioca: ERROR: specified string for the detecting tool is invalid (format is : tool[:arguments] )" << endl;
-            exit( EXIT_FAILURE );
-        }
-        else
-        {
-            const ExternalToolItem &item = g_externalToolHandler.get( detectingTool );
-            if ( !item.isCallable() ){
-                cerr << "Tapioca: ERROR: specified detecting tool " << detectingTool << " is needed but " << item.errorMessage() << endl;
-                exit( EXIT_FAILURE );
-            }
-            g_toolsOptions = string( "Detect=" ) + detectingTool;
-            if ( detectArgs.length()!=0 ) g_toolsOptions.append( string(":") + detectArgs );
-        }
-    }
-    if ( matchingTool.length()!=0 )
-    {
-        if ( !process_pastis_tool_string( matchingTool, matchArgs ) ){
-            cerr << "Tapioca: ERROR: specified string for the matching tool is invalid (format is : tool[:arguments] )" << endl;
-            exit( EXIT_FAILURE );
-        }
-        else{
-            const ExternalToolItem &item = g_externalToolHandler.get( matchingTool );
-            if ( !item.isCallable() ){
-                cerr << "Tapioca: ERROR: specified matching tool " << matchingTool << " is needed but " << item.errorMessage() << endl;
-                exit( EXIT_FAILURE );
-            }
-            if ( g_toolsOptions.length()!=0 ) g_toolsOptions.append(" ");
-            g_toolsOptions.append( string( "Match=" ) + matchingTool );
-            if ( matchArgs.length()!=0 ) g_toolsOptions.append( string(":") + matchArgs );
-        }
-    }
+    
+    InitDetectingTool( detectingTool );
+    check_pastis_tool( detectingTool, PASTIS_DETECT_ARGUMENT_NAME );
+    
+	InitMatchingTool( matchingTool );
+    check_pastis_tool( matchingTool, PASTIS_MATCH_ARGUMENT_NAME );
 }
 
 
@@ -216,8 +233,8 @@ int MultiECh(int argc,char ** argv)
                     << EAM(aNbMinPt,"NbMinPt",true)
                     << EAM(DoLowRes,"DLR",true,"Do Low Resolution")
                     << EAM(aPat2,"Pat2",true)
-                    << EAM(detectingTool,"Detect",true)
-                    << EAM(matchingTool,"Match",true)
+                    << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
+                    << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
     );
 
 
@@ -231,7 +248,6 @@ int MultiECh(int argc,char ** argv)
     }
 
     StdAdapt2Crochet(aPat2);
-
     DoDevelopp(aSsRes,aFullRes);
 
     if (DoLowRes)
@@ -282,8 +298,8 @@ int All(int argc,char ** argv)
                     << EAM(PostFix,"PostFix",true)
                     << EAM(ByP,"ByP",true)
                     << EAM(aPat2,"Pat2",true)
-                    << EAM(detectingTool,"Detect",true)
-                    << EAM(matchingTool,"Match",true)
+                    << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
+                    << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
     );
 
     check_detect_and_match_tools( detectingTool, matchingTool );
@@ -327,10 +343,362 @@ int Line(int argc,char ** argv)
                     << EAM(ByP,"ByP",true,"By processe")
                     << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")
                     << EAM(ForceAdj,"ForceAdSupResol",true,"to force computation even when Resol < Adj")
-                    << EAM(detectingTool,"Detect",true)
-                    << EAM(matchingTool,"Match",true)
+                    << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
+                    << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
     );
 
+    check_detect_and_match_tools( detectingTool, matchingTool );
+
+    if ((aFullRes < aNbAdj) && (!ForceAdj) && (aFullRes>0))
+    {
+        std::cout << "Resol=" << aFullRes  << " NbAdjacence=" << aNbAdj << "\n";
+        ELISE_ASSERT
+        (
+             false,
+             "Probable inversion of Resol and Adjacence (use ForceAdSupResol is that's what you mean)"
+        );
+
+    }
+
+
+    DoDevelopp(-1,aFullRes);
+
+   std::string aRel = isCirc ? "NKS-Rel-ChantierCirculaire" : "NKS-Rel-ChantierLineaire";
+
+    std::string aSFR =  BinPastis
+                     +  aDir + std::string(" ")
+                     +  QUOTE(std::string(aRel + "@")+ aPat+ std::string("@")+ToString(aNbAdj)) + std::string(" ")
+                     +  ToString(aFullRes) + std::string(" ")
+                     +  StrMkT()
+                     +  std::string("NbMinPtsExp=2 ")
+                     +  std::string("ForceByDico=1 ")
+                     +  g_toolsOptions + ' '
+                     +  NKS();
+
+    std::cout << aSFR << "\n";
+    System(aSFR,true);
+    DoMkT();
+
+    return 0;
+}
+
+
+
+int File(int argc,char ** argv)
+{
+    string detectingTool, matchingTool;
+
+    ElInitArgMain
+    (
+	argc,argv,
+	LArgMain()  << EAMC(aFullDir,"XML-File of pair")
+                     <<EAMC(aFullRes,"Resolution"),
+	LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
+                    << EAM(PostFix,"PostFix",true)
+                    << EAM(ByP,"ByP",true)
+                    << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
+                    << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
+    );
+
+    check_detect_and_match_tools( detectingTool, matchingTool );
+
+    std::string aSFR =  BinPastis
+                     +  aDir + std::string(" ")
+                     +  QUOTE(std::string("NKS-Rel-ByFile@")+  aPat) + std::string(" ")
+                     +  ToString(aFullRes) + std::string(" ")
+                     +  StrMkT()
+                     +  std::string("NbMinPtsExp=2 ")
+                     +  std::string("ForceByDico=1 ")
+                     +  g_toolsOptions + ' '
+                     +  NKS();
+
+
+    std::cout << aSFR << "\n";
+    System(aSFR,true);
+    DoMkT();
+/*
+*/
+
+    return 0;
+}
+
+void getKeypointFilename( const string &i_basename, int i_resolution, string &o_keypointsName )
+{
+	/*
+	 o_keypointsName = aDir+"Pastis/LBPp"+i_basename+".dat";
+	 */
+
+   o_keypointsName = aDir + anICNM->Assoc1To2( "eModeLeBrisPP-Pastis-PtInt", i_basename, ToString( i_resolution ), true) ;
+}
+
+// create a makefile to compute keypoints for all images using Pastis' filenames format
+void DoDetectKeypoints( string i_detectingTool, int i_resolution )
+{
+	string detectingToolArguments;
+    process_pastis_tool_string( i_detectingTool, detectingToolArguments );
+    
+    string pastisGrayscaleFilename,
+		   keypointsFilename,
+		   grayscaleDirectory, grayscaleBasename,
+		   command;
+    
+    if ( !ELISE_fp::MkDirSvp( aDir+"Pastis" ) )
+	{
+		cerr << "ERROR: creation of directory [" << aDir+"Pastis" << "] failed" << endl;
+		exit( EXIT_FAILURE );
+	}
+    
+    cEl_GPAO  aGPAO;
+    size_t nbFiles = aFileList.size(),
+		   iImage = 0;
+    aKeypointsFileArray.resize( nbFiles );
+    for ( std::list<std::string>::const_iterator iT=aFileList.begin(); iT!=aFileList.end(); iT++, iImage++ ) // aFileList has been computed by DoDevelopp
+    {
+        getPastisGrayscaleFilename( *iT, i_resolution, pastisGrayscaleFilename );
+        SplitDirAndFile( grayscaleDirectory, grayscaleBasename, pastisGrayscaleFilename );
+        getKeypointFilename( grayscaleBasename, i_resolution, aKeypointsFileArray[iImage] );
+        keypointsFilename = aKeypointsFileArray[iImage];
+        
+        cout << (*iT) << " => " << pastisGrayscaleFilename << " => " << keypointsFilename << endl;
+        
+        command = g_externalToolHandler.get( i_detectingTool ).callName() + ' ' + detectingToolArguments + ' ' +
+					pastisGrayscaleFilename + " -o " + keypointsFilename;
+        
+        aGPAO.GetOrCreate( keypointsFilename, command );
+        aGPAO.TaskOfName("all").AddDep( keypointsFilename );
+    }
+    aGPAO.GenerateMakeFile( MkFT );
+    DoMkT();
+}
+
+void writeBinaryGraphToXML( const string &i_filename, vector<vector<int> > i_graph )
+{
+	// convert images' filenames list into an array
+	size_t nbFiles = aFileList.size();
+	vector<string> filenames( nbFiles );
+	copy( aFileList.begin(), aFileList.end(), filenames.begin() );
+	
+	ofstream f( i_filename.c_str() );
+	f << "<?xml version=\"1.0\" ?>" << endl;
+	f << "<SauvegardeNamedRel>" << endl;
+	size_t i, j;
+	for ( i=1; i<nbFiles; i++ )
+		for ( j=0; j<i; j++ )
+		{
+			if ( i_graph[j][i]!=0 )
+			{
+				f << "\t<Cple>" << filenames[i] << ' ' << filenames[j] << "</Cple>" << endl;
+				//f << "\t<Cple>" << filenames[j] << ' ' << filenames[i] << "</Cple>" << endl;
+			}
+		}
+	f << "</SauvegardeNamedRel>" << endl;
+}
+
+// i_graph[i][j] represent the connexion between images aFileList[i] and aFileList[j]
+// i_graph[i][j] = number of points of in i whose nearest neighbour is in j
+// a couple of images is output if i_graph[i][j]+i_graph[j][i]>i_threshold
+size_t normalizeGraph( vector<vector<int> > i_graph, int i_threshold  )
+{
+	size_t n = i_graph.size(),
+		   i, j;
+	size_t count = 0;
+	for ( j=1; j<n; j++ )
+		for ( i=0; i<j; i++ )
+		{
+			if ( i_graph[i][j]+i_graph[j][i]>i_threshold )
+			{
+				i_graph[j][i] = 1;
+				count++;
+			}
+			else
+				i_graph[j][i] = 0;
+			i_graph[i][j] = 0;
+		}
+	return count;
+}
+
+void setLabel( vector<vector<int> > &i_graph, vector<int> &i_labels, size_t i_index, int i_label )
+{
+	if ( i_labels[i_index]==-1 )
+	{
+		size_t n = i_graph.size(),
+			   i;
+		i_labels[i_index] = i_label;
+		for ( i=0; i<i_index; i++ )
+			if ( i_graph[i_label][i]!=0 ) setLabel( i_graph, i_labels, i, i_label );
+		for ( i=i_index+1; i<n; i++ )
+			if ( i_graph[i][i_index]!=0 ) setLabel( i_graph, i_labels, i, i_label );
+	}
+}
+
+// load all keypoints from their files and construct the proximity graph
+void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerImage, int i_threshold )
+{
+	size_t nbImages = aFileList.size();
+	string keypointsFilename;
+	vector<vector<SiftPoint> > keypoints_per_image( nbImages );
+	vector<SiftPoint> 		   all_keypoints; 		// a big vector with all keypoints of all images
+	vector<int> 	  		   all_image_indices;	// contains the index of the image from which the keypoint is from
+	size_t iImage = 0,
+		   nbTotalKeypoints = 0;
+	
+	// read all keypoints files
+	cout << "--------------------> read all keypoints files" << endl;
+	for ( std::list<std::string>::const_iterator iT=aFileList.begin(); iT!=aFileList.end(); iT++, iImage++ ) // aFileList has been computed by DoDevelopp
+    {
+		keypointsFilename = aKeypointsFileArray[iImage];
+		
+		if ( !read_siftPoint_list( keypointsFilename, keypoints_per_image[iImage] ) ){
+			cerr << "WARNING: unable to read keypoints in [" << keypointsFilename << "], image [" << *iT << "] will be ignored" << endl;
+			continue;
+		}
+		
+		cout << keypointsFilename << " has " << keypoints_per_image[iImage].size() << " keypoints" << endl;
+		
+		if ( keypoints_per_image[iImage].size()>i_nbMaxPointsPerImage )
+		{
+			SiftPoint *data = &( keypoints_per_image[iImage][0] );
+			size_t nbPoints = keypoints_per_image[iImage].size();
+			std::copy( data+nbPoints-i_nbMaxPointsPerImage, data+nbPoints, data );
+			keypoints_per_image[iImage].resize( i_nbMaxPointsPerImage );
+			nbTotalKeypoints += i_nbMaxPointsPerImage;
+		}
+		else
+			nbTotalKeypoints += keypoints_per_image[iImage].size();
+	}
+	
+	if ( nbTotalKeypoints==0 )
+	{
+		cerr << "ERROR: no keypoint found, output file will not be generated" << endl;
+		return;
+	}
+	
+	cout << "total number of points = " << nbTotalKeypoints << endl;
+	// merge all keypoints vectors
+	size_t nbPoints;
+	all_keypoints.resize( nbTotalKeypoints );
+	all_image_indices.resize( nbTotalKeypoints );
+	vector<vector<SiftPoint> >::const_iterator itSrc = keypoints_per_image.begin();
+	const SiftPoint *pSrc;
+		  SiftPoint *pDst = &( all_keypoints[0] );
+	int *itIndex = &( all_image_indices[0] );
+	for ( iImage=0; iImage<nbImages; iImage++, itSrc++ )
+	{
+		nbPoints = itSrc->size();
+		if ( nbPoints==0 ) continue;
+		
+		pSrc = &( ( *itSrc )[0] );
+		memcpy( pDst, pSrc, nbPoints*sizeof( SiftPoint ) );
+		pDst += nbPoints;
+		while ( nbPoints-- ) *itIndex++=iImage;
+	}
+	
+	// create a connectivity matrix
+	vector<vector<int> > graph( nbImages );
+	for ( iImage=0; iImage<nbImages; iImage++ )
+		graph[iImage].resize( nbImages, 0 );
+	
+	AnnArray annArray( all_keypoints, SIFT_ANN_DESC_SEARCH );
+    AnnSearcher search;
+    search.setNbNeighbours( 2 );
+    search.setErrorBound( 0. );
+    search.setMaxVisitedPoints( SIFT_ANN_DEFAULT_MAX_PRI_POINTS );
+    search.createTree( annArray );
+    SiftPoint *query = &( all_keypoints[0] );
+    const ANNidx *neighbours = search.getNeighboursIndices();
+    size_t iImageQuery, iImageNeighbour,
+		   nbBadNeighbours = 0,
+		   iQuery;
+    for ( iQuery=0; iQuery<nbTotalKeypoints; iQuery++ )
+    {
+        search.search( query->descriptor );
+        iImageQuery 	= all_image_indices[iQuery];
+		iImageNeighbour = all_image_indices[neighbours[1]];
+				
+        if ( iImageQuery==iImageNeighbour )
+            nbBadNeighbours++;
+        else
+            graph[iImageQuery][iImageNeighbour]++;
+
+        query++;
+    }
+    annClose(); // done with ANN
+    
+    // stats
+    size_t nbChecks = normalizeGraph( graph, i_threshold );
+    cout << nbChecks << " / " << ( nbImages*(nbImages-1) )/2 << endl;
+    
+    vector<int> labels( nbImages, -1 );
+    int currentLabel = 0;
+    for ( size_t iStartingElement=0; iStartingElement<nbImages; iStartingElement++ )
+		if ( labels[iStartingElement]==-1 )	setLabel( graph, labels, iStartingElement, currentLabel++ );
+	cout << currentLabel << " connected component" << endl;
+    
+    writeBinaryGraphToXML( i_outputFilename, graph );
+}
+
+
+// this option is to construct a proximity graph from points of interests
+// it generates an XML file to process with the "File" option
+int Graph_(int argc,char ** argv)
+{
+    int  nbThreads = NbProcSys(); // default is the number of cores of the system
+    REAL minScale = 0;
+    int maxDimensionResize = -1;
+    string outputFile = "tapioca_connectivity_graph.xml"; // default XML filename for the graph
+    string detectingTool, detectingToolArguments;
+    
+    // aDir is "chantier" directory
+    // aPat is images' pattern
+    // aFullPat is the original directory+pattern string
+    
+    ElInitArgMain
+    (
+	argc,argv,
+	
+	LArgMain()  << EAMC(aFullDir,"Full images' pattern (directory+pattern)")
+                << EAMC(maxDimensionResize,"processing size of image  (for the greater dimension)"),
+                
+	LArgMain()  << EAM(nbThreads,"ByP",true,"By processe")
+                << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
+                << EAM(minScale, "MinScale", "minimum scale from points to be used")
+				<< EAM(outputFile,"Out",true,"Export Pts in texte format")
+    );
+    
+    // if no output filename is given, use the default one in "chantier" directory
+    if ( !EAMIsInit(&outputFile) )
+    {
+		outputFile = aDir+outputFile;
+		cout << "no output filename specified using default: " << outputFile << endl;
+	}
+    
+    // retrieve points of interest detecting program
+    g_toolsOptions.clear();
+    InitDetectingTool( detectingTool );
+    if ( detectingTool.length()==0 ) detectingTool=TheStrSiftPP;
+    check_pastis_tool( detectingTool, PASTIS_DETECT_ARGUMENT_NAME );    
+    
+    cout << "chantierDirectory  = " << aDir << endl;
+    cout << "pattern            = " << aPat << endl;
+    cout << "maxDimensionResize = " << maxDimensionResize << endl;
+    cout << "------" << endl;
+    cout << "nbThreads          = " << nbThreads << endl;
+    cout << "minScale           = " << minScale << endl;
+    cout << "outputFile         = " << outputFile << endl;
+    cout << "detectingTool      = " << detectingTool << endl;
+    cout << "g_toolsOptions     = " << g_toolsOptions << endl;
+    
+    // convert images into TIFF and resize them if needed (maxDimensionResize!=-1)
+    DoDevelopp( -1,maxDimensionResize );
+        
+    // create a makefile to detect key points for all images    
+    DoDetectKeypoints( detectingTool, maxDimensionResize );
+    
+    cout << "--------------------> DoDetectKeypoints" << endl;
+    
+    DoConstructGraph( outputFile, 200, 0 );
+    
+/*
     check_detect_and_match_tools( detectingTool, matchingTool );
 
     if ((aFullRes < aNbAdj) && (!ForceAdj) && (aFullRes>0))
@@ -363,48 +731,8 @@ int Line(int argc,char ** argv)
     std::cout << aSFR << "\n";
     System(aSFR,true);
     DoMkT();
-
-    return 0;
-}
-
-
-
-int File(int argc,char ** argv)
-{
-    string detectingTool, matchingTool;
-
-    ElInitArgMain
-    (
-	argc,argv,
-	LArgMain()  << EAMC(aFullDir,"XML-File of pair")
-                     <<EAMC(aFullRes,"Resolution"),
-	LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
-                    << EAM(PostFix,"PostFix",true)
-                    << EAM(ByP,"ByP",true)
-                    << EAM(detectingTool,"Detect",true)
-                    << EAM(matchingTool,"Match",true)
-    );
-
-    check_detect_and_match_tools( detectingTool, matchingTool );
-
-    std::string aSFR =  BinPastis
-                     +  aDir + std::string(" ")
-                     +  QUOTE(std::string("NKS-Rel-ByFile@")+  aPat) + std::string(" ")
-                     +  ToString(aFullRes) + std::string(" ")
-                     +  StrMkT()
-                     +  std::string("NbMinPtsExp=2 ")
-                     +  std::string("ForceByDico=1 ")
-                     +  g_toolsOptions + ' '
-                     +  NKS();
-
-
-    std::cout << aSFR << "\n";
-    System(aSFR,true);
-    DoMkT();
-/*
 */
-
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 int Tapioca_main(int argc,char ** argv)
@@ -466,6 +794,12 @@ int Tapioca_main(int argc,char ** argv)
     else if (TheType == Type[3])
     {
         int aRes =  File(argc,argv);
+        BanniereMM3D();
+        return aRes;
+    }
+    else if (TheType == Type[4])
+    {
+        int aRes =  Graph_(argc,argv);
         BanniereMM3D();
         return aRes;
     }
