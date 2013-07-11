@@ -58,6 +58,7 @@ void ScanOneSens(
         ushort  penteMax,
         int&    pitStrOut )
 {
+
     const ushort    tid     = threadIdx.x;
     short2          uZ_Prev = costStream.read<sens>(pData[idBuf],tid, 0);
     short           Z       = uZ_Prev.x + tid;
@@ -66,7 +67,7 @@ void ScanOneSens(
     if(sens)
         while( Z < uZ_Prev.y )
         {
-            if(Z>>8) break; // ERREUR DEPASSEMENT A SIMPLIFIER , DEPASSEMENT SUR RAMSES
+            //if(Z>>8) break; // ERREUR DEPASSEMENT A SIMPLIFIER , DEPASSEMENT SUR RAMSES
             int idGData        = Z - uZ_Prev.x;
             g_ForceCostVol[idGData]    = pData[idBuf][idGData];
             Z += min(uZ_Prev.y - Z,WARPSIZE);
@@ -99,7 +100,10 @@ void ScanOneSens(
 
             const short Z_P_Id  = Z - uZ_Prev.x;
 
-            aDz.y = min(aDz.y,(short)NAPPEMAX - 1 - Z_P_Id);
+            // ATTENTION DEBUG REV 1383 RALENTISSEMENT
+            //aDz.y = min(aDz.y,(short)NAPPEMAX - 1 - Z_P_Id);
+            aDz.y = min(aDz.y,(short)NAPPEMAX - Z_P_Id);
+            //
 
             for(short i = aDz.x ; i <= aDz.y; i++)
                 costMin = min(costMin, costInit + pData[idBuf][Z_P_Id + i]);
@@ -136,6 +140,142 @@ void ScanOneSens(
         idBuf    = !idBuf;
         uZ_Prev     = uZ_Next;
     }
+
+}
+template<class T > __device__
+void ScanOneSensAV(CDeviceDataStream<T> &costStream, uint lenghtLine,T pData[][NAPPEMAX],bool& idBuf,T* g_ForceCostVol, ushort  penteMax, int&    pitStrOut )
+{
+    const ushort    tid     = threadIdx.x;
+    short2          uZ_Prev = costStream.readAV(pData[idBuf],tid, 0);
+    short           Z       = uZ_Prev.x + tid;
+
+
+        while( Z < uZ_Prev.y )
+        {
+            //if(Z>>8) break; // ERREUR DEPASSEMENT A SIMPLIFIER , DEPASSEMENT SUR RAMSES
+            int idGData        = Z - uZ_Prev.x;
+            g_ForceCostVol[idGData]    = pData[idBuf][idGData];
+            Z += min(uZ_Prev.y - Z,WARPSIZE);
+        }
+
+    for(int idLine = 1; idLine < lenghtLine;idLine++)//#pragma unroll
+    {
+
+        short2 uZ_Next  = costStream.readAV(pData[2],tid,0);
+
+        pitStrOut += count(uZ_Prev);
+
+        short2 aDz;
+
+        T* g_LFCV = g_ForceCostVol + pitStrOut;
+
+        short   Z = uZ_Next.x + tid;
+
+        short Z_Id  = tid;
+
+        while( Z < uZ_Next.y )
+        {
+
+            ComputeIntervaleDelta(aDz,Z,penteMax,uZ_Next,uZ_Prev);
+            T costMin           = 1e9;
+
+            const T costInit    = pData[2][Z_Id];
+
+            const short Z_P_Id  = Z - uZ_Prev.x;
+
+            aDz.y = min(aDz.y,(short)NAPPEMAX - Z_P_Id);
+
+            for(short i = aDz.x ; i <= aDz.y; i++)
+                costMin = min(costMin, costInit + pData[idBuf][Z_P_Id + i]);
+
+            pData[!idBuf][Z_Id] = costMin;
+
+            const T cost        = costMin;
+
+            g_LFCV[Z_Id]        = cost;
+
+            Z += min(uZ_Next.y - Z,WARPSIZE);
+
+            if((Z_Id  = Z - uZ_Next.x)>>8) break;
+
+        }
+        idBuf    = !idBuf;
+        uZ_Prev     = uZ_Next;
+    }
+}
+
+template<class T> __device__
+void ScanOneSensAR(CDeviceDataStream<T> &costStream,uint lenghtLine,T pData[][NAPPEMAX],bool& idBuf,T* g_ForceCostVol,ushort  penteMax,int&    pitStrOut )
+{
+    const ushort    tid     = threadIdx.x;
+    short2          uZ_Prev = costStream.readAR(pData[idBuf],tid, 0);
+    __shared__ T    globMinCost;
+
+    for(int idLine = 1; idLine < lenghtLine;idLine++)//#pragma unroll
+    {
+
+        short2 uZ_Next  = costStream.readAR(pData[2],tid,0);
+        ushort nbZ_Next = count(uZ_Next);
+
+        pitStrOut += -nbZ_Next;
+
+        short2 aDz;
+
+        T* g_LFCV = g_ForceCostVol + pitStrOut;
+
+        short   Z = uZ_Next.x + tid;
+
+        if(!tid)
+            globMinCost = 1e9;
+
+        short Z_Id  = tid;
+
+        while( Z < uZ_Next.y )
+        {
+
+            ComputeIntervaleDelta(aDz,Z,penteMax,uZ_Next,uZ_Prev);
+            T costMin           = 1e9;
+
+            const T costInit    = pData[2][Z_Id];
+
+            const short Z_P_Id  = Z - uZ_Prev.x;
+
+            aDz.y = min(aDz.y,(short)NAPPEMAX - Z_P_Id);
+
+            for(short i = aDz.x ; i <= aDz.y; i++)
+                costMin = min(costMin, costInit + pData[idBuf][Z_P_Id + i]);
+
+            pData[!idBuf][Z_Id] = costMin;
+
+            const T cost        = costMin + g_LFCV[Z_Id] - costInit;
+
+            g_LFCV[Z_Id]        = cost;
+
+
+             atomicMin(&globMinCost,cost);
+
+            Z += min(uZ_Next.y - Z,WARPSIZE);
+
+            if((Z_Id  = Z - uZ_Next.x)>>8) break;
+
+        }
+
+
+            Z = uZ_Next.x + tid;
+            Z_Id  = tid;
+            g_LFCV = g_ForceCostVol + pitStrOut;
+
+            while( Z < uZ_Next.y )
+            {
+                g_LFCV[Z_Id] -= globMinCost;
+                Z += min(uZ_Next.y - Z,WARPSIZE);
+                if((Z_Id  = Z - uZ_Next.x)>>8) break;
+            }
+
+
+        idBuf    = !idBuf;
+        uZ_Prev     = uZ_Next;
+    }
 }
 
 template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2* g_StrId, T* g_ForceCostVol, uint3* g_RecStrParam, uint penteMax)
@@ -163,16 +303,19 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2
     CDeviceDataStream<T> costStream(bufferData, g_StrCostVol + pit_Stream,bufferIndex, g_StrId + pit_Id, sizeLine * NAPPEMAX, sizeLine);
 
     ScanOneSens<T,eAVANT>   (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
-    ScanOneSens<T,eARRIERE> (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
+      ScanOneSens<T,eARRIERE> (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
+
+//    ScanOneSensAV<T>   (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
+//    ScanOneSensAR<T> (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
 
 }
 
-extern "C" void OptimisationOneDirection(Data2Optimiz<CuHostData3D> &d2O)
+extern "C" void OptimisationOneDirection(Data2Optimiz<CuDeviceData3D> &d2O)
 {
     uint deltaMax = 3;
     dim3 Threads(WARPSIZE,1,1);
     dim3 Blocks(d2O._nbLines,1,1);
-
+	
     kernelOptiOneDirection<uint><<<Blocks,Threads>>>
                                                 (
                                                     d2O._s_InitCostVol      .pData(),
