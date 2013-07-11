@@ -98,8 +98,10 @@ vector<ArsenicImage> LoadGrpImages(string aDir, std::string aPatIm, int ResolMod
 	{
 		ArsenicImage aIm;
 		//reading 3D info
-		string arr[] = {"NaN", "7" ,  "6" , "NaN" , "5" , "NaN" , "NaN" , "NaN" , "4"};
-		vector<string> numZoom(arr, arr+9);
+		//cElNuage3DMaille * info3D1 = cElNuage3DMaille::FromFileIm("MM-Malt-Img-" + StdPrefix(aVectIm[aK1]) + "/NuageImProf_STD-MALT_Etape_1.xml");
+
+		string arr[] = {"NaN", "7" ,  "6" , "NaN" , "5" , "NaN" , "NaN" , "NaN" , "4", "NaN" , "NaN" , "NaN" , "NaN", "NaN" , "NaN" , "NaN" , "3"};
+		vector<string> numZoom(arr, arr+17);
 		//cElNuage3DMaille * info3D1 = cElNuage3DMaille::FromFileIm("Masq-TieP-" + aVectIm[aK1] + "/NuageImProf_LeChantier_Etape_4.xml");
 		cElNuage3DMaille * info3D1 = cElNuage3DMaille::FromFileIm("MM-Malt-Img-" + StdPrefix(aVectIm[aK1]) + "/NuageImProf_STD-MALT_Etape_"+ numZoom[ResolModel] + ".xml");
 
@@ -139,6 +141,10 @@ vector<ArsenicImage> LoadGrpImages(string aDir, std::string aPatIm, int ResolMod
 
 double DistBetween(Pt3d<double> aP1, Pt3d<double> aP2 ){
 	return (double)std::sqrt(pow(double(aP1.x-aP2.x),2)+pow(double(aP1.y-aP2.y),2)+pow(double(aP1.z-aP2.z),2));
+}
+
+double Dist2d(Pt2dr aP1, Pt2dr aP2 ){
+	return (double)std::sqrt(pow(double(aP1.x-aP2.x),2)+pow(double(aP1.y-aP2.y),2));
 }
 
 void drawTP(PtsHom aPtsHomol, string aDir, string aNameOut, int ResolModel)
@@ -226,9 +232,7 @@ vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm,string Extension, string I
 		for (int aY=0 ; aY<aGrIm[aK1].SZ.y  ; aY++)
 		{
 			for (int aX=0 ; aX<aGrIm[aK1].SZ.x  ; aX++)
-			{
-
-				
+			{				
 				Pt2dr pos2DPtIm1;pos2DPtIm1.x=aX;pos2DPtIm1.y=aY;
 				if(aGrIm[aK1].Mask.data()[aY][aX]==0){continue;}else{//If pts in masq, go look for 3D position
 					Pt3d<double> pos3DPtIm1=aGrIm[aK1].info3D->PreciseCapteur2Terrain(pos2DPtIm1);	
@@ -239,25 +243,20 @@ vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm,string Extension, string I
 						{
 							if (aK1!=aK2)
 							{
-							//cout<<aK2<<" "<<aY<<" "<<aX<<endl;
 							Pt2dr pos2DPtIm2=aGrIm[aK2].info3D->Ter2Capteur(pos3DPtIm1);
-									//if(vect3D[aK2]->PIsVisibleInImage(pos3DPtIm1)){//if pt in masq, go look for 2D position, then 3D position
+							//if pt in image and in masq, go look for 2D position, then 3D position
 							if(	pos2DPtIm2.x>0 && pos2DPtIm2.x<aGrIm[aK2].SZ.x && pos2DPtIm2.y>0 && pos2DPtIm2.y<aGrIm[aK2].SZ.y){
-										//cout<<pos2DPtIm2.x<<" "<<pos2DPtIm2.y<<" " <<aGrIm[aK2].Mask.data()[int(pos2DPtIm2.y)][int(pos2DPtIm2.x)]<<endl;
 										if(aGrIm[aK2].Mask.data()[int(pos2DPtIm2.y)][int(pos2DPtIm2.x)]){
 											pos2DOtherIm[aK2]=pos2DPtIm2;
-											//cout<<pos2DPtIm2.x<<" "<<pos2DPtIm2.y<<endl;
 											Pt3d<double> pos3DPtIm2=aGrIm[aK2].info3D->PreciseCapteur2Terrain(pos2DPtIm2);
+											//Compute Distance between the 2 3D points to check if they are the same ones (occlusion beware!)
 											distances[aK2]=DistBetween(pos3DPtIm1,pos3DPtIm2);
 										}
 									}
-							}
+							}else{aVectPtsHomol[aK1].SZ=aGrIm[aK1].SZ;}
 						}
-						//cout<<distances<<endl;
-						double distMin=aGrIm[0].info3D->ResolSolOfPt(pos3DPtIm1)/8;
 						for (int aK2=0 ; aK2<int(nbIm) ; aK2++){
-							if(distances[aK2]<distMin){//id pos3DPtIm1~=pos3DPtIm2 -->pt is considered homologous,it is added to PtsHom (Gr1, R1, G1, B1, X1, Y1, idem 2, NbPtsCouple++)
-								//cout<<"YES aK1 = " <<aK1<<" aK2 = " <<aK2<< " pos = " <<(aK1*nbIm)+aK2<<" pix1 = "<<aX<<" - "<<aY<<" pix2 = "<<pos2DOtherIm[aK2].x<<" - "<<pos2DOtherIm[aK2].y<<" with dist = "<<distances[aK2]<<endl;
+							if(distances[aK2]<(aGrIm[aK1].info3D->ResolSolOfPt(pos3DPtIm1))/16){//id pos3DPtIm1~=pos3DPtIm2 -->pt is considered homologous,it is added to PtsHom (Gr1, R1, G1, B1, X1, Y1, idem 2, NbPtsCouple++)
 								aVectPtsHomol[(aK1*nbIm)+aK2].X1.push_back(ResolModel*pos2DPtIm1.x) ;
 								aVectPtsHomol[(aK1*nbIm)+aK2].Y1.push_back(ResolModel*pos2DPtIm1.y) ;
 								aVectPtsHomol[(aK1*nbIm)+aK2].X2.push_back(ResolModel*pos2DOtherIm[aK2].x) ;
@@ -279,7 +278,7 @@ vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm,string Extension, string I
 								aVectPtsHomol[(aK1*nbIm)+aK2].B2.push_back(Blue2);
 								aVectPtsHomol[(aK1*nbIm)+aK2].NbPtsCouple++;
 								aVectPtsHomol[(aK1*nbIm)+aK2].SZ=aGrIm[aK1].SZ;
-							}else{}//cout<<"NOT aK1 = " <<aK1<<" aK2 = " <<aK2<< " pos = " <<(aK1*nbIm)+aK2<<" aX = "<<aX<<" aY = "<<aY<<" with dist = "<<distances[aK2]<<endl;}
+							}
 						}
 				}
 			}
@@ -309,7 +308,7 @@ vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm,string Extension, string I
 		//drawTP(aVectPtsHomol[23], aDir, "5-4",ResolModel);
 		int nbPtsHomols=0;
 		for(int i=0 ; i<int(aVectPtsHomol.size()) ; i++){nbPtsHomols=nbPtsHomols + aVectPtsHomol[i].NbPtsCouple;}
-		ELISE_ASSERT(nbPtsHomols!=0,"No homologous points (resolution of MMInitialModel might be too small");
+		ELISE_ASSERT(nbPtsHomols!=0,"No homologous points (resolution of ResolModel might be too small");
 		return aVectPtsHomol;
 
 }
@@ -566,7 +565,8 @@ double ScoreRANSAC(Param3Chan aParam3Chan, vector<PtsHom> aVectPtsHomol, int nbI
 		if(G2Poly2R>255){G2Poly2R=255;}if(G2Poly2G>255){G2Poly2G=255;}if(G2Poly2B>255){G2Poly2B=255;}
 		if(G1Poly1R<0){G1Poly1R=0;}if(G1Poly1G<0){G1Poly1G=0;}if(G1Poly1B<0){G1Poly1B=0;}
 		if(G2Poly2R<0){G2Poly2R=0;}if(G2Poly2G<0){G2Poly2G=0;}if(G2Poly2B<0){G2Poly2B=0;}
-        if(((G1Poly1R+G1Poly1G+G1Poly1B==0 )&& (G2Poly2R+G2Poly2G+G2Poly2B==0 ))|| ((G1Poly1R+G1Poly1G+G1Poly1B==765) && (G2Poly2R+G2Poly2G+G2Poly2B==765))){nbBlack++;error=error+1000;}
+        if(G1Poly1R==0 && G2Poly2R==0 || G1Poly1G==0 && G2Poly2G==0 || G1Poly1B==0 && G2Poly2B==0 ||
+		   G1Poly1R==255 && G2Poly2R==255 || G1Poly1G==255 && G2Poly2G==255 || G1Poly1B==255 && G2Poly2B==255 ){nbBlack++;error=error+1000;}
 		error=error+fabs(G1Poly1R-G2Poly2R)+fabs(G1Poly1G-G2Poly2G)+fabs(G1Poly1B-G2Poly2B);
 		errorCouple=errorCouple+fabs(G1Poly1R-G2Poly2R)+fabs(G1Poly1G-G2Poly2G)+fabs(G1Poly1B-G2Poly2B);
 	
@@ -813,6 +813,134 @@ for(int nbRANSAC=0 ; nbRANSAC<int(nbRANSACMax) ; nbRANSAC++){
 return aParam3Chan;
 }
 
+void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm,vector<PtsHom> aVectPtsHomol, string aDirOut, string InVig, int ResolModel, int nbIm)
+{
+
+	int aNbCouples=aVectPtsHomol.size();
+	vector<PtsRadioTie> vectPtsRadioTie(nbIm);
+	int nbPts=0;
+	//filling up the factors from homologous points
+	for (int i=0;i<int(aNbCouples);i++){
+
+		int numImage1=(i/(nbIm));
+		int numImage2=i-numImage1*(nbIm);
+
+		if (numImage1!=numImage2){
+			for(int j=0; j<aVectPtsHomol[i].NbPtsCouple; j++){//if there are homologous points between images
+				double kR=aVectPtsHomol[i].R2[j]/aVectPtsHomol[i].R1[j];
+				double kG=aVectPtsHomol[i].G2[j]/aVectPtsHomol[i].G1[j];
+				double kB=aVectPtsHomol[i].B2[j]/aVectPtsHomol[i].B1[j];
+				vectPtsRadioTie[numImage1].kR.push_back(kR);
+				vectPtsRadioTie[numImage1].kG.push_back(kG);
+				vectPtsRadioTie[numImage1].kB.push_back(kB);
+				Pt2dr aPoint; aPoint.x=aVectPtsHomol[i].X1[j]; aPoint.y=aVectPtsHomol[i].Y1[j];
+				vectPtsRadioTie[numImage1].Pos.push_back(aPoint);
+				nbPts++;
+			}
+		}
+	}
+	cout<<nbPts<<" loaded"<<endl;
+
+	//Bulding the output file system
+    ELISE_fp::MkDirRec(aDir + aDirOut);
+	//Reading input files
+	string suffix="";if(InVig!=""){suffix="_Vodka.tif";}
+	long int cptBcl=0;
+    for(int i=0;i<nbIm;i++)
+	{
+		
+	    string aNameIm=InVig + (*aSetIm)[i] + suffix;
+		cout<<"Correcting "<<aNameIm<<" (with "<<vectPtsRadioTie[i].size()<<" data points)"<<endl;
+		string aNameOut=aDir + aDirOut + (*aSetIm)[i] +"_egal.tif";
+
+		Pt2di aSzMod=aVectPtsHomol[i*nbIm].SZ;//cout<<aSzMod<<endl;
+		Im2D_REAL4  aImCorR(aSzMod.x,aSzMod.y,0.0);
+		Im2D_REAL4  aImCorG(aSzMod.x,aSzMod.y,0.0);
+		Im2D_REAL4  aImCorB(aSzMod.x,aSzMod.y,0.0);
+		REAL4 ** aCorR = aImCorR.data();
+		REAL4 ** aCorG = aImCorG.data();
+		REAL4 ** aCorB = aImCorB.data();
+		
+		for (int aY=0 ; aY<aSzMod.y  ; aY++)
+			{
+				for (int aX=0 ; aX<aSzMod.x  ; aX++)
+				{
+					double aSumDist=0;
+					Pt2dr aPt; aPt.x=aX ; aPt.y=aY;
+					for(int j = 0; j<int(vectPtsRadioTie[i].size()) ; j++){
+						Pt2dr aPtIn; aPtIn.x=vectPtsRadioTie[i].Pos[j].x/ResolModel; aPtIn.y=vectPtsRadioTie[i].Pos[j].y/ResolModel;
+						double aDist=Dist2d(aPtIn, aPt);
+						if(aDist<1){aDist=1;}
+						aSumDist=aSumDist+1/aDist;
+						aCorR[aY][aX] = aCorR[aY][aX] + vectPtsRadioTie[i].kR[j]/aDist,2;
+						aCorG[aY][aX] = aCorG[aY][aX] + vectPtsRadioTie[i].kG[j]/aDist,2;
+						aCorB[aY][aX] = aCorB[aY][aX] + vectPtsRadioTie[i].kB[j]/aDist,2;						
+					}
+					
+					aCorR[aY][aX] = aCorR[aY][aX]/aSumDist;
+					aCorG[aY][aX] = aCorG[aY][aX]/aSumDist; 
+					aCorB[aY][aX] = aCorB[aY][aX]/aSumDist; 
+				}
+			}
+		cout<<"Correction field computed, applying..."<<endl;
+
+		//Reading the image and creating the objects to be manipulated
+		Tiff_Im aTF= Tiff_Im::StdConvGen(aDir + aNameIm,3,false);
+		Pt2di aSz = aTF.sz();
+
+		Im2D_U_INT1  aImR(aSz.x,aSz.y);
+		Im2D_U_INT1  aImG(aSz.x,aSz.y);
+		Im2D_U_INT1  aImB(aSz.x,aSz.y);
+
+		ELISE_COPY
+		(
+		   aTF.all_pts(),
+		   aTF.in(),
+		   Virgule(aImR.out(),aImG.out(),aImB.out())
+		);
+
+		U_INT1 ** aDataR = aImR.data();
+		U_INT1 ** aDataG = aImG.data();
+		U_INT1 ** aDataB = aImB.data();
+		
+		for (int aY=0 ; aY<aSz.y  ; aY++)
+			{
+				//if((aY % int(aSz.y/4)) == 0){cout<<"Progress for this image : "<<double(aY)/double(aSz.y)*100<<"%"<<endl;}
+				for (int aX=0 ; aX<aSz.x  ; aX++)
+				{
+					Pt2dr aPt; aPt.x=double(aX/ResolModel); aPt.y=double(aY/ResolModel);
+					if(aPt.x>aSzMod.x-2){aPt.x=aSzMod.x-2;}
+					if(aPt.y>aSzMod.y-2){aPt.y=aSzMod.y-2;}
+					double R = aDataR[aY][aX]*Reechantillonnage::biline(aCorR, aSzMod.x, aSzMod.y, aPt);
+					double G = aDataG[aY][aX]*Reechantillonnage::biline(aCorG, aSzMod.x, aSzMod.y, aPt);
+					double B = aDataB[aY][aX]*Reechantillonnage::biline(aCorB, aSzMod.x, aSzMod.y, aPt);
+					//Overrun management:
+					if(R>255){aDataR[aY][aX]=255;}else if(R<0){aDataR[aY][aX]=0;}else{aDataR[aY][aX]=R;}
+					if(G>255){aDataG[aY][aX]=255;}else if(G<0){aDataG[aY][aX]=0;}else{aDataG[aY][aX]=G;}
+					if(B>255){aDataB[aY][aX]=255;}else if(B<0){aDataB[aY][aX]=0;}else{aDataB[aY][aX]=B;}
+				}
+		}
+
+		 Tiff_Im  aTOut
+			(
+				aNameOut.c_str(),
+				aSz,
+				GenIm::u_int1,
+				Tiff_Im::No_Compr,
+				Tiff_Im::RGB
+			);
+
+
+		 ELISE_COPY
+			 (
+				 aTOut.all_pts(),
+				 Virgule(aImR.in(),aImG.in(),aImB.in()),
+				 aTOut.out()
+			 );
+	  
+	}	
+}
+
 void Egal_correct(string aDir,std::vector<std::string> * aSetIm,Param3Chan  aParam3chan,string aDirOut, string InVig)
 {
 	//Bulding the output file system
@@ -893,22 +1021,22 @@ int  Arsenic_main(int argc,char ** argv)
 {
 
 	std::string aFullPattern,aDirOut="Egal/",aMaster="",InVig="";
-	bool InTxt=false,DoCor=false,useRANSAC=false;
+	bool InTxt=false,useRANSAC=false;
 	int aDegPoly=3;
-	int ResolModel=4;
+	int ResolModel=16;
 	  //Reading the arguments
         ElInitArgMain
         (
             argc,argv,
             LArgMain()  << EAMC(aFullPattern,"Images Pattern"),
             LArgMain()  << EAM(aDirOut,"Out",true,"Output folder (end with /) and/or prefix (end with another char)")
-						<< EAM(InVig,"InVig",true,"Input vignette tif file folder")
-						<< EAM(InTxt,"InTxt",true,"True if homologous points have been exported in txt (Defaut=false)")
-						<< EAM(DoCor,"DoCor",true,"Use the computed parameters to correct the images (Defaut=false)")
-						<< EAM(aMaster,"Master",true,"Manually define a Master Image (to be used a reference)")
-						<< EAM(aDegPoly,"DegPoly",true,"Set the dergree of the corretion polynom (Def=3)")
-						<< EAM(useRANSAC,"useRANSAC",true,"Activate the use of RANSAC (Instead of Least Square)")
-						<< EAM(ResolModel,"ResolModel",true,"Resol of input model (Def=4)")
+						<< EAM(InVig,"InVig",true,"Input vignette folder")
+						//<< EAM(InTxt,"InTxt",true,"True if homologous points have been exported in txt (Defaut=false)")
+						//<< EAM(DoCor,"DoCor",true,"Use the computed parameters to correct the images (Defaut=false)")
+						//<< EAM(aMaster,"Master",true,"Manually define a Master Image (to be used a reference)")
+						//<< EAM(aDegPoly,"DegPoly",true,"Set the dergree of the corretion polynom (Def=3)")
+						//<< EAM(useRANSAC,"useRANSAC",true,"Activate the use of RANSAC (Instead of Least Square)")
+						<< EAM(ResolModel,"ResolModel",true,"Resol of input model (Def=16)")
         );
 		std::string aDir,aPatIm;
 		SplitDirAndFile(aDir,aPatIm,aFullPattern);
@@ -932,13 +1060,14 @@ int  Arsenic_main(int argc,char ** argv)
 		vector<PtsHom> aVectPtsHomol=ReadPtsHom3D(aDir, aPatIm, Extension, InVig, ResolModel);
 		
 		cout<<"Computing equalization factors"<<endl;
-		Param3Chan aParam3chan=Egalisation_factors(aVectPtsHomol,nbIm,aMasterNum,aDegPoly,useRANSAC);
-
-		if(aParam3chan.size()==0){
+		//Param3Chan aParam3chan=Egalisation_factors(aVectPtsHomol,nbIm,aMasterNum,aDegPoly,useRANSAC);
+		//CorrectionFields aCorFlds=Egalisation_fields(aVectPtsHomol, nbIm, ResolModel);
+		/*if(aParam3chan.size()==0){
 			cout<<"Couldn't compute parameters "<<endl;
-		}else if(DoCor){
-			Egal_correct(aDir, & aVectIm, aParam3chan, aDirOut, InVig);
-		}
+		}else*/
+			//Egal_correct(aDir, & aVectIm, aParam3chan, aDirOut, InVig);
+			Egal_field_correct(aDir, & aVectIm, aVectPtsHomol, aDirOut, InVig, ResolModel, nbIm);
+		
 		
 		Arsenic_Banniere();
 
