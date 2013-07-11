@@ -39,6 +39,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+extern const string PASTIS_MATCH_ARGUMENT_NAME = "Match";
+extern const string PASTIS_DETECT_ARGUMENT_NAME = "Detect";
+
 using namespace NS_ParamChantierPhotogram;
 
 #if ELISE_unix
@@ -884,7 +887,7 @@ void cAppliPastis::ExecSz(double aSzMaxApp,bool)
 }
 
 // a tool string is composed of two string separated by a ':'
-// -the first one conatains the executable name
+// -the first one contains the executable name
 // -the second one contains its arguments
 // if there's more than one ':', the first is used
 // io_tool is the source string and will receive the executable name in case of success
@@ -973,8 +976,8 @@ cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
                       << EAM(mSsRes,"SsRes",true)
                       << EAM(mExt,"Ext",true)
                       << EAM(mNKS,"NKS",true)
-					  << EAM(mDetectingTool,"Detect",true)
-                      << EAM(mMatchingTool,"Match",true)
+					  << EAM(mDetectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
+                      << EAM(mMatchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
     );
 
     if ( !process_pastis_tool_string( mDetectingTool, mDetectingArguments ) ){
