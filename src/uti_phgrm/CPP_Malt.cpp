@@ -107,6 +107,9 @@ class cAppliMalt
           bool        mPurge;
           bool        mMkFPC;
           bool        mDoMEC;
+          bool        mDoOrtho;
+          bool        mRoundResol;
+          bool        mUseRR;
           bool        mUnAnam;
           bool        mOrthoInAnam;
           bool        mDoubleOrtho;
@@ -154,6 +157,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mPurge      (true),
     mMkFPC      (true),
     mDoMEC      (true),
+    mDoOrtho     (true),
+    mRoundResol  (false),
+    mUseRR       (false),
     mUnAnam      (true),
     mOrthoInAnam (false),
     mDoubleOrtho  (false),
@@ -180,9 +186,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
   InitDefValFromType();
 
+  Box2dr aBoxClip;
   
-
-
 
   std::string aMode;
   ElInitArgMain
@@ -209,6 +214,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mDirTA,"DirTA",true,"Directory  of TA (for mask)")
                     << EAM(mPurge,"Purge",true,"Purge the directory of Results before compute")
                     << EAM(mDoMEC,"DoMEC",true,"Do the Matching")
+                    << EAM(mDoOrtho,"DoOrtho",true,"Do the Ortho (Def =mDoMEC)")
                     << EAM(mUnAnam,"UnAnam",true,"Compute the un-anamorphosed DTM and ortho (Def context dependant)")
                     << EAM(mDoubleOrtho,"2Ortho",true,"Do both anamorphosed ans un-anamorphosed ortho (when applyable) ")
                     << EAM(mZincCalc,"ZInc",true,"Incertitude on Z (in proportion of average depth, def=0.3) ")
@@ -224,7 +230,18 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mLargMin,"WMI",true,"Mininum width of reduced images (to fix ZoomInit)")
                     << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq")
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image")
+                    << EAM(aBoxClip,"BoxClip",true,"To Clip Computation , its proportion ([0,0,1,1] mean full box)")
+                    << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)")
   );
+
+  mUseRR = EAMIsInit(&mRoundResol);
+
+
+  if (!EAMIsInit(&mDoOrtho)) 
+  {
+     mDoOrtho=mDoMEC;
+  }
+
 
   mUseImSec = (mImMaster == std::string("AUTO"));
 
@@ -448,6 +465,11 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   ;
 
 
+  if (! mDoOrtho)
+  {
+     mCom =  mCom + " +ButDoOrtho=false";
+  }
+
   if (EAMIsInit(&mMasqIm))
   {
         mCom =  mCom
@@ -524,6 +546,20 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   {
         mCom = mCom + " +FileZMoy=File-ZMoy.xml"
                     + " +ZMoy=" + ToString(mZMoy);
+  }
+
+  if (EAMIsInit(&aBoxClip))
+  {
+      mCom  =    mCom + " +UseClip=true " 
+              +  std::string(" +X0Clip=") + ToString(aBoxClip._p0.x)
+              +  std::string(" +Y0Clip=") + ToString(aBoxClip._p0.y)
+              +  std::string(" +X1Clip=") + ToString(aBoxClip._p1.x)
+              +  std::string(" +Y1Clip=") + ToString(aBoxClip._p1.y) ;
+  }
+
+  if (mUseRR) 
+  {
+     mCom = mCom + " +UseRR=true +RoundResol=" + ToString(mRoundResol);
   }
 
 

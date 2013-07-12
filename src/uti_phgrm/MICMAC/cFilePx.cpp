@@ -581,11 +581,20 @@ cFilePx::cFilePx
    mGenFileRel     (anEtape.EtapeMEC().GenFilePxRel().ValWithDef(false)),
    mKPx            (aKPx)
 {
+/*
      if (mPredCalc)
      {
         mRatioDzPrec =   mPredCalc->mEtape.DeZoomTer() / mEtape.DeZoomTer();
-        mRatioStepPrec =  (mPas / mPredCalc->mPas) / mRatioDzPrec;
+        // mRatioStepPrec =  (ComputedPas() / mPredCalc->ComputedPas()) / mRatioDzPrec;
+        mRatioStepPrec =  (UserPas() / mPredCalc->UserPas()) / mRatioDzPrec;
+
+if (MPD_MM())
+{
+   std::cout << "AAAA aa   " << ComputedPas() << " " << mUserPas << "\n";
+   std::cout << "BBBBB aa   " << mPredCalc->ComputedPas() << " " << mPredCalc->mUserPas << "\n";
+}
      }
+*/
 }
 
 
@@ -707,12 +716,32 @@ bool cFilePx::GenFile() const
 
 
 
+
+
          // ACCESSEURS      
 
-REAL  cFilePx::Pas() const
+REAL  cFilePx::UserPas() const
 {
-   return mPas;
+   return mUserPas;
 }
+
+REAL  cFilePx::ComputedPas() const
+{
+   ELISE_ASSERT(mComputedPas>=0,"cFilePx::ComputedPas");
+   return mComputedPas;
+}
+
+void cFilePx::InitComputedPas(double aRatio)
+{
+   mComputedPas = mUserPas * aRatio;
+
+   if (mPredCalc)
+   {
+        mRatioDzPrec =   mPredCalc->mEtape.DeZoomTer() / mEtape.DeZoomTer();
+        mRatioStepPrec =  (ComputedPas() / mPredCalc->ComputedPas()) / mRatioDzPrec;
+   }
+}
+
 /*
 int &  cFilePx::NCDilatAlti() 
 {

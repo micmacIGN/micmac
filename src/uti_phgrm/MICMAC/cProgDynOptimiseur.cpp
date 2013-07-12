@@ -688,7 +688,7 @@ void cProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1)
 
    for (int aKP=0 ; aKP<mNbPx ; aKP++)
    {
-       double aPente = aVPentes[aKP] / mEtape.KPx(aKP).Pas();
+       double aPente = aVPentes[aKP] / mEtape.KPx(aKP).ComputedPas();
        mMaxEc[aKP] = ElMax(1,round_ni(aPente));
        
        /*

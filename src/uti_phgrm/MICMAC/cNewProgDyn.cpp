@@ -415,7 +415,7 @@ template <class Type> cMMNewPrg2D<Type>::cMMNewPrg2D
 
     mPrg2D->SetTeta0(mEPG.Teta0().Val());
     mMaxJumpGlob  = MaxJump (mNap->IZMin(),mNap->IZMax());
-    mMaxPente     = mMod.Px1PenteMax().Val()/ mEtape.KPx(mNumNap).Pas();
+    mMaxPente     = mMod.Px1PenteMax().Val()/ mEtape.KPx(mNumNap).ComputedPas();
 
     for (int aKJ=0 ; aKJ<=mMaxJumpGlob+1 ; aKJ++)
     {
