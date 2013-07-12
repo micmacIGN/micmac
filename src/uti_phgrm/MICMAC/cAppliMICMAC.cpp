@@ -445,6 +445,10 @@ std::cout << "END TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
       return;
 
 
+   if (MPD_MM())
+   {
+   }
+
    VerifEtapes();
    mGeomDFPx->PostInit();
    *mGeomDFPxInit =  *mGeomDFPx;

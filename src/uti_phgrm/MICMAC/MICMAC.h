@@ -913,6 +913,7 @@ class cGeomDiscFPx : public  cGeomDiscR2
          Box2dr RoundCoord(const Box2dr  & aP) ;
 
          bool   TronkExport() const;
+         double RatioPasCompUser(int aD) const;
 
 
 
@@ -946,6 +947,7 @@ class cGeomDiscFPx : public  cGeomDiscR2
          REAL   mEcPxZone[theDimPxMax];
          REAL   mStepRel[theDimPxMax];
          REAL   mStepAbs[theDimPxMax];
+         REAL   mRatioPasCompUser[theDimPxMax];
          REAL   mRatioResAltPlani[theDimPxMax];
          double  mCorrectDerivee;
          cDecimal mRDec;
@@ -1826,7 +1828,8 @@ struct cArgOneEtapePx
 
           REAL  mRegul;
           REAL  mRegul_Quad;
-          REAL  mPas;
+          REAL  mUserPas;  // Nom Change pour verifier usage
+          REAL  mComputedPas;  // Nom Change pour verifier usage
 
           int   mDilatAltiPlus;
           int   mDilatAltiMoins;
@@ -1857,7 +1860,6 @@ class cFilePx : public cArgOneEtapePx
                      bool                   isPseudoFirst,
                      const std::string &    aPost,
                      int                    aKPx
-
                 );
                 // Separe du constructeur  car necessite que le discretiseur de Geometrie de l'etape
                 // soit initialise
@@ -1873,7 +1875,9 @@ class cFilePx : public cArgOneEtapePx
                 void Show(const std::string  & aMes) const;  // Debug/ MaP
 
                 // ACCESSEURS
-                double Pas() const;
+                double UserPas() const;
+                double ComputedPas() const;
+
                 double Regul() const;
                 double Regul_Quad() const;
 
@@ -1905,6 +1909,8 @@ class cFilePx : public cArgOneEtapePx
                Tiff_Im      FileIm() const;
                Tiff_Im      FileImRel() const;
 	       std::string  NameFileSsDir() const;
+
+                void InitComputedPas(double aRatio);
 
 
                Tiff_Im      FileIm(bool & IsCreated) const;

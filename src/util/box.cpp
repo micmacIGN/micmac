@@ -990,6 +990,19 @@ Box2di R2ISup(const Box2dr & aB)
    return Box2di(round_down(aB._p0),round_up(aB._p1));
 }
 
+std::istream & operator >> (std::istream & ifs,Box2dr  &aBox)
+{
+
+   std::vector<double> aV;
+   VElStdRead(ifs,aV,ElGramArgMain::StdGram);
+
+   ELISE_ASSERT(aV.size()==4,"std::istream >> Box2dr  &");
+
+   aBox = Box2dr(Pt2dr(aV[0],aV[1]),Pt2dr(aV[2],aV[3]));
+
+   return ifs;
+}
+
 
 
 
