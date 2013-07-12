@@ -216,6 +216,8 @@ cGeomDiscFPx::cGeomDiscFPx
    mRRIsInit       (false),
    mRCoordIsInit   (false)
 {
+   for (int aK=0 ; aK<theDimPxMax ; aK++)
+     mRatioPasCompUser[aK] = -1;
 }
 
 
@@ -297,10 +299,7 @@ Box2dr  cGeomDiscFPx::RoundCoord(const Box2dr  & aBox)
 
 void cGeomDiscFPx::PostInit()
 {
-if (MPD_MM())
-{
-    std::cout << "VOIR===PB Z<0 en Prof Champs \n";
-}
+
 
 
   cFileOriMnt * aFileExt = 0;
@@ -408,7 +407,6 @@ if (MPD_MM())
   ELISE_ASSERT(aNbResolGot," Resolution pas trouvee");
   mResol /= aNbResolGot;
   double aResolNotRound = mResol;
-  // SetResol(mResol,mAp->GeoRefAutoRoundResol().ValWithDef(mAp->ModeGeomMEC()==eGeomMECTerrain)) ;
   SetResol(mResol,mAp->GeoRefAutoRoundResol().ValWithDef(mAp->GeomMNT()==eGeomMNTEuclid)) ;
   if (aFileExt)
   {
@@ -920,10 +918,17 @@ void cGeomDiscFPx::SetStep(const REAL * aVStep)
        if ((aD==0) && mTronkExport)
        {
            double aRatioDZ = mResolDz /mAp->DeZoomMin();
-           cDecimal aSAr = StdRound(mStepAbs[0]/aRatioDZ);
+           double aStepNotRound = mStepAbs[0]/aRatioDZ;
+           cDecimal aSAr = StdRound(aStepNotRound);
+           mRatioPasCompUser[aD] =  (aSAr.RVal() / aStepNotRound);
+// std::cout << "AAAAAAAAAAAAAAAAAaaa " << aSAr.RVal() << " " << aStepNotRound << "\n"; getchar();
            mStepAbs[0] =  aSAr.RVal() * aRatioDZ;
            mStepRel[0] = mStepAbs[0] / (mResolDz * mRatioResAltPlani[aD]);
            mAp->AddPrecisionOfDec(aSAr,aRatioDZ);
+       }
+       else
+       {
+            mRatioPasCompUser[aD] = 1.0;
        }
 /*
 */
@@ -935,6 +940,12 @@ void cGeomDiscFPx::SetDeZoom(REAL aDz)
 {
    cGeomDiscR2::SetDeZoom(aDz);
    SetStep(mStepRel);
+}
+
+double cGeomDiscFPx::RatioPasCompUser(int aD) const
+{
+   ELISE_ASSERT((aD>=0) && (aD<theDimPxMax)  && ( mRatioPasCompUser[aD]>=0),"cGeomDiscFPx::RatioPasCompUser");
+   return mRatioPasCompUser[aD];
 }
 
 

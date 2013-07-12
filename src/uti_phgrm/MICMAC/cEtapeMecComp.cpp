@@ -100,7 +100,8 @@ static void InitArgOneEtapePx
           {
 	      anArg.mRegul_Quad  = aRegul_Quad.ValWithDef(0.0);
 	      anArg.mRegul      = aRegul.Val();
-	      anArg.mPas        =  isOptimDiff ?  aPas.Val()  : anAppli.AdaptPas(aPas.Val());
+	      anArg.mUserPas        =  isOptimDiff ?  aPas.Val()  : anAppli.AdaptPas(aPas.Val());
+              anArg.mComputedPas    =  anArg.mUserPas;
 
 
 	      anArg.mDilatAltiPlus  = aDilatAlti.Val();
@@ -115,12 +116,12 @@ static void InitArgOneEtapePx
               {
                   ELISE_ASSERT
                   (
-                     anArg.mPas == 1.0,
+                     anArg.mUserPas == 1.0,
                      "Optim Diff, Steps must be 1.0"
                   );
               }
-              anArg.mIncertPxPlus = aGeomOfEtape.GetEcartInitialPlus(anArg.mPas,aNumPx);
-              anArg.mIncertPxMoins = aGeomOfEtape.GetEcartInitialMoins(anArg.mPas,aNumPx);
+              anArg.mIncertPxPlus = aGeomOfEtape.GetEcartInitialPlus(anArg.mUserPas,aNumPx);
+              anArg.mIncertPxMoins = aGeomOfEtape.GetEcartInitialMoins(anArg.mUserPas,aNumPx);
 	      if (isVraiFirstEtape)
 	      {
 	          anArg.mDilatAltiPlus +=  anArg.mIncertPxPlus ;
@@ -352,6 +353,7 @@ cEtapeMecComp::cEtapeMecComp
          mIsOptimCont
       );
 
+
       if (anAppli.ModeGeomMEC()==eGeomMECTerrain)
       {
           mFilesPx.push_back
@@ -374,36 +376,6 @@ cEtapeMecComp::cEtapeMecComp
 	   }
       }
 
-      // INTERVERTI AVEC L'ETAPE TYU pour prendre en compte
-      // la dilat init
-
-      // Pour l'etape 1 (la premiere, une fois
-      // enlevee 000) on augment DilatAlti de l'incertitude
-      // en Z
-
-              // RAJOUTE apres l'intervretion car sinon le pas relatif (celui du xml) n'est pas initialise
-	      // et la dilat init est incorrecte !
-/*
-      for (int aK=0 ; aK<int(mFilesPx.size()) ; aK++)
-      {
-          aVPas[aK] = mFilesPx[aK]->Pas();
-      }
-      mGeomTer.SetStep(aVPas);
-
-      if (aVEtPrec.size()==1)
-      {
-         int anEcInit[theDimPxMax];
-         mGeomTer.GetEcartInt(anEcInit);
-         for (int aK=0 ; aK<int(mFilesPx.size()) ; aK++)
-         {
-             mFilesPx[aK]->DilatAlti() += anEcInit[aK];
-	     // std::cout << "DAL " << mFilesPx[aK]->DilatAlti() << "\n"; getchar();
-         }
-      }
-      for (int aK=0 ; aK<int(mFilesPx.size()) ; aK++)
-             std::cout << mFilesPx[aK]->DilatAlti() += anEcInit[aK];
-*/
-        
       double aVPas[theDimPxMax];
 
      // == TYU ===================
@@ -412,7 +384,7 @@ cEtapeMecComp::cEtapeMecComp
 
       for (int aK=0 ; aK<int(mFilesPx.size()) ; aK++)
       {
-          aVPas[aK] = mFilesPx[aK]->Pas();
+          aVPas[aK] = mFilesPx[aK]->UserPas();
           if (mFilesPx[aK]->NappeIsEpaisse())
           {
              mNumSeuleNapEp = aK;
@@ -439,6 +411,10 @@ cEtapeMecComp::cEtapeMecComp
       if (mNbNappesEp > 1)
          mNumSeuleNapEp=-1;
       mGeomTer.SetStep(aVPas);
+      for (int aK=0 ; aK < int(mFilesPx.size()) ; aK++)
+      {
+          mFilesPx[aK]->InitComputedPas(mGeomTer.RatioPasCompUser(aK));
+      }
 
 
       // CreateMNTInit();
