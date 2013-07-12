@@ -2955,7 +2955,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 		void DoGPU_Correl_Basik (const Box2di & aBoxInterne); 
 
 #ifdef  CUDA_ENABLED
-		void Tabul_Projection( float2* TabProj, int Z, Rect zone, uint sample, uint interZ = 1);
+        void Tabul_Projection(int Z, int zMax,  uint &interZ);
 		void setVolumeCost(Rect Ter,  uint interZ0, uint interZ1, double defaultCost, float* tabCost = NULL, Rect zone = Rect(0,0,0,0), float valdefault = 0.0f);
 #endif
 		void Correl_MNE_ZPredic (const Box2di & aBoxInterne,const cCorrel_Correl_MNE_ZPredic &);  
@@ -3091,7 +3091,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
               
           Pt2dr DequantPlani(int anX,int anY) const {return Pt2dr( mOriPlani.x + mStepPlani.x*anX,mOriPlani.y + mStepPlani.y*anY);}
           double DequantZ(int aZ) const {return  mOrigineZ+ aZ*mStepZ;}
-     private :
+
+          private :
         static const int theNbImageMaxAlgoRapide = 3; 
 	cAppliMICMAC (const cAppliMICMAC  &);     // N.I.
 
@@ -3613,7 +3614,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 	// GPGPU
 #ifdef CUDA_ENABLED
 		bool					mLoadTextures;
-		InterfaceMicMacGpGpu	IMmGg;        
+        InterfaceMicMacGpGpu	IMmGg;
 #endif	
 
          cMMTP *  mMMTP;
