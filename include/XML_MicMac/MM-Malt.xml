@@ -102,6 +102,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
     <eSymb> AddZoom16=Sup ${ZoomInit} 16 </eSymb>
 
     <eSymb>  DoNotMEC=! ${DoMEC} </eSymb>
+    <Symb>   ButDoOrtho=true </Symb>
   
     <!-- GESTION DES MASQUE IMAGE -->
     <Symb>  UseMasqPerIm=false </Symb>
@@ -118,6 +119,14 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
 
     <eSymb>  NotZoom8="Neq 8 ${ZoomFinal}" </eSymb>
+    <Symb>   UseClip=false </Symb>
+    <Symb>   X0Clip=0 </Symb>
+    <Symb>   Y0Clip=0 </Symb>
+    <Symb>   X1Clip=1 </Symb>
+    <Symb>   Y1Clip=1 </Symb>
+
+    <Symb>   UseRR=false </Symb>
+    <Symb>   RoundResol=XXXX </Symb>
 
 </DicoLoc>
 
@@ -141,7 +150,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
            <FilterEstimTerrain> ${ImMNT} </FilterEstimTerrain>
       </Planimetrie>
 
-
+      <#WHEN VTEST=${UseRR}>
+          <GeoRefAutoRoundResol> ${RoundResol} </GeoRefAutoRoundResol>
+      </#WHEN>
 
 </Section_Terrain>
 
@@ -183,6 +194,10 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
 
 <Section_MEC >
+
+      <#WHEN VTEST=${UseClip}>
+          <ProportionClipMEC>  ${X0Clip} ${Y0Clip} ${X1Clip} ${Y1Clip} </ProportionClipMEC>
+      </#WHEN>
 
       <PasIsInPixel>  ${PasInPixel} </PasIsInPixel>
       <NbMinImagesVisibles>  ${NbMinIV} </NbMinImagesVisibles>
@@ -369,8 +384,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
     <IncludeFileLoc>  ${FileDoNothing} </IncludeFileLoc>
     <#WHEN VTEST=${DoNotMEC}>
         <DoNothingBut>
-            <ButDoOrtho>  true </ButDoOrtho>
+            <ButDoOrtho>  ${ButDoOrtho} </ButDoOrtho>
             <ButDoMemPart>  true </ButDoMemPart>
+            <ButDoOriMNT>  true </ButDoOriMNT>
         </DoNothingBut>
     </#WHEN>
 

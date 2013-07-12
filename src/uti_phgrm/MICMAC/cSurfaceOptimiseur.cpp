@@ -109,13 +109,13 @@ cSurfaceOptimiseur::cSurfaceOptimiseur
       double aEp = isRugInit ? anAppli.EnergieExpRegulPlani().Val() : -1.0 ;
       double aEa = isRugInit ? anAppli.EnergieExpRegulAlti().Val() :  -1.0;
 
-      double aFacRugos =  pow(aFP.Pas(),-aEa)
+      double aFacRugos =  pow(aFP.ComputedPas(),-aEa)
                         * pow((double)mEtape.DeZoomTer(),aEc-aEp-aEa)
                         * pow(mGlobSR,aEc-aEp);
 
 
       mCostRegul[aK] =    aFP.Regul() * aFacRugos;
-      mCostRegul_Quad[aK] = aFP.Pas() *   aFP.Regul_Quad() * aFacRugos;
+      mCostRegul_Quad[aK] = aFP.ComputedPas() *   aFP.Regul_Quad() * aFacRugos;
 
 
       mSeuilAttenZReg[aK] = 1e5;

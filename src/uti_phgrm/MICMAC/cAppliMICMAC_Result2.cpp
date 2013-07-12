@@ -392,8 +392,8 @@ cDblePx cAppliMICMAC::LoadPx(cEtapeMecComp & anEtape,double aResol)
     const  cFilePx & aFPx1 = anEtape.KPx(0);
     const  cFilePx & aFPx2 = anEtape.KPx(1);
 
-    double aPas1 = aFPx1.Pas() * aDZ;
-    double aPas2 = aFPx2.Pas() * aDZ;
+    double aPas1 = aFPx1.ComputedPas() * aDZ;
+    double aPas2 = aFPx2.ComputedPas() * aDZ;
 
     Tiff_Im anIm1 = aFPx1.FileIm();
     Tiff_Im anIm2 = aFPx2.FileIm();
@@ -526,8 +526,8 @@ void cAppliMICMAC::MakeExportAsModeleDist
    aMod.Dir() = FullDirMEC();
    aMod.Im1() = anEtape.KPx(0).NameFileSsDir();
    aMod.Im2() = anEtape.KPx(1).NameFileSsDir();
-   aMod.Pas().x = anEtape.KPx(0).Pas();
-   aMod.Pas().y = anEtape.KPx(1).Pas();
+   aMod.Pas().x = anEtape.KPx(0).ComputedPas();
+   aMod.Pas().y = anEtape.KPx(1).ComputedPas();
 
 // std::cout << aMod.Pas().x << " " << aMod.Pas().y << "\n";
 // std::cout << "VERIF INVERSION DANS SauvegardeMR2A !! \n";
