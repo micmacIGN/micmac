@@ -62,9 +62,7 @@ public:
   /// \brief    Affiche sur la console la memoire globale alloué pour la correlation sur Gpu
   void          MallocInfo();
 
-  void          ReallocInputProjection(uint2 dim, uint l);
-
-  void          ReallocOutCost(uint2 dim, uint l);
+  void          ReallocHost(uint zInter);
 
   void          MemsetProj();
 
@@ -77,11 +75,13 @@ public:
   void          InitJob();
   void          freezeCompute();
 
+   void         IntervalZ(uint &interZ, int anZProjection, int aZMaxTer);
+
 private:
 
-  void              ResizeInputVolume(int nbLayer, uint interZ);
-  void              ResizeVolumeAsync(int nbLayer, uint interZ);
-  void              AllocMemory(int nStream);
+  void              ReallocAllDeviceData(uint interZ);
+  void              ReallocAllDeviceDataAsync(uint interZ);
+  void              ReallocDeviceData(int nStream, uint interZ);
   cudaStream_t*		GetStream(int stream);
   textureReference&	GetTeXProjection(int texSel);
 
@@ -90,13 +90,13 @@ private:
   cudaStream_t  _stream[NSTREAM];
   pCorGpu		_param;
 
-  CuDeviceData3D<float>	_volumeCost[NSTREAM];	// volume des couts
-  CuDeviceData3D<float>	_volumeCach[NSTREAM];	// volume des calculs intermédiaires
-  CuDeviceData3D<uint>	_volumeNIOk[NSTREAM];	// nombre d'image correct pour une vignette
+  CuDeviceData3D<float>     _d_volumeCost[NSTREAM];	// volume des couts
+  CuDeviceData3D<float>     _d_volumeCach[NSTREAM];	// volume des calculs intermédiaires
+  CuDeviceData3D<uint>      _d_volumeNIOk[NSTREAM];	// nombre d'image correct pour une vignette
 
-  ImageCuda<pixel>          _mask;
-  ImageLayeredCuda<float>   _LayeredImages;
-  ImageLayeredCuda<float2>  _LayeredProjection[NSTREAM];
+  ImageCuda<pixel>          _dt_mask;
+  ImageLayeredCuda<float>   _dt_LayeredImages;
+  ImageLayeredCuda<float2>  _dt_LayeredProjection[NSTREAM];
 
   textureReference&         _texMask;
   textureReference&         _texMaskD;
