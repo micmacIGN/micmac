@@ -584,7 +584,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
                 idPreCo = !idPreCo;
             }
 
-            if(IGpuOpt.GetDataToCopy() && aKDir < aNbDir)
+            if(IGpuOpt.GetDataToCopy() /*&& aKDir < aNbDir*/)
             {
                 copyCells<STREAM_TO_MAT>( direction(aNbDir,aKDir), IGpuOpt.Data2Opt(),!IGpuOpt.GetIdBuf());
                 IGpuOpt.SetDataToCopy(false);

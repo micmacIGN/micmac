@@ -721,6 +721,8 @@ public:
     bool			Realloc(uint2 dim, uint l);    
     bool			Realloc(uint size);
     bool			ReallocIf(uint size);
+
+    bool			ReallocIf(uint2 dim, uint l);
     /// \brief      Nombre d elements de la structure
     uint			Sizeof();
 
@@ -777,9 +779,20 @@ bool CData3D<T>::Realloc(uint size)
 template <class T>
 bool CData3D<T>::ReallocIf(uint size)
 {
-    if(size>CData3D<T>::GetSize())
-        return Realloc(make_uint2(size,1),1);
-    return false;
+    uint2 dim = make_uint2(size,1);
+
+    return ReallocIf(dim,1);
+}
+
+template <class T>
+bool CData3D<T>::ReallocIf(uint2 dim, uint l)
+{
+    if(dim.x*dim.y*l>CData3D<T>::GetSize())
+        return Realloc(dim,l);
+    else
+        CData3D<T>::SetDimension(dim,l);
+
+    return true;
 }
 
 template <class T>
