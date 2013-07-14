@@ -1151,6 +1151,8 @@ namespace NS_ParamChantierPhotogram{
 
 
 
+
+
          <LocCamDataBase Nb="?" RefType="MMCameraDataBase"> </LocCamDataBase>
          <!--
               Pour creer la base de donnees qui recoltera entre autre les xif
@@ -1366,6 +1368,26 @@ namespace NS_ParamChantierPhotogram{
     </ImSecOfMaster>
     
   
+<!-- Avec l'exemple des images stereo Fuji, ou la paire image droite-image gauche forme un grp rigide
+    par ex  DSCF2689_L.jpg et DSCF2689_R.jpg
+    Im2Grp :  DSCF2689_L.jpg -> L
+    Im2Pose : DSCF2689_L.jpg -> 2689
+    Grp ={L,R}
+-->
+    <StructBlockCam Nb="*" Class="true" ToReference="true">
+         <!-- Declare tous les groupes existants -->
+         <Grp Nb="*" Type=="std::string"> </Grp>
+         <KeyIm2Grp Nb="1" Type="std::string"> </KeyIm2Grp>
+         <KeyIm2Id Nb="1" Type="std::string"> </KeyIm2Id>
+
+         <LiaisonsSHC Nb="?">
+              <ParamOrientSHC Nb="*">
+                    <IdGrp Nb="1" Type=="std::string"> </IdGrp>
+                    <Vecteur Nb="1" Type="Pt3dr"> </Vecteur>
+                    <Rot Nb="1"  RefType="RotationVect"> </Rot>
+              </ParamOrientSHC>
+         </LiaisonsSHC>
+    </StructBlockCam>
   
   
     <!-- Type qui vont permettre d'ecrire une version "en clair" de  la base de donnees -->
