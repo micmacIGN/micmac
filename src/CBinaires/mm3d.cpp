@@ -59,12 +59,14 @@ class cArgLogCom
 {
     public :
 
-        cArgLogCom(int aNumArg) :
-            mNumArgDir ( aNumArg)
+        cArgLogCom(int aNumArg,const std::string aDirSup = "") :
+            mNumArgDir (aNumArg),
+            mDirSup    (aDirSup)
         {
         }
 
         int mNumArgDir ;
+        std::string  mDirSup;
 
         static const cArgLogCom NoLog;
 };
@@ -239,7 +241,9 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Tapas",Tapas_main," Interface to Apero to compute external and internal orientations",cArgLogCom(3)));
        aRes.push_back(cMMCom("Tapioca",Tapioca_main," Interface to Pastis for tie point detection and matching",cArgLogCom(3)));
        aRes.push_back(cMMCom("Tarama",Tarama_main," Compute a rectified image"));
-       aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image"));
+
+       aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image",cArgLogCom(2,"../")));
+       // aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image"));
        aRes.push_back(cMMCom("TestCam",TestCam_main," Test camera orientation convention"));
        aRes.push_back(cMMCom("TestKey",TestSet_main," Test Keys for Sets and Assoc"));
        aRes.push_back(cMMCom("TestMTD",TestMTD_main," Test meta data of image"));
@@ -383,13 +387,13 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
           bool DoLog = (aLog.mNumArgDir >0) && (aLog.mNumArgDir<argc);
           if (DoLog)
           {
-               LogIn(argc,argv,DirOfFile(argv[aLog.mNumArgDir]));
+               LogIn(argc,argv,DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup);
           }
           int aRes =  (aVComs[aKC].mCommand(argc-1,argv+1));
 
           if (DoLog)
           {
-               LogOut(aRes,DirOfFile(argv[aLog.mNumArgDir]));
+               LogOut(aRes,DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup);
           }
           return aRes;
        }

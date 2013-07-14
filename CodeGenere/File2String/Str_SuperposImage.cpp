@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1136]) = {
+const char * (theNameVar_SuperposImage[1138]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -644,6 +644,8 @@ const char * (theNameVar_SuperposImage[1136]) = {
 "        </SectionEntree>\n",
 "\n",
 "         <SectionFiltrageIn Nb=\"1\">\n",
+"             <!-- When this value is specified for any pixel with any channel over this threshold, it will be out of mask -->\n",
+"             <SaturThreshold Nb=\"?\" Type=\"double\"> </SaturThreshold>\n",
 "             <SzDilatPC Nb=\"?\" Type=\"int\" Def=\"1\"> </SzDilatPC>\n",
 "             <SzOuvPC Nb=\"?\" Type=\"int\" Def=\"2\"> </SzOuvPC>\n",
 "\n",
