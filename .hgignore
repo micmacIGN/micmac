@@ -47,3 +47,4 @@ src/saisie3D-build-Desktop_Qt_5_0_1_GCC_64bit-Debug
 build-saisie3D-Desktop_Qt_5_0_2_MSVC2010_32bit-Debug
 build-saisie3D-Desktop_Qt_5_0_2_MSVC2010_32bit-Release
 build32
+src/uti_phgrm/GpGpu/SData2Correl.cpp.autosave
