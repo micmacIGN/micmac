@@ -535,15 +535,15 @@ void delete_out_of_bound_scales( vector<SiftPoint> &io_points, REAL i_minScale, 
 	vector<SiftPoint> points( io_points.size() );
 	size_t nbKeptPoints = 0;
 	for ( size_t iPoint=0; iPoint<io_points.size(); iPoint++ )
-	{
-		if ( io_points[iPoint].scale>=i_minScale && 
+	{		
+		if ( io_points[iPoint].scale>=i_minScale &&
 			 io_points[iPoint].scale<=i_maxScale )
 			points[nbKeptPoints++]=io_points[iPoint];
 	}
 	points.resize( nbKeptPoints );
 	points.swap( io_points );
 }
-		
+
 // load all keypoints from their files and construct the proximity graph
 void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerImage, REAL i_minScale, REAL i_maxScale, int i_nbRequiredMatches )
 {
@@ -648,6 +648,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     annClose(); // done with ANN
     
     // stats
+    cout << nbImages << " images" << endl;
     cout << nbBadNeighbours << '/' << nbTotalKeypoints << " rejected points (neighbours from the same image)" << endl;
     size_t nbChecks = normalizeGraph( graph, i_nbRequiredMatches );
     cout << nbChecks << " / " << ( nbImages*(nbImages-1) )/2 << endl;
