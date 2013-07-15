@@ -442,7 +442,7 @@ QStatusBar
   </action>
   <action name="actionSave_selection">
    <property name="text">
-    <string>Save selection stack</string>
+    <string>Save selection infos</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -505,6 +505,9 @@ QStatusBar
    </property>
    <property name="visible">
     <bool>false</bool>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
    </property>
   </action>
  </widget>

@@ -114,11 +114,11 @@ private:
     QFutureWatcher<void>    FutureWatcher;
     QProgressDialog*        ProgressDialog;
 
-    QAction *separatorAct;
-
     enum { MaxRecentFiles = 3 };
-    QAction *               recentFileActs[MaxRecentFiles];
+    QAction *               m_recentFileActs[MaxRecentFiles];
     QString                 m_curFile;
     QStringList             m_FilenamesIn;
+
+    QMenu*                  m_RFMenu; //recent files menu
 };
 #endif // MAINWINDOW_H

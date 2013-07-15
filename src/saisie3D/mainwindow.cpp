@@ -46,6 +46,7 @@ MainWindow::~MainWindow()
     delete ui;
     delete m_glWidget;
     delete m_Engine;
+    delete m_RFMenu;
 }
 
 void MainWindow::connectActions()
@@ -95,21 +96,23 @@ void MainWindow::connectActions()
 
     for (int i = 0; i < MaxRecentFiles; ++i)
     {
-        recentFileActs[i] = new QAction(this);
-        recentFileActs[i]->setVisible(false);
-        connect(recentFileActs[i], SIGNAL(triggered()),
+        m_recentFileActs[i] = new QAction(this);
+        m_recentFileActs[i]->setVisible(false);
+        connect(m_recentFileActs[i], SIGNAL(triggered()),
                 this, SLOT(openRecentFile()));
     }
 }
 
 void MainWindow::createMenus()
-{
-    separatorAct = ui->menuFile->insertSeparator(ui->actionExport_mask);
-    ui->actionRecentFiles->setVisible(true);
-    ui->menuFile->insertAction(ui->actionExport_mask,ui->actionRecentFiles);
-    for (int i = 0; i < MaxRecentFiles; ++i)
-        ui->menuFile->insertAction(ui->actionExport_mask,recentFileActs[i]);
+{  
+    m_RFMenu = new QMenu("Recent files", this);
+
+    ui->menuFile->insertMenu(ui->actionExport_mask, m_RFMenu);
     ui->menuFile->insertSeparator(ui->actionExport_mask);
+
+    for (int i = 0; i < MaxRecentFiles; ++i)
+        m_RFMenu->addAction(m_recentFileActs[i]);
+
     updateRecentFileActions();
 }
 
@@ -447,15 +450,15 @@ void MainWindow::updateRecentFileActions()
      int numRecentFiles = qMin(files.size(), (int)MaxRecentFiles);
 
      for (int i = 0; i < numRecentFiles; ++i) {
-         QString text = tr("&%1 %2").arg(i + 1).arg(strippedName(files[i]));
-         recentFileActs[i]->setText(text);
-         recentFileActs[i]->setData(files[i]);
-         recentFileActs[i]->setVisible(true);
+         QString text = tr("&%1 - %2").arg(i + 1).arg(strippedName(files[i]));
+         m_recentFileActs[i]->setText(text);
+         m_recentFileActs[i]->setData(files[i]);
+         m_recentFileActs[i]->setVisible(true);
      }
      for (int j = numRecentFiles; j < MaxRecentFiles; ++j)
-         recentFileActs[j]->setVisible(false);
+         m_recentFileActs[j]->setVisible(false);
 
-     separatorAct->setVisible(numRecentFiles > 0);
+     m_RFMenu->setVisible(numRecentFiles > 0);
  }
 
  QString MainWindow::strippedName(const QString &fullFileName)
