@@ -39,10 +39,8 @@ public:
 
   /// \brief    Initialise la taille du bloque terrain et nombre de Z a calculer sur le Gpu
   void          SetSizeBlock( uint Zinter, Rect Ter);
-  /// \brief    Initialise le nombre de Z a calculer sur le Gpu
-  void          SetSizeBlock( uint Zinter);
   /// \brief    Initialise les parametres de correlation
-  void          SetParameter(Rect Ter, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ);
+  void          SetParameter(int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef);
   /// \brief    Calcul de la correlation en Gpu
   void          BasicCorrelation(int nbLayer);
   /// \brief    Calcul asynchrone de la correlation en Gpu

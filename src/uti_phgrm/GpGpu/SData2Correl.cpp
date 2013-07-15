@@ -11,7 +11,9 @@ SData2Correl::SData2Correl():
     _texProjections_04(getProjection(4)),
     _texProjections_05(getProjection(5)),
     _texProjections_06(getProjection(6)),
-    _texProjections_07(getProjection(7))
+    _texProjections_07(getProjection(7)),
+    _countAlloc(0)
+
 {
     _d_volumeCost[0].SetName("_d_volumeCost");
 
@@ -168,17 +170,14 @@ void SData2Correl::ReallocHostData(uint zInter, pCorGpu param)
     _hVolumeProj.Realloc(param.dimSTer,zInter*param.nbImages);
 }
 
-void SData2Correl::Realloc(pCorGpu param, uint oldSizeTer)
+void SData2Correl::Realloc(pCorGpu param)
 {
     for (int s = 0;s<NSTREAM;s++)
     {
         _dt_LayeredProjection[s].Realloc(param.dimSTer,param.nbImages * param.ZLocInter);
 
-        if (oldSizeTer < param.sizeDTer)
-        {
-            ReallocDeviceData(s,param.ZLocInter,param);
-        }
     }
+    ReallocAllDeviceData(param.ZLocInter,param);
 }
 
 void SData2Correl::ReallocAllDeviceData(uint interZ, pCorGpu param)
@@ -193,7 +192,6 @@ void SData2Correl::ReallocAllDeviceData(uint interZ, pCorGpu param)
         if (_d_volumeCost[s].GetSizeofMalloc() < _d_volumeCost[s].Sizeof() )
             ReallocDeviceData(s, interZ, param);        
 
-
         _d_volumeCost[s].Memset(param.IntDefault);
         _d_volumeCach[s].Memset(param.IntDefault);
         _d_volumeNIOk[s].Memset(0);
@@ -204,7 +202,7 @@ void SData2Correl::ReallocAllDeviceData(uint interZ, pCorGpu param)
 
 void SData2Correl::ReallocDeviceData(int nStream, uint interZ, pCorGpu param)
 {
-
+    //_countAlloc++;
     _d_volumeCost[nStream].Realloc(param.dimTer,     interZ);
     _d_volumeCach[nStream].Realloc(param.dimCach,    param.nbImages * interZ);
     _d_volumeNIOk[nStream].Realloc(param.dimTer,     interZ);

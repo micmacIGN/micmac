@@ -16,34 +16,22 @@ InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
 
 }
 
-void InterfaceMicMacGpGpu::SetSizeBlock( uint Zinter )
-{
-
-  SetSizeBlock( Zinter,_param.RTer());
-
-}
-
 void InterfaceMicMacGpGpu::SetSizeBlock( uint Zinter, Rect Ter)
 {
-
-  uint oldSizeTer = _param.sizeDTer;
-
   _param.SetDimension(Ter,Zinter);
-
-  //if(Param().MaskNoNULL())
 
   CopyParamTodevice(_param);
 
-  _data2Cor.Realloc(_param,oldSizeTer);
+  _data2Cor.Realloc(_param);
 }
 
-void InterfaceMicMacGpGpu::SetParameter( Rect Ter, int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef , uint interZ )
+void InterfaceMicMacGpGpu::SetParameter(int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef )
 {
 
   // Initialisation des parametres constants
   _param.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
   // Initialisation des parametres de dimensions du terrain
-  SetSizeBlock( interZ, Ter);
+  //SetSizeBlock( interZ, Ter);
 
 }
 

@@ -695,7 +695,7 @@ if (0)
 
 			if (fdataImg1D != NULL) delete[] fdataImg1D;          
 
-			IMmGg.SetParameter(Ter, mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT, INTERZ);
+            IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
 			
 		}
 
@@ -736,8 +736,12 @@ if (0)
 
         IMmGg.SetSizeBlock(INTERZ,rMask);
 
+        //IMmGg.Param().SetDimension(rMask,INTERZ);
+
 		if (IMmGg.Param().MaskNoNULL())
 		{            
+            //IMmGg.SetSizeBlock(INTERZ,rMask);
+
 			uint2 rDimTer = IMmGg.Param().dimTer;
 
 			pixel *SubMaskTab = new pixel[size(rDimTer)];
@@ -1491,7 +1495,8 @@ void cAppliMICMAC::DoGPU_Correl
         uint interZ	= min(INTERZ, abs(aZMaxTer - aZMinTer));
 
         // S'il change allocation differentes... A VERIFIER!! depuis les derniers changements
-		if (interZ != INTERZ)	IMmGg.SetSizeBlock(interZ);
+        // REDUCTION DES DEMANDES ALLOCATIONS
+        //if (interZ != INTERZ)	IMmGg.SetSizeBlock(interZ);
 
 		// Initiation des parametres pour le multithreading
         IMmGg.InitJob(interZ);
