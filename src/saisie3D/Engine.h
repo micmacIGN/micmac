@@ -89,11 +89,16 @@ public:
     QDir        getDir(){return m_Dir;}
 
     void        SetFilenamesOut();
+    void        SetSelectionFilename();
+
     QStringList GetFilenamesOut() {return m_FilenamesOut;}
+    QString     GetSelectionFilename() {return m_SelectionOut;}
+
 
 private:
     QStringList m_FilenamesIn;
-    QStringList m_FilenamesOut;
+    QStringList m_FilenamesOut; //binary masks
+    QString     m_SelectionOut; //selection infos
 
     //! Working directory
     QDir        m_Dir;
@@ -109,6 +114,9 @@ public:
     //! Set working directory
     void setDir(QDir aDir){m_Loader->setDir(aDir);}
 
+    //! Set working directory
+    void setFilename(){m_Loader->SetSelectionFilename();}
+
     //! Load point cloud .ply files
     void loadClouds(QStringList, void (*incre)(int, void *) = NULL, void *obj = NULL);
 
@@ -123,7 +131,7 @@ public:
     //! Compute mask binary images: projection of visible points into loaded cameras
     void doMasks();
 
-    void saveSelectInfos(QVector <cSelectInfos> const &Infos, QString FileName);
+    void saveSelectInfos(QVector <cSelectInfos> const &Infos);
 
     cData*   getData()  {return m_Data;}
 

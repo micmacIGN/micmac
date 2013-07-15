@@ -348,7 +348,6 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
 
 void GLWidget::setBufferGl(bool onlyColor)
 {
-
     if(m_vertexbuffer.isCreated() && !onlyColor)
         m_vertexbuffer.destroy();
     if(m_vertexColor.isCreated())
@@ -543,7 +542,6 @@ void GLWidget::zoom()
     glLoadIdentity();
 
     glOrtho(left, right, -zoom, zoom, -100.0f, 100.0f);
-
 }
 
 void GLWidget::setInteractionMode(INTERACTION_MODE mode)

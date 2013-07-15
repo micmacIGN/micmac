@@ -1,8 +1,8 @@
 ﻿#include <QApplication>
 #include "mainwindow.h"
 
-int main(int argc, char *argv[]) {
-
+int main(int argc, char *argv[])
+{
     QApplication::setStyle("fusion");
 
     QApplication app(argc, argv);
@@ -12,6 +12,16 @@ int main(int argc, char *argv[]) {
 
     MainWindow w;
     w.show();
+
+    //trying to get the arguments into a list
+    QStringList cmdline_args = QCoreApplication::arguments();
+
+    if (cmdline_args.size() > 1)
+    {
+        cmdline_args.pop_front();
+        w.addFiles(cmdline_args);
+    }
+
     w.checkForLoadedEntities();
 
     return app.exec();
