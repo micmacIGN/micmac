@@ -166,6 +166,16 @@ bool cLoadedIm::Init
    );
 
 
+   if ( mAppli.CO().SaturThreshold().IsInit())
+   {
+       double aThresSat = mAppli.CO().SaturThreshold().Val();
+       Fonc_Num aFSat = 0;
+       for (int aKIm=0 ; aKIm<int(mIms.size()); aKIm++)
+       {
+             aFSat = aFSat || (mIms[aKIm]->in(0)>=aThresSat);
+       }
+       ELISE_COPY (select(mImPC.all_pts(),aFSat), 255, mImPC.out());
+   }
 /*
    ELISE_COPY
    (

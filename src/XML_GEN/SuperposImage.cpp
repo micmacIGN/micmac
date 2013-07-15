@@ -5266,6 +5266,17 @@ void xml_init(cBoucheTrou & anObj,cElXMLTree * aTree)
 }
 
 
+cTplValGesInit< double > & cSectionFiltrageIn::SaturThreshold()
+{
+   return mSaturThreshold;
+}
+
+const cTplValGesInit< double > & cSectionFiltrageIn::SaturThreshold()const 
+{
+   return mSaturThreshold;
+}
+
+
 cTplValGesInit< int > & cSectionFiltrageIn::SzDilatPC()
 {
    return mSzDilatPC;
@@ -5335,6 +5346,8 @@ cElXMLTree * ToXMLTree(const cSectionFiltrageIn & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionFiltrageIn",eXMLBranche);
+   if (anObj.SaturThreshold().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SaturThreshold"),anObj.SaturThreshold().Val())->ReTagThis("SaturThreshold"));
    if (anObj.SzDilatPC().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("SzDilatPC"),anObj.SzDilatPC().Val())->ReTagThis("SzDilatPC"));
    if (anObj.SzOuvPC().IsInit())
@@ -5350,6 +5363,8 @@ void xml_init(cSectionFiltrageIn & anObj,cElXMLTree * aTree)
 {
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+
+   xml_init(anObj.SaturThreshold(),aTree->Get("SaturThreshold",1)); //tototo 
 
    xml_init(anObj.SzDilatPC(),aTree->Get("SzDilatPC",1),int(1)); //tototo 
 
@@ -6237,6 +6252,17 @@ cSectionEntree & cCreateOrtho::SectionEntree()
 const cSectionEntree & cCreateOrtho::SectionEntree()const 
 {
    return mSectionEntree;
+}
+
+
+cTplValGesInit< double > & cCreateOrtho::SaturThreshold()
+{
+   return SectionFiltrageIn().SaturThreshold();
+}
+
+const cTplValGesInit< double > & cCreateOrtho::SaturThreshold()const 
+{
+   return SectionFiltrageIn().SaturThreshold();
 }
 
 
