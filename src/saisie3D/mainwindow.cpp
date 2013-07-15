@@ -424,8 +424,9 @@ void MainWindow::setCurrentFile(const QString &fileName)
 
     QSettings settings;
     QStringList files = settings.value("recentFileList").toStringList();
-    files.removeAll(fileName);
-    files.prepend(fileName);
+    QString fname = QDir::toNativeSeparators(fileName);
+    files.removeAll(fname);
+    files.prepend(fname);
     while (files.size() > MaxRecentFiles)
         files.removeLast();
 
