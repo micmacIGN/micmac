@@ -259,7 +259,7 @@ class ParamConcOpb : public Mcheck
 Fonc_Num  BoxedConc(Fonc_Num f,Pt2di SzBox,bool V8,ParamConcOpb * param,bool aCatInit = false);
 Fonc_Num  BoxedConc(Fonc_Num f,Pt2di SzBox,bool V8,bool aCatInit = false);
 
-//  Not to use, only for bench pupose
+//  Not to use, only for bench purpose
 Fonc_Num  BoxedConc(Fonc_Num f,Pt2di SzBox,bool V8,ParamConcOpb * param,INT per_reaf,bool aCatInit = false);
 
 
@@ -273,11 +273,11 @@ Fonc_Num  BoxedConc(Fonc_Num f,Pt2di SzBox,bool V8,ParamConcOpb * param,INT per_
 class ElImplemDequantifier
 {
      public :
-         // Anncienne interaface, anEquid est un pametre idiot !
+         // Anncienne interface, anEquid est un parametre idiot !
          // void Dequant(Pt2di aSzIm,Fonc_Num f2Deq,INT anEquid);
 
 
-         // aVerifI verfie que l'image est entiere
+         // aVerifI verifie que l'image est entiere
          void DoDequantif(Pt2di aSzIm,Fonc_Num f2Deq,bool  aVerifI= false);
 
          ElImplemDequantifier (Pt2di aSz);

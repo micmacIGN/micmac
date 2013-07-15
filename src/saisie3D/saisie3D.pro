@@ -11,7 +11,7 @@
 #	LIBS += -L../bin -lelise
 #}
 
-QT       += core gui opengl
+QT       += core gui opengl xml
 
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets concurrent
