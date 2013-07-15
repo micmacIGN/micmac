@@ -38,11 +38,13 @@ public:
     void            ResetIdBuffer();
     virtual void    freezeCompute() = 0;
 
+    void            CreateJob();
+    void            KillJob();
+
 protected:
 
     void            SetThread(boost::thread* Thread);
-    void            CreateJob();
-    void            KillJob();
+
 
 private:
 
@@ -69,6 +71,7 @@ private:
 
 template< class T >
 CSimpleJobCpuGpu<T>::CSimpleJobCpuGpu(bool useMultiThreading):
+    _gpGpuThread(NULL),
     _useMultiThreading(useMultiThreading),
     _idBufferHostIn(false)
 {}
@@ -167,8 +170,12 @@ void CSimpleJobCpuGpu<T>::KillJob()
 {
     if(UseMultiThreading())
     {
-        _gpGpuThread->interrupt();
-        delete _gpGpuThread;
+        if(_gpGpuThread)
+        {
+            _gpGpuThread->interrupt();
+            delete _gpGpuThread;
+            _gpGpuThread = NULL;
+        }
     }
     _mutexCompu.unlock();
     _mutexCopy.unlock();

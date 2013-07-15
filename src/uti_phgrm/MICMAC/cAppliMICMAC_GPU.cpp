@@ -1392,9 +1392,15 @@ void cAppliMICMAC::DoGPU_Correl
 }
 
 #ifdef  CUDA_ENABLED
-	void cAppliMICMAC::Tabul_Projection( float2* TabProj, int Z, Rect zone, uint sample, uint interZ)
+    void cAppliMICMAC::Tabul_Projection(int Z, int zMax, uint &interZ)
 	{
-		
+
+        IMmGg.IntervalZ(interZ, Z, zMax);
+
+        IMmGg.MemsetProj();
+        Rect    zone        = IMmGg.Param().RDTer();
+        uint    sample      = IMmGg.Param().sampProj;
+        float2  *pTabProj   = IMmGg.InputProj();
 		uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain 
 		uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain echantilloné
 		uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
@@ -1427,7 +1433,7 @@ void cAppliMICMAC::DoGPU_Correl
 							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image 			
 							
 							if (aGLI.IsOk( aPIm.x, aPIm.y ))
-								TabProj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
+                                pTabProj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
 				
 						}
                     }
@@ -1462,7 +1468,7 @@ void cAppliMICMAC::DoGPU_Correl
 
 #endif
 
-	void cAppliMICMAC::DoGPU_Correl_Basik
+    void cAppliMICMAC::DoGPU_Correl_Basik
 		(
         const Box2di & aBox
 		)
@@ -1478,94 +1484,61 @@ void cAppliMICMAC::DoGPU_Correl
 		Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
 
         // Si le terrain est masque : Aucun calcul
-		if (!IMmGg.Param().MaskNoNULL())
-		{            
-			setVolumeCost(mTer,mZMinGlob,mZMaxGlob,mAhDefCost);
-			return;
-		}
+		if (!IMmGg.Param().MaskNoNULL())	
+            return setVolumeCost(mTer,mZMinGlob,mZMaxGlob,mAhDefCost);
 
-		// intervale des pronfondeurs calculés simultanément
-		int interZ	= min(INTERZ, abs(aZMaxTer - aZMinTer)); 
+        // intervale des pronfondeurs calcules simultanement
+        uint interZ	= min(INTERZ, abs(aZMaxTer - aZMinTer));
 
         // S'il change allocation differentes... A VERIFIER!! depuis les derniers changements
 		if (interZ != INTERZ)	IMmGg.SetSizeBlock(interZ);
 		
         // Allocation de l'espace memoire pour la tabulation des projections et des couts
-        IMmGg.ReallocInputProjection(IMmGg.Param().dimSTer,interZ*mNbIm);
-
-        /// !!!! a remplacer par reallocif !!!!
-        ///
-        //cout << "ALLOC\n";
-        IMmGg.ReallocOutCost(IMmGg.Param().dimTer,interZ);
+        IMmGg.ReallocHost(interZ);
 
 		// Initiation des parametres pour le multithreading
         IMmGg.InitJob();
 
-		int anZProjection = aZMinTer, anZComputed= aZMinTer;
+        int anZProjection = aZMinTer, anZComputed= aZMinTer, ZtoCopy = 0;
 
-		// Parcourt de l'intervalle de Z compris dans la nappe globale
-		while( anZComputed < aZMaxTer )
-		{            
-            if (IMmGg.UseMultiThreading())
-            {	// le calcul de correlation est effectue dans un thread parallele celui-ci, il s'effectue quand des projections ont été calculées!
+        // Parcourt de l'intervalle de Z compris dans la nappe globale
+        if (IMmGg.UseMultiThreading())
+            while( anZComputed < aZMaxTer )
+            {
 				// Tabulation des projections si la demande est faite
-                if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + interZ && anZProjection < aZMaxTer)
+                if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + (int)interZ && anZProjection < aZMaxTer)
 				{                    
-                    int intZ = abs(aZMaxTer - anZProjection );
-					
-					if (interZ >= intZ  &&  anZProjection != (aZMaxTer - 1) )
-						interZ = intZ;
-
-                    // MODIFICATION TEST PERFORMANCE
-                    IMmGg.MemsetProj();
-                    // FIN MODIFICATION TEST PERFORMANCE
-                    Tabul_Projection(IMmGg.InputProj(), anZProjection, IMmGg.Param().RDTer(),IMmGg.Param().sampProj, interZ);
-					
+                    Tabul_Projection( anZProjection, aZMaxTer, interZ);
                     IMmGg.SetPreComp(false);
                     IMmGg.SetCompute(interZ);
 					anZProjection+= interZ;
 				}
-
-                int ZtoCopy = (int)IMmGg.GetDataToCopy();
-
                 // Affectation des couts si des nouveaux ont ete calcule!
-                if (ZtoCopy != 0 && anZComputed < aZMaxTer)
+                if ((ZtoCopy = (int)IMmGg.GetDataToCopy())/* && anZComputed < aZMaxTer*/)
 				{
                     setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,IMmGg.OuputCost(!IMmGg.GetIdBuf()), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
                     anZComputed += ZtoCopy;
                     IMmGg.SetDataToCopy(0);
 				}
 			}
-			else
-			{
-				// Re-initialisation du tableau de projection
-                // MODIFICATION TEST PERFORMANCE
-                IMmGg.MemsetProj();
-                // FIN MODIFICATION TEST PERFORMANCE
-                Tabul_Projection(IMmGg.InputProj(), anZComputed, IMmGg.Param().RDTer(),IMmGg.Param().sampProj, interZ);
+        else
+        {
+            while( anZComputed < aZMaxTer )
+            {
+
+                // calcul des projections
+                Tabul_Projection( anZComputed,aZMaxTer,interZ);
 				// Kernel Correlation
                 IMmGg.BasicCorrelation(mNbIm);
 
                 setVolumeCost(mTer,anZComputed,anZComputed + interZ,mAhDefCost,IMmGg.OuputCost(), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
+                anZComputed += interZ;
 
-				uint intZ = (uint)abs(aZMaxTer - anZComputed );
-
-				if (interZ >= (int)intZ  &&  anZComputed != (aZMaxTer - 1))
-				{
-					interZ = intZ;
-					IMmGg.SetSizeBlock(interZ);
-                    IMmGg.ReallocInputProjection(IMmGg.Param().dimSTer, interZ*mNbIm);
-                    IMmGg.ReallocOutCost(IMmGg.Param().dimTer,interZ);
-				} 
-
-				anZComputed += interZ;
 			}
 		}
 
-        IMmGg.freezeCompute();
-        // Attention la liberation de memoire prends un certain temps, tout comme l'allocation... eviter cette manip...!!!
-        //cout << "DEALLOC\n";
-        IMmGg.DeallocVolumes();
+        IMmGg.freezeCompute();        
+        IMmGg.DeallocVolumes(); // Attention dealloc Time !!!
 
 #else
 		ELISE_ASSERT(1,"Sorry, this is not the cuda version");

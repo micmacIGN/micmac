@@ -35,6 +35,8 @@
                 <Symb>  SzV=2 </Symb>
                 <Symb>  DoL1Filter=true </Symb>
 
+                <Symb>  UseSatThr=false </Symb>
+                <Symb>  SatThr=1e9 </Symb>
 <!--
                <SzVois >  ${SzV}  </SzVois>
                <CorrelThreshold> ${CorrThresh} </CorrelThreshold>
@@ -84,6 +86,9 @@
         <SectionFiltrageIn>
              <SzDilatPC >   1 </SzDilatPC>
              <SzOuvPC >     2 </SzOuvPC>
+             <#WHEN VTEST=${UseSatThr}>
+                 <SaturThreshold> ${SatThr} </SaturThreshold>
+             </#WHEN>
              <BoucheTrou>
                 <SeuilVisib > 50  </SeuilVisib>
                 <SeuilVisibBT > 10 </SeuilVisibBT>
