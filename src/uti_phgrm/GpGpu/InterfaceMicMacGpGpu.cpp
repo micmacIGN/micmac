@@ -17,7 +17,7 @@ InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
   for (int s = 0;s<NSTREAM;s++)
     checkCudaErrors( cudaStreamCreate(GetStream(s)));
 
-  CreateJob();
+    CreateJob();
 
   _d_volumeCost->SetName("_volumeCost");
   _d_volumeCach->SetName("_volumeCach");
@@ -43,11 +43,11 @@ InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
   _texImages.filterMode		= cudaFilterModeLinear; //cudaFilterModeLinear cudaFilterModePoint
   _texImages.normalized		= false;
 
-  _hVolumeCost[0].SetName("_hVolumeCost0");
-  _hVolumeCost[1].SetName("_hVolumeCost1");
-  _hVolumeCost[0].SetPageLockedMemory(true);
-  _hVolumeCost[1].SetPageLockedMemory(true);
-
+  for (int i = 0; i < SIZERING; ++i)
+  {
+      _hVolumeCost[i].SetName("_hVolumeCost0");
+      _hVolumeCost[i].SetPageLockedMemory(true);
+  }
   _hVolumeProj.SetName("_hVolumeProj");
 
 }
