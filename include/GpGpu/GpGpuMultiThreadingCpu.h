@@ -12,7 +12,7 @@
 extern "C" void Launch(uint* value);
 
 #define ITERACUDA   2
-#define SIZERING    2
+
 
 template< class T >
 class CSimpleJobCpuGpu

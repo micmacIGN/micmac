@@ -798,8 +798,7 @@ void cAppliMICMAC::DoOneBloc
         mSurfOpt->SolveOpt();
 
 #ifdef CUDA_ENABLED
-		IMmGg.DeallocMemory();
-		//freeGpuMemory();
+        IMmGg.Data().DeallocMemory();
 #endif
     }
 

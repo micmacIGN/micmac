@@ -655,7 +655,7 @@ if (0)
 		
 		if (mLoadTextures)//		Mise en calque des images	
 		{
-			IMmGg.DeallocMemory();
+            IMmGg.Data().DeallocMemory();
 			
 			mLoadTextures		= false;
 			float*	fdataImg1D	= NULL;	
@@ -691,11 +691,11 @@ if (0)
 			}
 
 			if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
-				IMmGg.SetImages(fdataImg1D, dimImgMax, mNbIm);
+                IMmGg.Data().SetImages(fdataImg1D, dimImgMax, mNbIm);
 
 			if (fdataImg1D != NULL) delete[] fdataImg1D;          
 
-			IMmGg.SetParameter(Ter, mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT, INTERZ);
+            IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
 			
 		}
 
@@ -736,8 +736,12 @@ if (0)
 
         IMmGg.SetSizeBlock(INTERZ,rMask);
 
+        //IMmGg.Param().SetDimension(rMask,INTERZ);
+
 		if (IMmGg.Param().MaskNoNULL())
 		{            
+            //IMmGg.SetSizeBlock(INTERZ,rMask);
+
 			uint2 rDimTer = IMmGg.Param().dimTer;
 
 			pixel *SubMaskTab = new pixel[size(rDimTer)];
@@ -745,7 +749,7 @@ if (0)
 			for (int y = rMask.pt0.y; y < rMask.pt1.y; y++) 
 				memcpy(SubMaskTab + (y  - rMask.pt0.y) * rDimTer.x, maskTab + (y - mY0Ter) * Ter.dimension().x + rMask.pt0.x - mX0Ter, sizeof(pixel) * rDimTer.x );
 					
-			IMmGg.SetMask(SubMaskTab,rDimTer);
+            IMmGg.Data().SetMask(SubMaskTab,rDimTer);
 
 #ifdef USEDILATEMASK
 			IMmGg.dilateMask(rDimTer);
@@ -1397,10 +1401,10 @@ void cAppliMICMAC::DoGPU_Correl
 
         IMmGg.IntervalZ(interZ, Z, zMax);
 
-        IMmGg.MemsetProj();
+        IMmGg.Data().MemsetProj(IMmGg.Param().IntDefault);
         Rect    zone        = IMmGg.Param().RDTer();
         uint    sample      = IMmGg.Param().sampProj;
-        float2  *pTabProj   = IMmGg.InputProj();
+        float2  *pTabProj   = IMmGg.Data().InputProj();
 		uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain 
 		uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain echantilloné
 		uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
@@ -1491,13 +1495,11 @@ void cAppliMICMAC::DoGPU_Correl
         uint interZ	= min(INTERZ, abs(aZMaxTer - aZMinTer));
 
         // S'il change allocation differentes... A VERIFIER!! depuis les derniers changements
-		if (interZ != INTERZ)	IMmGg.SetSizeBlock(interZ);
-		
-        // Allocation de l'espace memoire pour la tabulation des projections et des couts
-        IMmGg.ReallocHost(interZ);
+        // REDUCTION DES DEMANDES ALLOCATIONS
+        //if (interZ != INTERZ)	IMmGg.SetSizeBlock(interZ);
 
 		// Initiation des parametres pour le multithreading
-        IMmGg.InitJob();
+        IMmGg.InitJob(interZ);
 
         int anZProjection = aZMinTer, anZComputed= aZMinTer, ZtoCopy = 0;
 
@@ -1516,7 +1518,7 @@ void cAppliMICMAC::DoGPU_Correl
                 // Affectation des couts si des nouveaux ont ete calcule!
                 if ((ZtoCopy = (int)IMmGg.GetDataToCopy())/* && anZComputed < aZMaxTer*/)
 				{
-                    setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,IMmGg.OuputCost(!IMmGg.GetIdBuf()), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
+                    setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,IMmGg.Data().OuputCost(!IMmGg.GetIdBuf()), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
                     anZComputed += ZtoCopy;
                     IMmGg.SetDataToCopy(0);
 				}
@@ -1531,14 +1533,14 @@ void cAppliMICMAC::DoGPU_Correl
 				// Kernel Correlation
                 IMmGg.BasicCorrelation(mNbIm);
 
-                setVolumeCost(mTer,anZComputed,anZComputed + interZ,mAhDefCost,IMmGg.OuputCost(), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
+                setVolumeCost(mTer,anZComputed,anZComputed + interZ,mAhDefCost,IMmGg.Data().OuputCost(0), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
                 anZComputed += interZ;
 
 			}
 		}
 
         IMmGg.freezeCompute();        
-        IMmGg.DeallocVolumes(); // Attention dealloc Time !!!
+        IMmGg.Data().DeallocVolumes(); // Attention dealloc Time !!!
 
 #else
 		ELISE_ASSERT(1,"Sorry, this is not the cuda version");

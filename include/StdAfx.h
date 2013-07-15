@@ -294,7 +294,7 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #endif // _WIN32
 #include "poisson/Poisson.h"
 
-#include "AnnSearcher.h"
+#include "../src/uti_image/Ann/AnnSearcher.h"
 
 #include <stdarg.h>
 
