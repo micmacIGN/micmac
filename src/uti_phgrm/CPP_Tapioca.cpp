@@ -480,12 +480,12 @@ void writeBinaryGraphToXML( const string &i_filename, vector<vector<int> > i_gra
 	f << "<?xml version=\"1.0\" ?>" << endl;
 	f << "<SauvegardeNamedRel>" << endl;
 	size_t i, j;
-	for ( i=1; i<nbFiles; i++ )
-		for ( j=0; j<i; j++ )
+	for ( j=1; j<nbFiles; j++ )
+		for ( i=0; i<j; i++ )
 		{
 			if ( i_graph[j][i]!=0 )
 			{
-				f << "\t<Cple>" << filenames[i] << ' ' << filenames[j] << "</Cple>" << endl;
+				f << "\t<Cple>" << filenames[j] << ' ' << filenames[i] << "</Cple>" << endl;
 				//f << "\t<Cple>" << filenames[j] << ' ' << filenames[i] << "</Cple>" << endl;
 			}
 		}
