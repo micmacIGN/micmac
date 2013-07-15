@@ -7,6 +7,9 @@ int main(int argc, char *argv[]) {
 
     QApplication app(argc, argv);
 	
+    app.setOrganizationName("IGN");
+    app.setApplicationName("Saisie3D");
+
     MainWindow w;
     w.show();
     w.checkForLoadedEntities();

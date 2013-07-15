@@ -37,6 +37,8 @@ MainWindow::MainWindow(QWidget *parent) :
     layout->addWidget(m_glWidget);
     connectActions();
     ui->OpenglLayout->setLayout(layout);
+
+    createMenus();
 }
 
 MainWindow::~MainWindow()
@@ -87,10 +89,31 @@ void MainWindow::connectActions()
     connect(ui->actionExport_mask,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
     connect(ui->actionLoad_and_Export,	SIGNAL(triggered()),   this, SLOT(loadAndExport()));
     connect(ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
-    connect(ui->actionUnload_all,       SIGNAL(triggered()),   this, SLOT(unloadAll()));
+    connect(ui->actionClose_all,       SIGNAL(triggered()),   this, SLOT(closeAll()));
     connect(ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
 
     connect(m_glWidget,SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
+
+    for (int i = 0; i < MaxRecentFiles; ++i) {
+        recentFileActs[i] = new QAction(this);
+        recentFileActs[i]->setVisible(false);
+        connect(recentFileActs[i], SIGNAL(triggered()),
+                this, SLOT(openRecentFile()));
+    }
+
+}
+
+void MainWindow::createMenus()
+{
+    separatorAct = ui->menuFile->insertSeparator(ui->actionExport_mask);
+    ui->actionRecentFiles->setVisible(true);
+    ui->menuFile->insertAction(ui->actionExport_mask,ui->actionRecentFiles);
+    for (int i = 0; i < MaxRecentFiles; ++i)
+        ui->menuFile->insertAction(ui->actionExport_mask,recentFileActs[i]);
+    ui->menuFile->insertSeparator(ui->actionExport_mask);
+    updateRecentFileActions();
+
+    //menuBar()->addSeparator();
 }
 
 
@@ -127,7 +150,6 @@ void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
     {
-
         QFileInfo fi(filenames[0]);
 
         //set default working directory as first file subfolder
@@ -166,8 +188,12 @@ void MainWindow::addFiles(const QStringList& filenames)
             m_glWidget->update();
         }
 
-        checkForLoadedEntities();
+        for (int aK=0; aK< filenames.size();++aK)
+        {
+            setCurrentFile(filenames[aK]);
+        }
 
+        checkForLoadedEntities();
     }
 
     this->setWindowState(Qt::WindowActive);
@@ -246,7 +272,7 @@ void MainWindow::doActionDisplayShortcuts()
     text += "Ctrl+E: export mask files\n";
     text += "Ctrl+Maj+S: open .xml camera and export mask files\n";
     text += "Ctrl+S: save .xml selection stack\n";
-    text += "Ctrl+X: unload clouds and cameras\n";
+    text += "Ctrl+X: close files\n";
     text += "Ctrl+Q: quit\n\n";
     text += "View:\n\n";
     text += "F2: full screen\n";
@@ -352,11 +378,9 @@ void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
 
 void MainWindow::loadPlys()
 {
+    m_FilenamesIn  = QFileDialog::getOpenFileNames(NULL, tr("Open Cloud Files"),QString(), tr("Files (*.ply)"));
 
-    QStringList FilenamesIn  = QFileDialog::getOpenFileNames(NULL, tr("Open Cloud Files"),QString(), tr("Files (*.ply)"));
-
-    addFiles(FilenamesIn);
-
+    addFiles(m_FilenamesIn);
 }
 
 void MainWindow::loadCameras()
@@ -377,11 +401,13 @@ void MainWindow::loadAndExport()
 
 void MainWindow::saveSelectionInfos()
 {
-    m_Engine->saveSelectInfos("SelectionInfos.xml");
+    m_Engine->saveSelectInfos(m_glWidget->getSelectInfos(),"D:/SelectionInfos.xml");
 }
 
-void MainWindow::unloadAll()
+void MainWindow::closeAll()
 {
+    for (int aK=0; aK < m_FilenamesIn.size();++aK) setCurrentFile(m_FilenamesIn[aK]);
+
     m_Engine->unloadAll();
 
     m_glWidget->setCloudLoaded(false);
@@ -390,5 +416,58 @@ void MainWindow::unloadAll()
     m_glWidget->setBufferGl();
     m_glWidget->update();
 }
+
+void MainWindow::openRecentFile()
+{
+    QAction *action = qobject_cast<QAction *>(sender());
+    if (action)
+        addFiles(QStringList(action->data().toString()));
+        //loadFile(action->data().toString());
+}
+
+void MainWindow::setCurrentFile(const QString &fileName)
+{
+    m_curFile = fileName;
+    setWindowFilePath(m_curFile);
+
+    QSettings settings;
+    QStringList files = settings.value("recentFileList").toStringList();
+    files.removeAll(fileName);
+    files.prepend(fileName);
+    while (files.size() > MaxRecentFiles)
+        files.removeLast();
+
+    settings.setValue("recentFileList", files);
+
+    foreach (QWidget *widget, QApplication::topLevelWidgets()) {
+        MainWindow *mainWin = qobject_cast<MainWindow *>(widget);
+        if (mainWin)
+            mainWin->updateRecentFileActions();
+    }
+}
+
+void MainWindow::updateRecentFileActions()
+ {
+     QSettings settings;
+     QStringList files = settings.value("recentFileList").toStringList();
+
+     int numRecentFiles = qMin(files.size(), (int)MaxRecentFiles);
+
+     for (int i = 0; i < numRecentFiles; ++i) {
+         QString text = tr("&%1 %2").arg(i + 1).arg(strippedName(files[i]));
+         recentFileActs[i]->setText(text);
+         recentFileActs[i]->setData(files[i]);
+         recentFileActs[i]->setVisible(true);
+     }
+     for (int j = numRecentFiles; j < MaxRecentFiles; ++j)
+         recentFileActs[j]->setVisible(false);
+
+     separatorAct->setVisible(numRecentFiles > 0);
+ }
+
+ QString MainWindow::strippedName(const QString &fullFileName)
+ {
+     return QFileInfo(fullFileName).fileName();
+ }
 
 
