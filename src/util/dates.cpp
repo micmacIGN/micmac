@@ -781,7 +781,7 @@ int SigneOfSize(const std::string & aSz)
 	if ((aSz=="N") || (aSz=="E"))
 		return 1;
 
-	if ((aSz=="N") || (aSz=="E"))
+	if ((aSz=="S") || (aSz=="W"))
 		return -1;
 
 	ELISE_ASSERT(false,"Bas size inaMincXifDecoder::GetOneAngle");
