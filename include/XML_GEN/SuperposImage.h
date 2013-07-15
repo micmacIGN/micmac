@@ -2037,6 +2037,9 @@ class cSectionFiltrageIn
         friend void xml_init(cSectionFiltrageIn & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< double > & SaturThreshold();
+        const cTplValGesInit< double > & SaturThreshold()const ;
+
         cTplValGesInit< int > & SzDilatPC();
         const cTplValGesInit< int > & SzDilatPC()const ;
 
@@ -2055,6 +2058,7 @@ class cSectionFiltrageIn
         cTplValGesInit< cBoucheTrou > & BoucheTrou();
         const cTplValGesInit< cBoucheTrou > & BoucheTrou()const ;
     private:
+        cTplValGesInit< double > mSaturThreshold;
         cTplValGesInit< int > mSzDilatPC;
         cTplValGesInit< int > mSzOuvPC;
         cTplValGesInit< cBoucheTrou > mBoucheTrou;
@@ -2349,6 +2353,9 @@ class cCreateOrtho
 
         cSectionEntree & SectionEntree();
         const cSectionEntree & SectionEntree()const ;
+
+        cTplValGesInit< double > & SaturThreshold();
+        const cTplValGesInit< double > & SaturThreshold()const ;
 
         cTplValGesInit< int > & SzDilatPC();
         const cTplValGesInit< int > & SzDilatPC()const ;
