@@ -83,10 +83,12 @@ public slots:
 
     void loadPlys();
     void loadCameras();
-    void unloadAll();
+    void closeAll();
     void exportMasks();
     void loadAndExport();
     void saveSelectionInfos();
+
+    void openRecentFile();
 
 protected:
 
@@ -97,8 +99,11 @@ protected:
 private:
 
     void emitProgress(int progress);
+    void createMenus();
 
-    //int                    GetValue(){return _value;}
+    void setCurrentFile(const QString &fileName);
+    void updateRecentFileActions();
+    QString strippedName(const QString &fullFileName);
 
     Ui::MainWindow          *ui;
 
@@ -109,6 +114,11 @@ private:
     QFutureWatcher<void>    FutureWatcher;
     QProgressDialog*        ProgressDialog;
 
-    //int                     _value;
+    enum { MaxRecentFiles = 3 };
+    QAction *               m_recentFileActs[MaxRecentFiles];
+    QString                 m_curFile;
+    QStringList             m_FilenamesIn;
+
+    QMenu*                  m_RFMenu; //recent files menu
 };
 #endif // MAINWINDOW_H

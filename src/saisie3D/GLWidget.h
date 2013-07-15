@@ -153,6 +153,8 @@ public:
 
     void getProjection(QPoint &P2D, Vertex P);
 
+    QVector <cSelectInfos> getSelectInfos(){return m_infos;}
+
 public slots:
     void zoom();
 
@@ -206,10 +208,6 @@ protected:
     GLuint getNbGLLists() { return m_nbGLLists; }
     void incrNbGLLists() { m_nbGLLists++; }
     void resetNbGLLists(){ m_nbGLLists = 0; }
-
-    void storeInfos(bool inside, bool add);
-
-    void setAngles(float angleX, float angleY, float angleZ);
 
     //! GL context width
     int m_glWidth;
@@ -286,6 +284,9 @@ protected:
 
     //! acceleration factor
     float m_speed;
+
+    //! selection infos stack
+    QVector <cSelectInfos> m_infos;
 
 private:
 

@@ -348,7 +348,6 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
 
 void GLWidget::setBufferGl(bool onlyColor)
 {
-
     if(m_vertexbuffer.isCreated() && !onlyColor)
         m_vertexbuffer.destroy();
     if(m_vertexColor.isCreated())
@@ -543,7 +542,6 @@ void GLWidget::zoom()
     glLoadIdentity();
 
     glOrtho(left, right, -zoom, zoom, -100.0f, 100.0f);
-
 }
 
 void GLWidget::setInteractionMode(INTERACTION_MODE mode)
@@ -686,13 +684,14 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         if ( _m_g_mouseLeftDown ) // rotation autour de X et Y
         {
-            float angleX =  m_speed * dp.y() / (float) m_glHeight;
-            float angleY =  m_speed * dp.x() / (float) m_glWidth;
+            float d_angleX = m_speed * dp.y() / (float) m_glHeight;
+            float d_angleY = m_speed * dp.x() / (float) m_glWidth;
 
-            setAngles(angleX, angleY, m_params.angleZ);
+            m_params.angleX += d_angleX;
+            m_params.angleY += d_angleY;
 
-            setRotateOx_m33( angleX, _m_g_rotationOx );
-            setRotateOy_m33( angleY, _m_g_rotationOy );
+            setRotateOx_m33( d_angleX, _m_g_rotationOx );
+            setRotateOy_m33( d_angleY, _m_g_rotationOy );
 
             mult_m33( _m_g_rotationOx, _m_g_rotationMatrix, _m_g_tmpoMatrix );
             mult_m33( _m_g_rotationOy, _m_g_tmpoMatrix, _m_g_rotationMatrix );
@@ -705,11 +704,11 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         }
         else if ( _m_g_mouseRightDown ) // rotation autour de Z
         {
-            float angleZ =  m_speed * dp.x() / (float) m_glWidth;
+            float d_angleZ =  m_speed * dp.x() / (float) m_glWidth;
 
-            setAngles( m_params.angleX,  m_params.angleY, angleZ);
+            m_params.angleZ += d_angleZ;
 
-            setRotateOz_m33( angleZ, _m_g_rotationOz );
+            setRotateOz_m33( d_angleZ, _m_g_rotationOz );
 
             mult_m33( _m_g_rotationOz, _m_g_rotationMatrix, _m_g_tmpoMatrix );
 
@@ -832,7 +831,7 @@ void GLWidget::Select(int mode)
     if ((mode == ADD) && (m_bFirstAdd)) m_bFirstAdd = false;
 
     m_previousAction = mode;
-    //m_infos.push_back(cSaisieInfos(m_params, m_polygon, selection_mode));
+    m_infos.push_back(cSelectInfos(m_params, m_polygon, mode));
 }
 
 void GLWidget::deletePolylinePoint()
@@ -1255,22 +1254,3 @@ void GLWidget::showMoveMessages()
     displayNewMessage("Move mode",UPPER_CENTER_MESSAGE);
     displayNewMessage("Left click: rotate viewpoint / Right click: translate viewpoint",LOWER_CENTER_MESSAGE);
 }
-
-void GLWidget::setAngles(float angleX, float angleY, float angleZ)
-{
-    m_params.angleX = angleX;
-    m_params.angleY = angleY;
-    m_params.angleZ = angleZ;
-}
-
-/*
-void GLWidget::saveSelectionInfos(QString Filename)
-{
-    for (int aK=0; aK < m_infos.size() ; ++aK )
-    {
-        //TODO: if (m_infos[aK].pose == m_infos[aK-1].pose) aK++;
-              //else write block pose
-    }
-
-}
-*/

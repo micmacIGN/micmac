@@ -87,7 +87,7 @@ QStatusBar
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="mouseTracking">
@@ -159,23 +159,13 @@ QStatusBar
     <addaction name="actionExport_mask"/>
     <addaction name="actionLoad_and_Export"/>
     <addaction name="actionSave_selection"/>
-    <addaction name="actionUnload_all"/>
+    <addaction name="actionClose_all"/>
     <addaction name="actionExit"/>
+    <addaction name="actionRecentFiles"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuOptions"/>
    <addaction name="menuSelection"/>
-  </widget>
-  <widget class="QToolBar" name="toolBar">
-   <property name="windowTitle">
-    <string>toolBar</string>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
   </widget>
   <action name="actionFullScreen">
    <property name="checkable">
@@ -452,15 +442,15 @@ QStatusBar
   </action>
   <action name="actionSave_selection">
    <property name="text">
-    <string>Save selection stack</string>
+    <string>Save selection infos</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
    </property>
   </action>
-  <action name="actionUnload_all">
+  <action name="actionClose_all">
    <property name="text">
-    <string>Unload all</string>
+    <string>Close all</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+X</string>
@@ -507,6 +497,17 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>F5</string>
+   </property>
+  </action>
+  <action name="actionRecentFiles">
+   <property name="text">
+    <string>Recent files:</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
    </property>
   </action>
  </widget>
