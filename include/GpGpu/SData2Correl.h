@@ -20,7 +20,7 @@ struct SData2Correl
 
     void    ReallocDeviceData(int nStream, uint interZ,pCorGpu param);
 
-    void    Realloc(pCorGpu param, uint oldSizeTer);
+    void    Realloc(pCorGpu param);
 
     void    MallocInfo();
 
@@ -77,6 +77,8 @@ struct SData2Correl
     textureReference&           _texProjections_05;
     textureReference&           _texProjections_06;
     textureReference&           _texProjections_07;
+
+    int                         _countAlloc;
 };
 
 #endif
