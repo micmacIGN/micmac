@@ -18,6 +18,11 @@ void cLoader::SetFilenamesOut()
     }
 }
 
+void cLoader::SetSelectionFilename()
+{
+    m_SelectionOut = m_Dir.absolutePath() + QDir::separator() + "SelectionInfos.xml";
+}
+
 Cloud* cLoader::loadCloud( string i_ply_file, void (*incre)(int,void*), void* obj )
 {
     return Cloud::loadPly( i_ply_file, incre, obj );
@@ -144,11 +149,11 @@ void cEngine::doMasks()
     }
 }
 
-void cEngine::saveSelectInfos(QVector <cSelectInfos> const &Infos, QString FileName)
+void cEngine::saveSelectInfos(QVector <cSelectInfos> const &Infos)
 {
     QDomDocument doc;
 
-    QFile outFile(FileName);
+    QFile outFile(m_Loader->GetSelectionFilename());
     if (!outFile.open(QIODevice::WriteOnly)) return;
 
     QDomElement SI = doc.createElement("SelectionInfos");

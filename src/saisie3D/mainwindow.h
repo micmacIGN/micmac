@@ -120,6 +120,5 @@ private:
     QAction *               recentFileActs[MaxRecentFiles];
     QString                 m_curFile;
     QStringList             m_FilenamesIn;
-
 };
 #endif // MAINWINDOW_H

@@ -167,17 +167,6 @@ QStatusBar
    <addaction name="menuOptions"/>
    <addaction name="menuSelection"/>
   </widget>
-  <widget class="QToolBar" name="toolBar">
-   <property name="windowTitle">
-    <string>toolBar</string>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-  </widget>
   <action name="actionFullScreen">
    <property name="checkable">
     <bool>true</bool>

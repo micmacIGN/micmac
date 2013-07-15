@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->OpenglLayout->setStyleSheet(style);
 
-    ProgressDialog = new QProgressDialog("Load clouds","Stop",0,0,this);
+    ProgressDialog = new QProgressDialog("Load files","Stop",0,0,this);
     ProgressDialog->setMinimum(0);
     ProgressDialog->setMaximum(100);
 
@@ -47,7 +47,6 @@ MainWindow::~MainWindow()
     delete m_glWidget;
     delete m_Engine;
 }
-
 
 void MainWindow::connectActions()
 {
@@ -89,18 +88,18 @@ void MainWindow::connectActions()
     connect(ui->actionExport_mask,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
     connect(ui->actionLoad_and_Export,	SIGNAL(triggered()),   this, SLOT(loadAndExport()));
     connect(ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
-    connect(ui->actionClose_all,       SIGNAL(triggered()),   this, SLOT(closeAll()));
+    connect(ui->actionClose_all,        SIGNAL(triggered()),   this, SLOT(closeAll()));
     connect(ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
 
     connect(m_glWidget,SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
 
-    for (int i = 0; i < MaxRecentFiles; ++i) {
+    for (int i = 0; i < MaxRecentFiles; ++i)
+    {
         recentFileActs[i] = new QAction(this);
         recentFileActs[i]->setVisible(false);
         connect(recentFileActs[i], SIGNAL(triggered()),
                 this, SLOT(openRecentFile()));
     }
-
 }
 
 void MainWindow::createMenus()
@@ -112,14 +111,10 @@ void MainWindow::createMenus()
         ui->menuFile->insertAction(ui->actionExport_mask,recentFileActs[i]);
     ui->menuFile->insertSeparator(ui->actionExport_mask);
     updateRecentFileActions();
-
-    //menuBar()->addSeparator();
 }
-
 
 bool MainWindow::checkForLoadedEntities()
 {
-
     bool loadedEntities = true;
     m_glWidget->displayNewMessage(QString()); //clear (any) message in the middle area
 
@@ -156,6 +151,7 @@ void MainWindow::addFiles(const QStringList& filenames)
         QDir Dir = fi.dir();
         Dir.cdUp();
         m_Engine->setDir(Dir);
+        m_Engine->setFilename();
 
         #ifdef _DEBUG
             printf("adding files %s", filenames[0]);
@@ -172,26 +168,26 @@ void MainWindow::addFiles(const QStringList& filenames)
             this->ProgressDialog->setWindowModality(Qt::WindowModal);
             this->ProgressDialog->exec();
 
+            future.waitForFinished();
+
             m_glWidget->setData(m_Engine->getData());
             m_glWidget->update();
         }
         else if (fi.suffix() == "xml")
         {          
-
             QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadCameras,filenames);
 
             this->FutureWatcher.setFuture(future);
             this->ProgressDialog->setWindowModality(Qt::WindowModal);
             this->ProgressDialog->exec();
 
+            future.waitForFinished();
+
             m_glWidget->setCameraLoaded(true);
             m_glWidget->update();
         }
 
-        for (int aK=0; aK< filenames.size();++aK)
-        {
-            setCurrentFile(filenames[aK]);
-        }
+        for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
 
         checkForLoadedEntities();
     }
@@ -299,7 +295,6 @@ void MainWindow::doActionDisplayShortcuts()
     QMessageBox::information(NULL, "Saisie3D - shortcuts", text);
 }
 
-
 void MainWindow::addPoints()
 {
     m_glWidget->Select(ADD);
@@ -378,7 +373,7 @@ void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
 
 void MainWindow::loadPlys()
 {
-    m_FilenamesIn  = QFileDialog::getOpenFileNames(NULL, tr("Open Cloud Files"),QString(), tr("Files (*.ply)"));
+    m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Cloud Files"),QString(), tr("Files (*.ply)"));
 
     addFiles(m_FilenamesIn);
 }
@@ -401,13 +396,11 @@ void MainWindow::loadAndExport()
 
 void MainWindow::saveSelectionInfos()
 {
-    m_Engine->saveSelectInfos(m_glWidget->getSelectInfos(),"D:/SelectionInfos.xml");
+    m_Engine->saveSelectInfos(m_glWidget->getSelectInfos());
 }
 
 void MainWindow::closeAll()
 {
-    for (int aK=0; aK < m_FilenamesIn.size();++aK) setCurrentFile(m_FilenamesIn[aK]);
-
     m_Engine->unloadAll();
 
     m_glWidget->setCloudLoaded(false);
@@ -422,7 +415,6 @@ void MainWindow::openRecentFile()
     QAction *action = qobject_cast<QAction *>(sender());
     if (action)
         addFiles(QStringList(action->data().toString()));
-        //loadFile(action->data().toString());
 }
 
 void MainWindow::setCurrentFile(const QString &fileName)
