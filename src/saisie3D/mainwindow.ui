@@ -327,7 +327,7 @@ QStatusBar
   </action>
   <action name="actionLoad_camera">
    <property name="text">
-    <string>Load camera(s)</string>
+    <string>Load cameras</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -335,7 +335,7 @@ QStatusBar
   </action>
   <action name="actionExport_mask">
    <property name="text">
-    <string>Export mask(s)</string>
+    <string>Export masks</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+E</string>
@@ -423,7 +423,7 @@ QStatusBar
   </action>
   <action name="actionLoad_plys">
    <property name="text">
-    <string>Load ply file(s)</string>
+    <string>Load ply files</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>

@@ -104,7 +104,7 @@ void MainWindow::connectActions()
 }
 
 void MainWindow::createMenus()
-{  
+{
     m_RFMenu = new QMenu("Recent files", this);
 
     ui->menuFile->insertMenu(ui->actionExport_mask, m_RFMenu);
@@ -458,7 +458,7 @@ void MainWindow::updateRecentFileActions()
      for (int j = numRecentFiles; j < MaxRecentFiles; ++j)
          m_recentFileActs[j]->setVisible(false);
 
-     m_RFMenu->setVisible(numRecentFiles > 0);
+     //m_RFMenu->setVisible(numRecentFiles > 0);
  }
 
  QString MainWindow::strippedName(const QString &fullFileName)
