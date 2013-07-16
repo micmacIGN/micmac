@@ -1831,10 +1831,16 @@ const std::string & cClassEquivPose::Id() const
 
              // =======   cRelEquivPose  ====
 
+/*
 cRelEquivPose::cRelEquivPose(int aNum) :
    mNum (aNum)
 {
 }
+*/
+cRelEquivPose::cRelEquivPose() 
+{
+}
+
 
 cClassEquivPose * cRelEquivPose::AddAPose(cPoseCam * aPC,const std::string & aName)
 {
@@ -1872,7 +1878,7 @@ const std::map<std::string,cClassEquivPose *> &  cRelEquivPose::Map() const
 
 void cRelEquivPose::Show()
 {
-    std::cout << "========== REL NUM " << mNum << "==================\n";
+    std::cout << "========== REL NUM ==================\n";
 
    for 
    (
@@ -1974,6 +1980,44 @@ void cAppliApero::AddObservationsRigidGrp(const cObsRigidGrpImage & anORGI,bool 
         }
    }
 }
+
+/***********************************************************/
+/*                                                         */
+/*                                                         */
+/*                                                         */
+/***********************************************************/
+
+/*
+
+class cImplemBlockCam
+{
+    public :
+         static cImplemBlockCam * AllocNew(cAppliApero &,const cStructBlockCam);
+    private :
+         cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam );
+
+         cAppliApero &             mAppli;
+         const cStructBlockCam &   mSBC;
+         cRelEquivPose             mRelGrp;
+         cRelEquivPose             mRelId;
+};
+
+
+
+cImplemBlockCam::cImplemBlockCam(cAppliApero &,const cStructBlockCam) :
+      mAppli (anAppli),
+      mSBC   (aSBC)
+{
+    const std::vector<cPoseCam*> & aVP = mAppli.VecAllPose();
+    for (int aKP=0 ; aKP<int(aVP.size()) ; aKP++)
+    {
+          cPoseCam * aPC = aVP[aKP];
+          std::string aNamePose = aPC->Name();
+          std::string aNameGrp = mAppli.ICNM()->Assoc1To1(mSBC->KeyIm2Grp(),aNamePose,true);
+          std::string aNameId  = mAppli.ICNM()->Assoc1To1(mSBC->KeyIm2Grp(),aNamePose,true);
+    }
+}
+*/
 
 
 };

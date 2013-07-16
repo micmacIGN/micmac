@@ -1376,7 +1376,7 @@ namespace NS_ParamChantierPhotogram{
 -->
     <StructBlockCam Nb="*" Class="true" ToReference="true">
          <!-- Declare tous les groupes existants -->
-         <Grp Nb="*" Type=="std::string"> </Grp>
+         <!-- <Grp Nb="*" Type=="std::string"> </Grp> -->
          <KeyIm2Grp Nb="1" Type="std::string"> </KeyIm2Grp>
          <KeyIm2Id Nb="1" Type="std::string"> </KeyIm2Id>
 
