@@ -1,0 +1,21 @@
+<ExportAPERO>
+     <CalibrationInternConique>
+          <KnownConv>eConvApero_DistM2C</KnownConv>
+          <PP>2025.96215417574194 1422.83973925721807</PP>
+          <F>4079.42230895254716</F>
+          <SzIm>4000 3000</SzIm>
+          <CalibDistortion>
+               <ModUnif>
+                   <TypeModele>    eModelePolyDeg5       </TypeModele>
+                   <Etats > 4000  </Etats>
+               </ModUnif>
+          </CalibDistortion>
+
+         <CorrectionRefractionAPosteriori>
+              <FileEstimCam> /media/MYPASSPORT/SubMarine/TestCalibCanonD10/Macro-Sub/DradAir.xml </FileEstimCam>
+              <CoeffRefrac> 1.33 </CoeffRefrac>
+              <IntegreDist> true </IntegreDist>
+        </CorrectionRefractionAPosteriori>
+
+     </CalibrationInternConique>
+</ExportAPERO>
