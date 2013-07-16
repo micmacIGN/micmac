@@ -577,6 +577,11 @@ namespace NS_ParamApero{
 
               <SeuilL1EstimMatrEss Nb="?" Type="int" Def="150"> </SeuilL1EstimMatrEss>
 
+              <BlockCamera Nb="*">
+                    <NameFile Nb="1" Type="std::string"> </NameFile>
+                    <Id   Nb="?" Type="std::string"> </Id>
+              </BlockCamera>
+
 
                <!-- A priori obsolete, remplacee par valeur dans calib -->
               <GlobOrInterne Nb="?" RefType="SetOrientationInterne"></GlobOrInterne>
@@ -997,6 +1002,10 @@ normalises en echelle et/ou en translation -->
                            <IdBdl Nb="1"  Type="std::string"> </IdBdl>
                      </BlocBascule>
 
+
+                     <EstimateOrientationInitBlockCamera Nb="*">
+                         <Id Nb="1" Type="std::string"> </Id>
+                     </EstimateOrientationInitBlockCamera>
 
                      <MesureErreurTournante Nb="?">
                           <Periode Nb="1" Type="int"> </Periode>
