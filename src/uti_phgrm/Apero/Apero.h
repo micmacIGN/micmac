@@ -127,7 +127,8 @@ class cClassEquivPose
 class cRelEquivPose
 {
       public :
-          cRelEquivPose(int aNum);
+          //cRelEquivPose(int aNum);
+          cRelEquivPose();
           cClassEquivPose * AddAPose(cPoseCam *,const std::string & aName);
 
           const std::map<std::string,cClassEquivPose *> & Map() const;
@@ -138,7 +139,7 @@ class cRelEquivPose
       private :
           cRelEquivPose(const cRelEquivPose &); // N.I. 
 
-          int                                     mNum;
+          // int                                     mNum;
           std::map<std::string,cClassEquivPose *> mMap; // Map   NomDeClasse -> Classe
           std::map<std::string,cClassEquivPose *> mPos2C; // Map   Nom de pose -> Classe
 };
@@ -1890,6 +1891,7 @@ class cAppliApero : public NROptF1vND
 
         
         const std::vector<cPoseCam*> & VecLoadedPose();
+        const std::vector<cPoseCam*> & VecAllPose();
 
         // Si vecteur non vide, donne garantie que 
         //  1- Chaque pose contient la projection de aPM avec le rab qui va bien
