@@ -18,7 +18,7 @@ struct SData2Correl
     void    SetImages( float* dataImage, uint2 dimImage, int nbLayer );
     void    SetMask( pixel* dataMask, uint2 dimMask );
 
-    void    ReallocDeviceData(int nStream, uint interZ,pCorGpu param);
+    void    ReallocDeviceData(int nStream, pCorGpu param);
 
     void    Realloc(pCorGpu param);
 
@@ -44,15 +44,13 @@ struct SData2Correl
 
     void    ReallocHostData(uint zInter, pCorGpu param);
 
-    void    ReallocAllDeviceData(uint interZ, pCorGpu param);
+    void    ReallocAllDeviceData(pCorGpu param);
 
-    void    ReallocAllDeviceDataAsync(uint interZ, pCorGpu param, cudaStream_t* pstream, uint s );
-
+    void    ReallocAllDeviceDataAsync(pCorGpu param, cudaStream_t* pstream, uint s );
 
     uint*   DVolumeNOK(uint s){ return _d_volumeNIOk[s].pData();}
     float*  DVolumeCache(uint s){ return _d_volumeCach[s].pData();}
     float*  DVolumeCost(uint s){ return _d_volumeCost[s].pData();}
-
 
     CuHostData3D<float>         _hVolumeCost[2];
     CuHostData3D<float2>        _hVolumeProj;
@@ -71,12 +69,12 @@ struct SData2Correl
     //textureReference&         _texCache;
     textureReference&           _texProjections_00;
     textureReference&           _texProjections_01;
-    textureReference&           _texProjections_02;
-    textureReference&           _texProjections_03;
-    textureReference&           _texProjections_04;
-    textureReference&           _texProjections_05;
-    textureReference&           _texProjections_06;
-    textureReference&           _texProjections_07;
+//    textureReference&           _texProjections_02;
+//    textureReference&           _texProjections_03;
+//    textureReference&           _texProjections_04;
+//    textureReference&           _texProjections_05;
+//    textureReference&           _texProjections_06;
+//    textureReference&           _texProjections_07;
 
     int                         _countAlloc;
 };
