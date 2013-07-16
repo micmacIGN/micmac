@@ -651,7 +651,7 @@ if (0)
 		
 		if (mLoadTextures)//		Mise en calque des images	
 		{
-            IMmGg.Data().DeallocMemory();
+            IMmGg.Data().DeallocDeviceData();
 			
 			mLoadTextures		= false;
 			float*	fdataImg1D	= NULL;	
@@ -1397,10 +1397,10 @@ void cAppliMICMAC::DoGPU_Correl
 
         IMmGg.IntervalZ(interZ, Z, zMax);
 
-        IMmGg.Data().MemsetProj(IMmGg.Param().IntDefault);
+        IMmGg.Data().MemsetHostVolumeProj(IMmGg.Param().IntDefault);
         Rect    zone        = IMmGg.Param().RDTer();
         uint    sample      = IMmGg.Param().sampProj;
-        float2  *pTabProj   = IMmGg.Data().InputProj();
+        float2  *pTabProj   = IMmGg.Data().HostVolumeProj();
 		uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain 
 		uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain echantilloné
 		uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
@@ -1507,7 +1507,7 @@ void cAppliMICMAC::DoGPU_Correl
                 // Affectation des couts si des nouveaux ont ete calcule!
                 if ((ZtoCopy = (int)IMmGg.GetDataToCopy()))
 				{
-                    setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,IMmGg.Data().OuputCost(!IMmGg.GetIdBuf()), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
+                    setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,IMmGg.Data().HostVolumeCost(!IMmGg.GetIdBuf()), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
                     anZComputed += ZtoCopy;
                     IMmGg.SetDataToCopy(0);
 				}
@@ -1520,13 +1520,13 @@ void cAppliMICMAC::DoGPU_Correl
                 Tabul_Projection( anZComputed,mZMaxGlob,interZ);
 				// Kernel Correlation
                 IMmGg.BasicCorrelation(mNbIm);
-                setVolumeCost(mTer,anZComputed,anZComputed + interZ,mAhDefCost,IMmGg.Data().OuputCost(0), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
+                setVolumeCost(mTer,anZComputed,anZComputed + interZ,mAhDefCost,IMmGg.Data().HostVolumeCost(0), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
                 anZComputed += interZ;
 			}
 		}
 
         IMmGg.freezeCompute();        
-        IMmGg.Data().DeallocVolumes(); // Attention dealloc Time !!!
+        IMmGg.Data().DeallocHostData(); // Attention dealloc Time !!!
 
 #else
 		ELISE_ASSERT(1,"Sorry, this is not the cuda version");

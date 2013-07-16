@@ -33,21 +33,7 @@ SData2Correl::SData2Correl():
 
 SData2Correl::~SData2Correl()
 {
-    DeallocMemory();
-}
-
-void SData2Correl::ReallocAllDeviceDataAsync(pCorGpu param, cudaStream_t *pstream, uint s)
-{
-    _d_volumeCost[s].SetDimension(param.dimTer,param.ZLocInter);
-    _d_volumeCach[s].SetDimension(param.dimCach,param.nbImages * param.ZLocInter);
-    _d_volumeNIOk[s].SetDimension(param.dimTer,param.ZLocInter);
-
-    if (_d_volumeCost[s].GetSizeofMalloc() < _d_volumeCost[s].Sizeof() )
-        ReallocDeviceData(s, param);
-
-    _d_volumeCost[s].MemsetAsync(param.IntDefault, *pstream);
-    _d_volumeCach[s].MemsetAsync(param.IntDefault, *pstream);
-    _d_volumeNIOk[s].MemsetAsync(0,*pstream);
+    DeallocDeviceData();
 }
 
 void SData2Correl::MallocInfo()
@@ -62,17 +48,17 @@ void SData2Correl::MallocInfo()
     _dt_LayeredProjection[0].CData3D::MallocInfo();
 }
 
-float *SData2Correl::OuputCost(uint id)
+float *SData2Correl::HostVolumeCost(uint id)
 {
     return _hVolumeCost[id].pData();
 }
 
-float2 *SData2Correl::InputProj()
+float2 *SData2Correl::HostVolumeProj()
 {
     return _hVolumeProj.pData();
 }
 
-void SData2Correl::DeallocVolumes()
+void SData2Correl::DeallocHostData()
 {
     for (int i = 0; i < SIZERING; ++i)
         if(!_hVolumeCost[i].GetSizeofMalloc())
@@ -82,7 +68,7 @@ void SData2Correl::DeallocVolumes()
         _hVolumeProj.Dealloc();
 }
 
-void SData2Correl::DeallocMemory()
+void SData2Correl::DeallocDeviceData()
 {
     checkCudaErrors( cudaUnbindTexture(&_texImages) );
     checkCudaErrors( cudaUnbindTexture(&_texMask) );
@@ -148,17 +134,17 @@ void SData2Correl::ReallocHostData(uint zInter, pCorGpu param)
     _hVolumeProj.Realloc(param.dimSTer,zInter*param.nbImages);
 }
 
-void SData2Correl::Realloc(pCorGpu param)
+void SData2Correl::ReallocDeviceData(pCorGpu param)
 {
     for (int s = 0;s<NSTREAM;s++)
     {
         _dt_LayeredProjection[s].Realloc(param.dimSTer,param.nbImages * param.ZLocInter);
 
     }
-    ReallocAllDeviceData(param);
+    ReallocDeviceArray(param);
 }
 
-void SData2Correl::ReallocAllDeviceData(pCorGpu param)
+void SData2Correl::ReallocDeviceArray(pCorGpu param)
 {
 
     for (int s = 0;s<NSTREAM;s++)
@@ -168,7 +154,7 @@ void SData2Correl::ReallocAllDeviceData(pCorGpu param)
         _d_volumeNIOk[s].SetDimension(param.dimTer,param.ZLocInter);
 
         if (_d_volumeCost[s].GetSizeofMalloc() < _d_volumeCost[s].Sizeof() )
-            ReallocDeviceData(s, param);
+            ReallocDeviceArray(s, param);
 
         _d_volumeCost[s].Memset(param.IntDefault);
         _d_volumeCach[s].Memset(param.IntDefault);
@@ -176,7 +162,29 @@ void SData2Correl::ReallocAllDeviceData(pCorGpu param)
     }
 }
 
-void SData2Correl::ReallocDeviceData(int nStream, pCorGpu param)
+/*
+void SData2Correl::ReallocDeviceArrayAsync(pCorGpu param, cudaStream_t *pstream, uint s)
+{
+    _d_volumeCost[s].SetDimension(param.dimTer,param.ZLocInter);
+    _d_volumeCach[s].SetDimension(param.dimCach,param.nbImages * param.ZLocInter);
+    _d_volumeNIOk[s].SetDimension(param.dimTer,param.ZLocInter);
+
+    if (_d_volumeCost[s].GetSizeofMalloc() < _d_volumeCost[s].Sizeof() )
+        ReallocDeviceArray(s, param);
+
+    _d_volumeCost[s].MemsetAsync(param.IntDefault, *pstream);
+    _d_volumeCach[s].MemsetAsync(param.IntDefault, *pstream);
+    _d_volumeNIOk[s].MemsetAsync(0,*pstream);
+}
+*/
+
+uint *SData2Correl::DeviVolumeNOK(uint s){ return _d_volumeNIOk[s].pData();}
+
+float *SData2Correl::DeviVolumeCache(uint s){ return _d_volumeCach[s].pData();}
+
+float *SData2Correl::DeviVolumeCost(uint s){ return _d_volumeCost[s].pData();}
+
+void SData2Correl::ReallocDeviceArray(int nStream, pCorGpu param)
 {
     //_countAlloc++;
     _d_volumeCost[nStream].Realloc(param.dimTer,     param.ZLocInter);
@@ -196,7 +204,7 @@ void SData2Correl::SetMask(pixel *dataMask, uint2 dimMask)
     }
 }
 
-void SData2Correl::MemsetProj(uint iDef)
+void SData2Correl::MemsetHostVolumeProj(uint iDef)
 {
     _hVolumeProj.Memset(iDef);
 }

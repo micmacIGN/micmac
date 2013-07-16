@@ -20,7 +20,7 @@ void InterfaceMicMacGpGpu::SetSizeBlock( uint Zinter, Rect Ter)
 {
   _param.SetDimension(Ter,Zinter);
 
-  _data2Cor.Realloc(_param);
+  _data2Cor.ReallocDeviceData(_param);
 }
 
 void InterfaceMicMacGpGpu::InitJob(uint interZ)
@@ -46,7 +46,7 @@ void InterfaceMicMacGpGpu::BasicCorrelation(int nbLayer)
 {
 
   // Re-dimensionner les strucutres de données si elles ont été modifiées
-  _data2Cor.ReallocAllDeviceData(_param);
+  _data2Cor.ReallocDeviceArray(_param);
 
   // Calcul de dimension des threads des kernels
   //--------------- calcul de dimension du kernel de correlation ---------------
@@ -58,11 +58,12 @@ void InterfaceMicMacGpGpu::BasicCorrelation(int nbLayer)
   const uint s = 0;     // Affection du stream de calcul
 
   Data().copyHostToDevice(s);
+
   // Indique que la copie est terminée pour le thread de calcul des projections
   SetPreComp(true);
 
   // Lancement du calcul de correlation
-  KernelCorrelation(s, *(GetStream(s)),blocks, threads, _data2Cor.DVolumeNOK(s), _data2Cor.DVolumeCache(s), actiThsCo);
+  KernelCorrelation(s, *(GetStream(s)),blocks, threads, _data2Cor, actiThsCo);
 
   // Libérer la texture de projection
   Data().UnBindTextureProj(s);
@@ -75,7 +76,7 @@ void InterfaceMicMacGpGpu::BasicCorrelation(int nbLayer)
   uint2	block2D_mC_NA	= iDivUp(_param.dimCach,actiThs_NA);
   dim3	blocks_mC_NA(block2D_mC_NA.x,block2D_mC_NA.y,_param.ZLocInter);
 
-  KernelmultiCorrelation( *(GetStream(s)),blocks_mC_NA, threads_mC_NA,  _data2Cor.DVolumeCost(s), _data2Cor.DVolumeCache(s), _data2Cor.DVolumeNOK(s), actiThs_NA);
+  KernelmultiCorrelation( *(GetStream(s)),blocks_mC_NA, threads_mC_NA,  _data2Cor, actiThs_NA);
 
   // Copier les resultats de calcul des couts du device vers le host!
   Data().CopyDevicetoHost(GetIdBuf(),s);
