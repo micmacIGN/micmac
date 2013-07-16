@@ -13,7 +13,6 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.show();
 
-    //trying to get the arguments into a list
     QStringList cmdline_args = QCoreApplication::arguments();
 
     if (cmdline_args.size() > 1)
@@ -22,7 +21,7 @@ int main(int argc, char *argv[])
         w.addFiles(cmdline_args);
     }
 
-    w.checkForLoadedEntities();
+    w.checkForLoadedData();
 
     return app.exec();
 }

@@ -19,12 +19,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->OpenglLayout->setStyleSheet(style);
 
-    ProgressDialog = new QProgressDialog("Load files","Stop",0,0,this);
-    ProgressDialog->setMinimum(0);
-    ProgressDialog->setMaximum(100);
+    m_ProgressDialog = new QProgressDialog("Load ply files","Stop",0,0,this);
+    //ProgressDialog->setMinimumDuration(500);
+    m_ProgressDialog->setMinimum(0);
+    m_ProgressDialog->setMaximum(100);
 
-    connect(&FutureWatcher, SIGNAL(finished()),ProgressDialog,SLOT(cancel()));
-    connect(this,SIGNAL(progressInc(int)),ProgressDialog,SLOT(setValue(int)));
+    connect(&m_FutureWatcher, SIGNAL(finished()),m_ProgressDialog,SLOT(cancel()));
 
     m_glWidget = new GLWidget(this,m_Engine->getData());
 
@@ -87,7 +87,7 @@ void MainWindow::connectActions()
     connect(ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
     connect(ui->actionLoad_camera,		SIGNAL(triggered()),   this, SLOT(loadCameras()));
     connect(ui->actionExport_mask,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
-    connect(ui->actionLoad_and_Export,	SIGNAL(triggered()),   this, SLOT(loadAndExport()));
+    connect(ui->actionLoad_and_Export,  SIGNAL(triggered()),   this, SLOT(loadAndExport()));
     connect(ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
     connect(ui->actionClose_all,        SIGNAL(triggered()),   this, SLOT(closeAll()));
     connect(ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
@@ -116,7 +116,7 @@ void MainWindow::createMenus()
     updateRecentFileActions();
 }
 
-bool MainWindow::checkForLoadedEntities()
+bool MainWindow::checkForLoadedData()
 {
     bool loadedEntities = true;
     m_glWidget->displayNewMessage(QString()); //clear (any) message in the middle area
@@ -132,16 +132,10 @@ bool MainWindow::checkForLoadedEntities()
     return loadedEntities;
 }
 
-void MainWindow::emitProgress(int progress)
+void MainWindow::progression()
 {
-    emit progressInc(progress);
-}
-
-void MainWindow::progress(int var, void* obj)
-{
-    MainWindow* ca = (MainWindow*)obj;
-
-    ca->emitProgress(var);
+    if(m_incre)
+        m_ProgressDialog->setValue(*m_incre);
 }
 
 void MainWindow::addFiles(const QStringList& filenames)
@@ -162,14 +156,22 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         if (fi.suffix() == "ply")
         {            
-#ifdef WIN32
-            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadCloudsWin,filenames);
-#else
-            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadClouds,filenames,&this->progress,this);
-#endif
-            this->FutureWatcher.setFuture(future);
-            this->ProgressDialog->setWindowModality(Qt::WindowModal);
-            this->ProgressDialog->exec();
+
+            QTimer *timer_test = new QTimer(this);
+            m_incre = new int(0);
+            connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
+            timer_test->start(10);
+            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadClouds,filenames,m_incre);
+
+            this->m_FutureWatcher.setFuture(future);
+            this->m_ProgressDialog->setWindowModality(Qt::WindowModal);
+            this->m_ProgressDialog->exec();
+
+            timer_test->stop();
+            disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
+            delete m_incre;
+
+            delete timer_test;
 
             future.waitForFinished();
 
@@ -180,19 +182,13 @@ void MainWindow::addFiles(const QStringList& filenames)
         {          
             QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadCameras,filenames);
 
-            this->FutureWatcher.setFuture(future);
-            this->ProgressDialog->setWindowModality(Qt::WindowModal);
-            this->ProgressDialog->exec();
-
-            future.waitForFinished();
-
             m_glWidget->setCameraLoaded(true);
             m_glWidget->update();
         }
 
         for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
 
-        checkForLoadedEntities();
+        checkForLoadedData();
     }
 
     this->setWindowState(Qt::WindowActive);
@@ -268,9 +264,7 @@ void MainWindow::doActionDisplayShortcuts()
     QString text = "File menu:\n\n";
     text += "Ctrl+P: open .ply files\n";
     text += "Ctrl+O: open .xml camera files\n";
-    text += "Ctrl+E: export mask files\n";
-    text += "Ctrl+Maj+S: open .xml camera and export mask files\n";
-    text += "Ctrl+S: save .xml selection stack\n";
+    text += "Ctrl+S: save .xml selection infos\n";
     text += "Ctrl+X: close files\n";
     text += "Ctrl+Q: quit\n\n";
     text += "View:\n\n";
@@ -393,10 +387,9 @@ void MainWindow::exportMasks()
 
 void MainWindow::loadAndExport()
 {
-    loadCameras();
-    exportMasks();
+    m_Engine->loadCameras();
+    m_Engine->doMasks();
 }
-
 void MainWindow::saveSelectionInfos()
 {
     m_Engine->saveSelectInfos(m_glWidget->getSelectInfos());
@@ -408,7 +401,7 @@ void MainWindow::closeAll()
 
     m_glWidget->setCloudLoaded(false);
     m_glWidget->setCameraLoaded(false);
-    checkForLoadedEntities();
+    checkForLoadedData();
     m_glWidget->setBufferGl();
     m_glWidget->update();
 }
