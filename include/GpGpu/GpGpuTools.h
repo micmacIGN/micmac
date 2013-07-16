@@ -50,6 +50,8 @@ public:
 
     ~GpGpuTools(){}
 
+    /// \brief          parametre texture
+    static void			SetParamterTexture(textureReference &textRef);
 
     ///  \brief         Convertir array 2D en tableau lineaire
     template <class T>
