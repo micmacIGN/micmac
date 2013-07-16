@@ -23,9 +23,9 @@ void cLoader::SetSelectionFilename()
     m_SelectionOut = m_Dir.absolutePath() + QDir::separator() + "SelectionInfos.xml";
 }
 
-Cloud* cLoader::loadCloud( string i_ply_file, void (*incre)(int,void*), void* obj )
+Cloud* cLoader::loadCloud( string i_ply_file, int* incre )
 {
-    return Cloud::loadPly( i_ply_file, incre, obj );
+    return Cloud::loadPly( i_ply_file, incre );
 }
 
 vector <CamStenope *> cLoader::loadCameras()
@@ -71,19 +71,11 @@ cEngine::~cEngine()
    delete m_Loader;
 }
 
-void cEngine::loadClouds(QStringList filenames, void (*incre)(int,void*), void* obj)
+void cEngine::loadClouds(QStringList filenames, int* incre)
 {
     for (int i=0;i<filenames.size();++i)
     {
-        getData()->getBB(m_Loader->loadCloud(filenames[i].toStdString(), incre,obj));
-    }
-}
-
-void cEngine::loadCloudsWin(QStringList filenames)
-{
-    for (int i=0;i<filenames.size();++i)
-    {
-        getData()->getBB(m_Loader->loadCloud(filenames[i].toStdString()));
+        getData()->getBB(m_Loader->loadCloud(filenames[i].toStdString(), incre));
     }
 }
 
