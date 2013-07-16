@@ -48,6 +48,8 @@ public:
   /// \brief    Renvoie les parametres de correlation
   pCorGpu       Param();
 
+  void          signalComputeCorrel(uint dZ);
+
   void          InitJob(uint interZ);
 
   void          freezeCompute();
