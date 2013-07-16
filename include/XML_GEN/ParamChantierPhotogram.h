@@ -5003,11 +5003,8 @@ class cStructBlockCam
         friend void xml_init(cStructBlockCam & anObj,cElXMLTree * aTree);
 
 
-        std::string & KeyIm2Grp();
-        const std::string & KeyIm2Grp()const ;
-
-        std::string & KeyIm2Id();
-        const std::string & KeyIm2Id()const ;
+        std::string & KeyIm2TimeCam();
+        const std::string & KeyIm2TimeCam()const ;
 
         std::list< cParamOrientSHC > & ParamOrientSHC();
         const std::list< cParamOrientSHC > & ParamOrientSHC()const ;
@@ -5015,8 +5012,7 @@ class cStructBlockCam
         cTplValGesInit< cLiaisonsSHC > & LiaisonsSHC();
         const cTplValGesInit< cLiaisonsSHC > & LiaisonsSHC()const ;
     private:
-        std::string mKeyIm2Grp;
-        std::string mKeyIm2Id;
+        std::string mKeyIm2TimeCam;
         cTplValGesInit< cLiaisonsSHC > mLiaisonsSHC;
 };
 cElXMLTree * ToXMLTree(const cStructBlockCam &);

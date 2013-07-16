@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1436]) = {
+const char * (theNameVar_ParamChantierPhotogram[1435]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1372,15 +1372,14 @@ const char * (theNameVar_ParamChantierPhotogram[1436]) = {
 "  \n",
 "<!-- Avec l'exemple des images stereo Fuji, ou la paire image droite-image gauche forme un grp rigide\n",
 "    par ex  DSCF2689_L.jpg et DSCF2689_R.jpg\n",
-"    Im2Grp :  DSCF2689_L.jpg -> L\n",
-"    Im2Pose : DSCF2689_L.jpg -> 2689\n",
+"    KeyIm2TimeCam :  DSCF2689_L.jpg -> 2689 + L   (Direct)\n",
+"    KeyIm2TimeCam :  2689 + L  -> DSCF2689_L.jpg  (Inverse)\n",
 "    Grp ={L,R}\n",
 "-->\n",
 "    <StructBlockCam Nb=\"*\" Class=\"true\" ToReference=\"true\">\n",
 "         <!-- Declare tous les groupes existants -->\n",
 "         <!-- <Grp Nb=\"*\" Type==\"std::string\"> </Grp> -->\n",
-"         <KeyIm2Grp Nb=\"1\" Type=\"std::string\"> </KeyIm2Grp>\n",
-"         <KeyIm2Id Nb=\"1\" Type=\"std::string\"> </KeyIm2Id>\n",
+"         <KeyIm2TimeCam Nb=\"1\" Type=\"std::string\"> </KeyIm2TimeCam>\n",
 "\n",
 "         <LiaisonsSHC Nb=\"?\">\n",
 "              <ParamOrientSHC Nb=\"*\">\n",

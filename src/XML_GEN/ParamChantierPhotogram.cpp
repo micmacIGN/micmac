@@ -13257,25 +13257,14 @@ void xml_init(cLiaisonsSHC & anObj,cElXMLTree * aTree)
 }
 
 
-std::string & cStructBlockCam::KeyIm2Grp()
+std::string & cStructBlockCam::KeyIm2TimeCam()
 {
-   return mKeyIm2Grp;
+   return mKeyIm2TimeCam;
 }
 
-const std::string & cStructBlockCam::KeyIm2Grp()const 
+const std::string & cStructBlockCam::KeyIm2TimeCam()const 
 {
-   return mKeyIm2Grp;
-}
-
-
-std::string & cStructBlockCam::KeyIm2Id()
-{
-   return mKeyIm2Id;
-}
-
-const std::string & cStructBlockCam::KeyIm2Id()const 
-{
-   return mKeyIm2Id;
+   return mKeyIm2TimeCam;
 }
 
 
@@ -13304,8 +13293,7 @@ cElXMLTree * ToXMLTree(const cStructBlockCam & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"StructBlockCam",eXMLBranche);
-   aRes->AddFils(::ToXMLTree(std::string("KeyIm2Grp"),anObj.KeyIm2Grp())->ReTagThis("KeyIm2Grp"));
-   aRes->AddFils(::ToXMLTree(std::string("KeyIm2Id"),anObj.KeyIm2Id())->ReTagThis("KeyIm2Id"));
+   aRes->AddFils(::ToXMLTree(std::string("KeyIm2TimeCam"),anObj.KeyIm2TimeCam())->ReTagThis("KeyIm2TimeCam"));
    if (anObj.LiaisonsSHC().IsInit())
       aRes->AddFils(ToXMLTree(anObj.LiaisonsSHC().Val())->ReTagThis("LiaisonsSHC"));
   aRes->mGXml = anObj.mGXml;
@@ -13318,9 +13306,7 @@ void xml_init(cStructBlockCam & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
-   xml_init(anObj.KeyIm2Grp(),aTree->Get("KeyIm2Grp",1)); //tototo 
-
-   xml_init(anObj.KeyIm2Id(),aTree->Get("KeyIm2Id",1)); //tototo 
+   xml_init(anObj.KeyIm2TimeCam(),aTree->Get("KeyIm2TimeCam",1)); //tototo 
 
    xml_init(anObj.LiaisonsSHC(),aTree->Get("LiaisonsSHC",1)); //tototo 
 }
