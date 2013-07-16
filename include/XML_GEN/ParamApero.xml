@@ -1005,6 +1005,7 @@ normalises en echelle et/ou en translation -->
 
                      <EstimateOrientationInitBlockCamera Nb="*">
                          <Id Nb="1" Type="std::string"> </Id>
+                         <Show Type="bool" Nb="?" Def="false"> </Show>
                      </EstimateOrientationInitBlockCamera>
 
                      <MesureErreurTournante Nb="?">

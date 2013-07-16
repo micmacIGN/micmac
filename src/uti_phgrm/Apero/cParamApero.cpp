@@ -7755,11 +7755,24 @@ const std::string & cEstimateOrientationInitBlockCamera::Id()const
    return mId;
 }
 
+
+cTplValGesInit< bool > & cEstimateOrientationInitBlockCamera::Show()
+{
+   return mShow;
+}
+
+const cTplValGesInit< bool > & cEstimateOrientationInitBlockCamera::Show()const 
+{
+   return mShow;
+}
+
 cElXMLTree * ToXMLTree(const cEstimateOrientationInitBlockCamera & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"EstimateOrientationInitBlockCamera",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
+   if (anObj.Show().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Show"),anObj.Show().Val())->ReTagThis("Show"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -7771,6 +7784,8 @@ void xml_init(cEstimateOrientationInitBlockCamera & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
 
    xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
+
+   xml_init(anObj.Show(),aTree->Get("Show",1),bool(false)); //tototo 
 }
 
 
@@ -9530,23 +9545,12 @@ const cTplValGesInit< cBlocBascule > & cIterationsCompensation::BlocBascule()con
 }
 
 
-std::string & cIterationsCompensation::Id()
-{
-   return EstimateOrientationInitBlockCamera().Val().Id();
-}
-
-const std::string & cIterationsCompensation::Id()const 
-{
-   return EstimateOrientationInitBlockCamera().Val().Id();
-}
-
-
-cTplValGesInit< cEstimateOrientationInitBlockCamera > & cIterationsCompensation::EstimateOrientationInitBlockCamera()
+std::list< cEstimateOrientationInitBlockCamera > & cIterationsCompensation::EstimateOrientationInitBlockCamera()
 {
    return mEstimateOrientationInitBlockCamera;
 }
 
-const cTplValGesInit< cEstimateOrientationInitBlockCamera > & cIterationsCompensation::EstimateOrientationInitBlockCamera()const 
+const std::list< cEstimateOrientationInitBlockCamera > & cIterationsCompensation::EstimateOrientationInitBlockCamera()const 
 {
    return mEstimateOrientationInitBlockCamera;
 }
@@ -9783,8 +9787,12 @@ cElXMLTree * ToXMLTree(const cIterationsCompensation & anObj)
       aRes->AddFils(::ToXMLTree(std::string("BasicOrPl"),anObj.BasicOrPl().Val())->ReTagThis("BasicOrPl"));
    if (anObj.BlocBascule().IsInit())
       aRes->AddFils(ToXMLTree(anObj.BlocBascule().Val())->ReTagThis("BlocBascule"));
-   if (anObj.EstimateOrientationInitBlockCamera().IsInit())
-      aRes->AddFils(ToXMLTree(anObj.EstimateOrientationInitBlockCamera().Val())->ReTagThis("EstimateOrientationInitBlockCamera"));
+  for
+  (       std::list< cEstimateOrientationInitBlockCamera >::const_iterator it=anObj.EstimateOrientationInitBlockCamera().begin();
+      it !=anObj.EstimateOrientationInitBlockCamera().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("EstimateOrientationInitBlockCamera"));
    if (anObj.MesureErreurTournante().IsInit())
       aRes->AddFils(ToXMLTree(anObj.MesureErreurTournante().Val())->ReTagThis("MesureErreurTournante"));
    if (anObj.SectionContraintes().IsInit())
@@ -9851,7 +9859,7 @@ void xml_init(cIterationsCompensation & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.BlocBascule(),aTree->Get("BlocBascule",1)); //tototo 
 
-   xml_init(anObj.EstimateOrientationInitBlockCamera(),aTree->Get("EstimateOrientationInitBlockCamera",1)); //tototo 
+   xml_init(anObj.EstimateOrientationInitBlockCamera(),aTree->GetAll("EstimateOrientationInitBlockCamera",false,1));
 
    xml_init(anObj.MesureErreurTournante(),aTree->Get("MesureErreurTournante",1)); //tototo 
 

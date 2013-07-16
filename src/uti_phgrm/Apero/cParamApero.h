@@ -2657,8 +2657,12 @@ class cEstimateOrientationInitBlockCamera
 
         std::string & Id();
         const std::string & Id()const ;
+
+        cTplValGesInit< bool > & Show();
+        const cTplValGesInit< bool > & Show()const ;
     private:
         std::string mId;
+        cTplValGesInit< bool > mShow;
 };
 cElXMLTree * ToXMLTree(const cEstimateOrientationInitBlockCamera &);
 
@@ -3222,11 +3226,8 @@ class cIterationsCompensation
         cTplValGesInit< cBlocBascule > & BlocBascule();
         const cTplValGesInit< cBlocBascule > & BlocBascule()const ;
 
-        std::string & Id();
-        const std::string & Id()const ;
-
-        cTplValGesInit< cEstimateOrientationInitBlockCamera > & EstimateOrientationInitBlockCamera();
-        const cTplValGesInit< cEstimateOrientationInitBlockCamera > & EstimateOrientationInitBlockCamera()const ;
+        std::list< cEstimateOrientationInitBlockCamera > & EstimateOrientationInitBlockCamera();
+        const std::list< cEstimateOrientationInitBlockCamera > & EstimateOrientationInitBlockCamera()const ;
 
         int & Periode();
         const int & Periode()const ;
@@ -3295,7 +3296,7 @@ class cIterationsCompensation
         cTplValGesInit< cFixeOrientPlane > mFixeOrientPlane;
         cTplValGesInit< std::string > mBasicOrPl;
         cTplValGesInit< cBlocBascule > mBlocBascule;
-        cTplValGesInit< cEstimateOrientationInitBlockCamera > mEstimateOrientationInitBlockCamera;
+        std::list< cEstimateOrientationInitBlockCamera > mEstimateOrientationInitBlockCamera;
         cTplValGesInit< cMesureErreurTournante > mMesureErreurTournante;
         cTplValGesInit< cSectionContraintes > mSectionContraintes;
         std::list< std::string > mMessages;

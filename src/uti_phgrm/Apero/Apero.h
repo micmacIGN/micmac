@@ -2048,6 +2048,8 @@ class cAppliApero : public NROptF1vND
 
           void InitBlockCameras();
           void EstimateOIBC(const cEstimateOrientationInitBlockCamera &);
+          cImplemBlockCam * GetBlockCam(const std::string & anId);
+
           void InitFilters();
 
           void Verifs();
@@ -2093,7 +2095,7 @@ class cAppliApero : public NROptF1vND
 	  void MAJContrainteCamera(const cContraintesCamerasInc &);
 	  void MAJContraintePose(const cContraintesPoses &);
 
-        void  OneIterationCompensation(const cEtapeCompensation &,bool IsLast);
+        void  OneIterationCompensation(const cIterationsCompensation & ,const cEtapeCompensation &,bool IsLast);
         double ScoreLambda(double aLambda);  
         double NRF1v(REAL); // = ScoreLambda
         bool   NROptF1vContinue() const;
