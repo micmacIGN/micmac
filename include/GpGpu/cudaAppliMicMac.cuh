@@ -27,7 +27,8 @@
 #define   BLOCKDIM	16
 #define   SBLOCKDIM 10
 #else
-#define   BLOCKDIM	32
+#define   BLOCKDIM	16
+//#define   BLOCKDIM	32 moins rapide !!!!
 #define   SBLOCKDIM 15
 #endif
 
