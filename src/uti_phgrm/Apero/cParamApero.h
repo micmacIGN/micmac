@@ -1260,6 +1260,25 @@ class cCalibrationCameraInc
 };
 cElXMLTree * ToXMLTree(const cCalibrationCameraInc &);
 
+class cBlockCamera
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cBlockCamera & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameFile();
+        const std::string & NameFile()const ;
+
+        cTplValGesInit< std::string > & Id();
+        const cTplValGesInit< std::string > & Id()const ;
+    private:
+        std::string mNameFile;
+        cTplValGesInit< std::string > mId;
+};
+cElXMLTree * ToXMLTree(const cBlockCamera &);
+
 class cMEP_SPEC_MST
 {
     public:
@@ -1950,6 +1969,9 @@ class cSectionInconnues
         cTplValGesInit< int > & SeuilL1EstimMatrEss();
         const cTplValGesInit< int > & SeuilL1EstimMatrEss()const ;
 
+        std::list< cBlockCamera > & BlockCamera();
+        const std::list< cBlockCamera > & BlockCamera()const ;
+
         cTplValGesInit< cSetOrientationInterne > & GlobOrInterne();
         const cTplValGesInit< cSetOrientationInterne > & GlobOrInterne()const ;
 
@@ -1971,6 +1993,7 @@ class cSectionInconnues
         cTplValGesInit< bool > mSauvePMoyenOnlyWithMasq;
         std::list< cCalibrationCameraInc > mCalibrationCameraInc;
         cTplValGesInit< int > mSeuilL1EstimMatrEss;
+        std::list< cBlockCamera > mBlockCamera;
         cTplValGesInit< cSetOrientationInterne > mGlobOrInterne;
         std::list< cPoseCameraInc > mPoseCameraInc;
         std::list< cGroupeDePose > mGroupeDePose;
@@ -2624,6 +2647,21 @@ class cBlocBascule
 };
 cElXMLTree * ToXMLTree(const cBlocBascule &);
 
+class cEstimateOrientationInitBlockCamera
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cEstimateOrientationInitBlockCamera & anObj,cElXMLTree * aTree);
+
+
+        std::string & Id();
+        const std::string & Id()const ;
+    private:
+        std::string mId;
+};
+cElXMLTree * ToXMLTree(const cEstimateOrientationInitBlockCamera &);
+
 class cMesureErreurTournante
 {
     public:
@@ -3184,6 +3222,12 @@ class cIterationsCompensation
         cTplValGesInit< cBlocBascule > & BlocBascule();
         const cTplValGesInit< cBlocBascule > & BlocBascule()const ;
 
+        std::string & Id();
+        const std::string & Id()const ;
+
+        cTplValGesInit< cEstimateOrientationInitBlockCamera > & EstimateOrientationInitBlockCamera();
+        const cTplValGesInit< cEstimateOrientationInitBlockCamera > & EstimateOrientationInitBlockCamera()const ;
+
         int & Periode();
         const int & Periode()const ;
 
@@ -3251,6 +3295,7 @@ class cIterationsCompensation
         cTplValGesInit< cFixeOrientPlane > mFixeOrientPlane;
         cTplValGesInit< std::string > mBasicOrPl;
         cTplValGesInit< cBlocBascule > mBlocBascule;
+        cTplValGesInit< cEstimateOrientationInitBlockCamera > mEstimateOrientationInitBlockCamera;
         cTplValGesInit< cMesureErreurTournante > mMesureErreurTournante;
         cTplValGesInit< cSectionContraintes > mSectionContraintes;
         std::list< std::string > mMessages;
@@ -4816,6 +4861,9 @@ class cParamApero
 
         cTplValGesInit< int > & SeuilL1EstimMatrEss();
         const cTplValGesInit< int > & SeuilL1EstimMatrEss()const ;
+
+        std::list< cBlockCamera > & BlockCamera();
+        const std::list< cBlockCamera > & BlockCamera()const ;
 
         cTplValGesInit< cSetOrientationInterne > & GlobOrInterne();
         const cTplValGesInit< cSetOrientationInterne > & GlobOrInterne()const ;

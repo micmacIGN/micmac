@@ -3564,6 +3564,50 @@ void xml_init(cCalibrationCameraInc & anObj,cElXMLTree * aTree)
 }
 
 
+std::string & cBlockCamera::NameFile()
+{
+   return mNameFile;
+}
+
+const std::string & cBlockCamera::NameFile()const 
+{
+   return mNameFile;
+}
+
+
+cTplValGesInit< std::string > & cBlockCamera::Id()
+{
+   return mId;
+}
+
+const cTplValGesInit< std::string > & cBlockCamera::Id()const 
+{
+   return mId;
+}
+
+cElXMLTree * ToXMLTree(const cBlockCamera & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"BlockCamera",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameFile"),anObj.NameFile())->ReTagThis("NameFile"));
+   if (anObj.Id().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id().Val())->ReTagThis("Id"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cBlockCamera & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.NameFile(),aTree->Get("NameFile",1)); //tototo 
+
+   xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
+}
+
+
 cTplValGesInit< bool > & cMEP_SPEC_MST::Show()
 {
    return mShow;
@@ -5680,6 +5724,17 @@ const cTplValGesInit< int > & cSectionInconnues::SeuilL1EstimMatrEss()const
 }
 
 
+std::list< cBlockCamera > & cSectionInconnues::BlockCamera()
+{
+   return mBlockCamera;
+}
+
+const std::list< cBlockCamera > & cSectionInconnues::BlockCamera()const 
+{
+   return mBlockCamera;
+}
+
+
 cTplValGesInit< cSetOrientationInterne > & cSectionInconnues::GlobOrInterne()
 {
    return mGlobOrInterne;
@@ -5754,6 +5809,12 @@ cElXMLTree * ToXMLTree(const cSectionInconnues & anObj)
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("CalibrationCameraInc"));
    if (anObj.SeuilL1EstimMatrEss().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("SeuilL1EstimMatrEss"),anObj.SeuilL1EstimMatrEss().Val())->ReTagThis("SeuilL1EstimMatrEss"));
+  for
+  (       std::list< cBlockCamera >::const_iterator it=anObj.BlockCamera().begin();
+      it !=anObj.BlockCamera().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("BlockCamera"));
    if (anObj.GlobOrInterne().IsInit())
       aRes->AddFils(ToXMLTree(anObj.GlobOrInterne().Val())->ReTagThis("GlobOrInterne"));
   for
@@ -5801,6 +5862,8 @@ void xml_init(cSectionInconnues & anObj,cElXMLTree * aTree)
    xml_init(anObj.CalibrationCameraInc(),aTree->GetAll("CalibrationCameraInc",false,1));
 
    xml_init(anObj.SeuilL1EstimMatrEss(),aTree->Get("SeuilL1EstimMatrEss",1),int(150)); //tototo 
+
+   xml_init(anObj.BlockCamera(),aTree->GetAll("BlockCamera",false,1));
 
    xml_init(anObj.GlobOrInterne(),aTree->Get("GlobOrInterne",1)); //tototo 
 
@@ -7682,6 +7745,35 @@ void xml_init(cBlocBascule & anObj,cElXMLTree * aTree)
 }
 
 
+std::string & cEstimateOrientationInitBlockCamera::Id()
+{
+   return mId;
+}
+
+const std::string & cEstimateOrientationInitBlockCamera::Id()const 
+{
+   return mId;
+}
+
+cElXMLTree * ToXMLTree(const cEstimateOrientationInitBlockCamera & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"EstimateOrientationInitBlockCamera",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cEstimateOrientationInitBlockCamera & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
+}
+
+
 int & cMesureErreurTournante::Periode()
 {
    return mPeriode;
@@ -9438,6 +9530,28 @@ const cTplValGesInit< cBlocBascule > & cIterationsCompensation::BlocBascule()con
 }
 
 
+std::string & cIterationsCompensation::Id()
+{
+   return EstimateOrientationInitBlockCamera().Val().Id();
+}
+
+const std::string & cIterationsCompensation::Id()const 
+{
+   return EstimateOrientationInitBlockCamera().Val().Id();
+}
+
+
+cTplValGesInit< cEstimateOrientationInitBlockCamera > & cIterationsCompensation::EstimateOrientationInitBlockCamera()
+{
+   return mEstimateOrientationInitBlockCamera;
+}
+
+const cTplValGesInit< cEstimateOrientationInitBlockCamera > & cIterationsCompensation::EstimateOrientationInitBlockCamera()const 
+{
+   return mEstimateOrientationInitBlockCamera;
+}
+
+
 int & cIterationsCompensation::Periode()
 {
    return MesureErreurTournante().Val().Periode();
@@ -9669,6 +9783,8 @@ cElXMLTree * ToXMLTree(const cIterationsCompensation & anObj)
       aRes->AddFils(::ToXMLTree(std::string("BasicOrPl"),anObj.BasicOrPl().Val())->ReTagThis("BasicOrPl"));
    if (anObj.BlocBascule().IsInit())
       aRes->AddFils(ToXMLTree(anObj.BlocBascule().Val())->ReTagThis("BlocBascule"));
+   if (anObj.EstimateOrientationInitBlockCamera().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.EstimateOrientationInitBlockCamera().Val())->ReTagThis("EstimateOrientationInitBlockCamera"));
    if (anObj.MesureErreurTournante().IsInit())
       aRes->AddFils(ToXMLTree(anObj.MesureErreurTournante().Val())->ReTagThis("MesureErreurTournante"));
    if (anObj.SectionContraintes().IsInit())
@@ -9734,6 +9850,8 @@ void xml_init(cIterationsCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.BasicOrPl(),aTree->Get("BasicOrPl",1)); //tototo 
 
    xml_init(anObj.BlocBascule(),aTree->Get("BlocBascule",1)); //tototo 
+
+   xml_init(anObj.EstimateOrientationInitBlockCamera(),aTree->Get("EstimateOrientationInitBlockCamera",1)); //tototo 
 
    xml_init(anObj.MesureErreurTournante(),aTree->Get("MesureErreurTournante",1)); //tototo 
 
@@ -14580,6 +14698,17 @@ cTplValGesInit< int > & cParamApero::SeuilL1EstimMatrEss()
 const cTplValGesInit< int > & cParamApero::SeuilL1EstimMatrEss()const 
 {
    return SectionInconnues().SeuilL1EstimMatrEss();
+}
+
+
+std::list< cBlockCamera > & cParamApero::BlockCamera()
+{
+   return SectionInconnues().BlockCamera();
+}
+
+const std::list< cBlockCamera > & cParamApero::BlockCamera()const 
+{
+   return SectionInconnues().BlockCamera();
 }
 
 
