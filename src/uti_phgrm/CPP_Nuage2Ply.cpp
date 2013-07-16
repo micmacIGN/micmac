@@ -82,6 +82,13 @@ int Nuage2Ply_main(int argc,char ** argv)
                     << EAM(aDoMesh,"Mesh",true)
     );	
 
+    if (EAMIsInit(&aSz))
+    {
+         std::cout << "Waaaarnnn  :  meaning of parameter has changed\n";
+         std::cout <<  " it used be the corne (this was a bug)\n";
+         std::cout <<  " now it is really the size\n";
+    }
+
     if (aNameOut=="")
       aNameOut = StdPrefix(aNameNuage) + ".ply";
 	
@@ -101,7 +108,7 @@ int Nuage2Ply_main(int argc,char ** argv)
        aNuage->Std_AddAttrFromFile(anAttr1,aDyn,aRatio);
     }
 
-     cElNuage3DMaille * aRes = aNuage->ReScaleAndClip(Box2dr(aP0,aSz),aSc);
+     cElNuage3DMaille * aRes = aNuage->ReScaleAndClip(Box2dr(aP0,aP0+aSz),aSc);
      std::list<std::string > aLComment(aVCom.begin(), aVCom.end());
 
     if (DoPly)

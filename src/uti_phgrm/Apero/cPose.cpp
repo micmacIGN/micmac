@@ -1987,7 +1987,17 @@ void cAppliApero::AddObservationsRigidGrp(const cObsRigidGrpImage & anORGI,bool 
 /*                                                         */
 /***********************************************************/
 
-/*
+
+class cImpleBC_CamOnTime
+{
+    public :
+        cImpleBC_CamOnTime(int aNb) :
+           mCams (aNb)
+        {
+        }
+
+        std::vector<cPoseCam *> mCams;
+};
 
 class cImplemBlockCam
 {
@@ -1996,27 +2006,35 @@ class cImplemBlockCam
     private :
          cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam );
 
-         cAppliApero &             mAppli;
-         const cStructBlockCam &   mSBC;
-         cRelEquivPose             mRelGrp;
-         cRelEquivPose             mRelId;
+         cAppliApero &               mAppli;
+         const cStructBlockCam &     mSBC;
+         cRelEquivPose               mRelGrp;
+         cRelEquivPose               mRelId;
+
+         std::map<std::string,int>   mCam2Num;
+         std::vector<std::string>   mNum2Cam;
 };
 
 
 
-cImplemBlockCam::cImplemBlockCam(cAppliApero &,const cStructBlockCam) :
+cImplemBlockCam::cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam aSBC) :
       mAppli (anAppli),
       mSBC   (aSBC)
 {
     const std::vector<cPoseCam*> & aVP = mAppli.VecAllPose();
+
     for (int aKP=0 ; aKP<int(aVP.size()) ; aKP++)
     {
           cPoseCam * aPC = aVP[aKP];
           std::string aNamePose = aPC->Name();
-          std::string aNameGrp = mAppli.ICNM()->Assoc1To1(mSBC->KeyIm2Grp(),aNamePose,true);
-          std::string aNameId  = mAppli.ICNM()->Assoc1To1(mSBC->KeyIm2Grp(),aNamePose,true);
+/*
+          std::string aNameGrp = mAppli.ICNM()->Assoc1To1(mSBC->KeyIm2GrpSameCam(),aNamePose,true);
+          std::string aNameId  = mAppli.ICNM()->Assoc1To1(mSBC->KeyIm2GrpSameTime(),aNamePose,true);
+*/
     }
 }
+
+/*
 */
 
 
