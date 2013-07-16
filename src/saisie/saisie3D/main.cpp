@@ -1,5 +1,4 @@
-﻿//#include <QApplication>
-#include <QtGui>
+﻿#include <QtGui>
 #include "mainwindow.h"
 
 int main(int argc, char *argv[])
@@ -11,15 +10,16 @@ int main(int argc, char *argv[])
     app.setOrganizationName("IGN");
     app.setApplicationName("Saisie3D");
 
-    const QString locale = QLocale::system().name();
+    //const QString locale = QLocale::system().name();
 
      // qt translations
      QTranslator qtTranslator;
-     qtTranslator.load("qt_" + locale,
-                       QLibraryInfo::location(QLibraryInfo::TranslationsPath));
+    bool test = qtTranslator.load("saisie3D_fr");
+     //qtTranslator.load("qt_" + locale,
+     //                  QLibraryInfo::location(QLibraryInfo::TranslationsPath));
      app.installTranslator(&qtTranslator);
 
-     // app translations
+ /*    // app translations
    #ifdef PKGDATADIR
      QString dataDir = QLatin1String(PKGDATADIR);
    #else
@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 
   QTranslator translator;
   translator.load(locale, localeDir);
-  app.installTranslator(&translator);
+  app.installTranslator(&translator);*/
 
     MainWindow w;
     w.show();

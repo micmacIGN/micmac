@@ -74,8 +74,9 @@ enum SELECTION_MODE { SUB,
                       NONE
                     };
 
-class cLoader : QObject
+class cLoader : QObject   
 {
+    Q_OBJECT
 public:
 
     cLoader();
@@ -105,7 +106,7 @@ private:
 };
 
 class cEngine
-{
+{    
 public:
 
     cEngine();
