@@ -105,7 +105,7 @@ void MainWindow::connectActions()
 
 void MainWindow::createMenus()
 {
-    m_RFMenu = new QMenu("Recent files", this);
+    m_RFMenu = new QMenu(tr("Recent files"), this);
 
     ui->menuFile->insertMenu(ui->actionExport_mask, m_RFMenu);
     ui->menuFile->insertSeparator(ui->actionExport_mask);
@@ -123,7 +123,7 @@ bool MainWindow::checkForLoadedData()
 
     if (!m_glWidget->hasDataLoaded())
     {
-        m_glWidget->displayNewMessage("Drag & drop files on window to load them!");
+        m_glWidget->displayNewMessage(tr("Drag & drop files on window to load them!"));
         loadedEntities = false;
     }
     else
@@ -261,35 +261,35 @@ void MainWindow::togglePointsSelection(bool state)
 
 void MainWindow::doActionDisplayShortcuts()
 {
-    QString text = "File menu:\n\n";
-    text += "Ctrl+P: open .ply files\n";
-    text += "Ctrl+O: open .xml camera files\n";
-    text += "Ctrl+S: save .xml selection infos\n";
-    text += "Ctrl+X: close files\n";
-    text += "Ctrl+Q: quit\n\n";
-    text += "View:\n\n";
-    text += "F2: full screen\n";
-    text += "F3: show axis\n";
-    text += "F4: show ball\n";
-    text += "F5: show bounding box\n";
-    text += "F6: show cameras\n";
-    text += "F7: show help messages\n";
+    QString text = tr("File menu:") +"\n\n";
+    text += tr("Ctrl+P: open .ply files")+"\n";
+    text += tr("Ctrl+O: open .xml camera files")+"\n";
+    text += tr("Ctrl+S: save .xml selection infos")+"\n";
+    text += tr("Ctrl+X: close files")+"\n";
+    text += tr("Ctrl+Q: quit") +"\n\n";
+    text += tr("View:") +"\n\n";
+    text += tr("F2: full screen") +"\n";
+    text += tr("F3: show axis") +"\n";
+    text += tr("F4: show ball") +"\n";
+    text += tr("F5: show bounding box") +"\n";
+    text += tr("F6: show cameras") +"\n";
+    text += tr("F7: show help messages") +"\n";
     text += "\n";
-    text += "Key +/-: increase/decrease point size\n\n";
-    text += "Selection menu:\n\n";
-    text += "F8: move mode / selection mode\n";
-    text += "    - Left click : add a point to polyline\n";
-    text += "    - Right click: close polyline\n";
-    text += "    - Echap: delete polyline\n";
-    text += "    - Space bar: add points inside polyline\n";
-    text += "    - Del: delete points inside polyline\n";
-    text += "    - . : delete closest point in polyline\n";
-    text += "    - Ctrl+A: select all\n";
-    text += "    - Ctrl+D: select none\n";
-    text += "    - Ctrl+R: undo all past selections\n";
-    text += "    - Ctrl+I: invert selection\n";
+    text += tr("Key +/-: increase/decrease point size") +"\n\n";
+    text += tr("Selection menu:") +"\n\n";
+    text += tr("F8: move mode / selection mode") +"\n";
+    text += tr("    - Left click : add a point to polyline") +"\n";
+    text += tr("    - Right click: close polyline") +"\n";
+    text += tr("    - Echap: delete polyline") +"\n";
+    text += tr("    - Space bar: add points inside polyline") +"\n";
+    text += tr("    - Del: delete points inside polyline") +"\n";
+    text += tr("    - . : delete closest point in polyline") +"\n";
+    text += tr("    - Ctrl+A: select all") +"\n";
+    text += tr("    - Ctrl+D: select none") +"\n";
+    text += tr("    - Ctrl+R: undo all past selections") +"\n";
+    text += tr("    - Ctrl+I: invert selection") +"\n";
 
-    QMessageBox::information(NULL, "Saisie3D - shortcuts", text);
+    QMessageBox::information(NULL, tr("Saisie3D - shortcuts"), text);
 }
 
 void MainWindow::addPoints()
