@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1476]) = {
+const char * (theNameVar_ParamApero[1477]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1005,8 +1005,9 @@ const char * (theNameVar_ParamApero[1476]) = {
 "                     </BlocBascule>\n",
 "\n",
 "\n",
-"                     <EstimateOrientationInitBlockCamera Nb=\"?\">\n",
+"                     <EstimateOrientationInitBlockCamera Nb=\"*\">\n",
 "                         <Id Nb=\"1\" Type=\"std::string\"> </Id>\n",
+"                         <Show Type=\"bool\" Nb=\"?\" Def=\"false\"> </Show>\n",
 "                     </EstimateOrientationInitBlockCamera>\n",
 "\n",
 "                     <MesureErreurTournante Nb=\"?\">\n",

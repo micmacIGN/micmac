@@ -279,7 +279,7 @@ class cCmpNbNNPose
       }
 };
 
-void cAppliApero::OneIterationCompensation(const cEtapeCompensation & anEC,bool IsLast)
+void cAppliApero::OneIterationCompensation(const cIterationsCompensation & anIter,const cEtapeCompensation & anEC,bool IsLast)
 {
     mCurEC = & anEC;
     mIsLastIter = IsLast;
@@ -359,6 +359,17 @@ void cAppliApero::OneIterationCompensation(const cEtapeCompensation & anEC,bool 
     {
         itD->second->Trace();
     }
+
+    for 
+    (
+        std::list<cEstimateOrientationInitBlockCamera>::const_iterator itE= anIter.EstimateOrientationInitBlockCamera().begin();
+        itE != anIter.EstimateOrientationInitBlockCamera().end();
+        itE++
+    )
+    {
+       EstimateOIBC(*itE);
+    }
+
 }
 
 
@@ -606,7 +617,7 @@ void cAppliApero::DoOneContraintesAndCompens
     {
                MAJContraintes(anIter.SectionContraintes().Val());
     }
-    OneIterationCompensation(anEC,IsLastIter);
+    OneIterationCompensation(anIter,anEC,IsLastIter);
 
     ShowResiduCentre();
     ShowRetard();

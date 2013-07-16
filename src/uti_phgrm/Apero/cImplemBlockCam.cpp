@@ -53,6 +53,7 @@ class cIBC_ImsOneTime
     public :
         cIBC_ImsOneTime(int aNbCam,int aNum,const std::string& aNameTime) ;
         void  AddPose(cPoseCam *, int aNum);
+        cPoseCam * Pose(int aKP);
 
     private :
 
@@ -79,6 +80,8 @@ class cImplemBlockCam
     public :
          // static cImplemBlockCam * AllocNew(cAppliApero &,const cStructBlockCam,const std::string & anId);
          cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam,const std::string & anId );
+
+         void EstimCurOri(const cEstimateOrientationInitBlockCamera &);
     private :
 
          cAppliApero &               mAppli;
@@ -90,6 +93,7 @@ class cImplemBlockCam
          std::map<std::string,cIBC_OneCam *>   mName2Cam;
          std::vector<cIBC_OneCam *>            mNum2Cam;
          int                                   mNbCam;
+         int                                   mNbTime;
 
          std::map<std::string,cIBC_ImsOneTime *> mName2ITime;
          std::vector<cIBC_ImsOneTime *>          mNum2ITime;
@@ -118,6 +122,10 @@ void  cIBC_ImsOneTime::AddPose(cPoseCam * aPC, int aNum)
     mCams[aNum] = aPC;
 }
 
+cPoseCam * cIBC_ImsOneTime::Pose(int aKP)
+{
+   return mCams.at(aKP);
+}
     // =================================
     //              cIBC_OneCam 
     // =================================
@@ -151,6 +159,7 @@ cImplemBlockCam::cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam aSB
           std::string aNameCam = aPair.second;
           if (! DicBoolFind(mName2Cam,aNameCam))
           {
+
                cIBC_OneCam *  aCam = new cIBC_OneCam(aNameCam,mNum2Cam.size());
                mName2Cam[aNameCam] = aCam;
                mNum2Cam.push_back(aCam); 
@@ -178,8 +187,33 @@ cImplemBlockCam::cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam aSB
           cIBC_OneCam * aCam = mName2Cam[aNameCam];
           aIms->AddPose(aPC,aCam->Num());
     }
+    mNbTime = mNum2ITime.size();
 }
 
+void cImplemBlockCam::EstimCurOri(const cEstimateOrientationInitBlockCamera &)
+{
+   for (int aKC=1 ; aKC<mNbCam ; aKC++)
+   {
+       for (int aKT=0 ; aKT<mNbTime ; aKT++)
+       {
+            cIBC_ImsOneTime *  aTime =  mNum2ITime[aKT];
+            cPoseCam * aP0 = aTime->Pose(0);
+            cPoseCam * aP1 = aTime->Pose(aKC);
+
+            ElRotation3D  aR0toM = aP0->CurCam()->Orient().inv();
+            ElRotation3D  aR1toM = aP1->CurCam()->Orient().inv();
+
+            ElRotation3D aR1to0 = aR0toM.inv() * aR1toM;
+
+            std::cout << "EstimCurOri " << aP0->Name() <<  " " << aP1->Name() << "\n";
+            std::cout << "  " <<  aR1to0.ImAff(Pt3dr(0,0,0)) 
+                              << " " << aR1to0.teta01() 
+                              << " " << aR1to0.teta02() 
+                              << " " << aR1to0.teta12() 
+                              << "\n";
+       }
+   }
+}
 
 void cAppliApero::InitBlockCameras()
 {
@@ -193,8 +227,8 @@ void cAppliApero::InitBlockCameras()
        std::string anId = itB->Id().ValWithDef(itB->NameFile());
        cStructBlockCam aSB = StdGetObjFromFile<cStructBlockCam>
                              (
-                                 StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
                                  mICNM->Dir() + itB->NameFile(),
+                                 StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
                                  "StructBlockCam",
                                  "StructBlockCam"
                              );
@@ -203,6 +237,20 @@ void cAppliApero::InitBlockCameras()
   }
 }
 
+
+cImplemBlockCam * cAppliApero::GetBlockCam(const std::string & anId)
+{
+   cImplemBlockCam* aRes = mBlockCams[anId];
+   ELISE_ASSERT(aRes!=0,"cAppliApero::GetBlockCam");
+
+   return aRes;
+}
+
+void  cAppliApero::EstimateOIBC(const cEstimateOrientationInitBlockCamera & anEOIB)
+{ 
+    cImplemBlockCam * aBlock = GetBlockCam(anEOIB.Id());
+    aBlock->EstimCurOri(anEOIB);
+}
 
 
 };

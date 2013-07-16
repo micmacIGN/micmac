@@ -1370,13 +1370,11 @@ namespace NS_ParamChantierPhotogram{
   
 <!-- Avec l'exemple des images stereo Fuji, ou la paire image droite-image gauche forme un grp rigide
     par ex  DSCF2689_L.jpg et DSCF2689_R.jpg
-    KeyIm2TimeCam :  DSCF2689_L.jpg -> 2689 + L   (Direct)
-    KeyIm2TimeCam :  2689 + L  -> DSCF2689_L.jpg  (Inverse)
+        Im2Grp :  DSCF2689_L.jpg -> L
+        Im2Pose : DSCF2689_L.jpg -> 2689
     Grp ={L,R}
 -->
     <StructBlockCam Nb="*" Class="true" ToReference="true">
-         <!-- Declare tous les groupes existants -->
-         <!-- <Grp Nb="*" Type=="std::string"> </Grp> -->
          <KeyIm2TimeCam Nb="1" Type="std::string"> </KeyIm2TimeCam>
 
          <LiaisonsSHC Nb="?">

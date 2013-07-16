@@ -53,6 +53,7 @@ void cAppliApero::InitInconnues()
 {
     InitPoses();
     InitSurf();
+    InitBlockCameras();
 }
 
         //  Calibs    
