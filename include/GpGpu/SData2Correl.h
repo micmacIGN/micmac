@@ -9,6 +9,9 @@ extern "C" textureReference&	getMask();
 extern "C" textureReference&	getImage();
 extern "C" textureReference&	getProjection(int TexSel);
 
+#define SYNC false
+#define ASYNC true
+
 struct SData2Correl
 {
     SData2Correl();
@@ -16,25 +19,20 @@ struct SData2Correl
     ~SData2Correl();
 
     void    SetImages( float* dataImage, uint2 dimImage, int nbLayer );
+
     void    SetMask( pixel* dataMask, uint2 dimMask );
 
-    void    ReallocDeviceData(int nStream, uint interZ,pCorGpu param);
+    void    MemsetHostVolumeProj(uint iDef);
 
-    void    Realloc(pCorGpu param);
+    float*  HostVolumeCost(uint id);
 
-    void    MallocInfo();
+    float2* HostVolumeProj();
 
-    void    MemsetProj(uint iDef);
+    uint*   DeviVolumeNOK(uint s);
 
-    float*  OuputCost(uint id);
+    float*  DeviVolumeCache(uint s);
 
-    float2* InputProj();
-
-    void    DeallocVolumes();
-
-    void    DeallocMemory();
-
-    textureReference& GetTeXProjection( int TexSel );
+    float*  DeviVolumeCost(uint s);
 
     void    copyHostToDevice(uint s);
 
@@ -42,17 +40,23 @@ struct SData2Correl
 
     void    UnBindTextureProj(uint s);
 
+    void    DeallocHostData();
+
+    void    DeallocDeviceData();
+
     void    ReallocHostData(uint zInter, pCorGpu param);
 
-    void    ReallocAllDeviceData(uint interZ, pCorGpu param);
+    void    ReallocDeviceArray(pCorGpu param);
 
-    void    ReallocAllDeviceDataAsync(uint interZ, pCorGpu param, cudaStream_t* pstream, uint s );
+    void    ReallocDeviceData(pCorGpu param);
 
+private:
 
-    uint*   DVolumeNOK(uint s){ return _d_volumeNIOk[s].pData();}
-    float*  DVolumeCache(uint s){ return _d_volumeCach[s].pData();}
-    float*  DVolumeCost(uint s){ return _d_volumeCost[s].pData();}
+    void    ReallocDeviceArray(int nStream, pCorGpu param);
 
+    void    MallocInfo();
+
+    textureReference& GetTeXProjection( int TexSel );
 
     CuHostData3D<float>         _hVolumeCost[2];
     CuHostData3D<float2>        _hVolumeProj;
@@ -67,18 +71,12 @@ struct SData2Correl
 
     textureReference&           _texMask;
     textureReference&           _texMaskD;
-    textureReference&           _texImages;
-    //textureReference&         _texCache;
+    textureReference&           _texImages;    
     textureReference&           _texProjections_00;
     textureReference&           _texProjections_01;
-    textureReference&           _texProjections_02;
-    textureReference&           _texProjections_03;
-    textureReference&           _texProjections_04;
-    textureReference&           _texProjections_05;
-    textureReference&           _texProjections_06;
-    textureReference&           _texProjections_07;
-
     int                         _countAlloc;
+
+    //void    ReallocDeviceArrayAsync(pCorGpu param, cudaStream_t* pstream, uint s );
 };
 
 #endif

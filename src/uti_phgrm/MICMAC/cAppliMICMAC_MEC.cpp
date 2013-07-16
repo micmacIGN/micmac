@@ -798,7 +798,7 @@ void cAppliMICMAC::DoOneBloc
         mSurfOpt->SolveOpt();
 
 #ifdef CUDA_ENABLED
-        IMmGg.Data().DeallocMemory();
+        IMmGg.Data().DeallocDeviceData();
 #endif
     }
 

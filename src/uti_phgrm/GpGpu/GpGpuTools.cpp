@@ -1,5 +1,13 @@
 #include "GpGpu/GpGpuTools.h"
 
+void GpGpuTools::SetParamterTexture(textureReference &textRef)
+{
+    textRef.addressMode[0]	= cudaAddressModeBorder;
+    textRef.addressMode[1]	= cudaAddressModeBorder;
+    textRef.filterMode		= cudaFilterModeLinear; //cudaFilterModePoint cudaFilterModeLinear
+    textRef.normalized		= false;
+}
+
 std::string GpGpuTools::GetImagesFolder()
 {
 

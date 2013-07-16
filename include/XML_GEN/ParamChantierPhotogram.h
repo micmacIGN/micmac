@@ -4954,6 +4954,72 @@ cElXMLTree * ToXMLTree(const cImSecOfMaster &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cParamOrientSHC
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cParamOrientSHC & anObj,cElXMLTree * aTree);
+
+
+        std::string & IdGrp();
+        const std::string & IdGrp()const ;
+
+        Pt3dr & Vecteur();
+        const Pt3dr & Vecteur()const ;
+
+        cRotationVect & Rot();
+        const cRotationVect & Rot()const ;
+    private:
+        std::string mIdGrp;
+        Pt3dr mVecteur;
+        cRotationVect mRot;
+};
+cElXMLTree * ToXMLTree(const cParamOrientSHC &);
+
+class cLiaisonsSHC
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cLiaisonsSHC & anObj,cElXMLTree * aTree);
+
+
+        std::list< cParamOrientSHC > & ParamOrientSHC();
+        const std::list< cParamOrientSHC > & ParamOrientSHC()const ;
+    private:
+        std::list< cParamOrientSHC > mParamOrientSHC;
+};
+cElXMLTree * ToXMLTree(const cLiaisonsSHC &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cStructBlockCam
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cStructBlockCam & anObj,cElXMLTree * aTree);
+
+
+        std::string & KeyIm2TimeCam();
+        const std::string & KeyIm2TimeCam()const ;
+
+        std::list< cParamOrientSHC > & ParamOrientSHC();
+        const std::list< cParamOrientSHC > & ParamOrientSHC()const ;
+
+        cTplValGesInit< cLiaisonsSHC > & LiaisonsSHC();
+        const cTplValGesInit< cLiaisonsSHC > & LiaisonsSHC()const ;
+    private:
+        std::string mKeyIm2TimeCam;
+        cTplValGesInit< cLiaisonsSHC > mLiaisonsSHC;
+};
+cElXMLTree * ToXMLTree(const cStructBlockCam &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXmlExivEntry
 {
     public:

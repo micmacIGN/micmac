@@ -13166,6 +13166,152 @@ void xml_init(cImSecOfMaster & anObj,cElXMLTree * aTree)
 }
 
 
+std::string & cParamOrientSHC::IdGrp()
+{
+   return mIdGrp;
+}
+
+const std::string & cParamOrientSHC::IdGrp()const 
+{
+   return mIdGrp;
+}
+
+
+Pt3dr & cParamOrientSHC::Vecteur()
+{
+   return mVecteur;
+}
+
+const Pt3dr & cParamOrientSHC::Vecteur()const 
+{
+   return mVecteur;
+}
+
+
+cRotationVect & cParamOrientSHC::Rot()
+{
+   return mRot;
+}
+
+const cRotationVect & cParamOrientSHC::Rot()const 
+{
+   return mRot;
+}
+
+cElXMLTree * ToXMLTree(const cParamOrientSHC & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ParamOrientSHC",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("IdGrp"),anObj.IdGrp())->ReTagThis("IdGrp"));
+   aRes->AddFils(ToXMLTree(std::string("Vecteur"),anObj.Vecteur())->ReTagThis("Vecteur"));
+   aRes->AddFils(ToXMLTree(anObj.Rot())->ReTagThis("Rot"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cParamOrientSHC & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.IdGrp(),aTree->Get("IdGrp",1)); //tototo 
+
+   xml_init(anObj.Vecteur(),aTree->Get("Vecteur",1)); //tototo 
+
+   xml_init(anObj.Rot(),aTree->Get("Rot",1)); //tototo 
+}
+
+
+std::list< cParamOrientSHC > & cLiaisonsSHC::ParamOrientSHC()
+{
+   return mParamOrientSHC;
+}
+
+const std::list< cParamOrientSHC > & cLiaisonsSHC::ParamOrientSHC()const 
+{
+   return mParamOrientSHC;
+}
+
+cElXMLTree * ToXMLTree(const cLiaisonsSHC & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"LiaisonsSHC",eXMLBranche);
+  for
+  (       std::list< cParamOrientSHC >::const_iterator it=anObj.ParamOrientSHC().begin();
+      it !=anObj.ParamOrientSHC().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("ParamOrientSHC"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cLiaisonsSHC & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.ParamOrientSHC(),aTree->GetAll("ParamOrientSHC",false,1));
+}
+
+
+std::string & cStructBlockCam::KeyIm2TimeCam()
+{
+   return mKeyIm2TimeCam;
+}
+
+const std::string & cStructBlockCam::KeyIm2TimeCam()const 
+{
+   return mKeyIm2TimeCam;
+}
+
+
+std::list< cParamOrientSHC > & cStructBlockCam::ParamOrientSHC()
+{
+   return LiaisonsSHC().Val().ParamOrientSHC();
+}
+
+const std::list< cParamOrientSHC > & cStructBlockCam::ParamOrientSHC()const 
+{
+   return LiaisonsSHC().Val().ParamOrientSHC();
+}
+
+
+cTplValGesInit< cLiaisonsSHC > & cStructBlockCam::LiaisonsSHC()
+{
+   return mLiaisonsSHC;
+}
+
+const cTplValGesInit< cLiaisonsSHC > & cStructBlockCam::LiaisonsSHC()const 
+{
+   return mLiaisonsSHC;
+}
+
+cElXMLTree * ToXMLTree(const cStructBlockCam & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"StructBlockCam",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("KeyIm2TimeCam"),anObj.KeyIm2TimeCam())->ReTagThis("KeyIm2TimeCam"));
+   if (anObj.LiaisonsSHC().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.LiaisonsSHC().Val())->ReTagThis("LiaisonsSHC"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cStructBlockCam & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.KeyIm2TimeCam(),aTree->Get("KeyIm2TimeCam",1)); //tototo 
+
+   xml_init(anObj.LiaisonsSHC(),aTree->Get("LiaisonsSHC",1)); //tototo 
+}
+
+
 std::list< std::string > & cXmlExivEntry::Names()
 {
    return mNames;
