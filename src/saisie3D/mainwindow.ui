@@ -340,6 +340,9 @@ QStatusBar
    <property name="shortcut">
     <string>Ctrl+E</string>
    </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionLoad_and_Export">
    <property name="text">
@@ -347,6 +350,9 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionShow_ball">
