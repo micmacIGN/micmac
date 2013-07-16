@@ -48,3 +48,11 @@ build-saisie3D-Desktop_Qt_5_0_2_MSVC2010_32bit-Debug
 build-saisie3D-Desktop_Qt_5_0_2_MSVC2010_32bit-Release
 build32
 src/uti_phgrm/GpGpu/SData2Correl.cpp.autosave
+src/saisie/saisie3D/saisie3D.pro.user
+src/saisie/saisie3D/moc_ui_mainwindow.cxx_parameters
+src/saisie/saisie3D/moc_mainwindow.cxx_parameters
+src/saisie/saisie3D/moc_GLWidget.cxx_parameters
+src/saisie/saisie3D/moc_Cloud.cxx_parameters
+src/saisie/saisie3D/CMakeCache.txt
+src/saisie/saisie2D/Saisie2D/Saisie2D.pro.user
+src/saisie/saisie2D/Saisie2D.pro.user
