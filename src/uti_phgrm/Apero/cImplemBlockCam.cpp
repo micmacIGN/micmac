@@ -253,6 +253,7 @@ void  cAppliApero::EstimateOIBC(const cEstimateOrientationInitBlockCamera & anEO
 }
 
 
+
 };
 
 /*Footer-MicMac-eLiSe-25/06/2007
