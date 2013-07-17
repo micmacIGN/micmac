@@ -289,7 +289,7 @@ void MainWindow::doActionDisplayShortcuts()
     text += tr("    - Ctrl+R: undo all past selections") +"\n";
     text += tr("    - Ctrl+I: invert selection") +"\n";
 
-    QMessageBox::information(NULL, tr("Saisie3D - shortcuts"), text);
+    QMessageBox::information(NULL, tr("Saisie - shortcuts"), text);
 }
 
 void MainWindow::addPoints()

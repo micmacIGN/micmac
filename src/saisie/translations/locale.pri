@@ -1,7 +1,7 @@
 INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 
-TRANSLATIONS += saisie3D_fr.ts
+TRANSLATIONS += saisie_fr.ts
 
 isEmpty(QMAKE_LRELEASE) {
     win32:QMAKE_LRELEASE = $$[QT_INSTALL_BINS]/lrelease.exe

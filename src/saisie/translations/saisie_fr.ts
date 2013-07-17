@@ -223,7 +223,7 @@
     <message>
         <location filename="../mainwindow.ui" line="424"/>
         <source>Exit</source>
-        <translation>Fermer</translation>
+        <translation>Quitter</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="427"/>
@@ -254,7 +254,7 @@
     <message>
         <location filename="../mainwindow.ui" line="451"/>
         <source>Save selection infos</source>
-        <translation>Sauvegarder les infos de sélection</translation>
+        <translation>Sauvegarder la sélection</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="454"/>
@@ -337,164 +337,269 @@
         <translation>Glisser-déposer les fichiers pour les charger !</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="264"/>
         <source>File menu:
 
 </source>
+        <translation type="obsolete">Menu fichier :</translation>
+    </message>
+    <message>
+        <source>Ctrl+P: open .ply files
+</source>
+        <translation type="obsolete">Ctrl+P : ouvrir des fichiers ply</translation>
+    </message>
+    <message>
+        <source>Ctrl+O: open .xml camera files
+</source>
+        <translation type="obsolete">Ctrl+O : ouvrir des fichiers camera xml</translation>
+    </message>
+    <message>
+        <source>Ctrl+S: save .xml selection infos
+</source>
+        <translation type="obsolete">Ctrl+S : sauver les infos de sélection</translation>
+    </message>
+    <message>
+        <source>Ctrl+X: close files
+</source>
+        <translation type="obsolete">Ctrl+X : fermer les fichiers</translation>
+    </message>
+    <message>
+        <source>Ctrl+Q: quit
+
+</source>
+        <translation type="obsolete">Ctrl+Q : quitter</translation>
+    </message>
+    <message>
+        <source>View:
+
+</source>
+        <translation type="obsolete">Vue :</translation>
+    </message>
+    <message>
+        <source>F2: full screen
+</source>
+        <translation type="obsolete">F2 : plein écran</translation>
+    </message>
+    <message>
+        <source>F3: show axis
+</source>
+        <translation type="obsolete">F3 : afficher les axes</translation>
+    </message>
+    <message>
+        <source>F4: show ball
+</source>
+        <translation type="obsolete">F4 : afficher la sphère</translation>
+    </message>
+    <message>
+        <source>F5: show bounding box
+</source>
+        <translation type="obsolete">F5 : afficher la boite englobante</translation>
+    </message>
+    <message>
+        <source>F6: show cameras
+</source>
+        <translation type="obsolete">F6 : afficher les caméras</translation>
+    </message>
+    <message>
+        <source>F7: show help messages
+</source>
+        <translation type="obsolete">F7 : affichher les messages d&apos;aide</translation>
+    </message>
+    <message>
+        <source>Key +/-: increase/decrease point size
+
+</source>
+        <translation type="obsolete">Touche +/- : augmenter/réduire la taille des points</translation>
+    </message>
+    <message>
+        <source>Selection menu:
+
+</source>
+        <translation type="obsolete">Menu sélection :</translation>
+    </message>
+    <message>
+        <source>F8: move mode / selection mode
+</source>
+        <translation type="obsolete">F8 : mode déplacement / mode sélection</translation>
+    </message>
+    <message>
+        <source>    - Left click : add a point to polyline
+</source>
+        <translation type="obsolete">    - Clic gauche : ajouter un point à la polyligne</translation>
+    </message>
+    <message>
+        <source>    - Right click: close polyline
+</source>
+        <translation type="obsolete">    - clic droit : fermer la polyligne</translation>
+    </message>
+    <message>
+        <source>    - Echap: delete polyline
+</source>
+        <translation type="obsolete">    - Echap : effacer la polyligne</translation>
+    </message>
+    <message>
+        <source>    - Space bar: add points inside polyline
+</source>
+        <translation type="obsolete">    - Barre d&apos;espace : sélectionner les points à l&apos;intérieur de la polyligne</translation>
+    </message>
+    <message>
+        <source>    - Del: delete points inside polyline
+</source>
+        <translation type="obsolete">    - Suppr : déselectionner les points à l&apos;intérieur de la polyligne</translation>
+    </message>
+    <message>
+        <source>    - . : delete closest point in polyline
+</source>
+        <translation type="obsolete">    - . : supprimer le point de la polyligne le plus près du curseur</translation>
+    </message>
+    <message>
+        <source>    - Ctrl+A: select all
+</source>
+        <translation type="obsolete">    - Ctrl+A : sélectionner tout</translation>
+    </message>
+    <message>
+        <source>    - Ctrl+D: select none
+</source>
+        <translation type="obsolete">    - Ctrl+D : tout déselectionner</translation>
+    </message>
+    <message>
+        <source>    - Ctrl+R: undo all past selections
+</source>
+        <translation type="obsolete">    - Ctrl+R : annuler toutes les actions précédentes</translation>
+    </message>
+    <message>
+        <source>    - Ctrl+I: invert selection
+</source>
+        <translation type="obsolete">    - Ctrl+I : inverser la sélection</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="264"/>
+        <source>File menu:</source>
         <translation>Menu fichier :</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="265"/>
-        <source>Ctrl+P: open .ply files
-</source>
+        <source>Ctrl+P: open .ply files</source>
         <translation>Ctrl+P : ouvrir des fichiers ply</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="266"/>
-        <source>Ctrl+O: open .xml camera files
-</source>
-        <translation>Ctrl+O : ouvrir des fichiers camera xml</translation>
+        <source>Ctrl+O: open .xml camera files</source>
+        <translation>Ctrl+O : ouvrir des fichiers camera</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="267"/>
-        <source>Ctrl+S: save .xml selection infos
-</source>
-        <translation>Ctrl+S : sauver les infos de sélection</translation>
+        <source>Ctrl+S: save .xml selection infos</source>
+        <translation>Ctrl+S : sauvegarder les informations de sélection</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="268"/>
-        <source>Ctrl+X: close files
-</source>
+        <source>Ctrl+X: close files</source>
         <translation>Ctrl+X : fermer les fichiers</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="269"/>
-        <source>Ctrl+Q: quit
-
-</source>
+        <source>Ctrl+Q: quit</source>
         <translation>Ctrl+Q : quitter</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="270"/>
-        <source>View:
-
-</source>
+        <source>View:</source>
         <translation>Vue :</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="271"/>
-        <source>F2: full screen
-</source>
+        <source>F2: full screen</source>
         <translation>F2 : plein écran</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="272"/>
-        <source>F3: show axis
-</source>
+        <source>F3: show axis</source>
         <translation>F3 : afficher les axes</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="273"/>
-        <source>F4: show ball
-</source>
+        <source>F4: show ball</source>
         <translation>F4 : afficher la sphère</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="274"/>
-        <source>F5: show bounding box
-</source>
-        <translation>F5 : afficher la boite englobante</translation>
+        <source>F5: show bounding box</source>
+        <translation>F5 : affficher la boite englobante</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="275"/>
-        <source>F6: show cameras
-</source>
+        <source>F6: show cameras</source>
         <translation>F6 : afficher les caméras</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="276"/>
-        <source>F7: show help messages
-</source>
-        <translation>F7 : affichher les messages d&apos;aide</translation>
+        <source>F7: show help messages</source>
+        <translation>F7 : afficher les messages d&apos;aide</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="278"/>
-        <source>Key +/-: increase/decrease point size
-
-</source>
-        <translation>Touche +/- : augmenter/réduire la taille des points</translation>
+        <source>Key +/-: increase/decrease point size</source>
+        <translation>Touche +/- : augmenter/diminuer la taille des points</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="279"/>
-        <source>Selection menu:
-
-</source>
-        <translation>Menu sélection :</translation>
+        <source>Selection menu:</source>
+        <translation>Menu sélection : </translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="280"/>
-        <source>F8: move mode / selection mode
-</source>
+        <source>F8: move mode / selection mode</source>
         <translation>F8 : mode déplacement / mode sélection</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="281"/>
-        <source>    - Left click : add a point to polyline
-</source>
-        <translation>    - Clic gauche : ajouter un point à la polyligne</translation>
+        <source>    - Left click : add a point to polyline</source>
+        <translation>    - clic gauche : ajouter un point à la polyligne</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="282"/>
-        <source>    - Right click: close polyline
-</source>
+        <source>    - Right click: close polyline</source>
         <translation>    - clic droit : fermer la polyligne</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="283"/>
-        <source>    - Echap: delete polyline
-</source>
-        <translation>    - Echap : effacer la polyligne</translation>
+        <source>    - Echap: delete polyline</source>
+        <translation>    - touche Echap : effacer la polyligne</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="284"/>
-        <source>    - Space bar: add points inside polyline
-</source>
-        <translation>    - Barre d&apos;espace : sélectionner les points à l&apos;intérieur de la polyligne</translation>
+        <source>    - Space bar: add points inside polyline</source>
+        <translation>    - barre espace : ajouter les points à l&apos;intérieur de la polyligne</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="285"/>
-        <source>    - Del: delete points inside polyline
-</source>
-        <translation>    - Suppr : déselectionner les points à l&apos;intérieur de la polyligne</translation>
+        <source>    - Del: delete points inside polyline</source>
+        <translation>    - touche Suppr : supprimer les points à l&apos;intérieur de la polyligne</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="286"/>
-        <source>    - . : delete closest point in polyline
-</source>
-        <translation>    - . : supprimer le point de la polyligne le plus près du curseur</translation>
+        <source>    - . : delete closest point in polyline</source>
+        <translation>    - touche &quot;.&quot; : supprimer le point de la polyligne
+                          le plus proche du curseur</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="287"/>
-        <source>    - Ctrl+A: select all
-</source>
-        <translation>    - Ctrl+A : sélectionner tout</translation>
+        <source>    - Ctrl+A: select all</source>
+        <translation>    - Ctrl+A : séléectionner tout</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="288"/>
-        <source>    - Ctrl+D: select none
-</source>
+        <source>    - Ctrl+D: select none</source>
         <translation>    - Ctrl+D : tout déselectionner</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="289"/>
-        <source>    - Ctrl+R: undo all past selections
-</source>
-        <translation>    - Ctrl+R : annuler toutes les actions précédentes</translation>
+        <source>    - Ctrl+R: undo all past selections</source>
+        <translation>    - Ctrl+R : réinitialiser</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="290"/>
-        <source>    - Ctrl+I: invert selection
-</source>
+        <source>    - Ctrl+I: invert selection</source>
         <translation>    - Ctrl+I : inverser la sélection</translation>
     </message>
     <message>

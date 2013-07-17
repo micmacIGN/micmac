@@ -16,18 +16,14 @@ QT       += core gui opengl xml
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets concurrent
 
-TARGET = saisie3D
+TARGET = saisie
 TEMPLATE = app
-
-DEFINES += TWEAK
-
-
 
 SOURCES += main.cpp\
         mainwindow.cpp\
         GLWidget.cpp \
         Cloud.cpp \
-        ../../poisson/plyfile.cpp \
+        ../poisson/plyfile.cpp \
         Data.cpp \
         Engine.cpp
 
@@ -42,55 +38,50 @@ FORMS    += \
     mainwindow.ui
 
 RESOURCES += \
-    ../icones/icones.qrc
+    ./icones/icones.qrc
 	
+DEFINES += TWEAK
 #Don't warn about sprintf, fopen etc being 'unsafe'
 DEFINES += _CRT_SECURE_NO_WARNINGS
 win32: DEFINES += ELISE_windows
 
-INCLUDEPATH += $$PWD/../../../include
-DEPENDPATH += $$PWD/../../../include
-DEPENDPATH += . translations
+INCLUDEPATH += $$PWD/../../include
+DEPENDPATH += $$PWD/../../include
+DEPENDPATH += ./translations
 
 #comment to run debug
+CONFIG(release)
+{
+unix|win32: LIBS += -L$$PWD/../../lib -lelise
 
+macx: LIBS+= -L/usr/X11R6/lib/ -lX11 -lglut
+else:unix: LIBS += -lGLU -lGLEW -lglut
+unix:!macx: QMAKE_CXXFLAGS += -Wall -Wno-ignored-qualifiers -Wno-unused-parameter
+
+win32: PRE_TARGETDEPS += $$PWD/../../lib/elise.lib
+else:unix: PRE_TARGETDEPS += $$PWD/../../lib/libelise.a
+}
 #end of section to comment
 
 CONFIG(debug)
 {
-unix|win32: LIBS += -L$$PWD/../../../bin -lelise
+unix|win32: LIBS += -L$$PWD/../../bin -lelise
 
 macx: LIBS+= -L/usr/X11R6/lib/ -lX11 -lglut
 else:unix: LIBS += -lGLU -lGLEW -lglut
 unix:!macx: QMAKE_CXXFLAGS += -Wall -Wno-ignored-qualifiers -Wno-unused-parameter
 
-win32: PRE_TARGETDEPS += $$PWD/../../../lib/elise.lib
-else:unix: PRE_TARGETDEPS += $$PWD/../../../lib/libelise.a
-}
-
-CONFIG(release)
-{
-unix|win32: LIBS += -L$$PWD/../../../lib -lelise
-
-macx: LIBS+= -L/usr/X11R6/lib/ -lX11 -lglut
-else:unix: LIBS += -lGLU -lGLEW -lglut
-unix:!macx: QMAKE_CXXFLAGS += -Wall -Wno-ignored-qualifiers -Wno-unused-parameter
-
-win32: PRE_TARGETDEPS += $$PWD/../../../lib/elise.lib
-else:unix: PRE_TARGETDEPS += $$PWD/../../../lib/libelise.a
+win32: PRE_TARGETDEPS += $$PWD/../../lib/elise.lib
+else:unix: PRE_TARGETDEPS += $$PWD/../../lib/libelise.a
 }
 
 # Tell Qt Linguist that we use UTF-8 strings in our sources
-TRANSLATIONS += ./translations/saisie3D_fr.ts
+TRANSLATIONS += ./translations/saisie_fr.ts
 CODECFORTR = UTF-8
 CODECFORSRC = UTF-8
-#include(translations/locale.pri)
-
-isEmpty(PREFIX):PREFIX = /usr
-DATADIR = $$PREFIX/share
-PKGDATADIR = $$DATADIR/qiviewer
+#include(./translations/locale.pri)
 
 INSTALLS += translations
 
-translations.path = $$PKGDATADIR
+translations.path = ./translations
 translations.files += $$DESTDIR/locale
