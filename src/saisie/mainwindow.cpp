@@ -86,6 +86,7 @@ void MainWindow::connectActions()
     //File menu
     connect(ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
     connect(ui->actionLoad_camera,		SIGNAL(triggered()),   this, SLOT(loadCameras()));
+    connect(ui->actionLoad_images,		SIGNAL(triggered()),   this, SLOT(loadImages()));
     connect(ui->actionExport_mask,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
     connect(ui->actionLoad_and_Export,  SIGNAL(triggered()),   this, SLOT(loadAndExport()));
     connect(ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
@@ -107,8 +108,8 @@ void MainWindow::createMenus()
 {
     m_RFMenu = new QMenu(tr("Recent files"), this);
 
-    ui->menuFile->insertMenu(ui->actionExport_mask, m_RFMenu);
-    ui->menuFile->insertSeparator(ui->actionExport_mask);
+    ui->menuFile->insertMenu(ui->actionSave_selection, m_RFMenu);
+    ui->menuFile->insertSeparator(ui->actionSave_selection);
 
     for (int i = 0; i < MaxRecentFiles; ++i)
         m_RFMenu->addAction(m_recentFileActs[i]);
@@ -156,7 +157,6 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         if (fi.suffix() == "ply")
         {            
-
             QTimer *timer_test = new QTimer(this);
             m_incre = new int(0);
             connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
@@ -174,17 +174,31 @@ void MainWindow::addFiles(const QStringList& filenames)
             delete timer_test;
 
             future.waitForFinished();
-
-            m_glWidget->setData(m_Engine->getData());
-            m_glWidget->update();
         }
         else if (fi.suffix() == "xml")
         {          
             QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadCameras,filenames);
 
-            m_glWidget->setCameraLoaded(true);
-            m_glWidget->update();
+            this->m_FutureWatcher.setFuture(future);
+            this->m_ProgressDialog->setWindowModality(Qt::WindowModal);
+            this->m_ProgressDialog->exec();
+
+            future.waitForFinished();
         }
+        else
+        {
+            //try to load images
+            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadImages,filenames);
+
+            this->m_FutureWatcher.setFuture(future);
+            this->m_ProgressDialog->setWindowModality(Qt::WindowModal);
+            this->m_ProgressDialog->exec();
+
+            future.waitForFinished();
+        }
+
+        m_glWidget->setData(m_Engine->getData());
+        m_glWidget->update();
 
         for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
 
@@ -263,7 +277,8 @@ void MainWindow::doActionDisplayShortcuts()
 {
     QString text = tr("File menu:") +"\n\n";
     text += tr("Ctrl+P: open .ply files")+"\n";
-    text += tr("Ctrl+O: open .xml camera files")+"\n";
+    text += tr("Ctrl+C: open .xml camera files")+"\n";
+    text += tr("Ctrl+O: open image files")+"\n";
     text += tr("Ctrl+S: save .xml selection infos")+"\n";
     text += tr("Ctrl+X: close files")+"\n";
     text += tr("Ctrl+Q: quit") +"\n\n";
@@ -377,7 +392,16 @@ void MainWindow::loadPlys()
 
 void MainWindow::loadCameras()
 {
-    m_Engine->loadCameras();
+    m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Camera Files"),QString(), tr("Files (*.xml)"));
+
+    addFiles(m_FilenamesIn);
+}
+
+void MainWindow::loadImages()
+{
+    m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Image Files"),QString(), tr("Files (*.*)"));
+
+    addFiles(m_FilenamesIn);
 }
 
 void MainWindow::exportMasks()
@@ -387,7 +411,7 @@ void MainWindow::exportMasks()
 
 void MainWindow::loadAndExport()
 {
-    m_Engine->loadCameras();
+    loadCameras();
     m_Engine->doMasks();
 }
 void MainWindow::saveSelectionInfos()
@@ -428,7 +452,8 @@ void MainWindow::setCurrentFile(const QString &fileName)
 
     settings.setValue("recentFileList", files);
 
-    foreach (QWidget *widget, QApplication::topLevelWidgets()) {
+    foreach (QWidget *widget, QApplication::topLevelWidgets())
+    {
         MainWindow *mainWin = qobject_cast<MainWindow *>(widget);
         if (mainWin)
             mainWin->updateRecentFileActions();
