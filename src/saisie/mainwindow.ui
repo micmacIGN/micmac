@@ -158,6 +158,7 @@ QStatusBar
     <addaction name="actionLoad_camera"/>
     <addaction name="actionExport_mask"/>
     <addaction name="actionLoad_and_Export"/>
+    <addaction name="actionLoad_images"/>
     <addaction name="actionSave_selection"/>
     <addaction name="actionClose_all"/>
     <addaction name="actionExit"/>
@@ -327,10 +328,10 @@ QStatusBar
   </action>
   <action name="actionLoad_camera">
    <property name="text">
-    <string>Load cameras</string>
+    <string>Open cameras</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+O</string>
+    <string>Ctrl+C</string>
    </property>
   </action>
   <action name="actionExport_mask">
@@ -429,7 +430,7 @@ QStatusBar
   </action>
   <action name="actionLoad_plys">
    <property name="text">
-    <string>Load ply files</string>
+    <string>Open ply files</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
@@ -514,6 +515,14 @@ QStatusBar
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionLoad_images">
+   <property name="text">
+    <string>Open images</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
    </property>
   </action>
  </widget>

@@ -81,15 +81,17 @@ public:
 
     cLoader();
 
-    CamStenope * loadCamera(string aNameFile);
-    vector <CamStenope *> loadCameras();
+    CamStenope * loadCamera(QString aNameFile);
+   //vector <CamStenope *> loadCameras();
 
     Cloud*      loadCloud(string i_ply_file , int *incre = NULL);
+
+    QImage*     loadImage(QString aNameFile);
 
     void        setDir(QDir aDir){m_Dir = aDir;}
     QDir        getDir(){return m_Dir;}
 
-    void        SetFilenamesOut();
+    //void        SetFilenamesOut();
     void        SetSelectionFilename();
 
     QStringList GetFilenamesOut() {return m_FilenamesOut;}
@@ -124,8 +126,8 @@ public:
     //! Load cameras .xml files
     void loadCameras(QStringList);
 
-    //! Load cameras orientation files
-    void loadCameras();
+    //! Load cameras .xml files
+    void loadImages(QStringList);
 
     void unloadAll();
 

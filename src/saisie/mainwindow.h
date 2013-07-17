@@ -75,6 +75,7 @@ public slots:
 
     void loadPlys();
     void loadCameras();
+    void loadImages();
     void closeAll();
     void exportMasks();
     void loadAndExport();

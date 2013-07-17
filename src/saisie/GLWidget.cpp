@@ -14,6 +14,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_font(font())
   , m_bCloudLoaded(false)
   , m_bCameraLoaded(false)
+  , m_bImageLoaded(false)
   , m_bDrawAxis(false)
   , m_bDrawBall(true)
   , m_bDrawCams(true)
@@ -69,9 +70,9 @@ void GLWidget::initializeGL()
     if (m_bInitialized)
         return;
 
-    glEnable( GL_DEPTH_TEST );
+    if (!hasImageLoaded()) glEnable( GL_DEPTH_TEST );
 
-    m_bInitialized = true;
+     m_bInitialized = true;
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -82,6 +83,22 @@ void GLWidget::resizeGL(int width, int height)
     m_glHeight = (float)height;
 
     glViewport( 0, 0, width, height );
+
+    if (hasImageLoaded())
+    {
+        glMatrixMode(GL_PROJECTION);
+
+        glLoadIdentity();
+
+        glOrtho(0, width,0,height,-1,1);
+
+        glMatrixMode(GL_MODELVIEW);
+       /* float w =  (float) m_Data->getImage(0)->width();
+        float h =  (float) m_Data->getImage(0)->height();
+        glPixelZoom(m_glWidth / (float) m_Data->getImage(0)->width(), m_glWidth / (float) m_Data->getImage(0)->height());*/
+    }
+
+
 }
 
 //-------------------------------------------------------------------------
@@ -113,11 +130,37 @@ void GLWidget::calculateFPS()
             m_messageFPS = "fps: " + QString::number(_fps);
         }
     }
-
 }
 
 void GLWidget::paintGL()
 {
+    if (hasImageLoaded())
+    {
+        //glClear(GL_COLOR_BUFFER_BIT);
+
+        glViewport(0, 0, m_glWidth, m_glHeight);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+
+        //glDrawPixels(m_Data->getCurImage()->width(), m_Data->getCurImage()->height(), GL_RGBA, GL_UNSIGNED_BYTE, _gldata.bits());
+        glBindTexture(GL_TEXTURE_2D, m_textGLList);
+
+        glEnable(GL_TEXTURE_2D);
+        glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 0.0f);
+        glVertex2f(-1.0f, -1.0f);
+        glTexCoord2f(1.0f, 0.0f);
+        glVertex2f(1.0f, -1.0f);
+        glTexCoord2f(1.0f, 1.0f);
+        glVertex2f(1.0f, 1.0f);
+        glTexCoord2f(0.0f, 1.0f);
+        glVertex2f(-1.0f, 1.0f);
+        glEnd();
+        glDisable(GL_TEXTURE_2D);
+    }
+    else
+    {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
 
@@ -150,7 +193,6 @@ void GLWidget::paintGL()
 
     if (hasCloudLoaded())
     {
-
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_COLOR_ARRAY);
 
@@ -268,6 +310,7 @@ void GLWidget::paintGL()
         m_font.setPointSize(fontSize);
         renderText(10, m_glHeight- fontSize, m_messageFPS,m_font);
     }
+    }
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
@@ -337,11 +380,11 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
     case Qt::Key_Minus:
         ptSizeUp(false);
         break;
-    default:
+    /*default:
     {
         event->ignore();
         return;
-    }
+    }*/
     }
     update();
 }
@@ -421,10 +464,10 @@ void GLWidget::setData(cData *data)
 {
     m_Data = data;
 
-    setBufferGl();
-
-    if (m_Data->NbClouds())
+     if (m_Data->NbClouds())
     {
+        setBufferGl();
+
         setCloudLoaded(true);
         setZoom(m_Data->getCloud(0)->getScale());
 
@@ -436,6 +479,49 @@ void GLWidget::setData(cData *data)
     if (m_Data->NbCameras())
     {
         setCameraLoaded(true);
+    }
+
+    if (m_Data->NbImages())
+    {
+        QImage t;
+        QImage b = *data->getCurImage();
+
+        glEnable(GL_TEXTURE_2D);
+        glAlphaFunc(GL_GREATER, 0.1f);
+        glEnable(GL_ALPHA_TEST);
+
+        //b.load(":graphics/zoom.png", "PNG");
+        //*QImage fixedImage( b.width(), b.height(), QImage::Format_ARGB32);
+
+        QPainter painter(&b);
+        //painter.setCompositionMode(QPainter::CompositionMode_Source);
+        //painter.fillRect(fixedImage.rect(), Qt::transparent);
+        //painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+        painter.drawImage( 0, 0, b);
+        painter.end();
+
+        t = QGLWidget::convertToGLFormat( b );
+        glGenTextures(1, &m_textGLList );
+        glBindTexture( GL_TEXTURE_2D, m_textGLList );
+        //zoomicon_size.setHeight( t.height() );
+        //zoomicon_size.setWidth( t.width() );
+        glTexImage2D( GL_TEXTURE_2D, 0, 4, t.width(), t.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, t.bits());
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+        glDisable(GL_ALPHA_TEST);
+        glDisable(GL_TEXTURE_2D);
+
+
+
+
+
+
+        //_gldata = convertToGLFormat(*(data->getImage(0)));
+       // QSize size = (data->getImage(0))->size();
+       // resize((data->getImage(0))->size());
+
+        setImageLoaded(true);
     }
 }
 
@@ -532,7 +618,7 @@ void GLWidget::setStandardOrthoCenter()
 
 void GLWidget::zoom()
 {
-    GLdouble zoom = m_params.zoom;
+ /*   GLdouble zoom = m_params.zoom;
     GLdouble fAspect = (GLdouble) m_glWidth/ m_glHeight;
 
     GLdouble left   = -zoom*fAspect;
@@ -541,14 +627,15 @@ void GLWidget::zoom()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    glOrtho(left, right, -zoom, zoom, -100.0f, 100.0f);
+    glOrtho(left, right, -zoom, zoom, -100.0f, 100.0f);*/
 }
 
 void GLWidget::setInteractionMode(INTERACTION_MODE mode)
 {
     m_interactionMode = mode;
 
-    switch (mode) {
+    switch (mode)
+    {
     case TRANSFORM_CAMERA:
         setMouseTracking(false);
         break;

@@ -3,8 +3,6 @@
 #include <fstream>
 #include <iostream>
 
-#include <QFileInfo>
-
 #include "poisson/ply.h"
 
 

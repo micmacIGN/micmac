@@ -6,7 +6,7 @@ cLoader::cLoader()
    m_FilenamesOut()
 {}
 
-void cLoader::SetFilenamesOut()
+/*void cLoader::SetFilenamesOut()
 {
     m_FilenamesOut.clear();
 
@@ -16,7 +16,7 @@ void cLoader::SetFilenamesOut()
 
         m_FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_masq.tif");
     }
-}
+}*/
 
 void cLoader::SetSelectionFilename()
 {
@@ -28,7 +28,12 @@ Cloud* cLoader::loadCloud( string i_ply_file, int* incre )
     return Cloud::loadPly( i_ply_file, incre );
 }
 
-vector <CamStenope *> cLoader::loadCameras()
+QImage* cLoader::loadImage( QString aNameFile )
+{
+    return new QImage( aNameFile );
+}
+
+/*vector <CamStenope *> cLoader::loadCameras()
 {
    vector <CamStenope *> a_res;
 
@@ -42,19 +47,24 @@ vector <CamStenope *> cLoader::loadCameras()
    SetFilenamesOut();
 
    return a_res;
-}
+}*/
 
 // File structure is assumed to be a typical Micmac workspace structure:
 // .ply files are in /MEC folder and orientations files in /Ori- folder
 // /MEC and /Ori- are in the main working directory (m_Dir)
 
-CamStenope* cLoader::loadCamera(string aNameFile)
+CamStenope* cLoader::loadCamera(QString aNameFile)
 {
     string DirChantier = (m_Dir.absolutePath()+ QDir::separator()).toStdString();
+    string filename    = aNameFile.toStdString();
+
+    QFileInfo fi(aNameFile);
+
+    m_FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_masq.tif");
 
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
 
-    return CamOrientGenFromFile(aNameFile.substr(DirChantier.size(),aNameFile.size()),anICNM);
+    return CamOrientGenFromFile(filename.substr(DirChantier.size(),filename.size()),anICNM);
 }
 
 //****************************************
@@ -83,13 +93,16 @@ void cEngine::loadCameras(QStringList filenames)
 {
     for (int i=0;i<filenames.size();++i)
     {
-        m_Data->addCamera(m_Loader->loadCamera(filenames[i].toStdString()));
+        m_Data->addCamera(m_Loader->loadCamera(filenames[i]));
     }
 }
 
-void cEngine::loadCameras()
+void cEngine::loadImages(QStringList filenames)
 {
-    m_Data->addCameras(m_Loader->loadCameras());
+    for (int i=0;i<filenames.size();++i)
+    {
+        m_Data->addImage(m_Loader->loadImage(filenames[i]));
+    }
 }
 
 void cEngine::doMasks()
