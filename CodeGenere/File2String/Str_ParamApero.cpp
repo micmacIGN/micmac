@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1467]) = {
+const char * (theNameVar_ParamApero[1477]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -579,6 +579,11 @@ const char * (theNameVar_ParamApero[1467]) = {
 "\n",
 "              <SeuilL1EstimMatrEss Nb=\"?\" Type=\"int\" Def=\"150\"> </SeuilL1EstimMatrEss>\n",
 "\n",
+"              <BlockCamera Nb=\"*\">\n",
+"                    <NameFile Nb=\"1\" Type=\"std::string\"> </NameFile>\n",
+"                    <Id   Nb=\"?\" Type=\"std::string\"> </Id>\n",
+"              </BlockCamera>\n",
+"\n",
 "\n",
 "               <!-- A priori obsolete, remplacee par valeur dans calib -->\n",
 "              <GlobOrInterne Nb=\"?\" RefType=\"SetOrientationInterne\"></GlobOrInterne>\n",
@@ -999,6 +1004,11 @@ const char * (theNameVar_ParamApero[1467]) = {
 "                           <IdBdl Nb=\"1\"  Type=\"std::string\"> </IdBdl>\n",
 "                     </BlocBascule>\n",
 "\n",
+"\n",
+"                     <EstimateOrientationInitBlockCamera Nb=\"*\">\n",
+"                         <Id Nb=\"1\" Type=\"std::string\"> </Id>\n",
+"                         <Show Type=\"bool\" Nb=\"?\" Def=\"false\"> </Show>\n",
+"                     </EstimateOrientationInitBlockCamera>\n",
 "\n",
 "                     <MesureErreurTournante Nb=\"?\">\n",
 "                          <Periode Nb=\"1\" Type=\"int\"> </Periode>\n",
