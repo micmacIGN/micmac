@@ -3899,9 +3899,9 @@ ElMatrix<double>   Std_RAff_C2M
 
    if (aRVect.CodageMatr().IsInit())
    {
-       SetLig(aM,0,aRVect.L1());
-       SetLig(aM,1,aRVect.L2());
-       SetLig(aM,2,aRVect.L3());
+       SetLig(aM,0,aRVect.CodageMatr().Val().L1());
+       SetLig(aM,1,aRVect.CodageMatr().Val().L2());
+       SetLig(aM,2,aRVect.CodageMatr().Val().L3());
 
 
        TrueRot = aRVect.CodageMatr().Val().TrueRot().ValWithDef(true);
@@ -4590,7 +4590,7 @@ cOrientationExterneRigide From_Std_RAff_C2M
    aRes.Centre() = aRC2M.ImAff(Pt3dr(0,0,0));
    if (aModeMatr)
    {
-      cCodageMatr  aCM;
+      cTypeCodageMatr  aCM;
 /*    NE MARCHE PLUS AVEC MATRICE POSSIBLEMENT NON ORTHO
       // L1 L2 .. sont des ligne, donc transpose, donc image reciproques ...
       aCM.L1() = aRC2M.IRecVect(Pt3dr(1,0,0));

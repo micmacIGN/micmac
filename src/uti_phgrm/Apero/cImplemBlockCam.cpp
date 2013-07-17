@@ -190,30 +190,72 @@ cImplemBlockCam::cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam aSB
     mNbTime = mNum2ITime.size();
 }
 
-void cImplemBlockCam::EstimCurOri(const cEstimateOrientationInitBlockCamera &)
+cTypeCodageMatr ExportMatr(const ElMatrix<double> & aMat)
 {
-   for (int aKC=1 ; aKC<mNbCam ; aKC++)
+    cTypeCodageMatr  aCM;
+
+    aMat.GetLig(0, aCM.L1() );
+    aMat.GetLig(1, aCM.L2() );
+    aMat.GetLig(2, aCM.L3() );
+    aCM.TrueRot().SetVal(true);
+
+    return aCM;
+}
+
+void cImplemBlockCam::EstimCurOri(const cEstimateOrientationInitBlockCamera & anEOIB)
+{
+   for (int aKC=0 ; aKC<mNbCam ; aKC++)
    {
+       if (anEOIB.Show().Val())
+          std::cout << "=================================================\n";
+       Pt3dr aSomTr(0,0,0);
+       double aSomP=0;
+       ElMatrix<double> aSomM(3,3,0.0);
        for (int aKT=0 ; aKT<mNbTime ; aKT++)
        {
             cIBC_ImsOneTime *  aTime =  mNum2ITime[aKT];
             cPoseCam * aP0 = aTime->Pose(0);
             cPoseCam * aP1 = aTime->Pose(aKC);
+            if (aP0 && aP1)
+            {
+                ElRotation3D  aR0toM = aP0->CurCam()->Orient().inv();
+                ElRotation3D  aR1toM = aP1->CurCam()->Orient().inv();
 
-            ElRotation3D  aR0toM = aP0->CurCam()->Orient().inv();
-            ElRotation3D  aR1toM = aP1->CurCam()->Orient().inv();
+                ElRotation3D aR1to0 = aR0toM.inv() * aR1toM;
 
-            ElRotation3D aR1to0 = aR0toM.inv() * aR1toM;
-
-            std::cout << "EstimCurOri " << aP0->Name() <<  " " << aP1->Name() << "\n";
-            std::cout << "  " <<  aR1to0.ImAff(Pt3dr(0,0,0)) 
-                              << " " << aR1to0.teta01() 
-                              << " " << aR1to0.teta02() 
-                              << " " << aR1to0.teta12() 
-                              << "\n";
+                if (anEOIB.Show().Val())
+                {
+                    std::cout << "  EstimCurOri " << aP0->Name() <<  " " << aP1->Name() << "\n";
+                    std::cout << "    " <<  aR1to0.ImAff(Pt3dr(0,0,0)) 
+                                      << " " << aR1to0.teta01() 
+                                      << " " << aR1to0.teta02() 
+                                      << " " << aR1to0.teta12() 
+                                      << "\n";
+                }
+                aSomTr = aSomTr+ aR1to0.tr();
+                aSomM += aR1to0.Mat();
+                aSomP++;
+            }
+       }
+       if (aSomP)
+       {
+           aSomTr = aSomTr / aSomP;
+           aSomM *=  1.0/aSomP;
+           aSomM = NearestRotation(aSomM);
+           ElRotation3D aRMoy(aSomTr,aSomM,true);
+           std::cout << "  ==========  AVERAGE =========== \n";
+           std::cout << "    " <<  aRMoy.ImAff(Pt3dr(0,0,0))
+                               << " " << aRMoy.teta01() 
+                               << " " << aRMoy.teta02() 
+                               << " " << aRMoy.teta12() 
+                               << "\n";
+          
        }
    }
 }
+
+
+
 
 void cAppliApero::InitBlockCameras()
 {

@@ -980,8 +980,8 @@ template <class Type>  class ElMatrix
 
           void ResizeInside(INT TX,INT TY);
 
-          void GetCol(INT aCol,Pt3d<Type> &);
-          void GetLig(INT aCol,Pt3d<Type> &);
+          void GetCol(INT aCol,Pt3d<Type> &) const;
+          void GetLig(INT aCol,Pt3d<Type> &) const;
         // Creation etc..
           ElMatrix(INT,bool init_id = true);
           ElMatrix(INT,INT,Type v =0);

@@ -496,7 +496,7 @@ template <class Type> Pt3d<Type> operator *
            );
 }
 
-template <class Type> void ElMatrix<Type>::GetCol(INT col,Pt3d<Type> &  p)
+template <class Type> void ElMatrix<Type>::GetCol(INT col,Pt3d<Type> &  p) const
 {
     ELISE_ASSERT(ty()==3,"Wrong size in  ElMatrix.GetCol(Pt3d)");
     p.x = (*this)(col,0);
@@ -505,7 +505,7 @@ template <class Type> void ElMatrix<Type>::GetCol(INT col,Pt3d<Type> &  p)
 }
 
 
-template <class Type> void ElMatrix<Type>::GetLig(INT lig,Pt3d<Type> &  p)
+template <class Type> void ElMatrix<Type>::GetLig(INT lig,Pt3d<Type> &  p) const
 {
     ELISE_ASSERT(tx()==3,"Wrong size in  ElMatrix.GetCol(Pt3d)");
     p.x = (*this)(0,lig);
