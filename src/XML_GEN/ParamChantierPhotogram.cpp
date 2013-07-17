@@ -5309,53 +5309,53 @@ void xml_init(cRepereCartesien & anObj,cElXMLTree * aTree)
 }
 
 
-Pt3dr & cCodageMatr::L1()
+Pt3dr & cTypeCodageMatr::L1()
 {
    return mL1;
 }
 
-const Pt3dr & cCodageMatr::L1()const 
+const Pt3dr & cTypeCodageMatr::L1()const 
 {
    return mL1;
 }
 
 
-Pt3dr & cCodageMatr::L2()
+Pt3dr & cTypeCodageMatr::L2()
 {
    return mL2;
 }
 
-const Pt3dr & cCodageMatr::L2()const 
+const Pt3dr & cTypeCodageMatr::L2()const 
 {
    return mL2;
 }
 
 
-Pt3dr & cCodageMatr::L3()
+Pt3dr & cTypeCodageMatr::L3()
 {
    return mL3;
 }
 
-const Pt3dr & cCodageMatr::L3()const 
+const Pt3dr & cTypeCodageMatr::L3()const 
 {
    return mL3;
 }
 
 
-cTplValGesInit< bool > & cCodageMatr::TrueRot()
+cTplValGesInit< bool > & cTypeCodageMatr::TrueRot()
 {
    return mTrueRot;
 }
 
-const cTplValGesInit< bool > & cCodageMatr::TrueRot()const 
+const cTplValGesInit< bool > & cTypeCodageMatr::TrueRot()const 
 {
    return mTrueRot;
 }
 
-cElXMLTree * ToXMLTree(const cCodageMatr & anObj)
+cElXMLTree * ToXMLTree(const cTypeCodageMatr & anObj)
 {
   XMLPushContext(anObj.mGXml);
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CodageMatr",eXMLBranche);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"TypeCodageMatr",eXMLBranche);
    aRes->AddFils(ToXMLTree(std::string("L1"),anObj.L1())->ReTagThis("L1"));
    aRes->AddFils(ToXMLTree(std::string("L2"),anObj.L2())->ReTagThis("L2"));
    aRes->AddFils(ToXMLTree(std::string("L3"),anObj.L3())->ReTagThis("L3"));
@@ -5366,7 +5366,7 @@ cElXMLTree * ToXMLTree(const cCodageMatr & anObj)
   return aRes;
 }
 
-void xml_init(cCodageMatr & anObj,cElXMLTree * aTree)
+void xml_init(cTypeCodageMatr & anObj,cElXMLTree * aTree)
 {
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
@@ -5381,56 +5381,12 @@ void xml_init(cCodageMatr & anObj,cElXMLTree * aTree)
 }
 
 
-Pt3dr & cRotationVect::L1()
-{
-   return CodageMatr().Val().L1();
-}
-
-const Pt3dr & cRotationVect::L1()const 
-{
-   return CodageMatr().Val().L1();
-}
-
-
-Pt3dr & cRotationVect::L2()
-{
-   return CodageMatr().Val().L2();
-}
-
-const Pt3dr & cRotationVect::L2()const 
-{
-   return CodageMatr().Val().L2();
-}
-
-
-Pt3dr & cRotationVect::L3()
-{
-   return CodageMatr().Val().L3();
-}
-
-const Pt3dr & cRotationVect::L3()const 
-{
-   return CodageMatr().Val().L3();
-}
-
-
-cTplValGesInit< bool > & cRotationVect::TrueRot()
-{
-   return CodageMatr().Val().TrueRot();
-}
-
-const cTplValGesInit< bool > & cRotationVect::TrueRot()const 
-{
-   return CodageMatr().Val().TrueRot();
-}
-
-
-cTplValGesInit< cCodageMatr > & cRotationVect::CodageMatr()
+cTplValGesInit< cTypeCodageMatr > & cRotationVect::CodageMatr()
 {
    return mCodageMatr;
 }
 
-const cTplValGesInit< cCodageMatr > & cRotationVect::CodageMatr()const 
+const cTplValGesInit< cTypeCodageMatr > & cRotationVect::CodageMatr()const 
 {
    return mCodageMatr;
 }
@@ -13188,12 +13144,12 @@ const Pt3dr & cParamOrientSHC::Vecteur()const
 }
 
 
-cRotationVect & cParamOrientSHC::Rot()
+cTypeCodageMatr & cParamOrientSHC::Rot()
 {
    return mRot;
 }
 
-const cRotationVect & cParamOrientSHC::Rot()const 
+const cTypeCodageMatr & cParamOrientSHC::Rot()const 
 {
    return mRot;
 }

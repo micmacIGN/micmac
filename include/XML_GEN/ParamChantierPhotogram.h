@@ -2123,12 +2123,12 @@ cElXMLTree * ToXMLTree(const cRepereCartesien &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-class cCodageMatr
+class cTypeCodageMatr
 {
     public:
         cGlobXmlGen mGXml;
 
-        friend void xml_init(cCodageMatr & anObj,cElXMLTree * aTree);
+        friend void xml_init(cTypeCodageMatr & anObj,cElXMLTree * aTree);
 
 
         Pt3dr & L1();
@@ -2148,7 +2148,7 @@ class cCodageMatr
         Pt3dr mL3;
         cTplValGesInit< bool > mTrueRot;
 };
-cElXMLTree * ToXMLTree(const cCodageMatr &);
+cElXMLTree * ToXMLTree(const cTypeCodageMatr &);
 
 /******************************************************/
 /******************************************************/
@@ -2161,20 +2161,8 @@ class cRotationVect
         friend void xml_init(cRotationVect & anObj,cElXMLTree * aTree);
 
 
-        Pt3dr & L1();
-        const Pt3dr & L1()const ;
-
-        Pt3dr & L2();
-        const Pt3dr & L2()const ;
-
-        Pt3dr & L3();
-        const Pt3dr & L3()const ;
-
-        cTplValGesInit< bool > & TrueRot();
-        const cTplValGesInit< bool > & TrueRot()const ;
-
-        cTplValGesInit< cCodageMatr > & CodageMatr();
-        const cTplValGesInit< cCodageMatr > & CodageMatr()const ;
+        cTplValGesInit< cTypeCodageMatr > & CodageMatr();
+        const cTplValGesInit< cTypeCodageMatr > & CodageMatr()const ;
 
         cTplValGesInit< Pt3dr > & CodageAngulaire();
         const cTplValGesInit< Pt3dr > & CodageAngulaire()const ;
@@ -2182,7 +2170,7 @@ class cRotationVect
         cTplValGesInit< std::string > & CodageSymbolique();
         const cTplValGesInit< std::string > & CodageSymbolique()const ;
     private:
-        cTplValGesInit< cCodageMatr > mCodageMatr;
+        cTplValGesInit< cTypeCodageMatr > mCodageMatr;
         cTplValGesInit< Pt3dr > mCodageAngulaire;
         cTplValGesInit< std::string > mCodageSymbolique;
 };
@@ -4968,12 +4956,12 @@ class cParamOrientSHC
         Pt3dr & Vecteur();
         const Pt3dr & Vecteur()const ;
 
-        cRotationVect & Rot();
-        const cRotationVect & Rot()const ;
+        cTypeCodageMatr & Rot();
+        const cTypeCodageMatr & Rot()const ;
     private:
         std::string mIdGrp;
         Pt3dr mVecteur;
-        cRotationVect mRot;
+        cTypeCodageMatr mRot;
 };
 cElXMLTree * ToXMLTree(const cParamOrientSHC &);
 

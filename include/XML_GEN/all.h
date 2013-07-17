@@ -1032,6 +1032,8 @@ cParamIFDistRadiale * AllocDRadInc
 
 */
 
+cTypeCodageMatr ExportMatr(const ElMatrix<double> & aMat);
+
 
 ElMatrix<double>   Std_RAff_C2M
                    (
