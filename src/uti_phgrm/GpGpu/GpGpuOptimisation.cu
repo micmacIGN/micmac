@@ -67,7 +67,7 @@ void ScanOneSens(
     if(sens)
         while( Z < uZ_Prev.y )
         {
-            //if(Z>>8) break; // ERREUR DEPASSEMENT A SIMPLIFIER , DEPASSEMENT SUR RAMSES
+            if(Z>>8) break; // ERREUR DEPASSEMENT A SIMPLIFIER , DEPASSEMENT SUR RAMSES
             int idGData        = Z - uZ_Prev.x;
             g_ForceCostVol[idGData]    = pData[idBuf][idGData];
             Z += min(uZ_Prev.y - Z,WARPSIZE);
@@ -101,8 +101,8 @@ void ScanOneSens(
             const short Z_P_Id  = Z - uZ_Prev.x;
 
             // ATTENTION DEBUG REV 1383 RALENTISSEMENT
-            //aDz.y = min(aDz.y,(short)NAPPEMAX - 1 - Z_P_Id);
-            aDz.y = min(aDz.y,(short)NAPPEMAX - Z_P_Id);
+            //aDz.y = min(aDz.y,(short)NAPPEMAX - 1 - Z_P_Id);// bug sur Bouhdha -> plantage mais resultat correct
+            aDz.y = min(aDz.y,(short)NAPPEMAX - Z_P_Id);// bug sur Bouhdha -> pas de plantage mais resultat faux
             //
 
             for(short i = aDz.x ; i <= aDz.y; i++)
@@ -304,8 +304,6 @@ template<class T> __global__ void kernelOptiOneDirection(T* g_StrCostVol, short2
 
     ScanOneSens<T,eAVANT>   (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
     ScanOneSens<T,eARRIERE> (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
-//    ScanOneSensAV<T>   (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
-//    ScanOneSensAR<T> (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
 
 }
 
