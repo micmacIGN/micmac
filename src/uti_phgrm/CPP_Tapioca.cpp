@@ -469,7 +469,19 @@ void DoDetectKeypoints( string i_detectingTool, int i_resolution )
     DoMkT();
 }
 
-void writeBinaryGraphToXML( const string &i_filename, vector<vector<int> > i_graph )
+void print_graph( const vector<vector<int> > &i_graph )
+{
+	size_t 	nbFiles = i_graph.size(),
+			i, j;
+	for ( j=0; j<nbFiles; j++ )
+	{
+		for ( i=0; i<nbFiles; i++ )
+			cout << i_graph[j][i] << '\t';
+		cout << endl;
+	}
+}
+
+void writeBinaryGraphToXML( const string &i_filename, const vector<vector<int> > &i_graph )
 {
 	// convert images' filenames list into an array
 	size_t nbFiles = aFileList.size();
@@ -486,7 +498,7 @@ void writeBinaryGraphToXML( const string &i_filename, vector<vector<int> > i_gra
 			if ( i_graph[j][i]!=0 )
 			{
 				f << "\t<Cple>" << filenames[j] << ' ' << filenames[i] << "</Cple>" << endl;
-				//f << "\t<Cple>" << filenames[j] << ' ' << filenames[i] << "</Cple>" << endl;
+				//f << "\t<Cple>" << filenames[i] << ' ' << filenames[j] << "</Cple>" << endl;
 			}
 		}
 	f << "</SauvegardeNamedRel>" << endl;
@@ -495,7 +507,7 @@ void writeBinaryGraphToXML( const string &i_filename, vector<vector<int> > i_gra
 // i_graph[i][j] represent the connexion between images aFileList[i] and aFileList[j]
 // i_graph[i][j] = number of points of in i whose nearest neighbour is in j
 // a couple of images is output if i_graph[i][j]+i_graph[j][i]>i_threshold
-size_t normalizeGraph( vector<vector<int> > i_graph, int i_threshold  )
+size_t normalizeGraph( vector<vector<int> > &i_graph, int i_threshold  )
 {
 	size_t n = i_graph.size(),
 		   i, j;
@@ -523,7 +535,7 @@ void setLabel( vector<vector<int> > &i_graph, vector<int> &i_labels, size_t i_in
 			   i;
 		i_labels[i_index] = i_label;
 		for ( i=0; i<i_index; i++ )
-			if ( i_graph[i_label][i]!=0 ) setLabel( i_graph, i_labels, i, i_label );
+			if ( i_graph[i_index][i]!=0 ) setLabel( i_graph, i_labels, i, i_label );
 		for ( i=i_index+1; i<n; i++ )
 			if ( i_graph[i][i_index]!=0 ) setLabel( i_graph, i_labels, i, i_label );
 	}
@@ -647,12 +659,16 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     }
     annClose(); // done with ANN
     
+	//print_graph( graph );
+	
     // stats
     cout << nbImages << " images" << endl;
     cout << nbBadNeighbours << '/' << nbTotalKeypoints << " rejected points (neighbours from the same image)" << endl;
     size_t nbChecks = normalizeGraph( graph, i_nbRequiredMatches );
     cout << nbChecks << " / " << ( nbImages*(nbImages-1) )/2 << endl;
     
+	//print_graph( graph );
+	
     vector<int> labels( nbImages, -1 );
     int currentLabel = 0;
     for ( size_t iStartingElement=0; iStartingElement<nbImages; iStartingElement++ )
