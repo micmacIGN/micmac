@@ -74,7 +74,16 @@ std::string GpGpuTools::toStr( uint2 tt )
 
 	sValS << "(" << tt.x << "," << tt.y << ")";
 
-	return sValS.str();
+    return sValS.str();
+}
+
+const char *GpGpuTools::conca(const char *texte, int t)
+{
+    stringstream sValS (stringstream::in | stringstream::out);
+
+    sValS << texte << t;
+
+    return sValS.str().c_str();
 }
 
 void GpGpuTools::OutputInfoGpuMemory()
@@ -92,7 +101,12 @@ std::string CGObject::Name()
 
 void CGObject::SetName( std::string name )
 {
-	_name = name;
+    _name = name;
+}
+
+void CGObject::SetName(string name, int id)
+{
+    SetName(GpGpuTools::conca(name.c_str(),id));
 }
 
 std::string CGObject::Type()
