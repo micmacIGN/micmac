@@ -14,8 +14,6 @@
     #define BOOST_ALL_NO_LIB
 #endif
 
-#include "GpGpu/cudaAppliMicMac.cuh"
-#include "GpGpu/GpGpuTools.h"
 #include "GpGpu/GpGpuMultiThreadingCpu.h"
 #include "GpGpu/SData2Correl.h"
 
