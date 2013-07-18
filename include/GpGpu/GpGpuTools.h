@@ -1,12 +1,15 @@
 #ifndef GPGPUTOOLS_H
 #define GPGPUTOOLS_H
 
+
 #include "helper_math_extented.cuh"
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 #include <helper_math.h>
 #include <helper_functions.h>
 #include <helper_cuda.h>
+
+
 #include <sstream>     // for ostringstream
 #include <string>
 #include <iostream>
@@ -25,7 +28,6 @@ typedef unsigned char pixel;
 
 #define NOPAGELOCKEDMEMORY false
 #define WARPSIZE 32
-
 
 #define SIZECU  1
 #define NWARP   1

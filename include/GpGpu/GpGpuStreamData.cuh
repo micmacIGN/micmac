@@ -1,12 +1,7 @@
 #ifndef _GPGPUSTREAMDATA_H_
 #define _GPGPUSTREAMDATA_H_
 
-#include <cuda_runtime.h>
-#include <helper_functions.h>
-#include <helper_math.h>
-#include <helper_cuda.h>
 #include "GpGpu/GpGpuTools.h"
-#include "GpGpu/helper_math_extented.cuh"
 
 using namespace std;
 
