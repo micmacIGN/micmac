@@ -14,13 +14,16 @@ struct Data2Optimiz
     bool         _idBuffer;
 
     Data2Optimiz():
-        _s_InitCostVol((uint)1),
-        //_s_ForceCostVol((uint)1),
-        _s_Index((uint)1),
         _idBuffer(false)
-    {
+    {     
         for(uint i = 0;i < NBUFFER;i++)
-            _param[i].SetName("param");
+        {
+            _s_ForceCostVol[i].SetName("_s_ForceCostVol_0",i);
+            _param[i].SetName("_param",i);
+        }
+
+        _s_InitCostVol.SetName("_s_InitCostVol");
+        _s_Index.SetName("_s_Index");
         ReallocParam(1);
     }
 
@@ -49,19 +52,17 @@ struct Data2Optimiz
 
     void ReallocIf(uint pStr,uint pIdStr)
     {
-        _s_InitCostVol      .ReallocIf(pStr);
         _s_ForceCostVol[0]  .ReallocIf(pStr);
-        _s_Index            .ReallocIf(pIdStr);
+        ReallocInputIf(pStr, pIdStr);
     }
 
     void ReallocInputIf(uint pStr,uint pIdStr)
     {
         _s_InitCostVol  .ReallocIf(pStr);
         _s_Index        .ReallocIf(pIdStr);
-
     }
 
-    void ReallocOutputIf(uint pStr, uint idbuf = 0)
+    void ReallocOutputIf(uint pStr, uint idbuf = 0)    
     {
         _s_ForceCostVol[idbuf] .ReallocIf(pStr);
     }
