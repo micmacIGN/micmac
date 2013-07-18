@@ -536,7 +536,8 @@ cObsLiaisonMultiple::cObsLiaisonMultiple
     const std::string & aNamePack,
     const std::string & aName1,
     const std::string & aName2,
-    bool                isFirstSet
+    bool                isFirstSet,
+    bool                packMustBeSwapped
 )  :
     mAppli       (anAppli),
     mSurf        (0),
@@ -566,7 +567,7 @@ cObsLiaisonMultiple::cObsLiaisonMultiple
    AddPose(aName1,isFirstSet);
    AddPose(aName2,isFirstSet);
 
-   AddPack(aNamePack,aName1,aName2,isFirstSet);
+   AddPack(aNamePack,aName1,aName2,isFirstSet,packMustBeSwapped);
 }
 
 cPoseCam *  cObsLiaisonMultiple::Pose1() const
@@ -593,13 +594,15 @@ void cObsLiaisonMultiple::AddPack
          const std::string & aNamePack,
          const std::string & aName1,
          const std::string & aName2,
-         bool                IsFirstSet
+         bool                IsFirstSet,
+         bool                packMustBeSwapped
      )
 {
    int anInd1 = GetIndexeOfName(aName1);
    int anInd2 = GetIndexeOfName(aName2);
 
    ElPackHomologue aPack = ElPackHomologue::FromFile(aNamePack);
+   if ( packMustBeSwapped ) aPack.SelfSwap();
    cPoseCam * aC1 =  mAppli.PoseFromName(aName1);
    cPoseCam * aC2 =  mAppli.PoseFromName(aName2);
 
@@ -787,10 +790,10 @@ const std::vector<cOnePtsMult *> & cObsLiaisonMultiple::VPMul()
    return mVPMul;
 }
 
-void cObsLiaisonMultiple::AddLiaison(const std::string & aNamePack,const std::string & aName2,bool isFirstSet)
+void cObsLiaisonMultiple::AddLiaison(const std::string & aNamePack,const std::string & aName2,bool isFirstSet,bool packMustBeSwapped)
 {
    AddPose(aName2,isFirstSet);
-   AddPack(aNamePack,mVPoses[0]->NameCam(),aName2,isFirstSet);
+   AddPack(aNamePack,mVPoses[0]->NameCam(),aName2,isFirstSet,packMustBeSwapped);
 }
 
 
