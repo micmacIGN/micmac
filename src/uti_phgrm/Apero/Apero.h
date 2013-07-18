@@ -2191,6 +2191,7 @@ class cAppliApero : public NROptF1vND
 
        
        void ExportNuage(const cExportNuage &);
+       void ExportBlockCam(const cExportBlockCamera &);
 
 
 

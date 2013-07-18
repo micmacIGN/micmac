@@ -12008,6 +12008,49 @@ void xml_init(cExportRepereLoc & anObj,cElXMLTree * aTree)
 }
 
 
+std::string & cExportBlockCamera::Id()
+{
+   return mId;
+}
+
+const std::string & cExportBlockCamera::Id()const 
+{
+   return mId;
+}
+
+
+std::string & cExportBlockCamera::NameFile()
+{
+   return mNameFile;
+}
+
+const std::string & cExportBlockCamera::NameFile()const 
+{
+   return mNameFile;
+}
+
+cElXMLTree * ToXMLTree(const cExportBlockCamera & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ExportBlockCamera",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
+   aRes->AddFils(::ToXMLTree(std::string("NameFile"),anObj.NameFile())->ReTagThis("NameFile"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cExportBlockCamera & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
+
+   xml_init(anObj.NameFile(),aTree->Get("NameFile",1)); //tototo 
+}
+
+
 std::list< std::string > & cCartes2Export::Im1()
 {
    return mIm1;
@@ -13595,6 +13638,17 @@ const std::list< cExportRepereLoc > & cSectionExport::ExportRepereLoc()const
 }
 
 
+std::list< cExportBlockCamera > & cSectionExport::ExportBlockCamera()
+{
+   return mExportBlockCamera;
+}
+
+const std::list< cExportBlockCamera > & cSectionExport::ExportBlockCamera()const 
+{
+   return mExportBlockCamera;
+}
+
+
 std::list< cExportMesuresFromCarteProf > & cSectionExport::ExportMesuresFromCarteProf()
 {
    return mExportMesuresFromCarteProf;
@@ -13854,6 +13908,12 @@ cElXMLTree * ToXMLTree(const cSectionExport & anObj)
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("ExportRepereLoc"));
   for
+  (       std::list< cExportBlockCamera >::const_iterator it=anObj.ExportBlockCamera().begin();
+      it !=anObj.ExportBlockCamera().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("ExportBlockCamera"));
+  for
   (       std::list< cExportMesuresFromCarteProf >::const_iterator it=anObj.ExportMesuresFromCarteProf().begin();
       it !=anObj.ExportMesuresFromCarteProf().end();
       it++
@@ -13904,6 +13964,8 @@ void xml_init(cSectionExport & anObj,cElXMLTree * aTree)
    xml_init(anObj.ExportAttrPose(),aTree->GetAll("ExportAttrPose",false,1));
 
    xml_init(anObj.ExportRepereLoc(),aTree->GetAll("ExportRepereLoc",false,1));
+
+   xml_init(anObj.ExportBlockCamera(),aTree->GetAll("ExportBlockCamera",false,1));
 
    xml_init(anObj.ExportMesuresFromCarteProf(),aTree->GetAll("ExportMesuresFromCarteProf",false,1));
 
@@ -14138,6 +14200,17 @@ std::list< cExportRepereLoc > & cEtapeCompensation::ExportRepereLoc()
 const std::list< cExportRepereLoc > & cEtapeCompensation::ExportRepereLoc()const 
 {
    return SectionExport().Val().ExportRepereLoc();
+}
+
+
+std::list< cExportBlockCamera > & cEtapeCompensation::ExportBlockCamera()
+{
+   return SectionExport().Val().ExportBlockCamera();
+}
+
+const std::list< cExportBlockCamera > & cEtapeCompensation::ExportBlockCamera()const 
+{
+   return SectionExport().Val().ExportBlockCamera();
 }
 
 

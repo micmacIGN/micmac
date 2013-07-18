@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1477]) = {
+const char * (theNameVar_ParamApero[1482]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1303,6 +1303,11 @@ const char * (theNameVar_ParamApero[1477]) = {
 "                               <L2EstimAxe Nb=\"?\" Type=\"bool\" Def=\"true\">  </L2EstimAxe>\n",
 "                          </ExportOrthoCyl>\n",
 "                     </ExportRepereLoc>\n",
+"\n",
+"                     <ExportBlockCamera Nb=\"*\">\n",
+"                         <Id Nb=\"1\" Type=\"std::string\"> </Id>\n",
+"                         <NameFile Nb=\"1\" Type=\"std::string\"> </NameFile>\n",
+"                     </ExportBlockCamera>\n",
 "\n",
 "\n",
 "                     <ExportMesuresFromCarteProf Nb=\"*\">\n",

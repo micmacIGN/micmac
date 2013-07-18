@@ -1302,6 +1302,11 @@ normalises en echelle et/ou en translation -->
                           </ExportOrthoCyl>
                      </ExportRepereLoc>
 
+                     <ExportBlockCamera Nb="*">
+                         <Id Nb="1" Type="std::string"> </Id>
+                         <NameFile Nb="1" Type="std::string"> </NameFile>
+                     </ExportBlockCamera>
+
 
                      <ExportMesuresFromCarteProf Nb="*">
                           <Cartes2Export Nb="+">

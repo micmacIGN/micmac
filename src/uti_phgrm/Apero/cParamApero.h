@@ -4031,6 +4031,25 @@ class cExportRepereLoc
 };
 cElXMLTree * ToXMLTree(const cExportRepereLoc &);
 
+class cExportBlockCamera
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cExportBlockCamera & anObj,cElXMLTree * aTree);
+
+
+        std::string & Id();
+        const std::string & Id()const ;
+
+        std::string & NameFile();
+        const std::string & NameFile()const ;
+    private:
+        std::string mId;
+        std::string mNameFile;
+};
+cElXMLTree * ToXMLTree(const cExportBlockCamera &);
+
 class cCartes2Export
 {
     public:
@@ -4549,6 +4568,9 @@ class cSectionExport
         std::list< cExportRepereLoc > & ExportRepereLoc();
         const std::list< cExportRepereLoc > & ExportRepereLoc()const ;
 
+        std::list< cExportBlockCamera > & ExportBlockCamera();
+        const std::list< cExportBlockCamera > & ExportBlockCamera()const ;
+
         std::list< cExportMesuresFromCarteProf > & ExportMesuresFromCarteProf();
         const std::list< cExportMesuresFromCarteProf > & ExportMesuresFromCarteProf()const ;
 
@@ -4616,6 +4638,7 @@ class cSectionExport
         std::list< cExportPose > mExportPose;
         std::list< cExportAttrPose > mExportAttrPose;
         std::list< cExportRepereLoc > mExportRepereLoc;
+        std::list< cExportBlockCamera > mExportBlockCamera;
         std::list< cExportMesuresFromCarteProf > mExportMesuresFromCarteProf;
         std::list< cExportVisuConfigGrpPose > mExportVisuConfigGrpPose;
         cTplValGesInit< cExportPtsFlottant > mExportPtsFlottant;
@@ -4693,6 +4716,9 @@ class cEtapeCompensation
 
         std::list< cExportRepereLoc > & ExportRepereLoc();
         const std::list< cExportRepereLoc > & ExportRepereLoc()const ;
+
+        std::list< cExportBlockCamera > & ExportBlockCamera();
+        const std::list< cExportBlockCamera > & ExportBlockCamera()const ;
 
         std::list< cExportMesuresFromCarteProf > & ExportMesuresFromCarteProf();
         const std::list< cExportMesuresFromCarteProf > & ExportMesuresFromCarteProf()const ;

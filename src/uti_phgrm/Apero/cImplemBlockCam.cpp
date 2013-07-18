@@ -68,6 +68,7 @@ class cIBC_OneCam
       public :
           cIBC_OneCam(const std::string & ,int aNum);
           const int & Num() const;
+          const std::string & NameCam() const;
       private :
           std::string mNameCam;
           int         mNum;
@@ -82,10 +83,12 @@ class cImplemBlockCam
          cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam,const std::string & anId );
 
          void EstimCurOri(const cEstimateOrientationInitBlockCamera &);
+         void Export(const cExportBlockCamera &);
     private :
 
          cAppliApero &               mAppli;
          cStructBlockCam             mSBC;
+         cStructBlockCam             mEstimSBC;
          std::string                 mId;
          cRelEquivPose               mRelGrp;
          cRelEquivPose               mRelId;
@@ -137,15 +140,17 @@ cIBC_OneCam::cIBC_OneCam(const std::string & aNameCam ,int aNum) :
 }
 
 const int & cIBC_OneCam::Num() const {return mNum;}
+const std::string & cIBC_OneCam::NameCam() const { return mNameCam; }
 
     // =================================
     //       cImplemBlockCam
     // =================================
 
 cImplemBlockCam::cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam aSBC,const std::string & anId) :
-      mAppli (anAppli),
-      mSBC   (aSBC),
-      mId    (anId)
+      mAppli      (anAppli),
+      mSBC        (aSBC),
+      mEstimSBC   (aSBC),
+      mId         (anId)
 {
     const std::vector<cPoseCam*> & aVP = mAppli.VecAllPose();
    
@@ -202,8 +207,16 @@ cTypeCodageMatr ExportMatr(const ElMatrix<double> & aMat)
     return aCM;
 }
 
+void cImplemBlockCam::Export(const cExportBlockCamera & aEBC)
+{
+    MakeFileXML(mEstimSBC,mAppli.ICNM()->Dir()+aEBC.NameFile());
+}
+
+
+
 void cImplemBlockCam::EstimCurOri(const cEstimateOrientationInitBlockCamera & anEOIB)
 {
+   cLiaisonsSHC aLSHC;
    for (int aKC=0 ; aKC<mNbCam ; aKC++)
    {
        if (anEOIB.Show().Val())
@@ -249,13 +262,21 @@ void cImplemBlockCam::EstimCurOri(const cEstimateOrientationInitBlockCamera & an
                                << " " << aRMoy.teta02() 
                                << " " << aRMoy.teta12() 
                                << "\n";
-          
+
+           cParamOrientSHC aP;
+           aP.IdGrp() = mNum2Cam[aKC]->NameCam();
+           aP.Vecteur() = aRMoy.ImAff(Pt3dr(0,0,0));
+           aP.Rot() = ExportMatr(aSomM);
+           aLSHC.ParamOrientSHC().push_back(aP);
        }
    }
+   
+   mEstimSBC.LiaisonsSHC().SetVal(aLSHC);
 }
 
-
-
+    // =================================
+    //       cAppliApero
+    // =================================
 
 void cAppliApero::InitBlockCameras()
 {
@@ -294,6 +315,12 @@ void  cAppliApero::EstimateOIBC(const cEstimateOrientationInitBlockCamera & anEO
     aBlock->EstimCurOri(anEOIB);
 }
 
+
+void cAppliApero:: ExportBlockCam(const cExportBlockCamera & aEBC)
+{
+    cImplemBlockCam * aBlock = GetBlockCam(aEBC.Id());
+    aBlock->Export(aEBC);
+}
 
 
 };
