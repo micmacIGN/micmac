@@ -53,9 +53,9 @@ public slots:
     void toggleShowBBox(bool);
     void toggleShowCams(bool);
     void toggleShowMessages(bool);
-    void togglePointsSelection(bool state);
+    void toggleSelectionMode(bool state);
 
-    void addPoints();
+    void add();
     void selectNone();
     void invertSelected();
     void selectAll();

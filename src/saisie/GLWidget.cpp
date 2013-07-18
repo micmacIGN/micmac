@@ -12,9 +12,7 @@ using namespace std;
 
 GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_font(font())
-  , m_bCloudLoaded(false)
-  , m_bCameraLoaded(false)
-  , m_bImageLoaded(false)
+  , m_bDisplayMode2D(false)
   , m_bDrawAxis(false)
   , m_bDrawBall(true)
   , m_bDrawCams(true)
@@ -23,7 +21,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_bObjectCenteredView(true)
   , m_bPolyIsClosed(false)
   , m_interactionMode(TRANSFORM_CAMERA)
-  , m_bFirstAdd(true)
+  , m_bFirstAction(true)
   , m_previousAction(NONE)
   , m_trihedronGLList(GL_INVALID_LIST_ID)
   , m_ballGLList(GL_INVALID_LIST_ID)
@@ -46,6 +44,8 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
     _m_g_rotationMatrix[5] = _m_g_rotationMatrix[6] = _m_g_rotationMatrix[7] = 0;  
 
     _time.start();
+
+    setFocusPolicy(Qt::StrongFocus);
 
     //drag & drop handling
     setAcceptDrops(true);
@@ -70,9 +70,9 @@ void GLWidget::initializeGL()
     if (m_bInitialized)
         return;
 
-    if (!hasImageLoaded()) glEnable( GL_DEPTH_TEST );
+    glEnable( GL_DEPTH_TEST );
 
-     m_bInitialized = true;
+    m_bInitialized = true;
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -83,22 +83,6 @@ void GLWidget::resizeGL(int width, int height)
     m_glHeight = (float)height;
 
     glViewport( 0, 0, width, height );
-
-    if (hasImageLoaded())
-    {
-        glMatrixMode(GL_PROJECTION);
-
-        glLoadIdentity();
-
-        glOrtho(0, width,0,height,-1,1);
-
-        glMatrixMode(GL_MODELVIEW);
-       /* float w =  (float) m_Data->getImage(0)->width();
-        float h =  (float) m_Data->getImage(0)->height();
-        glPixelZoom(m_glWidth / (float) m_Data->getImage(0)->width(), m_glWidth / (float) m_Data->getImage(0)->height());*/
-    }
-
-
 }
 
 //-------------------------------------------------------------------------
@@ -134,19 +118,22 @@ void GLWidget::calculateFPS()
 
 void GLWidget::paintGL()
 {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     if (hasImageLoaded())
     {
-        //glClear(GL_COLOR_BUFFER_BIT);
+        zoom();
 
-        glViewport(0, 0, m_glWidth, m_glHeight);
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glMatrixMode(GL_MODELVIEW);
-
-        //glDrawPixels(m_Data->getCurImage()->width(), m_Data->getCurImage()->height(), GL_RGBA, GL_UNSIGNED_BYTE, _gldata.bits());
-        glBindTexture(GL_TEXTURE_2D, m_textGLList);
+        glEnable(GL_ALPHA_TEST);
+        glAlphaFunc(GL_GREATER, 0.1f);
 
         glEnable(GL_TEXTURE_2D);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+        glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
+
         glBegin(GL_QUADS);
         glTexCoord2f(0.0f, 0.0f);
         glVertex2f(-1.0f, -1.0f);
@@ -158,56 +145,101 @@ void GLWidget::paintGL()
         glVertex2f(-1.0f, 1.0f);
         glEnd();
         glDisable(GL_TEXTURE_2D);
+
+        glDisable(GL_BLEND);
+        glDisable(GL_ALPHA_TEST);
     }
     else
     {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glMatrixMode(GL_MODELVIEW);
+        setStandardOrthoCenter();
 
-    //makeCurrent();
+        // semble regler le positionnement des points mais pas dans tous les cas
+        // dans certaine rotation, les points auraient des profondeurs incorrectes!
+        glEnable(GL_DEPTH_TEST);
 
-    setStandardOrthoCenter();
+        //gradient color background
+        drawGradientBackground();
+        //we clear background
+        glClear(GL_DEPTH_BUFFER_BIT);
 
-    // semble regler le positionnement des points mais pas dans tous les cas
-    // dans certaine rotation, les points auraient des profondeurs incorrectes!
-    glEnable(GL_DEPTH_TEST);
+        zoom();
 
-    //gradient color background
-    drawGradientBackground();
-    //we clear background
-    glClear(GL_DEPTH_BUFFER_BIT);
+        static GLfloat trans44[16], rot44[16], tmp[16];
+        m33_to_m44( _m_g_rotationMatrix, rot44 );
+        setTranslate_m3(  m_params.m_translationMatrix, trans44 );
 
-    zoom();
+        //mult( trans44, rot44, tmp );
+        mult( rot44, trans44, tmp );
+        transpose( tmp, _m_g_glMatrix );
+        glLoadMatrixf( _m_g_glMatrix );
 
-    //then, the modelview matrix
-    glMatrixMode(GL_MODELVIEW);
+        if (hasCloudLoaded())
+        {
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_COLOR_ARRAY);
 
-    static GLfloat trans44[16], rot44[16], tmp[16];
-    m33_to_m44( _m_g_rotationMatrix, rot44 );
-    setTranslate_m3(  m_params.m_translationMatrix, trans44 );
+            m_vertexbuffer.bind();
+            glVertexPointer(3, GL_FLOAT, 0, NULL);
+            m_vertexbuffer.release();
 
-    //mult( trans44, rot44, tmp );
-    mult( rot44, trans44, tmp );
-    transpose( tmp, _m_g_glMatrix );
-    glLoadMatrixf( _m_g_glMatrix );
+            m_vertexColor.bind();
+            glColorPointer(3, GL_FLOAT, 0, NULL);
+            m_vertexColor.release();
 
-    if (hasCloudLoaded())
+            glDrawArrays( GL_POINTS, 0, m_Data->getCloud(0)->size()*3 );
+
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glDisableClientState(GL_COLOR_ARRAY);
+        }
+
+        //    Ralentissement du a la drawball!!!
+        if (m_bDrawBall) drawBall();
+        else if (m_bDrawAxis) drawAxis();
+
+        if (m_bDrawCams) drawCams();
+
+        if (m_bDrawBbox) drawBbox();
+
+        //if ((m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE) && m_bDrawMessages)
+        {
+            calculateFPS();
+
+            glColor4f(0.8f,0.9f,1.0f,0.9f);
+
+            int fontSize = 10;
+            m_font.setPointSize(fontSize);
+            renderText(10, m_glHeight- fontSize, m_messageFPS,m_font);
+        }
+    }
+
+    if (m_interactionMode == SEGMENT_POINTS)
     {
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_COLOR_ARRAY);
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(0,m_glWidth,m_glHeight,0,-1,1);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        glPushAttrib(GL_ENABLE_BIT);
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_LIGHTING);
+        glDisable(GL_TEXTURE_2D);
+        glColor3f(0,1,0);
 
-        m_vertexbuffer.bind();
-        glVertexPointer(3, GL_FLOAT, 0, NULL);
-        m_vertexbuffer.release();
+        glBegin(m_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
+        for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
+        {
+            glVertex2f(m_polygon[aK].x(), m_polygon[aK].y());
+        }
+        glEnd();
 
-        m_vertexColor.bind();
-        glColorPointer(3, GL_FLOAT, 0, NULL);
-        m_vertexColor.release();
-
-        glDrawArrays( GL_POINTS, 0, m_Data->getCloud(0)->size()*3 );
-
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_COLOR_ARRAY);
+        // Closing 2D
+        glPopAttrib();
+        glPopMatrix(); // restore modelview
+        //glMatrixMode(GL_PROJECTION);
+        //glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
     }
 
     //current messages (if valid)
@@ -259,57 +291,6 @@ void GLWidget::paintGL()
 
             ++it;
         }
-    }
-
-//    Ralentissement du a la drawball!!!
-    //if (m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE)
-    if (m_bDrawBall) drawBall();
-    else if (m_bDrawAxis) drawAxis();
-
-    if (m_bDrawCams) drawCams();
-
-    if (m_bDrawBbox) drawBbox();
-
-    if (m_interactionMode == SEGMENT_POINTS)
-    {
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
-        glLoadIdentity();
-        glOrtho(0,m_glWidth,m_glHeight,0,-1,1);
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        glLoadIdentity();
-        glPushAttrib(GL_ENABLE_BIT);
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_LIGHTING);
-        glDisable(GL_TEXTURE_2D);
-        glColor3f(0,1,0);
-
-        glBegin(m_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
-        for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
-        {
-            glVertex2f(m_polygon[aK].x(), m_polygon[aK].y());
-        }
-        glEnd();
-
-        // Closing 2D
-        glPopAttrib();
-        glPopMatrix(); // restore modelview
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-        glMatrixMode(GL_MODELVIEW);
-    }
-
-    //if ((m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE) && m_bDrawMessages)
-    {
-        calculateFPS();
-
-        glColor4f(0.8f,0.9f,1.0f,0.9f);
-
-        int fontSize = 10;
-        m_font.setPointSize(fontSize);
-        renderText(10, m_glHeight- fontSize, m_messageFPS,m_font);
-    }
     }
 }
 
@@ -380,11 +361,9 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
     case Qt::Key_Minus:
         ptSizeUp(false);
         break;
-    /*default:
-    {
+    default:
         event->ignore();
-        return;
-    }*/
+        break;
     }
     update();
 }
@@ -464,11 +443,12 @@ void GLWidget::setData(cData *data)
 {
     m_Data = data;
 
-     if (m_Data->NbClouds())
+    if (m_Data->NbClouds())
     {
-        setBufferGl();
+        m_bDisplayMode2D = false;
 
-        setCloudLoaded(true);
+        setBufferGl();
+ 
         setZoom(m_Data->getCloud(0)->getScale());
 
         m_params.m_translationMatrix[0] = -m_Data->m_cX;
@@ -476,52 +456,30 @@ void GLWidget::setData(cData *data)
         m_params.m_translationMatrix[2] = -m_Data->m_cZ;
     }
 
-    if (m_Data->NbCameras())
-    {
-        setCameraLoaded(true);
-    }
-
     if (m_Data->NbImages())
     {
-        QImage t;
-        QImage b = *data->getCurImage();
+        m_bDisplayMode2D = true;
+
+        glDisable( GL_DEPTH_TEST );
 
         glEnable(GL_TEXTURE_2D);
         glAlphaFunc(GL_GREATER, 0.1f);
         glEnable(GL_ALPHA_TEST);
 
-        //b.load(":graphics/zoom.png", "PNG");
-        //*QImage fixedImage( b.width(), b.height(), QImage::Format_ARGB32);
-
-        QPainter painter(&b);
-        //painter.setCompositionMode(QPainter::CompositionMode_Source);
-        //painter.fillRect(fixedImage.rect(), Qt::transparent);
-        //painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-        painter.drawImage( 0, 0, b);
-        painter.end();
-
-        t = QGLWidget::convertToGLFormat( b );
-        glGenTextures(1, &m_textGLList );
-        glBindTexture( GL_TEXTURE_2D, m_textGLList );
-        //zoomicon_size.setHeight( t.height() );
-        //zoomicon_size.setWidth( t.width() );
-        glTexImage2D( GL_TEXTURE_2D, 0, 4, t.width(), t.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, t.bits());
+        _glImg = QGLWidget::convertToGLFormat( *data->getCurImage() );
+        glGenTextures(1, &m_texturGLList );
+        glBindTexture( GL_TEXTURE_2D, m_texturGLList );
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
         glDisable(GL_ALPHA_TEST);
         glDisable(GL_TEXTURE_2D);
+    }
 
-
-
-
-
-
-        //_gldata = convertToGLFormat(*(data->getImage(0)));
-       // QSize size = (data->getImage(0))->size();
-       // resize((data->getImage(0))->size());
-
-        setImageLoaded(true);
+    if (m_Data->NbCameras())
+    {
+        m_bDisplayMode2D = false;
+        //TODO
     }
 }
 
@@ -618,16 +576,24 @@ void GLWidget::setStandardOrthoCenter()
 
 void GLWidget::zoom()
 {
- /*   GLdouble zoom = m_params.zoom;
-    GLdouble fAspect = (GLdouble) m_glWidth/ m_glHeight;
-
-    GLdouble left   = -zoom*fAspect;
-    GLdouble right  =  zoom*fAspect;
+    GLdouble zoom = m_params.zoom;
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    glOrtho(left, right, -zoom, zoom, -100.0f, 100.0f);*/
+    if (m_bDisplayMode2D)
+        glOrtho(-zoom, zoom, -zoom, zoom, -100.0f, 100.0f);
+    else
+    {
+        GLdouble fAspect = (GLdouble) m_glWidth/ m_glHeight;
+
+        GLdouble left   = -zoom*fAspect;
+        GLdouble right  =  zoom*fAspect;
+
+        glOrtho(left, right, -zoom, zoom, -100.0f, 100.0f);
+    }
+
+    glMatrixMode(GL_MODELVIEW);
 }
 
 void GLWidget::setInteractionMode(INTERACTION_MODE mode)
@@ -873,49 +839,117 @@ void GLWidget::Select(int mode)
             polyg.push_back(QPoint(m_polygon[aK].x(), m_glHeight - m_polygon[aK].y()));
     }
 
-    for (int aK=0; aK < m_Data->NbClouds(); ++aK)
-    {
-        Cloud *a_cloud = m_Data->getCloud(aK);
+    float xRatio = (float) _glImg.width() / m_glWidth;
+    float yRatio = (float) _glImg.height() / m_glHeight;
+    float alphaF = 0.5f;
 
-        for (int bK=0; bK < a_cloud->size();++bK)
+    if (m_bDisplayMode2D)
+    {
+        QColor c;
+
+        for (int y = 0; y < _glImg.height();++y)
         {
-            Vertex &P = a_cloud->getVertex( bK );
-            switch (mode)
+            for (int x = 0; x < _glImg.width();++x)
             {
-            case ADD:
-                getProjection(P2D, P);
-                pointInside = isPointInsidePoly(P2D,polyg);
-                if (m_bFirstAdd)
-                    emit selectedPoint((uint)aK,(uint)bK,pointInside);
-                else
-                    emit selectedPoint((uint)aK,(uint)bK,pointInside||P.isVisible());
-                break;
-            case SUB:
-                if (P.isVisible())
+                switch (mode)
                 {
-                    getProjection(P2D, P);
-                    pointInside = isPointInsidePoly(P2D,polyg);
-                    emit selectedPoint((uint)aK,(uint)bK,!pointInside);
+                case ADD:
+                    c = QColor::fromRgba(_glImg.pixel(x,y));
+                    pointInside = isPointInsidePoly(QPoint(x/xRatio,y/yRatio),polyg);
+                    if (m_bFirstAction)
+                    {
+                        if (!pointInside)
+                        {
+                            c.setAlphaF(alphaF);
+                            _glImg.setPixel(x,y, c.rgba());
+                        }
+                    }
+                    else
+                    {
+                        if (pointInside)
+                        {
+                            c.setAlphaF(1.f);
+                            _glImg.setPixel(x,y, c.rgba());
+                        }
+                    }
+                    break;
+                case SUB:
+                    c = QColor::fromRgba(_glImg.pixel(x,y));
+                    pointInside = isPointInsidePoly(QPoint(x/xRatio,y/yRatio),polyg);
+                    if (pointInside)
+                    {
+                        c.setAlphaF(alphaF);
+                        _glImg.setPixel(x,y, c.rgba());
+                    }
+                    break;
+                case INVERT:
+                    if (m_previousAction == NONE)  m_bFirstAction = true;
+                    c = QColor::fromRgba(_glImg.pixel(x,y));
+                    if (c.alpha() == 255) c.setAlphaF(alphaF);
+                    else c.setAlphaF(1.f);
+                    _glImg.setPixel(x,y, c.rgba());
+                    break;
+                case ALL:
+                    m_bFirstAction = true;
+                    c = QColor::fromRgba(_glImg.pixel(x,y));
+                    c.setAlphaF(1.f);
+                     _glImg.setPixel(x,y, c.rgba());
+                    break;
+                case NONE:
+                    c = QColor::fromRgba(_glImg.pixel(x,y));
+                    c.setAlphaF(alphaF);
+                     _glImg.setPixel(x,y, c.rgba());
+                    break;
                 }
-                break;
-            case INVERT:
-                if (m_previousAction == NONE)  m_bFirstAdd = true;
-                emit selectedPoint((uint)aK,(uint)bK,!P.isVisible());
-                break;
-            case ALL:
-                m_bFirstAdd = true;
-                emit selectedPoint((uint)aK,(uint)bK, true);
-                break;
-            case NONE:
-                emit selectedPoint((uint)aK,(uint)bK,false);
-                break;
             }
         }
+    }
+    else
+    {
+        for (int aK=0; aK < m_Data->NbClouds(); ++aK)
+        {
+            Cloud *a_cloud = m_Data->getCloud(aK);
 
-        setBufferGl(true);
+            for (int bK=0; bK < a_cloud->size();++bK)
+            {
+                Vertex &P = a_cloud->getVertex( bK );
+                switch (mode)
+                {
+                case ADD:
+                    getProjection(P2D, P);
+                    pointInside = isPointInsidePoly(P2D,polyg);
+                    if (m_bFirstAction)
+                        emit selectedPoint((uint)aK,(uint)bK,pointInside);
+                    else
+                        emit selectedPoint((uint)aK,(uint)bK,pointInside||P.isVisible());
+                    break;
+                case SUB:
+                    if (P.isVisible())
+                    {
+                        getProjection(P2D, P);
+                        pointInside = isPointInsidePoly(P2D,polyg);
+                        emit selectedPoint((uint)aK,(uint)bK,!pointInside);
+                    }
+                    break;
+                case INVERT:
+                    if (m_previousAction == NONE)  m_bFirstAction = true;
+                    emit selectedPoint((uint)aK,(uint)bK,!P.isVisible());
+                    break;
+                case ALL:
+                    m_bFirstAction = true;
+                    emit selectedPoint((uint)aK,(uint)bK, true);
+                    break;
+                case NONE:
+                    emit selectedPoint((uint)aK,(uint)bK,false);
+                    break;
+                }
+            }
+
+            setBufferGl(true);
+        }
     }
 
-    if ((mode == ADD) && (m_bFirstAdd)) m_bFirstAdd = false;
+    if (((mode == ADD)||(mode == SUB)) && (m_bFirstAction)) m_bFirstAction = false;
 
     m_previousAction = mode;
     m_infos.push_back(cSelectInfos(m_params, m_polygon, mode));
@@ -979,7 +1013,6 @@ void GLWidget::ptSizeUp(bool up)
     glPointSize(m_params.PointSize);
 
     update();
-
 }
 
 void GLWidget::drawAxis()
@@ -1263,7 +1296,6 @@ void GLWidget::drawBbox()
             glVertex3d(P4.x, P4.y, P4.z);
             glVertex3d(P3.x, P3.y, P3.z);
 
-
         glEnd();
 
         glPopAttrib();
@@ -1330,14 +1362,17 @@ bool GLWidget::showMessages(){return m_bDrawMessages;}
 void GLWidget::showSelectionMessages()
 {
     displayNewMessage(QString());
-    displayNewMessage("Selection mode",UPPER_CENTER_MESSAGE);
-    displayNewMessage("Left click: add contour point / Right click: close / Echap: delete polyline",LOWER_CENTER_MESSAGE);
-    displayNewMessage("Space: add points inside polyline / Suppr: delete points inside polyline",LOWER_CENTER_MESSAGE);
+    displayNewMessage(tr("Selection mode"),UPPER_CENTER_MESSAGE);
+    displayNewMessage(tr("Left click: add contour point / Right click: close / Echap: delete polyline"),LOWER_CENTER_MESSAGE);
+    displayNewMessage(tr("Space: add points inside polyline / Suppr: delete points inside polyline"),LOWER_CENTER_MESSAGE);
 }
 
 void GLWidget::showMoveMessages()
 {
     displayNewMessage(QString());
-    displayNewMessage("Move mode",UPPER_CENTER_MESSAGE);
-    displayNewMessage("Left click: rotate viewpoint / Right click: translate viewpoint",LOWER_CENTER_MESSAGE);
+    displayNewMessage(tr("Move mode"),UPPER_CENTER_MESSAGE);
+    if (m_bDisplayMode2D)
+        displayNewMessage(tr("Wheel: zoom / Right click: translate viewpoint"),LOWER_CENTER_MESSAGE);
+    else
+        displayNewMessage(tr("Left click: rotate viewpoint / Right click: translate viewpoint"),LOWER_CENTER_MESSAGE);
 }
