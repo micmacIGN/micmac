@@ -1040,9 +1040,10 @@ class cObsLiaisonMultiple
                    const std::string & aNamePack,
                    const std::string & aName1,
                    const std::string & aName2,
-                   bool isFirstSet
+                   bool isFirstSet,
+                   bool packMustBeSwap=false // file aNamePack contains the couples in inverse order (the first point belongs to aName2 and the second to aName1)
           );
-          void AddLiaison(const std::string & aNamePack,const std::string & aName2,bool isFirstSet);
+          void AddLiaison(const std::string & aNamePack,const std::string & aName2,bool isFirstSet, bool packMustBeSwapped=false);
 
 	  bool InitPack(ElPackHomologue & aPack, const std::string& aN2);
           void Compile(cSurfParam *);
@@ -1094,7 +1095,8 @@ class cObsLiaisonMultiple
                       const std::string & aNamePack,
                       const std::string & aName1,
                       const std::string & aName2,
-                      bool isFirstSet
+                      bool isFirstSet,
+                      bool packMustBeSwapped=false // file aNamePack contains the couples in inverse order (the first point belongs to aName2 and the second to aName1)
                 );
 
            void AddCple(int anI1,int anI2,const ElCplePtsHomologues&,bool IsFirstSet);
@@ -1262,71 +1264,79 @@ class cArgVerifAero
 
 class cPackObsLiaison
 {
-      public :
-             cPackObsLiaison
-	     (
-                  cAppliApero &,
-		  const cBDD_PtsLiaisons & aBDL,
-                  int   aCpt
-	     );
+	public :
+		cPackObsLiaison
+		(
+			cAppliApero &,
+			const cBDD_PtsLiaisons & aBDL,
+			int   aCpt
+		);
 
-             std::list<cPoseCam *> ListCamInitAvecPtCom(cPoseCam *);
+		std::list<cPoseCam *> ListCamInitAvecPtCom(cPoseCam *);
 
-             // Resultat indique si swaped 
-	     bool InitPack
-                  (
-                      ElPackHomologue &, 
-	              const std::string& aNameIm1, 
-                      const std::string& aNameIm2
-                  );
+		// Resultat indique si swaped 
+		bool InitPack
+		(
+			ElPackHomologue &, 
+			const std::string& aNameIm1, 
+			const std::string& aNameIm2
+		);
 
-            void  GetPtsTerrain
-                  (
-                      const cParamEstimPlan & aPEP,
-                      cSetName &                    aSelectorEstim,
-                      cArgGetPtsTerrain &,
-                      const char * Attr // Nom en + pour calculer le masque
-                  );
+		void  GetPtsTerrain
+		(
+			const cParamEstimPlan & aPEP,
+			cSetName &                    aSelectorEstim,
+			cArgGetPtsTerrain &,
+			const char * Attr // Nom en + pour calculer le masque
+		);
 
 
-            void Compile();
-            void AddLink();
-	    double AddObs
-	           (
-		        const cPonderationPackMesure & aPondIm,
-		        const cPonderationPackMesure * aPondSurf,
-                        cStatObs & aSO,
-                        const cRapOnZ *
+		void Compile();
+		void AddLink();
+		double AddObs
+		(
+			const cPonderationPackMesure & aPondIm,
+			const cPonderationPackMesure * aPondSurf,
+			cStatObs & aSO,
+			const cRapOnZ *
+		);
 
-                   );
+		void OneExportRL(const cExportImResiduLiaison & anEIL) const;
 
-	    void OneExportRL(const cExportImResiduLiaison & anEIL) const;
+		void AddContrainteSurfParam
+		(
+			cSurfParam *,
+			cElRegex *  aPatI1,
+			cElRegex *  aPatI2
+		);
 
-	    void AddContrainteSurfParam
-	         (
-                      cSurfParam *,
-		      cElRegex *  aPatI1,
-		      cElRegex *  aPatI2
-		 );
+		cObsLiaisonMultiple * ObsMulOfName(const std::string &);
 
-          cObsLiaisonMultiple * ObsMulOfName(const std::string &);
+		std::map<std::string,cObsLiaisonMultiple *> & DicoMul();
+	  
+		private :
+			void addFileToObservation( 
+										const std::string &i_poseName1, const std::string &i_poseName2,
+										const std::string &i_packFilename,
+										const cBDD_PtsLiaisons &i_bd_liaison,
+										int i_iPackObs, // index of the current pack in cAppliApero->mDicoLiaisons
+										bool i_isFirstKeySet,
+										bool i_isReverseFile // couples inside i_packFilename are to be reversed before use
+									 );
 
-	  std::map<std::string,cObsLiaisonMultiple *> & DicoMul();
-      private :
-          cAppliApero &                    mAppli;      
-	  cBDD_PtsLiaisons                 mBDL;
-	  std::string                      mId;
-          bool                             mIsMult;
+			cAppliApero &                    mAppli;      
+			cBDD_PtsLiaisons                 mBDL;
+			std::string                      mId;
+			bool                             mIsMult;
 
-          std::vector<cObservLiaison_1Cple *>  mLObs;
-	  std::map<std::string,std::map<std::string,cObservLiaison_1Cple *> > mDicObs;
+			std::vector<cObservLiaison_1Cple *>  mLObs;
+			std::map<std::string,std::map<std::string,cObservLiaison_1Cple *> > mDicObs;
 
-	  std::map<std::string,cObsLiaisonMultiple *> mDicoMul;
-	  std::vector<cSurfParam *>           mVSurfCstr;
-	  std::vector<cElRegex *>             mPatI1EqPl;
-	  std::vector<cElRegex *>             mPatI2EqPl;
-          int                                 mFlagArc;
-
+			std::map<std::string,cObsLiaisonMultiple *> mDicoMul;
+			std::vector<cSurfParam *>           mVSurfCstr;
+			std::vector<cElRegex *>             mPatI1EqPl;
+			std::vector<cElRegex *>             mPatI2EqPl;
+			int                                 mFlagArc;
 };
 
 
