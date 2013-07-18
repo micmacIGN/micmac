@@ -1,7 +1,6 @@
 #ifndef _SDATA2CORREL_H
 #define _SDATA2CORREL_H
 
-#include "GpGpu/GpGpuTools.h"
 #include "GpGpu/cudaAppliMicMac.cuh"
 
 extern "C" textureReference&    getMaskD();
@@ -34,7 +33,7 @@ struct SData2Correl
 
     float*  DeviVolumeCost(uint s);
 
-    void    copyHostToDevice(uint s);
+    void    copyHostToDevice(uint s, pCorGpu param);
 
     void    CopyDevicetoHost(uint idBuf, uint s);
 
@@ -46,13 +45,11 @@ struct SData2Correl
 
     void    ReallocHostData(uint zInter, pCorGpu param);
 
-    void    ReallocDeviceArray(pCorGpu param);
-
     void    ReallocDeviceData(pCorGpu param);
 
 private:
 
-    void    ReallocDeviceArray(int nStream, pCorGpu param);
+    void    ReallocDeviceData(int nStream, pCorGpu param);
 
     void    MallocInfo();
 

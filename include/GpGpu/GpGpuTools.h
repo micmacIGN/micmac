@@ -1114,6 +1114,7 @@ public:
     bool        CopyDevicetoHost(T* hostData);
 
     bool        CopyDevicetoHost(CuHostData3D<T> &hostData);
+
     /// \brief  Copie toutes les valeurs d un tableau dans la structure de donnee de la classe (dans la memoire globale GPU)
     /// \param  hostData : tableau cible
     bool        CopyHostToDevice(T* hostData);
@@ -1139,7 +1140,7 @@ bool CuDeviceData3D<T>::CopyDevicetoHost( T* hostData )
 template <class T>
 bool CuDeviceData3D<T>::CopyDevicetoHost(CuHostData3D<T> &hostData)
 {
-    return true;
+    return CopyDevicetoHost(hostData.pData());
 }
 
 template <class T>

@@ -46,7 +46,7 @@ void InterfaceMicMacGpGpu::BasicCorrelation(int nbLayer)
 {
 
   // Re-dimensionner les strucutres de données si elles ont été modifiées
-  _data2Cor.ReallocDeviceArray(_param);
+  _data2Cor.ReallocDeviceData(_param);
 
   // Calcul de dimension des threads des kernels
   //--------------- calcul de dimension du kernel de correlation ---------------
@@ -57,7 +57,7 @@ void InterfaceMicMacGpGpu::BasicCorrelation(int nbLayer)
   dim3	blocks(block2D.x , block2D.y, nbLayer * _param.ZLocInter);
   const uint s = 0;     // Affection du stream de calcul
 
-  Data().copyHostToDevice(s);
+  Data().copyHostToDevice(s,Param());
 
   // Indique que la copie est terminée pour le thread de calcul des projections
   SetPreComp(true);

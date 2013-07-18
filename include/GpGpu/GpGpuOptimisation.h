@@ -1,7 +1,6 @@
 #ifndef __OPTIMISATION_H__
 #define __OPTIMISATION_H__
 
-#include "GpGpu/GpGpuTools.h"
 #include "GpGpu/SData2Optimize.h"
 #include "GpGpu/GpGpuMultiThreadingCpu.h"
 

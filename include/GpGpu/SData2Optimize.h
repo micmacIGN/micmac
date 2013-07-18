@@ -96,7 +96,8 @@ struct Data2Optimiz
 
     void CopyDevicetoHost(Data2Optimiz<CuHostData3D,2> &d2o, uint idbuf = 0)
     {
-         _s_ForceCostVol[0].CopyDevicetoHost(d2o._s_ForceCostVol[idbuf].pData());
+         //_s_ForceCostVol[0].CopyDevicetoHost(d2o._s_ForceCostVol[idbuf].pData());
+        _s_ForceCostVol[0].CopyDevicetoHost(d2o._s_ForceCostVol[idbuf]);
     }
 
 };
