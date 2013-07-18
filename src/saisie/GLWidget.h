@@ -241,7 +241,7 @@ protected:
     //! Current interaction mode (with mouse)
     INTERACTION_MODE m_interactionMode;
 
-    bool m_bFirstAdd;
+    bool m_bFirstAction;
 
     int m_previousAction;
 
@@ -284,6 +284,9 @@ protected:
 
     //! selection infos stack
     QVector <cSelectInfos> m_infos;
+
+    //! states if display is 2D or 3D
+    bool m_bDisplayMode2D;
 
 private:
 
