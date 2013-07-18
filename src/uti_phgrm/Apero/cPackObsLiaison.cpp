@@ -585,7 +585,6 @@ cPackObsLiaison::cPackObsLiaison
 			{
 				ELISE_ASSERT(mIsMult,"\"No-Multiple\" mode is not handled by the auto-reverse feature since it's a backward compatibility mode");
 
-				cout << "--------------------------------> processing " << reversefilenames.size() << " reverse filenames"  << endl;
 				for 
 				(
 					std::vector<std::string>::const_iterator itN = aVName->begin();
