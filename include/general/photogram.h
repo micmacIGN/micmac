@@ -1451,6 +1451,7 @@ class ElCamera : public cCapture3D
          NS_ParamChantierPhotogram::cOrientationConique  StdExportCalibGlob() const;
 
 	  virtual  Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const = 0;
+	  virtual  Pt3dr NoDistImEtProf2Terrain(const Pt2dr & aP,double aZ) const = 0;
           void SetAltiSol(double );
           void SetProfondeur(double );
 
@@ -1542,6 +1543,7 @@ class ElCamera : public cCapture3D
           ElSeg3D F2toRayonR3(Pt2dr) const;
 	  Pt3dr   F2toDirRayonL3(Pt2dr) const;
 	  Pt3dr   F2toDirRayonR3(Pt2dr) const;
+	  Pt3dr   C2toDirRayonR3(Pt2dr) const;
 	  Pt2dr   F2toPtDirRayonL3(Pt2dr) const;  // Meme chose, enleve la z a 1
 	  Pt2dr   L3toF2(Pt3dr) const;
 	  Pt2dr   PtDirRayonL3toF2(Pt2dr) const;
@@ -1782,6 +1784,7 @@ class cCameraOrtho : public ElCamera
          const ElProj32       &  Proj() const ;
          void InstanceModifParam(NS_ParamChantierPhotogram::cCalibrationInternConique &) const ;
 	 Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
+	 Pt3dr NoDistImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
 
          // La notion d'origine n'a pas reellement de sens pour un projection ortho (au mieux elle
          // situee n'importe ou sur le rayon partant du centre de l'image), pourtant il en faut bien une
@@ -2021,6 +2024,7 @@ class CamStenope : public ElCamera
 	 Pt3dr OpticalVarCenterIm(const Pt2dr &) const;
 	 Pt3dr OpticalVarCenterTer(const Pt3dr &) const;
 	 Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
+	 Pt3dr NoDistImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
 	 Pt3dr ImEtZ2Terrain(const Pt2dr & aP,double aZ) const;
 
 

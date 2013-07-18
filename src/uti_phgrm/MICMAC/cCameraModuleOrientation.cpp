@@ -94,6 +94,12 @@ void cCameraModuleOrientation::InstanceModifParam(cCalibrationInternConique & aP
     aParam.PP() = Pt2dr(12345678,87654321);
     aParam.F()  = 0;
 }    
+
+Pt3dr cCameraModuleOrientation::NoDistImEtProf2Terrain(const Pt2dr & aP,double aZ) const
+{
+   return ImEtProf2Terrain(aP,aZ);
+}
+
 Pt3dr cCameraModuleOrientation::ImEtProf2Terrain(const Pt2dr & aP,double aZ) const
 {
     // TODO verifier le sens et verifier s'il faut iterer?
