@@ -423,8 +423,6 @@ void MainWindow::closeAll()
 {
     m_Engine->unloadAll();
 
-    m_glWidget->setCloudLoaded(false);
-    m_glWidget->setCameraLoaded(false);
     checkForLoadedData();
     m_glWidget->setBufferGl();
     m_glWidget->update();

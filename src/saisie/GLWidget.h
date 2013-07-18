@@ -87,22 +87,16 @@ public:
                                    MessagePosition pos = SCREEN_CENTER_MESSAGE);
 
     //! States if data (cloud or camera) is loaded
-    bool hasDataLoaded(){return m_bCloudLoaded||m_bCameraLoaded||m_bImageLoaded;}
+    bool hasDataLoaded(){return hasCloudLoaded()||hasCameraLoaded()||hasImageLoaded();}
 
     //! States if a cloud is loaded
-    bool hasCloudLoaded(){return m_bCloudLoaded;}
+    bool hasCloudLoaded(){return (m_Data->NbClouds() != 0);}
 
-    //! States if a cloud is loaded
-    bool hasImageLoaded(){return m_bImageLoaded;}
+    //! States if a camera is loaded
+    bool hasCameraLoaded(){return (m_Data->NbCameras() != 0);}
 
-    //! Sets cloud state as loaded
-    void setCloudLoaded(bool isLoaded) { m_bCloudLoaded = isLoaded; }
-
-    //! Sets camera state as loaded
-    void setCameraLoaded(bool isLoaded) { m_bCameraLoaded = isLoaded; }
-
-    //! Sets camera state as loaded
-    void setImageLoaded(bool isLoaded) { m_bImageLoaded = isLoaded; }
+    //! States if an image is loaded
+    bool hasImageLoaded(){return (m_Data->NbImages() != 0);}
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
@@ -223,15 +217,6 @@ protected:
     //! Default font
     QFont m_font;
 
-    //! States if a cloud is already loaded
-    bool m_bCloudLoaded;
-
-    //! States if a camera is already loaded
-    bool m_bCameraLoaded;
-
-    //! States if a camera is already loaded
-    bool m_bImageLoaded;
-
     //! States if frame axis should be drawn
     bool m_bDrawAxis;
 
@@ -276,7 +261,7 @@ protected:
     GLuint m_ballGLList;
 
     //! Texture GL list
-    GLuint m_textGLList;
+    GLuint m_texturGLList;
 
     int m_nbGLLists;
 
@@ -308,9 +293,9 @@ private:
     QGLBuffer   m_vertexbuffer;
     QGLBuffer   m_vertexColor;
 
-    int        _frameCount;
-    int        _previousTime;
-    int        _currentTime;
+    int         _frameCount;
+    int         _previousTime;
+    int         _currentTime;
 
     float       _fps;
 
@@ -331,8 +316,7 @@ private:
     GLfloat     _m_g_glMatrix[16];
     QTime       _time;
 
-    QImage      _gldata;
-
+    QImage      _glImg;
 };
 
 #endif  /* _GLWIDGET_H */

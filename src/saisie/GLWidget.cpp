@@ -12,9 +12,6 @@ using namespace std;
 
 GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_font(font())
-  , m_bCloudLoaded(false)
-  , m_bCameraLoaded(false)
-  , m_bImageLoaded(false)
   , m_bDrawAxis(false)
   , m_bDrawBall(true)
   , m_bDrawCams(true)
@@ -47,6 +44,8 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
 
     _time.start();
 
+    setFocusPolicy(Qt::StrongFocus);
+
     //drag & drop handling
     setAcceptDrops(true);
 }
@@ -70,9 +69,9 @@ void GLWidget::initializeGL()
     if (m_bInitialized)
         return;
 
-    if (!hasImageLoaded()) glEnable( GL_DEPTH_TEST );
+    glEnable( GL_DEPTH_TEST );
 
-     m_bInitialized = true;
+    m_bInitialized = true;
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -86,19 +85,26 @@ void GLWidget::resizeGL(int width, int height)
 
     if (hasImageLoaded())
     {
-        glMatrixMode(GL_PROJECTION);
+        glEnable(GL_TEXTURE_2D);
+        //glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, 4,_glImg.width(), _glImg.height(),
+                                     0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
+
+        glDisable(GL_TEXTURE_2D);
+
+        //glPixelZoom(1.f,-1.f);
+      /*  glMatrixMode(GL_PROJECTION);
 
         glLoadIdentity();
 
         glOrtho(0, width,0,height,-1,1);
 
-        glMatrixMode(GL_MODELVIEW);
+        glMatrixMode(GL_MODELVIEW);*/
        /* float w =  (float) m_Data->getImage(0)->width();
-        float h =  (float) m_Data->getImage(0)->height();
-        glPixelZoom(m_glWidth / (float) m_Data->getImage(0)->width(), m_glWidth / (float) m_Data->getImage(0)->height());*/
+        float h =  (float) m_Data->getImage(0)->height();*/
+       // glPixelZoom(m_glWidth / (float) _glImg.width(), m_glHeight / (float) _glImg.height());/**/
     }
-
-
 }
 
 //-------------------------------------------------------------------------
@@ -136,15 +142,12 @@ void GLWidget::paintGL()
 {
     if (hasImageLoaded())
     {
-        //glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         glViewport(0, 0, m_glWidth, m_glHeight);
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glMatrixMode(GL_MODELVIEW);
-
-        //glDrawPixels(m_Data->getCurImage()->width(), m_Data->getCurImage()->height(), GL_RGBA, GL_UNSIGNED_BYTE, _gldata.bits());
-        glBindTexture(GL_TEXTURE_2D, m_textGLList);
 
         glEnable(GL_TEXTURE_2D);
         glBegin(GL_QUADS);
@@ -380,11 +383,9 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
     case Qt::Key_Minus:
         ptSizeUp(false);
         break;
-    /*default:
-    {
+    default:
         event->ignore();
-        return;
-    }*/
+        break;
     }
     update();
 }
@@ -464,11 +465,10 @@ void GLWidget::setData(cData *data)
 {
     m_Data = data;
 
-     if (m_Data->NbClouds())
+    if (m_Data->NbClouds())
     {
         setBufferGl();
-
-        setCloudLoaded(true);
+ 
         setZoom(m_Data->getCloud(0)->getScale());
 
         m_params.m_translationMatrix[0] = -m_Data->m_cX;
@@ -476,52 +476,30 @@ void GLWidget::setData(cData *data)
         m_params.m_translationMatrix[2] = -m_Data->m_cZ;
     }
 
-    if (m_Data->NbCameras())
-    {
-        setCameraLoaded(true);
-    }
-
     if (m_Data->NbImages())
     {
-        QImage t;
         QImage b = *data->getCurImage();
+
+        glDisable( GL_DEPTH_TEST );
 
         glEnable(GL_TEXTURE_2D);
         glAlphaFunc(GL_GREATER, 0.1f);
         glEnable(GL_ALPHA_TEST);
 
-        //b.load(":graphics/zoom.png", "PNG");
-        //*QImage fixedImage( b.width(), b.height(), QImage::Format_ARGB32);
-
-        QPainter painter(&b);
-        //painter.setCompositionMode(QPainter::CompositionMode_Source);
-        //painter.fillRect(fixedImage.rect(), Qt::transparent);
-        //painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-        painter.drawImage( 0, 0, b);
-        painter.end();
-
-        t = QGLWidget::convertToGLFormat( b );
-        glGenTextures(1, &m_textGLList );
-        glBindTexture( GL_TEXTURE_2D, m_textGLList );
-        //zoomicon_size.setHeight( t.height() );
-        //zoomicon_size.setWidth( t.width() );
-        glTexImage2D( GL_TEXTURE_2D, 0, 4, t.width(), t.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, t.bits());
+        _glImg = QGLWidget::convertToGLFormat( b );
+        glGenTextures(1, &m_texturGLList );
+        glBindTexture( GL_TEXTURE_2D, m_texturGLList );
+        glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
         glDisable(GL_ALPHA_TEST);
         glDisable(GL_TEXTURE_2D);
+    }
 
-
-
-
-
-
-        //_gldata = convertToGLFormat(*(data->getImage(0)));
-       // QSize size = (data->getImage(0))->size();
-       // resize((data->getImage(0))->size());
-
-        setImageLoaded(true);
+    if (m_Data->NbCameras())
+    {
+        //TODO
     }
 }
 
@@ -618,7 +596,7 @@ void GLWidget::setStandardOrthoCenter()
 
 void GLWidget::zoom()
 {
- /*   GLdouble zoom = m_params.zoom;
+    GLdouble zoom = m_params.zoom;
     GLdouble fAspect = (GLdouble) m_glWidth/ m_glHeight;
 
     GLdouble left   = -zoom*fAspect;
@@ -627,7 +605,7 @@ void GLWidget::zoom()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    glOrtho(left, right, -zoom, zoom, -100.0f, 100.0f);*/
+    glOrtho(left, right, -zoom, zoom, -100.0f, 100.0f);
 }
 
 void GLWidget::setInteractionMode(INTERACTION_MODE mode)
@@ -979,7 +957,6 @@ void GLWidget::ptSizeUp(bool up)
     glPointSize(m_params.PointSize);
 
     update();
-
 }
 
 void GLWidget::drawAxis()
@@ -1262,7 +1239,6 @@ void GLWidget::drawBbox()
 
             glVertex3d(P4.x, P4.y, P4.z);
             glVertex3d(P3.x, P3.y, P3.z);
-
 
         glEnd();
 
