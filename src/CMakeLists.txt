@@ -112,7 +112,7 @@ if(${CUDA_ENABLED})
 	 list(REMOVE_ITEM IncFiles ${IncFilesGpGpu})
 endif()
 
-# OPTION BUILD : En tetes precompilées visual studio
+# OPTION BUILD : En tetes precompiles visual studio
 
 enable_precompiled_headers_msvc(StdAfx.h Elise_Src_Files)
 

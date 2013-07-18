@@ -1,19 +1,18 @@
 
 
- file(GLOB_RECURSE IncuhCudaFiles ${PROJECT_SOURCE_DIR}/include/*.cuh  )
+file(GLOB_RECURSE IncuhCudaFiles ${PROJECT_SOURCE_DIR}/include/*.cuh  )
  file(GLOB_RECURSE IncCudaFiles ${PROJECT_SOURCE_DIR}/include/*.h  )
  list(APPEND IncCudaFiles ${IncuhCudaFiles})
 
  #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20 -use_fast_math)
  #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20)
-
-  #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -lineinfo)
-set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20)
+ #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -lineinfo)
+ set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20)
 
  set(libStatGpGpuTools GpGpuTools)
  set(libStatGpGpuInterfMicMac GpGpuInterfMicMac)
  set(libStatGpGpuOpt GpGpuOpt)
- set(TestExeGpGpuOpt TestGpGpuOpt)
+
 
  cuda_add_library(${libStatGpGpuTools}  ${GpGpuTools_Src_Files} STATIC OPTIONS ${GENCODE_SM20})
 
@@ -28,12 +27,18 @@ set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20)
           endif()
  endif()
 
- cuda_add_executable(${TestExeGpGpuOpt} ${uti_Test_Opt_GpGpu_Src_Files})
+ if(NOT ${CUDA_ENABLED})
 
- target_link_libraries(${TestExeGpGpuOpt}  ${Boost_LIBRARIES} ${Boost_THREADAPI} ${libStatGpGpuOpt} ${libStatGpGpuTools})
+    set(TestExeGpGpuOpt TestGpGpuOpt)
+     cuda_add_executable(${TestExeGpGpuOpt} ${uti_Test_Opt_GpGpu_Src_Files})
 
- if (NOT WIN32)
-	target_link_libraries(${TestExeGpGpuOpt}  rt pthread )
+     target_link_libraries(${TestExeGpGpuOpt}  ${Boost_LIBRARIES} ${Boost_THREADAPI} ${libStatGpGpuOpt} ${libStatGpGpuTools})
+
+     if (NOT WIN32)
+            target_link_libraries(${TestExeGpGpuOpt}  rt pthread )
+     endif()
+     INSTALL(TARGETS ${TestExeGpGpuOpt} RUNTIME DESTINATION ${Install_Dir})
+
  endif()
 
  link_directories(${PROJECT_SOURCE_DIR}/lib/)
@@ -42,7 +47,7 @@ set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20)
 
  target_link_libraries(${libElise}  ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt})
 
- INSTALL(TARGETS ${TestExeGpGpuOpt} RUNTIME DESTINATION ${Install_Dir})
+
 
  INSTALL(TARGETS ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt}
             LIBRARY DESTINATION ${PROJECT_SOURCE_DIR}/lib
