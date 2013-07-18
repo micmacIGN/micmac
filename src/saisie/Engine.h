@@ -74,21 +74,24 @@ enum SELECTION_MODE { SUB,
                       NONE
                     };
 
-class cLoader : QObject
+class cLoader : QObject   
 {
+    Q_OBJECT
 public:
 
     cLoader();
 
-    CamStenope * loadCamera(string aNameFile);
-    vector <CamStenope *> loadCameras();
+    CamStenope * loadCamera(QString aNameFile);
+   //vector <CamStenope *> loadCameras();
 
-    Cloud*      loadCloud(string i_ply_file , void (*incre)(int, void *) = NULL, void* obj = NULL);
+    Cloud*      loadCloud(string i_ply_file , int *incre = NULL);
+
+    QImage*     loadImage(QString aNameFile);
 
     void        setDir(QDir aDir){m_Dir = aDir;}
     QDir        getDir(){return m_Dir;}
 
-    void        SetFilenamesOut();
+    //void        SetFilenamesOut();
     void        SetSelectionFilename();
 
     QStringList GetFilenamesOut() {return m_FilenamesOut;}
@@ -105,7 +108,7 @@ private:
 };
 
 class cEngine
-{
+{    
 public:
 
     cEngine();
@@ -118,13 +121,13 @@ public:
     void setFilename(){m_Loader->SetSelectionFilename();}
 
     //! Load point cloud .ply files
-    void loadClouds(QStringList, void (*incre)(int, void *) = NULL, void *obj = NULL);
+    void loadClouds(QStringList, int *incre = NULL);
 
     //! Load cameras .xml files
     void loadCameras(QStringList);
 
-    //! Load cameras orientation files
-    void loadCameras();
+    //! Load cameras .xml files
+    void loadImages(QStringList);
 
     void unloadAll();
 
@@ -135,7 +138,7 @@ public:
 
     cData*   getData()  {return m_Data;}
 
-    void loadCloudsWin(QStringList filenames);
+
 private:
 
     cLoader *m_Loader;

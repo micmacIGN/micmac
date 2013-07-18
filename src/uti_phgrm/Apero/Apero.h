@@ -93,6 +93,8 @@ class cOneImageOfLayer;
 class cClassEquivPose;
 class cRelEquivPose;
 
+class cImplemBlockCam;
+
 /************************************************************/
 /*                                                          */
 /*              EQUIVALENCE                                 */
@@ -127,7 +129,8 @@ class cClassEquivPose
 class cRelEquivPose
 {
       public :
-          cRelEquivPose(int aNum);
+          //cRelEquivPose(int aNum);
+          cRelEquivPose();
           cClassEquivPose * AddAPose(cPoseCam *,const std::string & aName);
 
           const std::map<std::string,cClassEquivPose *> & Map() const;
@@ -138,7 +141,7 @@ class cRelEquivPose
       private :
           cRelEquivPose(const cRelEquivPose &); // N.I. 
 
-          int                                     mNum;
+          // int                                     mNum;
           std::map<std::string,cClassEquivPose *> mMap; // Map   NomDeClasse -> Classe
           std::map<std::string,cClassEquivPose *> mPos2C; // Map   Nom de pose -> Classe
 };
@@ -1890,6 +1893,7 @@ class cAppliApero : public NROptF1vND
 
         
         const std::vector<cPoseCam*> & VecLoadedPose();
+        const std::vector<cPoseCam*> & VecAllPose();
 
         // Si vecteur non vide, donne garantie que 
         //  1- Chaque pose contient la projection de aPM avec le rab qui va bien
@@ -2042,6 +2046,10 @@ class cAppliApero : public NROptF1vND
           void VerifAero(const cVerifAero & aVA);
           void VerifAero(const cVerifAero & aVA,cPoseCam *,cObsLiaisonMultiple  &);
 
+          void InitBlockCameras();
+          void EstimateOIBC(const cEstimateOrientationInitBlockCamera &);
+          cImplemBlockCam * GetBlockCam(const std::string & anId);
+
           void InitFilters();
 
           void Verifs();
@@ -2087,7 +2095,7 @@ class cAppliApero : public NROptF1vND
 	  void MAJContrainteCamera(const cContraintesCamerasInc &);
 	  void MAJContraintePose(const cContraintesPoses &);
 
-        void  OneIterationCompensation(const cEtapeCompensation &,bool IsLast);
+        void  OneIterationCompensation(const cIterationsCompensation & ,const cEtapeCompensation &,bool IsLast);
         double ScoreLambda(double aLambda);  
         double NRF1v(REAL); // = ScoreLambda
         bool   NROptF1vContinue() const;
@@ -2305,8 +2313,9 @@ class cAppliApero : public NROptF1vND
         const cSectionLevenbergMarkard *    mCurSLMIter;
         double                              mMulSLMIter;
 
-        std::map<std::string,cRelEquivPose *> mRels;
-        int                                   mNumSauvAuto;
+        std::map<std::string,cRelEquivPose *>   mRels;
+        std::map<std::string,cImplemBlockCam *> mBlockCams;
+        int                                     mNumSauvAuto;
 
          
         FILE *                                 mFpRT;  // File Rapport Txt

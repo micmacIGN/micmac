@@ -7,6 +7,7 @@
 #include <helper_math.h>
 #include <helper_functions.h>
 #include <helper_cuda.h>
+
 #include <sstream>     // for ostringstream
 #include <string>
 #include <iostream>
@@ -26,9 +27,9 @@ typedef unsigned char pixel;
 #define NOPAGELOCKEDMEMORY false
 #define WARPSIZE 32
 
-
 #define SIZECU  1
 #define NWARP   1
+#define SIZERING    2
 
 #define DISPLAYOUTPUT
 #define TexFloat2Layered texture<float2,cudaTextureType2DLayered>
@@ -49,6 +50,8 @@ public:
 
     ~GpGpuTools(){}
 
+    /// \brief          parametre texture
+    static void			SetParamterTexture(textureReference &textRef);
 
     ///  \brief         Convertir array 2D en tableau lineaire
     template <class T>
@@ -532,7 +535,7 @@ void CData<T>::SubMemoryOc( uint m )
 
 template <class T>
 void CData<T>::AddMemoryOc( uint m )
-{
+{  
     _memoryOc +=m;
 }
 
@@ -1124,7 +1127,7 @@ template <class T>
 bool CuDeviceData3D<T>::Memset( int val )
 {
     if (CData<T>::GetSizeofMalloc() < CData3D<T>::Sizeof())
-        std::cout << "Allocation trop petite !!!" << "\n";
+        std::cout << "Memset : Allocation trop petite !!!" << "\n";
 
     return CData<T>::ErrorOutput(cudaMemset( CData3D<T>::pData(), val, CData3D<T>::Sizeof()),"Memset");
 }
@@ -1133,7 +1136,7 @@ template <class T>
 bool CuDeviceData3D<T>::MemsetAsync(int val, cudaStream_t stream)
 {
     if (CData<T>::GetSizeofMalloc() < CData3D<T>::Sizeof())
-        std::cout << "Allocation trop petite !!!" << "\n";
+        std::cout << "MemsetAsync : Allocation trop petite !!!" << "\n";
 
     return CData<T>::ErrorOutput(cudaMemsetAsync(CData3D<T>::pData(), val, CData3D<T>::Sizeof(), stream ),"MemsetAsync");
 }

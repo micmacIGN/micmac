@@ -1,4 +1,4 @@
-﻿#include <QApplication>
+﻿#include <QtGui>
 #include "mainwindow.h"
 
 int main(int argc, char *argv[])
@@ -8,12 +8,18 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 	
     app.setOrganizationName("IGN");
-    app.setApplicationName("Saisie3D");
+    app.setApplicationName("saisie");
+
+    const QString locale = QLocale::system().name().section('_', 0, 0);
+
+    // qt translations
+    QTranslator qtTranslator;
+    qtTranslator.load(app.applicationName() + "_" + locale);
+    app.installTranslator(&qtTranslator);
 
     MainWindow w;
     w.show();
 
-    //trying to get the arguments into a list
     QStringList cmdline_args = QCoreApplication::arguments();
 
     if (cmdline_args.size() > 1)
@@ -22,7 +28,7 @@ int main(int argc, char *argv[])
         w.addFiles(cmdline_args);
     }
 
-    w.checkForLoadedEntities();
+    w.checkForLoadedData();
 
     return app.exec();
 }

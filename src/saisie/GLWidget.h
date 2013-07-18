@@ -87,16 +87,22 @@ public:
                                    MessagePosition pos = SCREEN_CENTER_MESSAGE);
 
     //! States if data (cloud or camera) is loaded
-    bool hasDataLoaded(){return m_bCloudLoaded||m_bCameraLoaded;}
+    bool hasDataLoaded(){return m_bCloudLoaded||m_bCameraLoaded||m_bImageLoaded;}
 
     //! States if a cloud is loaded
     bool hasCloudLoaded(){return m_bCloudLoaded;}
+
+    //! States if a cloud is loaded
+    bool hasImageLoaded(){return m_bImageLoaded;}
 
     //! Sets cloud state as loaded
     void setCloudLoaded(bool isLoaded) { m_bCloudLoaded = isLoaded; }
 
     //! Sets camera state as loaded
     void setCameraLoaded(bool isLoaded) { m_bCameraLoaded = isLoaded; }
+
+    //! Sets camera state as loaded
+    void setImageLoaded(bool isLoaded) { m_bImageLoaded = isLoaded; }
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
@@ -223,6 +229,9 @@ protected:
     //! States if a camera is already loaded
     bool m_bCameraLoaded;
 
+    //! States if a camera is already loaded
+    bool m_bImageLoaded;
+
     //! States if frame axis should be drawn
     bool m_bDrawAxis;
 
@@ -265,6 +274,9 @@ protected:
 
     //! Ball GL list
     GLuint m_ballGLList;
+
+    //! Texture GL list
+    GLuint m_textGLList;
 
     int m_nbGLLists;
 
@@ -318,6 +330,8 @@ private:
     GLfloat     _m_g_rotationMatrix[9];
     GLfloat     _m_g_glMatrix[16];
     QTime       _time;
+
+    QImage      _gldata;
 
 };
 

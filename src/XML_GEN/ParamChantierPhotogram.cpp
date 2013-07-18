@@ -5309,53 +5309,53 @@ void xml_init(cRepereCartesien & anObj,cElXMLTree * aTree)
 }
 
 
-Pt3dr & cCodageMatr::L1()
+Pt3dr & cTypeCodageMatr::L1()
 {
    return mL1;
 }
 
-const Pt3dr & cCodageMatr::L1()const 
+const Pt3dr & cTypeCodageMatr::L1()const 
 {
    return mL1;
 }
 
 
-Pt3dr & cCodageMatr::L2()
+Pt3dr & cTypeCodageMatr::L2()
 {
    return mL2;
 }
 
-const Pt3dr & cCodageMatr::L2()const 
+const Pt3dr & cTypeCodageMatr::L2()const 
 {
    return mL2;
 }
 
 
-Pt3dr & cCodageMatr::L3()
+Pt3dr & cTypeCodageMatr::L3()
 {
    return mL3;
 }
 
-const Pt3dr & cCodageMatr::L3()const 
+const Pt3dr & cTypeCodageMatr::L3()const 
 {
    return mL3;
 }
 
 
-cTplValGesInit< bool > & cCodageMatr::TrueRot()
+cTplValGesInit< bool > & cTypeCodageMatr::TrueRot()
 {
    return mTrueRot;
 }
 
-const cTplValGesInit< bool > & cCodageMatr::TrueRot()const 
+const cTplValGesInit< bool > & cTypeCodageMatr::TrueRot()const 
 {
    return mTrueRot;
 }
 
-cElXMLTree * ToXMLTree(const cCodageMatr & anObj)
+cElXMLTree * ToXMLTree(const cTypeCodageMatr & anObj)
 {
   XMLPushContext(anObj.mGXml);
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CodageMatr",eXMLBranche);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"TypeCodageMatr",eXMLBranche);
    aRes->AddFils(ToXMLTree(std::string("L1"),anObj.L1())->ReTagThis("L1"));
    aRes->AddFils(ToXMLTree(std::string("L2"),anObj.L2())->ReTagThis("L2"));
    aRes->AddFils(ToXMLTree(std::string("L3"),anObj.L3())->ReTagThis("L3"));
@@ -5366,7 +5366,7 @@ cElXMLTree * ToXMLTree(const cCodageMatr & anObj)
   return aRes;
 }
 
-void xml_init(cCodageMatr & anObj,cElXMLTree * aTree)
+void xml_init(cTypeCodageMatr & anObj,cElXMLTree * aTree)
 {
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
@@ -5381,56 +5381,12 @@ void xml_init(cCodageMatr & anObj,cElXMLTree * aTree)
 }
 
 
-Pt3dr & cRotationVect::L1()
-{
-   return CodageMatr().Val().L1();
-}
-
-const Pt3dr & cRotationVect::L1()const 
-{
-   return CodageMatr().Val().L1();
-}
-
-
-Pt3dr & cRotationVect::L2()
-{
-   return CodageMatr().Val().L2();
-}
-
-const Pt3dr & cRotationVect::L2()const 
-{
-   return CodageMatr().Val().L2();
-}
-
-
-Pt3dr & cRotationVect::L3()
-{
-   return CodageMatr().Val().L3();
-}
-
-const Pt3dr & cRotationVect::L3()const 
-{
-   return CodageMatr().Val().L3();
-}
-
-
-cTplValGesInit< bool > & cRotationVect::TrueRot()
-{
-   return CodageMatr().Val().TrueRot();
-}
-
-const cTplValGesInit< bool > & cRotationVect::TrueRot()const 
-{
-   return CodageMatr().Val().TrueRot();
-}
-
-
-cTplValGesInit< cCodageMatr > & cRotationVect::CodageMatr()
+cTplValGesInit< cTypeCodageMatr > & cRotationVect::CodageMatr()
 {
    return mCodageMatr;
 }
 
-const cTplValGesInit< cCodageMatr > & cRotationVect::CodageMatr()const 
+const cTplValGesInit< cTypeCodageMatr > & cRotationVect::CodageMatr()const 
 {
    return mCodageMatr;
 }
@@ -13163,6 +13119,152 @@ void xml_init(cImSecOfMaster & anObj,cElXMLTree * aTree)
    xml_init(anObj.Sols(),aTree->GetAll("Sols",false,1));
 
    xml_init(anObj.ISOM_AllVois(),aTree->Get("ISOM_AllVois",1)); //tototo 
+}
+
+
+std::string & cParamOrientSHC::IdGrp()
+{
+   return mIdGrp;
+}
+
+const std::string & cParamOrientSHC::IdGrp()const 
+{
+   return mIdGrp;
+}
+
+
+Pt3dr & cParamOrientSHC::Vecteur()
+{
+   return mVecteur;
+}
+
+const Pt3dr & cParamOrientSHC::Vecteur()const 
+{
+   return mVecteur;
+}
+
+
+cTypeCodageMatr & cParamOrientSHC::Rot()
+{
+   return mRot;
+}
+
+const cTypeCodageMatr & cParamOrientSHC::Rot()const 
+{
+   return mRot;
+}
+
+cElXMLTree * ToXMLTree(const cParamOrientSHC & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ParamOrientSHC",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("IdGrp"),anObj.IdGrp())->ReTagThis("IdGrp"));
+   aRes->AddFils(ToXMLTree(std::string("Vecteur"),anObj.Vecteur())->ReTagThis("Vecteur"));
+   aRes->AddFils(ToXMLTree(anObj.Rot())->ReTagThis("Rot"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cParamOrientSHC & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.IdGrp(),aTree->Get("IdGrp",1)); //tototo 
+
+   xml_init(anObj.Vecteur(),aTree->Get("Vecteur",1)); //tototo 
+
+   xml_init(anObj.Rot(),aTree->Get("Rot",1)); //tototo 
+}
+
+
+std::list< cParamOrientSHC > & cLiaisonsSHC::ParamOrientSHC()
+{
+   return mParamOrientSHC;
+}
+
+const std::list< cParamOrientSHC > & cLiaisonsSHC::ParamOrientSHC()const 
+{
+   return mParamOrientSHC;
+}
+
+cElXMLTree * ToXMLTree(const cLiaisonsSHC & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"LiaisonsSHC",eXMLBranche);
+  for
+  (       std::list< cParamOrientSHC >::const_iterator it=anObj.ParamOrientSHC().begin();
+      it !=anObj.ParamOrientSHC().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("ParamOrientSHC"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cLiaisonsSHC & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.ParamOrientSHC(),aTree->GetAll("ParamOrientSHC",false,1));
+}
+
+
+std::string & cStructBlockCam::KeyIm2TimeCam()
+{
+   return mKeyIm2TimeCam;
+}
+
+const std::string & cStructBlockCam::KeyIm2TimeCam()const 
+{
+   return mKeyIm2TimeCam;
+}
+
+
+std::list< cParamOrientSHC > & cStructBlockCam::ParamOrientSHC()
+{
+   return LiaisonsSHC().Val().ParamOrientSHC();
+}
+
+const std::list< cParamOrientSHC > & cStructBlockCam::ParamOrientSHC()const 
+{
+   return LiaisonsSHC().Val().ParamOrientSHC();
+}
+
+
+cTplValGesInit< cLiaisonsSHC > & cStructBlockCam::LiaisonsSHC()
+{
+   return mLiaisonsSHC;
+}
+
+const cTplValGesInit< cLiaisonsSHC > & cStructBlockCam::LiaisonsSHC()const 
+{
+   return mLiaisonsSHC;
+}
+
+cElXMLTree * ToXMLTree(const cStructBlockCam & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"StructBlockCam",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("KeyIm2TimeCam"),anObj.KeyIm2TimeCam())->ReTagThis("KeyIm2TimeCam"));
+   if (anObj.LiaisonsSHC().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.LiaisonsSHC().Val())->ReTagThis("LiaisonsSHC"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cStructBlockCam & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.KeyIm2TimeCam(),aTree->Get("KeyIm2TimeCam",1)); //tototo 
+
+   xml_init(anObj.LiaisonsSHC(),aTree->Get("LiaisonsSHC",1)); //tototo 
 }
 
 

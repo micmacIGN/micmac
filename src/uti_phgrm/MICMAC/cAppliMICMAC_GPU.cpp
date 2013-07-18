@@ -38,7 +38,7 @@ See below and http://www.cecill.info.
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
-
+#include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
 namespace NS_ParamMICMAC
 {
@@ -622,32 +622,28 @@ if (0)
 		{
 			mVLI.push_back(new cGPU_LoadedImGeom(*this,*itFI,aBox,mCurSzV0,mCurSzVMax,true));
 		}
-		mNbIm = (int)mVLI.size();
+        mNbIm = (int)mVLI.size();
 
-                mNbScale = mVLI.size() ?  mVLI[0]->NbScale()  : 0;
-
-
-                mVScaIm.clear();
-                for (int aKS=0 ; aKS<mNbScale ; aKS++)
-                {
-                    std::vector<cGPU_LoadedImGeom *> aV;
-                    mVScaIm.push_back(aV);
-                }
-
-                for (int aKS=0 ; aKS<mNbScale ; aKS++)
-                {
-                    for (int aKI=0 ; aKI<mNbIm ; aKI++)
-                    {
-                        mVScaIm[aKS].push_back(mVLI[aKI]->KiemeMSGLI(aKS));
-                    }
-                }
+        mNbScale = mVLI.size() ?  mVLI[0]->NbScale()  : 0;
 
 
-                
+        mVScaIm.clear();
+        for (int aKS=0 ; aKS<mNbScale ; aKS++)
+        {
+            std::vector<cGPU_LoadedImGeom *> aV;
+            mVScaIm.push_back(aV);
+        }
 
+        for (int aKS=0 ; aKS<mNbScale ; aKS++)
+        {
+            for (int aKI=0 ; aKI<mNbIm ; aKI++)
+            {
+                mVScaIm[aKS].push_back(mVLI[aKI]->KiemeMSGLI(aKS));
+            }
+        }
 
 		mZMinGlob = (int)1e7;
-		mZMaxGlob = (int)(-1e7);
+        mZMaxGlob = (int)(-mZMinGlob);
 
 #ifdef CUDA_ENABLED
 	
@@ -655,7 +651,7 @@ if (0)
 		
 		if (mLoadTextures)//		Mise en calque des images	
 		{
-			IMmGg.DeallocMemory();
+            IMmGg.Data().DeallocDeviceData();
 			
 			mLoadTextures		= false;
 			float*	fdataImg1D	= NULL;	
@@ -691,11 +687,11 @@ if (0)
 			}
 
 			if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
-				IMmGg.SetImages(fdataImg1D, dimImgMax, mNbIm);
+                IMmGg.Data().SetImages(fdataImg1D, dimImgMax, mNbIm);
 
 			if (fdataImg1D != NULL) delete[] fdataImg1D;          
 
-			IMmGg.SetParameter(Ter, mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT, INTERZ);
+            IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
 			
 		}
 
@@ -736,8 +732,15 @@ if (0)
 
         IMmGg.SetSizeBlock(INTERZ,rMask);
 
+
+
 		if (IMmGg.Param().MaskNoNULL())
 		{            
+
+//            IMmGg.Data().Realloc(IMmGg.Param());
+
+//            IMmGg.Data().ReallocAllDeviceData(IMmGg.Param().ZLocInter,IMmGg.Param());
+
 			uint2 rDimTer = IMmGg.Param().dimTer;
 
 			pixel *SubMaskTab = new pixel[size(rDimTer)];
@@ -745,11 +748,8 @@ if (0)
 			for (int y = rMask.pt0.y; y < rMask.pt1.y; y++) 
 				memcpy(SubMaskTab + (y  - rMask.pt0.y) * rDimTer.x, maskTab + (y - mY0Ter) * Ter.dimension().x + rMask.pt0.x - mX0Ter, sizeof(pixel) * rDimTer.x );
 					
-			IMmGg.SetMask(SubMaskTab,rDimTer);
+            IMmGg.Data().SetMask(SubMaskTab,rDimTer);
 
-#ifdef USEDILATEMASK
-			IMmGg.dilateMask(rDimTer);
-#endif
 			delete[] SubMaskTab;
 		}
 
@@ -1397,10 +1397,10 @@ void cAppliMICMAC::DoGPU_Correl
 
         IMmGg.IntervalZ(interZ, Z, zMax);
 
-        IMmGg.MemsetProj();
+        IMmGg.Data().MemsetHostVolumeProj(IMmGg.Param().IntDefault);
         Rect    zone        = IMmGg.Param().RDTer();
         uint    sample      = IMmGg.Param().sampProj;
-        float2  *pTabProj   = IMmGg.InputProj();
+        float2  *pTabProj   = IMmGg.Data().HostVolumeProj();
 		uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain 
 		uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain echantilloné
 		uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
@@ -1476,9 +1476,7 @@ void cAppliMICMAC::DoGPU_Correl
 
 #ifdef  CUDA_ENABLED
 		
-		if(	mNbIm == 0) return;	
-
-        int aZMinTer = mZMinGlob, aZMaxTer = mZMaxGlob;
+		if(	mNbIm == 0) return;	        
 
 		// definition de la zone rectangulaire de terrain
 		Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
@@ -1488,57 +1486,47 @@ void cAppliMICMAC::DoGPU_Correl
             return setVolumeCost(mTer,mZMinGlob,mZMaxGlob,mAhDefCost);
 
         // intervale des pronfondeurs calcules simultanement
-        uint interZ	= min(INTERZ, abs(aZMaxTer - aZMinTer));
-
-        // S'il change allocation differentes... A VERIFIER!! depuis les derniers changements
-		if (interZ != INTERZ)	IMmGg.SetSizeBlock(interZ);
-		
-        // Allocation de l'espace memoire pour la tabulation des projections et des couts
-        IMmGg.ReallocHost(interZ);
+        uint interZ	= min(INTERZ, abs(mZMaxGlob - mZMinGlob));
 
 		// Initiation des parametres pour le multithreading
-        IMmGg.InitJob();
+        IMmGg.InitJob(interZ);
 
-        int anZProjection = aZMinTer, anZComputed= aZMinTer, ZtoCopy = 0;
+        int anZProjection = mZMinGlob, anZComputed= mZMinGlob, ZtoCopy = 0;
 
         // Parcourt de l'intervalle de Z compris dans la nappe globale
         if (IMmGg.UseMultiThreading())
-            while( anZComputed < aZMaxTer )
+            while( anZComputed < mZMaxGlob )
             {
 				// Tabulation des projections si la demande est faite
-                if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + (int)interZ && anZProjection < aZMaxTer)
+                if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + (int)interZ && anZProjection < mZMaxGlob)
 				{                    
-                    Tabul_Projection( anZProjection, aZMaxTer, interZ);
-                    IMmGg.SetPreComp(false);
-                    IMmGg.SetCompute(interZ);
+                    Tabul_Projection( anZProjection, mZMaxGlob, interZ);
+                    IMmGg.signalComputeCorrel(interZ);
 					anZProjection+= interZ;
 				}
                 // Affectation des couts si des nouveaux ont ete calcule!
-                if ((ZtoCopy = (int)IMmGg.GetDataToCopy())/* && anZComputed < aZMaxTer*/)
+                if ((ZtoCopy = (int)IMmGg.GetDataToCopy()))
 				{
-                    setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,IMmGg.OuputCost(!IMmGg.GetIdBuf()), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
+                    setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,IMmGg.Data().HostVolumeCost(!IMmGg.GetIdBuf()), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
                     anZComputed += ZtoCopy;
                     IMmGg.SetDataToCopy(0);
 				}
 			}
         else
         {
-            while( anZComputed < aZMaxTer )
+            while( anZComputed < mZMaxGlob )
             {
-
                 // calcul des projections
-                Tabul_Projection( anZComputed,aZMaxTer,interZ);
+                Tabul_Projection( anZComputed,mZMaxGlob,interZ);
 				// Kernel Correlation
                 IMmGg.BasicCorrelation(mNbIm);
-
-                setVolumeCost(mTer,anZComputed,anZComputed + interZ,mAhDefCost,IMmGg.OuputCost(), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
+                setVolumeCost(mTer,anZComputed,anZComputed + interZ,mAhDefCost,IMmGg.Data().HostVolumeCost(0), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
                 anZComputed += interZ;
-
 			}
 		}
 
         IMmGg.freezeCompute();        
-        IMmGg.DeallocVolumes(); // Attention dealloc Time !!!
+        IMmGg.Data().DeallocHostData(); // Attention dealloc Time !!!
 
 #else
 		ELISE_ASSERT(1,"Sorry, this is not the cuda version");

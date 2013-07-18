@@ -1,5 +1,4 @@
 #include "GpGpu/cudaAppliMicMac.cuh"
-//#include "GpGpu/CudaRefTexture.cuh"
 
 texture< pixel,	cudaTextureType2D >	TexS_MaskTerD;
 

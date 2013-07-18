@@ -10,6 +10,7 @@
 #include <QFutureWatcher>
 #include <QtConcurrentRun>
 #include <QProgressDialog>
+#include <QTimer>
 
 #include "GLWidget.h"
 #include "Engine.h"
@@ -34,17 +35,8 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-    //! Checks for loaded entities
-    /** If none, a message is displayed to invite user
-        to drag & drop files.
-    **/
-    bool checkForLoadedEntities();
-
-    static void progress(int var, void *obj);
-
-signals:
-
-    void progressInc(int val);
+    //! Checks for loaded data
+    bool checkForLoadedData();
 
 public slots:
 
@@ -83,12 +75,15 @@ public slots:
 
     void loadPlys();
     void loadCameras();
+    void loadImages();
     void closeAll();
     void exportMasks();
     void loadAndExport();
     void saveSelectionInfos();
 
     void openRecentFile();
+
+    void progression();
 
 protected:
 
@@ -98,21 +93,22 @@ protected:
 
 private:
 
-    void emitProgress(int progress);
-    void createMenus();
+    void                    createMenus();
 
-    void setCurrentFile(const QString &fileName);
-    void updateRecentFileActions();
-    QString strippedName(const QString &fullFileName);
+    void                    setCurrentFile(const QString &fileName);
+    void                    updateRecentFileActions();
+    QString                 strippedName(const QString &fullFileName);
 
-    Ui::MainWindow          *ui;
+    int *                   m_incre;
+
+    Ui::MainWindow*         ui;
 
     GLWidget*               m_glWidget;
 
     cEngine*                m_Engine;
 
-    QFutureWatcher<void>    FutureWatcher;
-    QProgressDialog*        ProgressDialog;
+    QFutureWatcher<void>    m_FutureWatcher;
+    QProgressDialog*        m_ProgressDialog;
 
     enum { MaxRecentFiles = 3 };
     QAction *               m_recentFileActs[MaxRecentFiles];

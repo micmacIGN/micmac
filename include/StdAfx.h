@@ -258,7 +258,7 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 
 
 #include "../src/uti_phgrm/MICMAC/cParamMICMAC.h"
-#include "../src/uti_phgrm/MICMAC/MICMAC.h"
+//#include "../src/uti_phgrm/MICMAC/MICMAC.h"
 #include "../src/uti_phgrm/Porto/Porto.h"
 
 #include "../src/uti_phgrm/SaisiePts/cParamSaisiePts.h"
@@ -294,7 +294,7 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #endif // _WIN32
 #include "poisson/Poisson.h"
 
-#include "AnnSearcher.h"
+#include "../src/uti_image/Ann/AnnSearcher.h"
 
 #include <stdarg.h>
 

@@ -37,7 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
-
+#include "../src/uti_phgrm/MICMAC/MICMAC.h"
 namespace NS_ParamMICMAC
 {
 
@@ -798,8 +798,7 @@ void cAppliMICMAC::DoOneBloc
         mSurfOpt->SolveOpt();
 
 #ifdef CUDA_ENABLED
-		IMmGg.DeallocMemory();
-		//freeGpuMemory();
+        IMmGg.Data().DeallocDeviceData();
 #endif
     }
 

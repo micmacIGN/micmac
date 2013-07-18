@@ -4,6 +4,7 @@
 
 #include "StdAfx.h"
 #include "Cloud.h"
+#include <QImage>
 
 using namespace Cloud_;
 
@@ -16,18 +17,22 @@ class cData
 
         void addCamera(CamStenope *);
         void addCloud(Cloud *);
-
-        void addCameras(vector <CamStenope *>);
-        void addClouds(vector <Cloud *>);
+        void addImage(QImage *);
 
         void clearCameras();
         void clearClouds();
+        void clearImages();
 
         int NbCameras(){return m_Cameras.size();}
         int NbClouds(){return m_Clouds.size();}
+        int NbImages(){return m_Images.size();}
 
         CamStenope * & getCamera(int aK) {return m_Cameras[aK];}
-        Cloud * & getCloud(int aK) {return m_Clouds[aK];}
+        Cloud * &      getCloud(int aK)  {return m_Clouds[aK];}
+        QImage * &     getImage(int aK)  {return m_Images[aK];}
+        QImage * &     getCurImage()     {return m_Images[m_curImgIdx];}
+
+        void    setCurImage(int idx)     {m_curImgIdx = idx;}
 
         void    getBB(Cloud *);
 
@@ -38,9 +43,14 @@ class cData
         //Bounding box, center and diameter of all clouds
         float m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_cX, m_cY, m_cZ, m_diam;
 
+
+
    private:
 
         vector <CamStenope *> m_Cameras;
         vector <Cloud *>      m_Clouds;
+        vector <QImage *>     m_Images;
+
+        int                   m_curImgIdx;
 };
 #endif // DATA_H

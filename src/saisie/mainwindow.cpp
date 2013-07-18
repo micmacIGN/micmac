@@ -19,12 +19,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->OpenglLayout->setStyleSheet(style);
 
-    ProgressDialog = new QProgressDialog("Load files","Stop",0,0,this);
-    ProgressDialog->setMinimum(0);
-    ProgressDialog->setMaximum(100);
+    m_ProgressDialog = new QProgressDialog("Load ply files","Stop",0,0,this);
+    //ProgressDialog->setMinimumDuration(500);
+    m_ProgressDialog->setMinimum(0);
+    m_ProgressDialog->setMaximum(100);
 
-    connect(&FutureWatcher, SIGNAL(finished()),ProgressDialog,SLOT(cancel()));
-    connect(this,SIGNAL(progressInc(int)),ProgressDialog,SLOT(setValue(int)));
+    connect(&m_FutureWatcher, SIGNAL(finished()),m_ProgressDialog,SLOT(cancel()));
 
     m_glWidget = new GLWidget(this,m_Engine->getData());
 
@@ -86,8 +86,9 @@ void MainWindow::connectActions()
     //File menu
     connect(ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
     connect(ui->actionLoad_camera,		SIGNAL(triggered()),   this, SLOT(loadCameras()));
+    connect(ui->actionLoad_images,		SIGNAL(triggered()),   this, SLOT(loadImages()));
     connect(ui->actionExport_mask,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
-    connect(ui->actionLoad_and_Export,	SIGNAL(triggered()),   this, SLOT(loadAndExport()));
+    connect(ui->actionLoad_and_Export,  SIGNAL(triggered()),   this, SLOT(loadAndExport()));
     connect(ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
     connect(ui->actionClose_all,        SIGNAL(triggered()),   this, SLOT(closeAll()));
     connect(ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
@@ -105,10 +106,10 @@ void MainWindow::connectActions()
 
 void MainWindow::createMenus()
 {
-    m_RFMenu = new QMenu("Recent files", this);
+    m_RFMenu = new QMenu(tr("Recent files"), this);
 
-    ui->menuFile->insertMenu(ui->actionExport_mask, m_RFMenu);
-    ui->menuFile->insertSeparator(ui->actionExport_mask);
+    ui->menuFile->insertMenu(ui->actionSave_selection, m_RFMenu);
+    ui->menuFile->insertSeparator(ui->actionSave_selection);
 
     for (int i = 0; i < MaxRecentFiles; ++i)
         m_RFMenu->addAction(m_recentFileActs[i]);
@@ -116,14 +117,14 @@ void MainWindow::createMenus()
     updateRecentFileActions();
 }
 
-bool MainWindow::checkForLoadedEntities()
+bool MainWindow::checkForLoadedData()
 {
     bool loadedEntities = true;
     m_glWidget->displayNewMessage(QString()); //clear (any) message in the middle area
 
     if (!m_glWidget->hasDataLoaded())
     {
-        m_glWidget->displayNewMessage("Drag & drop files on window to load them!");
+        m_glWidget->displayNewMessage(tr("Drag & drop files on window to load them!"));
         loadedEntities = false;
     }
     else
@@ -132,16 +133,10 @@ bool MainWindow::checkForLoadedEntities()
     return loadedEntities;
 }
 
-void MainWindow::emitProgress(int progress)
+void MainWindow::progression()
 {
-    emit progressInc(progress);
-}
-
-void MainWindow::progress(int var, void* obj)
-{
-    MainWindow* ca = (MainWindow*)obj;
-
-    ca->emitProgress(var);
+    if(m_incre)
+        m_ProgressDialog->setValue(*m_incre);
 }
 
 void MainWindow::addFiles(const QStringList& filenames)
@@ -162,37 +157,52 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         if (fi.suffix() == "ply")
         {            
-#ifdef WIN32
-            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadCloudsWin,filenames);
-#else
-            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadClouds,filenames,&this->progress,this);
-#endif
-            this->FutureWatcher.setFuture(future);
-            this->ProgressDialog->setWindowModality(Qt::WindowModal);
-            this->ProgressDialog->exec();
+            QTimer *timer_test = new QTimer(this);
+            m_incre = new int(0);
+            connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
+            timer_test->start(10);
+            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadClouds,filenames,m_incre);
+
+            this->m_FutureWatcher.setFuture(future);
+            this->m_ProgressDialog->setWindowModality(Qt::WindowModal);
+            this->m_ProgressDialog->exec();
+
+            timer_test->stop();
+            disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
+            delete m_incre;
+
+            delete timer_test;
 
             future.waitForFinished();
-
-            m_glWidget->setData(m_Engine->getData());
-            m_glWidget->update();
         }
         else if (fi.suffix() == "xml")
         {          
             QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadCameras,filenames);
 
-            this->FutureWatcher.setFuture(future);
-            this->ProgressDialog->setWindowModality(Qt::WindowModal);
-            this->ProgressDialog->exec();
+            this->m_FutureWatcher.setFuture(future);
+            this->m_ProgressDialog->setWindowModality(Qt::WindowModal);
+            this->m_ProgressDialog->exec();
 
             future.waitForFinished();
-
-            m_glWidget->setCameraLoaded(true);
-            m_glWidget->update();
         }
+        else
+        {
+            //try to load images
+            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadImages,filenames);
+
+            this->m_FutureWatcher.setFuture(future);
+            this->m_ProgressDialog->setWindowModality(Qt::WindowModal);
+            this->m_ProgressDialog->exec();
+
+            future.waitForFinished();
+        }
+
+        m_glWidget->setData(m_Engine->getData());
+        m_glWidget->update();
 
         for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
 
-        checkForLoadedEntities();
+        checkForLoadedData();
     }
 
     this->setWindowState(Qt::WindowActive);
@@ -265,37 +275,36 @@ void MainWindow::togglePointsSelection(bool state)
 
 void MainWindow::doActionDisplayShortcuts()
 {
-    QString text = "File menu:\n\n";
-    text += "Ctrl+P: open .ply files\n";
-    text += "Ctrl+O: open .xml camera files\n";
-    text += "Ctrl+E: export mask files\n";
-    text += "Ctrl+Maj+S: open .xml camera and export mask files\n";
-    text += "Ctrl+S: save .xml selection stack\n";
-    text += "Ctrl+X: close files\n";
-    text += "Ctrl+Q: quit\n\n";
-    text += "View:\n\n";
-    text += "F2: full screen\n";
-    text += "F3: show axis\n";
-    text += "F4: show ball\n";
-    text += "F5: show bounding box\n";
-    text += "F6: show cameras\n";
-    text += "F7: show help messages\n";
+    QString text = tr("File menu:") +"\n\n";
+    text += tr("Ctrl+P: open .ply files")+"\n";
+    text += tr("Ctrl+C: open .xml camera files")+"\n";
+    text += tr("Ctrl+O: open image files")+"\n";
+    text += tr("Ctrl+S: save .xml selection infos")+"\n";
+    text += tr("Ctrl+X: close files")+"\n";
+    text += tr("Ctrl+Q: quit") +"\n\n";
+    text += tr("View:") +"\n\n";
+    text += tr("F2: full screen") +"\n";
+    text += tr("F3: show axis") +"\n";
+    text += tr("F4: show ball") +"\n";
+    text += tr("F5: show bounding box") +"\n";
+    text += tr("F6: show cameras") +"\n";
+    text += tr("F7: show help messages") +"\n";
     text += "\n";
-    text += "Key +/-: increase/decrease point size\n\n";
-    text += "Selection menu:\n\n";
-    text += "F8: move mode / selection mode\n";
-    text += "    - Left click : add a point to polyline\n";
-    text += "    - Right click: close polyline\n";
-    text += "    - Echap: delete polyline\n";
-    text += "    - Space bar: add points inside polyline\n";
-    text += "    - Del: delete points inside polyline\n";
-    text += "    - . : delete closest point in polyline\n";
-    text += "    - Ctrl+A: select all\n";
-    text += "    - Ctrl+D: select none\n";
-    text += "    - Ctrl+R: undo all past selections\n";
-    text += "    - Ctrl+I: invert selection\n";
+    text += tr("Key +/-: increase/decrease point size") +"\n\n";
+    text += tr("Selection menu:") +"\n\n";
+    text += tr("F8: move mode / selection mode") +"\n";
+    text += tr("    - Left click : add a point to polyline") +"\n";
+    text += tr("    - Right click: close polyline") +"\n";
+    text += tr("    - Echap: delete polyline") +"\n";
+    text += tr("    - Space bar: add points inside polyline") +"\n";
+    text += tr("    - Del: delete points inside polyline") +"\n";
+    text += tr("    - . : delete closest point in polyline") +"\n";
+    text += tr("    - Ctrl+A: select all") +"\n";
+    text += tr("    - Ctrl+D: select none") +"\n";
+    text += tr("    - Ctrl+R: undo all past selections") +"\n";
+    text += tr("    - Ctrl+I: invert selection") +"\n";
 
-    QMessageBox::information(NULL, "Saisie3D - shortcuts", text);
+    QMessageBox::information(NULL, tr("Saisie - shortcuts"), text);
 }
 
 void MainWindow::addPoints()
@@ -383,7 +392,16 @@ void MainWindow::loadPlys()
 
 void MainWindow::loadCameras()
 {
-    m_Engine->loadCameras();
+    m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Camera Files"),QString(), tr("Files (*.xml)"));
+
+    addFiles(m_FilenamesIn);
+}
+
+void MainWindow::loadImages()
+{
+    m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Image Files"),QString(), tr("Files (*.*)"));
+
+    addFiles(m_FilenamesIn);
 }
 
 void MainWindow::exportMasks()
@@ -394,9 +412,8 @@ void MainWindow::exportMasks()
 void MainWindow::loadAndExport()
 {
     loadCameras();
-    exportMasks();
+    m_Engine->doMasks();
 }
-
 void MainWindow::saveSelectionInfos()
 {
     m_Engine->saveSelectInfos(m_glWidget->getSelectInfos());
@@ -408,7 +425,7 @@ void MainWindow::closeAll()
 
     m_glWidget->setCloudLoaded(false);
     m_glWidget->setCameraLoaded(false);
-    checkForLoadedEntities();
+    checkForLoadedData();
     m_glWidget->setBufferGl();
     m_glWidget->update();
 }
@@ -435,7 +452,8 @@ void MainWindow::setCurrentFile(const QString &fileName)
 
     settings.setValue("recentFileList", files);
 
-    foreach (QWidget *widget, QApplication::topLevelWidgets()) {
+    foreach (QWidget *widget, QApplication::topLevelWidgets())
+    {
         MainWindow *mainWin = qobject_cast<MainWindow *>(widget);
         if (mainWin)
             mainWin->updateRecentFileActions();

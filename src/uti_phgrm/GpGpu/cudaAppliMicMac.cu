@@ -1,14 +1,14 @@
 #include "GpGpu/cudaAppliMicMac.cuh"
 #include "GpGpu/cudaTextureTools.cuh"
 #include "GpGpu/CudaRefTexture.cuh"
+#include "GpGpu/SData2Correl.h"
 
 
 /// \file       cudaAppliMicMac.cu
 /// \brief      Kernel
 /// \author     GC
-/// \version    0.1
+/// \version    0.2
 /// \date       mars 2013
-
 
 static __constant__ pCorGpu cH;
 
@@ -35,7 +35,6 @@ __global__ void SummedAreaTable()
     cacheImg[threadIdx.y][threadIdx.x] =  cacheImg[threadIdx.y][threadIdx.x] +1;
 
 }
-
 
 /// \fn template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
 /// \brief Kernel fonction GpGpu Cuda
@@ -116,49 +115,47 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 }
 
 /// \brief Fonction qui lance les kernels de correlation
-extern "C" void	 KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
+extern "C" void	 KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, SData2Correl &data2cor, uint2 nbActThrd)
 {
-
   switch (s)
     {
     case 0:
-      correlationKernel<0><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+      correlationKernel<0><<<blocks, threads, 0, stream>>>( data2cor.DeviVolumeNOK(0), data2cor.DeviVolumeCache(0), nbActThrd);
       getLastCudaError("Basic Correlation kernel failed stream 0");
       break;
     case 1:
-      correlationKernel<1><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+      correlationKernel<1><<<blocks, threads, 0, stream>>>( data2cor.DeviVolumeNOK(1), data2cor.DeviVolumeCache(1), nbActThrd);
       getLastCudaError("Basic Correlation kernel failed stream 1");
       break;
     case 2:
-      correlationKernel<2><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+      correlationKernel<2><<<blocks, threads, 0, stream>>>( data2cor.DeviVolumeNOK(2), data2cor.DeviVolumeCache(2), nbActThrd);
       getLastCudaError("Basic Correlation kernel failed stream 2");
       break;
     case 3:
-      correlationKernel<3><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+      correlationKernel<3><<<blocks, threads, 0, stream>>>( data2cor.DeviVolumeNOK(3), data2cor.DeviVolumeCache(3), nbActThrd);
       getLastCudaError("Basic Correlation kernel failed stream 3");
       break;
     case 4:
-      correlationKernel<4><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+      correlationKernel<4><<<blocks, threads, 0, stream>>>( data2cor.DeviVolumeNOK(4), data2cor.DeviVolumeCache(4), nbActThrd);
       getLastCudaError("Basic Correlation kernel failed stream 4");
       break;
     case 5:
-      correlationKernel<5><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+      correlationKernel<5><<<blocks, threads, 0, stream>>>( data2cor.DeviVolumeNOK(5), data2cor.DeviVolumeCache(5), nbActThrd);
       getLastCudaError("Basic Correlation kernel failed stream 5");
       break;
     case 6:
-      correlationKernel<6><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+      correlationKernel<6><<<blocks, threads, 0, stream>>>( data2cor.DeviVolumeNOK(6), data2cor.DeviVolumeCache(6), nbActThrd);
       getLastCudaError("Basic Correlation kernel failed stream 6");
       break;
     case 7:
-      correlationKernel<7><<<blocks, threads, 0, stream>>>( dev_NbImgOk, cachVig, nbActThrd);
+      correlationKernel<7><<<blocks, threads, 0, stream>>>( data2cor.DeviVolumeNOK(7), data2cor.DeviVolumeCache(7), nbActThrd);
       getLastCudaError("Basic Correlation kernel failed stream 7");
       break;
     }
-
 }
 
 /// \brief Kernel Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens n utilisant pas des fonctions atomiques
-__global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, int* dev_NbImgOk, uint2 nbActThr)
+__global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, uint* dev_NbImgOk, uint2 nbActThr)
 {
 
   __shared__ float aSV [ SBLOCKDIM ][ SBLOCKDIM ];		// Somme des valeurs
@@ -233,9 +230,9 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, int* dev
 
 
 /// \brief Fonction qui lance les kernels de multi-Correlation n'utilisant pas des fonctions atomiques
-extern "C" void KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, float *dTCost, float* cacheVign, int * dev_NbImgOk, uint2 nbActThr)
+extern "C" void KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, SData2Correl &dataCorrel, uint2 nbActThr)
 {
-  multiCorrelationKernel<<<blocks, threads, 0, stream>>>(dTCost, cacheVign, dev_NbImgOk, nbActThr);
+  multiCorrelationKernel<<<blocks, threads, 0, stream>>>(dataCorrel.DeviVolumeCost(0), dataCorrel.DeviVolumeCache(0), dataCorrel.DeviVolumeNOK(0), nbActThr);
   getLastCudaError("Multi-Correlation NON ATOMIC kernel failed");
 
 }
