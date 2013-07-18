@@ -135,6 +135,9 @@ public:
     ///	\brief			Convertie un uint2 en string
     static std::string	toStr(uint2 tt);
 
+    ///	\brief			Convertie un uint2 en string
+    static const char* 	conca(const char* texte, int t);
+
     ///	\brief			Affiche les parametres GpGpu de correlation multi-images
     static void			OutputInfoGpuMemory();
 
@@ -364,6 +367,9 @@ public:
     /// \brief  affecte le nom
     /// \param  name : le nom a affecte
     void		SetName(std::string name);
+    /// \brief  affecte le nom
+    /// \param  name : le nom a affecte
+    void		SetName(std::string name, int id);
     /// \brief  renvoie le type de l objet en string
     std::string	Type();
     /// \brief  affecte le type de l objet
@@ -700,32 +706,43 @@ class CData3D : public struct2DLayered, public CData<T>
 public:
 
     CData3D();
+
     /// \brief constructeur avec initialisation de la dimension de la structure
     /// \param dim : Dimension 2D a initialiser
     /// \param l : Taille de la 3eme dimension
+
     CData3D(uint2 dim, uint l);
+
     ~CData3D(){}
+
     /// \brief      Allocation memoire pour les tous les elements de la structures
     virtual bool	Malloc() = 0;
+
     /// \brief      Initialise toutes les elements avec la valeur val
     /// \param      val : valeur d initialisation
     virtual bool	Memset(int val) = 0;
+
     /// \brief      Desalloue la memoire alloue
     virtual bool	Dealloc() = 0;
 
     void			OutputInfo();
+
     /// \brief      Allocation memoire pour les tous les elements de la structures avec initialisation de la dimension de la structure
     /// \param      dim : Dimension 2D a initialiser
     /// \param      l : Taille de la 3eme dimension
     bool			Malloc(uint2 dim, uint l);
+
     /// \brief      Desallocation puis re-allocation memoire pour les tous les elements de la structures avec initialisation de la dimension de la structure
     /// \param      dim : Dimension 2D a initialiser
     /// \param      l : Taille de la 3eme dimension
     bool			Realloc(uint2 dim, uint l);    
+
     bool			Realloc(uint size);
-    bool			ReallocIf(uint size);
+
+    bool			ReallocIf(uint dim1D);
 
     bool			ReallocIf(uint2 dim, uint l);
+
     /// \brief      Nombre d elements de la structure
     uint			Sizeof();
 
@@ -780,18 +797,18 @@ bool CData3D<T>::Realloc(uint size)
 }
 
 template <class T>
-bool CData3D<T>::ReallocIf(uint size)
+bool CData3D<T>::ReallocIf(uint dim1D)
 {
-    uint2 dim = make_uint2(size,1);
-
-    return ReallocIf(dim,1);
+    uint2 dim2D = make_uint2(dim1D,1);
+    return ReallocIf(dim2D,1);
 }
 
-template <class T>
+template <class T> inline
 bool CData3D<T>::ReallocIf(uint2 dim, uint l)
 {
-    if(dim.x*dim.y*l>CData3D<T>::GetSize())
-        return Realloc(dim,l);
+
+    if(size(dim)*l>CData3D<T>::GetSize())
+        return CData3D<T>::Realloc(dim,l);
     else
         CData3D<T>::SetDimension(dim,l);
 
@@ -1024,6 +1041,7 @@ public:
 template <class T>
 CuDeviceData2D<T>::CuDeviceData2D()
 {
+    CData<T>::SetSizeofMalloc(0);
     CData2D<T>::dataNULL();
 }
 
@@ -1144,6 +1162,7 @@ bool CuDeviceData3D<T>::MemsetAsync(int val, cudaStream_t stream)
 template <class T>
 CuDeviceData3D<T>::CuDeviceData3D()
 {
+    CData<T>::SetSizeofMalloc(0);
     CData3D<T>::dataNULL();
     CGObject::SetType("CuDeviceData3D");
 }
@@ -1151,6 +1170,7 @@ CuDeviceData3D<T>::CuDeviceData3D()
 template <class T>
 CuDeviceData3D<T>::CuDeviceData3D(uint2 dim, uint l, string name)
 {
+    CData<T>::SetSizeofMalloc(0);
     CData3D<T>::dataNULL();
     CGObject::SetType(name);
     CData3D<T>::Realloc(dim,l);
@@ -1159,6 +1179,7 @@ CuDeviceData3D<T>::CuDeviceData3D(uint2 dim, uint l, string name)
 template <class T>
 CuDeviceData3D<T>::CuDeviceData3D(uint dim, string name)
 {
+    CData<T>::SetSizeofMalloc(0);
     CData3D<T>::dataNULL();
     CGObject::SetType(name);
     CData3D<T>::Realloc(make_uint2(dim,1),1);
