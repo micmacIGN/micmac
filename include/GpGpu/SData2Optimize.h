@@ -3,8 +3,6 @@
 
 #include "GpGpu/GpGpuTools.h"
 
-//#define   NBUFFER   2
-
 template<template<class T> class U, uint NBUFFER = 1 >
 struct Data2Optimiz
 {

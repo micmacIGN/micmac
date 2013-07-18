@@ -15,7 +15,6 @@
 #endif
 
 #include "GpGpu/cudaAppliMicMac.cuh"
-#include <boost/thread/thread.hpp>
 #include "GpGpu/GpGpuTools.h"
 #include "GpGpu/GpGpuMultiThreadingCpu.h"
 #include "GpGpu/SData2Correl.h"

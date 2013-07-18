@@ -9,7 +9,7 @@
 /// \date       Avril 2013
 
 #include "GpGpu/GpGpuStreamData.cuh"
-#include "GpGpu/data2Optimize.h"
+#include "GpGpu/SData2Optimize.h"
 
 /// brief Calcul le Z min et max.
 __device__ void ComputeIntervaleDelta(short2 & aDz, int aZ, int MaxDeltaZ, short2 aZ_Next, short2 aZ_Prev)

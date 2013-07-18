@@ -1,11 +1,5 @@
 #pragma once
 
-#include <cuda_runtime.h>
-#include <helper_functions.h>
-#include <helper_cuda.h>
-#include <helper_math.h>
-
-#include "GpGpu/helper_math_extented.cuh"
 #include "GpGpu/GpGpuTools.h"
 
 #define INTDEFAULT	-64
