@@ -806,8 +806,7 @@ bool CData3D<T>::ReallocIf(uint dim1D)
 template <class T> inline
 bool CData3D<T>::ReallocIf(uint2 dim, uint l)
 {
-
-    if(size(dim)*l>CData3D<T>::GetSize())
+    if( size(dim) * l * sizeof(T) > CData3D<T>::GetSizeofMalloc())
         return CData3D<T>::Realloc(dim,l);
     else
         CData3D<T>::SetDimension(dim,l);
@@ -1113,6 +1112,8 @@ public:
     /// \brief  Copie toutes les valeurs du tableau dans un tableau du host
     /// \param  hostData : tableau destination
     bool        CopyDevicetoHost(T* hostData);
+
+    bool        CopyDevicetoHost(CuHostData3D<T> &hostData);
     /// \brief  Copie toutes les valeurs d un tableau dans la structure de donnee de la classe (dans la memoire globale GPU)
     /// \param  hostData : tableau cible
     bool        CopyHostToDevice(T* hostData);
@@ -1133,6 +1134,12 @@ template <class T>
 bool CuDeviceData3D<T>::CopyDevicetoHost( T* hostData )
 {
     return CData<T>::ErrorOutput(cudaMemcpy( hostData, CData3D<T>::pData(), CData3D<T>::Sizeof(), cudaMemcpyDeviceToHost),"CopyDevicetoHost");
+}
+
+template <class T>
+bool CuDeviceData3D<T>::CopyDevicetoHost(CuHostData3D<T> &hostData)
+{
+    return true;
 }
 
 template <class T>

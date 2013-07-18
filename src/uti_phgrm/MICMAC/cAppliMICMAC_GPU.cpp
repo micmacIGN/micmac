@@ -651,8 +651,8 @@ if (0)
 		
 		if (mLoadTextures)//		Mise en calque des images	
 		{
-            IMmGg.Data().DeallocDeviceData();
-			
+            //IMmGg.Data().DeallocDeviceData();
+
 			mLoadTextures		= false;
 			float*	fdataImg1D	= NULL;	
 			uint2	dimImgMax	= make_uint2(0,0);
@@ -1526,7 +1526,7 @@ void cAppliMICMAC::DoGPU_Correl
 		}
 
         IMmGg.freezeCompute();        
-        IMmGg.Data().DeallocHostData(); // Attention dealloc Time !!!
+        //IMmGg.Data().DeallocHostData(); // Attention dealloc Time !!!
 
 #else
 		ELISE_ASSERT(1,"Sorry, this is not the cuda version");
