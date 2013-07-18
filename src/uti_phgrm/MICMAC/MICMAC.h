@@ -83,7 +83,7 @@ FAIT :
     // ================
 
 #include "GpGpu/GpGpu.h"
-#include "StdAfx.h"
+//#include "StdAfx.h"
 
 // #include  "cParamMICMAC.h"
 
