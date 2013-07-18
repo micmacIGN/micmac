@@ -73,8 +73,8 @@ void MainWindow::connectActions()
     connect(ui->actionSetViewRight,		SIGNAL(triggered()),   this, SLOT(setRightView()));
 
     //"Points selection" menu
-    connect(ui->actionTogglePoints_selection, SIGNAL(triggered(bool)), this, SLOT(togglePointsSelection(bool)));
-    connect(ui->actionAdd_points,       SIGNAL(triggered()),   this, SLOT(addPoints()));
+    connect(ui->actionToggleMode_selection, SIGNAL(triggered(bool)), this, SLOT(toggleSelectionMode(bool)));
+    connect(ui->actionAdd,              SIGNAL(triggered()),   this, SLOT(add()));
     connect(ui->actionSelect_none,      SIGNAL(triggered()),   this, SLOT(selectNone()));
     connect(ui->actionInvertSelected,   SIGNAL(triggered()),   this, SLOT(invertSelected()));
     connect(ui->actionSelectAll,        SIGNAL(triggered()),   this, SLOT(selectAll()));
@@ -246,13 +246,13 @@ void MainWindow::toggleShowMessages(bool state)
     m_glWidget->showMessages(state);
 }
 
-void MainWindow::togglePointsSelection(bool state)
+void MainWindow::toggleSelectionMode(bool state)
 {
     if (state)
     {
         m_glWidget->setInteractionMode(GLWidget::SEGMENT_POINTS);
 
-        if (m_glWidget->hasCloudLoaded()&&m_glWidget->showMessages())
+        if (m_glWidget->hasDataLoaded()&&m_glWidget->showMessages())
         {
             m_glWidget->showSelectionMessages();
         }
@@ -262,7 +262,7 @@ void MainWindow::togglePointsSelection(bool state)
     {
         m_glWidget->setInteractionMode(GLWidget::TRANSFORM_CAMERA);
 
-        if (m_glWidget->hasCloudLoaded()&&m_glWidget->showMessages())
+        if (m_glWidget->hasDataLoaded()&&m_glWidget->showMessages())
         {
             m_glWidget->clearPolyline();
             m_glWidget->showMoveMessages();
@@ -296,8 +296,8 @@ void MainWindow::doActionDisplayShortcuts()
     text += tr("    - Left click : add a point to polyline") +"\n";
     text += tr("    - Right click: close polyline") +"\n";
     text += tr("    - Echap: delete polyline") +"\n";
-    text += tr("    - Space bar: add points inside polyline") +"\n";
-    text += tr("    - Del: delete points inside polyline") +"\n";
+    text += tr("    - Space bar: add points/pixels inside polyline") +"\n";
+    text += tr("    - Del: remove points/pixels inside polyline") +"\n";
     text += tr("    - . : delete closest point in polyline") +"\n";
     text += tr("    - Ctrl+A: select all") +"\n";
     text += tr("    - Ctrl+D: select none") +"\n";
@@ -307,7 +307,7 @@ void MainWindow::doActionDisplayShortcuts()
     QMessageBox::information(NULL, tr("Saisie - shortcuts"), text);
 }
 
-void MainWindow::addPoints()
+void MainWindow::add()
 {
     m_glWidget->Select(ADD);
     m_glWidget->update();
@@ -423,8 +423,6 @@ void MainWindow::closeAll()
 {
     m_Engine->unloadAll();
 
-    m_glWidget->setCloudLoaded(false);
-    m_glWidget->setCameraLoaded(false);
     checkForLoadedData();
     m_glWidget->setBufferGl();
     m_glWidget->update();

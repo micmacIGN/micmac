@@ -140,8 +140,8 @@ QStatusBar
     <property name="title">
      <string>Selection</string>
     </property>
-    <addaction name="actionTogglePoints_selection"/>
-    <addaction name="actionAdd_points"/>
+    <addaction name="actionToggleMode_selection"/>
+    <addaction name="actionAdd"/>
     <addaction name="actionRemove_from_selection"/>
     <addaction name="actionSelectAll"/>
     <addaction name="actionSelect_none"/>
@@ -283,7 +283,7 @@ QStatusBar
     <string>2</string>
    </property>
   </action>
-  <action name="actionTogglePoints_selection">
+  <action name="actionToggleMode_selection">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -412,9 +412,12 @@ QStatusBar
     <string>F6</string>
    </property>
   </action>
-  <action name="actionAdd_points">
+  <action name="actionAdd">
    <property name="text">
-    <string>Add points</string>
+    <string>Add points/pixels</string>
+   </property>
+   <property name="toolTip">
+    <string>Add points/pixels</string>
    </property>
    <property name="shortcut">
     <string>Space</string>
