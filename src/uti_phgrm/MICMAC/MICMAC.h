@@ -2956,7 +2956,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
 #ifdef  CUDA_ENABLED
         void Tabul_Projection(int Z, int zMax,  uint &interZ);
-		void setVolumeCost(Rect Ter,  uint interZ0, uint interZ1, double defaultCost, float* tabCost = NULL, Rect zone = Rect(0,0,0,0), float valdefault = 0.0f);
+        template <bool fromGpu> void setVolumeCost(Rect Ter,  uint interZ0, uint interZ1);
 #endif
 		void Correl_MNE_ZPredic (const Box2di & aBoxInterne,const cCorrel_Correl_MNE_ZPredic &);  
 		void DoCorrelPonctuelle2ImGeomI(const Box2di&aBoxInterne,const cCorrel_Ponctuel2ImGeomI&);  

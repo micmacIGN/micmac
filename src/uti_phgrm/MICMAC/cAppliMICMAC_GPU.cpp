@@ -650,9 +650,7 @@ if (0)
 		Rect Ter(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
 		
 		if (mLoadTextures)//		Mise en calque des images	
-		{
-            //IMmGg.Data().DeallocDeviceData();
-
+		{  
 			mLoadTextures		= false;
 			float*	fdataImg1D	= NULL;	
 			uint2	dimImgMax	= make_uint2(0,0);
@@ -730,17 +728,10 @@ if (0)
 		rMask.pt1.x++;
 		rMask.pt1.y++;
 
-        IMmGg.SetSizeBlock(INTERZ,rMask);
-
-
+        IMmGg.Param().SetDimension(rMask);
 
 		if (IMmGg.Param().MaskNoNULL())
-		{            
-
-//            IMmGg.Data().Realloc(IMmGg.Param());
-
-//            IMmGg.Data().ReallocAllDeviceData(IMmGg.Param().ZLocInter,IMmGg.Param());
-
+		{                      
 			uint2 rDimTer = IMmGg.Param().dimTer;
 
 			pixel *SubMaskTab = new pixel[size(rDimTer)];
@@ -1396,8 +1387,8 @@ void cAppliMICMAC::DoGPU_Correl
 	{
 
         IMmGg.IntervalZ(interZ, Z, zMax);
-
         IMmGg.Data().MemsetHostVolumeProj(IMmGg.Param().IntDefault);
+
         Rect    zone        = IMmGg.Param().RDTer();
         uint    sample      = IMmGg.Param().sampProj;
         float2  *pTabProj   = IMmGg.Data().HostVolumeProj();
@@ -1442,8 +1433,20 @@ void cAppliMICMAC::DoGPU_Correl
 		}
     }
 
-	void cAppliMICMAC::setVolumeCost(Rect Ter, uint z0, uint z1, double defaultCost, float* tabCost, Rect zone, float valdefault)
-	{
+    template <bool fromGpu>
+    void cAppliMICMAC::setVolumeCost(Rect Ter, uint z0, uint z1)
+	{        
+        float*  tabCost;
+        Rect    zone;
+        float   valdefault;
+
+//        if(fromGpu)
+//        {
+            tabCost     = IMmGg.UseMultiThreading() ? IMmGg.Data().HostVolumeCost(!IMmGg.GetIdBuf()) : IMmGg.Data().HostVolumeCost(0);
+            zone        = IMmGg.Param().RTer();
+            valdefault  = IMmGg.Param().floatDefault;
+        //}
+
 		uint2 rDiTer = zone.dimension();
 		uint  rSiTer = size(rDiTer);
 		for (int anY = Ter.pt0.y ; anY < (int)Ter.pt1.y; anY++)
@@ -1453,15 +1456,16 @@ void cAppliMICMAC::DoGPU_Correl
 				int anZ1 = min(z1,mTabZMax[anY][anX]);
 
 				for (int anZ = anZ0;  anZ < anZ1 ; anZ++,mNbPointsIsole++)
-					if (tabCost !=NULL && anX >= zone.pt0.x && anY >= zone.pt0.y && anX < zone.pt1.x && anY < zone.pt1.y )
-					{							
-						double cost = (double)tabCost[rSiTer * abs(anZ - (int)z0) + rDiTer.x * (anY - zone.pt0.y) + anX -  zone.pt0.x];
-						mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : defaultCost);																									
-					}
-                    else
-						mSurfOpt->SetCout(Pt2di(anX,anY),&anZ,defaultCost);
-
-
+                    //if(fromGpu)
+                    //{
+                        if (anX >= zone.pt0.x && anY >= zone.pt0.y && anX < zone.pt1.x && anY < zone.pt1.y )
+                        {
+                            double cost = (double)tabCost[rSiTer * abs(anZ - (int)z0) + rDiTer.x * (anY - zone.pt0.y) + anX -  zone.pt0.x];
+                            mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : mAhDefCost);
+                        }
+//                    }
+//                    else
+//                        mSurfOpt->SetCout(Pt2di(anX,anY),&anZ,mAhDefCost);
             }
 
 	}
@@ -1482,8 +1486,7 @@ void cAppliMICMAC::DoGPU_Correl
 		Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
 
         // Si le terrain est masque : Aucun calcul
-		if (!IMmGg.Param().MaskNoNULL())	
-            return setVolumeCost(mTer,mZMinGlob,mZMaxGlob,mAhDefCost);
+        if (!IMmGg.Param().MaskNoNULL()) return;// setVolumeCost<false>(mTer,mZMinGlob,mZMaxGlob);
 
         // intervale des pronfondeurs calcules simultanement
         uint interZ	= min(INTERZ, abs(mZMaxGlob - mZMinGlob));
@@ -1497,20 +1500,29 @@ void cAppliMICMAC::DoGPU_Correl
         if (IMmGg.UseMultiThreading())
             while( anZComputed < mZMaxGlob )
             {
-				// Tabulation des projections si la demande est faite
+
+                // Tabulation des projections si la demande est faite
+
                 if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + (int)interZ && anZProjection < mZMaxGlob)
 				{                    
                     Tabul_Projection( anZProjection, mZMaxGlob, interZ);
+
                     IMmGg.signalComputeCorrel(interZ);
-					anZProjection+= interZ;
+
+                    anZProjection+= interZ;
 				}
+
                 // Affectation des couts si des nouveaux ont ete calcule!
+
                 if ((ZtoCopy = (int)IMmGg.GetDataToCopy()))
 				{
-                    setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,IMmGg.Data().HostVolumeCost(!IMmGg.GetIdBuf()), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
+                    setVolumeCost<true>(mTer,anZComputed,anZComputed + ZtoCopy);
+
                     anZComputed += ZtoCopy;
+
                     IMmGg.SetDataToCopy(0);
 				}
+
 			}
         else
         {
@@ -1518,16 +1530,18 @@ void cAppliMICMAC::DoGPU_Correl
             {
                 // calcul des projections
                 Tabul_Projection( anZComputed,mZMaxGlob,interZ);
-				// Kernel Correlation
+
+                // Kernel Correlation
                 IMmGg.BasicCorrelation(mNbIm);
-                setVolumeCost(mTer,anZComputed,anZComputed + interZ,mAhDefCost,IMmGg.Data().HostVolumeCost(0), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
+
+                setVolumeCost<true>(mTer,anZComputed,anZComputed + interZ);
+
                 anZComputed += interZ;
 			}
 		}
 
         IMmGg.freezeCompute();        
         //IMmGg.Data().DeallocHostData(); // Attention dealloc Time !!!
-
 #else
 		ELISE_ASSERT(1,"Sorry, this is not the cuda version");
 #endif
