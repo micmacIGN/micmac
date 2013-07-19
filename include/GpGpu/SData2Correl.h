@@ -43,7 +43,7 @@ struct SData2Correl
 
     void    DeallocDeviceData();
 
-    void    ReallocHostData(pCorGpu param);
+    void    ReallocHostData(uint zInter, pCorGpu param);
 
     void    ReallocDeviceData(pCorGpu param);
 
@@ -68,7 +68,7 @@ private:
 
     textureReference&           _texMask;
     textureReference&           _texMaskD;
-    textureReference&           _texImages;    
+    textureReference&           _texImages;
     textureReference&           _texProjections_00;
     textureReference&           _texProjections_01;
     int                         _countAlloc;
@@ -77,6 +77,3 @@ private:
 };
 
 #endif
-
-
-

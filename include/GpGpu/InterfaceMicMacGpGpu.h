@@ -1,9 +1,9 @@
 #pragma once
 
 #ifdef _WIN32
-	#ifdef INT
-		#undef INT 
-	#endif
+    #ifdef INT
+        #undef INT
+    #endif
 #endif
 
 #include "GpGpu/GpGpu.h"
@@ -43,13 +43,13 @@ public:
   /// \brief    Renvoie les parametres de correlation
   pCorGpu       &Param();
 
-  void          signalComputeCorrel();
+  void          signalComputeCorrel(uint dZ);
 
-  void          InitJob(uint interZ);
+  void          InitJob(uint &interZ);
 
   void          freezeCompute();
 
-  void          IntervalZ(int anZProjection, int aZMaxTer);
+  void          IntervalZ(uint &interZ, int anZProjection, int aZMaxTer);
 
   SData2Correl&  Data(){return _data2Cor;}
 
