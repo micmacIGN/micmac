@@ -34,8 +34,6 @@ public:
   InterfaceMicMacGpGpu();
   ~InterfaceMicMacGpGpu();
 
-  /// \brief    Initialise la taille du bloque terrain et nombre de Z a calculer sur le Gpu
-  void          SetSizeBlock( uint Zinter, Rect Ter);
   /// \brief    Initialise les parametres de correlation
   void          SetParameter(int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef);
   /// \brief    Calcul de la correlation en Gpu
@@ -43,11 +41,11 @@ public:
   /// \brief    Calcul asynchrone de la correlation en Gpu
   void          BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
   /// \brief    Renvoie les parametres de correlation
-  pCorGpu       Param();
+  pCorGpu       &Param();
 
   void          signalComputeCorrel(uint dZ);
 
-  void          InitJob(uint interZ);
+  void          InitJob(uint &interZ);
 
   void          freezeCompute();
 
