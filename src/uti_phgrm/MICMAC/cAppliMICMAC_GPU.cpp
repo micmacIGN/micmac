@@ -650,9 +650,7 @@ if (0)
 		Rect Ter(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
 		
 		if (mLoadTextures)//		Mise en calque des images	
-		{
-            //IMmGg.Data().DeallocDeviceData();
-
+		{  
 			mLoadTextures		= false;
 			float*	fdataImg1D	= NULL;	
 			uint2	dimImgMax	= make_uint2(0,0);
@@ -730,11 +728,10 @@ if (0)
 		rMask.pt1.x++;
 		rMask.pt1.y++;
 
-        IMmGg.SetSizeBlock(INTERZ,rMask);
+        IMmGg.Param().SetDimension(rMask);
 
 		if (IMmGg.Param().MaskNoNULL())
-		{            
-
+		{                      
 			uint2 rDimTer = IMmGg.Param().dimTer;
 
 			pixel *SubMaskTab = new pixel[size(rDimTer)];
@@ -1443,12 +1440,12 @@ void cAppliMICMAC::DoGPU_Correl
         Rect    zone;
         float   valdefault;
 
-        if(fromGpu)
-        {
+//        if(fromGpu)
+//        {
             tabCost     = IMmGg.UseMultiThreading() ? IMmGg.Data().HostVolumeCost(!IMmGg.GetIdBuf()) : IMmGg.Data().HostVolumeCost(0);
             zone        = IMmGg.Param().RTer();
             valdefault  = IMmGg.Param().floatDefault;
-        }
+        //}
 
 		uint2 rDiTer = zone.dimension();
 		uint  rSiTer = size(rDiTer);
@@ -1459,16 +1456,16 @@ void cAppliMICMAC::DoGPU_Correl
 				int anZ1 = min(z1,mTabZMax[anY][anX]);
 
 				for (int anZ = anZ0;  anZ < anZ1 ; anZ++,mNbPointsIsole++)
-                    if(fromGpu)
-                    {
+                    //if(fromGpu)
+                    //{
                         if (anX >= zone.pt0.x && anY >= zone.pt0.y && anX < zone.pt1.x && anY < zone.pt1.y )
                         {
                             double cost = (double)tabCost[rSiTer * abs(anZ - (int)z0) + rDiTer.x * (anY - zone.pt0.y) + anX -  zone.pt0.x];
                             mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : mAhDefCost);
                         }
-                    }
-                    else
-                        mSurfOpt->SetCout(Pt2di(anX,anY),&anZ,mAhDefCost);
+//                    }
+//                    else
+//                        mSurfOpt->SetCout(Pt2di(anX,anY),&anZ,mAhDefCost);
             }
 
 	}
@@ -1489,8 +1486,7 @@ void cAppliMICMAC::DoGPU_Correl
 		Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
 
         // Si le terrain est masque : Aucun calcul
-		if (!IMmGg.Param().MaskNoNULL())	
-            return setVolumeCost<false>(mTer,mZMinGlob,mZMaxGlob);
+        if (!IMmGg.Param().MaskNoNULL()) return;// setVolumeCost<false>(mTer,mZMinGlob,mZMaxGlob);
 
         // intervale des pronfondeurs calcules simultanement
         uint interZ	= min(INTERZ, abs(mZMaxGlob - mZMinGlob));
