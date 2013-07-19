@@ -47,7 +47,7 @@ public:
 
   void          signalComputeCorrel(uint dZ);
 
-  void          InitJob(uint interZ);
+  void          InitJob(uint &interZ);
 
   void          freezeCompute();
 

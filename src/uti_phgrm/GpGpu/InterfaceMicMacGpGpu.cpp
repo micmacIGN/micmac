@@ -23,7 +23,7 @@ void InterfaceMicMacGpGpu::SetSizeBlock( uint Zinter, Rect Ter)
   _data2Cor.ReallocDeviceData(_param);
 }
 
-void InterfaceMicMacGpGpu::InitJob(uint interZ)
+void InterfaceMicMacGpGpu::InitJob(uint &interZ)
 {
     CopyParamTodevice(_param);
 
