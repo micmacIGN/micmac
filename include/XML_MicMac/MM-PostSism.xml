@@ -18,6 +18,8 @@
          <Symb> UseTeta=false </Symb>
          <Symb> RegulBase=0.3 </Symb>
 
+          <Symb>  SzW=4 </Symb>
+
 
          <Symb> CorrelMin=0.5 </Symb>
          <Symb> GammaCorrel=2 </Symb>
@@ -116,7 +118,7 @@ L'ordre des resolutions : les plus basses aux plus grandes.
 
         <EtapeMEC><!-- Etape de Mise En Correspondance -->
             <DeZoom > -1 </DeZoom> <!-- le seul fils obligatoire a toutes les etapes-->
-            <SzW> 4   </SzW> <!-- la taille de la fenetre de correlation [-4,4]x[-4,4]-->
+            <SzW> ${SzW}   </SzW> <!-- la taille de la fenetre de correlation [-4,4]x[-4,4]-->
 
 
             <CorrelMin>  ${CorrelMin} </CorrelMin>
