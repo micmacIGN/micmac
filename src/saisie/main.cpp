@@ -19,15 +19,27 @@ int main(int argc, char *argv[])
     app.installTranslator(&qtTranslator);
 
     MainWindow w;
-    w.show();
 
     QStringList cmdline_args = QCoreApplication::arguments();
 
     if (cmdline_args.size() > 1)
     {
         cmdline_args.pop_front();
-        w.addFiles(cmdline_args);
+
+        for (int i=0; i< cmdline_args.size(); ++i)
+        {
+            if (cmdline_args[i] == "mode2D")
+            {
+                w.setMode2D(true);
+                break;
+            }
+        }
     }
+
+    w.show();
+
+    if (cmdline_args.size() > 1)
+        w.addFiles(cmdline_args);
 
     w.checkForLoadedData();
 

@@ -156,10 +156,10 @@ QStatusBar
     </property>
     <addaction name="actionLoad_plys"/>
     <addaction name="actionLoad_camera"/>
-    <addaction name="actionExport_mask"/>
     <addaction name="actionLoad_and_Export"/>
     <addaction name="actionLoad_images"/>
     <addaction name="actionSave_selection"/>
+    <addaction name="actionSave_masks"/>
     <addaction name="actionClose_all"/>
     <addaction name="actionExit"/>
     <addaction name="actionRecentFiles"/>
@@ -332,17 +332,6 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
-   </property>
-  </action>
-  <action name="actionExport_mask">
-   <property name="text">
-    <string>Export masks</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+E</string>
-   </property>
-   <property name="visible">
-    <bool>false</bool>
    </property>
   </action>
   <action name="actionLoad_and_Export">
@@ -526,6 +515,14 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionSave_masks">
+   <property name="text">
+    <string>Save masks</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
    </property>
   </action>
  </widget>

@@ -1,9 +1,7 @@
-﻿#include <QMessageBox>
-
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(bool mode2D, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_Engine(new cEngine)
@@ -11,8 +9,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     QString style = "border: 2px solid gray;"
-                    "border-radius: 1px;"
-                    "background: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 rgb(%1,%2,%3), stop:1 rgb(%4,%5,%6));";
+            "border-radius: 1px;"
+            "background: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 rgb(%1,%2,%3), stop:1 rgb(%4,%5,%6));";
 
     style = style.arg(colorBG0.red()).arg(colorBG0.green()).arg(colorBG0.blue());
     style = style.arg(colorBG1.red()).arg(colorBG1.green()).arg(colorBG1.blue());
@@ -32,6 +30,9 @@ MainWindow::MainWindow(QWidget *parent) :
     toggleShowBall(ui->actionShow_ball->isChecked());
     toggleShowAxis(ui->actionShow_axis->isChecked());
     toggleShowBBox(ui->actionShow_bounding_box->isChecked());
+    toggleShowCams(ui->actionShow_cams->isChecked());
+
+    setMode2D(mode2D);
 
     QHBoxLayout* layout = new QHBoxLayout();
     layout->addWidget(m_glWidget);
@@ -57,20 +58,26 @@ void MainWindow::connectActions()
 
     //View menu
     connect(ui->actionFullScreen,       SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
-    connect(ui->actionShow_axis,        SIGNAL(toggled(bool)), this, SLOT(toggleShowAxis(bool)));
-    connect(ui->actionShow_ball,        SIGNAL(toggled(bool)), this, SLOT(toggleShowBall(bool)));
-    connect(ui->actionShow_cams,        SIGNAL(toggled(bool)), this, SLOT(toggleShowCams(bool)));
-    connect(ui->actionShow_bounding_box,SIGNAL(toggled(bool)), this, SLOT(toggleShowBBox(bool)));
+    if (!m_mode2D)
+    {
+        connect(ui->actionShow_axis,        SIGNAL(toggled(bool)), this, SLOT(toggleShowAxis(bool)));
+        connect(ui->actionShow_ball,        SIGNAL(toggled(bool)), this, SLOT(toggleShowBall(bool)));
+        connect(ui->actionShow_cams,        SIGNAL(toggled(bool)), this, SLOT(toggleShowCams(bool)));
+        connect(ui->actionShow_bounding_box,SIGNAL(toggled(bool)), this, SLOT(toggleShowBBox(bool)));
+    }
     connect(ui->actionShow_help_messages,SIGNAL(toggled(bool)), this, SLOT(toggleShowMessages(bool)));
 
     connect(ui->actionHelpShortcuts,    SIGNAL(triggered()),   this, SLOT(doActionDisplayShortcuts()));
 
-    connect(ui->actionSetViewTop,		SIGNAL(triggered()),   this, SLOT(setTopView()));
-    connect(ui->actionSetViewBottom,	SIGNAL(triggered()),   this, SLOT(setBottomView()));
-    connect(ui->actionSetViewFront,		SIGNAL(triggered()),   this, SLOT(setFrontView()));
-    connect(ui->actionSetViewBack,		SIGNAL(triggered()),   this, SLOT(setBackView()));
-    connect(ui->actionSetViewLeft,		SIGNAL(triggered()),   this, SLOT(setLeftView()));
-    connect(ui->actionSetViewRight,		SIGNAL(triggered()),   this, SLOT(setRightView()));
+    if (!m_mode2D)
+    {
+        connect(ui->actionSetViewTop,		SIGNAL(triggered()),   this, SLOT(setTopView()));
+        connect(ui->actionSetViewBottom,	SIGNAL(triggered()),   this, SLOT(setBottomView()));
+        connect(ui->actionSetViewFront,		SIGNAL(triggered()),   this, SLOT(setFrontView()));
+        connect(ui->actionSetViewBack,		SIGNAL(triggered()),   this, SLOT(setBackView()));
+        connect(ui->actionSetViewLeft,		SIGNAL(triggered()),   this, SLOT(setLeftView()));
+        connect(ui->actionSetViewRight,		SIGNAL(triggered()),   this, SLOT(setRightView()));
+    }
 
     //"Points selection" menu
     connect(ui->actionToggleMode_selection, SIGNAL(triggered(bool)), this, SLOT(toggleSelectionMode(bool)));
@@ -87,7 +94,7 @@ void MainWindow::connectActions()
     connect(ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
     connect(ui->actionLoad_camera,		SIGNAL(triggered()),   this, SLOT(loadCameras()));
     connect(ui->actionLoad_images,		SIGNAL(triggered()),   this, SLOT(loadImages()));
-    connect(ui->actionExport_mask,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
+    connect(ui->actionSave_masks,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
     connect(ui->actionLoad_and_Export,  SIGNAL(triggered()),   this, SLOT(loadAndExport()));
     connect(ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
     connect(ui->actionClose_all,        SIGNAL(triggered()),   this, SLOT(closeAll()));
@@ -151,12 +158,12 @@ void MainWindow::addFiles(const QStringList& filenames)
         m_Engine->setDir(Dir);
         m_Engine->setFilename();
 
-        #ifdef _DEBUG
-            printf("adding files %s", filenames[0]);
-        #endif
+#ifdef _DEBUG
+        printf("adding files %s", filenames[0]);
+#endif
 
         if (fi.suffix() == "ply")
-        {            
+        {
             QTimer *timer_test = new QTimer(this);
             m_incre = new int(0);
             connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
@@ -176,7 +183,7 @@ void MainWindow::addFiles(const QStringList& filenames)
             future.waitForFinished();
         }
         else if (fi.suffix() == "xml")
-        {          
+        {
             QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadCameras,filenames);
 
             this->m_FutureWatcher.setFuture(future);
@@ -187,6 +194,8 @@ void MainWindow::addFiles(const QStringList& filenames)
         }
         else
         {
+            setMode2D(true);
+
             //try to load images
             QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadImages,filenames);
 
@@ -276,18 +285,24 @@ void MainWindow::toggleSelectionMode(bool state)
 void MainWindow::doActionDisplayShortcuts()
 {
     QString text = tr("File menu:") +"\n\n";
-    text += tr("Ctrl+P: open .ply files")+"\n";
-    text += tr("Ctrl+C: open .xml camera files")+"\n";
+    if (!m_mode2D)
+    {
+        text += tr("Ctrl+P: open .ply files")+"\n";
+        text += tr("Ctrl+C: open .xml camera files")+"\n";
+    }
     text += tr("Ctrl+O: open image files")+"\n";
-    text += tr("Ctrl+S: save .xml selection infos")+"\n";
+    if (!m_mode2D) text += tr("Ctrl+S: save .xml selection infos")+"\n";
     text += tr("Ctrl+X: close files")+"\n";
     text += tr("Ctrl+Q: quit") +"\n\n";
     text += tr("View:") +"\n\n";
     text += tr("F2: full screen") +"\n";
-    text += tr("F3: show axis") +"\n";
-    text += tr("F4: show ball") +"\n";
-    text += tr("F5: show bounding box") +"\n";
-    text += tr("F6: show cameras") +"\n";
+    if (!m_mode2D)
+    {
+        text += tr("F3: show axis") +"\n";
+        text += tr("F4: show ball") +"\n";
+        text += tr("F5: show bounding box") +"\n";
+        text += tr("F6: show cameras") +"\n";
+    }
     text += tr("F7: show help messages") +"\n";
     text += "\n";
     text += tr("Key +/-: increase/decrease point size") +"\n\n";
@@ -402,6 +417,8 @@ void MainWindow::loadImages()
     m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Image Files"),QString(), tr("Files (*.*)"));
 
     addFiles(m_FilenamesIn);
+
+    m_mode2D = true;
 }
 
 void MainWindow::exportMasks()
@@ -422,6 +439,8 @@ void MainWindow::saveSelectionInfos()
 void MainWindow::closeAll()
 {
     m_Engine->unloadAll();
+
+    m_glWidget->reset();
 
     checkForLoadedData();
     m_glWidget->setBufferGl();
@@ -459,27 +478,58 @@ void MainWindow::setCurrentFile(const QString &fileName)
 }
 
 void MainWindow::updateRecentFileActions()
- {
-     QSettings settings;
-     QStringList files = settings.value("recentFileList").toStringList();
+{
+    QSettings settings;
+    QStringList files = settings.value("recentFileList").toStringList();
 
-     int numRecentFiles = qMin(files.size(), (int)MaxRecentFiles);
+    int numRecentFiles = qMin(files.size(), (int)MaxRecentFiles);
 
-     for (int i = 0; i < numRecentFiles; ++i) {
-         QString text = tr("&%1 - %2").arg(i + 1).arg(strippedName(files[i]));
-         m_recentFileActs[i]->setText(text);
-         m_recentFileActs[i]->setData(files[i]);
-         m_recentFileActs[i]->setVisible(true);
-     }
-     for (int j = numRecentFiles; j < MaxRecentFiles; ++j)
-         m_recentFileActs[j]->setVisible(false);
+    for (int i = 0; i < numRecentFiles; ++i) {
+        QString text = tr("&%1 - %2").arg(i + 1).arg(strippedName(files[i]));
+        m_recentFileActs[i]->setText(text);
+        m_recentFileActs[i]->setData(files[i]);
+        m_recentFileActs[i]->setVisible(true);
+    }
+    for (int j = numRecentFiles; j < MaxRecentFiles; ++j)
+        m_recentFileActs[j]->setVisible(false);
 
-     //m_RFMenu->setVisible(numRecentFiles > 0);
- }
+    //m_RFMenu->setVisible(numRecentFiles > 0);
+}
 
- QString MainWindow::strippedName(const QString &fullFileName)
- {
-     return QFileInfo(fullFileName).fileName();
- }
+QString MainWindow::strippedName(const QString &fullFileName)
+{
+    return QFileInfo(fullFileName).fileName();
+}
+
+void MainWindow::setMode2D(bool mBool)
+{
+    m_mode2D = mBool;
+
+    ui->actionLoad_plys->setVisible(!mBool);
+    ui->actionLoad_camera->setVisible(!mBool);
+    ui->actionShow_cams->setVisible(!mBool);
+    ui->actionShow_axis->setVisible(!mBool);
+    ui->actionShow_ball->setVisible(!mBool);
+    ui->actionShow_bounding_box->setVisible(!mBool);
+
+    ui->menuStandard_views->menuAction()->setVisible(!mBool);
+
+    ui->actionLoad_plys->setCheckable(!mBool);
+    ui->actionLoad_camera->setCheckable(!mBool);
+    ui->actionShow_cams->setCheckable(!mBool);
+    ui->actionShow_axis->setCheckable(!mBool);
+    ui->actionShow_ball->setCheckable(!mBool);
+    ui->actionShow_bounding_box->setCheckable(!mBool);
+
+    ui->actionSetViewBack->setCheckable(!mBool);
+    ui->actionSetViewFront->setCheckable(!mBool);
+    ui->actionSetViewTop->setCheckable(!mBool);
+    ui->actionSetViewBottom->setCheckable(!mBool);
+    ui->actionSetViewLeft->setCheckable(!mBool);
+    ui->actionSetViewRight->setCheckable(!mBool);
+
+    ui->actionSave_masks->setVisible(mBool);
+    ui->actionSave_masks->setCheckable(mBool);
+}
 
 

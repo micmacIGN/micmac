@@ -26,6 +26,8 @@ public:
     //!
     ViewportParameters & operator = (const ViewportParameters &);
 
+    void reset();
+
     //! Current zoom
     float zoom;
 
