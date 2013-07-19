@@ -216,6 +216,8 @@ void cEngine::unloadAll()
 {
     m_Data->clearClouds();
     m_Data->clearCameras();
+    m_Data->clearImages();
+    m_Data->reset();
 }
 
 
@@ -266,6 +268,20 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
     }
 
     return *this;
+}
+
+void ViewportParameters::reset()
+{
+    zoom = 1.0f;
+    PointSize = 1.0f;
+    LineWidth = 1.0f;
+    angleX = 0.0f;
+    angleY = 0.0f;
+    angleZ = 0.0f;
+
+    m_translationMatrix[0] = 0.0f;
+    m_translationMatrix[1] = 0.0f;
+    m_translationMatrix[2] = 0.0f;
 }
 
 //********************************************************************************

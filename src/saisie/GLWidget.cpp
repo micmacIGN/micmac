@@ -120,9 +120,11 @@ void GLWidget::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if (hasImageLoaded())
+    if (m_Data->NbImages())
     {
         zoom();
+
+        glTranslatef(m_params.m_translationMatrix[0],m_params.m_translationMatrix[1],0.f);
 
         glEnable(GL_ALPHA_TEST);
         glAlphaFunc(GL_GREATER, 0.1f);
@@ -132,6 +134,7 @@ void GLWidget::paintGL()
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
         glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
 
         glBegin(GL_QUADS);
@@ -173,7 +176,7 @@ void GLWidget::paintGL()
         transpose( tmp, _m_g_glMatrix );
         glLoadMatrixf( _m_g_glMatrix );
 
-        if (hasCloudLoaded())
+        if (m_Data->NbClouds())
         {
             glEnableClientState(GL_VERTEX_ARRAY);
             glEnableClientState(GL_COLOR_ARRAY);
@@ -345,7 +348,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     if ( !( event->buttons()&Qt::RightButton ) )
         _m_g_mouseRightDown = false;
     if ( !( event->buttons()&Qt::MiddleButton ) )
-         _m_g_mouseMiddleDown = false;
+        _m_g_mouseMiddleDown = false;
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -459,6 +462,7 @@ void GLWidget::setData(cData *data)
     if (m_Data->NbImages())
     {
         m_bDisplayMode2D = true;
+        m_speed = 0.005f;
 
         glDisable( GL_DEPTH_TEST );
 
@@ -712,7 +716,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
     QPoint pos = event->pos();
 
-    if ((m_interactionMode == SEGMENT_POINTS) )
+    if (m_interactionMode == SEGMENT_POINTS)
     {
         if(!m_bPolyIsClosed)
         {
@@ -751,9 +755,17 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         }
         else if ( _m_g_mouseMiddleDown ) // translation
         {
-            m_bObjectCenteredView = false;
-            m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/(float)m_glWidth;
-            m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/(float)m_glHeight;
+            if (m_Data->NbImages())
+            {
+                m_params.m_translationMatrix[0] = m_speed* dp.x();
+                m_params.m_translationMatrix[1] = - m_speed* dp.y();
+            }
+            else
+            {
+                m_bObjectCenteredView = false;
+                m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/(float)m_glWidth;
+                m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/(float)m_glHeight;
+            }
         }
         else if ( _m_g_mouseRightDown ) // rotation autour de Z
         {
@@ -768,7 +780,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             for (int i = 0; i < 9; ++i) _m_g_rotationMatrix[i] = _m_g_tmpoMatrix[i];
         }
 
-        update();
+        update();  
     }
 
     m_lastPos = event->pos();
@@ -1375,4 +1387,14 @@ void GLWidget::showMoveMessages()
         displayNewMessage(tr("Wheel: zoom / Right click: translate viewpoint"),LOWER_CENTER_MESSAGE);
     else
         displayNewMessage(tr("Left click: rotate viewpoint / Right click: translate viewpoint"),LOWER_CENTER_MESSAGE);
+}
+
+void GLWidget::reset()
+{
+    _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
+    _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
+    _m_g_rotationMatrix[5] = _m_g_rotationMatrix[6] = _m_g_rotationMatrix[7] = 0;
+
+    m_params.reset();
+    m_Data->reset();
 }
