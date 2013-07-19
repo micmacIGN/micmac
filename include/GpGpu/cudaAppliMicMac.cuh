@@ -82,7 +82,7 @@ struct pCorGpu
     Rect        RTer() { return rTer; }
 
     /// \brief  Initialise le rectangle du terrain et le nombre de Z a calculer
-    void        SetDimension(Rect Ter, uint Zinter)
+    void        SetDimension(Rect Ter, uint Zinter = INTERZ)
     {
 
         rTer		= Ter;

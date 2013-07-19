@@ -16,13 +16,6 @@ InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
 
 }
 
-void InterfaceMicMacGpGpu::SetSizeBlock( uint Zinter, Rect Ter)
-{
-  _param.SetDimension(Ter,Zinter);
-
-  _data2Cor.ReallocDeviceData(_param);
-}
-
 void InterfaceMicMacGpGpu::InitJob(uint &interZ)
 {
     CopyParamTodevice(_param);
@@ -188,7 +181,7 @@ void InterfaceMicMacGpGpu::IntervalZ(uint &interZ, int anZProjection, int aZMaxT
         interZ = intZ;
 }
 
-pCorGpu InterfaceMicMacGpGpu::Param()
+pCorGpu& InterfaceMicMacGpGpu::Param()
 {
     return _param;
 }
