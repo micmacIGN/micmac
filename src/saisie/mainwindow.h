@@ -32,7 +32,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(bool mode2D = false, QWidget *parent = 0);
     ~MainWindow();
 
     //! Checks for loaded data
@@ -85,11 +85,12 @@ public slots:
 
     void progression();
 
+    void setMode2D(bool mBool);
+
 protected:
 
     //! Connects all QT actions to slots
     void connectActions();  
-
 
 private:
 
@@ -116,5 +117,7 @@ private:
     QStringList             m_FilenamesIn;
 
     QMenu*                  m_RFMenu; //recent files menu
+
+    bool                    m_mode2D;
 };
 #endif // MAINWINDOW_H

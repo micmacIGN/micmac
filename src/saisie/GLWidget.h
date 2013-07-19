@@ -86,17 +86,8 @@ public:
     virtual void displayNewMessage(const QString& message,
                                    MessagePosition pos = SCREEN_CENTER_MESSAGE);
 
-    //! States if data (cloud or camera) is loaded
-    bool hasDataLoaded(){return hasCloudLoaded()||hasCameraLoaded()||hasImageLoaded();}
-
-    //! States if a cloud is loaded
-    bool hasCloudLoaded(){return (m_Data->NbClouds() != 0);}
-
-    //! States if a camera is loaded
-    bool hasCameraLoaded(){return (m_Data->NbCameras() != 0);}
-
-    //! States if an image is loaded
-    bool hasImageLoaded(){return (m_Data->NbImages() != 0);}
+    //! States if data (cloud, camera or image) is loaded
+    bool hasDataLoaded(){return m_Data->NbClouds()||m_Data->NbCameras() ||m_Data->NbImages();}
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
@@ -154,6 +145,8 @@ public:
     void getProjection(QPoint &P2D, Vertex P);
 
     QVector <cSelectInfos> getSelectInfos(){return m_infos;}
+
+    void reset();
 
 public slots:
     void zoom();
