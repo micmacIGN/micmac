@@ -1,11 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#ifndef  WIN32
-#ifndef __APPLE__
-#include "GL/glew.h"
-#endif
-#endif
+//#ifndef  WIN32
+//#ifndef __APPLE__
+//#include "GL/glew.h"
+//#endif
+//#endif
 #include <QMainWindow>
 #include <QFutureWatcher>
 #include <QtConcurrentRun>
