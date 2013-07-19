@@ -88,22 +88,18 @@ struct pCorGpu
         rTer		= Ter;
         rDTer		= Rect(Ter.pt0 - rayVig,Ter.pt1 + rayVig);
         dimTer		= rTer.dimension();
-        dimDTer     = rDTer.dimension();
-        dimSTer     = iDivUp(dimDTer,sampProj)+1;	// Dimension du bloque terrain sous echantilloné
-        dimCach 	= dimTer * dimVig;
+        dimDTer	= rDTer.dimension();
+        dimSTer	= iDivUp(dimDTer,sampProj)+1;	// Dimension du bloque terrain sous echantilloné
+        dimCach	= dimTer * dimVig;
 
-        sizeDTer	= size(dimDTer);            // Taille du bloque terrain
+        sizeDTer	= size(dimDTer);				// Taille du bloque terrain
         sizeSTer	= size(dimSTer);			// Taille du bloque terrain sous echantilloné
-        sizeTer     = size(dimTer);
+        sizeTer	= size(dimTer);
         sizeCach	= size(dimCach);
         sizeCachAll	= sizeCach * nbImages;
         //ZLocInter	= LOCINTERZ;
         ZLocInter	= Zinter;
-    }
 
-    void SetZInter(uint Zinter = INTERZ)
-    {
-        ZLocInter = Zinter;
     }
 
     /// \brief  Initialise les param?tres invariants pendant le calcul
@@ -160,5 +156,3 @@ struct pCorGpu
         std::cout << "----------------------------------------------------------\n";
     }
 };
-
-

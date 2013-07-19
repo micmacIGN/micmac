@@ -16,13 +16,11 @@ InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
 
 }
 
-void InterfaceMicMacGpGpu::InitJob(uint interZ)
+void InterfaceMicMacGpGpu::InitJob(uint &interZ)
 {
-    _param.SetZInter(interZ);
-
     CopyParamTodevice(_param);
 
-    _data2Cor.ReallocHostData(_param);
+    _data2Cor.ReallocHostData(interZ,_param);
 
     if(UseMultiThreading())
     {
@@ -33,7 +31,7 @@ void InterfaceMicMacGpGpu::InitJob(uint interZ)
 
 /// \brief Initialisation des parametres constants
 void InterfaceMicMacGpGpu::SetParameter(int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef )
-{ 
+{
   _param.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
 }
 
@@ -150,12 +148,12 @@ cudaStream_t* InterfaceMicMacGpGpu::GetStream( int stream )
 }
 
 void InterfaceMicMacGpGpu::threadCompute()
-{  
+{
   ResetIdBuffer();
   while (true)
     {
       if (GetCompute())
-        {          
+        {
           uint interZ = GetCompute();
           SetCompute(0);
 
@@ -163,7 +161,7 @@ void InterfaceMicMacGpGpu::threadCompute()
 
           SwitchIdBuffer();
 
-          while(GetDataToCopy());          
+          while(GetDataToCopy());
           SetDataToCopy(interZ);
         }
     }
@@ -176,11 +174,11 @@ void InterfaceMicMacGpGpu::freezeCompute()
     SetPreComp(false);
 }
 
-void InterfaceMicMacGpGpu::IntervalZ( int anZProjection, int aZMaxTer)
+void InterfaceMicMacGpGpu::IntervalZ(uint &interZ, int anZProjection, int aZMaxTer)
 {
     uint intZ = (uint)abs(aZMaxTer - anZProjection );
-    if (Param().ZLocInter >= intZ  &&  anZProjection != (aZMaxTer - 1) )
-        Param().SetZInter(intZ);
+    if (interZ >= intZ  &&  anZProjection != (aZMaxTer - 1) )
+        interZ = intZ;
 }
 
 pCorGpu& InterfaceMicMacGpGpu::Param()
@@ -188,12 +186,8 @@ pCorGpu& InterfaceMicMacGpGpu::Param()
     return _param;
 }
 
-void InterfaceMicMacGpGpu::signalComputeCorrel()
+void InterfaceMicMacGpGpu::signalComputeCorrel(uint dZ)
 {
     SetPreComp(false);
-    SetCompute(_param.ZLocInter);
+    SetCompute(dZ);
 }
-
-
-
-
