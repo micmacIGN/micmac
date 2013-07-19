@@ -1383,12 +1383,13 @@ void cAppliMICMAC::DoGPU_Correl
 }
 
 #ifdef  CUDA_ENABLED
-    void cAppliMICMAC::Tabul_Projection(int Z, int zMax, uint &interZ)
+    void cAppliMICMAC::Tabul_Projection(int Z, int zMax )
 	{
 
-        IMmGg.IntervalZ(interZ, Z, zMax);
+        IMmGg.IntervalZ( Z, zMax);
         IMmGg.Data().MemsetHostVolumeProj(IMmGg.Param().IntDefault);
 
+        uint    interZ      = IMmGg.Param().ZLocInter;
         Rect    zone        = IMmGg.Param().RDTer();
         uint    sample      = IMmGg.Param().sampProj;
         float2  *pTabProj   = IMmGg.Data().HostVolumeProj();
@@ -1489,10 +1490,10 @@ void cAppliMICMAC::DoGPU_Correl
         if (!IMmGg.Param().MaskNoNULL()) return;// setVolumeCost<false>(mTer,mZMinGlob,mZMaxGlob);
 
         // intervale des pronfondeurs calcules simultanement
-        uint interZ	= min(INTERZ, abs(mZMaxGlob - mZMinGlob));
+       // uint interZ	= ;
 
 		// Initiation des parametres pour le multithreading
-        IMmGg.InitJob(interZ);
+        IMmGg.InitJob(min(INTERZ, abs(mZMaxGlob - mZMinGlob)));
 
         int anZProjection = mZMinGlob, anZComputed= mZMinGlob, ZtoCopy = 0;
 
@@ -1503,13 +1504,13 @@ void cAppliMICMAC::DoGPU_Correl
 
                 // Tabulation des projections si la demande est faite
 
-                if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + (int)interZ && anZProjection < mZMaxGlob)
+                if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + (int)IMmGg.Param().ZLocInter && anZProjection < mZMaxGlob)
 				{                    
-                    Tabul_Projection( anZProjection, mZMaxGlob, interZ);
+                    Tabul_Projection( anZProjection, mZMaxGlob);
 
-                    IMmGg.signalComputeCorrel(interZ);
+                    IMmGg.signalComputeCorrel();
 
-                    anZProjection+= interZ;
+                    anZProjection+= IMmGg.Param().ZLocInter;
 				}
 
                 // Affectation des couts si des nouveaux ont ete calcule!
@@ -1529,14 +1530,14 @@ void cAppliMICMAC::DoGPU_Correl
             while( anZComputed < mZMaxGlob )
             {
                 // calcul des projections
-                Tabul_Projection( anZComputed,mZMaxGlob,interZ);
+                Tabul_Projection( anZComputed,mZMaxGlob);
 
-                // Kernel Correlation
+                // Kernel CorrelationinterZ
                 IMmGg.BasicCorrelation(mNbIm);
 
-                setVolumeCost<true>(mTer,anZComputed,anZComputed + interZ);
+                setVolumeCost<true>(mTer,anZComputed,anZComputed + IMmGg.Param().ZLocInter);
 
-                anZComputed += interZ;
+                anZComputed += IMmGg.Param().ZLocInter;
 			}
 		}
 

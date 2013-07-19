@@ -144,11 +144,11 @@ void SData2Correl::UnBindTextureProj(uint s)
     checkCudaErrors( cudaUnbindTexture(&(GetTeXProjection(s))));
 }
 
-void SData2Correl::ReallocHostData(uint zInter, pCorGpu param)
+void SData2Correl::ReallocHostData(pCorGpu param)
 {
     for (int i = 0; i < SIZERING; ++i)
-        _hVolumeCost[i].ReallocIf(param.dimTer,zInter);
-    _hVolumeProj.ReallocIf(param.dimSTer,zInter*param.nbImages);
+        _hVolumeCost[i].ReallocIf(param.dimTer,param.ZLocInter);
+    _hVolumeProj.ReallocIf(param.dimSTer,param.ZLocInter*param.nbImages);
 }
 
 void SData2Correl::ReallocDeviceData(pCorGpu param)
@@ -187,7 +187,6 @@ float *SData2Correl::DeviVolumeCost(uint s){ return _d_volumeCost[s].pData();}
 
 void SData2Correl::ReallocDeviceData(int nStream, pCorGpu param)
 {
-    //_countAlloc++;
     _d_volumeCost[nStream].ReallocIf(param.dimTer,     param.ZLocInter);
     _d_volumeCach[nStream].ReallocIf(param.dimCach,    param.nbImages * param.ZLocInter);
     _d_volumeNIOk[nStream].ReallocIf(param.dimTer,     param.ZLocInter);

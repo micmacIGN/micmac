@@ -43,13 +43,13 @@ public:
   /// \brief    Renvoie les parametres de correlation
   pCorGpu       &Param();
 
-  void          signalComputeCorrel(uint dZ);
+  void          signalComputeCorrel();
 
-  void          InitJob(uint &interZ);
+  void          InitJob(uint interZ);
 
   void          freezeCompute();
 
-  void          IntervalZ(uint &interZ, int anZProjection, int aZMaxTer);
+  void          IntervalZ(int anZProjection, int aZMaxTer);
 
   SData2Correl&  Data(){return _data2Cor;}
 

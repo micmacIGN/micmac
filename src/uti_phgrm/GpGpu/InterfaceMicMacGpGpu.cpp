@@ -16,11 +16,13 @@ InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
 
 }
 
-void InterfaceMicMacGpGpu::InitJob(uint &interZ)
+void InterfaceMicMacGpGpu::InitJob(uint interZ)
 {
+    _param.SetZInter(interZ);
+
     CopyParamTodevice(_param);
 
-    _data2Cor.ReallocHostData(interZ,_param);
+    _data2Cor.ReallocHostData(_param);
 
     if(UseMultiThreading())
     {
@@ -174,11 +176,11 @@ void InterfaceMicMacGpGpu::freezeCompute()
     SetPreComp(false);
 }
 
-void InterfaceMicMacGpGpu::IntervalZ(uint &interZ, int anZProjection, int aZMaxTer)
+void InterfaceMicMacGpGpu::IntervalZ( int anZProjection, int aZMaxTer)
 {
     uint intZ = (uint)abs(aZMaxTer - anZProjection );
-    if (interZ >= intZ  &&  anZProjection != (aZMaxTer - 1) )
-        interZ = intZ;
+    if (Param().ZLocInter >= intZ  &&  anZProjection != (aZMaxTer - 1) )
+        Param().SetZInter(intZ);
 }
 
 pCorGpu& InterfaceMicMacGpGpu::Param()
@@ -186,10 +188,10 @@ pCorGpu& InterfaceMicMacGpGpu::Param()
     return _param;
 }
 
-void InterfaceMicMacGpGpu::signalComputeCorrel(uint dZ)
+void InterfaceMicMacGpGpu::signalComputeCorrel()
 {
     SetPreComp(false);
-    SetCompute(dZ);
+    SetCompute(_param.ZLocInter);
 }
 
 
