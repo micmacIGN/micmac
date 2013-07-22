@@ -653,6 +653,7 @@ if (0)
 
         if (mLoadTextures)//		Mise en calque des images
         {
+
             mLoadTextures		= false;
             float*	fdataImg1D	= NULL;
             uint2	dimImgMax	= make_uint2(0,0);
@@ -693,9 +694,13 @@ if (0)
 
             IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
 
-        }
+//            for (uint anX = 0 ; anX <  IMmGg.box.x ; anX++)
+//                for (uint anY = 0 ; anY < IMmGg.box.y ; anY++)
+//                    IsInTer(anX,anY);
+//            mTabMasqTER;
 
-        //////////////////////////////////////////////////////////////////////////
+           // GpGpuTools::Array1DtoImageFile(mTabMasqTER,"toto.pgm",IMmGg.box);
+        }
 
         Rect rMask(NEGARECT);
         pixel *maskTab = new pixel[size(Ter.dimension())];
@@ -733,6 +738,7 @@ if (0)
 
         if (IMmGg.Param().MaskNoNULL())
         {
+
             uint2 rDimTer = IMmGg.Param().dimTer;
 
             pixel *SubMaskTab = new pixel[size(rDimTer)];
@@ -1467,16 +1473,11 @@ void cAppliMICMAC::DoGPU_Correl
 
 #ifdef  CUDA_ENABLED
 
-        if(	mNbIm == 0) return;
+        // Si le terrain est masque ou aucune image : Aucun calcul
+        if (mNbIm == 0 || !IMmGg.Param().MaskNoNULL()) return;
 
-        // Si le terrain est masque : Aucun calcul
-        if (!IMmGg.Param().MaskNoNULL()) return;
-
-        // intervale des pronfondeurs calcules simultanement
-        uint interZ	= min(INTERZ, abs(mZMaxGlob - mZMinGlob));
-
-        // Initiation des parametres pour le multithreading
-        IMmGg.InitJob(interZ);
+        // Initiation du calcul
+        uint interZ = IMmGg.InitCorrelJob(mZMinGlob,mZMaxGlob);
 
         int anZProjection = mZMinGlob, anZComputed= mZMinGlob, ZtoCopy = 0;
 
@@ -1506,7 +1507,6 @@ void cAppliMICMAC::DoGPU_Correl
 
                     IMmGg.SetDataToCopy(0);
                 }
-
             }
         else
         {
@@ -1646,6 +1646,9 @@ void cAppliMICMAC::DoCorrelAdHoc
             mCorrelAdHoc->SzBlocAH().Val(),
             0
             );
+
+        IMmGg.box.x = aBox.sz().x;
+        IMmGg.box.y = aBox.sz().y;
 
         for (int aKBox=0 ; aKBox<aDecInterv.NbInterv() ; aKBox++)
         {

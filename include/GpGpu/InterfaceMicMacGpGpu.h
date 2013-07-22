@@ -46,7 +46,7 @@ public:
 
   void          signalComputeCorrel(uint dZ);
 
-  void          InitJob(uint &interZ);
+  uint          InitCorrelJob(int Zmin, int Zmax);
 
   void          freezeCompute();
 
@@ -55,6 +55,8 @@ public:
   SData2Correl&  Data(){return _data2Cor;}
 
   float*        VolumeCost();
+
+  uint2         box;
 
 private:
 
