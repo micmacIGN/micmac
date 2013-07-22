@@ -1516,7 +1516,7 @@ void cAppliMICMAC::DoGPU_Correl
                 Tabul_Projection( anZComputed,mZMaxGlob,interZ);
 
                 // Kernel Correlation
-                IMmGg.BasicCorrelation();
+                IMmGg.BasicCorrelation(interZ);
 
                 setVolumeCost(anZComputed,anZComputed + interZ);
 
