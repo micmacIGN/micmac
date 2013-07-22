@@ -45,7 +45,7 @@ struct SData2Correl
 
     void    ReallocHostData(uint zInter, pCorGpu param);
 
-    void    ReallocDeviceData(pCorGpu param);
+    void    ReallocDeviceData(pCorGpu &param);
 
 private:
 
@@ -73,7 +73,7 @@ private:
     textureReference&           _texProjections_01;
     int                         _countAlloc;
 
-    //void    ReallocDeviceArrayAsync(pCorGpu param, cudaStream_t* pstream, uint s );
+    void DeviceMemset(pCorGpu &param, uint s = 0);
 };
 
 #endif

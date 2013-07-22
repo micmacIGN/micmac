@@ -32,7 +32,7 @@ struct pCorGpu
 {
 
     /// \brief  Le nombre de Z calculer en parrallele
-    uint        ZLocInter;
+    uint        ZCInter;
 
     /// \brief  Dimension du bloque terrain
     uint2       dimTer;
@@ -126,8 +126,13 @@ struct pCorGpu
 
         sizeCachAll	= sizeCach * nbImages;
 
-        ZLocInter	= Zinter;
+        ZCInter     = Zinter;
 
+    }
+
+    void        SetZCInter(uint Zinter = INTERZ)
+    {
+        ZCInter     = Zinter;
     }
 
     /// \brief  Initialise les param?tres invariants pendant le calcul
@@ -168,7 +173,7 @@ struct pCorGpu
         std::cout << "Parametre de calcul GPU pour la correlation symetrique\n";
         std::cout << "\n";
         std::cout << "----------------------------------------------------------\n";
-        std::cout << "ZLocInter             : " << ZLocInter << "\n";
+        std::cout << "ZLocInter             : " << ZCInter << "\n";
         std::cout << "Dim Reel Terrain      : " << GpGpuTools::toStr(dimTer) << "\n";
         std::cout << "Dim calcul Terrain    : " << GpGpuTools::toStr(dimDTer) << "\n";
         std::cout << "Dim calcul Ter Samp   : " << GpGpuTools::toStr(dimSTer) << "\n";
