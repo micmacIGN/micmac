@@ -33,11 +33,11 @@ struct SData2Correl
 
     float*  DeviVolumeCost(uint s);
 
-    void    copyHostToDevice(uint s, pCorGpu param);
+    void    copyHostToDevice(pCorGpu param, uint s = 0);
 
-    void    CopyDevicetoHost(uint idBuf, uint s);
+    void    CopyDevicetoHost(uint idBuf, uint s = 0);
 
-    void    UnBindTextureProj(uint s);
+    void    UnBindTextureProj(uint s = 0);
 
     void    DeallocHostData();
 
@@ -45,7 +45,7 @@ struct SData2Correl
 
     void    ReallocHostData(uint zInter, pCorGpu param);
 
-    void    ReallocDeviceData(pCorGpu param);
+    void    ReallocDeviceData(pCorGpu &param);
 
 private:
 
@@ -73,7 +73,7 @@ private:
     textureReference&           _texProjections_01;
     int                         _countAlloc;
 
-    //void    ReallocDeviceArrayAsync(pCorGpu param, cudaStream_t* pstream, uint s );
+    void DeviceMemset(pCorGpu &param, uint s = 0);
 };
 
 #endif
