@@ -179,11 +179,11 @@ void SData2Correl::ReallocDeviceArrayAsync(pCorGpu param, cudaStream_t *pstream,
 }
 */
 
-uint *SData2Correl::DeviVolumeNOK(uint s){ return _d_volumeNIOk[s].pData();}
+uint    *SData2Correl::DeviVolumeNOK(uint s){ return _d_volumeNIOk[s].pData();}
 
-float *SData2Correl::DeviVolumeCache(uint s){ return _d_volumeCach[s].pData();}
+float   *SData2Correl::DeviVolumeCache(uint s){ return _d_volumeCach[s].pData();}
 
-float *SData2Correl::DeviVolumeCost(uint s){ return _d_volumeCost[s].pData();}
+float   *SData2Correl::DeviVolumeCost(uint s){ return _d_volumeCost[s].pData();}
 
 void SData2Correl::ReallocDeviceData(int nStream, pCorGpu param)
 {

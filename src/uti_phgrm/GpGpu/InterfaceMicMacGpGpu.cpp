@@ -1,8 +1,7 @@
 #include "GpGpu/InterfaceMicMacGpGpu.h"
 
 /// \brief Constructeur InterfaceMicMacGpGpu
-InterfaceMicMacGpGpu::InterfaceMicMacGpGpu():
-    _s(0)
+InterfaceMicMacGpGpu::InterfaceMicMacGpGpu()
 {
     for (int s = 0;s<NSTREAM;s++)
         checkCudaErrors( cudaStreamCreate(GetStream(s)));
@@ -106,6 +105,11 @@ void InterfaceMicMacGpGpu::IntervalZ(uint &interZ, int anZProjection, int aZMaxT
     uint intZ = (uint)abs(aZMaxTer - anZProjection );
     if (interZ >= intZ  &&  anZProjection != (aZMaxTer - 1) )
         interZ = intZ;
+}
+
+float *InterfaceMicMacGpGpu::VolumeCost()
+{
+    return UseMultiThreading() ? Data().HostVolumeCost(!GetIdBuf()) : Data().HostVolumeCost(0);
 }
 
 void InterfaceMicMacGpGpu::CorrelationGpGpu(const int s)
