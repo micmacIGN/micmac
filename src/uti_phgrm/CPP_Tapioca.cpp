@@ -115,7 +115,7 @@ void DoMkT()
 {
     if (ByP)
     {
-		std::string aSMkSr = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFT + string(" -j")+ToString(ByP)+" -s";
+        std::string aSMkSr = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFT + string(" -j")+ToString(ByP)/*+" -s"*/;
         System(aSMkSr,true);
     }
 }
