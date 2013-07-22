@@ -19,23 +19,6 @@ extern "C" void CopyParamTodevice( pCorGpu param )
   checkCudaErrors(cudaMemcpyToSymbol(cH, &param, sizeof(pCorGpu)));
 }
 
-__global__ void SummedAreaTable()
-{
-    __shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
-
-    const uint2 ptHTer  = make_uint2(blockIdx) * WARPSIZE + make_uint2(threadIdx);
-    const uint z        = threadIdx.z;
-
-    if (oSE(ptHTer,cH.dimDTer)) return;
-
-    const float2 ptProj = GetProjection<0>(ptHTer,cH.sampProj,z);
-
-    cacheImg[threadIdx.y][threadIdx.x] = GetImageValue(ptProj,z);
-
-    cacheImg[threadIdx.y][threadIdx.x] =  cacheImg[threadIdx.y][threadIdx.x] +1;
-
-}
-
 /// \fn template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
 /// \brief Kernel fonction GpGpu Cuda
 /// Calcul les vignettes de correlation pour toutes les images
@@ -122,7 +105,7 @@ extern "C" void	 LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu
     uint2	thd2D		= make_uint2(threads);
     uint2	nbActThrd	= thd2D - 2 * param.rayVig;
     uint2	block2D		= iDivUp(param.dimDTer,nbActThrd);
-    dim3	blocks(block2D.x , block2D.y, param.nbImages * param.ZLocInter);
+    dim3	blocks(block2D.x , block2D.y, param.nbImages * param.ZCInter);
 
   switch (s)
     {
@@ -165,8 +148,8 @@ extern "C" void	 LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu
 __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, uint* dev_NbImgOk, uint2 nbActThr)
 {
 
-  __shared__ float aSV [ SBLOCKDIM ][ SBLOCKDIM ];		// Somme des valeurs
-  __shared__ float aSVV[ SBLOCKDIM  ][ SBLOCKDIM ];		// Somme des carrés des valeurs
+  __shared__ float aSV [ SBLOCKDIM ][ SBLOCKDIM ];          // Somme des valeurs
+  __shared__ float aSVV[ SBLOCKDIM  ][ SBLOCKDIM ];         // Somme des carrés des valeurs
   __shared__ float resu[ SBLOCKDIM/2 ][ SBLOCKDIM/2 ];		// resultat
   __shared__ ushort nbIm[ SBLOCKDIM/2][ SBLOCKDIM/2 ];		// nombre d'images correcte
 
@@ -244,7 +227,7 @@ extern "C" void LaunchKernelMultiCorrelation(cudaStream_t stream, pCorGpu &param
     uint2	nbActThr	= SBLOCKDIM - make_uint2( SBLOCKDIM % param.dimVig.x, SBLOCKDIM % param.dimVig.y);
     dim3	threads(SBLOCKDIM, SBLOCKDIM, 1);
     uint2	block2D	= iDivUp(param.dimCach,nbActThr);
-    dim3	blocks(block2D.x,block2D.y,param.ZLocInter);
+    dim3	blocks(block2D.x,block2D.y,param.ZCInter);
 
     multiCorrelationKernel<<<blocks, threads, 0, stream>>>(dataCorrel.DeviVolumeCost(0), dataCorrel.DeviVolumeCache(0), dataCorrel.DeviVolumeNOK(0), nbActThr);
     getLastCudaError("Multi-Correlation NON ATOMIC kernel failed");
