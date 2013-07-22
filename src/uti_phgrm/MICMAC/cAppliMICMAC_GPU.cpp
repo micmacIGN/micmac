@@ -1434,41 +1434,27 @@ void cAppliMICMAC::DoGPU_Correl
         }
     }
 
-    template <bool fromGpu>
-    void cAppliMICMAC::setVolumeCost(Rect Ter, uint z0, uint z1)
+    void cAppliMICMAC::setVolumeCost( uint z0, uint z1)
     {
-        float*  tabCost;
-        Rect    zone;
-        float   valdefault;
 
-//        if(fromGpu)
-//        {
-            tabCost     = IMmGg.UseMultiThreading() ? IMmGg.Data().HostVolumeCost(!IMmGg.GetIdBuf()) : IMmGg.Data().HostVolumeCost(0);
-            zone        = IMmGg.Param().RTer();
-            valdefault  = IMmGg.Param().floatDefault;
-        //}
+        float*  tabCost     = IMmGg.VolumeCost();
+        Rect    zone        = IMmGg.Param().RTer();
+        float   valdefault  = IMmGg.Param().floatDefault;
 
         uint2 rDiTer = zone.dimension();
         uint  rSiTer = size(rDiTer);
-        for (int anY = Ter.pt0.y ; anY < (int)Ter.pt1.y; anY++)
-            for (int anX = Ter.pt0.x ; anX <  (int)Ter.pt1.x ; anX++)
+        for (int anY = zone.pt0.y ; anY < (int)zone.pt1.y; anY++)
+            for (int anX = zone.pt0.x ; anX <  (int)zone.pt1.x ; anX++)
             {
                 int anZ0 = max(z0,mTabZMin[anY][anX]);
                 int anZ1 = min(z1,mTabZMax[anY][anX]);
 
                 for (int anZ = anZ0;  anZ < anZ1 ; anZ++,mNbPointsIsole++)
-                    //if(fromGpu)
-                    //{
-                        if (anX >= zone.pt0.x && anY >= zone.pt0.y && anX < zone.pt1.x && anY < zone.pt1.y )
-                        {
-                            double cost = (double)tabCost[rSiTer * abs(anZ - (int)z0) + rDiTer.x * (anY - zone.pt0.y) + anX -  zone.pt0.x];
-                            mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : mAhDefCost);
-                        }
-//                    }
-//                    else
-//                        mSurfOpt->SetCout(Pt2di(anX,anY),&anZ,mAhDefCost);
+                {
+                    double cost = (double)tabCost[rSiTer * abs(anZ - (int)z0) + rDiTer.x * (anY - zone.pt0.y) + anX -  zone.pt0.x];
+                    mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : mAhDefCost);
+                }
             }
-
     }
 
 #endif
@@ -1483,11 +1469,8 @@ void cAppliMICMAC::DoGPU_Correl
 
         if(	mNbIm == 0) return;
 
-        // definition de la zone rectangulaire de terrain
-        Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
-
         // Si le terrain est masque : Aucun calcul
-        if (!IMmGg.Param().MaskNoNULL()) return;// setVolumeCost<false>(mTer,mZMinGlob,mZMaxGlob);
+        if (!IMmGg.Param().MaskNoNULL()) return;
 
         // intervale des pronfondeurs calcules simultanement
         uint interZ	= min(INTERZ, abs(mZMaxGlob - mZMinGlob));
@@ -1517,7 +1500,7 @@ void cAppliMICMAC::DoGPU_Correl
 
                 if ((ZtoCopy = (int)IMmGg.GetDataToCopy()))
                 {
-                    setVolumeCost<true>(mTer,anZComputed,anZComputed + ZtoCopy);
+                    setVolumeCost(anZComputed,anZComputed + ZtoCopy);
 
                     anZComputed += ZtoCopy;
 
@@ -1535,14 +1518,14 @@ void cAppliMICMAC::DoGPU_Correl
                 // Kernel Correlation
                 IMmGg.BasicCorrelation();
 
-                setVolumeCost<true>(mTer,anZComputed,anZComputed + interZ);
+                setVolumeCost(anZComputed,anZComputed + interZ);
 
                 anZComputed += interZ;
             }
         }
 
         IMmGg.freezeCompute();
-        //IMmGg.Data().DeallocHostData(); // Attention dealloc Time !!!
+
 #else
         ELISE_ASSERT(1,"Sorry, this is not the cuda version");
 #endif
