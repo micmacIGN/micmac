@@ -197,6 +197,16 @@ inline __host__ __device__ int2 operator+(const uint3 a, uint2 b)
 	return make_int2(a.x + b.x, a.y + b.y);
 }
 
+inline __host__ __device__ int2 inc( int2 &a)
+{
+    a.x++;
+    a.y++;
+
+    return a;
+}
+
+
+
 //      Calcul specifique
 
 inline __host__ __device__ int mdlo(uint a, uint b)

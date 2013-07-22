@@ -121,7 +121,7 @@ void SData2Correl::SetMask(pixel *dataMask, uint2 dimMask)
     }
 }
 
-void SData2Correl::copyHostToDevice(uint s, pCorGpu param)
+void SData2Correl::copyHostToDevice(pCorGpu param,uint s)
 {
 
     uint2 dimP = _dt_LayeredProjection[s].GetDimension();

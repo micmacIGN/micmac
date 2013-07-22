@@ -115,8 +115,15 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 }
 
 /// \brief Fonction qui lance les kernels de correlation
-extern "C" void	 KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads, SData2Correl &data2cor, uint2 nbActThrd)
+extern "C" void	 LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu param,SData2Correl &data2cor)
 {
+
+    dim3	threads( BLOCKDIM, BLOCKDIM, 1);
+    uint2	thd2D		= make_uint2(threads);
+    uint2	nbActThrd	= thd2D - 2 * param.rayVig;
+    uint2	block2D		= iDivUp(param.dimDTer,nbActThrd);
+    dim3	blocks(block2D.x , block2D.y, param.nbImages * param.ZLocInter);
+
   switch (s)
     {
     case 0:
@@ -230,9 +237,16 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, uint* de
 
 
 /// \brief Fonction qui lance les kernels de multi-Correlation n'utilisant pas des fonctions atomiques
-extern "C" void KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, SData2Correl &dataCorrel, uint2 nbActThr)
+extern "C" void LaunchKernelMultiCorrelation(cudaStream_t stream, pCorGpu &param, SData2Correl &dataCorrel)
 {
-  multiCorrelationKernel<<<blocks, threads, 0, stream>>>(dataCorrel.DeviVolumeCost(0), dataCorrel.DeviVolumeCache(0), dataCorrel.DeviVolumeNOK(0), nbActThr);
-  getLastCudaError("Multi-Correlation NON ATOMIC kernel failed");
+
+    //-------------	calcul de dimension du kernel de multi-correlation NON ATOMIC ------------
+    uint2	nbActThr	= SBLOCKDIM - make_uint2( SBLOCKDIM % param.dimVig.x, SBLOCKDIM % param.dimVig.y);
+    dim3	threads(SBLOCKDIM, SBLOCKDIM, 1);
+    uint2	block2D	= iDivUp(param.dimCach,nbActThr);
+    dim3	blocks(block2D.x,block2D.y,param.ZLocInter);
+
+    multiCorrelationKernel<<<blocks, threads, 0, stream>>>(dataCorrel.DeviVolumeCost(0), dataCorrel.DeviVolumeCache(0), dataCorrel.DeviVolumeNOK(0), nbActThr);
+    getLastCudaError("Multi-Correlation NON ATOMIC kernel failed");
 
 }
