@@ -26,7 +26,6 @@
 #define   SBLOCKDIM 15
 #endif
 
-
 /// \struct pCorGpu
 /// \param  La structure contenant tous les parametres necessaires a la correlation
 struct pCorGpu
@@ -37,47 +36,67 @@ struct pCorGpu
 
     /// \brief  Dimension du bloque terrain
     uint2       dimTer;
+
     /// \brief  Dimension du bloque terrain + halo
     uint2       dimDTer;
+
     /// \brief  Dimension du bloque terrain + halo sous echantilloné
     uint2       dimSTer;
+
     /// \brief  Dimension de l'image la plus grande
     uint2       dimImg;
+
     /// \brief  Dimension cache des calculs intermédiaires
     uint2       dimCach;
+
     /// \brief  Dimension de la vignette
     uint2       dimVig;
+
     /// \brief  Rayon de la vignette
     uint2       rayVig;
+
     /// \brief  Taille de la vignette en pixel
     uint        sizeVig;
+
     /// \brief  Taille du bloque terrain + halo
     uint        sizeDTer;
+
     /// \brief  taille reel du terrain
     uint        sizeTer;
+
     /// \brief  Taille du bloque terrain + halo sous echantilloné
     uint        sizeSTer;
+
     /// \brief  Taille du cache
     uint        sizeCach;
+
     /// \brief  Taille du cache des tous les Z
     uint        sizeCachAll;
+
     /// \brief  Pas echantillonage du terrain
     uint        sampProj;
+
     /// \brief  Valeur incorrect
     float       floatDefault;
+
     /// \brief  Valeur entiere incorrect
     int         IntDefault;
+
     /// \brief  Nombre d'images
     uint        nbImages;
+
     /// \brief  Rectangle du terrain dilaté du rayon de la vignette
     Rect        rDTer;
+
     /// \brief  Rectangle du terrain
     Rect        rTer;
+
     /// \brief  Epsilon
     float       mAhEpsilon;
 
     /// \brief  Renvoie le rectangle du terrain dilaté du rayon de la vignette
     Rect        RDTer() { return rDTer; }
+
     /// \brief  Renvoie le rectangle du terrain
     Rect        RTer() { return rTer; }
 
@@ -86,18 +105,27 @@ struct pCorGpu
     {
 
         rTer		= Ter;
+
         rDTer		= Rect(Ter.pt0 - rayVig,Ter.pt1 + rayVig);
+
         dimTer		= rTer.dimension();
-        dimDTer	= rDTer.dimension();
-        dimSTer	= iDivUp(dimDTer,sampProj)+1;	// Dimension du bloque terrain sous echantilloné
-        dimCach	= dimTer * dimVig;
+
+        dimDTer     = rDTer.dimension();
+
+        dimSTer     = iDivUp(dimDTer,sampProj)+1;	// Dimension du bloque terrain sous echantilloné
+
+        dimCach     = dimTer * dimVig;
 
         sizeDTer	= size(dimDTer);				// Taille du bloque terrain
-        sizeSTer	= size(dimSTer);			// Taille du bloque terrain sous echantilloné
-        sizeTer	= size(dimTer);
+
+        sizeSTer	= size(dimSTer);                // Taille du bloque terrain sous echantilloné
+
+        sizeTer     = size(dimTer);
+
         sizeCach	= size(dimCach);
+
         sizeCachAll	= sizeCach * nbImages;
-        //ZLocInter	= LOCINTERZ;
+
         ZLocInter	= Zinter;
 
     }
@@ -109,13 +137,21 @@ struct pCorGpu
         memset(&uvDef,uvINTDef,sizeof(float));
 
         nbImages		= nLayer;
+
         dimVig			= dV;							// Dimension de la vignette
+
         dimImg			= dI;							// Dimension des images
+
         rayVig			= dRV;							// Rayon de la vignette
-        sizeVig		= size(dV);						// Taille de la vignette en pixel
+
+        sizeVig         = size(dV);						// Taille de la vignette en pixel
+
         sampProj		= samplingZ;					// Pas echantillonage du terrain
+
         floatDefault	= uvDef;						// UV Terrain incorrect
+
         IntDefault		= uvINTDef;
+
         mAhEpsilon		= tmAhEpsilon;
 
     }
