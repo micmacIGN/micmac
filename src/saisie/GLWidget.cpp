@@ -462,7 +462,6 @@ void GLWidget::setData(cData *data)
     if (m_Data->NbImages())
     {
         m_bDisplayMode2D = true;
-        m_speed = 0.005f;
 
         glDisable( GL_DEPTH_TEST );
 
@@ -757,8 +756,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         {
             if (m_Data->NbImages())
             {
-                m_params.m_translationMatrix[0] = m_speed* dp.x();
-                m_params.m_translationMatrix[1] = - m_speed* dp.y();
+                m_params.m_translationMatrix[0] = m_speed* dp.x()/ (float) m_glWidth;
+                m_params.m_translationMatrix[1] = - m_speed* dp.y()/ (float) m_glHeight;
             }
             else
             {
