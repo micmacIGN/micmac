@@ -38,7 +38,7 @@ public:
   void          SetParameter(int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef);
 
   /// \brief    Calcul de la correlation en Gpu
-  void          BasicCorrelation();
+  void          BasicCorrelation(uint ZInter);
 
   /// \brief    Renvoie les parametres de correlation
 
