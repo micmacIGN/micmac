@@ -33,11 +33,11 @@ struct SData2Correl
 
     float*  DeviVolumeCost(uint s);
 
-    void    copyHostToDevice(uint s, pCorGpu param);
+    void    copyHostToDevice(pCorGpu param, uint s = 0);
 
-    void    CopyDevicetoHost(uint idBuf, uint s);
+    void    CopyDevicetoHost(uint idBuf, uint s = 0);
 
-    void    UnBindTextureProj(uint s);
+    void    UnBindTextureProj(uint s = 0);
 
     void    DeallocHostData();
 

@@ -18,8 +18,8 @@
 #include "GpGpu/SData2Correl.h"
 
 extern "C" void	CopyParamTodevice(pCorGpu h);
-extern "C" void	KernelCorrelation(const int s,cudaStream_t stream, dim3 blocks, dim3 threads,SData2Correl &dataCorrel, uint2 nbActThrd);
-extern "C" void	KernelmultiCorrelation(cudaStream_t stream, dim3 blocks, dim3 threads, SData2Correl &dataCorrel, uint2 nbActThr);
+extern "C" void	LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu &param,SData2Correl &dataCorrel);
+extern "C" void	LaunchKernelMultiCorrelation(cudaStream_t stream, pCorGpu &param, SData2Correl &dataCorrel);
 
 extern "C" void dilateKernel(pixel* HostDataOut, short r, uint2 dim);
 
@@ -36,11 +36,12 @@ public:
 
   /// \brief    Initialise les parametres de correlation
   void          SetParameter(int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef);
+
   /// \brief    Calcul de la correlation en Gpu
-  void          BasicCorrelation(int nbLayer);
-  /// \brief    Calcul asynchrone de la correlation en Gpu
-  void          BasicCorrelationStream( float* hostVolumeCost, float2* hostVolumeProj,  int nbLayer, uint interZ );
+  void          BasicCorrelation();
+
   /// \brief    Renvoie les parametres de correlation
+
   pCorGpu       &Param();
 
   void          signalComputeCorrel(uint dZ);
@@ -55,6 +56,10 @@ public:
 
 private:
 
+  void              CorrelationGpGpu(const int s = 0);
+
+  void              MultiCorrelationGpGpu(const int s = 0);
+
   cudaStream_t*		GetStream(int stream);
   void              threadCompute();
 
@@ -62,6 +67,8 @@ private:
   pCorGpu           _param;
 
   SData2Correl      _data2Cor;
+
+  const uint        _s;
 
 };
 

@@ -597,6 +597,8 @@ if (0)
         mAll1TImOkTerDil =  TIm2D<U_INT1,INT>(mAll1ImOkTerDil);
         mAll1DOkTerDil = ImDec(mAll1VDOkTerDil,mAll1ImOkTerDil,aBox,mCurSzVMax);
 
+
+
         mTabZMin = mLTer->GPULowLevel_ZMin();
         mTabZMax = mLTer->GPULowLevel_ZMax();
 
@@ -725,8 +727,7 @@ if (0)
             }
         }
 
-        rMask.pt1.x++;
-        rMask.pt1.y++;
+        inc(rMask.pt1);
 
         IMmGg.Param().SetDimension(rMask);
 
@@ -1532,7 +1533,7 @@ void cAppliMICMAC::DoGPU_Correl
                 Tabul_Projection( anZComputed,mZMaxGlob,interZ);
 
                 // Kernel Correlation
-                IMmGg.BasicCorrelation(mNbIm);
+                IMmGg.BasicCorrelation();
 
                 setVolumeCost<true>(mTer,anZComputed,anZComputed + interZ);
 
@@ -1633,7 +1634,6 @@ void cAppliMICMAC::DoCorrelAdHoc
         }
 
 }
-
 
     void cAppliMICMAC::GlobDoCorrelAdHoc
         (
