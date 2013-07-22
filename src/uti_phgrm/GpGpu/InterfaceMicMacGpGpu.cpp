@@ -16,8 +16,12 @@ InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
 
 }
 
-void InterfaceMicMacGpGpu::InitJob(uint &interZ)
+uint InterfaceMicMacGpGpu::InitCorrelJob(int Zmin, int Zmax)
 {
+    uint interZ = min(INTERZ, abs(Zmin - Zmax));
+
+    _param.SetZCInter(interZ);
+
     CopyParamTodevice(_param);
 
     _data2Cor.ReallocHostData(interZ,_param);
@@ -27,6 +31,8 @@ void InterfaceMicMacGpGpu::InitJob(uint &interZ)
         ResetIdBuffer();
         SetPreComp(true);
     }
+
+    return interZ;
 }
 
 /// \brief Initialisation des parametres constants
@@ -35,8 +41,10 @@ void InterfaceMicMacGpGpu::SetParameter(int nbLayer , uint2 dRVig , uint2 dimImg
     _param.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
 }
 
-void InterfaceMicMacGpGpu::BasicCorrelation()
+void InterfaceMicMacGpGpu::BasicCorrelation(uint ZInter)
 {
+
+    Param().SetZCInter(ZInter);
 
     // Re-allocation les structures de données si elles ont été modifiées
 
@@ -83,7 +91,7 @@ void InterfaceMicMacGpGpu::threadCompute()
             uint interZ = GetCompute();
             SetCompute(0);
 
-            BasicCorrelation();
+            BasicCorrelation(interZ);
 
             SwitchIdBuffer();
 
