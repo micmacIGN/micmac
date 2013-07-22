@@ -694,12 +694,28 @@ if (0)
 
             IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
 
-//            for (uint anX = 0 ; anX <  IMmGg.box.x ; anX++)
-//                for (uint anY = 0 ; anY < IMmGg.box.y ; anY++)
-//                    IsInTer(anX,anY);
-//            mTabMasqTER;
+            ////
+            /// \brief M
+            ///
 
-           // GpGpuTools::Array1DtoImageFile(mTabMasqTER,"toto.pgm",IMmGg.box);
+            pixel *maskGlobal = new pixel[size(IMmGg.box)];
+
+            for (uint anY = 0 ; anY <  IMmGg.box.y ; anY++)
+                for (uint anX = 0 ; anX < IMmGg.box.x ; anX++)
+
+                {
+                    uint idMask		= IMmGg.box.x * anY + anX ;
+                    if(IsInTer(anX,anY))
+                        maskGlobal[idMask] = 255 ;
+                    else
+                        maskGlobal[idMask] = 0 ;
+
+                }
+
+            //GpGpuTools::Array1DtoImageFile<unsigned char>(maskGlobal,"toto.pgm",IMmGg.box);
+
+            delete[] maskGlobal;
+
         }
 
         Rect rMask(NEGARECT);
@@ -749,6 +765,7 @@ if (0)
             IMmGg.Data().SetMask(SubMaskTab,rDimTer);
 
             delete[] SubMaskTab;
+
         }
 
         delete[] maskTab;

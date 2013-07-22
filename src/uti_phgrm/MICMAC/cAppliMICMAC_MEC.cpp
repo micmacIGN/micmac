@@ -568,7 +568,9 @@ void cAppliMICMAC::DoOneBloc
    mNbApproxVueActive = -1;
 
 #ifdef CUDA_ENABLED
-   mLoadTextures = true;
+   mLoadTextures    = true;
+   IMmGg.startPt.x  =  aBoxOut._p0.x;
+   IMmGg.startPt.y  =  aBoxOut._p0.y;
 #endif
 
 
