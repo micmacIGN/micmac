@@ -31,7 +31,7 @@
 struct pCorGpu
 {
 
-    /// \brief  Le nombre de Z calculer en parrallele
+    /// \brief  Le nombre de Z calculer en parallele
     uint        ZCInter;
 
     /// \brief  Dimension du bloque terrain
