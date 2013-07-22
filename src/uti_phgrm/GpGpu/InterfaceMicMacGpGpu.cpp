@@ -16,8 +16,10 @@ InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
 
 }
 
-void InterfaceMicMacGpGpu::InitJob(uint &interZ)
+uint InterfaceMicMacGpGpu::InitCorrelJob(int Zmin, int Zmax)
 {
+    uint interZ = min(INTERZ, abs(Zmin - Zmax));
+
     _param.SetZCInter(interZ);
 
     CopyParamTodevice(_param);
@@ -29,6 +31,8 @@ void InterfaceMicMacGpGpu::InitJob(uint &interZ)
         ResetIdBuffer();
         SetPreComp(true);
     }
+
+    return interZ;
 }
 
 /// \brief Initialisation des parametres constants
