@@ -27,6 +27,12 @@ struct Data2Optimiz
         ReallocParam(1);
     }
 
+    ~Data2Optimiz()
+    {
+        Dealloc();
+    }
+
+
     void Dealloc()
     {
         _s_InitCostVol  .Dealloc();        
