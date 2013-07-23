@@ -1,18 +1,15 @@
 #include "GpGpu/SData2Correl.h"
 
 SData2Correl::SData2Correl():
-    _texMask(getMask()),
-    _texMaskD(getMaskD()),
+    _texMaskGlobal(getMaskGlobal()),
     _texImages(getImage()),
     _texProjections_00(getProjection(0)),
-    _texProjections_01(getProjection(1)),
-    _countAlloc(0)
-
+    _texProjections_01(getProjection(1))
 {
     _d_volumeCost[0].SetName("_d_volumeCost");
     _d_volumeCach[0].SetName("_d_volumeCach");
     _d_volumeNIOk[0].SetName("_d_volumeNIOk");
-    _dt_mask.CData2D::SetName("_dt_mask");
+    _dt_GlobalMask.CData2D::SetName("_dt_GlobalMask");
     _dt_LayeredImages.CData3D::SetName("_dt_LayeredImages");
     _dt_LayeredProjection->CData3D::SetName("_dt_LayeredProjection");
 
@@ -22,6 +19,11 @@ SData2Correl::SData2Correl():
 
     // Parametres texture des Images
     GpGpuTools::SetParamterTexture(_texImages);
+
+    _texMaskGlobal.addressMode[0]	= cudaAddressModeBorder;
+    _texMaskGlobal.addressMode[1]	= cudaAddressModeBorder;
+    _texMaskGlobal.filterMode       = cudaFilterModePoint; //cudaFilterModePoint cudaFilterModeLinear
+    _texMaskGlobal.normalized       = false;
 
     for (int i = 0; i < SIZERING; ++i)
     {
@@ -43,7 +45,7 @@ void SData2Correl::MallocInfo()
     _d_volumeCost[0].MallocInfo();
     _d_volumeCach[0].MallocInfo();
     _d_volumeNIOk[0].MallocInfo();
-    _dt_mask.CData2D::MallocInfo();
+    _dt_GlobalMask.CData2D::MallocInfo();
     _dt_LayeredImages.CData3D::MallocInfo();
     _dt_LayeredProjection[0].CData3D::MallocInfo();
 }
@@ -70,9 +72,8 @@ void SData2Correl::DeallocHostData()
 
 void SData2Correl::DeallocDeviceData()
 {
-    checkCudaErrors( cudaUnbindTexture(&_texImages) );
-    checkCudaErrors( cudaUnbindTexture(&_texMask) );
-    checkCudaErrors( cudaUnbindTexture(&_texMaskD) );
+    checkCudaErrors( cudaUnbindTexture(&_texImages) );    
+    checkCudaErrors( cudaUnbindTexture(&_texMaskGlobal) );
 
     for (int s = 0;s<NSTREAM;s++)
     {
@@ -82,7 +83,7 @@ void SData2Correl::DeallocDeviceData()
         _dt_LayeredProjection[s].Dealloc();
     }
 
-    _dt_mask.Dealloc();
+    _dt_GlobalMask.Dealloc();
     _dt_LayeredImages.Dealloc();
 
 }
@@ -109,14 +110,13 @@ void SData2Correl::SetImages(float *dataImage, uint2 dimImage, int nbLayer)
 
 }
 
-void SData2Correl::SetMask(pixel *dataMask, uint2 dimMask)
+void SData2Correl::SetGlobalMask(pixel *dataMask, uint2 dimMask)
 {
-    _dt_mask.Dealloc();
+    _dt_GlobalMask.Dealloc();
 
-    _dt_mask.InitImage(dimMask,dataMask);
+    _dt_GlobalMask.InitImage(dimMask,dataMask);
 
-    _dt_mask.bindTexture(_texMask);
-
+    _dt_GlobalMask.bindTexture(_texMaskGlobal);
 }
 
 void SData2Correl::copyHostToDevice(pCorGpu param,uint s)

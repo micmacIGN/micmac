@@ -58,6 +58,8 @@ public:
 
   uint2         box;
 
+  uint2         startPt;
+
 private:
 
   void              CorrelationGpGpu(const int s = 0);

@@ -12,7 +12,9 @@ TexFloat2Layered							TexL_Proj_04;
 TexFloat2Layered							TexL_Proj_05;
 TexFloat2Layered							TexL_Proj_06;
 TexFloat2Layered							TexL_Proj_07;
-//texture< float,	cudaTextureType2DLayered >	TexL_Cache;
+texture< pixel,	cudaTextureType2D >         TexS_MaskGlobal;
+
+extern "C" textureReference& getMaskGlobal(){return TexS_MaskGlobal;}
 
 
 template<int TexSel> __device__ __host__ TexFloat2Layered TexFloat2L();

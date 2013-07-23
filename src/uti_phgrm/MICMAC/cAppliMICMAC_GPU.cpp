@@ -694,22 +694,37 @@ if (0)
 
             IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
 
-//            for (uint anX = 0 ; anX <  IMmGg.box.x ; anX++)
-//                for (uint anY = 0 ; anY < IMmGg.box.y ; anY++)
-//                    IsInTer(anX,anY);
-//            mTabMasqTER;
+            ////
+            /// \brief M
+            ///
 
-           // GpGpuTools::Array1DtoImageFile(mTabMasqTER,"toto.pgm",IMmGg.box);
+            pixel *maskGlobal = new pixel[size(IMmGg.box)];
+
+            for (uint anY = 0 ; anY <  IMmGg.box.y ; anY++)
+                for (uint anX = 0 ; anX < IMmGg.box.x ; anX++)
+                {
+                    uint idMask		= IMmGg.box.x * anY + anX ;
+                    if(IsInTer(anX,anY))
+                        maskGlobal[idMask] = 1 ;
+                    else
+                        maskGlobal[idMask] = 0 ;
+                }
+
+            IMmGg.Data().SetGlobalMask(maskGlobal,IMmGg.box);
+
+            delete[] maskGlobal;
+
         }
 
         Rect rMask(NEGARECT);
-        pixel *maskTab = new pixel[size(Ter.dimension())];
 
+        //#pragma omp parallel for num_threads(3)
         for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
         {
+            //#pragma omp parallel for num_threads(3)
             for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
             {
-                uint idMask		= Ter.dimension().x * (anY - mY0Ter) + anX - mX0Ter;
+
                 if (IsInTer(anX,anY))
                 {
                     if ( aEq(rMask.pt0, -1))
@@ -721,10 +736,7 @@ if (0)
                     if (rMask.pt1.x < anX) rMask.pt1.x = anX;
                     if (rMask.pt1.y < anY) rMask.pt1.y = anY;
 
-                    maskTab[idMask] = 1;
                 }
-                else
-                    maskTab[idMask] = 0;
 
                 ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
                 ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
@@ -732,26 +744,10 @@ if (0)
             }
         }
 
-        inc(rMask.pt1);
+        inc(rMask.pt1);       
 
         IMmGg.Param().SetDimension(rMask);
 
-        if (IMmGg.Param().MaskNoNULL())
-        {
-
-            uint2 rDimTer = IMmGg.Param().dimTer;
-
-            pixel *SubMaskTab = new pixel[size(rDimTer)];
-
-            for (int y = rMask.pt0.y; y < rMask.pt1.y; y++)
-                memcpy(SubMaskTab + (y  - rMask.pt0.y) * rDimTer.x, maskTab + (y - mY0Ter) * Ter.dimension().x + rMask.pt0.x - mX0Ter, sizeof(pixel) * rDimTer.x );
-
-            IMmGg.Data().SetMask(SubMaskTab,rDimTer);
-
-            delete[] SubMaskTab;
-        }
-
-        delete[] maskTab;
 #else
 
         for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
@@ -1406,14 +1402,18 @@ void cAppliMICMAC::DoGPU_Correl
         int2	aSzClip		= toI2(Pt2dr(mGeomDFPx->SzClip()));		// Dimension du bloque
         int2	anB			= zone.pt0 +  dimSTabProj * sample;
 
+
+        //#pragma omp parallel for num_threads(4)
         for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
         {
+            //#pragma omp parallel for num_threads(3)
             for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )					// Mise en calque des projections pour chaque image
             {
 
                 cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);			// Obtention de l'image courante
                 const cGeomImage*	aGeom	= aGLI.Geom();
                 int2 an;
+
 
                 for (an.y = zone.pt0.y; an.y < anB.y; an.y += sample)	// Ballayage du terrain
                 {
@@ -1449,7 +1449,10 @@ void cAppliMICMAC::DoGPU_Correl
 
         uint2 rDiTer = zone.dimension();
         uint  rSiTer = size(rDiTer);
+
+        //#pragma omp parallel for num_threads(2)
         for (int anY = zone.pt0.y ; anY < (int)zone.pt1.y; anY++)
+            //#pragma omp parallel for num_threads(2)
             for (int anX = zone.pt0.x ; anX <  (int)zone.pt1.x ; anX++)
             {
                 int anZ0 = max(z0,mTabZMin[anY][anX]);
@@ -1460,6 +1463,7 @@ void cAppliMICMAC::DoGPU_Correl
                     double cost = (double)tabCost[rSiTer * abs(anZ - (int)z0) + rDiTer.x * (anY - zone.pt0.y) + anX -  zone.pt0.x];
                     mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : mAhDefCost);
                 }
+
             }
     }
 
