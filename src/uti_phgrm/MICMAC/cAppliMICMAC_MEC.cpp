@@ -569,8 +569,6 @@ void cAppliMICMAC::DoOneBloc
 
 #ifdef CUDA_ENABLED
    mLoadTextures    = true;
-   IMmGg.startPt.x  =  aBoxOut._p0.x;
-   IMmGg.startPt.y  =  aBoxOut._p0.y;
 #endif
 
 

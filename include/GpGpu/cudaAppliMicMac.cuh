@@ -94,6 +94,10 @@ struct pCorGpu
     /// \brief  Epsilon
     float       mAhEpsilon;
 
+    /// \brief  ptDTer
+    ///
+    uint2       ptDTer;
+
     /// \brief  Renvoie le rectangle du terrain dilaté du rayon de la vignette
     Rect        RDTer() { return rDTer; }
 
@@ -128,6 +132,8 @@ struct pCorGpu
 
         ZCInter     = Zinter;
 
+        //ptDTer      = pt;
+
     }
 
     void        SetZCInter(uint Zinter = INTERZ)
@@ -157,7 +163,7 @@ struct pCorGpu
 
         IntDefault		= uvINTDef;
 
-        mAhEpsilon		= tmAhEpsilon;
+        mAhEpsilon		= tmAhEpsilon;       
 
     }
 
