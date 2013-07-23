@@ -22,36 +22,49 @@ extern "C" void CopyParamTodevice( pCorGpu param )
 /// \fn template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
 /// \brief Kernel fonction GpGpu Cuda
 /// Calcul les vignettes de correlation pour toutes les images
+///
 template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
 {
+
   __shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
 
   // Coordonnées du terrain global avec bordure // __umul24!!!! A voir
+
   const uint2 ptHTer = make_uint2(blockIdx) * nbActThrd + make_uint2(threadIdx);
 
   // Si le processus est hors du terrain, nous sortons du kernel
+
   if (oSE(ptHTer,cH.dimDTer)) return;
 
   const float2 ptProj = GetProjection<TexSel>(ptHTer,cH.sampProj,blockIdx.z);
 
   uint pitZ,modZ;
 
-  if (oI(ptProj,0)) return;
+  if (oI(ptProj,0))
+
+      return;
 
   else
-    {
+  {
       pitZ  = blockIdx.z / cH.nbImages;
+
       modZ  = blockIdx.z - pitZ * cH.nbImages;
+
       cacheImg[threadIdx.y][threadIdx.x] = GetImageValue(ptProj,modZ);
-    }
+  }
+
   __syncthreads();
 
   const int2 ptTer = make_int2(ptHTer) - make_int2(cH.rayVig);
+
   // Nous traitons uniquement les points du terrain du bloque ou Si le processus est hors du terrain global, nous sortons du kernel
+
   if (oSE(threadIdx, nbActThrd + cH.rayVig) || oI(threadIdx , cH.rayVig) || oSE( ptTer, cH.dimTer) || oI(ptTer, 0))
     return;
 
-  if(tex2D(TexS_MaskTer, ptTer.x, ptTer.y) == 0) return;
+  //if(tex2D(TexS_MaskTer, ptTer.x, ptTer.y) == 0) return;
+  if(tex2D(TexS_MaskGlobal, ptTer.x + cH.rTer.pt0.x , ptTer.y + cH.rTer.pt0.y) == 0) return;
+
 
   const short2 c0	= make_short2(threadIdx) - cH.rayVig;
   const short2 c1	= make_short2(threadIdx) + cH.rayVig;
@@ -61,18 +74,23 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
   short2 pt;
 
 #pragma unroll // ATTENTION PRAGMA FAIT AUGMENTER LA quantité MEMOIRE des registres!!!
+
   for (pt.y = c0.y ; pt.y <= c1.y; pt.y++)
+
 #pragma unroll
-    for (pt.x = c0.x ; pt.x <= c1.x; pt.x++)
+
+      for (pt.x = c0.x ; pt.x <= c1.x; pt.x++)
       {
-        const float val = cacheImg[pt.y][pt.x];	// Valeur de l'image
-//        if (val ==  cH.floatDefault) return;
-        aSV  += val;		// Somme des valeurs de l'image cte
-        aSVV += (val*val);	// Somme des carrés des vals image cte
+          const float val = cacheImg[pt.y][pt.x];	// Valeur de l'image
+          //        if (val ==  cH.floatDefault) return;
+          aSV  += val;		// Somme des valeurs de l'image cte
+          aSVV += (val*val);	// Somme des carrés des vals image cte
       }
 
   aSV   = fdividef(aSV,(float)cH.sizeVig );
+
   aSVV  = fdividef(aSVV,(float)cH.sizeVig );
+
   aSVV -=	(aSV * aSV);
 
   if ( aSVV <= cH.mAhEpsilon) return;
@@ -80,19 +98,24 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
   aSVV =	rsqrtf(aSVV); // racine carre inverse
 
   const uint pitchCache = blockIdx.z * cH.sizeCach + ptTer.x * cH.dimVig.x;
+
   const uint pitchCachY = ptTer.y * cH.dimVig.y ;
+
 #pragma unroll
   for ( pt.y = c0.y ; pt.y <= c1.y; pt.y++)
     {
       const int _py	= (pitchCachY + (pt.y - c0.y))* cH.dimCach.x;
 #pragma unroll
       for ( pt.x = c0.x ; pt.x <= c1.x; pt.x++)
+
         cachVig[ pitchCache + _py  + (pt.x - c0.x)] = (cacheImg[pt.y][pt.x] -aSV)*aSVV;
 
     }
 
   const int ZPitch	= pitZ * cH.sizeTer;
+
   const int idN		= ZPitch + to1D(ptTer,cH.dimTer);
+
   atomicAdd( &dev_NbImgOk[idN], 1U);
 
 }
@@ -156,9 +179,12 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, uint* de
   // coordonnées des threads
   const uint2 t = make_uint2(threadIdx);
 
-  aSV [t.y][t.x]	= 0.0f;
-  aSVV[t.y][t.x]	= 0.0f;
+  aSV [t.y][t.x]        = 0.0f;
+
+  aSVV[t.y][t.x]        = 0.0f;
+
   resu[t.y/2][t.x/2]	= 0.0f;
+
   nbIm[t.y/2][t.x/2]	= 0;
 
   if ( oSE( t, nbActThr))	return; // si le thread est inactif, il sort
@@ -171,9 +197,11 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, uint* de
 
   const uint2	ptTer	= ptCach / cH.dimVig; // Coordonnées 2D du terrain
 
-  if(tex2D(TexS_MaskTer, ptTer.x, ptTer.y) == 0) return;
+
+  if(!tex2D(TexS_MaskGlobal, ptTer.x + cH.rTer.pt0.x , ptTer.y + cH.rTer.pt0.y)) return;
 
   const uint	iTer	= blockIdx.z * cH.sizeTer + to1D(ptTer, cH.dimTer);     // Coordonnées 1D dans le terrain avec prise en compte des differents Z
+
   const uint2   thTer	= t / cH.dimVig;                                        // Coordonnées 2D du terrain dans le repere des threads
 
   //if(aEq(t,thTer * cH.dimVig))
