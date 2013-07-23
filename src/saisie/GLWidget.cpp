@@ -12,7 +12,7 @@ using namespace std;
 
 GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_font(font())
-  , m_bDisplayMode2D(false)
+
   , m_bDrawAxis(false)
   , m_bDrawBall(true)
   , m_bDrawCams(true)
@@ -29,6 +29,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_params(ViewportParameters())
   , m_Data(data)
   , m_speed(2.5f)
+  , m_bDisplayMode2D(false)
   , m_vertexbuffer(QGLBuffer::VertexBuffer)  
   , _frameCount(0)
   , _previousTime(0)

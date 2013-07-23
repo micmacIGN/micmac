@@ -38,7 +38,7 @@ public:
   void          SetParameter(int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef);
 
   /// \brief    Calcul de la correlation en Gpu
-  void          BasicCorrelation();
+  void          BasicCorrelation(uint ZInter);
 
   /// \brief    Renvoie les parametres de correlation
 
@@ -46,7 +46,7 @@ public:
 
   void          signalComputeCorrel(uint dZ);
 
-  void          InitJob(uint &interZ);
+  uint          InitCorrelJob(int Zmin, int Zmax);
 
   void          freezeCompute();
 
@@ -55,6 +55,10 @@ public:
   SData2Correl&  Data(){return _data2Cor;}
 
   float*        VolumeCost();
+
+  uint2         box;
+
+  uint2         startPt;
 
 private:
 

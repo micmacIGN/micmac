@@ -3,13 +3,13 @@
 
 #include "GpGpu/cudaAppliMicMac.cuh"
 
-extern "C" textureReference&    getMaskD();
+extern "C" textureReference&    getMaskGlobal();
 extern "C" textureReference&	getMask();
 extern "C" textureReference&	getImage();
 extern "C" textureReference&	getProjection(int TexSel);
 
-#define SYNC false
-#define ASYNC true
+#define SYNC    false
+#define ASYNC   true
 
 struct SData2Correl
 {
@@ -19,7 +19,7 @@ struct SData2Correl
 
     void    SetImages( float* dataImage, uint2 dimImage, int nbLayer );
 
-    void    SetMask( pixel* dataMask, uint2 dimMask );
+    void    SetGlobalMask( pixel* dataMask, uint2 dimMask );
 
     void    MemsetHostVolumeProj(uint iDef);
 
@@ -62,16 +62,14 @@ private:
     CuDeviceData3D<float>       _d_volumeCach[NSTREAM];	// volume des calculs intermédiaires
     CuDeviceData3D<uint>        _d_volumeNIOk[NSTREAM];	// nombre d'image correct pour une vignette
 
-    ImageCuda<pixel>            _dt_mask;
+    ImageCuda<pixel>            _dt_GlobalMask;
     ImageLayeredCuda<float>     _dt_LayeredImages;
     ImageLayeredCuda<float2>    _dt_LayeredProjection[NSTREAM];
 
-    textureReference&           _texMask;
-    textureReference&           _texMaskD;
+    textureReference&           _texMaskGlobal;
     textureReference&           _texImages;
     textureReference&           _texProjections_00;
     textureReference&           _texProjections_01;
-    int                         _countAlloc;
 
     void DeviceMemset(pCorGpu &param, uint s = 0);
 };
