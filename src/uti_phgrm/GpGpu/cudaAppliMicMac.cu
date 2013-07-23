@@ -62,9 +62,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
   if (oSE(threadIdx, nbActThrd + cH.rayVig) || oI(threadIdx , cH.rayVig) || oSE( ptTer, cH.dimTer) || oI(ptTer, 0))
     return;
 
-  //if(tex2D(TexS_MaskTer, ptTer.x, ptTer.y) == 0) return;
   if(tex2D(TexS_MaskGlobal, ptTer.x + cH.rTer.pt0.x , ptTer.y + cH.rTer.pt0.y) == 0) return;
-
 
   const short2 c0	= make_short2(threadIdx) - cH.rayVig;
   const short2 c1	= make_short2(threadIdx) + cH.rayVig;
@@ -83,7 +81,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
       {
           const float val = cacheImg[pt.y][pt.x];	// Valeur de l'image
           //        if (val ==  cH.floatDefault) return;
-          aSV  += val;		// Somme des valeurs de l'image cte
+          aSV  += val;          // Somme des valeurs de l'image cte
           aSVV += (val*val);	// Somme des carrés des vals image cte
       }
 
@@ -196,7 +194,6 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, uint* de
   if ( oSE(ptCach, cH.dimCach))	return;
 
   const uint2	ptTer	= ptCach / cH.dimVig; // Coordonnées 2D du terrain
-
 
   if(!tex2D(TexS_MaskGlobal, ptTer.x + cH.rTer.pt0.x , ptTer.y + cH.rTer.pt0.y)) return;
 
