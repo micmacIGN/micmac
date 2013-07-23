@@ -1004,11 +1004,16 @@ bool CuHostData3D<T>::Dealloc()
 {
     CData3D<T>::SubMemoryOc(CData3D<T>::GetSizeofMalloc());
     CData3D<T>::SetSizeofMalloc(0);
-    if(_pageLockedMemory)
-        return CData<T>::ErrorOutput(cudaFreeHost(CData3D<T>::pData()),"Dealloc");
-    else
-        free(CData3D<T>::pData());
-    return true;
+    bool  error = true;
+    if(!(CData<T>::isNULL()))
+    {
+        if(_pageLockedMemory)
+            error = CData<T>::ErrorOutput(cudaFreeHost(CData3D<T>::pData()),"Dealloc");
+        else
+            free(CData3D<T>::pData());
+        CData<T>::dataNULL();
+    }
+    return error;
 }
 
 /// \class CuDeviceData2D

@@ -138,30 +138,6 @@ extern "C" void	 LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu
       correlationKernel<1><<<blocks, threads, 0, stream>>>( data2cor.DeviVolumeNOK(1), data2cor.DeviVolumeCache(1), nbActThrd);
       getLastCudaError("Basic Correlation kernel failed stream 1");
       break;
-    case 2:
-      correlationKernel<2><<<blocks, threads, 0, stream>>>( data2cor.DeviVolumeNOK(2), data2cor.DeviVolumeCache(2), nbActThrd);
-      getLastCudaError("Basic Correlation kernel failed stream 2");
-      break;
-    case 3:
-      correlationKernel<3><<<blocks, threads, 0, stream>>>( data2cor.DeviVolumeNOK(3), data2cor.DeviVolumeCache(3), nbActThrd);
-      getLastCudaError("Basic Correlation kernel failed stream 3");
-      break;
-    case 4:
-      correlationKernel<4><<<blocks, threads, 0, stream>>>( data2cor.DeviVolumeNOK(4), data2cor.DeviVolumeCache(4), nbActThrd);
-      getLastCudaError("Basic Correlation kernel failed stream 4");
-      break;
-    case 5:
-      correlationKernel<5><<<blocks, threads, 0, stream>>>( data2cor.DeviVolumeNOK(5), data2cor.DeviVolumeCache(5), nbActThrd);
-      getLastCudaError("Basic Correlation kernel failed stream 5");
-      break;
-    case 6:
-      correlationKernel<6><<<blocks, threads, 0, stream>>>( data2cor.DeviVolumeNOK(6), data2cor.DeviVolumeCache(6), nbActThrd);
-      getLastCudaError("Basic Correlation kernel failed stream 6");
-      break;
-    case 7:
-      correlationKernel<7><<<blocks, threads, 0, stream>>>( data2cor.DeviVolumeNOK(7), data2cor.DeviVolumeCache(7), nbActThrd);
-      getLastCudaError("Basic Correlation kernel failed stream 7");
-      break;
     }
 }
 
