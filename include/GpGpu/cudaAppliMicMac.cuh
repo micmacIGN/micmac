@@ -11,11 +11,8 @@
 #define BICUBIC		2
 #define INTERPOLA	LINEARINTER
 #define FLOATMATH
-#define USEATOMICFUNCT	false
 #define NSTREAM		1
 
-//#define USEDILATEMASK
-#define MAX_THREADS_PER_BLOCK 1024 // A definir en fonction du device!!!
 
 #ifdef _DEBUG
 #define   BLOCKDIM	16
@@ -31,7 +28,7 @@
 struct pCorGpu
 {
 
-    /// \brief  Le nombre de Z calculer en parrallele
+    /// \brief  Le nombre de Z calculer en parallele
     uint        ZCInter;
 
     /// \brief  Dimension du bloque terrain
@@ -94,6 +91,10 @@ struct pCorGpu
     /// \brief  Epsilon
     float       mAhEpsilon;
 
+    /// \brief  ptDTer
+    ///
+    uint2       ptDTer;
+
     /// \brief  Renvoie le rectangle du terrain dilaté du rayon de la vignette
     Rect        RDTer() { return rDTer; }
 
@@ -128,6 +129,8 @@ struct pCorGpu
 
         ZCInter     = Zinter;
 
+        //ptDTer      = pt;
+
     }
 
     void        SetZCInter(uint Zinter = INTERZ)
@@ -157,7 +160,7 @@ struct pCorGpu
 
         IntDefault		= uvINTDef;
 
-        mAhEpsilon		= tmAhEpsilon;
+        mAhEpsilon		= tmAhEpsilon;       
 
     }
 

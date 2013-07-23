@@ -872,9 +872,9 @@ void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm,vector<Pts
 						double aDist=Dist2d(aPtIn, aPt);
 						if(aDist<1){aDist=1;}
 						aSumDist=aSumDist+1/aDist;
-						aCorR[aY][aX] = aCorR[aY][aX] + vectPtsRadioTie[i].kR[j]/aDist,2;
-						aCorG[aY][aX] = aCorG[aY][aX] + vectPtsRadioTie[i].kG[j]/aDist,2;
-						aCorB[aY][aX] = aCorB[aY][aX] + vectPtsRadioTie[i].kB[j]/aDist,2;						
+                        aCorR[aY][aX] = aCorR[aY][aX] + vectPtsRadioTie[i].kR[j]/aDist;//,2;
+                        aCorG[aY][aX] = aCorG[aY][aX] + vectPtsRadioTie[i].kG[j]/aDist;//,2;
+                        aCorB[aY][aX] = aCorB[aY][aX] + vectPtsRadioTie[i].kB[j]/aDist;//,2;
 					}
 					
 					aCorR[aY][aX] = aCorR[aY][aX]/aSumDist;

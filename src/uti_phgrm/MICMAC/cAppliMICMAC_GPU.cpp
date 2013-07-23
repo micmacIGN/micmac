@@ -649,10 +649,9 @@ if (0)
 
 #ifdef CUDA_ENABLED
 
-        Rect Ter(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
-
         if (mLoadTextures)//		Mise en calque des images
         {
+
             mLoadTextures		= false;
             float*	fdataImg1D	= NULL;
             uint2	dimImgMax	= make_uint2(0,0);
@@ -693,18 +692,34 @@ if (0)
 
             IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
 
+            pixel *maskGlobal = new pixel[size(IMmGg.box)];
+
+            //#pragma omp parallel for num_threads(3)
+            for (uint anY = 0 ; anY <  IMmGg.box.y ; anY++)
+                //#pragma omp parallel for num_threads(3)
+                for (uint anX = 0 ; anX < IMmGg.box.x ; anX++)
+                {
+                    uint idMask		= IMmGg.box.x * anY + anX ;
+                    if(IsInTer(anX,anY))
+                        maskGlobal[idMask] = 1 ;
+                    else
+                        maskGlobal[idMask] = 0 ;
+                }
+
+            IMmGg.Data().SetGlobalMask(maskGlobal,IMmGg.box);
+
+            delete[] maskGlobal;
+
         }
 
-        //////////////////////////////////////////////////////////////////////////
-
         Rect rMask(NEGARECT);
-        pixel *maskTab = new pixel[size(Ter.dimension())];
 
+        //#pragma omp parallel for num_threads(3)
         for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
         {
+            //#pragma omp parallel for num_threads(3)
             for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
             {
-                uint idMask		= Ter.dimension().x * (anY - mY0Ter) + anX - mX0Ter;
                 if (IsInTer(anX,anY))
                 {
                     if ( aEq(rMask.pt0, -1))
@@ -716,36 +731,17 @@ if (0)
                     if (rMask.pt1.x < anX) rMask.pt1.x = anX;
                     if (rMask.pt1.y < anY) rMask.pt1.y = anY;
 
-                    maskTab[idMask] = 1;
                 }
-                else
-                    maskTab[idMask] = 0;
 
                 ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
                 ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
-
             }
         }
 
-        inc(rMask.pt1);
+        inc(rMask.pt1);       
 
         IMmGg.Param().SetDimension(rMask);
 
-        if (IMmGg.Param().MaskNoNULL())
-        {
-            uint2 rDimTer = IMmGg.Param().dimTer;
-
-            pixel *SubMaskTab = new pixel[size(rDimTer)];
-
-            for (int y = rMask.pt0.y; y < rMask.pt1.y; y++)
-                memcpy(SubMaskTab + (y  - rMask.pt0.y) * rDimTer.x, maskTab + (y - mY0Ter) * Ter.dimension().x + rMask.pt0.x - mX0Ter, sizeof(pixel) * rDimTer.x );
-
-            IMmGg.Data().SetMask(SubMaskTab,rDimTer);
-
-            delete[] SubMaskTab;
-        }
-
-        delete[] maskTab;
 #else
 
         for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
@@ -1400,8 +1396,11 @@ void cAppliMICMAC::DoGPU_Correl
         int2	aSzClip		= toI2(Pt2dr(mGeomDFPx->SzClip()));		// Dimension du bloque
         int2	anB			= zone.pt0 +  dimSTabProj * sample;
 
+
+        //#pragma omp parallel for num_threads(4)
         for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
         {
+            //#pragma omp parallel for num_threads(3)
             for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )					// Mise en calque des projections pour chaque image
             {
 
@@ -1443,7 +1442,10 @@ void cAppliMICMAC::DoGPU_Correl
 
         uint2 rDiTer = zone.dimension();
         uint  rSiTer = size(rDiTer);
+
+        //#pragma omp parallel for num_threads(4)
         for (int anY = zone.pt0.y ; anY < (int)zone.pt1.y; anY++)
+            //#pragma omp parallel for num_threads(3)
             for (int anX = zone.pt0.x ; anX <  (int)zone.pt1.x ; anX++)
             {
                 int anZ0 = max(z0,mTabZMin[anY][anX]);
@@ -1454,6 +1456,7 @@ void cAppliMICMAC::DoGPU_Correl
                     double cost = (double)tabCost[rSiTer * abs(anZ - (int)z0) + rDiTer.x * (anY - zone.pt0.y) + anX -  zone.pt0.x];
                     mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : mAhDefCost);
                 }
+
             }
     }
 
@@ -1467,16 +1470,11 @@ void cAppliMICMAC::DoGPU_Correl
 
 #ifdef  CUDA_ENABLED
 
-        if(	mNbIm == 0) return;
+        // Si le terrain est masque ou aucune image : Aucun calcul
+        if (mNbIm == 0 || !IMmGg.Param().MaskNoNULL()) return;
 
-        // Si le terrain est masque : Aucun calcul
-        if (!IMmGg.Param().MaskNoNULL()) return;
-
-        // intervale des pronfondeurs calcules simultanement
-        uint interZ	= min(INTERZ, abs(mZMaxGlob - mZMinGlob));
-
-        // Initiation des parametres pour le multithreading
-        IMmGg.InitJob(interZ);
+        // Initiation du calcul
+        uint interZ = IMmGg.InitCorrelJob(mZMinGlob,mZMaxGlob);
 
         int anZProjection = mZMinGlob, anZComputed= mZMinGlob, ZtoCopy = 0;
 
@@ -1506,7 +1504,6 @@ void cAppliMICMAC::DoGPU_Correl
 
                     IMmGg.SetDataToCopy(0);
                 }
-
             }
         else
         {
@@ -1516,7 +1513,7 @@ void cAppliMICMAC::DoGPU_Correl
                 Tabul_Projection( anZComputed,mZMaxGlob,interZ);
 
                 // Kernel Correlation
-                IMmGg.BasicCorrelation();
+                IMmGg.BasicCorrelation(interZ);
 
                 setVolumeCost(anZComputed,anZComputed + interZ);
 
@@ -1646,6 +1643,11 @@ void cAppliMICMAC::DoCorrelAdHoc
             mCorrelAdHoc->SzBlocAH().Val(),
             0
             );
+
+#ifdef CUDA_ENABLED
+        IMmGg.box.x = aBox.sz().x;
+        IMmGg.box.y = aBox.sz().y;
+#endif
 
         for (int aKBox=0 ; aKBox<aDecInterv.NbInterv() ; aKBox++)
         {

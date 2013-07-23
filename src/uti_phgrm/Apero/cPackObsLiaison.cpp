@@ -550,7 +550,7 @@ cPackObsLiaison::cPackObsLiaison
 			)
 			{
 				pair<string,string> filenames = mAppli.ICNM()->Assoc2To1( aBDL.KeyAssoc()[aKS], *itN, false );
-				string reversePackname = mAppli.ICNM()->Assoc1To2( aBDL.KeyAssoc()[aKS], filenames.second, filenames.first, true );
+				string reversePackname = mAppli.DC()+mAppli.ICNM()->Assoc1To2( aBDL.KeyAssoc()[aKS], filenames.second, filenames.first, true );
 				if ( ELISE_fp::exist_file( reversePackname ) )
 				{
 					addReverseFile = false;
