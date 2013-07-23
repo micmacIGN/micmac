@@ -456,31 +456,34 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
     }
 #endif
 
+
+    Pt2di aPTer;
+
+    for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
     {
-        Pt2di aPTer;
-        for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
+        for (aPTer.x=0 ; aPTer.x<mSz.x ; aPTer.x++)
         {
-            for (aPTer.x=0 ; aPTer.x<mSz.x ; aPTer.x++)
+            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
+            const Box2di &  aBox = aMat.Box();
+            Pt2di aPRX;
+
+
+            for (aPRX.y=aBox._p0.y ;aPRX.y<aBox._p1.y; aPRX.y++)
             {
-                tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
-                const Box2di &  aBox = aMat.Box();
-                Pt2di aPRX;
-                for (aPRX.y=aBox._p0.y ;aPRX.y<aBox._p1.y; aPRX.y++)
+                for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
                 {
-                    for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
+                    tCost & aCF = aMat[aPRX].CostFinal();
+                    if (mModeAgr==ePrgDAgrSomme) // Mode somme
                     {
-                        tCost & aCF = aMat[aPRX].CostFinal();
-                        if (mModeAgr==ePrgDAgrSomme) // Mode somme
-                        {
-                            aCF /= mNbDir;
-                        }
-                        aMat[aPRX].SetCostInit(aCF);
-                        aCF = 0;
+                        aCF /= mNbDir;
                     }
+                    aMat[aPRX].SetCostInit(aCF);
+                    aCF = 0;
                 }
             }
         }
     }
+
 }
 #ifdef CUDA_ENABLED
 
