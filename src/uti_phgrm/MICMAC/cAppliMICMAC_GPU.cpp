@@ -649,8 +649,6 @@ if (0)
 
 #ifdef CUDA_ENABLED
 
-        Rect Ter(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
-
         if (mLoadTextures)//		Mise en calque des images
         {
 
@@ -694,13 +692,11 @@ if (0)
 
             IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
 
-            ////
-            /// \brief M
-            ///
-
             pixel *maskGlobal = new pixel[size(IMmGg.box)];
 
+            //#pragma omp parallel for num_threads(3)
             for (uint anY = 0 ; anY <  IMmGg.box.y ; anY++)
+                //#pragma omp parallel for num_threads(3)
                 for (uint anX = 0 ; anX < IMmGg.box.x ; anX++)
                 {
                     uint idMask		= IMmGg.box.x * anY + anX ;
@@ -724,7 +720,6 @@ if (0)
             //#pragma omp parallel for num_threads(3)
             for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
             {
-
                 if (IsInTer(anX,anY))
                 {
                     if ( aEq(rMask.pt0, -1))
@@ -740,7 +735,6 @@ if (0)
 
                 ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
                 ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
-
             }
         }
 
@@ -1414,7 +1408,6 @@ void cAppliMICMAC::DoGPU_Correl
                 const cGeomImage*	aGeom	= aGLI.Geom();
                 int2 an;
 
-
                 for (an.y = zone.pt0.y; an.y < anB.y; an.y += sample)	// Ballayage du terrain
                 {
                     for (an.x = zone.pt0.x; an.x < anB.x ; an.x += sample)
@@ -1450,9 +1443,9 @@ void cAppliMICMAC::DoGPU_Correl
         uint2 rDiTer = zone.dimension();
         uint  rSiTer = size(rDiTer);
 
-        //#pragma omp parallel for num_threads(2)
+        //#pragma omp parallel for num_threads(4)
         for (int anY = zone.pt0.y ; anY < (int)zone.pt1.y; anY++)
-            //#pragma omp parallel for num_threads(2)
+            //#pragma omp parallel for num_threads(3)
             for (int anX = zone.pt0.x ; anX <  (int)zone.pt1.x ; anX++)
             {
                 int anZ0 = max(z0,mTabZMin[anY][anX]);
