@@ -446,11 +446,11 @@ template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Typ
   {
        cTplImInMem<Type> & anIm = *(aVIm[aKIm]);
        Im2D<Type,tBase> aTIm = anIm.TIm();
-       std::cout << "   #  Sz " << aTIm.sz() << " SInit:" <<  anIm.ScaleInit() << " SOct:" << anIm.ScaleInOct() << endl;
+       //std::cout << "   #  Sz " << aTIm.sz() << " SInit:" <<  anIm.ScaleInit() << " SOct:" << anIm.ScaleInOct() << endl;
 
 	   p.scale = anIm.ScaleInit();
        std::vector<cPtsCaracDigeo> &  aVPC = anIm.VPtsCarac();
-       std::cout << "NB PTS " <<aVPC.size()<<endl;
+       //std::cout << "NB PTS " <<aVPC.size()<<endl;
 	   if ( aVPC.size()!=0 )
 	   {
 		   gradient( aTIm, anOct->GetMaxValue(), imgGradient );
@@ -488,44 +488,36 @@ int Digeo_main( int argc, char **argv )
     aParam.mResolInit = 1.0;
 
     cAppliDigeo * anAD = DigeoCPP(inputName,aParam);
+   // __DEL
+   cout << "----------------------------------> All gaussian pyramid's structure created." << endl;
     cImDigeo &  anImD = anAD->SingleImage(); // Ici on ne mape qu'une seule image à la fois
 
 	list<DigeoPoint> total_list;
+	std::cout <<  "number of octaves = " << anImD.Octaves().size() << "\n";
+	
     std::cout << "Nb Box to do " << anAD->NbInterv() << "\n";
     for (int aKBox = 0 ; aKBox<anAD->NbInterv() ; aKBox++)
     {
+        std::cout << "Doing box " << aKBox+1 << " on " << anAD->NbInterv() << "\n";
         anAD->LoadOneInterv(aKBox);  // Calcul et memorise la pyramide gaussienne
         const std::vector<cOctaveDigeo *> & aVOct = anImD.Octaves();
         
-        if (aKBox==0)
-        {
-            std::cout <<  "= Nombre Octaves " << aVOct.size() << "\n";
-        }
         for (int aKo=0 ; aKo<int(aVOct.size()) ; aKo++)
         {
             cOctaveDigeo & anOct = *(aVOct[aKo]);
 			anOct.DoAllExtract();
 
-            const std::vector<cImInMem *> & aVIms = anOct.VIms();
-
             cTplOctDig<U_INT2> * aUI2_Oct = anOct.U_Int2_This();  // entre aUI2_OctaUI2_Oct et  aR4_Oct
             cTplOctDig<REAL4> * aR4_Oct = anOct.REAL4_This();     // un et un seul doit etre != 0
-            if (aKBox==0)
-            {
-                 std::cout << " *Oct=" << aKo << " Dz=" << anOct.Niv()  << " NbIm " << aVIms.size();
 
-                 if (aUI2_Oct !=0) std::cout << " U_INT2 ";
-                 if (aR4_Oct !=0) std::cout << " REAL4 ";
-                 
-                 std::cout << "\n";
-                  
-                 if (aUI2_Oct !=0)
-                    orientate_and_describe_all<U_INT2,INT>(aUI2_Oct, total_list);
-                 if (aR4_Oct !=0) 
-                    orientate_and_describe_all<REAL4,REAL8>(aR4_Oct, total_list);
-             }
+			// __DEL
+			cout << "----------------------------------> orientate_and_describe_all " << aKo << endl;
+			if (aUI2_Oct !=0)
+				orientate_and_describe_all<U_INT2,INT>(aUI2_Oct, total_list);
+			if (aR4_Oct !=0) 
+			orientate_and_describe_all<REAL4,REAL8>(aR4_Oct, total_list);
         }
-        std::cout << "Done " << aKBox << " on " << anAD->NbInterv() << "\n";
+        std::cout << "Done box " << aKBox+1 << " on " << anAD->NbInterv() << "\n";
     }
 	cout << total_list.size() << " points" << endl;
 	if ( !write_digeo_points( outputName, total_list ) ){
