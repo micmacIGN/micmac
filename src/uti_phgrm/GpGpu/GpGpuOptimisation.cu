@@ -107,6 +107,7 @@ void ScanOneSens(
             aDz.y = min(aDz.y,(short)NAPPEMAX - Z_P_Id);// bug sur Bouhdha -> pas de plantage mais resultat faux
             //
 
+            #pragma unroll
             for(short i = aDz.x ; i <= aDz.y; i++)
                 costMin = min(costMin, costInit + pData[idBuf][Z_P_Id + i]);
 
