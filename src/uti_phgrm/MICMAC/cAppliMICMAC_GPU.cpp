@@ -1647,8 +1647,10 @@ void cAppliMICMAC::DoCorrelAdHoc
             0
             );
 
+#ifdef CUDA_ENABLED
         IMmGg.box.x = aBox.sz().x;
         IMmGg.box.y = aBox.sz().y;
+#endif
 
         for (int aKBox=0 ; aKBox<aDecInterv.NbInterv() ; aKBox++)
         {
