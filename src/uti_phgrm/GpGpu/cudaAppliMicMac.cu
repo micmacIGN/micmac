@@ -102,12 +102,12 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 #pragma unroll
   for ( pt.y = c0.y ; pt.y <= c1.y; pt.y++)
     {
-      const int _py	= (pitchCachY + (pt.y - c0.y))* cH.dimCach.x;
+      const int _py	= pitchCache + (pitchCachY + (pt.y - c0.y))* cH.dimCach.x;
       const int pic = pt.y*BLOCKDIM;
 #pragma unroll
       for ( pt.x = c0.x ; pt.x <= c1.x; pt.x++)
 
-        cachVig[ pitchCache + _py  + (pt.x - c0.x)] = (cacheImg[pic + pt.x] -aSV)*aSVV;
+        cachVig[ _py + (pt.x - c0.x)] = (cacheImg[pic + pt.x] -aSV)*aSVV;
 
     }
 

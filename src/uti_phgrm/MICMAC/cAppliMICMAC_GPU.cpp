@@ -40,6 +40,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
+#define NT1 4
+#define NT2 3
+
 namespace NS_ParamMICMAC
 {
 
@@ -694,9 +697,9 @@ if (0)
 
             pixel *maskGlobal = new pixel[size(IMmGg.box)];
 
-            //#pragma omp parallel for num_threads(3)
+            //#pragma omp parallel for num_threads(NT1)
             for (uint anY = 0 ; anY <  IMmGg.box.y ; anY++)
-                //#pragma omp parallel for num_threads(3)
+                //#pragma omp parallel for num_threads(NT2)
                 for (uint anX = 0 ; anX < IMmGg.box.x ; anX++)
                 {
                     uint idMask		= IMmGg.box.x * anY + anX ;
@@ -714,10 +717,10 @@ if (0)
 
         Rect rMask(NEGARECT);
 
-        //#pragma omp parallel for num_threads(3)
+        //#pragma omp parallel for num_threads(NT1)
         for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
         {
-            //#pragma omp parallel for num_threads(3)
+            //#pragma omp parallel for num_threads(NT2)
             for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
             {
                 if (IsInTer(anX,anY))
@@ -1397,10 +1400,10 @@ void cAppliMICMAC::DoGPU_Correl
         int2	anB			= zone.pt0 +  dimSTabProj * sample;
 
 
-        //#pragma omp parallel for num_threads(4)
+        //#pragma omp parallel for num_threads(NT2)
         for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
         {
-            //#pragma omp parallel for num_threads(3)
+            //#pragma omp parallel for num_threads(NT1)
             for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )					// Mise en calque des projections pour chaque image
             {
 
@@ -1443,9 +1446,9 @@ void cAppliMICMAC::DoGPU_Correl
         uint2 rDiTer = zone.dimension();
         uint  rSiTer = size(rDiTer);
 
-        //#pragma omp parallel for num_threads(4)
+        //#pragma omp parallel for num_threads(NT2)
         for (int anY = zone.pt0.y ; anY < (int)zone.pt1.y; anY++)
-            //#pragma omp parallel for num_threads(3)
+            //#pragma omp parallel for num_threads(NT1)
             for (int anX = zone.pt0.x ; anX <  (int)zone.pt1.x ; anX++)
             {
                 int anZ0 = max(z0,mTabZMin[anY][anX]);
