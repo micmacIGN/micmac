@@ -44,8 +44,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 //#define NT2 3
 
 #if OPM_ENABLED
-    #define OMP_NT1 _Pragma("omp parallel for num_threads(4)")
-    #define OMP_NT2 _Pragma("omp parallel for num_threads(3)")
+#if ELISE_windows
+	#define OMP_NT1 __pragma("omp parallel for num_threads(4)")
+	#define OMP_NT2 __pragma("omp parallel for num_threads(3)")
+#else
+	#define OMP_NT1 _Pragma("omp parallel for num_threads(4)")
+	#define OMP_NT2 _Pragma("omp parallel for num_threads(3)")
+#endif
+    
 #endif
 
 namespace NS_ParamMICMAC
