@@ -3,7 +3,7 @@
 
 #include "GpGpu/GpGpuDefines.h"
 
-#ifdef CUDA_ENABLED
+#if CUDA_ENABLED
 #include "GpGpu/InterfaceMicMacGpGpu.h"
 #include "GpGpu/GpGpuOptimisation.h"
 #endif

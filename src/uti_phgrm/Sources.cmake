@@ -19,18 +19,22 @@ INCLUDE (${UTI_PHGRM_SAISIEPTS_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_FUSION_NUAGES}/Sources.cmake)
 
 if(${CUDA_ENABLED})
+    set(OptionCuda 1)
     INCLUDE (${UTI_PHGRM_GPGPU_DIR}/Sources.cmake)
-    configure_file(
-        ${UTI_PHGRM_GPGPU_DIR}/GpGpuDefines.h.in
-        ${PROJECT_SOURCE_DIR}/include/GpGpu/GpGpuDefines.h
-    )
-
 else()
-    configure_file(
-        ${UTI_PHGRM_GPGPU_DIR}/GpGpuNoDefines.h.in
-        ${PROJECT_SOURCE_DIR}/include/GpGpu/GpGpuDefines.h
-    )
+    set(OptionCuda 0)
 endif()
+
+if(${WITH_OPEN_MP})
+    set(OPM_ENABLED 1)
+else()
+    set(OPM_ENABLED 0)
+endif()
+
+configure_file(
+    ${UTI_PHGRM_GPGPU_DIR}/GpGpuDefines.h.in
+    ${PROJECT_SOURCE_DIR}/include/GpGpu/GpGpuDefines.h
+)
 
 set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_NuageBascule.cpp

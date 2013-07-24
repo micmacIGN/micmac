@@ -80,7 +80,7 @@ int cAppliMICMAC::GetTXY() const
 void cAppliMICMAC::DoAllMEC()
 {
 
-#ifdef CUDA_ENABLED
+#if CUDA_ENABLED
 	
 	// Cr�ation du contexte GPGPU
 	cudaDeviceProp deviceProp;
@@ -136,7 +136,7 @@ void cAppliMICMAC::DoAllMEC()
         }
      }
 
-#ifdef CUDA_ENABLED
+#if CUDA_ENABLED
 
 	checkCudaErrors( cudaDeviceReset() );
     printf("Reset Device GpGpu.\n");
@@ -567,7 +567,7 @@ void cAppliMICMAC::DoOneBloc
    mSurfOpt = 0;
    mNbApproxVueActive = -1;
 
-#ifdef CUDA_ENABLED
+#if CUDA_ENABLED
    IMmGg.SetTexturesAreLoaded(false);
 #endif
 
@@ -797,7 +797,7 @@ void cAppliMICMAC::DoOneBloc
             mCout << "       Correl Calc, Begin Opt\n";
         mSurfOpt->SolveOpt();
 
-#ifdef CUDA_ENABLED
+#if CUDA_ENABLED
         //IMmGg.Data().DeallocDeviceData();
 #endif
     }
