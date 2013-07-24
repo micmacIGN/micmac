@@ -8,7 +8,7 @@
 
 #include "GpGpu/GpGpu.h"
 
-#ifdef CUDA_ENABLED
+#if CUDA_ENABLED
 
 #ifndef BOOST_ALL_NO_LIB
     #define BOOST_ALL_NO_LIB
