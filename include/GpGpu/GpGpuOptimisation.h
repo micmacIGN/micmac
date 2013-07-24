@@ -1,11 +1,8 @@
 #ifndef __OPTIMISATION_H__
 #define __OPTIMISATION_H__
 
-#include "GpGpu/GpGpuTools.h"
-#include "GpGpu/data2Optimize.h"
+#include "GpGpu/SData2Optimize.h"
 #include "GpGpu/GpGpuMultiThreadingCpu.h"
-
-#include <boost/thread/thread.hpp>
 
 template <class T>
 void LaunchKernel();

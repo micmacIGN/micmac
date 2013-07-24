@@ -245,7 +245,7 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
             }
 
             {
-                std::string   aName = aPC->Name();
+                std::string   aName = StdPrefixGen(aPC->Name());
                 std::string   aNum;
                 cElBitmFont & aFont =  cElBitmFont::BasicFont_10x8();
                 for (const char * aC=aName.c_str() ; *aC ; aC++)
@@ -255,10 +255,35 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
                         aNum += *aC;
                     }
                 }
-                double aStep = 30;
-                int    aNb = 3;
+                if (aNum=="") aNum ="00000";
+
                 const char * aC = aNum.c_str();
+
+
+
+                int aSzFX=0;
+                int aSzFY=0;
+                int aSpace=1;
+                while (*aC)
+                {
+                    Im2D_Bits<1>  anIm = aFont.ImChar(*aC);
+                    Pt2di aSz = anIm.sz();
+                    aSzFX += aSz.x + aSpace;
+                    ElSetMax(aSzFY,aSz.y);
+                    aC++;
+                }
+                Pt2dr aSzC = Pt2dr(aCS->Sz());
+           
                 int aKC=0;
+                double aProp = 0.8;
+
+                double aStep = ElMin(aSzC.x/aSzFX,aSzC.y/aSzFY) * aProp;
+
+                Pt2dr aRab = aSzC - Pt2dr(aSzFX,aSzFY) * aStep;
+
+                aC =  aNum.c_str();
+                int    aNb = 3;
+                aSzFX = 0;
                 while (*aC)
                 {
                     Pt3di aCol(255,255,255);
@@ -276,9 +301,10 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
                                 {
                                    for (int aKy = 0 ; aKy< aNb ; aKy++)
                                    {
-                                       Pt2di anU = aP + Pt2di(aKC*aSz.x+2,10);
+                                       Pt2di anU = aP + Pt2di(aSzFX,0);
                                        Pt2dr  aPW = Pt2dr(anU.x+aKx/double(aNb),anU.y+aKy/double(aNb)) * aStep ;
-                                       Pt3dr aQ =  aCS->ImEtProf2Terrain(aPW,aProf);
+                                       aPW = aPW+ aRab/2.0;
+                                       Pt3dr aQ =  aCS->NoDistImEtProf2Terrain(aPW,aProf);
                                        anAGP.AddPts(aQ,aCol);
                                    }
                                }
@@ -287,6 +313,7 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
                     }
                     aC++;
                     aKC++;
+                    aSzFX += aSz.x + aSpace;
                 }
             }
 

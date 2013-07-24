@@ -2123,12 +2123,12 @@ cElXMLTree * ToXMLTree(const cRepereCartesien &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-class cCodageMatr
+class cTypeCodageMatr
 {
     public:
         cGlobXmlGen mGXml;
 
-        friend void xml_init(cCodageMatr & anObj,cElXMLTree * aTree);
+        friend void xml_init(cTypeCodageMatr & anObj,cElXMLTree * aTree);
 
 
         Pt3dr & L1();
@@ -2148,7 +2148,7 @@ class cCodageMatr
         Pt3dr mL3;
         cTplValGesInit< bool > mTrueRot;
 };
-cElXMLTree * ToXMLTree(const cCodageMatr &);
+cElXMLTree * ToXMLTree(const cTypeCodageMatr &);
 
 /******************************************************/
 /******************************************************/
@@ -2161,20 +2161,8 @@ class cRotationVect
         friend void xml_init(cRotationVect & anObj,cElXMLTree * aTree);
 
 
-        Pt3dr & L1();
-        const Pt3dr & L1()const ;
-
-        Pt3dr & L2();
-        const Pt3dr & L2()const ;
-
-        Pt3dr & L3();
-        const Pt3dr & L3()const ;
-
-        cTplValGesInit< bool > & TrueRot();
-        const cTplValGesInit< bool > & TrueRot()const ;
-
-        cTplValGesInit< cCodageMatr > & CodageMatr();
-        const cTplValGesInit< cCodageMatr > & CodageMatr()const ;
+        cTplValGesInit< cTypeCodageMatr > & CodageMatr();
+        const cTplValGesInit< cTypeCodageMatr > & CodageMatr()const ;
 
         cTplValGesInit< Pt3dr > & CodageAngulaire();
         const cTplValGesInit< Pt3dr > & CodageAngulaire()const ;
@@ -2182,7 +2170,7 @@ class cRotationVect
         cTplValGesInit< std::string > & CodageSymbolique();
         const cTplValGesInit< std::string > & CodageSymbolique()const ;
     private:
-        cTplValGesInit< cCodageMatr > mCodageMatr;
+        cTplValGesInit< cTypeCodageMatr > mCodageMatr;
         cTplValGesInit< Pt3dr > mCodageAngulaire;
         cTplValGesInit< std::string > mCodageSymbolique;
 };
@@ -4950,6 +4938,72 @@ class cImSecOfMaster
         cTplValGesInit< cISOM_AllVois > mISOM_AllVois;
 };
 cElXMLTree * ToXMLTree(const cImSecOfMaster &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cParamOrientSHC
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cParamOrientSHC & anObj,cElXMLTree * aTree);
+
+
+        std::string & IdGrp();
+        const std::string & IdGrp()const ;
+
+        Pt3dr & Vecteur();
+        const Pt3dr & Vecteur()const ;
+
+        cTypeCodageMatr & Rot();
+        const cTypeCodageMatr & Rot()const ;
+    private:
+        std::string mIdGrp;
+        Pt3dr mVecteur;
+        cTypeCodageMatr mRot;
+};
+cElXMLTree * ToXMLTree(const cParamOrientSHC &);
+
+class cLiaisonsSHC
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cLiaisonsSHC & anObj,cElXMLTree * aTree);
+
+
+        std::list< cParamOrientSHC > & ParamOrientSHC();
+        const std::list< cParamOrientSHC > & ParamOrientSHC()const ;
+    private:
+        std::list< cParamOrientSHC > mParamOrientSHC;
+};
+cElXMLTree * ToXMLTree(const cLiaisonsSHC &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cStructBlockCam
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cStructBlockCam & anObj,cElXMLTree * aTree);
+
+
+        std::string & KeyIm2TimeCam();
+        const std::string & KeyIm2TimeCam()const ;
+
+        std::list< cParamOrientSHC > & ParamOrientSHC();
+        const std::list< cParamOrientSHC > & ParamOrientSHC()const ;
+
+        cTplValGesInit< cLiaisonsSHC > & LiaisonsSHC();
+        const cTplValGesInit< cLiaisonsSHC > & LiaisonsSHC()const ;
+    private:
+        std::string mKeyIm2TimeCam;
+        cTplValGesInit< cLiaisonsSHC > mLiaisonsSHC;
+};
+cElXMLTree * ToXMLTree(const cStructBlockCam &);
 
 /******************************************************/
 /******************************************************/

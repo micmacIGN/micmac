@@ -115,7 +115,7 @@ void DoMkT()
 {
     if (ByP)
     {
-		std::string aSMkSr = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFT + string(" -j")+ToString(ByP)+" -s";
+        std::string aSMkSr = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFT + string(" -j")+ToString(ByP)/*+" -s"*/;
         System(aSMkSr,true);
     }
 }
@@ -469,7 +469,19 @@ void DoDetectKeypoints( string i_detectingTool, int i_resolution )
     DoMkT();
 }
 
-void writeBinaryGraphToXML( const string &i_filename, vector<vector<int> > i_graph )
+void print_graph( const vector<vector<int> > &i_graph )
+{
+	size_t 	nbFiles = i_graph.size(),
+			i, j;
+	for ( j=0; j<nbFiles; j++ )
+	{
+		for ( i=0; i<nbFiles; i++ )
+			cout << i_graph[j][i] << '\t';
+		cout << endl;
+	}
+}
+
+void writeBinaryGraphToXML( const string &i_filename, const vector<vector<int> > &i_graph )
 {
 	// convert images' filenames list into an array
 	size_t nbFiles = aFileList.size();
@@ -480,13 +492,13 @@ void writeBinaryGraphToXML( const string &i_filename, vector<vector<int> > i_gra
 	f << "<?xml version=\"1.0\" ?>" << endl;
 	f << "<SauvegardeNamedRel>" << endl;
 	size_t i, j;
-	for ( i=1; i<nbFiles; i++ )
-		for ( j=0; j<i; j++ )
+	for ( j=1; j<nbFiles; j++ )
+		for ( i=0; i<j; i++ )
 		{
 			if ( i_graph[j][i]!=0 )
 			{
-				f << "\t<Cple>" << filenames[i] << ' ' << filenames[j] << "</Cple>" << endl;
-				//f << "\t<Cple>" << filenames[j] << ' ' << filenames[i] << "</Cple>" << endl;
+				f << "\t<Cple>" << filenames[j] << ' ' << filenames[i] << "</Cple>" << endl;
+				//f << "\t<Cple>" << filenames[i] << ' ' << filenames[j] << "</Cple>" << endl;
 			}
 		}
 	f << "</SauvegardeNamedRel>" << endl;
@@ -495,7 +507,7 @@ void writeBinaryGraphToXML( const string &i_filename, vector<vector<int> > i_gra
 // i_graph[i][j] represent the connexion between images aFileList[i] and aFileList[j]
 // i_graph[i][j] = number of points of in i whose nearest neighbour is in j
 // a couple of images is output if i_graph[i][j]+i_graph[j][i]>i_threshold
-size_t normalizeGraph( vector<vector<int> > i_graph, int i_threshold  )
+size_t normalizeGraph( vector<vector<int> > &i_graph, int i_threshold  )
 {
 	size_t n = i_graph.size(),
 		   i, j;
@@ -523,7 +535,7 @@ void setLabel( vector<vector<int> > &i_graph, vector<int> &i_labels, size_t i_in
 			   i;
 		i_labels[i_index] = i_label;
 		for ( i=0; i<i_index; i++ )
-			if ( i_graph[i_label][i]!=0 ) setLabel( i_graph, i_labels, i, i_label );
+			if ( i_graph[i_index][i]!=0 ) setLabel( i_graph, i_labels, i, i_label );
 		for ( i=i_index+1; i<n; i++ )
 			if ( i_graph[i][i_index]!=0 ) setLabel( i_graph, i_labels, i, i_label );
 	}
@@ -535,15 +547,15 @@ void delete_out_of_bound_scales( vector<SiftPoint> &io_points, REAL i_minScale, 
 	vector<SiftPoint> points( io_points.size() );
 	size_t nbKeptPoints = 0;
 	for ( size_t iPoint=0; iPoint<io_points.size(); iPoint++ )
-	{
-		if ( io_points[iPoint].scale>=i_minScale && 
+	{		
+		if ( io_points[iPoint].scale>=i_minScale &&
 			 io_points[iPoint].scale<=i_maxScale )
 			points[nbKeptPoints++]=io_points[iPoint];
 	}
 	points.resize( nbKeptPoints );
 	points.swap( io_points );
 }
-		
+
 // load all keypoints from their files and construct the proximity graph
 void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerImage, REAL i_minScale, REAL i_maxScale, int i_nbRequiredMatches )
 {
@@ -647,11 +659,16 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     }
     annClose(); // done with ANN
     
+	//print_graph( graph );
+	
     // stats
+    cout << nbImages << " images" << endl;
     cout << nbBadNeighbours << '/' << nbTotalKeypoints << " rejected points (neighbours from the same image)" << endl;
     size_t nbChecks = normalizeGraph( graph, i_nbRequiredMatches );
     cout << nbChecks << " / " << ( nbImages*(nbImages-1) )/2 << endl;
     
+	//print_graph( graph );
+	
     vector<int> labels( nbImages, -1 );
     int currentLabel = 0;
     for ( size_t iStartingElement=0; iStartingElement<nbImages; iStartingElement++ )

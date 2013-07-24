@@ -776,6 +776,11 @@ void cAppliApero::CheckInit(const cLiaisonsInit * aLI,cPoseCam * aPC)
 
 }
 
+const std::vector<cPoseCam*> & cAppliApero::VecAllPose()
+{
+   return mVecPose;
+}
+
 
 
 

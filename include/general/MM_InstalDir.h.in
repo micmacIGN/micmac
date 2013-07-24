@@ -1,2 +1,2 @@
 #define  TheMicMacInstallDir "@PROJECT_SOURCE_DIR@/"
-
+#define __HG_REV__ @HG_REVISION_DIST@

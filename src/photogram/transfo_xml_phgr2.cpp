@@ -488,9 +488,9 @@ corientation MM2Matis(const cOrientationConique & anOC)
    aRes.altitude() = anOER.Centre().z;
 
    aRes.Image2Ground() = true;
-   aRes.l1() = MM2Matis(anOER.ParamRotation().L1());
-   aRes.l2() = MM2Matis(anOER.ParamRotation().L2());
-   aRes.l3() = MM2Matis(anOER.ParamRotation().L3());
+   aRes.l1() = MM2Matis(anOER.ParamRotation().CodageMatr().Val().L1());
+   aRes.l2() = MM2Matis(anOER.ParamRotation().CodageMatr().Val().L2());
+   aRes.l3() = MM2Matis(anOER.ParamRotation().CodageMatr().Val().L3());
 
   // intrinseque
 

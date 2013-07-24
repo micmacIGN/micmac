@@ -85,6 +85,8 @@ cAppliDigeo * NewDigeo
 
 extern const char * theNameVar_ParamDigeo[];
 
+
+/*
 int Digeo_main_(int argc,char ** argv)
 {
    MMD_InitArgcArgv(argc,argv);
@@ -126,28 +128,24 @@ int Digeo_main_(int argc,char ** argv)
       }
    }
 
-/*
-   cResultSubstAndStdGetFile<cParamDigeo> aP2 
-                                          (
-                                              argc-2,argv+2,
-		                              argv[1],
-			                      StdGetFileXMLSpec("ParamDigeo.xml"),
-			                      "ParamDigeo",
-			                      "ParamDigeo",
-                                              "DirectoryChantier",
-                                              "FileChantierNameDescripteur"
-                                          );
-
-   cAppliDigeo   anAppli (aP2);
-   anAppli.DoAll();
-*/
+//   cResultSubstAndStdGetFile<cParamDigeo> aP2 
+//                                          (
+//                                              argc-2,argv+2,
+//		                              argv[1],
+//			                      StdGetFileXMLSpec("ParamDigeo.xml"),
+//			                      "ParamDigeo",
+//			                      "ParamDigeo",
+//                                              "DirectoryChantier",
+//                                              "FileChantierNameDescripteur"
+//                                          );
+//
+//   cAppliDigeo   anAppli (aP2);
+//   anAppli.DoAll();
 
    DigeoBanniere();
    return 0;
 }
-
-//
-
+*/
 
 class cCreateArgcArgv
 {
@@ -159,8 +157,6 @@ class cCreateArgcArgv
       std::vector<char *>         mVArgs;
       std::vector<std::string *>  mVStr;
 };
-
-
 void cCreateArgcArgv::AddArg(const std::string & anArg)
 {
     mVStr.push_back(new std::string(anArg));
@@ -200,14 +196,12 @@ cAppliDigeo * DigeoCPP
    aCAA.AddArg("+NivFloatIm="+ToString(aParam.mNivFloatIm));
    aCAA.AddArg("+Sauv="+ToString(aParam.mSauvPyram));
    aCAA.AddArg("+RatioGrad="+ToString(aParam.mRatioGrad));
-/*
-*/
-
 
    cAppliDigeo * aRes = NewDigeo(aCAA.ArgC(),aCAA.ArgV(),aCAA.ArgV()[1],0,0,true);
-
-   aRes->AllocImages();
+   
+   aRes->AllocImages();   
    aRes->InitAllImage();
+   
    return aRes;
 }
 

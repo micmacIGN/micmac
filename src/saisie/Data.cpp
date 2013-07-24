@@ -9,9 +9,11 @@ cData::~cData()
 {
    for (int aK=0; aK < NbCameras();++aK) delete m_Cameras[aK];
    for (int aK=0; aK < NbClouds();++aK)  delete m_Clouds[aK];
+   for (int aK=0; aK < NbImages();++aK)  delete m_Images[aK];
 
    m_Cameras.clear();
    m_Clouds.clear();
+   m_Images.clear();
 }
 
 void cData::addCamera(CamStenope * aCam)
@@ -19,16 +21,10 @@ void cData::addCamera(CamStenope * aCam)
     m_Cameras.push_back(aCam);
 }
 
-void cData::addCameras(vector <CamStenope *> aCameras)
+void cData::addImage(QImage * aImg)
 {
-    for (uint aK=0; aK < (uint)aCameras.size();++aK)
-        m_Cameras.push_back(aCameras[aK]);
-}
-
-void cData::addClouds(vector <Cloud *> aClouds)
-{
-    for (uint aK=0; aK < aClouds.size();++aK)
-        getBB(aClouds[aK]);
+    m_Images.push_back(aImg);
+    m_curImgIdx = m_Images.size() - 1;
 }
 
 void cData::clearClouds()
@@ -51,11 +47,22 @@ void cData::clearCameras()
     reset();
 }
 
+void cData::clearImages()
+{
+    for (uint aK=0; aK < (uint)NbCameras();++aK)
+        delete m_Images[aK];
+
+    m_Images.clear();
+
+    reset();
+}
+
 void cData::reset()
 {
     m_minX = m_minY = m_minZ    = FLT_MAX;
     m_maxX = m_maxY = m_maxZ    = -FLT_MAX;
     m_cX = m_cY = m_cZ = m_diam = 0.f;
+    m_curImgIdx = 0;
 }
 
 int cData::getSizeClouds()

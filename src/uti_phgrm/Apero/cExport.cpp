@@ -719,6 +719,16 @@ void  cAppliApero::Export(const cSectionExport & anEx)
           ExportNuage(*itEN);
     }
 
+
+    for 
+    (
+         std::list<cExportBlockCamera>::const_iterator itBC = anEx.ExportBlockCamera().begin();
+         itBC != anEx.ExportBlockCamera().end();
+         itBC++
+    )
+    {
+          ExportBlockCam(*itBC);
+    }
 }
 
 void  cAppliApero::InitRapportDetaille(const cTxtRapDetaille & aTRD)

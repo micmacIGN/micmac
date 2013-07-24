@@ -37,6 +37,13 @@ OPTION(CUDA_ENABLED "Utilisation de cuda" OFF )
 # Multi thread Poisson avec OpenMP
 OPTION(WITH_OPEN_MP "use OpenMP" OFF )
 
+# print system calls
+OPTION(TRACE_SYSTEM "print system calls" OFF )
+
+if ( TRACE_SYSTEM )
+	add_definitions(-D__TRACE_SYSTEM__)
+endif()
+
 if ( WITH_OPEN_MP )
 	FIND_PACKAGE(OpenMP REQUIRED)
 	message("using OpenMP for Poisson 3d shell computing")

@@ -53,6 +53,7 @@ void cAppliApero::InitInconnues()
 {
     InitPoses();
     InitSurf();
+    InitBlockCameras();
 }
 
         //  Calibs    
@@ -492,6 +493,7 @@ void cAppliApero::InitClassEquiv()
         itG++
    )
    {
+       ELISE_ASSERT(false,"cAppliApero::InitClassEquiv to update");
        cRelEquivPose * & aRel = mRels[itG->Id()];
 
        if (aRel!=0)
@@ -500,7 +502,7 @@ void cAppliApero::InitClassEquiv()
           ELISE_ASSERT(false,"conflict name for cGroupeDePose");
        }
 
-       aRel = new cRelEquivPose(aCpt);
+       aRel = new cRelEquivPose();
 
        for (int aKP=0 ; aKP<int(mVecPose.size()) ; aKP++)
        {

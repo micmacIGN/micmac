@@ -9,9 +9,10 @@
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
-#ifndef  WIN32    
-#include "GL/glew.h"
+#ifndef  WIN32
+
 #include "GL/glut.h"
+//#include "GL/glew.h"
 #endif
 #endif
 
@@ -86,17 +87,8 @@ public:
     virtual void displayNewMessage(const QString& message,
                                    MessagePosition pos = SCREEN_CENTER_MESSAGE);
 
-    //! States if data (cloud or camera) is loaded
-    bool hasDataLoaded(){return m_bCloudLoaded||m_bCameraLoaded;}
-
-    //! States if a cloud is loaded
-    bool hasCloudLoaded(){return m_bCloudLoaded;}
-
-    //! Sets cloud state as loaded
-    void setCloudLoaded(bool isLoaded) { m_bCloudLoaded = isLoaded; }
-
-    //! Sets camera state as loaded
-    void setCameraLoaded(bool isLoaded) { m_bCameraLoaded = isLoaded; }
+    //! States if data (cloud, camera or image) is loaded
+    bool hasDataLoaded(){return m_Data->NbClouds()||m_Data->NbCameras() ||m_Data->NbImages();}
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
@@ -153,6 +145,10 @@ public:
 
     void getProjection(QPoint &P2D, Vertex P);
 
+    QVector <cSelectInfos> getSelectInfos(){return m_infos;}
+
+    void reset();
+
 public slots:
     void zoom();
 
@@ -207,10 +203,6 @@ protected:
     void incrNbGLLists() { m_nbGLLists++; }
     void resetNbGLLists(){ m_nbGLLists = 0; }
 
-    void storeInfos(bool inside, bool add);
-
-    void setAngles(float angleX, float angleY, float angleZ);
-
     //! GL context width
     int m_glWidth;
     //! GL context height
@@ -218,12 +210,6 @@ protected:
 
     //! Default font
     QFont m_font;
-
-    //! States if a cloud is already loaded
-    bool m_bCloudLoaded;
-
-    //! States if a camera is already loaded
-    bool m_bCameraLoaded;
 
     //! States if frame axis should be drawn
     bool m_bDrawAxis;
@@ -249,7 +235,7 @@ protected:
     //! Current interaction mode (with mouse)
     INTERACTION_MODE m_interactionMode;
 
-    bool m_bFirstAdd;
+    bool m_bFirstAction;
 
     int m_previousAction;
 
@@ -267,6 +253,9 @@ protected:
 
     //! Ball GL list
     GLuint m_ballGLList;
+
+    //! Texture GL list
+    GLuint m_texturGLList;
 
     int m_nbGLLists;
 
@@ -287,6 +276,12 @@ protected:
     //! acceleration factor
     float m_speed;
 
+    //! selection infos stack
+    QVector <cSelectInfos> m_infos;
+
+    //! states if display is 2D or 3D
+    bool m_bDisplayMode2D;
+
 private:
 
     void        setProjectionMatrix();
@@ -295,9 +290,9 @@ private:
     QGLBuffer   m_vertexbuffer;
     QGLBuffer   m_vertexColor;
 
-    int        _frameCount;
-    int        _previousTime;
-    int        _currentTime;
+    int         _frameCount;
+    int         _previousTime;
+    int         _currentTime;
 
     float       _fps;
 
@@ -318,6 +313,7 @@ private:
     GLfloat     _m_g_glMatrix[16];
     QTime       _time;
 
+    QImage      _glImg;
 };
 
 #endif  /* _GLWIDGET_H */

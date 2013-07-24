@@ -3,8 +3,6 @@
 #include <fstream>
 #include <iostream>
 
-#include <QFileInfo>
-
 #include "poisson/ply.h"
 
 
@@ -56,7 +54,7 @@ Vertex::Vertex(Pt3dr pos, QColor col)
 /*!
     Read a ply file, store the point cloud
 */
-Cloud* Cloud::loadPly(string i_filename , void (*incre)(int,void*), void* obj)
+Cloud* Cloud::loadPly(string i_filename ,int* incre)
 {
     vector <Vertex> ptList;
 
@@ -87,8 +85,6 @@ Cloud* Cloud::loadPly(string i_filename , void (*incre)(int,void*), void* obj)
 
     for (int i = 0; i < nelems; i++)
     {
-
-
         // get the description of the first element
         elem_name = elist[i];
         plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
@@ -140,20 +136,10 @@ Cloud* Cloud::loadPly(string i_filename , void (*incre)(int,void*), void* obj)
                     for (int j = 0; j < nprops ;++j)
                         ply_get_property (thePlyFile, elem_name, &colored_vert_props[j]);
 
-                    int prog = -1;
-
                     // grab all the vertex elements
                     for (int j = 0; j < num_elems; j++)
                     {
-                        if (incre != NULL)
-                        {
-                            int p = (float)j / num_elems  * 100;
-                            if(prog < p  )
-                            {
-                                prog = p;
-                                incre(prog,obj);
-                            }
-                        }
+                        if (incre) *incre = 100.0f*(float)j/num_elems;
 
                         // grab an element from the file
                         ulist[j] = (sPlyColoredVertex *) malloc (sizeof (sPlyColoredVertex));
@@ -183,6 +169,8 @@ Cloud* Cloud::loadPly(string i_filename , void (*incre)(int,void*), void* obj)
     #endif
 
     ply_close (thePlyFile);
+
+    if(incre) *incre = 0;
 
     return new Cloud(ptList);
 }
