@@ -40,9 +40,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
+#define NT1 4
+#define NT2 3
+
 namespace NS_ParamMICMAC
 {
-
 
 static bool aBugCMS = false;
 #ifdef CUDA_ENABLED
@@ -649,10 +651,10 @@ if (0)
 
 #ifdef CUDA_ENABLED
 
-        if (mLoadTextures)//		Mise en calque des images
+        if (!IMmGg.TexturesAreLoaded())//		Mise en calque des images
         {
+            IMmGg.SetTexturesAreLoaded(true);
 
-            mLoadTextures		= false;
             float*	fdataImg1D	= NULL;
             uint2	dimImgMax	= make_uint2(0,0);
 
@@ -693,10 +695,13 @@ if (0)
             IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
 
             pixel *maskGlobal = new pixel[size(IMmGg.box)];
-
-            //#pragma omp parallel for num_threads(3)
+            #ifdef USE_OPEN_MP
+            #pragma omp parallel for num_threads(NT1)
+            #endif
             for (uint anY = 0 ; anY <  IMmGg.box.y ; anY++)
-                //#pragma omp parallel for num_threads(3)
+            #ifdef USE_OPEN_MP
+            #pragma omp parallel for num_threads(NT2)
+            #endif
                 for (uint anX = 0 ; anX < IMmGg.box.x ; anX++)
                 {
                     uint idMask		= IMmGg.box.x * anY + anX ;
@@ -714,10 +719,14 @@ if (0)
 
         Rect rMask(NEGARECT);
 
-        //#pragma omp parallel for num_threads(3)
+        #ifdef USE_OPEN_MP
+        #pragma omp parallel for num_threads(NT1)
+        #endif
         for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
         {
-            //#pragma omp parallel for num_threads(3)
+            #ifdef USE_OPEN_MP
+            #pragma omp parallel for num_threads(NT2)
+            #endif
             for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
             {
                 if (IsInTer(anX,anY))
@@ -1396,11 +1405,16 @@ void cAppliMICMAC::DoGPU_Correl
         int2	aSzClip		= toI2(Pt2dr(mGeomDFPx->SzClip()));		// Dimension du bloque
         int2	anB			= zone.pt0 +  dimSTabProj * sample;
 
-
-        //#pragma omp parallel for num_threads(4)
+        #ifdef USE_OPEN_MP
+        #pragma omp parallel for num_threads(NT1)
+        #endif
         for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
         {
-            //#pragma omp parallel for num_threads(3)
+
+            #ifdef USE_OPEN_MP
+            #pragma omp parallel for num_threads(NT2)
+            #endif
+
             for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )					// Mise en calque des projections pour chaque image
             {
 
@@ -1442,10 +1456,15 @@ void cAppliMICMAC::DoGPU_Correl
 
         uint2 rDiTer = zone.dimension();
         uint  rSiTer = size(rDiTer);
-
-        //#pragma omp parallel for num_threads(4)
+        #ifdef USE_OPEN_MP
+        #pragma omp parallel for num_threads(NT1)
+        #endif
         for (int anY = zone.pt0.y ; anY < (int)zone.pt1.y; anY++)
-            //#pragma omp parallel for num_threads(3)
+
+            #ifdef USE_OPEN_MP
+            #pragma omp parallel for num_threads(NT2)
+            #endif
+
             for (int anX = zone.pt0.x ; anX <  (int)zone.pt1.x ; anX++)
             {
                 int anZ0 = max(z0,mTabZMin[anY][anX]);

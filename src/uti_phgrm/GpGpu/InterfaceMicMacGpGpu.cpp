@@ -18,6 +18,8 @@ InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
 
 uint InterfaceMicMacGpGpu::InitCorrelJob(int Zmin, int Zmax)
 {
+
+
     uint interZ = min(INTERZ, abs(Zmin - Zmax));
 
     _param.SetZCInter(interZ);
@@ -28,6 +30,7 @@ uint InterfaceMicMacGpGpu::InitCorrelJob(int Zmin, int Zmax)
 
     if(UseMultiThreading())
     {
+        //CreateJob();
         ResetIdBuffer();
         SetPreComp(true);
     }
@@ -106,6 +109,7 @@ void InterfaceMicMacGpGpu::freezeCompute()
     SetDataToCopy(0);
     SetCompute(0);
     SetPreComp(false);
+    //KillJob();
 }
 
 void InterfaceMicMacGpGpu::IntervalZ(uint &interZ, int anZProjection, int aZMaxTer)
@@ -118,6 +122,16 @@ void InterfaceMicMacGpGpu::IntervalZ(uint &interZ, int anZProjection, int aZMaxT
 float *InterfaceMicMacGpGpu::VolumeCost()
 {
     return UseMultiThreading() ? Data().HostVolumeCost(!GetIdBuf()) : Data().HostVolumeCost(0);
+}
+
+bool InterfaceMicMacGpGpu::TexturesAreLoaded()
+{
+    return _TexturesAreLoaded;
+}
+
+void InterfaceMicMacGpGpu::SetTexturesAreLoaded(bool load)
+{
+    _TexturesAreLoaded = load;
 }
 
 void InterfaceMicMacGpGpu::CorrelationGpGpu(const int s)
