@@ -50,21 +50,13 @@ private:
   
 };
 
-class CorrectionFields
-{
-	public:
-	vector<ElMatrix<double> > Rfield;
-	vector<ElMatrix<double> > Gfield;
-	vector<ElMatrix<double> > Bfield;
-	int size(){	return this->Rfield.size();};
-};
-
 class PtsHom
 {
 	public:
 	PtsHom(){this->NbPtsCouple=0;}
 	~PtsHom(){}
-    vector<double> Gr1,Gr2,R1,G1,B1,R2,G2,B2,X1,Y1,X2,Y2,Dist1,Dist2;
+    vector<double> Gr1,Gr2,R1,G1,B1,R2,G2,B2,Dist1,Dist2;
+	vector<Pt2dr> Pt1,Pt2;
 	int NbPtsCouple;
 	Pt2di SZ;
 	int size(){	return this->Gr1.size();};
