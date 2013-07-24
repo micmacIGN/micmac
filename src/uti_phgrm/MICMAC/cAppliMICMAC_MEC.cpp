@@ -568,7 +568,7 @@ void cAppliMICMAC::DoOneBloc
    mNbApproxVueActive = -1;
 
 #ifdef CUDA_ENABLED
-   mLoadTextures    = true;
+   IMmGg.SetTexturesAreLoaded(false);
 #endif
 
 
