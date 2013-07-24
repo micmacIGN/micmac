@@ -101,6 +101,8 @@ void InterfaceMicMacGpGpu::threadCompute()
             while(GetDataToCopy());
             SetDataToCopy(interZ);
         }
+//        else
+//            boost::this_thread::sleep(boost::posix_time::microsec(1));
     }
 }
 
