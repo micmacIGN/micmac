@@ -71,19 +71,19 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
   float aSV = 0.0f, aSVV = 0.0f;
   short2 pt;
 
-#pragma unroll // ATTENTION PRAGMA FAIT AUGMENTER LA quantité MEMOIRE des registres!!!
-
+  #pragma unroll // ATTENTION PRAGMA FAIT AUGMENTER LA quantité MEMOIRE des registres!!!
   for (pt.y = c0.y ; pt.y <= c1.y; pt.y++)
-
-#pragma unroll
-
+  {
+        const int pic = pt.y*BLOCKDIM;
+      #pragma unroll
       for (pt.x = c0.x ; pt.x <= c1.x; pt.x++)
       {
-          const float val = cacheImg[pt.y*BLOCKDIM + pt.x];	// Valeur de l'image
+          const float val = cacheImg[pic+ pt.x];	// Valeur de l'image
           //        if (val ==  cH.floatDefault) return;
           aSV  += val;          // Somme des valeurs de l'image cte
           aSVV += (val*val);	// Somme des carrés des vals image cte
       }
+  }
 
   aSV   = fdividef(aSV,(float)cH.sizeVig );
 
@@ -103,10 +103,11 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
   for ( pt.y = c0.y ; pt.y <= c1.y; pt.y++)
     {
       const int _py	= (pitchCachY + (pt.y - c0.y))* cH.dimCach.x;
+      const int pic = pt.y*BLOCKDIM;
 #pragma unroll
       for ( pt.x = c0.x ; pt.x <= c1.x; pt.x++)
 
-        cachVig[ pitchCache + _py  + (pt.x - c0.x)] = (cacheImg[pt.y*BLOCKDIM + pt.x] -aSV)*aSVV;
+        cachVig[ pitchCache + _py  + (pt.x - c0.x)] = (cacheImg[pic + pt.x] -aSV)*aSVV;
 
     }
 
