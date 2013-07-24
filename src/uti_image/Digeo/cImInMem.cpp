@@ -108,77 +108,78 @@ template <class Type> bool cTplImInMem<Type>::InitRandom()
  
 template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_el aTypeFile)
 {
-    ResizeOctave(aBox.sz());
-    ELISE_COPY(mIm.all_pts(), aFonc, mIm.out());
-    if (
-              mAppli.MaximDyn().ValWithDef(nbb_type_num(aTypeFile)<=8)
-           && type_im_integral(mType) 
-           && (!signed_type_num(mType))
-       )
-    {
-       int aMinT,aMaxT;
-       min_max_type_num(mType,aMinT,aMaxT);
-       aMaxT = ElMin(aMaxT-1,1<<19);  // !!! LIES A NbShift ds PyramideGaussienne
-       tBase aMul = 0;
+   ResizeOctave(aBox.sz());
+   ELISE_COPY(mIm.all_pts(), aFonc, mIm.out());
+      
+   if (
+	 mAppli.MaximDyn().ValWithDef(nbb_type_num(aTypeFile)<=8)
+	 && type_im_integral(mType) 
+	 && (!signed_type_num(mType))
+      )
+   {
+      int aMinT,aMaxT;
+      min_max_type_num(mType,aMinT,aMaxT);
+      aMaxT = ElMin(aMaxT-1,1<<19);  // !!! LIES A NbShift ds PyramideGaussienne
+      tBase aMul = 0;
 
-       if(mAppli.ValMaxForDyn().IsInit())
-       {
-           tBase aMaxTm1 = aMaxT-1;
-           aMul = round_ni(aMaxTm1/mAppli.ValMaxForDyn().Val()) ;
-            
-           for (int aY=0 ; aY<mSz.y ; aY++)
-           {
-               Type * aL = mData[aY];
-               for (int aX=0 ; aX<mSz.x ; aX++)
-                   aL[aX] = ElMin(aMaxTm1,tBase(aL[aX]*aMul));
-           }
-              std::cout << " Multiplieur in : " << aMul  << "\n";
-       }
-       else
-       {
-           Type aMaxV = aMinT;
-           for (int aY=0 ; aY<mSz.y ; aY++)
-           {
-              Type * aL = mData[aY];
-              for (int aX=0 ; aX<mSz.x ; aX++)
-                  ElSetMax(aMaxV,aL[aX]);
-           }
-           aMul = (aMaxT-1) / aMaxV;
-           if (mAppli.ShowTimes().Val())
-           {
-              std::cout << " Multiplieur in : " << aMul 
-                        << " MaxVal " << tBase(aMaxV )
-                        << " MaxType " << aMaxT 
-                        << "\n";
-           }
-           if (aMul > 1)
-           {
-              for (int aY=0 ; aY<mSz.y ; aY++)
-              {
-                 Type * aL = mData[aY];
-                 for (int aX=0 ; aX<mSz.x ; aX++)
-                     aL[aX] *= aMul;
-              }
-              SauvIm("ReDyn_");
-           }
-       }
+      if(mAppli.ValMaxForDyn().IsInit())
+      {
+	 tBase aMaxTm1 = aMaxT-1;
+	 aMul = round_ni(aMaxTm1/mAppli.ValMaxForDyn().Val()) ;
 
-		mImGlob.SetDyn(aMul);
-		mImGlob.SetMaxValue( aMaxT-1 );
-    }
-    else
-    {
-		Type aMaxV = numeric_limits<Type>::min();
-		for (int aY=0 ; aY<mSz.y ; aY++)
-		{
-			Type * aL = mData[aY];
-			for (int aX=0 ; aX<mSz.x ; aX++)
-			  ElSetMax(aMaxV,aL[aX]);
-		}
+	 for (int aY=0 ; aY<mSz.y ; aY++)
+	 {
+	    Type * aL = mData[aY];
+	    for (int aX=0 ; aX<mSz.x ; aX++)
+	    aL[aX] = ElMin(aMaxTm1,tBase(aL[aX]*aMul));
+	 }
+	 std::cout << " Multiplieur in : " << aMul  << "\n";
+      }
+      else
+      {
+	 Type aMaxV = aMinT;
+	 for (int aY=0 ; aY<mSz.y ; aY++)
+	 {
+	    Type * aL = mData[aY];
+	    for (int aX=0 ; aX<mSz.x ; aX++)
+	    ElSetMax(aMaxV,aL[aX]);
+	 }
+	 aMul = (aMaxT-1) / aMaxV;
+	 if (mAppli.ShowTimes().Val())
+	 {
+	    std::cout << " Multiplieur in : " << aMul 
+	    << " MaxVal " << tBase(aMaxV )
+	    << " MaxType " << aMaxT 
+	    << "\n";
+	 }
+	 if (aMul > 1)
+	 {
+	    for (int aY=0 ; aY<mSz.y ; aY++)
+	    {
+	       Type * aL = mData[aY];
+	       for (int aX=0 ; aX<mSz.x ; aX++)
+	       aL[aX] *= aMul;
+	    }
+	    SauvIm("ReDyn_");
+	 }
+      }
 
-		mImGlob.SetDyn(1);
-		mImGlob.SetMaxValue( (REAL8)aMaxV );
-	}
+      mImGlob.SetDyn(aMul);
+      mImGlob.SetMaxValue( aMaxT-1 );
+   }
+   else
+   {
+      Type aMaxV = numeric_limits<Type>::min();
+      for (int aY=0 ; aY<mSz.y ; aY++)
+      {
+	 Type * aL = mData[aY];
+	 for (int aX=0 ; aX<mSz.x ; aX++)
+	 ElSetMax(aMaxV,aL[aX]);
+      }
+
+      mImGlob.SetDyn(1);
+      mImGlob.SetMaxValue( (REAL8)aMaxV );
+   }
 
    if (mAppli.SectionTest().IsInit())
    {

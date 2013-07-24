@@ -431,6 +431,87 @@ void cObservLiaison_1Cple::ImageResidu(cAgglomRRL & anAgl)
 /*                                                */
 /**************************************************/
 
+void cPackObsLiaison::addFileToObservation( 
+											const string &i_poseName1, const string &i_poseName2,
+											const string &i_packFilename,
+											const cBDD_PtsLiaisons &i_bd_liaison,
+											int i_iPackObs, // index of the current cPackObsLiaison in cAppliApero->mDicoLiaisons
+											bool i_isFirstKeySet,
+											bool i_isReverseFile // couples inside i_packFilename are to be reversed before use
+										  )
+{
+	std::string packFullFilename =  mAppli.DC()+i_packFilename;
+	if (
+			( mAppli.NamePoseIsKnown(i_poseName1) && mAppli.NamePoseIsKnown(i_poseName2) ) &&
+			( ( i_poseName1!=i_poseName2 ) || ( !i_bd_liaison.AutoSuprReflexif().Val() ) )
+	   )
+	{
+		cPoseCam * aC1 =  mAppli.PoseFromName(i_poseName1);
+		cPoseCam * aC2 =  mAppli.PoseFromName(i_poseName2);
+		bool OkGrp = true;
+		if (i_bd_liaison.IdFilterSameGrp().IsInit())
+			OkGrp = mAppli.SameClass(i_bd_liaison.IdFilterSameGrp().Val(),*aC1,*aC2);
+			
+		if (OkGrp)
+		{
+			if (i_poseName1==i_poseName2)
+			{
+				std::cout << "FOR NAME POSE = " << i_poseName1 << "\n";
+				ELISE_ASSERT(false,"Point homologue image avec elle meme !! ");
+			}
+			double aPds=0;
+			int    aNbHom=0;
+			if (mIsMult)
+			{
+				if (DicBoolFind(mDicoMul,i_poseName1))
+					mDicoMul[i_poseName1]->AddLiaison(packFullFilename,i_poseName2,i_isFirstKeySet, i_isReverseFile );
+				else
+					mDicoMul[i_poseName1]  = new  cObsLiaisonMultiple(mAppli,packFullFilename,i_poseName1,i_poseName2,i_isFirstKeySet, i_isReverseFile);
+				cObsLiaisonMultiple * anObs = mDicoMul[i_poseName1];
+				ElPackHomologue aPack;
+				anObs->InitPack(aPack,i_poseName2);
+				aPds = mAppli.PdsOfPackForInit(aPack,aNbHom);
+			}
+			else
+			{
+				ELISE_ASSERT(i_isFirstKeySet,"Multiple Sets in Pts non multiple");
+				cObservLiaison_1Cple * anObs= new cObservLiaison_1Cple(i_bd_liaison,packFullFilename,i_poseName1,i_poseName2);
+				if (anObs->NbH() !=0)
+				{
+					mLObs.push_back(anObs);
+					{
+						cObservLiaison_1Cple * aO2 = mDicObs[i_poseName1][i_poseName2];
+						if (aO2 !=0)
+						{
+							std::cout << " For : " << mId << " " << i_poseName1 <<  " " << i_poseName2 <<"\n"; 
+							ELISE_ASSERT(false,"Entree multiple\n");
+						}
+					}
+					mDicObs[i_poseName1][i_poseName2] = anObs;
+					aPds = mAppli.PdsOfPackForInit(anObs->Pack(),aNbHom);
+				}
+			}
+			if (i_bd_liaison.SplitLayer().IsInit())
+				mAppli.SplitHomFromImageLayer(i_packFilename,i_bd_liaison.SplitLayer().Val(),i_poseName1,i_poseName2);
+			mAppli.AddLinkCam(aC1,aC2);
+			if (i_iPackObs==0)
+			{
+				tGrApero::TSom * aS1 =  mAppli.PoseFromName(i_poseName1)->Som();
+				tGrApero::TSom * aS2 =  mAppli.PoseFromName(i_poseName2)->Som();
+				tGrApero::TArc * anArc = mAppli.Gr().arc_s1s2(*aS1,*aS2);
+				if (!anArc) 
+				{
+					cAttrArcPose anAttr;
+					anArc = & mAppli.Gr().add_arc(*aS1,*aS2,anAttr);
+				}
+				anArc->attr().Pds() = aPds;
+				anArc->attr().Nb() = aNbHom;
+			}
+		}
+	}
+}
+
+
 cPackObsLiaison::cPackObsLiaison
 (
         cAppliApero & anAppli,
@@ -442,153 +523,91 @@ cPackObsLiaison::cPackObsLiaison
    mId        (aBDL.Id()),
    mFlagArc   (mAppli.Gr().alloc_flag_arc())
 {
-
-    ELISE_ASSERT
-    (
-        aBDL.KeySet().size() == aBDL.KeyAssoc().size(),
-        "KeySet / KeyAssoc sizes in BDD_PtsLiaisons"
-    );
-    int aNbTot = 0 ;
-    for (int aKS=0 ; aKS<int(aBDL.KeySet().size()) ; aKS++)
-    {
-        // std::string aDir = mAppli.DC() + aBDL.Directory().Val();
-        // std::list<std::string> aLName = RegexListFileMatch(aDir,aBDL.PatternSel(),1,false);
-
+	ELISE_ASSERT
+	(
+		aBDL.KeySet().size() == aBDL.KeyAssoc().size(),
+		"KeySet / KeyAssoc sizes in BDD_PtsLiaisons"
+	);
+		
+	int aNbTot = 0 ;
+	for (int aKS=0 ; aKS<int(aBDL.KeySet().size()) ; aKS++)
+	{
 		std::string keyset =  aBDL.KeySet()[aKS];
 		cInterfChantierNameManipulateur * iChantierNM = mAppli.ICNM();
-        const std::vector<std::string> * aVName =  iChantierNM->Get(keyset);
+		const std::vector<std::string> * aVName =  iChantierNM->Get(keyset);
 
-        aNbTot += aVName->size();
+		aNbTot += aVName->size();
 
+		if (1)
+		{			
+			// if none of inverse files exist, filenames are processed in inverse order
+			bool addReverseFile = true;
+			for 
+			(
+				std::vector<std::string>::const_iterator itN = aVName->begin();
+				itN!=aVName->end();
+				itN++
+			)
+			{
+				pair<string,string> filenames = mAppli.ICNM()->Assoc2To1( aBDL.KeyAssoc()[aKS], *itN, false );
+				string reversePackname = mAppli.DC()+mAppli.ICNM()->Assoc1To2( aBDL.KeyAssoc()[aKS], filenames.second, filenames.first, true );
+				if ( ELISE_fp::exist_file( reversePackname ) )
+				{
+					addReverseFile = false;
+					break;
+				}
+			}
+						
+			bool aFirst = true;
+			for 
+			(
+				std::vector<std::string>::const_iterator itN = aVName->begin();
+				itN!=aVName->end();
+				itN++
+			)
+			{
+				bool aMultiple =  aBDL.UseAsPtMultiple().ValWithDef(true);
+				if (aFirst)
+					mIsMult = aMultiple;
+				else
+					ELISE_ASSERT(mIsMult==aMultiple,"Incoherence Multiple/No-Multiple");
 
-// std::cout << "=========BDL " << aVName->size() << "\n"; getchar();
+				std::pair<std::string,std::string> aPair = mAppli.ICNM()->Assoc2To1(aBDL.KeyAssoc()[aKS],*itN,false);
+				
+				std::string aN1 = aPair.first;
+				std::string aN2 = aPair.second;
+				
+				addFileToObservation( aN1, aN2, *itN, aBDL, aCpt, aKS==0, false );
+				aFirst = false;
+			}
+						
+			if ( addReverseFile && mIsMult )
+			{
+				ELISE_ASSERT(mIsMult,"\"No-Multiple\" mode is not handled by the auto-reverse feature since it's a backward compatibility mode");
 
-        if (1)
-        {
-            // cElRegex anAutom(aBDL.PatternSel(),20);
-            bool aFirst = true;
-            for 
-            (
-                  std::vector<std::string>::const_iterator itN = aVName->begin();
-	          itN!=aVName->end();
-	          itN++
-            )
-            {
-	        bool aMultiple =  aBDL.UseAsPtMultiple().ValWithDef(true);
-	        std::string aFulName =  mAppli.DC() +*itN;
-	        if (aFirst)
-	        {
-	            mIsMult  = aMultiple;
-                }
-                else
-	        {
-	            ELISE_ASSERT(mIsMult==aMultiple,"Incoherence Multiple/No-Multiple");
-	        }
+				for 
+				(
+					std::vector<std::string>::const_iterator itN = aVName->begin();
+					itN!=aVName->end();
+					itN++
+				)
+				{				
+					std::pair<std::string,std::string> aPair = mAppli.ICNM()->Assoc2To1(aBDL.KeyAssoc()[aKS],*itN,false);
+					addFileToObservation( aPair.second, aPair.first, *itN, aBDL, aCpt, aKS==0, true );
+				}
+			}
+		}
+		else
+		{ // On rajoutera ici le cas ou fichier contient N Pack
+		}
+	}
 
-	        // std::string aN1 = MatchAndReplace(anAutom,*itN,aBDL.NameIm1());
-	        // std::string aN2 = MatchAndReplace(anAutom,*itN,aBDL.NameIm2());
-	        std::pair<std::string,std::string> aPair = mAppli.ICNM()->Assoc2To1(aBDL.KeyAssoc()[aKS],*itN,false);
-	        std::string aN1 = aPair.first;
-	        std::string aN2 = aPair.second;
-
-// std::cout << aN1 << " " << aN2 << "\n";
-// getchar();
-	        if (
-                           (mAppli.NamePoseIsKnown(aN1) && mAppli.NamePoseIsKnown(aN2))
-                       && ((aN1!=aN2) || (! aBDL.AutoSuprReflexif().Val()))
-                   )
-	        {
-                    cPoseCam * aC1 =  mAppli.PoseFromName(aN1);
-                    cPoseCam * aC2 =  mAppli.PoseFromName(aN2);
-                    bool OkGrp = true;
-                    if (aBDL.IdFilterSameGrp().IsInit())
-                    {
-                         OkGrp = mAppli.SameClass(aBDL.IdFilterSameGrp().Val(),*aC1,*aC2);
-                    }
-                    // std::cout << "GRP " << aC1->Name() << " " << aC2->Name() << " " << OkGrp << "\n";
-                    if (OkGrp)
-                    {
-                        if (aN1==aN2)
-                        {
-                            std::cout << "FOR NAME POSE = " << aN1 << "\n";
-                            ELISE_ASSERT(false,"Point homologue image avec elle meme !! ");
-                        }
-                        double aPds=0;
-                        int    aNbHom=0;
-	                if (mIsMult)
-		        {
-		            // cObsLiaisonMultiple * & anOLM = mDicoMul[aN1];
-
-		            if (DicBoolFind(mDicoMul,aN1))
-		            {
-		                mDicoMul[aN1]->AddLiaison(aFulName,aN2,aKS==0);
-		            }
-		            else
-		            {
-                               mDicoMul[aN1]  = new  cObsLiaisonMultiple(anAppli,aFulName,aN1,aN2,aKS==0);
-		            }
-                            cObsLiaisonMultiple * anObs = mDicoMul[aN1];
-                            ElPackHomologue aPack;
-                            anObs->InitPack(aPack,aN2);
-                            aPds = mAppli.PdsOfPackForInit(aPack,aNbHom);
-		        }
-		        else
-		        {
-                            ELISE_ASSERT(aKS==0,"Multiple Sets in Pts non multiple");
-	                    cObservLiaison_1Cple * anObs= new cObservLiaison_1Cple(aBDL,aFulName,aN1,aN2);
-		            if (anObs->NbH() !=0)
-		            {
-	                      mLObs.push_back(anObs);
-	                      {
-                                 cObservLiaison_1Cple * aO2 = mDicObs[aN1][aN2];
-                                 if (aO2 !=0)
-                                 {
-                                    std::cout << " For : " << mId << " " << aN1 <<  " " << aN2 <<"\n"; 
-		                    ELISE_ASSERT(false,"Entree multiple\n");
-                                 }
-	                      }
-	                      mDicObs[aN1][aN2] = anObs;
-                              aPds = mAppli.PdsOfPackForInit(anObs->Pack(),aNbHom);
-		            }
-		        }
-                        if (aBDL.SplitLayer().IsInit())
-                        {
-                            mAppli.SplitHomFromImageLayer(*itN,aBDL.SplitLayer().Val(),aN1,aN2);
-                        }
-                        mAppli.AddLinkCam(aC1,aC2);
-                        if (aCpt==0)
-                        {
-                           tGrApero::TSom * aS1 =  mAppli.PoseFromName(aN1)->Som();
-                           tGrApero::TSom * aS2 =  mAppli.PoseFromName(aN2)->Som();
-                           tGrApero::TArc * anArc = mAppli.Gr().arc_s1s2(*aS1,*aS2);
-                           if (!anArc) 
-                           {
-                              cAttrArcPose anAttr;
-                              anArc = & mAppli.Gr().add_arc(*aS1,*aS2,anAttr);
-                           }
-                           anArc->attr().Pds() = aPds;
-                           anArc->attr().Nb() = aNbHom;
-                           // anArc->arc_rec().attr() = anArc->attr();
-                        }
-	            }
-	        }
-	        aFirst = false;
-            }
-        }
-        else
-        {
-            // On rajoutera ici le cas ou fichier contient N Pack
-        }
-    }
-
-    // for (std::list<std::string>::cons_iterator itP
-
-    std::cout << "NB PACK PTS " << aNbTot << "\n";
-    if (aNbTot == 0)
-    {
-        std::cout << "FOR LIAISONS " <<  aBDL.Id() << "\n";
-        ELISE_ASSERT(false,"Cannot find any pack\n");
-    }
+	std::cout << "NB PACK PTS " << aNbTot << "\n";
+	if (aNbTot == 0)
+	{
+		std::cout << "FOR LIAISONS " <<  aBDL.Id() << "\n";
+		ELISE_ASSERT(false,"Cannot find any pack\n");
+	}
 }
 
 

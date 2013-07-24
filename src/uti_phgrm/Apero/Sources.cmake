@@ -17,6 +17,7 @@ set(uti_phgrm_Apero_Src_Files
     ${UTI_PHGRM_APERO_DIR}/cParamApero.cpp
     ${UTI_PHGRM_APERO_DIR}/cPonderateur.cpp
     ${UTI_PHGRM_APERO_DIR}/cPose.cpp
+    ${UTI_PHGRM_APERO_DIR}/cImplemBlockCam.cpp
     ${UTI_PHGRM_APERO_DIR}/cSurfParam.cpp
     ${UTI_PHGRM_APERO_DIR}/ExportNuage.cpp
 #    ${UTI_PHGRM_APERO_DIR}/GenParamApero.cpp

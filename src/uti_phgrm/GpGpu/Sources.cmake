@@ -6,6 +6,7 @@ set(GpGpuTools_Src_Files
 
 set(uti_phgrm_GpGpu_Src_Files
 	 ${UTI_PHGRM_GPGPU_DIR}/InterfaceMicMacGpGpu.cpp
+	 ${UTI_PHGRM_GPGPU_DIR}/SData2Correl.cpp
 	 ${UTI_PHGRM_GPGPU_DIR}/cudaAppliMicMac.cu
 	 ${UTI_PHGRM_GPGPU_DIR}/cudaFilters.cu
 	 #${UTI_PHGRM_GPGPU_DIR}/cudaTextureTools.cu

@@ -1831,10 +1831,16 @@ const std::string & cClassEquivPose::Id() const
 
              // =======   cRelEquivPose  ====
 
+/*
 cRelEquivPose::cRelEquivPose(int aNum) :
    mNum (aNum)
 {
 }
+*/
+cRelEquivPose::cRelEquivPose() 
+{
+}
+
 
 cClassEquivPose * cRelEquivPose::AddAPose(cPoseCam * aPC,const std::string & aName)
 {
@@ -1872,7 +1878,7 @@ const std::map<std::string,cClassEquivPose *> &  cRelEquivPose::Map() const
 
 void cRelEquivPose::Show()
 {
-    std::cout << "========== REL NUM " << mNum << "==================\n";
+    std::cout << "========== REL NUM ==================\n";
 
    for 
    (
@@ -1974,6 +1980,147 @@ void cAppliApero::AddObservationsRigidGrp(const cObsRigidGrpImage & anORGI,bool 
         }
    }
 }
+
+/***********************************************************/
+/*                                                         */
+/*                                                         */
+/*                                                         */
+/***********************************************************/
+
+/*
+
+class cIBC_ImsOneTime
+{
+    public :
+        cIBC_ImsOneTime(int aNbCam,int aNum,const std::string& aNameTime) ;
+        void  AddPose(cPoseCam *, int aNum);
+
+    private :
+
+        std::vector<cPoseCam *> mCams;
+        int                     mNum;
+        std::string             mNameTime;
+};
+
+
+class cIBC_OneCam
+{
+      public :
+          cIBC_OneCam(const std::string & ,int aNum);
+          const int & Num() const;
+      private :
+          std::string mNameCam;
+          int         mNum;
+};
+
+
+
+class cImplemBlockCam
+{
+    public :
+         static cImplemBlockCam * AllocNew(cAppliApero &,const cStructBlockCam);
+    private :
+         cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam );
+
+         cAppliApero &               mAppli;
+         const cStructBlockCam &     mSBC;
+         cRelEquivPose               mRelGrp;
+         cRelEquivPose               mRelId;
+
+         std::map<std::string,cIBC_OneCam *>   mName2Cam;
+         std::vector<cIBC_OneCam *>            mNum2Cam;
+         int                                   mNbCam;
+
+         std::map<std::string,cIBC_ImsOneTime *> mName2ITime;
+         std::vector<cIBC_ImsOneTime *>          mNum2ITime;
+};
+
+    // =================================
+    //              cIBC_ImsOneTime
+    // =================================
+
+cIBC_ImsOneTime::cIBC_ImsOneTime(int aNb,int aNum,const std::string & aNameTime) :
+       mCams     (aNb),
+       mNum      (aNum),
+       mNameTime (aNameTime)
+{
+}
+
+void  cIBC_ImsOneTime::AddPose(cPoseCam * aPC, int aNum) 
+{
+    cPoseCam * aPC0 =  mCams.at(aNum);
+    if (aPC0 != 0)
+    {
+         std::cout <<  "For cameras " << aPC->Name() <<  "  and  " << aPC0->Name() << "\n";
+         ELISE_ASSERT(false,"Conflicting name from KeyIm2TimeCam ");
+    }
+    
+    mCams[aNum] = aPC;
+}
+
+    // =================================
+    //              cIBC_OneCam 
+    // =================================
+
+cIBC_OneCam::cIBC_OneCam(const std::string & aNameCam ,int aNum) :
+    mNameCam (aNameCam ),
+    mNum     (aNum)
+{
+}
+
+const int & cIBC_OneCam::Num() const {return mNum;}
+
+    // =================================
+    //       cImplemBlockCam
+    // =================================
+
+cImplemBlockCam::cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam aSBC) :
+      mAppli (anAppli),
+      mSBC   (aSBC)
+{
+    const std::vector<cPoseCam*> & aVP = mAppli.VecAllPose();
+   
+
+    // On initialise les camera
+    for (int aKP=0 ; aKP<int(aVP.size()) ; aKP++)
+    {
+          cPoseCam * aPC = aVP[aKP];
+          std::string aNamePose = aPC->Name();
+          std::pair<std::string,std::string> aPair =   mAppli.ICNM()->Assoc2To1(mSBC.KeyIm2TimeCam(),aNamePose,true);
+          std::string aNameCam = aPair.second;
+          if (! DicBoolFind(mName2Cam,aNameCam))
+          {
+               cIBC_OneCam *  aCam = new cIBC_OneCam(aNameCam,mNum2Cam.size());
+               mName2Cam[aNameCam] = aCam;
+               mNum2Cam.push_back(aCam); 
+          }
+    }
+    mNbCam  = mNum2Cam.size();
+
+    
+    // On regroupe les images prises au meme temps
+    for (int aKP=0 ; aKP<int(aVP.size()) ; aKP++)
+    {
+          cPoseCam * aPC = aVP[aKP];
+          std::string aNamePose = aPC->Name();
+          std::pair<std::string,std::string> aPair =   mAppli.ICNM()->Assoc2To1(mSBC.KeyIm2TimeCam(),aNamePose,true);
+          std::string aNameTime = aPair.first;
+          std::string aNameCam = aPair.second;
+          
+          cIBC_ImsOneTime * aIms =  mName2ITime[aNameTime];
+          if (aIms==0)
+          {
+               aIms = new cIBC_ImsOneTime(mNbCam,mNum2ITime.size(),aNameTime);
+               mName2ITime[aNameTime] = aIms;
+               mNum2ITime.push_back(aIms);
+          }
+          cIBC_OneCam * aCam = mName2Cam[aNameCam];
+          aIms->AddPose(aPC,aCam->Num());
+    }
+}
+
+*/
+
 
 
 };

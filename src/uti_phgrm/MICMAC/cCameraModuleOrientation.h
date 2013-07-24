@@ -68,6 +68,7 @@ public:
     const ElDistortion22_Gen & Dist() const;
     void InstanceModifParam(cCalibrationInternConique & aParam)  const;
     Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
+    Pt3dr NoDistImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
     Pt3dr  OrigineProf() const;
     bool  HasOrigineProf() const;
     double SzDiffFinie() const;

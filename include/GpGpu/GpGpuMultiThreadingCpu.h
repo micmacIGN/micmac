@@ -4,15 +4,12 @@
 #include <stdio.h>
 
 #include <boost/thread/thread.hpp>
-// #include <boost/lockfree/spsc_queue.hpp>
-// #include <boost/atomic.hpp>
 
 #include "GpGpu/GpGpuTools.h"
 
 extern "C" void Launch(uint* value);
 
 #define ITERACUDA   2
-#define SIZERING    2
 
 template< class T >
 class CSimpleJobCpuGpu

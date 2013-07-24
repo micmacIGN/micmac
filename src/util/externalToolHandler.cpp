@@ -214,6 +214,12 @@ string printResult( const string &i_tool )
 
 int CheckDependencies_main(int argc,char ** argv)
 {
+    cout << "mercurial revision " << __HG_REV__ << endl;
+    cout << endl;
+    cout << "byte order   : " << ( MSBF_PROCESSOR()?"big-endian":"little-endian" ) << endl;
+    cout << "address size : " << sizeof(int*)*8 << " bits" << endl;
+    cout << endl;
+
 	#ifdef USE_OPEN_MP
 		cout << "OpenMP is enabled" << endl;
 	#endif

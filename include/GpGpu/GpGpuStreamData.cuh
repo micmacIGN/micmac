@@ -1,12 +1,7 @@
 #ifndef _GPGPUSTREAMDATA_H_
 #define _GPGPUSTREAMDATA_H_
 
-#include <cuda_runtime.h>
-#include <helper_functions.h>
-#include <helper_math.h>
-#include <helper_cuda.h>
 #include "GpGpu/GpGpuTools.h"
-#include "GpGpu/helper_math_extented.cuh"
 
 using namespace std;
 
@@ -51,10 +46,6 @@ public:
 
     template<bool sens> __device__ short2 read(T* destData, ushort tid, T def);
 
-    __device__ short2 readAV(T* destData, ushort tid, T def);
-
-    __device__ short2 readAR(T* destData, ushort tid, T def);
-
 private:
 
     template<bool sens> __device__ short vec(){ return 1 - 2 * !sens; }
@@ -64,31 +55,11 @@ private:
         return min(nTotal - nCopied , MaxReadBuffer<sens>());
     }
 
-    __device__ short GetNbToCopyAV(ushort nTotal,ushort nCopied)
-    {
-        return min(nTotal - nCopied , MaxReadBufferAV());
-    }
-
-
-    __device__ short GetNbToCopyAR(ushort nTotal,ushort nCopied)
-    {
-        return min(nTotal - nCopied , MaxReadBufferAR());
-    }
-
     template<bool sens> __device__ ushort MaxReadBuffer()
     {
         return sens ? ((ushort)WARPSIZE - _curBufferId) : _curBufferId;
     }
 
-    __device__ ushort MaxReadBufferAV()
-    {
-        return ((ushort)WARPSIZE - _curBufferId);
-    }
-
-    __device__ ushort MaxReadBufferAR()
-    {
-        return  _curBufferId;
-    }
 
     T*                          _bufferData;
     T*                          _streamData;
@@ -127,91 +98,15 @@ short2 CDeviceStream<T>::read(T *destData, ushort tid, T def)
                 destData[idDest] = _bufferData[_curBufferId + tid - !sens * NbToCopy];
             else if (idDest >= NbTotalToCopy)
                 destData[idDest] = def;
-        }
 
+        }
         _curBufferId  = _curBufferId + vec<sens>() * NbToCopy;
         NbCopied     += NbToCopy;
-
    }
+
    return index;
 }
 
-template< class T > __device__
-short2 CDeviceStream<T>::readAV(T *destData, ushort tid, T def)
-{
-    short2  index;
-    ushort  NbCopied    = 0 , NbTotalToCopy = getLen2ReadAV(index);
-    short   PitSens     = 0;
-
-    while(NbCopied < NbTotalToCopy)
-    {
-        ushort NbToCopy = GetNbToCopyAV(NbTotalToCopy,NbCopied);
-
-        if(!NbToCopy)
-        {
-            uint idStream =_curStreamId + threadIdx.x - 2 * PitSens;
-            if(idStream < _sizeStream)
-                _bufferData[threadIdx.x] = _streamData[idStream];
-            _curBufferId   = PitSens;
-            _curStreamId   = _curStreamId - WARPSIZE; // * 32
-
-            NbToCopy = GetNbToCopyAV(NbTotalToCopy,NbCopied);
-        }
-
-        ushort idDest = tid + NbCopied;
-
-        if(!(idDest>>8)) // < 256
-        {
-            if (tid < NbToCopy && idDest < NbTotalToCopy)
-                destData[idDest] = _bufferData[_curBufferId + tid];
-            else if (idDest >= NbTotalToCopy)
-                destData[idDest] = def;
-        }
-
-        _curBufferId  = _curBufferId - NbToCopy;
-        NbCopied     += NbToCopy;
-
-   }
-   return index;
-}
-template< class T > __device__
-short2 CDeviceStream<T>::readAR(T *destData, ushort tid, T def)
-{
-    short2  index;
-    ushort  NbCopied    = 0 , NbTotalToCopy = getLen2ReadAR(index);
-    short   PitSens     = WARPSIZE;
-
-    while(NbCopied < NbTotalToCopy)
-    {
-        ushort NbToCopy = GetNbToCopyAR(NbTotalToCopy,NbCopied);
-
-        if(!NbToCopy)
-        {
-            uint idStream =_curStreamId + threadIdx.x - 2 * PitSens;
-            if(idStream < _sizeStream)
-                _bufferData[threadIdx.x] = _streamData[idStream];
-            _curBufferId   = PitSens;
-            _curStreamId   = _curStreamId  + WARPSIZE; // * 32
-
-            NbToCopy = GetNbToCopyAR(NbTotalToCopy,NbCopied);
-        }
-
-        ushort idDest = tid +  NbTotalToCopy - NbCopied - NbToCopy;
-
-        if(!(idDest>>8)) // < 256
-        {
-            if (tid < NbToCopy && idDest < NbTotalToCopy)
-                destData[idDest] = _bufferData[_curBufferId + tid - NbToCopy];
-            else if (idDest >= NbTotalToCopy)
-                destData[idDest] = def;
-        }
-
-        _curBufferId  = _curBufferId + NbToCopy;
-        NbCopied     += NbToCopy;
-
-   }
-   return index;
-}
 
 template< class T >
 class CDeviceDataStream : public CDeviceStream<T>

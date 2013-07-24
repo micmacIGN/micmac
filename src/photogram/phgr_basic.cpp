@@ -2165,7 +2165,7 @@ Pt2dr ElCamera::F2toC2(Pt2dr p) const
 
 Pt3dr    ElCamera::C2toDirRayonL3(Pt2dr p) const
 {
-   return Proj().DirRayon(p);
+   return Proj().DirRayon(DComplC2M(p));
 }
 
 Pt3dr    ElCamera::F2toDirRayonL3(Pt2dr p) const
@@ -2184,6 +2184,12 @@ Pt3dr    ElCamera::F2toDirRayonR3(Pt2dr p) const
 {
    return  _orient.IRecVect(F2toDirRayonL3(p));
 }
+Pt3dr    ElCamera::C2toDirRayonR3(Pt2dr p) const
+{
+   return  _orient.IRecVect(C2toDirRayonL3(p));
+}
+
+
 
 
 Pt3dr   ElCamera::DirK() const
@@ -3095,6 +3101,13 @@ Pt3dr  CamStenope::ImEtProf2Terrain(const Pt2dr & aP,double aZ) const
 {
      return OpticalVarCenterIm(aP) + F2toDirRayonR3(aP) * aZ;
 }
+
+Pt3dr  CamStenope::NoDistImEtProf2Terrain(const Pt2dr & aP,double aZ) const
+{
+     return OpticalVarCenterIm(aP) + C2toDirRayonR3(aP) * aZ;
+}
+
+
 
 
 Pt3dr  CamStenope::ImEtZ2Terrain(const Pt2dr & aP,double aZ) const
@@ -4420,6 +4433,10 @@ cCameraOrtho * cCameraOrtho::Alloc(const Pt2di & aSz)
 Pt3dr cCameraOrtho::ImEtProf2Terrain(const Pt2dr & aP,double aZ) const
 {
      return mCentre + F2toDirRayonR3(aP) * aZ;
+}
+Pt3dr cCameraOrtho::NoDistImEtProf2Terrain(const Pt2dr & aP,double aZ) const
+{
+     return ImEtProf2Terrain(aP,aZ);
 }
 
 

@@ -224,11 +224,6 @@ cConvolSpec<Type>::cConvolSpec(tBase* aFilter,int aDeb,int aFin,int aNbShit,bool
                mSym = false;
         }
     }
-/*
-    if (theVec==0)
-       theVec = new std::vector<cConvolSpec<Type> *>;
-    theVec->push_back(this);
-*/
     theVec.push_back(this);
 }
 

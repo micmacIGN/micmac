@@ -76,6 +76,8 @@ int MM2DPostSism_Main(int argc,char ** argv)
     std::string  aIm1,aIm2,aImMasq;
     bool Exe=true;
     double aTeta;
+    int    aSzW=4;
+    double aRegul=0.3;
 
 
     ElInitArgMain
@@ -87,6 +89,8 @@ int MM2DPostSism_Main(int argc,char ** argv)
                     << EAM(aImMasq,"Masq",true,"Masq of focus zone (def=none)")
                     << EAM(aTeta,"Teta",true,"Direction of seism if any (in radian)")
                     << EAM(Exe,"Exe",true,"Execute command , def=true (tuning purpose)")
+                    << EAM(aSzW,"SzW",true,"Size of window (Def =4, mean 9x9)")
+                    << EAM(aRegul,"Reg",true,"Regularization (Def=0.3)")
     );
 	
 #if (ELISE_windows)
@@ -97,11 +101,15 @@ int MM2DPostSism_Main(int argc,char ** argv)
     std::string aDir = DirOfFile(aIm1);
     ELISE_ASSERT(aDir==DirOfFile(aIm2),"Image not on same directory !!!");
 
+
     std::string aCom =    MM3dBinFile("MICMAC")
                         + XML_MM_File("MM-PostSism.xml")
                         + " WorkDir=" + aDir
                         + " +Im1=" + aIm1
-                        + " +Im2=" + aIm2;
+                        + " +Im2=" + aIm2
+                        + " +SzW=" + ToString(aSzW)
+                        + " +RegulBase=" + ToString(aRegul)
+                        ;
 
 
     if (EAMIsInit(&aImMasq))

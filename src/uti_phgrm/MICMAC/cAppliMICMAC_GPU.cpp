@@ -17,12 +17,12 @@ In IAPRS vol XXXVI-1/W41 in ISPRS Workshop On Topographic Mapping From Space
 (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-d'images, adapte au contexte geograhique" to appears in 
+d'images, adapte au contexte geograhique" to appears in
 Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-MicMac est un logiciel de mise en correspondance d'image adapte 
+MicMac est un logiciel de mise en correspondance d'image adapte
 au contexte de recherche en information geographique. Il s'appuie sur
 la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
 licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -38,7 +38,7 @@ See below and http://www.cecill.info.
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
-
+#include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
 namespace NS_ParamMICMAC
 {
@@ -50,27 +50,27 @@ static bool aBugCMS = false;
     int2  toI2(Pt2dr a){return make_int2((int)a.x,(int)a.y);}
 #endif
 
-	template <class Type,class TBase> 
-	Type ** ImDec
-		(
-		std::vector<Type *> & aV,
-		Im2D<Type,TBase> anIm, 
-		const Box2di & aBox, 
-		const Pt2di & aSzV
-		)
-	{
-		aV.clear();
-		Type ** aDIm = anIm.data();
-		Pt2di aSzIm = anIm.sz();
+    template <class Type,class TBase>
+    Type ** ImDec
+        (
+        std::vector<Type *> & aV,
+        Im2D<Type,TBase> anIm,
+        const Box2di & aBox,
+        const Pt2di & aSzV
+        )
+    {
+        aV.clear();
+        Type ** aDIm = anIm.data();
+        Pt2di aSzIm = anIm.sz();
 
-		for (int aY = 0 ; aY<aSzIm.y  ; aY++)
-		{
-			aV.push_back(aDIm[aY] - aBox._p0.x+aSzV.x);
-		}
+        for (int aY = 0 ; aY<aSzIm.y  ; aY++)
+        {
+            aV.push_back(aDIm[aY] - aBox._p0.x+aSzV.x);
+        }
 
-		return &(aV[0])    - aBox._p0.y+aSzV.y;
-		//return anIm.data();
-	}
+        return &(aV[0])    - aBox._p0.y+aSzV.y;
+        //return anIm.data();
+    }
 
 /********************************************************************/
 /*                                                                  */
@@ -150,11 +150,11 @@ double cStatOneImage::SquareNorm() const
 
 cGPU_LoadedImGeom::cGPU_LoadedImGeom
 (
-		const cAppliMICMAC & anAppli,
-		cPriseDeVue* aPDV,
-		const Box2di & aBox,
-		const Pt2di  &aSzV0,
-		const Pt2di  &aSzVMax,
+        const cAppliMICMAC & anAppli,
+        cPriseDeVue* aPDV,
+        const Box2di & aBox,
+        const Pt2di  &aSzV0,
+        const Pt2di  &aSzVMax,
                 bool  Top
 ) :
       mAppli   (anAppli),
@@ -204,14 +204,14 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
       mUsePC   (mLI->UsePC())
 {
 
-                
+
     ELISE_ASSERT
     (
         aPDV->NumEquiv()==0,
-	"Ne gere pas les classe d'equiv image en GPU"
+    "Ne gere pas les classe d'equiv image en GPU"
     );
 
-    if (! Top) 
+    if (! Top)
        return;
 
     mMSGLI.push_back(this);
@@ -219,7 +219,7 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
 
     mOneImage = true;
 
-    if (! aCMS) 
+    if (! aCMS)
        return;
 
     const std::vector<cOneParamCMS> & aVP = aCMS->OneParamCMS();
@@ -232,7 +232,7 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
         {
              mMSGLI.push_back(new cGPU_LoadedImGeom(anAppli,aPDV,aBox,aVP[aK].SzW(),mSzVMax,false));
         }
-        
+
         mMSGLI[aK]->mOPCms = &(aVP[aK]);
 
         double aPdsK = aVP[aK].Pds();
@@ -271,7 +271,7 @@ Im2D_REAL4 * cGPU_LoadedImGeom::FloatIm(int aKScale)
 cGPU_LoadedImGeom::~cGPU_LoadedImGeom()
 {
    if (mTop)
-   {   
+   {
        // mMSGLI[0] contient this, donc commence a 1
        for (int aK=1; aK<int(mMSGLI.size()) ; aK++)
            delete mMSGLI[aK];
@@ -324,7 +324,7 @@ void cGPU_LoadedImGeom::MakeDeriv(int anX,int anY,int aZ)
 Pt2dr cGPU_LoadedImGeom::ProjByDeriv(int anX,int anY,int aZ) const
 {
 
-   Pt2dr aRes =    mValueP0D 
+   Pt2dr aRes =    mValueP0D
           +  mDerivX*double(anX-mX0Deriv)
           +  mDerivY*double(anY-mY0Deriv)
           +  mDerivZ*double( aZ-mZ0Deriv) ;
@@ -396,7 +396,7 @@ bool   cGPU_LoadedImGeom::InitValNorms(int anX,int anY,int aNbScaleIm)
 
 // std::cout << "SSSsig " << mSigma  << " " <<  MoyQuadIm(anX,anY,aNbScaleIm) << " " << mMoy << "\n";
 
-      if (mSigma < mAppli.AhEpsilon()) 
+      if (mSigma < mAppli.AhEpsilon())
       {
           return false;
       }
@@ -433,7 +433,7 @@ double  cGPU_LoadedImGeom::MoyIm(int anX,int anY,int aNbScaleIm) const
     if (0)
     {
         std::cout << "Moy IM " << aRes  << " nbS " << aNbScaleIm << " O " << mDSomO [anY][anX]  << " " << mPdsMS << " " << mCumSomPdsMS << "\n";
-        
+
     }
     return aRes;
 }
@@ -487,35 +487,35 @@ double Cov(const cGPU_LoadedImGeom & aGeoJ) const;
 
 
 
-	bool   cGPU_LoadedImGeom::Correl(double & aCorrel,int anX,int anY,const  cGPU_LoadedImGeom & aGeoJ,int aNbScaleIm) const
-	{
+    bool   cGPU_LoadedImGeom::Correl(double & aCorrel,int anX,int anY,const  cGPU_LoadedImGeom & aGeoJ,int aNbScaleIm) const
+    {
 
-		if (! mDOK_Ortho[anY][anX])
-			return false;
+        if (! mDOK_Ortho[anY][anX])
+            return false;
                 double aMI  = MoyIm(anX,anY,aNbScaleIm);
-		double aDmI = mAppli.DeltaMoy(aMI);
-		double aMII =  MoyQuadIm(anX,anY,aNbScaleIm) - ElSquare(aMI) + ElSquare(aDmI);
+        double aDmI = mAppli.DeltaMoy(aMI);
+        double aMII =  MoyQuadIm(anX,anY,aNbScaleIm) - ElSquare(aMI) + ElSquare(aDmI);
 
 //std::cout << "##2## NBSSSS " << aNbScaleIm  << " " <<   aMII << " " <<  MoyIm(anX,anY,aNbScaleIm) << " " << MoyQuadIm(anX,anY,aNbScaleIm)  << "\n";
-		if (aMII < mAppli.AhEpsilon()) 
-			return false;
+        if (aMII < mAppli.AhEpsilon())
+            return false;
 
-		double aMJ  =  aGeoJ.MoyIm(anX,anY,aNbScaleIm);
-		double aDmJ = mAppli.DeltaMoy(aMJ);
-		double aMJJ =  aGeoJ.MoyQuadIm(anX,anY,aNbScaleIm) - ElSquare(aMJ) + ElSquare(aDmJ);
-		if (aMJJ < mAppli.AhEpsilon()) 
-			return false;
+        double aMJ  =  aGeoJ.MoyIm(anX,anY,aNbScaleIm);
+        double aDmJ = mAppli.DeltaMoy(aMJ);
+        double aMJJ =  aGeoJ.MoyQuadIm(anX,anY,aNbScaleIm) - ElSquare(aMJ) + ElSquare(aDmJ);
+        if (aMJJ < mAppli.AhEpsilon())
+            return false;
 
-		double aMIJ =  CovIm(anX,anY,aNbScaleIm) - aMI * aMJ + aDmI*aDmJ;
+        double aMIJ =  CovIm(anX,anY,aNbScaleIm) - aMI * aMJ + aDmI*aDmJ;
 
-		aCorrel = aMIJ / sqrt(aMII*aMJJ);
+        aCorrel = aMIJ / sqrt(aMII*aMJJ);
 
 ///std::cout << "#################  NBSSSS " << aNbScaleIm  << " " <<   mDOK_Ortho[anY][anX] << "\n";
 
 if (0)
 {
    static double aNb=0; aNb++;
-   static double aNbOut=0; 
+   static double aNbOut=0;
    static double aMaxC = -10;
    static double aMinC = 10;
    if ((aCorrel>1) || (aCorrel<-1))
@@ -533,254 +533,242 @@ if (0)
         std::cout  << "MAX-MIN-COR   " << aMinC << " " << aMaxC << " OUT " << (aNbOut/aNb) << "\n";
    }
 }
-		return true;
-	}
+        return true;
+    }
 
 
 
-	//
-	//    Fonction de correlation preparant une version GPU. Pour l'instant on se
-	//    reduit a la version qui fonctionne pixel par pixel (sans redressement global),
-	//    de toute facon il faudra l'ecrire et elle est plus simple. 
-	//
-	//    Une fois les parametres d'environnement decode et traduits en donnees
-	//    de bas niveau  ( des tableau bi-dim  de valeur numerique : entier, flottant et bits)
-	//    les communications, dans le corps de la boucle, avec l'environnement MicMac sont reduites
-	//    a trois appels :
-	//
-	//       [1]   Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);
-	//
-	//             Appelle la fonction virtuelle de projection associee a chaque
-	//             descripteur de geometrie de l'image.
-	//
-	//       [2]    mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,aDefCost);
-	//
-	//             Appelle la fonction virtuelle de remplissage de cout
-	//             de l'optimiseur actuellement utilise
-	//
-	//
-	//       [3]    double aVal =  mInterpolTabule.GetVal(aDataIm,aPIm);
-	//
-	//               Utilise l'interpolateur courant. Pour l'instant l'interpolateur
-	//               est en dur quand on fonctionne en GPU
-	//
+    //
+    //    Fonction de correlation preparant une version GPU. Pour l'instant on se
+    //    reduit a la version qui fonctionne pixel par pixel (sans redressement global),
+    //    de toute facon il faudra l'ecrire et elle est plus simple.
+    //
+    //    Une fois les parametres d'environnement decode et traduits en donnees
+    //    de bas niveau  ( des tableau bi-dim  de valeur numerique : entier, flottant et bits)
+    //    les communications, dans le corps de la boucle, avec l'environnement MicMac sont reduites
+    //    a trois appels :
+    //
+    //       [1]   Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);
+    //
+    //             Appelle la fonction virtuelle de projection associee a chaque
+    //             descripteur de geometrie de l'image.
+    //
+    //       [2]    mSurfOpt->SetCout(Pt2di(anX,anY),&aZInt,aDefCost);
+    //
+    //             Appelle la fonction virtuelle de remplissage de cout
+    //             de l'optimiseur actuellement utilise
+    //
+    //
+    //       [3]    double aVal =  mInterpolTabule.GetVal(aDataIm,aPIm);
+    //
+    //               Utilise l'interpolateur courant. Pour l'instant l'interpolateur
+    //               est en dur quand on fonctionne en GPU
+    //
 
 
-	void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
-	{
+    void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
+    {
 
-		mX0Ter = aBox._p0.x;
-		mX1Ter = aBox._p1.x;
-		mY0Ter = aBox._p0.y;
-		mY1Ter = aBox._p1.y;
+        mX0Ter = aBox._p0.x;
+        mX1Ter = aBox._p1.x;
+        mY0Ter = aBox._p0.y;
+        mY1Ter = aBox._p1.y;
 
-		mDilX0Ter = mX0Ter  - mCurSzVMax.x;
-		mDilY0Ter = mY0Ter  - mCurSzVMax.y;
-		mDilX1Ter = mX1Ter  + mCurSzVMax.x;
-		mDilY1Ter = mY1Ter  + mCurSzVMax.y;
+        mDilX0Ter = mX0Ter  - mCurSzVMax.x;
+        mDilY0Ter = mY0Ter  - mCurSzVMax.y;
+        mDilX1Ter = mX1Ter  + mCurSzVMax.x;
+        mDilY1Ter = mY1Ter  + mCurSzVMax.y;
 
-		mCurSzDil = Pt2di(mDilX1Ter-mDilX0Ter, mDilY1Ter-mDilY0Ter);
+        mCurSzDil = Pt2di(mDilX1Ter-mDilX0Ter, mDilY1Ter-mDilY0Ter);
 
-		mImOkTerCur.Resize(mCurSzDil);
-		mTImOkTerCur = TIm2D<U_INT1,INT> (mImOkTerCur);
-		mDOkTer = ImDec(mVDOkTer,mImOkTerCur,aBox,mCurSzVMax);
+        mImOkTerCur.Resize(mCurSzDil);
+        mTImOkTerCur = TIm2D<U_INT1,INT> (mImOkTerCur);
+        mDOkTer = ImDec(mVDOkTer,mImOkTerCur,aBox,mCurSzVMax);
 
-		mImOkTerDil.Resize(mCurSzDil);
-		mTImOkTerDil = TIm2D<U_INT1,INT> (mImOkTerDil);
-		mDOkTerDil  = ImDec(mVDOkTerDil,mImOkTerDil,aBox,mCurSzVMax);
+        mImOkTerDil.Resize(mCurSzDil);
+        mTImOkTerDil = TIm2D<U_INT1,INT> (mImOkTerDil);
+        mDOkTerDil  = ImDec(mVDOkTerDil,mImOkTerDil,aBox,mCurSzVMax);
 
-		Pt2di aSzAll1 = mAll1ImOkTerDil.sz();
-		if ((aSzAll1.x < mCurSzDil.x ) || (aSzAll1.y<mCurSzDil.y))
-		{
-			mAll1ImOkTerDil = Im2D_U_INT1(mCurSzDil.x,mCurSzDil.y,1);
-		}
-		mAll1TImOkTerDil =  TIm2D<U_INT1,INT>(mAll1ImOkTerDil);
-		mAll1DOkTerDil = ImDec(mAll1VDOkTerDil,mAll1ImOkTerDil,aBox,mCurSzVMax);
-
-		mTabZMin = mLTer->GPULowLevel_ZMin();
-		mTabZMax = mLTer->GPULowLevel_ZMax();
-
-		mTabMasqTER = mLTer->GPULowLevel_MasqTer();
-
-		mAhDefCost =  mStatGlob->CorrelToCout(mDefCorr);
-		mAhEpsilon = EpsilonCorrelation().Val();
-
-		mGeomDFPx->SetOriResolPlani(mOriPlani,mStepPlani);
-		mOrigineZ = mGeomDFPx->OrigineAlti();
-		mStepZ = mGeomDFPx->ResolutionAlti();
-
-		mFirstZIsInit = false;
-
-		// mVLI.clear();
-		DeleteAndClear(mVLI);
-		for
-			(
-			tCsteIterPDV itFI=mPDVBoxGlobAct.begin();
-		itFI!=mPDVBoxGlobAct.end();
-		itFI++
-			)
-		{
-			mVLI.push_back(new cGPU_LoadedImGeom(*this,*itFI,aBox,mCurSzV0,mCurSzVMax,true));
-		}
-		mNbIm = (int)mVLI.size();
-
-                mNbScale = mVLI.size() ?  mVLI[0]->NbScale()  : 0;
+        Pt2di aSzAll1 = mAll1ImOkTerDil.sz();
+        if ((aSzAll1.x < mCurSzDil.x ) || (aSzAll1.y<mCurSzDil.y))
+        {
+            mAll1ImOkTerDil = Im2D_U_INT1(mCurSzDil.x,mCurSzDil.y,1);
+        }
+        mAll1TImOkTerDil =  TIm2D<U_INT1,INT>(mAll1ImOkTerDil);
+        mAll1DOkTerDil = ImDec(mAll1VDOkTerDil,mAll1ImOkTerDil,aBox,mCurSzVMax);
 
 
-                mVScaIm.clear();
-                for (int aKS=0 ; aKS<mNbScale ; aKS++)
-                {
-                    std::vector<cGPU_LoadedImGeom *> aV;
-                    mVScaIm.push_back(aV);
-                }
 
-                for (int aKS=0 ; aKS<mNbScale ; aKS++)
-                {
-                    for (int aKI=0 ; aKI<mNbIm ; aKI++)
-                    {
-                        mVScaIm[aKS].push_back(mVLI[aKI]->KiemeMSGLI(aKS));
-                    }
-                }
+        mTabZMin = mLTer->GPULowLevel_ZMin();
+        mTabZMax = mLTer->GPULowLevel_ZMax();
+
+        mTabMasqTER = mLTer->GPULowLevel_MasqTer();
+
+        mAhDefCost =  mStatGlob->CorrelToCout(mDefCorr);
+        mAhEpsilon = EpsilonCorrelation().Val();
+
+        mGeomDFPx->SetOriResolPlani(mOriPlani,mStepPlani);
+        mOrigineZ = mGeomDFPx->OrigineAlti();
+        mStepZ = mGeomDFPx->ResolutionAlti();
+
+        mFirstZIsInit = false;
+
+        // mVLI.clear();
+        DeleteAndClear(mVLI);
+        for
+            (
+            tCsteIterPDV itFI=mPDVBoxGlobAct.begin();
+        itFI!=mPDVBoxGlobAct.end();
+        itFI++
+            )
+        {
+            mVLI.push_back(new cGPU_LoadedImGeom(*this,*itFI,aBox,mCurSzV0,mCurSzVMax,true));
+        }
+        mNbIm = (int)mVLI.size();
+
+        mNbScale = mVLI.size() ?  mVLI[0]->NbScale()  : 0;
 
 
-                
+        mVScaIm.clear();
+        for (int aKS=0 ; aKS<mNbScale ; aKS++)
+        {
+            std::vector<cGPU_LoadedImGeom *> aV;
+            mVScaIm.push_back(aV);
+        }
 
+        for (int aKS=0 ; aKS<mNbScale ; aKS++)
+        {
+            for (int aKI=0 ; aKI<mNbIm ; aKI++)
+            {
+                mVScaIm[aKS].push_back(mVLI[aKI]->KiemeMSGLI(aKS));
+            }
+        }
 
-		mZMinGlob = (int)1e7;
-		mZMaxGlob = (int)(-1e7);
+        mZMinGlob = (int)1e7;
+        mZMaxGlob = (int)(-mZMinGlob);
 
 #ifdef CUDA_ENABLED
-	
-		Rect Ter(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
-		
-		if (mLoadTextures)//		Mise en calque des images	
-		{
-			IMmGg.DeallocMemory();
-			
-			mLoadTextures		= false;
-			float*	fdataImg1D	= NULL;	
-			uint2	dimImgMax	= make_uint2(0,0);
 
-			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
-			{
-				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
-				dimImgMax = max(dimImgMax,toUi2(aGLI.getSizeImage()));				
-			}
+        if (mLoadTextures)//		Mise en calque des images
+        {
 
-			// Pour chaque image
-			for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
-			{
-				// Obtention de l'image courante
-				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
-			
+            mLoadTextures		= false;
+            float*	fdataImg1D	= NULL;
+            uint2	dimImgMax	= make_uint2(0,0);
+
+            for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
+            {
+                cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
+                dimImgMax = max(dimImgMax,toUi2(aGLI.getSizeImage()));
+            }
+
+            // Pour chaque image
+            for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
+            {
+                // Obtention de l'image courante
+                cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
+
                 // Obtention des donnees images
-				float **aDataIm	= aGLI.DataIm0();
-				float*	data	= aGLI.LinDIm0();
-				uint2 dimImg	= toUi2(aGLI.getSizeImage());
+                float **aDataIm	= aGLI.DataIm0();
+                float*	data	= aGLI.LinDIm0();
+                uint2 dimImg	= toUi2(aGLI.getSizeImage());
 
-				if(fdataImg1D == NULL)
-					fdataImg1D	= new float[ size(dimImgMax) * mNbIm ];
-	
-				// Copie du tableau 2d des valeurs de l'image Ameliorer encore la copy de texture, copier les images une ï¿½  une dans le device!!!!
-				if (aEq(dimImgMax,dimImg))
- 					memcpy(  fdataImg1D + size(dimImgMax)* aKIm , data,  size(dimImg) * sizeof(float));
+                if(fdataImg1D == NULL)
+                    fdataImg1D	= new float[ size(dimImgMax) * mNbIm ];
 
-				else
-					GpGpuTools::Memcpy2Dto1D(aDataIm ,fdataImg1D + size(dimImgMax) * aKIm, dimImgMax, dimImg );
+                // Copie du tableau 2d des valeurs de l'image Ameliorer encore la copy de texture, copier les images une à  une dans le device!!!!
+                if (aEq(dimImgMax,dimImg))
+                    memcpy(  fdataImg1D + size(dimImgMax)* aKIm , data,  size(dimImg) * sizeof(float));
 
-			}
+                else
+                    GpGpuTools::Memcpy2Dto1D(aDataIm ,fdataImg1D + size(dimImgMax) * aKIm, dimImgMax, dimImg );
 
-			if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
-				IMmGg.SetImages(fdataImg1D, dimImgMax, mNbIm);
+            }
 
-			if (fdataImg1D != NULL) delete[] fdataImg1D;          
+            if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
+                IMmGg.Data().SetImages(fdataImg1D, dimImgMax, mNbIm);
 
-			IMmGg.SetParameter(Ter, mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT, INTERZ);
-			
-		}
+            if (fdataImg1D != NULL) delete[] fdataImg1D;
 
-		//////////////////////////////////////////////////////////////////////////
+            IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
+
+            pixel *maskGlobal = new pixel[size(IMmGg.box)];
+
+            //#pragma omp parallel for num_threads(3)
+            for (uint anY = 0 ; anY <  IMmGg.box.y ; anY++)
+                //#pragma omp parallel for num_threads(3)
+                for (uint anX = 0 ; anX < IMmGg.box.x ; anX++)
+                {
+                    uint idMask		= IMmGg.box.x * anY + anX ;
+                    if(IsInTer(anX,anY))
+                        maskGlobal[idMask] = 1 ;
+                    else
+                        maskGlobal[idMask] = 0 ;
+                }
+
+            IMmGg.Data().SetGlobalMask(maskGlobal,IMmGg.box);
+
+            delete[] maskGlobal;
+
+        }
 
         Rect rMask(NEGARECT);
-		pixel *maskTab = new pixel[size(Ter.dimension())];
 
-		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
-		{
-			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
-			{
-				uint idMask		= Ter.dimension().x * (anY - mY0Ter) + anX - mX0Ter;
-				if (IsInTer(anX,anY))
-				{                   
-				    if ( aEq(rMask.pt0, -1))
-						rMask.pt0 = make_int2(anX,anY);
+        //#pragma omp parallel for num_threads(3)
+        for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+        {
+            //#pragma omp parallel for num_threads(3)
+            for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+            {
+                if (IsInTer(anX,anY))
+                {
+                    if ( aEq(rMask.pt0, -1))
+                        rMask.pt0 = make_int2(anX,anY);
 
-					if (anX < rMask.pt0.x ) rMask.pt0.x = anX;
-					if (anY < rMask.pt0.y ) rMask.pt0.y = anY;
-					
-				    if (rMask.pt1.x < anX) rMask.pt1.x = anX;
-					if (rMask.pt1.y < anY) rMask.pt1.y = anY;
+                    if (anX < rMask.pt0.x ) rMask.pt0.x = anX;
+                    if (anY < rMask.pt0.y ) rMask.pt0.y = anY;
 
-					maskTab[idMask] = 1;
-				}	
-				else
-					maskTab[idMask] = 0;
+                    if (rMask.pt1.x < anX) rMask.pt1.x = anX;
+                    if (rMask.pt1.y < anY) rMask.pt1.y = anY;
 
-				ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
-				ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
+                }
 
-			}
-		}
+                ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
+                ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
+            }
+        }
 
-		rMask.pt1.x++;
-		rMask.pt1.y++;
+        inc(rMask.pt1);       
 
-        IMmGg.SetSizeBlock(INTERZ,rMask);
+        IMmGg.Param().SetDimension(rMask);
 
-		if (IMmGg.Param().MaskNoNULL())
-		{            
-			uint2 rDimTer = IMmGg.Param().dimTer;
-
-			pixel *SubMaskTab = new pixel[size(rDimTer)];
-
-			for (int y = rMask.pt0.y; y < rMask.pt1.y; y++) 
-				memcpy(SubMaskTab + (y  - rMask.pt0.y) * rDimTer.x, maskTab + (y - mY0Ter) * Ter.dimension().x + rMask.pt0.x - mX0Ter, sizeof(pixel) * rDimTer.x );
-					
-			IMmGg.SetMask(SubMaskTab,rDimTer);
-
-#ifdef USEDILATEMASK
-			IMmGg.dilateMask(rDimTer);
-#endif
-			delete[] SubMaskTab;
-		}
-
-		delete[] maskTab;	
 #else
 
-		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
-		{
-			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
-			{
-				ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
-				ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
+        for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+        {
+            for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+            {
+                ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
+                ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
 
-			}
-		}
+            }
+        }
 
 #endif
-		mGpuSzD = 0;
-		if (mCurEtape->UseGeomDerivable())
-		{
-			mGpuSzD = mCurEtape->SzGeomDerivable();
-			Pt2di aSzOrtho = aBox.sz() + mCurSzVMax * 2;
-			Pt2di aSzTab =  Pt2di(3,3) + aSzOrtho/mGpuSzD;
-			mGeoX.Resize(aSzTab);
-			mGeoY.Resize(aSzTab);
-			mTGeoX =   TIm2D<REAL4,REAL8>(mGeoX);
-			mTGeoY =   TIm2D<REAL4,REAL8>(mGeoY);
-		}
-	}
+        mGpuSzD = 0;
+        if (mCurEtape->UseGeomDerivable())
+        {
+            mGpuSzD = mCurEtape->SzGeomDerivable();
+            Pt2di aSzOrtho = aBox.sz() + mCurSzVMax * 2;
+            Pt2di aSzTab =  Pt2di(3,3) + aSzOrtho/mGpuSzD;
+            mGeoX.Resize(aSzTab);
+            mGeoY.Resize(aSzTab);
+            mTGeoX =   TIm2D<REAL4,REAL8>(mGeoX);
+            mTGeoY =   TIm2D<REAL4,REAL8>(mGeoY);
+        }
+    }
 
-	double MAXDIST = 0.0;
+    double MAXDIST = 0.0;
 
 
 Fonc_Num SomVoisCreux(Fonc_Num aF,Pt2di aV)
@@ -796,7 +784,7 @@ Fonc_Num SomVoisCreux(Fonc_Num aF,Pt2di aV)
 bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
 {
     mZIntCur =aZ;
-    mZTerCur  = DequantZ(mZIntCur); 
+    mZTerCur  = DequantZ(mZIntCur);
 
     mImOkTerCur.raz();
 
@@ -831,24 +819,24 @@ bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
     mY1UtiTer ++;
 
     if (mX0UtiTer >= mX1UtiTer)
-			return false;
+            return false;
 
     int aKFirstIm = 0;
     U_INT1 ** aDOkIm0TerDil = mDOkTerDil;
     if (mGIm1IsInPax)
     {
-			if (mFirstZIsInit)
-			{
-				aKFirstIm = 1;
-			}
-			else
-			{
-				mX0UtiTer = mX0Ter;
-				mX1UtiTer = mX1Ter;
-				mY0UtiTer = mY0Ter;
-				mY1UtiTer = mY1Ter;
-				aDOkIm0TerDil = mAll1DOkTerDil;
-			}
+            if (mFirstZIsInit)
+            {
+                aKFirstIm = 1;
+            }
+            else
+            {
+                mX0UtiTer = mX0Ter;
+                mX1UtiTer = mX1Ter;
+                mY0UtiTer = mY0Ter;
+                mY1UtiTer = mY1Ter;
+                aDOkIm0TerDil = mAll1DOkTerDil;
+            }
     }
 
     mX0UtiDilTer = mX0UtiTer - mCurSzVMax.x;
@@ -998,7 +986,7 @@ if (0)
 
                    }
              }
-             else if (aMode==eModeMom_12_2_22) 
+             else if (aMode==eModeMom_12_2_22)
              {
                    // std::cout << "KIM " << aKIm << "\n";
                    if (! mCMS_ModeEparse)
@@ -1079,11 +1067,11 @@ aBugCMS = (aCpt==220401);
                                 double aV = aVSLIm[aKIm]->ValNorm(aXV,aYV);
 if (0)
 {
-  std::cout << "VvV[" << aKIm << "]" 
-            << " O  " <<  aVSLIm[aKIm]->ValOrthoBasik(aXV,aYV)  
+  std::cout << "VvV[" << aKIm << "]"
+            << " O  " <<  aVSLIm[aKIm]->ValOrthoBasik(aXV,aYV)
             << " So " << aVSLIm[aKIm]->SumO(anX,anY)/9.0
             << " Mi " << aVSLIm[aKIm]->MoyIm(anX,anY,aNbScaleIm)
-            << " " << aVSLIm[aKIm]->ValNorm(anX,anY) 
+            << " " << aVSLIm[aKIm]->ValNorm(anX,anY)
             << " " << aVSLIm[aKIm]->MoyCal() << "\n";
 }
                                 aSV += aV;
@@ -1174,11 +1162,11 @@ if (0)
 
 double EcartNormalise(double aI1,double aI2)
 {
-    // X = I1/I2 
+    // X = I1/I2
     if (aI1 < aI2)   // X < 1
         return aI1/aI2 -1;   // X -1
 
-    return 1-aI2/aI1;  // 1 -1/X 
+    return 1-aI2/aI1;  // 1 -1/X
 }
 
 void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel * aCMP,int aNbScaleIm,bool VireExtre)
@@ -1190,8 +1178,8 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
     {
         double aCMax = -2;
         double aCMin = 2;
-	for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
-	{
+    for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
+    {
              double aCor;
              if (mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0]),aNbScaleIm))
              {
@@ -1200,7 +1188,7 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
                  ElSetMax(aCMax,aCor);
                  ElSetMin(aCMin,aCor);
              }
-	}
+    }
         if (VireExtre && (aNbOk>2))
         {
             aSomCorrel -= aCMax + aCMin;
@@ -1247,82 +1235,82 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
 
 
 
-	void cAppliMICMAC::DoOneCorrelMaxMinIm1Maitre(int anX,int anY,bool aModeMax,int aNbScaleIm)
-	{
-		if (mEBI) // Etiq Best Image
-		{
-			if (mNbIm>1)
-			{
-				for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
-				{
-					double aCor;
-					bool Ok = mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0]),aNbScaleIm);
-					aCor  = Ok ?  mStatGlob->CorrelToCout(aCor) : mAhDefCost;
-					mSurfOpt->SetCout ( Pt2di(anX,anY),&mZIntCur,aCor, aKIm-1);
-				}
-			}
-			else
-			{
-				mSurfOpt->SetCout(Pt2di(anX,anY),&mZIntCur,mAhDefCost,0);
-			}
-		}
-		else
-		{
-			double aRes =  aModeMax ? -2 : 2;
+    void cAppliMICMAC::DoOneCorrelMaxMinIm1Maitre(int anX,int anY,bool aModeMax,int aNbScaleIm)
+    {
+        if (mEBI) // Etiq Best Image
+        {
+            if (mNbIm>1)
+            {
+                for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
+                {
+                    double aCor;
+                    bool Ok = mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0]),aNbScaleIm);
+                    aCor  = Ok ?  mStatGlob->CorrelToCout(aCor) : mAhDefCost;
+                    mSurfOpt->SetCout ( Pt2di(anX,anY),&mZIntCur,aCor, aKIm-1);
+                }
+            }
+            else
+            {
+                mSurfOpt->SetCout(Pt2di(anX,anY),&mZIntCur,mAhDefCost,0);
+            }
+        }
+        else
+        {
+            double aRes =  aModeMax ? -2 : 2;
                         bool isOk = false;
 
-			if (mVLI[0]->OkOrtho(anX,anY))
-			{
-				for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
-				{
-					double aCor;
-					if (mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0]),aNbScaleIm))
-					{
-						if (aModeMax) 
+            if (mVLI[0]->OkOrtho(anX,anY))
+            {
+                for (int aKIm=1 ; aKIm<mNbIm ; aKIm++)
+                {
+                    double aCor;
+                    if (mVLI[aKIm]->Correl(aCor,anX,anY,*(mVLI[0]),aNbScaleIm))
+                    {
+                        if (aModeMax)
                                                    ElSetMax(aRes,aCor);
                                                  else
                                                    ElSetMin(aRes,aCor);
                                                 isOk = true;
-					}
-				}
-			}
+                    }
+                }
+            }
 
-			mSurfOpt->SetCout
-				(
-				Pt2di(anX,anY),
-				&mZIntCur,
-				(isOk) ? mStatGlob->CorrelToCout(aRes) : mAhDefCost
-				);
-		}
-	}
+            mSurfOpt->SetCout
+                (
+                Pt2di(anX,anY),
+                &mZIntCur,
+                (isOk) ? mStatGlob->CorrelToCout(aRes) : mAhDefCost
+                );
+        }
+    }
 
 
 
 void cAppliMICMAC::DoGPU_Correl
-		(
-		const Box2di & aBox,
-		const cMultiCorrelPonctuel * aMCP
-		)
+        (
+        const Box2di & aBox,
+        const cMultiCorrelPonctuel * aMCP
+        )
 {
-		eModeInitZ aModeInitZ = eModeMom_2_22;
-		eModeAggregCorr aModeAgr = mCurEtape->EtapeMEC().AggregCorr().Val();
+        eModeInitZ aModeInitZ = eModeMom_2_22;
+        eModeAggregCorr aModeAgr = mCurEtape->EtapeMEC().AggregCorr().Val();
 
-		if (aMCP)
-		{
-			ELISE_ASSERT(IsModeIm1Maitre(aModeAgr),"MultiCorrelPonctuel requires eAggregIm1Maitre");
-		}
+        if (aMCP)
+        {
+            ELISE_ASSERT(IsModeIm1Maitre(aModeAgr),"MultiCorrelPonctuel requires eAggregIm1Maitre");
+        }
 
-		if (aModeAgr==eAggregSymetrique)
-		{
-		}
-		else if (IsModeIm1Maitre(aModeAgr))
-		{
-			aModeInitZ = eModeMom_12_2_22;
-		}
-		else
-		{
-			ELISE_ASSERT(false,"Unsupported Mode Aggreg in cAppliMICMAC::DoGPU_Correl");
-		}
+        if (aModeAgr==eAggregSymetrique)
+        {
+        }
+        else if (IsModeIm1Maitre(aModeAgr))
+        {
+            aModeInitZ = eModeMom_12_2_22;
+        }
+        else
+        {
+            ELISE_ASSERT(false,"Unsupported Mode Aggreg in cAppliMICMAC::DoGPU_Correl");
+        }
 
 
                 if (mCMS)
@@ -1338,217 +1326,212 @@ void cAppliMICMAC::DoGPU_Correl
                 }
 
 
-		for (int aZ=mZMinGlob ; aZ<mZMaxGlob ; aZ++)
-		{
+        for (int aZ=mZMinGlob ; aZ<mZMaxGlob ; aZ++)
+        {
                         bool OkZ = InitZ(aZ,aModeInitZ);
-			if (OkZ)
-			{
-				for (int anX = mX0UtiTer ; anX <  mX1UtiTer ; anX++)
-				{
-					for (int anY = mY0UtiTer ; anY < mY1UtiTer ; anY++)
-					{
+            if (OkZ)
+            {
+                for (int anX = mX0UtiTer ; anX <  mX1UtiTer ; anX++)
+                {
+                    for (int anY = mY0UtiTer ; anY < mY1UtiTer ; anY++)
+                    {
 
                                                 int aNbScaleIm =  NbScaleOfPt(anX,anY);
 
 /*
-                                                if (mCurEtUseWAdapt) 
+                                                if (mCurEtUseWAdapt)
                                                 {
                                                      ElSetMin(aNbScaleIm,1+mTImSzWCor.get(Pt2di(anX,anY)));
                                                 }
 */
-						if (mDOkTer[anY][anX])
-						{
+                        if (mDOkTer[anY][anX])
+                        {
 
-							switch (aModeAgr)
-							{
-							case eAggregSymetrique :
-								DoOneCorrelSym(anX,anY,aNbScaleIm);
-							break;
+                            switch (aModeAgr)
+                            {
+                            case eAggregSymetrique :
+                                DoOneCorrelSym(anX,anY,aNbScaleIm);
+                            break;
 
-							case eAggregIm1Maitre :
-							     DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,false);
-							break;
+                            case eAggregIm1Maitre :
+                                 DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,false);
+                            break;
 
-							case  eAggregMaxIm1Maitre :
-								DoOneCorrelMaxMinIm1Maitre(anX,anY,true,aNbScaleIm);
-						        break;
+                            case  eAggregMaxIm1Maitre :
+                                DoOneCorrelMaxMinIm1Maitre(anX,anY,true,aNbScaleIm);
+                                break;
 
-							case  eAggregMinIm1Maitre :
-								DoOneCorrelMaxMinIm1Maitre(anX,anY,false,aNbScaleIm);
-						        break;
+                            case  eAggregMinIm1Maitre :
+                                DoOneCorrelMaxMinIm1Maitre(anX,anY,false,aNbScaleIm);
+                                break;
 
-							case eAggregMoyMedIm1Maitre :
-							     DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,true);
-							break;
+                            case eAggregMoyMedIm1Maitre :
+                                 DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,true);
+                            break;
 
-							default :
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
+                            default :
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 }
 
 #ifdef  CUDA_ENABLED
     void cAppliMICMAC::Tabul_Projection(int Z, int zMax, uint &interZ)
-	{
+    {
 
         IMmGg.IntervalZ(interZ, Z, zMax);
+        IMmGg.Data().MemsetHostVolumeProj(IMmGg.Param().IntDefault);
 
-        IMmGg.MemsetProj();
         Rect    zone        = IMmGg.Param().RDTer();
         uint    sample      = IMmGg.Param().sampProj;
-        float2  *pTabProj   = IMmGg.InputProj();
-		uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain 
-		uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain echantillonÃ©
-		uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantillonÃ©
- 		int2	aSzDz		= toI2(Pt2dr(mGeomDFPx->SzDz()));		// Dimension de la zone terrain total
- 		int2	aSzClip		= toI2(Pt2dr(mGeomDFPx->SzClip()));		// Dimension du bloque
-		int2	anB			= zone.pt0 +  dimSTabProj * sample;
+        float2  *pTabProj   = IMmGg.Data().HostVolumeProj();
+        uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain
+        uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain echantilloné
+        uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
+        int2	aSzDz		= toI2(Pt2dr(mGeomDFPx->SzDz()));		// Dimension de la zone terrain total
+        int2	aSzClip		= toI2(Pt2dr(mGeomDFPx->SzClip()));		// Dimension du bloque
+        int2	anB			= zone.pt0 +  dimSTabProj * sample;
 
-		for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
-		{
-			for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )					// Mise en calque des projections pour chaque image
-			{
-			
-				cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);			// Obtention de l'image courante
-				const cGeomImage*	aGeom	= aGLI.Geom();
-				int2 an;				
 
-				for (an.y = zone.pt0.y; an.y < anB.y; an.y += sample)	// Ballayage du terrain  
-				{															
-					for (an.x = zone.pt0.x; an.x < anB.x ; an.x += sample)	
-					{
-						if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip) /*&& IMmGg.ValDilMask(an-zone.pt0) == 1*/)
-						{
-							
-							int2 r	= (an - zone.pt0)/sample;
-							int iD	= (abs(Z - anZ) * mNbIm  +   aKIm )* sizSTabProj  + to1D(r,dimSTabProj);
+        //#pragma omp parallel for num_threads(4)
+        for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
+        {
+            //#pragma omp parallel for num_threads(3)
+            for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )					// Mise en calque des projections pour chaque image
+            {
+
+                cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);			// Obtention de l'image courante
+                const cGeomImage*	aGeom	= aGLI.Geom();
+                int2 an;
+
+                for (an.y = zone.pt0.y; an.y < anB.y; an.y += sample)	// Ballayage du terrain
+                {
+                    for (an.x = zone.pt0.x; an.x < anB.x ; an.x += sample)
+                    {
+                        if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip) /*&& IMmGg.ValDilMask(an-zone.pt0) == 1*/)
+                        {
+
+                            int2 r	= (an - zone.pt0)/sample;
+                            int iD	= (abs(Z - anZ) * mNbIm  +   aKIm )* sizSTabProj  + to1D(r,dimSTabProj);
 // 							int aZMin	= mTabZMin[an.y][an.x];int aZMax	= mTabZMax[an.y][an.x];if ((aGLI.IsVisible(an.x ,an.y )) /*&& (aZMin <= anZ)&&(anZ <=aZMax) */)
 
                             const double aZReel	= DequantZ(anZ);			// Dequantification  de X, Y et Z
-							Pt2dr aPTer	= DequantPlani(an.x,an.y);
-							Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image 			
-							
-							if (aGLI.IsOk( aPIm.x, aPIm.y ))
+                            Pt2dr aPTer	= DequantPlani(an.x,an.y);
+                            Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image
+
+                            if (aGLI.IsOk( aPIm.x, aPIm.y ))
                                 pTabProj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
-				
-						}
+
+                        }
                     }
                 }
-			}
-		}
+            }
+        }
     }
 
-	void cAppliMICMAC::setVolumeCost(Rect Ter, uint z0, uint z1, double defaultCost, float* tabCost, Rect zone, float valdefault)
-	{
-		uint2 rDiTer = zone.dimension();
-		uint  rSiTer = size(rDiTer);
-		for (int anY = Ter.pt0.y ; anY < (int)Ter.pt1.y; anY++)
-			for (int anX = Ter.pt0.x ; anX <  (int)Ter.pt1.x ; anX++) 
-			{
-				int anZ0 = max(z0,mTabZMin[anY][anX]);
-				int anZ1 = min(z1,mTabZMax[anY][anX]);
+    void cAppliMICMAC::setVolumeCost( uint z0, uint z1)
+    {
 
-				for (int anZ = anZ0;  anZ < anZ1 ; anZ++,mNbPointsIsole++)
-					if (tabCost !=NULL && anX >= zone.pt0.x && anY >= zone.pt0.y && anX < zone.pt1.x && anY < zone.pt1.y )
-					{							
-						double cost = (double)tabCost[rSiTer * abs(anZ - (int)z0) + rDiTer.x * (anY - zone.pt0.y) + anX -  zone.pt0.x];
-						mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : defaultCost);																									
-					}
-                    else
-						mSurfOpt->SetCout(Pt2di(anX,anY),&anZ,defaultCost);
+        float*  tabCost     = IMmGg.VolumeCost();
+        Rect    zone        = IMmGg.Param().RTer();
+        float   valdefault  = IMmGg.Param().floatDefault;
 
+        uint2 rDiTer = zone.dimension();
+        uint  rSiTer = size(rDiTer);
+
+        //#pragma omp parallel for num_threads(4)
+        for (int anY = zone.pt0.y ; anY < (int)zone.pt1.y; anY++)
+            //#pragma omp parallel for num_threads(3)
+            for (int anX = zone.pt0.x ; anX <  (int)zone.pt1.x ; anX++)
+            {
+                int anZ0 = max(z0,mTabZMin[anY][anX]);
+                int anZ1 = min(z1,mTabZMax[anY][anX]);
+
+                for (int anZ = anZ0;  anZ < anZ1 ; anZ++,mNbPointsIsole++)
+                {
+                    double cost = (double)tabCost[rSiTer * abs(anZ - (int)z0) + rDiTer.x * (anY - zone.pt0.y) + anX -  zone.pt0.x];
+                    mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : mAhDefCost);
+                }
 
             }
-
-	}
+    }
 
 #endif
 
     void cAppliMICMAC::DoGPU_Correl_Basik
-		(
+        (
         const Box2di & aBox
-		)
-	{
+        )
+    {
 
 #ifdef  CUDA_ENABLED
-		
-		if(	mNbIm == 0) return;	
 
-        int aZMinTer = mZMinGlob, aZMaxTer = mZMaxGlob;
+        // Si le terrain est masque ou aucune image : Aucun calcul
+        if (mNbIm == 0 || !IMmGg.Param().MaskNoNULL()) return;
 
-		// definition de la zone rectangulaire de terrain
-		Rect mTer(mX0Ter,mY0Ter,mX1Ter,mY1Ter);
+        // Initiation du calcul
+        uint interZ = IMmGg.InitCorrelJob(mZMinGlob,mZMaxGlob);
 
-        // Si le terrain est masque : Aucun calcul
-		if (!IMmGg.Param().MaskNoNULL())	
-            return setVolumeCost(mTer,mZMinGlob,mZMaxGlob,mAhDefCost);
-
-        // intervale des pronfondeurs calcules simultanement
-        uint interZ	= min(INTERZ, abs(aZMaxTer - aZMinTer));
-
-        // S'il change allocation differentes... A VERIFIER!! depuis les derniers changements
-		if (interZ != INTERZ)	IMmGg.SetSizeBlock(interZ);
-		
-        // Allocation de l'espace memoire pour la tabulation des projections et des couts
-        IMmGg.ReallocHost(interZ);
-
-		// Initiation des parametres pour le multithreading
-        IMmGg.InitJob();
-
-        int anZProjection = aZMinTer, anZComputed= aZMinTer, ZtoCopy = 0;
+        int anZProjection = mZMinGlob, anZComputed= mZMinGlob, ZtoCopy = 0;
 
         // Parcourt de l'intervalle de Z compris dans la nappe globale
         if (IMmGg.UseMultiThreading())
-            while( anZComputed < aZMaxTer )
+            while( anZComputed < mZMaxGlob )
             {
-				// Tabulation des projections si la demande est faite
-                if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + (int)interZ && anZProjection < aZMaxTer)
-				{                    
-                    Tabul_Projection( anZProjection, aZMaxTer, interZ);
-                    IMmGg.SetPreComp(false);
-                    IMmGg.SetCompute(interZ);
-					anZProjection+= interZ;
-				}
+
+                // Tabulation des projections si la demande est faite
+
+                if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + (int)interZ && anZProjection < mZMaxGlob)
+                {
+                    Tabul_Projection( anZProjection, mZMaxGlob, interZ);
+
+                    IMmGg.signalComputeCorrel(interZ);
+
+                    anZProjection+= interZ;
+                }
+
                 // Affectation des couts si des nouveaux ont ete calcule!
-                if ((ZtoCopy = (int)IMmGg.GetDataToCopy())/* && anZComputed < aZMaxTer*/)
-				{
-                    setVolumeCost(mTer,anZComputed,anZComputed + ZtoCopy,mAhDefCost,IMmGg.OuputCost(!IMmGg.GetIdBuf()), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
+
+                if ((ZtoCopy = (int)IMmGg.GetDataToCopy()))
+                {
+                    setVolumeCost(anZComputed,anZComputed + ZtoCopy);
+
                     anZComputed += ZtoCopy;
+
                     IMmGg.SetDataToCopy(0);
-				}
-			}
+                }
+            }
         else
         {
-            while( anZComputed < aZMaxTer )
+            while( anZComputed < mZMaxGlob )
             {
-
                 // calcul des projections
-                Tabul_Projection( anZComputed,aZMaxTer,interZ);
-				// Kernel Correlation
-                IMmGg.BasicCorrelation(mNbIm);
+                Tabul_Projection( anZComputed,mZMaxGlob,interZ);
 
-                setVolumeCost(mTer,anZComputed,anZComputed + interZ,mAhDefCost,IMmGg.OuputCost(), IMmGg.Param().RTer(),IMmGg.Param().floatDefault);
+                // Kernel Correlation
+                IMmGg.BasicCorrelation(interZ);
+
+                setVolumeCost(anZComputed,anZComputed + interZ);
+
                 anZComputed += interZ;
+            }
+        }
 
-			}
-		}
-
-        IMmGg.freezeCompute();        
-        IMmGg.DeallocVolumes(); // Attention dealloc Time !!!
+        IMmGg.freezeCompute();
 
 #else
-		ELISE_ASSERT(1,"Sorry, this is not the cuda version");
+        ELISE_ASSERT(1,"Sorry, this is not the cuda version");
 #endif
-		
-	}
+
+    }
 
 void cAppliMICMAC::DoCorrelAdHoc
      (
-		const Box2di & aBox
+        const Box2di & aBox
      )
 {
 
@@ -1561,14 +1544,14 @@ void cAppliMICMAC::DoCorrelAdHoc
                    "EtiqBestImage requires eAggregMaxIm1Maitre,"
             );
             ELISE_ASSERT(aTC.GPU_Correl().IsInit(),"EtiqBestImage requires GPU_Correl");
-			/// ELISE_ASSERT(mNb_PDVBoxInterne>,);
+            /// ELISE_ASSERT(mNb_PDVBoxInterne>,);
       }
 
 
-		// Pour eventuellement changer si existe algo qui impose une taille
+        // Pour eventuellement changer si existe algo qui impose une taille
 
-                
-		mCurSzV0   = mPtSzWFixe;
+
+        mCurSzV0   = mPtSzWFixe;
                 mCurSzVMax = mCurSzV0;
                 if (mCMS)
                 {
@@ -1581,93 +1564,97 @@ void cAppliMICMAC::DoCorrelAdHoc
                     for (int aK=1 ; aK<int(mCMS->OneParamCMS().size()) ; aK++)
                         mCurSzVMax.SetSup(mCMS->OneParamCMS()[aK].SzW());
                 }
-                
 
-		DoInitAdHoc(aBox);
+
+        DoInitAdHoc(aBox);
 
 
 /*
-		if (aTC.CorrelMultiScale().IsInit())
+        if (aTC.CorrelMultiScale().IsInit())
                 {
-			DoGPU_Correl(aBox,(cMultiCorrelPonctuel*)0);
+            DoGPU_Correl(aBox,(cMultiCorrelPonctuel*)0);
                 }
-		else 
+        else
 */
                 if (aTC.GPU_Correl().IsInit())
-		{
-			DoGPU_Correl(aBox,(cMultiCorrelPonctuel*)0);
-		}
-		else if (aTC.GPU_CorrelBasik().IsInit())
-		{
-			DoGPU_Correl_Basik(aBox);
-		}
-		else if (aTC.Correl_Ponctuel2ImGeomI().IsInit())
-		{
-			DoCorrelPonctuelle2ImGeomI(aBox,aTC.Correl_Ponctuel2ImGeomI().Val());
-		}
-		else if (aTC.Correl_PonctuelleCroisee().IsInit())
-		{
-			DoCorrelCroisee2ImGeomI(aBox,aTC.Correl_PonctuelleCroisee().Val());
-		}
-		else if (aTC.Correl_MultiFen().IsInit())
-		{
-			DoCorrelMultiFen(aBox,aTC.Correl_MultiFen().Val());
-		}
-		else if (aTC.Correl_Correl_MNE_ZPredic().IsInit())
-		{
-			Correl_MNE_ZPredic(aBox,aTC.Correl_Correl_MNE_ZPredic().Val());
-		}
-		else if (aTC.Correl_NC_Robuste().IsInit())
-		{
-			DoCorrelRobusteNonCentree(aBox,aTC.Correl_NC_Robuste().Val());
-		}
-		else if (aTC.MultiCorrelPonctuel().IsInit())
-		{
-			DoGPU_Correl(aBox,(aTC.MultiCorrelPonctuel().PtrVal()));
-		}
-		else if (aTC.MasqueAutoByTieP().IsInit())
-		{
-			DoMasqueAutoByTieP(aBox,aTC.MasqueAutoByTieP().Val());
-		}
+        {
+            DoGPU_Correl(aBox,(cMultiCorrelPonctuel*)0);
+        }
+        else if (aTC.GPU_CorrelBasik().IsInit())
+        {
+            DoGPU_Correl_Basik(aBox);
+        }
+        else if (aTC.Correl_Ponctuel2ImGeomI().IsInit())
+        {
+            DoCorrelPonctuelle2ImGeomI(aBox,aTC.Correl_Ponctuel2ImGeomI().Val());
+        }
+        else if (aTC.Correl_PonctuelleCroisee().IsInit())
+        {
+            DoCorrelCroisee2ImGeomI(aBox,aTC.Correl_PonctuelleCroisee().Val());
+        }
+        else if (aTC.Correl_MultiFen().IsInit())
+        {
+            DoCorrelMultiFen(aBox,aTC.Correl_MultiFen().Val());
+        }
+        else if (aTC.Correl_Correl_MNE_ZPredic().IsInit())
+        {
+            Correl_MNE_ZPredic(aBox,aTC.Correl_Correl_MNE_ZPredic().Val());
+        }
+        else if (aTC.Correl_NC_Robuste().IsInit())
+        {
+            DoCorrelRobusteNonCentree(aBox,aTC.Correl_NC_Robuste().Val());
+        }
+        else if (aTC.MultiCorrelPonctuel().IsInit())
+        {
+            DoGPU_Correl(aBox,(aTC.MultiCorrelPonctuel().PtrVal()));
+        }
+        else if (aTC.MasqueAutoByTieP().IsInit())
+        {
+            DoMasqueAutoByTieP(aBox,aTC.MasqueAutoByTieP().Val());
+        }
 
 }
 
+    void cAppliMICMAC::GlobDoCorrelAdHoc
+        (
+        const Box2di & aBoxOut,
+        const Box2di & aBox  //  IN
+        )
+    {
 
-	void cAppliMICMAC::GlobDoCorrelAdHoc
-		(
-		const Box2di & aBoxOut,
-		const Box2di & aBox  //  IN
-		)
-	{
-
-		const cTypeCAH & aTC  = mCorrelAdHoc->TypeCAH();
-		if (aTC.Correl2DLeastSquare().IsInit())
-		{
-			// ELISE_ASSERT(AlgoRegul()==eAlgoLeastSQ
-			DoCorrelLeastQuare(aBoxOut,aBox,aTC.Correl2DLeastSquare().Val());
-			return;
-		}
-
+        const cTypeCAH & aTC  = mCorrelAdHoc->TypeCAH();
+        if (aTC.Correl2DLeastSquare().IsInit())
+        {
+            // ELISE_ASSERT(AlgoRegul()==eAlgoLeastSQ
+            DoCorrelLeastQuare(aBoxOut,aBox,aTC.Correl2DLeastSquare().Val());
+            return;
+        }
 
 
-		mEpsAddMoy  =  mCorrelAdHoc->EpsilonAddMoyenne().Val();
-		mEpsMulMoy  =  mCorrelAdHoc->EpsilonMulMoyenne().Val();
+
+        mEpsAddMoy  =  mCorrelAdHoc->EpsilonAddMoyenne().Val();
+        mEpsMulMoy  =  mCorrelAdHoc->EpsilonMulMoyenne().Val();
 
 
-		cDecoupageInterv2D aDecInterv =
-			cDecoupageInterv2D::SimpleDec
-			(
-			aBox.sz(),
-			mCorrelAdHoc->SzBlocAH().Val(),
-			0
-			);
+        cDecoupageInterv2D aDecInterv =
+            cDecoupageInterv2D::SimpleDec
+            (
+            aBox.sz(),
+            mCorrelAdHoc->SzBlocAH().Val(),
+            0
+            );
 
-		for (int aKBox=0 ; aKBox<aDecInterv.NbInterv() ; aKBox++)
-		{
-			DoCorrelAdHoc(aDecInterv.KthIntervOut(aKBox));
-		}
+#ifdef CUDA_ENABLED
+        IMmGg.box.x = aBox.sz().x;
+        IMmGg.box.y = aBox.sz().y;
+#endif
 
-	}
+        for (int aKBox=0 ; aKBox<aDecInterv.NbInterv() ; aKBox++)
+        {
+            DoCorrelAdHoc(aDecInterv.KthIntervOut(aKBox));
+        }
+
+    }
 
 }
 
@@ -1676,33 +1663,33 @@ void cAppliMICMAC::DoCorrelAdHoc
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant ï¿½  la mise en
+Ce logiciel est un programme informatique servant à  la mise en
 correspondances d'images pour la reconstruction du relief.
 
-Ce logiciel est rÃ©gi par la licence CeCILL-B soumise au droit franÃ§ais et
+Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusÃ©e par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
-En contrepartie de l'accessibilitÃ© au code source et des droits de copie,
-de modification et de redistribution accordÃ©s par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitÃ©e.  Pour les mÃªmes raisons,
-seule une responsabilitÃ© restreinte pÃ¨se sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concÃ©dants successifs.
+En contrepartie de l'accessibilité au code source et des droits de copie,
+de modification et de redistribution accordés par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
+seule une responsabilité restreinte pèse sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concédants successifs.
 
-A cet Ã©gard  l'attention de l'utilisateur est attirÃ©e sur les risques
-associÃ©s au chargement,  ï¿½  l'utilisation,  ï¿½  la modification et/ou au
-dÃ©veloppement et ï¿½  la reproduction du logiciel par l'utilisateur Ã©tant 
-donnÃ© sa spÃ©cificitÃ© de logiciel libre, qui peut le rendre complexe ï¿½  
-manipuler et qui le rÃ©serve donc ï¿½  des dÃ©veloppeurs et des professionnels
-avertis possÃ©dant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invitÃ©s ï¿½  charger  et  tester  l'adÃ©quation  du
-logiciel ï¿½  leurs besoins dans des conditions permettant d'assurer la
-sÃ©curitÃ© de leurs systÃ¨mes et ou de leurs donnÃ©es et, plus gÃ©nÃ©ralement, 
-ï¿½  l'utiliser et l'exploiter dans les mÃªmes conditions de sÃ©curitÃ©. 
+A cet égard  l'attention de l'utilisateur est attirée sur les risques
+associés au chargement,  à  l'utilisation,  à  la modification et/ou au
+développement et à  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à
+manipuler et qui le réserve donc à  des développeurs et des professionnels
+avertis possédant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invités à  charger  et  tester  l'adéquation  du
+logiciel à  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+à  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accÃ©der ï¿½  cet en-tÃªte signifie que vous avez 
-pris connaissance de la licence CeCILL-B, et que vous en avez acceptÃ© les
+Le fait que vous puissiez accéder à  cet en-tête signifie que vous avez
+pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

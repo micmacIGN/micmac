@@ -1,15 +1,16 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#ifndef  WIN32
-#ifndef __APPLE__
-#include "GL/glew.h"
-#endif
-#endif
+//#ifndef  WIN32
+//#ifndef __APPLE__
+//#include "GL/glew.h"
+//#endif
+//#endif
 #include <QMainWindow>
 #include <QFutureWatcher>
 #include <QtConcurrentRun>
 #include <QProgressDialog>
+#include <QTimer>
 
 #include "GLWidget.h"
 #include "Engine.h"
@@ -31,20 +32,11 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(bool mode2D = false, QWidget *parent = 0);
     ~MainWindow();
 
-    //! Checks for loaded entities
-    /** If none, a message is displayed to invite user
-        to drag & drop files.
-    **/
-    bool checkForLoadedEntities();
-
-    static void progress(int var, void *obj);
-
-signals:
-
-    void progressInc(int val);
+    //! Checks for loaded data
+    bool checkForLoadedData();
 
 public slots:
 
@@ -61,9 +53,9 @@ public slots:
     void toggleShowBBox(bool);
     void toggleShowCams(bool);
     void toggleShowMessages(bool);
-    void togglePointsSelection(bool state);
+    void toggleSelectionMode(bool state);
 
-    void addPoints();
+    void add();
     void selectNone();
     void invertSelected();
     void selectAll();
@@ -83,32 +75,49 @@ public slots:
 
     void loadPlys();
     void loadCameras();
-    void unloadAll();
+    void loadImages();
+    void closeAll();
     void exportMasks();
     void loadAndExport();
     void saveSelectionInfos();
+
+    void openRecentFile();
+
+    void progression();
+
+    void setMode2D(bool mBool);
 
 protected:
 
     //! Connects all QT actions to slots
     void connectActions();  
 
-
 private:
 
-    void emitProgress(int progress);
+    void                    createMenus();
 
-    //int                    GetValue(){return _value;}
+    void                    setCurrentFile(const QString &fileName);
+    void                    updateRecentFileActions();
+    QString                 strippedName(const QString &fullFileName);
 
-    Ui::MainWindow          *ui;
+    int *                   m_incre;
+
+    Ui::MainWindow*         ui;
 
     GLWidget*               m_glWidget;
 
     cEngine*                m_Engine;
 
-    QFutureWatcher<void>    FutureWatcher;
-    QProgressDialog*        ProgressDialog;
+    QFutureWatcher<void>    m_FutureWatcher;
+    QProgressDialog*        m_ProgressDialog;
 
-    //int                     _value;
+    enum { MaxRecentFiles = 3 };
+    QAction *               m_recentFileActs[MaxRecentFiles];
+    QString                 m_curFile;
+    QStringList             m_FilenamesIn;
+
+    QMenu*                  m_RFMenu; //recent files menu
+
+    bool                    m_mode2D;
 };
 #endif // MAINWINDOW_H
