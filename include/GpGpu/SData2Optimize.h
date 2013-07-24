@@ -7,7 +7,7 @@ template<template<class T> class U, uint NBUFFER = 1 >
 struct Data2Optimiz
 {
     U<uint3>     _param[NBUFFER];
-    U<uint>      _s_InitCostVol;
+    U<ushort>    _s_InitCostVol;
     U<uint>      _s_ForceCostVol[NBUFFER];
     U<short2>    _s_Index;
     uint         _nbLines;

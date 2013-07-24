@@ -26,7 +26,7 @@ extern "C" void CopyParamTodevice( pCorGpu param )
 template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
 {
 
-  __shared__ float cacheImg[ BLOCKDIM ][ BLOCKDIM ];
+  extern __shared__ float cacheImg[];
 
   // Coordonnées du terrain global avec bordure // __umul24!!!! A voir
 
@@ -50,7 +50,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 
       modZ  = blockIdx.z - pitZ * cH.nbImages;
 
-      cacheImg[threadIdx.y][threadIdx.x] = GetImageValue(ptProj,modZ);
+      cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = GetImageValue(ptProj,modZ);
   }
 
   __syncthreads();
@@ -71,19 +71,19 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
   float aSV = 0.0f, aSVV = 0.0f;
   short2 pt;
 
-#pragma unroll // ATTENTION PRAGMA FAIT AUGMENTER LA quantité MEMOIRE des registres!!!
-
+  #pragma unroll // ATTENTION PRAGMA FAIT AUGMENTER LA quantité MEMOIRE des registres!!!
   for (pt.y = c0.y ; pt.y <= c1.y; pt.y++)
-
-#pragma unroll
-
+  {
+        const int pic = pt.y*BLOCKDIM;
+      #pragma unroll
       for (pt.x = c0.x ; pt.x <= c1.x; pt.x++)
       {
-          const float val = cacheImg[pt.y][pt.x];	// Valeur de l'image
+          const float val = cacheImg[pic+ pt.x];	// Valeur de l'image
           //        if (val ==  cH.floatDefault) return;
           aSV  += val;          // Somme des valeurs de l'image cte
           aSVV += (val*val);	// Somme des carrés des vals image cte
       }
+  }
 
   aSV   = fdividef(aSV,(float)cH.sizeVig );
 
@@ -102,11 +102,12 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 #pragma unroll
   for ( pt.y = c0.y ; pt.y <= c1.y; pt.y++)
     {
-      const int _py	= (pitchCachY + (pt.y - c0.y))* cH.dimCach.x;
+      const int _py	= pitchCache + (pitchCachY + (pt.y - c0.y))* cH.dimCach.x;
+      const int pic = pt.y*BLOCKDIM;
 #pragma unroll
       for ( pt.x = c0.x ; pt.x <= c1.x; pt.x++)
 
-        cachVig[ pitchCache + _py  + (pt.x - c0.x)] = (cacheImg[pt.y][pt.x] -aSV)*aSVV;
+        cachVig[ _py + (pt.x - c0.x)] = (cacheImg[pic + pt.x] -aSV)*aSVV;
 
     }
 
@@ -131,11 +132,11 @@ extern "C" void	 LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu
   switch (s)
     {
     case 0:
-      correlationKernel<0><<<blocks, threads, 0, stream>>>( data2cor.DeviVolumeNOK(0), data2cor.DeviVolumeCache(0), nbActThrd);
+      correlationKernel<0><<<blocks, threads, BLOCKDIM * BLOCKDIM * sizeof(float), stream>>>( data2cor.DeviVolumeNOK(0), data2cor.DeviVolumeCache(0), nbActThrd);
       getLastCudaError("Basic Correlation kernel failed stream 0");
       break;
     case 1:
-      correlationKernel<1><<<blocks, threads, 0, stream>>>( data2cor.DeviVolumeNOK(1), data2cor.DeviVolumeCache(1), nbActThrd);
+      correlationKernel<1><<<blocks, threads, BLOCKDIM * BLOCKDIM* sizeof(float), stream>>>( data2cor.DeviVolumeNOK(1), data2cor.DeviVolumeCache(1), nbActThrd);
       getLastCudaError("Basic Correlation kernel failed stream 1");
       break;
     }
