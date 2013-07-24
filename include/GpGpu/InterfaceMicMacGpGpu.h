@@ -60,6 +60,10 @@ public:
 
   uint2         startPt;
 
+  bool          TexturesAreLoaded();
+
+  void          SetTexturesAreLoaded(bool load);
+
 private:
 
   void              CorrelationGpGpu(const int s = 0);
@@ -73,6 +77,8 @@ private:
   pCorGpu           _param;
 
   SData2Correl      _data2Cor;
+
+  bool				_TexturesAreLoaded;
 
 };
 
