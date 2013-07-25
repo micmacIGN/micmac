@@ -68,12 +68,17 @@
                          </ContraintesPoses>
                     </SectionContraintes>
                     <EstimateOrientationInitBlockCamera>
-                         <Id> Bloc_LR.xml </Id>
+                         <Id>   Bloc_LR.xml </Id>
+                         <Show> true </Show>
                     </EstimateOrientationInitBlockCamera>
                </IterationsCompensation>
                <SectionObservations>
                </SectionObservations>
                <SectionExport>
+                     <ExportBlockCamera>
+                         <Id> Bloc_LR.xml </Id>
+                         <NameFile> Bloc_Init_LR.xml </NameFile>
+                     </ExportBlockCamera>
                </SectionExport>
           </EtapeCompensation>
      </SectionCompensation>
