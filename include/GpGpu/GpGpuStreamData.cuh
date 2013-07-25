@@ -18,7 +18,7 @@ static __constant__ ushort  dMapIndex[WARPSIZE];
 
 /// \class CDeviceStream
 /// \brief Classe gerant un flux de données en memoire video
-template< class T, class S = T>
+template< class T >
 class CDeviceStream
 {
 public:
@@ -44,7 +44,7 @@ public:
     }
 
 
-    template<bool sens> __device__ short2 read(S* destData, ushort tid, T def);
+    template<bool sens, class D> __device__ short2 read(D* destData, ushort tid, T def);
 
 private:
 
@@ -68,8 +68,8 @@ private:
     uint                        _sizeStream;
 };
 
-template< class T, class S > template<bool sens>  __device__
-short2 CDeviceStream<T,S>::read(S *destData, ushort tid, T def)
+template< class T > template<bool sens, class D>  __device__
+short2 CDeviceStream<T>::read(D *destData, ushort tid, T def)
 {
     short2  index;
     ushort  NbCopied    = 0 , NbTotalToCopy = sens ? getLen2ReadAV(index) : getLen2ReadAR(index);
@@ -108,13 +108,13 @@ short2 CDeviceStream<T,S>::read(S *destData, ushort tid, T def)
 }
 
 
-template< class T,class S >
-class CDeviceDataStream : public CDeviceStream<T,S>
+template< class T >
+class CDeviceDataStream : public CDeviceStream<T>
 {
 public:
 
     __device__ CDeviceDataStream(T* buf,T* stream,short2* bufId,short2* streamId, uint sizeStream, uint sizeStreamId):
-        CDeviceStream<T,S>(buf,stream,sizeStream),
+        CDeviceStream<T>(buf,stream,sizeStream),
         _streamIndex(bufId,streamId,sizeStreamId)
     {}
 

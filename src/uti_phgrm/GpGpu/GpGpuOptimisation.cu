@@ -29,7 +29,7 @@ __device__ void ComputeIntervaleDelta(short2 & aDz, int aZ, int MaxDeltaZ, short
             aDz.y = aDz.x;
 }
 
-template<class T, class S, bool sens > __device__ void ReadOneSens(CDeviceDataStream<T,S> &costStream, uint lenghtLine, T pData[][NAPPEMAX], bool& idBuffer, T* gData, ushort penteMax, uint3 dimBlockTer)
+template<class T, class S, bool sens > __device__ void ReadOneSens(CDeviceDataStream<T> &costStream, uint lenghtLine, T pData[][NAPPEMAX], bool& idBuffer, T* gData, ushort penteMax, uint3 dimBlockTer)
 {
     const ushort    tid     = threadIdx.x;
 
@@ -50,8 +50,9 @@ template<class T, class S, bool sens > __device__ void ReadOneSens(CDeviceDataSt
 
 template<class T, class S,bool sens > __device__
 void ScanOneSens(
-        CDeviceDataStream<T,S> &costStream,
+        CDeviceDataStream<T> &costStream,
         uint    lenghtLine,
+        T*      bCostInit,
         S       pData[][NAPPEMAX],
         bool&   idBuf,
         S*      g_ForceCostVol,
@@ -76,7 +77,7 @@ void ScanOneSens(
     for(int idLine = 1; idLine < lenghtLine;idLine++)//#pragma unroll
     {
 
-        short2 uZ_Next  = costStream.read<sens>(pData[2],tid,0);
+        short2 uZ_Next  = costStream.read<sens>(bCostInit,tid,0);
         ushort nbZ_Next = count(uZ_Next);
 
         pitStrOut += sens ? count(uZ_Prev) : -nbZ_Next;
@@ -98,7 +99,7 @@ void ScanOneSens(
             ComputeIntervaleDelta(aDz,Z,penteMax,uZ_Next,uZ_Prev);
             S costMin           = 1e9;
 
-            const S costInit    = pData[2][Z_Id];
+            const S costInit    = bCostInit[Z_Id];
 
             const short Z_P_Id  = Z - uZ_Prev.x;
 
@@ -151,7 +152,8 @@ template<class T,class S> __global__ void kernelOptiOneDirection(T* g_StrCostVol
 {
     __shared__ T        bufferData[WARPSIZE];
     __shared__ short2   bufferIndex[WARPSIZE];
-    __shared__ S        pdata[3][NAPPEMAX];
+    __shared__ T        bCostInit[NAPPEMAX];
+    __shared__ S        pdata[2][NAPPEMAX];
     __shared__ uint     pit_Id;
     __shared__ uint     pit_Stream;
     __shared__ uint     sizeLine;
@@ -169,10 +171,10 @@ template<class T,class S> __global__ void kernelOptiOneDirection(T* g_StrCostVol
 
     __syncthreads();
 
-    CDeviceDataStream<T,S> costStream(bufferData, g_StrCostVol + pit_Stream,bufferIndex, g_StrId + pit_Id, sizeLine * NAPPEMAX, sizeLine);
+    CDeviceDataStream<T> costStream(bufferData, g_StrCostVol + pit_Stream,bufferIndex, g_StrId + pit_Id, sizeLine * NAPPEMAX, sizeLine);
 
-    ScanOneSens<T,S,eAVANT>   (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
-    ScanOneSens<T,S,eARRIERE> (costStream, sizeLine, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
+    ScanOneSens<T,S,eAVANT>   (costStream, sizeLine, bCostInit, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
+    ScanOneSens<T,S,eARRIERE> (costStream, sizeLine, bCostInit, pdata,idBuf,g_ForceCostVol + pit_Stream,penteMax, pitStrOut);
 
 }
 
