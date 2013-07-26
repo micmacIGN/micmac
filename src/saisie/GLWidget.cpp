@@ -10,6 +10,8 @@ const GLuint GL_INVALID_LIST_ID = (~0);
 using namespace Cloud_;
 using namespace std;
 
+GLfloat g_position[2] = { 0.f, 0.f };
+
 GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_font(font())
 
@@ -25,6 +27,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_previousAction(NONE)
   , m_trihedronGLList(GL_INVALID_LIST_ID)
   , m_ballGLList(GL_INVALID_LIST_ID)
+  , m_texturGLList(GL_INVALID_LIST_ID)
   , m_nbGLLists(0)
   , m_params(ViewportParameters())
   , m_Data(data)
@@ -64,6 +67,11 @@ GLWidget::~GLWidget()
         glDeleteLists(m_ballGLList,1);
         m_ballGLList = GL_INVALID_LIST_ID;
     }
+    if (m_texturGLList != GL_INVALID_LIST_ID)
+    {
+        glDeleteLists(m_texturGLList,1);
+        m_texturGLList = GL_INVALID_LIST_ID;
+    }
 }
 
 void GLWidget::initializeGL()
@@ -87,21 +95,21 @@ void GLWidget::resizeGL(int width, int height)
 }
 
 //-------------------------------------------------------------------------
-// Calculates the frames per second
+// Computes the frames rate
 //-------------------------------------------------------------------------
-void GLWidget::calculateFPS()
+void GLWidget::computeFPS()
 {
     //  Increase frame count
     _frameCount++;
 
     _currentTime = _time.elapsed();
 
-    //  Calculate time passed
+    //  Compute elapsed time
     int deltaTime = _currentTime - _previousTime;
 
     if(deltaTime > 1000)
     {
-        //  calculate the number of frames per second
+        //  compute the number of frames per second
         _fps = _frameCount / (deltaTime / 1000.0f);
 
         //  Set time
@@ -117,15 +125,24 @@ void GLWidget::calculateFPS()
     }
 }
 
+int EnsureRange(int aValue, int aMin, int aMax)
+{
+    if ((aMin <= aValue) && (aValue <= aMax) ) return aValue;
+    if (aMin > aValue) return aMin;
+    else return aMax;
+}
+
 void GLWidget::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (m_Data->NbImages())
     {
+        glPushMatrix(); // __TEST
+
         zoom();
 
-        glTranslatef(m_params.m_translationMatrix[0],m_params.m_translationMatrix[1],0.f);
+        glTranslatef( g_position[0], g_position[1], 0.f );
 
         glEnable(GL_ALPHA_TEST);
         glAlphaFunc(GL_GREATER, 0.1f);
@@ -152,13 +169,15 @@ void GLWidget::paintGL()
 
         glDisable(GL_BLEND);
         glDisable(GL_ALPHA_TEST);
+
+        glPopMatrix(); // __TEST
     }
     else
     {
         setStandardOrthoCenter();
 
         // semble regler le positionnement des points mais pas dans tous les cas
-        // dans certaine rotation, les points auraient des profondeurs incorrectes!
+        // dans certaines rotations, les points auraient des profondeurs incorrectes!
         glEnable(GL_DEPTH_TEST);
 
         //gradient color background
@@ -206,7 +225,7 @@ void GLWidget::paintGL()
 
         //if ((m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE) && m_bDrawMessages)
         {
-            calculateFPS();
+            computeFPS();
 
             glColor4f(0.8f,0.9f,1.0f,0.9f);
 
@@ -253,7 +272,7 @@ void GLWidget::paintGL()
         glColor3f(1.f,1.f,1.f);
 
         int fontSize = 10;
-        int lc_currentHeight = m_glHeight- fontSize*m_messagesToDisplay.size(); //lower center
+        int lc_currentHeight = m_glHeight - fontSize*m_messagesToDisplay.size(); //lower center
         int uc_currentHeight = 10;            //upper center
 
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
@@ -298,12 +317,47 @@ void GLWidget::paintGL()
     }
 }
 
+bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> poly);
+
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
     m_lastPos = event->pos();
 
     if ( event->buttons()&Qt::LeftButton )
     {
+       /* QPoint p0 = event->pos(),
+               p1,
+               p2;
+
+        WindowToImage( p0, p1 );
+        ImageToWindow( p1, p2 );
+
+        cout << p0.x() << ',' << p0.y() << " => " << p1.x() << ',' << p1.y() << " => " << p2.x() << ',' << p2.y() << endl;
+
+        cout << "click " << p1.x() << ',' << p1.y() << endl;
+
+        QPoint ptImg;
+        Vertex P(Pt3dr(2.f*p0.x()/m_glWidth-1.f,1.f-2.f*p0.y()/m_glHeight,0),QColor(0,255,0));
+        getProjection(ptImg, P);
+
+        cout << "gluProject :" << ptImg.x() << ", " << ptImg.y() << endl;
+
+        float scale = (float)m_glWidth /(float)_glImg.width();
+
+        cout << "Image : " << ptImg.x() / scale << ", " << _glImg.height() - ptImg.y() / scale << endl;
+
+
+        QVector<QPoint> poly;
+        poly.push_back( QPoint( 0,0 ) );
+        poly.push_back( QPoint( 0,_glImg.height() ) );
+        poly.push_back( QPoint( _glImg.width() ,_glImg.height() ) );
+        poly.push_back( QPoint( _glImg.width(), 0 ) );
+        poly.push_back( QPoint( 0,0 ) );
+
+        bool isPoly = isPointInsidePoly( p1, poly );
+
+        if ( isPoly ) cout << "is in poly" << endl;*/
+
         _m_g_mouseLeftDown = true;
 
         if (m_interactionMode == SEGMENT_POINTS)
@@ -463,7 +517,6 @@ void GLWidget::setData(cData *data)
     if (m_Data->NbImages())
     {
         m_bDisplayMode2D = true;
-        m_speed = 0.005f;
 
         glDisable( GL_DEPTH_TEST );
 
@@ -592,8 +645,8 @@ void GLWidget::zoom()
     {
         GLdouble fAspect = (GLdouble) m_glWidth/ m_glHeight;
 
-        GLdouble left   = -zoom*fAspect;
-        GLdouble right  =  zoom*fAspect;
+        GLdouble left  = -zoom*fAspect;
+        GLdouble right =  zoom*fAspect;
 
         glOrtho(left, right, -zoom, zoom, -100.0f, 100.0f);
     }
@@ -738,7 +791,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     }
     else if (_m_g_mouseLeftDown || _m_g_mouseMiddleDown|| _m_g_mouseRightDown)
     {
-        QPoint dp = event->pos()-m_lastPos;
+        QPoint dp = pos-m_lastPos;
 
         if ( _m_g_mouseLeftDown ) // rotation autour de X et Y
         {
@@ -758,8 +811,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         {
             if (m_Data->NbImages())
             {
-                m_params.m_translationMatrix[0] = m_speed* dp.x();
-                m_params.m_translationMatrix[1] = - m_speed* dp.y();
+                g_position[0] += 2.f*( (float)dp.x()/(float)m_glWidth );
+                g_position[1] -= 2.f*( (float)dp.y()/(float)m_glHeight );
             }
             else
             {
@@ -784,10 +837,10 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         update();  
     }
 
-    m_lastPos = event->pos();
+    m_lastPos = pos;
 }
 
-bool isPointInsidePoly(const QPoint& P, const QVector< QPoint> poly)
+bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> poly)
 {
     unsigned vertices=poly.size();
     if (vertices<3)
@@ -795,10 +848,10 @@ bool isPointInsidePoly(const QPoint& P, const QVector< QPoint> poly)
 
     bool inside = false;
 
-    QPoint A = poly[0];
+    QPointF A = poly[0];
     for (unsigned i=1;i<=vertices;++i)
     {
-        QPoint B = poly[i%vertices];
+        QPointF B = poly[i%vertices];
 
         //Point Inclusion in Polygon Test (inspired from W. Randolph Franklin - WRF)
         if (((B.y() <= P.y()) && (P.y()<A.y())) ||
@@ -830,30 +883,54 @@ void GLWidget::setProjectionMatrix()
     glGetIntegerv(GL_VIEWPORT, _VP);
 }
 
-void GLWidget::getProjection(QPoint &P2D, Vertex P)
+void GLWidget::getProjection(QPointF &P2D, Vertex P)
 {
     GLdouble xp,yp,zp;
     gluProject(P.x(),P.y(),P.z(),_MM,_MP,_VP,&xp,&yp,&zp);
-    P2D = QPoint(xp,yp);
+    P2D = QPointF(xp,yp);
 }
 
 void GLWidget::Select(int mode)
 {
-    QPoint P2D;
+    QPointF P2D;
     bool pointInside;
-    QVector< QPoint> polyg;
+    QVector< QPointF> polyg;
 
     if(mode == ADD || mode == SUB)
     {
         if ((m_polygon.size() < 3) || (!m_bPolyIsClosed))
             return;
 
-        for (int aK=0; aK < (int) m_polygon.size(); ++aK)
-            polyg.push_back(QPoint(m_polygon[aK].x(), m_glHeight - m_polygon[aK].y()));
+        if (!m_bDisplayMode2D)
+        {
+            for (int aK=0; aK < (int) m_polygon.size(); ++aK)
+            {
+                polyg.push_back(QPointF(m_polygon[aK].x(), m_glHeight - m_polygon[aK].y()));
+            }
+        }
+        else
+        {
+            float scale = (float)_glImg.width() /(float)m_glWidth;
+
+            for (int aK=0; aK < (int) m_polygon.size(); ++aK)
+            {
+                 QPointF ptImg;
+
+                 Vertex P(Pt3dr(2.f*(float)m_polygon[aK].x()/(float)m_glWidth-1.f,1.f-2.f*(float)m_polygon[aK].y()/(float)m_glHeight,0),QColor(0,255,0));
+                 getProjection(ptImg, P);
+
+                 ptImg.setX(ptImg.x() * scale);
+                 ptImg.setY(ptImg.y() * scale);
+
+              //   cout << "Image : " << ptImg.x() / scale << ", " << _glImg.height() - ptImg.y() / scale << endl;
+
+                 polyg.push_back(ptImg);
+
+               //  cout << "poly " << m_polygon[aK].x() << ", " << m_polygon[aK].y() << " > "  <<ptImg.x() << ", " << ptImg.y() << endl;
+            }
+        }
     }
 
-    float xRatio = (float) _glImg.width() / m_glWidth;
-    float yRatio = (float) _glImg.height() / m_glHeight;
     float alphaF = 0.5f;
 
     if (m_bDisplayMode2D)
@@ -868,7 +945,8 @@ void GLWidget::Select(int mode)
                 {
                 case ADD:
                     c = QColor::fromRgba(_glImg.pixel(x,y));
-                    pointInside = isPointInsidePoly(QPoint(x/xRatio,y/yRatio),polyg);
+                    pointInside = isPointInsidePoly(QPointF(x,y),polyg);
+
                     if (m_bFirstAction)
                     {
                         if (!pointInside)
@@ -888,7 +966,7 @@ void GLWidget::Select(int mode)
                     break;
                 case SUB:
                     c = QColor::fromRgba(_glImg.pixel(x,y));
-                    pointInside = isPointInsidePoly(QPoint(x/xRatio,y/yRatio),polyg);
+                    pointInside = isPointInsidePoly(QPointF(x,y),polyg);
                     if (pointInside)
                     {
                         c.setAlphaF(alphaF);
@@ -906,12 +984,12 @@ void GLWidget::Select(int mode)
                     m_bFirstAction = true;
                     c = QColor::fromRgba(_glImg.pixel(x,y));
                     c.setAlphaF(1.f);
-                     _glImg.setPixel(x,y, c.rgba());
+                    _glImg.setPixel(x,y, c.rgba());
                     break;
                 case NONE:
                     c = QColor::fromRgba(_glImg.pixel(x,y));
                     c.setAlphaF(alphaF);
-                     _glImg.setPixel(x,y, c.rgba());
+                    _glImg.setPixel(x,y, c.rgba());
                     break;
                 }
             }
@@ -965,7 +1043,13 @@ void GLWidget::Select(int mode)
     if (((mode == ADD)||(mode == SUB)) && (m_bFirstAction)) m_bFirstAction = false;
 
     m_previousAction = mode;
-    m_infos.push_back(cSelectInfos(m_params, m_polygon, mode));
+
+    selectInfos info;
+    info.params = m_params;
+    info.poly   = m_polygon;
+    info.selection_mode   = mode;
+
+    m_infos.push_back(info);
 }
 
 void GLWidget::deletePolylinePoint()
