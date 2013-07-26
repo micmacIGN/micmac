@@ -154,7 +154,7 @@ void cEngine::doMasks()
     }
 }
 
-void cEngine::saveSelectInfos(QVector <cSelectInfos> const &Infos)
+void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
 {
     QDomDocument doc;
 
@@ -172,22 +172,22 @@ void cEngine::saveSelectInfos(QVector <cSelectInfos> const &Infos)
         QDomElement Translation	= doc.createElement("Translation");
         QDomElement Mode        = doc.createElement("Mode");
 
-        cSelectInfos SInfo = Infos[i];
+        selectInfos SInfo = Infos[i];
 
-        t = doc.createTextNode(QString::number(SInfo.getParams().zoom));
+        t = doc.createTextNode(QString::number(SInfo.params.zoom));
         Scale.appendChild(t);
 
-        t = doc.createTextNode(QString::number(SInfo.getParams().angleX) + " " + QString::number(SInfo.getParams().angleY) + " " + QString::number(SInfo.getParams().angleZ));
+        t = doc.createTextNode(QString::number(SInfo.params.angleX) + " " + QString::number(SInfo.params.angleY) + " " + QString::number(SInfo.params.angleZ));
         Rotation.appendChild(t);
 
-        t = doc.createTextNode(QString::number(SInfo.getParams().m_translationMatrix[0]) + " " + QString::number(SInfo.getParams().m_translationMatrix[1]) + " " + QString::number(SInfo.getParams().m_translationMatrix[2]));
+        t = doc.createTextNode(QString::number(SInfo.params.m_translationMatrix[0]) + " " + QString::number(SInfo.params.m_translationMatrix[1]) + " " + QString::number(SInfo.params.m_translationMatrix[2]));
         Translation.appendChild(t);
 
         SII.appendChild(Scale);
         SII.appendChild(Rotation);
         SII.appendChild(Translation);
 
-        QVector <QPoint> pts = SInfo.getPoly();
+        QVector <QPoint> pts = SInfo.poly;
 
         for (int aK=0; aK <pts.size(); ++aK)
         {
@@ -199,7 +199,7 @@ void cEngine::saveSelectInfos(QVector <cSelectInfos> const &Infos)
             SII.appendChild(Point);
         }
 
-        t = doc.createTextNode(QString::number(SInfo.getSelectionMode()));
+        t = doc.createTextNode(QString::number(SInfo.selection_mode));
         Mode.appendChild(t);
 
         SII.appendChild(Mode);
@@ -213,7 +213,9 @@ void cEngine::saveSelectInfos(QVector <cSelectInfos> const &Infos)
     content << doc.toString();
     outFile.close();
 
-    cout << "File saved in: " << m_Loader->GetSelectionFilename().toStdString() << endl;
+    #ifdef _DEBUG
+       printf ( "File saved in: %s\n", m_Loader->GetSelectionFilename().toStdString());
+    #endif
 }
 
 void cEngine::unloadAll()
@@ -223,7 +225,6 @@ void cEngine::unloadAll()
     m_Data->clearImages();
     m_Data->reset();
 }
-
 
 //********************************************************************************
 
@@ -274,25 +275,10 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
 
 void ViewportParameters::reset()
 {
-    zoom = 1.f;
-    PointSize = 1.f;
-    LineWidth = 1.f;
-    angleX = 0.f;
-    angleY = 0.f;
-    angleZ = 0.f;
+    zoom = PointSize = LineWidth = 1.f;
+    angleX = angleY = angleZ = 0.f;
 
     m_translationMatrix[0] = m_translationMatrix[1] = m_translationMatrix[2] = 0.f;
 }
 
-//********************************************************************************
 
-cSelectInfos::cSelectInfos(){}
-
-cSelectInfos::~cSelectInfos(){}
-
-cSelectInfos::cSelectInfos(ViewportParameters par, QVector <QPoint> polyline, int selection_mode)
-{
-    m_params = par;
-    m_poly   = polyline;
-    m_selection_mode = selection_mode;
-}
