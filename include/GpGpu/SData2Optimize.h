@@ -38,11 +38,10 @@ struct Data2Optimiz
 
     uint NBlines(){return _nbLines;}
 
-    ushort* pInitCost(){    return _s_InitCostVol.pData();}
-    short2* pIndex(){       return _s_Index.pData();}
-    uint* pForceCostVol(){return _s_ForceCostVol[0].pData();}
-    uint3* pParam(){       return _param[0].pData();}
-
+    ushort*     pInitCost(){    return _s_InitCostVol.pData();}
+    short2*     pIndex(){       return _s_Index.pData();}
+    uint*       pForceCostVol(){return _s_ForceCostVol[0].pData();}
+    uint3*      pParam(){       return _param[0].pData();}
 
     U<uint3>     _param[NBUFFER];
     U<ushort>    _s_InitCostVol;
