@@ -1425,6 +1425,16 @@ namespace NS_ParamChantierPhotogram{
          <UserName  Nb="?" Type="std::string" Def="Anonymous">  </UserName> <!-- Ou  mm3d:Ann -->
     </MMUserEnvironment>
 
+<SelectionInfos Nb="1" Class="true" ToReference="true">
+ <Item Nb="*">
+      <Scale Nb="1" Type="double"></Scale>
+      <Rotation  Nb="1" Type="Pt3dr"></Rotation>
+      <Translation  Nb="1" Type="Pt3dr"></Translation>
+      <Pt Nb="*" Type="Pt2dr"> </Pt>
+      <Mode Nb="1" Type="int"></Mode>
+ </Item>
+</SelectionInfos>
+
 
   
 <Verbatim File=".h.cpp">
