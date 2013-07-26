@@ -482,7 +482,7 @@ public:
     /// \param      val : valeur d initialisation
     virtual bool	Memset(int val) = 0;
     /// \brief      Desalloue la memoire alloue
-    virtual bool	Dealloc()		= 0;
+    bool            Dealloc();
     /// \brief      Sortie console de la classe
     virtual void	OutputInfo()	= 0;
     /// \brief      Renvoie le pointeur des donnees
@@ -515,6 +515,8 @@ protected:
     /// \brief      Initialise la taille de la memoire alloue
     /// \param      sizeofmalloc : Taille de l allocation
     void            SetSizeofMalloc(uint sizeofmalloc);
+
+    virtual bool    abDealloc() = 0;
 
 private:
 
@@ -596,6 +598,17 @@ CData<T>::CData():
 }
 
 template <class T>
+bool CData<T>::Dealloc()
+{
+    bool op = false;
+    SubMemoryOc(GetSizeofMalloc());
+    SetSizeofMalloc(0);
+    if (!isNULL()) op = abDealloc();
+    CData<T>::dataNULL();
+    return op;
+}
+
+template <class T>
 T** CData<T>::ppData()
 {
     return &_data;
@@ -641,7 +654,7 @@ public:
     /// \brief      Initialise les elements des images a val
     /// \param      val : Valeur d initialisation
     virtual bool	Memset(int val) = 0;
-    virtual bool	Dealloc()       = 0;
+
     void			OutputInfo();
     /// \brief       Allocation memoire pour les tous les elements de la structures avec initialisation de la dimension de la structure
     /// \param      dim : Dimension 2D a initialiser
@@ -653,6 +666,9 @@ public:
     /// \brief      Nombre d elements de la structure
     uint			Sizeof();
 
+protected:
+
+    virtual bool    abDealloc() = 0;
 };
 
 template <class T>
@@ -683,7 +699,7 @@ uint CData2D<T>::Sizeof()
 template <class T>
 bool CData2D<T>::Realloc( uint2 dim )
 {
-    Dealloc();
+    CData<T>::Dealloc();
     Malloc(dim);
     return true;
 }
@@ -720,9 +736,6 @@ public:
     /// \param      val : valeur d initialisation
     virtual bool	Memset(int val) = 0;
 
-    /// \brief      Desalloue la memoire alloue
-    virtual bool	Dealloc() = 0;
-
     void			OutputInfo();
 
     /// \brief      Allocation memoire pour les tous les elements de la structures avec initialisation de la dimension de la structure
@@ -749,6 +762,9 @@ public:
     T&              operator[](uint pt1D);
     T&              operator[](int pt1D);   
 
+protected:
+
+    virtual  bool   abDealloc() = 0;
 };
 
 template <class T>
@@ -783,7 +799,7 @@ bool CData3D<T>::Malloc( uint2 dim, uint l )
 template <class T>
 bool CData3D<T>::Realloc( uint2 dim, uint l )
 {
-    bool dB = Dealloc();
+    bool dB = CData<T>::Dealloc();
     bool dM = Malloc(dim,l);
     return (dB && dM);
 }
@@ -869,8 +885,6 @@ public:
 
     ~CuHostData3D(){}
 
-    bool Dealloc();
-
     bool Malloc();
 
     bool Memset(int val);
@@ -888,6 +902,10 @@ public:
     void OutputValues(uint level = 0, uint plan = XY, Rect rect = NEGARECT, uint offset = 3, T defaut = (T)0.0f, float sample = 1.0f, float factor = 1.0f);
 
     void SetPageLockedMemory(bool page);
+
+protected:
+
+    bool    abDealloc() ;
 
 private:
 
@@ -985,6 +1003,7 @@ void CuHostData3D<T>::SetPageLockedMemory(bool page)
     _pageLockedMemory = page;
 }
 
+
 template <class T>
 bool CuHostData3D<T>::Malloc()
 {
@@ -999,19 +1018,14 @@ bool CuHostData3D<T>::Malloc()
 }
 
 template <class T>
-bool CuHostData3D<T>::Dealloc()
+bool CuHostData3D<T>::abDealloc()
 {
-    CData3D<T>::SubMemoryOc(CData3D<T>::GetSizeofMalloc());
-    CData3D<T>::SetSizeofMalloc(0);
     bool  error = true;
-    if(!(CData<T>::isNULL()))
-    {
-        if(_pageLockedMemory)
-            error = CData<T>::ErrorOutput(cudaFreeHost(CData3D<T>::pData()),"Dealloc");
-        else
-            free(CData3D<T>::pData());
-        CData<T>::dataNULL();
-    }
+    if(_pageLockedMemory)
+        error = CData<T>::ErrorOutput(cudaFreeHost(CData3D<T>::pData()),"Dealloc");
+    else
+        free(CData3D<T>::pData());
+
     return error;
 }
 
@@ -1026,7 +1040,7 @@ public:
     CuDeviceData2D();
     ~CuDeviceData2D(){}
     /// \brief  Desalloue la memoire globale alloue a ce tableau
-    bool        Dealloc();
+    //bool        Dealloc();
     /// \brief  Alloue la memoire globale pour ce tableau en fonction de sa dimension
     bool        Malloc();
     /// \brief  Initialise toutes les valeurs du tableau avec la valeur val
@@ -1035,7 +1049,10 @@ public:
     /// \brief  Copie toutes les valeurs du tableau dans un tableau du host
     /// \param  hostData : tableau destination
     bool        CopyDevicetoHost(T* hostData);
-    //void CopyDevicetoHostASync(T* hostData, cudaStream_t stream = 0);
+
+protected:
+
+    bool        abDealloc() ;
 
 };
 
@@ -1071,14 +1088,9 @@ bool CuDeviceData2D<T>::Malloc()
 }
 
 template <class T>
-bool CuDeviceData2D<T>::Dealloc()
+bool CuDeviceData2D<T>::abDealloc()
 {
-    cudaError_t erC = cudaSuccess;
-    CData2D<T>::SubMemoryOc(CData2D<T>::GetSizeofMalloc());
-    CData2D<T>::SetSizeofMalloc(0);
-    if (!CData2D<T>::isNULL()) erC = cudaFree(CData2D<T>::pData());
-    CData2D<T>::dataNULL();
-    return erC == cudaSuccess ? true : false;
+    return (cudaFree(CData2D<T>::pData()) == cudaSuccess) ? true : false;
 }
 
 /*! \class CuDeviceData3D
@@ -1099,9 +1111,7 @@ public:
     CuDeviceData3D(uint2 dim,uint l, string name = "NoName");
     CuDeviceData3D(uint dim, string name = "NoName");
     ~CuDeviceData3D(){}
-    /// \brief Desallocation memoire globale
-    /// \return true si la desallocation a reussie false sinon
-    bool        Dealloc();
+
     /// \brief Allocation de memoire globale
     bool        Malloc();
     /// \brief Initialise toutes les valeurs du tableau a val
@@ -1125,6 +1135,10 @@ public:
     /// \param stream : flux cuda de gestion des appels asynchrone
     bool        CopyDevicetoHostASync(T* hostData, cudaStream_t stream = 0);
 
+protected:
+
+    bool        abDealloc() ;
+
 };
 
 template <class T>
@@ -1132,6 +1146,7 @@ bool CuDeviceData3D<T>::CopyDevicetoHostASync( T* hostData, cudaStream_t stream 
 {
     return CData<T>::ErrorOutput(cudaMemcpyAsync ( hostData, CData3D<T>::pData(), CData3D<T>::Sizeof(), cudaMemcpyDeviceToHost, stream),"CopyDevicetoHostASync");
 }
+
 
 template <class T>
 bool CuDeviceData3D<T>::CopyDevicetoHost( T* hostData )
@@ -1204,14 +1219,9 @@ bool CuDeviceData3D<T>::Malloc()
 }
 
 template <class T>
-bool CuDeviceData3D<T>::Dealloc()
+bool CuDeviceData3D<T>::abDealloc()
 {
-    cudaError_t erC = cudaSuccess;
-    CData<T>::SubMemoryOc(CData3D<T>::GetSizeofMalloc());
-    CData3D<T>::SetSizeofMalloc(0);
-    if (!CData3D<T>::isNULL()) erC = cudaFree(CData3D<T>::pData());
-    CData3D<T>::dataNULL();
-    return erC == cudaSuccess ? true : false;
+    return (cudaFree(CData<T>::pData()) == cudaSuccess) ? true : false;
 }
 
 
@@ -1229,10 +1239,15 @@ public:
     /// \brief  renvoie le tableau cuda contenant les valeurs de l'image
     cudaArray*	GetCudaArray();
     /// \brief  Desalloue la memoire globale
-    bool		Dealloc();
+    //bool		Dealloc();
     /// \brief  Initialisation de toutes les valeurs du tableau a val
     /// \param  val : valeur d initialisation
     bool		Memset(int val);
+
+protected:
+
+    bool        abDealloc() ;
+
 
 };
 
@@ -1259,9 +1274,13 @@ public:
     /// \brief Initialise les valeurs de l image a val
     /// \param val : Valeur d initialisation
     bool	Memset(int val){return AImageCuda::Memset(val);}
-    bool	Dealloc(){return AImageCuda::Dealloc();}
+    //bool	Dealloc(){return AImageCuda::Dealloc();}
     /// \brief Sortie console de la classe
     void	OutputInfo(){CData2D::OutputInfo();}
+
+protected:
+
+    bool    abDealloc(){return AImageCuda::abDealloc();}
 
 private:
 
@@ -1320,7 +1339,7 @@ public:
     /// \brief Initialise les valeurs des images a val
     /// \param val : Valeur d initialisation
     bool	Memset(int val){return AImageCuda::Memset(val);}
-    bool	Dealloc(){return AImageCuda::Dealloc();}
+    //bool	Dealloc(){return AImageCuda::Dealloc();}
     /// \brief Copie des valeurs des images avec un tableau 3D de valeur du Host
     /// \param data : Donnees cible a copier
     bool	copyHostToDevice(T* data);
@@ -1333,6 +1352,10 @@ public:
     bool	copyHostToDeviceASync(T* data, cudaStream_t stream = 0);
     /// \brief Sortie console de la classe
     void	OutputInfo(){CData3D::OutputInfo();}
+
+protected:
+
+    bool    abDealloc(){return AImageCuda::abDealloc();}
 
 private:
 

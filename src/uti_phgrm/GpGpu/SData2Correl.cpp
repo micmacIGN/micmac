@@ -80,11 +80,11 @@ void SData2Correl::DeallocDeviceData()
         _d_volumeCach[s].Dealloc();
         _d_volumeCost[s].Dealloc();
         _d_volumeNIOk[s].Dealloc();
-        _dt_LayeredProjection[s].Dealloc();
+        _dt_LayeredProjection[s].AImageCuda::Dealloc();
     }
 
     _dt_GlobalMask.Dealloc();
-    _dt_LayeredImages.Dealloc();
+    _dt_LayeredImages.AImageCuda::Dealloc();
 
 }
 
