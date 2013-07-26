@@ -51,6 +51,9 @@ Header-MicMac-eLiSe-25/06/2007*/
         #define OMP_NT1 _Pragma("omp parallel for num_threads(4)")
         #define OMP_NT2 _Pragma("omp parallel for num_threads(3)")
     #endif
+#else
+    #define OMP_NT1
+    #define OMP_NT2
 #endif
 
 namespace NS_ParamMICMAC
@@ -706,7 +709,7 @@ if (0)
 
             pixel *maskGlobal = new pixel[size(IMmGg.box)];
 
-             OMP_NT1
+            OMP_NT1
             for (uint anY = 0 ; anY <  IMmGg.box.y ; anY++)
                 OMP_NT2
                 for (uint anX = 0 ; anX < IMmGg.box.x ; anX++)

@@ -475,7 +475,7 @@ class CData : public CGObject
 public:
 
     CData();
-    ~CData(){}
+    ~CData();
     /// \brief      Allocation memoire
     virtual bool	Malloc()		= 0;
     /// \brief      Initialise toutes les elements avec la valeur val
@@ -592,9 +592,17 @@ uint CData<T>::GetSizeofMalloc()
 
 template <class T>
 CData<T>::CData():
-    _memoryOc(0)
+    _memoryOc(0),
+    _data(NULL),
+    _sizeofMalloc(0)
 {
-    dataNULL();
+    CGObject::ClassTemplate(CGObject::StringClass<T>(pData()));
+}
+
+template <class T>
+CData<T>::~CData()
+{
+    Dealloc();
 }
 
 template <class T>
@@ -644,11 +652,11 @@ class CData2D : public struct2D, virtual public CData<T>
 
 public:
 
-    CData2D();
+    CData2D(){}
     /// \brief      constructeur avec initialisation de la dimension de la structure
     /// \param      dim : Dimension a initialiser
     CData2D(uint2 dim);
-    ~CData2D(){}
+
     /// \brief Alloue la memoire neccessaire
     virtual bool	Malloc()        = 0;
     /// \brief      Initialise les elements des images a val
@@ -679,15 +687,9 @@ void CData2D<T>::OutputInfo()
 }
 
 template <class T>
-CData2D<T>::CData2D()
-{
-    CGObject::ClassTemplate(CGObject::StringClass<T>(CData2D::pData()));
-}
-template <class T>
 CData2D<T>::CData2D(uint2 dim)
-{
-    CGObject::ClassTemplate(CGObject::StringClass<T>(CData2D::pData()));
-    Realloc(dim);
+{    
+    Malloc(dim);
 }
 
 template <class T>
@@ -707,9 +709,8 @@ bool CData2D<T>::Realloc( uint2 dim )
 template <class T>
 bool CData2D<T>::Malloc( uint2 dim )
 {
-    SetDimension(dim);
-    Malloc();
-    return true;
+    SetDimension(dim);    
+    return Malloc();
 }
 
 /// \class CData3D
@@ -719,7 +720,7 @@ class CData3D : public struct2DLayered, public CData<T>
 {
 public:
 
-    CData3D();
+    CData3D(){}
 
     /// \brief constructeur avec initialisation de la dimension de la structure
     /// \param dim : Dimension 2D a initialiser
@@ -777,16 +778,9 @@ void CData3D<T>::OutputInfo()
 }
 
 template <class T>
-CData3D<T>::CData3D()
-{
-    CGObject::ClassTemplate(CGObject::StringClass<T>(CData3D::pData()));
-}
-
-template <class T>
 CData3D<T>::CData3D( uint2 dim, uint l )
 {
-    if(!Malloc(dim,l))
-        std::cout << "ERROR -> CData3D( uint2 dim, uint l )\n";
+    Malloc(dim,l);
 }
 
 template <class T>
@@ -909,43 +903,43 @@ protected:
 
 private:
 
-    bool _pageLockedMemory;
+    bool    _pageLockedMemory;
+
+    void    init(bool pageLockedmemory);
 
 };
 
 template <class T>
-CuHostData3D<T>::CuHostData3D(bool pageLockedmemory):
-    _pageLockedMemory(pageLockedmemory)
+void CuHostData3D<T>::init(bool pageLockedmemory)
 {
-    CData<T>::SetSizeofMalloc(0);
     CGObject::SetType("CuHostData3D");
+    _pageLockedMemory = pageLockedmemory;
 }
 
 template <class T>
-CuHostData3D<T>::CuHostData3D(uint dimX, uint dimY, uint l, bool pageLockedmemory):
-    _pageLockedMemory(pageLockedmemory)
+CuHostData3D<T>::CuHostData3D(bool pageLockedmemory)
 {
-    CData<T>::SetSizeofMalloc(0);
-    CGObject::SetType("CuHostData3D");
-    CData3D<T>::Realloc(make_uint2(dimX,dimY),l);
+    init(pageLockedmemory);
 }
 
 template <class T>
-CuHostData3D<T>::CuHostData3D(uint2 dim, uint l, bool pageLockedmemory ):
-    _pageLockedMemory(pageLockedmemory)
+CuHostData3D<T>::CuHostData3D(uint dimX, uint dimY, uint l, bool pageLockedmemory)
 {
-    CData<T>::SetSizeofMalloc(0);
-    CGObject::SetType("CuHostData3D");
-    CData3D<T>::Realloc(dim,l);
+    init(pageLockedmemory);
+    CData3D<T>::Malloc(make_uint2(dimX,dimY),l);
 }
 
 template <class T>
-CuHostData3D<T>::CuHostData3D(uint3 dim, bool pageLockedmemory):
-    _pageLockedMemory(pageLockedmemory)
+CuHostData3D<T>::CuHostData3D(uint2 dim, uint l, bool pageLockedmemory )
 {
-    CData<T>::SetSizeofMalloc(0);
-    CGObject::SetType("CuHostData3D");
-    CData3D<T>::Realloc(make_uint2(dim.x,dim.y),dim.z);
+    init(pageLockedmemory);
+    CData3D<T>::Malloc(dim,l);
+}
+
+template <class T>
+CuHostData3D<T>::CuHostData3D(uint3 dim, bool pageLockedmemory)
+{
+    CData3D<T>::Malloc(make_uint2(dim.x,dim.y),dim.z);
 }
 
 template <class T>
@@ -1029,6 +1023,7 @@ bool CuHostData3D<T>::abDealloc()
     return error;
 }
 
+
 /// \class CuDeviceData2D
 /// \brief Cette classe est un tableau de donnee 2D situee dans memoire globale de la carte video
 template <class T> 
@@ -1039,8 +1034,7 @@ public:
 
     CuDeviceData2D();
     ~CuDeviceData2D(){}
-    /// \brief  Desalloue la memoire globale alloue a ce tableau
-    //bool        Dealloc();
+
     /// \brief  Alloue la memoire globale pour ce tableau en fonction de sa dimension
     bool        Malloc();
     /// \brief  Initialise toutes les valeurs du tableau avec la valeur val
@@ -1139,6 +1133,10 @@ protected:
 
     bool        abDealloc() ;
 
+private:
+
+    void        init(string name);
+
 };
 
 template <class T>
@@ -1187,26 +1185,20 @@ bool CuDeviceData3D<T>::MemsetAsync(int val, cudaStream_t stream)
 template <class T>
 CuDeviceData3D<T>::CuDeviceData3D()
 {
-    CData<T>::SetSizeofMalloc(0);
-    CData3D<T>::dataNULL();
-    CGObject::SetType("CuDeviceData3D");
+    init("No Name");
 }
 
 template <class T>
 CuDeviceData3D<T>::CuDeviceData3D(uint2 dim, uint l, string name)
 {
-    CData<T>::SetSizeofMalloc(0);
-    CData3D<T>::dataNULL();
-    CGObject::SetType(name);
-    CData3D<T>::Realloc(dim,l);
+    init(name);
+    CData3D<T>::Malloc(dim,l);
 }
 
 template <class T>
 CuDeviceData3D<T>::CuDeviceData3D(uint dim, string name)
 {
-    CData<T>::SetSizeofMalloc(0);
-    CData3D<T>::dataNULL();
-    CGObject::SetType(name);
+    init(name);
     CData3D<T>::Realloc(make_uint2(dim,1),1);
 }
 
@@ -1224,6 +1216,12 @@ bool CuDeviceData3D<T>::abDealloc()
     return (cudaFree(CData<T>::pData()) == cudaSuccess) ? true : false;
 }
 
+template <class T>
+void CuDeviceData3D<T>::init(string name)
+{
+    CGObject::SetType("CuDeviceData3D");
+    CGObject::SetName(name);
+}
 
 /// \class  AImageCuda
 /// \brief Cette classe abstraite est une image directement liable a une texture GpGpu
