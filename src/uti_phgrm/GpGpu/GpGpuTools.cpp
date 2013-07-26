@@ -233,18 +233,13 @@ cudaArray* AImageCuda::GetCudaArray()
 	return CData<cudaArray>::pData();
 }
 
-bool AImageCuda::Dealloc()
-{
-	cudaError_t erC = cudaSuccess;
-	SubMemoryOc(GetSizeofMalloc());
-	SetSizeofMalloc(0);
-	if (!CData<cudaArray>::isNULL()) erC = cudaFreeArray( CData<cudaArray>::pData());
-	CData<cudaArray>::dataNULL();
-	return erC == cudaSuccess ? true : false;
-}
-
 bool AImageCuda::Memset( int val )
 {
 	std::cout << "PAS DE MEMSET POUR CUDA ARRAY" << "\n";
-	return true;
+    return true;
+}
+
+bool AImageCuda::abDealloc()
+{
+    return (cudaFreeArray( CData<cudaArray>::pData()) == cudaSuccess) ? true : false;
 }
