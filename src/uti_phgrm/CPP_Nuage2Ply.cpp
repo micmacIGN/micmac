@@ -59,6 +59,8 @@ int Nuage2Ply_main(int argc,char ** argv)
     Pt2dr  aSz(-1,-1);
     double aRatio = 1.0;
     bool aDoMesh = false;
+    bool DoublePrec = false;
+    Pt3dr anOffset(0,0,0);
 
 
     ElInitArgMain
@@ -80,6 +82,8 @@ int Nuage2Ply_main(int argc,char ** argv)
                     << EAM(aExagZ,"ExagZ",true,"To exagerate the depth, Def=1.0")
                     << EAM(aRatio,"RatioAttrCarte",true,"")
                     << EAM(aDoMesh,"Mesh",true)
+                    << EAM(DoublePrec,"64B",true,"To generate 64 Bits ply, Def=false, WARN = do not work  correcly by meshlab or cloud compare")
+                    << EAM(anOffset,"Offs","Offset in points to limit 32 Bits accurracy problem")
     );	
 
     if (EAMIsInit(&aSz))
@@ -119,7 +123,7 @@ int Nuage2Ply_main(int argc,char ** argv)
            aRes->AddExportMesh();
        }
 
-        aRes->PlyPutFile( aNameOut, aLComment, (aBin!=0), DoNrm );
+        aRes->PlyPutFile( aNameOut, aLComment, (aBin!=0), DoNrm, DoublePrec, anOffset );
     }
     if (DoXYZ)
     {

@@ -1,1 +1,2 @@
-#cmakedefine CUDA_ENABLED
+#cmakedefine CUDA_ENABLED @OptionCuda@
+#cmakedefine OPM_ENABLED  @OPM_ENABLED@

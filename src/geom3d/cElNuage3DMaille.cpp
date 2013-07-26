@@ -160,6 +160,7 @@ std::string NamePlyOfType(GenIm::type_el aType)
 {
    if (aType==GenIm::u_int1) return "uchar";
    if (aType==GenIm::real4) return "float";
+   if (aType==GenIm::real8) return "float64";
 
    ELISE_ASSERT(false,"NamePlyOfType");
     return "";
@@ -632,12 +633,14 @@ void cElNuage3DMaille::PlyPutFile
            const std::string & aName,
            const std::list<std::string> & aComments,
            bool aModeBin,
-		   int aAddNormale
+           int aAddNormale,
+           bool DoublePrec,
+           const Pt3dr& anOffset
      ) const
 {
     std::vector<const cElNuage3DMaille *> aVN;
     aVN.push_back(this);
-    PlyPutFile(aName,aComments,aVN,0,0,aModeBin, aAddNormale);
+    PlyPutFile(aName,aComments,aVN,0,0,aModeBin, aAddNormale,DoublePrec,anOffset);
 }
 
 
@@ -650,9 +653,16 @@ void cElNuage3DMaille::PlyPutFile
            const std::vector<Pt3dr> * mPts,
            const std::vector<Pt3di> * mCouls,
            bool aModeBin,
-		   int aAddNormale
+           int aAddNormale,
+           bool DoublePrec,
+           const Pt3dr & anOffset
      ) 
 {
+   std::string aTypeXYZ = DoublePrec ? "float64" : "float";
+   
+
+
+
    int aNbF = 0;
    int aNbS = 0;
    if (mPts)
@@ -712,9 +722,9 @@ void cElNuage3DMaille::PlyPutFile
       fprintf(aFP,"comment %s\n",itS->c_str());
    }
    fprintf(aFP,"element vertex %d\n",aNbS);
-   fprintf(aFP,"property float x\n");
-   fprintf(aFP,"property float y\n");
-   fprintf(aFP,"property float z\n");
+   fprintf(aFP,"property %s x\n",aTypeXYZ.c_str());
+   fprintf(aFP,"property %s y\n",aTypeXYZ.c_str());
+   fprintf(aFP,"property %s z\n",aTypeXYZ.c_str());
 
    if (aAddNormale)
    {
@@ -742,7 +752,7 @@ void cElNuage3DMaille::PlyPutFile
 
    //Data	
    for (int aK=0 ; aK<int(aVN.size()) ; aK++)
-      aVN[aK]-> PlyPutDataVertex(aFP,aModeBin, aAddNormale);
+      aVN[aK]-> PlyPutDataVertex(aFP,aModeBin, aAddNormale,DoublePrec,anOffset);
 
    if (mPts)
    {
@@ -767,10 +777,10 @@ void cElNuage3DMaille::PlyPutFile
       }
    }
 
-   int anOffset = 0;
+   int anOffsetNbTri = 0;
    for (int aK=0 ; aK<int(aVN.size()) ; aK++)
    {
-      aVN[aK]-> PlyPutDataFace(aFP,aModeBin,anOffset);
+      aVN[aK]-> PlyPutDataFace(aFP,aModeBin,anOffsetNbTri);
    }
    
    ElFclose(aFP);
@@ -815,51 +825,70 @@ void cElNuage3DMaille::NuageXZGCOL(const std::string & aName)
 
 
 
-void cElNuage3DMaille::PlyPutDataVertex(FILE * aFP, bool aModeBin, int aAddNormale) const
+void cElNuage3DMaille::PlyPutDataVertex(FILE * aFP, bool aModeBin, int aAddNormale,bool DoublePrec,const Pt3dr & anOffset) const
 {
-	if (aAddNormale)
-	{
-		ELISE_ASSERT((aAddNormale%2) && (aAddNormale>2),"cElNuage3DMaille::NormaleOfIndex: wSize should be an odd > 1 (3, 5, 7...)");
-	}
+    if (aAddNormale)
+    {
+	ELISE_ASSERT((aAddNormale%2) && (aAddNormale>2),"cElNuage3DMaille::NormaleOfIndex: wSize should be an odd > 1 (3, 5, 7...)");
+    }
 	
     for (tIndex2D anI=Begin(); anI!=End() ;IncrIndex(anI))
     {
-           Pt3dr aP = PtOfIndex(anI);
+           Pt3dr aP = PtOfIndex(anI) - anOffset;
 		   // std::cout << "PlyPutData:::: " << aP << "\n"; getchar();
-           float xyz[3];
-           xyz[0] = (float)aP.x;
-           xyz[1] = (float)aP.y;
-           xyz[2] = (float)aP.z;
-		
-		   if (aModeBin)
+
+           if (DoublePrec)
            {
-               int aNb= fwrite(xyz,sizeof(float),3,aFP);
-               ELISE_ASSERT(aNb==3,"cElNuage3DMaille::PlyPutDataVertex");
+                double xyz[3];
+                xyz[0] = aP.x;
+                xyz[1] = aP.y;
+                xyz[2] = aP.z;
+                if (aModeBin)
+                {
+                    int aNb= fwrite(xyz,sizeof(double),3,aFP);
+                    ELISE_ASSERT(aNb==3,"cElNuage3DMaille::PlyPutDataVertex");
+                }
+                else
+                {
+                   fprintf(aFP,"%.3f %.3f %.3f", xyz[0], xyz[1], xyz[2]);
+                }
            }
            else
            {
-              fprintf(aFP,"%.3f %.3f %.3f", xyz[0], xyz[1], xyz[2]);
+                float xyz[3];
+                xyz[0] = (float)aP.x;
+                xyz[1] = (float)aP.y;
+                xyz[2] = (float)aP.z;
+                if (aModeBin)
+                {
+                    int aNb= fwrite(xyz,sizeof(float),3,aFP);
+                    ELISE_ASSERT(aNb==3,"cElNuage3DMaille::PlyPutDataVertex");
+                }
+                else
+                {
+                   fprintf(aFP,"%.3f %.3f %.3f", xyz[0], xyz[1], xyz[2]);
+                }
            }
 
-		   if (aAddNormale) 
+	   if (aAddNormale) 
+	   {
+		   Pt3dr aN = NormaleOfIndex(anI, aAddNormale);
+			   
+		   float Nxyz[3];
+		   Nxyz[0] = (float)aN.x;
+		   Nxyz[1] = (float)aN.y;
+		   Nxyz[2] = (float)aN.z;
+			   
+		   if (aModeBin)
 		   {
-			   Pt3dr aN = NormaleOfIndex(anI, aAddNormale);
-			   
-			   float Nxyz[3];
-			   Nxyz[0] = (float)aN.x;
-			   Nxyz[1] = (float)aN.y;
-			   Nxyz[2] = (float)aN.z;
-			   
-			   if (aModeBin)
-			   {
-				   int aNb= fwrite(Nxyz,sizeof(float),3,aFP);
-				   ELISE_ASSERT(aNb==3,"cElNuage3DMaille::PlyPutDataVertex-Normale");
-			   }
-			   else
-			   {
-				   fprintf(aFP,"%.3f %.3f %.3f", Nxyz[0], Nxyz[1], Nxyz[2]);
-			   }
+			   int aNb= fwrite(Nxyz,sizeof(float),3,aFP);
+			   ELISE_ASSERT(aNb==3,"cElNuage3DMaille::PlyPutDataVertex-Normale");
 		   }
+		   else
+		   {
+			   fprintf(aFP,"%.3f %.3f %.3f", Nxyz[0], Nxyz[1], Nxyz[2]);
+		   }
+	   }
 		
            for (int aK=0 ; aK<int(mAttrs.size()) ; aK++)
            {

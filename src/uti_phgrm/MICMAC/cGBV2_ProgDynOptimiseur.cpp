@@ -430,7 +430,7 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
         mTabCost[aKP].Reset(0,0);
     }
 
-#ifdef CUDA_ENABLED
+#if CUDA_ENABLED
     SolveAllDirectionGpu(aNbDir);
 #else
     // Parcours dans toutes les directions
@@ -485,7 +485,7 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
     }
 
 }
-#ifdef CUDA_ENABLED
+#if CUDA_ENABLED
 
 template<bool dirCopy>
 void cGBV2_ProgDynOptimiseur::copyCells(Pt2di aDirI, Data2Optimiz<CuHostData3D,2> &d2Opt, uint idBuf)

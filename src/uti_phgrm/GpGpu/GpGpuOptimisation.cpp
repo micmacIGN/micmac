@@ -47,7 +47,7 @@ void InterfOptimizGpGpu::threadCompute()
 
     while(true)
     {
-        boost::this_thread::sleep(boost::posix_time::microsec(1));
+
         if(GetCompute())
         {
             SetCompute(false);
@@ -76,6 +76,8 @@ void InterfOptimizGpGpu::threadCompute()
 
             SetDataToCopy(true);
         }
+        else
+            boost::this_thread::sleep(boost::posix_time::microsec(1));
     }
 }
 
