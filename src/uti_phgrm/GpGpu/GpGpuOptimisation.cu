@@ -182,14 +182,14 @@ extern "C" void OptimisationOneDirection(Data2Optimiz<CuDeviceData3D> &d2O)
 {
     uint deltaMax = 3;
     dim3 Threads(WARPSIZE,1,1);
-    dim3 Blocks(d2O._nbLines,1,1);
+    dim3 Blocks(d2O.NBlines(),1,1);
 	
     kernelOptiOneDirection<ushort,uint><<<Blocks,Threads>>>
                                                 (
-                                                    d2O._s_InitCostVol      .pData(),
-                                                    d2O._s_Index            .pData(),
-                                                    d2O._s_ForceCostVol[0]  .pData(),
-                                                    d2O._param[0]           .pData(),
+                                                    d2O.pInitCost(),
+                                                    d2O.pIndex(),
+                                                    d2O.pForceCostVol(),
+                                                    d2O.pParam(),
                                                     deltaMax
                                                     );
     getLastCudaError("kernelOptiOneDirection failed");
