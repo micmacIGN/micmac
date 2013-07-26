@@ -165,6 +165,7 @@ Im2D_REAL4 cZBuffer::Basculer
 				Pt3dr aP3Out = ProjDisc(aPIn);
 				Pt2dr aP2Out(aP3Out.x,aP3Out.y);
 
+
 				if (SelectPBascul(aP2Out))
 				{
 				   aNbOkIm++;
@@ -330,14 +331,6 @@ void cZBuffer::AddImAttr(Im2DGen * anIm)
 
 void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
 {
-   bool aBugBUT = false;
-   {
-      static int aCpt=0;
-      aCpt ++;
-      // aBugBUT = (aCpt==85);
-      // std::cout << "cZBuffer::BasculerUnTriangle " << aCpt << "\n";;
-   }
-
 
    if (
            (! mTImOkTer.get(A-mP0In))
@@ -350,18 +343,6 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
      Pt3dr B3  =  ProjDisc(B);
      Pt3dr C3  =  ProjDisc(C);
 
- if (aBugBUT)
- {
-      std::cout << "ooo00000  " << mOffet_Out_00 << "\n";
-      std::cout << "ppp  " << A << A3 << "\n";
-      std::cout << "ppp  " << B << B3 << "\n";
-      std::cout << "ppp  " << C << C3 << "\n";
-      std::cout << " Buff " << mBufDone << " " << mOrigineIn << mStepIn << "\n";
-      std::cout << " OOuut " << mBufDone << " " << mOrigineOut << mStepOut << "\n";
-mBufDone = false ;
-      std::cout << "kkkkk  " << A <<  ProjDisc(A) << " " << ZofXY(A)  << "\n";
-      getchar();
- }
 
      Pt2dr A2(A3.x,A3.y);
      Pt2dr B2(B3.x,B3.y);

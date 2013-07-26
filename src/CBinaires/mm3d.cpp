@@ -325,6 +325,7 @@ extern int  Sample_LSQ0_main(int argc,char ** argv);
 extern int  Abdou_main(int argc,char ** argv);
 extern int  PtsHom_main(int argc,char ** argv);
 extern int  LucasChCloud_main(int argc,char ** argv);
+extern int  Mathieu_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -333,6 +334,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("LSQ0",Sample_LSQ0_main,"Basic Test on Least Square libray "));
    aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou "));
    aRes.push_back(cMMCom("PtsHom",PtsHom_main,"Exemples fonctions utilisation pts homologues "));
+   aRes.push_back(cMMCom("TesSI",Mathieu_main,"Test SelectionInfos "));
    aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Exemples fonctions modifying cloud "));
    return aRes;
 }

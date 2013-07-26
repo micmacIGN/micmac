@@ -13485,4 +13485,128 @@ void xml_init(cMMUserEnvironment & anObj,cElXMLTree * aTree)
    xml_init(anObj.UserName(),aTree->Get("UserName",1),std::string("Anonymous")); //tototo 
 }
 
+
+double & cItem::Scale()
+{
+   return mScale;
+}
+
+const double & cItem::Scale()const 
+{
+   return mScale;
+}
+
+
+Pt3dr & cItem::Rotation()
+{
+   return mRotation;
+}
+
+const Pt3dr & cItem::Rotation()const 
+{
+   return mRotation;
+}
+
+
+Pt3dr & cItem::Translation()
+{
+   return mTranslation;
+}
+
+const Pt3dr & cItem::Translation()const 
+{
+   return mTranslation;
+}
+
+
+std::list< Pt2dr > & cItem::Pt()
+{
+   return mPt;
+}
+
+const std::list< Pt2dr > & cItem::Pt()const 
+{
+   return mPt;
+}
+
+
+int & cItem::Mode()
+{
+   return mMode;
+}
+
+const int & cItem::Mode()const 
+{
+   return mMode;
+}
+
+cElXMLTree * ToXMLTree(const cItem & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Item",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Scale"),anObj.Scale())->ReTagThis("Scale"));
+   aRes->AddFils(ToXMLTree(std::string("Rotation"),anObj.Rotation())->ReTagThis("Rotation"));
+   aRes->AddFils(ToXMLTree(std::string("Translation"),anObj.Translation())->ReTagThis("Translation"));
+  for
+  (       std::list< Pt2dr >::const_iterator it=anObj.Pt().begin();
+      it !=anObj.Pt().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("Pt"),(*it))->ReTagThis("Pt"));
+   aRes->AddFils(::ToXMLTree(std::string("Mode"),anObj.Mode())->ReTagThis("Mode"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cItem & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.Scale(),aTree->Get("Scale",1)); //tototo 
+
+   xml_init(anObj.Rotation(),aTree->Get("Rotation",1)); //tototo 
+
+   xml_init(anObj.Translation(),aTree->Get("Translation",1)); //tototo 
+
+   xml_init(anObj.Pt(),aTree->GetAll("Pt",false,1));
+
+   xml_init(anObj.Mode(),aTree->Get("Mode",1)); //tototo 
+}
+
+
+std::list< cItem > & cSelectionInfos::Item()
+{
+   return mItem;
+}
+
+const std::list< cItem > & cSelectionInfos::Item()const 
+{
+   return mItem;
+}
+
+cElXMLTree * ToXMLTree(const cSelectionInfos & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SelectionInfos",eXMLBranche);
+  for
+  (       std::list< cItem >::const_iterator it=anObj.Item().begin();
+      it !=anObj.Item().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Item"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cSelectionInfos & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.Item(),aTree->GetAll("Item",false,1));
+}
+
 };
