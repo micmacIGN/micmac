@@ -10916,6 +10916,17 @@ const cTplValGesInit< bool > & cEtapeMEC::GenImagesCorrel()const
 }
 
 
+cTplValGesInit< bool > & cEtapeMEC::GenCubeCorrel()
+{
+   return mGenCubeCorrel;
+}
+
+const cTplValGesInit< bool > & cEtapeMEC::GenCubeCorrel()const 
+{
+   return mGenCubeCorrel;
+}
+
+
 std::list< cGenerateProjectionInImages > & cEtapeMEC::GenerateProjectionInImages()
 {
    return mGenerateProjectionInImages;
@@ -11963,6 +11974,8 @@ cElXMLTree * ToXMLTree(const cEtapeMEC & anObj)
       aRes->AddFils(::ToXMLTree(std::string("GenFilePxRel"),anObj.GenFilePxRel().Val())->ReTagThis("GenFilePxRel"));
    if (anObj.GenImagesCorrel().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("GenImagesCorrel"),anObj.GenImagesCorrel().Val())->ReTagThis("GenImagesCorrel"));
+   if (anObj.GenCubeCorrel().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("GenCubeCorrel"),anObj.GenCubeCorrel().Val())->ReTagThis("GenCubeCorrel"));
   for
   (       std::list< cGenerateProjectionInImages >::const_iterator it=anObj.GenerateProjectionInImages().begin();
       it !=anObj.GenerateProjectionInImages().end();
@@ -12178,6 +12191,8 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.GenFilePxRel(),aTree->Get("GenFilePxRel",1)); //tototo 
 
    xml_init(anObj.GenImagesCorrel(),aTree->Get("GenImagesCorrel",1)); //tototo 
+
+   xml_init(anObj.GenCubeCorrel(),aTree->Get("GenCubeCorrel",1),bool(false)); //tototo 
 
    xml_init(anObj.GenerateProjectionInImages(),aTree->GetAll("GenerateProjectionInImages",false,1));
 
@@ -13043,6 +13058,10 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
         xml_init(aVal.GenImagesCorrel(),(*itLTr)->Get("GenImagesCorrel",1)); //tototo 
         if ((*itLTr)->HasFilsPorteeGlob("GenImagesCorrel"))
           anObj.mGlobEtapeMEC.GenImagesCorrel() = aVal.GenImagesCorrel();
+
+        xml_init(aVal.GenCubeCorrel(),(*itLTr)->Get("GenCubeCorrel",1),bool(false)); //tototo 
+        if ((*itLTr)->HasFilsPorteeGlob("GenCubeCorrel"))
+          anObj.mGlobEtapeMEC.GenCubeCorrel() = aVal.GenCubeCorrel();
 
         xml_init(aVal.GenerateProjectionInImages(),(*itLTr)->GetAll("GenerateProjectionInImages",false,1));
         if ((*itLTr)->HasFilsPorteeGlob("GenerateProjectionInImages"))

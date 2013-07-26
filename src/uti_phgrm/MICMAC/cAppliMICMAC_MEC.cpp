@@ -173,6 +173,7 @@ double FromSzW2FactExp(double aSzW,double mCurNbIterFenSpec)
 void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
 {
      mCurEtape = & anEtape;
+     ELISE_fp::MkDirSvp(DirCube());
      mEBI = mCurEtape->EBI();
      const cEtapeMEC & anEM = mCurEtape->EtapeMEC();
 
@@ -549,6 +550,21 @@ int cAppliMICMAC::NbApproxVueActive()
   }
   return mNbApproxVueActive;
 }
+
+const Box2di & cAppliMICMAC::BoxIn()  const {return mBoxIn;}
+const Box2di & cAppliMICMAC::BoxOut() const {return mBoxOut;}
+
+std::string  cAppliMICMAC::DirCube() const
+{
+   return  FullDirMEC() + "Cube" + ToString(mCurEtape->Num());
+}
+std::string cAppliMICMAC::NameFileCurCube(const std::string & aName) const
+{
+   Pt2di aP0 = mBoxOut._p0;
+   return DirCube() + "Data_" + ToString(aP0.x) + "_" + ToString(aP0.y)  + "_" +aName;
+}
+  
+
 
 
 void cAppliMICMAC::DoOneBloc

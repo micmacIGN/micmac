@@ -86,6 +86,7 @@ cSurfaceOptimiseur::cSurfaceOptimiseur
    mLTRed      (mWithEQ ? new cLoadTer(mLTInit,mEqX,mEqY) : 0),
    mLTCur      (mWithEQ ?  mLTRed : & mLTInit),
    mSzCur      (mLTCur->Sz()),
+   mCubeCorrel (false),
    mMemoCorrel (0),
    mCanFillCorrel  (CanFillCorrel),
    mDoFileCorrel   (mEtape.GenImageCorrel()),
@@ -160,7 +161,8 @@ cSurfaceOptimiseur::cSurfaceOptimiseur
    }
 
 
-   if (mEtape.GenImageCorrel())
+   mCubeCorrel= mEtape.EtapeMEC().GenCubeCorrel().Val();
+   if (mEtape.GenImageCorrel() | mCubeCorrel)
    {
       if (! mCanFillCorrel)
       {
@@ -650,6 +652,13 @@ void cSurfaceOptimiseur::SolveOpt()
 
      if (mMemoCorrel)
      {
+        std::string aDirSauv;
+        std::string aPref;
+        FILE * aFileDataCube=0;
+        if (mCubeCorrel)
+        {
+             aFileDataCube = FopenNN(mAppli.NameFileCurCube("Cube.dat"),"w","Data cube");
+        }
         Im2D_U_INT1 aICor = mLTInit.ImCorrelSol();
         TIm2D<U_INT1,INT> aTCor(aICor);
         TIm2DBits<1> aTMaskCal(mMaskCalc);
@@ -664,7 +673,23 @@ void cSurfaceOptimiseur::SolveOpt()
         {
             for (aP.x=0; aP.x<aSz.x ; aP.x++)
             {
-                if((!mMaskCalcDone) || (aTMaskCal.get(aP,0)))
+                bool OkP = (!mMaskCalcDone) || (aTMaskCal.get(aP,0));
+                if (mCubeCorrel)
+                {
+                     const cSmallMatrixOrVar<U_INT1> & aM =(*mMemoCorrel)[ToSRAlg(aP)];
+                     ELISE_ASSERT(mAppli.DimPx()==1,"Dim Px 2 with mCubeCorrel");
+                     INT2 ** mDXMin = mLTCur->KthNap(0).mImPxMin.data();
+                     INT2 ** mDXMax = mLTCur->KthNap(0).mImPxMax.data();
+                     int aZ0 = mDXMin[aP.y][aP.x];
+                     int aZ1 = mDXMax[aP.y][aP.x];
+                     for (int aZ=aZ0 ; aZ<aZ1; aZ++)
+                     {
+                          U_INT1  aC = aM[Pt2di(aZ,0)];
+                          std::cout << (int) aC << "\n";
+                     }
+                }
+
+                if(OkP)
                 {
                     for (int aK=0 ; aK<mAppli.DimPx() ; aK++)
                         aVPx[aK] = aDRes[aK][aP.y][aP.x] ;
@@ -681,6 +706,10 @@ void cSurfaceOptimiseur::SolveOpt()
                  }
 // PB
             }
+        }
+        if (mCubeCorrel)
+        {
+             fclose(aFileDataCube);
         }
      }
 
