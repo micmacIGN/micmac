@@ -109,11 +109,9 @@ void SData2Correl::SetImages(float *dataImage, uint2 dimImage, int nbLayer)
 }
 
 void SData2Correl::SetGlobalMask(pixel *dataMask, uint2 dimMask)
-{
-    _dt_GlobalMask.Dealloc();
-
-    _dt_GlobalMask.InitImage(dimMask,dataMask);
-
+{    
+    _dt_GlobalMask.CData2D::Realloc(dimMask);
+    _dt_GlobalMask.copyHostToDevice(dataMask);
     _dt_GlobalMask.bindTexture(_texMaskGlobal);
 }
 
