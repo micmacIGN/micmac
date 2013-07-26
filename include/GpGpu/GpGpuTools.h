@@ -487,10 +487,6 @@ public:
     virtual void	OutputInfo()	= 0;
     /// \brief      Renvoie le pointeur des donnees
     T*              pData();
-    /// \brief      Init le pointeur des donnees
-    void            SetPData(T *p);
-    /// \brief      Renvoie le pointeur du pointeur des donnees
-    T**             ppData();
     /// \brief      Sortie console des erreurs Cuda
     /// \param      err :  erreur cuda rencontree
     /// \param      fonctionName : nom de la fonction ou se trouve l erreur
@@ -499,11 +495,13 @@ public:
     void            MallocInfo();
     /// \brief      Obtenir une valeur aleatoire comprise entre min et max
     static T        GetRandomValue(T min, T max);
-    /// \brief      Renvoie la taille de la memoire alloue
-    uint            GetSizeofMalloc();
 
 protected:
 
+    /// \param      sizeofmalloc : Taille de l allocation
+    void            SetSizeofMalloc(uint sizeofmalloc);
+    /// \brief      Renvoie la taille de la memoire alloue
+    uint            GetSizeofMalloc();
     /// \brief      Initialise a NULL le pointeur des donnees
     void            dataNULL();
     /// \brief      Renvoie True si le pointeur des donnees est NULL
@@ -513,8 +511,11 @@ protected:
     /// \brief      Suppression de memoire alloue
     void            SubMemoryOc(uint m);
     /// \brief      Initialise la taille de la memoire alloue
-    /// \param      sizeofmalloc : Taille de l allocation
-    void            SetSizeofMalloc(uint sizeofmalloc);
+    /// \brief      Renvoie le pointeur du pointeur des donnees
+    T**             ppData();
+
+    /// \brief      Init le pointeur des donnees
+    void            SetPData(T *p);
 
     virtual bool    abDealloc() = 0;
 

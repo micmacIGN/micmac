@@ -63,11 +63,9 @@ float2 *SData2Correl::HostVolumeProj()
 void SData2Correl::DeallocHostData()
 {
     for (int i = 0; i < SIZERING; ++i)
-        if(!_hVolumeCost[i].GetSizeofMalloc())
             _hVolumeCost[i].Dealloc();
 
-    if(!_hVolumeProj.GetSizeofMalloc())
-        _hVolumeProj.Dealloc();
+    _hVolumeProj.Dealloc();
 }
 
 void SData2Correl::DeallocDeviceData()
