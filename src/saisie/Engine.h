@@ -46,26 +46,14 @@ public:
     float m_translationMatrix[3];
 };
 
-class cSelectInfos
+struct selectInfos
 {
-public:
-
-    cSelectInfos();
-    ~cSelectInfos();
-
-    cSelectInfos(ViewportParameters aParams, QVector <QPoint> aPolyline, int selection_mode);
-
-    ViewportParameters getParams(){return m_params;}
-    QVector <QPoint>   getPoly(){return m_poly;}
-    int                getSelectionMode(){return m_selection_mode;}
-
-private:
-    //Ortho camera infos
-    ViewportParameters m_params;
-
-    //polyline infos
-    QVector <QPoint>   m_poly;
-    int                m_selection_mode;
+    //! Ortho camera infos
+    ViewportParameters params;
+    //! polyline infos
+    QVector <QPoint>   poly;
+    //! selection mode
+    int                selection_mode;
 };
 
 //! Selection mode
@@ -136,10 +124,9 @@ public:
     //! Compute mask binary images: projection of visible points into loaded cameras
     void doMasks();
 
-    void saveSelectInfos(QVector <cSelectInfos> const &Infos);
+    void saveSelectInfos(QVector <selectInfos> const &Infos);
 
     cData*   getData()  {return m_Data;}
-
 
 private:
 
