@@ -330,6 +330,14 @@ void cZBuffer::AddImAttr(Im2DGen * anIm)
 
 void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
 {
+   bool aBugBUT = false;
+   {
+      static int aCpt=0;
+      aCpt ++;
+      // aBugBUT = (aCpt==85);
+      // std::cout << "cZBuffer::BasculerUnTriangle " << aCpt << "\n";;
+   }
+
 
    if (
            (! mTImOkTer.get(A-mP0In))
@@ -342,6 +350,19 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
      Pt3dr B3  =  ProjDisc(B);
      Pt3dr C3  =  ProjDisc(C);
 
+ if (aBugBUT)
+ {
+      std::cout << "ooo00000  " << mOffet_Out_00 << "\n";
+      std::cout << "ppp  " << A << A3 << "\n";
+      std::cout << "ppp  " << B << B3 << "\n";
+      std::cout << "ppp  " << C << C3 << "\n";
+      std::cout << " Buff " << mBufDone << " " << mOrigineIn << mStepIn << "\n";
+      std::cout << " OOuut " << mBufDone << " " << mOrigineOut << mStepOut << "\n";
+mBufDone = false ;
+      std::cout << "kkkkk  " << A <<  ProjDisc(A) << " " << ZofXY(A)  << "\n";
+      getchar();
+ }
+
      Pt2dr A2(A3.x,A3.y);
      Pt2dr B2(B3.x,B3.y);
      Pt2dr C2(C3.x,C3.y);
@@ -349,6 +370,7 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
      Pt2dr AB = B2-A2;
      Pt2dr AC = C2-A2;
      REAL aDet = AB^AC;
+
 
 	 //Calcul de l'etirement du triangle
      int aCoefEtire= -1;
@@ -391,7 +413,9 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
          mAttrC.push_back(mImAttrIn[aKA]->GetR(C));
      }
 
+
      for (INT x=aP0.x ; x<= aP1.x ; x++)
+     {
          for (INT y=aP0.y ; y<= aP1.y ; y++)
 	 {
 		 Pt2dr AP = Pt2dr(x,y)-A2;
@@ -402,26 +426,27 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
 		 REAL aPdsA = 1 - aPdsB - aPdsC;
 		 if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps))
 		 {
-              REAL4 aZ = (float) (zA *aPdsA  + zB* aPdsB + zC *aPdsC);
-              if (aZ>mDataRes[y][x])
-              {
-                   mDataRes[y][x] = aZ;
-                   mImTriInv.set(x,y,aDet<0);
-                   if (aCoefEtire>=0)
-                   {
-                        mImEtirement.SetI(Pt2di(x,y),aCoefEtire);
-                   }
-                   for (int aKA=0 ; aKA<(int)mImAttrIn.size() ; aKA++)
-                   {
-                        mImAttrOut[aKA]->SetR
-                        (
-                           Pt2di(x,y),
-                           aPdsA*mAttrA[aKA] + aPdsB*mAttrB[aKA] + aPdsC*mAttrC[aKA]
-                        );
-                   }
-              }
+                    REAL4 aZ = (float) (zA *aPdsA  + zB* aPdsB + zC *aPdsC);
+                    if (aZ>mDataRes[y][x])
+                    {
+                         mDataRes[y][x] = aZ;
+                         mImTriInv.set(x,y,aDet<0);
+                         if (aCoefEtire>=0)
+                         {
+                              mImEtirement.SetI(Pt2di(x,y),aCoefEtire);
+                         }
+                         for (int aKA=0 ; aKA<(int)mImAttrIn.size() ; aKA++)
+                         {
+                              mImAttrOut[aKA]->SetR
+                              (
+                                 Pt2di(x,y),
+                                 aPdsA*mAttrA[aKA] + aPdsB*mAttrB[aKA] + aPdsC*mAttrC[aKA]
+                              );
+                         }
+                    }
 		 }
 	 }
+    }
 }
 
 Pt3dr cZBuffer::ProjDisc(const Pt3dr & aPInDisc) const
