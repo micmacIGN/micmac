@@ -170,7 +170,6 @@ void cEngine::saveSelectInfos(QVector <cSelectInfos> const &Infos)
         QDomElement Scale       = doc.createElement("Scale");
         QDomElement Rotation	= doc.createElement("Rotation");
         QDomElement Translation	= doc.createElement("Translation");
-        QDomElement Polyline    = doc.createElement("Polyline");
         QDomElement Mode        = doc.createElement("Mode");
 
         cSelectInfos SInfo = Infos[i];
@@ -184,22 +183,25 @@ void cEngine::saveSelectInfos(QVector <cSelectInfos> const &Infos)
         t = doc.createTextNode(QString::number(SInfo.getParams().m_translationMatrix[0]) + " " + QString::number(SInfo.getParams().m_translationMatrix[1]) + " " + QString::number(SInfo.getParams().m_translationMatrix[2]));
         Translation.appendChild(t);
 
+        SII.appendChild(Scale);
+        SII.appendChild(Rotation);
+        SII.appendChild(Translation);
+
         QVector <QPoint> pts = SInfo.getPoly();
 
-        QString str;
         for (int aK=0; aK <pts.size(); ++aK)
-            str += QString::number(pts[aK].x()) + " "  + QString::number(pts[aK].y()) + " ";
+        {
+            QDomElement Point    = doc.createElement("Pt");
+            QString str = QString::number(pts[aK].x()) + " "  + QString::number(pts[aK].y());
 
-        t = doc.createTextNode( str );
-        Polyline.appendChild(t);
+            t = doc.createTextNode( str );
+            Point.appendChild(t);
+            SII.appendChild(Point);
+        }
 
         t = doc.createTextNode(QString::number(SInfo.getSelectionMode()));
         Mode.appendChild(t);
 
-        SII.appendChild(Scale);
-        SII.appendChild(Rotation);
-        SII.appendChild(Translation);
-        SII.appendChild(Polyline);
         SII.appendChild(Mode);
 
         SI.appendChild(SII);
@@ -210,6 +212,8 @@ void cEngine::saveSelectInfos(QVector <cSelectInfos> const &Infos)
     QTextStream content(&outFile);
     content << doc.toString();
     outFile.close();
+
+    cout << "File saved in: " << m_Loader->GetSelectionFilename().toStdString() << endl;
 }
 
 void cEngine::unloadAll()
@@ -224,16 +228,14 @@ void cEngine::unloadAll()
 //********************************************************************************
 
 ViewportParameters::ViewportParameters()
-    : zoom(1.0f)
-    , PointSize(1.0f)
-    , LineWidth(1.0f)
-    , angleX(0.0f)
-    , angleY(0.0f)
-    , angleZ(0.0f)
+    : zoom(1.f)
+    , PointSize(1.f)
+    , LineWidth(1.f)
+    , angleX(0.f)
+    , angleY(0.f)
+    , angleZ(0.f)
 {
-    m_translationMatrix[0] = 0.0f;
-    m_translationMatrix[1] = 0.0f;
-    m_translationMatrix[2] = 0.0f;
+    m_translationMatrix[0] = m_translationMatrix[1] = m_translationMatrix[2] = 0.f;
 }
 
 ViewportParameters::ViewportParameters(const ViewportParameters& params)
@@ -272,16 +274,14 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
 
 void ViewportParameters::reset()
 {
-    zoom = 1.0f;
-    PointSize = 1.0f;
-    LineWidth = 1.0f;
-    angleX = 0.0f;
-    angleY = 0.0f;
-    angleZ = 0.0f;
+    zoom = 1.f;
+    PointSize = 1.f;
+    LineWidth = 1.f;
+    angleX = 0.f;
+    angleY = 0.f;
+    angleZ = 0.f;
 
-    m_translationMatrix[0] = 0.0f;
-    m_translationMatrix[1] = 0.0f;
-    m_translationMatrix[2] = 0.0f;
+    m_translationMatrix[0] = m_translationMatrix[1] = m_translationMatrix[2] = 0.f;
 }
 
 //********************************************************************************
