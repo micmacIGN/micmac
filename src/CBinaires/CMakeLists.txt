@@ -8,6 +8,10 @@ endif()
 
 if(IgnSocle_FOUND)
     target_link_libraries(mm3d ${IgnSocle_LIBRARIES})
+ IF ( PROJ4_FOUND )
+	target_link_libraries(mm3d ${PROJ4_LIBRARIES}) 
+ENDIF()
+
 endif()
 
 if(KAKADU_FOUND)
