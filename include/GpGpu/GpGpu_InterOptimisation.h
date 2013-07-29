@@ -2,7 +2,7 @@
 #define __OPTIMISATION_H__
 
 #include "GpGpu/SData2Optimize.h"
-#include "GpGpu/GpGpuMultiThreadingCpu.h"
+#include "GpGpu/GpGpu_MultiThreadingCpu.h"
 
 template <class T>
 void LaunchKernel();

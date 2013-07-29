@@ -1,4 +1,4 @@
-#include "GpGpu/GpGpuInterOptimisation.h"
+#include "GpGpu/GpGpu_InterOptimisation.h"
 
 InterfOptimizGpGpu::InterfOptimizGpGpu()
 {

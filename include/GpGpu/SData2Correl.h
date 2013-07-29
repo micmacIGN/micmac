@@ -1,7 +1,7 @@
 #ifndef _SDATA2CORREL_H
 #define _SDATA2CORREL_H
 
-#include "GpGpu/GpGpuParamCorrelation.cuh"
+#include "GpGpu/GpGpu_ParamCorrelation.cuh"
 
 extern "C" textureReference&    getMaskGlobal();
 extern "C" textureReference&	getMask();

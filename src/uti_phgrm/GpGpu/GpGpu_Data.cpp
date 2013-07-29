@@ -1,4 +1,4 @@
-#include "GpGpu/GpGpuData.h"
+#include "GpGpu/GpGpu_Data.h"
 
 bool  AImageCuda::bindTexture( textureReference& texRef )
 {

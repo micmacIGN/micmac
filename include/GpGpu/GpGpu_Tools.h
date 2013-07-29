@@ -1,7 +1,7 @@
 #ifndef GPGPUTOOLS_H
 #define GPGPUTOOLS_H
 
-#include "GpGpu/GpGpuCommonHeader.h"
+#include "GpGpu/GpGpu_CommonHeader.h"
 
 using namespace std;
 

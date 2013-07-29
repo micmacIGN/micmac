@@ -1,4 +1,4 @@
-#include "GpGpu/GpGpuTools.h"
+#include "GpGpu/GpGpu_Tools.h"
 
 void GpGpuTools::SetParamterTexture(textureReference &textRef)
 {

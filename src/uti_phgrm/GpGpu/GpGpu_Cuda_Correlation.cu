@@ -1,6 +1,6 @@
-#include "GpGpu/GpGpuParamCorrelation.cuh"
-#include "GpGpu/GpGpuTextureTools.cuh"
-#include "GpGpu/GpGpuTextureCorrelation.cuh"
+#include "GpGpu/GpGpu_ParamCorrelation.cuh"
+#include "GpGpu/GpGpu_TextureTools.cuh"
+#include "GpGpu/GpGpu_TextureCorrelation.cuh"
 #include "GpGpu/SData2Correl.h"
 
 

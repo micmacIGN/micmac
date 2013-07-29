@@ -14,7 +14,7 @@
     #define BOOST_ALL_NO_LIB
 #endif
 
-#include "GpGpu/GpGpuMultiThreadingCpu.h"
+#include "GpGpu/GpGpu_MultiThreadingCpu.h"
 #include "GpGpu/SData2Correl.h"
 
 extern "C" void	CopyParamTodevice(pCorGpu h);

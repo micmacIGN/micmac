@@ -1,7 +1,7 @@
 #ifndef _GPGPUSTREAMDATA_H_
 #define _GPGPUSTREAMDATA_H_
 
-#include "GpGpu/GpGpuData.h"
+#include "GpGpu/GpGpu_Data.h"
 
 using namespace std;
 

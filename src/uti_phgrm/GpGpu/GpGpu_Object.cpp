@@ -1,4 +1,4 @@
-#include "GpGpu/GpGpuObject.h"
+#include "GpGpu/GpGpu_Object.h"
 
 std::string CGObject::Name()
 {

@@ -7,7 +7,7 @@
 /// \version    0.01
 /// \date       Avril 2013
 
-#include "GpGpu/GpGpuStreamData.cuh"
+#include "GpGpu/GpGpu_StreamData.cuh"
 #include "GpGpu/SData2Optimize.h"
 
 /// brief Calcul le Z min et max.
