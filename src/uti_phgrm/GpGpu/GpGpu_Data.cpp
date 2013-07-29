@@ -1,25 +1,34 @@
 #include "GpGpu/GpGpu_Data.h"
 
-bool  AImageCuda::bindTexture( textureReference& texRef )
+DecoratorImageCuda::DecoratorImageCuda(CData<cudaArray> *dataCudaArray):
+    _dataCudaArray(dataCudaArray)
+{
+
+}
+
+bool  DecoratorImageCuda::bindTexture( textureReference& texRef )
 {
     cudaChannelFormatDesc desc;
-    bool bCha	= CData::ErrorOutput(cudaGetChannelDesc(&desc, GetCudaArray()),"Bind Texture / cudaGetChannelDesc");
-    bool bBind	= CData::ErrorOutput(cudaBindTextureToArray(&texRef,GetCudaArray(),&desc),"Bind Texture / Bind");
+//    bool bCha	= CData::ErrorOutput(cudaGetChannelDesc(&desc, GetCudaArray()),"Bind Texture / cudaGetChannelDesc");
+//    bool bBind	= CData::ErrorOutput(cudaBindTextureToArray(&texRef,GetCudaArray(),&desc),"Bind Texture / Bind");
+    bool bCha	= !cudaGetChannelDesc(&desc, GetCudaArray());
+    bool bBind	= !cudaBindTextureToArray(&texRef,GetCudaArray(),&desc);
+
     return bCha && bBind;
 }
 
-cudaArray* AImageCuda::GetCudaArray()
+cudaArray* DecoratorImageCuda::GetCudaArray()
 {
-    return CData<cudaArray>::pData();
+    return _dataCudaArray->pData();
 }
 
-bool AImageCuda::Memset( int val )
+bool DecoratorImageCuda::Memset( int val )
 {
     std::cout << "PAS DE MEMSET POUR CUDA ARRAY" << "\n";
     return true;
 }
 
-bool AImageCuda::abDealloc()
+bool DecoratorImageCuda::abDealloc()
 {
-    return (cudaFreeArray( CData<cudaArray>::pData()) == cudaSuccess) ? true : false;
+    return (cudaFreeArray( GetCudaArray()) == cudaSuccess) ? true : false;
 }
