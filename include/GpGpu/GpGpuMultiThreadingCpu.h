@@ -5,11 +5,9 @@
 
 #include <boost/thread/thread.hpp>
 
-#include "GpGpu/GpGpuTools.h"
+#include "GpGpu/GpGpuData.h"
 
 extern "C" void Launch(uint* value);
-
-#define ITERACUDA   2
 
 template< class T >
 class CSimpleJobCpuGpu

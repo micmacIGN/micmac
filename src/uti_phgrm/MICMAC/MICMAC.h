@@ -3617,7 +3617,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
 	// GPGPU
 #ifdef CUDA_ENABLED
-        InterfaceMicMacGpGpu	IMmGg;
+        GpGpuInterfaceCorrel	IMmGg;
 #endif	
 
          cMMTP *  mMMTP;

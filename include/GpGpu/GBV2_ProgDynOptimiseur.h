@@ -4,7 +4,6 @@
 #include  "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
-
 namespace NS_ParamMICMAC
 {
 

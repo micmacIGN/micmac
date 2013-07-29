@@ -1,9 +1,7 @@
 #ifndef __DATA2OPTIMIZ_H__
 #define __DATA2OPTIMIZ_H__
 
-#include "GpGpu/GpGpuTools.h"
-
-#define TEMPLATE_D2OPTI template<template<class T> class U, uint NBUFFER >
+#include "GpGpu/GpGpuData.h"
 
 template<template<class T> class U, uint NBUFFER = 1 >
 struct Data2Optimiz

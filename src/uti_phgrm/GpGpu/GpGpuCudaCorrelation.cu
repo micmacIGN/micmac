@@ -1,10 +1,10 @@
-#include "GpGpu/cudaAppliMicMac.cuh"
-#include "GpGpu/cudaTextureTools.cuh"
-#include "GpGpu/CudaRefTexture.cuh"
+#include "GpGpu/GpGpuParamCorrelation.cuh"
+#include "GpGpu/GpGpuTextureTools.cuh"
+#include "GpGpu/GpGpuTextureCorrelation.cuh"
 #include "GpGpu/SData2Correl.h"
 
 
-/// \file       cudaAppliMicMac.cu
+/// \file       GpGpuCudaCorrelation.cu
 /// \brief      Kernel
 /// \author     GC
 /// \version    0.2
