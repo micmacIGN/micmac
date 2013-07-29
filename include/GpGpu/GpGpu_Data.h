@@ -10,6 +10,8 @@ template <class T>
 class CData : public CGObject
 {
 
+    friend class DecoratorImageCuda;
+
 public:
 
     CData();
@@ -212,13 +214,12 @@ public:
     /// \param      dim : Dimension a initialiser
     CData2D(uint2 dim);
 
-    /// \brief Alloue la memoire neccessaire
-    //virtual bool	Malloc()        = 0;
     /// \brief      Initialise les elements des images a val
     /// \param      val : Valeur d initialisation
     virtual bool	Memset(int val) = 0;
 
     void			OutputInfo();
+
     /// \brief       Allocation memoire pour les tous les elements de la structures avec initialisation de la dimension de la structure
     /// \param      dim : Dimension 2D a initialiser
     bool			Malloc(uint2 dim);
@@ -232,8 +233,6 @@ protected:
     virtual bool    abDealloc() = 0;
 
     virtual bool    abMalloc()  = 0;
-
-    /// \brief      Nombre d elements de la structure
 
     uint            Sizeof(){return sizeof(T) * struct2D::GetSize();}
 
@@ -311,7 +310,6 @@ public:
     bool			ReallocIf(uint dim1D);
 
     bool			ReallocIf(uint2 dim, uint l);
-
 
     T&              operator[](uint2 pt);
     T&              operator[](uint3 pt);
@@ -776,29 +774,32 @@ void CuDeviceData3D<T>::init(string name)
 }
 
 /// \class  AImageCuda
-/// \brief Cette classe abstraite est une image directement liable a une texture GpGpu
-class AImageCuda : virtual public CData<cudaArray>
+/// \brief Decorateur pour imageCuda
+class DecoratorImageCuda
 {
 public:
 
-    AImageCuda(){}
-    ~AImageCuda(){}
+    DecoratorImageCuda(CData<cudaArray>*   dataCudaArray);
+    ~DecoratorImageCuda(){}
 
     /// \brief  Lie l image a une texture Gpu
     /// \param  texRef : reference de la texture a lier
     bool		bindTexture(textureReference& texRef);
-    /// \brief  renvoie le tableau cuda contenant les valeurs de l'image
-    cudaArray*	GetCudaArray();
+
+protected:
 
     /// \brief  Initialisation de toutes les valeurs du tableau a val
     /// \param  val : valeur d initialisation
     bool		Memset(int val);
 
-protected:
+    /// \brief  renvoie le tableau cuda contenant les valeurs de l'image
+    cudaArray*	GetCudaArray();
 
-    bool        abDealloc() ;
+    bool        abDealloc() ;    
 
-    virtual bool  abMalloc() = 0;
+private:
+
+    CData<cudaArray>*   _dataCudaArray;
 
 };
 
@@ -806,35 +807,28 @@ protected:
 /// \class  ImageCuda
 /// \brief Cette classe est une image 2D directement liable a une texture GpGpu
 template <class T>
-class ImageCuda : public CData2D<cudaArray>, virtual public AImageCuda
+class ImageCuda : public CData2D<cudaArray>, public DecoratorImageCuda
 {
 
 public:
 
     ImageCuda();
     ~ImageCuda(){}
-    /// \brief Initialise la dimension et les valeurs de l image
-    /// \param dimension : la dimension d initialisation
-    /// \param data : Donnees a copier dans l image
-    bool	InitImage(uint2 dimension, T* data);
 
     /// \brief Initialise les valeurs de l image avec un tableau de valeur du Host
     /// \param data : Donnees cible a copier
     bool	copyHostToDevice(T* data);
     /// \brief Initialise les valeurs de l image a val
     /// \param val : Valeur d initialisation
-    bool	Memset(int val){return AImageCuda::Memset(val);}
-    //bool	Dealloc(){return AImageCuda::Dealloc();}
-    /// \brief Sortie console de la classe
-    void	OutputInfo(){CData2D::OutputInfo();}
+    bool	Memset(int val){return DecoratorImageCuda::Memset(val);}
 
 protected:
 
-    bool    abDealloc(){return AImageCuda::abDealloc();}
+    bool    abDealloc(){ return DecoratorImageCuda::abDealloc();}
 
     bool    abMalloc();
 
-    uint	Sizeof(){ return CData2D::Sizeof() * sizeof(T);}
+    uint	Sizeof(){ return CData2D::GetSize() * sizeof(T);}
 
 private:
 
@@ -843,7 +837,8 @@ private:
 };
 
 template <class T>
-ImageCuda<T>::ImageCuda()
+ImageCuda<T>::ImageCuda():
+    DecoratorImageCuda(this)
 {
     CData2D::SetType("ImageLayeredCuda");
     CData2D::ClassTemplate(CData2D::ClassTemplate() + " " + CData2D::StringClass<T>(_ClassData));
@@ -852,23 +847,14 @@ ImageCuda<T>::ImageCuda()
 template <class T>
 bool ImageCuda<T>::copyHostToDevice( T* data )
 {
-    // Copie des données du Host dans le tableau Cuda
-    return CData2D::ErrorOutput(cudaMemcpyToArray(AImageCuda::pData(), 0, 0, data, sizeof(T)*size(GetDimension()), cudaMemcpyHostToDevice),"copyHostToDevice");
+    return CData2D::ErrorOutput(cudaMemcpyToArray(CData2D::pData(), 0, 0, data, sizeof(T)*size(GetDimension()), cudaMemcpyHostToDevice),"copyHostToDevice");
 }
 
 template <class T>
 bool ImageCuda<T>::abMalloc()
 {
     cudaChannelFormatDesc channelDesc =  cudaCreateChannelDesc<T>();
-    return CData2D::ErrorOutput(cudaMallocArray(AImageCuda::ppData(),&channelDesc,struct2D::GetDimension().x,struct2D::GetDimension().y),"Malloc");
-}
-
-template <class T>
-bool    ImageCuda<T>::InitImage(uint2 dimension, T* data)
-{
-    SetDimension(dimension);
-    CData<T>::Malloc();
-    return copyHostToDevice(data);
+    return CData2D::ErrorOutput(cudaMallocArray(CData2D::ppData(),&channelDesc,struct2D::GetDimension().x,struct2D::GetDimension().y),"Malloc");
 }
 
 //-----------------------------------------------------------------------------------------------
@@ -878,7 +864,7 @@ bool    ImageCuda<T>::InitImage(uint2 dimension, T* data)
 /// \class ImageLayeredCuda
 /// \brief Cette classe est une pile d'image 2D directement liable a une texture GpGpu
 template <class T>
-class ImageLayeredCuda : public CData3D<cudaArray>, virtual public AImageCuda
+class ImageLayeredCuda : public CData3D<cudaArray>, public DecoratorImageCuda
 {
 
 public:
@@ -888,7 +874,7 @@ public:
 
     /// \brief Initialise les valeurs des images a val
     /// \param val : Valeur d initialisation
-    bool	Memset(int val){return AImageCuda::Memset(val);}
+    bool	Memset(int val){return DecoratorImageCuda::Memset(val);}
 
     /// \brief Copie des valeurs des images avec un tableau 3D de valeur du Host
     /// \param data : Donnees cible a copier
@@ -897,19 +883,17 @@ public:
     /// \param data : tableau de destination
     bool	copyDeviceToDevice(T* data);
     /// \brief Copie asynchrone des valeurs des images avec un tableau 3D de valeur du Host
-    /// \param data : Donnees cible a copier
+    /// \param data : Donnees cible a copierAImageCuda
     /// \param stream : flux cuda
     bool	copyHostToDeviceASync(T* data, cudaStream_t stream = 0);
-    /// \brief Sortie console de la classe
-    void	OutputInfo(){CData3D::OutputInfo();}
 
 protected:
 
-    bool    abDealloc(){return AImageCuda::abDealloc();}
+    bool    abDealloc(){ return DecoratorImageCuda::abDealloc();}
 
     bool    abMalloc();
 
-    uint	Sizeof(){ return CData3D::Sizeof() * sizeof(T);}
+    uint	Sizeof(){ return CData3D::GetSize() * sizeof(T);}
 
 private:
 
@@ -921,9 +905,11 @@ private:
 };
 
 template <class T>
-ImageLayeredCuda<T>::ImageLayeredCuda()
+ImageLayeredCuda<T>::ImageLayeredCuda():
+    DecoratorImageCuda(this)
 {
     CData3D::SetType("ImageLayeredCuda");
+
     CData3D::ClassTemplate(CData3D::ClassTemplate() + " " + CData3D::StringClass<T>(_ClassData));
 }
 
@@ -936,7 +922,7 @@ cudaMemcpy3DParms ImageLayeredCuda<T>::CudaMemcpy3DParms(T *data, cudaMemcpyKind
     cudaMemcpy3DParms	p		= { 0 };
     cudaPitchedPtr		pitch	= make_cudaPitchedPtr(data, sizeImgsLay.width * sizeof(T), sizeImgsLay.width, sizeImgsLay.height);
 
-    p.dstArray	= AImageCuda::GetCudaArray();   // Pointeur du tableau de destination
+    p.dstArray	= pData();   // Pointeur du tableau de destination
     p.srcPtr	= pitch;                        // Pitch
     p.extent	= sizeImgsLay;                  // Taille du cube
     p.kind      = kind;                         // Type de copie
@@ -954,7 +940,7 @@ template <class T>
 bool ImageLayeredCuda<T>::copyHostToDevice( T* data )
 {
     cudaMemcpy3DParms	p = CudaMemcpy3DParms(data,cudaMemcpyHostToDevice);
-    // Copie des images du Host vers le Device
+
     return CData3D::ErrorOutput(cudaMemcpy3D(&p),"copyHostToDevice") ;
 }
 
@@ -963,7 +949,6 @@ bool ImageLayeredCuda<T>::copyDeviceToDevice(T *data)
 {
     cudaMemcpy3DParms	p = CudaMemcpy3DParms(data,cudaMemcpyDeviceToDevice);
 
-    // Copie des images du Host vers le Device
     return CData3D::ErrorOutput(cudaMemcpy3D(&p),"copyDeviceToDevice") ;
 }
 
@@ -972,7 +957,6 @@ bool ImageLayeredCuda<T>::copyHostToDeviceASync( T* data, cudaStream_t stream /*
 {
     cudaMemcpy3DParms	p = CudaMemcpy3DParms(data,cudaMemcpyHostToDevice);
 
-    // Copie des images du Host vers le Device
     return CData3D::ErrorOutput( cudaMemcpy3DAsync (&p, stream),"copyHostToDeviceASync");
 }
 
@@ -980,9 +964,8 @@ template <class T>
 bool ImageLayeredCuda<T>::abMalloc()
 {
     cudaChannelFormatDesc channelDesc =	cudaCreateChannelDesc<T>();
-    // Allocation memoire GPU du tableau des calques d'images
-    return CData3D::ErrorOutput(cudaMalloc3DArray(AImageCuda::ppData(),&channelDesc,CudaExtent(),cudaArrayLayered),"Malloc");
-}
 
+    return CData3D::ErrorOutput(cudaMalloc3DArray(ppData(),&channelDesc,CudaExtent(),cudaArrayLayered),"Malloc");
+}
 
 #endif //GPGPU_DATA_H

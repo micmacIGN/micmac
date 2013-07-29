@@ -11,6 +11,9 @@ extern "C" textureReference&	getProjection(int TexSel);
 #define SYNC    false
 #define ASYNC   true
 
+///
+/// \brief The SData2Correl struct
+///
 struct SData2Correl
 {
     SData2Correl();
