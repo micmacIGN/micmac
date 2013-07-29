@@ -7,9 +7,6 @@
 template <class T>
 void LaunchKernel();
 
-#define HOST_Data2Opti Data2Optimiz<CuHostData3D,2>
-#define DEVC_Data2Opti Data2Optimiz<CuDeviceData3D>
-
 extern "C" void Launch(uint* value);
 extern "C" void OptimisationOneDirection(DEVC_Data2Opti  &d2O);
 

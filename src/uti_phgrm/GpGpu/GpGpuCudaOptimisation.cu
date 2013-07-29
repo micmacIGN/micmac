@@ -1,8 +1,7 @@
 #ifndef _OPTIMISATION_KERNEL_H_
-/// \brief ....
 #define _OPTIMISATION_KERNEL_H_
 
-/// \file       GpGpuOptimisation.cu
+/// \file       GpGpuInterfaceOptimisation.cu
 /// \brief      Kernel optimisation
 /// \author     GC
 /// \version    0.01
@@ -207,7 +206,7 @@ __global__ void TestGpu(uint *value)
 extern "C" void Launch(uint *value){
 
     dim3 Threads(WARPSIZE);
-    dim3 Blocks(NWARP);
+    dim3 Blocks(1);
 
     TestGpu<<<Blocks,Threads>>>(value);
 

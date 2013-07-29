@@ -1,7 +1,7 @@
 #ifndef _SDATA2CORREL_H
 #define _SDATA2CORREL_H
 
-#include "GpGpu/cudaAppliMicMac.cuh"
+#include "GpGpu/GpGpuParamCorrelation.cuh"
 
 extern "C" textureReference&    getMaskGlobal();
 extern "C" textureReference&	getMask();

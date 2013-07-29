@@ -1,7 +1,7 @@
-#include "GpGpu/InterfaceMicMacGpGpu.h"
+#include "GpGpu/GpGpuInterCorrel.h"
 
-/// \brief Constructeur InterfaceMicMacGpGpu
-InterfaceMicMacGpGpu::InterfaceMicMacGpGpu()
+/// \brief Constructeur GpGpuInterfaceCorrel
+GpGpuInterfaceCorrel::GpGpuInterfaceCorrel()
 {
     for (int s = 0;s<NSTREAM;s++)
         checkCudaErrors( cudaStreamCreate(GetStream(s)));
@@ -9,14 +9,14 @@ InterfaceMicMacGpGpu::InterfaceMicMacGpGpu()
     CreateJob();
 }
 
-InterfaceMicMacGpGpu::~InterfaceMicMacGpGpu()
+GpGpuInterfaceCorrel::~GpGpuInterfaceCorrel()
 {
     for (int s = 0;s<NSTREAM;s++)
         checkCudaErrors( cudaStreamDestroy(*(GetStream(s))));
 
 }
 
-uint InterfaceMicMacGpGpu::InitCorrelJob(int Zmin, int Zmax)
+uint GpGpuInterfaceCorrel::InitCorrelJob(int Zmin, int Zmax)
 {
 
 
@@ -39,12 +39,12 @@ uint InterfaceMicMacGpGpu::InitCorrelJob(int Zmin, int Zmax)
 }
 
 /// \brief Initialisation des parametres constants
-void InterfaceMicMacGpGpu::SetParameter(int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef )
+void GpGpuInterfaceCorrel::SetParameter(int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef )
 {
     _param.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
 }
 
-void InterfaceMicMacGpGpu::BasicCorrelation(uint ZInter)
+void GpGpuInterfaceCorrel::BasicCorrelation(uint ZInter)
 {
 
     Param().SetZCInter(ZInter);
@@ -79,12 +79,12 @@ void InterfaceMicMacGpGpu::BasicCorrelation(uint ZInter)
 
 }
 
-cudaStream_t* InterfaceMicMacGpGpu::GetStream( int stream )
+cudaStream_t* GpGpuInterfaceCorrel::GetStream( int stream )
 {
     return &(_stream[stream]);
 }
 
-void InterfaceMicMacGpGpu::threadCompute()
+void GpGpuInterfaceCorrel::threadCompute()
 {
     ResetIdBuffer();
     while (true)
@@ -106,7 +106,7 @@ void InterfaceMicMacGpGpu::threadCompute()
     }
 }
 
-void InterfaceMicMacGpGpu::freezeCompute()
+void GpGpuInterfaceCorrel::freezeCompute()
 {
     SetDataToCopy(0);
     SetCompute(0);
@@ -114,44 +114,44 @@ void InterfaceMicMacGpGpu::freezeCompute()
     //KillJob();
 }
 
-void InterfaceMicMacGpGpu::IntervalZ(uint &interZ, int anZProjection, int aZMaxTer)
+void GpGpuInterfaceCorrel::IntervalZ(uint &interZ, int anZProjection, int aZMaxTer)
 {
     uint intZ = (uint)abs(aZMaxTer - anZProjection );
     if (interZ >= intZ  &&  anZProjection != (aZMaxTer - 1) )
         interZ = intZ;
 }
 
-float *InterfaceMicMacGpGpu::VolumeCost()
+float *GpGpuInterfaceCorrel::VolumeCost()
 {
     return UseMultiThreading() ? Data().HostVolumeCost(!GetIdBuf()) : Data().HostVolumeCost(0);
 }
 
-bool InterfaceMicMacGpGpu::TexturesAreLoaded()
+bool GpGpuInterfaceCorrel::TexturesAreLoaded()
 {
     return _TexturesAreLoaded;
 }
 
-void InterfaceMicMacGpGpu::SetTexturesAreLoaded(bool load)
+void GpGpuInterfaceCorrel::SetTexturesAreLoaded(bool load)
 {
     _TexturesAreLoaded = load;
 }
 
-void InterfaceMicMacGpGpu::CorrelationGpGpu(const int s)
+void GpGpuInterfaceCorrel::CorrelationGpGpu(const int s)
 {
     LaunchKernelCorrelation(s, *(GetStream(s)),_param, _data2Cor);
 }
 
-void InterfaceMicMacGpGpu::MultiCorrelationGpGpu(const int s)
+void GpGpuInterfaceCorrel::MultiCorrelationGpGpu(const int s)
 {
     LaunchKernelMultiCorrelation( *(GetStream(s)),_param,  _data2Cor);
 }
 
-pCorGpu& InterfaceMicMacGpGpu::Param()
+pCorGpu& GpGpuInterfaceCorrel::Param()
 {
     return _param;
 }
 
-void InterfaceMicMacGpGpu::signalComputeCorrel(uint dZ)
+void GpGpuInterfaceCorrel::signalComputeCorrel(uint dZ)
 {
     SetPreComp(false);
     SetCompute(dZ);
