@@ -1,8 +1,8 @@
 #ifndef GPGPU_OBJECT_H
 #define GPGPU_OBJECT_H
 
-#include "GpGpu/GpGpuCommonHeader.h"
-#include "GpGpu/GpGpuTools.h"
+#include "GpGpu/GpGpu_CommonHeader.h"
+#include "GpGpu/GpGpu_Tools.h"
 
 using namespace std;
 

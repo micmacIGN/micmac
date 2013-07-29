@@ -1,4 +1,4 @@
-#include "GpGpu/GpGpuInterCorrel.h"
+#include "GpGpu/GpGpu_InterCorrel.h"
 
 /// \brief Constructeur GpGpuInterfaceCorrel
 GpGpuInterfaceCorrel::GpGpuInterfaceCorrel()

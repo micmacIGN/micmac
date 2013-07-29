@@ -1,4 +1,4 @@
-#include "GpGpu/GpGpuParamCorrelation.cuh"
+#include "GpGpu/GpGpu_ParamCorrelation.cuh"
 
 texture< pixel,	cudaTextureType2D >         TexS_MaskTerD;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GpGpu/GpGpuData.h"
+#include "GpGpu/GpGpu_Data.h"
 
 /// \struct pCorGpu
 /// \param  La structure contenant tous les parametres necessaires a la correlation

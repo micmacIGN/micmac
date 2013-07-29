@@ -22,10 +22,8 @@
 #include <helper_math.h>
 #include <helper_functions.h>
 #include <helper_cuda.h>
-#include "GpGpu/GpGpuDefines.h"
 
-////#include "GpGpu/GpGpuObject.h"
-//#include "GpGpu/GpGpuTools.h"
-//#include "GpGpu/GpGpuData.h"
+#include "GpGpu/GpGpu_Defines.h"
+
 
 #endif  //GPGPU_COMMON_HEADER_H

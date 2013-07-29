@@ -1,8 +1,8 @@
 #ifndef GPGPU_DATA_H
 #define GPGPU_DATA_H
 
-#include "GpGpu/GpGpuObject.h"
-#include "GpGpu/GpGpuTools.h"
+#include "GpGpu/GpGpu_Object.h"
+#include "GpGpu/GpGpu_Tools.h"
 
 /// \class CData
 /// \brief Classe Abstraite de donnees
