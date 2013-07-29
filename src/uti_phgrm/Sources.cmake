@@ -32,8 +32,8 @@ else()
 endif()
 
 configure_file(
-    ${UTI_PHGRM_GPGPU_DIR}/GpGpuDefines.h.in
-    ${PROJECT_SOURCE_DIR}/include/GpGpu/GpGpuDefines.h
+    ${UTI_PHGRM_GPGPU_DIR}/GpGpu_BuildOptions.h.in
+    ${PROJECT_SOURCE_DIR}/include/GpGpu/GpGpu_BuildOptions.h
 )
 
 set( Applis_phgrm_Src_Files

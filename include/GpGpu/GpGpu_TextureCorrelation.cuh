@@ -48,10 +48,9 @@ template<int TexSel> inline  __device__ float2 GetProjection(uint2 ptTer, uint s
 #endif
 }
 
-
 extern "C" textureReference& getMask(){	return TexS_MaskTer;}
+
 extern "C" textureReference& getImage(){ return TexL_Images;}
-//extern "C" textureReference& getCache(){ return TexL_Cache;}
 
 extern "C" textureReference& getProjection(int TexSel)
 {

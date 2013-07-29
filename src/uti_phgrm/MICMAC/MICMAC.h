@@ -431,6 +431,7 @@ class cSurfaceOptimiseur
       std::vector<Im2D_INT2>  mImRes;
       std::vector<INT2 **>    mDataImRes;
       std::vector<Im2D_INT2>  mImResInit;
+      bool                    mCubeCorrel;
       cMatrOfSMV<U_INT1> *    mMemoCorrel;
       bool                    mCanFillCorrel;
       bool                    mDoFileCorrel;
@@ -2875,8 +2876,11 @@ class cAppliMICMAC  : public   cParamMICMAC,
 	// Accesseur 
 
         // Box2dr          BoxTer();
-        // Box2di          BoxIn();
-        // Box2di          BoxOut();
+        const Box2di &  BoxIn()  const ;
+        const Box2di &  BoxOut() const ;
+        std::string  DirCube() const;
+        std::string  NameFileCurCube(const std::string &) const;
+
         bool  IsOptDiffer() const;
         bool  IsOptimCont() const;
         bool  IsOptimReel() const;
@@ -3613,7 +3617,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
 	// GPGPU
 #ifdef CUDA_ENABLED
-        InterfaceMicMacGpGpu	IMmGg;
+        GpGpuInterfaceCorrel	IMmGg;
 #endif	
 
          cMMTP *  mMMTP;

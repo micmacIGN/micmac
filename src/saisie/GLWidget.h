@@ -50,10 +50,6 @@ class GLWidget : public QGLWidget
 {
     Q_OBJECT
 
-private:
-
-    QPoint m_lastPos;
-
 public:
 
     //! Default constructor
@@ -143,9 +139,9 @@ public:
 
     void setBufferGl(bool onlyColor = false);
 
-    void getProjection(QPoint &P2D, Vertex P);
+    void getProjection(QPointF &P2D, Vertex P);
 
-    QVector <cSelectInfos> getSelectInfos(){return m_infos;}
+    QVector <selectInfos> getSelectInfos(){return m_infos;}
 
     void reset();
 
@@ -277,15 +273,17 @@ protected:
     float m_speed;
 
     //! selection infos stack
-    QVector <cSelectInfos> m_infos;
+    QVector <selectInfos> m_infos;
 
     //! states if display is 2D or 3D
     bool m_bDisplayMode2D;
 
 private:
 
+    QPoint      m_lastPos;
+
     void        setProjectionMatrix();
-    void        calculateFPS();
+    void        computeFPS();
 
     QGLBuffer   m_vertexbuffer;
     QGLBuffer   m_vertexColor;

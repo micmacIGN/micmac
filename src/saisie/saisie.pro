@@ -50,7 +50,17 @@ DEPENDPATH += $$PWD/../../include
 DEPENDPATH += ./translations
 
 #comment to run debug
+CONFIG(release)
+{
+unix|win32: LIBS += -L$$PWD/../../lib -lelise
 
+macx: LIBS+= -L/usr/X11R6/lib/ -lX11 -lglut
+else:unix: LIBS += -lGLU -lGLEW -lglut
+unix:!macx: QMAKE_CXXFLAGS += -Wall -Wno-ignored-qualifiers -Wno-unused-parameter
+
+win32: PRE_TARGETDEPS += $$PWD/../../lib/elise.lib
+else:unix: PRE_TARGETDEPS += $$PWD/../../lib/libelise.a
+}
 #end of section to comment
 
 CONFIG(debug)
@@ -65,17 +75,7 @@ win32: PRE_TARGETDEPS += $$PWD/../../lib/elise.lib
 else:unix: PRE_TARGETDEPS += $$PWD/../../lib/libelise.a
 }
 
-CONFIG(release)
-{
-unix|win32: LIBS += -L$$PWD/../../lib -lelise
 
-macx: LIBS+= -L/usr/X11R6/lib/ -lX11 -lglut
-else:unix: LIBS += -lGLU -lGLEW -lglut
-unix:!macx: QMAKE_CXXFLAGS += -Wall -Wno-ignored-qualifiers -Wno-unused-parameter
-
-win32: PRE_TARGETDEPS += $$PWD/../../lib/elise.lib
-else:unix: PRE_TARGETDEPS += $$PWD/../../lib/libelise.a
-}
 # Tell Qt Linguist that we use UTF-8 strings in our sources
 TRANSLATIONS += ./translations/saisie_fr.ts
 CODECFORTR = UTF-8

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2058]) = {
+const char * (theNameVar_ParamMICMAC[2061]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -1278,6 +1278,9 @@ const char * (theNameVar_ParamMICMAC[2058]) = {
 "              defaut=false sauf pour la derniere etape \n",
 "              -->\n",
 "            <GenImagesCorrel Nb=\"?\" Type=\"bool\"> </GenImagesCorrel>\n",
+"            <GenCubeCorrel   Nb=\"?\" Type=\"bool\" Def=\"false\"> </GenCubeCorrel>\n",
+"\n",
+"\n",
 "\n",
 "	    <GenerateProjectionInImages Nb=\"*\">\n",
 "	        <NumsImageDontApply Nb=\"*\" Type=\"int\"> </NumsImageDontApply>\n",

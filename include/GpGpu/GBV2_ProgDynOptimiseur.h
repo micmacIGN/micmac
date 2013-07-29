@@ -4,7 +4,6 @@
 #include  "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
-
 namespace NS_ParamMICMAC
 {
 
@@ -14,18 +13,27 @@ namespace NS_ParamMICMAC
 /*                                                */
 /**************************************************/
 typedef unsigned int tCost;
+
+///
+/// \brief The cGBV2_CelOptimProgDyn class
+///
 class cGBV2_CelOptimProgDyn
 {
 public :
+    ///
+    /// \brief cGBV2_CelOptimProgDyn
+    ///
     cGBV2_CelOptimProgDyn() :
         mCostFinal (0)
     {
     }
+
     typedef enum
     {
         eAvant = 0,
         eArriere = 1
     } eSens;
+
     void SetCostInit(int aCost)
     {
         mCostInit = aCost;

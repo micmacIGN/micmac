@@ -63,11 +63,9 @@ float2 *SData2Correl::HostVolumeProj()
 void SData2Correl::DeallocHostData()
 {
     for (int i = 0; i < SIZERING; ++i)
-        if(!_hVolumeCost[i].GetSizeofMalloc())
             _hVolumeCost[i].Dealloc();
 
-    if(!_hVolumeProj.GetSizeofMalloc())
-        _hVolumeProj.Dealloc();
+    _hVolumeProj.Dealloc();
 }
 
 void SData2Correl::DeallocDeviceData()
@@ -111,11 +109,9 @@ void SData2Correl::SetImages(float *dataImage, uint2 dimImage, int nbLayer)
 }
 
 void SData2Correl::SetGlobalMask(pixel *dataMask, uint2 dimMask)
-{
-    _dt_GlobalMask.Dealloc();
-
-    _dt_GlobalMask.InitImage(dimMask,dataMask);
-
+{    
+    _dt_GlobalMask.CData2D::Realloc(dimMask);
+    _dt_GlobalMask.copyHostToDevice(dataMask);
     _dt_GlobalMask.bindTexture(_texMaskGlobal);
 }
 

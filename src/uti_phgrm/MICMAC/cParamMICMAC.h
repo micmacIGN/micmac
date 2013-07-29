@@ -3632,6 +3632,9 @@ class cEtapeMEC
         cTplValGesInit< bool > & GenImagesCorrel();
         const cTplValGesInit< bool > & GenImagesCorrel()const ;
 
+        cTplValGesInit< bool > & GenCubeCorrel();
+        const cTplValGesInit< bool > & GenCubeCorrel()const ;
+
         std::list< cGenerateProjectionInImages > & GenerateProjectionInImages();
         const std::list< cGenerateProjectionInImages > & GenerateProjectionInImages()const ;
 
@@ -3951,6 +3954,7 @@ class cEtapeMEC
         std::list< std::string > mArgGen8Bits;
         cTplValGesInit< bool > mGenFilePxRel;
         cTplValGesInit< bool > mGenImagesCorrel;
+        cTplValGesInit< bool > mGenCubeCorrel;
         std::list< cGenerateProjectionInImages > mGenerateProjectionInImages;
         cTplValGesInit< cGenCorPxTransv > mGenCorPxTransv;
         std::list< cGenereModeleRaster2Analytique > mExportAsModeleDist;
