@@ -18,7 +18,7 @@
  cuda_add_library(${libStatGpGpuOpt}  ${uti_phgrm_Opt_GpGpu_Src_Files} ${IncCudaFiles} STATIC OPTIONS ${GENCODE_SM20})
 
  if (Boost_FOUND)
-          target_link_libraries(${libStatGpGpuInterfMicMac}  ${Boost_LIBRARIES} ${Boost_THREADAPI})
+          target_link_libraries(${libStatGpGpuInterfMicMac} ${libStatGpGpuTools} ${Boost_LIBRARIES} ${Boost_THREADAPI})
           if (NOT WIN32)
                 target_link_libraries(${libStatGpGpuInterfMicMac}  rt pthread )
           endif()

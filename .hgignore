@@ -56,3 +56,5 @@ src/saisie/translations/saisie_fr.qm
 src/saisie3D/saisie3D.pro.user
 src/saisie3D/saisie3D.pro.user.2.7pre1
 src/saisie3D/saisie3D.pro.user.b14c4e8
+include/GpGpu/GpGpuBuildOptions.h
+include/GpGpu/GpGpu_BuildOptions.h

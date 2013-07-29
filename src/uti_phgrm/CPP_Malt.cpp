@@ -196,7 +196,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
         LArgMain()  << EAMC(aMode,"Mode of correlation (must be in allowed enumerated values)")
                     << EAMC(mFullName,"Full Name (Dir+Pattern)")
                     << EAMC(mOri,"Orientation"),
-        LArgMain()  << EAM(mImMaster,"Master",true," Master image must  exist iff Mode=GeomImage, enter AUTO for using ")
+        LArgMain()  << EAM(mImMaster,"Master",true," Master image must  exist iff Mode=GeomImage, AUTO for using result of AperoChImSecMM")
                     << EAM(mSzW,"SzW",true,"Correlation Window Size (1 means 3x3)")
                     << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, avalaible in image geometry")
                     << EAM(mZRegul,"Regul",true,"Regularization factor")

@@ -1,14 +1,13 @@
 #ifndef _OPTIMISATION_KERNEL_H_
-/// \brief ....
 #define _OPTIMISATION_KERNEL_H_
 
-/// \file       GpGpuOptimisation.cu
+/// \file       GpGpuInterfaceOptimisation.cu
 /// \brief      Kernel optimisation
 /// \author     GC
 /// \version    0.01
 /// \date       Avril 2013
 
-#include "GpGpu/GpGpuStreamData.cuh"
+#include "GpGpu/GpGpu_StreamData.cuh"
 #include "GpGpu/SData2Optimize.h"
 
 /// brief Calcul le Z min et max.
@@ -182,14 +181,14 @@ extern "C" void OptimisationOneDirection(Data2Optimiz<CuDeviceData3D> &d2O)
 {
     uint deltaMax = 3;
     dim3 Threads(WARPSIZE,1,1);
-    dim3 Blocks(d2O._nbLines,1,1);
+    dim3 Blocks(d2O.NBlines(),1,1);
 	
     kernelOptiOneDirection<ushort,uint><<<Blocks,Threads>>>
                                                 (
-                                                    d2O._s_InitCostVol      .pData(),
-                                                    d2O._s_Index            .pData(),
-                                                    d2O._s_ForceCostVol[0]  .pData(),
-                                                    d2O._param[0]           .pData(),
+                                                    d2O.pInitCost(),
+                                                    d2O.pIndex(),
+                                                    d2O.pForceCostVol(),
+                                                    d2O.pParam(),
                                                     deltaMax
                                                     );
     getLastCudaError("kernelOptiOneDirection failed");
@@ -207,7 +206,7 @@ __global__ void TestGpu(uint *value)
 extern "C" void Launch(uint *value){
 
     dim3 Threads(WARPSIZE);
-    dim3 Blocks(NWARP);
+    dim3 Blocks(1);
 
     TestGpu<<<Blocks,Threads>>>(value);
 

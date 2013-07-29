@@ -1276,6 +1276,9 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
               defaut=false sauf pour la derniere etape 
               -->
             <GenImagesCorrel Nb="?" Type="bool"> </GenImagesCorrel>
+            <GenCubeCorrel   Nb="?" Type="bool" Def="false"> </GenCubeCorrel>
+
+
 
 	    <GenerateProjectionInImages Nb="*">
 	        <NumsImageDontApply Nb="*" Type="int"> </NumsImageDontApply>

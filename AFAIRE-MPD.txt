@@ -1,3 +1,8 @@
+BUGS :
+
+
+  Si Masque TA existe et incompatible : genere bug
+
 Nouveaux outils :
 
 
@@ -5,8 +10,7 @@ Nouveaux outils :
 
   Environnement MicMac
 
-  MM-PxTransv.xml en outil simplifie + Push Broom
-
+  MM-PxTransv.xml en outil simplifie + Push Broo
   Exemple EDF en outil non simplifie
 
  Incidence Max dans Malt       

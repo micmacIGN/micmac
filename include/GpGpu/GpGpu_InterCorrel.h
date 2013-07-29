@@ -14,7 +14,7 @@
     #define BOOST_ALL_NO_LIB
 #endif
 
-#include "GpGpu/GpGpuMultiThreadingCpu.h"
+#include "GpGpu/GpGpu_MultiThreadingCpu.h"
 #include "GpGpu/SData2Correl.h"
 
 extern "C" void	CopyParamTodevice(pCorGpu h);
@@ -24,15 +24,15 @@ extern "C" void	LaunchKernelMultiCorrelation(cudaStream_t stream, pCorGpu &param
 extern "C" void dilateKernel(pixel* HostDataOut, short r, uint2 dim);
 
 
-/// \class InterfaceMicMacGpGpu
+/// \class GpGpuInterfaceCorrel
 /// \brief Class qui lie micmac avec les outils de calculs GpGpu
-class InterfaceMicMacGpGpu : public CSimpleJobCpuGpu< uint>
+class GpGpuInterfaceCorrel : public CSimpleJobCpuGpu< uint>
 {
 
 public:
 
-  InterfaceMicMacGpGpu();
-  ~InterfaceMicMacGpGpu();
+  GpGpuInterfaceCorrel();
+  ~GpGpuInterfaceCorrel();
 
   /// \brief    Initialise les parametres de correlation
   void          SetParameter(int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef);

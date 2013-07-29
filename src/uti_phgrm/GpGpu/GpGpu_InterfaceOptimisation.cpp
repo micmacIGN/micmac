@@ -1,4 +1,4 @@
-#include "GpGpu/GpGpuOptimisation.h"
+#include "GpGpu/GpGpu_InterOptimisation.h"
 
 InterfOptimizGpGpu::InterfOptimizGpGpu()
 {
@@ -15,7 +15,7 @@ void InterfOptimizGpGpu::Dealloc()
 
 void InterfOptimizGpGpu::oneDirOptGpGpu()
 {
-    _D_data2Opt.SetNbLine(_H_data2Opt._nbLines);
+    _D_data2Opt.SetNbLine(_H_data2Opt.NBlines());
 
     _H_data2Opt.ReallocOutputIf(_H_data2Opt._s_InitCostVol.GetSize());
 

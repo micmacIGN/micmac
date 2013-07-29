@@ -1,19 +1,10 @@
 #ifndef _GPGPUSTREAMDATA_H_
 #define _GPGPUSTREAMDATA_H_
 
-#include "GpGpu/GpGpuTools.h"
+#include "GpGpu/GpGpu_Data.h"
 
 using namespace std;
 
-/// \brief Tableau des penalites pre-calculees
-#define PENALITE 7
-
-#define NAPPEMAX 256
-
-#define eAVANT      true
-#define eARRIERE    false
-
-static __constant__ float   penalite[PENALITE];
 static __constant__ ushort  dMapIndex[WARPSIZE];
 
 /// \class CDeviceStream
