@@ -3,14 +3,14 @@
 DecoratorImageCuda::DecoratorImageCuda(CData<cudaArray> *dataCudaArray):
     _dataCudaArray(dataCudaArray)
 {
-
 }
 
 bool  DecoratorImageCuda::bindTexture( textureReference& texRef )
 {
+    _textureReference = &texRef;
+
     cudaChannelFormatDesc desc;
-//    bool bCha	= CData::ErrorOutput(cudaGetChannelDesc(&desc, GetCudaArray()),"Bind Texture / cudaGetChannelDesc");
-//    bool bBind	= CData::ErrorOutput(cudaBindTextureToArray(&texRef,GetCudaArray(),&desc),"Bind Texture / Bind");
+
     bool bCha	= !cudaGetChannelDesc(&desc, GetCudaArray());
     bool bBind	= !cudaBindTextureToArray(&texRef,GetCudaArray(),&desc);
 
@@ -31,4 +31,14 @@ bool DecoratorImageCuda::Memset( int val )
 bool DecoratorImageCuda::abDealloc()
 {
     return (cudaFreeArray( GetCudaArray()) == cudaSuccess) ? true : false;
+}
+
+bool DecoratorImageCuda::UnbindDealloc()
+{
+
+    if(_textureReference) cudaUnbindTexture(_textureReference);
+
+    _textureReference = NULL;
+
+    return _dataCudaArray->Dealloc();;
 }
