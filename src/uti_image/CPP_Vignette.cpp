@@ -320,19 +320,20 @@ void Write_Vignette(string aDir, string aNameOut,vector<double> aParam,string aD
 vector<double> Vignette_Solve(PtsHom aPtsHomol)
 {
 	double distMax=sqrt(pow(float(aPtsHomol.SZ.x)/2,2)+pow(float(aPtsHomol.SZ.y)/2,2));
-//Least Square
-/*
+/*/Least Square
+
 	// Create L2SysSurResol to solve least square equation with 3 unknown
 	L2SysSurResol aSys(3);
-	int nbPtsSIFT=aPtsHomol[0].size();
+	int nbPtsSIFT=aPtsHomol.size();
 
   	//For Each SIFT point
 	for(int i=0;i<int(nbPtsSIFT);i++){
-				 double aPds[3]={(aPtsHomol[3][i]*pow(aPtsHomol[1][i],2)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],2)),
-								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],4)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],4)),
-								 (aPtsHomol[3][i]*pow(aPtsHomol[1][i],6)-aPtsHomol[2][i]*pow(aPtsHomol[0][i],6))
+				 		double aPds[3]={(aPtsHomol.Gr2[i]*pow(aPtsHomol.Dist2[i],2)-aPtsHomol.Gr1[i]*pow(aPtsHomol.Dist1[i],2)),
+						(aPtsHomol.Gr2[i]*pow(aPtsHomol.Dist2[i],4)-aPtsHomol.Gr1[i]*pow(aPtsHomol.Dist1[i],4)),
+						(aPtsHomol.Gr2[i]*pow(aPtsHomol.Dist2[i],6)-aPtsHomol.Gr1[i]*pow(aPtsHomol.Dist1[i],6))
 								};
-				 aSys.AddEquation(1,aPds,aPtsHomol[2][i]-aPtsHomol[3][i]);
+				 double poids=1;//sqrt(max(aPtsHomol[1][i],aPtsHomol[0][i]));//sqrt(fabs(aPtsHomol[1][i]-aPtsHomol[0][i]));
+				 aSys.AddEquation(poids,aPds,aPtsHomol.Gr1[i]-aPtsHomol.Gr2[i]);//fabs(aPtsHomol[1][i]-aPtsHomol[0][i])
 	}
 
 	//System has 3 unknowns and nbPtsSIFT equations (significantly more than enough)
@@ -386,7 +387,7 @@ while(nbRANSACinitialised<nbRANSACmax || nbRANSACaccepted<500)
 
 	L2SysSurResol aSys(3);
 
-	//For 3 SIFT points
+	//For 6-24 SIFT points
 	for(int k=0;int(k)<3*((rand() % 8)+3);k++){
 		
 		int i=rand() % nbPtsSIFT;//Rand choice of a point
