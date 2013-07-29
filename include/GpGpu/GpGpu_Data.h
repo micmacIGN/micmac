@@ -786,6 +786,8 @@ public:
     /// \param  texRef : reference de la texture a lier
     bool		bindTexture(textureReference& texRef);
 
+    bool        UnbindDealloc();
+
 protected:
 
     /// \brief  Initialisation de toutes les valeurs du tableau a val
@@ -795,11 +797,13 @@ protected:
     /// \brief  renvoie le tableau cuda contenant les valeurs de l'image
     cudaArray*	GetCudaArray();
 
-    bool        abDealloc() ;    
+    bool        abDealloc() ;
 
 private:
 
     CData<cudaArray>*   _dataCudaArray;
+
+    textureReference*   _textureReference;
 
 };
 
@@ -820,7 +824,7 @@ public:
     bool	copyHostToDevice(T* data);
     /// \brief Initialise les valeurs de l image a val
     /// \param val : Valeur d initialisation
-    bool	Memset(int val){return DecoratorImageCuda::Memset(val);}
+    bool	Memset(int val){return DecoratorImageCuda::Memset(val);}    
 
 protected:
 
