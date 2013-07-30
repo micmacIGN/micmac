@@ -32,10 +32,7 @@ CGObject::CGObject()
     ClassTemplate("NO_CLASS_TEMPLATE");
 }
 
-CGObject::~CGObject()
-{
-
-}
+CGObject::~CGObject(){}
 
 std::string CGObject::ClassTemplate()
 {
@@ -112,7 +109,6 @@ struct2DLayered::struct2DLayered()
 uint struct2DLayered::GetNbLayer()
 {
     return _nbLayers;
-
 }
 
 uint struct2DLayered::GetSize()
