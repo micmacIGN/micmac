@@ -42,3 +42,6 @@ bool DecoratorImageCuda::UnbindDealloc()
 
     return _dataCudaArray->Dealloc();;
 }
+
+
+
