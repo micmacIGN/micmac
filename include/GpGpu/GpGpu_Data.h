@@ -11,7 +11,7 @@ class CData : public CGObject
 {
 
     friend class    DecoratorImageCuda;
-    //template<class M> friend class    DecoratorDeviceData;
+    template<class M> friend class    DecoratorDeviceData;
 
 public:
 
@@ -53,7 +53,7 @@ protected:
 
     virtual bool    abMalloc()  = 0;
 
-    virtual uint    Sizeof()    = 0;
+    virtual uint    Sizeof(){return 0;}
 
 private:
 
@@ -74,6 +74,7 @@ private:
 
     /// \param      sizeofmalloc : Taille de l allocation
     void            SetSizeofMalloc(uint sizeofmalloc);
+
 };
 
 template <class T>
@@ -124,6 +125,7 @@ void CData<T>::SetSizeofMalloc( uint sizeofmalloc )
 {
     _sizeofMalloc = sizeofmalloc;
 }
+
 
 template <class T>
 T CData<T>::GetRandomValue(T min, T max)
@@ -588,18 +590,34 @@ bool CuHostData3D<T>::abMalloc()
 template<class T>
 class DecoratorDeviceData
 {
+public:
+
+    bool    CopyDevicetoHost(T* hostData){return _dD->ErrorOutput(cudaMemcpy( hostData, _dD->pData(), _dD->Sizeof(), cudaMemcpyDeviceToHost),"cudaMemcpyDeviceToHost");}
+
+    bool    Memset( int val ){  return _dD->ErrorOutput(cudaMemset( _dD->pData(), val, _dD->Sizeof()),"cudaMemset");}
+
+    ///     \brief  Copie asynchrone de toutes les valeurs du tableau dans un tableau du host
+    ///     \param  hostData : tableau destination
+    ///     \param stream : flux cuda de gestion des appels asynchrone
+    bool    CopyDevicetoHostASync( T* hostData, cudaStream_t stream ){return _dD->ErrorOutput(cudaMemcpyAsync ( hostData, _dD->pData(), _dD->Sizeof(), cudaMemcpyDeviceToHost, stream),"CopyDevicetoHostASync");}
+
+    /// \brief  Copie toutes les valeurs d un tableau dans la structure de donnee de la classe (dans la memoire globale GPU)
+    /// \param  hostData : tableau cible
+    bool    CopyHostToDevice(T *hostData){ return _dD->ErrorOutput(cudaMemcpy( _dD->pData(),hostData, _dD->Sizeof(), cudaMemcpyHostToDevice),"CopyHostToDevice");}
+
+    bool    MemsetAsync(int val, cudaStream_t stream){return  _dD->ErrorOutput(cudaMemsetAsync(_dD->pData(), val, _dD->Sizeof(), stream ),"MemsetAsync"); }
 
 protected:
 
-    DecoratorDeviceData(CData<T> *dataDevice):_dataDevice(dataDevice){}
+    DecoratorDeviceData(CData<T> *dataDevice):_dD(dataDevice){}
 
-    void    Memset( int val ){ return _dataDevice->ErrorOutput(cudaMemset( _dataDevice->pData(), val, _dataDevice->Sizeof()),"cudaMemset"); }
+    bool    dabDealloc(){ return _dD->ErrorOutput(cudaFree(_dD->pData()),"cudaFree");}
 
-    bool    CopyDevicetoHost(T* hostData){return _dataDevice->ErrorOutput(cudaMemcpy( hostData, _dataDevice->pData(), _dataDevice->Sizeof(), cudaMemcpyDeviceToHost),"CopyDevicetoHost");}
+    bool    dabMalloc(){ return _dD->ErrorOutput(cudaMalloc((void **)_dD->ppData(), _dD->Sizeof()),"cudaMalloc");}
 
 private:
 
-    CData<T>* _dataDevice;
+    CData<T>* _dD;
 };
 
 /// \class CuDeviceData2D
@@ -610,55 +628,24 @@ class CuDeviceData2D : public CData2D<T>, public DecoratorDeviceData<T>
 
 public:
 
-    CuDeviceData2D():DecoratorDeviceData<T>(this){}
+    CuDeviceData2D():DecoratorDeviceData<T>((CData2D<T>*)this){}
     ~CuDeviceData2D(){}
 
-    /// \brief  Initialise toutes les valeurs du tableau avec la valeur val
-    /// \param  val : valeur d initialisation
-    bool        Memset(int val);
-    /// \brief  Copie toutes les valeurs du tableau dans un tableau du host
-    /// \param  hostData : tableau destination
-    bool        CopyDevicetoHost(T* hostData);
+    bool        Memset(int val){return DecoratorDeviceData<T>::Memset(val);}
 
 protected:
 
-    bool        abDealloc() ;
+    bool        abDealloc(){return DecoratorDeviceData<T>::dabDealloc();}
 
-    bool        abMalloc();
+    bool        abMalloc(){return DecoratorDeviceData<T>::dabMalloc();}
 
 };
 
-template <class T>
-bool CuDeviceData2D<T>::CopyDevicetoHost( T* hostData )
-{
-    cudaError_t err = cudaMemcpy( hostData, CData2D<T>::pData(), CData2D<T>::Sizeof(), cudaMemcpyDeviceToHost);
-
-    return CData<T>::ErrorOutput(err,"CopyDevicetoHost");
-}
-
-template <class T>
-bool CuDeviceData2D<T>::Memset( int val )
-{
-    checkCudaErrors(cudaMemset( CData2D<T>::pData(), val, CData2D<T>::Sizeof()));
-    return true;
-}
-
-template <class T>
-bool CuDeviceData2D<T>::abDealloc()
-{
-    return (cudaFree(CData2D<T>::pData()) == cudaSuccess) ? true : false;
-}
-
-template <class T>
-bool CuDeviceData2D<T>::abMalloc()
-{
-    return ErrorOutput(cudaMalloc((void **)CData2D<T>::ppData(), CData2D<T>::Sizeof()),"Malloc");
-}
 
 /// \class CuDeviceData3D
 /// \brief Structure 3d de données instanciées dans la mémoire globale vidéo
 template <class T>
-class CuDeviceData3D : public CData3D<T>
+class CuDeviceData3D : public CData3D<T>, public DecoratorDeviceData<T>
 {
 public:
 
@@ -667,116 +654,46 @@ public:
     CuDeviceData3D(uint dim, string name = "NoName");
     ~CuDeviceData3D(){}
 
-
     /// \brief Initialise toutes les valeurs du tableau a val
     /// \param val : valeur d initialisation
-    bool        Memset(int val);
-    /// \brief Initialisation asynchrone de toutes les valeurs du tableau a val
-    /// \param val : valeur d initialisation
-    /// \param stream : flux cuda de gestion des appels asynchrone
-    bool        MemsetAsync(int val, cudaStream_t stream );
-    /// \brief  Copie toutes les valeurs du tableau dans un tableau du host
-    /// \param  hostData : tableau destination
-    bool        CopyDevicetoHost(T* hostData);
+    bool        Memset(int val){return DecoratorDeviceData<T>::Memset(val);}
 
-    bool        CopyDevicetoHost(CuHostData3D<T> &hostData);
-
-    /// \brief  Copie toutes les valeurs d un tableau dans la structure de donnee de la classe (dans la memoire globale GPU)
-    /// \param  hostData : tableau cible
-    bool        CopyHostToDevice(T* hostData);
-    /// \brief  Copie asynchrone de toutes les valeurs du tableau dans un tableau du host
-    /// \param  hostData : tableau destination
-    /// \param stream : flux cuda de gestion des appels asynchrone
-    bool        CopyDevicetoHostASync(T* hostData, cudaStream_t stream = 0);
+    bool        CopyDevicetoHost(CuHostData3D<T> &hostData){return  DecoratorDeviceData<T>::CopyDevicetoHost(hostData.pData());}
 
 protected:
 
-    bool        abDealloc() ;
+    bool        abDealloc(){return DecoratorDeviceData<T>::dabDealloc();}
 
-    bool        abMalloc();
+    bool        abMalloc(){return DecoratorDeviceData<T>::dabMalloc();}
 
 private:
 
-    void        init(string name);
+    void        init(string name,uint2 dim = make_uint2(0), uint l = 0);
 
 };
 
 template <class T>
-bool CuDeviceData3D<T>::CopyDevicetoHostASync( T* hostData, cudaStream_t stream )
-{
-    return CData<T>::ErrorOutput(cudaMemcpyAsync ( hostData, CData3D<T>::pData(), CData3D<T>::Sizeof(), cudaMemcpyDeviceToHost, stream),"CopyDevicetoHostASync");
-}
-
-template <class T>
-bool CuDeviceData3D<T>::CopyDevicetoHost( T* hostData )
-{
-    return CData<T>::ErrorOutput(cudaMemcpy( hostData, CData3D<T>::pData(), CData3D<T>::Sizeof(), cudaMemcpyDeviceToHost),"CopyDevicetoHost");
-}
-
-template <class T>
-bool CuDeviceData3D<T>::CopyDevicetoHost(CuHostData3D<T> &hostData)
-{
-    return CopyDevicetoHost(hostData.pData());
-}
-
-template <class T>
-bool CuDeviceData3D<T>::CopyHostToDevice(T *hostData)
-{
-    return CData<T>::ErrorOutput(cudaMemcpy( CData3D<T>::pData(),hostData, CData3D<T>::Sizeof(), cudaMemcpyHostToDevice),"CopyHostToDevice");
-}
-
-template <class T>
-bool CuDeviceData3D<T>::Memset( int val )
-{
-    if (CData<T>::GetSizeofMalloc() < CData3D<T>::Sizeof())
-        std::cout << "Memset : Allocation trop petite !!!" << "\n";
-
-    return CData<T>::ErrorOutput(cudaMemset( CData3D<T>::pData(), val, CData3D<T>::Sizeof()),"Memset");
-}
-
-template <class T>
-bool CuDeviceData3D<T>::MemsetAsync(int val, cudaStream_t stream)
-{
-    if (CData<T>::GetSizeofMalloc() < CData3D<T>::Sizeof())
-        std::cout << "MemsetAsync : Allocation trop petite !!!" << "\n";
-
-    return CData<T>::ErrorOutput(cudaMemsetAsync(CData3D<T>::pData(), val, CData3D<T>::Sizeof(), stream ),"MemsetAsync");
-}
-
-template <class T>
-CuDeviceData3D<T>::CuDeviceData3D()
+CuDeviceData3D<T>::CuDeviceData3D():DecoratorDeviceData<T>(this)
 {
     init("No Name");
 }
 
 template <class T>
-CuDeviceData3D<T>::CuDeviceData3D(uint2 dim, uint l, string name)
+CuDeviceData3D<T>::CuDeviceData3D(uint2 dim, uint l, string name):DecoratorDeviceData<T>(this)
 {
     init(name);
     CData3D<T>::Malloc(dim,l);
 }
 
 template <class T>
-CuDeviceData3D<T>::CuDeviceData3D(uint dim, string name)
+CuDeviceData3D<T>::CuDeviceData3D(uint dim, string name):DecoratorDeviceData<T>(this)
 {
     init(name);
     CData3D<T>::Realloc(make_uint2(dim,1),1);
 }
 
 template <class T>
-bool CuDeviceData3D<T>::abDealloc()
-{
-    return (cudaFree(CData<T>::pData()) == cudaSuccess) ? true : false;
-}
-
-template <class T>
-bool CuDeviceData3D<T>::abMalloc()
-{
-    return CData<T>::ErrorOutput(cudaMalloc((void **)CData3D<T>::ppData(), CData3D<T>::Sizeof()),"Malloc");
-}
-
-template <class T>
-void CuDeviceData3D<T>::init(string name)
+void CuDeviceData3D<T>::init(string name, uint2 dim, uint l)
 {
     CGObject::SetType("CuDeviceData3D");
     CGObject::SetName(name);
