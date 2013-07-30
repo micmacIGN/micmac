@@ -48,6 +48,9 @@ public:
 
 struct selectInfos
 {
+
+    selectInfos(){}
+    ~selectInfos(){}
     //! Ortho camera infos
     ViewportParameters params;
     //! polyline infos

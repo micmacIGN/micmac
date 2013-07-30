@@ -10,7 +10,8 @@ template <class T>
 class CData : public CGObject
 {
 
-    friend class DecoratorImageCuda;
+    friend class    DecoratorImageCuda;
+    //template<class M> friend class    DecoratorDeviceData;
 
 public:
 
@@ -419,7 +420,6 @@ T &CData3D<T>::operator [](int pt1D)
 /// La memoire allouee n'est pas pagine.
 
 template <class T>
-
 class CuHostData3D : public CData3D<T>
 {
 
@@ -585,16 +585,32 @@ bool CuHostData3D<T>::abMalloc()
     return true;
 }
 
+template<class T>
+class DecoratorDeviceData
+{
+
+protected:
+
+    DecoratorDeviceData(CData<T> *dataDevice):_dataDevice(dataDevice){}
+
+    void    Memset( int val ){ return _dataDevice->ErrorOutput(cudaMemset( _dataDevice->pData(), val, _dataDevice->Sizeof()),"cudaMemset"); }
+
+    bool    CopyDevicetoHost(T* hostData){return _dataDevice->ErrorOutput(cudaMemcpy( hostData, _dataDevice->pData(), _dataDevice->Sizeof(), cudaMemcpyDeviceToHost),"CopyDevicetoHost");}
+
+private:
+
+    CData<T>* _dataDevice;
+};
 
 /// \class CuDeviceData2D
 /// \brief Cette classe est un tableau de donnee 2D situee dans memoire globale de la carte video
 template <class T>
-class CuDeviceData2D : public CData2D<T>
+class CuDeviceData2D : public CData2D<T>, public DecoratorDeviceData<T>
 {
 
 public:
 
-    CuDeviceData2D(){}
+    CuDeviceData2D():DecoratorDeviceData<T>(this){}
     ~CuDeviceData2D(){}
 
     /// \brief  Initialise toutes les valeurs du tableau avec la valeur val
@@ -639,15 +655,8 @@ bool CuDeviceData2D<T>::abMalloc()
     return ErrorOutput(cudaMalloc((void **)CData2D<T>::ppData(), CData2D<T>::Sizeof()),"Malloc");
 }
 
-/*! \class CuDeviceData3D
- *  \brief Donnees structurees en 3 dimensions
- *
- *   La classe gere la memoire
- */
-
-
 /// \class CuDeviceData3D
-/// \brief Cette classe est un tableau de donnee 3D situee dans memoire globale de la carte video
+/// \brief Structure 3d de données instanciées dans la mémoire globale vidéo
 template <class T>
 class CuDeviceData3D : public CData3D<T>
 {
