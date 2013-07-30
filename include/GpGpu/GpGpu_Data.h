@@ -465,7 +465,7 @@ bool CuHostData3D<T>::abDealloc()
 {
     bool  error = true;
     if(_pgLockMem)
-        error = CData<T>::ErrorOutput(cudaFreeHost(CData3D<T>::pData()),"Dealloc");
+        error = CData<T>::ErrorOutput(cudaFreeHost(CData3D<T>::pData()),__FUNCTION__);
     else
         free(CData3D<T>::pData());
 
@@ -476,7 +476,7 @@ template <class T>
 bool CuHostData3D<T>::abMalloc()
 {
     if(_pgLockMem)
-        return CData<T>::ErrorOutput(cudaMallocHost(CData3D<T>::ppData(),CData3D<T>::Sizeof()),"Malloc");
+        return CData<T>::ErrorOutput(cudaMallocHost(CData3D<T>::ppData(),CData3D<T>::Sizeof()),__FUNCTION__);
     else
         CData3D<T>::SetPData((T*)malloc(CData3D<T>::Sizeof()));
 
@@ -488,28 +488,28 @@ class DecoratorDeviceData
 {
 public:
 
-    bool    CopyDevicetoHost(T* hostData){return _dD->ErrorOutput(cudaMemcpy( hostData, _dD->pData(), _dD->Sizeof(), cudaMemcpyDeviceToHost),"cudaMemcpyDeviceToHost");}
+    bool    CopyDevicetoHost(T* hostData){return _dD->ErrorOutput(cudaMemcpy( hostData, _dD->pData(), _dD->Sizeof(), cudaMemcpyDeviceToHost),__FUNCTION__);}
 
-    bool    Memset( int val ){  return _dD->ErrorOutput(cudaMemset( _dD->pData(), val, _dD->Sizeof()),"cudaMemset");}
+    bool    Memset( int val ){  return _dD->ErrorOutput(cudaMemset( _dD->pData(), val, _dD->Sizeof()),__FUNCTION__);}
 
     ///     \brief  Copie asynchrone de toutes les valeurs du tableau dans un tableau du host
     ///     \param  hostData : tableau destination
     ///     \param stream : flux cuda de gestion des appels asynchrone
-    bool    CopyDevicetoHostASync( T* hostData, cudaStream_t stream ){return _dD->ErrorOutput(cudaMemcpyAsync ( hostData, _dD->pData(), _dD->Sizeof(), cudaMemcpyDeviceToHost, stream),"CopyDevicetoHostASync");}
+    bool    CopyDevicetoHostASync( T* hostData, cudaStream_t stream ){return _dD->ErrorOutput(cudaMemcpyAsync ( hostData, _dD->pData(), _dD->Sizeof(), cudaMemcpyDeviceToHost, stream),__FUNCTION__);}
 
     /// \brief  Copie toutes les valeurs d un tableau dans la structure de donnee de la classe (dans la memoire globale GPU)
     /// \param  hostData : tableau cible
-    bool    CopyHostToDevice(T *hostData){ return _dD->ErrorOutput(cudaMemcpy( _dD->pData(),hostData, _dD->Sizeof(), cudaMemcpyHostToDevice),"CopyHostToDevice");}
+    bool    CopyHostToDevice(T *hostData){ return _dD->ErrorOutput(cudaMemcpy( _dD->pData(),hostData, _dD->Sizeof(), cudaMemcpyHostToDevice),__FUNCTION__);}
 
-    bool    MemsetAsync(int val, cudaStream_t stream){return  _dD->ErrorOutput(cudaMemsetAsync(_dD->pData(), val, _dD->Sizeof(), stream ),"MemsetAsync"); }
+    bool    MemsetAsync(int val, cudaStream_t stream){return  _dD->ErrorOutput(cudaMemsetAsync(_dD->pData(), val, _dD->Sizeof(), stream ),__FUNCTION__); }
 
 protected:
 
     DecoratorDeviceData(CData<T> *dataDevice):_dD(dataDevice){}
 
-    bool    dabDealloc(){ return _dD->ErrorOutput(cudaFree(_dD->pData()),"cudaFree");}
+    bool    dabDealloc(){ return _dD->ErrorOutput(cudaFree(_dD->pData()),__FUNCTION__);}
 
-    bool    dabMalloc(){ return _dD->ErrorOutput(cudaMalloc((void **)_dD->ppData(), _dD->Sizeof()),"cudaMalloc");}
+    bool    dabMalloc(){ return _dD->ErrorOutput(cudaMalloc((void **)_dD->ppData(), _dD->Sizeof()),__FUNCTION__);}
 
 private:
 
@@ -658,14 +658,14 @@ ImageCuda<T>::ImageCuda():
 template <class T>
 bool ImageCuda<T>::copyHostToDevice( T* data )
 {
-    return CData2D::ErrorOutput(cudaMemcpyToArray(CData2D::pData(), 0, 0, data, sizeof(T)*size(GetDimension()), cudaMemcpyHostToDevice),"copyHostToDevice");
+    return CData2D::ErrorOutput(cudaMemcpyToArray(CData2D::pData(), 0, 0, data, sizeof(T)*size(GetDimension()), cudaMemcpyHostToDevice),__FUNCTION__);
 }
 
 template <class T>
 bool ImageCuda<T>::abMalloc()
 {
     cudaChannelFormatDesc channelDesc =  cudaCreateChannelDesc<T>();
-    return CData2D::ErrorOutput(cudaMallocArray(CData2D::ppData(),&channelDesc,struct2D::GetDimension().x,struct2D::GetDimension().y),"Malloc");
+    return CData2D::ErrorOutput(cudaMallocArray(CData2D::ppData(),&channelDesc,struct2D::GetDimension().x,struct2D::GetDimension().y),__FUNCTION__);
 }
 
 //-----------------------------------------------------------------------------------------------
@@ -752,7 +752,7 @@ bool ImageLayeredCuda<T>::copyHostToDevice( T* data )
 {
     cudaMemcpy3DParms	p = CudaMemcpy3DParms(data,cudaMemcpyHostToDevice);
 
-    return CData3D::ErrorOutput(cudaMemcpy3D(&p),"copyHostToDevice") ;
+    return CData3D::ErrorOutput(cudaMemcpy3D(&p),__FUNCTION__) ;
 }
 
 template <class T>
@@ -760,7 +760,7 @@ bool ImageLayeredCuda<T>::copyDeviceToDevice(T *data)
 {
     cudaMemcpy3DParms	p = CudaMemcpy3DParms(data,cudaMemcpyDeviceToDevice);
 
-    return CData3D::ErrorOutput(cudaMemcpy3D(&p),"copyDeviceToDevice") ;
+    return CData3D::ErrorOutput(cudaMemcpy3D(&p),__FUNCTION__) ;
 }
 
 template <class T>
@@ -768,7 +768,7 @@ bool ImageLayeredCuda<T>::copyHostToDeviceASync( T* data, cudaStream_t stream /*
 {
     cudaMemcpy3DParms	p = CudaMemcpy3DParms(data,cudaMemcpyHostToDevice);
 
-    return CData3D::ErrorOutput( cudaMemcpy3DAsync (&p, stream),"copyHostToDeviceASync");
+    return CData3D::ErrorOutput( cudaMemcpy3DAsync (&p, stream),__FUNCTION__);
 }
 
 template <class T>
@@ -776,7 +776,7 @@ bool ImageLayeredCuda<T>::abMalloc()
 {
     cudaChannelFormatDesc channelDesc =	cudaCreateChannelDesc<T>();
 
-    return CData3D::ErrorOutput(cudaMalloc3DArray(ppData(),&channelDesc,CudaExtent(),cudaArrayLayered),"Malloc");
+    return CData3D::ErrorOutput(cudaMalloc3DArray(ppData(),&channelDesc,CudaExtent(),cudaArrayLayered),__FUNCTION__);
 }
 
 #endif //GPGPU_DATA_H
