@@ -282,6 +282,8 @@ protected:
 
     /// \brief      Nombre d elements de la structure
     uint			Sizeof(){return GetSize() * sizeof(T);}
+
+    void            bInit(uint2 dim = make_uint2(0), uint l = 0);
 };
 
 template <class T>
@@ -336,6 +338,12 @@ template <class T>
 T &CData3D<T>::operator [](uint3 pt)
 {
     return (CData<T>::pData())[pt.z * struct2D::GetSize() + to1D(make_uint2(pt.x,pt.y),GetDimension())];
+}
+
+template <class T>
+void CData3D<T>::bInit(uint2 dim, uint l)
+{
+    if(size(dim) && l) Malloc(dim,l);
 }
 
 /// \class CuHostData3D
@@ -402,18 +410,15 @@ void CuHostData3D<T>::init(bool pgLockMem, uint2 dim, uint l)
 {
     CGObject::SetType("CuHostData3D");
     _pgLockMem = pgLockMem;
-    if(size(dim) && l)
-        CData3D<T>::Malloc(dim,l);
+    CData3D<T>::bInit(dim,l);
 }
 
 template <class T>
 bool CuHostData3D<T>::Memset( int val )
 {
     if (CData<T>::GetSizeofMalloc() < CData3D<T>::Sizeof())
-    {
-        std::cout << "Memset, Allocation trop petite !!!" << "\n";
         return false;
-    }
+
     memset(CData3D<T>::pData(),val,CData3D<T>::Sizeof());
     return true;
 }
@@ -440,7 +445,7 @@ template <class T>
 void CuHostData3D<T>::FillRandom(T min, T max)
 {
     T mod = abs((float)max - (float)min);
-    //srand (time(NULL));
+
     for(uint i=0;i<CData3D<T>::GetSize();i++)
     {
         int rdVal  = rand()%((int)mod);
