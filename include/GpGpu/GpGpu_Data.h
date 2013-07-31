@@ -167,7 +167,7 @@ public:
     CData2D(){}
     /// \brief      constructeur avec initialisation de la dimension de la structure
     /// \param      dim : Dimension a initialiser
-    CData2D(uint2 dim);
+    CData2D(uint2 dim) { Malloc(dim); }
 
     /// \brief      Initialise les elements des images a val
     /// \param      val : Valeur d initialisation
@@ -198,12 +198,6 @@ void CData2D<T>::OutputInfo()
 {
     std::cout << "Structure 2D : \n";
     struct2D::Output();
-}
-
-template <class T>
-CData2D<T>::CData2D(uint2 dim)
-{
-    Malloc(dim);
 }
 
 template <> inline
@@ -240,7 +234,7 @@ public:
     /// \param dim : Dimension 2D a initialiser
     /// \param l : Taille de la 3eme dimension
 
-    CData3D(uint2 dim, uint l){Malloc(dim,l);}
+    CData3D(uint2 dim, uint l){ Malloc(dim,l); }
 
     ~CData3D(){}
 
@@ -667,10 +661,6 @@ bool ImageCuda<T>::abMalloc()
     cudaChannelFormatDesc channelDesc =  cudaCreateChannelDesc<T>();
     return CData2D::ErrorOutput(cudaMallocArray(CData2D::ppData(),&channelDesc,struct2D::GetDimension().x,struct2D::GetDimension().y),__FUNCTION__);
 }
-
-//-----------------------------------------------------------------------------------------------
-//									CLASS IMAGE LAYARED CUDA
-//-----------------------------------------------------------------------------------------------
 
 /// \class ImageLayeredCuda
 /// \brief Cette classe est une pile d'image 2D directement liable a une texture GpGpu
