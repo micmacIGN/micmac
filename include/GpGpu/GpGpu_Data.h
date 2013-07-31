@@ -656,7 +656,6 @@ private:
     cudaExtent        CudaExtent();
 };
 
-
 TPL_T ImageLayeredCuda<T>::ImageLayeredCuda():
     DecoratorImageCuda(this)
 {
@@ -664,7 +663,6 @@ TPL_T ImageLayeredCuda<T>::ImageLayeredCuda():
 
     CData3D::ClassTemplate(CData3D::ClassTemplate() + " " + CData3D::StringClass<T>(_ClassData));
 }
-
 
 TPL_T cudaMemcpy3DParms ImageLayeredCuda<T>::CudaMemcpy3DParms(T *data, cudaMemcpyKind kind)
 {
