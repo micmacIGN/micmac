@@ -133,7 +133,7 @@ void SData2Correl::copyHostToDevice(pCorGpu param,uint s)
 
 void SData2Correl::CopyDevicetoHost(uint idBuf, uint s)
 {
-    _d_volumeCost[s].CopyDevicetoHost(_hVolumeCost[idBuf].pData());
+    _d_volumeCost[s].CopyDevicetoHost(_hVolumeCost[idBuf]);
 }
 
 void SData2Correl::UnBindTextureProj(uint s)
