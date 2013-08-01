@@ -23,7 +23,7 @@ typedef unsigned char pixel;
     #define   SBLOCKDIM 15
 #endif
 
-#define NAPPEMAX 256
+#define NAPPEMAX WARPSIZE * 8
 
 #define eAVANT      true
 #define eARRIERE    false

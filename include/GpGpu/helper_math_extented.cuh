@@ -3,7 +3,6 @@
 #include <cuda_runtime.h>
 #include <helper_functions.h>
 #include <helper_math.h>
-#include <helper_cuda.h>
 
 #ifdef __GNUC__
 #define SUPPRESS_NOT_USED_WARN __attribute__ ((unused))
