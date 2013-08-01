@@ -3,7 +3,7 @@
 
 typedef unsigned char pixel;
 
-#define NOPAGELOCKEDMEMORY false
+#define NOPAGLOCKMEM false
 #define WARPSIZE    32
 #define SIZERING    2
 #define INTDEFAULT	-64
