@@ -176,7 +176,10 @@ PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,std::vector<std:
    return aPtsHomol;
 }
 
-void Vignette_correct(string aDir,std::vector<std::string> * aSetIm, DiaphFoc diaphFoc,string aDirOut){
+void Vignette_correct(string aDir,std::vector<std::string> * aSetIm, DiaphFoc diaphFoc,string aDirOut, string InCal){
+	
+	//Bulding the output file system
+    ELISE_fp::MkDirRec(aDir + aDirOut);
 
 	//Reading vignette files
 
@@ -186,7 +189,7 @@ void Vignette_correct(string aDir,std::vector<std::string> * aSetIm, DiaphFoc di
 		sprintf(foc, "%04d", int(diaphFoc.foc));
 		sprintf(dia, "%03d", int(10*diaphFoc.diaph));
 		string aNameVignette="Foc" + (string)foc + "Diaph" + (string)dia + ".tif";
-		Tiff_Im aTFV= Tiff_Im::StdConvGen(aDir + aDirOut + aNameVignette,1,false);
+		Tiff_Im aTFV= Tiff_Im::StdConvGen(aDir + InCal + aNameVignette,1,false);
 		Pt2di aSz = aTFV.sz();
 
 		Im2D_REAL4  aVignette(aSz.x,aSz.y);
@@ -465,12 +468,15 @@ int  Vignette_main(int argc,char ** argv)
         (
             argc,argv,
             LArgMain()  << EAMC(aFullPattern,"Images Pattern"),
-            LArgMain()  << EAM(aDirOut,"Out",true,"Output folder (end with /) and/or prefix (end with another char)")
+            LArgMain()  << EAM(aDirOut,"Out",true,"Output folder (Defaut=Vignette)")
 						//<< EAM(InVig,"InVig",true,"Input vignette parameters")
 						<< EAM(InTxt,"InTxt",true,"True if homologous points have been exported in txt (Defaut=false)")
 						<< EAM(InCal,"InCal",true,"Name of folder with vignette calibration tif file (if previously computed)")
 						<< EAM(DoCor,"DoCor",true,"Use the computed parameters to correct the images (Defaut=false)")
         );
+		if(aDirOut!="Vignette/"){aDirOut=aDirOut + "/";}
+		if(InCal!=""){InCal=InCal + "/";}
+
 		std::string aDir,aPatIm;
 		SplitDirAndFile(aDir,aPatIm,aFullPattern);
 
@@ -541,51 +547,16 @@ int  Vignette_main(int argc,char ** argv)
 			}
 		}
 		cout<<"Number of different sets of images with the same Diaph-Focal combination : "<<listOfListIm.size()<<endl<<endl;
+		string CalibFolder;
 		for(int i=0;i<(int)listOfListIm.size();i++){
 			if(!vectOfDiaphFoc[i].isComputed){
+				CalibFolder=aDirOut;
 				std::cout << "--- Computing the parameters of the vignette effect for the set of "<<listOfListIm[i].size()<<" images with Diaph="<<vectOfDiaphFoc[i].diaph<<" and Foc="<<vectOfDiaphFoc[i].foc<<endl<<endl;
 
 				//Avec Points homol
 				PtsHom aPtsHomol=ReadPtsHom(aDir, & listOfListIm[i], vectOfvectOfExpTimeISO[i],Extension);
-				//aPtsHomol est l'ensemble des vecteurs D1,D2,G1,G2,SZ;
+				//aPtsHomol contient des vecteurs D1,D2,G1,G2,SZ;
 				vector<double> aParam = Vignette_Solve(aPtsHomol);
-			
-		//Avec Stack
-				/*
-				string cmdStack="mm3d StackFlatField " + aFullPattern + " 16";
-				system_call(cmdStack.c_str());
-
-				Tiff_Im aTF= Tiff_Im::StdConvGen(aDir + "FlatField.tif",1,true);
-					Pt2di aSz = aTF.sz();
-					Im2D_U_INT1  aIm(aSz.x,aSz.y);
-					ELISE_COPY
-						(
-						   aTF.all_pts(),
-						   aTF.in(),
-						   aIm.out()
-						);
-
-					U_INT1 ** aData = aIm.data();
-		
-				L2SysSurResol aSys(3);
-				int x0=aSz.x/2;
-				int y0=aSz.y/2;
-				cout<<"Size=["<<aSz.x<<" - "<<aSz.y<<"]"<<endl;
-				int cpt=0;
-				for (int aY=0 ; aY<aSz.y  ; aY=aY+8)
-					{
-						for (int aX=0 ; aX<aSz.x  ; aX=aX+8)
-						{
-							double Dist=sqrt(pow(aX-x0,2)+pow(aY-y0,2));
-							double aPds[3]={pow(Dist,2),pow(Dist,4),pow(Dist,6)};
-							aSys.AddEquation(1,aPds,aData[aY][aX]);
-		cpt++;
-						}
-					}
-		cout<<cpt<<" points"<<endl;
-		double* aParam = Vignette_Solve(aSys);
-		*/
-
 
 		   if (aParam.size()==0){
 			   cout<<"Could'nt compute vignette parameters"<<endl;
@@ -600,15 +571,15 @@ int  Vignette_main(int argc,char ** argv)
 			   string aNameOut="Foc" + (string)foc + "Diaph" + (string)dia + ".tif";
 
 			   Write_Vignette(aDir, aNameOut, aParam, aDirOut, aPtsHomol.SZ);
-			   
+
 			   //Set the couple of diaph foc to "computed"
 			   vectOfDiaphFoc[i].isComputed=true;
 				}
-			}
+			}else{CalibFolder=InCal;}
 			if (DoCor && vectOfDiaphFoc[i].isComputed==1){
 			//Correction des images avec les params calculés
 			cout<<"Correcting the images"<<endl;
-			Vignette_correct(aDir, & listOfListIm[i],vectOfDiaphFoc[i],aDirOut);
+			Vignette_correct(aDir, & listOfListIm[i], vectOfDiaphFoc[i], aDirOut, CalibFolder);
 	   
 			}
 		}
