@@ -846,7 +846,8 @@ void Box2d<Type>::PtsDisc(std::vector<Pt2dr> & aV,INT aNbPts)
    {
        Pt2dr aC0 = ToPt2dr(aVCorn[aKC]);
        Pt2dr aC1 = ToPt2dr(aVCorn[(aKC+1)%4]);
-       for (INT aKP=0 ; aKP<= aNbPts ; aKP++)
+       // for (INT aKP=0 ; aKP<= aNbPts ; aKP++)
+       for (INT aKP=0 ; aKP< aNbPts ; aKP++)  // Modif MPD
        {
             REAL aPds = (aNbPts-aKP) /REAL(aNbPts);
             aV.push_back(barry(aPds,aC0,aC1));
@@ -1001,6 +1002,16 @@ std::istream & operator >> (std::istream & ifs,Box2dr  &aBox)
    aBox = Box2dr(Pt2dr(aV[0],aV[1]),Pt2dr(aV[2],aV[3]));
 
    return ifs;
+}
+
+Pt2di BoxPClipedIntervC(const Box2di & aB,const Pt2di & aP)
+{
+   return  Pt2di
+           (
+               ElMax(aB._p0.x,ElMin(aP.x,aB._p1.x-1)),
+               ElMax(aB._p0.y,ElMin(aP.y,aB._p1.y-1))
+           );
+
 }
 
 

@@ -94,6 +94,17 @@ template <class T> class cSmallMatrixOrVar
         const T&operator[](const Pt2di& aPt)const{ return mData[aPt.y][aPt.x];}
         T*  operator[](int anY) { return mData[anY]; }
         const Box2di & Box() const {return mBox;}
+
+        Pt2di PClipedIntervC(const Pt2di & aPt) const
+        {
+            return  BoxPClipedIntervC(mBox,aPt);
+        }
+        const T&  GetClipedIntervC(const Pt2di & aPt)  const
+        {
+             return (*this)[PClipedIntervC(aPt)];
+        }
+
+
      private :
 
          cSmallMatrixOrVar(const cSmallMatrixOrVar<T> &); 

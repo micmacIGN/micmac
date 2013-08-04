@@ -133,6 +133,7 @@ class cAppliMalt
           bool        mUseImSec;
           bool        mCorMS;
           double      mIncidMax;
+          bool        mGenCubeCorrel;
 };
 
 
@@ -178,7 +179,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mLargMin      (25.0),
     mSzGlob       (0,0),
     mUseImSec     (false),
-    mCorMS        (false)
+    mCorMS        (false),
+    mGenCubeCorrel (false)
 {
   ELISE_ASSERT(argc >= 2,"Not enough arg");
 
@@ -232,6 +234,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image")
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation , its proportion ([0,0,1,1] mean full box)")
                     << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)")
+                    << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
   );
 
   mUseRR = EAMIsInit(&mRoundResol);
@@ -540,6 +543,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       mCom = mCom + std::string(" +UseImSec=true");
   if (mCorMS)
       mCom = mCom + std::string(" +CorMS=true");
+
+  if (mGenCubeCorrel)
+      mCom = mCom + std::string(" +GCC=true");
 
 
   if (ZMoyInit)
