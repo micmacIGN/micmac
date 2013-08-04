@@ -51,9 +51,9 @@ void Arsenic_Banniere()
     std::cout <<  " *     A-utomated                 *\n";
     std::cout <<  " *     R-adiometric               *\n";
     std::cout <<  " *     S-hift                     *\n";
-    std::cout <<  " *     E-qualization              *\n";
-    std::cout <<  " *     N-ormalization             *\n";
-    std::cout <<  " *     I-nter-images              *\n";
+    std::cout <<  " *     E-qualization and          *\n";
+    std::cout <<  " *     N-ormalization for         *\n";
+    std::cout <<  " *     I-nter-image               *\n";
     std::cout <<  " *     C-orrection                *\n";
     std::cout <<  " **********************************\n\n";
 }

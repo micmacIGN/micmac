@@ -439,7 +439,7 @@ void DoDetectKeypoints( string i_detectingTool, int i_resolution )
     
     string pastisGrayscaleFilename,
 		   keypointsFilename,
-		   grayscaleDirectory, grayscaleBasename,
+		   //grayscaleDirectory, grayscaleBasename,
 		   command;
     
     if ( !ELISE_fp::MkDirSvp( aDir+"Pastis" ) )
@@ -455,16 +455,17 @@ void DoDetectKeypoints( string i_detectingTool, int i_resolution )
     for ( std::list<std::string>::const_iterator iT=aFileList.begin(); iT!=aFileList.end(); iT++, iImage++ ) // aFileList has been computed by DoDevelopp
     {
         getPastisGrayscaleFilename( *iT, i_resolution, pastisGrayscaleFilename );
-        SplitDirAndFile( grayscaleDirectory, grayscaleBasename, pastisGrayscaleFilename );
-        getKeypointFilename( grayscaleBasename, i_resolution, aKeypointsFileArray[iImage] );
+        //SplitDirAndFile( grayscaleDirectory, grayscaleBasename, pastisGrayscaleFilename );
+        getKeypointFilename( *iT, i_resolution, aKeypointsFileArray[iImage] );
         keypointsFilename = aKeypointsFileArray[iImage];
-                
+	
         command = g_externalToolHandler.get( i_detectingTool ).callName() + ' ' + detectingToolArguments + ' ' +
 					pastisGrayscaleFilename + " -o " + keypointsFilename;
         
         aGPAO.GetOrCreate( keypointsFilename, command );
         aGPAO.TaskOfName("all").AddDep( keypointsFilename );
     }
+    
     aGPAO.GenerateMakeFile( MkFT );
     DoMkT();
 }

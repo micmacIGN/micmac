@@ -78,11 +78,11 @@ void SData2Correl::DeallocDeviceData()
         _d_volumeCach[s].Dealloc();
         _d_volumeCost[s].Dealloc();
         _d_volumeNIOk[s].Dealloc();
-        _dt_LayeredProjection[s].AImageCuda::Dealloc();
+        _dt_LayeredProjection[s].Dealloc();
     }
 
     _dt_GlobalMask.Dealloc();
-    _dt_LayeredImages.AImageCuda::Dealloc();
+    _dt_LayeredImages.Dealloc();
 
 }
 
@@ -133,7 +133,7 @@ void SData2Correl::copyHostToDevice(pCorGpu param,uint s)
 
 void SData2Correl::CopyDevicetoHost(uint idBuf, uint s)
 {
-    _d_volumeCost[s].CopyDevicetoHost(_hVolumeCost[idBuf].pData());
+    _d_volumeCost[s].CopyDevicetoHost(_hVolumeCost[idBuf]);
 }
 
 void SData2Correl::UnBindTextureProj(uint s)

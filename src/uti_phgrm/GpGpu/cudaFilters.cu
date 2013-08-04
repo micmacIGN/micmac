@@ -1,4 +1,4 @@
-#include "GpGpu/cudaAppliMicMac.cuh"
+#include "GpGpu/GpGpu_ParamCorrelation.cuh"
 
 texture< pixel,	cudaTextureType2D >         TexS_MaskTerD;
 
@@ -65,7 +65,7 @@ extern "C" void dilateKernel(pixel* HostDataOut, short r, uint2 dim)
 	dilateKernel<<<blocks,threads>>>(deviceDataOut.pData(),r,dim,dimDM);
 	getLastCudaError("DilateX kernel failed");
 
-	deviceDataOut.CopyDevicetoHost(HostDataOut);
+    deviceDataOut.DecoratorDeviceData::CopyDevicetoHost(HostDataOut);
 	deviceDataOut.Dealloc();
 
 }

@@ -1,27 +1,6 @@
 #pragma once
 
-#include "GpGpu/GpGpuTools.h"
-
-#define INTDEFAULT	-64
-#define SAMPLETERR	4
-#define INTERZ		8
-#define LOCINTERZ	1
-#define NEAREST		0
-#define LINEARINTER	1
-#define BICUBIC		2
-#define INTERPOLA	LINEARINTER
-#define FLOATMATH
-#define NSTREAM		1
-
-
-#ifdef _DEBUG
-#define   BLOCKDIM	16
-#define   SBLOCKDIM 10
-#else
-#define   BLOCKDIM	16
-//#define   BLOCKDIM	32 moins rapide !!!!
-#define   SBLOCKDIM 15
-#endif
+#include "GpGpu/GpGpu_Data.h"
 
 /// \struct pCorGpu
 /// \param  La structure contenant tous les parametres necessaires a la correlation
