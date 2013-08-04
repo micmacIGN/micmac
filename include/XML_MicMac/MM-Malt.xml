@@ -127,6 +127,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
     <Symb>   UseRR=false </Symb>
     <Symb>   RoundResol=XXXX </Symb>
+    <Symb>   GCC=false </Symb>
 
 </DicoLoc>
 
@@ -209,6 +210,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
              <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
 
              <GenImagesCorrel > true </GenImagesCorrel>
+             <GenCubeCorrel > ${GCC} </GenCubeCorrel>
 
              <ZPas>        ${ZPas} </ZPas>
              <ModeInterpolation> eInterpolBiCub </ModeInterpolation>

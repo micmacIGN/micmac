@@ -53,7 +53,7 @@ int SplitMPO_main(int argc,char ** argv)
 {
      std::string aFullName;
      std::string aPostR = "_R";
-     std::string PostL = "_L";
+     std::string aPostL = "_L";
      bool DoTifGray = false;
 
 
@@ -62,7 +62,7 @@ int SplitMPO_main(int argc,char ** argv)
            argc,argv,
            LArgMain() << EAMC(aFullName,"Full  Name (Dir+Pat)") ,
            LArgMain() << EAM(aPostR,"Right",true,"Right extension , def=_R")
-	              << EAM(PostL,"Left",true,"Left extension , def=_L")
+	              << EAM(aPostL,"Left",true,"Left extension , def=_L")
 	              << EAM(DoTifGray,"TG",true,"Tiff gray, def=false")
     );
 
@@ -81,7 +81,7 @@ int SplitMPO_main(int argc,char ** argv)
         {
             std::string aPref = StdPrefix(aNameIn);
             std::string aPost = StdPostfix(aNameIn);
-            std::string aNameOut = aPref+((aK==0)? aPostR : PostL) + ".jpg";
+            std::string aNameOut = aPref+((aK==0)? aPostL : aPostR) + ".jpg";
 
             std::string aCom = "exiftool ";
              if (aK==0)

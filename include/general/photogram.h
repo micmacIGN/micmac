@@ -2916,12 +2916,22 @@ class   cCS_MapIm2PlanProj : public ElDistortion22_Gen
 class cCpleEpip
 {
      public :
-         cCpleEpip(double aScale,const CamStenope & aC2,const CamStenope & aC1);
+         cCpleEpip
+         (
+             const std::string & aDir,
+             double aScale,
+             const CamStenope & aC1,const std::string & aName1,
+             const CamStenope & aC2,const std::string & aName2,
+             const std::string & PrefLeft =   "EpiLeft_",
+             const std::string & PrefRight =  "EpiRight_"
+         );
 
-         void ImEpip(Tiff_Im aFile,bool Im1,const std::string &);
+         void ImEpip(Tiff_Im aFile,bool Im1);
+         const bool & Ok() const;
+         void AssertOk() const;
      private :
          
-         Box2dr   BoxCam(const CamStenope & aCam,const CamStenope & aCamOut) const;
+         Box2dr   BoxCam(const CamStenope & aCam,const CamStenope & aCamOut,bool Show) const;
          inline Pt2dr TransfoEpip(const Pt2dr &,const CamStenope & aCamIn,const CamStenope & aCamOut) const;
          CamStenopeIdeale  CamOut(const CamStenope &,Pt2dr aPP,Pt2di aSz);
          
@@ -2930,8 +2940,15 @@ class cCpleEpip
 
  
          double             mScale;
+         std::string        mDir;
+         cInterfChantierNameManipulateur  * mICNM;
          const CamStenope & mCInit1;
+         std::string        mName1;
          const CamStenope & mCInit2;
+         std::string        mName2;
+         std::string        mNamePair;
+         std::string        mPrefLeft;
+         std::string        mPrefRight;
          Pt2di              mSzIn;
          double             mFoc;
          ElMatrix<REAL>     mMatM2C;
@@ -2939,6 +2956,8 @@ class cCpleEpip
 
          CamStenopeIdeale   mCamOut1;
          CamStenopeIdeale   mCamOut2;
+         bool               mOk;
+         bool               mFirstIsLeft;
 };
 
 
