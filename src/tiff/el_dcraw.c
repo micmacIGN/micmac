@@ -42,7 +42,7 @@
 #include <time.h>
 #include <sys/types.h>
 
-#if defined(DJGPP) || defined(__MINGW32__)
+#if defined(DJGPP) || defined(__MINGW32__) || defined(_WIN64) || defined(_WIN32)
 #define fseeko fseek
 #define ftello ftell
 #else

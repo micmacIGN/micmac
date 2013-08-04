@@ -18,11 +18,25 @@ INCLUDE (${UTI_PHGRM_PORTO_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_SAISIEPTS_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_FUSION_NUAGES}/Sources.cmake)
 
+
+#define __CUDA_API_VERSION 0x5050
 if(${CUDA_ENABLED})
     set(OptionCuda 1)
+
+    if("${CUDA_VERSION}" MATCHES "5.5")
+        set(__CUDA_API_VERSION 0x5050)
+    elseif("${CUDA_VERSION}" MATCHES "5.0")
+        set(__CUDA_API_VERSION 0x5000)
+    elseif("${CUDA_VERSION}" MATCHES "4.0")
+        set(__CUDA_API_VERSION 0x4000)
+    elseif("${CUDA_VERSION}" MATCHES "3.0")
+        set(__CUDA_API_VERSION 0x3000)
+    endif()
+
     INCLUDE (${UTI_PHGRM_GPGPU_DIR}/Sources.cmake)
 else()
     set(OptionCuda 0)
+    set(__CUDA_API_VERSION 0x0000)
 endif()
 
 if(${WITH_OPEN_MP})
@@ -32,8 +46,8 @@ else()
 endif()
 
 configure_file(
-    ${UTI_PHGRM_GPGPU_DIR}/GpGpuDefines.h.in
-    ${PROJECT_SOURCE_DIR}/include/GpGpu/GpGpuDefines.h
+    ${UTI_PHGRM_GPGPU_DIR}/GpGpu_BuildOptions.h.in
+    ${PROJECT_SOURCE_DIR}/include/GpGpu/GpGpu_BuildOptions.h
 )
 
 set( Applis_phgrm_Src_Files
