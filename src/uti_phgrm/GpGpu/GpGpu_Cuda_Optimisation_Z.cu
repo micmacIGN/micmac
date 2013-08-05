@@ -49,24 +49,33 @@ void RunLine(SimpleStream<short2> &streamIndex, SimpleStream<uint> streamFCost, 
     const ushort  tid       = threadIdx.x;
     uint  id_Line           = 0;
 
-    short2* ivS_Bf_Index    = S_Bf_Index     + WARPSIZE;
+    short2* ST_Bf_Index     = S_Bf_Index     + tid;
     ushort* ST_Bf_ICost     = S_Bf_ICost     + tid;
     __shared__ uint globMinFCost;
     short2 ConeZ;    
     short2 prevIndex;
 
-    if(!sens) streamICost.read<sens>(S_Bf_ICost);
+    if(!sens) streamICost.read<sens>(S_Bf_ICost);    
 
     while(id_Line < lenghtLine)
     {
-        streamIndex.read<sens>(S_Bf_Index);
+        streamIndex.read<sens>(ST_Bf_Index);
 
-        uint segment = min(lenghtLine-id_Line,WARPSIZE);
+        const uint segment = min(lenghtLine-id_Line,WARPSIZE);
 
-        while(segment)
+        ushort SegT = 0;
+
+        while(SegT < segment)
         {
-            const short2 index  = *(ivS_Bf_Index + sgn(segment));            
+
+            const short2 index  = S_Bf_Index[SegT];
             const ushort dZ     = count(index); // creer buffer de count pre calculer en Multi threading lors de l'aquisition des index
+
+            if(blockIdx.x == 35 && !tid)
+                printf(" [%d:%d]  ", id_Line +  SegT, dZ);
+
+
+            /*
             ushort       z      = 0;
             globMinFCost        = max_cost;
             ushort s_idCur_ICost;
@@ -78,7 +87,7 @@ void RunLine(SimpleStream<short2> &streamIndex, SimpleStream<uint> streamFCost, 
                 if(s_idCur_ICost > NAPPEMAX)
                 {
                     streamICost.read<sens>(S_Bf_ICost);
-                    streamFCost.incremt<sens>();
+                    streamFCost.incre<sens>();
                     //GT_Stream_FCost  += sgn(NAPPEMAX);
                     s_idCur_ICost = z;
                 }
@@ -97,10 +106,10 @@ void RunLine(SimpleStream<short2> &streamIndex, SimpleStream<uint> streamFCost, 
                 for (int i = ConeZ.x; i < ConeZ.y; ++i)
                     fCostMin = min(fCostMin, costInit + *(prevFCost+i));
 
-                const uint fcost     = fCostMin + sens * (streamFCost.GetValue(s_idCur_ICost) - costInit);
+                const uint fcost     = fCostMin;// + sens * (streamFCost.GetValue(s_idCur_ICost) - costInit);
                 S_FCost[!idBuf][tZ]  = fcost;
 
-                streamFCost.SetValue(s_idCur_ICost, fcost);
+                //streamFCost.SetValue(s_idCur_ICost, fcost);
 
                 if(!sens)
                     atomicMin(&globMinFCost,fcost);
@@ -114,8 +123,8 @@ void RunLine(SimpleStream<short2> &streamIndex, SimpleStream<uint> streamFCost, 
             }
 
             prevIndex = index;
-
-            segment--;
+            */
+            SegT++;
         }
 
         id_Line += WARPSIZE;
@@ -148,9 +157,9 @@ void Run(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrParam, 
 
     SimpleStream<ushort>    streamICost(g_ICost + pit_Stream,NAPPEMAX);
     SimpleStream<uint>      streamFCost(g_FCost + pit_Stream,NAPPEMAX);
-    SimpleStream<short2>    streamIndex(g_Index + pit_Id,WARPSIZE);
+    SimpleStream<short2>    streamIndex(g_Index + pit_Id    ,WARPSIZE);
 
- //   RunLine<T,true>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,penteMax,lenghtLine,idBuf);
+    RunLine<T,true>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,penteMax,lenghtLine,idBuf);
 
 //    g_idIX -= WARPSIZE;
 //    g_idICO-= NAPPEMAX;
