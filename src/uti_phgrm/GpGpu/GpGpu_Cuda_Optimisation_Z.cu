@@ -7,14 +7,6 @@
 // On pourrait imaginer un buffer des tailles calculer en parallel
 // SIZEBUFFER[threadIdx.x] = count(lI[threadIdx.x]);
 
-#define sgn s<sens>
-#define max_cost 1e9
-
-template< bool sens,class T>
-__device__ inline T s(T v)
-{
-    return sens ? v : -v;
-}
 
 __device__ void GetConeZ(short2 & aDz, int aZ, int MaxDeltaZ, short2 aZ_Next, short2 aZ_Prev)
 {
@@ -52,17 +44,15 @@ __device__ inline void ReadInitCost(ushort *g__ICst, ushort* s__ICst, ushort& s_
 }
 
 template<class T, bool sens> __device__
-void RunLine(short2 *G_Stream_Index,ushort *G_Stream_ICost,short2* S_Bf_Index,ushort *S_Bf_ICost, uint* G_Stream_FCost, uint  &g_id_Index, uint   &g_id_ICost,ushort &s_id_ICost,uint lenghtLine)
+void RunLine(SimpleStream<short2> &streamIndex, SimpleStream<uint> streamFCost, SimpleStream<ushort> &streamICost,short2* S_Bf_Index,ushort *S_Bf_ICost, uint* G_Stream_FCost, uint  &g_id_Index, uint   &g_id_ICost,ushort &s_id_ICost,uint lenghtLine)
 {
     const ushort  tid       = threadIdx.x;
     const ushort penteMax   = 3;
     uint  id_Line           = 0;
-    short2* ST_Bf_Index     = S_Bf_Index     + tid;
-    short2* GT_Stream_Index = G_Stream_Index + tid;
-    ushort* ST_Bf_ICost     = S_Bf_ICost     + tid;
-    ushort* GT_Stream_ICost = G_Stream_ICost + tid;
-    uint*   GT_Stream_FCost = G_Stream_FCost + tid;
+
     short2* ivS_Bf_Index    = S_Bf_Index     + WARPSIZE;
+    ushort* ST_Bf_ICost     = S_Bf_ICost     + tid;
+
 
     __shared__ ushort s_dZ[WARPSIZE];
 
@@ -74,11 +64,11 @@ void RunLine(short2 *G_Stream_Index,ushort *G_Stream_ICost,short2* S_Bf_Index,us
 
     bool sB = false;
 
-    if(!sens) ReadInitCost<sens>(GT_Stream_ICost,ST_Bf_ICost,s_id_ICost,g_id_ICost);
+    if(!sens) streamICost.read<sens>(S_Bf_ICost);
 
     while(id_Line < lenghtLine)
     {
-        ReadIndex<sens>(GT_Stream_Index,ST_Bf_Index,g_id_Index,s_dZ);
+        streamIndex.read<sens>(S_Bf_Index);
 
         uint segment = min(lenghtLine-id_Line,WARPSIZE);
 
@@ -96,8 +86,9 @@ void RunLine(short2 *G_Stream_Index,ushort *G_Stream_ICost,short2* S_Bf_Index,us
 
                 if(s_idCur_ICost > NAPPEMAX)
                 {
-                    ReadInitCost<sens>(GT_Stream_ICost,ST_Bf_ICost,s_idCur_ICost,g_id_ICost);
-                    GT_Stream_FCost  += sgn(NAPPEMAX);
+                    streamICost.read<sens>(S_Bf_ICost);
+                    streamFCost.incremt<sens>();
+                    //GT_Stream_FCost  += sgn(NAPPEMAX);
                     s_idCur_ICost = z;
                 }
 
@@ -115,9 +106,10 @@ void RunLine(short2 *G_Stream_Index,ushort *G_Stream_ICost,short2* S_Bf_Index,us
                 for (int i = ConeZ.x; i < ConeZ.y; ++i)
                     fCostMin = min(fCostMin, costInit + *(prevFCost+i));
 
-                const uint fcost                = fCostMin + sens * (GT_Stream_FCost[s_idCur_ICost] - costInit);
+                const uint fcost                = fCostMin + sens * (streamFCost.GetValue(s_idCur_ICost) - costInit);
                 S_FCost[!sB][tZ]                = fcost;
-                GT_Stream_FCost[s_idCur_ICost]  = fcost;
+
+                streamFCost.SetValue(s_idCur_ICost, fcost);
 
                 if(!sens) atomicMin(&globMinFCost,fcost);
 
@@ -139,23 +131,24 @@ void RunLine(short2 *G_Stream_Index,ushort *G_Stream_ICost,short2* S_Bf_Index,us
 }
 
 template<class T> __device__
-void Run(short2 *g_BuffIX,ushort *g_ICost)
+void Run(short2 *g_Index,ushort *g_ICost, uint* g_FCost )
 {
     __shared__ short2 S_BuffIndex[WARPSIZE];
     __shared__ ushort S_BuffICost[NAPPEMAX];
+    __shared__ ushort S_BuffFCost[2][NAPPEMAX];
 
-    __shared__ uint   g_idIX;
-    __shared__ uint   g_idICO;
-    __shared__ ushort s_idICO;      
+    SimpleStream<ushort>    streamICost(g_ICost,NAPPEMAX);
+    SimpleStream<uint>      streamFCost(g_FCost,NAPPEMAX);
+    SimpleStream<short2>    streamIndex(g_Index,WARPSIZE);
 
+    RunLine<T,true>(streamICost,streamFCost,streamIndex,S_BuffIndex,S_BuffICost,S_BuffFCost,777);
 
-    RunLine<T,true>(g_BuffIX,g_ICost,S_BuffIndex,S_BuffICost,g_idIX,g_idICO,s_idICO);
+//    g_idIX -= WARPSIZE;
+//    g_idICO-= NAPPEMAX;
 
-    g_idIX -= WARPSIZE;
-    g_idICO-= NAPPEMAX;
-
-    RunLine<T,false>(g_BuffIX,g_ICost,S_BuffIndex,S_BuffICost,g_idIX,g_idICO,s_idICO);
+    RunLine<T,false>(streamICost,streamFCost,streamIndex,S_BuffIndex,S_BuffICost,S_BuffFCost,777);
 }
 
 
 #endif //_OPTIMISATION_KERNEL_Z_H_
+

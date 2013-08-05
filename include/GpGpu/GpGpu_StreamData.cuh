@@ -132,5 +132,78 @@ private:
 
 };
 
+#define sgn s<sens>
+#define max_cost 1e9
 
+template< bool sens,class T>
+__device__ inline T s(T v)
+{
+    return sens ? v : -v;
+}
+
+
+template<class T>
+class SimpleStream
+{
+public:
+
+    SimpleStream(   T*      globalStream,
+                    ushort  sizeBuffer);
+
+    template<bool sens> void read(T* sharedBuffer);
+
+    template<bool sens> void incremt();
+
+    T                   GetValue(uint id);
+    void                SetValue(uint id,T value);
+
+private:
+
+
+    ushort  _idS;
+    T*      _globalStream;
+    uint    _idG;
+    ushort  _sizeBuffer;
+};
+
+template<class T>
+SimpleStream<T>::SimpleStream( T *globalStream, ushort sizeBuffer):
+    _idS(0),
+    _globalStream(globalStream + threadIdx.x),
+    _idG(0),
+    _sizeBuffer(sizeBuffer)
+{}
+
+template<class T>
+T SimpleStream<T>::GetValue(uint id)
+{
+    return _globalStream[_idG + id];
+}
+
+template<class T>
+void SimpleStream<T>::SetValue(uint id, T value)
+{
+    _globalStream[_idG + id] = value;
+}
+
+template<class T> template<bool sens>
+void SimpleStream<T>::read(T *sharedBuffer)
+{
+    for(ushort i = 0; i < sgn(_sizeBuffer); i+= sgn(WARPSIZE))
+        *(sharedBuffer + i) = *(_globalStream + i);
+
+    if(!threadIdx.x)
+    {
+        _idS  = 0;
+        _idG += sgn(_sizeBuffer);
+    }
+}
+
+template<class T> template<bool sens>
+void SimpleStream<T>::incremt()
+{
+    _idG += sgn(_sizeBuffer);
+}
 #endif
+
+
