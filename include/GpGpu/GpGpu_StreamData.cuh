@@ -152,7 +152,7 @@ public:
 
     template<bool sens> __device__ void read(T* sharedBuffer);
 
-    template<bool sens> __device__ void incremt();
+    template<bool sens> __device__ void incre();
 
     T                   __device__  GetValue(uint id);
     void                __device__ SetValue(uint id,T value);
@@ -200,7 +200,7 @@ void SimpleStream<T>::read(T *sharedBuffer)
 }
 
 template<class T> template<bool sens> __device__
-void SimpleStream<T>::incremt()
+void SimpleStream<T>::incre()
 {
     _idG += sgn(_sizeBuffer);
 }
