@@ -157,6 +157,8 @@ public:
     T                   __device__  GetValue(uint id);
     void                __device__  SetValue(uint id,T value);
 
+    uint                __device__  GetGiD(){return _idG;}
+
 private:
 
 
