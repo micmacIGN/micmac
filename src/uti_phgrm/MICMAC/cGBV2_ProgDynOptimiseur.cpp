@@ -575,7 +575,10 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
                 IGpuOpt.Data2Opt().SetNbLine(nbLine);
 
-                IGpuOpt.Data2Opt().ReallocInputIf(pitStream,pitIdStream);
+                // Ajout espace pour eviter depassement dans les streams
+                //                                               |                       |
+                //                                               V                       V
+                IGpuOpt.Data2Opt().ReallocInputIf(pitStream + NAPPEMAX,pitIdStream + WARPSIZE);
 
                 copyCells<MAT_TO_STREAM>( aDirI, IGpuOpt.Data2Opt(),idPreCo);
 

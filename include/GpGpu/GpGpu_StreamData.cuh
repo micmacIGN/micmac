@@ -155,7 +155,7 @@ public:
     template<bool sens> __device__ void incre();
 
     T                   __device__  GetValue(uint id);
-    void                __device__ SetValue(uint id,T value);
+    void                __device__  SetValue(uint id,T value);
 
 private:
 
@@ -189,14 +189,14 @@ void SimpleStream<T>::SetValue(uint id, T value)
 template<class T> template<bool sens> __device__
 void SimpleStream<T>::read(T *sharedBuffer)
 {
-    for(ushort i = 0; i < sgn(_sizeBuffer); i+= sgn(WARPSIZE))
-        *(sharedBuffer + i) = *(_globalStream + i);
 
-    if(!threadIdx.x)
-    {
-        _idS  = 0;
-        _idG += sgn(_sizeBuffer);
-    }
+    T* gLocal = _globalStream + _idG;
+
+    for(ushort i = 0; i < sgn(_sizeBuffer); i+= sgn(WARPSIZE))
+        *(sharedBuffer + i) = *(gLocal+i);
+
+    _idS  = 0;
+    _idG += sgn(_sizeBuffer);
 }
 
 template<class T> template<bool sens> __device__
