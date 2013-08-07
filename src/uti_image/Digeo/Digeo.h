@@ -65,6 +65,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _ELISE_DIGEO_H_
 
 #include "cParamDigeo.h"
+#include "DigeoPoint.h"
 
 using namespace NS_ParamChantierPhotogram;
 
@@ -145,7 +146,6 @@ class cPtsCaracDigeo
        Pt2dr         mPt;
        eTypeTopolPt  mType;
 };
-
 
    // Permt de shifter les entiers (+ rapide que la div) sans rien faire pour
    // les flottants

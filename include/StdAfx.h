@@ -295,6 +295,7 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #include "poisson/Poisson.h"
 
 #include "../src/uti_image/Ann/AnnSearcher.h"
+#include "../src/uti_image/Digeo/DigeoPoint.h"
 
 #include <stdarg.h>
 

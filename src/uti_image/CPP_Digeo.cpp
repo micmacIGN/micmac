@@ -46,19 +46,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define DIGEO_ORIENTATION_NB_BINS 36
 #define DIGEO_ORIENTATION_NB_MAX_ANGLES 4
 #define DIGEO_ORIENTATION_WINDOW_FACTOR 1.5
-#define DIGEO_DESCRIPTOR_SIZE 128
 #define DIGEO_DESCRIBE_NBO 8
 #define DIGEO_DESCRIBE_NBP 4
 #define DIGEO_DESCRIBE_MAGNIFY 3.
 #define DIGEO_DESCRIBE_THRESHOLD 0.2
-
-typedef struct{
-    REAL8	x, y,
-			scale,
-			angle,
-			descriptor[DIGEO_DESCRIPTOR_SIZE];
-	INT2    type;
-} DigeoPoint;
 
 // fait le boulot pour une octave quand ses points d'intéret ont été calculés
 // ajoute les points à o_list (on passe la même liste à toutes les octaves)
@@ -456,7 +447,7 @@ template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Typ
 		   gradient( aTIm, anOct->GetMaxValue(), imgGradient );
 		   for ( unsigned int i=0; i<aVPC.size(); i++ )
 		   {
-			   p.x=aVPC[i].mPt.x*anOct->Niv(); p.y=aVPC[i].mPt.y*anOct->Niv(); p.type=(INT2)aVPC[i].mType;
+			   p.x=aVPC[i].mPt.x*anOct->Niv(); p.y=aVPC[i].mPt.y*anOct->Niv(); p.type=(DigeoPoint::DetectType)aVPC[i].mType;
 			   nbAngles = orientate( imgGradient, aVPC[i], anIm.ScaleInOct(), angles );
 			   if ( nbAngles!=0 )
 			   {
