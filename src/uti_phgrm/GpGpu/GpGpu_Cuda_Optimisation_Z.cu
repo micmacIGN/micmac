@@ -25,7 +25,7 @@ __device__ void GetConeZ(short2 & aDz, int aZ, int MaxDeltaZ, short2 aZ_Next, sh
             aDz.y = aDz.x;
 }
 
-template<class T, bool sens> __device__
+template<bool sens> __device__
 void RunLine(   SimpleStream<short2>    &streamIndex,
                 SimpleStream<uint>      &streamFCost,
                 SimpleStream<ushort>    &streamICost,
@@ -36,19 +36,20 @@ void RunLine(   SimpleStream<short2>    &streamIndex,
                 uint        penteMax,
                 uint        lenghtLine,
                 short2     &prevIndex,
-                uint       &id_Line,
+                int        &id_Line,
                 ushort     &idSeg,
                 bool       &idBuf)
 {
-    const ushort  tid   = sgn(threadIdx.x);
-    short2* ST_Bf_Index = S_Bf_Index + tid;
+    const ushort  tid   = threadIdx.x;
+    short2* ST_Bf_Index = S_Bf_Index + sgn(tid);
     short2  ConeZ;
+    uint  segLine = 0;
 
     __shared__ uint globMinFCost;
 
     while(id_Line < lenghtLine)
     {
-        const uint  segLine = min(lenghtLine-id_Line,WARPSIZE);
+        uint  segLine = min(lenghtLine-id_Line,WARPSIZE);
         while(idSeg < segLine)
         {
 
@@ -106,6 +107,8 @@ void RunLine(   SimpleStream<short2>    &streamIndex,
         id_Line += segLine;
         idSeg   = 0;
     }
+
+    idSeg = segLine - 1;
 }
 
 template<class T> __global__
@@ -142,30 +145,68 @@ void Run(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrParam, 
     ushort* ST_Bf_ICost = S_BuffICost + tid;
 
     streamICost.read<eAVANT>(ST_Bf_ICost);
-    uint*   locFCost = S_BuffFCost[idBuf] + tid;
 
+    uint*   locFCost = S_BuffFCost[idBuf] + tid;
     for (ushort i = 0; i < NAPPEMAX; i+=WARPSIZE)
         locFCost[i] = ST_Bf_ICost[i];
 
     streamIndex.read<eAVANT>(S_BuffIndex + tid);
 
     short2  prevIndex   = S_BuffIndex[0];
-    uint    id_Line     = 0;
+    int    id_Line      = 0;
     ushort  idSeg       = 1;
 
     s_id_Icost   = count(prevIndex);
 
-    RunLine<T,eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost + threadIdx.x,S_BuffFCost,s_id_Icost,penteMax,lenghtLine,prevIndex,id_Line,idSeg,idBuf);
+    RunLine<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost + threadIdx.x,S_BuffFCost,s_id_Icost,penteMax,lenghtLine,prevIndex,id_Line,idSeg,idBuf);
 
-    streamFCost.incre<eARRIERE>();
-    streamFCost.incre<eARRIERE>();
-    streamIndex.incre<eARRIERE>();
+//    streamICost.incre<eARRIERE>();
+//    streamFCost.incre<eARRIERE>();
+//    streamIndex.incre<eARRIERE>();
 
-    s_id_Icost  = NAPPEMAX - s_id_Icost;
-    idSeg       = WARPSIZE - idSeg;
+//    const ushort endNappe = NAPPEMAX + WARPSIZE - 1 - tid;
 
-    if(0)
-        RunLine<T,eARRIERE>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost + NAPPEMAX - 1 - threadIdx.x,S_BuffFCost,s_id_Icost,penteMax,lenghtLine,prevIndex,id_Line,idSeg,idBuf);
+//    ushort oldID    = s_id_Icost;
+//    s_id_Icost      = s_id_Icost - NAPPEMAX - WARPSIZE;
+//    prevIndex       = S_BuffIndex[idSeg];
+//    locFCost        = S_BuffFCost[idBuf] + endNappe;
+//    ST_Bf_ICost     = S_BuffICost + endNappe + s_id_Icost;
+//    ushort pdZ      = count(prevIndex);
+//    ushort reste    = min((int)oldID,(int)pdZ);
+
+//    for (ushort i = 0; i < reste; i+=WARPSIZE)
+//        locFCost[-i] = ST_Bf_ICost[-i];
+
+//    ST_Bf_ICost     = S_BuffICost + endNappe;
+
+//    if(oldID<pdZ)
+//    {
+//        streamICost.read<eARRIERE>(S_BuffICost);
+//        streamFCost.incre<eARRIERE>();
+//        s_id_Icost  = 0;
+//        ST_Bf_ICost = S_BuffICost + endNappe;
+//        locFCost    = S_BuffFCost[idBuf] + endNappe - reste;
+//        for (ushort i = reste; i <  pdZ; i+=WARPSIZE)
+//            locFCost[i] = ST_Bf_ICost[i];
+//    }
+
+//    idSeg       = WARPSIZE - idSeg;
+//    id_Line     = -idSeg;
+
+//    if(0)
+//        RunLine<eARRIERE>(  streamIndex,
+//                            streamFCost,
+//                            streamICost,
+//                            S_BuffIndex + WARPSIZE - 1,
+//                            S_BuffICost + endNappe,
+//                            S_BuffFCost,
+//                            s_id_Icost,
+//                            penteMax,
+//                            lenghtLine,
+//                            prevIndex,
+//                            id_Line,
+//                            idSeg,
+//                            idBuf);
 
 }
 
