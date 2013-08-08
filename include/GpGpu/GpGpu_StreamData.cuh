@@ -194,8 +194,8 @@ void SimpleStream<T>::read(T *sharedBuffer)
 
     T* gLocal = _globalStream + _idG;
 
-    for(ushort i = 0; i < sgn(_sizeBuffer); i+= sgn(WARPSIZE))
-        *(sharedBuffer + i) = *(gLocal+i);
+    for(ushort i = 0; i < _sizeBuffer; i+= WARPSIZE)
+        *(sharedBuffer + sgn(i)) = *(gLocal+sgn(i));
 
     _idS  = 0;
     _idG += sgn(_sizeBuffer);
