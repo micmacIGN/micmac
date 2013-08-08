@@ -565,7 +565,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
                     sizeStreamLine = 0;
 
                     for (uint aK = 0 ; aK < lenghtLine; aK++)
-                        sizeStreamLine += abs(mMatrCel[(*aVPt)[aK]].Box()._p1.x-mMatrCel[(*aVPt)[aK]].Box()._p0.x) + 1;
+                        sizeStreamLine += abs(mMatrCel[(*aVPt)[aK]].Box()._p1.x-mMatrCel[(*aVPt)[aK]].Box()._p0.x);
 
                     pitIdStream += iDivUp(lenghtLine,       WARPSIZE) * WARPSIZE;
                     pitStream   += iDivUp(sizeStreamLine,   WARPSIZE) * WARPSIZE;
