@@ -88,10 +88,15 @@ void RunLine(SimpleStream<short2> &streamIndex, SimpleStream<uint> streamFCost, 
                 const ushort costInit   = ST_Bf_ICost[sId_ICost];
                 const ushort tZ         = z + tid;
                 const short  Z          = index.x + tZ;
+                const short prZ         = Z - prevIndex.x;
 
                 GetConeZ(ConeZ,Z,penteMax,index,prevIndex);
 
-                uint* prevFCost = S_FCost[idBuf] + Z - prevIndex.x;
+                uint* prevFCost = S_FCost[idBuf] + prZ;
+
+                ConeZ.y = min(NAPPEMAX - prZ,ConeZ.y );
+
+                //if(Z - prevIndex.x + ConeZ.y < NAPPEMAX)
 
                 for (int i = ConeZ.x; i <= ConeZ.y; ++i)
                         fCostMin = min(fCostMin, costInit + prevFCost[i]);
