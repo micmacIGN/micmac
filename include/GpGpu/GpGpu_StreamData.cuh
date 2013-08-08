@@ -115,7 +115,7 @@ public:
 
         _streamIndex.read<eAVANT>(&index,0,make_short2(0,0));
 
-        return diffYX(index) + 1;
+        return diffYX(index);
     }
 
     __device__ short getLen2ReadAR(short2 &index)
@@ -123,7 +123,7 @@ public:
 
         _streamIndex.read<eARRIERE>(&index,0,make_short2(0,0));
 
-        return diffYX(index) + 1;
+        return diffYX(index);
     }
 
 private:
