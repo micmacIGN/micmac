@@ -230,7 +230,7 @@ inline __host__ __device__ uint lenght(uint2 a)
 
 inline __host__ __device__ ushort count(short2 a)
 {
-    return lenght(a);
+    return a.y - a.x;
 }
 
 //      Test                            --------
