@@ -35,17 +35,16 @@ void RunLine(   SimpleStream<short2>    &streamIndex,
                 ushort     &sId_ICost,
                 uint        penteMax,
                 uint        lenghtLine,
+                short2     &prevIndex,
+                uint       &id_Line,
+                ushort     &idSeg,
                 bool       &idBuf)
 {
-    const ushort  tid   = threadIdx.x;
+    const ushort  tid   = sgn(threadIdx.x);
     short2* ST_Bf_Index = S_Bf_Index + tid;
     short2  ConeZ;
 
     __shared__ uint globMinFCost;
-
-    short2  prevIndex   = S_Bf_Index[0];
-    uint    id_Line     = 0;
-    ushort  idSeg       = 1;
 
     while(id_Line < lenghtLine)
     {
@@ -143,24 +142,31 @@ void Run(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrParam, 
     ushort* ST_Bf_ICost = S_BuffICost + tid;
 
     streamICost.read<eAVANT>(ST_Bf_ICost);
-    uint*   locFC = S_BuffFCost[idBuf] + tid;
+    uint*   locFCost = S_BuffFCost[idBuf] + tid;
 
     for (ushort i = 0; i < NAPPEMAX; i+=WARPSIZE)
-        locFC[i] = ST_Bf_ICost[i];
+        locFCost[i] = ST_Bf_ICost[i];
 
     streamIndex.read<eAVANT>(S_BuffIndex + tid);
 
-    s_id_Icost   = count(S_BuffIndex[0]);
+    short2  prevIndex   = S_BuffIndex[0];
+    uint    id_Line     = 0;
+    ushort  idSeg       = 1;
 
-    RunLine<T,eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost + threadIdx.x,S_BuffFCost,s_id_Icost,penteMax,lenghtLine,idBuf);
+    s_id_Icost   = count(prevIndex);
+
+    RunLine<T,eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost + threadIdx.x,S_BuffFCost,s_id_Icost,penteMax,lenghtLine,prevIndex,id_Line,idSeg,idBuf);
 
     streamFCost.incre<eARRIERE>();
     streamFCost.incre<eARRIERE>();
     streamIndex.incre<eARRIERE>();
 
-    s_id_Icost = NAPPEMAX - s_id_Icost;
+    s_id_Icost  = NAPPEMAX - s_id_Icost;
+    idSeg       = WARPSIZE - idSeg;
 
-   // RunLine<T,eARRIERE>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost + threadIdx.x,S_BuffFCost,s_id_Icost,penteMax,lenghtLine,idBuf);
+    if(0)
+        RunLine<T,eARRIERE>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost + NAPPEMAX - 1 - threadIdx.x,S_BuffFCost,s_id_Icost,penteMax,lenghtLine,prevIndex,id_Line,idSeg,idBuf);
+
 }
 
 extern "C" void OptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O)

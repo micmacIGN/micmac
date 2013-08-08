@@ -64,8 +64,8 @@ void InterfOptimizGpGpu::threadCompute()
             SetPreComp(true);
 
             //      Kernel optimisation                                             ---------------     -
-            //OptimisationOneDirection(_D_data2Opt);
-            OptimisationOneDirectionZ(_D_data2Opt);
+            OptimisationOneDirection(_D_data2Opt);
+            //OptimisationOneDirectionZ(_D_data2Opt);
 
             //      Copie des couts de passage forcé du device vers le host         ---------------     -
 
