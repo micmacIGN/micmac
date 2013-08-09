@@ -10,20 +10,53 @@
 extern "C" void Launch(uint* value);
 
 template< class T >
+///
+/// \brief The CSimpleJobCpuGpu class
+///
 class CSimpleJobCpuGpu
 {
 public:
 
+    ///
+    /// \brief CSimpleJobCpuGpu
+    /// \param useMultiThreading
+    ///
     CSimpleJobCpuGpu(bool useMultiThreading = true);
     ~CSimpleJobCpuGpu();
 
+    ///
+    /// \brief SetCompute indique au thread Gpu s'il doit traiter les données
+    /// \param toBeComputed
+    ///
     void            SetCompute(T toBeComputed);
+    ///
+    /// \brief GetCompute : savoir si le Gpu doit traiter des données
+    /// \return
+    ///
     T               GetCompute();
 
+    ///
+    /// \brief SetDataToCopy
+    /// \param toBeCopy
+    ///
     void            SetDataToCopy(T toBeCopy);
+
+    ///
+    /// \brief GetDataToCopy
+    /// \return
+    ///
     T               GetDataToCopy();
 
+    ///
+    /// \brief SetPreComp
+    /// \param canBePreCompute
+    ///
     void            SetPreComp(bool canBePreCompute);
+
+    ///
+    /// \brief GetPreComp
+    /// \return
+    ///
     bool            GetPreComp();
 
     bool            UseMultiThreading();
