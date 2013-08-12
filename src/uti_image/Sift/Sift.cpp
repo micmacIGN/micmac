@@ -386,9 +386,8 @@ int Siftator::orientations( RefinedPoint &i_p, Real_ o_angles[m_maxNbAngles] )
             ang    = p[offset+1];
 
             int bin = (int) floor( m_nbBins*ang/( 2*M_PI ) ) ;
-	    if ( bin>m_nbBins ) bin-=m_nbBins;
+	    if ( bin>=m_nbBins ) bin-=m_nbBins;
             m_histo[bin] += mod*wgt ;
-
         }
     }
 
