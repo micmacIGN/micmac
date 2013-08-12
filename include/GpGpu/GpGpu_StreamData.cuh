@@ -196,9 +196,8 @@ void SimpleStream<T>::SetValue(int id, T value)
 
 template<class T> template<bool sens> __device__
 void SimpleStream<T>::reverse()
-{
-    _globalStream = _globalStream + _idG + sgn(2)*threadIdx.x - 1;
-    _idG = 0;
+{    
+    _idG += sgn(_sizeBuffer) - WARPSIZE;
 }
 
 template<class T> template<bool sens> __device__
@@ -211,16 +210,16 @@ void SimpleStream<T>::read(T *sharedBuffer)
 template<class T> template<bool sens,class S> __device__
 void SimpleStream<T>::readFrom(S *sharedBuffer,uint delta)
 {
-    T* gLocal = _globalStream  + sgn(delta + _idG);
+    T* gLocal = _globalStream  + _idG + sgn(delta);
 
-    for(ushort i = 0; i < sgn(_sizeBuffer); i += sgn(WARPSIZE))
-        *(sharedBuffer + i) = *(gLocal+i);
+    for(ushort i = 0; i < _sizeBuffer; i += WARPSIZE)
+        *(sharedBuffer + sgn(i)) = *(gLocal+sgn(i));
 }
 
 template<class T> template<bool sens> __device__
 void SimpleStream<T>::incre()
 {
-    _idG += _sizeBuffer;
+   _idG += sgn(_sizeBuffer);
 }
 #endif
 
