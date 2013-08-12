@@ -44,10 +44,8 @@ void InterfOptimizGpGpu::ReallocParam(uint size)
 
 void InterfOptimizGpGpu::threadCompute()
 {
-
     while(true)
     {
-
         if(GetCompute())
         {
             SetCompute(false);
