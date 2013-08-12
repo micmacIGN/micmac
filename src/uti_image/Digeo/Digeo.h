@@ -276,6 +276,12 @@ class cImInMem
          Im1D_REAL8 mKernelTot;  // Noyaux le reliant a l'image de base de l'octave
          bool mFirstSauv;
          std::vector<cPtsCaracDigeo> mVPtsCarac;
+
+         // indices of the 8 neighbours of a point
+         // mN0 mN1 mN2
+         // mN3 xxx mN4
+         // mN5 mN6 mN7
+         int mN0, mN1, mN2, mN3, mN4, mN5, mN6, mN7;
      private :
         cImInMem(const cImInMem &);  // N.I.
 };
@@ -316,10 +322,21 @@ template <class Type> class cTplImInMem : public cImInMem
         void ResizeImage(const Pt2di & aSz);
         double CalcGrad2Moy();
         Im2DGen Im() ;
+        tBase * DoG();
         void  SetMereSameDZ(cTplImInMem<Type> *);
         // void  SetOrigOct(cTplImInMem<Type> *);
         // void MakeConvolInit(double aSigm );
         void ReduceGaussienne();
+
+        // compute the difference of gaussians between this scale and the next
+        void computeDoG( const cTplImInMem<Type> &i_nextScale );
+
+        void ExtractExtremaDOG
+             (
+                   const cSiftCarac & aSC,
+                   cTplImInMem<Type> & aPrec,
+                   cTplImInMem<Type> & aNext
+             );
 
         void ExtractExtremaDOG
              (
@@ -333,6 +350,8 @@ template <class Type> class cTplImInMem : public cImInMem
 
         void ResizeBasic(const Pt2di & aSz);
         eTypeExtreSift CalculateDiff(Type***aC,int anX,int anY,int aNiv);
+
+        eTypeExtreSift CalculateDiff( tBase *prevDoG, tBase *currDoG, tBase *nextDoG, int anX, int anY, int aNiv );
 
 /*
         SetConvolBordX :
@@ -414,6 +433,7 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
          Type **    mData;
          tBase      mDogPC;  // Dif of Gauss du pixel courrant
 
+         std::vector<tBase> mDoG;
          
      private :
           cTplImInMem(const cTplImInMem<Type> &);  // N.I.
