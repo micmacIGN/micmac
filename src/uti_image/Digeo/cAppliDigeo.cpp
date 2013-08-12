@@ -197,7 +197,8 @@ void cAppliDigeo::DoOneInterv(int aKB,bool DoExtract)
 {
    mBoxIn = mDecoupInt.KthIntervIn(aKB);
    mBoxOut = mDecoupInt.KthIntervOut(aKB);
-   for (int aKI=0 ; aKI<int(mVIms.size()) ; aKI++)
+
+   for (size_t aKI=0 ; aKI<mVIms.size() ; aKI++)
    {
           mVIms[aKI]->LoadImageAndPyram(mBoxIn,mBoxOut);
           if (DoExtract)
