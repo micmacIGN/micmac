@@ -41,7 +41,7 @@ void RunLine(   SimpleStream<short2>    &streamIndex,
 )
 {
     const ushort  tid   = threadIdx.x;
-    short2* ST_Bf_Index = S_Bf_Index + sgn(tid);
+    short2* ST_Bf_Index = S_Bf_Index + tid + (sens ? 0 : -WARPSIZE + 1);
     short2  ConeZ;
     uint    segLine     = 0;
 
@@ -52,7 +52,6 @@ void RunLine(   SimpleStream<short2>    &streamIndex,
 
         segLine = min(lenghtLine-id_Line,WARPSIZE);
 
-
         while(idSeg < segLine)
         {
 
@@ -60,6 +59,7 @@ void RunLine(   SimpleStream<short2>    &streamIndex,
             const ushort dZ     = count(index); // creer buffer de count
             ushort       z      = 0;
             globMinFCost        = max_cost;
+
 
             if(sens)
                 while( z < dZ)
@@ -73,24 +73,24 @@ void RunLine(   SimpleStream<short2>    &streamIndex,
 
                     uint fCostMin           = max_cost;
                     const ushort costInit   = ST_Bf_ICost[sgn(sId_ICost)];
-                    const ushort tZ         = z + tid;
-                    const short  Z          = index.x + tZ;
+                    const ushort tZ         = z + sgn(tid);
+                    const short  Z          = sens ? tZ + index.x : index.y - WARPSIZE - tZ;
                     const short prZ         = Z - prevIndex.x;
 
                     GetConeZ(ConeZ,Z,penteMax,index,prevIndex);
 
-                    uint* prevFCost = S_FCost[idBuf] + sgn(prZ);
+                    uint* prevFCost = S_FCost[idBuf] + prZ;
 
                     ConeZ.y = min(NAPPEMAX - prZ,ConeZ.y );
 
                     for (short i = ConeZ.x; i <= ConeZ.y; ++i)
-                       if(sens) fCostMin = min(fCostMin, costInit + prevFCost[sgn(i)]);
+                       fCostMin = min(fCostMin, costInit + prevFCost[i]);
 
                     const uint fcost    =  fCostMin;// + sens * (streamFCost.GetValue(s_idCur_ICost) - costInit);
 
                     if( tZ < NAPPEMAX)
                     {
-                        if(sens) S_FCost[!idBuf][sgn(tZ)] = fcost;
+                        S_FCost[!idBuf][sgn(tZ)] = fcost;
                         if(sens) streamFCost.SetValue(sgn(sId_ICost), fcost);
 
                         if(!sens)
@@ -108,8 +108,10 @@ void RunLine(   SimpleStream<short2>    &streamIndex,
         }
 
         id_Line += segLine;
+
         if(id_Line < lenghtLine)
             streamIndex.read<sens>(ST_Bf_Index);
+
         idSeg   = 0;
     }
 
@@ -163,33 +165,26 @@ void Run(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrParam, 
 
     s_id_Icost   = count(prevIndex);
 
-    RunLine<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,s_id_Icost,penteMax,lenghtLine,prevIndex,id_Line,idSeg,idBuf);
+    RunLine<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,s_id_Icost,penteMax,lenghtLine,prevIndex,id_Line,idSeg,idBuf);    
 
-//    streamFCost.reverse<eARRIERE>();
-//    streamICost.reverse<eARRIERE>();
 //    streamIndex.reverse<eARRIERE>();
+//    streamFCost.reverse<eARRIERE>();
 
-//    S_BuffFCost[0]  += NAPPEMAX;
-//    S_BuffFCost[1]  += NAPPEMAX;
-//    S_BuffICost     += NAPPEMAX - 2 * tid;
+//    S_BuffFCost[0]  += NAPPEMAX - WARPSIZE;
+//    S_BuffFCost[1]  += NAPPEMAX - WARPSIZE;
+//    S_BuffICost     += NAPPEMAX - WARPSIZE;
 
-//    streamICost.readFrom<eARRIERE>(S_BuffFCost[idBuf] - tid, s_id_Icost - NAPPEMAX);
+//    streamICost.readFrom<eARRIERE>(S_BuffFCost[idBuf] + tid, NAPPEMAX - s_id_Icost);
 
-//    streamICost.incre<eARRIERE>();
-//    streamFCost.incre<eARRIERE>();
-//    streamIndex.incre<eARRIERE>();
+//    streamICost.reverse<eARRIERE>();
 
 //    prevIndex       = S_BuffIndex[idSeg];
-
-//    if(blockIdx.x == 40 && !tid)
-//        printf("\nidSeg = %d et prevIndex[%d,%d] \n",idSeg,prevIndex.x,prevIndex.y);
-
-//    idSeg           = WARPSIZE - idSeg - 1;
+//    idSeg           = WARPSIZE - idSeg;
 //    id_Line         = 1;
 
 //    const short noRead   = count(prevIndex) - s_id_Icost;
 
-//    if(count(prevIndex) < s_id_Icost)
+//    if(noRead < 0)
 //        s_id_Icost = NAPPEMAX + noRead;
 //    else
 //    {
@@ -198,25 +193,20 @@ void Run(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrParam, 
 //        s_id_Icost = noRead;
 //    }
 
-//    if(1)
-//    {
-//        RunLine<eARRIERE>(  streamIndex,
-//                            streamFCost,
-//                            streamICost,
-//                            S_BuffIndex + WARPSIZE,
-//                            S_BuffICost,
-//                            S_BuffFCost,
-//                            s_id_Icost,
-//                            penteMax,
-//                            lenghtLine,
-//                            prevIndex,
-//                            id_Line,
-//                            idSeg,
-//                            idBuf);
-//    }
+//    RunLine<eARRIERE>(  streamIndex,
+//                        streamFCost,
+//                        streamICost,
+//                        S_BuffIndex + WARPSIZE - 1,
+//                        S_BuffICost,
+//                        S_BuffFCost,
+//                        s_id_Icost,
+//                        penteMax,
+//                        lenghtLine + idSeg,
+//                        prevIndex,
+//                        id_Line,
+//                        idSeg,
+//                        idBuf);
 
-//    if(blockIdx.x == 40 && !tid)
-//        printf("\n");
 }
 
 extern "C" void OptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O)
