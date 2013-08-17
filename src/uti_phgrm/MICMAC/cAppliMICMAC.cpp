@@ -1509,7 +1509,10 @@ int   cAppliMICMAC::VSNI() const
 std::string cAppliMICMAC::NameClassEquiv(const std::string & aName) const
 {
    if (mMapEquiv==0) return "XXX";
-   return mMapEquiv->map(aName);
+
+   std::string aRes = mMapEquiv->map(aName);
+   // std::cout << "**************** MAP["<<aName << "]=" << aRes << " **************\n";
+   return aRes;
 }
 
 const double &  cAppliMICMAC::DefCost() const

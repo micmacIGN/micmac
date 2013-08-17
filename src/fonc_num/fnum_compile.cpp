@@ -334,13 +334,13 @@ bool cIdIntCmp::operator()(const cIncIntervale & anII1,const cIncIntervale & anI
 
 cIncListInterv::~cIncListInterv() 
 {
-   delete mMap;
+   // delete mMap;
 }
 
 
 bool cIncListInterv::Equal(const cIncListInterv& anILI) const
 {
-   return *mMap==*anILI.mMap;
+   return mMap==anILI.mMap;
    // return (std::set<cIncIntervale,cIdIntCmp>)*mMap==(std::set<cIncIntervale,cIdIntCmp>)*anILI.mMap;
 }
 
@@ -351,7 +351,7 @@ void cIncListInterv::Init()
    mI0Min    =1000000000;
    mI1Max    =-1;
    mSurf     =0;
-   mMap      =new cMapIncInterv;
+   mMap      = cMapIncInterv();
    mMayOverlap    = false;
 }
 bool cIncListInterv::MayOverlap () const {return mMayOverlap;}
@@ -372,7 +372,7 @@ void cIncListInterv::AddInterv(const cIncIntervale & anInterv,bool CanOverlap)
 {
    if (anInterv.Sz()==0 )
       return;
-   for (tCSetIII anIt =  mMap->begin() ; anIt!= mMap->end() ; anIt++)
+   for (tCSetIII anIt =  mMap.begin() ; anIt!= mMap.end() ; anIt++)
    {
        ELISE_ASSERT
        (
@@ -391,7 +391,7 @@ void cIncListInterv::AddInterv(const cIncIntervale & anInterv,bool CanOverlap)
        }
    }
 
-   mMap->insert(anInterv);
+   mMap.insert(anInterv);
 // std::cout << "zredsdsskb " << mI0Min << " " << anInterv.I0Alloc() << "\n";
    ElSetMin(mI0Min,anInterv.I0Alloc());
    ElSetMax(mI1Max,anInterv.I1Alloc());
@@ -406,10 +406,10 @@ bool cIncListInterv::IsConnexe0N() const
 
 const cIncIntervale & cIncListInterv::FindEquiv(const cIncIntervale & anInterv) const
 {
-   tCSetIII anIt = mMap->find(anInterv);
+   tCSetIII anIt = mMap.find(anInterv);
    ELISE_ASSERT
    (
-       anIt!=mMap->end(),
+       anIt!=mMap.end(),
        "Cant find required key in cIncListInterv::FindEquiv"
    );
    ELISE_ASSERT
@@ -437,7 +437,7 @@ void cIncListInterv::ResetInterv(const cIncIntervale & anInterv)
 
 const cMapIncInterv & cIncListInterv::Map() const
 {
-    return *mMap;
+    return mMap;
 }
 
 
@@ -1053,7 +1053,7 @@ void cElCompileFN::SetFile(const std::string & aPostFix, const char * anInclComp
     if (mFile)
        ElFclose(mFile);
 
-    mNameFile = mNameDir + mNameClass + "." + aPostFix;
+    mNameFile = MMDir() + mNameDir + mNameClass + "." + aPostFix;
     mFile = ElFopen(mNameFile.c_str(),"w");
     if (mFile==0)
     {

@@ -134,6 +134,7 @@ class cAppliMalt
           bool        mCorMS;
           double      mIncidMax;
           bool        mGenCubeCorrel;
+          std::vector<std::string> mEquiv;
 };
 
 
@@ -235,6 +236,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation , its proportion ([0,0,1,1] mean full box)")
                     << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)")
                     << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
+                    << EAM(mEquiv,"Equiv",true,"Equivalent classes, as a set of pattern, def=None")
   );
 
   mUseRR = EAMIsInit(&mRoundResol);
@@ -576,6 +578,20 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   
   if (EAMIsInit(&mIncidMax))
      mCom   =  mCom + " +DoAnam=true +IncidMax=" + ToString(mIncidMax);
+
+  if (mEquiv.size() != 0)
+  {
+      mCom= mCom + "  +UseEqui=true";
+      if (mEquiv.size()>0)
+         mCom= mCom + " +UseClas1=true" + " +Clas1=" +QUOTE(mEquiv[0]);
+      if (mEquiv.size()>1)
+         mCom= mCom + " +UseClas2=true" + " +Clas2=" +QUOTE(mEquiv[1]);
+      if (mEquiv.size()>2)
+         mCom= mCom + " +UseClas3=true" + " +Clas3=" +QUOTE(mEquiv[2]);
+
+      if (mEquiv.size()>3)
+         ELISE_ASSERT(false,"too many equiv class for Malt, use MicMac");
+  }
                
   std::cout << mCom << "\n";
   // cInZRegulterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);

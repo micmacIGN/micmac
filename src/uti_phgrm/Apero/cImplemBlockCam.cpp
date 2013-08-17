@@ -38,14 +38,239 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+/*     ==== MODELISATION MATHEMATIQUE-1 ====================
+  
+   Pour les notations on reprend la terminologie LR (Left-Right) et Time (date de prise de vue)
+
+      Block Inc :
+          LinkL  LinkR ...
+
+      Pour un bloc a N Camera, il y a N rotation inconnue (donc une de plus que necessaire) qui lie la camera a
+   un systeme de reference; en pratique le systeme de reference  se trouve etre de la "premiere" camera (c'est ce qui
+   est fait lors de l'estimation. c'est ce qui est maintenu pour lever l'arbitraire des equations, mais a part cela
+   la "premiere" camera ne joue aucun role particulier);
+
+      Les valeurs stockees dans LinkL (t.q. stockees dans LiaisonsSHC, voir cImplemBlockCam.cpp  CONV-ORI)
+
+          LinkL =   L  -> Ref
+          LinkR =   R  -> Ref
+
+      Time i : CamLi  CamRi   ...  ;  CamLi : Li  -> Monde
+      Time j : CamLj  CamRj   ...
+      Time k : CamLk  CamRk   ...
+
+
+       Les equation sont du type :
+
+          L to R =      CamRi-1  CamLi   =   CamRk -1 CamLk , qqs k,i (et L,R)
+
+     On ecrit cela 
+ 
+             CamRi-1  CamLi = LinkR-1 LinkL  ,  qqs i, L , R  (Eq1) 
+
+*/
+
+/*
+     Soit L = (Tl,Wl)  avec TL matrice rotation et Tl centre de projection   L(P) = Wl* P + Tl
+     Et R-1 (P) = Wr-1*P - Wr-1 * Tr = tWr * P - Tr  ;   R-1 = (Wr-1,- Wr-1* P)
+    
+
+      CamRi-1  CamLi  = (Wr-1,- Wr-1* Pr) X (Wl,Pl) = (Wr-1*Wl,- Wr-1* Pr +  Wr-1* Pl)
+*/
+
+
+
+
 namespace NS_ParamApero
 {
+
+class cIBC_ImsOneTime;
+class cIBC_OneCam;
+class cImplemBlockCam;
+
+class cEqBlockCamera;
 
 /***********************************************************/
 /*                                                         */
 /*                                                         */
 /*                                                         */
 /***********************************************************/
+
+cTypeCodageMatr ExportMatr(const ElMatrix<double> & aMat)
+{
+    cTypeCodageMatr  aCM;
+
+    aMat.GetLig(0, aCM.L1() );
+    aMat.GetLig(1, aCM.L2() );
+    aMat.GetLig(2, aCM.L3() );
+    aCM.TrueRot().SetVal(true);
+
+    return aCM;
+}
+
+ElMatrix<double> ImportMat(const cTypeCodageMatr & aCM)
+{
+   ElMatrix<double> aMat(3,3);
+
+   SetLig(aMat,0,aCM.L1());
+   SetLig(aMat,1,aCM.L2());
+   SetLig(aMat,2,aCM.L3());
+
+   return aMat;
+}
+
+/***********************************************************/
+/*                                                         */
+/*                      cEqBlockCamera                     */
+/*                                                         */
+/***********************************************************/
+
+
+void RotationRel(Pt3d<Fonc_Num> & aC,ElMatrix<Fonc_Num> & aMat, cRotationFormelle & aRR,int aKFR,cRotationFormelle & aRL,int aKFL)
+{
+
+    ElMatrix<Fonc_Num> aMatRInv = aRR.MatFGLComplete(aKFR);
+    aMatRInv.self_transpose();
+
+    ElMatrix<Fonc_Num> aMatL =  aRL.MatFGLComplete(aKFL);
+    aMat = aMatRInv * aMatL;
+    aC = aMatRInv * (aRL.COpt() - aRR.COpt());
+}
+
+class cEqBlockCamera : public cNameSpaceEqF,
+                       public cObjFormel2Destroy
+
+{
+     public :
+           cEqBlockCamera();
+           void SetOrients
+                (
+                    cRotationFormelle * aRotL1,
+                    cRotationFormelle * aRotR1,
+                    cRotationFormelle * aRotL2,
+                    cRotationFormelle * aRotR2
+                );
+
+            void GenCode();
+
+             void InitEqCompiledResidu();
+
+     private  :
+          static std::string mNameType;
+          cSetEqFormelles *   mSet;
+          cRotationFormelle * mRotL1;
+          cRotationFormelle * mRotR1;
+          cRotationFormelle * mRotL2;
+          cRotationFormelle * mRotR2;
+          cIncListInterv      mLInterv;
+          cElCompiledFonc *   mEqResidu;
+};
+
+
+cEqBlockCamera::cEqBlockCamera()  :
+    mSet (0),
+    mRotL1 (0),
+    mRotR1 (0),
+    mRotL2 (0),
+    mRotR2 (0),
+    mEqResidu (0)
+{
+}
+
+std::string cEqBlockCamera::mNameType = "cEqRigiditeBlock";
+
+void  cEqBlockCamera::SetOrients
+      (
+         cRotationFormelle * aRotL1,
+         cRotationFormelle * aRotR1,
+         cRotationFormelle * aRotL2,
+         cRotationFormelle * aRotR2
+      )
+{
+    if (mSet!=0)
+    {
+       ELISE_ASSERT(mSet==aRotL1->Set(),"Variable set of equation in cEqBlockCamera::SetOrients");
+    }
+    else
+    {
+        mSet =  aRotL1->Set();
+    }
+
+    mRotL1 = aRotL1;
+    mRotR1 = aRotR1;
+    mRotL2 = aRotL2;
+    mRotR2 = aRotR2;
+
+    ELISE_ASSERT(mSet==aRotL1->Set(),"Variable set of equation in cEqBlockCamera::SetOrients");
+    ELISE_ASSERT(mSet==aRotR1->Set(),"Variable set of equation in cEqBlockCamera::SetOrients");
+    ELISE_ASSERT(mSet==aRotL2->Set(),"Variable set of equation in cEqBlockCamera::SetOrients");
+    ELISE_ASSERT(mSet==aRotR2->Set(),"Variable set of equation in cEqBlockCamera::SetOrients");
+   
+
+    mRotL1->IncInterv().SetName("OriL1");
+    mRotR1->IncInterv().SetName("OriR1");
+    mRotL2->IncInterv().SetName("OriL2");
+    mRotR2->IncInterv().SetName("OriR2");
+
+    mLInterv.Init();
+    mLInterv.AddInterv(mRotL1->IncInterv());
+    mLInterv.AddInterv(mRotR1->IncInterv());
+    mLInterv.AddInterv(mRotL2->IncInterv());
+    mLInterv.AddInterv(mRotR2->IncInterv());
+}
+
+void cEqBlockCamera::GenCode()
+{
+
+    Pt3d<Fonc_Num> aC1;
+    ElMatrix<Fonc_Num>  aM1(3,3);
+    RotationRel(aC1,aM1,*mRotR1,1,*mRotL1,0);
+
+
+    Pt3d<Fonc_Num> aC2;
+    ElMatrix<Fonc_Num>  aM2(3,3);
+    RotationRel(aC2,aM2,*mRotR2,3,*mRotL2,2);
+
+
+    Pt3d<Fonc_Num> aC12 = aC2 - aC1;
+    ElMatrix<Fonc_Num> aM12 = aM2 - aM1;
+    std::vector<Fonc_Num> aV;
+
+    aV.push_back(aC12.x);
+    aV.push_back(aC12.y);
+    aV.push_back(aC12.z);
+
+    for (int aKy=0; aKy<3; aKy++)
+    {
+       for (int aKx=0; aKx<3; aKx++)
+       {
+           aV.push_back(aM12(aKx,aKy));
+       }
+    }
+    cElCompileFN::DoEverything
+    (
+         "CodeGenere/photogram/",  // Directory ou est localise le code genere
+         mNameType,  // donne les noms de fichier .cpp et .h ainsi que les nom de classe
+         aV,  // expressions formelles 
+         mLInterv  // intervalle de reference
+    );
+
+}
+
+void cEqBlockCamera::InitEqCompiledResidu()
+{
+    mEqResidu = cElCompiledFonc::AllocFromName(mNameType);
+
+    ELISE_ASSERT(mEqResidu!=0,"cEqBlockCamera::InitEqCompiledResidu");
+}
+
+/***********************************************************/
+/*                                                         */
+/*                                                         */
+/*                                                         */
+/***********************************************************/
+
+
 
 
 class cIBC_ImsOneTime
@@ -69,9 +294,14 @@ class cIBC_OneCam
           cIBC_OneCam(const std::string & ,int aNum);
           const int & Num() const;
           const std::string & NameCam() const;
+          const bool & V0Init() const;
+          void Init0(const cParamOrientSHC & aPSH);
       private :
           std::string mNameCam;
           int         mNum;
+          Pt3dr             mC0;
+          ElMatrix<double>  mMat0;
+          bool              mV0Init;
 };
 
 
@@ -84,14 +314,15 @@ class cImplemBlockCam
 
          void EstimCurOri(const cEstimateOrientationInitBlockCamera &);
          void Export(const cExportBlockCamera &);
+
+         void InitForCompens();
     private :
 
          cAppliApero &               mAppli;
          cStructBlockCam             mSBC;
+         cLiaisonsSHC *              mLSHC;
          cStructBlockCam             mEstimSBC;
          std::string                 mId;
-         cRelEquivPose               mRelGrp;
-         cRelEquivPose               mRelId;
 
          std::map<std::string,cIBC_OneCam *>   mName2Cam;
          std::vector<cIBC_OneCam *>            mNum2Cam;
@@ -100,6 +331,8 @@ class cImplemBlockCam
 
          std::map<std::string,cIBC_ImsOneTime *> mName2ITime;
          std::vector<cIBC_ImsOneTime *>          mNum2ITime;
+         bool                                    mDoneIFC;
+         cEqBlockCamera *                        mEBC;
 };
 
     // =================================
@@ -135,12 +368,24 @@ cPoseCam * cIBC_ImsOneTime::Pose(int aKP)
 
 cIBC_OneCam::cIBC_OneCam(const std::string & aNameCam ,int aNum) :
     mNameCam (aNameCam ),
-    mNum     (aNum)
+    mNum     (aNum),
+    mMat0    (1,1),
+    mV0Init  (false)
 {
 }
 
 const int & cIBC_OneCam::Num() const {return mNum;}
 const std::string & cIBC_OneCam::NameCam() const { return mNameCam; }
+const bool & cIBC_OneCam::V0Init() const {return mV0Init;}
+
+void cIBC_OneCam::Init0(const cParamOrientSHC & aPOS)
+{
+    mV0Init = true;
+    mC0   = aPOS.Vecteur();
+    mMat0 = ImportMat(aPOS.Rot());
+    
+}
+
 
     // =================================
     //       cImplemBlockCam
@@ -150,7 +395,9 @@ cImplemBlockCam::cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam aSB
       mAppli      (anAppli),
       mSBC        (aSBC),
       mEstimSBC   (aSBC),
-      mId         (anId)
+      mId         (anId),
+      mDoneIFC    (false),
+      mEBC        (0)
 {
     const std::vector<cPoseCam*> & aVP = mAppli.VecAllPose();
    
@@ -180,7 +427,7 @@ cImplemBlockCam::cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam aSB
           std::string aNamePose = aPC->Name();
           std::pair<std::string,std::string> aPair =   mAppli.ICNM()->Assoc2To1(mSBC.KeyIm2TimeCam(),aNamePose,true);
           std::string aNameTime = aPair.first;
-          std::string aNameCam = aPair.second;
+          std::string aNameCam  = aPair.second;
           
           cIBC_ImsOneTime * aIms =  mName2ITime[aNameTime];
           if (aIms==0)
@@ -193,19 +440,29 @@ cImplemBlockCam::cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam aSB
           aIms->AddPose(aPC,aCam->Num());
     }
     mNbTime = mNum2ITime.size();
+
+
+    mLSHC = mSBC.LiaisonsSHC().PtrVal();
+    if (mLSHC)
+    {
+       for 
+       (
+            std::list<cParamOrientSHC>::const_iterator itPOS=mLSHC->ParamOrientSHC().begin();
+            itPOS !=mLSHC->ParamOrientSHC().end();
+            itPOS++
+       )
+       {
+             cIBC_OneCam * aCam = mName2Cam[itPOS->IdGrp()];
+             ELISE_ASSERT(aCam!=0,"Cannot get cam from IdGrp");
+             ELISE_ASSERT(! aCam->V0Init(),"Multiple Init For IdGrp");
+// LA
+             std::cout << "xxxxxxxxxxxxxxxx CCCaaaammm " << aCam << "\n";
+       }
+    }
 }
 
-cTypeCodageMatr ExportMatr(const ElMatrix<double> & aMat)
-{
-    cTypeCodageMatr  aCM;
 
-    aMat.GetLig(0, aCM.L1() );
-    aMat.GetLig(1, aCM.L2() );
-    aMat.GetLig(2, aCM.L3() );
-    aCM.TrueRot().SetVal(true);
 
-    return aCM;
-}
 
 void cImplemBlockCam::Export(const cExportBlockCamera & aEBC)
 {
@@ -231,10 +488,10 @@ void cImplemBlockCam::EstimCurOri(const cEstimateOrientationInitBlockCamera & an
             cPoseCam * aP1 = aTime->Pose(aKC);
             if (aP0 && aP1)
             {
-                ElRotation3D  aR0toM = aP0->CurCam()->Orient().inv();
+                ElRotation3D  aR0toM = aP0->CurCam()->Orient().inv(); // CONV-ORI
                 ElRotation3D  aR1toM = aP1->CurCam()->Orient().inv();
 
-                ElRotation3D aR1to0 = aR0toM.inv() * aR1toM;
+                ElRotation3D aR1to0 = aR0toM.inv() * aR1toM;  //  CONV-ORI
 
                 if (anEOIB.Show().Val())
                 {
@@ -274,6 +531,18 @@ void cImplemBlockCam::EstimCurOri(const cEstimateOrientationInitBlockCamera & an
    mEstimSBC.LiaisonsSHC().SetVal(aLSHC);
 }
 
+
+void cImplemBlockCam::InitForCompens()
+{
+   if (mDoneIFC) return;
+   mDoneIFC = true;
+
+   ELISE_ASSERT(mLSHC!=0,"ObsBlockCamRig no LiaisonsSHC");
+
+   mEBC = new cEqBlockCamera;
+   mEBC->InitEqCompiledResidu();
+}
+
     // =================================
     //       cAppliApero
     // =================================
@@ -297,6 +566,28 @@ void cAppliApero::InitBlockCameras()
                              );
        cImplemBlockCam * aIBC = new cImplemBlockCam(*this,aSB,anId);
        mBlockCams[anId] = aIBC;
+  }
+
+
+  const cSectionCompensation & aSC  = mParam.SectionCompensation();
+  for 
+  (
+     std::list<cEtapeCompensation>::const_iterator itSC = aSC.EtapeCompensation().begin();
+     itSC != aSC.EtapeCompensation().end();
+     itSC++
+  )
+  {
+     const cSectionObservations & aSO = itSC->SectionObservations();
+     for 
+     ( 
+         std::list<cObsBlockCamRig>::const_iterator itCOB = aSO.ObsBlockCamRig().begin();
+         itCOB != aSO.ObsBlockCamRig().end();
+         itCOB++
+     )
+     {
+         cImplemBlockCam *  aIBC = GetBlockCam(itCOB->Id());
+         aIBC->InitForCompens();
+     }
   }
 }
 
@@ -324,6 +615,25 @@ void cAppliApero:: ExportBlockCam(const cExportBlockCamera & aEBC)
 
 
 };
+
+
+using namespace NS_ParamApero;
+
+void GenCodeRigiditeBlock()
+{
+   cSetEqFormelles aSet;
+   ElRotation3D aR0(Pt3dr(0,0,0),0,0,0);
+
+   cRotationFormelle * aRF1L = aSet.NewRotation(cNameSpaceEqF::eRotLibre,aR0);
+   cRotationFormelle * aRF1R = aSet.NewRotation(cNameSpaceEqF::eRotLibre,aR0);
+   cRotationFormelle * aRF2L = aSet.NewRotation(cNameSpaceEqF::eRotLibre,aR0);
+   cRotationFormelle * aRF2R = aSet.NewRotation(cNameSpaceEqF::eRotLibre,aR0);
+
+   cEqBlockCamera aBlock;
+   aBlock.SetOrients(aRF1L,aRF1R,aRF2L,aRF2R);
+   aBlock.GenCode();
+}
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
