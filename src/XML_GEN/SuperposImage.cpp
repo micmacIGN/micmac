@@ -11719,6 +11719,17 @@ const cTplValGesInit< int > & cSectionGestionChantier::InterneSingleBox()const
    return mInterneSingleBox;
 }
 
+
+cTplValGesInit< std::string > & cSectionGestionChantier::WorkDirPFM()
+{
+   return mWorkDirPFM;
+}
+
+const cTplValGesInit< std::string > & cSectionGestionChantier::WorkDirPFM()const 
+{
+   return mWorkDirPFM;
+}
+
 cElXMLTree * ToXMLTree(const cSectionGestionChantier & anObj)
 {
   XMLPushContext(anObj.mGXml);
@@ -11735,6 +11746,8 @@ cElXMLTree * ToXMLTree(const cSectionGestionChantier & anObj)
       aRes->AddFils(::ToXMLTree(std::string("InterneSingleImage"),anObj.InterneSingleImage().Val())->ReTagThis("InterneSingleImage"));
    if (anObj.InterneSingleBox().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("InterneSingleBox"),anObj.InterneSingleBox().Val())->ReTagThis("InterneSingleBox"));
+   if (anObj.WorkDirPFM().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("WorkDirPFM"),anObj.WorkDirPFM().Val())->ReTagThis("WorkDirPFM"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -11756,6 +11769,8 @@ void xml_init(cSectionGestionChantier & anObj,cElXMLTree * aTree)
    xml_init(anObj.InterneSingleImage(),aTree->Get("InterneSingleImage",1),std::string("")); //tototo 
 
    xml_init(anObj.InterneSingleBox(),aTree->Get("InterneSingleBox",1),int(-1)); //tototo 
+
+   xml_init(anObj.WorkDirPFM(),aTree->Get("WorkDirPFM",1)); //tototo 
 }
 
 
@@ -12097,6 +12112,17 @@ cTplValGesInit< int > & cParamFusionMNT::InterneSingleBox()
 const cTplValGesInit< int > & cParamFusionMNT::InterneSingleBox()const 
 {
    return SectionGestionChantier().InterneSingleBox();
+}
+
+
+cTplValGesInit< std::string > & cParamFusionMNT::WorkDirPFM()
+{
+   return SectionGestionChantier().WorkDirPFM();
+}
+
+const cTplValGesInit< std::string > & cParamFusionMNT::WorkDirPFM()const 
+{
+   return SectionGestionChantier().WorkDirPFM();
 }
 
 

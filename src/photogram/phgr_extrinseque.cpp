@@ -230,11 +230,20 @@ void cRotationFormelle::SetGL(bool aModeGL)
     SetCurRot(CurRot());
     mModeGL = aModeGL;
 }
-const ElMatrix<Fonc_Num> & cRotationFormelle::MatFGL()
+const ElMatrix<Fonc_Num> & cRotationFormelle::MatFGL(int aKForceGL)
 {
+   if (aKForceGL>=0)
+   {
+       static std::vector<cMatr_Etat_PhgrF *> aVM;
+       for (int aK=0 ; aK<=aKForceGL ; aK++)
+           aVM.push_back(new cMatr_Etat_PhgrF("GL_MK"+ToString(aKForceGL),3,3));
+
+       return aVM[aKForceGL]->Mat();
+   }
+
    if (mModeGL)
    {
-       static cMatr_Etat_PhgrF aM("GL",3,3);
+      static cMatr_Etat_PhgrF aM("GL",3,3);
       return aM.Mat();
    }
    static ElMatrix<Fonc_Num> aMatId(3,true);
@@ -497,34 +506,41 @@ cMultiContEQF    cRotationFormelle::StdContraintes()
    return aRes;
 }
 
+
+
+ElMatrix<Fonc_Num>  cRotationFormelle::MatFGLComplete(int aKForceGL)
+{
+   return  MatFGL(aKForceGL)* mFMatr;
+}
+
 Pt3d<Fonc_Num> cRotationFormelle::COpt()
 {
     return mFCOpt;
 }
 
-Pt3d<Fonc_Num> cRotationFormelle::ImVect(Pt3d<Fonc_Num> aP)
+Pt3d<Fonc_Num> cRotationFormelle::ImVect(Pt3d<Fonc_Num> aP,int aKForceGL)
 {
-    return MatFGL()* mFMatr * aP;
+    return MatFGL(aKForceGL)* mFMatr * aP;
 }
 
-Pt3d<Fonc_Num> cRotationFormelle::C2M(Pt3d<Fonc_Num> aP)
+Pt3d<Fonc_Num> cRotationFormelle::C2M(Pt3d<Fonc_Num> aP,int aKForceGL)
 {
-    return MatFGL()* mFMatr * aP + mFCOpt;
+    return MatFGL(aKForceGL)* mFMatr * aP + mFCOpt;
 }
 
-Pt3d<Fonc_Num> cRotationFormelle::M2C(Pt3d<Fonc_Num> aP)
+Pt3d<Fonc_Num> cRotationFormelle::M2C(Pt3d<Fonc_Num> aP,int aKForceGL)
 {
-    return  mFMatrInv * MatFGL().transpose() * (aP - mFCOpt);
+    return  mFMatrInv * MatFGL(aKForceGL).transpose() * (aP - mFCOpt);
 }
 
-Pt3d<Fonc_Num> cRotationFormelle::VectM2C(Pt3d<Fonc_Num> aP)
+Pt3d<Fonc_Num> cRotationFormelle::VectM2C(Pt3d<Fonc_Num> aP,int aKForceGL)
 {
-    return mFMatrInv * MatFGL().transpose()  * aP ;
+    return mFMatrInv * MatFGL(aKForceGL).transpose()  * aP ;
 }
 
-Pt3d<Fonc_Num> cRotationFormelle::VectC2M(Pt3d<Fonc_Num> aP)
+Pt3d<Fonc_Num> cRotationFormelle::VectC2M(Pt3d<Fonc_Num> aP,int aKForceGL)
 {
-    return ImVect(aP);
+    return ImVect(aP,aKForceGL);
 }
 
 void cRotationFormelle::AssertDegre0() const

@@ -3364,6 +3364,25 @@ class cSectionTracage
 };
 cElXMLTree * ToXMLTree(const cSectionTracage &);
 
+class cObsBlockCamRig
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cObsBlockCamRig & anObj,cElXMLTree * aTree);
+
+
+        std::string & Id();
+        const std::string & Id()const ;
+
+        cTplValGesInit< bool > & Show();
+        const cTplValGesInit< bool > & Show()const ;
+    private:
+        std::string mId;
+        cTplValGesInit< bool > mShow;
+};
+cElXMLTree * ToXMLTree(const cObsBlockCamRig &);
+
 class cROA_FichierImg
 {
     public:
@@ -3699,6 +3718,9 @@ class cSectionObservations
         friend void xml_init(cSectionObservations & anObj,cElXMLTree * aTree);
 
 
+        std::list< cObsBlockCamRig > & ObsBlockCamRig();
+        const std::list< cObsBlockCamRig > & ObsBlockCamRig()const ;
+
         std::list< cObsAppuis > & ObsAppuis();
         const std::list< cObsAppuis > & ObsAppuis()const ;
 
@@ -3720,6 +3742,7 @@ class cSectionObservations
         cTplValGesInit< cTxtRapDetaille > & TxtRapDetaille();
         const cTplValGesInit< cTxtRapDetaille > & TxtRapDetaille()const ;
     private:
+        std::list< cObsBlockCamRig > mObsBlockCamRig;
         std::list< cObsAppuis > mObsAppuis;
         std::list< cObsAppuisFlottant > mObsAppuisFlottant;
         std::list< cObsLiaisons > mObsLiaisons;
@@ -4680,6 +4703,9 @@ class cEtapeCompensation
 
         cTplValGesInit< double > & MultSLMGlob();
         const cTplValGesInit< double > & MultSLMGlob()const ;
+
+        std::list< cObsBlockCamRig > & ObsBlockCamRig();
+        const std::list< cObsBlockCamRig > & ObsBlockCamRig()const ;
 
         std::list< cObsAppuis > & ObsAppuis();
         const std::list< cObsAppuis > & ObsAppuis()const ;

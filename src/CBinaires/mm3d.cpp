@@ -189,12 +189,14 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("OriConvert",Ori_Txt2Xml_main," Convert Orientation from Txt 2 XML",cArgLogCom(3)));
 
        aRes.push_back(cMMCom("GenXML2Cpp",GenXML2Cpp_main," Do some stuff"));
+       aRes.push_back(cMMCom("GenCode",GenCode_main," Do some stuff"));
        aRes.push_back(cMMCom("GrShade",GrShade_main," Compute shading from depth image"));
        aRes.push_back(cMMCom("StackFlatField",EstimFlatField_main,"Basic Flat Field estimation by image stacking"));
        aRes.push_back(cMMCom("Impaint",Impainting_main,"Basic Impainting"));
        aRes.push_back(cMMCom("Gri2Bin",Gri2Bin_main," Do some stuff"));
        aRes.push_back(cMMCom("MakeGrid",MakeGrid_main," Generate orientations in a grid format"));
        aRes.push_back(cMMCom("Malt",Malt_main," Simplified matching (interface to MicMac)",cArgLogCom(3)));
+       aRes.push_back(cMMCom("MMByP",MMByPair_main," Matching By Pair of images",cArgLogCom(2)));
        aRes.push_back(cMMCom("MapCmd",MapCmd_main," Transforms a command working on a single file in a command working on a set of files"));
        aRes.push_back(cMMCom("Ori2Xml",Ori2XML_main,"Convert \"historical\" Matis'Ori format to xml "));
        aRes.push_back(cMMCom("Mascarpone",Mascarpone_main," Automatic mask tests"));
