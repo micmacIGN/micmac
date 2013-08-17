@@ -4221,6 +4221,9 @@ class cSectionGestionChantier
 
         cTplValGesInit< int > & InterneSingleBox();
         const cTplValGesInit< int > & InterneSingleBox()const ;
+
+        cTplValGesInit< std::string > & WorkDirPFM();
+        const cTplValGesInit< std::string > & WorkDirPFM()const ;
     private:
         cTplValGesInit< int > mSzDalles;
         cTplValGesInit< int > mRecouvrtDalles;
@@ -4228,6 +4231,7 @@ class cSectionGestionChantier
         cTplValGesInit< bool > mInterneCalledByProcess;
         cTplValGesInit< std::string > mInterneSingleImage;
         cTplValGesInit< int > mInterneSingleBox;
+        cTplValGesInit< std::string > mWorkDirPFM;
 };
 cElXMLTree * ToXMLTree(const cSectionGestionChantier &);
 
@@ -4334,6 +4338,9 @@ class cParamFusionMNT
 
         cTplValGesInit< int > & InterneSingleBox();
         const cTplValGesInit< int > & InterneSingleBox()const ;
+
+        cTplValGesInit< std::string > & WorkDirPFM();
+        const cTplValGesInit< std::string > & WorkDirPFM()const ;
 
         cSectionGestionChantier & SectionGestionChantier();
         const cSectionGestionChantier & SectionGestionChantier()const ;

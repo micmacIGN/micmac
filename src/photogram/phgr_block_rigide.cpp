@@ -40,25 +40,19 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-#if  (ELISE_INSERT_CODE_GEN)
+/*     
+    Transfere dans Apero/cImplemBlockCam.cpp
 
-#include "../../CodeGenere/photogram/cCylindre_EqRat_CodGen.cpp"  //
-#include "../../CodeGenere/photogram/cEqRigiditeBlock.cpp"  //
+*/
 
-#include "../../CodeGenere/photogram/cRegD1.cpp"          //
-#include "../../CodeGenere/photogram/cRegD2.cpp"          //
-#include "../../CodeGenere/photogram/cSetVar.cpp"          //
-#include "../../CodeGenere/photogram/cSetValsEq.cpp"          //
-#include "../../CodeGenere/photogram/cSetScal3.cpp"  //
-#include "../../CodeGenere/photogram/cSetNormEuclid3.cpp"  //
-#include "../../CodeGenere/photogram/cSetNormEuclidVect3.cpp"  //
-#include "../../CodeGenere/photogram/cEqLin_1.cpp"  //
-#include "../../CodeGenere/photogram/cEqLin_2.cpp"  //
-#include "../../CodeGenere/photogram/cEqLin_3.cpp"  //
 
-#include "../../CodeGenere/photogram/cCodeGenEqPlanInconnuFormel.cpp"  //
 
-#endif // ELISE_INSERT_CODE_GEN
+
+
+
+
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

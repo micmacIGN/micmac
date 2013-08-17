@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1138]) = {
+const char * (theNameVar_SuperposImage[1139]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1119,6 +1119,7 @@ const char * (theNameVar_SuperposImage[1138]) = {
 "             <InterneCalledByProcess  Nb=\"?\" Type=\"bool\" Def=\"false\"> </InterneCalledByProcess>\n",
 "             <InterneSingleImage Nb=\"?\" Type=\"std::string\" Def=\"\"> </InterneSingleImage>\n",
 "             <InterneSingleBox Nb=\"?\" Type=\"int\" Def=\"-1\"> </InterneSingleBox>\n",
+"             <WorkDirPFM Nb=\"?\" Type=\"std::string\"> </WorkDirPFM>\n",
 "       </SectionGestionChantier>\n",
 "\n",
 "\n",

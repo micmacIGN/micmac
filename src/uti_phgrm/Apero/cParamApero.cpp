@@ -10017,6 +10017,50 @@ void xml_init(cSectionTracage & anObj,cElXMLTree * aTree)
 }
 
 
+std::string & cObsBlockCamRig::Id()
+{
+   return mId;
+}
+
+const std::string & cObsBlockCamRig::Id()const 
+{
+   return mId;
+}
+
+
+cTplValGesInit< bool > & cObsBlockCamRig::Show()
+{
+   return mShow;
+}
+
+const cTplValGesInit< bool > & cObsBlockCamRig::Show()const 
+{
+   return mShow;
+}
+
+cElXMLTree * ToXMLTree(const cObsBlockCamRig & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ObsBlockCamRig",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
+   if (anObj.Show().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Show"),anObj.Show().Val())->ReTagThis("Show"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cObsBlockCamRig & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
+
+   xml_init(anObj.Show(),aTree->Get("Show",1),bool(false)); //tototo 
+}
+
+
 std::string & cROA_FichierImg::Name()
 {
    return mName;
@@ -10937,6 +10981,17 @@ void xml_init(cTxtRapDetaille & anObj,cElXMLTree * aTree)
 }
 
 
+std::list< cObsBlockCamRig > & cSectionObservations::ObsBlockCamRig()
+{
+   return mObsBlockCamRig;
+}
+
+const std::list< cObsBlockCamRig > & cSectionObservations::ObsBlockCamRig()const 
+{
+   return mObsBlockCamRig;
+}
+
+
 std::list< cObsAppuis > & cSectionObservations::ObsAppuis()
 {
    return mObsAppuis;
@@ -11018,6 +11073,12 @@ cElXMLTree * ToXMLTree(const cSectionObservations & anObj)
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionObservations",eXMLBranche);
   for
+  (       std::list< cObsBlockCamRig >::const_iterator it=anObj.ObsBlockCamRig().begin();
+      it !=anObj.ObsBlockCamRig().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("ObsBlockCamRig"));
+  for
   (       std::list< cObsAppuis >::const_iterator it=anObj.ObsAppuis().begin();
       it !=anObj.ObsAppuis().end();
       it++
@@ -11058,6 +11119,8 @@ void xml_init(cSectionObservations & anObj,cElXMLTree * aTree)
 {
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+
+   xml_init(anObj.ObsBlockCamRig(),aTree->GetAll("ObsBlockCamRig",false,1));
 
    xml_init(anObj.ObsAppuis(),aTree->GetAll("ObsAppuis",false,1));
 
@@ -14068,6 +14131,17 @@ cTplValGesInit< double > & cEtapeCompensation::MultSLMGlob()
 const cTplValGesInit< double > & cEtapeCompensation::MultSLMGlob()const 
 {
    return mMultSLMGlob;
+}
+
+
+std::list< cObsBlockCamRig > & cEtapeCompensation::ObsBlockCamRig()
+{
+   return SectionObservations().ObsBlockCamRig();
+}
+
+const std::list< cObsBlockCamRig > & cEtapeCompensation::ObsBlockCamRig()const 
+{
+   return SectionObservations().ObsBlockCamRig();
 }
 
 

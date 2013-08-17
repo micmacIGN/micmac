@@ -1145,6 +1145,12 @@ normalises en echelle et/ou en translation -->
                  <SectionObservations Nb="1">
 
                       <!-- Ici il s'agit de point d'appuis "sur", -->
+                     <ObsBlockCamRig Nb="*">
+                         <Id Nb="1" Type="std::string"> </Id>
+                         <Show Type="bool" Nb="?" Def="false"> </Show>
+                     </ObsBlockCamRig>
+
+                      <!-- Ici il s'agit de point d'appuis "sur", -->
 		      <ObsAppuis Nb="*">
 		             <!-- Mesure "naturelle" = Terrain -->
 	                     <NameRef Nb="1" Type="std::string"> </NameRef>
