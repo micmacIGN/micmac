@@ -53,6 +53,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #endif // ELISE_INSERT_CODE_GEN
 
+#include "../../CodeGenere/photogram/cEqRigiditeBlock.h"
 
 #include "../../CodeGenere/photogram/cCylindre_EqRat_CodGen.h"
 
@@ -388,6 +389,8 @@ AddEntry("cEqAppui_AFocal_PProjInc_M2C"#aDist,cEqAppui_AFocal_PProjInc_M2C##aDis
 
 
 
+
+
 #include "../../CodeGenere/photogram/cEqCoplanEbnerId.h"
 #include "../../CodeGenere/photogram/cEqCoplanDCBrownId.h"
 #include "../../CodeGenere/photogram/cEqResiduIm1EbnerId.h"
@@ -672,6 +675,7 @@ void cElCompiledFonc::InitEntries()
 
      AddEntry("cEqAppui_PTInc_M2CNoDist",cEqAppui_PTInc_M2CNoDist::Alloc);
      AddEntry("cEqAppui_PTInc_C2MNoDist",cEqAppui_PTInc_C2MNoDist::Alloc);
+     AddEntry("cEqRigiditeBlock",cEqRigiditeBlock::Alloc);
 
 
 // ====  GUIMBAL LOCK ============
@@ -710,6 +714,7 @@ void cElCompiledFonc::InitEntries()
 
      AddEntry("cEqAppui_GL__PTInc_M2CPolyn2",cEqAppui_GL__PTInc_M2CPolyn2::Alloc);
      AddEntry("cEqAppui_GL__PProjInc_M2CPolyn2",cEqAppui_GL__PProjInc_M2CPolyn2::Alloc);
+
 #endif
 
 

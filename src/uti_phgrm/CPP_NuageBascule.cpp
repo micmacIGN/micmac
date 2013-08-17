@@ -90,6 +90,11 @@ int  NuageBascule_main(int argc,char ** argv)
     std::string  aNameIn,aNameOut,aNameRes,aToto;
     bool  AutoResize=true;
     bool  AutoClipIn=true;
+    bool  ICalledByP =false;
+    bool  ByP       =false;
+    Pt2di aSzDecoup(2500,2500);
+    std::string  aSuplOut="";
+    Box2di aBoxIn;
 
     ElInitArgMain
     (
@@ -98,32 +103,76 @@ int  NuageBascule_main(int argc,char ** argv)
                     << EAMC(aNameOut,"Name of outptut depth map")
                     << EAMC(aNameRes,"Name result"),
 	LArgMain()  
+                    << EAM(ByP,"ByP",true,"By process in parall")
                     << EAM(AutoResize,"AutoResize",true,"Clip result to minimal size, Def = true")
                     << EAM(AutoClipIn,"AutoClipIn",true,"Clip result to minimal size")
+                    << EAM(aBoxIn,"BoxIn",true,"Box input")
+                    << EAM(aSzDecoup,"SzDecoup",true,"Size of split for paral")
+                    << EAM(ICalledByP,"InternallCalledByP",true,"Internal purpose : dont use")
+                    << EAM(aSuplOut,"InternallSuplOut",true,"Internal purpose : dont use")
     );
 
 
     cXML_ParamNuage3DMaille  aNuageIn =  NuageFromFile(aNameIn);
-    cXML_ParamNuage3DMaille  aNuageOut =  NuageFromFile(aNameOut);
 
-    if (! EAMIsInit(&AutoClipIn)) 
-       AutoClipIn = aNuageIn.Image_Profondeur().IsInit();
-
-    Box2di * aBoxIn = 0;
-    if (AutoClipIn)
+    if (ByP && (!ICalledByP))
     {
-          aBoxIn = new Box2di(BoxEnglobMasq(DirOfFile(aNameIn) + aNuageIn.Image_Profondeur().Val().Masq()));
-          std::cout << "BoxClipIn " << aBoxIn->_p0 << aBoxIn->_p1;
+         int aBrd=5;
+         Pt2di aPBrd(aBrd,aBrd);
+         std::string aComBase =  MMBinFile(MM3DStr) +  MakeStrFromArgcARgv(argc,argv);
+         Box2di      aBoxInGlob  = BoxEnglobMasq(DirOfFile(aNameIn) + aNuageIn.Image_Profondeur().Val().Masq());
+         cDecoupageInterv2D aDecoup (aBoxInGlob,aSzDecoup,Box2di(-aPBrd,aPBrd));
+
+         std::list<std::string> aLCom;
+         for (int aKB=0 ; aKB<aDecoup.NbInterv() ; aKB++)
+         {
+             Box2di aBoxK = aDecoup.KthIntervIn(aKB);
+             std::string aCom =  aComBase 
+                               + std::string(" InternallCalledByP=true ")
+                               + std::string(" InternallSuplOut=BoxBasc") + ToString(aKB) +  std::string("_ ")
+                               + std::string("BoxIn=[") + ToString(aBoxK._p0.x) + std::string(",") 
+                                                        + ToString(aBoxK._p0.y) + std::string(",") 
+                                                        + ToString(aBoxK._p1.x) + std::string(",") 
+                                                        + ToString(aBoxK._p1.y) 
+                               + std::string("] ") 
+                           ;
+
+             std::cout << "COM= " << aCom << "\n";
+             aLCom.push_back(aCom);
+             // System(aCom);
+         }
+         cEl_GPAO::DoComInParal(aLCom,"MakeBascule");
     }
+    else
+    {
+        if (EAMIsInit(&aSuplOut))
+           aNameRes = DirOfFile(aNameRes) + aSuplOut + NameWithoutDir(aNameRes);
+           
+
+         if (! EAMIsInit(&AutoClipIn)) 
+            AutoClipIn = aNuageIn.Image_Profondeur().IsInit();
+
+         Box2di * aBoxClipIn = 0;
+         if  (EAMIsInit(&aBoxIn))
+         {
+               aBoxClipIn = new Box2di(aBoxIn);
+         }
+         else if (AutoClipIn)
+         {
+               aBoxClipIn = new Box2di(BoxEnglobMasq(DirOfFile(aNameIn) + aNuageIn.Image_Profondeur().Val().Masq()));
+               std::cout << "BoxClipIn " << aBoxClipIn->_p0 << aBoxClipIn->_p1;
+         }
 
 
-   cElNuage3DMaille *  aN = BasculeNuageAutoReSize(aNuageOut,aNuageIn,DirOfFile(aNameIn),NameWithoutDir(aNameRes),AutoResize,aBoxIn);
-   aN->Save(aNameRes);
+         cXML_ParamNuage3DMaille  aNuageOut =  NuageFromFile(aNameOut);
+         cElNuage3DMaille *  aN = BasculeNuageAutoReSize(aNuageOut,aNuageIn,DirOfFile(aNameIn),NameWithoutDir(aNameRes),AutoResize,aBoxClipIn);
+         aN->Save(aNameRes);
 
-   std::cout << "N=" << aN  << " => " << NameWithoutDir(aNameRes) << "\n";
+         std::cout << "N=" << aN  << " => " << NameWithoutDir(aNameRes) << "\n";
 
    
-    delete aBoxIn;
+         delete aBoxClipIn;
+    }
     return 0;
 }
 

@@ -175,6 +175,13 @@
         <ShortName> NEX-7  </ShortName>
    </CameraEntry>
 
+   <CameraEntry>
+        <Name>   Fujifilm REAL 3D W1 </Name>
+        <SzCaptMm>   4.7 6.3  </SzCaptMm>
+        <ShortName> Fuji3D  </ShortName>
+   </CameraEntry>
+<!--
+-->
 
 
 </MMCameraDataBase>

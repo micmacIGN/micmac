@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1482]) = {
+const char * (theNameVar_ParamApero[1488]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1145,6 +1145,12 @@ const char * (theNameVar_ParamApero[1482]) = {
 "\n",
 "\n",
 "                 <SectionObservations Nb=\"1\">\n",
+"\n",
+"                      <!-- Ici il s'agit de point d'appuis \"sur\", -->\n",
+"                     <ObsBlockCamRig Nb=\"*\">\n",
+"                         <Id Nb=\"1\" Type=\"std::string\"> </Id>\n",
+"                         <Show Type=\"bool\" Nb=\"?\" Def=\"false\"> </Show>\n",
+"                     </ObsBlockCamRig>\n",
 "\n",
 "                      <!-- Ici il s'agit de point d'appuis \"sur\", -->\n",
 "		      <ObsAppuis Nb=\"*\">\n",

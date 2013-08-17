@@ -129,6 +129,26 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
     <Symb>   RoundResol=XXXX </Symb>
     <Symb>   GCC=false </Symb>
 
+
+    <eSymb>  NotCorMS=! ${CorMS}  </eSymb>
+
+    <!-- GESTION DES CLASSES D'EQUIV -->
+
+   <Symb>  UseEqui=false </Symb>
+   <Symb>  UseClas1=false </Symb>
+   <Symb>  Clas1=.* </Symb>
+   <Symb>  UseClas2=false </Symb>
+   <Symb>  Clas2=.* </Symb>
+   <Symb>  UseClas3=false </Symb>
+   <Symb>  Clas3=.* </Symb>
+
+<!--
+
+    <Symb>  UseEqui=true </Symb>
+    <Symb>  UseClas1=true </Symb>
+    <Symb>  Clas1=FD2A2B_fx00064.* </Symb>
+-->
+
 </DicoLoc>
 
 <!--  M2 : Describe the ground zone where the matching is to be done -->
@@ -191,6 +211,35 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
              <AcceptNonExistingFile> true </AcceptNonExistingFile>
         </MasqImageIn>
      </#WHEN>
+     
+     <#WHEN VTEST=${UseEqui}>
+        <ClassEquivalenceImage>
+             <MapN2NByAutom>
+                 <#WHEN VTEST=${UseClas1}>
+                    <OneAutomMapN2N>
+                         <MatchPattern> ${Clas1} </MatchPattern>
+                         <Result> Classe1 </Result>
+                    </OneAutomMapN2N>
+                 </#WHEN>
+                 <#WHEN VTEST=${UseClas2}>
+                    <OneAutomMapN2N>
+                         <MatchPattern> ${Clas2} </MatchPattern>
+                         <Result> Classe2 </Result>
+                    </OneAutomMapN2N>
+                 </#WHEN>
+                 <#WHEN VTEST=${UseClas3}>
+                    <OneAutomMapN2N>
+                         <MatchPattern> ${Clas3} </MatchPattern>
+                         <Result> Classe3 </Result>
+                    </OneAutomMapN2N>
+                 </#WHEN>
+                 <OneAutomMapN2N>
+                         <MatchPattern> .* </MatchPattern>
+                         <Result> ClasseDef </Result>
+                 </OneAutomMapN2N>
+             </MapN2NByAutom>
+        </ClassEquivalenceImage>
+     </#WHEN>
 </Section_PriseDeVue>
 
 
@@ -238,11 +287,13 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
 
             <AggregCorr> ${ModeAgrCor} </AggregCorr>
-            <CorrelAdHoc>
-                 <TypeCAH>
-                      <GPU_Correl> </GPU_Correl>
-                 </TypeCAH>
-            </CorrelAdHoc>
+            <#WHEN VTEST=${CorMS}>
+                 <CorrelAdHoc>
+                      <TypeCAH>
+                           <GPU_Correl> </GPU_Correl>
+                      </TypeCAH>
+                 </CorrelAdHoc>
+            </#WHEN>
             
         </EtapeMEC>
 	     
@@ -349,7 +400,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
         <#WHEN VTEST=${NotZoom8}>
             <EtapeMEC> 
-                <DeZoom >        ${ZoomFinal}        </DeZoom> 
+                <DeZoom>        ${ZoomFinal}        </DeZoom> 
             </EtapeMEC>
         </#WHEN>
 
@@ -357,7 +408,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
 
         <EtapeMEC> 
-               <DeZoom >        ${ZoomFinal}        </DeZoom> 
+               <DeZoom>        ${ZoomFinal}        </DeZoom> 
                <ZPas>          1.0       </ZPas>
                <AlgoRegul>  eAlgoDequant </AlgoRegul>
 
