@@ -1,0 +1,6 @@
+          <MasqueTerrain >
+                <MT_Image >  ${ImageMasterSsPost}_Masq.tif        </MT_Image>
+                <MT_Xml>     ${ImageMasterSsPost}_Masq.xml  </MT_Xml>
+           </MasqueTerrain>
+
+
