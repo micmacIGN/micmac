@@ -65,7 +65,10 @@ class cAppliWithSetImage
       CamStenope * CamOfName(const std::string & aName);
    protected :
       cAppliWithSetImage(int argc,char ** argv);
+      cImaMM * ImOfName(const std::string & aName);
       void MakeStripStruct(const std::string & aPairByStrip,bool StripFirst);
+      void DoPyram();
+
       void VerifAWSI();
       void ComputeStripPair(int);
       void AddPair(cImaMM * anI1,cImaMM * anI2);
@@ -82,6 +85,7 @@ class cAppliWithSetImage
       const cInterfChantierNameManipulateur::tSet * mSetIm;
 
       std::vector<cImaMM *> mImages;
+      std::map<std::string,cImaMM *> mDicIm;
       typedef std::pair<cImaMM *,cImaMM *> tPairIm;
       typedef std::set<tPairIm> tSetPairIm;
       tSetPairIm   mPairs;
@@ -94,6 +98,15 @@ class cAppliWithSetImage
 
 
 
+class cAppliClipChantier : public cAppliWithSetImage
+{
+    public :
+        cAppliClipChantier(int argc,char ** argv);
+
+        std::string  mNameMasterIm;
+        Box2di       mBox;
+        cImaMM *  mMasterIm;
+};
 
 
 class cAppliMMByPair : public cAppliWithSetImage
@@ -164,7 +177,9 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv)  :
 
    for (int aKV=0 ; aKV<int(mSetIm->size()) ; aKV++)
    {
-       mImages.push_back(new cImaMM((*mSetIm)[aKV],*this));
+       const std::string & aName = (*mSetIm)[aKV];
+       mImages.push_back(new cImaMM(aName,*this));
+       mDicIm[aName] = mImages.back();
    }
 }
 
@@ -245,11 +260,196 @@ void cAppliWithSetImage::AddPairASym(cImaMM * anI1,cImaMM * anI2)
        std::cout << "Add Pair " << anI1->mNameIm << " " << anI2->mNameIm << "\n";
 }
 
+void cAppliWithSetImage::DoPyram()
+{
+    std::string aCom =    MMBinFile(MM3DStr) + " MMPyram " + mFullName + " " + mOri;
+    if (mShow)
+       std::cout << aCom << "\n";
+    System(aCom);
+}
+
+cImaMM * cAppliWithSetImage::ImOfName(const std::string & aName)
+{
+    cImaMM * aRes = mDicIm[aName];
+    if (aRes==0)
+    {
+       std::cout << "For name = " << aName << "\n";
+       ELISE_ASSERT(false,"Cannot get image");
+    }
+    return aRes;
+}
+/*****************************************************************/
+/*                                                               */
+/*              cAppliClipChantier                               */
+/*                                                               */
+/*****************************************************************/
+
+
+cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
+    cAppliWithSetImage (argc-1,argv+1)
+{
+  std::string aPrefClip = "Cliped_";
+  std::string aOriOut;
+  double      aMinSz = 500;
+
+  ElInitArgMain
+  (
+        argc,argv,
+        LArgMain()  << EAMC(mFullName,"Full Name (Dir+Pattern)")
+                    << EAMC(mOri,"Orientation")
+                    << EAMC(mNameMasterIm,"Image corresponding to the box")
+                    << EAMC(mBox,"Box to clip"),
+        LArgMain()  << EAM(aPrefClip,"PrefCliped","def= Cliped")
+                    << EAM(aOriOut,"OriOut","Out Orientation, def = input")
+                    << EAM(aMinSz,"MinSz","Min sz to select cliped def = 500")
+   );
+
+   if (!EAMIsInit(&aOriOut)) 
+      aOriOut = mOri;
+
+   mMasterIm  =  ImOfName(mNameMasterIm);
+
+   double aZ = mMasterIm->mCam->GetAltiSol();
+
+   Pt2di aCornIm[4];
+   mBox.Corners(aCornIm);
+
+   std::vector<Pt3dr>  mVIm;
+
+   for (int aK=0 ; aK < 4 ; aK++)
+   {
+       mVIm.push_back(mMasterIm->mCam->ImEtZ2Terrain(Pt2dr(aCornIm[aK]),aZ));
+   }
+
+   for (int aKIm = 0 ; aKIm <int(mImages.size()) ; aKIm++)
+   {
+       cImaMM & anI = *(mImages[aKIm]);
+       CamStenope * aCS = anI.mCam;
+       // Pt2dr aP1(0,0);
+       // Pt2dr aP0 = Pt2dr(aCS->Sz());
+       Pt2di aP0(1e9,1e9);
+       Pt2di aP1(-1e9,-1e9);
+
+       for (int aKP=0 ; aKP < 4 ; aKP++)
+       {
+           Pt2di aPIm = round_ni(aCS->R3toF2(mVIm[aKP]));
+           aP0.SetInf(aPIm);
+           aP1.SetSup(aPIm);
+       }
+       Box2di aBoxIm(aP0,aP1);
+       Box2di aBoxCam(Pt2di(0,0),aCS->Sz());
+
+       if (! InterVide(aBoxIm,aBoxCam))
+       {
+           Box2di aBoxRes = Inf(aBoxIm,aBoxCam);
+           Pt2di aDec = aBoxRes._p0;
+           Pt2di aSZ = aBoxRes.sz();
+           if ((aSZ.x>aMinSz) && (aSZ.y>aMinSz))
+           {
+                std::cout << "Box " << anI.mNameIm << aDec << aSZ << "\n";
+           
+                std::string aNewIm = aPrefClip + anI.mNameIm;
+                cOrientationConique  aCO = aCS->StdExportCalibGlob();
+
+                std::string aNameOut =  mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-" + aOriOut,aNewIm,true);
+                ElAffin2D aM2C0 = Xml2EL(aCO.OrIntImaM2C());
+                ElAffin2D  aM2CCliped = ElAffin2D::trans(-Pt2dr(aDec))   * aM2C0;
+                aCO.OrIntImaM2C().SetVal(El2Xml(aM2CCliped));
+                // aCO.Interne().Val().SzIm() = aSZ;
+                MakeFileXML(aCO,aNameOut);
+
+
+                std::string aCom =      MMBinFile(MM3DStr) 
+                                     + " ClipIm "
+                                     + mDir + anI.mNameIm + aBlank
+                                     + ToString(aDec) + aBlank
+                                     + ToString(aSZ) + aBlank
+                                     + " Out=" + aNewIm;
+
+                std::cout << aCom << "\n";
+                System(aCom);
+            }
+       }
+
+       
+   }
+   
+}
+
+/*****************************************************************/
+/*                                                               */
+/*              clip_im                                          */
+/*                                                               */
+/*****************************************************************/
+
+int ClipIm_main(int argc,char ** argv)
+{
+
+    std::string aNameIn;
+    std::string aNameOut;
+    Pt2di P0;
+    Pt2di Sz;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAM(aNameIn)
+                    << EAM(P0)
+                    << EAM(Sz)  ,
+        LArgMain()  << EAM(aNameOut,"Out",true)
+    );
+
+
+    Tiff_Im tiff = Tiff_Im::BasicConvStd(aNameIn.c_str());
+
+
+    if (aNameOut == "")
+    {
+       if (IsPostfixed(aNameIn))
+          aNameOut = StdPrefix(aNameIn)+std::string("_Clip.tif");
+       else
+          aNameOut = aNameIn+std::string("_Clip.tif");
+    }
+
+    L_Arg_Opt_Tiff aLArg = Tiff_Im::Empty_ARG;
+    aLArg = aLArg + Arg_Tiff(Tiff_Im::ANoStrip());
+
+
+    Tiff_Im TiffOut  =     (tiff.phot_interp() == Tiff_Im::RGBPalette)  ?
+                           Tiff_Im
+                           (
+                              aNameOut.c_str(),
+                              Sz,
+                              tiff.type_el(),
+                              Tiff_Im::No_Compr,
+                              tiff.pal(),
+                              aLArg
+                          )                    :
+                           Tiff_Im
+                           (
+                              aNameOut.c_str(),
+                              Sz,
+                              tiff.type_el(),
+                              Tiff_Im::No_Compr,
+                              tiff.phot_interp(),
+                              aLArg
+                          );
+
+    ELISE_COPY
+    (
+         TiffOut.all_pts(),
+         trans(tiff.in(0),P0),
+         TiffOut.out()
+    );
+
+     return 0;
+}
+
 
 
 /*****************************************************************/
 /*                                                               */
-/*                                                               */
+/*              cAppliMMByPair                                   */
 /*                                                               */
 /*****************************************************************/
 
@@ -338,24 +538,6 @@ void cAppliMMByPair::DoFusion()
     System(aCom);
 }
 
-#define StdGetFromPCP(aStr,aObj)\
-StdGetObjFromFile<c##aObj>\
-    (\
-    aStr,\
-        StdGetFileXMLSpec("ParamChantierPhotogram.xml"),\
-        #aObj ,\
-        #aObj \
-     )
-
-#define StdGetFromSI(aStr,aObj)\
-StdGetObjFromFile<c##aObj>\
-    (\
-    aStr,\
-        StdGetFileXMLSpec("SuperposImage.xml"),\
-        #aObj ,\
-        #aObj \
-     )
-
 
 void cAppliMMByPair::DoMDT()
 {
@@ -389,10 +571,16 @@ void cAppliMMByPair::DoMDT()
 
 int cAppliMMByPair::Exe()
 {
+  
+/*
+   DoPyram();
    DoMDT();
    DoCorrel();
+*/
    DoBascule();
+/*
    DoFusion();
+*/
    return 1;
 }
 
@@ -409,6 +597,16 @@ int MMByPair_main(int argc,char ** argv)
 }
 
 
+int ChantierClip_main(int argc,char ** argv)
+{
+   MMD_InitArgcArgv(argc,argv);
+   cAppliClipChantier anAppli(argc,argv);
+
+
+   BanniereMM3D();
+
+    return 1;
+}
 
 
 

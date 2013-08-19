@@ -426,6 +426,28 @@ REAL cStatOneClassEquiv::CoeffCorrelIm1Maitre() const
    return aRes / (mKCurDist-1);
 }
 
+REAL cStatOneClassEquiv::CoeffCorrelMedIm1Maitre() const
+{
+   if (mKCurDist<2)
+      return mDefCorr;
+   if (mKCurDist<=3) return CoeffCorrelIm1Maitre();
+
+
+   double aRes=0.0;
+   double aCMax= -10;
+   double aCMin= 10;
+   for (int aK=1 ;aK<mKCurDist ; aK++)
+   {
+       double aC = mVDistr[0]->CoeffCorrel2Dist(*mVDistr[aK],mEpsCorr);
+       aRes+= aC;
+       ElSetMax(aCMax,aC);
+       ElSetMin(aCMin,aC);
+   }
+   return (aRes - aCMin - aCMax) / (mKCurDist-3);
+}
+
+
+
 
 
 REAL cStatOneClassEquiv::CoeffCorrelMaxIm1Maitre() const
@@ -516,8 +538,7 @@ REAL cStatOneClassEquiv::CoeffCorrelation() const
       break;
 
       case eAggregMoyMedIm1Maitre :
-           ELISE_ASSERT(false,"No Moy-Md in cStatOneClassEquiv::CoeffCorrelation");
-           return 0.0;
+           return CoeffCorrelMedIm1Maitre();
       break;
 
 

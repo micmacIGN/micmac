@@ -1476,7 +1476,7 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
 {
     AssertNoEmptyData();
     aN2->AssertNoEmptyData();
-    std::cout << "CCCCC " << mSzData << "\n";
+    std::cout << "CCCCC " << mSzData  << " " << aN2->mSzData << "\n";
     if (anAAB) 
         SupprTriInv = true;
     cBasculeNuage aBasc(this,aN2);
@@ -1493,12 +1493,13 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
     Im2D_REAL4  aMntBasc = aBasc.Basculer(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef);
     cElNuage3DMaille * aNuageRes = this; 
 
+    Pt2di anOfOutInit= anOfOut;
     if (AutoResize)
     {
          aNuageRes = ReScaleAndClip(Box2dr(anOfOut,anOfOut+aMntBasc.sz()),1.0);
          anOfOut = Pt2di(0,0);
     }
-    std::cout << "DDDDDD " << aNuageRes->mSzData  << " " << mSzData << "\n";
+    std::cout << "DDDDDD " << aNuageRes->mSzData  << " " << mSzData << " OfsOut " << anOfOutInit << "\n";
 
 
     aNuageRes->FinishBasculeInThis

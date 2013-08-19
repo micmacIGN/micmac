@@ -197,6 +197,10 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("MakeGrid",MakeGrid_main," Generate orientations in a grid format"));
        aRes.push_back(cMMCom("Malt",Malt_main," Simplified matching (interface to MicMac)",cArgLogCom(3)));
        aRes.push_back(cMMCom("MMByP",MMByPair_main," Matching By Pair of images",cArgLogCom(2)));
+       aRes.push_back(cMMCom("ChantierClip",ChantierClip_main," Clip Chantier",cArgLogCom(2)));
+       aRes.push_back(cMMCom("ClipIm",ClipIm_main," Clip Chantier",cArgLogCom(2)));
+
+
        aRes.push_back(cMMCom("MapCmd",MapCmd_main," Transforms a command working on a single file in a command working on a set of files"));
        aRes.push_back(cMMCom("Ori2Xml",Ori2XML_main,"Convert \"historical\" Matis'Ori format to xml "));
        aRes.push_back(cMMCom("Mascarpone",Mascarpone_main," Automatic mask tests"));

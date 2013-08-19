@@ -130,6 +130,7 @@ Im2D_REAL4 cZBuffer::Basculer
                float aDef
            )
 {
+
     mBufDone = false;
     mP0In = aP0In;
     mSzIn =  aP1In-aP0In;
@@ -183,7 +184,7 @@ Im2D_REAL4 cZBuffer::Basculer
 				}
 			}
         }
-    }
+    } 
     // std::cout << "TER " << aNbOkTer/double(aNbPts) << " IM " << aNbOkIm/double(aNbPts) << "\n";
     aOffset_Out_00 = mOffet_Out_00 = round_down(aPInf);
     if (mWihBuf)
@@ -232,6 +233,7 @@ Im2D_REAL4 cZBuffer::Basculer
                 BasculerUnTriangle(P00,P11,P01,false);
         }
     }
+
 // std::cout << "EENnnnnnnnnnddddd " << mImTriInv.get(aPBUG.x,aPBUG.y) << "\n";
     return mRes;
 }

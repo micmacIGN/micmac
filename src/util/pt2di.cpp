@@ -1274,6 +1274,7 @@ bool operator < (const Pt3di & aP1,const Pt3di & aP2)
 
    return false;
 }
+
 };
 
 

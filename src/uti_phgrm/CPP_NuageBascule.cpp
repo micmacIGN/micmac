@@ -53,7 +53,7 @@ cXML_ParamNuage3DMaille NuageFromFile(const std::string & aFileNuage)
            );
 }
 
-Box2di BoxEnglobMasq(Tiff_Im aTF)
+Box2di BoxEnglobMasq(Tiff_Im aTF,bool * Ok=0)
 {
     int aXMin,aXMax,aYMin,aYMax;
     ELISE_COPY
@@ -67,20 +67,71 @@ Box2di BoxEnglobMasq(Tiff_Im aTF)
         )
     );
 
+
     if (aXMin > aXMax)
     {
-         std::cout << "For FILE : " << aTF.name() << "\n";
-         ELISE_ASSERT(false,"Masq is empty");
+         if (Ok) 
+            *Ok = false;
+         else
+         {
+            std::cout << "For FILE : " << aTF.name() << "\n";
+            ELISE_ASSERT(false,"Masq is empty");
+         }
+    }
+    else
+    {
+        if (Ok) *Ok = true;
     }
 
     return Box2di(Pt2di(aXMin,aYMin),Pt2di(aXMax,aYMax));
 }
 
-Box2di BoxEnglobMasq(const std::string & aName)
+Box2di BoxEnglobMasq(const std::string & aName,bool * Ok=0)
 {
-   return BoxEnglobMasq(Tiff_Im(aName.c_str()));
+   return BoxEnglobMasq(Tiff_Im(aName.c_str()),Ok);
 }
 
+class cBlockBasc
+{
+    public :
+        cBlockBasc(int aK,const std::string & aName) :
+            mK      (aK),
+            mName   (aName),
+            mOK     (true),
+            mBoxLoc    (0),
+            mBoxGlob   (0)
+        {
+        }
+        void Compute(const cXML_ParamNuage3DMaille &);
+     
+        int         mK;
+        std::string mName;
+        bool        mOK;
+        Box2di      mBoxLoc;
+        Box2di      mBoxGlob;
+        Pt2di       mDecGlob;
+        cXML_ParamNuage3DMaille mNuage;
+};
+
+void cBlockBasc::Compute(const cXML_ParamNuage3DMaille & aNGlob)
+{
+    mNuage = NuageFromFile(mName + ".xml");
+    std::string aNameMasq  = mName + "_Masq.tif";
+    mBoxLoc = BoxEnglobMasq(aNameMasq,&mOK);
+    if (!mOK) return ;
+
+    ElAffin2D AffM2Gl  = Xml2EL(aNGlob.Orientation().OrIntImaM2C());
+    ElAffin2D AffM2Loc  = Xml2EL(mNuage.Orientation().OrIntImaM2C());
+
+    ElAffin2D Loc2Glob = AffM2Gl  * AffM2Loc.inv() ;
+    mDecGlob = round_ni(Loc2Glob(Pt2dr(0,0)));
+    mBoxGlob = Box2di(mBoxLoc._p0 + mDecGlob,mBoxLoc._p1 + mDecGlob);
+    std::cout << "Name " << mName <<   "P00 " << mBoxGlob._p0 << " " << mBoxGlob._p1  << "\n";
+}
+
+//  BOX GLOB [2154,849][4867,3228]
+
+ 
 int  NuageBascule_main(int argc,char ** argv)
 {
 
@@ -114,6 +165,7 @@ int  NuageBascule_main(int argc,char ** argv)
 
 
     cXML_ParamNuage3DMaille  aNuageIn =  NuageFromFile(aNameIn);
+    cXML_ParamNuage3DMaille  aNuageOut =  NuageFromFile(aNameOut);
 
     if (ByP && (!ICalledByP))
     {
@@ -124,13 +176,15 @@ int  NuageBascule_main(int argc,char ** argv)
          cDecoupageInterv2D aDecoup (aBoxInGlob,aSzDecoup,Box2di(-aPBrd,aPBrd));
 
          std::list<std::string> aLCom;
+         std::vector<cBlockBasc *> mVBl;
          for (int aKB=0 ; aKB<aDecoup.NbInterv() ; aKB++)
          {
+             std::string aSupl = "BoxBasc" +ToString(aKB) +  std::string("_");
              Box2di aBoxK = aDecoup.KthIntervIn(aKB);
              std::string aCom =  aComBase 
                                + std::string(" InternallCalledByP=true ")
-                               + std::string(" InternallSuplOut=BoxBasc") + ToString(aKB) +  std::string("_ ")
-                               + std::string("BoxIn=[") + ToString(aBoxK._p0.x) + std::string(",") 
+                               + std::string(" InternallSuplOut=") + aSupl 
+                               + std::string(" BoxIn=[") + ToString(aBoxK._p0.x) + std::string(",") 
                                                         + ToString(aBoxK._p0.y) + std::string(",") 
                                                         + ToString(aBoxK._p1.x) + std::string(",") 
                                                         + ToString(aBoxK._p1.y) 
@@ -139,14 +193,39 @@ int  NuageBascule_main(int argc,char ** argv)
 
              std::cout << "COM= " << aCom << "\n";
              aLCom.push_back(aCom);
+
+             mVBl.push_back(new cBlockBasc(aKB,AddPrePost(aNameRes,aSupl,"")));
              // System(aCom);
          }
          cEl_GPAO::DoComInParal(aLCom,"MakeBascule");
+
+         std::cout << "\n";
+         Pt2di aP0(1e9,1e9);
+         Pt2di aP1(-1e9,-1e9);
+         for (int aKB=0 ; aKB<int(mVBl.size()) ; aKB++)
+         {
+             cBlockBasc & aBl = *(mVBl[aKB]);
+             aBl.Compute(aNuageOut);
+             if (aBl.mOK)
+             {
+                aP0.SetInf(aBl.mBoxGlob._p0);
+                aP1.SetSup(aBl.mBoxGlob._p1);
+             }
+         }
+         std::cout << " BOX GLOB " << aP0 << aP1 << "\n";
+         Pt2dr aSzNew = Pt2dr(aP1-aP0);
+         Pt2dr aRP0 = Pt2dr(aP0);
+         cXML_ParamNuage3DMaille  aNewNuageOut =  CropAndSousEch(aNuageOut,aRP0,1.0,aSzNew);
+/*
+*/
     }
     else
     {
         if (EAMIsInit(&aSuplOut))
-           aNameRes = DirOfFile(aNameRes) + aSuplOut + NameWithoutDir(aNameRes);
+        {
+           aNameRes = AddPrePost(aNameRes,aSuplOut,"");
+           // aNameRes = DirOfFile(aNameRes) + aSuplOut + NameWithoutDir(aNameRes);
+        }
            
 
          if (! EAMIsInit(&AutoClipIn)) 
@@ -164,11 +243,10 @@ int  NuageBascule_main(int argc,char ** argv)
          }
 
 
-         cXML_ParamNuage3DMaille  aNuageOut =  NuageFromFile(aNameOut);
          cElNuage3DMaille *  aN = BasculeNuageAutoReSize(aNuageOut,aNuageIn,DirOfFile(aNameIn),NameWithoutDir(aNameRes),AutoResize,aBoxClipIn);
          aN->Save(aNameRes);
 
-         std::cout << "N=" << aN  << " => " << NameWithoutDir(aNameRes) << "\n";
+         // std::cout << "N=" << aN  << " => " << NameWithoutDir(aNameRes) << "\n";
 
    
          delete aBoxClipIn;

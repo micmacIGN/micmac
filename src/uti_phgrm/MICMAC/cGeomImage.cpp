@@ -1959,7 +1959,6 @@ class cGeomFaisZTerMaitre : public cGeomImage_Id
          mGeoRef        (aGeomRef)
       {
 
-// std::cout << "AAAAAAAAAAAAakkkoooooooooo\n";
       }
       Pt3dr  Centre() const { return mGeoRef->Centre(); }
       bool  HasCentre() const { return mGeoRef->HasCentre(); }

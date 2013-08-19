@@ -128,6 +128,16 @@ template <>  std::string ToString(const double & aD)
     return aBuf;
 }
 
+template <> std::string ToString(const Pt2di & aP)
+{
+   return "[" + ToString<int>(aP.x) + "," + ToString<int>(aP.y) + "]";
+}
+
+template <> std::string ToString(const Pt2dr & aP)
+{
+   return "[" + ToString<double>(aP.x) + "," + ToString<double>(aP.y) + "]";
+}
+
 
 
 

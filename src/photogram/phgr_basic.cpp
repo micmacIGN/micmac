@@ -2972,13 +2972,31 @@ double CamStenope::ResolutionAngulaire() const
    double aEps = 1e-3;
    Pt2dr aP0 = L3toF2(Pt3dr(0,0,1));
    Pt2dr aP1 = L3toF2(Pt3dr(aEps,0,1));
+   double aD = euclid(aP0-aP1) / aEps;
+   return 1/aD ;  // La focale ne marche pas avec les grille tres loin de Id
 
 /*
+
+   // Ci dessus ne marche pas avec point hors image
+   Pt2dr aMil = Pt2dr(Sz()) /2.0;
+   Pt3dr aQ0 = ImEtProf2Terrain(aMil,1.0);
+   Pt3dr aQ1 = ImEtProf2Terrain(aMil+Pt2dr(aEps,0),1.0);
+
+   double aDQ = euclid(aQ0-aQ1) / aEps;
+
+Pt2dr aM2 = aMil+Pt2dr(aEps,0);
+
+std::cout << "AAAAAAAAAAAAAAAAaa " <<  Proj().DirRayon(DistInverse(aMil)) - Proj().DirRayon(DistInverse(aM2)) << "\n" ;
+std::cout << "AAAAAAAAAAAAAAAAaa " << DistInverse(aMil) <<  DistInverse(aMil) - DistInverse(aM2) << "\n" ;
+std::cout << "HHHHh   " << aD * aDQ << "\n";
+getchar();
+
+    return aDQ;
 */
 
-   double aD = euclid(aP0-aP1) / aEps;
+// std::cout << "DdddddddDD  " << aD << " " << aD * aDQ<< "\n";
+// getchar();
  
-   return 1/aD ;  // La focale ne marche pas avec les grille tres loin de Id
 /*
    std::cout << "RAGgg " << aD << " " << 1/aD << "\n";
 getchar();

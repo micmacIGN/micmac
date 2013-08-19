@@ -512,6 +512,7 @@ class cStatOneClassEquiv
 
             REAL CoeffCorrelSymetrique() const;
             REAL CoeffCorrelIm1Maitre() const;
+            REAL CoeffCorrelMedIm1Maitre() const;
             REAL CoeffCorrelMaxIm1Maitre() const;
             REAL CoeffCorrelMinIm1Maitre() const;
             REAL CoeffInfoMut() const ;

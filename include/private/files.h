@@ -2101,6 +2101,27 @@ void  XMLPushContext(const cGlobXmlGen & aGXml);
 void  XMLPopContext(const cGlobXmlGen & aGXml);
 
 
+#define StdGetFromPCP(aStr,aObj)\
+StdGetObjFromFile<c##aObj>\
+    (\
+    aStr,\
+        StdGetFileXMLSpec("ParamChantierPhotogram.xml"),\
+        #aObj ,\
+        #aObj \
+     )
+
+#define StdGetFromSI(aStr,aObj)\
+StdGetObjFromFile<c##aObj>\
+    (\
+    aStr,\
+        StdGetFileXMLSpec("SuperposImage.xml"),\
+        #aObj ,\
+        #aObj \
+     )
+
+// Par ex :    cFileOriMnt aFileZ = StdGetFromPCP(aStrZ,FileOriMnt);
+
+
 
 //   const char * GetEntryStringifie(const std::string &);
 
