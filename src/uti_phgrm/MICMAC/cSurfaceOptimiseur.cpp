@@ -161,10 +161,11 @@ cSurfaceOptimiseur::cSurfaceOptimiseur
    }
 
 
-   mCubeCorrel= mEtape.EtapeMEC().GenCubeCorrel().Val();
+   mCubeCorrel= mEtape.EtapeMEC().GenCubeCorrel().ValWithDef(false);
+
    if (mEtape.GenImageCorrel() | mCubeCorrel)
    {
-      if (! mCanFillCorrel)
+      if ((! mCanFillCorrel) | mCubeCorrel)
       {
           mMemoCorrel = new cMatrOfSMV<U_INT1>(aBox,mDXMin,mDYMin,mDXMax,mDYMax,0);
       }
@@ -658,6 +659,8 @@ void cSurfaceOptimiseur::SolveOpt()
         if (mCubeCorrel)
         {
              aFileDataCube = FopenNN(mAppli.NameFileCurCube("Cube.dat"),"w","Data cube");
+             Tiff_Im::CreateFromIm(mLTCur->KthNap(0).mImPxMin,mAppli.NameFileCurCube("ZMin.tif"));
+             Tiff_Im::CreateFromIm(mLTCur->KthNap(0).mImPxMax,mAppli.NameFileCurCube("ZMax.tif"));
         }
         Im2D_U_INT1 aICor = mLTInit.ImCorrelSol();
         TIm2D<U_INT1,INT> aTCor(aICor);
@@ -677,6 +680,7 @@ void cSurfaceOptimiseur::SolveOpt()
                 if (mCubeCorrel)
                 {
                      const cSmallMatrixOrVar<U_INT1> & aM =(*mMemoCorrel)[ToSRAlg(aP)];
+                     //  const Box2di & aB = aM.Box();
                      ELISE_ASSERT(mAppli.DimPx()==1,"Dim Px 2 with mCubeCorrel");
                      INT2 ** mDXMin = mLTCur->KthNap(0).mImPxMin.data();
                      INT2 ** mDXMax = mLTCur->KthNap(0).mImPxMax.data();
@@ -684,8 +688,10 @@ void cSurfaceOptimiseur::SolveOpt()
                      int aZ1 = mDXMax[aP.y][aP.x];
                      for (int aZ=aZ0 ; aZ<aZ1; aZ++)
                      {
-                          U_INT1  aC = aM[Pt2di(aZ,0)];
-                          std::cout << (int) aC << "\n";
+                          Pt2di aPPx(aZ,0);
+                          U_INT1  aC = aM.GetClipedIntervC(aPPx);
+                          fwrite(&aC,sizeof(aC),1,aFileDataCube);
+                          // std::cout << (int) aC << "\n";
                      }
                 }
 
@@ -695,14 +701,17 @@ void cSurfaceOptimiseur::SolveOpt()
                         aVPx[aK] = aDRes[aK][aP.y][aP.x] ;
                     Pt2di aPPx = mAppli.Px2Point(aVPx);
                     const cSmallMatrixOrVar<U_INT1> & aM =(*mMemoCorrel)[ToSRAlg(aP)];
+/*
                     const Box2di & aB = aM.Box();
                     Pt2di aPClip = Pt2di
                                (
                                   ElMax(aB._p0.x,ElMin(aPPx.x,aB._p1.x-1)),
                                   ElMax(aB._p0.y,ElMin(aPPx.y,aB._p1.y-1))
                                );
+*/
 
-                    aTCor.oset(aP,aM[aPClip]);
+                    // aTCor.oset(aP,aM[aPClip]);
+                    aTCor.oset(aP,aM.GetClipedIntervC(aPPx));
                  }
 // PB
             }

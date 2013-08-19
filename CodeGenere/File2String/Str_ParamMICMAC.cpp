@@ -1278,7 +1278,7 @@ const char * (theNameVar_ParamMICMAC[2061]) = {
 "              defaut=false sauf pour la derniere etape \n",
 "              -->\n",
 "            <GenImagesCorrel Nb=\"?\" Type=\"bool\"> </GenImagesCorrel>\n",
-"            <GenCubeCorrel   Nb=\"?\" Type=\"bool\" Def=\"false\"> </GenCubeCorrel>\n",
+"            <GenCubeCorrel   Nb=\"?\" Type=\"bool\"> </GenCubeCorrel>\n",
 "\n",
 "\n",
 "\n",

@@ -1117,6 +1117,7 @@ namespace NS_SuperposeImage{
              <InterneCalledByProcess  Nb="?" Type="bool" Def="false"> </InterneCalledByProcess>
              <InterneSingleImage Nb="?" Type="std::string" Def=""> </InterneSingleImage>
              <InterneSingleBox Nb="?" Type="int" Def="-1"> </InterneSingleBox>
+             <WorkDirPFM Nb="?" Type="std::string"> </WorkDirPFM>
        </SectionGestionChantier>
 
 

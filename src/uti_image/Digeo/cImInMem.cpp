@@ -76,6 +76,16 @@ template <class Type> void cTplImInMem<Type>::ResizeBasic(const Pt2di & aSz)
    mTIm = mIm;
    mSz = aSz;
    mData = mIm.data();
+
+   mN0 = -mSz.x-1,
+   mN1 = -mSz.x,
+   mN2 = -mSz.x+1,
+   mN3 = -1,
+   mN4 = 1,
+   mN5 = mSz.x-1,
+   mN6 = mSz.x,
+   mN7 = mSz.x+1;
+
    // ELISE_COPY(mIm.all_pts(),1,mIm.out());
 // std::cout << "SZ = " << aSz << " " << (void *)mIm.data_lin() << "\n";
 }
@@ -213,6 +223,8 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 
 template <class Type> Im2DGen cTplImInMem<Type>::Im(){ return TIm(); }
 
+template <class Type> typename cTplImInMem<Type>::tBase * cTplImInMem<Type>::DoG(){ return ( mDoG.size()==0?NULL:&mDoG[0] ); }
+
 /*
 template <class Type>  void  cTplImInMem<Type>::SetOrigOct(cTplImInMem<Type> * anOrig)
 {
@@ -250,6 +262,26 @@ template <class Type>  double  cTplImInMem<Type>::CalcGrad2Moy()
     }
 
     return aRes/((mSz.y-1)*(mSz.x-1));
+}
+
+
+template <class Type>
+void cTplImInMem<Type>::computeDoG( const cTplImInMem<Type> &i_nextScale )
+{
+    mDoG.resize( mSz.x*mSz.y );
+    if ( mDoG.size()==0 ) return;
+    tBase *itDog = &mDoG[0];
+    Type  *itCurrentScale,
+          *itNextScale;
+    int x, y;
+    for ( y=0 ; y<mSz.y; y++ )
+    {
+        itCurrentScale = mData[y];
+        itNextScale = i_nextScale.mData[y];
+        x = mSz.x;
+        while ( x-- )
+            ( *itDog++ ) = (tBase)( *itCurrentScale++ )-(tBase)( *itNextScale++ );
+    }
 }
 
 /****************************************/

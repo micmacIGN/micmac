@@ -958,8 +958,6 @@ void clusterize_2d( const ImageSize &i_areaSize, const ImageSize &i_efficientSiz
     clusterize_1d( i_areaSize.width(), i_efficientSize.width(), i_overlap.width(), clusterX );
     clusterize_1d( i_areaSize.height(), i_efficientSize.height(), i_overlap.height(), clusterY );
 
-    cout << clusterX.size() << 'x' << clusterY.size() << " = " << clusterX.size()*clusterY.size() << endl;
-
     o_cluster.resize( clusterX.size()*clusterY.size() );
     vector<RoiWindow_2d>::iterator it2d = o_cluster.begin();
     vector<RoiWindow_1d>::iterator itX = clusterX.begin(),

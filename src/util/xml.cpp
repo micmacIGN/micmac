@@ -2267,11 +2267,14 @@ void cElXMLTree::ModifLC(char * anArg,cElXMLTree * aSpecif)
 
 		if (aLSymSp.size() != 1)
 		{
+                        if (aSpecif) aSpecif->StdShow("ShowSpec.xml");
 			cout << "ModifLC :: MATCH ERROR FOR SYMB [" << aSymb << "] : ";
 			if (aLSymSp.empty())
 				cout << "NO MATCH\n";
 			else
-				cout << "MULTIPLE MATCH\n";
+                        {
+				cout << "MULTIPLE MATCH " << aLSymSp.size() << "\n";
+                        }
 			ELISE_ASSERT(false,"MATCH ERROR dans la ligne de commande");
 		}
 		aSymSp = *(aLSymSp.begin());

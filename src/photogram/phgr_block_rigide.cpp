@@ -36,75 +36,22 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+
+
 #include "StdAfx.h"
 
-
-
-/*
- exiftool -trailer:all= DSCF1153.MPO -o R.jpg
-  509  exiftool input.mpo -mpimage2 -b>  L.jpg
-  510  exiftool DSCF1153.MPO -mpimage2 -b>  L.jpg
+/*     
+    Transfere dans Apero/cImplemBlockCam.cpp
 
 */
 
 
 
-int SplitMPO_main(int argc,char ** argv)
-{
-     std::string aFullName;
-     std::string aPostR = "_R";
-     std::string aPostL = "_L";
-     bool DoTifGray = false;
-
-
-     ElInitArgMain
-     (
-           argc,argv,
-           LArgMain() << EAMC(aFullName,"Full  Name (Dir+Pat)") ,
-           LArgMain() << EAM(aPostR,"Right",true,"Right extension , def=_R")
-	              << EAM(aPostL,"Left",true,"Left extension , def=_L")
-	              << EAM(DoTifGray,"TG",true,"Tiff gray, def=false")
-    );
-
-    std::string aDir,aPat;
-    SplitDirAndFile(aDir,aPat,aFullName);
-
-    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    const std::vector<std::string> * aSetIm = aICNM->Get(aPat);
 
 
 
-    for (int aKIm=0 ; aKIm<int(aSetIm->size()) ; aKIm++)
-    {
-        std::string aNameIn = (*aSetIm)[aKIm];
-        for (int aK=0 ; aK<2 ; aK++)
-        {
-            std::string aPref = StdPrefix(aNameIn);
-            std::string aPost = StdPostfix(aNameIn);
-            std::string aNameOut = aPref+((aK==0)? aPostL : aPostR) + ".jpg";
 
-            std::string aCom = "exiftool ";
-             if (aK==0)
-                aCom = aCom + "-trailer:all= " + aNameIn  + " -o " + aNameOut;
-             else
-               aCom = aCom+ aNameIn + " -mpimage2 -b> " + aNameOut;
 
-             std::cout << aCom << "\n";
-             VoidSystem(aCom.c_str());
-             if (DoTifGray)
-             {
-                aCom =    "convert "
-                       +  aNameOut  
-                       +  " -compress None -depth 8  -colorspace Gray "
-                       +  StdPrefix(aNameOut) + "_Gray.tif";
-                std::cout << aCom << "\n";
-                VoidSystem(aCom.c_str());
-             }
-        }
-    }
-
-    return 1;
-}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

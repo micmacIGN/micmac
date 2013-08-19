@@ -3,7 +3,6 @@
 #include <cuda_runtime.h>
 #include <helper_functions.h>
 #include <helper_math.h>
-#include <helper_cuda.h>
 
 #ifdef __GNUC__
 #define SUPPRESS_NOT_USED_WARN __attribute__ ((unused))
@@ -231,7 +230,7 @@ inline __host__ __device__ uint lenght(uint2 a)
 
 inline __host__ __device__ ushort count(short2 a)
 {
-    return lenght(a)+1;
+    return a.y - a.x;
 }
 
 //      Test                            --------

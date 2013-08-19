@@ -488,7 +488,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
        mNuage = StdGetObjFromFile<cXML_ParamNuage3DMaille>
                 (
                      //mParam.ModeleNuageResult().Val(),
-                     mICNM->Assoc1To1(mParam.ModeleNuageResult().Val(),anId,true),
+                      mICNM->Dir() + mICNM->Assoc1To1(mParam.ModeleNuageResult().Val(),anId,true),
                      StdGetFileXMLSpec("SuperposImage.xml"),
                      "XML_ParamNuage3DMaille",
                      "XML_ParamNuage3DMaille"
@@ -516,6 +516,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
          mNuage.Image_Profondeur().Val().ResolutionAlti() = aSomResolAlti;
          mNuage.Image_Profondeur().Val().OrigineAlti() = aSomOriAlti;
     }
+
    mZIsInv = false;
    if (mNuage.ModeFaisceauxImage().IsInit())
       mZIsInv = mNuage.ModeFaisceauxImage().Val().ZIsInverse();
@@ -918,7 +919,7 @@ int FusionCarteProf_main(int argc,char ** argv)
                                               StdGetFileXMLSpec("SuperposImage.xml"),
                                               "ParamFusionMNT",
                                               "ParamFusionMNT",
-                                              "WorkDir",
+                                              "WorkDirPFM",
                                               "FileChantierNameDescripteur"
                                            );
 

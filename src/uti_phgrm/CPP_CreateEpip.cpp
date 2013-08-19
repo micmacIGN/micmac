@@ -45,11 +45,15 @@ using namespace NS_ParamChantierPhotogram;
 
 int CreateEpip_main(int argc,char ** argv)
 {
+    Tiff_Im::SetDefTileFile(50000);
     std::string aDir= ELISE_Current_DIR;
     std::string aName1;
     std::string aName2;
     std::string anOri;
     double  aScale=1.0;
+
+    bool Gray = true;
+    bool Cons16B = true;
     
 
     ElInitArgMain
@@ -60,8 +64,11 @@ int CreateEpip_main(int argc,char ** argv)
 	            << EAMC(anOri,"Name orientation") ,
 	LArgMain()  << EAM(aScale,"Scale",true)
                     << EAM(aDir,"Dir",true,"directory, def = current")
+                    << EAM(Gray,"Gray",true,"One channel Gray level image (Def=true)")
+                    << EAM(Cons16B,"16B",true,"Maintain 16 Bits images if avalaibale (Def=true)")
     );	
 
+    int aNbChan = Gray ? 1 : - 1;
     std::string   aKey =  + "NKS-Assoc-Im2Orient@-" + anOri;
 
     cTplValGesInit<std::string>  aTplFCND;
@@ -79,12 +86,27 @@ int CreateEpip_main(int argc,char ** argv)
      CamStenope * aCam1 = CamStenope::StdCamFromFile(true,aDir+aNameOr1,anICNM);
      CamStenope * aCam2 = CamStenope::StdCamFromFile(true,aDir+aNameOr2,anICNM);
 
-     cCpleEpip aCplE(aScale,*aCam1,*aCam2);
+     Tiff_Im aTif1 = Tiff_Im::StdConvGen(aDir+aName1,aNbChan,Cons16B);
+     Tiff_Im aTif2 = Tiff_Im::StdConvGen(aDir+aName2,aNbChan,Cons16B);
 
-     aCplE.ImEpip(Tiff_Im::StdConvGen(aDir+aName1,1,false),true,aDir+"EpiGauche_"+StdPrefix(aName1)+".tif");
-     aCplE.ImEpip(Tiff_Im::StdConvGen(aDir+aName2,1,false),false,aDir+"EpiDroite_"+StdPrefix(aName2)+".tif");
+     aCam1->SetSz(aTif1.sz());
+     aCam2->SetSz(aTif2.sz());
 
-	 return EXIT_SUCCESS;
+  //  Test commit
+
+
+     cCpleEpip aCplE
+               (
+                    aDir,
+                    aScale,
+                    *aCam1,aName1,
+                    *aCam2,aName2
+               );
+
+     aCplE.ImEpip(aTif1,true);
+     aCplE.ImEpip(aTif2,false);
+
+     return EXIT_SUCCESS;
 }
 
 

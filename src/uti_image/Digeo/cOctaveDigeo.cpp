@@ -102,6 +102,11 @@ void cOctaveDigeo::ResizeAllImages(const Pt2di & aP)
 template <class Type>  
 void  cTplOctDig<Type>::DoSiftExtract(int aK,const cSiftCarac & aSC)
 {
+   
+   // __DEL
+   static int i = 0;
+   cout << "---------------------------> DoSiftExtract( " << aK << " ) " << i++ << endl;
+   
       if (! OkForSift(aK))
       {
           std::cout << "For k= " << aK << "\n";
@@ -193,8 +198,12 @@ cTplImInMem<Type> * cTplOctDig<Type>::AllocTypedIm(double aResolOctaveBase,int a
 template <class Type>
 void cTplOctDig<Type>::PostPyram() 
 {
-    for (int aKIm=0 ; aKIm<int(mVTplIms.size()) ; aKIm++)
+    for ( size_t aKIm=0; aKIm<mVTplIms.size(); aKIm++ )
         mVDatas.push_back(mVTplIms[aKIm]->TIm().data());
+
+    // compute differences of gaussians
+    for ( size_t aKIm=0 ; aKIm<mVTplIms.size()-1; aKIm++ )
+        mVTplIms[aKIm]->computeDoG( *mVTplIms[aKIm+1] );
 
     mCube = &(mVDatas[0]);
 }
@@ -321,7 +330,7 @@ bool cOctaveDigeo::OkForSift(int aK) const
 
 
 void cOctaveDigeo::DoAllExtract(int aK)
-{
+{   
     mVIms.at(aK)->VPtsCarac().clear();
     if (OkForSift(aK))
     {
