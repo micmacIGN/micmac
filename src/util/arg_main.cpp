@@ -168,6 +168,7 @@ template std::istream & operator >> (std::istream &is,ElSTDNS vector<INT> & vec)
 	template <> const char * str_type(Type *) { return Name; }
 
 
+DEFINE_theEmptyLvalADM(Box2di,"Box2di");
 DEFINE_theEmptyLvalADM(Box2dr,"Box2dr");
 DEFINE_theEmptyLvalADM(bool,"bool");
 DEFINE_theEmptyLvalADM(INT,"INT");

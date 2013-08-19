@@ -15,13 +15,15 @@
     #include <cmath>
 #endif
 
-#include "helper_math_extented.cuh"
+#include "GpGpu/GpGpu_BuildOptions.h"
 
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
+#include <helper_cuda.h>
 #include <helper_math.h>
 #include <helper_functions.h>
-#include <helper_cuda.h>
+#include "helper_math_extented.cuh"
+
 
 #include "GpGpu/GpGpu_Defines.h"
 

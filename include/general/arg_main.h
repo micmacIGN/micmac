@@ -435,6 +435,8 @@ int TestMTD_main(int argc,char ** argv);
 int TestCmds_main(int argc,char ** argv);
 int Apero2PMVS_main(int argc,char ** argv);
 int Ori2XML_main(int argc,char ** argv);
+int GenCode_main(int argc,char ** argv);
+
 
 // uti_images
 int Undist_main(int argc,char ** argv);
@@ -481,6 +483,7 @@ int GCPBascule_main(int argc,char ** argv);
 int CentreBascule_main(int argc,char ** argv);
 int MakeGrid_main(int argc,char ** argv);
 int Malt_main(int argc,char ** argv);
+int MMByPair_main(int argc,char ** argv);
 int Mascarpone_main(int argc,char ** argv);
 int MergePly_main(int argc,char ** argv);
 int MICMAC_main(int argc,char ** argv);

@@ -1050,7 +1050,10 @@ template <class Type> class Box2d
 
 typedef Box2d<INT> Box2di;
 typedef Box2d<REAL>  Box2dr;
+Pt2di BoxPClipedIntervC(const Box2di &,const Pt2di &);
+
 extern std::istream & operator >> (std::istream & ifs,Box2dr  &aBox);
+extern std::istream & operator >> (std::istream & ifs,Box2di  &aBox);
 Pt2di  RandomlyGenereInside(const Box2di &) ;
 
 Box2dr  I2R(const Box2di &);

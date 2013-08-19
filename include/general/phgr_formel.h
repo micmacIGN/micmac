@@ -113,7 +113,7 @@ class cP2d_Etat_PhgrF;
 class cMatr_Etat_PhgrF;
 
 // -----------------------------
-class cMapIncInterv;
+//class cMapIncInterv;
 class cElCompiledFonc ;
 
 class cIncIntervale;
@@ -266,9 +266,13 @@ class cIdIntCmp
      public :
           bool operator()(const cIncIntervale & anII1,const cIncIntervale & anII2) const;
 };
+
+typedef std::set<cIncIntervale,cIdIntCmp> cMapIncInterv;
+/*
 class cMapIncInterv  : public std::set<cIncIntervale,cIdIntCmp>
 {
 };
+*/
 
 
 
@@ -293,9 +297,9 @@ class  cIncListInterv
 
        const cMapIncInterv &Map() const;
        bool  MayOverlap() const;
-    private :
 
        void Init();
+    private :
 
        cIncListInterv  (const cIncListInterv &) ; // Un imlemanted
        void operator = (const cIncListInterv &) ; // Un imlemanted
@@ -303,7 +307,7 @@ class  cIncListInterv
        INT          mI0Min;
        INT          mI1Max;
        INT          mSurf;
-       cMapIncInterv * mMap;
+       cMapIncInterv mMap;
        bool          mMayOverlap;  // Est-ce que l'overlap est possible
 };
 
@@ -1354,13 +1358,13 @@ class cRotationFormelle : public cElemEqFormelle,
 
           friend class cSetEqFormelles;
           cMultiContEQF      StdContraintes() ;
-	  Pt3d<Fonc_Num>   C2M(Pt3d<Fonc_Num>);  // ImAff
-	  Pt3d<Fonc_Num>   M2C(Pt3d<Fonc_Num>);
+	  Pt3d<Fonc_Num>   C2M(Pt3d<Fonc_Num>,int  aKForceGL=-1);  // ImAff
+	  Pt3d<Fonc_Num>   M2C(Pt3d<Fonc_Num>,int  aKForceGL=-1);
 
-	  Pt3d<Fonc_Num>   VectM2C(Pt3d<Fonc_Num>);
-	  Pt3d<Fonc_Num>   VectC2M(Pt3d<Fonc_Num>); // == ImVect
+	  Pt3d<Fonc_Num>   VectM2C(Pt3d<Fonc_Num>,int  aKForceGL=-1);
+	  Pt3d<Fonc_Num>   VectC2M(Pt3d<Fonc_Num>,int  aKForceGL=-1); // == ImVect
 	  // Monde -> Cam
-	  Pt3d<Fonc_Num>   ImVect(Pt3d<Fonc_Num>);
+	  Pt3d<Fonc_Num>   ImVect(Pt3d<Fonc_Num>,int aKForceGL=-1);
           Pt3d<Fonc_Num>   COpt();
 	  ElRotation3D     CurRot();
 	  void     SetCurRot(const ElRotation3D & aR2CM);
@@ -1388,7 +1392,8 @@ class cRotationFormelle : public cElemEqFormelle,
 
            // cMatr_Etat_PhgrF &  MatGL(bool) ;     // Mode Gimbal Lock
            void SetGL(bool aModeGL);
-           const ElMatrix<Fonc_Num> & MatFGL();
+           const ElMatrix<Fonc_Num> & MatFGL(int ForceGL);
+           ElMatrix<Fonc_Num>  MatFGLComplete(int ForceGL);
            const ElMatrix<REAL> &       MGL() const;
            bool IsGL() const;
            // void InitEtatGL(bool isP);

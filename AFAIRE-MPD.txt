@@ -5,8 +5,11 @@ BUGS :
 
 Nouveaux outils :
 
+  MM By Pair 
+  Create EPIP
 
   Satur Seuil ds Porto/Tawny
+
 
   Environnement MicMac
 

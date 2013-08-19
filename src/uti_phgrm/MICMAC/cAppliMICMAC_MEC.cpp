@@ -561,7 +561,7 @@ std::string  cAppliMICMAC::DirCube() const
 std::string cAppliMICMAC::NameFileCurCube(const std::string & aName) const
 {
    Pt2di aP0 = mBoxOut._p0;
-   return DirCube() + "Data_" + ToString(aP0.x) + "_" + ToString(aP0.y)  + "_" +aName;
+   return DirCube() + "/Data_" + ToString(aP0.x) + "_" + ToString(aP0.y)  + "_" +aName;
 }
   
 

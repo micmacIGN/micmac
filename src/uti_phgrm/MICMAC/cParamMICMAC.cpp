@@ -12192,7 +12192,7 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.GenImagesCorrel(),aTree->Get("GenImagesCorrel",1)); //tototo 
 
-   xml_init(anObj.GenCubeCorrel(),aTree->Get("GenCubeCorrel",1),bool(false)); //tototo 
+   xml_init(anObj.GenCubeCorrel(),aTree->Get("GenCubeCorrel",1)); //tototo 
 
    xml_init(anObj.GenerateProjectionInImages(),aTree->GetAll("GenerateProjectionInImages",false,1));
 
@@ -13059,7 +13059,7 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
         if ((*itLTr)->HasFilsPorteeGlob("GenImagesCorrel"))
           anObj.mGlobEtapeMEC.GenImagesCorrel() = aVal.GenImagesCorrel();
 
-        xml_init(aVal.GenCubeCorrel(),(*itLTr)->Get("GenCubeCorrel",1),bool(false)); //tototo 
+        xml_init(aVal.GenCubeCorrel(),(*itLTr)->Get("GenCubeCorrel",1)); //tototo 
         if ((*itLTr)->HasFilsPorteeGlob("GenCubeCorrel"))
           anObj.mGlobEtapeMEC.GenCubeCorrel() = aVal.GenCubeCorrel();
 
