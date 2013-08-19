@@ -92,7 +92,7 @@ cGeomImage::cGeomImage
   mCoeffDilNonE (0.0)
 {    
    mSzImInit   =aSzIm;
-//  std::cout <<  "KKKKK " << aPDV.Name() << " " << aSzIm << "\n";
+  // std::cout <<  "KKKKK " << aPDV.Name() << " " << aSzIm  << " " << aPDV.SzIm() << "\n";
 /*
    mContourIm.reserve(4);
    mContourIm.push_back(Pt2dr(0,0));
@@ -348,7 +348,25 @@ void cGeomImage::PostInitVirtual(const std::vector<cModGeomComp *> & aVM)
    if (mPIV_Done)  // Evite la recursion infinie
       return;
    mPIV_Done = true;
-   mContourIm = EmpriseImage();
+
+
+   // mContourIm = EmpriseImage();
+   cElPolygone aPol1;
+   aPol1.AddContour(EmpriseImage(),false);
+   cElPolygone aPol2;
+   aPol2.AddContour(cGeomImage::EmpriseImage(),false);
+
+    cElPolygone aPol12 = aPol1 * aPol2;
+
+   mContourIm = aPol12.ContSMax();
+
+/*
+for (int aK=0; aK<int(mContourIm.size()) ; aK++)
+{
+   std::cout << "cGeomImage::EmpriseTerrain " <<mContourIm[aK] << "\n";
+}
+getchar();
+*/
 
 
    NC_GeoTerrainIntrinseque()->PostInitVirtual(aVM);
@@ -535,6 +553,7 @@ Box2dr cGeomImage::EmpriseTerrain
 {
     if (mUseTerMasqAnam)
       return mAnamSAPMasq.BoxTer();
+
 
     Box2dr aRes= BoxImageOfVPts
                  (
