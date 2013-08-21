@@ -76,28 +76,28 @@ void Vodka_Banniere()
     std::cout <<  " *********************************\n\n";
 }
 
-PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,std::vector<std::vector<double> > vectOfExpTimeISO,string Extension)
+PtsHom ReadPtsHom(string aDir, GrpVodka aGrpVodka, string Extension)
 {
 	PtsHom aPtsHomol;
 	Pt2di aSz;
 	//Looking for maxs of vectOfExpTimeISO
 	double maxExpTime=0, maxISO=0;
-	for (int i=0;i<int(vectOfExpTimeISO.size());i++){
-		if(vectOfExpTimeISO[i][0]>maxExpTime){maxExpTime=vectOfExpTimeISO[i][0];}
-		if(vectOfExpTimeISO[i][1]>maxISO){maxISO=vectOfExpTimeISO[i][1];}
+	for (int i=0;i<int(aGrpVodka.size());i++){
+		if(aGrpVodka.ExpTime[i]>maxExpTime){maxExpTime=aGrpVodka.ExpTime[i];}
+		if(aGrpVodka.ISO[i]>maxISO){maxISO=aGrpVodka.ISO[i];}
 	}
 
-    // Permet de manipuler les ensemble de nom de fichier
+    //Cmpulsory for file name manipulation
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
-//On parcours toutes les paires d'images différentes (->testé dans le if)
+//Going through every pairs of different images
 	int cpt=0;
-    for (int aK1=0 ; aK1<int(aSetIm->size()) ; aK1++)
+    for (int aK1=0 ; aK1<int(aGrpVodka.size()) ; aK1++)
     {
-		std::cout<<"Getting homologous points from: "<<(*aSetIm)[aK1]<<endl;
+		std::cout<<"Getting homologous points from: "<<aGrpVodka.aListIm[aK1]<<endl;
 		    
 		//Reading the image and creating the objects to be manipulated
-			Tiff_Im aTF1= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK1],1,false);
+			Tiff_Im aTF1= Tiff_Im::StdConvGen(aDir + aGrpVodka.aListIm[aK1],1,false);
 			aSz = aTF1.sz();
 			Im2D_REAL16  aIm1(aSz.x,aSz.y);
 			ELISE_COPY
@@ -109,9 +109,9 @@ PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,std::vector<std:
 
 			REAL16 ** aData1 = aIm1.data();
 
-        for (int aK2=0 ; aK2<int(aSetIm->size()) ; aK2++)
+        for (int aK2=0 ; aK2<int(aGrpVodka.size()) ; aK2++)
         {
-			Tiff_Im aTF2= Tiff_Im::StdConvGen(aDir + (*aSetIm)[aK2],1,false);
+			Tiff_Im aTF2= Tiff_Im::StdConvGen(aDir + aGrpVodka.aListIm[aK2],1,false);
 			Im2D_REAL16  aIm2(aSz.x,aSz.y);
 			ELISE_COPY
 				(
@@ -128,8 +128,8 @@ PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,std::vector<std:
                std::string aNamePack =  aDir +  aICNM->Assoc1To2
                                         (
                                            "NKS-Assoc-CplIm2Hom@"+prefixe + "@" + Extension,
-                                           (*aSetIm)[aK1],
-                                           (*aSetIm)[aK2],
+                                           aGrpVodka.aListIm[aK1],
+                                           aGrpVodka.aListIm[aK2],
                                            true
                                         );
 
@@ -145,23 +145,21 @@ PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,std::vector<std:
                                itP++
                            )
                            {
-							   cpt++;
-							   //Compute the distance between the point and the center of the image
-							   double x0=aSz.x/2-0.5;
-							   double y0=aSz.y/2-0.5;
-							   double Dist1=sqrt(pow(itP->P1().x-x0,2)+pow(itP->P1().y-y0,2));
-							   double Dist2=sqrt(pow(itP->P2().x-x0,2)+pow(itP->P2().y-y0,2));
-							   //Go looking for grey value of the point, adjusted to ISO and Exposure time induced variations
-							   double Grey1 =sqrt((vectOfExpTimeISO[aK1][0]*vectOfExpTimeISO[aK1][1])/(maxExpTime*maxISO))*Reechantillonnage::biline(aData1, aSz.x, aSz.y, itP->P1());
-							   double Grey2 =sqrt((vectOfExpTimeISO[aK2][0]*vectOfExpTimeISO[aK2][1])/(maxExpTime*maxISO))*Reechantillonnage::biline(aData2, aSz.x, aSz.y, itP->P2());
-							   //Check that the distances are different-> might be used in filter?
-							   //double rap=Dist1/Dist2;
-							   if(1){//(Dist1>aSz.x/3 || Dist2>aSz.x/3)){// && (rap<0.75 || rap>1.33)){Filtre à mettre en place?
-								   aPtsHomol.Dist1.push_back(Dist1);
-								   aPtsHomol.Dist2.push_back(Dist2);
-								   aPtsHomol.Gr1.push_back(Grey1);
-								   aPtsHomol.Gr2.push_back(Grey2);
-							   }
+								cpt++;
+								//Compute the distance between the point and the center of the image
+								double x0=aSz.x/2-0.5;
+								double y0=aSz.y/2-0.5;
+								double Dist1=sqrt(pow(itP->P1().x-x0,2)+pow(itP->P1().y-y0,2));
+								double Dist2=sqrt(pow(itP->P2().x-x0,2)+pow(itP->P2().y-y0,2));
+								//Go looking for grey value of the point, adjusted to ISO and Exposure time induced variations
+								double Grey1 =sqrt((aGrpVodka.ExpTime[aK1]*aGrpVodka.ISO[aK1])/(maxExpTime*maxISO))*Reechantillonnage::biline(aData1, aSz.x, aSz.y, itP->P1());
+								double Grey2 =sqrt((aGrpVodka.ExpTime[aK2]*aGrpVodka.ISO[aK2])/(maxExpTime*maxISO))*Reechantillonnage::biline(aData2, aSz.x, aSz.y, itP->P2());
+							  
+								aPtsHomol.Dist1.push_back(Dist1);
+								aPtsHomol.Dist2.push_back(Dist2);
+								aPtsHomol.Gr1.push_back(Grey1);
+								aPtsHomol.Gr2.push_back(Grey2);
+							  
                    }
 				   }
                    else
@@ -176,18 +174,15 @@ PtsHom ReadPtsHom(string aDir,std::vector<std::string> * aSetIm,std::vector<std:
    return aPtsHomol;
 }
 
-void Vignette_correct(string aDir,std::vector<std::string> * aSetIm, DiaphFoc diaphFoc,string aDirOut, string InCal){
+void Vignette_correct(string aDir, GrpVodka aGrpVodka,string aDirOut, string InCal){
 	
 	//Bulding the output file system
     ELISE_fp::MkDirRec(aDir + aDirOut);
 
 	//Reading vignette files
-
-		//Reading the image and creating the objects to be manipulated
-
 		char foc[5],dia[4];
-		sprintf(foc, "%04d", int(diaphFoc.foc));
-		sprintf(dia, "%03d", int(10*diaphFoc.diaph));
+		sprintf(foc, "%04d", int(aGrpVodka.foc));
+		sprintf(dia, "%03d", int(10*aGrpVodka.diaph));
 		string aNameVignette="Foc" + (string)foc + "Diaph" + (string)dia + ".tif";
 		Tiff_Im aTFV= Tiff_Im::StdConvGen(aDir + InCal + aNameVignette,1,false);
 		Pt2di aSz = aTFV.sz();
@@ -202,13 +197,15 @@ void Vignette_correct(string aDir,std::vector<std::string> * aSetIm, DiaphFoc di
 		);
 
 		REAL4 ** aDataVignette = aVignette.data();
+		
+	//Correcting images
+	int nbIm=aGrpVodka.size();
 
+#pragma omp parallel for
 
-	//Reading images file
-    int nbIm=(aSetIm)->size();
     for(int i=0;i<nbIm;i++)
 	{
-	    string aNameIm=(*aSetIm)[i];
+		string aNameIm=aGrpVodka.aListIm[i];
 		cout<<"Correcting "<<aNameIm<<endl;
 		string aNameOut=aDir + aDirOut + aNameIm +"_vodka.tif";
 
@@ -273,51 +270,48 @@ void Write_Vignette(string aDir, string aNameOut,vector<double> aParam,string aD
 	//Bulding the output file system
     ELISE_fp::MkDirRec(aDir + aDirOut);
 
-		//Reading the image and creating the objects to be manipulated
-		aNameOut=aDirOut + aNameOut;
-		Tiff_Im aTF=Tiff_Im(aNameOut.c_str(), aSz, GenIm::real4, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
+	//Reading the image and creating the objects to be manipulated
+	aNameOut=aDirOut + aNameOut;
+	Tiff_Im aTF=Tiff_Im(aNameOut.c_str(), aSz, GenIm::real4, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
 
-		Im2D_REAL4  aIm(aSz.x,aSz.y);
+	Im2D_REAL4  aIm(aSz.x,aSz.y);
 
-		ELISE_COPY
-		(
-		   aTF.all_pts(),
-		   aTF.in(),
-		   aIm.out()
-		);
+	ELISE_COPY
+	(
+		aTF.all_pts(),
+		aTF.in(),
+		aIm.out()
+	);
 
-		REAL4 ** aData = aIm.data();
+	REAL4 ** aData = aIm.data();
 		
-		for (int aY=0 ; aY<aSz.y  ; aY++)
+	for (int aY=0 ; aY<aSz.y  ; aY++)
+		{
+			for (int aX=0 ; aX<aSz.x  ; aX++)
 			{
-				for (int aX=0 ; aX<aSz.x  ; aX++)
-				{
-					double x0=aSz.x/2;
-					double y0=aSz.y/2;
-					double D=pow(aX-x0,2)+pow(aY-y0,2);
-					double aCor=1+aParam[0]*D+aParam[1]*pow(D,2)+aParam[2]*pow(D,3);
-					if(aCor<1){aData[aY][aX]=1;}else{aData[aY][aX]=aCor;}
-				}
+				double x0=aSz.x/2;
+				double y0=aSz.y/2;
+				double D=pow(aX-x0,2)+pow(aY-y0,2);
+				double aCor=1+aParam[0]*D+aParam[1]*pow(D,2)+aParam[2]*pow(D,3);
+				if(aCor<1){aData[aY][aX]=1;}else{aData[aY][aX]=aCor;}
+			}
 		}
 		
-		 Tiff_Im  aTOut
+		Tiff_Im  aTOut
+		(
+			aNameOut.c_str(),
+			aSz,
+			GenIm::real4,
+			Tiff_Im::No_Compr,
+			Tiff_Im::BlackIsZero
+		);
+		
+		ELISE_COPY
 			(
-				aNameOut.c_str(),
-				aSz,
-				GenIm::real4,
-				Tiff_Im::No_Compr,
-				Tiff_Im::BlackIsZero
+				aTOut.all_pts(),
+				aIm.in(),
+				aTOut.out()
 			);
-
-
-		 ELISE_COPY
-			 (
-				 aTOut.all_pts(),
-				 aIm.in(),
-				 aTOut.out()
-			 );
-	  
-
 }
 
 vector<double> Vignette_Solve(PtsHom aPtsHomol)
@@ -436,11 +430,12 @@ while(nbRANSACinitialised<nbRANSACmax || nbRANSACaccepted<500)
 		//if(nbInliers/nbPtsSIFT>0.20 && aScoreMax<aScore){
 		//if(nbInliers>nbInliersMax){
 		if(aScore>aScoreMax){
-			cout<<valCoin<<endl;
 			nbInliersMax=nbInliers;
             //ErMin=ErMoy;
 			aScoreMax=aScore;
-			cout<<"New Best Score (at "<<nbRANSACinitialised<<"th iteration) is : "<<aScoreMax<< " with " <<nbInliersMax/nbPtsSIFT*100<<"% of points used and Mean Error="<<ErMoy<<endl;
+			cout<<"New Best Score (at "<<nbRANSACinitialised<<"th iteration) is : "<<aScoreMax<<
+				" with " <<nbInliersMax/nbPtsSIFT*100<<"% of points used and Mean Error="<<ErMoy<<
+				" and correction factor in corners = "<< valCoin << endl;
 			aParam.clear();
 			aParam.push_back(aData[0]);
 			aParam.push_back(aData[1]);
@@ -458,10 +453,61 @@ std::cout << "RANSAC score is : "<<aScoreMax<<endl;
 	return aParam;
 }
 
+vector<GrpVodka> Make_Grp(std::string aDir, std::string InCal, std::vector<std::string> aSetIm){
+
+	vector<GrpVodka> aVectGrpVodka;
+
+	//Read InCal
+	if (InCal!=""){
+		string aPatVignette="Foc[0-9]{4}Diaph[0-9]{3}.tif";
+		list<string> aSetVignette=RegexListFileMatch(aDir + InCal,aPatVignette,1,false);
+		unsigned nbInCal=aSetVignette.size();
+		for(unsigned i=0;i<nbInCal;i++){
+			GrpVodka aGrpVodka(atof((aSetVignette.back().substr (12,3)).c_str())/10,atof((aSetVignette.back().substr (3,4)).c_str()), true);
+			aVectGrpVodka.push_back(aGrpVodka);
+				
+			aSetVignette.pop_back();
+		}
+	cout<<"Found "<<aVectGrpVodka.size()<<" input vignette file(s)"<<endl;
+	}
+		
+	//Creating a new list of images for each combination of Diaph & Foc, and recording their ExpTime and ISO for future normalisation
+	for (int j=0;j<(int)aSetIm.size();j++){
+		std::string aFullName=aSetIm[j];
+		const cMetaDataPhoto & infoIm = cMetaDataPhoto::CreateExiv2(aFullName);
+		cout<<"Getting Diaph and Focal from "<<aFullName<<endl;
+
+		if (aVectGrpVodka.size()==0){
+			GrpVodka aGrpVodka(infoIm.Diaph(),infoIm.FocMm(),false);
+			aGrpVodka.aListIm.push_back(aFullName);
+			aGrpVodka.ExpTime.push_back(infoIm.ExpTime());
+			aGrpVodka.ISO.push_back(infoIm.IsoSpeed());
+			aVectGrpVodka.push_back(aGrpVodka);
+		}else{
+			for (int i=0;i<(int)aVectGrpVodka.size();i++){
+				if (infoIm.Diaph()==aVectGrpVodka[i].diaph && infoIm.FocMm()==aVectGrpVodka[i].foc){
+					aVectGrpVodka[i].aListIm.push_back(aFullName);
+					aVectGrpVodka[i].ExpTime.push_back(infoIm.ExpTime());
+					aVectGrpVodka[i].ISO.push_back(infoIm.IsoSpeed());
+					break;
+					}else{if(i==(int)aVectGrpVodka.size()-1){
+							GrpVodka aGrpVodka(infoIm.Diaph(),infoIm.FocMm(),false);
+							aGrpVodka.aListIm.push_back(aFullName);
+							aGrpVodka.ExpTime.push_back(infoIm.ExpTime());
+							aGrpVodka.ISO.push_back(infoIm.IsoSpeed());
+							aVectGrpVodka.push_back(aGrpVodka);
+							break;
+						}else{continue;}}
+				}
+		}
+	}
+return aVectGrpVodka;
+}
+
 int  Vignette_main(int argc,char ** argv)
 {
 
-	std::string aFullPattern,aDirOut="Vignette/",InVig,InCal="";
+	std::string aFullPattern,CalibFolder,aDirOut="Vignette/",InVig,InCal="";
 	bool InTxt=false,DoCor=false;
 	  //Reading the arguments
         ElInitArgMain
@@ -485,108 +531,51 @@ int  Vignette_main(int argc,char ** argv)
 
 		cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 		const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
+		std::vector<std::string> aVectIm=*aSetIm;
 
-		vector<DiaphFoc> vectOfDiaphFoc;
-		vector<vector<string> > listOfListIm;
-		vector<vector<vector<double> > > vectOfvectOfExpTimeISO;
+		//Creating the vector of groups of images with the same diaph and foc
+		vector<GrpVodka> aVectGrpVodka=Make_Grp(aDir, InCal, aVectIm);
 
-		//Read InCal
-		if (InCal!=""){
-			string aPatVignette="Foc[0-9]{4}Diaph[0-9]{3}.tif";
-			list<string> aSetVignette=RegexListFileMatch(aDir + InCal,aPatVignette,1,false);
-			unsigned nbInCal=aSetVignette.size();
-			for(unsigned i=0;i<nbInCal;i++){
-				DiaphFoc diaphFoc;
-				diaphFoc.diaph=(atof((aSetVignette.back().substr (12,3)).c_str())/10);
-				diaphFoc.foc=(atof((aSetVignette.back().substr (3,4)).c_str()));
-				diaphFoc.isComputed=true;
-				vectOfDiaphFoc.push_back(diaphFoc);
-				aSetVignette.pop_back();
-				vector<string> newSetOfIm;listOfListIm.push_back(newSetOfIm);//init of the image groupe with diaph and Foc equal to thing read in name of tif
-				vector<vector<double> > vectOfExpTimeISO; vectOfvectOfExpTimeISO.push_back(vectOfExpTimeISO);//idem with this
-			}
-		}
-		cout<<"Found "<<vectOfDiaphFoc.size()<<" input vignette file(s)"<<endl;
+		cout<<"Number of different sets of images with the same Diaph-Focal combination : "<<aVectGrpVodka.size()<<endl<<endl;
 
-		//Creating a new list of images for each combination of Diaph & Foc, and recording their ExpTime and ISO for future normalisation
-		for (int j=0;j<(int)aSetIm->size();j++){
-			std::string aFullName=(*aSetIm)[j];
-			const cMetaDataPhoto & infoIm = cMetaDataPhoto::CreateExiv2(aFullName);
-			DiaphFoc diaphFoc;diaphFoc.diaph=infoIm.Diaph();diaphFoc.foc=infoIm.FocMm();
-			vector<double> expTimeISO;expTimeISO.push_back(infoIm.ExpTime());expTimeISO.push_back(infoIm.IsoSpeed());
-			cout<<"Getting Diaph and Focal from "<<aFullName<<endl;
-			if (vectOfDiaphFoc.size()==0){
-				diaphFoc.isComputed=false;
-				vectOfDiaphFoc.push_back(diaphFoc);
-				vector<string> newSetOfIm;
-				newSetOfIm.push_back(aFullName);
-				listOfListIm.push_back(newSetOfIm);
-				vector<vector<double> > vectOfExpTimeISO;
-				vectOfExpTimeISO.push_back(expTimeISO);
-				vectOfvectOfExpTimeISO.push_back(vectOfExpTimeISO);
-			}else{
-				for (int i=0;i<(int)vectOfDiaphFoc.size();i++){
-					//cout<<"Banane! "<<vectOfDiaphFoc.size()<<endl;
-					if (diaphFoc.diaph==vectOfDiaphFoc[i].diaph && diaphFoc.foc==vectOfDiaphFoc[i].foc){
-						listOfListIm[i].push_back(aFullName);
-						vectOfvectOfExpTimeISO[i].push_back(expTimeISO);
-						//cout<<"Added "<<listOfListIm[i]<<" as "<<listOfListIm[i].size()<<"th image to group "<<i<<endl;
-						break;
-						}else{if(i==(int)vectOfDiaphFoc.size()-1){
-								diaphFoc.isComputed=false;
-								vectOfDiaphFoc.push_back(diaphFoc);
-								vector<string>newSetOfIm;
-								newSetOfIm.push_back(aFullName);
-								listOfListIm.push_back(newSetOfIm);
-								vector<vector<double> > vectOfExpTimeISO;
-								vectOfExpTimeISO.push_back(expTimeISO);
-								vectOfvectOfExpTimeISO.push_back(vectOfExpTimeISO);
-								break;
-							}else{continue;}}
-					}
-			}
-		}
-		cout<<"Number of different sets of images with the same Diaph-Focal combination : "<<listOfListIm.size()<<endl<<endl;
-		string CalibFolder;
-		for(int i=0;i<(int)listOfListIm.size();i++){
-			if(!vectOfDiaphFoc[i].isComputed){
+		for(int i=0;i<(int)aVectGrpVodka.size();i++){
+			if(!aVectGrpVodka[i].isComputed){
 				CalibFolder=aDirOut;
-				std::cout << "--- Computing the parameters of the vignette effect for the set of "<<listOfListIm[i].size()<<" images with Diaph="<<vectOfDiaphFoc[i].diaph<<" and Foc="<<vectOfDiaphFoc[i].foc<<endl<<endl;
+				std::cout << "--- Computing the parameters of the vignette effect for the set of "<<aVectGrpVodka[i].size()<<" images with Diaph="<<aVectGrpVodka[i].diaph<<" and Foc="<<aVectGrpVodka[i].foc<<endl<<endl;
 
 				//Avec Points homol
-				PtsHom aPtsHomol=ReadPtsHom(aDir, & listOfListIm[i], vectOfvectOfExpTimeISO[i],Extension);
+				PtsHom aPtsHomol=ReadPtsHom(aDir, aVectGrpVodka[i], Extension);
 				//aPtsHomol contient des vecteurs D1,D2,G1,G2,SZ;
 				vector<double> aParam = Vignette_Solve(aPtsHomol);
 
 		   if (aParam.size()==0){
-			   cout<<"Could'nt compute vignette parameters"<<endl;
+			   cout<<"Couldn't compute vignette parameters"<<endl;
 		   }else{ 
 			   
 			   //Creating a flatfield tif file
 				   //Creating the numerical format for the output files names
 						char foc[5],dia[4];
-						sprintf(foc, "%04d", int(vectOfDiaphFoc[i].foc));
-						sprintf(dia, "%03d", int(10*vectOfDiaphFoc[i].diaph));
+						sprintf(foc, "%04d", int(aVectGrpVodka[i].foc));
+						sprintf(dia, "%03d", int(10*aVectGrpVodka[i].diaph));
 						
-			   string aNameOut="Foc" + (string)foc + "Diaph" + (string)dia + ".tif";
+				   string aNameOut="Foc" + (string)foc + "Diaph" + (string)dia + ".tif";
 
-			   Write_Vignette(aDir, aNameOut, aParam, aDirOut, aPtsHomol.SZ);
+				   Write_Vignette(aDir, aNameOut, aParam, aDirOut, aPtsHomol.SZ);
 
 			   //Set the couple of diaph foc to "computed"
-			   vectOfDiaphFoc[i].isComputed=true;
+			   aVectGrpVodka[i].isComputed=true;
 				}
 			}else{CalibFolder=InCal;}
-			if (DoCor && vectOfDiaphFoc[i].isComputed==1){
+			if (DoCor && aVectGrpVodka[i].isComputed==1){
 			//Correction des images avec les params calculés
 			cout<<"Correcting the images"<<endl;
-			Vignette_correct(aDir, & listOfListIm[i], vectOfDiaphFoc[i], aDirOut, CalibFolder);
+			Vignette_correct(aDir, aVectGrpVodka[i], aDirOut, CalibFolder);
 	   
 			}
 		}
    Vodka_Banniere();
    return 0;
 }
-
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
