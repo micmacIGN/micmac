@@ -352,10 +352,31 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
                 cOrientationConique  aCO = aCS->StdExportCalibGlob();
 
                 std::string aNameOut =  mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-" + aOriOut,aNewIm,true);
-                ElAffin2D aM2C0 = Xml2EL(aCO.OrIntImaM2C());
-                ElAffin2D  aM2CCliped = ElAffin2D::trans(-Pt2dr(aDec))   * aM2C0;
-                aCO.OrIntImaM2C().SetVal(El2Xml(aM2CCliped));
+                cCalibrationInternConique * aCIO = aCO.Interne().PtrVal();
+                cCalibrationInterneRadiale * aMR =aCIO->CalibDistortion().back().ModRad().PtrVal();
+                if (1)
+                {
+                                ElAffin2D aM2C0 = Xml2EL(aCO.OrIntImaM2C());
+                                ElAffin2D  aM2CCliped = ElAffin2D::trans(-Pt2dr(aDec))   * aM2C0;
+                                aCO.OrIntImaM2C().SetVal(El2Xml(aM2CCliped));
                 // aCO.Interne().Val().SzIm() = aSZ;
+                }
+                else
+                {
+                     if (aMR)
+                     {
+                         aCIO->PP() = aCIO->PP() - Pt2dr(aDec);
+                         aMR->CDist() = aMR->CDist() - Pt2dr(aDec);
+                         aCO.Interne().Val().SzIm() = aSZ;
+                     }
+                     else
+                     {
+                         cOrIntGlob anOIG;
+                         anOIG.Affinite() = El2Xml(ElAffin2D::trans(-Pt2dr(aDec)));
+                         anOIG.C2M() = false;
+                         aCO.Interne().Val().OrIntGlob().SetVal(anOIG);
+                     }
+                }
                 MakeFileXML(aCO,aNameOut);
 
 
