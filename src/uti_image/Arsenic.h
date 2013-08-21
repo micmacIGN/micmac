@@ -2,14 +2,16 @@
 #define ARSENIC_H
 //#include "StdAfx.h"
 
-class DiaphFoc
+class GrpVodka
 {
 public:
-	DiaphFoc(){}
-	~DiaphFoc(){}
+	GrpVodka(double diaph, double foc, bool isComputed){this->foc=foc;this->diaph=diaph;this->isComputed=isComputed;}
+	~GrpVodka(){}
 	double diaph,foc;
 	bool isComputed;
-
+	vector<string> aListIm;
+	vector<double> ExpTime,ISO; 
+	int size(){return this->aListIm.size();};
 };
 
 class ArsenicImage

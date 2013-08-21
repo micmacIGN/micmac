@@ -346,6 +346,9 @@ void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm,vector<Pts
     ELISE_fp::MkDirRec(aDir + aDirOut);
 	//Reading input files
 	string suffix="";if(InVig!=""){suffix="_Vodka.tif";}
+
+#pragma omp parallel for
+
     for(int i=0;i<nbIm;i++)
 	{
 		
