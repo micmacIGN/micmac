@@ -10,11 +10,8 @@ const GLuint GL_INVALID_LIST_ID = (~0);
 using namespace Cloud_;
 using namespace std;
 
-GLfloat g_position[2] = { 0.f, 0.f };
-
 GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_font(font())
-
   , m_bDrawAxis(false)
   , m_bDrawBall(true)
   , m_bDrawCams(true)
@@ -42,6 +39,9 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _m_g_mouseLeftDown(false)
   , _m_g_mouseMiddleDown(false)
   , _m_g_mouseRightDown(false)
+  , m_glOrientation(false)
+  , m_rw(1.f)
+  , m_rh(1.f)
 {
     _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
     _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
@@ -53,6 +53,9 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
 
     //drag & drop handling
     setAcceptDrops(true);
+
+    m_glPosition[0] = m_glPosition[1] = 0.f;
+    m_glLastPosition[0] = m_glLastPosition[1] = 0.f;
 }
 
 GLWidget::~GLWidget()
@@ -140,35 +143,64 @@ void GLWidget::paintGL()
     {
         glPushMatrix(); // __TEST
 
-        zoom();
-
-        glTranslatef( g_position[0], g_position[1], 0.f );
-
         glEnable(GL_ALPHA_TEST);
         glAlphaFunc(GL_GREATER, 0.1f);
 
         glEnable(GL_TEXTURE_2D);
 
         glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+        //glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
+//
         glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
 
+        cout << "zoom - position " << m_params.zoom << " " << m_glLastPosition[0] << " " << m_glLastPosition[1] << endl;
+
         glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex2f(-1.0f, -1.0f);
-        glTexCoord2f(1.0f, 0.0f);
-        glVertex2f(1.0f, -1.0f);
-        glTexCoord2f(1.0f, 1.0f);
-        glVertex2f(1.0f, 1.0f);
-        glTexCoord2f(0.0f, 1.0f);
-        glVertex2f(-1.0f, 1.0f);
+        if (m_glOrientation)  // orientation portrait
+        {
+            glTexCoord2f(0.0f, 0.0f);
+            //glVertex2f(-1.0f, -1.0f);
+            glVertex2f(m_glLastPosition[0]*m_params.zoom, m_glLastPosition[1]*m_params.zoom);
+
+            glTexCoord2f(1.0f, 0.0f);
+            glVertex2f((m_glLastPosition[0]+2.f*m_rw)*m_params.zoom, m_glLastPosition[1]*m_params.zoom);
+
+            glTexCoord2f(1.0f, 1.0f);
+            // glVertex2f(1.0f, 1.0f);
+            glVertex2f((m_glLastPosition[0]+2.f*m_rw)*m_params.zoom, (m_glLastPosition[1]+2.f*m_rh)*m_params.zoom);
+
+            glTexCoord2f(0.0f, 1.0f);
+            //glVertex2f(-1.0f, 1.0f);
+            glVertex2f(m_glLastPosition[0]*m_params.zoom, (m_glLastPosition[1]+2.f*m_rh)*m_params.zoom);
+        }
+        else    //orientation paysage
+        {
+            glTexCoord2f(0.0f, 0.0f);
+            //glVertex2f(-1.0f, -1.0f);
+            glVertex2f(m_glLastPosition[0]*m_params.zoom, m_glLastPosition[1]*m_params.zoom);
+
+            glTexCoord2f(1.0f, 0.0f);
+            glVertex2f((m_glLastPosition[0]+2.f*m_rw)*m_params.zoom, m_glLastPosition[1]*m_params.zoom);
+
+            glTexCoord2f(1.0f, 1.0f);
+            // glVertex2f(1.0f, 1.0f);
+            glVertex2f((m_glLastPosition[0]+2.f*m_rw)*m_params.zoom, (m_glLastPosition[1]+2.f*m_rh)*m_params.zoom);
+
+            glTexCoord2f(0.0f, 1.0f);
+            //glVertex2f(-1.0f, 1.0f);
+            glVertex2f(m_glLastPosition[0]*m_params.zoom, (m_glLastPosition[1]+2.f*m_rh)*m_params.zoom);
+        }
         glEnd();
+
         glDisable(GL_TEXTURE_2D);
 
         glDisable(GL_BLEND);
         glDisable(GL_ALPHA_TEST);
+
+
+        m_glLastPosition[0] = m_glPosition[0];
+        m_glLastPosition[1] = m_glPosition[1];
 
         glPopMatrix(); // __TEST
     }
@@ -235,7 +267,7 @@ void GLWidget::paintGL()
         }
     }
 
-    if (m_interactionMode == SEGMENT_POINTS)
+    if (m_interactionMode == SELECTION)
     {
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
@@ -319,30 +351,42 @@ void GLWidget::paintGL()
 
 bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> poly);
 
+void WindowToImage(QPoint const &p0, QPoint &p1)
+{
+   // p1.X() = Origine.x+round(p0.x/m_params.zoom);
+   // p1.Y() = Origine.y+round(p0.y/m_params.zoom);
+}
+
+void ImageToWindow(QPoint const &p0, QPoint &p1)
+{
+    //p1.x() := round((p0.x-Origine.x)*m_params.zoom);
+    //p1.y() := round((p0.y-Origine.y)*m_params.zoom);
+}
+
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
     m_lastPos = event->pos();
 
     if ( event->buttons()&Qt::LeftButton )
     {
-       /* QPoint p0 = event->pos(),
+        QPoint p0 = event->pos(),
                p1,
                p2;
 
         WindowToImage( p0, p1 );
-        ImageToWindow( p1, p2 );
+        /*ImageToWindow( p1, p2 );*/
 
         cout << p0.x() << ',' << p0.y() << " => " << p1.x() << ',' << p1.y() << " => " << p2.x() << ',' << p2.y() << endl;
 
         cout << "click " << p1.x() << ',' << p1.y() << endl;
 
-        QPoint ptImg;
+        /*QPoint ptImg;
         Vertex P(Pt3dr(2.f*p0.x()/m_glWidth-1.f,1.f-2.f*p0.y()/m_glHeight,0),QColor(0,255,0));
         getProjection(ptImg, P);
 
         cout << "gluProject :" << ptImg.x() << ", " << ptImg.y() << endl;
 
-        float scale = (float)m_glWidth /(float)_glImg.width();
+        float scale = (float)m_glWidth /_glImg.width();
 
         cout << "Image : " << ptImg.x() / scale << ", " << _glImg.height() - ptImg.y() / scale << endl;
 
@@ -360,7 +404,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
         _m_g_mouseLeftDown = true;
 
-        if (m_interactionMode == SEGMENT_POINTS)
+        if (m_interactionMode == SELECTION)
         {
             if (!m_bPolyIsClosed)
             {
@@ -525,6 +569,42 @@ void GLWidget::setData(cData *data)
         glEnable(GL_ALPHA_TEST);
 
         _glImg = QGLWidget::convertToGLFormat( *data->getCurImage() );
+
+        //width and height ratio between viewport and image
+        m_rw = (float)_glImg.width()/m_glWidth;
+        m_rh = (float)_glImg.height()/m_glHeight;
+
+        if(m_rw>m_rh)
+        {
+            setZoom(1.f/m_rw);
+
+            //position de l'image dans la vue gl
+            m_glPosition[0] = -m_rw;
+            m_glPosition[1] = -m_rh;
+
+            m_glOrientation = false;
+
+            cout << "orientation landscape" << endl;
+        }
+        else
+        {
+            setZoom(1.f/m_rh);
+
+            m_glPosition[0] = -m_rw;
+            m_glPosition[1] = -m_rh;
+
+            m_glOrientation = true;
+
+            cout << "orientation portrait" << endl;
+        }
+
+        m_glLastPosition[0] = m_glPosition[0];
+        m_glLastPosition[1] = m_glPosition[1];
+
+      //  cout << endl << "gl w/h : " << _glImg.width() << " " << _glImg.height() << endl;
+
+        //cout << endl << "C w/h : " << m_glWidth << " " << m_glHeight << endl;
+
         glGenTextures(1, &m_texturGLList );
         glBindTexture( GL_TEXTURE_2D, m_texturGLList );
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
@@ -628,7 +708,7 @@ void GLWidget::setStandardOrthoCenter()
     float halfW = float(m_glWidth)*0.5;
     float halfH = float(m_glHeight)*0.5;
     glOrtho(-halfW,halfW,-halfH,halfH,-100.0f, 100.0f);
-    glMatrixMode(GL_MODELVIEW);
+        glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
 
@@ -639,7 +719,7 @@ void GLWidget::zoom()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    if (m_bDisplayMode2D)
+   /* if (m_bDisplayMode2D)
         glOrtho(-zoom, zoom, -zoom, zoom, -100.0f, 100.0f);
     else
     {
@@ -649,7 +729,7 @@ void GLWidget::zoom()
         GLdouble right =  zoom*fAspect;
 
         glOrtho(left, right, -zoom, zoom, -100.0f, 100.0f);
-    }
+    }*/
 
     glMatrixMode(GL_MODELVIEW);
 }
@@ -663,7 +743,7 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
     case TRANSFORM_CAMERA:
         setMouseTracking(false);
         break;
-    case SEGMENT_POINTS:
+    case SELECTION:
         setProjectionMatrix();
         setMouseTracking(true);
         break;
@@ -749,7 +829,7 @@ void GLWidget::setZoom(float value)
 
 void GLWidget::wheelEvent(QWheelEvent* event)
 {
-    if (m_interactionMode == SEGMENT_POINTS)
+    if (m_interactionMode == SELECTION)
     {
         event->ignore();
         return;
@@ -770,8 +850,9 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
     QPoint pos = event->pos();
 
-    if (m_interactionMode == SEGMENT_POINTS)
+    if (m_interactionMode == SELECTION)
     {
+        cout << "selection" << endl;
         if(!m_bPolyIsClosed)
         {
             int sz = m_polygon.size();
@@ -791,6 +872,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     }
     else if (_m_g_mouseLeftDown || _m_g_mouseMiddleDown|| _m_g_mouseRightDown)
     {
+        cout << "mouse left or middle or right" << endl;
+
         QPoint dp = pos-m_lastPos;
 
         if ( _m_g_mouseLeftDown ) // rotation autour de X et Y
@@ -811,14 +894,17 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         {
             if (m_Data->NbImages())
             {
-                g_position[0] += 2.f*( (float)dp.x()/(float)m_glWidth );
-                g_position[1] -= 2.f*( (float)dp.y()/(float)m_glHeight );
+                m_glLastPosition[0]  = m_glPosition[0];
+                m_glLastPosition[1]  = m_glPosition[1];
+
+                m_glPosition[0] += 2.f*( (float)dp.x()/m_glWidth );
+                m_glPosition[1] -= 2.f*( (float)dp.y()/m_glHeight );
             }
             else
             {
                 m_bObjectCenteredView = false;
-                m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/(float)m_glWidth;
-                m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/(float)m_glHeight;
+                m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/m_glWidth;
+                m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/m_glHeight;
             }
         }
         else if ( _m_g_mouseRightDown ) // rotation autour de Z
@@ -834,7 +920,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             for (int i = 0; i < 9; ++i) _m_g_rotationMatrix[i] = _m_g_tmpoMatrix[i];
         }
 
-        update();  
+        update();
     }
 
     m_lastPos = pos;
@@ -910,13 +996,13 @@ void GLWidget::Select(int mode)
         }
         else
         {
-            float scale = (float)_glImg.width() /(float)m_glWidth;
+            float scale = (float)_glImg.width() / m_glWidth;
 
             for (int aK=0; aK < (int) m_polygon.size(); ++aK)
             {
                  QPointF ptImg;
 
-                 Vertex P(Pt3dr(2.f*(float)m_polygon[aK].x()/(float)m_glWidth-1.f,1.f-2.f*(float)m_polygon[aK].y()/(float)m_glHeight,0),QColor(0,255,0));
+                 Vertex P(Pt3dr(2.f*(float)m_polygon[aK].x()/m_glWidth-1.f,1.f-2.f*(float)m_polygon[aK].y()/m_glHeight,0),QColor(0,255,0));
                  getProjection(ptImg, P);
 
                  ptImg.setX(ptImg.x() * scale);
@@ -1187,7 +1273,7 @@ void GLWidget::drawBall()
     glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
 
     // ball radius
-    //float scale = 0.05f * (float) m_glWidth/ (float) m_glHeight;
+    //float scale = 0.05f * (float) m_glWidth/ m_glHeight;
     float scale = m_Data->m_diam / 1.5f;
 
     if (m_ballGLList == GL_INVALID_LIST_ID)
@@ -1445,7 +1531,7 @@ void GLWidget::showMessages(bool show)
     {
         if (m_interactionMode == TRANSFORM_CAMERA)
             showMoveMessages();
-        else if (m_interactionMode == SEGMENT_POINTS)
+        else if (m_interactionMode == SELECTION)
             showSelectionMessages();
     }
     else

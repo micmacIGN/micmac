@@ -259,7 +259,7 @@ void MainWindow::toggleSelectionMode(bool state)
 {
     if (state)
     {
-        m_glWidget->setInteractionMode(GLWidget::SEGMENT_POINTS);
+        m_glWidget->setInteractionMode(GLWidget::SELECTION);
 
         if (m_glWidget->hasDataLoaded()&&m_glWidget->showMessages())
         {

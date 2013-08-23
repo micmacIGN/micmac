@@ -63,7 +63,7 @@ public:
 
     //! Interaction mode (with the mouse!)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
-                            SEGMENT_POINTS
+                            SELECTION
     };
 
     //! Default message positions on screen
@@ -204,6 +204,9 @@ protected:
     //! GL context height
     int m_glHeight;
 
+    //! ratio between GL context size and image size
+    float m_rw, m_rh;
+
     //! Default font
     QFont m_font;
 
@@ -277,6 +280,15 @@ protected:
 
     //! states if display is 2D or 3D
     bool m_bDisplayMode2D;
+
+    //! data position in the gl viewport
+    GLfloat m_glPosition[2];
+
+    //! data last position in the gl viewport
+    GLfloat m_glLastPosition[2];
+
+    //! is the image fitting in the viewport horizontally or vertically
+    bool m_glOrientation;
 
 private:
 
