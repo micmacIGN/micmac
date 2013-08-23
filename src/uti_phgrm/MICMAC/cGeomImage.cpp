@@ -2296,6 +2296,12 @@ class cGeomImage_Id_Ori : public cGeomImage_Id
 
            if (mDimPx>1)
               aPxMoy[1] = 0.0;
+
+/*
+ std::cout << "pppppHHHHHHH " <<aPxMoy[0] << aPC << mNormPl << "\n"; 
+ std::cout << mPDV.Name() << "\n"; 
+getchar();
+*/
            return true;
       }
 

@@ -593,14 +593,14 @@ void cAppliMMByPair::DoMDT()
 int cAppliMMByPair::Exe()
 {
   
-/*
    DoPyram();
    DoMDT();
    DoCorrel();
+/*
 */
    DoBascule();
-/*
    DoFusion();
+/*
 */
    return 1;
 }
