@@ -185,13 +185,13 @@ struct ph1 {
 #define SWAP(a,b) { a=a+b; b=a-b; a=a-b; }
 
 int g_fread_error = 0;
-static inline void fread_checked( void * ptr, size_t size, size_t count, FILE * stream )
+static __inline void fread_checked( void * ptr, size_t size, size_t count, FILE * stream )
 {
    if ( fread( ptr, size, count, stream )!=count ) g_fread_error++;
 }
 
 int g_fgets_error = 0;
-static inline void fgets_checked( char * str, int num, FILE * stream )
+static __inline void fgets_checked( char * str, int num, FILE * stream )
 {
    if ( fgets( str, num, stream )!=str ) g_fgets_error++;
 }
