@@ -14,6 +14,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Param2Im.xml WorkDir=/media
 	<Symb> ZPas=0.5   </Symb>
         <Symb> PrefMEC=MEC2Im </Symb>
         <Symb> Purge=true </Symb>
+        <Symb> MulZMax=2.0 </Symb>
   <!-- Parametres essentiels -->
 
        <Symb> Ori=XXXXX </Symb>
@@ -21,9 +22,12 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Param2Im.xml WorkDir=/media
        <Symb> Im2=XXXX  </Symb>
 
 
+       <Symb> DebugClip=false  </Symb>
+
   <!-- Parametres calcule -->
         <Symb>  DirMEC=MEC2Im-${Im1}-${Im2} </Symb>
         <eSymb> DbleZPas=* 2 ${ZPas} </eSymb>
+        <eSymb> MulZMin=/ 1  ${MulZMax} </eSymb>
 
            <!-- Ici * joue le role de && --> 
         <eSymb> WZ64=* Sup ${Zoom0} 64  InfEq  ${ZoomF} 64  </eSymb>
@@ -41,8 +45,8 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Param2Im.xml WorkDir=/media
      </IntervAltimetrie>
 
      <IntervSpecialZInv>
-                 <MulZMin> 0.8</MulZMin>
-                 <MulZMax> 1.25 </MulZMax>
+                 <MulZMin> ${MulZMin} </MulZMin>
+                 <MulZMax> ${MulZMax} </MulZMax>
      </IntervSpecialZInv>
 
 </Section_Terrain>
@@ -120,6 +124,10 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Param2Im.xml WorkDir=/media
             </ModulationProgDyn>
 
             <CorrelAdHoc>
+                 <#WHEN VTEST=${DebugClip}>
+                        <SzBlocAH> 40000000 </SzBlocAH>
+                 </#WHEN>
+
                  <TypeCAH>
                      <GPU_Correl>
                      </GPU_Correl>

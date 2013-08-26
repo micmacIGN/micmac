@@ -103,6 +103,10 @@ inline int AdaptCostPonct(int aVal)
 }
 
 
+extern bool DebugClip();
+extern bool BigClip;
+
+
 namespace NS_ParamMICMAC
 {
 
@@ -684,6 +688,7 @@ class cPriseDeVue
 			int  Num() const;
 
 			double  DzOverPredic(const Pt3dr &) const;
+                        CamStenope *  GetOri() const;
 
         private :
 
@@ -692,7 +697,6 @@ class cPriseDeVue
 
 
            cGeomImage * StdGeomTerrain();
-           CamStenope *  GetOri() const;
 
            std::string OneNameMasq(const std::list<cOneMasqueImage> & aList) const;
            Fonc_Num    FoncMasq(std::string  & aName) const;
