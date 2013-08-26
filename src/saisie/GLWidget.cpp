@@ -42,6 +42,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_glOrientation(false)
   , m_rw(1.f)
   , m_rh(1.f)
+  , _m_Origin(0.f,0.f)
 {
     _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
     _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
@@ -79,12 +80,12 @@ GLWidget::~GLWidget()
 
 void GLWidget::initializeGL()
 {
-    if (m_bInitialized)
+    if (m_bGLInitialized)
         return;
 
     glEnable( GL_DEPTH_TEST );
 
-    m_bInitialized = true;
+    m_bGLInitialized = true;
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -143,6 +144,9 @@ void GLWidget::paintGL()
     {
         glPushMatrix(); // __TEST
 
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+
         glEnable(GL_ALPHA_TEST);
         glAlphaFunc(GL_GREATER, 0.1f);
 
@@ -198,19 +202,16 @@ void GLWidget::paintGL()
         glDisable(GL_BLEND);
         glDisable(GL_ALPHA_TEST);
 
-
         m_glLastPosition[0] = m_glPosition[0];
         m_glLastPosition[1] = m_glPosition[1];
 
         glPopMatrix(); // __TEST
+
+        glMatrixMode(GL_MODELVIEW);
     }
     else
     {
         setStandardOrthoCenter();
-
-        // semble regler le positionnement des points mais pas dans tous les cas
-        // dans certaines rotations, les points auraient des profondeurs incorrectes!
-        glEnable(GL_DEPTH_TEST);
 
         //gradient color background
         drawGradientBackground();
@@ -292,8 +293,6 @@ void GLWidget::paintGL()
         // Closing 2D
         glPopAttrib();
         glPopMatrix(); // restore modelview
-        //glMatrixMode(GL_PROJECTION);
-        //glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
     }
 
@@ -351,10 +350,10 @@ void GLWidget::paintGL()
 
 bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> poly);
 
-void WindowToImage(QPoint const &p0, QPoint &p1)
+void GLWidget::WindowToImage(QPoint const &p0, QPoint &p1)
 {
-   // p1.X() = Origine.x+round(p0.x/m_params.zoom);
-   // p1.Y() = Origine.y+round(p0.y/m_params.zoom);
+    p1.setX(_m_Origin.x()+floor(p0.x()/m_params.zoom));
+    p1.setY(_m_Origin.y()+floor(p0.y()/m_params.zoom));
 }
 
 void ImageToWindow(QPoint const &p0, QPoint &p1)
@@ -705,13 +704,14 @@ void GLWidget::setStandardOrthoCenter()
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    float halfW = float(m_glWidth)*0.5;
-    float halfH = float(m_glHeight)*0.5;
-    glOrtho(-halfW,halfW,-halfH,halfH,-100.0f, 100.0f);
-        glMatrixMode(GL_MODELVIEW);
+    float halfW = float(m_glWidth)*.5f;
+    float halfH = float(m_glHeight)*.5f;
+    glOrtho(-halfW,halfW,-halfH,halfH,-100.f, 100.f);
+    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
 
+// zoom in 3D mode
 void GLWidget::zoom()
 {
     GLdouble zoom = m_params.zoom;
@@ -719,17 +719,12 @@ void GLWidget::zoom()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-   /* if (m_bDisplayMode2D)
-        glOrtho(-zoom, zoom, -zoom, zoom, -100.0f, 100.0f);
-    else
-    {
-        GLdouble fAspect = (GLdouble) m_glWidth/ m_glHeight;
+    GLdouble fAspect = (GLdouble) m_glWidth/ m_glHeight;
 
-        GLdouble left  = -zoom*fAspect;
-        GLdouble right =  zoom*fAspect;
+    GLdouble left  = -zoom*fAspect;
+    GLdouble right =  zoom*fAspect;
 
-        glOrtho(left, right, -zoom, zoom, -100.0f, 100.0f);
-    }*/
+    glOrtho(left, right, -zoom, zoom, -100.f, 100.f);
 
     glMatrixMode(GL_MODELVIEW);
 }
@@ -836,7 +831,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     }
 
     //see QWheelEvent documentation ("distance that the wheel is rotated, in eighths of a degree")
-    float wheelDelta_deg = (float)event->delta() / 8.0f;
+    float wheelDelta_deg = (float)event->delta() / 8.f;
 
     onWheelEvent(wheelDelta_deg);
 
@@ -852,7 +847,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
     if (m_interactionMode == SELECTION)
     {
-        cout << "selection" << endl;
+        //cout << "selection" << endl;
         if(!m_bPolyIsClosed)
         {
             int sz = m_polygon.size();
@@ -872,7 +867,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     }
     else if (_m_g_mouseLeftDown || _m_g_mouseMiddleDown|| _m_g_mouseRightDown)
     {
-        cout << "mouse left or middle or right" << endl;
+        //cout << "mouse left or middle or right" << endl;
 
         QPoint dp = pos-m_lastPos;
 
@@ -897,8 +892,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 m_glLastPosition[0]  = m_glPosition[0];
                 m_glLastPosition[1]  = m_glPosition[1];
 
-                m_glPosition[0] += 2.f*( (float)dp.x()/m_glWidth );
-                m_glPosition[1] -= 2.f*( (float)dp.y()/m_glHeight );
+                m_glPosition[0] += 2.f*( (float)dp.x()/(m_glWidth*m_params.zoom) );
+                m_glPosition[1] -= 2.f*( (float)dp.y()/(m_glHeight*m_params.zoom) );
             }
             else
             {
@@ -1136,6 +1131,8 @@ void GLWidget::Select(int mode)
     info.selection_mode   = mode;
 
     m_infos.push_back(info);
+
+    update();
 }
 
 void GLWidget::deletePolylinePoint()
@@ -1165,6 +1162,7 @@ void GLWidget::clearPolyline()
 {
     m_polygon.clear();
     m_bPolyIsClosed = false;
+    update();
 }
 
 void GLWidget::closePolyline()
@@ -1480,8 +1478,6 @@ void GLWidget::drawBbox()
             glVertex3d(P3.x, P3.y, P3.z);
 
         glEnd();
-
-        glPopAttrib();
 
         glEndList();
     }

@@ -145,6 +145,8 @@ public:
 
     void reset();
 
+    void WindowToImage(QPoint const &p0, QPoint &p1);
+
 public slots:
     void zoom();
 
@@ -171,8 +173,8 @@ protected:
     void keyPressEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent* event);
 
-    //! Initialization state
-    bool m_bInitialized;
+    //! Initialization state of GL
+    bool m_bGLInitialized;
 
     //inherited from QWidget (drag & drop support)
     virtual void dragEnterEvent(QDragEnterEvent* event);
@@ -324,6 +326,8 @@ private:
     QTime       _time;
 
     QImage      _glImg;
+
+    QPoint      _m_Origin;
 };
 
 #endif  /* _GLWIDGET_H */

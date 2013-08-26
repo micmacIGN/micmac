@@ -58,7 +58,7 @@ void MainWindow::connectActions()
 
     //View menu
     connect(ui->actionFullScreen,       SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
-    if (!m_mode2D)
+    if (!m_bMode2D)
     {
         connect(ui->actionShow_axis,        SIGNAL(toggled(bool)), this, SLOT(toggleShowAxis(bool)));
         connect(ui->actionShow_ball,        SIGNAL(toggled(bool)), this, SLOT(toggleShowBall(bool)));
@@ -69,7 +69,7 @@ void MainWindow::connectActions()
 
     connect(ui->actionHelpShortcuts,    SIGNAL(triggered()),   this, SLOT(doActionDisplayShortcuts()));
 
-    if (!m_mode2D)
+    if (!m_bMode2D)
     {
         connect(ui->actionSetViewTop,		SIGNAL(triggered()),   this, SLOT(setTopView()));
         connect(ui->actionSetViewBottom,	SIGNAL(triggered()),   this, SLOT(setBottomView()));
@@ -79,7 +79,7 @@ void MainWindow::connectActions()
         connect(ui->actionSetViewRight,		SIGNAL(triggered()),   this, SLOT(setRightView()));
     }
 
-    //"Points selection" menu
+    //"Selection menu
     connect(ui->actionToggleMode_selection, SIGNAL(triggered(bool)), this, SLOT(toggleSelectionMode(bool)));
     connect(ui->actionAdd,              SIGNAL(triggered()),   this, SLOT(add()));
     connect(ui->actionSelect_none,      SIGNAL(triggered()),   this, SLOT(selectNone()));
@@ -148,8 +148,16 @@ void MainWindow::progression()
 
 void MainWindow::addFiles(const QStringList& filenames)
 {
+    bool mode2D = getMode2D();
+
     if (filenames.size())
     {
+        if (mode2D)
+        {
+            setMode2D(false);
+            closeAll();
+        }
+
         QFileInfo fi(filenames[0]);
 
         //set default working directory as first file subfolder
@@ -163,7 +171,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 #endif
 
         if (fi.suffix() == "ply")
-        {
+        {            
             QTimer *timer_test = new QTimer(this);
             m_incre = new int(0);
             connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
@@ -194,7 +202,13 @@ void MainWindow::addFiles(const QStringList& filenames)
         }
         else
         {
-            setMode2D(true);
+            if (!mode2D)
+            {
+                setMode2D(true);
+
+                closeAll();
+                glLoadIdentity();
+            }
 
             //try to load images
             QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadImages,filenames);
@@ -266,6 +280,9 @@ void MainWindow::toggleSelectionMode(bool state)
             m_glWidget->showSelectionMessages();
         }
         m_glWidget->showBall(false);
+        m_glWidget->showCams(false);
+        m_glWidget->showAxis(false);
+        m_glWidget->showBBox(false);
     }
     else
     {
@@ -285,18 +302,18 @@ void MainWindow::toggleSelectionMode(bool state)
 void MainWindow::doActionDisplayShortcuts()
 {
     QString text = tr("File menu:") +"\n\n";
-    if (!m_mode2D)
+    if (!m_bMode2D)
     {
         text += tr("Ctrl+P: open .ply files")+"\n";
         text += tr("Ctrl+C: open .xml camera files")+"\n";
     }
     text += tr("Ctrl+O: open image files")+"\n";
-    if (!m_mode2D) text += tr("Ctrl+S: save .xml selection infos")+"\n";
+    if (!m_bMode2D) text += tr("Ctrl+S: save .xml selection infos")+"\n";
     text += tr("Ctrl+X: close files")+"\n";
     text += tr("Ctrl+Q: quit") +"\n\n";
     text += tr("View:") +"\n\n";
     text += tr("F2: full screen") +"\n";
-    if (!m_mode2D)
+    if (!m_bMode2D)
     {
         text += tr("F3: show axis") +"\n";
         text += tr("F4: show ball") +"\n";
@@ -325,32 +342,27 @@ void MainWindow::doActionDisplayShortcuts()
 void MainWindow::add()
 {
     m_glWidget->Select(ADD);
-    m_glWidget->update();
 }
 
 void MainWindow::selectNone()
 {
     m_glWidget->Select(NONE);
     m_glWidget->clearPolyline();
-    m_glWidget->update();
 }
 
 void MainWindow::invertSelected()
 {
     m_glWidget->Select(INVERT);
-    m_glWidget->update();
 }
 
 void MainWindow::selectAll()
 {
     m_glWidget->Select(ALL);
-    m_glWidget->update();
 }
 
 void MainWindow::removeFromSelection()
 {
     m_glWidget->Select(SUB);
-    m_glWidget->update();
 }
 
 void MainWindow::deletePolylinePoint()
@@ -418,7 +430,7 @@ void MainWindow::loadImages()
 
     addFiles(m_FilenamesIn);
 
-    m_mode2D = true;
+    m_bMode2D = true;
 }
 
 void MainWindow::exportMasks()
@@ -503,7 +515,7 @@ QString MainWindow::strippedName(const QString &fullFileName)
 
 void MainWindow::setMode2D(bool mBool)
 {
-    m_mode2D = mBool;
+    m_bMode2D = mBool;
 
     ui->actionLoad_plys->setVisible(!mBool);
     ui->actionLoad_camera->setVisible(!mBool);
@@ -513,23 +525,6 @@ void MainWindow::setMode2D(bool mBool)
     ui->actionShow_bounding_box->setVisible(!mBool);
 
     ui->menuStandard_views->menuAction()->setVisible(!mBool);
-
-    ui->actionLoad_plys->setCheckable(!mBool);
-    ui->actionLoad_camera->setCheckable(!mBool);
-    ui->actionShow_cams->setCheckable(!mBool);
-    ui->actionShow_axis->setCheckable(!mBool);
-    ui->actionShow_ball->setCheckable(!mBool);
-    ui->actionShow_bounding_box->setCheckable(!mBool);
-
-    ui->actionSetViewBack->setCheckable(!mBool);
-    ui->actionSetViewFront->setCheckable(!mBool);
-    ui->actionSetViewTop->setCheckable(!mBool);
-    ui->actionSetViewBottom->setCheckable(!mBool);
-    ui->actionSetViewLeft->setCheckable(!mBool);
-    ui->actionSetViewRight->setCheckable(!mBool);
-
-    ui->actionSave_masks->setVisible(mBool);
-    ui->actionSave_masks->setCheckable(mBool);
 }
 
 
