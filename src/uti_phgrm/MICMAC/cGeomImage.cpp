@@ -2450,6 +2450,8 @@ if (1)
     private :
        inline Pt2dr PtOfProf(const Pt2dr & aPt,double aProf) const
        {
+
+
           // OO  return mOri.to_photo(mOriRef.ImDirEtProf2Terrain(aPt,aProf,mNormPl));
           return mOri->R3toF2
                  (
