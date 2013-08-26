@@ -2296,6 +2296,12 @@ class cGeomImage_Id_Ori : public cGeomImage_Id
 
            if (mDimPx>1)
               aPxMoy[1] = 0.0;
+
+/*
+ std::cout << "pppppHHHHHHH " <<aPxMoy[0] << aPC << mNormPl << "\n"; 
+ std::cout << mPDV.Name() << "\n"; 
+getchar();
+*/
            return true;
       }
 
@@ -2444,6 +2450,8 @@ if (1)
     private :
        inline Pt2dr PtOfProf(const Pt2dr & aPt,double aProf) const
        {
+
+
           // OO  return mOri.to_photo(mOriRef.ImDirEtProf2Terrain(aPt,aProf,mNormPl));
           return mOri->R3toF2
                  (

@@ -59,6 +59,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 namespace NS_ParamMICMAC
 {
 
+Pt2di aClipIP1;
+Pt2di aClipIP2;
+
 static bool aBugCMS = false;
 #if CUDA_ENABLED
     uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);}
@@ -1186,6 +1189,8 @@ double EcartNormalise(double aI1,double aI2)
 
 void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel * aCMP,int aNbScaleIm,bool VireExtre)
 {
+bool ClipTest = DebugClip() &&  (anX==aClipIP1.x) && (anY==aClipIP1.y);
+
     int aNbOk = 0;
     double aSomCorrel = 0;
 
@@ -1238,6 +1243,11 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
             }
         }
         mSurfOpt->Local_VecInt1(Pt2di(anX,anY),&mZIntCur,aVNorm);
+    }
+
+    if (ClipTest)
+    {
+        std::cout << "Ok " << aNbOk << " Z " << mZIntCur << " "<< aSomCorrel << "\n";
     }
 
     mSurfOpt->SetCout
@@ -1341,6 +1351,77 @@ void cAppliMICMAC::DoGPU_Correl
                 }
 
 
+if ( DebugClip())
+{
+        Pt3dr aPTer(657304.043615071336,181943.195752828789,1508.64839633446513);
+        std::cout << MPD_MM() << " AAAAAAaa============BBbbbbbbbbbbbb\n";
+
+
+        for (tContPDV::iterator itP=mPrisesDeVue.begin(); itP!=mPrisesDeVue.end() ; itP++)
+        {
+             cPriseDeVue & aPDV = **itP;
+             BigClip =  (aPDV.SzIm().x > 6000);
+        }
+        std::cout << "BBBBiiggCLipppp " << BigClip << "\n";
+
+        Pt2dr aPIm1(0,0),aPIm2(0,0);
+        CamStenope * aCS1=0, * aCS2=0;
+
+        int aK=0;
+        for (tContPDV::iterator itP=mPrisesDeVue.begin(); itP!=mPrisesDeVue.end() ; itP++)
+        {
+             cPriseDeVue & aPDV = **itP;
+             CamStenope * aCS = aPDV.GetOri();
+             Pt2dr aPIm = aCS->R3toF2(aPTer);
+             std::cout << "BBbbbb " << aPDV.Name() << " " << aPIm << "\n";
+             BigClip =  (aPDV.SzIm().x > 6000);
+             if (aK==0)
+             {
+                  aCS1 = aCS;
+                  aPIm1 = aPIm;
+             }
+             else
+             {
+                  aCS2 = aCS;
+                  aPIm2 = aPIm;
+             }
+             aK++;
+        }
+
+        Pt2dr aPTerLoc = aPIm1;
+
+        const REAL *  aPx0 = mGeomDFPx->V0Px();
+        double aStep =  mGeomDFPx->PasPx0();
+        int aKPlus = mGeomDFPx->GetEcartInitialPlus(1,0);
+        int aKMoins = mGeomDFPx->GetEcartInitialMoins(1,0);
+
+        std::cout << "PiiiMmm = " << aPIm1 << " " << aPIm2 << "\n";
+        std::cout << "PX0 " << aPx0[0] << " 1/P " << 1/aPx0[0] << "\n";
+        std::cout << " Step " << aStep << " St 1/P " << (1/aPx0[0] - 1/(aPx0[0]+aStep)) << "\n";
+        cGeomImage & aGeo1 = mPDV1->Geom();
+        cGeomImage & aGeo2 = mPDV2->Geom();
+
+        std::cout << "PROJ1 : " << aPIm1 << aGeo1.Objet2ImageInit_Euclid(aPTerLoc,aPx0) << "\n";
+        std::cout << "PROJ2 : " << aPIm2 - aGeo2.Objet2ImageInit_Euclid(aPTerLoc,aPx0) << "\n";
+        std::cout << "K-EC-Px " << aKPlus << " == " << aKMoins << "\n";
+        std::cout << "mZMinGlob  " << mZMinGlob << " == " << mZMaxGlob << " " << mCurEtape->DeZoomTer() << "\n";
+                        bool OkZ = InitZ(0,aModeInitZ);
+        std::cout << "P0 " << mX0UtiTer << " " << mY0UtiTer << " :: " << "P1 " << mX1UtiTer << " " << mY1UtiTer << "\n";
+
+        int aDZT = mCurEtape->DeZoomTer();
+
+        aClipIP1 = round_ni(aPIm1/aDZT);
+        aClipIP2 = round_ni(aPIm2/aDZT);
+        std::cout << "IPPpp " << aClipIP1 << aClipIP2 << "\n";
+
+        for (int aZ=mZMinGlob ; aZ<mZMaxGlob ; aZ++)
+        {
+             bool OkZ = InitZ(aZ,aModeInitZ);
+        }
+
+        getchar();
+}
+
         for (int aZ=mZMinGlob ; aZ<mZMaxGlob ; aZ++)
         {
                         bool OkZ = InitZ(aZ,aModeInitZ);
@@ -1392,6 +1473,12 @@ void cAppliMICMAC::DoGPU_Correl
                 }
             }
         }
+if ( DebugClip())
+{
+    std::cout << "Zzzzzzzzzzzzzz \n"; getchar();
+}
+
+
 }
 
 #ifdef  CUDA_ENABLED
