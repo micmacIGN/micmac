@@ -881,7 +881,6 @@ double  cGeomDiscFPx::CorrectDerivee() const
 
 int cGeomDiscFPx::GetEcartInitialGen(double aPas,int aKPx,double anEcart) const
 {
-// std::cout << "Geennnnnnn " << aPas << " " << mResolDz << " " << mRatioResAltPlani[aKPx] << "\n";
    return  round_ni(anEcart/(aPas*mResolDz* mRatioResAltPlani[aKPx]));
 }
 

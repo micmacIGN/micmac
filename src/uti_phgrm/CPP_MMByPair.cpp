@@ -127,6 +127,7 @@ class cAppliMMByPair : public cAppliWithSetImage
       std::string  mPairByStrip;
       std::string  mDirBasc;
       int          mNbStep;
+      double       mIntIncert;
 };
 
 /*****************************************************************/
@@ -480,7 +481,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mZoomF       (1),
     mDiffInStrip (1),
     mStripIsFirt (true),
-    mDirBasc     ("MTD-Nuage")
+    mDirBasc     ("MTD-Nuage"),
+    mIntIncert   (1.25)
 {
   ElInitArgMain
   (
@@ -494,6 +496,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mDiffInStrip,"DeltaStrip",true,"Delta in same strip (Def=1,apply with mPairByStrip)")
                     << EAM(mSym,"Sym",true,"Symetrise all pair (Def=true)")
                     << EAM(mShow,"Show",true,"Show details (def = false))")
+                    << EAM(mIntIncert,"Inc",true,"Uncertaincy interval (def  = 1.25) ")
   );
   VerifAWSI();
 
@@ -523,6 +526,9 @@ void cAppliMMByPair::DoCorrel()
                            +  std::string(" +Zoom0=")  + ToString(mZoom0)  + aBlank
                            +  std::string(" +ZoomF=")  + ToString(mZoomF)  + aBlank
                          ;
+
+        if (EAMIsInit(&mIntIncert))
+           aCom = aCom + " +MulZMax=" +ToString(mIntIncert);
 
 
         if (mShow)
@@ -593,14 +599,14 @@ void cAppliMMByPair::DoMDT()
 int cAppliMMByPair::Exe()
 {
   
-/*
    DoPyram();
    DoMDT();
    DoCorrel();
+/*
 */
    DoBascule();
-/*
    DoFusion();
+/*
 */
    return 1;
 }
