@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>798</width>
+    <height>714</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -95,7 +95,7 @@ QStatusBar
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>798</width>
      <height>21</height>
     </rect>
    </property>
