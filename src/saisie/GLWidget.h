@@ -286,12 +286,6 @@ protected:
     //! data position in the gl viewport
     GLfloat m_glPosition[2];
 
-    //! data last position in the gl viewport
-    GLfloat m_glLastPosition[2];
-
-    //! is the image fitting in the viewport horizontally or vertically
-    bool m_glOrientation;
-
 private:
 
     QPoint      m_lastPos;
@@ -326,8 +320,6 @@ private:
     QTime       _time;
 
     QImage      _glImg;
-
-    QPoint      _m_Origin;
 };
 
 #endif  /* _GLWIDGET_H */
