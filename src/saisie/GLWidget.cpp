@@ -155,8 +155,6 @@ void GLWidget::paintGL()
 //
         glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
 
-       // cout << "zoom - position " << m_params.zoom << " " << m_glLastPosition[0] << " " << m_glLastPosition[1] << endl;
-
         glBegin(GL_QUADS);
 
         GLfloat originX = m_glPosition[0]*m_params.zoom;
@@ -459,9 +457,9 @@ void GLWidget::setBufferGl(bool onlyColor)
             }
             else
             {
-                colors[pitchV+bK*3 + 0 ]   = colo.redF()*0.7;
-                colors[pitchV+bK*3 + 1 ]   = colo.greenF()*0.6;
-                colors[pitchV+bK*3 + 2 ]   = colo.blueF()*0.8;
+                colors[pitchV+bK*3 + 0 ]   = colo.redF()   *0.7;
+                colors[pitchV+bK*3 + 1 ]   = colo.greenF() *0.6;
+                colors[pitchV+bK*3 + 2 ]   = colo.blueF()  *0.8;
             }
         }
 
@@ -645,7 +643,7 @@ void GLWidget::zoom()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    GLdouble fAspect = (GLdouble) m_glWidth/ m_glHeight;
+    GLdouble fAspect = (GLdouble) m_glWidth/m_glHeight;
 
     GLdouble left  = -zoom*fAspect;
     GLdouble right =  zoom*fAspect;
@@ -1472,6 +1470,8 @@ void GLWidget::reset()
     _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
     _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
     _m_g_rotationMatrix[5] = _m_g_rotationMatrix[6] = _m_g_rotationMatrix[7] = 0;
+
+    clearPolyline();
 
     m_params.reset();
     m_Data->reset();
