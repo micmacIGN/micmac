@@ -145,7 +145,7 @@ public:
 
     void reset();
 
-    void WindowToImage(QPoint const &p0, QPoint &p1);
+    void WindowToImage(QPointF const &p0, QPointF &p1);
 
 public slots:
     void zoom();
