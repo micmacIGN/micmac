@@ -2175,7 +2175,11 @@ std::string NameFileStd
        if (aNbChanSpec==1)
        {
            aPhOut = Tiff_Im::BlackIsZero;
-           if (aNbChanIn==3)
+           if (aNbChanIn==4) // Maybe RGB+IR ? ToDo !
+           {
+               aFin  = (aSIn.v0() + aSIn.v1()+ aSIn.v2()/*+ aSIn.v3()*/) / 3;
+           }
+           else if (aNbChanIn==3)
            {
                aFin  = (aSIn.v0() + aSIn.v1()+ aSIn.v2()) / 3;
            }
@@ -2185,7 +2189,7 @@ std::string NameFileStd
            else 
            {
               std::cout  << "For Name " << aFullNameOri << "\n";
-              ELISE_ASSERT(false,"Unexpected color comnibaison");
+              ELISE_ASSERT(false,"Unexpected color combinaison");
            }
        }
        else if (aNbChanSpec==3)
@@ -2201,7 +2205,7 @@ std::string NameFileStd
            else 
            {
               std::cout  << "For Name " << aFullNameOri << "\n";
-              ELISE_ASSERT(false,"Unexpected color comnibaison");
+              ELISE_ASSERT(false,"Unexpected color combinaison");
            }
        }
        else
