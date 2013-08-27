@@ -128,7 +128,7 @@ void OrientationGrille::InitBinary(std::string const &nom)
 	for(int i=0;i<NbCouches;++i)
 	{
 		std::vector<double> &layer=Image2Obj[i];
-		layer.resize(Taille);
+		layer.resize(Image2Obj_Taille.real()*Image2Obj_Taille.imag()*Image2Obj_TailleZ);
 		fic.read((char*)&Image2Obj_Value[i],sizeof(double));
 		fic.read((char*)&(layer[0]),(unsigned int) Taille);
 	}
@@ -146,7 +146,7 @@ void OrientationGrille::InitBinary(std::string const &nom)
         for(int i=0;i<NbCouches;++i)
         {
                 std::vector<double> &layer=Obj2Image[i];
-                layer.resize(Taille);
+                layer.resize(Obj2Image_Taille.real()*Obj2Image_Taille.imag()*Obj2Image_TailleZ);
 		fic.read((char*)&Obj2Image_Value[i],sizeof(double));
                 fic.read((char*)&(layer[0]),(unsigned int) Taille);
         }
