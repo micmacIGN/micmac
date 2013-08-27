@@ -534,11 +534,34 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
     }
     else
        df0 = Tiff_Im::IEEE_float;
+    double  aNbOctetTot = 0;
     for (INT ch =0; ch < _nb_chanel ; ch++)
     {
          _bits_p_chanel[ch] = _nbb_ch0;
          _data_format[ch] = df0;  
+         aNbOctetTot +=  _bits_p_chanel[ch];
     }
+    aNbOctetTot /= 8;
+
+    {
+         double aMaxSzFile = 4e9;
+         Pt2di aSzFT = args_opt.mSzFileTile;
+         int aMaxTile = round_ni(sqrt((aMaxSzFile /aNbOctetTot)) *0.9);
+         
+         if ((aSzFT.x ==-1) || (aSzFT.x>5e4))
+         {
+              double  aSzNCompr = double(_sz.x) * double(_sz.y) * aNbOctetTot;
+              if (aSzNCompr >aMaxSzFile)
+                args_opt.mSzFileTile = Pt2di(aMaxTile,aMaxTile);
+         }
+         else if (aSzFT.x >0)
+         {
+              double aSzTile = double(aSzFT.x) * double(aSzFT.y) * aNbOctetTot;
+              if (aSzTile > aMaxSzFile)
+                args_opt.mSzFileTile = Pt2di(aMaxTile,aMaxTile);
+         }
+    }
+
 
     _mode_compr   = compr;
     // many tiff reader do not handle prediction for nbbits < 8
@@ -649,6 +672,7 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
 
     bool CreateSubTile = false;
     mUseFileTile = false;
+
     if ((args_opt.mSzFileTile.x != -1 )  &&  (_nbb_ch0>=8))
     {
        mSzFileTile =  Pt2di(ElAbs(args_opt.mSzFileTile.x),ElAbs(args_opt.mSzFileTile.y));
@@ -667,6 +691,7 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
        mUseFileTile =  (mSzFileTile.x<_sz.x) || (mSzFileTile.y<_sz.y) || (! CreateSubTile);
 
     }
+
   
     // GESTION du dallage interne
 
@@ -2177,7 +2202,7 @@ std::string NameFileStd
            aPhOut = Tiff_Im::BlackIsZero;
            if (aNbChanIn==4) // Maybe RGB+IR ? ToDo !
            {
-               aFin  = (aSIn.v0() + aSIn.v1()+ aSIn.v2()/*+ aSIn.v3()*/) / 3;
+               aFin  = (aSIn.v0() + aSIn.v1()+ aSIn.v2()+ aSIn.kth_proj(3)) / 4;
            }
            else if (aNbChanIn==3)
            {
@@ -2185,6 +2210,15 @@ std::string NameFileStd
            }
            else if (aNbChanIn==1)
            {
+           }
+           else  if (true)
+           {
+               aFin = 0;
+               for (int aKC=0 ; aKC<aNbChanIn; aKC++)
+               {
+                  aFin = aFin + aSIn.kth_proj(aKC);
+               }
+               aFin = aFin / aNbChanIn;
            }
            else 
            {
@@ -2199,8 +2233,16 @@ std::string NameFileStd
            {
                 aFin = Virgule(aSIn.v0(),aSIn.v0(),aSIn.v0());
            }
+           else if (aNbChanIn==2)
+           {
+                aFin = Virgule(aSIn.v0(),(aSIn.v0()+aSIn.v1())/2,aSIn.v1());
+           }
            else if (aNbChanIn==3)
            {
+           }
+           else  if (true)  // Classique "shift" des fauses couleurs : V B PIR 
+           {
+               aFin = Virgule(aSIn.kth_proj(aNbChanIn-3),aSIn.kth_proj(aNbChanIn-2),aSIn.kth_proj(aNbChanIn-1));
            }
            else 
            {

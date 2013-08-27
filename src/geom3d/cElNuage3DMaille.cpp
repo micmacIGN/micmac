@@ -586,7 +586,6 @@ void cElNuage3DMaille::Save(const std::string & aName)
    Tiff_Im::CreateFromIm(mImDef,mDir+aNameM);
    V_Save(aNameP);
 
-// std::cout << "AAAAA " << mDir+aNameM << " " << aNameP << "\n"; getchar();
 
    cXML_ParamNuage3DMaille aParam = mParams;
    for (int aKG=0 ; aKG<int(mGrpAttr.size()) ; aKG++)
@@ -1476,7 +1475,6 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
 {
     AssertNoEmptyData();
     aN2->AssertNoEmptyData();
-    std::cout << "CCCCC " << mSzData  << " " << aN2->mSzData << "\n";
     if (anAAB) 
         SupprTriInv = true;
     cBasculeNuage aBasc(this,aN2);
@@ -1499,7 +1497,6 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
          aNuageRes = ReScaleAndClip(Box2dr(anOfOut,anOfOut+aMntBasc.sz()),1.0);
          anOfOut = Pt2di(0,0);
     }
-    std::cout << "DDDDDD " << aNuageRes->mSzData  << " " << mSzData << " OfsOut " << anOfOutInit << "\n";
 
 
     aNuageRes->FinishBasculeInThis
@@ -1645,7 +1642,6 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
    if (AutoResize)
        aGeomOut.NbPixel() = Pt2di(1,1);
 
-std::cout << "AAAA " << aGeomOut.NbPixel() << "\n";
    ELISE_ASSERT
    (
        aGeomOutOri.Image_Profondeur().IsInit() && aGeomIn.Image_Profondeur().IsInit(),

@@ -36,6 +36,7 @@ Nouveaux outils :
 (par ex un truc basic comme ratio des distance -1 pondere)
 
 
+   Correction bugs dans tfw et 4 canaux (Greg).
 
 float => double dans les ply ....
 

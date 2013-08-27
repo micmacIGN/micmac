@@ -72,6 +72,7 @@ void cEl_GPAO::DoComInParal(const std::list<std::string> & aL,std::string  FileM
 
     aGPAO.GenerateMakeFile(FileMk);
 
+
     std::string aCom = g_externalToolHandler.get( "make" ).callName()+" all -f " + FileMk + " -j" + ToString(aNbProc) + " ";
     if (MoinsK) aCom = aCom + " -k ";
     if (Exe)
