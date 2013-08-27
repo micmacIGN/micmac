@@ -332,16 +332,15 @@ void GLWidget::paintGL()
 
 bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> poly);
 
-void GLWidget::WindowToImage(QPoint const &p0, QPoint &p1)
-{
-   // p1.setX(_m_Origin.x()+floor(p0.x()/m_params.zoom));
-   // p1.setY(_m_Origin.y()+floor(p0.y()/m_params.zoom));
-}
 
-void ImageToWindow(QPoint const &p0, QPoint &p1)
+//converts from Vieport coordinates [0, m_glWidth] to GL window coordinates [-1,1] into Image coordinates [0,_glImg.width]
+void GLWidget::WindowToImage(QPointF const &p0, QPointF &p1)
 {
-    //p1.x() := round((p0.x-Origine.x)*m_params.zoom);
-    //p1.y() := round((p0.y-Origine.y)*m_params.zoom);
+   float x_gl = 2.f*p0.x()/m_glWidth -1.f;
+   float y_gl = 2.f*p0.y()/m_glHeight-1.f;
+
+   p1.setX((float)_glImg.width()*(1.f -  x_gl/(m_glPosition[0]*m_params.zoom))*.5f);
+   p1.setY((float)_glImg.height()*(1.f - y_gl/(m_glPosition[1]*m_params.zoom))*.5f);
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
@@ -350,48 +349,6 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
     if ( event->buttons()&Qt::LeftButton )
     {
-        QPoint p0 = event->pos(),
-               p1,
-               p2;
-
-        //WindowToImage( p0, p1 );
-
-        /*ImageToWindow( p1, p2 );*/
-
-        float x_gl = 2.f*(float)p0.x()/m_glWidth -1.f;
-        float y_gl = 2.f*(float)p0.y()/m_glHeight-1.f;
-
-        float x2 = (x_gl - m_glPosition[0])/ (1.f - m_glPosition[0]) * (float) _glImg.width();
-        float y2 = (y_gl - m_glPosition[1])/ (1.f - m_glPosition[1]) * (float) _glImg.height();
-
-        //cout << p0.x() << ',' << p0.y() << " => " << x_gl << " " << y_gl << " => " << p1.x() << ',' << p1.y() << " => " << p2.x() << ',' << p2.y() << endl;
-
-        cout << p0.x() << ',' << p0.y() << " => " << x_gl << " " << y_gl << " => " << x2 << ',' << y2 << " => " << p2.x() << ',' << p2.y() << endl;
-
-        cout << "click " << p1.x() << ',' << p1.y() << endl;
-
-        /*QPoint ptImg;
-        Vertex P(Pt3dr(2.f*p0.x()/m_glWidth-1.f,1.f-2.f*p0.y()/m_glHeight,0),QColor(0,255,0));
-        getProjection(ptImg, P);
-
-        cout << "gluProject :" << ptImg.x() << ", " << ptImg.y() << endl;
-
-        float scale = (float)m_glWidth /_glImg.width();
-
-        cout << "Image : " << ptImg.x() / scale << ", " << _glImg.height() - ptImg.y() / scale << endl;
-
-
-        QVector<QPoint> poly;
-        poly.push_back( QPoint( 0,0 ) );
-        poly.push_back( QPoint( 0,_glImg.height() ) );
-        poly.push_back( QPoint( _glImg.width() ,_glImg.height() ) );
-        poly.push_back( QPoint( _glImg.width(), 0 ) );
-        poly.push_back( QPoint( 0,0 ) );
-
-        bool isPoly = isPointInsidePoly( p1, poly );
-
-        if ( isPoly ) cout << "is in poly" << endl;*/
-
         _m_g_mouseLeftDown = true;
 
         if (m_interactionMode == SELECTION)
@@ -572,10 +529,6 @@ void GLWidget::setData(cData *data)
         //position de l'image dans la vue gl
         m_glPosition[0] = -m_rw;
         m_glPosition[1] = -m_rh;
-
-      //  cout << endl << "gl w/h : " << _glImg.width() << " " << _glImg.height() << endl;
-
-        //cout << endl << "C w/h : " << m_glWidth << " " << m_glHeight << endl;
 
         glGenTextures(1, &m_texturGLList );
         glBindTexture( GL_TEXTURE_2D, m_texturGLList );
@@ -961,23 +914,12 @@ void GLWidget::Select(int mode)
         }
         else
         {
-            float scale = (float)_glImg.width() / m_glWidth;
-
+            QPointF ptImg;
             for (int aK=0; aK < (int) m_polygon.size(); ++aK)
             {
-                 QPointF ptImg;
-
-                 Vertex P(Pt3dr(2.f*(float)m_polygon[aK].x()/m_glWidth-1.f,1.f-2.f*(float)m_polygon[aK].y()/m_glHeight,0),QColor(0,255,0));
-                 getProjection(ptImg, P);
-
-                 ptImg.setX(ptImg.x() * scale);
-                 ptImg.setY(ptImg.y() * scale);
-
-              //   cout << "Image : " << ptImg.x() / scale << ", " << _glImg.height() - ptImg.y() / scale << endl;
+                 WindowToImage(QPointF(m_polygon[aK].x(), m_glHeight - m_polygon[aK].y()), ptImg);
 
                  polyg.push_back(ptImg);
-
-               //  cout << "poly " << m_polygon[aK].x() << ", " << m_polygon[aK].y() << " > "  <<ptImg.x() << ", " << ptImg.y() << endl;
             }
         }
     }
