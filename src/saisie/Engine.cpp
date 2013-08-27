@@ -169,7 +169,7 @@ void cEngine::doMaskImage(QImage* pImg)
         for (int bK=0; bK < h;++bK)
         {
             c = QColor::fromRgba(pImg->pixel(aK,bK));
-            if (c.alpha() == 255) mask.set(aK, h-bK, 1);
+            if (c.alpha() == 255) mask.set(aK, h-bK-1, 1);
         }
     }
     string aOut = m_Loader->GetFilenamesOut()[0].toStdString();
