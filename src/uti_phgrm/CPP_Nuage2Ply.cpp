@@ -82,7 +82,7 @@ int Nuage2Ply_main(int argc,char ** argv)
                     << EAM(aExagZ,"ExagZ",true,"To exagerate the depth, Def=1.0")
                     << EAM(aRatio,"RatioAttrCarte",true,"")
                     << EAM(aDoMesh,"Mesh",true)
-                    << EAM(DoublePrec,"64B",true,"To generate 64 Bits ply, Def=false, WARN = do not work  correcly by meshlab or cloud compare")
+                    << EAM(DoublePrec,"64B",true,"To generate 64 Bits ply, Def=false, WARN = do not work properly with meshlab or cloud compare")
                     << EAM(anOffset,"Offs","Offset in points to limit 32 Bits accurracy problem")
     );	
 
