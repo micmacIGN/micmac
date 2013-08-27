@@ -43,12 +43,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <sys/utsname.h>
 #endif
 
-bool DebugClip()
-{
-  static bool aRes = false &&  MPD_MM();
-  return aRes;
-}
-bool BigClip=false;
 // Test commit
 
 namespace NS_ParamMICMAC

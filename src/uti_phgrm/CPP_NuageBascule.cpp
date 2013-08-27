@@ -213,18 +213,82 @@ int  NuageBascule_main(int argc,char ** argv)
              }
          }
          std::cout << " BOX GLOB " << aP0 << aP1 << "\n";
-         Pt2dr aSzNew = Pt2dr(aP1-aP0);
+         Pt2di aSzNew = Pt2di(aP1-aP0);
+
          Pt2dr aRP0 = Pt2dr(aP0);
-         cXML_ParamNuage3DMaille  aNewNuageOut =  CropAndSousEch(aNuageOut,aRP0,1.0,aSzNew);
+         Pt2dr aRSzN = Pt2dr(aSzNew);
+         cXML_ParamNuage3DMaille  aNewNuageOut =  CropAndSousEch(aNuageOut,aRP0,1.0,aRSzN);
+
+
+         std::string aNameMasq = aNameRes + "_Masq.tif";
+         std::string aNameProf = aNameRes + "_Prof.tif";
+
+         
+
+         Tiff_Im aFileProf
+                 (
+                      aNameProf.c_str(),
+                      aSzNew,
+                      GenIm::real4,
+                      Tiff_Im::No_Compr,
+                      Tiff_Im::BlackIsZero
+                 );
+         Tiff_Im aFileMasq
+                 (
+                      aNameMasq.c_str(),
+                      aSzNew,
+                      GenIm::bits1_msbf,
+                      Tiff_Im::No_Compr,
+                      Tiff_Im::BlackIsZero
+                 );
+         ELISE_COPY(aFileMasq.all_pts(),0,aFileMasq.out());
+ 
+         for (int aKB=0 ; aKB<aDecoup.NbInterv() ; aKB++)
+         {
+             cBlockBasc & aBl =  *(mVBl[aKB]);
+             Pt2di aSz = aBl.mBoxLoc.sz();
+             Im2D_Bits<1> aIMasqLoc(aSz.x,aSz.y,0);
+             Im2D_REAL4   aProfLoc(aSz.x,aSz.y);
+
+             std::string aNameMasqL = aBl.mName+"_Masq.tif"; 
+             ELISE_COPY(aIMasqLoc.all_pts(),trans(Tiff_Im::StdConv(aNameMasqL).in(),aBl.mBoxLoc._p0) ,aIMasqLoc.out());
+
+             std::string aNameProfL = aBl.mName+"_Prof.tif"; 
+             ELISE_COPY(aProfLoc.all_pts(),trans(Tiff_Im::StdConv(aNameProfL).in(),aBl.mBoxLoc._p0) ,aProfLoc.out());
+              
+
+             Pt2di aDec =  aBl.mBoxGlob._p0 - aP0;
+
+             Im2D_Bits<1> aIMasqGlob(aSz.x,aSz.y);
+             Im2D_REAL4   aProfGlob(aSz.x,aSz.y);
+             ELISE_COPY(aIMasqGlob.all_pts(),trans(aFileMasq.in(),aDec),aIMasqGlob.out());
+             ELISE_COPY(aProfGlob.all_pts() ,trans(aFileProf.in(),aDec),aProfGlob.out());
+
+
+             ELISE_COPY(select(aIMasqLoc.all_pts(),aIMasqLoc.in()),aProfLoc.in(),aProfGlob.out());
+             ELISE_COPY(select(aIMasqLoc.all_pts(),aIMasqLoc.in()),aIMasqLoc.in(),aIMasqGlob.out());
+
+             std::cout << aNameMasqL<< "\n"; 
+
+             ELISE_COPY(rectangle(aDec,aDec+aSz),trans(aIMasqGlob.in(),-aDec),aFileMasq.out());
+             ELISE_COPY(rectangle(aDec,aDec+aSz),trans(aProfGlob.in(),-aDec),aFileProf.out());
+
 /*
+             Sym
+
+             ELISE_COPY
+             (
+                 rectangle(aBL._p0,aBL._p1),
+                 
+             );
 */
+         }
     }
     else
     {
         if (EAMIsInit(&aSuplOut))
         {
            aNameRes = AddPrePost(aNameRes,aSuplOut,"");
-           // aNameRes = DirOfFile(aNameRes) + aSuplOut + NameWithoutDir(aNameRes);
         }
            
 

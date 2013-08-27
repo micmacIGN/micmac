@@ -57,12 +57,19 @@ class cImaMM
        std::string mBande;
        int         mNumInBande;
        CamStenope * mCam;
+       Tiff_Im  &   Tiff();
+    private :
+       cAppliWithSetImage &  mAppli;
+       Tiff_Im  *            mPtrTiff;
+ 
 };
 
 class cAppliWithSetImage
 {
    public :
       CamStenope * CamOfName(const std::string & aName);
+      const std::string & Dir() const;
+      int  DeZoomOfSize(double ) const;
    protected :
       cAppliWithSetImage(int argc,char ** argv);
       cImaMM * ImOfName(const std::string & aName);
@@ -89,6 +96,7 @@ class cAppliWithSetImage
       typedef std::pair<cImaMM *,cImaMM *> tPairIm;
       typedef std::set<tPairIm> tSetPairIm;
       tSetPairIm   mPairs;
+      double       mAverNbPix;
 
 
    private :
@@ -140,8 +148,20 @@ cImaMM::cImaMM(const std::string & aName,cAppliWithSetImage & anAppli) :
    mNameIm     (aName),
    mBande      (""),
    mNumInBande (-1),
-   mCam        (anAppli.CamOfName(mNameIm))
+   mCam        (anAppli.CamOfName(mNameIm)),
+   mAppli      (anAppli),
+   mPtrTiff    (0)
 {
+}
+
+Tiff_Im  &   cImaMM::Tiff()
+{
+    if (mPtrTiff==0)
+    {
+        std::string aFullName =  mAppli.Dir() + mNameIm;
+        mPtrTiff = new Tiff_Im(aFullName.c_str());
+    }
+    return *mPtrTiff;
 }
 
 /*****************************************************************/
@@ -153,9 +173,10 @@ cImaMM::cImaMM(const std::string & aName,cAppliWithSetImage & anAppli) :
 static std::string aBlank(" ");
 
 cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv)  :
-   mSym  (true),
-   mShow (false),
-   mPb   ("")
+   mSym       (true),
+   mShow      (false),
+   mPb        (""),
+   mAverNbPix (0.0)
 {
    if (argc<2)
    {
@@ -173,6 +194,12 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv)  :
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
    mSetIm = mICNM->Get(mPat);
 
+   if (mSetIm->size()==0)
+   {
+       std::cout << "For Pat= " << mPat << "\n";
+       ELISE_ASSERT(false,"Empty pattern");
+   }
+
    mOri = argv[1];
    mKeyOri =  "NKS-Assoc-Im2Orient@-" + mOri;
 
@@ -181,9 +208,27 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv)  :
        const std::string & aName = (*mSetIm)[aKV];
        mImages.push_back(new cImaMM(aName,*this));
        mDicIm[aName] = mImages.back();
+       Pt2di  aSz =  mImages.back()->Tiff().sz();
+       mAverNbPix += double(aSz.x) * double(aSz.y);  
    }
+   mAverNbPix /= mSetIm->size();
 }
 
+//  aSz * 2 ^ (LogDeZoom * 2) = mAverNbPix;
+int  cAppliWithSetImage::DeZoomOfSize(double aSz) const
+{
+    double aRatio = mAverNbPix / aSz;
+    double aRL2 = log2(aRatio) / 2;
+    int aL2 = ElMax(0,round_ni(aRL2));
+    return 1 << aL2;
+}
+
+
+
+const std::string & cAppliWithSetImage::Dir() const
+{
+   return mDir;
+}
 void cAppliWithSetImage::VerifAWSI()
 {
    ELISE_ASSERT(mPb=="",mPb.c_str());
@@ -498,6 +543,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mShow,"Show",true,"Show details (def = false))")
                     << EAM(mIntIncert,"Inc",true,"Uncertaincy interval (def  = 1.25) ")
   );
+  if (! EAMIsInit(&mZoom0))
+     mZoom0 =  DeZoomOfSize(7e4);
   VerifAWSI();
 
   if (EAMIsInit(&mPairByStrip))

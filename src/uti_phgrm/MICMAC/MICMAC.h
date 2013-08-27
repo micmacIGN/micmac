@@ -103,10 +103,6 @@ inline int AdaptCostPonct(int aVal)
 }
 
 
-extern bool DebugClip();
-extern bool BigClip;
-
-
 namespace NS_ParamMICMAC
 {
 
