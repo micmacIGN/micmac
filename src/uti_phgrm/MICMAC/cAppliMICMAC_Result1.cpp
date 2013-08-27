@@ -921,9 +921,9 @@ void cAppliMICMAC::GenereOrientationMnt(cEtapeMecComp * itE)
              std::ofstream aFtfw(aNameTFW.c_str());
              if (aFOM.mGXml.mPrec >=0)
                 aFtfw.precision(aFOM.mGXml.mPrec);
-              aFtfw << aFOM.ResolutionPlani().x << " " << 0 << "\n";
-              aFtfw << 0 << " " << aFOM.ResolutionPlani().y << "\n";
-              aFtfw << aFOM.OriginePlani().x << " " << aFOM.OriginePlani().y << "\n";
+              aFtfw << aFOM.ResolutionPlani().x << "\n" << 0 << "\n";
+              aFtfw << 0 << "\n" << aFOM.ResolutionPlani().y << "\n";
+              aFtfw << aFOM.OriginePlani().x << "\n" << aFOM.OriginePlani().y << "\n";
               aFtfw.close();
           }
 }
