@@ -145,7 +145,9 @@ public:
 
     void reset();
 
-    void WindowToImage(QPoint const &p0, QPoint &p1);
+    void WindowToImage(QPointF const &p0, QPointF &p1);
+
+    QImage* getGLImage(){return &_glImg;}
 
 public slots:
     void zoom();
@@ -308,9 +310,9 @@ private:
     double      _MP[16];
     int         _VP[4];
 
-    bool        _m_g_mouseLeftDown    ;
-    bool        _m_g_mouseMiddleDown  ;
-    bool        _m_g_mouseRightDown   ;
+    bool        _m_g_mouseLeftDown;
+    bool        _m_g_mouseMiddleDown;
+    bool        _m_g_mouseRightDown;
     GLfloat     _m_g_tmpoMatrix[9];
     GLfloat     _m_g_rotationOx[9];
     GLfloat     _m_g_rotationOy[9];
