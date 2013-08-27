@@ -6,7 +6,7 @@ cLoader::cLoader()
    m_FilenamesOut()
 {}
 
-/*void cLoader::SetFilenamesOut()
+void cLoader::SetFilenamesOut()
 {
     m_FilenamesOut.clear();
 
@@ -16,7 +16,7 @@ cLoader::cLoader()
 
         m_FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_masq.tif");
     }
-}*/
+}
 
 void cLoader::SetSelectionFilename()
 {
@@ -103,11 +103,12 @@ void cEngine::loadImages(QStringList filenames)
     {
         m_Data->addImage(m_Loader->loadImage(filenames[i]));
     }
+
+    m_Loader->SetFilenamesOut();
 }
 
 void cEngine::doMasks()
 {
-    if (m_Data->NbClouds()==0) return;
 
     CamStenope* pCam;
     Cloud *pCloud;
@@ -126,7 +127,7 @@ void cEngine::doMasks()
 
             for (int bK=0; bK < pCloud->size();++bK)
             {
-                vert = pCloud->getVertex(bK);                
+                vert = pCloud->getVertex(bK);
 
                 if (vert.isVisible())  //visible = selected in GLWidget
                 {
@@ -142,16 +143,46 @@ void cEngine::doMasks()
         }
 
         string aOut = m_Loader->GetFilenamesOut()[cK].toStdString();
-        #ifdef _DEBUG
-            printf ("Saving %s\n", aOut);
-        #endif
+#ifdef _DEBUG
+        printf ("Saving %s\n", aOut);
+#endif
 
         Tiff_Im::CreateFromIm(mask, aOut);
 
-        #ifdef _DEBUG
-            printf ("Done\n");
-        #endif  
+#ifdef _DEBUG
+        printf ("Done\n");
+#endif
     }
+}
+
+void cEngine::doMaskImage(QImage* pImg)
+{
+    QColor c;
+    unsigned int w,h;
+    w = pImg->width();
+    h = pImg->height();
+
+    Im2D_BIN mask = Im2D_BIN(w, h, 0);
+
+    for (int aK=0; aK < w;++aK)
+    {
+        for (int bK=0; bK < h;++bK)
+        {
+            c = QColor::fromRgba(pImg->pixel(aK,bK));
+            if (c.alpha() == 255) mask.set(aK, h-bK, 1);
+        }
+    }
+    string aOut = m_Loader->GetFilenamesOut()[0].toStdString();
+#ifdef _DEBUG
+    printf ("Saving %s\n", aOut);
+#endif
+
+    Tiff_Im::CreateFromIm(mask, aOut);
+
+    cout << "saved " << aOut <<endl;
+#ifdef _DEBUG
+    printf ("Done\n");
+#endif
 }
 
 void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)

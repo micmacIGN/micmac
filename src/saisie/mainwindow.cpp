@@ -414,6 +414,7 @@ void MainWindow::loadPlys()
 {
     m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Cloud Files"),QString(), tr("Files (*.ply)"));
 
+    m_Engine->SetFilenamesIn(m_FilenamesIn);
     addFiles(m_FilenamesIn);
 }
 
@@ -421,6 +422,7 @@ void MainWindow::loadCameras()
 {
     m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Camera Files"),QString(), tr("Files (*.xml)"));
 
+    m_Engine->SetFilenamesIn(m_FilenamesIn);
     addFiles(m_FilenamesIn);
 }
 
@@ -428,6 +430,7 @@ void MainWindow::loadImages()
 {
     m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Image Files"),QString(), tr("Files (*.*)"));
 
+    m_Engine->SetFilenamesIn(m_FilenamesIn);
     addFiles(m_FilenamesIn);
 
     m_bMode2D = true;
@@ -435,7 +438,14 @@ void MainWindow::loadImages()
 
 void MainWindow::exportMasks()
 {
-    m_Engine->doMasks();
+    if (m_Engine->getData()->NbImages())
+    {
+        m_Engine->doMaskImage(m_glWidget->getGLImage());
+    }
+    else
+    {
+        m_Engine->doMasks();
+    }
 }
 
 void MainWindow::loadAndExport()
@@ -443,6 +453,7 @@ void MainWindow::loadAndExport()
     loadCameras();
     m_Engine->doMasks();
 }
+
 void MainWindow::saveSelectionInfos()
 {
     m_Engine->saveSelectInfos(m_glWidget->getSelectInfos());
@@ -463,7 +474,13 @@ void MainWindow::openRecentFile()
 {
     QAction *action = qobject_cast<QAction *>(sender());
     if (action)
-        addFiles(QStringList(action->data().toString()));
+    {
+        m_FilenamesIn = QStringList(action->data().toString());
+
+        addFiles(m_FilenamesIn);
+        m_Engine->SetFilenamesIn(m_FilenamesIn);
+        m_Engine->setFilenamesOut();
+    }
 }
 
 void MainWindow::setCurrentFile(const QString &fileName)
