@@ -994,10 +994,12 @@ void  cAppli_Ori_Txt2Xml_main::InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK)
     if(EAMIsInit(&mAltiSol))
     {
         aCam.mOC->Externe().AltiSol().SetVal(mAltiSol);
+        aCam.mOC->Externe().Profondeur().SetVal(aC.z- mAltiSol);
     }
     if(EAMIsInit(&mProf))
     {
-        aCam.mOC->Externe().AltiSol().SetVal(mProf);
+        aCam.mOC->Externe().Profondeur().SetVal(mProf);
+        aCam.mOC->Externe().AltiSol().SetValIfNotInit(aC.z-mProf);
     }
     MakeFileXML(*(aCam.mOC),aCam.mNameOri);
     aCam.mCam = CamOrientGenFromFile(aCam.mNameOri,mICNM);
