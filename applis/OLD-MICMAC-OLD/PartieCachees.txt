@@ -1,0 +1,23 @@
+Organisation (finale) : 
+Suposon etape 5 a resolution 1/4 , etape 6 resol 1/2.
+
+   - le masque issue du ZBUfer est fait en fin d'etape 5, a la resolution 1/4 :
+     le resultat est un fichier image 8 Bit, non signe + xml (meta donnees) qui :
+
+           - est superposable a une translation pres aux donnees terrain (masq, MNT..)
+
+           - contient a un pas (donné dans le xml) la difference entre
+             le Z et le Z retro -projete du ZBufer:
+
+           - 
+
+    - pour operer :
+   
+            *  on calcule ZMin-ZMax  (avec eventuellement troncature des bord
+            de masque + troncature des % ?), a voir ....
+
+
+            * pour chaque image :
+
+                  - calcule de l'emprise avec ZMin-ZMax
+                  - chargement du terrain
