@@ -39,7 +39,6 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _m_g_mouseLeftDown(false)
   , _m_g_mouseMiddleDown(false)
   , _m_g_mouseRightDown(false)
-  , m_glOrientation(false)
   , m_rw(1.f)
   , m_rh(1.f)
 {
@@ -55,7 +54,6 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
     setAcceptDrops(true);
 
     m_glPosition[0] = m_glPosition[1] = 0.f;
-    m_glLastPosition[0] = m_glLastPosition[1] = 0.f;
 }
 
 GLWidget::~GLWidget()
@@ -79,12 +77,12 @@ GLWidget::~GLWidget()
 
 void GLWidget::initializeGL()
 {
-    if (m_bInitialized)
+    if (m_bGLInitialized)
         return;
 
     glEnable( GL_DEPTH_TEST );
 
-    m_bInitialized = true;
+    m_bGLInitialized = true;
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -143,6 +141,9 @@ void GLWidget::paintGL()
     {
         glPushMatrix(); // __TEST
 
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+
         glEnable(GL_ALPHA_TEST);
         glAlphaFunc(GL_GREATER, 0.1f);
 
@@ -154,43 +155,31 @@ void GLWidget::paintGL()
 //
         glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
 
-        cout << "zoom - position " << m_params.zoom << " " << m_glLastPosition[0] << " " << m_glLastPosition[1] << endl;
+       // cout << "zoom - position " << m_params.zoom << " " << m_glLastPosition[0] << " " << m_glLastPosition[1] << endl;
 
         glBegin(GL_QUADS);
-        if (m_glOrientation)  // orientation portrait
-        {
-            glTexCoord2f(0.0f, 0.0f);
-            //glVertex2f(-1.0f, -1.0f);
-            glVertex2f(m_glLastPosition[0]*m_params.zoom, m_glLastPosition[1]*m_params.zoom);
 
-            glTexCoord2f(1.0f, 0.0f);
-            glVertex2f((m_glLastPosition[0]+2.f*m_rw)*m_params.zoom, m_glLastPosition[1]*m_params.zoom);
+        GLfloat originX = m_glPosition[0]*m_params.zoom;
+        GLfloat originY = m_glPosition[1]*m_params.zoom;
 
-            glTexCoord2f(1.0f, 1.0f);
-            // glVertex2f(1.0f, 1.0f);
-            glVertex2f((m_glLastPosition[0]+2.f*m_rw)*m_params.zoom, (m_glLastPosition[1]+2.f*m_rh)*m_params.zoom);
+        GLfloat glw = 2.f*m_rw*m_params.zoom;
+        GLfloat glh = 2.f*m_rh*m_params.zoom;
 
-            glTexCoord2f(0.0f, 1.0f);
-            //glVertex2f(-1.0f, 1.0f);
-            glVertex2f(m_glLastPosition[0]*m_params.zoom, (m_glLastPosition[1]+2.f*m_rh)*m_params.zoom);
-        }
-        else    //orientation paysage
-        {
-            glTexCoord2f(0.0f, 0.0f);
-            //glVertex2f(-1.0f, -1.0f);
-            glVertex2f(m_glLastPosition[0]*m_params.zoom, m_glLastPosition[1]*m_params.zoom);
+        glTexCoord2f(0.0f, 0.0f);
+        //glVertex2f(-1.0f, -1.0f);
+        glVertex2f(originX, originY);
 
-            glTexCoord2f(1.0f, 0.0f);
-            glVertex2f((m_glLastPosition[0]+2.f*m_rw)*m_params.zoom, m_glLastPosition[1]*m_params.zoom);
+        glTexCoord2f(1.0f, 0.0f);
+        glVertex2f(originX+glw, originY);
 
-            glTexCoord2f(1.0f, 1.0f);
-            // glVertex2f(1.0f, 1.0f);
-            glVertex2f((m_glLastPosition[0]+2.f*m_rw)*m_params.zoom, (m_glLastPosition[1]+2.f*m_rh)*m_params.zoom);
+        glTexCoord2f(1.0f, 1.0f);
+        // glVertex2f(1.0f, 1.0f);
+        glVertex2f(originX+glw, originY+glh);
 
-            glTexCoord2f(0.0f, 1.0f);
-            //glVertex2f(-1.0f, 1.0f);
-            glVertex2f(m_glLastPosition[0]*m_params.zoom, (m_glLastPosition[1]+2.f*m_rh)*m_params.zoom);
-        }
+        glTexCoord2f(0.0f, 1.0f);
+        //glVertex2f(-1.0f, 1.0f);
+        glVertex2f(originX, originY+glh);
+
         glEnd();
 
         glDisable(GL_TEXTURE_2D);
@@ -198,19 +187,13 @@ void GLWidget::paintGL()
         glDisable(GL_BLEND);
         glDisable(GL_ALPHA_TEST);
 
-
-        m_glLastPosition[0] = m_glPosition[0];
-        m_glLastPosition[1] = m_glPosition[1];
-
         glPopMatrix(); // __TEST
+
+        glMatrixMode(GL_MODELVIEW);
     }
     else
     {
         setStandardOrthoCenter();
-
-        // semble regler le positionnement des points mais pas dans tous les cas
-        // dans certaines rotations, les points auraient des profondeurs incorrectes!
-        glEnable(GL_DEPTH_TEST);
 
         //gradient color background
         drawGradientBackground();
@@ -292,8 +275,6 @@ void GLWidget::paintGL()
         // Closing 2D
         glPopAttrib();
         glPopMatrix(); // restore modelview
-        //glMatrixMode(GL_PROJECTION);
-        //glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
     }
 
@@ -351,10 +332,10 @@ void GLWidget::paintGL()
 
 bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> poly);
 
-void WindowToImage(QPoint const &p0, QPoint &p1)
+void GLWidget::WindowToImage(QPoint const &p0, QPoint &p1)
 {
-   // p1.X() = Origine.x+round(p0.x/m_params.zoom);
-   // p1.Y() = Origine.y+round(p0.y/m_params.zoom);
+   // p1.setX(_m_Origin.x()+floor(p0.x()/m_params.zoom));
+   // p1.setY(_m_Origin.y()+floor(p0.y()/m_params.zoom));
 }
 
 void ImageToWindow(QPoint const &p0, QPoint &p1)
@@ -373,10 +354,19 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
                p1,
                p2;
 
-        WindowToImage( p0, p1 );
+        //WindowToImage( p0, p1 );
+
         /*ImageToWindow( p1, p2 );*/
 
-        cout << p0.x() << ',' << p0.y() << " => " << p1.x() << ',' << p1.y() << " => " << p2.x() << ',' << p2.y() << endl;
+        float x_gl = 2.f*(float)p0.x()/m_glWidth -1.f;
+        float y_gl = 2.f*(float)p0.y()/m_glHeight-1.f;
+
+        float x2 = (x_gl - m_glPosition[0])/ (1.f - m_glPosition[0]) * (float) _glImg.width();
+        float y2 = (y_gl - m_glPosition[1])/ (1.f - m_glPosition[1]) * (float) _glImg.height();
+
+        //cout << p0.x() << ',' << p0.y() << " => " << x_gl << " " << y_gl << " => " << p1.x() << ',' << p1.y() << " => " << p2.x() << ',' << p2.y() << endl;
+
+        cout << p0.x() << ',' << p0.y() << " => " << x_gl << " " << y_gl << " => " << x2 << ',' << y2 << " => " << p2.x() << ',' << p2.y() << endl;
 
         cout << "click " << p1.x() << ',' << p1.y() << endl;
 
@@ -575,31 +565,13 @@ void GLWidget::setData(cData *data)
         m_rh = (float)_glImg.height()/m_glHeight;
 
         if(m_rw>m_rh)
-        {
-            setZoom(1.f/m_rw);
-
-            //position de l'image dans la vue gl
-            m_glPosition[0] = -m_rw;
-            m_glPosition[1] = -m_rh;
-
-            m_glOrientation = false;
-
-            cout << "orientation landscape" << endl;
-        }
+            setZoom(1.f/m_rw); //orientation landscape
         else
-        {
-            setZoom(1.f/m_rh);
+            setZoom(1.f/m_rh); //orientation portrait
 
-            m_glPosition[0] = -m_rw;
-            m_glPosition[1] = -m_rh;
-
-            m_glOrientation = true;
-
-            cout << "orientation portrait" << endl;
-        }
-
-        m_glLastPosition[0] = m_glPosition[0];
-        m_glLastPosition[1] = m_glPosition[1];
+        //position de l'image dans la vue gl
+        m_glPosition[0] = -m_rw;
+        m_glPosition[1] = -m_rh;
 
       //  cout << endl << "gl w/h : " << _glImg.width() << " " << _glImg.height() << endl;
 
@@ -705,13 +677,14 @@ void GLWidget::setStandardOrthoCenter()
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    float halfW = float(m_glWidth)*0.5;
-    float halfH = float(m_glHeight)*0.5;
-    glOrtho(-halfW,halfW,-halfH,halfH,-100.0f, 100.0f);
-        glMatrixMode(GL_MODELVIEW);
+    float halfW = float(m_glWidth)*.5f;
+    float halfH = float(m_glHeight)*.5f;
+    glOrtho(-halfW,halfW,-halfH,halfH,-100.f, 100.f);
+    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
 
+// zoom in 3D mode
 void GLWidget::zoom()
 {
     GLdouble zoom = m_params.zoom;
@@ -719,17 +692,12 @@ void GLWidget::zoom()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-   /* if (m_bDisplayMode2D)
-        glOrtho(-zoom, zoom, -zoom, zoom, -100.0f, 100.0f);
-    else
-    {
-        GLdouble fAspect = (GLdouble) m_glWidth/ m_glHeight;
+    GLdouble fAspect = (GLdouble) m_glWidth/ m_glHeight;
 
-        GLdouble left  = -zoom*fAspect;
-        GLdouble right =  zoom*fAspect;
+    GLdouble left  = -zoom*fAspect;
+    GLdouble right =  zoom*fAspect;
 
-        glOrtho(left, right, -zoom, zoom, -100.0f, 100.0f);
-    }*/
+    glOrtho(left, right, -zoom, zoom, -100.f, 100.f);
 
     glMatrixMode(GL_MODELVIEW);
 }
@@ -836,7 +804,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     }
 
     //see QWheelEvent documentation ("distance that the wheel is rotated, in eighths of a degree")
-    float wheelDelta_deg = (float)event->delta() / 8.0f;
+    float wheelDelta_deg = (float)event->delta() / 8.f;
 
     onWheelEvent(wheelDelta_deg);
 
@@ -852,7 +820,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
     if (m_interactionMode == SELECTION)
     {
-        cout << "selection" << endl;
+        //cout << "selection" << endl;
         if(!m_bPolyIsClosed)
         {
             int sz = m_polygon.size();
@@ -872,7 +840,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     }
     else if (_m_g_mouseLeftDown || _m_g_mouseMiddleDown|| _m_g_mouseRightDown)
     {
-        cout << "mouse left or middle or right" << endl;
+        //cout << "mouse left or middle or right" << endl;
 
         QPoint dp = pos-m_lastPos;
 
@@ -894,11 +862,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         {
             if (m_Data->NbImages())
             {
-                m_glLastPosition[0]  = m_glPosition[0];
-                m_glLastPosition[1]  = m_glPosition[1];
-
-                m_glPosition[0] += 2.f*( (float)dp.x()/m_glWidth );
-                m_glPosition[1] -= 2.f*( (float)dp.y()/m_glHeight );
+                m_glPosition[0]  += 2.f*( (float)dp.x()/(m_glWidth*m_params.zoom) );
+                m_glPosition[1]  -= 2.f*( (float)dp.y()/(m_glHeight*m_params.zoom) );
             }
             else
             {
@@ -1136,6 +1101,8 @@ void GLWidget::Select(int mode)
     info.selection_mode   = mode;
 
     m_infos.push_back(info);
+
+    update();
 }
 
 void GLWidget::deletePolylinePoint()
@@ -1158,13 +1125,13 @@ void GLWidget::deletePolylinePoint()
     }
     if (idx != -1)
         m_polygon.erase (m_polygon.begin() + idx);
-
 }
 
 void GLWidget::clearPolyline()
 {
     m_polygon.clear();
     m_bPolyIsClosed = false;
+    update();
 }
 
 void GLWidget::closePolyline()
@@ -1480,8 +1447,6 @@ void GLWidget::drawBbox()
             glVertex3d(P3.x, P3.y, P3.z);
 
         glEnd();
-
-        glPopAttrib();
 
         glEndList();
     }

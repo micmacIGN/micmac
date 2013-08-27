@@ -145,6 +145,8 @@ public:
 
     void reset();
 
+    void WindowToImage(QPoint const &p0, QPoint &p1);
+
 public slots:
     void zoom();
 
@@ -171,8 +173,8 @@ protected:
     void keyPressEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent* event);
 
-    //! Initialization state
-    bool m_bInitialized;
+    //! Initialization state of GL
+    bool m_bGLInitialized;
 
     //inherited from QWidget (drag & drop support)
     virtual void dragEnterEvent(QDragEnterEvent* event);
@@ -283,12 +285,6 @@ protected:
 
     //! data position in the gl viewport
     GLfloat m_glPosition[2];
-
-    //! data last position in the gl viewport
-    GLfloat m_glLastPosition[2];
-
-    //! is the image fitting in the viewport horizontally or vertically
-    bool m_glOrientation;
 
 private:
 

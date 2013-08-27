@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>798</width>
+    <height>714</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -57,7 +57,16 @@ QStatusBar
     <property name="spacing">
      <number>3</number>
     </property>
-    <property name="margin">
+    <property name="leftMargin">
+     <number>6</number>
+    </property>
+    <property name="topMargin">
+     <number>6</number>
+    </property>
+    <property name="rightMargin">
+     <number>6</number>
+    </property>
+    <property name="bottomMargin">
      <number>6</number>
     </property>
     <item>
@@ -86,7 +95,7 @@ QStatusBar
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>798</width>
      <height>21</height>
     </rect>
    </property>
@@ -197,6 +206,9 @@ QStatusBar
    </property>
   </action>
   <action name="actionSetViewFront">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset>
      <normaloff>:/images/ccViewYpos.png</normaloff>:/images/ccViewYpos.png</iconset>
@@ -212,6 +224,9 @@ QStatusBar
    </property>
   </action>
   <action name="actionSetViewBack">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset>
      <normaloff>:/images/ccViewYneg.png</normaloff>:/images/ccViewYneg.png</iconset>
@@ -227,6 +242,9 @@ QStatusBar
    </property>
   </action>
   <action name="actionSetViewLeft">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset>
      <normaloff>:/images/ccViewXpos.png</normaloff>:/images/ccViewXpos.png</iconset>
@@ -242,6 +260,9 @@ QStatusBar
    </property>
   </action>
   <action name="actionSetViewRight">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset>
      <normaloff>:/images/ccViewXneg.png</normaloff>:/images/ccViewXneg.png</iconset>
@@ -257,6 +278,9 @@ QStatusBar
    </property>
   </action>
   <action name="actionSetViewTop">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset>
      <normaloff>:/images/ccViewZpos.png</normaloff>:/images/ccViewZpos.png</iconset>
@@ -272,6 +296,9 @@ QStatusBar
    </property>
   </action>
   <action name="actionSetViewBottom">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset>
      <normaloff>:/images/ccViewZneg.png</normaloff>:/images/ccViewZneg.png</iconset>
