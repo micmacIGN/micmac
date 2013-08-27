@@ -43,6 +43,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <sys/utsname.h>
 #endif
 
+bool DebugClip()
+{
+  static bool aRes = false &&  MPD_MM();
+  return aRes;
+}
+bool BigClip=false;
 // Test commit
 
 namespace NS_ParamMICMAC
@@ -445,9 +451,6 @@ std::cout << "END TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
       return;
 
 
-   if (MPD_MM())
-   {
-   }
 
    VerifEtapes();
    mGeomDFPx->PostInit();

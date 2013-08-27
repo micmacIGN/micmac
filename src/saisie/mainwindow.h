@@ -86,6 +86,7 @@ public slots:
     void progression();
 
     void setMode2D(bool mBool);
+    bool getMode2D() {return m_bMode2D;}
 
 protected:
 
@@ -118,6 +119,6 @@ private:
 
     QMenu*                  m_RFMenu; //recent files menu
 
-    bool                    m_mode2D;
+    bool                    m_bMode2D;
 };
 #endif // MAINWINDOW_H
