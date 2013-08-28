@@ -86,6 +86,7 @@ public:
 
     void        SetFilenamesIn(QStringList const &strl){m_FilenamesIn = strl;}
     void        SetFilenamesOut();
+    void        SetFilenameOut(QString str);
     void        SetSelectionFilename();
 
     QStringList GetFilenamesOut() {return m_FilenamesOut;}
@@ -119,6 +120,9 @@ public:
 
     //! Set output filenames
     void setFilenamesOut(){m_Loader->SetFilenamesOut();}
+
+    //! Set output filename
+    void setFilenameOut(QString filename){m_Loader->SetFilenameOut(filename);}
 
     //! Load point cloud .ply files
     void loadClouds(QStringList, int *incre = NULL);

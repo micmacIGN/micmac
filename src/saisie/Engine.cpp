@@ -18,6 +18,13 @@ void cLoader::SetFilenamesOut()
     }
 }
 
+void cLoader::SetFilenameOut(QString str)
+{
+    m_FilenamesOut.clear();
+
+    m_FilenamesOut.push_back(str);
+}
+
 void cLoader::SetSelectionFilename()
 {
     m_SelectionOut = m_Dir.absolutePath() + QDir::separator() + "SelectionInfos.xml";
