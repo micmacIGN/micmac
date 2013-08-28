@@ -330,15 +330,14 @@ void GLWidget::paintGL()
 
 bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> poly);
 
-
-//converts from Vieport coordinates [0, m_glWidth] to GL window coordinates [-1,1] into Image coordinates [0,_glImg.width]
+//converts from Viewport coordinates [0, m_glWidth] to GL window coordinates [-1,1] into Image coordinates [0,_glImg.width]
 void GLWidget::WindowToImage(QPointF const &p0, QPointF &p1)
 {
    float x_gl = 2.f*p0.x()/m_glWidth -1.f;
    float y_gl = 2.f*p0.y()/m_glHeight-1.f;
 
-   p1.setX((float)_glImg.width()*(1.f -  x_gl/(m_glPosition[0]*m_params.zoom))*.5f);
-   p1.setY((float)_glImg.height()*(1.f - y_gl/(m_glPosition[1]*m_params.zoom))*.5f);
+   p1.setX((float)m_glWidth*(x_gl-m_glPosition[0]*m_params.zoom)/(2.f*m_params.zoom));
+   p1.setY((float)m_glHeight*(y_gl-m_glPosition[1]*m_params.zoom)/(2.f*m_params.zoom));
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
@@ -815,6 +814,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             {
                 m_glPosition[0]  += 2.f*( (float)dp.x()/(m_glWidth*m_params.zoom) );
                 m_glPosition[1]  -= 2.f*( (float)dp.y()/(m_glHeight*m_params.zoom) );
+
             }
             else
             {
