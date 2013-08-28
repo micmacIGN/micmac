@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>798</width>
-    <height>714</height>
+    <width>800</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -57,16 +57,7 @@ QStatusBar
     <property name="spacing">
      <number>3</number>
     </property>
-    <property name="leftMargin">
-     <number>6</number>
-    </property>
-    <property name="topMargin">
-     <number>6</number>
-    </property>
-    <property name="rightMargin">
-     <number>6</number>
-    </property>
-    <property name="bottomMargin">
+    <property name="margin">
      <number>6</number>
     </property>
     <item>
@@ -95,7 +86,7 @@ QStatusBar
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>798</width>
+     <width>800</width>
      <height>21</height>
     </rect>
    </property>
@@ -169,6 +160,7 @@ QStatusBar
     <addaction name="actionLoad_images"/>
     <addaction name="actionSave_selection"/>
     <addaction name="actionSave_masks"/>
+    <addaction name="actionSave_as"/>
     <addaction name="actionClose_all"/>
     <addaction name="actionExit"/>
     <addaction name="actionRecentFiles"/>
@@ -471,7 +463,7 @@ QStatusBar
     <string>Save selection infos</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+S</string>
+    <string>Ctrl+E</string>
    </property>
   </action>
   <action name="actionClose_all">
@@ -549,7 +541,15 @@ QStatusBar
     <string>Save masks</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+E</string>
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionSave_as">
+   <property name="text">
+    <string>Save as</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
    </property>
   </action>
  </widget>

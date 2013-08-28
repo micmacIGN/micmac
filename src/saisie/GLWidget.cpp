@@ -89,8 +89,23 @@ void GLWidget::resizeGL(int width, int height)
 {
     if (width==0 || height==0) return;
 
+    float curW = m_glWidth;
+
     m_glWidth  = (float)width;
     m_glHeight = (float)height;
+
+    if (m_Data->NbImages())
+    {
+        m_rw = (float)_glImg.width()/m_glWidth;
+        m_rh = (float)_glImg.height()/m_glHeight;
+
+        float curZoom = m_params.zoom;
+        setZoom(curZoom*(float)width/curW);
+
+        //position de l'image dans la vue gl
+        m_glPosition[0] = -m_rw;
+        m_glPosition[1] = -m_rh;
+    }
 
     glViewport( 0, 0, width, height );
 }
@@ -812,9 +827,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         {
             if (m_Data->NbImages())
             {
-                m_glPosition[0]  += 2.f*( (float)dp.x()/(m_glWidth*m_params.zoom) );
-                m_glPosition[1]  -= 2.f*( (float)dp.y()/(m_glHeight*m_params.zoom) );
-
+                m_glPosition[0] += 2.f*( (float)dp.x()/(m_glWidth*m_params.zoom) );
+                m_glPosition[1] -= 2.f*( (float)dp.y()/(m_glHeight*m_params.zoom) );
             }
             else
             {

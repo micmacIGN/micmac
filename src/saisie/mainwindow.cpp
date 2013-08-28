@@ -95,6 +95,7 @@ void MainWindow::connectActions()
     connect(ui->actionLoad_camera,		SIGNAL(triggered()),   this, SLOT(loadCameras()));
     connect(ui->actionLoad_images,		SIGNAL(triggered()),   this, SLOT(loadImages()));
     connect(ui->actionSave_masks,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
+    connect(ui->actionSave_as,          SIGNAL(triggered()),   this, SLOT(exportMasksAs()));
     connect(ui->actionLoad_and_Export,  SIGNAL(triggered()),   this, SLOT(loadAndExport()));
     connect(ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
     connect(ui->actionClose_all,        SIGNAL(triggered()),   this, SLOT(closeAll()));
@@ -308,7 +309,9 @@ void MainWindow::doActionDisplayShortcuts()
         text += tr("Ctrl+C: open .xml camera files")+"\n";
     }
     text += tr("Ctrl+O: open image files")+"\n";
-    if (!m_bMode2D) text += tr("Ctrl+S: save .xml selection infos")+"\n";
+    if (!m_bMode2D) text += tr("Ctrl+E: save .xml selection infos")+"\n";
+    text += tr("Ctrl+S: save masks files")+"\n";
+    text += tr("Ctrl+Maj+S: save masks files as")+"\n";
     text += tr("Ctrl+X: close files")+"\n";
     text += tr("Ctrl+Q: quit") +"\n\n";
     text += tr("View:") +"\n\n";
@@ -438,6 +441,20 @@ void MainWindow::loadImages()
 
 void MainWindow::exportMasks()
 {
+    if (m_Engine->getData()->NbImages())
+    {
+        m_Engine->doMaskImage(m_glWidget->getGLImage());
+    }
+    else
+    {
+        m_Engine->doMasks();
+    }
+}
+
+void MainWindow::exportMasksAs()
+{
+    m_Engine->setFilenameOut(QFileDialog::getSaveFileName(NULL, tr("Save mask Files"),QString(), tr("Files (*.*)")));
+
     if (m_Engine->getData()->NbImages())
     {
         m_Engine->doMaskImage(m_glWidget->getGLImage());
