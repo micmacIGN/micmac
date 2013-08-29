@@ -18,19 +18,24 @@ class cData
         void addCamera(CamStenope *);
         void addCloud(Cloud *);
         void addImage(QImage *);
+        void addMask(QImage *);
 
         void clearCameras();
         void clearClouds();
         void clearImages();
+        void clearMasks();
 
         int NbCameras(){return m_Cameras.size();}
         int NbClouds(){return m_Clouds.size();}
         int NbImages(){return m_Images.size();}
+        int NbMasks(){return  m_Masks.size();}
 
         CamStenope * & getCamera(int aK) {return m_Cameras[aK];}
         Cloud * &      getCloud(int aK)  {return m_Clouds[aK];}
         QImage * &     getImage(int aK)  {return m_Images[aK];}
+        QImage * &     getMask(int aK)   {return m_Masks[aK];}
         QImage * &     getCurImage()     {return m_Images[m_curImgIdx];}
+        QImage * &     getCurMask()      {return m_Masks[m_curImgIdx];}
 
         void    setCurImage(int idx)     {m_curImgIdx = idx;}
 
@@ -48,6 +53,7 @@ class cData
         vector <CamStenope *> m_Cameras;
         vector <Cloud *>      m_Clouds;
         vector <QImage *>     m_Images;
+        vector <QImage *>     m_Masks;
 
         int                   m_curImgIdx;
 };

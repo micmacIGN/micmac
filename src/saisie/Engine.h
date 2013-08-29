@@ -3,6 +3,7 @@
 
 #include "qiodevice.h"
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QDir>
 #include <QDomDocument>
 #include <QTextStream>
@@ -80,6 +81,7 @@ public:
     Cloud*      loadCloud(string i_ply_file , int *incre = NULL);
 
     QImage*     loadImage(QString aNameFile);
+    QImage*     loadMask(QString aNameMask);
 
     void        setDir(QDir aDir){m_Dir = aDir;}
     QDir        getDir(){return m_Dir;}
@@ -130,8 +132,11 @@ public:
     //! Load cameras .xml files
     void loadCameras(QStringList);
 
-    //! Load cameras .xml files
+    //! Load images  files
     void loadImages(QStringList);
+
+    //! Load image and mask file
+    void loadImageAndMask(QString img, QString mask);
 
     void unloadAll();
 

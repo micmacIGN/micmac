@@ -10,10 +10,12 @@ cData::~cData()
    for (int aK=0; aK < NbCameras();++aK) delete m_Cameras[aK];
    for (int aK=0; aK < NbClouds();++aK)  delete m_Clouds[aK];
    for (int aK=0; aK < NbImages();++aK)  delete m_Images[aK];
+   for (int aK=0; aK < NbMasks();++aK)   delete m_Masks[aK];
 
    m_Cameras.clear();
    m_Clouds.clear();
    m_Images.clear();
+   m_Masks.clear();
 }
 
 void cData::addCamera(CamStenope * aCam)
@@ -25,6 +27,11 @@ void cData::addImage(QImage * aImg)
 {
     m_Images.push_back(aImg);
     m_curImgIdx = m_Images.size() - 1;
+}
+
+void cData::addMask(QImage * aImg)
+{
+    m_Masks.push_back(aImg);
 }
 
 void cData::clearClouds()
@@ -53,6 +60,16 @@ void cData::clearImages()
         delete m_Images[aK];
 
     m_Images.clear();
+
+    reset();
+}
+
+void cData::clearMasks()
+{
+    for (uint aK=0; aK < (uint)NbMasks();++aK)
+        delete m_Masks[aK];
+
+    m_Masks.clear();
 
     reset();
 }

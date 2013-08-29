@@ -41,6 +41,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _m_g_mouseRightDown(false)
   , m_rw(1.f)
   , m_rh(1.f)
+  , m_alpha(.5f)
 {
     _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
     _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
@@ -527,7 +528,7 @@ void GLWidget::setData(cData *data)
         glAlphaFunc(GL_GREATER, 0.1f);
         glEnable(GL_ALPHA_TEST);
 
-        _glImg = QGLWidget::convertToGLFormat( *data->getCurImage() );
+        _glImg = QGLWidget::convertToGLFormat( *m_Data->getCurImage() );
 
         //width and height ratio between viewport and image
         m_rw = (float)_glImg.width()/m_glWidth;
@@ -549,6 +550,33 @@ void GLWidget::setData(cData *data)
 
         glDisable(GL_ALPHA_TEST);
         glDisable(GL_TEXTURE_2D);
+
+        if (m_Data->NbMasks())
+        {
+            QImage mask = QGLWidget::convertToGLFormat( *m_Data->getCurMask());
+
+            int w = _glImg.width();
+            int h = _glImg.height();
+
+            QColor c1, c2;
+            for (int y=0; y<h; ++y)
+            {
+                for (int x=0; x<w; ++x)
+                {
+                    c1 = QColor::fromRgba(mask.pixel(x,y));
+                    c2 = QColor::fromRgba(_glImg.pixel(x,y));
+
+                    if (c1.alpha() == 0)
+                       c2.setAlphaF(m_alpha);
+                    else
+                       c2.setAlphaF(1.f);
+
+                    _glImg.setPixel(x,y, c2.rgba());
+                }
+            }
+
+            m_bFirstAction = false;
+        }
     }
 
     if (m_Data->NbCameras())
@@ -936,9 +964,7 @@ void GLWidget::Select(int mode)
         }
     }
 
-    float alphaF = 0.5f;
-
-    if (m_bDisplayMode2D)
+     if (m_bDisplayMode2D)
     {
         QColor c;
 
@@ -956,7 +982,7 @@ void GLWidget::Select(int mode)
                     {
                         if (!pointInside)
                         {
-                            c.setAlphaF(alphaF);
+                            c.setAlphaF(m_alpha);
                             _glImg.setPixel(x,y, c.rgba());
                         }
                     }
@@ -974,14 +1000,14 @@ void GLWidget::Select(int mode)
                     pointInside = isPointInsidePoly(QPointF(x,y),polyg);
                     if (pointInside)
                     {
-                        c.setAlphaF(alphaF);
+                        c.setAlphaF(m_alpha);
                         _glImg.setPixel(x,y, c.rgba());
                     }
                     break;
                 case INVERT:
                     if (m_previousAction == NONE)  m_bFirstAction = true;
                     c = QColor::fromRgba(_glImg.pixel(x,y));
-                    if (c.alpha() == 255) c.setAlphaF(alphaF);
+                    if (c.alpha() == 255) c.setAlphaF(m_alpha);
                     else c.setAlphaF(1.f);
                     _glImg.setPixel(x,y, c.rgba());
                     break;
@@ -993,7 +1019,7 @@ void GLWidget::Select(int mode)
                     break;
                 case NONE:
                     c = QColor::fromRgba(_glImg.pixel(x,y));
-                    c.setAlphaF(alphaF);
+                    c.setAlphaF(m_alpha);
                     _glImg.setPixel(x,y, c.rgba());
                     break;
                 }

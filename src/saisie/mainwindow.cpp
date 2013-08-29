@@ -93,7 +93,8 @@ void MainWindow::connectActions()
     //File menu
     connect(ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
     connect(ui->actionLoad_camera,		SIGNAL(triggered()),   this, SLOT(loadCameras()));
-    connect(ui->actionLoad_images,		SIGNAL(triggered()),   this, SLOT(loadImages()));
+    connect(ui->actionLoad_image,		SIGNAL(triggered()),   this, SLOT(loadImage()));
+    connect(ui->actionLoad_image_mask,	SIGNAL(triggered()),   this, SLOT(loadImageAndMask()));
     connect(ui->actionSave_masks,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
     connect(ui->actionSave_as,          SIGNAL(triggered()),   this, SLOT(exportMasksAs()));
     connect(ui->actionLoad_and_Export,  SIGNAL(triggered()),   this, SLOT(loadAndExport()));
@@ -149,10 +150,12 @@ void MainWindow::progression()
 
 void MainWindow::addFiles(const QStringList& filenames)
 {
-    bool mode2D = getMode2D();
-
     if (filenames.size())
     {
+        m_Engine->SetFilenamesIn(filenames);
+
+        bool mode2D = getMode2D();
+
         if (mode2D)
         {
             setMode2D(false);
@@ -165,7 +168,6 @@ void MainWindow::addFiles(const QStringList& filenames)
         QDir Dir = fi.dir();
         Dir.cdUp();
         m_Engine->setDir(Dir);
-        m_Engine->setFilename();
 
 #ifdef _DEBUG
         printf("adding files %s", filenames[0]);
@@ -190,10 +192,13 @@ void MainWindow::addFiles(const QStringList& filenames)
             delete timer_test;
 
             future.waitForFinished();
+
+            m_Engine->setFilename();
+            m_Engine->setFilenamesOut();
         }
         else if (fi.suffix() == "xml")
         {
-            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadCameras,filenames);
+            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadCameras, filenames);
 
             this->m_FutureWatcher.setFuture(future);
             this->m_ProgressDialog->setWindowModality(Qt::WindowModal);
@@ -212,13 +217,15 @@ void MainWindow::addFiles(const QStringList& filenames)
             }
 
             //try to load images
-            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadImages,filenames);
+            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadImages, filenames);
 
             this->m_FutureWatcher.setFuture(future);
             this->m_ProgressDialog->setWindowModality(Qt::WindowModal);
             this->m_ProgressDialog->exec();
 
             future.waitForFinished();
+
+            m_Engine->setFilenamesOut();
         }
 
         m_glWidget->setData(m_Engine->getData());
@@ -417,7 +424,6 @@ void MainWindow::loadPlys()
 {
     m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Cloud Files"),QString(), tr("Files (*.ply)"));
 
-    m_Engine->SetFilenamesIn(m_FilenamesIn);
     addFiles(m_FilenamesIn);
 }
 
@@ -425,19 +431,55 @@ void MainWindow::loadCameras()
 {
     m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Camera Files"),QString(), tr("Files (*.xml)"));
 
-    m_Engine->SetFilenamesIn(m_FilenamesIn);
     addFiles(m_FilenamesIn);
 }
 
-void MainWindow::loadImages()
+void MainWindow::loadImage()
 {
-    m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Image Files"),QString(), tr("Files (*.*)"));
+    m_FilenamesIn.clear();
+    m_FilenamesIn.push_back(QFileDialog::getOpenFileName(NULL, tr("Open Image File"),QString(), tr("File (*.*)")));
 
-    m_Engine->SetFilenamesIn(m_FilenamesIn);
     addFiles(m_FilenamesIn);
 
     m_bMode2D = true;
 }
+
+void MainWindow::loadImageAndMask()
+{
+    QString img_filename, mask_filename;
+    img_filename = QFileDialog::getOpenFileName(NULL, tr("Open Image File"),QString(), tr("File (*.*)"));
+
+    m_FilenamesIn.clear();
+    m_FilenamesIn.push_back(img_filename);
+
+    QFileInfo fi(img_filename);
+
+    mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + "_masq.tif";
+
+    if (!QFile::exists(mask_filename))
+         mask_filename = QFileDialog::getOpenFileName(NULL, tr("Open Mask File"),QString(), tr("File (*.*)"));
+
+    if (!m_bMode2D)
+    {
+        m_bMode2D = true;
+
+        closeAll();
+        glLoadIdentity();
+    }
+
+    // load image and mask
+    m_Engine->loadImageAndMask(img_filename, mask_filename);
+
+    m_Engine->setFilenameOut(mask_filename);
+
+    m_glWidget->setData(m_Engine->getData());
+    m_glWidget->update();
+
+    setCurrentFile(img_filename);
+
+    checkForLoadedData();
+}
+
 
 void MainWindow::exportMasks()
 {
@@ -495,8 +537,6 @@ void MainWindow::openRecentFile()
         m_FilenamesIn = QStringList(action->data().toString());
 
         addFiles(m_FilenamesIn);
-        m_Engine->SetFilenamesIn(m_FilenamesIn);
-        m_Engine->setFilenamesOut();
     }
 }
 
