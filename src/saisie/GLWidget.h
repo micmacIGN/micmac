@@ -28,7 +28,6 @@
 #include <QUrl>
 #include <QtGui/QMouseEvent>
 #include <QSettings>
-#include <QMessageBox>
 #include <QMimeData>
 #include <QTime>
 
@@ -287,6 +286,9 @@ protected:
 
     //! data position in the gl viewport
     GLfloat m_glPosition[2];
+
+    //! transparency of deleted areas
+    float   m_alpha;
 
 private:
 

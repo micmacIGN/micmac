@@ -40,6 +40,59 @@ QImage* cLoader::loadImage( QString aNameFile )
     return new QImage( aNameFile );
 }
 
+QImage* cLoader::loadMask( QString aNameMask )
+{
+    QImage* pMask = new QImage( aNameMask );
+    QImage* pDest = new QImage( pMask->size(), QImage::Format_RGB32 );
+    pDest->fill(255);
+    pDest->setAlphaChannel(*pMask);
+
+    return pDest;
+}
+
+/*
+QImage* cLoader::loadImageAndMask(const QString &aNameFile, const QString &aNameMask)
+{
+    QImage* pImg = new QImage( aNameFile );
+    QImage* pMask = new QImage( aNameMask );
+
+    if (pImg->size() == pMask->size())
+    {
+        const QImage sourceImage = pMask->convertToFormat(QImage::Format_RGB32);
+
+        int w = pImg->width();
+        int h = pImg->height();
+
+        const uchar *src_data = sourceImage.bits();
+        const uchar *dest_data = pImg->bits();
+        for (int y=0; y<h; ++y)
+        {
+            const QRgb *src = (const QRgb *) src_data;
+            QRgb *dest = (QRgb *) dest_data;
+            for (int x=0; x<w; ++x)
+            {
+                int alpha = qGray(*src);
+                if (alpha == 0)  alpha = 122;
+                int destAlpha = div_255(alpha * qAlpha(*dest));
+                *dest = ((destAlpha << 24)
+                         | (div_255(qRed(*dest) * alpha) << 16)
+                         | (div_255(qGreen(*dest) * alpha) << 8)
+                         | (div_255(qBlue(*dest) * alpha)));
+                ++dest;
+                ++src;
+            }
+
+            src_data += sourceImage.bytesPerLine();
+            dest_data += pImg->bytesPerLine();
+        }
+    }
+    else
+        qWarning("cLoader::loadImageAndMask:"
+                 "Mismatch between image size and mask size - mask image not loaded");
+
+    return pImg;
+}*/
+
 /*vector <CamStenope *> cLoader::loadCameras()
 {
    vector <CamStenope *> a_res;
@@ -114,6 +167,12 @@ void cEngine::loadImages(QStringList filenames)
     m_Loader->SetFilenamesOut();
 }
 
+void  cEngine::loadImageAndMask(QString img, QString mask)
+{
+    m_Data->addImage(m_Loader->loadImage(img));
+    m_Data->addMask(m_Loader->loadMask(mask));
+}
+
 void cEngine::doMasks()
 {
 
@@ -179,6 +238,7 @@ void cEngine::doMaskImage(QImage* pImg)
             if (c.alpha() == 255) mask.set(aK, h-bK-1, 1);
         }
     }
+
     string aOut = m_Loader->GetFilenamesOut()[0].toStdString();
 #ifdef _DEBUG
     printf ("Saving %s\n", aOut);
