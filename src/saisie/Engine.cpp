@@ -42,56 +42,40 @@ QImage* cLoader::loadImage( QString aNameFile )
 
 QImage* cLoader::loadMask( QString aNameMask )
 {
-    QImage* pMask = new QImage( aNameMask );
-    QImage* pDest = new QImage( pMask->size(), QImage::Format_RGB32 );
-    pDest->fill(255);
-    pDest->setAlphaChannel(*pMask);
+    Tiff_Im img( aNameMask.toStdString().c_str() );
 
-    return pDest;
-}
-
-/*
-QImage* cLoader::loadImageAndMask(const QString &aNameFile, const QString &aNameMask)
-{
-    QImage* pImg = new QImage( aNameFile );
-    QImage* pMask = new QImage( aNameMask );
-
-    if (pImg->size() == pMask->size())
+    if( img.can_elise_use() )
     {
-        const QImage sourceImage = pMask->convertToFormat(QImage::Format_RGB32);
+        int w = img.sz().x;
+        int h = img.sz().y;
 
-        int w = pImg->width();
-        int h = pImg->height();
+        QImage* pDest = new QImage( w, h, QImage::Format_ARGB32 );
 
-        const uchar *src_data = sourceImage.bits();
-        const uchar *dest_data = pImg->bits();
-        for (int y=0; y<h; ++y)
+        Im2D_Bits<1> aOut(w,h,1);
+        ELISE_COPY(img.all_pts(),img.in(),aOut.out());
+
+        for (int x=0;x< w;++x)
         {
-            const QRgb *src = (const QRgb *) src_data;
-            QRgb *dest = (QRgb *) dest_data;
-            for (int x=0; x<w; ++x)
+            for (int y=0; y<h;++y)
             {
-                int alpha = qGray(*src);
-                if (alpha == 0)  alpha = 122;
-                int destAlpha = div_255(alpha * qAlpha(*dest));
-                *dest = ((destAlpha << 24)
-                         | (div_255(qRed(*dest) * alpha) << 16)
-                         | (div_255(qGreen(*dest) * alpha) << 8)
-                         | (div_255(qBlue(*dest) * alpha)));
-                ++dest;
-                ++src;
+                if (aOut.get(x,y) == 0 )
+                {
+                    QColor c(0,0,0,0);
+                    pDest->setPixel(x,y,c.rgba());
+                }
+                else
+                {
+                    QColor c(255,255,255,255);
+                    pDest->setPixel(x,y,c.rgba());
+                }
             }
-
-            src_data += sourceImage.bytesPerLine();
-            dest_data += pImg->bytesPerLine();
         }
+        return pDest;
     }
     else
-        qWarning("cLoader::loadImageAndMask:"
-                 "Mismatch between image size and mask size - mask image not loaded");
-
-    return pImg;
-}*/
+        qCritical("cLoader::loadMask"
+                  "Cannot load mask image");
+}
 
 /*vector <CamStenope *> cLoader::loadCameras()
 {

@@ -1514,5 +1514,8 @@ void GLWidget::reset()
     clearPolyline();
 
     m_params.reset();
-    m_Data->reset();
+    m_Data->clearClouds();
+    m_Data->clearCameras();
+    m_Data->clearImages();
+    m_Data->clearMasks();
 }
