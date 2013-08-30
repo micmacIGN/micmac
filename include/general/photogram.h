@@ -2922,11 +2922,11 @@ class cCpleEpip
              double aScale,
              const CamStenope & aC1,const std::string & aName1,
              const CamStenope & aC2,const std::string & aName2,
-             const std::string & PrefLeft =   "EpiLeft_",
-             const std::string & PrefRight =  "EpiRight_"
+             const std::string & PrefLeft =   "Left_",
+             const std::string & PrefRight =  "Right_"
          );
 
-         void ImEpip(Tiff_Im aFile,bool Im1);
+         void ImEpip(Tiff_Im aFile,const std::string & aNameOriIn,bool Im1);
          const bool & Ok() const;
          void AssertOk() const;
      private :
