@@ -1013,6 +1013,18 @@ std::istream & operator >> (std::istream & ifs,Box2di  &aBox)
    return InputStrem(ifs,aBox);
 }
 
+template<class Type> std::string  BoxToSring(const Box2d<Type>  &aBox)
+{
+   return    "[" + ToString(aBox._p0.x) + std::string(",")
+                 + ToString(aBox._p0.y) + std::string(",")
+                 + ToString(aBox._p1.x) + std::string(",")
+                 + ToString(aBox._p1.y)
+            + "]";
+}
+
+template <> std::string ToString<Box2di> (const Box2di & aBox) {return BoxToSring(aBox);}
+template <> std::string ToString<Box2dr> (const Box2dr & aBox) {return BoxToSring(aBox);}
+
 
 Pt2di BoxPClipedIntervC(const Box2di & aB,const Pt2di & aP)
 {

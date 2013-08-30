@@ -333,6 +333,7 @@ extern int  PtsHom_main(int argc,char ** argv);
 extern int  LucasChCloud_main(int argc,char ** argv);
 extern int  Mathieu_main(int argc,char ** argv);
 extern int  RawCor_main(int argc,char ** argv);
+extern int  CreateBlockEpip_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -345,18 +346,20 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    // Luc rajoute le fichier ?
    // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
    aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Exemples fonctions modifying cloud "));
+
+   aRes.push_back(cMMCom("BlocEpip",CreateBlockEpip_main,"Epip by bloc (internal use to // epip) "));
    return aRes;
 }
 
 int SampleLibElise_main(int argc,char ** argv)
 {
 
-    std::cout << "TEST ELISE LIB\n";
+    // std::cout << "TEST ELISE LIB\n";
 
     GenMain(argc,argv,TestLibAvailableCommands());
     
 
-    return 1;
+    return 0;
 }
 
 
