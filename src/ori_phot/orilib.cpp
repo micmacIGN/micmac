@@ -3256,6 +3256,7 @@ class cDistFromCIC
 	   cCamera_Param_Unif_Gen * CamUnif();
 
 
+	   CamStenopeIdeale *             CamSI();
 
        private :
 	   ElDistRadiale_PolynImpair  DRP(const cCalibrationInternConique & aCIC,const cCalibrationInterneRadiale &,bool C2M);
@@ -3263,6 +3264,7 @@ class cDistFromCIC
 	   CamStenope              * mCam;
 	   cCamStenopeModStdPhpgr  * mCamPS;
 	   cCamStenopeDistRadPol   * mCamDR;
+           CamStenopeIdeale        * mCamSI;
 	   cCam_Ebner *              mCamEb;
            cCam_DRad_PPaEqPPs *      mCamDR_PPas;
            cCam_Fraser_PPaEqPPs *    mCamFras_PPas;
@@ -3360,6 +3362,11 @@ cCamera_Param_Unif_Gen *  cDistFromCIC::CamUnif()
     return 0;
 }
 
+CamStenopeIdeale * cDistFromCIC::CamSI()
+{
+   ELISE_ASSERT(mCamSI!=0,"cDistFromCIC::Cam");
+   return mCamSI;
+}
 
 cCamStenopeDistRadPol * cDistFromCIC::CamDRad()
 {
@@ -3483,6 +3490,7 @@ cDistFromCIC::cDistFromCIC
        mCamPS =0;
        mCamDR =0;
        mCamEb = 0;
+       mCamSI = 0;
        mCamDR_PPas = 0;
        mCamFras_PPas = 0;
        mCamDCB = 0;
@@ -3503,7 +3511,13 @@ cDistFromCIC::cDistFromCIC
        if (aKD<int(aCIC.ComplIsC2M().size()) && (aKD!=aNbD-1))
           aKC2M = aCIC.ComplIsC2M()[aKD];
 
-       if (aCD.ModRad().IsInit())
+       if (aCD.ModNoDist().IsInit())
+       {
+            mCamSI =  new CamStenopeIdeale(aKC2M,aCIC.F(),aCIC.PP(),aCIC.ParamAF());
+
+            mCam = mCamSI;
+       }
+       else if (aCD.ModRad().IsInit())
        {
            const cCalibrationInterneRadiale & aCIR = aCD.ModRad().Val();
            mCamDR = new cCamStenopeDistRadPol
@@ -4258,6 +4272,8 @@ cCamStenopeDistRadPol * Std_Cal_DRad_C2M
     }
     return aRes;
 }
+/*
+*/
 
 
 cCamStenopeModStdPhpgr  *Std_Cal_PS_C2M
@@ -4296,7 +4312,7 @@ CamStenope * Std_Cal_From_CIC
 
 CamStenope * CamOrientGenFromFile(const std::string & aNameFile, cInterfChantierNameManipulateur * anICNM)
 {
-	std::string aFullFileName = anICNM->Dir() + aNameFile;
+   std::string aFullFileName = (anICNM ? anICNM->Dir() : "") + aNameFile;
 
     cElXMLTree aTree(aFullFileName);
     cElXMLTree * aF1 = aTree.Get("CalibrationInternConique");
@@ -4404,11 +4420,18 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
           }
           if (theDic[aName]==0)
           {
-//std::cout << "NEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEW \n";
+              std::string aNameCalib = aName;
+              if (!ELISE_fp::exist_file(aNameCalib))
+              {
+                    std::string aNameTested = aDir + aNameCalib;
+                    if (ELISE_fp::exist_file(aNameTested))
+                       aNameCalib = aNameTested;
+              }
+         
                aCIC =
                                    StdGetObjFromFile<cCalibrationInternConique>
                                    (
-                                         aName,
+                                         aNameCalib,
                                          StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
                                          "CalibrationInternConique",
                                          "CalibrationInternConique"
@@ -4499,11 +4522,13 @@ ElCamera * Cam_Gen_From_XML (const cOrientationConique  & anOC,cInterfChantierNa
 ElCamera * Gen_Cam_Gen_From_File
            (
                   bool CanUseGr,
-                  const std::string & aNameFile,
+                  const std::string & aNameFileOri,
                   const std::string &  aNameTag,
                   cInterfChantierNameManipulateur * anICNM
            )
 {
+   std::string aNameFile = aNameFileOri;
+   if ((! ELISE_fp::exist_file(aNameFile)) &&(anICNM!=0))  aNameFile = anICNM->Dir()  + aNameFile;
 
    if (StdPostfix(aNameFile)=="xml")
    {

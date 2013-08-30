@@ -173,7 +173,10 @@ double FromSzW2FactExp(double aSzW,double mCurNbIterFenSpec)
 void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
 {
      mCurEtape = & anEtape;
-     ELISE_fp::MkDirSvp(DirCube());
+     if (anEtape.EtapeMEC().GenCubeCorrel().ValWithDef(false))
+     {
+        ELISE_fp::MkDirSvp(DirCube());
+     }
      mEBI = mCurEtape->EBI();
      const cEtapeMEC & anEM = mCurEtape->EtapeMEC();
 
