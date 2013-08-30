@@ -192,12 +192,16 @@ int  NuageBascule_main(int argc,char ** argv)
              std::string aCom =  aComBase 
                                + std::string(" InternallCalledByP=true ")
                                + std::string(" InternallSuplOut=") + aSupl 
+                               + std::string(" BoxIn=") + ToString(aBoxK)
+/*
                                + std::string(" BoxIn=[") + ToString(aBoxK._p0.x) + std::string(",") 
                                                         + ToString(aBoxK._p0.y) + std::string(",") 
                                                         + ToString(aBoxK._p1.x) + std::string(",") 
                                                         + ToString(aBoxK._p1.y) 
                                + std::string("] ") 
+*/
                            ;
+
 
              if (mShowCom)
                 std::cout << "COM= " << aCom << "\n";

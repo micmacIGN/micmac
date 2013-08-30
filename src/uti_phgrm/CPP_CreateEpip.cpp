@@ -83,8 +83,8 @@ int CreateEpip_main(int argc,char ** argv)
      std::string aNameOr1 = anICNM->Assoc1To1(aKey,aName1,true);
      std::string aNameOr2 = anICNM->Assoc1To1(aKey,aName2,true);
 
-     CamStenope * aCam1 = CamStenope::StdCamFromFile(true,aDir+aNameOr1,anICNM);
-     CamStenope * aCam2 = CamStenope::StdCamFromFile(true,aDir+aNameOr2,anICNM);
+     CamStenope * aCam1 = CamStenope::StdCamFromFile(true,aNameOr1,anICNM);
+     CamStenope * aCam2 = CamStenope::StdCamFromFile(true,aNameOr2,anICNM);
 
      Tiff_Im aTif1 = Tiff_Im::StdConvGen(aDir+aName1,aNbChan,Cons16B);
      Tiff_Im aTif2 = Tiff_Im::StdConvGen(aDir+aName2,aNbChan,Cons16B);
@@ -103,8 +103,12 @@ int CreateEpip_main(int argc,char ** argv)
                     *aCam2,aName2
                );
 
-     aCplE.ImEpip(aTif1,true);
-     aCplE.ImEpip(aTif2,false);
+     std::cout << "TimeEpi-0 \n";
+     ElTimer aChrono;
+     aCplE.ImEpip(aTif1,aNameOr1,true);
+     std::cout << "TimeEpi-1 " << aChrono.uval() << "\n";
+     aCplE.ImEpip(aTif2,aNameOr2,false);
+     std::cout << "TimeEpi-2 " << aChrono.uval() << "\n";
 
      return EXIT_SUCCESS;
 }
