@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<ExportAPERO>
+     <CalibrationInternConique>
+          <KnownConv>eConvApero_DistM2C</KnownConv>
+          <PP>2777.02158427890299 1884.32724360086809</PP>
+          <F>3823.90107458692319</F>
+          <SzIm>5634 3754</SzIm>
+          <CalibDistortion>
+               <ModUnif>
+                    <TypeModele>eModelePolyDeg7</TypeModele>
+                    <Etats> 3823.90107458692319 </Etats>
+               </ModUnif>
+          </CalibDistortion>
+     </CalibrationInternConique>
+</ExportAPERO>

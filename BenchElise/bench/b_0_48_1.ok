@@ -1,0 +1,466 @@
+/*eLiSe06/05/99
+  
+     Copyright (C) 1999 Marc PIERROT DESEILLIGNY
+
+   eLiSe : Elements of a Linux Image Software Environment
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS  
+Internet: Marc.Pierrot-Deseilligny@ign.fr
+   Phone: (33) 01 43 98 81 28
+eLiSe06/05/99*/
+
+
+#include "general/all.h"
+#include "private/all.h"
+
+
+
+void  BenchCox
+      (
+             Pt2di aSz,
+             Fonc_Num FZMin,
+             Fonc_Num FZMax,
+             INT aCostRegul
+
+      )
+{
+   StdCoxAlgo aSCA(aSz,FZMin,FZMax,aCostRegul);
+
+   for (INT x=0 ;x <aSCA.tx() ; x++)
+       for (INT y=0 ;y <aSCA.ty() ; y++)
+       {
+            Pt2di aP2(x,y);
+            INT zMin = aSCA.ZMin(aP2);
+            INT zMax = aSCA.ZMax(aP2);
+
+            for (INT z=zMin ; z<zMax ; z++)
+            {
+                INT aCost = round_ni(NRrandom3() * 10);
+		/*
+if (x==0)
+   aCost = 10 * (1+(z==0));
+else
+   aCost = 10 * (1+(z!=0));
+   */
+                Pt3di aP3(x,y,z);
+// cout << "Fill-in : " << aP3 << " : " <<  aCost << "\n";
+                aSCA.SetCost(aP3,aCost); 
+            }
+       }
+
+    INT aCPT = 0;
+    while(1)
+    {
+           INT aCapa = aSCA.OneStepPCC();
+           cout << "One Step : " << aCapa << "\n";
+           if (aCapa == 0)
+	   {
+	      cout << "NB STEP = " << aCPT << "\n";
+              aSCA.Sol(-1000);
+getchar();
+              return;
+	   }
+	   aCPT++;
+    }
+}
+
+class GMCube
+{
+   public :
+     GMCube(std::string);
+
+      ELISE_fp aFp;
+
+      REAL mX0; 
+      REAL mY0; 
+      REAL mZ0; 
+
+      REAL mStepXY;
+      REAL mStepZ;
+
+      INT mTx; 
+      INT mTy; 
+      INT mTz; 
+
+      Im2D_INT2 mIZmin;
+      Im2D_INT2 mIZmax;
+      REAL      mZoom;
+      Video_Win mW;
+      Video_Win mW2;
+      Video_Win mW3;
+      Video_Win mW4;
+      Video_Win mW5;
+      Video_Display  mDisp;
+
+
+      StdCoxAlgo * pSCA;
+
+      void Opt();
+
+      ~GMCube();
+};
+
+
+GMCube::~GMCube()
+{
+   delete pSCA;
+}
+
+void ShowIm2(Im2D_INT2 aZ,Video_Win aW)
+{
+    INT zMax,zMin;
+
+    ELISE_COPY(aZ.all_pts(),aZ.in(),VMax(zMax)|VMin(zMin));
+    cout << "Z  = [" << zMin << " , " << zMax << "]\n";
+
+    ELISE_COPY
+    (
+        aZ.all_pts(),
+        Max(0,Min(255,aZ.in())), // (aZ.in()-zMin) * (255.0/(zMax-zMin)),
+        aW.ogray()
+    );
+}
+
+void GMCube::Opt()
+{ 
+    ElTimer aTimer;
+    INT aCPT = 0;
+    Im2D_INT2 LastSol(1,1);
+    while(1)
+    {
+           INT aCapa = pSCA->OneStepPCC();
+           if (aCapa == 0)
+           {
+              Im2D_INT2 aZ = pSCA->Sol(0);
+	      ShowIm2(aZ,mW5);
+	      return;
+           }
+	   aCPT++;
+	   Im2D_INT2  aSol =  pSCA->SolMinCol(0);
+	   ShowIm2(aSol,mW4);
+
+	   INT Dif;
+	   ELISE_COPY
+           (
+              aSol.all_pts(),
+              Abs(LastSol.in(0)-aSol.in()),
+	      sigma(Dif)
+           );
+	   LastSol = aSol;
+
+           cout << "CPT " << aCPT 
+		<< " ; Dif = " <<  Dif
+		<< " Time : " << aTimer.uval() 
+		<< " DCapa : " << aCapa << "\n";
+    }
+    
+}
+
+GMCube::GMCube(std::string aName)  :
+    aFp     ( aName.c_str(),ELISE_fp::READ),
+    mX0     ( aFp.read_REAL8()),
+    mY0     ( aFp.read_REAL8()),
+    mZ0     ( aFp.read_REAL8()),
+    mStepXY ( aFp.read_REAL8()),
+    mStepZ  ( aFp.read_REAL8()),
+    mTx     ( aFp.read_INT4()),
+    mTy     ( aFp.read_INT4()),
+    mTz     ( aFp.read_INT4()),
+    mIZmin  ( mTx, mTy),
+    mIZmax  ( mTx, mTy),
+    mZoom   (1.0),
+    mW      (Video_Win::WStd(Pt2di(mTx,mTy),mZoom)),
+    mW2     (Video_Win::WStd(Pt2di(mTx,mTy),mZoom)),
+    mW3     (Video_Win::WStd(Pt2di(200,100),mZoom)),
+    mW4     (Video_Win::WStd(Pt2di(mTx,mTy),mZoom)),
+    mW5     (Video_Win::WStd(Pt2di(mTx,mTy),mZoom)),
+    mDisp   (mW2.disp())
+{
+
+
+
+   INT aNbZ =0;
+   long aDeb = aFp.tell();
+   INT aMaxZ =0;
+   for(INT y=0;y<mTy;++y)
+   {
+
+      for(INT x=0;x<mTx;++x)
+      {
+          INT2 zM  = aFp.read_INT2();
+          INT2 aN  = aFp.read_INT2();
+
+          mIZmin.data()[y][x] = zM;
+          mIZmax.data()[y][x] = zM+aN;
+          ElSetMax(aMaxZ ,(INT) aN);
+
+          aFp.seek_cur(aN*sizeof(INT2));
+          aNbZ += aN;
+      }
+   }
+
+   cout << "NbZ = " << aNbZ <<  "  " << mStepZ << "\n";
+   INT zMin,zMax;
+   ELISE_COPY
+   (
+     mIZmin.all_pts(),
+     Virgule(mIZmin.in(),mIZmax.in()),
+        Virgule(VMin(zMin),VMax(zMax))
+     |  Virgule(mW4.ogray(),mW5.ogray())
+   );
+   getchar();
+   cout <<  "Int Z init " << zMin << " " << zMax << "\n";
+
+   pSCA = new StdCoxAlgo
+              (
+                  Pt2di(mTx,mTy),
+                  mIZmin.in(),
+                  mIZmax.in(),
+                  2
+              );
+
+   
+   aFp.seek_begin(aDeb);
+   Im2D_INT2 zCor(mTx,mTy);
+   Im2D_U_INT1 CorMax(mTx,mTy);
+
+   INT aVMax = -1000000;
+   INT aVMin = 100000;
+
+   for(INT y=0;y<mTy;++y)
+   {
+      for(INT x=0;x<mTx;++x)
+      {
+          INT2 z1  = aFp.read_INT2();
+          INT2 z2  = z1+aFp.read_INT2();
+ 
+          INT cMax = -100000;
+          INT zMax = z1;
+
+          for (INT z=z1 ; z<z2 ; z++)
+          {
+              INT2 aVal =  aFp.read_INT2();
+              ElSetMin(aVMin,aVal);
+              ElSetMax(aVMax,aVal);
+              if (aVal > cMax)
+              {
+                   cMax = aVal;
+                   zMax = z;
+              }
+              aVal = (900-aVal)/9;
+              pSCA->SetCost(Pt3di(x,y,z),aVal);
+          }
+          zCor.data()[y][x] = zMax;
+          CorMax.data()[y][x] = (INT)(255 * (1.0-cMax/900.0));
+      }
+   }
+
+   cout << "VALS = [" << aVMin << " , " << aVMax << "]\n";
+
+   ELISE_COPY(zCor.all_pts(),CorMax.in(),mW.ogray());
+   ELISE_COPY(zCor.all_pts(),zCor.in(),mW2.ogray());
+
+/*
+   while (true)
+   {
+
+cout << "CLIK \n";
+        Pt2di aP = mDisp.clik()._pt;
+cout << aP << "\n";;
+        mW3.clear();
+
+        INT aZ1 = pSCA->ZMin(aP);
+        INT aZ2 = pSCA->ZMax(aP);
+
+        cout << "\n\n";
+        for (INT aZ = aZ1 ; aZ < aZ2 ; aZ++)
+        {
+            INT aCost = pSCA->Cost(Pt3di(aP.x,aP.y,aZ));
+            cout << aZ << " " << aCost << "\n";
+            mW3.draw_circle_loc
+            (
+                Pt2di(aZ,aCost),
+                1.0,
+                mW3.pdisc()(P8COL::red)
+            );
+        }
+   }
+*/
+}
+
+Im2D_U_INT1 ImTif(std::string aName)
+{
+   
+   Tiff_Im aTif(aName.c_str());
+   Im2D_U_INT1 aRes(aTif.sz().x,aTif.sz().y);
+   ELISE_COPY(aRes.all_pts(),aTif.in(),aRes.out());
+
+   return aRes;
+}
+
+Fonc_Num   fpond(Fonc_Num f)
+{
+    //return canny_exp_filt(f,0.3,0.3,20);
+    return rect_som(f,1);
+}
+
+
+void Correl8()
+{
+    INT aZ0 = -30;
+    INT aZ1 =  30;
+    REAL StZ = 0.3333;
+
+    Im2D_U_INT1 anIG = ImTif("/home/pierrot/Data/Cub/epigReduc4.tif");
+    Im2D_U_INT1 anID = ImTif("/home/pierrot/Data/Cub/epidReduc4.tif");
+    Pt2di aSz = anIG.sz();
+
+    Im2D_REAL4 aCor(aSz.x,aSz.y);
+    Im2D_REAL4 aCorMax(aSz.x,aSz.y,-10);
+    Im2D_INT1  aZmax(aSz.x,aSz.y);
+    INT aBrd = 5;
+    StdCoxAlgo aSCA(aSz-Pt2di(aBrd,aBrd)*2,aZ0,aZ1,3);
+   
+    Video_Win W1 = Video_Win::WStd(aSz,2.0);
+    Video_Win W2 = Video_Win::WStd(aSz,2.0);
+ 
+    for (INT aZ = aZ0; aZ <aZ1 ; aZ++)
+    {
+        Symb_FNum   SymbIns (anIG.inside());
+        Symb_FNum   SymbG (anIG.in(0));
+        Symb_FNum   SymbD (anID.in(0)[Virgule(FX-aZ*StZ,FY)]);
+
+        Symb_FNum   All
+                    (
+                      fpond
+                      (Virgule(
+                          SymbIns,
+                          SymbIns * SymbG,
+                          SymbIns * SymbD,
+                          SymbIns * Square(SymbG),
+                          SymbIns * Square(SymbD),
+                          SymbIns * SymbG * SymbD
+                      )
+                      )
+                    );
+
+       Symb_FNum S   (All.kth_proj(0));
+       Symb_FNum Sg  (All.kth_proj(1)/S);
+       Symb_FNum Sd  (All.kth_proj(2)/S);
+       Symb_FNum Sgg (All.kth_proj(3)/S-Sg*Sg);
+       Symb_FNum Sdd (All.kth_proj(4)/S-Sd*Sd);
+       Symb_FNum Sgd (All.kth_proj(5)/S-Sg*Sd);
+
+       Symb_FNum sCor (Sgd/sqrt(Max(0.1,Sdd*Sgg)));
+
+
+        ELISE_COPY
+        (
+             anIG.all_pts(),
+             Max(-1,Min(1,sCor)),
+             aCor.out() 
+              | (W1.ogray()<<(255.0*Max(0,aCor.in())))
+        );     
+ 
+        ELISE_COPY
+        (
+             select(anIG.all_pts(),aCor.in() > aCorMax.in()),
+             Virgule(aCor.in(),aZ),
+             Virgule(aCorMax.out(),aZmax.out())
+        );
+
+        for (INT x= aBrd ; x<aSz.x-aBrd ; x++)
+            for (INT y= aBrd ; y<aSz.y-aBrd ; y++)
+            {
+                 aSCA.SetCost
+                 (
+                     Pt3di(x-aBrd,y-aBrd,aZ),
+                     round_ni(100*(1-ElMax(0.0,(double)aCor.data()[y][x])))
+                 );
+            }
+    }
+              ELISE_COPY
+              (
+                  aZmax.all_pts(),
+                  (aZmax.in()-aZ0) * (255.0 / (aZ1-aZ0)),
+                  W2.ogray()
+                  
+              );
+getchar();
+
+    INT aCPT =0;
+    while(1)
+    {
+           INT aCapa = aSCA.OneStepPCC();
+           cout << "CPT " << aCPT << "One Step : " << aCapa << "\n";
+           if (aCapa == 0)
+	   {
+	      cout << "NB STEP = " << aCPT << "\n";
+              Im2D_INT2 Sol = aSCA.Sol(-1000);
+              INT RMax,RMin;
+              ELISE_COPY
+              (
+                  Sol.all_pts(),
+                  Sol.in(),
+                  VMax(RMax) | VMin(RMin)
+              );
+              cout << "RESUL " << RMax << " " << RMin << "\n";
+              ELISE_COPY
+              (
+                  Sol.all_pts(),
+                  (Sol.in()-aZ0) * (255.0 / (aZ1-aZ0)),
+                  W1.ogray()
+                  
+              );
+getchar();
+              return;
+	   }
+	   aCPT++;
+    }
+}
+
+
+
+
+void bench_cox()
+{
+   // Correl8();
+
+  GMCube aGMC("/home/pierrot/Data/Cub/out.cube");
+  aGMC.Opt();
+getchar();
+
+
+while (1)
+{
+    BenchCox
+    (
+        Pt2di(60,60),
+        sin(FX+FY) * 2,
+        cos(FX+FY) * 2 + 10,
+        5  // regul
+    );
+}
+
+    while (1) getchar();
+}
+
+
+
+
+
+
