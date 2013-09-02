@@ -303,6 +303,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   {
      const std::string & aNameIm = (*mSetIm)[aKIm];
      std::string aNameOri =  mICNM->Assoc1To1(aKeyOri,aNameIm,true);
+      
+      //ToDo: Faire evoluer ce code pour pouvoir gerer d'autres type d'orientation (Grille et RTO).
+      // utilisation d'une ElCamera (avec cCameraModuleOrientation pour le cas des ModuleOrientation)
+      
      CamStenope *  aCS = CamOrientGenFromFile(aNameOri,mICNM);
 
      if (aCS->AltisSolIsDef())

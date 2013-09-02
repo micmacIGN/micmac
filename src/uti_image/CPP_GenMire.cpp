@@ -246,7 +246,7 @@ int GrayTexture_main (int argc,char** argv)
 
    for (int aK=0 ; aK<4 ; aK++)
    {
-        aVRand.push_back(pow(2,aK));
+        aVRand.push_back(pow(2.0,aK));
         aVRand.push_back(0.25);
    }
    bool                 doInitR;
