@@ -784,7 +784,6 @@ if (0)
         }
     }
 
-    double MAXDIST = 0.0;
 
 
 Fonc_Num SomVoisCreux(Fonc_Num aF,Pt2di aV)
@@ -1626,6 +1625,10 @@ void cAppliMICMAC::DoCorrelAdHoc
         else if (aTC.MasqueAutoByTieP().IsInit())
         {
             DoMasqueAutoByTieP(aBox,aTC.MasqueAutoByTieP().Val());
+        }
+        else if (aTC.CensusCost().IsInit())
+        {
+             DoCensusCorrel(aBox,aTC.CensusCost().Val());
         }
 
 }

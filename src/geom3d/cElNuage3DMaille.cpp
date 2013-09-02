@@ -1491,7 +1491,7 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
     Im2D_REAL4  aMntBasc = aBasc.Basculer(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef);
     cElNuage3DMaille * aNuageRes = this; 
 
-    Pt2di anOfOutInit= anOfOut;
+    // Pt2di anOfOutInit= anOfOut;
     if (AutoResize)
     {
          aNuageRes = ReScaleAndClip(Box2dr(anOfOut,anOfOut+aMntBasc.sz()),1.0);

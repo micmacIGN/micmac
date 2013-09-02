@@ -920,6 +920,11 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 
 
                 <TypeCAH Nb="1" Union="true">
+                        <CensusCost Nb="?" AccessorFils="false">
+                              <PdsCrown  Type="double" Def="0.5" Nb="?"> </PdsCrown>
+                        </CensusCost>
+
+
                         <Correl2DLeastSquare Nb="?" AccessorFils="false">    
                              <SzW Nb="1" Type="int"> </SzW>
                              <PeriodEch Nb="1" Type="int"> </PeriodEch>

@@ -4967,6 +4967,36 @@ void xml_init(cCorrelMultiScale & anObj,cElXMLTree * aTree)
 }
 
 
+cTplValGesInit< double > & cCensusCost::PdsCrown()
+{
+   return mPdsCrown;
+}
+
+const cTplValGesInit< double > & cCensusCost::PdsCrown()const 
+{
+   return mPdsCrown;
+}
+
+cElXMLTree * ToXMLTree(const cCensusCost & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CensusCost",eXMLBranche);
+   if (anObj.PdsCrown().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PdsCrown"),anObj.PdsCrown().Val())->ReTagThis("PdsCrown"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cCensusCost & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.PdsCrown(),aTree->Get("PdsCrown",1),double(0.5)); //tototo 
+}
+
+
 int & cCorrel2DLeastSquare::SzW()
 {
    return mSzW;
@@ -5574,6 +5604,17 @@ void xml_init(cMasqueAutoByTieP & anObj,cElXMLTree * aTree)
 }
 
 
+cTplValGesInit< cCensusCost > & cTypeCAH::CensusCost()
+{
+   return mCensusCost;
+}
+
+const cTplValGesInit< cCensusCost > & cTypeCAH::CensusCost()const 
+{
+   return mCensusCost;
+}
+
+
 cTplValGesInit< cCorrel2DLeastSquare > & cTypeCAH::Correl2DLeastSquare()
 {
    return mCorrel2DLeastSquare;
@@ -5687,6 +5728,8 @@ cElXMLTree * ToXMLTree(const cTypeCAH & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"TypeCAH",eXMLBranche);
+   if (anObj.CensusCost().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.CensusCost().Val())->ReTagThis("CensusCost"));
    if (anObj.Correl2DLeastSquare().IsInit())
       aRes->AddFils(ToXMLTree(anObj.Correl2DLeastSquare().Val())->ReTagThis("Correl2DLeastSquare"));
    if (anObj.GPU_Correl().IsInit())
@@ -5716,6 +5759,8 @@ void xml_init(cTypeCAH & anObj,cElXMLTree * aTree)
 {
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+
+   xml_init(anObj.CensusCost(),aTree->Get("CensusCost",1)); //tototo 
 
    xml_init(anObj.Correl2DLeastSquare(),aTree->Get("Correl2DLeastSquare",1)); //tototo 
 
@@ -5813,6 +5858,17 @@ cTplValGesInit< cCorrelMultiScale > & cCorrelAdHoc::CorrelMultiScale()
 const cTplValGesInit< cCorrelMultiScale > & cCorrelAdHoc::CorrelMultiScale()const 
 {
    return mCorrelMultiScale;
+}
+
+
+cTplValGesInit< cCensusCost > & cCorrelAdHoc::CensusCost()
+{
+   return TypeCAH().CensusCost();
+}
+
+const cTplValGesInit< cCensusCost > & cCorrelAdHoc::CensusCost()const 
+{
+   return TypeCAH().CensusCost();
 }
 
 
@@ -9626,6 +9682,17 @@ cTplValGesInit< cCorrelMultiScale > & cEtapeMEC::CorrelMultiScale()
 const cTplValGesInit< cCorrelMultiScale > & cEtapeMEC::CorrelMultiScale()const 
 {
    return CorrelAdHoc().Val().CorrelMultiScale();
+}
+
+
+cTplValGesInit< cCensusCost > & cEtapeMEC::CensusCost()
+{
+   return CorrelAdHoc().Val().TypeCAH().CensusCost();
+}
+
+const cTplValGesInit< cCensusCost > & cEtapeMEC::CensusCost()const 
+{
+   return CorrelAdHoc().Val().TypeCAH().CensusCost();
 }
 
 

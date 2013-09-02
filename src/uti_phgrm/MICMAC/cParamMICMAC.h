@@ -1722,6 +1722,21 @@ class cCorrelMultiScale
 };
 cElXMLTree * ToXMLTree(const cCorrelMultiScale &);
 
+class cCensusCost
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cCensusCost & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< double > & PdsCrown();
+        const cTplValGesInit< double > & PdsCrown()const ;
+    private:
+        cTplValGesInit< double > mPdsCrown;
+};
+cElXMLTree * ToXMLTree(const cCensusCost &);
+
 class cCorrel2DLeastSquare
 {
     public:
@@ -1973,6 +1988,9 @@ class cTypeCAH
         friend void xml_init(cTypeCAH & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< cCensusCost > & CensusCost();
+        const cTplValGesInit< cCensusCost > & CensusCost()const ;
+
         cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare();
         const cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare()const ;
 
@@ -2003,6 +2021,7 @@ class cTypeCAH
         cTplValGesInit< cMasqueAutoByTieP > & MasqueAutoByTieP();
         const cTplValGesInit< cMasqueAutoByTieP > & MasqueAutoByTieP()const ;
     private:
+        cTplValGesInit< cCensusCost > mCensusCost;
         cTplValGesInit< cCorrel2DLeastSquare > mCorrel2DLeastSquare;
         cTplValGesInit< cGPU_Correl > mGPU_Correl;
         cTplValGesInit< cGPU_CorrelBasik > mGPU_CorrelBasik;
@@ -2044,6 +2063,9 @@ class cCorrelAdHoc
 
         cTplValGesInit< cCorrelMultiScale > & CorrelMultiScale();
         const cTplValGesInit< cCorrelMultiScale > & CorrelMultiScale()const ;
+
+        cTplValGesInit< cCensusCost > & CensusCost();
+        const cTplValGesInit< cCensusCost > & CensusCost()const ;
 
         cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare();
         const cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare()const ;
@@ -3280,6 +3302,9 @@ class cEtapeMEC
 
         cTplValGesInit< cCorrelMultiScale > & CorrelMultiScale();
         const cTplValGesInit< cCorrelMultiScale > & CorrelMultiScale()const ;
+
+        cTplValGesInit< cCensusCost > & CensusCost();
+        const cTplValGesInit< cCensusCost > & CensusCost()const ;
 
         cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare();
         const cTplValGesInit< cCorrel2DLeastSquare > & Correl2DLeastSquare()const ;
