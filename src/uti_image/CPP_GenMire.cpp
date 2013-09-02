@@ -234,6 +234,75 @@ int GenMire_main (int argc,char** argv)
    return 0;
 }
 
+int GrayTexture_main (int argc,char** argv)
+{                 
+
+   Pt2di aSz;
+   std::string aNameOut = "GrayText.tif";
+   std::vector<double>  aVRand;
+
+   std::string aImMacro;
+   double      aPdsImMacro=1;
+
+   for (int aK=0 ; aK<4 ; aK++)
+   {
+        aVRand.push_back(pow(2,aK));
+        aVRand.push_back(0.25);
+   }
+   bool                 doInitR;
+
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(aSz,"Sz of file"),
+        LArgMain()
+                    << EAM(aVRand,"VRand",true,"Vector of noise [Sz1,Pds1,Sz2,Pds2, ...]")
+                    << EAM(doInitR,"InitR",true,"Init Random at each run ")
+                    << EAM(aImMacro,"MacroIm",true,"Deterministic Macro Image (Def=None)")
+                    << EAM(aPdsImMacro,"PdsMI",true,"Pds of Macro Image when used (Def=1)")
+
+   );
+
+   ELISE_ASSERT((aVRand.size()%2)==0,"Must have even size");
+
+   if (doInitR)
+      NRrandom3InitOfTime();
+
+   double aSomPds = 0;
+   Fonc_Num aSomF = 0;
+   for (int aK= 0 ; aK<int(aVRand.size()) ; aK+=2)
+   {
+        double aP =  aVRand[aK+1];
+        aSomF = aSomF + unif_noise_2(round_ni(aVRand[aK])) * (aP*255);
+        aSomPds += aP;
+   }
+
+
+   if (EAMIsInit(&aImMacro))
+   {
+        Tiff_Im aTM = Tiff_Im::StdConvGen(aImMacro,1,false);
+        Pt2di aSzM = aTM.sz();
+        Im2D_U_INT1 aImM(aSzM.x,aSzM.y);
+        ELISE_COPY(aTM.all_pts(),aTM.in(),aImM.out());
+ 
+        Fonc_Num  fx = (FX*aSzM.x)/aSz.x;
+        Fonc_Num  fy = (FY*aSzM.y)/aSz.y;
+
+        aSomF =  aSomF+ aImM.in()[Virgule(fx,fy)] * aPdsImMacro;
+        aSomPds  += aPdsImMacro;
+   }
+
+
+   Fonc_Num aFonc = Max(0,Min(255,(aSomF/aSomPds)));
+ 
+   Tiff_Im::Create8BFromFonc(aNameOut,aSz,aFonc);
+   
+   return 0;
+}
+
+
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

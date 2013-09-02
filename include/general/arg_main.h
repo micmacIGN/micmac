@@ -467,6 +467,7 @@ int Arsenic_main(int argc,char ** argv);
 int Sift_main(int argc,char ** argv);
 int Ann_main(int argc,char ** argv);
 int GenMire_main (int argc,char** argv);
+int GrayTexture_main (int argc,char** argv);
 int SplitMPO_main(int argc,char ** argv);
 
 
