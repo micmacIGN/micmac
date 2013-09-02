@@ -253,7 +253,40 @@ CpleEpipolaireCoord * CpleEpipolaireCoord::CamEpipolaire
     return new CpleEpipolaireCoord(aMap1,aMap2);
 }
 
+/********************************************************/
+/*                                                      */
+/*                   ::                                 */
+/*                                                      */
+/********************************************************/
 
+
+
+Pt2dr GlobTransfoEpip ( const Pt2dr & aPIm, const CamStenope & aCamIn, const CamStenope & aCamOut) 
+{
+
+    Pt3dr aC = aCamIn.VraiOpticalCenter();
+    Pt3dr aRay = aCamIn.F2toDirRayonR3(aPIm);
+    return  aCamOut.R3toF2(aC+aRay);
+}
+
+Box2dr  GlobBoxCam(Box2dr aBoxIn,const CamStenope & aCamIn,const CamStenope & aCamOut) 
+{
+    std::vector<Pt2dr> aVPtsIn;
+    int aNbPts =1;
+    aBoxIn.PtsDisc(aVPtsIn,aNbPts);
+
+    Pt2dr aPInfOut(1e20,1e20);
+    Pt2dr aPSupOut(-1e20,-1e20);
+
+    for (int aK=0 ; aK<int(aVPtsIn.size()) ; aK++)
+    {
+        Pt2dr aP = GlobTransfoEpip(aVPtsIn[aK],aCamIn,aCamOut);
+        aPInfOut.SetInf(aP);
+        aPSupOut.SetSup(aP);
+    }
+
+    return Box2dr(aPInfOut,aPSupOut);
+}
 /********************************************************/
 /*                                                      */
 /*                cCpleEpip                             */
@@ -268,11 +301,18 @@ CamStenopeIdeale  cCpleEpip::CamOut(const CamStenope & aCamIn,Pt2dr aPP,Pt2di aS
     aCamOut.SetOrientation(aRC2M.inv());
     aCamOut.SetSz(aSz);
 
+    if (aCamIn.AltisSolIsDef())
+       aCamOut.SetAltiSol(aCamIn.GetAltiSol());
+    if (aCamIn.ProfIsDef())
+       aCamOut.SetProfondeur(aCamIn.GetProfondeur());
+
     return aCamOut;
 }
 
 Box2dr  cCpleEpip::BoxCam(const CamStenope & aCamIn,const CamStenope & aCamOut,bool Show) const
 {
+    return GlobBoxCam(Box2dr(Pt2dr(0,0),Pt2dr(aCamIn.Sz())),aCamIn,aCamOut);
+/*
     Box2dr aBoxIn (Pt2dr(0,0),Pt2dr(aCamIn.Sz()));
     std::vector<Pt2dr> aVPtsIn;
     int aNbPts =1;
@@ -292,23 +332,19 @@ Box2dr  cCpleEpip::BoxCam(const CamStenope & aCamIn,const CamStenope & aCamOut,b
     }
 
     return Box2dr(aPInfOut,aPSupOut);
+*/
 }
 
 
 
 
-Pt2dr cCpleEpip::TransfoEpip
-      (
-            const Pt2dr & aPIm,
-            const CamStenope & aCamIn,
-            const CamStenope & aCamOut
-       ) const
+
+Pt2dr cCpleEpip::TransfoEpip ( const Pt2dr & aPIm, const CamStenope & aCamIn, const CamStenope & aCamOut) const
 {
-
-    Pt3dr aC = aCamIn.VraiOpticalCenter();
-    Pt3dr aRay = aCamIn.F2toDirRayonR3(aPIm);
-    return  aCamOut.R3toF2(aC+aRay);
+   return GlobTransfoEpip(aPIm,aCamIn,aCamOut);
 }
+
+
 
 const bool & cCpleEpip::Ok() const
 {
@@ -393,25 +429,268 @@ cCpleEpip::cCpleEpip
    Pt3dr aDirC = vunit(mCamOut2.VraiOpticalCenter() - mCamOut1.VraiOpticalCenter());
 
    mFirstIsLeft = (scal(aDirI,aDirC) > 0) ;
-   
-
-   std::cout << "Ppppai " << mNamePair << "\n";
 
    mOk = true;
 }
 
 
-
-void cCpleEpip::ImEpip(Tiff_Im aTIn,bool Im1)
+template <class Type,class TypeBase> class cReechantEpi
 {
-    bool ImLeft = mFirstIsLeft ? Im1 : (!Im1) ;
-    std::string  aNameImOut = mDir + (ImLeft ? mPrefLeft : mPrefRight  ) +  mNamePair + ".tif";
+     public :
+            cReechantEpi
+            (
+                 const CamStenope & aCamIn,
+                 Tiff_Im aTIn,
+                 const CamStenope & aCamOut,
+                 Tiff_Im aTOut,
+                 Box2di  aBoxOut
+            );
+            typedef TIm2D<Type,TypeBase>  tTIm;
+     private  :
+};
 
+template <class Type,class TypeBase> 
+         cReechantEpi<Type,TypeBase>::cReechantEpi
+         ( 
+             const CamStenope & aCamIn,
+             Tiff_Im aTIn,
+             const CamStenope & aCamOut,
+             Tiff_Im aTOut,
+             Box2di  aBoxOut
+         )
+{
+   INT aRab = 10;
+   Pt2di aPRab(aRab,aRab);
+   Box2di aBoxIn = R2I(GlobBoxCam(I2R(aBoxOut),aCamOut,aCamIn));
+   aBoxIn._p0 = Sup(Pt2di(0,0),aBoxIn._p0-aPRab);
+   aBoxIn._p1 = Inf(aTIn.sz(),aBoxIn._p1+aPRab);
+   Pt2di aSzIn = aBoxIn.sz();
+   Pt2di aSzOut = aBoxOut.sz();
+
+   int aNbChan = aTIn.nb_chan();
+
+
+
+   std::vector<tTIm> aVIn;
+   std::vector<Type**> aDataIn;
+   std::vector<tTIm> aVOut;
+   Output aOutInit = Output::onul(1);
+   Fonc_Num  aFOut = 0;
+   for (int aKC=0 ; aKC<aNbChan ; aKC++)
+   {
+      aVIn.push_back(tTIm(aSzIn));
+      Output anOutK = aVIn.back()._the_im.out();
+      aOutInit = (aKC==0) ? anOutK : Virgule(aOutInit,anOutK);
+      aDataIn.push_back(aVIn.back()._the_im.data());
+
+      aVOut.push_back(tTIm(aSzOut));
+      Fonc_Num aFK = aVOut.back()._the_im.in();
+      aFOut = (aKC==0) ? aFK : Virgule(aFOut,aFK);
+   }
+   ELISE_COPY(rectangle(Pt2di(0,0),aSzIn),trans(aTIn.in(),aBoxIn._p0),aOutInit);
+ 
+
+
+   int aPas = 4;
+   int aSzXR = 1+(aSzOut.x+ aPas-1) / aPas;
+   int aSzXY = 1+(aSzOut.y+ aPas-1) / aPas;
+   TIm2D<REAL8,REAL8> aTImX(Pt2di(aSzXR+1,aSzXY+1));
+   TIm2D<REAL8,REAL8> aTImY(Pt2di(aSzXR+1,aSzXY+1));
+   Pt2di aPInd;
+   for ( aPInd.x=0; aPInd.x<=aSzXR ; aPInd.x++)
+   {
+       for (aPInd.y=0; aPInd.y<=aSzXY ; aPInd.y++)
+       {
+            Pt2dr aPIm = GlobTransfoEpip(Pt2dr(aPInd*aPas+aBoxOut._p0),aCamOut,aCamIn) -Pt2dr(aBoxIn._p0);
+            aTImX.oset(aPInd,aPIm.x);
+            aTImY.oset(aPInd,aPIm.y);
+       }
+   }
+
+    cInterpolateurIm2D<Type> * aKern = 0;
+    if (0)
+    {
+       aKern = new cInterpolBilineaire<Type>;
+    }
+    else if (1)
+    {
+       aKern = new cTplCIKTabul<Type,TypeBase>(10,8,-0.5);
+    }
+
+    double aSzK = aKern->SzKernel();
+    double aTxKer = aSzIn.x - aSzK;
+    double aTyKer = aSzIn.y - aSzK;
+
+
+    double UnSPas = 1.0/aPas;
+    for (int anX=0; anX<aSzOut.x ; anX++)
+    {
+       Pt2dr aPR(anX/double(aPas),0);
+       for (int anY=0; anY<aSzOut.y ; anY++)
+       {
+
+            Pt2dr aPIm(aTImX.getr(aPR),aTImY.getr(aPR));
+            bool Ok =    (aPIm.x > aSzK)
+                      && (aPIm.y > aSzK)
+                      && (aPIm.x< aTxKer)
+                      && (aPIm.y< aTyKer);
+
+     
+
+            for (int aKC=0 ; aKC<aNbChan ; aKC++)
+            {
+                double aVal =  Ok ?  aKern->GetVal(aDataIn[aKC],aPIm) : 0 ;
+                aVOut[aKC].oset(Pt2di(anX,anY),aVal);
+                
+            }
+            aPR.y += UnSPas;
+       }
+    }
+    ELISE_COPY
+    (
+         rectangle(aBoxOut._p0,aBoxOut._p1),
+         trans(aFOut,-aBoxOut._p0),
+         aTOut.out()
+    );
+    delete aKern;
+
+}
+
+void ReechEpipGen
+     ( 
+             const CamStenope & aCamIn,
+             Tiff_Im aTIn,
+             const CamStenope & aCamOut,
+             Tiff_Im aTOut,
+             Box2di  aBoxOut
+     )
+{
+   switch (aTOut.type_el())
+   {
+        case GenIm::u_int1 :
+        {
+             cReechantEpi<U_INT1,INT> aREE1(aCamIn,aTIn,aCamOut,aTOut,aBoxOut);
+        }
+        break;
+
+        case GenIm::u_int2 :
+        {
+             cReechantEpi<U_INT2,INT> aREE2(aCamIn,aTIn,aCamOut,aTOut,aBoxOut);
+        }
+        break;
+
+        default :
+             ELISE_ASSERT(false,"Numerical type not handled in cReechantEpi");
+   }
+}
+
+
+int CreateBlockEpip_main(int argc,char ** argv)
+{
+   MMD_InitArgcArgv(argc,argv);
+
+   std::string aNameTifIn,aNameTifOut,aNameCamIn,aNameCamOut;
+   Box2di aBoxOut;
+
+   bool mSinCard=false;
+
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(aNameTifIn,"Tiff In")
+                    << EAMC(aNameTifOut,"Tiff Out")
+                    << EAMC(aNameCamIn,"Camera In")
+                    << EAMC(aNameCamOut,"Camera Out")
+                    << EAMC(aBoxOut,"Box out"),
+        LArgMain()  << EAM(mSinCard,"SinCard","Use sinus card for interp, def = false")
+   );
+
+    CamStenope * aCamOut = CamOrientGenFromFile(aNameCamOut,0);
+    CamStenope * aCamIn = CamOrientGenFromFile(aNameCamIn,0);
+
+    Tiff_Im aTIn(aNameTifIn.c_str());
+    Tiff_Im aTOut(aNameTifOut.c_str());
+
+
+    ReechEpipGen(*aCamIn,aTIn,*aCamOut,aTOut,aBoxOut);
+
+    return 0;
+}
+/*
+*/
+
+
+
+void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1)
+{
+    bool ByP= true;
+    bool ImLeft = mFirstIsLeft ? Im1 : (!Im1) ;
+    std::string  aNameImOut = mDir + "Epi_" + std::string(Im1 ? "Im1_" : "Im2_") + (ImLeft ? mPrefLeft : mPrefRight  ) +   mNamePair + ".tif";
 
     AssertOk();
     const CamStenope & aCamIn =        Im1 ? mCInit1  : mCInit2;
     const CamStenopeIdeale & aCamOut = Im1 ? mCamOut1 : mCamOut2;
     Pt2di aSzOut = aCamOut.Sz();
+
+
+    std::string aNameOriOut =  mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-Epi",NameWithoutDir(aNameImOut),true);
+    // std::cout << "ORI = " << aNameOri << " " << aNameImOut << " " << NameWithoutDir(aNameImOut) << "\n";
+    // std::cout << "ORI = " << mDir << " " << mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-Epi",NameWithoutDir(aNameImOut),true) << "\n";
+    cOrientationConique anOC = aCamOut.StdExportCalibGlob();
+    MakeFileXML(anOC,mDir+aNameOriOut);
+    CamStenope * aCTEST = CamOrientGenFromFile(aNameOriOut,mICNM);
+    std::cout << "TTTTT " << aCTEST->Focale() << "\n";
+
+
+    GenIm::type_el aTypeNOut =  aTIn.type_el();
+    Tiff_Im aTOut
+            (
+                  aNameImOut.c_str(),
+                  aSzOut,
+                  aTypeNOut,
+                  Tiff_Im::No_Compr,
+                  aTIn.phot_interp()
+            );
+
+
+
+    cDecoupageInterv2D  aDec = cDecoupageInterv2D::SimpleDec(aSzOut,2000,0);
+    std::list<std::string> aLCom;
+
+    for (int aK=0 ; aK<aDec.NbInterv() ; aK++)
+    {
+         Box2di aBoxOut = aDec.KthIntervOut(aK);
+
+         if (ByP)
+         {
+              std::string aCom =    MM3dBinFile("TestLib")
+                                  + std::string(" BlocEpip ")
+                                  + " " + aTIn.name()
+                                  + " " +  aNameImOut
+                                  + " " + mDir + aNameOriIn
+                                  + " " + mDir + aNameOriOut
+                                  + " " + ToString(aBoxOut);
+             aLCom.push_back(aCom);
+         }
+         else
+         {
+              ReechEpipGen (aCamIn,aTIn,aCamOut,aTOut,aBoxOut);
+         }
+    }
+    cEl_GPAO::DoComInParal(aLCom,"MakeEpip");
+
+
+
+#if (0)
+
+    if (0)
+    {
+         Box2di aBoxOut(Pt2di(0,0),aSzOut);
+         cReechantEpi<U_INT1,INT> aREE1(aCamIn,aTIn,aCamOut,aTOut,aBoxOut);
+         cReechantEpi<U_INT2,INT> aREE2(aCamIn,aTIn,aCamOut,aTOut,aBoxOut);
+         cReechantEpi<float,double> aREE3(aCamIn,aTIn,aCamOut,aTOut,aBoxOut);
+    }
+
 
     std::vector<Im2DGen *>   aVIn = aTIn.VecOfIm(aCamIn.Sz());
     ELISE_COPY(aTIn.all_pts(),aTIn.in(),StdOutput(aVIn));
@@ -447,6 +726,7 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,bool Im1)
     double aDMax = 0;
     for (int anX=0; anX<aSzOut.x ; anX++)
     {
+//  std::cout << "EpiXXX " << aSzOut.x - anX << "\n";
        Pt2dr aPR(anX/double(aPas),0);
        for (int anY=0; anY<aSzOut.y ; anY++)
        {
@@ -488,15 +768,6 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,bool Im1)
     }
     delete aKern;
 
-    GenIm::type_el aTypeNOut =  aTIn.type_el();
-    Tiff_Im aTOut
-            (
-                  aNameImOut.c_str(),
-                  aSzOut,
-                  aTypeNOut,
-                  Tiff_Im::No_Compr,
-                  aTIn.phot_interp()
-            );
 
    ELISE_COPY
    (
@@ -504,6 +775,8 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,bool Im1)
         StdInPut(aVOut),
         aTOut.out()
    );
+
+#endif
 
 
 

@@ -593,7 +593,11 @@ cKernelInterpol1D  * cKernelInterpol1D::StdInterpCHC(double aScale,int  aNbTab)
    else if (aScale<1.5)
       aParam = aScale -1.5;
 
+
    cKernelInterpol1D * aKern = new cCubicInterpKernel(aParam);
+
+   if (aScale==1) aKern;
+
    aKern = new cScaledKernelInterpol(aKern,ElMax(1.0,aScale));
    if (aNbTab>=0)
    {
