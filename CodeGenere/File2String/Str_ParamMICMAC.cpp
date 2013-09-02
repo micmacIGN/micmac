@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2061]) = {
+const char * (theNameVar_ParamMICMAC[2066]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -922,6 +922,11 @@ const char * (theNameVar_ParamMICMAC[2061]) = {
 "\n",
 "\n",
 "                <TypeCAH Nb=\"1\" Union=\"true\">\n",
+"                        <CensusCost Nb=\"?\" AccessorFils=\"false\">\n",
+"                              <PdsCrown  Type=\"double\" Def=\"0.5\" Nb=\"?\"> </PdsCrown>\n",
+"                        </CensusCost>\n",
+"\n",
+"\n",
 "                        <Correl2DLeastSquare Nb=\"?\" AccessorFils=\"false\">    \n",
 "                             <SzW Nb=\"1\" Type=\"int\"> </SzW>\n",
 "                             <PeriodEch Nb=\"1\" Type=\"int\"> </PeriodEch>\n",
