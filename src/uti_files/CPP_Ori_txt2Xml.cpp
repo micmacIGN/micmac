@@ -848,7 +848,6 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     ParseFile();
     CalcImCenter();
 
-
     DoTiePCenter();
     if (mCalcV)
     {
@@ -883,8 +882,7 @@ void  cAppli_Ori_Txt2Xml_main::InitGrapheVois()
     }
 
 	bool elise_x11 = false;
-#ifdef ELISE_X11
-
+#if (ELISE_X11)
 	elise_x11 = true;
 #endif
 

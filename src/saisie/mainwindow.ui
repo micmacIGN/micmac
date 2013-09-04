@@ -57,16 +57,7 @@ QStatusBar
     <property name="spacing">
      <number>3</number>
     </property>
-    <property name="leftMargin">
-     <number>6</number>
-    </property>
-    <property name="topMargin">
-     <number>6</number>
-    </property>
-    <property name="rightMargin">
-     <number>6</number>
-    </property>
-    <property name="bottomMargin">
+    <property name="margin">
      <number>6</number>
     </property>
     <item>
@@ -157,6 +148,7 @@ QStatusBar
     <addaction name="actionReset"/>
     <addaction name="actionInvertSelected"/>
     <addaction name="separator"/>
+    <addaction name="actionInsertPolylinepoint"/>
     <addaction name="actionDeletePolylinepoint"/>
    </widget>
    <widget class="QMenu" name="menuFile">
@@ -568,6 +560,14 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+O</string>
+   </property>
+  </action>
+  <action name="actionInsertPolylinepoint">
+   <property name="text">
+    <string>Insert Polyline point</string>
+   </property>
+   <property name="shortcut">
+    <string>Ins</string>
    </property>
   </action>
  </widget>

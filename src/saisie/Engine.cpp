@@ -35,9 +35,30 @@ Cloud* cLoader::loadCloud( string i_ply_file, int* incre )
     return Cloud::loadPly( i_ply_file, incre );
 }
 
+int	ByP=-1;
+std::string MkFT;
+
+void DoMkT()
+{
+    if (ByP)
+    {
+        std::string aSMkSr = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFT + string(" -j")+ToString(ByP)/*+" -s"*/;
+        System(aSMkSr,true);
+    }
+}
+
 QImage* cLoader::loadImage( QString aNameFile )
 {
-    return new QImage( aNameFile );
+    QImage* result = NULL;
+
+    result = new QImage( aNameFile );
+
+    if (result->isNull())
+    {
+       //Tiff_Im aTifIn = Tiff_Im::BasicConvStd(aNameFile.toStdString().c_str());
+    }
+
+    return result;
 }
 
 QImage* cLoader::loadMask( QString aNameMask )
@@ -73,8 +94,12 @@ QImage* cLoader::loadMask( QString aNameMask )
         return pDest;
     }
     else
+    {
         qCritical("cLoader::loadMask"
                   "Cannot load mask image");
+
+        return NULL;
+    }
 }
 
 /*vector <CamStenope *> cLoader::loadCameras()

@@ -17,7 +17,7 @@ MainWindow::MainWindow(bool mode2D, QWidget *parent) :
 
     ui->OpenglLayout->setStyleSheet(style);
 
-    m_ProgressDialog = new QProgressDialog("Load ply files","Stop",0,0,this);
+    m_ProgressDialog = new QProgressDialog("Loading files","Stop",0,0,this);
     //ProgressDialog->setMinimumDuration(500);
     m_ProgressDialog->setMinimum(0);
     m_ProgressDialog->setMaximum(100);
@@ -88,6 +88,7 @@ void MainWindow::connectActions()
     connect(ui->actionReset,            SIGNAL(triggered()),   this, SLOT(selectAll()));
     connect(ui->actionRemove_from_selection,            SIGNAL(triggered()),   this, SLOT(removeFromSelection()));
 
+    connect(ui->actionInsertPolylinepoint,SIGNAL(triggered()),   this, SLOT(insertPolylinePoint()));
     connect(ui->actionDeletePolylinepoint,SIGNAL(triggered()),   this, SLOT(deletePolylinePoint()));
 
     //File menu
@@ -216,14 +217,16 @@ void MainWindow::addFiles(const QStringList& filenames)
                 glLoadIdentity();
             }
 
+            m_Engine->loadImages(filenames);
+
             //try to load images
-            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadImages, filenames);
+            /*QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadImages, filenames);
 
             this->m_FutureWatcher.setFuture(future);
             this->m_ProgressDialog->setWindowModality(Qt::WindowModal);
             this->m_ProgressDialog->exec();
 
-            future.waitForFinished();
+            future.waitForFinished();*/
 
             m_Engine->setFilenamesOut();
         }
@@ -340,6 +343,7 @@ void MainWindow::doActionDisplayShortcuts()
     text += tr("    - Echap: delete polyline") +"\n";
     text += tr("    - Space bar: add points/pixels inside polyline") +"\n";
     text += tr("    - Del: remove points/pixels inside polyline") +"\n";
+    text += tr("    - Inser: insert point in polyline") +"\n";
     text += tr("    - . : delete closest point in polyline") +"\n";
     text += tr("    - Ctrl+A: select all") +"\n";
     text += tr("    - Ctrl+D: select none") +"\n";
@@ -373,6 +377,12 @@ void MainWindow::selectAll()
 void MainWindow::removeFromSelection()
 {
     m_glWidget->Select(SUB);
+}
+
+void MainWindow::insertPolylinePoint()
+{
+    m_glWidget->insertPolylinePoint();
+    m_glWidget->update();
 }
 
 void MainWindow::deletePolylinePoint()
@@ -436,12 +446,16 @@ void MainWindow::loadCameras()
 
 void MainWindow::loadImage()
 {
-    m_FilenamesIn.clear();
-    m_FilenamesIn.push_back(QFileDialog::getOpenFileName(NULL, tr("Open Image File"),QString(), tr("File (*.*)")));
+    QString filename = QFileDialog::getOpenFileName(NULL, tr("Open Image File"),QString(), tr("File (*.*)"));
+    if (filename != "")
+    {
+        m_FilenamesIn.clear();
+        m_FilenamesIn.push_back(filename);
 
-    addFiles(m_FilenamesIn);
+        addFiles(m_FilenamesIn);
 
-    m_bMode2D = true;
+        m_bMode2D = true;
+    }
 }
 
 void MainWindow::loadImageAndMask()
