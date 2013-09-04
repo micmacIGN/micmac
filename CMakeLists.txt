@@ -13,6 +13,9 @@ set (MICMAC_VERSION_MINOR 0)
 ## 			OPTIONS			##
 ##############################
 
+# construire l'interface de saisie de masques
+OPTION(WITH_SAISIE  "build graphic interface for masks" OFF)
+
 # construire l'interface graphique
 OPTION(WITH_INTERFACE  "build graphic interface" OFF)
 

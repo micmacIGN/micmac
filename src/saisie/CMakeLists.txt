@@ -1,40 +1,98 @@
 cmake_minimum_required(VERSION 2.8)
-project(saisie3D)
+project(saisie)
 
-FIND_PACKAGE(Qt4 REQUIRED QtCore QtGui QtOpenGL)
-message("librairies Qt : "${QT_LIBRARIES})
-FIND_PACKAGE(OpenGL REQUIRED)
-message("Libraries OpenGL : "${OPENGL_LIBRARIES})
-if ( NOT WIN32 )
-    FIND_PACKAGE(X11 REQUIRED)
-    message("librairies X11 : "${X11_LIBRARIES})
+if ( NOT ${OPENGL_GLU_FOUND} )
+	message( FATAL_ERROR "GLU library could not be found " )
+	return( -1 )
+endif()
+
+set(CMAKE_AUTOMOC ON)
+
+set(SRCS main.cpp
+		 GLWidget.cpp
+         mainwindow.cpp
+         Cloud.cpp
+		 Data.cpp
+		 Engine.cpp
+		 ../poisson/plyfile.cpp)
+
+# Check if environment variable QTDIR is set.
+if (DEFINED ENV{QTDIR})
+    set(CMAKE_PREFIX_PATH $ENV{QTDIR} ${CMAKE_PREFIX_PATH})
+else ()
+    message (FATAL_ERROR "ERROR: Environment variable QTDIR is not set. Please locate your Qt folder.")
+	return( -1 )
+endif ()
+		 
+		 		 
+if ( WIN32 )			
+	set (CMAKE_PREFIX_PATH "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v7.0A\\Lib")
 ENDIF()
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-message("include directory for ui files: "${CMAKE_CURRENT_BINARY_DIR})
+
+
+		 
+set(qt_lib_dir "$ENV{QTDIR}\\lib\\cmake\\")
+
+set (Qt5_DIR "${qt_lib_dir}Qt5")
+set (Qt5Core_DIR "${qt_lib_dir}Qt5Core")
+set (Qt5Gui_DIR "${qt_lib_dir}Qt5Gui")
+set (Qt5Widgets_DIR "${qt_lib_dir}Qt5Widgets")
+set (Qt5Xml_DIR "${qt_lib_dir}Qt5Xml")
+set (Qt5Concurrent_DIR "${qt_lib_dir}Qt5Concurrent")
+set (Qt5_INCLUDES "${qt_dir}include\\")
+set (QT_QTXML_INCLUDE_DIR "${qt_dir}include\\Qtxml\\")
+set (QT_QTCONCURRENT_INCLUDE_DIR "${qt_dir}include\\QtConcurrent\\")
+set (QT_QTOPENGL_INCLUDE_DIR "${qt_dir}include\\QtOpenGL\\")
+set (Qt5Core_LIBRARIES "${qt_lib_dir}Qt5Core")
+set (Qt5Gui_LIBRARIES "${qt_lib_dir}Qt5Gui")
+set (Qt5Widgets_LIBRARIES "${qt_lib_dir}Qt5Widgets")
+set (Qt5XML_LIBRARIES "${qt_lib_dir}Qt5Xml")
+set (Qt5CONCURRENT_LIBRARIES "${qt_lib_dir}Qt5Concurrent")
+
+SET(Saisie_RCS ./icones/icones.qrc)
+
 set( Install_Dir ${PROJECT_SOURCE_DIR}/bin )
 
-set( saisie3D_SOURCES main.cpp
-                    GLWidget.cpp
-                    mainwindow.cpp
-                    Cloud.cpp)
-QT4_WRAP_UI(saisie3D_HEADERS mainwindow.ui )
-message("ui generated header : "${saisie3D_HEADERS})
-list( APPEND saisie3D_HEADERS GLWidget.h
+find_package(Qt5Core REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(Qt5Gui REQUIRED)
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Xml REQUIRED)
+
+message("OpenGL libraries : "${OPENGL_LIBRARIES})
+
+if ( NOT WIN32 )
+    FIND_PACKAGE(X11 REQUIRED)
+    message("X11 libraries : "${X11_LIBRARIES})
+ENDIF()
+
+IF(QT_WRAP_CPP)
+     IF (QT_WRAP_UI)
+        qt5_wrap_ui(saisie_HEADERS  mainwindow.ui)
+        qt5_wrap_cpp(saisie_HEADERS_MOC ${saisie_HEADERS})
+    ENDIF (QT_WRAP_UI)
+ENDIF(QT_WRAP_CPP)
+
+list( APPEND saisie_HEADERS GLWidget.h
                             mainwindow.h
-                            Cloud.h)
+                            Cloud.h
+							Engine.h
+							Data.h
+							3DTools.h )
+
+QT5_ADD_RESOURCES( Saisie_RC_SRCS ${Saisie_RCS} )
+
+add_definitions(-DTWEAK)
+if ( WIN32 )
+  add_definitions(-DELISE_windows)
+ENDIF()
+
+#set(CMAKE_CXX_FLAGS "-Wno-dev")
 
 SET(QT_USE_QTOPENGL TRUE)
-
-QT4_WRAP_CPP(saisie3D_HEADERS_MOC ${saisie3D_HEADERS})
-
-INCLUDE(${QT_USE_FILE})
-ADD_DEFINITIONS(${QT_DEFINITIONS})
-
-ADD_EXECUTABLE(saisie3D ${saisie3D_SOURCES}
-                      ${saisie3D_HEADERS_MOC})
-TARGET_LINK_LIBRARIES(saisie3D ${OPENGL_LIBRARIES}
-                             ${X11_LIBRARIES}
-                             ${QT_LIBRARIES})
-
-INSTALL(TARGETS saisie3D RUNTIME DESTINATION ${Install_Dir})
+include_directories(${Qt5_INCLUDES} ${QT_QTXML_INCLUDE_DIR} ${QT_QTCONCURRENT_INCLUDE_DIR} ${QT_QTOPENGL_INCLUDE_DIR} ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR} )
+add_executable(saisie ${SRCS} ${Saisie_RC_SRCS} ${saisie_HEADERS_MOC} ${saisie_HEADERS})
+target_link_libraries(saisie ${OPENGL_LIBRARIES} ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Widgets_LIBRARIES} elise ${X11_LIBRARIES})
+link_directories(${Qt5XML_LIBRARIES} ${Qt5CONCURRENT_LIBRARIES})
+install(TARGETS saisie DESTINATION Install_Dir)
