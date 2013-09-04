@@ -334,6 +334,16 @@ void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm,vector<Pts
 				vectPtsRadioTie[numImage1].kG.push_back(kG);
 				vectPtsRadioTie[numImage1].kB.push_back(kB);
 				vectPtsRadioTie[numImage1].Pos.push_back(aVectPtsHomol[i].Pt1[j]);
+				vectPtsRadioTie[numImage1].multiplicity.push_back(1);
+				if(vectPtsRadioTie[numImage1].Pos[vectPtsRadioTie[numImage1].Pos.size()-2]==vectPtsRadioTie[numImage1].Pos.back())
+				{
+					int previousMultiplicity=vectPtsRadioTie[numImage1].multiplicity[vectPtsRadioTie[numImage1].multiplicity.size()-2];
+					for(int mul=1;mul<=previousMultiplicity+1;mul++)
+					{
+						vectPtsRadioTie[numImage1].multiplicity[vectPtsRadioTie[numImage1].multiplicity.size()-mul]++;
+						//cout<<vectPtsRadioTie[numImage1].multiplicity[vectPtsRadioTie[numImage1].multiplicity.size()-mul]<<endl;
+					}
+				}
 				nbPts++;
 				//file_out <<kR<<endl;
 			}
@@ -375,10 +385,10 @@ void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm,vector<Pts
 						Pt2dr aPtIn; aPtIn.x=vectPtsRadioTie[i].Pos[j].x/ResolModel; aPtIn.y=vectPtsRadioTie[i].Pos[j].y/ResolModel;
 						double aDist=Dist2d(aPtIn, aPt);
 						if(aDist<1){aDist=1;}
-						aSumDist=aSumDist+1/aDist;
-						aCorR[aY][aX] = aCorR[aY][aX] + vectPtsRadioTie[i].kR[j]/aDist;
-						aCorG[aY][aX] = aCorG[aY][aX] + vectPtsRadioTie[i].kG[j]/aDist;
-						aCorB[aY][aX] = aCorB[aY][aX] + vectPtsRadioTie[i].kB[j]/aDist;						
+						aSumDist=aSumDist+1/(aDist*vectPtsRadioTie[i].multiplicity[j]);
+						aCorR[aY][aX] = aCorR[aY][aX] + vectPtsRadioTie[i].kR[j]/(aDist*vectPtsRadioTie[i].multiplicity[j]);
+						aCorG[aY][aX] = aCorG[aY][aX] + vectPtsRadioTie[i].kG[j]/(aDist*vectPtsRadioTie[i].multiplicity[j]);
+						aCorB[aY][aX] = aCorB[aY][aX] + vectPtsRadioTie[i].kB[j]/(aDist*vectPtsRadioTie[i].multiplicity[j]);						
 					}
 					//Normalize
 					aCorR[aY][aX] = aCorR[aY][aX]/aSumDist;
