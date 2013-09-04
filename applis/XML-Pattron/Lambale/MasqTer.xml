@@ -1,0 +1,10 @@
+<FileOriMnt>
+      <NameFileMnt> toto</NameFileMnt>
+      <NameFileMasque>/media/MYPASSPORT/Archi/Lamballe/MasqTer.tif </NameFileMasque>
+      <NombrePixels>1360 1125</NombrePixels>
+      <OriginePlani>-23.1894665198303116 20.3721309212124169</OriginePlani>
+      <ResolutionPlani>0.0265927237343710487 -0.0265927237343710487</ResolutionPlani>
+      <OrigineAlti>-5</OrigineAlti>
+      <ResolutionAlti>0.0132963618671857325</ResolutionAlti>
+      <Geometrie>eGeomMNTEuclid</Geometrie>
+</FileOriMnt>
