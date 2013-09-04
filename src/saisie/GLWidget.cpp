@@ -1107,6 +1107,28 @@ void GLWidget::deletePolylinePoint()
         m_polygon.erase (m_polygon.begin() + idx);
 }
 
+void GLWidget::insertPolylinePoint()
+{
+    float dist2 = FLT_MAX;
+    int dx, dy, d2;
+    int idx = -1;
+
+    for (int aK =0; aK < (int) m_polygon.size();++aK)
+    {
+        dx = m_polygon[aK].x()-m_lastPos.x();
+        dy = m_polygon[aK].y()-m_lastPos.y();
+        d2 = dx*dx + dy*dy;
+
+        if (d2 < dist2)
+        {
+            dist2 = d2;
+            idx = aK;
+        }
+    }
+    if (idx != -1)
+        m_polygon.insert(m_polygon.begin() + idx, m_lastPos);
+}
+
 void GLWidget::clearPolyline()
 {
     m_polygon.clear();

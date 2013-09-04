@@ -2,8 +2,7 @@
 <GenCpp  Difndef="Define_NotCasa">
 
 <Verbatim File=".h">
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 using namespace NS_ParamChantierPhotogram;
 using namespace NS_SuperposeImage;
 </Verbatim>
