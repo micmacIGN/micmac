@@ -121,6 +121,9 @@ public:
     //! Select points with polyline
     void Select(int mode);
 
+    //! Insert point in polyline
+    void insertPolylinePoint();
+
     //! Delete mouse closest point
     void deletePolylinePoint();
 

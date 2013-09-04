@@ -24,12 +24,13 @@ int main(int argc, char *argv[])
 
     if (cmdline_args.size() > 1)
     {
-        cmdline_args.pop_front();
-
         for (int i=0; i< cmdline_args.size(); ++i)
         {
             if (cmdline_args[i] == "mode2D")
             {
+                cmdline_args[i] = cmdline_args.back();
+                cmdline_args.pop_back();
+
                 w.setMode2D(true);
                 break;
             }
