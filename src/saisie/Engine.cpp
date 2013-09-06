@@ -14,7 +14,7 @@ void cLoader::SetFilenamesOut()
     {
         QFileInfo fi(m_FilenamesIn[aK]);
 
-        m_FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_masq.tif");
+        m_FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif");
     }
 }
 
@@ -47,58 +47,64 @@ void DoMkT()
     }
 }
 
-QImage* cLoader::loadImage( QString aNameFile )
+void cLoader::loadImage(QString aNameFile , QString aNameMask, QImage* &aImg, QImage* &aImgMask)
 {
-    QImage* result = NULL;
+    QImage* img = new QImage( aNameFile );
 
-    result = new QImage( aNameFile );
-
-    if (result->isNull())
+    if (img->isNull())
     {
        //Tiff_Im aTifIn = Tiff_Im::BasicConvStd(aNameFile.toStdString().c_str());
     }
+    else
+        aImg = img;
 
-    return result;
-}
-
-QImage* cLoader::loadMask( QString aNameMask )
-{
-    Tiff_Im img( aNameMask.toStdString().c_str() );
-
-    if( img.can_elise_use() )
+    if (aNameMask == "")
     {
-        int w = img.sz().x;
-        int h = img.sz().y;
-
-        QImage* pDest = new QImage( w, h, QImage::Format_ARGB32 );
-
-        Im2D_Bits<1> aOut(w,h,1);
-        ELISE_COPY(img.all_pts(),img.in(),aOut.out());
-
-        for (int x=0;x< w;++x)
+        if (!img->isNull())
         {
-            for (int y=0; y<h;++y)
-            {
-                if (aOut.get(x,y) == 0 )
-                {
-                    QColor c(0,0,0,0);
-                    pDest->setPixel(x,y,c.rgba());
-                }
-                else
-                {
-                    QColor c(255,255,255,255);
-                    pDest->setPixel(x,y,c.rgba());
-                }
-            }
+            QImage* pDest = new QImage( img->width(), img->height(), QImage::Format_ARGB32 );
+            pDest->fill(QColor(255,255,255,255));
+
+            aImgMask = pDest;
         }
-        return pDest;
     }
     else
     {
-        qCritical("cLoader::loadMask"
-                  "Cannot load mask image");
+        Tiff_Im img( aNameMask.toStdString().c_str() );
 
-        return NULL;
+        if( img.can_elise_use() )
+        {
+            int w = img.sz().x;
+            int h = img.sz().y;
+
+            QImage* pDest = new QImage( w, h, QImage::Format_ARGB32 );
+
+            Im2D_Bits<1> aOut(w,h,1);
+            ELISE_COPY(img.all_pts(),img.in(),aOut.out());
+
+            for (int x=0;x< w;++x)
+            {
+                for (int y=0; y<h;++y)
+                {
+                    if (aOut.get(x,y) == 0 )
+                    {
+                        QColor c(0,0,0,0);
+                        pDest->setPixel(x,y,c.rgba());
+                    }
+                    else
+                    {
+                        QColor c(255,255,255,255);
+                        pDest->setPixel(x,y,c.rgba());
+                    }
+                }
+            }
+            aImgMask = pDest;
+        }
+        else
+        {
+            qCritical("cLoader::loadMask"
+                      "Cannot load mask image");
+        }
     }
 }
 
@@ -129,7 +135,7 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
 
     QFileInfo fi(aNameFile);
 
-    m_FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_masq.tif");
+    m_FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif");
 
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
 
@@ -170,16 +176,24 @@ void cEngine::loadImages(QStringList filenames)
 {
     for (int i=0;i<filenames.size();++i)
     {
-        m_Data->addImage(m_Loader->loadImage(filenames[i]));
+        QImage* pImg=NULL;
+        QImage* pMask=NULL;
+        m_Loader->loadImage(filenames[i], "", pImg, pMask);
+        if (!pImg->isNull()) m_Data->addImage(pImg);
     }
 
     m_Loader->SetFilenamesOut();
 }
 
-void  cEngine::loadImageAndMask(QString img, QString mask)
+void  cEngine::loadImageAndMask(QString imgName, QString maskName)
 {
-    m_Data->addImage(m_Loader->loadImage(img));
-    m_Data->addMask(m_Loader->loadMask(mask));
+    QImage* img, *mask;
+    img = mask = NULL;
+    m_Loader->loadImage(imgName, maskName, img, mask);
+
+    if (!img->isNull()) m_Data->addImage(img);
+    if (!mask->isNull()) m_Data->addMask(mask);
+
 }
 
 void cEngine::doMasks()
@@ -259,6 +273,25 @@ void cEngine::doMaskImage(QImage* pImg)
 #ifdef _DEBUG
     printf ("Done\n");
 #endif
+
+    std::string aNameXML = StdPrefix(aOut)+".xml";
+    if (!ELISE_fp::exist_file(aNameXML))
+    {
+        cFileOriMnt anOri;
+
+        anOri.NameFileMnt() = aOut;
+        anOri.NombrePixels() = mask.sz();
+        anOri.OriginePlani() = Pt2dr(0,0);
+        anOri.ResolutionPlani() = Pt2dr(1.0,1.0);
+        anOri.OrigineAlti() = 0.0;
+        anOri.ResolutionAlti() = 1.0;
+        anOri.Geometrie() = eGeomMNTFaisceauIm1PrCh_Px1D;
+
+        MakeFileXML(anOri,aNameXML);
+    }
+
+    cout << "saved " << aNameXML << endl;
+
 }
 
 void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
