@@ -6,24 +6,12 @@
 #include <iostream>
 #include <algorithm>
 
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
-#ifndef  WIN32
-
-#include "GL/glut.h"
-//#include "GL/glew.h"
-#endif
-#endif
-
 #include <QtOpenGL/QGLWidget>
 #include <QtOpenGL/QGLBuffer>
 #include <QGLContext>
 #include <QDebug>
 
-#ifdef WIN32
-    #include "GL/glu.h"
-#endif
+#include "GL/glu.h"
 
 #include <QUrl>
 #include <QtGui/QMouseEvent>

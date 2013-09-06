@@ -80,8 +80,7 @@ public:
 
     Cloud*      loadCloud(string i_ply_file , int *incre = NULL);
 
-    QImage*     loadImage(QString aNameFile);
-    QImage*     loadMask(QString aNameMask);
+    void        loadImage(QString aNameFile, QImage* &aImg, QImage* &aImgMask);
 
     void        setDir(QDir aDir){m_Dir = aDir;}
     QDir        getDir(){return m_Dir;}
@@ -135,8 +134,8 @@ public:
     //! Load images  files
     void loadImages(QStringList);
 
-    //! Load image and mask file
-    void loadImageAndMask(QString img, QString mask);
+    //! Load image (and mask) file
+    void loadImage(QString imgName);
 
     void unloadAll();
 
