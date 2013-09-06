@@ -95,7 +95,6 @@ void MainWindow::connectActions()
     connect(ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
     connect(ui->actionLoad_camera,		SIGNAL(triggered()),   this, SLOT(loadCameras()));
     connect(ui->actionLoad_image,		SIGNAL(triggered()),   this, SLOT(loadImage()));
-    connect(ui->actionLoad_image_mask,	SIGNAL(triggered()),   this, SLOT(loadImageAndMask()));
     connect(ui->actionSave_masks,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
     connect(ui->actionSave_as,          SIGNAL(triggered()),   this, SLOT(exportMasksAs()));
     connect(ui->actionLoad_and_Export,  SIGNAL(triggered()),   this, SLOT(loadAndExport()));
@@ -446,32 +445,19 @@ void MainWindow::loadCameras()
 
 void MainWindow::loadImage()
 {
-    QString filename = QFileDialog::getOpenFileName(NULL, tr("Open Image File"),QString(), tr("File (*.*)"));
-    if (filename != "")
-    {
-        m_FilenamesIn.clear();
-        m_FilenamesIn.push_back(filename);
-
-        addFiles(m_FilenamesIn);
-
-        m_bMode2D = true;
-    }
-}
-
-void MainWindow::loadImageAndMask()
-{
-    QString img_filename, mask_filename;
-    img_filename = QFileDialog::getOpenFileName(NULL, tr("Open Image File"),QString(), tr("File (*.*)"));
+    QString img_filename = QFileDialog::getOpenFileName(NULL, tr("Open Image File"),QString(), tr("File (*.*)"));
 
     m_FilenamesIn.clear();
     m_FilenamesIn.push_back(img_filename);
 
     QFileInfo fi(img_filename);
 
-    mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + "_masq.tif";
+    QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif";
+
+    m_Engine->setFilenameOut(mask_filename);
 
     if (!QFile::exists(mask_filename))
-         mask_filename = QFileDialog::getOpenFileName(NULL, tr("Open Mask File"),QString(), tr("File (*.*)"));
+        mask_filename = "";
 
     if (!m_bMode2D)
     {
@@ -483,8 +469,6 @@ void MainWindow::loadImageAndMask()
 
     // load image and mask
     m_Engine->loadImageAndMask(img_filename, mask_filename);
-
-    m_Engine->setFilenameOut(mask_filename);
 
     m_glWidget->setData(m_Engine->getData());
     m_glWidget->update();
