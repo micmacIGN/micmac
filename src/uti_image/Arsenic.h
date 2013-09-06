@@ -47,6 +47,7 @@ class PtsRadioTie
 	vector<double> kG;
 	vector<double> kB;
 	vector<Pt2dr> Pos;
+	vector<int> OtherIm;
 	vector<int> multiplicity;
 	int size(){	return this->Pos.size();};
 private:

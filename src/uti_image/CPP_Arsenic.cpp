@@ -253,12 +253,10 @@ vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm,string Extension, string I
 											distances[aK2]=Dist3d(pos3DPtIm1,pos3DPtIm2);
 										}
 									}
-							}else{aVectPtsHomol[aK1].SZ=aGrIm[aK1].SZ;}
+							}else{aVectPtsHomol[aK1*nbIm].SZ=aGrIm[aK1].SZ;}
 						}
-						for (int aK2=0 ; aK2<int(nbIm) ; aK2++){
+						for (int aK2=aK1+1 ; aK2<int(nbIm) ; aK2++){
 							if(distances[aK2]<(aGrIm[aK1].info3D->ResolSolOfPt(pos3DPtIm1))/TPA){//id pos3DPtIm1~=pos3DPtIm2 -->pt is considered homologous,it is added to PtsHom (Gr1, R1, G1, B1, X1, Y1, idem 2, NbPtsCouple++)
-								aVectPtsHomol[(aK1*nbIm)+aK2].Pt1.push_back(pos2DPtIm1.mul(ResolModel)) ;
-								aVectPtsHomol[(aK1*nbIm)+aK2].Pt2.push_back(pos2DOtherIm[aK2].mul(ResolModel)) ;
 								//Go looking for grey value of the point for each chan
 								double Red1   =Reechantillonnage::biline(aGrIm[aK1].RChan.data(), aGrIm[aK1].SZ.x, aGrIm[aK1].SZ.y, pos2DPtIm1);
 								double Green1 =Reechantillonnage::biline(aGrIm[aK1].GChan.data(), aGrIm[aK1].SZ.x, aGrIm[aK1].SZ.y, pos2DPtIm1);
@@ -266,6 +264,8 @@ vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm,string Extension, string I
 								double Red2   =Reechantillonnage::biline(aGrIm[aK2].RChan.data(), aGrIm[aK2].SZ.x, aGrIm[aK2].SZ.y, pos2DOtherIm[aK2]);
 								double Green2 =Reechantillonnage::biline(aGrIm[aK2].GChan.data(), aGrIm[aK2].SZ.x, aGrIm[aK2].SZ.y, pos2DOtherIm[aK2]);
 								double Blue2  =Reechantillonnage::biline(aGrIm[aK2].BChan.data(), aGrIm[aK2].SZ.x, aGrIm[aK2].SZ.y, pos2DOtherIm[aK2]);
+								aVectPtsHomol[(aK1*nbIm)+aK2].Pt1.push_back(pos2DPtIm1.mul(ResolModel)) ;
+								aVectPtsHomol[(aK1*nbIm)+aK2].Pt2.push_back(pos2DOtherIm[aK2].mul(ResolModel)) ;
 								aVectPtsHomol[(aK1*nbIm)+aK2].Gr1.push_back((Red1+Green1+Blue1)/3);
 								aVectPtsHomol[(aK1*nbIm)+aK2].Gr2.push_back((Red2+Green2+Blue2)/3);
 								aVectPtsHomol[(aK1*nbIm)+aK2].R1.push_back(Red1);
@@ -276,13 +276,26 @@ vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm,string Extension, string I
 								aVectPtsHomol[(aK1*nbIm)+aK2].B2.push_back(Blue2);
 								aVectPtsHomol[(aK1*nbIm)+aK2].NbPtsCouple++;
 								aVectPtsHomol[(aK1*nbIm)+aK2].SZ=aGrIm[aK1].SZ;
+
+								//Copy in inverse image (1->2==2->1)
+								aVectPtsHomol[(aK2*nbIm)+aK1].Pt2.push_back(pos2DPtIm1.mul(ResolModel)) ;
+								aVectPtsHomol[(aK2*nbIm)+aK1].Pt1.push_back(pos2DOtherIm[aK2].mul(ResolModel)) ;
+								aVectPtsHomol[(aK2*nbIm)+aK1].Gr2.push_back((Red1+Green1+Blue1)/3);
+								aVectPtsHomol[(aK2*nbIm)+aK1].Gr1.push_back((Red2+Green2+Blue2)/3);
+								aVectPtsHomol[(aK2*nbIm)+aK1].R2.push_back(Red1);
+								aVectPtsHomol[(aK2*nbIm)+aK1].G2.push_back(Green1);
+								aVectPtsHomol[(aK2*nbIm)+aK1].B2.push_back(Blue1);
+								aVectPtsHomol[(aK2*nbIm)+aK1].R1.push_back(Red2);
+								aVectPtsHomol[(aK2*nbIm)+aK1].G1.push_back(Green2);
+								aVectPtsHomol[(aK2*nbIm)+aK1].B1.push_back(Blue2);
+								aVectPtsHomol[(aK2*nbIm)+aK1].NbPtsCouple++;
+								aVectPtsHomol[(aK2*nbIm)+aK1].SZ=aGrIm[aK2].SZ;
 							}
 						}
 				}
 			}
 		}
 	}
-
 
 		//drawTP(aVectPtsHomol[1], aDir, "1-2",ResolModel);
 		//drawTP(aVectPtsHomol[2], aDir, "1-3",ResolModel);
@@ -308,15 +321,19 @@ vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm,string Extension, string I
 		for(int i=0 ; i<int(aVectPtsHomol.size()) ; i++){nbPtsHomols=nbPtsHomols + aVectPtsHomol[i].NbPtsCouple;}
 		ELISE_ASSERT(nbPtsHomols!=0,"No homologous points (resolution of ResolModel might be too small");
 		return aVectPtsHomol;
-
+		
 }
 
 void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm,vector<PtsHom> aVectPtsHomol, string aDirOut, string InVig, int ResolModel, int nbIm)
 {
+int aNbCouples=aVectPtsHomol.size();
+vector<PtsRadioTie> vectPtsRadioTie(nbIm);
 
-	int aNbCouples=aVectPtsHomol.size();
-	vector<PtsRadioTie> vectPtsRadioTie(nbIm);
+//truc à iterer--------------------------------------------------------------------------------------------------------------------------------------
+for(int iter=0;iter<4;iter++){
+	cout<<"Pass "<<iter<<endl;
 	int nbPts=0;
+	vector<PtsRadioTie> vectPtsRadioTie2(nbIm);
 	//filling up the factors from homologous points
 	for (int i=0;i<int(aNbCouples);i++){
 
@@ -324,56 +341,130 @@ void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm,vector<Pts
 		int numImage2=i-numImage1*(nbIm);
 		//string PtsTxt="PtsTxt.txt";
 		//ofstream file_out(PtsTxt, ios::out | ios::app);
+		//cout<<numImage1<<" "<<numImage2<<" "<<aVectPtsHomol[i].NbPtsCouple<<endl;
 		if (numImage1!=numImage2){
 			for(int j=0; j<aVectPtsHomol[i].NbPtsCouple; j++){//if there are homologous points between images
 				//For each chan, compute GreyLevelImage2/GreyLevelImage1 and add it to image1 vector of tie points
 				double kR=aVectPtsHomol[i].R2[j]/aVectPtsHomol[i].R1[j];
 				double kG=aVectPtsHomol[i].G2[j]/aVectPtsHomol[i].G1[j];
 				double kB=aVectPtsHomol[i].B2[j]/aVectPtsHomol[i].B1[j];
-				vectPtsRadioTie[numImage1].kR.push_back(kR);
-				vectPtsRadioTie[numImage1].kG.push_back(kG);
-				vectPtsRadioTie[numImage1].kB.push_back(kB);
-				vectPtsRadioTie[numImage1].Pos.push_back(aVectPtsHomol[i].Pt1[j]);
-				vectPtsRadioTie[numImage1].multiplicity.push_back(1);
-				if(vectPtsRadioTie[numImage1].Pos[vectPtsRadioTie[numImage1].Pos.size()-2]==vectPtsRadioTie[numImage1].Pos.back())
-				{
-					int previousMultiplicity=vectPtsRadioTie[numImage1].multiplicity[vectPtsRadioTie[numImage1].multiplicity.size()-2];
-					for(int mul=1;mul<=previousMultiplicity+1;mul++)
-					{
-						vectPtsRadioTie[numImage1].multiplicity[vectPtsRadioTie[numImage1].multiplicity.size()-mul]++;
-						//cout<<vectPtsRadioTie[numImage1].multiplicity[vectPtsRadioTie[numImage1].multiplicity.size()-mul]<<endl;
-					}
-				}
+				vectPtsRadioTie2[numImage1].kR.push_back((kR+1)/2.0);
+				vectPtsRadioTie2[numImage1].kG.push_back((kG+1)/2.0);
+				vectPtsRadioTie2[numImage1].kB.push_back((kB+1)/2.0);
+				vectPtsRadioTie2[numImage1].Pos.push_back(aVectPtsHomol[i].Pt1[j]);
+				vectPtsRadioTie2[numImage1].OtherIm.push_back(numImage2);
+				//vectPtsRadioTie[numImage1].multiplicity.push_back(1);
+				//if(vectPtsRadioTie[numImage1].Pos[vectPtsRadioTie[numImage1].Pos.size()-2]==vectPtsRadioTie[numImage1].Pos.back())
+				//{
+				//	int previousMultiplicity=vectPtsRadioTie[numImage1].multiplicity[vectPtsRadioTie[numImage1].multiplicity.size()-2];
+				//	for(int mul=1;mul<=previousMultiplicity+1;mul++)
+				//	{
+				//		vectPtsRadioTie[numImage1].multiplicity[vectPtsRadioTie[numImage1].multiplicity.size()-mul]++;
+				//		//cout<<vectPtsRadioTie[numImage1].multiplicity[vectPtsRadioTie[numImage1].multiplicity.size()-mul]<<endl;
+				//	}
+				//}
 				nbPts++;
 				//file_out <<kR<<endl;
 			}
 		}
 		//file_out.close();
 	}
-	cout<<nbPts<<" tie points loaded"<<endl;
+	//cout<<nbPts<<" tie points loaded"<<endl;
 
+
+//Correcting the tie points
+
+//#pragma omp parallel for
+
+    for(int i=0;i<nbIm;i++)
+	{
+		vector<int> cpt(nbIm,0);
+		
+		//For each tie point point, compute correction value (distance-ponderated mean value of all the tie points)
+		for(int k = 0; k<int(vectPtsRadioTie2[i].size()) ; k++){//go through each tie point
+			double aCorR=0.0,aCorG=0.0,aCorB=0.0;
+			double aSumDist=0;
+			Pt2dr aPt; aPt.x=vectPtsRadioTie2[i].Pos[k].x/ResolModel; ; aPt.y=vectPtsRadioTie2[i].Pos[k].x/ResolModel;;
+			for(int j = 0; j<int(vectPtsRadioTie2[i].size()) ; j++){//go through each tie point
+				if(vectPtsRadioTie2[i].kR[j]>5||vectPtsRadioTie2[i].kG[j]>5||vectPtsRadioTie2[i].kB[j]>5 || vectPtsRadioTie2[i].kR[j]<0.2||vectPtsRadioTie2[i].kG[j]<0.2||vectPtsRadioTie2[i].kB[j]<0.2){continue;}
+				Pt2dr aPtIn; aPtIn.x=vectPtsRadioTie2[i].Pos[j].x/ResolModel; aPtIn.y=vectPtsRadioTie2[i].Pos[j].y/ResolModel;
+				double aDist=Dist2d(aPtIn, aPt);
+				if(aDist<1){aDist=1;}
+				aSumDist=aSumDist+1/(aDist);
+				aCorR = aCorR + vectPtsRadioTie2[i].kR[j]/(aDist);
+				aCorG = aCorG + vectPtsRadioTie2[i].kG[j]/(aDist);
+				aCorB = aCorB + vectPtsRadioTie2[i].kB[j]/(aDist);	
+			}
+			//Normalize
+			aCorR = aCorR/aSumDist;
+			aCorG = aCorG/aSumDist; 
+			aCorB = aCorB/aSumDist; 
+			//correcting Tie points color with computed surface
+			int image1=i,image2=vectPtsRadioTie2[i].OtherIm[k];
+			int pos=cpt[image2];cpt[image2]++;
+			if(aVectPtsHomol[image1*nbIm+image2].R1[pos]*aCorR>255)
+			{
+				aCorR=255/aVectPtsHomol[image1*nbIm+image2].R1[pos];
+			}
+			if(aVectPtsHomol[image1*nbIm+image2].G1[pos]*aCorB>255)
+			{
+				aCorG=255/aVectPtsHomol[image1*nbIm+image2].G1[pos];
+			}
+			if(aVectPtsHomol[image1*nbIm+image2].B1[pos]*aCorG>255)
+			{
+				aCorB=255/aVectPtsHomol[image1*nbIm+image2].B1[pos];
+			}
+			aVectPtsHomol[image1*nbIm+image2].R1[pos]=aVectPtsHomol[image1*nbIm+image2].R1[pos]*aCorR;
+			aVectPtsHomol[image1*nbIm+image2].G1[pos]=aVectPtsHomol[image1*nbIm+image2].G1[pos]*aCorG;
+			aVectPtsHomol[image1*nbIm+image2].B1[pos]=aVectPtsHomol[image1*nbIm+image2].B1[pos]*aCorB;
+
+		    aVectPtsHomol[image2*nbIm+image1].R2[pos]=aVectPtsHomol[image1*nbIm+image2].R1[pos];
+		    aVectPtsHomol[image2*nbIm+image1].G2[pos]=aVectPtsHomol[image1*nbIm+image2].G1[pos];
+		    aVectPtsHomol[image2*nbIm+image1].B2[pos]=aVectPtsHomol[image1*nbIm+image2].B1[pos];
+		}
+		//cout<<cpt<<endl;
+	}
+	if (iter==0){vectPtsRadioTie=vectPtsRadioTie2;}else{
+		for(int i=0;i<nbIm;i++)
+		{
+			for(int j=0;j<vectPtsRadioTie[i].size();j++)
+			{										   
+			vectPtsRadioTie[i].kR[j]=vectPtsRadioTie[i].kR[j]*vectPtsRadioTie2[i].kR[j];
+			vectPtsRadioTie[i].kG[j]=vectPtsRadioTie[i].kG[j]*vectPtsRadioTie2[i].kG[j];
+			vectPtsRadioTie[i].kB[j]=vectPtsRadioTie[i].kB[j]*vectPtsRadioTie2[i].kB[j];
+			}
+		}
+	}
+}
+cout<<"Factors were computed"<<endl;
+//end truc à iterer--------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+//Applying the correction to the images
 	//Bulding the output file system
     ELISE_fp::MkDirRec(aDir + aDirOut);
 	//Reading input files
 	string suffix="";if(InVig!=""){suffix="_Vodka.tif";}
 
+
 #pragma omp parallel for
 
     for(int i=0;i<nbIm;i++)
 	{
-		
 	    string aNameIm=InVig + (*aSetIm)[i] + suffix;//if vignette is used, change the name of input file to read
 		cout<<"Correcting "<<aNameIm<<" (with "<<vectPtsRadioTie[i].size()<<" data points)"<<endl;
 		string aNameOut=aDir + aDirOut + (*aSetIm)[i] +"_egal.tif";
 
 		Pt2di aSzMod=aVectPtsHomol[i*nbIm].SZ;//Size of the correction surface, taken from the size of the scaled image
+		cout<<"aSzMod"<<aSzMod<<endl;
 		Im2D_REAL4  aImCorR(aSzMod.x,aSzMod.y,0.0);
 		Im2D_REAL4  aImCorG(aSzMod.x,aSzMod.y,0.0);
 		Im2D_REAL4  aImCorB(aSzMod.x,aSzMod.y,0.0);
 		REAL4 ** aCorR = aImCorR.data();
 		REAL4 ** aCorG = aImCorG.data();
 		REAL4 ** aCorB = aImCorB.data();
-		
+		cout<<vectPtsRadioTie[i].size()<<endl;
 		//For each point of the surface, compute correction value (distance-ponderated mean value of all the tie points)
 		for (int aY=0 ; aY<aSzMod.y  ; aY++)
 			{
@@ -382,13 +473,14 @@ void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm,vector<Pts
 					double aSumDist=0;
 					Pt2dr aPt; aPt.x=aX ; aPt.y=aY;
 					for(int j = 0; j<int(vectPtsRadioTie[i].size()) ; j++){//go through each tie point
+						if(vectPtsRadioTie[i].kR[j]>5||vectPtsRadioTie[i].kG[j]>5||vectPtsRadioTie[i].kB[j]>5 || vectPtsRadioTie[i].kR[j]<0.2||vectPtsRadioTie[i].kG[j]<0.2||vectPtsRadioTie[i].kB[j]<0.2){continue;}
 						Pt2dr aPtIn; aPtIn.x=vectPtsRadioTie[i].Pos[j].x/ResolModel; aPtIn.y=vectPtsRadioTie[i].Pos[j].y/ResolModel;
 						double aDist=Dist2d(aPtIn, aPt);
 						if(aDist<1){aDist=1;}
-						aSumDist=aSumDist+1/(aDist*vectPtsRadioTie[i].multiplicity[j]);
-						aCorR[aY][aX] = aCorR[aY][aX] + vectPtsRadioTie[i].kR[j]/(aDist*vectPtsRadioTie[i].multiplicity[j]);
-						aCorG[aY][aX] = aCorG[aY][aX] + vectPtsRadioTie[i].kG[j]/(aDist*vectPtsRadioTie[i].multiplicity[j]);
-						aCorB[aY][aX] = aCorB[aY][aX] + vectPtsRadioTie[i].kB[j]/(aDist*vectPtsRadioTie[i].multiplicity[j]);						
+						aSumDist=aSumDist+1/(aDist);//*vectPtsRadioTie[i].multiplicity[j]);
+						aCorR[aY][aX] = aCorR[aY][aX] + vectPtsRadioTie[i].kR[j]/(aDist);//*vectPtsRadioTie[i].multiplicity[j]);
+						aCorG[aY][aX] = aCorG[aY][aX] + vectPtsRadioTie[i].kG[j]/(aDist);//*vectPtsRadioTie[i].multiplicity[j]);
+						aCorB[aY][aX] = aCorB[aY][aX] + vectPtsRadioTie[i].kB[j]/(aDist);//*vectPtsRadioTie[i].multiplicity[j]);						
 					}
 					//Normalize
 					aCorR[aY][aX] = aCorR[aY][aX]/aSumDist;
@@ -396,7 +488,7 @@ void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm,vector<Pts
 					aCorB[aY][aX] = aCorB[aY][aX]/aSumDist; 
 				}
 			}
-
+		
 		cout<<"Correction field computed, applying..."<<endl;
 
 		//Reading the image and creating the objects to be manipulated
