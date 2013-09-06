@@ -858,16 +858,24 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         }
         else if ( _m_g_mouseMiddleDown ) // translation
         {
-            if (m_Data->NbImages())
+            if (event->modifiers() & Qt::ShiftModifier)
             {
-                m_glPosition[0] += 2.f*( (float)dp.x()/(m_glWidth*m_params.zoom) );
-                m_glPosition[1] -= 2.f*( (float)dp.y()/(m_glHeight*m_params.zoom) );
+                if (dp.y() > 0) m_params.zoom *= pow(2.f, dp.y() *.05f);
+                else if (dp.y() < 0) m_params.zoom /= pow(2.f, -dp.y() *.05f);
             }
             else
             {
-                m_bObjectCenteredView = false;
-                m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/m_glWidth;
-                m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/m_glHeight;
+                if (m_Data->NbImages())
+                {
+                    m_glPosition[0] += 2.f*( (float)dp.x()/(m_glWidth*m_params.zoom) );
+                    m_glPosition[1] -= 2.f*( (float)dp.y()/(m_glHeight*m_params.zoom) );
+                }
+                else
+                {
+                    m_bObjectCenteredView = false;
+                    m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/m_glWidth;
+                    m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/m_glHeight;
+                }
             }
         }
         else if ( _m_g_mouseRightDown ) // rotation autour de Z
