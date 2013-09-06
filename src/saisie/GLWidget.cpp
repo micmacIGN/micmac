@@ -558,6 +558,8 @@ void GLWidget::setData(cData *data)
             int w = _glImg.width();
             int h = _glImg.height();
 
+            bool isFull = true;
+
             QColor c1, c2;
             for (int y=0; y<h; ++y)
             {
@@ -567,7 +569,10 @@ void GLWidget::setData(cData *data)
                     c2 = QColor::fromRgba(_glImg.pixel(x,y));
 
                     if (c1.alpha() == 0)
+                    {
                        c2.setAlphaF(m_alpha);
+                       isFull = false;
+                    }
                     else
                        c2.setAlphaF(1.f);
 
@@ -575,7 +580,7 @@ void GLWidget::setData(cData *data)
                 }
             }
 
-            m_bFirstAction = false;
+            if (!isFull) m_bFirstAction = false;
         }
     }
 
@@ -853,16 +858,24 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         }
         else if ( _m_g_mouseMiddleDown ) // translation
         {
-            if (m_Data->NbImages())
+            if (event->modifiers() & Qt::ShiftModifier)
             {
-                m_glPosition[0] += 2.f*( (float)dp.x()/(m_glWidth*m_params.zoom) );
-                m_glPosition[1] -= 2.f*( (float)dp.y()/(m_glHeight*m_params.zoom) );
+                if (dp.y() > 0) m_params.zoom *= pow(2.f, dp.y() *.05f);
+                else if (dp.y() < 0) m_params.zoom /= pow(2.f, -dp.y() *.05f);
             }
             else
             {
-                m_bObjectCenteredView = false;
-                m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/m_glWidth;
-                m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/m_glHeight;
+                if (m_Data->NbImages())
+                {
+                    m_glPosition[0] += 2.f*( (float)dp.x()/(m_glWidth*m_params.zoom) );
+                    m_glPosition[1] -= 2.f*( (float)dp.y()/(m_glHeight*m_params.zoom) );
+                }
+                else
+                {
+                    m_bObjectCenteredView = false;
+                    m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/m_glWidth;
+                    m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/m_glHeight;
+                }
             }
         }
         else if ( _m_g_mouseRightDown ) // rotation autour de Z
@@ -1540,4 +1553,6 @@ void GLWidget::reset()
     m_Data->clearCameras();
     m_Data->clearImages();
     m_Data->clearMasks();
+
+    m_bFirstAction = true;
 }
