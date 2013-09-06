@@ -1,110 +1,67 @@
 cmake_minimum_required(VERSION 2.8)
 project(saisie)
 
+if ( MSVC )
+    # for Qt5 to find glu32.lib
+    get_filename_component(WindowsSDKDir
+                           "[HKEY_CURRENT_USER\\Software\\Microsoft\\Microsoft SDKs\\Windows;CurrentInstallFolder]"
+                           ABSOLUTE)
+    set( CMAKE_PREFIX_PATH "${WindowsSDKDir}\\Lib" )
+endif()
+
+# Find the QtWidgets library
+find_package(OpenGL REQUIRED)
+message( "OPENGL_LIBRARIES   : " ${OPENGL_LIBRARIES} )
+message( "OPENGL_gl_LIBRARY  : " ${OPENGL_gl_LIBRARY} )
+message( "OPENGL_glu_LIBRARY : " ${OPENGL_glu_LIBRARY} )
+find_package(Qt5Widgets REQUIRED)
+
 if ( NOT ${OPENGL_GLU_FOUND} )
 	message( FATAL_ERROR "GLU library could not be found " )
 	return( -1 )
 endif()
 
-#set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOMOC ON)
 
-set(SRCS main.cpp
-		 GLWidget.cpp
-         mainwindow.cpp
-         Cloud.cpp
-		 Data.cpp
-		 Engine.cpp
-		 ../poisson/plyfile.cpp)
-		 
-set(HEADERS GLWidget.h
-			mainwindow.h
-			Cloud.h
-			Engine.h
-			Data.h
-			3DTools.h)
+set(saisie_SRCS main.cpp
+	        GLWidget.cpp
+	        mainwindow.cpp
+	        Cloud.cpp
+	        Data.cpp
+	        Engine.cpp
+	        ../poisson/plyfile.cpp)
 
-# Check if environment variable QTDIR is set.
-if (DEFINED ENV{QTDIR})
-    set(CMAKE_PREFIX_PATH $ENV{QTDIR} ${CMAKE_PREFIX_PATH})
-else ()
-    message (FATAL_ERROR "ERROR: Environment variable QTDIR is not set. Please locate your Qt folder.")
-	return( -1 )
-endif ()
-		 
-		 		 
-if ( WIN32 )			
-	set (CMAKE_PREFIX_PATH "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v7.0A\\Lib")
-ENDIF()
-
-
-		 
-set(qt_lib_dir "$ENV{QTDIR}\\lib\\")
-set(qt_lib_cmake "$ENV{QTDIR}\\lib\\cmake\\")
-
-set (Qt5_DIR "${qt_lib_dir}Qt5")
-set (Qt5_INCLUDES "$ENV{QTDIR}\\include\\")
-
-set (Qt5Core_DIR "${qt_lib_cmake}Qt5Core")
-set (Qt5Gui_DIR "${qt_lib_cmake}Qt5Gui")
-set (Qt5Widgets_DIR "${qt_lib_cmake}Qt5Widgets")
-set (Qt5Xml_DIR "${qt_lib_cmake}Qt5Xml")
-set (Qt5Concurrent_DIR "${qt_lib_cmake}Qt5Concurrent")
-set (Qt5OpenGL_DIR "${qt_lib_cmake}Qt5OpenGL")
-
-#set (QT_QTXML_INCLUDE_DIR "${Qt5_INCLUDES}Qtxml")
-#set (QT_QTCONCURRENT_INCLUDE_DIR "${Qt5_INCLUDES}QtConcurrent")
-#set (QT_QTOPENGL_INCLUDE_DIR "${Qt5_INCLUDES}QtOpenGL")
-
-set (Qt5Core_LIBRARIES "${qt_lib_dir}Qt5Core")
-set (Qt5Gui_LIBRARIES "${qt_lib_dir}Qt5Gui")
-set (Qt5Widgets_LIBRARIES "${qt_lib_dir}Qt5Widgets")
-set (Qt5XML_LIBRARIES "${qt_lib_dir}Qt5Xml.lib")
-set (Qt5CONCURRENT_LIBRARIES "${qt_lib_dir}Qt5Concurrent.lib")
-set (Qt5OPENGL_LIBRARIES "${qt_lib_dir}Qt5OpenGL.lib")
+set(saisie_HEADERS GLWidget.h
+		   mainwindow.h
+		   Cloud.h
+		   Engine.h
+		   Data.h
+		   3DTools.h)
 
 SET(Saisie_RCS ./icones/icones.qrc)
 
-set( Install_Dir ${PROJECT_SOURCE_DIR}/bin )
-
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Gui REQUIRED)
-find_package(Qt5Widgets REQUIRED)
-
-set (QT_QTXML_INCLUDE_DIR "${Qt5_INCLUDES}Qtxml")
-set (QT_QTCONCURRENT_INCLUDE_DIR "${Qt5_INCLUDES}QtConcurrent")
-set (QT_QTOPENGL_INCLUDE_DIR "${Qt5_INCLUDES}QtOpenGL")
-
-message("QtCore libraries : " ${Qt5Core_LIBRARIES})
-message("Qt5OpengL libraries : " ${Qt5OPENGL_LIBRARIES})
-
-find_package(Opengl REQUIRED)
-
-message("OpenGL libraries : "${OPENGL_LIBRARIES})
-
-if ( NOT WIN32 )
-    FIND_PACKAGE(X11 REQUIRED)
-    message("X11 libraries : "${X11_LIBRARIES})
-ENDIF()
-
-#IF(QT_WRAP_CPP)
- #    IF (QT_WRAP_UI)
-        qt5_wrap_ui(HEADERS  mainwindow.ui)
-        qt5_wrap_cpp(saisie_HEADERS_MOC ${HEADERS})
-  #  ENDIF (QT_WRAP_UI)
-#ENDIF(QT_WRAP_CPP)
-
 QT5_ADD_RESOURCES( Saisie_RC_SRCS ${Saisie_RCS} )
+
+qt5_wrap_ui(saisie_ui mainwindow.ui)
 
 add_definitions(-DTWEAK)
 if ( WIN32 )
   add_definitions(-DELISE_windows)
 ENDIF()
 
-#set(CMAKE_CXX_FLAGS "-Wno-dev")
+message( "opengl include : " ${OPENGL_INCLUDE_DIR} )
 
-SET(QT_USE_QTOPENGL TRUE)
+include_directories( ${Qt5_INCLUDES}
+		     ${OPENGL_INCLUDE_DIR}
+		     ${PROJECT_SOURCE_DIR}
+		     ${PROJECT_BINARY_DIR} )
 
-include_directories(${Qt5_INCLUDES} ${QT_QTXML_INCLUDE_DIR} ${QT_QTCONCURRENT_INCLUDE_DIR} ${QT_QTOPENGL_INCLUDE_DIR} ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR} )
-add_executable(saisie ${SRCS} ${Saisie_RC_SRCS} ${saisie_HEADERS_MOC} ${HEADERS})
-target_link_libraries(saisie ${OPENGL_LIBRARIES} ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Widgets_LIBRARIES} ${Qt5XML_LIBRARIES} ${Qt5CONCURRENT_LIBRARIES} ${Qt5OPENGL_LIBRARIES} elise ${X11_LIBRARIES})
-install(TARGETS saisie DESTINATION Install_Dir)
+add_executable(saisie ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS_MOC})
+
+qt5_use_modules(saisie Widgets Core Gui Xml Concurrent OpenGL)
+
+target_link_libraries(saisie  ${OPENGL_LIBRARIES}
+			      elise
+			      ${X11_LIBRARIES} )
+
+install(TARGETS saisie DESTINATION ${Install_Dir})
