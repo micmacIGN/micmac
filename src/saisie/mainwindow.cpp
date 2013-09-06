@@ -450,15 +450,6 @@ void MainWindow::loadImage()
     m_FilenamesIn.clear();
     m_FilenamesIn.push_back(img_filename);
 
-    QFileInfo fi(img_filename);
-
-    QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif";
-
-    m_Engine->setFilenameOut(mask_filename);
-
-    if (!QFile::exists(mask_filename))
-        mask_filename = "";
-
     if (!m_bMode2D)
     {
         m_bMode2D = true;
@@ -467,8 +458,8 @@ void MainWindow::loadImage()
         glLoadIdentity();
     }
 
-    // load image and mask
-    m_Engine->loadImageAndMask(img_filename, mask_filename);
+    // load image (and mask)
+    m_Engine->loadImage(img_filename);
 
     m_glWidget->setData(m_Engine->getData());
     m_glWidget->update();

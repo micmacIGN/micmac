@@ -47,9 +47,15 @@ void DoMkT()
     }
 }
 
-void cLoader::loadImage(QString aNameFile , QString aNameMask, QImage* &aImg, QImage* &aImgMask)
+void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
 {
     QImage* img = new QImage( aNameFile );
+
+    QFileInfo fi(aNameFile);
+
+    QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif";
+
+    SetFilenameOut(mask_filename);
 
     if (img->isNull())
     {
@@ -58,7 +64,7 @@ void cLoader::loadImage(QString aNameFile , QString aNameMask, QImage* &aImg, QI
     else
         aImg = img;
 
-    if (aNameMask == "")
+    if (!QFile::exists(mask_filename))
     {
         if (!img->isNull())
         {
@@ -70,7 +76,7 @@ void cLoader::loadImage(QString aNameFile , QString aNameMask, QImage* &aImg, QI
     }
     else
     {
-        Tiff_Im img( aNameMask.toStdString().c_str() );
+        Tiff_Im img( mask_filename.toStdString().c_str() );
 
         if( img.can_elise_use() )
         {
@@ -176,24 +182,21 @@ void cEngine::loadImages(QStringList filenames)
 {
     for (int i=0;i<filenames.size();++i)
     {
-        QImage* pImg=NULL;
-        QImage* pMask=NULL;
-        m_Loader->loadImage(filenames[i], "", pImg, pMask);
-        if (!pImg->isNull()) m_Data->addImage(pImg);
+        loadImage(filenames[i]);
     }
 
     m_Loader->SetFilenamesOut();
 }
 
-void  cEngine::loadImageAndMask(QString imgName, QString maskName)
+void  cEngine::loadImage(QString imgName)
 {
     QImage* img, *mask;
     img = mask = NULL;
-    m_Loader->loadImage(imgName, maskName, img, mask);
+
+    m_Loader->loadImage(imgName, img, mask);
 
     if (!img->isNull()) m_Data->addImage(img);
     if (!mask->isNull()) m_Data->addMask(mask);
-
 }
 
 void cEngine::doMasks()
