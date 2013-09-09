@@ -2,12 +2,14 @@ cmake_minimum_required(VERSION 2.8)
 project(saisie)
 
 if ( MSVC )
-    # for Qt5 to find glu32.lib
-    get_filename_component(WindowsSDKDir
-                           "[HKEY_CURRENT_USER\\Software\\Microsoft\\Microsoft SDKs\\Windows;CurrentInstallFolder]"
-                           ABSOLUTE)
-    set( CMAKE_PREFIX_PATH "${WindowsSDKDir}\\Lib" )
+	include("FindWindowsSDK.txt")
+    
+    set( CMAKE_PREFIX_PATH "${WINDOWSSDK_DIRS}\\Lib" )
+	
+	message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
 endif()
+
+cmake_policy(SET CMP0020 NEW)
 
 # Find the QtWidgets library
 find_package(OpenGL REQUIRED)
