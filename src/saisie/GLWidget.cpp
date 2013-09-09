@@ -356,6 +356,33 @@ void GLWidget::WindowToImage(QPointF const &p0, QPointF &p1)
    p1.setY((float)m_glHeight*(y_gl-m_glPosition[1]*m_params.zoom)/(2.f*m_params.zoom));
 }
 
+void GLWidget::setMask(const QImage &mask)
+{
+    bool isFull = true;
+
+    QColor c1, c2;
+    for (int y=0; y<_glImg.height(); ++y)
+    {
+        for (int x=0; x<_glImg.width(); ++x)
+        {
+            c1 = QColor::fromRgba(mask.pixel(x,y));
+            c2 = QColor::fromRgba(_glImg.pixel(x,y));
+
+            if (c1.alpha() == 0)
+            {
+               c2.setAlphaF(m_alpha);
+               isFull = false;
+            }
+            else
+               c2.setAlphaF(1.f);
+
+            _glImg.setPixel(x,y, c2.rgba());
+        }
+    }
+
+    if (!isFull) m_bFirstAction = false;
+}
+
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
     m_lastPos = event->pos();
@@ -397,6 +424,21 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     {
         if (m_interactionMode == TRANSFORM_CAMERA)
             _m_g_mouseMiddleDown = true;
+
+        //hide mask
+        QColor col;
+        for (int y=0; y<_glImg.height(); ++y)
+        {
+            for (int x=0; x<_glImg.width(); ++x)
+            {
+                col = QColor::fromRgba(_glImg.pixel(x,y));
+                col.setAlphaF(1.f);
+
+                _glImg.setPixel(x,y, col.rgba());
+            }
+        }
+        update();
+
     }
 }
 
@@ -407,7 +449,13 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     if ( !( event->buttons()&Qt::RightButton ) )
         _m_g_mouseRightDown = false;
     if ( !( event->buttons()&Qt::MiddleButton ) )
+    {
         _m_g_mouseMiddleDown = false;
+
+        //show mask
+        setMask(_mask);
+        update();
+    }
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -553,34 +601,9 @@ void GLWidget::setData(cData *data)
 
         if (m_Data->NbMasks())
         {
-            QImage mask = QGLWidget::convertToGLFormat( *m_Data->getCurMask());
-
-            int w = _glImg.width();
-            int h = _glImg.height();
-
-            bool isFull = true;
-
-            QColor c1, c2;
-            for (int y=0; y<h; ++y)
-            {
-                for (int x=0; x<w; ++x)
-                {
-                    c1 = QColor::fromRgba(mask.pixel(x,y));
-                    c2 = QColor::fromRgba(_glImg.pixel(x,y));
-
-                    if (c1.alpha() == 0)
-                    {
-                       c2.setAlphaF(m_alpha);
-                       isFull = false;
-                    }
-                    else
-                       c2.setAlphaF(1.f);
-
-                    _glImg.setPixel(x,y, c2.rgba());
-                }
-            }
-
-            if (!isFull) m_bFirstAction = false;
+            _mask = QGLWidget::convertToGLFormat( *m_Data->getCurMask());
+            setMask(_mask);
+            update();
         }
     }
 
@@ -862,6 +885,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             {
                 if (dp.y() > 0) m_params.zoom *= pow(2.f, dp.y() *.05f);
                 else if (dp.y() < 0) m_params.zoom /= pow(2.f, -dp.y() *.05f);
+
+
             }
             else
             {
