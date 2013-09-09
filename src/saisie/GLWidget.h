@@ -139,6 +139,8 @@ public:
 
     QImage* getGLImage(){return &_glImg;}
 
+    void setMask(QImage const &mask);
+
 public slots:
     void zoom();
 
@@ -315,6 +317,7 @@ private:
     QTime       _time;
 
     QImage      _glImg;
+    QImage      _mask;
 };
 
 #endif  /* _GLWIDGET_H */
