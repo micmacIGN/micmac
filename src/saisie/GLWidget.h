@@ -18,6 +18,8 @@
 #include <QSettings>
 #include <QMimeData>
 #include <QTime>
+#include <QPainter>
+
 
 #include "Data.h"
 #include "Engine.h"
@@ -138,6 +140,8 @@ public:
     void WindowToImage(QPointF const &p0, QPointF &p1);
 
     QImage* getGLImage(){return &_glImg;}
+
+    void setMask(QImage const &mask);
 
 public slots:
     void zoom();
@@ -315,6 +319,7 @@ private:
     QTime       _time;
 
     QImage      _glImg;
+    QImage      _mask;
 };
 
 #endif  /* _GLWIDGET_H */
