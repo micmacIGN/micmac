@@ -1006,31 +1006,46 @@ void GLWidget::Select(int mode)
     {
         QColor c;
 
-        for (int y = 0; y < _glImg.height();++y)
+        QPoint minPt(_glImg.width(),_glImg.height());
+        QPoint maxPt(0,0);
+
+        if(mode ==  ADD || mode ==  SUB)
+            for (int aK=0; aK < polyg.size(); ++aK)
+            {
+                if( polyg[aK].x() < minPt.x()) minPt.setX(polyg[aK].x());
+                if( polyg[aK].y() < minPt.y()) minPt.setY(polyg[aK].y());
+                if( polyg[aK].x() > maxPt.x()) maxPt.setX(polyg[aK].x());
+                if( polyg[aK].y() > maxPt.y()) maxPt.setY(polyg[aK].y());
+            }
+        else
         {
-            for (int x = 0; x < _glImg.width();++x)
+            maxPt.setX(_glImg.width());
+            maxPt.setY(_glImg.height());
+            minPt.setX(0);
+            minPt.setY(0);
+        }
+
+        if ((m_bFirstAction && mode ==  ADD))
+        {
+            QPainter    p;
+            p.begin(&_glImg);
+            p.setCompositionMode(QPainter::CompositionMode_DestinationIn);
+            p.fillRect(_glImg.rect(), QColor(0, 0, 0, 128));
+            p.end();
+        }
+
+        for (int y = minPt.y(); y < maxPt.y();++y)
+        {
+            for (int x = minPt.x(); x < maxPt.x();++x)
             {
                 switch (mode)
                 {
                 case ADD:
                     c = QColor::fromRgba(_glImg.pixel(x,y));
-                    pointInside = isPointInsidePoly(QPointF(x,y),polyg);
-
-                    if (m_bFirstAction)
+                    if (isPointInsidePoly(QPointF(x,y),polyg))
                     {
-                        if (!pointInside)
-                        {
-                            c.setAlphaF(m_alpha);
-                            _glImg.setPixel(x,y, c.rgba());
-                        }
-                    }
-                    else
-                    {
-                        if (pointInside)
-                        {
-                            c.setAlphaF(1.f);
-                            _glImg.setPixel(x,y, c.rgba());
-                        }
+                        c.setAlphaF(1.f);
+                        _glImg.setPixel(x,y, c.rgba());
                     }
                     break;
                 case SUB:

@@ -18,6 +18,8 @@
 #include <QSettings>
 #include <QMimeData>
 #include <QTime>
+#include <QPainter>
+
 
 #include "Data.h"
 #include "Engine.h"
