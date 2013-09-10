@@ -1166,16 +1166,16 @@ void cER_Global::DoComputeL1Cple()
    //   Pour chaque image i on a une fonction Fi a trois param  Ki, Ai Bi
    //        Fi(x,y) = e(Ki+Aix + Biy)   t.q Ri Fi soit normalisee    RiFi = Rj Fj
    //
-   //    On a les fonctions de transfert Tij calulee par moindre L1 precendte telles que
+   //    On a les fonctions de transfert Tij calculees par moindre L1 precedentes telles que
    //   
    //         Ri(x,y) Tij(x,y) = Rj(x,y)
    //       
    //         Rj / Ri = Tij = Fi/Fj
    //      (1)    Log(Tij) = Ki + Ai x + BiY - Kj - Aj x - Bj y
    //      L'equation (1) doit etre verifiee pour les points du domaine de calcul de Tij,
-   //      ici on prend 5 point definis par l'ellipse d'inertie
+   //      ici on prend 5 points definis par l'ellipse d'inertie
    //      Pour que le systeme soit defini, on rajoute une contrainte Sigma(Ki) = 0
-   //      On rajoute aussi Sima(Ai) = 0, Sigma(Bi) = 0 car sinon indet dans le cas habituel
+   //      On rajoute aussi Sigma(Ai) = 0, Sigma(Bi) = 0 car sinon indet dans le cas habituel
    //      ou x1 et X2 sont en tranlation
 
 
@@ -1274,7 +1274,7 @@ void cER_Global::DoComputeL1Cple()
 
    if (mGotOnePbL1)
    {
-       std::cout << "=================LIST OF IMAGE WITH NO MEASURE====================\n";
+       std::cout << "=================LIST OF IMAGES WITH NO MEASURE====================\n";
        for (int aKIm=0 ; aKIm<int(mVecIm.size()) ; aKIm++)
        {
            if (mVecIm[aKIm]->NbMesValidL1() == 0)
@@ -1282,7 +1282,7 @@ void cER_Global::DoComputeL1Cple()
                    std::cout << "   No Valide Measures for " << mVecIm[aKIm]->Name() << "\n";
            }
        }
-       ELISE_ASSERT(false,"There wer images with no validated measures");
+       ELISE_ASSERT(false,"There were images with no validated measures");
    }
 }
 

@@ -159,7 +159,7 @@ Tiff_Im  &   cImaMM::Tiff()
     if (mPtrTiff==0)
     {
         std::string aFullName =  mAppli.Dir() + mNameIm;
-        mPtrTiff = new Tiff_Im(aFullName.c_str());
+        mPtrTiff = new Tiff_Im(Tiff_Im::UnivConvStd(aFullName.c_str()));
     }
     return *mPtrTiff;
 }
