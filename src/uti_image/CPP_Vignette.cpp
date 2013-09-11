@@ -201,8 +201,9 @@ void Vignette_correct(string aDir, GrpVodka aGrpVodka,string aDirOut, string InC
 	//Correcting images
 	int nbIm=aGrpVodka.size();
 
-#pragma omp parallel for
-
+#ifdef USE_OPEN_MP
+    #pragma omp parallel for
+#endif
     for(int i=0;i<nbIm;i++)
 	{
 		string aNameIm=aGrpVodka.aListIm[i];
