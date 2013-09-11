@@ -21,17 +21,29 @@ int main(int argc, char *argv[])
     MainWindow w;
 
     QStringList cmdline_args = QCoreApplication::arguments();
+    QString str;
 
     if (cmdline_args.size() > 1)
     {
         for (int i=0; i< cmdline_args.size(); ++i)
         {
-            if (cmdline_args[i] == "mode2D")
+            str = cmdline_args[i];
+
+            if (str == "mode2D")
             {
+                w.setMode2D(true);
+
+                cmdline_args[i] = cmdline_args.back();
+                cmdline_args.pop_back();             
+                break;
+            }
+
+            if (str.contains("Post="))
+            {
+                w.setPostFix(str.mid(str.indexOf("Post=")+5, str.size()));
+
                 cmdline_args[i] = cmdline_args.back();
                 cmdline_args.pop_back();
-
-                w.setMode2D(true);
                 break;
             }
         }

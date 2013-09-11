@@ -94,10 +94,13 @@ public:
     QString     GetSelectionFilename() {return m_SelectionOut;}
 
 
+    void        SetPostFix(QString str);
+
 private:
     QStringList m_FilenamesIn;
     QStringList m_FilenamesOut; //binary masks
     QString     m_SelectionOut; //selection infos
+    QString     m_postFix;
 
     //! Working directory
     QDir        m_Dir;
@@ -124,6 +127,9 @@ public:
 
     //! Set output filename
     void setFilenameOut(QString filename){m_Loader->SetFilenameOut(filename);}
+
+    //! Set postfix
+    void setPostFix(QString filename){m_Loader->SetPostFix(filename);}
 
     //! Load point cloud .ply files
     void loadClouds(QStringList, int *incre = NULL);
