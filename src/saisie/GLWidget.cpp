@@ -11,6 +11,8 @@ using namespace Cloud_;
 using namespace std;
 
 GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
+  , m_rw(1.f)
+  , m_rh(1.f)
   , m_font(font())
   , m_bDrawAxis(false)
   , m_bDrawBall(true)
@@ -30,7 +32,8 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_Data(data)
   , m_speed(2.5f)
   , m_bDisplayMode2D(false)
-  , m_vertexbuffer(QGLBuffer::VertexBuffer)  
+  , m_alpha(.5f)
+  , m_vertexbuffer(QGLBuffer::VertexBuffer)
   , _frameCount(0)
   , _previousTime(0)
   , _currentTime(0)
@@ -39,9 +42,6 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _m_g_mouseLeftDown(false)
   , _m_g_mouseMiddleDown(false)
   , _m_g_mouseRightDown(false)
-  , m_rw(1.f)
-  , m_rh(1.f)
-  , m_alpha(.5f)
 {
     _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
     _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
@@ -380,6 +380,8 @@ void GLWidget::setMask(const QImage &mask)
         }
     }
 
+    update();
+
     if (!isFull) m_bFirstAction = false;
 }
 
@@ -454,7 +456,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
         //show mask
         setMask(_mask);
-        update();
+
     }
 }
 
@@ -1202,6 +1204,8 @@ void GLWidget::closePolyline()
         if (sz > 2) m_polygon.resize(sz-1);
 
         m_bPolyIsClosed = true;
+
+        //update();
     }
 }
 

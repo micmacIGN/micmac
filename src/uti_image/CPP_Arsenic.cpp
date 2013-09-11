@@ -370,8 +370,9 @@ void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm,vector<Pts
 	//Reading input files
 	string suffix="";if(InVig!=""){suffix="_Vodka.tif";}
 
-#pragma omp parallel for
-
+#ifdef USE_OPEN_MP
+    #pragma omp parallel for
+#endif
     for(int i=0;i<nbIm;i++)
 	{
 		
