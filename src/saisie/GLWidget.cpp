@@ -393,6 +393,8 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     {
         _m_g_mouseLeftDown = true;
 
+        //printf("PRESS LEFT\n");
+
         if (m_interactionMode == SELECTION)
         {
             if (!m_bPolyIsClosed)
@@ -414,6 +416,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     }
     else if (event->button() == Qt::RightButton)
     {
+        //printf("PRESS RIGHT\n");
         if (m_interactionMode == TRANSFORM_CAMERA)
             _m_g_mouseRightDown = true;
         else
@@ -425,6 +428,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     else if (event->button() == Qt::MiddleButton)
     {
 
+        //printf("PRESS MIDDLE\n");
         if (m_interactionMode == TRANSFORM_CAMERA)
             _m_g_mouseMiddleDown = true;
 
