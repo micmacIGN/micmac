@@ -446,17 +446,22 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    if ( !( event->buttons()&Qt::LeftButton ) )
+    if ( event->button() == Qt::LeftButton )
+    {
         _m_g_mouseLeftDown = false;
-    if ( !( event->buttons()&Qt::RightButton ) )
+
+    }
+    if ( event->button() ==Qt::RightButton  )
+    {
         _m_g_mouseRightDown = false;
-    if ( !( event->buttons()&Qt::MiddleButton ) )
+
+    }
+    if ( event->button() == Qt::MiddleButton  )
     {
         _m_g_mouseMiddleDown = false;
 
         //show mask
         setMask(_mask);
-
     }
 }
 
