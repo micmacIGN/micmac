@@ -427,25 +427,29 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     }
     else if (event->button() == Qt::MiddleButton)
     {
-
-        //printf("PRESS MIDDLE\n");
         if (m_interactionMode == TRANSFORM_CAMERA)
             _m_g_mouseMiddleDown = true;
 
         //hide mask
-        QColor col;
+        QColor col, m;
         for (int y=0; y<_glImg.height(); ++y)
         {
             for (int x=0; x<_glImg.width(); ++x)
             {
-                col = QColor::fromRgba(_glImg.pixel(x,y));
+                m = col = QColor::fromRgba(_glImg.pixel(x,y));
+
+                if (col.alpha() == floor(m_alpha*255)+1)
+                    m.setAlphaF(0.f);
+                else
+                    m.setAlphaF(1.f);
+
                 col.setAlphaF(1.f);
 
+                _mask.setPixel(x,y, m.rgba());
                 _glImg.setPixel(x,y, col.rgba());
             }
         }
         update();
-
     }
 }
 
