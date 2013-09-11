@@ -393,8 +393,6 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     {
         _m_g_mouseLeftDown = true;
 
-        //printf("PRESS LEFT\n");
-
         if (m_interactionMode == SELECTION)
         {
             if (!m_bPolyIsClosed)
@@ -416,7 +414,6 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     }
     else if (event->button() == Qt::RightButton)
     {
-        //printf("PRESS RIGHT\n");
         if (m_interactionMode == TRANSFORM_CAMERA)
             _m_g_mouseRightDown = true;
         else
@@ -428,7 +425,6 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     else if (event->button() == Qt::MiddleButton)
     {
 
-        //printf("PRESS MIDDLE\n");
         if (m_interactionMode == TRANSFORM_CAMERA)
             _m_g_mouseMiddleDown = true;
 
@@ -1206,16 +1202,11 @@ void GLWidget::closePolyline()
     if (!m_bPolyIsClosed)
     {
         //remove last point if needed
-//        int sz = m_polygon.size();
-//        if ((sz > 2) && (m_polygon[sz-1] == m_polygon[sz-2]))
-//            m_polygon.resize(sz-1);
-
-//        sz = m_polygon.size();
-//        if (sz > 2) m_polygon.resize(sz-1);
+        int sz = m_polygon.size();
+        if (sz > 2) m_polygon.resize(sz-1);
 
         m_bPolyIsClosed = true;
 
-        //update();
     }
 }
 
