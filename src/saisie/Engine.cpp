@@ -3,7 +3,8 @@
 
 cLoader::cLoader()
  : m_FilenamesIn(),
-   m_FilenamesOut()
+   m_FilenamesOut(),
+   m_postFix("_Masq")
 {}
 
 void cLoader::SetFilenamesOut()
@@ -14,7 +15,7 @@ void cLoader::SetFilenamesOut()
     {
         QFileInfo fi(m_FilenamesIn[aK]);
 
-        m_FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif");
+        m_FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + m_postFix + ".tif");
     }
 }
 
@@ -23,6 +24,11 @@ void cLoader::SetFilenameOut(QString str)
     m_FilenamesOut.clear();
 
     m_FilenamesOut.push_back(str);
+}
+
+void cLoader::SetPostFix(QString str)
+{
+    m_postFix = str;
 }
 
 void cLoader::SetSelectionFilename()

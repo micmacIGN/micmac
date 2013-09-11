@@ -38,6 +38,8 @@ public:
     //! Checks for loaded data
     bool checkForLoadedData();
 
+    void setPostFix(QString &str);
+
 public slots:
 
     //! Try to load a list of files
