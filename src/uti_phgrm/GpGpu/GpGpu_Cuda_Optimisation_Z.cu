@@ -60,8 +60,7 @@ void RunLine(   SimpleStream<short2>    &streamIndex,
             ushort       z      = 0;
             globMinFCost        = max_cost;
 
-
-            if(sens)
+            //if(sens)
                 while( z < dZ)
                 {
                     if(sId_ICost > NAPPEMAX)
@@ -73,15 +72,15 @@ void RunLine(   SimpleStream<short2>    &streamIndex,
 
                     uint fCostMin           = max_cost;
                     const ushort costInit   = ST_Bf_ICost[sgn(sId_ICost)];
-                    const ushort tZ         = z + sgn(tid);
-                    const short  Z          = sens ? tZ + index.x : index.y - WARPSIZE - tZ;
-                    const short prZ         = Z - prevIndex.x;
+                    const ushort tZ         = z + tid;
+                    const short  Z          = sens ? tZ + index.x : index.y - tZ;
+                    const short pitPrZ      = Z - prevIndex.x;
 
                     GetConeZ(ConeZ,Z,penteMax,index,prevIndex);
 
-                    uint* prevFCost = S_FCost[idBuf] + prZ;
+                    uint* prevFCost = S_FCost[idBuf] + pitPrZ;
 
-                    ConeZ.y = min(NAPPEMAX - prZ,ConeZ.y );
+                    ConeZ.y = min(NAPPEMAX - pitPrZ,ConeZ.y );
 
                     for (short i = ConeZ.x; i <= ConeZ.y; ++i)
                        fCostMin = min(fCostMin, costInit + prevFCost[i]);
