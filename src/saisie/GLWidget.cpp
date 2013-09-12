@@ -441,7 +441,6 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             }
         }
         update();
-
     }
 }
 
@@ -887,16 +886,14 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             mult_m33( _m_g_rotationOx, _m_g_rotationMatrix, _m_g_tmpoMatrix );
             mult_m33( _m_g_rotationOy, _m_g_tmpoMatrix, _m_g_rotationMatrix );
         }
-        else if ( _m_g_mouseMiddleDown ) // translation
+        else if ( _m_g_mouseMiddleDown )
         {
-            if (event->modifiers() & Qt::ShiftModifier)
+            if (event->modifiers() & Qt::ShiftModifier) // zoom
             {
                 if (dp.y() > 0) m_params.zoom *= pow(2.f, dp.y() *.05f);
-                else if (dp.y() < 0) m_params.zoom /= pow(2.f, -dp.y() *.05f);
-
-
+                else if (dp.y() < 0) m_params.zoom /= pow(2.f, -dp.y() *.05f);             
             }
-            else
+            else // translation
             {
                 if (m_Data->NbImages())
                 {
