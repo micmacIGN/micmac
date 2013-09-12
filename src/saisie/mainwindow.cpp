@@ -142,12 +142,9 @@ bool MainWindow::checkForLoadedData()
     return loadedEntities;
 }
 
-void MainWindow::setPostFix(QString &str)
+void MainWindow::setPostFix(QString str)
 {
-    if (m_Engine != NULL)
-        m_Engine->setPostFix("_" + str);
-    else
-        cout <<"null pointer" << endl;
+   m_Engine->setPostFix("_" + str);
 }
 
 void MainWindow::progression()

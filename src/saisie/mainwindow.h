@@ -38,7 +38,7 @@ public:
     //! Checks for loaded data
     bool checkForLoadedData();
 
-    void setPostFix(QString &str);
+    void setPostFix(QString str);
 
 public slots:
 
