@@ -1,0 +1,286 @@
+<ParamMICMAC>
+
+<Section_Terrain>  
+      <IntervParalaxe>
+             <Px1IncCalc>   ####  </Px1IncCalc>
+             <Px2IncCalc>   ####  </Px2IncCalc>
+      </IntervParalaxe>
+</Section_Terrain>
+
+<Section_PriseDeVue >
+     <GeomImages> eGeomImageDHD_Px </GeomImages>
+     <Images >
+          <Im1> #### </Im1>
+	  <FCND_CalcIm2fromIm1>
+	       <I2FromI1Key> ####      </I2FromI1Key>              <!--Def:  Gray2IR -->
+	       <I2FromI1SensDirect>  #### </I2FromI1SensDirect>    <!--Def:  true    -->
+	  </FCND_CalcIm2fromIm1>
+     </Images>
+
+     <FCND_CalcHomFromI1I2>  #### </FCND_CalcHomFromI1I2>  <!-- Def: Cple2HomAp -->
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+	        <FCND_GeomCalc> ####  </FCND_GeomCalc>  <!-- Def : Im2Calib -->
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+         <ChantierFullImage1 > true </ChantierFullImage1>
+	 <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+
+             <SzW >      10.0           </SzW>
+             <TypeWCorr> eWInCorrelExp            </TypeWCorr>
+	     <NbIterFenSpec>   2           </NbIterFenSpec>
+
+             <AlgoRegul>    eAlgo2PrgDyn    </AlgoRegul>
+
+             <Px1Regul>      2.0    </Px1Regul>
+             <Px2Regul>      2.0    </Px2Regul>
+             <Px1Pas>        0.5    </Px1Pas>
+             <Px2Pas>        0.5    </Px2Pas>
+
+	     <Px1DilatAlti>  2    </Px1DilatAlti>
+             <Px1DilatPlani> 2    </Px1DilatPlani>
+	     <Px2DilatAlti>  2    </Px2DilatAlti>
+             <Px2DilatPlani> 2    </Px2DilatPlani>
+	     
+	     <ModulationProgDyn Portee="Globale">
+	             <EtapeProgDyn>
+                     <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                     <NbDir>   8  </NbDir>
+                     </EtapeProgDyn>
+                     <Px1PenteMax>   0.1   </Px1PenteMax>
+                     <Px2PenteMax>   0.1   </Px2PenteMax>
+	     </ModulationProgDyn>
+	     <SsResolOptim>     4  </SsResolOptim>
+	     <PostFiltragePx >
+	          <OneFitragePx>
+		     <TypeFiltrage> eFiltrageMedian </TypeFiltrage>
+		     <SzFiltrage>   5 </SzFiltrage>
+		     <SzFiltrNonAd>   2 </SzFiltrNonAd>
+		  </OneFitragePx>
+             </PostFiltragePx>
+
+             <Gen8Bits_Px1> true </Gen8Bits_Px1>
+             <Gen8Bits_Px2> true </Gen8Bits_Px2>
+	     <GenImagesCorrel> true </GenImagesCorrel>
+
+              <FiltreImageLoc> 
+                    <TypeFiltrage>  eFiltrageDeriche </TypeFiltrage>
+		    <!--  1/alpha du deriche -->
+	            <SzFiltrage>   1.0  </SzFiltrage>
+		    <UseIt Id="GradIm"> ### </UseIt>
+              </FiltreImageLoc>
+              <FiltreImageLoc>
+                    <TypeFiltrage>  eFiltrageMoyenne </TypeFiltrage>
+                    <SzFiltrage Id="SzMoy">   2.0  </SzFiltrage>
+                    <UseIt Id="Moyenneur"> ### </UseIt>
+                    <NbIteration Id="NbItMoy"> 3</NbIteration>
+              </FiltreImageLoc>
+
+        </EtapeMEC>
+
+        <EtapeMEC> 
+               <Px1Pas>        1.0    </Px1Pas>
+               <Px2Pas>        1.0    </Px2Pas>
+	       <DeZoom >        32       </DeZoom> 
+	</EtapeMEC> 
+
+        <EtapeMEC> 
+	       <DeZoom >        32       </DeZoom> 
+	</EtapeMEC> 
+
+
+        <EtapeMEC> 
+	       <DeZoom >        16       </DeZoom> 
+	       <ModelesAnalytiques>
+	           <OneModeleAnalytique>
+                          <TypeModele>   eTMA_DHomD </TypeModele>
+			  <PasCalcul>    10      </PasCalcul>
+			  <DegrePol>   -1  </DegrePol>
+			  <ReuseModele >  true </ReuseModele>
+                          <ExportImage>  true </ExportImage>
+	           </OneModeleAnalytique>
+	     </ModelesAnalytiques>
+	</EtapeMEC> 
+ 
+        <EtapeMEC> 
+	     <DeZoom >        16       </DeZoom> 
+	     <Px1DilatAlti>  3    </Px1DilatAlti>
+	     <Px2DilatAlti>  3    </Px2DilatAlti>
+        </EtapeMEC> 
+
+
+        <EtapeMEC> 
+	       <DeZoom >        8       </DeZoom> 
+	       <ModelesAnalytiques>
+	           <OneModeleAnalytique>
+                          <TypeModele>   eTMA_DHomD </TypeModele>
+			  <PasCalcul>    10      </PasCalcul>
+			  <DegrePol>   -1  </DegrePol>
+			  <ReuseModele >  true </ReuseModele>
+                          <ExportImage>  true </ExportImage>
+	           </OneModeleAnalytique>
+	       </ModelesAnalytiques>
+	</EtapeMEC> 
+
+        <EtapeMEC> 
+	       <DeZoom >        8       </DeZoom> 
+	</EtapeMEC> 
+
+        <EtapeMEC> 
+	       <DeZoom >        4       </DeZoom> 
+	       <ModelesAnalytiques>
+	           <OneModeleAnalytique>
+                          <TypeModele>   eTMA_DHomD </TypeModele>
+			  <PasCalcul>    20      </PasCalcul>
+			  <DegrePol Id="DegModZ4">  3   </DegrePol>
+			  <ReuseModele >  true </ReuseModele>
+                          <ExportImage>  true </ExportImage>
+	           </OneModeleAnalytique>
+	       </ModelesAnalytiques>
+	</EtapeMEC> 
+        <EtapeMEC> 
+	       <DeZoom >        4       </DeZoom> 
+	</EtapeMEC> 
+
+        <EtapeMEC> 
+	      <DeZoom >        2       </DeZoom> 
+
+              <Px1Regul>      2.5    </Px1Regul>
+              <Px2Regul>      2.5    </Px2Regul>
+              <SzW >      15.0           </SzW>
+	      <SsResolOptim>     8  </SsResolOptim>
+	      <NbIterFenSpec Portee="Globale">   1           </NbIterFenSpec>
+	</EtapeMEC> 
+
+        <EtapeMEC> 
+             <TypeWCorr> eWInCorrelFixe            </TypeWCorr>
+             <Px1Regul>      3.0    </Px1Regul>
+             <Px2Regul>      3.0    </Px2Regul>
+             <DeZoom >        1       </DeZoom> 
+             <SzW  Portee="Globale">      20.0           </SzW>
+             <SsResolOptim Portee="Globale">     15  </SsResolOptim>
+	     <!-- D3 1.03195   1.02737 -->
+
+        </EtapeMEC> 
+
+        <EtapeMEC> 
+             <DeZoom >        1       </DeZoom> 
+             <Px1Pas>        1.0    </Px1Pas>
+             <Px2Pas>        1.0    </Px2Pas>
+             <AlgoRegul>    eAlgoDequant    </AlgoRegul>
+             <SzDalleMin> 6000 </SzDalleMin>
+             <GenerateProjectionInImages>
+                      <NumsImageDontApply> 0 </NumsImageDontApply>
+                      <FCND_CalcProj> Im2Proj </FCND_CalcProj>
+              </GenerateProjectionInImages>
+
+	     <ModelesAnalytiques>
+
+	           <OneModeleAnalytique>
+		          <UseIt Id="ExportPolynD3"> ### </UseIt>
+			  <!--
+			  <AutomSelExportOri> (.*)\.tif@(.*)\.tif </AutomSelExportOri>
+			  <AutomNamesExportHomXml> XML_Homol_$1-$2.xml </AutomNamesExportHomXml>
+			  -->
+
+                          <TypeModele>   eTMA_DHomD </TypeModele>
+			  <PasCalcul>    30      </PasCalcul>
+			  <DegrePol>   3  </DegrePol>
+			  <HomographieL2> false </HomographieL2>
+			  <PolynomeL2> false </PolynomeL2>
+			  <ReuseModele >  true </ReuseModele>
+                          <ExportImage>  true </ExportImage>
+			   <!-- <ReuseResiduelle > true </ReuseResiduelle>  -->
+			   <MailleExport>  20.0 </MailleExport> 
+			   <FCND_ExportModeleGlobal> SupModeleHPol3 </FCND_ExportModeleGlobal>
+
+                          <FiltreByCorrel   > true </FiltreByCorrel>
+                          <SeuilFiltreCorrel >  0.0 </SeuilFiltreCorrel>
+                          <UseFCBySeuil   >  false </UseFCBySeuil>
+                          <ExposantPondereCorrel> 3.0 </ExposantPondereCorrel>
+	           </OneModeleAnalytique>
+
+	           <OneModeleAnalytique>
+		          <UseIt Id="ExportPolynD5"> ### </UseIt>
+			  <!--
+			  <AutomSelExportOri> (.*)\.tif@(.*)\.tif </AutomSelExportOri>
+			  <AutomNamesExportHomXml> XML_Homol_$1-$2.xml </AutomNamesExportHomXml>
+			  -->
+
+                          <TypeModele>   eTMA_DHomD </TypeModele>
+			  <PasCalcul>    30      </PasCalcul>
+			  <DegrePol>   5  </DegrePol>
+			  <HomographieL2> false </HomographieL2>
+			  <PolynomeL2> false </PolynomeL2>
+                          <ExportImage>  true </ExportImage>
+			  <ReuseModele >  false </ReuseModele>
+			   <!-- <ReuseResiduelle > true </ReuseResiduelle>  -->
+			   <MailleExport>  20.0 </MailleExport> 
+			   <FCND_ExportModeleGlobal> SupModeleHPol5 </FCND_ExportModeleGlobal>
+
+                          <FiltreByCorrel   > true </FiltreByCorrel>
+                          <SeuilFiltreCorrel >  0.0 </SeuilFiltreCorrel>
+                          <UseFCBySeuil   >  false </UseFCBySeuil>
+                          <ExposantPondereCorrel> 3.0 </ExposantPondereCorrel>
+	           </OneModeleAnalytique>
+
+
+	           <OneModeleAnalytique>
+			  <KeyNamesExportHomXml> MarcIm2Hom </KeyNamesExportHomXml>
+			  <ReuseModele >  false </ReuseModele>
+                          <TypeModele>   eTMA_DHomD </TypeModele>
+			  <PasCalcul>    30      </PasCalcul>
+			  <DegrePol>   -1  </DegrePol>
+			  <MailleExport>  20.0 </MailleExport> 
+			  <FCND_ExportModeleGlobal> SupModeleHomog </FCND_ExportModeleGlobal>
+
+                          <FiltreByCorrel   > true </FiltreByCorrel>
+                          <SeuilFiltreCorrel >  0.0 </SeuilFiltreCorrel>
+                          <UseFCBySeuil   >  false </UseFCBySeuil>
+                          <ExposantPondereCorrel> 3.0 </ExposantPondereCorrel>
+	           </OneModeleAnalytique>
+
+
+
+
+
+	     </ModelesAnalytiques>
+
+	</EtapeMEC> 
+
+</Section_MEC>
+
+<Section_Results >
+    <GeomMNT> eGeomPxBiDim  </GeomMNT> 
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir > ####  </WorkDir> 
+     <TmpMEC>     Tmp-Micmac-FUSION/  </TmpMEC>
+     <TmpPyr>     Tmp-Micmac-FUSION/  </TmpPyr>
+     <TmpResult>  Tmp-Micmac-FUSION/  </TmpResult>
+     <ByProcess>   2 </ByProcess>
+
+     <SzDalleMin> 1000 </SzDalleMin>
+
+     <CalcNomChantier>     <!--#S-->
+           <PatternSelChantier > (.*)\.tif@(.*)\.tif </PatternSelChantier>
+           <PatNameChantier > FusionGradLoc_$1-$2_ </PatNameChantier>
+           <SeparateurChantier > @  </SeparateurChantier>
+     </CalcNomChantier>
+
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+
