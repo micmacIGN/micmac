@@ -11,6 +11,8 @@ using namespace Cloud_;
 using namespace std;
 
 GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
+  , m_rw(1.f)
+  , m_rh(1.f)
   , m_font(font())
   , m_bDrawAxis(false)
   , m_bDrawBall(true)
@@ -30,7 +32,8 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_Data(data)
   , m_speed(2.5f)
   , m_bDisplayMode2D(false)
-  , m_vertexbuffer(QGLBuffer::VertexBuffer)  
+  , m_alpha(.5f)
+  , m_vertexbuffer(QGLBuffer::VertexBuffer)
   , _frameCount(0)
   , _previousTime(0)
   , _currentTime(0)
@@ -39,9 +42,6 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _m_g_mouseLeftDown(false)
   , _m_g_mouseMiddleDown(false)
   , _m_g_mouseRightDown(false)
-  , m_rw(1.f)
-  , m_rh(1.f)
-  , m_alpha(.5f)
 {
     _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
     _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
@@ -140,13 +140,6 @@ void GLWidget::computeFPS()
             m_messageFPS = "fps: " + QString::number(_fps);
         }
     }
-}
-
-int EnsureRange(int aValue, int aMin, int aMax)
-{
-    if ((aMin <= aValue) && (aValue <= aMax) ) return aValue;
-    if (aMin > aValue) return aMin;
-    else return aMax;
 }
 
 void GLWidget::paintGL()
@@ -344,15 +337,13 @@ void GLWidget::paintGL()
     }
 }
 
-bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> poly);
-
 //converts from Viewport coordinates [0, m_glWidth] to GL window coordinates [-1,1] into Image coordinates [0,_glImg.width]
 void GLWidget::WindowToImage(QPointF const &p0, QPointF &p1)
 {
    float x_gl = 2.f*p0.x()/m_glWidth -1.f;
    float y_gl = 2.f*p0.y()/m_glHeight-1.f;
 
-   p1.setX((float)m_glWidth*(x_gl-m_glPosition[0]*m_params.zoom)/(2.f*m_params.zoom));
+   p1.setX((float)m_glWidth *(x_gl-m_glPosition[0]*m_params.zoom)/(2.f*m_params.zoom));
    p1.setY((float)m_glHeight*(y_gl-m_glPosition[1]*m_params.zoom)/(2.f*m_params.zoom));
 }
 
@@ -380,6 +371,8 @@ void GLWidget::setMask(const QImage &mask)
         }
     }
 
+    update();
+
     if (!isFull) m_bFirstAction = false;
 }
 
@@ -387,7 +380,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 {
     m_lastPos = event->pos();
 
-    if ( event->buttons()&Qt::LeftButton )
+    if ( event->button() == Qt::LeftButton )
     {
         _m_g_mouseLeftDown = true;
 
@@ -410,7 +403,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             }
         }
     }
-    else if (event->buttons()&Qt::RightButton)
+    else if (event->button() == Qt::RightButton)
     {
         if (m_interactionMode == TRANSFORM_CAMERA)
             _m_g_mouseRightDown = true;
@@ -420,8 +413,9 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             update();
         }
     }
-    else if (event->buttons()&Qt::MiddleButton)
+    else if (event->button() == Qt::MiddleButton)
     {
+
         if (m_interactionMode == TRANSFORM_CAMERA)
             _m_g_mouseMiddleDown = true;
 
@@ -438,23 +432,27 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             }
         }
         update();
-
     }
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    if ( !( event->buttons()&Qt::LeftButton ) )
+    if ( event->button() == Qt::LeftButton )
+    {
         _m_g_mouseLeftDown = false;
-    if ( !( event->buttons()&Qt::RightButton ) )
+
+    }
+    if ( event->button() ==Qt::RightButton  )
+    {
         _m_g_mouseRightDown = false;
-    if ( !( event->buttons()&Qt::MiddleButton ) )
+
+    }
+    if ( event->button() == Qt::MiddleButton  )
     {
         _m_g_mouseMiddleDown = false;
 
         //show mask
         setMask(_mask);
-        update();
     }
 }
 
@@ -801,6 +799,7 @@ void GLWidget::onWheelEvent(float wheelDelta_deg)
 {
     //convert degrees in zoom 'power'
     float zoomFactor = pow(1.1f,wheelDelta_deg *.05f);
+
     setZoom(m_params.zoom*zoomFactor);
 
     update();
@@ -813,7 +812,7 @@ void GLWidget::setZoom(float value)
     else if (value > GL_MAX_ZOOM_RATIO)
         value = GL_MAX_ZOOM_RATIO;
 
-    m_params.zoom = value;
+    m_params.zoom = value;   
 }
 
 void GLWidget::wheelEvent(QWheelEvent* event)
@@ -879,16 +878,14 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             mult_m33( _m_g_rotationOx, _m_g_rotationMatrix, _m_g_tmpoMatrix );
             mult_m33( _m_g_rotationOy, _m_g_tmpoMatrix, _m_g_rotationMatrix );
         }
-        else if ( _m_g_mouseMiddleDown ) // translation
+        else if ( _m_g_mouseMiddleDown )
         {
-            if (event->modifiers() & Qt::ShiftModifier)
+            if (event->modifiers() & Qt::ShiftModifier) // zoom
             {
                 if (dp.y() > 0) m_params.zoom *= pow(2.f, dp.y() *.05f);
-                else if (dp.y() < 0) m_params.zoom /= pow(2.f, -dp.y() *.05f);
-
-
+                else if (dp.y() < 0) m_params.zoom /= pow(2.f, -dp.y() *.05f);             
             }
-            else
+            else // translation
             {
                 if (m_Data->NbImages())
                 {
@@ -1195,13 +1192,10 @@ void GLWidget::closePolyline()
     {
         //remove last point if needed
         int sz = m_polygon.size();
-        if ((sz > 2) && (m_polygon[sz-1] == m_polygon[sz-2]))
-            m_polygon.resize(sz-1);
-
-        sz = m_polygon.size();
         if (sz > 2) m_polygon.resize(sz-1);
 
         m_bPolyIsClosed = true;
+
     }
 }
 
