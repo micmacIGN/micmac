@@ -142,13 +142,6 @@ void GLWidget::computeFPS()
     }
 }
 
-int EnsureRange(int aValue, int aMin, int aMax)
-{
-    if ((aMin <= aValue) && (aValue <= aMax) ) return aValue;
-    if (aMin > aValue) return aMin;
-    else return aMax;
-}
-
 void GLWidget::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -344,15 +337,13 @@ void GLWidget::paintGL()
     }
 }
 
-bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> poly);
-
 //converts from Viewport coordinates [0, m_glWidth] to GL window coordinates [-1,1] into Image coordinates [0,_glImg.width]
 void GLWidget::WindowToImage(QPointF const &p0, QPointF &p1)
 {
    float x_gl = 2.f*p0.x()/m_glWidth -1.f;
    float y_gl = 2.f*p0.y()/m_glHeight-1.f;
 
-   p1.setX((float)m_glWidth*(x_gl-m_glPosition[0]*m_params.zoom)/(2.f*m_params.zoom));
+   p1.setX((float)m_glWidth *(x_gl-m_glPosition[0]*m_params.zoom)/(2.f*m_params.zoom));
    p1.setY((float)m_glHeight*(y_gl-m_glPosition[1]*m_params.zoom)/(2.f*m_params.zoom));
 }
 
@@ -808,6 +799,7 @@ void GLWidget::onWheelEvent(float wheelDelta_deg)
 {
     //convert degrees in zoom 'power'
     float zoomFactor = pow(1.1f,wheelDelta_deg *.05f);
+
     setZoom(m_params.zoom*zoomFactor);
 
     update();
@@ -820,7 +812,7 @@ void GLWidget::setZoom(float value)
     else if (value > GL_MAX_ZOOM_RATIO)
         value = GL_MAX_ZOOM_RATIO;
 
-    m_params.zoom = value;
+    m_params.zoom = value;   
 }
 
 void GLWidget::wheelEvent(QWheelEvent* event)
