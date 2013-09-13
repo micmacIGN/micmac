@@ -114,8 +114,7 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
         }
         else
         {
-            qCritical("cLoader::loadMask"
-                      "Cannot load mask image");
+            QMessageBox::critical(NULL, "cLoader::loadMask","Cannot load mask image");
         }
     }
 }

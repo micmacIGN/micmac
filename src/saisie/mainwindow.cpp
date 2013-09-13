@@ -157,6 +157,17 @@ void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
     {
+        for (int i=0; i< filenames[i].size();++i)
+        {
+            QFile Fout(filenames[i]);
+
+            if(!Fout.exists())
+            {
+                QMessageBox::critical(this, "Error", "File or option does not exist");
+                return;
+            }
+        }
+
         m_Engine->SetFilenamesIn(filenames);
 
         bool mode2D = getMode2D();
