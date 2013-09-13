@@ -142,6 +142,11 @@ bool MainWindow::checkForLoadedData()
     return loadedEntities;
 }
 
+void MainWindow::setPostFix(QString str)
+{
+   m_Engine->setPostFix("_" + str);
+}
+
 void MainWindow::progression()
 {
     if(m_incre)
@@ -152,6 +157,17 @@ void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
     {
+        for (int i=0; i< filenames[i].size();++i)
+        {
+            QFile Fout(filenames[i]);
+
+            if(!Fout.exists())
+            {
+                QMessageBox::critical(this, "Error", "File or option does not exist");
+                return;
+            }
+        }
+
         m_Engine->SetFilenamesIn(filenames);
 
         bool mode2D = getMode2D();
