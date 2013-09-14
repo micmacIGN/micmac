@@ -59,15 +59,15 @@
                 </FMNtBySort>
 -->
                 <FMNtByMaxEvid>
-                       <SigmaPds> 7.0 </SigmaPds>
-                       <SigmaZ> 3.5  </SigmaZ>
+                       <SigmaPds> 15.0 </SigmaPds>
+                       <SigmaZ> 7.5  </SigmaZ>
                        <MaxDif> 10  </MaxDif>
                        <FMNT_ProgDyn>
                             <Regul> 1.0 </Regul>
-                            <Sigma0> 2.0 </Sigma0>
+                            <Sigma0> 10.0 </Sigma0>
                             <NbDir>  7 </NbDir>
                             <FMNT_GesNoVal>
-                                <PenteMax> 2 </PenteMax>
+                                <PenteMax> 10 </PenteMax>
                                 <GainNoVal> 0.5 </GainNoVal>
                                 <Trans>     3 </Trans>
                             </FMNT_GesNoVal>
