@@ -59,8 +59,8 @@
                 </FMNtBySort>
 -->
                 <FMNtByMaxEvid>
-                       <SigmaPds> 3.0 </SigmaPds>
-                       <SigmaZ> 1.5  </SigmaZ>
+                       <SigmaPds> 7.0 </SigmaPds>
+                       <SigmaZ> 3.5  </SigmaZ>
                        <MaxDif> 10  </MaxDif>
                        <FMNT_ProgDyn>
                             <Regul> 1.0 </Regul>
