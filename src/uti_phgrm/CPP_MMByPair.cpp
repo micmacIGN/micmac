@@ -324,7 +324,7 @@ void cAppliWithSetImage::AddPairASym(cImaMM * anI1,cImaMM * anI2)
 
 void cAppliWithSetImage::DoPyram()
 {
-    std::string aCom =    MMBinFile(MM3DStr) + " MMPyram " + mFullName + " " + mOri;
+    std::string aCom =    MMBinFile(MM3DStr) + " MMPyram " + QUOTE(mFullName) + " " + mOri;
     if (mShow)
        std::cout << aCom << "\n";
     System(aCom);
@@ -664,12 +664,18 @@ int cAppliMMByPair::Exe()
 {
   
 /*
-   DoPyram();
-   DoMDT();
-   DoCorrel();
-   DoBascule();
 */
+std::cout << "MMByP Phase 0 \n";
+   DoPyram();
+std::cout << "MMByP Phase 1 \n";
+   DoMDT();
+std::cout << "MMByP Phase 2 \n";
+   DoCorrel();
+std::cout << "MMByP Phase 3 \n";
+   DoBascule();
+std::cout << "MMByP Phase 4 \n";
    DoFusion();
+std::cout << "MMByP Phase 5 \n";
 /*
 */
    return 1;
