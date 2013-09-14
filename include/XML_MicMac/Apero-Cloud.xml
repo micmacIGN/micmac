@@ -57,6 +57,7 @@
 
         <SectionSolveur>
 	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+              <LimModeGL >  -1  </LimModeGL>
         </SectionSolveur>
 
 
