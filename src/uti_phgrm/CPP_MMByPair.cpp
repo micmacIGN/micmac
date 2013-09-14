@@ -97,6 +97,7 @@ class cAppliWithSetImage
       typedef std::set<tPairIm> tSetPairIm;
       tSetPairIm   mPairs;
       double       mAverNbPix;
+      double       mTetaBande;
 
 
    private :
@@ -277,7 +278,22 @@ void cAppliWithSetImage::ComputeStripPair(int aDif)
                int aN2 = anI2.mNumInBande;
                if ((aN1>aN2) && (aN1<=aN2+aDif))
                {
-                    AddPair(&anI1,&anI2);
+                    bool OK = true;
+                    if (OK && EAMIsInit(&mTetaBande))
+                    {
+                       Pt3dr aV3 = anI2.mCam->PseudoOpticalCenter() - anI1.mCam->PseudoOpticalCenter();
+                       Pt2dr aV2(aV3.x,aV3.y);
+                       aV2 = vunit(aV2); 
+                       Pt2dr aDirS = Pt2dr::FromPolar(1,mTetaBande * (PI/180));
+                       double aTeta = ElAbs(angle_de_droite(aV2,aDirS));
+                       OK = (aTeta < (PI/4));
+                    }
+
+                    if (OK)
+                    {
+ // std::cout << "MMByP " << anI1.mNameIm << " " << anI2.mNameIm << "\n";
+                        AddPair(&anI1,&anI2);
+                    }
                }
             }
         }
@@ -542,6 +558,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mSym,"Sym",true,"Symetrise all pair (Def=true)")
                     << EAM(mShow,"Show",true,"Show details (def = false))")
                     << EAM(mIntIncert,"Inc",true,"Uncertaincy interval (def  = 1.25) ")
+                    << EAM(mTetaBande,"TetaStrip",true,"If used, cut strip when dir of vector > 45 degre from TetaStrip")
   );
   if (! EAMIsInit(&mZoom0))
      mZoom0 =  DeZoomOfSize(7e4);
@@ -649,10 +666,10 @@ int cAppliMMByPair::Exe()
    DoPyram();
    DoMDT();
    DoCorrel();
-/*
-*/
    DoBascule();
    DoFusion();
+/*
+*/
 /*
 */
    return 1;

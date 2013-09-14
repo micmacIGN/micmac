@@ -46,8 +46,23 @@ int main(int argc, char *argv[])
                 cmdline_args.pop_back();
                 break;
             }
+
+            if (str.contains("SzW="))
+            {
+                QString arg = str.mid(str.indexOf("SzW=")+4, str.size());
+                int szW = arg.toInt();
+
+                int szH = szW * w.height() / w.width();
+
+                w.resize( szW, szH );
+
+                cmdline_args[i] = cmdline_args.back();
+                cmdline_args.pop_back();
+                break;
+            }
         }
     }
+
 
     w.show();
 
