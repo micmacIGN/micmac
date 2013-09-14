@@ -238,6 +238,10 @@ int  NuageBascule_main(int argc,char ** argv)
          std::string aNameMasq = aNameRes + "_Masq.tif";
          std::string aNameProf = aNameRes + "_Prof.tif";
 
+         aNewNuageOut.Image_Profondeur().Val().Image() = NameWithoutDir(aNameProf);
+         aNewNuageOut.Image_Profondeur().Val().Masq() = NameWithoutDir(aNameMasq);
+         aNewNuageOut.Image_Profondeur().Val().Correl().SetNoInit();
+         MakeFileXML(aNewNuageOut,aNameRes+".xml");
          
 
          Tiff_Im aFileProf
