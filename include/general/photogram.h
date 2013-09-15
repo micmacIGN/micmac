@@ -71,6 +71,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 extern bool NewBug;
 extern bool DoCheckResiduPhgrm;
+extern bool AcceptTrueRot;
+extern bool ForceTrueRot;
 
 // Definis dans phgr_formel.h
 class cSetEqFormelles;
@@ -1478,6 +1480,7 @@ class ElCamera : public cCapture3D
 
 
           double GetProfondeur() const;
+          virtual double GetRoughProfondeur() const; // Tente Prof puis Alti
           bool   ProfIsDef() const;
           eTypeProj GetTypeProj() const;
           CamStenope * CS();
@@ -1884,6 +1887,7 @@ class CamStenope : public ElCamera
 {
       public :
 
+         double GetRoughProfondeur() const; // Tente Prof puis Alti
          const tParamAFocal   & ParamAF() const;
 
          void StdNormalise(bool doScale,bool  doTr);

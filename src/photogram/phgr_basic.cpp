@@ -1687,6 +1687,11 @@ double ElCamera::GetProfondeur() const
     ELISE_ASSERT(ProfIsDef(),"Profondeur non init");
     return mProfondeur;
 }
+double  ElCamera::GetRoughProfondeur() const
+{
+   return GetProfondeur();
+}
+
 
 
 const cElPolygone &  ElCamera::EmpriseSol() const
@@ -2830,6 +2835,17 @@ cCalibrationInternConique  ElCamera::ExportCalibInterne2XmlStruct(Pt2di aSzIm) c
 /*              CamStenope                                     */
 /*                                                             */
 /***************************************************************/
+
+double  CamStenope::GetRoughProfondeur() const
+{
+    if (ProfIsDef())  return mProfondeur;
+    if (AltisSolIsDef()) return ElAbs(PseudoOpticalCenter().z-mAltiSol);
+
+    ELISE_ASSERT(false,"Nor Prof nor Alti in ElCamera::GetRoughProfondeur");
+}
+
+
+
 
 Pt3dr CamStenope::OrigineProf() const
 {

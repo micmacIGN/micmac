@@ -405,8 +405,8 @@ cCpleEpip::cCpleEpip
 
    if (1)
    {
-      Pt3dr aP1 =  aC1.ImEtProf2Terrain(Pt2dr(aC1.Sz()/2),aC1.GetProfondeur());
-      Pt3dr aP2 =  aC2.ImEtProf2Terrain(Pt2dr(aC2.Sz()/2),aC2.GetProfondeur());
+      Pt3dr aP1 =  aC1.ImEtProf2Terrain(Pt2dr(aC1.Sz()/2),aC1.GetRoughProfondeur());
+      Pt3dr aP2 =  aC2.ImEtProf2Terrain(Pt2dr(aC2.Sz()/2),aC2.GetRoughProfondeur());
       Pt3dr aP = (aP1+aP2) / 2.0;
  
       Pt2dr aPI1 = mCamOut1.R3toF2(aP);
@@ -459,12 +459,15 @@ template <class Type,class TypeBase>
              Box2di  aBoxOut
          )
 {
+
    INT aRab = 10;
    Pt2di aPRab(aRab,aRab);
    Box2di aBoxIn = R2I(GlobBoxCam(I2R(aBoxOut),aCamOut,aCamIn));
    aBoxIn._p0 = Sup(Pt2di(0,0),aBoxIn._p0-aPRab);
    aBoxIn._p1 = Inf(aTIn.sz(),aBoxIn._p1+aPRab);
    Pt2di aSzIn = aBoxIn.sz();
+   if  ((aSzIn.x <=0) || (aSzIn.y <=0))
+       return;
    Pt2di aSzOut = aBoxOut.sz();
 
    int aNbChan = aTIn.nb_chan();
@@ -514,7 +517,7 @@ template <class Type,class TypeBase>
     }
     else if (1)
     {
-       aKern = new cTplCIKTabul<Type,TypeBase>(10,8,-0.5);
+       aKern = new cTplCIKTabul<Type,TypeBase>(7,8,-0.5);
     }
 
     double aSzK = aKern->SzKernel();
@@ -539,9 +542,9 @@ template <class Type,class TypeBase>
 
             for (int aKC=0 ; aKC<aNbChan ; aKC++)
             {
-                double aVal =  Ok ?  aKern->GetVal(aDataIn[aKC],aPIm) : 0 ;
+                double aVal =  Ok ?  ElMax(1.0,aKern->GetVal(aDataIn[aKC],aPIm)) : 0 ;
                 aVOut[aKC].oset(Pt2di(anX,anY),aVal);
-                
+
             }
             aPR.y += UnSPas;
        }
@@ -638,8 +641,8 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1)
     // std::cout << "ORI = " << mDir << " " << mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-Epi",NameWithoutDir(aNameImOut),true) << "\n";
     cOrientationConique anOC = aCamOut.StdExportCalibGlob();
     MakeFileXML(anOC,mDir+aNameOriOut);
-    CamStenope * aCTEST = CamOrientGenFromFile(aNameOriOut,mICNM);
-    std::cout << "TTTTT " << aCTEST->Focale() << "\n";
+    // CamStenope * aCTEST = CamOrientGenFromFile(aNameOriOut,mICNM);
+    // std::cout << "TTTTT " << aCTEST->Focale() << "\n";
 
 
     GenIm::type_el aTypeNOut =  aTIn.type_el();
@@ -651,6 +654,7 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1)
                   Tiff_Im::No_Compr,
                   aTIn.phot_interp()
             );
+    ELISE_COPY(aTOut.all_pts(),0,aTOut.out());
 
 
 

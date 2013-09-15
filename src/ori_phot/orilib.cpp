@@ -3920,6 +3920,13 @@ ElMatrix<double>   Std_RAff_C2M
 
        TrueRot = aRVect.CodageMatr().Val().TrueRot().ValWithDef(true);
 
+       if ((!TrueRot) && (ForceTrueRot))
+       {
+           TrueRot = true;
+           cElWarning::TrueRot.AddWarn("Force True Rot",__LINE__,__FILE__);
+
+       }
+
    }
    else if(aRVect.CodageAngulaire().IsInit())
    {
