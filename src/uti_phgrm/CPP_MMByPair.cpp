@@ -40,10 +40,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 using namespace NS_ParamChantierPhotogram;
+using namespace NS_ParamMICMAC;
 
 class cImaMM;
 class cAppliWithSetImage;
 class cAppliMMByPair;
+
 
 
 class cImaMM
@@ -57,6 +59,8 @@ class cImaMM
        std::string mBande;
        int         mNumInBande;
        CamStenope * mCam;
+       Pt3dr        mC3;
+       Pt2dr        mC2;
        Tiff_Im  &   Tiff();
     private :
        cAppliWithSetImage &  mAppli;
@@ -64,16 +68,30 @@ class cImaMM
  
 };
 
+Pt2dr PtOfcImaMM   (const cImaMM & aCam) {return aCam.mC2;}
+Pt2dr PtOfcImaMMPtr(const cImaMM * aCam) {return PtOfcImaMM(*aCam);}
+
 class cAppliWithSetImage
 {
    public :
       CamStenope * CamOfName(const std::string & aName);
       const std::string & Dir() const;
       int  DeZoomOfSize(double ) const;
+      void operator()(cImaMM*,cImaMM*,bool);   // Delaunay call back
    protected :
-      cAppliWithSetImage(int argc,char ** argv);
+      cAppliWithSetImage(int argc,char ** argv,int aFlag);
+      void Develop(bool EnGray,bool En16B);
+
+      static const int  FlagDev8BGray   = 1;
+      static const int  FlagDev16BGray  = 2;
+
       cImaMM * ImOfName(const std::string & aName);
       void MakeStripStruct(const std::string & aPairByStrip,bool StripFirst);
+      void AddDelaunayCple();
+
+
+
+
       void DoPyram();
 
       void VerifAWSI();
@@ -124,20 +142,73 @@ class cAppliMMByPair : public cAppliWithSetImage
       cAppliMMByPair(int argc,char ** argv);
       int Exe();
     private :
-      void DoCorrel();
       void DoMDT();
-      void DoBascule();
+      void DoCorrelAndBascule();
       void DoFusion();
 
       int mZoom0;
       int mZoomF;
+      bool mDelaunay;
       int mDiffInStrip;
       bool mStripIsFirt;
       std::string  mPairByStrip;
       std::string  mDirBasc;
       int          mNbStep;
       double       mIntIncert;
+      bool         mSkipCorDone;
 };
+
+/*****************************************************************/
+/*                                                               */
+/*                            cImaMM                             */
+/*                                                               */
+/*****************************************************************/
+
+int TiffDev_main(int argc,char ** argv)
+{
+    std::string aNameFile;
+    int aNbChan = -1 ;
+    bool B16 = true;
+    bool ExigNoCompr = false;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aNameFile,"A Name File"),
+        LArgMain()  << EAM(aNbChan,"NbChan",true,"Nb Channel")
+                    << EAM(B16,"16B",true,"Conserv in 16 Bits if possible")
+                    << EAM(ExigNoCompr,"ENC",true,"Exig No Compr")
+    );
+
+    Tiff_Im::StdConvGen(aNameFile,aNbChan,B16,ExigNoCompr);
+
+    return 0;
+}
+
+void Paral_Tiff_Dev
+    (
+         const std::string & aDir,
+         const std::vector<std::string> & aLFile,
+         int                            aNbChan,
+         bool                           Cons16B
+    )
+{
+    std::list<std::string> aLCom;
+    for (std::vector<std::string>::const_iterator itS=aLFile.begin(); itS!=aLFile.end(); itS++)
+    {
+         std::string aCom =    MMBinFile(MM3DStr) + " TifDev " + aDir+*itS 
+                              + " NbChan=" + ToString(aNbChan)
+                              + " 16B=" + ToString(Cons16B)
+                            ;
+         aLCom.push_back(aCom);
+         // std::cout << aCom << "\n";
+    }
+
+    // std::cout << "Paral_Tiff_Dev TO DO \n"; getchar();
+
+    cEl_GPAO::DoComInParal(aLCom);
+}
+
 
 /*****************************************************************/
 /*                                                               */
@@ -150,6 +221,8 @@ cImaMM::cImaMM(const std::string & aName,cAppliWithSetImage & anAppli) :
    mBande      (""),
    mNumInBande (-1),
    mCam        (anAppli.CamOfName(mNameIm)),
+   mC3         (mCam->PseudoOpticalCenter()),
+   mC2         (mC3.x,mC3.y),
    mAppli      (anAppli),
    mPtrTiff    (0)
 {
@@ -173,7 +246,12 @@ Tiff_Im  &   cImaMM::Tiff()
 
 static std::string aBlank(" ");
 
-cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv)  :
+void cAppliWithSetImage::Develop(bool EnGray,bool Cons16B)
+{
+    Paral_Tiff_Dev(mDir,*mSetIm,(EnGray?1:3),Cons16B);
+}
+
+cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
    mSym       (true),
    mShow      (false),
    mPb        (""),
@@ -192,8 +270,15 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv)  :
 #endif
    SplitDirAndFile(mDir,mPat,mFullName);
 
+
+
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
    mSetIm = mICNM->Get(mPat);
+
+
+   if (aFlag & FlagDev16BGray) Develop(true,true);
+   if (aFlag & FlagDev8BGray) Develop(true,false);
+
 
    if (mSetIm->size()==0)
    {
@@ -263,6 +348,19 @@ void  cAppliWithSetImage::MakeStripStruct(const std::string & aPairByStrip,bool 
   }
 }
 
+void cAppliWithSetImage::AddDelaunayCple()
+{
+  Delaunay_Mediatrice
+  (
+      &(mImages[0]),
+      &(mImages[0])+mImages.size(),
+       PtOfcImaMMPtr,
+       *this,
+       1e10,
+       (cImaMM **) 0
+  );
+
+}
 
 void cAppliWithSetImage::ComputeStripPair(int aDif)
 {
@@ -291,13 +389,19 @@ void cAppliWithSetImage::ComputeStripPair(int aDif)
 
                     if (OK)
                     {
- // std::cout << "MMByP " << anI1.mNameIm << " " << anI2.mNameIm << "\n";
+ /// std::cout << "MMByP " << anI1.mNameIm << " " << anI2.mNameIm << "\n";
                         AddPair(&anI1,&anI2);
                     }
                }
             }
         }
     }
+}
+
+
+void cAppliWithSetImage::operator()(cImaMM* anI1,cImaMM* anI2,bool)   // Delaunay call back
+{
+     AddPair(anI1,anI2);
 }
 
 void cAppliWithSetImage::AddPair(cImaMM * anI1,cImaMM * anI2)
@@ -348,7 +452,7 @@ cImaMM * cAppliWithSetImage::ImOfName(const std::string & aName)
 
 
 cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
-    cAppliWithSetImage (argc-1,argv+1)
+    cAppliWithSetImage (argc-1,argv+1,0)
 {
   std::string aPrefClip = "Cliped_";
   std::string aOriOut;
@@ -453,7 +557,6 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
                 System(aCom);
             }
        }
-
        
    }
    
@@ -535,15 +638,16 @@ int ClipIm_main(int argc,char ** argv)
 /*              cAppliMMByPair                                   */
 /*                                                               */
 /*****************************************************************/
-
 cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
-    cAppliWithSetImage (argc-1,argv+1),
+    cAppliWithSetImage (argc-1,argv+1,FlagDev16BGray),
     mZoom0       (64),
     mZoomF       (1),
+    mDelaunay    (false),
     mDiffInStrip (1),
     mStripIsFirt (true),
     mDirBasc     ("MTD-Nuage"),
-    mIntIncert   (1.25)
+    mIntIncert   (1.25),
+    mSkipCorDone (false)
 {
   ElInitArgMain
   (
@@ -552,13 +656,15 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAMC(mOri,"Orientation"),
         LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64")
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final, Def=1")
-                    << EAM(mPairByStrip,"ByStrip",true,"Pair in same strip[Pat,ExprStrip,ExprNumInStrip]")
-                    << EAM(mStripIsFirt,"StripIsFisrt",true,"If true : first expr is strip, second is num in strip")
+                    << EAM(mDelaunay,"Delaunay","Add delaunay edges in pair to macth, Def=False")
+                    << EAM(mPairByStrip,"ByStrip",true,"Pair in same strip , first () : strip, second () : num in strip (or reverse with StripIsFisrt)")
+                    << EAM(mStripIsFirt,"StripIsFisrt",true,"If true : first expr is strip, second is num in strip Def=true")
                     << EAM(mDiffInStrip,"DeltaStrip",true,"Delta in same strip (Def=1,apply with mPairByStrip)")
                     << EAM(mSym,"Sym",true,"Symetrise all pair (Def=true)")
                     << EAM(mShow,"Show",true,"Show details (def = false))")
                     << EAM(mIntIncert,"Inc",true,"Uncertaincy interval (def  = 1.25) ")
                     << EAM(mTetaBande,"TetaStrip",true,"If used, cut strip when dir of vector > 45 degre from TetaStrip")
+                    << EAM(mSkipCorDone,"SMD",true,"Skip Matching When Already Done (Def=false)")
   );
   if (! EAMIsInit(&mZoom0))
      mZoom0 =  DeZoomOfSize(7e4);
@@ -569,38 +675,93 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
       MakeStripStruct(mPairByStrip,mStripIsFirt);
       ComputeStripPair(mDiffInStrip);
   }
+  if (mDelaunay)
+     AddDelaunayCple();
 
   mNbStep = round_ni(log2(mZoom0/double(mZoomF))) + 3 ;
 }
 
 
-void cAppliMMByPair::DoCorrel()
+void cAppliMMByPair::DoCorrelAndBascule()
 {
+std::cout << "BEGIN DoCorrelAndBascul\n";
    for ( tSetPairIm::const_iterator itP= mPairs.begin(); itP!=mPairs.end() ; itP++)
    {
         cImaMM & anI1 = *(itP->first);
         cImaMM & anI2 = *(itP->second);
 
-        std::string aCom =    MMBinFile("MICMAC")
-                           +  XML_MM_File("MM-Param2Im.xml")
-                           +  std::string(" WorkDir=") + mDir          + aBlank
-                           +  std::string(" +Ori=") + mOri + aBlank
-                           +  std::string(" +Im1=")    + anI1.mNameIm  + aBlank
-                           +  std::string(" +Im2=")    + anI2.mNameIm  + aBlank
-                           +  std::string(" +Zoom0=")  + ToString(mZoom0)  + aBlank
-                           +  std::string(" +ZoomF=")  + ToString(mZoomF)  + aBlank
-                         ;
+   // ====   Correlation =========================
 
-        if (EAMIsInit(&mIntIncert))
-           aCom = aCom + " +MulZMax=" +ToString(mIntIncert);
+       bool DoneCor = false;
+       if (mSkipCorDone)
+       {
+           std::string aFile = mDir + "MEC2Im-" + anI1.mNameIm + "-" + anI2.mNameIm + "/MM_Avancement_LeChantier.xml";
 
+           if (ELISE_fp::exist_file(aFile))
+           {
+                 cMM_EtatAvancement anEAv = StdGetFromMM(aFile,MM_EtatAvancement);
+                 DoneCor = anEAv.AllDone();
+           }
 
-        if (mShow)
-           std::cout << aCom << "\n";
-        System(aCom);
+           // std::cout << "DOCCC " << aFile << " " << Done << "\n";
+       }
+
+       if (! DoneCor)
+       {
+           std::string aComCor =    MMBinFile("MICMAC")
+                                 +  XML_MM_File("MM-Param2Im.xml")
+                                 +  std::string(" WorkDir=") + mDir          + aBlank
+                                 +  std::string(" +Ori=") + mOri + aBlank
+                                 +  std::string(" +Im1=")    + anI1.mNameIm  + aBlank
+                                 +  std::string(" +Im2=")    + anI2.mNameIm  + aBlank
+                                 +  std::string(" +Zoom0=")  + ToString(mZoom0)  + aBlank
+                                 +  std::string(" +ZoomF=")  + ToString(mZoomF)  + aBlank
+                               ;
+
+           if (EAMIsInit(&mIntIncert))
+              aComCor = aComCor + " +MulZMax=" +ToString(mIntIncert);
+
+           if (mShow)
+              std::cout << aComCor << "\n";
+           System(aComCor);
+       }
+
+   // ====   Bascule =========================
+
+       std::string aPreFileBasc =   mDir + mDirBasc +  "/Basculed-"+ anI1.mNameIm + "-" + anI2.mNameIm ;
+       bool DoneBasc = false;
+
+       if (mSkipCorDone)
+       {
+            std::string aFileBasc = aPreFileBasc + ".xml";
+            if (ELISE_fp::exist_file(aFileBasc))
+            {
+                DoneBasc = true;
+            }
+       }
+
+       if (! DoneBasc)
+       {
+
+            std::string aComBasc =    MMBinFile(MM3DStr) + " NuageBascule "
+                                    + mDir+ "MEC2Im-" + anI1.mNameIm + "-" +  anI2.mNameIm + "/NuageImProf_LeChantier_Etape_" +ToString(mNbStep)+".xml "
+                                    + mDir + mDirBasc + "/NuageImProf_LeChantier_Etape_1.xml "
+                                    + aPreFileBasc + " "
+                                 ;
+                             //  + mDir + mDirBasc +  "/Basculed-"+ anI1.mNameIm + "-" + anI2.mNameIm + " "
+                             
+            if (mShow)
+               std::cout  << aComBasc << "\n";
+           System(aComBasc);
+       }
+
+//            std::cout << "HHHHH " << anI1.mNameIm <<  " " << anI2.mNameIm << " " <<  DoneCor << " " << DoneBasc << "\n";
+//            getchar();
    }
+//            std::cout << "ENDG DoCorrelAndBascul\n"; getchar();
 }
 
+/*
 void cAppliMMByPair::DoBascule()
 {
    for ( tSetPairIm::const_iterator itP= mPairs.begin(); itP!=mPairs.end() ; itP++)
@@ -618,6 +779,7 @@ void cAppliMMByPair::DoBascule()
         System(aCom);
    }
 }
+*/
 
 void cAppliMMByPair::DoFusion()
 {
@@ -663,19 +825,12 @@ void cAppliMMByPair::DoMDT()
 int cAppliMMByPair::Exe()
 {
   
+   DoPyram();
+   DoMDT();
+   DoCorrelAndBascule();
+   DoFusion();
 /*
 */
-std::cout << "MMByP Phase 0 \n";
-   DoPyram();
-std::cout << "MMByP Phase 1 \n";
-   DoMDT();
-std::cout << "MMByP Phase 2 \n";
-   DoCorrel();
-std::cout << "MMByP Phase 3 \n";
-   DoBascule();
-std::cout << "MMByP Phase 4 \n";
-   DoFusion();
-std::cout << "MMByP Phase 5 \n";
 /*
 */
    return 1;

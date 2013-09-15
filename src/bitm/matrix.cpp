@@ -64,6 +64,8 @@ static int sqrt(const int &)
 }
 
 
+bool AcceptTrueRot = false;
+bool ForceTrueRot = false;
 
 
 /*************************************************************/
@@ -1242,7 +1244,14 @@ template <class Type> TplElRotation3D<Type>::TplElRotation3D (Pt3d<Type> tr,Type
 
 template <class Type>  void  TplElRotation3D<Type>::AssertTrueRot() const
 {
-   ELISE_ASSERT(mTrueRot,"Excpecting true rotation");
+   if (AcceptTrueRot)
+   {
+        cElWarning::TrueRot.AddWarn("Accept True Rot",__LINE__,__FILE__);
+   }
+   else
+   {
+       ELISE_ASSERT(mTrueRot,"Excpecting true rotation");
+   }
 }
 
 

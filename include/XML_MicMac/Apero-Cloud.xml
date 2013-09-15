@@ -52,6 +52,7 @@
 
 
         <SectionChantier>
+             <IsAperiCloud> true </IsAperiCloud>  
 	     <DirectoryChantier> ThisDir </DirectoryChantier>
         </SectionChantier>
 

@@ -442,6 +442,7 @@ int GenCode_main(int argc,char ** argv);
 int Undist_main(int argc,char ** argv);
 int Dequant_main(int argc,char ** argv);
 int Devlop_main(int argc,char ** argv);
+int TiffDev_main(int argc,char ** argv);
 int ElDcraw_main(int argc,char ** argv);
 int GenXML2Cpp_main(int argc,char ** argv);
 int GrShade_main(int argc,char ** argv);
