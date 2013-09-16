@@ -27,38 +27,62 @@ int main(int argc, char *argv[])
     {
         for (int i=0; i< cmdline_args.size(); ++i)
         {
+            bool removeArg = false;
+
             str = cmdline_args[i];
 
             if (str == "mode2D")
             {
                 w.setMode2D(true);
 
-                cmdline_args[i] = cmdline_args.back();
-                cmdline_args.pop_back();             
-                break;
+                removeArg = true;
+            }
+            else
+            {
+                if (str.contains("Post="))
+                {
+                    w.setPostFix(str.mid(str.indexOf("Post=")+5, str.size()));
+
+                    removeArg = true;
+                }
+
+                if (str.contains("SzW="))
+                {
+                    QString arg = str.mid(str.indexOf("SzW=")+4, str.size());
+                    int szW = arg.toInt();
+
+                    int szH = szW * w.height() / w.width();
+
+                    w.resize( szW, szH );
+
+                    removeArg = true;
+                }
+
+                if (str.contains("Name="))
+                {
+                    QString arg = str.mid(str.indexOf("Name=")+5, str.size());
+
+                    w.getEngine()->setFilenameOut(arg);
+
+                    removeArg = true;
+                }
+
+				if (str.contains("Gama="))
+                {
+                    QString strGama = str.mid(str.indexOf("Gama=")+5, str.size());
+
+					float aGamma = strGamma.toFloat();
+
+					w.setGamma(aGamma);
+
+                    removeArg = true;
+                }
             }
 
-            if (str.contains("Post="))
+            if (removeArg)
             {
-                w.setPostFix(str.mid(str.indexOf("Post=")+5, str.size()));
-
                 cmdline_args[i] = cmdline_args.back();
                 cmdline_args.pop_back();
-                break;
-            }
-
-            if (str.contains("SzW="))
-            {
-                QString arg = str.mid(str.indexOf("SzW=")+4, str.size());
-                int szW = arg.toInt();
-
-                int szH = szW * w.height() / w.width();
-
-                w.resize( szW, szH );
-
-                cmdline_args[i] = cmdline_args.back();
-                cmdline_args.pop_back();
-                break;
             }
         }
     }
