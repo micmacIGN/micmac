@@ -606,4 +606,10 @@ void MainWindow::setMode2D(bool mBool)
     ui->menuStandard_views->menuAction()->setVisible(!mBool);
 }
 
+void  MainWindow::setGamma(float aGamma)
+{
+	cEngine->
+}
+
+
 
