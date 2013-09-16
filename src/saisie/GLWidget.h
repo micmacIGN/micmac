@@ -143,6 +143,8 @@ public:
 
     void setMask(QImage const &mask);
 
+    void applyGamma(float aGamma);
+
 public slots:
     void zoom();
 
