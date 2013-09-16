@@ -49,7 +49,7 @@ namespace Cloud_
             static Cloud* loadPly(std::string,  int *incre = NULL);
 
             void    addVertex( const Vertex & );
-            Vertex& getVertex( unsigned int );
+            Vertex& getVertex( uint );
             int     size();
 
             void    setTranslation( const Pt3dr & aPt ) {m_translation = aPt;}
