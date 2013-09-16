@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 
 				if (str.contains("Gama="))
                 {
-                    QString strGama = str.mid(str.indexOf("Gama=")+5, str.size());
+                    QString strGamma = str.mid(str.indexOf("Gama=")+5, str.size());
 
 					float aGamma = strGamma.toFloat();
 
