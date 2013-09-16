@@ -185,7 +185,7 @@ int Cloud::size()
     return m_vertices.size();
 }
 
-Vertex& Cloud::getVertex(unsigned int nb_vert)
+Vertex& Cloud::getVertex(uint nb_vert)
 {
     if (m_vertices.size() > nb_vert)
     {
@@ -212,7 +212,7 @@ Cloud::Cloud()
 
 Cloud::Cloud(vector<Vertex> const & vVertex)
 {
-    for (unsigned int aK=0; aK< vVertex.size(); aK++)
+    for (uint aK=0; aK< vVertex.size(); aK++)
     {
         addVertex(vVertex[aK]);
     }

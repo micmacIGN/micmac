@@ -255,15 +255,15 @@ void cEngine::doMasks()
 void cEngine::doMaskImage(QImage* pImg)
 {
     QColor c;
-    unsigned int w,h;
+    uint w,h;
     w = pImg->width();
     h = pImg->height();
 
     Im2D_BIN mask = Im2D_BIN(w, h, 0);
 
-    for (int aK=0; aK < w;++aK)
+    for (uint aK=0; aK < w;++aK)
     {
-        for (int bK=0; bK < h;++bK)
+        for (uint bK=0; bK < h;++bK)
         {
             c = QColor::fromRgba(pImg->pixel(aK,bK));
             if (c.alpha() == 255) mask.set(aK, h-bK-1, 1);
