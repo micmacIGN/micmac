@@ -608,7 +608,7 @@ void MainWindow::setMode2D(bool mBool)
 
 void  MainWindow::setGamma(float aGamma)
 {
-    //cEngine->
+    m_Engine->getData()->setGamma(aGamma);
 }
 
 
