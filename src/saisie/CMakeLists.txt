@@ -9,7 +9,9 @@ if ( MSVC )
 	message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
 endif()
 
-cmake_policy(SET CMP0020 NEW)
+if ( WIN32 )
+	cmake_policy(SET CMP0020 NEW)
+ENDIF()
 
 # Find the QtWidgets library
 find_package(OpenGL REQUIRED)
