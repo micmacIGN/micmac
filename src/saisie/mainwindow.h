@@ -92,6 +92,10 @@ public slots:
     void setMode2D(bool mBool);
     bool getMode2D() {return m_bMode2D;}
 
+    cEngine* getEngine(){return m_Engine;}
+
+	void setGamma(float aGamma);
+
 protected:
 
     //! Connects all QT actions to slots
