@@ -64,7 +64,6 @@ int main()
 
     //h2O._s_InitCostVol.OutputValues();
 
-
     h2O.SetNbLine(nbLines);    
     d2O.SetNbLine(h2O._nbLines);
 
@@ -85,7 +84,7 @@ int main()
 
     h2O._s_InitCostVol.OutputValues();
 
-    h2O._s_Index.OutputValues(0,XY,NEGARECT,3,make_short2(0,0));
+    //h2O._s_Index.OutputValues(0,XY,NEGARECT,3,make_short2(0,0));
 
     h2O._s_ForceCostVol[0].OutputValues();
     //
