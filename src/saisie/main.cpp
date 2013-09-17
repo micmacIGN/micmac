@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 
 					float aGamma = strGamma.toFloat();
 
-					w.setGamma(aGamma);
+                    w.setGamma(aGamma);
 
                     removeArg = true;
                 }
@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
             {
                 cmdline_args[i] = cmdline_args.back();
                 cmdline_args.pop_back();
+                i--;
             }
         }
     }
