@@ -66,7 +66,6 @@ void InterfOptimizGpGpu::threadCompute()
             //OptimisationOneDirectionZ(_D_data2Opt);
 
             //      Copie des couts de passage forcé du device vers le host         ---------------     -
-
             _D_data2Opt.CopyDevicetoHost(_H_data2Opt,GetIdBuf());
 
             SwitchIdBuffer();
