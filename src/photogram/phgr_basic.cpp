@@ -2842,6 +2842,7 @@ double  CamStenope::GetRoughProfondeur() const
     if (AltisSolIsDef()) return ElAbs(PseudoOpticalCenter().z-mAltiSol);
 
     ELISE_ASSERT(false,"Nor Prof nor Alti in ElCamera::GetRoughProfondeur");
+    return 0;
 }
 
 

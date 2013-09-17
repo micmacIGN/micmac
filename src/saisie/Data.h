@@ -45,6 +45,9 @@ class cData
 
         void    reset();
 
+        void    setGamma(float aGamma) {_gamma = aGamma;}
+        float   getGamma() {return _gamma;}
+
         //Bounding box, center and diameter of all clouds
         float m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_cX, m_cY, m_cZ, m_diam;
 
@@ -56,5 +59,7 @@ class cData
         vector <QImage *>     m_Masks;
 
         int                   m_curImgIdx;
+
+        float                 _gamma;
 };
 #endif // DATA_H
