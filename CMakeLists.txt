@@ -126,6 +126,7 @@ else()
 		COMMAND
 		hg log -l 1 -b "default" --template "{rev}"
 		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+		RESULT_VARIABLE hg_result
 		OUTPUT_VARIABLE HG_REVISION_DIST
 		ERROR_QUIET
 		OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -133,12 +134,14 @@ else()
 	message( STATUS "Derniere revision mercurial de MicMac : " ${HG_REVISION_DIST})
 
 	set(HG_REV ${HG_REVISION_DIST} CACHE STRING "Revision" FORCE)
+	
+	if ( NOT ${hg_result} )
+	   CONFIGURE_FILE (
+	      "include/general/MM_InstalDir.h.in"
+	      "${CMAKE_SOURCE_DIR}/include/general/MM_InstalDir.h"
+	   )
+	endif()
 endif()
-
-CONFIGURE_FILE (
-  "include/general/MM_InstalDir.h.in"
-  "${CMAKE_SOURCE_DIR}/include/general/MM_InstalDir.h"
-  )
 
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 

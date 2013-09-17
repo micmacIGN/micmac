@@ -576,6 +576,8 @@ void GLWidget::setData(cData *data)
 
         _glImg = QGLWidget::convertToGLFormat( *m_Data->getCurImage() );
 
+        applyGamma(m_Data->getGamma());
+
         //width and height ratio between viewport and image
         m_rw = (float)_glImg.width()/m_glWidth;
         m_rh = (float)_glImg.height()/m_glHeight;
@@ -677,7 +679,7 @@ void GLWidget::drawGradientBackground()
     int w = (m_glWidth>>1)+1;
     int h = (m_glHeight>>1)+1;
 
-    const unsigned char BkgColor[3] = {colorBG0.red(),colorBG0.green(),colorBG0.blue()};
+    const uchar BkgColor[3] = {(uchar) colorBG0.red(),(uchar) colorBG0.green(), (uchar) colorBG0.blue()};
 
     //Gradient "texture" drawing
     glBegin(GL_QUADS);
@@ -921,14 +923,14 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
 bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> poly)
 {
-    unsigned vertices=poly.size();
+    int vertices=poly.size();
     if (vertices<3)
         return false;
 
     bool inside = false;
 
     QPointF A = poly[0];
-    for (unsigned i=1;i<=vertices;++i)
+    for (int i=1;i<=vertices;++i)
     {
         QPointF B = poly[i%vertices];
 
@@ -1254,12 +1256,12 @@ void GLWidget::drawAxis()
 }
 
 //draw a unit circle in a given plane (0=YZ, 1 = XZ, 2=XY)
-void glDrawUnitCircle(unsigned char dim, int steps = 64)
+void glDrawUnitCircle(uchar dim, int steps = 64)
 {
     float thetaStep = static_cast<float>(2.0*PI/(double)steps);
     float theta = 0.0f;
-    unsigned char dimX = (dim<2 ? dim+1 : 0);
-    unsigned char dimY = (dimX<2 ? dimX+1 : 0);
+    uchar dimX = (dim<2 ? dim+1 : 0);
+    uchar dimY = (dimX<2 ? dimX+1 : 0);
 
     GLfloat P[4];
 
@@ -1589,4 +1591,24 @@ void GLWidget::reset()
     m_Data->clearMasks();
 
     m_bFirstAction = true;
+}
+
+void GLWidget::applyGamma(float aGamma)
+{
+    if (aGamma == 1.f) return;
+
+    QRgb  pixel;
+    int r,g,b;
+
+    for(int i=0; i< _glImg.width();++i)
+        for(int j=0; j<_glImg.height();++j)
+        {
+            pixel = _glImg.pixel(i,j);
+
+            r = 255*pow((float) qRed(pixel)   / 255.0, 1.f / aGamma);
+            g = 255*pow((float) qGreen(pixel) / 255.0, 1.f / aGamma);
+            b = 255*pow((float) qBlue(pixel)  / 255.0, 1.f / aGamma);
+
+            _glImg.setPixel(i,j, qRgb(r,g,b) );
+        }
 }
