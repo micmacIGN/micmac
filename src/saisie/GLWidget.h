@@ -50,6 +50,8 @@ public:
     //! Set data to display
     void setData(cData* data);
 
+    cData* getData() {return m_Data;}
+
     //! Interaction mode (with the mouse!)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
                             SELECTION
@@ -142,6 +144,8 @@ public:
     QImage* getGLImage(){return &_glImg;}
 
     void setMask(QImage const &mask);
+
+    ViewportParameters* getParams(){return &m_params;}
 
     void applyGamma(float aGamma);
 
