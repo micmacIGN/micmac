@@ -157,7 +157,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
     {
-        for (int i=0; i< filenames[i].size();++i)
+        for (int i=0; i< filenames.size();++i)
         {
             QFile Fout(filenames[i]);
 
@@ -608,7 +608,7 @@ void MainWindow::setMode2D(bool mBool)
 
 void  MainWindow::setGamma(float aGamma)
 {
-    m_Engine->getData()->setGamma(aGamma);
+    m_glWidget->getParams()->setGamma(aGamma);
 }
 
 

@@ -383,6 +383,7 @@ ViewportParameters::ViewportParameters()
     , angleX(0.f)
     , angleY(0.f)
     , angleZ(0.f)
+    , _gamma(1.f)
 {
     m_translationMatrix[0] = m_translationMatrix[1] = m_translationMatrix[2] = 0.f;
 }
