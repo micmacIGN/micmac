@@ -79,8 +79,7 @@ void cData::reset()
     m_minX = m_minY = m_minZ    = FLT_MAX;
     m_maxX = m_maxY = m_maxZ    = -FLT_MAX;
     m_cX = m_cY = m_cZ = m_diam = 0.f;
-    m_curImgIdx = 0;
-    _gamma=1.f;
+    m_curImgIdx = 0;    
 }
 
 int cData::getSizeClouds()

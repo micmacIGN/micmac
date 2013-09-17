@@ -25,10 +25,10 @@ class cData
         void clearImages();
         void clearMasks();
 
-        int NbCameras(){return m_Cameras.size();}
-        int NbClouds(){return m_Clouds.size();}
-        int NbImages(){return m_Images.size();}
-        int NbMasks(){return  m_Masks.size();}
+        int NbCameras() {return m_Cameras.size();}
+        int NbClouds()  {return m_Clouds.size();}
+        int NbImages()  {return m_Images.size();}
+        int NbMasks()   {return m_Masks.size();}
 
         CamStenope * & getCamera(int aK) {return m_Cameras[aK];}
         Cloud * &      getCloud(int aK)  {return m_Clouds[aK];}
@@ -44,9 +44,6 @@ class cData
         int     getSizeClouds();
 
         void    reset();
-
-        void    setGamma(float aGamma) {_gamma = aGamma;}
-        float   getGamma() {return _gamma;}
 
         //Bounding box, center and diameter of all clouds
         float m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_cX, m_cY, m_cZ, m_diam;

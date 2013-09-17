@@ -576,7 +576,7 @@ void GLWidget::setData(cData *data)
 
         _glImg = QGLWidget::convertToGLFormat( *m_Data->getCurImage() );
 
-        applyGamma(m_Data->getGamma());
+        applyGamma(m_params.getGamma());
 
         //width and height ratio between viewport and image
         m_rw = (float)_glImg.width()/m_glWidth;
@@ -1605,9 +1605,13 @@ void GLWidget::applyGamma(float aGamma)
         {
             pixel = _glImg.pixel(i,j);
 
-            r = 255*pow((float) qRed(pixel)   / 255.0, 1.f / aGamma);
-            g = 255*pow((float) qGreen(pixel) / 255.0, 1.f / aGamma);
-            b = 255*pow((float) qBlue(pixel)  / 255.0, 1.f / aGamma);
+            r = 255*pow((float) qRed(pixel)  / 255.f, 1.f / aGamma);
+            g = 255*pow((float) qGreen(pixel)/ 255.f, 1.f / aGamma);
+            b = 255*pow((float) qBlue(pixel) / 255.f, 1.f / aGamma);
+
+            if (r>255) r = 255;
+            if (g>255) g = 255;
+            if (b>255) b = 255;
 
             _glImg.setPixel(i,j, qRgb(r,g,b) );
         }
