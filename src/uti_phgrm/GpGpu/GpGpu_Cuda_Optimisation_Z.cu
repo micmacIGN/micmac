@@ -66,7 +66,7 @@ void ReadLine(
                     sId_ICost = 0;
                 }
 
-                uint fCostMin           = max_cost;
+                //uint fCostMin           = max_cost;
                 const ushort costInit   = ST_Bf_ICost[sgn(sId_ICost)];
                 const ushort tZ         = z + (sens ? tid : (WARPSIZE - tid));
                 const short  Z          = sens ? (short)tZ + index.x : index.y - tZ;
@@ -76,16 +76,17 @@ void ReadLine(
 
                 uint* prevFCost = S_FCost[idBuf] + sgn(pitPrZ);
 
-                ConeZ.y = min(NAPPEMAX - pitPrZ,ConeZ.y );
+//                ConeZ.y = min(NAPPEMAX - pitPrZ,ConeZ.y );
 
-                for (short i = ConeZ.x; i <= ConeZ.y; ++i)
-                    fCostMin = min(fCostMin, costInit + prevFCost[i]); // ERROR
+//                for (short i = ConeZ.x; i <= ConeZ.y; ++i)
+//                    fCostMin = min(fCostMin, costInit + prevFCost[i]); // ERROR
 
-                const uint fcost    =  fCostMin + sens * (streamFCost.GetValue(sId_ICost) - costInit);
+//                const uint fcost    =  fCostMin + sens * (streamFCost.GetValue(sId_ICost) - costInit);
 
-                if( tZ < NAPPEMAX)
+                if( tZ <= NAPPEMAX)
                 {
-                    S_FCost[!idBuf][sgn(tZ)] = fcost;
+                    //S_FCost[!idBuf][sgn(tZ)] = fcost;
+                    S_FCost[!idBuf][sgn(tZ)] = costInit;
                     //streamFCost.SetValue(sgn(sId_ICost), fcost);
 
                     //streamFCost.SetValue(sgn(sId_ICost), (short)NAPPEMAX/2 + Z + sens ? 1000 : 2000 );
@@ -93,7 +94,7 @@ void ReadLine(
                     //streamFCost.SetValue(sgn(sId_ICost), uint(sens ? 0 : NAPPEMAX/2 + Z) );
                     //streamFCost.SetValue(sgn(sId_ICost), uint(sens ? 0 : sId_ICost) );
                     //streamFCost.SetValue(sgn(sId_ICost), uint(sens ? 1 : pitPrZ) );
-                    streamFCost.SetValue(sgn(sId_ICost), sens ? 1 : prevFCost[0]); // ERROR
+                    streamFCost.SetValue(sens? sId_ICost : -(sId_ICost+0), costInit); // ERROR
                     //streamFCost.SetValue(sgn(sId_ICost), (short)NAPPEMAX/2 + Z);
                     //streamFCost.SetValue(sgn(sId_ICost), 1); // ERROR
 
