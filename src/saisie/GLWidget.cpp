@@ -142,6 +142,40 @@ void GLWidget::computeFPS()
     }
 }
 
+//draw a unit circle in a given plane (0=YZ, 1 = XZ, 2=XY)
+void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps = 64)
+{
+    float theta = 2.f * PI / float(steps);
+    float c = cosf(theta);//precalculate the sine and cosine
+    float s = sinf(theta);
+    float t;
+
+    float x = r;//we start at angle = 0
+    float y = 0;
+
+    uchar dimX = (dim<2 ? dim+1 : 0);
+    uchar dimY = (dimX<2 ? dimX+1 : 0);
+
+    GLfloat P[3];
+
+    for (int i=0;i<3;++i) P[i] = 0.0f;
+
+    glBegin(GL_LINE_LOOP);
+    for(int ii = 0; ii < steps; ii++)
+    {
+        P[dimX] = x + cx;
+        P[dimY] = y + cy;
+        glVertex3fv(P);
+
+        //apply the rotation matrix
+        t = x;
+        x = c * x - s * y;
+        y = s * t + c * y;
+    }
+
+    glEnd();
+}
+
 void GLWidget::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -278,6 +312,14 @@ void GLWidget::paintGL()
             glVertex2f(m_polygon[aK].x(), m_polygon[aK].y());
         }
         glEnd();
+
+        glColor3f(1,0,0);
+        glLineWidth(.1f);
+
+        for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
+        {
+            glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 4.0, 16);
+        }
 
         // Closing 2D
         glPopAttrib();
@@ -1134,6 +1176,8 @@ void GLWidget::Select(int mode)
 
     m_infos.push_back(info);
 
+    m_polygon.clear();
+
     update();
 }
 
@@ -1255,29 +1299,6 @@ void GLWidget::drawAxis()
     glPopMatrix();
 }
 
-//draw a unit circle in a given plane (0=YZ, 1 = XZ, 2=XY)
-void glDrawUnitCircle(uchar dim, int steps = 64)
-{
-    float thetaStep = static_cast<float>(2.0*PI/(double)steps);
-    float theta = 0.0f;
-    uchar dimX = (dim<2 ? dim+1 : 0);
-    uchar dimY = (dimX<2 ? dimX+1 : 0);
-
-    GLfloat P[4];
-
-    for (int i=0;i<4;++i) P[i] = 0.0f;
-
-    glBegin(GL_LINE_LOOP);
-    for (int i=0;i<steps;++i)
-    {
-        P[dimX] = cos(theta);
-        P[dimY] = sin(theta);
-        glVertex3fv(P);
-        theta += thetaStep;
-    }
-    glEnd();
-}
-
 void GLWidget::drawBall()
 {
     if (!m_bObjectCenteredView) return;
@@ -1309,21 +1330,21 @@ void GLWidget::drawBall()
         glLineWidth(1.0f);
 
         glColor4f(1.0f,0.0f,0.0f,c_alpha);
-        glDrawUnitCircle(0);
+        glDrawUnitCircle(0, 0, 0, 1.f);
         glBegin(GL_LINES);
         glVertex3f(-1.0f,0.0f,0.0f);
         glVertex3f( 1.0f,0.0f,0.0f);
         glEnd();
 
         glColor4f(0.0f,1.0f,0.0f,c_alpha);
-        glDrawUnitCircle(1);
+        glDrawUnitCircle(1, 0, 0, 1.f);
         glBegin(GL_LINES);
         glVertex3f(0.0f,-1.0f,0.0f);
         glVertex3f(0.0f, 1.0f,0.0f);
         glEnd();
 
         glColor4f(0.0f,0.7f,1.0f,c_alpha);
-        glDrawUnitCircle(2);
+        glDrawUnitCircle(2, 0, 0, 1.f);
         glBegin(GL_LINES);
         glVertex3f(0.0f,0.0f,-1.0f);
         glVertex3f(0.0f,0.0f, 1.0f);
