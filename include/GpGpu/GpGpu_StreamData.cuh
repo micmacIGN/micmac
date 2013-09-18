@@ -191,7 +191,7 @@ T SimpleStream<T>::GetValue(int id)
 template<class T> __device__
 void SimpleStream<T>::SetValue(int id, T value)
 {
-    if((int)_idG+id>=0) // TEMP!!!!!!!!!!
+    if(((int)_idG+id+ (int)threadIdx.x)>=0) // TEMP!!!!!!!!!!
         _globalStream[_idG + id] = value;
 }
 
