@@ -172,7 +172,6 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps = 64)
         x = c * x - s * y;
         y = s * t + c * y;
     }
-
     glEnd();
 }
 
@@ -271,7 +270,6 @@ void GLWidget::paintGL()
             glDisableClientState(GL_COLOR_ARRAY);
         }
 
-        //    Ralentissement du a la drawball!!!
         if (m_bDrawBall) drawBall();
         else if (m_bDrawAxis) drawAxis();
 
@@ -300,11 +298,18 @@ void GLWidget::paintGL()
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
         glLoadIdentity();
-        glPushAttrib(GL_ENABLE_BIT);
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_LIGHTING);
         glDisable(GL_TEXTURE_2D);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_SRC_ALPHA_SATURATE);
+        glEnable(GL_ALPHA_TEST);
+        glEnable(GL_LINE_SMOOTH);
+
         glColor3f(0,1,0);
+
+        glLineWidth(0.5f);
 
         glBegin(m_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
         for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
@@ -314,17 +319,15 @@ void GLWidget::paintGL()
         glEnd();
 
         glColor3f(1,0,0);
-        glLineWidth(.1f);
 
         for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
         {
-            glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 4.0, 16);
+            glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 32);
         }
 
-        // Closing 2D
-        glPopAttrib();
+        glLineWidth(m_params.LineWidth);
+        glDisable(GL_BLEND);
         glPopMatrix(); // restore modelview
-        glMatrixMode(GL_MODELVIEW);
     }
 
     //current messages (if valid)
@@ -867,10 +870,28 @@ void GLWidget::wheelEvent(QWheelEvent* event)
         return;
     }
 
+    float curZoom = m_params.zoom;
+
     //see QWheelEvent documentation ("distance that the wheel is rotated, in eighths of a degree")
     float wheelDelta_deg = (float)event->delta() / 8.f;
 
     onWheelEvent(wheelDelta_deg);
+
+    float x = event->pos().x();
+    float y = event->pos().y();
+
+    float x_gl = 2.f*(float)x/m_glWidth  - 1.f;
+    float y_gl = 2.f*(float)y/m_glHeight - 1.f;
+
+    cout << "x_gl/y_gl : " << x_gl <<  "  " << y_gl << endl;
+
+  //  cout << "m_glPos/m_glPos : " << m_glPosition[0]*m_params.zoom <<  "  " << m_glPosition[1]*m_params.zoom << endl;
+
+    /*m_glPosition[0] = (m_glPosition[0] - x_gl)*m_params.zoom + x_gl;
+    m_glPosition[1] = (m_glPosition[1] - y_gl)*m_params.zoom + y_gl;/*/
+
+    m_glPosition[0] += x_gl/m_params.zoom - x_gl/curZoom;
+    m_glPosition[1] += y_gl/m_params.zoom - y_gl/curZoom ;
 
     emit mouseWheelRotated(wheelDelta_deg);
 }
