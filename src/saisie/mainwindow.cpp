@@ -490,7 +490,7 @@ void MainWindow::exportMasks()
 {
     if (m_Engine->getData()->NbImages())
     {
-        m_Engine->doMaskImage(m_glWidget->getGLImage());
+        m_Engine->doMaskImage(m_glWidget->getGLMask());
     }
     else
     {
@@ -504,7 +504,7 @@ void MainWindow::exportMasksAs()
 
     if (m_Engine->getData()->NbImages())
     {
-        m_Engine->doMaskImage(m_glWidget->getGLImage());
+        m_Engine->doMaskImage(m_glWidget->getGLMask());
     }
     else
     {

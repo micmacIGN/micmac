@@ -141,9 +141,7 @@ public:
 
     void WindowToImage(QPointF const &p0, QPointF &p1);
 
-    QImage* getGLImage(){return &_glImg;}
-
-    void setMask(QImage const &mask);
+    QImage* getGLMask(){return _mask;}
 
     ViewportParameters* getParams(){return &m_params;}
 
@@ -326,9 +324,8 @@ private:
     QTime       _time;
 
     QImage      _glImg;
-    QImage      _mask;
-    QImage      *_mask2;
-    QOpenGLPaintDevice  *_device;
+    QImage      *_mask;
+
 };
 
 #endif  /* _GLWIDGET_H */
