@@ -11,6 +11,7 @@
 #include <QtConcurrentRun>
 #include <QProgressDialog>
 #include <QTimer>
+#include <QSignalMapper>
 
 #include "GLWidget.h"
 #include "Engine.h"
@@ -73,6 +74,12 @@ public slots:
     void setBackView();
     void setLeftView();
     void setRightView();
+
+    //zoom
+    void zoomPlus();
+    void zoomMoins();
+    void zoomFit();
+    void zoomFactor(int aFactor );
 
     void echoMouseWheelRotate(float);
 

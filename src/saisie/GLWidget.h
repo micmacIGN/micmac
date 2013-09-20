@@ -19,7 +19,7 @@
 #include <QMimeData>
 #include <QTime>
 #include <QPainter>
-#include <QOpenGLPaintDevice>
+
 
 #include "Data.h"
 #include "Engine.h"
@@ -82,6 +82,10 @@ public:
 
     //! Sets current zoom
     void setZoom(float value);
+
+    void zoomFit();
+
+    void zoomFactor(int percent);
 
     //! Switch between move mode and selection mode
     void setInteractionMode(INTERACTION_MODE mode);
