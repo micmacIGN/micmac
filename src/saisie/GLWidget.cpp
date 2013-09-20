@@ -42,7 +42,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _m_g_mouseLeftDown(false)
   , _m_g_mouseMiddleDown(false)
   , _m_g_mouseRightDown(false)
-  , _mask2(NULL)
+  , _mask(NULL)
 {
     _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
     _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
@@ -209,18 +209,10 @@ void GLWidget::paintGL()
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
-        glEnable(GL_ALPHA_TEST);
-        glAlphaFunc(GL_GREATER, 0.1f);
-
-        glEnable(GL_TEXTURE_2D);
+        glDisable(GL_DEPTH_TEST);
 
         glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-//
-        glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
-
-        glBegin(GL_QUADS);
+        glBlendFunc(GL_ONE,GL_ONE);
 
         GLfloat originX = m_glPosition[0]*m_params.zoom;
         GLfloat originY = m_glPosition[1]*m_params.zoom;
@@ -228,32 +220,26 @@ void GLWidget::paintGL()
         GLfloat glw = 2.f*m_rw*m_params.zoom;
         GLfloat glh = 2.f*m_rh*m_params.zoom;
 
-        //glPushAttrib(GL_ENABLE_BIT);
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_LIGHTING);
-        glEnable(GL_TEXTURE_2D);
-
-        glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
-
-        glWinQuad(originX, originY, glh, glw);
-
-        glDisable(GL_TEXTURE_2D);
-
-        if(_mask2 != NULL)
+        if(_mask != NULL && !_m_g_mouseMiddleDown)
         {
 
-            //glPushAttrib(GL_ENABLE_BIT); ---> pas de lissage texture
-            //glDisable(GL_DEPTH_TEST);
-            glDisable(GL_SRC_ALPHA);
             glEnable(GL_TEXTURE_2D);
-            glTexImage2D( GL_TEXTURE_2D, 0, 4, _mask2->width(), _mask2->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _mask2->bits());
+            glTexImage2D( GL_TEXTURE_2D, 0, 4, _mask->width(), _mask->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _mask->bits());
             glWinQuad(originX, originY, glh, glw);
-
             glDisable(GL_TEXTURE_2D);
+
+            glColor4f(0.5f,0.5f,0.5f,0.0f);
+            glWinQuad(originX, originY, glh, glw);
+            glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
         }
 
+        glEnable(GL_TEXTURE_2D);
+        glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
+        glWinQuad(originX, originY, glh, glw);
+        glDisable(GL_TEXTURE_2D);
+
+
         glDisable(GL_BLEND);
-        glDisable(GL_ALPHA_TEST);
 
         glPopMatrix(); // __TEST
 
@@ -423,35 +409,6 @@ void GLWidget::WindowToImage(QPointF const &p0, QPointF &p1)
    p1.setY((float)m_glHeight*(y_gl-m_glPosition[1]*m_params.zoom)/(2.f*m_params.zoom));
 }
 
-void GLWidget::setMask(const QImage &mask)
-{
-    bool isFull = true;
-
-    QColor c1, c2;
-    for (int y=0; y<_glImg.height(); ++y)
-    {
-        for (int x=0; x<_glImg.width(); ++x)
-        {
-            c1 = QColor::fromRgba(mask.pixel(x,y));
-            c2 = QColor::fromRgba(_glImg.pixel(x,y));
-
-            if (c1.alpha() == 0)
-            {
-               c2.setAlphaF(m_alpha);
-               isFull = false;
-            }
-            else
-               c2.setAlphaF(1.f);
-
-            _glImg.setPixel(x,y, c2.rgba());
-        }
-    }
-
-    update();
-
-    if (!isFull) m_bFirstAction = false;
-}
-
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
     m_lastPos = event->pos();
@@ -497,20 +454,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
         if (m_interactionMode == TRANSFORM_CAMERA)
             _m_g_mouseMiddleDown = true;
-
-        //hide mask
-//        QColor col;
-//        for (int y=0; y<_glImg.height(); ++y)
-//        {
-//            for (int x=0; x<_glImg.width(); ++x)
-//            {
-//                col = QColor::fromRgba(_glImg.pixel(x,y));
-//                col.setAlphaF(1.f);
-
-//                _glImg.setPixel(x,y, col.rgba());
-//            }
-//        }
-//        update();
+        update();
     }
 }
 
@@ -529,9 +473,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     if ( event->button() == Qt::MiddleButton  )
     {
         _m_g_mouseMiddleDown = false;
-
-        //show mask
-        //setMask(_mask);
+        update();
     }
 }
 
@@ -678,12 +620,19 @@ void GLWidget::setData(cData *data)
         glDisable(GL_ALPHA_TEST);
         glDisable(GL_TEXTURE_2D);
 
-//        if (m_Data->NbMasks())
-//        {
-//            _mask = QGLWidget::convertToGLFormat( *m_Data->getCurMask());
-//            setMask(_mask);
-//            update();
-//        }
+        if(_mask)
+            delete _mask;
+
+        _mask = new QImage(_glImg.size(),_glImg.format());
+        QGLWidget::convertToGLFormat(*_mask);
+
+        QPainter    p;
+        QColor selectColor(255,255,255,255);
+
+        p.begin(_mask);
+        p.setCompositionMode(QPainter::CompositionMode_Source);
+        p.fillRect(_mask->rect(), selectColor);
+        p.end();
     }
 
     if (m_Data->NbCameras())
@@ -1084,25 +1033,19 @@ void GLWidget::Select(int mode)
     {
          QPainter    p;
          QColor selectColor(255,255,255,255);
-         QColor unselectColor(0,0,0,0);
+         QColor unselectColor(0,0,0,255);
          QBrush SBrush(selectColor);
          QBrush NSBrush(unselectColor);
          QPen   SPen(selectColor);
          QPen   NSPen(unselectColor);
 
-         if (m_bFirstAction && mode == ADD)
-         {
-             _mask2 = new QImage(_glImg.size(),_glImg.format());
-             QGLWidget::convertToGLFormat(*_mask2);
-         }
-
-         p.begin(_mask2);
+         p.begin(_mask);
          p.setCompositionMode(QPainter::CompositionMode_Source);
 
          if(mode == ADD)
          {
              if (m_bFirstAction)
-                 p.fillRect(_mask2->rect(), unselectColor);
+                 p.fillRect(_mask->rect(), unselectColor);
              p.setPen(SPen);
              p.setBrush(SBrush);
              p.drawPolygon(polyg.data(),polyg.size());
@@ -1115,35 +1058,16 @@ void GLWidget::Select(int mode)
          }
          else if(mode == ALL)
          {
-             p.fillRect(_mask2->rect(), selectColor);
+             p.fillRect(_mask->rect(), selectColor);
          }
          else if(mode == NONE)
          {
-             p.fillRect(_mask2->rect(), unselectColor);
+             p.fillRect(_mask->rect(), unselectColor);
          }
          p.end();
 
-         if(mode == INVERT)
-         {
-            _mask2->invertPixels(QImage::InvertRgba);
-//            p.begin(_mask2);
-//            p.setCompositionMode(QPainter::RasterOp_NotDestination);
-//            p.fillRect(_mask2->rect(), QColor(255,255,255,255));
-//            p.setCompositionMode(QPainter::CompositionMode_Plus);
-//            p.fillRect(_mask2->rect(), QColor(0,0,0,128));
- //           p.end();
-         }
-
-
-
-
-//                case INVERT:
-//                    if (m_previousAction == NONE)  m_bFirstAction = true;
-//                    c = QColor::fromRgba(_glImg.pixel(x,y));
-//                    if (c.alpha() == 255) c.setAlphaF(m_alpha);
-//                    else c.setAlphaF(1.f);
-//                    _glImg.setPixel(x,y, c.rgba());
-//                    break;
+         if(mode == INVERT)         
+            _mask->invertPixels(QImage::InvertRgb);
 
     }
     else

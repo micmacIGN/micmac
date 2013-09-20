@@ -266,7 +266,7 @@ void cEngine::doMaskImage(QImage* pImg)
         for (uint bK=0; bK < h;++bK)
         {
             c = QColor::fromRgba(pImg->pixel(aK,bK));
-            if (c.alpha() == 255) mask.set(aK, h-bK-1, 1);
+            if (c.red() == 255) mask.set(aK, h-bK-1, 1);
         }
     }
 
