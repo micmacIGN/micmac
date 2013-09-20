@@ -280,7 +280,7 @@ class cAppli_Ori_Txt2Xml_main
          Pt2dr                   mSzW;
          double                  mScaleV;
          double                  mBordV;
-         Video_Win *             mWVisu;
+         Video_Win *             mW;
          int                     mLine;
          eConventionsOrientation mConvOri;
          bool                 mCalibByFile;
@@ -686,7 +686,7 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     mUseOnlyC        (false),
     mFlagDelaunay    (mGrVois.alloc_flag_arc()),
     mSubDel          (mSubAll,mFlagDelaunay),
-    mSzV             (800),
+    mSzV             (0),
     mBordV           (20),
     mW               (0),
     mLine            (5),

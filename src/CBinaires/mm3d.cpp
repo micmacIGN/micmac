@@ -373,6 +373,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 {
    if ((argc==1) || ((argc==2) && (std::string(argv[1])=="-help")))
    {
+       BanniereMM3D();
        std::cout << "mm3d : Allowed commands \n";
        for (unsigned int aKC=0 ; aKC<aVComs.size() ; aKC++)
        {
