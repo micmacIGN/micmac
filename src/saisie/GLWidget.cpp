@@ -91,6 +91,7 @@ void GLWidget::resizeGL(int width, int height)
     if (width==0 || height==0) return;
 
     float curW = m_glWidth;
+    float curH = m_glHeight;
 
     m_glWidth  = (float)width;
     m_glHeight = (float)height;
@@ -100,7 +101,10 @@ void GLWidget::resizeGL(int width, int height)
         m_rw = (float)_glImg.width()/m_glWidth;
         m_rh = (float)_glImg.height()/m_glHeight;
 
-        setZoom(m_params.zoom*(float)width/curW);
+        if(m_rw>m_rh)
+            setZoom(m_params.zoom*(float)width/curW);
+        else
+            setZoom(m_params.zoom*(float)height/curH);
 
         //position de l'image dans la vue gl
         m_glPosition[0] = -m_rw;
@@ -229,6 +233,17 @@ void GLWidget::paintGL()
         glPopMatrix(); // __TEST
 
         glMatrixMode(GL_MODELVIEW);
+
+        //Affichage du zoom
+
+        if (m_bDrawMessages)
+        {
+            glColor4f(1.f,1.f,1.f,1.f);
+
+            int fontSize = 10;
+            m_font.setPointSize(fontSize);
+            renderText(10, m_glHeight- fontSize, QString::number(m_params.zoom*100,'f',1) + "%", m_font);
+        }
     }
     else
     {
@@ -276,7 +291,7 @@ void GLWidget::paintGL()
 
         if (m_bDrawBbox) drawBbox();
 
-        //if ((m_messagesToDisplay.begin()->position != SCREEN_CENTER_MESSAGE) && m_bDrawMessages)
+        if (m_Data->NbClouds()&& m_bDrawMessages)
         {
             computeFPS();
 
@@ -508,20 +523,47 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
 {
-    switch(event->key())
+    if(event->modifiers().testFlag(Qt::ControlModifier))
     {
-    case Qt::Key_Escape:
-        clearPolyline();
-        break;
-    case Qt::Key_Plus:
-        ptSizeUp(true);
-        break;
-    case Qt::Key_Minus:
-        ptSizeUp(false);
-        break;
-    default:
-        event->ignore();
-        break;
+        if(event->key() == Qt::Key_1)    zoomFactor(50);
+        else if(event->key() == Qt::Key_2)    zoomFactor(25);
+    }
+    else
+    {
+        switch(event->key())
+        {
+        case Qt::Key_Escape:
+            clearPolyline();
+            break;
+        case Qt::Key_1:
+            zoomFactor(100);
+            break;
+        case Qt::Key_2:
+            zoomFactor(200);
+            break;
+        case Qt::Key_4:
+            zoomFactor(400);
+            break;
+        case Qt::Key_9:
+            zoomFit();
+            break;
+        case Qt::Key_Plus:
+            if (m_bDisplayMode2D)
+                setZoom(m_params.zoom*1.5f);
+            else
+                ptSizeUp(true);
+            break;
+        case Qt::Key_Minus:
+            if (m_bDisplayMode2D)
+                setZoom(m_params.zoom/1.5f);
+            else
+                ptSizeUp(false);
+            break;
+
+        default:
+            event->ignore();
+            break;
+        }
     }
     update();
 }
@@ -628,14 +670,7 @@ void GLWidget::setData(cData *data)
 
         applyGamma(m_params.getGamma());
 
-        //width and height ratio between viewport and image
-        m_rw = (float)_glImg.width()/m_glWidth;
-        m_rh = (float)_glImg.height()/m_glHeight;
-
-        if(m_rw>m_rh)
-            setZoom(1.f/m_rw); //orientation landscape
-        else
-            setZoom(1.f/m_rh); //orientation portrait
+        zoomFit();
 
         //position de l'image dans la vue gl
         m_glPosition[0] = -m_rw;
@@ -853,8 +888,6 @@ void GLWidget::onWheelEvent(float wheelDelta_deg)
     float zoomFactor = pow(1.1f,wheelDelta_deg *.05f);
 
     setZoom(m_params.zoom*zoomFactor);
-
-    update();
 }
 
 void GLWidget::setZoom(float value)
@@ -865,6 +898,25 @@ void GLWidget::setZoom(float value)
         value = GL_MAX_ZOOM_RATIO;
 
     m_params.zoom = value;   
+
+    update();
+}
+
+void GLWidget::zoomFit()
+{
+    //width and height ratio between viewport and image
+    m_rw = (float)_glImg.width()/m_glWidth;
+    m_rh = (float)_glImg.height()/m_glHeight;
+
+    if(m_rw>m_rh)
+        setZoom(1.f/m_rw); //orientation landscape
+    else
+        setZoom(1.f/m_rh); //orientation portrait
+}
+
+void GLWidget::zoomFactor(int percent)
+{
+    setZoom((float) percent / 100.f);
 }
 
 void GLWidget::wheelEvent(QWheelEvent* event)
