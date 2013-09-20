@@ -42,6 +42,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _m_g_mouseLeftDown(false)
   , _m_g_mouseMiddleDown(false)
   , _m_g_mouseRightDown(false)
+  , _mask2(NULL)
 {
     _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
     _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
@@ -176,6 +177,28 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps = 64)
     glEnd();
 }
 
+void GLWidget::glWinQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw)
+{
+    glBegin(GL_QUADS);
+
+    glTexCoord2f(0.0f, 0.0f);
+    //glVertex2f(-1.0f, -1.0f);
+    glVertex2f(originX, originY);
+
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex2f(originX+glw, originY);
+
+    glTexCoord2f(1.0f, 1.0f);
+    // glVertex2f(1.0f, 1.0f);
+    glVertex2f(originX+glw, originY+glh);
+
+    glTexCoord2f(0.0f, 1.0f);
+    //glVertex2f(-1.0f, 1.0f);
+    glVertex2f(originX, originY+glh);
+
+    glEnd();
+}
+
 void GLWidget::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -190,40 +213,39 @@ void GLWidget::paintGL()
         glEnable(GL_ALPHA_TEST);
         glAlphaFunc(GL_GREATER, 0.1f);
 
-        glEnable(GL_TEXTURE_2D);
-
         glEnable(GL_BLEND);
-        //glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+       // glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 //
-        glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
-
-        glBegin(GL_QUADS);
-
         GLfloat originX = m_glPosition[0]*m_params.zoom;
         GLfloat originY = m_glPosition[1]*m_params.zoom;
 
         GLfloat glw = 2.f*m_rw*m_params.zoom;
         GLfloat glh = 2.f*m_rh*m_params.zoom;
 
-        glTexCoord2f(0.0f, 0.0f);
-        //glVertex2f(-1.0f, -1.0f);
-        glVertex2f(originX, originY);
+        //glPushAttrib(GL_ENABLE_BIT);
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_LIGHTING);
+        glEnable(GL_TEXTURE_2D);
 
-        glTexCoord2f(1.0f, 0.0f);
-        glVertex2f(originX+glw, originY);
+        glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
 
-        glTexCoord2f(1.0f, 1.0f);
-        // glVertex2f(1.0f, 1.0f);
-        glVertex2f(originX+glw, originY+glh);
-
-        glTexCoord2f(0.0f, 1.0f);
-        //glVertex2f(-1.0f, 1.0f);
-        glVertex2f(originX, originY+glh);
-
-        glEnd();
+        glWinQuad(originX, originY, glh, glw);
 
         glDisable(GL_TEXTURE_2D);
+
+        if(_mask2 != NULL)
+        {
+
+            //glPushAttrib(GL_ENABLE_BIT); ---> pas de lissage texture
+            //glDisable(GL_DEPTH_TEST);
+            glDisable(GL_SRC_ALPHA);
+            glEnable(GL_TEXTURE_2D);
+            glTexImage2D( GL_TEXTURE_2D, 0, 4, _mask2->width(), _mask2->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _mask2->bits());
+            glWinQuad(originX, originY, glh, glw);
+
+            glDisable(GL_TEXTURE_2D);
+        }
 
         glDisable(GL_BLEND);
         glDisable(GL_ALPHA_TEST);
@@ -300,7 +322,7 @@ void GLWidget::paintGL()
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
         glLoadIdentity();
-        glPushAttrib(GL_ENABLE_BIT);
+        //glPushAttrib(GL_ENABLE_BIT);
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_LIGHTING);
         glDisable(GL_TEXTURE_2D);
@@ -322,9 +344,10 @@ void GLWidget::paintGL()
         }
 
         // Closing 2D
-        glPopAttrib();
+        //glPopAttrib();
         glPopMatrix(); // restore modelview
         glMatrixMode(GL_MODELVIEW);
+
     }
 
     //current messages (if valid)
@@ -462,18 +485,18 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             _m_g_mouseMiddleDown = true;
 
         //hide mask
-        QColor col;
-        for (int y=0; y<_glImg.height(); ++y)
-        {
-            for (int x=0; x<_glImg.width(); ++x)
-            {
-                col = QColor::fromRgba(_glImg.pixel(x,y));
-                col.setAlphaF(1.f);
+//        QColor col;
+//        for (int y=0; y<_glImg.height(); ++y)
+//        {
+//            for (int x=0; x<_glImg.width(); ++x)
+//            {
+//                col = QColor::fromRgba(_glImg.pixel(x,y));
+//                col.setAlphaF(1.f);
 
-                _glImg.setPixel(x,y, col.rgba());
-            }
-        }
-        update();
+//                _glImg.setPixel(x,y, col.rgba());
+//            }
+//        }
+//        update();
     }
 }
 
@@ -494,7 +517,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
         _m_g_mouseMiddleDown = false;
 
         //show mask
-        setMask(_mask);
+        //setMask(_mask);
     }
 }
 
@@ -641,12 +664,12 @@ void GLWidget::setData(cData *data)
         glDisable(GL_ALPHA_TEST);
         glDisable(GL_TEXTURE_2D);
 
-        if (m_Data->NbMasks())
-        {
-            _mask = QGLWidget::convertToGLFormat( *m_Data->getCurMask());
-            setMask(_mask);
-            update();
-        }
+//        if (m_Data->NbMasks())
+//        {
+//            _mask = QGLWidget::convertToGLFormat( *m_Data->getCurMask());
+//            setMask(_mask);
+//            update();
+//        }
     }
 
     if (m_Data->NbCameras())
@@ -1045,80 +1068,69 @@ void GLWidget::Select(int mode)
 
      if (m_bDisplayMode2D)
     {
-        QColor c;
+         QPainter    p;
+         QColor selectColor(255,255,255,255);
+         QColor unselectColor(0,0,0,0);
+         QBrush SBrush(selectColor);
+         QBrush NSBrush(unselectColor);
+         QPen   SPen(selectColor);
+         QPen   NSPen(unselectColor);
 
-        QPoint minPt(_glImg.width(),_glImg.height());
-        QPoint maxPt(0,0);
+         if (m_bFirstAction && mode == ADD)
+         {
+             _mask2 = new QImage(_glImg.size(),_glImg.format());
+             QGLWidget::convertToGLFormat(*_mask2);
+         }
 
-        if(mode ==  ADD || mode ==  SUB)
-            for (int aK=0; aK < polyg.size(); ++aK)
-            {
-                if( polyg[aK].x() < minPt.x()) minPt.setX(polyg[aK].x());
-                if( polyg[aK].y() < minPt.y()) minPt.setY(polyg[aK].y());
-                if( polyg[aK].x() > maxPt.x()) maxPt.setX(polyg[aK].x());
-                if( polyg[aK].y() > maxPt.y()) maxPt.setY(polyg[aK].y());
-            }
-        else
-        {
-            maxPt.setX(_glImg.width());
-            maxPt.setY(_glImg.height());
-            minPt.setX(0);
-            minPt.setY(0);
-        }
+         p.begin(_mask2);
+         p.setCompositionMode(QPainter::CompositionMode_Source);
 
-        if ((m_bFirstAction && mode ==  ADD))
-        {
-            QPainter    p;
-            p.begin(&_glImg);
-            p.setCompositionMode(QPainter::CompositionMode_DestinationIn);
-            p.fillRect(_glImg.rect(), QColor(0, 0, 0, 128));
-            p.end();
-        }
+         if(mode == ADD)
+         {
+             if (m_bFirstAction)
+                 p.fillRect(_mask2->rect(), unselectColor);
+             p.setPen(SPen);
+             p.setBrush(SBrush);
+             p.drawPolygon(polyg.data(),polyg.size());
+         }
+         else if(mode == SUB)
+         {
+             p.setPen(NSPen);
+             p.setBrush(NSBrush);
+             p.drawPolygon(polyg.data(),polyg.size());
+         }
+         else if(mode == ALL)
+         {
+             p.fillRect(_mask2->rect(), selectColor);
+         }
+         else if(mode == NONE)
+         {
+             p.fillRect(_mask2->rect(), unselectColor);
+         }
+         p.end();
 
-        for (int y = minPt.y(); y < maxPt.y();++y)
-        {
-            for (int x = minPt.x(); x < maxPt.x();++x)
-            {
-                switch (mode)
-                {
-                case ADD:
-                    c = QColor::fromRgba(_glImg.pixel(x,y));
-                    if (isPointInsidePoly(QPointF(x,y),polyg))
-                    {
-                        c.setAlphaF(1.f);
-                        _glImg.setPixel(x,y, c.rgba());
-                    }
-                    break;
-                case SUB:
-                    c = QColor::fromRgba(_glImg.pixel(x,y));
-                    pointInside = isPointInsidePoly(QPointF(x,y),polyg);
-                    if (pointInside)
-                    {
-                        c.setAlphaF(m_alpha);
-                        _glImg.setPixel(x,y, c.rgba());
-                    }
-                    break;
-                case INVERT:
-                    if (m_previousAction == NONE)  m_bFirstAction = true;
-                    c = QColor::fromRgba(_glImg.pixel(x,y));
-                    if (c.alpha() == 255) c.setAlphaF(m_alpha);
-                    else c.setAlphaF(1.f);
-                    _glImg.setPixel(x,y, c.rgba());
-                    break;
-                case ALL:
-                    m_bFirstAction = true;
-                    c = QColor::fromRgba(_glImg.pixel(x,y));
-                    c.setAlphaF(1.f);
-                    _glImg.setPixel(x,y, c.rgba());
-                    break;
-                case NONE:
-                    c = QColor::fromRgba(_glImg.pixel(x,y));
-                    c.setAlphaF(m_alpha);
-                    _glImg.setPixel(x,y, c.rgba());
-                    break;
-                }
-            }
-        }
+         if(mode == INVERT)
+         {
+            _mask2->invertPixels(QImage::InvertRgba);
+//            p.begin(_mask2);
+//            p.setCompositionMode(QPainter::RasterOp_NotDestination);
+//            p.fillRect(_mask2->rect(), QColor(255,255,255,255));
+//            p.setCompositionMode(QPainter::CompositionMode_Plus);
+//            p.fillRect(_mask2->rect(), QColor(0,0,0,128));
+ //           p.end();
+         }
+
+
+
+
+//                case INVERT:
+//                    if (m_previousAction == NONE)  m_bFirstAction = true;
+//                    c = QColor::fromRgba(_glImg.pixel(x,y));
+//                    if (c.alpha() == 255) c.setAlphaF(m_alpha);
+//                    else c.setAlphaF(1.f);
+//                    _glImg.setPixel(x,y, c.rgba());
+//                    break;
+
     }
     else
     {

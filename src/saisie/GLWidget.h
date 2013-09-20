@@ -19,7 +19,7 @@
 #include <QMimeData>
 #include <QTime>
 #include <QPainter>
-
+#include <QOpenGLPaintDevice>
 
 #include "Data.h"
 #include "Engine.h"
@@ -149,6 +149,7 @@ public:
 
     void applyGamma(float aGamma);
 
+    void glWinQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw);
 public slots:
     void zoom();
 
@@ -326,6 +327,8 @@ private:
 
     QImage      _glImg;
     QImage      _mask;
+    QImage      *_mask2;
+    QOpenGLPaintDevice  *_device;
 };
 
 #endif  /* _GLWIDGET_H */
