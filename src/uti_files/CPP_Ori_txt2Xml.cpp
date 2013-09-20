@@ -280,7 +280,7 @@ class cAppli_Ori_Txt2Xml_main
          Pt2dr                   mSzW;
          double                  mScaleV;
          double                  mBordV;
-         Video_Win *             mW;
+         Video_Win *             mWVisu;
          int                     mLine;
          eConventionsOrientation mConvOri;
          bool                 mCalibByFile;
