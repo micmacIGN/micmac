@@ -101,8 +101,7 @@ void GLWidget::resizeGL(int width, int height)
         m_rw = (float)_glImg.width()/m_glWidth;
         m_rh = (float)_glImg.height()/m_glHeight;
 
-        float curZoom = m_params.zoom;
-        setZoom(curZoom*(float)width/curW);
+        setZoom(m_params.zoom*(float)width/curW);
 
         //position de l'image dans la vue gl
         m_glPosition[0] = -m_rw;
@@ -213,10 +212,16 @@ void GLWidget::paintGL()
         glEnable(GL_ALPHA_TEST);
         glAlphaFunc(GL_GREATER, 0.1f);
 
+        glEnable(GL_TEXTURE_2D);
+
         glEnable(GL_BLEND);
-       // glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 //
+        glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
+
+        glBegin(GL_QUADS);
+
         GLfloat originX = m_glPosition[0]*m_params.zoom;
         GLfloat originY = m_glPosition[1]*m_params.zoom;
 
@@ -293,7 +298,6 @@ void GLWidget::paintGL()
             glDisableClientState(GL_COLOR_ARRAY);
         }
 
-        //    Ralentissement du a la drawball!!!
         if (m_bDrawBall) drawBall();
         else if (m_bDrawAxis) drawAxis();
 
@@ -326,7 +330,15 @@ void GLWidget::paintGL()
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_LIGHTING);
         glDisable(GL_TEXTURE_2D);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_SRC_ALPHA_SATURATE);
+        glEnable(GL_ALPHA_TEST);
+        glEnable(GL_LINE_SMOOTH);
+
         glColor3f(0,1,0);
+
+        glLineWidth(0.5f);
 
         glBegin(m_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
         for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
@@ -336,18 +348,17 @@ void GLWidget::paintGL()
         glEnd();
 
         glColor3f(1,0,0);
-        glLineWidth(.1f);
 
         for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
         {
-            glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 4.0, 16);
+            glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 32);
         }
 
-        // Closing 2D
         //glPopAttrib();
+        glLineWidth(m_params.LineWidth);
+        glDisable(GL_BLEND);
+        glDisable(GL_ALPHA_TEST);
         glPopMatrix(); // restore modelview
-        glMatrixMode(GL_MODELVIEW);
-
     }
 
     //current messages (if valid)
@@ -451,20 +462,23 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
         if (m_interactionMode == SELECTION)
         {
-            if (!m_bPolyIsClosed)
+            if (m_Data->NbImages()||m_Data->NbClouds()||m_Data->NbCameras())
             {
-                if (m_polygon.size() < 2)
-                    m_polygon.push_back(m_lastPos);
+                if (!m_bPolyIsClosed)
+                {
+                    if (m_polygon.size() < 2)
+                        m_polygon.push_back(m_lastPos);
+                    else
+                    {
+                        m_polygon[m_polygon.size()-1] = m_lastPos;
+                        m_polygon.push_back(m_lastPos);
+                    }
+                }
                 else
                 {
-                    m_polygon[m_polygon.size()-1] = m_lastPos;
+                    clearPolyline();
                     m_polygon.push_back(m_lastPos);
                 }
-            }
-            else
-            {
-                clearPolyline();
-                m_polygon.push_back(m_lastPos);
             }
         }
     }
@@ -1188,9 +1202,7 @@ void GLWidget::Select(int mode)
 
     m_infos.push_back(info);
 
-    m_polygon.clear();
-
-    update();
+    clearPolyline();
 }
 
 void GLWidget::deletePolylinePoint()
