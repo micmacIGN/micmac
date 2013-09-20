@@ -185,18 +185,15 @@ void GLWidget::glWinQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat 
     glBegin(GL_QUADS);
 
     glTexCoord2f(0.0f, 0.0f);
-    //glVertex2f(-1.0f, -1.0f);
     glVertex2f(originX, originY);
 
     glTexCoord2f(1.0f, 0.0f);
     glVertex2f(originX+glw, originY);
 
     glTexCoord2f(1.0f, 1.0f);
-    // glVertex2f(1.0f, 1.0f);
     glVertex2f(originX+glw, originY+glh);
 
     glTexCoord2f(0.0f, 1.0f);
-    //glVertex2f(-1.0f, 1.0f);
     glVertex2f(originX, originY+glh);
 
     glEnd();
@@ -226,7 +223,6 @@ void GLWidget::paintGL()
 
         if(_mask != NULL && !_m_g_mouseMiddleDown)
         {
-
             glEnable(GL_TEXTURE_2D);
             glTexImage2D( GL_TEXTURE_2D, 0, 4, _mask->width(), _mask->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _mask->bits());
             glWinQuad(originX, originY, glh, glw);
@@ -238,19 +234,17 @@ void GLWidget::paintGL()
         }
 
         glEnable(GL_TEXTURE_2D);
+
+        glBindTexture( GL_TEXTURE_2D, m_texturGLList );
         glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
         glWinQuad(originX, originY, glh, glw);
         glDisable(GL_TEXTURE_2D);
 
-
         glDisable(GL_BLEND);
-
-        glPopMatrix(); // __TEST
-
+        glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
 
         //Affichage du zoom
-
         if (m_bDrawMessages)
         {
             glColor4f(1.f,1.f,1.f,1.f);
@@ -631,12 +625,6 @@ void GLWidget::setData(cData *data)
     {
         m_bDisplayMode2D = true;
 
-        glDisable( GL_DEPTH_TEST );
-
-        glEnable(GL_TEXTURE_2D);
-        glAlphaFunc(GL_GREATER, 0.1f);
-        glEnable(GL_ALPHA_TEST);
-
         _glImg = QGLWidget::convertToGLFormat( *m_Data->getCurImage() );
 
         applyGamma(m_params.getGamma());
@@ -652,7 +640,7 @@ void GLWidget::setData(cData *data)
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-        glDisable(GL_ALPHA_TEST);
+        glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
         glDisable(GL_TEXTURE_2D);
 
         if(_mask)
