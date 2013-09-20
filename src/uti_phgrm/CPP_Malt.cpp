@@ -134,6 +134,7 @@ class cAppliMalt
           bool        mCorMS;
           double      mIncidMax;
           bool        mGenCubeCorrel;
+          bool        mEZA;
           std::vector<std::string> mEquiv;
 };
 
@@ -181,7 +182,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mSzGlob       (0,0),
     mUseImSec     (false),
     mCorMS        (false),
-    mGenCubeCorrel (false)
+    mGenCubeCorrel (false),
+    mEZA           (true)
 {
   ELISE_ASSERT(argc >= 2,"Not enough arg");
 
@@ -236,6 +238,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation , its proportion ([0,0,1,1] mean full box)")
                     << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)")
                     << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
+                    << EAM(mEZA,"EZA",true,"Export Z Absolute")
                     << EAM(mEquiv,"Equiv",true,"Equivalent classes, as a set of pattern, def=None")
   );
 
@@ -553,6 +556,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   if (mGenCubeCorrel)
       mCom = mCom + std::string(" +GCC=true");
 
+  if (EAMIsInit(&mEZA))
+      mCom = mCom + std::string(" +EZA=") + ToString(mEZA);
 
   if (ZMoyInit)
   {
