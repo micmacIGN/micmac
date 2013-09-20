@@ -92,7 +92,12 @@ int main(int argc, char *argv[])
     w.show();
 
     if (cmdline_args.size() > 1)
+    {
+        cmdline_args[0] = cmdline_args.back();
+        cmdline_args.pop_back();
+
         w.addFiles(cmdline_args);
+    }
 
     w.checkForLoadedData();
 

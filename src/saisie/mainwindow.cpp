@@ -79,6 +79,26 @@ void MainWindow::connectActions()
         connect(ui->actionSetViewRight,		SIGNAL(triggered()),   this, SLOT(setRightView()));
     }
 
+    connect(ui->actionZoom_Plus,		SIGNAL(triggered()),   this, SLOT(zoomPlus()));
+    connect(ui->actionZoom_Moins,		SIGNAL(triggered()),   this, SLOT(zoomMoins()));
+    connect(ui->actionZoom_fit,		    SIGNAL(triggered()),   this, SLOT(zoomFit()));
+
+    QSignalMapper* signalMapper = new QSignalMapper (this) ;
+
+    connect(ui->action4_1_400,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
+    connect(ui->action2_1_200,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
+    connect(ui->action1_1_100,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
+    connect(ui->action1_2_50,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
+    connect(ui->action1_4_25,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
+
+    signalMapper->setMapping (ui->action4_1_400, 400) ;
+    signalMapper->setMapping (ui->action2_1_200, 200) ;
+    signalMapper->setMapping (ui->action1_1_100, 100) ;
+    signalMapper->setMapping (ui->action1_2_50, 50) ;
+    signalMapper->setMapping (ui->action1_4_25, 25) ;
+
+    connect (signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int))) ;
+
     //"Selection menu
     connect(ui->actionToggleMode_selection, SIGNAL(triggered(bool)), this, SLOT(toggleSelectionMode(bool)));
     connect(ui->actionAdd,              SIGNAL(triggered()),   this, SLOT(add()));
@@ -348,7 +368,7 @@ void MainWindow::doActionDisplayShortcuts()
         text += tr("F5: show bounding box") +"\n";
         text += tr("F6: show cameras") +"\n";
     }
-    text += tr("F7: show help messages") +"\n";
+    text += tr("F7: show messages") +"\n";
     text += "\n";
     text += tr("Key +/-: increase/decrease point size") +"\n\n";
     text += tr("Selection menu:") +"\n\n";
@@ -434,6 +454,27 @@ void MainWindow::setLeftView()
 void MainWindow::setRightView()
 {
     m_glWidget->setView(RIGHT_VIEW);
+}
+
+//zoom
+void MainWindow::zoomPlus()
+{
+    m_glWidget->setZoom(m_glWidget->getParams()->zoom*1.5f);
+}
+
+void MainWindow::zoomMoins()
+{
+    m_glWidget->setZoom(m_glWidget->getParams()->zoom/1.5f);
+}
+
+void MainWindow::zoomFit()
+{
+    m_glWidget->zoomFit();
+}
+
+void MainWindow::zoomFactor(int aFactor)
+{
+    m_glWidget->zoomFactor(aFactor);
 }
 
 void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
@@ -604,6 +645,15 @@ void MainWindow::setMode2D(bool mBool)
     ui->actionShow_bounding_box->setVisible(!mBool);
 
     ui->menuStandard_views->menuAction()->setVisible(!mBool);
+
+    //pour activer/desactiver les raccourcis clavier
+
+    ui->actionLoad_plys->setEnabled(!mBool);
+    ui->actionLoad_camera->setEnabled(!mBool);
+    ui->actionShow_cams->setEnabled(!mBool);
+    ui->actionShow_axis->setEnabled(!mBool);
+    ui->actionShow_ball->setEnabled(!mBool);
+    ui->actionShow_bounding_box->setEnabled(!mBool);
 }
 
 void  MainWindow::setGamma(float aGamma)
