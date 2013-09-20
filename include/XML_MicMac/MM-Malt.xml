@@ -141,10 +141,11 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
    <Symb>  Clas2=.* </Symb>
    <Symb>  UseClas3=false </Symb>
    <Symb>  Clas3=.* </Symb>
+   <Symb>  EZA=false </Symb>
 
 <!--
 
-    <Symb>  UseEqui=true </Symb>
+    <Symb>  UseEqui=t=rue </Symb>
     <Symb>  UseClas1=true </Symb>
     <Symb>  Clas1=FD2A2B_fx00064.* </Symb>
 -->
@@ -411,6 +412,8 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                <DeZoom>        ${ZoomFinal}        </DeZoom> 
                <ZPas>          1.0       </ZPas>
                <AlgoRegul>  eAlgoDequant </AlgoRegul>
+               <ExportZAbs> ${EZA} </ExportZAbs>
+
 
                <ImageSelecteur>
                    <ModeExclusion > false </ModeExclusion>
