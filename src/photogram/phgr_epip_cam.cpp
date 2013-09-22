@@ -473,6 +473,8 @@ template <class Type,class TypeBase>
    int aNbChan = aTIn.nb_chan();
 
 
+   Im2D_Bits<1> aImMasqOut(aSzOut.x,aSzOut.y);
+   TIm2DBits<1> aTMasqOut(aImMasqOut);
 
    std::vector<tTIm> aVIn;
    std::vector<Type**> aDataIn;
@@ -532,6 +534,7 @@ template <class Type,class TypeBase>
        for (int anY=0; anY<aSzOut.y ; anY++)
        {
 
+            Pt2di aPOut(anX,anY);
             Pt2dr aPIm(aTImX.getr(aPR),aTImY.getr(aPR));
             bool Ok =    (aPIm.x > aSzK)
                       && (aPIm.y > aSzK)
@@ -540,15 +543,26 @@ template <class Type,class TypeBase>
 
      
 
+            aTMasqOut.oset(aPOut,Ok);
             for (int aKC=0 ; aKC<aNbChan ; aKC++)
             {
-                double aVal =  Ok ?  ElMax(1.0,aKern->GetVal(aDataIn[aKC],aPIm)) : 0 ;
-                aVOut[aKC].oset(Pt2di(anX,anY),aVal);
-
+                double aVal =  Ok ?  aKern->GetVal(aDataIn[aKC],aPIm) : 0 ;
+                aVOut[aKC].oset(aPOut,aVal);
             }
             aPR.y += UnSPas;
        }
     }
+
+    std::string aNameMasq = AddPrePost(aTOut.name(),"","_Masq");
+    Tiff_Im  aTifM(aNameMasq.c_str());
+    ELISE_COPY
+    (
+         rectangle(aBoxOut._p0,aBoxOut._p1),
+         trans(aImMasqOut.in(),-aBoxOut._p0),
+         aTifM.out()
+    );
+
+
     ELISE_COPY
     (
          rectangle(aBoxOut._p0,aBoxOut._p1),
@@ -626,7 +640,7 @@ int CreateBlockEpip_main(int argc,char ** argv)
 
 void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1)
 {
-    bool ByP= true;
+    bool ByP= true; /// std::cout << "Nnnnnnnnnnnnnnnnnnnnnoo process \n";
     bool ImLeft = mFirstIsLeft ? Im1 : (!Im1) ;
     std::string  aNameImOut = mDir + "Epi_" + std::string(Im1 ? "Im1_" : "Im2_") + (ImLeft ? mPrefLeft : mPrefRight  ) +   mNamePair + ".tif";
 
@@ -656,9 +670,20 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1)
             );
     ELISE_COPY(aTOut.all_pts(),0,aTOut.out());
 
+   std::string aNameMasq = AddPrePost(aNameImOut,"","_Masq");
+   Tiff_Im  aTMasq
+            (
+                  aNameMasq.c_str(),
+                  aSzOut,
+                  GenIm::bits1_msbf,
+                  Tiff_Im::No_Compr,
+                  Tiff_Im::BlackIsZero
+            );
+    ELISE_COPY(aTMasq.all_pts(),0,aTMasq.out());
 
 
-    cDecoupageInterv2D  aDec = cDecoupageInterv2D::SimpleDec(aSzOut,2000,0);
+
+    cDecoupageInterv2D  aDec = cDecoupageInterv2D::SimpleDec(aSzOut,2000,0,8);
     std::list<std::string> aLCom;
 
     for (int aK=0 ; aK<aDec.NbInterv() ; aK++)

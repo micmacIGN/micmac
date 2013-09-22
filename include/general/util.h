@@ -257,6 +257,11 @@ inline INT arrondi_inf(INT a,INT b)
    return (a/b)*b;
 }
 
+inline INT arrondi_ni(INT a,INT b)
+{
+   return ((a+b/2)/b)*b;
+}
+
 inline INT arrondi_sup(INT a,INT b)
 {
    return ((a+b-1)/b)*b;
@@ -720,7 +725,8 @@ class cDecoupageInterv1D
         (
            const cInterv1D<int>  & aIntervGlob,
            int aSzMax,
-           const cInterv1D<int>  & aSzBord
+           const cInterv1D<int>  & aSzBord,
+           int                     anArrondi=1
         );
 	int NbInterv() const;
 	cInterv1D<int> KthIntervOut(int aK) const;
@@ -742,6 +748,7 @@ class cDecoupageInterv1D
         cInterv1D<int>  mSzBord;
         int             mSzMax;
         int             mNbInterv;
+        int             mArrondi;
 };
 
 template <class Type> 
