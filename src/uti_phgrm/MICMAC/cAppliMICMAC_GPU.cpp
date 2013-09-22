@@ -60,7 +60,6 @@ namespace NS_ParamMICMAC
 {
 
 
-static bool aBugCMS = false;
 #if CUDA_ENABLED
     uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);}
     int2  toI2(Pt2dr a){return make_int2((int)a.x,(int)a.y);}
@@ -215,6 +214,7 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
       mSzX     (mLI->SzIm().x),
       mSzY     (mLI->SzIm().y),
       mImMasq  (mLI->DataMasqIm()),
+      mImMasqErod  (mLI->DataMasqImErod()),
       mImPC    (mLI->DataImPC()),
       mSeuilPC (mLI->SeuilPC()),
       mUsePC   (mLI->UsePC())
@@ -265,6 +265,24 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
     }
 
     mOneImage = (aVP.size()==1);
+}
+
+Pt2di cGPU_LoadedImGeom::OffsetIm()
+{
+   double   aZter[2] ={0,0};
+   Pt2dr aPTer = mAppli.DequantPlani(0,0);
+
+   Pt2dr aResR = mGeom->CurObj2Im(aPTer,aZter);
+
+   Pt2di aResI = round_ni(aResR);
+
+   if (euclid(aResR,Pt2dr(aResI)) > 1e-4)
+   {
+        std::cout << "REEESR " << aResR << "\n";
+        ELISE_ASSERT(false,"Non Integer Offset\n");
+   }
+
+   return aResI;
 }
 
 Pt2di  cGPU_LoadedImGeom::SzV0() const
@@ -582,8 +600,8 @@ if (0)
     //
 
 
-    void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
-    {
+void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
+{
 
         mX0Ter = aBox._p0.x;
         mX1Ter = aBox._p1.x;
@@ -782,7 +800,7 @@ if (0)
             mTGeoX =   TIm2D<REAL4,REAL8>(mGeoX);
             mTGeoY =   TIm2D<REAL4,REAL8>(mGeoY);
         }
-    }
+}
 
 
 
@@ -1043,7 +1061,6 @@ void cAppliMICMAC::DoOneCorrelSym(int anX,int anY,int aNbScaleIm)
 {
 
 static int aCpt=0 ; aCpt++;
-aBugCMS = (aCpt==220401);
 
      double aCost = mAhDefCost;
      std::vector<cGPU_LoadedImGeom *> aCurVLI;
@@ -1351,13 +1368,13 @@ void cAppliMICMAC::DoGPU_Correl
                     for (int anY = mY0UtiTer ; anY < mY1UtiTer ; anY++)
                     {
 
-                                                int aNbScaleIm =  NbScaleOfPt(anX,anY);
+                        int aNbScaleIm =  NbScaleOfPt(anX,anY);
 
+                        if (mCurEtUseWAdapt)
+                        {
+                             ElSetMin(aNbScaleIm,1+mTImSzWCor.get(Pt2di(anX,anY)));
+                        }
 /*
-                                                if (mCurEtUseWAdapt)
-                                                {
-                                                     ElSetMin(aNbScaleIm,1+mTImSzWCor.get(Pt2di(anX,anY)));
-                                                }
 */
                         if (mDOkTer[anY][anX])
                         {
@@ -1562,24 +1579,6 @@ void cAppliMICMAC::DoCorrelAdHoc
       }
 
 
-        // Pour eventuellement changer si existe algo qui impose une taille
-
-
-        mCurSzV0   = mPtSzWFixe;
-                mCurSzVMax = mCurSzV0;
-                if (mCMS)
-                {
-                    ELISE_ASSERT
-                    (
-                         mCurSzV0 == mCMS->OneParamCMS()[0].SzW(),
-                        "Incoherence in first SzW of OneParamCMS"
-                    );
-                    mCurSzVMax = mCurSzV0;
-                    for (int aK=1 ; aK<int(mCMS->OneParamCMS().size()) ; aK++)
-                        mCurSzVMax.SetSup(mCMS->OneParamCMS()[aK].SzW());
-                }
-
-
         DoInitAdHoc(aBox);
 
 
@@ -1590,7 +1589,7 @@ void cAppliMICMAC::DoCorrelAdHoc
                 }
         else
 */
-                if (aTC.GPU_Correl().IsInit())
+        if (aTC.GPU_Correl().IsInit())
         {
             DoGPU_Correl(aBox,(cMultiCorrelPonctuel*)0);
         }
@@ -1633,18 +1632,55 @@ void cAppliMICMAC::DoCorrelAdHoc
 
 }
 
-    void cAppliMICMAC::GlobDoCorrelAdHoc
+void cAppliMICMAC::GlobDoCorrelAdHoc
         (
         const Box2di & aBoxOut,
-        const Box2di & aBox  //  IN
+        const Box2di & aBoxIn  //  IN
         )
-    {
+{
 
+        // Pour eventuellement changer si existe algo qui impose une taille
+        mCurSzV0   = mPtSzWFixe;
+        mCurSzVMax = mCurSzV0;
+        if (mCMS)
+        {
+            ELISE_ASSERT
+            (
+                         mCurSzV0 == mCMS->OneParamCMS()[0].SzW(),
+                        "Incoherence in first SzW of OneParamCMS"
+            );
+            mCurSzVMax = mCurSzV0;
+            for (int aK=1 ; aK<int(mCMS->OneParamCMS().size()) ; aK++)
+                mCurSzVMax.SetSup(mCMS->OneParamCMS()[aK].SzW());
+        }
         const cTypeCAH & aTC  = mCorrelAdHoc->TypeCAH();
+
+        if (aTC.CensusCost().IsInit())
+        {
+            int aK=0;
+            for
+            (
+                tCsteIterPDV itFI=mPDVBoxGlobAct.begin();
+                itFI!=mPDVBoxGlobAct.end();
+                itFI++
+            )
+            {
+                 Pt2di aP0(-mCurSzVMax.x,-mCurSzVMax.y);
+                 Pt2di aP1(mCurSzVMax.x+1,mCurSzVMax.y);
+                 Box2di aB(aP0,aP1);
+                 (*itFI)->LoadedIm().DoMasqErod(aB);
+
+                 // std::cout << aK << " BBBBB " << aBoxOut._p0 << " " << aBoxIn._p0  <<  (*itFI)->Geom().BoxClip()._p0 << "\n";
+
+                 aK++;
+            }
+        }
+
+
         if (aTC.Correl2DLeastSquare().IsInit())
         {
             // ELISE_ASSERT(AlgoRegul()==eAlgoLeastSQ
-            DoCorrelLeastQuare(aBoxOut,aBox,aTC.Correl2DLeastSquare().Val());
+            DoCorrelLeastQuare(aBoxOut,aBoxIn,aTC.Correl2DLeastSquare().Val());
             return;
         }
 
@@ -1657,14 +1693,14 @@ void cAppliMICMAC::DoCorrelAdHoc
         cDecoupageInterv2D aDecInterv =
             cDecoupageInterv2D::SimpleDec
             (
-            aBox.sz(),
+            aBoxIn.sz(),
             mCorrelAdHoc->SzBlocAH().Val(),
             0
             );
 
 #if CUDA_ENABLED
-        IMmGg.box.x = aBox.sz().x;
-        IMmGg.box.y = aBox.sz().y;
+        IMmGg.box.x = aBoxIn.sz().x;
+        IMmGg.box.y = aBoxIn.sz().y;
 #endif
 
         for (int aKBox=0 ; aKBox<aDecInterv.NbInterv() ; aKBox++)
@@ -1672,7 +1708,7 @@ void cAppliMICMAC::DoCorrelAdHoc
             DoCorrelAdHoc(aDecInterv.KthIntervOut(aKBox));
         }
 
-    }
+}
 
 }
 

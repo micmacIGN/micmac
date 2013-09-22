@@ -1563,6 +1563,9 @@ class cLoadedImage
          U_INT1** DataImPC() const;
          int      SeuilPC() const;
          U_INT1** DataMasqIm() const;
+         U_INT1** DataMasqImErod() const;
+         void DoMasqErod(const Box2di & aBox);
+
          virtual float *** DataFloatIm()  = 0;
          virtual float ** DataFloatLinIm()  = 0;
        
@@ -1599,6 +1602,10 @@ class cLoadedImage
          Pt2di          mSzIm;
          Im2D_Bits<1>   mMasqIm;
          TIm2DBits<1>   mTMasqIm;
+
+         bool           mDoneMasqErod;
+         Im2D_Bits<1>   mMasqImErod;
+         TIm2DBits<1>   mTMasqImErod;
 
          // Geometrie de l'image superposable au bloc terrain,
          // a une translation pres, pour une paralaxe donnee
@@ -2557,6 +2564,10 @@ class   cGPU_LoadedImGeom
              bool Top
         );
 
+        // En cas de geometrie image renvoie l'offset entre le 00 du terrain local et la geom image
+        // chargee
+        Pt2di OffsetIm();
+
 //  Est-ce que un point terrain est visible (si l'option des parties cachees
 //  a ete activee)
        bool  IsVisible(int anX,int anY) const
@@ -2572,8 +2583,6 @@ class   cGPU_LoadedImGeom
            int anIX = round_ni(aRX);
            int anIY = round_ni(aRY);
 
-
-
            return     (anIX>=0)
                    && (anIY>=0)
                    && (anIX<mSzX)
@@ -2582,14 +2591,26 @@ class   cGPU_LoadedImGeom
 
       }
 
-	  Pt2di getSizeImage()
-	  {
+      bool IsOkErod(int anIX,int anIY)
+      {
+           return     (anIX>=0)
+                   && (anIY>=0)
+                   && (anIX<mSzX)
+                   && (anIY<mSzY)
+                   && (GET_Val_BIT(mImMasqErod[anIY],anIX));
+      }
+
+
+
+
+      Pt2di getSizeImage()
+      {
 	  
 		  Pt2di size(mSzX,mSzY);
 		  
 		  return size;  
 	  
-	  }
+      }
 
       cGeomImage * Geom() {return mGeom;}
       void AssertOneImage()
@@ -2778,6 +2799,7 @@ class   cGPU_LoadedImGeom
         int              mSzX;
         int              mSzY;
         U_INT1**         mImMasq;
+        U_INT1**         mImMasqErod;
 
    // Parties cachee :  masque image (en geom terrain), Seuil  et usage 
        U_INT1 **          mImPC;

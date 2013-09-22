@@ -882,12 +882,14 @@ cDecoupageInterv1D::cDecoupageInterv1D
 (
      const cInterv1D<int>  & aIntervGlob,
      int aSzMax,
-     const cInterv1D<int>  & aSzBord
+     const cInterv1D<int>  & aSzBord,
+     int                     anArrondi
 )  :
    mIntervGlob (aIntervGlob),
    mSzBord     (aSzBord),
    mSzMax      (aSzMax),
-   mNbInterv   (round_up(mIntervGlob.Larg()/double(mSzMax)))
+   mNbInterv   (round_up(mIntervGlob.Larg()/double(mSzMax))),
+   mArrondi    (anArrondi)
 {
 }
 
@@ -898,9 +900,15 @@ int cDecoupageInterv1D::NbInterv() const
 
 int cDecoupageInterv1D::KThBorneOut(int aK) const
 {
-    return 
-	        mIntervGlob.V0()
+    int aV = mIntervGlob.V0() +  round_ni((mIntervGlob.Larg() * aK )/mNbInterv);
+    if ((mArrondi!=1) && (aK!=0)  && (aK!=mNbInterv))
+       aV = arrondi_ni(aV,mArrondi);
+
+   return aV;
+/*
+    return mIntervGlob.V0() 
            +    round_ni((mIntervGlob.Larg() * aK )/mNbInterv);
+*/
 }
 
 cInterv1D<int> cDecoupageInterv1D::KthIntervOut(int aK) const
@@ -993,22 +1001,24 @@ cDecoupageInterv2D::cDecoupageInterv2D
 (
          const Box2di & aBGlob,
          Pt2di aSzMax,
-         const Box2di   & aSzBord
+         const Box2di   & aSzBord,
+         int  anArrondi
 ) :
-  mDecX  ( IntX(aBGlob),aSzMax.x,IntX(aSzBord)),
-  mDecY  ( IntY(aBGlob),aSzMax.y,IntY(aSzBord)),
+  mDecX  ( IntX(aBGlob),aSzMax.x,IntX(aSzBord),anArrondi),
+  mDecY  ( IntY(aBGlob),aSzMax.y,IntY(aSzBord),anArrondi),
   mNbX   ( mDecX.NbInterv()),
   mSzBrd (aSzBord)
 {
 }
 
-cDecoupageInterv2D cDecoupageInterv2D::SimpleDec(Pt2di aSz,int aSzMax,int aSzBrd)
+cDecoupageInterv2D cDecoupageInterv2D::SimpleDec(Pt2di aSz,int aSzMax,int aSzBrd,int anArrondi)
 {
     return cDecoupageInterv2D
            (
                   Box2di(Pt2di(0,0),aSz),
                   Pt2di(aSzMax,aSzMax),
-                  Box2di(Pt2di(-aSzBrd,-aSzBrd),Pt2di(aSzBrd,aSzBrd))
+                  Box2di(Pt2di(-aSzBrd,-aSzBrd),Pt2di(aSzBrd,aSzBrd)),
+                  anArrondi
            );
 }
 
