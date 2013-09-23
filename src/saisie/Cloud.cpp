@@ -76,11 +76,11 @@ Cloud* Cloud::loadPly(string i_filename ,int* incre)
     plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
 
     #ifdef _DEBUG
-        printf ("file %s\n"    , i_filename);
-        printf ("version %\n"  , version);
+        printf ("file %s\n"    , i_filename.c_str());
+        printf ("version %f\n" , version);
         printf ("type %d\n"	   , file_type);
         printf ("nb elem %d\n" , nelems);
-        printf ("num elem %d\n", num_elems);
+        printf ("num elems %d\n", num_elems);
     #endif
 
     for (int i = 0; i < nelems; i++)
@@ -91,7 +91,7 @@ Cloud* Cloud::loadPly(string i_filename ,int* incre)
 
         // print the name of the element, for debugging
         #ifdef _DEBUG
-            printf ("element %s %d\n", elem_name, num_elems);
+            printf ("element %s %d %d\n", elem_name, num_elems, nprops);
         #endif
 
         if (equal_strings ("vertex", elem_name))
@@ -100,27 +100,24 @@ Cloud* Cloud::loadPly(string i_filename ,int* incre)
             {
             case 7:
                 {
-                    // create a vertex list to hold all the vertices
-                    sPlyColoredVertexWithAlpha **vlist = (sPlyColoredVertexWithAlpha **) malloc (sizeof (sPlyColoredVertexWithAlpha *) * num_elems);
-
-                    // set up for getting vertex elements
+                    // setup for getting vertex elements
                     for (int j = 0; j < nprops ;++j)
                         ply_get_property (thePlyFile, elem_name, &colored_a_vert_props[j]);
+
+                    sPlyColoredVertexWithAlpha * vertex = (sPlyColoredVertexWithAlpha *) malloc (sizeof (sPlyColoredVertexWithAlpha));
 
                     // grab all the vertex elements
                     for (int j = 0; j < num_elems; j++)
                     {
                         // grab an element from the file
-                        vlist[j] = (sPlyColoredVertexWithAlpha *) malloc (sizeof (sPlyColoredVertexWithAlpha));
 
-                        ply_get_element_setup(thePlyFile,elem_name,nprops,colored_a_vert_props);
-                        ply_get_element (thePlyFile, (void *) vlist[j]);
+                        ply_get_element (thePlyFile, (void *) vertex);
 
                         #ifdef _DEBUG
-                        printf ("vertex: %g %g %g %u %u %u %u\n", vlist[j]->x, vlist[j]->y, vlist[j]->z, vlist[j]->red, vlist[j]->green, vlist[j]->blue, vlist[j]->alpha);
+                            printf ("vertex--: %g %g %g %u %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->red, vertex->green, vertex->blue, vertex->alpha);
                         #endif
 
-                            ptList.push_back( Vertex (Pt3dr ( vlist[j]->x, vlist[j]->y, vlist[j]->z ), QColor( vlist[j]->red, vlist[j]->green, vlist[j]->blue, vlist[j]->alpha )));
+                        ptList.push_back( Vertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue, vertex->alpha )));
                     }
                     break;
                 }
@@ -129,12 +126,11 @@ Cloud* Cloud::loadPly(string i_filename ,int* incre)
                 {
                     // can be (x y z r g b) or (x y z nx ny nz)
 
-                    // create a vertex list to hold all the vertices
-                    sPlyColoredVertex **ulist = (sPlyColoredVertex **) malloc (sizeof (sPlyColoredVertex *) * num_elems);
-
                     // set up for getting vertex elements
                     for (int j = 0; j < nprops ;++j)
                         ply_get_property (thePlyFile, elem_name, &colored_vert_props[j]);
+
+                    sPlyColoredVertex *vertex = (sPlyColoredVertex *) malloc (sizeof (sPlyColoredVertex));
 
                     // grab all the vertex elements
                     for (int j = 0; j < num_elems; j++)
@@ -142,16 +138,13 @@ Cloud* Cloud::loadPly(string i_filename ,int* incre)
                         if (incre) *incre = 100.0f*(float)j/num_elems;
 
                         // grab an element from the file
-                        ulist[j] = (sPlyColoredVertex *) malloc (sizeof (sPlyColoredVertex));
-
-                        ply_get_element_setup(thePlyFile,elem_name,nprops,colored_vert_props);
-                        ply_get_element (thePlyFile, (void *) ulist[j]);
+                        ply_get_element (thePlyFile, (void *) vertex);
 
                         #ifdef _DEBUG
-                            printf ("vertex: %g %g %g %u %u %u\n", ulist[j]->x, ulist[j]->y, ulist[j]->z, ulist[j]->red, ulist[j]->green, ulist[j]->blue);
+                            printf ("vertex: %g %g %g %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->red, vertex->green, vertex->blue);
                         #endif
 
-                        ptList.push_back( Vertex (Pt3dr ( ulist[j]->x, ulist[j]->y, ulist[j]->z ), QColor( ulist[j]->red, ulist[j]->green, ulist[j]->blue )));
+                        ptList.push_back( Vertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue )));
                     }
                     break;
                 }
@@ -165,7 +158,7 @@ Cloud* Cloud::loadPly(string i_filename ,int* incre)
     }
 
     #ifdef _DEBUG
-        printf("verification - nombre de points dans le nuage: %d\n", ptList.size() );
+        printf("verification - nombre de points dans le nuage: %d\n", (int) ptList.size() );
     #endif
 
     ply_close (thePlyFile);

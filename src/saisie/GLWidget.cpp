@@ -94,8 +94,9 @@ void GLWidget::resizeGL(int width, int height)
     float curW = m_glWidth;
     float curH = m_glHeight;
 
-    m_glWidth  = (float)width;
-    m_glHeight = (float)height;
+    m_glWidth  = width;
+    m_glHeight = height;
+    m_glRatio  = (float) width/height;
 
     if (m_Data->NbImages())
     {
@@ -751,7 +752,9 @@ void GLWidget::setStandardOrthoCenter()
     glLoadIdentity();
     float halfW = float(m_glWidth)*.5f;
     float halfH = float(m_glHeight)*.5f;
-    glOrtho(-halfW,halfW,-halfH,halfH,-100.f, 100.f);
+
+    glOrtho(-halfW,halfW,-halfH,halfH,-2.f*m_Data->m_diam, 2.f*m_Data->m_diam);
+
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
@@ -764,12 +767,7 @@ void GLWidget::zoom()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    GLdouble fAspect = (GLdouble) m_glWidth/m_glHeight;
-
-    GLdouble left  = -zoom*fAspect;
-    GLdouble right =  zoom*fAspect;
-
-    glOrtho(left, right, -zoom, zoom, -100.f, 100.f);
+    glOrtho(-zoom*m_glRatio,zoom*m_glRatio,-zoom, zoom,-2.f*m_Data->m_diam, 2.f*m_Data->m_diam);
 
     glMatrixMode(GL_MODELVIEW);
 }
@@ -1069,7 +1067,7 @@ void GLWidget::Select(int mode)
         }
     }
 
-     if (m_bDisplayMode2D)
+    if (m_bDisplayMode2D)
     {
          QPainter    p;
          QColor selectColor(255,255,255,255);

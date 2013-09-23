@@ -91,10 +91,9 @@ int cData::getSizeClouds()
     return sizeClouds;
 }
 
+//compute bounding box
 void cData::getBB(Cloud * aCloud)
 {  
-    //compute bounding box
-
     for (int aK=0; aK < aCloud->size(); ++aK)
     {
         Vertex vert = aCloud->getVertex(aK);
