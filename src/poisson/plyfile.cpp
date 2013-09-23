@@ -37,6 +37,8 @@
     #include "poisson/ply.h"
 #endif
 
+#include <sstream>
+
 #if (! ELISE_windows)  // MODIF MPD, pas tres propre pour compile sous Linux
 #define _strdup strdup
 #endif
@@ -1027,12 +1029,12 @@ Open a polygon file for reading.
 	  
 	  prop_ptr = find_property (elem, prop->name, &index);
 	  if (prop_ptr == NULL) {
-//		  fprintf (stderr, "Warning:  Can't find property '%s' in element '%s'\n",
-//			  prop->name, elem_name);
-//		  return;
+          fprintf (stderr, "Warning:  Can't find property '%s' in element '%s'\n",
+                   prop->name.c_str(),
+                   elem_name);
 		  return 0;
 	  }
-	  prop_ptr->internal_type  = prop->internal_type;
+      prop_ptr->internal_type  = prop->internal_type;
 	  prop_ptr->offset         = prop->offset;
 	  prop_ptr->count_internal = prop->count_internal;
 	  prop_ptr->count_offset   = prop->count_offset;
@@ -1565,7 +1567,8 @@ Open a polygon file for reading.
 	  char *orig_line;
 	  char *other_data=NULL;
 	  int other_flag;
-	  
+
+
 	  /* the kind of element we're reading currently */
 	  elem = plyfile->which_elem;
 	  
@@ -1593,6 +1596,7 @@ Open a polygon file for reading.
 	  
 	  which_word = 0;
 	  
+
 	  for (j = 0; j < elem->nprops; j++) {
 		  
 		  prop = elem->props[j];
@@ -1606,6 +1610,7 @@ Open a polygon file for reading.
 		  
 		  if (prop->is_list) {       /* a list */
 			  
+
 			  /* get and store the number of items in the list */
 			  get_ascii_item (words[which_word++], prop->count_external,
 				  &int_val, &uint_val, &double_val);
@@ -2363,7 +2368,6 @@ Read an element from a binary file.
 		  exit(1);
 	  }
 	  
-	  
 	  if ((file_type != native_binary_type) && (ply_type_size[type] > 1))
 		  swap_bytes((char *)ptr, ply_type_size[type]);
 	  
@@ -2445,6 +2449,8 @@ Read an element from a binary file.
 	  double *double_val
 	  )
   {
+
+
 	  switch (type) {
 	  case PLY_CHAR:
 	  case PLY_INT_8:
@@ -2472,9 +2478,13 @@ Read an element from a binary file.
 	  case PLY_FLOAT_32:
 	  case PLY_DOUBLE:
 	  case PLY_FLOAT_64:
-		  *double_val = atof (word);
-		  *int_val = (int) *double_val;
-		  *uint_val = (unsigned int) *double_val;
+      {
+          *double_val = 0.0f;
+          istringstream istr(word);
+          istr >> *double_val;  //*double_val = atof (word); //atof sensitive to systems where locale defines comma as decimal separator
+          *int_val = (int) *double_val;
+          *uint_val = (unsigned int) *double_val;
+      }
 		  break;
 		  
 	  default:

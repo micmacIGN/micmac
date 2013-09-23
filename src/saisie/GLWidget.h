@@ -211,6 +211,9 @@ protected:
     //! GL context height
     int m_glHeight;
 
+    //! GL context aspect ratio m_glWidth/m_glHeight
+    float m_glRatio;
+
     //! ratio between GL context size and image size
     float m_rw, m_rh;
 
