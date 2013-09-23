@@ -4363,7 +4363,8 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
        if (anOC.OrientationFile().IsInit())
        {
            std::cout << "Chargement de : "<<anOC.OrientationFile().Val().NameFileOri()<<std::endl;
-           aRes = new cCameraModuleOrientation(new OrientationGrille(anOC.OrientationFile().Val().NameFileOri()),anOC.Interne().Val().SzIm());
+           cAffinitePlane orIntImaM2C = anOC.OrIntImaM2C().Val();
+           aRes = new cCameraModuleOrientation(new OrientationGrille(anOC.OrientationFile().Val().NameFileOri()),anOC.Interne().Val().SzIm(),Xml2EL(orIntImaM2C));
            std::cout << "Fin du chargement de la grille"<<std::endl;
 	   return aRes;
        }
