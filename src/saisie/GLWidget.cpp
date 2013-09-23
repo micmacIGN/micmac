@@ -205,31 +205,34 @@ void GLWidget::paintGL()
 
     if (m_Data->NbImages())
     {
-        glPushMatrix(); // __TEST
-
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
         glDisable(GL_DEPTH_TEST);
-
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE,GL_ONE);
 
-        GLfloat originX = m_glPosition[0]*m_params.zoom;
-        GLfloat originY = m_glPosition[1]*m_params.zoom;
+        GLfloat originX = m_glPosition[0];
+        GLfloat originY = m_glPosition[1];
 
-        GLfloat glw = 2.f*m_rw*m_params.zoom;
-        GLfloat glh = 2.f*m_rh*m_params.zoom;
+        GLfloat glw = 2.f*m_rw;
+        GLfloat glh = 2.f*m_rh;
 
+        glPushMatrix();
+
+        glScalef(m_params.zoom, m_params.zoom, 1.0);
+        glTranslatef(originX,originY,0);
         if(_mask != NULL && !_m_g_mouseMiddleDown)
         {
             glEnable(GL_TEXTURE_2D);
             glTexImage2D( GL_TEXTURE_2D, 0, 4, _mask->width(), _mask->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _mask->bits());
-            glWinQuad(originX, originY, glh, glw);
+
+            glWinQuad(0, 0, glh, glw);
+
             glDisable(GL_TEXTURE_2D);
 
             glColor4f(0.5f,0.5f,0.5f,0.0f);
-            glWinQuad(originX, originY, glh, glw);
+            glWinQuad(0, 0, glh, glw);
             glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
         }
 
@@ -237,11 +240,13 @@ void GLWidget::paintGL()
 
         glBindTexture( GL_TEXTURE_2D, m_texturGLList );
         glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
-        glWinQuad(originX, originY, glh, glw);
+        glWinQuad(0, 0, glh, glw);
         glDisable(GL_TEXTURE_2D);
 
-        glDisable(GL_BLEND);
         glPopMatrix();
+
+        glDisable(GL_BLEND);
+        glEnable(GL_DEPTH_TEST);
         glMatrixMode(GL_MODELVIEW);
 
         //Affichage du zoom
