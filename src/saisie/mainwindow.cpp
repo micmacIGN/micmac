@@ -350,40 +350,53 @@ void MainWindow::doActionDisplayShortcuts()
     QString text = tr("File menu:") +"\n\n";
     if (!m_bMode2D)
     {
-        text += tr("Ctrl+P: open .ply files")+"\n";
-        text += tr("Ctrl+C: open .xml camera files")+"\n";
+        text += "Ctrl+P: \t" + tr("open .ply files")+"\n";
+        text += "Ctrl+C: \t"+ tr("open .xml camera files")+"\n";
     }
-    text += tr("Ctrl+O: open image files")+"\n";
-    if (!m_bMode2D) text += tr("Ctrl+E: save .xml selection infos")+"\n";
-    text += tr("Ctrl+S: save masks files")+"\n";
-    text += tr("Ctrl+Maj+S: save masks files as")+"\n";
-    text += tr("Ctrl+X: close files")+"\n";
-    text += tr("Ctrl+Q: quit") +"\n\n";
-    text += tr("View:") +"\n\n";
-    text += tr("F2: full screen") +"\n";
+    text += "Ctrl+O: \t"+tr("open image files")+"\n";
+    if (!m_bMode2D) text += "tr(""Ctrl+E: \t"+tr("save .xml selection infos")+"\n";
+    text += "Ctrl+S: \t"+tr("save masks files")+"\n";
+    text += "Ctrl+Maj+S: \t"+tr("save masks files as")+"\n";
+    text += "Ctrl+X: \t"+tr("close files")+"\n";
+    text += "Ctrl+Q: \t"+tr("quit") +"\n\n";
+    text += tr("View menu:") +"\n\n";
+    text += "F2: \t"+tr("full screen") +"\n";
     if (!m_bMode2D)
     {
-        text += tr("F3: show axis") +"\n";
-        text += tr("F4: show ball") +"\n";
-        text += tr("F5: show bounding box") +"\n";
-        text += tr("F6: show cameras") +"\n";
+        text += "F3: \t"+tr("show axis") +"\n";
+        text += "F4: \t"+tr("show ball") +"\n";
+        text += "F5: \t"+tr("show bounding box") +"\n";
+        text += "F6: \t"+tr("show cameras") +"\n";
     }
-    text += tr("F7: show messages") +"\n";
-    text += "\n";
-    text += tr("Key +/-: increase/decrease point size") +"\n\n";
+
+    if (!m_bMode2D)
+        text += tr("Key +/-: \tincrease/decrease point size") +"\n\n";
+    else
+    {
+        text += tr("Key +/-: \tincrease/decrease zoom") + "\n";
+        text += "9: \t"+tr("zoom fit") + "\n";
+        text+= "4: \tzoom 400%\n";
+        text+= "2: \tzoom 200%\n";
+        text+= "1: \tzoom 100%\n";
+        text+= "Ctrl+2: \tzoom 50%\n";
+        text+= "Ctrl+4: \tzoom 25%\n";
+    }
+
+    text += "F7: \t"+tr("show messages") +"\n\n";
+
     text += tr("Selection menu:") +"\n\n";
-    text += tr("F8: move mode / selection mode") +"\n";
-    text += tr("    - Left click : add a point to polyline") +"\n";
-    text += tr("    - Right click: close polyline") +"\n";
-    text += tr("    - Echap: delete polyline") +"\n";
-    text += tr("    - Space bar: add points/pixels inside polyline") +"\n";
-    text += tr("    - Del: remove points/pixels inside polyline") +"\n";
-    text += tr("    - Inser: insert point in polyline") +"\n";
-    text += tr("    - . : delete closest point in polyline") +"\n";
-    text += tr("    - Ctrl+A: select all") +"\n";
-    text += tr("    - Ctrl+D: select none") +"\n";
-    text += tr("    - Ctrl+R: undo all past selections") +"\n";
-    text += tr("    - Ctrl+I: invert selection") +"\n";
+    text += "F8: \t"+tr("move mode / selection mode") +"\n\n";
+    text += tr("    - Left click : \tadd a point to polyline") +"\n";
+    text += tr("    - Right click: \tclose polyline") +"\n";
+    text += tr("    - Echap: \t\tdelete polyline") +"\n";
+    text += tr("    - Space bar: \tadd points/pixels inside polyline") +"\n";
+    text += tr("    - Del: \t\tremove points/pixels inside polyline") +"\n";
+    text += tr("    - Inser: \t\tinsert point in polyline") +"\n";
+    text += tr("    - Key \".\" : \t\tdelete closest point in polyline") +"\n";
+    text += "    - Ctrl+A: \t\t"+tr("select all") +"\n";
+    text += "    - Ctrl+D: \t\t"+tr("select none") +"\n";
+    text += "    - Ctrl+R: \t\t"+tr("undo all past selections") +"\n";
+    text += "    - Ctrl+I: \t\t"+tr("invert selection") +"\n";
 
     QMessageBox::information(NULL, tr("Saisie - shortcuts"), text);
 }
