@@ -368,7 +368,7 @@ class cElNuage3DMaille : public cCapture3D
         //  Un ElCamera a deja la bonne interface pour definir la
         //  geometrie d'acquisition du nuage. Si c'est un nuage en geometrie
         // camera  stenope c'est trivial. Si c'est un nuage en terrain, on 
-        // le fera avec un camera de projection ortographique
+        // le fera avec un camera de projection orthographique
 
         cElNuage3DMaille
         (
