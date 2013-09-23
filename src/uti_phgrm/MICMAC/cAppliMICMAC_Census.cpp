@@ -133,7 +133,7 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost &)
                                      aMat.add_pt_en_place(aV0,aV1);
                                 }
                             }
-                            aCost = 1-aMat.correlation(mAhEpsilon);
+                            aCost = mStatGlob->CorrelToCout(aMat.correlation(mAhEpsilon));
                        }
                    }
                    mSurfOpt->SetCout(Pt2di(anX,anY),&aZI,aCost);
