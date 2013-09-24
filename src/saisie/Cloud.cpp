@@ -186,23 +186,19 @@ Cloud* Cloud::loadPly(string i_filename ,int* incre)
                             ptList.push_back( Vertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor(Red, Green, Blue )));
                         }
                     }
-
                     break;
                 }
             case 3:
                 {
-                    // set up for getting vertex elements
                     for (int j = 0; j < nprops ;++j)
                         ply_get_property (thePlyFile, elem_name, &vert_props[j]);
 
                     sVertex *vertex = (sVertex *) malloc (sizeof (sVertex));
 
-                    // grab all the vertex elements
                     for (int j = 0; j < num_elems; j++)
                     {
                         if (incre) *incre = 100.0f*(float)j/num_elems;
 
-                        // grab an element from the file
                         ply_get_element (thePlyFile, (void *) vertex);
 
                         #ifdef _DEBUG

@@ -282,6 +282,8 @@ void GLWidget::paintGL()
 
         if (m_Data->NbClouds())
         {
+            glEnable(GL_DEPTH_TEST);
+
             glEnableClientState(GL_VERTEX_ARRAY);
             glEnableClientState(GL_COLOR_ARRAY);
 
@@ -297,6 +299,8 @@ void GLWidget::paintGL()
 
             glDisableClientState(GL_VERTEX_ARRAY);
             glDisableClientState(GL_COLOR_ARRAY);
+
+            glDisable(GL_DEPTH_TEST);
         }
 
         if (m_bDrawBall) drawBall();
@@ -1356,7 +1360,7 @@ void GLWidget::drawBall()
 
 void GLWidget::drawCams()
 {
-    float scale = 1.f;
+    float scale = .1f;
 
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
@@ -1368,19 +1372,18 @@ void GLWidget::drawCams()
     glLineWidth(2);
     glPointSize(7);
     if (m_Data->NbClouds())
-    {
-        scale = 0.0005*m_Data->getCloud(0)->getScale();
-    }
+        scale = .1f*m_Data->getCloud(0)->getScale();
+
     for (int i=0; i<m_Data->NbCameras();i++)
     {
         CamStenope * pCam = m_Data->getCamera(i);
 
-        REAL f = pCam->Focale();
+        //REAL f = pCam->Focale();
         Pt3dr C  = pCam->VraiOpticalCenter();
-        Pt3dr P1 = pCam->ImEtProf2Terrain(Pt2dr(0,0),scale*f);
-        Pt3dr P2 = pCam->ImEtProf2Terrain(Pt2dr(pCam->Sz().x,0),scale*f);
-        Pt3dr P3 = pCam->ImEtProf2Terrain(Pt2dr(0,pCam->Sz().y),scale*f);
-        Pt3dr P4 = pCam->ImEtProf2Terrain(Pt2dr(pCam->Sz().x,pCam->Sz().y),scale*f);
+        Pt3dr P1 = pCam->ImEtProf2Terrain(Pt2dr(0,0),scale);
+        Pt3dr P2 = pCam->ImEtProf2Terrain(Pt2dr(pCam->Sz().x,0),scale);
+        Pt3dr P3 = pCam->ImEtProf2Terrain(Pt2dr(0,pCam->Sz().y),scale);
+        Pt3dr P4 = pCam->ImEtProf2Terrain(Pt2dr(pCam->Sz().x,pCam->Sz().y),scale);
 
         //translation
         if (m_Data->NbClouds())

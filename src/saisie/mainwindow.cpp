@@ -241,6 +241,9 @@ void MainWindow::addFiles(const QStringList& filenames)
             this->m_ProgressDialog->exec();
 
             future.waitForFinished();
+
+            m_glWidget->showCams(true);
+            ui->actionShow_cams->setChecked(true);
         }
         else
         {

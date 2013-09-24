@@ -144,6 +144,11 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
     string DirChantier = (m_Dir.absolutePath()+ QDir::separator()).toStdString();
     string filename    = aNameFile.toStdString();
 
+    #ifdef _DEBUG
+        cout << "DirChantier : " << DirChantier << endl;
+        cout << "filename : "    << filename << endl;
+    #endif
+
     QFileInfo fi(aNameFile);
 
     m_FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif");
