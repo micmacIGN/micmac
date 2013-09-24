@@ -44,6 +44,135 @@ Header-MicMac-eLiSe-25/06/2007*/
 namespace NS_ParamMICMAC
 {
 
+class cQckInterpolEpip
+{
+    public :
+        cQckInterpolEpip(float X) :
+            mX0     (round_down(X)) ,
+            mPds1   (X-mX0),
+            mPds0   (1-mPds1)
+        {
+        } 
+
+        int mX0;
+        float mPds1;
+        float mPds0;
+
+         inline double  GetVal(float *aV)
+         {
+              return mPds0 * aV[0] + mPds1 * aV[1];
+         }
+
+         inline double  GetVal(float **aV, Pt2di aP)
+         {
+              float * aL = aV[aP.y] + aP.x + mX0;
+              return mPds0 * aL[0] + mPds1 * aL[1];
+         }
+        
+};
+
+
+double CorrelBasic(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di aSzV,float anEpsilon)
+{
+     cQckInterpolEpip aQI2(X2);
+     RMat_Inertie aMat;
+     for (int aDy=-aSzV.y ; aDy<=aSzV.y ; aDy++)
+     {
+          float * aL1 = Im1[aP1.y+aDy] + aP1.x;
+          float * aL2 = Im2[Y2+aDy] + aQI2.mX0;
+          for (int aDx=-aSzV.x ; aDx<= aSzV.x ; aDx++)
+          {
+               aMat.add_pt_en_place(aL1[aDx],aQI2.GetVal(aL2+aDx));
+          }
+     }
+     return aMat.correlation(anEpsilon);
+}
+
+double CensusBasic(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di aSzV,float anEpsilon)
+{
+     cQckInterpolEpip aQI2(X2);
+     float aC1 =  Im1[aP1.y][aP1.x];
+     float aC2 =  aQI2.GetVal(Im2[aP1.y]+ aQI2.mX0);
+     int aNbOk = 0;
+
+
+     for (int aDy=-aSzV.y ; aDy<=aSzV.y ; aDy++)
+     {
+          float * aL1 = Im1[aP1.y+aDy] + aP1.x;
+          float * aL2 = Im2[Y2+aDy] + aQI2.mX0;
+          for (int aDx=-aSzV.x ; aDx<= aSzV.x ; aDx++)
+          {
+              float aV1 = aL1[aDx];
+              float aV2 = aQI2.GetVal(aL2+aDx);
+              // if ((aDx==0) && (aDy==0)) std::cout << "TTTt " << (aC1-aV1) << " " << (aC2-aV2) << "\n";
+
+              bool Inf1 = (aV1<aC1);
+              bool Inf2 = (aV2<aC2);
+              if (Inf1==Inf2) aNbOk++;
+          }
+     }
+     return ((double) aNbOk) / ((1+2*aSzV.x)*(1+2*aSzV.y));
+}
+
+
+static int VX[4] = {1,1,0,-1};
+static int VY[4] = {0,1,1,1};
+
+
+
+
+
+double CensusGraphe(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di aSzV,float anEpsilon)
+{
+     cQckInterpolEpip aQI2(X2);
+     int aNbOk = 0;
+     int aNbMiss = 0;
+
+
+     for (int aDy=-aSzV.y ; aDy<=aSzV.y ; aDy++)
+     {
+          float * aL1 = Im1[aP1.y+aDy] + aP1.x;
+          float * aL2 = Im2[Y2+aDy] + aQI2.mX0;
+          for (int aDx=-aSzV.x ; aDx<= aSzV.x ; aDx++)
+          {
+              float aV1 = aL1[aDx];
+              float aV2 = aQI2.GetVal(aL2+aDx);
+              for (int aK=0 ; aK<4 ; aK++)
+              {
+                   int aDx2 = aDx+VX[aK];
+                   int aDy2 = aDy+VY[aK];
+                   if  ((aDx2>=-aSzV.x) && (aDx2<=aSzV.x) && (aDy2>=-aSzV.y) && (aDy2<=aSzV.y))
+                   {
+                       float aW1 = Im1[aP1.y+aDy2][aP1.x+aDx2];
+                       float aW2 = aQI2.GetVal(Im2,Pt2di(aDx2,Y2+aDy2));
+                       bool Inf1 = (aV1<aW1);
+                       bool Inf2 = (aV2<aW2);
+                       
+                       if (Inf1==Inf2)
+                          aNbOk++;
+                       else          
+                           aNbMiss++;
+                   }
+              }
+
+          }
+     }
+     return ((double) aNbOk) / (aNbOk+aNbMiss);
+}
+
+
+
+
+/*
+double CensusBasic(float ** Im1,Pt2di aP1,float ** Im2,int X2,double Y2,Pt2di aSzV)
+
+
+double CensusBasic(float ** Im1,Pt2di aP1,float ** Im2,int X2,double Y2,Pt2di aSzV)
+{
+}
+*/
+
+
 
 double TolNbByPix=1e-5;
 void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost &)
@@ -120,6 +249,10 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost &)
                        Pt2dr aPIm1 = Pt2dr(anX,anY) + Pt2dr(anOff1) + Pt2dr(aZR,0);
                        if (anI1.IsOkErod(round_down(aPIm1.x),round_down(aPIm1.y)))
                        {
+                            // double aC2 = CorrelBasic(aDataIm0,aPIm0,aDataIm1,anX+anOff1.x+aZR,anY+anOff1.y,mCurSzVMax,mAhEpsilon);
+                            // double aC2 = CensusBasic(aDataIm0,aPIm0,aDataIm1,anX+anOff1.x+aZR,anY+anOff1.y,mCurSzVMax,mAhEpsilon);
+                            double aC2 = CensusGraphe(aDataIm0,aPIm0,aDataIm1,anX+anOff1.x+aZR,anY+anOff1.y,mCurSzVMax,mAhEpsilon);
+/*
                             RMat_Inertie aMat;
                             for (int aDx = -mCurSzVMax.x ; aDx <= mCurSzVMax.x ; aDx++)
                             {
@@ -133,7 +266,11 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost &)
                                      aMat.add_pt_en_place(aV0,aV1);
                                 }
                             }
-                            aCost = mStatGlob->CorrelToCout(aMat.correlation(mAhEpsilon));
+                            double aC1 = aMat.correlation(mAhEpsilon);
+*/
+                            //std::cout << "COSTE " << aC1 << " " << aC2 << "\n";
+                            aCost = mStatGlob->CorrelToCout(aC2);
+                             // aCost = mStatGlob->CorrelToCout(aC2);
                        }
                    }
                    mSurfOpt->SetCout(Pt2di(anX,anY),&aZI,aCost);
