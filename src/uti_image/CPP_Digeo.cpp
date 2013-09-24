@@ -61,10 +61,10 @@ template <class tData, class tComp>
 void gradient( const Im2D<tData,tComp> &i_image, Im2D<REAL4,REAL8> &o_gradient );
 
 // calcul les angles d'orientation pour un point (au plus DIGEO_NB_MAX_ANGLES angles)
-int orientate( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i_sigma, REAL8 o_angles[DIGEO_ORIENTATION_NB_MAX_ANGLES] );
+int orientate( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 o_angles[DIGEO_ORIENTATION_NB_MAX_ANGLES] );
 
 // calcul le descripteur d'un point
-void describe( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i_sigma, REAL8 i_angle, REAL8 *o_descriptor );
+void describe( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i_angle, REAL8 *o_descriptor );
 
 // = normalizeDescriptor + truncateDescriptor + normalizeDescriptor
 void normalize_and_truncate( REAL8 *io_descriptor );
@@ -116,14 +116,14 @@ void gradient( const Im2D<tData,tComp> &i_image, REAL8 i_maxValue, Im2D<REAL4,RE
 }
 
 // return the number of possible orientations (cannot be greater than DIGEO_NB_MAX_ANGLES)
-int orientate( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i_sigma, REAL8 o_angles[DIGEO_ORIENTATION_NB_MAX_ANGLES] )
+int orientate( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 o_angles[DIGEO_ORIENTATION_NB_MAX_ANGLES] )
 {
 	static REAL8 histo[DIGEO_ORIENTATION_NB_BINS];
 
 	int xi = ((int) (i_p.mPt.x+0.5)) ;
     int yi = ((int) (i_p.mPt.y+0.5)) ;
 
-    const REAL8 sigmaw = DIGEO_ORIENTATION_WINDOW_FACTOR*i_sigma;
+    const REAL8 sigmaw = DIGEO_ORIENTATION_WINDOW_FACTOR*i_p.mScale;
 	const int W = (int)floor( 3*sigmaw );
 
     // fill the SIFT histogram
@@ -202,7 +202,7 @@ int orientate( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i
 #define atd(dbinx,dbiny,dbint) *(dp + (dbint)*binto + (dbiny)*binyo + (dbinx)*binxo)
 
 // o_descritpor must be of size DIGEO_DESCRIPTOR_SIZE
-void describe( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i_sigma, REAL8 i_angle, REAL8 *o_descriptor )
+void describe( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i_angle, REAL8 *o_descriptor )
 {
     REAL8 st0 = sinf( i_angle ),
 		  ct0 = cosf( i_angle );
@@ -210,7 +210,7 @@ void describe( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i
 	int xi = int( i_p.mPt.x+0.5 );
     int yi = int( i_p.mPt.y+0.5 );
 
-    const REAL8 SBP = DIGEO_DESCRIBE_MAGNIFY*i_sigma;
+    const REAL8 SBP = DIGEO_DESCRIBE_MAGNIFY*i_p.mScale;
     const int  W   = (int)floor( sqrt( 2.0 )*SBP*( DIGEO_DESCRIBE_NBP+1 )/2.0+0.5 );
 
     /* Offsets to move in the descriptor. */
@@ -448,11 +448,11 @@ template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Typ
 		   for ( unsigned int i=0; i<aVPC.size(); i++ )
 		   {
 			   p.x=aVPC[i].mPt.x*anOct->Niv(); p.y=aVPC[i].mPt.y*anOct->Niv(); p.type=(DigeoPoint::DetectType)aVPC[i].mType;
-			   nbAngles = orientate( imgGradient, aVPC[i], anIm.ScaleInOct(), angles );
+			   nbAngles = orientate( imgGradient, aVPC[i], angles );
 			   if ( nbAngles!=0 )
 			   {
 				   for ( int iAngle=0; iAngle<nbAngles; iAngle++ ){
-						describe( imgGradient, aVPC[i], anIm.ScaleInOct(), angles[iAngle], p.descriptor );
+						describe( imgGradient, aVPC[i], angles[iAngle], p.descriptor );
 						normalize_and_truncate( p.descriptor );
 						p.angle = angles[iAngle];
 						o_list.push_back( p );
@@ -479,8 +479,6 @@ int Digeo_main( int argc, char **argv )
     aParam.mResolInit = 1.0;
 
     cAppliDigeo * anAD = DigeoCPP(inputName,aParam);
-   // __DEL
-   cout << "----------------------------------> All gaussian pyramid's structure created." << endl;
     cImDigeo &  anImD = anAD->SingleImage(); // Ici on ne mape qu'une seule image à la fois
 
 	list<DigeoPoint> total_list;
@@ -496,13 +494,19 @@ int Digeo_main( int argc, char **argv )
         for (int aKo=0 ; aKo<int(aVOct.size()) ; aKo++)
         {
             cOctaveDigeo & anOct = *(aVOct[aKo]);
-			anOct.DoAllExtract();
-
             cTplOctDig<U_INT2> * aUI2_Oct = anOct.U_Int2_This();  // entre aUI2_OctaUI2_Oct et  aR4_Oct
             cTplOctDig<REAL4> * aR4_Oct = anOct.REAL4_This();     // un et un seul doit etre != 0
-
-			// __DEL
-			cout << "----------------------------------> orientate_and_describe_all " << aKo << endl;
+            
+			if ( anAD->mVerbose )
+			{
+				cout << "\tOctave " << aKo << " of type ";
+				if (aUI2_Oct !=0) cout << "uint2" << endl;
+				else if (aR4_Oct !=0) cout << "real4" << endl;
+				else cout << "unknown" << endl;
+			}
+			
+			anOct.DoAllExtract();
+			
 			if (aUI2_Oct !=0)
 				orientate_and_describe_all<U_INT2,INT>(aUI2_Oct, total_list);
 			if (aR4_Oct !=0) 

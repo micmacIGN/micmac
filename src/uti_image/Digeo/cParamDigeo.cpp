@@ -2297,6 +2297,17 @@ const cTplValGesInit< bool > & cSectionWorkSpace::ShowConvolSpec()const
    return mShowConvolSpec;
 }
 
+
+cTplValGesInit< bool > & cSectionWorkSpace::Verbose()
+{
+   return mVerbose;
+}
+
+const cTplValGesInit< bool > & cSectionWorkSpace::Verbose()const 
+{
+   return mVerbose;
+}
+
 cElXMLTree * ToXMLTree(const cSectionWorkSpace & anObj)
 {
   XMLPushContext(anObj.mGXml);
@@ -2321,6 +2332,8 @@ cElXMLTree * ToXMLTree(const cSectionWorkSpace & anObj)
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("FenVisu"));
    if (anObj.ShowConvolSpec().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ShowConvolSpec"),anObj.ShowConvolSpec().Val())->ReTagThis("ShowConvolSpec"));
+   if (anObj.Verbose().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Verbose"),anObj.Verbose().Val())->ReTagThis("Verbose"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -2346,6 +2359,8 @@ void xml_init(cSectionWorkSpace & anObj,cElXMLTree * aTree)
    xml_init(anObj.FenVisu(),aTree->GetAll("FenVisu",false,1));
 
    xml_init(anObj.ShowConvolSpec(),aTree->Get("ShowConvolSpec",1),bool(false)); //tototo 
+
+   xml_init(anObj.Verbose(),aTree->Get("Verbose",1),bool(false)); //tototo 
 }
 
 
@@ -2984,6 +2999,17 @@ cTplValGesInit< bool > & cParamDigeo::ShowConvolSpec()
 const cTplValGesInit< bool > & cParamDigeo::ShowConvolSpec()const 
 {
    return SectionWorkSpace().ShowConvolSpec();
+}
+
+
+cTplValGesInit< bool > & cParamDigeo::Verbose()
+{
+   return SectionWorkSpace().Verbose();
+}
+
+const cTplValGesInit< bool > & cParamDigeo::Verbose()const 
+{
+   return SectionWorkSpace().Verbose();
 }
 
 
