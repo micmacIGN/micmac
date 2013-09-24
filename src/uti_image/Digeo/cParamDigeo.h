@@ -809,6 +809,9 @@ class cSectionWorkSpace
 
         cTplValGesInit< bool > & ShowConvolSpec();
         const cTplValGesInit< bool > & ShowConvolSpec()const ;
+
+        cTplValGesInit< bool > & Verbose();
+        const cTplValGesInit< bool > & Verbose()const ;
     private:
         cTplValGesInit< std::string > mDirectoryChantier;
         cTplValGesInit< cSauvPyram > mSauvPyram;
@@ -818,6 +821,7 @@ class cSectionWorkSpace
         cTplValGesInit< int > mShowTimes;
         std::list< cFenVisu > mFenVisu;
         cTplValGesInit< bool > mShowConvolSpec;
+        cTplValGesInit< bool > mVerbose;
 };
 cElXMLTree * ToXMLTree(const cSectionWorkSpace &);
 
@@ -1005,6 +1009,9 @@ class cParamDigeo
 
         cTplValGesInit< bool > & ShowConvolSpec();
         const cTplValGesInit< bool > & ShowConvolSpec()const ;
+
+        cTplValGesInit< bool > & Verbose();
+        const cTplValGesInit< bool > & Verbose()const ;
 
         cSectionWorkSpace & SectionWorkSpace();
         const cSectionWorkSpace & SectionWorkSpace()const ;

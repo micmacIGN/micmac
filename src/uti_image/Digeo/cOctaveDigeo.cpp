@@ -101,24 +101,22 @@ void cOctaveDigeo::ResizeAllImages(const Pt2di & aP)
 
 template <class Type>  
 void  cTplOctDig<Type>::DoSiftExtract(int aK,const cSiftCarac & aSC)
-{
-   
-   // __DEL
-   static int i = 0;
-   cout << "---------------------------> DoSiftExtract( " << aK << " ) " << i++ << endl;
-   
+{   
       if (! OkForSift(aK))
       {
           std::cout << "For k= " << aK << "\n";
           ELISE_ASSERT(false,"Bad K for DoSiftExtract");
       }
-      mVTplIms[aK]->ExtractExtremaDOG
+      /*
+      mVTplIms[aK]->ExtractExtremaDOG_old
       (
           aSC,
           *(mVTplIms[aK-1]),
           *(mVTplIms[aK+1]),
           *(mVTplIms[aK+2])
       );
+      */
+      mVTplIms[aK]->ExtractExtremaDOG( aSC, *(mVTplIms[aK-1]), *(mVTplIms[aK+1]) );
 }
 
 

@@ -142,9 +142,10 @@ typedef enum
 class cPtsCaracDigeo
 {
     public :
-       cPtsCaracDigeo(const Pt2dr & aP,eTypeTopolPt aType);
+       cPtsCaracDigeo(const Pt2dr & aP, double aScale, eTypeTopolPt aType);
        Pt2dr         mPt;
        eTypeTopolPt  mType;
+       double        mScale;
 };
 
    // Permt de shifter les entiers (+ rapide que la div) sans rien faire pour
@@ -255,8 +256,11 @@ class cImInMem
          double ScaleInOct() const;
          double ScaleInit()  const;
 
-         std::vector<cPtsCaracDigeo> & VPtsCarac();
+         std::vector<cPtsCaracDigeo> & 	     VPtsCarac();
+         const std::vector<cPtsCaracDigeo> & VPtsCarac() const;
 
+         virtual void saveGaussians( const std::string &i_directory ) const = 0;
+         virtual void loadGaussians( const std::string &i_directory ) = 0;
      protected :
 
          cImInMem(cImDigeo &,const Pt2di & aSz,GenIm::type_el,cOctaveDigeo &,double aResolOctaveBase,int aKInOct,int IndexSigma);
@@ -338,7 +342,7 @@ template <class Type> class cTplImInMem : public cImInMem
                    cTplImInMem<Type> & aNext
              );
 
-        void ExtractExtremaDOG
+        void ExtractExtremaDOG_old
              (
                    const cSiftCarac & aSC,
                    cTplImInMem<Type> & aPrec,
@@ -349,9 +353,9 @@ template <class Type> class cTplImInMem : public cImInMem
      private :
 
         void ResizeBasic(const Pt2di & aSz);
-        eTypeExtreSift CalculateDiff(Type***aC,int anX,int anY,int aNiv);
+        eTypeExtreSift CalculateDiff_old(Type***aC,int anX,int anY,int aNiv);
 
-        eTypeExtreSift CalculateDiff( tBase *prevDoG, tBase *currDoG, tBase *nextDoG, int anX, int anY, int aNiv );
+        eTypeExtreSift CalculateDiff_2d( tBase *prevDoG, tBase *currDoG, tBase *nextDoG, int anX, int anY, int aNiv );
 
 /*
         SetConvolBordX :
@@ -422,7 +426,11 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
          bool  SupDOG(Type *** aC,const Pt3di& aP1,const Pt3di& aP2);
          tBase DOG(Type *** aC,const Pt3di& aP1);
 
+	 void saveGaussians( const std::string &i_directory ) const;
+         void loadGaussians( const std::string &i_directory );
 
+         void saveDoG( const std::string &i_directory ) const;
+         void loadDoG( const std::string &i_directory );
 
          cTplOctDig<Type> & mTOct;
          tIm    mIm;
@@ -450,11 +458,16 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
           Pt2dr             mP;
           double            mGX;
           double            mGY;
+          double            mGS;
           double            mDxx;
           double            mDyy;
+          double            mDss;
           double            mDxy;
+          double            mDxs;
+          double            mDys;
           double            mTrX;
           double            mTrY;
+          double            mTrS;
 
           eTypeExtreSift    mResDifSift;
           int               mNbExtre;
@@ -782,6 +795,8 @@ class cAppliDigeo : public cParamDigeo
        Box2di                            mBoxOut;
 
        cSiftCarac *                     mSiftCarac;
+    public:
+       bool				mVerbose;
 
      private :
         cAppliDigeo(const cAppliDigeo &);  // N.I.
