@@ -54,7 +54,6 @@ void MainWindow::connectActions()
 {
     connect(m_glWidget,	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
 
-    connect(m_glWidget,	SIGNAL(mouseWheelRotated(float)),      this, SLOT(echoMouseWheelRotate(float)));
 
     //View menu
     connect(ui->actionFullScreen,       SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
@@ -241,6 +240,9 @@ void MainWindow::addFiles(const QStringList& filenames)
             this->m_ProgressDialog->exec();
 
             future.waitForFinished();
+
+            m_glWidget->showCams(true);
+            ui->actionShow_cams->setChecked(true);
         }
         else
         {
