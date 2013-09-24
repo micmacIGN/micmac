@@ -147,7 +147,7 @@ eTypeExtreSift cTplImInMem<Type>::CalculateDiff_2d
 
     double aDelta = mDxx * mDyy - ElSquare(mDxy);
 
-    if ( aDelta<=numeric_limits<double>::epsilon() ) return eTES_instable;
+    if ( aDelta<=numeric_limits<double>::epsilon() ) return eTES_instable_unsolvable;
 
     mTrX = ( mDxy*mGY-mDyy*mGX )/aDelta;
     mTrY = ( mDxy*mGX-mDxx*mGY )/aDelta;
@@ -176,7 +176,7 @@ eTypeExtreSift cTplImInMem<Type>::CalculateDiff_2d
     {
          if (aNiv>=3)
          {
-            return eTES_instable;
+            return eTES_instable_tooDeepRecurrency;
          }
 
          anX += aDx;
@@ -192,7 +192,7 @@ eTypeExtreSift cTplImInMem<Type>::CalculateDiff_2d
              return CalculateDiff_2d( prevDoG+offset, currDoG+offset, nextDoG+offset, anX, anY, aNiv+1 );
          }
          else
-            return eTES_instable;
+            return eTES_instable_outOfImageBound;
     }
 
 
@@ -259,7 +259,7 @@ eTypeExtreSift cTplImInMem<Type>::CalculateDiff_old
     double aDelta = mDxx * mDyy - ElSquare(mDxy);
 
     if (aDelta<=0) 
-        return eTES_instable;
+        return eTES_instable_unsolvable;
 
     /*
     mTrX = - ( mDyy*mGX-mDxy*mGY) / aDelta;
@@ -278,7 +278,7 @@ eTypeExtreSift cTplImInMem<Type>::CalculateDiff_old
     {
          if (aNiv>=3) 
          {
-            return eTES_instable;
+            return eTES_instable_tooDeepRecurrency;
          }
 
          anX += aDx;
@@ -293,7 +293,7 @@ eTypeExtreSift cTplImInMem<Type>::CalculateDiff_old
              return CalculateDiff_old(aC,anX,anY,aNiv+1);
          }
          else
-            return eTES_instable;
+            return eTES_instable_outOfImageBound;
     }
 
 
@@ -433,6 +433,19 @@ void cTplImInMem<Type>::ExtractExtremaDOG
                                                           isMin?eSiftMinDog:eSiftMaxDog ) );
             }
 
+	    #ifdef __DEBUG_DIGEO_STATS
+	       switch (mResDifSift)
+	       {
+		  case eTES_Uncalc: mCount_eTES_Uncalc++; break;
+		  case eTES_instable_unsolvable: mCount_eTES_instable_unsolvable++; break;
+		  case eTES_instable_tooDeepRecurrency: mCount_eTES_instable_tooDeepRecurrency++; break;
+		  case eTES_instable_outOfImageBound: mCount_eTES_instable_outOfImageBound++; break;
+		  case eTES_GradFaible: mCount_eTES_GradFaible++; break;
+		  case eTES_TropAllonge: mCount_eTES_TropAllonge++; break;
+		  case eTES_Ok: mCount_eTES_Ok++;
+	       }
+	    #endif
+	    
             itDoG++; itPrevDoG++; itNextDoG++;
         }
         itDoG+=brd_2; itPrevDoG+=brd_2; itNextDoG+=brd_2;
@@ -629,6 +642,20 @@ void cTplImInMem<Type>::ExtractExtremaDOG_old
 						       isMin?eSiftMinDog:eSiftMaxDog));
                }
            }
+	   
+	   #ifdef __DEBUG_DIGEO_STATS
+	       switch (mResDifSift)
+	       {
+		  case eTES_Uncalc: mCount_eTES_Uncalc++; break;
+		  case eTES_instable_unsolvable: mCount_eTES_instable_unsolvable++; break;
+		  case eTES_instable_tooDeepRecurrency: mCount_eTES_instable_tooDeepRecurrency++; break;
+		  case eTES_instable_outOfImageBound: mCount_eTES_instable_outOfImageBound++; break;
+		  case eTES_GradFaible: mCount_eTES_GradFaible++; break;
+		  case eTES_TropAllonge: mCount_eTES_TropAllonge++; break;
+		  case eTES_Ok: mCount_eTES_Ok++;
+	       }
+	   #endif
+	    
            aLDif++;
 
            if (aInteract)

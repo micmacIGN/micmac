@@ -557,6 +557,15 @@ cImInMem::cImInMem
     mFille            (0),
     mKernelTot        (1,1.0),
     mFirstSauv        (true)
+   #ifdef __DEBUG_DIGEO_STATS
+      ,mCount_eTES_Uncalc(0),
+       mCount_eTES_instable_unsolvable(0),
+       mCount_eTES_instable_tooDeepRecurrency(0),
+       mCount_eTES_instable_outOfImageBound(0),
+       mCount_eTES_GradFaible(0),
+       mCount_eTES_TropAllonge(0),
+       mCount_eTES_Ok(0)
+   #endif
 {
  
 }

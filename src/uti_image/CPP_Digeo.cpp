@@ -507,6 +507,46 @@ int Digeo_main( int argc, char **argv )
 			
 			anOct.DoAllExtract();
 			
+			#ifdef __DEBUG_DIGEO_STATS
+			   if ( anAD->mVerbose && ( anOct.VIms().size()!=0 ) )
+			   {
+				   size_t iImg = anOct.VIms().size(),
+					      countRefined     = 0,
+					      countUncalc      = 0,
+					      countInstable    = 0,
+					      countInstable2   = 0,
+					      countInstable3   = 0,
+					      countGradFaible  = 0,
+					      countTropAllonge = 0,
+					      countOk          = 0,
+					      countExtrema;
+				   cImInMem *const *itImg = &( anOct.VIms()[0] );
+				   while ( iImg-- )
+				   {
+					   countRefined     += ( *itImg )->VPtsCarac().size();
+					   countUncalc      += ( *itImg )->mCount_eTES_Uncalc;
+					   countInstable    += ( *itImg )->mCount_eTES_instable_unsolvable;
+					   countInstable2   += ( *itImg )->mCount_eTES_instable_tooDeepRecurrency;
+					   countInstable3   += ( *itImg )->mCount_eTES_instable_outOfImageBound;
+					   countGradFaible  += ( *itImg )->mCount_eTES_GradFaible;
+					   countTropAllonge += ( *itImg )->mCount_eTES_TropAllonge;
+					   countOk          += ( *itImg )->mCount_eTES_Ok;
+					   itImg++;
+				   }
+				   countExtrema = countInstable+countInstable2+countInstable3+countGradFaible+countTropAllonge+countOk;
+				   cout << "\t\textrema detected                    \t" << countExtrema << endl;
+				   cout << "\t\tafter refinement and on-edge removal\t" << countRefined << endl;
+				   cout << "\t\t------------------------------------" << endl;
+				   cout << "\t\teTES_Uncalc                       \t" << countUncalc << endl;
+				   cout << "\t\teTES_instable_unsolvable          \t" << countInstable << endl;
+				   cout << "\t\teTES_instable_tooDeepRecurrency   \t" << countInstable2 << endl;
+				   cout << "\t\teTES_instable_outOfImageBound     \t" << countInstable3 << endl;
+				   cout << "\t\teTES_GradFaible                   \t" << countGradFaible << endl;
+				   cout << "\t\teTES_TropAllonge                  \t" << countTropAllonge << endl;
+				   cout << "\t\teTES_Ok                           \t" << countOk << endl;
+			   }
+			#endif
+			
 			if (aUI2_Oct !=0)
 				orientate_and_describe_all<U_INT2,INT>(aUI2_Oct, total_list);
 			if (aR4_Oct !=0) 

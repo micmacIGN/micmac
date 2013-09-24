@@ -69,6 +69,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 using namespace NS_ParamChantierPhotogram;
 
+#define __DEBUG_DIGEO_STATS
 
 //  cRotationFormelle::AddRappOnCentre
 
@@ -133,7 +134,9 @@ class cPtsCaracDigeo;
 typedef enum
 {
   eTES_Uncalc,
-  eTES_instable,
+  eTES_instable_unsolvable,
+  eTES_instable_tooDeepRecurrency,
+  eTES_instable_outOfImageBound,
   eTES_GradFaible,
   eTES_TropAllonge,
   eTES_Ok
@@ -288,6 +291,16 @@ class cImInMem
          int mN0, mN1, mN2, mN3, mN4, mN5, mN6, mN7;
      private :
         cImInMem(const cImInMem &);  // N.I.
+     public:
+	 #ifdef __DEBUG_DIGEO_STATS
+	    unsigned int mCount_eTES_Uncalc,
+			 mCount_eTES_instable_unsolvable,
+			 mCount_eTES_instable_tooDeepRecurrency,
+			 mCount_eTES_instable_outOfImageBound,
+			 mCount_eTES_GradFaible,
+			 mCount_eTES_TropAllonge,
+			 mCount_eTES_Ok;
+	 #endif
 };
 
 
@@ -441,8 +454,7 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
          Type **    mData;
          tBase      mDogPC;  // Dif of Gauss du pixel courrant
 
-         std::vector<tBase> mDoG;
-         
+         std::vector<tBase> mDoG;	 
      private :
           cTplImInMem(const cTplImInMem<Type> &);  // N.I.
           void ExploiteExtrem(int anX,int anY);

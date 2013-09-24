@@ -39,6 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Digeo.h"
 
+//#define __DEBUG_DIGEO_OLD_REFINE
+
 /*
 int F()
 {
@@ -107,16 +109,18 @@ void  cTplOctDig<Type>::DoSiftExtract(int aK,const cSiftCarac & aSC)
           std::cout << "For k= " << aK << "\n";
           ELISE_ASSERT(false,"Bad K for DoSiftExtract");
       }
-      /*
-      mVTplIms[aK]->ExtractExtremaDOG_old
-      (
-          aSC,
-          *(mVTplIms[aK-1]),
-          *(mVTplIms[aK+1]),
-          *(mVTplIms[aK+2])
-      );
-      */
-      mVTplIms[aK]->ExtractExtremaDOG( aSC, *(mVTplIms[aK-1]), *(mVTplIms[aK+1]) );
+      
+      #ifdef __DEBUG_DIGEO_OLD_REFINE
+	 mVTplIms[aK]->ExtractExtremaDOG_old
+	 (
+	     aSC,
+	     *(mVTplIms[aK-1]),
+	     *(mVTplIms[aK+1]),
+	     *(mVTplIms[aK+2])
+	 );
+      #else
+	 mVTplIms[aK]->ExtractExtremaDOG( aSC, *(mVTplIms[aK-1]), *(mVTplIms[aK+1]) );
+      #endif
 }
 
 
