@@ -1,0 +1,213 @@
+<!-- 
+  Sur le terrain global 
+
+               8544 1044
+
+   Image Areo 4115
+
+      Autour : 1703  819
+
+   Image   Corr 4056 
+
+     Autout 
+        2092   564
+
+        => Box 1400 0   2800  1500
+
+
+-->
+<ParamMICMAC  Subst="@$#1">
+<Section_Terrain>  
+
+    <!--   Px1IncCalc : l'incertitude est liee au terrain elle est en metre,
+          ici 10 m c'est bcp pour un helico a 30 m.
+
+          Px2IncCalc : en pixel, c'est lie au defaut de mise en place
+     -->
+    
+    <IntervAltimetrie>
+        <ZIncCalc>   5.0 </ZIncCalc>    <!-- metres -->
+        <ZIncZonage>   0.0 </ZIncZonage>    <!-- metres -->
+    </IntervAltimetrie>
+
+   <Planimetrie>
+       <MasqueTerrain >
+           <FileBoxMasqIsBoxTer> Box-Test-Esc.xml</FileBoxMasqIsBoxTer>
+
+           <MT_Image > Ter-GLOB/Masq-Test-Esc.tif </MT_Image>
+           <MT_Xml>    Ter-GLOB/Z_Num7_DeZoom1_T1.xml </MT_Xml>
+<!--
+-->
+       </MasqueTerrain>
+<!--
+-->
+    </Planimetrie>
+
+
+</Section_Terrain>
+<!--  ************************************************************* 
+         Parametres lies a la prise de vue,
+         independamment de son exploitation
+         par le correlateur
+-->
+<Section_PriseDeVue >
+     <GeomImages> eGeomImageOri </GeomImages> 
+     <Images >  
+          <ImPat >   F060_Corr_DVI[0-9]{4}_MpDcraw8B_GR.tif  </ImPat>  
+     </Images>
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc> KeyStd-Assoc-Im2Orient@-AllVar  </FCND_GeomCalc>  
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+
+</Section_PriseDeVue>
+<!--  *************************************************************
+       Parametres fixant le comportement
+     de l'algo de mise en correspondance
+-->
+<Section_MEC >
+	<!-- 
+	     Etape 0, ne sera pas calculee, DeZoom vaut -1,
+	elle permet de donner des valeur par defaut aux autres
+	parametres
+
+        <ProportionClipMEC>  5700 1900 6100 2300   </ProportionClipMEC>
+        <ClipMecIsProp>  false    </ClipMecIsProp>
+	-->
+
+        <NbMinImagesVisibles> 4 </NbMinImagesVisibles>
+        <TypePyramImage>
+               <Resol>   2            </Resol>
+               <TypeEl>  eFloat32Bits </TypeEl>
+        </TypePyramImage>
+
+	<EtapeMEC>
+            <DeZoom >  -1             </DeZoom>
+	    <DynamiqueCorrel> eCoeffCorrelStd </DynamiqueCorrel>
+	    <AggregCorr> eAggregSymetrique </AggregCorr>
+
+            <SzW >       1               </SzW>
+
+<!--
+            <SurEchWCor> 5 </SurEchWCor>
+            <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+-->
+
+
+
+
+            <ZRegul>  0.1     </ZRegul>
+	    <!-- <ZRegul_Quad> 0.1 </ZRegul_Quad>  -->
+	    <ZPas>   0.5     </ZPas>
+            <ZDilatAlti>  4  </ZDilatAlti>
+	    <ZDilatPlani> 5  </ZDilatPlani>
+	    <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+
+            <SsResolOptim> 1 </SsResolOptim>
+
+
+            <ModulationProgDyn Portee="Globale">
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   7               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   3.0    </Px1PenteMax>
+            </ModulationProgDyn>
+            <CoxRoy8Cnx > true </CoxRoy8Cnx>     <!-- Def=false-->
+            <CoxRoyUChar>  false </CoxRoyUChar>   <!-- Def=true-->
+
+
+            <GenImagesCorrel> true </GenImagesCorrel>
+            <Gen8Bits_Px1>  true   </Gen8Bits_Px1>
+            <ArgGen8Bits> Circ=1 </ArgGen8Bits>
+            <ArgGen8Bits> Coul=0 </ArgGen8Bits>
+
+
+
+	</EtapeMEC>
+
+	<EtapeMEC> <DeZoom >  32    </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  32    </DeZoom> </EtapeMEC>
+	<EtapeMEC> 
+              <DeZoom >  16    </DeZoom> 
+        </EtapeMEC>
+	<EtapeMEC> <DeZoom >  8    </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  4    </DeZoom> </EtapeMEC>
+	<EtapeMEC> 
+                 <GPU_Correl>  false   </GPU_Correl> 
+                 <DeZoom >  2    </DeZoom> 
+	         <AlgoRegul>  eAlgoMaxOfScore </AlgoRegul>
+        </EtapeMEC>
+	<EtapeMEC> 
+            <DeZoom >  1    </DeZoom> 
+            <ZDilatAlti>  7  </ZDilatAlti>
+	    <ZDilatPlani> 12  </ZDilatPlani>
+	    <AlgoRegul>  eAlgoMaxOfScore </AlgoRegul>
+        </EtapeMEC>
+
+</Section_MEC>
+<!--  *************************************************************
+       Parametres fixant les resultats
+     devant etre produits par l'algo
+-->
+<Section_Results >
+
+
+    <GeomMNT> eGeomMNTEuclid  </GeomMNT>
+    <DoMEC >  true </DoMEC> 
+    <ZoomMakeTA> 8 </ZoomMakeTA>
+    <GammaVisu> 1.0 </GammaVisu>
+    <ZoomVisuLiaison> -1 </ZoomVisuLiaison>
+    <!--
+    <DoNothingBut>
+	<ButDoOrtho>  true </ButDoOrtho>
+    </DoNothingBut>
+    -->
+</Section_Results>
+<!--  *************************************************************
+       Parametres lies a la gestions
+     du "chantier" sur la machine
+-->
+<Section_WorkSpace >
+     <WorkDir >  ThisDir </WorkDir> 
+     <TmpMEC >    Ter-Test-Esc/ </TmpMEC>
+     <TmpPyr > Pyram/ </TmpPyr>
+     <TmpResult >    Ter-Test-Esc/ </TmpResult>
+
+     <AvalaibleMemory> 1024 </AvalaibleMemory>
+     <SzDalleMin>  400 </SzDalleMin>
+     <SzDalleMax>  500  </SzDalleMax>
+     <SzRecouvrtDalles> 50 </SzRecouvrtDalles>
+     <NomChantier>  T1 </NomChantier>
+
+     <ByProcess> 2 </ByProcess>
+
+
+     <FirstEtapeMEC> 0 </FirstEtapeMEC>
+     <LastEtapeMEC > 7 </LastEtapeMEC>
+
+</Section_WorkSpace>
+
+<Section_Vrac> 
+   <ShowLoadedImage> false </ShowLoadedImage>
+<!--
+   <ForceCorrelationByRect>  true  </ForceCorrelationByRect>
+-->
+
+   <SectionDebug>
+<!--
+       <DebugEscalier>
+            <P1> 153 169 </P1>
+            <P2> 153 170 </P2>
+            <ShowDerivZ> true </ShowDerivZ>
+       </DebugEscalier>
+-->
+   </SectionDebug>
+<!--
+-->
+
+</Section_Vrac>
+
+</ParamMICMAC>
+

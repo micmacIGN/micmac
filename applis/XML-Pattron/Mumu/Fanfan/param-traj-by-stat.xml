@@ -1,0 +1,115 @@
+<Param_Traj_AJ
+       Subst="@$#1"
+       NameDecl="@$#1"
+
+       SysCoOut="RTL"
+>
+   <DicoLoc >
+      <KeyedSetsOfNames>
+          <Sets>
+                 <PatternAccepteur> .*[0-9]{4}\.ARW       </PatternAccepteur>
+          </Sets>
+          <Key> Key-All-ARW </Key>
+       </KeyedSetsOfNames>
+   </DicoLoc>
+
+<!--
+   <TraceImages> 048[2-3][0-9] </TraceImages>
+   <TraceLogs> 15[0-9] </TraceLogs>
+-->
+
+   <TrAJ2_SectionImages>
+        <KeySetIm> Key-All-ARW </KeySetIm>
+        <Id> RGB </Id>
+        <OrientationCamera> 
+              <CodageMatr>
+                  <L1> 0  1  0 </L1>
+                  <L2> 1  0  0 </L2>
+                  <L3> 0  0 -1 </L3>
+             </CodageMatr>
+        </OrientationCamera>
+   </TrAJ2_SectionImages>
+
+   <TrAJ2_SectionLog>
+        <TimeMin>   1e9  </TimeMin>
+        <KLogT0> 4 </KLogT0>
+        <File>  log_photo.txt </File>
+        <Id>    TheLog        </Id>
+        <Autom> PHOTO (${EF}) (${EF}) (${EF}) (${EF}) (${EF}) (${EF}) (${EF}) (${EF}) *</Autom>
+        <KTime> 1 </KTime>
+
+        <SysCoord> 
+             <BSC>
+                <TypeCoord>  eTC_WGS84 </TypeCoord>
+             </BSC>
+        </SysCoord>
+        <UnitesCoord>  eUniteAngleDegre </UnitesCoord>
+        <UnitesCoord>  eUniteAngleDegre </UnitesCoord>
+        <KCoord1> 2 </KCoord1>     <!-- Longitude -->
+        <KCoord2> 3 </KCoord2>  <!-- Latitude  -->
+        <KCoord3> 4 </KCoord3>
+
+        <TrajAngles>
+                 <Unites>  eUniteAngleDegre </Unites>
+                 <ConvOr>  eConvAngAvionJaune </ConvOr>
+                 <OffsetTeta1>  -0.06 </OffsetTeta1>
+                 <KTeta1> 5</KTeta1>
+                 <KTeta2> 6 </KTeta2>
+                 <KTeta3> 7 </KTeta3>
+        </TrajAngles>
+   </TrAJ2_SectionLog>
+
+
+   <TrAJ2_SectionMatch>
+        <IdIm>  RGB </IdIm>
+        <IdLog> TheLog </IdLog>
+
+        <LearnOffset>
+             <LearnByStatDiff>
+                   <MaxEcart> 0.54 </MaxEcart>
+             </LearnByStatDiff>
+        </LearnOffset>
+        <AlgoMatch>
+             <MatchNearestIm>
+                  <!-- Im0-Log0 est un couple pour lequel on est sur du match -->
+                  <TolMatch>  0.60    </TolMatch>
+                  <TolAmbig>  0.80    </TolAmbig>
+             </MatchNearestIm>
+        </AlgoMatch>
+
+        <ModeliseVitesse>
+              <DeltaTimeMax> 30.0 </DeltaTimeMax>
+        </ModeliseVitesse>
+
+ 
+       <GenerateOrient>
+           <Teta1FromCap>  true </Teta1FromCap>
+<!--
+           <CorrecDelayGps Nb="?" Type="double"> </CorrecDelayGps>
+-->
+
+            <!-- 1 ARW ->tif, 2  -> Ori../... ->  Add MpdCraw -->
+            <KeyName> KeyStd-Assoc-ChangExt@tif  </KeyName>
+            <KeyName> KeyStd-Assoc-Im2Orient@-A0-Navig-${SysCoOut} </KeyName>
+            <KeyName> KeyStd-Assoc-AddPost@${PostfixDraw} </KeyName>
+
+            <NameCalib > Calib-Sony-${Focale}-PhgrStd.xml </NameCalib>
+            <AltiSol>   0      </AltiSol>
+
+            <SysCible>
+                <BSC>
+                   <TypeCoord>  eTC_Unknown </TypeCoord>
+                   <AuxStr> SysCo-${SysCoOut}-Muru.xml   </AuxStr>
+                   <ByFile> true           </ByFile>
+                </BSC>
+            </SysCible>
+       </GenerateOrient>
+
+
+   </TrAJ2_SectionMatch>
+
+
+</Param_Traj_AJ>
+
+
+
