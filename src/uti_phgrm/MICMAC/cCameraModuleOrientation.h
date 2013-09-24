@@ -41,6 +41,7 @@
 
 #include "cModuleOrientation.h"
 #include "StdAfx.h"
+#include "general/ptxd.h"
 
 
 class cCameraModuleOrientation : public ElCamera
@@ -53,9 +54,11 @@ private:
     // quand on correle en faisceau
     Pt3dr mCentre;
     
+    ElAffin2D mOrIntImaM2C;
+    
 public:
     
-    cCameraModuleOrientation(ModuleOrientation * aOri,const Pt2di & aSz);
+    cCameraModuleOrientation(ModuleOrientation * aOri,const Pt2di & aSz, ElAffin2D const &aOrIntImaM2C);
     double ResolutionSol()const;
     double ResolutionSol(const Pt3dr &) const;
     // R3 : terrain

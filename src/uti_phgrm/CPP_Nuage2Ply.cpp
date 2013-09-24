@@ -113,7 +113,8 @@ int Nuage2Ply_main(int argc,char ** argv)
     }
 
      cElNuage3DMaille * aRes = aNuage->ReScaleAndClip(Box2dr(aP0,aP0+aSz),aSc);
-     std::list<std::string > aLComment(aVCom.begin(), aVCom.end());
+     //cElNuage3DMaille * aRes = aNuage;
+	std::list<std::string > aLComment(aVCom.begin(), aVCom.end());
 
     if (DoPly)
     {
