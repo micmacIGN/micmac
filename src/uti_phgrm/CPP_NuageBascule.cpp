@@ -291,7 +291,7 @@ int  NuageBascule_main(int argc,char ** argv)
              ELISE_COPY(rectangle(aDec,aDec+aSz),trans(aIMasqGlob.in(),-aDec),aFileMasq.out());
              ELISE_COPY(rectangle(aDec,aDec+aSz),trans(aProfGlob.in(),-aDec),aFileProf.out());
 
-             ELISE_fp::RmFile(aBl.mName+".xml");
+             //ELISE_fp::RmFile(aBl.mName+".xml");
              ELISE_fp::RmFile(aBl.mName+"_Masq.tif");
              ELISE_fp::RmFile(aBl.mName+"_Prof.tif");
          }
