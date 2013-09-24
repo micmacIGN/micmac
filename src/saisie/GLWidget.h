@@ -329,7 +329,7 @@ private:
 
     QImage      _glImg;
     QImage      *_mask;
-
+    GLdouble    _projmatrix[16];
 };
 
 #endif  /* _GLWIDGET_H */
