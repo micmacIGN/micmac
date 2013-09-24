@@ -228,21 +228,20 @@ void GLWidget::paintGL()
         glPushMatrix();
         glMultMatrixd(_projmatrix);
 
-        GLint viewport[4];
-        GLint recal;
-        GLdouble mvmatrix[16];
-        GLdouble wx, wy, wz;
-
-        glGetIntegerv (GL_VIEWPORT, viewport);
-        glGetDoublev (GL_MODELVIEW_MATRIX, mvmatrix);
-
-        recal = viewport[3] - (GLint) m_lastPos.y()- 1;
-
-        gluUnProject ((GLdouble) m_lastPos.x(), (GLdouble) recal, 1.0,
-                      mvmatrix, _projmatrix, viewport, &wx, &wy, &wz);
-
         if(_projmatrix[0] != m_params.zoom)
         {
+            GLint viewport[4];
+            GLint recal;
+            GLdouble mvmatrix[16];
+            GLdouble wx, wy, wz;
+
+            glGetIntegerv (GL_VIEWPORT, viewport);
+            glGetDoublev (GL_MODELVIEW_MATRIX, mvmatrix);
+
+            recal = viewport[3] - (GLint) _m_lastPosZoom.y()- 1;
+
+            gluUnProject ((GLdouble) _m_lastPosZoom.x(), (GLdouble) recal, 1.0,
+                          mvmatrix, _projmatrix, viewport, &wx, &wy, &wz);
             glTranslatef(wx,wy,0);
             glScalef(m_params.zoom/_projmatrix[0], m_params.zoom/_projmatrix[0], 1.0);
             glTranslatef(-wx,-wy,0);
@@ -265,6 +264,7 @@ void GLWidget::paintGL()
             glDisable(GL_TEXTURE_2D);
 
             glColor4f(0.5f,0.5f,0.5f,0.0f);
+
             glWinQuad(0, 0, glh, glw);
             glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
         }
@@ -505,6 +505,8 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
         if (m_interactionMode == TRANSFORM_CAMERA)
             _m_g_mouseMiddleDown = true;
+
+        _m_lastPosZoom = m_lastPos;
         update();
     }
 }
@@ -903,8 +905,6 @@ void GLWidget::onWheelEvent(float wheelDelta_deg)
     //convert degrees in zoom 'power'
     float zoomFactor = pow(1.1f,wheelDelta_deg *.05f);
 
-
-
     setZoom(m_params.zoom*zoomFactor);
 }
 
@@ -948,7 +948,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     //see QWheelEvent documentation ("distance that the wheel is rotated, in eighths of a degree")
     float wheelDelta_deg = (float)event->delta() / 8.f;
 
-    m_lastPos = event->pos();
+    _m_lastPosZoom = event->pos();
 
     onWheelEvent(wheelDelta_deg);
 }

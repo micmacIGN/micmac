@@ -333,6 +333,7 @@ private:
     QImage      _glImg;
     QImage      *_mask;
     GLdouble    _projmatrix[16];
+    QPoint      _m_lastPosZoom;
 };
 
 #endif  /* _GLWIDGET_H */
