@@ -56,6 +56,10 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
     setAcceptDrops(true);
 
     m_glPosition[0] = m_glPosition[1] = 0.f;
+
+    _mvmatrix   = new GLdouble[16];
+    _projmatrix = new GLdouble[16];
+    _viewport   = new GLint[4];
 }
 
 GLWidget::~GLWidget()
@@ -83,7 +87,6 @@ void GLWidget::initializeGL()
         return;
 
     glEnable( GL_DEPTH_TEST );
-
     m_bGLInitialized = true;
 }
 
@@ -91,38 +94,15 @@ void GLWidget::resizeGL(int width, int height)
 {
     if (width==0 || height==0) return;
 
-    float curW = m_glWidth;
-    float curH = m_glHeight;
-
     m_glWidth  = width;
     m_glHeight = height;
     m_glRatio  = (float) width/height;
 
     if (m_Data->NbImages())
-    {
-        m_rw = (float)_glImg.width()/m_glWidth;
-        m_rh = (float)_glImg.height()/m_glHeight;
-
-        if(m_rw>m_rh)
-            setZoom(m_params.zoom*(float)width/curW);
-        else
-            setZoom(m_params.zoom*(float)height/curH);
-
-        //position de l'image dans la vue gl
-
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glPushMatrix();
-        glScalef(m_params.zoom, m_params.zoom, 1.0);
-        glTranslatef(-m_rh,-m_rh,0);
-        glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
-        glPopMatrix();
-
-        m_glPosition[0] = 0;
-        m_glPosition[1] = 0;
-    }
+        zoomFit();
 
     glViewport( 0, 0, width, height );
+    glGetIntegerv (GL_VIEWPORT, _viewport);
 }
 
 //-------------------------------------------------------------------------
@@ -230,18 +210,14 @@ void GLWidget::paintGL()
 
         if(_projmatrix[0] != m_params.zoom)
         {
-            GLint viewport[4];
             GLint recal;
-            GLdouble mvmatrix[16];
             GLdouble wx, wy, wz;
 
-            glGetIntegerv (GL_VIEWPORT, viewport);
-            glGetDoublev (GL_MODELVIEW_MATRIX, mvmatrix);
-
-            recal = viewport[3] - (GLint) _m_lastPosZoom.y()- 1;
+            recal = _viewport[3] - (GLint) _m_lastPosZoom.y()- 1;
 
             gluUnProject ((GLdouble) _m_lastPosZoom.x(), (GLdouble) recal, 1.0,
-                          mvmatrix, _projmatrix, viewport, &wx, &wy, &wz);
+                          _mvmatrix, _projmatrix, _viewport, &wx, &wy, &wz);
+
             glTranslatef(wx,wy,0);
             glScalef(m_params.zoom/_projmatrix[0], m_params.zoom/_projmatrix[0], 1.0);
             glTranslatef(-wx,-wy,0);
@@ -270,8 +246,6 @@ void GLWidget::paintGL()
         }
 
         glEnable(GL_TEXTURE_2D);
-
-        glBindTexture( GL_TEXTURE_2D, m_texturGLList );
         glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
         glWinQuad(0, 0, glh, glw);
         glDisable(GL_TEXTURE_2D);
@@ -675,21 +649,11 @@ void GLWidget::setData(cData *data)
 
         zoomFit();
 
-        //position de l'image dans la vue gl
-        m_glPosition[0] = -m_rw;
-        m_glPosition[1] = -m_rh;
-
-        glMatrixMode(GL_PROJECTION);
+        //position de l'image dans la vue gl             
+        glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        glPushMatrix();
-        glScalef(m_params.zoom, m_params.zoom, 1.0);
-        glTranslatef(m_glPosition[0],m_glPosition[1],0);
-        glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
-        glPopMatrix();
 
-        m_glPosition[0] = 0;
-        m_glPosition[1] = 0;
-
+        glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
         glGenTextures(1, &m_texturGLList );
         glBindTexture( GL_TEXTURE_2D, m_texturGLList );
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
@@ -718,6 +682,8 @@ void GLWidget::setData(cData *data)
         m_bDisplayMode2D = false;
         //TODO
     }
+
+    glGetIntegerv (GL_VIEWPORT, _viewport);
 }
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -930,6 +896,18 @@ void GLWidget::zoomFit()
         setZoom(1.f/m_rw); //orientation landscape
     else
         setZoom(1.f/m_rh); //orientation portrait
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glPushMatrix();
+    glScalef(m_params.zoom, m_params.zoom, 1.0);
+    glTranslatef(-m_rw,-m_rh,0);
+    glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
+    glPopMatrix();
+
+    m_glPosition[0] = 0;
+    m_glPosition[1] = 0;
+
 }
 
 void GLWidget::zoomFactor(int percent)
@@ -1112,32 +1090,15 @@ void GLWidget::Select(int mode)
         }
         else
         {
-
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            glPushMatrix();
-            glMultMatrixd(_projmatrix);
-
-            GLint viewport[4];
-            GLdouble mvmatrix[16];
-            GLint realy;
+            GLint recal;
             GLdouble wx, wy, wz;
-
-            glGetIntegerv (GL_VIEWPORT, viewport);
-            glGetDoublev (GL_MODELVIEW_MATRIX, mvmatrix);
-
-            QPointF ptImg;
 
             for (int aK=0; aK < (int) m_polygon.size(); ++aK)
             {
-                realy = viewport[3] - (GLint) m_polygon[aK].y()- 1;
-
-                gluUnProject ((GLdouble) m_polygon[aK].x(), (GLdouble) realy, 1.0,
-                              mvmatrix, _projmatrix, viewport, &wx, &wy, &wz);
-
-                ptImg.setX(wx*m_glWidth/2.0f);
-                ptImg.setY(wy*m_glHeight/2.0f);
-                polyg.push_back(ptImg);
+                recal = _viewport[3] - (GLint) m_polygon[aK].y()- 1;
+                gluUnProject ((GLdouble) m_polygon[aK].x(), (GLdouble) recal, 1.0,
+                              _mvmatrix, _projmatrix, _viewport, &wx, &wy, &wz);
+                polyg.push_back(QPointF(wx*m_glWidth/2.0f,wy*m_glHeight/2.0f));
 
             }
             glPopMatrix();
