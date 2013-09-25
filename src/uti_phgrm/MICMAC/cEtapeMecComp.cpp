@@ -1709,6 +1709,16 @@ cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXMLNuage(const cExportNuage & an
           eModeCarteProfInterne           : 
           eModeCarteProfExterne
     );
+
+    if (mIsExportZAbs)
+    {
+         cImage_Profondeur * aIP = aNuage.PN3M_Nuage().Image_Profondeur().PtrVal();
+         if (aIP)
+         {
+               aIP->OrigineAlti() = 0;
+               aIP->ResolutionAlti() = 1;
+         }
+    }
     if (aMTD)
     {
        std::string aName =    mAppli.FullDirMEC()
@@ -1844,8 +1854,8 @@ void cEtapeMecComp::RemplitXMLNuage
         {
            aIP.Correl().SetNoInit();
         }
-        aIP.OrigineAlti() = mGeomTer.OrigineAlti();
-        aIP.ResolutionAlti() =   mGeomTer.ResolutionAlti();
+        aIP.OrigineAlti() =  mGeomTer.OrigineAlti();
+        aIP.ResolutionAlti() =    mGeomTer.ResolutionAlti();
         // aIP.GeomRestit() = eGeomMNTFaisceauIm1PrCh_Px1D;
         aIP.GeomRestit() = mAppli.GeomMNT();
 
@@ -1859,6 +1869,7 @@ void cEtapeMecComp::RemplitXMLNuage
    {
       mAppli.PDV1()->Geom().RemplitOriXMLNuage
       (
+          false,
           aMTD.Val(),
           mGeomTer,
           aNuage,

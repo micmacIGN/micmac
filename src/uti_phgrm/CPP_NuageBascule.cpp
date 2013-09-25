@@ -234,10 +234,15 @@ int  NuageBascule_main(int argc,char ** argv)
          Pt2dr aRSzN = Pt2dr(aSzNew);
          cXML_ParamNuage3DMaille  aNewNuageOut =  CropAndSousEch(aNuageOut,aRP0,1.0,aRSzN);
 
+         std::string aPrefRes = StdPrefix(aNameRes);
 
-         std::string aNameMasq = aNameRes + "_Masq.tif";
-         std::string aNameProf = aNameRes + "_Prof.tif";
+         std::string aNameMasq = aPrefRes + "_Masq.tif";
+         std::string aNameProf = aPrefRes + "_Prof.tif";
 
+         aNewNuageOut.Image_Profondeur().Val().Image() = NameWithoutDir(aNameProf);
+         aNewNuageOut.Image_Profondeur().Val().Masq() = NameWithoutDir(aNameMasq);
+         aNewNuageOut.Image_Profondeur().Val().Correl().SetNoInit();
+         MakeFileXML(aNewNuageOut,aPrefRes+".xml");
          
 
          Tiff_Im aFileProf

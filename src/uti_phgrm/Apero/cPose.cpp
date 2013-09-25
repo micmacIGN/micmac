@@ -1270,7 +1270,8 @@ else
 
 //GUIMBAL
 
-    if (GuimbalAnalyse(aRot,false)<mAppli.Param().LimModeGL().Val())
+    double aLMG = mAppli.Param().LimModeGL().Val();
+    if ((aLMG>0) && (GuimbalAnalyse(aRot,false)<aLMG))
     {
        std::cout << "GUIMBAL-INIT " << mName << "\n";
        mCF->SetGL(true);

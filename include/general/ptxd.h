@@ -1088,9 +1088,10 @@ class cDecoupageInterv2D
           (
               const Box2di & aBoxGlob,
               Pt2di aSzMax,
-              const Box2di   & aSzBord
+              const Box2di   & aSzBord,
+              int              anArrondi=1
           );
-          static cDecoupageInterv2D SimpleDec(Pt2di aSz,int aSzMax,int aSzBrd);
+          static cDecoupageInterv2D SimpleDec(Pt2di aSz,int aSzMax,int aSzBrd,int anArrondi=1);
 	                    
           int NbInterv() const;
           Box2di KthIntervOut(int aK) const;

@@ -151,7 +151,7 @@ int ConvertIm_main(int argc,char ** argv)
              aPhInterpOut = Tiff_Im::RGB;
          else 
         {
-           ELISE_ASSERT(aNamePITOut=="","Nb Cannaux incoherents");
+           ELISE_ASSERT(aNamePITOut=="","Nb Canaux incoherents");
         }
     }
     else

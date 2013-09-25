@@ -1640,6 +1640,10 @@ cLoadedImage::cLoadedImage
    mMasqIm          (mSzIm.x,mSzIm.y,1),
    mTMasqIm         (mMasqIm),
 
+   mDoneMasqErod    (false),
+   mMasqImErod      (1,1,0),
+   mTMasqImErod     (mMasqImErod),
+
    mSzPtWFixe       ( mAppli.PtSzWFixe()),
    mSzPtWMarge      ( mAppli.PtSzWMarge()),
    mGeomTerAp       (anAppli.GeomDFPx()),
@@ -1971,6 +1975,38 @@ U_INT1** cLoadedImage::DataImPC() const  {return mImPC.data();}
 int      cLoadedImage::SeuilPC() const {return mSeuilPC;}
 
 U_INT1** cLoadedImage::DataMasqIm() const  {return mMasqIm.data();}
+U_INT1** cLoadedImage::DataMasqImErod() const  
+{
+   return  mDoneMasqErod ? mMasqImErod.data() : 0 ;
+}
+
+void cLoadedImage::DoMasqErod(const Box2di & aBox)
+{
+    ElTimer aChrono;
+    ELISE_ASSERT(!mDoneMasqErod,"Mulriple void cLoadedImage::DoMasqErod");
+    mDoneMasqErod = true;
+    Pt2di aSz = mMasqIm.sz();
+    mMasqImErod = Im2D_Bits<1>(aSz.x,aSz.y,0);
+    mTMasqImErod = TIm2DBits<1>(mMasqImErod);
+
+    Pt2di aP0 = aBox._p0;
+    Pt2di aP1 = aBox._p1;
+    int aNb = (aP1.x-aP0.x + 1) *  (aP1.y-aP0.y + 1);
+    ELISE_COPY
+    (
+         mMasqIm.all_pts(),
+         rect_som(mMasqIm.in(0),aBox) == aNb,
+         mMasqImErod.out()
+    );
+
+    if (0)
+    {
+        std::cout << "cLoadedImage::DoMasqErod " << aSz << " " << aChrono.uval() << "\n";
+        std::string aName = "MASQ-ERRRR.tif";
+        Tiff_Im::Create8BFromFonc(aName,aSz,mMasqIm.in()+2*mMasqImErod.in());
+        getchar();
+    }
+}
 
 
 };

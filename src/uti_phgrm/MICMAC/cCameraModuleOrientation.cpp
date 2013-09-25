@@ -38,13 +38,17 @@
  Header-MicMac-eLiSe-25/06/2007*/
 
 #include "cCameraModuleOrientation.h"
+#include "general/ptxd.h"
 
-cCameraModuleOrientation::cCameraModuleOrientation(ModuleOrientation * aOri,const Pt2di & aSz):ElCamera(false,eProjectionStenope)
+
+
+cCameraModuleOrientation::cCameraModuleOrientation(ModuleOrientation * aOri,const Pt2di & aSz,ElAffin2D const &aOrIntImaM2C):
+    ElCamera(false,eProjectionStenope)
 {
     mOri = aOri;
     ElCamera::SetSz(aSz);
+    SetIntrImaM2C(aOrIntImaM2C);
     mCentre = ImEtProf2Terrain(Pt2dr(aSz.x/2,aSz.y/2),0.);
-    //SetOrientation(ElRotation3D(Pt3dr(0,0,1),0,0,0));
 }
 
 double cCameraModuleOrientation::ResolutionSol()const
@@ -57,20 +61,39 @@ double cCameraModuleOrientation::ResolutionSol(const Pt3dr &) const
 }
 Pt3dr cCameraModuleOrientation::L3toR3(Pt3dr aP) const
 {
+    //std::cout << "L3toR3"<<std::endl;
     // TODO verifier le sens et verifier s'il faut iterer?
     Pt3dr ptOut;
-    mOri->ImageAndPx2Obj(aP.x,aP.y,&aP.z,ptOut.x,ptOut.y);
+    // Prise en compte de l'affinite
+    Pt2dr ptIm(aP.x,aP.y);
+    Pt2dr ptIm2 = ptIm;
+    //mOri->ImageAndPx2Obj(aP.x,aP.y,&aP.z,ptOut.x,ptOut.y);
+    mOri->ImageAndPx2Obj(ptIm2.x ,ptIm2.y ,&aP.z,ptOut.x,ptOut.y);
     ptOut.z = aP.z;
     //std::cout << "L3toR3 : "<<aP.x<<" "<<aP.y<<" "<<aP.z<<" -> "<<ptOut.x<<" "<<ptOut.y<<" "<<ptOut.z<<std::endl;
+    // Verification
+    //Pt3dr verif=R3toL3(ptOut);
+    //std::cout << "verif : "<<verif.x<<" "<<verif.y<<" "<<verif.z<<std::endl;
+    //std::cout << "diff : "<<verif.x-aP.x<<" "<<verif.y-aP.y<<" "<<verif.z-aP.z<<std::endl;
     return ptOut;
 }
 Pt3dr cCameraModuleOrientation::R3toL3(Pt3dr aP) const
 {
+    //std::cout << "R3toL3"<<std::endl;
     // TODO verifier le sens et verifier s'il faut iterer?
     Pt3dr ptOut;
-    mOri->Objet2ImageInit(aP.x,aP.y,&aP.z,ptOut.x,ptOut.y);
+    Pt2dr ptIm;
+    //mOri->Objet2ImageInit(aP.x,aP.y,&aP.z,ptOut.x,ptOut.y);
+    mOri->Objet2ImageInit(aP.x,aP.y,&aP.z,ptIm.x ,ptIm.y);
+    Pt2dr ptIm2 =ptIm;
+    ptOut.x = ptIm2.x   ;
+    ptOut.y = ptIm2.y  ;
     ptOut.z = aP.z;
     //std::cout << "R3toL3 : "<<aP.x<<" "<<aP.y<<" "<<aP.z<<" -> "<<ptOut.x<<" "<<ptOut.y<<" "<<ptOut.z<<std::endl;
+    // verification
+    //Pt3dr verif=L3toR3(ptOut);
+    //std::cout << "verif : "<<verif.x<<" "<<verif.y<<" "<<verif.z<<std::endl;
+    //std::cout << "diff : "<<verif.x-aP.x<<" "<<verif.y-aP.y<<" "<<verif.z-aP.z<<std::endl;
     return ptOut;
 }
 ElProj32   &  cCameraModuleOrientation::Proj()
@@ -104,9 +127,13 @@ Pt3dr cCameraModuleOrientation::ImEtProf2Terrain(const Pt2dr & aP,double aZ) con
 {
     // TODO verifier le sens et verifier s'il faut iterer?
     Pt3dr ptOut;
-    mOri->ImageAndPx2Obj(aP.x,aP.y,&aZ,ptOut.x,ptOut.y);
+    // Prise en compte de l'affinite
+    Pt2dr ptIm(aP.x,aP.y);
+    Pt2dr ptIm2 = ptIm;
+    //mOri->ImageAndPx2Obj(aP.x,aP.y,&aP.z,ptOut.x,ptOut.y);
+    mOri->ImageAndPx2Obj(ptIm2.x ,ptIm2.y ,&aZ,ptOut.x,ptOut.y);
     ptOut.z = aZ;
-    std::cout << "ImEtProf2Terrain : "<<aP.x<<" "<<aP.y<<" "<<aZ<<" -> "<<ptOut.x<<" "<<ptOut.y<<" "<<ptOut.z<<std::endl;
+    //std::cout << "ImEtProf2Terrain : "<<aP.x<<" "<<aP.y<<" "<<aZ<<" -> "<<ptOut.x<<" "<<ptOut.y<<" "<<ptOut.z<<std::endl;
     return ptOut;
 }
 Pt3dr  cCameraModuleOrientation::OrigineProf() const

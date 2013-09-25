@@ -9,13 +9,15 @@ if ( MSVC )
 	message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
 endif()
 
-cmake_policy(SET CMP0020 NEW)
+if ( WIN32 )
+	cmake_policy(SET CMP0020 NEW)
+ENDIF()
 
 # Find the QtWidgets library
 find_package(OpenGL REQUIRED)
-message( "OPENGL_LIBRARIES   : " ${OPENGL_LIBRARIES} )
-message( "OPENGL_gl_LIBRARY  : " ${OPENGL_gl_LIBRARY} )
-message( "OPENGL_glu_LIBRARY : " ${OPENGL_glu_LIBRARY} )
+#message( "OPENGL_LIBRARIES   : " ${OPENGL_LIBRARIES} )
+#message( "OPENGL_gl_LIBRARY  : " ${OPENGL_gl_LIBRARY} )
+#message( "OPENGL_glu_LIBRARY : " ${OPENGL_glu_LIBRARY} )
 find_package(Qt5Widgets REQUIRED)
 
 if ( NOT ${OPENGL_GLU_FOUND} )
@@ -51,7 +53,7 @@ if ( WIN32 )
   add_definitions(-DELISE_windows)
 ENDIF()
 
-message( "opengl include : " ${OPENGL_INCLUDE_DIR} )
+#message( "opengl include : " ${OPENGL_INCLUDE_DIR} )
 
 include_directories( ${Qt5_INCLUDES}
 		     ${OPENGL_INCLUDE_DIR}

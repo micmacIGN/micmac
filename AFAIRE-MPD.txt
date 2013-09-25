@@ -3,6 +3,8 @@ BUGS :
 
   Si Masque TA existe et incompatible : genere bug
 
+  2 amélio à voir dans Mail Ruedi.
+
 Nouveaux outils :
 
 
