@@ -269,7 +269,6 @@ void GLWidget::paintGL()
     }
     else
     {
-        setStandardOrthoCenter();
 
         //gradient color background
         drawGradientBackground();
@@ -749,10 +748,16 @@ void GLWidget::displayNewMessage(const QString& message,
 
 void GLWidget::drawGradientBackground()
 {
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    float halfW = float(m_glWidth)*.5f;
+    float halfH = float(m_glHeight)*.5f;
+    glOrtho(-halfW,halfW,-halfH,halfH,-2.f, 2.f);
     int w = (m_glWidth>>1)+1;
     int h = (m_glHeight>>1)+1;
-
     const uchar BkgColor[3] = {(uchar) colorBG0.red(),(uchar) colorBG0.green(), (uchar) colorBG0.blue()};
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
     //Gradient "texture" drawing
     glBegin(GL_QUADS);
@@ -765,18 +770,6 @@ void GLWidget::drawGradientBackground()
     glVertex2f(w,-h);
     glVertex2f(-w,-h);
     glEnd();
-}
-
-void GLWidget::setStandardOrthoCenter()
-{
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    float halfW = float(m_glWidth)*.5f;
-    float halfH = float(m_glHeight)*.5f;
-
-    glOrtho(-halfW,halfW,-halfH,halfH,-2.f*m_Data->m_diam, 2.f*m_Data->m_diam);
-
-    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
 
