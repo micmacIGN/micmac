@@ -1042,6 +1042,58 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     m_lastPos = pos;
 }
 
+void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    if (m_Data->NbClouds())
+    {
+        QPointF pos = event->localPos();
+
+        setProjectionMatrix();
+
+        int idx1 = -1;
+        int idx2;
+
+        pos.setY(m_glHeight - pos.y());
+
+        for (int aK=0; aK < m_Data->NbClouds();++aK)
+        {
+            float sqrD;
+            float dist = FLT_MAX;
+            idx2 = -1;
+            QPointF proj;
+
+            Cloud *a_cloud = m_Data->getCloud(aK);
+
+            for (int bK=0; bK < a_cloud->size();++bK)
+            {
+                getProjection(proj, a_cloud->getVertex( bK ));
+
+                sqrD = (proj.x()-pos.x())*(proj.x()-pos.x()) + (proj.y()-pos.y())*(proj.y()-pos.y());
+
+                if (sqrD < dist )
+                {
+                    dist = sqrD;
+                    idx1 = aK;
+                    idx2 = bK;
+                }
+            }
+        }
+
+        if ((idx1>=0) && (idx2>=0))
+        {
+            //final center:
+            Cloud *a_cloud = m_Data->getCloud(idx1);
+            Vertex &P = a_cloud->getVertex( idx2 );
+
+            m_Data->m_cX = P.x();
+            m_Data->m_cY = P.y();
+            m_Data->m_cZ = P.z();
+
+            update();
+        }
+    }
+}
+
 bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> poly)
 {
     int vertices=poly.size();
