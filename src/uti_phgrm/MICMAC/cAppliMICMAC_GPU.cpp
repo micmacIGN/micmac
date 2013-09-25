@@ -1639,6 +1639,7 @@ void cAppliMICMAC::GlobDoCorrelAdHoc
         )
 {
 
+        int aSzDecoupe = mCorrelAdHoc->SzBlocAH().Val();
         // Pour eventuellement changer si existe algo qui impose une taille
         mCurSzV0   = mPtSzWFixe;
         mCurSzVMax = mCurSzV0;
@@ -1669,11 +1670,22 @@ void cAppliMICMAC::GlobDoCorrelAdHoc
                  Pt2di aP1(mCurSzVMax.x+1,mCurSzVMax.y);
                  Box2di aB(aP0,aP1);
                  (*itFI)->LoadedIm().DoMasqErod(aB);
-
-                 // std::cout << aK << " BBBBB " << aBoxOut._p0 << " " << aBoxIn._p0  <<  (*itFI)->Geom().BoxClip()._p0 << "\n";
-
                  aK++;
             }
+            mBufCensusIm2.clear();
+            mVBufC.clear();
+            const std::vector<cMSLoadedIm> & aVSLI = mPDV2->LoadedIm().MSLI();
+            for (int aK=0 ; aK<int(aVSLI.size()) ; aK++)
+            {
+                  const Im2D_REAL4 * anI = aVSLI[aK].Im();
+                  Pt2di aSz= anI->sz();
+                  mBufCensusIm2.push_back(Im2D_REAL4(aSz.x,aSz.y,0.0));
+                  mBufCensusIm2.back().dup(*anI);
+                  mVBufC.push_back(mBufCensusIm2.back().data());
+            }
+            mDataBufC = &(mVBufC[0]);
+            // Pour census, afin de faciliter et (marginalement ?) accelerer l'exe, on ne fait qu'une seule boite
+            aSzDecoupe = 1000000;
         }
 
 
@@ -1690,13 +1702,9 @@ void cAppliMICMAC::GlobDoCorrelAdHoc
         mEpsMulMoy  =  mCorrelAdHoc->EpsilonMulMoyenne().Val();
 
 
-        cDecoupageInterv2D aDecInterv =
-            cDecoupageInterv2D::SimpleDec
-            (
-            aBoxIn.sz(),
-            mCorrelAdHoc->SzBlocAH().Val(),
-            0
-            );
+        mSzGlobTer = aBoxIn.sz();
+
+        cDecoupageInterv2D aDecInterv = cDecoupageInterv2D::SimpleDec ( aBoxIn.sz(), aSzDecoupe, 0);
 
 #if CUDA_ENABLED
         IMmGg.box.x = aBoxIn.sz().x;
