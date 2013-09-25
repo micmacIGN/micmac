@@ -202,8 +202,6 @@ protected:
     //! Draw widget gradient background
     void drawGradientBackground();
 
-    void setStandardOrthoCenter();
-
     GLuint getNbGLLists() { return m_nbGLLists; }
     void incrNbGLLists() { m_nbGLLists++; }
     void resetNbGLLists(){ m_nbGLLists = 0; }
