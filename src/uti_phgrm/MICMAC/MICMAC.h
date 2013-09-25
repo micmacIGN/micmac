@@ -3480,6 +3480,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
   // Permet entre autre d'optimiser pour geom image maitresse
            bool mFirstZIsInit;
 
+           Pt2di mSzGlobTer;
            int  mX0Ter;
            int  mX1Ter;
            int  mY0Ter;
@@ -3539,6 +3540,10 @@ class cAppliMICMAC  : public   cParamMICMAC,
            TIm2D<U_INT1,INT>      mAll1TImOkTerDil;
            std::vector<U_INT1 *>  mAll1VDOkTerDil;
            U_INT1 **              mAll1DOkTerDil;
+
+           std::vector<Im2D_REAL4>  mBufCensusIm2;
+           std::vector<float **> mVBufC;
+           float ***             mDataBufC;
 
 
 
