@@ -1,7 +1,6 @@
 #ifndef Define_NotCasa
 #define Define_NotCasa
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 using namespace NS_ParamChantierPhotogram;
 using namespace NS_SuperposeImage;
 namespace NS_Casa{

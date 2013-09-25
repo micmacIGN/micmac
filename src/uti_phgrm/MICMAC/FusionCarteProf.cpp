@@ -79,7 +79,7 @@ class cElPile
         const float & Z() const {return mZ;}
         const float & P() const {return mP;}
     private :
-        float mZ;
+        float mZ;   // C'est le Z "absolu" du nuage, corrige de l'offset et du pas, c'est a la sauvegarde qu'on le remet eventuellement au pas
         float mP;
 };
 
@@ -122,6 +122,7 @@ template <class Type> class  cLoadedCP
         void  SetSz(const Pt2di & aSz);
         bool  ReLoad(const Box2dr & aBoxTer) ;
         const  cImage_Profondeur & IP() {return mIP;}
+        const std::string & NameNuage() {return mNameNuage;}
 
     private :
 
@@ -214,8 +215,8 @@ template <class Type> class cFusionCarteProf
           cInterfChantierNameManipulateur *ICNM() {return mICNM;}
      private :
 
-          std::vector<cElPile> ComputeEvidence(const std::vector<cElPile> & aPile);
-          cElPile ComputeOneEvidence(const std::vector<cElPile> & aPile,const cElPile aP0);
+          std::vector<cElPile> ComputeEvidence(const std::vector<cElPile> & aPile,double aResolPlani);
+          cElPile ComputeOneEvidence(const std::vector<cElPile> & aPile,const cElPile aP0,double aResolPlani);
           const cElPile * BestElem(const std::vector<cElPile> & aPile);
 
            double ToZSauv(double aZ) const;
@@ -252,6 +253,7 @@ template <class Type> class cFusionCarteProf
           std::string                             mNameMasq;
           bool                                    mZIsInv;
           std::list<std::string>                  mListCom;
+          double                                  mResolPlani;
 };
 
 
@@ -397,12 +399,13 @@ template <class Type> cElPile  cLoadedCP<Type>::CreatePile(const Pt2dr & aPTer) 
 /*                                                                    */
 /**********************************************************************/
 
-template <class Type> cElPile  cFusionCarteProf<Type>::ComputeOneEvidence(const std::vector<cElPile> & aPile,const cElPile aP0)
+template <class Type> cElPile  cFusionCarteProf<Type>::ComputeOneEvidence(const std::vector<cElPile> & aPile,const cElPile aP0,double aResolPlani)
 {
     double aSomPp = 0;
     double aSomPz = 0;
     double aSomZ = 0;
     const float & aZ0 = aP0.Z();
+
     for (int aKp=0 ; aKp<int(aPile.size()) ; aKp++)
     {
         const cElPile & aPilK = aPile[aKp];
@@ -410,7 +413,7 @@ template <class Type> cElPile  cFusionCarteProf<Type>::ComputeOneEvidence(const 
         if (aPk)
         {
             const float & aZk = aPilK.Z();
-            double aDz = ElAbs(aZ0-aZk);
+            double aDz = ElAbs(aZ0-aZk) / aResolPlani;  // Le DZ est relatif a la resolution alti pour le seuillage
             if (aDz<mFByEv->MaxDif().Val())
             {
                  double aPp = exp(-ElSquare(aDz/mSigmaP)) * aPk;
@@ -431,12 +434,12 @@ template <class Type> cElPile  cFusionCarteProf<Type>::ComputeOneEvidence(const 
     return cElPile(aSomZ,aSomPp);
 }
 
-template <class Type> std::vector<cElPile>  cFusionCarteProf<Type>::ComputeEvidence(const std::vector<cElPile> & aPile)
+template <class Type> std::vector<cElPile>  cFusionCarteProf<Type>::ComputeEvidence(const std::vector<cElPile> & aPile,double aResolPlani)
 {
     std::vector<cElPile> aRes;
     for (int aKp=0 ; aKp<int(aPile.size()) ; aKp++)
     {
-         aRes.push_back(ComputeOneEvidence(aPile,aPile[aKp]));
+         aRes.push_back(ComputeOneEvidence(aPile,aPile[aKp],aResolPlani));
     }
     return aRes;
 }
@@ -601,9 +604,15 @@ template <class Type> double cFusionCarteProf<Type>::ToZSauv(double aZ) const
 
 template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2di & aBoxIn,const Box2di & aBoxOut)
 {
+   ElTimer aChrono;
+   bool ShowTime = false;
    std::cout << "RESTE " << aKB <<   " BLOCS \n";
    mAfM2CCur =  ElAffin2D::trans(-Pt2dr(aBoxIn._p0)) * mAfM2CGlob ;
    mAfC2MCur = mAfM2CCur.inv();
+
+
+   mResolPlani = (euclid(mAfC2MCur.I10()) + euclid(mAfC2MCur.I01()))/2.0;
+   // std::cout << "  SCALE " << mResolPlani << "\n";
 
    mSzCur = aBoxIn.sz();
 
@@ -619,10 +628,18 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
 
 
    mVCL.clear();
+   
    for (int aK=0 ; aK<int(mVC.size()) ; aK++)
    {
-       if (mVC[aK]->ReLoad(aBoxTer))
+       bool  aReload = mVC[aK]->ReLoad(aBoxTer);
+       // std::cout << "RELOAD " <<  mVC[aK]->NameNuage() << " " << aReload << "\n";
+       if (aReload)
           mVCL.push_back(mVC[aK]);
+   }
+   if (ShowTime)
+   {
+      // std::cout << "  " << mIP->OrigineAlti()
+      std::cout << "RRELOAD " << mVCL.size() << " on " << mVC.size() << " time= " << aChrono.uval() << "\n";
    }
 
    cProg2DOptimiser<cFusionCarteProf>  * aPrgD = 0;
@@ -657,6 +674,10 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
       aPrgD = new cProg2DOptimiser<cFusionCarteProf>(*this,aTIm0._the_im,aTImNb._the_im,0,1);
   }
    
+   if (ShowTime)
+   {
+      std::cout << " Init PrgD time= " << aChrono.uval() << "\n";
+   }
 
 
 
@@ -691,10 +712,11 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
                 }
                 else if (mFByEv)
                 {
-                    aNewV =   ComputeEvidence(aPCel);
+                    aNewV =   ComputeEvidence(aPCel,mResolPlani);
                     aBestP = BestElem(aNewV);
                     aZ = aBestP->Z();
                 }
+
                 if (aPrgD)
                 {
                     //typedef  cTplCelNapPrgDyn<tArgNappe>    tCelNap;
@@ -731,10 +753,13 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
         }
    }
 
+   if (ShowTime)
+      std::cout << " Init Cost time= " << aChrono.uval() << "\n";
 
    if (aPrgD)
    {
        aPrgD->DoOptim(mFPrgD->NbDir());
+       std::cout << " Prg Dyn time= " << aChrono.uval()  << " Nb Dir " << mFPrgD->NbDir() << "\n";
        Im2D_INT2 aSol(mSzCur.x,mSzCur.y);
        INT2 ** aDSol = aSol.data();
        aPrgD->TranfereSol(aDSol);
@@ -755,6 +780,9 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
             }
        }
    }
+
+   if (ShowTime)
+      std::cout << " Dow Opt time= " << aChrono.uval() << "\n";
 
    if (1)
    {
@@ -810,7 +838,7 @@ template <class Type>   void cFusionCarteProf<Type>::DoConnexion
         {
             tCelOpt & anOut = aTabOuput[aZOut];
             const  cElPile & aPOut = anOut.ArgAux();
-            double aDZ = ElAbs(aPIn.Z()-aPOut.Z());
+            double aDZ = ElAbs(aPIn.Z()-aPOut.Z())/mResolPlani;
             if ((mFNoVal==0) || (aDZ < mFNoVal->PenteMax()))
             {
                  double aCost = (sqrt(1+aDZ/aSig0)-1) * 2*aSig0 * mFPrgD->Regul();

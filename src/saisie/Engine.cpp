@@ -3,7 +3,8 @@
 
 cLoader::cLoader()
  : m_FilenamesIn(),
-   m_FilenamesOut()
+   m_FilenamesOut(),
+   m_postFix("_Masq")
 {}
 
 void cLoader::SetFilenamesOut()
@@ -14,7 +15,7 @@ void cLoader::SetFilenamesOut()
     {
         QFileInfo fi(m_FilenamesIn[aK]);
 
-        m_FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif");
+        m_FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + m_postFix + ".tif");
     }
 }
 
@@ -23,6 +24,11 @@ void cLoader::SetFilenameOut(QString str)
     m_FilenamesOut.clear();
 
     m_FilenamesOut.push_back(str);
+}
+
+void cLoader::SetPostFix(QString str)
+{
+    m_postFix = str;
 }
 
 void cLoader::SetSelectionFilename()
@@ -108,8 +114,7 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
         }
         else
         {
-            qCritical("cLoader::loadMask"
-                      "Cannot load mask image");
+            QMessageBox::critical(NULL, "cLoader::loadMask","Cannot load mask image");
         }
     }
 }
@@ -138,6 +143,11 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
 {
     string DirChantier = (m_Dir.absolutePath()+ QDir::separator()).toStdString();
     string filename    = aNameFile.toStdString();
+
+    #ifdef _DEBUG
+        cout << "DirChantier : " << DirChantier << endl;
+        cout << "filename : "    << filename << endl;
+    #endif
 
     QFileInfo fi(aNameFile);
 
@@ -250,18 +260,18 @@ void cEngine::doMasks()
 void cEngine::doMaskImage(QImage* pImg)
 {
     QColor c;
-    unsigned int w,h;
+    uint w,h;
     w = pImg->width();
     h = pImg->height();
 
     Im2D_BIN mask = Im2D_BIN(w, h, 0);
 
-    for (int aK=0; aK < w;++aK)
+    for (uint aK=0; aK < w;++aK)
     {
-        for (int bK=0; bK < h;++bK)
+        for (uint bK=0; bK < h;++bK)
         {
             c = QColor::fromRgba(pImg->pixel(aK,bK));
-            if (c.alpha() == 255) mask.set(aK, h-bK-1, 1);
+            if (c.red() == 255) mask.set(aK, h-bK-1, 1);
         }
     }
 
@@ -378,6 +388,7 @@ ViewportParameters::ViewportParameters()
     , angleX(0.f)
     , angleY(0.f)
     , angleZ(0.f)
+    , _gamma(1.f)
 {
     m_translationMatrix[0] = m_translationMatrix[1] = m_translationMatrix[2] = 0.f;
 }

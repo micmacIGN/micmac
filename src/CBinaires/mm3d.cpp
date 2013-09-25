@@ -178,6 +178,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("CreateEpip",CreateEpip_main," Tool create epipolar images"));
        aRes.push_back(cMMCom("Dequant",Dequant_main," Tool for dequantifying an image"));
        aRes.push_back(cMMCom("Devlop",Devlop_main," Do some stuff"));
+       aRes.push_back(cMMCom("TifDev",TiffDev_main," Develop, raw-jpg-tif, in adequat tiff file"));
+
 	   aRes.push_back(cMMCom("Drunk", Drunk_main,"Images distortion removing tool"));
        aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
        aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Relative to absolute using GCP",cArgLogCom(2)));
@@ -371,6 +373,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 {
    if ((argc==1) || ((argc==2) && (std::string(argv[1])=="-help")))
    {
+       BanniereMM3D();
        std::cout << "mm3d : Allowed commands \n";
        for (unsigned int aKC=0 ; aKC<aVComs.size() ; aKC++)
        {

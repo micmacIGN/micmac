@@ -54,7 +54,6 @@ void MainWindow::connectActions()
 {
     connect(m_glWidget,	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
 
-    connect(m_glWidget,	SIGNAL(mouseWheelRotated(float)),      this, SLOT(echoMouseWheelRotate(float)));
 
     //View menu
     connect(ui->actionFullScreen,       SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
@@ -78,6 +77,26 @@ void MainWindow::connectActions()
         connect(ui->actionSetViewLeft,		SIGNAL(triggered()),   this, SLOT(setLeftView()));
         connect(ui->actionSetViewRight,		SIGNAL(triggered()),   this, SLOT(setRightView()));
     }
+
+    connect(ui->actionZoom_Plus,		SIGNAL(triggered()),   this, SLOT(zoomPlus()));
+    connect(ui->actionZoom_Moins,		SIGNAL(triggered()),   this, SLOT(zoomMoins()));
+    connect(ui->actionZoom_fit,		    SIGNAL(triggered()),   this, SLOT(zoomFit()));
+
+    QSignalMapper* signalMapper = new QSignalMapper (this) ;
+
+    connect(ui->action4_1_400,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
+    connect(ui->action2_1_200,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
+    connect(ui->action1_1_100,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
+    connect(ui->action1_2_50,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
+    connect(ui->action1_4_25,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
+
+    signalMapper->setMapping (ui->action4_1_400, 400) ;
+    signalMapper->setMapping (ui->action2_1_200, 200) ;
+    signalMapper->setMapping (ui->action1_1_100, 100) ;
+    signalMapper->setMapping (ui->action1_2_50, 50) ;
+    signalMapper->setMapping (ui->action1_4_25, 25) ;
+
+    connect (signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int))) ;
 
     //"Selection menu
     connect(ui->actionToggleMode_selection, SIGNAL(triggered(bool)), this, SLOT(toggleSelectionMode(bool)));
@@ -142,6 +161,11 @@ bool MainWindow::checkForLoadedData()
     return loadedEntities;
 }
 
+void MainWindow::setPostFix(QString str)
+{
+   m_Engine->setPostFix("_" + str);
+}
+
 void MainWindow::progression()
 {
     if(m_incre)
@@ -152,6 +176,17 @@ void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
     {
+        for (int i=0; i< filenames.size();++i)
+        {
+            QFile Fout(filenames[i]);
+
+            if(!Fout.exists())
+            {
+                QMessageBox::critical(this, "Error", "File or option does not exist");
+                return;
+            }
+        }
+
         m_Engine->SetFilenamesIn(filenames);
 
         bool mode2D = getMode2D();
@@ -205,6 +240,9 @@ void MainWindow::addFiles(const QStringList& filenames)
             this->m_ProgressDialog->exec();
 
             future.waitForFinished();
+
+            m_glWidget->showCams(true);
+            ui->actionShow_cams->setChecked(true);
         }
         else
         {
@@ -314,40 +352,53 @@ void MainWindow::doActionDisplayShortcuts()
     QString text = tr("File menu:") +"\n\n";
     if (!m_bMode2D)
     {
-        text += tr("Ctrl+P: open .ply files")+"\n";
-        text += tr("Ctrl+C: open .xml camera files")+"\n";
+        text += "Ctrl+P: \t" + tr("open .ply files")+"\n";
+        text += "Ctrl+C: \t"+ tr("open .xml camera files")+"\n";
     }
-    text += tr("Ctrl+O: open image files")+"\n";
-    if (!m_bMode2D) text += tr("Ctrl+E: save .xml selection infos")+"\n";
-    text += tr("Ctrl+S: save masks files")+"\n";
-    text += tr("Ctrl+Maj+S: save masks files as")+"\n";
-    text += tr("Ctrl+X: close files")+"\n";
-    text += tr("Ctrl+Q: quit") +"\n\n";
-    text += tr("View:") +"\n\n";
-    text += tr("F2: full screen") +"\n";
+    text += "Ctrl+O: \t"+tr("open image files")+"\n";
+    if (!m_bMode2D) text += "tr(""Ctrl+E: \t"+tr("save .xml selection infos")+"\n";
+    text += "Ctrl+S: \t"+tr("save masks files")+"\n";
+    text += "Ctrl+Maj+S: \t"+tr("save masks files as")+"\n";
+    text += "Ctrl+X: \t"+tr("close files")+"\n";
+    text += "Ctrl+Q: \t"+tr("quit") +"\n\n";
+    text += tr("View menu:") +"\n\n";
+    text += "F2: \t"+tr("full screen") +"\n";
     if (!m_bMode2D)
     {
-        text += tr("F3: show axis") +"\n";
-        text += tr("F4: show ball") +"\n";
-        text += tr("F5: show bounding box") +"\n";
-        text += tr("F6: show cameras") +"\n";
+        text += "F3: \t"+tr("show axis") +"\n";
+        text += "F4: \t"+tr("show ball") +"\n";
+        text += "F5: \t"+tr("show bounding box") +"\n";
+        text += "F6: \t"+tr("show cameras") +"\n";
     }
-    text += tr("F7: show help messages") +"\n";
-    text += "\n";
-    text += tr("Key +/-: increase/decrease point size") +"\n\n";
+
+    if (!m_bMode2D)
+        text += tr("Key +/-: \tincrease/decrease point size") +"\n\n";
+    else
+    {
+        text += tr("Key +/-: \tincrease/decrease zoom") + "\n";
+        text += "9: \t"+tr("zoom fit") + "\n";
+        text+= "4: \tzoom 400%\n";
+        text+= "2: \tzoom 200%\n";
+        text+= "1: \tzoom 100%\n";
+        text+= "Ctrl+2: \tzoom 50%\n";
+        text+= "Ctrl+4: \tzoom 25%\n";
+    }
+
+    text += "F7: \t"+tr("show messages") +"\n\n";
+
     text += tr("Selection menu:") +"\n\n";
-    text += tr("F8: move mode / selection mode") +"\n";
-    text += tr("    - Left click : add a point to polyline") +"\n";
-    text += tr("    - Right click: close polyline") +"\n";
-    text += tr("    - Echap: delete polyline") +"\n";
-    text += tr("    - Space bar: add points/pixels inside polyline") +"\n";
-    text += tr("    - Del: remove points/pixels inside polyline") +"\n";
-    text += tr("    - Inser: insert point in polyline") +"\n";
-    text += tr("    - . : delete closest point in polyline") +"\n";
-    text += tr("    - Ctrl+A: select all") +"\n";
-    text += tr("    - Ctrl+D: select none") +"\n";
-    text += tr("    - Ctrl+R: undo all past selections") +"\n";
-    text += tr("    - Ctrl+I: invert selection") +"\n";
+    text += "F8: \t"+tr("move mode / selection mode") +"\n\n";
+    text += tr("    - Left click : \tadd a point to polyline") +"\n";
+    text += tr("    - Right click: \tclose polyline") +"\n";
+    text += tr("    - Echap: \t\tdelete polyline") +"\n";
+    text += tr("    - Space bar: \tadd points/pixels inside polyline") +"\n";
+    text += tr("    - Del: \t\tremove points/pixels inside polyline") +"\n";
+    text += tr("    - Inser: \t\tinsert point in polyline") +"\n";
+    text += tr("    - Key \".\" : \t\tdelete closest point in polyline") +"\n";
+    text += "    - Ctrl+A: \t\t"+tr("select all") +"\n";
+    text += "    - Ctrl+D: \t\t"+tr("select none") +"\n";
+    text += "    - Ctrl+R: \t\t"+tr("undo all past selections") +"\n";
+    text += "    - Ctrl+I: \t\t"+tr("invert selection") +"\n";
 
     QMessageBox::information(NULL, tr("Saisie - shortcuts"), text);
 }
@@ -420,6 +471,27 @@ void MainWindow::setRightView()
     m_glWidget->setView(RIGHT_VIEW);
 }
 
+//zoom
+void MainWindow::zoomPlus()
+{
+    m_glWidget->setZoom(m_glWidget->getParams()->zoom*1.5f);
+}
+
+void MainWindow::zoomMoins()
+{
+    m_glWidget->setZoom(m_glWidget->getParams()->zoom/1.5f);
+}
+
+void MainWindow::zoomFit()
+{
+    m_glWidget->zoomFit();
+}
+
+void MainWindow::zoomFactor(int aFactor)
+{
+    m_glWidget->zoomFactor(aFactor);
+}
+
 void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
 {
     GLWidget* sendingWindow = dynamic_cast<GLWidget*>(sender());
@@ -474,7 +546,7 @@ void MainWindow::exportMasks()
 {
     if (m_Engine->getData()->NbImages())
     {
-        m_Engine->doMaskImage(m_glWidget->getGLImage());
+        m_Engine->doMaskImage(m_glWidget->getGLMask());
     }
     else
     {
@@ -488,7 +560,7 @@ void MainWindow::exportMasksAs()
 
     if (m_Engine->getData()->NbImages())
     {
-        m_Engine->doMaskImage(m_glWidget->getGLImage());
+        m_Engine->doMaskImage(m_glWidget->getGLMask());
     }
     else
     {
@@ -588,6 +660,21 @@ void MainWindow::setMode2D(bool mBool)
     ui->actionShow_bounding_box->setVisible(!mBool);
 
     ui->menuStandard_views->menuAction()->setVisible(!mBool);
+
+    //pour activer/desactiver les raccourcis clavier
+
+    ui->actionLoad_plys->setEnabled(!mBool);
+    ui->actionLoad_camera->setEnabled(!mBool);
+    ui->actionShow_cams->setEnabled(!mBool);
+    ui->actionShow_axis->setEnabled(!mBool);
+    ui->actionShow_ball->setEnabled(!mBool);
+    ui->actionShow_bounding_box->setEnabled(!mBool);
 }
+
+void  MainWindow::setGamma(float aGamma)
+{
+    m_glWidget->getParams()->setGamma(aGamma);
+}
+
 
 

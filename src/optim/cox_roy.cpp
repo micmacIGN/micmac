@@ -1274,6 +1274,49 @@ cInterfaceCoxRoyAlgo * cInterfaceCoxRoyAlgo::NewOne
                            bool  OnUChar
                        )
 {
+
+   bool VerifCxn = false;
+   if (VerifCxn)
+   {
+       int aNbV = Cx8 ? 8  : 4;
+       Pt2di  * aTabV =  Cx8 ? TAB_8_NEIGH : TAB_4_NEIGH;
+       int aMinInterv = 100000;
+
+       for (int aX1=0 ; aX1<xsz ; aX1++)
+       {
+           for (int aY1=0 ; aY1<ysz ; aY1++)
+           {
+                for (int aKV = 0 ; aKV < aNbV ; aKV++)
+                {
+                     int aX2 = aX1 + aTabV[aKV].x;
+                     int aY2 = aY1 + aTabV[aKV].y;
+                     if ((aX2>=0) && (aX2<xsz) && (aY2>=0) && (aY2<ysz))
+                     {
+                        int aZMin1 = aDataZmin[aY1][aX1];
+                        int aZMin2 = aDataZmin[aY2][aX2];
+                        int aZMinInter = ElMax(aZMin1,aZMin2);
+
+                        int aZMax1 = aDataZmax[aY1][aX1];
+                        int aZMax2 = aDataZmax[aY2][aX2];
+                        int aZMaxInter = ElMin(aZMax1,aZMax2);
+
+                        int aSzInterv = aZMaxInter-aZMinInter;
+
+                        ElSetMin(aMinInterv,aSzInterv);
+
+                        if (aSzInterv<=0)
+                        {
+                             std::cout << aZMinInter << " " << aZMaxInter << "\n";
+                             ELISE_ASSERT(false," Bad Conx in Cox Roy");
+                        }
+                     }
+                }
+           }
+       }
+       std::cout << "Verif CX done " << aMinInterv << "\n";
+   }
+
+
    if (OnUChar)
    {
        if (Cx8)

@@ -50,6 +50,8 @@ public:
     //! Set data to display
     void setData(cData* data);
 
+    cData* getData() {return m_Data;}
+
     //! Interaction mode (with the mouse!)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
                             SELECTION
@@ -80,6 +82,10 @@ public:
 
     //! Sets current zoom
     void setZoom(float value);
+
+    void zoomFit();
+
+    void zoomFactor(int percent);
 
     //! Switch between move mode and selection mode
     void setInteractionMode(INTERACTION_MODE mode);
@@ -139,10 +145,13 @@ public:
 
     void WindowToImage(QPointF const &p0, QPointF &p1);
 
-    QImage* getGLImage(){return &_glImg;}
+    QImage* getGLMask(){return _mask;}
 
-    void setMask(QImage const &mask);
+    ViewportParameters* getParams(){return &m_params;}
 
+    void applyGamma(float aGamma);
+
+    void glWinQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw);
 public slots:
     void zoom();
 
@@ -201,6 +210,9 @@ protected:
     int m_glWidth;
     //! GL context height
     int m_glHeight;
+
+    //! GL context aspect ratio m_glWidth/m_glHeight
+    float m_glRatio;
 
     //! ratio between GL context size and image size
     float m_rw, m_rh;
@@ -319,7 +331,9 @@ private:
     QTime       _time;
 
     QImage      _glImg;
-    QImage      _mask;
+    QImage      *_mask;
+    GLdouble    _projmatrix[16];
+    QPoint      _m_lastPosZoom;
 };
 
 #endif  /* _GLWIDGET_H */

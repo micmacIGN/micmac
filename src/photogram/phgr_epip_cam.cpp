@@ -405,8 +405,8 @@ cCpleEpip::cCpleEpip
 
    if (1)
    {
-      Pt3dr aP1 =  aC1.ImEtProf2Terrain(Pt2dr(aC1.Sz()/2),aC1.GetProfondeur());
-      Pt3dr aP2 =  aC2.ImEtProf2Terrain(Pt2dr(aC2.Sz()/2),aC2.GetProfondeur());
+      Pt3dr aP1 =  aC1.ImEtProf2Terrain(Pt2dr(aC1.Sz()/2),aC1.GetRoughProfondeur());
+      Pt3dr aP2 =  aC2.ImEtProf2Terrain(Pt2dr(aC2.Sz()/2),aC2.GetRoughProfondeur());
       Pt3dr aP = (aP1+aP2) / 2.0;
  
       Pt2dr aPI1 = mCamOut1.R3toF2(aP);
@@ -459,17 +459,22 @@ template <class Type,class TypeBase>
              Box2di  aBoxOut
          )
 {
+
    INT aRab = 10;
    Pt2di aPRab(aRab,aRab);
    Box2di aBoxIn = R2I(GlobBoxCam(I2R(aBoxOut),aCamOut,aCamIn));
    aBoxIn._p0 = Sup(Pt2di(0,0),aBoxIn._p0-aPRab);
    aBoxIn._p1 = Inf(aTIn.sz(),aBoxIn._p1+aPRab);
    Pt2di aSzIn = aBoxIn.sz();
+   if  ((aSzIn.x <=0) || (aSzIn.y <=0))
+       return;
    Pt2di aSzOut = aBoxOut.sz();
 
    int aNbChan = aTIn.nb_chan();
 
 
+   Im2D_Bits<1> aImMasqOut(aSzOut.x,aSzOut.y);
+   TIm2DBits<1> aTMasqOut(aImMasqOut);
 
    std::vector<tTIm> aVIn;
    std::vector<Type**> aDataIn;
@@ -514,7 +519,7 @@ template <class Type,class TypeBase>
     }
     else if (1)
     {
-       aKern = new cTplCIKTabul<Type,TypeBase>(10,8,-0.5);
+       aKern = new cTplCIKTabul<Type,TypeBase>(7,8,-0.5);
     }
 
     double aSzK = aKern->SzKernel();
@@ -529,6 +534,7 @@ template <class Type,class TypeBase>
        for (int anY=0; anY<aSzOut.y ; anY++)
        {
 
+            Pt2di aPOut(anX,anY);
             Pt2dr aPIm(aTImX.getr(aPR),aTImY.getr(aPR));
             bool Ok =    (aPIm.x > aSzK)
                       && (aPIm.y > aSzK)
@@ -537,15 +543,26 @@ template <class Type,class TypeBase>
 
      
 
+            aTMasqOut.oset(aPOut,Ok);
             for (int aKC=0 ; aKC<aNbChan ; aKC++)
             {
                 double aVal =  Ok ?  aKern->GetVal(aDataIn[aKC],aPIm) : 0 ;
-                aVOut[aKC].oset(Pt2di(anX,anY),aVal);
-                
+                aVOut[aKC].oset(aPOut,aVal);
             }
             aPR.y += UnSPas;
        }
     }
+
+    std::string aNameMasq = AddPrePost(aTOut.name(),"","_Masq");
+    Tiff_Im  aTifM(aNameMasq.c_str());
+    ELISE_COPY
+    (
+         rectangle(aBoxOut._p0,aBoxOut._p1),
+         trans(aImMasqOut.in(),-aBoxOut._p0),
+         aTifM.out()
+    );
+
+
     ELISE_COPY
     (
          rectangle(aBoxOut._p0,aBoxOut._p1),
@@ -623,7 +640,7 @@ int CreateBlockEpip_main(int argc,char ** argv)
 
 void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1)
 {
-    bool ByP= true;
+    bool ByP= true; /// std::cout << "Nnnnnnnnnnnnnnnnnnnnnoo process \n";
     bool ImLeft = mFirstIsLeft ? Im1 : (!Im1) ;
     std::string  aNameImOut = mDir + "Epi_" + std::string(Im1 ? "Im1_" : "Im2_") + (ImLeft ? mPrefLeft : mPrefRight  ) +   mNamePair + ".tif";
 
@@ -638,8 +655,8 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1)
     // std::cout << "ORI = " << mDir << " " << mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-Epi",NameWithoutDir(aNameImOut),true) << "\n";
     cOrientationConique anOC = aCamOut.StdExportCalibGlob();
     MakeFileXML(anOC,mDir+aNameOriOut);
-    CamStenope * aCTEST = CamOrientGenFromFile(aNameOriOut,mICNM);
-    std::cout << "TTTTT " << aCTEST->Focale() << "\n";
+    // CamStenope * aCTEST = CamOrientGenFromFile(aNameOriOut,mICNM);
+    // std::cout << "TTTTT " << aCTEST->Focale() << "\n";
 
 
     GenIm::type_el aTypeNOut =  aTIn.type_el();
@@ -651,10 +668,22 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1)
                   Tiff_Im::No_Compr,
                   aTIn.phot_interp()
             );
+    ELISE_COPY(aTOut.all_pts(),0,aTOut.out());
+
+   std::string aNameMasq = AddPrePost(aNameImOut,"","_Masq");
+   Tiff_Im  aTMasq
+            (
+                  aNameMasq.c_str(),
+                  aSzOut,
+                  GenIm::bits1_msbf,
+                  Tiff_Im::No_Compr,
+                  Tiff_Im::BlackIsZero
+            );
+    ELISE_COPY(aTMasq.all_pts(),0,aTMasq.out());
 
 
 
-    cDecoupageInterv2D  aDec = cDecoupageInterv2D::SimpleDec(aSzOut,2000,0);
+    cDecoupageInterv2D  aDec = cDecoupageInterv2D::SimpleDec(aSzOut,2000,0,8);
     std::list<std::string> aLCom;
 
     for (int aK=0 ; aK<aDec.NbInterv() ; aK++)

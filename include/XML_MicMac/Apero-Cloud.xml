@@ -52,11 +52,13 @@
 
 
         <SectionChantier>
+             <IsAperiCloud> true </IsAperiCloud>  
 	     <DirectoryChantier> ThisDir </DirectoryChantier>
         </SectionChantier>
 
         <SectionSolveur>
 	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+              <LimModeGL >  -1  </LimModeGL>
         </SectionSolveur>
 
 

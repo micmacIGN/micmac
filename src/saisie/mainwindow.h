@@ -11,6 +11,7 @@
 #include <QtConcurrentRun>
 #include <QProgressDialog>
 #include <QTimer>
+#include <QSignalMapper>
 
 #include "GLWidget.h"
 #include "Engine.h"
@@ -37,6 +38,8 @@ public:
 
     //! Checks for loaded data
     bool checkForLoadedData();
+
+    void setPostFix(QString str);
 
 public slots:
 
@@ -72,6 +75,12 @@ public slots:
     void setLeftView();
     void setRightView();
 
+    //zoom
+    void zoomPlus();
+    void zoomMoins();
+    void zoomFit();
+    void zoomFactor(int aFactor );
+
     void echoMouseWheelRotate(float);
 
     void loadPlys();
@@ -89,6 +98,10 @@ public slots:
 
     void setMode2D(bool mBool);
     bool getMode2D() {return m_bMode2D;}
+
+    cEngine* getEngine(){return m_Engine;}
+
+	void setGamma(float aGamma);
 
 protected:
 

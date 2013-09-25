@@ -5906,6 +5906,17 @@ void xml_init(cTimeLinkage & anObj,cElXMLTree * aTree)
 }
 
 
+cTplValGesInit< bool > & cSectionChantier::IsAperiCloud()
+{
+   return mIsAperiCloud;
+}
+
+const cTplValGesInit< bool > & cSectionChantier::IsAperiCloud()const 
+{
+   return mIsAperiCloud;
+}
+
+
 cTplValGesInit< std::string > & cSectionChantier::FileSauvParam()
 {
    return mFileSauvParam;
@@ -6107,6 +6118,8 @@ cElXMLTree * ToXMLTree(const cSectionChantier & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionChantier",eXMLBranche);
+   if (anObj.IsAperiCloud().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("IsAperiCloud"),anObj.IsAperiCloud().Val())->ReTagThis("IsAperiCloud"));
    if (anObj.FileSauvParam().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("FileSauvParam"),anObj.FileSauvParam().Val())->ReTagThis("FileSauvParam"));
    if (anObj.GenereErreurOnContraineCam().IsInit())
@@ -6150,6 +6163,8 @@ void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
 {
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+
+   xml_init(anObj.IsAperiCloud(),aTree->Get("IsAperiCloud",1),bool(false)); //tototo 
 
    xml_init(anObj.FileSauvParam(),aTree->Get("FileSauvParam",1)); //tototo 
 
@@ -14930,6 +14945,17 @@ cSectionInconnues & cParamApero::SectionInconnues()
 const cSectionInconnues & cParamApero::SectionInconnues()const 
 {
    return mSectionInconnues;
+}
+
+
+cTplValGesInit< bool > & cParamApero::IsAperiCloud()
+{
+   return SectionChantier().IsAperiCloud();
+}
+
+const cTplValGesInit< bool > & cParamApero::IsAperiCloud()const 
+{
+   return SectionChantier().IsAperiCloud();
 }
 
 

@@ -2028,6 +2028,9 @@ class cSectionChantier
         friend void xml_init(cSectionChantier & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< bool > & IsAperiCloud();
+        const cTplValGesInit< bool > & IsAperiCloud()const ;
+
         cTplValGesInit< std::string > & FileSauvParam();
         const cTplValGesInit< std::string > & FileSauvParam()const ;
 
@@ -2082,6 +2085,7 @@ class cSectionChantier
         cTplValGesInit< double > & ThresholdWarnPointsBehind();
         const cTplValGesInit< double > & ThresholdWarnPointsBehind()const ;
     private:
+        cTplValGesInit< bool > mIsAperiCloud;
         cTplValGesInit< std::string > mFileSauvParam;
         cTplValGesInit< bool > mGenereErreurOnContraineCam;
         cTplValGesInit< double > mProfSceneChantier;
@@ -4935,6 +4939,9 @@ class cParamApero
 
         cSectionInconnues & SectionInconnues();
         const cSectionInconnues & SectionInconnues()const ;
+
+        cTplValGesInit< bool > & IsAperiCloud();
+        const cTplValGesInit< bool > & IsAperiCloud()const ;
 
         cTplValGesInit< std::string > & FileSauvParam();
         const cTplValGesInit< std::string > & FileSauvParam()const ;

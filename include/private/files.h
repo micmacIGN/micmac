@@ -2119,6 +2119,29 @@ StdGetObjFromFile<c##aObj>\
         #aObj \
      )
 
+
+#define StdGetFromMM(aStr,aObj)\
+StdGetObjFromFile<c##aObj>\
+    (\
+    aStr,\
+        StdGetFileXMLSpec("ParamMICMAC.xml"),\
+        #aObj ,\
+        #aObj \
+     )
+
+#define StdGetFromAp(aStr,aObj)\
+StdGetObjFromFile<c##aObj>\
+    (\
+    aStr,\
+        StdGetFileXMLSpec("ParamApero.xml"),\
+        #aObj ,\
+        #aObj \
+     )
+
+
+
+
+
 // Par ex :    cFileOriMnt aFileZ = StdGetFromPCP(aStrZ,FileOriMnt);
 
 

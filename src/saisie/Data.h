@@ -25,10 +25,10 @@ class cData
         void clearImages();
         void clearMasks();
 
-        int NbCameras(){return m_Cameras.size();}
-        int NbClouds(){return m_Clouds.size();}
-        int NbImages(){return m_Images.size();}
-        int NbMasks(){return  m_Masks.size();}
+        int NbCameras() {return m_Cameras.size();}
+        int NbClouds()  {return m_Clouds.size();}
+        int NbImages()  {return m_Images.size();}
+        int NbMasks()   {return m_Masks.size();}
 
         CamStenope * & getCamera(int aK) {return m_Cameras[aK];}
         Cloud * &      getCloud(int aK)  {return m_Clouds[aK];}
@@ -56,5 +56,7 @@ class cData
         vector <QImage *>     m_Masks;
 
         int                   m_curImgIdx;
+
+        float                 _gamma;
 };
 #endif // DATA_H

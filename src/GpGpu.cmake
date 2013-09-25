@@ -24,7 +24,7 @@ set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -lineinfo)
           endif()
  endif()
 
- if(NOT ${CUDA_ENABLED})
+ #if(NOT ${CUDA_ENABLED})
 
      set(TestExeGpGpuOpt TestGpGpuOpt)
      cuda_add_executable(${TestExeGpGpuOpt} ${uti_Test_Opt_GpGpu_Src_Files})
@@ -36,7 +36,7 @@ set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -lineinfo)
      endif()
      INSTALL(TARGETS ${TestExeGpGpuOpt} RUNTIME DESTINATION ${Install_Dir})
 
- endif()
+ #endif()
 
  link_directories(${PROJECT_SOURCE_DIR}/lib/)
 

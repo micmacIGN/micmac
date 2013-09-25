@@ -183,7 +183,8 @@ void Vignette_correct(string aDir, GrpVodka aGrpVodka,string aDirOut, string InC
 		char foc[5],dia[4];
 		sprintf(foc, "%04d", int(aGrpVodka.foc));
 		sprintf(dia, "%03d", int(10*aGrpVodka.diaph));
-		string aNameVignette="Foc" + (string)foc + "Diaph" + (string)dia + ".tif";
+		string aNameVignette="Foc" + (string)foc + "Diaph" + (string)dia + "-FlatField.tif";
+		//string aNameVignette = "Foc"+ ToString(round_ni(aGrpVodka.foc)) + "Diaph" + ToString(round_ni(10*aGrpVodka.diaph)) + "-FlatField.tif";
 		Tiff_Im aTFV= Tiff_Im::StdConvGen(aDir + InCal + aNameVignette,1,false);
 		Pt2di aSz = aTFV.sz();
 
@@ -201,8 +202,9 @@ void Vignette_correct(string aDir, GrpVodka aGrpVodka,string aDirOut, string InC
 	//Correcting images
 	int nbIm=aGrpVodka.size();
 
-#pragma omp parallel for
-
+#ifdef USE_OPEN_MP
+    #pragma omp parallel for
+#endif
     for(int i=0;i<nbIm;i++)
 	{
 		string aNameIm=aGrpVodka.aListIm[i];
@@ -459,6 +461,7 @@ vector<GrpVodka> Make_Grp(std::string aDir, std::string InCal, std::vector<std::
 
 	//Read InCal
 	if (InCal!=""){
+		//string aPatVignette="Foc[0-9]{1,6}Diaph[0-9]{1,6}-FlatField.tif";
 		string aPatVignette="Foc[0-9]{4}Diaph[0-9]{3}.tif";
 		list<string> aSetVignette=RegexListFileMatch(aDir + InCal,aPatVignette,1,false);
 		unsigned nbInCal=aSetVignette.size();
@@ -558,7 +561,7 @@ int  Vignette_main(int argc,char ** argv)
 						sprintf(foc, "%04d", int(aVectGrpVodka[i].foc));
 						sprintf(dia, "%03d", int(10*aVectGrpVodka[i].diaph));
 						
-				   string aNameOut="Foc" + (string)foc + "Diaph" + (string)dia + ".tif";
+				   string aNameOut="Foc" + (string)foc + "Diaph" + (string)dia + "-FlatField.tif";
 
 				   Write_Vignette(aDir, aNameOut, aParam, aDirOut, aPtsHomol.SZ);
 

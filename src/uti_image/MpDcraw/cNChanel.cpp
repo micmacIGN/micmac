@@ -178,8 +178,11 @@ void  cNChannel::Split(const cArgMpDCRaw & anArg,const std::string & aPost,Tiff_
 Fonc_Num  cArgMpDCRaw::FlatField(const cMetaDataPhoto & aMDP,const std::string & aNameFile)
 {
    double aZoomFF = 10.0;
-
-   std::string aNameFF = DirOfFile(aNameFile)+ "Foc"+ ToString(round_ni(aMDP.FocMm(true))) + "-FlatField.tif";
+   		char foc[5],dia[4];
+		sprintf(foc, "%04d", int(round_ni(aMDP.FocMm(true))));
+		sprintf(dia, "%03d", int(10*round_ni(aMDP.Diaph(true))));
+		std::string aNameFF="Foc" + (string)foc + "Diaph" + (string)dia + "-FlatField.tif";
+   //std::string aNameFF = DirOfFile(aNameFile)+ "Foc"+ ToString(round_ni(aMDP.FocMm(true))) + "Diaph" + ToString(10*round_ni(aMDP.Diaph(true))) + "-FlatField.tif";
   
 // std::cout <<  "TESTT FFFFFFF\n";
    if ((!ELISE_fp::exist_file(aNameFF)) || (! UseFF()))
@@ -207,7 +210,11 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
 
    bool HasFlF=false;
    Im2D_REAL4 aFlF(1,1);
-   std::string aNameFF = DirOfFile(aNameFile)+ "Foc"+ ToString(round_ni(aMDP.FocMm())) + "-FlatField.tif";
+      	char foc[5],dia[4];
+		sprintf(foc, "%04d", int(round_ni(aMDP.FocMm(true))));
+		sprintf(dia, "%03d", int(10*round_ni(aMDP.Diaph(true))));
+		std::string aNameFF="Foc" + (string)foc + "Diaph" + (string)dia + "-FlatField.tif";
+   //std::string aNameFF = DirOfFile(aNameFile)+ "Foc"+ ToString(round_ni(aMDP.FocMm())) + "Diaph" + ToString(round_ni(10*aMDP.Diaph(true))) + "-FlatField.tif";
    // Pas de FF en coul pour l'insntnt
    if (ELISE_fp::exist_file(aNameFF) && anArg.UseFF() &&  (!  anArg.Cons16B()))
 

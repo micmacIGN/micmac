@@ -79,7 +79,7 @@ void cData::reset()
     m_minX = m_minY = m_minZ    = FLT_MAX;
     m_maxX = m_maxY = m_maxZ    = -FLT_MAX;
     m_cX = m_cY = m_cZ = m_diam = 0.f;
-    m_curImgIdx = 0;
+    m_curImgIdx = 0;    
 }
 
 int cData::getSizeClouds()
@@ -91,10 +91,9 @@ int cData::getSizeClouds()
     return sizeClouds;
 }
 
+//compute bounding box
 void cData::getBB(Cloud * aCloud)
 {  
-    //compute bounding box
-
     for (int aK=0; aK < aCloud->size(); ++aK)
     {
         Vertex vert = aCloud->getVertex(aK);

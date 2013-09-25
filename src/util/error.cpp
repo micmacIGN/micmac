@@ -269,6 +269,7 @@ cElWarning cElWarning::CamInxifAndMM("Camera name specified both by xif and NKS-
 cElWarning  cElWarning::GeomIncompAdaptF2Or("Geometrie incompatible Cible/Xml, AdaptFoncFileOriMnt");
 cElWarning cElWarning::GeomPointTooManyMeasured("Too many measuremnt, excess will be ignored");
 cElWarning cElWarning::ToVerifNuage("The point verification point in nuage where not coherents");
+cElWarning cElWarning::TrueRot("Non rotation matrix has been used as a rotation");
 
 
 cElWarning cElWarning::OrhoLocOnlyXCste("For now RedrLocAnam only workx with X=Cst Anamorphose");
