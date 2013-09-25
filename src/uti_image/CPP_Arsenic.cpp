@@ -241,11 +241,11 @@ vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm,string Extension, string I
 						vector<Pt2dr> pos2DOtherIm(nbIm);
 						for (int aK2=0 ; aK2<int(nbIm) ; aK2++)
 						{
-							if (aK1!=aK2)
+							if (aK1!=aK2 && aGrIm[aK2].info3D->PIsVisibleInImage(pos3DPtIm1))
 							{
 							Pt2dr pos2DPtIm2=aGrIm[aK2].info3D->Ter2Capteur(pos3DPtIm1);
 							//if pt in image and in masq, go look for 2D position, then 3D position
-							if(	pos2DPtIm2.x>0 && pos2DPtIm2.x<aGrIm[aK2].SZ.x && pos2DPtIm2.y>0 && pos2DPtIm2.y<aGrIm[aK2].SZ.y){
+							if(pos2DPtIm2.x>0 && pos2DPtIm2.x<aGrIm[aK2].SZ.x && pos2DPtIm2.y>0 && pos2DPtIm2.y<aGrIm[aK2].SZ.y){
 										if(aGrIm[aK2].Mask.data()[int(pos2DPtIm2.y)][int(pos2DPtIm2.x)]){
 											pos2DOtherIm[aK2]=pos2DPtIm2;
 											Pt3d<double> pos3DPtIm2=aGrIm[aK2].info3D->PreciseCapteur2Terrain(pos2DPtIm2);
