@@ -225,56 +225,86 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost &)
 
     float ** aDataIm0 =  anI0.VDataIm()[0];
     float ** aDataIm1 =  anI1.VDataIm()[0];
-    cInterpolateurIm2D<float> * anInt = CurEtape()->InterpFloat();
-
-
+    // cInterpolateurIm2D<float> * anInt = CurEtape()->InterpFloat();
 
     
-    for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+
+    // La phase code le decalage sub pixel, on impose un pas en 1/N pour n'avoir que N image 
+    // interpolee a creer
+    for (int aPhase = 0 ; aPhase<mNbByPix ; aPhase++)
     {
-        for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+        int aPhaseCompl = mNbByPix - aPhase;
+        for (int aK=0 ; aK<int(mBufCensusIm2.size()) ; aK++)
         {
-               Pt2di aPIm0 = Pt2di(anX,anY) + anOff0;
-               bool OkIm0 = anI0.IsOkErod(aPIm0.x,aPIm0.y);
+            float ** aDataIm1 = anI1.VDataIm()[aK]; 
+            float ** aDataC   = mDataBufC[aK];
+            Pt2di aSz = mBufCensusIm2[aK].sz();
+
+            for (int anY = 0 ; anY < aSz.y ; anY++)
+            {
+                 float * aL1 = aDataIm1[anY] ;
+                 float * aC1 = aDataC[anY] ;
+                 if (aPhase!=0)
+                 {
+                    int aNbX = aSz.x-1;
+                    for (int anX=0 ; anX<aNbX ; anX++)
+                    {
+                        *aC1 =  (aPhase * aL1[1] + aPhaseCompl*aL1[0]) / mNbByPix;
+                        aL1++;
+                        aC1++;
+                    }
+                }
+                else
+                {
+                   memcpy(aC1,aL1,sizeof(*aC1)*aSz.x);
+                }
+            }
+
+        }
+        float ** aDataC =  mDataBufC[0];
+
+        for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+        {
+            for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+            {
+                Pt2di aPIm0 = Pt2di(anX,anY) + anOff0;
+                bool OkIm0 = anI0.IsOkErod(aPIm0.x,aPIm0.y);
+                int aZ0 =  mTabZMin[anY][anX];
+                int aZ1 =  mTabZMax[anY][anX];
 
 
-               int aZ0 =  mTabZMin[anY][anX];
-               int aZ1 =  mTabZMax[anY][anX];
-               for (int aZI=aZ0; aZI< aZ1 ; aZI++)
-               {
-                   double aZR = aZI * aStepPix;
-                   double aCost = mAhDefCost;
-                   if (OkIm0)
-                   {
-                       Pt2dr aPIm1 = Pt2dr(anX,anY) + Pt2dr(anOff1) + Pt2dr(aZR,0);
-                       if (anI1.IsOkErod(round_down(aPIm1.x),round_down(aPIm1.y)))
-                       {
-                            // double aC2 = CorrelBasic(aDataIm0,aPIm0,aDataIm1,anX+anOff1.x+aZR,anY+anOff1.y,mCurSzVMax,mAhEpsilon);
-                            // double aC2 = CensusBasic(aDataIm0,aPIm0,aDataIm1,anX+anOff1.x+aZR,anY+anOff1.y,mCurSzVMax,mAhEpsilon);
-                            double aC2 = CensusGraphe(aDataIm0,aPIm0,aDataIm1,anX+anOff1.x+aZR,anY+anOff1.y,mCurSzVMax,mAhEpsilon);
-/*
-                            RMat_Inertie aMat;
-                            for (int aDx = -mCurSzVMax.x ; aDx <= mCurSzVMax.x ; aDx++)
+
+                while (mod(aZ0,mNbByPix) != aPhase) aZ0++;
+                int anOffset = Elise_div(aZ0,mNbByPix);
+
+                for (int aZI=aZ0 ; aZI< aZ1 ; aZI+=mNbByPix)
+                {
+                        double aZR = aZI * aStepPix;
+                        double aCost = mAhDefCost;
+                        if (OkIm0)
+                        {
+                            Pt2dr aPIm1 = Pt2dr(anX,anY) + Pt2dr(anOff1) + Pt2dr(aZR,0);
+                            if (anI1.IsOkErod(round_down(aPIm1.x),round_down(aPIm1.y)))
                             {
-                                for (int aDy = -mCurSzVMax.y ; aDy <= mCurSzVMax.y ; aDy++)
-                                {
-                                     Pt2dr aPV(aDx,aDy);
-                                     Pt2dr aPV0 = Pt2dr(aPIm0) + aPV;
-                                     Pt2dr aPV1 = Pt2dr(aPIm1) + aPV;
-                                     double aV0 = anInt->GetVal(aDataIm0,aPV0);
-                                     double aV1 = anInt->GetVal(aDataIm1,aPV1);
-                                     aMat.add_pt_en_place(aV0,aV1);
-                                }
+                               aCost = CensusGraphe(aDataIm0,aPIm0,aDataIm1,anX+anOff1.x+aZR,anY+anOff1.y,mCurSzVMax,mAhEpsilon);
+                               aCost = mStatGlob->CorrelToCout(aCost);
+// std::cout << "GGGG " << aCost << "\n";
+
+ if (1)
+{
+     cQckInterpolEpip aQI2(anX+anOff1.x+aZR);
+     float aValStd = aQI2.GetVal(aDataIm1,Pt2di(0,anY+anOff1.y));
+     float aValNew = aDataC[anY+anOff1.y][anX+anOff1.x+anOffset];
+     // std::cout << "VALS TESTT " << aValStd << " " << aValNew << "\n";
+     ELISE_ASSERT(ElAbs(aValStd-aValNew)<1e-5,"Coojjeellllmm");
+}
                             }
-                            double aC1 = aMat.correlation(mAhEpsilon);
-*/
-                            //std::cout << "COSTE " << aC1 << " " << aC2 << "\n";
-                            aCost = mStatGlob->CorrelToCout(aC2);
-                             // aCost = mStatGlob->CorrelToCout(aC2);
-                       }
-                   }
-                   mSurfOpt->SetCout(Pt2di(anX,anY),&aZI,aCost);
-               }
+                        }
+                        mSurfOpt->SetCout(Pt2di(anX,anY),&aZI,aCost);
+                        anOffset++;
+// std::cout << "ZZZZ " << aZI << " " << aCost << "\n";
+                }
+             }
         }
     }
 
