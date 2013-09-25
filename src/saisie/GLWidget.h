@@ -332,7 +332,10 @@ private:
 
     QImage      _glImg;
     QImage      *_mask;
-    GLdouble    _projmatrix[16];
+    GLdouble    *_mvmatrix;
+    GLdouble    *_projmatrix;
+    GLint       *_viewport;
+
     QPoint      _m_lastPosZoom;
 };
 
