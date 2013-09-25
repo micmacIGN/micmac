@@ -103,6 +103,9 @@ int MMTestOrient_main(int argc,char ** argv)
     );
 
 
+    if (!EAMIsInit(&mModePB))
+      mModePB = EAMIsInit(&mModeOri);
+
     std::string aFullModeOri = "eGeomImageOri";
     if (mModePB)
     {

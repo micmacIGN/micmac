@@ -1869,6 +1869,7 @@ void cEtapeMecComp::RemplitXMLNuage
    {
       mAppli.PDV1()->Geom().RemplitOriXMLNuage
       (
+          false,
           aMTD.Val(),
           mGeomTer,
           aNuage,

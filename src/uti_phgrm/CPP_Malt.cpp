@@ -193,6 +193,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
   Box2dr aBoxClip;
   
+  bool mModePB = false;
+  std::string mModeOri;
+
 
   std::string aMode;
   ElInitArgMain
@@ -240,7 +243,27 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
                     << EAM(mEZA,"EZA",true,"Export Z Absolute")
                     << EAM(mEquiv,"Equiv",true,"Equivalent classes, as a set of pattern, def=None")
+                    << EAM(mModeOri,"MOri",true,"Mode Orientation (GRID or RTO) if not XML frame camera")
+
   );
+
+
+  std::string mFullModeOri;
+  mModePB = EAMIsInit(&mModeOri);
+  if (mModePB)
+  {
+     ELISE_ASSERT(EAMIsInit(&mModeOri) , "MOri is Mandatory in PB");
+     ELISE_ASSERT(EAMIsInit(&mZMoy)    , "ZMoy is Mandatory in PB");
+     ELISE_ASSERT(EAMIsInit(&mZincCalc)    , "ZInc is Mandatory in PB");
+     ELISE_ASSERT(EAMIsInit(&mZoomInit)    , "ZoomI is Mandatory in PB");
+
+     if (mModeOri=="GRID")     mFullModeOri= "eGeomImageGrille";
+     else if (mModeOri=="RTO") mFullModeOri= "eGeomImageRTO";
+     else  {ELISE_ASSERT(false,"Unknown mode ori");}
+
+  }
+
+
 
   mUseRR = EAMIsInit(&mRoundResol);
 
@@ -302,31 +325,35 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   double aSomZM = 0;
   int    aNbZM = 0;
 
-  for (int aKIm = 0; aKIm<mNbIm ; aKIm++)
+  if (! mModePB)
   {
-     const std::string & aNameIm = (*mSetIm)[aKIm];
-     std::string aNameOri =  mICNM->Assoc1To1(aKeyOri,aNameIm,true);
+     for (int aKIm = 0; aKIm<mNbIm ; aKIm++)
+     {
+        const std::string & aNameIm = (*mSetIm)[aKIm];
+        std::string aNameOri =  mICNM->Assoc1To1(aKeyOri,aNameIm,true);
       
       //ToDo: Faire evoluer ce code pour pouvoir gerer d'autres type d'orientation (Grille et RTO).
       // utilisation d'une ElCamera (avec cCameraModuleOrientation pour le cas des ModuleOrientation)
       
-     CamStenope *  aCS = CamOrientGenFromFile(aNameOri,mICNM);
+        CamStenope *  aCS = CamOrientGenFromFile(aNameOri,mICNM);
 
-     if (aCS->AltisSolIsDef())
-     {
-        aSomZM += aCS->GetAltiSol();
-        aNbZM++;
-     }
+        if (aCS->AltisSolIsDef())
+        {
+           aSomZM += aCS->GetAltiSol();
+           aNbZM++;
+        }
 
-     Pt2di aCorns[4];
-     Box2di aBx(Pt2di(0,0), aCS->Sz());
-     aBx.Corners(aCorns);
-     Pt2dr aP0(0,0);
-     for (int aKC=0 ; aKC< 4 ; aKC++)
-        aP0.SetSup(aCS->OrGlbImaM2C(Pt2dr(aCorns[aKC])));
+        Pt2di aCorns[4];
+        Box2di aBx(Pt2di(0,0), aCS->Sz());
+        aBx.Corners(aCorns);
+        Pt2dr aP0(0,0);
+        for (int aKC=0 ; aKC< 4 ; aKC++)
+           aP0.SetSup(aCS->OrGlbImaM2C(Pt2dr(aCorns[aKC])));
 
      
-     mSzGlob = mSzGlob + aP0;
+        mSzGlob = mSzGlob + aP0;
+     }
+     mSzGlob = mSzGlob / double(mNbIm);
   }
   
   bool ZMoyInit = EAMIsInit(&mZMoy) ;
@@ -340,7 +367,6 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       }
   }
-  mSzGlob = mSzGlob / double(mNbIm);
 
   bool IsOrthoXCSte = false;
   mRepIsAnam = (mRep!="") && RepereIsAnam(mDir+mRep,IsOrthoXCSte);
@@ -432,7 +458,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                  ;
 
 
-  std::string aNameGeom = (mImMaster=="") ? "eGeomMNTEuclid" : (mIsSperik? "eGeomMNTFaisceauPrChSpherik" :"eGeomMNTFaisceauIm1PrCh_Px1D");
+  std::string aNameGeom = (mImMaster=="") ? 
+                          "eGeomMNTEuclid" :
+                          (mIsSperik? "eGeomMNTFaisceauPrChSpherik" : (mModePB ? "eGeomMNTFaisceauIm1ZTerrain_Px1D" : "eGeomMNTFaisceauIm1PrCh_Px1D"));
 
   mCom =     MMDir() +"bin"+ELISE_CAR_DIR+"MICMAC "
                       +  MMDir() +"include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+aFileMM // MM-Malt.xml
@@ -489,6 +517,13 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                 +  std::string(" +MasqPerIm=") + mMasqIm
              ;
   }
+  if (EAMIsInit(&mModeOri))
+    mCom =  mCom + " +ModeOriIm=" + mFullModeOri
+                 + std::string(" +Conik=false")
+                 +  std::string(" +ZIncIsProp=false")
+
+     ;
+
 
 
   if (mImMaster != "")

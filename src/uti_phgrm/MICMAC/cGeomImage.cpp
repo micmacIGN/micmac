@@ -235,6 +235,7 @@ void ShowAff(const ElAffin2D & anAff)
 
 void cGeomImage::RemplitOriXMLNuage
            (
+                bool CallFromMere,
                 const cMTD_Nuage_Maille &,
                 const cGeomDiscFPx & aGT,
                 cXML_ParamNuage3DMaille & aNuage,
@@ -1995,9 +1996,9 @@ class cGeomFaisZTerMaitre : public cGeomImage_Id
     
     
     // Par defaut erreur fatale si pas mode Image_Nuage
-    void RemplitOriXMLNuage(const cMTD_Nuage_Maille & mtd,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &aNuage ,eModeExportNuage mode) const
+    void RemplitOriXMLNuage(bool CFM,const cMTD_Nuage_Maille & mtd,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &aNuage ,eModeExportNuage mode) const
     {
-        mGeoRef->RemplitOriXMLNuage(mtd,aGT,aNuage,mode);
+        mGeoRef->RemplitOriXMLNuage(true,mtd,aGT,aNuage,mode);
     }
 
     protected :
@@ -2327,6 +2328,7 @@ getchar();
 
       void RemplitOriXMLNuage
            (
+                bool CFM,
                 const cMTD_Nuage_Maille &,
                 const cGeomDiscFPx & aGT,
                 cXML_ParamNuage3DMaille & aNuage,
@@ -2586,13 +2588,16 @@ class cGeomImage_Module : public cGeomImage
     
     
     // Par defaut erreur fatale si pas mode Image_Nuage
-    void RemplitOriXMLNuage(const cMTD_Nuage_Maille & mtd,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &aNuage ,eModeExportNuage mode) const
+    void RemplitOriXMLNuage(bool CFM,const cMTD_Nuage_Maille & mtd,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &aNuage ,eModeExportNuage mode) const
     {
-        cGeomImage::RemplitOriXMLNuage(mtd,aGT,aNuage,mode);
-        cOrientationFile oriFile;
-        oriFile.NameFileOri()=mModule->GetFilename();
-        aNuage.Orientation().OrientationFile().SetVal(oriFile);
-        aNuage.Orientation().TypeProj().SetVal(eProjStenope);
+        cGeomImage::RemplitOriXMLNuage(false,mtd,aGT,aNuage,mode);
+        if (CFM)
+        {
+            cOrientationFile oriFile;
+            oriFile.NameFileOri()=mModule->GetFilename();
+            aNuage.Orientation().OrientationFile().SetVal(oriFile);
+            aNuage.Orientation().TypeProj().SetVal(eProjStenope);
+         }
     }
 
   private:

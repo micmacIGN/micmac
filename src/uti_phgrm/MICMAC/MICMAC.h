@@ -1311,7 +1311,7 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
          // Par defaut ne fair rien
           virtual void RemplitOri(cFileOriMnt & aFOM) const;
          // Par defaut erreur fatale si pas mode Image_Nuage
-         virtual void RemplitOriXMLNuage(const cMTD_Nuage_Maille &,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &,eModeExportNuage) const;
+         virtual void RemplitOriXMLNuage(bool CallFromMere,const cMTD_Nuage_Maille &,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &,eModeExportNuage) const;
 
          //  Par defaut return 0
            virtual CamStenope *  GetOri() const ;
