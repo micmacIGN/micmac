@@ -365,6 +365,8 @@ int Sift_main( int argc, char**argv )
                 RealImage1 subimage;
                 image.getWindow( *itWindow, subimage );
                 siftPoints_sub.clear();
+		
+                if ( parameters.verbose ) cout << "processing chunk " << itWindow->m_x0 << ',' << itWindow->m_y0 << ' ' << subimage.width() << 'x' << subimage.height() << "..." << endl;
                 process_image( subimage, parameters, outputBasename, gaussPyramid, siftPoints_sub );
 
                 int iPoint = siftPoints_sub.size();

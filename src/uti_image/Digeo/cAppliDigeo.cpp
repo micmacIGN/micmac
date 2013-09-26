@@ -64,7 +64,8 @@ cAppliDigeo::cAppliDigeo
     mFileGGC_H   (aMaterAppli ? aMaterAppli->mFileGGC_H : 0),
     mFileGGC_Cpp (aMaterAppli ? aMaterAppli->mFileGGC_Cpp : 0),
     mDecoupInt   (cDecoupageInterv2D::SimpleDec(Pt2di(10,10),10,0)),
-    mSiftCarac   (cParamDigeo::SiftCarac().PtrVal())
+    mSiftCarac   (cParamDigeo::SiftCarac().PtrVal()),
+    mVerbose	 ( Verbose().Val() )
 {
    InitConvolSpec();
 }
