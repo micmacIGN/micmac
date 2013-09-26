@@ -56,6 +56,10 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
     setAcceptDrops(true);
 
     m_glPosition[0] = m_glPosition[1] = 0.f;
+
+    _mvmatrix   = new GLdouble[16];
+    _projmatrix = new GLdouble[16];
+    _viewport   = new GLint[4];
 }
 
 GLWidget::~GLWidget()
@@ -91,29 +95,15 @@ void GLWidget::resizeGL(int width, int height)
 {
     if (width==0 || height==0) return;
 
-    float curW = m_glWidth;
-    float curH = m_glHeight;
-
     m_glWidth  = width;
     m_glHeight = height;
     m_glRatio  = (float) width/height;
 
     if (m_Data->NbImages())
-    {
-        m_rw = (float)_glImg.width()/m_glWidth;
-        m_rh = (float)_glImg.height()/m_glHeight;
-
-        if(m_rw>m_rh)
-            setZoom(m_params.zoom*(float)width/curW);
-        else
-            setZoom(m_params.zoom*(float)height/curH);
-
-        //position de l'image dans la vue gl
-        m_glPosition[0] = -m_rw;
-        m_glPosition[1] = -m_rh;
-    }
+        zoomFit();
 
     glViewport( 0, 0, width, height );
+    glGetIntegerv (GL_VIEWPORT, _viewport);
 }
 
 //-------------------------------------------------------------------------
@@ -213,16 +203,34 @@ void GLWidget::paintGL()
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE,GL_ONE);
 
-        GLfloat originX = m_glPosition[0];
-        GLfloat originY = m_glPosition[1];
-
-        GLfloat glw = 2.f*m_rw;
-        GLfloat glh = 2.f*m_rh;
+        GLfloat glw = 2*m_rw;
+        GLfloat glh = 2*m_rh;
 
         glPushMatrix();
+        glMultMatrixd(_projmatrix);
 
-        glScalef(m_params.zoom, m_params.zoom, 1.0);
-        glTranslatef(originX,originY,0);
+        if(_projmatrix[0] != m_params.zoom)
+        {
+            GLint recal;
+            GLdouble wx, wy, wz;
+
+            recal = _viewport[3] - (GLint) _m_lastPosZoom.y()- 1;
+
+            gluUnProject ((GLdouble) _m_lastPosZoom.x(), (GLdouble) recal, 1.0,
+                          _mvmatrix, _projmatrix, _viewport, &wx, &wy, &wz);
+
+            glTranslatef(wx,wy,0);
+            glScalef(m_params.zoom/_projmatrix[0], m_params.zoom/_projmatrix[0], 1.0);
+            glTranslatef(-wx,-wy,0);
+        }
+
+        glTranslatef(m_glPosition[0],m_glPosition[1],0);
+
+        m_glPosition[0] = 0;
+        m_glPosition[1] = 0;
+
+        glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
+
         if(_mask != NULL && !_m_g_mouseMiddleDown)
         {
             glEnable(GL_TEXTURE_2D);
@@ -233,13 +241,12 @@ void GLWidget::paintGL()
             glDisable(GL_TEXTURE_2D);
 
             glColor4f(0.5f,0.5f,0.5f,0.0f);
+
             glWinQuad(0, 0, glh, glw);
             glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
         }
 
         glEnable(GL_TEXTURE_2D);
-
-        glBindTexture( GL_TEXTURE_2D, m_texturGLList );
         glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
         glWinQuad(0, 0, glh, glw);
         glDisable(GL_TEXTURE_2D);
@@ -262,7 +269,6 @@ void GLWidget::paintGL()
     }
     else
     {
-        setStandardOrthoCenter();
 
         //gradient color background
         drawGradientBackground();
@@ -473,6 +479,8 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
         if (m_interactionMode == TRANSFORM_CAMERA)
             _m_g_mouseMiddleDown = true;
+
+        _m_lastPosZoom = m_lastPos;
         update();
     }
 }
@@ -641,10 +649,11 @@ void GLWidget::setData(cData *data)
 
         zoomFit();
 
-        //position de l'image dans la vue gl
-        m_glPosition[0] = -m_rw;
-        m_glPosition[1] = -m_rh;
+        //position de l'image dans la vue gl             
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
 
+        glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
         glGenTextures(1, &m_texturGLList );
         glBindTexture( GL_TEXTURE_2D, m_texturGLList );
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
@@ -673,6 +682,8 @@ void GLWidget::setData(cData *data)
         m_bDisplayMode2D = false;
         //TODO
     }
+
+    glGetIntegerv (GL_VIEWPORT, _viewport);
 }
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -737,10 +748,16 @@ void GLWidget::displayNewMessage(const QString& message,
 
 void GLWidget::drawGradientBackground()
 {
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    float halfW = float(m_glWidth)*.5f;
+    float halfH = float(m_glHeight)*.5f;
+    glOrtho(-halfW,halfW,-halfH,halfH,-2.f, 2.f);
     int w = (m_glWidth>>1)+1;
     int h = (m_glHeight>>1)+1;
-
     const uchar BkgColor[3] = {(uchar) colorBG0.red(),(uchar) colorBG0.green(), (uchar) colorBG0.blue()};
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
     //Gradient "texture" drawing
     glBegin(GL_QUADS);
@@ -753,18 +770,6 @@ void GLWidget::drawGradientBackground()
     glVertex2f(w,-h);
     glVertex2f(-w,-h);
     glEnd();
-}
-
-void GLWidget::setStandardOrthoCenter()
-{
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    float halfW = float(m_glWidth)*.5f;
-    float halfH = float(m_glHeight)*.5f;
-
-    glOrtho(-halfW,halfW,-halfH,halfH,-2.f*m_Data->m_diam, 2.f*m_Data->m_diam);
-
-    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
 
@@ -885,6 +890,18 @@ void GLWidget::zoomFit()
         setZoom(1.f/m_rw); //orientation landscape
     else
         setZoom(1.f/m_rh); //orientation portrait
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glPushMatrix();
+    glScalef(m_params.zoom, m_params.zoom, 1.0);
+    glTranslatef(-m_rw,-m_rh,0);
+    glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
+    glPopMatrix();
+
+    m_glPosition[0] = 0;
+    m_glPosition[1] = 0;
+
 }
 
 void GLWidget::zoomFactor(int percent)
@@ -903,9 +920,9 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     //see QWheelEvent documentation ("distance that the wheel is rotated, in eighths of a degree")
     float wheelDelta_deg = (float)event->delta() / 8.f;
 
-    onWheelEvent(wheelDelta_deg);
+    _m_lastPosZoom = event->pos();
 
-    emit mouseWheelRotated(wheelDelta_deg);
+    onWheelEvent(wheelDelta_deg);
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
@@ -960,14 +977,15 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             if (event->modifiers() & Qt::ShiftModifier) // zoom
             {
                 if (dp.y() > 0) m_params.zoom *= pow(2.f, dp.y() *.05f);
-                else if (dp.y() < 0) m_params.zoom /= pow(2.f, -dp.y() *.05f);             
+                else if (dp.y() < 0) m_params.zoom /= pow(2.f, -dp.y() *.05f);
             }
             else // translation
             {
                 if (m_Data->NbImages())
                 {
-                    m_glPosition[0] += 2.f*( (float)dp.x()/(m_glWidth*m_params.zoom) );
-                    m_glPosition[1] -= 2.f*( (float)dp.y()/(m_glHeight*m_params.zoom) );
+                    m_glPosition[0] += 2.0f*( (float)dp.x()/(m_glWidth*m_params.zoom) );
+                    m_glPosition[1] -= 2.0f*( (float)dp.y()/(m_glHeight*m_params.zoom) );
+
                 }
                 else
                 {
@@ -994,6 +1012,58 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     }
 
     m_lastPos = pos;
+}
+
+void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    if (m_Data->NbClouds())
+    {
+        QPointF pos = event->localPos();
+
+        setProjectionMatrix();
+
+        int idx1 = -1;
+        int idx2;
+
+        pos.setY(m_glHeight - pos.y());
+
+        for (int aK=0; aK < m_Data->NbClouds();++aK)
+        {
+            float sqrD;
+            float dist = FLT_MAX;
+            idx2 = -1;
+            QPointF proj;
+
+            Cloud *a_cloud = m_Data->getCloud(aK);
+
+            for (int bK=0; bK < a_cloud->size();++bK)
+            {
+                getProjection(proj, a_cloud->getVertex( bK ));
+
+                sqrD = (proj.x()-pos.x())*(proj.x()-pos.x()) + (proj.y()-pos.y())*(proj.y()-pos.y());
+
+                if (sqrD < dist )
+                {
+                    dist = sqrD;
+                    idx1 = aK;
+                    idx2 = bK;
+                }
+            }
+        }
+
+        if ((idx1>=0) && (idx2>=0))
+        {
+            //final center:
+            Cloud *a_cloud = m_Data->getCloud(idx1);
+            Vertex &P = a_cloud->getVertex( idx2 );
+
+            m_Data->m_cX = P.x();
+            m_Data->m_cY = P.y();
+            m_Data->m_cZ = P.z();
+
+            update();
+        }
+    }
 }
 
 bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> poly)
@@ -1066,13 +1136,18 @@ void GLWidget::Select(int mode)
         }
         else
         {
-            QPointF ptImg;
+            GLint recal;
+            GLdouble wx, wy, wz;
+
             for (int aK=0; aK < (int) m_polygon.size(); ++aK)
             {
-                 WindowToImage(QPointF(m_polygon[aK].x(), m_glHeight - m_polygon[aK].y()), ptImg);
+                recal = _viewport[3] - (GLint) m_polygon[aK].y()- 1;
+                gluUnProject ((GLdouble) m_polygon[aK].x(), (GLdouble) recal, 1.0,
+                              _mvmatrix, _projmatrix, _viewport, &wx, &wy, &wz);
+                polyg.push_back(QPointF(wx*m_glWidth/2.0f,wy*m_glHeight/2.0f));
 
-                 polyg.push_back(ptImg);
             }
+            glPopMatrix();
         }
     }
 

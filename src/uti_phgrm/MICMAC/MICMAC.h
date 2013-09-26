@@ -1311,7 +1311,7 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
          // Par defaut ne fair rien
           virtual void RemplitOri(cFileOriMnt & aFOM) const;
          // Par defaut erreur fatale si pas mode Image_Nuage
-         virtual void RemplitOriXMLNuage(const cMTD_Nuage_Maille &,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &,eModeExportNuage) const;
+         virtual void RemplitOriXMLNuage(bool CallFromMere,const cMTD_Nuage_Maille &,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &,eModeExportNuage) const;
 
          //  Par defaut return 0
            virtual CamStenope *  GetOri() const ;
@@ -3480,6 +3480,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
   // Permet entre autre d'optimiser pour geom image maitresse
            bool mFirstZIsInit;
 
+           Pt2di mSzGlobTer;
            int  mX0Ter;
            int  mX1Ter;
            int  mY0Ter;
@@ -3539,6 +3540,10 @@ class cAppliMICMAC  : public   cParamMICMAC,
            TIm2D<U_INT1,INT>      mAll1TImOkTerDil;
            std::vector<U_INT1 *>  mAll1VDOkTerDil;
            U_INT1 **              mAll1DOkTerDil;
+
+           std::vector<Im2D_REAL4>  mBufCensusIm2;
+           std::vector<float **> mVBufC;
+           float ***             mDataBufC;
 
 
 

@@ -302,6 +302,7 @@ cAppliMICMAC::cAppliMICMAC
    mTImOkTerDil (mImOkTerDil),
    mAll1ImOkTerDil (1,1),
    mAll1TImOkTerDil (mAll1ImOkTerDil),
+   mBufCensusIm2   (),
    mGeoX (1,1),
    mTGeoX (mGeoX),
    mGeoY (1,1),

@@ -175,8 +175,10 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
+    void mouseDoubleClickEvent(QMouseEvent *event);
     void keyPressEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent* event);
+
 
     //! Initialization state of GL
     bool m_bGLInitialized;
@@ -199,8 +201,6 @@ protected:
 
     //! Draw widget gradient background
     void drawGradientBackground();
-
-    void setStandardOrthoCenter();
 
     GLuint getNbGLLists() { return m_nbGLLists; }
     void incrNbGLLists() { m_nbGLLists++; }
@@ -332,7 +332,11 @@ private:
 
     QImage      _glImg;
     QImage      *_mask;
+    GLdouble    *_mvmatrix;
+    GLdouble    *_projmatrix;
+    GLint       *_viewport;
 
+    QPoint      _m_lastPosZoom;
 };
 
 #endif  /* _GLWIDGET_H */
