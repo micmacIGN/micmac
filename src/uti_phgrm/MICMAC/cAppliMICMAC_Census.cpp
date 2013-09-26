@@ -160,6 +160,51 @@ double CensusGraphe(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di aS
      return ((double) aNbOk) / (aNbOk+aNbMiss);
 }
 
+double CensusGraphe_ImInt(float ** Im1,Pt2di aP1,float ** Im2,Pt2di aP2,Pt2di aSzV)
+{
+     int aNbOk = 0;
+     int aNbMiss = 0;
+
+
+     for (int aDyA=-aSzV.y ; aDyA<=aSzV.y ; aDyA++)
+     {
+          float * aL1 = Im1[aP1.y+aDyA] + aP1.x;
+          float * aL2 = Im2[aP2.y+aDyA] + aP2.x;
+          for (int aDxA=-aSzV.x ; aDxA<= aSzV.x ; aDxA++)
+          {
+              float aV1 = aL1[aDxA];
+              float aV2 = aL2[aDxA];
+              for (int aK=0 ; aK<4 ; aK++)
+              {
+                   int aDxB = aDxA+VX[aK];
+                   int aDyB = aDyA+VY[aK];
+                   if  ((aDxB>=-aSzV.x) && (aDxB<=aSzV.x) && (aDyB>=-aSzV.y) && (aDyB<=aSzV.y))
+                   {
+                       float aW1 = Im1[aP1.y+aDyB][aP1.x+aDxB];
+                       float aW2 = Im2[aP2.y+aDyB][aP2.x+aDxB];
+                       bool Inf1 = (aV1<aW1);
+                       bool Inf2 = (aV2<aW2);
+                       
+                       if (Inf1==Inf2)
+                          aNbOk++;
+                       else          
+                           aNbMiss++;
+                   }
+              }
+
+          }
+     }
+     return ((double) aNbOk) / (aNbOk+aNbMiss);
+}
+
+
+
+
+
+
+     // float aValStd = aQI2.GetVal(aDataIm1,Pt2di(0,anY+anOff1.y));
+     // float aValNew = aDataC[anY+anOff1.y][anX+anOff1.x+anOffset];
+
 
 
 
@@ -286,11 +331,22 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost &)
                             Pt2dr aPIm1 = Pt2dr(anX,anY) + Pt2dr(anOff1) + Pt2dr(aZR,0);
                             if (anI1.IsOkErod(round_down(aPIm1.x),round_down(aPIm1.y)))
                             {
-                               aCost = CensusGraphe(aDataIm0,aPIm0,aDataIm1,anX+anOff1.x+aZR,anY+anOff1.y,mCurSzVMax,mAhEpsilon);
-                               aCost = mStatGlob->CorrelToCout(aCost);
-// std::cout << "GGGG " << aCost << "\n";
+                               aCost = CorrelBasic(aDataIm0,aPIm0,aDataIm1,anX+anOff1.x+aZR,anY+anOff1.y,mCurSzVMax,mAhEpsilon);
+                               // aCost = CensusGraphe_ImInt(aDataIm0,aPIm0,aDataIm1,Pt2di(anX+anOff1.x+anOffset,anY+anOff1.y),mCurSzVMax);
+if (0)
+{
+                               // double aC2 = CensusGraphe_ImInt(aDataIm0,aPIm0,aDataIm1,Pt2di(anX+anOff1.x+anOffset,anY+anOff1.y),mCurSzVMax);
+                               double aC2 = CensusGraphe(aDataIm0,aPIm0,aDataIm1,anX+anOff1.x+aZR,anY+anOff1.y,mCurSzVMax,mAhEpsilon);
+                               ELISE_ASSERT(ElAbs(aCost-aC2)<1e-5,"Cooss");
+// std::cout << "Cccc " << aCost << " " << aC2 << "\n";
+}
 
- if (1)
+
+
+                               aCost = mStatGlob->CorrelToCout(aCost);
+
+
+ if (0)
 {
      cQckInterpolEpip aQI2(anX+anOff1.x+aZR);
      float aValStd = aQI2.GetVal(aDataIm1,Pt2di(0,anY+anOff1.y));
