@@ -151,7 +151,12 @@ public:
 
     void applyGamma(float aGamma);
 
-    void glWinQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw);
+    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw);
+
+    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw,QColor color);
+
+    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QImage *image);
+
 public slots:
     void zoom();
 
@@ -337,6 +342,9 @@ private:
     GLint       *_viewport;
 
     QPoint      _m_lastPosZoom;
+
+    QColor      _selectColor;
+    QColor      _unselectColor;
 };
 
 #endif  /* _GLWIDGET_H */
