@@ -155,8 +155,10 @@ public:
 
     void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw,QColor color);
 
-    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QImage *image);
+    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, GLuint idTexture);
 
+    void enableOptionLine();
+    void disableOptionLine();
 public slots:
     void zoom();
 
@@ -184,6 +186,7 @@ protected:
     void keyPressEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent* event);
 
+    void ImageToTexture(GLuint idTexture,QImage* image);
 
     //! Initialization state of GL
     bool m_bGLInitialized;
@@ -268,8 +271,10 @@ protected:
     //! Ball GL list
     GLuint m_ballGLList;
 
-    //! Texture GL list
-    GLuint m_texturGLList;
+    //! Texture image
+    GLuint m_textureImage;
+
+    GLuint m_textureMask;
 
     int m_nbGLLists;
 
