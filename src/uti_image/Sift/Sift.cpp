@@ -16,6 +16,8 @@
 
 using namespace std;
 
+void __compare_raw_directories( std::string i_directory1, std::string i_directory2 );
+
 Siftator::Siftator( int i_nbOctaves, int i_nbLevels, int i_firstOctave ):
     m_strengthThreshold( default_strength_threshold ),
     m_onEdgeThreshold( default_onedge_threshold )
@@ -24,11 +26,18 @@ Siftator::Siftator( int i_nbOctaves, int i_nbLevels, int i_firstOctave ):
 }
 
 void Siftator::scale_space_format( int i_nbOctaves, int i_nbLevels, int i_firstOctave )
-{
+{   
     #ifdef _DEBUG
         if ( i_nbOctaves<0 ) cerr << "WARN: scale_space_format: number of octaves = " << i_nbOctaves << " < 0" << endl;
         if ( i_nbLevels<0 ) cerr << "WARN: scale_space_format: number of levels = " << i_nbOctaves << " < 0" << endl;
     #endif
+
+    if ( i_nbOctaves<0 ) return;
+    
+    if ( m_nbOctaves==i_nbOctaves &&
+         m_nbLevels==i_nbLevels &&
+	 m_firstOctave==i_firstOctave )
+	 return;
 
     m_nbOctaves         = i_nbOctaves;
     m_nbLevels          = i_nbLevels;
@@ -133,7 +142,7 @@ void Siftator::compute_gaussians( const RealImage1 &i_image )
           sigma;
     if( sa > sb ) // better have a positive square
     {
-        sigma = ::sqrt( sa*sa-sb*sb );
+        sigma = ::sqrt( sa*sa-sb*sb );	      
         firstImage->gaussianFilter( sigma );
     }
 
@@ -146,7 +155,7 @@ void Siftator::compute_gaussians( const RealImage1 &i_image )
 
         for ( l=1; l<m_nbStoredLevels; l++ )
         {
-            sigma = m_dsigma0*powf( m_sigmak, l+m_smin );
+            sigma = m_dsigma0*powf( m_sigmak, l+m_smin );	      
             m_octaves[o][l-1].gaussianFilter( sigma, m_octaves[o][l] );
         }
     }
@@ -163,13 +172,17 @@ void Siftator::compute_gaussians( const RealImage1 &i_image )
 	   for ( l=0; l<m_nbStoredLevels; l++ )
 	   {
 	       stringstream ss;
-	       int level = 1<<(o+m_firstOctave);
-	       ss << out_dir << "/gaussian_" << setfill('0') << setw(2) << level << '_' << l;
+	       int level = (o+m_firstOctave);
+	       if ( level<0 )
+		  level = -( 1<<(-level) );
+	       else
+		  level = 1<<level;
+	       ss << out_dir << "/gaussian_" << setfill('0') << setw(2) << level << '_' << (l-1);
 	       m_octaves[o][l].saveRaw( ss.str()+".raw" );
-	       m_octaves[o][l].savePGM( ss.str()+".pgm" );
+	       //m_octaves[o][l].savePGM( ss.str()+".pgm" );
 	   }
        }
-       __compare_raw_directories( "gaussians_digeo", "gaussians_sift" );
+       __compare_raw_directories( "gaussians_tgi", "gaussians_sift" );
    #endif
    
    #ifdef __DEBUG_SIFT_GAUSSIANS_INPUT
@@ -182,7 +195,7 @@ void Siftator::compute_gaussians( const RealImage1 &i_image )
 	   {
 	       stringstream ss;
 	       int level = 1<<(o+m_firstOctave);
-	       ss << in_dir << "/gaussian_" << setfill('0') << setw(2) << level << '_' << l << ".raw";
+	       ss << in_dir << "/gaussian_" << setfill('0') << setw(2) << level << '_' << (l-1) << ".raw";
 	       if ( !m_octaves[o][l].loadRaw( ss.str() ) )
 		  cerr << "Siftator::compute_gaussians: failed to load \"" << ss.str() << "\"" << endl;
 	   }
@@ -733,15 +746,23 @@ bool read_siftPoint_list( const string &i_filename, vector<SiftPoint> &o_list )
     return true;
 }
 
-void __compare_raw_directories( const std::string &i_directory1, const std::string &i_directory2 )
+void __compare_raw_directories( std::string i_directory1, std::string i_directory2 )
 {
+    if ( i_directory1.length()==0 || i_directory2.length()==0 )
+    {
+       cerr << "WARN: __compare_raw_directories: null directory name" << endl;
+       return;
+    }
+    
+    char c = *i_directory1.rbegin();
+    if ( c!='/' && c!='\\' ) i_directory1.append("/");
+    c = *i_directory2.rbegin();
+    if ( c!='/' && c!='\\' ) i_directory2.append("/");
     list<string> list1 = RegexListFileMatch( i_directory1, ".*.raw", 2, false ),
 	         list2 = RegexListFileMatch( i_directory2, ".*.raw", 2, false );
 		 
     cout << i_directory1 << " : " << list1.size() << " raw files" << endl;
     cout << i_directory2 << " : " << list2.size() << " raw files" << endl;
-    string prefix1 = i_directory1+"/",
-	   prefix2 = i_directory2+"/";
 		 
     list1.sort();
     list2.sort();
@@ -754,10 +775,10 @@ void __compare_raw_directories( const std::string &i_directory1, const std::stri
        if ( (*it1)==(*it2) )
        {
 	  cout << *it1 << " : ";
-	  if ( !image1.loadRaw( prefix1+(*it1) ) )
-	    cout << "unable to load raw image " << prefix1+(*it1) << endl;
-	  else if ( !image2.loadRaw( prefix2+(*it2) ) )
-	    cout << "unable to load raw image " << prefix2+(*it2) << endl;
+	  if ( !image1.loadRaw( i_directory1+(*it1) ) )
+	    cout << "unable to load raw image " << i_directory1+(*it1) << endl;
+	  else if ( !image2.loadRaw( i_directory2+(*it2) ) )
+	    cout << "unable to load raw image " << i_directory2+(*it2) << endl;
 	  else
 	  {
 	     if ( image1.width()!=image2.width() || image1.height()!=image2.height() )
@@ -771,17 +792,17 @@ void __compare_raw_directories( const std::string &i_directory1, const std::stri
 	  it1++; it2++;
        }
        else if ( (*it1)<(*it2) )
-	  cout << prefix1+(*it1++) << endl;
+	  cout << i_directory1+(*it1++) << endl;
        else
-	  cout << prefix2+(*it2++) << endl;
+	  cout << i_directory2+(*it2++) << endl;
     }
     if ( it1==list1.end() && it2==list2.end() ) return;
     if ( it1==list1.end() )
     {
        it1 = it2;
        it_end = list2.end();
-       prefix1 = prefix2;
+       i_directory1 = i_directory2;
     }
     while ( it1!=it_end )
-      cout << prefix1 << (*it1++) << endl;
+      cout << i_directory1 << (*it1++) << endl;
 }
