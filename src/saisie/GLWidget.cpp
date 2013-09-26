@@ -26,7 +26,8 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_previousAction(NONE)
   , m_trihedronGLList(GL_INVALID_LIST_ID)
   , m_ballGLList(GL_INVALID_LIST_ID)
-  , m_texturGLList(GL_INVALID_LIST_ID)
+  , m_textureImage(GL_INVALID_LIST_ID)
+  , m_textureMask(GL_INVALID_LIST_ID)
   , m_nbGLLists(0)
   , m_params(ViewportParameters())
   , m_Data(data)
@@ -45,6 +46,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _mask(NULL)
   , _selectColor(255,255,255)
   , _unselectColor(0,0,0)
+
 {
     _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
     _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
@@ -76,10 +78,10 @@ GLWidget::~GLWidget()
         glDeleteLists(m_ballGLList,1);
         m_ballGLList = GL_INVALID_LIST_ID;
     }
-    if (m_texturGLList != GL_INVALID_LIST_ID)
+    if (m_textureImage != GL_INVALID_LIST_ID)
     {
-        glDeleteLists(m_texturGLList,1);
-        m_texturGLList = GL_INVALID_LIST_ID;
+        glDeleteLists(m_textureImage,1);
+        m_textureImage = GL_INVALID_LIST_ID;
     }
 }
 
@@ -195,12 +197,27 @@ void GLWidget::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat g
     drawQuad(originX,originY,glh,glw);
 }
 
-void GLWidget::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QImage *image)
+void GLWidget::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, GLuint idTexture)
 {
     glEnable(GL_TEXTURE_2D);
-    glTexImage2D( GL_TEXTURE_2D, 0, 4, image->width(), image->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image->bits());
+    glBindTexture( GL_TEXTURE_2D, idTexture );
     drawQuad(originX,originY,glh,glw);
+    glBindTexture( GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
+}
+
+void GLWidget::enableOptionLine()
+{
+    glEnable (GL_LINE_SMOOTH);
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+}
+
+void GLWidget::disableOptionLine()
+{
+    glDisable(GL_BLEND);
+    glDisable (GL_LINE_SMOOTH);
 }
 
 void GLWidget::paintGL()
@@ -254,14 +271,15 @@ void GLWidget::paintGL()
 
         if(_mask != NULL && !_m_g_mouseMiddleDown)
         {
-            drawQuad(0, 0, glh, glw,_mask);
+
+            drawQuad(0,0,glh,glw,m_textureMask );
             glBlendFunc(GL_ONE,GL_ONE);
 
             drawQuad(0, 0, glh, glw,QColor(128,128,128));
             glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
         }
 
-        drawQuad(0, 0, glh, glw,&_glImg);
+        drawQuad(0,0,glh,glw,m_textureImage );
 
         glPopMatrix();
 
@@ -317,12 +335,16 @@ void GLWidget::paintGL()
             glDisable(GL_DEPTH_TEST);
         }
 
+        enableOptionLine();
+
         if (m_bDrawBall) drawBall();
         else if (m_bDrawAxis) drawAxis();
 
         if (m_bDrawCams) drawCams();
 
         if (m_bDrawBbox) drawBbox();
+
+        disableOptionLine();
 
         if (m_Data->NbClouds()&& m_bDrawMessages)
         {
@@ -334,6 +356,8 @@ void GLWidget::paintGL()
             m_font.setPointSize(fontSize);
             renderText(10, m_glHeight- fontSize, m_messageFPS,m_font);
         }
+
+
     }
 
     if (m_interactionMode == SELECTION)
@@ -346,10 +370,7 @@ void GLWidget::paintGL()
 
         glDisable(GL_DEPTH_TEST);
 
-        glEnable (GL_LINE_SMOOTH);
-        glEnable (GL_BLEND);
-        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+        enableOptionLine();
 
         glColor3f(0.1f,1.0f,0.2f);
 
@@ -369,8 +390,7 @@ void GLWidget::paintGL()
 
 
         glLineWidth(m_params.LineWidth);
-        glDisable(GL_BLEND);
-        glDisable (GL_LINE_SMOOTH);
+        disableOptionLine();
         glPopMatrix(); // restore modelview
     }
 
@@ -656,27 +676,20 @@ void GLWidget::setData(cData *data)
         glLoadIdentity();
 
         glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
-        glGenTextures(1, &m_texturGLList );
-        glBindTexture( GL_TEXTURE_2D, m_texturGLList );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+        glGenTextures(1, &m_textureImage );
 
-        glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
-        glDisable(GL_TEXTURE_2D);
+        ImageToTexture(m_textureImage, &_glImg);
 
         if(_mask)
             delete _mask;
+        else
+           glGenTextures(1, &m_textureMask );
 
         _mask = new QImage(_glImg.size(),_glImg.format());
         QGLWidget::convertToGLFormat(*_mask);
+        _mask->fill(_selectColor);
 
-        QPainter    p;
-
-        p.begin(_mask);
-        p.setCompositionMode(QPainter::CompositionMode_Source);
-        p.fillRect(_mask->rect(), _selectColor);
-        p.end();
-
+        ImageToTexture(m_textureMask, _mask);
     }
 
     if (m_Data->NbCameras())
@@ -687,6 +700,8 @@ void GLWidget::setData(cData *data)
 
     glGetIntegerv (GL_VIEWPORT, _viewport);
 }
+
+
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
 {
@@ -925,6 +940,16 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     _m_lastPosZoom = event->pos();
 
     onWheelEvent(wheelDelta_deg);
+}
+
+void GLWidget::ImageToTexture(GLuint idTexture, QImage *image)
+{
+    glBindTexture( GL_TEXTURE_2D, idTexture );
+    glTexImage2D( GL_TEXTURE_2D, 0, 4, image->width(), image->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image->bits());
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+    glBindTexture( GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
@@ -1187,6 +1212,7 @@ void GLWidget::Select(int mode)
          if(mode == INVERT)         
             _mask->invertPixels(QImage::InvertRgb);
 
+         ImageToTexture(m_textureMask, _mask);
     }
     else
     {
@@ -1370,12 +1396,7 @@ void GLWidget::drawBall()
     if (!m_bObjectCenteredView) return;
 
     glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-
-    glEnable (GL_LINE_SMOOTH);
-    glEnable (GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+    glPushMatrix();    
 
     // ball radius
     //float scale = 0.05f * (float) m_glWidth/ m_glHeight;
@@ -1427,6 +1448,7 @@ void GLWidget::drawBall()
     glCallList(m_ballGLList);
 
     glPopMatrix();
+    glDisable(GL_BLEND);
 }
 
 void GLWidget::drawCams()
