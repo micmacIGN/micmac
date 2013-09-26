@@ -194,14 +194,22 @@ void GLWidget::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE,GL_ZERO);
+
+    //gradient color background
+    drawGradientBackground();
+    //we clear background
+    glClear(GL_DEPTH_BUFFER_BIT);
+
     if (m_Data->NbImages())
     {
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
+        glDisable(GL_ALPHA_TEST);
         glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE,GL_ONE);
+
 
         GLfloat glw = 2*m_rw;
         GLfloat glh = 2*m_rh;
@@ -230,17 +238,18 @@ void GLWidget::paintGL()
         m_glPosition[1] = 0;
 
         glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
+        glColor3f(1.0f,1.0f,1.0f);
+        glWinQuad(0, 0, glh, glw);
 
         if(_mask != NULL && !_m_g_mouseMiddleDown)
         {
             glEnable(GL_TEXTURE_2D);
             glTexImage2D( GL_TEXTURE_2D, 0, 4, _mask->width(), _mask->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _mask->bits());
-
             glWinQuad(0, 0, glh, glw);
-
             glDisable(GL_TEXTURE_2D);
 
-            glColor4f(0.5f,0.5f,0.5f,0.0f);
+            glBlendFunc(GL_ONE,GL_ONE);
+            glColor3f(0.5f,0.5f,0.5f);
 
             glWinQuad(0, 0, glh, glw);
             glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
@@ -255,6 +264,7 @@ void GLWidget::paintGL()
 
         glDisable(GL_BLEND);
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_ALPHA_TEST);
         glMatrixMode(GL_MODELVIEW);
 
         //Affichage du zoom
@@ -270,11 +280,7 @@ void GLWidget::paintGL()
     else
     {
 
-        //gradient color background
-        drawGradientBackground();
-        //we clear background
-        glClear(GL_DEPTH_BUFFER_BIT);
-
+        glDisable(GL_BLEND);
         zoom();
 
         static GLfloat trans44[16], rot44[16], tmp[16];
@@ -669,12 +675,13 @@ void GLWidget::setData(cData *data)
         QGLWidget::convertToGLFormat(*_mask);
 
         QPainter    p;
-        QColor selectColor(255,255,255,255);
+        QColor selectColor(255,255,255);
 
         p.begin(_mask);
         p.setCompositionMode(QPainter::CompositionMode_Source);
         p.fillRect(_mask->rect(), selectColor);
         p.end();
+        QGLWidget::convertToGLFormat(*_mask);
     }
 
     if (m_Data->NbCameras())
@@ -770,7 +777,7 @@ void GLWidget::drawGradientBackground()
     glVertex2f(w,-h);
     glVertex2f(-w,-h);
     glEnd();
-    glLoadIdentity();
+   // glLoadIdentity();
 }
 
 // zoom in 3D mode
