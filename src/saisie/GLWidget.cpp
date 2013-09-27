@@ -949,7 +949,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
     if (m_interactionMode == SELECTION)
     {
-        //cout << "selection" << endl;
         if(!m_bPolyIsClosed)
         {
             int sz = m_polygon.size();
@@ -969,8 +968,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     }
     else if (_m_g_mouseLeftDown || _m_g_mouseMiddleDown|| _m_g_mouseRightDown)
     {
-        //cout << "mouse left or middle or right" << endl;
-
         QPoint dp = pos-m_lastPos;
 
         if ( _m_g_mouseLeftDown ) // rotation autour de X et Y

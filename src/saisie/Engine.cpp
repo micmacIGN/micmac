@@ -65,14 +65,43 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
 
     if (img->isNull())
     {
-       //Tiff_Im aTifIn = Tiff_Im::BasicConvStd(aNameFile.toStdString().c_str());
+        Tiff_Im aTF= Tiff_Im::StdConvGen(aNameFile.toStdString(),3,false);
+
+        Pt2di aSz = aTF.sz();
+
+        Im2D_U_INT1  aImR(aSz.x,aSz.y);
+        Im2D_U_INT1  aImG(aSz.x,aSz.y);
+        Im2D_U_INT1  aImB(aSz.x,aSz.y);
+
+        ELISE_COPY
+        (
+           aTF.all_pts(),
+           aTF.in(),
+           Virgule(aImR.out(),aImG.out(),aImB.out())
+        );
+
+        U_INT1 ** aDataR = aImR.data();
+        U_INT1 ** aDataG = aImG.data();
+        U_INT1 ** aDataB = aImB.data();
+
+        aImg = new QImage(aSz.x, aSz.y, QImage::Format_ARGB32);
+
+        for (int y=0; y<aSz.y; y++)
+        {
+            for (int x=0; x<aSz.x; x++)
+            {
+                QColor col(aDataR[y][x],aDataG[y][x],aDataB[y][x],255);
+
+                aImg->setPixel(x,y,col.rgba());
+            }
+        }
     }
     else
         aImg = img;
 
     if (!QFile::exists(mask_filename))
     {
-        if (!img->isNull())
+        if (!aImg->isNull())
         {
             QImage* pDest = new QImage( img->width(), img->height(), QImage::Format_ARGB32 );
             pDest->fill(QColor(255,255,255,255));
