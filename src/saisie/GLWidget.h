@@ -165,9 +165,6 @@ signals:
     //! Signal emitted when files are dropped on the window
     void filesDropped(const QStringList& filenames);
 
-    //! Signal emitted when the mouse wheel is rotated
-    void mouseWheelRotated(float wheelDelta_deg);
-
     void selectedPoint(uint idCloud, uint idVertex,bool selected);
 
 protected:
@@ -208,9 +205,6 @@ protected:
     GLuint getNbGLLists() { return m_nbGLLists; }
     void incrNbGLLists() { m_nbGLLists++; }
     void resetNbGLLists(){ m_nbGLLists = 0; }
-
-    //! GL context width
-    int m_glWidth;
 
     //! GL context aspect ratio m_glWidth/m_glHeight
     float m_glRatio;
