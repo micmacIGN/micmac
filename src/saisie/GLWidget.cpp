@@ -23,7 +23,6 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_bPolyIsClosed(false)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
-  , m_previousAction(NONE)
   , m_trihedronGLList(GL_INVALID_LIST_ID)
   , m_ballGLList(GL_INVALID_LIST_ID)
   , m_textureImage(GL_INVALID_LIST_ID)
@@ -33,13 +32,11 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_Data(data)
   , m_speed(2.5f)
   , m_bDisplayMode2D(false)
-  , m_alpha(.5f)
   , m_vertexbuffer(QGLBuffer::VertexBuffer)
   , _frameCount(0)
   , _previousTime(0)
   , _currentTime(0)
   , _fps(0.0f)
-  , _m_selection_mode(NONE)
   , _m_g_mouseLeftDown(false)
   , _m_g_mouseMiddleDown(false)
   , _m_g_mouseRightDown(false)
@@ -352,8 +349,6 @@ void GLWidget::paintGL()
             m_font.setPointSize(fontSize);
             renderText(10, _glViewport[3]- fontSize, m_messageFPS,m_font);
         }
-
-
     }
 
     if (m_interactionMode == SELECTION)
@@ -799,7 +794,8 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
         setMouseTracking(false);
         break;
     case SELECTION:
-        setProjectionMatrix();
+        if(!m_Data->NbImages())
+            setProjectionMatrix();
         setMouseTracking(true);
         break;
     default:
@@ -1114,18 +1110,18 @@ bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> poly)
 void GLWidget::setProjectionMatrix()
 {
     glMatrixMode(GL_MODELVIEW);
-    glGetDoublev(GL_MODELVIEW_MATRIX, (GLdouble*) &_MM);
+    glGetDoublev(GL_MODELVIEW_MATRIX, _mvmatrix);
 
     glMatrixMode(GL_PROJECTION);
-    glGetDoublev(GL_PROJECTION_MATRIX, (GLdouble*) &_MP);
+    glGetDoublev(GL_PROJECTION_MATRIX, _projmatrix);
 
-    glGetIntegerv(GL_VIEWPORT, _VP);
+    glGetIntegerv(GL_VIEWPORT, _glViewport);
 }
 
 void GLWidget::getProjection(QPointF &P2D, Vertex P)
 {
     GLdouble xp,yp,zp;
-    gluProject(P.x(),P.y(),P.z(),_MM,_MP,_VP,&xp,&yp,&zp);
+    gluProject(P.x(),P.y(),P.z(),_mvmatrix,_projmatrix,_glViewport,&xp,&yp,&zp);
     P2D = QPointF(xp,yp);
 }
 
@@ -1228,7 +1224,7 @@ void GLWidget::Select(int mode)
                     }
                     break;
                 case INVERT:
-                    if (m_previousAction == NONE)  m_bFirstAction = true;
+                    //if (m_previousAction == NONE)  m_bFirstAction = true;
                     emit selectedPoint((uint)aK,(uint)bK,!P.isVisible());
                     break;
                 case ALL:
@@ -1246,8 +1242,6 @@ void GLWidget::Select(int mode)
     }
 
     if (((mode == ADD)||(mode == SUB)) && (m_bFirstAction)) m_bFirstAction = false;
-
-    m_previousAction = mode;
 
     selectInfos info;
     info.params = m_params;

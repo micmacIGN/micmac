@@ -64,9 +64,6 @@ public:
                             SCREEN_CENTER_MESSAGE
     };
 
-    void    setSelectionMode(int mode ) {_m_selection_mode = mode; }
-    int     getSelectionMode()          {return _m_selection_mode;}
-
     //! Displays a status message
     /** \param message message (if message is empty, all messages will be cleared)
         \param pos message position on screen
@@ -250,7 +247,6 @@ protected:
 
     bool m_bFirstAction;
 
-    int m_previousAction;
 
     //! Temporary Message to display
     struct MessageToDisplay
@@ -300,9 +296,6 @@ protected:
     //! data position in the gl viewport
     GLfloat m_glPosition[2];
 
-    //! transparency of deleted areas
-    float   m_alpha;
-
 private:
 
     QPoint      m_lastPos;
@@ -318,12 +311,6 @@ private:
     int         _currentTime;
 
     float       _fps;
-
-    int         _m_selection_mode;
-
-    double      _MM[16];
-    double      _MP[16];
-    int         _VP[4];
 
     bool        _m_g_mouseLeftDown;
     bool        _m_g_mouseMiddleDown;
