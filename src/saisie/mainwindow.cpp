@@ -108,7 +108,6 @@ void MainWindow::connectActions()
     connect(ui->actionRemove_from_selection,            SIGNAL(triggered()),   this, SLOT(removeFromSelection()));
 
     connect(ui->actionInsertPolylinepoint,SIGNAL(triggered()),   this, SLOT(insertPolylinePoint()));
-    connect(ui->actionDeletePolylinepoint,SIGNAL(triggered()),   this, SLOT(deletePolylinePoint()));
 
     //File menu
     connect(ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
@@ -394,7 +393,7 @@ void MainWindow::doActionDisplayShortcuts()
     text += tr("    - Space bar: \tadd points/pixels inside polyline") +"\n";
     text += tr("    - Del: \t\tremove points/pixels inside polyline") +"\n";
     text += tr("    - Inser: \t\tinsert point in polyline") +"\n";
-    text += tr("    - Key \".\" : \t\tdelete closest point in polyline") +"\n";
+    text += tr("    - Key \"*\" : \t\tdelete closest point in polyline") +"\n";
     text += "    - Ctrl+A: \t\t"+tr("select all") +"\n";
     text += "    - Ctrl+D: \t\t"+tr("select none") +"\n";
     text += "    - Ctrl+R: \t\t"+tr("undo all past selections") +"\n";
@@ -432,12 +431,6 @@ void MainWindow::removeFromSelection()
 void MainWindow::insertPolylinePoint()
 {
     m_glWidget->insertPolylinePoint();
-    m_glWidget->update();
-}
-
-void MainWindow::deletePolylinePoint()
-{
-    m_glWidget->deletePolylinePoint();
     m_glWidget->update();
 }
 
