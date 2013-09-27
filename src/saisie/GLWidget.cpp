@@ -552,7 +552,9 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             else
                 ptSizeUp(false);
             break;
-
+        case Qt::Key_Asterisk:
+            deletePolylinePoint();
+            break;
         default:
             event->ignore();
             break;
@@ -1276,26 +1278,49 @@ void GLWidget::deletePolylinePoint()
         m_polygon.erase (m_polygon.begin() + idx);
 }
 
+float segmentDistToPoint(QPoint segA, QPoint segB, QPoint p)
+{
+    QPoint p2(segB.x() - segA.x(), segB.y() - segA.y());
+    float nrm = (float)(p2.x()*p2.x() + p2.y()*p2.y());
+    float u = (float) ((p.x() - segA.x()) * p2.x() + (p.y() - segA.y()) * p2.y()) / nrm;
+
+    if (u > 1)
+        u = 1;
+    else if (u < 0)
+        u = 0;
+
+    float x = (float) segA.x() + u * (float) p2.x();
+    float y = (float) segA.y() + u * (float) p2.y();
+
+    float dx = x - (float) p.x();
+    float dy = y - (float) p.y();
+
+    return sqrt(dx*dx + dy*dy);
+}
+
 void GLWidget::insertPolylinePoint()
 {
     float dist2 = FLT_MAX;
-    int dx, dy, d2;
     int idx = -1;
 
-    for (int aK =0; aK < (int) m_polygon.size();++aK)
-    {
-        dx = m_polygon[aK].x()-m_lastPos.x();
-        dy = m_polygon[aK].y()-m_lastPos.y();
-        d2 = dx*dx + dy*dy;
+    QVector < QPoint > polygon = m_polygon;
+    polygon.push_back(polygon[0]);
 
-        if (d2 < dist2)
+    float dist;
+
+    for (int aK =0; aK < (int) polygon.size()-1;++aK)
+    {
+        dist = segmentDistToPoint(polygon[aK], polygon[aK+1], m_lastPos);
+
+        if (dist < dist2)
         {
-            dist2 = d2;
+            dist2 = dist;
             idx = aK;
         }
     }
+
     if (idx != -1)
-        m_polygon.insert(m_polygon.begin() + idx, m_lastPos);
+        m_polygon.insert(idx+1, m_lastPos);
 }
 
 void GLWidget::clearPolyline()
