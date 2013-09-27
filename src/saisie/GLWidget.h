@@ -143,8 +143,6 @@ public:
 
     void reset();
 
-    void WindowToImage(QPointF const &p0, QPointF &p1);
-
     QImage* getGLMask(){return _mask;}
 
     ViewportParameters* getParams(){return &m_params;}
@@ -216,8 +214,6 @@ protected:
 
     //! GL context width
     int m_glWidth;
-    //! GL context height
-    int m_glHeight;
 
     //! GL context aspect ratio m_glWidth/m_glHeight
     float m_glRatio;
@@ -344,12 +340,10 @@ private:
     QImage      *_mask;
     GLdouble    *_mvmatrix;
     GLdouble    *_projmatrix;
-    GLint       *_viewport;
+    GLint       *_glViewport;
 
     QPoint      _m_lastPosZoom;
 
-    QColor      _selectColor;
-    QColor      _unselectColor;
 };
 
 #endif  /* _GLWIDGET_H */

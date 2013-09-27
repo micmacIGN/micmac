@@ -44,9 +44,6 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _m_g_mouseMiddleDown(false)
   , _m_g_mouseRightDown(false)
   , _mask(NULL)
-  , _selectColor(255,255,255)
-  , _unselectColor(0,0,0)
-
 {
     _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
     _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
@@ -63,7 +60,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
 
     _mvmatrix   = new GLdouble[16];
     _projmatrix = new GLdouble[16];
-    _viewport   = new GLint[4];
+    _glViewport = new GLint[4];
 }
 
 GLWidget::~GLWidget()
@@ -99,15 +96,14 @@ void GLWidget::resizeGL(int width, int height)
 {
     if (width==0 || height==0) return;
 
-    m_glWidth  = width;
-    m_glHeight = height;
     m_glRatio  = (float) width/height;
+
+    glViewport( 0, 0, width, height );
+    glGetIntegerv (GL_VIEWPORT, _glViewport);
 
     if (m_Data->NbImages())
         zoomFit();
 
-    glViewport( 0, 0, width, height );
-    glGetIntegerv (GL_VIEWPORT, _viewport);
 }
 
 //-------------------------------------------------------------------------
@@ -251,10 +247,10 @@ void GLWidget::paintGL()
             GLint recal;
             GLdouble wx, wy, wz;
 
-            recal = _viewport[3] - (GLint) _m_lastPosZoom.y()- 1;
+            recal = _glViewport[3] - (GLint) _m_lastPosZoom.y()- 1;
 
             gluUnProject ((GLdouble) _m_lastPosZoom.x(), (GLdouble) recal, 1.0,
-                          _mvmatrix, _projmatrix, _viewport, &wx, &wy, &wz);
+                          _mvmatrix, _projmatrix, _glViewport, &wx, &wy, &wz);
 
             glTranslatef(wx,wy,0);
             glScalef(m_params.zoom/_projmatrix[0], m_params.zoom/_projmatrix[0], 1.0);
@@ -294,7 +290,7 @@ void GLWidget::paintGL()
             glColor4f(1.f,1.f,1.f,1.f);
             int fontSize = 10;
             m_font.setPointSize(fontSize);
-            renderText(10, m_glHeight- fontSize, QString::number(m_params.zoom*100,'f',1) + "%", m_font);
+            renderText(10, _glViewport[3] - fontSize, QString::number(m_params.zoom*100,'f',1) + "%", m_font);
         }
     }
     else
@@ -354,7 +350,7 @@ void GLWidget::paintGL()
 
             int fontSize = 10;
             m_font.setPointSize(fontSize);
-            renderText(10, m_glHeight- fontSize, m_messageFPS,m_font);
+            renderText(10, _glViewport[3]- fontSize, m_messageFPS,m_font);
         }
 
 
@@ -364,7 +360,7 @@ void GLWidget::paintGL()
     {
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glOrtho(0,m_glWidth,m_glHeight,0,-1,1);
+        glOrtho(0,_glViewport[2],_glViewport[3],0,-1,1);
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
@@ -401,7 +397,7 @@ void GLWidget::paintGL()
         glColor3f(1.f,1.f,1.f);
 
         int fontSize = 10;
-        int lc_currentHeight = m_glHeight - fontSize*m_messagesToDisplay.size(); //lower center
+        int lc_currentHeight = _glViewport[3] - fontSize*m_messagesToDisplay.size(); //lower center
         int uc_currentHeight = 10;            //upper center
 
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
@@ -421,7 +417,7 @@ void GLWidget::paintGL()
             case LOWER_CENTER_MESSAGE:
             {
                 QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                renderText((m_glWidth-rect.width())/2, lc_currentHeight, it->message,m_font);
+                renderText((_glViewport[2]-rect.width())/2, lc_currentHeight, it->message,m_font);
                 int messageHeight = QFontMetrics(m_font).height();
                 lc_currentHeight += (messageHeight*5)/4; //add a 25% margin
             }
@@ -429,7 +425,7 @@ void GLWidget::paintGL()
             case UPPER_CENTER_MESSAGE:
             {
                 QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                renderText((m_glWidth-rect.width())/2, uc_currentHeight+rect.height(), it->message,m_font);
+                renderText((_glViewport[2]-rect.width())/2, uc_currentHeight+rect.height(), it->message,m_font);
                 uc_currentHeight += (rect.height()*5)/4; //add a 25% margin
             }
                 break;
@@ -437,7 +433,7 @@ void GLWidget::paintGL()
             {
                 m_font.setPointSize(12);
                 QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                renderText((m_glWidth-rect.width())/2, (m_glHeight-rect.height())/2, it->message,m_font);
+                renderText((_glViewport[2]-rect.width())/2, (_glViewport[3]-rect.height())/2, it->message,m_font);
             }
             }
 
@@ -446,15 +442,6 @@ void GLWidget::paintGL()
     }
 }
 
-//converts from Viewport coordinates [0, m_glWidth] to GL window coordinates [-1,1] into Image coordinates [0,_glImg.width]
-void GLWidget::WindowToImage(QPointF const &p0, QPointF &p1)
-{
-   float x_gl = 2.f*p0.x()/m_glWidth -1.f;
-   float y_gl = 2.f*p0.y()/m_glHeight-1.f;
-
-   p1.setX((float)m_glWidth *(x_gl-m_glPosition[0]*m_params.zoom)/(2.f*m_params.zoom));
-   p1.setY((float)m_glHeight*(y_gl-m_glPosition[1]*m_params.zoom)/(2.f*m_params.zoom));
-}
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
@@ -687,7 +674,7 @@ void GLWidget::setData(cData *data)
 
         _mask = new QImage(_glImg.size(),_glImg.format());
         QGLWidget::convertToGLFormat(*_mask);
-        _mask->fill(_selectColor);
+        _mask->fill(Qt::white);
 
         ImageToTexture(m_textureMask, _mask);
     }
@@ -698,7 +685,7 @@ void GLWidget::setData(cData *data)
         //TODO
     }
 
-    glGetIntegerv (GL_VIEWPORT, _viewport);
+    glGetIntegerv (GL_VIEWPORT, _glViewport);
 }
 
 
@@ -767,15 +754,14 @@ void GLWidget::drawGradientBackground()
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    float halfW = float(m_glWidth)*.5f;
-    float halfH = float(m_glHeight)*.5f;
-    glOrtho(-halfW,halfW,-halfH,halfH,-2.f, 2.f);
-    int w = (m_glWidth>>1)+1;
-    int h = (m_glHeight>>1)+1;
+
+    int w = (_glViewport[2]>>1)+1;
+    int h = (_glViewport[3]>>1)+1;
+    glOrtho(-w,w,-h,h,-2.f, 2.f);
+
     const uchar BkgColor[3] = {(uchar) colorBG0.red(),(uchar) colorBG0.green(), (uchar) colorBG0.blue()};
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-
     //Gradient "texture" drawing
     glBegin(GL_QUADS);
     //user-defined background color for gradient start
@@ -900,8 +886,8 @@ void GLWidget::setZoom(float value)
 void GLWidget::zoomFit()
 {
     //width and height ratio between viewport and image
-    m_rw = (float)_glImg.width()/m_glWidth;
-    m_rh = (float)_glImg.height()/m_glHeight;
+    m_rw = (float)_glImg.width()/ _glViewport[2];
+    m_rh = (float)_glImg.height()/_glViewport[3];
 
     if(m_rw>m_rh)
         setZoom(1.f/m_rw); //orientation landscape
@@ -987,8 +973,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         if ( _m_g_mouseLeftDown ) // rotation autour de X et Y
         {
-            float d_angleX = m_speed * dp.y() / (float) m_glHeight;
-            float d_angleY = m_speed * dp.x() / (float) m_glWidth;
+            float d_angleX = m_speed * dp.y() / (float) _glViewport[3];
+            float d_angleY = m_speed * dp.x() / (float) _glViewport[2];
 
             m_params.angleX += d_angleX;
             m_params.angleY += d_angleY;
@@ -1006,25 +992,25 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 if (dp.y() > 0) m_params.zoom *= pow(2.f, dp.y() *.05f);
                 else if (dp.y() < 0) m_params.zoom /= pow(2.f, -dp.y() *.05f);
             }
-            else // translation
-            {
-                if (m_Data->NbImages())
-                {
-                    m_glPosition[0] += 2.0f*( (float)dp.x()/(m_glWidth*m_params.zoom) );
-                    m_glPosition[1] -= 2.0f*( (float)dp.y()/(m_glHeight*m_params.zoom) );
+            else if((_glViewport[2]!=0) || (_glViewport[3]!=0)) // translation
+            {                                
+                    if (m_Data->NbImages())
+                    {
+                        m_glPosition[0] += 2.0f*( (float)dp.x()/(_glViewport[2]*m_params.zoom) );
+                        m_glPosition[1] -= 2.0f*( (float)dp.y()/(_glViewport[3]*m_params.zoom) );
 
-                }
-                else
-                {
-                    m_bObjectCenteredView = false;
-                    m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/m_glWidth;
-                    m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/m_glHeight;
-                }
+                    }
+                    else
+                    {
+                        m_bObjectCenteredView = false;
+                        m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/_glViewport[2];
+                        m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/_glViewport[3];
+                    }
             }
         }
         else if ( _m_g_mouseRightDown ) // rotation autour de Z
         {
-            float d_angleZ =  m_speed * dp.x() / (float) m_glWidth;
+            float d_angleZ =  m_speed * dp.x() / (float) _glViewport[2];
 
             m_params.angleZ += d_angleZ;
 
@@ -1052,7 +1038,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
         int idx1 = -1;
         int idx2;
 
-        pos.setY(m_glHeight - pos.y());
+        pos.setY(_glViewport[3] - pos.y());
 
         for (int aK=0; aK < m_Data->NbClouds();++aK)
         {
@@ -1158,7 +1144,7 @@ void GLWidget::Select(int mode)
         {
             for (int aK=0; aK < (int) m_polygon.size(); ++aK)
             {
-                polyg.push_back(QPointF(m_polygon[aK].x(), m_glHeight - m_polygon[aK].y()));
+                polyg.push_back(QPointF(m_polygon[aK].x(), _glViewport[3] - m_polygon[aK].y()));
             }
         }
         else
@@ -1168,10 +1154,10 @@ void GLWidget::Select(int mode)
 
             for (int aK=0; aK < (int) m_polygon.size(); ++aK)
             {
-                recal = _viewport[3] - (GLint) m_polygon[aK].y()- 1;
+                recal = _glViewport[3] - (GLint) m_polygon[aK].y()- 1;
                 gluUnProject ((GLdouble) m_polygon[aK].x(), (GLdouble) recal, 1.0,
-                              _mvmatrix, _projmatrix, _viewport, &wx, &wy, &wz);
-                polyg.push_back(QPointF(wx*m_glWidth/2.0f,wy*m_glHeight/2.0f));
+                              _mvmatrix, _projmatrix, _glViewport, &wx, &wy, &wz);
+                polyg.push_back(QPointF(wx*_glViewport[2]/2.0f,wy*_glViewport[3]/2.0f));
 
             }
         }
@@ -1180,8 +1166,8 @@ void GLWidget::Select(int mode)
     if (m_bDisplayMode2D)
     {
          QPainter    p;
-         QBrush SBrush(_selectColor);
-         QBrush NSBrush(_unselectColor);
+         QBrush SBrush(Qt::white);
+         QBrush NSBrush(Qt::black);
 
          p.begin(_mask);
          p.setCompositionMode(QPainter::CompositionMode_Source);
@@ -1190,7 +1176,7 @@ void GLWidget::Select(int mode)
          if(mode == ADD)
          {
              if (m_bFirstAction)
-                 p.fillRect(_mask->rect(), _unselectColor);
+                 p.fillRect(_mask->rect(), Qt::black);
              p.setBrush(SBrush);
              p.drawPolygon(polyg.data(),polyg.size());
          }
@@ -1201,11 +1187,11 @@ void GLWidget::Select(int mode)
          }
          else if(mode == ALL)
          {
-             p.fillRect(_mask->rect(), _selectColor);
+             p.fillRect(_mask->rect(), Qt::white);
          }
          else if(mode == NONE)
          {
-             p.fillRect(_mask->rect(), _unselectColor);
+             p.fillRect(_mask->rect(), Qt::black);
          }
          p.end();
 
@@ -1399,7 +1385,6 @@ void GLWidget::drawBall()
     glPushMatrix();    
 
     // ball radius
-    //float scale = 0.05f * (float) m_glWidth/ m_glHeight;
     float scale = m_Data->m_diam / 1.5f;
 
     if (m_ballGLList == GL_INVALID_LIST_ID)
