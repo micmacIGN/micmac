@@ -225,8 +225,14 @@ void GLWidget::paintGL()
     //we clear background
     glClear(GL_DEPTH_BUFFER_BIT);
 
+    glDisable(GL_BLEND);
+
     if (m_Data->NbImages())
     {
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE,GL_ZERO);
+
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
@@ -293,7 +299,7 @@ void GLWidget::paintGL()
     else
     {
 
-        glDisable(GL_BLEND);
+
         zoom();
 
         static GLfloat trans44[16], rot44[16], tmp[16];
@@ -994,7 +1000,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                     {
                         m_glPosition[0] += 2.0f*( (float)dp.x()/(_glViewport[2]*m_params.zoom) );
                         m_glPosition[1] -= 2.0f*( (float)dp.y()/(_glViewport[3]*m_params.zoom) );
-
                     }
                     else
                     {
@@ -1145,16 +1150,15 @@ void GLWidget::Select(int mode)
         }
         else
         {
-            GLint recal;
-            GLdouble wx, wy, wz;
+
+            float wx, wy;
 
             for (int aK=0; aK < (int) m_polygon.size(); ++aK)
             {
-                recal = _glViewport[3] - (GLint) m_polygon[aK].y()- 1;
-                gluUnProject ((GLdouble) m_polygon[aK].x(), (GLdouble) recal, 1.0,
-                              _mvmatrix, _projmatrix, _glViewport, &wx, &wy, &wz);
-                polyg.push_back(QPointF(wx*_glViewport[2]/2.0f,wy*_glViewport[3]/2.0f));
+                wx = (float)( m_polygon[aK].x()     - _glViewport[2]/2.0f - _mvmatrix[4])/m_params.zoom + _glImg.width()/2.0f;
+                wy = (float)(-m_polygon[aK].y() - 1 + _glViewport[3]/2.0f - _mvmatrix[9])/m_params.zoom + _glImg.height()/2.0f;
 
+                polyg.push_back(QPointF(wx,wy));
             }
         }
     }
