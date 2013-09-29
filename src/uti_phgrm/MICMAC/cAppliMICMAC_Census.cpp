@@ -373,9 +373,26 @@ double CorrelBasic_Center(float ** Im1,float ** Im2,int  aPx2,Pt2di aSzV,float a
 }
 
 
+double CensusBasicCenter(float ** Im1,float ** Im2,int aPx2,Pt2di aSzV)
+{
+     float aC1 = **Im1;
+     float aC2 = Im2[0][aPx2];
+     int aNbOk = 0;
+     for (int aDy=-aSzV.y ; aDy<=aSzV.y ; aDy++)
+     {
+          float * aL1 = Im1[aDy] ;
+          float * aL2 = Im2[aDy] + aPx2;
+          for (int aDx=-aSzV.x ; aDx<= aSzV.x ; aDx++)
+          {
+              bool Inf1 = (aL1[aDx]<aC1);
+              bool Inf2 = (aL2[aDx]<aC2);
+              if (Inf1==Inf2) aNbOk++;
+          }
+     }
+     return ((double) aNbOk) / ((1+2*aSzV.x)*(1+2*aSzV.y));
+}
 
-
-double CensusBasic(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di aSzV,float anEpsilon)
+double CensusBasic(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di aSzV)
 {
      cQckInterpolEpip aQI2(X2);
      float aC1 =  Im1[aP1.y][aP1.x];
@@ -407,7 +424,7 @@ double CensusBasic(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di aSz
 
 
 
-double CensusGraphe(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di aSzV,float anEpsilon)
+double CensusGraphePlein(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di aSzV)
 {
      cQckInterpolEpip aQI2(X2);
      int aNbOk = 0;
@@ -533,9 +550,13 @@ template <class Type> void cBufOnImage<Type>::AvanceX()
 
 
 double TolNbByPix=1e-5;
-void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost &)
+void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 {
    
+  bool Verif = false;
+  bool DoGraphe = (aCC.TypeCost() ==eMCC_GrCensus);
+  bool DoCensusBasic = (aCC.TypeCost() ==eMCC_CensusBasic);
+  
 
    std::vector<float> aVPms;
    double aSomPms=0;
@@ -564,9 +585,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost &)
    const std::vector<cGPU_LoadedImGeom *> & aVSLGI0 = anI0.MSGLI();
 
    ELISE_ASSERT((mX0Ter==0)&&(mY0Ter==0),"Origin Assumption in cAppliMICMAC::DoCensusCorrel");
-   Pt2di aSzT = aBox.sz();
+   // Pt2di aSzT = aBox.sz();
 
-  bool DoGraphe = true;
   //  Censur Graphe
    bool DoFlag = DoGraphe;
    std::vector<cCensusGr *> aVCG;
@@ -626,8 +646,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost &)
 
     // mCurSzVMax 
 
-    // float ** aDataIm0 =  anI0.VDataIm()[0];
-    // float ** aDataIm1 =  anI1.VDataIm()[0];
+    float ** aDataIm0 =  anI0.VDataIm()[0];
+    float ** aDataIm1 =  anI1.VDataIm()[0];
     // cInterpolateurIm2D<float> * anInt = CurEtape()->InterpFloat();
 
 
@@ -640,7 +660,7 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost &)
 
     std::vector<Im2D_INT4> mImFlag0;
     std::vector<INT4 **  > mVIF0 ;
-    INT4 ***               mDIF0;
+    INT4 ***               mDIF0=0;
 
     // La phase code le decalage sub pixel, on impose un pas en 1/N pour n'avoir que N image 
     // interpolee a creer
@@ -649,7 +669,7 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost &)
         
         std::vector<Im2D_INT4> mImFlag1;
         std::vector<INT4 **  > mVIF1;
-        INT4 ***               mDIF1;
+        INT4 ***               mDIF1=0;
         int aPhaseCompl = mNbByPix - aPhase;
       
         for (int aK=0 ; aK<int(mBufCensusIm2.size()) ; aK++)
@@ -698,8 +718,20 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost &)
         float ** aDataC =  mDataBufC[0];
 
 
-        // cBufOnImage<float> aBOI0(aDataIm0,aBoxDef0,aBoxCalc0);
-        // cBufOnImage<float> aBOIC(aDataC  ,aBoxDef1,aBoxCalc1);
+        std::vector<cBufOnImage<float> *> aVBOI0;
+        std::vector<cBufOnImage<float> *> aVBOIC;
+        if (DoCensusBasic)
+        {
+             for (int aKC=0 ; aKC<aNbScale ; aKC++)
+             {
+                 aVBOI0.push_back(new  cBufOnImage<float> (anI0.VDataIm()[aKC],aBoxDef0,aBoxCalc0));
+                 aVBOIC.push_back(new  cBufOnImage<float> (     mDataBufC[aKC],aBoxDef1,aBoxCalc1));
+             }
+        }
+        int aNbBOI = aVBOI0.size();
+
+        cBufOnImage<float> aBOI0(aDataIm0,aBoxDef0,aBoxCalc0);
+        cBufOnImage<float> aBOIC(aDataC  ,aBoxDef1,aBoxCalc1);
 
 
         for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
@@ -728,15 +760,46 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost &)
                             Pt2di aPIm1(aXIm1SsPx+anOffset,aYIm1SsPx);
                             if (anI1.IsOkErod(aPIm1.x,aPIm1.y))
                             {
-                                float aCostGr = 0;
-                                for (int aKS =0 ; aKS<aNbScale ; aKS++)
+                                if (DoGraphe)
                                 {
-                                    int aFlag0  = mDIF0[aKS][aPIm0.y][aPIm0.x];
-                                    int aFlag1  = mDIF1[aKS][aPIm1.y][aPIm1.x];
-                                    int aDFlag = aFlag0 ^ aFlag1;
-                                    aCostGr +=  aDataPms[aKS] * aCG->CostFlag(aDFlag);
+                                     float aCostGr = 0;
+                                     for (int aKS =0 ; aKS<aNbScale ; aKS++)
+                                     {
+                                         int aFlag0  = mDIF0[aKS][aPIm0.y][aPIm0.x];
+                                         int aFlag1  = mDIF1[aKS][aPIm1.y][aPIm1.x];
+                                         int aDFlag = aFlag0 ^ aFlag1;
+                                         aCostGr +=  aDataPms[aKS] * aCG->CostFlag(aDFlag);
+                                     }
+                                     aCost = aCostGr / aSomPms;
+                                     if (Verif) // Verification de cost Cennsus
+                                     {
+                                         Pt2dr aPRIm1 = Pt2dr(aPIm1) + Pt2dr(aPhase/double(mNbByPix),0);
+                                         double aCostGrBas =CensusGraphePlein(aDataIm0,aPIm0,aDataIm1,aPRIm1.x,aPIm1.y,mCurSzVMax);
+                                         double aC3 = aCG->GainBasic(aBOI0.data(),aBOIC.data(),anOffset);
+                                         // Peut pas forcer a 0, car interpol diff peut creer except une variation
+                                         if ((ElAbs(aCostGrBas-aCost)>1e-4) || (ElAbs(aC3-aCost)>1e-4))
+                                         {
+                                             std::cout << "Verfi Gr " << aCost << " " << aCostGrBas  << " " << aC3 << "==============================\n";
+                                         }
+                                     }
                                 }
-                                aCost = mStatGlob->CorrelToCout(aCostGr/aSomPms);
+                                else if (DoCensusBasic)
+                                {
+                                     Pt2dr aPRIm1 = Pt2dr(aPIm1) + Pt2dr(aPhase/double(mNbByPix),0);
+                                     // aCost = CensusGraphePlein(aDataIm0,aPIm0,aDataIm1,aPRIm1.x,aPIm1.y,mCurSzVMax);
+                                     aCost = CensusBasicCenter(aVBOI0[0]->data(),aVBOIC[0]->data(),anOffset,mCurSzVMax);
+                                     if (Verif)
+                                     {
+                                          double aC2 = CensusBasic(aDataIm0,aPIm0,aDataIm1,aPRIm1.x,aPIm1.y,mCurSzVMax);
+                                          if (ElAbs(aCost-aC2) > 1e-4)
+                                          {
+                                             std::cout << "Verfi Basic " << aCost <<  " "<< aC2 << "===================================\n";
+                                          }
+                                     }
+                                     // double aC3 = CensusBasicCenter(aBOI0.data(),aBOIC.data(),anOffset,mCurSzVMax);
+                                }
+
+
 // std::cout << " CCCcc " << aCost << "\n";
 
 
@@ -749,18 +812,31 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost &)
                               double aC3 = aCG->GainBasic(aBOI0.data(),aBOIC.data(),anOffset);
 
 */
+                                aCost = mStatGlob->CorrelToCout(aCost);
                             }
                         }
                         mSurfOpt->SetCout(Pt2di(anX,anY),&aZI,aCost);
                         anOffset++;
 // std::cout << "ZZZZ " << aZI << " " << aCost << "\n";
                 }
-                // aBOI0.AvanceY();
-                // aBOIC.AvanceY();
+                for (int aK=0 ; aK<aNbBOI ; aK++)
+                {
+                    aVBOI0[aK]->AvanceY();
+                    aVBOIC[aK]->AvanceY();
+                }
+                aBOI0.AvanceY();
+                aBOIC.AvanceY();
              }
-             // aBOI0.AvanceX();
-             // aBOIC.AvanceX();
+             for (int aK=0 ; aK<aNbBOI ; aK++)
+             {
+                 aVBOI0[aK]->AvanceX();
+                 aVBOIC[aK]->AvanceX();
+             }
+             aBOI0.AvanceX();
+             aBOIC.AvanceX();
         }
+        DeleteAndClear(aVBOI0);
+        DeleteAndClear(aVBOIC);
     }
 
 
