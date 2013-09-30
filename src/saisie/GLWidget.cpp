@@ -1149,15 +1149,15 @@ void GLWidget::Select(int mode)
         }
         else
         {
-
-            float wx, wy;
+            QPointF PtImage;
 
             for (int aK=0; aK < (int) m_polygon.size(); ++aK)
             {
-                wx = (float)( m_polygon[aK].x()     - _glViewport[2]/2.0f - _mvmatrix[4])/m_params.zoom + _glImg.width()/2.0f;
-                wy = (float)(-m_polygon[aK].y() - 1 + _glViewport[3]/2.0f - _mvmatrix[9])/m_params.zoom + _glImg.height()/2.0f;
 
-                polyg.push_back(QPointF(wx,wy));
+                PtImage.setX((float)(( m_polygon[aK].x()     - _glViewport[2]/2.0f ) - _projmatrix[12]*_glViewport[2]/2.0f));
+                PtImage.setY((float)((-m_polygon[aK].y() - 1 + _glViewport[3]/2.0f ) - _projmatrix[13]*_glViewport[3]/2.0f));
+
+                polyg.push_back(PtImage/m_params.zoom);
             }
         }
     }
