@@ -61,6 +61,11 @@ namespace NS_ParamMICMAC{
            <eGeomMECTerrain > </eGeomMECTerrain>
            <eNoGeomMEC >      </eNoGeomMEC>
    </enum>
+   <enum Name="eModeCensusCost">
+	   <eMCC_GrCensus >          </eMCC_GrCensus>
+           <eMCC_CensusBasic >       </eMCC_CensusBasic>
+           <eMCC_CensusCorrel >      </eMCC_CensusCorrel>
+   </enum>
 
 
    <enum Name="eTypeModeleAnalytique">
@@ -922,6 +927,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                 <TypeCAH Nb="1" Union="true">
                         <CensusCost Nb="?" AccessorFils="false">
                               <PdsCrown  Type="double" Def="0.5" Nb="?"> </PdsCrown>
+                              <TypeCost Type="eModeCensusCost" Nb="1">   </TypeCost>
                         </CensusCost>
 
 

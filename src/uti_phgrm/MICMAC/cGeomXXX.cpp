@@ -600,7 +600,7 @@ void cGeomDiscFPx::PostInit()
 
             ELISE_ASSERT((mEcPxInitPlus[0]>0) && (mEcPxInitMoins[0]>0),"Error in IntervSpecialZInv");
 
-if ( mAp->DebugMM().Val())
+if ( 0 )
 {
     std::cout << " V0PX " << mV0Px[0] << " " << 1/mV0Px[0] << "\n";
     std::cout  << "AAA  " << mEcPxInitPlus[0] << " " << mEcPxInitMoins[0] << " " << mEcPxZone[0] << "\n";

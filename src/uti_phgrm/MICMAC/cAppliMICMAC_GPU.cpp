@@ -1201,6 +1201,7 @@ double EcartNormalise(double aI1,double aI2)
     return 1-aI2/aI1;  // 1 -1/X
 }
 
+
 void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel * aCMP,int aNbScaleIm,bool VireExtre)
 {
     int aNbOk = 0;
@@ -1263,6 +1264,11 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
          &mZIntCur,
          aNbOk ? mStatGlob->CorrelToCout(aSomCorrel/aNbOk) : mAhDefCost
     );
+if (IsPBug(Pt2di(anX,anY)))
+{
+   double aCor = aSomCorrel/aNbOk;
+   std::cout << "GPUC ; ZI : " << mZIntCur << " ; Cor : " << aCor << "\n";
+}
 }
 
 
