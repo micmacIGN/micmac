@@ -9,8 +9,10 @@
     #define UINT unsigned int
 #endif
 
-//#define __DEBUG_SIFT_GAUSSIANS_OUTPUT
+//#define __DEBUG_SIFT_GAUSSIANS_OUTPUT_RAW
+//#define __DEBUG_SIFT_GAUSSIANS_OUTPUT_PGM
 //#define __DEBUG_SIFT_GAUSSIANS_INPUT
+//#define __DEBUG_SIFT_GAUSSIANS_DIRECTORY_COMPARE
 //#define __DEBUG_SIFT_DOG_OUTPUT
 //#define __DEBUG_SIFT_DOG_INPUT
 
@@ -160,7 +162,7 @@ void Siftator::compute_gaussians( const RealImage1 &i_image )
         }
     }
     
-    #ifdef __DEBUG_SIFT_GAUSSIANS_OUTPUT
+    #if defined(__DEBUG_SIFT_GAUSSIANS_OUTPUT_RAW) || defined(__DEBUG_SIFT_GAUSSIANS_OUTPUT_PGM)
        string out_dir = "gaussians_sift";
        if ( !ELISE_fp::IsDirectory(out_dir) )
        {
@@ -178,10 +180,17 @@ void Siftator::compute_gaussians( const RealImage1 &i_image )
 	       else
 		  level = 1<<level;
 	       ss << out_dir << "/gaussian_" << setfill('0') << setw(2) << level << '_' << (l-1);
-	       m_octaves[o][l].saveRaw( ss.str()+".raw" );
-	       //m_octaves[o][l].savePGM( ss.str()+".pgm" );
+	       #ifdef __DEBUG_SIFT_GAUSSIANS_OUTPUT_RAW
+		  m_octaves[o][l].saveRaw( ss.str()+".raw" );
+	       #endif
+	       #ifdef __DEBUG_SIFT_GAUSSIANS_OUTPUT_PGM
+		  m_octaves[o][l].savePGM( ss.str()+".pgm" );
+	       #endif
 	   }
        }
+   #endif
+   
+   #ifdef __DEBUG_SIFT_GAUSSIANS_DIRECTORY_COMPARE    
        __compare_raw_directories( "gaussians_tgi", "gaussians_sift" );
    #endif
    

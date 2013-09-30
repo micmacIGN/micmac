@@ -39,7 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Digeo.h"
 
-//#define __DEBUG_DIGEO_GAUSSIANS_OUTPUT
+//#define __DEBUG_DIGEO_GAUSSIANS_OUTPUT_RAW
+#define __DEBUG_DIGEO_GAUSSIANS_OUTPUT_PGM
 //#define __DEBUG_DIGEO_GAUSSIANS_INPUT
 //#define __DEBUG_DIGEO_DOG_OUTPUT
 //#define __DEBUG_DIGEO_DOG_INPUT
@@ -323,8 +324,12 @@ void cTplImInMem<Type>::saveGaussians( const std::string &out_dir ) const
 
     stringstream ss;
     ss << out_dir << "/gaussian_" << setfill('0') << setw(2) << mOct.Niv() << '_' << mKInOct;
-    img.saveRaw( ss.str()+".raw" );
-    img.savePGM( ss.str()+".pgm", true );
+    #ifdef __DEBUG_DIGEO_GAUSSIANS_OUTPUT_RAW
+      img.saveRaw( ss.str()+".raw" );
+    #endif
+    #ifdef __DEBUG_DIGEO_GAUSSIANS_OUTPUT_PGM
+      img.savePGM( ss.str()+".pgm", true );
+   #endif
 }
 
 template <class Type>
@@ -599,7 +604,7 @@ void cImInMem::SetMere(cImInMem * aMere)
 
 void cImInMem::SauvIm(const std::string & aAdd)
 {
-    #ifdef __DEBUG_DIGEO_GAUSSIANS_OUTPUT
+    #if defined(__DEBUG_DIGEO_GAUSSIANS_OUTPUT_RAW) || defined(__DEBUG_DIGEO_GAUSSIANS_OUTPUT_PGM)
         saveGaussians( "gaussians_digeo" );
     #endif
 
