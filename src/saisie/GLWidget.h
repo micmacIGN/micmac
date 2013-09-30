@@ -64,9 +64,6 @@ public:
                             SCREEN_CENTER_MESSAGE
     };
 
-    void    setSelectionMode(int mode ) {_m_selection_mode = mode; }
-    int     getSelectionMode()          {return _m_selection_mode;}
-
     //! Displays a status message
     /** \param message message (if message is empty, all messages will be cleared)
         \param pos message position on screen
@@ -143,15 +140,20 @@ public:
 
     void reset();
 
-    void WindowToImage(QPointF const &p0, QPointF &p1);
-
     QImage* getGLMask(){return _mask;}
 
     ViewportParameters* getParams(){return &m_params;}
 
     void applyGamma(float aGamma);
 
-    void glWinQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw);
+    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw);
+
+    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw,QColor color);
+
+    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, GLuint idTexture);
+
+    void enableOptionLine();
+    void disableOptionLine();
 public slots:
     void zoom();
 
@@ -162,9 +164,6 @@ signals:
 
     //! Signal emitted when files are dropped on the window
     void filesDropped(const QStringList& filenames);
-
-    //! Signal emitted when the mouse wheel is rotated
-    void mouseWheelRotated(float wheelDelta_deg);
 
     void selectedPoint(uint idCloud, uint idVertex,bool selected);
 
@@ -179,6 +178,7 @@ protected:
     void keyPressEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent* event);
 
+    void ImageToTexture(GLuint idTexture,QImage* image);
 
     //! Initialization state of GL
     bool m_bGLInitialized;
@@ -205,11 +205,6 @@ protected:
     GLuint getNbGLLists() { return m_nbGLLists; }
     void incrNbGLLists() { m_nbGLLists++; }
     void resetNbGLLists(){ m_nbGLLists = 0; }
-
-    //! GL context width
-    int m_glWidth;
-    //! GL context height
-    int m_glHeight;
 
     //! GL context aspect ratio m_glWidth/m_glHeight
     float m_glRatio;
@@ -246,7 +241,6 @@ protected:
 
     bool m_bFirstAction;
 
-    int m_previousAction;
 
     //! Temporary Message to display
     struct MessageToDisplay
@@ -263,8 +257,10 @@ protected:
     //! Ball GL list
     GLuint m_ballGLList;
 
-    //! Texture GL list
-    GLuint m_texturGLList;
+    //! Texture image
+    GLuint m_textureImage;
+
+    GLuint m_textureMask;
 
     int m_nbGLLists;
 
@@ -294,9 +290,6 @@ protected:
     //! data position in the gl viewport
     GLfloat m_glPosition[2];
 
-    //! transparency of deleted areas
-    float   m_alpha;
-
 private:
 
     QPoint      m_lastPos;
@@ -313,12 +306,6 @@ private:
 
     float       _fps;
 
-    int         _m_selection_mode;
-
-    double      _MM[16];
-    double      _MP[16];
-    int         _VP[4];
-
     bool        _m_g_mouseLeftDown;
     bool        _m_g_mouseMiddleDown;
     bool        _m_g_mouseRightDown;
@@ -334,9 +321,10 @@ private:
     QImage      *_mask;
     GLdouble    *_mvmatrix;
     GLdouble    *_projmatrix;
-    GLint       *_viewport;
+    GLint       *_glViewport;
 
     QPoint      _m_lastPosZoom;
+
 };
 
 #endif  /* _GLWIDGET_H */

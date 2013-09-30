@@ -3712,7 +3712,8 @@ bool Apply(ePxApply aPA,int aK);
 
 
 extern Pt2di PBug;
-extern bool DeBugMM;
+bool IsPBug(const Pt2di &aP);
+extern bool GlobDebugMM;  // Init par DebugMM()
 /*
 extern Pt2di BoxP0Bug;
 extern bool  InBoxBug;
