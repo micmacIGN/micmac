@@ -546,7 +546,7 @@ template <class Type,class TypeBase>
             aTMasqOut.oset(aPOut,Ok);
             for (int aKC=0 ; aKC<aNbChan ; aKC++)
             {
-                double aVal =  Ok ?  aKern->GetVal(aDataIn[aKC],aPIm) : 0 ;
+                double aVal =  El_CTypeTraits<Type>::Tronque(Ok ?  aKern->GetVal(aDataIn[aKC],aPIm) : 0) ;
                 aVOut[aKC].oset(aPOut,aVal);
             }
             aPR.y += UnSPas;
