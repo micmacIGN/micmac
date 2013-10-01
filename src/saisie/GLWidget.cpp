@@ -32,10 +32,12 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_Data(data)
   , m_speed(2.5f)
   , m_bDisplayMode2D(false)
+  , m_Click(0)
   , m_vertexbuffer(QGLBuffer::VertexBuffer)
   , _frameCount(0)
   , _previousTime(0)
   , _currentTime(0)
+  , _idx(-1)
   , _fps(0.0f)
   , _m_g_mouseLeftDown(false)
   , _m_g_mouseMiddleDown(false)
@@ -371,7 +373,7 @@ void GLWidget::paintGL()
 
         enableOptionLine();
 
-        glColor3f(0.1f,1.0f,0.2f);
+        glColor3f(.1f,1.f,.2f);
 
         glLineWidth(1.0f);
 
@@ -382,10 +384,27 @@ void GLWidget::paintGL()
         }
         glEnd();
 
-        glColor3f(1,0,0);
+        glColor3f(1.f,0.f,0.f);
 
-        for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
-            glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
+        //cout << "idx : " << _idx << endl;
+
+        if (_idx >=0)
+        {
+            for (int aK = 0;aK < _idx; ++aK)
+                glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
+
+            glColor3f(0.f,0.f,1.f);
+            glDrawUnitCircle(2, m_polygon[_idx].x(), m_polygon[_idx].y(), 3.0, 8);
+
+            glColor3f(1.f,0.f,0.f);
+            for (int aK = _idx+1;aK < (int) m_polygon.size(); ++aK)
+                glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
+        }
+        else
+        {
+            for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
+                glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
+        }
 
         glLineWidth(m_params.LineWidth);
         disableOptionLine();
@@ -490,6 +509,10 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
                         m_polygon2.clear();
                         update();
                     }
+                    else  if (event->modifiers().testFlag(Qt::ControlModifier))
+                    {
+                        m_Click++;
+                    }
                     else
                     {
                         clearPolyline();
@@ -525,6 +548,15 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     if ( event->button() == Qt::LeftButton )
     {
         _m_g_mouseLeftDown = false;
+
+        if ((m_Click == 1)&&(_idx>=0)&&m_polygon2.size())
+        {
+            m_polygon[_idx] = m_polygon2[1];
+
+            m_polygon2.clear();
+            m_Click = 0;
+            _idx = -1;
+        }
     }
     if ( event->button() == Qt::RightButton  )
     {
@@ -591,6 +623,13 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
     if  (event->key() == Qt::Key_Shift)
     {
         m_polygon2.clear();
+    }
+
+    if  (event->key() == Qt::Key_Control)
+    {
+        m_polygon2.clear();
+        m_Click = 0;
+        _idx = -1;
     }
 }
 
@@ -1028,9 +1067,42 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         }
         else
         {
-            if ((event->modifiers().testFlag(Qt::ShiftModifier)) && m_polygon.size())
+            if(m_polygon.size())
             {
-                fillPolygon2();
+                if (event->modifiers().testFlag(Qt::ShiftModifier))
+                {
+                    fillPolygon2();
+                }
+                else if (event->modifiers().testFlag(Qt::ControlModifier))
+                {  
+                    if (m_Click == 0)
+                        findClosestPoint(2500);
+                    else if (m_Click == 1)
+                    {
+                        m_polygon2.clear();
+                        if ((_idx >0 ) && (_idx < m_polygon.size()-1))
+                        {
+                            m_polygon2.push_back(m_polygon[_idx-1]);
+                            m_polygon2.push_back(m_lastPos);
+                            m_polygon2.push_back(m_polygon[_idx+1]);
+                        }
+                        else
+                        {
+                            if (_idx == 0)
+                            {
+                                m_polygon2.push_back(m_polygon[m_polygon.size()-1]);
+                                m_polygon2.push_back(m_lastPos);
+                                m_polygon2.push_back(m_polygon[1]);
+                            }
+                            if (_idx == m_polygon.size()-1)
+                            {
+                                m_polygon2.push_back(m_polygon[m_polygon.size()-2]);
+                                m_polygon2.push_back(m_lastPos);
+                                m_polygon2.push_back(m_polygon[0]);
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -1777,13 +1849,12 @@ float segmentDistToPoint(QPoint segA, QPoint segB, QPoint p)
 
 void GLWidget::fillPolygon2()
 {
-    float dist2 = FLT_MAX;
+    float dist, dist2;
+    dist2 = FLT_MAX;
     int idx = -1;
 
     QVector < QPoint > polygon = m_polygon;
     polygon.push_back(polygon[0]);
-
-    float dist;
 
     for (int aK =0; aK < (int) polygon.size()-1;++aK)
     {
@@ -1803,4 +1874,29 @@ void GLWidget::fillPolygon2()
         m_polygon2.push_back(m_lastPos);
         m_polygon2.push_back(polygon[idx+1]);
     }
+}
+
+void GLWidget::findClosestPoint(int sqr_radius)
+{
+    float dist, dist2;
+    dist2 = (float) sqr_radius;
+
+    //cout << "m_lastPos " << m_lastPos.x() << " " << m_lastPos.y() << endl;
+
+    for (int aK = 0; aK < (int) m_polygon.size();++aK)
+    {
+       // cout << "m_polygon " << m_polygon[aK].x() << " " << m_polygon[aK].y() << endl;
+
+
+        dist  = (float)(m_lastPos.x() - m_polygon[aK].x())*(m_lastPos.x() - m_polygon[aK].x()) +
+                (m_lastPos.y() - m_polygon[aK].y())*(m_lastPos.y() - m_polygon[aK].y());
+
+        //cout << " dist " << dist << endl;
+
+        if  (dist < dist2)
+        {
+            dist2 = dist;
+            _idx = aK;
+        }
+    } 
 }

@@ -211,6 +211,8 @@ protected:
     //! Fill m_polygon2 for point insertion or move
     void fillPolygon2();
 
+    void findClosestPoint(int sqr_radius);
+
     //! GL context aspect ratio m_glWidth/m_glHeight
     float m_glRatio;
 
@@ -298,6 +300,9 @@ protected:
     //! data position in the gl viewport
     GLfloat m_glPosition[2];
 
+    //! click counter to manage point move event
+    int m_Click;
+
 private:
 
     QPoint      m_lastPos;
@@ -311,6 +316,8 @@ private:
     int         _frameCount;
     int         _previousTime;
     int         _currentTime;
+
+    int         _idx;
 
     float       _fps;
 
