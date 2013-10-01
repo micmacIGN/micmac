@@ -1,0 +1,153 @@
+<ParamMICMAC>
+
+<Section_Terrain>
+       <IntervParalaxe>
+             <Px1IncCalc>   50.0  </Px1IncCalc> <!-- champ de recherche en ligne -->
+             <Px2IncCalc>   1.0  </Px2IncCalc>
+	     <Px1Moy>   0.0  </Px1Moy>  <!-- biais de rech en ligne -->
+	     <Px2Moy>  11.0  </Px2Moy>
+       </IntervParalaxe>
+
+</Section_Terrain>
+
+<Section_PriseDeVue >
+     <GeomImages> eGeomImage_Epip </GeomImages>
+     <Images >
+          <Im1> Img3.tif </Im1>
+          <Im2> Img4.tif </Im2>
+     </Images>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+	 <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <DynamiqueCorrel> eCoeffCorrelStd </DynamiqueCorrel> <!-- fonction de correlation seulement -->
+             <AggregCorr> eAggregSymetrique </AggregCorr>
+
+             <AlgoRegul>   eAlgo2PrgDyn   </AlgoRegul>
+
+	     <ModulationProgDyn Portee="Globale">
+	           <EtapeProgDyn>
+		     <ModeAgreg> 		ePrgDAgrSomme 	</ModeAgreg>
+		     <NbDir>			8  		</NbDir>
+                  </EtapeProgDyn>		  
+                  <Px1PenteMax > 5 </Px1PenteMax>
+                  <Px2PenteMax > 0.01 </Px2PenteMax>
+             </ModulationProgDyn>
+
+<!--  C'est le pseudo interpolateur  qui limite les effets d'aliasing -->
+             <ModeInterpolation> eInterpolMPD </ModeInterpolation>
+
+<!--   INUTILE EN PROG-DYN 
+	     <CoxRoy8Cnx>   true </CoxRoy8Cnx>
+	     <CoxRoyUChar>  false </CoxRoyUChar>
+-->
+
+             <SzW >      2             </SzW>  <!-- taille de la fenetre de correlation -->
+             <Px1Regul>      0.1  </Px1Regul> <!-- poids accorde a la regularisation -->
+             <Px1Pas>        0.5  </Px1Pas>
+
+            <!-- Regul forte sur les paralaxes transverses -->
+             <Px2Regul >     2.0  </Px2Regul>
+            <!-- Precision elevee sur les paralaxes transv -->
+             <Px2Pas >       0.1       </Px2Pas>
+
+	     <Px1DilatAlti>  3    </Px1DilatAlti> 
+             <Px1DilatPlani> 1    </Px1DilatPlani>
+             <Px2DilatAlti>  2     </Px2DilatAlti>
+             <Px2DilatPlani> 2   </Px2DilatPlani>
+
+
+             <GenImagesCorrel> true </GenImagesCorrel> 
+             <Gen8Bits_Px1>   true  </Gen8Bits_Px1>
+             <Gen8Bits_Px2>   true  </Gen8Bits_Px2>
+
+        </EtapeMEC>
+	     
+        <!-- Premiere etape assez couteuse,  car intervalle croise des deux paralaxe explores -->
+        <EtapeMEC>
+             <DeZoom >        8       </DeZoom>
+             <Px2Pas >       0.4       </Px2Pas>
+	     <ModulationProgDyn Portee="Globale">
+	           <EtapeProgDyn>
+		     <ModeAgreg> 		ePrgDAgrSomme 	</ModeAgreg>
+		     <NbDir>			4  		</NbDir>
+                  </EtapeProgDyn>		  
+                  <Px1PenteMax > 1 </Px1PenteMax>
+                  <Px2PenteMax > 0.01 </Px2PenteMax>
+             </ModulationProgDyn>
+
+        </EtapeMEC>
+
+        <EtapeMEC>
+             <DeZoom >        4       </DeZoom>
+        </EtapeMEC>
+
+        <EtapeMEC>   
+             <DeZoom >        2    </DeZoom>
+	     <Px1DilatAlti>   0    </Px1DilatAlti> 
+             <Px1DilatPlani>  0    </Px1DilatPlani>
+             <SsResolOptim>   6    </SsResolOptim>
+             <PostFiltragePx>
+                  <OneFitragePx>
+                        <TypeFiltrage> eFiltrageMedian   </TypeFiltrage>
+                        <SzFiltrage>  0          </SzFiltrage>
+                        <SzFiltrNonAd   > 2 </SzFiltrNonAd>
+                        <PxApply >   eApplyPx2     </PxApply>
+                        <NbIteration > 2 </NbIteration>
+                  </OneFitragePx>
+            </PostFiltragePx>
+        </EtapeMEC>
+        <EtapeMEC>  
+             <DeZoom >        2    </DeZoom>
+	     <Px2DilatAlti>   0    </Px2DilatAlti> 
+             <Px2DilatPlani>  0    </Px2DilatPlani>
+        </EtapeMEC>
+
+
+        <EtapeMEC>  
+             <DeZoom >        1    </DeZoom>
+	     <Px1DilatAlti>   0    </Px1DilatAlti> 
+             <Px1DilatPlani>  0    </Px1DilatPlani>
+             <SsResolOptim>   8    </SsResolOptim>
+             <PostFiltragePx>
+                  <OneFitragePx>
+                        <TypeFiltrage> eFiltrageMedian   </TypeFiltrage>
+                        <SzFiltrage>  0          </SzFiltrage>
+                        <SzFiltrNonAd   > 2 </SzFiltrNonAd>
+                        <PxApply >   eApplyPx2     </PxApply>
+                        <NbIteration > 2 </NbIteration>
+                  </OneFitragePx>
+            </PostFiltragePx>
+        </EtapeMEC>
+        <EtapeMEC> 
+             <DeZoom >        1    </DeZoom>
+	     <Px2DilatAlti>   0    </Px2DilatAlti> 
+             <Px2DilatPlani>  0    </Px2DilatPlani>
+        </EtapeMEC>
+
+</Section_MEC>
+
+<Section_Results >
+    <GeomMNT> eGeomPxBiDim  </GeomMNT> 
+
+</Section_Results>
+
+<Section_WorkSpace >
+     <!-- Si dir locale, evite d'avoir a renommer a chaque fois -->
+     <WorkDir> ThisDir </WorkDir>
+     <TmpMEC>  MIS-MEC/  </TmpMEC>
+     <NomChantier> Phoenix </NomChantier>
+     <TmpPyr > Pyram/ </TmpPyr>
+     <ByProcess> 2 </ByProcess>
+
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+
