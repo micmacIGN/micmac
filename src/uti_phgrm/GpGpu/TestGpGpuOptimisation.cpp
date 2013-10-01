@@ -13,7 +13,7 @@ int main()
     // Declaration des variables du cote du DEVICE
     DEVC_Data2Opti d2O;
 
-    uint nbLines    = 1;
+    uint nbLines    = 2;
     uint lLines     = 1;
     uint depth      = NAPPEMAX;
 
@@ -82,11 +82,11 @@ int main()
 
     d2O.CopyDevicetoHost(h2O);
 
-   // h2O._s_InitCostVol.OutputValues();
+    //h2O._s_InitCostVol.OutputValues();
 
     //h2O._s_Index.OutputValues(0,XY,NEGARECT,3,make_short2(0,0));
 
-    h2O._s_ForceCostVol[0].OutputValues();
+    //h2O._s_ForceCostVol[0].OutputValues();
 
     //
     uint errorCount = 0;
