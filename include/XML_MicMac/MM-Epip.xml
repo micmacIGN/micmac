@@ -1,11 +1,16 @@
 <!-- 
-MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/data2/EPI/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64 +ZoomF=4
+MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/data2/EPI/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64 +ZoomF=4  Purge=false
+
+MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/marc/TMP/EPI/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64 +ZoomF=4
+
+MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/data2/EPI/ +Im1=Epi_Im1_Left_41_0421_PAN_41_0422_PAN.tif +Im2=Epi_Im2_Right_41_0421_PAN_41_0422_PAN.tif +Zoom0=64 +ZoomF=4
 -->
 <ParamMICMAC>
 
 <DicoLoc>
 
-	<Symb>  ZReg=0.05  </Symb>
+	<Symb>  ZReg=0.10  </Symb>
+	<Symb>  DefCor=0.70  </Symb>
         <Symb>  PenteMax=1.0 </Symb>
 	<Symb>  Interpol=eInterpolBiLin  </Symb>
 
@@ -26,11 +31,11 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
        <Symb> Census=true   </Symb>
 
 
-       <Symb> DebugClip=false  </Symb>
-       <Symb> SzW0=2  </Symb>
+       <Symb> DebugClip=true  </Symb>
+       <Symb> SzW0=1  </Symb>
 
   <!-- Parametres calcule -->
-        <Symb>  DirMEC=MEC2Im-${Im1}-${Im2} </Symb>
+        <Symb>  DirMEC=MEC2Im-Censu${Census}-${Im1}-${Im2} </Symb>
         <eSymb> DbleZPas=* 2 ${ZPas} </eSymb>
         <eSymb> MulZMin=/ 1  ${MulZMax} </eSymb>
 
@@ -112,7 +117,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 	    <!-- param correl -->
 	    <SzW> ${SzW} </SzW>
             <AlgoRegul> eAlgo2PrgDyn </AlgoRegul>
-	    <Px1Pas> 0.5 </Px1Pas>
+	    <Px1Pas> ${ZPas} </Px1Pas>
             <Px1DilatAlti>  3  </Px1DilatAlti>
 	    <Px1DilatPlani> 3  </Px1DilatPlani>
 	    <GenImagesCorrel> true </GenImagesCorrel>
@@ -131,7 +136,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                </EtapeProgDyn>
                <Px1PenteMax> ${PenteMax} </Px1PenteMax>
                <ArgMaskAuto>
-            	   <ValDefCorrel> 0.5 </ValDefCorrel>
+            	   <ValDefCorrel> ${DefCor} </ValDefCorrel>
                    <CostTrans> 2.0 </CostTrans>
                    <ReInjectMask> false </ReInjectMask> 
                </ArgMaskAuto>
@@ -155,12 +160,12 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                             <OneParamCMS>
                                  <SzW> 2 2 </SzW>
                                  <Sigma> 1.0 </Sigma>
-                                 <Pds> 0.4 </Pds>
+                                 <Pds> 0.5 </Pds>
                             </OneParamCMS>
                             <OneParamCMS>
                                  <SzW> 4 4 </SzW>
                                  <Sigma> 2.0 </Sigma>
-                                 <Pds> 0.16 </Pds>
+                                 <Pds> 0.25 </Pds>
                             </OneParamCMS>
                      </CorrelMultiScale>
                  </#WHEN>
@@ -169,6 +174,10 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                  <TypeCAH>
                      <#IF VTEST=${Census}>
                          <CensusCost>
+                             <TypeCost> eMCC_CensusBasic   </TypeCost>
+<!--
+                             <TypeCost> eMCC_GrCensus   </TypeCost>
+-->
                          </CensusCost>
                          <GPU_Correl>
                          </GPU_Correl>
@@ -225,7 +234,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                       </EtapeProgDyn>
                       <Px1PenteMax> ${PenteMax} </Px1PenteMax>
                       <ArgMaskAuto>
-            	        <ValDefCorrel> 0.4 </ValDefCorrel>
+            	        <ValDefCorrel>  ${DefCor}  </ValDefCorrel>
                         <CostTrans> 2.0 </CostTrans>
                         <ReInjectMask> false </ReInjectMask> 
                       </ArgMaskAuto>
@@ -243,7 +252,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                        </EtapeProgDyn>
                        <Px1PenteMax> ${PenteMax} </Px1PenteMax>
                        <ArgMaskAuto>
-            	         <ValDefCorrel> 0.3 </ValDefCorrel>
+            	         <ValDefCorrel>  ${DefCor}  </ValDefCorrel>
                          <CostTrans> 2.0 </CostTrans>
                          <ReInjectMask> false </ReInjectMask> 
                        </ArgMaskAuto>
@@ -263,7 +272,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                     </EtapeProgDyn>
                     <Px1PenteMax> ${PenteMax} </Px1PenteMax>
                     <ArgMaskAuto>
-            	      <ValDefCorrel> 0.3 </ValDefCorrel>
+            	      <ValDefCorrel>  ${DefCor}  </ValDefCorrel>
                       <CostTrans> 2.0 </CostTrans>
                       <ReInjectMask> false </ReInjectMask> 
                     </ArgMaskAuto>
@@ -338,16 +347,17 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
     <PurgeMECResultBefore>  ${Purge} </PurgeMECResultBefore>
     <ByProcess>  ${MMNbProc} </ByProcess>
 <!--
-    <ByProcess>  0 </ByProcess>
+    <ByProcess>  1 </ByProcess>
 -->
     <AvalaibleMemory> 1024 </AvalaibleMemory>
     <SzDalleMin> 400 </SzDalleMin>
     <SzDalleMax> 1000 </SzDalleMax>
-    <SzRecouvrtDalles> 100 </SzRecouvrtDalles>
+    <SzRecouvrtDalles> 20 </SzRecouvrtDalles>
     <SzMinDecomposCalc> 40 </SzMinDecomposCalc>
 </Section_WorkSpace>
 
 <Section_Vrac> 
+     <DebugMM> true</DebugMM>
 </Section_Vrac>
 
 </ParamMICMAC>

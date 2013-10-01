@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2066]) = {
+const char * (theNameVar_ParamMICMAC[2072]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -62,6 +62,11 @@ const char * (theNameVar_ParamMICMAC[2066]) = {
 "	   <eGeomMECIm1 >     </eGeomMECIm1>\n",
 "           <eGeomMECTerrain > </eGeomMECTerrain>\n",
 "           <eNoGeomMEC >      </eNoGeomMEC>\n",
+"   </enum>\n",
+"   <enum Name=\"eModeCensusCost\">\n",
+"	   <eMCC_GrCensus >          </eMCC_GrCensus>\n",
+"           <eMCC_CensusBasic >       </eMCC_CensusBasic>\n",
+"           <eMCC_CensusCorrel >      </eMCC_CensusCorrel>\n",
 "   </enum>\n",
 "\n",
 "\n",
@@ -924,6 +929,7 @@ const char * (theNameVar_ParamMICMAC[2066]) = {
 "                <TypeCAH Nb=\"1\" Union=\"true\">\n",
 "                        <CensusCost Nb=\"?\" AccessorFils=\"false\">\n",
 "                              <PdsCrown  Type=\"double\" Def=\"0.5\" Nb=\"?\"> </PdsCrown>\n",
+"                              <TypeCost Type=\"eModeCensusCost\" Nb=\"1\">   </TypeCost>\n",
 "                        </CensusCost>\n",
 "\n",
 "\n",

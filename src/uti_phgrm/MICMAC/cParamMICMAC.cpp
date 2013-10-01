@@ -38,6 +38,43 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeGeomMEC & anObj)
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+eModeCensusCost  Str2eModeCensusCost(const std::string & aName)
+{
+   if (aName=="eMCC_GrCensus")
+      return eMCC_GrCensus;
+   else if (aName=="eMCC_CensusBasic")
+      return eMCC_CensusBasic;
+   else if (aName=="eMCC_CensusCorrel")
+      return eMCC_CensusCorrel;
+  else
+  {
+      cout << aName << " is not a correct value for enum eModeCensusCost\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eModeCensusCost) 0;
+}
+void xml_init(eModeCensusCost & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eModeCensusCost(aTree->Contenu());
+}
+std::string  eToString(const eModeCensusCost & anObj)
+{
+   if (anObj==eMCC_GrCensus)
+      return  "eMCC_GrCensus";
+   if (anObj==eMCC_CensusBasic)
+      return  "eMCC_CensusBasic";
+   if (anObj==eMCC_CensusCorrel)
+      return  "eMCC_CensusCorrel";
+ std::cout << "Enum = eModeCensusCost\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeCensusCost & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 eTypeModeleAnalytique  Str2eTypeModeleAnalytique(const std::string & aName)
 {
    if (aName=="eTMA_Homologues")
@@ -4977,12 +5014,24 @@ const cTplValGesInit< double > & cCensusCost::PdsCrown()const
    return mPdsCrown;
 }
 
+
+eModeCensusCost & cCensusCost::TypeCost()
+{
+   return mTypeCost;
+}
+
+const eModeCensusCost & cCensusCost::TypeCost()const 
+{
+   return mTypeCost;
+}
+
 cElXMLTree * ToXMLTree(const cCensusCost & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CensusCost",eXMLBranche);
    if (anObj.PdsCrown().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PdsCrown"),anObj.PdsCrown().Val())->ReTagThis("PdsCrown"));
+   aRes->AddFils(ToXMLTree(std::string("TypeCost"),anObj.TypeCost())->ReTagThis("TypeCost"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -4994,6 +5043,8 @@ void xml_init(cCensusCost & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
 
    xml_init(anObj.PdsCrown(),aTree->Get("PdsCrown",1),double(0.5)); //tototo 
+
+   xml_init(anObj.TypeCost(),aTree->Get("TypeCost",1)); //tototo 
 }
 
 
