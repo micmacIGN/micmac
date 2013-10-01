@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<XmlModeleSurfaceComplexe>
+     <XmlOneSurfaceAnalytique>
+          <XmlDescriptionAnalytique>
+               <Cyl>
+                    <P0>-2.67213555672243297 2.9525541227653358 7.14661685640056454</P0>
+                    <P1>-1.67228971611749455 2.97003203434180651 7.14493827606910425</P1>
+                    <POnCyl>-2.68477064817872169 2.7043316866016518 -2.96404219917999612</POnCyl>
+               </Cyl>
+          </XmlDescriptionAnalytique>
+          <Id>TheCylindre</Id>
+          <VueDeLExterieur>false</VueDeLExterieur>
+     </XmlOneSurfaceAnalytique>
+</XmlModeleSurfaceComplexe>
