@@ -198,8 +198,8 @@ void SimpleStream<T>::SetValue(int id, T value)
 template<class T> template<bool sens> __device__
 void SimpleStream<T>::reverse()
 {
-    if((int)_idG + sgn(_sizeBuffer) - WARPSIZE > 0) // TEMP!!!!!!!!!!
-        _idG += sgn(_sizeBuffer);//  - WARPSIZE;
+    if((int)_idG  +sgn(WARPSIZE) > 0) // TEMP!!!!!!!!!!
+        _idG += sgn(WARPSIZE);//  - WARPSIZE;
 }
 
 template<class T> template<bool sens> __device__
@@ -223,6 +223,8 @@ void SimpleStream<T>::incre()
 {
     if((int)_idG + sgn(_sizeBuffer) > 0) // TEMP!!!!!!!!!!
         _idG += sgn(_sizeBuffer);
+
+
 }
 #endif
 

@@ -25,97 +25,6 @@ __device__ void GetConeZ(short2 & aDz, int aZ, int MaxDeltaZ, short2 aZ_Next, sh
 }
 
 template<bool sens> __device__
-void ReadLine(
-                SimpleStream<short2>    &streamIndex,
-                SimpleStream<uint>      &streamFCost,
-                SimpleStream<ushort>    &streamICost,
-                short2     *S_Bf_Index,
-                ushort     *ST_Bf_ICost,
-                uint       *S_FCost[2],
-                p_ReadLine &p
-)
-{
-    short2* ST_Bf_Index = S_Bf_Index + p.tid + (sens ? 0 : -WARPSIZE + 1);
-    short2  ConeZ;
-
-    if(!p.tid)
-        printf("p.ID_Bf_Icost = %d\n",p.ID_Bf_Icost);
-
-    while(p.line.id < p.line.lenght)
-    {
-        if(!p.tid )
-        {
-            printf("p.line.id < p.line.lenght : %d < %d\n",p.line.id ,p.line.lenght);
-            printf("p.seg.id < p.seg.lenght : %d < %d\n",p.seg.id ,p.seg.lenght);
-        }
-        while(p.seg.id < p.seg.lenght)
-        {
-
-            const short2 index  = S_Bf_Index[sgn(p.seg.id)];
-            const ushort dZ     = count(index); // creer buffer de count
-            ushort       z      = 0;
-
-            while( z < dZ)
-            {
-                if(p.ID_Bf_Icost > NAPPEMAX)
-                {
-                    streamICost.read<sens>(ST_Bf_ICost);
-                    streamFCost.incre<sens>();
-                    p.ID_Bf_Icost = 0;
-                }
-
-                //uint fCostMin           = max_cost;
-                const ushort costInit   = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
-                const ushort tZ         = z + (sens ? p.tid : (WARPSIZE - p.tid));
-                const short  Z          = sens ? (short)tZ + index.x : index.y - tZ;
-                const short pitPrZ      = sens ? Z - p.prev_Dz.x : p.prev_Dz.y - Z;
-
-                GetConeZ(ConeZ,Z,p.pente,index,p.prev_Dz);
-
-                uint* prevFCost = S_FCost[p.Id_Buf] + sgn(pitPrZ);
-
-//                ConeZ.y = min(NAPPEMAX - pitPrZ,ConeZ.y );
-
-//                for (short i = ConeZ.x; i <= ConeZ.y; ++i)
-//                    fCostMin = min(fCostMin, costInit + prevFCost[i]); // ERROR
-
-//                const uint fcost    =  fCostMin + sens * (streamFCost.GetValue(p.ID_Bf_Icost) -   costInit);
-
-                if( tZ <= NAPPEMAX)
-                {
-                    //S_FCost[!p.Id_Buf][sgn(tZ)] = fcost;
-                    S_FCost[!p.Id_Buf][sgn(tZ)] = costInit;
-
-                    //streamFCost.SetValue(sens? p.ID_Bf_Icost : - p.ID_Bf_Icost - WARPSIZE, sens ? p.ID_Bf_Icost + p.tid : abs(- p.ID_Bf_Icost - WARPSIZE + p.tid)); // ERROR
-                    streamFCost.SetValue(sens? p.ID_Bf_Icost : - p.ID_Bf_Icost - WARPSIZE, sens ? costInit : NAPPEMAX-(p.ID_Bf_Icost + WARPSIZE - p.tid) + 1);
-                }
-
-                const ushort pIdCost = p.ID_Bf_Icost;
-                p.ID_Bf_Icost += min(dZ - z,WARPSIZE);
-                z         += min(WARPSIZE,NAPPEMAX-pIdCost);
-            }
-
-            p.prev_Dz = index;
-            p.seg.id++;
-            p.swBuf();
-        }
-
-        p.line.id += p.seg.lenght;
-
-        if(p.line.id < p.line.lenght)
-        {
-            streamIndex.read<sens>(ST_Bf_Index);
-            p.seg.lenght  = min(p.line.LOver(),WARPSIZE);
-        }
-
-        p.seg.id      = 0;
-
-    }
-
-    p.seg.id = p.seg.lenght - 1;
-}
-
-template<bool sens> __device__
 void RunLine(   SimpleStream<short2>    &streamIndex,
                 SimpleStream<uint>      &streamFCost,
                 SimpleStream<ushort>    &streamICost,
@@ -300,6 +209,70 @@ void Run(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrParam, 
 
 }
 
+template<bool sens> __device__
+void ReadLine(
+                SimpleStream<short2>    &streamIndex,
+                SimpleStream<uint>      &streamFCost,
+                SimpleStream<ushort>    &streamICost,
+                short2     *S_Bf_Index,
+                ushort     *ST_Bf_ICost,
+                uint       *S_FCost[2],
+                p_ReadLine &p
+)
+{
+    short2* ST_Bf_Index = S_Bf_Index + p.tid + (sens ? 0 : -WARPSIZE + 1);
+
+    while(p.line.id < p.line.lenght)
+    {
+        while(p.seg.id < p.seg.lenght)
+        {
+
+            const short2 index  = S_Bf_Index[sgn(p.seg.id)];
+            const ushort dZ     = count(index); // creer buffer de count
+            ushort       z      = 0;
+
+            while( z < dZ)
+            {
+                if(p.ID_Bf_Icost > NAPPEMAX)
+                {
+                    streamICost.read<sens>(ST_Bf_ICost);
+                    streamFCost.incre<sens>();
+                    p.ID_Bf_Icost = 0;
+                }
+
+                const ushort costInit   = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
+                const ushort tZ         = z + (sens ? p.tid : (WARPSIZE - p.tid));
+
+                if( tZ <= NAPPEMAX)
+                {
+                    S_FCost[!p.Id_Buf][sgn(tZ)] = costInit;
+                    streamFCost.SetValue(sgn(p.ID_Bf_Icost),costInit);
+                }
+
+                const ushort pIdCost = p.ID_Bf_Icost;
+                p.ID_Bf_Icost       += min(dZ - z,WARPSIZE);
+                z                   += min(WARPSIZE,NAPPEMAX-pIdCost);
+            }
+
+            p.prev_Dz = index;
+            p.seg.id++;
+            p.swBuf();
+        }
+
+        p.line.id += p.seg.lenght;
+
+        if(p.line.id < p.line.lenght)
+        {
+            streamIndex.read<sens>(ST_Bf_Index);
+            p.seg.lenght  = min(p.line.LOver(),WARPSIZE);
+        }
+
+        p.seg.id      = 0;
+    }
+
+    p.seg.id = p.seg.lenght - 1;
+}
+
 template<class T> __global__
 void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrParam, uint penteMax)
 {
@@ -321,10 +294,10 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
         pit_Id              = g_RecStrParam[blockIdx.x].y;
     }
 
+    __syncthreads();
+
     p.line.lenght   = g_RecStrParam[blockIdx.x].z;
     p.seg.lenght    = min(p.line.LOver(),WARPSIZE);
-
-    __syncthreads();
 
     SimpleStream<ushort>    streamICost(g_ICost + pit_Stream,NAPPEMAX);
     SimpleStream<uint>      streamFCost(g_FCost + pit_Stream,NAPPEMAX);
@@ -341,9 +314,17 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     p.prev_Dz       = S_BuffIndex[0];
     p.ID_Bf_Icost   = count(p.prev_Dz);
 
+
     ReadLine<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,p);
 
+//    if(!threadIdx.x)
+//    {
+//        printf("----------------------------------\n");
+//        printf("_idG :  %d\n",streamICost.GetGiD());
+//    }
+
     streamIndex.reverse<eARRIERE>();
+    streamFCost.incre<eAVANT>();
     streamFCost.reverse<eARRIERE>();
 
     S_BuffFCost[0]  += NAPPEMAX - WARPSIZE;
@@ -352,25 +333,31 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
 
     streamICost.readFrom<eARRIERE>(S_BuffFCost[p.Id_Buf] + p.tid, NAPPEMAX - p.ID_Bf_Icost);
     streamICost.reverse<eARRIERE>();
+    streamICost.incre<eARRIERE>();
 
     p.prev_Dz       = S_BuffIndex[p.seg.id];
     p.seg.id        = WARPSIZE - p.seg.id;
     p.seg.lenght    = WARPSIZE;
     p.line.id       = 0;
     p.line.lenght   = (p.line.lenght / WARPSIZE + 1)*WARPSIZE;
+    p.ID_Bf_Icost   = NAPPEMAX;
 
-    const short noRead   = count(p.prev_Dz) - p.ID_Bf_Icost;
+//    const short noRead   = count(p.prev_Dz) - p.ID_Bf_Icost;
+//    if(noRead < 0)
+//        p.ID_Bf_Icost = NAPPEMAX + noRead;
+//    else
+//    {
+//        streamICost.read<eARRIERE>(S_BuffICost);
+//        streamFCost.incre<eARRIERE>();
+//        p.ID_Bf_Icost = noRead;
+//    }
 
-    if(noRead < 0)
-        p.ID_Bf_Icost = NAPPEMAX + noRead;
-    else
-    {
-        streamICost.read<eARRIERE>(S_BuffICost);
-        streamFCost.incre<eARRIERE>();
-        p.ID_Bf_Icost = noRead;
-    }
-
-
+//    if(!threadIdx.x)
+//    {
+//        printf("streamICost _idG :  %d\n",streamICost.GetGiD());
+//        printf("streamFCost _idG :  %d\n",streamFCost.GetGiD());
+//        printf("ID_Bf_Icost :  %d\n",p.ID_Bf_Icost);
+//    }
 
     ReadLine<eARRIERE>( streamIndex,
                         streamFCost,
