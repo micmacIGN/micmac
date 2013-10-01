@@ -3,6 +3,47 @@
 
 #include "GpGpu/GpGpu_Data.h"
 
+template<class T >
+struct  buffer
+{
+
+};
+
+struct st_line
+{
+    uint lenght;
+    uint id;
+    __device__ inline uint LOver()
+    {
+        return lenght - id;
+    }
+};
+
+struct p_ReadLine
+{
+    ushort  ID_Bf_Icost;
+    st_line line;
+    st_line seg;
+    bool    Id_Buf;
+    const ushort    tid;
+    short2 prev_Dz;
+    ushort pente;
+
+    __device__ p_ReadLine(ushort t,ushort ipente):
+        Id_Buf(false),
+        tid(t),
+        pente(ipente)
+    {
+        line.id = 0;
+        seg.id  = 1;
+    }
+
+    __device__ inline void swBuf()
+    {
+        Id_Buf = !Id_Buf;
+    }
+};
+
 template<template<class T> class U, uint NBUFFER = 1 >
 struct Data2Optimiz
 {
