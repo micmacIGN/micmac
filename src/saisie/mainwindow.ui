@@ -132,8 +132,6 @@ QStatusBar
     <addaction name="actionReset"/>
     <addaction name="actionInvertSelected"/>
     <addaction name="separator"/>
-    <addaction name="actionInsertPolylinepoint"/>
-    <addaction name="actionDeletePolylinepoint"/>
    </widget>
    <widget class="QMenu" name="menuFile">
     <property name="title">
@@ -470,17 +468,6 @@ QStatusBar
     <string>Ctrl+P</string>
    </property>
   </action>
-  <action name="actionDeletePolylinepoint">
-   <property name="text">
-    <string>Delete Polyline point</string>
-   </property>
-   <property name="toolTip">
-    <string>Delete Polyline point</string>
-   </property>
-   <property name="shortcut">
-    <string>.</string>
-   </property>
-  </action>
   <action name="actionSave_selection">
    <property name="text">
     <string>Save selection infos</string>
@@ -581,14 +568,6 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+O</string>
-   </property>
-  </action>
-  <action name="actionInsertPolylinepoint">
-   <property name="text">
-    <string>Insert Polyline point</string>
-   </property>
-   <property name="shortcut">
-    <string>Ins</string>
    </property>
   </action>
   <action name="actionZoom_Moins">

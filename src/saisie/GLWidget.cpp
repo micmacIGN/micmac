@@ -168,6 +168,8 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps = 64)
     glEnd();
 }
 
+
+
 void GLWidget::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw)
 {
     glBegin(GL_QUADS);
@@ -385,9 +387,11 @@ void GLWidget::paintGL()
         for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
             glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
 
-
         glLineWidth(m_params.LineWidth);
         disableOptionLine();
+
+        drawPointAndSegments();
+
         glPopMatrix(); // restore modelview
     }
 
@@ -468,8 +472,29 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
                 }
                 else
                 {
-                    clearPolyline();
-                    m_polygon.push_back(m_lastPos);
+                    if (event->modifiers().testFlag(Qt::ShiftModifier))
+                    {
+                        if ((m_polygon.size() >2) && m_polygon2.size() && m_bPolyIsClosed)
+                        {
+                            // modify polygon...
+                            int idx = -1;
+
+                            for (int i=0;i<m_polygon.size();++i)
+                            {
+                                if (m_polygon[i] == m_polygon2[0]) idx = i;
+                            }
+
+                            if (idx >=0) m_polygon.insert(idx+1, m_polygon2[1]);
+                        }
+
+                        m_polygon2.clear();
+                        update();
+                    }
+                    else
+                    {
+                        clearPolyline();
+                        m_polygon.push_back(m_lastPos);
+                    }
                 }
             }
         }
@@ -500,12 +525,10 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     if ( event->button() == Qt::LeftButton )
     {
         _m_g_mouseLeftDown = false;
-
     }
-    if ( event->button() ==Qt::RightButton  )
+    if ( event->button() == Qt::RightButton  )
     {
         _m_g_mouseRightDown = false;
-
     }
     if ( event->button() == Qt::MiddleButton  )
     {
@@ -561,6 +584,14 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
         }
     }
     update();
+}
+
+void GLWidget::keyReleaseEvent(QKeyEvent* event)
+{
+    if  (event->key() == Qt::Key_Shift)
+    {
+        m_polygon2.clear();
+    }
 }
 
 void GLWidget::setBufferGl(bool onlyColor)
@@ -779,6 +810,38 @@ void GLWidget::drawGradientBackground()
 
 }
 
+void GLWidget::drawPointAndSegments()
+{
+    if (m_polygon2.size())
+    {
+        glLineStipple(2, 0xAAAA);
+        glEnable(GL_LINE_STIPPLE);
+
+        glEnable (GL_BLEND);
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+
+        glColor3f(0.f,0.f,1.f);
+
+        glLineWidth(1.0f);
+
+        glBegin(GL_LINE_STRIP);
+        for (int aK=0;aK < (int) m_polygon2.size(); ++aK)
+        {
+            glVertex2f(m_polygon2[aK].x(), m_polygon2[aK].y());
+        }
+        glEnd();
+
+        glDisable(GL_LINE_STIPPLE);
+
+        enableOptionLine();
+
+        glDrawUnitCircle(2, m_polygon2[1].x(), m_polygon2[1].y(), 3.0, 8);
+
+        disableOptionLine();
+    }
+}
+
 // zoom in 3D mode
 void GLWidget::zoom()
 {
@@ -962,9 +1025,16 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             else
                 //replace last point by the current one
                 m_polygon[sz-1] = pos;
-
-            update();
         }
+        else
+        {
+            if ((event->modifiers().testFlag(Qt::ShiftModifier)) && m_polygon.size())
+            {
+                fillPolygon2();
+            }
+        }
+
+        update();
 
         event->ignore();
     }
@@ -1278,54 +1348,10 @@ void GLWidget::deletePolylinePoint()
         m_polygon.erase (m_polygon.begin() + idx);
 }
 
-float segmentDistToPoint(QPoint segA, QPoint segB, QPoint p)
-{
-    QPoint p2(segB.x() - segA.x(), segB.y() - segA.y());
-    float nrm = (float)(p2.x()*p2.x() + p2.y()*p2.y());
-    float u = (float) ((p.x() - segA.x()) * p2.x() + (p.y() - segA.y()) * p2.y()) / nrm;
-
-    if (u > 1)
-        u = 1;
-    else if (u < 0)
-        u = 0;
-
-    float x = (float) segA.x() + u * (float) p2.x();
-    float y = (float) segA.y() + u * (float) p2.y();
-
-    float dx = x - (float) p.x();
-    float dy = y - (float) p.y();
-
-    return sqrt(dx*dx + dy*dy);
-}
-
-void GLWidget::insertPolylinePoint()
-{
-    float dist2 = FLT_MAX;
-    int idx = -1;
-
-    QVector < QPoint > polygon = m_polygon;
-    polygon.push_back(polygon[0]);
-
-    float dist;
-
-    for (int aK =0; aK < (int) polygon.size()-1;++aK)
-    {
-        dist = segmentDistToPoint(polygon[aK], polygon[aK+1], m_lastPos);
-
-        if (dist < dist2)
-        {
-            dist2 = dist;
-            idx = aK;
-        }
-    }
-
-    if (idx != -1)
-        m_polygon.insert(idx+1, m_lastPos);
-}
-
 void GLWidget::clearPolyline()
 {
     m_polygon.clear();
+    m_polygon2.clear();
     m_bPolyIsClosed = false;
     update();
 }
@@ -1339,7 +1365,6 @@ void GLWidget::closePolyline()
         if (sz > 2) m_polygon.resize(sz-1);
 
         m_bPolyIsClosed = true;
-
     }
 }
 
@@ -1728,4 +1753,54 @@ void GLWidget::applyGamma(float aGamma)
 
             _glImg.setPixel(i,j, qRgb(r,g,b) );
         }
+}
+
+float segmentDistToPoint(QPoint segA, QPoint segB, QPoint p)
+{
+    QPoint p2(segB.x() - segA.x(), segB.y() - segA.y());
+    float nrm = (float)(p2.x()*p2.x() + p2.y()*p2.y());
+    float u = (float) ((p.x() - segA.x()) * p2.x() + (p.y() - segA.y()) * p2.y()) / nrm;
+
+    if (u > 1)
+        u = 1;
+    else if (u < 0)
+        u = 0;
+
+    float x = (float) segA.x() + u * (float) p2.x();
+    float y = (float) segA.y() + u * (float) p2.y();
+
+    float dx = x - (float) p.x();
+    float dy = y - (float) p.y();
+
+    return sqrt(dx*dx + dy*dy);
+}
+
+void GLWidget::fillPolygon2()
+{
+    float dist2 = FLT_MAX;
+    int idx = -1;
+
+    QVector < QPoint > polygon = m_polygon;
+    polygon.push_back(polygon[0]);
+
+    float dist;
+
+    for (int aK =0; aK < (int) polygon.size()-1;++aK)
+    {
+        dist = segmentDistToPoint(polygon[aK], polygon[aK+1], m_lastPos);
+
+        if (dist < dist2)
+        {
+            dist2 = dist;
+            idx = aK;
+        }
+    }
+
+    if (idx != -1)
+    {
+        m_polygon2.clear();
+        m_polygon2.push_back(polygon[idx]);
+        m_polygon2.push_back(m_lastPos);
+        m_polygon2.push_back(polygon[idx+1]);
+    }
 }

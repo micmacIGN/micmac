@@ -107,8 +107,6 @@ void MainWindow::connectActions()
     connect(ui->actionReset,            SIGNAL(triggered()),   this, SLOT(selectAll()));
     connect(ui->actionRemove_from_selection,            SIGNAL(triggered()),   this, SLOT(removeFromSelection()));
 
-    connect(ui->actionInsertPolylinepoint,SIGNAL(triggered()),   this, SLOT(insertPolylinePoint()));
-
     //File menu
     connect(ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
     connect(ui->actionLoad_camera,		SIGNAL(triggered()),   this, SLOT(loadCameras()));
@@ -426,12 +424,6 @@ void MainWindow::selectAll()
 void MainWindow::removeFromSelection()
 {
     m_glWidget->Select(SUB);
-}
-
-void MainWindow::insertPolylinePoint()
-{
-    m_glWidget->insertPolylinePoint();
-    m_glWidget->update();
 }
 
 void MainWindow::setTopView()
