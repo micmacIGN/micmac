@@ -114,9 +114,6 @@ public:
     //! Select points with polyline
     void Select(int mode);
 
-    //! Delete mouse closest point
-    void deletePolylinePoint();
-
     //! Delete current polyline
     void clearPolyline();
 

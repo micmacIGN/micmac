@@ -386,8 +386,6 @@ void GLWidget::paintGL()
 
         glColor3f(1.f,0.f,0.f);
 
-        //cout << "idx : " << _idx << endl;
-
         if (_idx >=0)
         {
             for (int aK = 0;aK < _idx; ++aK)
@@ -403,7 +401,7 @@ void GLWidget::paintGL()
         else
         {
             for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
-                glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
+               glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
         }
 
         glLineWidth(m_params.LineWidth);
@@ -466,7 +464,6 @@ void GLWidget::paintGL()
     }
 }
 
-
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
     m_lastPos = event->pos();
@@ -481,7 +478,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             {
                 if (!m_bPolyIsClosed)
                 {
-                    if (m_polygon.size() < 2)
+                    if (m_polygon.size() < 1)
                         m_polygon.push_back(m_lastPos);
                     else
                     {
@@ -493,7 +490,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
                 {
                     if (event->modifiers().testFlag(Qt::ShiftModifier))
                     {
-                        if ((m_polygon.size() >2) && m_polygon2.size() && m_bPolyIsClosed)
+                        if ((m_polygon.size() >=2) && m_polygon2.size() && m_bPolyIsClosed)
                         {
                             // modify polygon...
                             int idx = -1;
@@ -509,15 +506,8 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
                         m_polygon2.clear();
                         update();
                     }
-                    else  if (event->modifiers().testFlag(Qt::ControlModifier))
-                    {
-                        m_Click++;
-                    }
                     else
-                    {
-                        clearPolyline();
-                        m_polygon.push_back(m_lastPos);
-                    }
+                        m_Click++;
                 }
             }
         }
@@ -526,6 +516,15 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     {
         if (m_interactionMode == TRANSFORM_CAMERA)
             _m_g_mouseRightDown = true;
+        else if ((_idx >=0)&&(_idx<m_polygon.size()))
+        {
+            m_polygon.remove(_idx);
+            _idx = -1;
+
+            if (m_polygon.size() < 2) m_bPolyIsClosed = false;
+
+            update();
+        }
         else
         {
             closePolyline();
@@ -549,13 +548,15 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     {
         _m_g_mouseLeftDown = false;
 
-        if ((m_Click == 1)&&(_idx>=0)&&m_polygon2.size())
+        if ((m_Click >=1) &&(_idx>=0)&&m_polygon2.size())
         {
             m_polygon[_idx] = m_polygon2[1];
 
             m_polygon2.clear();
             m_Click = 0;
             _idx = -1;
+
+            update();
         }
     }
     if ( event->button() == Qt::RightButton  )
@@ -606,9 +607,6 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
                 setZoom(m_params.zoom/1.5f);
             else
                 ptSizeUp(false);
-            break;
-        case Qt::Key_Asterisk:
-            deletePolylinePoint();
             break;
         default:
             event->ignore();
@@ -1073,7 +1071,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 {
                     fillPolygon2();
                 }
-                else if (event->modifiers().testFlag(Qt::ControlModifier))
+                else //if (event->modifiers().testFlag(Qt::ControlModifier))
                 {  
                     if (m_Click == 0)
                         findClosestPoint(2500);
@@ -1398,32 +1396,12 @@ void GLWidget::Select(int mode)
     clearPolyline();
 }
 
-void GLWidget::deletePolylinePoint()
-{
-    float dist2 = FLT_MAX;
-    int dx, dy, d2;
-    int idx = -1;
-
-    for (int aK =0; aK < (int) m_polygon.size();++aK)
-    {
-        dx = m_polygon[aK].x()-m_lastPos.x();
-        dy = m_polygon[aK].y()-m_lastPos.y();
-        d2 = dx*dx + dy*dy;
-
-        if (d2 < dist2)
-        {
-            dist2 = d2;
-            idx = aK;
-        }
-    }
-    if (idx != -1)
-        m_polygon.erase (m_polygon.begin() + idx);
-}
-
 void GLWidget::clearPolyline()
 {
     m_polygon.clear();
     m_polygon2.clear();
+    m_Click = 0;
+    _idx = -1;
     m_bPolyIsClosed = false;
     update();
 }
@@ -1773,7 +1751,7 @@ void GLWidget::showSelectionMessages()
     displayNewMessage(QString());
     displayNewMessage(tr("Selection mode"),UPPER_CENTER_MESSAGE);
     displayNewMessage(tr("Left click: add contour point / Right click: close / Echap: delete polyline"),LOWER_CENTER_MESSAGE);
-    displayNewMessage(tr("Space: add points inside polyline / Suppr: delete points inside polyline"),LOWER_CENTER_MESSAGE);
+    displayNewMessage(tr("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
 }
 
 void GLWidget::showMoveMessages()
@@ -1878,20 +1856,14 @@ void GLWidget::fillPolygon2()
 
 void GLWidget::findClosestPoint(int sqr_radius)
 {
+    _idx = -1;
     float dist, dist2;
     dist2 = (float) sqr_radius;
 
-    //cout << "m_lastPos " << m_lastPos.x() << " " << m_lastPos.y() << endl;
-
     for (int aK = 0; aK < (int) m_polygon.size();++aK)
     {
-       // cout << "m_polygon " << m_polygon[aK].x() << " " << m_polygon[aK].y() << endl;
-
-
         dist  = (float)(m_lastPos.x() - m_polygon[aK].x())*(m_lastPos.x() - m_polygon[aK].x()) +
                 (m_lastPos.y() - m_polygon[aK].y())*(m_lastPos.y() - m_polygon[aK].y());
-
-        //cout << " dist " << dist << endl;
 
         if  (dist < dist2)
         {
