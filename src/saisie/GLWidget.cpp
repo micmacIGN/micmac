@@ -803,6 +803,7 @@ void GLWidget::setData(cData *data)
         else
         {
             *_mask = QGLWidget::convertToGLFormat( *m_Data->getCurMask() );
+            m_bFirstAction = false;
         }
 
         ImageToTexture(m_textureMask, _mask);
