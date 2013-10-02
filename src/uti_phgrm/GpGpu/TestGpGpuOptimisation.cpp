@@ -13,8 +13,8 @@ int main()
     // Declaration des variables du cote du DEVICE
     DEVC_Data2Opti d2O;
 
-    uint nbLines    = 2;
-    uint lLines     = 1;
+    uint nbLines    = 1;
+    uint lLines     = 32;
     uint depth      = NAPPEMAX;
 
     short2 dZ = make_short2(-depth/2,depth/2);
@@ -93,10 +93,13 @@ int main()
 
     for (uint i= 0 ; i < h2O._s_InitCostVol.GetSize(); i++)
         if(h2O._s_InitCostVol[i]!=h2O._s_ForceCostVol[0][i])
+        {
+            printf(" [%d,%d] ",h2O._s_InitCostVol[i],h2O._s_ForceCostVol[0][i]);
             errorCount++;
+        }
 
-    printf("Error Count   = %d/%d\n",errorCount,h2O._s_InitCostVol.GetSize());
-    printf("Error percent = %d\n",((errorCount*100)/(h2O._s_InitCostVol.GetSize())));
+    printf("\nError Count   = %d/%d\n",errorCount,h2O._s_InitCostVol.GetSize());
+    printf("Error percent = %f\n",(((float)errorCount*100)/(h2O._s_InitCostVol.GetSize())));
 
     return 0;
 }
