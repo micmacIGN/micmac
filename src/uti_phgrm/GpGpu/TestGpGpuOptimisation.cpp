@@ -14,7 +14,7 @@ int main()
     DEVC_Data2Opti d2O;
 
     uint nbLines    = 1;
-    uint lLines     = 32;
+    uint lLines     = 1;
     uint depth      = NAPPEMAX;
 
     short2 dZ = make_short2(-depth/2,depth/2);
@@ -62,8 +62,6 @@ int main()
         }
     }
 
-    //h2O._s_InitCostVol.OutputValues();
-
     h2O.SetNbLine(nbLines);    
     d2O.SetNbLine(h2O._nbLines);
 
@@ -84,9 +82,7 @@ int main()
 
     //h2O._s_InitCostVol.OutputValues();
 
-    //h2O._s_Index.OutputValues(0,XY,NEGARECT,3,make_short2(0,0));
-
-    //h2O._s_ForceCostVol[0].OutputValues();
+    h2O._s_ForceCostVol[0].OutputValues();
 
     //
     uint errorCount = 0;
@@ -94,7 +90,7 @@ int main()
     for (uint i= 0 ; i < h2O._s_InitCostVol.GetSize(); i++)
         if(h2O._s_InitCostVol[i]!=h2O._s_ForceCostVol[0][i])
         {
-            printf(" [%d,%d] ",h2O._s_InitCostVol[i],h2O._s_ForceCostVol[0][i]);
+            //printf(" [%d,%d] ",h2O._s_InitCostVol[i],h2O._s_ForceCostVol[0][i]);
             errorCount++;
         }
 

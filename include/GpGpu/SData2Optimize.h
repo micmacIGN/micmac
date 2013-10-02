@@ -42,6 +42,26 @@ struct p_ReadLine
     {
         Id_Buf = !Id_Buf;
     }
+
+    __device__ inline void format()
+    {
+        const uint d = line.lenght >> 5;
+        if(!d)
+            line.lenght = (d+1) << 5;
+    }
+
+    __device__ inline void ouput()
+    {
+        if(!tid)
+        {
+            printf("seg.id       = %d\n",seg.id);
+            printf("seg.lenght   = %d\n",seg.lenght);
+            printf("line.id      = %d\n",line.id);
+            printf("line.lenght  = %d\n",line.lenght);
+            printf("ID_Bf_Icost  = %d\n",ID_Bf_Icost);
+            printf("-----------------------------\n");
+        }
+    }
 };
 
 template<template<class T> class U, uint NBUFFER = 1 >
