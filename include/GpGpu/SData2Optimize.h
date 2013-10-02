@@ -43,11 +43,13 @@ struct p_ReadLine
         Id_Buf = !Id_Buf;
     }
 
-    __device__ inline void format()
+    __device__ void format()
     {
-        const uint d = line.lenght >> 5;
-        if(!d)
-            line.lenght = (d+1) << 5;
+        const uint d  = line.lenght >> 5;
+        const uint dL = d << 5;
+
+        if(line.lenght-dL)
+            line.lenght = dL + WARPSIZE;
     }
 
     __device__ inline void ouput()
