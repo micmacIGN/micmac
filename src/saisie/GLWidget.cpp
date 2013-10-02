@@ -795,8 +795,15 @@ void GLWidget::setData(cData *data)
            glGenTextures(1, &m_textureMask );
 
         _mask = new QImage(_glImg.size(),_glImg.format());
-        QGLWidget::convertToGLFormat(*_mask);
-        _mask->fill(Qt::white);
+        if ((*m_Data->getCurMask()).isNull())
+        {
+            QGLWidget::convertToGLFormat(*_mask);
+            _mask->fill(Qt::white);
+        }
+        else
+        {
+            *_mask = QGLWidget::convertToGLFormat( *m_Data->getCurMask() );
+        }
 
         ImageToTexture(m_textureMask, _mask);
     }
