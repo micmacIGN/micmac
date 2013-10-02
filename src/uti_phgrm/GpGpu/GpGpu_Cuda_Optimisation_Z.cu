@@ -269,8 +269,6 @@ void ReadLine(
 
         p.seg.id      = 0;
     }
-
-    p.seg.id = p.seg.lenght - 1;
 }
 
 template<class T> __global__
@@ -314,14 +312,9 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     p.prev_Dz       = S_BuffIndex[0];
     p.ID_Bf_Icost   = count(p.prev_Dz);
 
+    p.ouput();
 
     ReadLine<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,p);
-
-//    if(!threadIdx.x)
-//    {
-//        printf("----------------------------------\n");
-//        printf("_idG :  %d\n",streamICost.GetGiD());
-//    }
 
     streamIndex.reverse<eARRIERE>();
     streamFCost.incre<eAVANT>();
@@ -335,29 +328,30 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     streamICost.reverse<eARRIERE>();
     streamICost.incre<eARRIERE>();
 
+    p.ouput();
+
+    p.seg.id        = p.seg.lenght - 1;
     p.prev_Dz       = S_BuffIndex[p.seg.id];
     p.seg.id        = WARPSIZE - p.seg.id;
     p.seg.lenght    = WARPSIZE;
     p.line.id       = 0;
-    p.line.lenght   = (p.line.lenght / WARPSIZE + 1)*WARPSIZE;
+    p.format();
     p.ID_Bf_Icost   = NAPPEMAX;
 
-//    const short noRead   = count(p.prev_Dz) - p.ID_Bf_Icost;
-//    if(noRead < 0)
-//        p.ID_Bf_Icost = NAPPEMAX + noRead;
-//    else
-//    {
-//        streamICost.read<eARRIERE>(S_BuffICost);
-//        streamFCost.incre<eARRIERE>();
-//        p.ID_Bf_Icost = noRead;
-//    }
+    p.ouput();
 
-//    if(!threadIdx.x)
-//    {
-//        printf("streamICost _idG :  %d\n",streamICost.GetGiD());
-//        printf("streamFCost _idG :  %d\n",streamFCost.GetGiD());
-//        printf("ID_Bf_Icost :  %d\n",p.ID_Bf_Icost);
-//    }
+
+    {
+        //    const short noRead   = count(p.prev_Dz) - p.ID_Bf_Icost;
+        //    if(noRead < 0)
+        //        p.ID_Bf_Icost = NAPPEMAX + noRead;
+        //    else
+        //    {
+        //        streamICost.read<eARRIERE>(S_BuffICost);
+        //        streamFCost.incre<eARRIERE>();
+        //        p.ID_Bf_Icost = noRead;
+        //    }
+    }
 
     ReadLine<eARRIERE>( streamIndex,
                         streamFCost,
