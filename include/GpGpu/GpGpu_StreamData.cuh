@@ -191,15 +191,15 @@ T SimpleStream<T>::GetValue(int id)
 template<class T> __device__
 void SimpleStream<T>::SetValue(int id, T value)
 {
-    if(((int)_idG+id+ (int)threadIdx.x)>=0) // TEMP!!!!!!!!!!
+    //if(((int)_idG+id+ (int)threadIdx.x)>=0) // TEMP!!!!!!!!!!
         _globalStream[_idG + id] = value;
 }
 
 template<class T> template<bool sens> __device__
 void SimpleStream<T>::reverse()
 {
-    if((int)_idG + sgn(_sizeBuffer) - WARPSIZE > 0) // TEMP!!!!!!!!!!
-        _idG += sgn(_sizeBuffer) - WARPSIZE;
+    //if((int)_idG  +sgn(WARPSIZE) > 0) // TEMP!!!!!!!!!!
+        _idG += sgn(WARPSIZE);//  - WARPSIZE;
 }
 
 template<class T> template<bool sens> __device__
@@ -221,8 +221,10 @@ void SimpleStream<T>::readFrom(S *sharedBuffer,uint delta)
 template<class T> template<bool sens> __device__
 void SimpleStream<T>::incre()
 {
-    if((int)_idG + sgn(_sizeBuffer) > 0) // TEMP!!!!!!!!!!
+    //if((int)_idG + sgn(_sizeBuffer) > 0) // TEMP!!!!!!!!!!
         _idG += sgn(_sizeBuffer);
+
+
 }
 #endif
 

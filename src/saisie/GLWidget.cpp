@@ -32,10 +32,12 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_Data(data)
   , m_speed(2.5f)
   , m_bDisplayMode2D(false)
+  , m_Click(0)
   , m_vertexbuffer(QGLBuffer::VertexBuffer)
   , _frameCount(0)
   , _previousTime(0)
   , _currentTime(0)
+  , _idx(-1)
   , _fps(0.0f)
   , _m_g_mouseLeftDown(false)
   , _m_g_mouseMiddleDown(false)
@@ -167,6 +169,8 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps = 64)
 
     glEnd();
 }
+
+
 
 void GLWidget::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw)
 {
@@ -369,7 +373,7 @@ void GLWidget::paintGL()
 
         enableOptionLine();
 
-        glColor3f(0.1f,1.0f,0.2f);
+        glColor3f(.1f,1.f,.2f);
 
         glLineWidth(1.0f);
 
@@ -380,14 +384,31 @@ void GLWidget::paintGL()
         }
         glEnd();
 
-        glColor3f(1,0,0);
+        glColor3f(1.f,0.f,0.f);
 
-        for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
-            glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
+        if (_idx >=0)
+        {
+            for (int aK = 0;aK < _idx; ++aK)
+                glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
 
+            glColor3f(0.f,0.f,1.f);
+            glDrawUnitCircle(2, m_polygon[_idx].x(), m_polygon[_idx].y(), 3.0, 8);
+
+            glColor3f(1.f,0.f,0.f);
+            for (int aK = _idx+1;aK < (int) m_polygon.size(); ++aK)
+                glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
+        }
+        else
+        {
+            for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
+               glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
+        }
 
         glLineWidth(m_params.LineWidth);
         disableOptionLine();
+
+        drawPointAndSegments();
+
         glPopMatrix(); // restore modelview
     }
 
@@ -443,7 +464,6 @@ void GLWidget::paintGL()
     }
 }
 
-
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
     m_lastPos = event->pos();
@@ -458,7 +478,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             {
                 if (!m_bPolyIsClosed)
                 {
-                    if (m_polygon.size() < 2)
+                    if (m_polygon.size() < 1)
                         m_polygon.push_back(m_lastPos);
                     else
                     {
@@ -468,8 +488,26 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
                 }
                 else
                 {
-                    clearPolyline();
-                    m_polygon.push_back(m_lastPos);
+                    if (event->modifiers().testFlag(Qt::ShiftModifier))
+                    {
+                        if ((m_polygon.size() >=2) && m_polygon2.size() && m_bPolyIsClosed)
+                        {
+                            // modify polygon...
+                            int idx = -1;
+
+                            for (int i=0;i<m_polygon.size();++i)
+                            {
+                                if (m_polygon[i] == m_polygon2[0]) idx = i;
+                            }
+
+                            if (idx >=0) m_polygon.insert(idx+1, m_polygon2[1]);
+                        }
+
+                        m_polygon2.clear();
+                        update();
+                    }
+                    else
+                        m_Click++;
                 }
             }
         }
@@ -478,6 +516,15 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     {
         if (m_interactionMode == TRANSFORM_CAMERA)
             _m_g_mouseRightDown = true;
+        else if ((_idx >=0)&&(_idx<m_polygon.size()))
+        {
+            m_polygon.remove(_idx);
+            _idx = -1;
+
+            if (m_polygon.size() < 2) m_bPolyIsClosed = false;
+
+            update();
+        }
         else
         {
             closePolyline();
@@ -501,11 +548,20 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     {
         _m_g_mouseLeftDown = false;
 
+        if ((m_Click >=1) &&(_idx>=0)&&m_polygon2.size())
+        {
+            m_polygon[_idx] = m_polygon2[1];
+
+            m_polygon2.clear();
+            m_Click = 0;
+            _idx = -1;
+
+            update();
+        }
     }
-    if ( event->button() ==Qt::RightButton  )
+    if ( event->button() == Qt::RightButton  )
     {
         _m_g_mouseRightDown = false;
-
     }
     if ( event->button() == Qt::MiddleButton  )
     {
@@ -552,15 +608,27 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             else
                 ptSizeUp(false);
             break;
-        case Qt::Key_Asterisk:
-            deletePolylinePoint();
-            break;
         default:
             event->ignore();
             break;
         }
     }
     update();
+}
+
+void GLWidget::keyReleaseEvent(QKeyEvent* event)
+{
+    if  (event->key() == Qt::Key_Shift)
+    {
+        m_polygon2.clear();
+    }
+
+    if  (event->key() == Qt::Key_Control)
+    {
+        m_polygon2.clear();
+        m_Click = 0;
+        _idx = -1;
+    }
 }
 
 void GLWidget::setBufferGl(bool onlyColor)
@@ -779,6 +847,38 @@ void GLWidget::drawGradientBackground()
 
 }
 
+void GLWidget::drawPointAndSegments()
+{
+    if (m_polygon2.size())
+    {
+        glLineStipple(2, 0xAAAA);
+        glEnable(GL_LINE_STIPPLE);
+
+        glEnable (GL_BLEND);
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+
+        glColor3f(0.f,0.f,1.f);
+
+        glLineWidth(1.0f);
+
+        glBegin(GL_LINE_STRIP);
+        for (int aK=0;aK < (int) m_polygon2.size(); ++aK)
+        {
+            glVertex2f(m_polygon2[aK].x(), m_polygon2[aK].y());
+        }
+        glEnd();
+
+        glDisable(GL_LINE_STIPPLE);
+
+        enableOptionLine();
+
+        glDrawUnitCircle(2, m_polygon2[1].x(), m_polygon2[1].y(), 3.0, 8);
+
+        disableOptionLine();
+    }
+}
+
 // zoom in 3D mode
 void GLWidget::zoom()
 {
@@ -962,9 +1062,49 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             else
                 //replace last point by the current one
                 m_polygon[sz-1] = pos;
-
-            update();
         }
+        else
+        {
+            if(m_polygon.size())
+            {
+                if (event->modifiers().testFlag(Qt::ShiftModifier))
+                {
+                    fillPolygon2();
+                }
+                else //if (event->modifiers().testFlag(Qt::ControlModifier))
+                {  
+                    if (m_Click == 0)
+                        findClosestPoint(2500);
+                    else if (m_Click == 1)
+                    {
+                        m_polygon2.clear();
+                        if ((_idx >0 ) && (_idx < m_polygon.size()-1))
+                        {
+                            m_polygon2.push_back(m_polygon[_idx-1]);
+                            m_polygon2.push_back(m_lastPos);
+                            m_polygon2.push_back(m_polygon[_idx+1]);
+                        }
+                        else
+                        {
+                            if (_idx == 0)
+                            {
+                                m_polygon2.push_back(m_polygon[m_polygon.size()-1]);
+                                m_polygon2.push_back(m_lastPos);
+                                m_polygon2.push_back(m_polygon[1]);
+                            }
+                            if (_idx == m_polygon.size()-1)
+                            {
+                                m_polygon2.push_back(m_polygon[m_polygon.size()-2]);
+                                m_polygon2.push_back(m_lastPos);
+                                m_polygon2.push_back(m_polygon[0]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        update();
 
         event->ignore();
     }
@@ -1256,76 +1396,12 @@ void GLWidget::Select(int mode)
     clearPolyline();
 }
 
-void GLWidget::deletePolylinePoint()
-{
-    float dist2 = FLT_MAX;
-    int dx, dy, d2;
-    int idx = -1;
-
-    for (int aK =0; aK < (int) m_polygon.size();++aK)
-    {
-        dx = m_polygon[aK].x()-m_lastPos.x();
-        dy = m_polygon[aK].y()-m_lastPos.y();
-        d2 = dx*dx + dy*dy;
-
-        if (d2 < dist2)
-        {
-            dist2 = d2;
-            idx = aK;
-        }
-    }
-    if (idx != -1)
-        m_polygon.erase (m_polygon.begin() + idx);
-}
-
-float segmentDistToPoint(QPoint segA, QPoint segB, QPoint p)
-{
-    QPoint p2(segB.x() - segA.x(), segB.y() - segA.y());
-    float nrm = (float)(p2.x()*p2.x() + p2.y()*p2.y());
-    float u = (float) ((p.x() - segA.x()) * p2.x() + (p.y() - segA.y()) * p2.y()) / nrm;
-
-    if (u > 1)
-        u = 1;
-    else if (u < 0)
-        u = 0;
-
-    float x = (float) segA.x() + u * (float) p2.x();
-    float y = (float) segA.y() + u * (float) p2.y();
-
-    float dx = x - (float) p.x();
-    float dy = y - (float) p.y();
-
-    return sqrt(dx*dx + dy*dy);
-}
-
-void GLWidget::insertPolylinePoint()
-{
-    float dist2 = FLT_MAX;
-    int idx = -1;
-
-    QVector < QPoint > polygon = m_polygon;
-    polygon.push_back(polygon[0]);
-
-    float dist;
-
-    for (int aK =0; aK < (int) polygon.size()-1;++aK)
-    {
-        dist = segmentDistToPoint(polygon[aK], polygon[aK+1], m_lastPos);
-
-        if (dist < dist2)
-        {
-            dist2 = dist;
-            idx = aK;
-        }
-    }
-
-    if (idx != -1)
-        m_polygon.insert(idx+1, m_lastPos);
-}
-
 void GLWidget::clearPolyline()
 {
     m_polygon.clear();
+    m_polygon2.clear();
+    m_Click = 0;
+    _idx = -1;
     m_bPolyIsClosed = false;
     update();
 }
@@ -1339,7 +1415,6 @@ void GLWidget::closePolyline()
         if (sz > 2) m_polygon.resize(sz-1);
 
         m_bPolyIsClosed = true;
-
     }
 }
 
@@ -1676,7 +1751,7 @@ void GLWidget::showSelectionMessages()
     displayNewMessage(QString());
     displayNewMessage(tr("Selection mode"),UPPER_CENTER_MESSAGE);
     displayNewMessage(tr("Left click: add contour point / Right click: close / Echap: delete polyline"),LOWER_CENTER_MESSAGE);
-    displayNewMessage(tr("Space: add points inside polyline / Suppr: delete points inside polyline"),LOWER_CENTER_MESSAGE);
+    displayNewMessage(tr("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
 }
 
 void GLWidget::showMoveMessages()
@@ -1728,4 +1803,72 @@ void GLWidget::applyGamma(float aGamma)
 
             _glImg.setPixel(i,j, qRgb(r,g,b) );
         }
+}
+
+float segmentDistToPoint(QPoint segA, QPoint segB, QPoint p)
+{
+    QPoint p2(segB.x() - segA.x(), segB.y() - segA.y());
+    float nrm = (float)(p2.x()*p2.x() + p2.y()*p2.y());
+    float u = (float) ((p.x() - segA.x()) * p2.x() + (p.y() - segA.y()) * p2.y()) / nrm;
+
+    if (u > 1)
+        u = 1;
+    else if (u < 0)
+        u = 0;
+
+    float x = (float) segA.x() + u * (float) p2.x();
+    float y = (float) segA.y() + u * (float) p2.y();
+
+    float dx = x - (float) p.x();
+    float dy = y - (float) p.y();
+
+    return sqrt(dx*dx + dy*dy);
+}
+
+void GLWidget::fillPolygon2()
+{
+    float dist, dist2;
+    dist2 = FLT_MAX;
+    int idx = -1;
+
+    QVector < QPoint > polygon = m_polygon;
+    polygon.push_back(polygon[0]);
+
+    for (int aK =0; aK < (int) polygon.size()-1;++aK)
+    {
+        dist = segmentDistToPoint(polygon[aK], polygon[aK+1], m_lastPos);
+
+        if (dist < dist2)
+        {
+            dist2 = dist;
+            idx = aK;
+        }
+    }
+
+    if (idx != -1)
+    {
+        m_polygon2.clear();
+        m_polygon2.push_back(polygon[idx]);
+        m_polygon2.push_back(m_lastPos);
+        m_polygon2.push_back(polygon[idx+1]);
+    }
+}
+
+void GLWidget::findClosestPoint(int sqr_radius)
+{
+    _idx = -1;
+    float dist, dist2;
+    dist2 = (float) sqr_radius;
+
+    for (int aK = 0; aK < (int) m_polygon.size();++aK)
+    {
+        dist  = (float)(m_lastPos.x() - m_polygon[aK].x())*(m_lastPos.x() - m_polygon[aK].x()) +
+                (m_lastPos.y() - m_polygon[aK].y())*(m_lastPos.y() - m_polygon[aK].y());
+
+        if  (dist < dist2)
+        {
+            dist2 = dist;
+            _idx = aK;
+        }
+    } 
 }

@@ -114,12 +114,6 @@ public:
     //! Select points with polyline
     void Select(int mode);
 
-    //! Insert point in polyline
-    void insertPolylinePoint();
-
-    //! Delete mouse closest point
-    void deletePolylinePoint();
-
     //! Delete current polyline
     void clearPolyline();
 
@@ -148,12 +142,13 @@ public:
 
     void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw);
 
-    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw,QColor color);
+    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QColor color);
 
     void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, GLuint idTexture);
 
     void enableOptionLine();
     void disableOptionLine();
+
 public slots:
     void zoom();
 
@@ -176,6 +171,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event);
     void mouseDoubleClickEvent(QMouseEvent *event);
     void keyPressEvent(QKeyEvent *event);
+    void keyReleaseEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent* event);
 
     void ImageToTexture(GLuint idTexture,QImage* image);
@@ -201,10 +197,18 @@ protected:
 
     //! Draw widget gradient background
     void drawGradientBackground();
+    
+    //! Draw one point and two segments (for insertion or move)
+    void drawPointAndSegments();
 
     GLuint getNbGLLists() { return m_nbGLLists; }
     void incrNbGLLists() { m_nbGLLists++; }
     void resetNbGLLists(){ m_nbGLLists = 0; }
+
+    //! Fill m_polygon2 for point insertion or move
+    void fillPolygon2();
+
+    void findClosestPoint(int sqr_radius);
 
     //! GL context aspect ratio m_glWidth/m_glHeight
     float m_glRatio;
@@ -234,7 +238,7 @@ protected:
     bool m_bObjectCenteredView;
 
     //! States if selection polyline is closed
-    bool m_bPolyIsClosed;
+    bool m_bPolyIsClosed;  
 
     //! Current interaction mode (with mouse)
     INTERACTION_MODE m_interactionMode;
@@ -272,6 +276,9 @@ protected:
     //! Point list for polygonal selection
     QVector < QPoint > m_polygon;
 
+    //! Point list for polygonal insertion
+    QVector < QPoint > m_polygon2;
+
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
 
@@ -290,6 +297,9 @@ protected:
     //! data position in the gl viewport
     GLfloat m_glPosition[2];
 
+    //! click counter to manage point move event
+    int m_Click;
+
 private:
 
     QPoint      m_lastPos;
@@ -303,6 +313,8 @@ private:
     int         _frameCount;
     int         _previousTime;
     int         _currentTime;
+
+    int         _idx;
 
     float       _fps;
 

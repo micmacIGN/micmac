@@ -107,8 +107,6 @@ void MainWindow::connectActions()
     connect(ui->actionReset,            SIGNAL(triggered()),   this, SLOT(selectAll()));
     connect(ui->actionRemove_from_selection,            SIGNAL(triggered()),   this, SLOT(removeFromSelection()));
 
-    connect(ui->actionInsertPolylinepoint,SIGNAL(triggered()),   this, SLOT(insertPolylinePoint()));
-
     //File menu
     connect(ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
     connect(ui->actionLoad_camera,		SIGNAL(triggered()),   this, SLOT(loadCameras()));
@@ -392,8 +390,9 @@ void MainWindow::doActionDisplayShortcuts()
     text += tr("    - Echap: \t\tdelete polyline") +"\n";
     text += tr("    - Space bar: \tadd points/pixels inside polyline") +"\n";
     text += tr("    - Del: \t\tremove points/pixels inside polyline") +"\n";
-    text += tr("    - Inser: \t\tinsert point in polyline") +"\n";
-    text += tr("    - Key \"*\" : \t\tdelete closest point in polyline") +"\n";
+    text += tr("    - Shift+click: \t\tinsert point in polyline") +"\n";
+    text += tr("    - Drag n drop: \t\tmove polyline point") +"\n";
+    text += tr("    - Right click: \t\tdelete polyline point") +"\n";
     text += "    - Ctrl+A: \t\t"+tr("select all") +"\n";
     text += "    - Ctrl+D: \t\t"+tr("select none") +"\n";
     text += "    - Ctrl+R: \t\t"+tr("undo all past selections") +"\n";
@@ -426,12 +425,6 @@ void MainWindow::selectAll()
 void MainWindow::removeFromSelection()
 {
     m_glWidget->Select(SUB);
-}
-
-void MainWindow::insertPolylinePoint()
-{
-    m_glWidget->insertPolylinePoint();
-    m_glWidget->update();
 }
 
 void MainWindow::setTopView()

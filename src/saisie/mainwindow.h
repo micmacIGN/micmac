@@ -64,8 +64,6 @@ public slots:
     void selectAll();
     void removeFromSelection();
 
-    void insertPolylinePoint();
-
     //default views
     void setFrontView();
     void setBottomView();
