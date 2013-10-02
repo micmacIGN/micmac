@@ -213,7 +213,8 @@ protected:
     //! Fill m_polygon2 for point insertion or move
     void fillPolygon2();
 
-    void findClosestPoint(int sqr_radius);
+    //! set index of cursor closest point
+    void findClosestPoint();
 
     //! GL context aspect ratio m_glWidth/m_glHeight
     float m_glRatio;
@@ -304,6 +305,9 @@ protected:
 
     //! click counter to manage point move event
     int m_Click;
+
+    //! (square) radius for point selection
+    int     m_radius;
 
     QPointF WindowToImage(const QPoint &pt);
 
