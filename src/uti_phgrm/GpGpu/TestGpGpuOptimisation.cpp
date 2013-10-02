@@ -14,7 +14,7 @@ int main()
     DEVC_Data2Opti d2O;
 
     uint nbLines    = 1;
-    uint lLines     = 1;
+    uint lLines     = 33;
     uint depth      = NAPPEMAX;
 
     short2 dZ = make_short2(-depth/2,depth/2);
@@ -56,7 +56,7 @@ int main()
             uint idStrm = h2O._param[0][idLine].x + pitStrm - dZ.x;
 
             for ( int aPx = dZ.x ; aPx < dZ.y; aPx++)
-                h2O._s_InitCostVol[idStrm + aPx]  = 10000 * (idLine + 1) + (aK+1) * 1000 + aPx - dZ.x + 1;
+                h2O._s_InitCostVol[idStrm + aPx]  = /*10000 * (idLine + 1) + */(aK+1) * 1000 + aPx - dZ.x + 1;
 
             pitStrm += depth;
         }
@@ -82,7 +82,7 @@ int main()
 
     //h2O._s_InitCostVol.OutputValues();
 
-    h2O._s_ForceCostVol[0].OutputValues();
+    //h2O._s_ForceCostVol[0].OutputValues();
 
     //
     uint errorCount = 0;

@@ -222,14 +222,20 @@ void ReadLine(
 {
     short2* ST_Bf_Index = S_Bf_Index + p.tid + (sens ? 0 : -WARPSIZE + 1);
 
-    while(p.line.id < p.line.lenght)
-    {
+    while(p.line.id < p.line.lenght)                
+    {        
+        if(!sens)
+            p.ouput();
+
         while(p.seg.id < p.seg.lenght)
         {
-
             const short2 index  = S_Bf_Index[sgn(p.seg.id)];
             const ushort dZ     = count(index); // creer buffer de count
             ushort       z      = 0;
+
+            if(!sens && !p.tid)
+                printf(" %d -->",dZ);
+
 
             while( z < dZ)
             {
@@ -265,9 +271,8 @@ void ReadLine(
         {
             streamIndex.read<sens>(ST_Bf_Index);
             p.seg.lenght  = min(p.line.LOver(),WARPSIZE);
-        }
-
-        p.seg.id      = 0;
+            p.seg.id      = 0;
+        }        
     }
 }
 
@@ -304,6 +309,7 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     streamICost.read<eAVANT>(S_BuffICost);
 
     uint*   locFCost = S_BuffFCost[p.Id_Buf] + p.tid;
+
     for (ushort i = 0; i < NAPPEMAX; i+=WARPSIZE)
         locFCost[i] = S_BuffICost[i];
 
@@ -312,7 +318,7 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     p.prev_Dz       = S_BuffIndex[0];
     p.ID_Bf_Icost   = count(p.prev_Dz);
 
-    p.ouput();
+    //p.ouput();
 
     ReadLine<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,p);
 
@@ -328,7 +334,7 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     streamICost.reverse<eARRIERE>();
     streamICost.incre<eARRIERE>();
 
-    p.ouput();
+    //p.ouput();
 
     p.seg.id        = p.seg.lenght - 1;
     p.prev_Dz       = S_BuffIndex[p.seg.id];
@@ -338,20 +344,7 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     p.format();
     p.ID_Bf_Icost   = NAPPEMAX;
 
-    p.ouput();
-
-
-    {
-        //    const short noRead   = count(p.prev_Dz) - p.ID_Bf_Icost;
-        //    if(noRead < 0)
-        //        p.ID_Bf_Icost = NAPPEMAX + noRead;
-        //    else
-        //    {
-        //        streamICost.read<eARRIERE>(S_BuffICost);
-        //        streamFCost.incre<eARRIERE>();
-        //        p.ID_Bf_Icost = noRead;
-        //    }
-    }
+    //p.ouput();
 
     ReadLine<eARRIERE>( streamIndex,
                         streamFCost,
