@@ -66,6 +66,8 @@ void MainWindow::connectActions()
     }
     connect(ui->actionShow_help_messages,SIGNAL(toggled(bool)), this, SLOT(toggleShowMessages(bool)));
 
+    connect(ui->action2D_3D_mode,SIGNAL(triggered()), this, SLOT(switch2D3D()));
+
     connect(ui->actionHelpShortcuts,    SIGNAL(triggered()),   this, SLOT(doActionDisplayShortcuts()));
 
     if (!m_bMode2D)
@@ -655,6 +657,13 @@ void MainWindow::setMode2D(bool mBool)
     ui->actionShow_axis->setEnabled(!mBool);
     ui->actionShow_ball->setEnabled(!mBool);
     ui->actionShow_bounding_box->setEnabled(!mBool);
+}
+
+void MainWindow::switch2D3D()
+{
+    setMode2D(!m_bMode2D);
+
+    closeAll();
 }
 
 void  MainWindow::setGamma(float aGamma)
