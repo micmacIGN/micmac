@@ -1,0 +1,118 @@
+<!--
+    Innovation
+-->
+
+<Global
+    ExitOnBrkp="@$#1"
+>
+   <ParamApero>
+
+      <DicoLoc>
+           <Symb>  RayonInvGrid=0.95  </Symb>
+
+           <Symb>  KeyPose2Cal=NKS-Assoc-FromFocMm@TheKeyCalib_@  </Symb>
+           <Symb>  KeyInitFromPose=NKS-Assoc-FromFocMm@Ori${AeroIn}/AutoCal@.xml  </Symb>
+           <Symb>  TagCalib=CalibrationInternConique  </Symb>
+<!--
+
+           <Symb>  KeyPose2Cal=NKS-Assoc-Id  </Symb>
+           <Symb>  KeyInitFromPose=NKS-Assoc-Im2Orient@${AeroIn}  </Symb>
+           <Symb>  TagCalib=Interne  </Symb>
+-->
+       </DicoLoc>
+
+
+       <SectionBDD_Observation>
+            <BDD_Orient>
+                  <Id>  Or-Init   </Id>
+                  <KeySet>  NKS-Set-Orient@${AeroIn} </KeySet>
+                  <KeyAssoc>  NKS-Assoc-Im2Orient@${AeroIn} </KeyAssoc>
+             </BDD_Orient>
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+             <CalibrationCameraInc>
+                   <Name> GenerateKC-Others   </Name>
+                   <CalValueInit>
+                         <CalFromFileExtern>
+                              <NameFile>   ####  </NameFile>
+                              <NameTag>    ${TagCalib} </NameTag>
+                              <AutorizeNonExisting > true </AutorizeNonExisting>
+                         </CalFromFileExtern>
+                   </CalValueInit>
+                   <CalibPerPose>
+                        <KeyPose2Cal> ${KeyPose2Cal} </KeyPose2Cal>
+                        <KeyInitFromPose>  ${KeyInitFromPose}  </KeyInitFromPose>
+<!--
+                        <KeyPose2Cal> NKS-Assoc-Id  </KeyPose2Cal>
+                        <KeyInitFromPose>  NKS-Assoc-Im2Orient@{AeroIn}  </KeyInitFromPose>
+
+                        <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
+                        <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${AeroIn}/AutoCal@.xml  </KeyInitFromPose>
+-->
+                    </CalibPerPose>
+             </CalibrationCameraInc>
+             <PoseCameraInc>
+                   <PatternName>    NKS-Set-OfPattern@${PatternAllIm}   </PatternName>
+                   <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
+                   <PosValueInit>
+                            <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                   </PosValueInit>
+             </PoseCameraInc>
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> XXXX </DirectoryChantier>
+             <GenereErreurOnContraineCam> false </GenereErreurOnContraineCam>
+
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+        </SectionSolveur>
+
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                   <IterationsCompensation>
+                       <SectionContraintes>
+                             <ContraintesCamerasInc>
+                                 <Val> eAllParamFiges  </Val>
+                             </ContraintesCamerasInc>
+                             <ContraintesPoses>
+                                   <NamePose>   .* </NamePose>
+                                   <ByPattern>  true </ByPattern>
+                                   <Val>      ePoseFigee   </Val>
+                             </ContraintesPoses>
+                       </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <SectionObservations>
+                    </SectionObservations>
+
+                    <SectionExport>
+                            <ExportPose>
+                                <PatternSel> (.*) </PatternSel>
+                                <KeyAssoc> NKS-Assoc-Im2Orient@${AeroOut} </KeyAssoc>
+                                <AddCalib>  true </AddCalib>
+                                <NbVerif>  10 </NbVerif>
+                                <TolWhenVerif> 1e-3 </TolWhenVerif>
+                                <FileExtern> NKS-Assoc-FromFocMm@Ori${AeroOut}/AutoCal@.xml </FileExtern>
+                                <FileExternIsKey> true </FileExternIsKey>
+                            </ExportPose>
+                             <ExportCalib>
+                                 <KeyAssoc>  NKS-Assoc-FromKeyCal@Ori${AeroOut}/AutoCal@.xml </KeyAssoc>
+                                 <KeyIsName> false </KeyIsName>
+                                 <ExportAsNewGrid>
+                                      <Step > 10.0  10.0 </Step>
+                                      <RayonInvRelFE>  ${RayonInvGrid} </RayonInvRelFE>
+                                 </ExportAsNewGrid>
+                            </ExportCalib>
+                    </SectionExport>
+	      </EtapeCompensation>
+	</SectionCompensation>
+   </ParamApero>
+</Global>
+
