@@ -47,6 +47,8 @@ public:
     //! Destructor
     ~GLWidget();
 
+    bool eventFilter(QObject* object,QEvent* event);
+
     //! Set data to display
     void setData(cData* data);
 
@@ -198,6 +200,9 @@ protected:
     //! Draw widget gradient background
     void drawGradientBackground();
     
+    //! Draw selection polygon
+    void drawPolygon();
+
     //! Draw one point and two segments (for insertion or move)
     void drawPointAndSegments();
 
@@ -299,6 +304,8 @@ protected:
 
     //! click counter to manage point move event
     int m_Click;
+
+    QPointF WindowToImage(const QPoint &pt);
 
 private:
 
