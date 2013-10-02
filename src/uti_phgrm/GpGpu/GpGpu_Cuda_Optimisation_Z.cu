@@ -224,18 +224,11 @@ void ReadLine(
 
     while(p.line.id < p.line.lenght)                
     {        
-        if(!sens)
-            p.ouput();
-
         while(p.seg.id < p.seg.lenght)
         {
             const short2 index  = S_Bf_Index[sgn(p.seg.id)];
             const ushort dZ     = count(index); // creer buffer de count
             ushort       z      = 0;
-
-            if(!sens && !p.tid)
-                printf(" %d -->",dZ);
-
 
             while( z < dZ)
             {
@@ -318,11 +311,11 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     p.prev_Dz       = S_BuffIndex[0];
     p.ID_Bf_Icost   = count(p.prev_Dz);
 
-    //p.ouput();
-
     ReadLine<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,p);
 
     streamIndex.reverse<eARRIERE>();
+    streamIndex.incre<eARRIERE>();
+
     streamFCost.incre<eAVANT>();
     streamFCost.reverse<eARRIERE>();
 
@@ -334,8 +327,6 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     streamICost.reverse<eARRIERE>();
     streamICost.incre<eARRIERE>();
 
-    //p.ouput();
-
     p.seg.id        = p.seg.lenght - 1;
     p.prev_Dz       = S_BuffIndex[p.seg.id];
     p.seg.id        = WARPSIZE - p.seg.id;
@@ -344,7 +335,6 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     p.format();
     p.ID_Bf_Icost   = NAPPEMAX;
 
-    //p.ouput();
 
     ReadLine<eARRIERE>( streamIndex,
                         streamFCost,
