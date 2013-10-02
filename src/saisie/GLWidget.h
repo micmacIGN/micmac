@@ -47,6 +47,8 @@ public:
     //! Destructor
     ~GLWidget();
 
+    bool eventFilter(QObject* object,QEvent* event);
+
     //! Set data to display
     void setData(cData* data);
 
@@ -63,9 +65,6 @@ public:
                             UPPER_CENTER_MESSAGE,
                             SCREEN_CENTER_MESSAGE
     };
-
-    void    setSelectionMode(int mode ) {_m_selection_mode = mode; }
-    int     getSelectionMode()          {return _m_selection_mode;}
 
     //! Displays a status message
     /** \param message message (if message is empty, all messages will be cleared)
@@ -117,12 +116,6 @@ public:
     //! Select points with polyline
     void Select(int mode);
 
-    //! Insert point in polyline
-    void insertPolylinePoint();
-
-    //! Delete mouse closest point
-    void deletePolylinePoint();
-
     //! Delete current polyline
     void clearPolyline();
 
@@ -143,15 +136,21 @@ public:
 
     void reset();
 
-    void WindowToImage(QPointF const &p0, QPointF &p1);
-
     QImage* getGLMask(){return _mask;}
 
     ViewportParameters* getParams(){return &m_params;}
 
     void applyGamma(float aGamma);
 
-    void glWinQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw);
+    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw);
+
+    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QColor color);
+
+    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, GLuint idTexture);
+
+    void enableOptionLine();
+    void disableOptionLine();
+
 public slots:
     void zoom();
 
@@ -163,9 +162,6 @@ signals:
     //! Signal emitted when files are dropped on the window
     void filesDropped(const QStringList& filenames);
 
-    //! Signal emitted when the mouse wheel is rotated
-    void mouseWheelRotated(float wheelDelta_deg);
-
     void selectedPoint(uint idCloud, uint idVertex,bool selected);
 
 protected:
@@ -175,8 +171,12 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
+    void mouseDoubleClickEvent(QMouseEvent *event);
     void keyPressEvent(QKeyEvent *event);
+    void keyReleaseEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent* event);
+
+    void ImageToTexture(GLuint idTexture,QImage* image);
 
     //! Initialization state of GL
     bool m_bGLInitialized;
@@ -199,17 +199,22 @@ protected:
 
     //! Draw widget gradient background
     void drawGradientBackground();
+    
+    //! Draw selection polygon
+    void drawPolygon();
 
-    void setStandardOrthoCenter();
+    //! Draw one point and two segments (for insertion or move)
+    void drawPointAndSegments();
 
     GLuint getNbGLLists() { return m_nbGLLists; }
     void incrNbGLLists() { m_nbGLLists++; }
     void resetNbGLLists(){ m_nbGLLists = 0; }
 
-    //! GL context width
-    int m_glWidth;
-    //! GL context height
-    int m_glHeight;
+    //! Fill m_polygon2 for point insertion or move
+    void fillPolygon2();
+
+    //! set index of cursor closest point
+    void findClosestPoint();
 
     //! GL context aspect ratio m_glWidth/m_glHeight
     float m_glRatio;
@@ -239,14 +244,13 @@ protected:
     bool m_bObjectCenteredView;
 
     //! States if selection polyline is closed
-    bool m_bPolyIsClosed;
+    bool m_bPolyIsClosed;  
 
     //! Current interaction mode (with mouse)
     INTERACTION_MODE m_interactionMode;
 
     bool m_bFirstAction;
 
-    int m_previousAction;
 
     //! Temporary Message to display
     struct MessageToDisplay
@@ -263,8 +267,10 @@ protected:
     //! Ball GL list
     GLuint m_ballGLList;
 
-    //! Texture GL list
-    GLuint m_texturGLList;
+    //! Texture image
+    GLuint m_textureImage;
+
+    GLuint m_textureMask;
 
     int m_nbGLLists;
 
@@ -275,6 +281,9 @@ protected:
 
     //! Point list for polygonal selection
     QVector < QPoint > m_polygon;
+
+    //! Point list for polygonal insertion
+    QVector < QPoint > m_polygon2;
 
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
@@ -294,8 +303,13 @@ protected:
     //! data position in the gl viewport
     GLfloat m_glPosition[2];
 
-    //! transparency of deleted areas
-    float   m_alpha;
+    //! click counter to manage point move event
+    int m_Click;
+
+    //! (square) radius for point selection
+    int     m_radius;
+
+    QPointF WindowToImage(const QPoint &pt);
 
 private:
 
@@ -311,13 +325,9 @@ private:
     int         _previousTime;
     int         _currentTime;
 
+    int         _idx;
+
     float       _fps;
-
-    int         _m_selection_mode;
-
-    double      _MM[16];
-    double      _MP[16];
-    int         _VP[4];
 
     bool        _m_g_mouseLeftDown;
     bool        _m_g_mouseMiddleDown;
@@ -332,8 +342,12 @@ private:
 
     QImage      _glImg;
     QImage      *_mask;
-    GLdouble    _projmatrix[16];
+    GLdouble    *_mvmatrix;
+    GLdouble    *_projmatrix;
+    GLint       *_glViewport;
+
     QPoint      _m_lastPosZoom;
+
 };
 
 #endif  /* _GLWIDGET_H */

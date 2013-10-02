@@ -23,22 +23,23 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_bPolyIsClosed(false)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
-  , m_previousAction(NONE)
   , m_trihedronGLList(GL_INVALID_LIST_ID)
   , m_ballGLList(GL_INVALID_LIST_ID)
-  , m_texturGLList(GL_INVALID_LIST_ID)
+  , m_textureImage(GL_INVALID_LIST_ID)
+  , m_textureMask(GL_INVALID_LIST_ID)
   , m_nbGLLists(0)
   , m_params(ViewportParameters())
   , m_Data(data)
   , m_speed(2.5f)
   , m_bDisplayMode2D(false)
-  , m_alpha(.5f)
+  , m_Click(0)
+  , m_radius(2500)
   , m_vertexbuffer(QGLBuffer::VertexBuffer)
   , _frameCount(0)
   , _previousTime(0)
   , _currentTime(0)
+  , _idx(-1)
   , _fps(0.0f)
-  , _m_selection_mode(NONE)
   , _m_g_mouseLeftDown(false)
   , _m_g_mouseMiddleDown(false)
   , _m_g_mouseRightDown(false)
@@ -56,6 +57,12 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
     setAcceptDrops(true);
 
     m_glPosition[0] = m_glPosition[1] = 0.f;
+
+    _mvmatrix   = new GLdouble[16];
+    _projmatrix = new GLdouble[16];
+    _glViewport = new GLint[4];
+
+    m_font.setPointSize(10);
 }
 
 GLWidget::~GLWidget()
@@ -70,10 +77,89 @@ GLWidget::~GLWidget()
         glDeleteLists(m_ballGLList,1);
         m_ballGLList = GL_INVALID_LIST_ID;
     }
-    if (m_texturGLList != GL_INVALID_LIST_ID)
+    if (m_textureImage != GL_INVALID_LIST_ID)
     {
-        glDeleteLists(m_texturGLList,1);
-        m_texturGLList = GL_INVALID_LIST_ID;
+        glDeleteLists(m_textureImage,1);
+        m_textureImage = GL_INVALID_LIST_ID;
+    }
+}
+
+bool GLWidget::eventFilter(QObject* object,QEvent* event)
+{
+    if(event->type() == QEvent::MouseMove)
+    {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+        m_lastPos = mouseEvent->pos();
+
+        update();
+
+        if (m_interactionMode == SELECTION)
+        {
+            if(!m_bPolyIsClosed)
+            {
+                int sz = m_polygon.size();
+
+                if (sz == 0)
+                    return false;
+                else if (sz == 1)
+                    m_polygon.push_back(m_lastPos);
+                else
+                    //replace last point by the current one
+                    m_polygon[sz-1] = m_lastPos;
+            }
+            else
+            {
+                if(m_polygon.size())
+                {
+                    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+                    if (keyEvent->modifiers().testFlag(Qt::ShiftModifier))
+                    {
+                        fillPolygon2();
+                    }
+                    else
+                    {
+                        if (m_Click == 1)
+                        {
+                            m_polygon2.clear();
+                            if ((_idx >0 ) && (_idx < m_polygon.size()-1))
+                            {
+                                m_polygon2.push_back(m_polygon[_idx-1]);
+                                m_polygon2.push_back(m_lastPos);
+                                m_polygon2.push_back(m_polygon[_idx+1]);
+                            }
+                            else
+                            {
+                                if (_idx == 0)
+                                {
+                                    m_polygon2.push_back(m_polygon[m_polygon.size()-1]);
+                                    m_polygon2.push_back(m_lastPos);
+                                    m_polygon2.push_back(m_polygon[1]);
+                                }
+                                if (_idx == m_polygon.size()-1)
+                                {
+                                    m_polygon2.push_back(m_polygon[m_polygon.size()-2]);
+                                    m_polygon2.push_back(m_lastPos);
+                                    m_polygon2.push_back(m_polygon[0]);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            findClosestPoint();
+                        }
+                    }
+                }
+            }
+
+            update();
+
+        }
+
+        return true;
+    }  
+    else
+    {
+          return QObject::eventFilter(object,event);
     }
 }
 
@@ -91,38 +177,13 @@ void GLWidget::resizeGL(int width, int height)
 {
     if (width==0 || height==0) return;
 
-    float curW = m_glWidth;
-    float curH = m_glHeight;
-
-    m_glWidth  = width;
-    m_glHeight = height;
     m_glRatio  = (float) width/height;
 
-    if (m_Data->NbImages())
-    {
-        m_rw = (float)_glImg.width()/m_glWidth;
-        m_rh = (float)_glImg.height()/m_glHeight;
-
-        if(m_rw>m_rh)
-            setZoom(m_params.zoom*(float)width/curW);
-        else
-            setZoom(m_params.zoom*(float)height/curH);
-
-        //position de l'image dans la vue gl
-
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glPushMatrix();
-        glScalef(m_params.zoom, m_params.zoom, 1.0);
-        glTranslatef(-m_rh,-m_rh,0);
-        glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
-        glPopMatrix();
-
-        m_glPosition[0] = 0;
-        m_glPosition[1] = 0;
-    }
-
     glViewport( 0, 0, width, height );
+    glGetIntegerv (GL_VIEWPORT, _glViewport);
+
+    if (m_Data->NbImages())
+        zoomFit();
 }
 
 //-------------------------------------------------------------------------
@@ -190,37 +251,76 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps = 64)
     glEnd();
 }
 
-void GLWidget::glWinQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw)
+void GLWidget::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw)
 {
     glBegin(GL_QUADS);
-
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex2f(originX, originY);
-
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex2f(originX+glw, originY);
-
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex2f(originX+glw, originY+glh);
-
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex2f(originX, originY+glh);
-
+    {
+        glTexCoord2f(0.0f, 0.0f);
+        glVertex2f(originX, originY);
+        glTexCoord2f(1.0f, 0.0f);
+        glVertex2f(originX+glw, originY);
+        glTexCoord2f(1.0f, 1.0f);
+        glVertex2f(originX+glw, originY+glh);
+        glTexCoord2f(0.0f, 1.0f);
+        glVertex2f(originX, originY+glh);
+    }
     glEnd();
+}
+
+void GLWidget::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QColor color)
+{
+    glColor4f(color.redF(),color.greenF(),color.blueF(),color.alphaF());
+    drawQuad(originX,originY,glh,glw);
+}
+
+void GLWidget::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, GLuint idTexture)
+{
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture( GL_TEXTURE_2D, idTexture );
+    drawQuad(originX,originY,glh,glw);
+    glBindTexture( GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
+}
+
+void GLWidget::enableOptionLine()
+{
+    glEnable (GL_LINE_SMOOTH);
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+}
+
+void GLWidget::disableOptionLine()
+{
+    glDisable(GL_BLEND);
+    glDisable (GL_LINE_SMOOTH);
 }
 
 void GLWidget::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE,GL_ZERO);
+
+    //gradient color background
+    drawGradientBackground();
+    //we clear background
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    glDisable(GL_BLEND);
+
     if (m_Data->NbImages())
     {
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE,GL_ZERO);
+
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
+        glDisable(GL_ALPHA_TEST);
         glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE,GL_ONE);
 
         GLfloat glw = 2*m_rw;
         GLfloat glh = 2*m_rh;
@@ -230,18 +330,14 @@ void GLWidget::paintGL()
 
         if(_projmatrix[0] != m_params.zoom)
         {
-            GLint viewport[4];
             GLint recal;
-            GLdouble mvmatrix[16];
             GLdouble wx, wy, wz;
 
-            glGetIntegerv (GL_VIEWPORT, viewport);
-            glGetDoublev (GL_MODELVIEW_MATRIX, mvmatrix);
-
-            recal = viewport[3] - (GLint) _m_lastPosZoom.y()- 1;
+            recal = _glViewport[3] - (GLint) _m_lastPosZoom.y()- 1;
 
             gluUnProject ((GLdouble) _m_lastPosZoom.x(), (GLdouble) recal, 1.0,
-                          mvmatrix, _projmatrix, viewport, &wx, &wy, &wz);
+                          _mvmatrix, _projmatrix, _glViewport, &wx, &wy, &wz);
+
             glTranslatef(wx,wy,0);
             glScalef(m_params.zoom/_projmatrix[0], m_params.zoom/_projmatrix[0], 1.0);
             glTranslatef(-wx,-wy,0);
@@ -253,53 +349,44 @@ void GLWidget::paintGL()
         m_glPosition[1] = 0;
 
         glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
+        drawQuad(0, 0, glh, glw,QColor(255,255,255));
 
         if(_mask != NULL && !_m_g_mouseMiddleDown)
         {
-            glEnable(GL_TEXTURE_2D);
-            glTexImage2D( GL_TEXTURE_2D, 0, 4, _mask->width(), _mask->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _mask->bits());
 
-            glWinQuad(0, 0, glh, glw);
+            drawQuad(0,0,glh,glw,m_textureMask );
+            glBlendFunc(GL_ONE,GL_ONE);
 
-            glDisable(GL_TEXTURE_2D);
-
-            glColor4f(0.5f,0.5f,0.5f,0.0f);
-
-            glWinQuad(0, 0, glh, glw);
+            drawQuad(0, 0, glh, glw,QColor(128,128,128));
             glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
         }
 
-        glEnable(GL_TEXTURE_2D);
-
-        glBindTexture( GL_TEXTURE_2D, m_texturGLList );
-        glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
-        glWinQuad(0, 0, glh, glw);
-        glDisable(GL_TEXTURE_2D);
+        drawQuad(0,0,glh,glw,m_textureImage );
 
         glPopMatrix();
 
         glDisable(GL_BLEND);
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_ALPHA_TEST);
         glMatrixMode(GL_MODELVIEW);
 
-        //Affichage du zoom
+        //Affichage du zoom et des coordonnées image
         if (m_bDrawMessages)
         {
-            glColor4f(1.f,1.f,1.f,1.f);
+            QPointF ptImg = WindowToImage(m_lastPos);
 
-            int fontSize = 10;
-            m_font.setPointSize(fontSize);
-            renderText(10, m_glHeight- fontSize, QString::number(m_params.zoom*100,'f',1) + "%", m_font);
+            glColor3f(1.f,1.f,1.f);
+
+            renderText(10, _glViewport[3] - m_font.pointSize(), QString::number(m_params.zoom*100,'f',1) + "%", m_font);
+
+            if  ((m_interactionMode == SELECTION)&&(ptImg.x()>=0)&&(ptImg.y()>=0)&&(ptImg.x()<_glImg.width())&&(ptImg.y()<_glImg.height()))
+                renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(ptImg.x(),'f',1) + ", " + QString::number(_glImg.height()-ptImg.y(),'f',1) + " px", m_font);
+
         }
     }
     else
     {
-        setStandardOrthoCenter();
 
-        //gradient color background
-        drawGradientBackground();
-        //we clear background
-        glClear(GL_DEPTH_BUFFER_BIT);
 
         zoom();
 
@@ -335,6 +422,8 @@ void GLWidget::paintGL()
             glDisable(GL_DEPTH_TEST);
         }
 
+        enableOptionLine();
+
         if (m_bDrawBall) drawBall();
         else if (m_bDrawAxis) drawAxis();
 
@@ -342,59 +431,39 @@ void GLWidget::paintGL()
 
         if (m_bDrawBbox) drawBbox();
 
+        disableOptionLine();
+
         if (m_Data->NbClouds()&& m_bDrawMessages)
         {
             computeFPS();
 
             glColor4f(0.8f,0.9f,1.0f,0.9f);
 
-            int fontSize = 10;
-            m_font.setPointSize(fontSize);
-            renderText(10, m_glHeight- fontSize, m_messageFPS,m_font);
+            renderText(10, _glViewport[3]- m_font.pointSize(), m_messageFPS,m_font);
         }
     }
 
     if (m_interactionMode == SELECTION)
     {
         glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
         glLoadIdentity();
-        glOrtho(0,m_glWidth,m_glHeight,0,-1,1);
+        glOrtho(0,_glViewport[2],_glViewport[3],0,-1,1);
         glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
         glLoadIdentity();
-        //glPushAttrib(GL_ENABLE_BIT);
+
         glDisable(GL_DEPTH_TEST);
-        glDisable(GL_LIGHTING);
-        glDisable(GL_TEXTURE_2D);
 
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_SRC_ALPHA_SATURATE);
-        glEnable(GL_ALPHA_TEST);
-        glEnable(GL_LINE_SMOOTH);
+        enableOptionLine();
 
-        glColor3f(0,1,0);
+        drawPolygon();
 
-        glLineWidth(0.5f);
-
-        glBegin(m_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
-        for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
-        {
-            glVertex2f(m_polygon[aK].x(), m_polygon[aK].y());
-        }
-        glEnd();
-
-        glColor3f(1,0,0);
-
-        for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
-        {
-            glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 32);
-        }
-
-        //glPopAttrib();
         glLineWidth(m_params.LineWidth);
-        glDisable(GL_BLEND);
-        glDisable(GL_ALPHA_TEST);
+        disableOptionLine();
+
+        drawPointAndSegments();
+
+        glEnable(GL_DEPTH_TEST);
+
         glPopMatrix(); // restore modelview
     }
 
@@ -404,15 +473,12 @@ void GLWidget::paintGL()
         //Some versions of Qt seem to need glColorf instead of glColorub! (see https://bugreports.qt-project.org/browse/QTBUG-6217)
         glColor3f(1.f,1.f,1.f);
 
-        int fontSize = 10;
-        int lc_currentHeight = m_glHeight - fontSize*m_messagesToDisplay.size(); //lower center
+        int lc_currentHeight = _glViewport[3] - m_font.pointSize()*m_messagesToDisplay.size(); //lower center
         int uc_currentHeight = 10;            //upper center
 
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
         while (it != m_messagesToDisplay.end())
         {
-            m_font.setPointSize(fontSize);
-
             switch(it->position)
             {
             case LOWER_LEFT_MESSAGE:
@@ -425,7 +491,7 @@ void GLWidget::paintGL()
             case LOWER_CENTER_MESSAGE:
             {
                 QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                renderText((m_glWidth-rect.width())/2, lc_currentHeight, it->message,m_font);
+                renderText((_glViewport[2]-rect.width())/2, lc_currentHeight, it->message,m_font);
                 int messageHeight = QFontMetrics(m_font).height();
                 lc_currentHeight += (messageHeight*5)/4; //add a 25% margin
             }
@@ -433,7 +499,7 @@ void GLWidget::paintGL()
             case UPPER_CENTER_MESSAGE:
             {
                 QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                renderText((m_glWidth-rect.width())/2, uc_currentHeight+rect.height(), it->message,m_font);
+                renderText((_glViewport[2]-rect.width())/2, uc_currentHeight+rect.height(), it->message,m_font);
                 uc_currentHeight += (rect.height()*5)/4; //add a 25% margin
             }
                 break;
@@ -441,23 +507,14 @@ void GLWidget::paintGL()
             {
                 m_font.setPointSize(12);
                 QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                renderText((m_glWidth-rect.width())/2, (m_glHeight-rect.height())/2, it->message,m_font);
+                renderText((_glViewport[2]-rect.width())/2, (_glViewport[3]-rect.height())/2, it->message,m_font);
+                m_font.setPointSize(10);
             }
             }
 
             ++it;
         }
     }
-}
-
-//converts from Viewport coordinates [0, m_glWidth] to GL window coordinates [-1,1] into Image coordinates [0,_glImg.width]
-void GLWidget::WindowToImage(QPointF const &p0, QPointF &p1)
-{
-   float x_gl = 2.f*p0.x()/m_glWidth -1.f;
-   float y_gl = 2.f*p0.y()/m_glHeight-1.f;
-
-   p1.setX((float)m_glWidth *(x_gl-m_glPosition[0]*m_params.zoom)/(2.f*m_params.zoom));
-   p1.setY((float)m_glHeight*(y_gl-m_glPosition[1]*m_params.zoom)/(2.f*m_params.zoom));
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
@@ -474,7 +531,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             {
                 if (!m_bPolyIsClosed)
                 {
-                    if (m_polygon.size() < 2)
+                    if (m_polygon.size() < 1)
                         m_polygon.push_back(m_lastPos);
                     else
                     {
@@ -484,8 +541,26 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
                 }
                 else
                 {
-                    clearPolyline();
-                    m_polygon.push_back(m_lastPos);
+                    if (event->modifiers().testFlag(Qt::ShiftModifier))
+                    {
+                        if ((m_polygon.size() >=2) && m_polygon2.size() && m_bPolyIsClosed)
+                        {
+                            // modify polygon...
+                            int idx = -1;
+
+                            for (int i=0;i<m_polygon.size();++i)
+                            {
+                                if (m_polygon[i] == m_polygon2[0]) idx = i;
+                            }
+
+                            if (idx >=0) m_polygon.insert(idx+1, m_polygon2[1]);
+                        }
+
+                        m_polygon2.clear();
+                        update();
+                    }
+                    else if (_idx != -1)
+                        m_Click++;
                 }
             }
         }
@@ -494,6 +569,16 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     {
         if (m_interactionMode == TRANSFORM_CAMERA)
             _m_g_mouseRightDown = true;
+        else if ((_idx >=0)&&(_idx<m_polygon.size()))
+        {
+            m_polygon.remove(_idx);
+
+            findClosestPoint();
+
+            if (m_polygon.size() < 2) m_bPolyIsClosed = false;
+
+            update();
+        }
         else
         {
             closePolyline();
@@ -517,11 +602,27 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     {
         _m_g_mouseLeftDown = false;
 
+        if ((m_Click >=1) &&(_idx>=0)&&m_polygon2.size())
+        {
+            m_polygon[_idx] = m_polygon2[1];
+
+            m_polygon2.clear();
+            m_Click = 0;
+
+            update();
+        }
+
+        if ((m_Click >=1))
+        {
+            findClosestPoint();
+
+            update();
+        }
+
     }
-    if ( event->button() ==Qt::RightButton  )
+    if ( event->button() == Qt::RightButton  )
     {
         _m_g_mouseRightDown = false;
-
     }
     if ( event->button() == Qt::MiddleButton  )
     {
@@ -568,13 +669,28 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             else
                 ptSizeUp(false);
             break;
-
         default:
             event->ignore();
             break;
         }
     }
     update();
+}
+
+void GLWidget::keyReleaseEvent(QKeyEvent* event)
+{
+    if  (event->key() == Qt::Key_Shift)
+    {
+        m_polygon2.clear();
+    }
+
+    if  (event->key() == Qt::Key_Control)
+    {
+        m_polygon2.clear();
+        m_Click = 0;
+    }
+
+     findClosestPoint();
 }
 
 void GLWidget::setBufferGl(bool onlyColor)
@@ -675,42 +791,33 @@ void GLWidget::setData(cData *data)
 
         zoomFit();
 
-        //position de l'image dans la vue gl
-        m_glPosition[0] = -m_rw;
-        m_glPosition[1] = -m_rh;
-
-        glMatrixMode(GL_PROJECTION);
+        //position de l'image dans la vue gl             
+        glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        glPushMatrix();
-        glScalef(m_params.zoom, m_params.zoom, 1.0);
-        glTranslatef(m_glPosition[0],m_glPosition[1],0);
-        glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
-        glPopMatrix();
 
-        m_glPosition[0] = 0;
-        m_glPosition[1] = 0;
+        glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
+        glGenTextures(1, &m_textureImage );
 
-        glGenTextures(1, &m_texturGLList );
-        glBindTexture( GL_TEXTURE_2D, m_texturGLList );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-
-        glTexImage2D( GL_TEXTURE_2D, 0, 4, _glImg.width(), _glImg.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, _glImg.bits());
-        glDisable(GL_TEXTURE_2D);
+        ImageToTexture(m_textureImage, &_glImg);
 
         if(_mask)
             delete _mask;
+        else
+           glGenTextures(1, &m_textureMask );
 
         _mask = new QImage(_glImg.size(),_glImg.format());
-        QGLWidget::convertToGLFormat(*_mask);
+        if ((*m_Data->getCurMask()).isNull())
+        {
+            QGLWidget::convertToGLFormat(*_mask);
+            _mask->fill(Qt::white);
+        }
+        else
+        {
+            *_mask = QGLWidget::convertToGLFormat( *m_Data->getCurMask() );
+            m_bFirstAction = false;
+        }
 
-        QPainter    p;
-        QColor selectColor(255,255,255,255);
-
-        p.begin(_mask);
-        p.setCompositionMode(QPainter::CompositionMode_Source);
-        p.fillRect(_mask->rect(), selectColor);
-        p.end();
+        ImageToTexture(m_textureMask, _mask);
     }
 
     if (m_Data->NbCameras())
@@ -718,6 +825,8 @@ void GLWidget::setData(cData *data)
         m_bDisplayMode2D = false;
         //TODO
     }
+
+    glGetIntegerv (GL_VIEWPORT, _glViewport);
 }
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -782,11 +891,16 @@ void GLWidget::displayNewMessage(const QString& message,
 
 void GLWidget::drawGradientBackground()
 {
-    int w = (m_glWidth>>1)+1;
-    int h = (m_glHeight>>1)+1;
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    int w = (_glViewport[2]>>1)+1;
+    int h = (_glViewport[3]>>1)+1;
+    glOrtho(-w,w,-h,h,-2.f, 2.f);
 
     const uchar BkgColor[3] = {(uchar) colorBG0.red(),(uchar) colorBG0.green(), (uchar) colorBG0.blue()};
-
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
     //Gradient "texture" drawing
     glBegin(GL_QUADS);
     //user-defined background color for gradient start
@@ -800,17 +914,70 @@ void GLWidget::drawGradientBackground()
     glEnd();
 }
 
-void GLWidget::setStandardOrthoCenter()
+void GLWidget::drawPolygon()
 {
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    float halfW = float(m_glWidth)*.5f;
-    float halfH = float(m_glHeight)*.5f;
+    glColor3f(.1f,1.f,.2f);
 
-    glOrtho(-halfW,halfW,-halfH,halfH,-2.f*m_Data->m_diam, 2.f*m_Data->m_diam);
+    glLineWidth(1.0f);
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    glBegin(m_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
+    for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
+    {
+        glVertex2f(m_polygon[aK].x(), m_polygon[aK].y());
+    }
+    glEnd();
+
+    glColor3f(1.f,0.f,0.f);
+
+    if (_idx >=0)
+    {
+        for (int aK = 0;aK < _idx; ++aK)
+            glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
+
+        glColor3f(0.f,0.f,1.f);
+        glDrawUnitCircle(2, m_polygon[_idx].x(), m_polygon[_idx].y(), 3.0, 8);
+
+        glColor3f(1.f,0.f,0.f);
+        for (int aK = _idx+1;aK < (int) m_polygon.size(); ++aK)
+            glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
+    }
+    else
+    {
+        for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
+           glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
+    }
+}
+
+void GLWidget::drawPointAndSegments()
+{
+    if (m_polygon2.size())
+    {
+        glLineStipple(2, 0xAAAA);
+        glEnable(GL_LINE_STIPPLE);
+
+        glEnable (GL_BLEND);
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+
+        glColor3f(0.f,0.f,1.f);
+
+        glLineWidth(1.0f);
+
+        glBegin(GL_LINE_STRIP);
+        for (int aK=0;aK < (int) m_polygon2.size(); ++aK)
+        {
+            glVertex2f(m_polygon2[aK].x(), m_polygon2[aK].y());
+        }
+        glEnd();
+
+        glDisable(GL_LINE_STIPPLE);
+
+        enableOptionLine();
+
+        glDrawUnitCircle(2, m_polygon2[1].x(), m_polygon2[1].y(), 3.0, 8);
+
+        disableOptionLine();
+    }
 }
 
 // zoom in 3D mode
@@ -834,9 +1001,12 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
     {
     case TRANSFORM_CAMERA:
         setMouseTracking(false);
+        removeEventFilter(this);
         break;
     case SELECTION:
-        setProjectionMatrix();
+        if(!m_Data->NbImages())
+            setProjectionMatrix();
+        installEventFilter(this);
         setMouseTracking(true);
         break;
     default:
@@ -923,13 +1093,25 @@ void GLWidget::setZoom(float value)
 void GLWidget::zoomFit()
 {
     //width and height ratio between viewport and image
-    m_rw = (float)_glImg.width()/m_glWidth;
-    m_rh = (float)_glImg.height()/m_glHeight;
+    m_rw = (float)_glImg.width()/ _glViewport[2];
+    m_rh = (float)_glImg.height()/_glViewport[3];
 
     if(m_rw>m_rh)
         setZoom(1.f/m_rw); //orientation landscape
     else
         setZoom(1.f/m_rh); //orientation portrait
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glPushMatrix();
+    glScalef(m_params.zoom, m_params.zoom, 1.0);
+    glTranslatef(-m_rw,-m_rh,0);
+    glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
+    glPopMatrix();
+
+    m_glPosition[0] = 0;
+    m_glPosition[1] = 0;
+
 }
 
 void GLWidget::zoomFactor(int percent)
@@ -953,6 +1135,16 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     onWheelEvent(wheelDelta_deg);
 }
 
+void GLWidget::ImageToTexture(GLuint idTexture, QImage *image)
+{
+    glBindTexture( GL_TEXTURE_2D, idTexture );
+    glTexImage2D( GL_TEXTURE_2D, 0, 4, image->width(), image->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image->bits());
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+    glBindTexture( GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
+}
+
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if (event->x()<0 || event->y()<0 || event->x()>width() || event->y()>height())
@@ -962,34 +1154,17 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
     if (m_interactionMode == SELECTION)
     {
-        //cout << "selection" << endl;
-        if(!m_bPolyIsClosed)
-        {
-            int sz = m_polygon.size();
-
-            if (sz == 0)
-                return;
-            else if (sz == 1)
-                m_polygon.push_back(pos);
-            else
-                //replace last point by the current one
-                m_polygon[sz-1] = pos;
-
-            update();
-        }
-
-        event->ignore();
+        findClosestPoint();
+        update();
     }
-    else if (_m_g_mouseLeftDown || _m_g_mouseMiddleDown|| _m_g_mouseRightDown)
+    else
     {
-        //cout << "mouse left or middle or right" << endl;
-
         QPoint dp = pos-m_lastPos;
 
         if ( _m_g_mouseLeftDown ) // rotation autour de X et Y
         {
-            float d_angleX = m_speed * dp.y() / (float) m_glHeight;
-            float d_angleY = m_speed * dp.x() / (float) m_glWidth;
+            float d_angleX = m_speed * dp.y() / (float) _glViewport[3];
+            float d_angleY = m_speed * dp.x() / (float) _glViewport[2];
 
             m_params.angleX += d_angleX;
             m_params.angleY += d_angleY;
@@ -1007,25 +1182,24 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 if (dp.y() > 0) m_params.zoom *= pow(2.f, dp.y() *.05f);
                 else if (dp.y() < 0) m_params.zoom /= pow(2.f, -dp.y() *.05f);
             }
-            else // translation
+            else if((_glViewport[2]!=0) || (_glViewport[3]!=0)) // translation
             {
-                if (m_Data->NbImages())
-                {
-                    m_glPosition[0] += 2.0f*( (float)dp.x()/(m_glWidth*m_params.zoom) );
-                    m_glPosition[1] -= 2.0f*( (float)dp.y()/(m_glHeight*m_params.zoom) );
-
-                }
-                else
-                {
-                    m_bObjectCenteredView = false;
-                    m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/m_glWidth;
-                    m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/m_glHeight;
-                }
+                    if (m_Data->NbImages())
+                    {
+                        m_glPosition[0] += 2.0f*( (float)dp.x()/(_glViewport[2]*m_params.zoom) );
+                        m_glPosition[1] -= 2.0f*( (float)dp.y()/(_glViewport[3]*m_params.zoom) );
+                    }
+                    else
+                    {
+                        m_bObjectCenteredView = false;
+                        m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/_glViewport[2];
+                        m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/_glViewport[3];
+                    }
             }
         }
         else if ( _m_g_mouseRightDown ) // rotation autour de Z
         {
-            float d_angleZ =  m_speed * dp.x() / (float) m_glWidth;
+            float d_angleZ =  m_speed * dp.x() / (float) _glViewport[2];
 
             m_params.angleZ += d_angleZ;
 
@@ -1040,6 +1214,58 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     }
 
     m_lastPos = pos;
+}
+
+void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    if (m_Data->NbClouds())
+    {
+        QPointF pos = event->localPos();
+
+        setProjectionMatrix();
+
+        int idx1 = -1;
+        int idx2;
+
+        pos.setY(_glViewport[3] - pos.y());
+
+        for (int aK=0; aK < m_Data->NbClouds();++aK)
+        {
+            float sqrD;
+            float dist = FLT_MAX;
+            idx2 = -1;
+            QPointF proj;
+
+            Cloud *a_cloud = m_Data->getCloud(aK);
+
+            for (int bK=0; bK < a_cloud->size();++bK)
+            {
+                getProjection(proj, a_cloud->getVertex( bK ));
+
+                sqrD = (proj.x()-pos.x())*(proj.x()-pos.x()) + (proj.y()-pos.y())*(proj.y()-pos.y());
+
+                if (sqrD < dist )
+                {
+                    dist = sqrD;
+                    idx1 = aK;
+                    idx2 = bK;
+                }
+            }
+        }
+
+        if ((idx1>=0) && (idx2>=0))
+        {
+            //final center:
+            Cloud *a_cloud = m_Data->getCloud(idx1);
+            Vertex &P = a_cloud->getVertex( idx2 );
+
+            m_Data->m_cX = P.x();
+            m_Data->m_cY = P.y();
+            m_Data->m_cZ = P.z();
+
+            update();
+        }
+    }
 }
 
 bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> poly)
@@ -1077,19 +1303,31 @@ bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> poly)
 void GLWidget::setProjectionMatrix()
 {
     glMatrixMode(GL_MODELVIEW);
-    glGetDoublev(GL_MODELVIEW_MATRIX, (GLdouble*) &_MM);
+    glGetDoublev(GL_MODELVIEW_MATRIX, _mvmatrix);
 
     glMatrixMode(GL_PROJECTION);
-    glGetDoublev(GL_PROJECTION_MATRIX, (GLdouble*) &_MP);
+    glGetDoublev(GL_PROJECTION_MATRIX, _projmatrix);
 
-    glGetIntegerv(GL_VIEWPORT, _VP);
+    glGetIntegerv(GL_VIEWPORT, _glViewport);
 }
 
 void GLWidget::getProjection(QPointF &P2D, Vertex P)
 {
     GLdouble xp,yp,zp;
-    gluProject(P.x(),P.y(),P.z(),_MM,_MP,_VP,&xp,&yp,&zp);
+    gluProject(P.x(),P.y(),P.z(),_mvmatrix,_projmatrix,_glViewport,&xp,&yp,&zp);
     P2D = QPointF(xp,yp);
+}
+
+QPointF GLWidget::WindowToImage(QPoint const &pt)
+{
+    QPointF res;
+
+    res.setX(( (float)  pt.x()         - _glViewport[2]*.5f ) - _projmatrix[12]*_glViewport[2]*.5f);
+    res.setY(( (float) -pt.y()  -1.f   + _glViewport[3]*.5f ) - _projmatrix[13]*_glViewport[3]*.5f);
+
+    res /= m_params.zoom;
+
+    return res;
 }
 
 void GLWidget::Select(int mode)
@@ -1107,83 +1345,54 @@ void GLWidget::Select(int mode)
         {
             for (int aK=0; aK < (int) m_polygon.size(); ++aK)
             {
-                polyg.push_back(QPointF(m_polygon[aK].x(), m_glHeight - m_polygon[aK].y()));
+                polyg.push_back(QPointF(m_polygon[aK].x(), _glViewport[3] - m_polygon[aK].y()));
             }
         }
         else
         {
-
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            glPushMatrix();
-            glMultMatrixd(_projmatrix);
-
-            GLint viewport[4];
-            GLdouble mvmatrix[16];
-            GLint realy;
-            GLdouble wx, wy, wz;
-
-            glGetIntegerv (GL_VIEWPORT, viewport);
-            glGetDoublev (GL_MODELVIEW_MATRIX, mvmatrix);
-
-            QPointF ptImg;
-
             for (int aK=0; aK < (int) m_polygon.size(); ++aK)
             {
-                realy = viewport[3] - (GLint) m_polygon[aK].y()- 1;
-
-                gluUnProject ((GLdouble) m_polygon[aK].x(), (GLdouble) realy, 1.0,
-                              mvmatrix, _projmatrix, viewport, &wx, &wy, &wz);
-
-                ptImg.setX(wx*m_glWidth/2.0f);
-                ptImg.setY(wy*m_glHeight/2.0f);
-                polyg.push_back(ptImg);
-
+                polyg.push_back(WindowToImage(m_polygon[aK]));
             }
-            glPopMatrix();
         }
     }
 
     if (m_bDisplayMode2D)
     {
          QPainter    p;
-         QColor selectColor(255,255,255,255);
-         QColor unselectColor(0,0,0,255);
-         QBrush SBrush(selectColor);
-         QBrush NSBrush(unselectColor);
-         QPen   SPen(selectColor);
-         QPen   NSPen(unselectColor);
+         QBrush SBrush(Qt::white);
+         QBrush NSBrush(Qt::black);
 
          p.begin(_mask);
          p.setCompositionMode(QPainter::CompositionMode_Source);
+         p.setPen(Qt::NoPen);
 
          if(mode == ADD)
          {
              if (m_bFirstAction)
-                 p.fillRect(_mask->rect(), unselectColor);
-             p.setPen(SPen);
+                 p.fillRect(_mask->rect(), Qt::black);
              p.setBrush(SBrush);
              p.drawPolygon(polyg.data(),polyg.size());
          }
          else if(mode == SUB)
          {
-             p.setPen(NSPen);
              p.setBrush(NSBrush);
              p.drawPolygon(polyg.data(),polyg.size());
          }
          else if(mode == ALL)
          {
-             p.fillRect(_mask->rect(), selectColor);
+             p.fillRect(_mask->rect(), Qt::white);
          }
          else if(mode == NONE)
          {
-             p.fillRect(_mask->rect(), unselectColor);
+             p.fillRect(_mask->rect(), Qt::black);
          }
          p.end();
 
          if(mode == INVERT)         
             _mask->invertPixels(QImage::InvertRgb);
 
+         ImageToTexture(m_textureMask, _mask);
     }
     else
     {
@@ -1213,7 +1422,7 @@ void GLWidget::Select(int mode)
                     }
                     break;
                 case INVERT:
-                    if (m_previousAction == NONE)  m_bFirstAction = true;
+                    //if (m_previousAction == NONE)  m_bFirstAction = true;
                     emit selectedPoint((uint)aK,(uint)bK,!P.isVisible());
                     break;
                 case ALL:
@@ -1232,8 +1441,6 @@ void GLWidget::Select(int mode)
 
     if (((mode == ADD)||(mode == SUB)) && (m_bFirstAction)) m_bFirstAction = false;
 
-    m_previousAction = mode;
-
     selectInfos info;
     info.params = m_params;
     info.poly   = m_polygon;
@@ -1244,53 +1451,12 @@ void GLWidget::Select(int mode)
     clearPolyline();
 }
 
-void GLWidget::deletePolylinePoint()
-{
-    float dist2 = FLT_MAX;
-    int dx, dy, d2;
-    int idx = -1;
-
-    for (int aK =0; aK < (int) m_polygon.size();++aK)
-    {
-        dx = m_polygon[aK].x()-m_lastPos.x();
-        dy = m_polygon[aK].y()-m_lastPos.y();
-        d2 = dx*dx + dy*dy;
-
-        if (d2 < dist2)
-        {
-            dist2 = d2;
-            idx = aK;
-        }
-    }
-    if (idx != -1)
-        m_polygon.erase (m_polygon.begin() + idx);
-}
-
-void GLWidget::insertPolylinePoint()
-{
-    float dist2 = FLT_MAX;
-    int dx, dy, d2;
-    int idx = -1;
-
-    for (int aK =0; aK < (int) m_polygon.size();++aK)
-    {
-        dx = m_polygon[aK].x()-m_lastPos.x();
-        dy = m_polygon[aK].y()-m_lastPos.y();
-        d2 = dx*dx + dy*dy;
-
-        if (d2 < dist2)
-        {
-            dist2 = d2;
-            idx = aK;
-        }
-    }
-    if (idx != -1)
-        m_polygon.insert(m_polygon.begin() + idx, m_lastPos);
-}
-
 void GLWidget::clearPolyline()
 {
     m_polygon.clear();
+    m_polygon2.clear();
+    m_Click = 0;
+    _idx = -1;
     m_bPolyIsClosed = false;
     update();
 }
@@ -1304,7 +1470,6 @@ void GLWidget::closePolyline()
         if (sz > 2) m_polygon.resize(sz-1);
 
         m_bPolyIsClosed = true;
-
     }
 }
 
@@ -1367,15 +1532,9 @@ void GLWidget::drawBall()
     if (!m_bObjectCenteredView) return;
 
     glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-
-    glEnable (GL_LINE_SMOOTH);
-    glEnable (GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+    glPushMatrix();    
 
     // ball radius
-    //float scale = 0.05f * (float) m_glWidth/ m_glHeight;
     float scale = m_Data->m_diam / 1.5f;
 
     if (m_ballGLList == GL_INVALID_LIST_ID)
@@ -1424,6 +1583,7 @@ void GLWidget::drawBall()
     glCallList(m_ballGLList);
 
     glPopMatrix();
+    glDisable(GL_BLEND);
 }
 
 void GLWidget::drawCams()
@@ -1645,8 +1805,8 @@ void GLWidget::showSelectionMessages()
 {
     displayNewMessage(QString());
     displayNewMessage(tr("Selection mode"),UPPER_CENTER_MESSAGE);
-    displayNewMessage(tr("Left click: add contour point / Right click: close / Echap: delete polyline"),LOWER_CENTER_MESSAGE);
-    displayNewMessage(tr("Space: add points inside polyline / Suppr: delete points inside polyline"),LOWER_CENTER_MESSAGE);
+    displayNewMessage(tr("Left click: add contour point / Right click: close"),LOWER_CENTER_MESSAGE);
+    displayNewMessage(tr("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
 }
 
 void GLWidget::showMoveMessages()
@@ -1698,4 +1858,72 @@ void GLWidget::applyGamma(float aGamma)
 
             _glImg.setPixel(i,j, qRgb(r,g,b) );
         }
+}
+
+float segmentDistToPoint(QPoint segA, QPoint segB, QPoint p)
+{
+    QPoint p2(segB.x() - segA.x(), segB.y() - segA.y());
+    float nrm = (float)(p2.x()*p2.x() + p2.y()*p2.y());
+    float u = (float) ((p.x() - segA.x()) * p2.x() + (p.y() - segA.y()) * p2.y()) / nrm;
+
+    if (u > 1)
+        u = 1;
+    else if (u < 0)
+        u = 0;
+
+    float x = (float) segA.x() + u * (float) p2.x();
+    float y = (float) segA.y() + u * (float) p2.y();
+
+    float dx = x - (float) p.x();
+    float dy = y - (float) p.y();
+
+    return sqrt(dx*dx + dy*dy);
+}
+
+void GLWidget::fillPolygon2()
+{
+    float dist, dist2;
+    dist2 = FLT_MAX;
+    int idx = -1;
+
+    QVector < QPoint > polygon = m_polygon;
+    polygon.push_back(polygon[0]);
+
+    for (int aK =0; aK < (int) polygon.size()-1;++aK)
+    {
+        dist = segmentDistToPoint(polygon[aK], polygon[aK+1], m_lastPos);
+
+        if (dist < dist2)
+        {
+            dist2 = dist;
+            idx = aK;
+        }
+    }
+
+    if (idx != -1)
+    {
+        m_polygon2.clear();
+        m_polygon2.push_back(polygon[idx]);
+        m_polygon2.push_back(m_lastPos);
+        m_polygon2.push_back(polygon[idx+1]);
+    }
+}
+
+void GLWidget::findClosestPoint()
+{
+    _idx = -1;
+    float dist, dist2;
+    dist2 = (float) m_radius;
+
+    for (int aK = 0; aK < (int) m_polygon.size();++aK)
+    {
+        dist  = (float)(m_lastPos.x() - m_polygon[aK].x())*(m_lastPos.x() - m_polygon[aK].x()) +
+                (m_lastPos.y() - m_polygon[aK].y())*(m_lastPos.y() - m_polygon[aK].y());
+
+        if  (dist < dist2)
+        {
+            dist2 = dist;
+            _idx = aK;
+        }
+    } 
 }

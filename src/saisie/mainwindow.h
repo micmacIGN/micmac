@@ -58,14 +58,13 @@ public slots:
     void toggleShowMessages(bool);
     void toggleSelectionMode(bool state);
 
+    void switch2D3D();
+
     void add();
     void selectNone();
     void invertSelected();
     void selectAll();
     void removeFromSelection();
-
-    void insertPolylinePoint();
-    void deletePolylinePoint();
 
     //default views
     void setFrontView();

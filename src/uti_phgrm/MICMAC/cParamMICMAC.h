@@ -19,6 +19,19 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeGeomMEC & anObj);
 
 typedef enum
 {
+  eMCC_GrCensus,
+  eMCC_CensusBasic,
+  eMCC_CensusCorrel
+} eModeCensusCost;
+void xml_init(eModeCensusCost & aVal,cElXMLTree * aTree);
+std::string  eToString(const eModeCensusCost & aVal);
+
+eModeCensusCost  Str2eModeCensusCost(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeCensusCost & anObj);
+
+typedef enum
+{
   eTMA_Homologues,
   eTMA_DHomD,
   eTMA_Ori,
@@ -1732,8 +1745,12 @@ class cCensusCost
 
         cTplValGesInit< double > & PdsCrown();
         const cTplValGesInit< double > & PdsCrown()const ;
+
+        eModeCensusCost & TypeCost();
+        const eModeCensusCost & TypeCost()const ;
     private:
         cTplValGesInit< double > mPdsCrown;
+        eModeCensusCost mTypeCost;
 };
 cElXMLTree * ToXMLTree(const cCensusCost &);
 

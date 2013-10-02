@@ -43,6 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <algorithm>
 #include <functional>
 #include <numeric>
+#include <math.h> 
 
 void Arsenic_Banniere()
 {
@@ -56,6 +57,36 @@ void Arsenic_Banniere()
     std::cout <<  " *     I-nter-image               *\n";
     std::cout <<  " *     C-orrection                *\n";
     std::cout <<  " **********************************\n\n";
+}
+
+string FindMaltEtape(int ResolModel, std::string aNameIm, std::string aPatModel)
+{
+		//Getting full image size
+		Tiff_Im aTFforSize= Tiff_Im::StdConvGen(aNameIm,1,false);
+		int aSzX = aTFforSize.sz().x;
+
+		std::string aDir,aPat;
+		SplitDirAndFile(aDir,aPat,aPatModel);
+
+		cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+		const std::vector<std::string> * aSetModel = aICNM->Get(aPat);
+
+		std::vector<std::string> aVectModel=*aSetModel;
+		int nbModel=aVectModel.size();
+
+		int aEtape;
+		for (int i=0 ; i<nbModel ; i++)
+		{
+			cElNuage3DMaille * info3D = cElNuage3DMaille::FromFileIm(aDir+aVectModel[i]);
+			//cout<<info3D->SzGeom()<<endl;
+			int ResolThisFile=float(aSzX)/float(info3D->SzGeom().x)+0.5;
+			//cout<<"ResolThisFile : "<<ResolThisFile<<endl;
+			if(ResolModel==ResolThisFile){aEtape=i+1;}
+		}
+	cout<<"MicMac step to be used = "<<aEtape<<endl;
+	
+	string aEtapeStr = static_cast<ostringstream*>( &(ostringstream() << aEtape) )->str();
+	return aEtapeStr;
 }
 
 vector<ArsenicImage> LoadGrpImages(string aDir, std::string aPatIm, int ResolModel, string InVig)
@@ -79,7 +110,6 @@ vector<ArsenicImage> LoadGrpImages(string aDir, std::string aPatIm, int ResolMod
 		cEl_GPAO::DoComInParal(ListVig,aDir + "MkVig");
 	}
 
-
 	for (int aK1=0 ; aK1<nbIm ; aK1++)
     {
 		string cmdConv=MMDir() + "bin/ScaleIm " + InVig + (aVectIm)[aK1] + postfix + " " + ResolModelStr + " F8B=1 Out=" + (aVectIm)[aK1] + "_Scaled.tif";
@@ -91,7 +121,11 @@ vector<ArsenicImage> LoadGrpImages(string aDir, std::string aPatIm, int ResolMod
 		VectImSc.push_back((aVectIm)[aK1]+std::string("_Scaled.tif"));
 	}
 	cEl_GPAO::DoComInParal(ListConvert,aDir + "MkScale");
-
+			
+	//Finding the appropriate NuageImProf_STD-MALT_Etape_[0-9].xml for the ResolModel : 
+	string aEtape=FindMaltEtape(ResolModel, aDir + (aVectIm)[0], "MM-Malt-Img-" + StdPrefix(aVectIm[0]) + "/NuageImProf_STD-MALT_Etape_[0-9].xml");
+	
+	//Reading the infos
 	vector<ArsenicImage> aGrIm;
 
 	for (int aK1=0 ; aK1<int(nbIm) ; aK1++)
@@ -99,13 +133,7 @@ vector<ArsenicImage> LoadGrpImages(string aDir, std::string aPatIm, int ResolMod
 		ArsenicImage aIm;
 		//reading 3D info
 		//cElNuage3DMaille * info3D1 = cElNuage3DMaille::FromFileIm("MM-Malt-Img-" + StdPrefix(aVectIm[aK1]) + "/NuageImProf_STD-MALT_Etape_1.xml");
-
-		string arr[] = {"NaN", "7" ,  "6" , "NaN" , "5" , "NaN" , "NaN" , "NaN" , "4", "NaN" , "NaN" , "NaN" , "NaN", "NaN" , "NaN" , "NaN" , "3", "NaN" , "NaN" , "NaN" , "NaN", "NaN" , "NaN" , "NaN" , "NaN" , "NaN" , "NaN" , "NaN", "NaN" , "NaN" , "NaN" , "NaN", "2"};
-		vector<string> numZoom(arr, arr+33);
-
-
-		//cElNuage3DMaille * info3D1 = cElNuage3DMaille::FromFileIm("Masq-TieP-" + aVectIm[aK1] + "/NuageImProf_LeChantier_Etape_4.xml");
-		cElNuage3DMaille * info3D1 = cElNuage3DMaille::FromFileIm("MM-Malt-Img-" + StdPrefix(aVectIm[aK1]) + "/NuageImProf_STD-MALT_Etape_"+ numZoom[ResolModel] + ".xml");
+		cElNuage3DMaille * info3D1 = cElNuage3DMaille::FromFileIm("MM-Malt-Img-" + StdPrefix(aVectIm[aK1]) + "/NuageImProf_STD-MALT_Etape_" + aEtape + ".xml");
 
 		aIm.info3D=info3D1;
 

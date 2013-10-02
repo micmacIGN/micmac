@@ -48,12 +48,19 @@ Header-MicMac-eLiSe-25/06/2007*/
 namespace NS_ParamMICMAC
 {
 
+bool GlobDebugMM=false;
+Pt2di PBug(47,112);
+bool IsPBug(const Pt2di &aP)
+{
+   return (aP.x==PBug.x) && (aP.y==PBug.y) && (GlobDebugMM);
+}
+
+
 cDebugEscalier * theDE = 0;
 
 // ##
 
 Pt2di ThePtDebug;
-bool DeBugMM=false;
 
 std::string  StdNameFromCple
              (
@@ -302,6 +309,7 @@ cAppliMICMAC::cAppliMICMAC
    mTImOkTerDil (mImOkTerDil),
    mAll1ImOkTerDil (1,1),
    mAll1TImOkTerDil (mAll1ImOkTerDil),
+   mBufCensusIm2   (),
    mGeoX (1,1),
    mTGeoX (mGeoX),
    mGeoY (1,1),
@@ -327,6 +335,7 @@ cAppliMICMAC::cAppliMICMAC
    // mInterpolTabule (10,8,0.0,eTabul_Bilin)
    // mInterpolTabule (10,8,0.0,eTabul_Bicub)
 {
+       GlobDebugMM = DebugMM().Val();
 
         mDoTheMEC = DoMEC().Val();
         if (
