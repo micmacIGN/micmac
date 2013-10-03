@@ -499,14 +499,14 @@ void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm,vector<Pts
 	}	
 }
 
-void Egal_field_correct_ite(string aDir,std::vector<std::string> * aSetIm,vector<PtsHom> aVectPtsHomol, string aDirOut, string InVig, int ResolModel, int nbIm)
+void Egal_field_correct_ite(string aDir,std::vector<std::string> * aSetIm,vector<PtsHom> aVectPtsHomol, string aDirOut, string InVig, int ResolModel, int nbIm, int nbIte)
 {
 int aNbCouples=aVectPtsHomol.size();
 vector<PtsRadioTie> vectPtsRadioTie(nbIm);
 
 //truc à iterer--------------------------------------------------------------------------------------------------------------------------------------
-for(int iter=0;iter<4;iter++){
-	cout<<"Pass "<<iter<<endl;
+for(int iter=0;iter<nbIte;iter++){
+	cout<<"Pass "<<iter+1<<" out of "<< nbIte<<endl;
 	int nbPts=0;
 	vector<PtsRadioTie> vectPtsRadioTie2(nbIm);
 	//filling up the factors from homologous points
@@ -732,6 +732,7 @@ int  Arsenic_main(int argc,char ** argv)
     bool InTxt=false;
 	int ResolModel=16;
 	double TPA=16;
+	int nbIte=5;
 	  //Reading the arguments
         ElInitArgMain
         (
@@ -741,6 +742,7 @@ int  Arsenic_main(int argc,char ** argv)
 						<< EAM(InVig,"InVig",true,"Input vignette folder (for example : Vignette/ )")
 						<< EAM(ResolModel,"ResolModel",true,"Resol of input model (Def=16)")
 						<< EAM(TPA,"TPA",true,"Tie Point Accuracy (Higher is better, lower gives more points Def=16)")
+						<< EAM(nbIte,"NbIte",true,"Number of iteraration of the process (default=5)")
         );
 		std::string aDir,aPatIm;
 		SplitDirAndFile(aDir,aPatIm,aFullPattern);
@@ -757,7 +759,7 @@ int  Arsenic_main(int argc,char ** argv)
 		vector<PtsHom> aVectPtsHomol=ReadPtsHom3D(aDir, aPatIm, InVig, ResolModel, TPA);
 		
 		//Computing and applying the equalization surface
-		Egal_field_correct_ite(aDir, & aVectIm, aVectPtsHomol, aDirOut, InVig, ResolModel, nbIm);
+		Egal_field_correct_ite(aDir, & aVectIm, aVectPtsHomol, aDirOut, InVig, ResolModel, nbIm, nbIte);
 	
 		Arsenic_Banniere();
 
