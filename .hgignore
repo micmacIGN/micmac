@@ -58,6 +58,8 @@ src/saisie3D/saisie3D.pro.user.2.7pre1
 src/saisie3D/saisie3D.pro.user.b14c4e8
 include/GpGpu/GpGpuBuildOptions.h
 include/GpGpu/GpGpu_BuildOptions.h
+build-jp2con
+build-msvc2010
 src/tiff/el_dcraw.c.rej
 Documentation/Annexes/Formats.aux
 Documentation/Annexes/Vrac.aux
