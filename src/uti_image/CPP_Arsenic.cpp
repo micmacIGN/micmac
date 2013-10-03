@@ -173,10 +173,6 @@ double Dist3d(Pt3d<double> aP1, Pt3d<double> aP2 ){
 	return (double)std::sqrt(pow(double(aP1.x-aP2.x),2)+pow(double(aP1.y-aP2.y),2)+pow(double(aP1.z-aP2.z),2));
 }
 
-double Dist2d(Pt2dr aP1, Pt2dr aP2 ){
-	return (double)std::sqrt(pow(double(aP1.x-aP2.x),2)+pow(double(aP1.y-aP2.y),2));
-}
-
 void drawTP(PtsHom aPtsHomol, string aDir, string aNameOut, int ResolModel)
 {
 		//Bulding the output file system
@@ -425,7 +421,7 @@ void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm,vector<Pts
 					Pt2dr aPt; aPt.x=aX ; aPt.y=aY;
 					for(int j = 0; j<int(vectPtsRadioTie[i].size()) ; j++){//go through each tie point
 						Pt2dr aPtIn; aPtIn.x=vectPtsRadioTie[i].Pos[j].x/ResolModel; aPtIn.y=vectPtsRadioTie[i].Pos[j].y/ResolModel;
-						double aDist=Dist2d(aPtIn, aPt);
+						double aDist=euclid(aPtIn, aPt);
 						if(aDist<1){aDist=1;}
 						aSumDist=aSumDist+1/(aDist);//*vectPtsRadioTie[i].multiplicity[j]);
 						aCorR[aY][aX] = aCorR[aY][aX] + vectPtsRadioTie[i].kR[j]/(aDist);//*vectPtsRadioTie[i].multiplicity[j]);
@@ -563,7 +559,7 @@ for(int iter=0;iter<nbIte;iter++){
 			for(int j = 0; j<int(vectPtsRadioTie2[i].size()) ; j++){//go through each tie point
 				if(vectPtsRadioTie2[i].kR[j]>5||vectPtsRadioTie2[i].kG[j]>5||vectPtsRadioTie2[i].kB[j]>5 || vectPtsRadioTie2[i].kR[j]<0.2||vectPtsRadioTie2[i].kG[j]<0.2||vectPtsRadioTie2[i].kB[j]<0.2){continue;}
 				Pt2dr aPtIn; aPtIn.x=vectPtsRadioTie2[i].Pos[j].x/ResolModel; aPtIn.y=vectPtsRadioTie2[i].Pos[j].y/ResolModel;
-				double aDist=Dist2d(aPtIn, aPt);
+				double aDist=euclid(aPtIn, aPt);
 				if(aDist<1){aDist=1;}
 				aSumDist=aSumDist+1/(aDist);
 				aCorR = aCorR + vectPtsRadioTie2[i].kR[j]/(aDist);
@@ -650,7 +646,7 @@ cout<<"Factors were computed"<<endl;
 					for(int j = 0; j<int(vectPtsRadioTie[i].size()) ; j++){//go through each tie point
 						if(vectPtsRadioTie[i].kR[j]>5||vectPtsRadioTie[i].kG[j]>5||vectPtsRadioTie[i].kB[j]>5 || vectPtsRadioTie[i].kR[j]<0.2||vectPtsRadioTie[i].kG[j]<0.2||vectPtsRadioTie[i].kB[j]<0.2){continue;}
 						Pt2dr aPtIn; aPtIn.x=vectPtsRadioTie[i].Pos[j].x/ResolModel; aPtIn.y=vectPtsRadioTie[i].Pos[j].y/ResolModel;
-						double aDist=Dist2d(aPtIn, aPt);
+						double aDist=euclid(aPtIn, aPt);
 						if(aDist<1){aDist=1;}
 						aSumDist=aSumDist+1/(aDist);//*vectPtsRadioTie[i].multiplicity[j]);
 						aCorR[aY][aX] = aCorR[aY][aX] + vectPtsRadioTie[i].kR[j]/(aDist);//*vectPtsRadioTie[i].multiplicity[j]);
