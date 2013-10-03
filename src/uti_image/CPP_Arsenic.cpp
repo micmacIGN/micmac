@@ -83,7 +83,7 @@ string FindMaltEtape(int ResolModel, std::string aNameIm, std::string aPatModel)
 			//cout<<"ResolThisFile : "<<ResolThisFile<<endl;
 			if(ResolModel==ResolThisFile){aEtape=i+1;}
 		}
-	cout<<"MicMac step to be used = "<<aEtape<<endl;
+	cout<<"MicMac step to be used = num"<<aEtape<<endl;
 	
 	string aEtapeStr = static_cast<ostringstream*>( &(ostringstream() << aEtape) )->str();
 	return aEtapeStr;
@@ -239,7 +239,7 @@ void drawTP(PtsHom aPtsHomol, string aDir, string aNameOut, int ResolModel)
 
 }
 
-vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm,string Extension, string InVig, int ResolModel, double TPA)
+vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm, string InVig, int ResolModel, double TPA)
 {
 	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 	const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
@@ -519,9 +519,6 @@ int  Arsenic_main(int argc,char ** argv)
 		std::string aDir,aPatIm;
 		SplitDirAndFile(aDir,aPatIm,aFullPattern);
 
-		std::string Extension = "dat";
-		if (InTxt){Extension="txt";}
-
 		cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 		const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
 
@@ -530,8 +527,8 @@ int  Arsenic_main(int argc,char ** argv)
 		
 		ELISE_ASSERT(nbIm>1,"Less than two images found with this pattern");
 
-		//Reading homologous points
-		vector<PtsHom> aVectPtsHomol=ReadPtsHom3D(aDir, aPatIm, Extension, InVig, ResolModel, TPA);
+		//Computing homologous points
+		vector<PtsHom> aVectPtsHomol=ReadPtsHom3D(aDir, aPatIm, InVig, ResolModel, TPA);
 		
 		//Computing and applying the equalization surface
 		Egal_field_correct(aDir, & aVectIm, aVectPtsHomol, aDirOut, InVig, ResolModel, nbIm);

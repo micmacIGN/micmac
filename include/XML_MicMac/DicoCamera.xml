@@ -7,7 +7,13 @@
         <SzCaptMm> 7.6 6.1 </SzCaptMm>
         <ShortName> GR3 </ShortName>
    </CameraEntry>
-
+   
+<CameraEntry> 
+        <Name> Sun </Name>
+        <SzCaptMm> 120 130 </SzCaptMm>
+        <ShortName> SUN </ShortName>
+   </CameraEntry>
+   
 <CameraEntry> 
         <Name> RICOH GR DIGITAL 4 </Name>
         <SzCaptMm> 7.6 6.1 </SzCaptMm>
