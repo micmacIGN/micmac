@@ -185,6 +185,7 @@ QStatusBar
     <addaction name="actionShow_bounding_box"/>
     <addaction name="actionShow_cams"/>
     <addaction name="actionShow_help_messages"/>
+    <addaction name="action2D_3D_mode"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -659,6 +660,17 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>Ctrl+4</string>
+   </property>
+  </action>
+  <action name="action2D_3D_mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>2D/3D mode </string>
+   </property>
+   <property name="shortcut">
+    <string>F9</string>
    </property>
   </action>
  </widget>

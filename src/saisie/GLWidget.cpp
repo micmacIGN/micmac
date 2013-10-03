@@ -33,6 +33,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_speed(2.5f)
   , m_bDisplayMode2D(false)
   , m_Click(0)
+  , m_radius(2500)
   , m_vertexbuffer(QGLBuffer::VertexBuffer)
   , _frameCount(0)
   , _previousTime(0)
@@ -117,9 +118,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                     }
                     else
                     {
-                        if (m_Click == 0)
-                            findClosestPoint(2500);
-                        else if (m_Click == 1)
+                        if (m_Click == 1)
                         {
                             m_polygon2.clear();
                             if ((_idx >0 ) && (_idx < m_polygon.size()-1))
@@ -144,6 +143,10 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                                 }
                             }
                         }
+                        else
+                        {
+                            findClosestPoint();
+                        }
                     }
                 }
             }
@@ -153,7 +156,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
         }
 
         return true;
-    }
+    }  
     else
     {
           return QObject::eventFilter(object,event);
@@ -374,10 +377,10 @@ void GLWidget::paintGL()
 
             glColor3f(1.f,1.f,1.f);
 
-            if ((m_interactionMode == TRANSFORM_CAMERA) || (ptImg.x()<0)||(ptImg.y()<0)||(ptImg.x()>_glImg.width()||(ptImg.y()>_glImg.height())))
-                renderText(10, _glViewport[3] - m_font.pointSize(), QString::number(m_params.zoom*100,'f',1) + "%", m_font);
-            else
-                renderText(10, _glViewport[3] - m_font.pointSize(), QString::number(m_params.zoom*100,'f',1) + "% - " + QString::number(ptImg.x(),'f',1) + ", " + QString::number(_glImg.height()-ptImg.y(),'f',1) + " px", m_font);
+            renderText(10, _glViewport[3] - m_font.pointSize(), QString::number(m_params.zoom*100,'f',1) + "%", m_font);
+
+            if  ((m_interactionMode == SELECTION)&&(ptImg.x()>=0)&&(ptImg.y()>=0)&&(ptImg.x()<_glImg.width())&&(ptImg.y()<_glImg.height()))
+                renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(ptImg.x(),'f',1) + ", " + QString::number(_glImg.height()-ptImg.y(),'f',1) + " px", m_font);
 
         }
     }
@@ -556,7 +559,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
                         m_polygon2.clear();
                         update();
                     }
-                    else
+                    else if (_idx != -1)
                         m_Click++;
                 }
             }
@@ -570,7 +573,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         {
             m_polygon.remove(_idx);
 
-            findClosestPoint(2500);
+            findClosestPoint();
 
             if (m_polygon.size() < 2) m_bPolyIsClosed = false;
 
@@ -605,10 +608,17 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
             m_polygon2.clear();
             m_Click = 0;
-            _idx = -1;
 
             update();
         }
+
+        if ((m_Click >=1))
+        {
+            findClosestPoint();
+
+            update();
+        }
+
     }
     if ( event->button() == Qt::RightButton  )
     {
@@ -678,8 +688,9 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
     {
         m_polygon2.clear();
         m_Click = 0;
-        _idx = -1;
     }
+
+     findClosestPoint();
 }
 
 void GLWidget::setBufferGl(bool onlyColor)
@@ -795,8 +806,16 @@ void GLWidget::setData(cData *data)
            glGenTextures(1, &m_textureMask );
 
         _mask = new QImage(_glImg.size(),_glImg.format());
-        QGLWidget::convertToGLFormat(*_mask);
-        _mask->fill(Qt::white);
+        if ((*m_Data->getCurMask()).isNull())
+        {
+            QGLWidget::convertToGLFormat(*_mask);
+            _mask->fill(Qt::white);
+        }
+        else
+        {
+            *_mask = QGLWidget::convertToGLFormat( *m_Data->getCurMask() );
+            m_bFirstAction = false;
+        }
 
         ImageToTexture(m_textureMask, _mask);
     }
@@ -1133,7 +1152,12 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
     QPoint pos = event->pos();
 
-    if (m_interactionMode != SELECTION)
+    if (m_interactionMode == SELECTION)
+    {
+        findClosestPoint();
+        update();
+    }
+    else
     {
         QPoint dp = pos-m_lastPos;
 
@@ -1885,11 +1909,11 @@ void GLWidget::fillPolygon2()
     }
 }
 
-void GLWidget::findClosestPoint(int sqr_radius)
+void GLWidget::findClosestPoint()
 {
     _idx = -1;
     float dist, dist2;
-    dist2 = (float) sqr_radius;
+    dist2 = (float) m_radius;
 
     for (int aK = 0; aK < (int) m_polygon.size();++aK)
     {
