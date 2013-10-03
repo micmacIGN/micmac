@@ -616,6 +616,13 @@ void cAppli_SaisiePts::InitInPuts()
     InitPG();
 //std::cout << "SPTS::DDDDDD\n"; getchar();
     IniPointeIm();
+
+    // std::cout << "NB POINT GLOG " << mPG.size() << "\n";
+    // Si on a change d'orientation, les points 3D ne sont plus valables ....
+    for (int aKP=0 ; aKP<int(mPG.size())  ; aKP++)
+    {
+        mPG[aKP]->ReCalculPoints();
+    }
 //std::cout << "SPTS::EEEEEE\n"; getchar();
     Sauv();
 //std::cout << "SPTS::FFFFF\n"; getchar();
