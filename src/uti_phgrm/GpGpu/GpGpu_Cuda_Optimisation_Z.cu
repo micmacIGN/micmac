@@ -232,7 +232,7 @@ void ReadLine(
 
             while( z < dZ)
             {
-                if(p.ID_Bf_Icost > NAPPEMAX)
+                if(p.ID_Bf_Icost >= NAPPEMAX) // VERIFIER si > ou >=
                 {
                     streamICost.read<sens>(ST_Bf_ICost);
                     streamFCost.incre<sens>();
