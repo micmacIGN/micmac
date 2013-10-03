@@ -170,6 +170,8 @@ IF(${WITH_IGN_ORI})
         LINK_DIRECTORIES( ${PROJ4_LIBRARY_DIRS} )
         ENDIF()
 	#add_definitions( "-DBOOST_THREAD_USE_LIB" )
+	add_definitions( "-DBOOST_TYPEOF_COMPLIANT" )
+
 	SET(Boost_USE_MULTITHREADED ON)
 	FIND_PACKAGE( Boost 1.48.0 COMPONENTS unit_test_framework date_time filesystem system serialization thread regex chrono REQUIRED)
 	IF(IgnSocle_FOUND AND TinyXML_FOUND AND Boost_FOUND)
