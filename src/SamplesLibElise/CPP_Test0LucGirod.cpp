@@ -40,7 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <algorithm>
 #include "hassan/reechantillonnage.h"
 
-
 // Reading Homologous point associated to a set of images
 
 
@@ -110,19 +109,18 @@ int  Luc_test_ptshom_main(int argc,char ** argv)
 	return 0;
 }
 
-void RotateImage(double alpha,Pt2dr P1, Pt2dr P2, Pt2dr P3, string aNameDir, string aNameIm)
+void RotateImage(double alpha, Pt2di aSzOut, vector<Pt2dr> Pts , string aNameDir, string aNameIm)
 {
 	cout<<"Rotating "<<aNameIm<<endl;
-	string aNameOut=aNameDir + aNameIm + "_rotated.tif";
+	string aNameOut=aNameDir + "Croped_images/" + aNameIm + ".tif";
+
 	//Reading the image and creating the objects to be manipulated
     Tiff_Im aTF= Tiff_Im::StdConvGen(aNameDir + aNameIm,1,false);
 
-	int border=10;
-    Pt2di aSz = aTF.sz();
-	Pt2dr P1Cor; P1Cor.x=cos(-alpha)*(P1.x-P2.x)+sin(-alpha)*(P1.y-P2.y)+P2.x; P1Cor.y=-sin(-alpha)*(P1.x-P2.x)+cos(-alpha)*(P1.y-P2.y)+P2.y;
-	Pt2dr P3Cor; P3Cor.x=cos(-alpha)*(P3.x-P2.x)+sin(-alpha)*(P3.y-P2.y)+P2.x; P3Cor.y=-sin(-alpha)*(P3.x-P2.x)+cos(-alpha)*(P3.y-P2.y)+P2.y;
-	Pt2di aSzOut; aSzOut.x=P3Cor.x-P1Cor.x-2*border+1; aSzOut.y=P3Cor.y-P1Cor.y-2*border+1;
-	cout<< P1Cor << " " << P3Cor << " " << aSzOut <<endl;
+	Pt2di aSz = aTF.sz();
+	Pt2dr P1Cor; P1Cor.x=cos(alpha)*(Pts[0].x-Pts[1].x)+sin(alpha)*(Pts[0].y-Pts[1].y)+Pts[1].x; P1Cor.y=-sin(alpha)*(Pts[0].x-Pts[1].x)+cos(alpha)*(Pts[0].y-Pts[1].y)+Pts[1].y;
+	Pt2dr P3Cor; P3Cor.x=cos(alpha)*(Pts[2].x-Pts[1].x)+sin(alpha)*(Pts[2].y-Pts[1].y)+Pts[1].x; P3Cor.y=-sin(alpha)*(Pts[2].x-Pts[1].x)+cos(alpha)*(Pts[2].y-Pts[1].y)+Pts[1].y;
+
     Im2D_U_INT1  aImR(aSz.x,aSz.y);
     //Im2D_U_INT1  aImG(aSz.x,aSz.y);
     //Im2D_U_INT1  aImB(aSz.x,aSz.y);
@@ -146,39 +144,52 @@ void RotateImage(double alpha,Pt2dr P1, Pt2dr P2, Pt2dr P3, string aNameDir, str
 
     //Parcours des points de l'image de sortie et remplissage des valeurs
     Pt2dr ptOut;
-	cout<<"Image is being corrected"<<endl;
-    for (int aY=P1Cor.y+border ; aY<P3Cor.y-border-1  ; aY++)
-    {//cout<<aY<< " ";
-        for (int aX=P1Cor.x+border ; aX<P3Cor.x-border-1  ; aX++)
-		{//if(aY== 6387){cout<<aX<< " ";}
-			//ptOut=aCam->DistDirecte(Pt2dr(aX,aY));
-			ptOut.x=cos(-alpha)*(aX-P2.x)+sin(-alpha)*(aY-P2.y)+P2.x;
-			ptOut.y=-sin(-alpha)*(aX-P2.x)+cos(-alpha)*(aY-P2.y)+P2.y;
-			aDataROut[aY-((int)P1Cor.y+border)][aX-((int)P1Cor.x+border)] = Reechantillonnage::biline(aDataR, aSz.x, aSz.y, ptOut);
-			aDataGOut[aY-((int)P1Cor.y+border)][aX-((int)P1Cor.x+border)] = Reechantillonnage::biline(aDataR, aSz.x, aSz.y, ptOut);
-			aDataBOut[aY-((int)P1Cor.y+border)][aX-((int)P1Cor.x+border)] = Reechantillonnage::biline(aDataR, aSz.x, aSz.y, ptOut);
+	Pt2di imageTopCorner, imageBottomCorner;
+	imageTopCorner.x    = (int)(P1Cor.x + 0.5) + (max(abs(P1Cor.x-Pts[1].x),abs(P1Cor.x-P3Cor.x))-aSzOut.x)/2;
+	imageTopCorner.y    = (int)(P1Cor.y + 0.5) + (max(abs(P3Cor.y-Pts[1].y),abs(P1Cor.y-P3Cor.y))-aSzOut.y)/2;
+	imageBottomCorner.x = imageTopCorner.x + aSzOut.x;
+	imageBottomCorner.y = imageTopCorner.y + aSzOut.y;
 
-        }
+    for (int aY=imageTopCorner.y ; aY<imageBottomCorner.y  ; aY++)
+    {
+        for (int aX=imageTopCorner.x ; aX<imageBottomCorner.x  ; aX++)
+		{
+			ptOut.x=cos(-alpha)*(aX-Pts[1].x)+sin(-alpha)*(aY-Pts[1].y)+Pts[1].x;
+			ptOut.y=-sin(-alpha)*(aX-Pts[1].x)+cos(-alpha)*(aY-Pts[1].y)+Pts[1].y;
+			aDataROut[aY-imageTopCorner.y][aX-imageTopCorner.x] = Reechantillonnage::biline(aDataR, aSz.x, aSz.y, ptOut);
+			aDataGOut[aY-imageTopCorner.y][aX-imageTopCorner.x] = Reechantillonnage::biline(aDataR, aSz.x, aSz.y, ptOut);
+			aDataBOut[aY-imageTopCorner.y][aX-imageTopCorner.x] = Reechantillonnage::biline(aDataR, aSz.x, aSz.y, ptOut);
+		}
     }
-	cout<<"BIM"<<endl;
+
     Tiff_Im  aTOut
-             (
-                  aNameOut.c_str(),
-                  aSzOut,
-                  GenIm::u_int1,
-                  Tiff_Im::No_Compr,
-                  Tiff_Im::RGB
-             );
+    (
+         aNameOut.c_str(),
+         aSzOut,
+         GenIm::u_int1,
+         Tiff_Im::No_Compr,
+         Tiff_Im::RGB
+    );
 
 
-     ELISE_COPY
-     (
-         aTOut.all_pts(),
-         Virgule(aImROut.in(),aImGOut.in(),aImBOut.in()),
-         aTOut.out()
-     );
+    ELISE_COPY
+    (
+        aTOut.all_pts(),
+        Virgule(aImROut.in(),aImGOut.in(),aImBOut.in()),
+        aTOut.out()
+    );
+
+	#if (ELISE_unix || ELISE_Cygwin || ELISE_MacOs)
+    string aCom="convert ephemeral:" + aNameDir + "Croped_images/" + aNameIm + ".tif " + aNameDir + "Croped_images/" + aNameIm;
+	system_call(aCom.c_str());
+    #endif
+    #if (ELISE_windows)
+		string aCom=MMDir() + "binaire-aux/convert ephemeral:" + aNameDir + "Croped_images/" + aNameIm + ".tif " + aNameDir + "Croped_images/" + aNameIm;
+		system_call(aCom.c_str());
+    #endif
 
 }
+
 int  Luc_main(int argc,char ** argv){
 
 	std::string aFullPattern;
@@ -193,27 +204,55 @@ int  Luc_main(int argc,char ** argv){
 	std::string aDir,aPatIm;
 	SplitDirAndFile(aDir,aPatIm,aFullPattern);
 	
+	ELISE_fp::MkDirRec(aDir + "Croped_images/");
+
 	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 	const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
 
 	std::vector<std::string> aVectIm=*aSetIm;
 	int nbIm=aVectIm.size();
 
+	vector<vector<Pt2dr> > Pts;
+	vector<int> SzX, SzY;
+	string cornersTxt="corners.txt";
+    std::ifstream file(cornersTxt.c_str(), ios::in);
+	for(int i=0 ; i<nbIm ; i++)
+	{
+		vector<Pt2dr> PtsIm(3);
+		string name;
+		file >> name >> PtsIm[0].x >> PtsIm[0].y >> name >> PtsIm[1].x >> PtsIm[1].y >> name >> PtsIm[2].x >> PtsIm[2].y;  
+		Pts.push_back(PtsIm);
+		SzX.push_back(euclid(PtsIm[0],PtsIm[1])); SzY.push_back(euclid(PtsIm[2],PtsIm[1]));
+	}
 
-	Pt2dr P1,P2,P3;
-	P1.x= 795 ; P1.y= 1064;
-	P2.x= 7401; P2.y= 926 ;
-	P3.x= 7518; P3.y= 7598;
+	file.close();
+	cout<<Pts<<endl;
+	Pt2di aCrop; int border=10;
+    aCrop.x=min(*min_element(SzX.begin(), SzX.end())-2*border,*min_element(SzY.begin(), SzY.end())-2*border);
+	aCrop.y=aCrop.x;
+	//aCrop.x=*min_element(std::begin(SzX), std::end(SzX))-2*border;
+	//aCrop.y=*min_element(std::begin(SzY), std::end(SzY))-2*border;
+	cout<<"Cropping to : "<<aCrop.x<<" "<<aCrop.y<<endl;
+
+	for(int i=0 ; i<nbIm ; i++)
+	{
+		double alpha=(atan((Pts[i][0].y-Pts[i][1].y)/(Pts[i][0].x-Pts[i][1].x))+atan(-(Pts[i][2].x-Pts[i][1].x)/(Pts[i][2].y-Pts[i][1].y)))/2;
+		cout<<"Alpha = "<<alpha<<endl;
+		RotateImage(alpha, aCrop, Pts[i], aDir, aVectIm[i]);
+	}
+
+	//Pt2dr P1,P2,P3;
+	//P1.x= 795 ; P1.y= 1064;
+	//P2.x= 7401; P2.y= 926 ;
+	//P3.x= 7518; P3.y= 7598;
 	//cout<<(P1.y-P2.y)/(P1.x-P2.x)<<endl;
 	//cout<<atan((P1.y-P2.y)/(P1.x-P2.x))<<endl;
 	//cout<<(P3.x-P2.x)/(P3.y-P2.y)<<endl;
 	//cout<<atan((P3.x-P2.x)/(P3.y-P2.y))<<endl;
-	double aT1=atan((P1.y-P2.y)/(P1.x-P2.x));
-	double aT2=atan(-(P3.x-P2.x)/(P3.y-P2.y));
-	cout<<aT1<<" + "<<aT2<< " = " <<(aT1+aT2)<<endl;
-	double alpha=(atan((P1.y-P2.y)/(P1.x-P2.x))+atan(-(P3.x-P2.x)/(P3.y-P2.y)))/2;
-	cout<<"Alpha = "<<alpha<<endl;
-	RotateImage(alpha, P1, P2, P3, aDir, aVectIm[0]);
+	//double aT1=atan((P1.y-P2.y)/(P1.x-P2.x));
+	//double aT2=atan(-(P3.x-P2.x)/(P3.y-P2.y));
+	//cout<<aT1<<" + "<<aT2<< " = " <<(aT1+aT2)<<endl;
+
 
 	return 0;
 }

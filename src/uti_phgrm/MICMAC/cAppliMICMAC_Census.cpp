@@ -49,6 +49,9 @@ class cCensusGr;
 class cOnePCGr;
 
 
+
+
+
 static int VX[4] = {1,1,0,-1};
 static int VY[4] = {0,1,1,1};
 
@@ -146,7 +149,12 @@ class cCensusGr
 template <class Type> class cBufOnImage
 {
     public :
+        typedef Type                            tType;
+        typedef typename El_CTypeTraits<Type>::tBase     tBase;
+
         cBufOnImage(Type **,Box2di aBoxDef,Box2di aBoxCalc);
+
+        cBufOnImage<Type> FullBufOnIm(Im2D<tType,tBase> anIm);
         
         Type ** data() {return mData;}
         void AvanceX();
@@ -165,6 +173,213 @@ template <class Type> class cBufOnImage
 };
 
 
+template <class Type> class cFlagTabule
+{
+     public :
+           typedef Type                            tType;
+           typedef typename El_CTypeTraits<Type>::tBase     tBase;
+           typedef Im2D<Type,tBase>                tIm2D;
+           typedef Im1D<Type,tBase>                tIm1D;
+           static const int TheNbBits = 8 *  El_CTypeTraits<Type>::eSizeOf;
+           static const int TheFlagLim  = 1<< TheNbBits;
+
+           cFlagTabule(int aNbFlag);
+
+     
+     protected :
+           int     mNbFlag;
+           int     mNbEl;
+};
+
+
+// std::vector<double> 
+
+template <class Type> class cFlagPonder : cFlagTabule<Type>
+{
+    public :
+         static cFlagPonder<Type> PonderSomFlag(const std::vector<double> & aV,const Pt2di & aVois=Pt2di(-1,-1));
+         double Ponder(Type *);
+         static cFlagPonder<Type> PonderSomFlag(const Pt2di & aV,double Depond,double aGama=1.0);
+         Pt2di Vois();
+    private :
+          cFlagPonder(int aNbBits,const Pt2di & aVois=Pt2di(-1,-1));
+
+          std::vector<int>          mVNbB;
+          std::vector<int>          mVSz;
+          std::vector<Im1D_REAL4>   mVIm1D;
+          std::vector<float *>      mDIm;
+          float **                  mData;
+          Pt2di                     mVois;
+          bool                      mHasVois;
+};
+
+std::vector<double> PondVois(const Pt2di & aV,double Depond,double aGama=1.0); // Si Depond = 0, tous egaux
+int NbSomOfVois(const Pt2di & aVois);
+
+
+template <class Type> class cImFlags : public cFlagTabule<Type>
+{
+     public :
+           typedef Type                            tType;
+           typedef typename El_CTypeTraits<Type>::tBase     tBase;
+           typedef Im2D<Type,tBase>                tIm2D;
+           static const int TheNbBits = 8 *  El_CTypeTraits<Type>::eSizeOf;
+           static const int TheFlagLim  = 1<< TheNbBits;
+
+           static cImFlags<Type>  Census(Im2D_REAL4 anIm,Pt2di aSzV);
+
+           cImFlags(Pt2di aSz,int aNbFlag);
+           // static cImFlags(Pt2di aSz,int aNbFlag);
+
+
+           Type * Flag(const Pt2di & aP) { return mData[aP.y] + aP.x * cFlagTabule<Type>::mNbEl;}
+           void  Init(const Pt2di & aP)
+           {
+               mDF = Flag(aP);
+               mCurF = 1;
+           }
+           void Next()
+           {
+                mCurF <<= 1;
+                if (mCurF==TheFlagLim)
+                {
+                      mCurF = 1;
+                      mDF++;
+                }
+           }
+           void AddCurFlag() {*mDF |= mCurF;}
+
+     private :
+           
+           Pt2di   mSzIm;
+           int     mTxF;
+           Pt2di   mSzFlag;
+           tIm2D   mIm;
+
+           Type  ** mData;
+           Type  *  mDF;
+           int      mCurF;
+};
+
+            // ===============================================================
+
+int NbSomOfVois(const Pt2di & aVois) {return (1+2*aVois.x)*(1+2*aVois.y);}
+
+
+std::vector<double> PondVois(const Pt2di & aV,double Depond,double aGama)
+{
+    std::vector<double> aRes;
+    double aN0 = euclid(aV);
+    for (int anY=-aV.y ; anY<=aV.y ; anY++)
+    {
+        for (int anX=-aV.x ; anX<=aV.x ; anX++)
+        {
+             double aN = euclid(Pt2di(anX,anY));
+             double aPds = pow(ElMax(1.0 - aN/aN0,0.0),aGama);
+             aPds = (1-Depond) + Depond * aPds;
+             aRes.push_back(aPds);
+        }
+    }
+    return aRes;
+}
+
+template   <class Type> cFlagTabule<Type>::cFlagTabule(int aNbFlag) :
+     mNbFlag  (aNbFlag),
+     mNbEl    ((aNbFlag+TheNbBits-1)/TheNbBits)
+{
+}
+
+template  <class Type> double cFlagPonder<Type>:: Ponder(Type * aTabF)
+{
+    double aRes = 0;
+    for (int aK=0 ; aK< cFlagTabule<Type>::mNbEl ; aK++)
+        aRes += mData[aK][aTabF[aK]];
+    return aRes;
+}
+
+
+template  <class Type> cFlagPonder<Type>::cFlagPonder(int aNbFlag,const Pt2di & aVois) :
+         cFlagTabule<Type> (aNbFlag),
+         mVois             (aVois),
+         mHasVois          (mVois.x>0)
+{
+    if (mHasVois)  
+    {
+        ELISE_ASSERT(aNbFlag==NbSomOfVois(aVois),"Incoherence in cFlagPonder");
+    }
+  
+     for (int aK=0 ; aK<aNbFlag ; aK+= cFlagTabule<Type>::TheNbBits)
+     {
+          mVNbB.push_back(ElMin(cFlagTabule<Type>::TheNbBits,aNbFlag-aK));
+          mVSz.push_back(1<<mVNbB.back());
+          mVIm1D.push_back(Im1D_REAL4(mVSz.back()));
+          mDIm.push_back(mVIm1D.back().data());
+     }
+     mData = & (mDIm[0]);
+}
+
+
+
+template  <class Type> cFlagPonder<Type> cFlagPonder<Type>::PonderSomFlag(const Pt2di & aV,double Depond,double aGama)
+{
+   return PonderSomFlag(PondVois(aV,Depond,aGama));
+}
+
+template  <class Type> cFlagPonder<Type> cFlagPonder<Type>::PonderSomFlag(const std::vector<double> & aV,const Pt2di & aVois)
+{
+   cFlagPonder<Type> aRes(aV.size(),aVois);
+   int aNbBCum = 0;
+
+   for (int aK=0 ; aK<int(aRes.mDIm.size()) ; aK++)
+   {
+        for (int aFlag=0 ; aFlag<aRes.mVSz[aK] ; aFlag++)
+        {
+             double aSom = 0;
+             for (int aB=0 ; aB<aRes.mVNbB[aK] ; aB++)
+             {
+                 if (aFlag && (1<<aB))
+                 {
+                    aSom += aV[aNbBCum+aB];
+                 }
+             }
+             aRes.mData[aK][aFlag] = aSom;
+        }
+
+        aNbBCum += aRes.mVNbB[aK];
+   }
+
+   return aRes;
+}
+
+template   <class Type> cImFlags<Type>::cImFlags(Pt2di aSz,int aNbFlag) :
+     cFlagTabule<Type> (aNbFlag),
+     mSzIm    (aSz),
+     mTxF     (aSz.x * cFlagTabule<Type>::mNbEl),
+     mSzFlag  (mTxF,mSzIm.y),
+     mIm      (mSzFlag.x,mSzFlag.y,0),
+     mData    (mIm.data())
+{
+}
+
+
+template   <class Type> cImFlags<Type> cImFlags<Type>::Census(Im2D_REAL4 anIm,Pt2di aSzV)
+{
+     cImFlags<Type> aRes(anIm.sz(),NbSomOfVois(aSzV));
+
+     return aRes;
+}
+
+// static cImFlags<Type>  Census(Im2D_REAL4 anIm,Pt2di aSzV);
+
+
+cImFlags<U_INT2> aIIII(Pt2di(3,3),1);
+cImFlags<INT4>   aIIIIIIII(Pt2di(3,3),1);
+void fff()
+{
+   //cFlagPonder<U_INT2> aF(44);
+   std::vector<double> aV;
+   cFlagPonder<U_INT2> aF = cFlagPonder<U_INT2>::PonderSomFlag(aV);
+}
 
 //==================================================================================
 
