@@ -215,7 +215,7 @@ int  Luc_main(int argc,char ** argv){
 	vector<vector<Pt2dr> > Pts;
 	vector<int> SzX, SzY;
 	string cornersTxt="corners.txt";
-	std::ifstream file(cornersTxt, std::ifstream::in);
+    std::ifstream file(cornersTxt.c_str(), ios::in);
 	for(int i=0 ; i<nbIm ; i++)
 	{
 		vector<Pt2dr> PtsIm(3);
@@ -228,7 +228,7 @@ int  Luc_main(int argc,char ** argv){
 	file.close();
 	cout<<Pts<<endl;
 	Pt2di aCrop; int border=10;
-	aCrop.x=min(*min_element(std::begin(SzX), std::end(SzX))-2*border,*min_element(std::begin(SzY), std::end(SzY))-2*border);
+    aCrop.x=min(*min_element(SzX.begin(), SzX.end())-2*border,*min_element(SzY.begin(), SzY.end())-2*border);
 	aCrop.y=aCrop.x;
 	//aCrop.x=*min_element(std::begin(SzX), std::end(SzX))-2*border;
 	//aCrop.y=*min_element(std::begin(SzY), std::end(SzY))-2*border;
