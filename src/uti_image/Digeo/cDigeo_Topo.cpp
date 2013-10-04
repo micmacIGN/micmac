@@ -39,9 +39,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Digeo.h"
 
-cPtsCaracDigeo::cPtsCaracDigeo(const Pt2dr & aP,eTypeTopolPt aType) :
+cPtsCaracDigeo::cPtsCaracDigeo( const Pt2dr & aP, double aScale, eTypeTopolPt aType ) :
   mPt  (aP),
-  mType (aType)
+  mType (aType),
+  mScale( aScale )
 {
 }
 
