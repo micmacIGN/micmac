@@ -7,7 +7,9 @@
 
 // this is from Andrea Vedaldi's siftpp (now VLFeat)
 
-#define VL_USEFASTMATH
+#ifndef VL_USEFASTMATH
+    #define VL_USEFASTMATH
+#endif
 
 #ifndef M_PI
 	#define M_PI 3.14159265358979323846

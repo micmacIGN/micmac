@@ -69,6 +69,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 using namespace NS_ParamChantierPhotogram;
 
+#define __DEBUG_DIGEO_STATS
 
 //  cRotationFormelle::AddRappOnCentre
 
@@ -133,7 +134,9 @@ class cPtsCaracDigeo;
 typedef enum
 {
   eTES_Uncalc,
-  eTES_instable,
+  eTES_instable_unsolvable,
+  eTES_instable_tooDeepRecurrency,
+  eTES_instable_outOfImageBound,
   eTES_GradFaible,
   eTES_TropAllonge,
   eTES_Ok
@@ -142,9 +145,10 @@ typedef enum
 class cPtsCaracDigeo
 {
     public :
-       cPtsCaracDigeo(const Pt2dr & aP,eTypeTopolPt aType);
+       cPtsCaracDigeo(const Pt2dr & aP, double aScale, eTypeTopolPt aType);
        Pt2dr         mPt;
        eTypeTopolPt  mType;
+       double        mScale;
 };
 
    // Permt de shifter les entiers (+ rapide que la div) sans rien faire pour
@@ -255,8 +259,11 @@ class cImInMem
          double ScaleInOct() const;
          double ScaleInit()  const;
 
-         std::vector<cPtsCaracDigeo> & VPtsCarac();
+         std::vector<cPtsCaracDigeo> & 	     VPtsCarac();
+         const std::vector<cPtsCaracDigeo> & VPtsCarac() const;
 
+         virtual void saveGaussians( const std::string &i_directory ) const = 0;
+         virtual void loadGaussians( const std::string &i_directory ) = 0;
      protected :
 
          cImInMem(cImDigeo &,const Pt2di & aSz,GenIm::type_el,cOctaveDigeo &,double aResolOctaveBase,int aKInOct,int IndexSigma);
@@ -284,6 +291,16 @@ class cImInMem
          int mN0, mN1, mN2, mN3, mN4, mN5, mN6, mN7;
      private :
         cImInMem(const cImInMem &);  // N.I.
+     public:
+	 #ifdef __DEBUG_DIGEO_STATS
+	    unsigned int mCount_eTES_Uncalc,
+			 mCount_eTES_instable_unsolvable,
+			 mCount_eTES_instable_tooDeepRecurrency,
+			 mCount_eTES_instable_outOfImageBound,
+			 mCount_eTES_GradFaible,
+			 mCount_eTES_TropAllonge,
+			 mCount_eTES_Ok;
+	 #endif
 };
 
 
@@ -338,7 +355,7 @@ template <class Type> class cTplImInMem : public cImInMem
                    cTplImInMem<Type> & aNext
              );
 
-        void ExtractExtremaDOG
+        void ExtractExtremaDOG_old
              (
                    const cSiftCarac & aSC,
                    cTplImInMem<Type> & aPrec,
@@ -349,9 +366,9 @@ template <class Type> class cTplImInMem : public cImInMem
      private :
 
         void ResizeBasic(const Pt2di & aSz);
-        eTypeExtreSift CalculateDiff(Type***aC,int anX,int anY,int aNiv);
+        eTypeExtreSift CalculateDiff_old(Type***aC,int anX,int anY,int aNiv);
 
-        eTypeExtreSift CalculateDiff( tBase *prevDoG, tBase *currDoG, tBase *nextDoG, int anX, int anY, int aNiv );
+        eTypeExtreSift CalculateDiff_2d( tBase *prevDoG, tBase *currDoG, tBase *nextDoG, int anX, int anY, int aNiv );
 
 /*
         SetConvolBordX :
@@ -422,7 +439,11 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
          bool  SupDOG(Type *** aC,const Pt3di& aP1,const Pt3di& aP2);
          tBase DOG(Type *** aC,const Pt3di& aP1);
 
+	 void saveGaussians( const std::string &i_directory ) const;
+         void loadGaussians( const std::string &i_directory );
 
+         void saveDoG( const std::string &i_directory ) const;
+         void loadDoG( const std::string &i_directory );
 
          cTplOctDig<Type> & mTOct;
          tIm    mIm;
@@ -433,8 +454,7 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
          Type **    mData;
          tBase      mDogPC;  // Dif of Gauss du pixel courrant
 
-         std::vector<tBase> mDoG;
-         
+         std::vector<tBase> mDoG;	 
      private :
           cTplImInMem(const cTplImInMem<Type> &);  // N.I.
           void ExploiteExtrem(int anX,int anY);
@@ -450,11 +470,16 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
           Pt2dr             mP;
           double            mGX;
           double            mGY;
+          double            mGS;
           double            mDxx;
           double            mDyy;
+          double            mDss;
           double            mDxy;
+          double            mDxs;
+          double            mDys;
           double            mTrX;
           double            mTrY;
+          double            mTrS;
 
           eTypeExtreSift    mResDifSift;
           int               mNbExtre;
@@ -782,6 +807,8 @@ class cAppliDigeo : public cParamDigeo
        Box2di                            mBoxOut;
 
        cSiftCarac *                     mSiftCarac;
+    public:
+       bool				mVerbose;
 
      private :
         cAppliDigeo(const cAppliDigeo &);  // N.I.
