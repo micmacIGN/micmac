@@ -13,8 +13,8 @@ int main()
     // Declaration des variables du cote du DEVICE
     DEVC_Data2Opti d2O;
 
-    uint nbLines    = 1;
-    uint lLines     = 1;
+    uint nbLines    = 512;
+    uint lLines     = 512;
     uint depth      = NAPPEMAX;
 
     short2 dZ = make_short2(-depth/2,depth/2);
@@ -56,13 +56,11 @@ int main()
             uint idStrm = h2O._param[0][idLine].x + pitStrm - dZ.x;
 
             for ( int aPx = dZ.x ; aPx < dZ.y; aPx++)
-                h2O._s_InitCostVol[idStrm + aPx]  = 10000 * (idLine + 1) + (aK+1) * 1000 + aPx - dZ.x + 1;
+                h2O._s_InitCostVol[idStrm + aPx]  = /*10000 * (idLine + 1) + */(aK+1) * 1000 + aPx - dZ.x + 1;
 
             pitStrm += depth;
         }
     }
-
-    //h2O._s_InitCostVol.OutputValues();
 
     h2O.SetNbLine(nbLines);    
     d2O.SetNbLine(h2O._nbLines);
@@ -73,7 +71,6 @@ int main()
 
     d2O.ReallocIf(h2O);
 
-
     //      Transfert des données vers le device                            ---------------		-
     d2O.CopyHostToDevice(h2O);
     d2O._s_ForceCostVol[0].CopyHostToDevice(h2O._s_ForceCostVol[0].pData());
@@ -82,21 +79,22 @@ int main()
 
     d2O.CopyDevicetoHost(h2O);
 
-   // h2O._s_InitCostVol.OutputValues();
+    //h2O._s_InitCostVol.OutputValues();
 
-    //h2O._s_Index.OutputValues(0,XY,NEGARECT,3,make_short2(0,0));
-
-    h2O._s_ForceCostVol[0].OutputValues();
+    //h2O._s_ForceCostVol[0].OutputValues();
 
     //
     uint errorCount = 0;
 
-    for (uint i= 0 ; i < h2O._s_InitCostVol.GetSize(); i++)
+    for (uint i= NAPPEMAX ; i < h2O._s_InitCostVol.GetSize() - NAPPEMAX; i++)
         if(h2O._s_InitCostVol[i]!=h2O._s_ForceCostVol[0][i])
+        {
+            //printf(" [%d,%d] ",h2O._s_InitCostVol[i],h2O._s_ForceCostVol[0][i]);
             errorCount++;
+        }
 
-    printf("Error Count   = %d/%d\n",errorCount,h2O._s_InitCostVol.GetSize());
-    printf("Error percent = %d\n",((errorCount*100)/(h2O._s_InitCostVol.GetSize())));
+    printf("\nError Count   = %d/%d\n",errorCount,h2O._s_InitCostVol.GetSize()- 2*NAPPEMAX);
+    printf("Error percent = %f\n",(((float)errorCount*100)/(h2O._s_InitCostVol.GetSize()- 2*NAPPEMAX)));
 
     return 0;
 }

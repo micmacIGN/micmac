@@ -3,6 +3,69 @@
 
 #include "GpGpu/GpGpu_Data.h"
 
+template<class T >
+struct  buffer
+{
+
+};
+
+struct st_line
+{
+    uint lenght;
+    uint id;
+    __device__ inline uint LOver()
+    {
+        return lenght - id;
+    }
+};
+
+struct p_ReadLine
+{
+    ushort  ID_Bf_Icost;
+    st_line line;
+    st_line seg;
+    bool    Id_Buf;
+    const ushort    tid;
+    short2 prev_Dz;
+    ushort pente;
+
+    __device__ p_ReadLine(ushort t,ushort ipente):
+        Id_Buf(false),
+        tid(t),
+        pente(ipente)
+    {
+        line.id = 0;
+        seg.id  = 1;
+    }
+
+    __device__ inline void swBuf()
+    {
+        Id_Buf = !Id_Buf;
+    }
+
+    __device__ void format()
+    {
+        const uint d  = line.lenght >> 5;
+        const uint dL = d << 5;
+
+        if(line.lenght-dL)
+            line.lenght = dL + WARPSIZE;
+    }
+
+    __device__ inline void ouput()
+    {
+        if(!tid)
+        {
+            printf("seg.id       = %d\n",seg.id);
+            printf("seg.lenght   = %d\n",seg.lenght);
+            printf("line.id      = %d\n",line.id);
+            printf("line.lenght  = %d\n",line.lenght);
+            printf("ID_Bf_Icost  = %d\n",ID_Bf_Icost);
+            printf("-----------------------------\n");
+        }
+    }
+};
+
 template<template<class T> class U, uint NBUFFER = 1 >
 struct Data2Optimiz
 {

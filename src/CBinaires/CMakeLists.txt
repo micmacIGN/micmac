@@ -15,7 +15,11 @@ ENDIF()
 endif()
 
 if(KAKADU_FOUND)
-    target_link_libraries(mm3d pthread  ${KAKADU_LIBRARIES})
+	if(UNIX)
+	  target_link_libraries(mm3d pthread  ${KAKADU_LIBRARIES})
+	else()
+		target_link_libraries(mm3d  ${KAKADU_LIBRARIES})
+	endif()
 endif()
 
 if(TinyXML_FOUND)

@@ -3,13 +3,19 @@
 <MMCameraDataBase>
 
 <CameraEntry> 
-        <Name> GR DIGITAL 3 </Name>
+        <Name> Ricoh GR DIGITAL 3 </Name>
         <SzCaptMm> 7.6 6.1 </SzCaptMm>
         <ShortName> GR3 </ShortName>
    </CameraEntry>
-
+   
 <CameraEntry> 
-        <Name> RICOH GR DIGITAL 4 </Name>
+        <Name> Sun </Name>
+        <SzCaptMm> 120 120 </SzCaptMm>
+        <ShortName> SUN </ShortName>
+   </CameraEntry>
+   
+<CameraEntry> 
+        <Name> Ricoh GR DIGITAL 4 </Name>
         <SzCaptMm> 7.6 6.1 </SzCaptMm>
         <ShortName> GR4 </ShortName>
    </CameraEntry>
