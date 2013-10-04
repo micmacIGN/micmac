@@ -212,7 +212,7 @@ int  Luc_main(int argc,char ** argv){
 	std::vector<std::string> aVectIm=*aSetIm;
 	int nbIm=aVectIm.size();
 
-	vector<vector<Pt2dr>> Pts;
+	vector<vector<Pt2dr> > Pts;
 	vector<int> SzX, SzY;
 	string cornersTxt="corners.txt";
 	ifstream file(cornersTxt, ios::out | ios::app);

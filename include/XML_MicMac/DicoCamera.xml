@@ -10,7 +10,7 @@
    
 <CameraEntry> 
         <Name> Sun </Name>
-        <SzCaptMm> 120 130 </SzCaptMm>
+        <SzCaptMm> 120 120 </SzCaptMm>
         <ShortName> SUN </ShortName>
    </CameraEntry>
    
