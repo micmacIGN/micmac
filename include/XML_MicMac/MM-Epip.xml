@@ -177,6 +177,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                              <TypeCost> eMCC_CensusBasic   </TypeCost>
 <!--
                              <TypeCost> eMCC_GrCensus   </TypeCost>
+                             <TypeCost> eMCC_CensusCorrel   </TypeCost>
 -->
                          </CensusCost>
                          <GPU_Correl>
