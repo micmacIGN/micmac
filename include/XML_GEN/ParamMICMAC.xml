@@ -917,6 +917,8 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                            <Sigma Nb="1" Type="double"> </Sigma>
                            <!-- Poids apres normalisation des tailles de fenetres -->
                            <Pds Nb="1" Type="double"> </Pds> 
+                           <!-- Si pas Square W : filtre gauss -->
+                           <SquareW Nb="?" Type="bool" Def="false"> </SquareW> 
                       </OneParamCMS>
                 </CorrelMultiScale>
 
@@ -928,6 +930,8 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                         <CensusCost Nb="?" AccessorFils="false">
                               <PdsCrown  Type="double" Def="0.5" Nb="?"> </PdsCrown>
                               <TypeCost Type="eModeCensusCost" Nb="1">   </TypeCost>
+                              <Verif Type="bool" Nb="?" Def="false">   </Verif>
+                              <AttenDist  Type="double" Def="0.0" Nb="?"> </AttenDist>
                         </CensusCost>
 
 

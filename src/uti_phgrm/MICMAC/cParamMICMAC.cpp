@@ -4915,6 +4915,17 @@ const double & cOneParamCMS::Pds()const
    return mPds;
 }
 
+
+cTplValGesInit< bool > & cOneParamCMS::SquareW()
+{
+   return mSquareW;
+}
+
+const cTplValGesInit< bool > & cOneParamCMS::SquareW()const 
+{
+   return mSquareW;
+}
+
 cElXMLTree * ToXMLTree(const cOneParamCMS & anObj)
 {
   XMLPushContext(anObj.mGXml);
@@ -4922,6 +4933,8 @@ cElXMLTree * ToXMLTree(const cOneParamCMS & anObj)
    aRes->AddFils(::ToXMLTree(std::string("SzW"),anObj.SzW())->ReTagThis("SzW"));
    aRes->AddFils(::ToXMLTree(std::string("Sigma"),anObj.Sigma())->ReTagThis("Sigma"));
    aRes->AddFils(::ToXMLTree(std::string("Pds"),anObj.Pds())->ReTagThis("Pds"));
+   if (anObj.SquareW().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SquareW"),anObj.SquareW().Val())->ReTagThis("SquareW"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -4937,6 +4950,8 @@ void xml_init(cOneParamCMS & anObj,cElXMLTree * aTree)
    xml_init(anObj.Sigma(),aTree->Get("Sigma",1)); //tototo 
 
    xml_init(anObj.Pds(),aTree->Get("Pds",1)); //tototo 
+
+   xml_init(anObj.SquareW(),aTree->Get("SquareW",1),bool(false)); //tototo 
 }
 
 
@@ -5025,6 +5040,28 @@ const eModeCensusCost & cCensusCost::TypeCost()const
    return mTypeCost;
 }
 
+
+cTplValGesInit< bool > & cCensusCost::Verif()
+{
+   return mVerif;
+}
+
+const cTplValGesInit< bool > & cCensusCost::Verif()const 
+{
+   return mVerif;
+}
+
+
+cTplValGesInit< double > & cCensusCost::AttenDist()
+{
+   return mAttenDist;
+}
+
+const cTplValGesInit< double > & cCensusCost::AttenDist()const 
+{
+   return mAttenDist;
+}
+
 cElXMLTree * ToXMLTree(const cCensusCost & anObj)
 {
   XMLPushContext(anObj.mGXml);
@@ -5032,6 +5069,10 @@ cElXMLTree * ToXMLTree(const cCensusCost & anObj)
    if (anObj.PdsCrown().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PdsCrown"),anObj.PdsCrown().Val())->ReTagThis("PdsCrown"));
    aRes->AddFils(ToXMLTree(std::string("TypeCost"),anObj.TypeCost())->ReTagThis("TypeCost"));
+   if (anObj.Verif().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Verif"),anObj.Verif().Val())->ReTagThis("Verif"));
+   if (anObj.AttenDist().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("AttenDist"),anObj.AttenDist().Val())->ReTagThis("AttenDist"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -5045,6 +5086,10 @@ void xml_init(cCensusCost & anObj,cElXMLTree * aTree)
    xml_init(anObj.PdsCrown(),aTree->Get("PdsCrown",1),double(0.5)); //tototo 
 
    xml_init(anObj.TypeCost(),aTree->Get("TypeCost",1)); //tototo 
+
+   xml_init(anObj.Verif(),aTree->Get("Verif",1),bool(false)); //tototo 
+
+   xml_init(anObj.AttenDist(),aTree->Get("AttenDist",1),double(0.0)); //tototo 
 }
 
 
