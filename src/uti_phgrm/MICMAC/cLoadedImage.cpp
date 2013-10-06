@@ -1589,7 +1589,16 @@ cMSLoadedIm::cMSLoadedIm(const cOneParamCMS& aParam ,Im2D_REAL4 * anI,bool First
 
    if (aParam.Sigma() > 0)
    {
-       FilterGauss(mIm,aParam.Sigma(),2);
+       if (aParam.SquareW().Val())
+       {
+           int aNb = round_ni(aParam.Sigma());
+           if (aNb>0)
+              SelfQMoyenne(mIm,Pt2di(aNb,aNb));
+       }
+       else
+       {
+          FilterGauss(mIm,aParam.Sigma(),2);
+       }
    }
 }
 

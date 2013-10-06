@@ -1,5 +1,5 @@
 <!-- 
-MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/data2/EPI/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64 +ZoomF=4  Purge=false
+MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/data2/EPI/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64 +CMS=true  +Purge=false
 
 MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/marc/TMP/EPI/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64 +ZoomF=4
 
@@ -10,7 +10,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 <DicoLoc>
 
 	<Symb>  ZReg=0.10  </Symb>
-	<Symb>  DefCor=0.70  </Symb>
+	<Symb>  DefCor=0.40  </Symb>
         <Symb>  PenteMax=1.0 </Symb>
 	<Symb>  Interpol=eInterpolBiLin  </Symb>
 
@@ -29,10 +29,13 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
        <Symb> NbDirProg=4   </Symb>
        <Symb> CMS=false   </Symb>
        <Symb> Census=true   </Symb>
+       <Symb> SquareW=true   </Symb>
 
 
        <Symb> DebugClip=true  </Symb>
-       <Symb> SzW0=1  </Symb>
+       <Symb> SzW0=2  </Symb>
+       <Symb> DeltaY=0  </Symb>
+       <Symb> Verif=false  </Symb>
 
   <!-- Parametres calcule -->
         <Symb>  DirMEC=MEC2Im-Censu${Census}-${Im1}-${Im2} </Symb>
@@ -48,6 +51,9 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
         <eSymb> WZ2=*  Sup ${Zoom0} 2   InfEq  ${ZoomF} 2  </eSymb>
         <eSymb> WZ1=*  Sup ${Zoom0} 1   InfEq  ${ZoomF} 1  </eSymb>
         <eSymb> SzW= ? ${CMS} 1 ${SzW0}  </eSymb>
+
+        <eSymb> SzWy= ? ${CMS} 1 + ${DeltaY} ${SzW} </eSymb>
+       
 </DicoLoc>
 
 <Section_Terrain> 
@@ -116,6 +122,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 		
 	    <!-- param correl -->
 	    <SzW> ${SzW} </SzW>
+	    <SzWy>  ${SzWy} </SzWy>
             <AlgoRegul> eAlgo2PrgDyn </AlgoRegul>
 	    <Px1Pas> ${ZPas} </Px1Pas>
             <Px1DilatAlti>  3  </Px1DilatAlti>
@@ -156,16 +163,19 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                                  <SzW> 1 1 </SzW>
                                  <Sigma> 0 </Sigma>
                                  <Pds> 1.0 </Pds>
+                                 <SquareW> ${SquareW} </SquareW>
                             </OneParamCMS>
                             <OneParamCMS>
                                  <SzW> 2 2 </SzW>
                                  <Sigma> 1.0 </Sigma>
                                  <Pds> 0.5 </Pds>
+                                 <SquareW> ${SquareW} </SquareW>
                             </OneParamCMS>
                             <OneParamCMS>
-                                 <SzW> 4 4 </SzW>
+                                 <SzW> 4 3 </SzW>
                                  <Sigma> 2.0 </Sigma>
                                  <Pds> 0.25 </Pds>
+                                 <SquareW> ${SquareW} </SquareW>
                             </OneParamCMS>
                      </CorrelMultiScale>
                  </#WHEN>
@@ -174,11 +184,13 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                  <TypeCAH>
                      <#IF VTEST=${Census}>
                          <CensusCost>
-                             <TypeCost> eMCC_CensusBasic   </TypeCost>
-<!--
-                             <TypeCost> eMCC_GrCensus   </TypeCost>
                              <TypeCost> eMCC_CensusCorrel   </TypeCost>
+<!--
+                             <TypeCost> eMCC_CensusBasic   </TypeCost>
+                             <TypeCost> eMCC_GrCensus   </TypeCost>
 -->
+                             <Verif>  ${Verif} </Verif>
+                             <AttenDist>   0.0 </AttenDist>
                          </CensusCost>
                          <GPU_Correl>
                          </GPU_Correl>

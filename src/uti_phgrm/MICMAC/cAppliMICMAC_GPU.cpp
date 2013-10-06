@@ -285,6 +285,23 @@ Pt2di cGPU_LoadedImGeom::OffsetIm()
    return aResI;
 }
 
+
+std::vector<Im2D_REAL4> cGPU_LoadedImGeom::VIm()
+{
+   std::vector<Im2D_REAL4> aRes;
+   for (int aKS=0 ; aKS<int(mMSGLI.size()) ; aKS++)
+   {
+       aRes.push_back(*FloatIm(aKS));
+
+   }
+
+
+   return aRes;
+}
+
+
+
+
 Pt2di  cGPU_LoadedImGeom::SzV0() const
 {
    return mSzV0;
@@ -1264,11 +1281,6 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
          &mZIntCur,
          aNbOk ? mStatGlob->CorrelToCout(aSomCorrel/aNbOk) : mAhDefCost
     );
-if (IsPBug(Pt2di(anX,anY)))
-{
-   double aCor = aSomCorrel/aNbOk;
-   std::cout << "GPUC ; ZI : " << mZIntCur << " ; Cor : " << aCor << "\n";
-}
 }
 
 
