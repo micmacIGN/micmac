@@ -280,10 +280,10 @@ protected:
     QString m_messageFPS;
 
     //! Point list for polygonal selection
-    QVector < QPoint > m_polygon;
+    QVector < QPointF > m_polygon;
 
     //! Point list for polygonal insertion
-    QVector < QPoint > m_polygon2;
+    QVector < QPointF > m_polygon2;
 
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
@@ -307,9 +307,11 @@ protected:
     int m_Click;
 
     //! (square) radius for point selection
-    int     m_radius;
+    int     m_sqr_radius;
 
-    QPointF WindowToImage(const QPoint &pt);
+    QPointF WindowToImage(const QPointF &pt);
+
+    QPointF ImageToWindow(const QPointF &im);
 
 private:
 
