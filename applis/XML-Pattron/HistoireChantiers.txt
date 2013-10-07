@@ -1,0 +1,21 @@
+
+==================================================
+RODIN-TEXT 
+Disque : HD-PVU2
+DateDebut :  ?
+Geometrie : Image
+Teste AFOCAL 
+
+==================================================
+Chantier Dominguez. 
+Disque : HD-PVU2
+DateDebut : 22/01/2010
+Geometrie : Terrain
+Basculement : Oui
+
+==================================================
+Test Patrick Julien, images SPOT :
+
+Disque : HD-PVU2
+Exemple SPOT5
+
