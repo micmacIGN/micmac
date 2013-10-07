@@ -61,7 +61,7 @@ struct selectInfos
     //! Ortho camera infos
     ViewportParameters params;
     //! polyline infos
-    QVector <QPoint>   poly;
+    QVector <QPointF>   poly;
     //! selection mode
     int                selection_mode;
 };

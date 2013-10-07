@@ -203,8 +203,12 @@ protected:
     //! Draw selection polygon
     void drawPolygon();
 
+    void drawPolygon(const QVector<QPointF> &aPoly);
+
     //! Draw one point and two segments (for insertion or move)
     void drawPointAndSegments();
+
+    void drawPointAndSegments(const QVector<QPointF> &aPoly);
 
     GLuint getNbGLLists() { return m_nbGLLists; }
     void incrNbGLLists() { m_nbGLLists++; }
@@ -280,10 +284,10 @@ protected:
     QString m_messageFPS;
 
     //! Point list for polygonal selection
-    QVector < QPoint > m_polygon;
+    QVector < QPointF > m_polygon;
 
     //! Point list for polygonal insertion
-    QVector < QPoint > m_polygon2;
+    QVector < QPointF > m_polygon2;
 
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
@@ -307,13 +311,15 @@ protected:
     int m_Click;
 
     //! (square) radius for point selection
-    int     m_radius;
+    int     m_sqr_radius;
 
-    QPointF WindowToImage(const QPoint &pt);
+    QPointF WindowToImage(const QPointF &pt);
+
+    QPointF ImageToWindow(const QPointF &im);
 
 private:
 
-    QPoint      m_lastPos;
+    QPointF     m_lastPos;
 
     void        setProjectionMatrix();
     void        computeFPS();
@@ -346,7 +352,7 @@ private:
     GLdouble    *_projmatrix;
     GLint       *_glViewport;
 
-    QPoint      _m_lastPosZoom;
+    QPointF     _m_lastPosZoom;
 
 };
 
