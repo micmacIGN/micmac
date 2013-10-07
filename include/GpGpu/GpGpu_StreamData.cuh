@@ -165,18 +165,17 @@ public:
 
     template<bool sens> __device__  void reverse();
 
+    void                __device__  output();
+
 private:
 
-
-    ushort  _idS;
     T*      _globalStream;
-    uint    _idG;
+    int    _idG;
     ushort  _sizeBuffer;
 };
 
 template<class T> __device__
 SimpleStream<T>::SimpleStream( T *globalStream, ushort sizeBuffer):
-    _idS(0),
     _globalStream(globalStream + threadIdx.x),
     _idG(0),
     _sizeBuffer(sizeBuffer)
@@ -192,6 +191,18 @@ template<class T> __device__
 void SimpleStream<T>::SetValue(int id, T value)
 {
     _globalStream[_idG + id] = value;
+}
+
+template<class T> __device__
+void SimpleStream<T>::output()
+{
+    if(!threadIdx.x)
+    {
+        printf("----------------------------------\n");
+        printf("_sizeBuffer = %d\n",_sizeBuffer);
+        printf("_idG        = %d\n",_idG);
+        printf("----------------------------------\n");
+    }
 }
 
 template<class T> template<bool sens> __device__
