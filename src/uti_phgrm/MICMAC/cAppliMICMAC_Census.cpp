@@ -281,7 +281,14 @@ template <class Type> class cImFlags : public cFlagTabule<Type>
            int      mCurF;
 };
 
-            // ===============================================================
+
+
+
+      /*********************************************************************/
+      /*                                                                   */
+      /*                           ::                                      */
+      /*                                                                   */
+      /*********************************************************************/
 
 int NbSomOfVois(const Pt2di & aVois) {return (1+2*aVois.x)*(1+2*aVois.y);}
 
@@ -316,12 +323,24 @@ std::vector<double> PondVois(const Pt2di & aV,double Depond,double aGama)
     return aRes;
 }
 
+      /*********************************************************************/
+      /*                                                                   */
+      /*                         cFlagTabule<Type>                         */
+      /*                                                                   */
+      /*********************************************************************/
+
 template   <class Type> cFlagTabule<Type>::cFlagTabule(int aNbFlag) :
      mNbFlag  (aNbFlag),
      mNbEl    ((aNbFlag+TheNbBits-1)/TheNbBits)
 {
    // std::cout << "cFlagTabule::  " << aNbFlag  << " " << TheNbBits << " " << mNbEl << "\n"; getchar();
 }
+
+      /*********************************************************************/
+      /*                                                                   */
+      /*                         cFlagPonder<Type>                         */
+      /*                                                                   */
+      /*********************************************************************/
 
 template  <class Type> double cFlagPonder<Type>::ValPonder(Type * aTabF)
 {
@@ -339,9 +358,6 @@ template  <class Type> double cFlagPonder<Type>::ValPonderDif(Type * aTabF1,Type
     }
     return aRes;
 }
-
-
-
 
 
 template  <class Type> cFlagPonder<Type>::cFlagPonder(int aNbFlag,const Pt2di & aVois) :
@@ -396,6 +412,13 @@ template  <class Type> cFlagPonder<Type>  *cFlagPonder<Type>::PonderSomFlag(cons
 
    return aRes;
 }
+
+      /*********************************************************************/
+      /*                                                                   */
+      /*                     cImFlags<Type>                                */
+      /*                                                                   */
+      /*********************************************************************/
+
 
 template   <class Type> cImFlags<Type>::cImFlags(Pt2di aSz,int aNbFlag) :
      cFlagTabule<Type> (aNbFlag),
@@ -574,7 +597,11 @@ void fff()
 */
 
 
-//==================================================================================================
+      /*********************************************************************/
+      /*                                                                   */
+      /*                   cBufOnImage<Type>                               */
+      /*                                                                   */
+      /*********************************************************************/
 
 
 template <class Type> cBufOnImage<Type>::cBufOnImage(Type ** aDataIm,Box2di aBoxDef,Box2di aBoxCalc) :
@@ -616,8 +643,11 @@ template <class Type>  cBufOnImage<Type> * cBufOnImage<Type>::FullBufOnIm(Im2D<T
 }
 
 
-//==================================================================================
-
+      /*********************************************************************/
+      /*                                                                   */
+      /*                   cCensusGr                                       */
+      /*                                                                   */
+      /*********************************************************************/
 
 
 cCensusGr::cCensusGr(const Pt2di & aSzV,const double & FactDepond,bool DoFlag,cCensusGr * aGrShareFlag) :
@@ -765,6 +795,11 @@ double cCensusGr::GainBasic(float ** Im1,float ** Im2,int  aPx2)
    return aSomLoc / double(mSomP);
 }
 
+      /*********************************************************************/
+      /*                                                                   */
+      /*                      ::                                           */
+      /*                                                                   */
+      /*********************************************************************/
 
 
 double CorrelBasic(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di aSzV,float anEpsilon)
@@ -948,6 +983,11 @@ double CensusGraphe_ImInt(float ** Im1,Pt2di aP1,float ** Im2,Pt2di aP2,Pt2di aS
      // float aValStd = aQI2.GetVal(aDataIm1,Pt2di(0,anY+anOff1.y));
      // float aValNew = aDataC[anY+anOff1.y][anX+anOff1.x+anOffset];
 
+      /*********************************************************************/
+      /*                                                                   */
+      /*                      cAppliMICMAC                                 */
+      /*                                                                   */
+      /*********************************************************************/
 
 
 
