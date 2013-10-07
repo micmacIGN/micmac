@@ -203,8 +203,12 @@ protected:
     //! Draw selection polygon
     void drawPolygon();
 
+    void drawPolygon(const QVector<QPointF> &aPoly);
+
     //! Draw one point and two segments (for insertion or move)
     void drawPointAndSegments();
+
+    void drawPointAndSegments(const QVector<QPointF> &aPoly);
 
     GLuint getNbGLLists() { return m_nbGLLists; }
     void incrNbGLLists() { m_nbGLLists++; }
@@ -315,7 +319,7 @@ protected:
 
 private:
 
-    QPoint      m_lastPos;
+    QPointF     m_lastPos;
 
     void        setProjectionMatrix();
     void        computeFPS();
@@ -348,7 +352,7 @@ private:
     GLdouble    *_projmatrix;
     GLint       *_glViewport;
 
-    QPoint      _m_lastPosZoom;
+    QPointF     _m_lastPosZoom;
 
 };
 

@@ -89,7 +89,9 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
     if(event->type() == QEvent::MouseMove)
     {
         QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+
         m_lastPos = mouseEvent->pos();
+        if (m_bDisplayMode2D) m_lastPos = WindowToImage(m_lastPos);
 
         update();
 
@@ -99,26 +101,13 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
             {
                 int sz = m_polygon.size();
 
-                if (m_Data->NbImages())
-                {
-                    if (sz == 0)
-                        return false;
-                    else if (sz == 1)
-                        m_polygon.push_back(WindowToImage(m_lastPos));
-                    else
-                        //replace last point by the current one
-                        m_polygon[sz-1] = WindowToImage(m_lastPos);
-                }
+                if (sz == 0)
+                    return false;
+                else if (sz == 1)
+                    m_polygon.push_back(m_lastPos);
                 else
-                {
-                    if (sz == 0)
-                        return false;
-                    else if (sz == 1)
-                        m_polygon.push_back(m_lastPos);
-                    else
-                        //replace last point by the current one
-                        m_polygon[sz-1] = m_lastPos;
-                }
+                    //replace last point by the current one
+                    m_polygon[sz-1] = m_lastPos;
             }
             else
             {
@@ -346,6 +335,7 @@ void GLWidget::paintGL()
             GLint recal;
             GLdouble wx, wy, wz;
 
+            _m_lastPosZoom = ImageToWindow(_m_lastPosZoom);
             recal = _glViewport[3] - (GLint) _m_lastPosZoom.y()- 1.f;
 
             gluUnProject ((GLdouble) _m_lastPosZoom.x(), (GLdouble) recal, 1.0,
@@ -386,14 +376,12 @@ void GLWidget::paintGL()
         //Affichage du zoom et des coordonnées image
         if (m_bDrawMessages)
         {
-            QPointF ptImg = WindowToImage(m_lastPos);
-
             glColor3f(1.f,1.f,1.f);
 
             renderText(10, _glViewport[3] - m_font.pointSize(), QString::number(m_params.zoom*100,'f',1) + "%", m_font);
 
-            if  ((m_interactionMode == SELECTION)&&(ptImg.x()>=0)&&(ptImg.y()>=0)&&(ptImg.x()<_glImg.width())&&(ptImg.y()<_glImg.height()))
-                renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(ptImg.x(),'f',1) + ", " + QString::number(_glImg.height()-ptImg.y(),'f',1) + " px", m_font);
+            if  ((m_interactionMode == SELECTION)&&(m_lastPos.x()>=0)&&(m_lastPos.y()>=0)&&(m_lastPos.x()<_glImg.width())&&(m_lastPos.y()<_glImg.height()))
+                renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(m_lastPos.x(),'f',1) + ", " + QString::number(_glImg.height()-m_lastPos.y(),'f',1) + " px", m_font);
 
         }
     }
@@ -532,7 +520,8 @@ void GLWidget::paintGL()
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
-    m_lastPos = event->pos();
+    m_lastPos = event->pos();   
+    if (m_bDisplayMode2D) m_lastPos = WindowToImage(m_lastPos);
 
     if ( event->button() == Qt::LeftButton )
     {
@@ -544,22 +533,10 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             {
                 if (!m_bPolyIsClosed)
                 {
-                    if (m_Data->NbImages())
-                    {
-                          QPointF ptImg = WindowToImage(m_lastPos);
+                    if (m_polygon.size() >= 1)
+                        m_polygon[m_polygon.size()-1] = m_lastPos;
 
-                          if (m_polygon.size() >= 1)
-                               m_polygon[m_polygon.size()-1] = ptImg;
-
-                          m_polygon.push_back(ptImg);
-                    }
-                    else
-                    {
-                        if (m_polygon.size() >= 1)
-                            m_polygon[m_polygon.size()-1] = m_lastPos;
-
-                        m_polygon.push_back(m_lastPos);
-                    }
+                    m_polygon.push_back(m_lastPos);
                 }
                 else
                 {
@@ -938,6 +915,36 @@ void GLWidget::drawGradientBackground()
     glEnd();
 }
 
+void GLWidget::drawPolygon(QVector < QPointF> const &aPoly)
+{
+    glBegin(m_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
+    for (int aK = 0;aK < (int) aPoly.size(); ++aK)
+    {
+        glVertex2f(aPoly[aK].x(), aPoly[aK].y());
+    }
+    glEnd();
+
+    glColor3f(1.f,0.f,0.f);
+
+    if (_idx >=0)
+    {
+        for (int aK = 0;aK < _idx; ++aK)
+            glDrawUnitCircle(2, aPoly[aK].x(), aPoly[aK].y(), 3.0, 8);
+
+        glColor3f(0.f,0.f,1.f);
+        glDrawUnitCircle(2, aPoly[_idx].x(), aPoly[_idx].y(), 3.0, 8);
+
+        glColor3f(1.f,0.f,0.f);
+        for (int aK = _idx+1;aK < (int) aPoly.size(); ++aK)
+            glDrawUnitCircle(2, aPoly[aK].x(), aPoly[aK].y(), 3.0, 8);
+    }
+    else
+    {
+        for (int aK = 0;aK < (int) aPoly.size(); ++aK)
+           glDrawUnitCircle(2, aPoly[aK].x(), aPoly[aK].y(), 3.0, 8);
+    }
+}
+
 void GLWidget::drawPolygon()
 {
     glColor3f(.1f,1.f,.2f);
@@ -952,62 +959,28 @@ void GLWidget::drawPolygon()
             poly.push_back(ImageToWindow(m_polygon[aK]));
         }
 
-        glBegin(m_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
-        for (int aK = 0;aK < (int) poly.size(); ++aK)
-        {
-            glVertex2f(poly[aK].x(), poly[aK].y());
-        }
-        glEnd();
-
-        glColor3f(1.f,0.f,0.f);
-
-        if (_idx >=0)
-        {
-            for (int aK = 0;aK < _idx; ++aK)
-                glDrawUnitCircle(2, poly[aK].x(), poly[aK].y(), 3.0, 8);
-
-            glColor3f(0.f,0.f,1.f);
-            glDrawUnitCircle(2, poly[_idx].x(), poly[_idx].y(), 3.0, 8);
-
-            glColor3f(1.f,0.f,0.f);
-            for (int aK = _idx+1;aK < (int) poly.size(); ++aK)
-                glDrawUnitCircle(2, poly[aK].x(), poly[aK].y(), 3.0, 8);
-        }
-        else
-        {
-            for (int aK = 0;aK < (int) poly.size(); ++aK)
-               glDrawUnitCircle(2, poly[aK].x(), poly[aK].y(), 3.0, 8);
-        }
+        drawPolygon(poly);
     }
     else
     {
-        glBegin(m_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
-        for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
-        {
-            glVertex2f(m_polygon[aK].x(), m_polygon[aK].y());
-        }
-        glEnd();
-
-        glColor3f(1.f,0.f,0.f);
-
-        if (_idx >=0)
-        {
-            for (int aK = 0;aK < _idx; ++aK)
-                glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
-
-            glColor3f(0.f,0.f,1.f);
-            glDrawUnitCircle(2, m_polygon[_idx].x(), m_polygon[_idx].y(), 3.0, 8);
-
-            glColor3f(1.f,0.f,0.f);
-            for (int aK = _idx+1;aK < (int) m_polygon.size(); ++aK)
-                glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
-        }
-        else
-        {
-            for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
-               glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
-        }
+        drawPolygon(m_polygon);
     }
+}
+
+void GLWidget::drawPointAndSegments(const QVector<QPointF> &aPoly)
+{
+    glBegin(GL_LINE_STRIP);
+    for (int aK=0;aK < (int) aPoly.size(); ++aK)
+    {
+        glVertex2f(aPoly[aK].x(), aPoly[aK].y());
+    }
+    glEnd();
+
+    glDisable(GL_LINE_STIPPLE);
+
+    enableOptionLine();
+
+    glDrawUnitCircle(2, aPoly[1].x(), aPoly[1].y(), 3.0, 8);
 }
 
 void GLWidget::drawPointAndSegments()
@@ -1025,18 +998,19 @@ void GLWidget::drawPointAndSegments()
 
         glLineWidth(1.0f);
 
-        glBegin(GL_LINE_STRIP);
-        for (int aK=0;aK < (int) m_polygon2.size(); ++aK)
+        if (m_bDisplayMode2D)
         {
-            glVertex2f(m_polygon2[aK].x(), m_polygon2[aK].y());
+            QVector <QPointF> poly;
+            for (int aK = 0;aK < (int) m_polygon2.size(); ++aK)
+            {
+                poly.push_back(ImageToWindow(m_polygon2[aK]));
+            }
+
+            drawPointAndSegments(poly);
         }
-        glEnd();
+        else
+            drawPointAndSegments(m_polygon2);
 
-        glDisable(GL_LINE_STIPPLE);
-
-        enableOptionLine();
-
-        glDrawUnitCircle(2, m_polygon2[1].x(), m_polygon2[1].y(), 3.0, 8);
 
         disableOptionLine();
     }
@@ -1213,6 +1187,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     float wheelDelta_deg = (float)event->delta() / 8.f;
 
     _m_lastPosZoom = event->pos();
+    if (m_bDisplayMode2D) _m_lastPosZoom = WindowToImage(_m_lastPosZoom);
 
     onWheelEvent(wheelDelta_deg);
 }
@@ -1232,7 +1207,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     if (event->x()<0 || event->y()<0 || event->x()>width() || event->y()>height())
         return;
 
-    QPoint pos = event->pos();
+    QPointF pos = event->localPos();
+    if (m_bDisplayMode2D) pos = WindowToImage(pos);
 
     if (m_interactionMode == SELECTION)
     {
@@ -1241,7 +1217,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     }
     else
     {
-        QPoint dp = pos-m_lastPos;
+        QPointF dp = pos-m_lastPos;
 
         if ( _m_g_mouseLeftDown ) // rotation autour de X et Y
         {
@@ -2014,7 +1990,7 @@ void GLWidget::findClosestPoint()
 
     for (int aK = 0; aK < (int) m_polygon.size();++aK)
     {
-        dist  = (float)(m_lastPos.x() - m_polygon[aK].x())*(m_lastPos.x() - m_polygon[aK].x()) +
+        dist  = (m_lastPos.x() - m_polygon[aK].x())*(m_lastPos.x() - m_polygon[aK].x()) +
                 (m_lastPos.y() - m_polygon[aK].y())*(m_lastPos.y() - m_polygon[aK].y());
 
         if  (dist < dist2)
