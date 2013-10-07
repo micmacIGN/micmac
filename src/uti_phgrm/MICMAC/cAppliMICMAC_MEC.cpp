@@ -179,6 +179,7 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
      }
      mEBI = mCurEtape->EBI();
      const cEtapeMEC & anEM = mCurEtape->EtapeMEC();
+     mCorrelAdHoc = anEM.CorrelAdHoc().PtrVal();
 
      mSzWR.x = anEM.SzW().Val();
      mSzWR.y = anEM.SzWy().ValWithDef(mSzWR.x);
@@ -244,13 +245,16 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
 	      mSzWFixe==mSzWR.x,
 	      "Fenetre reelle en mode fenetre fixe"
 	 );
-         ELISE_ASSERT
-	 (
-	      mSzWR.x==mSzWR.y,
-	      "tx!=ty en mode fenetre fixe"
-	 );
+         if (! mCorrelAdHoc)
+         {
+             ELISE_ASSERT
+	     (
+	          mSzWR.x==mSzWR.y,
+	          "tx!=ty en mode fenetre fixe"
+	     );
+         }
      }
-     mPtSzWFixe = Pt2di(mSzWFixe,mSzWFixe);
+     mPtSzWFixe = Pt2di(mSzWFixe,round_ni(mSzWR.y));
 
 
      mModeIm1Maitre = IsModeIm1Maitre(mCurEtape->EtapeMEC().AggregCorr().Val());
@@ -272,7 +276,6 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
      }
 
 
-     mCorrelAdHoc = anEM.CorrelAdHoc().PtrVal();
      mCMS_ModeEparse = false;
      if (mCorrelAdHoc)
      {
