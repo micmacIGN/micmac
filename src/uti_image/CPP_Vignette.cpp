@@ -273,7 +273,7 @@ void Write_Vignette(string aDir, string aNameOut,vector<double> aParam,string aD
     ELISE_fp::MkDirRec(aDir + aDirOut);
 
 	//Reading the image and creating the objects to be manipulated
-	aNameOut=aDirOut + aNameOut;
+	aNameOut=aDir + aDirOut + aNameOut;
 	Tiff_Im aTF=Tiff_Im(aNameOut.c_str(), aSz, GenIm::real4, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
 
 	Im2D_REAL4  aIm(aSz.x,aSz.y);
@@ -476,8 +476,8 @@ vector<GrpVodka> Make_Grp(std::string aDir, std::string InCal, std::vector<std::
 		
 	//Creating a new list of images for each combination of Diaph & Foc, and recording their ExpTime and ISO for future normalisation
 	for (int j=0;j<(int)aSetIm.size();j++){
-		std::string aFullName=aDir + aSetIm[j];
-		const cMetaDataPhoto & infoIm = cMetaDataPhoto::CreateExiv2(aFullName);
+		std::string aFullName=aSetIm[j];
+		const cMetaDataPhoto & infoIm = cMetaDataPhoto::CreateExiv2(aDir + aFullName);
 		cout<<"Getting Diaph and Focal from "<<aFullName<<endl;
 
 		if (aVectGrpVodka.size()==0){
