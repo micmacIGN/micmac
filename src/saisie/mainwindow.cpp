@@ -318,30 +318,7 @@ void MainWindow::toggleShowMessages(bool state)
 
 void MainWindow::toggleSelectionMode(bool state)
 {
-    if (state)
-    {
-        m_glWidget->setInteractionMode(GLWidget::SELECTION);
-
-        if (m_glWidget->hasDataLoaded()&&m_glWidget->showMessages())
-        {
-            m_glWidget->showSelectionMessages();
-        }
-        m_glWidget->showBall(false);
-        m_glWidget->showCams(false);
-        m_glWidget->showAxis(false);
-        m_glWidget->showBBox(false);
-    }
-    else
-    {
-        m_glWidget->setInteractionMode(GLWidget::TRANSFORM_CAMERA);
-
-        if (m_glWidget->hasDataLoaded()&&m_glWidget->showMessages())
-        {
-            m_glWidget->clearPolyline();
-            m_glWidget->showMoveMessages();
-        }
-        m_glWidget->showBall(true);
-    }
+    m_glWidget->setInteractionMode(state ? GLWidget::SELECTION : GLWidget::TRANSFORM_CAMERA);
 
     m_glWidget->update();
 }
