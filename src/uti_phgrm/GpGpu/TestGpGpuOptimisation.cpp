@@ -13,19 +13,20 @@ int main()
     // Declaration des variables du cote du DEVICE
     DEVC_Data2Opti d2O;
 
-    uint nbLines    = 512;
-    uint lLines     = 512;
+    uint nbLines    = 1;
+    uint lLines     = 2;
     uint depth      = NAPPEMAX;
 
     short2 dZ = make_short2(-depth/2,depth/2);
+    depth = count(dZ);
 
     uint sizeMaxLine = (uint)(1.5f*sqrt((float)lLines * lLines + nbLines * nbLines));
 
     h2O.ReallocParam(sizeMaxLine);
     d2O.ReallocParam(sizeMaxLine);
 
-    uint pitIdStream = WARPSIZE;
-    uint pitStream   = NAPPEMAX;
+    uint pit_Strm_DZ    = WARPSIZE;
+    uint pit_Strm_ICost = NAPPEMAX;
 
     // param
 
@@ -33,15 +34,15 @@ int main()
     {
         uint lenghtLine = lLines;
 
-        h2O.SetParamLine(p,pitStream,pitIdStream,lenghtLine);
+        h2O.SetParamLine(p,pit_Strm_ICost,pit_Strm_DZ,lenghtLine);
 
         uint sizeStreamLine = lLines * depth;
 
-        pitIdStream += iDivUp(lenghtLine,       WARPSIZE) * WARPSIZE;
-        pitStream   += iDivUp(sizeStreamLine,   WARPSIZE) * WARPSIZE;
+        pit_Strm_DZ     += iDivUp(lenghtLine,       WARPSIZE) * WARPSIZE;
+        pit_Strm_ICost  += iDivUp(sizeStreamLine,   WARPSIZE) * WARPSIZE;
     }
 
-    h2O.ReallocInputIf(pitStream + NAPPEMAX,pitIdStream + WARPSIZE);
+    h2O.ReallocInputIf(pit_Strm_ICost + NAPPEMAX,pit_Strm_DZ + WARPSIZE);
     h2O._s_InitCostVol.Fill(0);
 
     // index
@@ -56,7 +57,7 @@ int main()
             uint idStrm = h2O._param[0][idLine].x + pitStrm - dZ.x;
 
             for ( int aPx = dZ.x ; aPx < dZ.y; aPx++)
-                h2O._s_InitCostVol[idStrm + aPx]  = /*10000 * (idLine + 1) + */(aK+1) * 1000 + aPx - dZ.x + 1;
+                h2O._s_InitCostVol[idStrm + aPx]  = 10000 * (idLine + 1) + (aK+1) * 1000 + aPx - dZ.x + 1;
 
             pitStrm += depth;
         }
@@ -75,13 +76,13 @@ int main()
     d2O.CopyHostToDevice(h2O);
     d2O._s_ForceCostVol[0].CopyHostToDevice(h2O._s_ForceCostVol[0].pData());
 
+    h2O._s_InitCostVol.OutputValues();
+
     TestOptimisationOneDirectionZ(d2O);
 
     d2O.CopyDevicetoHost(h2O);
 
-    //h2O._s_InitCostVol.OutputValues();
-
-    //h2O._s_ForceCostVol[0].OutputValues();
+    h2O._s_ForceCostVol[0].OutputValues();
 
     //
     uint errorCount = 0;
