@@ -34,6 +34,8 @@ typedef unsigned char pixel;
 #define HOST_Data2Opti Data2Optimiz<CuHostData3D,2>
 #define DEVC_Data2Opti Data2Optimiz<CuDeviceData3D>
 
+#define CUDA_DUMP_INT(varname) if(!threadIdx.x) printf("%s = %d\n", #varname, varname);
+
 enum Plans {XY,XZ,YZ,YX,ZX,ZY};
 
 #endif //GPGPU_DEFINES_H
