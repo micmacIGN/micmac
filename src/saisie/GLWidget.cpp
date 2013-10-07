@@ -108,7 +108,6 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                     else
                         //replace last point by the current one
                         m_polygon[sz-1] = WindowToImage(m_lastPos);
-
                 }
                 else
                 {
@@ -336,8 +335,8 @@ void GLWidget::paintGL()
         glDisable(GL_ALPHA_TEST);
         glDisable(GL_DEPTH_TEST);
 
-        GLfloat glw = 2*m_rw;
-        GLfloat glh = 2*m_rh;
+        GLfloat glw = 2.f*m_rw;
+        GLfloat glh = 2.f*m_rh;
 
         glPushMatrix();
         glMultMatrixd(_projmatrix);
@@ -347,7 +346,7 @@ void GLWidget::paintGL()
             GLint recal;
             GLdouble wx, wy, wz;
 
-            recal = _glViewport[3] - (GLint) _m_lastPosZoom.y()- 1;
+            recal = _glViewport[3] - (GLint) _m_lastPosZoom.y()- 1.f;
 
             gluUnProject ((GLdouble) _m_lastPosZoom.x(), (GLdouble) recal, 1.0,
                           _mvmatrix, _projmatrix, _glViewport, &wx, &wy, &wz);
@@ -1063,14 +1062,34 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
     switch (mode)
     {
     case TRANSFORM_CAMERA:
+    {
         setMouseTracking(false);
         removeEventFilter(this);
+
+        if (hasDataLoaded() && showMessages())
+        {
+            clearPolyline();
+            showMoveMessages();
+        }
+        showBall(true);
+    }
         break;
     case SELECTION:
+    {
         if(!m_Data->NbImages())
             setProjectionMatrix();
         installEventFilter(this);
         setMouseTracking(true);
+
+        if (hasDataLoaded() && showMessages())
+        {
+           showSelectionMessages();
+        }
+        showBall(false);
+        showCams(false);
+        showAxis(false);
+        showBBox(false);
+    }
         break;
     default:
         break;
@@ -1919,14 +1938,16 @@ void GLWidget::applyGamma(float aGamma)
     QRgb  pixel;
     int r,g,b;
 
+    float _gamma = 1.f / aGamma;
+
     for(int i=0; i< _glImg.width();++i)
         for(int j=0; j<_glImg.height();++j)
         {
             pixel = _glImg.pixel(i,j);
 
-            r = 255*pow((float) qRed(pixel)  / 255.f, 1.f / aGamma);
-            g = 255*pow((float) qGreen(pixel)/ 255.f, 1.f / aGamma);
-            b = 255*pow((float) qBlue(pixel) / 255.f, 1.f / aGamma);
+            r = 255*pow((float) qRed(pixel)  / 255.f, _gamma);
+            g = 255*pow((float) qGreen(pixel)/ 255.f, _gamma);
+            b = 255*pow((float) qBlue(pixel) / 255.f, _gamma);
 
             if (r>255) r = 255;
             if (g>255) g = 255;
