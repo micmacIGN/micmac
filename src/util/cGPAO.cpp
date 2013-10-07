@@ -302,6 +302,8 @@ void cElTask::GenerateMakeFile(FILE * aFP) const
     {
 		#if (ELISE_windows)
 			// avoid a '\' at the end of a line in a makefile
+		if (itBR->size())
+		
 			if ( *(itBR->rbegin())=='\\' )
 			{
 					string str = *itBR+' ';
