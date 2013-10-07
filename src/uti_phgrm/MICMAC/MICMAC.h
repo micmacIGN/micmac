@@ -2712,6 +2712,8 @@ class   cGPU_LoadedImGeom
 
        int  NbScale() const;
        Im2D_REAL4 * FloatIm(int aKScale);
+       std::vector<Im2D_REAL4> VIm();
+
        Pt2di  SzV0() const;
 
 
