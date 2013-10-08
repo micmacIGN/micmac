@@ -13,11 +13,11 @@ int main()
     // Declaration des variables du cote du DEVICE
     DEVC_Data2Opti d2O;
 
-    uint nbLines    = 1;
+    uint nbLines    = 2;
     uint lLines     = 2;
     uint depth      = NAPPEMAX;
 
-    short2 dZ = make_short2(-depth/2,depth/2);
+    short2 dZ = make_short2(-depth/2,depth/3);
     depth = count(dZ);
 
     uint sizeMaxLine = (uint)(1.5f*sqrt((float)lLines * lLines + nbLines * nbLines));
