@@ -519,6 +519,8 @@ void GLWidget::paintGL()
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
+     _m_lastPosZoom = event->pos();
+
     if (m_bDisplayMode2D)
         m_lastPos = WindowToImage(event->pos());
     else
@@ -591,7 +593,6 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         if (m_interactionMode == TRANSFORM_CAMERA)
             _m_g_mouseMiddleDown = true;
 
-        _m_lastPosZoom = ImageToWindow(m_lastPos);
         update();
     }
 }
@@ -1240,22 +1241,27 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         {
             if (event->modifiers() & Qt::ShiftModifier) // zoom
             {
-                if (dp.y() > 0) m_params.zoom *= pow(2.f, dp.y() *.05f);
-                else if (dp.y() < 0) m_params.zoom /= pow(2.f, -dp.y() *.05f);
+                float dy = (pos.y() - _m_lastPosZoom.y())*0.005f;
+
+                if (dy > 0.f) m_params.zoom *= pow(2.f, dy);
+                else  m_params.zoom /= pow(2.f, -dy);
+
+                if (m_params.zoom < 0.01) m_params.zoom = 0.01;
+                else if (m_params.zoom > 50) m_params.zoom = 50;
             }
             else if((_glViewport[2]!=0) || (_glViewport[3]!=0)) // translation
             {
-                    if (m_Data->NbImages())
-                    {
-                        m_glPosition[0] += 2.0f * dp.x()/_glViewport[2];
-                        m_glPosition[1] += 2.0f * dp.y()/_glViewport[3];
-                    }
-                    else
-                    {
-                        m_bObjectCenteredView = false;
-                        m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/_glViewport[2];
-                        m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/_glViewport[3];
-                    }
+                if (m_Data->NbImages())
+                {
+                    m_glPosition[0] += 2.0f * dp.x()/_glViewport[2];
+                    m_glPosition[1] += 2.0f * dp.y()/_glViewport[3];
+                }
+                else
+                {
+                    m_bObjectCenteredView = false;
+                    m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/_glViewport[2];
+                    m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/_glViewport[3];
+                }
             }
         }
         else if ( _m_g_mouseRightDown ) // rotation autour de Z
@@ -1273,6 +1279,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         update();
     }
+
+
 }
 
 void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
