@@ -13,11 +13,11 @@ int main()
     // Declaration des variables du cote du DEVICE
     DEVC_Data2Opti d2O;
 
-    uint nbLines    = 2;
+    uint nbLines    = 1;
     uint lLines     = 2;
     uint depth      = NAPPEMAX;
 
-    short2 dZ = make_short2(-depth/2,depth/3);
+    short2 dZ = make_short2(-depth/2,depth/2);
     depth = count(dZ);
 
     uint sizeMaxLine = (uint)(1.5f*sqrt((float)lLines * lLines + nbLines * nbLines));
@@ -52,7 +52,7 @@ int main()
 
         for (uint aK= 0 ; aK < lLines; aK++)
         {
-            h2O._s_Index[h2O._param[0][idLine].y + aK ]= dZ;
+            h2O._s_Index[h2O._param[0][idLine].y + aK ] = dZ;
 
             uint idStrm = h2O._param[0][idLine].x + pitStrm - dZ.x;
 
@@ -87,12 +87,23 @@ int main()
     //
     uint errorCount = 0;
 
-    for (uint i= NAPPEMAX ; i < h2O._s_InitCostVol.GetSize() - NAPPEMAX; i++)
-        if(h2O._s_InitCostVol[i]!=h2O._s_ForceCostVol[0][i])
+    for (uint idLine= 0 ; idLine < nbLines; idLine++)
+    {
+        uint    pitStrm = 0;
+
+        for (uint aK= 0 ; aK < lLines; aK++)
         {
-            //printf(" [%d,%d] ",h2O._s_InitCostVol[i],h2O._s_ForceCostVol[0][i]);
-            errorCount++;
+            short2 dZ = h2O._s_Index[h2O._param[0][idLine].y + aK ];
+
+            uint idStrm = h2O._param[0][idLine].x + pitStrm - dZ.x;
+
+            for ( int aPx = dZ.x ; aPx < dZ.y; aPx++)
+                if( h2O._s_InitCostVol[idStrm + aPx]  != h2O._s_ForceCostVol[0][idStrm + aPx])
+                    errorCount++;
+
+            pitStrm += depth;
         }
+    }
 
     printf("\nError Count   = %d/%d\n",errorCount,h2O._s_InitCostVol.GetSize()- 2*NAPPEMAX);
     printf("Error percent = %f\n",(((float)errorCount*100)/(h2O._s_InitCostVol.GetSize()- 2*NAPPEMAX)));
