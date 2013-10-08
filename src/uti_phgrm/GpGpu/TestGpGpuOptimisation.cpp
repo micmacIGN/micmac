@@ -13,12 +13,12 @@ int main()
     // Declaration des variables du cote du DEVICE
     DEVC_Data2Opti d2O;
 
-    uint nbLines    = 1;
-    uint lLines     = 2;
+    uint nbLines    = 16;
+    uint lLines     = 312;
     uint depth      = NAPPEMAX;
 
-    short2 dZ = make_short2(-depth/2,depth/2);
-    depth = count(dZ);
+    short2 dZ   = make_short2(-depth/2,depth/2);
+    depth       = count(dZ);
 
     uint sizeMaxLine = (uint)(1.5f*sqrt((float)lLines * lLines + nbLines * nbLines));
 
@@ -76,13 +76,13 @@ int main()
     d2O.CopyHostToDevice(h2O);
     d2O._s_ForceCostVol[0].CopyHostToDevice(h2O._s_ForceCostVol[0].pData());
 
-    h2O._s_InitCostVol.OutputValues();
+    //h2O._s_InitCostVol.OutputValues();
 
     TestOptimisationOneDirectionZ(d2O);
 
     d2O.CopyDevicetoHost(h2O);
 
-    h2O._s_ForceCostVol[0].OutputValues();
+    //h2O._s_ForceCostVol[0].OutputValues();
 
     //
     uint errorCount = 0;
