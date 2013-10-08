@@ -72,11 +72,13 @@ GLWidget::~GLWidget()
         glDeleteLists(m_trihedronGLList,1);
         m_trihedronGLList = GL_INVALID_LIST_ID;
     }
+
     if (m_ballGLList != GL_INVALID_LIST_ID)
     {
         glDeleteLists(m_ballGLList,1);
         m_ballGLList = GL_INVALID_LIST_ID;
     }
+
     if (m_textureImage != GL_INVALID_LIST_ID)
     {
         glDeleteLists(m_textureImage,1);
@@ -88,7 +90,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
 {
     if(event->type() == QEvent::MouseMove)
     {
-        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+       QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
 
         m_lastPos = mouseEvent->pos();
         if (m_bDisplayMode2D) m_lastPos = WindowToImage(m_lastPos);
@@ -154,7 +156,6 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
             }
 
             update();
-
         }
 
         return true;
@@ -335,7 +336,6 @@ void GLWidget::paintGL()
             GLint recal;
             GLdouble wx, wy, wz;
 
-            _m_lastPosZoom = ImageToWindow(_m_lastPosZoom);
             recal = _glViewport[3] - (GLint) _m_lastPosZoom.y()- 1.f;
 
             gluUnProject ((GLdouble) _m_lastPosZoom.x(), (GLdouble) recal, 1.0,
@@ -382,7 +382,6 @@ void GLWidget::paintGL()
 
             if  ((m_interactionMode == SELECTION)&&(m_lastPos.x()>=0)&&(m_lastPos.y()>=0)&&(m_lastPos.x()<_glImg.width())&&(m_lastPos.y()<_glImg.height()))
                 renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(m_lastPos.x(),'f',1) + ", " + QString::number(_glImg.height()-m_lastPos.y(),'f',1) + " px", m_font);
-
         }
     }
     else
@@ -520,8 +519,10 @@ void GLWidget::paintGL()
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
-    m_lastPos = event->pos();   
-    if (m_bDisplayMode2D) m_lastPos = WindowToImage(m_lastPos);
+    if (m_bDisplayMode2D)
+        m_lastPos = WindowToImage(event->pos());
+    else
+        m_lastPos = event->pos();
 
     if ( event->button() == Qt::LeftButton )
     {
@@ -590,7 +591,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         if (m_interactionMode == TRANSFORM_CAMERA)
             _m_g_mouseMiddleDown = true;
 
-        _m_lastPosZoom = m_lastPos;
+        _m_lastPosZoom = ImageToWindow(m_lastPos);
         update();
     }
 }
@@ -617,7 +618,6 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
             update();
         }
-
     }
     if ( event->button() == Qt::RightButton  )
     {
@@ -1032,28 +1032,26 @@ void GLWidget::zoom()
 void GLWidget::setInteractionMode(INTERACTION_MODE mode)
 {
     m_interactionMode = mode;
+    removeEventFilter(this);
 
     switch (mode)
     {
     case TRANSFORM_CAMERA:
     {
-        setMouseTracking(false);
-        removeEventFilter(this);
-
         if (hasDataLoaded() && showMessages())
         {
             clearPolyline();
             showMoveMessages();
         }
         showBall(true);
+
+        setMouseTracking(false);
     }
         break;
     case SELECTION:
     {
         if(!m_Data->NbImages())
             setProjectionMatrix();
-        installEventFilter(this);
-        setMouseTracking(true);
 
         if (hasDataLoaded() && showMessages())
         {
@@ -1063,6 +1061,9 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
         showCams(false);
         showAxis(false);
         showBBox(false);
+
+        installEventFilter(this);
+        setMouseTracking(true);
     }
         break;
     default:
@@ -1187,7 +1188,6 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     float wheelDelta_deg = (float)event->delta() / 8.f;
 
     _m_lastPosZoom = event->pos();
-    if (m_bDisplayMode2D) _m_lastPosZoom = WindowToImage(_m_lastPosZoom);
 
     onWheelEvent(wheelDelta_deg);
 }
@@ -1208,7 +1208,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         return;
 
     QPointF pos = event->localPos();
-    if (m_bDisplayMode2D) pos = WindowToImage(pos);
 
     if (m_interactionMode == SELECTION)
     {
@@ -1217,7 +1216,11 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     }
     else
     {
-        QPointF dp = pos-m_lastPos;
+        QPointF dp;
+        if (m_bDisplayMode2D)
+            dp = WindowToImage(pos)-m_lastPos;
+        else
+            dp = pos - m_lastPos;
 
         if ( _m_g_mouseLeftDown ) // rotation autour de X et Y
         {
@@ -1244,8 +1247,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             {
                     if (m_Data->NbImages())
                     {
-                        m_glPosition[0] += 2.0f*( (float)dp.x()/(_glViewport[2]*m_params.zoom) );
-                        m_glPosition[1] -= 2.0f*( (float)dp.y()/(_glViewport[3]*m_params.zoom) );
+                        m_glPosition[0] += 2.0f * dp.x()/_glViewport[2];
+                        m_glPosition[1] += 2.0f * dp.y()/_glViewport[3];
                     }
                     else
                     {
@@ -1270,8 +1273,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         update();
     }
-
-    m_lastPos = pos;
 }
 
 void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
