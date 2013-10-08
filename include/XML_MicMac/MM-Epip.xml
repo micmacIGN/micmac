@@ -184,9 +184,9 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                  <TypeCAH>
                      <#IF VTEST=${Census}>
                          <CensusCost>
-                             <TypeCost> eMCC_CensusCorrel   </TypeCost>
-<!--
                              <TypeCost> eMCC_CensusBasic   </TypeCost>
+<!--
+                             <TypeCost> eMCC_CensusCorrel   </TypeCost>
                              <TypeCost> eMCC_GrCensus   </TypeCost>
 -->
                              <Verif>  ${Verif} </Verif>
