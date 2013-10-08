@@ -323,6 +323,77 @@ std::vector<double> PondVois(const Pt2di & aV,double Depond,double aGama)
     return aRes;
 }
 
+std::vector<Pt3di>  VecKImGen
+                  ( 
+                       Pt2di aSzVMax,
+                       const std::vector<Pt2di> aVSz,
+                       const std::vector<double> aVSigma
+                  )
+{
+    std::vector<Pt3di> aRes;
+    int aNbScale = aVSz.size();
+
+    for (int anY=-aSzVMax.y ; anY<=aSzVMax.y ; anY++)
+    {
+        for (int anX=-aSzVMax.x ; anX<=aSzVMax.x ; anX++)
+        {
+            double aScaleMin = 1e6;
+            int aKSMin = -1;
+            for (int aKS=0 ; aKS<aNbScale ; aKS++)
+            {
+                Pt2di aSzV = aVSz[aKS];
+
+                if ( (ElAbs(anX)<=aSzV.x) &&  (ElAbs(anY)<=aSzV.y) )
+                {
+                    double aScale = aVSigma[aKS];
+                    if (aScale < aScaleMin)
+                    {
+                        aScaleMin = aScale;
+                        aKSMin = aKS;
+                    }
+                }
+            }
+            ELISE_ASSERT(aKSMin>=0,"CensusMS no KS");
+            aRes.push_back(Pt3di(anX,anY,aKSMin));
+
+        }
+    }
+    return aRes;
+}
+
+std::vector<std::vector<Pt2di> > VecKImSplit (
+                       Pt2di aSzVMax,
+                       const std::vector<Pt2di> aVSz,
+                       const std::vector<double> aVSigma
+                  )
+{
+    std::vector<Pt3di>  aVP = VecKImGen(aSzVMax,aVSz,aVSigma);
+    std::vector<std::vector<Pt2di> > aRes(aVSz.size());
+
+    for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+    {
+         Pt3di aP = aVP[aK];
+         aRes[aP.z].push_back(Pt2di(aP.x,aP.y));
+    }
+
+    return aRes;
+}
+
+std::vector<int>  VecKIm
+                  ( 
+                       Pt2di aSzVMax,
+                       const std::vector<Pt2di> aVSz,
+                       const std::vector<double> aVSigma
+                  )
+{
+    std::vector<Pt3di>  aVP = VecKImGen(aSzVMax,aVSz,aVSigma);
+    std::vector<int> aVKIm;
+
+    for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+       aVKIm.push_back(aVP[aK].z);
+    return aVKIm;
+}
+
       /*********************************************************************/
       /*                                                                   */
       /*                         cFlagTabule<Type>                         */
@@ -431,6 +502,8 @@ template   <class Type> cImFlags<Type>::cImFlags(Pt2di aSz,int aNbFlag) :
 }
 
 
+
+
 template   <class Type> cImFlags<Type> cImFlags<Type>::CensusMS
                                   (
                                        const std::vector<Im2D_REAL4> & aVIm,
@@ -449,8 +522,9 @@ template   <class Type> cImFlags<Type> cImFlags<Type>::CensusMS
     cImFlags<Type> aRes(aSz,NbSomOfVois(aSzVMax));
     int aNbScale = aVSz.size();
 
-    std::vector<int> aVKIm;
+    std::vector<int> aVKIm = VecKIm(aSzVMax,aVSz,aVSigma);
 
+/*
     for (int anY=-aSzVMax.y ; anY<=aSzVMax.y ; anY++)
     {
         for (int anX=-aSzVMax.x ; anX<=aSzVMax.x ; anX++)
@@ -476,6 +550,7 @@ template   <class Type> cImFlags<Type> cImFlags<Type>::CensusMS
 
         }
     }
+*/
 
 
 
@@ -847,6 +922,14 @@ double CorrelBasic_Center(float ** Im1,float ** Im2,int  aPx2,Pt2di aSzV,float a
      }
      return aMat.correlation(anEpsilon);
 }
+
+/*
+double CorrelBasic_Center(std::vector<cBufOnImage<float> *> & aIm1,std::vector<cBufOnImage<float> *> & aIm2,int  aPx2,Pt2di aSzV,float anEpsilon)
+{
+}
+*/
+
+
 
 
 double CensusBasicCenter(float ** Im1,float ** Im2,int aPx2,Pt2di aSzV)
