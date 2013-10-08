@@ -47,7 +47,7 @@ public:
     //! Destructor
     ~GLWidget();
 
-    bool eventFilter(QObject* object,QEvent* event);
+    bool eventFilter(QObject* object, QEvent* event);
 
     //! Set data to display
     void setData(cData* data);
@@ -211,8 +211,8 @@ protected:
     void drawPointAndSegments(const QVector<QPointF> &aPoly);
 
     GLuint getNbGLLists() { return m_nbGLLists; }
-    void incrNbGLLists() { m_nbGLLists++; }
-    void resetNbGLLists(){ m_nbGLLists = 0; }
+    void incrNbGLLists()  { m_nbGLLists++; }
+    void resetNbGLLists() { m_nbGLLists = 0; }
 
     //! Fill m_polygon2 for point insertion or move
     void fillPolygon2();
