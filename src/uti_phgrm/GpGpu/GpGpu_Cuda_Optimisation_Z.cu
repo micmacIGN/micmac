@@ -230,8 +230,6 @@ void ReadLine(
             const ushort dZ     = count(index); // creer buffer de count
             ushort       z      = 0;
 
-            //CUDA_DUMP_INT(dZ);
-
             while( z < dZ)
             {
                 if(p.ID_Bf_Icost >= NAPPEMAX) // VERIFIER si > ou >=
@@ -241,20 +239,15 @@ void ReadLine(
                     p.ID_Bf_Icost = 0;
                 }
 
-                //CUDA_DUMP_INT(z);
-
-                const ushort costInit   = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
-                const ushort tZ         = z + (sens ? p.tid : (WARPSIZE - p.tid));
-
-                if(dZ < NAPPEMAX)
+                if(z + (sens ? p.tid : WARPSIZE - p.tid - 1)< dZ) // peut etre eviter en ajoutant une zone tampon
                 {
-                    S_FCost[!p.Id_Buf][sgn(tZ)] = costInit;
-                    streamFCost.SetValue(sgn(p.ID_Bf_Icost),costInit);
+                    const ushort costInit  = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
+                    streamFCost.SetValue(sgn(p.ID_Bf_Icost),costInit);                    
                 }
 
                 const ushort pIdCost = p.ID_Bf_Icost;
-                p.ID_Bf_Icost       += min(dZ - z,WARPSIZE);
-                z                   += min(WARPSIZE,NAPPEMAX-pIdCost);
+                p.ID_Bf_Icost       += min(dZ - z           , WARPSIZE);
+                z                   += min(NAPPEMAX-pIdCost , WARPSIZE);
             }
 
             p.prev_Dz = index;
