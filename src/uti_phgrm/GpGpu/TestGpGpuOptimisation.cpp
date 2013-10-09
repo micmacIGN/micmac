@@ -13,8 +13,8 @@ int main()
     // Declaration des variables du cote du DEVICE
     DEVC_Data2Opti d2O;
 
-    uint nbLines    = 1;
-    uint lLines     = 2;
+    uint nbLines    = 100;
+    uint lLines     = 500;
     uint depth      = NAPPEMAX;
 
     short2 dZ   = make_short2(-depth/2,depth/2);
@@ -28,36 +28,20 @@ int main()
     uint pit_Strm_DZ    = WARPSIZE;
     uint pit_Strm_ICost = NAPPEMAX;
 
+    CuHostData3D<ushort> tabZ(nbLines,lLines,2);
 
-
-//    low__Z.SetName("low__Z");
-
-//    low__Z.ReallocIf(make_uint2(nbLines,lLines),(uint)1);
-
-//    low__Z.FillRandom(0,depth);
-//    hightZ.FillRandom(0,depth);
-
-//    ushort mod = abs((float)max - (float)min);
-//    int rdVal  = rand()%((int)mod);
-//    double dRdVal = (float)rand() / std::numeric_limits<int>::max();
-//    int = min + rdVal + (T)dRdVal;
-
+    tabZ.FillRandom(0,depth/2);
 
     for (uint p= 0 ; p < nbLines; p++)
     {
-        uint lenghtLine = lLines;
 
-        h2O.SetParamLine(p,pit_Strm_ICost,pit_Strm_DZ,lenghtLine);
+        h2O.SetParamLine(p,pit_Strm_ICost,pit_Strm_DZ,lLines);
 
-        uint sizeStreamLine = lLines * depth;
-        for (uint aK= 0 ; aK < lLines; aK++)
-        {
+        uint sizeStreamLine = 0; // lLines * depth;
+        for (uint aK= 0 ; aK < lLines; aK++)      
+            sizeStreamLine += count(make_short2(-tabZ[make_uint3(p,aK,0)],tabZ[make_uint3(p,aK,1)]));
 
-        }
-
-
-
-        pit_Strm_DZ     += iDivUp(lenghtLine,       WARPSIZE) * WARPSIZE;
+        pit_Strm_DZ     += iDivUp(lLines,       WARPSIZE) * WARPSIZE;
         pit_Strm_ICost  += iDivUp(sizeStreamLine,   WARPSIZE) * WARPSIZE;
     }
 
@@ -70,15 +54,19 @@ int main()
         uint    pitStrm = 0;
 
         for (uint aK= 0 ; aK < lLines; aK++)
+
         {
-            h2O._s_Index[h2O._param[0][idLine].y + aK ] = dZ;
+            short2 lDZ      = make_short2(-tabZ[make_uint3(idLine,aK,0)],tabZ[make_uint3(idLine,aK,1)]);
+            ushort lDepth   = count(lDZ);
 
-            uint idStrm = h2O._param[0][idLine].x + pitStrm - dZ.x;
+            h2O._s_Index[h2O._param[0][idLine].y + aK ] = lDZ;
 
-            for ( int aPx = dZ.x ; aPx < dZ.y; aPx++)
-                h2O._s_InitCostVol[idStrm + aPx]  = 10000 * (idLine + 1) + (aK+1) * 1000 + aPx - dZ.x + 1;
+            uint idStrm = h2O._param[0][idLine].x + pitStrm - lDZ.x;
 
-            pitStrm += depth;
+            for ( int aPx = lDZ.x ; aPx < lDZ.y; aPx++)
+                h2O._s_InitCostVol[idStrm + aPx]  = 10000 * (idLine + 1) + (aK+1) * 1000 + aPx - lDZ.x + 1;
+
+            pitStrm += lDepth;
         }
     }
 
@@ -118,9 +106,12 @@ int main()
 
             for ( int aPx = dZ.x ; aPx < dZ.y; aPx++)
                 if( h2O._s_InitCostVol[idStrm + aPx]  != h2O._s_ForceCostVol[0][idStrm + aPx])
+                {
+                    printf(" %d ",h2O._s_InitCostVol[idStrm + aPx]);
                     errorCount++;
+                }
 
-            pitStrm += depth;
+            pitStrm += count(dZ);
         }
     }
 
