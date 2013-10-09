@@ -376,7 +376,7 @@ TPL_T void CuHostData3D<T>::init(bool pgLockMem, uint2 dim, uint l)
 {
     CGObject::SetType("CuHostData3D");
     _pgLockMem = pgLockMem;
-    CData3D<T>::bInit(dim,l);
+    CData3D<T>::bInit(dim,l); // ATTENTION PROBLEME : Pure virtual method called
 }
 
 TPL_T bool CuHostData3D<T>::Memset( int val )
