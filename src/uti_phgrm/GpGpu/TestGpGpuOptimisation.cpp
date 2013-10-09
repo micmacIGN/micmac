@@ -1,5 +1,5 @@
-#include "GpGpu/GpGpu_InterOptimisation.h"
 
+#include "GpGpu/GpGpu_InterOptimisation.h"
 #include "GpGpu/SData2Optimize.h"
 
 extern "C" void TestOptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O);
@@ -13,8 +13,8 @@ int main()
     // Declaration des variables du cote du DEVICE
     DEVC_Data2Opti d2O;
 
-    uint nbLines    = 16;
-    uint lLines     = 312;
+    uint nbLines    = 1;
+    uint lLines     = 2;
     uint depth      = NAPPEMAX;
 
     short2 dZ   = make_short2(-depth/2,depth/2);
@@ -28,7 +28,20 @@ int main()
     uint pit_Strm_DZ    = WARPSIZE;
     uint pit_Strm_ICost = NAPPEMAX;
 
-    // param
+
+
+//    low__Z.SetName("low__Z");
+
+//    low__Z.ReallocIf(make_uint2(nbLines,lLines),(uint)1);
+
+//    low__Z.FillRandom(0,depth);
+//    hightZ.FillRandom(0,depth);
+
+//    ushort mod = abs((float)max - (float)min);
+//    int rdVal  = rand()%((int)mod);
+//    double dRdVal = (float)rand() / std::numeric_limits<int>::max();
+//    int = min + rdVal + (T)dRdVal;
+
 
     for (uint p= 0 ; p < nbLines; p++)
     {
@@ -37,6 +50,12 @@ int main()
         h2O.SetParamLine(p,pit_Strm_ICost,pit_Strm_DZ,lenghtLine);
 
         uint sizeStreamLine = lLines * depth;
+        for (uint aK= 0 ; aK < lLines; aK++)
+        {
+
+        }
+
+
 
         pit_Strm_DZ     += iDivUp(lenghtLine,       WARPSIZE) * WARPSIZE;
         pit_Strm_ICost  += iDivUp(sizeStreamLine,   WARPSIZE) * WARPSIZE;
