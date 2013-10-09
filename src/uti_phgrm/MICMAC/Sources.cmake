@@ -41,6 +41,7 @@ set(uti_phgrm_MICMAC_Src_Files
 #    ${UTI_PHGRM_MICMAC_DIR}/GenParamMICMAC.cpp
 #    ${UTI_PHGRM_MICMAC_DIR}/GrilleXml2Bin.cpp
     ${UTI_PHGRM_MICMAC_DIR}/Jp2ImageLoader.cpp
+    ${UTI_PHGRM_MICMAC_DIR}/IgnSocleImageLoader.cpp
 #    ${UTI_PHGRM_MICMAC_DIR}/Ori-cAppliMICMAC_GPU.cpp
     ${UTI_PHGRM_MICMAC_DIR}/OrthoLocAnam.cpp
     ${UTI_PHGRM_MICMAC_DIR}/PartiesCachees.cpp

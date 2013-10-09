@@ -40,6 +40,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #if __USE_JP2__
 #include "Jp2ImageLoader.h"
 #endif
+#if __USE_IMAGEIGN__
+#include "IgnSocleImageLoader.h"
+#endif
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 namespace NS_ParamMICMAC
 {
@@ -645,7 +648,8 @@ cInterfModuleImageLoader * cAppliMICMAC::GetMIL
  cInterfModuleImageLoader * aRes = 0;
  if ( ! aMIL.IsInit())
  {
-#ifdef __USE_JP2__
+#if defined (__USE_JP2__)
+	 std::cout<<"JP2 avec Jp2ImageLoader"<<std::endl;
 	// on teste l'extension
 	int placePoint = -1;
 	for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
@@ -665,14 +669,20 @@ cInterfModuleImageLoader * cAppliMICMAC::GetMIL
 	{
 		aRes = new JP2ImageLoader(DirImagesInit()+aName);
 	}
-	else aRes = new cStdTiffModuleImageLoader(*this,aName);
+	else 
+	{
+		aRes = new cStdTiffModuleImageLoader(*this,aName);
+	}
+#elif defined (__USE_IMAGEIGN__)
+	 std::cout<<"images avec IgnSocleImageLoader"<<std::endl;
+	 aRes = new IgnSocleImageLoader(DirImagesInit()+aName);
 #else
+	 std::cout<<"images avec IgnSocleImageLoader"<<std::endl;
     aRes = new cStdTiffModuleImageLoader(*this,aName);
 #endif
  }
  else
  {
-
      cLibDynAllocator<cInterfModuleImageLoader> 
           mAlloc
           (
