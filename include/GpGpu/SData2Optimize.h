@@ -3,12 +3,6 @@
 
 #include "GpGpu/GpGpu_Data.h"
 
-struct SDepth
-{
-    CuHostData3D<uint> low__Z;
-    CuHostData3D<uint> hightZ;
-};
-
 template<class T >
 struct  buffer
 {
