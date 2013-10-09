@@ -8,19 +8,18 @@ int main()
 {
     cout << "Launch Data optimisation GpGpu ***" << endl;
 
+    srand (time(NULL));
+
     // Declaration des variables du cote du HOST
     HOST_Data2Opti h2O;
     // Declaration des variables du cote du DEVICE
     DEVC_Data2Opti d2O;
 
-    uint nbLines    = 100;
-    uint lLines     = 500;
-    uint depth      = NAPPEMAX;
+    uint nbLines        = rand() % 100 + 10;
+    uint lenghtMaxLines = 100;
+    uint depthMax       = NAPPEMAX;
 
-    short2 dZ   = make_short2(-depth/2,depth/2);
-    depth       = count(dZ);
-
-    uint sizeMaxLine = (uint)(1.5f*sqrt((float)lLines * lLines + nbLines * nbLines));
+    uint sizeMaxLine = (uint)(1.5f*sqrt((float)lenghtMaxLines * lenghtMaxLines + nbLines * nbLines));
 
     h2O.ReallocParam(sizeMaxLine);
     d2O.ReallocParam(sizeMaxLine);
@@ -28,20 +27,22 @@ int main()
     uint pit_Strm_DZ    = WARPSIZE;
     uint pit_Strm_ICost = NAPPEMAX;
 
-    CuHostData3D<ushort> tabZ(nbLines,lLines,2);
+    CuHostData3D<ushort> tabZ(nbLines,lenghtMaxLines,2);
+    CuHostData3D<ushort> lenghtLines(nbLines);
 
-    tabZ.FillRandom(0,depth/2);
+    tabZ.FillRandom(0,depthMax/2);
+    lenghtLines.FillRandom(2,lenghtMaxLines);
 
     for (uint p= 0 ; p < nbLines; p++)
     {
 
-        h2O.SetParamLine(p,pit_Strm_ICost,pit_Strm_DZ,lLines);
+        h2O.SetParamLine(p,pit_Strm_ICost,pit_Strm_DZ,lenghtLines[p]);
 
-        uint sizeStreamLine = 0; // lLines * depth;
-        for (uint aK= 0 ; aK < lLines; aK++)      
+        uint sizeStreamLine = 0;
+        for (uint aK= 0 ; aK < lenghtLines[p]; aK++)
             sizeStreamLine += count(make_short2(-tabZ[make_uint3(p,aK,0)],tabZ[make_uint3(p,aK,1)]));
 
-        pit_Strm_DZ     += iDivUp(lLines,       WARPSIZE) * WARPSIZE;
+        pit_Strm_DZ     += iDivUp(lenghtLines[p],       WARPSIZE) * WARPSIZE;
         pit_Strm_ICost  += iDivUp(sizeStreamLine,   WARPSIZE) * WARPSIZE;
     }
 
@@ -53,7 +54,7 @@ int main()
     {
         uint    pitStrm = 0;
 
-        for (uint aK= 0 ; aK < lLines; aK++)
+        for (uint aK= 0 ; aK < lenghtLines[idLine]; aK++)
 
         {
             short2 lDZ      = make_short2(-tabZ[make_uint3(idLine,aK,0)],tabZ[make_uint3(idLine,aK,1)]);
@@ -98,7 +99,7 @@ int main()
     {
         uint    pitStrm = 0;
 
-        for (uint aK= 0 ; aK < lLines; aK++)
+        for (uint aK= 0 ; aK < lenghtLines[idLine]; aK++)
         {
             short2 dZ = h2O._s_Index[h2O._param[0][idLine].y + aK ];
 
