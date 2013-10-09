@@ -55,9 +55,9 @@ protected:
     /// \brief      Init le pointeur des donnees
     void            SetPData(T *p){ _data = p;}
 
-    virtual bool    abDealloc() = 0;
+    virtual bool    abDealloc(){ return false;}
 
-    virtual bool    abMalloc()  = 0;
+    virtual bool    abMalloc(){ return false;}
 
     virtual uint    Sizeof(){return 0;}
 
@@ -360,9 +360,9 @@ public:
 
 protected:
 
-    bool    abDealloc() ;
+    virtual bool    abDealloc() ;
 
-    bool    abMalloc();
+    virtual bool    abMalloc();
 
 private:
 
