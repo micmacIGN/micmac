@@ -314,7 +314,8 @@ protected:
 
     QPointF ImageToWindow(const QPointF &im);
 
-    QPointF     _m_lastPosImg;
+    QPointF     m_lastPosImg;
+    QPointF     m_lastPosWin;
 
 private:
 
