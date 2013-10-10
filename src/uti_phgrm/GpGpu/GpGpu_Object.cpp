@@ -12,7 +12,10 @@ void CGObject::SetName( std::string name )
 
 void CGObject::SetName(string name, int id)
 {
-    SetName(GpGpuTools::conca(name.c_str(),id));
+    if(!name.size())
+        SetName(GpGpuTools::conca(name.c_str(),id));
+    else
+        SetName("NO_NAME");
 }
 
 std::string CGObject::Type()

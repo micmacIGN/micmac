@@ -239,18 +239,15 @@ void ReadLine(
                     p.ID_Bf_Icost = 0;
                 }
 
-                const ushort costInit   = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
-                const ushort tZ         = z + (sens ? p.tid : (WARPSIZE - p.tid));
-
-                if( tZ <= NAPPEMAX)
+                if(z + (sens ? p.tid : WARPSIZE - p.tid - 1)< dZ) // peut etre eviter en ajoutant une zone tampon
                 {
-                    S_FCost[!p.Id_Buf][sgn(tZ)] = costInit;
-                    streamFCost.SetValue(sgn(p.ID_Bf_Icost),costInit);
+                    const ushort costInit  = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
+                    streamFCost.SetValue(sgn(p.ID_Bf_Icost),costInit);                    
                 }
 
                 const ushort pIdCost = p.ID_Bf_Icost;
-                p.ID_Bf_Icost       += min(dZ - z,WARPSIZE);
-                z                   += min(WARPSIZE,NAPPEMAX-pIdCost);
+                p.ID_Bf_Icost       += min(dZ - z           , WARPSIZE);
+                z                   += min(NAPPEMAX-pIdCost , WARPSIZE);
             }
 
             p.prev_Dz = index;
@@ -292,6 +289,8 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
 
     __syncthreads();
 
+    //CUDA_DUMP_INT(pit_Stream)
+
     p.line.lenght   = g_RecStrParam[blockIdx.x].z;
     p.seg.lenght    = min(p.line.LOver(),WARPSIZE);
 
@@ -313,6 +312,8 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
 
     ReadLine<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,p);
 
+    //p.ouput();
+
     streamIndex.reverse<eARRIERE>();
     streamIndex.incre<eARRIERE>();
 
@@ -329,38 +330,33 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
 
     p.seg.id        = p.seg.lenght - 1;
     p.prev_Dz       = S_BuffIndex[p.seg.id];
-    p.seg.id        = WARPSIZE - p.seg.id;
+    p.seg.id        = WARPSIZE  - p.seg.id;
     p.seg.lenght    = WARPSIZE;
     p.line.id       = 0;
     p.format();
-    p.ID_Bf_Icost   = NAPPEMAX;
 
+//    CUDA_DUMP_INT(p.ID_Bf_Icost);
+//    CUDA_DUMP_INT(count(p.prev_Dz));
+
+    p.ID_Bf_Icost   = NAPPEMAX - p.ID_Bf_Icost + count(p.prev_Dz) ;
+
+    if(p.ID_Bf_Icost > NAPPEMAX)
+    {
+        p.ID_Bf_Icost -= NAPPEMAX;
+        streamICost.read<eARRIERE>(S_BuffICost);
+        streamFCost.incre<eARRIERE>();
+    }
+
+    //p.ouput();
 
     ReadLine<eARRIERE>( streamIndex,
                         streamFCost,
                         streamICost,
                         S_BuffIndex + WARPSIZE - 1,
                         S_BuffICost,
-                        S_BuffFCost,                       
+                        S_BuffFCost,
                         p);
 
-}
-
-extern "C" void OptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O)
-{
-    uint deltaMax = 3;
-    dim3 Threads(WARPSIZE,1,1);
-    dim3 Blocks(d2O.NBlines(),1,1);
-
-    Run< uint ><<<Blocks,Threads>>>
-                                  (
-                                      d2O.pInitCost(),
-                                      d2O.pIndex(),
-                                      d2O.pForceCostVol(),
-                                      d2O.pParam(),
-                                      deltaMax
-                                      );
-    getLastCudaError("kernelOptiOneDirection failed");
 }
 
 extern "C" void TestOptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O)
@@ -378,6 +374,23 @@ extern "C" void TestOptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O)
                                       deltaMax
                                       );
     getLastCudaError("TestkernelOptiOneDirection failed");
+}
+
+extern "C" void OptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O)
+{
+    uint deltaMax = 3;
+    dim3 Threads(WARPSIZE,1,1);
+    dim3 Blocks(d2O.NBlines(),1,1);
+
+    Run< uint ><<<Blocks,Threads>>>
+                                  (
+                                      d2O.pInitCost(),
+                                      d2O.pIndex(),
+                                      d2O.pForceCostVol(),
+                                      d2O.pParam(),
+                                      deltaMax
+                                      );
+    getLastCudaError("kernelOptiOneDirection failed");
 }
 
 #endif //_OPTIMISATION_KERNEL_Z_H_
