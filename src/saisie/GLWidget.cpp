@@ -1,8 +1,8 @@
 #include "GLWidget.h"
 
 //Min and max zoom ratio (relative)
-const float GL_MAX_ZOOM_RATIO = 1.0e6f;
-const float GL_MIN_ZOOM_RATIO = 1.0e-6f;
+const float GL_MAX_ZOOM = 50.f;
+const float GL_MIN_ZOOM = 0.01f;
 
 //invalid GL list index
 const GLuint GL_INVALID_LIST_ID = (~0);
@@ -30,10 +30,10 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_nbGLLists(0)
   , m_params(ViewportParameters())
   , m_Data(data)
-  , m_speed(2.5f)
+  , m_speed(0.4f)
   , m_bDisplayMode2D(false)
   , m_Click(0)
-  , m_radius(2500)
+  , m_sqr_radius(2500.f)
   , m_vertexbuffer(QGLBuffer::VertexBuffer)
   , _frameCount(0)
   , _previousTime(0)
@@ -63,6 +63,9 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
     _glViewport = new GLint[4];
 
     m_font.setPointSize(10);
+
+     installEventFilter(this);
+     setMouseTracking(true);
 }
 
 GLWidget::~GLWidget()
@@ -86,26 +89,32 @@ GLWidget::~GLWidget()
 
 bool GLWidget::eventFilter(QObject* object,QEvent* event)
 {
+    QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+
     if(event->type() == QEvent::MouseMove)
     {
-        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
-        m_lastPos = mouseEvent->pos();
+        //if (mouseEvent->x()<0 || mouseEvent->y()<0 || mouseEvent->x()>width() || mouseEvent->y()>height())
+        //    return false;
 
-        update();
+        QPointF pos = mouseEvent->localPos();
+        if (m_bDisplayMode2D)
+        {
+            pos = WindowToImage(mouseEvent->localPos());
+            _m_lastPosImg = pos;
+            update();
+        }
 
-        if (m_interactionMode == SELECTION)
+        if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
         {
             if(!m_bPolyIsClosed)
             {
                 int sz = m_polygon.size();
 
-                if (sz == 0)
-                    return false;
-                else if (sz == 1)
-                    m_polygon.push_back(m_lastPos);
-                else
+                if (sz == 1)
+                    m_polygon.push_back(pos);
+                else if (sz > 1)
                     //replace last point by the current one
-                    m_polygon[sz-1] = m_lastPos;
+                    m_polygon[sz-1] = pos;
             }
             else
             {
@@ -114,7 +123,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                     QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
                     if (keyEvent->modifiers().testFlag(Qt::ShiftModifier))
                     {
-                        fillPolygon2();
+                        fillPolygon2(pos);
                     }
                     else
                     {
@@ -124,7 +133,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                             if ((_idx >0 ) && (_idx < m_polygon.size()-1))
                             {
                                 m_polygon2.push_back(m_polygon[_idx-1]);
-                                m_polygon2.push_back(m_lastPos);
+                                m_polygon2.push_back(pos);
                                 m_polygon2.push_back(m_polygon[_idx+1]);
                             }
                             else
@@ -132,31 +141,195 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                                 if (_idx == 0)
                                 {
                                     m_polygon2.push_back(m_polygon[m_polygon.size()-1]);
-                                    m_polygon2.push_back(m_lastPos);
+                                    m_polygon2.push_back(pos);
                                     m_polygon2.push_back(m_polygon[1]);
                                 }
                                 if (_idx == m_polygon.size()-1)
                                 {
                                     m_polygon2.push_back(m_polygon[m_polygon.size()-2]);
-                                    m_polygon2.push_back(m_lastPos);
+                                    m_polygon2.push_back(pos);
                                     m_polygon2.push_back(m_polygon[0]);
                                 }
                             }
                         }
                         else
-                        {
-                            findClosestPoint();
-                        }
+                            findClosestPoint(pos, m_sqr_radius);
                     }
                 }
             }
-
-            update();
-
         }
 
+        if (m_bDisplayMode2D || (m_interactionMode == TRANSFORM_CAMERA))
+        {
+            QPointF dp = pos - m_lastPos;
+
+            if ( _m_g_mouseLeftDown ) // rotation autour de X et Y
+            {
+                float d_angleX = m_speed * dp.y() / (float) _glViewport[3];
+                float d_angleY = m_speed * dp.x() / (float) _glViewport[2];
+
+                m_params.angleX += d_angleX;
+                m_params.angleY += d_angleY;
+
+                setRotateOx_m33( d_angleX, _m_g_rotationOx );
+                setRotateOy_m33( d_angleY, _m_g_rotationOy );
+
+                mult_m33( _m_g_rotationOx, _m_g_rotationMatrix, _m_g_tmpoMatrix );
+                mult_m33( _m_g_rotationOy, _m_g_tmpoMatrix, _m_g_rotationMatrix );
+            }
+            else if ( _m_g_mouseMiddleDown )
+            {
+                if (mouseEvent->modifiers() & Qt::ShiftModifier) // zoom
+                {
+                    _m_lastPosZoom = mouseEvent->pos();
+
+                    float dy = (_m_lastPosZoom.y() - ImageToWindow(m_lastPos).y())*0.002f;
+
+                    if (dy > 0.f) m_params.zoom *= pow(2.f, dy);
+                    else  m_params.zoom /= pow(2.f, -dy);
+
+                    if (m_params.zoom < GL_MIN_ZOOM) m_params.zoom = GL_MIN_ZOOM;
+                    else if (m_params.zoom > GL_MAX_ZOOM) m_params.zoom = GL_MAX_ZOOM;
+                }
+                else if((_glViewport[2]!=0) || (_glViewport[3]!=0)) // translation
+                {
+                    if (m_Data->NbImages())
+                    {
+                        m_glPosition[0] += 2.0f * dp.x()/_glViewport[2];
+                        m_glPosition[1] += 2.0f * dp.y()/_glViewport[3];
+                    }
+                    else
+                    {
+                        m_bObjectCenteredView = false;
+                        m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/_glViewport[2];
+                        m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/_glViewport[3];
+                    }
+                }
+            }
+            else if ( _m_g_mouseRightDown ) // rotation autour de Z
+            {
+                float d_angleZ =  m_speed * dp.x() / (float) _glViewport[2];
+
+                m_params.angleZ += d_angleZ;
+
+                setRotateOz_m33( d_angleZ, _m_g_rotationOz );
+
+                mult_m33( _m_g_rotationOz, _m_g_rotationMatrix, _m_g_tmpoMatrix );
+
+                for (int i = 0; i < 9; ++i) _m_g_rotationMatrix[i] = _m_g_tmpoMatrix[i];
+            }
+        }
+
+        update();
         return true;
     }  
+    else if (event->type() == QEvent::MouseButtonPress)
+    {
+       if (m_bDisplayMode2D)
+           m_lastPos = WindowToImage(mouseEvent->pos());
+       else
+           m_lastPos = mouseEvent->pos();
+
+       if ( mouseEvent->button() == Qt::LeftButton )
+       {
+           _m_g_mouseLeftDown = true;
+
+           if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
+           {
+               if (m_Data->NbImages()||m_Data->NbClouds()||m_Data->NbCameras())
+               {
+                   if (!m_bPolyIsClosed)
+                   {
+                       if (m_polygon.size() >= 1)
+                           m_polygon[m_polygon.size()-1] = m_lastPos;
+
+                       m_polygon.push_back(m_lastPos);
+                   }
+                   else
+                   {
+                       if (mouseEvent->modifiers().testFlag(Qt::ShiftModifier))
+                       {
+                           if ((m_polygon.size() >=2) && m_polygon2.size() && m_bPolyIsClosed)
+                           {
+                               // modify polygon...
+                               int idx = -1;
+
+                               for (int i=0;i<m_polygon.size();++i)
+                               {
+                                   if (m_polygon[i] == m_polygon2[0]) idx = i;
+                               }
+
+                               if (idx >=0) m_polygon.insert(idx+1, m_polygon2[1]);
+                           }
+
+                           m_polygon2.clear();
+                           update();
+                       }
+                       else if (_idx != -1)
+                           m_Click++;
+                   }
+               }
+           }
+       }
+       else if (mouseEvent->button() == Qt::RightButton)
+       {
+           //if (m_interactionMode == TRANSFORM_CAMERA)
+               _m_g_mouseRightDown = true;
+           //else
+           if ((_idx >=0)&&(_idx<m_polygon.size())&&m_bPolyIsClosed)
+           {
+               m_polygon.remove(_idx);
+
+               findClosestPoint(m_lastPos, m_sqr_radius);
+
+               if (m_polygon.size() < 2) m_bPolyIsClosed = false;
+           }
+           else
+           {
+               closePolyline();
+           }
+       }
+       else if (mouseEvent->button() == Qt::MiddleButton)
+       {
+
+           if (m_bDisplayMode2D || (m_interactionMode == TRANSFORM_CAMERA))
+               _m_g_mouseMiddleDown = true;
+       }
+       update();
+       return true;
+    }
+    else if (event->type() == QEvent::MouseButtonRelease)
+    {
+        if ( mouseEvent->button() == Qt::LeftButton )
+        {
+            _m_g_mouseLeftDown = false;
+
+            if ((m_Click >=1) &&(_idx>=0)&&m_polygon2.size())
+            {
+                m_polygon[_idx] = m_polygon2[1];
+
+                m_polygon2.clear();
+                m_Click = 0;
+            }
+
+            if ((m_Click >=1)&& m_bPolyIsClosed)
+            {
+                findClosestPoint(m_lastPos, m_sqr_radius);
+            }
+        }
+        if ( mouseEvent->button() == Qt::RightButton  )
+        {
+            _m_g_mouseRightDown = false;
+        }
+        if ( mouseEvent->button() == Qt::MiddleButton  )
+        {
+            _m_g_mouseMiddleDown = false;
+        }
+
+        update();
+
+        return true;
+    }
     else
     {
           return QObject::eventFilter(object,event);
@@ -322,8 +495,8 @@ void GLWidget::paintGL()
         glDisable(GL_ALPHA_TEST);
         glDisable(GL_DEPTH_TEST);
 
-        GLfloat glw = 2*m_rw;
-        GLfloat glh = 2*m_rh;
+        GLfloat glw = 2.f*m_rw;
+        GLfloat glh = 2.f*m_rh;
 
         glPushMatrix();
         glMultMatrixd(_projmatrix);
@@ -333,7 +506,7 @@ void GLWidget::paintGL()
             GLint recal;
             GLdouble wx, wy, wz;
 
-            recal = _glViewport[3] - (GLint) _m_lastPosZoom.y()- 1;
+            recal = _glViewport[3] - (GLint) _m_lastPosZoom.y()- 1.f;
 
             gluUnProject ((GLdouble) _m_lastPosZoom.x(), (GLdouble) recal, 1.0,
                           _mvmatrix, _projmatrix, _glViewport, &wx, &wy, &wz);
@@ -353,7 +526,6 @@ void GLWidget::paintGL()
 
         if(_mask != NULL && !_m_g_mouseMiddleDown)
         {
-
             drawQuad(0,0,glh,glw,m_textureMask );
             glBlendFunc(GL_ONE,GL_ONE);
 
@@ -373,21 +545,16 @@ void GLWidget::paintGL()
         //Affichage du zoom et des coordonnées image
         if (m_bDrawMessages)
         {
-            QPointF ptImg = WindowToImage(m_lastPos);
-
             glColor3f(1.f,1.f,1.f);
 
             renderText(10, _glViewport[3] - m_font.pointSize(), QString::number(m_params.zoom*100,'f',1) + "%", m_font);
 
-            if  ((m_interactionMode == SELECTION)&&(ptImg.x()>=0)&&(ptImg.y()>=0)&&(ptImg.x()<_glImg.width())&&(ptImg.y()<_glImg.height()))
-                renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(ptImg.x(),'f',1) + ", " + QString::number(_glImg.height()-ptImg.y(),'f',1) + " px", m_font);
-
+            if  ((_m_lastPosImg.x()>=0)&&(_m_lastPosImg.y()>=0)&&(_m_lastPosImg.x()<_glImg.width())&&(_m_lastPosImg.y()<_glImg.height()))
+                renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(_m_lastPosImg.x(),'f',1) + ", " + QString::number(_glImg.height()-_m_lastPosImg.y(),'f',1) + " px", m_font);
         }
     }
     else
     {
-
-
         zoom();
 
         static GLfloat trans44[16], rot44[16], tmp[16];
@@ -443,8 +610,8 @@ void GLWidget::paintGL()
         }
     }
 
-    if (m_interactionMode == SELECTION)
-    {
+     if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
+     {
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glOrtho(0,_glViewport[2],_glViewport[3],0,-1,1);
@@ -517,120 +684,6 @@ void GLWidget::paintGL()
     }
 }
 
-void GLWidget::mousePressEvent(QMouseEvent *event)
-{
-    m_lastPos = event->pos();
-
-    if ( event->button() == Qt::LeftButton )
-    {
-        _m_g_mouseLeftDown = true;
-
-        if (m_interactionMode == SELECTION)
-        {
-            if (m_Data->NbImages()||m_Data->NbClouds()||m_Data->NbCameras())
-            {
-                if (!m_bPolyIsClosed)
-                {
-                    if (m_polygon.size() < 1)
-                        m_polygon.push_back(m_lastPos);
-                    else
-                    {
-                        m_polygon[m_polygon.size()-1] = m_lastPos;
-                        m_polygon.push_back(m_lastPos);
-                    }
-                }
-                else
-                {
-                    if (event->modifiers().testFlag(Qt::ShiftModifier))
-                    {
-                        if ((m_polygon.size() >=2) && m_polygon2.size() && m_bPolyIsClosed)
-                        {
-                            // modify polygon...
-                            int idx = -1;
-
-                            for (int i=0;i<m_polygon.size();++i)
-                            {
-                                if (m_polygon[i] == m_polygon2[0]) idx = i;
-                            }
-
-                            if (idx >=0) m_polygon.insert(idx+1, m_polygon2[1]);
-                        }
-
-                        m_polygon2.clear();
-                        update();
-                    }
-                    else if (_idx != -1)
-                        m_Click++;
-                }
-            }
-        }
-    }
-    else if (event->button() == Qt::RightButton)
-    {
-        if (m_interactionMode == TRANSFORM_CAMERA)
-            _m_g_mouseRightDown = true;
-        else if ((_idx >=0)&&(_idx<m_polygon.size()))
-        {
-            m_polygon.remove(_idx);
-
-            findClosestPoint();
-
-            if (m_polygon.size() < 2) m_bPolyIsClosed = false;
-
-            update();
-        }
-        else
-        {
-            closePolyline();
-            update();
-        }
-    }
-    else if (event->button() == Qt::MiddleButton)
-    {
-
-        if (m_interactionMode == TRANSFORM_CAMERA)
-            _m_g_mouseMiddleDown = true;
-
-        _m_lastPosZoom = m_lastPos;
-        update();
-    }
-}
-
-void GLWidget::mouseReleaseEvent(QMouseEvent *event)
-{
-    if ( event->button() == Qt::LeftButton )
-    {
-        _m_g_mouseLeftDown = false;
-
-        if ((m_Click >=1) &&(_idx>=0)&&m_polygon2.size())
-        {
-            m_polygon[_idx] = m_polygon2[1];
-
-            m_polygon2.clear();
-            m_Click = 0;
-
-            update();
-        }
-
-        if ((m_Click >=1))
-        {
-            findClosestPoint();
-
-            update();
-        }
-
-    }
-    if ( event->button() == Qt::RightButton  )
-    {
-        _m_g_mouseRightDown = false;
-    }
-    if ( event->button() == Qt::MiddleButton  )
-    {
-        _m_g_mouseMiddleDown = false;
-        update();
-    }
-}
-
 void GLWidget::keyPressEvent(QKeyEvent* event)
 {
     if(event->modifiers().testFlag(Qt::ControlModifier))
@@ -682,15 +735,8 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
     if  (event->key() == Qt::Key_Shift)
     {
         m_polygon2.clear();
-    }
-
-    if  (event->key() == Qt::Key_Control)
-    {
-        m_polygon2.clear();
         m_Click = 0;
     }
-
-     findClosestPoint();
 }
 
 void GLWidget::setBufferGl(bool onlyColor)
@@ -806,15 +852,17 @@ void GLWidget::setData(cData *data)
            glGenTextures(1, &m_textureMask );
 
         _mask = new QImage(_glImg.size(),_glImg.format());
-        if ((*m_Data->getCurMask()).isNull())
-        {
-            QGLWidget::convertToGLFormat(*_mask);
-            _mask->fill(Qt::white);
-        }
-        else
+
+        if (m_Data->NbMasks())
         {
             *_mask = QGLWidget::convertToGLFormat( *m_Data->getCurMask() );
             m_bFirstAction = false;
+        }
+        else
+        {
+            QGLWidget::convertToGLFormat(*_mask);
+            _mask->fill(Qt::white);
+            m_bFirstAction = true;
         }
 
         ImageToTexture(m_textureMask, _mask);
@@ -914,16 +962,12 @@ void GLWidget::drawGradientBackground()
     glEnd();
 }
 
-void GLWidget::drawPolygon()
+void GLWidget::drawPolygon(QVector < QPointF> const &aPoly)
 {
-    glColor3f(.1f,1.f,.2f);
-
-    glLineWidth(1.0f);
-
     glBegin(m_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
-    for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
+    for (int aK = 0;aK < (int) aPoly.size(); ++aK)
     {
-        glVertex2f(m_polygon[aK].x(), m_polygon[aK].y());
+        glVertex2f(aPoly[aK].x(), aPoly[aK].y());
     }
     glEnd();
 
@@ -932,20 +976,60 @@ void GLWidget::drawPolygon()
     if (_idx >=0)
     {
         for (int aK = 0;aK < _idx; ++aK)
-            glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
+            glDrawUnitCircle(2, aPoly[aK].x(), aPoly[aK].y(), 3.0, 8);
 
         glColor3f(0.f,0.f,1.f);
-        glDrawUnitCircle(2, m_polygon[_idx].x(), m_polygon[_idx].y(), 3.0, 8);
+        glDrawUnitCircle(2, aPoly[_idx].x(), aPoly[_idx].y(), 3.0, 8);
 
         glColor3f(1.f,0.f,0.f);
-        for (int aK = _idx+1;aK < (int) m_polygon.size(); ++aK)
-            glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
+        for (int aK = _idx+1;aK < (int) aPoly.size(); ++aK)
+            glDrawUnitCircle(2, aPoly[aK].x(), aPoly[aK].y(), 3.0, 8);
     }
     else
     {
-        for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
-           glDrawUnitCircle(2, m_polygon[aK].x(), m_polygon[aK].y(), 3.0, 8);
+        for (int aK = 0;aK < (int) aPoly.size(); ++aK)
+        {
+            glDrawUnitCircle(2, aPoly[aK].x(), aPoly[aK].y(), 3.0, 8);
+        }
     }
+}
+
+void GLWidget::drawPolygon()
+{
+    glColor3f(.1f,1.f,.2f);
+
+    glLineWidth(1.0f);
+
+    if (m_Data->NbImages())
+    {
+        QVector <QPointF> poly;
+        for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
+        {
+            poly.push_back(ImageToWindow(m_polygon[aK]));
+        }
+
+        drawPolygon(poly);
+    }
+    else
+    {
+        drawPolygon(m_polygon);
+    }
+}
+
+void GLWidget::drawPointAndSegments(const QVector<QPointF> &aPoly)
+{
+    glBegin(GL_LINE_STRIP);
+    for (int aK=0;aK < (int) aPoly.size(); ++aK)
+    {
+        glVertex2f(aPoly[aK].x(), aPoly[aK].y());
+    }
+    glEnd();
+
+    glDisable(GL_LINE_STIPPLE);
+
+    enableOptionLine();
+
+    glDrawUnitCircle(2, aPoly[1].x(), aPoly[1].y(), 3.0, 8);
 }
 
 void GLWidget::drawPointAndSegments()
@@ -963,18 +1047,18 @@ void GLWidget::drawPointAndSegments()
 
         glLineWidth(1.0f);
 
-        glBegin(GL_LINE_STRIP);
-        for (int aK=0;aK < (int) m_polygon2.size(); ++aK)
+        if (m_bDisplayMode2D)
         {
-            glVertex2f(m_polygon2[aK].x(), m_polygon2[aK].y());
+            QVector <QPointF> poly;
+            for (int aK = 0;aK < (int) m_polygon2.size(); ++aK)
+            {
+                poly.push_back(ImageToWindow(m_polygon2[aK]));
+            }
+
+            drawPointAndSegments(poly);
         }
-        glEnd();
-
-        glDisable(GL_LINE_STIPPLE);
-
-        enableOptionLine();
-
-        glDrawUnitCircle(2, m_polygon2[1].x(), m_polygon2[1].y(), 3.0, 8);
+        else
+            drawPointAndSegments(m_polygon2);
 
         disableOptionLine();
     }
@@ -997,20 +1081,42 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
 {
     m_interactionMode = mode;
 
-    switch (mode)
+    if(!m_bDisplayMode2D)
     {
-    case TRANSFORM_CAMERA:
-        setMouseTracking(false);
-        removeEventFilter(this);
-        break;
-    case SELECTION:
-        if(!m_Data->NbImages())
-            setProjectionMatrix();
-        installEventFilter(this);
-        setMouseTracking(true);
-        break;
-    default:
-        break;
+        switch (mode)
+        {
+            case TRANSFORM_CAMERA:
+            {
+                if (hasDataLoaded() && showMessages())
+                {
+                    clearPolyline();
+                    showMoveMessages();
+                }
+                showBall(true);
+
+                setMouseTracking(true);
+            }
+                break;
+            case SELECTION:
+            {
+                if(!m_Data->NbImages())
+                    setProjectionMatrix();
+
+                if (hasDataLoaded() && showMessages())
+                {
+                   showSelectionMessages();
+                }
+                showBall(false);
+                showCams(false);
+                showAxis(false);
+                showBBox(false);
+
+                setMouseTracking(true);
+            }
+                break;
+            default:
+                break;
+        }
     }
 }
 
@@ -1080,10 +1186,10 @@ void GLWidget::onWheelEvent(float wheelDelta_deg)
 
 void GLWidget::setZoom(float value)
 {
-    if (value < GL_MIN_ZOOM_RATIO)
-        value = GL_MIN_ZOOM_RATIO;
-    else if (value > GL_MAX_ZOOM_RATIO)
-        value = GL_MAX_ZOOM_RATIO;
+    if (value < GL_MIN_ZOOM)
+        value = GL_MIN_ZOOM;
+    else if (value > GL_MAX_ZOOM)
+        value = GL_MAX_ZOOM;
 
     m_params.zoom = value;   
 
@@ -1121,7 +1227,7 @@ void GLWidget::zoomFactor(int percent)
 
 void GLWidget::wheelEvent(QWheelEvent* event)
 {
-    if (m_interactionMode == SELECTION)
+    if ((m_interactionMode == SELECTION)&&(!m_bDisplayMode2D))
     {
         event->ignore();
         return;
@@ -1143,77 +1249,6 @@ void GLWidget::ImageToTexture(GLuint idTexture, QImage *image)
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
     glBindTexture( GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
-}
-
-void GLWidget::mouseMoveEvent(QMouseEvent *event)
-{
-    if (event->x()<0 || event->y()<0 || event->x()>width() || event->y()>height())
-        return;
-
-    QPoint pos = event->pos();
-
-    if (m_interactionMode == SELECTION)
-    {
-        findClosestPoint();
-        update();
-    }
-    else
-    {
-        QPoint dp = pos-m_lastPos;
-
-        if ( _m_g_mouseLeftDown ) // rotation autour de X et Y
-        {
-            float d_angleX = m_speed * dp.y() / (float) _glViewport[3];
-            float d_angleY = m_speed * dp.x() / (float) _glViewport[2];
-
-            m_params.angleX += d_angleX;
-            m_params.angleY += d_angleY;
-
-            setRotateOx_m33( d_angleX, _m_g_rotationOx );
-            setRotateOy_m33( d_angleY, _m_g_rotationOy );
-
-            mult_m33( _m_g_rotationOx, _m_g_rotationMatrix, _m_g_tmpoMatrix );
-            mult_m33( _m_g_rotationOy, _m_g_tmpoMatrix, _m_g_rotationMatrix );
-        }
-        else if ( _m_g_mouseMiddleDown )
-        {
-            if (event->modifiers() & Qt::ShiftModifier) // zoom
-            {
-                if (dp.y() > 0) m_params.zoom *= pow(2.f, dp.y() *.05f);
-                else if (dp.y() < 0) m_params.zoom /= pow(2.f, -dp.y() *.05f);
-            }
-            else if((_glViewport[2]!=0) || (_glViewport[3]!=0)) // translation
-            {
-                    if (m_Data->NbImages())
-                    {
-                        m_glPosition[0] += 2.0f*( (float)dp.x()/(_glViewport[2]*m_params.zoom) );
-                        m_glPosition[1] -= 2.0f*( (float)dp.y()/(_glViewport[3]*m_params.zoom) );
-                    }
-                    else
-                    {
-                        m_bObjectCenteredView = false;
-                        m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/_glViewport[2];
-                        m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/_glViewport[3];
-                    }
-            }
-        }
-        else if ( _m_g_mouseRightDown ) // rotation autour de Z
-        {
-            float d_angleZ =  m_speed * dp.x() / (float) _glViewport[2];
-
-            m_params.angleZ += d_angleZ;
-
-            setRotateOz_m33( d_angleZ, _m_g_rotationOz );
-
-            mult_m33( _m_g_rotationOz, _m_g_rotationMatrix, _m_g_tmpoMatrix );
-
-            for (int i = 0; i < 9; ++i) _m_g_rotationMatrix[i] = _m_g_tmpoMatrix[i];
-        }
-
-        update();
-    }
-
-    m_lastPos = pos;
 }
 
 void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
@@ -1318,14 +1353,24 @@ void GLWidget::getProjection(QPointF &P2D, Vertex P)
     P2D = QPointF(xp,yp);
 }
 
-QPointF GLWidget::WindowToImage(QPoint const &pt)
+QPointF GLWidget::WindowToImage(QPointF const &pt)
 {
     QPointF res;
 
-    res.setX(( (float)  pt.x()         - _glViewport[2]*.5f ) - _projmatrix[12]*_glViewport[2]*.5f);
-    res.setY(( (float) -pt.y()  -1.f   + _glViewport[3]*.5f ) - _projmatrix[13]*_glViewport[3]*.5f);
+    res.setX(( pt.x()         - _glViewport[2]*.5f ) - _projmatrix[12]*_glViewport[2]*.5f);
+    res.setY((-pt.y()  -1.f   + _glViewport[3]*.5f ) - _projmatrix[13]*_glViewport[3]*.5f);
 
     res /= m_params.zoom;
+
+    return res;
+}
+
+QPointF GLWidget::ImageToWindow(QPointF const &im)
+{
+    QPointF res;
+
+    res.setX(im.x()*m_params.zoom + _glViewport[2]*.5f + _projmatrix[12]*_glViewport[2]*.5f);
+    res.setY(- 1.f - im.y()*m_params.zoom + _glViewport[3]*.5f - _projmatrix[13]*_glViewport[3]*.5f);
 
     return res;
 }
@@ -1345,16 +1390,17 @@ void GLWidget::Select(int mode)
         {
             for (int aK=0; aK < (int) m_polygon.size(); ++aK)
             {
-                polyg.push_back(QPointF(m_polygon[aK].x(), _glViewport[3] - m_polygon[aK].y()));
+               polyg.push_back(QPointF(m_polygon[aK].x(), _glViewport[3] - m_polygon[aK].y()));
             }
         }
         else
         {
             for (int aK=0; aK < (int) m_polygon.size(); ++aK)
             {
-                polyg.push_back(WindowToImage(m_polygon[aK]));
+                polyg.push_back(m_polygon[aK]);
             }
         }
+
     }
 
     if (m_bDisplayMode2D)
@@ -1370,7 +1416,9 @@ void GLWidget::Select(int mode)
          if(mode == ADD)
          {
              if (m_bFirstAction)
+             {
                  p.fillRect(_mask->rect(), Qt::black);
+             }
              p.setBrush(SBrush);
              p.drawPolygon(polyg.data(),polyg.size());
          }
@@ -1786,7 +1834,7 @@ void GLWidget::showMessages(bool show)
 {
     m_bDrawMessages = show;
 
-    if (m_bDrawMessages)
+    if ((m_bDrawMessages)&&(!m_bDisplayMode2D))
     {
         if (m_interactionMode == TRANSFORM_CAMERA)
             showMoveMessages();
@@ -1843,14 +1891,16 @@ void GLWidget::applyGamma(float aGamma)
     QRgb  pixel;
     int r,g,b;
 
+    float _gamma = 1.f / aGamma;
+
     for(int i=0; i< _glImg.width();++i)
         for(int j=0; j<_glImg.height();++j)
         {
             pixel = _glImg.pixel(i,j);
 
-            r = 255*pow((float) qRed(pixel)  / 255.f, 1.f / aGamma);
-            g = 255*pow((float) qGreen(pixel)/ 255.f, 1.f / aGamma);
-            b = 255*pow((float) qBlue(pixel) / 255.f, 1.f / aGamma);
+            r = 255*pow((float) qRed(pixel)  / 255.f, _gamma);
+            g = 255*pow((float) qGreen(pixel)/ 255.f, _gamma);
+            b = 255*pow((float) qBlue(pixel) / 255.f, _gamma);
 
             if (r>255) r = 255;
             if (g>255) g = 255;
@@ -1860,38 +1910,38 @@ void GLWidget::applyGamma(float aGamma)
         }
 }
 
-float segmentDistToPoint(QPoint segA, QPoint segB, QPoint p)
+float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)
 {
-    QPoint p2(segB.x() - segA.x(), segB.y() - segA.y());
-    float nrm = (float)(p2.x()*p2.x() + p2.y()*p2.y());
-    float u = (float) ((p.x() - segA.x()) * p2.x() + (p.y() - segA.y()) * p2.y()) / nrm;
+    QPointF p2(segB.x() - segA.x(), segB.y() - segA.y());
+    float nrm = (p2.x()*p2.x() + p2.y()*p2.y());
+    float u = ((p.x() - segA.x()) * p2.x() + (p.y() - segA.y()) * p2.y()) / nrm;
 
     if (u > 1)
         u = 1;
     else if (u < 0)
         u = 0;
 
-    float x = (float) segA.x() + u * (float) p2.x();
-    float y = (float) segA.y() + u * (float) p2.y();
+    float x = segA.x() + u * p2.x();
+    float y = segA.y() + u * p2.y();
 
-    float dx = x - (float) p.x();
-    float dy = y - (float) p.y();
+    float dx = x - p.x();
+    float dy = y - p.y();
 
     return sqrt(dx*dx + dy*dy);
 }
 
-void GLWidget::fillPolygon2()
+void GLWidget::fillPolygon2(QPointF const &pos)
 {
     float dist, dist2;
     dist2 = FLT_MAX;
     int idx = -1;
 
-    QVector < QPoint > polygon = m_polygon;
+    QVector < QPointF > polygon = m_polygon;
     polygon.push_back(polygon[0]);
 
     for (int aK =0; aK < (int) polygon.size()-1;++aK)
     {
-        dist = segmentDistToPoint(polygon[aK], polygon[aK+1], m_lastPos);
+        dist = segmentDistToPoint(polygon[aK], polygon[aK+1], pos);
 
         if (dist < dist2)
         {
@@ -1904,21 +1954,21 @@ void GLWidget::fillPolygon2()
     {
         m_polygon2.clear();
         m_polygon2.push_back(polygon[idx]);
-        m_polygon2.push_back(m_lastPos);
+        m_polygon2.push_back(pos);
         m_polygon2.push_back(polygon[idx+1]);
     }
 }
 
-void GLWidget::findClosestPoint()
+void GLWidget::findClosestPoint(QPointF const &pos, float sqr_radius)
 {
     _idx = -1;
     float dist, dist2;
-    dist2 = (float) m_radius;
+    dist2 = sqr_radius;
 
     for (int aK = 0; aK < (int) m_polygon.size();++aK)
     {
-        dist  = (float)(m_lastPos.x() - m_polygon[aK].x())*(m_lastPos.x() - m_polygon[aK].x()) +
-                (m_lastPos.y() - m_polygon[aK].y())*(m_lastPos.y() - m_polygon[aK].y());
+        dist  = (pos.x() - m_polygon[aK].x())*(pos.x() - m_polygon[aK].x()) +
+                (pos.y() - m_polygon[aK].y())*(pos.y() - m_polygon[aK].y());
 
         if  (dist < dist2)
         {

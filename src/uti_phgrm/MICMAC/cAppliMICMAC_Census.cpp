@@ -281,7 +281,14 @@ template <class Type> class cImFlags : public cFlagTabule<Type>
            int      mCurF;
 };
 
-            // ===============================================================
+
+
+
+      /*********************************************************************/
+      /*                                                                   */
+      /*                           ::                                      */
+      /*                                                                   */
+      /*********************************************************************/
 
 int NbSomOfVois(const Pt2di & aVois) {return (1+2*aVois.x)*(1+2*aVois.y);}
 
@@ -316,12 +323,95 @@ std::vector<double> PondVois(const Pt2di & aV,double Depond,double aGama)
     return aRes;
 }
 
+std::vector<Pt3di>  VecKImGen
+                  ( 
+                       Pt2di aSzVMax,
+                       const std::vector<Pt2di> aVSz,
+                       const std::vector<double> aVSigma
+                  )
+{
+    std::vector<Pt3di> aRes;
+    int aNbScale = aVSz.size();
+
+    for (int anY=-aSzVMax.y ; anY<=aSzVMax.y ; anY++)
+    {
+        for (int anX=-aSzVMax.x ; anX<=aSzVMax.x ; anX++)
+        {
+            double aScaleMin = 1e6;
+            int aKSMin = -1;
+            for (int aKS=0 ; aKS<aNbScale ; aKS++)
+            {
+                Pt2di aSzV = aVSz[aKS];
+
+                if ( (ElAbs(anX)<=aSzV.x) &&  (ElAbs(anY)<=aSzV.y) )
+                {
+                    double aScale = aVSigma[aKS];
+                    if (aScale < aScaleMin)
+                    {
+                        aScaleMin = aScale;
+                        aKSMin = aKS;
+                    }
+                }
+            }
+            ELISE_ASSERT(aKSMin>=0,"CensusMS no KS");
+            aRes.push_back(Pt3di(anX,anY,aKSMin));
+
+        }
+    }
+    return aRes;
+}
+
+std::vector<std::vector<Pt2di> > VecKImSplit (
+                       Pt2di aSzVMax,
+                       const std::vector<Pt2di> aVSz,
+                       const std::vector<double> aVSigma
+                  )
+{
+    std::vector<Pt3di>  aVP = VecKImGen(aSzVMax,aVSz,aVSigma);
+    std::vector<std::vector<Pt2di> > aRes(aVSz.size());
+
+    for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+    {
+         Pt3di aP = aVP[aK];
+         aRes[aP.z].push_back(Pt2di(aP.x,aP.y));
+    }
+
+    return aRes;
+}
+
+std::vector<int>  VecKIm
+                  ( 
+                       Pt2di aSzVMax,
+                       const std::vector<Pt2di> aVSz,
+                       const std::vector<double> aVSigma
+                  )
+{
+    std::vector<Pt3di>  aVP = VecKImGen(aSzVMax,aVSz,aVSigma);
+    std::vector<int> aVKIm;
+
+    for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+       aVKIm.push_back(aVP[aK].z);
+    return aVKIm;
+}
+
+      /*********************************************************************/
+      /*                                                                   */
+      /*                         cFlagTabule<Type>                         */
+      /*                                                                   */
+      /*********************************************************************/
+
 template   <class Type> cFlagTabule<Type>::cFlagTabule(int aNbFlag) :
      mNbFlag  (aNbFlag),
      mNbEl    ((aNbFlag+TheNbBits-1)/TheNbBits)
 {
    // std::cout << "cFlagTabule::  " << aNbFlag  << " " << TheNbBits << " " << mNbEl << "\n"; getchar();
 }
+
+      /*********************************************************************/
+      /*                                                                   */
+      /*                         cFlagPonder<Type>                         */
+      /*                                                                   */
+      /*********************************************************************/
 
 template  <class Type> double cFlagPonder<Type>::ValPonder(Type * aTabF)
 {
@@ -339,9 +429,6 @@ template  <class Type> double cFlagPonder<Type>::ValPonderDif(Type * aTabF1,Type
     }
     return aRes;
 }
-
-
-
 
 
 template  <class Type> cFlagPonder<Type>::cFlagPonder(int aNbFlag,const Pt2di & aVois) :
@@ -397,6 +484,13 @@ template  <class Type> cFlagPonder<Type>  *cFlagPonder<Type>::PonderSomFlag(cons
    return aRes;
 }
 
+      /*********************************************************************/
+      /*                                                                   */
+      /*                     cImFlags<Type>                                */
+      /*                                                                   */
+      /*********************************************************************/
+
+
 template   <class Type> cImFlags<Type>::cImFlags(Pt2di aSz,int aNbFlag) :
      cFlagTabule<Type> (aNbFlag),
      mSzIm    (aSz),
@@ -406,6 +500,8 @@ template   <class Type> cImFlags<Type>::cImFlags(Pt2di aSz,int aNbFlag) :
      mData    (mIm.data())
 {
 }
+
+
 
 
 template   <class Type> cImFlags<Type> cImFlags<Type>::CensusMS
@@ -426,8 +522,9 @@ template   <class Type> cImFlags<Type> cImFlags<Type>::CensusMS
     cImFlags<Type> aRes(aSz,NbSomOfVois(aSzVMax));
     int aNbScale = aVSz.size();
 
-    std::vector<int> aVKIm;
+    std::vector<int> aVKIm = VecKIm(aSzVMax,aVSz,aVSigma);
 
+/*
     for (int anY=-aSzVMax.y ; anY<=aSzVMax.y ; anY++)
     {
         for (int anX=-aSzVMax.x ; anX<=aSzVMax.x ; anX++)
@@ -453,6 +550,7 @@ template   <class Type> cImFlags<Type> cImFlags<Type>::CensusMS
 
         }
     }
+*/
 
 
 
@@ -574,7 +672,11 @@ void fff()
 */
 
 
-//==================================================================================================
+      /*********************************************************************/
+      /*                                                                   */
+      /*                   cBufOnImage<Type>                               */
+      /*                                                                   */
+      /*********************************************************************/
 
 
 template <class Type> cBufOnImage<Type>::cBufOnImage(Type ** aDataIm,Box2di aBoxDef,Box2di aBoxCalc) :
@@ -616,8 +718,11 @@ template <class Type>  cBufOnImage<Type> * cBufOnImage<Type>::FullBufOnIm(Im2D<T
 }
 
 
-//==================================================================================
-
+      /*********************************************************************/
+      /*                                                                   */
+      /*                   cCensusGr                                       */
+      /*                                                                   */
+      /*********************************************************************/
 
 
 cCensusGr::cCensusGr(const Pt2di & aSzV,const double & FactDepond,bool DoFlag,cCensusGr * aGrShareFlag) :
@@ -765,6 +870,11 @@ double cCensusGr::GainBasic(float ** Im1,float ** Im2,int  aPx2)
    return aSomLoc / double(mSomP);
 }
 
+      /*********************************************************************/
+      /*                                                                   */
+      /*                      ::                                           */
+      /*                                                                   */
+      /*********************************************************************/
 
 
 double CorrelBasic(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di aSzV,float anEpsilon)
@@ -812,6 +922,14 @@ double CorrelBasic_Center(float ** Im1,float ** Im2,int  aPx2,Pt2di aSzV,float a
      }
      return aMat.correlation(anEpsilon);
 }
+
+/*
+double CorrelBasic_Center(std::vector<cBufOnImage<float> *> & aIm1,std::vector<cBufOnImage<float> *> & aIm2,int  aPx2,Pt2di aSzV,float anEpsilon)
+{
+}
+*/
+
+
 
 
 double CensusBasicCenter(float ** Im1,float ** Im2,int aPx2,Pt2di aSzV)
@@ -948,6 +1066,11 @@ double CensusGraphe_ImInt(float ** Im1,Pt2di aP1,float ** Im2,Pt2di aP2,Pt2di aS
      // float aValStd = aQI2.GetVal(aDataIm1,Pt2di(0,anY+anOff1.y));
      // float aValNew = aDataC[anY+anOff1.y][anX+anOff1.x+anOffset];
 
+      /*********************************************************************/
+      /*                                                                   */
+      /*                      cAppliMICMAC                                 */
+      /*                                                                   */
+      /*********************************************************************/
 
 
 

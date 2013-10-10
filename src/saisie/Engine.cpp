@@ -99,52 +99,50 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
     else
         aImg = img;
 
-    if (!QFile::exists(mask_filename))
+    if (QFile::exists(mask_filename))
     {
-        if (!aImg->isNull())
+        QImage* imgM = new QImage( mask_filename );
+
+        if (img->isNull())
         {
-            QImage* pDest = new QImage( img->width(), img->height(), QImage::Format_ARGB32 );
-            pDest->fill(QColor(255,255,255,255));
 
-            aImgMask = pDest;
-        }
-    }
-    else
-    {
-        Tiff_Im img( mask_filename.toStdString().c_str() );
+            Tiff_Im img( mask_filename.toStdString().c_str() );
 
-        if( img.can_elise_use() )
-        {
-            int w = img.sz().x;
-            int h = img.sz().y;
-
-            QImage* pDest = new QImage( w, h, QImage::Format_ARGB32 );
-
-            Im2D_Bits<1> aOut(w,h,1);
-            ELISE_COPY(img.all_pts(),img.in(),aOut.out());
-
-            for (int x=0;x< w;++x)
+            if( img.can_elise_use() )
             {
-                for (int y=0; y<h;++y)
+                int w = img.sz().x;
+                int h = img.sz().y;
+
+                QImage* pDest = new QImage( w, h, QImage::Format_ARGB32 );
+
+                Im2D_Bits<1> aOut(w,h,1);
+                ELISE_COPY(img.all_pts(),img.in(),aOut.out());
+
+                for (int x=0;x< w;++x)
                 {
-                    if (aOut.get(x,y) == 0 )
+                    for (int y=0; y<h;++y)
                     {
-                        QColor c(0,0,0,0);
-                        pDest->setPixel(x,y,c.rgba());
-                    }
-                    else
-                    {
-                        QColor c(255,255,255,255);
-                        pDest->setPixel(x,y,c.rgba());
+                        if (aOut.get(x,y) == 0 )
+                        {
+                            QColor c(0,0,0,0);
+                            pDest->setPixel(x,y,c.rgba());
+                        }
+                        else
+                        {
+                            QColor c(255,255,255,255);
+                            pDest->setPixel(x,y,c.rgba());
+                        }
                     }
                 }
+                aImgMask = pDest;
             }
-            aImgMask = pDest;
+            else
+            {
+                QMessageBox::critical(NULL, "cLoader::loadMask","Cannot load mask image");
+            }
         }
         else
-        {
-            QMessageBox::critical(NULL, "cLoader::loadMask","Cannot load mask image");
-        }
+            aImgMask = imgM;
     }
 }
 
@@ -234,8 +232,8 @@ void  cEngine::loadImage(QString imgName)
 
     m_Loader->loadImage(imgName, img, mask);
 
-    if (!img->isNull()) m_Data->addImage(img);
-    if (!mask->isNull()) m_Data->addMask(mask);
+    if (img!=NULL) m_Data->addImage(img);
+    if (mask!=NULL) m_Data->addMask(mask);
 }
 
 void cEngine::doMasks()
@@ -369,12 +367,12 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
         SII.appendChild(Rotation);
         SII.appendChild(Translation);
 
-        QVector <QPoint> pts = SInfo.poly;
+        QVector <QPointF> pts = SInfo.poly;
 
         for (int aK=0; aK <pts.size(); ++aK)
         {
             QDomElement Point    = doc.createElement("Pt");
-            QString str = QString::number(pts[aK].x()) + " "  + QString::number(pts[aK].y());
+            QString str = QString::number(pts[aK].x()) + " "  + QString::number(pts[aK].y(), 'f',1);
 
             t = doc.createTextNode( str );
             Point.appendChild(t);

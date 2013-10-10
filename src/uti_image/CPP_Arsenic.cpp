@@ -74,7 +74,7 @@ string FindMaltEtape(int ResolModel, std::string aNameIm, std::string aPatModel)
 		std::vector<std::string> aVectModel=*aSetModel;
 		int nbModel=aVectModel.size();
 
-		int aEtape;
+        int aEtape = 0;
 		for (int i=0 ; i<nbModel ; i++)
 		{
 			cElNuage3DMaille * info3D = cElNuage3DMaille::FromFileIm(aDir+aVectModel[i]);
@@ -110,21 +110,24 @@ vector<ArsenicImage> LoadGrpImages(string aDir, std::string aPatIm, int ResolMod
 		cEl_GPAO::DoComInParal(ListVig,aDir + "MkVig");
 	}
 
+	//Finding the appropriate NuageImProf_STD-MALT_Etape_[0-9].xml for the ResolModel : 
+	string aEtape=FindMaltEtape(ResolModel, aDir + (aVectIm)[0], "MM-Malt-Img-" + StdPrefix(aVectIm[0]) + "/NuageImProf_STD-MALT_Etape_[0-9].xml");
+	
+	//Reading images and Masq
 	for (int aK1=0 ; aK1<nbIm ; aK1++)
     {
 		string cmdConv=MMDir() + "bin/ScaleIm " + InVig + (aVectIm)[aK1] + postfix + " " + ResolModelStr + " F8B=1 Out=" + (aVectIm)[aK1] + "_Scaled.tif";
 		ListConvert.push_back(cmdConv);
 
 		//VectMasq.push_back("Masq-TieP-" + (aVectIm)[aK1] + "/RN" + (aVectIm)[aK1] + "_Masq.tif");
-		VectMasq.push_back("MM-Malt-Img-" + StdPrefix((aVectIm)[aK1]) + "/Masq_STD-MALT_DeZoom" + ResolModelStr + ".tif");
+		VectMasq.push_back("MM-Malt-Img-" + StdPrefix((aVectIm)[aK1]) + "/AutoMask_STD-MALT_Num_" + aEtape + ".tif");
+		//VectMasq.push_back("MM-Malt-Img-" + StdPrefix((aVectIm)[aK1]) + "/Masq_STD-MALT_DeZoom" + ResolModelStr + ".tif");
 		//cout<<VectMasq[aK1]<<endl;
 		VectImSc.push_back((aVectIm)[aK1]+std::string("_Scaled.tif"));
 	}
 	cEl_GPAO::DoComInParal(ListConvert,aDir + "MkScale");
 			
-	//Finding the appropriate NuageImProf_STD-MALT_Etape_[0-9].xml for the ResolModel : 
-	string aEtape=FindMaltEtape(ResolModel, aDir + (aVectIm)[0], "MM-Malt-Img-" + StdPrefix(aVectIm[0]) + "/NuageImProf_STD-MALT_Etape_[0-9].xml");
-	
+
 	//Reading the infos
 	vector<ArsenicImage> aGrIm;
 
@@ -618,9 +621,9 @@ cout<<"Factors were computed"<<endl;
 	//Reading input files
 	string suffix="";if(InVig!=""){suffix="_Vodka.tif";}
 
-
+#ifdef USE_OPEN_MP
 #pragma omp parallel for
-
+#endif
     for(int i=0;i<nbIm;i++)
 	{
 	    string aNameIm=InVig + (*aSetIm)[i] + suffix;//if vignette is used, change the name of input file to read
@@ -725,7 +728,7 @@ int  Arsenic_main(int argc,char ** argv)
 {
 
 	std::string aFullPattern,aDirOut="Egal/",aMaster="",InVig="";
-    bool InTxt=false;
+    //bool InTxt=false;
 	int ResolModel=16;
 	double TPA=16;
 	int nbIte=5;

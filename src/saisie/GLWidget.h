@@ -47,7 +47,7 @@ public:
     //! Destructor
     ~GLWidget();
 
-    bool eventFilter(QObject* object,QEvent* event);
+    bool eventFilter(QObject* object, QEvent* event);
 
     //! Set data to display
     void setData(cData* data);
@@ -168,9 +168,6 @@ protected:
     void initializeGL();
     void resizeGL(int w, int h);
     void paintGL();
-    void mouseReleaseEvent(QMouseEvent *event);
-    void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
     void mouseDoubleClickEvent(QMouseEvent *event);
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
@@ -203,18 +200,22 @@ protected:
     //! Draw selection polygon
     void drawPolygon();
 
+    void drawPolygon(const QVector<QPointF> &aPoly);
+
     //! Draw one point and two segments (for insertion or move)
     void drawPointAndSegments();
 
+    void drawPointAndSegments(const QVector<QPointF> &aPoly);
+
     GLuint getNbGLLists() { return m_nbGLLists; }
-    void incrNbGLLists() { m_nbGLLists++; }
-    void resetNbGLLists(){ m_nbGLLists = 0; }
+    void incrNbGLLists()  { m_nbGLLists++; }
+    void resetNbGLLists() { m_nbGLLists = 0; }
 
     //! Fill m_polygon2 for point insertion or move
-    void fillPolygon2();
+    void fillPolygon2(const QPointF &pos);
 
     //! set index of cursor closest point
-    void findClosestPoint();
+    void findClosestPoint(const QPointF &pos, float sqr_radius);
 
     //! GL context aspect ratio m_glWidth/m_glHeight
     float m_glRatio;
@@ -280,10 +281,10 @@ protected:
     QString m_messageFPS;
 
     //! Point list for polygonal selection
-    QVector < QPoint > m_polygon;
+    QVector < QPointF > m_polygon;
 
     //! Point list for polygonal insertion
-    QVector < QPoint > m_polygon2;
+    QVector < QPointF > m_polygon2;
 
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
@@ -307,13 +308,17 @@ protected:
     int m_Click;
 
     //! (square) radius for point selection
-    int     m_radius;
+    float     m_sqr_radius;
 
-    QPointF WindowToImage(const QPoint &pt);
+    QPointF WindowToImage(const QPointF &pt);
+
+    QPointF ImageToWindow(const QPointF &im);
+
+    QPointF     _m_lastPosImg;
 
 private:
 
-    QPoint      m_lastPos;
+    QPointF     m_lastPos;
 
     void        setProjectionMatrix();
     void        computeFPS();
@@ -346,7 +351,7 @@ private:
     GLdouble    *_projmatrix;
     GLint       *_glViewport;
 
-    QPoint      _m_lastPosZoom;
+    QPointF     _m_lastPosZoom;
 
 };
 
