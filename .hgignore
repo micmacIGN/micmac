@@ -96,3 +96,5 @@ Documentation/Generalites/QuickStart_Apero.aux
 Documentation/Generalites/SomReal.aux
 Documentation/Generalites/UseCase2D.aux
 cppcheck.txt
+repport.txt
+src/photogram/repport.txt

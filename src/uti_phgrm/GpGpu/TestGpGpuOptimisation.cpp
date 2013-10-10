@@ -6,7 +6,20 @@ extern "C" void TestOptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O)
 
 int main()
 {
+    // Cr�ation du contexte GPGPU
+    cudaDeviceProp deviceProp;
+    // Obtention de l'identifiant de la carte la plus puissante
+    int devID = gpuGetMaxGflopsDeviceId();
+    // Initialisation du contexte
+    checkCudaErrors(cudaSetDevice(devID));
+    // Obtention des proprietes de la carte
+    checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
+    // Affichage des propriétés de la carte
+    printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
+
+
     cout << "Launch Data optimisation GpGpu ***" << endl;
+    GpGpuTools::OutputInfoGpuMemory();
 
     srand (time(NULL));
 
@@ -124,6 +137,9 @@ int main()
 
     tabZ.Dealloc();
     lenghtLines.Dealloc();
+
+    checkCudaErrors( cudaDeviceReset() );
+    printf("Reset Device GpGpu.\n");
 
     return 0;
 }

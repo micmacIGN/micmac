@@ -11,6 +11,7 @@ using namespace Cloud_;
 using namespace std;
 
 GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
+  , m_bGLInitialized(false)
   , m_rw(1.f)
   , m_rh(1.f)
   , m_font(font())
@@ -85,6 +86,14 @@ GLWidget::~GLWidget()
         glDeleteLists(m_textureImage,1);
         m_textureImage = GL_INVALID_LIST_ID;
     }
+
+    if(_mask)
+        delete _mask;
+
+    delete [] _mvmatrix;
+    delete [] _projmatrix;
+    delete [] _glViewport;
+
 }
 
 bool GLWidget::eventFilter(QObject* object,QEvent* event)
