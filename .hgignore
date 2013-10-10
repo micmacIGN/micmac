@@ -95,3 +95,7 @@ Documentation/Generalites/QuickStartSimplified-Tools.log
 Documentation/Generalites/QuickStart_Apero.aux
 Documentation/Generalites/SomReal.aux
 Documentation/Generalites/UseCase2D.aux
+include/XML_User/DicoCamera.xml
+cppcheck.txt
+repport.txt
+src/photogram/repport.txt

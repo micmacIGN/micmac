@@ -227,9 +227,9 @@ bool RealImage1::loadRaw( const string &i_filename )
         return false;
     }
 
-    UINT width, height;
-    f.read( (char*)&width, sizeof( UINT ) );
-    f.read( (char*)&height, sizeof( UINT ) );
+    U_INT2 width, height;
+    f.read( (char*)&width, 2 );
+    f.read( (char*)&height, 2 );
     resize( width, height );
     f.read( (char*)m_data.data(), m_width*m_height*sizeof( PixReal ) );
 
@@ -242,8 +242,10 @@ bool RealImage1::saveRaw( const string &i_filename ) const
 
     if ( !f ) return false;
 
-    f.write( (char*)&m_width, sizeof( UINT ) );
-    f.write( (char*)&m_height, sizeof( UINT ) );
+    U_INT2 width = (U_INT2)m_width,
+	   heigth = (U_INT2)m_height;
+    f.write( (char*)&width, 2 );
+    f.write( (char*)&heigth, 2 );
     f.write( (char*)m_data.data(), m_width*m_height*sizeof( PixReal ) );
 
     return true;
@@ -380,7 +382,7 @@ bool RealImage1::loadPGM( const std::string &i_filename )
 // write file in PGM raw format
 // values are considered to be between 0 and 1
 // handles only one-channel images
-bool RealImage1::savePGM( const std::string &i_filename ) const
+bool RealImage1::savePGM( const std::string &i_filename, bool i_adaptDynamic ) const
 {
     ofstream f( i_filename.c_str(), ios::binary );
     if ( !f ) return false;
@@ -398,13 +400,32 @@ bool RealImage1::savePGM( const std::string &i_filename ) const
     sprintf( str, "%u\n", 255 );
     f.write( str, strlen(str) );
     // write data
-    unsigned int i = m_width*m_height;
+
+    if ( m_width==0 || m_height==0 ) return true;
+    unsigned int i;
+    const PixReal *itData;
+    PixReal img_min = 0, img_max=1;
+    if ( i_adaptDynamic )
+    {
+       i = m_width*m_height;
+       itData = m_data.data();
+       img_min = img_max = *itData;
+       while ( i-- )
+       {
+	   if ( *itData>img_max ) img_max=*itData;
+	   if ( *itData<img_min ) img_min=*itData;
+	   itData++;
+       }
+    }
+    
+    i = m_width*m_height;
     unsigned char *buffer   = new unsigned char[i],
                   *itBuffer = buffer;
-    const PixReal *itData   = m_data.data();
-    const PixReal maxValue = 255;
+    const PixReal maxValue = 255/(img_max-img_min);
+    itData = m_data.data();
     while ( i-- )
-        *itBuffer++ = ( unsigned char )( ( *itData++ )*maxValue );
+        *itBuffer++ = ( unsigned char )( ( ( *itData++ )-img_min )*maxValue );
+
     f.write( (char*)buffer, m_width*m_height );
     delete [] buffer;
 

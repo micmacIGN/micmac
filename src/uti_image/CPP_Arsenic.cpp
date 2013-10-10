@@ -74,7 +74,7 @@ string FindMaltEtape(int ResolModel, std::string aNameIm, std::string aPatModel)
 		std::vector<std::string> aVectModel=*aSetModel;
 		int nbModel=aVectModel.size();
 
-		int aEtape;
+        int aEtape = 0;
 		for (int i=0 ; i<nbModel ; i++)
 		{
 			cElNuage3DMaille * info3D = cElNuage3DMaille::FromFileIm(aDir+aVectModel[i]);
@@ -621,9 +621,9 @@ cout<<"Factors were computed"<<endl;
 	//Reading input files
 	string suffix="";if(InVig!=""){suffix="_Vodka.tif";}
 
-
+#ifdef USE_OPEN_MP
 #pragma omp parallel for
-
+#endif
     for(int i=0;i<nbIm;i++)
 	{
 	    string aNameIm=InVig + (*aSetIm)[i] + suffix;//if vignette is used, change the name of input file to read
@@ -728,7 +728,7 @@ int  Arsenic_main(int argc,char ** argv)
 {
 
 	std::string aFullPattern,aDirOut="Egal/",aMaster="",InVig="";
-    bool InTxt=false;
+    //bool InTxt=false;
 	int ResolModel=16;
 	double TPA=16;
 	int nbIte=5;

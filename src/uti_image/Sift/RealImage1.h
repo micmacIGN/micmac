@@ -126,7 +126,7 @@ public:
     RealImage1( UINT i_width=0, UINT i_height=0 );
 
     void resize( UINT i_width, UINT i_height );
-
+      
     void set( UINT i_width, UINT i_height, const BYTE *i_data );
 
     Real       * data();
@@ -174,7 +174,7 @@ public:
     void gradient( RealImage1 &o_gradient ) const;
 
     bool loadPGM( const std::string &i_filename );
-    bool savePGM( const std::string &i_filename ) const;
+    bool savePGM( const std::string &i_filename, bool i_adaptDynamic=false ) const;
 
     bool loadTIFF( const std::string &i_filename );
 
@@ -206,6 +206,18 @@ public:
     // draw i_image at coordinates (i_x,i_y) into (*this)
     // no clipping is done, i_image must fit
     void drawWindow( int i_x, int i_y, const RealImage1 &i_image );
+    
+    template <class T>
+    RealImage1( UINT i_width, UINT i_height, const std::vector<T> &i_data );
+    
+    template <class T>
+    void setFromArray( UINT i_width, UINT i_height, const T *i_data );
+    
+    template <class T>
+    void toVector( std::vector<T> &o_data ) const;
+    
+    template <class T>
+    void toArray( T *o_data ) const;
 };
 
 inline int getGaussianKernel_halfsize( Real_ i_standardDeviation ){ return int( ceil( Real_(4.0)*i_standardDeviation ) ); }
@@ -277,6 +289,50 @@ inline void RoiWindow_2d::set_along_x( const RoiWindow_1d &window1d ){
 
 inline void RoiWindow_2d::set_along_y( const RoiWindow_1d &window1d ){
     memcpy( &m_y0, &window1d.m_x0, 4*sizeof(int) );
+}
+
+template <class T>
+RealImage1::RealImage1( UINT i_width, UINT i_height, const std::vector<T> &i_data )
+{
+   resize( i_width, i_height );
+   size_t i = i_width*i_height;
+   i = std::min( i_data.size(), i );
+   const T *itSrc = i_data.data();
+   Real *itDst = m_data.data();
+   while ( i-- )
+   *itDst++ = (Real)( *itSrc++ );
+}
+
+template <class T>
+void RealImage1::setFromArray( UINT i_width, UINT i_height, const T *i_data )
+{
+   resize( i_width, i_height );
+   size_t i = i_width*i_height;
+   const T *itSrc = i_data;
+   Real *itDst = m_data.data();
+   while ( i-- )
+   *itDst++ = (Real)( *itSrc++ );
+}
+
+template <class T>
+void RealImage1::toVector( std::vector<T> &o_data ) const
+{
+   size_t i = m_width*m_height;
+   i = std::min( o_data.size(), i );
+   const Real *itSrc = m_data.data();
+   T *itDst = o_data.data();
+   while ( i-- )
+   *itDst++ = (T)( *itSrc++ );
+}
+
+template <class T>
+void RealImage1::toArray( T *o_data ) const
+{
+   size_t i = m_width*m_height;
+   const Real *itSrc = m_data.data();
+   T *itDst = o_data;
+   while ( i-- )
+   *itDst++ = (T)( *itSrc++ );
 }
 
 #undef BYTE
