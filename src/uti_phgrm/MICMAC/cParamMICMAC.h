@@ -1705,10 +1705,14 @@ class cOneParamCMS
 
         double & Pds();
         const double & Pds()const ;
+
+        cTplValGesInit< bool > & SquareW();
+        const cTplValGesInit< bool > & SquareW()const ;
     private:
         Pt2di mSzW;
         double mSigma;
         double mPds;
+        cTplValGesInit< bool > mSquareW;
 };
 cElXMLTree * ToXMLTree(const cOneParamCMS &);
 
@@ -1748,9 +1752,17 @@ class cCensusCost
 
         eModeCensusCost & TypeCost();
         const eModeCensusCost & TypeCost()const ;
+
+        cTplValGesInit< bool > & Verif();
+        const cTplValGesInit< bool > & Verif()const ;
+
+        cTplValGesInit< double > & AttenDist();
+        const cTplValGesInit< double > & AttenDist()const ;
     private:
         cTplValGesInit< double > mPdsCrown;
         eModeCensusCost mTypeCost;
+        cTplValGesInit< bool > mVerif;
+        cTplValGesInit< double > mAttenDist;
 };
 cElXMLTree * ToXMLTree(const cCensusCost &);
 

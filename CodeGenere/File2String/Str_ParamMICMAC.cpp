@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2072]) = {
+const char * (theNameVar_ParamMICMAC[2076]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -919,6 +919,8 @@ const char * (theNameVar_ParamMICMAC[2072]) = {
 "                           <Sigma Nb=\"1\" Type=\"double\"> </Sigma>\n",
 "                           <!-- Poids apres normalisation des tailles de fenetres -->\n",
 "                           <Pds Nb=\"1\" Type=\"double\"> </Pds> \n",
+"                           <!-- Si pas Square W : filtre gauss -->\n",
+"                           <SquareW Nb=\"?\" Type=\"bool\" Def=\"false\"> </SquareW> \n",
 "                      </OneParamCMS>\n",
 "                </CorrelMultiScale>\n",
 "\n",
@@ -930,6 +932,8 @@ const char * (theNameVar_ParamMICMAC[2072]) = {
 "                        <CensusCost Nb=\"?\" AccessorFils=\"false\">\n",
 "                              <PdsCrown  Type=\"double\" Def=\"0.5\" Nb=\"?\"> </PdsCrown>\n",
 "                              <TypeCost Type=\"eModeCensusCost\" Nb=\"1\">   </TypeCost>\n",
+"                              <Verif Type=\"bool\" Nb=\"?\" Def=\"false\">   </Verif>\n",
+"                              <AttenDist  Type=\"double\" Def=\"0.0\" Nb=\"?\"> </AttenDist>\n",
 "                        </CensusCost>\n",
 "\n",
 "\n",

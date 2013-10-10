@@ -192,12 +192,13 @@ void RotateImage(double alpha, Pt2di aSzOut, vector<Pt2dr> Pts , string aNameDir
 
 int  Luc_main(int argc,char ** argv){
 
-	std::string aFullPattern;
+	std::string aFullPattern, cornersTxt;
 	//Reading the arguments
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(aFullPattern,"Images Pattern"),
+        LArgMain()  << EAMC(aFullPattern,"Images Pattern")
+					<< EAMC(cornersTxt,"Corner txt File"),
         LArgMain()  
     );
 
@@ -214,7 +215,6 @@ int  Luc_main(int argc,char ** argv){
 
 	vector<vector<Pt2dr> > Pts;
 	vector<int> SzX, SzY;
-	string cornersTxt="corners.txt";
     std::ifstream file(cornersTxt.c_str(), ios::in);
 	for(int i=0 ; i<nbIm ; i++)
 	{

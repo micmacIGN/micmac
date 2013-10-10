@@ -105,7 +105,7 @@ public:
     static std::string	toStr(uint2 tt);
 
     ///	\brief			Convertie un uint2 en string
-    static const char* 	conca(const char* texte, int t);
+    static const char* 	conca(const char* texte, int t = 0);
 
     ///	\brief			Affiche les parametres GpGpu de correlation multi-images
     static void			OutputInfoGpuMemory();
