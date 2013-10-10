@@ -7,7 +7,7 @@
 #include <complex>
 
 #ifdef INT
-	#undef INT
+#undef INT
 #endif
 
 #include "Jp2ImageLoader.h"
@@ -33,6 +33,9 @@
 #endif
 namespace NS_ParamMICMAC
 {	
+	///
+	///
+	///
 	JP2ImageLoader::JP2ImageLoader(std::string const &nomfic)
 	{
 		m_Nomfic=nomfic;
@@ -99,9 +102,10 @@ namespace NS_ParamMICMAC
 		
 		if (verbose) std::cout << "Fin du constructeur"<<std::endl;
 	}	
-	
-	
-	
+		
+	///
+	///
+	///
 	void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<short unsigned int> > & aVImages,
 									 int              mFlagLoadedIms,
 									 int              aDeZoom,
@@ -230,40 +234,10 @@ namespace NS_ParamMICMAC
 		delete[] stripe_bufs;
         delete[] comp_dims;
 	}
-#ifdef __USE_IMAGEIGN__
-	void _debug_IO(const std::vector<sLowLevelIm<float> > & aVImages, cInterfModuleImageLoader::tPInt aSz, int band, const std::string &filename, const std::string &filename2)
-	{
-		std::cout<<"on ouvre en ecriture: "<<filename2<<std::endl;
-		Tiff_Im  aTOut( filename2.c_str(), Pt2di(aSz.real(),aSz.imag()), GenIm::real4,
-					   Tiff_Im::No_Compr,  Tiff_Im::BlackIsZero );
-		std::cout<<"on initialise l'image"<<std::endl;
-
-		Im2D<float,double> aIm(aVImages[band].mDataLin,aVImages[band].mData,aSz.real(),aSz.imag());
-		
-		
-		ELISE_COPY
-		(
-		 aTOut.all_pts(),
-		 aIm.in(),
-		 aTOut.out()
-		 );
-		
-		//check en relecture
-		/*ign::image::BufferImage<float> img1(filename);
-		ign::image::BufferImage<float> img2(filename2);
-		for (int l = 0; l < aSz.imag(); ++l)
-			for (int c  = 0; c <aSz.real(); ++c)
-				if (img1.get(c,l,0) != img2.get(c,l,0))
-				{
-					std::ostringstream oss;
-					oss<<"Incoherence dans "<<filename<<" au pixel: "<<c<<", "<<l;
-					IGN_THROW_EXCEPTION(oss.str());
-				}
-		*/
-		//boost::filesystem::remove(filename);
-		//boost::filesystem::remove(oss2.str());
-	}
-#endif
+	
+	///
+	///
+	///
 	void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImages,
 									 int              mFlagLoadedIms,
 									 int              aDeZoom,
@@ -275,7 +249,7 @@ namespace NS_ParamMICMAC
 		bool verbose  = 1;
 		if (verbose) std::cout << "LoadNCanaux en float "<<aDeZoom<<" - "<<aP0Im.real()<<" "<<aP0Im.imag()<<" - "<<aP0File.real()<<" "<<aP0File.imag()<<" - "<<aSz.real()<<" "<<aSz.imag()<<std::endl;
 		bool avecDeZoom=false;
-
+		
 		int precision = 16;
 		bool signe = false;
 		
@@ -389,7 +363,7 @@ namespace NS_ParamMICMAC
 		{
 			if (reDeZoom>0)
 			{ 
-//				float R2 = reDeZoom*reDeZoom;
+				//				float R2 = reDeZoom*reDeZoom;
 				for(int ll=0;ll<reDeZoom;++ll)
 				{
 					decompressor.pull_stripe(stripe_bufs,stripe_heights,sample_gaps,row_gaps,precisions,is_signed);
@@ -441,40 +415,14 @@ namespace NS_ParamMICMAC
 		delete[] precisions;
 		delete[] stripe_heights;
 		delete[] stripe_bufs;
-
+		
         delete[] is_signed;
         delete[] comp_dims;
-		
-#ifdef __USE_IMAGEIGN__
-		std::ostringstream oss;
-		oss<<"/Temp/"<<boost::filesystem::path(m_Nomfic).stem().generic_string()<<"_testELISE"<<0<<".TIF";
-		std::ostringstream oss2;
-		oss2<<"/Temp/"<<boost::filesystem::path(m_Nomfic).stem().generic_string()<<"_testKAK"<<0<<".TIF";
-		_debug_IO(aVImages, aSz, 0, oss.str(), oss2.str());
-#endif
-        
-        /*
-        Tiff_Im  aTOut
-        (
-         "toto.tif",
-         Pt2di(aSz.real(),aSz.imag()),
-         GenIm::real4,
-         Tiff_Im::No_Compr,
-         Tiff_Im::BlackIsZero
-         );
-        
-        Im2D<float,double> aIm(aVImages[0].mDataLin,aVImages[0].mData,aSz.real(),aSz.imag());
-        
-        
-        ELISE_COPY
-        (
-         aTOut.all_pts(),
-         aIm.in(),
-         aTOut.out()
-         );
-         */
 	}
 	
+	///
+	///
+	///
 	void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<unsigned char> > & aVImages,
 									 int              mFlagLoadedIms,
 									 int              aDeZoom,
