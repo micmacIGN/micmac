@@ -150,6 +150,7 @@ INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 
 # Utiliser le driver Kakadu pour gerer les images JP2OOO
 IF(${WITH_KAKADU} AND NOT ${WITH_IGN_IMAGE})
+#IF(${WITH_KAKADU})
 	FIND_PACKAGE( KAKADU )
 	IF(NOT KAKADU_FOUND)
 		MESSAGE("Warning! Kakadu not found. Micmac will be built without JPEG2000 support.")

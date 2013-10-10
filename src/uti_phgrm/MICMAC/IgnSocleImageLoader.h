@@ -20,7 +20,7 @@ class IgnSocleImageLoader: public cInterfModuleImageLoader
 	private:
 		std::string m_Nomfic;
 		
-		std::complex<int> 	m_SzIm;
+		std::complex<int>		m_SzIm;
 		bool                    m_S;
  		eTypeNumerique          m_Type;               
 		int                     m_Nbc;
