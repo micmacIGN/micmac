@@ -789,6 +789,8 @@ int Tapioca_main(int argc,char ** argv)
 {
    MMD_InitArgcArgv(argc,argv);
 
+   int ARGC0 = argc;
+
    //  APRES AVOIR SAUVEGARDER L'ARGUMENT DE TYPE ON LE SUPPRIME
     if (argc>=2)
     {
@@ -854,10 +856,22 @@ int Tapioca_main(int argc,char ** argv)
         return aRes;
     }
 
-    std::cout << "TAPIOCA: ERROR: unknown command : " << TheType << endl;
+
+    bool Error = (ARGC0>=2 ) && (TheType!= std::string("-help"));
+    if (Error)
+    {
+       std::cout << "TAPIOCA: ERROR: unknown command : " << TheType << endl;
+    }
     std::cout << "Allowed commands are : \n";
     for (int aK=0 ; aK<aNbType ; aK++)
         std::cout << "\t" << Type[aK] << "\n";
+    if (!Error)
+    {
+        std::cout << "for details : \n";
+        std::cout << "\t Tapioca MulScale -help\n";
+        std::cout << "\t Tapioca All -help\n";
+        std::cout << "\t...\n";
+    }
 
 	return EXIT_FAILURE;
 }

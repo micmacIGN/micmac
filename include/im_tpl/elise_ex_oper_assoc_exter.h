@@ -212,6 +212,46 @@ template <class Type,class TypeBase> void  SelfErode(Im2D<Type,TypeBase> anIm,co
     }
 }
 
+template <class Type,class TypeBase> void  QMoyenne
+                                           (
+                                                 Im2D<Type,TypeBase> anIm,
+                                                 Im2D<Type,TypeBase> aRes,
+                                                 const Pt2di &aSzV,
+                                                 const Box2di & aBox,
+                                                 TypeBase aDef=0
+                                           )
+{
+
+    // Binarise(anIm);
+    cElise_ImBuf<Type> aBuf(anIm,aDef);
+    TIm2D<Type,TypeBase> aTIm(anIm);
+    TIm2D<Type,TypeBase> aTRes(aRes);
+
+    cTplOpbBufImage<cElise_ImBuf<Type> > anOp
+                                           (
+                                                aBuf,
+                                                Elise2Std(aBox._p0),
+                                                Elise2Std(aBox._p1),
+                                                Elise2Std(-aSzV),
+                                                Elise2Std(aSzV)
+                                           );
+    // int aNb = (1+2*aSzV.x) * (1+2*aSzV.y);
+
+    cCumulScal<TypeBase> * aCum =0;
+    double aPds = (1+2*aSzV.x) * (1+2*aSzV.y);
+    while (  (aCum=anOp.GetNext()) != 0)
+    {
+         Pt2di aP = Std2Elise(anOp.CurPtOut());
+         aTRes.oset(aP,aCum->Som() / aPds);
+    }
+}
+
+template <class Type,class TypeBase> void  SelfQMoyenne(Im2D<Type,TypeBase> anIm, const Pt2di & aSzV)
+{
+    QMoyenne(anIm,anIm,aSzV,Box2di(Pt2di(0,0),anIm.sz()));
+}
+
+
 
    //  ================================================================
    //  ================================================================
