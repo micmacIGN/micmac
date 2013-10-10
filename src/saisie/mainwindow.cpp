@@ -64,11 +64,11 @@ void MainWindow::connectActions()
         connect(ui->actionShow_cams,        SIGNAL(toggled(bool)), this, SLOT(toggleShowCams(bool)));
         connect(ui->actionShow_bounding_box,SIGNAL(toggled(bool)), this, SLOT(toggleShowBBox(bool)));
     }
-    connect(ui->actionShow_help_messages,SIGNAL(toggled(bool)), this, SLOT(toggleShowMessages(bool)));
+    connect(ui->actionShow_help_messages,   SIGNAL(toggled(bool)), this, SLOT(toggleShowMessages(bool)));
 
-    connect(ui->action2D_3D_mode,SIGNAL(triggered()), this, SLOT(switch2D3D()));
+    connect(ui->action2D_3D_mode,           SIGNAL(toggled(bool)), this, SLOT(toggle2D3D(bool)));
 
-    connect(ui->actionHelpShortcuts,    SIGNAL(triggered()),   this, SLOT(doActionDisplayShortcuts()));
+    connect(ui->actionHelpShortcuts,        SIGNAL(triggered()),   this, SLOT(doActionDisplayShortcuts()));
 
     if (!m_bMode2D)
     {
@@ -188,13 +188,8 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         m_Engine->SetFilenamesIn(filenames);
 
-        bool mode2D = getMode2D();
-
-        if (mode2D)
-        {
-            setMode2D(false);
-            closeAll();
-        }
+        setMode2D(false);
+        closeAll();
 
         QFileInfo fi(filenames[0]);
 
@@ -245,13 +240,9 @@ void MainWindow::addFiles(const QStringList& filenames)
         }
         else
         {
-            if (!mode2D)
-            {
-                setMode2D(true);
+            setMode2D(true);
 
-                closeAll();
-                glLoadIdentity();
-            }
+            glLoadIdentity();
 
             m_Engine->loadImages(filenames);
 
@@ -636,9 +627,9 @@ void MainWindow::setMode2D(bool mBool)
     ui->actionShow_bounding_box->setEnabled(!mBool);
 }
 
-void MainWindow::switch2D3D()
+void MainWindow::toggle2D3D(bool state)
 {
-    setMode2D(!m_bMode2D);
+    setMode2D(!(state&&m_bMode2D));
 
     closeAll();
 }
