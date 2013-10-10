@@ -422,7 +422,7 @@ std::list<cCple> FiltrageDup
 
 
 
-ElPackHomologue ToLPt(const std::list<cCple> aLC,bool isQ,int aNbIn)
+ElPackHomologue ToLPt(const std::list<cCple> &aLC,bool isQ,int aNbIn)
 {
 
    int aNbTot = aLC.size();

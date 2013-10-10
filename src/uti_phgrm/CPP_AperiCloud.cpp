@@ -44,7 +44,7 @@ int AperiCloud_main(int argc,char ** argv)
     std::string  aDir,aPat,aFullDir;
 
     std::string AeroIn;
-    std::vector<std::string> ImPl;
+    //std::vector<std::string> ImPl;
     int ExpTxt=0;
     int PlyBin=1;
     std::string Out="AperiCloud.ply";

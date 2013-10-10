@@ -105,7 +105,7 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
         {
             Pt2dr aPIm;
             int aNb = sscanf(aLine,"%lf %lf",&aPIm.x,&aPIm.y);
-            ELISE_ASSERT(aNb=2,"Could not read 2 double values");
+            ELISE_ASSERT(aNb==2,"Could not read 2 double values");
 
             if (aNuage->CaptHasData(aPIm))
             {

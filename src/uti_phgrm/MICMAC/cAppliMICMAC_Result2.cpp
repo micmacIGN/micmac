@@ -224,6 +224,8 @@ void  cGeomTerWithMNT2Image::Diff(ElMatrix<REAL> &,Pt2dr) const
 /*                                                       */
 /*********************************************************/
 
+//'class cPurgeAct' does not have a copy constructor 
+//which is recommended since the class contains a pointer to allocated memory.
 class cPurgeAct
 {
     public :

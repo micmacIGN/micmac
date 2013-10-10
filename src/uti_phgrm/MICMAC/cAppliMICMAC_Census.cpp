@@ -242,8 +242,8 @@ template <class Type> class cImFlags : public cFlagTabule<Type>
                                   (
                                        const std::vector<Im2D_REAL4> & aVIm,
                                        Pt2di aSzVMax,
-                                       const std::vector<Pt2di> aVSz,
-                                       const std::vector<double> aVScale
+                                       const std::vector<Pt2di> &aVSz,
+                                       const std::vector<double> &aVScale
                                   );
 
 
@@ -326,8 +326,8 @@ std::vector<double> PondVois(const Pt2di & aV,double Depond,double aGama)
 std::vector<Pt3di>  VecKImGen
                   ( 
                        Pt2di aSzVMax,
-                       const std::vector<Pt2di> aVSz,
-                       const std::vector<double> aVSigma
+                       const std::vector<Pt2di> &aVSz,
+                       const std::vector<double> &aVSigma
                   )
 {
     std::vector<Pt3di> aRes;
@@ -363,8 +363,8 @@ std::vector<Pt3di>  VecKImGen
 
 std::vector<std::vector<Pt2di> > VecKImSplit (
                        Pt2di aSzVMax,
-                       const std::vector<Pt2di> aVSz,
-                       const std::vector<double> aVSigma
+                       const std::vector<Pt2di> &aVSz,
+                       const std::vector<double> &aVSigma
                   )
 {
     std::vector<Pt3di>  aVP = VecKImGen(aSzVMax,aVSz,aVSigma);
@@ -382,8 +382,8 @@ std::vector<std::vector<Pt2di> > VecKImSplit (
 std::vector<int>  VecKIm
                   ( 
                        Pt2di aSzVMax,
-                       const std::vector<Pt2di> aVSz,
-                       const std::vector<double> aVSigma
+                       const std::vector<Pt2di> &aVSz,
+                       const std::vector<double> &aVSigma
                   )
 {
     std::vector<Pt3di>  aVP = VecKImGen(aSzVMax,aVSz,aVSigma);
@@ -508,8 +508,8 @@ template   <class Type> cImFlags<Type> cImFlags<Type>::CensusMS
                                   (
                                        const std::vector<Im2D_REAL4> & aVIm,
                                        Pt2di aSzVMax,
-                                       const std::vector<Pt2di> aVSz,
-                                       const std::vector<double> aVSigma
+                                       const std::vector<Pt2di> &aVSz,
+                                       const std::vector<double> &aVSigma
                                   )
 {
     ELISE_ASSERT(aVIm.size()==aVSz.size(),"cImFlags<Type>::CensusMS size pb");
