@@ -413,6 +413,8 @@ Im2D_REAL4 cMatrCorresp::ImAppZ() {return mImZ;}
 /*                                                               */
 /*****************************************************************/
 
+ //'class cMA_AffineOrient' does not have a copy constructor
+ //which is recommended since the class contains a pointer to allocated memory.
 class cMA_AffineOrient
 {
      public :

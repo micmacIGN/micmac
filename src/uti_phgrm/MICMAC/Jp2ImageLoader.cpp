@@ -29,9 +29,10 @@
 
 namespace NS_ParamMICMAC
 {	
-	JP2ImageLoader::JP2ImageLoader(std::string const &nomfic)
+	JP2ImageLoader::JP2ImageLoader(std::string const &nomfic):
+		m_Nomfic(nomfic)
 	{
-		m_Nomfic=nomfic;
+		
 		//std::cout << "constructeur : "<<nomfic<<std::endl;
 		bool verbose = false;
 		jp2_source              m_Source;

@@ -45,7 +45,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 class ModuleOrientation
 {
 public:
-  ModuleOrientation(std::string const &nom){mFileName=nom;}
+  ModuleOrientation(std::string const &nom):mFileName(nom){}
   virtual ~ModuleOrientation(){;}
   virtual void ImageAndPx2Obj(double /*c*/, double /*l*/, const double * /*z*/,
                               double &/*x*/, double &/*y*/)const{;};

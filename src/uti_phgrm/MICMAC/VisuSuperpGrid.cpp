@@ -338,7 +338,7 @@ int main(int argc,char ** argv)
 {
    cAppliMICMAC & aAPM = *(cAppliMICMAC::Alloc(argc,argv,eAllocAM_VisuSup));
 
-   std::string aNameDir = aAPM.WorkDir();
+   //std::string aNameDir = aAPM.WorkDir();
    int aDZ = aAPM.VSG_DeZoomContr().Val();
 
    cout << aAPM.LastMAnExp().NameXMLFinal() << "\n";

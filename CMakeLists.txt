@@ -95,9 +95,9 @@ if (${CUDA_ENABLED})
 	INCLUDE_DIRECTORIES(${CUDA_SDK_ROOT_DIR}/inc)
 	#IFNOT(${WITH_IGN_ORI})
 
-        # ne pas oublier boost_no_system_paths
-	set(Boost_USE_STATIC_LIBS TRUE)
-        set(Boost_NO_SYSTEM_PATHS TRUE)
+    # ne pas oublier boost_no_system_paths
+	set(Boost_USE_STATIC_LIBS ON)
+    set(Boost_NO_SYSTEM_PATHS ON)
 	FIND_PACKAGE( Boost 1.48.0 COMPONENTS system serialization thread date_time chrono REQUIRED )
 	#chrono
 	 IF(NOT ${WITH_IGN_ORI})
