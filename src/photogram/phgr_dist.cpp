@@ -1857,8 +1857,10 @@ void   cDistCamStenopeGrid::Test(double aRayInv,const CamStenope & aCS,Pt2dr aSt
        }
        // getchar();
    }
+
    Tiff_Im::Create8BFromFonc("ECART.tif",aSzT,aIm.in()*100);
 
+   if(aDist) delete aDist;
 }
 
 NS_ParamChantierPhotogram::cCalibDistortion cDistCamStenopeGrid::ToXmlStruct(const ElCamera * ) const

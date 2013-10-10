@@ -89,6 +89,14 @@ template <const INT nbb,const bool msbf>
 {
 }
 
+ template <const INT nbb,const bool msbf>
+ Tabul_Bits<nbb,msbf>::~Tabul_Bits()
+ {
+
+     delete[] input_tab ;
+     delete[] out_tab ;
+ }
+
 template <const INT nbb,const bool msbf>  void
          Tabul_Bits<nbb,msbf>::input
          (
