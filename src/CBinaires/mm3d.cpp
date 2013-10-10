@@ -59,7 +59,7 @@ class cArgLogCom
 {
     public :
 
-        cArgLogCom(int aNumArg,const std::string aDirSup = "") :
+        cArgLogCom(int aNumArg,const std::string &aDirSup = "") :
             mNumArgDir (aNumArg),
             mDirSup    (aDirSup)
         {
