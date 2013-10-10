@@ -100,7 +100,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
         if (m_bDisplayMode2D)
         {
             pos = WindowToImage(mouseEvent->localPos());
-            _m_lastPosImg = pos;
+            m_lastPosImg = pos;
             update();
         }
 
@@ -181,9 +181,9 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
             {
                 if (mouseEvent->modifiers() & Qt::ShiftModifier) // zoom
                 {
-                    _m_lastPosZoom = mouseEvent->pos();
+                    _m_lastPosZoom =  m_lastPosWin;
 
-                    float dy = (_m_lastPosZoom.y() - ImageToWindow(m_lastPos).y())*0.002f;
+                    float dy = (mouseEvent->pos().y() - m_lastPosWin.y())*0.002f;
 
                     if (dy > 0.f) m_params.zoom *= pow(2.f, dy);
                     else  m_params.zoom /= pow(2.f, -dy);
@@ -229,6 +229,8 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
            m_lastPos = WindowToImage(mouseEvent->pos());
        else
            m_lastPos = mouseEvent->pos();
+
+       m_lastPosWin = mouseEvent->pos();
 
        if ( mouseEvent->button() == Qt::LeftButton )
        {
@@ -549,8 +551,8 @@ void GLWidget::paintGL()
 
             renderText(10, _glViewport[3] - m_font.pointSize(), QString::number(m_params.zoom*100,'f',1) + "%", m_font);
 
-            if  ((_m_lastPosImg.x()>=0)&&(_m_lastPosImg.y()>=0)&&(_m_lastPosImg.x()<_glImg.width())&&(_m_lastPosImg.y()<_glImg.height()))
-                renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(_m_lastPosImg.x(),'f',1) + ", " + QString::number(_glImg.height()-_m_lastPosImg.y(),'f',1) + " px", m_font);
+            if  ((m_lastPosImg.x()>=0)&&(m_lastPosImg.y()>=0)&&(m_lastPosImg.x()<_glImg.width())&&(m_lastPosImg.y()<_glImg.height()))
+                renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(m_lastPosImg.x(),'f',1) + ", " + QString::number(_glImg.height()-m_lastPosImg.y(),'f',1) + " px", m_font);
         }
     }
     else
