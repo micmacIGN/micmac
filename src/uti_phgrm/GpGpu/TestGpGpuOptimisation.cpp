@@ -6,7 +6,20 @@ extern "C" void TestOptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O)
 
 int main()
 {
+    // Cr�ation du contexte GPGPU
+    cudaDeviceProp deviceProp;
+    // Obtention de l'identifiant de la carte la plus puissante
+    int devID = gpuGetMaxGflopsDeviceId();
+    // Initialisation du contexte
+    checkCudaErrors(cudaSetDevice(devID));
+    // Obtention des proprietes de la carte
+    checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
+    // Affichage des propriétés de la carte
+    printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
+
+
     cout << "Launch Data optimisation GpGpu ***" << endl;
+    GpGpuTools::OutputInfoGpuMemory();
 
     srand (time(NULL));
 
@@ -15,8 +28,8 @@ int main()
     // Declaration des variables du cote du DEVICE
     DEVC_Data2Opti d2O;
 
-    uint nbLines        = rand() % 100 + 10;
-    uint lenghtMaxLines = 100;
+    uint nbLines        = rand() % 10 + 10;
+    uint lenghtMaxLines = 10;
     uint depthMax       = NAPPEMAX;
 
     uint sizeMaxLine = (uint)(1.5f*sqrt((float)lenghtMaxLines * lenghtMaxLines + nbLines * nbLines));
@@ -42,7 +55,7 @@ int main()
         for (uint aK= 0 ; aK < lenghtLines[p]; aK++)
             sizeStreamLine += count(make_short2(-tabZ[make_uint3(p,aK,0)],tabZ[make_uint3(p,aK,1)]));
 
-        pit_Strm_DZ     += iDivUp(lenghtLines[p],       WARPSIZE) * WARPSIZE;
+        pit_Strm_DZ     += iDivUp(lenghtLines[p],   WARPSIZE) * WARPSIZE;
         pit_Strm_ICost  += iDivUp(sizeStreamLine,   WARPSIZE) * WARPSIZE;
     }
 
@@ -118,6 +131,15 @@ int main()
 
     printf("\nError Count   = %d/%d\n",errorCount,h2O._s_InitCostVol.GetSize()- 2*NAPPEMAX);
     printf("Error percent = %f\n",(((float)errorCount*100)/(h2O._s_InitCostVol.GetSize()- 2*NAPPEMAX)));
+
+    h2O.Dealloc();
+    d2O.Dealloc();
+
+    tabZ.Dealloc();
+    lenghtLines.Dealloc();
+
+    checkCudaErrors( cudaDeviceReset() );
+    printf("Reset Device GpGpu.\n");
 
     return 0;
 }
