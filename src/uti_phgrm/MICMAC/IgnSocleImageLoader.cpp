@@ -213,12 +213,23 @@ namespace NS_ParamMICMAC
 		}
 		catch (ign::Exception& e)
 		{
-			std::cout << " IgnSocleImageLoader::LoadCanalCorrel -- probleme : "<< boost::diagnostic_information(e) <<std::endl;
+			std::cout << " IgnSocleImageLoader::LoadCanalCorrel -- exception IGN : "<< boost::diagnostic_information(e) <<std::endl;
 			IGN_THROW_EXCEPTION(boost::diagnostic_information(e));
 		}
-		catch (...)
+		catch( boost::exception &e )
 		{
-			std::cout<<"autre exception..."<<std::endl;
+			std::cout << " IgnSocleImageLoader::LoadCanalCorrel -- exception Boost : "<< boost::diagnostic_information(e) <<std::endl;
+			IGN_THROW_EXCEPTION(boost::diagnostic_information(e));
+		}
+		catch( std::exception &e )
+		{
+			std::cout << " IgnSocleImageLoader::LoadCanalCorrel -- exception STL : "<< e.what() <<std::endl;
+			IGN_THROW_EXCEPTION(e.what());
+		}
+		catch(...)
+		{
+			std::cout << " IgnSocleImageLoader::LoadCanalCorrel -- exception inconnue!"<<std::endl;
+			IGN_THROW_EXCEPTION("[IgnSocleImageLoader::LoadCanalCorrel -- exception Inconnue]");
 		}
 	}
 		
