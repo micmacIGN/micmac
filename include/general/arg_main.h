@@ -286,7 +286,7 @@ template <class Type> ElArgMain<Type>
                             Type & v,
                             const char * Name= "",
                             bool isInit = false,
-                            const std::string aComment = ""
+                            const std::string &aComment = ""
                      )
 {
 		return ElArgMain<Type>(v,Name,isInit,aComment);
@@ -295,7 +295,7 @@ template <class Type> ElArgMain<Type>
                      EAMC
                      (
                             Type & v,
-                            const std::string aComment 
+                            const std::string &aComment 
                      )
 {
                 AllAddrEAM.insert( (void *) &v);
@@ -390,7 +390,7 @@ class cReadObject
 
 
         bool  Decode(const char * aLine);
-        static bool ReadFormat(char  & aCom,std::string & aFormat,const std::string aFileOrLine,bool IsFile);
+        static bool ReadFormat(char  & aCom,std::string & aFormat,const std::string &aFileOrLine,bool IsFile);
 
         double GetDef(const double & aVal,const double & aDef);
         Pt3dr  GetDef(const Pt3dr  & aVal,const double  & aDef);

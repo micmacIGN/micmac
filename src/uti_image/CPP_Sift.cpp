@@ -285,7 +285,7 @@ int Sift_main( int argc, char**argv )
     if ( !process_arguments( argc-1, argv+1, parameters, image_list ) )
         return EXIT_FAILURE;
 
-    if ( image_list.size()==0 ){ cerr << "ERROR: no intput image file" << endl; exit(-1); }
+    if ( image_list.empty()){ cerr << "ERROR: no intput image file" << endl; exit(-1); }
     if ( parameters.output_filename.length()!=0 )
     {
         if ( image_list.size()>1 ){ cerr << "ERROR: an output filename is specified but there is more than one image file" << endl; exit(-1); }

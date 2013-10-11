@@ -58,9 +58,9 @@ int Image::nbImg=img0;
 class cAppliTestIsabelle
 {
     public :
-	cAppliTestIsabelle(int argc, char** argv, cParamFusionSift* aPSF)
-	{
-		param=*aPSF;
+	cAppliTestIsabelle(int argc, char** argv, cParamFusionSift* aPSF):
+		param(*aPSF)
+	{		
 		mDir = param.dossier();
 		mICNM = cInterfChantierNameManipulateur::StdAlloc
 			   (

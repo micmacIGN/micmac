@@ -80,9 +80,10 @@ namespace NS_ParamMICMAC
 	///
 	///
 	///
-	IgnSocleImageLoader::IgnSocleImageLoader(std::string const &nomfic)
+	IgnSocleImageLoader::IgnSocleImageLoader(std::string const &nomfic):
+		m_Nomfic(nomfic)
 	{
-		m_Nomfic=nomfic;
+		
 		ign::image::io::ImageInput img(nomfic);
 		if (!img.isValid())
 		{

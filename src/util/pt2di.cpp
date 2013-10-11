@@ -1145,7 +1145,7 @@ std::vector<Pt2di> PointInCouronne(int aD8Min,int aD8Max)
    return aRes;
 }
 
-std::vector<std::vector<Pt2di> > PointOfCouronnes(const std::vector<int> Dist,bool AddD4First)
+std::vector<std::vector<Pt2di> > PointOfCouronnes(const std::vector<int> &Dist,bool AddD4First)
 {
    std::vector<std::vector<Pt2di> > aRes;
 

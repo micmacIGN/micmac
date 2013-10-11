@@ -449,6 +449,9 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
         this->m_translationMatrix[0] = par.m_translationMatrix[0];
         this->m_translationMatrix[1] = par.m_translationMatrix[1];
         this->m_translationMatrix[2] = par.m_translationMatrix[2];
+		this->LineWidth = par.LineWidth;
+		this->_gamma 	= par._gamma;
+		
     }
 
     return *this;

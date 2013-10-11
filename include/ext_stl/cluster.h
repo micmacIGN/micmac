@@ -199,7 +199,7 @@ template <class Type,class TAttrLnk,class TParam> class cAlgoMergingRec
             typedef std::set<tPairV>                 tSetPairV;
             typedef std::list<tPairV>                tListPairV;
             
-            cAlgoMergingRec(const std::vector<Type *> aVals,TParam & aParam,int aNivShow) :
+            cAlgoMergingRec(const std::vector<Type *> &aVals,TParam & aParam,int aNivShow) :
                 mNumNode (0),
                 mParam   (aParam),
                 mHeap    (mCmp),
