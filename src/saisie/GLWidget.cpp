@@ -46,9 +46,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _m_g_mouseRightDown(false)
   , _mask(NULL)
 {
-    _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
-    _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
-    _m_g_rotationMatrix[5] = _m_g_rotationMatrix[6] = _m_g_rotationMatrix[7] = 0;  
+    resetRotationMatrix();
 
     _time.start();
 
@@ -65,8 +63,8 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
 
     m_font.setPointSize(10);
 
-     installEventFilter(this);
-     setMouseTracking(true);
+    installEventFilter(this);
+    setMouseTracking(true);
 }
 
 GLWidget::~GLWidget()
@@ -192,7 +190,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                 {
                     _m_lastPosZoom =  m_lastPosWin;
 
-                    float dy = (mouseEvent->pos().y() - m_lastPosWin.y())*0.002f;
+                    float dy = (mouseEvent->pos().y() - m_lastPosWin.y())*0.001f;
 
                     if (dy > 0.f) m_params.zoom *= pow(2.f, dy);
                     else  m_params.zoom /= pow(2.f, -dy);
@@ -833,9 +831,7 @@ void GLWidget::setData(cData *data)
  
         setZoom(m_Data->getCloud(0)->getScale());
 
-        m_params.m_translationMatrix[0] = -m_Data->m_cX;
-        m_params.m_translationMatrix[1] = -m_Data->m_cY;
-        m_params.m_translationMatrix[2] = -m_Data->m_cZ;
+        resetTranslationMatrix();
     }
 
     if (m_Data->NbImages())
@@ -877,6 +873,8 @@ void GLWidget::setData(cData *data)
         }
 
         ImageToTexture(m_textureMask, _mask);
+
+        _m_lastPosZoom = QPointF(_glViewport[2]*.5f, _glViewport[3]*.5f);
     }
 
     if (m_Data->NbCameras())
@@ -1182,9 +1180,11 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
     _m_g_rotationMatrix[7] = -eye[1];
     _m_g_rotationMatrix[8] = -eye[2];
 
-    m_params.m_translationMatrix[0] = m_Data->m_cX;
-    m_params.m_translationMatrix[1] = m_Data->m_cY;
-    m_params.m_translationMatrix[2] = m_Data->m_cZ;
+//    m_params.m_translationMatrix[0] = m_Data->m_cX;
+//    m_params.m_translationMatrix[1] = m_Data->m_cY;
+//    m_params.m_translationMatrix[2] = m_Data->m_cZ;
+
+    resetTranslationMatrix();
 }
 
 void GLWidget::onWheelEvent(float wheelDelta_deg)
@@ -1233,7 +1233,10 @@ void GLWidget::zoomFit()
 
 void GLWidget::zoomFactor(int percent)
 {
-    setZoom((float) percent / 100.f);
+    if (m_bDisplayMode2D)
+        setZoom((float) percent / 100.f);
+    else
+        setZoom(m_Data->getCloud(0)->getScale() / (float) percent * 100.f);
 }
 
 void GLWidget::wheelEvent(QWheelEvent* event)
@@ -1880,9 +1883,7 @@ void GLWidget::showMoveMessages()
 
 void GLWidget::reset()
 {
-    _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
-    _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
-    _m_g_rotationMatrix[5] = _m_g_rotationMatrix[6] = _m_g_rotationMatrix[7] = 0;
+    resetRotationMatrix();
 
     clearPolyline();
 
@@ -1893,6 +1894,43 @@ void GLWidget::reset()
     m_Data->clearMasks();
 
     m_bFirstAction = true;
+}
+
+void GLWidget::resetView()
+{
+    if (m_bDisplayMode2D)
+    {
+        zoomFit();
+
+        update();
+    }
+    else
+    {
+        resetRotationMatrix();
+        resetTranslationMatrix();
+
+        setZoom(m_Data->getCloud(0)->getScale());
+
+        m_bObjectCenteredView = true;
+
+        showBall(true);
+
+        update();
+    }
+}
+
+void GLWidget::resetRotationMatrix()
+{
+    _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
+    _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
+    _m_g_rotationMatrix[5] = _m_g_rotationMatrix[6] = _m_g_rotationMatrix[7] = 0;
+}
+
+void GLWidget::resetTranslationMatrix()
+{
+    m_params.m_translationMatrix[0] = -m_Data->m_cX;
+    m_params.m_translationMatrix[1] = -m_Data->m_cY;
+    m_params.m_translationMatrix[2] = -m_Data->m_cZ;
 }
 
 void GLWidget::applyGamma(float aGamma)
