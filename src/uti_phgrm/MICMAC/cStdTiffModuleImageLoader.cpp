@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Jp2ImageLoader.h"
 #endif
 #if __USE_IMAGEIGN__
+#include <boost/algorithm/string/predicate.hpp>
 #include "IgnSocleImageLoader.h"
 #endif
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
@@ -648,25 +649,27 @@ cInterfModuleImageLoader * cAppliMICMAC::GetMIL
  cInterfModuleImageLoader * aRes = 0;
  if ( ! aMIL.IsInit())
  {
+	 //on recupere l'extension
+	 int placePoint = -1;
+	 for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+	 {
+		 if (aName[l]=='.')
+		 {
+			 placePoint = l;
+		 }
+	 }
+	 std::string ext = std::string("");
+	 if (placePoint!=-1)
+	 {
+		 ext.assign(aName.begin()+placePoint+1,aName.end());
+	 }
+	 //std::cout << "Extension : "<<ext<<std::endl;
+	 
 #if defined (__USE_JP2__)
-	 std::cout<<"JP2 avec Jp2ImageLoader"<<std::endl;
 	// on teste l'extension
-	int placePoint = -1;
-	for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+	if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
 	{
-		if (aName[l]=='.')
-		{
-			placePoint = l;
-		}
-	}
-	std::string ext = std::string("");
-	if (placePoint!=-1)
-	{
-		ext.assign(aName.begin()+placePoint+1,aName.end());
-	}
-	//std::cout << "Extension : "<<ext<<std::endl;
-	if ((ext==std::string("jp2"))||(ext==std::string("JP2")))
-	{
+		std::cout<<"JP2 avec Jp2ImageLoader"<<std::endl;
 		aRes = new JP2ImageLoader(DirImagesInit()+aName);
 	}
 	else 
@@ -674,8 +677,18 @@ cInterfModuleImageLoader * cAppliMICMAC::GetMIL
 		aRes = new cStdTiffModuleImageLoader(*this,aName);
 	}
 #elif defined (__USE_IMAGEIGN__)
-	 std::cout<<"images avec IgnSocleImageLoader"<<std::endl;
-	 aRes = new IgnSocleImageLoader(DirImagesInit()+aName);
+	 // on teste l'extension
+	 if (  boost::algorithm::iequals(ext,std::string("jp2"))  || boost::algorithm::iequals(ext,std::string("ecw")) || boost::algorithm::iequals(ext,std::string("jpg")) 
+		 || boost::algorithm::iequals(ext,std::string("dmr")) || boost::algorithm::iequals(ext,std::string("dmr")) || boost::algorithm::iequals(ext,std::string("bil")))
+	 {
+		 std::cout<<"Format "<<ext<<" lu avec IgnSocleImageLoader"<<std::endl;
+		 aRes = new IgnSocleImageLoader(DirImagesInit()+aName);
+	 }
+	 else 
+	 {
+		 aRes = new cStdTiffModuleImageLoader(*this,aName);
+	 }				
+	
 #else
 	 std::cout<<"images avec IgnSocleImageLoader"<<std::endl;
     aRes = new cStdTiffModuleImageLoader(*this,aName);
