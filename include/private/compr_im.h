@@ -210,7 +210,7 @@ class ElTranlatScaleTransfo
 		  // Soit W un pixel W, retourne le pixel user qui contient
 
 		  void Set(REAL aTr,REAL aSc) {mTr=aTr;mSc=aSc;}
-      private :
+      // private :
           REAL                    mTr;
           REAL                    mSc;
 };

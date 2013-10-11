@@ -10,6 +10,7 @@
              <Symb> TypePts=eNSM_Pts </Symb>
              <Symb> FlouSpecified=false </Symb>
              <Symb> TypeSpecified=false </Symb>
+             <Symb> ForceGray=true </Symb>
         </DicoLoc>
 
         <SectionWindows>
@@ -46,7 +47,7 @@
 
         <SectionImages>
               <SetOfImages> ${Images} </SetOfImages>
-              <ForceGray> true </ForceGray>
+              <ForceGray> ${ForceGray} </ForceGray>
               <KeyAssocOri> ${Ori}  </KeyAssocOri>
         </SectionImages>
 

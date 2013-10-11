@@ -50,18 +50,20 @@ using namespace NS_SaisiePts;
 /*************************************************/
 
 
-ElImScroller * SCR(Visu_ElImScr &aVisu,const std::string & aName)
+ElImScroller * SCR(Visu_ElImScr &aVisu,const std::string & aName,bool ForceGray)
 {
     Tiff_Im aTifFile = Tiff_Im::StdConvGen(aName,-1,true);
 
-    aVisu.AdaptTiffFile(aTifFile,true,true);  // AdaptPal,ForceGray);
+     // INT aDim = aTifFile.nb_chan(); aDim=1;
+
+    aVisu.AdaptTiffFile(aTifFile,true,ForceGray);  // AdaptPal,ForceGray);
     switch (aTifFile.type_el())
     {
          case GenIm::u_int1 :
-              return new ImFileScroller<U_INT1> (aVisu,aTifFile,1);
+              return new ImFileScroller<U_INT1> (aVisu,aTifFile,1.0);
          break;
          case GenIm::u_int2 :
-              return new ImFileScroller<U_INT2> (aVisu,aTifFile,1);
+              return new ImFileScroller<U_INT2> (aVisu,aTifFile,1.0);
          break;
 
          default :
@@ -84,8 +86,7 @@ cWinIm::cWinIm(cAppli_SaisiePts& anAppli,Video_Win aW,Video_Win aWT,cImage & aIm
     mW (aW),
     mWT (aWT),
     mVWV (aW,StdPalOfFile(aIm0.Tif().name(),aW),Pt2di(10,10)),  // Sz  Incrustation 
-    // mScr (ElImScroller::StdPyramide (mVWV,aIm0.Tif().name())),
-    mScr    (SCR(mVWV,aIm0.Tif().name())),
+    mScr    (SCR(mVWV,aIm0.Tif().name(),mAppli.Param().ForceGray().Val())),
     mCurIm          (0),
     mModeRelication (true),
     mSzW            (mW.sz()),

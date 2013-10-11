@@ -1,13 +1,13 @@
 BUGS :
 
 Saisie :
-  3- Im Coul
-  1- Fichier XML en nom de point
+  0000 - Campari : PB Residu terrain !!
   2- Image Globale de Saisie 
   4- Renommer les points
-  5 - Campari : PB Residu terrain !!
   6- Bug Serge : OK ??!!! Mais de toute facon alerter dqp si pas de plan ....
   
+  DONE 3- Im Coul
+  DONE=1- Fichier XML en nom de point
 
   Si Masque TA existe et incompatible : genere bug
 

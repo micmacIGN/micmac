@@ -50,6 +50,8 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
   Pt2di aSzW(800,800);
   Pt2di aNbFen(-1,-1);
   std::string aFullName,aNamePt,anOri,aNameMesure; //anOut
+  bool aForceGray = true;
+
 
   double aFlou=0.0;
 
@@ -65,6 +67,8 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
                     << EAM(aNbFen,"NbF",true,"Number of Sub Window (Def 2 2)")
                     << EAM(aFlou,"WBlur",true,"Size IN GROUND GEOMETRY of bluring for target")
                     << EAM(aTypePts,"Type",true,"in [MaxLoc,MinLoc,GeoCube]")
+                    << EAM(aForceGray,"ForceGray",true," Force gray image, def =true")
+
   );
 
 
@@ -120,6 +124,9 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
      aCom = aCom + std::string(" +FlouSpecified=true");
   if (EAMIsInit(&aTypePts)) 
      aCom = aCom + std::string(" +TypeGlobEcras=true");
+  if (EAMIsInit(&aForceGray))
+     aCom = aCom + " +ForceGray=" + ToString(aForceGray);
+
 
   std::cout << aCom << "\n";
 
