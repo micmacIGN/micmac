@@ -163,19 +163,24 @@ namespace NS_ParamMICMAC
 	///
 	void IgnSocleImageLoader::LoadCanalCorrel
 	(
-	 const sLowLevelIm<float> & anIm,
-	 int              aDeZoom,
-	 tPInt            aP0Im,
-	 tPInt            aP0File,
-	 tPInt            aSz
-	 )
-	{
+		const sLowLevelIm<float> & anIm,
+		int              aDeZoom,
+		tPInt            aP0Im,
+		tPInt            aP0File,
+		tPInt            aSz
+		)
+		{
+		bool verbose = 0;
+		if (verbose) std::cout<<"LoadCanalCorrel START "<<m_Nomfic<<std::endl;
 		try {
 			
 			std::vector<sLowLevelIm<float> > anImNCanaux;
 			for(int i=0;i<m_Nbc;++i)
 			{
-				float * DataLin = new  float [(unsigned long)anIm.mSzIm.real()*(unsigned long)anIm.mSzIm.imag()];
+				unsigned long allocSz =  (unsigned long)anIm.mSzIm.real()*(unsigned long)anIm.mSzIm.imag();
+				if (verbose) std::cout<<"LoadCanalCorrel Alloc canal "<<i<<" sz = "<<anIm.mSzIm.real()<<" x "<<anIm.mSzIm.imag()<<" -> alloc size: "<<allocSz<<std::endl;
+
+				float * DataLin = new  float [allocSz];
 				float ** Data = new  float* [anIm.mSzIm.imag()];
 				for(int l=0;l<anIm.mSzIm.imag();++l)
 				{
@@ -183,7 +188,9 @@ namespace NS_ParamMICMAC
 				}
 				anImNCanaux.push_back(sLowLevelIm<float>(DataLin,Data,anIm.mSzIm));
 			}	
+			if (verbose) std::cout<<"LoadNCanaux START dezoom: "<<aDeZoom<<" aP0Im: "<<aP0Im.real()<<" x "<<aP0Im.imag()<<" | aP0File: "<<aP0File.real()<<" x "<<aP0File.imag()<<" | Sz: "<<anIm.mSzIm.real()<<" x "<<anIm.mSzIm.imag()<<std::endl;
 			LoadNCanaux(anImNCanaux,0,aDeZoom,aP0Im,aP0File,aSz);
+			if (verbose) std::cout<<"LoadNCanaux END"<<std::endl;
 			for(int l=0;l<aSz.imag();++l)
 			{
 				float * pt_out = anIm.mData[l+aP0Im.imag()]+aP0Im.real();
@@ -204,12 +211,13 @@ namespace NS_ParamMICMAC
 					++pt_out;		
 				}	
 			}
+			
 			for(int i=0;i<m_Nbc;++i)
 			{
+				if (verbose) std::cout<<"Cleaning canal "<<i<<std::endl;
 				delete[] anImNCanaux[i].mDataLin;
 				delete[] anImNCanaux[i].mData;
 			}	
-			
 		}
 		catch (ign::Exception& e)
 		{
@@ -231,6 +239,7 @@ namespace NS_ParamMICMAC
 			std::cout << " IgnSocleImageLoader::LoadCanalCorrel -- exception inconnue!"<<std::endl;
 			IGN_THROW_EXCEPTION("[IgnSocleImageLoader::LoadCanalCorrel -- exception Inconnue]");
 		}
+		if (verbose) std::cout<<"LoadCanalCorrel END"<<std::endl;
 	}
 		
 	

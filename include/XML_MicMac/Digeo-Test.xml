@@ -6,16 +6,17 @@
     <DicoLoc>
         <Symb> Im1=IMG_0034.CR2 </Symb>
         <Symb> NbNivByOct=3     </Symb>
-        <Symb> Resol=1.0     </Symb>
-        <Symb> Sigma0=1.60     </Symb>
-        <Symb> OctaveMax=8     </Symb>
+        <Symb> Resol=1.0        </Symb>
+        <Symb> Sigma0=1.60      </Symb>
+        <Symb> SigmaN=0.5       </Symb>
+        <Symb> OctaveMax=8      </Symb>
 
-        <Symb> NivFloatIm=4     </Symb>
-        <Symb> NivInFirstOct=0     </Symb>
-        <Symb> Incremental=true     </Symb>
-        <Symb> ExigeCodeCompile=true     </Symb>
+        <Symb> NivFloatIm=4          </Symb>
+        <Symb> NivInFirstOct=0       </Symb>
+        <Symb> Incremental=true      </Symb>
+        <Symb> ExigeCodeCompile=true </Symb>
 
-        <Symb> Sauv=1     </Symb>
+        <Symb> Sauv=1             </Symb>
         <Symb> RatioGrad=0.05     </Symb>
 
         <eSymb> MaxDyn= ! ${Sauv} </eSymb>
@@ -62,6 +63,7 @@
               <TypePyramide>
                   <PyramideGaussienne>
                        <NbByOctave> ${NbNivByOct} </NbByOctave>
+                       <SigmaN> ${SigmaN} </SigmaN>
                        <Sigma0> ${Sigma0} </Sigma0>
                        <IndexFreqInFirstOctave >  ${NivInFirstOct} </IndexFreqInFirstOctave>
                        <NivOctaveMax> ${OctaveMax} </NivOctaveMax> 
