@@ -52,6 +52,9 @@ class cOneImageSup;
 /*                                       */
 /*****************************************/
 
+//'class cOneImageSup' does not have a copy constructor which is recommended
+// since the class contains a pointer to allocated memory.
+
 class cOneImageSup
 {
     public :

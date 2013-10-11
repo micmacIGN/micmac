@@ -551,7 +551,7 @@ class cManipOrdInc
      public :
         
         cManipOrdInc();
-        void Init(const std::vector<cIncIntervale *> aBlocsIncAlloc);
+        void Init(const std::vector<cIncIntervale *> &aBlocsIncAlloc);
         Im1D_REAL8 ReordonneSol(Im1D_REAL8 aIm);
         std::vector<cIncIntervale *> &  BlocsIncSolve();
         std::vector<int>             &  I02NblSolve();

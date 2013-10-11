@@ -55,12 +55,12 @@ int Ann_main( int argc, char **argv )
 
 	match_lebris( array0, array1, matchedCoupleIndices );
 
-	if ( matchedCoupleIndices.size()!=0 )
+	if ( !matchedCoupleIndices.empty() )
 	{
 		unfoldMatchingCouples( array0, array1, matchedCoupleIndices );
 		neighbourFilter( array0, array1, matchedCoupleIndices );
 
-		if ( matchedCoupleIndices.size()!=0 )
+		if ( !matchedCoupleIndices.empty() )
 		{
 			unfoldMatchingCouples( array0, array1, matchedCoupleIndices );
 			neighbourFilter( array0, array1, matchedCoupleIndices );

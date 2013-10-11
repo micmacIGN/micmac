@@ -146,7 +146,7 @@ class PRC0
 
        PRC0 (const PRC0&);
        ~PRC0(void) ;
-       void operator=(const PRC0 p2);
+       void operator=(const PRC0 &p2);
 
 
 

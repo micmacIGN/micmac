@@ -25,6 +25,9 @@ OPTION(WITH_KAKADU  "Include KAKADU Support" OFF)
 # Utiliser Ign orientation
 OPTION(WITH_IGN_ORI "Include Ign orientation" OFF )
 
+# Utiliser Ign orientation
+OPTION(WITH_IGN_IMAGE "Include Ign image" OFF )
+
 # Utiliser les en-tetes precompilees
 OPTION(WITH_HEADER_PRECOMP "En-tetes precompilees" ON )
 
@@ -95,9 +98,9 @@ if (${CUDA_ENABLED})
 	INCLUDE_DIRECTORIES(${CUDA_SDK_ROOT_DIR}/inc)
 	#IFNOT(${WITH_IGN_ORI})
 
-        # ne pas oublier boost_no_system_paths
-	set(Boost_USE_STATIC_LIBS TRUE)
-        set(Boost_NO_SYSTEM_PATHS TRUE)
+    # ne pas oublier boost_no_system_paths
+	set(Boost_USE_STATIC_LIBS ON)
+    set(Boost_NO_SYSTEM_PATHS ON)
 	FIND_PACKAGE( Boost 1.48.0 COMPONENTS system serialization thread date_time chrono REQUIRED )
 	#chrono
 	 IF(NOT ${WITH_IGN_ORI})
@@ -145,9 +148,9 @@ endif()
 
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 
-# Utiliser Kakadu
-
-IF(${WITH_KAKADU})
+# Utiliser le driver Kakadu pour gerer les images JP2OOO
+IF(${WITH_KAKADU} AND NOT ${WITH_IGN_IMAGE})
+#IF(${WITH_KAKADU})
 	FIND_PACKAGE( KAKADU )
 	IF(NOT KAKADU_FOUND)
 		MESSAGE("Warning! Kakadu not found. Micmac will be built without JPEG2000 support.")
@@ -160,38 +163,86 @@ IF(${WITH_KAKADU})
 
 ENDIF()
 
-# Utiliser Matis orientation
+# Utiliser le socle IGN pour gerer les orientations coniques ET/OU les images JP2000
+IF(${WITH_IGN_ORI} OR ${WITH_IGN_IMAGE})
+	SET(SOCLE_COMPONENTS "")
+	IF(${WITH_IGN_ORI})
+		SET(SOCLE_COMPONENTS core data orientation geodesy transform math numeric tools xml)
+	ENDIF()
+	IF(${WITH_IGN_IMAGE})
+		LIST(APPEND SOCLE_COMPONENTS core data image transform math numeric tools xml)
+		
+		#pour le DMR sinon on peut l'enlever aisni que la dependeance a Geos
+		LIST(APPEND SOCLE_COMPONENTS geometry) 
+	ENDIF()
 
-IF(${WITH_IGN_ORI})
-	FIND_PACKAGE( IgnSocle  COMPONENTS core data orientation geodesy transform math numeric tools xml)
+	FIND_PACKAGE( IgnSocle  COMPONENTS "${SOCLE_COMPONENTS}")
 	FIND_PACKAGE(TinyXML)
 	FIND_PACKAGE(PROJ4)
-	IF ( PROJ4_FOUND )
-        LINK_DIRECTORIES( ${PROJ4_LIBRARY_DIRS} )
-        ENDIF()
+	FIND_PACKAGE(GDAL)
+	FIND_PACKAGE( KAKADU )
+	FIND_PACKAGE(ECWJ2)
+	FIND_PACKAGE(Geos)
+	FIND_PACKAGE( Boost 1.48.0 COMPONENTS unit_test_framework date_time filesystem system serialization thread regex chrono REQUIRED)
+
 	#add_definitions( "-DBOOST_THREAD_USE_LIB" )
 	add_definitions( "-DBOOST_TYPEOF_COMPLIANT" )
-
 	SET(Boost_USE_MULTITHREADED ON)
-	FIND_PACKAGE( Boost 1.48.0 COMPONENTS unit_test_framework date_time filesystem system serialization thread regex chrono REQUIRED)
-	IF(IgnSocle_FOUND AND TinyXML_FOUND AND Boost_FOUND)
-        	INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
-        	LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
-		message("TinyXML_LIBRARY_DIRS : ${TinyXML_LIBRARY_DIRS}")
-		LINK_DIRECTORIES(${TinyXML_LIBRARY_DIRS})
-		INCLUDE_DIRECTORIES(${TinyXML_INCLUDE_DIRS})
+	SET(Boost_USE_STATIC_LIBS ON)
+	
+	SET(DEPENDENCIES "")
+	IF(IgnSocle_FOUND AND TinyXML_FOUND AND Boost_FOUND AND ${WITH_IGN_ORI})
 		ADD_DEFINITIONS(-D__USE_ORIENTATIONIGN__ )
-		LINK_DIRECTORIES(${IgnSocle_LIBRARY_DIRS})
-		INCLUDE_DIRECTORIES(${IgnSocle_INCLUDE_DIRS})
+
+		LIST(APPEND DEPENDENCIES  IgnSocle TinyXML Boost)
+		IF ( PROJ4_FOUND )
+			LIST(APPEND DEPENDENCIES PROJ4)
+        	ENDIF()
 	ELSE()
-		MESSAGE("IgnSocle_FOUND : ${IgnSocle_FOUND}")
-                MESSAGE("TinyXML_FOUND : ${TinyXML_FOUND}")
-                MESSAGE("Boost_FOUND : ${Boost_FOUND}")
-		MESSAGE("Warning! Ign Orientation not found. Micmac will be built without Ign Orientation support.")
+		IF (${WITH_IGN_ORI})
+			MESSAGE("IgnSocle_FOUND : ${IgnSocle_FOUND}")
+            MESSAGE("TinyXML_FOUND : ${TinyXML_FOUND}")
+            MESSAGE("Boost_FOUND : ${Boost_FOUND}")
+			MESSAGE("Warning! Ign Orientation not found. Micmac will be built without Ign Orientation support.")
+		ENDIF()
 	ENDIF()
+
+	IF(IgnSocle_FOUND AND TinyXML_FOUND AND Boost_FOUND AND GDAL_FOUND AND ${WITH_IGN_IMAGE})
+		ADD_DEFINITIONS(-D__USE_IMAGEIGN__ )
+
+		LIST(APPEND DEPENDENCIES IgnSocle TinyXML GDAL Boost)
+		IF (KAKADU_FOUND)
+			LIST(APPEND DEPENDENCIES KAKADU)
+		ENDIF()
+		IF (ECWJ2_FOUND)
+			LIST(APPEND DEPENDENCIES ECWJ2)
+		ENDIF()
+		IF (Geos_FOUND)
+			LIST(APPEND DEPENDENCIES Geos)
+		ENDIF()
+	ELSE()
+		IF (${WITH_IGN_IMAGE})
+			MESSAGE("IgnSocle_FOUND : ${IgnSocle_FOUND}")
+			MESSAGE("TinyXML_FOUND : ${TinyXML_FOUND}")
+            MESSAGE("GDAL_FOUND : ${GDAL_FOUND}")
+            MESSAGE("KAKADU_FOUND : ${KAKADU_FOUND}")
+            MESSAGE("ECWJ2_FOUND : ${ECWJ2_FOUND}")
+            MESSAGE("Geos_FOUND : ${Geos_FOUND}")
+			MESSAGE("Boost_FOUND : ${Boost_FOUND}")
+			MESSAGE("Warning! Ign Image not found. Micmac will be built without Ign Image support.")
+		ENDIF()
+	ENDIF()
+	
+	foreach( DEPENDENCY ${DEPENDENCIES} )	
+		LINK_DIRECTORIES   (${${DEPENDENCY}_LIBRARY_DIRS})
+		INCLUDE_DIRECTORIES(${${DEPENDENCY}_INCLUDE_DIRS})
+		#message("LINK_DIR ${DEPENDENCY} --> ${${DEPENDENCY}_LIBRARY_DIRS}")
+		#message("INCLUDE_DIR ${DEPENDENCY} --> ${${DEPENDENCY}_INCLUDE_DIRS}")
+	endforeach()
+	
 ENDIF()
 
-
+# Utiliser la librairie du MATIS pour gerer les orientations coniques
 IF(${WITH_MATIS_ORI})
 	FIND_PACKAGE( MatisOrientation )
 	IF(NOT MatisOrientation_FOUND)

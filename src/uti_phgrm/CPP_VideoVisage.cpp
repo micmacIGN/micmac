@@ -168,7 +168,7 @@ cVideoVisage::cVideoVisage(int argc,char ** argv) :
      
 
 
-     std::list<std::string> aListComMalt;
+    // std::list<std::string> aListComMalt;
      std::list<std::string> aListComPly;
 
 

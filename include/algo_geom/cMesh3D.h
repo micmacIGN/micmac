@@ -135,7 +135,7 @@ class cTriangle
 
 		void	setAttributes(int image_idx, const vector <REAL> &ta);
 
-		bool	hasAttributes() { return (mAttributes.size() != 0); }
+		bool	hasAttributes() { return (!mAttributes.empty()); }
 
 		void	setInside() {mInside = true;}
 

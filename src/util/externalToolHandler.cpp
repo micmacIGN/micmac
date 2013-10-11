@@ -239,7 +239,7 @@ int CheckDependencies_main(int argc,char ** argv)
 	// functions for rights checking/setting (unices only)
 	
 	// process has execution rights on i_filename ?
-	bool hasExecutionRights( const std::string i_filename )
+	bool hasExecutionRights( const std::string &i_filename )
 	{
 		struct stat s;
 		stat( i_filename.c_str(), &s );
@@ -264,7 +264,7 @@ int CheckDependencies_main(int argc,char ** argv)
 	// set execution rigths for owner, group's members and others on i_filename
 	// equivalent of chmod +x i_filename
 	// return true if successfull
-	bool setAllExecutionRights( const std::string i_filename, bool i_value )
+	bool setAllExecutionRights( const std::string &i_filename, bool i_value )
 	{
 		struct stat s;
 		stat( i_filename.c_str(), &s );
@@ -280,7 +280,7 @@ int CheckDependencies_main(int argc,char ** argv)
 	}
 		
 	// process' owner belongs to the group of i_filename ?
-	bool belongsToGroupOf( const std::string i_filename )
+	bool belongsToGroupOf( const std::string &i_filename )
 	{		
 		struct stat file_stat;
 		struct group *file_group;

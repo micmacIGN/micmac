@@ -131,7 +131,7 @@ void DoDevelopp(int aSz1,int aSz2)
     for (std::list<std::string>::const_iterator iT= aFileList.begin() ; iT!=aFileList.end() ; iT++, iImage++)
     {
         std::string  aNOri = anICNM->Dir()+*iT;
-        std::string  aNTif = NameFileStd(aNOri,1,false,true,false);
+        //std::string  aNTif = NameFileStd(aNOri,1,false,true,false);
 
         std::string aCom = MMBin() + "PastDevlop " + aNOri + " Sz1=" +ToString(aSz1) + " Sz2="+ToString(aSz2);
 

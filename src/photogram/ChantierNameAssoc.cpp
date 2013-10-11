@@ -3348,7 +3348,7 @@ aKeyOrFile         :
 		(
 		cInterfChantierNameManipulateur & aIMCN,
 		const cContenuAPrioriImage & aCAPI,
-		const std::string aDir,
+		const std::string &aDir,
 		const std::string & aName,
 		const std::string & aName2
 		) :

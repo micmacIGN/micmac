@@ -225,6 +225,7 @@ insulter si ce n'est pas le cas; sauf si ExigeCodeCompile indique que c'est scie
            <ShowConvolSpec Nb="?" Type="bool" Def="false"> </ShowConvolSpec>
 
 
+	   <Verbose Nb="?" Type="bool" Def="false"> </Verbose>
         </SectionWorkSpace>
    </ParamDigeo>
 

@@ -49,7 +49,7 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
   MMD_InitArgcArgv(argc,argv);
   Pt2di aSzW(800,800);
   Pt2di aNbFen(-1,-1);
-  std::string aFullName,aNamePt,anOri,anOut,aNameMesure;
+  std::string aFullName,aNamePt,anOri,aNameMesure; //anOut
 
   double aFlou=0.0;
 

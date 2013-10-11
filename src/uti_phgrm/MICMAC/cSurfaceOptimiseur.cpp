@@ -653,8 +653,8 @@ void cSurfaceOptimiseur::SolveOpt()
 
      if (mMemoCorrel)
      {
-        std::string aDirSauv;
-        std::string aPref;
+        //std::string aDirSauv;
+        //std::string aPref;
         FILE * aFileDataCube=0;
         if (mCubeCorrel)
         {

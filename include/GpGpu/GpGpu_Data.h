@@ -55,9 +55,9 @@ protected:
     /// \brief      Init le pointeur des donnees
     void            SetPData(T *p){ _data = p;}
 
-    virtual bool    abDealloc() = 0;
+    virtual bool    abDealloc(){ return false;}
 
-    virtual bool    abMalloc()  = 0;
+    virtual bool    abMalloc(){ return false;}
 
     virtual uint    Sizeof(){return 0;}
 
@@ -360,9 +360,9 @@ public:
 
 protected:
 
-    bool    abDealloc() ;
+    virtual bool    abDealloc() ;
 
-    bool    abMalloc();
+    virtual bool    abMalloc();
 
 private:
 
@@ -376,7 +376,7 @@ TPL_T void CuHostData3D<T>::init(bool pgLockMem, uint2 dim, uint l)
 {
     CGObject::SetType("CuHostData3D");
     _pgLockMem = pgLockMem;
-    CData3D<T>::bInit(dim,l);
+    CData3D<T>::bInit(dim,l); // ATTENTION PROBLEME : Pure virtual method called
 }
 
 TPL_T bool CuHostData3D<T>::Memset( int val )

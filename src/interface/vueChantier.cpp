@@ -2484,8 +2484,8 @@ GeorefMNT::GeorefMNT(const QString& f, bool lire):
 }
 GeorefMNT::~GeorefMNT() {}
 
-GeorefMNT& GeorefMNT::operator=(const GeorefMNT& georefMNT) {
-	if (this!=&georefMNT) copie(georefMNT);
+GeorefMNT& GeorefMNT::operator=(const GeorefMNT& cgeorefMNT) {
+	if (this!=&cgeorefMNT) copie(cgeorefMNT);
 	return *this;
 }
 

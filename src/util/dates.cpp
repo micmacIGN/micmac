@@ -121,7 +121,7 @@ cCameraEntry *  CamOfName(const std::string & aName)
 }
 
 
-void WarnNo35(const std::string aName)
+void WarnNo35(const std::string &aName)
 {
 	static std::set<std::string> aSetDeja;
 
@@ -689,7 +689,7 @@ std::string GenerateId()
 	return aStr0 + BasicGenerateId();
 }
 
-std::string GenerateNameUnique(const std::string & aNF,const std::string Post)
+std::string GenerateNameUnique(const std::string & aNF,const std::string &Post)
 {
 	return "XXXX_" +  NameWithoutDir(aNF) + "_" + GenerateId()  + "_" + Post;
 }
