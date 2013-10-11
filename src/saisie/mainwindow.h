@@ -74,6 +74,8 @@ public slots:
     void setLeftView();
     void setRightView();
 
+    void resetView();
+
     //zoom
     void zoomPlus();
     void zoomMoins();
