@@ -134,7 +134,15 @@ public:
 
     QVector <selectInfos> getSelectInfos(){return m_infos;}
 
+    //! Avoid all past actions
     void reset();
+
+    //! Reset view
+    void resetView();
+
+    void resetRotationMatrix();
+
+    void resetTranslationMatrix();
 
     QImage* getGLMask(){return _mask;}
 
