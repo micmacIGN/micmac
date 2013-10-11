@@ -638,6 +638,9 @@ class cImDigeo
        const Box2di &   BoxCurIn ();
        const Box2di &   BoxCurOut ();
        const std::vector<cOctaveDigeo *> &   Octaves() const;
+       double Sigma0() const;
+       double SigmaN() const;
+
        Tiff_Im TifF();
      private :
 
@@ -673,6 +676,8 @@ class cImDigeo
         double                       mDyn;
 		REAL8			  			 mMaxValue; // valeur max d'un pixel, utilisée pour la normalisation du gradient
         Im2DGen *                    mFileInMem;
+        double                       mSigma0; // sigma of the first level of each octave (in the octave's space)
+        double                       mSigmaN; // nominal sigma value of source image
      private :
         cImDigeo(const cImDigeo &);  // N.I.
         
@@ -783,7 +788,6 @@ class cAppliDigeo : public cParamDigeo
        cSiftCarac *  RequireSiftCarac();
        cSiftCarac *  SiftCarac();
 
-
     private :
        void InitAllImage();
        void DoAllInterv();
@@ -808,7 +812,7 @@ class cAppliDigeo : public cParamDigeo
 
        cSiftCarac *                     mSiftCarac;
     public:
-       bool				mVerbose;
+       bool mVerbose;
 
      private :
         cAppliDigeo(const cAppliDigeo &);  // N.I.

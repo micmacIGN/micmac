@@ -108,13 +108,29 @@ cImDigeo::cImDigeo
   mBoxGlobR1   (Pt2di(0,0),mSzGlobR1),
   mBoxImR1     (Inf(mIMD.BoxImR1().ValWithDef(mBoxGlobR1),mBoxGlobR1)),
   mBoxImCalc   (round_ni(Pt2dr(mBoxImR1._p0)/mResol),round_ni(Pt2dr(mBoxImR1._p1)/mResol)),
-
   mSzMax       (0,0),
+  mNiv	       ( 0 ),
   mVisu        (0),
   mG2MoyIsCalc (false),
   mDyn         (1.0),
-  mFileInMem   (0)
+  mFileInMem   (0),
+  mSigma0      ( anAppli.Sigma0().Val() ),
+  mSigmaN      ( anAppli.SigmaN().Val() )
 {
+    const cTypePyramide & aTP = mAppli.TypePyramide();
+    if (aTP.NivPyramBasique().IsInit())
+       mNiv = aTP.NivPyramBasique().Val();
+    else if (aTP.PyramideGaussienne().IsInit())
+       mNiv = aTP.PyramideGaussienne().Val().NivOctaveMax();
+    else
+ 	ELISE_ASSERT(false,"cImDigeo::AllocImages PyramideImage");
+
+    if ( Appli().mVerbose )
+    {
+        cout << "sigmaN : " << SigmaN() << endl;
+        cout << "sigma0 : " << Sigma0() << endl;
+    }
+
    //Provisoire
    ELISE_ASSERT(! aIMD.PredicteurGeom().IsInit(),"Asservissement pas encore gere");
 
@@ -193,6 +209,9 @@ const std::vector<cOctaveDigeo *> &   cImDigeo::Octaves() const
    return mOctaves;
 }
 
+double cImDigeo::Sigma0() const { return mSigma0; }
+
+double cImDigeo::SigmaN() const { return mSigmaN; }
 
 void cImDigeo::NotifUseBox(const Box2di & aBox)
 {
@@ -243,19 +262,7 @@ GenIm::type_el  cImDigeo::TypeOfDeZoom(int aDZ,cModifGCC * aMGCC) const
 void cImDigeo::AllocImages()
 {
    cModifGCC * aMGCC = mAppli.ModifGCC();
-   Pt2di aSz = mSzMax;
-   mNiv=0;
-
-   const cTypePyramide & aTP = mAppli.TypePyramide();
-   if (aTP.NivPyramBasique().IsInit())
-      mNiv = aTP.NivPyramBasique().Val();
-   else if (aTP.PyramideGaussienne().IsInit())
-      mNiv = aTP.PyramideGaussienne().Val().NivOctaveMax();
-   else
-   {
-        ELISE_ASSERT(false,"cImDigeo::AllocImages PyramideImage");
-   }
-
+   Pt2di aSz = mSzMax;	
    int aNivDZ = 0;
 
    cOctaveDigeo * aLastOct = 0;
@@ -265,6 +272,7 @@ void cImDigeo::AllocImages()
                                 aLastOct->AllocDown(TypeOfDeZoom(aDz,aMGCC),*this,aDz,aSz)       :
                                 cOctaveDigeo::AllocTop(TypeOfDeZoom(aDz,aMGCC),*this,aDz,aSz)       ;
        mOctaves.push_back(anOct);
+       const cTypePyramide & aTP = mAppli.TypePyramide();
        if (aTP.NivPyramBasique().IsInit())
        {
           // mVIms.push_back(cImInMem::Alloc (*this,aSz,TypeOfDeZoom(aDz), *anOct, 1.0));
@@ -284,7 +292,16 @@ void cImDigeo::AllocImages()
             int aK0 = 0;
             if (aDz==1)
                aK0 = aPG.IndexFreqInFirstOctave().Val();
-           anOct->SetNbImOri(aNbIm);
+            anOct->SetNbImOri(aNbIm);
+
+
+            if ( mAppli.mVerbose )
+            {
+                cout << "octave " << mOctaves.size()-1 << endl;
+                cout << "\tsampling pace    = " << aDz << endl;
+                cout << "\tnumber of levels = " << aNbIm << endl;
+            }
+
             for (int aK=aK0 ; aK< aNbIm+3 ; aK++)
             {
                 double aSigma =  pow(2.0,aK/double(aNbIm));
@@ -355,18 +372,8 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 
     if (aTP.PyramideGaussienne().IsInit())
     {
-        double aSigma = aTP.PyramideGaussienne().Val().Sigma0().Val();
-
-// Dans les deux cas le changement d'echelle rajoute du flou
-        if (mResol > 1.0)
-        {
-           aSigma = sqrt(ElMax(0.0,ElSquare(aSigma)-ElSquare(1/mResol)));
-        }
-        else if (mResol<1.0)
-        {
-           aSigma = sqrt(ElMax(0.0,ElSquare(aSigma)-ElSquare(1/mResol)));
-        }
-
+        double aSigma = Sigma0();
+        aSigma = sqrt(ElMax(0.0,ElSquare(aSigma)-ElSquare(1/mResol)));
         aF = GaussSepFilter(aF,aSigma,1e-3);
     }
 
