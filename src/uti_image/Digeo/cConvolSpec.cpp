@@ -178,8 +178,6 @@ Fonc_Num LinearSepFilter
 
 Fonc_Num GaussSepFilter(Fonc_Num   aFonc,double aSigma,double anEpsilon)
 {
-  // aFonc=Rconv(aFonc);
-  // std::cout  << " GaussSepFilter " << aFonc.integral_fonc(true) << "\n";
    if (aSigma==0) return aFonc;
    return LinearSepFilter
           (

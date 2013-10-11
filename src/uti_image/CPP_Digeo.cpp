@@ -474,16 +474,15 @@ int Digeo_main( int argc, char **argv )
 
 	cParamAppliDigeo aParam;
     aParam.mSauvPyram = false;
-    aParam.mSigma0 = 0;
+    aParam.mSigma0 = 1.0;
 
     aParam.mResolInit = 1.0;
 
     cAppliDigeo * anAD = DigeoCPP(inputName,aParam);
     cImDigeo &  anImD = anAD->SingleImage(); // Ici on ne mape qu'une seule image à la fois
 
-	list<DigeoPoint> total_list;
-	std::cout <<  "number of octaves = " << anImD.Octaves().size() << "\n";
-	
+    list<DigeoPoint> total_list;
+
     std::cout << "Nb Box to do " << anAD->NbInterv() << "\n";
     for (int aKBox = 0 ; aKBox<anAD->NbInterv() ; aKBox++)
     {
