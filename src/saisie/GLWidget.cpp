@@ -106,8 +106,9 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
         QPointF pos = mouseEvent->localPos();
         if (m_bDisplayMode2D)
         {
+            m_lastMoveWin = pos;
             pos = WindowToImage(mouseEvent->localPos());
-            m_lastPosImg = pos;
+            m_lastMoveImg = pos;
             update();
         }
 
@@ -188,9 +189,9 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
             {
                 if (mouseEvent->modifiers() & Qt::ShiftModifier) // zoom
                 {
-                    _m_lastPosZoom =  m_lastPosWin;
+                    _m_lastClickZoom =  m_lastClickWin;
 
-                    float dy = (mouseEvent->pos().y() - m_lastPosWin.y())*0.001f;
+                    float dy = (mouseEvent->pos().y() - m_lastClickWin.y())*0.001f;
 
                     if (dy > 0.f) m_params.zoom *= pow(2.f, dy);
                     else  m_params.zoom /= pow(2.f, -dy);
@@ -237,7 +238,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
        else
            m_lastPos = mouseEvent->pos();
 
-       m_lastPosWin = mouseEvent->pos();
+       m_lastClickWin = mouseEvent->pos();
 
        if ( mouseEvent->button() == Qt::LeftButton )
        {
@@ -515,9 +516,9 @@ void GLWidget::paintGL()
             GLint recal;
             GLdouble wx, wy, wz;
 
-            recal = _glViewport[3] - (GLint) _m_lastPosZoom.y()- 1.f;
+            recal = _glViewport[3] - (GLint) _m_lastClickZoom.y()- 1.f;
 
-            gluUnProject ((GLdouble) _m_lastPosZoom.x(), (GLdouble) recal, 1.0,
+            gluUnProject ((GLdouble) _m_lastClickZoom.x(), (GLdouble) recal, 1.0,
                           _mvmatrix, _projmatrix, _glViewport, &wx, &wy, &wz);
 
             glTranslatef(wx,wy,0);
@@ -558,8 +559,8 @@ void GLWidget::paintGL()
 
             renderText(10, _glViewport[3] - m_font.pointSize(), QString::number(m_params.zoom*100,'f',1) + "%", m_font);
 
-            if  ((m_lastPosImg.x()>=0)&&(m_lastPosImg.y()>=0)&&(m_lastPosImg.x()<_glImg.width())&&(m_lastPosImg.y()<_glImg.height()))
-                renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(m_lastPosImg.x(),'f',1) + ", " + QString::number(_glImg.height()-m_lastPosImg.y(),'f',1) + " px", m_font);
+            if  ((m_lastMoveImg.x()>=0)&&(m_lastMoveImg.y()>=0)&&(m_lastMoveImg.x()<_glImg.width())&&(m_lastMoveImg.y()<_glImg.height()))
+                renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(m_lastMoveImg.x(),'f',1) + ", " + QString::number(_glImg.height()-m_lastMoveImg.y(),'f',1) + " px", m_font);
         }
     }
     else
@@ -874,7 +875,7 @@ void GLWidget::setData(cData *data)
 
         ImageToTexture(m_textureMask, _mask);
 
-        _m_lastPosZoom = QPointF(_glViewport[2]*.5f, _glViewport[3]*.5f);
+        m_lastMoveWin = QPointF(_glViewport[2]*.5f, _glViewport[3]*.5f);
     }
 
     if (m_Data->NbCameras())
@@ -1234,7 +1235,11 @@ void GLWidget::zoomFit()
 void GLWidget::zoomFactor(int percent)
 {
     if (m_bDisplayMode2D)
+    {
+        _m_lastClickZoom = m_lastMoveWin;
+
         setZoom((float) percent / 100.f);
+    }
     else
         setZoom(m_Data->getCloud(0)->getScale() / (float) percent * 100.f);
 }
@@ -1250,7 +1255,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     //see QWheelEvent documentation ("distance that the wheel is rotated, in eighths of a degree")
     float wheelDelta_deg = (float)event->delta() / 8.f;
 
-    _m_lastPosZoom = event->pos();
+    _m_lastClickZoom = event->pos();
 
     onWheelEvent(wheelDelta_deg);
 }

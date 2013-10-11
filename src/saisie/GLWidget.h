@@ -322,8 +322,9 @@ protected:
 
     QPointF ImageToWindow(const QPointF &im);
 
-    QPointF     m_lastPosImg;
-    QPointF     m_lastPosWin;
+    QPointF     m_lastMoveImg;
+    QPointF     m_lastMoveWin;
+    QPointF     m_lastClickWin;
 
 private:
 
@@ -360,7 +361,7 @@ private:
     GLdouble    *_projmatrix;
     GLint       *_glViewport;
 
-    QPointF     _m_lastPosZoom;
+    QPointF     _m_lastClickZoom;
 
 };
 
