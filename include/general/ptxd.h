@@ -656,7 +656,7 @@ REAL  angle_de_droite_nor(const Pt2dr & p1,const Pt2dr & p2);
 std::vector<Pt2di> PointInCouronne(int aD8Min,int aD8Max);
     // Par ex dist [2,5,9] et recuper (0-1) + (2-4) + (5-8)
     // AddD4First mets les 4 voisin d'abord
-std::vector<std::vector<Pt2di> > PointOfCouronnes(const std::vector<int> Dist,bool AddD4First);
+std::vector<std::vector<Pt2di> > PointOfCouronnes(const std::vector<int> &Dist,bool AddD4First);
 
 std::vector<std::vector<Pt2di> > StdPointOfCouronnes(int aDMax,bool AddD4First);
 

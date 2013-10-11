@@ -1,13 +1,4 @@
-#include "Sift.h"
-
-#include <iostream>
-#include <algorithm>
-#include <string.h>
-#include <sstream>
-#include <iomanip>
-#include <limits>
-#include <fstream>
-
+#include "StdAfx.h"
 #include "Gauss34.h"
 
 #ifndef BYTE
@@ -18,7 +9,16 @@
     #define UINT unsigned int
 #endif
 
+//#define __DEBUG_SIFT_GAUSSIANS_OUTPUT_RAW
+//#define __DEBUG_SIFT_GAUSSIANS_OUTPUT_PGM
+//#define __DEBUG_SIFT_GAUSSIANS_INPUT
+//#define __DEBUG_SIFT_GAUSSIANS_DIRECTORY_COMPARE
+//#define __DEBUG_SIFT_DOG_OUTPUT
+//#define __DEBUG_SIFT_DOG_INPUT
+
 using namespace std;
+
+void __compare_raw_directories( std::string i_directory1, std::string i_directory2 );
 
 Siftator::Siftator( int i_nbOctaves, int i_nbLevels, int i_firstOctave ):
     m_strengthThreshold( default_strength_threshold ),
@@ -28,11 +28,18 @@ Siftator::Siftator( int i_nbOctaves, int i_nbLevels, int i_firstOctave ):
 }
 
 void Siftator::scale_space_format( int i_nbOctaves, int i_nbLevels, int i_firstOctave )
-{
+{   
     #ifdef _DEBUG
         if ( i_nbOctaves<0 ) cerr << "WARN: scale_space_format: number of octaves = " << i_nbOctaves << " < 0" << endl;
         if ( i_nbLevels<0 ) cerr << "WARN: scale_space_format: number of levels = " << i_nbOctaves << " < 0" << endl;
     #endif
+
+    if ( i_nbOctaves<0 ) return;
+    
+    if ( m_nbOctaves==i_nbOctaves &&
+         m_nbLevels==i_nbLevels &&
+	 m_firstOctave==i_firstOctave )
+	 return;
 
     m_nbOctaves         = i_nbOctaves;
     m_nbLevels          = i_nbLevels;
@@ -99,6 +106,8 @@ void Siftator::save_gaussians( const std::string &i_basename, bool i_verbose ) c
         }
 }
 
+
+
 // fills the pyramid from i_image at octave 0
 // a negative value for i_firstOctave is clipped to -1
 void Siftator::compute_gaussians( const RealImage1 &i_image )
@@ -135,7 +144,7 @@ void Siftator::compute_gaussians( const RealImage1 &i_image )
           sigma;
     if( sa > sb ) // better have a positive square
     {
-        sigma = ::sqrt( sa*sa-sb*sb );
+        sigma = ::sqrt( sa*sa-sb*sb );	      
         firstImage->gaussianFilter( sigma );
     }
 
@@ -148,10 +157,59 @@ void Siftator::compute_gaussians( const RealImage1 &i_image )
 
         for ( l=1; l<m_nbStoredLevels; l++ )
         {
-            sigma = m_dsigma0*powf( m_sigmak, l+m_smin );
+            sigma = m_dsigma0*powf( m_sigmak, l+m_smin );	      
             m_octaves[o][l-1].gaussianFilter( sigma, m_octaves[o][l] );
         }
     }
+    
+    #if defined(__DEBUG_SIFT_GAUSSIANS_OUTPUT_RAW) || defined(__DEBUG_SIFT_GAUSSIANS_OUTPUT_PGM)
+       string out_dir = "gaussians_sift";
+       if ( !ELISE_fp::IsDirectory(out_dir) )
+       {
+	  cerr << "------------> creating directory \"" << out_dir << "\"" << endl;
+	  ELISE_fp::MkDir( out_dir );
+       }
+       for ( o=0; o<m_nbOctaves; o++ )
+       {
+	   for ( l=0; l<m_nbStoredLevels; l++ )
+	   {
+	       stringstream ss;
+	       int level = (o+m_firstOctave);
+	       if ( level<0 )
+		  level = -( 1<<(-level) );
+	       else
+		  level = 1<<level;
+	       ss << out_dir << "/gaussian_" << setfill('0') << setw(2) << level << '_' << (l-1);
+	       #ifdef __DEBUG_SIFT_GAUSSIANS_OUTPUT_RAW
+		  m_octaves[o][l].saveRaw( ss.str()+".raw" );
+	       #endif
+	       #ifdef __DEBUG_SIFT_GAUSSIANS_OUTPUT_PGM
+		  m_octaves[o][l].savePGM( ss.str()+".pgm" );
+	       #endif
+	   }
+       }
+   #endif
+   
+   #ifdef __DEBUG_SIFT_GAUSSIANS_DIRECTORY_COMPARE    
+       __compare_raw_directories( "gaussians_tgi", "gaussians_sift" );
+   #endif
+   
+   #ifdef __DEBUG_SIFT_GAUSSIANS_INPUT
+       string in_dir = "gaussians_digeo";
+       if ( !ELISE_fp::IsDirectory(in_dir) )
+	 cerr << "------------> gaussians input directory \"" << in_dir << "\" does not exist" << endl;
+       for ( o=0; o<m_nbOctaves; o++ )
+       {
+	   for ( l=0; l<m_nbStoredLevels; l++ )
+	   {
+	       stringstream ss;
+	       int level = 1<<(o+m_firstOctave);
+	       ss << in_dir << "/gaussian_" << setfill('0') << setw(2) << level << '_' << (l-1) << ".raw";
+	       if ( !m_octaves[o][l].loadRaw( ss.str() ) )
+		  cerr << "Siftator::compute_gaussians: failed to load \"" << ss.str() << "\"" << endl;
+	   }
+       }
+   #endif
 }
 
 // compute the difference of gaussians for all scales of current octave
@@ -166,6 +224,37 @@ void Siftator::compute_differences_of_gaussians()
         ( itDoG++ )->difference( itGauss[1], itGauss[0] );
         itGauss++;
     }
+
+    #ifdef __DEBUG_SIFT_DOG_OUTPUT
+       string out_dir = "dog_sift";
+       if ( !ELISE_fp::IsDirectory(out_dir) )
+       {
+	  cerr << "------------> creating directory \"" << out_dir << "\"" << endl;
+	  ELISE_fp::MkDir( out_dir );
+       }
+       for ( int iDoG=0; iDoG<m_nbDoG; iDoG++ )
+       {
+	 stringstream ss;
+	 int level = 1<<m_iOctave;
+	 ss << out_dir << "/dog_" << setfill('0') << setw(2) << level << '_' << iDoG;
+	 m_DoG[iDoG].saveRaw( ss.str()+".raw" );
+	 m_DoG[iDoG].savePGM( ss.str()+".pgm", true );
+       }
+    #endif
+    
+    #ifdef __DEBUG_SIFT_DOG_INPUT
+      string in_dir = "dog_digeo";
+      if ( !ELISE_fp::IsDirectory(in_dir) )
+	 cerr << "------------> DoG input directory \"" << in_dir << "\" does not exist" << endl;
+      for ( int iDoG=0; iDoG<m_nbDoG; iDoG++ )
+      {
+	 stringstream ss;
+	 int level = 1<<m_iOctave;
+	 ss << in_dir << "/dog_" << setfill('0') << setw(2) << level << '_' << iDoG << ".raw";
+	 if ( !m_DoG[iDoG].loadRaw( ss.str() ) )
+	    cerr << "Siftator::compute_differences_of_gaussians: failed to load \"" << ss.str() << "\"" << endl;
+      }
+    #endif
 }
 
 // return a list of extrema in differences of gaussians for the set octave
@@ -664,4 +753,65 @@ bool read_siftPoint_list( const string &i_filename, vector<SiftPoint> &o_list )
     f.close();
 
     return true;
+}
+
+void __compare_raw_directories( std::string i_directory1, std::string i_directory2 )
+{
+    if ( i_directory1.length()==0 || i_directory2.length()==0 )
+    {
+       cerr << "WARN: __compare_raw_directories: null directory name" << endl;
+       return;
+    }
+    
+    char c = *i_directory1.rbegin();
+    if ( c!='/' && c!='\\' ) i_directory1.append("/");
+    c = *i_directory2.rbegin();
+    if ( c!='/' && c!='\\' ) i_directory2.append("/");
+    list<string> list1 = RegexListFileMatch( i_directory1, ".*.raw", 2, false ),
+	         list2 = RegexListFileMatch( i_directory2, ".*.raw", 2, false );
+		 
+    cout << i_directory1 << " : " << list1.size() << " raw files" << endl;
+    cout << i_directory2 << " : " << list2.size() << " raw files" << endl;
+		 
+    list1.sort();
+    list2.sort();
+    list<string>::iterator it1 = list1.begin(),
+			   it2 = list2.begin(),
+			   it_end = list1.end();
+    RealImage1 image1, image2;
+    while ( it1!=list1.end() && it2!=list2.end() )
+    {
+       if ( (*it1)==(*it2) )
+       {
+	  cout << *it1 << " : ";
+	  if ( !image1.loadRaw( i_directory1+(*it1) ) )
+	    cout << "unable to load raw image " << i_directory1+(*it1) << endl;
+	  else if ( !image2.loadRaw( i_directory2+(*it2) ) )
+	    cout << "unable to load raw image " << i_directory2+(*it2) << endl;
+	  else
+	  {
+	     if ( image1.width()!=image2.width() || image1.height()!=image2.height() )
+	       cout << "different sizes : " << image1.width() << 'x' << image1.height() << " " << image2.width() << 'x' << image2.height() << endl;
+	     else
+	     {
+		int diff = (int)( ( image1.differenceAccumulation( image2 )*10000 )/( image1.width()*image1.height() ) );
+		cout << diff/100. << " % per pixel " << endl;
+	     }
+	  }
+	  it1++; it2++;
+       }
+       else if ( (*it1)<(*it2) )
+	  cout << i_directory1+(*it1++) << endl;
+       else
+	  cout << i_directory2+(*it2++) << endl;
+    }
+    if ( it1==list1.end() && it2==list2.end() ) return;
+    if ( it1==list1.end() )
+    {
+       it1 = it2;
+       it_end = list2.end();
+       i_directory1 = i_directory2;
+    }
+    while ( it1!=it_end )
+      cout << i_directory1 << (*it1++) << endl;
 }

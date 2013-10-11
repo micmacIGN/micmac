@@ -419,7 +419,7 @@ Tiff_Im cAppliMICMAC::FileMasqOfResol(int aDeZoom)
            // cGeomDiscFPx aGeomDFPx =  *mGeomDFPx;
            // aGeomDFPx.SetDeZoom(aDeZoom);
 
-           std::string aNameMasqR2 = NameImageMasqOfResol(aDeZoom/2);
+           //std::string aNameMasqR2 = NameImageMasqOfResol(aDeZoom/2);
            FileMasqOfResol(aDeZoom/2);
            // VerifSzFile(aGeomDFPx.SzDz());
            std::string aNameRed = NameImageMasqOfResol(aDeZoom/2);

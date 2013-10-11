@@ -64,11 +64,11 @@ void MainWindow::connectActions()
         connect(ui->actionShow_cams,        SIGNAL(toggled(bool)), this, SLOT(toggleShowCams(bool)));
         connect(ui->actionShow_bounding_box,SIGNAL(toggled(bool)), this, SLOT(toggleShowBBox(bool)));
     }
-    connect(ui->actionShow_help_messages,SIGNAL(toggled(bool)), this, SLOT(toggleShowMessages(bool)));
+    connect(ui->actionShow_help_messages,   SIGNAL(toggled(bool)), this, SLOT(toggleShowMessages(bool)));
 
-    connect(ui->action2D_3D_mode,SIGNAL(triggered()), this, SLOT(switch2D3D()));
+    connect(ui->action2D_3D_mode,           SIGNAL(toggled(bool)), this, SLOT(toggle2D3D(bool)));
 
-    connect(ui->actionHelpShortcuts,    SIGNAL(triggered()),   this, SLOT(doActionDisplayShortcuts()));
+    connect(ui->actionHelpShortcuts,        SIGNAL(triggered()),   this, SLOT(doActionDisplayShortcuts()));
 
     if (!m_bMode2D)
     {
@@ -188,13 +188,8 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         m_Engine->SetFilenamesIn(filenames);
 
-        bool mode2D = getMode2D();
-
-        if (mode2D)
-        {
-            setMode2D(false);
-            closeAll();
-        }
+        setMode2D(false);
+        closeAll();
 
         QFileInfo fi(filenames[0]);
 
@@ -245,13 +240,9 @@ void MainWindow::addFiles(const QStringList& filenames)
         }
         else
         {
-            if (!mode2D)
-            {
-                setMode2D(true);
+            setMode2D(true);
 
-                closeAll();
-                glLoadIdentity();
-            }
+            glLoadIdentity();
 
             m_Engine->loadImages(filenames);
 
@@ -331,10 +322,10 @@ void MainWindow::doActionDisplayShortcuts()
         text += "Ctrl+P: \t" + tr("open .ply files")+"\n";
         text += "Ctrl+C: \t"+ tr("open .xml camera files")+"\n";
     }
-    text += "Ctrl+O: \t"+tr("open image files")+"\n";
+    text += "Ctrl+O: \t"+tr("open image file")+"\n";
     if (!m_bMode2D) text += "tr(""Ctrl+E: \t"+tr("save .xml selection infos")+"\n";
-    text += "Ctrl+S: \t"+tr("save masks files")+"\n";
-    text += "Ctrl+Maj+S: \t"+tr("save masks files as")+"\n";
+    text += "Ctrl+S: \t"+tr("save mask file")+"\n";
+    text += "Ctrl+Maj+S: \t"+tr("save mask file as")+"\n";
     text += "Ctrl+X: \t"+tr("close files")+"\n";
     text += "Ctrl+Q: \t"+tr("quit") +"\n\n";
     text += tr("View menu:") +"\n\n";
@@ -363,15 +354,26 @@ void MainWindow::doActionDisplayShortcuts()
     text += "F7: \t"+tr("show messages") +"\n\n";
 
     text += tr("Selection menu:") +"\n\n";
-    text += "F8: \t"+tr("move mode / selection mode") +"\n\n";
-    text += tr("    - Left click : \tadd a point to polyline") +"\n";
+    if (!m_bMode2D)
+    {
+        text += "F8: \t"+tr("move mode / selection mode") +"\n\n";
+    }
+    text += tr("    - Left click : \tadd a vertex to polyline") +"\n";
     text += tr("    - Right click: \tclose polyline") +"\n";
     text += tr("    - Echap: \t\tdelete polyline") +"\n";
-    text += tr("    - Space bar: \tadd points/pixels inside polyline") +"\n";
-    text += tr("    - Del: \t\tremove points/pixels inside polyline") +"\n";
-    text += tr("    - Shift+click: \t\tinsert point in polyline") +"\n";
-    text += tr("    - Drag n drop: \t\tmove polyline point") +"\n";
-    text += tr("    - Right click: \t\tdelete polyline point") +"\n";
+    if (!m_bMode2D)
+    {
+        text += tr("    - Space bar: \tadd points inside polyline") +"\n";
+        text += tr("    - Del: \t\tremove points inside polyline") +"\n";
+    }
+    else
+    {
+        text += tr("    - Space bar: \tadd pixels inside polyline") +"\n";
+        text += tr("    - Del: \t\tremove pixels inside polyline") +"\n";
+    }
+    text += tr("    - Shift+click: \tinsert vertex in polyline") +"\n";
+    text += tr("    - Drag n drop: \tmove polyline vertex") +"\n";
+    text += tr("    - Right click: \tdelete polyline vertex") +"\n";
     text += "    - Ctrl+A: \t\t"+tr("select all") +"\n";
     text += "    - Ctrl+D: \t\t"+tr("select none") +"\n";
     text += "    - Ctrl+R: \t\t"+tr("undo all past selections") +"\n";
@@ -636,9 +638,9 @@ void MainWindow::setMode2D(bool mBool)
     ui->actionShow_bounding_box->setEnabled(!mBool);
 }
 
-void MainWindow::switch2D3D()
+void MainWindow::toggle2D3D(bool state)
 {
-    setMode2D(!m_bMode2D);
+    setMode2D(!(state&&m_bMode2D));
 
     closeAll();
 }

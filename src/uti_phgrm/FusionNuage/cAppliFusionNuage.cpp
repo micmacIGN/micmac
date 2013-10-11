@@ -120,7 +120,7 @@ cAppliFusionNuage::cAppliFusionNuage
     //=============================================================
 
 
-    std::vector<tFNuArc *> aVArc;
+   // std::vector<tFNuArc *> aVArc;
     for (int aK1=0 ; aK1 <mNbSom ; aK1++)
     {
         tFNuSom * aS1 = mVSom[aK1];

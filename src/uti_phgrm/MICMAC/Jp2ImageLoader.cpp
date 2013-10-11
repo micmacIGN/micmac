@@ -7,7 +7,7 @@
 #include <complex>
 
 #ifdef INT
-	#undef INT
+#undef INT
 #endif
 
 #include "Jp2ImageLoader.h"
@@ -27,11 +27,16 @@
 #include "jp2.h"
 
 
+#ifdef __USE_IMAGEIGN__
+#include <ign/image/BufferImage.h>
+#include <boost/filesystem.hpp>
+#endif
 namespace NS_ParamMICMAC
 {	
-	JP2ImageLoader::JP2ImageLoader(std::string const &nomfic)
+	JP2ImageLoader::JP2ImageLoader(std::string const &nomfic):
+		m_Nomfic(nomfic)
 	{
-		m_Nomfic=nomfic;
+		
 		//std::cout << "constructeur : "<<nomfic<<std::endl;
 		bool verbose = false;
 		jp2_source              m_Source;
@@ -95,9 +100,10 @@ namespace NS_ParamMICMAC
 		
 		if (verbose) std::cout << "Fin du constructeur"<<std::endl;
 	}	
-	
-	
-	
+		
+	///
+	///
+	///
 	void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<short unsigned int> > & aVImages,
 									 int              mFlagLoadedIms,
 									 int              aDeZoom,
@@ -106,7 +112,8 @@ namespace NS_ParamMICMAC
 									 tPInt            aSz
 									 )
 	{
-		std::cout << "LoadNCanaux en usnigned short"<<std::endl;
+		bool verbose = 0;
+		if (verbose) std::cout << "LoadNCanaux en unsigned short"<<std::endl;
 		int precision = 16;
 		bool signe = false;
 		
@@ -226,6 +233,9 @@ namespace NS_ParamMICMAC
         delete[] comp_dims;
 	}
 	
+	///
+	///
+	///
 	void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImages,
 									 int              mFlagLoadedIms,
 									 int              aDeZoom,
@@ -234,12 +244,10 @@ namespace NS_ParamMICMAC
 									 tPInt            aSz
 									 )
 	{
-		//std::cout << "LoadNCanaux en float "<<aDeZoom<<" - "<<aP0Im.real()<<" "<<aP0Im.imag()<<" - "<<aP0File.real()<<" "<<aP0File.imag()<<" - "<<aSz.real()<<" "<<aSz.imag()<<std::endl;
-		//bool avecFiltre=false;
+		bool verbose  = 1;
+		if (verbose) std::cout << "LoadNCanaux en float "<<aDeZoom<<" - "<<aP0Im.real()<<" "<<aP0Im.imag()<<" - "<<aP0File.real()<<" "<<aP0File.imag()<<" - "<<aSz.real()<<" "<<aSz.imag()<<std::endl;
 		bool avecDeZoom=false;
-		//float facteurM = 4.;//3.
-		//float facteurMR = 5.;
-
+		
 		int precision = 16;
 		bool signe = false;
 		
@@ -250,7 +258,11 @@ namespace NS_ParamMICMAC
 		
 		m_Input=&m_Source;
 		jp2_ultimate_src.open(m_Nomfic.c_str());
-		if (!m_Source.open(&jp2_ultimate_src)) return;
+		if (!m_Source.open(&jp2_ultimate_src)) 
+		{
+			if (verbose) std::cout << "LoadNCanaux failed on "<<m_Nomfic<<std::endl;
+			return;
+		}
 		m_Source.read_header();
 		codestream.create(m_Input);
 		
@@ -258,7 +270,7 @@ namespace NS_ParamMICMAC
 		int max_layers = 0;
         int discard_levels = 0;
         while(((1 << discard_levels) & aDeZoom)==0) ++discard_levels;
-        std::cout << "discard_levels : "<<discard_levels<<std::endl;
+        if (verbose) std::cout << "discard_levels : "<<discard_levels<<std::endl;
 		int minDwtLevels = 0;
 		if (avecDeZoom)
 			minDwtLevels = std::max<int>(0,std::min<int>(codestream.get_min_dwt_levels(),discard_levels-1));
@@ -270,9 +282,9 @@ namespace NS_ParamMICMAC
 			reDeZoom = (1<<(discard_levels-minDwtLevels));
 			discard_levels=minDwtLevels;
 			dz = (1 << discard_levels);
-			std::cout << "On fait un dz "<<dz<<" puis on fera un ssech "<<reDeZoom<<std::endl;
+			if (verbose) std::cout << "On fait un dz "<<dz<<" puis on fera un ssech "<<reDeZoom<<std::endl;
 		}
-		std::cout << "reDeZoom : "<<reDeZoom<<std::endl;
+		if (verbose) std::cout << "reDeZoom : "<<reDeZoom<<std::endl;
 		
 		int * precisions = new int[aVImages.size()];
 		bool *is_signed = new bool[aVImages.size()];
@@ -284,7 +296,7 @@ namespace NS_ParamMICMAC
 		// Taille de la zone en coord fichier (cad pleine resolution)
 		dims.size=kdu_coords(aSz.real()*aDeZoom,aSz.imag()*aDeZoom);
 		codestream.map_region(0,dims,mdims);
-		//std::cout << "mdims : "<<mdims.pos.x<<" "<<mdims.pos.y<<" "<<mdims.size.x<<" "<<mdims.size.y<<std::endl;
+		if (verbose) std::cout << "mdims : "<<mdims.pos.x<<" "<<mdims.pos.y<<" "<<mdims.size.x<<" "<<mdims.size.y<<std::endl;
 		int premier_canal = -1;
 		int dernier_canal = -1;
 		for(int c=0;c<m_Nbc;++c)
@@ -314,8 +326,6 @@ namespace NS_ParamMICMAC
 		int *sample_gaps = NULL;
 		int *row_gaps = NULL;
         
-        
-        
         kdu_int16 **stripe_bufs = new kdu_int16 *[num_components];
 		
 		{
@@ -324,18 +334,6 @@ namespace NS_ParamMICMAC
 				stripe_bufs[n] = new kdu_int16[comp_dims[n].size.x];
 			}
 		}
-
-		/*
-		unsigned char **stripe_bufs = new unsigned char *[num_components];
-		
-		{
-			for(n=0;n<num_components;++n)
-			{
-                std::cout << "Allocation de : "<<comp_dims[n].size.x<<std::endl;
-				stripe_bufs[n] = new unsigned char[comp_dims[n].size.x];
-			}
-		}
-         */
         
         std::vector<float> coef;
         float norm = 0.f;
@@ -347,13 +345,11 @@ namespace NS_ParamMICMAC
             {
                 float dist = (l-d2)*(l-d2) + (c-d2)*(c-d2);
                 float cf = exp(-dist/(2.*sigma*sigma));
-                //std::cout << c << " ";
                 coef.push_back(cf);
                 norm += cf;
             }
-            //std::cout << std::endl;
         }
-        std::cout << "norm : "<<norm<<std::endl;
+        if (verbose) std::cout << "norm : "<<norm<<std::endl;
 		
 		int env_dbuf_height = 0;
 		//int preferred_min_stripe_height = 8;
@@ -365,7 +361,7 @@ namespace NS_ParamMICMAC
 		{
 			if (reDeZoom>0)
 			{ 
-//				float R2 = reDeZoom*reDeZoom;
+				//				float R2 = reDeZoom*reDeZoom;
 				for(int ll=0;ll<reDeZoom;++ll)
 				{
 					decompressor.pull_stripe(stripe_bufs,stripe_heights,sample_gaps,row_gaps,precisions,is_signed);
@@ -418,149 +414,13 @@ namespace NS_ParamMICMAC
 		delete[] stripe_heights;
 		delete[] stripe_bufs;
 		
-        /*
-		if (reDeZoom>0)
-		{
-			//std::cout << "filtrage"<<std::endl;
-			float facteurD = 4. + 4*facteurMR + facteurMR*facteurMR;//25.
-			std::cout << "1   "<<facteurMR<<"   1"<<std::endl;
-			std::cout << facteurMR << " " << facteurMR*facteurMR<<" " << facteurM<<std::endl;
-			std::cout << "1   "<<facteurMR<<"   1"<<std::endl;
-			for(int k=0;(k<num_components)&&(k<(int)aVImages.size());++k)
-			{
-                std::cout << "k="<<k<<std::endl;
-				float *img=aVImages[k].mDataLin;
-				int NC=aSz.real();
-				int NL=aSz.imag();
-				int NbC=1;
-				{
-					int *tempdata = new int[NC*NL];
-					
-					for(int k=0;k<NbC;++k)
-					{
-						for(int l=0;l<NL;++l)
-						{
-							float* p2 = &(img[l*NC*NbC+k]);
-							float* p1 = p2;
-							float* p3 = p1;
-							int* o = &(tempdata[l*NC]);
-							for(int c=0;c<NC;++c)
-							{
-								if ((c+1)<NC)
-									p3 = p2 + NbC;
-								(*o) = (float)((*p1)+(*p2)*facteurMR+(*p3));
-								p1 = p2;
-								p2 = p3;
-								o += 1;
-							}
-						}
-						for(int c=0;c<NC;++c)
-						{
-							int* p2 = &(tempdata[c]);
-							int* p1 = p2;
-							int* p3 = p2;
-							float* o = &(img[c*NbC+k]);
-							for(int l=0;l<NL;++l)
-							{
-								if ((l+1)<NL)
-									p3 = p2 + NC;
-								(*o) = (float)( ((*p1)+(*p2)*facteurMR+(*p3)) /facteurD );
-								p1 = p2;
-								p2 = p3;
-								o += NC*NbC;
-							}
-						}
-					}
-					delete [] tempdata;
-				}
-			}
-		}
-		
-		// Filtre
-		if (avecFiltre && (aDeZoom>1))
-		{
-			//std::cout << "filtrage"<<std::endl;
-                        float facteurD = 4. + 4*facteurM + facteurM*facteurM;//25.
-			std::cout << "1   "<<facteurM<<"   1"<<std::endl;
-			std::cout << facteurM << " " << facteurM*facteurM<<" " << facteurM<<std::endl;
-			std::cout << "1   "<<facteurM<<"   1"<<std::endl;
-			for(int k=0;(k<num_components)&&(k<(int)aVImages.size());++k)
-			{
-				float *img=aVImages[k].mDataLin;
-				int NC=aSz.real();
-				int NL=aSz.imag();
-				int NbC=1;
-				{
-					int *tempdata = new int[NC*NL];
-					
-					for(int k=0;k<NbC;++k)
-					{
-						for(int l=0;l<NL;++l)
-						{
-							float* p2 = &(img[l*NC*NbC+k]);
-							float* p1 = p2;
-							float* p3 = p1;
-							int* o = &(tempdata[l*NC]);
-							for(int c=0;c<NC;++c)
-							{
-								if ((c+1)<NC)
-									p3 = p2 + NbC;
-								(*o) = (float)((*p1)+(*p2)*facteurM+(*p3));
-								p1 = p2;
-								p2 = p3;
-								o += 1;
-							}
-						}
-						for(int c=0;c<NC;++c)
-						{
-							int* p2 = &(tempdata[c]);
-							int* p1 = p2;
-							int* p3 = p2;
-							float* o = &(img[c*NbC+k]);
-							for(int l=0;l<NL;++l)
-							{
-								if ((l+1)<NL)
-									p3 = p2 + NC;
-								(*o) = (float)( ((*p1)+(*p2)*facteurM+(*p3)) /facteurD );
-								p1 = p2;
-								p2 = p3;
-								o += NC*NbC;
-							}
-						}
-					}
-					delete [] tempdata;
-				}
-			}
-			
-		}
-         */
         delete[] is_signed;
         delete[] comp_dims;
-        
-        
-        
-        /*
-        Tiff_Im  aTOut
-        (
-         "toto.tif",
-         Pt2di(aSz.real(),aSz.imag()),
-         GenIm::real4,
-         Tiff_Im::No_Compr,
-         Tiff_Im::BlackIsZero
-         );
-        
-        Im2D<float,double> aIm(aVImages[0].mDataLin,aVImages[0].mData,aSz.real(),aSz.imag());
-        
-        
-        ELISE_COPY
-        (
-         aTOut.all_pts(),
-         aIm.in(),
-         aTOut.out()
-         );
-         */
 	}
 	
+	///
+	///
+	///
 	void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<unsigned char> > & aVImages,
 									 int              mFlagLoadedIms,
 									 int              aDeZoom,
@@ -569,7 +429,8 @@ namespace NS_ParamMICMAC
 									 tPInt            aSz
 									 )
 	{
-		std::cout << "LoadNCanaux en usnigned char"<<std::endl;
+		bool verbose  = 0;
+		if (verbose) std::cout << "LoadNCanaux en unsigned char"<<std::endl;
 		int precision = 8;
 		
 		jp2_source              m_Source;

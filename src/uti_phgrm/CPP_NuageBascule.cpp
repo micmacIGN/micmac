@@ -138,7 +138,7 @@ int  NuageBascule_main(int argc,char ** argv)
     // ELISE_ASSERT(argc>=2,"Not Enough args to Nuage Bascule");
     MMD_InitArgcArgv(argc,argv);
 
-    std::string  aNameIn,aNameOut,aNameRes,aToto;
+    std::string  aNameIn,aNameOut,aNameRes;//,aToto;
     bool  AutoResize=true;
     bool  AutoClipIn=true;
     bool  ICalledByP =false;

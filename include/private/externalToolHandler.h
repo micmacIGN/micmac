@@ -20,7 +20,7 @@ public:
 	std::string m_shortName;
 	std::string m_fullName;
 
-	ExternalToolItem( ExtToolStatus i_status=EXT_TOOL_UNDEF, const std::string i_shortName="", const std::string i_fullName="" );
+	ExternalToolItem( ExtToolStatus i_status=EXT_TOOL_UNDEF, const std::string &i_shortName="", const std::string &i_fullName="" );
 
 	bool isCallable() const;
 	inline string errorMessage() const;
@@ -65,18 +65,18 @@ private:
 	// functions for rights checking/setting (unices only)
 	
 	// process has execution rights on i_filename ?
-	bool hasExecutionRights( const std::string i_filename );
+	bool hasExecutionRights( const std::string &i_filename );
 	
 	// set execution rigths for owner, group's members and others on i_filename
 	// equivalent of chmod +x i_filename
 	// return true if successfull
-	bool setAllExecutionRights( const std::string i_filename, bool i_value );
+	bool setAllExecutionRights( const std::string &i_filename, bool i_value );
 	
 	// process' owner owns i_filename ?
 	bool isOwnerOf( std::string i_filename );
 		
 	// process' owner belongs to the group of i_filename ?
-	bool belongsToGroupOf( const std::string i_filename );
+	bool belongsToGroupOf( const std::string &i_filename );
 	
 	// is process executed with super-user rights ?
 	inline bool isProcessRoot(){ return geteuid()==0; }
@@ -91,8 +91,8 @@ extern const std::string   TheStrAnnPP;
 // ExternalToolItem
 
 inline ExternalToolItem::ExternalToolItem( ExtToolStatus i_status,
-										   const std::string i_shortName,
-										   const std::string i_fullName ):
+										   const std::string &i_shortName,
+										   const std::string &i_fullName ):
 	m_status( i_status ), m_shortName( i_shortName ), m_fullName( i_fullName ){}
 
 inline const std::string &ExternalToolItem::callName() const{ return m_fullName; }

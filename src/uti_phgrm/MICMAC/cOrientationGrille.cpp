@@ -153,13 +153,14 @@ void OrientationGrille::InitBinary(std::string const &nom)
 	fic.close();
 }
 
-OrientationGrille::OrientationGrille(std::string const &nom):ModuleOrientation(nom)
+OrientationGrille::OrientationGrille(std::string const &nom):
+	ModuleOrientation(nom),
+	Image2Obj_Taille(std::complex<int>(0,0)),
+	Obj2Image_Taille(std::complex<int>(0,0))
 {
-	Image2Obj_Taille = std::complex<int>(0,0);
-	Image2Obj_TailleZ = 0;
-	Obj2Image_Taille = std::complex<int>(0,0);
+	
+	Image2Obj_TailleZ = 0;	
 	Obj2Image_TailleZ = 0;
-
 	camera = NULL;
 
 	bool isXML = true;

@@ -168,9 +168,6 @@ protected:
     void initializeGL();
     void resizeGL(int w, int h);
     void paintGL();
-    void mouseReleaseEvent(QMouseEvent *event);
-    void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
     void mouseDoubleClickEvent(QMouseEvent *event);
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
@@ -215,10 +212,10 @@ protected:
     void resetNbGLLists() { m_nbGLLists = 0; }
 
     //! Fill m_polygon2 for point insertion or move
-    void fillPolygon2();
+    void fillPolygon2(const QPointF &pos);
 
     //! set index of cursor closest point
-    void findClosestPoint();
+    void findClosestPoint(const QPointF &pos, float sqr_radius);
 
     //! GL context aspect ratio m_glWidth/m_glHeight
     float m_glRatio;
@@ -311,11 +308,14 @@ protected:
     int m_Click;
 
     //! (square) radius for point selection
-    int     m_sqr_radius;
+    float     m_sqr_radius;
 
     QPointF WindowToImage(const QPointF &pt);
 
     QPointF ImageToWindow(const QPointF &im);
+
+    QPointF     m_lastPosImg;
+    QPointF     m_lastPosWin;
 
 private:
 

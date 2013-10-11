@@ -669,7 +669,7 @@ void cProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1)
     aVPentes[1] = aModul.Px2PenteMax().Val();
     ELISE_ASSERT
     (
-        (aLEt.size() >=1),
+        (!aLEt.empty()),
 	"Aucune etape de progdyn specifiee !!"
     );
 /*

@@ -43,6 +43,9 @@ namespace NS_ParamMICMAC
 {
 #if ELISE_X11
 
+ //'class cMicMacWindowIm' does not have a copy constructor
+ //which is recommended since the class contains a pointer to allocated memory.
+
 class cMicMacWindowIm
 {
      public :

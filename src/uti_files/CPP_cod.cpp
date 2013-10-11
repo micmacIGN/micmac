@@ -332,7 +332,7 @@ class cGenerateMail
         cGenerateMail(int argc,char ** argv);
      private :
 
-        void ParseFile(const std::string aName,bool aTest);
+        void ParseFile(const std::string &aName,bool aTest);
 
         std::string mDir;
         cInterfChantierNameManipulateur * mICNM;
@@ -345,7 +345,7 @@ class cGenerateMail
 };
 
 
-void cGenerateMail::ParseFile(const std::string aName,bool aTest)
+void cGenerateMail::ParseFile(const std::string &aName,bool aTest)
 {
     cOneEntryMail::mLastEntry=0;
 

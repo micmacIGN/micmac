@@ -880,10 +880,11 @@ void  cAppli_Ori_Txt2Xml_main::InitGrapheVois()
        mBoxC._p0.SetInf(POfSom(aSom));
        mBoxC._p1.SetSup(POfSom(aSom));
     }
-
-	bool elise_x11 = false;
+	
 #if (ELISE_X11)
-	elise_x11 = true;
+	bool elise_x11 = true;
+#else
+	bool elise_x11 = false;
 #endif
 
     if ((mSzV >0) && elise_x11)

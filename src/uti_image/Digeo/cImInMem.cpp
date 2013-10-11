@@ -39,6 +39,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Digeo.h"
 
+//#define __DEBUG_DIGEO_GAUSSIANS_OUTPUT_RAW
+#define __DEBUG_DIGEO_GAUSSIANS_OUTPUT_PGM
+//#define __DEBUG_DIGEO_GAUSSIANS_INPUT
+//#define __DEBUG_DIGEO_DOG_OUTPUT
+//#define __DEBUG_DIGEO_DOG_INPUT
+#define __DEBUG_DIGEO_NORMALIZE_FLOAT_OCTAVE
 
 /****************************************/
 /*                                      */
@@ -182,13 +188,25 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
       Type aMaxV = numeric_limits<Type>::min();
       for (int aY=0 ; aY<mSz.y ; aY++)
       {
-	 Type * aL = mData[aY];
-	 for (int aX=0 ; aX<mSz.x ; aX++)
-	 ElSetMax(aMaxV,aL[aX]);
+         Type * aL = mData[aY];
+         for (int aX=0 ; aX<mSz.x ; aX++)
+            ElSetMax(aMaxV,aL[aX]);
       }
 
-      mImGlob.SetDyn(1);
-      mImGlob.SetMaxValue( (REAL8)aMaxV );
+      #ifdef __DEBUG_DIGEO_NORMALIZE_FLOAT_OCTAVE
+	 Type  mul = 1./255.;
+	 for (int aY=0 ; aY<mSz.y ; aY++)
+	 {
+	    Type * aL = mData[aY];
+	    for (int aX=0 ; aX<mSz.x ; aX++)
+	       aL[aX] *= mul;
+	 }	 
+	 mImGlob.SetDyn(mul);
+	 mImGlob.SetMaxValue( 1 );
+      #else
+	 mImGlob.SetDyn(1);
+	 mImGlob.SetMaxValue( (REAL8)aMaxV );	 
+      #endif
    }
 
    if (mAppli.SectionTest().IsInit())
@@ -282,6 +300,83 @@ void cTplImInMem<Type>::computeDoG( const cTplImInMem<Type> &i_nextScale )
         while ( x-- )
             ( *itDog++ ) = (tBase)( *itCurrentScale++ )-(tBase)( *itNextScale++ );
     }
+    
+    #ifdef __DEBUG_DIGEO_DOG_OUTPUT
+        saveDoG( "dog_digeo" );
+    #endif
+
+    #ifdef __DEBUG_DIGEO_DOG_INPUT
+        loadDoG( "dog_sift" );
+    #endif
+}
+
+template <class Type>
+void cTplImInMem<Type>::saveGaussians( const std::string &out_dir ) const
+{
+    RealImage1 img;
+    img.setFromArray( TIm().tx(), TIm().ty(), TIm().data_lin() );
+
+    if ( !ELISE_fp::IsDirectory(out_dir) )
+    {
+       cerr << "cTplImInMem::saveGaussians: creating output directory \"" << out_dir << "\"" << endl;
+       ELISE_fp::MkDir( out_dir );
+    }
+
+    stringstream ss;
+    ss << out_dir << "/gaussian_" << setfill('0') << setw(2) << mOct.Niv() << '_' << mKInOct;
+    #ifdef __DEBUG_DIGEO_GAUSSIANS_OUTPUT_RAW
+      img.saveRaw( ss.str()+".raw" );
+    #endif
+    #ifdef __DEBUG_DIGEO_GAUSSIANS_OUTPUT_PGM
+      img.savePGM( ss.str()+".pgm", true );
+   #endif
+}
+
+template <class Type>
+void cTplImInMem<Type>::loadGaussians( const std::string &in_dir )
+{
+    if ( !ELISE_fp::IsDirectory(in_dir) )
+        cerr << "cTplImInMem::loadGaussians: input directory \"" << in_dir << "\" does not exist" << endl;
+
+    RealImage1 img;
+    stringstream ss;
+    ss << in_dir << "/gaussian_" << setfill('0') << setw(2) << mOct.Niv() << '_' << mKInOct << ".raw";
+    if ( !img.loadRaw( ss.str() ) )
+        cerr << "cTplImInMem::loadGaussians: failed to load \"" << ss.str() << "\"" << endl;
+    img.toArray( TIm().data_lin() );
+}
+
+template <class Type>
+void cTplImInMem<Type>::saveDoG( const string &out_dir ) const
+{
+    if ( !ELISE_fp::IsDirectory(out_dir) )
+    {
+       cerr << "cTplImInMem::saveDoG: creating output directory \"" << out_dir << "\"" << endl;
+       ELISE_fp::MkDir( out_dir );
+    }
+
+    RealImage1 img( mSz.x, mSz.y, mDoG );
+    stringstream ss;
+    ss << out_dir << "/dog_" << setfill('0') << setw(2) << mOct.Niv() << '_' << mKInOct;
+    img.saveRaw( ss.str()+".raw" );
+    img.savePGM( ss.str()+".pgm", true );
+}
+
+template <class Type>
+void cTplImInMem<Type>::loadDoG( const string &in_dir )
+{
+
+
+    if ( !ELISE_fp::IsDirectory(in_dir) )
+        cerr << "cTplImInMem::loadDoG: input directory \"" << in_dir << "\" does not exist" << endl;
+
+    RealImage1 img;
+    stringstream ss;
+    ss << in_dir << "/dog_" << setfill('0') << setw(2) << mOct.Niv() << '_' << mKInOct << ".raw";
+
+    if ( !img.loadRaw( ss.str() ) )
+        cerr << "cTplImInMem::loadDoG: failed to load \"" << ss.str() << "\"" << endl;
+    img.toVector( mDoG );
 }
 
 /****************************************/
@@ -467,6 +562,15 @@ cImInMem::cImInMem
     mFille            (0),
     mKernelTot        (1,1.0),
     mFirstSauv        (true)
+   #ifdef __DEBUG_DIGEO_STATS
+      ,mCount_eTES_Uncalc(0),
+       mCount_eTES_instable_unsolvable(0),
+       mCount_eTES_instable_tooDeepRecurrency(0),
+       mCount_eTES_instable_outOfImageBound(0),
+       mCount_eTES_GradFaible(0),
+       mCount_eTES_TropAllonge(0),
+       mCount_eTES_Ok(0)
+   #endif
 {
  
 }
@@ -500,6 +604,14 @@ void cImInMem::SetMere(cImInMem * aMere)
 
 void cImInMem::SauvIm(const std::string & aAdd)
 {
+    #if defined(__DEBUG_DIGEO_GAUSSIANS_OUTPUT_RAW) || defined(__DEBUG_DIGEO_GAUSSIANS_OUTPUT_PGM)
+        saveGaussians( "gaussians_digeo" );
+    #endif
+
+    #ifdef __DEBUG_DIGEO_GAUSSIANS_INPUT
+        loadGaussians( "gaussians_sift" );
+    #endif
+    
    if (! mAppli.SauvPyram().IsInit())
       return;
 
@@ -579,6 +691,7 @@ void cImInMem::SauvIm(const std::string & aAdd)
     // ACCESSOR 
 
 std::vector<cPtsCaracDigeo> &  cImInMem::VPtsCarac() {return mVPtsCarac;}
+const std::vector<cPtsCaracDigeo> &  cImInMem::VPtsCarac() const {return mVPtsCarac;}
 
 GenIm::type_el  cImInMem::TypeEl() const { return mType; }
 Pt2di cImInMem::Sz() const {return mSz;}
