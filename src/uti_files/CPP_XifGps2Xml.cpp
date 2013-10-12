@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
-// #include "XML_GEN/all_tpl.h"
+// #include "XML_GEN/all_tpl.h" 
 
 class cAppli_XifGps2Xml ;
 class cIm_XifGp;
