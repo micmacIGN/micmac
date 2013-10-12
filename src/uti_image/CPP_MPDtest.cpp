@@ -206,70 +206,23 @@ void Test_Arrondi_LG()
 
 int MPDtest_main (int argc,char** argv)
 {
-    std::cout << MMUserEnv().TiePDetect().ValWithDef("toto") << "\n";
-    std::cout << MMUserEnv().TiePMatch().ValWithDef("titi") << "\n";
-    getchar();
+ 
+    std::string aName = "/home/marc/TMP/GlacierAndin/GLR_MorrenasMedio_010513_D7000_18mm/GLR_5670.JPG";
+    // aName = "/home/marc/TMP/ExempleDoc/Draix-Drone-Village/P4090140.JPG";
 
 
-    int aT = 12;
-    double aV =  3.44e7 + aT/1e5;
-
-    for (int aP=0 ; aP < 20 ; aP++)
+    for (int aK=0 ; aK<1 ; aK++)  
     {
-        std::cout.precision(aP);
-        std::cout << "P=" << aP << " " << aV << "\n";
+       ElTimer aChrono;
+       cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aName);
+       std::cout << "MDP " << aMDP.FocMm() << " " << aChrono.uval() << "\n";
+       if (aMDP.HasGPSLatLon())
+          std::cout << "LL " << aMDP.GPSLat() * (180/PI) << " " << aMDP.GPSLon() * (180/PI) << "\n";
+       if (aMDP.HasGPSAlt())
+          std::cout << "Alt " << aMDP.GPSAlt() << "\n";
     }
-    getchar();
 
-
-    Test_Arrondi_LG();
-
-   while (1)
-   {
-       double x;
-       double y ;
-         std::cin >> x >> y;
-       double V = 177;
-
-       double aRes = x*y*V ;
-       aRes += x*(1-y) * V;
-       aRes += (1-x)*(1-y) * V;
-       aRes += (1-x)*y * V;
-
-      printf("%15.15f\n",aRes);
-   }
-   TestRound();
-
-
-    Tiff_Im  aFile
-             (
-                 "toto.tif",
-                 Pt2di(2000,3000),
-                  GenIm::u_int2,
-                  Tiff_Im::No_Compr,
-                  Tiff_Im::BlackIsZero
-             );
-
-/*
-Tiff_Im  aFile("/media/data2/Aerien/Euro-SDR/VaihingenEnz_GSD20cm/MEC-Final/Z_000_DeZoom64_LeChantier.tif");
-*/
-
-std::cout << "BBBB\n";
-
-
-    ELISE_COPY(rectangle(Pt2di(20,20),Pt2di(100,100)),FX,aFile.out());
-
-std::cout << "CCCCC SzL " << sizeof(long) << "\n";
-int aDif;
-    ELISE_COPY(rectangle(Pt2di(-20,-20),Pt2di(100,100)),aFile.in_proj(),sigma(aDif));
-std::cout << "DDDD  " << aDif << "\n";
-
-
-   // TestXMLNuageNodData();
    return 0;
-//    TestKL();
-//    BanniereMM3D();
-   // AutoCorrel(argv[1]);
 
     return EXIT_SUCCESS;
 }
