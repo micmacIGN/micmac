@@ -1151,6 +1151,14 @@ class cMetaDataPhoto
         const Pt3dr & Tetas() const;
         
         
+         const bool   &  HasGPSLatLon() const;
+         const double &  GPSLat() const;
+         const double &  GPSLon() const;
+         const bool   &  HasGPSAlt() const;
+         const double &  GPSAlt() const;
+         void SetGPSLatLon(const double & aLat,const double & aLon);
+         void SetGPSAlt(const double & anAlt);
+
          cMetaDataPhoto
          ( 
                 const std::string & aNameIm,
@@ -1196,6 +1204,12 @@ class cMetaDataPhoto
          Pt3dr   mXYZ;
          Pt3dr   mTetas;
          std::string  mBayPat;
+         bool    mHasGPSLatLon;
+         double  mGPSLat;
+         double  mGPSLon;
+         bool    mHasGPSAlt;
+         double  mGPSAlt;
+
 };
 // cCameraEntry *  CamOfName(const std::string & aName);
 
