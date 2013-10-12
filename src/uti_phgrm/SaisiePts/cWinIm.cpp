@@ -94,7 +94,7 @@ cWinIm::cWinIm(cAppli_SaisiePts& anAppli,Video_Win aW,Video_Win aWT,cImage & aIm
     mPopUpBase      ( new GridPopUpMenuTransp(mW,mSzCase,Pt2di(2,3),Pt2di(1,1))),
     mPopUpShift     ( new GridPopUpMenuTransp(mW,mSzCase,Pt2di(2,3),Pt2di(1,1))),
     mPopUpCtrl      ( new GridPopUpMenuTransp(mW,Pt2di(50,33),Pt2di(1,3),Pt2di(1,1))),
-    mPopUp1Shift    ( new GridPopUpMenuTransp(mW,Pt2di(50,33),Pt2di(3,3),Pt2di(1,1))),
+    mPopUp1Shift    ( new GridPopUpMenuTransp(mW,Pt2di(50,33),Pt2di(4,3),Pt2di(1,1))),
     mPopUpCur       (0),
 
     mCaseExit       (new CaseGPUMT
@@ -195,6 +195,14 @@ cWinIm::cWinIm(cAppli_SaisiePts& anAppli,Video_Win aW,Video_Win aWT,cImage & aIm
                             MMIcone("TDM").in(1) *255
                          )
                      ),
+    mCaseRenamePt    (new CaseGPUMT
+                         (
+                            *mPopUp1Shift,"titi",Pt2di(3,1),
+                            MMIcone("TDM").in(1) *255
+                         )
+                     ),
+
+
 
 
     mCaseMin3        (new CaseGPUMT
@@ -578,6 +586,21 @@ void  cWinIm::MenuPopUp(Clik aClk)
             if (aPIm)
             {
                 mAppli.KillSom(aPIm->Gl());
+            }
+        }
+        else if (aCase==mCaseRenamePt)
+        {
+            cSP_PointeImage* aPIm = GetNearest(aClk._pt,200);
+            if (aPIm)
+            {
+                cCaseNamePoint * aCNP = mAppli.GetIndexNamePt();
+                if (aCNP && (aCNP->mTCP != eCaseCancel) && (aCNP->mFree))
+                {
+                    std::string aNewName = mAppli.IdNewPts(aCNP).second;
+                    mAppli.ChangeName(aPIm->Gl()->PG()->Name(),aNewName);
+                }
+                 
+                mAppli.MenuNamePoint()->W().lower();
             }
         }
    }

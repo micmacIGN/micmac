@@ -1381,6 +1381,19 @@ void MakeMetaData_XML_GeoI(const std::string & aNameImMasq,double aResol);
 
 //estd::set<std::string> SetOfCorresp(const std::vector<cCpleString> & aRel,const std::string &);
 
+class cAppliListIm
+{
+    public :
+       cAppliListIm(const std::string & aFullName);
+    public :
+
+      std::string                       mFullName;
+      std::string                       mDir;
+      std::string                       mPat;
+      cInterfChantierNameManipulateur * mICNM;
+      const cInterfChantierNameManipulateur::tSet * mSetIm;
+};
+
 
 #endif   // _ELISE_XML_GEN_ALL_H
 
