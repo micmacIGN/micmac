@@ -436,6 +436,8 @@ int TestCmds_main(int argc,char ** argv);
 int Apero2PMVS_main(int argc,char ** argv);
 int Ori2XML_main(int argc,char ** argv);
 int GenCode_main(int argc,char ** argv);
+int XifGps2Xml_main(int argc,char ** argv);
+int XifGps2RTL_main(int argc,char ** argv);
 
 
 // uti_images

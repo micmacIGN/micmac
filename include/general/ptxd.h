@@ -1265,6 +1265,7 @@ class cSysCoord
 
           static cSysCoord * GeoC();
           static cSysCoord * WGS84();
+          static cSysCoord * WGS84Degre();
           static cSysCoord * RTL(const Pt3dr & Ori);
           static cSysCoord * FromXML(const NS_ParamChantierPhotogram::cSystemeCoord &,const char * aDir);
 

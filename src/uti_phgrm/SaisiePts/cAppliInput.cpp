@@ -174,6 +174,13 @@ void cAppli_SaisiePts::HighLightSom(cSP_PointGlob * aPG)
    }
 }
 
+void cAppli_SaisiePts::ChangeName(const std::string & anOldName,const std::string & aNewName)
+{
+    for (int aKP=0 ; aKP<int(mPG.size()) ; aKP++)
+    {
+    }
+}
+
 
    //================== cUndoRedo ==========
 
@@ -182,6 +189,8 @@ cUndoRedo::cUndoRedo(cOneSaisie aS,cImage *aI) :
    mI (aI)
 {
 }
+
+
 
 const    cOneSaisie & cUndoRedo::S() const {return mS;}
 cImage *              cUndoRedo::I() const {return mI;}

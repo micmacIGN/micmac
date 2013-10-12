@@ -821,6 +821,7 @@ void cSysCoordPolyn::InitByApr
 
 cSysCoord * cSysCoord::GeoC() { return cGeoc_SC::TheOne(); }
 cSysCoord * cSysCoord::WGS84() { return cGeoc_WGS4::TheOne(); }
+cSysCoord * cSysCoord::WGS84Degre() { return cGeoc_WGS4::TheOneDeg(); }
 
 cSysCoordPolyn * cSysCoord::TypedModelePolyNomial 
             (

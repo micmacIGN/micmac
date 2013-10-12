@@ -1046,6 +1046,8 @@ cMetaDataPhoto cXifDecoder::GetMTDIm(const std::string & aNameIm)
 
         if (GotGPSLat && GotGPSLong)
            aRes.SetGPSLatLon(aLat,aLong);
+        if (GotGPSAlt)
+           aRes.SetGPSAlt(anAlt);
 	return aRes;
 
 }
