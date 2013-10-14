@@ -125,7 +125,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
     <Symb>   Y1Clip=1 </Symb>
 	
 	
-	<Symb>   UseTerrain=false </Symb>
+	<Symb>   UseBoxTerrain=false </Symb>
     <Symb>   X0Terrain=0 </Symb>
     <Symb>   Y0Terrain=0 </Symb>
     <Symb>   X1Terrain=1 </Symb>
@@ -188,7 +188,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 		   
 		   
 		<#WHEN VTEST=${UseBoxTerrain}>
-          <BoxTerrain>  ${X0Terrain} ${Y0Terrain} ${X1Terrain} ${Y1Terrain} </ProportionClipMEC>
+          <BoxTerrain>  ${X0Terrain} ${Y0Terrain} ${X1Terrain} ${Y1Terrain} </BoxTerrain>
 		</#WHEN>
 		   
       </Planimetrie>
