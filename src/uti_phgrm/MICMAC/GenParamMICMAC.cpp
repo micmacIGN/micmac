@@ -46,7 +46,7 @@ int main(int argc,char ** argv)
   cElXMLTree aTreeSpec("include/XML_GEN/ParamMICMAC.xml");
   aTreeSpec.GenCppGlob("applis/MICMAC/cParamMICMAC","");
 
-  std::list<Pt2dr> aLp;
+//  std::list<Pt2dr> aLp;
 
    return 0;
 }

@@ -55,7 +55,7 @@ int MakeGrid_main(int argc,char ** argv)
 
     std::string AeroIn;
     std::string AeroOut;
-    std::vector<std::string> ImPl;
+    //std::vector<std::string> ImPl;
 
     ElInitArgMain
     (

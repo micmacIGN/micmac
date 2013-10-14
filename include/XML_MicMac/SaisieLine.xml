@@ -15,6 +15,7 @@ Antipasti ~/micmac/include/XML_MicMac/SaisieLine.xml DirectoryChantier="/home/ma
 
             <Symb> NbFx=1 </Symb>
             <Symb> NbFy=1 </Symb>
+            <Symb> ForceGray=true </Symb>
         </DicoLoc>
 
         <SectionWindows>
@@ -40,7 +41,7 @@ Antipasti ~/micmac/include/XML_MicMac/SaisieLine.xml DirectoryChantier="/home/ma
 
         <SectionImages>
               <SetOfImages> ${Image}  </SetOfImages>
-              <ForceGray> true </ForceGray>
+              <ForceGray> ${ForceGray} </ForceGray>
               <KeyAssocOri> ${Ori}  </KeyAssocOri>
 
 

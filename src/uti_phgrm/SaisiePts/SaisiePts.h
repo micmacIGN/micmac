@@ -245,6 +245,7 @@ class cWinIm : public Grab_Untill_Realeased
 
             CaseGPUMT *             mCaseNewPt;
             CaseGPUMT *             mCaseKillPt;
+            CaseGPUMT *             mCaseRenamePt;
             CaseGPUMT *             mCaseMin3;
             CaseGPUMT *             mCaseMin5;
             CaseGPUMT *             mCaseMax3;
@@ -359,6 +360,8 @@ class cAppli_SaisiePts
          void ChangeFreeNameP(const std::string &,bool SetFree);
 
          void GlobChangStatePointe(const std::string & aName,const eEtatPointeImage aState);
+
+         void ChangeName(const std::string & anOldName,const std::string & aNewName);
 
     private :
 

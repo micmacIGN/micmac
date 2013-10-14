@@ -304,8 +304,20 @@ tFileOffset BitsPacked_PFOB::_Write(const U_INT1 * data,tFileOffset nbo)
          INT index = index_values_out_of_range
                        (data,nb,(U_INT1)0,(U_INT1)_v_max);
 
+<<<<<<< local
 	if (index!=INDEX_NOT_FOUND)
 	{
+=======
+        El_User_Dyn.ElAssert
+        (
+         index == INDEX_NOT_FOUND,
+         EEM0  << "values out of range in bits-file writing \n"
+         );
+        
+        
+        if (index!=INDEX_NOT_FOUND)
+        {
+>>>>>>> other
          El_User_Dyn.ElAssert
          (
              index == INDEX_NOT_FOUND,
@@ -313,8 +325,14 @@ tFileOffset BitsPacked_PFOB::_Write(const U_INT1 * data,tFileOffset nbo)
                    << "|   value = "   << (INT) data[index]     << "\n"
                    << "|   interval = [" << 0 << " ---  " << _v_max  << "["
          );
+<<<<<<< local
 	}
+=======
+        }
+         
+>>>>>>> other
     }
+    
     if (_i_buf && (!_pf_compr))
        _pfob->Rseek(-1);
 

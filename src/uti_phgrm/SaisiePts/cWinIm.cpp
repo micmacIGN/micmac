@@ -50,18 +50,20 @@ using namespace NS_SaisiePts;
 /*************************************************/
 
 
-ElImScroller * SCR(Visu_ElImScr &aVisu,const std::string & aName)
+ElImScroller * SCR(Visu_ElImScr &aVisu,const std::string & aName,bool ForceGray)
 {
     Tiff_Im aTifFile = Tiff_Im::StdConvGen(aName,-1,true);
 
-    aVisu.AdaptTiffFile(aTifFile,true,true);  // AdaptPal,ForceGray);
+     // INT aDim = aTifFile.nb_chan(); aDim=1;
+
+    aVisu.AdaptTiffFile(aTifFile,true,ForceGray);  // AdaptPal,ForceGray);
     switch (aTifFile.type_el())
     {
          case GenIm::u_int1 :
-              return new ImFileScroller<U_INT1> (aVisu,aTifFile,1);
+              return new ImFileScroller<U_INT1> (aVisu,aTifFile,1.0);
          break;
          case GenIm::u_int2 :
-              return new ImFileScroller<U_INT2> (aVisu,aTifFile,1);
+              return new ImFileScroller<U_INT2> (aVisu,aTifFile,1.0);
          break;
 
          default :
@@ -84,8 +86,7 @@ cWinIm::cWinIm(cAppli_SaisiePts& anAppli,Video_Win aW,Video_Win aWT,cImage & aIm
     mW (aW),
     mWT (aWT),
     mVWV (aW,StdPalOfFile(aIm0.Tif().name(),aW),Pt2di(10,10)),  // Sz  Incrustation 
-    // mScr (ElImScroller::StdPyramide (mVWV,aIm0.Tif().name())),
-    mScr    (SCR(mVWV,aIm0.Tif().name())),
+    mScr    (SCR(mVWV,aIm0.Tif().name(),mAppli.Param().ForceGray().Val())),
     mCurIm          (0),
     mModeRelication (true),
     mSzW            (mW.sz()),
@@ -93,7 +94,7 @@ cWinIm::cWinIm(cAppli_SaisiePts& anAppli,Video_Win aW,Video_Win aWT,cImage & aIm
     mPopUpBase      ( new GridPopUpMenuTransp(mW,mSzCase,Pt2di(2,3),Pt2di(1,1))),
     mPopUpShift     ( new GridPopUpMenuTransp(mW,mSzCase,Pt2di(2,3),Pt2di(1,1))),
     mPopUpCtrl      ( new GridPopUpMenuTransp(mW,Pt2di(50,33),Pt2di(1,3),Pt2di(1,1))),
-    mPopUp1Shift    ( new GridPopUpMenuTransp(mW,Pt2di(50,33),Pt2di(3,3),Pt2di(1,1))),
+    mPopUp1Shift    ( new GridPopUpMenuTransp(mW,Pt2di(50,33),Pt2di(4,3),Pt2di(1,1))),
     mPopUpCur       (0),
 
     mCaseExit       (new CaseGPUMT
@@ -194,6 +195,14 @@ cWinIm::cWinIm(cAppli_SaisiePts& anAppli,Video_Win aW,Video_Win aWT,cImage & aIm
                             MMIcone("TDM").in(1) *255
                          )
                      ),
+    mCaseRenamePt    (new CaseGPUMT
+                         (
+                            *mPopUp1Shift,"titi",Pt2di(3,1),
+                            MMIcone("TDM").in(1) *255
+                         )
+                     ),
+
+
 
 
     mCaseMin3        (new CaseGPUMT
@@ -577,6 +586,21 @@ void  cWinIm::MenuPopUp(Clik aClk)
             if (aPIm)
             {
                 mAppli.KillSom(aPIm->Gl());
+            }
+        }
+        else if (aCase==mCaseRenamePt)
+        {
+            cSP_PointeImage* aPIm = GetNearest(aClk._pt,200);
+            if (aPIm)
+            {
+                cCaseNamePoint * aCNP = mAppli.GetIndexNamePt();
+                if (aCNP && (aCNP->mTCP != eCaseCancel) && (aCNP->mFree))
+                {
+                    std::string aNewName = mAppli.IdNewPts(aCNP).second;
+                    mAppli.ChangeName(aPIm->Gl()->PG()->Name(),aNewName);
+                }
+                 
+                mAppli.MenuNamePoint()->W().lower();
             }
         }
    }

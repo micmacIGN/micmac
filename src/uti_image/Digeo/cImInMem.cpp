@@ -40,7 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Digeo.h"
 
 //#define __DEBUG_DIGEO_GAUSSIANS_OUTPUT_RAW
-#define __DEBUG_DIGEO_GAUSSIANS_OUTPUT_PGM
+//#define __DEBUG_DIGEO_GAUSSIANS_OUTPUT_PGM
 //#define __DEBUG_DIGEO_GAUSSIANS_INPUT
 //#define __DEBUG_DIGEO_DOG_OUTPUT
 //#define __DEBUG_DIGEO_DOG_INPUT
@@ -72,7 +72,6 @@ cTplImInMem<Type>::cTplImInMem
      // mOrigOct (0),
      mData   (0)
 {
-
     ResizeImage(aSz); 
 }
 
@@ -572,7 +571,12 @@ cImInMem::cImInMem
        mCount_eTES_Ok(0)
    #endif
 {
- 
+    if ( aIGlob.Appli().mVerbose )
+    {
+        cout << "\timage of index " << aKInOct << endl;
+        cout << "\t\tresolution in octave = " << mResolOctaveBase << endl;
+        cout << "\t\tglobal resolution    = " << mImGlob.Sigma0()*mResolGlob*mResolOctaveBase << endl;
+    }
 }
 
 void  cImInMem::ResizeOctave(const Pt2di & aSz)

@@ -93,7 +93,7 @@ PRC0::~PRC0(void)
     RC_Object::decr_ref(_ptr);
 }
 
-void PRC0::operator=(PRC0 p2)
+void PRC0::operator=(const PRC0 &p2)
 {
    RC_Object::incr_ref(p2._ptr);
    RC_Object::decr_ref(_ptr);

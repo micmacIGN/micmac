@@ -8,11 +8,24 @@ endif()
 
 if(IgnSocle_FOUND)
     target_link_libraries(mm3d ${IgnSocle_LIBRARIES})
- IF ( PROJ4_FOUND )
-	target_link_libraries(mm3d ${PROJ4_LIBRARIES}) 
-ENDIF()
-
+	
+	IF ( PROJ4_FOUND )
+		target_link_libraries(mm3d ${PROJ4_LIBRARIES}) 
+	ENDIF()
+	IF ( GDAL_FOUND )
+		target_link_libraries(mm3d ${GDAL_LIBRARIES}) 
+	ENDIF()
+	IF ( ECWJ2_FOUND )
+		target_link_libraries(mm3d ${ECWJ2_LIBRARIES}) 
+	ENDIF()
+	IF ( Geos_FOUND )
+		target_link_libraries(mm3d ${Geos_LIBRARIES}) 
+	ENDIF()
+	IF(TinyXML_FOUND)
+		target_link_libraries(mm3d ${TinyXML_LIBRARIES})
+	ENDIF()
 endif()
+
 
 if(KAKADU_FOUND)
 	if(UNIX)
@@ -22,9 +35,6 @@ if(KAKADU_FOUND)
 	endif()
 endif()
 
-if(TinyXML_FOUND)
-    target_link_libraries(mm3d ${TinyXML_LIBRARIES})
-endif()
 
 if(Boost_FOUND)
     target_link_libraries(mm3d ${Boost_LIBRARIES} ${Boost_THREADAPI})

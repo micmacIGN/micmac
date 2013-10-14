@@ -52,7 +52,7 @@ int CentreBascule_main(int argc,char ** argv)
 
     std::string AeroOut;
     std::string AeroIn;
-    std::string DicoPts;
+    //std::string DicoPts;
     std::string BDC;
     bool ModeL1 = false;
     bool CalcV   = false;

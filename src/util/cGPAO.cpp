@@ -96,7 +96,7 @@ void MkFMapCmd
           const std::string & anAfterTarget,
           const std::string & aBeforeCom,
           const std::string & anAfterCom,
-          const std::vector<std::string > aSet ,
+          const std::vector<std::string > &aSet ,
           std::string  FileMk = "",  //
           int   aNbProc = 0  // Def = MM Proc
      )
@@ -126,7 +126,7 @@ void MkFMapCmd
 void MkFMapCmdFileCoul8B
      (
           const std::string & aDir,
-          const std::vector<std::string > aSet 
+          const std::vector<std::string > &aSet 
      )
 {
     MkFMapCmd
@@ -302,7 +302,7 @@ void cElTask::GenerateMakeFile(FILE * aFP) const
     {
 		#if (ELISE_windows)
 			// avoid a '\' at the end of a line in a makefile
-		if (itBR->size())
+		if (!itBR->empty())
 		
 			if ( *(itBR->rbegin())=='\\' )
 			{

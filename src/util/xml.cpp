@@ -810,7 +810,7 @@ std::string filename_normalize( const std::string &i_filename)
 }
 
 // return true if i_str starts with i_start (case sensitive)
-bool startWith( const std::string i_str, const std::string i_start )
+bool startWith( const std::string &i_str, const std::string &i_start )
 {
 	if ( i_str.length()<i_start.length() ) return false;
 	string strStart = i_str.substr( 0, i_start.length() );
@@ -1436,7 +1436,7 @@ cElXMLTree * cElXMLTree::GetUniqueFils()
 cElXMLTree * cElXMLTree::GetOneOrZero(const std::string & aName)
 {
 	std::list<cElXMLTree *> aRes = GetAll(aName);
-	if (aRes.size() == 0)
+	if (aRes.empty())
 		return 0;
 	else if (aRes.size() == 1)
 		return *(aRes.begin());
@@ -2324,7 +2324,7 @@ void cElXMLTree::ModifLC(char * anArg,cElXMLTree * aSpecif)
 		"XML-MODIF LC MATCH ERROR, Multiple found (Value)"
 		);
 
-	if (aLSymVal.size() == 0)
+	if (aLSymVal.empty())
 	{
 		if (aSymSp==0)
 		{

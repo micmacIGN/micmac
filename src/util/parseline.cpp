@@ -191,7 +191,7 @@ void cReadObject::AddString(const std::string & aS,std::string * aName,bool Requ
      *aName = TheStrUnDef;
 }
 
-bool cReadObject::ReadFormat(char  & aCom,std::string & aFormat,const std::string aFileOrLine,bool IsFile)
+bool cReadObject::ReadFormat(char  & aCom,std::string & aFormat,const std::string &aFileOrLine,bool IsFile)
 {
     const char * aLine =  aFileOrLine.c_str();
     if (IsFile)

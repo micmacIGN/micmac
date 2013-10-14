@@ -492,7 +492,7 @@ double  QuickDist(const Pt2dr & aPt)
    return   (aDx+aDy + ElMax(aDx,aDy))/ 2.0;
 }
 
-void AddPair(ElPackHomologue & aPack,const std::pair<Pt2dr,Pt2dr> aPair)
+void AddPair(ElPackHomologue & aPack,const std::pair<Pt2dr,Pt2dr> &aPair)
 {
    aPack.Cple_Add(ElCplePtsHomologues(aPair.first,aPair.second));
 }
