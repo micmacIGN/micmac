@@ -530,7 +530,7 @@ const std::vector<cIncIntervale *> &   cSetEqFormelles::BlocsIncAlloc() const
 
 
 
-void cManipOrdInc::Init(const std::vector<cIncIntervale *> aBlocsIncAlloc) 
+void cManipOrdInc::Init(const std::vector<cIncIntervale *> &aBlocsIncAlloc) 
 {
    mBlocsIncSolve = aBlocsIncAlloc;
    for (int aK=0 ; aK<int(mBlocsIncSolve.size()); aK++)

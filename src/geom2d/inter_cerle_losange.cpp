@@ -562,7 +562,7 @@ class SurfIER_Fonc_Num_Not_Comp : public Fonc_Num_Not_Comp
     public :
 	    SurfIER_Fonc_Num_Not_Comp
             (
-	        std::string aName,
+	        std::string &aName,
 		TyFctrSurfIER aFctr,
 	        Pt2d<Fonc_Num> aCel,
 		Fonc_Num aA,Fonc_Num aB,Fonc_Num aC,
@@ -590,7 +590,7 @@ class SurfIER_Fonc_Num_Not_Comp : public Fonc_Num_Not_Comp
            ELISE_ASSERT(false,"No VarDerNN");
        }
 
-       Fonc_Num FNF(const std::string,TyFctrSurfIER) const;
+       Fonc_Num FNF(const std::string &,TyFctrSurfIER) const;
 
 
        virtual REAL  ValFonc(const  PtsKD &  pts) const ;
@@ -645,7 +645,7 @@ INT SurfIER_Fonc_Num_Not_Comp::CmpFormelIfSameKind(Fonc_Num_Not_Comp * aF2)
 
 SurfIER_Fonc_Num_Not_Comp::SurfIER_Fonc_Num_Not_Comp
 (
-      std::string aName,
+      std::string &aName,
       TyFctrSurfIER aFctr,
       Pt2d<Fonc_Num> aCel,
       Fonc_Num aA,Fonc_Num aB,Fonc_Num aC,
@@ -690,7 +690,7 @@ Fonc_Num    FN_SurfIER
 }
 
 Fonc_Num SurfIER_Fonc_Num_Not_Comp::FNF
-         (const std::string aName,TyFctrSurfIER aFctr) const
+         (const std::string &aName,TyFctrSurfIER aFctr) const
 {
 	return FN_SurfIER(aName,aFctr,fCEl,fA,fB,fC,fP0,fP1);
 }

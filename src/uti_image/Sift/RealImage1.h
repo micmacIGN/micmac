@@ -226,7 +226,7 @@ void createGaussianKernel_1d( Real_ i_standardDeviation, std::vector<RealImage1:
 
 Real_ loadKernel( const std::string &i_filename, std::vector<RealImage1::Real> &o_ker );
 Real_ saveKernel( const std::string &i_filename, float s, const std::vector<RealImage1::Real> &o_ker );
-bool compare_kernels( const std::vector<RealImage1::Real> i_ker0, const std::vector<RealImage1::Real> i_ker1 );
+bool compare_kernels( const std::vector<RealImage1::Real> &i_ker0, const std::vector<RealImage1::Real> &i_ker1 );
 
 bool check_grid( const RealImage1 &i_img, const std::vector<RoiWindow_2d> &i_win );
 

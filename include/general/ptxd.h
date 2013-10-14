@@ -656,7 +656,7 @@ REAL  angle_de_droite_nor(const Pt2dr & p1,const Pt2dr & p2);
 std::vector<Pt2di> PointInCouronne(int aD8Min,int aD8Max);
     // Par ex dist [2,5,9] et recuper (0-1) + (2-4) + (5-8)
     // AddD4First mets les 4 voisin d'abord
-std::vector<std::vector<Pt2di> > PointOfCouronnes(const std::vector<int> Dist,bool AddD4First);
+std::vector<std::vector<Pt2di> > PointOfCouronnes(const std::vector<int> &Dist,bool AddD4First);
 
 std::vector<std::vector<Pt2di> > StdPointOfCouronnes(int aDMax,bool AddD4First);
 
@@ -1151,6 +1151,14 @@ class cMetaDataPhoto
         const Pt3dr & Tetas() const;
         
         
+         const bool   &  HasGPSLatLon() const;
+         const double &  GPSLat() const;
+         const double &  GPSLon() const;
+         const bool   &  HasGPSAlt() const;
+         const double &  GPSAlt() const;
+         void SetGPSLatLon(const double & aLat,const double & aLon);
+         void SetGPSAlt(const double & anAlt);
+
          cMetaDataPhoto
          ( 
                 const std::string & aNameIm,
@@ -1196,6 +1204,12 @@ class cMetaDataPhoto
          Pt3dr   mXYZ;
          Pt3dr   mTetas;
          std::string  mBayPat;
+         bool    mHasGPSLatLon;
+         double  mGPSLat;
+         double  mGPSLon;
+         bool    mHasGPSAlt;
+         double  mGPSAlt;
+
 };
 // cCameraEntry *  CamOfName(const std::string & aName);
 
@@ -1251,6 +1265,7 @@ class cSysCoord
 
           static cSysCoord * GeoC();
           static cSysCoord * WGS84();
+          static cSysCoord * WGS84Degre();
           static cSysCoord * RTL(const Pt3dr & Ori);
           static cSysCoord * FromXML(const NS_ParamChantierPhotogram::cSystemeCoord &,const char * aDir);
 

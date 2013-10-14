@@ -1121,7 +1121,7 @@ void MkFMapCmd
 void MkFMapCmdFileCoul8B
      (
           const std::string & aDir,
-          const std::vector<std::string > aSet 
+          const std::vector<std::string > &aSet 
      );
 
 

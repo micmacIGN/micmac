@@ -3348,7 +3348,7 @@ aKeyOrFile         :
 		(
 		cInterfChantierNameManipulateur & aIMCN,
 		const cContenuAPrioriImage & aCAPI,
-		const std::string aDir,
+		const std::string &aDir,
 		const std::string & aName,
 		const std::string & aName2
 		) :
@@ -3787,27 +3787,43 @@ aKeyOrFile         :
 		return aResult;
 	}
 
-	std::vector<std::string> cInterfChantierNameManipulateur::StdGetVecStr(const std::string & aStr)
-	{
-		std::vector<std::string>  aRes;
+std::vector<std::string> cInterfChantierNameManipulateur::StdGetVecStr(const std::string & aStr)
+{
+      std::vector<std::string>  aRes;
 
-		if ((aStr[0]=='[') && (aStr[aStr.size()-1]==']'))
-		{
-			stringstream aStream(aStr);
-			ElStdRead(aStream,aRes,ElGramArgMain::StdGram);
-		}
-		else if (IsPostfixed(aStr) && (StdPostfix(aStr)=="txt") && ELISE_fp::exist_file(mDir+aStr))
-		{
-			return VecStrFromFile(mDir+aStr);
-		}
-		else 
-		{
-			aRes.push_back(aStr);
-		}
+      if ((aStr[0]=='[') && (aStr[aStr.size()-1]==']'))
+      {
+           stringstream aStream(aStr);
+           ElStdRead(aStream,aRes,ElGramArgMain::StdGram);
+      }
+      else if (IsPostfixed(aStr) && ELISE_fp::exist_file(mDir+aStr))
+      {
+           if (StdPostfix(aStr)=="txt")
+              return VecStrFromFile(mDir+aStr);
+           else if (StdPostfix(aStr)=="xml")
+           {
+              cElXMLTree aTree (aStr);
+              cElXMLTree  * aSub = aTree.GetUnique("DicoAppuisFlottant");
+              if (aSub)
+              {
+                 cDicoAppuisFlottant  aDAF = StdGetFromPCP(aStr,DicoAppuisFlottant);
+                 for (std::list<cOneAppuisDAF>::const_iterator   itOAF=aDAF.OneAppuisDAF().begin(); itOAF!=aDAF.OneAppuisDAF().end(); itOAF++)
+                 {
+                    aRes.push_back(itOAF->NamePt());
+                 }
+                 return aRes;
+              }
+             
+           }
+      }
+      else 
+      {
+           aRes.push_back(aStr);
+      }
 
 
-		return aRes;
-	}
+      return aRes;
+}
 
 };
 

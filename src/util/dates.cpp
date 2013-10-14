@@ -121,7 +121,7 @@ cCameraEntry *  CamOfName(const std::string & aName)
 }
 
 
-void WarnNo35(const std::string aName)
+void WarnNo35(const std::string &aName)
 {
 	static std::set<std::string> aSetDeja;
 
@@ -423,7 +423,12 @@ mNameIm    (aNameIm),
 	mIsoSpeed  (anIsoSpeed),
 	mXYZ_Init  (false),
 	mTeta_Init (false),
-	mBayPat    (aBayPat)
+	mBayPat    (aBayPat),
+        mHasGPSLatLon  (false),
+        mGPSLat        (0.0),
+        mGPSLon        (0.0),
+        mHasGPSAlt     (false),
+        mGPSAlt        (0.0)
 {
 	if (mBayPat=="") 
 		mBayPat = DEFBayPatt;
@@ -475,6 +480,47 @@ double cMetaDataPhoto::MultiplierEqual(const cMetaDataPhoto & aRef,bool * aPtrAl
 	GccUse(AllOk);
 	return aRes;
 }
+
+
+const bool   &  cMetaDataPhoto::HasGPSLatLon() const
+{
+   return mHasGPSLatLon;
+}
+const double &  cMetaDataPhoto::GPSLat() const
+{
+   ELISE_ASSERT(mHasGPSLatLon,"No cMetaDataPhoto::GPSLat");
+   return mGPSLat;
+}
+const double &  cMetaDataPhoto::GPSLon() const
+{
+   ELISE_ASSERT(mHasGPSLatLon,"No cMetaDataPhoto::GPSLon");
+   return mGPSLon;
+}
+
+const bool   &  cMetaDataPhoto::HasGPSAlt() const
+{
+   return mHasGPSAlt;
+}
+const double &  cMetaDataPhoto::GPSAlt() const
+{
+   ELISE_ASSERT(mHasGPSAlt,"No cMetaDataPhoto::GPSLon");
+   return mGPSAlt;
+}
+
+
+void cMetaDataPhoto::SetGPSLatLon(const double & aLat,const double & aLon)
+{
+   mHasGPSLatLon = true;
+   mGPSLat = aLat;
+   mGPSLon = aLon;
+}
+void cMetaDataPhoto::SetGPSAlt(const double & anAlt)
+{
+   mHasGPSAlt = true;
+   mGPSAlt = anAlt;
+}
+
+
 
 
 bool &  cMetaDataPhoto::FocForced(){return mFocForced;}
@@ -689,7 +735,7 @@ std::string GenerateId()
 	return aStr0 + BasicGenerateId();
 }
 
-std::string GenerateNameUnique(const std::string & aNF,const std::string Post)
+std::string GenerateNameUnique(const std::string & aNF,const std::string &Post)
 {
 	return "XXXX_" +  NameWithoutDir(aNF) + "_" + GenerateId()  + "_" + Post;
 }
@@ -970,6 +1016,8 @@ cMetaDataPhoto cXifDecoder::GetMTDIm(const std::string & aNameIm)
 				aXifDec.GetOneAngle(aXifDec.mAutomGPSLong,GotGPSLong,aLong);
 			if (!GotGPSAlt)
 				aXifDec.GetOneDouble(aXifDec.mAutomGPSAlt,GotGPSAlt,anAlt);
+
+                        // std::cout << "LAT " << aLat << " LON " << aLong << " Alt " << anAlt << "\n";
 		}
 
 		if (!GotBayPattern)
@@ -994,7 +1042,13 @@ cMetaDataPhoto cXifDecoder::GetMTDIm(const std::string & aNameIm)
 		}
 	}
 
-	return cMetaDataPhoto  (aNameIm,aSz,aCam,aDate,aFocal,aF35,anExpo,anOuv,anISO,BayPatt);
+	cMetaDataPhoto  aRes (aNameIm,aSz,aCam,aDate,aFocal,aF35,anExpo,anOuv,anISO,BayPatt);
+
+        if (GotGPSLat && GotGPSLong)
+           aRes.SetGPSLatLon(aLat,aLong);
+        if (GotGPSAlt)
+           aRes.SetGPSAlt(anAlt);
+	return aRes;
 
 }
 

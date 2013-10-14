@@ -59,6 +59,8 @@ int SaisieBasc_main(int argc,char ** argv)
   Pt2di aSzW(800,800);
   Pt2di aNbFen(-1,-1);
   std::string aFullName,anOri,anOut;
+  bool aForceGray = true;
+
 
   ElInitArgMain
   (
@@ -68,6 +70,8 @@ int SaisieBasc_main(int argc,char ** argv)
                     << EAMC(anOut,"Output File "),
         LArgMain()  << EAM(aSzW,"SzW",true,"Total size of windows")
                     << EAM(aNbFen,"NbF",true,"Number of Windows (def depend of number of images")
+                    << EAM(aForceGray,"ForceGray",true," Force gray image, def =true")
+
   );
 
   std::string aDir,aName;
@@ -111,6 +115,9 @@ int SaisieBasc_main(int argc,char ** argv)
                       +  std::string(" +SzWy=") + ToString(aSzW.y) 
                       +  std::string(" +NbFx=") + ToString(aNbFen.x)
                       +  std::string(" +NbFy=") + ToString(aNbFen.y) ;
+  if (EAMIsInit(&aForceGray))
+     aCom = aCom + " +ForceGray=" + ToString(aForceGray);
+
 
   std::cout << aCom << "\n";
 

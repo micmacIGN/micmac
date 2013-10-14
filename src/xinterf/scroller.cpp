@@ -71,6 +71,8 @@ ElImScroller::ElImScroller
      mAlwaysQuick        (false),
      mSetInit            (false)
 {
+
+// std::cout << "DIMOUT " << aDimOut  << " " << sc_im << "\n"; getchar();
 } 
 
 bool  ElImScroller::CanReinitTif()
@@ -169,6 +171,7 @@ void ElImScroller::set(Pt2dr tr,REAL sc,bool quick)
 {
    set_geom(tr,sc);
 
+
    if (! image_full_in())
    {
       mVisuStd.write_image_out(-PrefXim(),Pt2di(0,0),_SzW);
@@ -188,6 +191,7 @@ void ElImScroller::set_max(bool quick)
 {
    REAL sc = ScMax();
    Pt2dr tr = (Pt2dr(SzU())-Pt2dr(SzW())/sc ) /2.0 ;
+
 
    set(tr,sc,quick);
 }
@@ -816,6 +820,7 @@ ElPyramScroller::ElPyramScroller
 
 void ElPyramScroller::LoadXImage(Pt2di p0,Pt2di p1,bool quick)
 {
+
         ElImScroller  * ScrClosest  = 0;
 
         for (INT k=0; k<(INT)_subs.size(); k++)

@@ -66,6 +66,7 @@ void MainWindow::connectActions()
     }
     connect(ui->actionShow_help_messages,   SIGNAL(toggled(bool)), this, SLOT(toggleShowMessages(bool)));
 
+    connect(ui->actionReset_view,           SIGNAL(triggered()),   this, SLOT(resetView()));
     connect(ui->action2D_3D_mode,           SIGNAL(toggled(bool)), this, SLOT(toggle2D3D(bool)));
 
     connect(ui->actionHelpShortcuts,        SIGNAL(triggered()),   this, SLOT(doActionDisplayShortcuts()));
@@ -337,6 +338,7 @@ void MainWindow::doActionDisplayShortcuts()
         text += "F5: \t"+tr("show bounding box") +"\n";
         text += "F6: \t"+tr("show cameras") +"\n";
     }
+    text += "F7: \t"+tr("show messages") +"\n";
 
     if (!m_bMode2D)
         text += tr("Key +/-: \tincrease/decrease point size") +"\n\n";
@@ -351,33 +353,34 @@ void MainWindow::doActionDisplayShortcuts()
         text+= "Ctrl+4: \tzoom 25%\n";
     }
 
-    text += "F7: \t"+tr("show messages") +"\n\n";
+    text += "Shift+R: \t"+tr("reset view") +"\n";
+    text += "F8: \t"+tr("2D mode / 3D mode") +"\n\n";
 
     text += tr("Selection menu:") +"\n\n";
     if (!m_bMode2D)
     {
-        text += "F8: \t"+tr("move mode / selection mode") +"\n\n";
+        text += "F9: \t"+tr("move mode / selection mode") +"\n\n";
     }
-    text += tr("    - Left click : \tadd a vertex to polyline") +"\n";
-    text += tr("    - Right click: \tclose polyline") +"\n";
-    text += tr("    - Echap: \t\tdelete polyline") +"\n";
+    text += tr("Left click : \tadd a vertex to polyline") +"\n";
+    text += tr("Right click: \tclose polyline") +"\n";
+    text += tr("Echap: \tdelete polyline") +"\n";
     if (!m_bMode2D)
     {
-        text += tr("    - Space bar: \tadd points inside polyline") +"\n";
-        text += tr("    - Del: \t\tremove points inside polyline") +"\n";
+        text += tr("Space bar: \tadd points inside polyline") +"\n";
+        text += tr("Del: \tremove points inside polyline") +"\n";
     }
     else
     {
-        text += tr("    - Space bar: \tadd pixels inside polyline") +"\n";
-        text += tr("    - Del: \t\tremove pixels inside polyline") +"\n";
+        text += tr("Space bar: \tadd pixels inside polyline") +"\n";
+        text += tr("Del: \tremove pixels inside polyline") +"\n";
     }
-    text += tr("    - Shift+click: \tinsert vertex in polyline") +"\n";
-    text += tr("    - Drag n drop: \tmove polyline vertex") +"\n";
-    text += tr("    - Right click: \tdelete polyline vertex") +"\n";
-    text += "    - Ctrl+A: \t\t"+tr("select all") +"\n";
-    text += "    - Ctrl+D: \t\t"+tr("select none") +"\n";
-    text += "    - Ctrl+R: \t\t"+tr("undo all past selections") +"\n";
-    text += "    - Ctrl+I: \t\t"+tr("invert selection") +"\n";
+    text += tr("Shift+click: \tinsert vertex in polyline") +"\n";
+    text += tr("Drag & drop: move polyline vertex") +"\n";
+    text += tr("Right click: \tdelete polyline vertex") +"\n";
+    text += "Ctrl+A: \t"+tr("select all") +"\n";
+    text += "Ctrl+D: \t"+tr("select none") +"\n";
+    text += "Ctrl+R: \t"+tr("undo all past selections") +"\n";
+    text += "Ctrl+I: \t"+tr("invert selection") +"\n";
 
     QMessageBox::information(NULL, tr("Saisie - shortcuts"), text);
 }
@@ -436,6 +439,11 @@ void MainWindow::setLeftView()
 void MainWindow::setRightView()
 {
     m_glWidget->setView(RIGHT_VIEW);
+}
+
+void MainWindow::resetView()
+{
+    m_glWidget->resetView();
 }
 
 //zoom
@@ -625,6 +633,7 @@ void MainWindow::setMode2D(bool mBool)
     ui->actionShow_axis->setVisible(!mBool);
     ui->actionShow_ball->setVisible(!mBool);
     ui->actionShow_bounding_box->setVisible(!mBool);
+    ui->actionSave_selection->setVisible(!mBool);
 
     ui->menuStandard_views->menuAction()->setVisible(!mBool);
 
@@ -636,6 +645,7 @@ void MainWindow::setMode2D(bool mBool)
     ui->actionShow_axis->setEnabled(!mBool);
     ui->actionShow_ball->setEnabled(!mBool);
     ui->actionShow_bounding_box->setEnabled(!mBool);
+    ui->actionSave_selection->setEnabled(!mBool);
 }
 
 void MainWindow::toggle2D3D(bool state)

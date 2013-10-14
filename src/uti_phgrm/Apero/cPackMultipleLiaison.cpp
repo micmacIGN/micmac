@@ -1861,7 +1861,7 @@ void cObsLiaisonMultiple::TestMEPAppuis
                 {
                     aCostMin = aC;
                     aRSol = itR->inv();
-                    RChanged = true;
+                    //RChanged = true;
                     //std::cout  <<   aC*aFoc  << "\n";
                 }
              }

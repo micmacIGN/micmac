@@ -705,7 +705,7 @@ class cCompileCAPI : public cContenuAPrioriImage
 	(
             cInterfChantierNameManipulateur &,
 	    const cContenuAPrioriImage &,
-	    const std::string aDir,
+	    const std::string &aDir,
 	    const std::string & aName,
             const std::string & aName2
         );
@@ -1121,8 +1121,8 @@ Appar23  Xml2EL(const cMesureAppuis &);
 cMesureAppuis  El2Xml(const Appar23 &,int aNum=0);
 
 std::list<Appar23>  Xml2EL(const cListeAppuis1Im &);
-cListeAppuis1Im  El2Xml(const std::list<Appar23> &,const std::string NameImage ="NoName");
-cListeAppuis1Im  El2Xml(const std::list<Appar23> &, const std::list<int> &     aLInd,const std::string NameImage ="NoName");
+cListeAppuis1Im  El2Xml(const std::list<Appar23> &,const std::string &NameImage ="NoName");
+cListeAppuis1Im  El2Xml(const std::list<Appar23> &, const std::list<int> &     aLInd,const std::string &NameImage ="NoName");
 
 
 
@@ -1380,6 +1380,19 @@ void MakeMetaData_XML_GeoI(const std::string & aNameImMasq,double aResol);
 
 
 //estd::set<std::string> SetOfCorresp(const std::vector<cCpleString> & aRel,const std::string &);
+
+class cAppliListIm
+{
+    public :
+       cAppliListIm(const std::string & aFullName);
+    public :
+
+      std::string                       mFullName;
+      std::string                       mDir;
+      std::string                       mPat;
+      cInterfChantierNameManipulateur * mICNM;
+      const cInterfChantierNameManipulateur::tSet * mSetIm;
+};
 
 
 #endif   // _ELISE_XML_GEN_ALL_H

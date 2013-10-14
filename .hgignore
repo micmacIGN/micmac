@@ -99,3 +99,5 @@ include/XML_User/DicoCamera.xml
 cppcheck.txt
 repport.txt
 src/photogram/repport.txt
+build-xcode
+.DS_Store

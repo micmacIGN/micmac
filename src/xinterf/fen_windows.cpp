@@ -206,7 +206,7 @@ class DVV   // Data_Video_Window
 public :
 
 	~DVV();
-	DVV::DVV
+	DVV
 	(
 		DVD* dvd,
 		int tx,

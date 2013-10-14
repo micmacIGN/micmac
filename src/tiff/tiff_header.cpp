@@ -1627,6 +1627,7 @@ const L_Arg_Opt_Tiff Tiff_Im::Empty_ARG;
 
 Elise_Palette  Tiff_Im::std_pal(Video_Win W)
 {
+
 	switch(phot_interp())
 	{
 		case  RGB :	

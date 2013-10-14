@@ -1,4 +1,5 @@
 set(uti_files_Src_Files
+    ${UTI_FILES_DIR}/CPP_XifGps2Xml.cpp
     ${UTI_FILES_DIR}/CPP_MapCmd.cpp
     ${UTI_FILES_DIR}/CPP_BatchFDC.cpp
     ${UTI_FILES_DIR}/CPP_MyRename.cpp

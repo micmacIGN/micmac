@@ -903,6 +903,7 @@ template <class Type> void ImFileLoader<Type>::MakeOneLinePixelPond()
 
 template <class Type>  void ImFileLoader<Type>::MakeOneLine(bool quick)
 {
+mPixReplic =true;
     if (mPixReplic)
     {
        MakeOneLineZooPPV();
@@ -974,6 +975,7 @@ template <class Type> void ImFileLoader<Type>::do_it(Pt2dr tr,REAL sc,Pt2di p0,P
     for (mWyCur0=_pW0.y;  mWyCur0<_pW1.y; )
     {
         _uy0cur = _Cw2uY[ mWyCur0];
+
         mWyCur1 =  mWyCur0+1;
  
         if (mPixReplic)

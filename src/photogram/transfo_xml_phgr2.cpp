@@ -243,7 +243,7 @@ std::list<Appar23>  Xml2EL(const cListeAppuis1Im & aLA)
    return aRes;
 }
 
-cListeAppuis1Im  El2Xml(const std::list<Appar23> & aLAp,const std::string aNameImage)
+cListeAppuis1Im  El2Xml(const std::list<Appar23> & aLAp,const std::string &aNameImage)
 {
    cListeAppuis1Im aRes;
    aRes.NameImage().SetVal(aNameImage);
@@ -258,7 +258,7 @@ cListeAppuis1Im  El2Xml
                  (
                       const std::list<Appar23> & aLAp,
                       const std::list<int> &     aLInd,
-                      const std::string aNameImage
+                      const std::string &aNameImage
                  )
 {
     cListeAppuis1Im aRes = El2Xml(aLAp,aNameImage);
