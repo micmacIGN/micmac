@@ -480,40 +480,45 @@ void MainWindow::loadPlys()
 {
     m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Cloud Files"),QString(), tr("Files (*.ply)"));
 
-    addFiles(m_FilenamesIn);
+    if (!m_FilenamesIn.empty())
+        addFiles(m_FilenamesIn);
 }
 
 void MainWindow::loadCameras()
 {
     m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Camera Files"),QString(), tr("Files (*.xml)"));
 
-    addFiles(m_FilenamesIn);
+    if (!m_FilenamesIn.empty())
+        addFiles(m_FilenamesIn);
 }
 
 void MainWindow::loadImage()
 {
     QString img_filename = QFileDialog::getOpenFileName(NULL, tr("Open Image File"),QString(), tr("File (*.*)"));
 
-    m_FilenamesIn.clear();
-    m_FilenamesIn.push_back(img_filename);
-
-    if (!m_bMode2D)
+    if (!img_filename.isEmpty())
     {
-        m_bMode2D = true;
+        m_FilenamesIn.clear();
+        m_FilenamesIn.push_back(img_filename);
 
-        closeAll();
-        glLoadIdentity();
+        if (!m_bMode2D)
+        {
+            m_bMode2D = true;
+
+            closeAll();
+            glLoadIdentity();
+        }
+
+        // load image (and mask)
+        m_Engine->loadImage(img_filename);
+
+        m_glWidget->setData(m_Engine->getData());
+        m_glWidget->update();
+
+        setCurrentFile(img_filename);
+
+        checkForLoadedData();
     }
-
-    // load image (and mask)
-    m_Engine->loadImage(img_filename);
-
-    m_glWidget->setData(m_Engine->getData());
-    m_glWidget->update();
-
-    setCurrentFile(img_filename);
-
-    checkForLoadedData();
 }
 
 
