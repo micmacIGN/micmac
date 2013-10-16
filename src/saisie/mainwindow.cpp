@@ -536,15 +536,20 @@ void MainWindow::exportMasks()
 
 void MainWindow::exportMasksAs()
 {
-    m_Engine->setFilenameOut(QFileDialog::getSaveFileName(NULL, tr("Save mask Files"),QString(), tr("Files (*.*)")));
+    QString fname = QFileDialog::getSaveFileName(NULL, tr("Save mask Files"),QString(), tr("Files (*.*)"));
 
-    if (m_Engine->getData()->NbImages())
+    if (!fname.isEmpty())
     {
-        m_Engine->doMaskImage(m_glWidget->getGLMask());
-    }
-    else
-    {
-        m_Engine->doMasks();
+        m_Engine->setFilenameOut(fname);
+
+        if (m_Engine->getData()->NbImages())
+        {
+            m_Engine->doMaskImage(m_glWidget->getGLMask());
+        }
+        else
+        {
+            m_Engine->doMasks();
+        }
     }
 }
 
