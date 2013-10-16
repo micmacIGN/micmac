@@ -65,6 +65,7 @@ public slots:
     void invertSelected();
     void selectAll();
     void removeFromSelection();
+    void reset();
 
     //default views
     void setFrontView();
