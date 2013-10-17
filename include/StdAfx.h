@@ -1,6 +1,9 @@
 #ifndef _ELISE_STDAFX_H
 #define _ELISE_STDAFX_H
 
+// #define NOMINMAX
+// #include "vld.h"
+
 #if (  __VERBOSE__>1 )
 	#define __TRACE_SYSTEM__
 #endif
