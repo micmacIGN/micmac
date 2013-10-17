@@ -123,6 +123,13 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
     <Symb>   Y0Clip=0 </Symb>
     <Symb>   X1Clip=1 </Symb>
     <Symb>   Y1Clip=1 </Symb>
+	
+	
+	<Symb>   UseBoxTerrain=false </Symb>
+    <Symb>   X0Terrain=0 </Symb>
+    <Symb>   Y0Terrain=0 </Symb>
+    <Symb>   X1Terrain=1 </Symb>
+    <Symb>   Y1Terrain=1 </Symb>
 
     <Symb>   UseRR=false </Symb>
     <Symb>   RoundResol=XXXX </Symb>
@@ -178,6 +185,12 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
       <Planimetrie>
            <IncludeFileLoc>  ${FileMasqT} </IncludeFileLoc>
            <FilterEstimTerrain> ${ImMNT} </FilterEstimTerrain>
+		   
+		   
+		<#WHEN VTEST=${UseBoxTerrain}>
+          <BoxTerrain>  ${X0Terrain} ${Y0Terrain} ${X1Terrain} ${Y1Terrain} </BoxTerrain>
+		</#WHEN>
+		   
       </Planimetrie>
 
       <#WHEN VTEST=${UseRR}>

@@ -191,7 +191,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
   InitDefValFromType();
 
-  Box2dr aBoxClip;
+  Box2dr aBoxClip,aBoxTerrain;
   
   bool mModePB = false;
   std::string mModeOri;
@@ -239,7 +239,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq")
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image")
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation , its proportion ([0,0,1,1] mean full box)")
-                    << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)")
+                    << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
+		    << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)")
                     << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
                     << EAM(mEZA,"EZA",true,"Export Z Absolute")
                     << EAM(mEquiv,"Equiv",true,"Equivalent classes, as a set of pattern, def=None")
@@ -608,6 +609,16 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               +  std::string(" +X1Clip=") + ToString(aBoxClip._p1.x)
               +  std::string(" +Y1Clip=") + ToString(aBoxClip._p1.y) ;
   }
+
+  if (EAMIsInit(&aBoxTerrain))
+  {
+      mCom  =    mCom + " +UseBoxTerrain=true "
+              +  std::string(" +X0Terrain=") + ToString(aBoxTerrain._p0.x)
+              +  std::string(" +Y0Terrain=") + ToString(aBoxTerrain._p0.y)
+              +  std::string(" +X1Terrain=") + ToString(aBoxTerrain._p1.x)
+              +  std::string(" +Y1Terrain=") + ToString(aBoxTerrain._p1.y) ;
+  }
+
 
   if (mUseRR) 
   {
