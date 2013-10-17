@@ -1,19 +1,21 @@
 BUGS :
 
 Saisie :
-  0000 - Campari : PB Residu terrain !! Semble OK sur new version, a verif sur Ferme du Buisson
   2- Image Globale de Saisie 
-  4- Renommer les points
   6- Bug Serge : OK ??!!! Mais de toute facon alerter dqp si pas de plan ....
   
+  DONE-4- Renommer les points
   DONE 3- Im Coul
   DONE=1- Fichier XML en nom de point
+  DONE ? 0000 - Campari : PB Residu terrain !! EN fait, du a multipl *Inc 
 
   Si Masque TA existe et incompatible : genere bug
 
   2 amélio à voir dans Mail Ruedi.
 
 Nouveaux outils :
+
+  Dans Malt MASTR = AUTO
 
 
   Interf Graphique pour SaisieMasq 
@@ -29,6 +31,8 @@ Nouveaux outils :
 
   Equi dans Malt
 
+   
+
 
   Environnement MicMac
 
@@ -37,7 +41,7 @@ Nouveaux outils :
 
  Incidence Max dans Malt       
 
-  Orient from GPS : solution initiale + compensation ds campari.
+  Orient from GPS : solution initiale + compensation ds campari. + Xif extarct
 
   StatIm
 

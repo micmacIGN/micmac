@@ -389,6 +389,7 @@ cCpleEpip::cCpleEpip
    mCamOut2  (CamOut(mCInit2,Pt2dr(0,0),mSzIn)),
    mOk       (false)
 {
+   ELISE_ASSERT(aName1<aName2,"cCpleEpip::cCpleEpip order");
    Box2dr aB1 = BoxCam(mCInit1,mCamOut1,false);
    Box2dr aB2 = BoxCam(mCInit2,mCamOut2,false);
 
@@ -636,13 +637,44 @@ int CreateBlockEpip_main(int argc,char ** argv)
 /*
 */
 
+bool cCpleEpip::IsLeft(bool Im1) {return  mFirstIsLeft ? Im1 : (!Im1) ;}
+
+std::string cCpleEpip::LocNameImEpi(bool Im1)
+{
+    // bool ImLeft = mFirstIsLeft ? Im1 : (!Im1) ;
+    return   "Epi_" 
+           + std::string(Im1 ? "Im1_" : "Im2_") 
+           + (IsLeft(Im1) ? mPrefLeft : mPrefRight  ) 
+           + mNamePair + ".tif";
+}
+
+std::string cCpleEpip::LocDirMatch(bool Im1)
+{
+    return "MEC2IM-" + LocNameImEpi(Im1) + "-" +  LocNameImEpi(!Im1) + "/";
+}
+ 
+std::string cCpleEpip::LocPxFileMatch(bool Im1,int aNum,int aDeZoom)
+{
+    return LocDirMatch(Im1) + "Px1_Num"+ToString(aNum) + "_DeZoom"+  ToString(aDeZoom) +"_LeChantier.tif";
+}
+
+std::string  cCpleEpip::LocMasqFileMatch(bool Im1,int aNum)
+{
+  return LocDirMatch(Im1) + "AutoMask_LeChantier_Num_"+ ToString(aNum) +  ".tif" ; 
+
+}
+
+
 
 
 void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1)
 {
     bool ByP= true; /// std::cout << "Nnnnnnnnnnnnnnnnnnnnnoo process \n";
+    std::string aNameImOut = mDir + LocNameImEpi(Im1);
+/*
     bool ImLeft = mFirstIsLeft ? Im1 : (!Im1) ;
     std::string  aNameImOut = mDir + "Epi_" + std::string(Im1 ? "Im1_" : "Im2_") + (ImLeft ? mPrefLeft : mPrefRight  ) +   mNamePair + ".tif";
+*/
 
     AssertOk();
     const CamStenope & aCamIn =        Im1 ? mCInit1  : mCInit2;

@@ -333,6 +333,11 @@ std::vector<Pt3di>  VecKImGen
     std::vector<Pt3di> aRes;
     int aNbScale = aVSz.size();
 
+    for (int aKS=1 ; aKS<int(aVSigma.size()) ; aKS++)
+    {
+         ELISE_ASSERT(aVSigma[aKS-1] < aVSigma[aKS],"Sigma Ordre");
+    }
+
     for (int anY=-aSzVMax.y ; anY<=aSzVMax.y ; anY++)
     {
         for (int anX=-aSzVMax.x ; anX<=aSzVMax.x ; anX++)
@@ -872,6 +877,108 @@ double cCensusGr::GainBasic(float ** Im1,float ** Im2,int  aPx2)
 
       /*********************************************************************/
       /*                                                                   */
+      /*                      cMoment_Correl                               */
+      /*                                                                   */
+      /*********************************************************************/
+
+typedef double  tMomC;
+
+class cMoment_Correl
+{
+    public :
+           cMoment_Correl(
+             const std::vector<Im2D_REAL4>          & aVIm,
+             const std::vector<std::vector<Pt2di> > & aVV,
+             const std::vector<double > &             aVPds,
+             Pt2di aSzMax
+           );
+           tMomC *** DataSom() {return mData1;}
+           tMomC *** DataSomQuad() {return mData2;}
+    private :
+         cMoment_Correl(const cMoment_Correl &); // N.I.
+         int mNbIm;
+         std::vector<Im2D<tMomC,double> > mVS1;
+         std::vector<tMomC **>  mVData1;
+         tMomC ***              mData1;
+         std::vector<Im2D<tMomC,double> > mVS2;
+         std::vector<tMomC **>  mVData2;
+         tMomC ***              mData2;
+};
+
+cMoment_Correl::cMoment_Correl
+(
+             const std::vector<Im2D_REAL4>          & aVIm,
+             const std::vector<std::vector<Pt2di> > & aVV,
+             const std::vector<double > &             aVPds,
+             Pt2di                                    aSzVMax
+) :
+   mNbIm (aVIm.size())
+{
+    Pt2di aSz = aVIm[0].sz();
+    std::vector<cBufOnImage<float> * > aVBOI ;
+    for (int aKS=0 ; aKS<mNbIm ; aKS++)
+    {
+        aVBOI.push_back(cBufOnImage<float>::FullBufOnIm(aVIm[aKS]));
+        mVS1.push_back(Im2D<tMomC,double>(aSz.x,aSz.y));
+        mVData1.push_back(mVS1.back().data());
+        mVS2.push_back(Im2D<tMomC,double>(aSz.x,aSz.y));
+        mVData2.push_back(mVS2.back().data());
+    }
+    mData1 = &(mVData1[0]);
+    mData2 = &(mVData2[0]);
+   
+
+    for (int aXGlob=0 ; aXGlob < aSz.x - aSzVMax.x ; aXGlob++)
+    {
+         if (aXGlob>=aSzVMax.x)
+         {
+             for (int aYGlob=0 ; aYGlob < aSz.y - aSzVMax.y ; aYGlob++)
+             {
+                 if (aYGlob>=aSzVMax.y)
+                 {
+                      double aGlobSom1 = 0;
+                      double aGlobSom2 = 0;
+                      double aGlobPds = 0;
+                      for (int aKS=0 ; aKS<mNbIm ; aKS++)
+                      {
+                          double aSom1 = 0;
+                          double aSom2 = 0;
+
+                          const std::vector<Pt2di> & aVP = aVV[aKS];
+                          int aNbP = aVP.size();
+                          float ** anIm = aVBOI[aKS]->data();
+                          double aPdsK = aVPds[aKS];
+                          for (int aKP=0 ; aKP<aNbP ; aKP++)
+                          {
+                              const Pt2di aP = aVP[aKP];
+                              float aV = anIm[aP.y][aP.x];
+                              aSom1 += aV;
+                              aSom2 += ElSquare(aV);
+                          }
+
+                          aGlobSom1 += aSom1 * aPdsK;
+                          aGlobSom2 += aSom2 * aPdsK;
+                          aGlobPds += aPdsK * aNbP;
+                          mData1[aKS][aYGlob][aXGlob] = aGlobSom1 / aGlobPds;
+                          mData2[aKS][aYGlob][aXGlob] = aGlobSom2 / aGlobPds;
+                      }
+                      
+                 }
+                 for (int aKS=0 ; aKS<mNbIm ; aKS++)
+                     aVBOI[aKS]->AvanceY();
+             }
+         }
+         for (int aKS=0 ; aKS<mNbIm ; aKS++)
+             aVBOI[aKS]->AvanceX();
+    }
+    DeleteAndClear(aVBOI);
+
+}
+
+
+
+      /*********************************************************************/
+      /*                                                                   */
       /*                      ::                                           */
       /*                                                                   */
       /*********************************************************************/
@@ -923,11 +1030,104 @@ double CorrelBasic_Center(float ** Im1,float ** Im2,int  aPx2,Pt2di aSzV,float a
      return aMat.correlation(anEpsilon);
 }
 
-/*
-double CorrelBasic_Center(std::vector<cBufOnImage<float> *> & aIm1,std::vector<cBufOnImage<float> *> & aIm2,int  aPx2,Pt2di aSzV,float anEpsilon)
+double MS_CorrelBasic_Center
+       (
+             const std::vector<cBufOnImage<float> *> & aVBOI1,
+             const std::vector<cBufOnImage<float> *> & aVBOI2,
+             int  aPx2,
+             const std::vector<std::vector<Pt2di> > & aVV,
+             const std::vector<double > &             aVPds,
+             double anEpsilon,
+             bool  ModeMax
+       )
 {
+     RMat_Inertie aMat;
+     double aMaxCor = -1;
+     for (int aKS=0 ; aKS< int(aVV.size()) ; aKS++)
+     {
+          const std::vector<Pt2di> & aVP = aVV[aKS];
+          double aPds = aVPds[aKS];
+          int aNbP = aVP.size();
+          float ** anIm1 = aVBOI1[aKS]->data();
+          float ** anIm2 = aVBOI2[aKS]->data();
+          for (int aKP=0 ; aKP<aNbP ; aKP++)
+          {
+              const Pt2di aP = aVP[aKP];
+              aMat.add_pt_en_place(anIm1[aP.y][aP.x],anIm2[aP.y][aP.x+aPx2],aPds);
+          }
+          if (ModeMax) 
+          {
+             ElSetMax(aMaxCor,aMat.correlation(anEpsilon));
+          }
+     }
+     if (ModeMax) 
+        return aMaxCor;
+     return aMat.correlation(anEpsilon);
 }
-*/
+
+double Quick_MS_CorrelBasic_Center
+       (
+             const Pt2di & aPG1,
+             const Pt2di & aPG2,
+             double ***  aSom1,
+             double ***  aSom11,
+             double ***  aSom2,
+             double ***  aSom22,
+             const std::vector<cBufOnImage<float> *> & aVBOI1,
+             const std::vector<cBufOnImage<float> *> & aVBOI2,
+             int  aPx2,
+             const std::vector<std::vector<Pt2di> > & aVV,
+             const std::vector<double > &             aVPds,
+             double anEpsilon,
+             bool  ModeMax
+       )
+{
+     double aMaxCor = -1;
+     double aCovGlob = 0;
+     double aPdsGlob = 0;
+     int aNbScale = aVV.size();
+     for (int aKS=0 ; aKS< aNbScale ; aKS++)
+     {
+          bool aLast = (aKS==(aNbScale-1));
+          const std::vector<Pt2di> & aVP = aVV[aKS];
+          double aPds = aVPds[aKS];
+          double aCov = 0;
+          int aNbP = aVP.size();
+          float ** anIm1 = aVBOI1[aKS]->data();
+          float ** anIm2 = aVBOI2[aKS]->data();
+          aPdsGlob += aPds * aNbP;
+          for (int aKP=0 ; aKP<aNbP ; aKP++)
+          {
+              const Pt2di aP = aVP[aKP];
+              aCov += anIm1[aP.y][aP.x]*anIm2[aP.y][aP.x+aPx2];
+
+          }
+          aCovGlob += aCov * aPds;
+
+          if (ModeMax || aLast)
+          {
+              double aM1 = aSom1[aKS][aPG1.y][aPG1.x];
+              double aM2 = aSom2[aKS][aPG2.y][aPG2.x];
+              double aM11 = aSom11[aKS][aPG1.y][aPG1.x] - ElSquare(aM1);
+              double aM22 = aSom22[aKS][aPG2.y][aPG2.x] - ElSquare(aM2);
+              double aM12 = aCovGlob / aPdsGlob - aM1 * aM2;
+
+              if (ModeMax) 
+              {
+                 double aCor = (aM12 * ElAbs(aM12)) /ElMax(anEpsilon,aM11*aM22);
+                 ElSetMax(aMaxCor,aCor);
+              }
+              else
+                 return aM12 / sqrt(ElMax(anEpsilon,aM11*aM22));
+         }
+
+          
+     }
+     return (aMaxCor > 0) ? sqrt(aMaxCor) : - sqrt(-aMaxCor) ;
+}
+
+
+
 
 
 
@@ -1079,38 +1279,53 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 {
    
   bool Verif = aCC.Verif().Val();
+  bool DoMixte =  (aCC.TypeCost() == eMCC_CensusMixCorrelBasic);
   bool DoGraphe = (aCC.TypeCost() ==eMCC_GrCensus);
-  bool DoCensusBasic = (aCC.TypeCost() ==eMCC_CensusBasic);
-  bool DoCorrel = (aCC.TypeCost() == eMCC_CensusCorrel);
+  bool DoCensusBasic = (aCC.TypeCost() ==eMCC_CensusBasic) || DoMixte;
+  bool DoCorrel = (aCC.TypeCost() == eMCC_CensusCorrel) || DoMixte;
+
+  double aSeuilHC = aCC.SeuilHautCorMixte().Val();
+  double aSeuilBC = aCC.SeuilBasCorMixte().Val();
+
+  bool aModeMax = false;
 
   
 
-   std::vector<float> aVPms;
-   double aSomPms=0;
+   std::vector<float> aVPmsInit;
+   double aSomPmsInit=0;
 
    std::vector<Pt2di>     aVSz;
    std::vector<double>    aVSigma;
+   std::vector<double>    aVPsdInit;
    if (CMS())
    {
        const std::vector<cOneParamCMS> & aVP = CMS()->OneParamCMS();
        for (int aK=0 ; aK<int(aVP.size()) ; aK++)
        {
-          aVPms.push_back(aVP[aK].Pds());
-          aSomPms += aVPms.back();
+          aVPmsInit.push_back(aVP[aK].Pds());
+          aSomPmsInit += aVPmsInit.back();
           aVSigma.push_back(aVP[aK].Sigma());
           aVSz.push_back(aVP[aK].SzW());
           // std::cout << "SOMP " << aSomPms << "\n";
        }
+       aModeMax = CMS()->ModeMax().Val();
    }
    else
    {
-       aVPms.push_back(1.0);
-       aSomPms = 1.0;
+       aVPmsInit.push_back(1.0);
+       aSomPmsInit = 1.0;
        aVSigma.push_back(0.0);
        aVSz.push_back(mCurSzV0);
    }
-   int aNbScale = aVPms.size();
-   float * aDataPms = & (aVPms[0]);
+   std::vector<std::vector<Pt2di> > aVKImS = VecKImSplit(mCurSzVMax,aVSz,aVSigma);
+   std::vector<double> aVPds;
+   for (int aKS=0 ; aKS<int(aVSz.size()) ; aKS++)
+   {
+      aVPds.push_back(aVPmsInit[aKS]/NbSomOfVois(aVSz[aKS]));
+   }
+
+   int aNbScale = aVPmsInit.size();
+   float * aDataPmsInit = & (aVPmsInit[0]);
 
 
    cGPU_LoadedImGeom &   anI0 = *(mVLI[0]);
@@ -1133,6 +1348,15 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
        aCG = aVCG[0];
    }
 
+   cMoment_Correl * aMom1 = 0;
+   tMomC ***        aSom1 = 0;
+   tMomC ***        aSom11 = 0;
+   if (DoCorrel)
+   {
+       aMom1  = new cMoment_Correl(anI0.VIm(),aVKImS,aVPds,mCurSzVMax);
+       aSom1  = aMom1->DataSom();
+       aSom11 = aMom1->DataSomQuad();
+   }
 
 
  //  ====  VERIFICATION DYNAMIQUE DES ARGUMENTS ==========
@@ -1167,6 +1391,7 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
     }
 /*
 */
+
 
 
     Pt2di anOff0 = anI0.OffsetIm();
@@ -1290,6 +1515,17 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
         // cBufOnImage<float> aBOI0(aDataIm0,aBoxDef0,aBoxCalc0);
         // cBufOnImage<float> aBOIC(aDataC  ,aBoxDef1,aBoxCalc1);
+ 
+        cMoment_Correl * aMomC = 0;
+        tMomC ***        aSomC = 0;
+        tMomC ***        aSomCC = 0;
+        if (DoCorrel)
+        {
+            aMomC = new cMoment_Correl(mBufCensusIm2,aVKImS,aVPds,mCurSzVMax);
+            aSomC = aMomC->DataSom();
+            aSomCC = aMomC->DataSomQuad();
+        }
+
 
 
         for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
@@ -1309,6 +1545,10 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
                 while (mod(aZ0,mNbByPix) != aPhase) aZ0++;
                 int anOffset = Elise_div(aZ0,mNbByPix);
 
+                // double aGlobCostGraphe = 0;
+                double aGlobCostBasic  = 0;
+                double aGlobCostCorrel = 0;
+
                 for (int aZI=aZ0 ; aZI< aZ1 ; aZI+=mNbByPix)
                 {
                         // double aZR = aZI * aStepPix;
@@ -1326,9 +1566,10 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
                                          int aFlag0  = mDIF0[aKS][aPIm0.y][aPIm0.x];
                                          int aFlag1  = mDIF1[aKS][aPIm1.y][aPIm1.x];
                                          int aDFlag = aFlag0 ^ aFlag1;
-                                         aCostGr +=  aDataPms[aKS] * aCG->CostFlag(aDFlag);
+                                         aCostGr +=  aDataPmsInit[aKS] * aCG->CostFlag(aDFlag);
                                      }
-                                     aCost = aCostGr / aSomPms;
+                                     aCost = aCostGr / aSomPmsInit;
+                                     // aGlobCostGraphe = aCost;
                                      if (Verif) // Verification de cost Cennsus
                                      {
 
@@ -1347,6 +1588,7 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
                                      U_INT2 * aFlag0 = aTabFlag0.Flag(aPIm0);
                                      U_INT2 * aFlag1 = aTabFlag1.Flag(aPIm1);
                                      aCost = aPondFlag->ValPonderDif(aFlag0,aFlag1);
+                                     aGlobCostBasic = aCost;
 
                                      if (Verif)
                                      {
@@ -1368,8 +1610,53 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
                                 }
                                 if (DoCorrel)
                                 {
-                                    aCost  = CorrelBasic_Center(aVBOI0[0]->data(),aVBOIC[0]->data(),anOffset,mCurSzVMax,mAhEpsilon);
-                                    // std::cout << aCost << "\n";
+/*
+                                        aCost = MS_CorrelBasic_Center (aVBOI0,aVBOIC,anOffset,aVKImS,aVPds,mAhEpsilon,aModeMax);
+*/
+                                    aCost = Quick_MS_CorrelBasic_Center (aPIm0,aPIm1,aSom1,aSom11,aSomC,aSomCC,
+                                                             aVBOI0,aVBOIC,anOffset,aVKImS,aVPds,mAhEpsilon,aModeMax
+                                            );
+                                    aGlobCostCorrel = aCost;
+
+                                    if (Verif)
+                                    {
+                                        double aC3 = MS_CorrelBasic_Center (aVBOI0,aVBOIC,anOffset,aVKImS,aVPds,mAhEpsilon,aModeMax);
+
+                                        if (ElAbs(aC3-aCost)> 1e-2)
+                                        {
+                                             std::cout << "??????Correl check census ?????? " << aCost << " " << aC3 << "\n";
+                                             // ELISE_ASSERT(false,"Correl check census");
+                                        }
+                                    
+
+                                         if (!CMS())
+                                         {
+                                             double aC2  = CorrelBasic_Center(aVBOI0[0]->data(),aVBOIC[0]->data(),anOffset,mCurSzVMax,mAhEpsilon);
+                                             if (ElAbs(aC2-aCost) > 1e-5)
+                                             {
+                                                   std::cout << "COREELLL " << aCost << " " << aC2 << "\n";
+                                                   ELISE_ASSERT(false,"Correl Check failed");
+                                             }
+                                         }
+                                    }
+                                }
+
+                                if (DoMixte)
+                                {
+                                   if (aGlobCostCorrel>aSeuilHC)
+                                   {
+                                        aCost = aGlobCostCorrel;
+                                   }
+                                   else if (aGlobCostCorrel>aSeuilBC)
+                                   {
+                                        double aPCor = (aGlobCostCorrel-aSeuilBC) / (aSeuilHC-aSeuilBC);
+                                        aCost =  aPCor * aGlobCostCorrel
+                                                 + (1-aPCor) * aSeuilBC *  aGlobCostBasic;
+                                   }
+                                   else
+                                   {
+                                        aCost =  aSeuilBC *  aGlobCostBasic;
+                                   }
                                 }
 
 
@@ -1410,11 +1697,13 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
         }
         DeleteAndClear(aVBOI0);
         DeleteAndClear(aVBOIC);
+        delete aMomC;
     }
 
 
     DeleteAndClear(aVCG);
     delete aPondFlag;
+    delete aMom1;
 }
 
 }

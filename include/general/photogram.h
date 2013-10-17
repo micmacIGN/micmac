@@ -2929,6 +2929,16 @@ class cCpleEpip
              const std::string & PrefLeft =   "Left_",
              const std::string & PrefRight =  "Right_"
          );
+         std::string LocDirMatch(bool Im1);
+         std::string LocPxFileMatch(bool Im1,int aNum,int aDeZoom);
+         std::string LocMasqFileMatch(bool Im1,int aNum);
+         std::string LocNameImEpi(bool Im1);
+         std::string Dir();
+
+
+
+         bool IsLeft(bool Im1);
+
 
          void ImEpip(Tiff_Im aFile,const std::string & aNameOriIn,bool Im1);
          const bool & Ok() const;
@@ -2963,6 +2973,15 @@ class cCpleEpip
          bool               mOk;
          bool               mFirstIsLeft;
 };
+
+cCpleEpip StdCpleEpip
+          (
+             std::string  aDir,
+             std::string  aNameOri,
+             std::string  aNameIm1,
+             std::string  aNameIm2
+          );
+
 
 
 // Pour assurer la compatibilite avec les format 2003 ....

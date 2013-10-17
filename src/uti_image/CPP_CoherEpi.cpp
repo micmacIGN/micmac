@@ -36,125 +36,30 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-
 #include "StdAfx.h"
 
+#define DEF_OFSET -12349876
 
-void Banniere_SEL()
+
+int CoherEpi_main(int argc,char ** argv)
 {
-   std::cout << "\n";
-   std::cout <<  " *********************************\n";
-   std::cout <<  " *     S-aisie d'                *\n";
-   std::cout <<  " *     E-lements de              *\n";
-   std::cout <<  " *     Liaison                   *\n";
-   std::cout <<  " *********************************\n";
-
-}
-
-void Sys(const std::string & aStr)
-{
-   VoidSystem(aStr.c_str());
-}
-
-int SEL_main(int argc,char ** argv)
-{
-    MMD_InitArgcArgv(argc,argv);
-
-
-    Pt2di aSzW(1000,900);
-/*
-    if (! ELISE_fp::exist_file(MMDir() + "bin/MICMACSaisieLiaisons"))
-       VoidSystem("make -f MakeMICMAC  bin/MICMACSaisieLiaisons");
-*/
-
+    std::string aIm1;
+    std::string aIm2;
+    std::string anOri;
     std::string aDir;
-    std::string aN1;
-    std::string aN2;
-    std::string aKeyH;
 
-    int aRedr=0;
-    std::string aFilter="";
-
-    std::string aKeyCompl="Cple2HomAp";
     ElInitArgMain
     (
-           argc,argv,
-           LArgMain() << EAM(aDir) 
-                       << EAM(aN1) 
-                      << EAM(aN2) ,
-           LArgMain() << EAM(aRedr,"R",true)
-                      << EAM(aFilter,"F",true)
-                      << EAM(aKeyH,"KH",true,"In P PB PBR M S NB NT")
-                      << EAM(aKeyCompl,"KCpl",true)
-                      << EAM(aSzW,"SzW",true)
-    );
+	argc,argv,
+	LArgMain()  << EAM(aIm1,"Name Im1") 
+                    << EAM(aIm2,"Name Im2") 
+                    << EAM(anOri) ,
+	LArgMain()  << EAM(aDir,"Dir",true)
+    );	
 
-    std::string aCom =   MM3dBinFile("MICMACSaisieLiaisons")
-                       + MMDir()+std::string("applis/XML-Pattron/Pattron-MicMacLiaison.xml ")
-                       + " WorkDir=" + aDir
-                       + " %Im1=" + aN1
-                       + " %Im2=" + aN2
-                       + " %SL_XSzW=" + ToString(aSzW.x)
-                       + " %SL_YSzW=" + ToString(aSzW.y)
-                     ;
-
-    if (aRedr)
-       aCom = aCom + " SL_NewRedrCur=true";
-
-   if (aFilter!="")
-       aCom = aCom
-              /* + " SL_TJS_FILTER=true" */
-	      +  " SL_FILTER=" +aFilter;
-
-   if (aKeyH!="")
-   {
-       if (aKeyH=="P")
-       {
-          aKeyCompl = "PastisHom";
-       }
-       else if (aKeyH=="PB")
-       {
-          aKeyCompl = "Key-Assoc-CpleIm2HomolPastisBin";
-       }
-       else if (aKeyH=="PBR")
-       {
-          aKeyCompl = "Key-Assoc-SsRes-CpleIm2HomolPastisBin";
-       }
-       else if (aKeyH=="M")
-       {
-          aKeyCompl = "MarcHom";
-       }
-       else if (aKeyH=="S")
-       {
-          // aKeyCompl = "Key-Assoc-StdHom";
-          aKeyCompl = "NKS-Assoc-CplIm2Hom@-Man@xml";
-       }
-       else if (aKeyH=="NB")
-       {
-          aKeyCompl = "NKS-Assoc-CplIm2Hom@@dat";
-       }
-       else if (aKeyH=="NT")
-       {
-          aKeyCompl = "NKS-Assoc-CplIm2Hom@@txt";
-       }
-       else
-       {
-           std::cout << "For Key=[" << aKeyH << "]\n";
-           ELISE_ASSERT(false,"Do Not know key");
-       }
-   }
-
-   aCom = aCom + " FCND_CalcHomFromI1I2=" + aKeyCompl;
-
-
-    std::cout << aCom << "\n";
-    Sys(aCom);
-    Banniere_SEL();
 
     return 0;
 }
-
-
 
 
 
