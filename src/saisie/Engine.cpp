@@ -2,38 +2,38 @@
 #include "general/bitm.h"
 
 cLoader::cLoader()
- : m_FilenamesIn(),
-   m_FilenamesOut(),
-   m_postFix("_Masq")
+ : _FilenamesIn(),
+   _FilenamesOut(),
+   _postFix("_Masq")
 {}
 
 void cLoader::SetFilenamesOut()
 {
-    m_FilenamesOut.clear();
+    _FilenamesOut.clear();
 
-    for (int aK=0;aK < m_FilenamesIn.size();++aK)
+    for (int aK=0;aK < _FilenamesIn.size();++aK)
     {
-        QFileInfo fi(m_FilenamesIn[aK]);
+        QFileInfo fi(_FilenamesIn[aK]);
 
-        m_FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + m_postFix + ".tif");
+        _FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + _postFix + ".tif");
     }
 }
 
 void cLoader::SetFilenameOut(QString str)
 {
-    m_FilenamesOut.clear();
+    _FilenamesOut.clear();
 
-    m_FilenamesOut.push_back(str);
+    _FilenamesOut.push_back(str);
 }
 
 void cLoader::SetPostFix(QString str)
 {
-    m_postFix = str;
+    _postFix = str;
 }
 
 void cLoader::SetSelectionFilename()
 {
-    m_SelectionOut = m_Dir.absolutePath() + QDir::separator() + "SelectionInfos.xml";
+    _SelectionOut = _Dir.absolutePath() + QDir::separator() + "SelectionInfos.xml";
 }
 
 Cloud* cLoader::loadCloud( string i_ply_file, int* incre )
@@ -168,7 +168,7 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
 
 CamStenope* cLoader::loadCamera(QString aNameFile)
 {
-    string DirChantier = (m_Dir.absolutePath()+ QDir::separator()).toStdString();
+    string DirChantier = (_Dir.absolutePath()+ QDir::separator()).toStdString();
     string filename    = aNameFile.toStdString();
 
     #ifdef _DEBUG
@@ -178,7 +178,7 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
 
     QFileInfo fi(aNameFile);
 
-    m_FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif");
+    _FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif");
 
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
 
@@ -189,21 +189,21 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
 //   cEngine
 
 cEngine::cEngine():    
-    m_Loader(new cLoader),
-    m_Data(new cData)
+    _Loader(new cLoader),
+    _Data(new cData)
 {}
 
 cEngine::~cEngine()
 {
-   delete m_Data;
-   delete m_Loader;
+   delete _Data;
+   delete _Loader;
 }
 
 void cEngine::loadClouds(QStringList filenames, int* incre)
 {
     for (int i=0;i<filenames.size();++i)
     {
-        getData()->getBB(m_Loader->loadCloud(filenames[i].toStdString(), incre));
+        getData()->getBB(_Loader->loadCloud(filenames[i].toStdString(), incre));
     }
 }
 
@@ -211,7 +211,7 @@ void cEngine::loadCameras(QStringList filenames)
 {
     for (int i=0;i<filenames.size();++i)
     {
-        m_Data->addCamera(m_Loader->loadCamera(filenames[i]));
+        _Data->addCamera(_Loader->loadCamera(filenames[i]));
     }
 }
 
@@ -222,7 +222,7 @@ void cEngine::loadImages(QStringList filenames)
         loadImage(filenames[i]);
     }
 
-    m_Loader->SetFilenamesOut();
+    _Loader->SetFilenamesOut();
 }
 
 void  cEngine::loadImage(QString imgName)
@@ -230,10 +230,10 @@ void  cEngine::loadImage(QString imgName)
     QImage* img, *mask;
     img = mask = NULL;
 
-    m_Loader->loadImage(imgName, img, mask);
+    _Loader->loadImage(imgName, img, mask);
 
-    if (img!=NULL) m_Data->addImage(img);
-    if (mask!=NULL) m_Data->addMask(mask);
+    if (img!=NULL) _Data->addImage(img);
+    if (mask!=NULL) _Data->addMask(mask);
 }
 
 void cEngine::doMasks()
@@ -244,15 +244,15 @@ void cEngine::doMasks()
     Vertex vert;
     Pt2dr ptIm;
 
-    for (int cK=0;cK < m_Data->NbCameras();++cK)
+    for (int cK=0;cK < _Data->NbCameras();++cK)
     {
-        pCam = m_Data->getCamera(cK);
+        pCam = _Data->getCamera(cK);
 
         Im2D_BIN mask = Im2D_BIN(pCam->Sz(), 0);
 
-        for (int aK=0; aK < m_Data->NbClouds();++aK)
+        for (int aK=0; aK < _Data->NbClouds();++aK)
         {
-            pCloud  = m_Data->getCloud(aK);
+            pCloud  = _Data->getCloud(aK);
 
             for (int bK=0; bK < pCloud->size();++bK)
             {
@@ -271,7 +271,7 @@ void cEngine::doMasks()
             }
         }
 
-        string aOut = m_Loader->GetFilenamesOut()[cK].toStdString();
+        string aOut = _Loader->GetFilenamesOut()[cK].toStdString();
 #ifdef _DEBUG
         printf ("Saving %s\n", aOut);
 #endif
@@ -302,7 +302,7 @@ void cEngine::doMaskImage(QImage* pImg)
         }
     }
 
-    string aOut = m_Loader->GetFilenamesOut()[0].toStdString();
+    string aOut = _Loader->GetFilenamesOut()[0].toStdString();
 #ifdef _DEBUG
     printf ("Saving %s\n", aOut);
 #endif
@@ -338,7 +338,7 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
 {
     QDomDocument doc;
 
-    QFile outFile(m_Loader->GetSelectionFilename());
+    QFile outFile(_Loader->GetSelectionFilename());
     if (!outFile.open(QIODevice::WriteOnly)) return;
 
     QDomElement SI = doc.createElement("SelectionInfos");
@@ -400,10 +400,10 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
 
 void cEngine::unloadAll()
 {
-    m_Data->clearClouds();
-    m_Data->clearCameras();
-    m_Data->clearImages();
-    m_Data->reset();
+    _Data->clearClouds();
+    _Data->clearCameras();
+    _Data->clearImages();
+    _Data->reset();
 }
 
 //********************************************************************************

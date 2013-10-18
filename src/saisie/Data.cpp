@@ -7,39 +7,39 @@ cData::cData()
 
 cData::~cData()
 {
-   for (int aK=0; aK < NbCameras();++aK) delete m_Cameras[aK];
-   for (int aK=0; aK < NbClouds();++aK)  delete m_Clouds[aK];
-   for (int aK=0; aK < NbImages();++aK)  delete m_Images[aK];
-   for (int aK=0; aK < NbMasks();++aK)   delete m_Masks[aK];
+   for (int aK=0; aK < NbCameras();++aK) delete _Cameras[aK];
+   for (int aK=0; aK < NbClouds();++aK)  delete _Clouds[aK];
+   for (int aK=0; aK < NbImages();++aK)  delete _Images[aK];
+   for (int aK=0; aK < NbMasks();++aK)   delete _Masks[aK];
 
-   m_Cameras.clear();
-   m_Clouds.clear();
-   m_Images.clear();
-   m_Masks.clear();
+   _Cameras.clear();
+   _Clouds.clear();
+   _Images.clear();
+   _Masks.clear();
 }
 
 void cData::addCamera(CamStenope * aCam)
 {
-    m_Cameras.push_back(aCam);
+    _Cameras.push_back(aCam);
 }
 
 void cData::addImage(QImage * aImg)
 {
-    m_Images.push_back(aImg);
-    m_curImgIdx = m_Images.size() - 1;
+    _Images.push_back(aImg);
+    _curImgIdx = _Images.size() - 1;
 }
 
 void cData::addMask(QImage * aImg)
 {
-    m_Masks.push_back(aImg);
+    _Masks.push_back(aImg);
 }
 
 void cData::clearClouds()
 {
     for (uint aK=0; aK < (uint)NbClouds();++aK)
-        delete m_Clouds[aK];
+        delete _Clouds[aK];
 
-    m_Clouds.clear();
+    _Clouds.clear();
 
     reset();
 }
@@ -47,9 +47,9 @@ void cData::clearClouds()
 void cData::clearCameras()
 {
     for (uint aK=0; aK < (uint)NbCameras();++aK)
-        delete m_Cameras[aK];
+        delete _Cameras[aK];
 
-    m_Cameras.clear();
+    _Cameras.clear();
 
     reset();
 }
@@ -57,9 +57,9 @@ void cData::clearCameras()
 void cData::clearImages()
 {
     for (uint aK=0; aK < (uint)NbCameras();++aK)
-        delete m_Images[aK];
+        delete _Images[aK];
 
-    m_Images.clear();
+    _Images.clear();
 
     reset();
 }
@@ -67,19 +67,19 @@ void cData::clearImages()
 void cData::clearMasks()
 {
     for (uint aK=0; aK < (uint)NbMasks();++aK)
-        delete m_Masks[aK];
+        delete _Masks[aK];
 
-    m_Masks.clear();
+    _Masks.clear();
 
     reset();
 }
 
 void cData::reset()
 {
-    m_minX = m_minY = m_minZ    = FLT_MAX;
-    m_maxX = m_maxY = m_maxZ    = -FLT_MAX;
+    m_minX = m_minY = m_minZ =  FLT_MAX;
+    m_maxX = m_maxY = m_maxZ = -FLT_MAX;
     m_cX = m_cY = m_cZ = m_diam = 0.f;
-    m_curImgIdx = 0;    
+    _curImgIdx = 0;    
 }
 
 int cData::getSizeClouds()
@@ -113,7 +113,7 @@ void cData::getBB(Cloud * aCloud)
     m_diam = max(m_maxX-m_minX, max(m_maxY-m_minY, m_maxZ-m_minZ));
 
     aCloud->setScale(m_diam);
-    m_Clouds.push_back(aCloud);
+    _Clouds.push_back(aCloud);
 }
 
 

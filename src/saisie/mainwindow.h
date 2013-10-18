@@ -22,9 +22,6 @@ namespace Ui {
 class MainWindow;
 }
 
-//const QColor colorBG0(30,132,181);
-//const QColor colorBG1(70,70,70);
-
 const QColor colorBG0(65,65,60);
 const QColor colorBG1(120,115,115);
 
@@ -49,16 +46,16 @@ public slots:
 
 //protected slots:
 
-    void doActionDisplayShortcuts();
+    void displayShortcuts();
+
     void toggleFullScreen(bool);
     void toggleShowAxis(bool);
     void toggleShowBall(bool);
     void toggleShowBBox(bool);
     void toggleShowCams(bool);
     void toggleShowMessages(bool);
-    void toggleSelectionMode(bool state);
-
-    void toggle2D3D(bool state);
+    void toggleSelectionMode(bool);
+    void toggle2D3D(bool);
 
     void add();
     void selectNone();
@@ -99,9 +96,9 @@ public slots:
     void progression();
 
     void setMode2D(bool mBool);
-    bool getMode2D() {return m_bMode2D;}
+    bool getMode2D() {return _bMode2D;}
 
-    cEngine* getEngine(){return m_Engine;}
+    cEngine* getEngine(){return _Engine;}
 
 	void setGamma(float aGamma);
 
@@ -118,24 +115,24 @@ private:
     void                    updateRecentFileActions();
     QString                 strippedName(const QString &fullFileName);
 
-    int *                   m_incre;
+    int *                   _incre;
 
-    Ui::MainWindow*         ui;
+    Ui::MainWindow*         _ui;
 
-    GLWidget*               m_glWidget;
+    GLWidget*               _glWidget;
 
-    cEngine*                m_Engine;
+    cEngine*                _Engine;
 
-    QFutureWatcher<void>    m_FutureWatcher;
-    QProgressDialog*        m_ProgressDialog;
+    QFutureWatcher<void>    _FutureWatcher;
+    QProgressDialog*        _ProgressDialog;
 
     enum { MaxRecentFiles = 3 };
-    QAction *               m_recentFileActs[MaxRecentFiles];
-    QString                 m_curFile;
-    QStringList             m_FilenamesIn;
+    QAction *               _recentFileActs[MaxRecentFiles];
+    QString                 _curFile;
+    QStringList             _FilenamesIn;
 
-    QMenu*                  m_RFMenu; //recent files menu
+    QMenu*                  _RFMenu; //recent files menu
 
-    bool                    m_bMode2D;
+    bool                    _bMode2D;
 };
 #endif // MAINWINDOW_H

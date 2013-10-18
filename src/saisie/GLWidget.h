@@ -325,16 +325,17 @@ protected:
     QPointF     m_lastMoveImg;
     QPointF     m_lastMoveWin;
     QPointF     m_lastClickWin;
-
-private:
+    QPointF     m_lastClickZoom;
 
     QPointF     m_lastPos;
+
+private:
 
     void        setProjectionMatrix();
     void        computeFPS();
 
-    QGLBuffer   m_vertexbuffer;
-    QGLBuffer   m_vertexColor;
+    QGLBuffer   _vertexbuffer;
+    QGLBuffer   _vertexColor;
 
     int         _frameCount;
     int         _previousTime;
@@ -344,15 +345,15 @@ private:
 
     float       _fps;
 
-    bool        _m_g_mouseLeftDown;
-    bool        _m_g_mouseMiddleDown;
-    bool        _m_g_mouseRightDown;
-    GLfloat     _m_g_tmpoMatrix[9];
-    GLfloat     _m_g_rotationOx[9];
-    GLfloat     _m_g_rotationOy[9];
-    GLfloat     _m_g_rotationOz[9];
-    GLfloat     _m_g_rotationMatrix[9];
-    GLfloat     _m_g_glMatrix[16];
+    bool        _g_mouseLeftDown;
+    bool        _g_mouseMiddleDown;
+    bool        _g_mouseRightDown;
+    GLfloat     _g_tmpoMatrix[9];
+    GLfloat     _g_rotationOx[9];
+    GLfloat     _g_rotationOy[9];
+    GLfloat     _g_rotationOz[9];
+    GLfloat     _g_rotationMatrix[9];
+    GLfloat     _g_glMatrix[16];
     QTime       _time;
 
     QImage      _glImg;
@@ -361,7 +362,7 @@ private:
     GLdouble    *_projmatrix;
     GLint       *_glViewport;
 
-    QPointF     _m_lastClickZoom;
+
 
 };
 

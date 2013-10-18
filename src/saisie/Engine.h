@@ -55,13 +55,12 @@ public:
 
 struct selectInfos
 {
-
-    selectInfos(){}
-    ~selectInfos(){}
     //! Ortho camera infos
     ViewportParameters params;
+
     //! polyline infos
-    QVector <QPointF>   poly;
+    QVector <QPointF>  poly;
+
     //! selection mode
     int                selection_mode;
 };
@@ -88,28 +87,28 @@ public:
 
     void        loadImage(QString aNameFile, QImage* &aImg, QImage* &aImgMask);
 
-    void        setDir(QDir aDir){m_Dir = aDir;}
-    QDir        getDir(){return m_Dir;}
+    void        setDir(QDir aDir){_Dir = aDir;}
+    QDir        getDir(){return _Dir;}
 
-    void        SetFilenamesIn(QStringList const &strl){m_FilenamesIn = strl;}
+    void        SetFilenamesIn(QStringList const &strl){_FilenamesIn = strl;}
     void        SetFilenamesOut();
     void        SetFilenameOut(QString str);
     void        SetSelectionFilename();
 
-    QStringList GetFilenamesOut() {return m_FilenamesOut;}
-    QString     GetSelectionFilename() {return m_SelectionOut;}
+    QStringList GetFilenamesOut() {return _FilenamesOut;}
+    QString     GetSelectionFilename() {return _SelectionOut;}
 
 
     void        SetPostFix(QString str);
 
 private:
-    QStringList m_FilenamesIn;
-    QStringList m_FilenamesOut; //binary masks
-    QString     m_SelectionOut; //selection infos
-    QString     m_postFix;
+    QStringList _FilenamesIn;
+    QStringList _FilenamesOut; //binary masks
+    QString     _SelectionOut; //selection infos
+    QString     _postFix;
 
     //! Working directory
-    QDir        m_Dir;
+    QDir        _Dir;
 };
 
 class cEngine
@@ -120,22 +119,22 @@ public:
     ~cEngine();
 
     //! Set working directory
-    void setDir(QDir aDir){m_Loader->setDir(aDir);}
+    void setDir(QDir aDir){_Loader->setDir(aDir);}
 
     //! Set working directory
-    void setFilename(){m_Loader->SetSelectionFilename();}
+    void setFilename(){_Loader->SetSelectionFilename();}
 
     //! Set input filenames
-    void SetFilenamesIn(QStringList const &strl){m_Loader->SetFilenamesIn(strl);}
+    void SetFilenamesIn(QStringList const &strl){_Loader->SetFilenamesIn(strl);}
 
     //! Set output filenames
-    void setFilenamesOut(){m_Loader->SetFilenamesOut();}
+    void setFilenamesOut(){_Loader->SetFilenamesOut();}
 
     //! Set output filename
-    void setFilenameOut(QString filename){m_Loader->SetFilenameOut(filename);}
+    void setFilenameOut(QString filename){_Loader->SetFilenameOut(filename);}
 
     //! Set postfix
-    void setPostFix(QString filename){m_Loader->SetPostFix(filename);}
+    void setPostFix(QString filename){_Loader->SetPostFix(filename);}
 
     //! Load point cloud .ply files
     void loadClouds(QStringList, int *incre = NULL);
@@ -159,12 +158,12 @@ public:
 
     void saveSelectInfos(QVector <selectInfos> const &Infos);
 
-    cData*   getData()  {return m_Data;}
+    cData*   getData()  {return _Data;}
 
 private:
 
-    cLoader *m_Loader;
-    cData   *m_Data;
+    cLoader *_Loader;
+    cData   *_Data;
 };
 
 

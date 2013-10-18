@@ -19,24 +19,24 @@ namespace Cloud_
             Vertex();
             Vertex(Pt3dr, QColor);
 
-            float x() {return m_position.x;}
-            float y() {return m_position.y;}
-            float z() {return m_position.z;}
+            float   x() {return _position.x;}
+            float   y() {return _position.y;}
+            float   z() {return _position.z;}
 
-            Pt3dr   getCoord()   {return m_position;}
-            QColor  getColor()   {return m_color;}
+            Pt3dr   getCoord()   {return _position;}
+            QColor  getColor()   {return _color;}
 
             //! States if a point is visible (ie: selected)
-            bool    isVisible()  {return m_bVisible;}
+            bool    isVisible()  {return _bVisible;}
 
-            void setCoord(Pt3dr const &aPt)     {m_position = aPt;}
-            void setColor(QColor const &aCol)   {m_color = aCol;}
-            void setVisible(bool aVis)          {m_bVisible = aVis;}
+            void    setCoord(Pt3dr const &aPt)     {_position = aPt;}
+            void    setColor(QColor const &aCol)   {_color = aCol;}
+            void    setVisible(bool aVis)          {_bVisible = aVis;}
 
         private:
-            Pt3dr   m_position;
-            QColor  m_color;
-            bool    m_bVisible;
+            Pt3dr   _position;
+            QColor  _color;
+            bool    _bVisible;
 
     };
 
@@ -52,18 +52,18 @@ namespace Cloud_
             Vertex& getVertex( uint );
             int     size();
 
-            void    setTranslation( const Pt3dr & aPt ) {m_translation = aPt;}
-            Pt3dr   getTranslation(){return m_translation;}
+            void    setTranslation( const Pt3dr & aPt ) {_translation = aPt;}
+            Pt3dr   getTranslation(){return _translation;}
 
-            void    setScale( const float & aS ) {m_scale = aS;}
-            float   getScale(){return m_scale;}
+            void    setScale( const float & aS ) {_scale = aS;}
+            float   getScale(){return _scale;}
 
             void    clear();
 
         private:
-            std::vector<Vertex> m_vertices;
-            Pt3dr m_translation;
-            float m_scale;
+            std::vector<Vertex> _vertices;
+            Pt3dr _translation;
+            float _scale;
     };
 
 }

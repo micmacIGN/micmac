@@ -35,15 +35,15 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_bDisplayMode2D(false)
   , m_Click(0)
   , m_sqr_radius(2500.f)
-  , m_vertexbuffer(QGLBuffer::VertexBuffer)
+  , _vertexbuffer(QGLBuffer::VertexBuffer)
   , _frameCount(0)
   , _previousTime(0)
   , _currentTime(0)
   , _idx(-1)
   , _fps(0.0f)
-  , _m_g_mouseLeftDown(false)
-  , _m_g_mouseMiddleDown(false)
-  , _m_g_mouseRightDown(false)
+  , _g_mouseLeftDown(false)
+  , _g_mouseMiddleDown(false)
+  , _g_mouseRightDown(false)
   , _mask(NULL)
 {
     resetRotationMatrix();
@@ -171,7 +171,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
         {
             QPointF dp = pos - m_lastPos;
 
-            if ( _m_g_mouseLeftDown ) // rotation autour de X et Y
+            if ( _g_mouseLeftDown ) // rotation autour de X et Y
             {
                 float d_angleX = m_speed * dp.y() / (float) _glViewport[3];
                 float d_angleY = m_speed * dp.x() / (float) _glViewport[2];
@@ -179,17 +179,17 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                 m_params.angleX += d_angleX;
                 m_params.angleY += d_angleY;
 
-                setRotateOx_m33( d_angleX, _m_g_rotationOx );
-                setRotateOy_m33( d_angleY, _m_g_rotationOy );
+                setRotateOx_m33( d_angleX, _g_rotationOx );
+                setRotateOy_m33( d_angleY, _g_rotationOy );
 
-                mult_m33( _m_g_rotationOx, _m_g_rotationMatrix, _m_g_tmpoMatrix );
-                mult_m33( _m_g_rotationOy, _m_g_tmpoMatrix, _m_g_rotationMatrix );
+                mult_m33( _g_rotationOx, _g_rotationMatrix, _g_tmpoMatrix );
+                mult_m33( _g_rotationOy, _g_tmpoMatrix, _g_rotationMatrix );
             }
-            else if ( _m_g_mouseMiddleDown )
+            else if ( _g_mouseMiddleDown )
             {
                 if (mouseEvent->modifiers() & Qt::ShiftModifier) // zoom
                 {
-                    _m_lastClickZoom =  m_lastClickWin;
+                    m_lastClickZoom =  m_lastClickWin;
 
                     float dy = (mouseEvent->pos().y() - m_lastClickWin.y())*0.001f;
 
@@ -214,17 +214,17 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                     }
                 }
             }
-            else if ( _m_g_mouseRightDown ) // rotation autour de Z
+            else if ( _g_mouseRightDown ) // rotation autour de Z
             {
                 float d_angleZ =  m_speed * dp.x() / (float) _glViewport[2];
 
                 m_params.angleZ += d_angleZ;
 
-                setRotateOz_m33( d_angleZ, _m_g_rotationOz );
+                setRotateOz_m33( d_angleZ, _g_rotationOz );
 
-                mult_m33( _m_g_rotationOz, _m_g_rotationMatrix, _m_g_tmpoMatrix );
+                mult_m33( _g_rotationOz, _g_rotationMatrix, _g_tmpoMatrix );
 
-                for (int i = 0; i < 9; ++i) _m_g_rotationMatrix[i] = _m_g_tmpoMatrix[i];
+                for (int i = 0; i < 9; ++i) _g_rotationMatrix[i] = _g_tmpoMatrix[i];
             }
         }
 
@@ -242,7 +242,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
 
        if ( mouseEvent->button() == Qt::LeftButton )
        {
-           _m_g_mouseLeftDown = true;
+           _g_mouseLeftDown = true;
 
            if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
            {
@@ -284,7 +284,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
        else if (mouseEvent->button() == Qt::RightButton)
        {
            //if (m_interactionMode == TRANSFORM_CAMERA)
-               _m_g_mouseRightDown = true;
+               _g_mouseRightDown = true;
            //else
            if ((_idx >=0)&&(_idx<m_polygon.size())&&m_bPolyIsClosed)
            {
@@ -303,7 +303,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
        {
 
            if (m_bDisplayMode2D || (m_interactionMode == TRANSFORM_CAMERA))
-               _m_g_mouseMiddleDown = true;
+               _g_mouseMiddleDown = true;
        }
        update();
        return true;
@@ -312,7 +312,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
     {
         if ( mouseEvent->button() == Qt::LeftButton )
         {
-            _m_g_mouseLeftDown = false;
+            _g_mouseLeftDown = false;
 
             if ((m_Click >=1) &&(_idx>=0)&&m_polygon2.size())
             {
@@ -329,11 +329,11 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
         }
         if ( mouseEvent->button() == Qt::RightButton  )
         {
-            _m_g_mouseRightDown = false;
+            _g_mouseRightDown = false;
         }
         if ( mouseEvent->button() == Qt::MiddleButton  )
         {
-            _m_g_mouseMiddleDown = false;
+            _g_mouseMiddleDown = false;
         }
 
         update();
@@ -516,9 +516,9 @@ void GLWidget::paintGL()
             GLint recal;
             GLdouble wx, wy, wz;
 
-            recal = _glViewport[3] - (GLint) _m_lastClickZoom.y()- 1.f;
+            recal = _glViewport[3] - (GLint) m_lastClickZoom.y()- 1.f;
 
-            gluUnProject ((GLdouble) _m_lastClickZoom.x(), (GLdouble) recal, 1.0,
+            gluUnProject ((GLdouble) m_lastClickZoom.x(), (GLdouble) recal, 1.0,
                           _mvmatrix, _projmatrix, _glViewport, &wx, &wy, &wz);
 
             glTranslatef(wx,wy,0);
@@ -534,7 +534,7 @@ void GLWidget::paintGL()
         glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
         drawQuad(0, 0, glh, glw,QColor(255,255,255));
 
-        if(_mask != NULL && !_m_g_mouseMiddleDown)
+        if(_mask != NULL && !_g_mouseMiddleDown)
         {
             drawQuad(0,0,glh,glw,m_textureMask );
             glBlendFunc(GL_ONE,GL_ONE);
@@ -568,13 +568,13 @@ void GLWidget::paintGL()
         zoom();
 
         static GLfloat trans44[16], rot44[16], tmp[16];
-        m33_to_m44( _m_g_rotationMatrix, rot44 );
+        m33_to_m44( _g_rotationMatrix, rot44 );
         setTranslate_m3(  m_params.m_translationMatrix, trans44 );
 
         //mult( trans44, rot44, tmp );
         mult( rot44, trans44, tmp );
-        transpose( tmp, _m_g_glMatrix );
-        glLoadMatrixf( _m_g_glMatrix );
+        transpose( tmp, _g_glMatrix );
+        glLoadMatrixf( _g_glMatrix );
 
         if (m_Data->NbClouds())
         {
@@ -583,13 +583,13 @@ void GLWidget::paintGL()
             glEnableClientState(GL_VERTEX_ARRAY);
             glEnableClientState(GL_COLOR_ARRAY);
 
-            m_vertexbuffer.bind();
+            _vertexbuffer.bind();
             glVertexPointer(3, GL_FLOAT, 0, NULL);
-            m_vertexbuffer.release();
+            _vertexbuffer.release();
 
-            m_vertexColor.bind();
+            _vertexColor.bind();
             glColorPointer(3, GL_FLOAT, 0, NULL);
-            m_vertexColor.release();
+            _vertexColor.release();
 
             glDrawArrays( GL_POINTS, 0, m_Data->getCloud(0)->size()*3 );
 
@@ -751,10 +751,10 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
 
 void GLWidget::setBufferGl(bool onlyColor)
 {
-    if(m_vertexbuffer.isCreated() && !onlyColor)
-        m_vertexbuffer.destroy();
-    if(m_vertexColor.isCreated())
-        m_vertexColor.destroy();
+    if(_vertexbuffer.isCreated() && !onlyColor)
+        _vertexbuffer.destroy();
+    if(_vertexColor.isCreated())
+        _vertexColor.destroy();
 
     int sizeClouds = m_Data->getSizeClouds();
 
@@ -802,18 +802,18 @@ void GLWidget::setBufferGl(bool onlyColor)
 
     if(!onlyColor)
     {
-        m_vertexbuffer.create();
-        m_vertexbuffer.setUsagePattern(QGLBuffer::StaticDraw);
-        m_vertexbuffer.bind();
-        m_vertexbuffer.allocate(vertices, sizeClouds* 3 * sizeof(GLfloat));
-        m_vertexbuffer.release();
+        _vertexbuffer.create();
+        _vertexbuffer.setUsagePattern(QGLBuffer::StaticDraw);
+        _vertexbuffer.bind();
+        _vertexbuffer.allocate(vertices, sizeClouds* 3 * sizeof(GLfloat));
+        _vertexbuffer.release();
     }
 
-    m_vertexColor.create();
-    m_vertexColor.setUsagePattern(QGLBuffer::StaticDraw);
-    m_vertexColor.bind();
-    m_vertexColor.allocate(colors, sizeClouds* 3 * sizeof(GLfloat));
-    m_vertexColor.release();
+    _vertexColor.create();
+    _vertexColor.setUsagePattern(QGLBuffer::StaticDraw);
+    _vertexColor.bind();
+    _vertexColor.allocate(colors, sizeClouds* 3 * sizeof(GLfloat));
+    _vertexColor.release();
 
     if(!onlyColor)
         delete [] vertices;
@@ -1169,17 +1169,17 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
     crossprod(eye, top, s);
     crossprod(s, eye, u);
 
-    _m_g_rotationMatrix[0] = s[0];
-    _m_g_rotationMatrix[1] = s[1];
-    _m_g_rotationMatrix[2] = s[2];
+    _g_rotationMatrix[0] = s[0];
+    _g_rotationMatrix[1] = s[1];
+    _g_rotationMatrix[2] = s[2];
 
-    _m_g_rotationMatrix[3] = u[0];
-    _m_g_rotationMatrix[4] = u[1];
-    _m_g_rotationMatrix[5] = u[2];
+    _g_rotationMatrix[3] = u[0];
+    _g_rotationMatrix[4] = u[1];
+    _g_rotationMatrix[5] = u[2];
 
-    _m_g_rotationMatrix[6] = -eye[0];
-    _m_g_rotationMatrix[7] = -eye[1];
-    _m_g_rotationMatrix[8] = -eye[2];
+    _g_rotationMatrix[6] = -eye[0];
+    _g_rotationMatrix[7] = -eye[1];
+    _g_rotationMatrix[8] = -eye[2];
 
 //    m_params.m_translationMatrix[0] = m_Data->m_cX;
 //    m_params.m_translationMatrix[1] = m_Data->m_cY;
@@ -1236,7 +1236,7 @@ void GLWidget::zoomFactor(int percent)
 {
     if (m_bDisplayMode2D)
     {
-        _m_lastClickZoom = m_lastMoveWin;
+        m_lastClickZoom = m_lastMoveWin;
 
         setZoom((float) percent / 100.f);
     }
@@ -1255,7 +1255,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     //see QWheelEvent documentation ("distance that the wheel is rotated, in eighths of a degree")
     float wheelDelta_deg = (float)event->delta() / 8.f;
 
-    _m_lastClickZoom = event->pos();
+    m_lastClickZoom = event->pos();
 
     onWheelEvent(wheelDelta_deg);
 }
@@ -1926,9 +1926,9 @@ void GLWidget::resetView()
 
 void GLWidget::resetRotationMatrix()
 {
-    _m_g_rotationMatrix[0] = _m_g_rotationMatrix[4] = _m_g_rotationMatrix[8] = 1;
-    _m_g_rotationMatrix[1] = _m_g_rotationMatrix[2] = _m_g_rotationMatrix[3] = 0;
-    _m_g_rotationMatrix[5] = _m_g_rotationMatrix[6] = _m_g_rotationMatrix[7] = 0;
+    _g_rotationMatrix[0] = _g_rotationMatrix[4] = _g_rotationMatrix[8] = 1;
+    _g_rotationMatrix[1] = _g_rotationMatrix[2] = _g_rotationMatrix[3] = 0;
+    _g_rotationMatrix[5] = _g_rotationMatrix[6] = _g_rotationMatrix[7] = 0;
 }
 
 void GLWidget::resetTranslationMatrix()

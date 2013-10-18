@@ -25,19 +25,19 @@ class cData
         void clearImages();
         void clearMasks();
 
-        int NbCameras() {return m_Cameras.size();}
-        int NbClouds()  {return m_Clouds.size();}
-        int NbImages()  {return m_Images.size();}
-        int NbMasks()   {return m_Masks.size();}
+        int NbCameras() {return _Cameras.size();}
+        int NbClouds()  {return _Clouds.size();}
+        int NbImages()  {return _Images.size();}
+        int NbMasks()   {return _Masks.size();}
 
-        CamStenope * & getCamera(int aK) {return m_Cameras[aK];}
-        Cloud * &      getCloud(int aK)  {return m_Clouds[aK];}
-        QImage * &     getImage(int aK)  {return m_Images[aK];}
-        QImage * &     getMask(int aK)   {return m_Masks[aK];}
-        QImage * &     getCurImage()     {return m_Images[m_curImgIdx];}
-        QImage * &     getCurMask()      {return m_Masks[m_curImgIdx];}
+        CamStenope * & getCamera(int aK) {return _Cameras[aK];}
+        Cloud * &      getCloud(int aK)  {return _Clouds[aK];}
+        QImage * &     getImage(int aK)  {return _Images[aK];}
+        QImage * &     getMask(int aK)   {return _Masks[aK];}
+        QImage * &     getCurImage()     {return _Images[_curImgIdx];}
+        QImage * &     getCurMask()      {return _Masks[_curImgIdx];}
 
-        void    setCurImage(int idx)     {m_curImgIdx = idx;}
+        void    setCurImage(int idx)     {_curImgIdx = idx;}
 
         void    getBB(Cloud *);
 
@@ -50,12 +50,12 @@ class cData
 
    private:
 
-        vector <CamStenope *> m_Cameras;
-        vector <Cloud *>      m_Clouds;
-        vector <QImage *>     m_Images;
-        vector <QImage *>     m_Masks;
+        vector <CamStenope *> _Cameras;
+        vector <Cloud *>      _Clouds;
+        vector <QImage *>     _Images;
+        vector <QImage *>     _Masks;
 
-        int                   m_curImgIdx;
+        int                   _curImgIdx;
 
         float                 _gamma;
 };
