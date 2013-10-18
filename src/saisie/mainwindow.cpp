@@ -184,7 +184,6 @@ void MainWindow::addFiles(const QStringList& filenames)
 
             if(!Fout.exists())
             {
-                cout << filenames[i].toStdString() << endl;
                 QMessageBox::critical(this, "Error", "File or option does not exist");
                 return;
             }
