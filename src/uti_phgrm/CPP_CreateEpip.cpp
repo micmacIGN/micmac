@@ -42,7 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 using namespace NS_ParamChantierPhotogram;
 
 
-cCpleEpip StdCpleEpip
+cCpleEpip * StdCpleEpip
           (
              std::string  aDir,
              std::string  aNameOri,
@@ -58,7 +58,7 @@ cCpleEpip StdCpleEpip
 
     CamStenope * aCam1 = CamStenope::StdCamFromFile(true,aNameCam1,anICNM);
     CamStenope * aCam2 = CamStenope::StdCamFromFile(true,aNameCam2,anICNM);
-    return cCpleEpip (aDir,1,*aCam1,aNameIm1,*aCam2,aNameIm2);
+    return new cCpleEpip (aDir,1,*aCam1,aNameIm1,*aCam2,aNameIm2);
 
 }
 

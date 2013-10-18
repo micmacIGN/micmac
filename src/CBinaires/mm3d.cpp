@@ -176,6 +176,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("vic",vicod_main," Do some stuff"));
        aRes.push_back(cMMCom("genmail",genmail_main," Do some stuff"));
        aRes.push_back(cMMCom("CreateEpip",CreateEpip_main," Tool create epipolar images"));
+       aRes.push_back(cMMCom("CoherEpip",CoherEpi_main," Tool test coherence between conjugate epipolar depth-map"));
        aRes.push_back(cMMCom("Dequant",Dequant_main," Tool for dequantifying an image"));
        aRes.push_back(cMMCom("Devlop",Devlop_main," Do some stuff"));
        aRes.push_back(cMMCom("TifDev",TiffDev_main," Develop, raw-jpg-tif, in adequat tiff file"));

@@ -1,5 +1,7 @@
 BUGS :
 
+bool accepte yes !!!
+
 Saisie :
   2- Image Globale de Saisie 
   6- Bug Serge : OK ??!!! Mais de toute facon alerter dqp si pas de plan ....
