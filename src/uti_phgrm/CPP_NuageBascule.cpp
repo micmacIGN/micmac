@@ -263,6 +263,30 @@ int  NuageBascule_main(int argc,char ** argv)
                  );
          ELISE_COPY(aFileMasq.all_pts(),0,aFileMasq.out());
  
+        
+        // TFW
+        {
+            std::string aNameTFW = StdPrefix(aNameProf) + ".tfw";
+            std::ofstream aFtfw(aNameTFW.c_str());
+            aFtfw.precision(10);
+            
+            ElAffin2D aAfM2C = Xml2EL(aNewNuageOut.Orientation().OrIntImaM2C());
+
+            
+            double resolutionX = 1./aAfM2C.I10().x;
+            double resolutionY = 1./aAfM2C.I01().y;
+            double origineX = -aAfM2C.I00().x * resolutionX;
+            double origineY = -aAfM2C.I00().y * resolutionY;
+            aFtfw << resolutionX << "\n" << 0 << "\n";
+            aFtfw << 0 << "\n" << resolutionY << "\n";
+            aFtfw << origineX << "\n" << origineY << "\n";
+
+            //aFtfw << aFOM.ResolutionPlani().x << "\n" << 0 << "\n";
+            //aFtfw << 0 << "\n" << aFOM.ResolutionPlani().y << "\n";
+            //aFtfw << aFOM.OriginePlani().x << "\n" << aFOM.OriginePlani().y << "\n";
+            aFtfw.close();
+        }
+        
          std::cout << "-Basc3- merge blocks T=" << aChrono.uval() << "\n";
          for (int aKB=0 ; aKB<aDecoup.NbInterv() ; aKB++)
          {
