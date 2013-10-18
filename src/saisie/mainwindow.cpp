@@ -107,7 +107,7 @@ void MainWindow::connectActions()
     connect(ui->actionSelect_none,      SIGNAL(triggered()),   this, SLOT(selectNone()));
     connect(ui->actionInvertSelected,   SIGNAL(triggered()),   this, SLOT(invertSelected()));
     connect(ui->actionSelectAll,        SIGNAL(triggered()),   this, SLOT(selectAll()));
-    connect(ui->actionReset,            SIGNAL(triggered()),   this, SLOT(selectAll()));
+    connect(ui->actionReset,            SIGNAL(triggered()),   this, SLOT(reset()));
     connect(ui->actionRemove_from_selection,            SIGNAL(triggered()),   this, SLOT(removeFromSelection()));
 
     //File menu
@@ -176,6 +176,8 @@ void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
     {
+        m_FilenamesIn = filenames;
+
         for (int i=0; i< filenames.size();++i)
         {
             QFile Fout(filenames[i]);
@@ -411,6 +413,13 @@ void MainWindow::removeFromSelection()
     m_glWidget->Select(SUB);
 }
 
+void MainWindow::reset()
+{
+    closeAll();
+
+    addFiles(m_FilenamesIn);
+}
+
 void MainWindow::setTopView()
 {
     m_glWidget->setView(TOP_VIEW);
@@ -478,18 +487,18 @@ void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
 
 void MainWindow::loadPlys()
 {
-    m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Cloud Files"),QString(), tr("Files (*.ply)"));
+    QStringList filenames = QFileDialog::getOpenFileNames(NULL, tr("Open Cloud Files"),QString(), tr("Files (*.ply)"));
 
-    if (!m_FilenamesIn.empty())
-        addFiles(m_FilenamesIn);
+    if (!filenames.empty())
+        addFiles(filenames);
 }
 
 void MainWindow::loadCameras()
 {
-    m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Camera Files"),QString(), tr("Files (*.xml)"));
+    QStringList filenames = QFileDialog::getOpenFileNames(NULL, tr("Open Camera Files"),QString(), tr("Files (*.xml)"));
 
-    if (!m_FilenamesIn.empty())
-        addFiles(m_FilenamesIn);
+    if (!filenames.empty())
+        addFiles(filenames);
 }
 
 void MainWindow::loadImage()
@@ -644,6 +653,7 @@ void MainWindow::setMode2D(bool mBool)
     ui->actionShow_ball->setVisible(!mBool);
     ui->actionShow_bounding_box->setVisible(!mBool);
     ui->actionSave_selection->setVisible(!mBool);
+    ui->actionToggleMode_selection->setVisible(!mBool);
 
     ui->menuStandard_views->menuAction()->setVisible(!mBool);
 
@@ -656,6 +666,8 @@ void MainWindow::setMode2D(bool mBool)
     ui->actionShow_ball->setEnabled(!mBool);
     ui->actionShow_bounding_box->setEnabled(!mBool);
     ui->actionSave_selection->setEnabled(!mBool);
+    ui->actionToggleMode_selection->setEnabled(!mBool);
+
 }
 
 void MainWindow::toggle2D3D(bool state)
