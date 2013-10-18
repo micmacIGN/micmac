@@ -1,4 +1,13 @@
 <!-- 
+MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/marc/TMP/EPI/Marseilles/ +Im1=Epi_Im1_Right_Fr9130_028~1051_rgb_Fr9130_028~1052_rgb.tif +Im2=Epi_Im2_Left_Fr9130_028~1051_rgb_Fr9130_028~1052_rgb.tif +Zoom0=64  +Purge=false +MMC=false
+
+
+MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/marc/TMP/EPI/Vainhegen/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64  +Purge=false 
+
+MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/marc/TMP/EPI/Munich/ +Im1=Epi_Im1_Left_41_0420_PAN_41_0421_PAN.tif +Im2=Epi_Im2_Right_41_0420_PAN_41_0421_PAN.tif +Zoom0=64  +Purge=false +MMC=true
+
+MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/marc/TMP/EPI/Vainhegen/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64 +CMS=true  +Purge=false
+
 MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/data2/EPI/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64 +CMS=true  +Purge=false
 
 MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/marc/TMP/EPI/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64 +ZoomF=4
@@ -9,7 +18,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 
 <DicoLoc>
 
-	<Symb>  ZReg=0.10  </Symb>
+	<Symb>  ZReg=0.05  </Symb>
 	<Symb>  DefCor=0.40  </Symb>
         <Symb>  PenteMax=1.0 </Symb>
 	<Symb>  Interpol=eInterpolBiLin  </Symb>
@@ -27,18 +36,19 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
        <Symb> Im2=Epi_Im2_Right_17_18.tif     </Symb>
        <Symb> IncPix=400   </Symb>
        <Symb> NbDirProg=4   </Symb>
-       <Symb> CMS=false   </Symb>
+       <Symb> CMS=true   </Symb>
        <Symb> Census=true   </Symb>
-       <Symb> SquareW=true   </Symb>
+       <Symb> SquareW=true   </Symb>  <!-- Est ce que la fenetre muls scale est carre (sinon gauss) -->
 
 
        <Symb> DebugClip=true  </Symb>
        <Symb> SzW0=2  </Symb>
        <Symb> DeltaY=0  </Symb>
        <Symb> Verif=false  </Symb>
+       <Symb> MMC=true  </Symb>
 
   <!-- Parametres calcule -->
-        <Symb>  DirMEC=MEC2Im-Censu${Census}-${Im1}-${Im2} </Symb>
+        <Symb>  DirMEC=MEC2Im-${Im1}-${Im2} </Symb>
         <eSymb> DbleZPas=* 2 ${ZPas} </eSymb>
         <eSymb> MulZMin=/ 1  ${MulZMax} </eSymb>
 
@@ -159,6 +169,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                      <CorrelMultiScale>
                             <ModeDense> true </ModeDense>
                             <UseWAdapt> false </UseWAdapt>
+                            <ModeMax> ${MMC} </ModeMax>
                             <OneParamCMS>
                                  <SzW> 1 1 </SzW>
                                  <Sigma> 0 </Sigma>
@@ -184,9 +195,10 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                  <TypeCAH>
                      <#IF VTEST=${Census}>
                          <CensusCost>
-                             <TypeCost> eMCC_CensusBasic   </TypeCost>
-<!--
                              <TypeCost> eMCC_CensusCorrel   </TypeCost>
+<!--
+                             <TypeCost> eMCC_CensusMixCorrelBasic   </TypeCost>
+                             <TypeCost> eMCC_CensusBasic   </TypeCost>
                              <TypeCost> eMCC_GrCensus   </TypeCost>
 -->
                              <Verif>  ${Verif} </Verif>

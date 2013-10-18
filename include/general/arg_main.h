@@ -107,7 +107,7 @@ template <> inline std::istream & ElStdRead (std::istream &is, bool & aVal, cons
 {
    std::string aStr ;
    is >> aStr;
-   Str2Bool(aVal,aStr);
+   aVal = Str2BoolForce(aStr);
    return is;
 }
 
@@ -448,6 +448,10 @@ int TiffDev_main(int argc,char ** argv);
 int ElDcraw_main(int argc,char ** argv);
 int GenXML2Cpp_main(int argc,char ** argv);
 int GrShade_main(int argc,char ** argv);
+
+int CoherEpi_main(int argc,char ** argv);
+int BlockCoherEpi_main(int argc,char ** argv);
+
 int EstimFlatField_main(int argc,char ** argv);
 int Impainting_main(int argc,char ** argv);
 int MpDcraw_main(int argc,char ** argv);

@@ -237,7 +237,7 @@ void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
 
    if (aShowDet )
    {
-       std::cout << "--NamePt " ;
+       std::cout  << "--NamePt " ;
        if (mHasGround)
           std::cout <<  mName 
                     << " Ec Fx-Ter " << mPt-aRes.mPTer 
@@ -245,6 +245,7 @@ void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
                     << " ground units\n";
        else
            std::cout << "\n" ;
+        std::cout << "Inc = "  << mInc << "PdsIm = " <<  mPdsIm  << "\n";
    }
 
    FILE * aFpRT = mAppli.FpRT() ;
@@ -297,7 +298,7 @@ void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
 /*
                    std::cout << " Proj-F " << mCams[aK]->CurCam()->R3toF2(aRes.mPTer)
                              << " Proj-Ter " << mCams[aK]->CurCam()->R3toF2(mPt)
-                             << " Mes Im " << mNupl->PK(aK);
+                             << " mPdsIm Mes Im " << mNupl->PK(aK);
 */
                }
                if (anEr>anObs.NivAlerteDetail().Val())

@@ -98,6 +98,7 @@ class cSP_PointGlob
           void SetKilled();
 
          bool IsPtAutom() const;
+         void Rename(const std::string & aNewName);
      private:
           cSP_PointGlob(const cSP_PointGlob &) ; // N.I.
 
@@ -361,7 +362,7 @@ class cAppli_SaisiePts
 
          void GlobChangStatePointe(const std::string & aName,const eEtatPointeImage aState);
 
-         void ChangeName(const std::string & anOldName,const std::string & aNewName);
+         void ChangeName(std::string  anOldName,std::string  aNewName);
 
     private :
 

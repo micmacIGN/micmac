@@ -1573,6 +1573,7 @@ class cLoadedImage
 
          virtual  Im2D_REAL4 * FirstFloatIm()  = 0;
          const std::vector<cMSLoadedIm>&  MSLI();
+         std::vector<Im2D_REAL4>   VNpIm();  // Non pointeur
 
     protected :
       cLoadedImage
@@ -1629,6 +1630,7 @@ class cLoadedImage
 
          std::vector<cMSLoadedIm>  mMSLI;
          std::vector<Im2D_REAL4 *> mVIm;
+         std::vector<Im2D_REAL4>   mVNpIm;  // Non pointeur
          std::vector<float **>     mVDataIm;
          std::vector<float *>      mVDataLin;
 
