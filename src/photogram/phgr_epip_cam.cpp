@@ -389,6 +389,7 @@ cCpleEpip::cCpleEpip
    mCamOut2  (CamOut(mCInit2,Pt2dr(0,0),mSzIn)),
    mOk       (false)
 {
+   ELISE_ASSERT(aName1<aName2,"cCpleEpip::cCpleEpip order");
    Box2dr aB1 = BoxCam(mCInit1,mCamOut1,false);
    Box2dr aB2 = BoxCam(mCInit2,mCamOut2,false);
 
@@ -636,13 +637,76 @@ int CreateBlockEpip_main(int argc,char ** argv)
 /*
 */
 
+bool  cCpleEpip::IsIm1(const std::string & aNameIm)
+{
+   if (aNameIm==mName1) return true;
+   if (aNameIm==mName2) return false;
+
+   std::cout << aNameIm << " => " << mName1 << " , " << mName2 << "\n";
+   ELISE_ASSERT(false,"cCpleEpip::IsIm1 nor Im1 nor Im2 in cCpleEpip::IsIm1");
+   return false;
+}
+
+
+std::string cCpleEpip::LocDirMatch(const std::string & aIm)
+{
+    return LocDirMatch(IsIm1(aIm));
+}
+
+std::string cCpleEpip::LocNameImEpi(const std::string & aIm)
+{
+    return LocNameImEpi(IsIm1(aIm));
+}
+std::string cCpleEpip::LocPxFileMatch(const std::string & aIm,int aNum,int aDeZoom)
+{
+    return LocPxFileMatch(IsIm1(aIm),aNum,aDeZoom);
+}
+std::string cCpleEpip::LocMasqFileMatch(const std::string & aIm,int aNum)
+{
+     return LocMasqFileMatch(IsIm1(aIm),aNum);
+}
+
+
+
+
+bool cCpleEpip::IsLeft(bool Im1) {return  mFirstIsLeft ? Im1 : (!Im1) ;}
+
+std::string cCpleEpip::LocNameImEpi(bool Im1)
+{
+    // bool ImLeft = mFirstIsLeft ? Im1 : (!Im1) ;
+    return   "Epi_" 
+           + std::string(Im1 ? "Im1_" : "Im2_") 
+           + (IsLeft(Im1) ? mPrefLeft : mPrefRight  ) 
+           + mNamePair + ".tif";
+}
+
+std::string cCpleEpip::LocDirMatch(bool Im1)
+{
+    return "MEC2Im-" + LocNameImEpi(Im1) + "-" +  LocNameImEpi(!Im1) + "/";
+}
+ 
+std::string cCpleEpip::LocPxFileMatch(bool Im1,int aNum,int aDeZoom)
+{
+    return LocDirMatch(Im1) + "Px1_Num"+ToString(aNum) + "_DeZoom"+  ToString(aDeZoom) +"_LeChantier.tif";
+}
+
+std::string  cCpleEpip::LocMasqFileMatch(bool Im1,int aNum)
+{
+  return LocDirMatch(Im1) + "AutoMask_LeChantier_Num_"+ ToString(aNum) +  ".tif" ; 
+
+}
+
+
 
 
 void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1)
 {
     bool ByP= true; /// std::cout << "Nnnnnnnnnnnnnnnnnnnnnoo process \n";
+    std::string aNameImOut = mDir + LocNameImEpi(Im1);
+/*
     bool ImLeft = mFirstIsLeft ? Im1 : (!Im1) ;
     std::string  aNameImOut = mDir + "Epi_" + std::string(Im1 ? "Im1_" : "Im2_") + (ImLeft ? mPrefLeft : mPrefRight  ) +   mNamePair + ".tif";
+*/
 
     AssertOk();
     const CamStenope & aCamIn =        Im1 ? mCInit1  : mCInit2;

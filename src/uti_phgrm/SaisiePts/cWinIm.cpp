@@ -198,7 +198,7 @@ cWinIm::cWinIm(cAppli_SaisiePts& anAppli,Video_Win aW,Video_Win aWT,cImage & aIm
     mCaseRenamePt    (new CaseGPUMT
                          (
                             *mPopUp1Shift,"titi",Pt2di(3,1),
-                            MMIcone("TDM").in(1) *255
+                            MMIcone("Rename").in(1) *255
                          )
                      ),
 

@@ -80,7 +80,7 @@ Arg_Tiff::Arg_Tiff(Data_Arg_Tiff * dat) :
         ||       D_Tiff_ifd_Arg_opt              ||
         =========================================*/
 
-int Tiff_Im::mDefTileFile = 1 << 13;
+int Tiff_Im::mDefTileFile = 1 << 18;
 void Tiff_Im::SetDefTileFile(int aSz)
 {
    mDefTileFile = aSz;

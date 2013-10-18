@@ -285,6 +285,20 @@ std::pair<int,std::string> cAppli_SaisiePts::IdNewPts(cCaseNamePoint * aCNP)
 
 
 
+void cSP_PointGlob::Rename(const std::string & aNewName)
+{
+     PG()->Name()  = aNewName;
+     for
+     (
+          std::map<std::string,cSP_PointeImage *>::iterator itM=mPointes.begin();
+          itM!=mPointes.end();
+          itM++
+     )
+     {
+          itM->second->Saisie()->NamePt()  = aNewName;
+     }
+}
+
 
 
 

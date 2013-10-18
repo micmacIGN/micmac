@@ -65,6 +65,7 @@ namespace NS_ParamMICMAC{
 	   <eMCC_GrCensus >          </eMCC_GrCensus>
            <eMCC_CensusBasic >       </eMCC_CensusBasic>
            <eMCC_CensusCorrel >      </eMCC_CensusCorrel>
+           <eMCC_CensusMixCorrelBasic >      </eMCC_CensusMixCorrelBasic>
    </enum>
 
 
@@ -911,6 +912,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                 <CorrelMultiScale Nb="?">
                       <ModeDense Nb="?" Type="bool"> </ModeDense>
                       <UseWAdapt Nb="?" Type="bool" Def="false"> </UseWAdapt>
+                      <ModeMax Nb="?" Type="bool" Def="false">  </ModeMax> <!--Pour l'instant Uniquement Implante dans la filiere Census-->
                       <OneParamCMS Nb="+" Container="std::vector">
                            <SzW Nb="1" Type="Pt2di"> </SzW>
                            <!-- A priori Sigma doit etre fonction de  SzW, mais quelle fonction ?? -->
@@ -932,6 +934,8 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                               <TypeCost Type="eModeCensusCost" Nb="1">   </TypeCost>
                               <Verif Type="bool" Nb="?" Def="false">   </Verif>
                               <AttenDist  Type="double" Def="0.0" Nb="?"> </AttenDist>
+                              <SeuilHautCorMixte Type="double" Def="0.8" Nb="?"> </SeuilHautCorMixte>
+                              <SeuilBasCorMixte Type="double" Def="0.6" Nb="?">  </SeuilBasCorMixte>
                         </CensusCost>
 
 

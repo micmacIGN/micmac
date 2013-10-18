@@ -192,8 +192,8 @@ int XifGps2Xml_main(int argc,char ** argv)
     ElInitArgMain
     (
            argc,argv,
-           LArgMain() << EAMC(aFullName,"Format specification") 
-                      << EAMC(anOri,"Target Result"),
+           LArgMain() << EAMC(aFullName,"Full Name") 
+                      << EAMC(anOri,"Orientation"),
            LArgMain() << EAM(DoRTL,"DoRTL",true,"Do Local Tangent RTL")
                       << EAM(aNameRTL,"RTL","Name RTL")
                       << EAM(aNameSys,"SysCo","System of coordinates, by default RTL created (RTLFromExif.xml)")

@@ -42,6 +42,26 @@ Header-MicMac-eLiSe-25/06/2007*/
 using namespace NS_ParamChantierPhotogram;
 
 
+cCpleEpip * StdCpleEpip
+          (
+             std::string  aDir,
+             std::string  aNameOri,
+             std::string  aNameIm1,
+             std::string  aNameIm2
+          )
+{
+    if (aNameIm1 > aNameIm2) ElSwap(aNameIm1,aNameIm2);
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+    std::string aNameCam1 =  anICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aNameOri,aNameIm1,true);
+    std::string aNameCam2 =  anICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aNameOri,aNameIm2,true);
+
+    CamStenope * aCam1 = CamStenope::StdCamFromFile(true,aNameCam1,anICNM);
+    CamStenope * aCam2 = CamStenope::StdCamFromFile(true,aNameCam2,anICNM);
+    return new cCpleEpip (aDir,1,*aCam1,aNameIm1,*aCam2,aNameIm2);
+
+}
+
 
 int CreateEpip_main(int argc,char ** argv)
 {
@@ -67,6 +87,7 @@ int CreateEpip_main(int argc,char ** argv)
                     << EAM(Gray,"Gray",true,"One channel Gray level image (Def=true)")
                     << EAM(Cons16B,"16B",true,"Maintain 16 Bits images if avalaibale (Def=true)")
     );	
+    if (aName1 > aName2) ElSwap(aName1,aName2);
 
     int aNbChan = Gray ? 1 : - 1;
     std::string   aKey =  + "NKS-Assoc-Im2Orient@-" + anOri;

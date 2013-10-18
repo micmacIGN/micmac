@@ -84,7 +84,7 @@ int SEL_main(int argc,char ** argv)
                       << EAM(aN2) ,
            LArgMain() << EAM(aRedr,"R",true)
                       << EAM(aFilter,"F",true)
-                      << EAM(aKeyH,"KH",true)
+                      << EAM(aKeyH,"KH",true,"In P PB PBR M S NB NT")
                       << EAM(aKeyCompl,"KCpl",true)
                       << EAM(aSzW,"SzW",true)
     );
