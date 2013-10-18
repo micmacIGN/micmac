@@ -3,10 +3,10 @@
 
 MainWindow::MainWindow(bool mode2D, QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow),
-    m_Engine(new cEngine)
+    _ui(new Ui::MainWindow),
+    _Engine(new cEngine)
 {
-    ui->setupUi(this);
+    _ui->setupUi(this);
 
     QString style = "border: 2px solid gray;"
             "border-radius: 1px;"
@@ -15,132 +15,132 @@ MainWindow::MainWindow(bool mode2D, QWidget *parent) :
     style = style.arg(colorBG0.red()).arg(colorBG0.green()).arg(colorBG0.blue());
     style = style.arg(colorBG1.red()).arg(colorBG1.green()).arg(colorBG1.blue());
 
-    ui->OpenglLayout->setStyleSheet(style);
+    _ui->OpenglLayout->setStyleSheet(style);
 
-    m_ProgressDialog = new QProgressDialog("Loading files","Stop",0,0,this);
+    _ProgressDialog = new QProgressDialog("Loading files","Stop",0,0,this);
     //ProgressDialog->setMinimumDuration(500);
-    m_ProgressDialog->setMinimum(0);
-    m_ProgressDialog->setMaximum(100);
+    _ProgressDialog->setMinimum(0);
+    _ProgressDialog->setMaximum(100);
 
-    connect(&m_FutureWatcher, SIGNAL(finished()),m_ProgressDialog,SLOT(cancel()));
+    connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog,SLOT(cancel()));
 
-    m_glWidget = new GLWidget(this,m_Engine->getData());
+    _glWidget = new GLWidget(this,_Engine->getData());
 
-    toggleShowMessages(ui->actionShow_help_messages->isChecked());
-    toggleShowBall(ui->actionShow_ball->isChecked());
-    toggleShowAxis(ui->actionShow_axis->isChecked());
-    toggleShowBBox(ui->actionShow_bounding_box->isChecked());
-    toggleShowCams(ui->actionShow_cams->isChecked());
+    toggleShowMessages(_ui->actionShow_help_messages->isChecked());
+    toggleShowBall(_ui->actionShow_ball->isChecked());
+    toggleShowAxis(_ui->actionShow_axis->isChecked());
+    toggleShowBBox(_ui->actionShow_bounding_box->isChecked());
+    toggleShowCams(_ui->actionShow_cams->isChecked());
 
     setMode2D(mode2D);
 
     QHBoxLayout* layout = new QHBoxLayout();
-    layout->addWidget(m_glWidget);
+    layout->addWidget(_glWidget);
     connectActions();
-    ui->OpenglLayout->setLayout(layout);
+    _ui->OpenglLayout->setLayout(layout);
 
     createMenus();
 }
 
 MainWindow::~MainWindow()
 {
-    delete ui;
-    delete m_glWidget;
-    delete m_Engine;
-    delete m_RFMenu;
+    delete _ui;
+    delete _glWidget;
+    delete _Engine;
+    delete _RFMenu;
 }
 
 void MainWindow::connectActions()
 {
-    connect(m_glWidget,	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
+    connect(_glWidget,	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
 
 
     //View menu
-    connect(ui->actionFullScreen,       SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
-    if (!m_bMode2D)
+    connect(_ui->actionFullScreen,       SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
+    if (!_bMode2D)
     {
-        connect(ui->actionShow_axis,        SIGNAL(toggled(bool)), this, SLOT(toggleShowAxis(bool)));
-        connect(ui->actionShow_ball,        SIGNAL(toggled(bool)), this, SLOT(toggleShowBall(bool)));
-        connect(ui->actionShow_cams,        SIGNAL(toggled(bool)), this, SLOT(toggleShowCams(bool)));
-        connect(ui->actionShow_bounding_box,SIGNAL(toggled(bool)), this, SLOT(toggleShowBBox(bool)));
+        connect(_ui->actionShow_axis,        SIGNAL(toggled(bool)), this, SLOT(toggleShowAxis(bool)));
+        connect(_ui->actionShow_ball,        SIGNAL(toggled(bool)), this, SLOT(toggleShowBall(bool)));
+        connect(_ui->actionShow_cams,        SIGNAL(toggled(bool)), this, SLOT(toggleShowCams(bool)));
+        connect(_ui->actionShow_bounding_box,SIGNAL(toggled(bool)), this, SLOT(toggleShowBBox(bool)));
     }
-    connect(ui->actionShow_help_messages,   SIGNAL(toggled(bool)), this, SLOT(toggleShowMessages(bool)));
+    connect(_ui->actionShow_help_messages,   SIGNAL(toggled(bool)), this, SLOT(toggleShowMessages(bool)));
 
-    connect(ui->actionReset_view,           SIGNAL(triggered()),   this, SLOT(resetView()));
-    connect(ui->action2D_3D_mode,           SIGNAL(toggled(bool)), this, SLOT(toggle2D3D(bool)));
+    connect(_ui->actionReset_view,           SIGNAL(triggered()),   this, SLOT(resetView()));
+    connect(_ui->action2D_3D_mode,           SIGNAL(toggled(bool)), this, SLOT(toggle2D3D(bool)));
 
-    connect(ui->actionHelpShortcuts,        SIGNAL(triggered()),   this, SLOT(doActionDisplayShortcuts()));
+    connect(_ui->actionHelpShortcuts,        SIGNAL(triggered()),   this, SLOT(displayShortcuts()));
 
-    if (!m_bMode2D)
+    if (!_bMode2D)
     {
-        connect(ui->actionSetViewTop,		SIGNAL(triggered()),   this, SLOT(setTopView()));
-        connect(ui->actionSetViewBottom,	SIGNAL(triggered()),   this, SLOT(setBottomView()));
-        connect(ui->actionSetViewFront,		SIGNAL(triggered()),   this, SLOT(setFrontView()));
-        connect(ui->actionSetViewBack,		SIGNAL(triggered()),   this, SLOT(setBackView()));
-        connect(ui->actionSetViewLeft,		SIGNAL(triggered()),   this, SLOT(setLeftView()));
-        connect(ui->actionSetViewRight,		SIGNAL(triggered()),   this, SLOT(setRightView()));
+        connect(_ui->actionSetViewTop,		SIGNAL(triggered()),   this, SLOT(setTopView()));
+        connect(_ui->actionSetViewBottom,	SIGNAL(triggered()),   this, SLOT(setBottomView()));
+        connect(_ui->actionSetViewFront,		SIGNAL(triggered()),   this, SLOT(setFrontView()));
+        connect(_ui->actionSetViewBack,		SIGNAL(triggered()),   this, SLOT(setBackView()));
+        connect(_ui->actionSetViewLeft,		SIGNAL(triggered()),   this, SLOT(setLeftView()));
+        connect(_ui->actionSetViewRight,		SIGNAL(triggered()),   this, SLOT(setRightView()));
     }
 
-    connect(ui->actionZoom_Plus,		SIGNAL(triggered()),   this, SLOT(zoomPlus()));
-    connect(ui->actionZoom_Moins,		SIGNAL(triggered()),   this, SLOT(zoomMoins()));
-    connect(ui->actionZoom_fit,		    SIGNAL(triggered()),   this, SLOT(zoomFit()));
+    connect(_ui->actionZoom_Plus,		SIGNAL(triggered()),   this, SLOT(zoomPlus()));
+    connect(_ui->actionZoom_Moins,		SIGNAL(triggered()),   this, SLOT(zoomMoins()));
+    connect(_ui->actionZoom_fit,		    SIGNAL(triggered()),   this, SLOT(zoomFit()));
 
     QSignalMapper* signalMapper = new QSignalMapper (this) ;
 
-    connect(ui->action4_1_400,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
-    connect(ui->action2_1_200,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
-    connect(ui->action1_1_100,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
-    connect(ui->action1_2_50,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
-    connect(ui->action1_4_25,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
+    connect(_ui->action4_1_400,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
+    connect(_ui->action2_1_200,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
+    connect(_ui->action1_1_100,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
+    connect(_ui->action1_2_50,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
+    connect(_ui->action1_4_25,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
 
-    signalMapper->setMapping (ui->action4_1_400, 400) ;
-    signalMapper->setMapping (ui->action2_1_200, 200) ;
-    signalMapper->setMapping (ui->action1_1_100, 100) ;
-    signalMapper->setMapping (ui->action1_2_50, 50) ;
-    signalMapper->setMapping (ui->action1_4_25, 25) ;
+    signalMapper->setMapping (_ui->action4_1_400, 400) ;
+    signalMapper->setMapping (_ui->action2_1_200, 200) ;
+    signalMapper->setMapping (_ui->action1_1_100, 100) ;
+    signalMapper->setMapping (_ui->action1_2_50, 50) ;
+    signalMapper->setMapping (_ui->action1_4_25, 25) ;
 
     connect (signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int))) ;
 
     //"Selection menu
-    connect(ui->actionToggleMode_selection, SIGNAL(triggered(bool)), this, SLOT(toggleSelectionMode(bool)));
-    connect(ui->actionAdd,              SIGNAL(triggered()),   this, SLOT(add()));
-    connect(ui->actionSelect_none,      SIGNAL(triggered()),   this, SLOT(selectNone()));
-    connect(ui->actionInvertSelected,   SIGNAL(triggered()),   this, SLOT(invertSelected()));
-    connect(ui->actionSelectAll,        SIGNAL(triggered()),   this, SLOT(selectAll()));
-    connect(ui->actionReset,            SIGNAL(triggered()),   this, SLOT(reset()));
-    connect(ui->actionRemove_from_selection,            SIGNAL(triggered()),   this, SLOT(removeFromSelection()));
+    connect(_ui->actionToggleMode_selection, SIGNAL(triggered(bool)), this, SLOT(toggleSelectionMode(bool)));
+    connect(_ui->actionAdd,              SIGNAL(triggered()),   this, SLOT(add()));
+    connect(_ui->actionSelect_none,      SIGNAL(triggered()),   this, SLOT(selectNone()));
+    connect(_ui->actionInvertSelected,   SIGNAL(triggered()),   this, SLOT(invertSelected()));
+    connect(_ui->actionSelectAll,        SIGNAL(triggered()),   this, SLOT(selectAll()));
+    connect(_ui->actionReset,            SIGNAL(triggered()),   this, SLOT(reset()));
+    connect(_ui->actionRemove_from_selection,            SIGNAL(triggered()),   this, SLOT(removeFromSelection()));
 
     //File menu
-    connect(ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
-    connect(ui->actionLoad_camera,		SIGNAL(triggered()),   this, SLOT(loadCameras()));
-    connect(ui->actionLoad_image,		SIGNAL(triggered()),   this, SLOT(loadImage()));
-    connect(ui->actionSave_masks,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
-    connect(ui->actionSave_as,          SIGNAL(triggered()),   this, SLOT(exportMasksAs()));
-    connect(ui->actionLoad_and_Export,  SIGNAL(triggered()),   this, SLOT(loadAndExport()));
-    connect(ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
-    connect(ui->actionClose_all,        SIGNAL(triggered()),   this, SLOT(closeAll()));
-    connect(ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
+    connect(_ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
+    connect(_ui->actionLoad_camera,		SIGNAL(triggered()),   this, SLOT(loadCameras()));
+    connect(_ui->actionLoad_image,		SIGNAL(triggered()),   this, SLOT(loadImage()));
+    connect(_ui->actionSave_masks,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
+    connect(_ui->actionSave_as,          SIGNAL(triggered()),   this, SLOT(exportMasksAs()));
+    connect(_ui->actionLoad_and_Export,  SIGNAL(triggered()),   this, SLOT(loadAndExport()));
+    connect(_ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
+    connect(_ui->actionClose_all,        SIGNAL(triggered()),   this, SLOT(closeAll()));
+    connect(_ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
 
-    connect(m_glWidget,SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
+    connect(_glWidget,SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
 
     for (int i = 0; i < MaxRecentFiles; ++i)
     {
-        m_recentFileActs[i] = new QAction(this);
-        m_recentFileActs[i]->setVisible(false);
-        connect(m_recentFileActs[i], SIGNAL(triggered()),
+        _recentFileActs[i] = new QAction(this);
+        _recentFileActs[i]->setVisible(false);
+        connect(_recentFileActs[i], SIGNAL(triggered()),
                 this, SLOT(openRecentFile()));
     }
 }
 
 void MainWindow::createMenus()
 {
-    m_RFMenu = new QMenu(tr("Recent files"), this);
+    _RFMenu = new QMenu(tr("Recent files"), this);
 
-    ui->menuFile->insertMenu(ui->actionSave_selection, m_RFMenu);
-    ui->menuFile->insertSeparator(ui->actionSave_selection);
+    _ui->menuFile->insertMenu(_ui->actionSave_selection, _RFMenu);
+    _ui->menuFile->insertSeparator(_ui->actionSave_selection);
 
     for (int i = 0; i < MaxRecentFiles; ++i)
-        m_RFMenu->addAction(m_recentFileActs[i]);
+        _RFMenu->addAction(_recentFileActs[i]);
 
     updateRecentFileActions();
 }
@@ -148,35 +148,35 @@ void MainWindow::createMenus()
 bool MainWindow::checkForLoadedData()
 {
     bool loadedEntities = true;
-    m_glWidget->displayNewMessage(QString()); //clear (any) message in the middle area
+    _glWidget->displayNewMessage(QString()); //clear (any) message in the middle area
 
-    if (!m_glWidget->hasDataLoaded())
+    if (!_glWidget->hasDataLoaded())
     {
-        m_glWidget->displayNewMessage(tr("Drag & drop files on window to load them!"));
+        _glWidget->displayNewMessage(tr("Drag & drop files on window to load them!"));
         loadedEntities = false;
     }
     else
-        toggleShowMessages(ui->actionShow_help_messages->isChecked());
+        toggleShowMessages(_ui->actionShow_help_messages->isChecked());
 
     return loadedEntities;
 }
 
 void MainWindow::setPostFix(QString str)
 {
-   m_Engine->setPostFix("_" + str);
+   _Engine->setPostFix("_" + str);
 }
 
 void MainWindow::progression()
 {
-    if(m_incre)
-        m_ProgressDialog->setValue(*m_incre);
+    if(_incre)
+        _ProgressDialog->setValue(*_incre);
 }
 
 void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
     {
-        m_FilenamesIn = filenames;
+        _FilenamesIn = filenames;
 
         for (int i=0; i< filenames.size();++i)
         {
@@ -189,7 +189,7 @@ void MainWindow::addFiles(const QStringList& filenames)
             }
         }
 
-        m_Engine->SetFilenamesIn(filenames);
+        _Engine->SetFilenamesIn(filenames);
 
         setMode2D(false);
         closeAll();
@@ -199,7 +199,7 @@ void MainWindow::addFiles(const QStringList& filenames)
         //set default working directory as first file subfolder
         QDir Dir = fi.dir();
         Dir.cdUp();
-        m_Engine->setDir(Dir);
+        _Engine->setDir(Dir);
 
 #ifdef _DEBUG
         printf("adding files %s", filenames[0]);
@@ -208,38 +208,38 @@ void MainWindow::addFiles(const QStringList& filenames)
         if (fi.suffix() == "ply")
         {            
             QTimer *timer_test = new QTimer(this);
-            m_incre = new int(0);
+            _incre = new int(0);
             connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
             timer_test->start(10);
-            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadClouds,filenames,m_incre);
+            QFuture<void> future = QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames,_incre);
 
-            this->m_FutureWatcher.setFuture(future);
-            this->m_ProgressDialog->setWindowModality(Qt::WindowModal);
-            this->m_ProgressDialog->exec();
+            this->_FutureWatcher.setFuture(future);
+            this->_ProgressDialog->setWindowModality(Qt::WindowModal);
+            this->_ProgressDialog->exec();
 
             timer_test->stop();
             disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-            delete m_incre;
+            delete _incre;
 
             delete timer_test;
 
             future.waitForFinished();
 
-            m_Engine->setFilename();
-            m_Engine->setFilenamesOut();
+            _Engine->setFilename();
+            _Engine->setFilenamesOut();
         }
         else if (fi.suffix() == "xml")
         {
-            QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadCameras, filenames);
+            QFuture<void> future = QtConcurrent::run(_Engine, &cEngine::loadCameras, filenames);
 
-            this->m_FutureWatcher.setFuture(future);
-            this->m_ProgressDialog->setWindowModality(Qt::WindowModal);
-            this->m_ProgressDialog->exec();
+            this->_FutureWatcher.setFuture(future);
+            this->_ProgressDialog->setWindowModality(Qt::WindowModal);
+            this->_ProgressDialog->exec();
 
             future.waitForFinished();
 
-            m_glWidget->showCams(true);
-            ui->actionShow_cams->setChecked(true);
+            _glWidget->showCams(true);
+            _ui->actionShow_cams->setChecked(true);
         }
         else
         {
@@ -247,7 +247,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
             glLoadIdentity();
 
-            m_Engine->loadImages(filenames);
+            _Engine->loadImages(filenames);
 
             //try to load images
             /*QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadImages, filenames);
@@ -258,11 +258,11 @@ void MainWindow::addFiles(const QStringList& filenames)
 
             future.waitForFinished();*/
 
-            m_Engine->setFilenamesOut();
+            _Engine->setFilenamesOut();
         }
 
-        m_glWidget->setData(m_Engine->getData());
-        m_glWidget->update();
+        _glWidget->setData(_Engine->getData());
+        _glWidget->update();
 
         for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
 
@@ -274,7 +274,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
 void MainWindow::selectedPoint(uint idC, uint idV, bool select)
 {
-    m_Engine->getData()->getCloud(idC)->getVertex(idV).setVisible(select);
+    _Engine->getData()->getCloud(idC)->getVertex(idV).setVisible(select);
 }
 
 void MainWindow::toggleFullScreen(bool state)
@@ -287,53 +287,53 @@ void MainWindow::toggleFullScreen(bool state)
 
 void MainWindow::toggleShowBall(bool state)
 {
-    m_glWidget->showBall(state);
+    _glWidget->showBall(state);
 }
 
 void MainWindow::toggleShowBBox(bool state)
 {
-    m_glWidget->showBBox(state);
+    _glWidget->showBBox(state);
 }
 
 void MainWindow::toggleShowAxis(bool state)
 {
-    m_glWidget->showAxis(state);
+    _glWidget->showAxis(state);
 }
 
 void MainWindow::toggleShowCams(bool state)
 {
-    m_glWidget->showCams(state);
+    _glWidget->showCams(state);
 }
 
 void MainWindow::toggleShowMessages(bool state)
 {
-    m_glWidget->showMessages(state);
+    _glWidget->showMessages(state);
 }
 
 void MainWindow::toggleSelectionMode(bool state)
 {
-    m_glWidget->setInteractionMode(state ? GLWidget::SELECTION : GLWidget::TRANSFORM_CAMERA);
+    _glWidget->setInteractionMode(state ? GLWidget::SELECTION : GLWidget::TRANSFORM_CAMERA);
 
-    m_glWidget->update();
+    _glWidget->update();
 }
 
-void MainWindow::doActionDisplayShortcuts()
+void MainWindow::displayShortcuts()
 {
     QString text = tr("File menu:") +"\n\n";
-    if (!m_bMode2D)
+    if (!_bMode2D)
     {
         text += "Ctrl+P: \t" + tr("open .ply files")+"\n";
         text += "Ctrl+C: \t"+ tr("open .xml camera files")+"\n";
     }
     text += "Ctrl+O: \t"+tr("open image file")+"\n";
-    if (!m_bMode2D) text += "tr(""Ctrl+E: \t"+tr("save .xml selection infos")+"\n";
+    if (!_bMode2D) text += "tr(""Ctrl+E: \t"+tr("save .xml selection infos")+"\n";
     text += "Ctrl+S: \t"+tr("save mask file")+"\n";
     text += "Ctrl+Maj+S: \t"+tr("save mask file as")+"\n";
     text += "Ctrl+X: \t"+tr("close files")+"\n";
     text += "Ctrl+Q: \t"+tr("quit") +"\n\n";
     text += tr("View menu:") +"\n\n";
     text += "F2: \t"+tr("full screen") +"\n";
-    if (!m_bMode2D)
+    if (!_bMode2D)
     {
         text += "F3: \t"+tr("show axis") +"\n";
         text += "F4: \t"+tr("show ball") +"\n";
@@ -342,7 +342,7 @@ void MainWindow::doActionDisplayShortcuts()
     }
     text += "F7: \t"+tr("show messages") +"\n";
 
-    if (!m_bMode2D)
+    if (!_bMode2D)
         text += tr("Key +/-: \tincrease/decrease point size") +"\n\n";
     else
     {
@@ -359,14 +359,14 @@ void MainWindow::doActionDisplayShortcuts()
     text += "F8: \t"+tr("2D mode / 3D mode") +"\n\n";
 
     text += tr("Selection menu:") +"\n\n";
-    if (!m_bMode2D)
+    if (!_bMode2D)
     {
         text += "F9: \t"+tr("move mode / selection mode") +"\n\n";
     }
     text += tr("Left click : \tadd a vertex to polyline") +"\n";
     text += tr("Right click: \tclose polyline") +"\n";
     text += tr("Echap: \tdelete polyline") +"\n";
-    if (!m_bMode2D)
+    if (!_bMode2D)
     {
         text += tr("Space bar: \tadd points inside polyline") +"\n";
         text += tr("Del: \tremove points inside polyline") +"\n";
@@ -389,91 +389,91 @@ void MainWindow::doActionDisplayShortcuts()
 
 void MainWindow::add()
 {
-    m_glWidget->Select(ADD);
+    _glWidget->Select(ADD);
 }
 
 void MainWindow::selectNone()
 {
-    m_glWidget->Select(NONE);
-    m_glWidget->clearPolyline();
+    _glWidget->Select(NONE);
+    _glWidget->clearPolyline();
 }
 
 void MainWindow::invertSelected()
 {
-    m_glWidget->Select(INVERT);
+    _glWidget->Select(INVERT);
 }
 
 void MainWindow::selectAll()
 {
-    m_glWidget->Select(ALL);
+    _glWidget->Select(ALL);
 }
 
 void MainWindow::removeFromSelection()
 {
-    m_glWidget->Select(SUB);
+    _glWidget->Select(SUB);
 }
 
 void MainWindow::reset()
 {
     closeAll();
 
-    addFiles(m_FilenamesIn);
+    addFiles(_FilenamesIn);
 }
 
 void MainWindow::setTopView()
 {
-    m_glWidget->setView(TOP_VIEW);
+    _glWidget->setView(TOP_VIEW);
 }
 
 void MainWindow::setBottomView()
 {
-    m_glWidget->setView(BOTTOM_VIEW);
+    _glWidget->setView(BOTTOM_VIEW);
 }
 
 void MainWindow::setFrontView()
 {
-    m_glWidget->setView(FRONT_VIEW);
+    _glWidget->setView(FRONT_VIEW);
 }
 
 void MainWindow::setBackView()
 {
-    m_glWidget->setView(BACK_VIEW);
+    _glWidget->setView(BACK_VIEW);
 }
 
 void MainWindow::setLeftView()
 {
-    m_glWidget->setView(LEFT_VIEW);
+    _glWidget->setView(LEFT_VIEW);
 }
 
 void MainWindow::setRightView()
 {
-    m_glWidget->setView(RIGHT_VIEW);
+    _glWidget->setView(RIGHT_VIEW);
 }
 
 void MainWindow::resetView()
 {
-    m_glWidget->resetView();
+    _glWidget->resetView();
 }
 
 //zoom
 void MainWindow::zoomPlus()
 {
-    m_glWidget->setZoom(m_glWidget->getParams()->zoom*1.5f);
+    _glWidget->setZoom(_glWidget->getParams()->zoom*1.5f);
 }
 
 void MainWindow::zoomMoins()
 {
-    m_glWidget->setZoom(m_glWidget->getParams()->zoom/1.5f);
+    _glWidget->setZoom(_glWidget->getParams()->zoom/1.5f);
 }
 
 void MainWindow::zoomFit()
 {
-    m_glWidget->zoomFit();
+    _glWidget->zoomFit();
 }
 
 void MainWindow::zoomFactor(int aFactor)
 {
-    m_glWidget->zoomFactor(aFactor);
+    _glWidget->zoomFactor(aFactor);
 }
 
 void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
@@ -507,22 +507,22 @@ void MainWindow::loadImage()
 
     if (!img_filename.isEmpty())
     {
-        m_FilenamesIn.clear();
-        m_FilenamesIn.push_back(img_filename);
+        _FilenamesIn.clear();
+        _FilenamesIn.push_back(img_filename);
 
-        if (!m_bMode2D)
+        if (!_bMode2D)
         {
-            m_bMode2D = true;
+            _bMode2D = true;
 
             closeAll();
             glLoadIdentity();
         }
 
         // load image (and mask)
-        m_Engine->loadImage(img_filename);
+        _Engine->loadImage(img_filename);
 
-        m_glWidget->setData(m_Engine->getData());
-        m_glWidget->update();
+        _glWidget->setData(_Engine->getData());
+        _glWidget->update();
 
         setCurrentFile(img_filename);
 
@@ -533,13 +533,13 @@ void MainWindow::loadImage()
 
 void MainWindow::exportMasks()
 {
-    if (m_Engine->getData()->NbImages())
+    if (_Engine->getData()->NbImages())
     {
-        m_Engine->doMaskImage(m_glWidget->getGLMask());
+        _Engine->doMaskImage(_glWidget->getGLMask());
     }
     else
     {
-        m_Engine->doMasks();
+        _Engine->doMasks();
     }
 }
 
@@ -549,15 +549,15 @@ void MainWindow::exportMasksAs()
 
     if (!fname.isEmpty())
     {
-        m_Engine->setFilenameOut(fname);
+        _Engine->setFilenameOut(fname);
 
-        if (m_Engine->getData()->NbImages())
+        if (_Engine->getData()->NbImages())
         {
-            m_Engine->doMaskImage(m_glWidget->getGLMask());
+            _Engine->doMaskImage(_glWidget->getGLMask());
         }
         else
         {
-            m_Engine->doMasks();
+            _Engine->doMasks();
         }
     }
 }
@@ -565,23 +565,23 @@ void MainWindow::exportMasksAs()
 void MainWindow::loadAndExport()
 {
     loadCameras();
-    m_Engine->doMasks();
+    _Engine->doMasks();
 }
 
 void MainWindow::saveSelectionInfos()
 {
-    m_Engine->saveSelectInfos(m_glWidget->getSelectInfos());
+    _Engine->saveSelectInfos(_glWidget->getSelectInfos());
 }
 
 void MainWindow::closeAll()
 {
-    m_Engine->unloadAll();
+    _Engine->unloadAll();
 
-    m_glWidget->reset();
+    _glWidget->reset();
 
     checkForLoadedData();
-    m_glWidget->setBufferGl();
-    m_glWidget->update();
+    _glWidget->setBufferGl();
+    _glWidget->update();
 }
 
 void MainWindow::openRecentFile()
@@ -589,16 +589,16 @@ void MainWindow::openRecentFile()
     QAction *action = qobject_cast<QAction *>(sender());
     if (action)
     {
-        m_FilenamesIn = QStringList(action->data().toString());
+        _FilenamesIn = QStringList(action->data().toString());
 
-        addFiles(m_FilenamesIn);
+        addFiles(_FilenamesIn);
     }
 }
 
 void MainWindow::setCurrentFile(const QString &fileName)
 {
-    m_curFile = fileName;
-    setWindowFilePath(m_curFile);
+    _curFile = fileName;
+    setWindowFilePath(_curFile);
 
     QSettings settings;
     QStringList files = settings.value("recentFileList").toStringList();
@@ -627,12 +627,12 @@ void MainWindow::updateRecentFileActions()
 
     for (int i = 0; i < numRecentFiles; ++i) {
         QString text = tr("&%1 - %2").arg(i + 1).arg(strippedName(files[i]));
-        m_recentFileActs[i]->setText(text);
-        m_recentFileActs[i]->setData(files[i]);
-        m_recentFileActs[i]->setVisible(true);
+        _recentFileActs[i]->setText(text);
+        _recentFileActs[i]->setData(files[i]);
+        _recentFileActs[i]->setVisible(true);
     }
     for (int j = numRecentFiles; j < MaxRecentFiles; ++j)
-        m_recentFileActs[j]->setVisible(false);
+        _recentFileActs[j]->setVisible(false);
 
     //m_RFMenu->setVisible(numRecentFiles > 0);
 }
@@ -644,42 +644,42 @@ QString MainWindow::strippedName(const QString &fullFileName)
 
 void MainWindow::setMode2D(bool mBool)
 {
-    m_bMode2D = mBool;
+    _bMode2D = mBool;
 
-    ui->actionLoad_plys->setVisible(!mBool);
-    ui->actionLoad_camera->setVisible(!mBool);
-    ui->actionShow_cams->setVisible(!mBool);
-    ui->actionShow_axis->setVisible(!mBool);
-    ui->actionShow_ball->setVisible(!mBool);
-    ui->actionShow_bounding_box->setVisible(!mBool);
-    ui->actionSave_selection->setVisible(!mBool);
-    ui->actionToggleMode_selection->setVisible(!mBool);
+    _ui->actionLoad_plys->setVisible(!mBool);
+    _ui->actionLoad_camera->setVisible(!mBool);
+    _ui->actionShow_cams->setVisible(!mBool);
+    _ui->actionShow_axis->setVisible(!mBool);
+    _ui->actionShow_ball->setVisible(!mBool);
+    _ui->actionShow_bounding_box->setVisible(!mBool);
+    _ui->actionSave_selection->setVisible(!mBool);
+    _ui->actionToggleMode_selection->setVisible(!mBool);
 
-    ui->menuStandard_views->menuAction()->setVisible(!mBool);
+    _ui->menuStandard_views->menuAction()->setVisible(!mBool);
 
     //pour activer/desactiver les raccourcis clavier
 
-    ui->actionLoad_plys->setEnabled(!mBool);
-    ui->actionLoad_camera->setEnabled(!mBool);
-    ui->actionShow_cams->setEnabled(!mBool);
-    ui->actionShow_axis->setEnabled(!mBool);
-    ui->actionShow_ball->setEnabled(!mBool);
-    ui->actionShow_bounding_box->setEnabled(!mBool);
-    ui->actionSave_selection->setEnabled(!mBool);
-    ui->actionToggleMode_selection->setEnabled(!mBool);
+    _ui->actionLoad_plys->setEnabled(!mBool);
+    _ui->actionLoad_camera->setEnabled(!mBool);
+    _ui->actionShow_cams->setEnabled(!mBool);
+    _ui->actionShow_axis->setEnabled(!mBool);
+    _ui->actionShow_ball->setEnabled(!mBool);
+    _ui->actionShow_bounding_box->setEnabled(!mBool);
+    _ui->actionSave_selection->setEnabled(!mBool);
+    _ui->actionToggleMode_selection->setEnabled(!mBool);
 
 }
 
 void MainWindow::toggle2D3D(bool state)
 {
-    setMode2D(!(state&&m_bMode2D));
+    setMode2D(!(state&&_bMode2D));
 
     closeAll();
 }
 
 void  MainWindow::setGamma(float aGamma)
 {
-    m_glWidget->getParams()->setGamma(aGamma);
+    _glWidget->getParams()->setGamma(aGamma);
 }
 
 

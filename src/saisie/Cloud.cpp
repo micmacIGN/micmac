@@ -45,16 +45,16 @@ static PlyProperty oriented_vert_props[] = {
 
 Vertex::Vertex()
 {
-    m_position = Pt3dr(0.,0.,0.);
-    m_color    = QColor();
-    m_bVisible  = true;
+    _position = Pt3dr(0.,0.,0.);
+    _color    = QColor();
+    _bVisible = true;
 }
 
 Vertex::Vertex(Pt3dr pos, QColor col)
 {
-    m_position  = pos;
-    m_color     = col;
-    m_bVisible  = true;
+    _position  = pos;
+    _color     = col;
+    _bVisible  = true;
 }
 
 /*!
@@ -231,37 +231,37 @@ Cloud* Cloud::loadPly(string i_filename ,int* incre)
 
 void Cloud::addVertex(const Vertex &vert)
 {
-    m_vertices.push_back(vert);
+    _vertices.push_back(vert);
 }
 
 int Cloud::size()
 {
-    return m_vertices.size();
+    return _vertices.size();
 }
 
 Vertex& Cloud::getVertex(uint nb_vert)
 {
-    if (m_vertices.size() > nb_vert)
+    if (_vertices.size() > nb_vert)
     {
-        return m_vertices[nb_vert];
+        return _vertices[nb_vert];
     }
     else
     {
         printf("error accessing point cloud vector in Cloud::getVertex");
     }
 
-    return m_vertices[0];
+    return _vertices[0];
 }
 
 void Cloud::clear()
 {
-    m_vertices.clear();
+    _vertices.clear();
 }
 
 Cloud::Cloud()
     :
-      m_translation(),
-      m_scale(0.)
+      _translation(),
+      _scale(0.)
 {}
 
 Cloud::Cloud(vector<Vertex> const & vVertex)
@@ -271,7 +271,7 @@ Cloud::Cloud(vector<Vertex> const & vVertex)
         addVertex(vVertex[aK]);
     }
 
-    m_translation = Pt3dr(0.,0.,0.);
-    m_scale = 0.f;
+    _translation = Pt3dr(0.,0.,0.);
+    _scale = 0.f;
 }
 
