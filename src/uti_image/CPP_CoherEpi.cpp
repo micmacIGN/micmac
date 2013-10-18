@@ -40,23 +40,243 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define DEF_OFSET -12349876
 
+class cCEM_OneIm;
+class cCoherEpi_main;
 
-int CoherEpi_main(int argc,char ** argv)
+
+class cCEM_OneIm
+{ 
+     public :
+          cCEM_OneIm (cCoherEpi_main * ,const std::string &,const Box2di & aBox,bool Visu);
+          Box2dr BoxIm2();
+          void SetConj(cCEM_OneIm *);
+
+          Pt2dr ToIm2(const Pt2dr & aP)
+          {
+                 return RoughToIm2(aP+mRP0,mTPx.getprojR(aP))- mConj->mRP0;
+          }
+          Pt2dr AllerRetour(const Pt2dr & aP)
+          {
+                return mConj->ToIm2(ToIm2(aP));
+          }
+          Im2D_U_INT1  ImAR(double aMul);
+
+     private :
+          virtual  Pt2dr  RoughToIm2(const Pt2dr & aP,const double & aPx)
+          {
+             return Pt2dr(aP.x+aPx,aP.y);
+          }
+
+          Output VGray() {return mW ?  mW->ogray() : Output::onul(1) ;}
+
+          cCoherEpi_main * mCoher;
+          cCpleEpip *      mCple;
+          std::string      mDir;
+          std::string      mName;
+          std::string      mNameEpi;
+          Tiff_Im          mTifIm;
+          Box2di           mBox;
+          Pt2di            mSz;
+          Pt2di            mP0;
+          Pt2dr            mRP0;
+          Im2D_U_INT2      mIm;
+          std::string      mNamePx;
+          Tiff_Im          mTifPx;
+          Im2D_REAL4       mImPx;
+          TIm2D<REAL4,REAL8> mTPx;
+          std::string      mNameMasq;
+          Tiff_Im          mTifMasq;
+          Im2D_Bits<1>     mImMasq;
+          TIm2DBits<1>     mTMasq;
+          Video_Win *      mW;
+          cCEM_OneIm *     mConj;
+};
+
+
+
+
+class cCoherEpi_main
 {
-    std::string aIm1;
-    std::string aIm2;
-    std::string anOri;
-    std::string aDir;
+     public :
+        friend class cCEM_OneIm;
+        cCoherEpi_main (int argc,char ** argv);
 
+        
+
+     private  :
+        Box2di       mBoxIm1;
+        Pt2di        mIntY1;
+        std::string  mNameIm1;
+        std::string  mNameIm2;
+        std::string  mOri;
+        std::string  mDir;
+        cCpleEpip *  mCple;
+        cCEM_OneIm  * mIm1; 
+        cCEM_OneIm  * mIm2; 
+
+        int           mDeZoom;
+        int           mNumPx;
+        int           mNumMasq;
+        bool          mVisu;
+        double        mSigmaP;
+};
+
+/*******************************************************************/
+/*                                                                 */
+/*                cCEM_OneIm                                       */
+/*                                                                 */
+/*******************************************************************/
+
+cCEM_OneIm::cCEM_OneIm
+(
+    cCoherEpi_main *       aCoher,
+    const std::string &    aName,
+    const Box2di      &    aBox,
+    bool                   aVisu
+)  :
+   mCoher     (aCoher),
+   mCple      (mCoher->mCple),
+   mDir       (mCoher->mDir),
+   mName      (aName),
+   mNameEpi   (mDir+ mCple->LocNameImEpi(mName)),
+   mTifIm     (mNameEpi.c_str()),
+   mBox       (Inf(aBox,Box2di(Pt2di(0,0),mTifIm.sz()))),
+   mSz        (mBox.sz()),
+   mP0        (mBox._p0),
+   mRP0       (mP0),
+   mIm        (mSz.x,mSz.y),
+   mNamePx    (mDir+mCple->LocPxFileMatch(mName,mCoher->mNumPx,mCoher->mDeZoom)),
+   mTifPx     (mNamePx.c_str()),
+   mImPx      (mSz.x,mSz.y),
+   mTPx       (mImPx),
+   mNameMasq  (mDir+mCple->LocMasqFileMatch(mName,mCoher->mNumMasq)),
+   mTifMasq   (mNameMasq.c_str()),
+   mImMasq    (mSz.x,mSz.y),
+   mTMasq     (mImMasq),
+   mW         (aVisu ? Video_Win::PtrWStd(mSz) : 0),
+   mConj      (0)
+   
+{
+    ELISE_COPY ( mIm.all_pts(),trans(mTifPx.in(),mP0),mImPx.out());
+    ELISE_COPY ( mIm.all_pts(),trans(mTifMasq.in(),mP0),mImMasq.out());
+    ELISE_COPY ( mIm.all_pts(),trans(mTifIm.in(),mP0),mIm.out() | VGray());
+}
+
+void cCEM_OneIm::SetConj(cCEM_OneIm * aConj)
+{
+   mConj = aConj;
+   mConj->mConj = this;
+}
+
+Box2dr cCEM_OneIm::BoxIm2()
+{
+   Pt2dr aP0(1e9,1e9);
+   Pt2dr aP1(-1e9,-1e9);
+
+   Pt2di aPIm;
+   for (aPIm.x=0 ; aPIm.x<mSz.x ; aPIm.x++)
+   {
+       for (aPIm.y=0 ; aPIm.y<mSz.y ; aPIm.y++)
+       {
+          if (mTMasq.get(aPIm))
+          {
+             Pt2dr aPIm2 = RoughToIm2(Pt2dr(aPIm+mP0),mTPx.get(aPIm));
+             aP0.SetInf(aPIm2);
+             aP1.SetSup(aPIm2);
+          }
+       }
+   }
+
+   return Box2dr(aP0,aP1);
+}
+
+Im2D_U_INT1  cCEM_OneIm::ImAR(double aMul)
+{
+   Im2D_U_INT1 aRes(mSz.x,mSz.y);
+   TIm2D<U_INT1,INT> aTRes(aRes);
+
+   double aSigma = mCoher->mSigmaP;
+   Pt2di aPIm;
+   for (aPIm.x=0 ; aPIm.x<mSz.x ; aPIm.x++)
+   {
+       for (aPIm.y=0 ; aPIm.y<mSz.y ; aPIm.y++)
+       {
+           Pt2dr aQ = AllerRetour(Pt2dr(aPIm));
+           double aDist = euclid(Pt2dr(aPIm)-aQ);
+           double aPds = (aSigma/(aSigma+aDist)) * 255;
+           aTRes.oset(aPIm,ElMin(255,round_ni(aPds)));
+       }
+   }
+   if (mW) 
+   {
+      ELISE_COPY(aRes.all_pts(),aRes.in(),VGray());
+   }
+
+
+   return aRes;
+}
+
+/*******************************************************************/
+/*                                                                 */
+/*                cCoherEpi_main                                   */
+/*                                                                 */
+/*******************************************************************/
+
+cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
+    mDir      ("./"),
+    mDeZoom   (1),
+    mNumPx    (9),
+    mNumMasq  (8),
+    mVisu     (false),
+    mSigmaP   (1.5)
+    
+{
     ElInitArgMain
     (
 	argc,argv,
-	LArgMain()  << EAM(aIm1,"Name Im1") 
-                    << EAM(aIm2,"Name Im2") 
-                    << EAM(anOri) ,
-	LArgMain()  << EAM(aDir,"Dir",true)
+	LArgMain()  << EAMC(mNameIm1,"Name Im1") 
+                    << EAMC(mNameIm2,"Name Im2") 
+                    << EAMC(mOri,"Orientation") ,
+	LArgMain()  << EAM(mDir,"Dir",true)
+                    << EAM(mBoxIm1,"Box",true)
+                    << EAM(mIntY1,"YBox",true)
+                    << EAM(mVisu,"Visu",true)
     );	
 
+    mCple = StdCpleEpip(mDir,mOri,mNameIm1,mNameIm2);
+
+   std::cout << "Name EPI1 " << mCple->LocDirMatch(mNameIm1) << "\n";
+   std::cout << "Name EPI2 " << mCple->LocDirMatch(mNameIm2) << "\n";
+
+   std::string aNameEpi1 = mDir+ mCple->LocNameImEpi(mNameIm1);
+   Tiff_Im aTF1(aNameEpi1.c_str());
+   Pt2di aSz1 = aTF1.sz();
+
+   if (!EAMIsInit(&mBoxIm1))
+   {
+         if (EAMIsInit(&mIntY1))
+         {
+             mBoxIm1 = Box2di(Pt2di(0,mIntY1.x),Pt2di(aSz1.x,mIntY1.y));
+         }
+         else
+         {
+             mBoxIm1 = Box2di(Pt2di(0,0),aSz1);
+         }
+   }
+   mIm1 = new cCEM_OneIm(this,mNameIm1,mBoxIm1,mVisu);
+   Box2di aBoxIm2 = R2ISup(mIm1->BoxIm2());
+   mIm2 = new cCEM_OneIm(this,mNameIm2,aBoxIm2,mVisu);
+   std::cout << "Box2 " <<aBoxIm2._p0 << " " << aBoxIm2._p1 << "\n";
+   mIm1->SetConj(mIm2);
+
+   Im2D_U_INT1 anAR1 = mIm1->ImAR(20.0);
+   Tiff_Im::Create8BFromFonc(mDir+"AR1.tif",anAR1.sz(),anAR1.in());
+}
+
+
+int CoherEpi_main(int argc,char ** argv)
+{
+    cCoherEpi_main aCEM(argc,argv);
 
     return 0;
 }

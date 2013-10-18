@@ -637,6 +637,38 @@ int CreateBlockEpip_main(int argc,char ** argv)
 /*
 */
 
+bool  cCpleEpip::IsIm1(const std::string & aNameIm)
+{
+   if (aNameIm==mName1) return true;
+   if (aNameIm==mName2) return false;
+
+   std::cout << aNameIm << " => " << mName1 << " , " << mName2 << "\n";
+   ELISE_ASSERT(false,"cCpleEpip::IsIm1 nor Im1 nor Im2 in cCpleEpip::IsIm1");
+   return false;
+}
+
+
+std::string cCpleEpip::LocDirMatch(const std::string & aIm)
+{
+    return LocDirMatch(IsIm1(aIm));
+}
+
+std::string cCpleEpip::LocNameImEpi(const std::string & aIm)
+{
+    return LocNameImEpi(IsIm1(aIm));
+}
+std::string cCpleEpip::LocPxFileMatch(const std::string & aIm,int aNum,int aDeZoom)
+{
+    return LocPxFileMatch(IsIm1(aIm),aNum,aDeZoom);
+}
+std::string cCpleEpip::LocMasqFileMatch(const std::string & aIm,int aNum)
+{
+     return LocMasqFileMatch(IsIm1(aIm),aNum);
+}
+
+
+
+
 bool cCpleEpip::IsLeft(bool Im1) {return  mFirstIsLeft ? Im1 : (!Im1) ;}
 
 std::string cCpleEpip::LocNameImEpi(bool Im1)
@@ -650,7 +682,7 @@ std::string cCpleEpip::LocNameImEpi(bool Im1)
 
 std::string cCpleEpip::LocDirMatch(bool Im1)
 {
-    return "MEC2IM-" + LocNameImEpi(Im1) + "-" +  LocNameImEpi(!Im1) + "/";
+    return "MEC2Im-" + LocNameImEpi(Im1) + "-" +  LocNameImEpi(!Im1) + "/";
 }
  
 std::string cCpleEpip::LocPxFileMatch(bool Im1,int aNum,int aDeZoom)
