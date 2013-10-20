@@ -1030,7 +1030,10 @@ void cAppliMICMAC::MakeFileFDC()
            // const  cGeomImage * aGeo2Ref =  & aGeo2Init;
            const  cGeomImage * aGeo2Ref = aGeo2Init.GeoTerrainIntrinseque();
            Pt2dr aPTer;
+
+std::cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n";
            bool HasInter = aGeo1Ref->IntersectEmprTer(*aGeo2Ref,aPTer);
+std::cout << "BBBBBBBBBBBBbbbbbbbbbbbbbb\n";
 
            bool MakeCple = HasInter;
 

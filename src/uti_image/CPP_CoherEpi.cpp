@@ -241,14 +241,17 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAM(mBoxIm1,"Box",true)
                     << EAM(mIntY1,"YBox",true)
                     << EAM(mVisu,"Visu",true)
+                    << EAM(mDeZoom,"Zoom",true)
+                    << EAM(mNumPx,"NumPx",true)
     );	
+    if (! EAMIsInit(&mNumMasq)) mNumMasq = mNumPx -1;
 
     mCple = StdCpleEpip(mDir,mOri,mNameIm1,mNameIm2);
 
    std::cout << "Name EPI1 " << mCple->LocDirMatch(mNameIm1) << "\n";
    std::cout << "Name EPI2 " << mCple->LocDirMatch(mNameIm2) << "\n";
 
-   std::string aNameEpi1 = mDir+ mCple->LocNameImEpi(mNameIm1);
+   std::string aNameEpi1 = mDir+ mCple->LocNameImEpi(mNameIm1,mDeZoom);
    Tiff_Im aTF1(aNameEpi1.c_str());
    Pt2di aSz1 = aTF1.sz();
 

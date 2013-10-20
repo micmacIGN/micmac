@@ -591,6 +591,9 @@ void cGeomDiscFPx::PostInit()
   {
       if (mAp->IntervSpecialZInv().IsInit())
       {
+// PXXXXX 14.5776 0.0685982
+// AAAAAAAAAAlllllmmmmmm[-5.58743,6.90435,-23.1572] [0.913081,-0.403743,0.057229]
+
            double aPxMin =  1/(mV0Px[0]*mAp->IntervSpecialZInv().Val().MulZMax());
            double aPxMax =  1/(mV0Px[0]*mAp->IntervSpecialZInv().Val().MulZMin());
 
@@ -649,10 +652,8 @@ if ( 0 )
       aPxMaxZone[aD] = mV0Px[aD] +mEcPxZone[aD];
   }
 
-// std::cout << "HHHHHH  " << aPxMinZone[0] << " " << aPxMaxZone[0] << "\n"; getchar();
   for (tCsteIterPDV itFI=mAp->PdvBegin(); itFI!=mAp->PdvEnd(); itFI++)  
   {
-  //std::cout << (*itFI)->Name() << "  HHHHHhhYY\n";// getchar();
       if ((aSelName==0) || (aSelName->IsSetIn((*itFI)->Name())))
       {
            Box2dr aVraiE = (*itFI)->Geom().EmpriseTerrain(mV0Px,mV0Px,0);
