@@ -4,11 +4,15 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/mar
 
 MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/marc/TMP/EPI/Vainhegen/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64  +Purge=false 
 
+
+MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/data2/EPI/Tortue/ +Im1=Epi_Im1_Left_IMGP6909_IMGP6910.tif +Im2=Epi_Im2_Right_IMGP6909_IMGP6910.tif +Zoom0=32  +Purge=false 
+
+
 MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/marc/TMP/EPI/Munich/ +Im1=Epi_Im1_Left_41_0420_PAN_41_0421_PAN.tif +Im2=Epi_Im2_Right_41_0420_PAN_41_0421_PAN.tif +Zoom0=64  +Purge=false +MMC=true
 
 MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/marc/TMP/EPI/Vainhegen/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64 +CMS=true  +Purge=false
 
-MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/data2/EPI/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64 +CMS=true  +Purge=false
+MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/data2/EPI/Vainehgen/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64  +Purge=false
 
 MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/marc/TMP/EPI/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64 +ZoomF=4
 
@@ -23,15 +27,16 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
         <Symb>  PenteMax=1.0 </Symb>
 	<Symb>  Interpol=eInterpolBiLin  </Symb>
 
+        <Symb>  DoEpi=true </Symb>
+
 	<Symb> Zoom0=64  </Symb>
 	<Symb> ZoomF=1   </Symb>
 	<Symb> ZPas=0.5   </Symb>
         <Symb> PrefMEC=MEC2Im </Symb>
         <Symb> Purge=true </Symb>
-        <Symb> MulZMax=2.0 </Symb>
   <!-- Parametres essentiels -->
 
-       <Symb> Ori=XXXXX    </Symb>
+       <Symb> Ori=Epi    </Symb>
        <Symb> Im1=Epi_Im1_Left_17_18.tif     </Symb>
        <Symb> Im2=Epi_Im2_Right_17_18.tif     </Symb>
        <Symb> IncPix=400   </Symb>
@@ -48,9 +53,9 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
        <Symb> MMC=true  </Symb>
 
   <!-- Parametres calcule -->
+        
         <Symb>  DirMEC=MEC2Im-${Im1}-${Im2} </Symb>
         <eSymb> DbleZPas=* 2 ${ZPas} </eSymb>
-        <eSymb> MulZMin=/ 1  ${MulZMax} </eSymb>
 
            <!-- Ici * joue le role de && --> 
         <eSymb> WZ64=* Sup ${Zoom0} 64  InfEq  ${ZoomF} 64  </eSymb>
@@ -63,16 +68,30 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
         <eSymb> SzW= ? ${CMS} 1 ${SzW0}  </eSymb>
 
         <eSymb> SzWy= ? ${CMS} 1 + ${DeltaY} ${SzW} </eSymb>
+        <eSymb> MMCEff= * ${MMC} ${DoEpi} </eSymb>
+        <eSymb> CensusEff= * ${Census} ${DoEpi} </eSymb>
+        <eSymb> NotEpi= ! ${DoEpi} </eSymb>
        
 </DicoLoc>
 
 <Section_Terrain> 
-     <IntervParalaxe>
+     <#WHEN VTEST=${DoEpi}>
+          <IntervParalaxe>
               <Px1IncCalc> ${IncPix} </Px1IncCalc>
-     </IntervParalaxe>
+          </IntervParalaxe>
+     </#WHEN>
 
      <GeoRefAutoRoundResol> false </GeoRefAutoRoundResol>
 
+     <#WHEN VTEST=${NotEpi}>
+          <IntervAltimetrie>
+                 <ZIncCalc>   0 </ZIncCalc>
+          </IntervAltimetrie>
+          <IntervSpecialZInv>
+               <MulZMin> 0.5</MulZMin>
+               <MulZMax> 3.0 </MulZMax>
+         </IntervSpecialZInv>
+     </#WHEN>
 
 </Section_Terrain>
 
@@ -84,7 +103,14 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
          par le correlateur
 -->
 <Section_PriseDeVue>
-   <GeomImages> eGeomImage_EpipolairePure </GeomImages> 
+<!--
+     <SingulariteInCorresp_I1I2> true</SingulariteInCorresp_I1I2>
+-->
+
+   <#IF VTEST=${DoEpi}>
+       <GeomImages> eGeomImage_EpipolairePure </GeomImages> 
+       <GeomImages> eGeomImageOri </GeomImages> 
+   </#IF>
 <!--
    <ValSpecNotImage> 0  </ValSpecNotImage>
 -->
@@ -101,6 +127,14 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
              </OneMasqueImage>
              <AcceptNonExistingFile> false </AcceptNonExistingFile>
     </MasqImageIn>
+
+     <#WHEN VTEST=${NotEpi}>
+         <NomsGeometrieImage>
+             <FCND_Mode_GeomIm>
+                   <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-${Ori} </FCND_GeomCalc>
+             </FCND_Mode_GeomIm>
+         </NomsGeometrieImage>
+     </#WHEN>
 
     
 <!--
@@ -134,14 +168,26 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 	    <SzW> ${SzW} </SzW>
 	    <SzWy>  ${SzWy} </SzWy>
             <AlgoRegul> eAlgo2PrgDyn </AlgoRegul>
-	    <Px1Pas> ${ZPas} </Px1Pas>
-            <Px1DilatAlti>  3  </Px1DilatAlti>
-	    <Px1DilatPlani> 3  </Px1DilatPlani>
+
+            <#WHEN VTEST=${DoEpi}>
+	        <Px1Pas> ${ZPas} </Px1Pas>
+                <Px1DilatAlti>  3  </Px1DilatAlti>
+	        <Px1DilatPlani> 3  </Px1DilatPlani>
+	        <Px1Regul> ${ZReg} </Px1Regul>
+            </#WHEN>
+            <#WHEN VTEST=${NotEpi}>
+	        <ZPas> ${ZPas} </ZPas>
+                <ZDilatAlti>  3  </ZDilatAlti>
+	        <ZDilatPlani> 3  </ZDilatPlani>
+	        <ZRegul> ${ZReg} </ZRegul>
+            </#WHEN>
+
+
+
 	    <GenImagesCorrel> true </GenImagesCorrel>
 	    
 	
             <!-- param regul -->
-	    <Px1Regul> ${ZReg} </Px1Regul>
             <SsResolOptim> 1 </SsResolOptim>
             <CoxRoyUChar> false </CoxRoyUChar>
 
@@ -169,7 +215,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                      <CorrelMultiScale>
                             <ModeDense> true </ModeDense>
                             <UseWAdapt> false </UseWAdapt>
-                            <ModeMax> ${MMC} </ModeMax>
+                            <ModeMax> ${MMCEff} </ModeMax>
                             <OneParamCMS>
                                  <SzW> 1 1 </SzW>
                                  <Sigma> 0 </Sigma>
@@ -193,7 +239,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                    
 
                  <TypeCAH>
-                     <#IF VTEST=${Census}>
+                     <#IF VTEST=${CensusEff}>
                          <CensusCost>
                              <TypeCost> eMCC_CensusCorrel   </TypeCost>
 <!--
@@ -215,12 +261,21 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 
 	<EtapeMEC> 
                   <DeZoom> ${Zoom0} </DeZoom> 
-                  <Px1Pas>  1 </Px1Pas>
+                  <#IF VTEST=${DoEpi}>
+                       <Px1Pas>  1 </Px1Pas>
+                       <ZPas>  1   </ZPas>
+                  </#IF>
         </EtapeMEC>	
 	<EtapeMEC> 
-                  <DeZoom> ${Zoom0} </DeZoom> 
-                 <Px1DilatAlti>  5  </Px1DilatAlti>
-	         <Px1DilatPlani> 3  </Px1DilatPlani>
+                 <DeZoom> ${Zoom0} </DeZoom> 
+                  <#WHEN VTEST=${DoEpi}>
+                       <Px1DilatAlti>  5  </Px1DilatAlti>
+	               <Px1DilatPlani> 3  </Px1DilatPlani>
+                  </#WHEN>
+                  <#WHEN VTEST=${NotEpi}>
+                       <ZDilatAlti>  5  </ZDilatAlti>
+	               <ZDilatPlani> 3  </ZDilatPlani>
+                  </#WHEN>
         </EtapeMEC>	
 
         <#WHEN VTEST=${WZ64}>
@@ -288,8 +343,16 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
         <#WHEN VTEST=${WZ1}>
 	   <EtapeMEC> 
                  <DeZoom> 1 </DeZoom>         
-                 <Px1DilatAlti>  2  </Px1DilatAlti>
-	         <Px1DilatPlani> 2  </Px1DilatPlani>
+
+                  <#WHEN VTEST=${DoEpi}>
+                      <Px1DilatAlti>  2  </Px1DilatAlti>
+	              <Px1DilatPlani> 2  </Px1DilatPlani>
+                  </#WHEN>
+                  <#WHEN VTEST=${NotEpi}>
+                      <ZDilatAlti>  2  </ZDilatAlti>
+	              <ZDilatPlani> 2  </ZDilatPlani>
+                  </#WHEN>
+
 	         <ModulationProgDyn>
                     <EtapeProgDyn>
             	      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
@@ -307,7 +370,10 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 
 	<EtapeMEC> 
               <DeZoom> ${ZoomF} </DeZoom>         
-	      <Px1Pas>   1.0 </Px1Pas>
+              <#IF VTEST=${DoEpi}>
+	           <Px1Pas>   1.0 </Px1Pas>
+	           <ZPas>   1.0   </ZPas>
+              </#IF>
               <AlgoRegul> eAlgoDequant </AlgoRegul>
         </EtapeMEC>
        
@@ -318,7 +384,10 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
      devant etre produits par l'algo
 -->
 <Section_Results>
-    <GeomMNT> eGeomPxBiDim     </GeomMNT>
+    <#IF VTEST=${DoEpi}>
+         <GeomMNT> eGeomPxBiDim     </GeomMNT>
+         <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D     </GeomMNT>
+    </#IF>
 <!--
     <DoMEC> true </DoMEC> 
     <DoNothingBut>
@@ -328,7 +397,9 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
     <NonExistingFileDoMEC>  ${DirMEC}/Z_Num8_DeZoom2_LeChantier.tif </NonExistingFileDoMEC>
 -->
 
+<!--
     <DoFDC> true </DoFDC>
+-->
     <ZoomMakeTA> 32 </ZoomMakeTA>
     <GammaVisu> 2.0 </GammaVisu>
     <ZoomVisuLiaison> -1 </ZoomVisuLiaison>
@@ -363,6 +434,10 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
     <FirstEtapeMEC> 8 </FirstEtapeMEC>
     <LastEtapeMEC> 5 </LastEtapeMEC>
 -->
+
+   <#WHEN VTEST=${NotEpi}>
+        <NomChantier>  Chantier-Ori </NomChantier>
+   </#WHEN>
 
 
     <WorkDir> ThisDir </WorkDir> 

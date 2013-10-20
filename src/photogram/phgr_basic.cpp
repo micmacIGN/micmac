@@ -2986,7 +2986,7 @@ double CamStenope::ResolutionSol(const Pt3dr & aP) const
 
 double CamStenope::ResolutionAngulaire() const
 {
-   double aEps = 1e-3;
+   double aEps = 1e-5;
    Pt2dr aP0 = L3toF2(Pt3dr(0,0,1));
    Pt2dr aP1 = L3toF2(Pt3dr(aEps,0,1));
    double aD = euclid(aP0-aP1) / aEps;

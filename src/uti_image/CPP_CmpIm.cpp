@@ -51,6 +51,7 @@ int CmpIm_main(int argc,char ** argv)
      bool  OkSzDif= false;
      double aDyn=1.0;
      Pt2di  aBrd(0,0);
+     double aMulIm2 = 1.0;
      
      ElInitArgMain
      (
@@ -61,6 +62,7 @@ int CmpIm_main(int argc,char ** argv)
                        << EAM(aDyn,"Dyn",true,"Dynamic of difference")
                        << EAM(aBrd,"Brd",true,"Border to eliminate")
                        << EAM(OkSzDif,"OkSzDif",true,"Process files with different sizes")
+                       << EAM(aMulIm2,"Mul2",true,"Multiplier of file2 (Def 1.0)")
     );	
 
     Tiff_Im aFile1 = Tiff_Im::BasicConvStd(aName1);
@@ -76,7 +78,7 @@ int CmpIm_main(int argc,char ** argv)
           return -1;
     }
 
-    Symb_FNum aFDif(Rconv(Abs(aFile1.in()-aFile2.in())));
+    Symb_FNum aFDif(Rconv(Abs(aFile1.in()-aMulIm2*aFile2.in())));
 
     double aNbDif,aSomDif,aMaxDif,aSom1;
     int  aPtDifMax[2];
@@ -107,7 +109,7 @@ int CmpIm_main(int argc,char ** argv)
             (
                aFileDiff,
                aSz,
-               Max(0,Min(255,128+round_ni(aDyn*(aFile1.in()-aFile2.in()))))
+               Max(0,Min(255,128+round_ni(aDyn*(aFile1.in()-aMulIm2*aFile2.in()))))
             );
        }
 
