@@ -303,8 +303,9 @@ CamStenopeIdeale  cCpleEpip::CamOut(const CamStenope & aCamIn,Pt2dr aPP,Pt2di aS
 
     if (aCamIn.AltisSolIsDef())
        aCamOut.SetAltiSol(aCamIn.GetAltiSol());
-    if (aCamIn.ProfIsDef())
-       aCamOut.SetProfondeur(aCamIn.GetProfondeur());
+
+    // if (aCamIn.ProfIsDef())
+    aCamOut.SetProfondeur(aCamIn.GetRoughProfondeur());
 
     return aCamOut;
 }
@@ -389,6 +390,9 @@ cCpleEpip::cCpleEpip
    mCamOut2  (CamOut(mCInit2,Pt2dr(0,0),mSzIn)),
    mOk       (false)
 {
+      // double aProf = (mCamOut1.GetRoughProfondeur()+mCamOut2.GetRoughProfondeur()) / 2.0;
+
+   ELISE_ASSERT(aName1<aName2,"cCpleEpip::cCpleEpip order");
    Box2dr aB1 = BoxCam(mCInit1,mCamOut1,false);
    Box2dr aB2 = BoxCam(mCInit2,mCamOut2,false);
 
@@ -405,6 +409,7 @@ cCpleEpip::cCpleEpip
 
    if (1)
    {
+
       Pt3dr aP1 =  aC1.ImEtProf2Terrain(Pt2dr(aC1.Sz()/2),aC1.GetRoughProfondeur());
       Pt3dr aP2 =  aC2.ImEtProf2Terrain(Pt2dr(aC2.Sz()/2),aC2.GetRoughProfondeur());
       Pt3dr aP = (aP1+aP2) / 2.0;
@@ -419,6 +424,7 @@ cCpleEpip::cCpleEpip
       int aSzX1 = aB1.sz().x - ElAbs(aDX);
       int aSzX2 = aB2.sz().x - ElAbs(aDX);
 
+      // Emprise nulle des cameras
       if ((aSzX1<=0) || (aSzX2 <=0)) return;
 
       mCamOut1  = CamOut(mCInit1,-Pt2dr(aB1._p0.x+aDX1,yMin),Pt2di(aSzX1,aSzY));
@@ -429,6 +435,29 @@ cCpleEpip::cCpleEpip
    Pt3dr aDirC = vunit(mCamOut2.VraiOpticalCenter() - mCamOut1.VraiOpticalCenter());
 
    mFirstIsLeft = (scal(aDirI,aDirC) > 0) ;
+
+
+   bool Test=false;
+   for (int aK= 0 ; aK< (Test ? 10 : 1) ; aK++)
+   {
+        Pt2dr aM1 = Pt2dr(mCamOut1.Sz()) /2.0;
+        Pt2dr aQ1 = aM1 ;
+        if (Test) 
+        {
+           aQ1 = aQ1 + Pt2dr(NRrandC(),NRrandC()) * 100.0;
+        }
+        double aDist;
+        Pt3dr aPTest = mCamOut1.PseudoInter(aQ1,mCamOut2,aQ1,&aDist);
+        double aProf1 = mCamOut1.ProfondeurDeChamps(aPTest);
+        double aProf2 = mCamOut2.ProfondeurDeChamps(aPTest);
+        if (Test)
+        {
+           std::cout << "TEST-PROF-EPIP " << aProf1 << " " << aProf2 << " " << aDist << "\n";
+        }
+        double aProf = (aProf1+aProf2) / 2.0;  // Normalemennt c'est kif-kif
+        mCamOut1.SetProfondeur(aProf);
+        mCamOut2.SetProfondeur(aProf);
+   }
 
    mOk = true;
 }
@@ -636,13 +665,82 @@ int CreateBlockEpip_main(int argc,char ** argv)
 /*
 */
 
+bool  cCpleEpip::IsIm1(const std::string & aNameIm)
+{
+   if (aNameIm==mName1) return true;
+   if (aNameIm==mName2) return false;
+
+   std::cout << aNameIm << " => " << mName1 << " , " << mName2 << "\n";
+   ELISE_ASSERT(false,"cCpleEpip::IsIm1 nor Im1 nor Im2 in cCpleEpip::IsIm1");
+   return false;
+}
+
+
+std::string cCpleEpip::LocDirMatch(const std::string & aIm)
+{
+    return LocDirMatch(IsIm1(aIm));
+}
+
+std::string cCpleEpip::LocNameImEpi(const std::string & aIm,int aDeZoom)
+{
+    return LocNameImEpi(IsIm1(aIm),aDeZoom);
+}
+std::string cCpleEpip::LocPxFileMatch(const std::string & aIm,int aNum,int aDeZoom)
+{
+    return LocPxFileMatch(IsIm1(aIm),aNum,aDeZoom);
+}
+std::string cCpleEpip::LocMasqFileMatch(const std::string & aIm,int aNum)
+{
+     return LocMasqFileMatch(IsIm1(aIm),aNum);
+}
+
+
+
+
+bool cCpleEpip::IsLeft(bool Im1) {return  mFirstIsLeft ? Im1 : (!Im1) ;}
+
+std::string cCpleEpip::LocNameImEpi(bool Im1,int aDeZoom)
+{
+    // bool ImLeft = mFirstIsLeft ? Im1 : (!Im1) ;
+    std::string aRes =   "Epi_" 
+           + std::string(Im1 ? "Im1_" : "Im2_") 
+           + (IsLeft(Im1) ? mPrefLeft : mPrefRight  ) 
+           + mNamePair + ".tif";
+
+    if (aDeZoom!=1)
+       aRes = "Pyram/" + aRes + "DeZoom" + ToString(aDeZoom) + ".tif";
+
+
+    return aRes;
+}
+
+std::string cCpleEpip::LocDirMatch(bool Im1)
+{
+    return "MEC2Im-" + LocNameImEpi(Im1) + "-" +  LocNameImEpi(!Im1) + "/";
+}
+ 
+std::string cCpleEpip::LocPxFileMatch(bool Im1,int aNum,int aDeZoom)
+{
+    return LocDirMatch(Im1) + "Px1_Num"+ToString(aNum) + "_DeZoom"+  ToString(aDeZoom) +"_LeChantier.tif";
+}
+
+std::string  cCpleEpip::LocMasqFileMatch(bool Im1,int aNum)
+{
+  return LocDirMatch(Im1) + "AutoMask_LeChantier_Num_"+ ToString(aNum) +  ".tif" ; 
+
+}
+
+
 
 
 void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1)
 {
     bool ByP= true; /// std::cout << "Nnnnnnnnnnnnnnnnnnnnnoo process \n";
+    std::string aNameImOut = mDir + LocNameImEpi(Im1);
+/*
     bool ImLeft = mFirstIsLeft ? Im1 : (!Im1) ;
     std::string  aNameImOut = mDir + "Epi_" + std::string(Im1 ? "Im1_" : "Im2_") + (ImLeft ? mPrefLeft : mPrefRight  ) +   mNamePair + ".tif";
+*/
 
     AssertOk();
     const CamStenope & aCamIn =        Im1 ? mCInit1  : mCInit2;
@@ -680,6 +778,8 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1)
                   Tiff_Im::BlackIsZero
             );
     ELISE_COPY(aTMasq.all_pts(),0,aTMasq.out());
+
+    MakeMetaData_XML_GeoI(aNameMasq,1.0);
 
 
 

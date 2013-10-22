@@ -2286,7 +2286,9 @@ class cGeomImage_Id_Ori : public cGeomImage_Id
 	   }
 */
            // OO  aPxMoy[0] = mOriRef.ProfInDir(aPC,mNormPl);
+
            Pt3dr aPC = mAppli.GetPtMoyOfOri(mOriRef);
+/// std::cout << "AAAAAAAAAAlllllmmmmmm" << aPC <<  " " << mNormPl << "\n";
            aPxMoy[0] = mOriRef->ProfInDir(aPC,mNormPl);
 
   // std::cout << "BP " << ByProf << " "  << aPC << "\n"; getchar();
@@ -2299,7 +2301,6 @@ class cGeomImage_Id_Ori : public cGeomImage_Id
               aPxMoy[1] = 0.0;
 
 /*
- std::cout << "pppppHHHHHHH " <<aPxMoy[0] << aPC << mNormPl << "\n"; 
  std::cout << mPDV.Name() << "\n"; 
 getchar();
 */
@@ -2499,6 +2500,9 @@ if (1)
 	  double aCDNE = mGITO.CoeffDilNonE();
           // OO aRatio[0] = aCDNE* (mOri.resolution_angulaire() / euclid(aC1-aC2));
           aRatio[0] = aCDNE* (mOri->ResolutionAngulaire() / euclid(aC1-aC2));
+
+// std::cout << "HHHH:GetRatioResolAltiPlani " << aRatio[0] << " CDNE " << aCDNE << "\n";
+// std::cout << "HHHH:RA  " << mOri->ResolutionAngulaire() << " FFFFF " << 1/mOri->Focale() << "\n";
 
 
           for (int aK=1 ; aK<mDimPx ; aK++)

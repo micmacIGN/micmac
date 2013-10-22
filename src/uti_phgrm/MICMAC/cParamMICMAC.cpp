@@ -46,6 +46,8 @@ eModeCensusCost  Str2eModeCensusCost(const std::string & aName)
       return eMCC_CensusBasic;
    else if (aName=="eMCC_CensusCorrel")
       return eMCC_CensusCorrel;
+   else if (aName=="eMCC_CensusMixCorrelBasic")
+      return eMCC_CensusMixCorrelBasic;
   else
   {
       cout << aName << " is not a correct value for enum eModeCensusCost\n" ;
@@ -65,6 +67,8 @@ std::string  eToString(const eModeCensusCost & anObj)
       return  "eMCC_CensusBasic";
    if (anObj==eMCC_CensusCorrel)
       return  "eMCC_CensusCorrel";
+   if (anObj==eMCC_CensusMixCorrelBasic)
+      return  "eMCC_CensusMixCorrelBasic";
  std::cout << "Enum = eModeCensusCost\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
@@ -4977,6 +4981,17 @@ const cTplValGesInit< bool > & cCorrelMultiScale::UseWAdapt()const
 }
 
 
+cTplValGesInit< bool > & cCorrelMultiScale::ModeMax()
+{
+   return mModeMax;
+}
+
+const cTplValGesInit< bool > & cCorrelMultiScale::ModeMax()const 
+{
+   return mModeMax;
+}
+
+
 std::vector< cOneParamCMS > & cCorrelMultiScale::OneParamCMS()
 {
    return mOneParamCMS;
@@ -4995,6 +5010,8 @@ cElXMLTree * ToXMLTree(const cCorrelMultiScale & anObj)
       aRes->AddFils(::ToXMLTree(std::string("ModeDense"),anObj.ModeDense().Val())->ReTagThis("ModeDense"));
    if (anObj.UseWAdapt().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("UseWAdapt"),anObj.UseWAdapt().Val())->ReTagThis("UseWAdapt"));
+   if (anObj.ModeMax().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ModeMax"),anObj.ModeMax().Val())->ReTagThis("ModeMax"));
   for
   (       std::vector< cOneParamCMS >::const_iterator it=anObj.OneParamCMS().begin();
       it !=anObj.OneParamCMS().end();
@@ -5014,6 +5031,8 @@ void xml_init(cCorrelMultiScale & anObj,cElXMLTree * aTree)
    xml_init(anObj.ModeDense(),aTree->Get("ModeDense",1)); //tototo 
 
    xml_init(anObj.UseWAdapt(),aTree->Get("UseWAdapt",1),bool(false)); //tototo 
+
+   xml_init(anObj.ModeMax(),aTree->Get("ModeMax",1),bool(false)); //tototo 
 
    xml_init(anObj.OneParamCMS(),aTree->GetAll("OneParamCMS",false,1));
 }
@@ -5062,6 +5081,28 @@ const cTplValGesInit< double > & cCensusCost::AttenDist()const
    return mAttenDist;
 }
 
+
+cTplValGesInit< double > & cCensusCost::SeuilHautCorMixte()
+{
+   return mSeuilHautCorMixte;
+}
+
+const cTplValGesInit< double > & cCensusCost::SeuilHautCorMixte()const 
+{
+   return mSeuilHautCorMixte;
+}
+
+
+cTplValGesInit< double > & cCensusCost::SeuilBasCorMixte()
+{
+   return mSeuilBasCorMixte;
+}
+
+const cTplValGesInit< double > & cCensusCost::SeuilBasCorMixte()const 
+{
+   return mSeuilBasCorMixte;
+}
+
 cElXMLTree * ToXMLTree(const cCensusCost & anObj)
 {
   XMLPushContext(anObj.mGXml);
@@ -5073,6 +5114,10 @@ cElXMLTree * ToXMLTree(const cCensusCost & anObj)
       aRes->AddFils(::ToXMLTree(std::string("Verif"),anObj.Verif().Val())->ReTagThis("Verif"));
    if (anObj.AttenDist().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("AttenDist"),anObj.AttenDist().Val())->ReTagThis("AttenDist"));
+   if (anObj.SeuilHautCorMixte().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SeuilHautCorMixte"),anObj.SeuilHautCorMixte().Val())->ReTagThis("SeuilHautCorMixte"));
+   if (anObj.SeuilBasCorMixte().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SeuilBasCorMixte"),anObj.SeuilBasCorMixte().Val())->ReTagThis("SeuilBasCorMixte"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -5090,6 +5135,10 @@ void xml_init(cCensusCost & anObj,cElXMLTree * aTree)
    xml_init(anObj.Verif(),aTree->Get("Verif",1),bool(false)); //tototo 
 
    xml_init(anObj.AttenDist(),aTree->Get("AttenDist",1),double(0.0)); //tototo 
+
+   xml_init(anObj.SeuilHautCorMixte(),aTree->Get("SeuilHautCorMixte",1),double(0.8)); //tototo 
+
+   xml_init(anObj.SeuilBasCorMixte(),aTree->Get("SeuilBasCorMixte",1),double(0.6)); //tototo 
 }
 
 
@@ -5932,6 +5981,17 @@ cTplValGesInit< bool > & cCorrelAdHoc::UseWAdapt()
 const cTplValGesInit< bool > & cCorrelAdHoc::UseWAdapt()const 
 {
    return CorrelMultiScale().Val().UseWAdapt();
+}
+
+
+cTplValGesInit< bool > & cCorrelAdHoc::ModeMax()
+{
+   return CorrelMultiScale().Val().ModeMax();
+}
+
+const cTplValGesInit< bool > & cCorrelAdHoc::ModeMax()const 
+{
+   return CorrelMultiScale().Val().ModeMax();
 }
 
 
@@ -9756,6 +9816,17 @@ cTplValGesInit< bool > & cEtapeMEC::UseWAdapt()
 const cTplValGesInit< bool > & cEtapeMEC::UseWAdapt()const 
 {
    return CorrelAdHoc().Val().CorrelMultiScale().Val().UseWAdapt();
+}
+
+
+cTplValGesInit< bool > & cEtapeMEC::ModeMax()
+{
+   return CorrelAdHoc().Val().CorrelMultiScale().Val().ModeMax();
+}
+
+const cTplValGesInit< bool > & cEtapeMEC::ModeMax()const 
+{
+   return CorrelAdHoc().Val().CorrelMultiScale().Val().ModeMax();
 }
 
 

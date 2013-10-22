@@ -345,11 +345,11 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/media
 -->
 <Section_Results >
 
+<!--
     <X_DirPlanInterFaisceau>  ${XVertStd} </X_DirPlanInterFaisceau>
     <Y_DirPlanInterFaisceau>  ${YVertStd} </Y_DirPlanInterFaisceau>
     <Z_DirPlanInterFaisceau>  ${ZVertStd} </Z_DirPlanInterFaisceau>
 
-<!--
     <X_DirPlanInterFaisceau>  0 </X_DirPlanInterFaisceau>
     <Y_DirPlanInterFaisceau>  0 </Y_DirPlanInterFaisceau>
     <Z_DirPlanInterFaisceau> -1 </Z_DirPlanInterFaisceau>

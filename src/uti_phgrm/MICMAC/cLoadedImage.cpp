@@ -1760,6 +1760,7 @@ void cLoadedImage::PostInit()
          Im2D_REAL4 * anIm = mMSLI[aK].Im();
 
          mVIm.push_back(anIm);
+         mVNpIm.push_back(*anIm);
          mVDataIm.push_back(anIm->data());
          mVDataLin.push_back(anIm->data_lin());
     }
@@ -1771,6 +1772,10 @@ const std::vector<cMSLoadedIm>&  cLoadedImage::MSLI()
     return mMSLI;
 }
 
+std::vector<Im2D_REAL4>  cLoadedImage::VNpIm()
+{
+   return mVNpIm;
+}
 
 
 cLoadedImage * cLoadedImage::Alloc

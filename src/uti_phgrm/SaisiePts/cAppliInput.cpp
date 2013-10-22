@@ -174,11 +174,43 @@ void cAppli_SaisiePts::HighLightSom(cSP_PointGlob * aPG)
    }
 }
 
-void cAppli_SaisiePts::ChangeName(const std::string & anOldName,const std::string & aNewName)
+void cAppli_SaisiePts::ChangeName(std::string anOldName,std::string  aNewName)
 {
     for (int aKP=0 ; aKP<int(mPG.size()) ; aKP++)
     {
+         if (mPG[aKP]->PG()->Name() == aNewName)
+         {
+              std::cout << "Name " << aNewName << " already exist \n";
+              return;
+         }
     }
+
+    for (int aKP=0 ; aKP<int(mPG.size()) ; aKP++)
+    {
+         if (mPG[aKP]->PG()->Name() == anOldName)
+         {
+             mPG[aKP]->Rename(aNewName);
+         }
+    }
+
+
+    for (int aKC=0 ; aKC<int(mVNameCase.size()); aKC++)
+    {
+         cCaseNamePoint & aCN = mVNameCase[aKC];
+         if (aCN.mTCP==eCaseStd)
+         {
+              if (aCN.mName == anOldName) 
+              {
+                  aCN.mFree = true;
+              }
+              if (aCN.mName == aNewName)
+              {
+                   aCN.mFree = false;
+              }
+         }
+    }
+
+    ReaffAllW();
 }
 
 

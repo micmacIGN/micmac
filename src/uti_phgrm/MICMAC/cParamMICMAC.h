@@ -21,7 +21,8 @@ typedef enum
 {
   eMCC_GrCensus,
   eMCC_CensusBasic,
-  eMCC_CensusCorrel
+  eMCC_CensusCorrel,
+  eMCC_CensusMixCorrelBasic
 } eModeCensusCost;
 void xml_init(eModeCensusCost & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModeCensusCost & aVal);
@@ -1730,11 +1731,15 @@ class cCorrelMultiScale
         cTplValGesInit< bool > & UseWAdapt();
         const cTplValGesInit< bool > & UseWAdapt()const ;
 
+        cTplValGesInit< bool > & ModeMax();
+        const cTplValGesInit< bool > & ModeMax()const ;
+
         std::vector< cOneParamCMS > & OneParamCMS();
         const std::vector< cOneParamCMS > & OneParamCMS()const ;
     private:
         cTplValGesInit< bool > mModeDense;
         cTplValGesInit< bool > mUseWAdapt;
+        cTplValGesInit< bool > mModeMax;
         std::vector< cOneParamCMS > mOneParamCMS;
 };
 cElXMLTree * ToXMLTree(const cCorrelMultiScale &);
@@ -1758,11 +1763,19 @@ class cCensusCost
 
         cTplValGesInit< double > & AttenDist();
         const cTplValGesInit< double > & AttenDist()const ;
+
+        cTplValGesInit< double > & SeuilHautCorMixte();
+        const cTplValGesInit< double > & SeuilHautCorMixte()const ;
+
+        cTplValGesInit< double > & SeuilBasCorMixte();
+        const cTplValGesInit< double > & SeuilBasCorMixte()const ;
     private:
         cTplValGesInit< double > mPdsCrown;
         eModeCensusCost mTypeCost;
         cTplValGesInit< bool > mVerif;
         cTplValGesInit< double > mAttenDist;
+        cTplValGesInit< double > mSeuilHautCorMixte;
+        cTplValGesInit< double > mSeuilBasCorMixte;
 };
 cElXMLTree * ToXMLTree(const cCensusCost &);
 
@@ -2086,6 +2099,9 @@ class cCorrelAdHoc
 
         cTplValGesInit< bool > & UseWAdapt();
         const cTplValGesInit< bool > & UseWAdapt()const ;
+
+        cTplValGesInit< bool > & ModeMax();
+        const cTplValGesInit< bool > & ModeMax()const ;
 
         std::vector< cOneParamCMS > & OneParamCMS();
         const std::vector< cOneParamCMS > & OneParamCMS()const ;
@@ -3325,6 +3341,9 @@ class cEtapeMEC
 
         cTplValGesInit< bool > & UseWAdapt();
         const cTplValGesInit< bool > & UseWAdapt()const ;
+
+        cTplValGesInit< bool > & ModeMax();
+        const cTplValGesInit< bool > & ModeMax()const ;
 
         std::vector< cOneParamCMS > & OneParamCMS();
         const std::vector< cOneParamCMS > & OneParamCMS()const ;

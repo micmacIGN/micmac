@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2076]) = {
+const char * (theNameVar_ParamMICMAC[2080]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -67,6 +67,7 @@ const char * (theNameVar_ParamMICMAC[2076]) = {
 "	   <eMCC_GrCensus >          </eMCC_GrCensus>\n",
 "           <eMCC_CensusBasic >       </eMCC_CensusBasic>\n",
 "           <eMCC_CensusCorrel >      </eMCC_CensusCorrel>\n",
+"           <eMCC_CensusMixCorrelBasic >      </eMCC_CensusMixCorrelBasic>\n",
 "   </enum>\n",
 "\n",
 "\n",
@@ -913,6 +914,7 @@ const char * (theNameVar_ParamMICMAC[2076]) = {
 "                <CorrelMultiScale Nb=\"?\">\n",
 "                      <ModeDense Nb=\"?\" Type=\"bool\"> </ModeDense>\n",
 "                      <UseWAdapt Nb=\"?\" Type=\"bool\" Def=\"false\"> </UseWAdapt>\n",
+"                      <ModeMax Nb=\"?\" Type=\"bool\" Def=\"false\">  </ModeMax> <!--Pour l'instant Uniquement Implante dans la filiere Census-->\n",
 "                      <OneParamCMS Nb=\"+\" Container=\"std::vector\">\n",
 "                           <SzW Nb=\"1\" Type=\"Pt2di\"> </SzW>\n",
 "                           <!-- A priori Sigma doit etre fonction de  SzW, mais quelle fonction ?? -->\n",
@@ -934,6 +936,8 @@ const char * (theNameVar_ParamMICMAC[2076]) = {
 "                              <TypeCost Type=\"eModeCensusCost\" Nb=\"1\">   </TypeCost>\n",
 "                              <Verif Type=\"bool\" Nb=\"?\" Def=\"false\">   </Verif>\n",
 "                              <AttenDist  Type=\"double\" Def=\"0.0\" Nb=\"?\"> </AttenDist>\n",
+"                              <SeuilHautCorMixte Type=\"double\" Def=\"0.8\" Nb=\"?\"> </SeuilHautCorMixte>\n",
+"                              <SeuilBasCorMixte Type=\"double\" Def=\"0.6\" Nb=\"?\">  </SeuilBasCorMixte>\n",
 "                        </CensusCost>\n",
 "\n",
 "\n",
