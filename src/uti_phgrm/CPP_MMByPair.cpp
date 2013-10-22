@@ -39,91 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_ParamMICMAC;
-
-class cImaMM;
-class cAppliWithSetImage;
-class cAppliMMByPair;
-
-
-
-class cImaMM
-{
-    public :
-      cImaMM(const std::string & aName,cAppliWithSetImage &);
-
-
-    public :
-       std::string mNameIm;
-       std::string mBande;
-       int         mNumInBande;
-       CamStenope * mCam;
-       Pt3dr        mC3;
-       Pt2dr        mC2;
-       Tiff_Im  &   Tiff();
-    private :
-       cAppliWithSetImage &  mAppli;
-       Tiff_Im  *            mPtrTiff;
- 
-};
-
-Pt2dr PtOfcImaMM   (const cImaMM & aCam) {return aCam.mC2;}
-Pt2dr PtOfcImaMMPtr(const cImaMM * aCam) {return PtOfcImaMM(*aCam);}
-
-class cAppliWithSetImage
-{
-   public :
-      CamStenope * CamOfName(const std::string & aName);
-      const std::string & Dir() const;
-      int  DeZoomOfSize(double ) const;
-      void operator()(cImaMM*,cImaMM*,bool);   // Delaunay call back
-   protected :
-      cAppliWithSetImage(int argc,char ** argv,int aFlag);
-      void Develop(bool EnGray,bool En16B);
-
-      static const int  FlagDev8BGray   = 1;
-      static const int  FlagDev16BGray  = 2;
-
-      cImaMM * ImOfName(const std::string & aName);
-      void MakeStripStruct(const std::string & aPairByStrip,bool StripFirst);
-      void AddDelaunayCple();
-
-
-
-
-      void DoPyram();
-
-      void VerifAWSI();
-      void ComputeStripPair(int);
-      void AddPair(cImaMM * anI1,cImaMM * anI2);
-
-      bool        mSym;
-      bool        mShow;
-      std::string mPb;
-      std::string mFullName;
-      std::string mDir;
-      std::string mPat;
-      std::string mOri;
-      std::string mKeyOri;
-      cInterfChantierNameManipulateur * mICNM;
-      const cInterfChantierNameManipulateur::tSet * mSetIm;
-
-      std::vector<cImaMM *> mImages;
-      std::map<std::string,cImaMM *> mDicIm;
-      typedef std::pair<cImaMM *,cImaMM *> tPairIm;
-      typedef std::set<tPairIm> tSetPairIm;
-      tSetPairIm   mPairs;
-      double       mAverNbPix;
-      double       mTetaBande;
-
-
-   private :
-      void AddPairASym(cImaMM * anI1,cImaMM * anI2);
-     
-};
-
-
 
 class cAppliClipChantier : public cAppliWithSetImage
 {
@@ -282,7 +197,7 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
 
    if (mSetIm->size()==0)
    {
-       std::cout << "For Pat= " << mPat << "\n";
+       std::cout << "For Pat= [" << mPat << "]\n";
        ELISE_ASSERT(false,"Empty pattern");
    }
 
@@ -347,6 +262,9 @@ void  cAppliWithSetImage::MakeStripStruct(const std::string & aPairByStrip,bool 
       anI.mBande = aBande;
   }
 }
+
+Pt2dr PtOfcImaMM   (const cImaMM & aCam) {return aCam.mC2;}
+Pt2dr PtOfcImaMMPtr(const cImaMM * aCam) {return PtOfcImaMM(*aCam);}
 
 void cAppliWithSetImage::AddDelaunayCple()
 {

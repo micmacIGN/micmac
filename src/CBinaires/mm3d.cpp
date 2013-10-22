@@ -202,6 +202,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("MakeGrid",MakeGrid_main," Generate orientations in a grid format"));
        aRes.push_back(cMMCom("Malt",Malt_main," Simplified matching (interface to MicMac)",cArgLogCom(3)));
        aRes.push_back(cMMCom("MMByP",MMByPair_main," Matching By Pair of images",cArgLogCom(2)));
+       aRes.push_back(cMMCom("MM1P",MMOnePair_main," Matching One Pair of images",cArgLogCom(2)));
+
        aRes.push_back(cMMCom("ChantierClip",ChantierClip_main," Clip Chantier",cArgLogCom(2)));
        aRes.push_back(cMMCom("ClipIm",ClipIm_main," Clip Chantier",cArgLogCom(2)));
 
