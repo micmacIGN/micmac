@@ -7,6 +7,8 @@ if ( MSVC )
     set( CMAKE_PREFIX_PATH "${WINDOWSSDK_DIRS}\\Lib" )
 	
 	message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
+else()
+	set( CMAKE_PREFIX_PATH "$ENV{QTDIR}" )
 endif()
 
 if ( WIN32 )
