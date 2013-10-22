@@ -93,7 +93,8 @@ Liste_Pts_INT2 cAppli_Ortho::CompConx
      Liste_Pts_INT2 cc(2);
      Neighbourhood V4 = Neighbourhood::v4();
 
-std::cout << "AAAAAAAAAAAA\n";
+
+
 
      ELISE_COPY
      (
@@ -111,7 +112,6 @@ std::cout << "AAAAAAAAAAAA\n";
          0,
          cc 
      );
-std::cout << "BBBBBBBBBBBBB\n";
 
      return cc;
 }
