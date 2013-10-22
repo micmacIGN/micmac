@@ -90,7 +90,9 @@ template <class Type>  Type ElList<Type>::pop()
 {
     ASSERT_TJS_USER(_ptr!= 0," attempt to take car of empty list");
     Type el =  ((liste_phys<Type> *) _ptr)->_el;
-    *this = ((liste_phys<Type> *) _ptr)->_next;
+    *this =  ElList<Type>(  ((liste_phys<Type> *) _ptr)->_next);
+    //  *this =  ((liste_phys<Type> *) _ptr)->_next;  CA PLANTE depuis 22/10/2013 ?? !!!  MPD : aucune idee pourquoi 
+    // *this = this->cdr();
     return el;
 }
 

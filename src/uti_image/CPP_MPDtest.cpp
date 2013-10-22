@@ -206,22 +206,18 @@ void Test_Arrondi_LG()
 
 int MPDtest_main (int argc,char** argv)
 {
+   // ElList<Pt2di> aL = NewLPt2di(Pt2di(20,20));
+   ElList<Pt2di> aL ;
+   aL = aL + Pt2di(20,10);
+   while (! aL.empty())
+   {
+       Pt2di aP = aL.car();
+       std::cout << "HHHH " << aP << "\n";
+       aL = aL.cdr();
+   }
+
+    
  
-    std::string aName = "/home/marc/TMP/GlacierAndin/GLR_MorrenasMedio_010513_D7000_18mm/GLR_5670.JPG";
-    // aName = "/home/marc/TMP/ExempleDoc/Draix-Drone-Village/P4090140.JPG";
-
-
-    for (int aK=0 ; aK<1 ; aK++)  
-    {
-       ElTimer aChrono;
-       cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aName);
-       std::cout << "MDP " << aMDP.FocMm() << " " << aChrono.uval() << "\n";
-       if (aMDP.HasGPSLatLon())
-          std::cout << "LL " << aMDP.GPSLat() * (180/PI) << " " << aMDP.GPSLon() * (180/PI) << "\n";
-       if (aMDP.HasGPSAlt())
-          std::cout << "Alt " << aMDP.GPSAlt() << "\n";
-    }
-
    return 0;
 
     return EXIT_SUCCESS;
