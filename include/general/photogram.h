@@ -1590,7 +1590,7 @@ class ElCamera : public cCapture3D
 
        // Les tailles representent des capteurs avant Clip et Reech
 	  const  Pt2di & Sz() const;
-	  void  SetSz(const Pt2di &aSz);
+	  void  SetSz(const Pt2di &aSz,bool AcceptInitMult=false);
           bool SzIsInit() const;
 
          void SetParamGrid(const NS_ParamChantierPhotogram::cParamForGrid &);
@@ -2983,6 +2983,8 @@ class cCpleEpip
          bool               mOk;
          bool               mFirstIsLeft;
 };
+std::string LocDirMec2Im(const std::string & Im1,const std::string & Im2);
+
 
 cCpleEpip * StdCpleEpip
           (

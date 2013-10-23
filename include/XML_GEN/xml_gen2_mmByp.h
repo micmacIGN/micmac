@@ -37,103 +37,94 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "StdAfx.h"
+
+#ifndef _ELISE_XML_GEN_MMBY_P_
+#define _ELISE_XML_GEN_MMBY_P_
+
+
 
 using namespace NS_ParamChantierPhotogram;
+using namespace NS_ParamMICMAC;
 
+class cImaMM;
+class cAppliWithSetImage;
+class cAppliMMByPair;
 
-cCpleEpip * StdCpleEpip
-          (
-             std::string  aDir,
-             std::string  aNameOri,
-             std::string  aNameIm1,
-             std::string  aNameIm2
-          )
+class cImaMM
 {
-    if (aNameIm1 > aNameIm2) ElSwap(aNameIm1,aNameIm2);
-    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-
-    std::string aNameCam1 =  anICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aNameOri,aNameIm1,true);
-    std::string aNameCam2 =  anICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aNameOri,aNameIm2,true);
-
-    CamStenope * aCam1 = CamStenope::StdCamFromFile(true,aNameCam1,anICNM);
-    CamStenope * aCam2 = CamStenope::StdCamFromFile(true,aNameCam2,anICNM);
-    return new cCpleEpip (aDir,1,*aCam1,aNameIm1,*aCam2,aNameIm2);
-
-}
+    public :
+      cImaMM(const std::string & aName,cAppliWithSetImage &);
 
 
-int CreateEpip_main(int argc,char ** argv)
+    public :
+       std::string mNameIm;
+       std::string mBande;
+       int         mNumInBande;
+       CamStenope * mCam;
+       Pt3dr        mC3;
+       Pt2dr        mC2;
+       Tiff_Im  &   Tiff();
+    private :
+       cAppliWithSetImage &  mAppli;
+       Tiff_Im  *            mPtrTiff;
+
+};
+
+
+class cAppliWithSetImage
 {
-    Tiff_Im::SetDefTileFile(50000);
-    std::string aDir= ELISE_Current_DIR;
-    std::string aName1;
-    std::string aName2;
-    std::string anOri;
-    double  aScale=1.0;
+   public :
+      CamStenope * CamOfName(const std::string & aName);
+      const std::string & Dir() const;
+      int  DeZoomOfSize(double ) const;
+      void operator()(cImaMM*,cImaMM*,bool);   // Delaunay call back
+   protected :
+      cAppliWithSetImage(int argc,char ** argv,int aFlag);
+      void Develop(bool EnGray,bool En16B);
 
-    bool Gray = true;
-    bool Cons16B = true;
-    
+      static const int  FlagDev8BGray   = 1;
+      static const int  FlagDev16BGray  = 2;
 
-    ElInitArgMain
-    (
-	argc,argv,
-	LArgMain()  << EAMC(aName1,"Name first image") 
-	            << EAMC(aName2,"Name seconf image") 
-	            << EAMC(anOri,"Name orientation") ,
-	LArgMain()  << EAM(aScale,"Scale",true)
-                    << EAM(aDir,"Dir",true,"directory, def = current")
-                    << EAM(Gray,"Gray",true,"One channel Gray level image (Def=true)")
-                    << EAM(Cons16B,"16B",true,"Maintain 16 Bits images if avalaibale (Def=true)")
-    );	
-    if (aName1 > aName2) ElSwap(aName1,aName2);
-
-    int aNbChan = Gray ? 1 : - 1;
-    std::string   aKey =  + "NKS-Assoc-Im2Orient@-" + anOri;
-
-    cTplValGesInit<std::string>  aTplFCND;
-    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::StdAlloc
-                                               (
-                                                   argc,argv,
-                                                   aDir,
-                                                   aTplFCND
-                                               );
+      cImaMM * ImOfName(const std::string & aName);
+      void MakeStripStruct(const std::string & aPairByStrip,bool StripFirst);
+      void AddDelaunayCple();
 
 
-     std::string aNameOr1 = anICNM->Assoc1To1(aKey,aName1,true);
-     std::string aNameOr2 = anICNM->Assoc1To1(aKey,aName2,true);
-
-     CamStenope * aCam1 = CamStenope::StdCamFromFile(true,aNameOr1,anICNM);
-     CamStenope * aCam2 = CamStenope::StdCamFromFile(true,aNameOr2,anICNM);
-
-     Tiff_Im aTif1 = Tiff_Im::StdConvGen(aDir+aName1,aNbChan,Cons16B);
-     Tiff_Im aTif2 = Tiff_Im::StdConvGen(aDir+aName2,aNbChan,Cons16B);
-
-     aCam1->SetSz(aTif1.sz(),true);
-     aCam2->SetSz(aTif2.sz(),true);
-
-  //  Test commit
 
 
-     cCpleEpip aCplE
-               (
-                    aDir,
-                    aScale,
-                    *aCam1,aName1,
-                    *aCam2,aName2
-               );
+      void DoPyram();
 
-     std::cout << "TimeEpi-0 \n";
-     ElTimer aChrono;
-     aCplE.ImEpip(aTif1,aNameOr1,true);
-     std::cout << "TimeEpi-1 " << aChrono.uval() << "\n";
-     aCplE.ImEpip(aTif2,aNameOr2,false);
-     std::cout << "TimeEpi-2 " << aChrono.uval() << "\n";
+      void VerifAWSI();
+      void ComputeStripPair(int);
+      void AddPair(cImaMM * anI1,cImaMM * anI2);
 
-     return EXIT_SUCCESS;
-}
+      bool        mSym;
+      bool        mShow;
+      std::string mPb;
+      std::string mFullName;
+      std::string mDir;
+      std::string mPat;
+      std::string mOri;
+      std::string mKeyOri;
+      cInterfChantierNameManipulateur * mICNM;
+      const cInterfChantierNameManipulateur::tSet * mSetIm;
 
+      std::vector<cImaMM *> mImages;
+      std::map<std::string,cImaMM *> mDicIm;
+      typedef std::pair<cImaMM *,cImaMM *> tPairIm;
+      typedef std::set<tPairIm> tSetPairIm;
+      tSetPairIm   mPairs;
+      double       mAverNbPix;
+      double       mTetaBande;
+
+   private :
+      void AddPairASym(cImaMM * anI1,cImaMM * anI2);
+
+};
+
+
+
+#endif   // _ELISE_XML_GEN_MMBY_P_
 
 
 

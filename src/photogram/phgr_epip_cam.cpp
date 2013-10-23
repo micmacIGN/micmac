@@ -714,9 +714,15 @@ std::string cCpleEpip::LocNameImEpi(bool Im1,int aDeZoom)
     return aRes;
 }
 
+std::string LocDirMec2Im(const std::string & Im1,const std::string & Im2)
+{
+    return "MEC2Im-" + Im1 + "-" +  Im2 + "/";
+}
+
 std::string cCpleEpip::LocDirMatch(bool Im1)
 {
-    return "MEC2Im-" + LocNameImEpi(Im1) + "-" +  LocNameImEpi(!Im1) + "/";
+    return LocDirMec2Im(LocNameImEpi(Im1),LocNameImEpi(!Im1));
+    // return "MEC2Im-" + LocNameImEpi(Im1) + "-" +  LocNameImEpi(!Im1) + "/";
 }
  
 std::string cCpleEpip::LocPxFileMatch(bool Im1,int aNum,int aDeZoom)

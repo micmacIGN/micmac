@@ -93,6 +93,9 @@ Liste_Pts_INT2 cAppli_Ortho::CompConx
      Liste_Pts_INT2 cc(2);
      Neighbourhood V4 = Neighbourhood::v4();
 
+
+
+
      ELISE_COPY
      (
          conc
