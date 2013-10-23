@@ -1854,7 +1854,7 @@ void ElCamera::SetIntrImaC2M(const tOrIntIma & aOrC2M)
 
 
 
-void ElCamera::SetSz(const Pt2di &aSz)
+void ElCamera::SetSz(const Pt2di &aSz,bool AcceptInitMult)
 {
 /*
 static int aCpt = 0; aCpt++;
@@ -1862,7 +1862,7 @@ std::cout << "Organge " << aCpt << "\n";
 if (aCpt>=8) getchar();
 */
 
-   if (mSz.x != -1)
+   if ((mSz.x != -1)  && (!AcceptInitMult))
    {
        ELISE_ASSERT(aSz==mSz,"Multiple Sz incoherent in ElCamera::SetSz");
    }
