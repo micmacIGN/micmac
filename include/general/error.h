@@ -253,6 +253,7 @@ class cElWarning
          static cElWarning  OrhoLocOnlyXCste;
          static cElWarning  ToVerifNuage;
          static cElWarning  TrueRot;
+         static cElWarning  ScaleInNuageFromP;
 
          static void ShowWarns(const std::string & aFile);
     private :

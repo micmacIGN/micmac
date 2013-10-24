@@ -2984,6 +2984,7 @@ class cCpleEpip
          bool               mFirstIsLeft;
 };
 std::string LocDirMec2Im(const std::string & Im1,const std::string & Im2);
+std::string StdNameImDeZoom(const std::string & Im1,int aDeZoom);
 
 
 cCpleEpip * StdCpleEpip
