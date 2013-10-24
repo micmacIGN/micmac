@@ -214,7 +214,8 @@ cGeomDiscFPx::cGeomDiscFPx
    cGeomDiscR2     (anAppli),
    mRDec           (0,0),
    mRRIsInit       (false),
-   mRCoordIsInit   (false)
+   mRCoordIsInit   (false),
+   mTronkExport    (false)
 {
    for (int aK=0 ; aK<theDimPxMax ; aK++)
      mRatioPasCompUser[aK] = -1;

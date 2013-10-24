@@ -25,10 +25,7 @@ eLiSe06/05/99*/
 
 
 
-#include "general/all.h"
-#include "private/all.h"
-#include "ext_stl/fifo.h" 
-
+#include "StdAfx.h"
 #include "bench.h"
 
 class  BENCH_Flux_of_Byte :  public Flux_Of_Byte

@@ -23,11 +23,7 @@ Internet: Marc.Pierrot-Deseilligny@ign.fr
    Phone: (33) 01 43 98 81 28
 eLiSe06/05/99*/
 
-#include "general/all.h"
-
-#include "graphes/graphe_implem.h"
-#include "graphes/algo_planarite.h"
-#include "graphes/algo_pcc.h"
+#include "StdAfx.h"
 #include "bench.h"
 
 

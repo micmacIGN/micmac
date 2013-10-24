@@ -25,11 +25,7 @@ eLiSe06/05/99*/
 
 
 #define  NoOperatorVirgule
-#include "general/all.h"
-#include "ext_stl/pack_list.h"
-#include "ext_stl/heap.h"
-#include "ext_stl/intheap.h"
-#include "ext_stl/tab2D_dyn.h"
+#include "StdAfx.h"
 #include "bench.h"
 
 #include <map>

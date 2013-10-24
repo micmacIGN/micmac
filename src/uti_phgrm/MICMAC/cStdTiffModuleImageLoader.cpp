@@ -686,11 +686,11 @@ cInterfModuleImageLoader * cAppliMICMAC::GetMIL
 	 }
 	 else 
 	 {
+		  std::cout<<"Format "<<ext<<" lu avec cStdTiffModuleImageLoader"<<std::endl;
 		 aRes = new cStdTiffModuleImageLoader(*this,aName);
 	 }				
 	
 #else
-	 std::cout<<"images avec IgnSocleImageLoader"<<std::endl;
     aRes = new cStdTiffModuleImageLoader(*this,aName);
 #endif
  }

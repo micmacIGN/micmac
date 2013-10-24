@@ -24,8 +24,7 @@ Internet: Marc.Pierrot-Deseilligny@ign.fr
 eLiSe06/05/99*/
 
 
-#include "general/all.h"
-#include "graphes/graphe_implem.h"
+#include "StdAfx.h"
 
 
 

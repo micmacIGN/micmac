@@ -30,7 +30,7 @@ eLiSe06/05/99*/
 #include "commun.h"
 #endif
 
-#include "general/all.h"
+#include "StdAfx.h"
 
 
 void bench_doc()
@@ -239,6 +239,7 @@ void  all()
      {
 		
        //    Macro_Exec_bench(bench_bits_flow);
+	  /*
           Macro_Exec_bench(bench_xml);
           Macro_Exec_bench(somme_cste_int_rect_2d_by_hand);
           Macro_Exec_bench(bench_Tab_CPT_REF);
@@ -274,8 +275,7 @@ void  all()
           Macro_Exec_bench(bench_r2d_adapt_lin);
           Macro_Exec_bench(bench_im2d_bits);
           Macro_Exec_bench(bench_pnm);
-/*
-*/
+	  
           Macro_Exec_bench(bench_tiff_im);
           Macro_Exec_bench(bench_tiles_elise_file); 
           Macro_Exec_bench(bench_algo_spec);
@@ -324,6 +324,7 @@ void  all()
           Macro_Exec_bench(bench_pjeq234);
           Macro_Exec_bench(bench_new_mep_rel);
           Macro_Exec_bench(bench_auto_calibration);
+	  */
      }
 
 

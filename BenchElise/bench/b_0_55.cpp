@@ -1,5 +1,5 @@
-#include "general/all.h"
-#include "private/all.h"
+
+#include "StdAfx.h"
 #include "bench.h"
 
 
