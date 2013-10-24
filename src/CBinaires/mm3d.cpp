@@ -399,9 +399,13 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    std::string aLowCom = StrToLower(aCom);
 
    std::vector<cSuggest *> mSugg;
-   mSugg.push_back(new cSuggest("Pattern Match",aLowCom));
-   mSugg.push_back(new cSuggest("Prefix Match",aLowCom+".*"));
-   mSugg.push_back(new cSuggest("Subex Match",".*"+aLowCom+".*"));
+
+   cSuggest *PatMach    = new cSuggest("Pattern Match",aLowCom);
+   cSuggest *PrefMach   = new cSuggest("Prefix Match",aLowCom+".*");
+   cSuggest *SubMach    = new cSuggest("Subex Match",".*"+aLowCom+".*");
+   mSugg.push_back(PatMach);
+   mSugg.push_back(PrefMach);
+   mSugg.push_back(SubMach);
 
    for (unsigned int aKC=0 ; aKC<aVComs.size() ; aKC++)
    {
@@ -419,6 +423,10 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
           {
                LogOut(aRes,DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup);
           }
+
+          delete PatMach;
+          delete PrefMach;
+          delete SubMach;
           return aRes;
        }
        for (int aKS=0 ; aKS<int(mSugg.size()) ; aKS++)
@@ -437,6 +445,9 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
            {
                 std::cout << "    " << mSugg[aKS]->mRes[aKC].mName << "\n";
            }
+           delete PatMach;
+           delete PrefMach;
+           delete SubMach;
            return -1;
       }
    }
@@ -445,6 +456,10 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 
    std::cout << "For command = " << argv[1] << "\n";
    ELISE_ASSERT(false,"Unkown command in mm3d");
+
+   delete PatMach;
+   delete PrefMach;
+   delete SubMach;
    return -1;
 }
 
