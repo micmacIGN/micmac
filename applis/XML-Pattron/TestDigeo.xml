@@ -1,0 +1,70 @@
+<ParamDigeo>
+
+     <DicoLoc >
+     </DicoLoc>
+
+     <SectionImages>
+           <ImageDigeo>
+              <KeyOrPat>   ^F020_DSC_1855_MpDcraw8B_GB.tif </KeyOrPat>
+              <VisuCarac>
+                   <Dir> Pyr </Dir>
+                   <Dyn> 0.005 </Dyn>
+              </VisuCarac>
+           </ImageDigeo>
+           <PyramideImage>
+              <TypeNumeriqueOfNiv>
+                 <Type> eTN_u_int2 </Type>
+                 <Niv> 1 </Niv>
+              </TypeNumeriqueOfNiv>
+              <MaximDyn> true </MaximDyn>
+              <TypePyramide>
+                  <!-- <NivPyramBasique> 32 </NivPyramBasique> -->
+                  <PyramideGaussienne>
+                       <NbByOctave> 5 </NbByOctave>
+                       <NivOctaveMax  > 64 </NivOctaveMax> <!-- Par ex 8, 32 ..-->
+                  </PyramideGaussienne>
+              </TypePyramide>
+           </PyramideImage>
+     </SectionImages>
+
+     <SectionCaracImages>
+           <ComputeCarac> true </ComputeCarac>
+           <SiftCarac >
+               <DoMax> true </DoMax>
+               <DoMin> true </DoMin>
+
+               <NivEstimGradMoy> 4</NivEstimGradMoy>
+               <!-- 8 Correspond a peu pres a la valeur 10 de Tr 2 / det de Lowe -->
+               <RatioAllongMin> 8 </RatioAllongMin>
+               <RatioGrad> 0.01 </RatioGrad>
+
+           </SiftCarac>
+     </SectionCaracImages>
+
+     <SectionTest>
+         <VerifExtrema>  false </VerifExtrema>
+     </SectionTest>
+
+     <SectionWorkSpace>
+           <DirectoryChantier> ../micmac_data/DigiTest/SubM/  </DirectoryChantier>
+           <SauvPyram>
+               <Key> Key-Assoc-Pyram-MM </Key>
+               <Dir>  Pyr/ </Dir>
+               <CreateFileWhenExist> true </CreateFileWhenExist>
+               <Force8B > true   </Force8B>
+               <Dyn > 0.00390625 </Dyn>
+           </SauvPyram>
+           <ShowTimes> 10 </ShowTimes>
+
+
+<!--
+           <DigeoDecoupageCarac>
+                <SzDalle> 2000 </SzDalle>
+                <Bord>  100   </Bord>
+           </DigeoDecoupageCarac>
+-->
+     </SectionWorkSpace>
+
+
+
+</ParamDigeo>
