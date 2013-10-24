@@ -244,7 +244,7 @@ namespace NS_ParamMICMAC
 									 tPInt            aSz
 									 )
 	{
-		bool verbose  = 1;
+		bool verbose  = 0;
 		if (verbose) std::cout << "LoadNCanaux en float "<<aDeZoom<<" - "<<aP0Im.real()<<" "<<aP0Im.imag()<<" - "<<aP0File.real()<<" "<<aP0File.imag()<<" - "<<aSz.real()<<" "<<aSz.imag()<<std::endl;
 		bool avecDeZoom=false;
 		
