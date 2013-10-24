@@ -25,9 +25,7 @@ eLiSe06/05/99*/
 
 
 
-#include "general/all.h"
-#include "private/all.h"
-#include "im_tpl/correl_imget.h"
+#include "StdAfx.h"
 #include <algorithm>
 
 

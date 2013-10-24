@@ -633,12 +633,20 @@ template <class Type,class TyBase>
     return ImGridReech(reechantX,reechantY,sz_grid,Pt2di(0,0),sz(),def);
 }
 
+template class Fonc_Num Im2D<U_INT1,INT>::ImGridReech
+                  (
+                        Fonc_Num reechantX,
+                        Fonc_Num reechantY,
+                        INT      sz_grid,
+                        REAL     def
+                   );
+/*
 Fonc_Num Instantiate_ImGridReech()
 {
    Im2D<U_INT1,INT> anIm(1,1);
    return anIm.ImGridReech(FX,FY,1,2.0);
 }
-
+*/
 
 /**************************************************/
 /*                                                */
