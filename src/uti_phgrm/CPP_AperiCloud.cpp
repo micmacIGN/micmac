@@ -47,7 +47,7 @@ int AperiCloud_main(int argc,char ** argv)
     //std::vector<std::string> ImPl;
     int ExpTxt=0;
     int PlyBin=1;
-    std::string Out="AperiCloud.ply";
+    std::string Out="";
 
     int RGB = -1;
     double aSeuilEc = 10.0;
@@ -68,6 +68,11 @@ int AperiCloud_main(int argc,char ** argv)
                     << EAM(aLimBsH,"LimBsH",true,"Limit ratio base to high (Def=1e-2)")
                     << EAM(WithPoints,"WithPoints",true,"Do we add point cloud ? (Def=true) ")
     );
+
+	if (Out=="")
+	{
+		Out="AperiCloud_" + AeroIn + ".ply";
+	}
 
     if (RGB >=0) 
     {
