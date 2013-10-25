@@ -14,8 +14,8 @@ int main()
     checkCudaErrors(cudaSetDevice(devID));
     // Obtention des proprietes de la carte
     checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
-    // Affichage des propriétés de la carte
-    printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
+    // Affichage des proprietes de la carte
+    printf("GPU Device %d: \"%s\" with compute capability %d.%d\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
 
 
     cout << "Launch Data optimisation GpGpu ***" << endl;
@@ -28,8 +28,11 @@ int main()
     // Declaration des variables du cote du DEVICE
     DEVC_Data2Opti d2O;
 
-    uint nbLines        = rand() % 10 + 10;
-    uint lenghtMaxLines = 10;
+    bool random = false;
+
+
+    uint nbLines        = random ? rand() % 10 + 10 : 1024;
+    uint lenghtMaxLines = 256;
     uint depthMax       = NAPPEMAX;
 
     uint sizeMaxLine = (uint)(1.5f*sqrt((float)lenghtMaxLines * lenghtMaxLines + nbLines * nbLines));
@@ -44,7 +47,7 @@ int main()
     CuHostData3D<ushort> lenghtLines(nbLines);
 
     tabZ.FillRandom(0,depthMax/2);
-    lenghtLines.FillRandom(2,lenghtMaxLines);
+    lenghtLines.FillRandom(lenghtMaxLines-1,lenghtMaxLines);
 
     for (uint p= 0 ; p < nbLines; p++)
     {
@@ -138,6 +141,7 @@ int main()
     tabZ.Dealloc();
     lenghtLines.Dealloc();
 
+    GpGpuTools::OutputInfoGpuMemory();
     checkCudaErrors( cudaDeviceReset() );
     printf("Reset Device GpGpu.\n");
 
