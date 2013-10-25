@@ -362,7 +362,7 @@ IF (MSVC)
 
 	# Zm131 -> Erreur de compilation sous windows 7 avec Cuda et Boost		
         if (${CUDA_ENABLED})
-            add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
+            add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /wd4355 /nologo" )
         else()
             add_definitions( "-Zm131 /W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
         endif()

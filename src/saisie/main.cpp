@@ -2,11 +2,25 @@
 #include <QApplication>
 #include "mainwindow.h"
 
+#ifdef WIN32
+int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine, int nCmdShow)
+#else
 int main(int argc, char *argv[])
+#endif
 {
     QApplication::setStyle("fusion");
 
+#ifdef WIN32
+	LPWSTR *argv;
+	int argc;
+	int i;
+
+	argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+
+	QApplication app(argc, 0);
+#else
     QApplication app(argc, argv);
+#endif
 	
     app.setOrganizationName("IGN");
     app.setApplicationName("saisie");
@@ -100,6 +114,10 @@ int main(int argc, char *argv[])
     }
 
     w.checkForLoadedData();
+
+#ifdef WIN32
+	LocalFree(argv);
+#endif
 
     return app.exec();
 }

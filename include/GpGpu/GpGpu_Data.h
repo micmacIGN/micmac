@@ -407,7 +407,7 @@ TPL_T void CuHostData3D<T>::Fill(T Value)
 
 TPL_T void CuHostData3D<T>::FillRandom(T min, T max)
 {
-    T mod = abs((float)max - (float)min);
+    T mod = (T)abs((float)max - (float)min);
 
     for(uint i=0;i<CData3D<T>::GetSize();i++)
     {

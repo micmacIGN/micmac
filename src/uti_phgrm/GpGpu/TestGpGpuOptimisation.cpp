@@ -21,7 +21,7 @@ int main()
     cout << "Launch Data optimisation GpGpu ***" << endl;
     GpGpuTools::OutputInfoGpuMemory();
 
-    srand (time(NULL));
+    srand ((uint)time(NULL));
 
     // Declaration des variables du cote du HOST
     HOST_Data2Opti h2O;

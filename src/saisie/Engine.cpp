@@ -394,7 +394,7 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
     outFile.close();
 
     #ifdef _DEBUG
-       printf ( "File saved in: %s\n", m_Loader->GetSelectionFilename().toStdString());
+   //    printf ( "File saved in: %s\n", m_Loader->GetSelectionFilename().toStdString());
     #endif
 }
 
