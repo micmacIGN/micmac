@@ -192,17 +192,11 @@ protected:
     virtual void dragEnterEvent(QDragEnterEvent* event);
     virtual void dropEvent(QDropEvent* event);
 
-    //! Draw frame axis
-    void drawAxis();
-
     //! Draw ball
     void drawBall();
 
     //! Draw ball
     void drawCams();
-
-    //! Draw bounding box
-    void drawBbox();
 
     //! Draw widget gradient background
     void drawGradientBackground();
@@ -236,20 +230,11 @@ protected:
     //! Default font
     QFont m_font;
 
-    //! States if frame axis should be drawn
-    bool m_bDrawAxis;
-
-    //! States if ball should be drawn
-    bool m_bDrawBall;
-
     //! States if cams should be drawn
     bool m_bDrawCams;
 
     //! States if messages should be displayed
     bool m_bDrawMessages;
-
-    //! States if Bounding box should be displayed
-    bool m_bDrawBbox;
 
     //! States if view is centered on object
     bool m_bObjectCenteredView;
@@ -365,9 +350,8 @@ private:
     GLint       *_glViewport;
 
     cBall       *_theBall;
-
-
-
+    cAxis       *_theAxis;
+    cBBox       *_theBBox;
 };
 
 #endif  /* _GLWIDGET_H */

@@ -7,6 +7,7 @@
     #undef Int
 #endif
 #include <QColor>
+#include <QGLWidget>
 
 #include "GL/glu.h"
 
@@ -98,6 +99,40 @@ class cBall : public cObject
         cCross  *_cr0;
         cCross  *_cr1;
         cCross  *_cr2;
+};
+
+class cAxis : public cObject
+{
+    public:
+        cAxis();
+
+        void    draw();
+
+        void    setLineWidth(float width){_lineWidth = width;}
+
+    private:
+        float   _lineWidth;
+};
+
+class cBBox : public cObject
+{
+    public:
+        cBBox();
+
+        void    set(float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
+
+        void    draw();
+
+        void    setLineWidth(float width){_lineWidth = width;}
+
+    private:
+        float   _lineWidth;
+        float   _minX;
+        float   _minY;
+        float   _minZ;
+        float   _maxX;
+        float   _maxY;
+        float   _maxZ;
 };
 
 void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps = 64);

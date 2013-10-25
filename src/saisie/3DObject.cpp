@@ -196,7 +196,7 @@ void cBall::draw()
     _cr2->draw();
 }
 
-void    cBall::setPosition(Pt3dr const &aPt)
+void cBall::setPosition(Pt3dr const &aPt)
 {
     _cl0->setPosition(aPt);
     _cl1->setPosition(aPt);
@@ -207,7 +207,7 @@ void    cBall::setPosition(Pt3dr const &aPt)
     _cr2->setPosition(aPt);
 }
 
-void    cBall::setColor(QColor const &aCol)
+void cBall::setColor(QColor const &aCol)
 {
     _cl0->setColor(aCol);
     _cl1->setColor(aCol);
@@ -218,7 +218,7 @@ void    cBall::setColor(QColor const &aCol)
     _cr2->setColor(aCol);
 }
 
-void    cBall::setVisible(bool aVis)
+void cBall::setVisible(bool aVis)
 {
     _bVisible = aVis;
 
@@ -231,7 +231,7 @@ void    cBall::setVisible(bool aVis)
     _cr2->setVisible(aVis);
 }
 
-void    cBall::setScale(float aScale)
+void cBall::setScale(float aScale)
 {
     _cl0->setScale(aScale);
     _cl1->setScale(aScale);
@@ -240,4 +240,130 @@ void    cBall::setScale(float aScale)
     _cr0->setScale(aScale);
     _cr1->setScale(aScale);
     _cr2->setScale(aScale);
+}
+
+cAxis::cAxis():
+    _lineWidth(1.f)
+{}
+
+void cAxis::draw()
+{
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+
+    GLuint trihedron = glGenLists(1);
+    glNewList(trihedron, GL_COMPILE);
+
+    glPushAttrib(GL_LINE_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_DEPTH_TEST);
+
+    glLineWidth(_lineWidth);
+
+    glBegin(GL_LINES);
+    glColor3f(1.0f,0.0f,0.0f);
+    glVertex3f(0.0f,0.0f,0.0f);
+    glVertex3f(0.4f,0.0f,0.0f);
+    glColor3f(0.0f,1.0f,0.0f);
+    glVertex3f(0.0f,0.0f,0.0f);
+    glVertex3f(0.0f,0.4f,0.0f);
+    glColor3f(0.0f,0.7f,1.0f);
+    glVertex3f(0.0f,0.0f,0.0f);
+    glVertex3f(0.0f,0.0f,0.4f);
+    glEnd();
+
+    glPopAttrib();
+
+    glEndList();
+
+    glTranslatef(_position.x,_position.y,_position.z);
+    glScalef(_scale,_scale,_scale);
+
+    glCallList(trihedron);
+
+    glPopMatrix();
+}
+
+cBBox::cBBox() :
+    _lineWidth(1.f)
+{}
+
+void cBBox::set(float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
+{
+    _minX = minX;
+    _minY = minY;
+    _minZ = minZ;
+    _maxX = maxX;
+    _maxY = maxY;
+    _maxZ = maxZ;
+}
+
+void cBBox::draw()
+{
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+
+    GLuint list = glGenLists(1);
+    glNewList(list, GL_COMPILE);
+
+    glEnable(GL_LINE_SMOOTH);
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+    glEnable(GL_BLEND);
+
+    glLineWidth(_lineWidth);
+
+    Pt3dr P1(_minX, _minY, _minZ);
+    Pt3dr P2(_minX, _minY, _maxZ);
+    Pt3dr P3(_minX, _maxY, _maxZ);
+    Pt3dr P4(_minX, _maxY, _minZ);
+    Pt3dr P5(_maxX, _minY, _minZ);
+    Pt3dr P6(_maxX, _maxY, _minZ);
+    Pt3dr P7(_maxX, _maxY, _maxZ);
+    Pt3dr P8(_maxX, _minY, _maxZ);
+
+    glBegin(GL_LINES);
+
+    glVertex3d(P1.x, P1.y, P1.z);
+    glVertex3d(P2.x, P2.y, P2.z);
+
+    glVertex3d(P3.x, P3.y, P3.z);
+    glVertex3d(P2.x, P2.y, P2.z);
+
+    glVertex3d(P1.x, P1.y, P1.z);
+    glVertex3d(P4.x, P4.y, P4.z);
+
+    glVertex3d(P1.x, P1.y, P1.z);
+    glVertex3d(P5.x, P5.y, P5.z);
+
+    glVertex3d(P7.x, P7.y, P7.z);
+    glVertex3d(P3.x, P3.y, P3.z);
+
+    glVertex3d(P7.x, P7.y, P7.z);
+    glVertex3d(P6.x, P6.y, P6.z);
+
+    glVertex3d(P8.x, P8.y, P8.z);
+    glVertex3d(P5.x, P5.y, P5.z);
+
+    glVertex3d(P7.x, P7.y, P7.z);
+    glVertex3d(P8.x, P8.y, P8.z);
+
+    glVertex3d(P5.x, P5.y, P5.z);
+    glVertex3d(P6.x, P6.y, P6.z);
+
+    glVertex3d(P4.x, P4.y, P4.z);
+    glVertex3d(P6.x, P6.y, P6.z);
+
+    glVertex3d(P8.x, P8.y, P8.z);
+    glVertex3d(P2.x, P2.y, P2.z);
+
+    glVertex3d(P4.x, P4.y, P4.z);
+    glVertex3d(P3.x, P3.y, P3.z);
+
+    glEnd();
+
+    glEndList();
+
+    glCallList(list);
+
+    glPopMatrix();
 }

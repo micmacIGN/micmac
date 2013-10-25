@@ -1,6 +1,7 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+
 MainWindow::MainWindow(bool mode2D, QWidget *parent) :
     QMainWindow(parent),
     _ui(new Ui::MainWindow),
@@ -27,7 +28,7 @@ MainWindow::MainWindow(bool mode2D, QWidget *parent) :
     _glWidget = new GLWidget(this,_Engine->getData());
 
     toggleShowMessages(_ui->actionShow_help_messages->isChecked());
-    toggleShowBall(_ui->actionShow_ball->isChecked());
+    //toggleShowBall(_ui->actionShow_ball->isChecked());
     toggleShowAxis(_ui->actionShow_axis->isChecked());
     toggleShowBBox(_ui->actionShow_bounding_box->isChecked());
     toggleShowCams(_ui->actionShow_cams->isChecked());
@@ -111,13 +112,13 @@ void MainWindow::connectActions()
     connect(_ui->actionRemove_from_selection,            SIGNAL(triggered()),   this, SLOT(removeFromSelection()));
 
     //File menu
-    connect(_ui->actionLoad_plys,		SIGNAL(triggered()),   this, SLOT(loadPlys()));
-    connect(_ui->actionLoad_camera,		SIGNAL(triggered()),   this, SLOT(loadCameras()));
-    connect(_ui->actionLoad_image,		SIGNAL(triggered()),   this, SLOT(loadImage()));
-    connect(_ui->actionSave_masks,		SIGNAL(triggered()),   this, SLOT(exportMasks()));
+    connect(_ui->actionLoad_plys,		 SIGNAL(triggered()),   this, SLOT(loadPlys()));
+    connect(_ui->actionLoad_camera,		 SIGNAL(triggered()),   this, SLOT(loadCameras()));
+    connect(_ui->actionLoad_image,		 SIGNAL(triggered()),   this, SLOT(loadImage()));
+    connect(_ui->actionSave_masks,		 SIGNAL(triggered()),   this, SLOT(exportMasks()));
     connect(_ui->actionSave_as,          SIGNAL(triggered()),   this, SLOT(exportMasksAs()));
     connect(_ui->actionLoad_and_Export,  SIGNAL(triggered()),   this, SLOT(loadAndExport()));
-    connect(_ui->actionSave_selection,	SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
+    connect(_ui->actionSave_selection,	 SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
     connect(_ui->actionClose_all,        SIGNAL(triggered()),   this, SLOT(closeAll()));
     connect(_ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
 
@@ -288,6 +289,12 @@ void MainWindow::toggleFullScreen(bool state)
 void MainWindow::toggleShowBall(bool state)
 {
     _glWidget->showBall(state);
+
+    if (state)
+    {
+        _glWidget->showAxis(!state);
+        _ui->actionShow_axis->setChecked(!state);
+    }
 }
 
 void MainWindow::toggleShowBBox(bool state)
@@ -298,6 +305,12 @@ void MainWindow::toggleShowBBox(bool state)
 void MainWindow::toggleShowAxis(bool state)
 {
     _glWidget->showAxis(state);
+
+    if (state)
+    {
+        _glWidget->showBall(!state);
+        _ui->actionShow_ball->setChecked(!state);
+    }
 }
 
 void MainWindow::toggleShowCams(bool state)
