@@ -26,6 +26,8 @@
 #include "3DTools.h"
 #include "mainwindow.h"
 
+#include "3DObject.h"
+
 //! View orientation
 enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
                          BOTTOM_VIEW,	/**< Bottom view **/
@@ -361,6 +363,8 @@ private:
     GLdouble    *_mvmatrix;
     GLdouble    *_projmatrix;
     GLint       *_glViewport;
+
+    cBall       *_theBall;
 
 
 
