@@ -25,10 +25,7 @@ eLiSe06/05/99*/
 
 
 
-#include "general/all.h"
-#include "im_tpl/flux.h"
-#include "im_tpl/image.h"
-#include "im_tpl/algo_dist32.h"
+#include "StdAfx.h"
 #include "bench.h"
 
 
@@ -139,7 +136,7 @@ void  bench_algo_dist_32()
 void bench_im_reech
      (
            Fonc_Num   Fonc,
-           Pt2di        SzIm,
+           Pt2di      SzIm,
            Fonc_Num   reechantX,
            Fonc_Num   reechantY,
            INT        sz_grid,
@@ -204,7 +201,9 @@ void BenchcDbleGrid
          ElDistortion22_Gen & aDist
      )
 {
-     cDbleGrid aDGr(aP0In,aP1In,aStepDir,aDist);
+     //cDbleGrid aDGr(aP0In,aP1In,aStepDir,aDist);
+     Pt2dr stepDir2(aStepDir,aStepDir);                // __NEW
+     cDbleGrid aDGr(false,aP0In,aP1In,stepDir2,aDist); // __NEW
 
      for (REAL aX = aP0In.x ; aX<aP1In.x ; aX += aStepDir)
          for (REAL aY = aP0In.y ; aY<aP1In.y ; aY += aStepDir)
@@ -262,7 +261,7 @@ void bench_Proj32()
     ELISE_COPY
     (
         aI1.all_pts(),
-          aF * polar(Virgule(FX-aC.x,FY-aC.y),0).v1()*(255.0/(2.0*PI))
+          aF * Polar_Def_Opun::polar(Virgule(FX-aC.x,FY-aC.y),0).v1()*(255.0/(2.0*PI))
         + (1-aF) * (frandr() * 255),
         aI1.out()
     );

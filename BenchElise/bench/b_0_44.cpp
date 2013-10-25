@@ -1,8 +1,6 @@
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 #include "bench.h"
 
-#include "ext_stl/elslist.h"
 #include <list>
 
 

@@ -15,11 +15,8 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_rw(1.f)
   , m_rh(1.f)
   , m_font(font())
-  , m_bDrawAxis(false)
-  , m_bDrawBall(true)
   , m_bDrawCams(true)
   , m_bDrawMessages(true)
-  , m_bDrawBbox(false)
   , m_bObjectCenteredView(true)
   , m_bPolyIsClosed(false)
   , m_interactionMode(TRANSFORM_CAMERA)
@@ -63,6 +60,10 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
 
     m_font.setPointSize(10);
 
+    _theBall = new cBall();
+    _theAxis = new cAxis();
+    _theBBox = new cBBox();
+
     installEventFilter(this);
     setMouseTracking(true);
 }
@@ -92,6 +93,9 @@ GLWidget::~GLWidget()
     delete [] _projmatrix;
     delete [] _glViewport;
 
+    delete _theBall;
+    delete _theAxis;
+    delete _theBBox;
 }
 
 bool GLWidget::eventFilter(QObject* object,QEvent* event)
@@ -400,39 +404,7 @@ void GLWidget::computeFPS()
     }
 }
 
-//draw a unit circle in a given plane (0=YZ, 1 = XZ, 2=XY)
-void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps = 64)
-{
-    float theta = 2.f * PI / float(steps);
-    float c = cosf(theta);//precalculate the sine and cosine
-    float s = sinf(theta);
-    float t;
 
-    float x = r;//we start at angle = 0
-    float y = 0;
-
-    uchar dimX = (dim<2 ? dim+1 : 0);
-    uchar dimY = (dimX<2 ? dimX+1 : 0);
-
-    GLfloat P[3];
-
-    for (int i=0;i<3;++i) P[i] = 0.0f;
-
-    glBegin(GL_LINE_LOOP);
-    for(int ii = 0; ii < steps; ii++)
-    {
-        P[dimX] = x + cx;
-        P[dimY] = y + cy;
-        glVertex3fv(P);
-
-        //apply the rotation matrix
-        t = x;
-        x = c * x - s * y;
-        y = s * t + c * y;
-    }
-
-    glEnd();
-}
 
 void GLWidget::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw)
 {
@@ -601,12 +573,18 @@ void GLWidget::paintGL()
 
         enableOptionLine();
 
-        if (m_bDrawBall) drawBall();
-        else if (m_bDrawAxis) drawAxis();
+        if (_theBall->isVisible())
+            _theBall->draw();
+        else if (_theAxis->isVisible())
+            _theAxis->draw();
 
         if (m_bDrawCams) drawCams();
 
-        if (m_bDrawBbox) drawBbox();
+        if (_theBBox->isVisible())
+        {
+            qglColor(QColor("orange"));
+           _theBBox->draw();
+        }
 
         disableOptionLine();
 
@@ -832,7 +810,17 @@ void GLWidget::setData(cData *data)
  
         setZoom(m_Data->getCloud(0)->getScale());
 
-        resetTranslationMatrix();
+        _theBall->setPosition(m_Data->getCenter());
+        _theBall->setScale(m_Data->m_diam / 1.5f);
+        _theBall->setVisible(true);
+
+        _theAxis->setPosition(m_Data->getCenter());
+        _theAxis->setScale(m_Data->m_diam / 1.5f);
+
+        _theBBox->setPosition(m_Data->getCenter());
+        _theBBox->set(m_Data->m_minX,m_Data->m_minY,m_Data->m_minZ,m_Data->m_maxX,m_Data->m_maxY,m_Data->m_maxZ);
+
+        resetTranslationMatrix();       
     }
 
     if (m_Data->NbImages())
@@ -1103,8 +1091,6 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
                     showMoveMessages();
                 }
                 showBall(true);
-
-                setMouseTracking(true);
             }
                 break;
             case SELECTION:
@@ -1120,8 +1106,6 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
                 showCams(false);
                 showAxis(false);
                 showBBox(false);
-
-                setMouseTracking(true);
             }
                 break;
             default:
@@ -1313,9 +1297,11 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
             Cloud *a_cloud = m_Data->getCloud(idx1);
             Vertex &P = a_cloud->getVertex( idx2 );
 
-            m_Data->m_cX = P.x();
-            m_Data->m_cY = P.y();
-            m_Data->m_cZ = P.z();
+            //m_Data->m_cX = P.x();
+            //m_Data->m_cY = P.y();
+            //m_Data->m_cZ = P.z();
+
+            m_Data->setCenter(P.getCoord());
 
             update();
         }
@@ -1555,104 +1541,6 @@ void GLWidget::ptSizeUp(bool up)
     update();
 }
 
-void GLWidget::drawAxis()
-{
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-
-    if (m_trihedronGLList == GL_INVALID_LIST_ID)
-    {
-        m_trihedronGLList = glGenLists(1);
-        glNewList(m_trihedronGLList, GL_COMPILE);
-
-        glPushAttrib(GL_LINE_BIT | GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_LINE_SMOOTH);
-        glEnable(GL_DEPTH_TEST);
-
-        //trihedra OpenGL drawing
-        glBegin(GL_LINES);
-        glColor3f(1.0f,0.0f,0.0f);
-        glVertex3f(0.0f,0.0f,0.0f);
-        glVertex3f(0.4f,0.0f,0.0f);
-        glColor3f(0.0f,1.0f,0.0f);
-        glVertex3f(0.0f,0.0f,0.0f);
-        glVertex3f(0.0f,0.4f,0.0f);
-        glColor3f(0.0f,0.7f,1.0f);
-        glVertex3f(0.0f,0.0f,0.0f);
-        glVertex3f(0.0f,0.0f,0.4f);
-        glEnd();
-
-        glPopAttrib();
-
-        glEndList();
-    }
-
-    glTranslatef(m_Data->m_cX,m_Data->m_cY,m_Data->m_cZ);
-
-    glCallList(m_trihedronGLList);
-
-    glPopMatrix();
-}
-
-void GLWidget::drawBall()
-{
-    if (!m_bObjectCenteredView) return;
-
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();    
-
-    // ball radius
-    float scale = m_Data->m_diam / 1.5f;
-
-    if (m_ballGLList == GL_INVALID_LIST_ID)
-    {
-        incrNbGLLists();
-        m_ballGLList = getNbGLLists();
-        glNewList(m_ballGLList, GL_COMPILE);
-
-        //draw 3 circles
-        glPushAttrib(GL_LINE_BIT);
-        glEnable(GL_LINE_SMOOTH);
-        glPushAttrib(GL_COLOR_BUFFER_BIT);
-        glEnable(GL_BLEND);
-        const float c_alpha = 0.6f;
-        glLineWidth(1.0f);
-
-        glColor4f(1.0f,0.0f,0.0f,c_alpha);
-        glDrawUnitCircle(0, 0, 0, 1.f);
-        glBegin(GL_LINES);
-        glVertex3f(-1.0f,0.0f,0.0f);
-        glVertex3f( 1.0f,0.0f,0.0f);
-        glEnd();
-
-        glColor4f(0.0f,1.0f,0.0f,c_alpha);
-        glDrawUnitCircle(1, 0, 0, 1.f);
-        glBegin(GL_LINES);
-        glVertex3f(0.0f,-1.0f,0.0f);
-        glVertex3f(0.0f, 1.0f,0.0f);
-        glEnd();
-
-        glColor4f(0.0f,0.7f,1.0f,c_alpha);
-        glDrawUnitCircle(2, 0, 0, 1.f);
-        glBegin(GL_LINES);
-        glVertex3f(0.0f,0.0f,-1.0f);
-        glVertex3f(0.0f,0.0f, 1.0f);
-        glEnd();
-
-        glPopAttrib();
-
-        glEndList();
-    }
-
-    glTranslatef(m_Data->m_cX,m_Data->m_cY,m_Data->m_cZ);
-    glScalef(scale,scale,scale);
-
-    glCallList(m_ballGLList);
-
-    glPopMatrix();
-    glDisable(GL_BLEND);
-}
-
 void GLWidget::drawCams()
 {
     float scale = .1f;
@@ -1736,101 +1624,16 @@ void GLWidget::drawCams()
     glPopMatrix();
 }
 
-void GLWidget::drawBbox()
-{
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-
-    incrNbGLLists();
-    GLuint list = getNbGLLists();
-    glNewList(list, GL_COMPILE);
-
-    glLineWidth(1);
-
-    if (m_Data->NbClouds())
-    {
-        float minX, minY, minZ, maxX, maxY, maxZ;
-
-        minX = m_Data->m_minX;
-        minY = m_Data->m_minY;
-        minZ = m_Data->m_minZ;
-        maxX = m_Data->m_maxX;
-        maxY = m_Data->m_maxY;
-        maxZ = m_Data->m_maxZ;
-
-        Pt3dr P1(minX, minY, minZ);
-        Pt3dr P2(minX, minY, maxZ);
-        Pt3dr P3(minX, maxY, maxZ);
-        Pt3dr P4(minX, maxY, minZ);
-        Pt3dr P5(maxX, minY, minZ);
-        Pt3dr P6(maxX, maxY, minZ);
-        Pt3dr P7(maxX, maxY, maxZ);
-        Pt3dr P8(maxX, minY, maxZ);
-
-        glBegin(GL_LINES);
-
-        qglColor(QColor("orange"));
-
-            glVertex3d(P1.x, P1.y, P1.z);
-            glVertex3d(P2.x, P2.y, P2.z);
-
-            glVertex3d(P3.x, P3.y, P3.z);
-            glVertex3d(P2.x, P2.y, P2.z);
-
-            glVertex3d(P1.x, P1.y, P1.z);
-            glVertex3d(P4.x, P4.y, P4.z);
-
-            glVertex3d(P1.x, P1.y, P1.z);
-            glVertex3d(P5.x, P5.y, P5.z);
-
-            glVertex3d(P7.x, P7.y, P7.z);
-            glVertex3d(P3.x, P3.y, P3.z);
-
-            glVertex3d(P7.x, P7.y, P7.z);
-            glVertex3d(P6.x, P6.y, P6.z);
-
-            glVertex3d(P8.x, P8.y, P8.z);
-            glVertex3d(P5.x, P5.y, P5.z);
-
-            glVertex3d(P7.x, P7.y, P7.z);
-            glVertex3d(P8.x, P8.y, P8.z);
-
-            glVertex3d(P5.x, P5.y, P5.z);
-            glVertex3d(P6.x, P6.y, P6.z);
-
-            glVertex3d(P4.x, P4.y, P4.z);
-            glVertex3d(P6.x, P6.y, P6.z);
-
-            glVertex3d(P8.x, P8.y, P8.z);
-            glVertex3d(P2.x, P2.y, P2.z);
-
-            glVertex3d(P4.x, P4.y, P4.z);
-            glVertex3d(P3.x, P3.y, P3.z);
-
-        glEnd();
-
-        glEndList();
-    }
-
-    glCallList(list);
-
-    glPointSize(m_params.PointSize);
-    glLineWidth(m_params.LineWidth);
-    glPopMatrix();
-}
-
 void GLWidget::showAxis(bool show)
 {
-    m_bDrawAxis = show;
-    if (m_bDrawAxis) m_bDrawBall = false;
+    _theAxis->setVisible(show);
 
     update();
 }
 
 void GLWidget::showBall(bool show)
 {
-    m_bDrawBall = show;
-    if (m_bDrawBall) m_bDrawAxis = false;
+    _theBall->setVisible(show);
 
     update();
 }
@@ -1844,7 +1647,7 @@ void GLWidget::showCams(bool show)
 
 void GLWidget::showBBox(bool show)
 {
-    m_bDrawBbox = show;
+    _theBBox->setVisible(show);
 
     update();
 }
@@ -1918,7 +1721,7 @@ void GLWidget::resetView()
 
         m_bObjectCenteredView = true;
 
-        showBall(true);
+        //showBall(true);
 
         update();
     }
@@ -1933,9 +1736,11 @@ void GLWidget::resetRotationMatrix()
 
 void GLWidget::resetTranslationMatrix()
 {
-    m_params.m_translationMatrix[0] = -m_Data->m_cX;
-    m_params.m_translationMatrix[1] = -m_Data->m_cY;
-    m_params.m_translationMatrix[2] = -m_Data->m_cZ;
+    Pt3dr center = m_Data->getCenter();
+
+    m_params.m_translationMatrix[0] = -center.x;
+    m_params.m_translationMatrix[1] = -center.y;
+    m_params.m_translationMatrix[2] = -center.z;
 }
 
 void GLWidget::applyGamma(float aGamma)

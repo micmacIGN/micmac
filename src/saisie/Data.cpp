@@ -78,7 +78,8 @@ void cData::reset()
 {
     m_minX = m_minY = m_minZ =  FLT_MAX;
     m_maxX = m_maxY = m_maxZ = -FLT_MAX;
-    m_cX = m_cY = m_cZ = m_diam = 0.f;
+    //m_cX = m_cY = m_cZ = m_diam = 0.f;
+    _center = Pt3dr(0.f,0.f,0.f);
     _curImgIdx = 0;    
 }
 
@@ -106,9 +107,9 @@ void cData::getBB(Cloud * aCloud)
         if (vert.z() < m_minZ) m_minZ = vert.z();
     }
 
-    m_cX = (m_minX + m_maxX) * .5f;
-    m_cY = (m_minY + m_maxY) * .5f;
-    m_cZ = (m_minZ + m_maxZ) * .5f;
+    _center.x = (m_minX + m_maxX) * .5f;
+    _center.y = (m_minY + m_maxY) * .5f;
+    _center.z = (m_minZ + m_maxZ) * .5f;
 
     m_diam = max(m_maxX-m_minX, max(m_maxY-m_minY, m_maxZ-m_minZ));
 

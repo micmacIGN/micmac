@@ -24,9 +24,7 @@ Internet: Marc.Pierrot-Deseilligny@ign.fr
 eLiSe06/05/99*/
 
 
-#include "general/all.h"
-#include "private/all.h"
-
+#include "StdAfx.h"
 #include "bench.h"
 
 template <class Type> Fonc_Num GenFoncDeriv(Type aF1,Type aF2)

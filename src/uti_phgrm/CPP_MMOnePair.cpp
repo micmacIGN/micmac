@@ -55,6 +55,7 @@ class cMMOnePair
       int              mZoom0;
       int              mZoomF;
       bool             mByEpip;
+      bool             mCMS;
       bool             mForceCreateE;
       std::string      mNameIm1Init;
       std::string      mNameIm2Init;
@@ -64,6 +65,7 @@ class cMMOnePair
       std::string      mNameIm2;
       std::string      mNameOri;
       cCpleEpip        *mCpleE;
+      bool             mDoubleSens;
 
 
       std::string      mDirP;
@@ -92,10 +94,12 @@ class cAppliMMOnePair : public cMMOnePair,
 
 cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mZoom0        (64),
-    mZoomF        (1),
+    mZoomF        (2),
     mByEpip       (true),
+    mCMS          (true),
     mForceCreateE (false),
-    mCpleE        (0)
+    mCpleE        (0),
+    mDoubleSens   (true)
 {
   ElInitArgMain
   (
@@ -106,8 +110,13 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
         LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64")
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final, Def=1")
                     << EAM(mByEpip,"ByE",true,"By Epipolar (def = true when appliable)")
+                    << EAM(mDoubleSens,"2Way",true,"Match in 2 Way (Def=true)")
+                    << EAM(mCMS,"CMS",true,"Multi Scale Coreel (Def=ByEpip)")
   );
   mDirP =DirOfFile(mNameIm1Init);
+
+  if (!EAMIsInit(&mCMS)) 
+     mCMS = mByEpip;
 
   if (mByEpip)
   {
@@ -155,10 +164,30 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
     ELISE_ASSERT(mImages.size()==2,"Expect exaclty 2 images in cAppliMMOnePair");
     mIm1 = mImages[0];
     mIm2 = mImages[1];
+
+    MatchOneWay(true);
+    if (mDoubleSens)
+        MatchOneWay(false);
 }
 
 void cAppliMMOnePair::MatchOneWay(bool MasterIs1)
 {
+     std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
+     std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
+
+     std::string aCom =     MMBinFile(MM3DStr) 
+                          + std::string(" MICMAC ")
+                          +  XML_MM_File("MM-Epip.xml ") 
+                          + " WorkDir="  + mDir
+                          + " +Im1="     + aNamA   
+                          + " +Im2="     + aNamB 
+                          + " +ZoomF="   + ToString(mZoomF)
+                          + " +Ori="     + mNameOri
+                          + " +DoEpi="   + ToString(mByEpip)
+                          + " +CMS="     + ToString(mCMS)
+                      ;
+
+     std::cout << aCom << "\n";
 }
 
 /*****************************************************************/

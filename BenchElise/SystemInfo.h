@@ -7,8 +7,8 @@
 #ifndef __SYSTEMINFO_H
 #define __SYSTEMINFO_H
 
-#include "stdafx.h"
-#include "shlobj.h"
+#include "StdAfx.h"
+//#include "shlobj.h"
 #include <string>
 
 class CSystemInfo {

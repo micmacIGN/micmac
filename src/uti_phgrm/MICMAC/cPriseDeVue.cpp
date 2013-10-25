@@ -364,6 +364,14 @@ bool cPriseDeVue::LoadImageMM
                                          "XML_ParamNuage3DMaille"
                                      );
 
+            if (aZoomN != 1.0)
+            {
+                // Apparemment le cParamModifGeomMTDNuage ne prenait pas en compte le scale, cela a ete modifie , mais
+                // pas sur que cela soit compatible avec cNuagePredicteur;  comme cNuagePredicteur n'est plus utilise pour l'instant
+                // on se contente d'un warning .....
+                ELISE_ASSERT(false,"VERIFIER FONCTIONNEMENT DE cNuagePredicteur apres modif Scale");
+            }
+
             cParamModifGeomMTDNuage aParamModif(aZoomN,I2R(mGeom->BoxClip()));
             // cElNuage3DMaille * anEN  = cElNuage3DMaille::FromParam
             mNuagePredict = cElNuage3DMaille::FromParam
