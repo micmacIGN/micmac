@@ -1,0 +1,99 @@
+<Global
+    Subst="@$#1"
+    NameDecl="@$#1"
+
+    PatternFace="(1|2)"
+    NbMax="10000"
+>
+   <ParamApero>
+
+
+       <SectionBDD_Observation>
+             <BDD_Orient >
+                  <Id> Key-Ori-Init </Id>
+                  <KeySet>  Key-Set-All-OrInit </KeySet>
+                  <KeyAssoc>  Key-Assoc-Im2OrInit </KeyAssoc>
+             </BDD_Orient>
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_100 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   Orient/F100_AutoCalInit.xml    </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_400 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   Orient/F400_AutoCalInit.xml    </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_024 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   Orient/F024_AutoCalInit.xml    </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+
+
+              <PoseCameraInc>
+	           <PatternName>  (F100_IMG_${PatternNumero}_Face${PatternFace}_MpDcraw8B_GR.tif) </PatternName>
+	           <PatternName>  (F400_IMG_${PatternNumero}_Face${PatternFace}_.*_MpDcraw8B_GR.tif) </PatternName> 
+                   <PatternName>  F024_IMG_${PatternNumero}_TourF[0-9]_MpDcraw8B_GR.tif  </PatternName>
+
+	           <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+	               <PosFromBDOrient>  Key-Ori-Init </PosFromBDOrient>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+
+		    <SectionObservations>
+		    </SectionObservations>
+
+                    <SectionExport>
+                        <ExportPose>
+                            <PatternSel> .* </PatternSel>
+                            <ModeAngulaire> true </ModeAngulaire>
+                            <KeyAssoc>  Key-Assoc-Im2OrFinale-6 </KeyAssoc>
+                            <AddCalib>  true </AddCalib>
+			    <NbVerif>  10 </NbVerif>
+			    <TolWhenVerif> 1e-3 </TolWhenVerif>
+                        </ExportPose>
+                    </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+

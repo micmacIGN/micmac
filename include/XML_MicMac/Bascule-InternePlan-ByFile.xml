@@ -1,0 +1,12 @@
+                      <FixeOrientPlane>
+                              <ModeFOP>
+                                   <HorFromFile> 
+                                         <File> ${FileMesure} </File>
+                                         <NameP1> Line1 </NameP1>
+                                         <NameP2> Line2 </NameP2>
+                                   </HorFromFile>
+                              </ModeFOP>
+                              <Vecteur>   ${XAxeRC}  ${YAxeRC} </Vecteur>
+                          </FixeOrientPlane>
+
+
