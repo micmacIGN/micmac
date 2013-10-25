@@ -33,6 +33,7 @@ set(saisie_SRCS main.cpp
 	        Cloud.cpp
 	        Data.cpp
 	        Engine.cpp
+			3DObject.cpp
 	        ../poisson/plyfile.cpp)
 
 set(saisie_HEADERS GLWidget.h
@@ -40,6 +41,7 @@ set(saisie_HEADERS GLWidget.h
 		   Cloud.h
 		   Engine.h
 		   Data.h
+		   3DObject.h
 		   3DTools.h)
 
 SET(Saisie_RCS ./icones/icones.qrc)
