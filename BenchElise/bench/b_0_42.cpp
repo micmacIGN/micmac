@@ -23,10 +23,7 @@ Internet: Marc.Pierrot-Deseilligny@ign.fr
    Phone: (33) 01 43 98 81 28
 eLiSe06/05/99*/
 
-#include "general/all.h"
-#include "ext_stl/fixed.h"
-#include "im_tpl/image.h"
-#include "im_tpl/algo_dist32.h"
+#include "StdAfx.h"
 
 Pt2dr ab_0_42_PRand()
 {

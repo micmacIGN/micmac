@@ -34,11 +34,7 @@ TPL PIPE : 3.49
 */
 
 
-#include "general/all.h"
-#include "im_tpl/flux.h"
-#include "im_tpl/image.h"
-#include "im_tpl/fonc_operator.h"
-#include "im_tpl/output.h"
+#include "StdAfx.h"
 #include "bench.h"
 
 static INT  DifImages

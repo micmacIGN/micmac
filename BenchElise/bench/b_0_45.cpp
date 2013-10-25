@@ -1,7 +1,6 @@
 #define NoTemplateOperatorVirgule
 #define NoSimpleTemplateOperatorVirgule
-#include "algo_geom/qdt.h"
-#include "algo_geom/qdt_implem.h"
+#include "StdAfx.h"
 #include <list>
 #include <algorithm>
 
