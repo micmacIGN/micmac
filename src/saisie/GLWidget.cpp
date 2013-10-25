@@ -63,6 +63,8 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
 
     m_font.setPointSize(10);
 
+    _theBall = new cBall();
+
     installEventFilter(this);
     setMouseTracking(true);
 }
@@ -91,6 +93,8 @@ GLWidget::~GLWidget()
     delete [] _mvmatrix;
     delete [] _projmatrix;
     delete [] _glViewport;
+
+    delete _theBall;
 
 }
 
@@ -400,39 +404,7 @@ void GLWidget::computeFPS()
     }
 }
 
-//draw a unit circle in a given plane (0=YZ, 1 = XZ, 2=XY)
-void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps = 64)
-{
-    float theta = 2.f * PI / float(steps);
-    float c = cosf(theta);//precalculate the sine and cosine
-    float s = sinf(theta);
-    float t;
 
-    float x = r;//we start at angle = 0
-    float y = 0;
-
-    uchar dimX = (dim<2 ? dim+1 : 0);
-    uchar dimY = (dimX<2 ? dimX+1 : 0);
-
-    GLfloat P[3];
-
-    for (int i=0;i<3;++i) P[i] = 0.0f;
-
-    glBegin(GL_LINE_LOOP);
-    for(int ii = 0; ii < steps; ii++)
-    {
-        P[dimX] = x + cx;
-        P[dimY] = y + cy;
-        glVertex3fv(P);
-
-        //apply the rotation matrix
-        t = x;
-        x = c * x - s * y;
-        y = s * t + c * y;
-    }
-
-    glEnd();
-}
 
 void GLWidget::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw)
 {
@@ -601,8 +573,13 @@ void GLWidget::paintGL()
 
         enableOptionLine();
 
-        if (m_bDrawBall) drawBall();
-        else if (m_bDrawAxis) drawAxis();
+       // if (m_bDrawBall)
+       // incrNbGLLists();
+
+        if (_theBall->isVisible())
+            _theBall->draw();
+        //drawBall();
+       // else if (m_bDrawAxis) drawAxis();
 
         if (m_bDrawCams) drawCams();
 
@@ -832,7 +809,12 @@ void GLWidget::setData(cData *data)
  
         setZoom(m_Data->getCloud(0)->getScale());
 
-        resetTranslationMatrix();
+        //_theBall->setPosition(Pt3dr(m_Data->m_cX,m_Data->m_cY,m_Data->m_cZ));
+        _theBall->setPosition(m_Data->getCenter());
+        _theBall->setScale(m_Data->m_diam / 1.5f);
+        _theBall->setVisible(true);
+
+        resetTranslationMatrix();       
     }
 
     if (m_Data->NbImages())
@@ -1313,9 +1295,11 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
             Cloud *a_cloud = m_Data->getCloud(idx1);
             Vertex &P = a_cloud->getVertex( idx2 );
 
-            m_Data->m_cX = P.x();
-            m_Data->m_cY = P.y();
-            m_Data->m_cZ = P.z();
+            //m_Data->m_cX = P.x();
+            //m_Data->m_cY = P.y();
+            //m_Data->m_cZ = P.z();
+
+            m_Data->setCenter(P.getCoord());
 
             update();
         }
@@ -1587,70 +1571,13 @@ void GLWidget::drawAxis()
         glEndList();
     }
 
-    glTranslatef(m_Data->m_cX,m_Data->m_cY,m_Data->m_cZ);
+    //glTranslatef(m_Data->m_cX,m_Data->m_cY,m_Data->m_cZ);
+    Pt3dr center = m_Data->getCenter();
+    glTranslatef(center.x, center.y, center.z);
 
     glCallList(m_trihedronGLList);
 
     glPopMatrix();
-}
-
-void GLWidget::drawBall()
-{
-    if (!m_bObjectCenteredView) return;
-
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();    
-
-    // ball radius
-    float scale = m_Data->m_diam / 1.5f;
-
-    if (m_ballGLList == GL_INVALID_LIST_ID)
-    {
-        incrNbGLLists();
-        m_ballGLList = getNbGLLists();
-        glNewList(m_ballGLList, GL_COMPILE);
-
-        //draw 3 circles
-        glPushAttrib(GL_LINE_BIT);
-        glEnable(GL_LINE_SMOOTH);
-        glPushAttrib(GL_COLOR_BUFFER_BIT);
-        glEnable(GL_BLEND);
-        const float c_alpha = 0.6f;
-        glLineWidth(1.0f);
-
-        glColor4f(1.0f,0.0f,0.0f,c_alpha);
-        glDrawUnitCircle(0, 0, 0, 1.f);
-        glBegin(GL_LINES);
-        glVertex3f(-1.0f,0.0f,0.0f);
-        glVertex3f( 1.0f,0.0f,0.0f);
-        glEnd();
-
-        glColor4f(0.0f,1.0f,0.0f,c_alpha);
-        glDrawUnitCircle(1, 0, 0, 1.f);
-        glBegin(GL_LINES);
-        glVertex3f(0.0f,-1.0f,0.0f);
-        glVertex3f(0.0f, 1.0f,0.0f);
-        glEnd();
-
-        glColor4f(0.0f,0.7f,1.0f,c_alpha);
-        glDrawUnitCircle(2, 0, 0, 1.f);
-        glBegin(GL_LINES);
-        glVertex3f(0.0f,0.0f,-1.0f);
-        glVertex3f(0.0f,0.0f, 1.0f);
-        glEnd();
-
-        glPopAttrib();
-
-        glEndList();
-    }
-
-    glTranslatef(m_Data->m_cX,m_Data->m_cY,m_Data->m_cZ);
-    glScalef(scale,scale,scale);
-
-    glCallList(m_ballGLList);
-
-    glPopMatrix();
-    glDisable(GL_BLEND);
 }
 
 void GLWidget::drawCams()
@@ -1933,9 +1860,11 @@ void GLWidget::resetRotationMatrix()
 
 void GLWidget::resetTranslationMatrix()
 {
-    m_params.m_translationMatrix[0] = -m_Data->m_cX;
-    m_params.m_translationMatrix[1] = -m_Data->m_cY;
-    m_params.m_translationMatrix[2] = -m_Data->m_cZ;
+    Pt3dr center = m_Data->getCenter();
+
+    m_params.m_translationMatrix[0] = -center.x;
+    m_params.m_translationMatrix[1] = -center.y;
+    m_params.m_translationMatrix[2] = -center.z;
 }
 
 void GLWidget::applyGamma(float aGamma)
