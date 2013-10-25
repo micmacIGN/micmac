@@ -43,10 +43,15 @@ class cData
 
         int     getSizeClouds();
 
+        void    setCenter(Pt3dr const &pt){_center = pt;}
+        Pt3dr   getCenter(){return _center;}
+
         void    reset();
 
         //Bounding box, center and diameter of all clouds
-        float m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_cX, m_cY, m_cZ, m_diam;
+        float m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_diam;
+
+
 
    private:
 
@@ -58,5 +63,7 @@ class cData
         int                   _curImgIdx;
 
         float                 _gamma;
+
+        Pt3dr                 _center;
 };
 #endif // DATA_H
