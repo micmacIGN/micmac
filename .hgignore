@@ -102,3 +102,8 @@ src/photogram/repport.txt
 build-xcode
 .DS_Store
 mm3d.supp
+BenchElise/bench/b_0_35.o
+BenchElise/bench/b_0_38.o
+BenchElise/bench/bench
+BenchElise/bench/notes.txt
+BenchElise/bench/.Makefile.swp

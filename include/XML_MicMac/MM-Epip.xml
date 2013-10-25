@@ -120,13 +120,15 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
     	<Im2>   ${Im2}    </Im2>
    </Images>
 
-   <MasqImageIn>
+   <#WHEN VTEST=${DoEpi}>
+       <MasqImageIn>
              <OneMasqueImage>
                 <PatternSel>  (.*).tif  </PatternSel>
                 <NomMasq>  $1_Masq.tif     </NomMasq>
              </OneMasqueImage>
              <AcceptNonExistingFile> false </AcceptNonExistingFile>
-    </MasqImageIn>
+        </MasqImageIn>
+    </#WHEN>
 
      <#WHEN VTEST=${NotEpi}>
          <NomsGeometrieImage>

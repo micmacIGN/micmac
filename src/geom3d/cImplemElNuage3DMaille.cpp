@@ -48,10 +48,12 @@ using namespace NS_SuperposeImage;
 cParamModifGeomMTDNuage::cParamModifGeomMTDNuage
 (
             double aScale,
-            Box2dr aBox  
+            Box2dr aBox  ,
+            bool   aDequant
 ) :
-   mScale (aScale),
-   mBox   (aBox)
+   mScale   (aScale),
+   mBox     (aBox),
+   mDequant (aDequant)
 {
 }
 
@@ -75,7 +77,8 @@ template <class Type,class TBase>
               const cXML_ParamNuage3DMaille & aNuage,
               Fonc_Num  aFMasq,
               Fonc_Num  aFProf,
-              bool   WithEmptyData
+              bool   WithEmptyData,
+              bool   Dequant 
          );
 
 
@@ -154,6 +157,7 @@ template <class Type,class TBase>
          TIm2D<Type,TBase> mTIm;
          double            mProf0;
          double            mResolProf;
+         bool              mDequant;
         
      private :
          double PTab2PReel(const double aProf) const
@@ -213,16 +217,28 @@ template <class Type,class TBase>  cElNuage3DMaille_FromImProf<Type,TBase>::cElN
      const cXML_ParamNuage3DMaille & aNuage,
      Fonc_Num  aFMasq,
      Fonc_Num  aFProf,
-     bool      WithEmpyData
+     bool      WithEmpyData,
+     bool      aDequant
 
 )  :
    cElNuage3DMaille(aDir,aNuage,aFMasq,WithEmpyData), 
    mIm        (mSzData.x,mSzData.y),
    mTIm       (mIm),
    mProf0     (aNuage.Image_Profondeur().Val().OrigineAlti()),
-   mResolProf (aNuage.Image_Profondeur().Val().ResolutionAlti())
+   mResolProf (aNuage.Image_Profondeur().Val().ResolutionAlti()),
+   mDequant   (aDequant)
 {
-    ELISE_COPY ( mIm.all_pts(), aFProf, mIm.out());
+    if (mDequant && (!WithEmpyData))
+    {
+        ElImplemDequantifier aDeq(mSzData);
+        aDeq.DoDequantif(mSzData,aFProf);
+        ELISE_COPY(mIm.all_pts(),aDeq.ImDeqReelle(),mIm.out());
+
+    }
+    else
+    {
+       ELISE_COPY ( mIm.all_pts(), aFProf, mIm.out());
+    }
 }
 
 template class cElNuage3DMaille_FromImProf<INT2,INT>;
@@ -257,7 +273,8 @@ template <class Type,class TBase>
               Fonc_Num  aFMasq,
               Fonc_Num  aFProf,
               bool      aFaiscAndZ,
-              bool      WithEmptyData
+              bool      WithEmptyData,
+              bool      Dequant
          );
 
 
@@ -321,7 +338,8 @@ template <class Type,class TBase> cElN3D_EpipGen<Type,TBase> *  cElN3D_EpipGen<T
                      Fonc_Num(0),
                      Fonc_Num(El_CTypeTraits<Type>::TronqueR(-1e5)),
                      mProfIsZ,
-                     this->mEmptyData
+                     this->mEmptyData,
+                     false
                      // const_cast<cElN3D_EpipGen<Type,TBase> *>(this)->mImDef.in(),
                      // const_cast<cElN3D_EpipGen<Type,TBase> *>(this)->mIm.in()
                );
@@ -340,10 +358,11 @@ template <class Type,class TBase>  cElN3D_EpipGen<Type,TBase>::cElN3D_EpipGen
         Fonc_Num  aFMasq,
         Fonc_Num  aFProf,
         bool      aProfIsZ,
-        bool      WithEmptyData
+        bool      WithEmptyData,
+        bool      Dequant
 
 )  :
-   cElNuage3DMaille_FromImProf<Type,TBase>(aDir,aNuage,aFMasq,aFProf,WithEmptyData), 
+   cElNuage3DMaille_FromImProf<Type,TBase>(aDir,aNuage,aFMasq,aFProf,WithEmptyData,Dequant), 
    mProfIsZ   (aProfIsZ)
 {
 	mCentre	   = this->mCam->OrigineProf();
@@ -369,7 +388,8 @@ template <class Type,class TBase> cElNuage3DMaille * cElN3D_EpipGen<Type,TBase>:
                   anImPds.in(0) > 0.1,
                   this->ReScaleAndClip(this->mImDef.in(0)*this->mIm.in(0),aBox._p0,aScale)/Max(1e-5,anImPds.in()),
                   mProfIsZ,
-                  this->mEmptyData
+                  this->mEmptyData,
+                  false
               );
 }
 
@@ -453,10 +473,16 @@ cElNuage3DMaille * cElNuage3DMaille::FromParam
 {
   cXML_ParamNuage3DMaille aParam = aParamOri;
   Box2di aBox(Pt2di(0,0),aParam.NbPixel());
+  bool Dequant = false;
 
   if (aPMG)
   {
        double aScale = aPMG->mScale;
+       if (aScale != 1.0)
+       {
+           std::string aMes = "Scale=" + ToString(aScale);
+           cElWarning::ScaleInNuageFromP.AddWarn(aMes,__LINE__,__FILE__);
+       }
        Pt2di  aP0 = round_down(aPMG->mBox._p0/aScale);
        Pt2di  aP1 = round_up(aPMG->mBox._p1/aScale);
 
@@ -468,6 +494,7 @@ cElNuage3DMaille * cElNuage3DMaille::FromParam
        
         aAfM2C   =   ElAffin2D::trans(-Pt2dr(aBox._p0)) * aAfM2C;
        aParam.Orientation().OrIntImaM2C().SetVal(El2Xml(aAfM2C));
+       Dequant = aPMG->mDequant;
   }
 
 
@@ -505,10 +532,13 @@ cElNuage3DMaille * cElNuage3DMaille::FromParam
            switch (aTypeEl)
            {
                case GenIm::int2 :
-                    return new cElN3D_EpipGen<INT2,INT>(aDir,aParam,aFMasq,aFProf,aProfIsZ,WithEmptyData);
+                    if (Dequant) 
+                        return new cElN3D_EpipGen<float,double>(aDir,aParam,aFMasq,aFProf,aProfIsZ,WithEmptyData,true);
+                    else
+                        return new cElN3D_EpipGen<INT2,INT>(aDir,aParam,aFMasq,aFProf,aProfIsZ,WithEmptyData,false);
                break;
                case GenIm::real4 :
-                    return new cElN3D_EpipGen<float,double>(aDir,aParam,aFMasq,aFProf,aProfIsZ,WithEmptyData);
+                    return new cElN3D_EpipGen<float,double>(aDir,aParam,aFMasq,aFProf,aProfIsZ,WithEmptyData,false);
                break;
 
                default :

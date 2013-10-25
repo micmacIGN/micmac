@@ -25,8 +25,7 @@ eLiSe06/05/99*/
 
 
 
-#include "general/all.h"
-#include "ext_stl/fifo.h"
+#include "StdAfx.h"
 #include "bench.h"
 
 

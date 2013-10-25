@@ -26,8 +26,7 @@ eLiSe06/05/99*/
 
 
 
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 
 All_Memo_counter MC_INIT;
 

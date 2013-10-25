@@ -207,14 +207,17 @@ void Test_Arrondi_LG()
 int MPDtest_main (int argc,char** argv)
 {
    // ElList<Pt2di> aL = NewLPt2di(Pt2di(20,20));
-   ElList<Pt2di> aL ;
-   aL = aL + Pt2di(20,10);
-   while (! aL.empty())
-   {
-       Pt2di aP = aL.car();
-       std::cout << "HHHH " << aP << "\n";
-       aL = aL.cdr();
-   }
+
+   double aDif;
+
+   ELISE_COPY
+   (
+      rectangle(Pt2di(0,0),Pt2di(10,10)),
+      Abs(trans(FX,Pt2di(2,2)) - StdFoncChScale(FX,Pt2dr(2.00,2),Pt2dr(1,1))),
+      sigma(aDif)
+   );
+
+   std::cout << "DIF = " << aDif << "\n";
 
     
  

@@ -24,14 +24,8 @@ Internet: Marc.Pierrot-Deseilligny@ign.fr
 eLiSe06/05/99*/
 
 
-#include "general/all.h"
-#include "private/all.h"
-
+#include "StdAfx.h"
 #include "bench.h"
-
-#include "im_tpl/max_loc.h"
-#include <algorithm>
-#include "im_special/hough.h"
                           
 
 template <class Type,class TypeBase> 

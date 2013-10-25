@@ -25,8 +25,7 @@ eLiSe06/05/99*/
 
 
 
-#include "general/all.h"
-#include "private/all.h"
+#include "StdAfx.h"
 
 // compute sum of val on the rectangle p1xp2, using a Flux_Pts anf a Fonc_Num
 // and controls it gives the expected values
