@@ -77,10 +77,7 @@ void cCircle::draw()
     GLuint list = glGenLists(1);
     glNewList(list, GL_COMPILE);
 
-    glPushAttrib(GL_LINE_BIT);
-    glEnable(GL_LINE_SMOOTH);
-    glPushAttrib(GL_COLOR_BUFFER_BIT);
-    glEnable(GL_BLEND);
+    glPushAttrib(GL_LINE_BIT | GL_DEPTH_BUFFER_BIT);
 
     glLineWidth(_lineWidth);
 
@@ -97,7 +94,6 @@ void cCircle::draw()
     glCallList(list);
 
     glPopMatrix();
-    glDisable(GL_BLEND);
 }
 
 cCross::cCross(Pt3d<double> pt, QColor col, float scale, float lineWidth, bool vis, int dim) :
@@ -118,10 +114,7 @@ void cCross::draw()
     GLuint list = glGenLists(1);
     glNewList(list, GL_COMPILE);
 
-    glPushAttrib(GL_LINE_BIT);
-    glEnable(GL_LINE_SMOOTH);
-    glPushAttrib(GL_COLOR_BUFFER_BIT);
-    glEnable(GL_BLEND);
+    glPushAttrib(GL_LINE_BIT | GL_DEPTH_BUFFER_BIT);
 
     glLineWidth(_lineWidth);
 
@@ -160,7 +153,6 @@ void cCross::draw()
     glCallList(list);
 
     glPopMatrix();
-    glDisable(GL_BLEND);
 }
 
 cBall::cBall(Pt3dr pt, float scale, float lineWidth, bool isVis)
@@ -255,8 +247,6 @@ void cAxis::draw()
     glNewList(trihedron, GL_COMPILE);
 
     glPushAttrib(GL_LINE_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_LINE_SMOOTH);
-    glEnable(GL_DEPTH_TEST);
 
     glLineWidth(_lineWidth);
 
@@ -282,6 +272,7 @@ void cAxis::draw()
     glCallList(trihedron);
 
     glPopMatrix();
+    glDisable(GL_BLEND);
 }
 
 cBBox::cBBox() :
@@ -306,9 +297,7 @@ void cBBox::draw()
     GLuint list = glGenLists(1);
     glNewList(list, GL_COMPILE);
 
-    glEnable(GL_LINE_SMOOTH);
-    glPushAttrib(GL_COLOR_BUFFER_BIT);
-    glEnable(GL_BLEND);
+    glPushAttrib(GL_LINE_BIT|GL_DEPTH_BUFFER_BIT);
 
     glLineWidth(_lineWidth);
 
@@ -361,9 +350,12 @@ void cBBox::draw()
 
     glEnd();
 
+    glPopAttrib();
+
     glEndList();
 
     glCallList(list);
 
     glPopMatrix();
+    glDisable(GL_BLEND);
 }
