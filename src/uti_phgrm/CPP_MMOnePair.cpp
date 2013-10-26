@@ -66,6 +66,7 @@ class cMMOnePair
       std::string      mNameOri;
       cCpleEpip        *mCpleE;
       bool             mDoubleSens;
+      bool             mNoOri;
 
 
       std::string      mDirP;
@@ -99,20 +100,24 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mCMS          (true),
     mForceCreateE (false),
     mCpleE        (0),
-    mDoubleSens   (true)
+    mDoubleSens   (true),
+    mNoOri        (false)
 {
   ElInitArgMain
   (
         argc,argv,
         LArgMain()  << EAMC(mNameIm1Init,"Name Im1")
                     << EAMC(mNameIm2Init,"Name Im2")
-                    << EAMC(mNameOriInit,"Orientation"),
+                    << EAMC(mNameOriInit,"Orientation (if NONE, work directly on epipolar)"),
         LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64")
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final, Def=1")
-                    << EAM(mByEpip,"ByE",true,"By Epipolar (def = true when appliable)")
+                    << EAM(mByEpip,"CreateE",true," Create Epipolar (def = true when appliable)")
                     << EAM(mDoubleSens,"2Way",true,"Match in 2 Way (Def=true)")
                     << EAM(mCMS,"CMS",true,"Multi Scale Coreel (Def=ByEpip)")
   );
+  mNoOri = (mNameOriInit=="NONE");
+  if ((! EAMIsInit(&mByEpip)) && mNoOri)
+     mByEpip = false;
   mDirP =DirOfFile(mNameIm1Init);
 
   if (!EAMIsInit(&mCMS)) 
@@ -183,7 +188,7 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1)
                           + " +Im2="     + aNamB 
                           + " +ZoomF="   + ToString(mZoomF)
                           + " +Ori="     + mNameOri
-                          + " +DoEpi="   + ToString(mByEpip)
+                          + " +DoEpi="   + ToString(mByEpip || mNoOri)
                           + " +CMS="     + ToString(mCMS)
                       ;
 
