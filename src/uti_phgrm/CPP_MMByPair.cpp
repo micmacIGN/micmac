@@ -237,6 +237,25 @@ void cAppliWithSetImage::VerifAWSI()
 
 CamStenope * cAppliWithSetImage::CamOfName(const std::string & aNameIm)
 {
+   if (mOri=="NONE")
+   {
+      cOrientationConique anOC = StdGetFromPCP(Basic_XML_MM_File("Template-OrCamAngWithInterne.xml"),OrientationConique);
+     
+      Tiff_Im aTF = Tiff_Im::StdConv(mDir+aNameIm);
+
+      Pt2dr  aSz = Pt2dr(aTF.sz());
+      anOC.Interne().Val().F() = euclid(aSz);
+      anOC.Interne().Val().PP() = aSz/2.0;
+      anOC.Interne().Val().SzIm() = round_ni(aSz);
+      anOC.Interne().Val().CalibDistortion()[0].ModRad().Val().CDist() =  aSz/2.0;
+
+      MakeFileXML(anOC,Basic_XML_MM_File("TmpCam.xml"));
+      // return Std_Cal_From_File(Basic_XML_MM_File("TmpCam.xml"));
+      return CamOrientGenFromFile(Basic_XML_MM_File("TmpCam.xml"),0);
+
+
+     // return ;
+   }
    std::string aNameOri =  mICNM->Assoc1To1(mKeyOri,aNameIm,true);
    return   CamOrientGenFromFile(aNameOri,mICNM);
 }
