@@ -86,7 +86,7 @@ class cCEM_OneIm
                 if (!Ok) return aP;
                 return mConj->ToIm2(Aller,Ok);
           }
-          Im2D_U_INT1  ImAR(double aMul);
+          Im2D_U_INT1  ImAR();
 
      protected :
           virtual  Pt2dr  RoughToIm2(const Pt2dr & aP,bool & Ok) = 0;
@@ -208,6 +208,10 @@ class cCoherEpi_main
         bool          mVisu;
         double        mSigmaP;
         double        mStep;
+        double        mRegul;
+        double        mReduceM;
+        double        mDoMasq;
+
 };
 
 /*******************************************************************/
@@ -328,7 +332,7 @@ Box2dr cCEM_OneIm::BoxIm2()
    return Box2dr(aP0,aP1);
 }
 
-Im2D_U_INT1  cCEM_OneIm::ImAR(double aMul)
+Im2D_U_INT1  cCEM_OneIm::ImAR()
 {
    Im2D_U_INT1 aRes(mSz.x,mSz.y,0);
    TIm2D<U_INT1,INT> aTRes(aRes);
@@ -379,7 +383,10 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
     mNumMasq  (8),
     mVisu     (false),
     mSigmaP   (1.5),
-    mStep     (1.0)
+    mStep     (1.0),
+    mRegul    (0.5),
+    mReduceM  (2.0),
+    mDoMasq   (false)
     
 {
     ElInitArgMain
@@ -390,9 +397,12 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAMC(mOri,"Orientation") ,
 	LArgMain()  << EAM(mDir,"Dir",true)
                     << EAM(mBoxIm1,"Box",true)
-                    << EAM(mSzDecoup,"Box",true)
+                    << EAM(mSzDecoup,"SzDec",true)
                     << EAM(mBrd,"Brd",true)
                     << EAM(mIntY1,"YBox",true)
+                    << EAM(mRegul,"Regul",true,"Regularisation for masq (Def = 0.5)")
+                    << EAM(mReduceM,"RedM",true,"Reduce factor for masq (Def = 2.0)")
+                    << EAM(mDoMasq,"DoM",true,"Do Masq, def = false")
                     << EAM(mVisu,"Visu",true)
                     << EAM(mDeZoom,"Zoom",true)
                     << EAM(mNumPx,"NumPx",true)
@@ -455,20 +465,36 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
          cEl_GPAO::DoComInParal(aLCom,"MakeBascule");
 
          std::string aNameGlob = mDir+ mPrefix + mPostfixP + ".tif";
-         Tiff_Im::Create8BFromFonc(aNameGlob,mBoxIm1.sz(),0);
+         std::string aNameMasqGlob = mDir+ mPrefix +"_Masq" + mPostfixP + ".tif";
+         Tiff_Im aTifGlob = Tiff_Im::Create8BFromFonc(aNameGlob,mBoxIm1.sz(),0);
+
+         Tiff_Im aTifMasq = aTifGlob;
+         if (mDoMasq)
+             aTifMasq = Tiff_Im(aNameMasqGlob.c_str(),mBoxIm1.sz(),GenIm::bits1_msbf,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
          
          for (int aKB=0 ; aKB<int(aVBoxC.size()) ; aKB++)
          {
              std::string aNameC = mDir+ mPrefix+aVBoxC[aKB].mPost + ".tif";
+             std::string aNameM = mDir+ mPrefix+ "_Masq"+ aVBoxC[aKB].mPost + ".tif";
              Box2di aBoxOut = aVBoxC[aKB].mBoxOut;
              Box2di aBoxIn = aVBoxC[aKB].mBoxIn;
              ELISE_COPY
              (
                 rectangle(aBoxOut._p0,aBoxOut._p1),
                 trans(Tiff_Im::StdConv(aNameC).in(),-aBoxIn._p0),
-                Tiff_Im::StdConv(aNameGlob).out()
+                aTifGlob.out()
              );
              ELISE_fp::RmFile(aNameC);
+             if (mDoMasq)
+             {
+                 ELISE_COPY
+                 (
+                    rectangle(aBoxOut._p0,aBoxOut._p1),
+                    trans(Tiff_Im::StdConv(aNameM).in(),-aBoxIn._p0),
+                    aTifMasq.out()
+                 );
+                 ELISE_fp::RmFile(aNameM);
+             }
          }
 
    }
@@ -488,8 +514,51 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
           mIm2 = new cCEM_OneIm_Nuage(this,mNameIm2,mNameIm1,aBoxIm2,mVisu);
        mIm1->SetConj(mIm2);
 
-       Im2D_U_INT1 anAR1 = mIm1->ImAR(20.0);
+       Im2D_U_INT1 anAR1 = mIm1->ImAR();
        Tiff_Im::Create8BFromFonc(mDir+ mPrefix + mPostfixP + ".tif",anAR1.sz(),anAR1.in());
+
+       if (mDoMasq)
+       {
+           double aMul = 20;
+           double aReduce = 2.0;
+
+           Pt2di aSz0 = anAR1.sz();
+           Pt2di aSzR = round_up(Pt2dr(aSz0)/aReduce);
+           Im2D_REAL4  anArRed(aSzR.x,aSzR.y);
+           ELISE_COPY(anArRed.all_pts(),StdFoncChScale(anAR1.in_proj(),Pt2dr(0,0),Pt2dr(aReduce,aReduce)),anArRed.out());
+
+           Im2D_INT2 aIZMin(aSzR.x,aSzR.y,0);
+           Im2D_INT2 aIZMax(aSzR.x,aSzR.y,3);
+           Im2D_INT2 aISol(aSzR.x,aSzR.y);
+           cInterfaceCoxRoyAlgo * aCox = cInterfaceCoxRoyAlgo::NewOne
+                                     (
+                                         aSzR.x,
+                                         aSzR.y,
+                                         aIZMin.data(),
+                                         aIZMax.data(),
+                                         true,
+                                         false
+                                     );
+           REAL4 ** aData = anArRed.data();
+           for (int anX = 0 ;  anX < aSzR.x ; anX++)
+           {
+               for (int anY = 0 ;  anY < aSzR.y ; anY++)
+               {
+                  aCox->SetCostVert(anX,anY,0,round_ni(0.5*aMul));
+                  double aCost = 1- aData[anY][anX] /255.0;
+                  aCox->SetCostVert(anX,anY,1,round_ni(aCost*aMul));
+                  aCox->SetCostVert(anX,anY,2,round_ni(aMul*2));
+               }
+           }
+           aCox->SetStdCostRegul(0,aMul*mRegul,0);
+           aCox->TopMaxFlowStd(aISol.data());
+
+           Tiff_Im::Create8BFromFonc
+           (
+               mDir+ mPrefix + "_Masq" + mPostfixP + ".tif",
+               anAR1.sz(),aISol.in_proj()[Virgule(FX/aReduce,FY/aReduce)]
+           );
+       }
    }
 }
 
