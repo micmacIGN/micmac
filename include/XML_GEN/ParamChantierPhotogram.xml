@@ -1435,6 +1435,10 @@ namespace NS_ParamChantierPhotogram{
  </Item>
 </SelectionInfos>
 
+<MTDCoher  Nb="1" Class="true" ToReference="true">
+     <Dec2 Nb="1" Type="Pt2di"> </Dec2>
+</MTDCoher>
+
 
   
 <Verbatim File=".h.cpp">

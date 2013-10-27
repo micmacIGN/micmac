@@ -5156,5 +5156,23 @@ cElXMLTree * ToXMLTree(const cSelectionInfos &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cMTDCoher
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cMTDCoher & anObj,cElXMLTree * aTree);
+
+
+        Pt2di & Dec2();
+        const Pt2di & Dec2()const ;
+    private:
+        Pt2di mDec2;
+};
+cElXMLTree * ToXMLTree(const cMTDCoher &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 };
 #endif // Define_NotPCP

@@ -13609,4 +13609,33 @@ void xml_init(cSelectionInfos & anObj,cElXMLTree * aTree)
    xml_init(anObj.Item(),aTree->GetAll("Item",false,1));
 }
 
+
+Pt2di & cMTDCoher::Dec2()
+{
+   return mDec2;
+}
+
+const Pt2di & cMTDCoher::Dec2()const 
+{
+   return mDec2;
+}
+
+cElXMLTree * ToXMLTree(const cMTDCoher & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MTDCoher",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Dec2"),anObj.Dec2())->ReTagThis("Dec2"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cMTDCoher & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.Dec2(),aTree->Get("Dec2",1)); //tototo 
+}
+
 };
