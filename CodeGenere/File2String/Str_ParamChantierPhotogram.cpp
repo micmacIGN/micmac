@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1452]) = {
+const char * (theNameVar_ParamChantierPhotogram[1456]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1436,6 +1436,10 @@ const char * (theNameVar_ParamChantierPhotogram[1452]) = {
 "      <Mode Nb=\"1\" Type=\"int\"></Mode>\n",
 " </Item>\n",
 "</SelectionInfos>\n",
+"\n",
+"<MTDCoher  Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"     <Dec2 Nb=\"1\" Type=\"Pt2di\"> </Dec2>\n",
+"</MTDCoher>\n",
 "\n",
 "\n",
 "  \n",

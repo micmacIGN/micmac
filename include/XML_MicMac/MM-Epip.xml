@@ -456,6 +456,9 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
     <SzDalleMax> 1000 </SzDalleMax>
     <SzRecouvrtDalles> 20 </SzRecouvrtDalles>
     <SzMinDecomposCalc> 40 </SzMinDecomposCalc>
+    <ComprMasque> eComprTiff_None </ComprMasque>
+
+
 </Section_WorkSpace>
 
 <Section_Vrac> 
