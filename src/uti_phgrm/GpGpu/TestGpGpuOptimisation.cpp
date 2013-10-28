@@ -30,9 +30,9 @@ int main()
 
     bool random = false;
 
-    uint nbLines        = random ? rand() % 10 + 10 : 1024;
-    uint lenghtMaxLines = 256;
-    uint depthMax       = NAPPEMAX;
+    uint nbLines        = random ? rand() % 10 + 10 : 1;
+    uint lenghtMaxLines = 4;
+    uint depthMax       = NAPPEMAX/8;
 
     uint sizeMaxLine = (uint)(1.5f*sqrt((float)lenghtMaxLines * lenghtMaxLines + nbLines * nbLines));
 
@@ -45,8 +45,16 @@ int main()
     CuHostData3D<ushort> tabZ(nbLines,lenghtMaxLines,2);
     CuHostData3D<ushort> lenghtLines(nbLines);
 
-    tabZ.FillRandom(0,depthMax/2);
-    lenghtLines.FillRandom(lenghtMaxLines-1,lenghtMaxLines);
+    if(random)
+    {
+        tabZ.FillRandom(0,depthMax/2);
+        lenghtLines.FillRandom(lenghtMaxLines-1,lenghtMaxLines);
+    }
+    else
+    {
+        tabZ.Fill(depthMax/2);
+        lenghtLines.Fill(lenghtMaxLines);
+    }
 
     for (uint p= 0 ; p < nbLines; p++)
     {
@@ -80,7 +88,8 @@ int main()
             uint idStrm = h2O._param[0][idLine].x + pitStrm - lDZ.x;
 
             for ( int aPx = lDZ.x ; aPx < lDZ.y; aPx++)
-                h2O._s_InitCostVol[idStrm + aPx]  = 10000 * (idLine + 1) + (aK+1) * 1000 + aPx - lDZ.x + 1;
+                //h2O._s_InitCostVol[idStrm + aPx]  = 10000 * (idLine + 1) + (aK+1) * 1000 + aPx - lDZ.x + 1;
+                h2O._s_InitCostVol[idStrm + aPx]  = 1;
 
             pitStrm += lDepth;
         }
@@ -99,17 +108,18 @@ int main()
     d2O.CopyHostToDevice(h2O);
     d2O._s_ForceCostVol[0].CopyHostToDevice(h2O._s_ForceCostVol[0].pData());
 
-    //h2O._s_InitCostVol.OutputValues();
+    h2O._s_InitCostVol.OutputValues();
 
     TestOptimisationOneDirectionZ(d2O);
 
     d2O.CopyDevicetoHost(h2O);
 
-    //h2O._s_ForceCostVol[0].OutputValues();
+    h2O._s_ForceCostVol[0].OutputValues();
 
     //
     uint errorCount = 0;
 
+    /*
     for (uint idLine= 0 ; idLine < nbLines; idLine++)
     {
         uint    pitStrm = 0;
@@ -123,13 +133,14 @@ int main()
             for ( int aPx = dZ.x ; aPx < dZ.y; aPx++)
                 if( h2O._s_InitCostVol[idStrm + aPx]  != h2O._s_ForceCostVol[0][idStrm + aPx])
                 {
-                    printf(" %d ",h2O._s_InitCostVol[idStrm + aPx]);
+                    //printf(" %d ",h2O._s_InitCostVol[idStrm + aPx]);
                     errorCount++;
                 }
 
             pitStrm += count(dZ);
         }
     }
+    */
 
     printf("\nError Count   = %d/%d\n",errorCount,h2O._s_InitCostVol.GetSize()- 2*NAPPEMAX);
     printf("Error percent = %f\n",(((float)errorCount*100)/(h2O._s_InitCostVol.GetSize()- 2*NAPPEMAX)));
