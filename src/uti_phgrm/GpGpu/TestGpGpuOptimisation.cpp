@@ -6,7 +6,7 @@ extern "C" void TestOptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O)
 
 int main()
 {
-    // Cr�ation du contexte GPGPU
+    // Creation du contexte GPGPU
     cudaDeviceProp deviceProp;
     // Obtention de l'identifiant de la carte la plus puissante
     int devID = gpuGetMaxGflopsDeviceId();
@@ -29,7 +29,6 @@ int main()
     DEVC_Data2Opti d2O;
 
     bool random = false;
-
 
     uint nbLines        = random ? rand() % 10 + 10 : 1024;
     uint lenghtMaxLines = 256;
@@ -137,12 +136,11 @@ int main()
 
     h2O.Dealloc();
     d2O.Dealloc();
-
     tabZ.Dealloc();
     lenghtLines.Dealloc();
 
     GpGpuTools::OutputInfoGpuMemory();
-    checkCudaErrors( cudaDeviceReset() );
+    checkCudaErrors(cudaDeviceReset());
     printf("Reset Device GpGpu.\n");
 
     return 0;
