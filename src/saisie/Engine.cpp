@@ -203,8 +203,10 @@ void cEngine::loadClouds(QStringList filenames, int* incre)
 {
     for (int i=0;i<filenames.size();++i)
     {
-        getData()->getBB(_Loader->loadCloud(filenames[i].toStdString(), incre));
+        _Data->addCloud(_Loader->loadCloud(filenames[i].toStdString(), incre));
     }
+
+    _Data->getBB();
 }
 
 void cEngine::loadCameras(QStringList filenames)
@@ -213,6 +215,8 @@ void cEngine::loadCameras(QStringList filenames)
     {
         _Data->addCamera(_Loader->loadCamera(filenames[i]));
     }
+
+    _Data->getBB();
 }
 
 void cEngine::loadImages(QStringList filenames)
@@ -335,7 +339,7 @@ void cEngine::doMaskImage(QImage* pImg)
 	}
 	else
     {
-        QMessageBox::critical(NULL, "cEnginer::doMaskImage","No alpha channel!!!");
+        QMessageBox::critical(NULL, "cEngine::doMaskImage","No alpha channel!!!");
     }
 }
 

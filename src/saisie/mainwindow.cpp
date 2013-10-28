@@ -192,8 +192,8 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         _Engine->SetFilenamesIn(filenames);
 
+        if (getMode2D() != false) closeAll();
         setMode2D(false);
-        closeAll();
 
         QFileInfo fi(filenames[0]);
 
