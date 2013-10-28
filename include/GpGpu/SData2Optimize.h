@@ -64,6 +64,17 @@ struct p_ReadLine
             printf("-----------------------------\n");
         }
     }
+
+    __device__ inline void reverse(short2 *buffindex)
+    {
+        seg.id        = seg.lenght - 1;
+        prev_Dz       = buffindex[seg.id];
+        seg.id        = WARPSIZE  - seg.id;
+        seg.lenght    = WARPSIZE;
+        line.id       = 0;
+        format();
+        ID_Bf_Icost   = NAPPEMAX - ID_Bf_Icost + count(prev_Dz) ;
+    }
 };
 
 template<template<class T> class U, uint NBUFFER = 1 >
