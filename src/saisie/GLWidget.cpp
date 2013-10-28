@@ -1639,7 +1639,7 @@ void GLWidget::resetView()
 
         m_bObjectCenteredView = true;
 
-        //showBall(true);
+        showBall(true);
 
         update();
     }
