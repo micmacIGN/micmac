@@ -312,10 +312,7 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
 
     ReadLine<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,p);
 
-    //p.ouput();
-
-    streamIndex.reverse<eARRIERE>();
-    streamIndex.incre<eARRIERE>();
+    streamIndex.ReverseIncre<eARRIERE>();
 
     streamFCost.incre<eAVANT>();
     streamFCost.reverse<eARRIERE>();
@@ -325,20 +322,9 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     S_BuffICost     += NAPPEMAX - WARPSIZE;
 
     streamICost.readFrom<eARRIERE>(S_BuffFCost[p.Id_Buf] + p.tid, NAPPEMAX - p.ID_Bf_Icost);
-    streamICost.reverse<eARRIERE>();
-    streamICost.incre<eARRIERE>();
+    streamICost.ReverseIncre<eARRIERE>();
 
-    p.seg.id        = p.seg.lenght - 1;
-    p.prev_Dz       = S_BuffIndex[p.seg.id];
-    p.seg.id        = WARPSIZE  - p.seg.id;
-    p.seg.lenght    = WARPSIZE;
-    p.line.id       = 0;
-    p.format();
-
-//    CUDA_DUMP_INT(p.ID_Bf_Icost);
-//    CUDA_DUMP_INT(count(p.prev_Dz));
-
-    p.ID_Bf_Icost   = NAPPEMAX - p.ID_Bf_Icost + count(p.prev_Dz) ;
+    p.reverse(S_BuffIndex);
 
     if(p.ID_Bf_Icost > NAPPEMAX)
     {
@@ -346,8 +332,6 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
         streamICost.read<eARRIERE>(S_BuffICost);
         streamFCost.incre<eARRIERE>();
     }
-
-    //p.ouput();
 
     ReadLine<eARRIERE>( streamIndex,
                         streamFCost,
