@@ -266,6 +266,95 @@ void ReadLine(
     }
 }
 
+template<bool sens> __device__
+void ReadLine2(
+                SimpleStream<short2>    &streamIndex,
+                SimpleStream<uint>      &streamFCost,
+                SimpleStream<ushort>    &streamICost,
+                short2     *S_Bf_Index,
+                ushort     *ST_Bf_ICost,
+                uint       *S_FCost[2],
+                p_ReadLine &p
+)
+{
+    short2* ST_Bf_Index = S_Bf_Index + p.tid + (sens ? 0 : -WARPSIZE + 1);
+
+    //--
+    //__shared__ uint globMinFCost;
+    short2  ConeZ;
+    //--
+
+    while(p.line.id < p.line.lenght)
+    {
+        while(p.seg.id < p.seg.lenght)
+        {
+            const short2 index  = S_Bf_Index[sgn(p.seg.id)];
+            const ushort dZ     = count(index); // creer buffer de count
+            ushort       z      = 0;
+
+            //--
+            //globMinFCost        = max_cost;
+            //--
+
+            while( z < dZ)
+            {
+                if(p.ID_Bf_Icost >= NAPPEMAX) // VERIFIER si > ou >=
+                {
+                    streamICost.read<sens>(ST_Bf_ICost);
+                    streamFCost.incre<sens>();
+                    p.ID_Bf_Icost = 0;
+                }
+
+                //--
+
+                uint fCostMin           = max_cost;
+                const ushort costInit   = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
+                const ushort tZ         = z + (sens ? p.tid : (WARPSIZE - p.tid));
+                const short  Z          = sens ? tZ + index.x : index.y - tZ;
+                const short  pitPrZ     = sens ? Z - p.prev_Dz.x : p.prev_Dz.y - Z;
+
+                GetConeZ(ConeZ,Z,p.pente,index,p.prev_Dz);
+
+                uint* prevFCost = S_FCost[p.Id_Buf] + sgn(pitPrZ);
+
+                ConeZ.y = min(NAPPEMAX - pitPrZ,ConeZ.y );
+
+                for (short i = ConeZ.x; i <= ConeZ.y; ++i)
+                    fCostMin = min(fCostMin, costInit + prevFCost[i]); // ERROR
+
+                const uint fcost =  fCostMin + (!sens) * (streamFCost.GetValue(sgn(p.ID_Bf_Icost)) - costInit);
+
+                //--
+
+                if(z + (sens ? p.tid : WARPSIZE - p.tid - 1)< dZ) // peut etre eviter en ajoutant une zone tampon
+                {
+                    //--
+                    S_FCost[!p.Id_Buf][sgn(tZ)] = fcost;
+                    streamFCost.SetValue(sgn(p.ID_Bf_Icost),fcost);
+                    //--
+                }
+
+                const ushort pIdCost = p.ID_Bf_Icost;
+                p.ID_Bf_Icost       += min(dZ - z           , WARPSIZE);
+                z                   += min(NAPPEMAX-pIdCost , WARPSIZE);
+            }
+
+            p.prev_Dz = index;
+            p.seg.id++;
+            p.swBuf();
+        }
+
+        p.line.id += p.seg.lenght;
+
+        if(p.line.id < p.line.lenght)
+        {
+            streamIndex.read<sens>(ST_Bf_Index);
+            p.seg.lenght  = min(p.line.LOver(),WARPSIZE);
+            p.seg.id      = 0;
+        }
+    }
+}
+
 template<class T> __global__
 void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrParam, uint penteMax)
 {
@@ -310,7 +399,7 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     p.prev_Dz       = S_BuffIndex[0];
     p.ID_Bf_Icost   = count(p.prev_Dz);
 
-    ReadLine<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,p);
+    ReadLine2<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,p);
 
     streamIndex.ReverseIncre<eARRIERE>();
 
@@ -333,7 +422,7 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
         streamFCost.incre<eARRIERE>();
     }
 
-    ReadLine<eARRIERE>( streamIndex,
+    ReadLine2<eARRIERE>( streamIndex,
                         streamFCost,
                         streamICost,
                         S_BuffIndex + WARPSIZE - 1,
