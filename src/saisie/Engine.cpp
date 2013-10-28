@@ -238,7 +238,6 @@ void  cEngine::loadImage(QString imgName)
 
 void cEngine::doMasks()
 {
-
     CamStenope* pCam;
     Cloud *pCloud;
     Vertex vert;
@@ -286,52 +285,58 @@ void cEngine::doMasks()
 
 void cEngine::doMaskImage(QImage* pImg)
 {
-    QColor c;
-    uint w,h;
-    w = pImg->width();
-    h = pImg->height();
+	if (pImg->hasAlphaChannel())
+	{
+		QColor c;
+		uint w = pImg->width();
+		uint h = pImg->height();
 
-    Im2D_BIN mask = Im2D_BIN(w, h, 0);
+		QImage qMask(w, h, QImage::Format_Mono);
+		qMask.fill(0);
 
-    for (uint aK=0; aK < w;++aK)
+		for (uint aK=0; aK < w;++aK)
+		{
+			for (uint bK=0; bK < h;++bK)
+			{
+				c = QColor::fromRgba(pImg->pixel(aK,bK));
+				if (c.red() == 255)
+					qMask.setPixel(aK, h-bK-1, 1);
+			}
+		}
+
+		QString aOut = _Loader->GetFilenamesOut()[0];
+		string sOut = aOut.toStdString();
+
+		#ifdef _DEBUG
+			printf ("Saving %s\n", sOut);
+		#endif
+
+		qMask.save(aOut);
+
+		#ifdef _DEBUG
+			printf ("Done\n");
+		#endif
+
+		cFileOriMnt anOri;
+
+		anOri.NameFileMnt()		= sOut;
+		anOri.NombrePixels()	= Pt2di(w,h);
+		anOri.OriginePlani()	= Pt2dr(0,0);
+		anOri.ResolutionPlani() = Pt2dr(1.0,1.0);
+		anOri.OrigineAlti()		= 0.0;
+		anOri.ResolutionAlti()	= 1.0;
+		anOri.Geometrie()		= eGeomMNTFaisceauIm1PrCh_Px1D;
+
+		MakeFileXML(anOri, StdPrefix(sOut) + ".xml");
+		
+		#ifdef _DEBUG
+			cout << "saved " << StdPrefix(sOut) + ".xml" << endl;
+		#endif
+	}
+	else
     {
-        for (uint bK=0; bK < h;++bK)
-        {
-            c = QColor::fromRgba(pImg->pixel(aK,bK));
-            if (c.red() == 255) mask.set(aK, h-bK-1, 1);
-        }
+        QMessageBox::critical(NULL, "cEnginer::doMaskImage","No alpha channel!!!");
     }
-
-    string aOut = _Loader->GetFilenamesOut()[0].toStdString();
-#ifdef _DEBUG
-    printf ("Saving %s\n", aOut);
-#endif
-
-    Tiff_Im::CreateFromIm(mask, aOut);
-
-    cout << "saved " << aOut <<endl;
-#ifdef _DEBUG
-    printf ("Done\n");
-#endif
-
-    std::string aNameXML = StdPrefix(aOut)+".xml";
-    if (!ELISE_fp::exist_file(aNameXML))
-    {
-        cFileOriMnt anOri;
-
-        anOri.NameFileMnt() = aOut;
-        anOri.NombrePixels() = mask.sz();
-        anOri.OriginePlani() = Pt2dr(0,0);
-        anOri.ResolutionPlani() = Pt2dr(1.0,1.0);
-        anOri.OrigineAlti() = 0.0;
-        anOri.ResolutionAlti() = 1.0;
-        anOri.Geometrie() = eGeomMNTFaisceauIm1PrCh_Px1D;
-
-        MakeFileXML(anOri,aNameXML);
-    }
-
-    cout << "saved " << aNameXML << endl;
-
 }
 
 void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
