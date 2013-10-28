@@ -195,9 +195,6 @@ protected:
     //! Draw ball
     void drawBall();
 
-    //! Draw ball
-    void drawCams();
-
     //! Draw widget gradient background
     void drawGradientBackground();
     
@@ -230,9 +227,6 @@ protected:
     //! Default font
     QFont m_font;
 
-    //! States if cams should be drawn
-    bool m_bDrawCams;
-
     //! States if messages should be displayed
     bool m_bDrawMessages;
 
@@ -256,12 +250,6 @@ protected:
         //! Message position on screen
         MessagePosition position;
     };
-
-    //! Trihedron GL list
-    GLuint m_trihedronGLList;
-
-    //! Ball GL list
-    GLuint m_ballGLList;
 
     //! Texture image
     GLuint m_textureImage;
@@ -352,6 +340,8 @@ private:
     cBall       *_theBall;
     cAxis       *_theAxis;
     cBBox       *_theBBox;
+
+    QVector < cCam* > _pCams;
 };
 
 #endif  /* _GLWIDGET_H */
