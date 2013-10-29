@@ -1,0 +1,16 @@
+             <PoseCameraInc>
+                   <PatternName>    ${SetIm} </PatternName>
+                   <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
+                   <Filter>
+                       <KeyExistingFile>
+                           <KeyAssoc> NKS-Assoc-Im2Orient@${AeroIn} </KeyAssoc>
+                           <RequireExist> true </RequireExist>
+                           <RequireForAll>  true</RequireForAll>
+                      </KeyExistingFile>
+                   </Filter>
+                   <PosValueInit>
+                       <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                   </PosValueInit>
+             </PoseCameraInc>
+
+
