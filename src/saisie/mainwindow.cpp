@@ -55,6 +55,7 @@ void MainWindow::connectActions()
 {
     connect(_glWidget,	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
 
+    connect(_glWidget,	SIGNAL(interactionMode(bool)), this,	SLOT(changeMode(bool)));
 
     //View menu
     connect(_ui->actionFullScreen,       SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
@@ -68,7 +69,7 @@ void MainWindow::connectActions()
     connect(_ui->actionShow_help_messages,   SIGNAL(toggled(bool)), this, SLOT(toggleShowMessages(bool)));
 
     connect(_ui->actionReset_view,           SIGNAL(triggered()),   this, SLOT(resetView()));
-    connect(_ui->action2D_3D_mode,           SIGNAL(toggled(bool)), this, SLOT(toggle2D3D(bool)));
+    connect(_ui->action2D_3D_mode,           SIGNAL(triggered()),   this, SLOT(toggle2D3D()));
 
     connect(_ui->actionHelpShortcuts,        SIGNAL(triggered()),   this, SLOT(displayShortcuts()));
 
@@ -76,15 +77,15 @@ void MainWindow::connectActions()
     {
         connect(_ui->actionSetViewTop,		SIGNAL(triggered()),   this, SLOT(setTopView()));
         connect(_ui->actionSetViewBottom,	SIGNAL(triggered()),   this, SLOT(setBottomView()));
-        connect(_ui->actionSetViewFront,		SIGNAL(triggered()),   this, SLOT(setFrontView()));
+        connect(_ui->actionSetViewFront,	SIGNAL(triggered()),   this, SLOT(setFrontView()));
         connect(_ui->actionSetViewBack,		SIGNAL(triggered()),   this, SLOT(setBackView()));
         connect(_ui->actionSetViewLeft,		SIGNAL(triggered()),   this, SLOT(setLeftView()));
-        connect(_ui->actionSetViewRight,		SIGNAL(triggered()),   this, SLOT(setRightView()));
+        connect(_ui->actionSetViewRight,	SIGNAL(triggered()),   this, SLOT(setRightView()));
     }
 
     connect(_ui->actionZoom_Plus,		SIGNAL(triggered()),   this, SLOT(zoomPlus()));
     connect(_ui->actionZoom_Moins,		SIGNAL(triggered()),   this, SLOT(zoomMoins()));
-    connect(_ui->actionZoom_fit,		    SIGNAL(triggered()),   this, SLOT(zoomFit()));
+    connect(_ui->actionZoom_fit,		SIGNAL(triggered()),   this, SLOT(zoomFit()));
 
     QSignalMapper* signalMapper = new QSignalMapper (this) ;
 
@@ -103,13 +104,13 @@ void MainWindow::connectActions()
     connect (signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int))) ;
 
     //"Selection menu
-    connect(_ui->actionToggleMode_selection, SIGNAL(triggered(bool)), this, SLOT(toggleSelectionMode(bool)));
+    connect(_ui->actionToggleMode,       SIGNAL(toggled(bool)), this, SLOT(toggleSelectionMode(bool)));
     connect(_ui->actionAdd,              SIGNAL(triggered()),   this, SLOT(add()));
     connect(_ui->actionSelect_none,      SIGNAL(triggered()),   this, SLOT(selectNone()));
     connect(_ui->actionInvertSelected,   SIGNAL(triggered()),   this, SLOT(invertSelected()));
     connect(_ui->actionSelectAll,        SIGNAL(triggered()),   this, SLOT(selectAll()));
     connect(_ui->actionReset,            SIGNAL(triggered()),   this, SLOT(reset()));
-    connect(_ui->actionRemove_from_selection,            SIGNAL(triggered()),   this, SLOT(removeFromSelection()));
+    connect(_ui->actionRemove,           SIGNAL(triggered()),   this, SLOT(removeFromSelection()));
 
     //File menu
     connect(_ui->actionLoad_plys,		 SIGNAL(triggered()),   this, SLOT(loadPlys()));
@@ -278,6 +279,22 @@ void MainWindow::selectedPoint(uint idC, uint idV, bool select)
     _Engine->getData()->getCloud(idC)->getVertex(idV).setVisible(select);
 }
 
+void MainWindow::changeMode(bool mode)
+{
+    if (mode == true) //mode interaction
+    {
+        _ui->actionShow_ball->setChecked(false);
+        _ui->actionShow_axis->setChecked(false);
+        _ui->actionShow_cams->setChecked(false);
+        _ui->actionShow_bounding_box->setChecked(false);
+    }
+    else
+    {
+        _ui->actionShow_ball->setChecked(true);
+        _ui->actionShow_axis->setChecked(false);
+    }
+}
+
 void MainWindow::toggleFullScreen(bool state)
 {
     if (state)
@@ -428,9 +445,16 @@ void MainWindow::removeFromSelection()
 
 void MainWindow::reset()
 {
-    closeAll();
+    if (getMode2D())
+    {
+        closeAll();
 
-    addFiles(_FilenamesIn);
+        addFiles(_FilenamesIn);
+    }
+    else
+    {
+        _glWidget->Select(ALL);
+    }
 }
 
 void MainWindow::setTopView()
@@ -593,8 +617,8 @@ void MainWindow::closeAll()
     _glWidget->reset();
 
     checkForLoadedData();
-    _glWidget->setBufferGl();
-    _glWidget->update();
+    //_glWidget->setBufferGl();
+    //_glWidget->update();
 }
 
 void MainWindow::openRecentFile()
@@ -666,7 +690,7 @@ void MainWindow::setMode2D(bool mBool)
     _ui->actionShow_ball->setVisible(!mBool);
     _ui->actionShow_bounding_box->setVisible(!mBool);
     _ui->actionSave_selection->setVisible(!mBool);
-    _ui->actionToggleMode_selection->setVisible(!mBool);
+    _ui->actionToggleMode->setVisible(!mBool);
 
     _ui->menuStandard_views->menuAction()->setVisible(!mBool);
 
@@ -679,13 +703,12 @@ void MainWindow::setMode2D(bool mBool)
     _ui->actionShow_ball->setEnabled(!mBool);
     _ui->actionShow_bounding_box->setEnabled(!mBool);
     _ui->actionSave_selection->setEnabled(!mBool);
-    _ui->actionToggleMode_selection->setEnabled(!mBool);
-
+    _ui->actionToggleMode->setEnabled(!mBool);
 }
 
-void MainWindow::toggle2D3D(bool state)
+void MainWindow::toggle2D3D()
 {
-    setMode2D(!(state&&_bMode2D));
+    setMode2D(!_bMode2D);
 
     closeAll();
 }

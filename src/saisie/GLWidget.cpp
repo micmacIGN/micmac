@@ -97,7 +97,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
         QPointF pos = mouseEvent->localPos();
         if (m_bDisplayMode2D)
         {
-            m_lastMoveWin = pos;
+            m_lastClickZoom = pos;
             pos = WindowToImage(mouseEvent->localPos());
             m_lastMoveImg = pos;
             update();
@@ -391,8 +391,6 @@ void GLWidget::computeFPS()
     }
 }
 
-
-
 void GLWidget::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw)
 {
     glBegin(GL_QUADS);
@@ -454,7 +452,6 @@ void GLWidget::paintGL()
 
     if (m_Data->NbImages())
     {
-
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE,GL_ZERO);
 
@@ -475,34 +472,33 @@ void GLWidget::paintGL()
             GLint recal;
             GLdouble wx, wy, wz;
 
-            recal = _glViewport[3] - (GLint) m_lastClickZoom.y()- 1.f;
+            recal = _glViewport[3] - (GLint) m_lastClickZoom.y() - 1.f;
 
-            gluUnProject ((GLdouble) m_lastClickZoom.x(), (GLdouble) recal, 1.0,
+            gluUnProject ((GLdouble) m_lastClickZoom.x(), (GLdouble) recal, 1.f,
                           _mvmatrix, _projmatrix, _glViewport, &wx, &wy, &wz);
 
             glTranslatef(wx,wy,0);
-            glScalef(m_params.zoom/_projmatrix[0], m_params.zoom/_projmatrix[0], 1.0);
+            glScalef(m_params.zoom/_projmatrix[0], m_params.zoom/_projmatrix[0], 1.f);
             glTranslatef(-wx,-wy,0);
         }
 
-        glTranslatef(m_glPosition[0],m_glPosition[1],0);
+        glTranslatef(m_glPosition[0],m_glPosition[1],0.f);
 
-        m_glPosition[0] = 0;
-        m_glPosition[1] = 0;
+        m_glPosition[0] = m_glPosition[1] = 0.f;
 
         glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
         drawQuad(0, 0, glh, glw,QColor(255,255,255));
 
         if(_mask != NULL && !_g_mouseMiddleDown)
         {
-            drawQuad(0,0,glh,glw,m_textureMask );
+            drawQuad(0,0,glh,glw,m_textureMask);
             glBlendFunc(GL_ONE,GL_ONE);
 
             drawQuad(0, 0, glh, glw,QColor(128,128,128));
             glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
         }
 
-        drawQuad(0,0,glh,glw,m_textureImage );
+        drawQuad(0,0,glh,glw,m_textureImage);
 
         glPopMatrix();
 
@@ -569,7 +565,7 @@ void GLWidget::paintGL()
             _theBBox->draw();
 
         //cameras
-        for (int i=0; i<m_Data->NbCameras();i++)
+        for (int i=0; i<_pCams.size();i++)
         {
             if (_pCams[i]->isVisible())
                 _pCams[i]->draw();
@@ -866,8 +862,6 @@ void GLWidget::setData(cData *data)
         }
 
         ImageToTexture(m_textureMask, _mask);
-
-        m_lastMoveWin = QPointF(_glViewport[2]*.5f, _glViewport[3]*.5f);
     }
 
     glGetIntegerv (GL_VIEWPORT, _glViewport);
@@ -1086,9 +1080,12 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
                 if (hasDataLoaded() && showMessages())
                 {
                     clearPolyline();
-                    showMoveMessages();
+                    displayMoveMessages();
                 }
                 showBall(true);
+                showAxis(false);
+
+                emit(interactionMode(false));
             }
                 break;
             case SELECTION:
@@ -1098,12 +1095,14 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
 
                 if (hasDataLoaded() && showMessages())
                 {
-                   showSelectionMessages();
+                   displaySelectionMessages();
                 }
                 showBall(false);
                 showCams(false);
                 showAxis(false);
                 showBBox(false);
+
+                emit(interactionMode(true));
             }
                 break;
             default:
@@ -1211,15 +1210,12 @@ void GLWidget::zoomFit()
 
     m_glPosition[0] = 0;
     m_glPosition[1] = 0;
-
 }
 
 void GLWidget::zoomFactor(int percent)
 {
     if (m_bDisplayMode2D)
     {
-        m_lastClickZoom = m_lastMoveWin;
-
         setZoom((float) percent / 100.f);
     }
     else
@@ -1403,7 +1399,6 @@ void GLWidget::Select(int mode)
                 polyg.push_back(m_polygon[aK]);
             }
         }
-
     }
 
     if (m_bDisplayMode2D)
@@ -1577,9 +1572,9 @@ void GLWidget::showMessages(bool show)
     if ((m_bDrawMessages)&&(!m_bDisplayMode2D))
     {
         if (m_interactionMode == TRANSFORM_CAMERA)
-            showMoveMessages();
+            displayMoveMessages();
         else if (m_interactionMode == SELECTION)
-            showSelectionMessages();
+            displaySelectionMessages();
     }
     else
         displayNewMessage(QString());
@@ -1589,7 +1584,7 @@ void GLWidget::showMessages(bool show)
 
 bool GLWidget::showMessages(){return m_bDrawMessages;}
 
-void GLWidget::showSelectionMessages()
+void GLWidget::displaySelectionMessages()
 {
     displayNewMessage(QString());
     displayNewMessage(tr("Selection mode"),UPPER_CENTER_MESSAGE);
@@ -1597,7 +1592,7 @@ void GLWidget::showSelectionMessages()
     displayNewMessage(tr("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
 }
 
-void GLWidget::showMoveMessages()
+void GLWidget::displayMoveMessages()
 {
     displayNewMessage(QString());
     displayNewMessage(tr("Move mode"),UPPER_CENTER_MESSAGE);
@@ -1611,6 +1606,8 @@ void GLWidget::reset()
 {
     resetRotationMatrix();
 
+    m_glPosition[0] = m_glPosition[1] = 0.f;
+
     clearPolyline();
 
     m_params.reset();
@@ -1618,6 +1615,7 @@ void GLWidget::reset()
     m_Data->clearCameras();
     m_Data->clearImages();
     m_Data->clearMasks();
+    m_Data->reset();
 
     m_bFirstAction = true;
 }
@@ -1640,6 +1638,10 @@ void GLWidget::resetView()
         m_bObjectCenteredView = true;
 
         showBall(true);
+        showAxis(false);
+        showBBox(false);
+        showCams(false);
+        emit(interactionMode(false));
 
         update();
     }
