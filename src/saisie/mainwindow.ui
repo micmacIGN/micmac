@@ -124,9 +124,9 @@ QStatusBar
     <property name="title">
      <string>Selection</string>
     </property>
-    <addaction name="actionToggleMode_selection"/>
+    <addaction name="actionToggleMode"/>
     <addaction name="actionAdd"/>
-    <addaction name="actionRemove_from_selection"/>
+    <addaction name="actionRemove"/>
     <addaction name="actionSelectAll"/>
     <addaction name="actionSelect_none"/>
     <addaction name="actionReset"/>
@@ -325,7 +325,7 @@ QStatusBar
     <string>2</string>
    </property>
   </action>
-  <action name="actionToggleMode_selection">
+  <action name="actionToggleMode">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -510,7 +510,7 @@ QStatusBar
     <string>Ctrl+I</string>
    </property>
   </action>
-  <action name="actionRemove_from_selection">
+  <action name="actionRemove">
    <property name="text">
     <string>Remove from selection</string>
    </property>
@@ -664,9 +664,6 @@ QStatusBar
    </property>
   </action>
   <action name="action2D_3D_mode">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
    <property name="text">
     <string>2D/3D mode </string>
    </property>

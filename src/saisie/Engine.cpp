@@ -412,6 +412,7 @@ void cEngine::unloadAll()
     _Data->clearClouds();
     _Data->clearCameras();
     _Data->clearImages();
+    _Data->clearMasks();
     _Data->reset();
 }
 
