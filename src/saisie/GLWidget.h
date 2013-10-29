@@ -56,7 +56,7 @@ public:
 
     cData* getData() {return m_Data;}
 
-    //! Interaction mode (with the mouse!)
+    //! Interaction mode (only in 3D)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
                             SELECTION
     };
@@ -88,7 +88,7 @@ public:
 
     void zoomFactor(int percent);
 
-    //! Switch between move mode and selection mode
+    //! Switch between move mode and selection mode (only in 3D)
     void setInteractionMode(INTERACTION_MODE mode);
 
     //! Shows axis or not
@@ -110,10 +110,10 @@ public:
     bool showMessages();
 
     //! Display help messages for selection mode
-    void showSelectionMessages();
+    void displaySelectionMessages();
 
     //! Display help messages for move mode
-    void showMoveMessages();
+    void displayMoveMessages();
 
     //! Select points with polyline
     void Select(int mode);
@@ -173,6 +173,8 @@ signals:
     void filesDropped(const QStringList& filenames);
 
     void selectedPoint(uint idCloud, uint idVertex,bool selected);
+
+    void interactionMode(bool modeSelection);
 
 protected:
     void initializeGL();
@@ -298,7 +300,6 @@ protected:
     QPointF ImageToWindow(const QPointF &im);
 
     QPointF     m_lastMoveImg;
-    QPointF     m_lastMoveWin;
     QPointF     m_lastClickWin;
     QPointF     m_lastClickZoom;
 
