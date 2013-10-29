@@ -194,9 +194,6 @@ protected:
     virtual void dragEnterEvent(QDragEnterEvent* event);
     virtual void dropEvent(QDropEvent* event);
 
-    //! Draw ball
-    void drawBall();
-
     //! Draw widget gradient background
     void drawGradientBackground();
     
@@ -209,10 +206,6 @@ protected:
     void drawPointAndSegments();
 
     void drawPointAndSegments(const QVector<QPointF> &aPoly);
-
-    GLuint getNbGLLists() { return m_nbGLLists; }
-    void incrNbGLLists()  { m_nbGLLists++; }
-    void resetNbGLLists() { m_nbGLLists = 0; }
 
     //! Fill m_polygon2 for point insertion or move
     void fillPolygon2(const QPointF &pos);
@@ -243,7 +236,6 @@ protected:
 
     bool m_bFirstAction;
 
-
     //! Temporary Message to display
     struct MessageToDisplay
     {
@@ -257,8 +249,6 @@ protected:
     GLuint m_textureImage;
 
     GLuint m_textureMask;
-
-    int m_nbGLLists;
 
     //! List of messages to display
     list<MessageToDisplay> m_messagesToDisplay;

@@ -22,7 +22,6 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_bFirstAction(true)
   , m_textureImage(GL_INVALID_LIST_ID)
   , m_textureMask(GL_INVALID_LIST_ID)
-  , m_nbGLLists(0)
   , m_params(ViewportParameters())
   , m_Data(data)
   , m_speed(0.4f)
@@ -71,6 +70,12 @@ GLWidget::~GLWidget()
     {
         glDeleteLists(m_textureImage,1);
         m_textureImage = GL_INVALID_LIST_ID;
+    }
+
+    if (m_textureMask != GL_INVALID_LIST_ID)
+    {
+        glDeleteLists(m_textureMask,1);
+        m_textureMask = GL_INVALID_LIST_ID;
     }
 
     if(_mask)
