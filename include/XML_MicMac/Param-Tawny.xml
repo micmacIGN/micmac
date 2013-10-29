@@ -126,7 +126,7 @@
         <SectionSorties>
            <SzDalle>    1000            </SzDalle>
            <SzBrd>      100             </SzBrd>
-           <NameOrtho>  Ortho-Eg-Test-Redr.tif </NameOrtho>
+           <NameOrtho>  ${NameOrtho} </NameOrtho>
            <NameLabels>  ${ImLabel} </NameLabels>
            <SzTileResult> 20000 </SzTileResult>
            <DynGlob>      ${DynGlob} </DynGlob>
