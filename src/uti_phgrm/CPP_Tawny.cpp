@@ -63,7 +63,7 @@ int Tawny_main(int argc,char ** argv)
     bool  DoL1Filter=true;
 
     double  aSatThresh = 1e9;
-
+	string aNameOut="";
     ElInitArgMain
     (
 	argc,argv,
@@ -80,7 +80,8 @@ int Tawny_main(int argc,char ** argv)
 	             << EAM(mCorrThresh,"CorThr",true,"Threshold of correlation to validate homologous (Def 0.7)")
 	             << EAM(mNbPerIm,"NbPerIm",true,"Average number of point per image (Def = 1e4)")
 	             << EAM(DoL1Filter,"L1F",true,"Do L1 Filter on couple, def=true (change when process is blocked)")
-                      << EAM(aSatThresh,"SatThresh",true,"Threshold detemining saturation value (pixel >SatThresh will be ignored)")
+                 << EAM(aSatThresh,"SatThresh",true,"Threshold detemining saturation value (pixel >SatThresh will be ignored)")
+				 << EAM(aNameOut,"Out",true,"Name of output file (in the folder)") 
     );
 
 	#if (ELISE_windows)
@@ -119,6 +120,19 @@ int Tawny_main(int argc,char ** argv)
 
     std::cout << aCom << "\n";
     int aRes = system_call(aCom.c_str());
+
+	if(aNameOut!="")
+	{
+		std::string aComRename;
+	    #if (ELISE_unix || ELISE_Cygwin || ELISE_MacOs)
+            aComRename="mv " + aDir + "Ortho-Eg-Test-Redr.tif " + aDir + aNameOut;
+        #endif
+        #if (ELISE_windows)
+			replace( aDir.begin(), aDir.end(), '/', '\\' );
+            aComRename="ren "+ aDir + "Ortho-Eg-Test-Redr.tif " + aNameOut;
+        #endif
+		system_call(aComRename.c_str());
+	}
 
     BanniereMM3D();
     return aRes;
