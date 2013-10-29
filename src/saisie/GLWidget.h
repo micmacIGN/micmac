@@ -121,9 +121,6 @@ public:
     //! Delete current polyline
     void clearPolyline();
 
-    //! Close polyline
-    void closePolyline();
-
      //! Undo all past selection actions
     void undoAll();
 
@@ -200,8 +197,6 @@ protected:
     //! Draw selection polygon
     void drawPolygon();
 
-    void drawPolygon(const QVector<QPointF> &aPoly);
-
     //! Draw one point and two segments (for insertion or move)
     void drawPointAndSegments();
 
@@ -228,9 +223,6 @@ protected:
     //! States if view is centered on object
     bool m_bObjectCenteredView;
 
-    //! States if selection polyline is closed
-    bool m_bPolyIsClosed;  
-
     //! Current interaction mode (with mouse)
     INTERACTION_MODE m_interactionMode;
 
@@ -256,7 +248,7 @@ protected:
     QString m_messageFPS;
 
     //! Point list for polygonal selection
-    QVector < QPointF > m_polygon;
+    cPolygon    m_polygon;
 
     //! Point list for polygonal insertion
     QVector < QPointF > m_polygon2;
@@ -265,25 +257,25 @@ protected:
     ViewportParameters m_params;
 
     //! Data to display
-    cData *m_Data;
+    cData      *m_Data;
 
     //! acceleration factor
-    float m_speed;
+    float       m_speed;
 
     //! selection infos stack
     QVector <selectInfos> m_infos;
 
     //! states if display is 2D or 3D
-    bool m_bDisplayMode2D;
+    bool        m_bDisplayMode2D;
 
     //! data position in the gl viewport
-    GLfloat m_glPosition[2];
+    GLfloat     m_glPosition[2];
 
     //! click counter to manage point move event
-    int m_Click;
+    int         m_Click;
 
     //! (square) radius for point selection
-    float     m_sqr_radius;
+    float       m_sqr_radius;
 
     QPointF WindowToImage(const QPointF &pt);
 

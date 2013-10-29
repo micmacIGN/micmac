@@ -376,7 +376,7 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
         SII.appendChild(Rotation);
         SII.appendChild(Translation);
 
-        QVector <QPointF> pts = SInfo.poly;
+        QVector <QPointF> pts = SInfo.poly.getVector();
 
         for (int aK=0; aK <pts.size(); ++aK)
         {
