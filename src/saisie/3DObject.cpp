@@ -436,3 +436,82 @@ void cCam::draw()
 
     glPopMatrix();
 }
+
+cPolygon::cPolygon():
+    _lineWidth(1.f),
+    _pointSize(5.f),
+    _bPolyIsClosed(false),
+    _idx(-1)
+{
+    setColor(QColor("red"));
+}
+
+void cPolygon::draw()
+{
+    glColor3f(.1f,1.f,.2f);
+
+    glBegin(_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
+    for (int aK = 0;aK <  _Poly.size(); ++aK)
+    {
+        glVertex2f(_Poly[aK].x(), _Poly[aK].y());
+    }
+    glEnd();
+
+    glColor3f(_color.redF(),_color.greenF(),_color.blueF());
+
+    if (_idx >=0)
+    {
+        for (int aK = 0;aK < _idx; ++aK)
+            glDrawUnitCircle(2, _Poly[aK].x(), _Poly[aK].y(), 3.0, 8);
+
+        glColor3f(0.f,0.f,1.f);
+        glDrawUnitCircle(2, _Poly[_idx].x(), _Poly[_idx].y(), 3.0, 8);
+
+        glColor3f(1.f,0.f,0.f);
+        for (int aK = _idx+1;aK < (int) _Poly.size(); ++aK)
+            glDrawUnitCircle(2, _Poly[aK].x(), _Poly[aK].y(), 3.0, 8);
+    }
+    else
+    {
+        for (int aK = 0;aK < _Poly.size(); ++aK)
+        {
+            glDrawUnitCircle(2, _Poly[aK].x(), _Poly[aK].y(), 3.0, 8);
+        }
+    }
+}
+
+cPolygon & cPolygon::operator = (const cPolygon &aP)
+{
+    if (this != &aP)
+    {
+        _lineWidth        = aP._lineWidth;
+        _pointSize        = aP._pointSize;
+        _bPolyIsClosed    = aP._bPolyIsClosed;
+        _idx              = aP._idx;
+
+        _Poly             = aP._Poly;
+
+        _position         = aP._position;
+        _color            = aP._color;
+        _scale            = aP._scale;
+
+        _alpha            = aP._alpha;
+        _bVisible         = aP._bVisible;
+    }
+
+    return *this;
+}
+
+void cPolygon::close()
+{
+   // if (!m_bPolyIsClosed)
+    if (!_bPolyIsClosed)
+    {
+        //remove last point if needed
+        int sz = _Poly.size();
+        if (sz > 2) _Poly.resize(sz-1);
+
+        _bPolyIsClosed = true;
+    }
+}
+

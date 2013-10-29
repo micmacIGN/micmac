@@ -152,6 +152,51 @@ class cCam : public cObject
         CamStenope *_Cam;
 };
 
+class cPolygon : public cObject
+{
+    public:
+        cPolygon();
+
+        void    draw();
+
+        void    setLineWidth(float width){_lineWidth = width;}
+        void    setpointSize(float size) {_pointSize = size;}
+
+        void    add(QPointF const &pt){ _Poly.push_back(pt); }
+
+        void    clear(){ _Poly.clear(); }
+
+        void    setClosed(bool aBool){ _bPolyIsClosed = aBool; }
+        bool    isClosed(){ return _bPolyIsClosed;}
+
+        int     size(){ return _Poly.size(); }
+
+        QPointF & operator[](int ak){ return _Poly[ak]; }
+        const QPointF & operator[](int ak) const { return _Poly[ak]; }
+
+        cPolygon & operator = (const cPolygon &);
+
+        void    insert( int i, const QPointF & value ){ _Poly.insert(i,value); }
+
+        void    remove ( int i ){ _Poly.remove(i);}
+
+        QVector <QPointF> getVector(){ return _Poly; }
+
+        void    close();
+
+        void    setIdx(int idx){_idx =idx;}
+
+    private:
+        float               _lineWidth;
+        float               _pointSize;
+
+        bool                _bPolyIsClosed;
+
+        int                 _idx;
+
+        QVector <QPointF>   _Poly;
+};
+
 void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps = 64);
 
 #endif //__3DObject__

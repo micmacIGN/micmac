@@ -11,6 +11,7 @@
 #include "Cloud.h"
 #include "Data.h"
 #include "general/bitm.h"
+#include "3DObject.h"
 
 class ViewportParameters
 {
@@ -59,7 +60,8 @@ struct selectInfos
     ViewportParameters params;
 
     //! polyline infos
-    QVector <QPointF>  poly;
+    //QVector <QPointF>  poly;
+    cPolygon poly;
 
     //! selection mode
     int                selection_mode;

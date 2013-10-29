@@ -17,7 +17,6 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_font(font())
   , m_bDrawMessages(true)
   , m_bObjectCenteredView(true)
-  , m_bPolyIsClosed(false)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
   , m_textureImage(GL_INVALID_LIST_ID)
@@ -110,19 +109,19 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
         {
-            if(!m_bPolyIsClosed)
-            {
-                int sz = m_polygon.size();
+            int sz = m_polygon.size();
 
+            if(!m_polygon.isClosed())
+            {
                 if (sz == 1)
-                    m_polygon.push_back(pos);
+                    m_polygon.add(pos);
                 else if (sz > 1)
                     //replace last point by the current one
                     m_polygon[sz-1] = pos;
             }
             else
             {
-                if(m_polygon.size())
+                if(sz)
                 {
                     QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
                     if (keyEvent->modifiers().testFlag(Qt::ShiftModifier))
@@ -134,7 +133,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                         if (m_Click == 1)
                         {
                             m_polygon2.clear();
-                            if ((_idx >0 ) && (_idx < m_polygon.size()-1))
+                            if ((_idx >0 ) && (_idx < sz-1))
                             {
                                 m_polygon2.push_back(m_polygon[_idx-1]);
                                 m_polygon2.push_back(pos);
@@ -147,10 +146,11 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                                     m_polygon2.push_back(m_polygon[m_polygon.size()-1]);
                                     m_polygon2.push_back(pos);
                                     m_polygon2.push_back(m_polygon[1]);
+
                                 }
-                                if (_idx == m_polygon.size()-1)
+                                if (_idx == sz-1)
                                 {
-                                    m_polygon2.push_back(m_polygon[m_polygon.size()-2]);
+                                    m_polygon2.push_back(m_polygon[sz-2]);
                                     m_polygon2.push_back(pos);
                                     m_polygon2.push_back(m_polygon[0]);
                                 }
@@ -244,18 +244,18 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
            {
                if (m_Data->NbImages()||m_Data->NbClouds()||m_Data->NbCameras())
                {
-                   if (!m_bPolyIsClosed)
+                   if(!m_polygon.isClosed())
                    {
                        if (m_polygon.size() >= 1)
                            m_polygon[m_polygon.size()-1] = m_lastPos;
 
-                       m_polygon.push_back(m_lastPos);
+                       m_polygon.add(m_lastPos);
                    }
                    else
                    {
                        if (mouseEvent->modifiers().testFlag(Qt::ShiftModifier))
                        {
-                           if ((m_polygon.size() >=2) && m_polygon2.size() && m_bPolyIsClosed)
+                           if ((m_polygon.size() >=2) && m_polygon2.size() && m_polygon.isClosed())
                            {
                                // modify polygon...
                                int idx = -1;
@@ -282,17 +282,18 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
            //if (m_interactionMode == TRANSFORM_CAMERA)
                _g_mouseRightDown = true;
            //else
-           if ((_idx >=0)&&(_idx<m_polygon.size())&&m_bPolyIsClosed)
+           if ((_idx >=0)&&(_idx<m_polygon.size())&&m_polygon.isClosed())
            {
                m_polygon.remove(_idx);
 
                findClosestPoint(m_lastPos, m_sqr_radius);
 
-               if (m_polygon.size() < 2) m_bPolyIsClosed = false;
+               if (m_polygon.size() < 2) m_polygon.setClosed(false);
            }
            else
            {
-               closePolyline();
+               //closePolyline();
+               m_polygon.close();
            }
        }
        else if (mouseEvent->button() == Qt::MiddleButton)
@@ -318,7 +319,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                 m_Click = 0;
             }
 
-            if ((m_Click >=1)&& m_bPolyIsClosed)
+            if ((m_Click >=1)&& m_polygon.isClosed())//m_bPolyIsClosed)
             {
                 findClosestPoint(m_lastPos, m_sqr_radius);
             }
@@ -731,7 +732,7 @@ void GLWidget::setBufferGl(bool onlyColor)
     GLfloat* vertices = NULL, *colors = NULL;
 
     if(!onlyColor)
-        vertices   = new GLfloat[sizeClouds*3];
+        vertices = new GLfloat[sizeClouds*3];
 
     colors     = new GLfloat[sizeClouds*3];
     int pitchV = 0;
@@ -957,57 +958,22 @@ void GLWidget::drawGradientBackground()
     glEnd();
 }
 
-void GLWidget::drawPolygon(QVector < QPointF> const &aPoly)
-{
-    glBegin(m_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
-    for (int aK = 0;aK < (int) aPoly.size(); ++aK)
-    {
-        glVertex2f(aPoly[aK].x(), aPoly[aK].y());
-    }
-    glEnd();
-
-    glColor3f(1.f,0.f,0.f);
-
-    if (_idx >=0)
-    {
-        for (int aK = 0;aK < _idx; ++aK)
-            glDrawUnitCircle(2, aPoly[aK].x(), aPoly[aK].y(), 3.0, 8);
-
-        glColor3f(0.f,0.f,1.f);
-        glDrawUnitCircle(2, aPoly[_idx].x(), aPoly[_idx].y(), 3.0, 8);
-
-        glColor3f(1.f,0.f,0.f);
-        for (int aK = _idx+1;aK < (int) aPoly.size(); ++aK)
-            glDrawUnitCircle(2, aPoly[aK].x(), aPoly[aK].y(), 3.0, 8);
-    }
-    else
-    {
-        for (int aK = 0;aK < (int) aPoly.size(); ++aK)
-        {
-            glDrawUnitCircle(2, aPoly[aK].x(), aPoly[aK].y(), 3.0, 8);
-        }
-    }
-}
-
 void GLWidget::drawPolygon()
 {
-    glColor3f(.1f,1.f,.2f);
-
-    glLineWidth(1.0f);
-
     if (m_Data->NbImages())
     {
-        QVector <QPointF> poly;
-        for (int aK = 0;aK < (int) m_polygon.size(); ++aK)
+        cPolygon poly = m_polygon;
+        poly.clear();
+        for (int aK = 0;aK < m_polygon.size(); ++aK)
         {
-            poly.push_back(ImageToWindow(m_polygon[aK]));
+            poly.add(ImageToWindow(m_polygon[aK]));
         }
 
-        drawPolygon(poly);
+        poly.draw();
     }
     else
     {
-        drawPolygon(m_polygon);
+        m_polygon.draw();
     }
 }
 
@@ -1387,19 +1353,19 @@ void GLWidget::Select(int mode)
 
     if(mode == ADD || mode == SUB)
     {
-        if ((m_polygon.size() < 3) || (!m_bPolyIsClosed))
+        if ((m_polygon.size() < 3) || (!m_polygon.isClosed()))//(!m_bPolyIsClosed))
             return;
 
         if (!m_bDisplayMode2D)
         {
-            for (int aK=0; aK < (int) m_polygon.size(); ++aK)
+            for (int aK=0; aK < m_polygon.size(); ++aK)
             {
                polyg.push_back(QPointF(m_polygon[aK].x(), _glViewport[3] - m_polygon[aK].y()));
             }
         }
         else
         {
-            for (int aK=0; aK < (int) m_polygon.size(); ++aK)
+            for (int aK=0; aK < m_polygon.size(); ++aK)
             {
                 polyg.push_back(m_polygon[aK]);
             }
@@ -1505,24 +1471,27 @@ void GLWidget::Select(int mode)
 void GLWidget::clearPolyline()
 {
     m_polygon.clear();
+    m_polygon.setClosed(false);
     m_polygon2.clear();
     m_Click = 0;
     _idx = -1;
-    m_bPolyIsClosed = false;
+    //m_bPolyIsClosed = false;
     update();
 }
 
-void GLWidget::closePolyline()
+/*void GLWidget::closePolyline()
 {
-    if (!m_bPolyIsClosed)
+   // if (!m_bPolyIsClosed)
+    if (!m_polygon.isClosed())
     {
         //remove last point if needed
         int sz = m_polygon.size();
         if (sz > 2) m_polygon.resize(sz-1);
 
-        m_bPolyIsClosed = true;
+        //m_bPolyIsClosed = true;
+        m_polygon.setClosed(true);
     }
-}
+}*/
 
 void GLWidget::ptSizeUp(bool up)
 {
@@ -1720,7 +1689,7 @@ void GLWidget::fillPolygon2(QPointF const &pos)
     dist2 = FLT_MAX;
     int idx = -1;
 
-    QVector < QPointF > polygon = m_polygon;
+    QVector < QPointF > polygon = m_polygon.getVector();
     polygon.push_back(polygon[0]);
 
     for (int aK =0; aK < (int) polygon.size()-1;++aK)
@@ -1749,7 +1718,7 @@ void GLWidget::findClosestPoint(QPointF const &pos, float sqr_radius)
     float dist, dist2;
     dist2 = sqr_radius;
 
-    for (int aK = 0; aK < (int) m_polygon.size();++aK)
+    for (int aK = 0; aK < m_polygon.size();++aK)
     {
         dist  = (pos.x() - m_polygon[aK].x())*(pos.x() - m_polygon[aK].x()) +
                 (pos.y() - m_polygon[aK].y())*(pos.y() - m_polygon[aK].y());
@@ -1757,7 +1726,9 @@ void GLWidget::findClosestPoint(QPointF const &pos, float sqr_radius)
         if  (dist < dist2)
         {
             dist2 = dist;
-            _idx = aK;
-        }
+            _idx = aK;   
+       }
     } 
+
+    m_polygon.setIdx(_idx);
 }
