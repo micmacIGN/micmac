@@ -1,0 +1,244 @@
+<!-- ImageCentrale , le @ indique que si il y a deja une valeur, alors elle ne sera pas
+    ecrasee
+-->
+<Global
+    Subst="@$#1"
+    NameDecl="@$#1"
+
+   ImageCentrale="@XXX"
+>
+
+   <ParamApero>
+
+         <ShowSection >
+            <ShowMes > false </ShowMes>
+            <LogFile> ZZZ.txt </LogFile>
+         </ShowSection>
+
+        <SectionMapApero>
+             <KeySet>  Key-Set-AllImages     </KeySet>
+             <NameVarMap> ImageCentrale  </NameVarMap>
+        </SectionMapApero>
+
+
+       <SectionBDD_Observation>
+           <BDD_PtsLiaisons>
+               <Id>    Id_Pastis_Hom  </Id>
+               <KeySet> Key-Set-HomolPastisBin   </KeySet>
+               <UseAsPtMultiple> true </UseAsPtMultiple>
+               <KeyAssoc>  Key-Assoc-CpleIm2HomolPastisBin   </KeyAssoc>
+           </BDD_PtsLiaisons>
+
+           <BDD_Centre>
+                  <Id> Id-GPS</Id>
+                  <KeySet>    Key-Set-Centre-GPS </KeySet>
+                  <KeyAssoc>  Key-Assoc-Ori-GPS  </KeyAssoc>
+                  <Tag> Centre </Tag>
+           </BDD_Centre>
+
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> Id_Calib_Nikon </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+                           <NameFile>   ${TheCalib} </NameFile>
+                           <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+
+              <PoseCameraInc>
+	           <PatternName>  ${ImageCentrale} </PatternName>
+                   <IdBDCentre>  Id-GPS </IdBDCentre>
+	           <CalcNameCalib>  Id_Calib_Nikon </CalcNameCalib>
+
+                   <PosValueInit>
+                       <PosId>  Inutile  </PosId>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+
+              <PoseCameraInc>
+                   <IdBDCentre>  Id-GPS </IdBDCentre>
+                   <PatternName>  ${ImageCentrale}  </PatternName>
+                   <InitNow>  false </InitNow>
+                   <!-- <PatternRefuteur> dsc_0431.tif </PatternRefuteur> -->
+	           <CalcNameCalib>  Id_Calib_Nikon </CalcNameCalib>
+                   <AddAllNameConnectedBy> Id_Pastis_Hom  </AddAllNameConnectedBy> 
+                   <PosesDeRattachement>  0  </PosesDeRattachement>
+
+                   <MEP_SPEC_MST> 
+                         <Show> false </Show>
+                         <NbInitMinBeforeUnconnect> 3 </NbInitMinBeforeUnconnect>
+                   </MEP_SPEC_MST>
+
+                   <PosValueInit>
+                       <PoseFromLiaisons>
+                          <LiaisonsInit>
+                                <NameCam> #### </NameCam>
+                                <IdBD> Id_Pastis_Hom </IdBD>
+                          </LiaisonsInit>
+                       </PoseFromLiaisons>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                    <IterationsCompensation>
+                       <Pose2Init>
+                             <ProfMin> [2,4,6,10] </ProfMin>
+                             <Show> false </Show>
+                       </Pose2Init>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_0  </Val>
+		              <Val> eLib_PP_CD_00     </Val>
+		              <Val> eLiberte_DR0      </Val>
+		          </ContraintesCamerasInc>
+
+		          <ContraintesPoses>
+			     <NamePose>   0 </NamePose>
+			     <Val>      ePoseFigee   </Val>
+		          </ContraintesPoses>
+
+		          <ContraintesPoses>
+			     <NamePose>   1     </NamePose>
+			     <Val>      ePoseBaseNormee   </Val>
+			     <PoseRattachement>   0 </PoseRattachement>
+		          </ContraintesPoses>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_None     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <SigmaPond> 10.0 </SigmaPond>
+				 <EcartMax> 50.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+	      </EtapeCompensation>
+
+	      <EtapeCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_None     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+	      </EtapeCompensation>
+
+	      <EtapeCompensation>
+                    <IterationsCompensation> 
+                        <BasculeOrientation>
+                             <ModeBascule>  
+                                  <BasculeOnCentre>
+                                  </BasculeOnCentre>
+                             </ModeBascule>
+                        </BasculeOrientation>
+		        <SectionContraintes>
+		           <ContraintesPoses>
+                              <ByPattern> true </ByPattern>
+			      <NamePose>   .* </NamePose>
+			      <Val>      ePoseLibre   </Val>
+		           </ContraintesPoses>
+		        </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_None     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+                           <ObsCentrePDV>
+                                <Pond>
+                                  <EcartMesureIndiv>  10.00 </EcartMesureIndiv>
+                                  <Show> eNSM_None  </Show>
+                                </Pond>
+                           </ObsCentrePDV>
+		    </SectionObservations>
+	      </EtapeCompensation>
+	      <EtapeCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+                           <ObsCentrePDV>
+                                <Pond>
+                                  <EcartMesureIndiv>  10.00 </EcartMesureIndiv>
+                                  <Show> eNSM_Indiv  </Show>
+                                </Pond>
+                           </ObsCentrePDV>
+		    </SectionObservations>
+
+                    <SectionExport>
+                        <ExportPose>
+                            <PatternSel> ${ImageCentrale}  </PatternSel>
+                            <KeyAssoc> Key-Assoc-Im2OrInit </KeyAssoc>
+                            <AddCalib>  true </AddCalib>
+			    <NbVerif>  10 </NbVerif>
+			    <TolWhenVerif> 1e-3 </TolWhenVerif>
+                        </ExportPose>
+                    </SectionExport>
+	      </EtapeCompensation>
+
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
