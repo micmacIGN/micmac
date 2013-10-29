@@ -83,7 +83,6 @@ void cData::reset()
 {
     m_minX = m_minY = m_minZ =  FLT_MAX;
     m_maxX = m_maxY = m_maxZ = -FLT_MAX;
-    //m_cX = m_cY = m_cZ = m_diam = 0.f;
     _center = Pt3dr(0.f,0.f,0.f);
     _curImgIdx = 0;    
 }
