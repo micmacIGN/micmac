@@ -135,6 +135,23 @@ class cBBox : public cObject
         float   _maxZ;
 };
 
+class cCam : public cObject
+{
+    public:
+        cCam(CamStenope *pCam);
+
+        void    draw();
+
+        void    setLineWidth(float width){_lineWidth = width;}
+        void    setpointSize(float size) {_pointSize = size;}
+
+    private:
+        float   _lineWidth;
+        float   _pointSize;
+
+        CamStenope *_Cam;
+};
+
 void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps = 64);
 
 #endif //__3DObject__

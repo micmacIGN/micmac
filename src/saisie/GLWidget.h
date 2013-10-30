@@ -56,7 +56,7 @@ public:
 
     cData* getData() {return m_Data;}
 
-    //! Interaction mode (with the mouse!)
+    //! Interaction mode (only in 3D)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
                             SELECTION
     };
@@ -88,7 +88,7 @@ public:
 
     void zoomFactor(int percent);
 
-    //! Switch between move mode and selection mode
+    //! Switch between move mode and selection mode (only in 3D)
     void setInteractionMode(INTERACTION_MODE mode);
 
     //! Shows axis or not
@@ -110,10 +110,10 @@ public:
     bool showMessages();
 
     //! Display help messages for selection mode
-    void showSelectionMessages();
+    void displaySelectionMessages();
 
     //! Display help messages for move mode
-    void showMoveMessages();
+    void displayMoveMessages();
 
     //! Select points with polyline
     void Select(int mode);
@@ -174,6 +174,8 @@ signals:
 
     void selectedPoint(uint idCloud, uint idVertex,bool selected);
 
+    void interactionMode(bool modeSelection);
+
 protected:
     void initializeGL();
     void resizeGL(int w, int h);
@@ -194,9 +196,6 @@ protected:
 
     //! Draw ball
     void drawBall();
-
-    //! Draw ball
-    void drawCams();
 
     //! Draw widget gradient background
     void drawGradientBackground();
@@ -230,9 +229,6 @@ protected:
     //! Default font
     QFont m_font;
 
-    //! States if cams should be drawn
-    bool m_bDrawCams;
-
     //! States if messages should be displayed
     bool m_bDrawMessages;
 
@@ -256,12 +252,6 @@ protected:
         //! Message position on screen
         MessagePosition position;
     };
-
-    //! Trihedron GL list
-    GLuint m_trihedronGLList;
-
-    //! Ball GL list
-    GLuint m_ballGLList;
 
     //! Texture image
     GLuint m_textureImage;
@@ -310,7 +300,6 @@ protected:
     QPointF ImageToWindow(const QPointF &im);
 
     QPointF     m_lastMoveImg;
-    QPointF     m_lastMoveWin;
     QPointF     m_lastClickWin;
     QPointF     m_lastClickZoom;
 
@@ -352,6 +341,8 @@ private:
     cBall       *_theBall;
     cAxis       *_theAxis;
     cBBox       *_theBBox;
+
+    QVector < cCam* > _pCams;
 };
 
 #endif  /* _GLWIDGET_H */
