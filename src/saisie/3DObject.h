@@ -152,6 +152,60 @@ class cCam : public cObject
         CamStenope *_Cam;
 };
 
-void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps = 64);
+class cPolygon : public cObject
+{
+    public:
+        cPolygon();
+
+        void    draw();
+        void    doted_draw();
+
+
+        void    close();
+
+        //!used for point insertion
+        void    fillTrihedron(const QPointF &pos, cPolygon &trihedron);
+
+        //!used for point moving
+        void    fillTrihedron2(const QPointF &pos, cPolygon &trihedron);
+
+        void    findClosestPoint(const QPointF &pos);
+
+        void    setLineWidth(float width){_lineWidth = width;}
+        void    setpointSize(float size) {_pointSize = size;}
+
+        void    add(QPointF const &pt){ _points.push_back(pt); }
+
+        void    clear(){ _points.clear(); }
+
+        void    setClosed(bool aBool){ _bPolyIsClosed = aBool; }
+        bool    isClosed(){ return _bPolyIsClosed;}
+
+        int     size(){ return _points.size(); }
+
+        QPointF & operator[](int ak){ return _points[ak]; }
+        const QPointF & operator[](int ak) const { return _points[ak]; }
+
+        cPolygon & operator = (const cPolygon &);
+
+        void    insert( int i, const QPointF & value ){ _points.insert(i,value); }
+
+        void    remove ( int i ){ _points.remove(i);}
+
+        QVector <QPointF> getVector(){ return _points; }
+
+        int     idx(){return _idx;}
+
+private:
+        float               _lineWidth;
+        float               _pointSize;
+        float               _sqr_radius;
+
+        bool                _bPolyIsClosed;
+
+        int                 _idx;
+
+        QVector <QPointF>   _points;
+};
 
 #endif //__3DObject__
