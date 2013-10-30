@@ -91,7 +91,6 @@ public slots:
     void closeAll();
     void exportMasks();
     void exportMasksAs();
-    void loadAndExport();
     void saveSelectionInfos();
 
     void openRecentFile();

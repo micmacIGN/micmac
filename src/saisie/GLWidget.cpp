@@ -101,7 +101,6 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
             m_lastClickZoom = pos;
             pos = WindowToImage(mouseEvent->localPos());
             m_lastMoveImg = pos;
-            update();
         }
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
@@ -314,7 +313,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
     }
     else
     {
-          return QObject::eventFilter(object,event);
+        return QObject::eventFilter(object,event);
     }
 }
 
@@ -550,12 +549,12 @@ void GLWidget::paintGL()
 
             glColor4f(0.8f,0.9f,1.0f,0.9f);
 
-            renderText(10, _glViewport[3]- m_font.pointSize(), m_messageFPS,m_font);
+            renderText(10, _glViewport[3]- m_font.pointSize(), m_messageFPS, m_font);
         }
     }
 
-     if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
-     {
+    if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
+    {
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glOrtho(0,_glViewport[2],_glViewport[3],0,-1,1);
@@ -571,14 +570,11 @@ void GLWidget::paintGL()
         disableOptionLine();
 
         glEnable(GL_DEPTH_TEST);
-
-        glPopMatrix(); // restore modelview
     }
 
     //current messages (if valid)
     if (!m_messagesToDisplay.empty())
     {
-        //Some versions of Qt seem to need glColorf instead of glColorub! (see https://bugreports.qt-project.org/browse/QTBUG-6217)
         glColor3f(1.f,1.f,1.f);
 
         int lc_currentHeight = _glViewport[3] - m_font.pointSize()*m_messagesToDisplay.size(); //lower center
