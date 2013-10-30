@@ -32,7 +32,7 @@ int main()
 
     uint nbLines        = random ? rand() % 10 + 10 : 1;
     uint lenghtMaxLines = 4;
-    uint depthMax       = NAPPEMAX/8;
+    uint depthMax       = NAPPEMAX/2;
 
     uint sizeMaxLine = (uint)(1.5f*sqrt((float)lenghtMaxLines * lenghtMaxLines + nbLines * nbLines));
 
@@ -73,6 +73,7 @@ int main()
     h2O._s_InitCostVol.Fill(0);
 
     // index
+
     for (uint idLine= 0 ; idLine < nbLines; idLine++)
     {
         uint    pitStrm = 0;
@@ -81,15 +82,16 @@ int main()
 
         {
             short2 lDZ      = make_short2(-tabZ[make_uint3(idLine,aK,0)],tabZ[make_uint3(idLine,aK,1)]);
-            ushort lDepth   = count(lDZ);
+            ushort lDepth   = count(lDZ)+1;
 
             h2O._s_Index[h2O._param[0][idLine].y + aK ] = lDZ;
 
             uint idStrm = h2O._param[0][idLine].x + pitStrm - lDZ.x;
 
-            for ( int aPx = lDZ.x ; aPx < lDZ.y; aPx++)
+            for ( int aPx = lDZ.x ; aPx <= lDZ.y; aPx++)
                 //h2O._s_InitCostVol[idStrm + aPx]  = 10000 * (idLine + 1) + (aK+1) * 1000 + aPx - lDZ.x + 1;
                 h2O._s_InitCostVol[idStrm + aPx]  = 1;
+
 
             pitStrm += lDepth;
         }
@@ -116,10 +118,11 @@ int main()
 
     h2O._s_ForceCostVol[0].OutputValues();
 
+/*
     //
     uint errorCount = 0;
 
-    /*
+
     for (uint idLine= 0 ; idLine < nbLines; idLine++)
     {
         uint    pitStrm = 0;
@@ -140,10 +143,11 @@ int main()
             pitStrm += count(dZ);
         }
     }
-    */
+
 
     printf("\nError Count   = %d/%d\n",errorCount,h2O._s_InitCostVol.GetSize()- 2*NAPPEMAX);
     printf("Error percent = %f\n",(((float)errorCount*100)/(h2O._s_InitCostVol.GetSize()- 2*NAPPEMAX)));
+*/
 
     h2O.Dealloc();
     d2O.Dealloc();

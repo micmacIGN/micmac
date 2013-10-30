@@ -220,6 +220,7 @@ class cCoherEpi_main : public Cont_Vect_Action
         cCpleEpip *  mCple;
         bool          mWithEpi;
         bool          mByP;
+        bool          mInParal;
         bool          mCalledByP;
         std::string   mPrefix;
         std::string   mPostfixP;
@@ -235,6 +236,7 @@ class cCoherEpi_main : public Cont_Vect_Action
         double        mRegul;
         double        mReduceM;
         bool          mDoMasq;
+        double        mDoMasqSym;
         bool          mUseAutoMasq;
         double        mReduce;
         std::vector<cOneContour> mConts;
@@ -269,7 +271,7 @@ cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aNam
     }
     else
     {
-        ELISE_COPY (mImPx.all_pts(),trans(mTifPx.in(),mP0) * mCoher->mStep ,mImPx.out());
+        ELISE_COPY (mImPx.all_pts(),trans(mTifPx.in_proj(),mP0) * mCoher->mStep ,mImPx.out());
     }
 
     ELISE_COPY(mImMasq.all_pts(),trans(mTifMasq.in(0),mP0),mImMasq.out());
@@ -407,6 +409,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
     mCple     (0),
     mWithEpi  (true),
     mByP      (true),
+    mInParal  (true),
     mCalledByP(false),
     mPrefix    ("AR"),
     mPostfixP  ("_Glob"),
@@ -419,6 +422,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
     mRegul    (0.5),
     mReduceM  (2.0),
     mDoMasq   (false),
+    mDoMasqSym  (false),
     mUseAutoMasq   (true)
     
 {
@@ -436,18 +440,29 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAM(mIntY1,"YBox",true)
                     << EAM(mRegul,"Regul",true,"Regularisation for masq (Def = 0.5)")
                     << EAM(mReduceM,"RedM",true,"Reduce factor for masq (Def = 2.0)")
+                    << EAM(mDoMasqSym,"DoMS",true,"Do masque symetric (Def  = false)")
                     << EAM(mDoMasq,"DoM",true,"Do Masq, def = false")
                     << EAM(mUseAutoMasq,"UAM",true,"Use Auto Masq (def = same as DoM)")
                     << EAM(mVisu,"Visu",true)
                     << EAM(mDeZoom,"Zoom",true)
                     << EAM(mNumPx,"NumPx",true)
                     << EAM(mNumMasq,"NumMasq",true)
+                    << EAM(mPrefix,"Prefix",true,"Prefix to result name, Def= AR")
                     << EAM(mStep,"Step",true)
                     << EAM(mWithEpi,"ByE",true)
                     << EAM(mByP,"ByP",true)
+                    << EAM(mInParal,"InParal",true,"Run command in paral, Def=true, tunning")
                     << EAM(mCalledByP,"InternalCalledByP",true)
                     << EAM(mPostfixP,"InternalPostfixP",true)
    );	
+
+/*
+   ELISE_ASSERT
+   (
+        mNameIm1 < mNameIm2,
+        "Image names must be ordered in CoherEpip"
+   );
+*/
 
    // if (! EAMIsInit(&mUseAutoMasq)) mUseAutoMasq = mDoMasq;
    if (! EAMIsInit(&mNumMasq))
@@ -511,7 +526,14 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
              aLCom.push_back(aComBox);
              aVBoxC.push_back(cBoxCoher(aDecoup.KthIntervIn(aKB),aDecoup.KthIntervOut(aKB),aPost));
          }
-         cEl_GPAO::DoComInParal(aLCom,"MakeBascule");
+         if (mInParal)
+         {
+             cEl_GPAO::DoComInParal(aLCom,"MakeBascule");
+         }
+         else
+         {
+             cEl_GPAO::DoComInSerie(aLCom);
+         }
 
          std::string aNameGlob = mDir+ mPrefix + mPostfixP + ".tif";
          std::string aNameMasqGlob1 = mDir+ mPrefix +"_Masq1" + mPostfixP + ".tif";
@@ -523,7 +545,8 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
          if (mDoMasq)
          {
              aTifMasq1 = Tiff_Im(aNameMasqGlob1.c_str(),mBoxIm1.sz(),GenIm::bits1_msbf,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
-             aTifMasq2 = Tiff_Im(aNameMasqGlob2.c_str(),aSzIm2,GenIm::bits1_msbf,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
+             if (mDoMasqSym)
+                 aTifMasq2 = Tiff_Im(aNameMasqGlob2.c_str(),aSzIm2,GenIm::bits1_msbf,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
          }
          
          for (int aKB=0 ; aKB<int(aVBoxC.size()) ; aKB++)
@@ -548,24 +571,24 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     trans(Tiff_Im::StdConv(aNameM1).in(),-aBoxIn._p0),
                     aTifMasq1.out()
                  );
-
-
-                 std::string aNameFOM2 = mDir+mPrefix + "_DEC2"+ aVBoxC[aKB].mPost + ".xml";
-                 cMTDCoher aMTD = StdGetFromPCP(aNameFOM2,MTDCoher);
-
-                 Tiff_Im aTifLoc2(aNameM2.c_str());
-             
-                 ELISE_COPY
-                 (
-                    rectangle(aMTD.Dec2(), aMTD.Dec2()+aTifLoc2.sz()),
-                    Max(trans(aTifLoc2.in(),-aMTD.Dec2()),aTifMasq2.in()),
-                    aTifMasq2.out()
-                 );
-
-
                  ELISE_fp::RmFile(aNameM1);
-                 ELISE_fp::RmFile(aNameM2);
-                 ELISE_fp::RmFile(aNameFOM2);
+                 if (mDoMasqSym)
+                 {
+                    std::string aNameFOM2 = mDir+mPrefix + "_DEC2"+ aVBoxC[aKB].mPost + ".xml";
+                    cMTDCoher aMTD = StdGetFromPCP(aNameFOM2,MTDCoher);
+
+                    Tiff_Im aTifLoc2(aNameM2.c_str());
+             
+                    ELISE_COPY
+                    (
+                         rectangle(aMTD.Dec2(), aMTD.Dec2()+aTifLoc2.sz()),
+                         Max(trans(aTifLoc2.in(),-aMTD.Dec2()),aTifMasq2.in()),
+                         aTifMasq2.out()
+                    );
+
+                    ELISE_fp::RmFile(aNameM2);
+                    ELISE_fp::RmFile(aNameFOM2);
+                 }
              }
          }
 
@@ -641,18 +664,21 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
 
            // Creation du masque symetrique
 
-           ELISE_COPY(aISol.all_pts(),cont_vect(aISol.in(),this,true),Output::onul());
-           std::sort(mConts.begin(),mConts.end());
-           Im2D_U_INT1 aMasq2(mIm2->Sz().x,mIm2->Sz().y,0);
-           for (int aK=0 ; aK<int(mConts.size()) ; aK++)
+           if (mDoMasqSym)
            {
-               ELISE_COPY(polygone(*(mConts[aK].mL)),mConts[aK].mExt ? 1 : 0 , aMasq2.out());
+                 ELISE_COPY(aISol.all_pts(),cont_vect(aISol.in(),this,true),Output::onul());
+                 std::sort(mConts.begin(),mConts.end());
+                 Im2D_U_INT1 aMasq2(mIm2->Sz().x,mIm2->Sz().y,0);
+                 for (int aK=0 ; aK<int(mConts.size()) ; aK++)
+                 {
+                     ELISE_COPY(polygone(*(mConts[aK].mL)),mConts[aK].mExt ? 1 : 0 , aMasq2.out());
+                 }
+                 Tiff_Im::Create8BFromFonc(mDir+mPrefix +"_Masq2"+mPostfixP+".tif", aMasq2.sz(),aMasq2.in());
+                 cMTDCoher aMTD;
+                 aMTD.Dec2() = aBoxIm2._p0;
+                 std::string aNameXML = mDir+mPrefix + "_DEC2"+mPostfixP + ".xml";
+                 MakeFileXML(aMTD,aNameXML);
            }
-           Tiff_Im::Create8BFromFonc(mDir+mPrefix +"_Masq2"+mPostfixP+".tif", aMasq2.sz(),aMasq2.in());
-           cMTDCoher aMTD;
-           aMTD.Dec2() = aBoxIm2._p0;
-           std::string aNameXML = mDir+mPrefix + "_DEC2"+mPostfixP + ".xml";
-           MakeFileXML(aMTD,aNameXML);
        }
    }
 }
