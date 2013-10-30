@@ -190,7 +190,7 @@ protected:
     //! Draw widget gradient background
     void drawGradientBackground();
     
-    //! Draw selection polygon (and trihedron if needed)
+    //! Draw selection polygon (and  if needed)
     void drawPolygon();
 
     //! GL context aspect ratio m_glWidth/m_glHeight
@@ -236,7 +236,7 @@ protected:
     cPolygon    m_polygon;
 
     //! Point list for polygonal insertion
-    cPolygon    m_trihedron;
+    cPolygon    m_dihedron;
 
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;

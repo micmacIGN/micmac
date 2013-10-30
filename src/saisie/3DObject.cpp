@@ -243,8 +243,8 @@ void cAxis::draw()
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
 
-    GLuint trihedron = glGenLists(1);
-    glNewList(trihedron, GL_COMPILE);
+    GLuint dihedron = glGenLists(1);
+    glNewList(dihedron, GL_COMPILE);
 
     glPushAttrib(GL_LINE_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -269,7 +269,7 @@ void cAxis::draw()
     glTranslatef(_position.x,_position.y,_position.z);
     glScalef(_scale,_scale,_scale);
 
-    glCallList(trihedron);
+    glCallList(dihedron);
 
     glPopMatrix();
 }
@@ -535,7 +535,7 @@ void cPolygon::findClosestPoint(QPointF const &pos)
     }
 }
 
-void cPolygon::doted_draw()
+void cPolygon::drawDihedron()
 {
     glLineStipple(2, 0xAAAA);
     glEnable(GL_LINE_STIPPLE);
@@ -581,7 +581,7 @@ float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)
     return sqrt(dx*dx + dy*dy);
 }
 
-void cPolygon::fillTrihedron(QPointF const &pos, cPolygon &trihedron)
+void cPolygon::fillDihedron(QPointF const &pos, cPolygon &dihedron)
 {
     float dist, dist2;
     dist2 = FLT_MAX;
@@ -603,37 +603,37 @@ void cPolygon::fillTrihedron(QPointF const &pos, cPolygon &trihedron)
 
     if (idx != -1)
     {
-       trihedron.clear();
-       trihedron.add(polygon[idx]);
-       trihedron.add(pos);
-       trihedron.add(polygon[idx+1]);
+       dihedron.clear();
+       dihedron.add(polygon[idx]);
+       dihedron.add(pos);
+       dihedron.add(polygon[idx+1]);
     }
 }
 
-void cPolygon::fillTrihedron2(QPointF const &pos, cPolygon &trihedron)
+void cPolygon::fillDihedron2(QPointF const &pos, cPolygon &dihedron)
 {
-    trihedron.clear();
+    dihedron.clear();
     int sz = _points.size();
 
     if ((_idx >0 ) && (_idx < sz-1))
     {
-        trihedron.add(_points[_idx-1]);
-        trihedron.add(pos);
-        trihedron.add(_points[_idx+1]);
+        dihedron.add(_points[_idx-1]);
+        dihedron.add(pos);
+        dihedron.add(_points[_idx+1]);
     }
     else
     {
         if (_idx == 0)
         {
-            trihedron.add(_points[sz-1]);
-            trihedron.add(pos);
-            trihedron.add(_points[1]);
+            dihedron.add(_points[sz-1]);
+            dihedron.add(pos);
+            dihedron.add(_points[1]);
         }
         if (_idx == sz-1)
         {
-            trihedron.add(_points[sz-2]);
-            trihedron.add(pos);
-            trihedron.add(_points[0]);
+            dihedron.add(_points[sz-2]);
+            dihedron.add(pos);
+            dihedron.add(_points[0]);
         }
     }
 }
