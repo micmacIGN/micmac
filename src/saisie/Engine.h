@@ -80,8 +80,7 @@ public:
 
     cLoader();
 
-    CamStenope * loadCamera(QString aNameFile);
-   //vector <CamStenope *> loadCameras();
+    CamStenope* loadCamera(QString aNameFile);
 
     Cloud*      loadCloud(string i_ply_file , int *incre = NULL);
 

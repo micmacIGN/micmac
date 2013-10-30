@@ -146,22 +146,6 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
     }
 }
 
-/*vector <CamStenope *> cLoader::loadCameras()
-{
-   vector <CamStenope *> a_res;
-
-   m_FilenamesIn = QFileDialog::getOpenFileNames(NULL, tr("Open Camera Files"), m_Dir.path(), tr("Files (*.xml)"));
-
-   for (int aK=0;aK < m_FilenamesIn.size();++aK)
-   {
-       a_res.push_back(loadCamera(m_FilenamesIn[aK].toStdString()));
-   }
-
-   SetFilenamesOut();
-
-   return a_res;
-}*/
-
 // File structure is assumed to be a typical Micmac workspace structure:
 // .ply files are in /MEC folder and orientations files in /Ori- folder
 // /MEC and /Ori- are in the main working directory (m_Dir)
