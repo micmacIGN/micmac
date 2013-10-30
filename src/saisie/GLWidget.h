@@ -121,9 +121,6 @@ public:
     //! Delete current polyline
     void clearPolyline();
 
-    //! Close polyline
-    void closePolyline();
-
      //! Undo all past selection actions
     void undoAll();
 
@@ -177,7 +174,6 @@ signals:
     void interactionMode(bool modeSelection);
 
 protected:
-    void initializeGL();
     void resizeGL(int w, int h);
     void paintGL();
     void mouseDoubleClickEvent(QMouseEvent *event);
@@ -187,38 +183,15 @@ protected:
 
     void ImageToTexture(GLuint idTexture,QImage* image);
 
-    //! Initialization state of GL
-    bool m_bGLInitialized;
-
     //inherited from QWidget (drag & drop support)
     virtual void dragEnterEvent(QDragEnterEvent* event);
     virtual void dropEvent(QDropEvent* event);
 
-    //! Draw ball
-    void drawBall();
-
     //! Draw widget gradient background
     void drawGradientBackground();
     
-    //! Draw selection polygon
+    //! Draw selection polygon (and trihedron if needed)
     void drawPolygon();
-
-    void drawPolygon(const QVector<QPointF> &aPoly);
-
-    //! Draw one point and two segments (for insertion or move)
-    void drawPointAndSegments();
-
-    void drawPointAndSegments(const QVector<QPointF> &aPoly);
-
-    GLuint getNbGLLists() { return m_nbGLLists; }
-    void incrNbGLLists()  { m_nbGLLists++; }
-    void resetNbGLLists() { m_nbGLLists = 0; }
-
-    //! Fill m_polygon2 for point insertion or move
-    void fillPolygon2(const QPointF &pos);
-
-    //! set index of cursor closest point
-    void findClosestPoint(const QPointF &pos, float sqr_radius);
 
     //! GL context aspect ratio m_glWidth/m_glHeight
     float m_glRatio;
@@ -235,14 +208,10 @@ protected:
     //! States if view is centered on object
     bool m_bObjectCenteredView;
 
-    //! States if selection polyline is closed
-    bool m_bPolyIsClosed;  
-
     //! Current interaction mode (with mouse)
     INTERACTION_MODE m_interactionMode;
 
     bool m_bFirstAction;
-
 
     //! Temporary Message to display
     struct MessageToDisplay
@@ -258,42 +227,40 @@ protected:
 
     GLuint m_textureMask;
 
-    int m_nbGLLists;
-
     //! List of messages to display
     list<MessageToDisplay> m_messagesToDisplay;
 
     QString m_messageFPS;
 
     //! Point list for polygonal selection
-    QVector < QPointF > m_polygon;
+    cPolygon    m_polygon;
 
     //! Point list for polygonal insertion
-    QVector < QPointF > m_polygon2;
+    cPolygon    m_trihedron;
 
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
 
     //! Data to display
-    cData *m_Data;
+    cData      *m_Data;
 
     //! acceleration factor
-    float m_speed;
+    float       m_speed;
 
     //! selection infos stack
     QVector <selectInfos> m_infos;
 
     //! states if display is 2D or 3D
-    bool m_bDisplayMode2D;
+    bool        m_bDisplayMode2D;
 
     //! data position in the gl viewport
-    GLfloat m_glPosition[2];
+    GLfloat     m_glPosition[2];
 
     //! click counter to manage point move event
-    int m_Click;
+    int         m_Click;
 
     //! (square) radius for point selection
-    float     m_sqr_radius;
+    //float       m_sqr_radius;
 
     QPointF WindowToImage(const QPointF &pt);
 
@@ -316,8 +283,6 @@ private:
     int         _frameCount;
     int         _previousTime;
     int         _currentTime;
-
-    int         _idx;
 
     float       _fps;
 
