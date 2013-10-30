@@ -158,16 +158,15 @@ class cPolygon : public cObject
         cPolygon();
 
         void    draw();
-        void    doted_draw();
-
+        void    drawDihedron();
 
         void    close();
 
         //!used for point insertion
-        void    fillTrihedron(const QPointF &pos, cPolygon &trihedron);
+        void    fillDihedron(const QPointF &pos, cPolygon &dihedron);
 
         //!used for point moving
-        void    fillTrihedron2(const QPointF &pos, cPolygon &trihedron);
+        void    fillDihedron2(const QPointF &pos, cPolygon &dihedron);
 
         void    findClosestPoint(const QPointF &pos);
 
