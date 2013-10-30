@@ -36,7 +36,7 @@ cCircle::cCircle(Pt3d<double> pt, QColor col, float scale, float lineWidth, bool
 }
 
 //draw a unit circle in a given plane (0=YZ, 1 = XZ, 2=XY)
-void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
+void glDrawUnitCircle(uchar dim, float cx, float cy, float r = 3.0, int steps = 8)
 {
     float theta = 2.f * PI / float(steps);
     float c = cosf(theta);//precalculate the sine and cosine
@@ -82,7 +82,7 @@ void cCircle::draw()
     glLineWidth(_lineWidth);
 
     glColor4f(_color.redF(),_color.greenF(),_color.blueF(),_alpha);
-    glDrawUnitCircle(_dim, 0, 0, 1.f);
+    glDrawUnitCircle(_dim, 0, 0, 1.f, 64);
 
     glPopAttrib();
 
@@ -436,3 +436,206 @@ void cCam::draw()
 
     glPopMatrix();
 }
+
+cPolygon::cPolygon():
+    _lineWidth(1.f),
+    _pointSize(6.f),
+    _sqr_radius(2500.f),
+    _bPolyIsClosed(false),
+    _idx(-1)
+{
+    setColor(QColor("red"));
+}
+
+void cPolygon::draw()
+{
+    glColor3f(.1f,1.f,.2f);
+
+    glBegin(_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
+    for (int aK = 0;aK <  _points.size(); ++aK)
+    {
+        glVertex2f(_points[aK].x(), _points[aK].y());
+    }
+    glEnd();
+
+    glColor3f(_color.redF(),_color.greenF(),_color.blueF());
+
+    if (_idx >=0)
+    {
+        for (int aK = 0;aK < _idx; ++aK)
+            glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
+
+        glColor3f(0.f,0.f,1.f);
+        glDrawUnitCircle(2, _points[_idx].x(), _points[_idx].y());
+
+        glColor3f(1.f,0.f,0.f);
+        for (int aK = _idx+1;aK < (int) _points.size(); ++aK)
+            glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
+    }
+    else
+    {
+        for (int aK = 0;aK < _points.size(); ++aK)
+        {
+            glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
+        }
+    }
+}
+
+cPolygon & cPolygon::operator = (const cPolygon &aP)
+{
+    if (this != &aP)
+    {
+        _lineWidth        = aP._lineWidth;
+        _pointSize        = aP._pointSize;
+        _bPolyIsClosed    = aP._bPolyIsClosed;
+        _idx              = aP._idx;
+
+        _points             = aP._points;
+
+        _position         = aP._position;
+        _color            = aP._color;
+        _scale            = aP._scale;
+
+        _alpha            = aP._alpha;
+        _bVisible         = aP._bVisible;
+    }
+
+    return *this;
+}
+
+void cPolygon::close()
+{
+   // if (!m_bPolyIsClosed)
+    if (!_bPolyIsClosed)
+    {
+        //remove last point if needed
+        int sz = _points.size();
+        if (sz > 2) _points.resize(sz-1);
+
+        _bPolyIsClosed = true;
+    }
+}
+
+void cPolygon::findClosestPoint(QPointF const &pos)
+{
+    _idx = -1;
+    float dist, dist2;
+    dist2 = _sqr_radius;
+
+    for (int aK = 0; aK < _points.size();++aK)
+    {
+        dist  = (pos.x() - _points[aK].x())*(pos.x() - _points[aK].x()) +
+                (pos.y() - _points[aK].y())*(pos.y() - _points[aK].y());
+
+        if  (dist < dist2)
+        {
+            dist2 = dist;
+            _idx = aK;
+       }
+    }
+}
+
+void cPolygon::doted_draw()
+{
+    glLineStipple(2, 0xAAAA);
+    glEnable(GL_LINE_STIPPLE);
+
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+
+    glColor3f(0.f,0.f,1.f);
+
+    glLineWidth(_lineWidth);
+
+    glBegin(GL_LINE_STRIP);
+    for (int aK=0;aK < _points.size(); ++aK)
+    {
+        glVertex2f(_points[aK].x(), _points[aK].y());
+    }
+    glEnd();
+
+    glDisable(GL_LINE_STIPPLE);
+
+    if (_points.size())
+        glDrawUnitCircle(2, _points[1].x(), _points[1].y());
+}
+
+float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)
+{
+    QPointF p2(segB.x() - segA.x(), segB.y() - segA.y());
+    float nrm = (p2.x()*p2.x() + p2.y()*p2.y());
+    float u = ((p.x() - segA.x()) * p2.x() + (p.y() - segA.y()) * p2.y()) / nrm;
+
+    if (u > 1)
+        u = 1;
+    else if (u < 0)
+        u = 0;
+
+    float x = segA.x() + u * p2.x();
+    float y = segA.y() + u * p2.y();
+
+    float dx = x - p.x();
+    float dy = y - p.y();
+
+    return sqrt(dx*dx + dy*dy);
+}
+
+void cPolygon::fillTrihedron(QPointF const &pos, cPolygon &trihedron)
+{
+    float dist, dist2;
+    dist2 = FLT_MAX;
+    int idx = -1;
+
+    QVector < QPointF > polygon = _points;
+    polygon.push_back(polygon[0]);
+
+    for (int aK =0; aK < polygon.size()-1;++aK)
+    {
+        dist = segmentDistToPoint(polygon[aK], polygon[aK+1], pos);
+
+        if (dist < dist2)
+        {
+            dist2 = dist;
+            idx = aK;
+        }
+    }
+
+    if (idx != -1)
+    {
+       trihedron.clear();
+       trihedron.add(polygon[idx]);
+       trihedron.add(pos);
+       trihedron.add(polygon[idx+1]);
+    }
+}
+
+void cPolygon::fillTrihedron2(QPointF const &pos, cPolygon &trihedron)
+{
+    trihedron.clear();
+    int sz = _points.size();
+
+    if ((_idx >0 ) && (_idx < sz-1))
+    {
+        trihedron.add(_points[_idx-1]);
+        trihedron.add(pos);
+        trihedron.add(_points[_idx+1]);
+    }
+    else
+    {
+        if (_idx == 0)
+        {
+            trihedron.add(_points[sz-1]);
+            trihedron.add(pos);
+            trihedron.add(_points[1]);
+        }
+        if (_idx == sz-1)
+        {
+            trihedron.add(_points[sz-2]);
+            trihedron.add(pos);
+            trihedron.add(_points[0]);
+        }
+    }
+}
+
+
