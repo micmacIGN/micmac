@@ -15,14 +15,11 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_rw(1.f)
   , m_rh(1.f)
   , m_font(font())
-  , m_bDrawCams(true)
   , m_bDrawMessages(true)
   , m_bObjectCenteredView(true)
   , m_bPolyIsClosed(false)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
-  , m_trihedronGLList(GL_INVALID_LIST_ID)
-  , m_ballGLList(GL_INVALID_LIST_ID)
   , m_textureImage(GL_INVALID_LIST_ID)
   , m_textureMask(GL_INVALID_LIST_ID)
   , m_nbGLLists(0)
@@ -70,16 +67,6 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
 
 GLWidget::~GLWidget()
 {
-    if (m_trihedronGLList != GL_INVALID_LIST_ID)
-    {
-        glDeleteLists(m_trihedronGLList,1);
-        m_trihedronGLList = GL_INVALID_LIST_ID;
-    }
-    if (m_ballGLList != GL_INVALID_LIST_ID)
-    {
-        glDeleteLists(m_ballGLList,1);
-        m_ballGLList = GL_INVALID_LIST_ID;
-    }
     if (m_textureImage != GL_INVALID_LIST_ID)
     {
         glDeleteLists(m_textureImage,1);
@@ -110,7 +97,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
         QPointF pos = mouseEvent->localPos();
         if (m_bDisplayMode2D)
         {
-            m_lastMoveWin = pos;
+            m_lastClickZoom = pos;
             pos = WindowToImage(mouseEvent->localPos());
             m_lastMoveImg = pos;
             update();
@@ -404,8 +391,6 @@ void GLWidget::computeFPS()
     }
 }
 
-
-
 void GLWidget::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw)
 {
     glBegin(GL_QUADS);
@@ -467,7 +452,6 @@ void GLWidget::paintGL()
 
     if (m_Data->NbImages())
     {
-
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE,GL_ZERO);
 
@@ -488,34 +472,33 @@ void GLWidget::paintGL()
             GLint recal;
             GLdouble wx, wy, wz;
 
-            recal = _glViewport[3] - (GLint) m_lastClickZoom.y()- 1.f;
+            recal = _glViewport[3] - (GLint) m_lastClickZoom.y() - 1.f;
 
-            gluUnProject ((GLdouble) m_lastClickZoom.x(), (GLdouble) recal, 1.0,
+            gluUnProject ((GLdouble) m_lastClickZoom.x(), (GLdouble) recal, 1.f,
                           _mvmatrix, _projmatrix, _glViewport, &wx, &wy, &wz);
 
             glTranslatef(wx,wy,0);
-            glScalef(m_params.zoom/_projmatrix[0], m_params.zoom/_projmatrix[0], 1.0);
+            glScalef(m_params.zoom/_projmatrix[0], m_params.zoom/_projmatrix[0], 1.f);
             glTranslatef(-wx,-wy,0);
         }
 
-        glTranslatef(m_glPosition[0],m_glPosition[1],0);
+        glTranslatef(m_glPosition[0],m_glPosition[1],0.f);
 
-        m_glPosition[0] = 0;
-        m_glPosition[1] = 0;
+        m_glPosition[0] = m_glPosition[1] = 0.f;
 
         glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
         drawQuad(0, 0, glh, glw,QColor(255,255,255));
 
         if(_mask != NULL && !_g_mouseMiddleDown)
         {
-            drawQuad(0,0,glh,glw,m_textureMask );
+            drawQuad(0,0,glh,glw,m_textureMask);
             glBlendFunc(GL_ONE,GL_ONE);
 
             drawQuad(0, 0, glh, glw,QColor(128,128,128));
             glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
         }
 
-        drawQuad(0,0,glh,glw,m_textureImage );
+        drawQuad(0,0,glh,glw,m_textureImage);
 
         glPopMatrix();
 
@@ -578,12 +561,14 @@ void GLWidget::paintGL()
         else if (_theAxis->isVisible())
             _theAxis->draw();
 
-        if (m_bDrawCams) drawCams();
-
         if (_theBBox->isVisible())
+            _theBBox->draw();
+
+        //cameras
+        for (int i=0; i<_pCams.size();i++)
         {
-            qglColor(QColor("orange"));
-           _theBBox->draw();
+            if (_pCams[i]->isVisible())
+                _pCams[i]->draw();
         }
 
         disableOptionLine();
@@ -802,25 +787,40 @@ void GLWidget::setData(cData *data)
 {
     m_Data = data;
 
-    if (m_Data->NbClouds())
+    if ((m_Data->NbClouds())||(m_Data->NbCameras()))
     {
         m_bDisplayMode2D = false;
 
-        setBufferGl();
- 
-        setZoom(m_Data->getCloud(0)->getScale());
+        float scale = m_Data->m_diam / 1.5f;
+
+        if (m_Data->NbClouds())  setBufferGl();
+
+        if (m_Data->NbCameras())
+        {
+            for (int i=0; i<m_Data->NbCameras();i++)
+            {
+                cCam *pCam = new cCam(m_Data->getCamera(i));
+
+                pCam->setScale(scale);
+                pCam->setVisible(true);
+
+                _pCams.push_back(pCam);
+            }
+        }
+
+        setZoom(m_Data->getScale());
 
         _theBall->setPosition(m_Data->getCenter());
-        _theBall->setScale(m_Data->m_diam / 1.5f);
+        _theBall->setScale(scale);
         _theBall->setVisible(true);
 
         _theAxis->setPosition(m_Data->getCenter());
-        _theAxis->setScale(m_Data->m_diam / 1.5f);
+        _theAxis->setScale(scale);
 
         _theBBox->setPosition(m_Data->getCenter());
         _theBBox->set(m_Data->m_minX,m_Data->m_minY,m_Data->m_minZ,m_Data->m_maxX,m_Data->m_maxY,m_Data->m_maxZ);
 
-        resetTranslationMatrix();       
+        resetTranslationMatrix();
     }
 
     if (m_Data->NbImages())
@@ -862,14 +862,6 @@ void GLWidget::setData(cData *data)
         }
 
         ImageToTexture(m_textureMask, _mask);
-
-        m_lastMoveWin = QPointF(_glViewport[2]*.5f, _glViewport[3]*.5f);
-    }
-
-    if (m_Data->NbCameras())
-    {
-        m_bDisplayMode2D = false;
-        //TODO
     }
 
     glGetIntegerv (GL_VIEWPORT, _glViewport);
@@ -1088,9 +1080,12 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
                 if (hasDataLoaded() && showMessages())
                 {
                     clearPolyline();
-                    showMoveMessages();
+                    displayMoveMessages();
                 }
                 showBall(true);
+                showAxis(false);
+
+                emit(interactionMode(false));
             }
                 break;
             case SELECTION:
@@ -1100,12 +1095,14 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
 
                 if (hasDataLoaded() && showMessages())
                 {
-                   showSelectionMessages();
+                   displaySelectionMessages();
                 }
                 showBall(false);
                 showCams(false);
                 showAxis(false);
                 showBBox(false);
+
+                emit(interactionMode(true));
             }
                 break;
             default:
@@ -1213,19 +1210,16 @@ void GLWidget::zoomFit()
 
     m_glPosition[0] = 0;
     m_glPosition[1] = 0;
-
 }
 
 void GLWidget::zoomFactor(int percent)
 {
     if (m_bDisplayMode2D)
     {
-        m_lastClickZoom = m_lastMoveWin;
-
         setZoom((float) percent / 100.f);
     }
     else
-        setZoom(m_Data->getCloud(0)->getScale() / (float) percent * 100.f);
+        setZoom(m_Data->getScale() / (float) percent * 100.f);
 }
 
 void GLWidget::wheelEvent(QWheelEvent* event)
@@ -1405,7 +1399,6 @@ void GLWidget::Select(int mode)
                 polyg.push_back(m_polygon[aK]);
             }
         }
-
     }
 
     if (m_bDisplayMode2D)
@@ -1541,89 +1534,6 @@ void GLWidget::ptSizeUp(bool up)
     update();
 }
 
-void GLWidget::drawCams()
-{
-    float scale = .1f;
-
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-
-    incrNbGLLists();
-    GLuint list = getNbGLLists();
-    glNewList(list, GL_COMPILE);
-
-    glLineWidth(2);
-    glPointSize(7);
-    if (m_Data->NbClouds())
-        scale = .1f*m_Data->getCloud(0)->getScale();
-
-    for (int i=0; i<m_Data->NbCameras();i++)
-    {
-        CamStenope * pCam = m_Data->getCamera(i);
-
-        //REAL f = pCam->Focale();
-        Pt3dr C  = pCam->VraiOpticalCenter();
-        Pt3dr P1 = pCam->ImEtProf2Terrain(Pt2dr(0,0),scale);
-        Pt3dr P2 = pCam->ImEtProf2Terrain(Pt2dr(pCam->Sz().x,0),scale);
-        Pt3dr P3 = pCam->ImEtProf2Terrain(Pt2dr(0,pCam->Sz().y),scale);
-        Pt3dr P4 = pCam->ImEtProf2Terrain(Pt2dr(pCam->Sz().x,pCam->Sz().y),scale);
-
-        //translation
-        if (m_Data->NbClouds())
-        {
-            Pt3dr translation = m_Data->getCloud(0)->getTranslation();
-
-            C = C + translation;
-            P1 = P1 + translation;
-            P2 = P2 + translation;
-            P3 = P3 + translation;
-            P4 = P4 + translation;
-        }
-
-        glBegin(GL_LINES);
-            //perspective cone
-            qglColor(QColor(0,0,0));
-            glVertex3d(C.x, C.y, C.z);
-            glVertex3d(P1.x, P1.y, P1.z);
-
-            glVertex3d(C.x, C.y, C.z);
-            glVertex3d(P2.x, P2.y, P2.z);
-
-            glVertex3d(C.x, C.y, C.z);
-            glVertex3d(P3.x, P3.y, P3.z);
-
-            glVertex3d(C.x, C.y, C.z);
-            glVertex3d(P4.x, P4.y, P4.z);
-
-            //Image
-            qglColor(QColor(255,0,0));
-            glVertex3d(P1.x, P1.y, P1.z);
-            glVertex3d(P2.x, P2.y, P2.z);
-
-            glVertex3d(P4.x, P4.y, P4.z);
-            glVertex3d(P2.x, P2.y, P2.z);
-
-            glVertex3d(P3.x, P3.y, P3.z);
-            glVertex3d(P1.x, P1.y, P1.z);
-
-            glVertex3d(P4.x, P4.y, P4.z);
-            glVertex3d(P3.x, P3.y, P3.z);
-        glEnd();
-
-        glBegin(GL_POINTS);
-            glVertex3d(C.x, C.y, C.z);
-        glEnd();
-    }
-
-    glEndList();
-
-    glCallList(list);
-
-    glPointSize(m_params.PointSize);
-    glLineWidth(m_params.LineWidth);
-    glPopMatrix();
-}
-
 void GLWidget::showAxis(bool show)
 {
     _theAxis->setVisible(show);
@@ -1640,7 +1550,10 @@ void GLWidget::showBall(bool show)
 
 void GLWidget::showCams(bool show)
 {
-    m_bDrawCams = show;
+    for (int i=0; i < _pCams.size();i++)
+    {
+        _pCams[i]->setVisible(show);
+    }
 
     update();
 }
@@ -1659,9 +1572,9 @@ void GLWidget::showMessages(bool show)
     if ((m_bDrawMessages)&&(!m_bDisplayMode2D))
     {
         if (m_interactionMode == TRANSFORM_CAMERA)
-            showMoveMessages();
+            displayMoveMessages();
         else if (m_interactionMode == SELECTION)
-            showSelectionMessages();
+            displaySelectionMessages();
     }
     else
         displayNewMessage(QString());
@@ -1671,7 +1584,7 @@ void GLWidget::showMessages(bool show)
 
 bool GLWidget::showMessages(){return m_bDrawMessages;}
 
-void GLWidget::showSelectionMessages()
+void GLWidget::displaySelectionMessages()
 {
     displayNewMessage(QString());
     displayNewMessage(tr("Selection mode"),UPPER_CENTER_MESSAGE);
@@ -1679,7 +1592,7 @@ void GLWidget::showSelectionMessages()
     displayNewMessage(tr("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
 }
 
-void GLWidget::showMoveMessages()
+void GLWidget::displayMoveMessages()
 {
     displayNewMessage(QString());
     displayNewMessage(tr("Move mode"),UPPER_CENTER_MESSAGE);
@@ -1693,6 +1606,8 @@ void GLWidget::reset()
 {
     resetRotationMatrix();
 
+    m_glPosition[0] = m_glPosition[1] = 0.f;
+
     clearPolyline();
 
     m_params.reset();
@@ -1700,6 +1615,7 @@ void GLWidget::reset()
     m_Data->clearCameras();
     m_Data->clearImages();
     m_Data->clearMasks();
+    m_Data->reset();
 
     m_bFirstAction = true;
 }
@@ -1717,11 +1633,15 @@ void GLWidget::resetView()
         resetRotationMatrix();
         resetTranslationMatrix();
 
-        setZoom(m_Data->getCloud(0)->getScale());
+        setZoom(m_Data->getScale());
 
         m_bObjectCenteredView = true;
 
-        //showBall(true);
+        showBall(true);
+        showAxis(false);
+        showBBox(false);
+        showCams(false);
+        emit(interactionMode(false));
 
         update();
     }

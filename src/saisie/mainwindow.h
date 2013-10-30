@@ -42,7 +42,10 @@ public slots:
 
     //! Try to load a list of files
     void addFiles(const QStringList& filenames);
+
     void selectedPoint(uint idC,uint idV,bool select);
+
+    void changeMode(bool mode);
 
 //protected slots:
 
@@ -55,7 +58,7 @@ public slots:
     void toggleShowCams(bool);
     void toggleShowMessages(bool);
     void toggleSelectionMode(bool);
-    void toggle2D3D(bool);
+    void toggle2D3D();
 
     void add();
     void selectNone();

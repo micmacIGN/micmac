@@ -272,12 +272,13 @@ void cAxis::draw()
     glCallList(trihedron);
 
     glPopMatrix();
-    glDisable(GL_BLEND);
 }
 
 cBBox::cBBox() :
     _lineWidth(1.f)
-{}
+{
+    setColor(QColor("orange"));
+}
 
 void cBBox::set(float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
 {
@@ -300,6 +301,8 @@ void cBBox::draw()
     glPushAttrib(GL_LINE_BIT|GL_DEPTH_BUFFER_BIT);
 
     glLineWidth(_lineWidth);
+
+    glColor3f(_color.redF(),_color.greenF(),_color.blueF());
 
     Pt3dr P1(_minX, _minY, _minZ);
     Pt3dr P2(_minX, _minY, _maxZ);
@@ -358,4 +361,78 @@ void cBBox::draw()
 
     glPopMatrix();
     glDisable(GL_BLEND);
+}
+
+cCam::cCam(CamStenope *pCam) :
+    _lineWidth(1.f),
+    _pointSize(5.f),
+    _Cam(pCam)
+{
+    setColor(QColor("red"));
+}
+
+void cCam::draw()
+{
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+
+    GLuint list = glGenLists(1);
+    glNewList(list, GL_COMPILE);
+
+    glPushAttrib(GL_LINE_BIT|GL_DEPTH_BUFFER_BIT);
+
+    glLineWidth(_lineWidth);
+    glPointSize(_pointSize);
+
+    Pt2di sz = _Cam->Sz();
+
+    double aZ = _scale*.05f;
+
+    Pt3dr C  = _Cam->VraiOpticalCenter();
+    Pt3dr P1 = _Cam->ImEtProf2Terrain(Pt2dr(0.f,0.f),aZ);
+    Pt3dr P2 = _Cam->ImEtProf2Terrain(Pt2dr(sz.x,0.f),aZ);
+    Pt3dr P3 = _Cam->ImEtProf2Terrain(Pt2dr(0.f,sz.y),aZ);
+    Pt3dr P4 = _Cam->ImEtProf2Terrain(Pt2dr(sz.x,sz.y),aZ);
+
+    glBegin(GL_LINES);
+        //perspective cone
+        glColor3f(1.f,1.f,1.f);
+        glVertex3d(C.x, C.y, C.z);
+        glVertex3d(P1.x, P1.y, P1.z);
+
+        glVertex3d(C.x, C.y, C.z);
+        glVertex3d(P2.x, P2.y, P2.z);
+
+        glVertex3d(C.x, C.y, C.z);
+        glVertex3d(P3.x, P3.y, P3.z);
+
+        glVertex3d(C.x, C.y, C.z);
+        glVertex3d(P4.x, P4.y, P4.z);
+
+        //Image
+        glColor3f(_color.redF(),_color.greenF(),_color.blueF());
+        glVertex3d(P1.x, P1.y, P1.z);
+        glVertex3d(P2.x, P2.y, P2.z);
+
+        glVertex3d(P4.x, P4.y, P4.z);
+        glVertex3d(P2.x, P2.y, P2.z);
+
+        glVertex3d(P3.x, P3.y, P3.z);
+        glVertex3d(P1.x, P1.y, P1.z);
+
+        glVertex3d(P4.x, P4.y, P4.z);
+        glVertex3d(P3.x, P3.y, P3.z);
+    glEnd();
+
+    glBegin(GL_POINTS);
+        glVertex3d(C.x, C.y, C.z);
+    glEnd();
+
+    glEndList();
+
+    glPopAttrib();
+
+    glCallList(list);
+
+    glPopMatrix();
 }

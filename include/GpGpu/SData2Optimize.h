@@ -26,12 +26,14 @@ struct p_ReadLine
     st_line seg;
     bool    Id_Buf;
     const ushort    tid;
+    const ushort    itid;
     short2 prev_Dz;
     ushort pente;
 
     __device__ p_ReadLine(ushort t,ushort ipente):
         Id_Buf(false),
         tid(t),
+        itid(WARPSIZE - t),
         pente(ipente)
     {
         line.id = 0;
@@ -64,6 +66,23 @@ struct p_ReadLine
             printf("-----------------------------\n");
         }
     }
+
+    __device__ inline void reverse(short2 *buffindex)
+    {
+        seg.id        = seg.lenght - 1;
+        prev_Dz       = buffindex[seg.id];
+        seg.id        = WARPSIZE  - seg.id;
+        seg.lenght    = WARPSIZE;
+        line.id       = 0;
+        format();
+        ID_Bf_Icost   = NAPPEMAX - ID_Bf_Icost + count(prev_Dz) + 1;
+    }
+
+    template<bool sens> __device__ inline ushort stid()
+    {
+        return sens ? tid : itid;
+    }
+
 };
 
 template<template<class T> class U, uint NBUFFER = 1 >

@@ -32,7 +32,7 @@ OPTION(WITH_IGN_IMAGE "Include Ign image" OFF )
 OPTION(WITH_HEADER_PRECOMP "En-tetes precompilees" ON )
 
 # Utiliser les en-tetes precompilees
-OPTION(BUILD_ONLY_ELISE "Projet Elise uniquement" OFF )
+OPTION(BUILD_ONLY_ELISE_MM3D "Projet Elise et MM3D uniquement" OFF )
 
 # construire l'interface graphique
 OPTION(WITH_ETALONPOLY  "build etalonnage polygone" ON)
