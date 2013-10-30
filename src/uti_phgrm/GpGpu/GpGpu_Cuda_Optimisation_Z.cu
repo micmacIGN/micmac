@@ -89,7 +89,7 @@ void RunLine(   SimpleStream<short2>    &streamIndex,
 
                     if( tZ < NAPPEMAX)
                     {
-                        S_FCost[!idBuf][sgn(tZ)] = fcost; // Erreur surement fCostMin et non fcost
+                        S_FCost[!idBuf][sgn(tZ)] = fCostMin;
                         //if(sens)
                         streamFCost.SetValue(sgn(sId_ICost), fcost); // ERROR
 
@@ -329,18 +329,14 @@ void ReadLine2(
 
                 if(z + (sens ? p.tid : WARPSIZE - p.tid - 1)< dZ) // peut etre eviter en ajoutant une zone tampon
                 {
-                    const uint fcost =  (uint)((sens) ? (fCostMin) : (fCostMin + streamFCost.GetValue(sgn(p.ID_Bf_Icost)) - costInit));
+                    //const uint fcost =  (uint)((sens) ? (fCostMin) : (fCostMin + streamFCost.GetValue(sgn(p.ID_Bf_Icost)) - costInit));
 
-                    //--
+                    const uint cost  = streamFCost.GetValue(sgn(p.ID_Bf_Icost));
+                    const uint fcost =  (uint)((sens) ? (costInit) : ((uint)costInit + cost));
                     S_FCost[!p.Id_Buf][sgn(tZ)] = fCostMin;
-                    //streamFCost.SetValue(sgn(p.ID_Bf_Icost),fcost);
 
-                    if(sens)
-                        streamFCost.SetValue(sgn(p.ID_Bf_Icost),p.ID_Bf_Icost + p.tid);
-//                    else
-//                        streamFCost.SetValue(sgn(p.ID_Bf_Icost),p.ID_Bf_Icost);
+                    streamFCost.SetValue(sgn(p.ID_Bf_Icost),fcost);
 
-                    //streamFCost.SetValue(sgn(p.ID_Bf_Icost),prevFCost[0]);
                     //--
                 }
 
