@@ -46,6 +46,18 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                       */
 /*********************************************************/
 
+void cEl_GPAO::DoComInSerie(const std::list<std::string> & aL)
+{
+    for 
+    (
+        std::list<std::string>::const_iterator itS=aL.begin();
+        itS!=aL.end();
+        itS++
+    )
+    {
+         System(*itS);
+    }
+}
 
 void cEl_GPAO::DoComInParal(const std::list<std::string> & aL,std::string  FileMk , int   aNbProc ,bool Exe,bool MoinsK)
 {

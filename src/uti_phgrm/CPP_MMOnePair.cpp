@@ -86,8 +86,8 @@ class cAppliMMOnePair : public cMMOnePair,
      private :
          void MatchTwoWay(int aStep0,int aStepF);
          void MatchOneWay(bool MasterIs1,int aStep0,int aStepF);
-         void DoMasqReentrant(int aStep);
-         void UseReentrant(bool First,int aStep);
+         void DoMasqReentrant(bool First,int aStep,bool Last);
+         void UseReentrant(bool First,int aStep,bool Last);
 
          cImaMM * mIm1;
          cImaMM * mIm2;
@@ -125,7 +125,9 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mByEpip,"CreateE",true," Create Epipolar (def = true when appliable)")
                     << EAM(mDoubleSens,"2Way",true,"Match in 2 Way (Def=true)")
                     << EAM(mCMS,"CMS",true,"Multi Scale Coreel (Def=ByEpip)")
+                    << EAM(mDoMR,"DoMR",true,"Do re-entering masq (def=true)")
   );
+
   mNoOri = (mNameOriInit=="NONE");
   if ((! EAMIsInit(&mByEpip)) && mNoOri)
      mByEpip = false;
@@ -209,16 +211,77 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
         {
            MatchTwoWay(aStep,aStep+1);
            int aDeZoom = mVZoom[aStep];
-           if (mDoMR && (aDeZoom!= mZoomF) && (aDeZoom<=8))
+           if (mDoMR && ((aDeZoom!= mZoomF) || (aStep==mStepEnd)) && (aDeZoom<=8))
            {
-              DoMasqReentrant(aStep);
+              DoMasqReentrant(true,aStep,aStep==mStepEnd);
+              DoMasqReentrant(false,aStep,aStep==mStepEnd);
            }
         }
     }
 }
+void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
+{
+     std::string aBlk = " ";
+
+     std::string aNameInitA = MasterIs1 ? mNameIm1Init : mNameIm2Init;
+     std::string aNameInitB = MasterIs1 ? mNameIm2Init : mNameIm1Init;
+     std::string aPref = "AR"+ std::string(MasterIs1? "1" : "2");
+
+     int aZoom = mVZoom[aStep];
+     std::string aName = mDir+LocDirMec2Im(mNameIm1,mNameIm2)+"Z_Num"+ToString(aStep)+"_DeZoom"+ToString(aZoom)+"_LeChantier.xml";
+     cFileOriMnt aFOM = StdGetFromPCP(aName,FileOriMnt);
+     double aResol = aFOM.ResolutionAlti() / double ( aFOM.ResolutionPlani().x);
 
 
-void cAppliMMOnePair::DoMasqReentrant(int aStep)
+     std::string aCom =     MMBinFile(MM3DStr)
+                          + std::string(" CoherEpip ")
+                          + aNameInitA + aBlk
+                          + aNameInitB + aBlk
+                          + mNameOriInit + aBlk
+                          + " DoM=true"
+                          + " ByE="      + ToString(mByEpip)
+                          + " NumPx="    + ToString(aStep)
+                          + " NumMasq="  + ToString(aLast ? (aStep-1) : aStep)
+                          + " Zoom="     + ToString(mVZoom[aStep])
+                          + " Step="     + ToString(aResol)
+                          + " SigP="     + ToString(1.5)
+                          + " Prefix="   + aPref
+                      ;
+
+     std::cout << "COOOOM " << aCom << "\n";
+     System(aCom);
+
+     std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
+     std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
+
+     std::string aNameCor =    aLast                                                             ?
+                               ("AutoMask_LeChantier_Num_" + ToString(aStep-1)+".tif")           :
+                               ("Masq_LeChantier_DeZoom" + ToString(mVZoom[aStep+1]) +  ".tif")  ;
+     aNameCor =     mDir +  LocDirMec2Im(aNamA,aNamB) + aNameCor;
+
+     Tiff_Im aFMCor(aNameCor.c_str());
+     std::string aNameNew = aPref + "_Masq1_Glob.tif";
+     Tiff_Im aFNew(aNameNew.c_str());
+
+     Fonc_Num aFonc = aFNew.in(0);
+     if (!aLast)
+     {
+        aFonc = dilat_32((close_32(aFonc,8)),4);
+        aFonc = StdFoncChScale_Bilin(aFonc,Pt2dr(0,0),Pt2dr(0.5,0.5));
+     }
+
+
+     ELISE_COPY
+     (
+        aFMCor.all_pts(),
+        aFMCor.in() && aFonc,
+        aFMCor.out()
+     );
+}
+
+/*
+
+void cAppliMMOnePair::DoMasqReentrant(int aStep,bool aLast)
 {
      std::string aBlk = " ";
 
@@ -236,7 +299,7 @@ void cAppliMMOnePair::DoMasqReentrant(int aStep)
                           + " DoM=true"
                           + " ByE="      + ToString(mByEpip)
                           + " NumPx="    + ToString(aStep)
-                          + " NumMasq="  + ToString(aStep)
+                          + " NumMasq="  + ToString(aLast ? (aStep-1) : aStep)
                           + " Zoom="     + ToString(mVZoom[aStep])
                           + " Step="     + ToString(aResol)
                           + " SigP="     + ToString(1.5)
@@ -245,35 +308,41 @@ void cAppliMMOnePair::DoMasqReentrant(int aStep)
      std::cout << "COOOOM " << aCom << "\n";
      System(aCom);
 
-     UseReentrant(true ,aStep);
-     UseReentrant(false,aStep);
+     UseReentrant(true ,aStep,aLast);
+     UseReentrant(false,aStep,aLast);
 
      // std::cout << "WAIT REENTRANT \n";  getchar();
 }
-void cAppliMMOnePair::UseReentrant(bool MasterIs1,int aStep)
+void cAppliMMOnePair::UseReentrant(bool MasterIs1,int aStep,bool aLast)
 {
      std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
      std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
 
-     std::string aNameCor =     mDir
-                              +  LocDirMec2Im(aNamA,aNamB)
-                              + "Masq_LeChantier_DeZoom" + ToString(mVZoom[aStep+1]) +  ".tif";
+     std::string aNameCor =    aLast                                                             ?
+                               ("AutoMask_LeChantier_Num_" + ToString(aStep-1)+".tif")           :
+                               ("Masq_LeChantier_DeZoom" + ToString(mVZoom[aStep+1]) +  ".tif")  ;
+     aNameCor =     mDir +  LocDirMec2Im(aNamA,aNamB) + aNameCor;
 
      Tiff_Im aFMCor(aNameCor.c_str());
      std::string aNameNew = "AR_Masq"+ ToString(MasterIs1 ? 1:2) + "_Glob.tif";
      Tiff_Im aFNew(aNameNew.c_str());
 
-     Fonc_Num  aFonc = dilat_32((close_32(aFNew.in(0),8)),4);
-     // aFonc = aFNew.in(0);
+     Fonc_Num aFonc = aFNew.in(0);
+     if (!aLast)
+     {
+        aFonc = dilat_32((close_32(aFonc,8)),4);
+        aFonc = StdFoncChScale_Bilin(aFonc,Pt2dr(0,0),Pt2dr(0.5,0.5));
+     }
+
 
      ELISE_COPY
      (
-         aFMCor.all_pts(),
-            aFMCor.in()
-        &&  StdFoncChScale_Bilin(aFonc,Pt2dr(0,0),Pt2dr(0.5,0.5)),
+        aFMCor.all_pts(),
+        aFMCor.in() && aFonc,
         aFMCor.out()
      );
 }
+*/
 
 void cAppliMMOnePair::MatchTwoWay(int aStep0,int aStepF)
 {
