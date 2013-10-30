@@ -123,12 +123,12 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                     QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
                     if (keyEvent->modifiers().testFlag(Qt::ShiftModifier))
                     {
-                        m_polygon.fillTrihedron(pos, m_trihedron);
+                        m_polygon.fillDihedron(pos, m_dihedron);
                     }
                     else
                     {
                         if (m_Click == 1)
-                            m_polygon.fillTrihedron2(pos, m_trihedron);
+                            m_polygon.fillDihedron2(pos, m_dihedron);
                         else
                             m_polygon.findClosestPoint(pos);
                     }
@@ -228,20 +228,20 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                    {
                        if (mouseEvent->modifiers().testFlag(Qt::ShiftModifier))
                        {
-                           if ((m_polygon.size() >=2) && m_trihedron.size() && m_polygon.isClosed())
+                           if ((m_polygon.size() >=2) && m_dihedron.size() && m_polygon.isClosed())
                            {
                                // modify polygon...
                                int idx = -1;
 
                                for (int i=0;i<m_polygon.size();++i)
                                {
-                                   if (m_polygon[i] == m_trihedron[0]) idx = i;
+                                   if (m_polygon[i] == m_dihedron[0]) idx = i;
                                }
 
-                               if (idx >=0) m_polygon.insert(idx+1, m_trihedron[1]);
+                               if (idx >=0) m_polygon.insert(idx+1, m_dihedron[1]);
                            }
 
-                           m_trihedron.clear();
+                           m_dihedron.clear();
 
                            update();
                        }
@@ -286,11 +286,11 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
             _g_mouseLeftDown = false;
 
             int idx = m_polygon.idx();
-            if ((m_Click >=1) && (idx>=0) && m_trihedron.size())
+            if ((m_Click >=1) && (idx>=0) && m_dihedron.size())
             {
-                m_polygon[idx] = m_trihedron[1];
+                m_polygon[idx] = m_dihedron[1];
 
-                m_trihedron.clear();
+                m_dihedron.clear();
                 m_Click = 0;
             }
 
@@ -675,7 +675,7 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
 {
     if  (event->key() == Qt::Key_Shift)
     {
-        m_trihedron.clear();
+        m_dihedron.clear();
         m_Click = 0;
     }
 }
@@ -935,17 +935,17 @@ void GLWidget::drawPolygon()
         poly.draw();
 
         poly.clear();
-        for (int aK = 0;aK < m_trihedron.size(); ++aK)
+        for (int aK = 0;aK < m_dihedron.size(); ++aK)
         {
-            poly.add(ImageToWindow(m_trihedron[aK]));
+            poly.add(ImageToWindow(m_dihedron[aK]));
         }
 
-        poly.doted_draw();
+        poly.drawDihedron();
     }
     else
     {
         m_polygon.draw();
-        m_trihedron.doted_draw();
+        m_dihedron.drawDihedron();
     }
 }
 
@@ -1396,7 +1396,7 @@ void GLWidget::clearPolyline()
 {
     m_polygon.clear();
     m_polygon.setClosed(false);
-    m_trihedron.clear();
+    m_dihedron.clear();
     m_Click = 0;
 
     update();
