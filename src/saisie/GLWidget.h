@@ -174,7 +174,6 @@ signals:
     void interactionMode(bool modeSelection);
 
 protected:
-    void initializeGL();
     void resizeGL(int w, int h);
     void paintGL();
     void mouseDoubleClickEvent(QMouseEvent *event);
@@ -184,9 +183,6 @@ protected:
 
     void ImageToTexture(GLuint idTexture,QImage* image);
 
-    //! Initialization state of GL
-    bool m_bGLInitialized;
-
     //inherited from QWidget (drag & drop support)
     virtual void dragEnterEvent(QDragEnterEvent* event);
     virtual void dropEvent(QDropEvent* event);
@@ -194,19 +190,8 @@ protected:
     //! Draw widget gradient background
     void drawGradientBackground();
     
-    //! Draw selection polygon
+    //! Draw selection polygon (and trihedron if needed)
     void drawPolygon();
-
-    //! Draw one point and two segments (for insertion or move)
-    void drawPointAndSegments();
-
-    void drawPointAndSegments(const QVector<QPointF> &aPoly);
-
-    //! Fill m_polygon2 for point insertion or move
-    void fillPolygon2(const QPointF &pos);
-
-    //! set index of cursor closest point
-    void findClosestPoint(const QPointF &pos, float sqr_radius);
 
     //! GL context aspect ratio m_glWidth/m_glHeight
     float m_glRatio;
@@ -251,7 +236,7 @@ protected:
     cPolygon    m_polygon;
 
     //! Point list for polygonal insertion
-    QVector < QPointF > m_polygon2;
+    cPolygon    m_trihedron;
 
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
@@ -275,7 +260,7 @@ protected:
     int         m_Click;
 
     //! (square) radius for point selection
-    float       m_sqr_radius;
+    //float       m_sqr_radius;
 
     QPointF WindowToImage(const QPointF &pt);
 
@@ -298,8 +283,6 @@ private:
     int         _frameCount;
     int         _previousTime;
     int         _currentTime;
-
-    int         _idx;
 
     float       _fps;
 
