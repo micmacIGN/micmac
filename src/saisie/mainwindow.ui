@@ -139,7 +139,6 @@ QStatusBar
     </property>
     <addaction name="actionLoad_plys"/>
     <addaction name="actionLoad_camera"/>
-    <addaction name="actionLoad_and_Export"/>
     <addaction name="actionLoad_image"/>
     <addaction name="actionSave_selection"/>
     <addaction name="actionSave_masks"/>
@@ -374,17 +373,6 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
-   </property>
-  </action>
-  <action name="actionLoad_and_Export">
-   <property name="text">
-    <string>Load and Export</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+S</string>
-   </property>
-   <property name="visible">
-    <bool>false</bool>
    </property>
   </action>
   <action name="actionShow_ball">
