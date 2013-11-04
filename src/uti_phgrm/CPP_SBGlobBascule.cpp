@@ -73,6 +73,7 @@ int SBGlobBascule_main(int argc,char ** argv)
     std::string PostPlan="_Masq";
     std::string FileMesures ;
     std::string TargetRep = "ki" ;
+    bool  CPI = false;
 
 
     double DistFE = 0;
@@ -91,6 +92,7 @@ int SBGlobBascule_main(int argc,char ** argv)
                     << EAM(PostPlan,"PostPlan",true)	
                     << EAM(DistFE,"DistFS",true,"Distance between  Ech1 and Ech2 to fixe scale (if not given no scaling)")
                     << EAM(TargetRep,"Rep",true,"Target repere (Def = ki, ie normal is vertical)")
+                    << EAM(CPI,"CPI",true,"Calib Per Image (Def=false)")
 
     );
 	
@@ -112,6 +114,7 @@ int SBGlobBascule_main(int argc,char ** argv)
                        + std::string(" +DistFE=") + ToString(DistFE)
                        + std::string(" +RepNL=") + TargetRep
                        + std::string(" +FileMesures=") + FileMesures
+                       + std::string(" +CPI=") + ToString(CPI)
                     ;
 
 

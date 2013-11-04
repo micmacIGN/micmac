@@ -4223,6 +4223,9 @@ class cDoNothingBut
         cTplValGesInit< bool > & ButDoOriMNT();
         const cTplValGesInit< bool > & ButDoOriMNT()const ;
 
+        cTplValGesInit< bool > & ButDoMTDNuage();
+        const cTplValGesInit< bool > & ButDoMTDNuage()const ;
+
         cTplValGesInit< bool > & ButDoFDC();
         const cTplValGesInit< bool > & ButDoFDC()const ;
 
@@ -4250,6 +4253,7 @@ class cDoNothingBut
         cTplValGesInit< bool > mButDoTA;
         cTplValGesInit< bool > mButDoMasqueChantier;
         cTplValGesInit< bool > mButDoOriMNT;
+        cTplValGesInit< bool > mButDoMTDNuage;
         cTplValGesInit< bool > mButDoFDC;
         cTplValGesInit< bool > mButDoExtendParam;
         cTplValGesInit< bool > mButDoGenCorPxTransv;
@@ -4742,6 +4746,9 @@ class cSection_Results
 
         cTplValGesInit< bool > & ButDoOriMNT();
         const cTplValGesInit< bool > & ButDoOriMNT()const ;
+
+        cTplValGesInit< bool > & ButDoMTDNuage();
+        const cTplValGesInit< bool > & ButDoMTDNuage()const ;
 
         cTplValGesInit< bool > & ButDoFDC();
         const cTplValGesInit< bool > & ButDoFDC()const ;
@@ -5814,6 +5821,9 @@ class cParamMICMAC
 
         cTplValGesInit< bool > & ButDoOriMNT();
         const cTplValGesInit< bool > & ButDoOriMNT()const ;
+
+        cTplValGesInit< bool > & ButDoMTDNuage();
+        const cTplValGesInit< bool > & ButDoMTDNuage()const ;
 
         cTplValGesInit< bool > & ButDoFDC();
         const cTplValGesInit< bool > & ButDoFDC()const ;

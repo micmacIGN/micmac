@@ -508,7 +508,8 @@ void cAppliMICMAC::MakeResultOfEtape(cEtapeMecComp & anEtape)
       MakeExportAsModeleDist(*itM,anEtape);
    }
 
-    anEtape.DoRemplitXMLNuage();
+    if (DoMTDNuage())
+       anEtape.DoRemplitXMLNuage();
 }
 
 
