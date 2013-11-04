@@ -421,7 +421,8 @@ void bench_tiff
         };
         ELISE_COPY
         (
-            disc(sz/2+Pt2di(NRrandom3(8)-4,NRrandom3(8)-4),20),
+            //disc(sz/2+Pt2di(NRrandom3(8)-4,NRrandom3(8)-4),20),
+            disc( Pt2dr( (REAL)( sz.x/2+NRrandom3(8)-4 ), (REAL)( sz.y/2+NRrandom3(8)-4 ) ), 20 ), // __NEW
             fd,
             Overif  | ofile
         );
@@ -450,7 +451,8 @@ void bench_tiff
     {
        ELISE_COPY
        (
-           disc(sz/2,20),
+           //disc(sz/2,20),
+           disc( Pt2dr( sz.x/2, sz.y/2 ),20), // __NEW
            Abs(Fverif-Tif.in()),
            sigma(dif,nb_ch) 
        );
@@ -920,7 +922,8 @@ void bench_pnm()
 		);
 
         ELISE_COPY(pgm.all_pts(),0,pgm.out());
-        ELISE_COPY(disc(Pt2di(100,100),70),FX+30,pgm.out());
+        //ELISE_COPY(disc(Pt2di(100,100),70),FX+30,pgm.out());
+        ELISE_COPY(disc(Pt2dr(100,100),70),FX+30,pgm.out()); // __NEW
 
 
         Elise_File_Im pbm = Elise_File_Im::pbm
@@ -929,7 +932,8 @@ void bench_pnm()
 			sz
 		);			
         ELISE_COPY(pbm.all_pts(),0,pbm.out());
-        ELISE_COPY(disc(Pt2di(100,100),50),1,pbm.out());
+        //ELISE_COPY(disc(Pt2di(100,100),50),1,pbm.out());
+        ELISE_COPY(disc(Pt2dr(100,100),50),1,pbm.out());
 
 
         Elise_File_Im ppm = Elise_File_Im::ppm
@@ -938,7 +942,8 @@ void bench_pnm()
 			sz
 		);
         ELISE_COPY(ppm.all_pts(),Fonc_Num(128,128,128),ppm.out());
-        ELISE_COPY(disc(Pt2di(100,100),70),Virgule(FX+30,FY+30,128),ppm.out());
+        //ELISE_COPY(disc(Pt2di(100,100),70),Virgule(FX+30,FY+30,128),ppm.out());
+	ELISE_COPY(disc(Pt2dr(100,100),70),Virgule(FX+30,FY+30,128),ppm.out()); // __NEW
 
     }
     cout << "END P*M \n";
@@ -1018,7 +1023,8 @@ void bench_tiff_2
    }
     ELISE_COPY
     (
-        disc(sz/2,20),
+        //disc(sz/2,20),
+        disc( Pt2dr( sz.x/2, sz.y/2 ), 20 ),// __TMP
         0,
         I1.out()  | Tif.out()
     );

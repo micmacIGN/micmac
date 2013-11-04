@@ -63,7 +63,8 @@ static ElPackHomologue  ListeCplH
          Pt3dr  aP3 = P3Rand();
          Pt2dr  aQ1 = aCam1.R3toF2(aP3);
          Pt2dr  aQ2 = aCam2.R3toF2(aP3);
-         aRes.add (ElCplePtsHomologues(aQ1,aQ2));
+         //aRes.add (ElCplePtsHomologues(aQ1,aQ2));
+         aRes.Cple_Add (ElCplePtsHomologues(aQ1,aQ2)); // __NEW
     }
 
 /*
@@ -137,7 +138,8 @@ class BenchCamCav : public ElCamera
 {
     public :
        BenchCamCav(Pt2dr aPZ) :
-           ElCamera(),
+           //ElCamera(),
+           ElCamera(false/*isC2M*/,eProjectionStenope), // __NEW
            mProj (aPZ)
         {
         }
@@ -149,13 +151,21 @@ class BenchCamCav : public ElCamera
 
         ElProj32 &        Proj()       {return mProj;}
         const ElProj32 &  Proj() const {return mProj;}
+	
+	Pt3dr  ImEtProf2Terrain(const Pt2dr&, double)       const { return Pt3dr(0,0,0); }                 // __NEW
+	Pt3dr  NoDistImEtProf2Terrain(const Pt2dr&, double) const { return Pt3dr(0,0,0); }                 // __NEW
+        double SzDiffFinie()                                const { return 0; }                            // __NEW
+        double ResolutionSol()                              const { return 0; }                            // __NEW
+        double ResolutionSol(const Pt3d<double>&)           const { return 0; }                            // __NEW
+        void   InstanceModifParam(NS_ParamChantierPhotogram::cCalibrationInternConique&) const { return; } // __NEW
 };
 
 class BenchCamCavDist : public ElCamera
 {
     public :
        BenchCamCavDist(Pt2dr aPZ,Polynome2dReal aDx,Polynome2dReal aDy) :
-           ElCamera(),
+           //ElCamera(),
+           ElCamera(false/*isC2M*/,eProjectionStenope), // __NEW
            mProj (aPZ),
            mDist (aDx,aDy)
         {
@@ -168,6 +178,13 @@ class BenchCamCavDist : public ElCamera
 	const ElDistortion22_Gen  & Dist() const {return mDist;}
         ElProj32 &        Proj()       {return mProj;}
         const ElProj32 &  Proj() const {return mProj;}
+	
+	Pt3dr  ImEtProf2Terrain(const Pt2dr&, double)       const { return Pt3dr(0,0,0); }                 // __NEW
+	Pt3dr  NoDistImEtProf2Terrain(const Pt2dr&, double) const { return Pt3dr(0,0,0); }                 // __NEW
+        double SzDiffFinie()                                const { return 0; }                            // __NEW
+        double ResolutionSol()                              const { return 0; }                            // __NEW
+        double ResolutionSol(const Pt3d<double>&)           const { return 0; }                            // __NEW
+        void   InstanceModifParam(NS_ParamChantierPhotogram::cCalibrationInternConique&) const { return; } // __NEW
 };
 
 class BenchDistSimil : public  ElDistortion22_Gen
@@ -199,7 +216,8 @@ class BenchCamCavSim : public ElCamera
 {
      public :
        BenchCamCavSim(Pt2dr aPZ,Pt2dr mP0,Pt2dr mSc) :
-           ElCamera(),
+           //ElCamera(),
+           ElCamera(false/*isC2M*/,eProjectionStenope), // __NEW
            mProj (aPZ),
 	   mDist (mP0,mSc)
         {
@@ -212,6 +230,13 @@ class BenchCamCavSim : public ElCamera
 	const ElDistortion22_Gen  & Dist() const {return mDist;}
         ElProj32 &        Proj()       {return mProj;}
         const ElProj32 &  Proj() const {return mProj;}
+	
+	Pt3dr  ImEtProf2Terrain(const Pt2dr&, double)       const { return Pt3dr(0,0,0); }                 // __NEW
+	Pt3dr  NoDistImEtProf2Terrain(const Pt2dr&, double) const { return Pt3dr(0,0,0); }                 // __NEW
+        double SzDiffFinie()                                const { return 0; }                            // __NEW
+        double ResolutionSol()                              const { return 0; }                            // __NEW
+        double ResolutionSol(const Pt3d<double>&)           const { return 0; }                            // __NEW
+        void   InstanceModifParam(NS_ParamChantierPhotogram::cCalibrationInternConique&) const { return; } // __NEW
 };
 
 typedef EpipolaireCoordinate aTypEpil;
@@ -420,7 +445,8 @@ void BenchCalcEpipoleAutom()
         Pt2dr aQ2 = aCam2.R3toF2(aP3);
 
    
-        aPack.add(ElCplePtsHomologues(aQ1,aQ2,0.1+NRrandom3()));
+        //aPack.add(ElCplePtsHomologues(aQ1,aQ2,0.1+NRrandom3()));
+        aPack.Cple_Add(ElCplePtsHomologues(aQ1,aQ2,0.1+NRrandom3())); // __NEW
     }
 
      Pt2dr anEpi1,anEpi2;
@@ -474,8 +500,10 @@ void BenchEpipole0()
            REAL aFocale = 1.0 + NRrandC() * 1e-2;
 
           
-          cCamStenopeDistRadPol aCam1 (aFocale,Pt2dr(0,0),aDistRad);
-          cCamStenopeDistRadPol aCam2 (aFocale,Pt2dr(0,0),aDistRad);
+          //cCamStenopeDistRadPol aCam1 (aFocale,Pt2dr(0,0),aDistRad);
+          //cCamStenopeDistRadPol aCam2 (aFocale,Pt2dr(0,0),aDistRad);
+	  cCamStenopeDistRadPol aCam1( false/*isDistC2M*/, aFocale, Pt2dr(0,0), aDistRad, vector<double>() ); // __NEW
+	  cCamStenopeDistRadPol aCam2( false/*isDistC2M*/, aFocale, Pt2dr(0,0), aDistRad, vector<double>() ); // __NEW
  
           aCam1.SetOrientation
           (
