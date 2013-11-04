@@ -377,8 +377,6 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
 
     __syncthreads();
 
-    //CUDA_DUMP_INT(pit_Stream)
-
     p.line.lenght   = g_RecStrParam[blockIdx.x].z;
     p.seg.lenght    = min(p.line.LOver(),WARPSIZE);
 
@@ -387,16 +385,16 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     SimpleStream<short2>    streamIndex(g_Index + pit_Id    ,WARPSIZE);
 
     streamICost.read<eAVANT>(S_BuffICost);
-
-    uint*   locFCost = S_BuffFCost[p.Id_Buf] + p.tid;
-
-    for (ushort i = 0; i < NAPPEMAX; i+=WARPSIZE)
-        locFCost[i] = S_BuffICost[i];
-
     streamIndex.read<eAVANT>(S_BuffIndex + p.tid);
 
     p.prev_Dz       = S_BuffIndex[0];
     p.ID_Bf_Icost   = count(p.prev_Dz)+1;
+
+    for (ushort i = 0; i < p.ID_Bf_Icost - p.tid; i+=WARPSIZE)
+    {
+        S_BuffFCost[p.Id_Buf][i + p.tid] = S_BuffICost[i];
+        streamFCost.SetValue(i,S_BuffICost[i]);
+    }
 
     ReadLine2<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,p);
 
@@ -420,21 +418,12 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
         streamFCost.incre<eARRIERE>();
     }
 
-    //locFCost = S_BuffFCost[p.Id_Buf] + p.tid;
+    uint* locFCost = S_BuffFCost[p.Id_Buf] + WARPSIZE - p.tid - 1;
 
-    for (ushort i = 0; i < NAPPEMAX; i+=WARPSIZE)
-    {
-        *(S_BuffFCost[0] + WARPSIZE - p.tid - 1 - i) = 1;//S_BuffICost[i];
-        *(S_BuffFCost[1] + WARPSIZE - p.tid - 1 - i) = 1;
-    }
+    for (ushort i = 0; i < NAPPEMAX; i+=WARPSIZE)    
+        locFCost[-i] = S_BuffICost[-i];
 
-    ReadLine2<eARRIERE>( streamIndex,
-                        streamFCost,
-                        streamICost,
-                        S_BuffIndex + WARPSIZE - 1,
-                        S_BuffICost,
-                        S_BuffFCost,
-                        p);
+    ReadLine2<eARRIERE>( streamIndex,streamFCost,streamICost,S_BuffIndex + WARPSIZE - 1,S_BuffICost,S_BuffFCost,p);
 
 }
 
