@@ -685,6 +685,15 @@ class cZBuffer
         double       mEpsIntInv;
 };
 
+class cArgBacule
+{
+    public :
+        cArgBacule(double mSeuilEtir);
+
+        double mSeuilEtir;
+        static cArgBacule  mTheDef;
+};
+
 cElNuage3DMaille *  BasculeNuageAutoReSize
                     (
                        const cXML_ParamNuage3DMaille & aGeomOut,
@@ -692,7 +701,8 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
                        const std::string & aDirIn,
                        const std::string &  aNameRes,
                        bool  AutoResize,
-                       const Box2di  * aBoxClipIn = 0
+                       const Box2di  * aBoxClipIn = 0,
+                       const cArgBacule &  = cArgBacule::mTheDef
                     );
 
 template <class Type> void WriteType(FILE * aFP,Type f)

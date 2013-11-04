@@ -357,6 +357,7 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
 
 	 //Calcul de l'etirement du triangle
      int aCoefEtire= -1;
+     double aCoefEtirReel=-1;
      if (mDynEtire>0)
      {
         Pt2dr aU = TriBas ? (B2-A2) : (C2-B2);
@@ -367,8 +368,8 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
         double aUV = scal(aU,aV);
 
          // De memoire, la + grande des VP de l'affinite
-        double aCoeff = sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2);
-        aCoefEtire = ElMin(254,round_ni(aCoeff*mDynEtire));
+        aCoefEtirReel = sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2);
+        aCoefEtire = ElMin(254,round_ni(aCoefEtirReel*mDynEtire));
         if (aDet<0)
             aCoefEtire = 254;
      }
@@ -418,12 +419,18 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
                          {
                               mImEtirement.SetI(Pt2di(x,y),aCoefEtire);
                          }
+                         double aMul =1.0;
+                         if (mDynEtire>0)
+                         {
+                              aMul = ElMin(1.0,1/aCoefEtirReel);
+                         }
                          for (int aKA=0 ; aKA<(int)mImAttrIn.size() ; aKA++)
                          {
+                              
                               mImAttrOut[aKA]->SetR
                               (
                                  Pt2di(x,y),
-                                 aPdsA*mAttrA[aKA] + aPdsB*mAttrB[aKA] + aPdsC*mAttrC[aKA]
+                                 aMul * (aPdsA*mAttrA[aKA] + aPdsB*mAttrB[aKA] + aPdsC*mAttrC[aKA])
                               );
                          }
                     }

@@ -684,7 +684,6 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
 }
 
 
-
 void cCoherEpi_main::action(const  ElFifo<Pt2di> & aFil,bool ext)
 {
     
@@ -723,6 +722,9 @@ int CoherEpi_main(int argc,char ** argv)
 
     return 0;
 }
+
+
+
 
 
 
