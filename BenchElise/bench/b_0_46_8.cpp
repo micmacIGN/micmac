@@ -136,7 +136,8 @@ cBenchAppuiGridVue::cBenchAppuiGridVue
 
 Pt3dr cBenchAppuiGridVue::M2C(Pt3dr aP)
 {
-   return mRotReelle.IRecAff(aP);
+   //return mRotReelle.IRecAff(aP);
+   return mRotReelle.ImRecAff(aP); // __NEW
 }
 
 
@@ -177,7 +178,8 @@ cChantierBAG::cChantierBAG(REAL anOuv,INT aNbTri) :
      mOuv    (anOuv),
      mSzOuv  (Pt2dr(mOuv,mOuv)),
      mBoxOuv (-mSzOuv,mSzOuv),
-     mTriF   (mSetEqF.NewTriangulFormelle(mBoxOuv,aNbTri,1.8/aNbTri)),
+     //mTriF   (mSetEqF.NewTriangulFormelle(mBoxOuv,aNbTri,1.8/aNbTri)),
+     mTriF   (mSetEqF.NewTriangulFormelle(2,mBoxOuv,aNbTri,1.8/aNbTri)), // __NEW
      mRanTeta (0.05),
      mRanCopt (0.5),
      mF      (1.05),
@@ -260,7 +262,8 @@ void cChantierBAG::AddPlanObsAppuis(Box2dr aBox,REAL aZ,REAL aStep)
 
 void cChantierBAG::AddEqAppuis()
 {
-   mSetEqF.AddContrainte(mTriF->ContraintesRot());
+   //mSetEqF.AddContrainte(mTriF->ContraintesRot());
+   mSetEqF.AddContrainte(mTriF->ContraintesRot(),true/*isStrict*/); // __NEW
    for 
    (
       std::list<cBenchAppuiGridVue *>::iterator itV = mLVues.begin();

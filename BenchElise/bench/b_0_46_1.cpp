@@ -668,7 +668,8 @@ cSC_Chantier::cSC_Chantier
 
     REAL aZoom = ElMin(aSzMaxVisu.y/aSz.x,aSzMaxVisu.y/aSz.y);
 
-    pWMur  = Video_Win::PtrWStd(aSz*aZoom,true);
+    //pWMur  = Video_Win::PtrWStd(aSz*aZoom,true);
+    pWMur  = Video_Win::PtrWStd(Pt2di(aSz*aZoom),true); // __NEW
     pWMur = pWMur->PtrChc(aP0,Pt2dr(aZoom,aZoom),true);
 
     ShowCadre(mCC,P8COL::red);
@@ -768,7 +769,8 @@ ElPackHomologue cSC_Chantier::PackCple
                 {
 		   if (oK)
 		   {
-		       aRes.add(ElCplePtsHomologues(aPA,aPB,1.0));
+		       //aRes.add(ElCplePtsHomologues(aPA,aPB,1.0));
+		       aRes.Cple_Add(ElCplePtsHomologues(aPA,aPB,1.0));
 		   }
                 }
 
@@ -820,7 +822,9 @@ void cSC_Chantier::CalcInitDist()
 
 
 #if (WDRF)
-    mPIDRF = mDRadSetEq.NewIntrDistRad(mPCP.FocaleEstim(),mPCP.PPEstim(),0,aDCur);
+    //mPIDRF = mDRadSetEq.NewIntrDistRad(mPCP.FocaleEstim(),mPCP.PPEstim(),0,aDCur);
+    cCamStenopeDistRadPol camera(false/*isDistC2M*/,mPCP.FocaleEstim(),mPCP.PPEstim(),aDCur,vector<double>() ); // __NEW
+    mPIDRF = mDRadSetEq.NewIntrDistRad(false/*isDistC2M*/,&camera,0);                                           // __NEW
 #else
     mPIDRF = mDRadSetEq.NewParamIntrNoDist(mPCP.FocaleEstim(),mPCP.PPEstim());
 #endif
@@ -837,7 +841,8 @@ void cSC_Chantier::CalcInitDist()
 
 
 
-    mTri = mTriSetEq.NewTriangulFormelle(mPCP.BoxIm(),TheNbDivTri,1.8/TheNbDivTri);
+    //mTri = mTriSetEq.NewTriangulFormelle(mPCP.BoxIm(),TheNbDivTri,1.8/TheNbDivTri);
+    mTri = mTriSetEq.NewTriangulFormelle(2/*aDim*/,mPCP.BoxIm(),TheNbDivTri,1.8/TheNbDivTri); // __NEW
     mCC.mTriRotF = mTriSetEq.NewRotation
 	           (
 		         cNameSpaceEqF::eRotFigee,
@@ -907,7 +912,8 @@ void CorrectPhotogram
 		Pt2dr aP2 = (itP->P2()-aPP)/aFoc;
 		if (aBox.inside(aP1) && aBox.inside(aP2))
                 {
-			aRes.add(ElCplePtsHomologues(aP1,aP2));
+			//aRes.add(ElCplePtsHomologues(aP1,aP2));
+			aRes.Cple_Add(ElCplePtsHomologues(aP1,aP2)); // __NEW
                 }
 	}
 
@@ -935,8 +941,8 @@ void cSC_Chantier::OneStepSolveTri()
 
 
 
-   mTriSetEq.AddContrainte(mTri->ContraintesRot());
-   mTriSetEq.AddContrainte(TriCCR()->StdContraintes());
+   mTriSetEq.AddContrainte(mTri->ContraintesRot(),true/*Strictes*/);
+   mTriSetEq.AddContrainte(TriCCR()->StdContraintes(),true/*Strictes*/);
 
    for
    (
@@ -948,7 +954,7 @@ void cSC_Chantier::OneStepSolveTri()
        ElRotation3D   R1 = TriCCR()->CurRot();
        ElRotation3D   R2 = (*it)->TriRotF().CurRot();
        cout << "D COPT " << euclid(R1.tr()-R2.tr()) << R1.tr() << R2.tr() <<"\n";
-       mTriSetEq.AddContrainte((*it)->TriRotF().StdContraintes());
+       mTriSetEq.AddContrainte((*it)->TriRotF().StdContraintes(),true/*Strictes*/);
    }
 
 
@@ -1033,8 +1039,8 @@ void cSC_Chantier::OneStepSolveDR()
 	<< mPIDRF->CurFocale() << " " 
 	<< mPIDRF->CurPP() << "\n";
 
-   mDRadSetEq.AddContrainte(mPIDRF->StdContraintes());
-   mDRadSetEq.AddContrainte(CCF()->RF().StdContraintes());
+   mDRadSetEq.AddContrainte(mPIDRF->StdContraintes(),true/*Strictes*/);
+   mDRadSetEq.AddContrainte(CCF()->RF().StdContraintes(),true/*Strictes*/);
 
    for
    (
@@ -1043,7 +1049,7 @@ void cSC_Chantier::OneStepSolveDR()
 	   it++
    )
    {
-       mDRadSetEq.AddContrainte((*it)->CamF().RF().StdContraintes());
+       mDRadSetEq.AddContrainte((*it)->CamF().RF().StdContraintes(),true/*Strictes*/);
    }
 
 #if (WDRF)

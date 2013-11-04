@@ -58,8 +58,10 @@ void bench_flux_concat()
      flux_cat_verif_sigma
      (
           (INT *) 0,(INT *) 0,(INT *) 0,
-          disc(Pt2di(10,10),22.3),
-          disc(Pt2di(10,10),22.3),
+          //disc(Pt2di(10,10),22.3),
+          //disc(Pt2di(10,10),22.3),
+          disc(Pt2dr(10,10),22.3), // __NEW
+          disc(Pt2dr(10,10),22.3), // __NEW
           FX+FY
      );
      flux_cat_verif_sigma
@@ -73,7 +75,8 @@ void bench_flux_concat()
      flux_cat_verif_sigma
      (
           (INT *) 0,(INT *) 0,(INT *) 0,
-          disc(Pt2di(10,10),22.3),
+          //disc(Pt2di(10,10),22.3),
+          disc(Pt2dr(10,10),22.3), // __NEW
           line_4c(Pt2di(-20,30),Pt2di(22,33)),
           FX+FY
      );
@@ -81,7 +84,8 @@ void bench_flux_concat()
      flux_cat_verif_sigma
      (
           (INT *) 0,(REAL *) 0,(REAL *) 0,
-          disc(Pt2di(10,10),22.3),
+          //disc(Pt2di(10,10),22.3),
+          disc(Pt2dr(10,10),22.3), // __NEW
           line_4c(Pt2di(-20,30),Pt2di(22,33)).chc(Virgule(FX+FY*0.1,0.3*FX+1.2*FY)),
           FX+FY
      );
@@ -90,7 +94,8 @@ void bench_flux_concat()
      (
           (REAL *) 0,(INT *) 0,(REAL *) 0,
           line_4c(Pt2di(-20,30),Pt2di(22,33)).chc(Virgule(FX+FY*0.1,0.3*FX+1.2*FY)),
-          disc(Pt2di(10,10),22.3),
+          //disc(Pt2di(10,10),22.3),
+          disc(Pt2dr(10,10),22.3), // __NEW
           FX+FY
      );
 
@@ -98,7 +103,8 @@ void bench_flux_concat()
      (
           (REAL *) 0,(REAL *) 0,(REAL *) 0,
           line_4c(Pt2di(-20,30),Pt2di(22,33)).chc(Virgule(FX+FY*0.1,0.3*FX+1.2*FY)),
-          disc(Pt2di(10,10),22.3).chc(Virgule(FX+FY*0.2,0.4*FX-1.6*FY)),
+          //disc(Pt2di(10,10),22.3).chc(Virgule(FX+FY*0.2,0.4*FX-1.6*FY)),
+          disc(Pt2dr(10,10),22.3).chc(Virgule(FX+FY*0.2,0.4*FX-1.6*FY)),  // __NEW
           FX+FY
      );
 

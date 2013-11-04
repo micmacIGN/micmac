@@ -144,15 +144,18 @@ void  bench_dist_chamfrain()
 
       {
           Im2D<U_INT1,INT> I(300,300,0);
-          ELISE_COPY(disc(Pt2di(150,150),120),1,I.out());
+          //ELISE_COPY(disc(Pt2di(150,150),120),1,I.out());
+          ELISE_COPY(disc(Pt2dr(150,150),120),1,I.out()); // __NEW
           dist_chamfer_cabl(I,35);
       }
 
 
       {
           Im2D<U_INT1,INT> I(600,600,0);
-          ELISE_COPY(disc(Pt2di(300,300),290),1,I.out());
-          ELISE_COPY(disc(Pt2di(300,300),5),0,I.out());
+          //ELISE_COPY(disc(Pt2di(300,300),290),1,I.out());
+          //ELISE_COPY(disc(Pt2di(300,300),5),0,I.out());
+          ELISE_COPY(disc(Pt2dr(300,300),290),1,I.out()); // __NEW
+          ELISE_COPY(disc(Pt2dr(300,300),5),0,I.out());   // __NEW
           dist_chamfer_cabl(I,144);
       }
 

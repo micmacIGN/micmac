@@ -39,8 +39,9 @@ void BenchcSysQuadCreuse
       )
 {
     bool isFixe = NRrandom3() < 0.5;
-    cFormQuadCreuse aSCr(aNbVar,isFixe);
-    aSCr.SetEpsB(1e-10);
+    //cFormQuadCreuse aSCr(aNbVar,isFixe);
+    cFormQuadCreuse aSCr( aNbVar, cElMatCreuseGen::StdNewOne( aNbVar, aNbVar, isFixe ) ); // __NEW
+    //aSCr.SetEpsB(1e-10);
     cGenSysSurResol & aS1 = aSCr;
 
     L2SysSurResol   aSPl(aNbVar);
@@ -56,8 +57,8 @@ void BenchcSysQuadCreuse
     for (INT aK=0; aK<aNbVar; aK++)
         aSet2.Alloc().NewInc(aIm2.data()+aK);
     aSet2.SetClosed();
-    if (aType !=  cNameSpaceEqF::eSysPlein)
-       aSet2.FQC()->SetEpsB(1e-10);
+    //if (aType !=  cNameSpaceEqF::eSysPlein)
+    //   aSet2.FQC()->SetEpsB(1e-10);
 
 
     Im1D_REAL8 aF(aNbVar,0.0);
@@ -77,6 +78,7 @@ void BenchcSysQuadCreuse
 	    {
 		if (aX==0)
 	           aSCr.SetOffsets(V);
+                //aS1.GSSR_AddNewEquation_Indexe(V,aPds,&C1,aCste);
                 aS1.GSSR_AddNewEquation_Indexe(V,aPds,&C1,aCste);
 	    }
 	    else 

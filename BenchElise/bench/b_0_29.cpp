@@ -68,8 +68,10 @@ void bench_petp_to_terrain
             const std::string&  aNameB,Pt2dr aPB
      )
 {
-     Data_Ori3D_Std  anOriA(aNameA.c_str(),false,false);
-     Data_Ori3D_Std  anOriB(aNameB.c_str(),false,false);
+     //Data_Ori3D_Std  anOriA(aNameA.c_str(),false,false);
+     //Data_Ori3D_Std  anOriB(aNameB.c_str(),false,false);
+     Data_Ori3D_Std  anOriA(aNameA.c_str(),false,false,false/*QuickGrid*/); // __NEW
+     Data_Ori3D_Std  anOriB(aNameB.c_str(),false,false,false); // __NEW
 
      CpleEpipolaireCoord * aCple = CpleEpipolaireCoord::OriEpipolaire
                                    (aNameA,aPA,aNameB,aPB,1.0);
@@ -155,8 +157,10 @@ void bench_epipole_orilib()
      std::string aName317(DDIR "4_317.ori");
      std::string aName318(DDIR "4_318.ori");
 
-     Data_Ori3D_Std  Ori317(aName317.c_str(),false,false);
-     Data_Ori3D_Std  Ori318(aName318.c_str(),false,false);
+     //Data_Ori3D_Std  Ori317(aName317.c_str(),false,false);
+     //Data_Ori3D_Std  Ori318(aName318.c_str(),false,false);
+     Data_Ori3D_Std  Ori317(aName317.c_str(),false,false,false/*QuickGrid*/); // __NEW
+     Data_Ori3D_Std  Ori318(aName318.c_str(),false,false,false); // __NEW
 
 
 
