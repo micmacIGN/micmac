@@ -342,7 +342,10 @@ void ReadLine2(
 
                 const ushort pIdCost = p.ID_Bf_Icost;
                 p.ID_Bf_Icost       += min(dZ - z           , WARPSIZE);
+                /////BUUUUUUUUUUUUGGGG
+                /// car on repasse plusieur fois par le meme Z
                 z                   += min(NAPPEMAX-pIdCost , WARPSIZE);
+                ////
             }
 
             p.prev_Dz = index;
