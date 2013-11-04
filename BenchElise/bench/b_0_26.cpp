@@ -483,7 +483,7 @@ void bench_tiff
     }
 
 
-    system(RM ELISE_BFI_DATA_DIR "*");
+    TheIntFuckingReturnValue=system(RM ELISE_BFI_DATA_DIR "*");
 }
 
 void bench_tiff
@@ -725,7 +725,7 @@ void bench_create_Elise_file_Im
      )
 {
 
-    system(RM ELISE_BFI_DATA_DIR "tmp");
+    TheIntFuckingReturnValue=system(RM ELISE_BFI_DATA_DIR "tmp");
     Elise_File_Im file
                   (
                        ELISE_BFI_DATA_DIR "tmp",
