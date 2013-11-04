@@ -63,7 +63,7 @@ int Tawny_main(int argc,char ** argv)
     bool  DoL1Filter=true;
 
     double  aSatThresh = 1e9;
-
+	string aNameOut="Ortho-Eg-Test-Redr.tif";
     ElInitArgMain
     (
 	argc,argv,
@@ -80,7 +80,8 @@ int Tawny_main(int argc,char ** argv)
 	             << EAM(mCorrThresh,"CorThr",true,"Threshold of correlation to validate homologous (Def 0.7)")
 	             << EAM(mNbPerIm,"NbPerIm",true,"Average number of point per image (Def = 1e4)")
 	             << EAM(DoL1Filter,"L1F",true,"Do L1 Filter on couple, def=true (change when process is blocked)")
-                      << EAM(aSatThresh,"SatThresh",true,"Threshold detemining saturation value (pixel >SatThresh will be ignored)")
+                 << EAM(aSatThresh,"SatThresh",true,"Threshold detemining saturation value (pixel >SatThresh will be ignored)")
+				 << EAM(aNameOut,"Out",true,"Name of output file (in the folder)") 
     );
 
 	#if (ELISE_windows)
@@ -108,6 +109,7 @@ int Tawny_main(int argc,char ** argv)
                         + std::string(" +DegRapY=") + ToString(mDegRapXY.y)
                         + std::string(" +RapGlobPhys=") + ToString(mRapGlobPhys)
                         + std::string(" +DynGlob=") + ToString(mDynGlob)
+						+ std::string(" +NameOrtho=") + aNameOut
                       ;
 	
     if (mImPrio0!="") aCom = aCom+ " +ImPrio="+QUOTE(mImPrio0);

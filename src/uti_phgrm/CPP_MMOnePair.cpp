@@ -52,9 +52,13 @@ class cMMOnePair
       cMMOnePair(int argc,char ** argv);
     protected :
 
+      bool             mExe;
       int              mZoom0;
       int              mZoomF;
+      int              mStepEnd;
+      std::vector<int> mVZoom;
       bool             mByEpip;
+      bool             mCMS;
       bool             mForceCreateE;
       std::string      mNameIm1Init;
       std::string      mNameIm2Init;
@@ -64,11 +68,14 @@ class cMMOnePair
       std::string      mNameIm2;
       std::string      mNameOri;
       cCpleEpip        *mCpleE;
+      bool             mDoubleSens;
+      bool             mNoOri;
 
 
       std::string      mDirP;
       std::string      mPatP;
       std::vector<char *>        mArgcAWS;  // AppliWithSetImage
+      bool             mDoMR;
 };
 
 class cAppliMMOnePair : public cMMOnePair,
@@ -77,7 +84,11 @@ class cAppliMMOnePair : public cMMOnePair,
      public :
          cAppliMMOnePair(int argc,char ** argv);
      private :
-         void MatchOneWay(bool MasterIs1);
+         void MatchTwoWay(int aStep0,int aStepF);
+         void MatchOneWay(bool MasterIs1,int aStep0,int aStepF);
+         void DoMasqReentrant(bool First,int aStep,bool Last);
+         void UseReentrant(bool First,int aStep,bool Last);
+
          cImaMM * mIm1;
          cImaMM * mIm2;
 };
@@ -91,23 +102,39 @@ class cAppliMMOnePair : public cMMOnePair,
 
 
 cMMOnePair::cMMOnePair(int argc,char ** argv) :
+    mExe          (true),
     mZoom0        (64),
     mZoomF        (1),
     mByEpip       (true),
+    mCMS          (true),
     mForceCreateE (false),
-    mCpleE        (0)
+    mCpleE        (0),
+    mDoubleSens   (true),
+    mNoOri        (false),
+    mDoMR         (true)
 {
   ElInitArgMain
   (
         argc,argv,
         LArgMain()  << EAMC(mNameIm1Init,"Name Im1")
                     << EAMC(mNameIm2Init,"Name Im2")
-                    << EAMC(mNameOriInit,"Orientation"),
-        LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64")
+                    << EAMC(mNameOriInit,"Orientation (if NONE, work directly on epipolar)"),
+        LArgMain()  << EAM(mExe,"Exe",true,"Execute Matching, def=true")
+                    << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64")
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final, Def=1")
-                    << EAM(mByEpip,"ByE",true,"By Epipolar (def = true when appliable)")
+                    << EAM(mByEpip,"CreateE",true," Create Epipolar (def = true when appliable)")
+                    << EAM(mDoubleSens,"2Way",true,"Match in 2 Way (Def=true)")
+                    << EAM(mCMS,"CMS",true,"Multi Scale Coreel (Def=ByEpip)")
+                    << EAM(mDoMR,"DoMR",true,"Do re-entering masq (def=true)")
   );
+
+  mNoOri = (mNameOriInit=="NONE");
+  if ((! EAMIsInit(&mByEpip)) && mNoOri)
+     mByEpip = false;
   mDirP =DirOfFile(mNameIm1Init);
+
+  if (!EAMIsInit(&mCMS)) 
+     mCMS = mByEpip;
 
   if (mByEpip)
   {
@@ -152,13 +179,206 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
    cMMOnePair(argc,argv),
    cAppliWithSetImage(2,&(mArgcAWS[0]),0)
 {
+    if (! EAMIsInit(&mZoom0))
+    {
+       mZoom0 = DeZoomOfSize(7e4);
+       // std::cout  << "ZZ " << mZoom0 << "\n";
+    }
+
+    mVZoom.push_back(-1);
+    for (int aDZ = mZoom0 ; aDZ >= mZoomF ; aDZ /=2)
+    {
+         mVZoom.push_back(aDZ);
+         if ((aDZ==mZoom0) || (aDZ==mZoomF))
+             mVZoom.push_back(aDZ);
+    }
+    // mStepEnd = round_ni(log2(mZoom0/double(mZoomF))) + 3;
+    mStepEnd = mVZoom.size()-1;
+
+    // std::cout << "STEP END = " << mStepEnd << " " << round_ni(log2(mZoom0/double(mZoomF))) + 3 << " :: " << mVZoom << "\n"; exit(0);
+
     ELISE_ASSERT(mImages.size()==2,"Expect exaclty 2 images in cAppliMMOnePair");
     mIm1 = mImages[0];
     mIm2 = mImages[1];
+
+    if (false)
+    {
+       MatchTwoWay(1,mStepEnd+1);
+    }
+    else
+    {
+        for (int aStep=1 ; aStep<=mStepEnd ; aStep++)
+        {
+           MatchTwoWay(aStep,aStep+1);
+           int aDeZoom = mVZoom[aStep];
+           if (mDoMR && ((aDeZoom!= mZoomF) || (aStep==mStepEnd)) && (aDeZoom<=8))
+           {
+              DoMasqReentrant(true,aStep,aStep==mStepEnd);
+              DoMasqReentrant(false,aStep,aStep==mStepEnd);
+           }
+        }
+    }
+}
+void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
+{
+     std::string aBlk = " ";
+
+     std::string aNameInitA = MasterIs1 ? mNameIm1Init : mNameIm2Init;
+     std::string aNameInitB = MasterIs1 ? mNameIm2Init : mNameIm1Init;
+     std::string aPref = "AR"+ std::string(MasterIs1? "1" : "2");
+
+     int aZoom = mVZoom[aStep];
+     std::string aName = mDir+LocDirMec2Im(mNameIm1,mNameIm2)+"Z_Num"+ToString(aStep)+"_DeZoom"+ToString(aZoom)+"_LeChantier.xml";
+     cFileOriMnt aFOM = StdGetFromPCP(aName,FileOriMnt);
+     double aResol = aFOM.ResolutionAlti() / double ( aFOM.ResolutionPlani().x);
+
+
+     std::string aCom =     MMBinFile(MM3DStr)
+                          + std::string(" CoherEpip ")
+                          + aNameInitA + aBlk
+                          + aNameInitB + aBlk
+                          + mNameOriInit + aBlk
+                          + " DoM=true"
+                          + " ByE="      + ToString(mByEpip)
+                          + " NumPx="    + ToString(aStep)
+                          + " NumMasq="  + ToString(aLast ? (aStep-1) : aStep)
+                          + " Zoom="     + ToString(mVZoom[aStep])
+                          + " Step="     + ToString(aResol)
+                          + " SigP="     + ToString(1.5)
+                          + " Prefix="   + aPref
+                      ;
+
+     std::cout << "COOOOM " << aCom << "\n";
+     System(aCom);
+
+     std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
+     std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
+
+     std::string aNameCor =    aLast                                                             ?
+                               ("AutoMask_LeChantier_Num_" + ToString(aStep-1)+".tif")           :
+                               ("Masq_LeChantier_DeZoom" + ToString(mVZoom[aStep+1]) +  ".tif")  ;
+     aNameCor =     mDir +  LocDirMec2Im(aNamA,aNamB) + aNameCor;
+
+     Tiff_Im aFMCor(aNameCor.c_str());
+     std::string aNameNew = aPref + "_Masq1_Glob.tif";
+     Tiff_Im aFNew(aNameNew.c_str());
+
+     Fonc_Num aFonc = aFNew.in(0);
+     if (!aLast)
+     {
+        aFonc = dilat_32((close_32(aFonc,8)),4);
+        aFonc = StdFoncChScale_Bilin(aFonc,Pt2dr(0,0),Pt2dr(0.5,0.5));
+     }
+
+
+     ELISE_COPY
+     (
+        aFMCor.all_pts(),
+        aFMCor.in() && aFonc,
+        aFMCor.out()
+     );
 }
 
-void cAppliMMOnePair::MatchOneWay(bool MasterIs1)
+/*
+
+void cAppliMMOnePair::DoMasqReentrant(int aStep,bool aLast)
 {
+     std::string aBlk = " ";
+
+     int aZoom = mVZoom[aStep];
+     std::string aName = mDir+LocDirMec2Im(mNameIm1,mNameIm2)+"Z_Num"+ToString(aStep)+"_DeZoom"+ToString(aZoom)+"_LeChantier.xml";
+     cFileOriMnt aFOM = StdGetFromPCP(aName,FileOriMnt);
+     double aResol = aFOM.ResolutionAlti() / double ( aFOM.ResolutionPlani().x);
+
+
+     std::string aCom =     MMBinFile(MM3DStr)
+                          + std::string(" CoherEpip ")
+                          + mNameIm1Init + aBlk
+                          + mNameIm2Init + aBlk
+                          + mNameOriInit + aBlk
+                          + " DoM=true"
+                          + " ByE="      + ToString(mByEpip)
+                          + " NumPx="    + ToString(aStep)
+                          + " NumMasq="  + ToString(aLast ? (aStep-1) : aStep)
+                          + " Zoom="     + ToString(mVZoom[aStep])
+                          + " Step="     + ToString(aResol)
+                          + " SigP="     + ToString(1.5)
+                      ;
+
+     std::cout << "COOOOM " << aCom << "\n";
+     System(aCom);
+
+     UseReentrant(true ,aStep,aLast);
+     UseReentrant(false,aStep,aLast);
+
+     // std::cout << "WAIT REENTRANT \n";  getchar();
+}
+void cAppliMMOnePair::UseReentrant(bool MasterIs1,int aStep,bool aLast)
+{
+     std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
+     std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
+
+     std::string aNameCor =    aLast                                                             ?
+                               ("AutoMask_LeChantier_Num_" + ToString(aStep-1)+".tif")           :
+                               ("Masq_LeChantier_DeZoom" + ToString(mVZoom[aStep+1]) +  ".tif")  ;
+     aNameCor =     mDir +  LocDirMec2Im(aNamA,aNamB) + aNameCor;
+
+     Tiff_Im aFMCor(aNameCor.c_str());
+     std::string aNameNew = "AR_Masq"+ ToString(MasterIs1 ? 1:2) + "_Glob.tif";
+     Tiff_Im aFNew(aNameNew.c_str());
+
+     Fonc_Num aFonc = aFNew.in(0);
+     if (!aLast)
+     {
+        aFonc = dilat_32((close_32(aFonc,8)),4);
+        aFonc = StdFoncChScale_Bilin(aFonc,Pt2dr(0,0),Pt2dr(0.5,0.5));
+     }
+
+
+     ELISE_COPY
+     (
+        aFMCor.all_pts(),
+        aFMCor.in() && aFonc,
+        aFMCor.out()
+     );
+}
+*/
+
+void cAppliMMOnePair::MatchTwoWay(int aStep0,int aStepF)
+{
+    for (int aK=0 ; aK<2 ; aK++)
+    {
+       bool First = (aK==0);
+       if (mDoubleSens |First )
+          MatchOneWay(First,aStep0,aStepF);
+    }
+}
+
+void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF)
+{
+     std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
+     std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
+
+     std::string aCom =     MMBinFile(MM3DStr) 
+                          + std::string(" MICMAC ")
+                          +  XML_MM_File("MM-Epip.xml ") 
+                          + " WorkDir="  + mDir
+                          + " +Im1="     + aNamA   
+                          + " +Im2="     + aNamB 
+                          + " +Zoom0="   + ToString(mZoom0)
+                          + " +ZoomF="   + ToString(mZoomF)
+                          + " FirstEtapeMEC=" + ToString(aStep0)
+                          + " LastEtapeMEC=" + ToString(aStepF)
+                          + " +Purge="   + ToString(aStep0==1)
+                          + " +Ori="     + mNameOri
+                          + " +DoEpi="   + ToString(mByEpip || mNoOri)
+                          + " +CMS="     + ToString(mCMS)
+// FirstEtapeMEC=5 LastEtapeMEC=6
+                      ;
+
+     std::cout << aCom << "\n";
+     if (mExe)
+        System(aCom);
 }
 
 /*****************************************************************/

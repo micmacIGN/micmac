@@ -32,7 +32,7 @@ OPTION(WITH_IGN_IMAGE "Include Ign image" OFF )
 OPTION(WITH_HEADER_PRECOMP "En-tetes precompilees" ON )
 
 # Utiliser les en-tetes precompilees
-OPTION(BUILD_ONLY_ELISE "Projet Elise uniquement" OFF )
+OPTION(BUILD_ONLY_ELISE_MM3D "Projet Elise et MM3D uniquement" OFF )
 
 # construire l'interface graphique
 OPTION(WITH_ETALONPOLY  "build etalonnage polygone" ON)
@@ -45,9 +45,6 @@ OPTION(WITH_OPEN_MP "use OpenMP" OFF )
 
 # print system calls
 OPTION(TRACE_SYSTEM "print system calls" OFF )
-
-# compile low-level test bench
-OPTION(BUILD_BENCH "compile low-level test bench" OFF )
 
 if ( TRACE_SYSTEM )
 	add_definitions(-D__TRACE_SYSTEM__)
@@ -365,7 +362,7 @@ IF (MSVC)
 
 	# Zm131 -> Erreur de compilation sous windows 7 avec Cuda et Boost		
         if (${CUDA_ENABLED})
-            add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
+            add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /wd4355 /nologo" )
         else()
             add_definitions( "-Zm131 /W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
         endif()
@@ -423,8 +420,4 @@ if(${WITH_DOXYGEN})
 	  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 	  add_custom_target(doc ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMENT "Generating API documentation with Doxygen" VERBATIM)
     endif(DOXYGEN_FOUND)
-endif()
-
-if ( ${BUILD_BENCH} )
-   include(${PROJECT_SOURCE_DIR}/BenchElise/bench/CMakeLists.txt)
 endif()

@@ -150,11 +150,13 @@ class cParamModifGeomMTDNuage
         cParamModifGeomMTDNuage
         (
             double aScale,  // Par ex= 2 si nuage cree a ss resol 2 et exploite a resol 2
-            Box2dr aBox	    // a la resolution d'exploitation
+            Box2dr aBox,    // a la resolution d'exploitation
+            bool   aDequant = false
         );
 
         double mScale;
         Box2dr mBox;
+        bool   mDequant;
 };
 
 class cElNuage3DMaille : public cCapture3D
@@ -413,6 +415,32 @@ class cElNuage3DMaille : public cCapture3D
 
         void NuageXZGCOL(const std::string & aName);
 
+        bool  IndexInsideGeom(const tIndex2D & aP) const
+        {
+            return     (aP.x >= 0)
+                    && (aP.y >= 0)
+                    && (aP.x < mSzGeom.x)
+                    && (aP.y < mSzGeom.y);
+        }
+        bool  IndexInsideData(const tIndex2D & aP) const
+        {
+            return     (aP.x >= 0)
+                    && (aP.y >= 0)
+                    && (aP.x < mSzData.x)
+                    && (aP.y < mSzData.y);
+        }
+        bool  IndexIsOK(const tIndex2D & aP) const
+        {
+             return IndexInsideData(aP) && IndexHasContenu(aP);
+        }
+
+        bool IndexIsOKForInterpol(const Pt2dr & aP) const
+        {
+             Pt2di aQ = round_down(aP);
+             return IndexInsideData(aQ) && IndexHasContenuForInterpol(aQ);
+        }
+
+
      private :
 
         void   FinishBasculeInThis
@@ -453,33 +481,9 @@ class cElNuage3DMaille : public cCapture3D
         void AssertCamInit() const;
 
 
-        bool  IndexInsideGeom(const tIndex2D & aP) const
-        {
-            return     (aP.x >= 0)
-                    && (aP.y >= 0)
-                    && (aP.x < mSzGeom.x)
-                    && (aP.y < mSzGeom.y);
-        }
-        bool  IndexInsideData(const tIndex2D & aP) const
-        {
-            return     (aP.x >= 0)
-                    && (aP.y >= 0)
-                    && (aP.x < mSzData.x)
-                    && (aP.y < mSzData.y);
-        }
 
 
 
-        bool  IndexIsOK(const tIndex2D & aP) const
-        {
-             return IndexInsideData(aP) && IndexHasContenu(aP);
-        }
-
-        bool IndexIsOKForInterpol(const Pt2dr & aP) const
-        {
-             Pt2di aQ = round_down(aP);
-             return IndexInsideData(aQ) && IndexHasContenuForInterpol(aQ);
-        }
 
         void UpdateDefInterp(const Pt2di & aP);
         void UpdateVoisAfterModif(const Pt2di & aP);

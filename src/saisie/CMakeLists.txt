@@ -10,7 +10,7 @@ if ( MSVC )
 endif()
 
 if ( WIN32 )
-	cmake_policy(SET CMP0020 NEW)
+	#cmake_policy(SET CMP0020 NEW)
 ENDIF()
 
 # Find the QtWidgets library
@@ -33,6 +33,7 @@ set(saisie_SRCS main.cpp
 	        Cloud.cpp
 	        Data.cpp
 	        Engine.cpp
+			3DObject.cpp
 	        ../poisson/plyfile.cpp)
 
 set(saisie_HEADERS GLWidget.h
@@ -40,6 +41,7 @@ set(saisie_HEADERS GLWidget.h
 		   Cloud.h
 		   Engine.h
 		   Data.h
+		   3DObject.h
 		   3DTools.h)
 
 SET(Saisie_RCS ./icones/icones.qrc)
@@ -60,7 +62,11 @@ include_directories( ${Qt5_INCLUDES}
 		     ${PROJECT_SOURCE_DIR}
 		     ${PROJECT_BINARY_DIR} )
 
-add_executable(saisie ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS_MOC})
+IF(WIN32)
+	add_executable(saisie WIN32 ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS_MOC})
+else()
+	add_executable(saisie ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS_MOC})
+endif()
 
 qt5_use_modules(saisie Widgets Core Gui Xml Concurrent OpenGL)
 
@@ -68,4 +74,6 @@ target_link_libraries(saisie  ${OPENGL_LIBRARIES}
 			      elise
 			      ${X11_LIBRARIES} )
 
+
+	
 install(TARGETS saisie DESTINATION ${Install_Dir})

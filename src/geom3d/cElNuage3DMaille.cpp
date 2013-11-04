@@ -1455,7 +1455,7 @@ class cBasculeNuage : public cZBuffer
         const cElNuage3DMaille * mInput;
 };
 
-    // cXML_ParamNuage3DMaille aNewParam = CropAndSousEch(mParams,aTr,aScale,aSz);
+ // cXML_ParamNuage3DMaille aNewParam = CropAndSousEch(mParams,aTr,aScale,aSz);
 
 
 static    float aBasculeDef = -5e10f;

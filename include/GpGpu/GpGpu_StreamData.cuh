@@ -140,8 +140,6 @@ __device__ inline int s(T v)
     return sens ? v : -v;
 }
 
-//#define sgn(v) (sens ? v : -v)
-
 template<class T>
 class SimpleStream
 {
@@ -156,6 +154,8 @@ public:
                         __device__ void readFrom(S* sharedBuffer,uint delta = 0);
 
     template<bool sens> __device__ void incre();
+
+    template<bool sens> __device__ void ReverseIncre();
 
     T                   __device__  GetValue(int id);
 
@@ -232,8 +232,12 @@ void SimpleStream<T>::incre()
 {
     _idG += sgn(_sizeBuffer);
 }
+
+template<class T> template<bool sens> __device__
+void SimpleStream<T>::ReverseIncre()
+{
+    reverse<sens>();
+    incre<sens>();
+}
+
 #endif
-
-
-
-
