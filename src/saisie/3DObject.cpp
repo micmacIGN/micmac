@@ -454,9 +454,6 @@ cPolygon::cPolygon():
 
 void cPolygon::draw()
 {
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-
     glColor3f(.1f,1.f,.2f);
 
     glBegin(_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
@@ -487,8 +484,6 @@ void cPolygon::draw()
             glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
         }
     }
-
-    glPopMatrix();
 }
 
 cPolygon & cPolygon::operator = (const cPolygon &aP)

@@ -236,8 +236,6 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                            }
 
                            m_dihedron.clear();
-
-                           update();
                        }
                        else if (m_polygon.idx() != -1)
                            m_Click++;
@@ -515,7 +513,9 @@ void GLWidget::paintGL()
             glDrawArrays( GL_POINTS, 0, m_Data->getCloud(0)->size()*3 );
 
             glDisableClientState(GL_VERTEX_ARRAY);
-            glDisableClientState(GL_COLOR_ARRAY);           
+            glDisableClientState(GL_COLOR_ARRAY);
+
+            glDisable(GL_DEPTH_TEST);
         }
 
         enableOptionLine();
@@ -547,12 +547,18 @@ void GLWidget::paintGL()
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glOrtho(0,_glViewport[2],_glViewport[3],0,-1,1);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        //glDisable(GL_DEPTH_TEST);
 
         enableOptionLine();
 
         drawPolygon();
 
         disableOptionLine();
+
+        //glEnable(GL_DEPTH_TEST);
     }
 
     //current messages (if valid)
@@ -812,6 +818,8 @@ void GLWidget::setData(cData *data)
     }
 
     glGetIntegerv (GL_VIEWPORT, _glViewport);
+
+    update();
 }
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -1496,8 +1504,6 @@ void GLWidget::resetView()
         showCams(false);
 
         emit(interactionMode(false));
-
-        update();
     }
 }
 
