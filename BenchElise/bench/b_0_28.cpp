@@ -163,7 +163,8 @@ void bench_red_op_ass ()
 //------- avec flux/RLE
     ELISE_COPY
     (
-          disc(Pt2di(10,10),30),
+          //disc(Pt2di(10,10),30),
+          disc(Pt2dr(10,10),30), // __NEW
           Abs(v4.red_sum(1)-4),
           sigma(dif)
     );
@@ -173,7 +174,8 @@ void bench_red_op_ass ()
 
     ELISE_COPY
     (
-          disc(Pt2di(10,10),30),
+          //disc(Pt2di(10,10),30),
+          disc(Pt2dr(10,10),30), // __NEW
           Abs(v4.red_sum(1)-4),
           sigma(dif)
     );
@@ -181,7 +183,8 @@ void bench_red_op_ass ()
 
     ELISE_COPY
     (
-          disc(Pt2di(10,10),30),
+          //disc(Pt2di(10,10),30),
+          disc(Pt2dr(10,10),30), // __NEW
           Abs(v4.red_sum(FX)-4*FX),
           sigma(dif)
     );
@@ -189,7 +192,8 @@ void bench_red_op_ass ()
 
     ELISE_COPY
     (
-          disc(Pt2di(10,10),30),
+          //disc(Pt2di(10,10),30),
+          disc(Pt2dr(10,10),30), // __NEW
           Abs(v4.red_max(FX)-(FX+1)),
           sigma(dif)
     );
@@ -197,7 +201,8 @@ void bench_red_op_ass ()
 
     ELISE_COPY
     (
-          disc(Pt2di(10,10),30),
+          //disc(Pt2di(10,10),30),
+          disc(Pt2dr(10,10),30), // __NEW
           Abs(v4.red_min(FX)-(FX-1)),
           sigma(dif)
     );

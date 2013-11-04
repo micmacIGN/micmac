@@ -218,7 +218,10 @@ void bench_rle_bitm_win(Pt2di sz)
             INT gr = k*2;
 
             ELISE_COPY(line(p0,p1),(gr*nb_0)/256+v0,I2.oclip());
-            bw.draw_seg(p0,p1,G30(gr));
+            //bw.draw_seg(p0,p1,G30(gr));
+            Pt2dr p0_r ( (REAL)p0.x, (REAL)p0.y ); // __NEW
+            Pt2dr p1_r ( (REAL)p1.x, (REAL)p1.y ); // __NEW
+            bw.draw_seg(p0_r,p1_r,G30(gr));        // __NEW
         }
         BENCH_ASSERT(egale_a_une_cste_pres(IA,I2));
         BENCH_ASSERT(egale_a_une_cste_pres(IA,IB));
@@ -258,7 +261,8 @@ void bench_chc_bitm_win()
 {
     INT Tail = 500;
     Pt2di sz(Tail,Tail);
-    Pt2dr c = sz / 2;
+    //Pt2dr c = sz / 2;
+    Pt2dr c( Tail/2, Tail/2 ); // __NEW
     REAL  Ray = (Tail/2.0) * 0.95;
     REAL C = cos(1.0); 
     REAL S = sin(1.0); 

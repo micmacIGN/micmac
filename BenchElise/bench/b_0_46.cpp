@@ -509,7 +509,8 @@ void BenchOrFromPtsApp()
      ElMatrix<REAL>  M = ElMatrix<REAL>::Rotation 
                         ((NRrandom3()-0.5)*10, NRrandom3()-0.5, NRrandom3()-0.5);
 
-     ElRotation3D   Orient ( Tr,M);
+     //ElRotation3D   Orient ( Tr,M);
+     ElRotation3D   Orient ( Tr,M, true/*isDirect*/); // __NEW
      REAL Focale = 1+NRrandom3()*10;
      Pt2dr centre(NRrandom3(),NRrandom3());
 
@@ -527,8 +528,10 @@ void BenchOrFromPtsApp()
      REAL c7 = RandExp(Fdist,Rdist,7);
      ElDistRadiale_Pol357 Dist (1e5, CDist,c3,c5,c7);
   
-     cCamStenopeDistRadPol       Cam0(Focale,centre,Dist);
-     cCamStenopeDistRadPol       CamOr(Focale,centre,Dist);
+     //cCamStenopeDistRadPol       Cam0(Focale,centre,Dist);
+     //cCamStenopeDistRadPol       CamOr(Focale,centre,Dist);
+     cCamStenopeDistRadPol       Cam0( false/*isDistC2M*/, Focale, centre, Dist, vector<double>() );
+     cCamStenopeDistRadPol       CamOr( false, Focale, centre, Dist, vector<double>() );
      CamOr.SetOrientation(Orient);
 
      Pt2dr q1 =  CamOr.R3toF2(p1);
@@ -595,7 +598,8 @@ void BenchOrFromPtsApp()
 	 }
 	 REAL aDMin;
 
-	 ElRotation3D aRotRob = Cam0.CombinatoireOFPA(6,L3Rob, L2Rob,&aDMin);
+	 //ElRotation3D aRotRob = Cam0.CombinatoireOFPA(6,L3Rob, L2Rob,&aDMin);
+	 ElRotation3D aRotRob = Cam0.CombinatoireOFPA( false/*tousDevant*/, 6, L3Rob, L2Rob, &aDMin ); // __NEW
 
 	 REAL aDROT = 
                euclid(aRotRob.tr()-CamOr.Orient().tr())
@@ -607,7 +611,8 @@ void BenchOrFromPtsApp()
      else
      {
 
-        ElRotation3D Or= Cam0.OrientFromPtsAppui(L3,L2);
+        //ElRotation3D Or= Cam0.OrientFromPtsAppui(L3,L2);
+        ElRotation3D Or= Cam0.OrientFromPtsAppui( false/*tousDevant*/, L3, L2 ); // __NEW
 	REAL aDROT =     euclid(Or.tr()-CamOr.Orient().tr())
                      +   Or.Mat().L2(CamOr.Orient().Mat()) ;
 
@@ -637,7 +642,8 @@ REAL TestOrient::t0()
      ElMatrix<REAL>  M = ElMatrix<REAL>::Rotation 
                         ((NRrandom3()-0.5)*10, NRrandom3()-0.5, NRrandom3()-0.5);
 
-     ElRotation3D   Orient ( Tr,M);
+     //ElRotation3D   Orient ( Tr,M);
+     ElRotation3D   Orient ( Tr,M, true/*isDirect*/); // __NEW
      REAL Focale = 1+NRrandom3()*10;
      Pt2dr centre(0,0);
 
@@ -646,8 +652,10 @@ REAL TestOrient::t0()
      Pt3dr p3 = PrandTeta(PI*4.0/3.0);
      Pt3dr p4 = PrandTeta(PI);
   
-     CamStenopeIdeale  Cam0(Focale,centre);
-     CamStenopeIdeale  CamSimul(Focale,centre);
+     //CamStenopeIdeale  Cam0(Focale,centre);
+     //CamStenopeIdeale  CamSimul(Focale,centre);
+     CamStenopeIdeale  Cam0(false/*isC2M*/, Focale, centre, vector<double>()/*ParamAF*/ ); // __NEW
+     CamStenopeIdeale  CamSimul(false/*isC2M*/, Focale, centre, vector<double>()/*ParamAF*/ ); // __NEW
      CamSimul.SetOrientation(Orient);
 
      Pt2dr q1 =  CamSimul.R3toF2(p1);
@@ -668,7 +676,8 @@ REAL TestOrient::t0()
      L2.push_back(DirD2(q3));
      L2.push_back(DirD2(q4));
 
-     ElRotation3D Or= Cam0.OrientFromPtsAppui(L3,L2);
+     //ElRotation3D Or= Cam0.OrientFromPtsAppui(L3,L2);
+     ElRotation3D Or= Cam0.OrientFromPtsAppui( false/*tousDevant*/, L3, L2 ); // __NEW
 
 
      CamStenopeIdeale   Cam2(Cam0,Or);
@@ -810,7 +819,8 @@ void BenchDiffCam()
      REAL A12 = (NRrandom3()-0.5);
      ElMatrix<REAL>  M = ElMatrix<REAL>::Rotation (A01,A02,A12);
 
-     ElRotation3D   Orient ( Tr,M);
+     //ElRotation3D   Orient ( Tr,M);
+     ElRotation3D   Orient ( Tr,M, true/*isDirect*/); // __NEW
 
      // Parcequ'il existe une ambiguite sur les angles :
      A01 = Orient.teta01();
@@ -832,7 +842,10 @@ void BenchDiffCam()
              NRrandom3()*0.1
     );
 
-    cCamStenopeDistRadPol  Cam0(Focale,CFoc,Dist);
+    //cCamStenopeDistRadPol  Cam0(Focale,CFoc,Dist);
+    cCamStenopeDistRadPol Cam0( false /*isDistC2M*/, Focale, CFoc, Dist, vector<double>() ); // __NEW
+    
+    
     Cam0.SetOrientation(Orient);
 
 
@@ -861,13 +874,15 @@ void BenchDiffCam()
          Pt3dr dtr = Pt3dr(NRrandom3(),NRrandom3(),NRrandom3())*epsTr;
 
          ElMatrix<REAL>  Ma = ElMatrix<REAL>::Rotation (A01+a01,A02+a02,A12+a12);
-         ElRotation3D   O2 (Tr+dtr,Ma);
+         //ElRotation3D   O2 (Tr+dtr,Ma);
+         ElRotation3D   O2 (Tr+dtr,Ma, true/*isDirect*/); // __NEW
          CamStenope  Cam2(Cam0,O2);
 
          ElMatrix<REAL>  MaD = ElMatrix<REAL>::Rotation 
                                (A01+a01/2.0,A02+a02/2.0,A12+a12/2.0);
 
-         ElRotation3D   O2D (Tr+dtr/2.0,MaD);
+         //ElRotation3D   O2D (Tr+dtr/2.0,MaD);
+         ElRotation3D   O2D (Tr+dtr/2.0,MaD, true/*isDirect*/); // __NEW
          CamStenope     Cam2D(Cam0,O2D);
          ElMatrix<REAL> MDP = Cam2D.DiffR3F2Param(p0);
          ElMatrix<REAL> Param(1,6);
@@ -1190,7 +1205,8 @@ void BenchHomographie()
     {
          Pt2dr aP (NRrandC(),NRrandC());
 
-         aPack.add(ElCplePtsHomologues(aP,aHom1.Direct(aP),1.0));
+         //aPack.add(ElCplePtsHomologues(aP,aHom1.Direct(aP),1.0));
+         aPack.Cple_Add(ElCplePtsHomologues(aP,aHom1.Direct(aP),1.0)); // __NEW
     }
     cElHomographie aHom2(aPack,NRrandC() >0);
 

@@ -122,7 +122,8 @@ void bench_som_rel_flag()
 {
      bench_som_rel_flag
      (
-          disc(Pt2di(30,30),25),
+          //disc(Pt2di(30,30),25),
+          disc(Pt2dr(30,30),25), // __NEW
           FX+FY,
           Pt2di(60,60),
          (INT *) 0
@@ -130,7 +131,8 @@ void bench_som_rel_flag()
 
      bench_som_rel_flag
      (
-          select(disc(Pt2di(30,30),25),(FX+FY)%2),
+          //select(disc(Pt2di(30,30),25),(FX+FY)%2),
+          select(disc(Pt2dr(30,30),25),(FX+FY)%2), // __NEW
           FX+FY,
           Pt2di(60,60),
          (INT *) 0

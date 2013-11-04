@@ -146,12 +146,17 @@ void bench_disque_cercle
           REAL   r
      )
 {
+    Pt2dr c_r( (REAL)c.x, (REAL)c.y );
     bench_front_to_surf
     (
-         circle(c,r,true),
-         circle(c,r,false),
-         disc(c,r,true),
-         disc(c,r,false),
+         //circle(c,r,true),
+         //circle(c,r,false),
+         //disc(c,r,true),
+         //disc(c,r,false),
+         circle(c_r,r,true),  // __NEW
+         circle(c_r,r,false), // __NEW
+         disc(c_r,r,true),    // __NEW
+         disc(c_r,r,false),   // __NEW
          Square(FX-c.x)+Square(FY-c.y) < ElSquare(r),
          true,
          true,
@@ -177,11 +182,15 @@ void bench_polyg_line(ElList<Pt2di> l)
 
 void bench_flux_geom()
 {
-         bench_disque_cercle(Pt2dr(2+8,2+8),2);
      for (INT i = 2; i < 10; i++)
-         bench_disque_cercle(Pt2dr(i+8,i+8),i);
+         //bench_disque_cercle(Pt2dr(2+8,2+8),2);
+         bench_disque_cercle(Pt2di(2+8,2+8),2); // __NEW
+     for (INT i = 2; i < 10; i++)
+         //bench_disque_cercle(Pt2dr(i+8,i+8),i);
+         bench_disque_cercle(Pt2di(i+8,i+8),i); // __NEW
 
-     bench_disque_cercle(Pt2dr(23,23),15.3);
+     //bench_disque_cercle(Pt2dr(23,23),15.3);
+     bench_disque_cercle(Pt2di(23,23),15.3); // __NEW
 
      bench_polyg_line 
      ( 
