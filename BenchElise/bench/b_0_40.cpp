@@ -235,7 +235,8 @@ class VerifIter
           void bug2();
           void show();
 
-      PRIVATE :
+      //PRIVATE :
+      private : // __NEW
           ElGraphe<INT,INT> _gr;
           INT    _s;
           INT    _s2;

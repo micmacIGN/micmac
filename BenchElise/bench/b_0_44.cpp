@@ -25,7 +25,8 @@ void bench_dist_pt_box(Box2di box,INT nb)
     Box2di  bp1 (box._p0,box._p1+Pt2di(1,1));
     for (INT k=0 ; k< nb ; k++)
     {
-          Pt2di pt = PtRand(box,1.0);
+          //Pt2di pt = PtRand(box,1.0);
+          Pt2di pt( PtRand(box,1.0) ); // __NEW
           INT d2;
 
           ELISE_COPY
@@ -39,7 +40,8 @@ void bench_dist_pt_box(Box2di box,INT nb)
               ElAbs(d2- box.SquareDist(Pt2dr(pt))) < epsilon
           );
 
-          BENCH_ASSERT(bp1.Intersecte(pt) ==  (d2==0));
+          //BENCH_ASSERT(bp1.Intersecte(pt) ==  (d2==0));
+          BENCH_ASSERT(bp1.Intersecte(Pt2dr(pt)) ==  (d2==0)); // __NEW
     }
 }
 
@@ -62,10 +64,14 @@ REAL BovDistSegBox(const Box2di & b,const SegComp & s)
      b.Corners(pt);
      return ElMin4
             (
-               s.square_dist(SegComp::seg,SegComp(pt[0],pt[1]),SegComp::seg),
-               s.square_dist(SegComp::seg,SegComp(pt[1],pt[2]),SegComp::seg),
-               s.square_dist(SegComp::seg,SegComp(pt[2],pt[3]),SegComp::seg),
-               s.square_dist(SegComp::seg,SegComp(pt[3],pt[0]),SegComp::seg)
+               //s.square_dist(SegComp::seg,SegComp(pt[0],pt[1]),SegComp::seg),
+               //s.square_dist(SegComp::seg,SegComp(pt[1],pt[2]),SegComp::seg),
+               //s.square_dist(SegComp::seg,SegComp(pt[2],pt[3]),SegComp::seg),
+               //s.square_dist(SegComp::seg,SegComp(pt[3],pt[0]),SegComp::seg)
+               s.square_dist(SegComp::seg,SegComp( Pt2dr(pt[0]), Pt2dr(pt[1]) ),SegComp::seg), // __NEW
+               s.square_dist(SegComp::seg,SegComp( Pt2dr(pt[1]), Pt2dr(pt[2]) ),SegComp::seg), // __NEW
+               s.square_dist(SegComp::seg,SegComp( Pt2dr(pt[2]), Pt2dr(pt[3]) ),SegComp::seg), // __NEW
+               s.square_dist(SegComp::seg,SegComp( Pt2dr(pt[3]), Pt2dr(pt[0]) ),SegComp::seg)  // __NEW
             );
 }
 

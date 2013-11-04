@@ -131,8 +131,10 @@ void     bench_tab2D_dyn()
     {
        {
 
-          Pt2di  aP0 = (Pt2dr(NRrandC(),NRrandC()) * 20);
-          Pt2di  aP1 = aP0+ (Pt2dr(NRrandom3(),NRrandom3()) * 20 + Pt2dr(2,2));
+          //Pt2di  aP0 = (Pt2dr(NRrandC(),NRrandC()) * 20);
+          //Pt2di  aP1 = aP0+ (Pt2dr(NRrandom3(),NRrandom3()) * 20 + Pt2dr(2,2));
+	  Pt2di  aP0(Pt2dr(NRrandC(),NRrandC()) * 20); // __NEW
+	  Pt2di  aP1( Pt2dr(aP0) + (Pt2dr(NRrandom3(),NRrandom3()) * 20 + Pt2dr(2,2)) ); // __NEW
 
           cBenchEl_BT2D aB(aP0,aP1);
 
@@ -156,8 +158,10 @@ void     bench_tab2D_dyn()
                 aB.Verif();
 
                 
-                aP0 = (Pt2dr(NRrandC(),NRrandC()) * 20);
-                aP1 = aP0+ (Pt2dr(NRrandom3(),NRrandom3()) * 20 + Pt2dr(2,2));
+                //aP0 = (Pt2dr(NRrandC(),NRrandC()) * 20);
+                //aP1 = aP0+ (Pt2dr(NRrandom3(),NRrandom3()) * 20 + Pt2dr(2,2));
+                aP0 = Pt2di( Pt2dr(NRrandC(),NRrandC()) * 20); // __NEW
+                aP1 = Pt2di( Pt2dr(aP0)+ (Pt2dr(NRrandom3(),NRrandom3()) * 20 + Pt2dr(2,2)) ); // __NEW
                 aB.Resize(aP0,aP1);
            }
         }

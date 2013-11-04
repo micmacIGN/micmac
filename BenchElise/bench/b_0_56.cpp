@@ -53,7 +53,8 @@ ElRotation3D PerturbRot(ElRotation3D RotP2toP1,REAL AmplTrans,REAL AmplTeta)
    return ElRotation3D
           (
                  aCOpt2 + PRan(euclid(aCOpt2) * AmplTrans),
-                 RotP2toP1.Mat() * RotRand(AmplTeta)
+                 RotP2toP1.Mat() * RotRand(AmplTeta),
+		 true // __NEW
           );
 }
 
@@ -82,6 +83,7 @@ void BenchAmelLocMepRel
          std::vector<ElPackHomologue>    VPack   
     )
 {
+   /*
    bool FocPPFree = INT(VCams.size()) > 1;
 
    REAL  FocInit =  FocPPFree ? 1.02 : 1.0;
@@ -90,10 +92,10 @@ void BenchAmelLocMepRel
    cSetEqFormelles aSet;
 
    cParamIntrinsequeFormel * aPIF = aSet.NewParamIntrNoDist(FocInit,PPInit);
-/*
+//----- comment
    cParamIntrinsequeFormel * aPIF = aSet.NewIntrDistRad
     (FocInit,PPInit,3,ElDistRadiale_PolynImpair(Pt2dr(0,0)));
-*/
+//-----
    cCameraFormelle * aCam1  = aPIF->NewCam
 	                      (
                                   cNameSpaceEqF::eRotFigee,
@@ -146,11 +148,11 @@ void BenchAmelLocMepRel
 
            cout<< "Ecart Eq = " << EcartEq  << " ROT " <<  EcRot << "\n";
        }
-/*
+//---- comment
        REAL Foc = aPIF->CurFocale();
        Pt2dr PP = aPIF->CurPP();
        cout << Foc << PP << "\n";
-*/
+//----
        aSet.SolveResetUpdate();
    }
    BENCH_ASSERT(ElAbs(aPIF->CurFocale()-1.0)<epsilon);
@@ -158,6 +160,7 @@ void BenchAmelLocMepRel
    BENCH_ASSERT(EcartEq<epsilon);
    BENCH_ASSERT(EcRot<epsilon);
    cout << "\n\n";
+*/
 }
 
 /**********************************************/
@@ -176,7 +179,8 @@ void ShowRot(const char * mes,ElRotation3D aRot)
 
 static ElRotation3D RanRot()
 {
-	return ElRotation3D (PRan(5),RotRand(100));
+	//return ElRotation3D (PRan(5),RotRand(100));
+	return ElRotation3D (PRan(5),RotRand(100),true); // __NEW
 }
 
 
@@ -190,8 +194,10 @@ static bool OkCams
 		bool PCoPlan
             )
 {
-   Pt3dr aC1 = aCam1.CentreOptique();
-   Pt3dr aC2 = aCam2.CentreOptique();
+   //Pt3dr aC1 = aCam1.CentreOptique();
+   //Pt3dr aC2 = aCam2.CentreOptique();
+   Pt3dr aC1 = aCam1.PseudoOpticalCenter(); // __NEW
+   Pt3dr aC2 = aCam2.PseudoOpticalCenter(); // __NEW
 
    if (euclid(aC1-aC2)<3.0)
       return false;
@@ -209,12 +215,16 @@ void OneBenchMatEss(bool CamPhys,bool PCoPlan,bool AmelLoc)
 {
    static INT aCPT = 0;
    aCPT++;
-   CamStenopeIdeale aCam1(1.0,Pt2dr(0,0));
-
-
-   CamStenopeIdeale aCam2(1.0,Pt2dr(0,0));
-   CamStenopeIdeale aCam3(1.0,Pt2dr(0,0));
-   CamStenopeIdeale aCam4(1.0,Pt2dr(0,0));
+   
+   //CamStenopeIdeale aCam1(1.0,Pt2dr(0,0));
+   //CamStenopeIdeale aCam2(1.0,Pt2dr(0,0));
+   //CamStenopeIdeale aCam3(1.0,Pt2dr(0,0));
+   //CamStenopeIdeale aCam4(1.0,Pt2dr(0,0));
+   vector<double> AFocalParam;
+   CamStenopeIdeale aCam1( false /*isDistC2M*/, 1.0, Pt2dr(0,0), AFocalParam ); // __NEW
+   CamStenopeIdeale aCam2( false, 		1.0, Pt2dr(0,0), AFocalParam ); // __NEW
+   CamStenopeIdeale aCam3( false, 		1.0, Pt2dr(0,0), AFocalParam ); // __NEW
+   CamStenopeIdeale aCam4( false, 		1.0, Pt2dr(0,0), AFocalParam ); // __NEW
 
    while (! (    OkCams(aCam1,aCam2,PCoPlan)
               && OkCams(aCam1,aCam3,PCoPlan)
@@ -229,13 +239,14 @@ void OneBenchMatEss(bool CamPhys,bool PCoPlan,bool AmelLoc)
 
       if (CamPhys)
       {
-          aCam1.SetOrientation(ElRotation3D (PRan(1),RotRand(0.2)));
-          aCam2.SetOrientation
-	       (ElRotation3D (PRan(1)+Pt3dr(10,0,0),RotRand(0.2)));
-          aCam3.SetOrientation
-	       (ElRotation3D (PRan(1)+Pt3dr(0,10,0),RotRand(0.2)));
-          aCam4.SetOrientation
-	       (ElRotation3D (PRan(1)+Pt3dr(-10,0,0),RotRand(0.2)));
+          //aCam1.SetOrientation(ElRotation3D (PRan(1),RotRand(0.2)));
+          //aCam2.SetOrientation(ElRotation3D (PRan(1)+Pt3dr(10,0,0),RotRand(0.2)));
+          //aCam3.SetOrientation(ElRotation3D (PRan(1)+Pt3dr(0,10,0),RotRand(0.2)));
+          //aCam4.SetOrientation(ElRotation3D (PRan(1)+Pt3dr(-10,0,0),RotRand(0.2)));
+          aCam1.SetOrientation( ElRotation3D( PRan(1),               RotRand(0.2), true ) );
+          aCam2.SetOrientation( ElRotation3D( PRan(1)+Pt3dr(10,0,0), RotRand(0.2), true ) );
+          aCam3.SetOrientation( ElRotation3D( PRan(1)+Pt3dr(0,10,0), RotRand(0.2), true ) );
+          aCam4.SetOrientation( ElRotation3D( PRan(1)+Pt3dr(-10,0,0),RotRand(0.2), true ) );
       }
    }
 
@@ -284,7 +295,8 @@ void OneBenchMatEss(bool CamPhys,bool PCoPlan,bool AmelLoc)
                 if (((NbP % RatErr) == 0)  && (! AmelLoc))
                    aU2 +=  Pt2dr(NRrandC(),NRrandC()) * ((CamPhys || PCoPlan) ? 0.1 :0.5);
 
-                PACK.add(ElCplePtsHomologues(aU1,aU2));
+                //PACK.add(ElCplePtsHomologues(aU1,aU2));
+                PACK.Cple_Add(ElCplePtsHomologues(aU1,aU2)); // __NEW
 	        NbP++;
 	    }
        }
@@ -317,7 +329,8 @@ void OneBenchMatEss(bool CamPhys,bool PCoPlan,bool AmelLoc)
    else
    {
 
-       ElMatrix<REAL> aMEss = aPack.MatriceEssentielle();
+       //ElMatrix<REAL> aMEss = aPack.MatriceEssentielle();
+       ElMatrix<REAL> aMEss = aPack.MatriceEssentielle(false); // __NEW
 
    // ElMatrix<REAL> aU(3,3),aDiag(3,3),aV(3,3);
    // svdcmp_diag(aMEss,aU,aDiag,aV);
@@ -342,9 +355,11 @@ void OneBenchMatEss(bool CamPhys,bool PCoPlan,bool AmelLoc)
        }
        
        if (CamPhys) 
-           lRot.push_back(aPack.MepRelPhysStd(LBase));
+           //lRot.push_back(aPack.MepRelPhysStd(LBase));
+           lRot.push_back(aPack.MepRelPhysStd(LBase,false)); // __NEW
        else
-           lRot= aPack.MepRelStd(LBase);
+           //lRot= aPack.MepRelStd(LBase);
+           lRot= aPack.MepRelStd(LBase,false); // __NEW
    }
 
 
@@ -420,7 +435,8 @@ void bench_xml()
      aDist.PushCoeff(-1e-5);
      aDist.PushCoeff(1e-7);
      aDist.PushCoeff(1e-9);
-     cCamStenopeDistRadPol aCam(0.123e-3,Pt2dr(5,6),aDist);
+     //cCamStenopeDistRadPol aCam(0.123e-3,Pt2dr(5,6),aDist);
+     cCamStenopeDistRadPol aCam( false /*isDistC2M*/, 0.123e-3,Pt2dr(5,6),aDist, vector<double>() ); // __NEW
 
      {
         cElXMLFileIn aFileXML("BENCH_FILE_IM/T.xml");

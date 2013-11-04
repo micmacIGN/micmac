@@ -213,7 +213,8 @@ template <class Type> void  Bench_PackB_IM<Type>::verif()
       ModifLut(rectangle(Pt2di(0,5),Pt2di(12,12)),FX&3);
       verif(im1.all_pts());
 
-      ModifCSte(disc(Pt2di(50,50),20),3);
+      //ModifCSte(disc(Pt2di(50,50),20),3);
+      ModifCSte(disc(Pt2dr(50,50),20),3); // __NEW
       verif(im1.all_pts());
 
 
@@ -341,8 +342,9 @@ void TestScroller::GUR_query_pointer(Clik cl,bool)
 		if (cl.controled()) 
 			v *= 4;
 
-    	scrol.SetDTrW((_p0grab-Pt2di(cl._pt)) *v);
-		_p0grab = cl._pt;
+    	        scrol.SetDTrW((_p0grab-Pt2di(cl._pt)) *v);
+		//_p0grab = cl._pt;
+		_p0grab = Pt2di( cl._pt ); // __NEW
 	}
 	else
 	{
@@ -351,7 +353,8 @@ void TestScroller::GUR_query_pointer(Clik cl,bool)
 		  scy = _sc0grab *pow(2.0,scy);
 		  scy = ElMin(ElMax(scy,0.00),10.0);
 
-      	  scrol.SetScArroundPW(_p0grab,scy,true);
+      	  //scrol.SetScArroundPW(_p0grab,scy,true);
+      	  scrol.SetScArroundPW( Pt2dr(_p0grab),scy,true); // __NEW
 	}
 }
 
@@ -363,7 +366,8 @@ void TestScroller::SetScale(bool augm)
        sc *= fact;
 	else      
        sc /= fact;
-     scrol.SetScArroundPW(_p0grab,sc,true);
+     //scrol.SetScArroundPW(_p0grab,sc,true);
+     scrol.SetScArroundPW( Pt2dr(_p0grab),sc,true); // __NEW
 }
 
 
@@ -402,10 +406,12 @@ TestScroller::TestScroller
            break;
 			case 1 :
 		  		_mode_tr = FIVE_BOUT || (! cl1.shifted());
-          		_p0grab = cl1._pt;
+          		        //_p0grab = cl1._pt;
+          		        _p0grab = Pt2di(cl1._pt); // __NEW
 		  		_sc0grab = scrol.sc();
                 if (_sc_evt)
-                   scrol.SetScArroundPW(_p0grab,scrol.sc(),false);
+                   //scrol.SetScArroundPW(_p0grab,scrol.sc(),false);
+                   scrol.SetScArroundPW( Pt2dr(_p0grab),scrol.sc(),false); // __NEW
 	      		W.grab(*this);
 				_sc_evt = false;
            break;
