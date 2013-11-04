@@ -118,7 +118,6 @@ void MainWindow::connectActions()
     connect(_ui->actionLoad_image,		 SIGNAL(triggered()),   this, SLOT(loadImage()));
     connect(_ui->actionSave_masks,		 SIGNAL(triggered()),   this, SLOT(exportMasks()));
     connect(_ui->actionSave_as,          SIGNAL(triggered()),   this, SLOT(exportMasksAs()));
-    connect(_ui->actionLoad_and_Export,  SIGNAL(triggered()),   this, SLOT(loadAndExport()));
     connect(_ui->actionSave_selection,	 SIGNAL(triggered()),   this, SLOT(saveSelectionInfos()));
     connect(_ui->actionClose_all,        SIGNAL(triggered()),   this, SLOT(closeAll()));
     connect(_ui->actionExit,             SIGNAL(triggered()),   this, SLOT(close()));
@@ -597,12 +596,6 @@ void MainWindow::exportMasksAs()
             _Engine->doMasks();
         }
     }
-}
-
-void MainWindow::loadAndExport()
-{
-    loadCameras();
-    _Engine->doMasks();
 }
 
 void MainWindow::saveSelectionInfos()
