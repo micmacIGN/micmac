@@ -287,7 +287,12 @@ void ELISE_fp::RmFile(const std::string & aFile)
 	std::string aNameCom = std::string(SYS_RM)+ " " +aFile;
 #endif
 	VoidSystem(aNameCom.c_str());
+}
 
+void ELISE_fp::MvFile(const std::string & aName1,const std::string &  aDest)
+{
+     std::string aNameCom = std::string(SYS_MV)+ " " + aName1 + " " + aDest;
+     VoidSystem(aNameCom.c_str());
 }
 
 void  ELISE_fp::PurgeDir(const std::string & aDir)

@@ -1700,6 +1700,7 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
                   <ButDoTA Nb="?" Type="bool" Def="false">             </ButDoTA>
                   <ButDoMasqueChantier Nb="?" Type="bool" Def="false"> </ButDoMasqueChantier>
                   <ButDoOriMNT Nb="?" Type="bool" Def="false">         </ButDoOriMNT>
+                  <ButDoMTDNuage Nb="?" Type="bool" Def="false">         </ButDoMTDNuage>
                   <ButDoFDC Nb="?" Type="bool" Def="false">            </ButDoFDC>
                   <ButDoExtendParam Nb="?" Type="bool" Def="false">    </ButDoExtendParam>
 		  <ButDoGenCorPxTransv  Nb="?" Type="bool" Def="false"> </ButDoGenCorPxTransv>

@@ -120,6 +120,7 @@ static void InitArgOneEtapePx
                      "Optim Diff, Steps must be 1.0"
                   );
               }
+
               anArg.mIncertPxPlus = aGeomOfEtape.GetEcartInitialPlus(anArg.mUserPas,aNumPx);
               anArg.mIncertPxMoins = aGeomOfEtape.GetEcartInitialMoins(anArg.mUserPas,aNumPx);
 	      if (isVraiFirstEtape)
@@ -649,7 +650,7 @@ cEtapeMecComp::cEtapeMecComp
       }
 
 
-      if (mArgMaskAuto)
+      if (mArgMaskAuto && (!mAppli.DoNothingBut().IsInit()))
       {
           FileMaskAuto();
       }
@@ -1684,7 +1685,6 @@ cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXML_MTD_Nuage() const
 {
    // Prudence pour la generation systematique, ce ne doit pas
    // fonctionner avec toutes les geometries
-
 
 
    cMTD_Nuage_Maille aMTD;
