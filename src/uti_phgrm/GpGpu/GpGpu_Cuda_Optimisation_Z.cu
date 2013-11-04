@@ -309,7 +309,8 @@ void ReadLine2(
 
                 uint fCostMin           = max_cost;
                 const ushort costInit   = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
-                const ushort tZ         = z + (sens ? p.tid : (WARPSIZE - p.tid - 1));
+                const ushort rTid       = sens ? p.tid : (WARPSIZE - p.tid - 1);
+                const ushort tZ         = z + rTid;
                 const short  Z          = ((sens) ? tZ + index.x : index.y - tZ);
                 const short  pitPrZ     = ((sens) ? Z - p.prev_Dz.x : p.prev_Dz.y - Z);
 
@@ -320,32 +321,21 @@ void ReadLine2(
                 ConeZ.y = min(NAPPEMAX - pitPrZ,ConeZ.y );
 
                 for (short i = ConeZ.x; i <= ConeZ.y; ++i)
-                    fCostMin = min(fCostMin, costInit + prevFCost[i]); // ERROR
+                    fCostMin = min(fCostMin, costInit + prevFCost[i]);
 
-                //const uint fcost =  fCostMin + (sens ? 0 : (streamFCost.GetValue(sgn(p.ID_Bf_Icost)) - costInit));
-
-
-                //--
-
-                if(z + (sens ? p.tid : WARPSIZE - p.tid - 1)< dZ) // peut etre eviter en ajoutant une zone tampon
+                if(z + rTid < dZ && p.ID_Bf_Icost + rTid < NAPPEMAX)// peut etre eviter en ajoutant une zone tampon
                 {
-                    //const uint fcost =  (uint)((sens) ? (fCostMin) : (fCostMin + streamFCost.GetValue(sgn(p.ID_Bf_Icost)) - costInit));
 
-                    const uint cost  = streamFCost.GetValue(sgn(p.ID_Bf_Icost));
-                    const uint fcost =  (uint)((sens) ? (costInit) : ((uint)costInit + cost));
+                    const uint fcost =  fCostMin + (sens ? 0 : (streamFCost.GetValue(sgn(p.ID_Bf_Icost)) - costInit));
                     S_FCost[!p.Id_Buf][sgn(tZ)] = fCostMin;
-
                     streamFCost.SetValue(sgn(p.ID_Bf_Icost),fcost);
 
-                    //--
                 }
 
                 const ushort pIdCost = p.ID_Bf_Icost;
                 p.ID_Bf_Icost       += min(dZ - z           , WARPSIZE);
-                /////BUUUUUUUUUUUUGGGG
-                /// car on repasse plusieur fois par le meme Z
                 z                   += min(NAPPEMAX-pIdCost , WARPSIZE);
-                ////
+
             }
 
             p.prev_Dz = index;
@@ -411,7 +401,6 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     ReadLine2<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,p);
 
     streamIndex.ReverseIncre<eARRIERE>();
-
     streamFCost.incre<eAVANT>();
     streamFCost.reverse<eARRIERE>();
 
