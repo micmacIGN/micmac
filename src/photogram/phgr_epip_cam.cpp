@@ -699,6 +699,13 @@ std::string cCpleEpip::LocMasqFileMatch(const std::string & aIm,int aNum)
 
 bool cCpleEpip::IsLeft(bool Im1) {return  mFirstIsLeft ? Im1 : (!Im1) ;}
 
+std::string StdNameImDeZoom(const std::string & aName,int aDeZoom)
+{
+   if (aDeZoom==1) return aName;
+   return "Pyram/" + aName + "DeZoom"+ToString(aDeZoom) + ".tif";
+}
+
+
 std::string cCpleEpip::LocNameImEpi(bool Im1,int aDeZoom)
 {
     // bool ImLeft = mFirstIsLeft ? Im1 : (!Im1) ;

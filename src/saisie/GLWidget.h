@@ -26,6 +26,8 @@
 #include "3DTools.h"
 #include "mainwindow.h"
 
+#include "3DObject.h"
+
 //! View orientation
 enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
                          BOTTOM_VIEW,	/**< Bottom view **/
@@ -54,7 +56,7 @@ public:
 
     cData* getData() {return m_Data;}
 
-    //! Interaction mode (with the mouse!)
+    //! Interaction mode (only in 3D)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
                             SELECTION
     };
@@ -86,7 +88,7 @@ public:
 
     void zoomFactor(int percent);
 
-    //! Switch between move mode and selection mode
+    //! Switch between move mode and selection mode (only in 3D)
     void setInteractionMode(INTERACTION_MODE mode);
 
     //! Shows axis or not
@@ -108,19 +110,16 @@ public:
     bool showMessages();
 
     //! Display help messages for selection mode
-    void showSelectionMessages();
+    void displaySelectionMessages();
 
     //! Display help messages for move mode
-    void showMoveMessages();
+    void displayMoveMessages();
 
     //! Select points with polyline
     void Select(int mode);
 
     //! Delete current polyline
     void clearPolyline();
-
-    //! Close polyline
-    void closePolyline();
 
      //! Undo all past selection actions
     void undoAll();
@@ -172,8 +171,9 @@ signals:
 
     void selectedPoint(uint idCloud, uint idVertex,bool selected);
 
+    void interactionMode(bool modeSelection);
+
 protected:
-    void initializeGL();
     void resizeGL(int w, int h);
     void paintGL();
     void mouseDoubleClickEvent(QMouseEvent *event);
@@ -183,47 +183,15 @@ protected:
 
     void ImageToTexture(GLuint idTexture,QImage* image);
 
-    //! Initialization state of GL
-    bool m_bGLInitialized;
-
     //inherited from QWidget (drag & drop support)
     virtual void dragEnterEvent(QDragEnterEvent* event);
     virtual void dropEvent(QDropEvent* event);
 
-    //! Draw frame axis
-    void drawAxis();
-
-    //! Draw ball
-    void drawBall();
-
-    //! Draw ball
-    void drawCams();
-
-    //! Draw bounding box
-    void drawBbox();
-
     //! Draw widget gradient background
     void drawGradientBackground();
     
-    //! Draw selection polygon
+    //! Draw selection polygon (and  if needed)
     void drawPolygon();
-
-    void drawPolygon(const QVector<QPointF> &aPoly);
-
-    //! Draw one point and two segments (for insertion or move)
-    void drawPointAndSegments();
-
-    void drawPointAndSegments(const QVector<QPointF> &aPoly);
-
-    GLuint getNbGLLists() { return m_nbGLLists; }
-    void incrNbGLLists()  { m_nbGLLists++; }
-    void resetNbGLLists() { m_nbGLLists = 0; }
-
-    //! Fill m_polygon2 for point insertion or move
-    void fillPolygon2(const QPointF &pos);
-
-    //! set index of cursor closest point
-    void findClosestPoint(const QPointF &pos, float sqr_radius);
 
     //! GL context aspect ratio m_glWidth/m_glHeight
     float m_glRatio;
@@ -234,32 +202,16 @@ protected:
     //! Default font
     QFont m_font;
 
-    //! States if frame axis should be drawn
-    bool m_bDrawAxis;
-
-    //! States if ball should be drawn
-    bool m_bDrawBall;
-
-    //! States if cams should be drawn
-    bool m_bDrawCams;
-
     //! States if messages should be displayed
     bool m_bDrawMessages;
 
-    //! States if Bounding box should be displayed
-    bool m_bDrawBbox;
-
     //! States if view is centered on object
     bool m_bObjectCenteredView;
-
-    //! States if selection polyline is closed
-    bool m_bPolyIsClosed;  
 
     //! Current interaction mode (with mouse)
     INTERACTION_MODE m_interactionMode;
 
     bool m_bFirstAction;
-
 
     //! Temporary Message to display
     struct MessageToDisplay
@@ -270,18 +222,10 @@ protected:
         MessagePosition position;
     };
 
-    //! Trihedron GL list
-    GLuint m_trihedronGLList;
-
-    //! Ball GL list
-    GLuint m_ballGLList;
-
     //! Texture image
     GLuint m_textureImage;
 
     GLuint m_textureMask;
-
-    int m_nbGLLists;
 
     //! List of messages to display
     list<MessageToDisplay> m_messagesToDisplay;
@@ -289,41 +233,40 @@ protected:
     QString m_messageFPS;
 
     //! Point list for polygonal selection
-    QVector < QPointF > m_polygon;
+    cPolygon    m_polygon;
 
     //! Point list for polygonal insertion
-    QVector < QPointF > m_polygon2;
+    cPolygon    m_dihedron;
 
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
 
     //! Data to display
-    cData *m_Data;
+    cData      *m_Data;
 
     //! acceleration factor
-    float m_speed;
+    float       m_speed;
 
     //! selection infos stack
     QVector <selectInfos> m_infos;
 
     //! states if display is 2D or 3D
-    bool m_bDisplayMode2D;
+    bool        m_bDisplayMode2D;
 
     //! data position in the gl viewport
-    GLfloat m_glPosition[2];
+    GLfloat     m_glPosition[2];
 
     //! click counter to manage point move event
-    int m_Click;
+    int         m_Click;
 
     //! (square) radius for point selection
-    float     m_sqr_radius;
+    //float       m_sqr_radius;
 
     QPointF WindowToImage(const QPointF &pt);
 
     QPointF ImageToWindow(const QPointF &im);
 
     QPointF     m_lastMoveImg;
-    QPointF     m_lastMoveWin;
     QPointF     m_lastClickWin;
     QPointF     m_lastClickZoom;
 
@@ -340,8 +283,6 @@ private:
     int         _frameCount;
     int         _previousTime;
     int         _currentTime;
-
-    int         _idx;
 
     float       _fps;
 
@@ -362,8 +303,11 @@ private:
     GLdouble    *_projmatrix;
     GLint       *_glViewport;
 
+    cBall       *_theBall;
+    cAxis       *_theAxis;
+    cBBox       *_theBBox;
 
-
+    QVector < cCam* > _pCams;
 };
 
 #endif  /* _GLWIDGET_H */

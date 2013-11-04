@@ -107,3 +107,5 @@ BenchElise/bench/b_0_38.o
 BenchElise/bench/bench
 BenchElise/bench/notes.txt
 BenchElise/bench/.Makefile.swp
+install Micmac/images/IGN_logo_2012.psd
+install Micmac/Windows/Output

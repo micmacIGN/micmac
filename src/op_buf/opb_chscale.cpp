@@ -545,6 +545,14 @@ Fonc_Num  StdFoncChScale_Gen
              cFiltreInterpol * aIntY
           )
 {
+   
+  Pt2di aITr = round_ni(aTr);
+  if ( (aSc==Pt2dr(1,1)) && (aTr == Pt2dr(aITr)))
+  {
+      return trans(aFonc,aITr);
+  }
+
+
    aFonc = Rconv(aFonc);
    return create_op_buf_simple_tpl
           (

@@ -35,6 +35,7 @@ typedef unsigned char pixel;
 #define DEVC_Data2Opti Data2Optimiz<CuDeviceData3D>
 
 #define CUDA_DUMP_INT(varname) if(!threadIdx.x) printf("%s = %d\n", #varname, varname);
+#define CUDA_DUMP_INT_ALL(varname) printf("%s = %d\n", #varname, varname);
 
 enum Plans {XY,XZ,YZ,YX,ZX,ZY};
 

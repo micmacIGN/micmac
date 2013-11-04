@@ -6,7 +6,7 @@ extern "C" void TestOptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O)
 
 int main()
 {
-    // Cr�ation du contexte GPGPU
+    // Creation du contexte GPGPU
     cudaDeviceProp deviceProp;
     // Obtention de l'identifiant de la carte la plus puissante
     int devID = gpuGetMaxGflopsDeviceId();
@@ -14,23 +14,25 @@ int main()
     checkCudaErrors(cudaSetDevice(devID));
     // Obtention des proprietes de la carte
     checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
-    // Affichage des propriétés de la carte
-    printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
+    // Affichage des proprietes de la carte
+    printf("GPU Device %d: \"%s\" with compute capability %d.%d\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
 
 
     cout << "Launch Data optimisation GpGpu ***" << endl;
     GpGpuTools::OutputInfoGpuMemory();
 
-    srand (time(NULL));
+    srand ((uint)time(NULL));
 
     // Declaration des variables du cote du HOST
     HOST_Data2Opti h2O;
     // Declaration des variables du cote du DEVICE
     DEVC_Data2Opti d2O;
 
-    uint nbLines        = rand() % 10 + 10;
-    uint lenghtMaxLines = 10;
-    uint depthMax       = NAPPEMAX;
+    bool random = false;
+
+    uint nbLines        = random ? rand() % 10 + 10 : 1;
+    uint lenghtMaxLines = 4;
+    uint depthMax       = NAPPEMAX/2;
 
     uint sizeMaxLine = (uint)(1.5f*sqrt((float)lenghtMaxLines * lenghtMaxLines + nbLines * nbLines));
 
@@ -43,8 +45,16 @@ int main()
     CuHostData3D<ushort> tabZ(nbLines,lenghtMaxLines,2);
     CuHostData3D<ushort> lenghtLines(nbLines);
 
-    tabZ.FillRandom(0,depthMax/2);
-    lenghtLines.FillRandom(2,lenghtMaxLines);
+    if(random)
+    {
+        tabZ.FillRandom(0,depthMax/2);
+        lenghtLines.FillRandom(lenghtMaxLines-1,lenghtMaxLines);
+    }
+    else
+    {
+        tabZ.Fill(depthMax/2);
+        lenghtLines.Fill(lenghtMaxLines);
+    }
 
     for (uint p= 0 ; p < nbLines; p++)
     {
@@ -63,6 +73,7 @@ int main()
     h2O._s_InitCostVol.Fill(0);
 
     // index
+
     for (uint idLine= 0 ; idLine < nbLines; idLine++)
     {
         uint    pitStrm = 0;
@@ -71,14 +82,16 @@ int main()
 
         {
             short2 lDZ      = make_short2(-tabZ[make_uint3(idLine,aK,0)],tabZ[make_uint3(idLine,aK,1)]);
-            ushort lDepth   = count(lDZ);
+            ushort lDepth   = count(lDZ)+1;
 
             h2O._s_Index[h2O._param[0][idLine].y + aK ] = lDZ;
 
             uint idStrm = h2O._param[0][idLine].x + pitStrm - lDZ.x;
 
-            for ( int aPx = lDZ.x ; aPx < lDZ.y; aPx++)
-                h2O._s_InitCostVol[idStrm + aPx]  = 10000 * (idLine + 1) + (aK+1) * 1000 + aPx - lDZ.x + 1;
+            for ( int aPx = lDZ.x ; aPx <= lDZ.y; aPx++)
+                //h2O._s_InitCostVol[idStrm + aPx]  = 10000 * (idLine + 1) + (aK+1) * 1000 + aPx - lDZ.x + 1;
+                h2O._s_InitCostVol[idStrm + aPx]  = 1;
+
 
             pitStrm += lDepth;
         }
@@ -97,16 +110,18 @@ int main()
     d2O.CopyHostToDevice(h2O);
     d2O._s_ForceCostVol[0].CopyHostToDevice(h2O._s_ForceCostVol[0].pData());
 
-    //h2O._s_InitCostVol.OutputValues();
+    h2O._s_InitCostVol.OutputValues();
 
     TestOptimisationOneDirectionZ(d2O);
 
     d2O.CopyDevicetoHost(h2O);
 
-    //h2O._s_ForceCostVol[0].OutputValues();
+    h2O._s_ForceCostVol[0].OutputValues();
 
+/*
     //
     uint errorCount = 0;
+
 
     for (uint idLine= 0 ; idLine < nbLines; idLine++)
     {
@@ -121,7 +136,7 @@ int main()
             for ( int aPx = dZ.x ; aPx < dZ.y; aPx++)
                 if( h2O._s_InitCostVol[idStrm + aPx]  != h2O._s_ForceCostVol[0][idStrm + aPx])
                 {
-                    printf(" %d ",h2O._s_InitCostVol[idStrm + aPx]);
+                    //printf(" %d ",h2O._s_InitCostVol[idStrm + aPx]);
                     errorCount++;
                 }
 
@@ -129,16 +144,18 @@ int main()
         }
     }
 
+
     printf("\nError Count   = %d/%d\n",errorCount,h2O._s_InitCostVol.GetSize()- 2*NAPPEMAX);
     printf("Error percent = %f\n",(((float)errorCount*100)/(h2O._s_InitCostVol.GetSize()- 2*NAPPEMAX)));
+*/
 
     h2O.Dealloc();
     d2O.Dealloc();
-
     tabZ.Dealloc();
     lenghtLines.Dealloc();
 
-    checkCudaErrors( cudaDeviceReset() );
+    GpGpuTools::OutputInfoGpuMemory();
+    checkCudaErrors(cudaDeviceReset());
     printf("Reset Device GpGpu.\n");
 
     return 0;
