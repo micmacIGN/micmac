@@ -142,7 +142,8 @@ void test_polar_div(Pt2di sz,Fonc_Num fx,Fonc_Num fy)
      ELISE_COPY
      (
          rho.all_pts(),
-         polar(Virgule(fx,fy)),
+         //polar(Virgule(fx,fy)),
+	 Polar_Def_Opun::polar(Virgule(fx,fy),0), // __NEW
          Virgule(rho.out() , teta.out())
      );
 
@@ -234,7 +235,8 @@ void test_polar_def()
    ELISE_COPY
    (
        rho1.all_pts(),
-       polar((FX-FY),vdef),
+       //polar((FX-FY),vdef),
+       Polar_Def_Opun::polar((FX-FY),vdef), // __NEW
        Virgule(rho1.out(),teta1.out())
    );
 
