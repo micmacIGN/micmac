@@ -92,9 +92,6 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
 
     if(event->type() == QEvent::MouseMove)
     {
-        //if (mouseEvent->x()<0 || mouseEvent->y()<0 || mouseEvent->x()>width() || mouseEvent->y()>height())
-        //    return false;
-
         QPointF pos = mouseEvent->localPos();
         if (m_bDisplayMode2D)
         {
@@ -109,15 +106,14 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
 
             if(!m_polygon.isClosed())
             {
-                if (sz == 1)
+                if (sz == 1)     // add current mouse position to polygon (dynamic display)
                     m_polygon.add(pos);
-                else if (sz > 1)
-                    //replace last point by the current one
+                else if (sz > 1) //replace last point by the current one
                     m_polygon[sz-1] = pos;
             }
             else
             {
-                if(sz)
+                if(sz)           // move vertex or insert vertex (dynamic display)
                 {
                     QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
                     if (keyEvent->modifiers().testFlag(Qt::ShiftModifier))
@@ -216,20 +212,19 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
            {
                if (hasDataLoaded())
                {
-                   if(!m_polygon.isClosed())
+                   if(!m_polygon.isClosed())        // add point to polygon
                    {
                        if (m_polygon.size() >= 1)
                            m_polygon[m_polygon.size()-1] = m_lastPos;
 
                        m_polygon.add(m_lastPos);
                    }
-                   else
+                   else // modify polygon (insert or move vertex)
                    {
                        if (mouseEvent->modifiers().testFlag(Qt::ShiftModifier))
                        {
                            if ((m_polygon.size() >=2) && m_dihedron.size() && m_polygon.isClosed())
                            {
-                               // modify polygon...
                                int idx = -1;
 
                                for (int i=0;i<m_polygon.size();++i)
@@ -252,19 +247,18 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
        }
        else if (mouseEvent->button() == Qt::RightButton)
        {
-           //if (m_interactionMode == TRANSFORM_CAMERA)
-               _g_mouseRightDown = true;
-           //else
+           _g_mouseRightDown = true; // for rotation around Z (in 3D)
+
            int idx = m_polygon.idx();
            if ((idx >=0)&&(idx<m_polygon.size())&&m_polygon.isClosed())
            {
-               m_polygon.remove(idx);
+               m_polygon.remove(idx);   // remove closest point
 
                m_polygon.findClosestPoint(m_lastPos);
 
                if (m_polygon.size() < 2) m_polygon.setClosed(false);
            }
-           else
+           else // close polygon
            {
                m_polygon.close();
            }
@@ -394,6 +388,7 @@ void GLWidget::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat g
 
 void GLWidget::enableOptionLine()
 {
+    glDisable(GL_DEPTH_TEST);
     glEnable (GL_LINE_SMOOTH);
     glEnable (GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -404,6 +399,7 @@ void GLWidget::disableOptionLine()
 {
     glDisable(GL_BLEND);
     glDisable (GL_LINE_SMOOTH);
+    glEnable(GL_DEPTH_TEST);
 }
 
 void GLWidget::paintGL()
@@ -519,9 +515,7 @@ void GLWidget::paintGL()
             glDrawArrays( GL_POINTS, 0, m_Data->getCloud(0)->size()*3 );
 
             glDisableClientState(GL_VERTEX_ARRAY);
-            glDisableClientState(GL_COLOR_ARRAY);
-
-            glDisable(GL_DEPTH_TEST);
+            glDisableClientState(GL_COLOR_ARRAY);           
         }
 
         enableOptionLine();
@@ -531,15 +525,10 @@ void GLWidget::paintGL()
         else if (_theAxis->isVisible())
             _theAxis->draw();
 
-        if (_theBBox->isVisible())
-            _theBBox->draw();
+        _theBBox->draw();
 
         //cameras
-        for (int i=0; i<_pCams.size();i++)
-        {
-            if (_pCams[i]->isVisible())
-                _pCams[i]->draw();
-        }
+        for (int i=0; i<_pCams.size();i++) _pCams[i]->draw();
 
         disableOptionLine();
 
@@ -558,18 +547,12 @@ void GLWidget::paintGL()
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glOrtho(0,_glViewport[2],_glViewport[3],0,-1,1);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-
-        glDisable(GL_DEPTH_TEST);
 
         enableOptionLine();
 
         drawPolygon();
 
         disableOptionLine();
-
-        glEnable(GL_DEPTH_TEST);
     }
 
     //current messages (if valid)
@@ -787,8 +770,7 @@ void GLWidget::setData(cData *data)
 
         resetTranslationMatrix();
     }
-
-    if (m_Data->NbImages())
+    else if (m_Data->NbImages())
     {
         m_bDisplayMode2D = true;
 
@@ -1012,7 +994,8 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
     GLdouble u[3]   = {0.0, 0.0, 0.0};
 
     switch (orientation)
-    {
+    {glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
     case TOP_VIEW:
         eye[2] = -1.0;
         top[1] =  1.0;
@@ -1106,9 +1089,7 @@ void GLWidget::zoomFit()
 void GLWidget::zoomFactor(int percent)
 {
     if (m_bDisplayMode2D)
-    {
         setZoom((float) percent / 100.f);
-    }
     else
         setZoom(m_Data->getScale() / (float) percent * 100.f);
 }
@@ -1122,9 +1103,9 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     }
 
     //see QWheelEvent documentation ("distance that the wheel is rotated, in eighths of a degree")
-    float wheelDelta_deg = (float)event->delta() / 8.f;
+    float wheelDelta_deg = event->angleDelta().y() / 8.f;
 
-    m_lastClickZoom = event->pos();
+    m_lastClickZoom = event->posF();
 
     onWheelEvent(wheelDelta_deg);
 }
@@ -1458,8 +1439,6 @@ void GLWidget::showMessages(bool show)
 
     update();
 }
-
-bool GLWidget::showMessages(){return m_bDrawMessages;}
 
 void GLWidget::displaySelectionMessages()
 {
