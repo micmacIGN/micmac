@@ -35,7 +35,7 @@ void RmBfiTmpFiles()
 	{
 		std::string ToExec(RM ELISE_BFI_DATA_DIR "tmp");
 		ncout() << "Execute " << ToExec.c_str() << "\n";
-		system(ToExec.c_str());
+		TheIntFuckingReturnValue=system(ToExec.c_str());
 		ncout() << "Do Execute \n";
 	}
 #endif

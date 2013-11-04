@@ -46,6 +46,9 @@ OPTION(WITH_OPEN_MP "use OpenMP" OFF )
 # print system calls
 OPTION(TRACE_SYSTEM "print system calls" OFF )
 
+# compile low-level test bench
+OPTION(BUILD_BENCH "compile low-level test bench" OFF )
+
 if ( TRACE_SYSTEM )
 	add_definitions(-D__TRACE_SYSTEM__)
 endif()
@@ -420,4 +423,8 @@ if(${WITH_DOXYGEN})
 	  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 	  add_custom_target(doc ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMENT "Generating API documentation with Doxygen" VERBATIM)
     endif(DOXYGEN_FOUND)
+endif()
+
+if ( ${BUILD_BENCH} )
+   include(${PROJECT_SOURCE_DIR}/BenchElise/bench/CMakeLists.txt)
 endif()
