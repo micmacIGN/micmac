@@ -28,11 +28,11 @@ int main()
     // Declaration des variables du cote du DEVICE
     DEVC_Data2Opti d2O;
 
-    bool random = false;
+    bool random = true;
 
-    uint nbLines        = random ? rand() % 10 + 10 : 1;
-    uint lenghtMaxLines = 4;
-    uint depthMax       = NAPPEMAX/2;
+    uint nbLines        = random ? rand() % 1024 : 2;
+    uint lenghtMaxLines = random ? rand() % 1024 : 2;
+    uint depthMax       = NAPPEMAX;
 
     uint sizeMaxLine = (uint)(1.5f*sqrt((float)lenghtMaxLines * lenghtMaxLines + nbLines * nbLines));
 
@@ -90,8 +90,7 @@ int main()
 
             for ( int aPx = lDZ.x ; aPx <= lDZ.y; aPx++)
                 //h2O._s_InitCostVol[idStrm + aPx]  = 10000 * (idLine + 1) + (aK+1) * 1000 + aPx - lDZ.x + 1;
-                h2O._s_InitCostVol[idStrm + aPx]  = 1;
-
+                h2O._s_InitCostVol[idStrm + aPx]  = rand() % 100;
 
             pitStrm += lDepth;
         }
@@ -110,13 +109,13 @@ int main()
     d2O.CopyHostToDevice(h2O);
     d2O._s_ForceCostVol[0].CopyHostToDevice(h2O._s_ForceCostVol[0].pData());
 
-    h2O._s_InitCostVol.OutputValues();
+//    h2O._s_InitCostVol.OutputValues();
 
     TestOptimisationOneDirectionZ(d2O);
 
     d2O.CopyDevicetoHost(h2O);
 
-    h2O._s_ForceCostVol[0].OutputValues();
+//    h2O._s_ForceCostVol[0].OutputValues();
 
 /*
     //

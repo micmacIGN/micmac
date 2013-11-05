@@ -171,6 +171,9 @@ TEMPLATE_D2OPTI
 void Data2Optimiz<U,NBUFFER>::ReallocParam(uint size)
 {
     for(uint i = 0;i < NBUFFER;i++)
+        _param[i].Dealloc();
+
+    for(uint i = 0;i < NBUFFER;i++)
         _param[i].Realloc(size);
 }
 
