@@ -62,9 +62,13 @@ void InterfOptimizGpGpu::threadCompute()
             SetPreComp(true);
 
             //      Kernel optimisation                                             ---------------     -
-            //OptimisationOneDirection(_D_data2Opt);
-            //OptimisationOneDirectionZ(_D_data2Opt);
+
+#if OPTIMZ
             TestOptimisationOneDirectionZ(_D_data2Opt);
+#else
+            OptimisationOneDirection(_D_data2Opt);
+            //OptimisationOneDirectionZ(_D_data2Opt);
+#endif
 
             //      Copie des couts de passage forcé du device vers le host         ---------------     -
             _D_data2Opt.CopyDevicetoHost(_H_data2Opt,GetIdBuf());

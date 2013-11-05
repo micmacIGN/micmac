@@ -75,7 +75,7 @@ struct p_ReadLine
         seg.lenght    = WARPSIZE;
         line.id       = 0;
         format();
-        ID_Bf_Icost   = NAPPEMAX - ID_Bf_Icost + count(prev_Dz) + 1;
+        ID_Bf_Icost   = NAPPEMAX - ID_Bf_Icost + count(prev_Dz);
     }
 
     template<bool sens> __device__ inline ushort stid()

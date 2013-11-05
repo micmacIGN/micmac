@@ -289,7 +289,7 @@ void ReadLine2(
         while(p.seg.id < p.seg.lenght)
         {
             const short2 index  = S_Bf_Index[sgn(p.seg.id)];
-            const ushort dZ     = count(index)+1; // creer buffer de count
+            const ushort dZ     = count(index); // creer buffer de count
             ushort       z      = 0;
 
             //--
@@ -308,7 +308,6 @@ void ReadLine2(
 
                 uint fCostMin           = max_cost;
                 const ushort costInit   = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
-                //const ushort rTid       = sens ? p.tid : (WARPSIZE - p.tid - 1);
                 const ushort tZ         = z + p.stid<sens>();
                 const short  Z          = ((sens) ? tZ + index.x : index.y - tZ);
                 const short  pitPrZ     = ((sens) ? Z - p.prev_Dz.x : p.prev_Dz.y - Z);
@@ -343,9 +342,9 @@ void ReadLine2(
             p.seg.id++;
             p.swBuf();
 
-            if(!sens)
-                for (ushort i = 0; i < dZ - p.stid<sens>(); i+=WARPSIZE)
-                    streamFCost.SubValue(-p.ID_Bf_Icost + dZ - i,globMinFCost);
+//            if(!sens)
+//                for (ushort i = 0; i < dZ - p.stid<sens>(); i+=WARPSIZE)
+//                    streamFCost.SubValue(-p.ID_Bf_Icost + dZ - i,globMinFCost);
 
         }
 
@@ -396,7 +395,7 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     streamIndex.read<eAVANT>(S_BuffIndex + p.tid);
 
     p.prev_Dz       = S_BuffIndex[0];
-    p.ID_Bf_Icost   = count(p.prev_Dz)+1;
+    p.ID_Bf_Icost   = count(p.prev_Dz);
 
     for (ushort i = 0; i < p.ID_Bf_Icost - p.tid; i+=WARPSIZE)
     {
@@ -406,32 +405,32 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
 
     ReadLine2<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,p);
 
-    streamIndex.ReverseIncre<eARRIERE>();
-    streamFCost.incre<eAVANT>();
-    streamFCost.reverse<eARRIERE>();
+//    streamIndex.ReverseIncre<eARRIERE>();
+//    streamFCost.incre<eAVANT>();
+//    streamFCost.reverse<eARRIERE>();
 
-    S_BuffFCost[0]  += NAPPEMAX - WARPSIZE;
-    S_BuffFCost[1]  += NAPPEMAX - WARPSIZE;
-    S_BuffICost     += NAPPEMAX - WARPSIZE;
+//    S_BuffFCost[0]  += NAPPEMAX - WARPSIZE;
+//    S_BuffFCost[1]  += NAPPEMAX - WARPSIZE;
+//    S_BuffICost     += NAPPEMAX - WARPSIZE;
 
-    streamICost.readFrom<eARRIERE>(S_BuffFCost[p.Id_Buf] + p.tid, NAPPEMAX - p.ID_Bf_Icost);
-    streamICost.ReverseIncre<eARRIERE>();
+//    streamICost.readFrom<eARRIERE>(S_BuffFCost[p.Id_Buf] + p.tid, NAPPEMAX - p.ID_Bf_Icost);
+//    streamICost.ReverseIncre<eARRIERE>();
 
-    p.reverse(S_BuffIndex);
+//    p.reverse(S_BuffIndex);
 
-    if(p.ID_Bf_Icost > NAPPEMAX)
-    {
-        p.ID_Bf_Icost -= NAPPEMAX;
-        streamICost.read<eARRIERE>(S_BuffICost);
-        streamFCost.incre<eARRIERE>();
-    }
+//    if(p.ID_Bf_Icost > NAPPEMAX)
+//    {
+//        p.ID_Bf_Icost -= NAPPEMAX;
+//        streamICost.read<eARRIERE>(S_BuffICost);
+//        streamFCost.incre<eARRIERE>();
+//    }
 
-    uint* locFCost = S_BuffFCost[p.Id_Buf] + WARPSIZE - p.tid - 1;
+//    uint* locFCost = S_BuffFCost[p.Id_Buf] + WARPSIZE - p.tid - 1;
 
-    for (ushort i = 0; i < NAPPEMAX; i+=WARPSIZE)
-        locFCost[-i] = S_BuffICost[-i];
+//    for (ushort i = 0; i < NAPPEMAX; i+=WARPSIZE)
+//        locFCost[-i] = S_BuffICost[-i];
 
-    ReadLine2<eARRIERE>( streamIndex,streamFCost,streamICost,S_BuffIndex + WARPSIZE - 1,S_BuffICost,S_BuffFCost,p);
+//    ReadLine2<eARRIERE>( streamIndex,streamFCost,streamICost,S_BuffIndex + WARPSIZE - 1,S_BuffICost,S_BuffFCost,p);
 
 }
 
