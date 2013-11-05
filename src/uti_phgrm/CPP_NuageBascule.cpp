@@ -143,11 +143,13 @@ int  NuageBascule_main(int argc,char ** argv)
     bool  AutoClipIn=true;
     bool  ICalledByP =false;
     bool  ByP       =true;
+    bool  mParal       =true;
     Pt2di aSzDecoup(2500,2500);
     std::string  aSuplOut="";
     Box2di aBoxIn;
     bool   mShowCom = false;
     int    mTileFile = 1e6;
+    double mSeuilEtir;
 
     ElInitArgMain
     (
@@ -165,12 +167,15 @@ int  NuageBascule_main(int argc,char ** argv)
                     << EAM(aSuplOut,"InternallSuplOut",true,"Internal purpose : dont use")
                     << EAM(mShowCom,"ShowCom",true,"Show commande, def = false")
                     << EAM(mTileFile,"TileFile",true,"Tile for Big File, def= no tiling for file < 4 Giga Byte")
+                    << EAM(mParal,"Paral",true,"Do in paral , tuning purpose, def=true")
+                    << EAM(mSeuilEtir,"SeuilE",true,"Thrashold for etiring (def = 5.0)")
     );
     Tiff_Im::SetDefTileFile(mTileFile);
 
 
     cXML_ParamNuage3DMaille  aNuageIn =  NuageFromFile(aNameIn);
     cXML_ParamNuage3DMaille  aNuageOut =  NuageFromFile(aNameOut);
+    bool HasCor = aNuageIn.Image_Profondeur().Val().Correl().IsInit();
 
     if (ByP && (!ICalledByP))
     {
@@ -212,7 +217,11 @@ int  NuageBascule_main(int argc,char ** argv)
          }
          ElTimer aChrono;
          std::cout << "-Basc1- bascule by block \n";
-         cEl_GPAO::DoComInParal(aLCom,"MakeBascule");
+         if (mParal)
+            cEl_GPAO::DoComInParal(aLCom,"MakeBascule");
+          else
+            cEl_GPAO::DoComInSerie(aLCom);
+
          std::cout << "-Basc2- create glob T=" << aChrono.uval() << " \n";
 
          std::cout << "\n";
@@ -262,6 +271,22 @@ int  NuageBascule_main(int argc,char ** argv)
                       Tiff_Im::BlackIsZero
                  );
          ELISE_COPY(aFileMasq.all_pts(),0,aFileMasq.out());
+         ELISE_COPY(aFileProf.all_pts(),-1e9,aFileProf.out());
+
+         Tiff_Im * aFileCorrel = 0;
+         std::string aNameCorrel = aNameProf = aPrefRes + "_Correl.tif";
+
+         if (HasCor)
+         {
+                 aFileCorrel = new Tiff_Im (
+                                              aNameCorrel.c_str(),
+                                              aSzNew,
+                                              GenIm::u_int1,
+                                              Tiff_Im::No_Compr,
+                                              Tiff_Im::BlackIsZero
+                                         );
+                 ELISE_COPY(aFileCorrel->all_pts(),0,aFileCorrel->out());
+         }
  
         
         // TFW
@@ -295,30 +320,79 @@ int  NuageBascule_main(int argc,char ** argv)
              Im2D_Bits<1> aIMasqLoc(aSz.x,aSz.y,0);
              Im2D_REAL4   aProfLoc(aSz.x,aSz.y);
 
+             // On charge les solutions partielles
              std::string aNameMasqL = aBl.mName+"_Masq.tif"; 
-             ELISE_COPY(aIMasqLoc.all_pts(),trans(Tiff_Im::StdConv(aNameMasqL).in(),aBl.mBoxLoc._p0) ,aIMasqLoc.out());
+             ELISE_COPY
+             (
+                   aIMasqLoc.all_pts(),
+                   trans(Tiff_Im::StdConv(aNameMasqL).in(),aBl.mBoxLoc._p0) ,
+                   aIMasqLoc.out()
+             );
 
              std::string aNameProfL = aBl.mName+"_Prof.tif"; 
-             ELISE_COPY(aProfLoc.all_pts(),trans(Tiff_Im::StdConv(aNameProfL).in(),aBl.mBoxLoc._p0) ,aProfLoc.out());
+             ELISE_COPY
+             (
+                    aProfLoc.all_pts(),
+                    trans(Tiff_Im::StdConv(aNameProfL).in(),aBl.mBoxLoc._p0) ,
+                    aProfLoc.out()
+             );
               
 
+             // On charge les solutions globales
              Pt2di aDec =  aBl.mBoxGlob._p0 - aP0;
 
              Im2D_Bits<1> aIMasqGlob(aSz.x,aSz.y);
              Im2D_REAL4   aProfGlob(aSz.x,aSz.y);
-             ELISE_COPY(aIMasqGlob.all_pts(),trans(aFileMasq.in(),aDec),aIMasqGlob.out());
-             ELISE_COPY(aProfGlob.all_pts() ,trans(aFileProf.in(),aDec),aProfGlob.out());
+
+             ELISE_COPY
+             (
+                   aIMasqGlob.all_pts(),
+                   trans(aFileMasq.in(),aDec),
+                   aIMasqGlob.out()
+             );
+             ELISE_COPY
+             (
+                    aProfGlob.all_pts() ,
+                    trans(aFileProf.in(),aDec),
+                    aProfGlob.out()
+             );
+
+             // ===== Modif 2/10/2013 MPD : tenir compte du fait que le ZBuffer est incomplet car par dalles,
+             // donc on n'ecrase que si on est au dessus !!!
+             ELISE_COPY
+             (
+                    aIMasqLoc.all_pts(),
+                    aIMasqLoc.in() && (aProfLoc.in()>aProfGlob.in()),
+                    aIMasqLoc.out()
+             );
 
 
+             // =============================================
              ELISE_COPY(select(aIMasqLoc.all_pts(),aIMasqLoc.in()),aProfLoc.in(),aProfGlob.out());
              ELISE_COPY(select(aIMasqLoc.all_pts(),aIMasqLoc.in()),aIMasqLoc.in(),aIMasqGlob.out());
 
              ELISE_COPY(rectangle(aDec,aDec+aSz),trans(aIMasqGlob.in(),-aDec),aFileMasq.out());
              ELISE_COPY(rectangle(aDec,aDec+aSz),trans(aProfGlob.in(),-aDec),aFileProf.out());
 
-             ELISE_fp::RmFile(aBl.mName+".xml");
-             ELISE_fp::RmFile(aBl.mName+"_Masq.tif");
-             ELISE_fp::RmFile(aBl.mName+"_Prof.tif");
+              ELISE_fp::RmFile(aBl.mName+".xml");
+              ELISE_fp::RmFile(aBl.mName+"_Masq.tif");
+              ELISE_fp::RmFile(aBl.mName+"_Prof.tif");
+             if (aFileCorrel)
+             {
+
+                   std::string aNameCorrL = DirOfFile(aNameIn)+  NameWithoutDir(aBl.mName)+"_Correl.tif"; 
+                   // std::cout << aBl.mBoxLoc._p0 << " " << aNameCorrL << "\n";
+                   Im2D_U_INT1   aCorLoc(aSz.x,aSz.y);
+                   ELISE_COPY(aCorLoc.all_pts(),trans(Tiff_Im::StdConv(aNameCorrL).in(),aBl.mBoxLoc._p0) ,aCorLoc.out());
+
+
+                   Im2D_U_INT1   aCorGlob(aSz.x,aSz.y);
+                   ELISE_COPY(aCorGlob.all_pts(),trans(aFileCorrel->in(),aDec),aCorGlob.out());
+
+                   ELISE_COPY(select(aIMasqLoc.all_pts(),aIMasqLoc.in()),aCorLoc.in(),aCorGlob.out());
+                   ELISE_COPY(rectangle(aDec,aDec+aSz),trans(aCorGlob.in(),-aDec),aFileCorrel->out());
+                    ELISE_fp::RmFile(aNameCorrL);
+             }
          }
          std::cout << "Basc4- Done T=" << aChrono.uval() << "\n";
     }
@@ -344,8 +418,9 @@ int  NuageBascule_main(int argc,char ** argv)
                std::cout << "BoxClipIn " << aBoxClipIn->_p0 << aBoxClipIn->_p1;
          }
 
+        cArgBacule anArg(mSeuilEtir);
 
-         cElNuage3DMaille *  aN = BasculeNuageAutoReSize(aNuageOut,aNuageIn,DirOfFile(aNameIn),NameWithoutDir(aNameRes),AutoResize,aBoxClipIn);
+         cElNuage3DMaille *  aN = BasculeNuageAutoReSize(aNuageOut,aNuageIn,DirOfFile(aNameIn),NameWithoutDir(aNameRes),AutoResize,aBoxClipIn,anArg);
          aN->Save(aNameRes);
 
          // std::cout << "N=" << aN  << " => " << NameWithoutDir(aNameRes) << "\n";

@@ -3607,6 +3607,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
        bool DoNotMasqChantier() const;
        bool DoNotFDC() const;
        bool DoNotOriMNT() const;
+       bool DoMTDNuage() const;
        bool DoNotExtendParam() const;
        bool DoSimul() const;
        cExportApero2MM   mExpA2Mm;

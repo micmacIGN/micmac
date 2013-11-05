@@ -71,6 +71,8 @@
    <DoNothingBut>
         <ButDoOriMNT> true </ButDoOriMNT>
 <!--
+        <ButDoMTDNuage>  true </ButDoMTDNuage>
+        <ButDoMasqueChantier> true</ButDoMasqueChantier>
         <ButDoExtendParam> true </ButDoExtendParam>
 -->
     </DoNothingBut>

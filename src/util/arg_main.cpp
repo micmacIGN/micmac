@@ -57,8 +57,8 @@ std::string MakeStrFromArgcARgv(int  argc,char** argv)
 }
 
 
-static int Argc=-1;
-static char ** Argv=0;
+int MemoArgc=-1;
+char ** MemoArgv=0;
 static std::string GlobArcArgv;
 
 
@@ -69,20 +69,20 @@ void MemoArg(int argc,char** argv)
 
 	First = true;
 	MMD_InitArgcArgv(argc,argv);
-	Argc = argc;
-	Argv = argv;
+	MemoArgc = argc;
+	MemoArgv = argv;
         GlobArcArgv = MakeStrFromArgcARgv(argc,argv);
 }
 
 void ShowArgs()
 {
 	static bool Done=false;
-	if (Argv && (!Done))
+	if (MemoArgv && (!Done))
 	{
 		Done=true;
 		std::cout << "ARG MAIN RECEIVED \n";
-		for (int aK=0 ; aK< Argc ; aK++)
-			std::cout << "  " << Argv[aK] << "\n";
+		for (int aK=0 ; aK< MemoArgc ; aK++)
+			std::cout << "  " << MemoArgv[aK] << "\n";
 		std::cout << "\n";
 	}
 }
