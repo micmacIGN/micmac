@@ -19,6 +19,11 @@
 namespace NS_ParamChantierPhotogram{
 </Verbatim>
 
+   <enum Name="eTypeMMByP">
+       <eGround>         </eGround>
+       <eNbTypeMMByP>    </eNbTypeMMByP>
+   </enum>
+
     
    <enum Name="eTypeMalt">
        <eOrtho>         </eOrtho>
