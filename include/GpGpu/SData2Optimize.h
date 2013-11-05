@@ -33,7 +33,7 @@ struct p_ReadLine
     __device__ p_ReadLine(ushort t,ushort ipente):
         Id_Buf(false),
         tid(t),
-        itid(WARPSIZE - t),
+        itid(WARPSIZE - t - 1),
         pente(ipente)
     {
         line.id = 0;
