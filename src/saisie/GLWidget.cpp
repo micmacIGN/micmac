@@ -236,8 +236,6 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                            }
 
                            m_dihedron.clear();
-
-                           update();
                        }
                        else if (m_polygon.idx() != -1)
                            m_Click++;
@@ -259,9 +257,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                if (m_polygon.size() < 2) m_polygon.setClosed(false);
            }
            else // close polygon
-           {
                m_polygon.close();
-           }
        }
        else if (mouseEvent->button() == Qt::MiddleButton)
        {
@@ -515,7 +511,9 @@ void GLWidget::paintGL()
             glDrawArrays( GL_POINTS, 0, m_Data->getCloud(0)->size()*3 );
 
             glDisableClientState(GL_VERTEX_ARRAY);
-            glDisableClientState(GL_COLOR_ARRAY);           
+            glDisableClientState(GL_COLOR_ARRAY);
+
+            glDisable(GL_DEPTH_TEST);
         }
 
         enableOptionLine();
@@ -547,6 +545,8 @@ void GLWidget::paintGL()
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glOrtho(0,_glViewport[2],_glViewport[3],0,-1,1);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
 
         enableOptionLine();
 
@@ -770,7 +770,8 @@ void GLWidget::setData(cData *data)
 
         resetTranslationMatrix();
     }
-    else if (m_Data->NbImages())
+
+    if (m_Data->NbImages())
     {
         m_bDisplayMode2D = true;
 
@@ -792,7 +793,7 @@ void GLWidget::setData(cData *data)
         if(_mask)
             delete _mask;
         else
-           glGenTextures(1, &m_textureMask );
+            glGenTextures(1, &m_textureMask );
 
         _mask = new QImage(_glImg.size(),_glImg.format());
 
@@ -812,6 +813,8 @@ void GLWidget::setData(cData *data)
     }
 
     glGetIntegerv (GL_VIEWPORT, _glViewport);
+
+    update();
 }
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -1174,7 +1177,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
     }
 }
 
-bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> poly)
+bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> &poly)
 {
     int vertices=poly.size();
     if (vertices<3)
@@ -1183,9 +1186,11 @@ bool isPointInsidePoly(const QPointF& P, const QVector< QPointF> poly)
     bool inside = false;
 
     QPointF A = poly[0];
+    QPointF B;
+
     for (int i=1;i<=vertices;++i)
     {
-        QPointF B = poly[i%vertices];
+        B = poly[i%vertices];
 
         //Point Inclusion in Polygon Test (inspired from W. Randolph Franklin - WRF)
         if (((B.y() <= P.y()) && (P.y()<A.y())) ||
@@ -1265,12 +1270,7 @@ void GLWidget::Select(int mode)
             }
         }
         else
-        {
-            for (int aK=0; aK < m_polygon.size(); ++aK)
-            {
-                polyg.push_back(m_polygon[aK]);
-            }
-        }
+            polyg = m_polygon.getVector();
     }
 
     if (m_bDisplayMode2D)
@@ -1314,41 +1314,42 @@ void GLWidget::Select(int mode)
     }
     else
     {
-        for (int aK=0; aK < m_Data->NbClouds(); ++aK)
+        for (uint aK=0; aK < (uint) m_Data->NbClouds(); ++aK)
         {
             Cloud *a_cloud = m_Data->getCloud(aK);
 
-            for (int bK=0; bK < a_cloud->size();++bK)
+            for (uint bK=0; bK < (uint) a_cloud->size();++bK)
             {
-                Vertex &P = a_cloud->getVertex( bK );
+                Vertex P = a_cloud->getVertex( bK );
+
                 switch (mode)
                 {
                 case ADD:
                     getProjection(P2D, P);
                     pointInside = isPointInsidePoly(P2D,polyg);
                     if (m_bFirstAction)
-                        emit selectedPoint((uint)aK,(uint)bK,pointInside);
+                        emit selectedPoint(aK,bK,pointInside);
                     else
-                        emit selectedPoint((uint)aK,(uint)bK,pointInside||P.isVisible());
+                        emit selectedPoint(aK,bK,pointInside||P.isVisible());
                     break;
                 case SUB:
                     if (P.isVisible())
                     {
                         getProjection(P2D, P);
                         pointInside = isPointInsidePoly(P2D,polyg);
-                        emit selectedPoint((uint)aK,(uint)bK,!pointInside);
+                        emit selectedPoint(aK,bK,!pointInside);
                     }
                     break;
                 case INVERT:
                     //if (m_previousAction == NONE)  m_bFirstAction = true;
-                    emit selectedPoint((uint)aK,(uint)bK,!P.isVisible());
+                    emit selectedPoint(aK,bK,!P.isVisible());
                     break;
                 case ALL:
                     m_bFirstAction = true;
-                    emit selectedPoint((uint)aK,(uint)bK, true);
+                    emit selectedPoint(aK,bK, true);
                     break;
                 case NONE:
-                    emit selectedPoint((uint)aK,(uint)bK,false);
+                    emit selectedPoint(aK,bK,false);
                     break;
                 }
             }
@@ -1458,6 +1459,7 @@ void GLWidget::displayMoveMessages()
 void GLWidget::reset()
 {
     resetRotationMatrix();
+    resetTranslationMatrix();
 
     m_glPosition[0] = m_glPosition[1] = 0.f;
 
@@ -1496,8 +1498,6 @@ void GLWidget::resetView()
         showCams(false);
 
         emit(interactionMode(false));
-
-        update();
     }
 }
 
