@@ -30,8 +30,8 @@ int main()
 
     bool random = false;
 
-    uint nbLines        = random ? rand() % 1024 : 2;
-    uint lenghtMaxLines = random ? rand() % 1024 : 2;
+    uint nbLines        = random ? rand() % 1024 : 1;
+    uint lenghtMaxLines = random ? rand() % 1024 : 4;
     uint depthMax       = NAPPEMAX/4;
 
     uint sizeMaxLine = (uint)(1.5f*sqrt((float)lenghtMaxLines * lenghtMaxLines + nbLines * nbLines));
