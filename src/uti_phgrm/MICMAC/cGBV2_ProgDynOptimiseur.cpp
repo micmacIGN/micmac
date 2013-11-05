@@ -431,8 +431,11 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
     }
 
 #if CUDA_ENABLED
-    //SolveAllDirectionGpu(aNbDir);
-    SolveAllDirectionGpuZ(aNbDir);
+    #if OPTIMZ
+        SolveAllDirectionGpuZ(aNbDir);
+    #else
+        SolveAllDirectionGpu(aNbDir);
+    #endif
 #else
     // Parcours dans toutes les directions
     for (int aKDir=0 ; aKDir<mNbDir ; aKDir++)

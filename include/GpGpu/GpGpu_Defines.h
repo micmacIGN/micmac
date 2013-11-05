@@ -15,6 +15,8 @@ typedef unsigned char pixel;
 #define NSTREAM		1
 #define DISPLAYOUTPUT
 
+#define OPTIMZ      1
+
 #ifdef _DEBUG
     #define   BLOCKDIM	16
     #define   SBLOCKDIM 10
