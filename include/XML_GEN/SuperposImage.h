@@ -4042,6 +4042,9 @@ class cFMNtByMaxEvid
         cTplValGesInit< double > & MaxDif();
         const cTplValGesInit< double > & MaxDif()const ;
 
+        cTplValGesInit< bool > & QuickExp();
+        const cTplValGesInit< bool > & QuickExp()const ;
+
         double & Regul();
         const double & Regul()const ;
 
@@ -4069,6 +4072,7 @@ class cFMNtByMaxEvid
         double mSigmaPds;
         cTplValGesInit< double > mSigmaZ;
         cTplValGesInit< double > mMaxDif;
+        cTplValGesInit< bool > mQuickExp;
         cTplValGesInit< cFMNT_ProgDyn > mFMNT_ProgDyn;
 };
 cElXMLTree * ToXMLTree(const cFMNtByMaxEvid &);
@@ -4095,6 +4099,9 @@ class cSpecAlgoFMNT
 
         cTplValGesInit< double > & MaxDif();
         const cTplValGesInit< double > & MaxDif()const ;
+
+        cTplValGesInit< bool > & QuickExp();
+        const cTplValGesInit< bool > & QuickExp()const ;
 
         double & Regul();
         const double & Regul()const ;
@@ -4156,6 +4163,9 @@ class cParamAlgoFusionMNT
 
         cTplValGesInit< double > & MaxDif();
         const cTplValGesInit< double > & MaxDif()const ;
+
+        cTplValGesInit< bool > & QuickExp();
+        const cTplValGesInit< bool > & QuickExp()const ;
 
         double & Regul();
         const double & Regul()const ;
@@ -4224,6 +4234,9 @@ class cSectionGestionChantier
 
         cTplValGesInit< std::string > & WorkDirPFM();
         const cTplValGesInit< std::string > & WorkDirPFM()const ;
+
+        cTplValGesInit< Box2di > & BoxTest();
+        const cTplValGesInit< Box2di > & BoxTest()const ;
     private:
         cTplValGesInit< int > mSzDalles;
         cTplValGesInit< int > mRecouvrtDalles;
@@ -4232,6 +4245,7 @@ class cSectionGestionChantier
         cTplValGesInit< std::string > mInterneSingleImage;
         cTplValGesInit< int > mInterneSingleBox;
         cTplValGesInit< std::string > mWorkDirPFM;
+        cTplValGesInit< Box2di > mBoxTest;
 };
 cElXMLTree * ToXMLTree(const cSectionGestionChantier &);
 
@@ -4281,6 +4295,9 @@ class cParamFusionMNT
 
         cTplValGesInit< double > & MaxDif();
         const cTplValGesInit< double > & MaxDif()const ;
+
+        cTplValGesInit< bool > & QuickExp();
+        const cTplValGesInit< bool > & QuickExp()const ;
 
         double & Regul();
         const double & Regul()const ;
@@ -4341,6 +4358,9 @@ class cParamFusionMNT
 
         cTplValGesInit< std::string > & WorkDirPFM();
         const cTplValGesInit< std::string > & WorkDirPFM()const ;
+
+        cTplValGesInit< Box2di > & BoxTest();
+        const cTplValGesInit< Box2di > & BoxTest()const ;
 
         cSectionGestionChantier & SectionGestionChantier();
         const cSectionGestionChantier & SectionGestionChantier()const ;

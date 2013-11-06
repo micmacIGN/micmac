@@ -149,13 +149,13 @@ void OneSensMoyTmpPile(std::vector<cTmpPile> & aVTmp)
 
      aVTmp[aNb-1].mNewPm = aVTmp[aNb-1].mP0;
      aVTmp[aNb-1].mNewZm = aVTmp[aNb-1].mZ0;
-     for (int aK=(aVTmp.size()) -2 ; aK>=0 ; aK++)
+     for (int aK=(aVTmp.size()) -2 ; aK>=0 ; aK--)
      {
           aVTmp[aK].mNewPm = aVTmp[aK].mP0 + aVTmp[aK+1].mNewPm * aVTmp[aK].mPNext;
           aVTmp[aK].mNewZm = aVTmp[aK].mZ0 + aVTmp[aK+1].mNewZm * aVTmp[aK].mPNext;
      }
 
-     for (int aK=1 ; aK<int(aVTmp.size()) ; aK++)
+     for (int aK=0 ; aK<int(aVTmp.size()) ; aK++)
      {
           aVTmp[aK].mZ0 = aVTmp[aK].mNewZp+aVTmp[aK].mNewZm - aVTmp[aK].mZ0;
           aVTmp[aK].mP0 = aVTmp[aK].mNewPp+aVTmp[aK].mNewPm - aVTmp[aK].mP0;
@@ -167,13 +167,13 @@ Pt2dr VerifExp(const std::vector<cElPile> & aVPile,cElPile aP0,float aPixFact)
     Pt2dr aRes (0,0);
     for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
     {
-       double aPds  = exp(ElAbs(aP0.Z()-aVPile[aK].Z())/aPixFact);
+       double aPds  = exp(-ElAbs(aP0.Z()-aVPile[aK].Z())/aPixFact);
        aRes = aRes + Pt2dr(aVPile[aK].Z(),aVPile[aK].P()) * aPds;
     }
     return aRes;
 } 
 
-void ComputeExpEv(const std::vector<cElPile> & aVPile,double aResolPlani,float aPixFact)
+double ComputeExpEv(const std::vector<cElPile> & aVPile,double aResolPlani,float aPixFact)
 {
    std::vector<cTmpPile> aTmp;
    float aZFact = (aPixFact*aResolPlani);
@@ -188,14 +188,32 @@ void ComputeExpEv(const std::vector<cElPile> & aVPile,double aResolPlani,float a
    }
    OneSensMoyTmpPile(aTmp);
 
-   if (1)
+   if (0)
    {
        for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
        {
-            Pt2dr aPTest = VerifExp(aVPile,aVPile[aK],aPixFact);
-            std::cout << aPTest << " " << aTmp[aK].mZ0 << " " << aTmp[aK].mP0 << "\n";
+            Pt2dr aPTest = VerifExp(aVPile,aVPile[aK],aZFact);
+            Pt2dr aDif = aPTest - Pt2dr(aTmp[aK].mZ0,aTmp[aK].mP0 );
+            if (euclid (aDif)> 1e-3)
+            {
+                 std::cout << euclid (aDif) << aPTest << " " << aTmp[aK].mZ0 << " " << aTmp[aK].mP0 << "\n";
+                 ELISE_ASSERT(false,"Coher in ComputeExpEv");
+            }
        }
+       // getchar();
    }
+   OneSensMoyTmpPile(aTmp);
+   double aPMax = -1;
+   int aKMax = -1;
+   for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
+   {
+        if (aTmp[aK].mP0> aPMax)
+        {
+              aPMax = aTmp[aK].mP0;
+              aKMax = aK;
+        }
+   }
+   return  aTmp[aKMax].mZ0 / aTmp[aKMax].mP0;
 }
 
 
@@ -661,7 +679,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
     }
 
 
-    if (1)
+    if (!mParam.BoxTest().IsInit())
     {
           cDecoupageInterv2D aDecoup = cDecoupageInterv2D::SimpleDec
                                 (
@@ -697,12 +715,8 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
    }
    else
    {
-        DoOneBloc
-        (
-            0,
-            Box2di(Pt2di(5000,5000),Pt2di(5000,5000)),
-            Box2di(Pt2di(6000,6000),Pt2di(6000,6000))
-        );
+        Box2di aBox = mParam.BoxTest().Val();
+        DoOneBloc(0,aBox,aBox);
    }
 
    DeleteAndClear(mVC);
@@ -815,7 +829,6 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
             if (aPCel.size() >0)
             {
                 std::sort(aPCel.begin(),aPCel.end());
-                ComputeExpEv(aPCel,mResolPlani,2.0);
                 std::vector<cElPile> aNewV;
                 const cElPile * aBestP = 0;
 
@@ -826,9 +839,16 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
                 }
                 else if (mFByEv)
                 {
-                    aNewV =   ComputeEvidence(aPCel,mResolPlani);
-                    aBestP = BestElem(aNewV);
-                    aZ = aBestP->Z();
+                    if (mFByEv->QuickExp().Val())
+                    {
+                       aZ = ComputeExpEv(aPCel,mResolPlani,mSigmaP);
+                    }
+                    else
+                    {
+                        aNewV =   ComputeEvidence(aPCel,mResolPlani);
+                        aBestP = BestElem(aNewV);
+                        aZ = aBestP->Z();
+                    }
                 }
 
                 if (aPrgD)
