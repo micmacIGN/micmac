@@ -118,6 +118,7 @@ void cBlockBasc::Compute(const cXML_ParamNuage3DMaille & aNGlob)
     mNuage = NuageFromFile(mName + ".xml");
     std::string aNameMasq  = mName + "_Masq.tif";
     mBoxLoc = BoxEnglobMasq(aNameMasq,&mOK);
+
     if (!mOK) return ;
 
     ElAffin2D AffM2Gl  = Xml2EL(aNGlob.Orientation().OrIntImaM2C());
@@ -149,7 +150,7 @@ int  NuageBascule_main(int argc,char ** argv)
     Box2di aBoxIn;
     bool   mShowCom = false;
     int    mTileFile = 1e6;
-    double mSeuilEtir;
+    double mSeuilEtir=5;
 
     ElInitArgMain
     (
