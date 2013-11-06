@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1139]) = {
+const char * (theNameVar_SuperposImage[1141]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1081,6 +1081,7 @@ const char * (theNameVar_SuperposImage[1139]) = {
 "                       <SigmaPds  Type=\"double\" Nb=\"1\"> </SigmaPds>\n",
 "                       <SigmaZ    Type=\"double\" Nb=\"?\"> </SigmaZ> <!-- Par defaut SigmaZ=SigmaPds -->\n",
 "                       <MaxDif Type=\"double\" Nb=\"?\" Def=\"1e9\"> </MaxDif>\n",
+"                       <QuickExp Nb=\"?\" Type=\"bool\" Def=\"false\"> </QuickExp>\n",
 "                       <FMNT_ProgDyn Nb=\"?\">\n",
 "                            <Regul Nb=\"1\" Type=\"double\"> </Regul>\n",
 "                            <!-- Le cout de regul pour dun delta Z = D est\n",
@@ -1120,6 +1121,7 @@ const char * (theNameVar_SuperposImage[1139]) = {
 "             <InterneSingleImage Nb=\"?\" Type=\"std::string\" Def=\"\"> </InterneSingleImage>\n",
 "             <InterneSingleBox Nb=\"?\" Type=\"int\" Def=\"-1\"> </InterneSingleBox>\n",
 "             <WorkDirPFM Nb=\"?\" Type=\"std::string\"> </WorkDirPFM>\n",
+"             <BoxTest Nb=\"?\" Type=\"Box2di\"> </BoxTest>\n",
 "       </SectionGestionChantier>\n",
 "\n",
 "\n",
