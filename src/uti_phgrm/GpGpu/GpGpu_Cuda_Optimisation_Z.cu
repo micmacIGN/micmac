@@ -24,7 +24,7 @@ __device__ void GetConeZ(short2 & aDz, int aZ, int MaxDeltaZ, short2 aZ_Next, sh
             aDz.y = aDz.x;
 }
 
-__device__ void min(uint *min){
+__device__ uint minR(uint *sMin){
     ushort  thread2;
     uint    temp;
     //
@@ -43,14 +43,16 @@ __device__ void min(uint *min){
             if (thread2 < blockDim.x)
             {
                 // Get the shared value stored by another thread
-                temp = min[thread2];
-                if (temp < min[threadIdx.x])
-                    min[threadIdx.x] = temp;
+                temp = sMin[thread2];
+                if (temp < sMin[threadIdx.x])
+                    sMin[threadIdx.x] = temp;
             }
         }
         // Reducing the binary tree size by two:
         nTotalThreads = halfPoint;
     }
+
+    return sMin[0];
 }
 
 template<bool sens> __device__
@@ -308,9 +310,11 @@ void ReadLine2(
 {
     short2* ST_Bf_Index = S_Bf_Index + p.tid + (sens ? 0 : -WARPSIZE + 1);
 
-    __shared__ uint globMinFCost;
-    //__shared__ uint min[WARPSIZE];
+    //__shared__ uint globMinFCost;
+    __shared__ uint minCost[WARPSIZE];
     short2  ConeZ;
+
+    uint globMinFCost;
 
     bool lined = p.line.id < p.line.lenght;
 
@@ -322,6 +326,7 @@ void ReadLine2(
             const ushort dZ     = count(index); // creer buffer de count
             ushort       z      = 0;            
            globMinFCost        = max_cost;
+           //globMinFCost2        = max_cost;
 
             while( z < dZ)
             {
@@ -335,7 +340,6 @@ void ReadLine2(
                 uint fCostMin           = max_cost;
                 const ushort costInit   = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
                 const ushort tZ         = z + p.stid<sens>();
-                //const ushort tZ         = z + (sens ? p.tid : p.tid);
                 const short  Z          = ((sens) ? tZ + index.x : index.y - tZ - 1);
                 const short  pitPrZ     = ((sens) ? Z - p.prev_Dz.x : p.prev_Dz.y - Z - 1);
 
@@ -355,7 +359,17 @@ void ReadLine2(
                     S_FCost[!p.Id_Buf][sgn(tZ)] = fCostMin;
                     streamFCost.SetValue(sgn(p.ID_Bf_Icost),fcost);
                     if(!sens)
-                        atomicMin(&globMinFCost,fcost);
+                        //atomicMin(&globMinFCost,fcost);
+                        minCost[p.tid] = fcost;
+                }
+                else
+                    if(!sens)
+                        minCost[p.tid] = max_cost;
+                if(!sens)
+                {
+                    const uint m = minR(minCost);
+                    if(m < globMinFCost)
+                        globMinFCost = m;
                 }
 
                 const ushort pIdCost = p.ID_Bf_Icost;
@@ -371,7 +385,6 @@ void ReadLine2(
             if(!sens)
                 for (ushort i = 0; i < dZ - p.stid<sens>(); i+=WARPSIZE)
                     streamFCost.SubValue(-p.ID_Bf_Icost + dZ - i,globMinFCost);
-
         }
 
         p.line.id += p.seg.lenght;
