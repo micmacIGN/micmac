@@ -661,36 +661,48 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
     }
 
 
-    cDecoupageInterv2D aDecoup = cDecoupageInterv2D::SimpleDec
+    if (1)
+    {
+          cDecoupageInterv2D aDecoup = cDecoupageInterv2D::SimpleDec
                                 (
                                      mSzGlob,
                                      mParam.SzDalles().Val(),
                                      mParam.RecouvrtDalles().Val()
                                 );
 
-   for (int aKI=0 ; aKI<aDecoup.NbInterv() ; aKI++)
-   {
+         for (int aKI=0 ; aKI<aDecoup.NbInterv() ; aKI++)
+         {
 
-       if (mGenereMkF)
-       {
-            std::string aNewCom =   mCom 
+             if (mGenereMkF)
+             {
+                  std::string aNewCom =   mCom 
                                   + std::string(" InterneCalledByProcess=true")
                                   + std::string(" InterneSingleImage=") +  anId
                                   + std::string(" InterneSingleBox=") + ToString(aKI);
-            mListCom.push_back(aNewCom);
-       }
-       else
-       {
-           if ((!mCalledByMkf) || (mParam.InterneSingleBox().Val()==aKI))
-           {
-              DoOneBloc
-              (
-                  aDecoup.NbInterv()-aKI,
-                  aDecoup.KthIntervIn(aKI),
-                  aDecoup.KthIntervOut(aKI)
-              );
-           }
-       }
+                  mListCom.push_back(aNewCom);
+             }
+             else
+             {
+                 if ((!mCalledByMkf) || (mParam.InterneSingleBox().Val()==aKI))
+                 {
+                    DoOneBloc
+                    (
+                        aDecoup.NbInterv()-aKI,
+                        aDecoup.KthIntervIn(aKI),
+                        aDecoup.KthIntervOut(aKI)
+                    );
+                 }
+             }
+         }
+   }
+   else
+   {
+        DoOneBloc
+        (
+            0,
+            Box2di(Pt2di(5000,5000),Pt2di(5000,5000)),
+            Box2di(Pt2di(6000,6000),Pt2di(6000,6000))
+        );
    }
 
    DeleteAndClear(mVC);

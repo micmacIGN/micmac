@@ -542,6 +542,7 @@ class cElNuage3DMaille : public cCapture3D
 
 
 
+typedef double tElZB;
 
 class cZBuffer
 {
@@ -670,15 +671,15 @@ class cZBuffer
         bool         mWihBuf;
         bool         mBufDone;
 
-        Im2D_REAL4   mImX3;
-        float **     mDX3;
-        TIm2D<REAL4,REAL8>  mTX3;
-        Im2D_REAL4   mImY3;
-        float **     mDY3;
-        TIm2D<REAL4,REAL8>  mTY3;
-        Im2D_REAL4   mImZ3;
-        float **     mDZ3;
-        TIm2D<REAL4,REAL8>  mTZ3;
+        Im2D<tElZB,REAL8>   mImX3;
+        tElZB **     mDX3;
+        TIm2D<tElZB,REAL8>  mTX3;
+        Im2D<tElZB,REAL8>   mImY3;
+        tElZB **     mDY3;
+        TIm2D<tElZB,REAL8>  mTY3;
+        Im2D<tElZB,REAL8>   mImZ3;
+        tElZB **     mDZ3;
+        TIm2D<tElZB,REAL8>  mTZ3;
         Pt2di        mP0In;
         Pt2di        mSzIn;
 
