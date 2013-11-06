@@ -208,6 +208,9 @@ int MPDtest_main (int argc,char** argv)
 {
    // ElList<Pt2di> aL = NewLPt2di(Pt2di(20,20));
 
+   std::cout << "BBBB " << BoolFind(std::string("ABC"),'B') << "\n";
+   std::cout << "bbbb " << BoolFind(std::string("ABC"),'b') << "\n";
+
    double aDif;
 
    ELISE_COPY

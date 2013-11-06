@@ -61,7 +61,8 @@ typedef  ElEmptySubGrapheSom<SGR_41,int>       TEmpGr41;
 
 class TSubGr41_xy2 : public TSubGr41
 {
-      virtual Pt2dr  pt(TSom41 & s) { return s.attr()._pt;}
+      //virtual Pt2dr  pt(TSom41 & s) { return s.attr()._pt;}
+      virtual Pt2dr  pt(TSom41 & s) { return Pt2dr( s.attr()._pt );} // __NEW
       bool inS(TSom41 & s)
       {
           return 
@@ -72,7 +73,8 @@ class TSubGr41_xy2 : public TSubGr41
 
 class TSubGr41_xeg : public TSubGr41
 {
-      virtual Pt2dr  pt(TSom41 & s) { return s.attr()._pt;}
+      //virtual Pt2dr  pt(TSom41 & s) { return s.attr()._pt;}
+      virtual Pt2dr  pt(TSom41 & s) { return Pt2dr( s.attr()._pt );} // __NEW
       bool inA(TArc41 & a)
       {
           return a.s1().attr()._pt.x == a.s2().attr()._pt.x;
@@ -81,7 +83,8 @@ class TSubGr41_xeg : public TSubGr41
 
 class TSubGr41_xeg_y0 : public TSubGr41
 {
-      virtual Pt2dr  pt(TSom41 & s) { return s.attr()._pt;}
+      //virtual Pt2dr  pt(TSom41 & s) { return s.attr()._pt;}
+      virtual Pt2dr  pt(TSom41 & s) { return Pt2dr( s.attr()._pt );} // __NEW
       bool inA(TArc41 & a)
       {
           return 
@@ -95,7 +98,8 @@ class TSubGr41_xeg_y0 : public TSubGr41
 
 class TPtSubGr41 : public TSubGr41
 {
-      virtual Pt2dr  pt(TSom41 & s) { return s.attr()._pt;}
+      //virtual Pt2dr  pt(TSom41 & s) { return s.attr()._pt;}
+      virtual Pt2dr  pt(TSom41 & s) { return Pt2dr( s.attr()._pt );} // __NEW
 };
 
 
@@ -113,7 +117,8 @@ template class ElArcIterator<SGR_41,int>;
 template bool face_trigo(TArc41 &,TSubGr41 &,ElFilo<TArc41 *> &);
 template bool all_face_trigo(TGr41&,TSubGr41&,ElPartition<TArc41 *> &);
 
-static Pt2dr PtArc41(TArc41 * a) {return a->s1().attr()._pt;}
+//static Pt2dr PtArc41(TArc41 * a) {return a->s1().attr()._pt;}
+static Pt2dr PtArc41(TArc41 * a) {return Pt2dr( a->s1().attr()._pt );} // __NEW
 
 static const Pt2di SZ_PCC(10,10);
 
@@ -215,7 +220,8 @@ void bench_pcc(TGr41 & gr, TSom41 *** TABS,Pt2di sz)
           TSom41 & s1  = *(TABS[y1][x1]);
           TSom41 & s2  = *(TABS[y2][x2]);
           
-          TSom41 * res = PCC.pcc(s1,s2,GrAll);
+          //TSom41 * res = PCC.pcc(s1,s2,GrAll);
+          TSom41 * res = PCC.pcc(s1,s2,GrAll,eModePCC_Somme); // __NEW
           BENCH_ASSERT(PCC.pds(s2)==dist4(p1-p2));
 
           ElFilo<TSom41 *> f41;
@@ -225,10 +231,12 @@ void bench_pcc(TGr41 & gr, TSom41 *** TABS,Pt2di sz)
                BENCH_ASSERT(gr.arc_s1s2(*f41[S-1],*f41[S]));
 
 
-          res = PCC.pcc(s1,s2,GrXeq);
+          //res = PCC.pcc(s1,s2,GrXeq);
+          res = PCC.pcc(s1,s2,GrXeq,eModePCC_Somme); // __NEW
           BENCH_ASSERT((res==&s2) == (x1==x2));
 
-          res = PCC.pcc(s1,GrEmpty,GrXeq);
+          //res = PCC.pcc(s1,GrEmpty,GrXeq);
+          res = PCC.pcc(s1,GrEmpty,GrXeq,eModePCC_Somme); // __NEW
           BENCH_ASSERT(res==0);
           for 
           (
@@ -253,7 +261,8 @@ void bench_pcc(TGr41 & gr, TSom41 *** TABS,Pt2di sz)
               }
           }
 
-          res = PCC.pcc(s1,s2,Gr_xy2);
+          //res = PCC.pcc(s1,s2,Gr_xy2);
+          res = PCC.pcc(s1,s2,Gr_xy2,eModePCC_Somme); // __NEW
           BENCH_ASSERT
           (
                 (res==&s2) 

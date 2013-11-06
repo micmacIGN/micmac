@@ -15,8 +15,6 @@
             <Symb>  RepNL=ij </Symb>
 
 
-
-
             <Symb>  PatternPlan=NKS-Set-OfExistingPlan@${PatternAllIm}@${PostMasq} </Symb>
             <Symb>  OutCalib=Ori${AeroOut}/Calib.xml </Symb>
 
@@ -35,6 +33,11 @@
                 </Sets>
                 <Key> Loc-Key-SetImagePlan  </Key>
             </KeyedSetsOfNames>
+
+            <Symb>  CPI=false </Symb>
+
+            <!--    ****************************************  -->
+            <eSymb>  NotCPI=! ${CPI} </eSymb>
 
        </DicoLoc>
 
@@ -63,13 +66,22 @@
                    <CalValueInit>
                          <CalFromFileExtern>
                               <NameFile>   ####  </NameFile>
-                              <NameTag>    CalibrationInternConique </NameTag>
-                              <AutorizeNonExisting > true </AutorizeNonExisting>
+                              <#IF  VTEST=${CPI}>
+                                   <NameTag> Interne</NameTag>
+                                   <NameTag>    CalibrationInternConique </NameTag>
+                               </#IF>
+                               <AutorizeNonExisting > true </AutorizeNonExisting>
                          </CalFromFileExtern>
                    </CalValueInit>
                    <CalibPerPose>
-                        <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
-                        <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${AeroIn}/AutoCal@.xml  </KeyInitFromPose>
+                         <#IF VTEST=${CPI}>
+                             <KeyPose2Cal> NKS-Assoc-Id                       </KeyPose2Cal>
+                             <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
+                         </#IF>
+                         <#IF VTEST=${CPI}>
+                             <KeyInitFromPose> NKS-Assoc-Im2Orient@${AeroIn} </KeyInitFromPose>
+                             <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${AeroIn}/AutoCal@.xml  </KeyInitFromPose>
+                         </#IF>
                     </CalibPerPose>
              </CalibrationCameraInc>
 
@@ -156,13 +168,17 @@
                                 <AddCalib>  true </AddCalib>
                                 <NbVerif>  10 </NbVerif>
                                 <TolWhenVerif> 1e-3 </TolWhenVerif>
-                                <FileExtern> NKS-Assoc-FromFocMm@Ori${AeroOut}/AutoCal@.xml </FileExtern>
-                                <FileExternIsKey> true </FileExternIsKey>
+                                <#WHEN VTEST=${NotCPI}>
+                                       <FileExtern> NKS-Assoc-FromFocMm@Ori${AeroOut}/AutoCal@.xml </FileExtern>
+                                       <FileExternIsKey> true </FileExternIsKey>
+                                 </#WHEN>
                             </ExportPose>
-                             <ExportCalib>
-                                 <KeyAssoc>  NKS-Assoc-FromKeyCal@Ori${AeroOut}/AutoCal@.xml </KeyAssoc>
-                                 <KeyIsName> false </KeyIsName>
-                            </ExportCalib>
+                            <#WHEN VTEST=${NotCPI}>
+                                 <ExportCalib>
+                                     <KeyAssoc>  NKS-Assoc-FromKeyCal@Ori${AeroOut}/AutoCal@.xml </KeyAssoc>
+                                     <KeyIsName> false </KeyIsName>
+                                </ExportCalib>
+                            </#WHEN>
                     </SectionExport>
 	      </EtapeCompensation>
 	</SectionCompensation>

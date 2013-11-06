@@ -6,6 +6,18 @@
 namespace NS_ParamChantierPhotogram{
 typedef enum
 {
+  eGround,
+  eNbTypeMMByP
+} eTypeMMByP;
+void xml_init(eTypeMMByP & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeMMByP & aVal);
+
+eTypeMMByP  Str2eTypeMMByP(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeMMByP & anObj);
+
+typedef enum
+{
   eOrtho,
   eUrbanMNE,
   eGeomImage,

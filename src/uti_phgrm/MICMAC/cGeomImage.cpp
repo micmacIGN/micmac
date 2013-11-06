@@ -2501,10 +2501,14 @@ if (1)
           // OO aRatio[0] = aCDNE* (mOri.resolution_angulaire() / euclid(aC1-aC2));
           aRatio[0] = aCDNE* (mOri->ResolutionAngulaire() / euclid(aC1-aC2));
 
+         // std::cout << "GRRAP " << mOri->ResolutionAngulaire() << " " << euclid(aC1-aC2) << " " << mOri->Focale() << "\n";
+
 // std::cout << "HHHH:GetRatioResolAltiPlani " << aRatio[0] << " CDNE " << aCDNE << "\n";
 // std::cout << "HHHH:RA  " << mOri->ResolutionAngulaire() << " FFFFF " << 1/mOri->Focale() << "\n";
 
 
+// std::cout << "HHHhhhhhhhhhhhhhhhhhhhhhhhhh " << aRatio[0] << " " << aC1 << aC2 << "\n";
+// std::cout << "XXxxx " << aCDNE << " " << mOri->ResolutionAngulaire() << " " <<  euclid(aC1-aC2) << "\n";
           for (int aK=1 ; aK<mDimPx ; aK++)
               aRatio[aK] = 1.0;
 

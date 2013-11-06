@@ -1626,6 +1626,14 @@ cElNuage3DMaille *  cElNuage3DMaille::Basculement
 }
 
 
+cArgBacule::cArgBacule(double aSeuilEtir) :
+   mSeuilEtir(aSeuilEtir)
+{
+}
+
+cArgBacule cArgBacule::mTheDef(5.0);
+
+
 cElNuage3DMaille *  BasculeNuageAutoReSize
                     (
                        const cXML_ParamNuage3DMaille & aGeomOutOri,
@@ -1633,7 +1641,8 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
                        const std::string & aDirIn,
                        const std::string &  aNameRes,
                        bool  AutoResize,
-                       const Box2di  * aBoxClipIn
+                       const Box2di  * aBoxClipIn,
+                       const cArgBacule &    anArg
                     )
 {
    Tiff_Im::SetDefTileFile(100000);
@@ -1655,12 +1664,25 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 
     aGeomOut.Image_Profondeur().Val().Image() = aGeomIn.Image_Profondeur().Val().Image();
     aGeomOut.Image_Profondeur().Val().Masq() = aGeomIn.Image_Profondeur().Val().Masq();
+
     if (aGeomIn.Image_Profondeur().Val().Correl().IsInit())
     {
-        HasCor = true;
         aNameCor = aDirIn + aGeomIn.Image_Profondeur().Val().Correl().Val();
+        Pt2di aSz = Tiff_Im::StdConv(aNameCor).sz();
+        Pt2di aP0 (0,0);
+        if (aBoxClipIn)
+        {
+            aP0 =  aBoxClipIn->_p0 ;
+            aSz =  aBoxClipIn->sz();
+        }
 
-        aICor = Im2D_U_INT1::FromFileStd(aNameCor);
+
+        HasCor = true;
+
+        aICor = Im2D_U_INT1(aSz.x,aSz.y);
+        ELISE_COPY(aICor.all_pts(),trans(Tiff_Im::StdConv(aNameCor).in(),aP0),aICor.out());
+
+        //  aICor = Im2D_U_INT1::FromFileStd(aNameCor);
         aVAttrIm.push_back(&aICor);
         // std::cout << "COrrrrr " << aICor.sz() << "\n"; getchar();
         aNameCor = NameWithoutDir(aNameRes)+ "_Correl.tif";
@@ -1672,7 +1694,6 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
        aGeomOut.Image_Profondeur().Val().Correl().SetNoInit();
     }
 
-   
 
    cElNuage3DMaille *  aNOut = cElNuage3DMaille::FromParam(aGeomOut,aDirIn,"",1.0,(cParamModifGeomMTDNuage *)0);
 
@@ -1686,10 +1707,11 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 
 
     double aDynEtir = 10.0;
-    double aSeuilEtir = 5.5;
+    double aSeuilEtir = anArg.mSeuilEtir;
 
 
     cElNuage3DMaille * aRes = aNOut->BasculeInThis(aNIn,true,aDynEtir,0,0,-1,AutoResize,&aVAttrIm);
+
 
 
     if (AutoResize)
@@ -1703,12 +1725,26 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
     }
     if (HasCor)
     {
-        Tiff_Im::Create8BFromFonc
-        (
-            aDirIn+ aNameCor,
-            aVAttrIm[0]->sz(),
-            aVAttrIm[0]->in()
-        );
+        if (1)
+        {
+            Tiff_Im::Create8BFromFonc
+            (
+                aDirIn+ aNameCor,
+                aVAttrIm[0]->sz(),
+                aVAttrIm[0]->in()
+            );
+        }
+        else
+        {
+            ELISE_ASSERT(aVAttrIm[0]->sz()==aRes->ImEtirement().sz(),"Etir an cor : sz dif ??\n");
+            // ELISE_COPY(aRes->ImEtirement().all_pts(),FX%256,aRes->ImEtirement().out());
+            Tiff_Im::Create8BFromFonc
+            (
+                aDirIn+ aNameCor,
+                aRes->ImEtirement().sz(),
+                aRes->ImEtirement().in()
+            );
+        }
     }
 
 

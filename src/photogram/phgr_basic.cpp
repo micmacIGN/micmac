@@ -2986,35 +2986,54 @@ double CamStenope::ResolutionSol(const Pt3dr & aP) const
 
 double CamStenope::ResolutionAngulaire() const
 {
+   double aEps = 1e-3;
+   // double aEps = 1e-5;
+/*  Ne marche pas avec les cameras de type epipolair quand la vertical local est hor image
    double aEps = 1e-5;
    Pt2dr aP0 = L3toF2(Pt3dr(0,0,1));
    Pt2dr aP1 = L3toF2(Pt3dr(aEps,0,1));
-   double aD = euclid(aP0-aP1) / aEps;
-   return 1/aD ;  // La focale ne marche pas avec les grille tres loin de Id
 
-/*
+   double aD = euclid(aP0-aP1) / aEps;
+
+   return 1/aD ;  
+   return  _orient.IRecVect(F2toDirRayonL3(p));
+*/
+
 
    // Ci dessus ne marche pas avec point hors image
    Pt2dr aMil = Pt2dr(Sz()) /2.0;
-   Pt3dr aQ0 = ImEtProf2Terrain(aMil,1.0);
-   Pt3dr aQ1 = ImEtProf2Terrain(aMil+Pt2dr(aEps,0),1.0);
+   Pt2dr aMil2 = aMil + Pt2dr(aEps,0);
+
+   // std::cout << "Dif MIL = " << aMil -aMil2 << "\n";
+   // std::cout << "Dif Ray = " << F2toDirRayonR3(aMil) -F2toDirRayonR3(aMil2) << "\n";
+   // std::cout << "Dif Ray = " << F2toDirRayonL3(aMil) -F2toDirRayonL3(aMil2) << "\n";
+
+   // Pt3dr aQ0 = ImEtProf2Terrain(aMil,1.0);    NE MARCHE PAS AVEC GRDE COORDONNEES SUR LES CENTRES
+   // Pt3dr aQ1 = ImEtProf2Terrain(aMil2,1.0);
+     Pt3dr aQ0 = F2toDirRayonL3(aMil);
+      Pt3dr aQ1 = F2toDirRayonL3(aMil2);
 
    double aDQ = euclid(aQ0-aQ1) / aEps;
 
+/*
+std::cout << "HHHHh   " <<  aDQ  << " " << 1/Focale() << "\n";
 Pt2dr aM2 = aMil+Pt2dr(aEps,0);
 
 std::cout << "AAAAAAAAAAAAAAAAaa " <<  Proj().DirRayon(DistInverse(aMil)) - Proj().DirRayon(DistInverse(aM2)) << "\n" ;
 std::cout << "AAAAAAAAAAAAAAAAaa " << DistInverse(aMil) <<  DistInverse(aMil) - DistInverse(aM2) << "\n" ;
-std::cout << "HHHHh   " << aD * aDQ << "\n";
+std::cout << "HHHHh   " <<  aDQ  << " " << 1/Focale() << "\n";
 getchar();
+*/
 
     return aDQ;
+/*
 */
 
 // std::cout << "DdddddddDD  " << aD << " " << aD * aDQ<< "\n";
 // getchar();
  
 /*
+La focale ne marche pas avec les grille tres loin de Id
    std::cout << "RAGgg " << aD << " " << 1/aD << "\n";
 getchar();
 

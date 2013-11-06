@@ -59,13 +59,59 @@ void cEl_GPAO::DoComInSerie(const std::list<std::string> & aL)
     }
 }
 
+bool TestFileOpen(const std::string & aFile)
+{
+    FILE *  aFP = fopen(aFile.c_str(),"w");
+    if (aFP)
+    {
+       fclose(aFP);
+       ELISE_fp::RmFile(aFile);
+       return true;
+    }
+    return false;
+}
+
+//  les directory par defaut d'ecriture (install de MicMac) ne permettent pas toujours un acces en erciture
+// pour les fichiers temporaires
+std::string Dir2Write()
+{
+    static bool First = true;
+    static std::string aRes;
+    if (First)
+    {
+        First = false;
+        aRes = MMDir() + "TestOpenMMmmmm";
+        if (TestFileOpen(aRes))
+           return MMDir();
+
+        aRes = "./TestOpenMMmmmm";
+        if (TestFileOpen(aRes))
+           return "./";
+
+        for (int aK=0 ; aK<MemoArgc; aK++)
+        {
+            std::string aDir,aName;
+            SplitDirAndFile(aDir,aName,MemoArgv[aK]);
+            aRes = aDir + "TestOpenMMmmmm";
+            if (TestFileOpen(aRes))
+               return aDir;
+        }
+        ELISE_ASSERT(false,"Cannot find any directoruy to write tmp files");
+        
+    }
+   
+    return aRes;
+}
+
 void cEl_GPAO::DoComInParal(const std::list<std::string> & aL,std::string  FileMk , int   aNbProc ,bool Exe,bool MoinsK)
 {
     if (aNbProc<=0)  
        aNbProc = NbProcSys();
 
     if (FileMk=="") 
-       FileMk = MMDir() + "MkStdMM";
+       FileMk = Dir2Write() + "MkStdMM";
+
+    
 
     cEl_GPAO aGPAO;
     int aK=0;

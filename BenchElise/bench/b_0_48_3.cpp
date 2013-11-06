@@ -304,7 +304,8 @@ void bench_cLineMapRect()
                      BENCH_ASSERT((INT)aV->size()<=dist8(aP1-aP0));
                      for (INT aK =0 ; aK<(INT) aV->size() ; aK++)
                      {
-                         Pt2dr aP = (*aV)[aK];
+                         //Pt2dr aP = (*aV)[aK];
+                         Pt2dr aP( (*aV)[aK] ); // __NEW
                          Pt2di aPi = round_ni(aP);
                          REAL y = aP ^ aUN;
                          if (aK == 0)

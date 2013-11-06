@@ -416,7 +416,7 @@ void test_clip_def()
 {
      test_clip_def
      (
-          disc(Pt2di(50,50),30),
+          disc(Pt2dr(50,50),30),
           (FX+FY),
           12,
           Pt2di(2,2),Pt2di(90,90)
@@ -424,7 +424,7 @@ void test_clip_def()
 
      test_clip_def
      (
-          disc(Pt2di(50,50),60),
+          disc(Pt2dr(50,50),60),
           (FX+FY),
           12,
           Pt2di(2,2),Pt2di(90,90)
@@ -432,7 +432,7 @@ void test_clip_def()
 
      test_clip_def
      (
-          select(disc(Pt2di(50,50),60),1),
+          select(disc(Pt2dr(50,50),60),1),
           (FX+FY),
           12,
           Pt2di(2,2),Pt2di(90,90)
@@ -440,7 +440,7 @@ void test_clip_def()
 
      test_clip_def
      (
-          disc(Pt2di(50,50),60).chc(Virgule(FX+0.123456,FY-0.7654321)),
+          disc(Pt2dr(50,50),60).chc(Virgule(FX+0.123456,FY-0.7654321)),
           (FX+FY),
           12.0,
           Pt2di(2,2),Pt2di(90,90)

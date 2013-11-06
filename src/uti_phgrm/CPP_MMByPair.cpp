@@ -58,9 +58,12 @@ class cAppliMMByPair : public cAppliWithSetImage
       int Exe();
     private :
       void DoMDT();
-      void DoCorrelAndBascule();
+      void DoCorrelAndBasculeStd();
+      void DoCorrelAndBasculeEpip();
+      void MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 );
       void DoFusion();
 
+      std::string mDo;
       int mZoom0;
       int mZoomF;
       bool mDelaunay;
@@ -71,6 +74,10 @@ class cAppliMMByPair : public cAppliWithSetImage
       int          mNbStep;
       double       mIntIncert;
       bool         mSkipCorDone;
+      eTypeMMByP   mType;
+      std::string  mStrType;
+      bool         mModeHelp;
+      bool         mByMM1P;
 };
 
 /*****************************************************************/
@@ -575,8 +582,10 @@ int ClipIm_main(int argc,char ** argv)
 /*              cAppliMMByPair                                   */
 /*                                                               */
 /*****************************************************************/
+
 cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
-    cAppliWithSetImage (argc-1,argv+1,FlagDev16BGray),
+    cAppliWithSetImage (argc-2,argv+2,FlagDev16BGray),
+    mDo          ("PMCF"),
     mZoom0       (64),
     mZoomF       (1),
     mDelaunay    (false),
@@ -584,12 +593,21 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mStripIsFirt (true),
     mDirBasc     ("MTD-Nuage"),
     mIntIncert   (1.25),
-    mSkipCorDone (false)
+    mSkipCorDone (false),
+    mByMM1P      (true)
 {
+  if (argc>=2)
+  {
+     ELISE_ASSERT(argc >= 2,"Not enough arg");
+     mStrType = argv[1];
+     StdReadEnum(mModeHelp,mType,mStrType,eNbTypeMMByP);
+  }
+
   ElInitArgMain
   (
         argc,argv,
-        LArgMain()  << EAMC(mFullName,"Full Name (Dir+Pattern)")
+        LArgMain()  << EAMC(mStrType,"Type in enumerated values")
+                    << EAMC(mFullName,"Full Name (Dir+Pattern)")
                     << EAMC(mOri,"Orientation"),
         LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64")
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final, Def=1")
@@ -602,7 +620,11 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mIntIncert,"Inc",true,"Uncertaincy interval (def  = 1.25) ")
                     << EAM(mTetaBande,"TetaStrip",true,"If used, cut strip when dir of vector > 45 degre from TetaStrip")
                     << EAM(mSkipCorDone,"SMD",true,"Skip Matching When Already Done (Def=false)")
+                    << EAM(mDo,"Do",true,"Step to Do in [Pyram,MetaData,Correl,Fusion], Def \"PMCF\" (i.e. All Step)")
+                    << EAM(mByMM1P,"ByMM1P","Do match using new MM1P , def = true")
   );
+  if (mModeHelp) 
+      exit(0);
   if (! EAMIsInit(&mZoom0))
      mZoom0 =  DeZoomOfSize(7e4);
   VerifAWSI();
@@ -618,10 +640,84 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
   mNbStep = round_ni(log2(mZoom0/double(mZoomF))) + 3 ;
 }
 
-
-void cAppliMMByPair::DoCorrelAndBascule()
+void cAppliMMByPair::DoCorrelAndBasculeEpip()
 {
-std::cout << "BEGIN DoCorrelAndBascul\n";
+   for ( tSetPairIm::const_iterator itP= mPairs.begin(); itP!=mPairs.end() ; itP++)
+   {
+        cImaMM & anI1 = *(itP->first);
+        cImaMM & anI2 = *(itP->second);
+        if (anI1.mNameIm < anI2.mNameIm)
+        {
+             MatchEpipOnePair(anI1,anI2);
+        }
+   }
+}
+
+void cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
+{
+     bool mByEpi = true;
+     std::string aMatchCom =     MMBinFile(MM3DStr)
+                         +  " MM1P"
+                         +  aBlank + anI1.mNameIm
+                         +  aBlank + anI2.mNameIm
+                         +  aBlank + mOri
+                         +  " ZoomF=" + ToString(mZoomF)
+                         +  " CreateE=" + ToString(mByEpi)
+                      ;
+
+     std::string aNameIm1 = anI1.mNameIm;
+     std::string aNameIm2 = anI2.mNameIm;
+     if (mByEpi)
+     {
+        cCpleEpip * aCpleE = StdCpleEpip(mDir,mOri,aNameIm1,aNameIm2);
+        aNameIm1 = aCpleE->LocNameImEpi(aNameIm1);
+        aNameIm2 = aCpleE->LocNameImEpi(aNameIm2);
+     }
+
+
+
+
+     std::vector<std::string> aBascCom;
+     bool AllDoneMatch = true;
+
+     for (int aK= 0 ; aK< 2 ; aK++)
+     {
+         std::string aDirMatch = mDir + LocDirMec2Im((aK==0) ? aNameIm1:aNameIm2,(aK==0) ? aNameIm2:aNameIm1);
+         std::string aNuageIn =  aDirMatch          + std::string("NuageImProf_Chantier-Ori_Etape_Last.xml");
+         std::string aNuageGeom =    mDir +  std::string("MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml");
+         std::string aNuageTarget =  mDir +  std::string("MTD-Nuage/Basculed-") 
+                                          + ((aK==0) ? anI1.mNameIm : anI2.mNameIm ) 
+                                          + "-" + ((aK==0) ? anI2.mNameIm :anI1.mNameIm) + ".xml";
+
+
+         std::string aCom =   MMBinFile(MM3DStr) + " NuageBascule "
+                           + aBlank + aNuageIn
+                           + aBlank + aNuageGeom
+                           + aBlank + aNuageTarget
+                           + " SeuilE=500";
+         std::cout << aCom << "\n";
+ 
+         aBascCom.push_back(aCom);
+
+         AllDoneMatch = AllDoneMatch && ELISE_fp::exist_file(aNuageIn);
+     }
+
+
+
+     if ((!AllDoneMatch) || (! mSkipCorDone))
+        System(aMatchCom);
+
+     for (int aK= 0 ; aK< int(aBascCom.size()) ; aK++)
+     {
+           System(aBascCom[aK]);
+     }
+}
+
+
+
+
+void cAppliMMByPair::DoCorrelAndBasculeStd()
+{
    for ( tSetPairIm::const_iterator itP= mPairs.begin(); itP!=mPairs.end() ; itP++)
    {
         cImaMM & anI1 = *(itP->first);
@@ -692,10 +788,7 @@ std::cout << "BEGIN DoCorrelAndBascul\n";
            System(aComBasc);
        }
 
-//            std::cout << "HHHHH " << anI1.mNameIm <<  " " << anI2.mNameIm << " " <<  DoneCor << " " << DoneBasc << "\n";
-//            getchar();
    }
-//            std::cout << "ENDG DoCorrelAndBascul\n"; getchar();
 }
 
 /*
@@ -762,13 +855,24 @@ void cAppliMMByPair::DoMDT()
 int cAppliMMByPair::Exe()
 {
   
-   DoPyram();
-   DoMDT();
-   DoCorrelAndBascule();
-   DoFusion();
+   if (BoolFind(mDo,'P') && (!mByMM1P))
+   {
+      DoPyram();
+   }
+   if (BoolFind(mDo,'M') && (mType == eGround))
+   {
+      DoMDT();
+   }
+   if (BoolFind(mDo,'C'))
+   {
+      if (mByMM1P)
+         DoCorrelAndBasculeEpip();
+      else
+         DoCorrelAndBasculeStd();
+   }
 /*
-*/
-/*
+   if (BoolFind(mDo,'F'))
+      DoFusion();
 */
    return 1;
 }

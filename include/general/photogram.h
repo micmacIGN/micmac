@@ -2948,6 +2948,7 @@ class cCpleEpip
 
 
          bool IsLeft(bool Im1);
+         bool IsLeft(const std::string &);
 
 
          void ImEpip(Tiff_Im aFile,const std::string & aNameOriIn,bool Im1);

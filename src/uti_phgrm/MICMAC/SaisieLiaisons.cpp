@@ -690,8 +690,11 @@ cout << mFlagIm << " => " << aFlag << "\n";
 void TestScroller::FlipImage()
 {
     INT aCurFlag = mFlagIm;
-    for (INT k=0 ; k<20 ; k++)
+    for (INT k=0 ; k<100 ; k++)
+    {
+       sleep(0.02);
        SetFlagIm(1+(k%2));
+    }
 
     SetFlagIm(aCurFlag);
 }
