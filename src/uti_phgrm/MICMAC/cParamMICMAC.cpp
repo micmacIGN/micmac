@@ -13428,6 +13428,17 @@ const cTplValGesInit< bool > & cDoNothingBut::ButDoOriMNT()const
 }
 
 
+cTplValGesInit< bool > & cDoNothingBut::ButDoMTDNuage()
+{
+   return mButDoMTDNuage;
+}
+
+const cTplValGesInit< bool > & cDoNothingBut::ButDoMTDNuage()const 
+{
+   return mButDoMTDNuage;
+}
+
+
 cTplValGesInit< bool > & cDoNothingBut::ButDoFDC()
 {
    return mButDoFDC;
@@ -13520,6 +13531,8 @@ cElXMLTree * ToXMLTree(const cDoNothingBut & anObj)
       aRes->AddFils(::ToXMLTree(std::string("ButDoMasqueChantier"),anObj.ButDoMasqueChantier().Val())->ReTagThis("ButDoMasqueChantier"));
    if (anObj.ButDoOriMNT().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ButDoOriMNT"),anObj.ButDoOriMNT().Val())->ReTagThis("ButDoOriMNT"));
+   if (anObj.ButDoMTDNuage().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ButDoMTDNuage"),anObj.ButDoMTDNuage().Val())->ReTagThis("ButDoMTDNuage"));
    if (anObj.ButDoFDC().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ButDoFDC"),anObj.ButDoFDC().Val())->ReTagThis("ButDoFDC"));
    if (anObj.ButDoExtendParam().IsInit())
@@ -13555,6 +13568,8 @@ void xml_init(cDoNothingBut & anObj,cElXMLTree * aTree)
    xml_init(anObj.ButDoMasqueChantier(),aTree->Get("ButDoMasqueChantier",1),bool(false)); //tototo 
 
    xml_init(anObj.ButDoOriMNT(),aTree->Get("ButDoOriMNT",1),bool(false)); //tototo 
+
+   xml_init(anObj.ButDoMTDNuage(),aTree->Get("ButDoMTDNuage",1),bool(false)); //tototo 
 
    xml_init(anObj.ButDoFDC(),aTree->Get("ButDoFDC",1),bool(false)); //tototo 
 
@@ -14990,6 +15005,17 @@ cTplValGesInit< bool > & cSection_Results::ButDoOriMNT()
 const cTplValGesInit< bool > & cSection_Results::ButDoOriMNT()const 
 {
    return DoNothingBut().Val().ButDoOriMNT();
+}
+
+
+cTplValGesInit< bool > & cSection_Results::ButDoMTDNuage()
+{
+   return DoNothingBut().Val().ButDoMTDNuage();
+}
+
+const cTplValGesInit< bool > & cSection_Results::ButDoMTDNuage()const 
+{
+   return DoNothingBut().Val().ButDoMTDNuage();
 }
 
 
@@ -18673,6 +18699,17 @@ cTplValGesInit< bool > & cParamMICMAC::ButDoOriMNT()
 const cTplValGesInit< bool > & cParamMICMAC::ButDoOriMNT()const 
 {
    return Section_Results().DoNothingBut().Val().ButDoOriMNT();
+}
+
+
+cTplValGesInit< bool > & cParamMICMAC::ButDoMTDNuage()
+{
+   return Section_Results().DoNothingBut().Val().ButDoMTDNuage();
+}
+
+const cTplValGesInit< bool > & cParamMICMAC::ButDoMTDNuage()const 
+{
+   return Section_Results().DoNothingBut().Val().ButDoMTDNuage();
 }
 
 

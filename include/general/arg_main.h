@@ -493,6 +493,7 @@ int MakeGrid_main(int argc,char ** argv);
 int Malt_main(int argc,char ** argv);
 int MMByPair_main(int argc,char ** argv);
 int MMOnePair_main(int argc,char ** argv);
+int MMSymMasqAR_main(int argc,char ** argv);
 int ChantierClip_main(int argc,char ** argv);
 int ClipIm_main(int argc,char ** argv);
 

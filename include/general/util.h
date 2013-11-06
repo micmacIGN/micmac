@@ -50,6 +50,10 @@ int NbProcSys();
 
 extern void mem_raz(void *,tFileOffset);
 
+extern int MemoArgc;
+extern char ** MemoArgv;
+
+
 #define MEM_RAZ(x,nb) mem_raz((void *)(x),(nb)*sizeof(*(x)))
 
 

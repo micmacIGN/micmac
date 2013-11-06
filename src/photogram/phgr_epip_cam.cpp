@@ -696,6 +696,7 @@ std::string cCpleEpip::LocMasqFileMatch(const std::string & aIm,int aNum)
 
 
 
+bool cCpleEpip::IsLeft(const std::string & aName) {return  IsLeft(IsIm1(aName));}
 
 bool cCpleEpip::IsLeft(bool Im1) {return  mFirstIsLeft ? Im1 : (!Im1) ;}
 

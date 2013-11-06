@@ -42,7 +42,8 @@ class PtDelTest
        Pt2di _pt;
 };
 
-Pt2di Pt_of_DPT(const PtDelTest & PDT) { return PDT.pt();}
+//Pt2di Pt_of_DPT(const PtDelTest & PDT) { return PDT.pt();}
+Pt2dr Pt_of_DPT(const PtDelTest & PDT) { return Pt2dr(PDT.pt());} // __NEW
 
 class DelTestAct
 {
@@ -52,7 +53,8 @@ class DelTestAct
       void operator () (PtDelTest & p1,PtDelTest & p2,bool ArcDegen)
       {
            if (! ArcDegen)
-                _w.draw_seg(p1.pt(),p2.pt(),_w.pdisc()(P8COL::blue));
+                //_w.draw_seg(p1.pt(),p2.pt(),_w.pdisc()(P8COL::blue));
+                _w.draw_seg(Pt2dr(p1.pt()),Pt2dr(p2.pt()),_w.pdisc()(P8COL::blue)); // __NEW
       }
 
     private :
@@ -90,7 +92,8 @@ void bench_delaunay()
                      );
             // Pts.pushlast(pt);
             L.push_back(pt);
-            W.draw_circle_loc(pt.pt(),4,Pdisc(P8COL::red));
+            //W.draw_circle_loc(pt.pt(),4,Pdisc(P8COL::red));
+            W.draw_circle_loc(Pt2dr(pt.pt()),4,Pdisc(P8COL::red)); // __NEW
        }
        DelTestAct Act(W);
        Delaunay_Mediatrice 

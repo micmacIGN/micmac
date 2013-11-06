@@ -3,6 +3,39 @@
 //#include "private/all.h"
 // #include "XML_GEN/ParamChantierPhotogram.h"
 namespace NS_ParamChantierPhotogram{
+eTypeMMByP  Str2eTypeMMByP(const std::string & aName)
+{
+   if (aName=="eGround")
+      return eGround;
+   else if (aName=="eNbTypeMMByP")
+      return eNbTypeMMByP;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeMMByP\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeMMByP) 0;
+}
+void xml_init(eTypeMMByP & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeMMByP(aTree->Contenu());
+}
+std::string  eToString(const eTypeMMByP & anObj)
+{
+   if (anObj==eGround)
+      return  "eGround";
+   if (anObj==eNbTypeMMByP)
+      return  "eNbTypeMMByP";
+ std::cout << "Enum = eTypeMMByP\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeMMByP & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 eTypeMalt  Str2eTypeMalt(const std::string & aName)
 {
    if (aName=="eOrtho")

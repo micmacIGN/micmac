@@ -74,7 +74,8 @@ template <const int nbb>  void Test_im2d_bits<nbb>::test()
 
        ELISE_COPY
        (
-           disc(Pt2di(50,50),60),
+           //disc(Pt2di(50,50),60),
+           disc(Pt2dr(50,50),60), // __NEW
            Iconv(frandr() * 1000) % I1.vmax(),
            I1.out() | I2.out()
        );

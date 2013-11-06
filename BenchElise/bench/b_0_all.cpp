@@ -238,8 +238,7 @@ void  all()
      for(int i =0; i<1 ; i++)
      {
 		
-       //    Macro_Exec_bench(bench_bits_flow);
-	  /*
+          //Macro_Exec_bench(bench_bits_flow);
           Macro_Exec_bench(bench_xml);
           Macro_Exec_bench(somme_cste_int_rect_2d_by_hand);
           Macro_Exec_bench(bench_Tab_CPT_REF);
@@ -302,12 +301,13 @@ void  all()
           Macro_Exec_bench(bench_vecteur_raster_0);
           Macro_Exec_bench(bench_mep_relative);
           Macro_Exec_bench(bench_GenerationCodeFormelle);
-          Macro_Exec_bench(bench_least_square);
+          
+	  // Macro_Exec_bench(bench_least_square);
           Macro_Exec_bench(bench_matrix);
           Macro_Exec_bench(bench_deriv_formal);
           Macro_Exec_bench(bench_optim_0);
           Macro_Exec_bench(bench_optim_1);
-          Macro_Exec_bench(bench_compr_im); 
+          Macro_Exec_bench(bench_compr_im);
           Macro_Exec_bench(bench_hough);
           Macro_Exec_bench(BenchEqAppGrid);
 
@@ -324,7 +324,6 @@ void  all()
           Macro_Exec_bench(bench_pjeq234);
           Macro_Exec_bench(bench_new_mep_rel);
           Macro_Exec_bench(bench_auto_calibration);
-	  */
      }
 
 

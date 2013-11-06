@@ -100,6 +100,107 @@ class fZPile
 static fZPile TheZPile;
 
 
+class cTmpPile
+{
+    public :
+        cTmpPile(float aZ);
+        void SetPPrec(cTmpPile &,float aExpFact);
+    // private :
+         double mZ0;
+         double mP0;
+
+         double mNewZp;
+         double mNewPp;
+         double mNewZm;
+         double mNewPm;
+
+         double mPPrec;
+         double mPNext;
+};
+
+cTmpPile::cTmpPile(float aZ) :
+    mZ0    (aZ),
+    mP0    (1.0),
+    mPPrec (-1),
+    mPNext (-1)
+{
+     
+}
+
+void cTmpPile::SetPPrec(cTmpPile & aPrec,float aExpFact)
+{
+    ELISE_ASSERT(mZ0>=aPrec.mZ0,"Ordre coherence in cTmpPile::SetPPrec");
+    double aPds = exp((aPrec.mZ0-mZ0)/aExpFact);
+    mPPrec  = aPds;
+    aPrec.mPNext = aPds;
+}
+
+void OneSensMoyTmpPile(std::vector<cTmpPile> & aVTmp)
+{
+     int aNb = aVTmp.size();
+     aVTmp[0].mNewPp = aVTmp[0].mP0;
+     aVTmp[0].mNewZp = aVTmp[0].mZ0;
+
+     for (int aK=1 ; aK<int(aVTmp.size()) ; aK++)
+     {
+          aVTmp[aK].mNewPp = aVTmp[aK].mP0 + aVTmp[aK-1].mNewPp * aVTmp[aK].mPPrec;
+          aVTmp[aK].mNewZp = aVTmp[aK].mZ0 + aVTmp[aK-1].mNewZp * aVTmp[aK].mPPrec;
+     }
+
+     aVTmp[aNb-1].mNewPm = aVTmp[aNb-1].mP0;
+     aVTmp[aNb-1].mNewZm = aVTmp[aNb-1].mZ0;
+     for (int aK=(aVTmp.size()) -2 ; aK>=0 ; aK++)
+     {
+          aVTmp[aK].mNewPm = aVTmp[aK].mP0 + aVTmp[aK+1].mNewPm * aVTmp[aK].mPNext;
+          aVTmp[aK].mNewZm = aVTmp[aK].mZ0 + aVTmp[aK+1].mNewZm * aVTmp[aK].mPNext;
+     }
+
+     for (int aK=1 ; aK<int(aVTmp.size()) ; aK++)
+     {
+          aVTmp[aK].mZ0 = aVTmp[aK].mNewZp+aVTmp[aK].mNewZm - aVTmp[aK].mZ0;
+          aVTmp[aK].mP0 = aVTmp[aK].mNewPp+aVTmp[aK].mNewPm - aVTmp[aK].mP0;
+     }
+}
+
+Pt2dr VerifExp(const std::vector<cElPile> & aVPile,cElPile aP0,float aPixFact)
+{
+    Pt2dr aRes (0,0);
+    for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
+    {
+       double aPds  = exp(ElAbs(aP0.Z()-aVPile[aK].Z())/aPixFact);
+       aRes = aRes + Pt2dr(aVPile[aK].Z(),aVPile[aK].P()) * aPds;
+    }
+    return aRes;
+} 
+
+void ComputeExpEv(const std::vector<cElPile> & aVPile,double aResolPlani,float aPixFact)
+{
+   std::vector<cTmpPile> aTmp;
+   float aZFact = (aPixFact*aResolPlani);
+   for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
+   {
+        aTmp.push_back(cTmpPile(aVPile[aK].Z()));
+        if (aK>0)
+        {
+            aTmp[aK].SetPPrec(aTmp[aK-1],aZFact);
+        }
+        
+   }
+   OneSensMoyTmpPile(aTmp);
+
+   if (1)
+   {
+       for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
+       {
+            Pt2dr aPTest = VerifExp(aVPile,aVPile[aK],aPixFact);
+            std::cout << aPTest << " " << aTmp[aK].mZ0 << " " << aTmp[aK].mP0 << "\n";
+       }
+   }
+}
+
+
+
+
 
 
 
@@ -702,6 +803,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
             if (aPCel.size() >0)
             {
                 std::sort(aPCel.begin(),aPCel.end());
+                ComputeExpEv(aPCel,mResolPlani,2.0);
                 std::vector<cElPile> aNewV;
                 const cElPile * aBestP = 0;
 

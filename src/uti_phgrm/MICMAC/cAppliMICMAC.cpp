@@ -804,6 +804,13 @@ void cAppliMICMAC::VerifImages() const
 /*       "Compile" les etapes de MEC     */
 /*****************************************/
 
+bool  cAppliMICMAC::DoMTDNuage() const
+{
+   return    (!DoNothingBut().IsInit())
+          || (ButDoMTDNuage().Val())
+          || (!DoNotOriMNT());
+}
+
 bool  cAppliMICMAC::DoNotOriMNT() const
 {
    return     DoNothingBut().IsInit() 
