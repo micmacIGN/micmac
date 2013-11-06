@@ -24,6 +24,35 @@ __device__ void GetConeZ(short2 & aDz, int aZ, int MaxDeltaZ, short2 aZ_Next, sh
             aDz.y = aDz.x;
 }
 
+__device__ void min(uint *min){
+    ushort  thread2;
+    uint    temp;
+    //
+
+    int nTotalThreads = WARPSIZE;	// Total number of threads, rounded up to the next power of two
+
+    while(nTotalThreads > 1)
+    {
+        int halfPoint = (nTotalThreads >> 1);	// divide by two
+        // only the first half of the threads will be active.
+
+        if (threadIdx.x < halfPoint)
+        {
+            thread2 = threadIdx.x + halfPoint;
+            // Skipping the fictious threads blockDim.x ... blockDim_2-1
+            if (thread2 < blockDim.x)
+            {
+                // Get the shared value stored by another thread
+                temp = min[thread2];
+                if (temp < min[threadIdx.x])
+                    min[threadIdx.x] = temp;
+            }
+        }
+        // Reducing the binary tree size by two:
+        nTotalThreads = halfPoint;
+    }
+}
+
 template<bool sens> __device__
 void RunLine(   SimpleStream<short2>    &streamIndex,
                 SimpleStream<uint>      &streamFCost,
@@ -279,7 +308,8 @@ void ReadLine2(
 {
     short2* ST_Bf_Index = S_Bf_Index + p.tid + (sens ? 0 : -WARPSIZE + 1);
 
-//    __shared__ uint globMinFCost;
+    __shared__ uint globMinFCost;
+    //__shared__ uint min[WARPSIZE];
     short2  ConeZ;
 
     bool lined = p.line.id < p.line.lenght;
@@ -291,7 +321,7 @@ void ReadLine2(
             const short2 index  = S_Bf_Index[sgn(p.seg.id)];
             const ushort dZ     = count(index); // creer buffer de count
             ushort       z      = 0;            
-//            globMinFCost        = max_cost;
+           globMinFCost        = max_cost;
 
             while( z < dZ)
             {
@@ -324,11 +354,8 @@ void ReadLine2(
                 {
                     S_FCost[!p.Id_Buf][sgn(tZ)] = fCostMin;
                     streamFCost.SetValue(sgn(p.ID_Bf_Icost),fcost);
-                    //streamFCost.SetValue(sgn(p.ID_Bf_Icost),prevFCost[0]);
-
-                    //streamFCost.AddValue(sgn(p.ID_Bf_Icost),1);
-//                    if(!sens)
-//                        atomicMin(&globMinFCost,fcost);
+                    if(!sens)
+                        atomicMin(&globMinFCost,fcost);
                 }
 
                 const ushort pIdCost = p.ID_Bf_Icost;
@@ -341,9 +368,9 @@ void ReadLine2(
             p.seg.id++;
             p.swBuf();
 
-//            if(!sens)
-//                for (ushort i = 0; i < dZ - p.stid<sens>(); i+=WARPSIZE)
-//                    streamFCost.SubValue(-p.ID_Bf_Icost + dZ - i,globMinFCost);
+            if(!sens)
+                for (ushort i = 0; i < dZ - p.stid<sens>(); i+=WARPSIZE)
+                    streamFCost.SubValue(-p.ID_Bf_Icost + dZ - i,globMinFCost);
 
         }
 
@@ -429,9 +456,7 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     for (ushort i = 0; i < NAPPEMAX; i+=WARPSIZE)
         locFCost[-i] = S_BuffICost[-i];
 
-
     ReadLine2<eARRIERE>( streamIndex,streamFCost,streamICost,S_BuffIndex + WARPSIZE - 1,S_BuffICost,S_BuffFCost,p);
-
 }
 
 extern "C" void TestOptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O)
