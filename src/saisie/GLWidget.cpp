@@ -167,8 +167,8 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                 {
                     if (m_Data->NbImages())
                     {
-                        m_glPosition[0] += 2.0f * dp.x()/_glViewport[2];
-                        m_glPosition[1] += 2.0f * dp.y()/_glViewport[3];
+                        m_glPosition[0] += 2.f * dp.x()/_glViewport[2];
+                        m_glPosition[1] += 2.f * dp.y()/_glViewport[3];
                     }
                     else
                     {
@@ -257,11 +257,13 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                if (m_polygon.size() < 2) m_polygon.setClosed(false);
            }
            else // close polygon
+           {
                m_polygon.close();
+               m_Click = 0;
+           }
        }
        else if (mouseEvent->button() == Qt::MiddleButton)
        {
-
            if (m_bDisplayMode2D || (m_interactionMode == TRANSFORM_CAMERA))
                _g_mouseMiddleDown = true;
        }

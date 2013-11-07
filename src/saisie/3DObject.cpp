@@ -452,15 +452,19 @@ cPolygon::cPolygon():
     setColor(QColor("red"));
 }
 
+cPolygon::cPolygon(const cPolygon& pol)
+{
+    this->cObject::operator =(pol);
+    *this = pol;
+}
+
 void cPolygon::draw()
 {
     glColor3f(.1f,1.f,.2f);
 
     glBegin(_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
     for (int aK = 0;aK < _points.size(); ++aK)
-    {
         glVertex2f(_points[aK].x(), _points[aK].y());
-    }
     glEnd();
 
     glColor3f(_color.redF(),_color.greenF(),_color.blueF());
@@ -480,9 +484,7 @@ void cPolygon::draw()
     else
     {
         for (int aK = 0;aK < _points.size(); ++aK)
-        {
             glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
-        }
     }
 }
 
@@ -496,13 +498,6 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
         _idx              = aP._idx;
 
         _points           = aP._points;
-
-        _position         = aP._position;
-        _color            = aP._color;
-        _scale            = aP._scale;
-
-        _alpha            = aP._alpha;
-        _bVisible         = aP._bVisible;
     }
 
     return *this;
@@ -519,9 +514,6 @@ void cPolygon::close()
 
         _bPolyIsClosed = true;
     }
-    else
-        _bPolyIsClosed = false;
-
 }
 
 void cPolygon::findClosestPoint(QPointF const &pos)
