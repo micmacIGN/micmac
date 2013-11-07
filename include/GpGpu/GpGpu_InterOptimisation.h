@@ -10,6 +10,7 @@ void LaunchKernel();
 extern "C" void Launch(uint* value);
 extern "C" void OptimisationOneDirection(DEVC_Data2Opti  &d2O);
 extern "C" void OptimisationOneDirectionZ(DEVC_Data2Opti  &d2O);
+extern "C" void TestOptimisationOneDirectionZ(DEVC_Data2Opti  &d2O);
 
 /// \class InterfOptimizGpGpu
 /// \brief Class qui permet a micmac de lancer les calculs d optimisations sur le Gpu

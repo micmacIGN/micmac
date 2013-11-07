@@ -170,7 +170,9 @@ private :
 
 #if CUDA_ENABLED
     void SolveAllDirectionGpu(int aNbDir);
+    void SolveAllDirectionGpuZ(int aNbDir);
     template<bool dirCopy> void copyCells(Pt2di aDirI,Data2Optimiz<CuHostData3D,2>  &d2Opt, uint idBuf = 0);
+    template<bool dirCopy> void copyCellsZ(Pt2di aDirI,Data2Optimiz<CuHostData3D,2>  &d2Opt, uint idBuf = 0);
     InterfOptimizGpGpu               IGpuOpt;
 #endif
 
