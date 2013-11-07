@@ -608,8 +608,8 @@ void MainWindow::closeAll()
     _glWidget->reset();
 
     checkForLoadedData();
-    //_glWidget->setBufferGl();
-    //_glWidget->update();
+    _glWidget->setBufferGl();
+    _glWidget->update();
 }
 
 void MainWindow::openRecentFile()
