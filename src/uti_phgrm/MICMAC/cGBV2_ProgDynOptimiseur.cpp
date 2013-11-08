@@ -42,6 +42,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define     MAT_TO_STREAM true
 #define     STREAM_TO_MAT false
 
+#include    "nvToolsExtCuda.h"
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
 namespace NS_ParamMICMAC
 {
 
@@ -531,6 +535,24 @@ void cGBV2_ProgDynOptimiseur::copyCells(Pt2di aDirI, Data2Optimiz<CuHostData3D,2
 template<bool dirCopy>
 void cGBV2_ProgDynOptimiseur::copyCellsZ(Pt2di aDirI, Data2Optimiz<CuHostData3D,2> &d2Opt, uint idBuf)
 {
+
+
+    nvtxEventAttributes_t initAttrib = {0};
+    initAttrib.version = NVTX_VERSION;
+    initAttrib.size = NVTX_EVENT_ATTRIB_STRUCT_SIZE;
+    initAttrib.color = 0xFF880000;
+    initAttrib.colorType = NVTX_COLOR_ARGB;
+    initAttrib.message.ascii = "copy Mat -> STr";
+    initAttrib.messageType = NVTX_MESSAGE_TYPE_ASCII;
+
+    nvtxNameOsThread(getpid(),"MAIN");
+
+    if(dirCopy)
+        nvtxRangePushEx(&initAttrib);
+    else
+        nvtxRangePush("copy STr -> Mat");
+
+
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
     const std::vector<Pt2di>* aVPt;
     uint idLine = 0;
@@ -563,6 +585,8 @@ void cGBV2_ProgDynOptimiseur::copyCellsZ(Pt2di aDirI, Data2Optimiz<CuHostData3D,
         idLine++;
 
     }
+
+    nvtxRangePop();
 }
 
 Pt2di cGBV2_ProgDynOptimiseur::direction(int aNbDir, int aKDir)
@@ -715,6 +739,16 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ(int aNbDir)
 
                 mLMR.Init(aDirI,Pt2di(0,0),mSz);
 
+                nvtxEventAttributes_t initAttrib = {0};
+                initAttrib.version = NVTX_VERSION;
+                initAttrib.size = NVTX_EVENT_ATTRIB_STRUCT_SIZE;
+                initAttrib.color = 0xFF00FFFF;
+                initAttrib.colorType = NVTX_COLOR_ARGB;
+                initAttrib.message.ascii = "prepare";
+                initAttrib.messageType = NVTX_MESSAGE_TYPE_ASCII;
+
+                nvtxRangePushEx(&initAttrib);
+
                 while ((aVPt = mLMR.Next()))
                 {
                     uint lenghtLine = (uint)(aVPt->size());
@@ -731,6 +765,8 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ(int aNbDir)
 
                     nbLine++;
                 }
+
+                nvtxRangePop();
 
                 IGpuOpt.Data2Opt().SetNbLine(nbLine);
 
