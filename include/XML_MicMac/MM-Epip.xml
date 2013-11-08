@@ -1,4 +1,9 @@
+
 <!-- 
+
+MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/data1/Jeux-Tests/Tortue-Pagode-Hue/ +Im1=Epi_Im1_Left_IMGP6872_IMGP6873.tif  +Im2=Epi_Im2_Right_IMGP6872_IMGP6873.tif +Ori=Epi  +DoEpi=false  +Purge=false +MMC=false +DoOnlyXml=true
+
+
 MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/marc/TMP/EPI/Marseilles/ +Im1=Epi_Im1_Right_Fr9130_028~1051_rgb_Fr9130_028~1052_rgb.tif +Im2=Epi_Im2_Left_Fr9130_028~1051_rgb_Fr9130_028~1052_rgb.tif +Zoom0=64  +Purge=false +MMC=false
 
 
@@ -34,6 +39,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 	<Symb> ZPas=0.5   </Symb>
         <Symb> PrefMEC=MEC2Im </Symb>
         <Symb> Purge=true </Symb>
+        <Symb> DoOnlyXml=false </Symb>
   <!-- Parametres essentiels -->
 
        <Symb> Ori=Epi    </Symb>
@@ -137,15 +143,6 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
              </FCND_Mode_GeomIm>
          </NomsGeometrieImage>
      </#WHEN>
-
-    
-<!--
-    <NomsGeometrieImage>
-         <FCND_Mode_GeomIm>
-               <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-${Ori}  </FCND_GeomCalc>
-         </FCND_Mode_GeomIm>
-    </NomsGeometrieImage>
--->
 </Section_PriseDeVue>
 
 
@@ -390,6 +387,13 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
          <GeomMNT> eGeomPxBiDim     </GeomMNT>
          <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D     </GeomMNT>
     </#IF>
+   <#WHEN  VTEST=${DoOnlyXml}>
+         <DoNothingBut>
+            <ButDoMTDNuage>  true </ButDoMTDNuage>
+<!--
+-->
+         </DoNothingBut>
+   </#WHEN>
 <!--
     <DoMEC> true </DoMEC> 
     <DoNothingBut>

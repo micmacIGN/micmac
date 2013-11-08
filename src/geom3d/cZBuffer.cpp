@@ -136,15 +136,15 @@ Im2D_REAL4 cZBuffer::Basculer
     mSzIn =  aP1In-aP0In;
     if (mWihBuf)
     {
-       mImX3 = Im2D_REAL4(mSzIn.x,mSzIn.y,22);
+       mImX3 = Im2D<tElZB,REAL8>(mSzIn.x,mSzIn.y,22);
        mDX3  = mImX3.data();
-       mTX3 = TIm2D<REAL4,REAL8>(mImX3);
-       mImY3 = Im2D_REAL4(mSzIn.x,mSzIn.y,23);
+       mTX3 = TIm2D<tElZB,REAL8>(mImX3);
+       mImY3 = Im2D<tElZB,REAL8>(mSzIn.x,mSzIn.y,23);
        mDY3  = mImY3.data();
-       mTY3 = TIm2D<REAL4,REAL8>(mImY3);
-       mImZ3 = Im2D_REAL4(mSzIn.x,mSzIn.y,240);
+       mTY3 = TIm2D<tElZB,REAL8>(mImY3);
+       mImZ3 = Im2D<tElZB,REAL8>(mSzIn.x,mSzIn.y,240);
        mDZ3  = mImZ3.data();
-       mTZ3 = TIm2D<REAL4,REAL8>(mImZ3);
+       mTZ3 = TIm2D<tElZB,REAL8>(mImZ3);
     }
     mOffet_Out_00 = Pt2di(0,0);
     mImOkTer = Im2D_Bits<1>(mSzIn.x,mSzIn.y,0);
@@ -176,9 +176,9 @@ Im2D_REAL4 cZBuffer::Basculer
 
 				   if (mWihBuf)
 				   {
-					  mDX3[aPIn.y-aP0In.y][aPIn.x-aP0In.x] = (float)aP3Out.x;
-					  mDY3[aPIn.y-aP0In.y][aPIn.x-aP0In.x] = (float)aP3Out.y;
-					  mDZ3[aPIn.y-aP0In.y][aPIn.x-aP0In.x] = (float)aP3Out.z;
+					  mDX3[aPIn.y-aP0In.y][aPIn.x-aP0In.x] = (tElZB)aP3Out.x;
+					  mDY3[aPIn.y-aP0In.y][aPIn.x-aP0In.x] = (tElZB)aP3Out.y;
+					  mDZ3[aPIn.y-aP0In.y][aPIn.x-aP0In.x] = (tElZB)aP3Out.z;
 				   }
 				   mImOkTer.set(aPIn.x-mP0In.x,aPIn.y-mP0In.y,1);
 				}
@@ -357,6 +357,7 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
 
 	 //Calcul de l'etirement du triangle
      int aCoefEtire= -1;
+     double aCoefEtirReel=-1;
      if (mDynEtire>0)
      {
         Pt2dr aU = TriBas ? (B2-A2) : (C2-B2);
@@ -367,8 +368,8 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
         double aUV = scal(aU,aV);
 
          // De memoire, la + grande des VP de l'affinite
-        double aCoeff = sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2);
-        aCoefEtire = ElMin(254,round_ni(aCoeff*mDynEtire));
+        aCoefEtirReel = sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2);
+        aCoefEtire = ElMin(254,round_ni(aCoefEtirReel*mDynEtire));
         if (aDet<0)
             aCoefEtire = 254;
      }
@@ -418,12 +419,18 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
                          {
                               mImEtirement.SetI(Pt2di(x,y),aCoefEtire);
                          }
+                         double aMul =1.0;
+                         if (mDynEtire>0)
+                         {
+                              aMul = ElMin(1.0,1/aCoefEtirReel);
+                         }
                          for (int aKA=0 ; aKA<(int)mImAttrIn.size() ; aKA++)
                          {
+                              
                               mImAttrOut[aKA]->SetR
                               (
                                  Pt2di(x,y),
-                                 aPdsA*mAttrA[aKA] + aPdsB*mAttrB[aKA] + aPdsC*mAttrC[aKA]
+                                 aMul * (aPdsA*mAttrA[aKA] + aPdsB*mAttrB[aKA] + aPdsC*mAttrC[aKA])
                               );
                          }
                     }

@@ -542,6 +542,7 @@ class cElNuage3DMaille : public cCapture3D
 
 
 
+typedef double tElZB;
 
 class cZBuffer
 {
@@ -670,19 +671,28 @@ class cZBuffer
         bool         mWihBuf;
         bool         mBufDone;
 
-        Im2D_REAL4   mImX3;
-        float **     mDX3;
-        TIm2D<REAL4,REAL8>  mTX3;
-        Im2D_REAL4   mImY3;
-        float **     mDY3;
-        TIm2D<REAL4,REAL8>  mTY3;
-        Im2D_REAL4   mImZ3;
-        float **     mDZ3;
-        TIm2D<REAL4,REAL8>  mTZ3;
+        Im2D<tElZB,REAL8>   mImX3;
+        tElZB **     mDX3;
+        TIm2D<tElZB,REAL8>  mTX3;
+        Im2D<tElZB,REAL8>   mImY3;
+        tElZB **     mDY3;
+        TIm2D<tElZB,REAL8>  mTY3;
+        Im2D<tElZB,REAL8>   mImZ3;
+        tElZB **     mDZ3;
+        TIm2D<tElZB,REAL8>  mTZ3;
         Pt2di        mP0In;
         Pt2di        mSzIn;
 
         double       mEpsIntInv;
+};
+
+class cArgBacule
+{
+    public :
+        cArgBacule(double mSeuilEtir);
+
+        double mSeuilEtir;
+        static cArgBacule  mTheDef;
 };
 
 cElNuage3DMaille *  BasculeNuageAutoReSize
@@ -692,7 +702,8 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
                        const std::string & aDirIn,
                        const std::string &  aNameRes,
                        bool  AutoResize,
-                       const Box2di  * aBoxClipIn = 0
+                       const Box2di  * aBoxClipIn = 0,
+                       const cArgBacule &  = cArgBacule::mTheDef
                     );
 
 template <class Type> void WriteType(FILE * aFP,Type f)

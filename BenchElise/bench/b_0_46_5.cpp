@@ -33,7 +33,8 @@ class cBench_GCF1
 {
 
      public :
-         cBench_GCF1(AllocateurDInconnues & anAlloc,INT aNumF,INT Nb0,INT Nb1);
+         //cBench_GCF1(AllocateurDInconnues & anAlloc,INT aNumF,INT Nb0,INT Nb1);
+         cBench_GCF1(cSetEqFormelles & anAlloc,INT aNumF,INT Nb0,INT Nb1); // __NEW
 	 void Generate();
 
 	 void ReSet();
@@ -52,7 +53,7 @@ class cBench_GCF1
 
          void VerifDerSec(
                          INT aI1,INT aI2,cElCompiledFonc * aFcteur,
-                         INT aK2,INT aK2
+                         INT aK1,INT aK2
               );
 
         Fonc_Num             GenF();
@@ -261,19 +262,25 @@ INT AllocNVar(AllocateurDInconnues & anAlloc,INT aNB)
 
 cBench_GCF1::cBench_GCF1
 (
-   AllocateurDInconnues & anAlloc,
+   //AllocateurDInconnues & anAlloc,
+   cSetEqFormelles & setEquations, // __NEW
    INT aNumF,
    INT Nb0,
    INT Nb1
 ) :
-     mAlloc   (anAlloc),
+     //mAlloc   (anAlloc),
+     mAlloc   (setEquations.Alloc()), // __NEW
      mNumF    (aNumF),
-     mBid0    (AllocNVar(anAlloc,Nb0)),
-     mInterv1 ( "Interv1",mAlloc) ,
+     //mBid0    (AllocNVar(anAlloc,Nb0)),
+     //mInterv1 ( "Interv1",mAlloc) ,
+     mBid0    (AllocNVar(setEquations.Alloc(),Nb0)),     // __NEW
+     mInterv1 ( false/*isTmp*/,"Interv1",setEquations) , // __NEW
      mF0      ( mAlloc.NewF(&mV0)),
      mF1      ( mAlloc.NewF(&mV1)),
-     mBid1    ((mInterv1.Close(),AllocNVar(anAlloc,Nb1))),
-     mInterv2 ( "Interv2",mAlloc),
+     //mBid1    ((mInterv1.Close(),AllocNVar(anAlloc,Nb1))),
+     //mInterv2 ( "Interv2",mAlloc),
+     mBid1    ((mInterv1.Close(),AllocNVar(setEquations.Alloc(),Nb1))), // __NEW
+     mInterv2 ( false/*isTmp*/,"Interv2",setEquations),                 // __NEW
 
      mF2      ( mAlloc.NewF(&mV2)),
      mF3      ( mAlloc.NewF(&mV3)),
@@ -318,11 +325,14 @@ void cBench_GCF1::Generate()
 #include "cB_GCF1.cpp"
 template <class tComp> void TplBench_cB_GCF(INT aNumF,tComp & aComp)
 {
-   AllocateurDInconnues  anAlloc;
-   cBench_GCF1           anOri(anAlloc,aNumF,0,0);
-
-   AllocateurDInconnues  anAlloc2;
-   cBench_GCF1           anOri2(anAlloc2,aNumF,0,0);
+   //AllocateurDInconnues  anAlloc;
+   //cBench_GCF1           anOri(anAlloc,aNumF,0,0);
+   //AllocateurDInconnues  anAlloc2;
+   //cBench_GCF1           anOri2(anAlloc2,aNumF,0,0);
+   cSetEqFormelles equations;
+   cBench_GCF1           anOri(equations,aNumF,0,0);
+   cSetEqFormelles equations2;
+   cBench_GCF1           anOri2(equations2,aNumF,0,0);
 
    cElCompiledFonc * aFromName = cElCompiledFonc::AllocFromName(anOri2.Name());
    BENCH_ASSERT(aFromName!=0);
