@@ -11,7 +11,11 @@ set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -lineinfo)
  set(libStatGpGpuInterfMicMac GpGpuInterfMicMac)
  set(libStatGpGpuOpt GpGpuOpt)
 
+ set(libNVTools /usr/local/cuda/lib64/libnvToolsExt.so)
+
  cuda_add_library(${libStatGpGpuTools}  ${GpGpuTools_Src_Files} ${IncCudaFiles} STATIC OPTIONS ${GENCODE_SM20})
+
+ target_link_libraries(${libStatGpGpuTools} ${libNVTools})
 
  cuda_add_library(${libStatGpGpuInterfMicMac}  ${uti_phgrm_GpGpu_Src_Files} STATIC OPTIONS ${GENCODE_SM20})
 
@@ -47,7 +51,7 @@ endif()
 
  cuda_add_library( ${libElise} ${Elise_Src_Files} ${IncFiles} OPTIONS ${GENCODE_SM20})
 
- target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} /usr/local/cuda/lib64/libnvToolsExt.so)
+ target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${libNVTools})
 
  INSTALL(TARGETS ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt}
             LIBRARY DESTINATION ${PROJECT_SOURCE_DIR}/lib

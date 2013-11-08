@@ -42,10 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define     MAT_TO_STREAM true
 #define     STREAM_TO_MAT false
 
-#include    "nvToolsExtCuda.h"
-#include <stdio.h>
-#include <sys/types.h>
-#include <unistd.h>
+
 namespace NS_ParamMICMAC
 {
 
@@ -498,6 +495,12 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
 template<bool dirCopy>
 void cGBV2_ProgDynOptimiseur::copyCells(Pt2di aDirI, Data2Optimiz<CuHostData3D,2> &d2Opt, uint idBuf)
 {
+
+    if(dirCopy)
+        GpGpuTools::NvtxR_Push("Copy Mat -> STr",0xFF00FF00);
+    else
+        GpGpuTools::NvtxR_Push("Copy STr -> Mat",0xFFFF0000);
+
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
     const std::vector<Pt2di>* aVPt;
     uint idLine = 0;
@@ -525,65 +528,10 @@ void cGBV2_ProgDynOptimiseur::copyCells(Pt2di aDirI, Data2Optimiz<CuHostData3D,2
                     aMat[Pt2di(aPx,0)].AddToCostFinal(d2Opt._s_ForceCostVol[idBuf][idStrm + aPx]);
 
             pitStrm += count(dZ);
+
         }
 
         idLine++;
-
-    }
-}
-
-template<bool dirCopy>
-void cGBV2_ProgDynOptimiseur::copyCellsZ(Pt2di aDirI, Data2Optimiz<CuHostData3D,2> &d2Opt, uint idBuf)
-{
-
-
-    nvtxEventAttributes_t initAttrib = {0};
-    initAttrib.version = NVTX_VERSION;
-    initAttrib.size = NVTX_EVENT_ATTRIB_STRUCT_SIZE;
-    initAttrib.color = 0xFF880000;
-    initAttrib.colorType = NVTX_COLOR_ARGB;
-    initAttrib.message.ascii = "copy Mat -> STr";
-    initAttrib.messageType = NVTX_MESSAGE_TYPE_ASCII;
-
-    nvtxNameOsThread(getpid(),"MAIN");
-
-    if(dirCopy)
-        nvtxRangePushEx(&initAttrib);
-    else
-        nvtxRangePush("copy STr -> Mat");
-
-
-    mLMR.Init(aDirI,Pt2di(0,0),mSz);
-    const std::vector<Pt2di>* aVPt;
-    uint idLine = 0;
-    while ((aVPt = mLMR.Next()))
-    {
-        uint    pitStrm = 0;
-        uint    lLine   = aVPt->size();
-
-        for (uint aK= 0 ; aK < lLine; aK++)
-        {
-
-            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[(*aVPt)[aK]];
-
-            short2 dZ = make_short2(aMat.Box()._p0.x,aMat.Box()._p1.x);
-
-            if(dirCopy == MAT_TO_STREAM)
-                d2Opt._s_Index[d2Opt._param[idBuf][idLine].y + aK] = dZ;
-
-            uint idStrm = d2Opt._param[idBuf][idLine].x + pitStrm - dZ.x;
-
-            for ( int aPx = dZ.x ; aPx < dZ.y ; aPx++) // Modif avant :  aPx < dZ.y
-                if (dirCopy == MAT_TO_STREAM)
-                    d2Opt._s_InitCostVol[idStrm + aPx]  = aMat[Pt2di(aPx,0)].GetCostInit();
-                else
-                    aMat[Pt2di(aPx,0)].AddToCostFinal(d2Opt._s_ForceCostVol[idBuf][idStrm + aPx]);
-
-            pitStrm += count(dZ);
-        }
-
-        idLine++;
-
     }
 
     nvtxRangePop();
@@ -739,15 +687,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ(int aNbDir)
 
                 mLMR.Init(aDirI,Pt2di(0,0),mSz);
 
-                nvtxEventAttributes_t initAttrib = {0};
-                initAttrib.version = NVTX_VERSION;
-                initAttrib.size = NVTX_EVENT_ATTRIB_STRUCT_SIZE;
-                initAttrib.color = 0xFF00FFFF;
-                initAttrib.colorType = NVTX_COLOR_ARGB;
-                initAttrib.message.ascii = "prepare";
-                initAttrib.messageType = NVTX_MESSAGE_TYPE_ASCII;
-
-                nvtxRangePushEx(&initAttrib);
+                GpGpuTools::NvtxR_Push("PREpa",0xFF0000FF);
 
                 while ((aVPt = mLMR.Next()))
                 {
@@ -772,7 +712,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ(int aNbDir)
 
                 IGpuOpt.Data2Opt().ReallocInputIf(pitStream + NAPPEMAX,pitIdStream + WARPSIZE);
 
-                copyCellsZ<MAT_TO_STREAM>( aDirI, IGpuOpt.Data2Opt(),idPreCo);
+                copyCells<MAT_TO_STREAM>( aDirI, IGpuOpt.Data2Opt(),idPreCo);
 
                 IGpuOpt.SetCompute(true);
                 IGpuOpt.SetPreComp(false);
@@ -783,7 +723,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ(int aNbDir)
 
             if(IGpuOpt.GetDataToCopy())
             {
-                copyCellsZ<STREAM_TO_MAT>( direction(aNbDir,aKDir), IGpuOpt.Data2Opt(),!IGpuOpt.GetIdBuf());
+                copyCells<STREAM_TO_MAT>( direction(aNbDir,aKDir), IGpuOpt.Data2Opt(),!IGpuOpt.GetIdBuf());
                 IGpuOpt.SetDataToCopy(false);
                 aKDir++;
             }
