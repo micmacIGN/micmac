@@ -365,6 +365,15 @@ template <> Pt2d<Fonc_Num>::Pt2d(const Pt2d<double>& p) : x (p.x), y (p.y) {};
      Pt2d<Type>(const Pt2d<REAL>& p): x (Pt2d<Type>::RtoT(p.x)), y (Pt2d<Type>::RtoT(p.y)) {};
 */
 
+//Rotate aPt(X,Y) with angle(rad) and center(X,Y)
+template <class Type>
+typename Pt2d<Type> Rot2D(double aAngle, Pt2d<Type> aPt, Pt2d<Type> aRotCenter)
+                 {  Pt2d<Type> PtOut;					 
+					PtOut.x=cos(aAngle)*(aPt.x-aRotCenter.x)+sin(aAngle)*(aPt.y-aRotCenter.y)+aRotCenter.x;
+					PtOut.y=-sin(aAngle)*(aPt.x-aRotCenter.x)+cos(aAngle)*(aPt.y-aRotCenter.y)+aRotCenter.y;
+					return PtOut;}
+
+
 template <class Type>
 void pt_set_min_max(Pt2d<Type> & p0,Pt2d<Type> & p1)
 {

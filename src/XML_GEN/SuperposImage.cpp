@@ -11148,6 +11148,17 @@ const cTplValGesInit< double > & cFMNtByMaxEvid::MaxDif()const
 }
 
 
+cTplValGesInit< bool > & cFMNtByMaxEvid::QuickExp()
+{
+   return mQuickExp;
+}
+
+const cTplValGesInit< bool > & cFMNtByMaxEvid::QuickExp()const 
+{
+   return mQuickExp;
+}
+
+
 double & cFMNtByMaxEvid::Regul()
 {
    return FMNT_ProgDyn().Val().Regul();
@@ -11244,6 +11255,8 @@ cElXMLTree * ToXMLTree(const cFMNtByMaxEvid & anObj)
       aRes->AddFils(::ToXMLTree(std::string("SigmaZ"),anObj.SigmaZ().Val())->ReTagThis("SigmaZ"));
    if (anObj.MaxDif().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("MaxDif"),anObj.MaxDif().Val())->ReTagThis("MaxDif"));
+   if (anObj.QuickExp().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("QuickExp"),anObj.QuickExp().Val())->ReTagThis("QuickExp"));
    if (anObj.FMNT_ProgDyn().IsInit())
       aRes->AddFils(ToXMLTree(anObj.FMNT_ProgDyn().Val())->ReTagThis("FMNT_ProgDyn"));
   aRes->mGXml = anObj.mGXml;
@@ -11261,6 +11274,8 @@ void xml_init(cFMNtByMaxEvid & anObj,cElXMLTree * aTree)
    xml_init(anObj.SigmaZ(),aTree->Get("SigmaZ",1)); //tototo 
 
    xml_init(anObj.MaxDif(),aTree->Get("MaxDif",1),double(1e9)); //tototo 
+
+   xml_init(anObj.QuickExp(),aTree->Get("QuickExp",1),bool(false)); //tototo 
 
    xml_init(anObj.FMNT_ProgDyn(),aTree->Get("FMNT_ProgDyn",1)); //tototo 
 }
@@ -11318,6 +11333,17 @@ cTplValGesInit< double > & cSpecAlgoFMNT::MaxDif()
 const cTplValGesInit< double > & cSpecAlgoFMNT::MaxDif()const 
 {
    return FMNtByMaxEvid().Val().MaxDif();
+}
+
+
+cTplValGesInit< bool > & cSpecAlgoFMNT::QuickExp()
+{
+   return FMNtByMaxEvid().Val().QuickExp();
+}
+
+const cTplValGesInit< bool > & cSpecAlgoFMNT::QuickExp()const 
+{
+   return FMNtByMaxEvid().Val().QuickExp();
 }
 
 
@@ -11517,6 +11543,17 @@ cTplValGesInit< double > & cParamAlgoFusionMNT::MaxDif()
 const cTplValGesInit< double > & cParamAlgoFusionMNT::MaxDif()const 
 {
    return SpecAlgoFMNT().FMNtByMaxEvid().Val().MaxDif();
+}
+
+
+cTplValGesInit< bool > & cParamAlgoFusionMNT::QuickExp()
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().QuickExp();
+}
+
+const cTplValGesInit< bool > & cParamAlgoFusionMNT::QuickExp()const 
+{
+   return SpecAlgoFMNT().FMNtByMaxEvid().Val().QuickExp();
 }
 
 
@@ -11730,6 +11767,17 @@ const cTplValGesInit< std::string > & cSectionGestionChantier::WorkDirPFM()const
    return mWorkDirPFM;
 }
 
+
+cTplValGesInit< Box2di > & cSectionGestionChantier::BoxTest()
+{
+   return mBoxTest;
+}
+
+const cTplValGesInit< Box2di > & cSectionGestionChantier::BoxTest()const 
+{
+   return mBoxTest;
+}
+
 cElXMLTree * ToXMLTree(const cSectionGestionChantier & anObj)
 {
   XMLPushContext(anObj.mGXml);
@@ -11748,6 +11796,8 @@ cElXMLTree * ToXMLTree(const cSectionGestionChantier & anObj)
       aRes->AddFils(::ToXMLTree(std::string("InterneSingleBox"),anObj.InterneSingleBox().Val())->ReTagThis("InterneSingleBox"));
    if (anObj.WorkDirPFM().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("WorkDirPFM"),anObj.WorkDirPFM().Val())->ReTagThis("WorkDirPFM"));
+   if (anObj.BoxTest().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("BoxTest"),anObj.BoxTest().Val())->ReTagThis("BoxTest"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -11771,6 +11821,8 @@ void xml_init(cSectionGestionChantier & anObj,cElXMLTree * aTree)
    xml_init(anObj.InterneSingleBox(),aTree->Get("InterneSingleBox",1),int(-1)); //tototo 
 
    xml_init(anObj.WorkDirPFM(),aTree->Get("WorkDirPFM",1)); //tototo 
+
+   xml_init(anObj.BoxTest(),aTree->Get("BoxTest",1)); //tototo 
 }
 
 
@@ -11903,6 +11955,17 @@ cTplValGesInit< double > & cParamFusionMNT::MaxDif()
 const cTplValGesInit< double > & cParamFusionMNT::MaxDif()const 
 {
    return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().MaxDif();
+}
+
+
+cTplValGesInit< bool > & cParamFusionMNT::QuickExp()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().QuickExp();
+}
+
+const cTplValGesInit< bool > & cParamFusionMNT::QuickExp()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().QuickExp();
 }
 
 
@@ -12123,6 +12186,17 @@ cTplValGesInit< std::string > & cParamFusionMNT::WorkDirPFM()
 const cTplValGesInit< std::string > & cParamFusionMNT::WorkDirPFM()const 
 {
    return SectionGestionChantier().WorkDirPFM();
+}
+
+
+cTplValGesInit< Box2di > & cParamFusionMNT::BoxTest()
+{
+   return SectionGestionChantier().BoxTest();
+}
+
+const cTplValGesInit< Box2di > & cParamFusionMNT::BoxTest()const 
+{
+   return SectionGestionChantier().BoxTest();
 }
 
 

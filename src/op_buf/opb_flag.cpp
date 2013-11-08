@@ -41,17 +41,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-#if (ELISE_windows)
-#define ELISE_NAME_DATA_DIR   ".\\data\\"
-#define  DIRECT_NAME  "\\"
-#else   // So, Unix
-#define ELISE_NAME_DATA_DIR "./data/"
+#define ELISE_NAME_DATA_DIR "../data/"
 #define  DIRECT_NAME  "/"
-#endif                 
-
-
-
-
 
 /***********************************************************************/
 /***********************************************************************/

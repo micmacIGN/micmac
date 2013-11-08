@@ -4,7 +4,7 @@ cObject::cObject() :
     _position(Pt3dr(0.f,0.f,0.f)),
     _color(QColor(255,255,255)),
     _scale(1.f),
-     _alpha(0.6f),
+    _alpha(0.6f),
     _bVisible(false)
 {}
 
@@ -39,11 +39,11 @@ cCircle::cCircle(Pt3d<double> pt, QColor col, float scale, float lineWidth, bool
 void glDrawUnitCircle(uchar dim, float cx, float cy, float r = 3.0, int steps = 8)
 {
     float theta = 2.f * PI / float(steps);
-    float c = cosf(theta);//precalculate the sine and cosine
+    float c = cosf(theta); //precalculate the sine and cosine
     float s = sinf(theta);
     float t;
 
-    float x = r;//we start at angle = 0
+    float x = r; //we start at angle = 0
     float y = 0;
 
     uchar dimX = (dim<2 ? dim+1 : 0);
@@ -292,75 +292,77 @@ void cBBox::set(float minX, float minY, float minZ, float maxX, float maxY, floa
 
 void cBBox::draw()
 {
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
+    if (_bVisible)
+    {
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
 
-    GLuint list = glGenLists(1);
-    glNewList(list, GL_COMPILE);
+        GLuint list = glGenLists(1);
+        glNewList(list, GL_COMPILE);
 
-    glPushAttrib(GL_LINE_BIT|GL_DEPTH_BUFFER_BIT);
+        glPushAttrib(GL_LINE_BIT|GL_DEPTH_BUFFER_BIT);
 
-    glLineWidth(_lineWidth);
+        glLineWidth(_lineWidth);
 
-    glColor3f(_color.redF(),_color.greenF(),_color.blueF());
+        glColor3f(_color.redF(),_color.greenF(),_color.blueF());
 
-    Pt3dr P1(_minX, _minY, _minZ);
-    Pt3dr P2(_minX, _minY, _maxZ);
-    Pt3dr P3(_minX, _maxY, _maxZ);
-    Pt3dr P4(_minX, _maxY, _minZ);
-    Pt3dr P5(_maxX, _minY, _minZ);
-    Pt3dr P6(_maxX, _maxY, _minZ);
-    Pt3dr P7(_maxX, _maxY, _maxZ);
-    Pt3dr P8(_maxX, _minY, _maxZ);
+        Pt3dr P1(_minX, _minY, _minZ);
+        Pt3dr P2(_minX, _minY, _maxZ);
+        Pt3dr P3(_minX, _maxY, _maxZ);
+        Pt3dr P4(_minX, _maxY, _minZ);
+        Pt3dr P5(_maxX, _minY, _minZ);
+        Pt3dr P6(_maxX, _maxY, _minZ);
+        Pt3dr P7(_maxX, _maxY, _maxZ);
+        Pt3dr P8(_maxX, _minY, _maxZ);
 
-    glBegin(GL_LINES);
+        glBegin(GL_LINES);
 
-    glVertex3d(P1.x, P1.y, P1.z);
-    glVertex3d(P2.x, P2.y, P2.z);
+        glVertex3d(P1.x, P1.y, P1.z);
+        glVertex3d(P2.x, P2.y, P2.z);
 
-    glVertex3d(P3.x, P3.y, P3.z);
-    glVertex3d(P2.x, P2.y, P2.z);
+        glVertex3d(P3.x, P3.y, P3.z);
+        glVertex3d(P2.x, P2.y, P2.z);
 
-    glVertex3d(P1.x, P1.y, P1.z);
-    glVertex3d(P4.x, P4.y, P4.z);
+        glVertex3d(P1.x, P1.y, P1.z);
+        glVertex3d(P4.x, P4.y, P4.z);
 
-    glVertex3d(P1.x, P1.y, P1.z);
-    glVertex3d(P5.x, P5.y, P5.z);
+        glVertex3d(P1.x, P1.y, P1.z);
+        glVertex3d(P5.x, P5.y, P5.z);
 
-    glVertex3d(P7.x, P7.y, P7.z);
-    glVertex3d(P3.x, P3.y, P3.z);
+        glVertex3d(P7.x, P7.y, P7.z);
+        glVertex3d(P3.x, P3.y, P3.z);
 
-    glVertex3d(P7.x, P7.y, P7.z);
-    glVertex3d(P6.x, P6.y, P6.z);
+        glVertex3d(P7.x, P7.y, P7.z);
+        glVertex3d(P6.x, P6.y, P6.z);
 
-    glVertex3d(P8.x, P8.y, P8.z);
-    glVertex3d(P5.x, P5.y, P5.z);
+        glVertex3d(P8.x, P8.y, P8.z);
+        glVertex3d(P5.x, P5.y, P5.z);
 
-    glVertex3d(P7.x, P7.y, P7.z);
-    glVertex3d(P8.x, P8.y, P8.z);
+        glVertex3d(P7.x, P7.y, P7.z);
+        glVertex3d(P8.x, P8.y, P8.z);
 
-    glVertex3d(P5.x, P5.y, P5.z);
-    glVertex3d(P6.x, P6.y, P6.z);
+        glVertex3d(P5.x, P5.y, P5.z);
+        glVertex3d(P6.x, P6.y, P6.z);
 
-    glVertex3d(P4.x, P4.y, P4.z);
-    glVertex3d(P6.x, P6.y, P6.z);
+        glVertex3d(P4.x, P4.y, P4.z);
+        glVertex3d(P6.x, P6.y, P6.z);
 
-    glVertex3d(P8.x, P8.y, P8.z);
-    glVertex3d(P2.x, P2.y, P2.z);
+        glVertex3d(P8.x, P8.y, P8.z);
+        glVertex3d(P2.x, P2.y, P2.z);
 
-    glVertex3d(P4.x, P4.y, P4.z);
-    glVertex3d(P3.x, P3.y, P3.z);
+        glVertex3d(P4.x, P4.y, P4.z);
+        glVertex3d(P3.x, P3.y, P3.z);
 
-    glEnd();
+        glEnd();
 
-    glPopAttrib();
+        glPopAttrib();
 
-    glEndList();
+        glEndList();
 
-    glCallList(list);
+        glCallList(list);
 
-    glPopMatrix();
-    glDisable(GL_BLEND);
+        glPopMatrix();
+    }
 }
 
 cCam::cCam(CamStenope *pCam) :
@@ -373,68 +375,71 @@ cCam::cCam(CamStenope *pCam) :
 
 void cCam::draw()
 {
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
+    if (_bVisible)
+    {
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
 
-    GLuint list = glGenLists(1);
-    glNewList(list, GL_COMPILE);
+        GLuint list = glGenLists(1);
+        glNewList(list, GL_COMPILE);
 
-    glPushAttrib(GL_LINE_BIT|GL_DEPTH_BUFFER_BIT);
+        glPushAttrib(GL_LINE_BIT|GL_DEPTH_BUFFER_BIT);
 
-    glLineWidth(_lineWidth);
-    glPointSize(_pointSize);
+        glLineWidth(_lineWidth);
+        glPointSize(_pointSize);
 
-    Pt2di sz = _Cam->Sz();
+        Pt2di sz = _Cam->Sz();
 
-    double aZ = _scale*.05f;
+        double aZ = _scale*.05f;
 
-    Pt3dr C  = _Cam->VraiOpticalCenter();
-    Pt3dr P1 = _Cam->ImEtProf2Terrain(Pt2dr(0.f,0.f),aZ);
-    Pt3dr P2 = _Cam->ImEtProf2Terrain(Pt2dr(sz.x,0.f),aZ);
-    Pt3dr P3 = _Cam->ImEtProf2Terrain(Pt2dr(0.f,sz.y),aZ);
-    Pt3dr P4 = _Cam->ImEtProf2Terrain(Pt2dr(sz.x,sz.y),aZ);
+        Pt3dr C  = _Cam->VraiOpticalCenter();
+        Pt3dr P1 = _Cam->ImEtProf2Terrain(Pt2dr(0.f,0.f),aZ);
+        Pt3dr P2 = _Cam->ImEtProf2Terrain(Pt2dr(sz.x,0.f),aZ);
+        Pt3dr P3 = _Cam->ImEtProf2Terrain(Pt2dr(0.f,sz.y),aZ);
+        Pt3dr P4 = _Cam->ImEtProf2Terrain(Pt2dr(sz.x,sz.y),aZ);
 
-    glBegin(GL_LINES);
-        //perspective cone
-        glColor3f(1.f,1.f,1.f);
-        glVertex3d(C.x, C.y, C.z);
-        glVertex3d(P1.x, P1.y, P1.z);
+        glBegin(GL_LINES);
+            //perspective cone
+            glColor3f(1.f,1.f,1.f);
+            glVertex3d(C.x, C.y, C.z);
+            glVertex3d(P1.x, P1.y, P1.z);
 
-        glVertex3d(C.x, C.y, C.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+            glVertex3d(C.x, C.y, C.z);
+            glVertex3d(P2.x, P2.y, P2.z);
 
-        glVertex3d(C.x, C.y, C.z);
-        glVertex3d(P3.x, P3.y, P3.z);
+            glVertex3d(C.x, C.y, C.z);
+            glVertex3d(P3.x, P3.y, P3.z);
 
-        glVertex3d(C.x, C.y, C.z);
-        glVertex3d(P4.x, P4.y, P4.z);
+            glVertex3d(C.x, C.y, C.z);
+            glVertex3d(P4.x, P4.y, P4.z);
 
-        //Image
-        glColor3f(_color.redF(),_color.greenF(),_color.blueF());
-        glVertex3d(P1.x, P1.y, P1.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+            //Image
+            glColor3f(_color.redF(),_color.greenF(),_color.blueF());
+            glVertex3d(P1.x, P1.y, P1.z);
+            glVertex3d(P2.x, P2.y, P2.z);
 
-        glVertex3d(P4.x, P4.y, P4.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+            glVertex3d(P4.x, P4.y, P4.z);
+            glVertex3d(P2.x, P2.y, P2.z);
 
-        glVertex3d(P3.x, P3.y, P3.z);
-        glVertex3d(P1.x, P1.y, P1.z);
+            glVertex3d(P3.x, P3.y, P3.z);
+            glVertex3d(P1.x, P1.y, P1.z);
 
-        glVertex3d(P4.x, P4.y, P4.z);
-        glVertex3d(P3.x, P3.y, P3.z);
-    glEnd();
+            glVertex3d(P4.x, P4.y, P4.z);
+            glVertex3d(P3.x, P3.y, P3.z);
+        glEnd();
 
-    glBegin(GL_POINTS);
-        glVertex3d(C.x, C.y, C.z);
-    glEnd();
+        glBegin(GL_POINTS);
+            glVertex3d(C.x, C.y, C.z);
+        glEnd();
 
-    glEndList();
+        glEndList();
 
-    glPopAttrib();
+        glPopAttrib();
 
-    glCallList(list);
+        glCallList(list);
 
-    glPopMatrix();
+        glPopMatrix();
+    }
 }
 
 cPolygon::cPolygon():
@@ -447,15 +452,19 @@ cPolygon::cPolygon():
     setColor(QColor("red"));
 }
 
+cPolygon::cPolygon(const cPolygon& pol)
+{
+    this->cObject::operator =(pol);
+    *this = pol;
+}
+
 void cPolygon::draw()
 {
     glColor3f(.1f,1.f,.2f);
 
     glBegin(_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
-    for (int aK = 0;aK <  _points.size(); ++aK)
-    {
+    for (int aK = 0;aK < _points.size(); ++aK)
         glVertex2f(_points[aK].x(), _points[aK].y());
-    }
     glEnd();
 
     glColor3f(_color.redF(),_color.greenF(),_color.blueF());
@@ -469,15 +478,13 @@ void cPolygon::draw()
         glDrawUnitCircle(2, _points[_idx].x(), _points[_idx].y());
 
         glColor3f(1.f,0.f,0.f);
-        for (int aK = _idx+1;aK < (int) _points.size(); ++aK)
+        for (int aK = _idx+1;aK < _points.size(); ++aK)
             glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
     }
     else
     {
         for (int aK = 0;aK < _points.size(); ++aK)
-        {
             glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
-        }
     }
 }
 
@@ -490,14 +497,7 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
         _bPolyIsClosed    = aP._bPolyIsClosed;
         _idx              = aP._idx;
 
-        _points             = aP._points;
-
-        _position         = aP._position;
-        _color            = aP._color;
-        _scale            = aP._scale;
-
-        _alpha            = aP._alpha;
-        _bVisible         = aP._bVisible;
+        _points           = aP._points;
     }
 
     return *this;
@@ -505,11 +505,11 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
 
 void cPolygon::close()
 {
-   // if (!m_bPolyIsClosed)
-    if (!_bPolyIsClosed)
+    int sz = _points.size();
+
+    if ((sz>1)&&(!_bPolyIsClosed))
     {
         //remove last point if needed
-        int sz = _points.size();
         if (sz > 2) _points.resize(sz-1);
 
         _bPolyIsClosed = true;
@@ -519,24 +519,31 @@ void cPolygon::close()
 void cPolygon::findClosestPoint(QPointF const &pos)
 {
     _idx = -1;
-    float dist, dist2;
+    float dist, dist2, x, y, dx, dy;
     dist2 = _sqr_radius;
+    x = pos.x();
+    y = pos.y();
 
-    for (int aK = 0; aK < _points.size();++aK)
+    for (int aK = 0; aK < _points.size(); ++aK)
     {
-        dist  = (pos.x() - _points[aK].x())*(pos.x() - _points[aK].x()) +
-                (pos.y() - _points[aK].y())*(pos.y() - _points[aK].y());
+        dx = x - _points[aK].x();
+        dy = y - _points[aK].y();
+
+        dist = dx * dx + dy * dy;
 
         if  (dist < dist2)
         {
             dist2 = dist;
             _idx = aK;
-       }
+        }
     }
 }
 
 void cPolygon::drawDihedron()
 {
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+
     glLineStipple(2, 0xAAAA);
     glEnable(GL_LINE_STIPPLE);
 
@@ -559,6 +566,8 @@ void cPolygon::drawDihedron()
 
     if (_points.size())
         glDrawUnitCircle(2, _points[1].x(), _points[1].y());
+
+    glPopMatrix();
 }
 
 float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)
@@ -590,7 +599,7 @@ void cPolygon::fillDihedron(QPointF const &pos, cPolygon &dihedron)
     QVector < QPointF > polygon = _points;
     polygon.push_back(polygon[0]);
 
-    for (int aK =0; aK < polygon.size()-1;++aK)
+    for (int aK =0; aK < polygon.size()-1; ++aK)
     {
         dist = segmentDistToPoint(polygon[aK], polygon[aK+1], pos);
 

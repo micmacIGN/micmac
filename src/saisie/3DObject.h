@@ -156,6 +156,7 @@ class cPolygon : public cObject
 {
     public:
         cPolygon();
+        cPolygon(const cPolygon&);
 
         void    draw();
         void    drawDihedron();
@@ -175,7 +176,7 @@ class cPolygon : public cObject
 
         void    add(QPointF const &pt){ _points.push_back(pt); }
 
-        void    clear(){ _points.clear(); }
+        void    clear(){ _points.clear(); _idx = -1; }
 
         void    setClosed(bool aBool){ _bPolyIsClosed = aBool; }
         bool    isClosed(){ return _bPolyIsClosed;}
@@ -187,9 +188,9 @@ class cPolygon : public cObject
 
         cPolygon & operator = (const cPolygon &);
 
-        void    insert( int i, const QPointF & value ){ _points.insert(i,value); }
+        void    insert( int i, const QPointF & value ){ _points.insert(i,value); _idx = -1;}
 
-        void    remove ( int i ){ _points.remove(i);}
+        void    remove ( int i ){ _points.remove(i); _idx = -1;}
 
         QVector <QPointF> getVector(){ return _points; }
 

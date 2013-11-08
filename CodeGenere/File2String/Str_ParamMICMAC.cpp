@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2080]) = {
+const char * (theNameVar_ParamMICMAC[2081]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -1702,6 +1702,7 @@ const char * (theNameVar_ParamMICMAC[2080]) = {
 "                  <ButDoTA Nb=\"?\" Type=\"bool\" Def=\"false\">             </ButDoTA>\n",
 "                  <ButDoMasqueChantier Nb=\"?\" Type=\"bool\" Def=\"false\"> </ButDoMasqueChantier>\n",
 "                  <ButDoOriMNT Nb=\"?\" Type=\"bool\" Def=\"false\">         </ButDoOriMNT>\n",
+"                  <ButDoMTDNuage Nb=\"?\" Type=\"bool\" Def=\"false\">         </ButDoMTDNuage>\n",
 "                  <ButDoFDC Nb=\"?\" Type=\"bool\" Def=\"false\">            </ButDoFDC>\n",
 "                  <ButDoExtendParam Nb=\"?\" Type=\"bool\" Def=\"false\">    </ButDoExtendParam>\n",
 "		  <ButDoGenCorPxTransv  Nb=\"?\" Type=\"bool\" Def=\"false\"> </ButDoGenCorPxTransv>\n",

@@ -107,7 +107,7 @@ public:
     void showBBox(bool show);
 
     //! States if help messages should be displayed
-    bool showMessages();
+    bool showMessages(){return m_bDrawMessages;}
 
     //! Display help messages for selection mode
     void displaySelectionMessages();

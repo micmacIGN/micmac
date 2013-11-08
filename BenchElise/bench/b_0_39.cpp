@@ -35,6 +35,7 @@ TPL PIPE : 3.49
 
 
 #include "StdAfx.h"
+#include "general/geom_vecteur.h"
 #include "bench.h"
 
 static INT  DifImages
@@ -136,7 +137,8 @@ void bench_time_tpl_elise
 
 static Pt2di  PRandI()
 {
-     return (Pt2dr(NRrandom3(),NRrandom3()) - Pt2dr(0.5,0.5)) * 1000;
+     //return (Pt2dr(NRrandom3(),NRrandom3()) - Pt2dr(0.5,0.5)) * 1000;
+     return Pt2di( (Pt2dr(NRrandom3(),NRrandom3()) - Pt2dr(0.5,0.5)) * 1000 ); // __NEW
 }
 
 static bool  PileOuFace() {return NRrandom3() > 0.5;}
@@ -181,16 +183,21 @@ void bench_TDigiline()
                else
                   BENCH_ASSERT(1 == dist4(F[k-1]-F[k]));
            }
-           SegComp SEG(p0,p1);
-           for ( k = 0; k<F.nb() ; k++)
-               BENCH_ASSERT(SEG.square_dist_droite(F[k]) < 1);
-    
+	   
+           //SegComp SEG(p0,p1);
+	   Pt2dr p0_r(p0); // __NEW
+           Pt2dr p1_r(p1); // __NEW
+           //SegComp SEG( Pt2dr(p0), Pt2dr(p1) ); devrait marcher mais non oO
+           SegComp SEG( p0_r, p1_r );                                   // __NEW
+           for ( k = 0; k<F.nb() ; k++)                                 // __NEW
+               BENCH_ASSERT(SEG.square_dist_droite( Pt2dr(F[k]) ) < 1); // __NEW
      }
 }
 
 static Pt2di  PRandI(Pt2di SZ)
 {
-     return Pt2dr(NRrandom3(),NRrandom3()).mcbyc(Pt2dr(SZ.x-1,SZ.y-1));
+     //return Pt2dr(NRrandom3(),NRrandom3()).mcbyc(Pt2dr(SZ.x-1,SZ.y-1));
+     return Pt2di( Pt2dr(NRrandom3(),NRrandom3()).mcbyc(Pt2dr(SZ.x-1,SZ.y-1)) ); // __NEW
 }
 
 void bench_Telcopy_0()

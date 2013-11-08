@@ -100,6 +100,125 @@ class fZPile
 static fZPile TheZPile;
 
 
+class cTmpPile
+{
+    public :
+        cTmpPile(float aZ);
+        void SetPPrec(cTmpPile &,float aExpFact);
+    // private :
+         double mZ0;
+         double mP0;
+
+         double mNewZp;
+         double mNewPp;
+         double mNewZm;
+         double mNewPm;
+
+         double mPPrec;
+         double mPNext;
+};
+
+cTmpPile::cTmpPile(float aZ) :
+    mZ0    (aZ),
+    mP0    (1.0),
+    mPPrec (-1),
+    mPNext (-1)
+{
+     
+}
+
+void cTmpPile::SetPPrec(cTmpPile & aPrec,float aExpFact)
+{
+    ELISE_ASSERT(mZ0>=aPrec.mZ0,"Ordre coherence in cTmpPile::SetPPrec");
+    double aPds = exp((aPrec.mZ0-mZ0)/aExpFact);
+    mPPrec  = aPds;
+    aPrec.mPNext = aPds;
+}
+
+void OneSensMoyTmpPile(std::vector<cTmpPile> & aVTmp)
+{
+     int aNb = aVTmp.size();
+     aVTmp[0].mNewPp = aVTmp[0].mP0;
+     aVTmp[0].mNewZp = aVTmp[0].mZ0;
+
+     for (int aK=1 ; aK<int(aVTmp.size()) ; aK++)
+     {
+          aVTmp[aK].mNewPp = aVTmp[aK].mP0 + aVTmp[aK-1].mNewPp * aVTmp[aK].mPPrec;
+          aVTmp[aK].mNewZp = aVTmp[aK].mZ0 + aVTmp[aK-1].mNewZp * aVTmp[aK].mPPrec;
+     }
+
+     aVTmp[aNb-1].mNewPm = aVTmp[aNb-1].mP0;
+     aVTmp[aNb-1].mNewZm = aVTmp[aNb-1].mZ0;
+     for (int aK=(aVTmp.size()) -2 ; aK>=0 ; aK--)
+     {
+          aVTmp[aK].mNewPm = aVTmp[aK].mP0 + aVTmp[aK+1].mNewPm * aVTmp[aK].mPNext;
+          aVTmp[aK].mNewZm = aVTmp[aK].mZ0 + aVTmp[aK+1].mNewZm * aVTmp[aK].mPNext;
+     }
+
+     for (int aK=0 ; aK<int(aVTmp.size()) ; aK++)
+     {
+          aVTmp[aK].mZ0 = aVTmp[aK].mNewZp+aVTmp[aK].mNewZm - aVTmp[aK].mZ0;
+          aVTmp[aK].mP0 = aVTmp[aK].mNewPp+aVTmp[aK].mNewPm - aVTmp[aK].mP0;
+     }
+}
+
+Pt2dr VerifExp(const std::vector<cElPile> & aVPile,cElPile aP0,float aPixFact)
+{
+    Pt2dr aRes (0,0);
+    for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
+    {
+       double aPds  = exp(-ElAbs(aP0.Z()-aVPile[aK].Z())/aPixFact);
+       aRes = aRes + Pt2dr(aVPile[aK].Z(),aVPile[aK].P()) * aPds;
+    }
+    return aRes;
+} 
+
+double ComputeExpEv(const std::vector<cElPile> & aVPile,double aResolPlani,float aPixFact)
+{
+   std::vector<cTmpPile> aTmp;
+   float aZFact = (aPixFact*aResolPlani);
+   for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
+   {
+        aTmp.push_back(cTmpPile(aVPile[aK].Z()));
+        if (aK>0)
+        {
+            aTmp[aK].SetPPrec(aTmp[aK-1],aZFact);
+        }
+        
+   }
+   OneSensMoyTmpPile(aTmp);
+
+   if (0)
+   {
+       for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
+       {
+            Pt2dr aPTest = VerifExp(aVPile,aVPile[aK],aZFact);
+            Pt2dr aDif = aPTest - Pt2dr(aTmp[aK].mZ0,aTmp[aK].mP0 );
+            if (euclid (aDif)> 1e-3)
+            {
+                 std::cout << euclid (aDif) << aPTest << " " << aTmp[aK].mZ0 << " " << aTmp[aK].mP0 << "\n";
+                 ELISE_ASSERT(false,"Coher in ComputeExpEv");
+            }
+       }
+       // getchar();
+   }
+   OneSensMoyTmpPile(aTmp);
+   double aPMax = -1;
+   int aKMax = -1;
+   for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
+   {
+        if (aTmp[aK].mP0> aPMax)
+        {
+              aPMax = aTmp[aK].mP0;
+              aKMax = aK;
+        }
+   }
+   return  aTmp[aKMax].mZ0 / aTmp[aKMax].mP0;
+}
+
+
+
+
 
 
 
@@ -560,36 +679,44 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
     }
 
 
-    cDecoupageInterv2D aDecoup = cDecoupageInterv2D::SimpleDec
+    if (!mParam.BoxTest().IsInit())
+    {
+          cDecoupageInterv2D aDecoup = cDecoupageInterv2D::SimpleDec
                                 (
                                      mSzGlob,
                                      mParam.SzDalles().Val(),
                                      mParam.RecouvrtDalles().Val()
                                 );
 
-   for (int aKI=0 ; aKI<aDecoup.NbInterv() ; aKI++)
-   {
+         for (int aKI=0 ; aKI<aDecoup.NbInterv() ; aKI++)
+         {
 
-       if (mGenereMkF)
-       {
-            std::string aNewCom =   mCom 
+             if (mGenereMkF)
+             {
+                  std::string aNewCom =   mCom 
                                   + std::string(" InterneCalledByProcess=true")
                                   + std::string(" InterneSingleImage=") +  anId
                                   + std::string(" InterneSingleBox=") + ToString(aKI);
-            mListCom.push_back(aNewCom);
-       }
-       else
-       {
-           if ((!mCalledByMkf) || (mParam.InterneSingleBox().Val()==aKI))
-           {
-              DoOneBloc
-              (
-                  aDecoup.NbInterv()-aKI,
-                  aDecoup.KthIntervIn(aKI),
-                  aDecoup.KthIntervOut(aKI)
-              );
-           }
-       }
+                  mListCom.push_back(aNewCom);
+             }
+             else
+             {
+                 if ((!mCalledByMkf) || (mParam.InterneSingleBox().Val()==aKI))
+                 {
+                    DoOneBloc
+                    (
+                        aDecoup.NbInterv()-aKI,
+                        aDecoup.KthIntervIn(aKI),
+                        aDecoup.KthIntervOut(aKI)
+                    );
+                 }
+             }
+         }
+   }
+   else
+   {
+        Box2di aBox = mParam.BoxTest().Val();
+        DoOneBloc(0,aBox,aBox);
    }
 
    DeleteAndClear(mVC);
@@ -712,9 +839,16 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
                 }
                 else if (mFByEv)
                 {
-                    aNewV =   ComputeEvidence(aPCel,mResolPlani);
-                    aBestP = BestElem(aNewV);
-                    aZ = aBestP->Z();
+                    if (mFByEv->QuickExp().Val())
+                    {
+                       aZ = ComputeExpEv(aPCel,mResolPlani,mSigmaP);
+                    }
+                    else
+                    {
+                        aNewV =   ComputeEvidence(aPCel,mResolPlani);
+                        aBestP = BestElem(aNewV);
+                        aZ = aBestP->Z();
+                    }
                 }
 
                 if (aPrgD)
