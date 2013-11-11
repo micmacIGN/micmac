@@ -78,6 +78,8 @@ class cAppliMMByPair : public cAppliWithSetImage
       std::string  mStrType;
       bool         mModeHelp;
       bool         mByMM1P;
+      Box2di       mBoxOfImage;
+      std::string  mImageOfBox;
 };
 
 /*****************************************************************/
@@ -622,6 +624,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mSkipCorDone,"SMD",true,"Skip Matching When Already Done (Def=false)")
                     << EAM(mDo,"Do",true,"Step to Do in [Pyram,MetaData,Correl,Fusion], Def \"PMCF\" (i.e. All Step)")
                     << EAM(mByMM1P,"ByMM1P","Do match using new MM1P , def = true")
+                    << EAM(mImageOfBox,"ImOfBox","Image to define box for MTD (test purpose to limit size of result)")
+                    << EAM(mBoxOfImage,"BoxOfIm","Associated to ImOfBox, def = full")
   );
   if (mModeHelp) 
       exit(0);
@@ -678,6 +682,7 @@ void cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
 
 
      std::vector<std::string> aBascCom;
+     std::vector<std::string> aVTarget;
      bool AllDoneMatch = true;
 
      for (int aK= 0 ; aK< 2 ; aK++)
@@ -698,6 +703,7 @@ void cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
          std::cout << aCom << "\n";
  
          aBascCom.push_back(aCom);
+         aVTarget.push_back(aNuageTarget);
 
          AllDoneMatch = AllDoneMatch && ELISE_fp::exist_file(aNuageIn);
      }
@@ -709,7 +715,8 @@ void cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
 
      for (int aK= 0 ; aK< int(aBascCom.size()) ; aK++)
      {
-           System(aBascCom[aK]);
+           if ((!AllDoneMatch) || (! mSkipCorDone) || (!ELISE_fp::exist_file(aVTarget[aK])))
+               System(aBascCom[aK]);
      }
 }
 
@@ -832,6 +839,28 @@ void cAppliMMByPair::DoMDT()
                        +  std::string(" +Zoom=")  + ToString(mZoomF)  + aBlank
                        +  std::string(" +DirMEC=")  + mDirBasc  + aBlank
                     ;
+
+   if (EAMIsInit(&mImageOfBox))
+   {
+        Box2di aBox;
+        if (EAMIsInit(&mBoxOfImage))
+        {
+           aBox = mBoxOfImage;
+        }
+        else
+        {
+           cImaMM * anIma = ImOfName(mImageOfBox);
+           aBox = Box2di(Pt2di(0,0),anIma->Tiff().sz());
+        }
+        aCom =   aCom
+                  + " +WithBox=true"
+                  + std::string(" +ImIncluse=") + mImageOfBox
+                  + std::string(" +X0=") + ToString(aBox._p0.x)
+                  + std::string(" +Y0=") + ToString(aBox._p0.y)
+                  + std::string(" +X1=") + ToString(aBox._p1.x)
+                  + std::string(" +Y1=") + ToString(aBox._p1.y)
+              ;
+   }
 
    System(aCom);
  

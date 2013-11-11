@@ -82,6 +82,9 @@ class cMMOnePair
       std::vector<char *>        mArgcAWS;  // AppliWithSetImage
       bool             mDoMR;
       double           mSigmaP;
+      Box2di           mBoxIm;
+      bool             mPurge;
+
 };
 
 class cAppliMMOnePair : public cMMOnePair,
@@ -121,7 +124,8 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mDoubleSens   (true),
     mNoOri        (false),
     mDoMR         (true),
-    mSigmaP       (1.5)
+    mSigmaP       (1.5),
+    mPurge        (true)
 {
   ElInitArgMain
   (
@@ -137,6 +141,8 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mCMS,"CMS",true,"Multi Scale Coreel (Def=ByEpip)")
                     << EAM(mDoMR,"DoMR",true,"Do re-entering masq (def=true)")
                     << EAM(mSigmaP,"SigmaP",true,"Sigma Pixel for coherence (Def=1.5)")
+                    << EAM(mBoxIm,"BoxIm",true,"Box of calc in Epip, tuning purpose, def=All image")
+                    << EAM(mPurge,"Purge",true,"Purge directory, tuning, def=true")
   );
 
   mNoOri = (mNameOriInit=="NONE");
@@ -414,7 +420,7 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
                           + " +ZoomF="   + ToString(mZoomF)
                           + " FirstEtapeMEC=" + ToString(aStep0)
                           + " LastEtapeMEC=" + ToString(aStepF)
-                          + " +Purge="   + (ToString((aStep0==1) && (!ForMTD)))
+                          + " +Purge="   +  ToString(mPurge && (aStep0==1) && (!ForMTD))
                           + " +Ori="     + (ForMTD ? "Epi" :mNameOri)
                           + " +DoEpi="   + ToString((mByEpip || mNoOri) && (!ForMTD))
                           + " +CMS="     + ToString(mCMS)
@@ -422,6 +428,16 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
                           + " +MMC="     + ToString(!ForMTD)
 // FirstEtapeMEC=5 LastEtapeMEC=6
                       ;
+
+     if (EAMIsInit(&mBoxIm))
+     {
+        aCom  = aCom + " +ClipCalc=true"
+                     + std::string(" +X0Clip=") + ToString(mBoxIm._p0.x)
+                     + std::string(" +Y0Clip=") + ToString(mBoxIm._p0.y)
+                     + std::string(" +X1Clip=") + ToString(mBoxIm._p1.x)
+                     + std::string(" +Y1Clip=") + ToString(mBoxIm._p1.y)
+              ;
+     }
 
      if (mExe)
         System(aCom);
