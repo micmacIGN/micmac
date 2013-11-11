@@ -216,6 +216,12 @@ cLayerNuage3DM::~cLayerNuage3DM()
 /*                                             */
 /***********************************************/
 
+Pt2di TTT(const Pt2di & aP)
+{
+   std::cout << "TTTTTTTTTTtt " << aP << "\n";
+   return aP;
+}
+
 
 cElNuage3DMaille::cElNuage3DMaille
 (
@@ -296,6 +302,17 @@ cElNuage3DMaille::cElNuage3DMaille
            itA->Scale().Val()
         );
     }
+}
+
+bool cElNuage3DMaille::IsEmpty()
+{
+    Pt2di aP;
+    for (aP.x=0 ; aP.x < mSzData.x ; aP.x++)
+        for ( aP.y=0 ; aP.y < mSzData.y; aP.y++)
+            if (mTImDef.get(aP)) 
+               return false;
+    
+    return true;
 }
 
 
@@ -1491,6 +1508,7 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
     Im2D_REAL4  aMntBasc = aBasc.Basculer(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef);
     cElNuage3DMaille * aNuageRes = this; 
 
+
     // Pt2di anOfOutInit= anOfOut;
     if (AutoResize)
     {
@@ -1696,6 +1714,7 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 
 
    cElNuage3DMaille *  aNOut = cElNuage3DMaille::FromParam(aGeomOut,aDirIn,"",1.0,(cParamModifGeomMTDNuage *)0);
+   
 
    cParamModifGeomMTDNuage * aParamIn = 0;
    if (aBoxClipIn!=0) 
@@ -1709,6 +1728,10 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
     double aDynEtir = 10.0;
     double aSeuilEtir = anArg.mSeuilEtir;
 
+   if (aNIn->IsEmpty())
+   {
+       return 0;
+   }
 
     cElNuage3DMaille * aRes = aNOut->BasculeInThis(aNIn,true,aDynEtir,0,0,-1,AutoResize,&aVAttrIm);
 
