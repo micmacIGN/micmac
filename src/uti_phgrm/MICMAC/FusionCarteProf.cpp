@@ -42,11 +42,20 @@ using namespace NS_ParamMICMAC;
 using namespace NS_ParamChantierPhotogram;
 using namespace NS_SuperposeImage;
 
+
+// template <class Type> cFil
+
 /*********************************************************************/
 /*                                                                   */
 /*                       cFusionCarteProf                            */
 /*                                                                   */
 /*********************************************************************/
+
+
+
+
+static Pt2di LocPBug(234,55);
+static bool  LocBug=false;
 
 template <class Type> class  cLoadedCP;        // Represente une carte de profondeur chargee
 template <class Type> class cFusionCarteProf;  // Represente l'appli globale
@@ -60,9 +69,11 @@ class fZPile;  // Functer : renvoie le Z
 class cElPile
 {
     public :
-        cElPile (double aZ,double aPds) :
+        cElPile (double aZ,double aPds,double aPOwn= -1,const std::string * aName =  0) :
            mZ  (aZ),
-           mP  (aPds)
+           mP  (aPds),
+           mPOwn (aPOwn),
+           mName (aName)
         {
         }
 
@@ -78,59 +89,72 @@ class cElPile
 
         const float & Z() const {return mZ;}
         const float & P() const {return mP;}
+        const float & POwn() const {return mPOwn;}
+        const std::string *  Name() const {return mName;}
     private :
         float mZ;   // C'est le Z "absolu" du nuage, corrige de l'offset et du pas, c'est a la sauvegarde qu'on le remet eventuellement au pas
         float mP;
+        float mPOwn;
+        const std::string * mName;
 };
+
 
 bool operator < (const cElPile & aP1, const cElPile & aP2) {return aP1.Z() < aP2.Z();}
 
-class fPPile
+class cCmpPdsPile
 {
-    public :
-       double operator ()(const cElPile & aPile) const {return aPile.P();}
+   public :
+     bool operator()(const cElPile & aP1,const cElPile & aP2)
+     {
+          return aP1.P() > aP2.P();
+     }
 };
-static fPPile ThePPile;
-class fZPile
-{
-    public :
-       typedef double tValue;
-       double operator ()(const cElPile & aPile) const {return aPile.Z();}
-};
-static fZPile TheZPile;
 
 
 class cTmpPile
 {
     public :
-        cTmpPile(float aZ);
+        cTmpPile(float aZ,float aPds);
         void SetPPrec(cTmpPile &,float aExpFact);
-    // private :
-         double mZ0;
-         double mP0;
+        // double Pds() {return mPds0 / mNb0;}
+        double ZMoy() {return mPds0 ? (mZP0/mPds0) : 0 ;}
 
-         double mNewZp;
-         double mNewPp;
-         double mNewZm;
-         double mNewPm;
+    // private :
+         double mZInit;
+         double mPInit;
+         double mZP0;
+         double mPds0;
+         double mNb0;
+
+         double mNewZPp;
+         double mNewPdsp;
+         double mNewNbp;
+
+         double mNewZPm;
+         double mNewPdsm;
+         double mNewNbm;
 
          double mPPrec;
          double mPNext;
+         bool   mSelected;
 };
 
-cTmpPile::cTmpPile(float aZ) :
-    mZ0    (aZ),
-    mP0    (1.0),
+cTmpPile::cTmpPile(float aZ,float aPds) :
+    mZInit (aZ),
+    mPInit (aPds),
+    mZP0   (aZ * aPds),
+    mPds0  (aPds),
+    mNb0   (1.0),
     mPPrec (-1),
-    mPNext (-1)
+    mPNext (-1),
+    mSelected (false)
 {
-     
 }
 
 void cTmpPile::SetPPrec(cTmpPile & aPrec,float aExpFact)
 {
-    ELISE_ASSERT(mZ0>=aPrec.mZ0,"Ordre coherence in cTmpPile::SetPPrec");
-    double aPds = exp((aPrec.mZ0-mZ0)/aExpFact);
+    ELISE_ASSERT(mZInit>=aPrec.mZInit,"Ordre coherence in cTmpPile::SetPPrec");
+    double aPds = exp((aPrec.mZInit-mZInit)/aExpFact);
     mPPrec  = aPds;
     aPrec.mPNext = aPds;
 }
@@ -138,48 +162,90 @@ void cTmpPile::SetPPrec(cTmpPile & aPrec,float aExpFact)
 void OneSensMoyTmpPile(std::vector<cTmpPile> & aVTmp)
 {
      int aNb = aVTmp.size();
-     aVTmp[0].mNewPp = aVTmp[0].mP0;
-     aVTmp[0].mNewZp = aVTmp[0].mZ0;
+     aVTmp[0].mNewPdsp = aVTmp[0].mPds0;
+     aVTmp[0].mNewZPp  = aVTmp[0].mZP0;
+     aVTmp[0].mNewNbp  = aVTmp[0].mNb0;
 
      for (int aK=1 ; aK<int(aVTmp.size()) ; aK++)
      {
-          aVTmp[aK].mNewPp = aVTmp[aK].mP0 + aVTmp[aK-1].mNewPp * aVTmp[aK].mPPrec;
-          aVTmp[aK].mNewZp = aVTmp[aK].mZ0 + aVTmp[aK-1].mNewZp * aVTmp[aK].mPPrec;
+          aVTmp[aK].mNewPdsp = aVTmp[aK].mPds0 + aVTmp[aK-1].mNewPdsp * aVTmp[aK].mPPrec;
+          aVTmp[aK].mNewZPp  = aVTmp[aK].mZP0  + aVTmp[aK-1].mNewZPp  * aVTmp[aK].mPPrec;
+          aVTmp[aK].mNewNbp  = aVTmp[aK].mNb0  + aVTmp[aK-1].mNewNbp  * aVTmp[aK].mPPrec;
      }
 
-     aVTmp[aNb-1].mNewPm = aVTmp[aNb-1].mP0;
-     aVTmp[aNb-1].mNewZm = aVTmp[aNb-1].mZ0;
+     aVTmp[aNb-1].mNewPdsm = aVTmp[aNb-1].mPds0;
+     aVTmp[aNb-1].mNewZPm = aVTmp[aNb-1].mZP0;
+     aVTmp[aNb-1].mNewNbm = aVTmp[aNb-1].mNb0;
      for (int aK=(aVTmp.size()) -2 ; aK>=0 ; aK--)
      {
-          aVTmp[aK].mNewPm = aVTmp[aK].mP0 + aVTmp[aK+1].mNewPm * aVTmp[aK].mPNext;
-          aVTmp[aK].mNewZm = aVTmp[aK].mZ0 + aVTmp[aK+1].mNewZm * aVTmp[aK].mPNext;
+          aVTmp[aK].mNewPdsm = aVTmp[aK].mPds0 + aVTmp[aK+1].mNewPdsm * aVTmp[aK].mPNext;
+          aVTmp[aK].mNewZPm  = aVTmp[aK].mZP0  + aVTmp[aK+1].mNewZPm  * aVTmp[aK].mPNext;
+          aVTmp[aK].mNewNbm  = aVTmp[aK].mNb0  + aVTmp[aK+1].mNewNbm  * aVTmp[aK].mPNext;
      }
 
      for (int aK=0 ; aK<int(aVTmp.size()) ; aK++)
      {
-          aVTmp[aK].mZ0 = aVTmp[aK].mNewZp+aVTmp[aK].mNewZm - aVTmp[aK].mZ0;
-          aVTmp[aK].mP0 = aVTmp[aK].mNewPp+aVTmp[aK].mNewPm - aVTmp[aK].mP0;
+          aVTmp[aK].mZP0  = (aVTmp[aK].mNewZPp  + aVTmp[aK].mNewZPm  - aVTmp[aK].mZP0) / aVTmp.size();
+          aVTmp[aK].mPds0 = (aVTmp[aK].mNewPdsp + aVTmp[aK].mNewPdsm - aVTmp[aK].mPds0) / aVTmp.size();
+          aVTmp[aK].mNb0  = (aVTmp[aK].mNewNbp  + aVTmp[aK].mNewNbm  - aVTmp[aK].mNb0) / aVTmp.size();
      }
 }
 
-Pt2dr VerifExp(const std::vector<cElPile> & aVPile,cElPile aP0,float aPixFact)
+Pt3dr VerifExp(const std::vector<cElPile> & aVPile,cElPile aP0,float aPixFact)
 {
-    Pt2dr aRes (0,0);
+    Pt3dr aRes (0,0,0);
     for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
     {
        double aPds  = exp(-ElAbs(aP0.Z()-aVPile[aK].Z())/aPixFact);
-       aRes = aRes + Pt2dr(aVPile[aK].Z(),aVPile[aK].P()) * aPds;
+       aRes = aRes + Pt3dr(aVPile[aK].Z()*aVPile[aK].P(),aVPile[aK].P(),1.0) * aPds;
     }
-    return aRes;
+    return aRes / aVPile.size();
 } 
 
-double ComputeExpEv(const std::vector<cElPile> & aVPile,double aResolPlani,float aPixFact)
+Pt3dr  PdsSol(const std::vector<cElPile> & aVPile,const cElPile & aP0,float aPixFact)
+{
+    Pt3dr aRes (0,0,0);
+    for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
+    {
+       double aPds  = exp(-0.5*ElSquare((aP0.Z()-aVPile[aK].Z())/aPixFact)   );
+       Pt3dr  aQ
+              (
+                     aVPile[aK].Z()*aVPile[aK].P(),
+                     aVPile[aK].P(),
+                     1.0
+              );
+       aRes = aRes  + aQ * aPds;
+    }
+    return aRes / aVPile.size();
+ 
+}
+
+bool IsMaxLoc(const std::vector<cTmpPile> & aVPile,int aK,float anEc,int aStep,int aLim)
+{
+   cTmpPile aP0 = aVPile[aK];
+   for (int aK1=aK+aStep ; (aK1!=aLim) ; aK1+=aStep)
+   {
+       cTmpPile aP1 = aVPile[aK1];
+       if (ElAbs(aP0.mZInit-aP0.mZInit) > anEc) return true;
+       if (aP0.mPds0 < aP1.mPds0) return false;
+   }
+   return true;
+}
+
+bool IsMaxLoc(const std::vector<cTmpPile> & aVPile,int aK,float anEc)
+{
+    return    IsMaxLoc(aVPile,aK,anEc,-1,-1)
+           && IsMaxLoc(aVPile,aK,anEc, 1,aVPile.size());
+}
+
+
+std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aResolPlani,float aPixFact)
 {
    std::vector<cTmpPile> aTmp;
-   float aZFact = (aPixFact*aResolPlani);
+   float aZFact = (aPixFact*aResolPlani) * sqrt(2);
    for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
    {
-        aTmp.push_back(cTmpPile(aVPile[aK].Z()));
+        aTmp.push_back(cTmpPile(aVPile[aK].Z(),aVPile[aK].P()));
         if (aK>0)
         {
             aTmp[aK].SetPPrec(aTmp[aK-1],aZFact);
@@ -188,32 +254,62 @@ double ComputeExpEv(const std::vector<cElPile> & aVPile,double aResolPlani,float
    }
    OneSensMoyTmpPile(aTmp);
 
-   if (0)
+   if (LocBug)
    {
        for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
        {
-            Pt2dr aPTest = VerifExp(aVPile,aVPile[aK],aZFact);
-            Pt2dr aDif = aPTest - Pt2dr(aTmp[aK].mZ0,aTmp[aK].mP0 );
+            Pt3dr aPTest = VerifExp(aVPile,aVPile[aK],aZFact);
+            Pt3dr aDif = aPTest - Pt3dr(aTmp[aK].mZP0,aTmp[aK].mPds0,aTmp[aK].mNb0 );
+            // if (LocBug) std::cout << euclid(aDif) << " " << aPTest  << "\n";
             if (euclid (aDif)> 1e-3)
             {
-                 std::cout << euclid (aDif) << aPTest << " " << aTmp[aK].mZ0 << " " << aTmp[aK].mP0 << "\n";
+                 std::cout << euclid (aDif) << aPTest << " " <<  aTmp[aK].mZInit << " " << aTmp[aK].mZP0 << " " << aTmp[aK].mPds0 ;
+                 if (aVPile[aK].Name()) std::cout << " N=" << *(aVPile[aK].Name()) ;
+                 std::cout  << "\n";
                  ELISE_ASSERT(false,"Coher in ComputeExpEv");
             }
        }
        // getchar();
    }
    OneSensMoyTmpPile(aTmp);
-   double aPMax = -1;
-   int aKMax = -1;
    for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
    {
-        if (aTmp[aK].mP0> aPMax)
+        if (LocBug)
         {
-              aPMax = aTmp[aK].mP0;
-              aKMax = aK;
+                // Pt3dr aPSOL =  PdsSol(aVPile,aVPile[aK],aZFact);
+                std::cout << " OUT " <<  aTmp[aK].mZInit << " P0 " << aTmp[aK].mPds0  << " PI " << aTmp[aK].mPInit 
+                          << " PIm " << (aTmp[aK].mPds0/aTmp[aK].mNb0)
+                          << " MaxLoc " << IsMaxLoc(aTmp,aK,aPixFact) ;
+                 if (aVPile[aK].Name()) std::cout << " N=" << *(aVPile[aK].Name()) ;
+                 std::cout << "\n";
+                              //  << " " << aTmp[aK].mNb0 << " SOL " <<  (aPSOL.x/aPSOL.y) << " " << aPSOL.y  << " " << aPSOL.z << "\n";
         }
    }
-   return  aTmp[aKMax].mZ0 / aTmp[aKMax].mP0;
+
+   std::vector<cElPile> aRes;
+   for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
+   {
+       if (IsMaxLoc(aTmp,aK,aPixFact))
+       {
+           aTmp[aK].mSelected = true;
+           cElPile  aPil (aTmp[aK].ZMoy(),aTmp[aK].mPds0,aTmp[aK].mPds0/aTmp[aK].mNb0);
+           aRes.push_back (aPil);
+       }
+   }
+   
+   cCmpPdsPile aCmp;
+   std::sort(aRes.begin(),aRes.end(),aCmp);
+
+
+   while (aRes.size() > 5)  aRes.pop_back();
+
+
+   if (LocBug)
+   {
+        std::cout << "ZFCAT " << aZFact << "\n";
+   }
+
+   return aRes;
 }
 
 
@@ -242,6 +338,7 @@ template <class Type> class  cLoadedCP
         bool  ReLoad(const Box2dr & aBoxTer) ;
         const  cImage_Profondeur & IP() {return mIP;}
         const std::string & NameNuage() {return mNameNuage;}
+        Im2D_U_INT1   ImCorrel() {return  mImCorrel;}
 
     private :
 
@@ -332,6 +429,9 @@ template <class Type> class cFusionCarteProf
           cFusionCarteProf(const cResultSubstAndStdGetFile<cParamFusionMNT>  & aP,const std::string & aCom);
           const cParamFusionMNT & Param() {return mParam;}
           cInterfChantierNameManipulateur *ICNM() {return mICNM;}
+
+
+         cLoadedCP<Type> *  VCLOfName(const std::string &) ;
      private :
 
           std::vector<cElPile> ComputeEvidence(const std::vector<cElPile> & aPile,double aResolPlani);
@@ -370,6 +470,7 @@ template <class Type> class cFusionCarteProf
           Pt2di                                   mSzCur;
           std::string                             mNameTif;
           std::string                             mNameMasq;
+          std::string                             mNameCorrel;
           bool                                    mZIsInv;
           std::list<std::string>                  mListCom;
           double                                  mResolPlani;
@@ -479,8 +580,11 @@ template <class Type> double  cLoadedCP<Type>::PdsLinear(const Pt2dr & aPTer) co
        if (mHasCorrel)
        {
            aPds = mTImCorrel.getprojR(aPIm);
+           aPds = aPds / 256.0;
+/*
            aPds = (aPds -128.0) / 128.0;
            aPds = (aPds-mSeuilC)/(1.0-mSeuilC);
+*/
        }
        return ElMin(1.0,ElMax(0.0,aPds));
    }
@@ -505,7 +609,7 @@ template <class Type> cElPile  cLoadedCP<Type>::CreatePile(const Pt2dr & aPTer) 
        if (mZIsInv)
           aZ= 1.0/aZ;
    }
-   return cElPile(aZ,aPds);
+   return cElPile(aZ,aPds,-1,&mNameCP);
 }
 /*
 */
@@ -553,6 +657,21 @@ template <class Type> cElPile  cFusionCarteProf<Type>::ComputeOneEvidence(const 
     return cElPile(aSomZ,aSomPp);
 }
 
+template <class Type> cLoadedCP<Type> *  cFusionCarteProf<Type>::VCLOfName(const std::string & aNameNuage) 
+{
+    for (int aK=0 ; aK<int(mVCL.size()) ; aK++)
+    {
+/*
+        std::cout << mVCL[aK]->NameNuage()  << "\n";
+*/
+        if (mVCL[aK]->NameNuage() == aNameNuage)
+           return mVCL[aK];
+    }
+
+   ELISE_ASSERT(false,"::VCLOfName");
+   return 0;
+}
+
 template <class Type> std::vector<cElPile>  cFusionCarteProf<Type>::ComputeEvidence(const std::vector<cElPile> & aPile,double aResolPlani)
 {
     std::vector<cElPile> aRes;
@@ -589,6 +708,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
     mNameTif = StdPrefix(aNameNuage)+ ".tif";
     std::cout << anId  << "=> " << mNameTif<< "\n";
     mNameMasq = StdPrefix(aNameNuage)+ "_Masq.tif";
+    mNameCorrel = StdPrefix(aNameNuage)+ "_Correl.tif";
 
 
     std::vector<std::string> aStrFus = GetStrFromGenStrRel(mICNM,mParam.GenereInput(),anId);
@@ -646,7 +766,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
     mIP = &(mNuage.Image_Profondeur().Val());
     mIP->Image() = NameWithoutDir(mNameTif) ;
     mIP->Masq() =  NameWithoutDir(mNameMasq);
-    mIP->Correl().SetNoInit();
+    mIP->Correl() =  NameWithoutDir(mNameCorrel);
     
     mAfM2CGlob  = Xml2EL(mNuage.Orientation().OrIntImaM2C());
     mAfC2MGlob = mAfM2CGlob.inv();
@@ -666,15 +786,25 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
               Tiff_Im::BlackIsZero
        );
 
-       Tiff_Im  aTifMasq = Tiff_Im::CreateIfNeeded
-                         (
-                             IsModified,
-                             mNameMasq,
-                             mSzGlob,
-                             GenIm::bits1_msbf,
-                             Tiff_Im::No_Compr,
-                             Tiff_Im::BlackIsZero
-                         );
+       Tiff_Im::CreateIfNeeded
+       (
+               IsModified,
+               mNameCorrel,
+               mSzGlob,
+               GenIm::u_int1,
+               Tiff_Im::No_Compr,
+               Tiff_Im::BlackIsZero
+       );
+
+       Tiff_Im::CreateIfNeeded
+       (
+               IsModified,
+               mNameMasq,
+               mSzGlob,
+               GenIm::bits1_msbf,
+               Tiff_Im::No_Compr,
+               Tiff_Im::BlackIsZero
+       );
        MakeFileXML(mNuage,aNameNuage);
     }
 
@@ -746,9 +876,13 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
    Im2D<tNum,tNBase>  aImFus(mSzCur.x,mSzCur.y);
    TIm2D<tNum,tNBase> aTImFus(aImFus);
 
-
    Im2D_Bits<1>       aImMasq(mSzCur.x,mSzCur.y);
    TIm2DBits<1>       aTImMasq(aImMasq);
+
+
+   Im2D<tNum,tNBase>  aImCorrel(mSzCur.x,mSzCur.y);
+   TIm2D<tNum,tNBase> aTImCorrel(aImCorrel);
+
 
    Box2di aBoxInLoc(Pt2di(0,0),mSzCur);
    Box2dr aBoxTer = aBoxInLoc.BoxImage(mAfC2MCur);
@@ -807,6 +941,22 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
    }
 
 
+   cInterfaceCoxRoyAlgo  * aCox = 0;
+   Im2D_INT2 aIZMin(1,1);
+   Im2D_INT2 aIZMax(1,1);
+
+   if (true)
+   {
+        aIZMin = Im2D_INT2(mSzCur.x,mSzCur.y,0);
+        aIZMax = Im2D_INT2(mSzCur.x,mSzCur.y,3);
+        aCox = cInterfaceCoxRoyAlgo::NewOne(mSzCur.x,mSzCur.y,aIZMin.data(),aIZMax.data(),true,false);
+   }
+
+
+
+   double aMul = 100.0;
+   double aGainDef = 0.15;
+   double aRegul = 0.5;
 
    std::vector<cElPile> aPCel;
    Pt2di aQ0;
@@ -814,6 +964,28 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
    {
         for (aQ0.x = 0 ; aQ0.x < mSzCur.x; aQ0.x++)
         {
+if (false)
+{
+static int aCpt =-1; aCpt++;
+static       Video_Win aW = Video_Win::WStd(mSzCur,1.0);
+
+cLoadedCP<Type> * aLCP = VCLOfName("/media/data2/Munich/MTD-Nuage/Basculed-40_0314_PAN.tif-40_0315_PAN.tif.xml");
+// static       Tiff_Im aTF = Tiff_Im::StdConv("FusionZ1_NuageImProf_LeChantier_Etape_1_Correl.tif");
+
+ELISE_COPY(aLCP->ImCorrel().all_pts(),aLCP->ImCorrel().in(),aW.ogray());
+if (aCpt==-1) 
+{
+   aQ0 = Pt2di(573,213);
+}
+else
+{
+   Clik aClk = aW.clik_in();
+   aQ0 = Pt2di(aClk._pt);
+}
+LocBug=true;
+}
+
+
             Pt2dr aT0 = mAfC2MCur(Pt2dr(aQ0));
             aPCel.clear();
             for (int aKI=0 ; aKI<int(mVCL.size()); aKI++)
@@ -826,65 +998,41 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
             }
             int Ok= 0;
             double aZ=0;
+            double aP=0;
             if (aPCel.size() >0)
             {
                 std::sort(aPCel.begin(),aPCel.end());
-                std::vector<cElPile> aNewV;
-                const cElPile * aBestP = 0;
+                std::vector<cElPile> aVPile = ComputeExpEv(aPCel,mResolPlani,mSigmaP);
+                aZ = aVPile[0].Z();
+                aP = aVPile[0].POwn();
 
-                if (mFBySort)
+                aTImFus.oset(aQ0,(tNBase)aZ);
+                aTImCorrel.oset(aQ0,ElMax(0,ElMin(255,(round_ni(aP*255)))));
+                if (aCox)
                 {
-                   double aSomP = SomPerc(aPCel,ThePPile);
-                   aZ = GenValPdsPercentile(aPCel,mFBySort->PercFusion().Val(),TheZPile,ThePPile,aSomP);
+                   aCox->SetCostVert(aQ0.x,aQ0.y,0,round_ni(aMul*(1-aGainDef)));
+                   aCox->SetCostVert(aQ0.x,aQ0.y,1,round_ni(aMul*(1-aP)));
+                   aCox->SetCostVert(aQ0.x,aQ0.y,2, round_ni(aMul*2));
                 }
-                else if (mFByEv)
-                {
-                    if (mFByEv->QuickExp().Val())
-                    {
-                       aZ = ComputeExpEv(aPCel,mResolPlani,mSigmaP);
-                    }
-                    else
-                    {
-                        aNewV =   ComputeEvidence(aPCel,mResolPlani);
-                        aBestP = BestElem(aNewV);
-                        aZ = aBestP->Z();
-                    }
-                }
-
-                if (aPrgD)
-                {
-                    //typedef  cTplCelNapPrgDyn<tArgNappe>    tCelNap;
-                    // cTplCelNapPrgDyn
-                    tCelNap * aCol =  aPrgD->Nappe().Data()[aQ0.y][aQ0.x];
-                    ELISE_ASSERT(int(aNewV.size()) ==aTImNb.get(aQ0),"Incoh aPCel.size() ==aTImNb.get(aQ0)");
-
-                    for (int aK=0 ; aK< int(aPCel.size()) ; aK++)
-                    {
-                         // aCol[aK].SetOwnCost(ToICost(0));
-                         aCol[aK].SetOwnCost(ToICost(aBestP->P()-aNewV[aK].P()));
-                         // aCol[aK].SetOwnCost(ToICost(ElAbs(aQ0.x-aK)%3));
-                         aCol[aK].ArgAux() = aNewV[aK];
-                    }
-//std::cout << "Bestt Ppp " << aBestP->P() << " " << aNewV.size() << "\n";
-                    double aCostNV = mFNoVal  ?
-                                     (aBestP->P()* mFNoVal->GainNoVal()) :
-                                     (10+aNewV.size()+aBestP->P() * 2);
-                    aCol[-1].SetOwnCost(ToICost(aCostNV));
-                }
-                else
-                {
-                   aZ = ToZSauv(aZ);
-                   //   if (:mZIsInv) aZ = 1/aZ;
-                   //   aZ = (aZ -mIP->OrigineAlti()) / mIP->ResolutionAlti();
-                }
-                Ok=1;
             }
-            if (! aPrgD)
-            {
-               aTImFus.oset(aQ0,(tNBase)aZ);
-            }
-            aTImMasq.oset(aQ0,(tNBase)Ok);
+            aTImMasq.oset(aQ0,Ok);
+if (LocBug)
+{
+   std::cout << "Q00= " << aQ0 << "\n";
+}
         }
+   }
+
+   if (aCox)
+   {
+      ElTimer aT0;
+      std::cout << "Begin Cox-Roy\n";
+      aCox->SetStdCostRegul(0,aMul*aRegul,0);
+
+      Im2D_INT2 aISol(mSzCur.x,mSzCur.y);
+      aCox->TopMaxFlowStd(aISol.data());
+      std::cout << "End Cox-Roy " << aT0.uval() << "\n";
+      ELISE_COPY(aISol.all_pts(),aISol.in()!=0,aImMasq.out());
    }
 
    if (ShowTime)
@@ -933,6 +1081,15 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
        trans(aImFus.in(),-aBoxIn._p0),
        Tiff_Im(mNameTif.c_str()).out()
    );
+
+   ELISE_COPY
+   (
+       rectangle(aBoxOut._p0,aBoxOut._p1),
+       trans(aImCorrel.in(),-aBoxIn._p0),
+       Tiff_Im(mNameCorrel.c_str()).out()
+   );
+
+
 
 
    ELISE_COPY

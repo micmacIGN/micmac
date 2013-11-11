@@ -196,6 +196,7 @@ class cElNuage3DMaille : public cCapture3D
 
    // Acces direct aux index
         Im2D_Bits<1>   ImDef();
+        bool IsEmpty();
         bool  IndexHasContenu(const tIndex2D & anI) const 
         {
              return (mTImDef.get(anI,0) != 0);
