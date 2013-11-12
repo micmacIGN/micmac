@@ -1079,6 +1079,7 @@ namespace NS_SuperposeImage{
                        <SigmaPds  Type="double" Nb="1"> </SigmaPds>
                        <SigmaZ    Type="double" Nb="?"> </SigmaZ> <!-- Par defaut SigmaZ=SigmaPds -->
                        <MaxDif Type="double" Nb="?" Def="1e9"> </MaxDif>
+                       <QuickExp Nb="?" Type="bool" Def="false"> </QuickExp>
                        <FMNT_ProgDyn Nb="?">
                             <Regul Nb="1" Type="double"> </Regul>
                             <!-- Le cout de regul pour dun delta Z = D est
@@ -1118,6 +1119,7 @@ namespace NS_SuperposeImage{
              <InterneSingleImage Nb="?" Type="std::string" Def=""> </InterneSingleImage>
              <InterneSingleBox Nb="?" Type="int" Def="-1"> </InterneSingleBox>
              <WorkDirPFM Nb="?" Type="std::string"> </WorkDirPFM>
+             <BoxTest Nb="?" Type="Box2di"> </BoxTest>
        </SectionGestionChantier>
 
 

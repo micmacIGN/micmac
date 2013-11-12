@@ -10,6 +10,13 @@
            <Symb>   Zoom="1"  </Symb>
            <Symb>   Repere="NO-REPERE"  </Symb>
            <Symb>   DirMEC="MTD-Nuage"  </Symb>
+
+            <Symb>  WithBox=false </Symb>
+            <Symb>  X0=0 </Symb>
+            <Symb>  X1=0 </Symb>
+            <Symb>  Y0=0 </Symb>
+            <Symb>  Y1=0 </Symb>
+            <Symb>  ImIncluse=XXXXXX </Symb>
   </DicoLoc>
 
 
@@ -20,6 +27,15 @@
              <ZIncCalc>   0.0  </ZIncCalc>
       </IntervAltimetrie>
       <Planimetrie>
+           <#WHEN VTEST=${WithBox}>
+                <ListePointsInclus>
+                    <Pt>  ${X0} ${Y0} </Pt>
+                    <Pt>  ${X0} ${Y1} </Pt>
+                    <Pt>  ${X1} ${Y0} </Pt>
+                    <Pt>  ${X1} ${Y1} </Pt>
+                    <Im> ${ImIncluse} </Im>
+                </ListePointsInclus>
+           </#WHEN>
       </Planimetrie>
 
 </Section_Terrain>
@@ -86,7 +102,7 @@
      <TmpPyr>    Pyram/  </TmpPyr>
      <ByProcess>   ${MMNbProc} </ByProcess>
      <DefTileFile> 500000 </DefTileFile>
-     <PurgeMECResultBefore>  true </PurgeMECResultBefore>
+     <PurgeMECResultBefore>  false </PurgeMECResultBefore>
 </Section_WorkSpace>
 
 

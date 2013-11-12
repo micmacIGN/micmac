@@ -181,6 +181,83 @@ template <class T> class cDynTplNappe3D
 };
 
 
+// Class pour preparer la creation d'une nappe d'objet de taille non connue a l'avance
+//   NON TESTEE CAR ABANDONNEE EN ROUTE !!!!
+template <class Type> class cNappeSizeUndef
+{
+     public :
+         cNappeSizeUndef (Box2di  aBox);
+         // void InitParcour();
+         bool next(Pt2di &,int & I0,int & I1);
+
+         Im2D_INT2       Cpt()            {return mCpt;}
+         const std::vector<Type> & Objs() {return mObjs;}
+         void PushCur(const std::vector<Type> &);
+
+     private :
+         cNappeSizeUndef(const cNappeSizeUndef<Type> &); // N.I. 
+
+         void AssertInCreate(){ELISE_ASSERT(mInCreate,"cNappeSizeUndef no more in create mode")};
+         void AssertInRead(){ELISE_ASSERT((!mInCreate) && (!mFinish) ,"cNappeSizeUndef no tn read mode")};
+
+         TFlux_Rect2d       Flux();
+
+         Box2di            mBox;
+         Pt2di             mSz;
+         std::vector<Type> mObjs;
+         Im2D_INT2         mCpt;
+         TIm2D<INT2,INT>   mTCpt;
+         TFlux_Rect2d      mFlux;
+         Pt2di             mPCur;
+         int               mICur;
+         bool              mInCreate;
+         bool              mFinish;
+};
+
+template <class Type> cNappeSizeUndef<Type>::cNappeSizeUndef(Box2di aBox) :
+    mBox         (aBox),
+    mSz          (mBox.sz()),
+    mCpt         (mSz.x,mSz.y,-1),
+    mTCpt        (mCpt),
+    mFlux        (Flux()),
+    mPCur        (mFlux.PtsInit()),
+    mInCreate    (true),
+    mFinish      (false)
+{
+}
+template <class Type> TFlux_Rect2d cNappeSizeUndef<Type>::Flux()
+{
+   return TFlux_Rect2d(mBox._p0,mBox._p1);
+}
+template <class Type> void cNappeSizeUndef<Type>::PushCur(const std::vector<Type> & aV)
+{
+   AssertInCreate();
+   mInCreate = mFlux.next(mPCur);
+   mTCpt.oset(mPCur-mBox._p0,aV.size());
+   for (int aK=0 ; aK<int(aV.size()) ; aK++)
+      mObjs.push_back(aV[aK]);
+   if (!mInCreate)
+   {
+      mPCur = mFlux.PtsInit();
+      mICur = 0;
+   }
+}
+
+template <class Type> bool cNappeSizeUndef<Type>::next(Pt2di & aP,int & I0,int & I1)
+{
+    AssertInRead();
+    mFinish = mFlux.next(mPCur);
+    aP = mPCur;
+    I0 = mICur;
+    I1 = I0 + mTCpt.get(aP-mBox._p0);
+    mICur = I1;
+    return mFinish;
+}
+
+
+
+
+
 
 
 

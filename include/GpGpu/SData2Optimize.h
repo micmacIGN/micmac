@@ -33,7 +33,7 @@ struct p_ReadLine
     __device__ p_ReadLine(ushort t,ushort ipente):
         Id_Buf(false),
         tid(t),
-        itid(WARPSIZE - t),
+        itid(WARPSIZE - t - 1),
         pente(ipente)
     {
         line.id = 0;
@@ -75,7 +75,7 @@ struct p_ReadLine
         seg.lenght    = WARPSIZE;
         line.id       = 0;
         format();
-        ID_Bf_Icost   = NAPPEMAX - ID_Bf_Icost + count(prev_Dz) + 1;
+        ID_Bf_Icost   = NAPPEMAX - ID_Bf_Icost + count(prev_Dz);
     }
 
     template<bool sens> __device__ inline ushort stid()
@@ -170,6 +170,9 @@ void Data2Optimiz<U,NBUFFER>::Dealloc()
 TEMPLATE_D2OPTI
 void Data2Optimiz<U,NBUFFER>::ReallocParam(uint size)
 {
+    for(uint i = 0;i < NBUFFER;i++)
+        _param[i].Dealloc();
+
     for(uint i = 0;i < NBUFFER;i++)
         _param[i].Realloc(size);
 }

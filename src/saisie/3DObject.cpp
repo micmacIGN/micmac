@@ -452,18 +452,19 @@ cPolygon::cPolygon():
     setColor(QColor("red"));
 }
 
+cPolygon::cPolygon(const cPolygon& pol)
+{
+    this->cObject::operator =(pol);
+    *this = pol;
+}
+
 void cPolygon::draw()
 {
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-
     glColor3f(.1f,1.f,.2f);
 
     glBegin(_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
-    for (int aK = 0;aK <  _points.size(); ++aK)
-    {
+    for (int aK = 0;aK < _points.size(); ++aK)
         glVertex2f(_points[aK].x(), _points[aK].y());
-    }
     glEnd();
 
     glColor3f(_color.redF(),_color.greenF(),_color.blueF());
@@ -477,18 +478,14 @@ void cPolygon::draw()
         glDrawUnitCircle(2, _points[_idx].x(), _points[_idx].y());
 
         glColor3f(1.f,0.f,0.f);
-        for (int aK = _idx+1;aK < (int) _points.size(); ++aK)
+        for (int aK = _idx+1;aK < _points.size(); ++aK)
             glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
     }
     else
     {
         for (int aK = 0;aK < _points.size(); ++aK)
-        {
             glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
-        }
     }
-
-    glPopMatrix();
 }
 
 cPolygon & cPolygon::operator = (const cPolygon &aP)
@@ -500,14 +497,7 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
         _bPolyIsClosed    = aP._bPolyIsClosed;
         _idx              = aP._idx;
 
-        _points             = aP._points;
-
-        _position         = aP._position;
-        _color            = aP._color;
-        _scale            = aP._scale;
-
-        _alpha            = aP._alpha;
-        _bVisible         = aP._bVisible;
+        _points           = aP._points;
     }
 
     return *this;
@@ -515,10 +505,11 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
 
 void cPolygon::close()
 {
-    if (!_bPolyIsClosed)
+    int sz = _points.size();
+
+    if ((sz>1)&&(!_bPolyIsClosed))
     {
         //remove last point if needed
-        int sz = _points.size();
         if (sz > 2) _points.resize(sz-1);
 
         _bPolyIsClosed = true;
@@ -528,19 +519,23 @@ void cPolygon::close()
 void cPolygon::findClosestPoint(QPointF const &pos)
 {
     _idx = -1;
-    float dist, dist2;
+    float dist, dist2, x, y, dx, dy;
     dist2 = _sqr_radius;
+    x = pos.x();
+    y = pos.y();
 
     for (int aK = 0; aK < _points.size(); ++aK)
     {
-        dist  = (pos.x() - _points[aK].x())*(pos.x() - _points[aK].x()) +
-                (pos.y() - _points[aK].y())*(pos.y() - _points[aK].y());
+        dx = x - _points[aK].x();
+        dy = y - _points[aK].y();
+
+        dist = dx * dx + dy * dy;
 
         if  (dist < dist2)
         {
             dist2 = dist;
             _idx = aK;
-       }
+        }
     }
 }
 

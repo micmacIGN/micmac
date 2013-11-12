@@ -367,7 +367,9 @@ IF (MSVC)
         if (${CUDA_ENABLED})
             add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /wd4355 /nologo" )
         else()
-            add_definitions( "-Zm131 /W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
+            add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
+            # la valeur par défaut Zm1000 genere une erreur sous windows XP
+            string(REPLACE "/Zm1000" "/Zm131" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
         endif()
 
 	if(MSVC80 OR MSVC90 OR MSVC10)
