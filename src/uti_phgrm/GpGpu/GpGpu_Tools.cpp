@@ -58,6 +58,21 @@ void GpGpuTools::OutputGpu()
 #endif
 }
 
+void GpGpuTools::NvtxR_Push(const char* message, int32_t color)
+{
+    nvtxEventAttributes_t initAttrib = {0};
+
+    initAttrib.version = NVTX_VERSION;
+    initAttrib.size = NVTX_EVENT_ATTRIB_STRUCT_SIZE;
+    initAttrib.color = color;
+    initAttrib.colorType = NVTX_COLOR_ARGB;
+    initAttrib.message.ascii = message;
+    initAttrib.messageType = NVTX_MESSAGE_TYPE_ASCII;
+
+    nvtxRangePushEx(&initAttrib);
+
+}
+
 float GpGpuTools::fValue( float value,float factor )
 {
 	return value * factor;

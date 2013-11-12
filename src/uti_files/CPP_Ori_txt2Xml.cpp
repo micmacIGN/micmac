@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 // #include "XML_GEN/all_tpl.h"
 
 /*
+#include "testdel.h"
 */
 
 
@@ -1257,7 +1258,7 @@ void cAppli_Ori_Txt2Xml_main::SauvRel()
                    AddArc(mVSomVois[aK1],mVSomVois[aK2],P8COL::white,-1);
            }
            
-           std::cout << "TTttiim e " << mVSomVois[aK1]->attr().mCam->mTime << "\n";
+           // std::cout << "TTttiim e " << mVSomVois[aK1]->attr().mCam->mTime << "\n";
        }
        //getchar();
    }
