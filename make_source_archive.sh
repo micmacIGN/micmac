@@ -1,7 +1,8 @@
 #!/bin/bash
 
 MICMAC_REPOSITORY=`basename $PWD`
-REV_NUMBER=`hg log -r tip --template "{rev}"`
+#REV_NUMBER=`hg log -r tip --template "{rev}"`
+REV_NUMBER=`hg identify --num`
 OUT_MICMAC_DIR=micmac
 ARCHIVE_NAME=micmac_source_rev$REV_NUMBER
 if [ -f $ARCHIVE_NAME.tar.gz ]
