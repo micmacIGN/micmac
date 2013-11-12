@@ -82,8 +82,18 @@ struct Rect
 
 static int iDivUp(int a, int b)
 {
-	return (a % b != 0) ? (a / b + 1) : (a / b);
+    int div = a / b;
+    return ((a - div * b) != 0) ? (div + 1) : (div);
+    //return (a % b != 0) ? (a / b + 1) : (a / b);
 }
+
+static int iDivUp32(uint a)
+{
+    int div = a >> 5;
+    return ((a - (div << 5)) != 0) ? (div + 1) : (div);
+    //return (a % b != 0) ? (a / b + 1) : (a / b);
+}
+
 
 SUPPRESS_NOT_USED_WARN static uint2 iDivUp(uint2 a, uint b)
 {
