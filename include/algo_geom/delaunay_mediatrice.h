@@ -42,6 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+
 typedef long  double tRationnelDelaunay;
 
 inline int CmpRat(const tRationnelDelaunay & D1,const  tRationnelDelaunay & D2)
@@ -67,18 +68,15 @@ template <class Iterator,class Fpt,class Act,class Type>  void
     int continuer_K;
     tRationnelDelaunay A_x,A_y,AB_x,AB_y,AC_x,AC_y,norme_AB,norme_AC,det_AB_AC,scal_AB_AC;
     tRationnelDelaunay alpha,beta,nouv_val;
-    // int x1,y1,x2,y2;
     int etat,valeur_K[2],dec_etat[2];
 
-
-
-    ElFilo<Type *> F;
+    std::vector<Type *> F;
     {
-       for (Iterator it = begin ; it != end ; it++)
-           F.pushlast(&(*it));
+        for (Iterator it = begin ; it != end ; it++)
+            F.push_back(&(*it));
     }
-    Type ** vals = F.tab();
-    INT nb = F.nb();
+    Type ** vals =&(F[0]);
+    INT nb = F.size();
 
 
     {
@@ -92,19 +90,17 @@ template <class Iterator,class Fpt,class Act,class Type>  void
         nb = (int)(newlast - vals);
     }
 
-
-    ElFifo<INT> MARQUEUR_K;
-
+    std::vector<INT> MARQUEUR_K;
 
     for (I = 0 ; I < nb ; I++)
     {
-        /*   calcul des coordonnees du points A */
+        /* calcul des coordonnees du point A */
         Pt2dr pi = fpt(*vals[I]);
         A_x = pi.x;
         A_y = pi.y;
         MARQUEUR_K.clear();
         for ( J = 0; J < nb ; J++)
-            MARQUEUR_K.pushlast(0);
+            MARQUEUR_K.push_back(0);
         REAL x_lim = A_x + dist;
         for(J = I+1 ; (J < nb) && ( fpt(*vals[J]).x <x_lim) ; J++)
         {
@@ -115,7 +111,7 @@ template <class Iterator,class Fpt,class Act,class Type>  void
                AB_x = pj.x - A_x;
                AB_y = pj.y - A_y;
                norme_AB = AB_x * AB_x + AB_y * AB_y;
-               /* initialisation de l'intervalle   */
+               /* initialisation de l'intervalle */
                alpha = -1e60;
                beta = 1e60;
                continuer_K = nb - 2;
@@ -135,10 +131,10 @@ template <class Iterator,class Fpt,class Act,class Type>  void
                      Pt2dr pk = fpt(*vals[K]);
                      AC_x = pk.x - A_x; 
                      AC_y = pk.y - A_y;
-                     /* calcul des produits scalaires et vectoriel de AB et AC */
+                     /* calcul des produits scalaires et vectoriels de AB et AC */
                      det_AB_AC = AB_x * AC_y - AB_y * AC_x;	
                      scal_AB_AC = AB_x * AC_x + AC_y * AB_y;	
-                     /* si A,B,C alligne */
+                     /* si A,B,C aligne */
                      if (det_AB_AC == 0)  
                      {
                         /* si C appartient au segment [A,B] */
@@ -149,7 +145,7 @@ template <class Iterator,class Fpt,class Act,class Type>  void
                            beta = -1;
                         }
                            /* sinon C ne refute aucune partie de la mediatrice de AB
-                              donc on ne fait rien   */
+                              donc on ne fait rien */
                      }
                      else
                      {
@@ -158,7 +154,7 @@ template <class Iterator,class Fpt,class Act,class Type>  void
                           eventuellement modifier beta */
                         if (det_AB_AC > 0)
                         {
-                           /* calcul de l'abcisse de l'intersection des mediatrices */
+                           /* calcul de l'abscisse de l'intersection des mediatrices */
                            nouv_val = (norme_AC - scal_AB_AC) /det_AB_AC;
                            /* beta = min (beta,nouv_val) */
                            if (1 == CmpRat(beta,nouv_val))
@@ -170,7 +166,7 @@ template <class Iterator,class Fpt,class Act,class Type>  void
                           eventuellement modifier alpha */
                         else
                         {
-                           /* calcul de l'abcisse de l'intersection des mediatrices */
+                           /* calcul de l'abscisse de l'intersection des mediatrices */
                            nouv_val = (- norme_AC + scal_AB_AC)
                                         / ( - det_AB_AC);
                            /* alpha = max (alpha,nouv_val) */
@@ -187,17 +183,17 @@ template <class Iterator,class Fpt,class Act,class Type>  void
                   /* on memorise le prochain K pour dans 2 etapes */
                   valeur_K[etat] += dec_etat[etat];
                   /* si on atteint les bords il vaudrait mieux s'arreter la */
-                  if ((valeur_K[etat] < 0) || (valeur_K [etat] == nb))
+                  if ((valeur_K[etat] < 0) || (valeur_K[etat] == nb))
                   {
                      valeur_K[etat] -= dec_etat[etat];
                      dec_etat[etat] = 0;
                   }
-                  /* si on explorait K dans les x croissant alors on va explorer dans les x decroissant
+                  /* si on explorait K dans les x croissants alors on va explorer dans les x decroissants
                      et lycee de Versailles */
                   etat = (etat + 1) % 2;
                }
                /* si alpha > beta IJ est un arc de la triangulation */
-	       INT cmp = CmpRat (alpha,beta);
+               INT cmp = CmpRat (alpha,beta);
                if ( cmp <=0)
                   act(*vals[I],*vals[J],cmp==0);
            }
@@ -219,7 +215,7 @@ template <class Type,class Fpt,class Act>  void
                  REAL  dist
           )
 {
-   Delaunay_Mediatrice(vals,vals+nb,fpt,act,dist,(Type *)0);
+    Delaunay_Mediatrice(vals,vals+nb,fpt,act,dist,(Type *)0);
 }
 
                 
