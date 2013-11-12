@@ -126,6 +126,42 @@ void str_append( buffer_t *i_buffer, const char *i_str )
 		buffer[len+3] = '\0';
 		return buffer;
 	}
+#else
+	/*
+	const char * protect_spaces( const char *src, buffer_t *i_buffer )
+	{   
+		// count space characters
+		unsigned int length   = 0,
+                     nbSpaces = 0;
+		const char *itSrc = src;
+		while ( *itSrc!='\0' )
+		{
+			if ( *itSrc==' ' ) nbSpaces++;
+			length++;
+			itSrc++;
+		}
+   
+		// replace all ' ' by '\ '
+		char * const buffer = getBuffer( i_buffer, length+nbSpaces+1, 0 );
+		itSrc = src;
+		char *itDst = buffer;
+		while ( *itSrc!='\0' )
+		{
+			if (*itSrc==' ')
+			{
+				itDst[0] = '\\';
+				itDst[1] = ' ';
+				itDst += 2;
+			}
+			else
+			*itDst++ = *itSrc;
+			itSrc++;
+		}
+		*itDst = '\0';
+   
+		return buffer;
+	}
+	*/
 #endif
 
 // insert double quotes before and after the string
@@ -180,7 +216,7 @@ int  BinaireUnique
 	// initialize g_command with an empty string
 	getBuffer( &g_command, BUFFER_CHUNCK_SIZE, 0);
 	g_command.data[0] = '\0';
-   
+    
 	str_append( &g_command, add_double_quotes( get_MM3D_name(&g_buffer0), &g_buffer1 ) );
 	
 	for (aK=1 ; aK<argc ; aK++)
