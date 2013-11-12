@@ -118,8 +118,8 @@ void RotateImage(double alpha, Pt2di aSzOut, vector<Pt2dr> Pts , string aNameDir
     Tiff_Im aTF= Tiff_Im::StdConvGen(aNameDir + aNameIm,1,false);
 
 	Pt2di aSz = aTF.sz();
-	Pt2dr P1Cor; P1Cor.x=cos(alpha)*(Pts[0].x-Pts[1].x)+sin(alpha)*(Pts[0].y-Pts[1].y)+Pts[1].x; P1Cor.y=-sin(alpha)*(Pts[0].x-Pts[1].x)+cos(alpha)*(Pts[0].y-Pts[1].y)+Pts[1].y;
-	Pt2dr P3Cor; P3Cor.x=cos(alpha)*(Pts[2].x-Pts[1].x)+sin(alpha)*(Pts[2].y-Pts[1].y)+Pts[1].x; P3Cor.y=-sin(alpha)*(Pts[2].x-Pts[1].x)+cos(alpha)*(Pts[2].y-Pts[1].y)+Pts[1].y;
+	Pt2dr P1Cor=Rot2D(alpha, Pts[0], Pts[1]); //P1Cor.x=cos(alpha)*(Pts[0].x-Pts[1].x)+sin(alpha)*(Pts[0].y-Pts[1].y)+Pts[1].x; P1Cor.y=-sin(alpha)*(Pts[0].x-Pts[1].x)+cos(alpha)*(Pts[0].y-Pts[1].y)+Pts[1].y;
+	Pt2dr P3Cor=Rot2D(alpha, Pts[2], Pts[1]); //P3Cor.x=cos(alpha)*(Pts[2].x-Pts[1].x)+sin(alpha)*(Pts[2].y-Pts[1].y)+Pts[1].x; P3Cor.y=-sin(alpha)*(Pts[2].x-Pts[1].x)+cos(alpha)*(Pts[2].y-Pts[1].y)+Pts[1].y;
 
     Im2D_U_INT1  aImR(aSz.x,aSz.y);
     //Im2D_U_INT1  aImG(aSz.x,aSz.y);
@@ -190,7 +190,7 @@ void RotateImage(double alpha, Pt2di aSzOut, vector<Pt2dr> Pts , string aNameDir
 
 }
 
-int  Luc_main(int argc,char ** argv){
+int  Luc_main_corner_crop(int argc,char ** argv){
 
 	std::string aFullPattern, cornersTxt;
 	//Reading the arguments
@@ -253,6 +253,86 @@ int  Luc_main(int argc,char ** argv){
 	//double aT2=atan(-(P3.x-P2.x)/(P3.y-P2.y));
 	//cout<<aT1<<" + "<<aT2<< " = " <<(aT1+aT2)<<endl;
 
+
+	return 0;
+}
+
+int Luc_main(int argc,char ** argv)
+{
+	//MMD_InitArgcArgv(argc,argv,3);
+
+	std::string aFilePtsIn;
+	//Reading the arguments
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aFilePtsIn,"Input file"),
+        LArgMain()  
+    );
+
+	std::string aFilePtsOut="GCP_xAligned.xml";
+
+	std::ifstream file(aFilePtsIn.c_str(), ios::in);
+	int nbIm;
+	file >> nbIm;
+	std::vector<Pt3dr> aVPts(nbIm);
+    std::vector<Pt3dr> aVInc(nbIm);
+    std::vector<std::string> aVName(nbIm,"");
+	for(int i=0 ; i<nbIm ; i++)
+	{
+		string name;
+		file >> aVName[i] >> aVPts[i].x >> aVPts[i].y >> aVPts[i].z >> aVInc[i].x >> aVInc[i].y >> aVInc[i].z;
+	}
+
+	file.close();
+	//Least Square
+
+	// Create L2SysSurResol to solve least square equation with 3 unknown
+	L2SysSurResol aSys(2);
+
+  	//For Each SIFT point
+	double sumX=0, sumY=0;
+	for(int i=0;i<int(aVPts.size());i++){
+		double aPds[2]={aVPts[i].x,1};
+		double poids=1;
+		aSys.AddEquation(poids,aPds,aVPts[i].y);
+		sumX=sumX+aVPts[i].x;
+		sumY=sumY+aVPts[i].y;
+	}
+
+	Pt2dr aRotCenter; aRotCenter.x=sumX/aVPts.size();aRotCenter.y=sumY/aVPts.size();
+
+    bool Ok;
+    Im1D_REAL8 aSol = aSys.GSSR_Solve(&Ok);
+
+	double aAngle;
+    if (Ok)
+    {
+        double* aData = aSol.data();
+		aAngle=atan(aData[0]);
+		cout<<"Angle = "<<aAngle<<endl<<"Rot Center = "<<aRotCenter<<endl;
+    }
+	for(int i=0;i<int(aVPts.size());i++){
+		Pt2dr aPt; aPt.x=aVPts[i].x; aPt.y=aVPts[i].y;
+		aPt=Rot2D(aAngle, aPt, aRotCenter);aVPts[i].x=aPt.x;aVPts[i].y=aPt.y;
+	}
+
+	
+//End Least Square
+
+	cDicoAppuisFlottant  aDico;
+    for (int aKP=0 ; aKP<int(aVPts.size()) ; aKP++)
+    {
+        cOneAppuisDAF aOAD;
+        aOAD.Pt() = aVPts[aKP];
+        aOAD.NamePt() = aVName[aKP];
+        aOAD.Incertitude() = aVInc[aKP];
+
+        aDico.OneAppuisDAF().push_back(aOAD);
+    }
+
+	
+    MakeFileXML(aDico,aFilePtsOut);
 
 	return 0;
 }

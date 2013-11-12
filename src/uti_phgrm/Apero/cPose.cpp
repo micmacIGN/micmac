@@ -196,7 +196,7 @@ int & cPoseCam::NumTmp()
 
 bool cPoseCam::AcceptPoint(const Pt2dr & aP) const
 {
-    // std::cout << "SccaaaNN " << mCalib-> CamInit().IsScanned() << mCalib->SzIm() << "\n";
+
 
     if (mCalib-> CamInit().IsScanned())
     {
