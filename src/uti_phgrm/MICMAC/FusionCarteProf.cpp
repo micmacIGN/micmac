@@ -242,7 +242,7 @@ bool IsMaxLoc(const std::vector<cTmpPile> & aVPile,int aK,float anEc)
 std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aResolPlani,float aPixFact)
 {
    std::vector<cTmpPile> aTmp;
-   float aZFact = (aPixFact*aResolPlani) * sqrt(2);
+   float aZFact = (aPixFact*aResolPlani) * sqrt(2.0);
    for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
    {
         aTmp.push_back(cTmpPile(aVPile[aK].Z(),aVPile[aK].P()));
