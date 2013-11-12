@@ -3,6 +3,11 @@
 
 #include "GpGpu/GpGpu_CommonHeader.h"
 
+#include "nvToolsExtCuda.h"
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 using namespace std;
 
 template<class T> class CuHostData3D;
@@ -112,6 +117,8 @@ public:
 
     ///	\brief			(X)
     static void			OutputGpu();
+
+    static void			NvtxR_Push(const char* message, int32_t color);
 
 };
 

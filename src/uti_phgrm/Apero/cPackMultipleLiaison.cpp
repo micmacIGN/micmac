@@ -612,6 +612,7 @@ void cObsLiaisonMultiple::AddPack
 
    ElPackHomologue aNewPack;
 
+std::cout << "AAAAAAAAAAA\n";
    for (ElPackHomologue::iterator itP=aPack.begin(); itP!=aPack.end() ; itP++)
    {
       aC1->C2MCompenseMesureOrInt(itP->P1());
@@ -622,6 +623,7 @@ void cObsLiaisonMultiple::AddPack
           aNewPack.Cple_Add(ElCplePtsHomologues(itP->P1(),itP->P2()));
       }
    }
+std::cout << "BBBBBB\n";
    aPack = aNewPack;
 
    mAppli.AddLinkCam(aC1,aC2);

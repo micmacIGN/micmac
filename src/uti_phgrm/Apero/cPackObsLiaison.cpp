@@ -1054,7 +1054,6 @@ bool  cAppliApero::InitPackPhgrm
           const std::string& aN2,CamStenope * aCam2
      )
 {
-// std::cout << aN1 << " " << aN2 << "\n";
    bool aRes = InitPack(anId,aPack,aN1,aN2);
    aPack = aCam1->F2toPtDirRayonL3(aPack,aCam2);
    return aRes;

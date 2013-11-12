@@ -263,7 +263,6 @@ void MainWindow::addFiles(const QStringList& filenames)
         }
 
         _glWidget->setData(_Engine->getData());
-        _glWidget->update();
 
         for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
 
@@ -558,7 +557,6 @@ void MainWindow::loadImage()
         _Engine->loadImage(img_filename);
 
         _glWidget->setData(_Engine->getData());
-        _glWidget->update();
 
         setCurrentFile(img_filename);
 
@@ -610,8 +608,8 @@ void MainWindow::closeAll()
     _glWidget->reset();
 
     checkForLoadedData();
-    //_glWidget->setBufferGl();
-    //_glWidget->update();
+    _glWidget->setBufferGl();
+    _glWidget->update();
 }
 
 void MainWindow::openRecentFile()

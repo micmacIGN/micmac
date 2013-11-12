@@ -59,7 +59,7 @@
                 </FMNtBySort>
 -->
                 <FMNtByMaxEvid>
-                       <SigmaPds> 15.0 </SigmaPds>
+                       <SigmaPds> 5.0 </SigmaPds>
                        <SigmaZ> 7.5  </SigmaZ>
                        <MaxDif> 10  </MaxDif>
                        <FMNT_ProgDyn>
@@ -90,8 +90,8 @@
 
 
    <SectionGestionChantier>
-             <SzDalles >  1000 </SzDalles>
-             <RecouvrtDalles> 50  </RecouvrtDalles>
+             <SzDalles >  1300 </SzDalles>
+             <RecouvrtDalles> 150  </RecouvrtDalles>
              <ParalMkF> MkFusion.txt </ParalMkF> 
              <WorkDirPFM> XXXX </WorkDirPFM>
 <!--

@@ -424,7 +424,7 @@ void TrueCol16Bit_RGB::Bench()
     Symb_FNum G (Rand1Canal);
     Symb_FNum B (Rand1Canal);
 
-    Symb_FNum RGB (Virgule(R,G,B));
+    Symb_FNum rgb (Virgule(R,G,B));
 
 
     INT DifR,DifG,DifB;
@@ -432,7 +432,7 @@ void TrueCol16Bit_RGB::Bench()
     ELISE_COPY
     (
          rectangle(0,1000),
-         Abs(I2RGB(RGB2I(RGB))-RGB),
+         Abs(I2RGB(RGB2I(rgb))-rgb),
          Virgule(VMax(DifR),VMax(DifG),VMax(DifB))
     );
 

@@ -43,29 +43,45 @@
 #include <sys/types.h>
 
 #if defined(DJGPP) || defined(__MINGW32__) || defined(_WIN64) || defined(_WIN32)
-#define fseeko fseek
-#define ftello ftell
+	#define fseeko fseek
+	#define ftello ftell
 #else
-#define fgetc getc_unlocked
+	#define fgetc getc_unlocked
 #endif
+
 #ifdef __CYGWIN__
-#include <io.h>
+	#include <io.h>
 #endif
+
 #ifdef WIN32
-#include <sys/utime.h>
-#include <winsock2.h>
-#pragma comment(lib, "ws2_32.lib")
-#define snprintf _snprintf
-#define strcasecmp stricmp
-#define strncasecmp strnicmp
-typedef __int64 INT64;
-typedef unsigned __int64 UINT64;
+	#include <sys/utime.h>
+	#include <winsock2.h>
+	#pragma comment(lib, "ws2_32.lib")
+	#define snprintf _snprintf
+	#define strcasecmp stricmp
+	#define strncasecmp strnicmp
+	#if (!ELISE_MinGW)
+		// for visual c++
+		#include <direct.h>
+		#define getcwd _getcwd
+		#include <io.h>
+		#define isatty _isatty
+		#define setmode _setmode
+
+		// assuming M. Coffin knows
+		#pragma warning( disable : 4018 ) // signed/unsigned mismatch
+		#pragma warning( disable : 4244 ) // possible loss of data during implicit cast
+		#pragma warning( disable : 4305 ) // truncation double->float
+		#pragma warning( disable : 4146 ) // unary minus operator applied to an unsigned type
+	#endif
+	typedef __int64 INT64;
+	typedef unsigned __int64 UINT64;
 #else
-#include <unistd.h>
-#include <utime.h>
-#include <netinet/in.h>
-typedef long long INT64;
-typedef unsigned long long UINT64;
+	#include <unistd.h>
+	#include <utime.h>
+	#include <netinet/in.h>
+	typedef long long INT64;
+	typedef unsigned long long UINT64;
 #endif
 
 #ifdef NODEPS
@@ -386,7 +402,7 @@ void CLASS read_shorts (ushort *pixel, int count)
 {
   if (fread (pixel, 2, count, ifp) < count) derror();
   if ((order == 0x4949) == (ntohs(0x1234) == 0x1234))
-    swab (pixel, pixel, count*2);
+    swab ((char*)pixel, (char*)pixel, count*2);
 }
 
 void CLASS canon_600_fixed_wb (int temp)
@@ -4653,10 +4669,10 @@ void CLASS blend_highlights()
 {
   int clip=INT_MAX, row, col, c, i, j;
   static const float trans[2][4][4] =
-  { { { 1,1,1 }, { 1.7320508,-1.7320508,0 }, { -1,-1,2 } },
+  { { { 1,1,1 }, { 1.7320508f,-1.7320508f,0 }, { -1,-1,2 } },
     { { 1,1,1,1 }, { 1,-1,1,-1 }, { 1,1,-1,-1 }, { 1,-1,-1,1 } } };
   static const float itrans[2][4][4] =
-  { { { 1,0.8660254,-0.5 }, { 1,-0.8660254,-0.5 }, { 1,0,1 } },
+  { { { 1,0.8660254f,-0.5f }, { 1,-0.8660254f,-0.5f }, { 1,0,1 } },
     { { 1,1,1,1 }, { 1,-1,1,-1 }, { 1,1,-1,-1 }, { 1,-1,-1,1 } } };
   float cam[2][4], lab[2][4], sum[2], chratio;
 
@@ -5176,9 +5192,9 @@ void CLASS parse_gps (int base)
 void CLASS romm_coeff (float romm_cam[3][3])
 {
   static const float rgb_romm[3][3] =	/* ROMM == Kodak ProPhoto */
-  { {  2.034193, -0.727420, -0.306766 },
-    { -0.228811,  1.231729, -0.002922 },
-    { -0.008565, -0.153273,  1.161839 } };
+  { {  2.034193f, -0.727420f, -0.306766f },
+    { -0.228811f,  1.231729f, -0.002922f },
+    { -0.008565f, -0.153273f,  1.161839f } };
   int i, j, k;
 
   for (i=0; i < 3; i++)
@@ -7408,15 +7424,15 @@ void CLASS simple_coeff (int index)
 {
   static const float table[][12] = {
   /* index 0 -- all Foveon cameras */
-  { 1.4032,-0.2231,-0.1016,-0.5263,1.4816,0.017,-0.0112,0.0183,0.9113 },
+  { 1.4032f,-0.2231f,-0.1016f,-0.5263f,1.4816f,0.017f,-0.0112f,0.0183f,0.9113f },
   /* index 1 -- Kodak DC20 and DC25 */
-  { 2.25,0.75,-1.75,-0.25,-0.25,0.75,0.75,-0.25,-0.25,-1.75,0.75,2.25 },
+  { 2.25f,0.75f,-1.75f,-0.25f,-0.25f,0.75f,0.75f,-0.25f,-0.25f,-1.75f,0.75f,2.25f },
   /* index 2 -- Logitech Fotoman Pixtura */
-  { 1.893,-0.418,-0.476,-0.495,1.773,-0.278,-1.017,-0.655,2.672 },
+  { 1.893f,-0.418f,-0.476f,-0.495f,1.773f,-0.278f,-1.017f,-0.655f,2.672f },
   /* index 3 -- Nikon E880, E900, and E990 */
-  { -1.936280,  1.800443, -1.448486,  2.584324,
-     1.405365, -0.524955, -0.289090,  0.408680,
-    -1.204965,  1.082304,  2.941367, -1.818705 }
+  { -1.936280f,  1.800443f, -1.448486f,  2.584324f,
+     1.405365f, -0.524955f, -0.289090f,  0.408680f,
+    -1.204965f,  1.082304f,  2.941367f, -1.818705f }
   };
   int i, c;
 
@@ -9020,7 +9036,7 @@ void CLASS write_ppm_tiff()
 	   FORCC ppm [col*colors+c] = curve[image[soff][c]] >> 8;
       else FORCC ppm2[col*colors+c] = curve[image[soff][c]];
     if (output_bps == 16 && !output_tiff && htons(0x55aa) != 0x55aa)
-      swab (ppm2, ppm2, width*colors*2);
+      swab ((char*)ppm2, (char*)ppm2, width*colors*2);
     fwrite (ppm, colors*output_bps/8, width, ofp);
   }
   free (ppm);

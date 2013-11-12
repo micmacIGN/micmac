@@ -30,9 +30,9 @@ int main()
 
     bool random = false;
 
-    uint nbLines        = random ? rand() % 10 + 10 : 1;
-    uint lenghtMaxLines = 4;
-    uint depthMax       = NAPPEMAX/2;
+    uint nbLines        = random ? rand() % 1024 : 1;
+    uint lenghtMaxLines = random ? rand() % 1024 : 2;
+    uint depthMax       = NAPPEMAX;
 
     uint sizeMaxLine = (uint)(1.5f*sqrt((float)lenghtMaxLines * lenghtMaxLines + nbLines * nbLines));
 
@@ -82,16 +82,15 @@ int main()
 
         {
             short2 lDZ      = make_short2(-tabZ[make_uint3(idLine,aK,0)],tabZ[make_uint3(idLine,aK,1)]);
-            ushort lDepth   = count(lDZ)+1;
+            ushort lDepth   = count(lDZ);
 
             h2O._s_Index[h2O._param[0][idLine].y + aK ] = lDZ;
 
             uint idStrm = h2O._param[0][idLine].x + pitStrm - lDZ.x;
 
-            for ( int aPx = lDZ.x ; aPx <= lDZ.y; aPx++)
+            for ( int aPx = lDZ.x ; aPx < lDZ.y; aPx++)
                 //h2O._s_InitCostVol[idStrm + aPx]  = 10000 * (idLine + 1) + (aK+1) * 1000 + aPx - lDZ.x + 1;
                 h2O._s_InitCostVol[idStrm + aPx]  = 1;
-
 
             pitStrm += lDepth;
         }
@@ -156,6 +155,7 @@ int main()
 
     GpGpuTools::OutputInfoGpuMemory();
     checkCudaErrors(cudaDeviceReset());
+    //GpGpuTools::OutputInfoGpuMemory();
     printf("Reset Device GpGpu.\n");
 
     return 0;

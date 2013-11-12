@@ -161,6 +161,10 @@ public:
 
     void                __device__  SetValue(int id, T value);
 
+    void                __device__  SubValue(int id, T value);
+
+    void                __device__  AddValue(int id, T value);
+
     uint                __device__  GetGiD(){return _idG;}
 
     template<bool sens> __device__  void reverse();
@@ -191,6 +195,18 @@ template<class T> __device__
 void SimpleStream<T>::SetValue(int id, T value)
 {
     _globalStream[_idG + id] = value;
+}
+
+template<class T> __device__
+void SimpleStream<T>::SubValue(int id, T value)
+{
+    _globalStream[_idG + id] -= value;
+}
+
+template<class T> __device__
+void SimpleStream<T>::AddValue(int id, T value)
+{
+    _globalStream[_idG + id] += value;
 }
 
 template<class T> __device__

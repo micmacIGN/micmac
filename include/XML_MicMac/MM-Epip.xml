@@ -28,7 +28,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 <DicoLoc>
 
 	<Symb>  ZReg=0.05  </Symb>
-	<Symb>  DefCor=0.40  </Symb>
+	<Symb>  DefCor=0.50  </Symb>
         <Symb>  PenteMax=1.0 </Symb>
 	<Symb>  Interpol=eInterpolBiLin  </Symb>
 
@@ -57,6 +57,13 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
        <Symb> DeltaY=0  </Symb>
        <Symb> Verif=false  </Symb>
        <Symb> MMC=true  </Symb>
+
+  <!-- Clip zone pour le test -->
+       <Symb> ClipCalc=false  </Symb>
+       <Symb> X0Clip=0        </Symb>
+       <Symb> Y0Clip=0        </Symb>
+       <Symb> X1Clip=0        </Symb>
+       <Symb> Y1Clip=0        </Symb>
 
   <!-- Parametres calcule -->
         
@@ -152,12 +159,18 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 -->
 <Section_MEC>
 	<ChantierFullImage1> true </ChantierFullImage1>
+        <#WHEN  VTEST=${ClipCalc}>
+              <ProportionClipMEC> ${X0Clip}  ${Y0Clip}  ${X1Clip}  ${Y1Clip} </ProportionClipMEC>
+              <ClipMecIsProp> false </ClipMecIsProp>
+        </#WHEN>
 
 	<EtapeMEC>
     	    <DeZoom> -1 </DeZoom>
     	    <ModeInterpolation> ${Interpol} </ModeInterpolation>
+
 <!--
-            <CorrelMin>    0.5 </CorrelMin>
+            <DynamiqueCorrel> eCoeffGamma </DynamiqueCorrel>
+            <CorrelMin>    0.3 </CorrelMin>
             <GammaCorrel>  3  </GammaCorrel>
 -->
 
@@ -227,12 +240,26 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                                  <Pds> 0.5 </Pds>
                                  <SquareW> ${SquareW} </SquareW>
                             </OneParamCMS>
+
                             <OneParamCMS>
                                  <SzW> 4 3 </SzW>
                                  <Sigma> 2.0 </Sigma>
                                  <Pds> 0.25 </Pds>
                                  <SquareW> ${SquareW} </SquareW>
                             </OneParamCMS>
+<!--
+-->
+
+<!--
+                            <OneParamCMS>
+                                 <SzW> 8 6 </SzW>
+                                 <Sigma> 4.0 </Sigma>
+                                 <Pds> 0.125 </Pds>
+                                 <SquareW> ${SquareW} </SquareW>
+                            </OneParamCMS>
+-->
+
+
                      </CorrelMultiScale>
                  </#WHEN>
                    
