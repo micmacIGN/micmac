@@ -477,6 +477,8 @@ int GenMire_main (int argc,char** argv);
 int GrayTexture_main (int argc,char** argv);
 int SplitMPO_main(int argc,char ** argv);
 
+int SaisieMasqQT_main(int argc,char ** argv);
+
 
 
 // uti_phgram
