@@ -65,7 +65,7 @@ std::string TheType = "XXXX";
 list<string> aFileList;				// all filenames matching input pattern, computed by DoDevelopp
 vector<string> aKeypointsFileArray; // keypoints filenames associated to files in aFileList and a specified resolution, computed by DoDetectKeypoints
 
-std::string StrMkT() { return (ByP ? (" MkF=" + MkFT +" ") : "") ; }
+std::string StrMkT() { return (ByP ? (" \"MkF=" + MkFT +"\" ") : "") ; }
 
 #define aNbType 5
 std::string  Type[aNbType] = {"MulScale","All","Line","File","Graph"};
@@ -115,9 +115,23 @@ void DoMkT()
 {
     if (ByP)
     {
-        std::string aSMkSr = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFT + string(" -j")+ToString(ByP)/*+" -s"*/;
+        std::string aSMkSr = string("\"")+g_externalToolHandler.get( "make" ).callName()+"\" all -f \"" + MkFT + string("\" -j")+ToString(ByP)/*+" -s"*/;
         System(aSMkSr,true);
     }
+}
+
+// protect spaces with backslashes (for use with 'make')
+string protect_spaces( const string &i_str )
+{
+	string out_str = i_str;
+	size_t lastPos = 0;
+	while ( true )
+	{
+		lastPos = out_str.find( ' ', lastPos );
+		if ( lastPos==string::npos ) return out_str;
+		out_str.insert(lastPos,1,'\\');
+		lastPos += 2;
+	}
 }
 
 void DoDevelopp(int aSz1,int aSz2)
@@ -133,7 +147,8 @@ void DoDevelopp(int aSz1,int aSz2)
         std::string  aNOri = anICNM->Dir()+*iT;
         //std::string  aNTif = NameFileStd(aNOri,1,false,true,false);
 
-        std::string aCom = MMBin() + "PastDevlop " + aNOri + " Sz1=" +ToString(aSz1) + " Sz2="+ToString(aSz2);
+        //std::string aCom = MMBin() + "PastDevlop " + aNOri + " Sz1=" +ToString(aSz1) + " Sz2="+ToString(aSz2);
+        std::string aCom = protect_spaces(MMBin()) + "PastDevlop " + protect_spaces(aNOri) + " Sz1=" +ToString(aSz1) + " Sz2="+ToString(aSz2);
 
 		taskName = string( "T" ) + ToString( iImage ) + "_";
         aGPAO.GetOrCreate( taskName, aCom ); // always call PastDevlop (in case asked resolution changed)
@@ -819,7 +834,9 @@ int Tapioca_main(int argc,char ** argv)
 */
 
     MkFT= MMDir() + "MkTapioca";
-    BinPastis = MM3dBinFile("Pastis");
+    //BinPastis = MM3dBinFile("Pastis");
+    BinPastis = MM3dBinFile_quotes("Pastis");
+
     ByP= MMNbProc();
 
     cTplValGesInit<std::string>  aTplFCND;

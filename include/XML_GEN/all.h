@@ -112,6 +112,7 @@ extern std::string MM3DStr;
 std::string MMBinFile(const std::string &);
 //   Nouveau par mm3d   MMDir() + std::string("bin" ELISE_STR_DIR "mm3d"  COMMANDE) 
 std::string MM3dBinFile(const std::string &);
+std::string MM3dBinFile_quotes(const std::string &);
 //   MMDir() + std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Cloud.xml ")
 std::string XML_MM_File(const std::string &);
 std::string Basic_XML_MM_File(const std::string &);
