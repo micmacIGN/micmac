@@ -49,11 +49,6 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine,
 int main(int argc, char *argv[])
 #endif
 {
-    SaisieMasqQT_main(argc, argv);
-}
-
-int SaisieMasqQT_main(int argc, char *argv[])
-{
     QApplication::setStyle("fusion");
 
 #ifdef WIN32
@@ -82,6 +77,8 @@ int SaisieMasqQT_main(int argc, char *argv[])
     QStringList cmdline_args = QCoreApplication::arguments();
     QString str;
 
+    cout << "here" << endl;
+
     if (cmdline_args.size() > 1)
     {
         for (int i=0; i< cmdline_args.size(); ++i)
@@ -89,6 +86,8 @@ int SaisieMasqQT_main(int argc, char *argv[])
             bool removeArg = false;
 
             str = cmdline_args[i];
+
+            cout << "string " << str.toStdString() << endl;
 
             if (str.contains("help"))
             {
