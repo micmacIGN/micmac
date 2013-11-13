@@ -8,13 +8,11 @@
    #include <mach-o/dyld.h>
 #else
    #include <unistd.h>
-   #define ELISE_CAR_DIR  '/' 
 #endif
 
 // !!  LE PATH PEUT ETRE TRES GRAND -CAS DE PATH GENERE AUTO, IL FAUDRAIT CHANGE CELA !!
 // A COURT TERME 1024 => 100000
-
-#define PATH_BUFFER_SIZE 100000
+// #define PATH_BUFFER_SIZE 100000
 
 // increase buffers' sizes of BUFFER_CHUNCK_SIZE when no specified size is specified
 #define BUFFER_CHUNCK_SIZE 10
@@ -26,7 +24,7 @@ typedef struct{
 
 buffer_t g_buffer0 = { NULL, 0 },
          g_buffer1 = { NULL, 0 },
-	 g_command = { NULL, 0 };
+         g_command = { NULL, 0 };
 
 void FataleError(const char * aMes)
 {
@@ -63,46 +61,10 @@ char * getBuffer( buffer_t *i_buffer, unsigned int i_size, int i_keepData )
    return ( i_buffer->data=(char*)malloc(i_size) );
 }
 
-// insert backslahes before spaces
-// returns a pointer to g_buffer1->data
-const char * protect_spaces( const char *src, buffer_t *i_buffer )
-{   
-   // count space characters
-   unsigned int length   = 0,
-	        nbSpaces = 0;
-   const char *itSrc = src;
-   while ( *itSrc!='\0' )
-   {
-      if ( *itSrc==' ' ) nbSpaces++;
-      length++;
-      itSrc++;
-   }
-   
-   char * const buffer = getBuffer( i_buffer, length+nbSpaces+1, 0 );
-   itSrc = src;
-   char *itDst = buffer;
-   while ( *itSrc!='\0' )
-   {
-      if (*itSrc==' ')
-      {
-	 itDst[0] = '\\';
-	 itDst[1] = ' ';
-	 itDst += 2;
-      }
-      else
-	 *itDst++ = *itSrc;
-      itSrc++;
-   }
-   *itDst = '\0';
-   
-   return buffer;
-}
-
 char * getExecutableName( buffer_t *i_buffer )
 {
-   printf( "--> a getExecutableName %d\n", i_buffer->size );
-   
    unsigned int retrievedSize = 0;
+   
    #ifdef WIN32
       {
 	 // get full path of current executable
@@ -147,14 +109,46 @@ void str_append( buffer_t *i_buffer, const char *i_str )
    buffer[cmd_len+str_len] = '\0';
 }
 
-char * get_MM3D_name( buffer_t *i_buffer )
+#ifdef WIN32
+	// a '\' protects a '"' under windows
+	// add a space to break the \" special sequence if an argument is a '\' ended directory
+
+	// insert double quotes before, and space+double quote after the string
+	// c:\titi\toto\ -> "c:\titi\toto\ "
+	// returns a pointer to g_buffer1->data
+	const char * add_double_quotes_and_space( const char *i_src, buffer_t *i_buffer )
+	{
+		unsigned int len = strlen(i_src);
+		char *buffer = getBuffer( i_buffer, len+4, 0 );
+		memcpy( buffer+1, i_src, len );
+		buffer[0] = buffer[len+2] = '\"';
+		buffer[len+1] = ' ';
+		buffer[len+3] = '\0';
+		return buffer;
+	}
+#endif
+
+// insert double quotes before and after the string
+// returns a pointer to g_buffer1->data
+const char * add_double_quotes( const char *i_src, buffer_t *i_buffer )
+{
+	unsigned int len = strlen(i_src);
+	char *buffer = getBuffer( i_buffer, len+3, 0 );
+	memcpy( buffer+1, i_src, len );
+	buffer[0] = buffer[len+1] = '\"';
+	buffer[len+2] = '\0';
+	return buffer;
+}
+
+char * get_MM3D_name( buffer_t *i_buffer, char *o_subName )
 {
    char *it, *it2;
+    int subComand_len;
    
    getBuffer( i_buffer, BUFFER_CHUNCK_SIZE, 0 );
    getExecutableName( i_buffer );
    
-   printf( "executable name [%s]\n", i_buffer->data );
+   //printf( "executable name [%s]\n", i_buffer->data );
    
    // find last '/' or '\'
    it = it2 = i_buffer->data;
@@ -164,17 +158,16 @@ char * get_MM3D_name( buffer_t *i_buffer )
 	 it2 = it;
       it++;
    }
-   *it2 = '\0';
-   str_append( i_buffer, "/mm3d" );
+	*it2 = '\0';
+    
+    subComand_len = (int)(it-it2)-1;
+    memcpy( o_subName, it2+1, subComand_len );
+    o_subName[subComand_len]='\0';
+	str_append( i_buffer, "/mm3d" );
    
-   printf( "mm3d name [%s]\n", i_buffer->data );
+    //printf( "mm3d name [%s]\n", i_buffer->data );
+    //printf( "sub command %d [%s]\n", subComand_len, o_subName );
    return i_buffer->data;
-}
-
-void str_copy( buffer_t *i_buffer, char *i_str )
-{
-   unsigned int len = strlen(i_str)+1;
-   memcpy( getBuffer( i_buffer, len, 0 ), i_str, len );
 }
 
 int  BinaireUnique
@@ -184,29 +177,34 @@ int  BinaireUnique
            char ** argv
       )
 {
-   int aK;
+	int aK;
+    char subCommand[BUFFER_CHUNCK_SIZE];
    
-   // initialize g_command with an empty string
-   getBuffer( &g_command, BUFFER_CHUNCK_SIZE, 0);
-   g_command.data[0] = '\0';
-   
-   str_append( &g_command, protect_spaces( get_MM3D_name(&g_buffer0), &g_buffer1 ) );
-
-  for (aK=1 ; aK<argc ; aK++)
-  {
-      str_append( &g_command, " \"" );
-      str_append( &g_command, argv[aK] );
-      #if (WIN32)
-	 // a '\' protects a '"' under windows
-	 // add a space to break the "\\" special sequence if an argument is a '\' ended directory
-	 if ( argv[aK][strlen( argv[aK] )-1]=='\\' )
-	    str_append( &g_command, " \"" );
-	 else
-      #endif
-      str_append( &g_command, "\"" );
-  }
+	// initialize g_command with an empty string
+	getBuffer( &g_command, BUFFER_CHUNCK_SIZE, 0);
+	g_command.data[0] = '\0';
+    
+	str_append( &g_command, add_double_quotes( get_MM3D_name(&g_buffer0,subCommand), &g_buffer1 ) );
+	str_append( &g_command, " ");
+    str_append( &g_command, subCommand);
+    
+	for (aK=1 ; aK<argc ; aK++)
+	{
+		str_append( &g_command, " " );
+		#ifdef _WIN32
+			str_append( &g_command, add_double_quotes_and_space( argv[aK], &g_buffer0 ) );
+		#else
+			str_append( &g_command, add_double_quotes( argv[aK], &g_buffer0 ) );
+		#endif
+	}
   
-  printf("ComF =[%s]\n",g_command.data); fflush(stdout);
-  return system(g_command.data);
+	//printf("ComF =[%s]\n",g_command.data); fflush(stdout);
+  
+	#ifdef _WIN32
+		// an extra double quote on the whole line seem to be necessary for lines starting with a double quote
+		return system( add_double_quotes( g_command.data, &g_buffer0 ) );
+	#else
+		return system( g_command.data );
+	#endif
 }
 
