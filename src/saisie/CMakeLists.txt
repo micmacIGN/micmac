@@ -27,13 +27,13 @@ endif()
 
 set(CMAKE_AUTOMOC ON)
 
-set(saisie_SRCS main.cpp
+set(saisie_SRCS saisie_main.cpp
 	        GLWidget.cpp
 	        mainwindow.cpp
 	        Cloud.cpp
 	        Data.cpp
 	        Engine.cpp
-			3DObject.cpp
+            3DObject.cpp
 	        ../poisson/plyfile.cpp)
 
 set(saisie_HEADERS GLWidget.h
