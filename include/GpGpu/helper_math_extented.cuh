@@ -87,7 +87,7 @@ static int iDivUp(int a, int b)
     //return (a % b != 0) ? (a / b + 1) : (a / b);
 }
 
-static int iDivUp32(uint a)
+SUPPRESS_NOT_USED_WARN static int iDivUp32(uint a)
 {
     int div = a >> 5;
     return ((a - (div << 5)) != 0) ? (div + 1) : (div);

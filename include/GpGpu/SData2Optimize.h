@@ -127,6 +127,7 @@ struct Data2Optimiz
     U<ushort>    _s_InitCostVol;
     U<uint>      _s_ForceCostVol[NBUFFER];
     U<short2>    _s_Index;
+    U<ushort2>   _s_PtTer;
     uint         _nbLines;
     bool         _idBuffer;
 
@@ -159,6 +160,7 @@ void Data2Optimiz<U,NBUFFER>::Dealloc()
 {
     _s_InitCostVol  .Dealloc();
     _s_Index        .Dealloc();
+    //_s_PtTer        .Dealloc();
 
     for(uint i = 0;i < NBUFFER;i++)
     {
@@ -195,6 +197,7 @@ void Data2Optimiz<U,NBUFFER>::ReallocInputIf(uint pStr, uint pIdStr)
 {
     _s_InitCostVol  .ReallocIf(pStr);
     _s_Index        .ReallocIf(pIdStr);
+    //_s_PtTer        .ReallocIf(pIdStr);
 }
 
 TEMPLATE_D2OPTI
