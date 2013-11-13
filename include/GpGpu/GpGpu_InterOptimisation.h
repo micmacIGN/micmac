@@ -29,7 +29,9 @@ public:
     /// \brief Data2Opt
     /// \return
     ///
-    HOST_Data2Opti& Data2Opt(){ return _H_data2Opt;}
+    HOST_Data2Opti& HData2Opt(){ return _H_data2Opt;}
+
+    DEVC_Data2Opti& DData2Opt(){ return _D_data2Opt;}
 
     ///
     /// \brief Dealloc
@@ -49,12 +51,17 @@ public:
     /// \brief ReallocParam
     /// \param size
     ///
-    void            ReallocParam(uint size);
+    void            Prepare(uint x,uint y);
 
     ///
     /// \brief freezeCompute
     ///
     void            freezeCompute();
+
+    CuHostData3D<ushort*>   _preCostInit;
+    CuHostData3D<uint*>     _preFinalCost;
+    CuHostData3D<short2>    _prePtZ;
+    CuHostData3D<short>     _preDZ;
 
 private:
 
@@ -62,8 +69,6 @@ private:
 
     HOST_Data2Opti  _H_data2Opt;
     DEVC_Data2Opti  _D_data2Opt;
-
-    uint            _idDir;
 
 };
 

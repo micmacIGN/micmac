@@ -244,6 +244,8 @@ public:
 
     bool			ReallocIf(uint2 dim, uint l);
 
+    bool			ReallocIf(uint dimX, uint dimY, uint l = 1);
+
     T&              operator[](uint2 pt);
 
     T&              operator[](uint3 pt);
@@ -297,6 +299,12 @@ TPL_T inline bool CData3D<T>::ReallocIf(uint2 dim, uint l)
         CData3D<T>::SetDimension(dim,l);
 
     return true;
+}
+
+TPL_T inline bool CData3D<T>::ReallocIf(uint dimX, uint dimY, uint l)
+{
+    uint2 dim2D = make_uint2(dimX,dimY);
+    return ReallocIf(dim2D,l);
 }
 
 template <> inline

@@ -136,7 +136,7 @@ public :
             Im2D_INT2  aPxMin,
             Im2D_INT2  aPxMax
             );
-    ~cGBV2_ProgDynOptimiseur() {}
+    ~cGBV2_ProgDynOptimiseur();
     void Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int aLabel);
     void Local_SolveOpt(Im2D_U_INT1 aImCor);
 
