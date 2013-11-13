@@ -397,7 +397,7 @@ void ReadLine2(
 }
 
 template<class T> __global__
-void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrParam, uint penteMax)
+void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrParam,uint* finalCost, uint penteMax)
 {
     __shared__ short2   S_BuffIndex[WARPSIZE];
     __shared__ ushort   S_BuffICost0[NAPPEMAX + 2*WARPSIZE];
@@ -468,7 +468,7 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     ReadLine2<eARRIERE>( streamIndex,streamFCost,streamICost,S_BuffIndex + WARPSIZE - 1,S_BuffICost,S_BuffFCost,p);
 }
 
-extern "C" void TestOptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O)
+extern "C" void TestOptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O,CuDeviceData3D<uint*> &finalCost)
 {
     uint deltaMax = 3;
     dim3 Threads(WARPSIZE,1,1);
@@ -480,6 +480,7 @@ extern "C" void TestOptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O)
                                       d2O.pIndex(),
                                       d2O.pForceCostVol(),
                                       d2O.pParam(),
+                                      finalCost.pData(),
                                       deltaMax
                                       );
     getLastCudaError("TestkernelOptiOneDirection failed");

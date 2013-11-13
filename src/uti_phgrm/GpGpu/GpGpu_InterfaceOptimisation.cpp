@@ -50,6 +50,8 @@ void InterfOptimizGpGpu::Prepare(uint x, uint y)
 
     _preCostInit.ReallocIf(x,y);
     _preFinalCost.ReallocIf(x,y);
+    _HFinalCost.ReallocIf(x,y);
+    _DFinalCost.ReallocIf(x,y);
     _prePtZ.ReallocIf(x,y);
     _preDZ.ReallocIf(x,y);
 }
@@ -76,7 +78,7 @@ void InterfOptimizGpGpu::threadCompute()
             //      Kernel optimisation                                             ---------------     -
 
 #if OPTIMZ
-            TestOptimisationOneDirectionZ(_D_data2Opt);
+            TestOptimisationOneDirectionZ(_D_data2Opt,_DFinalCost);
 #else
             OptimisationOneDirection(_D_data2Opt);
             //OptimisationOneDirectionZ(_D_data2Opt);
