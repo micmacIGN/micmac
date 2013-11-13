@@ -278,12 +278,14 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Im2XYZ",Im2XYZ_main," tool to transform a 2D point (text file) to their 3D cloud homologous"));
        aRes.push_back(cMMCom("SplitMPO",SplitMPO_main,"tool 2 develop MPO stereo format in pair of image"));
 
+       aRes.push_back(cMMCom("SaisieMasqQT",SaisieMasqQT_main,"Interactive tool to capture masq"));
+
 #if (ELISE_X11)
        aRes.push_back(cMMCom("MPDtest",MPDtest_main," My own test"));
        aRes.push_back(cMMCom("SaisieAppuisInit",SaisieAppuisInit_main,"Interactive tool for initial capture of GCP"));
        aRes.push_back(cMMCom("SaisieAppuisPredic",SaisieAppuisPredic_main,"Interactive tool for assisted capture of GCP "));
        aRes.push_back(cMMCom("SaisieBasc",SaisieBasc_main,"Interactive tool to cature information on the scene"));
-       aRes.push_back(cMMCom("SaisieMasq",SaisieMasq_main,"Interactive tool to capture  masq"));
+       aRes.push_back(cMMCom("SaisieMasq",SaisieMasq_main,"Interactive tool to capture masq"));
        aRes.push_back(cMMCom("SaisiePts",SaisiePts_main,"Tool to capture GCP (low level, not recommanded)"));
        aRes.push_back(cMMCom("SEL",SEL_main,"Tool to visualise tie points"));
        aRes.push_back(cMMCom("MICMACSaisieLiaisons",MICMACSaisieLiaisons_main,"low level version of SEL, not recommanded"));
