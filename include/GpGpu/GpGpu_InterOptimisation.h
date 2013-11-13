@@ -10,7 +10,7 @@ void LaunchKernel();
 extern "C" void Launch(uint* value);
 extern "C" void OptimisationOneDirection(DEVC_Data2Opti  &d2O);
 extern "C" void OptimisationOneDirectionZ(DEVC_Data2Opti  &d2O);
-extern "C" void TestOptimisationOneDirectionZ(DEVC_Data2Opti  &d2O);
+extern "C" void TestOptimisationOneDirectionZ(DEVC_Data2Opti  &d2O,CuDeviceData3D<uint*> &finalCost);
 
 /// \class InterfOptimizGpGpu
 /// \brief Class qui permet a micmac de lancer les calculs d optimisations sur le Gpu
@@ -62,6 +62,8 @@ public:
     CuHostData3D<uint*>     _preFinalCost;
     CuHostData3D<short2>    _prePtZ;
     CuHostData3D<short>     _preDZ;
+    CuHostData3D<uint*>     _HFinalCost;
+    CuDeviceData3D<uint*>   _DFinalCost;
 
 private:
 
