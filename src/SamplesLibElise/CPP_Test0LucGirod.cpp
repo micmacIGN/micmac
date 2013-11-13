@@ -311,12 +311,12 @@ int Luc_main(int argc,char ** argv)
         double* aData = aSol.data();
 		aAngle=atan(aData[0]);
 		cout<<"Angle = "<<aAngle<<endl<<"Rot Center = "<<aRotCenter<<endl;
-    }
+    
 	for(int i=0;i<int(aVPts.size());i++){
 		Pt2dr aPt; aPt.x=aVPts[i].x; aPt.y=aVPts[i].y;
 		aPt=Rot2D(aAngle, aPt, aRotCenter);aVPts[i].x=aPt.x;aVPts[i].y=aPt.y;
 	}
-
+	}
 	
 //End Least Square
 
