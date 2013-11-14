@@ -140,10 +140,9 @@ const char * add_double_quotes( const char *i_src, buffer_t *i_buffer )
 	return buffer;
 }
 
-char * get_MM3D_name( buffer_t *i_buffer, char *o_subName )
+char * get_MM3D_name( buffer_t *i_buffer )
 {
    char *it, *it2;
-    int subComand_len;
    
    getBuffer( i_buffer, BUFFER_CHUNCK_SIZE, 0 );
    getExecutableName( i_buffer );
@@ -159,15 +158,28 @@ char * get_MM3D_name( buffer_t *i_buffer, char *o_subName )
       it++;
    }
 	*it2 = '\0';
-    
-    subComand_len = (int)(it-it2)-1;
-    memcpy( o_subName, it2+1, subComand_len );
-    o_subName[subComand_len]='\0';
 	str_append( i_buffer, "/mm3d" );
    
     //printf( "mm3d name [%s]\n", i_buffer->data );
     //printf( "sub command %d [%s]\n", subComand_len, o_subName );
    return i_buffer->data;
+}
+
+int has_space( const char *i_str )
+{
+	while (*i_str!='\0')
+	{
+		if ( *i_str==' ' ) return 1;
+		i_str++;
+	}
+	return 0;
+}
+
+int ends_with_backslash( const char *i_str )
+{
+	unsigned int len = strlen(i_str);
+	if ( len<1 ) return 0;
+	return ( i_str[len-1]=='\\' );
 }
 
 int  BinaireUnique
@@ -178,27 +190,32 @@ int  BinaireUnique
       )
 {
 	int aK;
-    char subCommand[BUFFER_CHUNCK_SIZE];
    
 	// initialize g_command with an empty string
 	getBuffer( &g_command, BUFFER_CHUNCK_SIZE, 0);
 	g_command.data[0] = '\0';
     
-	str_append( &g_command, add_double_quotes( get_MM3D_name(&g_buffer0,subCommand), &g_buffer1 ) );
+	str_append( &g_command, add_double_quotes( get_MM3D_name(&g_buffer0), &g_buffer1 ) );
 	str_append( &g_command, " ");
-    str_append( &g_command, subCommand);
+    str_append( &g_command, aCom);
     
 	for (aK=1 ; aK<argc ; aK++)
 	{
 		str_append( &g_command, " " );
-		#ifdef _WIN32
-			str_append( &g_command, add_double_quotes_and_space( argv[aK], &g_buffer0 ) );
-		#else
+		if ( has_space(argv[aK]) )
+		{
+			#ifdef _WIN32
+				if ( ends_with_backslash(argv[aK]) )
+					str_append( &g_command, add_double_quotes_and_space( argv[aK], &g_buffer0 ) );
+				else
+			#endif
 			str_append( &g_command, add_double_quotes( argv[aK], &g_buffer0 ) );
-		#endif
+		}
+		else
+			str_append( &g_command, argv[aK] );
 	}
   
-	//printf("ComF =[%s]\n",g_command.data); fflush(stdout);
+	printf("ComF =[%s]\n",g_command.data); fflush(stdout);
   
 	#ifdef _WIN32
 		// an extra double quote on the whole line seem to be necessary for lines starting with a double quote
