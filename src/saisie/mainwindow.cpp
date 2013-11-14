@@ -288,7 +288,7 @@ void MainWindow::changeMode(bool mode)
     }
     else
     {
-        _ui->actionShow_ball->setChecked(true);
+        _ui->actionShow_ball->setChecked(_Engine->getData()->isDataLoaded());
         _ui->actionShow_axis->setChecked(false);
     }
 }
@@ -606,10 +606,8 @@ void MainWindow::closeAll()
     _Engine->unloadAll();
 
     _glWidget->reset();
-
     checkForLoadedData();
-    _glWidget->setBufferGl();
-    _glWidget->update();
+    //_glWidget->setBufferGl();
 }
 
 void MainWindow::openRecentFile()
