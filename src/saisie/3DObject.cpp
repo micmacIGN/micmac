@@ -447,7 +447,8 @@ cPolygon::cPolygon():
     _pointSize(6.f),
     _sqr_radius(2500.f),
     _bPolyIsClosed(false),
-    _idx(-1)
+    _idx(-1),
+    _click(0)
 {
     setColor(QColor("red"));
 }
@@ -514,6 +515,27 @@ void cPolygon::close()
 
         _bPolyIsClosed = true;
     }
+
+    _click = 0;
+}
+
+void cPolygon::clear()
+{
+    _points.clear();
+    _idx = -1;
+    _click = 0;
+}
+
+void cPolygon::insert(int i, const QPointF &value)
+{
+    _points.insert(i,value);
+    _idx = -1;
+}
+
+void cPolygon::remove(int i)
+{
+    _points.remove(i);
+    _idx = -1;
 }
 
 void cPolygon::findClosestPoint(QPointF const &pos)

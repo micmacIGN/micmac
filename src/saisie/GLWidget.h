@@ -190,8 +190,12 @@ protected:
     //! Draw widget gradient background
     void drawGradientBackground();
     
-    //! Draw selection polygon (and  if needed)
+    //! Draw selection polygon
     void drawPolygon();
+
+    QPointF WindowToImage(const QPointF &pt);
+
+    QPointF ImageToWindow(const QPointF &im);
 
     //! GL context aspect ratio m_glWidth/m_glHeight
     float m_glRatio;
@@ -223,14 +227,14 @@ protected:
     };
 
     //! Texture image
-    GLuint m_textureImage;
+    GLuint      m_textureImage;
 
-    GLuint m_textureMask;
+    GLuint      m_textureMask;
 
     //! List of messages to display
     list<MessageToDisplay> m_messagesToDisplay;
 
-    QString m_messageFPS;
+    QString     m_messageFPS;
 
     //! Point list for polygonal selection
     cPolygon    m_polygon;
@@ -255,16 +259,6 @@ protected:
 
     //! data position in the gl viewport
     GLfloat     m_glPosition[2];
-
-    //! click counter to manage point move event
-    int         m_Click;
-
-    //! (square) radius for point selection
-    //float       m_sqr_radius;
-
-    QPointF WindowToImage(const QPointF &pt);
-
-    QPointF ImageToWindow(const QPointF &im);
 
     QPointF     m_lastMoveImg;
     QPointF     m_lastClickWin;

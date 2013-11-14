@@ -176,7 +176,8 @@ class cPolygon : public cObject
 
         void    add(QPointF const &pt){ _points.push_back(pt); }
 
-        void    clear(){ _points.clear(); _idx = -1; }
+        void    clear();
+        void    clearPoints() {_points.clear();}
 
         void    setClosed(bool aBool){ _bPolyIsClosed = aBool; }
         bool    isClosed(){ return _bPolyIsClosed;}
@@ -188,13 +189,17 @@ class cPolygon : public cObject
 
         cPolygon & operator = (const cPolygon &);
 
-        void    insert( int i, const QPointF & value ){ _points.insert(i,value); _idx = -1;}
+        void    insert( int i, const QPointF & value );
 
-        void    remove ( int i ){ _points.remove(i); _idx = -1;}
+        void    remove ( int i );
 
         QVector <QPointF> getVector(){ return _points; }
 
         int     idx(){return _idx;}
+
+        void    clicked(){_click++;}
+        int     click(){return _click;}
+        void    resetClick(){_click=0;}
 
 private:
         float               _lineWidth;
@@ -204,6 +209,8 @@ private:
         bool                _bPolyIsClosed;
 
         int                 _idx;
+
+        int                 _click;
 
         QVector <QPointF>   _points;
 };
