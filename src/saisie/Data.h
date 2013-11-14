@@ -25,6 +25,8 @@ class cData
         void clearImages();
         void clearMasks();
 
+        bool isDataLoaded(){return NbClouds()||NbCameras() ||NbImages();}
+
         int NbCameras() {return _Cameras.size();}
         int NbClouds()  {return _Clouds.size();}
         int NbImages()  {return _Images.size();}

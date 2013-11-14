@@ -76,7 +76,7 @@ public:
                                    MessagePosition pos = SCREEN_CENTER_MESSAGE);
 
     //! States if data (cloud, camera or image) is loaded
-    bool hasDataLoaded(){return m_Data->NbClouds()||m_Data->NbCameras() ||m_Data->NbImages();}
+    bool hasDataLoaded(){return m_Data->isDataLoaded();}
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
@@ -261,11 +261,10 @@ protected:
     GLfloat     m_glPosition[2];
 
     QPointF     m_lastMoveImg;
-    QPoint     m_lastClickWin;
-    QPoint     m_lastClickZoom;
+    QPoint      m_lastClickZoom;
 
-    QPointF     m_lastPos;
-    QPoint      m_lastPosInt;
+    QPointF     m_lastPosImage;
+    QPoint      m_lastPosWindow;
 
 private:
 

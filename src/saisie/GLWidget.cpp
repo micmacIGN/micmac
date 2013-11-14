@@ -22,7 +22,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_textureMask(GL_INVALID_LIST_ID)
   , m_params(ViewportParameters())
   , m_Data(data)
-  , m_speed(0.4f)
+  , m_speed(2.0f)
   , m_bDisplayMode2D(false)
   , _vertexbuffer(QGLBuffer::VertexBuffer)
   , _frameCount(0)
@@ -92,12 +92,10 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
     if(event->type() == QEvent::MouseMove)
     {
         QPointF pos     = mouseEvent->localPos();
-        QPoint posInt  = mouseEvent->pos();
-
+        QPoint  posInt  = mouseEvent->pos();
 
         if (m_bDisplayMode2D)
         {
-            //m_lastClickZoom = pos;
             pos = WindowToImage(mouseEvent->localPos());
             m_lastMoveImg = pos;
         }
@@ -135,13 +133,13 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
 
         if (m_bDisplayMode2D || (m_interactionMode == TRANSFORM_CAMERA))
         {
-            QPointF dp = pos - m_lastPos;
-            QPoint dpint = posInt - m_lastPosInt;
+            QPointF dp = pos - m_lastPosImage;
+            QPoint dPWin = posInt - m_lastPosWindow;
 
             if ( _g_mouseLeftDown ) // rotation autour de X et Y
             {
-                float d_angleX = m_speed * dp.y() / (float) _glViewport[3];
-                float d_angleY = m_speed * dp.x() / (float) _glViewport[2];
+                float d_angleX = m_speed * dPWin.y() / (float) _glViewport[3];
+                float d_angleY = m_speed * dPWin.x() / (float) _glViewport[2];
 
                 m_params.angleX += d_angleX;
                 m_params.angleY += d_angleY;
@@ -156,8 +154,8 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
             {
                 if (mouseEvent->modifiers() & Qt::ShiftModifier) // zoom
                 {
-                    if (dpint.y() > 0) m_params.zoom *= pow(2.f, ((float)dpint.y()) *.05f);
-                    else if (dpint.y() < 0) m_params.zoom /= pow(2.f, -((float)dpint.y()) *.05f);
+                    if (dPWin.y() > 0) m_params.zoom *= pow(2.f, ((float)dPWin.y()) *.05f);
+                    else if (dPWin.y() < 0) m_params.zoom /= pow(2.f, -((float)dPWin.y()) *.05f);
                 }
                 else if((_glViewport[2]!=0) || (_glViewport[3]!=0)) // translation
                 {
@@ -176,7 +174,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
             }
             else if ( _g_mouseRightDown ) // rotation autour de Z
             {
-                float d_angleZ =  m_speed * dp.x() / (float) _glViewport[2];
+                float d_angleZ =  m_speed * dPWin.x() / (float) _glViewport[2];
 
                 m_params.angleZ += d_angleZ;
 
@@ -187,19 +185,18 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                 for (int i = 0; i < 9; ++i) _g_rotationMatrix[i] = _g_tmpoMatrix[i];
             }
         }
-        m_lastPosInt = mouseEvent->pos();
+        m_lastPosWindow = mouseEvent->pos();
         update();
         return true;
     }  
     else if (event->type() == QEvent::MouseButtonPress)
     {
+       m_lastPosWindow = mouseEvent->pos();
+
        if (m_bDisplayMode2D)
-       {
-           m_lastPos    = WindowToImage(mouseEvent->pos());
-           m_lastPosInt = mouseEvent->pos();
-       }
+           m_lastPosImage = WindowToImage(mouseEvent->pos());
        else
-           m_lastPos = mouseEvent->pos();
+           m_lastPosImage = m_lastPosWindow;
 
        if ( mouseEvent->button() == Qt::LeftButton )
        {
@@ -212,9 +209,9 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                    if(!m_polygon.isClosed())        // add point to polygon
                    {
                        if (m_polygon.size() >= 1)
-                           m_polygon[m_polygon.size()-1] = m_lastPos;
+                           m_polygon[m_polygon.size()-1] = m_lastPosImage;
 
-                       m_polygon.add(m_lastPos);
+                       m_polygon.add(m_lastPosImage);
                    }
                    else // modify polygon (insert or move vertex)
                    {
@@ -249,7 +246,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
            {
                m_polygon.remove(idx);   // remove closest point
 
-               m_polygon.findClosestPoint(m_lastPos);
+               m_polygon.findClosestPoint(m_lastPosImage);
 
                if (m_polygon.size() < 2) m_polygon.setClosed(false);
            }
@@ -260,6 +257,8 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
        {
            if (m_bDisplayMode2D || (m_interactionMode == TRANSFORM_CAMERA))
                _g_mouseMiddleDown = true;
+
+           m_lastClickZoom = m_lastPosWindow;
        }
 
        return true;
@@ -281,7 +280,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
 
             if ((m_polygon.click() >=1) && m_polygon.isClosed())
             {
-                m_polygon.findClosestPoint(m_lastPos);
+                m_polygon.findClosestPoint(m_lastPosImage);
             }
         }
         if ( mouseEvent->button() == Qt::RightButton  )
@@ -484,7 +483,6 @@ void GLWidget::paintGL()
         m33_to_m44( _g_rotationMatrix, rot44 );
         setTranslate_m3(  m_params.m_translationMatrix, trans44 );
 
-        //mult( trans44, rot44, tmp );
         mult( rot44, trans44, tmp );
         transpose( tmp, _g_glMatrix );
         glLoadMatrixf( _g_glMatrix );
@@ -628,13 +626,19 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             break;
         case Qt::Key_Plus:
             if (m_bDisplayMode2D)
+            {
+                m_lastClickZoom = m_lastPosWindow;
                 setZoom(m_params.zoom*1.5f);
+            }
             else
                 ptSizeUp(true);
             break;
         case Qt::Key_Minus:
             if (m_bDisplayMode2D)
+            {
+                m_lastClickZoom = m_lastPosWindow;
                 setZoom(m_params.zoom/1.5f);
+            }
             else
                 ptSizeUp(false);
             break;
@@ -954,7 +958,7 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
                     clearPolyline();
                     displayMoveMessages();
                 }
-                showBall(true);
+                showBall(false);
                 showAxis(false);
 
                 emit(interactionMode(false));
@@ -1458,23 +1462,17 @@ void GLWidget::reset()
     clearPolyline();
 
     m_params.reset();
-    m_Data->clearClouds();
-    m_Data->clearCameras();
-    m_Data->clearImages();
-    m_Data->clearMasks();
-    m_Data->reset();
 
     m_bFirstAction = true;
+
+    resetView();
+
 }
 
 void GLWidget::resetView()
 {
-    if (m_bDisplayMode2D)
-    {
+    if (m_bDisplayMode2D)    
         zoomFit();
-
-        update();
-    }
     else
     {
         resetRotationMatrix();
@@ -1484,13 +1482,15 @@ void GLWidget::resetView()
 
         m_bObjectCenteredView = true;
 
-        showBall(true);
+        showBall(hasDataLoaded());
         showAxis(false);
         showBBox(false);
         showCams(false);
 
         emit(interactionMode(false));
     }
+
+    update();
 }
 
 void GLWidget::resetRotationMatrix()

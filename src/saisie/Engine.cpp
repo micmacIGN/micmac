@@ -398,6 +398,7 @@ void cEngine::unloadAll()
     _Data->clearImages();
     _Data->clearMasks();
     _Data->reset();
+
 }
 
 //********************************************************************************
