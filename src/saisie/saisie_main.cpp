@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 #endif
 
     app.setOrganizationName("IGN");
-    app.setApplicationName("saisie");
+    app.setApplicationName("SaisieMasqQT");
 
     const QString locale = QLocale::system().name().section('_', 0, 0);
 
@@ -77,8 +77,6 @@ int main(int argc, char *argv[])
     QStringList cmdline_args = QCoreApplication::arguments();
     QString str;
 
-    cout << "here" << endl;
-
     if (cmdline_args.size() > 1)
     {
         for (int i=0; i< cmdline_args.size(); ++i)
@@ -86,8 +84,6 @@ int main(int argc, char *argv[])
             bool removeArg = false;
 
             str = cmdline_args[i];
-
-            cout << "string " << str.toStdString() << endl;
 
             if (str.contains("help"))
             {

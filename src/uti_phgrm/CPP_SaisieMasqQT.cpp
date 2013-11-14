@@ -41,7 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int SaisieMasqQT_main(int argc,char ** argv)
 {
-    std::string aCom = std::string("\"") + g_externalToolHandler.get( "saisie" ).callName() + std::string("\"");
+    std::string aCom = std::string("\"") + g_externalToolHandler.get( "SaisieMasqQT" ).callName() + std::string("\"");
 
     for (int i = 1; i < argc; ++i) aCom += std::string(" ") + argv[i];
 
