@@ -1,0 +1,5 @@
+bin/MpDcraw /mnt/data/Calib/Pentax-1858-18mm/Coul/ sg1l5035.pef 16B=0 Split=*
+
+
+bin/MpDcraw ../Data/Macro-Pieces/ .*.cr2 16B=0 Interp=BiCub Cal=/home/mpierrot/Data/Calibration/Coul/Canon-100-Macro.xml GR=1
+
