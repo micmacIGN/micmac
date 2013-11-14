@@ -268,9 +268,10 @@ protected:
 
     QPointF     m_lastMoveImg;
     QPointF     m_lastClickWin;
-    QPointF     m_lastClickZoom;
+    QPoint     m_lastClickZoom;
 
     QPointF     m_lastPos;
+    QPoint      m_lastPosInt;
 
 private:
 

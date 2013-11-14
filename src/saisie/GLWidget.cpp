@@ -92,10 +92,13 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
 
     if(event->type() == QEvent::MouseMove)
     {
-        QPointF pos = mouseEvent->localPos();
+        QPointF pos     = mouseEvent->localPos();
+        QPoint posInt  = mouseEvent->pos();
+
+
         if (m_bDisplayMode2D)
         {
-            m_lastClickZoom = pos;
+            //m_lastClickZoom = pos;
             pos = WindowToImage(mouseEvent->localPos());
             m_lastMoveImg = pos;
         }
@@ -134,6 +137,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
         if (m_bDisplayMode2D || (m_interactionMode == TRANSFORM_CAMERA))
         {
             QPointF dp = pos - m_lastPos;
+            QPoint dpint = posInt - m_lastPosInt;
 
             if ( _g_mouseLeftDown ) // rotation autour de X et Y
             {
@@ -153,15 +157,8 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
             {
                 if (mouseEvent->modifiers() & Qt::ShiftModifier) // zoom
                 {
-                    m_lastClickZoom =  m_lastClickWin;
-
-                    float dy = (mouseEvent->pos().y() - m_lastClickWin.y())*0.001f;
-
-                    if (dy > 0.f) m_params.zoom *= pow(2.f, dy);
-                    else  m_params.zoom /= pow(2.f, -dy);
-
-                    if (m_params.zoom < GL_MIN_ZOOM) m_params.zoom = GL_MIN_ZOOM;
-                    else if (m_params.zoom > GL_MAX_ZOOM) m_params.zoom = GL_MAX_ZOOM;
+                    if (dpint.y() > 0) m_params.zoom *= pow(2.f, ((float)dpint.y()) *.05f);
+                    else if (dpint.y() < 0) m_params.zoom /= pow(2.f, -((float)dpint.y()) *.05f);
                 }
                 else if((_glViewport[2]!=0) || (_glViewport[3]!=0)) // translation
                 {
@@ -191,18 +188,19 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                 for (int i = 0; i < 9; ++i) _g_rotationMatrix[i] = _g_tmpoMatrix[i];
             }
         }
-
+        m_lastPosInt = mouseEvent->pos();
         update();
         return true;
     }  
     else if (event->type() == QEvent::MouseButtonPress)
     {
        if (m_bDisplayMode2D)
-           m_lastPos = WindowToImage(mouseEvent->pos());
+       {
+           m_lastPos    = WindowToImage(mouseEvent->pos());
+           m_lastPosInt = mouseEvent->pos();
+       }
        else
            m_lastPos = mouseEvent->pos();
-
-       m_lastClickWin = mouseEvent->pos();
 
        if ( mouseEvent->button() == Qt::LeftButton )
        {
@@ -266,8 +264,10 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
        {
            if (m_bDisplayMode2D || (m_interactionMode == TRANSFORM_CAMERA))
                _g_mouseMiddleDown = true;
+
+           m_lastClickZoom = m_lastPosInt;
        }
-       update();
+       //update();
        return true;
     }
     else if (event->type() == QEvent::MouseButtonRelease)
@@ -608,6 +608,7 @@ void GLWidget::paintGL()
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
 {
+
     if(event->modifiers().testFlag(Qt::ControlModifier))
     {
         if(event->key() == Qt::Key_1)    zoomFactor(50);
@@ -1110,7 +1111,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     //see QWheelEvent documentation ("distance that the wheel is rotated, in eighths of a degree")
     float wheelDelta_deg = event->angleDelta().y() / 8.f;
 
-    m_lastClickZoom = event->posF();
+    m_lastClickZoom = event->pos();
 
     onWheelEvent(wheelDelta_deg);
 }
