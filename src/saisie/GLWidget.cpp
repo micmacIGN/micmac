@@ -613,6 +613,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             clearPolyline();
             break;
         case Qt::Key_1:
+
             zoomFactor(100);
             break;
         case Qt::Key_2:
@@ -958,7 +959,7 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
                     clearPolyline();
                     displayMoveMessages();
                 }
-                showBall(false);
+                showBall(true);
                 showAxis(false);
 
                 emit(interactionMode(false));
@@ -1095,7 +1096,10 @@ void GLWidget::zoomFit()
 void GLWidget::zoomFactor(int percent)
 {
     if (m_bDisplayMode2D)
-        setZoom((float) percent / 100.f);
+    {
+        m_lastClickZoom = m_lastPosWindow;
+        setZoom(0.01f * percent);
+    }
     else
         setZoom(m_Data->getScale() / (float) percent * 100.f);
 }
