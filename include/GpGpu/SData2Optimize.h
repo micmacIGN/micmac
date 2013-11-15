@@ -127,6 +127,9 @@ struct Data2Optimiz
     U<ushort>    _s_InitCostVol;
     U<uint>      _s_ForceCostVol[NBUFFER];
     U<short2>    _s_Index;
+#if OPTIMX
+    U<ushort2>   _s_PtTer;
+#endif
     uint         _nbLines;
     bool         _idBuffer;
 
@@ -159,7 +162,9 @@ void Data2Optimiz<U,NBUFFER>::Dealloc()
 {
     _s_InitCostVol  .Dealloc();
     _s_Index        .Dealloc();
-
+#if OPTIMX
+    _s_PtTer        .Dealloc();
+#endif
     for(uint i = 0;i < NBUFFER;i++)
     {
         _param[i]           .Dealloc();
@@ -194,7 +199,11 @@ TEMPLATE_D2OPTI
 void Data2Optimiz<U,NBUFFER>::ReallocInputIf(uint pStr, uint pIdStr)
 {
     _s_InitCostVol  .ReallocIf(pStr);
+
     _s_Index        .ReallocIf(pIdStr);
+#if OPTIMX
+    _s_PtTer        .ReallocIf(pIdStr);
+#endif
 }
 
 TEMPLATE_D2OPTI
@@ -231,7 +240,10 @@ TEMPLATE_D2OPTI
 void Data2Optimiz<U,NBUFFER>::CopyHostToDevice(Data2Optimiz<CuHostData3D, 2> &d2o, uint idbuf)
 {
     _s_InitCostVol.CopyHostToDevice(    d2o._s_InitCostVol .pData());
-    _s_Index.CopyHostToDevice(          d2o._s_Index       .pData());
+    _s_Index.CopyHostToDevice(          d2o._s_Index       .pData());    
+#if OPTIMX
+    _s_PtTer.CopyHostToDevice(          d2o._s_PtTer       .pData());
+#endif
     _param[0].CopyHostToDevice(         d2o._param[idbuf]  .pData());
 }
 

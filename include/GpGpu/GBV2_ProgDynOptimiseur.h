@@ -71,6 +71,7 @@ public :
     const tCost & CostFinal() const { return mCostFinal; }
     tCost & CostFinal() { return mCostFinal; }
 	void	AddToCostFinal(tCost cost ) { mCostFinal+= cost; }
+    void	SetCostFinal(tCost cost ) { mCostFinal = cost; }
 private :
     cGBV2_CelOptimProgDyn(const cGBV2_CelOptimProgDyn &);
     tCost   mCostCum[2];
@@ -135,7 +136,7 @@ public :
             Im2D_INT2  aPxMin,
             Im2D_INT2  aPxMax
             );
-    ~cGBV2_ProgDynOptimiseur() {}
+    ~cGBV2_ProgDynOptimiseur();
     void Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int aLabel);
     void Local_SolveOpt(Im2D_U_INT1 aImCor);
 
@@ -172,7 +173,8 @@ private :
     void SolveAllDirectionGpu(int aNbDir);
     void SolveAllDirectionGpuZ(int aNbDir);
     template<bool dirCopy> void copyCells(Pt2di aDirI,Data2Optimiz<CuHostData3D,2>  &d2Opt, uint idBuf = 0);
-    void copyCellsZ(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<ushort *> &costInit, CuHostData3D<short2> &dim, uint idBuf = 0);
+    void copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<ushort *> &costInit, CuHostData3D<short2> &dim, CuHostData3D<short> &size, uint idBuf = 0);
+    void copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<uint *> &costFinal, CuHostData3D<short2> &dim, CuHostData3D<short> &size, uint idBuf = 0);
     InterfOptimizGpGpu               IGpuOpt;
 #endif
 
