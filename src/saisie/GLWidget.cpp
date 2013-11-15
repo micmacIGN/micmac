@@ -931,10 +931,6 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
     _g_rotationMatrix[7] = -eye[1];
     _g_rotationMatrix[8] = -eye[2];
 
-//    m_params.m_translationMatrix[0] = m_Data->m_cX;
-//    m_params.m_translationMatrix[1] = m_Data->m_cY;
-//    m_params.m_translationMatrix[2] = m_Data->m_cZ;
-
     resetTranslationMatrix();
 }
 
@@ -1062,9 +1058,20 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
         {
             //final center:
             Cloud *a_cloud = m_Data->getCloud(idx1);
-            Vertex &P = a_cloud->getVertex( idx2 );
+            Pt3dr Pt = a_cloud->getVertex( idx2 ).getPosition();
 
-            m_Data->setCenter(P.getPosition());
+            m_Data->setCenter(Pt);
+
+            _theBall->setPosition(Pt);
+            _theAxis->setPosition(Pt);
+            _theBBox->setPosition(Pt);
+
+            for (int aK=0; aK < m_Data->getNbClouds();++aK)
+            {
+                m_Data->getCloud(aK)->setPosition(Pt);
+            }
+
+            resetTranslationMatrix();
 
             update();
         }
