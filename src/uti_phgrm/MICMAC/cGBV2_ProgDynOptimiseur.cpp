@@ -135,7 +135,9 @@ cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
 
 cGBV2_ProgDynOptimiseur::~cGBV2_ProgDynOptimiseur()
 {
+#if CUDA_ENABLED
     IGpuOpt.Dealloc();
+#endif
 }
 
 void cGBV2_ProgDynOptimiseur::Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int aLabel)
