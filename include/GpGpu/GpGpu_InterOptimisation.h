@@ -53,6 +53,8 @@ public:
     ///
     void            Prepare(uint x,uint y);
 
+    void            Prepare_V03(uint x,uint y);
+
     ///
     /// \brief freezeCompute
     ///
@@ -62,12 +64,10 @@ public:
     CuHostData3D<uint*>     _preFinalCost;   
     CuHostData3D<short2>    _prePtZ;
     CuHostData3D<short>     _preDZ;
-    CuHostData3D<uint*>     _HFinalCost;
-    CuDeviceData3D<uint*>   _DFinalCost;
 
     CuHostData3D<ushort>    _preInitCost1D;
     CuHostData3D<uint>      _preFinalCost1D;
-    CuHostData3D<uint>      _prePtTer;
+    CuHostData3D<uint>      _prePitTer;
 
 private:
 
