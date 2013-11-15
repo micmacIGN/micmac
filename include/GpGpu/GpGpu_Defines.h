@@ -16,6 +16,7 @@ typedef unsigned char pixel;
 #define DISPLAYOUTPUT
 
 #define OPTIMZ      1
+#define OPTIMX      0
 
 #ifdef _DEBUG
     #define   BLOCKDIM	16
