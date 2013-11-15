@@ -107,6 +107,7 @@ using namespace std;
 #include "general/optim.h"
 #include "general/error.h"
 #include "general/arg_main.h"
+#include "general/cMMSpecArg.h"
 #include "general/compr_im.h"
 #include "general/correl.h"
 #include "general/ijpeg.h"

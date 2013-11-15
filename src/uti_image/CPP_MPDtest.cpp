@@ -208,6 +208,13 @@ int MPDtest_main (int argc,char** argv)
 {
    // ElList<Pt2di> aL = NewLPt2di(Pt2di(20,20));
 
+   std::string aPref = "eTT_";
+   std::list<std::string>  aL = ListOfVal(eTT_NbVals,aPref);
+   for (std::list<std::string>::iterator it=aL.begin() ; it!=aL.end() ; it++)
+   {
+       std::cout << " fff [" <<  *it << "]\n";
+   }
+
    std::cout << "BBBB " << BoolFind(std::string("ABC"),'B') << "\n";
    std::cout << "bbbb " << BoolFind(std::string("ABC"),'b') << "\n";
 

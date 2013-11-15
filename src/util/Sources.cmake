@@ -2,6 +2,8 @@ set(Util_Src_Files
 	${UTIL_DIR}/affin2d.cpp
 	${UTIL_DIR}/all.cpp
 	${UTIL_DIR}/arg_main.cpp
+	${UTIL_DIR}/visual_arg_main.cpp
+	${UTIL_DIR}/cMMSpecArg.cpp
 	${UTIL_DIR}/bicub.cpp
 	${UTIL_DIR}/bits_flow.cpp
 	${UTIL_DIR}/box.cpp

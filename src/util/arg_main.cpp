@@ -190,6 +190,20 @@ DEFINE_theEmptyLvalADM(ElSTDNS vector<std::string>,"vector<std::string>");
 
 
 
+std::vector<cMMSpecArg>  LArgMain::ExportMMSpec() const
+{
+   std::vector<cMMSpecArg>   aRes;
+   int aNum=0;
+   for (std::list<GenElArgMain*>::const_iterator itA=_larg.begin(); itA!=_larg.end() ; itA++)
+   {
+       aRes.push_back(cMMSpecArg(*itA,aNum));
+       aNum++;
+   }
+
+   return aRes;
+}
+
+
 
 
 
@@ -328,11 +342,18 @@ LArgMain::~LArgMain()
 }
 
 
-GenElArgMain::GenElArgMain(const char * Name,bool IsInit ) :
-_name  (Name),
-	_is_init (IsInit)
+GenElArgMain::GenElArgMain(const char * Name,bool IsInit,eSpecArgMain aSpec) :
+        _name  (Name),
+	_is_init (IsInit),
+        mSpec    (aSpec)
 {
 }
+
+eSpecArgMain GenElArgMain::Spec() const
+{
+   return mSpec;
+}
+
 
 
 bool GenElArgMain::IsActif() const
@@ -397,6 +418,19 @@ std::vector<char *>  	ElInitArgMain
 	)
 {
 	std::vector<char *> aRes;
+        if (MMVisualMode)
+        {
+           std::vector<cMMSpecArg> aVAM = LGlob.ExportMMSpec();
+           std::vector<cMMSpecArg> aVAO = L1.ExportMMSpec();
+           MMRunVisualMode(argc,argv,aVAM,aVAO);
+           return aRes;
+/*
+           for (int aK=0 ; aK< 10 ; aK++)
+               std::cout << "MM VISUAL MODE ===============\n";
+*/
+        }
+
+
 	aRes.push_back(argv[0]);
 	argc--;
 	argv++;
