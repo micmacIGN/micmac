@@ -231,13 +231,13 @@ void cEngine::doMasks()
     Vertex vert;
     Pt2dr ptIm;
 
-    for (int cK=0;cK < _Data->NbCameras();++cK)
+    for (int cK=0;cK < _Data->getNbCameras();++cK)
     {
         pCam = _Data->getCamera(cK);
 
         Im2D_BIN mask = Im2D_BIN(pCam->Sz(), 0);
 
-        for (int aK=0; aK < _Data->NbClouds();++aK)
+        for (int aK=0; aK < _Data->getNbClouds();++aK)
         {
             pCloud  = _Data->getCloud(aK);
 
@@ -247,7 +247,7 @@ void cEngine::doMasks()
 
                 if (vert.isVisible())  //visible = selected in GLWidget
                 {
-                    Pt3dr pt(vert.getCoord());
+                    Pt3dr pt(vert.getPosition());
 
                     if (pCam->PIsVisibleInImage(pt)) //visible = projected inside image
                     {

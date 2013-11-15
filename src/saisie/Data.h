@@ -25,17 +25,17 @@ class cData
         void clearImages();
         void clearMasks();
 
-        bool isDataLoaded(){return NbClouds()||NbCameras() ||NbImages();}
+        bool isDataLoaded(){return getNbClouds()||getNbCameras() ||getNbImages();}
 
-        int NbCameras() {return _Cameras.size();}
-        int NbClouds()  {return _Clouds.size();}
-        int NbImages()  {return _Images.size();}
-        int NbMasks()   {return _Masks.size();}
+        int getNbCameras() {return _Cameras.size();}
+        int getNbClouds()  {return _Clouds.size(); }
+        int getNbImages()  {return _Images.size(); }
+        int getNbMasks()   {return _Masks.size();  }
 
         CamStenope * & getCamera(int aK) {return _Cameras[aK];}
-        Cloud * &      getCloud(int aK)  {return _Clouds[aK];}
-        QImage * &     getImage(int aK)  {return _Images[aK];}
-        QImage * &     getMask(int aK)   {return _Masks[aK];}
+        Cloud * &      getCloud(int aK)  {return _Clouds[aK]; }
+        QImage * &     getImage(int aK)  {return _Images[aK]; }
+        QImage * &     getMask(int aK)   {return _Masks[aK];  }
         QImage * &     getCurImage()     {return _Images[_curImgIdx];}
         QImage * &     getCurMask()      {return _Masks[_curImgIdx];}
 
@@ -52,9 +52,8 @@ class cData
 
         void    reset();
 
-        //Bounding box, center and diameter of all clouds
+        //Bounding box and diameter of all clouds
         float m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_diam;
-
 
 
    private:
@@ -68,6 +67,6 @@ class cData
 
         float                 _gamma;
 
-        Pt3dr                 _center;
+        Pt3dr                 _center;  // center of all clouds
 };
 #endif // DATA_H
