@@ -14,8 +14,8 @@
 class cObject
 {
     public:
-
         cObject();
+        cObject(Pt3dr pt, QColor col);
         virtual ~cObject();
 
 
@@ -29,9 +29,6 @@ class cObject
         void    setVisible(bool aVis)          { _bVisible = aVis;  }
         void    setScale(float aScale)         { _scale = aScale;   }
 
-        virtual void draw()=0;
-
-
         cObject & operator = (const cObject &);
 
     protected:
@@ -44,7 +41,16 @@ class cObject
         bool    _bVisible;
 };
 
-class cCircle : public cObject
+class cObjectGL : public cObject
+{
+   public:
+        cObjectGL(){}
+        virtual ~cObjectGL(){}
+
+        virtual void draw()=0;
+};
+
+class cCircle : public cObjectGL
 {
     public:
         cCircle(Pt3dr, QColor, float, float, bool, int dim);
@@ -59,7 +65,7 @@ class cCircle : public cObject
         int     _dim;
 };
 
-class cCross : public cObject
+class cCross : public cObjectGL
 {
     public:
         cCross(Pt3dr, QColor, float, float, bool, int dim);
@@ -73,7 +79,7 @@ class cCross : public cObject
         int     _dim;
 };
 
-class cBall : public cObject
+class cBall : public cObjectGL
 {
     public:
 
@@ -101,7 +107,7 @@ class cBall : public cObject
         cCross  *_cr2;
 };
 
-class cAxis : public cObject
+class cAxis : public cObjectGL
 {
     public:
         cAxis();
@@ -114,7 +120,7 @@ class cAxis : public cObject
         float   _lineWidth;
 };
 
-class cBBox : public cObject
+class cBBox : public cObjectGL
 {
     public:
         cBBox();
@@ -135,7 +141,7 @@ class cBBox : public cObject
         float   _maxZ;
 };
 
-class cCam : public cObject
+class cCam : public cObjectGL
 {
     public:
         cCam(CamStenope *pCam);
@@ -152,7 +158,7 @@ class cCam : public cObject
         CamStenope *_Cam;
 };
 
-class cPolygon : public cObject
+class cPolygon : public cObjectGL
 {
     public:
         cPolygon();
@@ -162,6 +168,8 @@ class cPolygon : public cObject
         void    drawDihedron();
 
         void    close();
+
+        bool    isPointInsidePoly(const QPointF& P);
 
         //!used for point insertion
         void    fillDihedron(const QPointF &pos, cPolygon &dihedron);
@@ -193,7 +201,7 @@ class cPolygon : public cObject
 
         void    remove ( int i );
 
-        QVector <QPointF> getVector(){ return _points; }
+        QVector <QPointF> const getVector(){ return _points; }
 
         int     idx(){return _idx;}
 

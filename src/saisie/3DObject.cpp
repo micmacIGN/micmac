@@ -8,6 +8,15 @@ cObject::cObject() :
     _bVisible(false)
 {}
 
+cObject::cObject(Pt3dr pos, QColor col) :
+    _scale(1.f),
+    _alpha(0.6f),
+    _bVisible(true)
+{
+    _position  = pos;
+    _color     = col;
+}
+
 cObject::~cObject(){}
 
 cObject& cObject::operator =(const cObject& aB)
@@ -667,6 +676,40 @@ void cPolygon::fillDihedron2(QPointF const &pos, cPolygon &dihedron)
             dihedron.add(_points[0]);
         }
     }
+}
+
+bool cPolygon::isPointInsidePoly(const QPointF& P)
+{
+    int vertices=_points.size();
+    if (vertices<3)
+        return false;
+
+    bool inside = false;
+
+    QPointF A = _points[0];
+    QPointF B;
+
+    for (int i=1;i<=vertices;++i)
+    {
+        B = _points[i%vertices];
+
+        //Point Inclusion in Polygon Test (inspired from W. Randolph Franklin - WRF)
+        if (((B.y() <= P.y()) && (P.y()<A.y())) ||
+                ((A.y() <= P.y()) && (P.y()<B.y())))
+        {
+            float ABy = A.y()-B.y();
+            float t = (P.x()-B.x())*ABy-(A.x()-B.x())*(P.y()-B.y());
+            if (ABy<0)
+                t=-t;
+
+            if (t<0)
+                inside = !inside;
+        }
+
+        A=B;
+    }
+
+    return inside;
 }
 
 
