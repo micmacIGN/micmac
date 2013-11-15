@@ -1472,13 +1472,6 @@ void GLWidget::resetView()
         setZoom(m_Data->getScale());
 
         m_bObjectCenteredView = true;
-
-        showBall(hasDataLoaded());
-        showAxis(false);
-        showBBox(false);
-        showCams(false);
-
-        emit(interactionMode(false));
     }
 
     update();

@@ -171,8 +171,6 @@ signals:
 
     void selectedPoint(uint idCloud, uint idVertex,bool selected);
 
-    void interactionMode(bool modeSelection);
-
 protected:
     void resizeGL(int w, int h);
     void paintGL();
