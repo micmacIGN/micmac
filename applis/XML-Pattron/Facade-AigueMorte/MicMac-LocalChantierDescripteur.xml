@@ -1,0 +1,321 @@
+<!--
+
+   Pattron pour mise en place de vue convergente a partir de longue focale.
+
+   Toute les vues convergent vers le meme point, on calcule tout les couples
+   homologues.
+
+   Focale trop longue pour mise en place directes, on utilise une prise
+   de vue grand angles "annexe" (eventuellement a resolution plus basse)
+   pour faire une mise en place initiale par points d'appuis
+
+
+-->
+
+<Global>
+
+  <ChantierDescripteur
+     Subst="@$#1"
+     NameDecl="@$#1"
+
+     PrefixImages="img_"
+     PostfixImagesBrute=""
+     PostfixRAW="cr2"
+     PostfixImagesDebay=""
+     NbJob="2"
+
+     PatternFoc="F([0-9]{3})_"
+     PatternNumero="[0-9]{4}"
+     NumeroMaitresse="3827"
+     PREF-FMAITRE="F024_"
+     PatternBsHFort="0496|0497|0501|0502"
+
+     PrefixCalibGeom="AutoCalDRad-Canon-"
+     PrefixCalibCoul="Bayer-Canon-"
+
+
+
+     SzPastisSsECh="300"
+     SzPastis="1300"
+     ZoneImGA="3500 1200 5300 2800"
+     ScaleLF2GA="8.0"
+
+
+
+     AutomateNumeroteurInit="${PatternFoc}${PrefixImages}(${PatternNumero})\.${PostfixRAW}"
+
+     PatternAllImTifSsFoc="${PrefixImages}(${PatternNumero})${PostfixImagesDebay}\.${TifPost}"
+     PatternAllImTif="${PatternFoc}${PatternAllImTifSsFoc}$"
+
+     EnteteMaitresse="${PREF-FMAITRE}${PrefixImages}${NumeroMaitresse}${PostfixImagesDebay}"
+     ImMaitresse="${EnteteMaitresse}\.tif"
+     MasqMaitresse="${EnteteMaitresse}_Masq.tif"
+     XMLMasqMaitresse="${EnteteMaitresse}_Masq.xml"
+     NuageGA="GA-GeoI/NuageImProf_Geom-Im_Etape_8.xml"
+  >
+
+       <BatchChantDesc>
+              <Key> Batch </Key>
+
+              <Requirement>
+                  <ExeRequired>
+                       <Exe> bin/Pastis </Exe>
+                       <Make> Makefile </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/ImProfAndL2App </Exe>
+                       <Make> AperiMake </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/Apero </Exe>
+                       <Make> AperiMake </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/MICMAC </Exe>
+                       <Make> MakeMICMAC </Make>
+                  </ExeRequired>
+
+              </Requirement>
+               
+
+               <Line>  bin/MyRename  "${ThisDir}(${PrefixImages}.*).${PostfixRAW}"   "F\$2_\$1.${PostfixRAW}" AddFoc=1 Exe=1 </Line>
+
+
+
+               <Line>  bin/MapCmd bin/MpDcraw "P=${ThisDir}(.*).${PostfixRAW}" 16B=0 Cal=Key-Assoc-Calib-Coul GR=1     M=MkToto "T=\$1${PostfixImagesDebay}.tif"  BiCubParam=-0.5 </Line>
+
+               <Line> make all -f MkToto -j${NbJob}  </Line>
+               <Line> mkdir ${ThisDir}CR2/  </Line>
+               <Line> mv  ${ThisDir}*.${PostfixRAW} ${ThisDir}CR2/  </Line>
+
+              <Line> bin/Pastis  ${ThisDir} Key-Rel-All-Cple ${SzPastisSsECh} FiltreOnlyDupl=1 MkF=MkToto  NbMinPtsExp=2  SsRes=1 </Line>
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+              <Line> bin/Pastis  ${ThisDir} Key-Rel-All-Cples-Filtr-SsEch ${SzPastis} FiltreOnlyDupl=1 MkF=MkToto  NbMinPtsExp=2   </Line>
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+              <Line> bin/Apero  ${ThisDir}Apero-GA.xml  </Line>
+              <Line> bin/MICMAC  ${ThisDir}param-MM-GA.xml   </Line>
+
+
+
+               <Line> bin/ImProfAndL2App   ${ThisDir}   Key-Set-Hom-LFonGA  ${NuageGA}  HisP1=1 KPL2A=Key-Assoc-Homol2Appuis
+               </Line>
+
+              <Line> bin/Apero  ${ThisDir}Apero-Appuis.xml  </Line>
+
+        </BatchChantDesc>
+
+<!--
+bin/Pastis /media/ts/Archi/Vincenne/Gargouille-2/   img_0499_MpDcraw8B_GR.tif  img_0504_MpDcraw8B_GR.tif -1 FiltreOnlyDupl=1 KG1=Key-APG-Zone-LF-in-GA KG2=Key-APG-Zone-LF-in-GA MkF=MkToto
+
+-->
+
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ^${PatternAllImTif} </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-All-Im </Key>
+  </KeyedSetsOfNames>
+
+<!--
+  
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ^${PatternAllImTifLF} </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-ImLF </Key>
+  </KeyedSetsOfNames>
+
+
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> Pastis${EnteteMaitresse}-${EnteteImageLF}\.dat 
+                  </PatternAccepteur>
+                  <SubDir>   Homol/ </SubDir>
+           </Sets>
+           <Key > Key-Set-Hom-LFonGA </Key>
+  </KeyedSetsOfNames>
+
+
+
+
+   <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur>  Appuis-${PatternNumero}-From-${NumeroMaitresse}.xml </PatternAccepteur>
+                  <SubDir>   Appuis/ </SubDir>
+           </Sets>
+           <Key > Key-Set-Appuis-FromGA </Key>
+     </KeyedSetsOfNames>
+-->
+
+
+
+
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+
+<!-- 
+   GLOB-sg1l6451_MpDcraw8B_GB.tif
+-->
+
+<!--
+  <APrioriImage>
+       <KeyedAddedSet>  Key-Set-ImGA    </KeyedAddedSet>
+       <Key>  Key-APG-Zone-LF-in-GA </Key>
+       <ContenuAPrioriImage>
+              <Scale> 1.0 </Scale>
+              <BoiteEnglob>  ${ZoneImGA}  </BoiteEnglob>
+       </ContenuAPrioriImage>
+   </APrioriImage>
+
+
+ <APrioriImage>
+       <KeyedAddedSet>   Key-Set-ImLF  </KeyedAddedSet>
+
+       <Key>  Key-APG-Zone-LF-in-GA  </Key>
+       <ContenuAPrioriImage>
+              <Scale> ${ScaleLF2GA}  </Scale>
+       </ContenuAPrioriImage>
+  </APrioriImage>
+-->
+<!--
+-->
+
+
+<!--   Relations   -->
+<!--   Relations   -->
+<!--   Relations   -->
+
+  <KeyedSetsORels >
+       <Sets>
+           <ByAdjacence>
+               <KeySets >  Key-Set-All-Im </KeySets>
+               <DeltaMax > 10000  </DeltaMax>
+               <DeltaMin > -10000 </DeltaMin>
+           </ByAdjacence>
+       </Sets>
+       <Key>  Key-Rel-All-Cple</Key>
+   </KeyedSetsORels>
+   <KeyedSetsORels>
+       <Sets >
+            <ByAdjacence>
+                <KeySets>  Key-Set-All-Im   </KeySets>
+                <DeltaMax > 10000  </DeltaMax>
+                <DeltaMin > -10000 </DeltaMin>
+                <Filtre>
+                     <FiltreByRelSsEch>
+                        <KeySet >  Key-Set-SsRes-HomolPastisBin          </KeySet>
+                        <KeyAssocCple>  Key-Assoc-SsRes-CpleIm2HomolPastisBin   </KeyAssocCple>
+                        <SeuilBasNbPts> 1 </SeuilBasNbPts>
+                        <SeuilHautNbPts> 1 </SeuilHautNbPts>
+                        <NbMinCple> 100000 </NbMinCple>
+                     </FiltreByRelSsEch>
+                </Filtre>
+            </ByAdjacence>
+       </Sets>
+       <Key  > Key-Rel-All-Cples-Filtr-SsEch </Key>
+    </KeyedSetsORels>
+
+
+
+
+<!--   Associations   -->
+<!--   Associations   -->
+<!--   Associations   -->
+   <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> ^(.*).tif </PatternTransform>
+                <CalcName>  JPG/$1_Scaled.tif </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Gray2Coul </Key>
+    </KeyedNamesAssociations>
+
+
+   <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ^${PatternAllImTif} </PatternTransform>
+                       <CalcName> ${PrefixCalibGeom}$1.xml </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   Key-Assoc-CalibOfIm </Key>
+   </KeyedNamesAssociations>
+   <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ^${AutomateNumeroteurInit} </PatternTransform>
+                       <CalcName> ${PrefixCalibCoul}$1.xml </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   Key-Assoc-Calib-Coul </Key>
+   </KeyedNamesAssociations>
+
+
+<!--
+    
+   <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ^${PatternAllImTifGA}  </PatternTransform>
+                       <CalcName> ${CalibGeomGA} </CalcName>
+                 </Direct>
+             </Calcs>
+             <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ^${PatternAllImTifLF}  </PatternTransform>
+                       <CalcName> ${CalibGeomLF} </CalcName>
+                 </Direct>
+             </Calcs>
+
+             <Key>   Key-Assoc-CalibOfIm </Key>
+   </KeyedNamesAssociations>
+
+
+  <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform>
+                            Homol/Pastis${AutomateNumeroteur}-${AutomateNumeroteur}\.dat
+                       </PatternTransform>
+                       <CalcName>  Appuis/Appuis-$2-From-$1.xml  </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   Key-Assoc-Homol2Appuis </Key>
+             <SubDirAutoMake> Appuis </SubDirAutoMake>
+   </KeyedNamesAssociations>
+
+
+  <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ${AutomateNumeroteur}\.tif </PatternTransform>
+                       <CalcName>  Appuis/Appuis-$1-From-${NumeroMaitresse}.xml  </CalcName>
+                 </Direct>
+                 <Inverse>
+                       <PatternTransform> Appuis/Appuis-(${PatternNumero})-From-${NumeroMaitresse}\.xml </PatternTransform>
+                       <CalcName>  ${PrefixImages}$1${PostfixImagesDebay}.tif  </CalcName>
+                 </Inverse>
+             </Calcs>
+             <Key>Key-Assoc-Im2AppuisOnGA</Key>
+             <SubDirAutoMake> Appuis </SubDirAutoMake>
+   </KeyedNamesAssociations>
+-->
+
+  </ChantierDescripteur>
+</Global>
