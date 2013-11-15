@@ -6,6 +6,28 @@
 namespace NS_ParamChantierPhotogram{
 typedef enum
 {
+  eTT_RadialBasic,
+  eTT_RadialExtended,
+  eTT_Fraser,
+  eTT_FishEyeEqui,
+  eTT_AutoCal,
+  eTT_Figee,
+  eTT_HemiEqui,
+  eTT_RadialStd,
+  eTT_FraserBasic,
+  eTT_FishEyeBasic,
+  eTT_FE_EquiSolBasic,
+  eTT_NbVals
+} eTypeTapas;
+void xml_init(eTypeTapas & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeTapas & aVal);
+
+eTypeTapas  Str2eTypeTapas(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeTapas & anObj);
+
+typedef enum
+{
   eGround,
   eNbTypeMMByP
 } eTypeMMByP;

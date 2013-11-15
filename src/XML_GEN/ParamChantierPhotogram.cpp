@@ -3,6 +3,79 @@
 //#include "private/all.h"
 // #include "XML_GEN/ParamChantierPhotogram.h"
 namespace NS_ParamChantierPhotogram{
+eTypeTapas  Str2eTypeTapas(const std::string & aName)
+{
+   if (aName=="eTT_RadialBasic")
+      return eTT_RadialBasic;
+   else if (aName=="eTT_RadialExtended")
+      return eTT_RadialExtended;
+   else if (aName=="eTT_Fraser")
+      return eTT_Fraser;
+   else if (aName=="eTT_FishEyeEqui")
+      return eTT_FishEyeEqui;
+   else if (aName=="eTT_AutoCal")
+      return eTT_AutoCal;
+   else if (aName=="eTT_Figee")
+      return eTT_Figee;
+   else if (aName=="eTT_HemiEqui")
+      return eTT_HemiEqui;
+   else if (aName=="eTT_RadialStd")
+      return eTT_RadialStd;
+   else if (aName=="eTT_FraserBasic")
+      return eTT_FraserBasic;
+   else if (aName=="eTT_FishEyeBasic")
+      return eTT_FishEyeBasic;
+   else if (aName=="eTT_FE_EquiSolBasic")
+      return eTT_FE_EquiSolBasic;
+   else if (aName=="eTT_NbVals")
+      return eTT_NbVals;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeTapas\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeTapas) 0;
+}
+void xml_init(eTypeTapas & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeTapas(aTree->Contenu());
+}
+std::string  eToString(const eTypeTapas & anObj)
+{
+   if (anObj==eTT_RadialBasic)
+      return  "eTT_RadialBasic";
+   if (anObj==eTT_RadialExtended)
+      return  "eTT_RadialExtended";
+   if (anObj==eTT_Fraser)
+      return  "eTT_Fraser";
+   if (anObj==eTT_FishEyeEqui)
+      return  "eTT_FishEyeEqui";
+   if (anObj==eTT_AutoCal)
+      return  "eTT_AutoCal";
+   if (anObj==eTT_Figee)
+      return  "eTT_Figee";
+   if (anObj==eTT_HemiEqui)
+      return  "eTT_HemiEqui";
+   if (anObj==eTT_RadialStd)
+      return  "eTT_RadialStd";
+   if (anObj==eTT_FraserBasic)
+      return  "eTT_FraserBasic";
+   if (anObj==eTT_FishEyeBasic)
+      return  "eTT_FishEyeBasic";
+   if (anObj==eTT_FE_EquiSolBasic)
+      return  "eTT_FE_EquiSolBasic";
+   if (anObj==eTT_NbVals)
+      return  "eTT_NbVals";
+ std::cout << "Enum = eTypeTapas\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeTapas & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 eTypeMMByP  Str2eTypeMMByP(const std::string & aName)
 {
    if (aName=="eGround")

@@ -68,6 +68,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 //#include <strstream>    
 
+class cMMSpecArg;
+
 std::string MakeStrFromArgcARgv(int  argc,char** argv);
 
 void MemoArg(int,char**);
@@ -180,11 +182,20 @@ template <class Type> std::ostream & operator << (std::ostream &os,const ElSTDNS
 }
 
 
+typedef enum
+{
+      
+      eSAM_None,
+      eSAM_IsPatFile,
+      eSAM_IsExistDirOri,
+      eSAM_IsExistFile
+} eSpecArgMain;
+
 class GenElArgMain
 {
 	public :
 		virtual ~GenElArgMain()  {};
-	    GenElArgMain(const char * Name,bool ISINIT ) ;
+	    GenElArgMain(const char * Name,bool ISINIT,eSpecArgMain aSpec ) ;
 		virtual GenElArgMain * dup() const = 0;
 
 		virtual void InitEAM(const ElSTDNS string &s,const ElGramArgMain &) const = 0;
@@ -200,12 +211,16 @@ class GenElArgMain
 
 		static const char * ActifStr(bool);
 
+                virtual std::string NameType() const =0;
+                virtual std::string Comment() const =0;
+                eSpecArgMain Spec() const;
     protected :
                 static const std::string  theChaineInactif;
                 static const std::string  theChaineActif;
 
 		ElSTDNS string	_name;
 		mutable bool	_is_init;
+                eSpecArgMain    mSpec;
 };
 
 
@@ -214,9 +229,12 @@ template <class Type> const char * str_type(Type *);
 
 extern std::set<void *>  AllAddrEAM;
 
+
 template <class Type> class ElArgMain : public GenElArgMain
 {
 	public :
+                std::string NameType() const {return  str_type(_adr);}
+                std::string Comment() const {return  mCom;}
 
 		void InitEAM(const ElSTDNS string &s,const ElGramArgMain & Gram) const
 		{
@@ -232,9 +250,10 @@ template <class Type> class ElArgMain : public GenElArgMain
                    Type & v,
                    const char * Name,
                    bool isInit,
-                   const std::string & aCom = ""
+                   const std::string & aCom = "",
+                   eSpecArgMain        aSpec =  eSAM_None
              ) :
-			GenElArgMain(Name,isInit),
+			GenElArgMain(Name,isInit,aSpec),
 			_adr   (&v),
                         mCom   (aCom)
          {
@@ -286,20 +305,22 @@ template <class Type> ElArgMain<Type>
                             Type & v,
                             const char * Name= "",
                             bool isInit = false,
-                            const std::string &aComment = ""
+                            const std::string &aComment = "",
+                            eSpecArgMain        aSpec =  eSAM_None
                      )
 {
-		return ElArgMain<Type>(v,Name,isInit,aComment);
+		return ElArgMain<Type>(v,Name,isInit,aComment,aSpec);
 }
 template <class Type> ElArgMain<Type> 
                      EAMC
                      (
                             Type & v,
-                            const std::string &aComment 
+                            const std::string &aComment ,
+                            eSpecArgMain        aSpec =  eSAM_None
                      )
 {
                 AllAddrEAM.insert( (void *) &v);
-		return ElArgMain<Type>(v,"",false,aComment);
+		return ElArgMain<Type>(v,"",false,aComment,aSpec);
 }
 
 
@@ -307,6 +328,8 @@ template <class Type> ElArgMain<Type>
 class LArgMain
 {
 	public :
+
+                std::vector<cMMSpecArg>  ExportMMSpec() const;
 		
 		template <class Type> LArgMain & operator << (const ElArgMain<Type> & v)
 		{
@@ -354,6 +377,17 @@ class LArgMain
 #define EIAM_VerifInit true
 #define EIAM_AccUnK false
 #define EIAM_NbArgGlobGlob -1 
+
+// Var glob, rajoutee pour indiquer que MICMAC est en mode visuel
+// initialisee dasn GenMain, utilisee dans ElInitArgMain
+extern bool MMVisualMode;
+
+void MMRunVisualMode
+     (
+         int argc,char ** argv,
+         std::vector<cMMSpecArg> & aVAM,
+         std::vector<cMMSpecArg> & aVAO
+     );
 
 std::vector<char *>   	ElInitArgMain
 		(
