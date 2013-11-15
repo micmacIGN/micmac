@@ -377,6 +377,9 @@ int SampleLibElise_main(int argc,char ** argv)
 //=====================================
 
 
+bool MMVisualMode = false;
+
+
 int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 {
    if ((argc==1) || ((argc==2) && (std::string(argv[1])=="-help")))
@@ -390,13 +393,19 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
        return 0;
    }
 
+   if ((argc>=2) && (argv[1][0] == 'v') && (argv[1]!=std::string("vic")))
+   {
+       MMVisualMode = true;
+       argv[1]++;
+   }
+
    // MPD : deplace sinon core dump qd argc==1
     // Pour l'analyse de la ligne de commande, on ne peut pas desactiver le bloquage de l'exe via l'option ExitOnBrkp
     // puisque le XML n'a pas encore ete analyse, on change donc provisoireement le comportement par defaut 
-    TheExitOnBrkp=true;
+   TheExitOnBrkp=true;
    MMD_InitArgcArgv( argc, argv );
     // On reactive le blocage par defaut
-    TheExitOnBrkp=false;
+   TheExitOnBrkp=false;
     
    std::string aCom = argv[1];
    std::string aLowCom = StrToLower(aCom);

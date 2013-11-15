@@ -36,105 +36,75 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+/*eLiSe06/05/99  
+ 
+     Copyright (C) 1999 Marc PIERROT DESEILLIGNY
+	  
+	    eLiSe : Elements of a Linux Image Software Environment
+		 
+		This program is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 2 of the License, or
+		(at your option) any later version.
+		 
+		This program is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
+		 
+		You should have received a copy of the GNU General Public License
+		along with this program; if not, write to the Free Software
+		Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+		 
+		  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS
+		  Internet: Marc.Pierrot-Deseilligny@ign.fr
+		     Phone: (33) 01 43 98 81 28              
+*/
 
+#ifndef _ELISE_GENERAL_MM_SPEC_ARG_H
+#define _ELISE_GENERAL_MM_SPEC_ARG_H
 
-#ifndef _ELISE_XML_GEN_MMBY_P_
-#define _ELISE_XML_GEN_MMBY_P_
-
-
-
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_ParamMICMAC;
-
-class cImaMM;
-class cAppliWithSetImage;
-class cAppliMMByPair;
-
-class cImaMM
+class cMMSpecArg
 {
     public :
-      cImaMM(const std::string & aName,cAppliWithSetImage &);
+        // S'agit-il d'un argument optionnel
+        bool IsOpt() const;
 
+        // S'agit-il d'un pattern descriptif de fichier
+        bool IsPatFile() const;
 
-    public :
-       std::string mNameIm;
-       std::string mBande;
-       int         mNumInBande;
-       CamStenope * mCam;
-       Pt3dr        mC3;
-       Pt2dr        mC2;
-       Tiff_Im  &   Tiff();
+        // S'agit-il d'une directory d'orientation existante
+        bool IsExistDirOri() const;
+
+        // S'agit-il d'un fichier existant
+        bool IsExistFile() const;
+
+        // Nom du type
+        std::string NameType() const;
+
+        // Nom de l'argument (quand optionnel)
+        std::string NameArg() const;
+
+        // Commentaire eventuel
+        std::string Comment() const;
+
+        // Numero de l'argument dans la specification (pas vraiment utile ??)
+        int  NumArg() const;
+
+        // Initialise la variable a partir d'une chaine de caractere
+        void Init(const std::string &);
+
     private :
-       cAppliWithSetImage &  mAppli;
-       Tiff_Im  *            mPtrTiff;
+        friend class LArgMain;
+        cMMSpecArg(GenElArgMain *,int aNum);
 
+        GenElArgMain * mEAM;
+        int            mNum;
 };
 
 
-class cAppliWithSetImage
-{
-   public :
-      CamStenope * CamOfName(const std::string & aName);
-      const std::string & Dir() const;
-      int  DeZoomOfSize(double ) const;
-      void operator()(cImaMM*,cImaMM*,bool);   // Delaunay call back
-   protected :
-      cAppliWithSetImage(int argc,char ** argv,int aFlag);
-      void Develop(bool EnGray,bool En16B);
+#endif // _ELISE_GENERAL_MM_SPEC_ARG_H
 
-      static const int  FlagDev8BGray   = 1;
-      static const int  FlagDev16BGray  = 2;
-
-      cImaMM * ImOfName(const std::string & aName);
-      void MakeStripStruct(const std::string & aPairByStrip,bool StripFirst);
-      void AddDelaunayCple();
-
-
-
-
-      void DoPyram();
-
-      void VerifAWSI();
-      void ComputeStripPair(int);
-      void AddPair(cImaMM * anI1,cImaMM * anI2);
-
-      bool        mSym;
-      bool        mShow;
-      std::string mPb;
-      std::string mFullName;
-      std::string mDir;
-      std::string mPat;
-      std::string mOri;
-      std::string mKeyOri;
-      cInterfChantierNameManipulateur * mICNM;
-      const cInterfChantierNameManipulateur::tSet * mSetIm;
-
-      std::vector<cImaMM *> mImages;
-      std::map<std::string,cImaMM *> mDicIm;
-      typedef std::pair<cImaMM *,cImaMM *> tPairIm;
-      typedef std::set<tPairIm> tSetPairIm;
-      tSetPairIm   mPairs;
-      double       mAverNbPix;
-      double       mTetaBande;
-
-   private :
-      void AddPairASym(cImaMM * anI1,cImaMM * anI2);
-
-};
-
-
-template <class eType> std::list<std::string> ListOfVal(eType aValMax,const std::string& ToSub="e") // Exclue
-{
-    std::list<std::string> aRes;
-    for (int aK=0 ; aK<int(aValMax) ; aK++)
-    {
-        std::string aVal = eToString((eType) aK);
-        aRes.push_back(aVal.substr(ToSub.size(),std::string::npos));
-    }
-    return aRes;
-}
-
-#endif   // _ELISE_XML_GEN_MMBY_P_
 
 
 
