@@ -418,7 +418,7 @@ std::vector<char *>  	ElInitArgMain
 	)
 {
 	std::vector<char *> aRes;
-        //if (MMVisualMode)
+        if (MMVisualMode)
         {
            std::vector<cMMSpecArg> aVAM = LGlob.ExportMMSpec();
            std::vector<cMMSpecArg> aVAO = L1.ExportMMSpec();
