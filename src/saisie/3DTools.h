@@ -31,7 +31,7 @@ inline void setRotateOz_m33( const float i_angle, GLfloat o_m[9] )
 
 inline void setTranslate_m3( const GLfloat *i_a, GLfloat o_m[16] )
 {
-    o_m[0] =1.;	 o_m[1] =0.f;	o_m[2] =0.f;	 o_m[3] =i_a[0];
+    o_m[0] =1.f;	 o_m[1] =0.f;	o_m[2] =0.f;	 o_m[3] =i_a[0];
     o_m[4] =0.f;	 o_m[5] =1.f;	o_m[6] =0.f;	 o_m[7] =i_a[1];
     o_m[8] =0.f;	 o_m[9] =0.f;	o_m[10]=1.f;	 o_m[11]=i_a[2];
     o_m[12]=0.f;	 o_m[13]=0.f;	o_m[14]=0.f;	 o_m[15]=1.f;
@@ -73,15 +73,6 @@ inline void crossprod( const GLdouble u[3], const GLdouble v[3], GLdouble o_m[3]
     o_m[0] = u[1]*v[2] - u[2]*v[1];
     o_m[1] = u[2]*v[0] - u[0]*v[2];
     o_m[2] = u[0]*v[1] - u[1]*v[0];
-}
-
-inline void normalize( GLdouble o_m[3] )
-{
-    GLdouble norm = sqrt((double) (o_m[0]*o_m[0] + o_m[1]*o_m[1] + o_m[2]*o_m[2]));
-
-    o_m[0] = o_m[0]/norm;
-    o_m[1] = o_m[1]/norm;
-    o_m[2] = o_m[2]/norm;
 }
 
 #endif //3DTOOLS
