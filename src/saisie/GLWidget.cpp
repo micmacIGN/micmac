@@ -95,7 +95,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
         if (m_bDisplayMode2D)
         {
             pos = WindowToImage(mouseEvent->localPos());
-            m_lastMoveImg = pos;
+            m_lastMoveImage = pos;
         }
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
@@ -466,8 +466,8 @@ void GLWidget::paintGL()
 
             renderText(10, _glViewport[3] - m_font.pointSize(), QString::number(m_params.zoom*100,'f',1) + "%", m_font);
 
-            float px = m_lastMoveImg.x();
-            float py = m_lastMoveImg.y();
+            float px = m_lastMoveImage.x();
+            float py = m_lastMoveImage.y();
 
             if  ((px>=0.f)&&(py>=0.f)&&(px<_glImg.width())&&(py<_glImg.height()))
                 renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(px,'f',1) + ", " + QString::number(_glImg.height()-py,'f',1) + " px", m_font);
@@ -591,7 +591,6 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             clearPolyline();
             break;
         case Qt::Key_1:
-
             zoomFactor(100);
             break;
         case Qt::Key_2:

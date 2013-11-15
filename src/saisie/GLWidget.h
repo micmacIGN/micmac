@@ -252,7 +252,7 @@ protected:
     //! data position in the gl viewport
     GLfloat     m_glPosition[2];
 
-    QPointF     m_lastMoveImg;
+    QPointF     m_lastMoveImage;
     QPoint      m_lastClickZoom;
 
     QPointF     m_lastPosImage;
