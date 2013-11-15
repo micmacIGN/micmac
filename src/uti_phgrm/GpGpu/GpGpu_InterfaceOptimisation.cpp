@@ -78,10 +78,10 @@ void InterfOptimizGpGpu::threadCompute()
             //      Kernel optimisation                                             ---------------     -
 
 #if OPTIMZ
-            TestOptimisationOneDirectionZ(_D_data2Opt,_DFinalCost);
+            OptimisationOneDirectionZ_V02(_D_data2Opt);
 #else
             OptimisationOneDirection(_D_data2Opt);
-            //OptimisationOneDirectionZ(_D_data2Opt);
+            //OptimisationOneDirectionZ_V01(_D_data2Opt);
 #endif
 
             //      Copie des couts de passage forcé du device vers le host         ---------------     -

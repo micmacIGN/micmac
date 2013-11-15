@@ -379,8 +379,11 @@ void ReadLine2(
             p.swBuf();
 
             if(!sens)
+            {
+                const short piSFC = -p.ID_Bf_Icost + dZ ;
                 for (ushort i = 0; i < dZ - p.stid<sens>(); i+=WARPSIZE)
-                    streamFCost.SubValue(-p.ID_Bf_Icost + dZ - i,globMinFCost);
+                    streamFCost.SubValue(piSFC - i,globMinFCost);
+            }
         }
 
         p.line.id += p.seg.lenght;
@@ -468,7 +471,7 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     ReadLine2<eARRIERE>( streamIndex,streamFCost,streamICost,S_BuffIndex + WARPSIZE - 1,S_BuffICost,S_BuffFCost,p);
 }
 
-extern "C" void TestOptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O)
+extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O)
 {
     uint deltaMax = 3;
     dim3 Threads(WARPSIZE,1,1);
@@ -485,7 +488,7 @@ extern "C" void TestOptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O)
     getLastCudaError("TestkernelOptiOneDirection failed");
 }
 
-extern "C" void OptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O)
+extern "C" void OptimisationOneDirectionZ_V01(Data2Optimiz<CuDeviceData3D> &d2O)
 {
     uint deltaMax = 3;
     dim3 Threads(WARPSIZE,1,1);

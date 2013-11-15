@@ -2,7 +2,7 @@
 #include "GpGpu/GpGpu_InterOptimisation.h"
 #include "GpGpu/SData2Optimize.h"
 
-extern "C" void TestOptimisationOneDirectionZ(Data2Optimiz<CuDeviceData3D> &d2O,CuDeviceData3D<uint*> &finalCost);
+extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O);
 
 int main()
 {
@@ -111,7 +111,7 @@ int main()
 
     h2O._s_InitCostVol.OutputValues();
 
-    //TestOptimisationOneDirectionZ(d2O);
+    OptimisationOneDirectionZ_V02(d2O);
 
     d2O.CopyDevicetoHost(h2O);
 

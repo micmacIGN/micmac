@@ -2,6 +2,8 @@
 #include <QApplication>
 #include "mainwindow.h"
 
+bool MMVisualMode = false;
+
 #ifdef _WIN32
 class Win32CommandLineConverter;
 

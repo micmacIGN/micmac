@@ -438,7 +438,7 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
 
 #if CUDA_ENABLED
     #if OPTIMZ
-        SolveAllDirectionGpuZ(aNbDir);
+        SolveAllDirectionGpuZ_V02(aNbDir);
     #else
         SolveAllDirectionGpu(aNbDir);
     #endif
@@ -744,7 +744,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
 }
 
-void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ(int aNbDir)
+void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ_V02(int aNbDir)
 {
     const std::vector<Pt2di> * aVPt;
 
@@ -776,71 +776,68 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ(int aNbDir)
 
     nvtxRangePop();
 
-    if (IGpuOpt.UseMultiThreading())
+    IGpuOpt.SetPreComp(true);
+    int aKPreDir = 0;
+    bool idPreCo = false;
+    while (aKDir < aNbDir)
     {
-        IGpuOpt.SetPreComp(true);
-        int aKPreDir = 0;
-        bool idPreCo = false;
-        while (aKDir < aNbDir)
+
+        if( aKPreDir <= aKDir + 1 && aKPreDir < aNbDir &&  IGpuOpt.GetPreComp() )
         {
 
-            if( aKPreDir <= aKDir + 1 && aKPreDir < aNbDir &&  IGpuOpt.GetPreComp() )
+            Pt2di aDirI = direction(aNbDir, aKPreDir);
+
+            uint nbLine = 0, sizeStreamLine, pitStream = NAPPEMAX, pitIdStream = WARPSIZE ;
+
+            mLMR.Init(aDirI,Pt2di(0,0),mSz);
+
+            GpGpuTools::NvtxR_Push("Prepa",0xFF0000FF);
+
+            while ((aVPt = mLMR.Next()))
             {
+                uint lenghtLine = (uint)(aVPt->size());
 
-                Pt2di aDirI = direction(aNbDir, aKPreDir);
+                IGpuOpt.HData2Opt().SetParamLine(nbLine,pitStream,pitIdStream,lenghtLine,idPreCo);
 
-                uint nbLine = 0, sizeStreamLine, pitStream = NAPPEMAX, pitIdStream = WARPSIZE ;
+                sizeStreamLine = 0;
 
-                mLMR.Init(aDirI,Pt2di(0,0),mSz);
-
-                GpGpuTools::NvtxR_Push("Prepa",0xFF0000FF);
-
-                while ((aVPt = mLMR.Next()))
+                for (uint aK = 0 ; aK < lenghtLine; aK++)
                 {
-                    uint lenghtLine = (uint)(aVPt->size());
-
-                    IGpuOpt.HData2Opt().SetParamLine(nbLine,pitStream,pitIdStream,lenghtLine,idPreCo);
-
-                    sizeStreamLine = 0;
-
-                    for (uint aK = 0 ; aK < lenghtLine; aK++)
-                    {
-                        Pt2di pt    = (Pt2di)(*aVPt)[aK];
-                        uint2 ptTer = make_uint2(pt.x,pt.y);
-                        sizeStreamLine += IGpuOpt._preDZ[ptTer];
-                    }
-
-                    pitIdStream += iDivUp32(lenghtLine) << 5;
-                    pitStream   += iDivUp32(sizeStreamLine) << 5;
-
-                    nbLine++;
+                    Pt2di pt    = (Pt2di)(*aVPt)[aK];
+                    uint2 ptTer = make_uint2(pt.x,pt.y);
+                    sizeStreamLine += IGpuOpt._preDZ[ptTer];
                 }
 
-                nvtxRangePop();
+                pitIdStream += iDivUp32(lenghtLine) << 5;
+                pitStream   += iDivUp32(sizeStreamLine) << 5;
 
-                IGpuOpt.HData2Opt().SetNbLine(nbLine);
-
-                IGpuOpt.HData2Opt().ReallocInputIf(pitStream + NAPPEMAX,pitIdStream + WARPSIZE);
-
-                copyCells_Mat2Stream( aDirI, IGpuOpt.HData2Opt(),IGpuOpt._preCostInit,IGpuOpt._prePtZ,IGpuOpt._preDZ,idPreCo);
-
-                IGpuOpt.SetCompute(true);
-                IGpuOpt.SetPreComp(false);
-
-                aKPreDir++;
-                idPreCo = !idPreCo;
+                nbLine++;
             }
 
-            if(IGpuOpt.GetDataToCopy())
-            {
-                copyCells_Stream2Mat(direction(aNbDir,aKDir), IGpuOpt.HData2Opt(),IGpuOpt._preFinalCost,IGpuOpt._prePtZ,IGpuOpt._preDZ,idPreCo);
-                IGpuOpt.SetDataToCopy(false);
-                aKDir++;
-            }
+            nvtxRangePop();
+
+            IGpuOpt.HData2Opt().SetNbLine(nbLine);
+
+            IGpuOpt.HData2Opt().ReallocInputIf(pitStream + NAPPEMAX,pitIdStream + WARPSIZE);
+
+            copyCells_Mat2Stream( aDirI, IGpuOpt.HData2Opt(),IGpuOpt._preCostInit,IGpuOpt._prePtZ,IGpuOpt._preDZ,idPreCo);
+
+            IGpuOpt.SetCompute(true);
+            IGpuOpt.SetPreComp(false);
+
+            aKPreDir++;
+            idPreCo = !idPreCo;
         }
 
-        IGpuOpt.freezeCompute();
-     }
+        if(IGpuOpt.GetDataToCopy())
+        {
+            copyCells_Stream2Mat(direction(aNbDir,aKDir), IGpuOpt.HData2Opt(),IGpuOpt._preFinalCost,IGpuOpt._prePtZ,IGpuOpt._preDZ,idPreCo);
+            IGpuOpt.SetDataToCopy(false);
+            aKDir++;
+        }
+    }
+
+    IGpuOpt.freezeCompute();
 
     GpGpuTools::NvtxR_Push("FinalCost",0xFF883300);
     for (uint line = 0 ; line < (uint)mSz.y; line++)
@@ -850,13 +847,131 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ(int aNbDir)
             uint2 ptTer     = make_uint2(aK,line);
 
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[ptd];
-
             short2 ptZ      = IGpuOpt._prePtZ[ptTer];
-
-            uint* finCost   = IGpuOpt._preFinalCost[ptTer]-ptZ.x;
+            uint* finalCost = IGpuOpt._preFinalCost[ptTer]-ptZ.x;
 
             for ( int aPx = ptZ.x ; aPx < ptZ.y ; aPx++)
-                 aMat[Pt2di(aPx,0)].SetCostFinal(finCost[aPx]);
+                 aMat[Pt2di(aPx,0)].SetCostFinal(finalCost[aPx]);
+        }
+
+    nvtxRangePop();
+
+    for (uint i = 0; i < IGpuOpt._preCostInit.GetSize(); ++i)
+    {
+        delete [] IGpuOpt._preCostInit[i];
+        delete [] IGpuOpt._preFinalCost[i];
+    }
+
+}
+
+void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ_V03(int aNbDir)
+{
+    const std::vector<Pt2di> * aVPt;
+
+    IGpuOpt.Prepare(mSz.x,mSz.y);
+
+    int aKDir = 0;
+
+    GpGpuTools::NvtxR_Push("ReStructure",0xFFAA66FF);
+
+    for (uint line = 0 ; line < (uint)mSz.y; line++)
+        for (uint aK = 0 ; aK < (uint)mSz.x; aK++)
+        {
+            Pt2di ptd(aK,line);
+            uint2 ptTer     = make_uint2(ptd.x,ptd.y);
+
+            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[ptd];
+
+            short2 ptZ      = make_short2(aMat.Box()._p0.x,aMat.Box()._p1.x);
+            ushort dZ       = abs(count(ptZ));
+            IGpuOpt._prePtZ[ptTer] = ptZ;
+            IGpuOpt._preDZ[ptTer]  = dZ;
+            IGpuOpt._preCostInit[ptTer]  = new ushort[dZ];
+            IGpuOpt._preFinalCost[ptTer] = new uint[dZ];
+            ushort* costIni = IGpuOpt._preCostInit[ptTer];
+
+            for ( int aPx = ptZ.x ; aPx < ptZ.y ; aPx++)
+                costIni[aPx-ptZ.x] = aMat[Pt2di(aPx,0)].GetCostInit();
+        }
+
+    nvtxRangePop();
+
+    IGpuOpt.SetPreComp(true);
+    int aKPreDir = 0;
+    bool idPreCo = false;
+    while (aKDir < aNbDir)
+    {
+
+        if( aKPreDir <= aKDir + 1 && aKPreDir < aNbDir &&  IGpuOpt.GetPreComp() )
+        {
+
+            Pt2di aDirI = direction(aNbDir, aKPreDir);
+
+            uint nbLine = 0, sizeStreamLine, pitStream = NAPPEMAX, pitIdStream = WARPSIZE ;
+
+            mLMR.Init(aDirI,Pt2di(0,0),mSz);
+
+            GpGpuTools::NvtxR_Push("Prepa",0xFF0000FF);
+
+            while ((aVPt = mLMR.Next()))
+            {
+                uint lenghtLine = (uint)(aVPt->size());
+
+                IGpuOpt.HData2Opt().SetParamLine(nbLine,pitStream,pitIdStream,lenghtLine,idPreCo);
+
+                sizeStreamLine = 0;
+
+                for (uint aK = 0 ; aK < lenghtLine; aK++)
+                {
+                    Pt2di pt    = (Pt2di)(*aVPt)[aK];
+                    uint2 ptTer = make_uint2(pt.x,pt.y);
+                    sizeStreamLine += IGpuOpt._preDZ[ptTer];
+                }
+
+                pitIdStream += iDivUp32(lenghtLine) << 5;
+                pitStream   += iDivUp32(sizeStreamLine) << 5;
+
+                nbLine++;
+            }
+
+            nvtxRangePop();
+
+            IGpuOpt.HData2Opt().SetNbLine(nbLine);
+
+            IGpuOpt.HData2Opt().ReallocInputIf(pitStream + NAPPEMAX,pitIdStream + WARPSIZE);
+
+            copyCells_Mat2Stream( aDirI, IGpuOpt.HData2Opt(),IGpuOpt._preCostInit,IGpuOpt._prePtZ,IGpuOpt._preDZ,idPreCo);
+
+            IGpuOpt.SetCompute(true);
+            IGpuOpt.SetPreComp(false);
+
+            aKPreDir++;
+            idPreCo = !idPreCo;
+        }
+
+        if(IGpuOpt.GetDataToCopy())
+        {
+            copyCells_Stream2Mat(direction(aNbDir,aKDir), IGpuOpt.HData2Opt(),IGpuOpt._preFinalCost,IGpuOpt._prePtZ,IGpuOpt._preDZ,idPreCo);
+            IGpuOpt.SetDataToCopy(false);
+            aKDir++;
+        }
+    }
+
+    IGpuOpt.freezeCompute();
+
+    GpGpuTools::NvtxR_Push("FinalCost",0xFF883300);
+    for (uint line = 0 ; line < (uint)mSz.y; line++)
+        for (uint aK = 0 ; aK < (uint)mSz.x; aK++)
+        {
+            Pt2di ptd(aK,line);
+            uint2 ptTer     = make_uint2(aK,line);
+
+            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[ptd];
+            short2 ptZ      = IGpuOpt._prePtZ[ptTer];
+            uint* finalCost = IGpuOpt._preFinalCost[ptTer]-ptZ.x;
+
+            for ( int aPx = ptZ.x ; aPx < ptZ.y ; aPx++)
+                 aMat[Pt2di(aPx,0)].SetCostFinal(finalCost[aPx]);
         }
 
     nvtxRangePop();
