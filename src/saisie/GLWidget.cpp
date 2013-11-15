@@ -130,8 +130,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
         }
 
         if (m_bDisplayMode2D || (m_interactionMode == TRANSFORM_CAMERA))
-        {
-            QPointF dp = pos - m_lastPosImage;
+        {            
             QPoint dPWin = posInt - m_lastPosWindow;
 
             if ( _g_mouseLeftDown ) // rotation autour de X et Y
@@ -159,13 +158,15 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                 {
                     if (m_Data->getNbImages())
                     {
-                        m_glPosition[0] += 2.f * dp.x()/_glViewport[2];
-                        m_glPosition[1] += 2.f * dp.y()/_glViewport[3];
+                        QPointF dp = pos - m_lastPosImage;
+
+                        m_glPosition[0] += m_speed * dp.x()/_glViewport[2];
+                        m_glPosition[1] += m_speed * dp.y()/_glViewport[3];
                     }
                     else
                     {
-                        m_params.m_translationMatrix[0] += m_speed * dp.x()*m_Data->m_diam/_glViewport[2];
-                        m_params.m_translationMatrix[1] -= m_speed * dp.y()*m_Data->m_diam/_glViewport[3];
+                        m_params.m_translationMatrix[0] += m_speed*dPWin.x()*m_Data->m_diam/_glViewport[2];
+                        m_params.m_translationMatrix[1] -= m_speed*dPWin.y()*m_Data->m_diam/_glViewport[3];
                     }
                 }
             }

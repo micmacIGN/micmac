@@ -27,7 +27,7 @@ public:
     //!
     ViewportParameters & operator = (const ViewportParameters &);
 
-    void reset();
+    void    reset();
 
     void    setGamma(float aGamma) {_gamma = aGamma;}
     float   getGamma() {return _gamma;}
