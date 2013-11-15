@@ -498,6 +498,14 @@ void MainWindow::setRightView()
 void MainWindow::resetView()
 {
     _glWidget->resetView();
+
+    if (!_bMode2D)
+    {
+         _glWidget->showBall(_Engine->getData()->isDataLoaded());
+         _glWidget->showAxis(false);
+         _glWidget->showBBox(false);
+         _glWidget->showCams(false);
+    }
 }
 
 //zoom
