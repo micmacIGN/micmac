@@ -29,8 +29,8 @@ public:
 
     void    reset();
 
-    void    setGamma(float aGamma) {_gamma = aGamma;}
-    float   getGamma() {return _gamma;}
+    void    setGamma(float aGamma) {m_gamma = aGamma;}
+    float   getGamma() {return m_gamma;}
 
     //! Current zoom
     float zoom;
@@ -49,8 +49,9 @@ public:
     //! Translation matrix
     float m_translationMatrix[3];
 
-    float _gamma;
+    float m_gamma;
 
+	float m_speed;
 };
 
 struct selectInfos
