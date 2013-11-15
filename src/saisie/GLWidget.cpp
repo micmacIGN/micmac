@@ -948,43 +948,30 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
 {
     m_interactionMode = mode;
 
-    if(!m_bDisplayMode2D)
+    switch (mode)
     {
-        switch (mode)
+        case TRANSFORM_CAMERA:
         {
-            case TRANSFORM_CAMERA:
+            if (hasDataLoaded() && showMessages())
             {
-                if (hasDataLoaded() && showMessages())
-                {
-                    clearPolyline();
-                    displayMoveMessages();
-                }
-                showBall(true);
-                showAxis(false);
-
-                emit(interactionMode(false));
+                clearPolyline();
+                displayMoveMessages();
             }
-                break;
-            case SELECTION:
-            {
-                if(!m_Data->NbImages())
-                    setProjectionMatrix();
-
-                if (hasDataLoaded() && showMessages())
-                {
-                   displaySelectionMessages();
-                }
-                showBall(false);
-                showCams(false);
-                showAxis(false);
-                showBBox(false);
-
-                emit(interactionMode(true));
-            }
-                break;
-            default:
-                break;
         }
+            break;
+        case SELECTION:
+        {
+            if(!m_Data->NbImages())
+                setProjectionMatrix();
+
+            if (hasDataLoaded() && showMessages())
+            {
+               displaySelectionMessages();
+            }
+        }
+            break;
+        default:
+            break;
     }
 }
 

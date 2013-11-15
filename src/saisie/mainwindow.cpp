@@ -55,8 +55,6 @@ void MainWindow::connectActions()
 {
     connect(_glWidget,	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
 
-    connect(_glWidget,	SIGNAL(interactionMode(bool)), this,	SLOT(changeMode(bool)));
-
     //View menu
     connect(_ui->actionFullScreen,       SIGNAL(toggled(bool)), this, SLOT(toggleFullScreen(bool)));
     if (!_bMode2D)
@@ -277,7 +275,7 @@ void MainWindow::selectedPoint(uint idC, uint idV, bool select)
     _Engine->getData()->getCloud(idC)->getVertex(idV).setVisible(select);
 }
 
-void MainWindow::changeMode(bool mode)
+/*void MainWindow::changeMode(bool mode)
 {
     if (mode == true) //mode interaction
     {
@@ -288,10 +286,10 @@ void MainWindow::changeMode(bool mode)
     }
     else
     {
-        _ui->actionShow_ball->setChecked(_Engine->getData()->isDataLoaded());
+        _ui->actionShow_ball->setChecked();
         _ui->actionShow_axis->setChecked(false);
     }
-}
+}*/
 
 void MainWindow::toggleFullScreen(bool state)
 {
@@ -338,11 +336,23 @@ void MainWindow::toggleShowMessages(bool state)
     _glWidget->showMessages(state);
 }
 
-void MainWindow::toggleSelectionMode(bool state)
+void MainWindow::toggleSelectionMode(bool mode)
 {
-    _glWidget->setInteractionMode(state ? GLWidget::SELECTION : GLWidget::TRANSFORM_CAMERA);
+    if (!_bMode2D)
+    {
+        _glWidget->setInteractionMode(mode ? GLWidget::SELECTION : GLWidget::TRANSFORM_CAMERA);
 
-    _glWidget->update();
+        _glWidget->showBall(mode ? GLWidget::TRANSFORM_CAMERA : GLWidget::SELECTION && _Engine->getData()->isDataLoaded());
+        _glWidget->showAxis(false);
+
+        if (mode == GLWidget::SELECTION)
+        {
+            _glWidget->showCams(false);
+            _glWidget->showBBox(false);
+        }
+
+        _glWidget->update();
+    }
 }
 
 void MainWindow::displayShortcuts()
