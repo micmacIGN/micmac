@@ -7,10 +7,10 @@ cData::cData()
 
 cData::~cData()
 {
-   for (int aK=0; aK < NbCameras();++aK) delete _Cameras[aK];
-   for (int aK=0; aK < NbClouds();++aK)  delete _Clouds[aK];
-   for (int aK=0; aK < NbImages();++aK)  delete _Images[aK];
-   for (int aK=0; aK < NbMasks();++aK)   delete _Masks[aK];
+   for (int aK=0; aK < getNbCameras();++aK) delete _Cameras[aK];
+   for (int aK=0; aK < getNbClouds();++aK)  delete _Clouds[aK];
+   for (int aK=0; aK < getNbImages();++aK)  delete _Images[aK];
+   for (int aK=0; aK < getNbMasks();++aK)   delete _Masks[aK];
 
    _Cameras.clear();
    _Clouds.clear();
@@ -41,7 +41,7 @@ void cData::addMask(QImage * aImg)
 
 void cData::clearClouds()
 {
-    for (uint aK=0; aK < (uint)NbClouds();++aK)
+    for (uint aK=0; aK < (uint)getNbClouds();++aK)
         delete _Clouds[aK];
 
     _Clouds.clear();
@@ -51,7 +51,7 @@ void cData::clearClouds()
 
 void cData::clearCameras()
 {
-    for (uint aK=0; aK < (uint)NbCameras();++aK)
+    for (uint aK=0; aK < (uint)getNbCameras();++aK)
         delete _Cameras[aK];
 
     _Cameras.clear();
@@ -61,7 +61,7 @@ void cData::clearCameras()
 
 void cData::clearImages()
 {
-    for (uint aK=0; aK < (uint)NbCameras();++aK)
+    for (uint aK=0; aK < (uint)getNbCameras();++aK)
         delete _Images[aK];
 
     _Images.clear();
@@ -71,7 +71,7 @@ void cData::clearImages()
 
 void cData::clearMasks()
 {
-    for (uint aK=0; aK < (uint)NbMasks();++aK)
+    for (uint aK=0; aK < (uint)getNbMasks();++aK)
         delete _Masks[aK];
 
     _Masks.clear();
@@ -90,7 +90,7 @@ void cData::reset()
 int cData::getSizeClouds()
 {
     int sizeClouds = 0;
-    for (int aK=0; aK < NbClouds();++aK)
+    for (int aK=0; aK < getNbClouds();++aK)
         sizeClouds += getCloud(aK)->size();
 
     return sizeClouds;
@@ -105,14 +105,14 @@ void cData::getBB()
 
         for (int aK=0; aK < aCloud->size(); ++aK)
         {
-            Vertex vert = aCloud->getVertex(aK);
+            Pt3dr vert = aCloud->getVertex(aK).getPosition();
 
-            if (vert.x() > m_maxX) m_maxX = vert.x();
-            if (vert.x() < m_minX) m_minX = vert.x();
-            if (vert.y() > m_maxY) m_maxY = vert.y();
-            if (vert.y() < m_minY) m_minY = vert.y();
-            if (vert.z() > m_maxZ) m_maxZ = vert.z();
-            if (vert.z() < m_minZ) m_minZ = vert.z();
+            if (vert.x > m_maxX) m_maxX = vert.x;
+            if (vert.x < m_minX) m_minX = vert.x;
+            if (vert.y > m_maxY) m_maxY = vert.y;
+            if (vert.y < m_minY) m_minY = vert.y;
+            if (vert.z > m_maxZ) m_maxZ = vert.z;
+            if (vert.z < m_minZ) m_minZ = vert.z;
         }
     }
 

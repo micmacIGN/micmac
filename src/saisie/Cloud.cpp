@@ -43,19 +43,19 @@ static PlyProperty oriented_vert_props[] = {
     {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,nz), 0, 0, 0, 0}
 };
 
-Vertex::Vertex()
+/*Vertex::Vertex()
 {
     _position = Pt3dr(0.,0.,0.);
     _color    = QColor();
     _bVisible = true;
 }
 
-Vertex::Vertex(Pt3dr pos, QColor col)
+/*Vertex::Vertex(Pt3dr pos, QColor col)
 {
     _position  = pos;
     _color     = col;
     _bVisible  = true;
-}
+}*/
 
 /*!
     Read a ply file, store the point cloud
@@ -258,12 +258,6 @@ void Cloud::clear()
     _vertices.clear();
 }
 
-Cloud::Cloud()
-    :
-      _translation(),
-      _scale(0.)
-{}
-
 Cloud::Cloud(vector<Vertex> const & vVertex)
 {
     for (uint aK=0; aK< vVertex.size(); aK++)
@@ -271,7 +265,90 @@ Cloud::Cloud(vector<Vertex> const & vVertex)
         addVertex(vVertex[aK]);
     }
 
-    _translation = Pt3dr(0.,0.,0.);
-    _scale = 0.f;
+    _position = Pt3dr(0.,0.,0.);
+    _scale = 1.f;
+}
+
+void Cloud::draw()
+{
+    glEnable(GL_DEPTH_TEST);
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+
+    _vertexbuffer.bind();
+    glVertexPointer(3, GL_FLOAT, 0, NULL);
+    _vertexbuffer.release();
+
+    _vertexColor.bind();
+    glColorPointer(3, GL_FLOAT, 0, NULL);
+    _vertexColor.release();
+
+    glDrawArrays( GL_POINTS, 0, size()*3 );
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
+
+    glDisable(GL_DEPTH_TEST);
+}
+
+void Cloud::setBufferGl(bool onlyColor)
+{
+    if(_vertexbuffer.isCreated() && !onlyColor)
+        _vertexbuffer.destroy();
+    if(_vertexColor.isCreated())
+        _vertexColor.destroy();
+
+    uint sizeCloud = size();
+    GLfloat* vertices = NULL, *colors = NULL;
+
+    if(!onlyColor)
+        vertices = new GLfloat[sizeCloud*3];
+
+    colors     = new GLfloat[sizeCloud*3];
+
+    for(uint bK=0; bK< sizeCloud; bK++)
+    {
+        Vertex vert = getVertex(bK);
+        Pt3dr  pos  = vert.getPosition();
+        QColor colo = vert.getColor();
+        if(!onlyColor)
+        {
+            vertices[bK*3 + 0 ] = pos.x;
+            vertices[bK*3 + 1 ] = pos.y;
+            vertices[bK*3 + 2 ] = pos.z;
+        }
+        if(vert.isVisible())
+        {
+            colors[bK*3 + 0 ]   = colo.redF();
+            colors[bK*3 + 1 ]   = colo.greenF();
+            colors[bK*3 + 2 ]   = colo.blueF();
+        }
+        else
+        {
+            colors[bK*3 + 0 ]   = colo.redF()   *0.7;
+            colors[bK*3 + 1 ]   = colo.greenF() *0.6;
+            colors[bK*3 + 2 ]   = colo.blueF()  *0.8;
+        }
+    }
+
+    if(!onlyColor)
+    {
+        _vertexbuffer.create();
+        _vertexbuffer.setUsagePattern(QGLBuffer::StaticDraw);
+        _vertexbuffer.bind();
+        _vertexbuffer.allocate(vertices, sizeCloud* 3 * sizeof(GLfloat));
+        _vertexbuffer.release();
+    }
+
+    _vertexColor.create();
+    _vertexColor.setUsagePattern(QGLBuffer::StaticDraw);
+    _vertexColor.bind();
+    _vertexColor.allocate(colors, sizeCloud* 3 * sizeof(GLfloat));
+    _vertexColor.release();
+
+    if(!onlyColor)
+        delete [] vertices;
+    delete [] colors;
 }
 

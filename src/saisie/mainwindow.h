@@ -45,10 +45,6 @@ public slots:
 
     void selectedPoint(uint idC,uint idV,bool select);
 
-    void changeMode(bool mode);
-
-//protected slots:
-
     void displayShortcuts();
 
     void toggleFullScreen(bool);
