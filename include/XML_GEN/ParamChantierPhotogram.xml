@@ -19,6 +19,21 @@
 namespace NS_ParamChantierPhotogram{
 </Verbatim>
 
+   <enum Name="eTypeTapas">
+           <eTT_RadialBasic> </eTT_RadialBasic>
+           <eTT_RadialExtended> </eTT_RadialExtended>
+           <eTT_Fraser> </eTT_Fraser>
+           <eTT_FishEyeEqui> </eTT_FishEyeEqui>
+           <eTT_AutoCal> </eTT_AutoCal>
+           <eTT_Figee> </eTT_Figee>
+           <eTT_HemiEqui> </eTT_HemiEqui>
+           <eTT_RadialStd> </eTT_RadialStd>
+           <eTT_FraserBasic> </eTT_FraserBasic>
+           <eTT_FishEyeBasic> </eTT_FishEyeBasic>
+           <eTT_FE_EquiSolBasic> </eTT_FE_EquiSolBasic>
+           <eTT_NbVals> </eTT_NbVals>
+   </enum>
+
    <enum Name="eTypeMMByP">
        <eGround>         </eGround>
        <eNbTypeMMByP>    </eNbTypeMMByP>
