@@ -11,11 +11,11 @@ set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -lineinfo)
  set(libStatGpGpuInterfMicMac GpGpuInterfMicMac)
  set(libStatGpGpuOpt GpGpuOpt)
 
- set(libNVTools /usr/local/cuda/lib64/libnvToolsExt.so)
+ find_cuda_helper_libs(nvToolsExt)
 
  cuda_add_library(${libStatGpGpuTools}  ${GpGpuTools_Src_Files} ${IncCudaFiles} STATIC OPTIONS ${GENCODE_SM20})
 
- target_link_libraries(${libStatGpGpuTools} ${libNVTools})
+ target_link_libraries(${libStatGpGpuTools} ${CUDA_nvToolsExt_LIBRARY})
 
  cuda_add_library(${libStatGpGpuInterfMicMac}  ${uti_phgrm_GpGpu_Src_Files} STATIC OPTIONS ${GENCODE_SM20})
 
@@ -28,21 +28,17 @@ set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -lineinfo)
           endif()
  endif()
 
- #if(NOT ${CUDA_ENABLED})
+ set(TestExeGpGpuOpt TestGpGpuOpt)
+ cuda_add_executable(${TestExeGpGpuOpt} ${uti_Test_Opt_GpGpu_Src_Files})
 
-     set(TestExeGpGpuOpt TestGpGpuOpt)
-     cuda_add_executable(${TestExeGpGpuOpt} ${uti_Test_Opt_GpGpu_Src_Files})
+ target_link_libraries(${TestExeGpGpuOpt}  ${Boost_LIBRARIES} ${Boost_THREADAPI} ${libStatGpGpuOpt} ${libStatGpGpuTools})
 
-     target_link_libraries(${TestExeGpGpuOpt}  ${Boost_LIBRARIES} ${Boost_THREADAPI} ${libStatGpGpuOpt} ${libStatGpGpuTools})
+ if (NOT WIN32)
+        target_link_libraries(${TestExeGpGpuOpt}  rt pthread )
+ endif()
+ INSTALL(TARGETS ${TestExeGpGpuOpt} RUNTIME DESTINATION ${Install_Dir})
 
-     if (NOT WIN32)
-            target_link_libraries(${TestExeGpGpuOpt}  rt pthread )
-     endif()
-     INSTALL(TARGETS ${TestExeGpGpuOpt} RUNTIME DESTINATION ${Install_Dir})
-
- #endif()
-
- link_directories(${PROJECT_SOURCE_DIR}/lib/)
+link_directories(${PROJECT_SOURCE_DIR}/lib/)
 
 if(${CUDA_ENABLED})
          file(GLOB_RECURSE IncFilesGpGpu ${PROJECT_SOURCE_DIR}/include/GpGpu/*.h  )
@@ -51,7 +47,7 @@ endif()
 
  cuda_add_library( ${libElise} ${Elise_Src_Files} ${IncFiles} OPTIONS ${GENCODE_SM20})
 
- target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${libNVTools})
+ target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${CUDA_nvToolsExt_LIBRARY})
 
  INSTALL(TARGETS ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt}
             LIBRARY DESTINATION ${PROJECT_SOURCE_DIR}/lib
