@@ -7,7 +7,6 @@
 #include <algorithm>
 
 #include <QtOpenGL/QGLWidget>
-#include <QtOpenGL/QGLBuffer>
 #include <QGLContext>
 #include <QDebug>
 
@@ -127,9 +126,7 @@ public:
     //! Increase or decrease point size
     void ptSizeUp(bool);
 
-    void setBufferGl(bool onlyColor = false);
-
-    void getProjection(QPointF &P2D, Vertex P);
+    void getProjection(QPointF &P2D, Pt3dr P);
 
     QVector <selectInfos> getSelectInfos(){return m_infos;}
 
@@ -207,9 +204,6 @@ protected:
     //! States if messages should be displayed
     bool m_bDrawMessages;
 
-    //! States if view is centered on object
-    bool m_bObjectCenteredView;
-
     //! Current interaction mode (with mouse)
     INTERACTION_MODE m_interactionMode;
 
@@ -268,9 +262,6 @@ private:
 
     void        setProjectionMatrix();
     void        computeFPS();
-
-    QGLBuffer   _vertexbuffer;
-    QGLBuffer   _vertexColor;
 
     int         _frameCount;
     int         _previousTime;

@@ -585,7 +585,7 @@ void MainWindow::loadImage()
 
 void MainWindow::exportMasks()
 {
-    if (_Engine->getData()->NbImages())
+    if (_Engine->getData()->getNbImages())
     {
         _Engine->doMaskImage(_glWidget->getGLMask());
     }
@@ -603,7 +603,7 @@ void MainWindow::exportMasksAs()
     {
         _Engine->setFilenameOut(fname);
 
-        if (_Engine->getData()->NbImages())
+        if (_Engine->getData()->getNbImages())
         {
             _Engine->doMaskImage(_glWidget->getGLMask());
         }
@@ -625,7 +625,6 @@ void MainWindow::closeAll()
 
     _glWidget->reset();
     checkForLoadedData();
-    //_glWidget->setBufferGl();
 }
 
 void MainWindow::openRecentFile()
