@@ -555,7 +555,9 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuH
         uint    pitStrm = 0;
         uint    lLine   = aVPt->size();
         short2* index   = d2Opt._s_Index.pData() + d2Opt._param[idBuf][idLine].y;
+#if OPTIMX
         ushort2* PTTER   = d2Opt._s_PtTer.pData() + d2Opt._param[idBuf][idLine].y;
+#endif
 
         for (uint aK= 0 ; aK < lLine; aK++)
         {
@@ -566,7 +568,9 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuH
             ushort dZ   = size[ptTer];
 
             index[aK] = ptZ;
-            PTTER[aK] = make_ushort2(ptZ.x,ptZ.y);
+            #if OPTIMX
+                PTTER[aK] = make_ushort2(ptZ.x,ptZ.y);
+            #endif
 
             uint idStrm = d2Opt._param[idBuf][idLine].x + pitStrm;
 
