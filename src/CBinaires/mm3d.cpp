@@ -344,6 +344,7 @@ extern int  LucasChCloud_main(int argc,char ** argv);
 extern int  Mathieu_main(int argc,char ** argv);
 extern int  RawCor_main(int argc,char ** argv);
 extern int  CreateBlockEpip_main(int argc,char ** argv);
+extern int  Test_TD0_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -359,6 +360,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
    aRes.push_back(cMMCom("BlocEpip",CreateBlockEpip_main,"Epip by bloc (internal use to // epip) "));
    aRes.push_back(cMMCom("MMSMA",MMSymMasqAR_main,"Symetrise Masque Alle-Retour (internal use in MM1P) "));
+   aRes.push_back(cMMCom("TD",Test_TD0_main,"Test TD "));
    return aRes;
 }
 
