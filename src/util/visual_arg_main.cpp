@@ -40,12 +40,28 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+void ShowEnum(const cMMSpecArg & anArg)
+{
+    const std::list<std::string>  & aLEnum = anArg.EnumeratedValues();
+    for
+    (
+          std::list<std::string>::const_iterator itS = aLEnum.begin();
+          itS != aLEnum.end();
+          itS++
+    )
+          std::cout << "     " << *itS << "\n";
+
+}
+
+
 // ====================================================================
 // 
 //      Lecture d'un argument optionnel; utilise par MMRunVisualMode
 //      retourne false si on specifie la fin de lecture; 
 //
 //=====================================================================
+
+
 
 bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
 {
@@ -59,6 +75,7 @@ bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
             if (aCom != "") std::cout << " ; " << aCom ;
 
             std::cout  << "\n";
+            ShowEnum(aVAO[aK]);
         }
      }
 
@@ -101,6 +118,7 @@ void MMRunVisualMode
          std::cout << "Enter Mandatory Arg " << aK << " ; Type is " << aVAM[aK].NameType() << "\n";
          std::string aCom = aVAM[aK].Comment();
          if (aCom != "") std::cout << "Comment=" << aCom << "\n";
+         ShowEnum(aVAM[aK]);
 
          // on lit une chaine de caractere
          std::string aVal;
