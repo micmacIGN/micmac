@@ -47,6 +47,9 @@ using namespace NS_ParamChantierPhotogram;
 #define SzBuf 2000
 static char buf[SzBuf];
 
+std::list<std::string>  TheEmptyListEnum;
+
+
 std::string MakeStrFromArgcARgv(int  argc,char** argv)
 {
    std::string aRes;
@@ -341,17 +344,37 @@ LArgMain::~LArgMain()
 		delete (*it);
 }
 
+std::list<std::string> ModifListe(const std::list<std::string> & aList,const char * aNameType)
+{
+   if (std::string(aNameType)==std::string("bool"))
+   {
+       std::list<std::string> aL;
+       aL.push_back("true");
+       aL.push_back("false");
 
-GenElArgMain::GenElArgMain(const char * Name,bool IsInit,eSpecArgMain aSpec) :
+       return aL;
+   }
+   return aList;
+}
+
+
+
+GenElArgMain::GenElArgMain(const char * Name,bool IsInit,eSpecArgMain aSpec,const std::list<std::string> & aLEnumVal) :
         _name  (Name),
 	_is_init (IsInit),
-        mSpec    (aSpec)
+        mSpec    (aSpec),
+        mLEnum   (aLEnumVal)
 {
 }
 
 eSpecArgMain GenElArgMain::Spec() const
 {
    return mSpec;
+}
+
+const std::list<std::string> &  GenElArgMain::ListEnum() const
+{
+   return mLEnum;
 }
 
 
