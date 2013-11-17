@@ -215,7 +215,8 @@ int  BinaireUnique
 			str_append( &g_command, argv[aK] );
 	}
   
-	printf("ComF =[%s]\n",g_command.data); fflush(stdout);
+//	printf("ComF =[%s]\n",g_command.data);
+        fflush(stdout);
   
 	#ifdef _WIN32
 		// an extra double quote on the whole line seem to be necessary for lines starting with a double quote

@@ -344,11 +344,14 @@ extern int  LucasChCloud_main(int argc,char ** argv);
 extern int  Mathieu_main(int argc,char ** argv);
 extern int  RawCor_main(int argc,char ** argv);
 extern int  CreateBlockEpip_main(int argc,char ** argv);
-extern int  Test_TD0_main(int argc,char ** argv);
+extern int  TD_GenereAppuis_main(int argc,char ** argv);
+extern int  TD_Exemple_main(int argc,char ** argv);
+extern int  TD_Sol1(int argc,char ** argv);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
+   aRes.push_back(cMMCom("X1",TD_Sol1,"Some stuff "));
    aRes.push_back(cMMCom("W0",Sample_W0_main,"Test on Graphic Windows "));
    aRes.push_back(cMMCom("LSQ0",Sample_LSQ0_main,"Basic Test on Least Square libray "));
    aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou "));
@@ -360,7 +363,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
    aRes.push_back(cMMCom("BlocEpip",CreateBlockEpip_main,"Epip by bloc (internal use to // epip) "));
    aRes.push_back(cMMCom("MMSMA",MMSymMasqAR_main,"Symetrise Masque Alle-Retour (internal use in MM1P) "));
-   aRes.push_back(cMMCom("TD",Test_TD0_main,"Test TD "));
+   aRes.push_back(cMMCom("TD_GenApp",TD_GenereAppuis_main,"TD Generate GCP"));
+   aRes.push_back(cMMCom("TD_Test",TD_Exemple_main,"Test TD "));
    return aRes;
 }
 
