@@ -41,20 +41,127 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "TpPPMD.h"
 
 
+/********************************************************************/
+/*                                                                  */
+/*         cTD_Camera                                               */
+/*                                                                  */
+/********************************************************************/
+
 cTD_Camera::cTD_Camera(const std::string & aName) :
+    mName (aName),
     mCS (CamOrientGenFromFile(NameWithoutDir(aName),cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aName))))
 {
 }
 
-
-int Test_TD0_main(int argc,char ** argv)
+Pt2dr cTD_Camera::Ter2Image(const Pt3dr & aPTer) const
 {
-    ELISE_ASSERT(argc>=2,"Test_TD0_main");
- 
-    cTD_Camera aCam(argv[1]);
+    return mCS->R3toF2(aPTer);
+}
+
+std::vector<cTD_Camera> cTD_Camera::RelvtEspace
+                        (
+                                    const Pt3dr & aPTer1, const Pt2dr & aPIm1,
+                                    const Pt3dr & aPTer2, const Pt2dr & aPIm2,
+                                    const Pt3dr & aPTer3, const Pt2dr & aPIm3
+                        )
+{
+    std::list<ElRotation3D> aLR;
+
+
+    mCS->OrientFromPtsAppui(aLR,aPTer1,aPTer2,aPTer3,aPIm1,aPIm2,aPIm3);
+
+    std::vector<cTD_Camera>  aRes;
+
+    for (std::list<ElRotation3D>::const_iterator itR=aLR.begin(); itR!=aLR.end(); itR++)
+    {
+          cTD_Camera aNew = *this;
+          aNew.mCS = mCS->Dupl();
+          aNew.mCS->SetOrientation(*itR);
+          aRes.push_back(aNew);
+    }
+
+
+    return aRes;
+}
+
+void cTD_Camera::Save(const std::string & aName) const
+{
+    MakeFileXML
+    (
+       mCS->StdExportCalibGlob(),
+       aName
+    );
+}
+
+
+
+/********************************************************************/
+/*                                                                  */
+/*         cTD_Prof                                                 */
+/*                                                                  */
+/********************************************************************/
+
+
+class cTD_Prof
+{
+    public :
+       static void GenereAppar32(cTD_Camera &,int aNb,double aNoiseGauss,double aProbaBigNoise);
+};
+
+
+void cTD_Prof::GenereAppar32(cTD_Camera & aCam,int aNb,double aNoiseGauss,double aProbaBigNoise)
+{
+    CamStenope * aCS = aCam.mCS;
+    Pt2dr aSz = Pt2dr(aCS->Sz());
+    Box2dr aBox(Pt2dr(0,0),aSz);
+
+    cListeAppuis1Im aL;
+
+    for (int aK=0 ; aK< aNb ; aK++)
+    {
+        Pt2dr aPIm =  aBox.RandomlyGenereInside();
+        double aProf = 3.0 * (1+NRrandom3());
+        Pt3dr aPTer = aCS->ImEtProf2Terrain(aPIm,aProf);
+        aPIm =  aPIm + Pt2dr(NRrandC(),NRrandC()) * aNoiseGauss;
+        if (NRrandom3()<aProbaBigNoise)
+           aPIm =  aBox.RandomlyGenereInside();
+
+        cMesureAppuis aM;
+        aM.Num().SetVal(aK);
+        aM.Im() = aPIm;
+        aM.Ter() = aPTer;
+        aL.Mesures().push_back(aM);
+    }
+    // aL.NameImage().SetVal(aCam.mName);
+    MakeFileXML(aL,StdPrefix(aCam.mName)+"_PtsTest.xml");
+}
+
+int TD_GenereAppuis_main(int argc,char ** argv)
+{
+    std::string aNameCam,toto;
+    int aNbPts;
+    double aWhiteNoise,aProbaOut;
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aNameCam,"Name of camera")
+                    << EAMC(aNbPts,"Nuber of point")
+                    << EAMC(aWhiteNoise,"White noise added")
+                    << EAMC(aProbaOut,"Proba of Out Layers"),
+        LArgMain()  << EAM(toto,"toto",true,"Do no stuff")
+    );
+
+    cTD_Camera aCam(aNameCam);
+
+
+    cTD_Prof::GenereAppar32(aCam,aNbPts,aWhiteNoise,aProbaOut);
 
     return 0;
 }
+
+
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -36,73 +36,83 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#ifndef __TD_CAMERA__
-#define __TD_CAMERA__
 
 #include "StdAfx.h"
-
-/* ===========================================
-
-   Ce fichier contient la definition de quelques classe donnant acces au fonctionallité
-   MicMac de la manière la plus simple possible.
-
-   Pour quelque classe simples, on se contente de rappeler l'existance des classe MicMac
-
-==================================================*/
+#include "TpPPMD.h"
 
 
-//     Pt2dr  classe definissant les points 2D
-//     Pt3dr  classe definissant les points 3D
-//
+/********************************************************************/
+/*                                                                  */
+/*         cTD_Camera                                               */
+/*                                                                  */
+/********************************************************************/
 
-class cTD_Prof;
 
-class cTD_Camera
+/*
+   Par exemple :
+
+       mm3d TestLib TD_Test Orientation-IMG_0016.CR2.xml AppuisTest-IMG_0016.CR2.xml
+*/
+
+int TD_Exemple_main(int argc,char ** argv)
 {
-     public :
-        
-        // Constructeur a partir d'un fichier XML , peut etre une calibration interne ou externe
-        cTD_Camera(const std::string &);
+    std::string aNameCam,aNameAppuis;
+    std::string toto;
 
-        // Sauvegarde dans un fichier
-        void Save(const std::string &) const;
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aNameCam,"Name of camera")
+                    << EAMC(aNameAppuis,"Name of GCP"),
+        LArgMain()  << EAM(toto,"toto",true,"Do no stuff")
+    );
 
-        // Fonction de projection  Terrain  -> Image
-        Pt2dr Ter2Image(const Pt3dr &) const;
+    cTD_Camera aCam(aNameCam);
+    cTD_SetAppuis aSetGCP(aNameAppuis);
 
-        // Relevement dans l'espace
-        std::vector<cTD_Camera> RelvtEspace
-                                (
-                                    const Pt3dr & aPTer1, const Pt2dr & aPIm1,
-                                    const Pt3dr & aPTer2, const Pt2dr & aPIm2,
-                                    const Pt3dr & aPTer3, const Pt2dr & aPIm3
-                                );
+    for (int aKP=0 ; aKP<int(aSetGCP.PTer().size()) ; aKP++)
+    {
+         Pt3dr aPTer = aSetGCP.PTer()[aKP];
+         Pt2dr aPIm  = aSetGCP.PIm()[aKP];
 
-     private :
-        friend class cTD_Prof;
+         Pt2dr aPProj = aCam.Ter2Image(aPTer);
 
-        std::string   mName;
-        CamStenope *  mCS;
-};
-
-int TD_EntierAleatoire(int aN);  // Renvoie un entier au hasrd entre 1 et N
-
-class cTD_SetAppuis
-{
-     public :
-        cTD_SetAppuis(const std::string &);
-
-        const std::vector<Pt3dr> & PTer() const {return mPTer;}
-        const std::vector<Pt2dr> & PIm() const {return mPIm;}
-
-     private :
-         std::vector<Pt3dr> mPTer;
-         std::vector<Pt2dr> mPIm;
-};
+         std::cout  << "dist[" << aKP << "]= " << euclid (aPIm,aPProj) << "\n";
+    }
 
 
+    int aK1,aK2,aK3;
+    std::cout << "ENTER K1 K2 K3 \n";
+    cin >>  aK1 >> aK2 >>  aK3;
 
-#endif // __TD_CAMERA__
+    std::vector<cTD_Camera> aSols = aCam.RelvtEspace
+                                    (
+                                          aSetGCP.PTer()[aK1], aSetGCP.PIm()[aK1],
+                                          aSetGCP.PTer()[aK2], aSetGCP.PIm()[aK2],
+                                          aSetGCP.PTer()[aK3], aSetGCP.PIm()[aK3]
+                                    );
+
+
+    for (int aKS=0 ; aKS<int(aSols.size()) ; aKS++)
+    {
+         for (int aKP=0 ; aKP<int(aSetGCP.PTer().size()) ; aKP++)
+         {
+              Pt3dr aPTer = aSetGCP.PTer()[aKP];
+              Pt2dr aPIm  = aSetGCP.PIm()[aKP];
+
+              Pt2dr aPProj = aSols[aKS].Ter2Image(aPTer);
+
+              std::cout  << "   dist " << euclid (aPIm,aPProj) << "\n";
+         }
+         std::cout << "========================================\n";
+    }
+
+    return 0;
+}
+
+
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

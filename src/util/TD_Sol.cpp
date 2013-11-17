@@ -36,73 +36,105 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#ifndef __TD_CAMERA__
-#define __TD_CAMERA__
 
 #include "StdAfx.h"
-
-/* ===========================================
-
-   Ce fichier contient la definition de quelques classe donnant acces au fonctionallité
-   MicMac de la manière la plus simple possible.
-
-   Pour quelque classe simples, on se contente de rappeler l'existance des classe MicMac
-
-==================================================*/
+#include "../TpMMPD/TpPPMD.h"
 
 
-//     Pt2dr  classe definissant les points 2D
-//     Pt3dr  classe definissant les points 3D
-//
+/********************************************************************/
+/*                                                                  */
+/*         cTD_Camera                                               */
+/*                                                                  */
+/********************************************************************/
 
-class cTD_Prof;
 
-class cTD_Camera
+/*
+   Par exemple :
+
+       mm3d TestLib TD_Test Orientation-IMG_0016.CR2.xml AppuisTest-IMG_0016.CR2.xml
+*/
+
+
+double ScoreScol(const  cTD_Camera & aCam,const cTD_SetAppuis & aSetGCP)
 {
-     public :
-        
-        // Constructeur a partir d'un fichier XML , peut etre une calibration interne ou externe
-        cTD_Camera(const std::string &);
+    double aScore = 0;
+    for (int aKP=0 ; aKP<int(aSetGCP.PTer().size()) ; aKP++)
+    {
+         Pt3dr aPTer = aSetGCP.PTer()[aKP];
+         Pt2dr aPIm  = aSetGCP.PIm()[aKP];
 
-        // Sauvegarde dans un fichier
-        void Save(const std::string &) const;
+         Pt2dr aPProj = aCam.Ter2Image(aPTer);
 
-        // Fonction de projection  Terrain  -> Image
-        Pt2dr Ter2Image(const Pt3dr &) const;
+         double aD = euclid (aPIm,aPProj);
+         aScore +=  aD / (10+aD);
+    }
+    return aScore;
+}
 
-        // Relevement dans l'espace
-        std::vector<cTD_Camera> RelvtEspace
-                                (
-                                    const Pt3dr & aPTer1, const Pt2dr & aPIm1,
-                                    const Pt3dr & aPTer2, const Pt2dr & aPIm2,
-                                    const Pt3dr & aPTer3, const Pt2dr & aPIm3
-                                );
 
-     private :
-        friend class cTD_Prof;
 
-        std::string   mName;
-        CamStenope *  mCS;
-};
 
-int TD_EntierAleatoire(int aN);  // Renvoie un entier au hasrd entre 1 et N
-
-class cTD_SetAppuis
+int TD_Sol1(int argc,char ** argv)
 {
-     public :
-        cTD_SetAppuis(const std::string &);
+    std::string aNameCam,aNameAppuis;
+    int aNbTest = 10000;
 
-        const std::vector<Pt3dr> & PTer() const {return mPTer;}
-        const std::vector<Pt2dr> & PIm() const {return mPIm;}
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aNameCam,"Name of camera")
+                    << EAMC(aNameAppuis,"Name of GCP"),
+        LArgMain()  << EAM(aNbTest,"NbTest",true,"Do no stuff")
+    );
 
-     private :
-         std::vector<Pt3dr> mPTer;
-         std::vector<Pt2dr> mPIm;
-};
+    cTD_Camera aCam(aNameCam);
+    cTD_SetAppuis aSetGCP(aNameAppuis);
+
+    int aNbPts =  aSetGCP.PTer().size();
+
+    
+    double aScoreMin = 1e20;
+    cTD_Camera aBestCam = aCam;
+    for (int aK=0 ; aK< aNbTest ; aK++)
+    {
+        if ((aK%100)==0) 
+           std::cout << "RESTE " << aNbTest-aK << "\n";
+
+        int aK1 = TD_EntierAleatoire(aNbPts);
+        int aK2 = TD_EntierAleatoire(aNbPts);
+        int aK3 = TD_EntierAleatoire(aNbPts);
+
+        if ((aK1!=aK2) && (aK1!=aK3) && (aK2!=aK3))
+        {
+            std::vector<cTD_Camera> aSols = aCam.RelvtEspace
+                                    (
+                                          aSetGCP.PTer()[aK1], aSetGCP.PIm()[aK1],
+                                          aSetGCP.PTer()[aK2], aSetGCP.PIm()[aK2],
+                                          aSetGCP.PTer()[aK3], aSetGCP.PIm()[aK3]
+                                    );
+
+
+            for (int aKS=0 ; aKS<int(aSols.size()) ; aKS++)
+            {
+                  double aScore =  ScoreScol(aSols[aKS],aSetGCP);
+
+                  if (aScore<aScoreMin)
+                  {
+                       aScoreMin = aScore;
+                       aBestCam = aSols[aKS];
+                  }
+            }
+        }
+     }
+     aBestCam.Save(StdPrefix(aNameCam) + "_Save.xml");
+
+
+     return 0;
+}
 
 
 
-#endif // __TD_CAMERA__
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
