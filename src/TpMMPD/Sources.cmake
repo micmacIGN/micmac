@@ -1,5 +1,7 @@
 set(Src_TD_PPMD
 	${TDPPMD_DIR}/cTD_Camera.cpp
+	${TDPPMD_DIR}/cTD_SetAppuis.cpp
+	${TDPPMD_DIR}/TD_Exemple.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})
