@@ -215,6 +215,7 @@ int  BinaireUnique
 			str_append( &g_command, argv[aK] );
 	}
   
+// MPD CELA FAIT BUGGER MpDcraxw qui ecit sur la sortie standard (donc mauvais entete dans le pnm)
 //	printf("ComF =[%s]\n",g_command.data);
         fflush(stdout);
   
