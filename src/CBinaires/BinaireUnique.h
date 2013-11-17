@@ -15,8 +15,9 @@
 // #define PATH_BUFFER_SIZE 100000
 
 // increase buffers' sizes of BUFFER_CHUNCK_SIZE when no specified size is specified
-#define BUFFER_CHUNCK_SIZE 10
+#define BUFFER_CHUNCK_SIZE 256
 
+// a data type for a reallocating buffer (for strings here)
 typedef struct{
    char         * data;
    unsigned int   size;
@@ -45,6 +46,7 @@ void freeBuffer( buffer_t *i_buffer )
 
 // ensures i_buffer is at least i_size long
 // if i_keepData is true, the beginning of buffer's content is unchanged
+// ex: a buffer of size 256 becomes a buffer of size 1024 with the 256 first bytes unchanged, the other 768 bytes are undefined
 // returns i_buffer->data
 char * getBuffer( buffer_t *i_buffer, unsigned int i_size, int i_keepData )
 {
@@ -202,20 +204,21 @@ int  BinaireUnique
 	for (aK=1 ; aK<argc ; aK++)
 	{
 		str_append( &g_command, " " );
-		if ( has_space(argv[aK]) )
-		{
-			#ifdef _WIN32
-				if ( ends_with_backslash(argv[aK]) )
-					str_append( &g_command, add_double_quotes_and_space( argv[aK], &g_buffer0 ) );
-				else
-			#endif
-			str_append( &g_command, add_double_quotes( argv[aK], &g_buffer0 ) );
-		}
-		else
-			str_append( &g_command, argv[aK] );
+		
+		// every argument is quoted because it can be :
+		// - a regular expression (and unices must not interpret it)
+		// - a filename (and it must not be split by the command interpretter if there is a space in it)
+		#ifdef _WIN32
+			if ( ends_with_backslash(argv[aK]) )
+				str_append( &g_command, add_double_quotes_and_space( argv[aK], &g_buffer0 ) );
+			else
+		#endif
+		str_append( &g_command, add_double_quotes( argv[aK], &g_buffer0 ) );
 	}
-  
-	printf("ComF =[%s]\n",g_command.data); fflush(stdout);
+    
+    #ifdef __TRACE_SYSTEM__
+		printf("%s calls [%s]\n", argv[0], g_command.data); fflush(stdout);
+	#endif
   
 	#ifdef _WIN32
 		// an extra double quote on the whole line seem to be necessary for lines starting with a double quote
