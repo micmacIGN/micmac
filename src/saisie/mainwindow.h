@@ -45,49 +45,11 @@ public slots:
 
     void selectedPoint(uint idC,uint idV,bool select);
 
-    void displayShortcuts();
-
-    void toggleFullScreen(bool);
-    void toggleShowAxis(bool);
-    void toggleShowBall(bool);
-    void toggleShowBBox(bool);
-    void toggleShowCams(bool);
-    void toggleShowMessages(bool);
-    void toggleSelectionMode(bool);
-    void toggle2D3D();
-
-    void add();
-    void selectNone();
-    void invertSelected();
-    void selectAll();
-    void removeFromSelection();
-    void reset();
-
-    //default views
-    void setFrontView();
-    void setBottomView();
-    void setTopView();
-    void setBackView();
-    void setLeftView();
-    void setRightView();
-
-    void resetView();
-
-    //zoom
-    void zoomPlus();
-    void zoomMoins();
-    void zoomFit();
     void zoomFactor(int aFactor );
 
-    void echoMouseWheelRotate(float);
-
-    void loadPlys();
-    void loadCameras();
-    void loadImage();
     void closeAll();
-    void exportMasks();
-    void exportMasksAs();
-    void saveSelectionInfos();
+
+    void echoMouseWheelRotate(float);
 
     void openRecentFile();
 
@@ -99,6 +61,50 @@ public slots:
     cEngine* getEngine(){return _Engine;}
 
 	void setGamma(float aGamma);
+
+protected slots:
+
+    //View Menu
+    void on_actionShow_axis_toggled(bool);
+    void on_actionShow_ball_toggled(bool);
+    void on_actionShow_cams_toggled(bool);
+    void on_actionShow_bounding_box_toggled(bool);
+
+    void on_actionFullScreen_toggled(bool);
+    void on_actionShow_help_messages_toggled(bool);
+    void on_actionToggleMode_toggled(bool);
+
+    void on_action2D_3D_mode_triggered();
+    void on_actionHelpShortcuts_triggered();
+    void on_actionReset_view_triggered();
+
+    void on_actionSetViewTop_triggered();
+    void on_actionSetViewBottom_triggered();
+    void on_actionSetViewFront_triggered();
+    void on_actionSetViewBack_triggered();
+    void on_actionSetViewLeft_triggered();
+    void on_actionSetViewRight_triggered();
+
+    //Zoom
+    void on_actionZoom_Plus_triggered();
+    void on_actionZoom_Moins_triggered();
+    void on_actionZoom_Fit_triggered();
+
+    //Selection Menu
+    void on_actionAdd_triggered();
+    void on_actionSelect_none_triggered();
+    void on_actionInvertSelected_triggered();
+    void on_actionSelectAll_triggered();
+    void on_actionReset_triggered();
+    void on_actionRemove_triggered();
+
+    //File Menu
+    void on_actionLoad_plys_triggered();
+    void on_actionLoad_camera_triggered();
+    void on_actionLoad_image_triggered();
+    void on_actionSave_masks_triggered();
+    void on_actionSave_as_triggered();
+    void on_actionSave_selection_triggered();
 
 protected:
 
