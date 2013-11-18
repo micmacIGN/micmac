@@ -67,24 +67,27 @@ int TD_Exemple_main(int argc,char ** argv)
         LArgMain()  << EAM(toto,"toto",true,"Do no stuff")
     );
 
+	//On créé un objet camera (aCam) et un objet liste de points d'appui (aSetGCP)
     cTD_Camera aCam(aNameCam);
     cTD_SetAppuis aSetGCP(aNameAppuis);
 
+	//Pour chaque point d'appui, on calcul la distance entre la coordonnée image données par le fichier et la coordonnée image projetée à partir du point 3D et des infos de camera
     for (int aKP=0 ; aKP<int(aSetGCP.PTer().size()) ; aKP++)
     {
-         Pt3dr aPTer = aSetGCP.PTer()[aKP];
-         Pt2dr aPIm  = aSetGCP.PIm()[aKP];
+         Pt3dr aPTer = aSetGCP.PTer()[aKP];//Point 3D
+         Pt2dr aPIm  = aSetGCP.PIm()[aKP];//Point image
 
-         Pt2dr aPProj = aCam.Ter2Image(aPTer);
+         Pt2dr aPProj = aCam.Ter2Image(aPTer);//Point projeté
 
          std::cout  << "dist[" << aKP << "]= " << euclid (aPIm,aPProj) << "\n";
     }
 
-
+	//On créé 3 int correspondant à des identifiants de points d'appui
     int aK1,aK2,aK3;
     std::cout << "ENTER K1 K2 K3 \n";
     cin >>  aK1 >> aK2 >>  aK3;
-
+	//Avec ces 3 points, on calcule les positions et orientations possibles de la caméra
+	
     std::vector<cTD_Camera> aSols = aCam.RelvtEspace
                                     (
                                           aSetGCP.PTer()[aK1], aSetGCP.PIm()[aK1],
@@ -92,7 +95,7 @@ int TD_Exemple_main(int argc,char ** argv)
                                           aSetGCP.PTer()[aK3], aSetGCP.PIm()[aK3]
                                     );
 
-
+	//Pour chaque solution, on calcul la distance entre la coordonnée image données par le fichier et la coordonnée image projetée à partir du point 3D et des infos calculées
     for (int aKS=0 ; aKS<int(aSols.size()) ; aKS++)
     {
          for (int aKP=0 ; aKP<int(aSetGCP.PTer().size()) ; aKP++)
