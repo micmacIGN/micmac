@@ -302,7 +302,7 @@ void ReadLine(
 }
 
 template<bool sens> __device__
-void ReadLine2(
+void ReadLine_V02(
                 SimpleStream<short2>    &streamIndex,
                 SimpleStream<uint>      &streamFCost,
                 SimpleStream<ushort>    &streamICost,
@@ -360,6 +360,7 @@ void ReadLine2(
                 {
                     S_FCost[!p.Id_Buf][sgn(tZ)] = fCostMin;
                     streamFCost.SetValue(sgn(p.ID_Bf_Icost),fcost);
+                    //streamFCost.SetValue(sgn(p.ID_Bf_Icost),costInit);
                 }
 
                 if(!sens)
@@ -400,7 +401,7 @@ void ReadLine2(
 }
 
 template<class T> __global__
-void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrParam, uint penteMax)
+void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrParam, uint penteMax)
 {
     __shared__ short2   S_BuffIndex[WARPSIZE];
     __shared__ ushort   S_BuffICost0[NAPPEMAX + 2*WARPSIZE];
@@ -441,7 +442,7 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
         streamFCost.SetValue(i,S_BuffICost[i]);
     }
 
-    ReadLine2<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,p);
+    ReadLine_V02<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,p);
 
     streamIndex.ReverseIncre<eARRIERE>();
     streamFCost.incre<eAVANT>();
@@ -468,7 +469,7 @@ void RunTest(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     for (ushort i = 0; i < NAPPEMAX; i+=WARPSIZE)
         locFCost[-i] = S_BuffICost[-i];
 
-    ReadLine2<eARRIERE>( streamIndex,streamFCost,streamICost,S_BuffIndex + WARPSIZE - 1,S_BuffICost,S_BuffFCost,p);
+    ReadLine_V02<eARRIERE>( streamIndex,streamFCost,streamICost,S_BuffIndex + WARPSIZE - 1,S_BuffICost,S_BuffFCost,p);
 }
 
 extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O)
@@ -477,7 +478,7 @@ extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O)
     dim3 Threads(WARPSIZE,1,1);
     dim3 Blocks(d2O.NBlines(),1,1);
 
-    RunTest< uint ><<<Blocks,Threads>>>
+    Run_V02< uint ><<<Blocks,Threads>>>
                                   (
                                       d2O.pInitCost(),
                                       d2O.pIndex(),
