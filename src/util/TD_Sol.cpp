@@ -36,76 +36,102 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-/*eLiSe06/05/99  
- 
-     Copyright (C) 1999 Marc PIERROT DESEILLIGNY
-	  
-	    eLiSe : Elements of a Linux Image Software Environment
-		 
-		This program is free software; you can redistribute it and/or modify
-		it under the terms of the GNU General Public License as published by
-		the Free Software Foundation; either version 2 of the License, or
-		(at your option) any later version.
-		 
-		This program is distributed in the hope that it will be useful,
-		but WITHOUT ANY WARRANTY; without even the implied warranty of
-		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-		GNU General Public License for more details.
-		 
-		You should have received a copy of the GNU General Public License
-		along with this program; if not, write to the Free Software
-		Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-		 
-		  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS
-		  Internet: Marc.Pierrot-Deseilligny@ign.fr
-		     Phone: (33) 01 43 98 81 28              
+
+#include "StdAfx.h"
+#include "../TpMMPD/TpPPMD.h"
+
+
+/********************************************************************/
+/*                                                                  */
+/*         cTD_Camera                                               */
+/*                                                                  */
+/********************************************************************/
+
+
+/*
+   Par exemple :
+
+       mm3d TestLib TD_Test Orientation-IMG_0016.CR2.xml AppuisTest-IMG_0016.CR2.xml
 */
 
-#ifndef _ELISE_GENERAL_MM_SPEC_ARG_H
-#define _ELISE_GENERAL_MM_SPEC_ARG_H
 
-class cMMSpecArg
+double ScoreScol(const  cTD_Camera & aCam,const cTD_SetAppuis & aSetGCP)
 {
-    public :
-        // S'agit-il d'un argument optionnel
-        bool IsOpt() const;
+    double aScore = 0;
+    for (int aKP=0 ; aKP<int(aSetGCP.PTer().size()) ; aKP++)
+    {
+         Pt3dr aPTer = aSetGCP.PTer()[aKP];
+         Pt2dr aPIm  = aSetGCP.PIm()[aKP];
 
-        // S'agit-il d'un pattern descriptif de fichier
-        bool IsPatFile() const;
+         Pt2dr aPProj = aCam.Ter2Image(aPTer);
 
-        // S'agit-il d'une directory d'orientation existante
-        bool IsExistDirOri() const;
-
-        // S'agit-il d'un fichier existant
-        bool IsExistFile() const;
-
-        // Nom du type
-        std::string NameType() const;
-
-        // Nom de l'argument (quand optionnel)
-        std::string NameArg() const;
-
-        // Commentaire eventuel
-        std::string Comment() const;
-
-        // Numero de l'argument dans la specification (pas vraiment utile ??)
-        int  NumArg() const;
-
-        // Initialise la variable a partir d'une chaine de caractere
-        void Init(const std::string &);
-
-        // Liste des valeurs possible si enumeree, renvoie liste vide sinon
-        const std::list<std::string>  & EnumeratedValues() const;
-    private :
-        friend class LArgMain;
-        cMMSpecArg(GenElArgMain *,int aNum);
-
-        GenElArgMain * mEAM;
-        int            mNum;
-};
+         double aD = euclid (aPIm,aPProj);
+         aScore +=  aD / (10+aD);
+    }
+    return aScore;
+}
 
 
-#endif // _ELISE_GENERAL_MM_SPEC_ARG_H
+
+
+int TD_Sol1(int argc,char ** argv)
+{
+    std::string aNameCam,aNameAppuis;
+    int aNbTest = 10000;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aNameCam,"Name of camera")
+                    << EAMC(aNameAppuis,"Name of GCP"),
+        LArgMain()  << EAM(aNbTest,"NbTest",true,"Do no stuff")
+    );
+
+    cTD_Camera aCam(aNameCam);
+    cTD_SetAppuis aSetGCP(aNameAppuis);
+
+    int aNbPts =  aSetGCP.PTer().size();
+
+    
+    double aScoreMin = 1e20;
+    cTD_Camera aBestCam = aCam;
+    for (int aK=0 ; aK< aNbTest ; aK++)
+    {
+        if ((aK%100)==0) 
+           std::cout << "RESTE " << aNbTest-aK << "\n";
+
+        int aK1 = TD_EntierAleatoire(aNbPts);
+        int aK2 = TD_EntierAleatoire(aNbPts);
+        int aK3 = TD_EntierAleatoire(aNbPts);
+
+        if ((aK1!=aK2) && (aK1!=aK3) && (aK2!=aK3))
+        {
+            std::vector<cTD_Camera> aSols = aCam.RelvtEspace
+                                    (
+                                          aSetGCP.PTer()[aK1], aSetGCP.PIm()[aK1],
+                                          aSetGCP.PTer()[aK2], aSetGCP.PIm()[aK2],
+                                          aSetGCP.PTer()[aK3], aSetGCP.PIm()[aK3]
+                                    );
+
+
+            for (int aKS=0 ; aKS<int(aSols.size()) ; aKS++)
+            {
+                  double aScore =  ScoreScol(aSols[aKS],aSetGCP);
+
+                  if (aScore<aScoreMin)
+                  {
+                       aScoreMin = aScore;
+                       aBestCam = aSols[aKS];
+                  }
+            }
+        }
+     }
+     aBestCam.Save(StdPrefix(aNameCam) + "_Save.xml");
+
+
+     return 0;
+}
+
 
 
 

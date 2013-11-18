@@ -363,13 +363,20 @@ ENDIF()
 # DEFINITION : des preprocesseurs windows
 IF (MSVC)
 
-	# Zm131 -> Erreur de compilation sous windows 7 avec Cuda et Boost		
+	# Zm131 -> Erreur de compilation sous windows 7 avec Cuda et Boost
         if (${CUDA_ENABLED})
             add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /wd4355 /nologo" )
         else()
             add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
             # la valeur par défaut Zm1000 genere une erreur sous windows XP
-            string(REPLACE "/Zm1000" "/Zm131" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+			string( FIND "${CMAKE_CXX_FLAGS}" "/Zm1000" has_zm1000 )
+			if ( ${has_zm1000} LESS 0 )
+				# la valeur par défaut Zm1000 n'existe plus a partir de la version 2.8.11
+				set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm131")
+			else()
+				# REPLACE pour eviter le conflit Zm1000 vs Zm131
+				string(REPLACE "/Zm1000" "/Zm131" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+			endif()
         endif()
 
 	if(MSVC80 OR MSVC90 OR MSVC10)

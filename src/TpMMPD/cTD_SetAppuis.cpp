@@ -36,76 +36,38 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-/*eLiSe06/05/99  
- 
-     Copyright (C) 1999 Marc PIERROT DESEILLIGNY
-	  
-	    eLiSe : Elements of a Linux Image Software Environment
-		 
-		This program is free software; you can redistribute it and/or modify
-		it under the terms of the GNU General Public License as published by
-		the Free Software Foundation; either version 2 of the License, or
-		(at your option) any later version.
-		 
-		This program is distributed in the hope that it will be useful,
-		but WITHOUT ANY WARRANTY; without even the implied warranty of
-		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-		GNU General Public License for more details.
-		 
-		You should have received a copy of the GNU General Public License
-		along with this program; if not, write to the Free Software
-		Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-		 
-		  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS
-		  Internet: Marc.Pierrot-Deseilligny@ign.fr
-		     Phone: (33) 01 43 98 81 28              
-*/
 
-#ifndef _ELISE_GENERAL_MM_SPEC_ARG_H
-#define _ELISE_GENERAL_MM_SPEC_ARG_H
+#include "StdAfx.h"
+#include "TpPPMD.h"
 
-class cMMSpecArg
+
+int TD_EntierAleatoire(int aN)
 {
-    public :
-        // S'agit-il d'un argument optionnel
-        bool IsOpt() const;
+    return NRrandom3(aN);
+}
 
-        // S'agit-il d'un pattern descriptif de fichier
-        bool IsPatFile() const;
+/********************************************************************/
+/*                                                                  */
+/*         cTD_SetAppuis                                            */
+/*                                                                  */
+/********************************************************************/
 
-        // S'agit-il d'une directory d'orientation existante
-        bool IsExistDirOri() const;
+cTD_SetAppuis::cTD_SetAppuis(const std::string & aName)
+{
+    cListeAppuis1Im aLAM =  StdGetFromPCP(aName,ListeAppuis1Im);
 
-        // S'agit-il d'un fichier existant
-        bool IsExistFile() const;
+    for 
+    (
+       std::list<cMesureAppuis>::const_iterator itMA = aLAM.Mesures().begin();
+       itMA != aLAM.Mesures().end();
+       itMA++
+    )
+    {
+       mPTer.push_back(itMA->Ter());
+       mPIm.push_back(itMA->Im());
+    }
+}
 
-        // Nom du type
-        std::string NameType() const;
-
-        // Nom de l'argument (quand optionnel)
-        std::string NameArg() const;
-
-        // Commentaire eventuel
-        std::string Comment() const;
-
-        // Numero de l'argument dans la specification (pas vraiment utile ??)
-        int  NumArg() const;
-
-        // Initialise la variable a partir d'une chaine de caractere
-        void Init(const std::string &);
-
-        // Liste des valeurs possible si enumeree, renvoie liste vide sinon
-        const std::list<std::string>  & EnumeratedValues() const;
-    private :
-        friend class LArgMain;
-        cMMSpecArg(GenElArgMain *,int aNum);
-
-        GenElArgMain * mEAM;
-        int            mNum;
-};
-
-
-#endif // _ELISE_GENERAL_MM_SPEC_ARG_H
 
 
 

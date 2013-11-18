@@ -184,7 +184,6 @@ template <class Type> std::ostream & operator << (std::ostream &os,const ElSTDNS
 
 typedef enum
 {
-      
       eSAM_None,
       eSAM_IsPatFile,
       eSAM_IsExistDirOri,
@@ -195,7 +194,13 @@ class GenElArgMain
 {
 	public :
 		virtual ~GenElArgMain()  {};
-	    GenElArgMain(const char * Name,bool ISINIT,eSpecArgMain aSpec ) ;
+	        GenElArgMain
+                (
+                      const char * Name,
+                      bool ISINIT,
+                      eSpecArgMain aSpec,
+                      const std::list<std::string> & aLEnumVal
+                ) ;
 		virtual GenElArgMain * dup() const = 0;
 
 		virtual void InitEAM(const ElSTDNS string &s,const ElGramArgMain &) const = 0;
@@ -214,6 +219,7 @@ class GenElArgMain
                 virtual std::string NameType() const =0;
                 virtual std::string Comment() const =0;
                 eSpecArgMain Spec() const;
+                const std::list<std::string> &  ListEnum() const;
     protected :
                 static const std::string  theChaineInactif;
                 static const std::string  theChaineActif;
@@ -221,6 +227,7 @@ class GenElArgMain
 		ElSTDNS string	_name;
 		mutable bool	_is_init;
                 eSpecArgMain    mSpec;
+                std::list<std::string>  mLEnum;
 };
 
 
@@ -228,6 +235,9 @@ template <class Type> const char * str_type(Type *);
 
 
 extern std::set<void *>  AllAddrEAM;
+extern std::list<std::string>  TheEmptyListEnum;
+
+std::list<std::string> ModifListe(const std::list<std::string> &,const char * aNameType);
 
 
 template <class Type> class ElArgMain : public GenElArgMain
@@ -251,9 +261,11 @@ template <class Type> class ElArgMain : public GenElArgMain
                    const char * Name,
                    bool isInit,
                    const std::string & aCom = "",
-                   eSpecArgMain        aSpec =  eSAM_None
+                   eSpecArgMain        aSpec =  eSAM_None,
+                   const std::list<std::string> & aLEnumVal = TheEmptyListEnum
+                   
              ) :
-			GenElArgMain(Name,isInit,aSpec),
+			GenElArgMain(Name,isInit,aSpec,ModifListe(aLEnumVal,str_type((Type*)0))),
 			_adr   (&v),
                         mCom   (aCom)
          {
@@ -306,21 +318,23 @@ template <class Type> ElArgMain<Type>
                             const char * Name= "",
                             bool isInit = false,
                             const std::string &aComment = "",
-                            eSpecArgMain        aSpec =  eSAM_None
+                            eSpecArgMain        aSpec =  eSAM_None,
+                            const std::list<std::string> & aLEnumVal = TheEmptyListEnum
                      )
 {
-		return ElArgMain<Type>(v,Name,isInit,aComment,aSpec);
+		return ElArgMain<Type>(v,Name,isInit,aComment,aSpec,aLEnumVal);
 }
 template <class Type> ElArgMain<Type> 
                      EAMC
                      (
                             Type & v,
                             const std::string &aComment ,
-                            eSpecArgMain        aSpec =  eSAM_None
+                            eSpecArgMain        aSpec =  eSAM_None,
+                            const std::list<std::string> & aLEnumVal = TheEmptyListEnum
                      )
 {
                 AllAddrEAM.insert( (void *) &v);
-		return ElArgMain<Type>(v,"",false,aComment,aSpec);
+		return ElArgMain<Type>(v,"",false,aComment,aSpec,aLEnumVal);
 }
 
 
