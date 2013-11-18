@@ -14,6 +14,7 @@
 // A COURT TERME 1024 => 100000
 // #define PATH_BUFFER_SIZE 100000
 
+
 // increase buffers' sizes of BUFFER_CHUNCK_SIZE when no specified size is specified
 #define BUFFER_CHUNCK_SIZE 10
 
@@ -215,7 +216,9 @@ int  BinaireUnique
 			str_append( &g_command, argv[aK] );
 	}
   
-	printf("ComF =[%s]\n",g_command.data); fflush(stdout);
+// MPD CELA FAIT BUGGER MpDcraxw qui ecit sur la sortie standard (donc mauvais entete dans le pnm)
+//	printf("ComF =[%s]\n",g_command.data);
+        fflush(stdout);
   
 	#ifdef _WIN32
 		// an extra double quote on the whole line seem to be necessary for lines starting with a double quote

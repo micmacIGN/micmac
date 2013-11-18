@@ -36,79 +36,73 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-/*eLiSe06/05/99  
- 
-     Copyright (C) 1999 Marc PIERROT DESEILLIGNY
-	  
-	    eLiSe : Elements of a Linux Image Software Environment
-		 
-		This program is free software; you can redistribute it and/or modify
-		it under the terms of the GNU General Public License as published by
-		the Free Software Foundation; either version 2 of the License, or
-		(at your option) any later version.
-		 
-		This program is distributed in the hope that it will be useful,
-		but WITHOUT ANY WARRANTY; without even the implied warranty of
-		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-		GNU General Public License for more details.
-		 
-		You should have received a copy of the GNU General Public License
-		along with this program; if not, write to the Free Software
-		Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-		 
-		  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS
-		  Internet: Marc.Pierrot-Deseilligny@ign.fr
-		     Phone: (33) 01 43 98 81 28              
-*/
+#ifndef __TD_CAMERA__
+#define __TD_CAMERA__
 
-#ifndef _ELISE_GENERAL_MM_SPEC_ARG_H
-#define _ELISE_GENERAL_MM_SPEC_ARG_H
+#include "StdAfx.h"
 
-class cMMSpecArg
+/* ===========================================
+
+   Ce fichier contient la definition de quelques classe donnant acces au fonctionallité
+   MicMac de la manière la plus simple possible.
+
+   Pour quelque classe simples, on se contente de rappeler l'existance des classe MicMac
+
+==================================================*/
+
+
+//     Pt2dr  classe definissant les points 2D
+//     Pt3dr  classe definissant les points 3D
+//
+
+class cTD_Prof;
+
+class cTD_Camera
 {
-    public :
-        // S'agit-il d'un argument optionnel
-        bool IsOpt() const;
+     public :
+        
+        // Constructeur a partir d'un fichier XML , peut etre une calibration interne ou externe
+        cTD_Camera(const std::string &);
 
-        // S'agit-il d'un pattern descriptif de fichier
-        bool IsPatFile() const;
+        // Sauvegarde dans un fichier
+        void Save(const std::string &) const;
 
-        // S'agit-il d'une directory d'orientation existante
-        bool IsExistDirOri() const;
+        // Fonction de projection  Terrain  -> Image
+        Pt2dr Ter2Image(const Pt3dr &) const;
 
-        // S'agit-il d'un fichier existant
-        bool IsExistFile() const;
+        // Relevement dans l'espace
+        std::vector<cTD_Camera> RelvtEspace
+                                (
+                                    const Pt3dr & aPTer1, const Pt2dr & aPIm1,
+                                    const Pt3dr & aPTer2, const Pt2dr & aPIm2,
+                                    const Pt3dr & aPTer3, const Pt2dr & aPIm3
+                                );
 
-        // Nom du type
-        std::string NameType() const;
+     private :
+        friend class cTD_Prof;
 
-        // Nom de l'argument (quand optionnel)
-        std::string NameArg() const;
+        std::string   mName;
+        CamStenope *  mCS;
+};
 
-        // Commentaire eventuel
-        std::string Comment() const;
+int TD_EntierAleatoire(int aN);  // Renvoie un entier au hasrd entre 1 et N
 
-        // Numero de l'argument dans la specification (pas vraiment utile ??)
-        int  NumArg() const;
+class cTD_SetAppuis
+{
+     public :
+        cTD_SetAppuis(const std::string &);
 
-        // Initialise la variable a partir d'une chaine de caractere
-        void Init(const std::string &);
+        const std::vector<Pt3dr> & PTer() const {return mPTer;}
+        const std::vector<Pt2dr> & PIm() const {return mPIm;}
 
-        // Liste des valeurs possible si enumeree, renvoie liste vide sinon
-        const std::list<std::string>  & EnumeratedValues() const;
-    private :
-        friend class LArgMain;
-        cMMSpecArg(GenElArgMain *,int aNum);
-
-        GenElArgMain * mEAM;
-        int            mNum;
+     private :
+         std::vector<Pt3dr> mPTer;
+         std::vector<Pt2dr> mPIm;
 };
 
 
-#endif // _ELISE_GENERAL_MM_SPEC_ARG_H
 
-
-
+#endif // __TD_CAMERA__
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

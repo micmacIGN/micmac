@@ -79,6 +79,11 @@ cMMSpecArg::cMMSpecArg(GenElArgMain * anEAM,int aNum):
 {
 }
 
+const std::list<std::string>  & cMMSpecArg::EnumeratedValues() const
+{
+    return mEAM->ListEnum();
+}
+
 
 
 
