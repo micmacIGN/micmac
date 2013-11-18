@@ -57,7 +57,7 @@ void GpGpuTools::OutputGpu()
 	std::cout << "\b-" << std::flush;
 #endif
 }
-
+#if ELISE_X11
 void GpGpuTools::NvtxR_Push(const char* message, int32_t color)
 {
     nvtxEventAttributes_t initAttrib = {0};
@@ -72,7 +72,7 @@ void GpGpuTools::NvtxR_Push(const char* message, int32_t color)
     nvtxRangePushEx(&initAttrib);
 
 }
-
+#endif
 float GpGpuTools::fValue( float value,float factor )
 {
 	return value * factor;

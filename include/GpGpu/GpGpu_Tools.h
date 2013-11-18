@@ -3,10 +3,13 @@
 
 #include "GpGpu/GpGpu_CommonHeader.h"
 
+#if ELISE_X11
 #include "nvToolsExtCuda.h"
 #include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#endif
 
 using namespace std;
 
@@ -117,9 +120,9 @@ public:
 
     ///	\brief			(X)
     static void			OutputGpu();
-
+#if ELISE_X11
     static void			NvtxR_Push(const char* message, int32_t color);
-
+#endif
 };
 
 template <class T>
