@@ -45,7 +45,7 @@ public slots:
 
     void selectedPoint(uint idC,uint idV,bool select);
 
-    void zoomFactor(int aFactor );
+    void zoomFactor(int aFactor);
 
     void closeAll();
 
@@ -68,10 +68,10 @@ protected slots:
     void on_actionShow_axis_toggled(bool);
     void on_actionShow_ball_toggled(bool);
     void on_actionShow_cams_toggled(bool);
-    void on_actionShow_bounding_box_toggled(bool);
+    void on_actionShow_bbox_toggled(bool);
 
     void on_actionFullScreen_toggled(bool);
-    void on_actionShow_help_messages_toggled(bool);
+    void on_actionShow_messages_toggled(bool);
     void on_actionToggleMode_toggled(bool);
 
     void on_action2D_3D_mode_triggered();
@@ -88,7 +88,7 @@ protected slots:
     //Zoom
     void on_actionZoom_Plus_triggered();
     void on_actionZoom_Moins_triggered();
-    void on_actionZoom_Fit_triggered();
+    void on_actionZoom_fit_triggered();
 
     //Selection Menu
     void on_actionAdd_triggered();
