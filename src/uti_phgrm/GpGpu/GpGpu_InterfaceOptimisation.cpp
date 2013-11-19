@@ -63,9 +63,9 @@ void InterfOptimizGpGpu::Prepare_V03(uint x,uint y)
     _H_data2Opt.ReallocParam(size);
     _D_data2Opt.ReallocParam(size);
 
-    _prePtZ.ReallocIf(x,y);
-    _preDZ.ReallocIf(x,y);
-    _prePitTer.ReallocIf(x,y);
+//    _prePtZ.ReallocIf(x,y);
+//    _preDZ.ReallocIf(x,y);
+//    _prePitTer.ReallocIf(x,y);
 }
 
 void InterfOptimizGpGpu::threadCompute()

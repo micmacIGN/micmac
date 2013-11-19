@@ -63,11 +63,13 @@ public:
     CuHostData3D<ushort*>   _preCostInit;
     CuHostData3D<uint*>     _preFinalCost;   
     CuHostData3D<short2>    _prePtZ;
-    CuHostData3D<short>     _preDZ;
+    CuHostData3D<ushort>    _preDZ;
 
     CuHostData3D<ushort>    _preInitCost1D;
     CuHostData3D<uint>      _preFinalCost1D;
     CuHostData3D<uint>      _prePitTer;
+
+    uint                    _pit;
 
 private:
 
