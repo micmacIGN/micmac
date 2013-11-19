@@ -73,8 +73,25 @@ double ScoreScol(const  cTD_Camera & aCam,const cTD_SetAppuis & aSetGCP)
 
 
 
-
 int TD_Sol1(int argc,char ** argv)
+{
+    std::string aNameCam,aNameAppuis;
+    int aNbTest = 10000;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aNameCam,"Name of camera")
+                    << EAMC(aNameAppuis,"Name of GCP"),
+        LArgMain()  << EAM(aNbTest,"NbTest",true,"Do no stuff")
+    );
+
+     return 0;
+}
+
+
+
+int TD_Sol2(int argc,char ** argv)
 {
     std::string aNameCam,aNameAppuis;
     int aNbTest = 10000;
