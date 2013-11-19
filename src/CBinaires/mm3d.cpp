@@ -43,7 +43,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define DEF_OFSET -12349876
 
-
 typedef int (*tCommande)  (int,char**);
 
 std::string StrToLower(const std::string & aStr)
@@ -414,8 +413,8 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    TheExitOnBrkp=false;
     
    std::string aCom = argv[1];
-   std::string aLowCom = StrToLower(aCom);
-
+   std::string aLowCom = current_program_subcommand();
+   
    std::vector<cSuggest *> mSugg;
 
    cSuggest *PatMach    = new cSuggest("Pattern Match",aLowCom);

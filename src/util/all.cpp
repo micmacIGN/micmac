@@ -172,7 +172,7 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName)
 // print cmd and execute ::system (helps with debugging)
 int trace_system( const char *cmd )
 {
-	cout << " system call to [" << cmd << ']' << endl;
+	cout << "###" << current_program_subcommand() << " calls to [" << cmd << ']' << endl;
 	int res = ::system( cmd );
 #if ( __VERBOSE__>1 )
 	if ( res!=0 )

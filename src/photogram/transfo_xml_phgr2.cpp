@@ -54,7 +54,7 @@ void UseRequirement(const std::string & aDir,const cTplValGesInit<cBatchRequirem
         itE++
     )
     {
-       std::string aCom = g_externalToolHandler.get( "make" ).callName()+" " + itE->Exe() + " -f " + itE->Make();
+       std::string aCom = string("\"")+(g_externalToolHandler.get( "make" ).callName())+"\" " + itE->Exe() + " -f \"" + itE->Make() + "\"";
        System(aCom);
     }
 
@@ -771,6 +771,9 @@ cEl_GPAO * DoCmdExePar(const cCmdExePar & aCEP,int aNbProcess)
 {
    cEl_GPAO * aGPAO  = new cEl_GPAO;
 
+   // __DEL
+   int iCmd = 0;
+
    int aKT=0;
    for 
    (
@@ -786,7 +789,12 @@ cEl_GPAO * DoCmdExePar(const cCmdExePar & aCEP,int aNbProcess)
             itS != itOCP->OneCmdSer().end();
             itS++
        )
-       aTask.AddBR(*itS);
+		{
+			// __DEL
+			cout << "###OneCmdPar " << iCmd << " = [" << *itS << "]" << endl;
+
+			aTask.AddBR(*itS);
+		}
 
        aGPAO->TaskOfName("all").AddDep(aTask);
 
@@ -797,8 +805,8 @@ cEl_GPAO * DoCmdExePar(const cCmdExePar & aCEP,int aNbProcess)
    {
       aNbProcess = ElMax(1,aNbProcess);
       aGPAO->GenerateMakeFile(aNameMkF);
-      std::string aCom = g_externalToolHandler.get( "make" ).callName()+" all -f "+  aNameMkF + std::string(" -j") +ToString(aNbProcess) + " -k"; 
-      VoidSystem(aCom.c_str());
+      std::string aCom = string("\"")+g_externalToolHandler.get( "make" ).callName()+"\" all -f \""+  aNameMkF + std::string("\" -j") +ToString(aNbProcess) + " -k"; 
+      ::System(aCom.c_str());
       delete aGPAO;
        ELISE_fp::RmFile(aNameMkF);
       return 0;

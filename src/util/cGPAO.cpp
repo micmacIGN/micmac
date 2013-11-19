@@ -40,6 +40,17 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+#ifdef __C_EL_COMMAND__
+/*********************************************************/
+/*                                                       */
+/*                  cElCommand                           */
+/*                                                       */
+/*********************************************************/
+
+cElCommand::cElCommand( const char *i_command ){ push_back(string(i_command)); }
+cElCommand::cElCommand( const string &i_command ){ push_back(i_command); }
+#endif
+
 /*********************************************************/
 /*                                                       */
 /*                  cEl_GPAO                             */
@@ -207,7 +218,7 @@ void cEl_GPAO::ExeParal(std::string aFileMk,int aNbProc,bool Supr)
     // aFileMk = MMDir() + aFileMk;
     GenerateMakeFile(aFileMk);
 
-    std::string aCom = g_externalToolHandler.get( "make" ).callName()+" all -f " + aFileMk + " -j" + ToString(aNbProc);
+    std::string aCom = string("\"")+g_externalToolHandler.get( "make" ).callName()+"\" all -f \"" + aFileMk + "\" -j" + ToString(aNbProc);
     if (false)
     {
        std::cout << "CCCC = " << aCom << "\n";
@@ -215,7 +226,7 @@ void cEl_GPAO::ExeParal(std::string aFileMk,int aNbProc,bool Supr)
     }
     else
     {
-       VoidSystem(aCom.c_str());
+       ::System(aCom.c_str());
        if (Supr)
        {
            ELISE_fp::RmFile(aFileMk);
@@ -239,11 +250,19 @@ cEl_GPAO::~cEl_GPAO()
 {
 }
 
-cElTask   & cEl_GPAO::NewTask
-            (
-                 const std::string &aName,
-                 const std::string & aBuildingRule
-            ) 
+#ifdef __C_EL_COMMAND__
+	cElTask   & cEl_GPAO::NewTask
+				(
+					 const std::string &aName,
+					 const cElCommand & aBuildingRule
+				) 
+#else
+	cElTask   & cEl_GPAO::NewTask
+				(
+					 const std::string &aName,
+					 const std::string & aBuildingRule
+				) 
+#endif
 {
     cElTask * aTask = mDico[aName];
 
@@ -273,11 +292,19 @@ cElTask & cEl_GPAO::TaskOfName(const std::string &aName)
     return *aTask;
 }
 
-cElTask   & cEl_GPAO::GetOrCreate
-            (
-                 const std::string &aName,
-                 const std::string & aBuildingRule
-            ) 
+#ifdef __C_EL_COMMAND__
+	cElTask   & cEl_GPAO::GetOrCreate
+				(
+					 const std::string &aName,
+					 const cElCommand & aBuildingRule
+				)
+#else
+	cElTask   & cEl_GPAO::GetOrCreate
+				(
+					 const std::string &aName,
+					 const std::string & aBuildingRule
+				)
+#endif
 {
     cElTask * aTask = mDico[aName];
     return aTask ? *aTask : NewTask(aName,aBuildingRule);
@@ -327,12 +354,21 @@ void cElTask::AddDep(const std::string & aName)
     AddDep(mGPAO.TaskOfName(aName));
 }
 
-cElTask::cElTask
-(
-               const std::string & aName,
-               cEl_GPAO & aGPA0,
-               const std::string & aBuildingRule
-)  :
+#ifdef __C_EL_COMMAND__
+	cElTask::cElTask
+	(
+				   const std::string & aName,
+				   cEl_GPAO & aGPA0,
+				   const cElCommand & aBuildingRule
+	)  :
+#else
+	cElTask::cElTask
+	(
+				   const std::string & aName,
+				   cEl_GPAO & aGPA0,
+				   const std::string & aBuildingRule
+	)  :
+#endif
    mGPAO  (aGPA0),
    mName  ( aName)
 {
@@ -351,26 +387,53 @@ void cElTask::GenerateMakeFile(FILE * aFP) const
        fprintf(aFP,"%s ", mDeps[aK]->mName.c_str());
     fprintf(aFP,"\n");
 	
-    for 
-    (
-       std::list<std::string>::const_iterator itBR=mBR.begin();
-       itBR!=mBR.end() ;
-       itBR++
-    )
-    {
-		#if (ELISE_windows)
-			// avoid a '\' at the end of a line in a makefile
-		if (!itBR->empty())
+	#ifdef __C_EL_COMMAND__
+		list<string>::const_iterator itToken;
+		for 
+		(
+		   std::list<cElCommand>::const_iterator itBR=mBR.begin();
+		   itBR!=mBR.end() ;
+		   itBR++
+		)
+		{
+			fprintf( aFP,"\t" );
+			int iToken = itBR->size()-1;
+			itToken=itBR->begin();
+			while ( iToken-- )
+				fprintf( aFP,"%s ", protect_spaces(*itToken++).c_str() );
+
+			#if (ELISE_windows)
+				// avoid a '\' at the end of a line in a makefile
+				if ( *(itToken->rbegin())=='\\' )
+					//fprintf(aFP,"%s \n", protect_spaces(*itToken).c_str());
+					fprintf(aFP,"%s \n", itToken->c_str());
+				else
+			#endif
+			//fprintf(aFP,"%s\n", protect_spaces(*itToken).c_str());
+			fprintf(aFP,"%s\n", itToken->c_str());
+		}
+	#else
+		for 
+		(
+		   std::list<std::string>::const_iterator itBR=mBR.begin();
+		   itBR!=mBR.end() ;
+		   itBR++
+		)
+		{
+			#if (ELISE_windows)
+				// avoid a '\' at the end of a line in a makefile
+				if (!itBR->empty())
 		
-			if ( *(itBR->rbegin())=='\\' )
-			{
-					string str = *itBR+' ';
-					fprintf(aFP,"\t %s\n",str.c_str());
-			}
-			else
-		#endif
-        fprintf(aFP,"\t %s\n",itBR->c_str());
-    }
+					if ( *(itBR->rbegin())=='\\' )
+					{
+							string str = *itBR+' ';
+							fprintf(aFP,"\t %s\n",str.c_str());
+					}
+					else
+			#endif
+			fprintf(aFP,"\t %s\n",itBR->c_str());
+		}
+	#endif
 }
 
 

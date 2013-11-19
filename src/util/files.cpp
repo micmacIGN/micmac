@@ -346,6 +346,34 @@ void ELISE_fp::MkDirRec(const std::string &  aName )
 
 }
 
+bool ELISE_fp::copy_file( const std::string i_src, const std::string i_dst, bool i_overwrite )
+{
+	#if (ELISE_windows)
+		return (bool)CopyFile( i_src.c_str(), i_dst.c_str(), i_overwrite?0:1 /*fail if exits*/ );
+	#else
+		if ( !i_overwrite && exist_file(i_dst) ) return false;
+
+		ifstream src( i_src.c_str(), ios::binary );
+		ofstream dst( i_dst.c_str(), ios::binary );
+
+		if ( !src || !dst ) return false;
+
+		char buffer[1024];
+		while ( !src.eof() )
+		{
+			src.read( buffer, 1024 );
+			dst.write( buffer, src.gcount() );
+		}
+		return true;
+		#if (ELISE_POSIX)
+			// copy rights on file
+			struct stat s;
+			stat( i_src.c_str(), &s );
+			chmod( i_dst.c_str(), s.st_mode );
+		#endif
+	#endif
+}
+
 
 bool  ELISE_fp::exist_file(const char * aNameFile)
 {

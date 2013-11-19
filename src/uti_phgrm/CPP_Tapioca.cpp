@@ -120,19 +120,6 @@ void DoMkT()
     }
 }
 
-// protect spaces with backslashes (for use with 'make')
-string protect_spaces( const string &i_str )
-{
-	string out_str = i_str;
-	size_t lastPos = 0;
-	while ( true )
-	{
-		lastPos = out_str.find( ' ', lastPos );
-		if ( lastPos==string::npos ) return out_str;
-		out_str.insert(lastPos,1,'\\');
-		lastPos += 2;
-	}
-}
 
 void DoDevelopp(int aSz1,int aSz2)
 {
@@ -838,7 +825,7 @@ int Tapioca_main(int argc,char ** argv)
     BinPastis = MM3dBinFile_quotes("Pastis");
 
     ByP= MMNbProc();
-
+	
     cTplValGesInit<std::string>  aTplFCND;
     anICNM = cInterfChantierNameManipulateur::StdAlloc(argc,argv,aDir,aTplFCND);
 
