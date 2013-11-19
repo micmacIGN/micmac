@@ -102,9 +102,9 @@ int main(int argc, char *argv[])
                                 "\n"
                                 "Example:\n"
                                 "\n"
-                                "saisie IMG.tif SzW=1200 Name=PLAN Gama=1.5\n"
+                                "SaisieMasqQT IMG.tif SzW=1200 Name=PLAN Gama=1.5\n"
                                 "\n"
-                                "NB: saisie can be run without any argument\n\n";
+                                "NB: SaisieMasqQT can be run without any argument\n\n";
 
                 w.close();
 #ifdef WIN32
