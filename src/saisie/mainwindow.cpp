@@ -27,10 +27,10 @@ MainWindow::MainWindow(bool mode2D, QWidget *parent) :
 
     _glWidget = new GLWidget(this,_Engine->getData());
 
-    on_actionShow_help_messages_toggled(_ui->actionShow_help_messages->isChecked());
+    on_actionShow_messages_toggled(_ui->actionShow_messages->isChecked());
     //on_actionShow_ball_toggled(_ui->actionShow_ball->isChecked());
     on_actionShow_axis_toggled(_ui->actionShow_axis->isChecked());
-    on_actionShow_bounding_box_toggled(_ui->actionShow_bounding_box->isChecked());
+    on_actionShow_bbox_toggled(_ui->actionShow_bbox->isChecked());
     on_actionShow_cams_toggled(_ui->actionShow_cams->isChecked());
 
     setMode2D(mode2D);
@@ -112,7 +112,7 @@ bool MainWindow::checkForLoadedData()
         loadedEntities = false;
     }
     else
-        on_actionShow_help_messages_toggled(_ui->actionShow_help_messages->isChecked());
+        on_actionShow_messages_toggled(_ui->actionShow_messages->isChecked());
 
     return loadedEntities;
 }
@@ -254,7 +254,7 @@ void MainWindow::on_actionShow_ball_toggled(bool state)
     }
 }
 
-void MainWindow::on_actionShow_bounding_box_toggled(bool state)
+void MainWindow::on_actionShow_bbox_toggled(bool state)
 {
     if(!_bMode2D)
         _glWidget->showBBox(state);
@@ -280,7 +280,7 @@ void MainWindow::on_actionShow_cams_toggled(bool state)
         _glWidget->showCams(state);
 }
 
-void MainWindow::on_actionShow_help_messages_toggled(bool state)
+void MainWindow::on_actionShow_messages_toggled(bool state)
 {
     _glWidget->showMessages(state);
 }
@@ -474,7 +474,7 @@ void MainWindow::on_actionZoom_Moins_triggered()
     _glWidget->setZoom(_glWidget->getParams()->zoom/1.5f);
 }
 
-void MainWindow::on_actionZoom_Fit_triggered()
+void MainWindow::on_actionZoom_fit_triggered()
 {
     _glWidget->zoomFit();
 }
@@ -649,7 +649,7 @@ void MainWindow::setMode2D(bool mBool)
     _ui->actionShow_cams->setVisible(!mBool);
     _ui->actionShow_axis->setVisible(!mBool);
     _ui->actionShow_ball->setVisible(!mBool);
-    _ui->actionShow_bounding_box->setVisible(!mBool);
+    _ui->actionShow_bbox->setVisible(!mBool);
     _ui->actionSave_selection->setVisible(!mBool);
     _ui->actionToggleMode->setVisible(!mBool);
 
@@ -662,7 +662,7 @@ void MainWindow::setMode2D(bool mBool)
     _ui->actionShow_cams->setEnabled(!mBool);
     _ui->actionShow_axis->setEnabled(!mBool);
     _ui->actionShow_ball->setEnabled(!mBool);
-    _ui->actionShow_bounding_box->setEnabled(!mBool);
+    _ui->actionShow_bbox->setEnabled(!mBool);
     _ui->actionSave_selection->setEnabled(!mBool);
     _ui->actionToggleMode->setEnabled(!mBool);
 }
