@@ -89,10 +89,9 @@ int main(int argc, char *argv[])
 
             if (str.contains("help"))
             {
-#ifdef WIN32
-                QString text =  "saisie [filename] [option=]\n"
+                QString text =  "SaisieMasqQT [filename] [option=]\n"
                                 "\n"
-                                "saisie [filename] : open file (image or ply)\n"
+                                "* [filename] string\t: open file (image or ply or camera xml)\n"
                                 "\n"
                                 "Options\n"
                                 "\n"
@@ -105,31 +104,15 @@ int main(int argc, char *argv[])
                                 "\n"
                                 "saisie IMG.tif SzW=1200 Name=PLAN Gama=1.5\n"
                                 "\n"
-                                "NB: saisie can be run without any argument\n";
+                                "NB: saisie can be run without any argument\n\n";
 
-                QMessageBox msgBox(QMessageBox::NoIcon, "Help command saisie", text, QMessageBox::Ok);
                 w.close();
+#ifdef WIN32
+                QMessageBox msgBox(QMessageBox::NoIcon, "Help command SaisieMasqQT", text, QMessageBox::Ok);
                 return msgBox.exec();
 #else
-                printf("Command saisie\n");
-                printf("\n");
-                printf("saisie [filename] [option=]\n");
-                printf("\n");
-                printf("saisie [filename] : open file (image or ply)\n");
-                printf("\n");
-                printf("Options :\n");
-                printf("\n");
-                printf("* [Name=SzW] integer : set window width (default=800)\n");
-                printf("* [Name=Post] string : change postfix output file (default=_Masq)\n");
-                printf("* [Name=Name] string : set output filename (default=input+_Masq)\n");
-                printf("* [Name=Gama] REAL   : apply gamma to image\n");
-                printf("\n");
-                printf("Example:\n");
-                printf("\n");
-                printf("saisie IMG.tif SzW=1200 Name=PLAN Gama=1.5\n");
-                printf("\n");
-                printf("NB: saisie can be run without any argument\n");
-                w.close();
+                printf("\nCommand SaisieMasqQT\n");
+                printf("\n %s", text.toStdString().c_str());
                 return 0;
 #endif
             }
