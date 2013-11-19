@@ -129,22 +129,24 @@ class cGBV2_ProgDynOptimiseur : public cSurfaceOptimiseur
 public :
     cGBV2_ProgDynOptimiseur
     (
-        cAppliMICMAC &    mAppli,
-        cLoadTer&         mLT,
-        const cEquiv1D &        anEqX,
-        const cEquiv1D &        anEqY,
-            Im2D_INT2  aPxMin,
-            Im2D_INT2  aPxMax
+            cAppliMICMAC        &mAppli,
+            cLoadTer            &mLT,
+            const cEquiv1D      &anEqX,
+            const cEquiv1D      &anEqY,
+            Im2D_INT2           aPxMin,
+            Im2D_INT2           aPxMax
             );
-    ~cGBV2_ProgDynOptimiseur();
-    void Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int aLabel);
-    void Local_SolveOpt(Im2D_U_INT1 aImCor);
 
+    ~cGBV2_ProgDynOptimiseur();
+
+    void Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int aLabel);
+
+    void Local_SolveOpt(Im2D_U_INT1 aImCor);
 
     // Im2D_INT2     ImRes() {return mImRes;}
 
-
     Pt2di direction(int aNbDir, int aKDir);
+
 private :
 
     void BalayageOneDirection(Pt2dr aDir);
@@ -179,15 +181,15 @@ private :
 
     template<bool dirCopy> void copyCells(Pt2di aDirI,Data2Optimiz<CuHostData3D,2>  &d2Opt, uint idBuf = 0);
 
-    void copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<ushort *> &costInit, CuHostData3D<short2> &dim, CuHostData3D<short> &size, uint idBuf = 0);
+    void copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<ushort *> &costInit, CuHostData3D<short2> &dim, CuHostData3D<ushort> &size, uint idBuf = 0);
 
-    void copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<uint *> &costFinal, CuHostData3D<short2> &dim, CuHostData3D<short> &size, uint idBuf = 0);
+    void copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<uint *> &costFinal, CuHostData3D<short2> &dim, CuHostData3D<ushort> &size, uint idBuf = 0);
 
     InterfOptimizGpGpu               IGpuOpt;
 
-    void copyCells_Mat2Stream_V03(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<uint> &pitTer, CuHostData3D<ushort> &costInit, CuHostData3D<short2> &dim, CuHostData3D<short> &size, uint idBuf = 0);
+    void copyCells_Mat2Stream_V03(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<uint> &pitTer, CuHostData3D<ushort> &costInit, CuHostData3D<short2> &dim, CuHostData3D<ushort> &size, uint idBuf = 0);
 
-    void copyCells_Stream2Mat_V03(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<uint> &pitTer, CuHostData3D<uint> &costFinal, CuHostData3D<short> &size, uint idBuf = 0);
+    void copyCells_Stream2Mat_V03(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<uint> &pitTer, CuHostData3D<uint> &costFinal, CuHostData3D<ushort> &size, uint idBuf = 0);
 
 #endif
 

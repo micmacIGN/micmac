@@ -49,6 +49,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _EL_APPLI_TAB_
 
 
+#include "GpGpu/GpGpu.h"
+
+
 // Matrice d'origine variable, a priori petite
 // mais cela reflete plus l'utilisation dans le
 // correlateur qu'une contrainte forte
@@ -154,6 +157,49 @@ template <class T> class cVectOfSMV
                 );
             }
         }
+
+#if CUDA_ENABLED
+        void SetMem
+        (
+                int  aX0,
+                int  aX1,
+                INT2 * aBoxXMin,
+                INT2 * aBoxYMin,
+                INT2 * aBoxXMax,
+                INT2 * aBoxYMax,
+                const T & aVinit,
+                CuHostData3D<uint>      &map1DTab,
+                CuHostData3D<short2>    &pPtZ,
+                CuHostData3D<ushort>    &preDZ,
+                uint                    &pit,
+                uint2                   &ptTer
+        )
+        {
+            this->~cVectOfSMV();
+            mVectInit = new cSmallMatrixOrVar<T> [aX1-aX0];
+            mVect = mVectInit - aX0;
+            for (int anX=aX0 ; anX<aX1 ; anX++)
+            {
+                ptTer.x         =  anX;
+                short2 ptZ      = make_short2(aBoxXMin[anX],aBoxXMax[anX]);
+                pPtZ[ptTer]     = ptZ;
+                ushort dZ       = abs(count(ptZ));
+                preDZ[ptTer]    = dZ;
+                map1DTab[ptTer] = pit;
+                pit            += dZ;
+
+                mVect[anX].SetMem
+                (
+                     Box2di
+                     (
+                         Pt2di(aBoxXMin[anX],aBoxYMin ? aBoxYMin[anX] : 0),
+                         Pt2di(aBoxXMax[anX],aBoxYMax ? aBoxYMax[anX] : 1)
+                     ),
+                     aVinit
+                );
+            }
+        }
+#endif
         cSmallMatrixOrVar<T> & operator[](int anX)
         {
             return mVect[anX];
@@ -188,7 +234,51 @@ template <class T> class cMatrOfSMV
                     aVinit
                 );
             }
+        }        
+#if CUDA_ENABLED
+        cMatrOfSMV
+        (
+              Box2di aBox,
+              INT2 ** aBoxXMin,
+              INT2 ** aBoxYMin,
+              INT2 ** aBoxXMax,
+              INT2 ** aBoxYMax,
+              const T & aVinit,
+              CuHostData3D<uint>    &map1DTab,
+              CuHostData3D<short2>  &pPtZ,
+              CuHostData3D<ushort>  &preDZ,
+              uint                  &pit
+        )
+        {
+            mMatrInit = new cVectOfSMV<T>   [aBox.hauteur()];
+
+            uint2 sizeTab = make_uint2(abs(aBox._p1.x-aBox._p0.x),abs(aBox._p1.y-aBox._p0.y));
+
+            map1DTab.ReallocIf(sizeTab);
+            pPtZ.ReallocIf(sizeTab);
+            preDZ.ReallocIf(sizeTab);
+            pit = 0;
+            uint2 ptTer;
+
+            mMatr = mMatrInit - aBox._p0.y;
+            for (int anY=aBox._p0.y; anY<aBox._p1.y ; anY++)
+            {
+                ptTer.y = anY;
+                mMatr[anY].SetMem
+                (
+                            aBox._p0.x,aBox._p1.x,
+                            aBoxXMin[anY], aBoxYMin ? aBoxYMin[anY] : 0,
+                            aBoxXMax[anY], aBoxYMax ? aBoxYMax[anY] : 0,
+                            aVinit,
+                            map1DTab,
+                            pPtZ,
+                            preDZ,
+                            pit,
+                            ptTer
+                );
+            }
         }
+#endif
         ~cMatrOfSMV()
         {
             delete [] mMatrInit;
@@ -212,7 +302,7 @@ template <class T> class cMatrOfSMV
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -228,17 +318,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
