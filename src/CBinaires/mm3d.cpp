@@ -348,6 +348,10 @@ extern int  TD_GenereAppuis_main(int argc,char ** argv);
 extern int  TD_Exemple_main(int argc,char ** argv);
 extern int  TD_Sol1(int argc,char ** argv);
 
+extern int  DocEx_Intro0_main(int,char **);
+extern int  DocEx_Introd2_main(int,char **);
+
+
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
@@ -365,6 +369,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("MMSMA",MMSymMasqAR_main,"Symetrise Masque Alle-Retour (internal use in MM1P) "));
    aRes.push_back(cMMCom("TD_GenApp",TD_GenereAppuis_main,"TD Generate GCP"));
    aRes.push_back(cMMCom("TD_Test",TD_Exemple_main,"Test TD "));
+   aRes.push_back(cMMCom("DocI0",DocEx_Intro0_main,"Introduction 0  of example fro DocElise  "));
+   aRes.push_back(cMMCom("DocID2",DocEx_Introd2_main,"Introduction to D2  of example fro DocElise  "));
    return aRes;
 }
 
