@@ -1,0 +1,158 @@
+<!--
+    Pattron pour le calcul de MNT a partir d'un ensemble de vue convergentes simples.
+ 
+    N Images , toutes convergentes vers la meme zones, angle suffisant pour que l'on puisse
+    faire une mise en place directe.
+-->
+
+<Global>
+   <ChantierDescripteur
+        Subst="@$#1"
+        NameDecl="@$#1"
+
+        PrefixImages="DSC"
+        PostfixRAW="ARW"
+        PostfixDraw="_MpDcraw8B_GR"
+        PostfixTestDraw="_MpDcraw8B_GB"
+        PatternNumeroGlob="[0-9]{5}"
+        PatternNumeroTest="[0-9]{4}[259]"
+        TypeCal="PhgrStd"
+        Focale="070"
+        NumCentreApero="04181"
+        NumRefDraw="05248"
+        PatWithIgi="(004[7-9])|(005[0-2])|(009[6-8])"
+
+        PatternRefut="((0464[8-9])|(046[5-6][0-9])|(04672))"
+
+        ImRefDraw="F${Focale}_${PrefixImages}${NumRefDraw}.${PostfixRAW}"
+        PatternAllIm="F[0-9]{3}_${PrefixImages}${PatternNumeroGlob}${PostfixDraw}\.tif"
+
+        Dyn="0.005"
+        Gama="2"
+
+        SzSift="1500"
+        NbJob="7"
+        DistMaxPdv="850"
+   >
+
+<!--   BATCH  -->
+
+        <BatchChantDesc>
+              <Key> Batch </Key>
+
+<!-- 1- Renommage des images pour avoir la focale dans le Nom -->
+              <Line>  bin/MyRename  "${ThisDir}(${PrefixImages}.*).(${PostfixRAW}|JPG|jpg)"   "F\$3_\$1.\$2" AddFoc=1 Exe=1 </Line>
+
+              <Line> bin/MapCmd  bin/MpDcraw "P=${ThisDir}(F[0-9]{3}_${PrefixImages}${PatternNumeroTest}).${PostfixRAW}" 16B=0 Offset=4100  GB=1   ImRef=${ImRefDraw}  Dyn=${Dyn}  Gamma=${Gama}  WB=[1,0.36,0.4]  M=MkToto  "T=\$1${PostfixTestDraw}.tif" </Line>
+              <Line> bin/MapCmd  bin/MpDcraw "P=${ThisDir}(F[0-9]{3}_${PrefixImages}${PatternNumeroGlob}).${PostfixRAW}" 16B=0 Offset=4100  GR=1 Cal=Key-Assoc-Calib-Coul BiCubParam=-0.5  ImRef=${ImRefDraw}  Dyn=${Dyn}  Gamma=${Gama}  WB=[1,0.36,0.4]  M=MkToto  "T=\$1${PostfixDraw}.tif" </Line>
+ 
+
+ 
+<!-- 2- Derawtisation -->
+ 
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+
+              <Line> bin/TrAJ2 ${ThisDir}param-traj.xml  </Line>
+
+<!-- 3  HOMOMOLGUES -->
+             
+    <!-- 3-A  Multi-Echelle et en l'Air -->
+
+       <!-- 3-A-1 Basse Resol -->
+              <Line> bin/Pastis  ${ThisDir}  Key-Rel-Init-All-Cples ${SzSift} MkF=MkToto FiltreOnlyDupl=1 NbMinPtsExp=2 </Line>
+
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+
+       <!-- 3-A-2  Resol Normale -->
+
+
+               <Line> bin/Apero  ${ThisDir}Apero-EnLair-0.xml  </Line>
+               <Line> bin/Apero  ${ThisDir}Apero-EnLair-1.xml  </Line>
+
+    <!-- 3-B:  Avec Igi -->
+               <Line> bin/MapCmd  bin/Igi2Xml   "P=${ThisDir}nav/(.*).igi"  "C=Out=Or-Nav-$1.xml" </Line>
+
+        </BatchChantDesc>
+
+
+<!--  HOMOLOGUES  -->
+
+
+    <KeyedSetsOfNames >
+          <Sets>
+                 <PatternAccepteur> ${PatternAllIm}  </PatternAccepteur>
+                 <PatternRefuteur> ${PatternRefut}  </PatternRefuteur>
+          </Sets>
+          <Key> Key-Set-All-Im </Key>
+    </KeyedSetsOfNames>
+
+    <KeyedSetsOfNames >
+          <Sets>
+                 <PatternAccepteur>  F070_DSC((042[4-9][0-9])|(04[3-9][0-9]{2}))_MpDcraw8B_GR.tif </PatternAccepteur>
+          </Sets>
+          <Key> Key-Set-All-Im-ToDo </Key>
+    </KeyedSetsOfNames>
+
+   <KeyedSetsORels>
+       <Sets >
+            <NameFileSauvegarde>  All-Cples.xml </NameFileSauvegarde>
+<!--
+-->
+
+            <ByFiltreSpatial>
+                <KeyOri>   Key-Assoc-Im2OrNav_MpDcraw8B_GR  </KeyOri>
+                <KeySet>  Key-Set-All-Im   </KeySet>
+                <FiltreSup> 
+                     <FiltreEmprise>
+                         <KeyOri > Key-Assoc-Im2OrNav_MpDcraw8B_GR </KeyOri>
+                         <RatioMin>  0.0 </RatioMin>
+                         <MemoFile> true </MemoFile>
+                         <Tag> OrientationConique </Tag>
+                     </FiltreEmprise>
+                </FiltreSup>
+<!--
+-->
+                <ModeFiltreSpatial>
+                      <FiltreDist>
+                          <DistMax> ${DistMaxPdv} </DistMax>
+                      </FiltreDist>
+                </ModeFiltreSpatial>
+            </ByFiltreSpatial>
+       </Sets>
+       <Key  > Key-Rel-Init-All-Cples </Key>
+    </KeyedSetsORels>
+
+
+<!--     CALIBRATIONS -->
+
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> F([0-9]{3})_.* </PatternTransform>
+                       <CalcName>  Bayer-Sony-$1.xml </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   Key-Assoc-Calib-Coul </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> F([0-9]{3})_.*.(tif|TIF) </PatternTransform>
+                <CalcName> Calib-Sony-$1-${TypeCal}.xml </CalcName>
+             </Direct>
+
+        </Calcs>
+        <Key>   Key-Assoc-CalibOfIm </Key>
+    </KeyedNamesAssociations>
+
+
+<!--     NAVIGATION -->
+
+
+  </ChantierDescripteur>
+</Global>

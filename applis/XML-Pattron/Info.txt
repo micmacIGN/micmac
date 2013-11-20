@@ -1,0 +1,28 @@
+Pattron1 : pour une mise en place et carte de profondeur simple.
+   Une prise de vue convergente et "assez grand angle".
+  
+
+Pattron2 : pour une mise en place et carte de profondeur avec longue
+           focale, en s'aidant d'un grand angle.
+
+
+Pattron1-BIS, Pattron2-BIS  : Idem, modernise + plan estime par
+masque + point multiples, cree sur gargouille du chateau de vincenne au 400 mm
+
+Pattron2-Ter : longue focale en panoramique (test Vincennes)
+
+Pattron 3 : cree un cylindre, pas a jour sur l'utilisation des dicos.
+
+Pattron 4 : Utilise un cylindre, avec un pdv longue focale+support GdAng
+            + structure matricielle des images.
+
+
+Pattron 6 : Fish-eye + 24mm pour modele d'ensemble de latte.
+
+
+param-PlanRhone.xml : un exemple de parametre en MNT urbain avec
+partie cachees + classe equiv + couts concaves.
+
+Draix : avec bscule on points
+
+Oiseau-Margot :  Avec calibration variable / Camera.
