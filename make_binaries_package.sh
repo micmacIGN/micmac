@@ -19,6 +19,16 @@ make install -j$NBRP
 	g++ -c ../src/uti_image/Digeo/cAppliDigeo.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/cAppliDigeo.cpp.o
 	g++ -c ../src/uti_image/Digeo/cDigeo_Topo.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/cDigeo_Topo.cpp.o
 	g++ -c ../src/uti_image/Digeo/cImDigeo.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/cImDigeo.cpp.o
+	g++ -c ../src/uti_image/Digeo/cImInMem.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/cImInMem.cpp.o
+	g++ -c ../src/uti_image/Digeo/cOctaveDigeo.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/cOctaveDigeo.cpp.o
+	g++ -c ../src/uti_image/Digeo/cParamDigeo.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/cParamDigeo.cpp.o
+	g++ -c ../src/uti_image/Digeo/cVisuCarac.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/cVisuCarac.cpp.o
+	g++ -c ../src/uti_image/Digeo/Digeo.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/Digeo.cpp.o
+	g++ -c ../src/uti_image/Digeo/DigeoPoint.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/DigeoPoint.cpp.o
+	g++ -c ../src/uti_image/Digeo/Digeo_Detecteurs.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/Digeo_Detecteurs.cpp.o
+	g++ -c ../src/uti_image/Digeo/Digeo_GaussFilter.c -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/Digeo_GaussFilter.c.o
+	g++ -c ../src/uti_image/Digeo/Digeo_Pyram.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/Digeo_Pyram.cpp.o
+	
 	make install -j$NBRP
 #----
 
