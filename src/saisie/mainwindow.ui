@@ -57,7 +57,16 @@ QStatusBar
     <property name="spacing">
      <number>3</number>
     </property>
-    <property name="margin">
+    <property name="leftMargin">
+     <number>6</number>
+    </property>
+    <property name="topMargin">
+     <number>6</number>
+    </property>
+    <property name="rightMargin">
+     <number>6</number>
+    </property>
+    <property name="bottomMargin">
      <number>6</number>
     </property>
     <item>
@@ -87,7 +96,7 @@ QStatusBar
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>29</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="mouseTracking">
@@ -172,9 +181,9 @@ QStatusBar
     <addaction name="actionFullScreen"/>
     <addaction name="actionShow_axis"/>
     <addaction name="actionShow_ball"/>
-    <addaction name="actionShow_bounding_box"/>
+    <addaction name="actionShow_bbox"/>
     <addaction name="actionShow_cams"/>
-    <addaction name="actionShow_help_messages"/>
+    <addaction name="actionShow_messages"/>
     <addaction name="actionReset_view"/>
     <addaction name="action2D_3D_mode"/>
    </widget>
@@ -391,7 +400,7 @@ QStatusBar
     <string>F3</string>
    </property>
   </action>
-  <action name="actionShow_help_messages">
+  <action name="actionShow_messages">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -424,7 +433,7 @@ QStatusBar
   </action>
   <action name="actionAdd">
    <property name="text">
-    <string>Add points/pixels</string>
+    <string>Add to selection</string>
    </property>
    <property name="toolTip">
     <string>Add points/pixels</string>
@@ -497,7 +506,7 @@ QStatusBar
     <string>Del</string>
    </property>
   </action>
-  <action name="actionShow_bounding_box">
+  <action name="actionShow_bbox">
    <property name="checkable">
     <bool>true</bool>
    </property>

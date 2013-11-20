@@ -187,7 +187,7 @@ private :
 
     void copyCells_Mat2Stream_V03(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<uint> &pitTer, CuHostData3D<ushort> &costInit, CuHostData3D<short2> &dim, CuHostData3D<short> &size, uint idBuf = 0);
 
-    void copyCells_Stream2Mat_V03(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<uint> &pitTer, CuHostData3D<uint> &costFinal, CuHostData3D<short2> &dim, CuHostData3D<short> &size, uint idBuf = 0);
+    void copyCells_Stream2Mat_V03(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<uint> &pitTer, CuHostData3D<uint> &costFinal, CuHostData3D<short> &size, uint idBuf = 0);
 
 #endif
 
