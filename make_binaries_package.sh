@@ -15,6 +15,8 @@ make install -j$NBRP
 # il peut faire planter gcc sur certaines machines (debian ?)
 	uname -a
 	g++ -c ../src/uti_image/Digeo/GenConvolSpec.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/GenConvolSpec.cpp.o
+	g++ -c ../src/uti_image/Digeo/cConvolSpec.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/cConvolSpec.cpp.o
+	g++ -c ../src/uti_image/Digeo/cAppliDigeo.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/cAppliDigeo.cpp.o
 	make install -j$NBRP
 #----
 
