@@ -17,6 +17,8 @@ make install -j$NBRP
 	g++ -c ../src/uti_image/Digeo/GenConvolSpec.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/GenConvolSpec.cpp.o
 	g++ -c ../src/uti_image/Digeo/cConvolSpec.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/cConvolSpec.cpp.o
 	g++ -c ../src/uti_image/Digeo/cAppliDigeo.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/cAppliDigeo.cpp.o
+	g++ -c ../src/uti_image/Digeo/cDigeo_Topo.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/cDigeo_Topo.cpp.o
+	g++ -c ../src/uti_image/Digeo/cImDigeo.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/cImDigeo.cpp.o
 	make install -j$NBRP
 #----
 
