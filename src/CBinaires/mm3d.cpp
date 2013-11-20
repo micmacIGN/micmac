@@ -340,6 +340,7 @@ extern int  Sample_W0_main(int argc,char ** argv);
 extern int  Sample_LSQ0_main(int argc,char ** argv);
 extern int  Abdou_main(int argc,char ** argv);
 extern int  Luc_main(int argc,char ** argv);
+extern int  Vincent_main(int argc,char ** argv);
 extern int  LucasChCloud_main(int argc,char ** argv);
 extern int  Mathieu_main(int argc,char ** argv);
 extern int  RawCor_main(int argc,char ** argv);
@@ -348,6 +349,10 @@ extern int  TD_GenereAppuis_main(int argc,char ** argv);
 extern int  TD_Exemple_main(int argc,char ** argv);
 extern int  TD_Sol1(int argc,char ** argv);
 
+extern int  DocEx_Intro0_main(int,char **);
+extern int  DocEx_Introd2_main(int,char **);
+
+
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
@@ -355,9 +360,9 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("W0",Sample_W0_main,"Test on Graphic Windows "));
    aRes.push_back(cMMCom("LSQ0",Sample_LSQ0_main,"Basic Test on Least Square libray "));
    aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou "));
-   aRes.push_back(cMMCom("Tests_Luc",Luc_main,"Exemples fonctions utilisation pts homologues "));
+   aRes.push_back(cMMCom("Tests_Luc",Luc_main,"tests de Luc"));
+   aRes.push_back(cMMCom("Tests_Vincent",Vincent_main,"tests de Vincent"));
    aRes.push_back(cMMCom("TesSI",Mathieu_main,"Test SelectionInfos "));
-   // Luc rajoute le fichier ?
    // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
    aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Exemples fonctions modifying cloud "));
 
@@ -365,6 +370,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("MMSMA",MMSymMasqAR_main,"Symetrise Masque Alle-Retour (internal use in MM1P) "));
    aRes.push_back(cMMCom("TD_GenApp",TD_GenereAppuis_main,"TD Generate GCP"));
    aRes.push_back(cMMCom("TD_Test",TD_Exemple_main,"Test TD "));
+   aRes.push_back(cMMCom("DocI0",DocEx_Intro0_main,"Introduction 0  of example fro DocElise  "));
+   aRes.push_back(cMMCom("DocID2",DocEx_Introd2_main,"Introduction to D2  of example fro DocElise  "));
    return aRes;
 }
 
