@@ -2059,12 +2059,13 @@ void cAppliMICMAC::ExeProcessParallelisable
        fic.close();
        mCout << " ---Lance les Process avec le Makefile\n";
 
-	   std::string aCom = string("\"")+g_externalToolHandler.get( "make" ).callName() + "\" -f \""+nomMakefile+std::string("\" -j ")+ToString(std::abs(ByProcess().Val()));
+	   //std::string aCom = string("\"")+g_externalToolHandler.get( "make" ).callName() + "\" -f \""+nomMakefile+std::string("\" -j ")+ToString(std::abs(ByProcess().Val()));
+	   //int aCodeRetour = ::System(aCom.c_str());
+	   bool makeSucceeded = launchMake( nomMakefile, "", ByProcess().Val() );
 
-	   int aCodeRetour = ::System(aCom.c_str());
        if (StopOnEchecFils().Val())
         {    
-            ELISE_ASSERT(aCodeRetour==0,"Erreur dans processus fils");
+            ELISE_ASSERT(makeSucceeded,"Erreur dans processus fils");
         }
 	    mCout << " ---End Process\n";
     }//else 
