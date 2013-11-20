@@ -174,7 +174,6 @@ int main(int argc, char *argv[])
         }
     }
 
-
     w.show();
 
     if (cmdline_args.size() > 1)
