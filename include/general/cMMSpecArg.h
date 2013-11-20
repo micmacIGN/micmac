@@ -94,7 +94,7 @@ class cMMSpecArg
         // Initialise la variable a partir d'une chaine de caractere
         void Init(const std::string &);
 
-        // Liste des valeurs possible si enumeree, renvoie liste vide sinon
+        // Liste des valeurs possibles si enumerees, renvoie liste vide sinon
         const std::list<std::string>  & EnumeratedValues() const;
     private :
         friend class LArgMain;
