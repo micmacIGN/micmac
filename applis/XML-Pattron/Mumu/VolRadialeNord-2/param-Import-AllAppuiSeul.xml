@@ -1,0 +1,80 @@
+<Param_Traj_AJ
+       Subst="@$#1"
+       NameDecl="@$#1"
+
+       SysCoOut="RTL"
+       TypePt="Appuis"
+>
+   <DicoLoc >
+<!--
+        <KeyedNamesAssociations>
+            <Calcs>
+                <Arrite>  1 1 </Arrite>
+                <Direct>
+                    <PatternTransform> .* </PatternTransform>
+                    <CalcName> F070_$0_MpDcraw8B_GR.tif </CalcName>
+                 </Direct>
+
+            </Calcs>
+            <Key>   Key-Id2Im-ExporAppRenaud </Key>
+        </KeyedNamesAssociations>
+-->
+
+   </DicoLoc>
+
+
+   <TrAJ2_ConvertionAppuis>
+        <Id>  Pts-Renaud </Id>
+        <AutomComment> ^#.*  </AutomComment>
+
+        <TraJ2_FilesInputi_Appuis>
+            <KeySetOrPat> ^GPS-${TypePt}.txt </KeySetOrPat>
+            <Autom> (${ID}) (${EF}) (${EF}) (${EF}) (${EF}) (${EF}) * </Autom>
+            <GetMesTer> true  </GetMesTer>
+            <GetMesIm>  false </GetMesIm>
+            <KIdPt> 1  </KIdPt>
+        </TraJ2_FilesInputi_Appuis>
+
+        <OutMesTer>  Dico-${SysCoOut}-${TypePt}.xml </OutMesTer>
+
+
+        <UnitesCoord>  eUniteAngleRadian </UnitesCoord>
+        <UnitesCoord>  eUniteAngleRadian </UnitesCoord>
+
+        <ValIncertPlani> 0.2 </ValIncertPlani>
+        <ValIncertAlti> 0.5 </ValIncertAlti>
+        <KIncertPlani> -1 </KIncertPlani>     <!-- Longitude -->
+        <KIncertAlti>  -1 </KIncertAlti>     <!-- Longitude -->
+        <KxTer> 2 </KxTer>     <!-- Longitude -->
+        <KyTer> 3 </KyTer>     <!-- Longitude -->
+        <KzTer> 4 </KzTer>     <!-- Longitude -->
+
+        <KIIm> -1</KIIm>     <!-- Longitude -->
+        <KJIm> -1 </KJIm>     <!-- Longitude -->
+        <KIdIm> -1         </KIdIm>
+
+        <KeyId2Im>   toto </KeyId2Im>
+
+
+        <SystemeIn> 
+             <BSC>
+                <TypeCoord>  eTC_Polyn </TypeCoord>
+                <AuxStr> SysCo-UTM-Muru.xml </AuxStr>
+                <ByFile> true           </ByFile>
+             </BSC>
+        </SystemeIn>
+        <SystemeOut>
+                <BSC>
+                     <TypeCoord>  eTC_Unknown </TypeCoord>
+                     <AuxStr> SysCo-${SysCoOut}-Muru.xml </AuxStr>
+                     <ByFile> true           </ByFile>
+                </BSC>
+        </SystemeOut>
+
+
+   </TrAJ2_ConvertionAppuis>
+
+</Param_Traj_AJ>
+
+
+

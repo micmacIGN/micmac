@@ -1,0 +1,114 @@
+<!--
+ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-GenMTDNuage.xml WorkDir=/media/data1/SummerSchhol/Gironde_Zone2/ +PatternAllIm="FD33.*tif" +Ori=All +Zoom=2
+
+-->
+
+<ParamMICMAC>
+  <DicoLoc>
+           <Symb>   PatternAllIm="XXXX"  </Symb>
+           <Symb>   Ori="XXXX"  </Symb>
+           <Symb>   Zoom="1"  </Symb>
+           <Symb>   Repere="NO-REPERE"  </Symb>
+           <Symb>   DirMEC="MTD-Nuage"  </Symb>
+
+            <Symb>  WithBox=false </Symb>
+            <Symb>  X0=0 </Symb>
+            <Symb>  X1=0 </Symb>
+            <Symb>  Y0=0 </Symb>
+            <Symb>  Y1=0 </Symb>
+            <Symb>  ImIncluse=XXXXXX </Symb>
+  </DicoLoc>
+
+
+
+<!--  M2 : Describe the ground zone where the matching is to be done -->
+<Section_Terrain>    
+      <IntervAltimetrie>
+             <ZIncCalc>   0.0  </ZIncCalc>
+      </IntervAltimetrie>
+      <Planimetrie>
+           <#WHEN VTEST=${WithBox}>
+                <ListePointsInclus>
+                    <Pt>  ${X0} ${Y0} </Pt>
+                    <Pt>  ${X0} ${Y1} </Pt>
+                    <Pt>  ${X1} ${Y0} </Pt>
+                    <Pt>  ${X1} ${Y1} </Pt>
+                    <Im> ${ImIncluse} </Im>
+                </ListePointsInclus>
+           </#WHEN>
+      </Planimetrie>
+
+</Section_Terrain>
+
+<!--  M3 : describe the set of images to match -->
+<Section_PriseDeVue >   
+     <GeomImages> eGeomImageOri </GeomImages>
+     <Images >
+          <ImPat>  ${PatternAllIm} </ImPat>
+     </Images>
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc> NKS-Assoc-Im2Orient@-${Ori} </FCND_GeomCalc>
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      1             </SzW>
+             <AlgoRegul>  eAlgoMaxOfScore </AlgoRegul>
+
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+
+             <ZPas>        1.0  </ZPas>
+             <ModeInterpolation> eInterpolMPD </ModeInterpolation>
+
+	     <ZDilatAlti>  3    </ZDilatAlti>
+             <ZDilatPlani> 4    </ZDilatPlani>
+	     <ZRegul>  0.05    </ZRegul>
+        </EtapeMEC>
+	     
+
+        <EtapeMEC> 
+                 <DeZoom >        ${Zoom}        </DeZoom> 
+        </EtapeMEC>
+
+</Section_MEC>
+
+<!--  M4 : Specify the output geometry -->
+<Section_Results >
+   <GeomMNT> eGeomMNTEuclid  </GeomMNT> 
+   <RepereCorrel> ${Repere}    </RepereCorrel>
+
+   <DoNothingBut>
+        <ButDoOriMNT> true </ButDoOriMNT>
+<!--
+        <ButDoMTDNuage>  true </ButDoMTDNuage>
+        <ButDoMasqueChantier> true</ButDoMasqueChantier>
+        <ButDoExtendParam> true </ButDoExtendParam>
+-->
+    </DoNothingBut>
+
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir >  #### </WorkDir> 
+     <TmpMEC>  ${DirMEC}/  </TmpMEC>
+     <TmpResult> ${DirMEC}/  </TmpResult>
+     <TmpPyr>    Pyram/  </TmpPyr>
+     <ByProcess>   ${MMNbProc} </ByProcess>
+     <DefTileFile> 500000 </DefTileFile>
+     <PurgeMECResultBefore>  false </PurgeMECResultBefore>
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+
