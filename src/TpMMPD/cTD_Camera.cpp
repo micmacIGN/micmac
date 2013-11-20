@@ -49,6 +49,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 cTD_Camera::cTD_Camera(const std::string & aName) :
     mName (aName),
+    mCIO  (StdGetFromPCP(aName,CalibrationInternConique)),
     mCS (CamOrientGenFromFile(NameWithoutDir(aName),cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aName))))
 {
 }
@@ -92,6 +93,41 @@ void cTD_Camera::Save(const std::string & aName) const
        aName
     );
 }
+
+double cTD_Camera::Focale () const
+{
+    return mCIO.F();
+}
+
+double  cTD_Camera::R3 () const
+{
+    return mCIO.CalibDistortion()[0].ModRad().Val().CoeffDist()[0];
+}
+
+Pt2dr    cTD_Camera::SzCam() const 
+{
+   return Pt2dr(mCS->Sz());
+}
+
+
+cTD_Camera cTD_Camera::NewCam(double aFoc , double aR3)
+{
+     cTD_Camera aRes = *this;
+
+     cOrientationConique aCO = mCS->StdExportCalibGlob();
+     aCO.Interne().Val().F() = aFoc;
+     std::vector<double> & aVC = aCO.Interne().Val().CalibDistortion()[0].ModRad().Val().CoeffDist();
+     if (aVC.size() ==0)
+        aVC.push_back(0);
+     aVC[0] = aR3;
+
+     aRes.mCIO = aCO.Interne().Val();
+     aRes.mCS = Cam_Gen_From_XML(aCO,cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(mName)))->CS();
+
+     return aRes;
+}
+
+
 
 
 
