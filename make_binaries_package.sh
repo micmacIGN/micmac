@@ -28,7 +28,7 @@ make install -j$NBRP
 	g++ -c ../src/uti_image/Digeo/Digeo_Detecteurs.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/Digeo_Detecteurs.cpp.o
 	g++ -c ../src/uti_image/Digeo/Digeo_GaussFilter.c -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/Digeo_GaussFilter.c.o
 	g++ -c ../src/uti_image/Digeo/Digeo_Pyram.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/Digeo_Pyram.cpp.o
-	
+	g++ -c ../src/uti_image/Digeo/TestDigeoExt.cpp -I../include -o src/CMakeFiles/elise.dir/uti_image/Digeo/TestDigeoExt.cpp.o
 	make install -j$NBRP
 #----
 
