@@ -421,7 +421,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    TheExitOnBrkp=false;
     
    std::string aCom = argv[1];
-   std::string aLowCom = StrToLower(aCom);
+   std::string aLowCom = current_program_subcommand();
 
    std::vector<cSuggest *> mSugg;
 

@@ -1055,7 +1055,7 @@ class cEl_GPAO;
 class cEl_Task;
 
 // __DEL
-#define __C_EL_COMMAND__
+//#define __C_EL_COMMAND__
 
 #ifdef __C_EL_COMMAND__
 	class cElCommand : public std::list<std::string>
@@ -1088,7 +1088,7 @@ class cElTask
           (
                const std::string & aName,
                cEl_GPAO &,
-               const cElCommand & aBuildingRule
+               const std::string & aBuildingRule
           );
 		#endif
          cEl_GPAO &  mGPAO;
