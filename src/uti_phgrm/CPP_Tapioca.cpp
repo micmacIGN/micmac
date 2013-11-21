@@ -115,24 +115,12 @@ void DoMkT()
 {
     if (ByP)
     {
-        std::string aSMkSr = string("\"")+g_externalToolHandler.get( "make" ).callName()+"\" all -f \"" + MkFT + string("\" -j")+ToString(ByP)/*+" -s"*/;
-        System(aSMkSr,true);
+        //std::string aSMkSr = string("\"")+g_externalToolHandler.get( "make" ).callName()+"\" all -f \"" + MkFT + string("\" -j")+ToString(ByP)/*+" -s"*/;
+        //System(aSMkSr,true);
+		launchMake( MkFT, "all", ByP, ""/*"-s"*/, false );
     }
 }
 
-// protect spaces with backslashes (for use with 'make')
-string protect_spaces( const string &i_str )
-{
-	string out_str = i_str;
-	size_t lastPos = 0;
-	while ( true )
-	{
-		lastPos = out_str.find( ' ', lastPos );
-		if ( lastPos==string::npos ) return out_str;
-		out_str.insert(lastPos,1,'\\');
-		lastPos += 2;
-	}
-}
 
 void DoDevelopp(int aSz1,int aSz2)
 {
@@ -144,12 +132,13 @@ void DoDevelopp(int aSz1,int aSz2)
 	int iImage = 0;
     for (std::list<std::string>::const_iterator iT= aFileList.begin() ; iT!=aFileList.end() ; iT++, iImage++)
     {
+
         std::string  aNOri = anICNM->Dir()+*iT;
         //std::string  aNTif = NameFileStd(aNOri,1,false,true,false);
 
         //std::string aCom = MMBin() + "PastDevlop " + aNOri + " Sz1=" +ToString(aSz1) + " Sz2="+ToString(aSz2);
         std::string aCom = protect_spaces(MMBin()) + "PastDevlop " + protect_spaces(aNOri) + " Sz1=" +ToString(aSz1) + " Sz2="+ToString(aSz2);
-
+		
 		taskName = string( "T" ) + ToString( iImage ) + "_";
         aGPAO.GetOrCreate( taskName, aCom ); // always call PastDevlop (in case asked resolution changed)
         aGPAO.TaskOfName("all").AddDep( taskName );
@@ -838,7 +827,7 @@ int Tapioca_main(int argc,char ** argv)
     BinPastis = MM3dBinFile_quotes("Pastis");
 
     ByP= MMNbProc();
-
+	
     cTplValGesInit<std::string>  aTplFCND;
     anICNM = cInterfChantierNameManipulateur::StdAlloc(argc,argv,aDir,aTplFCND);
 

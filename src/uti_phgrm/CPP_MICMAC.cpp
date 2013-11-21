@@ -83,7 +83,7 @@ int MICMAC_main(int argc,char ** argv)
         itS++
      )
      {
-         std::string aCom = getCurrentProgramFullName() + std::string(" ") + *itS;
+         std::string aCom = current_program_fullname() + " " + current_program_subcommand() + " " + *itS;
          for (int aK=2; aK<argc ; aK++)
              aCom =  aCom + std::string(" ") +argv[aK] ;
          std::list<std::string> aLProc;

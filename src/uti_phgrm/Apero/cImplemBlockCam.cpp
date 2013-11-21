@@ -515,9 +515,9 @@ void cImplemBlockCam::EstimCurOri(const cEstimateOrientationInitBlockCamera & an
            ElRotation3D aRMoy(aSomTr,aSomM,true);
            std::cout << "  ==========  AVERAGE =========== \n";
            std::cout << "    " <<  aRMoy.ImAff(Pt3dr(0,0,0))
-                               << " " << aRMoy.teta01() 
-                               << " " << aRMoy.teta02() 
-                               << " " << aRMoy.teta12() 
+                               << " tetas " << aRMoy.teta01() 
+                               << "  " << aRMoy.teta02() 
+                               << "  " << aRMoy.teta12() 
                                << "\n";
 
            cParamOrientSHC aP;

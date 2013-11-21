@@ -78,11 +78,23 @@ class cTD_Camera
                                     const Pt3dr & aPTer3, const Pt2dr & aPIm3
                                 );
 
+        // Focale et coeff en R3
+
+            double  Focale () const;
+            double  R3 () const;
+            Pt2dr   SzCam() const ;
+
+            cTD_Camera NewCam(double aFoc , double aR3);
+            
+
+        // Coeff dist  R3
+          
      private :
         friend class cTD_Prof;
 
-        std::string   mName;
-        CamStenope *  mCS;
+        std::string                mName;
+        cCalibrationInternConique  mCIO;
+        CamStenope *               mCS;
 };
 
 int TD_EntierAleatoire(int aN);  // Renvoie un entier au hasrd entre 1 et N

@@ -182,6 +182,17 @@ std::string PostFixWithout(const std::string & aStr,char aSep)
  return aStr.substr(aPos+1,std::string::npos);
 }
 
+
+std::string StrToLower(const std::string & aStr)
+{
+   std::string aRes;
+   for (const char * aC=aStr.c_str(); *aC; aC++)
+   {
+      aRes += (isupper(*aC) ?  tolower(*aC) : *aC);
+   }
+   return aRes;
+}
+
 std::string NameWithoutDir(const std::string & aStr)
 {
 return PostFixWithout(PostFixWithout(aStr,'/'),'\\');

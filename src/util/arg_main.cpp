@@ -927,16 +927,20 @@ cAppliBatch::eModeExecution cAppliBatch::ModeExe() const
 	return mModeExe;
 }
 
+std::string cAppliBatch::protectFilename( const string &i_filename ) const
+{
+	return (ByMKf()?protect_spaces(i_filename):string("\"")+i_filename+"\"");
+}
 
 std::string cAppliBatch::ComForRelance()
 {
 	std::string aRes = mDebCom;
-
+	
 	if (mNbFile>=1)
-		aRes = aRes + " " + mCurF1;
+		aRes = aRes + " " + protectFilename( mCurF1 );
 
 	if (mNbFile>=2)
-		aRes = aRes + " " + mCurF2;
+		aRes = aRes + " " + protectFilename( mCurF2 );
 
 	aRes = aRes + mEndCom + " IsRelancedByThis=1";
 
@@ -1042,8 +1046,7 @@ mICNM           (0),
 	bool A1IsFile=false;
 
 	MMD_InitArgcArgv( argc, argv );
-	mThisBin = getCurrentProgramFullName();
-
+	
 	if ((argc >2) && (aNbFile>0))
 	{
 		if ( ELISE_fp::exist_file(argv[1]))
@@ -1153,10 +1156,11 @@ mICNM           (0),
 		SplitDirAndFile(mDirChantier,mPatF1,aFulName);
 	}
 
-	mDebCom = mThisBin + " " + mDirChantier + " ";
+	mDebCom = protectFilename(current_program_fullname())+" "+current_program_subcommand()+" "+protectFilename(mDirChantier)+" ";
+
 	mEndCom = "";
 	for (int aK=3+(mPatF2!="") ; aK<argc ; aK++)
-		mEndCom = mEndCom + " " + argv[aK];
+		mEndCom = mEndCom + " " + protectFilename(argv[aK]);
 
 	mExeIsInit = (aExe!=-1);
 	mModeExe =  mExeIsInit ? (eModeExecution) aExe :eExeDoNothing;
@@ -1191,12 +1195,12 @@ mICNM           (0),
 
 }
 
-
+/*
 const std::string & cAppliBatch::ThisBin() const
 {
 	return mThisBin;
 }
-
+*/
 
 
 
@@ -1207,6 +1211,20 @@ bool EAMIsInit(void * anAdr)
 	return (AllAddrEAM.find(anAdr)) != AllAddrEAM.end();
 }
 
+
+// protect spaces with backslashes (for use with 'make')
+string protect_spaces( const string &i_str )
+{
+	string out_str = i_str;
+	size_t lastPos = 0;
+	while ( true )
+	{
+		lastPos = out_str.find( ' ', lastPos );
+		if ( lastPos==string::npos ) return out_str;
+		out_str.insert(lastPos,1,'\\');
+		lastPos += 2;
+	}
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
