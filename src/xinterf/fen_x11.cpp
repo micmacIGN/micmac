@@ -174,7 +174,7 @@ class DataElXim : public RC_Object
      public :
 
          void * operator new    (size_t sz);
-         void operator delete   (void * ptr) ;   
+         void operator delete   (void * ptr);
 	
          INT tx() const {return _sz.x;}
          INT ty() const {return _sz.y;}
@@ -183,7 +183,7 @@ class DataElXim : public RC_Object
 
 
 
-	Pt2di sz() const{return _sz;};
+    Pt2di sz() const{return _sz;}
 	DataElXim(Data_Elise_Video_Win *,Pt2di sz);
 	void init(Data_Elise_Video_Win *,Pt2di sz);
 
