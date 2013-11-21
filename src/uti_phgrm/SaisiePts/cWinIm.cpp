@@ -278,7 +278,6 @@ bool  cWinIm::WVisible(const Pt2dr & aP,eEtatPointeImage aState)
    return     WVisible(aP) 
           && ((aState!=eEPI_Refute) || (!mAppli.RefInvis()))
           && (aState!=eEPI_Disparu);
-   ;
 }
 
 

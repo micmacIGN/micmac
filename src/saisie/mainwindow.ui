@@ -181,9 +181,9 @@ QStatusBar
     <addaction name="actionFullScreen"/>
     <addaction name="actionShow_axis"/>
     <addaction name="actionShow_ball"/>
-    <addaction name="actionShow_bounding_box"/>
+    <addaction name="actionShow_bbox"/>
     <addaction name="actionShow_cams"/>
-    <addaction name="actionShow_help_messages"/>
+    <addaction name="actionShow_messages"/>
     <addaction name="actionReset_view"/>
     <addaction name="action2D_3D_mode"/>
    </widget>
@@ -400,7 +400,7 @@ QStatusBar
     <string>F3</string>
    </property>
   </action>
-  <action name="actionShow_help_messages">
+  <action name="actionShow_messages">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -506,7 +506,7 @@ QStatusBar
     <string>Del</string>
    </property>
   </action>
-  <action name="actionShow_bounding_box">
+  <action name="actionShow_bbox">
    <property name="checkable">
     <bool>true</bool>
    </property>

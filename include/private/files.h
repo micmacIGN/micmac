@@ -160,6 +160,7 @@ class  ELISE_fp
          static void MkDirRec(const std::string &  aName );
          static bool IsDirectory(const std::string &  aName );
          static void AssertIsDirectory(const std::string &  aName );
+		 static bool copy_file( const std::string i_src, const std::string i_dst, bool i_overwrite );
          
          static bool lastModificationDate(const std::string &i_filename, cElDate &o_date ); // returns if the date could be retrieved
 

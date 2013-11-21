@@ -73,8 +73,102 @@ double ScoreScol(const  cTD_Camera & aCam,const cTD_SetAppuis & aSetGCP)
 
 
 
-
 int TD_Sol1(int argc,char ** argv)
+{
+    std::string aNameCam,aNameAppuis;
+    int aNbTest = 10000;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aNameCam,"Name of camera")
+                    << EAMC(aNameAppuis,"Name of GCP"),
+        LArgMain()  << EAM(aNbTest,"NbTest",true,"Do no stuff")
+    );
+
+    cTD_Camera aCam(aNameCam);
+    cTD_SetAppuis aSetGCP(aNameAppuis);
+
+
+    int aNbPts =  aSetGCP.PTer().size();
+    int aK1Max=-1,aK2Max=-1,aK3Max=-1;
+    double aSurfMax=0;
+    for (int aK=0 ; aK< aNbTest ; aK++)
+    {
+        if ((aK%100)==0) 
+           std::cout << "RESTE " << aNbTest-aK << "\n";
+
+        int aK1 = TD_EntierAleatoire(aNbPts);
+        int aK2 = TD_EntierAleatoire(aNbPts);
+        int aK3 = TD_EntierAleatoire(aNbPts);
+        if ((aK1!=aK2) && (aK1!=aK3) && (aK2!=aK3))
+        {
+             Pt2dr  aP1 = aSetGCP.PIm()[aK1];
+             Pt2dr  aP2 = aSetGCP.PIm()[aK2];
+             Pt2dr  aP3 = aSetGCP.PIm()[aK3];
+
+             double aSurf = fabs((aP1-aP2) ^ (aP2-aP3));
+             if (aSurf> aSurfMax)
+             {
+                 aSurfMax = aSurf;
+                 aK1Max = aK1;
+                 aK2Max = aK2;
+                 aK3Max = aK3;
+             }
+        }
+    }
+    Pt2dr aPIm1 = aSetGCP.PIm()[aK1Max];
+    Pt2dr aPIm2 = aSetGCP.PIm()[aK2Max];
+    Pt2dr aPIm3 = aSetGCP.PIm()[aK3Max];
+    Pt3dr aPTer1 = aSetGCP.PTer()[aK1Max];
+    Pt3dr aPTer2 = aSetGCP.PTer()[aK2Max];
+    Pt3dr aPTer3 = aSetGCP.PTer()[aK3Max];
+
+
+     double aStepR3 = 1 /pow(euclid(aCam.SzCam())/2.0,3.0);
+     std::cout << "STEP R3 " << aStepR3 << "\n";
+
+     double aScoreMin = 1e20;
+     double aFMin = 0;
+     double aR3Min = 0;
+
+     for (double aDF =  -100 ; aDF<=100 ; aDF +=10)
+     {
+          std::cout << "DF = " << aDF << "\n";
+          for (double aDR =  -200 ; aDR<=200 ; aDR +=10)
+          {
+              cTD_Camera  aNewC  =  aCam.NewCam(aCam.Focale()+aDF,aStepR3*aDR);
+              std::vector<cTD_Camera> aSols = aNewC.RelvtEspace
+                                    (
+                                          aPTer1, aPIm1,
+                                          aPTer2, aPIm2,
+                                          aPTer3, aPIm3
+                                    );
+
+              for (int aKS=0 ; aKS < int(aSols.size()) ; aKS++)
+              {
+                   double aScore = ScoreScol(aSols[aKS],aSetGCP);
+                   if (aScore<aScoreMin)
+                   {
+                      aScoreMin = aScore;
+                      aFMin = aSols[aKS].Focale() ; 
+                      aR3Min = aSols[aKS].R3() ; 
+
+                      std::cout << "SCORE " << aScoreMin << " " << aFMin << " " << aR3Min << "\n";
+                  }
+              }
+          }
+     }
+     std::cout << "END-SCORE " << aScoreMin << " " << aFMin << " " << aR3Min << "\n";
+
+
+
+    return 0;
+}
+
+
+
+int TD_Sol2(int argc,char ** argv)
 {
     std::string aNameCam,aNameAppuis;
     int aNbTest = 10000;

@@ -36,9 +36,7 @@ eLiSe image library. MicMac is governed by the  "Cecill-B licence".
 See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-/* Ceci est commentaire */
 #include "StdAfx.h"
-
 
 void ShowEnum(const cMMSpecArg & anArg)
 {
@@ -65,7 +63,7 @@ void ShowEnum(const cMMSpecArg & anArg)
 
 bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
 {
-     // la premiere fois on imprime toutes l'info sur tous les arguments
+     // la premiere fois on imprime toute l'info sur tous les arguments
      if (Prems)
      {
         for (int aK=0 ; aK<int(aVAO.size()) ; aK++)
@@ -80,7 +78,7 @@ bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
      }
 
      // Lecture du nom et de la valeur
-     std::cout << "Enter Name + Val of optionnal arg, NONE if finish\n";
+     std::cout << "Enter Name + Val of optional arg, NONE if finish\n";
      std::string aName,aVal;
 
      std::cin >> aName >> aVal;
@@ -89,7 +87,7 @@ bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
      // Si on veut signifier la fin il faut taper NONE  xxx
      if (aName=="NONE") return false;
 
-     // Si on touve le bon nom, on initialise et on retourne true 
+     // Si on trouve le bon nom, on initialise et on retourne true
      for (int aK=0 ; aK<int(aVAO.size()) ; aK++)
      {
           if (aVAO[aK].NameArg() ==aName)
@@ -111,7 +109,7 @@ void MMRunVisualMode
          std::vector<cMMSpecArg> & aVAO   // Vector Arg Optional
      )
 {
-     // On lit  tous les argument obligatoires 
+     // On lit tous les arguments obligatoires
      for (int aK=0 ; aK<int(aVAM.size()) ; aK++)
      {
          // On imprime un peu d'info
@@ -123,11 +121,11 @@ void MMRunVisualMode
          // on lit une chaine de caractere
          std::string aVal;
          std::cin >> aVal;
-         // on inialise la variable a partir de la chaine
+         // on initialise la variable a partir de la chaine
          aVAM[aK].Init(aVal);
      }
 
-     // On lit autant d'argument optionnel que l'utilisateur souhaite en passer
+     // On lit autant d'arguments optionnels que l'utilisateur souhaite en passer
      bool FirstCall = true;
      while (ContinuerReadOneArg(aVAO,FirstCall)) 
      {
