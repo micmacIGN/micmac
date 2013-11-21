@@ -38,6 +38,14 @@ See below and http://www.cecill.info.
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+#if(ELISE_QT5)
+    #ifdef Int
+        #undef Int
+    #endif
+
+    #include <QString>
+#endif
+
 void ShowEnum(const cMMSpecArg & anArg)
 {
     const std::list<std::string>  & aLEnum = anArg.EnumeratedValues();
@@ -109,6 +117,15 @@ void MMRunVisualMode
          std::vector<cMMSpecArg> & aVAO   // Vector Arg Optional
      )
 {
+    string str;
+    #if(ELISE_QT5)
+        QString qstr = "i'm a qstring";
+        str = qstr.toStdString();
+    #else
+        str = "i'm a std::string";
+    #endif //ELISE_QT5
+    cout << str << endl;
+
      // On lit tous les arguments obligatoires
      for (int aK=0 ; aK<int(aVAM.size()) ; aK++)
      {
