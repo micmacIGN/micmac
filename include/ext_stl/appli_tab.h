@@ -168,10 +168,7 @@ template <class T> class cVectOfSMV
                 INT2 * aBoxXMax,
                 INT2 * aBoxYMax,
                 const T & aVinit,
-                CuHostData3D<uint>      &map1DTab,
-                CuHostData3D<short2>    &pPtZ,
-                CuHostData3D<ushort>    &preDZ,
-                uint                    &pit,
+                CuHostDaPo3D<ushort>    &poInitCost,
                 uint2                   &ptTer
         )
         {
@@ -182,11 +179,13 @@ template <class T> class cVectOfSMV
             {
                 ptTer.x         =  anX;
                 short2 ptZ      = make_short2(aBoxXMin[anX],aBoxXMax[anX]);
-                pPtZ[ptTer]     = ptZ;
-                ushort dZ       = abs(count(ptZ));
-                preDZ[ptTer]    = dZ;
-                map1DTab[ptTer] = pit;
-                pit            += dZ;
+                poInitCost.PointIncre(ptTer,ptZ);
+
+//                pPtZ[ptTer]     = ptZ;
+//                ushort dZ       = abs(count(ptZ));
+//                preDZ[ptTer]    = dZ;
+//                map1DTab[ptTer] = pit;
+//                pit            += dZ;
 
                 mVect[anX].SetMem
                 (
@@ -244,20 +243,14 @@ template <class T> class cMatrOfSMV
               INT2 ** aBoxXMax,
               INT2 ** aBoxYMax,
               const T & aVinit,
-              CuHostData3D<uint>    &map1DTab,
-              CuHostData3D<short2>  &pPtZ,
-              CuHostData3D<ushort>  &preDZ,
-              uint                  &pit
+              CuHostDaPo3D<ushort>    &poInitCost
         )
         {
             mMatrInit = new cVectOfSMV<T>   [aBox.hauteur()];
 
             uint2 sizeTab = make_uint2(abs(aBox._p1.x-aBox._p0.x),abs(aBox._p1.y-aBox._p0.y));
 
-            map1DTab.ReallocIf(sizeTab);
-            pPtZ.ReallocIf(sizeTab);
-            preDZ.ReallocIf(sizeTab);
-            pit = 0;
+            poInitCost.ReallocPt(sizeTab);
             uint2 ptTer;
 
             mMatr = mMatrInit - aBox._p0.y;
@@ -270,10 +263,7 @@ template <class T> class cMatrOfSMV
                             aBoxXMin[anY], aBoxYMin ? aBoxYMin[anY] : 0,
                             aBoxXMax[anY], aBoxYMax ? aBoxYMax[anY] : 0,
                             aVinit,
-                            map1DTab,
-                            pPtZ,
-                            preDZ,
-                            pit,
+                            poInitCost,
                             ptTer
                 );
             }
