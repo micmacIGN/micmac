@@ -666,8 +666,8 @@ cAppliMICMAC * cAppliMICMAC::Alloc(int argc,char ** argv,eModeAllocAM aMode)
 		itChar++;
 	}
 #endif
-
-    return new cAppliMICMAC(aMode,getCurrentProgramFullName(),argv[1],aP2,argv+2,argc-2,aName);
+	
+    return new cAppliMICMAC(aMode,current_program_fullname()+" "+current_program_subcommand(),argv[1],aP2,argv+2,argc-2,aName);
 }
 
 
@@ -2058,15 +2058,14 @@ void cAppliMICMAC::ExeProcessParallelisable
        } 
        fic.close();
        mCout << " ---Lance les Process avec le Makefile\n";
-#if (ELISE_unix || ELISE_MacOs)
-	   std::string aCom = g_externalToolHandler.get( "make" ).callName() + " -f \""+nomMakefile+std::string("\" -j ")+ToString(std::abs(ByProcess().Val()));
-#else
-	   std::string aCom = g_externalToolHandler.get( "make" ).callName()+" -f "+nomMakefile+std::string(" -j ")+ToString(std::abs(ByProcess().Val()));
-#endif
-	   int aCodeRetour = system_call(aCom.c_str());
+
+	   //std::string aCom = string("\"")+g_externalToolHandler.get( "make" ).callName() + "\" -f \""+nomMakefile+std::string("\" -j ")+ToString(std::abs(ByProcess().Val()));
+	   //int aCodeRetour = ::System(aCom.c_str());
+	   bool makeSucceeded = launchMake( nomMakefile, "", ByProcess().Val() );
+
        if (StopOnEchecFils().Val())
         {    
-            ELISE_ASSERT(aCodeRetour==0,"Erreur dans processus fils");
+            ELISE_ASSERT(makeSucceeded,"Erreur dans processus fils");
         }
 	    mCout << " ---End Process\n";
     }//else 

@@ -102,6 +102,11 @@ template <class Type> inline std::istream &  ElStdRead (std::istream &is,Type & 
 	return is >> obj;
 }
 
+inline std::istream &  ElStdRead(std::istream &is,std::string &obj, const ElGramArgMain &)
+{
+	return is >> obj;
+}
+
 extern bool Str2Bool(bool & aRes,const std::string & aStr);
 extern bool Str2BoolForce(const std::string & aStr);
 

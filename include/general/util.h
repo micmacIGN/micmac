@@ -1054,6 +1054,18 @@ class cEquiv1D
 class cEl_GPAO;
 class cEl_Task;
 
+// __DEL
+//#define __C_EL_COMMAND__
+
+#ifdef __C_EL_COMMAND__
+	class cElCommand : public std::list<std::string>
+	{
+	public:
+		cElCommand( const char *i_command );
+		cElCommand( const string &i_command );
+	};
+#endif
+
 class cElTask
 {
      public :
@@ -1064,16 +1076,30 @@ class cElTask
           // Genere le mkf, l'execute, le purge
      private :
           friend class cEl_GPAO;
-          cElTask
+		#ifdef __C_EL_COMMAND__
+		  cElTask
+          (
+               const std::string & aName,
+               cEl_GPAO &,
+               const cElCommand & aBuildingRule
+          );
+		#else
+		  cElTask
           (
                const std::string & aName,
                cEl_GPAO &,
                const std::string & aBuildingRule
           );
+		#endif
          cEl_GPAO &  mGPAO;
 
          std::string mName;
-         std::list<std::string> mBR;  // BuildingRule
+		#ifdef __C_EL_COMMAND__
+			std::list<cElCommand> mBR;  // BuildingRule
+		#else
+			std::list<std::string> mBR;  // BuildingRule
+		#endif
+         
          std::vector<cElTask *>  mDeps;
 };
 
@@ -1087,18 +1113,32 @@ class cEl_GPAO
 
          ~cEl_GPAO();
           cEl_GPAO();
-         cElTask   & NewTask
-                            (
-                                 const std::string &aName,
-                                 const std::string & aBuildingRule
-                             ) ;
 
-         cElTask   & GetOrCreate
-                            (
-                                 const std::string &aName,
-                                 const std::string & aBuildingRule
-                             ) ;
+		#ifdef __C_EL_COMMAND__
+			cElTask   & NewTask
+				        (
+							const std::string &aName,
+							const cElCommand & aBuildingRule
+				        ) ;
 
+			cElTask   & GetOrCreate
+			            (
+							const std::string &aName,
+							const cElCommand & aBuildingRule
+			            );
+		#else
+			cElTask   & NewTask
+						(
+								const std::string &aName,
+								const std::string & aBuildingRule
+							) ;
+
+			cElTask   & GetOrCreate
+						(
+								const std::string &aName,
+								const std::string & aBuildingRule
+							) ;
+		#endif
 
 
          cElTask   &TaskOfName(const std::string &aName) ;
@@ -1170,7 +1210,7 @@ class cAppliBatch
 
        void DoAll();
 
-       const std::string & ThisBin() const;
+       //const std::string & ThisBin() const;
 
        cEl_GPAO &  GPAO ();
        bool        ByMKf() const;  // By Make file
@@ -1212,6 +1252,7 @@ class cAppliBatch
 	 void SetNivExe(eModeExecution);
          eModeExecution ModeExe() const;
          std::string ComForRelance();
+	std::string protectFilename( const std::string &i_filename ) const; // according to ByMKf()
 
     private :
 	void DoOne();
@@ -1232,7 +1273,7 @@ class cAppliBatch
 
 	cInterfChantierNameManipulateur * mICNM;
 
-        std::string  mThisBin;
+        //std::string  mThisBin;
         std::string  mDirChantier;
 
 	std::string  mPostFixWorkDir;
@@ -1486,6 +1527,18 @@ void GetSubset(std::vector<std::vector<int> > & aRes,int aNb,int aMax);
 bool ElGetStrSys( const std::string & i_base_cmd, std::string &o_result );
 
 void BanniereGlobale();
+
+// protect spaces with backslashes (for use with 'make')
+string protect_spaces( const string &i_str );
+
+namespace NS_ParamChantierPhotogram{ int MMNbProc(); }
+
+// lanch the "make" program
+// do not include "-j x" flag in i_options, it is handle by i_nbJobs
+// i_nbJobs = 0 means "-j" (i.e. infinite jobs, which is not recommanded)
+// i_rule can be an empty string, if so, make will launch the makefile's default rule
+// returns make's return code
+bool launchMake( const std::string &i_makefile, const std::string &i_rule=std::string(), unsigned int i_nbJobs=NS_ParamChantierPhotogram::MMNbProc(), const std::string &i_options=std::string(), bool i_stopCurrentProgramOnFail=true );
 
 #endif /* ! _ELISE_UTIL_H */
 
