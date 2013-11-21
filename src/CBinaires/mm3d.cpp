@@ -46,16 +46,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 typedef int (*tCommande)  (int,char**);
 
-std::string StrToLower(const std::string & aStr)
-{
-   std::string aRes;
-   for (const char * aC=aStr.c_str(); *aC; aC++)
-   {
-      aRes += (isupper(*aC) ?  tolower(*aC) : *aC);
-   }
-   return aRes;
-}
-
 class cArgLogCom
 {
     public :
