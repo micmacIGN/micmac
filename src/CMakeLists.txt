@@ -159,6 +159,20 @@ if (WITH_INTERFACE)
     ADD_SUBDIRECTORY(interface)
 endif()
 
-if (WITH_SAISIE)
+if (WITH_QT5)
     ADD_SUBDIRECTORY(saisie)
+
+    add_definitions(-DELISE_QT5=1)
+
+    # Find includes in corresponding build directories
+    set(CMAKE_INCLUDE_CURRENT_DIR ON)
+    # Instruct CMake to run moc automatically when needed.
+    set(CMAKE_AUTOMOC ON)
+
+    find_package(Qt5Core REQUIRED)
+    if( Qt5Core_FOUND )
+        include_directories( ${Qt5_INCLUDES})
+        qt5_use_modules(elise Widgets Core Gui Xml)
+    endif()
+
 endif()
