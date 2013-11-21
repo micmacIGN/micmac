@@ -385,6 +385,7 @@ bool ElGetStrSys( const std::string & i_base_cmd, std::string &o_result )
 
 static std::string ArgvMMDir;
 static std::string CurrentProgramFullName;
+static std::string CurrentProgramSubcommand = "unknown";
 void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 {
 	if ((aNbMin >=0) && (argc < aNbMin))
@@ -449,9 +450,7 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 		CurrentProgramFullName = aFulArg0;
 #endif
         
-		if ( argc>1 ) CurrentProgramFullName.append( std::string( " " )+argv[1] );
-
-
+		if ( argc>1 ) CurrentProgramSubcommand = StrToLower( argv[1] );
 	}
 }
 
@@ -1992,8 +1991,8 @@ std::string XML_MM_File(const std::string & aFile)
 	{
 		if (!aCM.ActivateCmdMap())
 			return;
-
-		std::string aCom0 = getCurrentProgramFullName()+' ';
+		
+		std::string aCom0 = string("\"")+current_program_fullname()+"\" "+current_program_subcommand()+" ";
 		for (int aKA=1 ; aKA<argc ; aKA++)
 		{
 			aCom0 = aCom0 +  std::string(argv[aKA])+ " ";
@@ -2329,7 +2328,8 @@ std::string XML_MM_File(const std::string & aFile)
 		return ArgvMMDir;
 	}
 	
-	std::string getCurrentProgramFullName(){ return CurrentProgramFullName;}
+	std::string current_program_fullname()   { return CurrentProgramFullName;}
+	std::string current_program_subcommand() { return CurrentProgramSubcommand;}
 
 	bool MPD_MM()
 	{

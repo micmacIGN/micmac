@@ -387,7 +387,7 @@ void GLWidget::enableOptionLine()
 void GLWidget::disableOptionLine()
 {
     glDisable(GL_BLEND);
-    glDisable (GL_LINE_SMOOTH);
+    glDisable(GL_LINE_SMOOTH);
     glEnable(GL_DEPTH_TEST);
 }
 
@@ -1330,7 +1330,6 @@ void GLWidget::reset()
     m_bFirstAction = true;
 
     resetView();
-
 }
 
 void GLWidget::resetView()
