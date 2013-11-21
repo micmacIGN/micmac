@@ -173,7 +173,7 @@ private :
 
 #if CUDA_ENABLED
 
-    void SolveAllDirectionGpu(int aNbDir);
+    //void SolveAllDirectionGpu(int aNbDir);
 
     void SolveAllDirectionGpuZ_V02(int aNbDir);
 
@@ -187,9 +187,9 @@ private :
 
     InterfOptimizGpGpu               IGpuOpt;
 
-    void copyCells_Mat2Stream_V03(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<uint> &pitTer, CuHostData3D<ushort> &costInit, CuHostData3D<short2> &dim, CuHostData3D<ushort> &size, uint idBuf = 0);
+    void copyCells_Mat2Stream_V03(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt,  CuHostDaPo3D<ushort> &costInit1D, uint idBuf = 0);
 
-    void copyCells_Stream2Mat_V03(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<uint> &pitTer, CuHostData3D<uint> &costFinal, CuHostData3D<ushort> &size, uint idBuf = 0);
+    void copyCells_Stream2Mat_V03(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostDaPo3D<ushort> &costInit1D, CuHostData3D<uint> &costFinal,uint idBuf = 0);
 
 #endif
 

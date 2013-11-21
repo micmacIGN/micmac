@@ -1432,7 +1432,7 @@ void cAppliMICMAC::DoGPU_Correl
 #ifdef  CUDA_ENABLED
     void cAppliMICMAC::Tabul_Projection(int Z, int zMax, uint &interZ)
     {
-
+        GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0033);
         IMmGg.IntervalZ(interZ, Z, zMax);
         IMmGg.Data().MemsetHostVolumeProj(IMmGg.Param().IntDefault);
 
@@ -1480,11 +1480,12 @@ void cAppliMICMAC::DoGPU_Correl
                 }
             }
         }
+        nvtxRangePop();
     }
 
     void cAppliMICMAC::setVolumeCost( uint z0, uint z1)
     {
-
+        GpGpuTools::NvtxR_Push(__FUNCTION__,0x335A8833);
         float*  tabCost     = IMmGg.VolumeCost();
         Rect    zone        = IMmGg.Param().RTer();
         float   valdefault  = IMmGg.Param().floatDefault;
@@ -1507,6 +1508,7 @@ void cAppliMICMAC::DoGPU_Correl
                 }
 
             }
+        nvtxRangePop();
     }
 
 #endif
