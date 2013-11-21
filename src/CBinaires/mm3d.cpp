@@ -416,7 +416,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 
    // MPD : deplace sinon core dump qd argc==1
     // Pour l'analyse de la ligne de commande, on ne peut pas desactiver le bloquage de l'exe via l'option ExitOnBrkp
-    // puisque le XML n'a pas encore ete analyse, on change donc provisoireement le comportement par defaut 
+    // puisque le XML n'a pas encore ete analyse, on change donc provisoirement le comportement par defaut
    TheExitOnBrkp=true;
    MMD_InitArgcArgv( argc, argv );
     // On reactive le blocage par defaut
