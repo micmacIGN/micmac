@@ -258,10 +258,12 @@ void cAppliPastis::GenerateKey(const std::string & aName,const std::string & aNa
 	if (mModeBin==eModeLeBrisPP)
 	{
 		std::string OptOut = " -o ";
-		aCom =	g_externalToolHandler.get( mDetectingTool ).callName() + ' ' + mDetectingArguments + ' ' +
-				NameFileStd(aNameIm,1,false) +
+
+		aCom =	protectFilename(g_externalToolHandler.get( mDetectingTool ).callName()) + ' ' + mDetectingArguments + ' ' +
+				protectFilename(NameFileStd(aNameIm,1,false)) +
 				OptOut +
-				aNK;
+				protectFilename(aNK);
+
 	}
 	else if (mModeBin==eModeAutopano)
 	{
@@ -281,12 +283,16 @@ void cAppliPastis::GenerateMatch(const std::string & aNI1,const std::string & aN
 
   std::string aCom;
 
+  string protected_named_key1, protected_named_key2 = protect_spaces(NameKey(aNI2));
+
+	protected_named_key1 = protectFilename(NameKey(aNI1));
+	protected_named_key2 = protectFilename(NameKey(aNI2));
 
   if (mModeBin==eModeLeBrisPP)
   {
-	aCom =	g_externalToolHandler.get( mMatchingTool ).callName() + ' ' + mMatchingArguments + ' ' +
-			NameKey(aNI1) + std::string(" ") +
-			NameKey(aNI2) + std::string(" ") +
+	aCom =	protect_spaces(g_externalToolHandler.get( mMatchingTool ).callName()) + ' ' + mMatchingArguments + ' ' +
+			protected_named_key1 + std::string(" ") +
+			protected_named_key2 + std::string(" ") +
 			mNameAPM;
   }
   else if (mModeBin==eModeAutopano)
@@ -294,15 +300,15 @@ void cAppliPastis::GenerateMatch(const std::string & aNI1,const std::string & aN
       aCom = std::string("autopano --ransac off ")
 		     + std::string("--maxmatches ") + ToString(mNbMaxMatch) +  std::string(" ")
              + mNameAPM +  std::string(" ")
-		     + NameKey(aNI1) + std::string(" ")
-		     + NameKey(aNI2) + std::string(" ");
+		     + protected_named_key1 + std::string(" ")
+		     + protected_named_key2 + std::string(" ");
   }
 
   System(mNameAPM.c_str(),aCom);
   if (ByMKf())
   {
-     GPAO().TaskOfName(mNameAPM).AddDep(NameKey(aNI1));
-     GPAO().TaskOfName(mNameAPM).AddDep(NameKey(aNI2));
+     GPAO().TaskOfName(mNameAPM).AddDep(protected_named_key1);
+     GPAO().TaskOfName(mNameAPM).AddDep(protected_named_key2);
   }
 
 }

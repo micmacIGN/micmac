@@ -46,16 +46,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 typedef int (*tCommande)  (int,char**);
 
-std::string StrToLower(const std::string & aStr)
-{
-   std::string aRes;
-   for (const char * aC=aStr.c_str(); *aC; aC++)
-   {
-      aRes += (isupper(*aC) ?  tolower(*aC) : *aC);
-   }
-   return aRes;
-}
-
 class cArgLogCom
 {
     public :
@@ -416,14 +406,14 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 
    // MPD : deplace sinon core dump qd argc==1
     // Pour l'analyse de la ligne de commande, on ne peut pas desactiver le bloquage de l'exe via l'option ExitOnBrkp
-    // puisque le XML n'a pas encore ete analyse, on change donc provisoireement le comportement par defaut 
+    // puisque le XML n'a pas encore ete analyse, on change donc provisoirement le comportement par defaut
    TheExitOnBrkp=true;
    MMD_InitArgcArgv( argc, argv );
     // On reactive le blocage par defaut
    TheExitOnBrkp=false;
     
    std::string aCom = argv[1];
-   std::string aLowCom = StrToLower(aCom);
+   std::string aLowCom = current_program_subcommand();
 
    std::vector<cSuggest *> mSugg;
 

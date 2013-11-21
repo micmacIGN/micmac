@@ -102,6 +102,11 @@ template <class Type> inline std::istream &  ElStdRead (std::istream &is,Type & 
 	return is >> obj;
 }
 
+inline std::istream &  ElStdRead(std::istream &is,std::string &obj, const ElGramArgMain &)
+{
+	return is >> obj;
+}
+
 extern bool Str2Bool(bool & aRes,const std::string & aStr);
 extern bool Str2BoolForce(const std::string & aStr);
 
@@ -359,7 +364,7 @@ class LArgMain
 		INT  Init(int argc,char ** argv) const;
                 void  InitIfMatchEq
                       (
-                          std::vector<char *> *,  // Si !=0, empile les arg non consommes
+                          std::vector<char *> *,  // Si !=0, empile les args non consommes
                           int argc,char ** argv,const ElGramArgMain & Gram,
                           bool VerifInit=true,bool AccUnK=false
                       ) const;
@@ -377,8 +382,8 @@ class LArgMain
                      ) const;
 	private :
 		ElSTDNS list<GenElArgMain *> _larg;
-                // Apparemment certain compilo
-                // utilise la copie en temporaire;
+                // Apparemment certains compilos
+                // utilisent la copie en temporaire;
 		//      LArgMain(const LArgMain &); 
 		// void operator = (const LArgMain &);
 };
@@ -387,7 +392,7 @@ class LArgMain
 
 
 
-// Renvoie eventuellement la parti non consommee
+// Renvoie eventuellement la partie non consommee
 #define EIAM_VerifInit true
 #define EIAM_AccUnK false
 #define EIAM_NbArgGlobGlob -1 
