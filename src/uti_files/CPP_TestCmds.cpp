@@ -158,9 +158,11 @@ int TestCmds_main(int argc,char ** argv)
 
 		GenerateMakeFile(MkFile, aDataDir, aDataSet);
 
-		aMk = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFile;
-		aMk += " && " + std::string(SYS_RM)  + ' ' + MkFile;
-		System(aMk,true);
+		//aMk = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFile;
+		//aMk += " && " + std::string(SYS_RM)  + ' ' + MkFile;
+		//System(aMk,true);
+		launchMake( MkFile, "all", 1 );
+		ELISE_fp::RmFile( MkFile );
 
 		std::cout << "  *************************************************\n";
 		std::cout << "  **                                             **\n";

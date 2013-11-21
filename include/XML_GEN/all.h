@@ -102,7 +102,8 @@ cMicMacConfiguration * MMC();
 std::string _MMDir();
 std::string MMDir();
 std::string MMBin();
-std::string getCurrentProgramFullName();
+std::string current_program_fullname();   // mm3d's full name (absolute path + executable name)
+std::string current_program_subcommand(); // mm3d's subcommand (Tapioca, Apero, etc.)
 int MMNbProc();
 bool MPD_MM(); // Est ce que c'est ma machine, afin de ne pas polluer les autres en phase de test !!!!
 
