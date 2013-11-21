@@ -223,7 +223,11 @@ typedef enum
   eModele_FishEye_10_5_5,
   eModele_EquiSolid_FishEye_10_5_5,
   eModele_DRad_PPaEqPPs,
-  eModele_Fraser_PPaEqPPs
+  eModele_Fraser_PPaEqPPs,
+  eModeleRadFour7x2,
+  eModeleRadFour11x2,
+  eModeleRadFour15x2,
+  eModeleRadFour19x2
 } eModelesCalibUnif;
 void xml_init(eModelesCalibUnif & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModelesCalibUnif & aVal);

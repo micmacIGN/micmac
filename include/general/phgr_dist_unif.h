@@ -335,6 +335,11 @@ class cGeneratorDRadFraser : public cGeneratorElem
         static int  DegreOfPolyn(const int * aDegGlob,int aK,eModeControleVarDGen); // Par defaut utilise le mDegrePolyn
 };
 
+template <const int TheNbRad> class cGeneratorFour : public cGeneratorElem
+{
+     public :
+        static int  DegreOfPolyn(const int * aDegGlob,int aK,eModeControleVarDGen); // Par defaut utilise le mDegrePolyn
+};
 
 class cGeneratorNoScaleTr
 {
@@ -413,6 +418,57 @@ template <class Type> class cFraserModel_Generator : public cGeneratorDRadFraser
 };
 	                
 
+template <class Type> class cDistRadFour7x2_Generator : public cGeneratorFour<3>,
+                                                      public cGeneratorElemStd,
+                                                      public cGeneratorState_FPP_ScaleTr
+{
+     public :
+
+         static Pt2d<Type>   DistElem(bool UsePC,const Pt2d<Type> &,const Type * Vars,const Type * States,const Type & aFoc,const Pt2d<Type> & aPP);
+};
+template <class Type> class cDistRadFour11x2_Generator : public cGeneratorFour<5>,
+                                                      public cGeneratorElemStd,
+                                                      public cGeneratorState_FPP_ScaleTr
+{
+     public :
+
+         static Pt2d<Type>   DistElem(bool UsePC,const Pt2d<Type> &,const Type * Vars,const Type * States,const Type & aFoc,const Pt2d<Type> & aPP);
+};
+template <class Type> class cDistRadFour15x2_Generator : public cGeneratorFour<7>,
+                                                      public cGeneratorElemStd,
+                                                      public cGeneratorState_FPP_ScaleTr
+{
+     public :
+
+         static Pt2d<Type>   DistElem(bool UsePC,const Pt2d<Type> &,const Type * Vars,const Type * States,const Type & aFoc,const Pt2d<Type> & aPP);
+};
+
+template <class Type> class cDistRadFour19x2_Generator : public cGeneratorFour<9>,
+                                                      public cGeneratorElemStd,
+                                                      public cGeneratorState_FPP_ScaleTr
+{
+     public :
+
+         static Pt2d<Type>   DistElem(bool UsePC,const Pt2d<Type> &,const Type * Vars,const Type * States,const Type & aFoc,const Pt2d<Type> & aPP);
+};
+
+template <class Type> class cDistRadFour19x4_Generator : public cGeneratorFour<9>,
+                                                      public cGeneratorElemStd,
+                                                      public cGeneratorState_FPP_ScaleTr
+{
+     public :
+
+         static Pt2d<Type>   DistElem(bool UsePC,const Pt2d<Type> &,const Type * Vars,const Type * States,const Type & aFoc,const Pt2d<Type> & aPP);
+};
+template <class Type> class cDistRadFour19x6_Generator : public cGeneratorElem,
+                                                      public cGeneratorElemStd,
+                                                      public cGeneratorState_FPP_ScaleTr
+{
+     public :
+
+         static Pt2d<Type>   DistElem(bool UsePC,const Pt2d<Type> &,const Type * Vars,const Type * States,const Type & aFoc,const Pt2d<Type> & aPP);
+};
+
 
 
 
@@ -425,6 +481,8 @@ template <class Type> class cDistGen_Deg2_Generator : public cGeneratorElem,
 
          static Pt2d<Type>   DistElem(bool UsePC,const Pt2d<Type> &,const Type * Vars,const Type * States,const Type & aFoc,const Pt2d<Type> & aPP);
 };
+
+
 
 template <class Type> class cDistGen_Deg3_Generator : public cGeneratorElem,
                                                       public cGeneratorElemStd,
@@ -621,6 +679,25 @@ typedef  cDist_Param_Unif<cDistGen_Deg7_Generator<double>,cDistGen_Deg7_Generato
 typedef  cCamera_Param_Unif<cDistGen_Deg7_Generator<double>,cDistGen_Deg7_Generator<Fonc_Num>,66,3> cCam_Polyn7;
 typedef  cPIF_Unif<cDistGen_Deg7_Generator<double>,cDistGen_Deg7_Generator<Fonc_Num>,66,3> cPIF_Polyn7;
 
+
+
+// 2 CDid 3 DRad + 6 Deg2
+typedef  cDist_Param_Unif<cDistRadFour7x2_Generator<double>,cDistRadFour7x2_Generator<Fonc_Num>,11,3>   cDist_RadFour7x2;
+typedef  cCamera_Param_Unif<cDistRadFour7x2_Generator<double>,cDistRadFour7x2_Generator<Fonc_Num>,11,3> cCam_RadFour7x2;
+typedef  cPIF_Unif<cDistRadFour7x2_Generator<double>,cDistRadFour7x2_Generator<Fonc_Num>,11,3>          cPIF_RadFour7x2;
+
+
+typedef  cDist_Param_Unif<cDistRadFour11x2_Generator<double>,cDistRadFour11x2_Generator<Fonc_Num>,13,3>   cDist_RadFour11x2;
+typedef  cCamera_Param_Unif<cDistRadFour11x2_Generator<double>,cDistRadFour11x2_Generator<Fonc_Num>,13,3> cCam_RadFour11x2;
+typedef  cPIF_Unif<cDistRadFour11x2_Generator<double>,cDistRadFour11x2_Generator<Fonc_Num>,13,3>          cPIF_RadFour11x2;
+
+typedef  cDist_Param_Unif<cDistRadFour15x2_Generator<double>,cDistRadFour15x2_Generator<Fonc_Num>,15,3>   cDist_RadFour15x2;
+typedef  cCamera_Param_Unif<cDistRadFour15x2_Generator<double>,cDistRadFour15x2_Generator<Fonc_Num>,15,3> cCam_RadFour15x2;
+typedef  cPIF_Unif<cDistRadFour15x2_Generator<double>,cDistRadFour15x2_Generator<Fonc_Num>,15,3>          cPIF_RadFour15x2;
+
+typedef  cDist_Param_Unif<cDistRadFour19x2_Generator<double>,cDistRadFour19x2_Generator<Fonc_Num>,17,3>   cDist_RadFour19x2;
+typedef  cCamera_Param_Unif<cDistRadFour19x2_Generator<double>,cDistRadFour19x2_Generator<Fonc_Num>,17,3> cCam_RadFour19x2;
+typedef  cPIF_Unif<cDistRadFour19x2_Generator<double>,cDistRadFour19x2_Generator<Fonc_Num>,17,3>          cPIF_RadFour19x2;
 
 
 // Methodes deplacees dans le header suite a des erreurs de compilation sous MacOS entre gcc4.0 et gcc4.2 (LLVM)
