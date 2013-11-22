@@ -161,6 +161,12 @@ namespace NS_ParamChantierPhotogram{
 
         <eModele_DRad_PPaEqPPs >     </eModele_DRad_PPaEqPPs>
         <eModele_Fraser_PPaEqPPs >     </eModele_Fraser_PPaEqPPs>
+
+
+        <eModeleRadFour7x2 >      </eModeleRadFour7x2>
+        <eModeleRadFour11x2 >     </eModeleRadFour11x2>
+        <eModeleRadFour15x2 >     </eModeleRadFour15x2>
+        <eModeleRadFour19x2 >     </eModeleRadFour19x2>
    </enum>
 
 

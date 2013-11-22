@@ -53,6 +53,7 @@ using namespace NS_ParamChantierPhotogram;
 bool cGeneratorElem::IsFE() {return false;}
 
 
+
 int  cGeneratorElem::DegreOfPolyn(const int * aDegGlob,int aK,eModeControleVarDGen aMode)
 {
    // On peut arrive la a cause du mode de controle mixte PP/CD
@@ -425,11 +426,9 @@ template <class Type>
 template <class Type> 
          Pt2d<Type> cDistGen_Deg2_Generator<Type>::DistElem(bool UsePC,const Pt2d<Type> &aP,const Type * V,const Type * States,const Type & aFoc,const Pt2d<Type> & aPP)
 {
-// std::cout << aP.x << aP.y << "\n";
    Type  x = (aP.x - States[1]) / States[0];
    Type  y = (aP.y - States[2]) / States[0];
 
-// std::cout << "S0 " <<  States[0] << " " << x << " " << y << "\n";
 
    Type xy = x * y;
    Type x2N = x * x ;
@@ -451,6 +450,10 @@ template <class Type>
 
    return Pt2d<Type>(States[1]+aXOut*States[0],States[2]+aYOut*States[0]);
 }
+
+
+
+
 
 template <class Type>   Pt2d<Type>  DistDegN(bool UsePC,const Pt2d<Type> &aP,const Type * V,const Type * States,int aDegN)
 {
@@ -611,6 +614,135 @@ template <class Type>
 {
   return DistDegN(UsePC,aP,V,States,7);
 }
+
+
+// =========================   FOUR   ==============================================
+// =========================   FOUR   ==============================================
+// =========================   FOUR   ==============================================
+
+template <const int TheNbRad> int cGeneratorFour<TheNbRad>::DegreOfPolyn(const int * aDegGlob,int aK,eModeControleVarDGen aMode)
+{
+   ELISE_ASSERT(false,"cGeneratorFour");
+   if (aMode==eModeContDGCDist)
+   {
+      if ((aK!= 6) && (aK!=7))
+          return -1;
+   }
+   if (aMode==eModeContDGDRad)
+   {
+      if ((aK<8 ) && (aK>= 8 +TheNbRad))
+          return -1;
+   }
+
+   if (aMode==eModeContDGDCent)
+      return -1;
+   
+   return aDegGlob[aK];
+}
+
+template <class Type> 
+         Pt2d<Type> DistFour(const Pt2d<Type> &aP,const Type * V,const Type * States,int aDegRad,int aDegXY)
+{
+   Type  x = (aP.x - States[1]) / States[0];
+   Type  y = (aP.y - States[2]) / States[0];
+
+
+   Type xy = x * y;
+   Type x2N = x * x ;
+   Type y2N = y * y ;
+
+
+   Type aXOut =  (1+ V[ 0]) * x
+                 + V[ 1] * y
+		 - V[ 2] * 2* x2N
+		 + V[ 3] * xy
+		 + V[ 4] * y2N ;
+
+
+    Type aYOut =  (1- V[ 0]) * y
+                  + V[ 1] * x
+		  + V[ 2] * xy
+		  - V[ 3] * 2 *y2N
+		  + V[ 5] * x2N ;
+
+    Type aXC = x - V[6]; 
+    Type aYC = y - V[7]; 
+    Type aR2C =  aXC * aXC + aYC * aYC;
+
+/*
+   Pseudo - Chebychev   
+    D1 :X2
+    D2 :  (X2 +0.5) * (X2-0.5)
+    D3 :  X2 * (X2-2/3) * (X2+2/3)
+    D4: (X2 -0.25) *  (X*-0.75) ...
+    D5 : X2 * (X2 - 4/5) * (X2-2/5)
+ 
+   On divise [-1,1] (K-1) intervalle, de taille 2/K, les extre en 1/K
+
+   Les racine sont  -1+1/K + 2*I/K  I dans [0,K[
+*/
+
+    int aInd = 8;
+    Type aSomRho = 0.0;
+    for (int aD = 1 ; aD<= aDegRad ; aD++)
+    {
+        std::vector<double> aCoeff;
+        aCoeff.push_back(1.0);
+  
+        for (int aKR = 0 ; aKR<aD ; aKR++)
+        {
+            double aRk =  aKR / double(aD);
+            std::vector<double> aNewCoef;
+            aNewCoef.push_back(-aRk*aCoeff[0]);
+            for (int aK=1 ; aK<int(aCoeff.size()) ; aK++)
+                aNewCoef.push_back(aCoeff[aK-1]-aRk*aCoeff[aK]);
+             aNewCoef.push_back(1.0);
+             aCoeff = aNewCoef;
+        }
+
+
+        Type aMon = 1.0;
+        Type aPol = 0.0;
+        for (int aKR = 0 ; aKR<=aD ; aKR++)
+        {
+            aPol = aPol + aMon * aCoeff[aKR];
+            aMon = aMon * aR2C;
+        }
+
+       
+//std::cout << "WAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n";
+//aPol = aMon;
+
+        aSomRho = aSomRho + V[aInd]  * aPol;
+
+        aInd ++;
+    }
+    
+    aXOut = aXOut +  aXC * aSomRho;
+    aYOut = aYOut +  aYC * aSomRho;
+
+
+   return Pt2d<Type>(States[1]+aXOut*States[0],States[2]+aYOut*States[0]);
+}
+
+template <class Type>  Pt2d<Type>  cDistRadFour7x2_Generator<Type>::DistElem(bool UsePC,const Pt2d<Type> & aP,const Type * Vars,const Type * States,const Type & aFoc,const Pt2d<Type> & aPP)
+{
+         return  DistFour(aP,Vars,States,3,2);
+}
+template <class Type>  Pt2d<Type>  cDistRadFour11x2_Generator<Type>::DistElem(bool UsePC,const Pt2d<Type> & aP,const Type * Vars,const Type * States,const Type & aFoc,const Pt2d<Type> & aPP)
+{
+         return  DistFour(aP,Vars,States,5,2);
+}
+template <class Type>  Pt2d<Type>  cDistRadFour15x2_Generator<Type>::DistElem(bool UsePC,const Pt2d<Type> & aP,const Type * Vars,const Type * States,const Type & aFoc,const Pt2d<Type> & aPP)
+{
+         return  DistFour(aP,Vars,States,7,2);
+}
+template <class Type>  Pt2d<Type>  cDistRadFour19x2_Generator<Type>::DistElem(bool UsePC,const Pt2d<Type> & aP,const Type * Vars,const Type * States,const Type & aFoc,const Pt2d<Type> & aPP)
+{
+         return  DistFour(aP,Vars,States,9,2);
+}
+
+
 
 
 
@@ -1254,6 +1386,51 @@ template class cPIF_Unif<cDCBrownModel_Generator<double>,cDCBrownModel_Generator
 
 
 
+    //========================Fourier==========================
+
+template <> const std::string  cDist_RadFour7x2::TheName="Four7x2";
+template <> const int   cDist_RadFour7x2::TheType= (int) eModeleRadFour7x2;
+template <> const int cPIF_Unif<cDistRadFour7x2_Generator<double>,cDistRadFour7x2_Generator<Fonc_Num>,11,3>::mDegrePolyn[11]
+          = { 1,1,2,2,2,2,1,1,3,5,7};
+template class cDist_Param_Unif<cDistRadFour7x2_Generator<double>,cDistRadFour7x2_Generator<Fonc_Num>,11,3> ;
+template class cCamera_Param_Unif<cDistRadFour7x2_Generator<double>,cDistRadFour7x2_Generator<Fonc_Num>,11,3> ;
+template class cPIF_Unif<cDistRadFour7x2_Generator<double>,cDistRadFour7x2_Generator<Fonc_Num>,11,3> ;
+
+
+template <> const std::string  cDist_RadFour11x2::TheName="Four11x2";
+template <> const int   cDist_RadFour11x2::TheType= (int) eModeleRadFour11x2;
+template <> const int cPIF_Unif<cDistRadFour11x2_Generator<double>,cDistRadFour11x2_Generator<Fonc_Num>,13,3>::mDegrePolyn[13]
+          = { 1,1,2,2,2,2,1,1,3,5,7,9,11};
+template class cDist_Param_Unif<cDistRadFour11x2_Generator<double>,cDistRadFour11x2_Generator<Fonc_Num>,13,3> ;
+template class cCamera_Param_Unif<cDistRadFour11x2_Generator<double>,cDistRadFour11x2_Generator<Fonc_Num>,13,3> ;
+template class cPIF_Unif<cDistRadFour11x2_Generator<double>,cDistRadFour11x2_Generator<Fonc_Num>,13,3> ;
+
+
+template <> const std::string  cDist_RadFour15x2::TheName="Four15x2";
+template <> const int   cDist_RadFour15x2::TheType= (int) eModeleRadFour15x2;
+template <> const int cPIF_Unif<cDistRadFour15x2_Generator<double>,cDistRadFour15x2_Generator<Fonc_Num>,15,3>::mDegrePolyn[15]
+          = { 1,1,2,2,2,2,1,1,3,5,7,9,11,13,15};
+template class cDist_Param_Unif<cDistRadFour15x2_Generator<double>,cDistRadFour15x2_Generator<Fonc_Num>,15,3> ;
+template class cCamera_Param_Unif<cDistRadFour15x2_Generator<double>,cDistRadFour15x2_Generator<Fonc_Num>,15,3> ;
+template class cPIF_Unif<cDistRadFour15x2_Generator<double>,cDistRadFour15x2_Generator<Fonc_Num>,15,3> ;
+
+template <> const std::string  cDist_RadFour19x2::TheName="Four19x2";
+template <> const int   cDist_RadFour19x2::TheType= (int) eModeleRadFour19x2;
+template <> const int cPIF_Unif<cDistRadFour19x2_Generator<double>,cDistRadFour19x2_Generator<Fonc_Num>,17,3>::mDegrePolyn[17]
+          = { 1,1,2,2,2,2,1,1,3,5,7,9,11,13,15,17,19};
+template class cDist_Param_Unif<cDistRadFour19x2_Generator<double>,cDistRadFour19x2_Generator<Fonc_Num>,17,3> ;
+template class cCamera_Param_Unif<cDistRadFour19x2_Generator<double>,cDistRadFour19x2_Generator<Fonc_Num>,17,3> ;
+template class cPIF_Unif<cDistRadFour19x2_Generator<double>,cDistRadFour19x2_Generator<Fonc_Num>,17,3> ;
+
+
+
+
+
+
+
+
+
+    //=======================================================
 template <> const std::string  cDist_Polyn2::TheName="Polyn2";
 template <> const int   cDist_Polyn2::TheType= (int) eModelePolyDeg2;
 

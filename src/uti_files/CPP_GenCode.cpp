@@ -159,6 +159,8 @@ static cCam_DCBrown * CamDCBrown(bool C2M,const tParamAFocal  & aPAF)
     return  new cCam_DCBrown(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF);
 }
 
+
+
 //CamEquiSolFishEye_10_5_5
 
 static cCam_DRad_PPaEqPPs * CamDrPPaPPs(bool C2M,const tParamAFocal  & aPAF) { return  new cCam_DRad_PPaEqPPs(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF); }
@@ -173,6 +175,11 @@ static cCam_Polyn7 * CamPolyn7(bool C2M,const tParamAFocal  & aPAF) { return  ne
 static cCamLin_FishEye_10_5_5 * CamLinFishEye_10_5_5(bool C2M,const tParamAFocal  & aPAF) { return  new cCamLin_FishEye_10_5_5(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF); }
 static cCamEquiSol_FishEye_10_5_5 * CamEquiSolFishEye_10_5_5(bool C2M,const tParamAFocal  & aPAF) { return  new cCamEquiSol_FishEye_10_5_5(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF); }
 
+
+static cCam_RadFour7x2 * CamRadFour7x2(bool C2M,const tParamAFocal  & aPAF) { return new cCam_RadFour7x2(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF);}
+static cCam_RadFour11x2 * CamRadFour11x2(bool C2M,const tParamAFocal  & aPAF) { return new cCam_RadFour11x2(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF);}
+static cCam_RadFour15x2 * CamRadFour15x2(bool C2M,const tParamAFocal  & aPAF) { return new cCam_RadFour15x2(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF);}
+static cCam_RadFour19x2 * CamRadFour19x2(bool C2M,const tParamAFocal  & aPAF) { return new cCam_RadFour19x2(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF);}
 
 
 cParamIntrinsequeFormel * PIF_For_GC
@@ -240,6 +247,13 @@ cParamIntrinsequeFormel * PIF_For_GC
     if (aType == "Polyn5") { return cPIF_Polyn5::Alloc(C2M,CamPolyn5(C2M,aPAF),aSet); }
     if (aType == "Polyn6") { return cPIF_Polyn6::Alloc(C2M,CamPolyn6(C2M,aPAF),aSet); }
     if (aType == "Polyn7") { return cPIF_Polyn7::Alloc(C2M,CamPolyn7(C2M,aPAF),aSet); }
+
+
+    if (aType == "RadFour7x2") { return cPIF_RadFour7x2::Alloc(C2M,CamRadFour7x2(C2M,aPAF),aSet); }
+    if (aType == "RadFour11x2") { return cPIF_RadFour11x2::Alloc(C2M,CamRadFour11x2(C2M,aPAF),aSet); }
+    if (aType == "RadFour15x2") { return cPIF_RadFour15x2::Alloc(C2M,CamRadFour15x2(C2M,aPAF),aSet); }
+    if (aType == "RadFour19x2") { return cPIF_RadFour19x2::Alloc(C2M,CamRadFour19x2(C2M,aPAF),aSet); }
+
     if (aType == "FishEye_10_5_5") { return cPIFLin_FishEye_10_5_5::Alloc(C2M,CamLinFishEye_10_5_5(C2M,aPAF),aSet); }
     if (aType == "EquiSolFishEye_10_5_5") { return cPIFEquiSol_FishEye_10_5_5::Alloc(C2M,CamEquiSolFishEye_10_5_5(C2M,aPAF),aSet); }
 
@@ -286,6 +300,21 @@ std::cout << "Type Appui = " << aType << "\n";
 
 void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal)
 {
+
+/*
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadFour7x2");
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour11x2");
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour15x2");
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour19x2");
+
+
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour7x2");
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour11x2");
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour15x2");
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour19x2");
+*/
+
+
 /*
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"DRad5");
 
@@ -581,7 +610,8 @@ extern void GenCodeRigiditeBlock();
 
 int GenCode_main(int argc,char ** argv)
 {
-     GenCodeRigiditeBlock();
+     // GenCodeRigiditeBlock();
+    GenCodeAppui();
      // GenEqPlanInc();
      // GenDirecteDistorsion();
      //   GencqCalibCroisee();
