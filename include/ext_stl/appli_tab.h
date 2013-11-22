@@ -178,14 +178,7 @@ template <class T> class cVectOfSMV
             for (int anX=aX0 ; anX<aX1 ; anX++)
             {
                 ptTer.x         =  anX;
-                short2 ptZ      = make_short2(aBoxXMin[anX],aBoxXMax[anX]);
-                poInitCost.PointIncre(ptTer,ptZ);
-
-//                pPtZ[ptTer]     = ptZ;
-//                ushort dZ       = abs(count(ptZ));
-//                preDZ[ptTer]    = dZ;
-//                map1DTab[ptTer] = pit;
-//                pit            += dZ;
+                poInitCost.PointIncre(ptTer,make_short2(aBoxXMin[anX],aBoxXMax[anX]));
 
                 mVect[anX].SetMem
                 (
@@ -248,9 +241,7 @@ template <class T> class cMatrOfSMV
         {
             mMatrInit = new cVectOfSMV<T>   [aBox.hauteur()];
 
-            uint2 sizeTab = make_uint2(abs(aBox._p1.x-aBox._p0.x),abs(aBox._p1.y-aBox._p0.y));
-
-            poInitCost.ReallocPt(sizeTab);
+            poInitCost.ReallocPt(make_uint2(abs(aBox._p1.x-aBox._p0.x),abs(aBox._p1.y-aBox._p0.y)));
             uint2 ptTer;
 
             mMatr = mMatrInit - aBox._p0.y;

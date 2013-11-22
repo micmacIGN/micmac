@@ -172,18 +172,18 @@ private :
     void SolveOneEtape(int aNbDir);
 
 #if CUDA_ENABLED
-
-    //void SolveAllDirectionGpu(int aNbDir);
+/*
+    void SolveAllDirectionGpu(int aNbDir);
 
     void SolveAllDirectionGpuZ_V02(int aNbDir);
-
-    void SolveAllDirectionGpuZ_V03(int aNbDir);
 
     template<bool dirCopy> void copyCells(Pt2di aDirI,Data2Optimiz<CuHostData3D,2>  &d2Opt, uint idBuf = 0);
 
     void copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<ushort *> &costInit, CuHostData3D<short2> &dim, CuHostData3D<ushort> &size, uint idBuf = 0);
 
     void copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<uint *> &costFinal, CuHostData3D<short2> &dim, CuHostData3D<ushort> &size, uint idBuf = 0);
+*/
+    void SolveAllDirectionGpuZ_V03(int aNbDir);
 
     InterfOptimizGpGpu               IGpuOpt;
 

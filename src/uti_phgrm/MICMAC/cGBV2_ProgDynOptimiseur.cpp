@@ -521,7 +521,7 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
 
 }
 #if CUDA_ENABLED
-
+/*
 template<bool dirCopy>
 void cGBV2_ProgDynOptimiseur::copyCells(Pt2di aDirI, Data2Optimiz<CuHostData3D,2> &d2Opt, uint idBuf)
 {
@@ -560,6 +560,7 @@ void cGBV2_ProgDynOptimiseur::copyCells(Pt2di aDirI, Data2Optimiz<CuHostData3D,2
     }
 
 }
+
 
 void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<ushort*> &costInit, CuHostData3D<short2> &dim, CuHostData3D<ushort> &size, uint idBuf)
 {
@@ -635,6 +636,7 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
 
     nvtxRangePop();
 }
+*/
 
 void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream_V03(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostDaPo3D<ushort> &costInit1D, uint idBuf)
 {
@@ -652,31 +654,22 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream_V03(Pt2di aDirI, Data2Optimiz
 
         for (uint aK= 0 ; aK < lLine; aK++)
         {
-
-            Pt2di pt    = (Pt2di)(*aVPt)[aK];
-            uint2 ptTer = make_uint2(pt.x,pt.y);
-
-
-            short2 ptZ  = costInit1D.PtZ(ptTer);//dim[ptTer];
+            Pt2di ptTer = (Pt2di)(*aVPt)[aK];
             ushort dZ   = costInit1D.DZ(ptTer);
-            index[aK]   = ptZ;
+            index[aK]   = costInit1D.PtZ(ptTer);
             uint idStrm = d2Opt._param[idBuf][idLine].x + pitStrm;
-
-            ushort* ptCostInit = costInit1D[ptTer];
 
             ushort* desrCostInit = d2Opt._s_InitCostVol.pData()+idStrm;
 
-            memcpy(desrCostInit,ptCostInit,dZ * sizeof(ushort));
+            memcpy(desrCostInit,costInit1D[ptTer],dZ * sizeof(ushort));
 
             pitStrm += dZ;
-
         }
 
         idLine++;
     }
 
     nvtxRangePop();
-
 }
 
 void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat_V03(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostDaPo3D<ushort> &costInit1D, CuHostData3D<uint> &costFinal1D, uint idBuf)
@@ -697,17 +690,14 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat_V03(Pt2di aDirI, Data2Optimiz
         for (uint aK= 0 ; aK < lLine; aK++)
         {
 
-            Pt2di pt    = (Pt2di)(*aVPt)[aK];
-            uint2 ptTer = make_uint2(pt.x,pt.y);
+            Pt2di ptTer = (Pt2di)(*aVPt)[aK];
             ushort dZ   = costInit1D.DZ(ptTer);
             uint idStrm = d2Opt._param[idBuf][idLine].x + pitStrm;
             uint *forCo = d2Opt._s_ForceCostVol[idBuf].pData() + idStrm;
-
             uint *finCo = costFinal1D.pData() + costInit1D.Pit(ptTer);
 
             for ( int aPx = 0 ; aPx < dZ ; aPx++)
                 finCo[aPx] += forCo[aPx];
-
 
             pitStrm += dZ;
         }
@@ -997,12 +987,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ_V03(int aNbDir)
                 sizeStreamLine = 0;
 
                 for (uint aK = 0 ; aK < lenghtLine; aK++)
-                {
-                    Pt2di pt    = (Pt2di)(*aVPt)[aK];
-                    //uint2 ptTer = make_uint2(pt.x,pt.y);
-                    //sizeStreamLine += IGpuOpt._preDZ[ptTer];
-                    sizeStreamLine += IGpuOpt._poInitCost.DZ(pt.x,pt.y);
-                }
+                    sizeStreamLine += IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]);
 
                 pitIdStream += iDivUp32(lenghtLine) << 5;
                 pitStream   += iDivUp32(sizeStreamLine) << 5;
