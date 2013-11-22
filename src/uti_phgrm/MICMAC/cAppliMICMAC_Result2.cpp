@@ -284,11 +284,69 @@ class cParseDir_PurgeFile : public ElActionParseDir
 /*                                                       */
 /*********************************************************/
 
+// replace all occurences of i_strToReplace by i_strReplacing in i_src
+string replace( const std::string &i_src, const std::string &i_strToReplace, const std::string &i_strReplacing )
+{
+    string res = i_src;
+    size_t pos = 0;
+    while ( true )
+    {
+        if ( (pos=res.find(i_strToReplace,pos))==string::npos ) return res;
+        res.replace( pos, i_strToReplace.length(), i_strReplacing);
+    }
+}
+
+// replace strings in the i_stringsToProtect list by their protected version (s -> protect_spaces(s))
+//
+// assez laid mais je ne vois pas d'autre solution sans specialiser/typer les parties sensibles des commandes (noms de fichiers ici, peut-être plus)
+// ca a le merite d'etre compatible avec les XML deja existants
+void protect_spaces_in_strings( cCmdExePar &io_cmdExePar, const list<string> &i_stringsToProtect )
+{
+   list<string>::const_iterator itString = i_stringsToProtect.begin();
+   std::list<cOneCmdPar> &cmdPar = io_cmdExePar.OneCmdPar();
+   list<cOneCmdPar>::iterator itCmdPar;
+   list<string>::iterator itCmdSer;
+   while ( itString!=i_stringsToProtect.end() )
+   {
+      string protectedString = protect_spaces( *itString );
+      if ( protectedString!=*itString )
+      {
+	 for ( itCmdPar=cmdPar.begin(); itCmdPar!=cmdPar.end(); itCmdPar++ )
+	 {
+	    list<string> &cmdSer = itCmdPar->OneCmdSer();
+	    for ( itCmdSer=cmdSer.begin(); itCmdSer != cmdSer.end(); itCmdSer++ )
+	       *itCmdSer = replace( *itCmdSer, *itString, protectedString );
+	 }
+      }
+      itString++;
+   }
+}
+
+void print_cmdPar( const cCmdExePar &i_cmdExePar )
+{
+   const std::list<cOneCmdPar> &cmdPar = i_cmdExePar.OneCmdPar();
+   list<cOneCmdPar>::const_iterator itCmdPar;
+   list<string>::const_iterator itCmdSer;
+   
+   for ( itCmdPar=cmdPar.begin(); itCmdPar!=cmdPar.end(); itCmdPar++ )
+   {
+      const list<string> &cmdSer = itCmdPar->OneCmdSer();
+      for ( itCmdSer=cmdSer.begin(); itCmdSer != cmdSer.end(); itCmdSer++ )
+	 cout << "[" << *itCmdSer << "]" << endl;
+   }
+}
+
 void cAppliMICMAC::DoPostProcess()
 {
    if (! PostProcess().IsInit()  || (CalledByProcess().Val()))
       return;
 // std::cout << "xxx cAppliMICMAC::DoPostProcess  \n"; getchar();
+
+   list<string> strings_to_protect;
+   strings_to_protect.push_back( MMDir() );
+   strings_to_protect.push_back( NameChantier() );
+   protect_spaces_in_strings( PostProcess().Val(), strings_to_protect );
+   
    DoCmdExePar(PostProcess().Val(),ByProcess().Val());
 }
 
