@@ -1,0 +1,66 @@
+<!--
+Antipasti ~/micmac/include/XML_MicMac/SaisieInitiale.xml DirectoryChantier="/home/marc/TMP/DroneForca/Lincel/Terrstre/"
+
+-->
+<ParamSaisiePts>
+
+        <DicoLoc>
+            <Symb> Image=Exter_IMG_0013.CR2 </Symb>
+            <Symb> Ori=Exter </Symb>
+            <Symb> NamePt=CE131 </Symb>
+            <Symb> Dir=/home/marc/TMP/DroneForca/Lincel/Terrstre/ </Symb>
+
+            <Symb> Sauv="Saisie-Initiale.xml" </Symb>
+            <Symb> SzWx=800 </Symb>
+            <Symb> SzWy=800 </Symb>
+
+            <Symb> NbFx=1 </Symb>
+            <Symb> NbFy=1 </Symb>
+            <Symb> NameAuto=NONE </Symb>
+            <Symb> EnterName=true </Symb>
+            <Symb> Pref2Add="" </Symb>
+            <Symb> ForceGray=true </Symb>
+        </DicoLoc>
+
+        <SectionWindows>
+             <SzTotIm>  ${SzWx}  ${SzWy} </SzTotIm>
+             <NbFenIm >  ${NbFx} ${NbFy} </NbFenIm>
+             <ShowDet> true </ShowDet>
+             <!-- <SzTer> 200 200  </SzTer> -->
+        </SectionWindows>
+
+
+        <SectionInOut>
+              <NamePointesImage> Tmp-SL-Im-${Sauv}   </NamePointesImage>
+              <NamePointsGlobal> Tmp-SL-Glob-${Sauv} </NamePointsGlobal>
+
+              <ExportPointeImage>   ${Sauv}   </ExportPointeImage>
+
+              <FixedName> ${NamePt}  </FixedName>
+              <NameAuto> ${NameAuto} </NameAuto>
+              <EnterName>${EnterName} </EnterName>
+              <Prefix2Add2IdPt> ${Pref2Add} </Prefix2Add2IdPt>
+        </SectionInOut>
+
+        <SectionImages>
+              <SetOfImages> ${Image}  </SetOfImages>
+              <ForceGray> ${ForceGray} </ForceGray>
+              <KeyAssocOri> ${Ori}  </KeyAssocOri>
+
+
+        </SectionImages>
+
+       <SectionTerrain>
+             <IntervPercProf> 10.0 </IntervPercProf>
+             <ProfEstimator>
+                 <ZMoyenInIma>  true </ZMoyenInIma>
+             </ProfEstimator>
+        </SectionTerrain>
+
+
+
+        <DirectoryChantier> XXXX </DirectoryChantier>
+
+</ParamSaisiePts>
+
+
