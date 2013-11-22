@@ -615,6 +615,9 @@ int MICMACSaisieLiaisons_main(int argc,char ** argv);
 #endif
 
 int SaisieMasqQT_main(int argc,char ** argv);
+int SaisieAppuisInitQT_main(int argc,char ** argv);
+int SaisieAppuisPredicQT_main(int argc,char ** argv);
+int SaisieBascQT_main(int argc,char ** argv);
 
 #endif // ElMemberTpl
 
