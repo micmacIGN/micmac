@@ -2286,8 +2286,9 @@ std::string NameFileStd
       std::string  aNameCoul = (aNbChanSpec==1) ? "G" : "C";
       std::string  aNameReech =  DoReech ? "R" : "B";
 
-	   std::string aStr =    MMDir()+ "bin"+ELISE_CAR_DIR+"MpDcraw "
-                           + aFullNameOri + " "
+       //std::string aStr =    MMDir()+ "bin"+ELISE_CAR_DIR+"MpDcraw "
+       std::string aStr =  MM3dBinFile_quotes("MpDcraw")
+                           + ToStrBlkCorr(aFullNameOri) + " "
                            + std::string(" Add16B8B=0 ")
                            + std::string(" ConsCol=0 ") 
                            + std::string(" ExtensionAbs=None ")
@@ -2309,7 +2310,7 @@ std::string NameFileStd
 
 
        std::cout << "nnnnnnnn " << aStr << "\n";
-        VoidSystem(aStr.c_str());
+        System(aStr.c_str());
    }
 
    delete aTif;
