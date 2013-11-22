@@ -104,9 +104,7 @@ template <class Type> inline std::istream &  ElStdRead (std::istream &is,Type & 
 
 inline std::istream &  ElStdRead(std::istream &is,std::string &obj, const ElGramArgMain &)
 {
-    //return is >> obj;
-    // contrary to operator >>, getline does not stop at the first space character
-    return getline(is,obj);
+	return is >> obj;
 }
 
 extern bool Str2Bool(bool & aRes,const std::string & aStr);
@@ -617,6 +615,9 @@ int MICMACSaisieLiaisons_main(int argc,char ** argv);
 #endif
 
 int SaisieMasqQT_main(int argc,char ** argv);
+int SaisieAppuisInitQT_main(int argc,char ** argv);
+int SaisieAppuisPredicQT_main(int argc,char ** argv);
+int SaisieBascQT_main(int argc,char ** argv);
 
 #endif // ElMemberTpl
 
