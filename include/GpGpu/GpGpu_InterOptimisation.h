@@ -3,6 +3,7 @@
 
 #include "GpGpu/SData2Optimize.h"
 #include "GpGpu/GpGpu_MultiThreadingCpu.h"
+#include "GpGpu/GpGpu_eLiSe.h"
 
 template <class T>
 void LaunchKernel();
@@ -56,14 +57,29 @@ struct CuHostDaPo3D
         return _pit[pt];
     }
 
+    uint                    Pit(Pt2di pt)
+    {
+        return _pit[toUi2(pt)];
+    }
+
     short2                  PtZ(uint2 pt)
     {
         return _ptZ[pt];
     }
 
+    short2                  PtZ(Pt2di pt)
+    {
+        return _ptZ[toUi2(pt)];
+    }
+
     ushort                  DZ(uint2 pt)
     {
         return _dZ[pt];
+    }
+
+    ushort                  DZ(Pt2di pt)
+    {
+        return _dZ[toUi2(pt)];
     }
 
     ushort                  DZ(uint ptX,uint ptY)
@@ -79,6 +95,11 @@ struct CuHostDaPo3D
     T*                      operator[](uint2 pt)
     {
         return _data1D.pData() + _pit[pt];
+    }
+
+    T*                      operator[](Pt2di pt)
+    {
+        return _data1D.pData() + _pit[toUi2(pt)];
     }
 
     T&                      operator[](int3 pt)

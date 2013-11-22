@@ -21,7 +21,7 @@ struct Rect
     /// \brief point bas et droite du rectangle
 	int2 pt1;
 
-	__device__ __host__ Rect(){};
+    __device__ __host__ Rect(){}
 
     /// \brief Definie les points du rectangle avec des points entiers
     /// \param p0 : point haut et gauche du rectangle

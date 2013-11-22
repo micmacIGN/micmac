@@ -40,30 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
-//#define NT1 4
-//#define NT2 3
-
-#if OPM_ENABLED
-    #if ELISE_windows
-        #define OMP_NT1 __pragma("omp parallel for num_threads(4)")
-        #define OMP_NT2 __pragma("omp parallel for num_threads(3)")
-    #else
-        #define OMP_NT1 _Pragma("omp parallel for num_threads(4)")
-        #define OMP_NT2 _Pragma("omp parallel for num_threads(3)")
-    #endif
-#else
-    #define OMP_NT1
-    #define OMP_NT2
-#endif
-
 namespace NS_ParamMICMAC
 {
-
-
-#if CUDA_ENABLED
-    uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);}
-    int2  toI2(Pt2dr a){return make_int2((int)a.x,(int)a.y);}
-#endif
 
     template <class Type,class TBase>
     Type ** ImDec
