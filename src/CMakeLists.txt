@@ -159,9 +159,12 @@ if (WITH_INTERFACE)
     ADD_SUBDIRECTORY(interface)
 endif()
 
-if (WITH_QT5)
-    ADD_SUBDIRECTORY(saisie)
+if (WITH_SAISIEQT)
+        add_definitions(-DSAISIE_QT=1)
+	ADD_SUBDIRECTORY(saisie)
+endif()
 
+if (WITH_QT5)  
     add_definitions(-DELISE_QT5=1)
 
     # Find includes in corresponding build directories

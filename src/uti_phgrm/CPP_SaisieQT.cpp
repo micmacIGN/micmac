@@ -41,7 +41,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int SaisieMasqQT_main(int argc,char ** argv)
 {
-    std::string aCom = std::string("\"") + g_externalToolHandler.get( "SaisieMasqQT" ).callName() + std::string("\"");
+    cout << "in SaisieMasqQT" << endl;
+    std::string aCom = std::string("\"") + g_externalToolHandler.get( "SaisieQT" ).callName() + std::string("\"");
+
+    aCom += std::string(" SaisieMasqQT");
 
     for (int i = 1; i < argc; ++i) aCom += std::string(" ") + argv[i];
 
@@ -49,6 +52,46 @@ int SaisieMasqQT_main(int argc,char ** argv)
 
     return EXIT_SUCCESS;
 }
+
+int SaisieAppuisInitQT_main(int argc,char ** argv)
+{
+    std::string aCom = std::string("\"") + g_externalToolHandler.get( "SaisieQT" ).callName() + std::string("\"");
+
+    aCom += std::string(" SaisieAppuisInitQT");
+
+    for (int i = 1; i < argc; ++i) aCom += std::string(" ") + argv[i];
+
+    system_call(aCom.c_str());
+
+    return EXIT_SUCCESS;
+}
+
+int SaisieAppuisPredicQT_main(int argc,char ** argv)
+{
+    std::string aCom = std::string("\"") + g_externalToolHandler.get( "SaisieQT" ).callName() + std::string("\"");
+
+    aCom += std::string(" SaisieAppuisPredicQT");
+
+    for (int i = 1; i < argc; ++i) aCom += std::string(" ") + argv[i];
+
+    system_call(aCom.c_str());
+
+    return EXIT_SUCCESS;
+}
+
+int SaisieBascQT_main(int argc,char ** argv)
+{
+    std::string aCom = std::string("\"") + g_externalToolHandler.get( "SaisieQT" ).callName() + std::string("\"");
+
+    aCom += std::string(" SaisieBascQT");
+
+    for (int i = 1; i < argc; ++i) aCom += std::string(" ") + argv[i];
+
+    system_call(aCom.c_str());
+
+    return EXIT_SUCCESS;
+}
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
