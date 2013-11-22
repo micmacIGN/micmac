@@ -12,10 +12,12 @@ void InterfOptimizGpGpu::Dealloc()
     _H_data2Opt.Dealloc();
     _D_data2Opt.Dealloc();
 
-    _preCostInit.Dealloc();
-    _preFinalCost.Dealloc();
-    _prePtZ.Dealloc();
-    _preDZ.Dealloc();
+    _preFinalCost1D.Dealloc();
+    _poInitCost.Dealloc();
+//    _preCostInit.Dealloc();
+//    _preFinalCost.Dealloc();
+//    _prePtZ.Dealloc();
+//    _preDZ.Dealloc();
 }
 
 void InterfOptimizGpGpu::oneDirOptGpGpu()
@@ -39,20 +41,20 @@ void InterfOptimizGpGpu::oneDirOptGpGpu()
 
 }
 
-void InterfOptimizGpGpu::Prepare(uint x, uint y)
-{
-    uint size = (uint)(1.5f*sqrt((float)x *x + y * y));
+//void InterfOptimizGpGpu::Prepare(uint x, uint y)
+//{
+//    uint size = (uint)(1.5f*sqrt((float)x *x + y * y));
 
-    ResetIdBuffer();
+//    ResetIdBuffer();
 
-    _H_data2Opt.ReallocParam(size);
-    _D_data2Opt.ReallocParam(size);
+//    _H_data2Opt.ReallocParam(size);
+//    _D_data2Opt.ReallocParam(size);
 
-    _preCostInit.ReallocIf(x,y);
-    _preFinalCost.ReallocIf(x,y);
-    _prePtZ.ReallocIf(x,y);
-    _preDZ.ReallocIf(x,y);
-}
+//    _preCostInit.ReallocIf(x,y);
+//    _preFinalCost.ReallocIf(x,y);
+//    _prePtZ.ReallocIf(x,y);
+//    _preDZ.ReallocIf(x,y);
+//}
 
 void InterfOptimizGpGpu::Prepare_V03(uint x,uint y)
 {
@@ -63,9 +65,6 @@ void InterfOptimizGpGpu::Prepare_V03(uint x,uint y)
     _H_data2Opt.ReallocParam(size);
     _D_data2Opt.ReallocParam(size);
 
-    _prePtZ.ReallocIf(x,y);
-    _preDZ.ReallocIf(x,y);
-    _prePitTer.ReallocIf(x,y);
 }
 
 void InterfOptimizGpGpu::threadCompute()
