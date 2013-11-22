@@ -268,7 +268,12 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Im2XYZ",Im2XYZ_main," tool to transform a 2D point (text file) to their 3D cloud homologous"));
        aRes.push_back(cMMCom("SplitMPO",SplitMPO_main,"tool 2 develop MPO stereo format in pair of image"));
 
+#if (SAISIE_QT)
+       aRes.push_back(cMMCom("SaisieAppuisInitQT",SaisieAppuisInitQT_main,"Interactive tool for initial capture of GCP"));
+       aRes.push_back(cMMCom("SaisieAppuisPredicQT",SaisieAppuisPredicQT_main,"Interactive tool for assisted capture of GCP"));
+       aRes.push_back(cMMCom("SaisieBascQT",SaisieBascQT_main,"Interactive tool to cature information on the scene"));
        aRes.push_back(cMMCom("SaisieMasqQT",SaisieMasqQT_main,"Interactive tool to capture masq"));
+#endif
 
 #if (ELISE_X11)
        aRes.push_back(cMMCom("MPDtest",MPDtest_main," My own test"));

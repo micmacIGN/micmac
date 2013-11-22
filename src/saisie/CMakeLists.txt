@@ -28,6 +28,7 @@ endif()
 set(CMAKE_AUTOMOC ON)
 
 set(saisie_SRCS saisie_main.cpp
+                saisieMasqQT_main.cpp
 	        GLWidget.cpp
 	        mainwindow.cpp
 	        Cloud.cpp
@@ -37,6 +38,7 @@ set(saisie_SRCS saisie_main.cpp
 	        ../poisson/plyfile.cpp)
 
 set(saisie_HEADERS GLWidget.h
+                   saisieMasqQT_main.h
 		   mainwindow.h
 		   Cloud.h
 		   Engine.h
@@ -63,17 +65,15 @@ include_directories( ${Qt5_INCLUDES}
 		     ${PROJECT_BINARY_DIR} )
 
 IF(WIN32)
-        add_executable(SaisieMasqQT WIN32 ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS_MOC})
+        add_executable(SaisieQT WIN32 ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS_MOC})
 else()
-        add_executable(SaisieMasqQT ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS_MOC})
+        add_executable(SaisieQT ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS_MOC})
 endif()
 
-qt5_use_modules(SaisieMasqQT Widgets Core Gui Xml Concurrent OpenGL)
+qt5_use_modules(SaisieQT Widgets Core Gui Xml Concurrent OpenGL)
 
-target_link_libraries(SaisieMasqQT  ${OPENGL_LIBRARIES}
+target_link_libraries(SaisieQT  ${OPENGL_LIBRARIES}
 			      elise
 			      ${X11_LIBRARIES} )
-
-
 	
-install(TARGETS SaisieMasqQT DESTINATION ${Install_Dir})
+install(TARGETS SaisieQT DESTINATION ${Install_Dir})
