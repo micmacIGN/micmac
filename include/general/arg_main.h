@@ -591,13 +591,13 @@ int Poisson_main(int argc,char ** argv);
 int GrapheHom_main(int argc,char ** argv);
 
 #if (ELISE_X11)
-int SaisieAppuisInit_main(int argc,char ** argv);
-int SaisieAppuisPredic_main(int argc,char ** argv);
-int SaisieBasc_main(int argc,char ** argv);
-int SaisieMasq_main(int argc,char ** argv);
-int SaisiePts_main(int argc,char ** argv);
-int SEL_main(int argc,char ** argv);
-int MICMACSaisieLiaisons_main(int argc,char ** argv);
+    int SaisieAppuisInit_main(int argc,char ** argv);
+    int SaisieAppuisPredic_main(int argc,char ** argv);
+    int SaisieBasc_main(int argc,char ** argv);
+    int SaisieMasq_main(int argc,char ** argv);
+    int SaisiePts_main(int argc,char ** argv);
+    int SEL_main(int argc,char ** argv);
+    int MICMACSaisieLiaisons_main(int argc,char ** argv);
 
 	#ifdef ETA_POLYGON
 		// Etalonnage polygone
@@ -614,10 +614,12 @@ int MICMACSaisieLiaisons_main(int argc,char ** argv);
 
 #endif
 
-int SaisieMasqQT_main(int argc,char ** argv);
-int SaisieAppuisInitQT_main(int argc,char ** argv);
-int SaisieAppuisPredicQT_main(int argc,char ** argv);
-int SaisieBascQT_main(int argc,char ** argv);
+#if (SAISIE_QT)
+    int SaisieMasqQT_main(int argc,char ** argv);
+    int SaisieAppuisInitQT_main(int argc,char ** argv);
+    int SaisieAppuisPredicQT_main(int argc,char ** argv);
+    int SaisieBascQT_main(int argc,char ** argv);
+#endif
 
 #endif // ElMemberTpl
 
