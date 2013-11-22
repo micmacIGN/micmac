@@ -643,6 +643,14 @@ eModelesCalibUnif  Str2eModelesCalibUnif(const std::string & aName)
       return eModele_DRad_PPaEqPPs;
    else if (aName=="eModele_Fraser_PPaEqPPs")
       return eModele_Fraser_PPaEqPPs;
+   else if (aName=="eModeleRadFour7x2")
+      return eModeleRadFour7x2;
+   else if (aName=="eModeleRadFour11x2")
+      return eModeleRadFour11x2;
+   else if (aName=="eModeleRadFour15x2")
+      return eModeleRadFour15x2;
+   else if (aName=="eModeleRadFour19x2")
+      return eModeleRadFour19x2;
   else
   {
       cout << aName << " is not a correct value for enum eModelesCalibUnif\n" ;
@@ -680,6 +688,14 @@ std::string  eToString(const eModelesCalibUnif & anObj)
       return  "eModele_DRad_PPaEqPPs";
    if (anObj==eModele_Fraser_PPaEqPPs)
       return  "eModele_Fraser_PPaEqPPs";
+   if (anObj==eModeleRadFour7x2)
+      return  "eModeleRadFour7x2";
+   if (anObj==eModeleRadFour11x2)
+      return  "eModeleRadFour11x2";
+   if (anObj==eModeleRadFour15x2)
+      return  "eModeleRadFour15x2";
+   if (anObj==eModeleRadFour19x2)
+      return  "eModeleRadFour19x2";
  std::cout << "Enum = eModelesCalibUnif\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
