@@ -204,8 +204,63 @@ void Test_Arrondi_LG()
     }
 }
 
+
+
+void PbHom(const std::string & anOri)
+{
+   const std::string & aDir = "/media/data1/Calib-Sony/FacadePlane-2000/";
+   const std::string & aIm1 = "DSC05180.ARW";
+   const std::string & aIm2 = "DSC05182.ARW";
+
+
+   cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+   std::string    aKeyOri =  "NKS-Assoc-Im2Orient@-" + anOri;
+
+
+    std::string aNameOri1 =  aICNM->Assoc1To1(aKeyOri,aIm1,true);
+    std::string aNameOri2 =  aICNM->Assoc1To1(aKeyOri,aIm2,true);
+
+
+    CamStenope * aCS1 = CamOrientGenFromFile(aNameOri1,aICNM);
+    CamStenope * aCS2 = CamOrientGenFromFile(aNameOri2,aICNM);
+
+    Pt2dr aP1 (774,443);
+    Pt2dr aP2 (5541,3758);
+
+    Pt3dr aTer1  = aCS1->ImEtProf2Terrain(aP1,1.0);
+    Pt2dr aProj1 = aCS1->R3toF2(aTer1);
+
+    std::cout << "P & Proj Init1" << aP1 << aProj1 << " " << euclid(aP1-aProj1) << "\n";
+    
+
+    Pt3dr aTer2  = aCS2->ImEtProf2Terrain(aP2,1.0);
+    Pt2dr aProj2 = aCS2->R3toF2(aTer2);
+
+    std::cout << "P & Proj Init2" << aP2 << aProj2 << " " << euclid(aP2-aProj2) << "\n";
+
+
+    double aDist;
+    Pt3dr aTerInter = aCS1->PseudoInter(aP1,*aCS2,aP2,&aDist);
+
+    aProj1 = aCS1->R3toF2(aTerInter);
+    aProj2 = aCS2->R3toF2(aTerInter);
+
+    std::cout << "Proj Inter " << aDist << " " << (aP1-aProj1) << " " << (aP2-aProj2) << "\n";
+    
+
+
+    std::cout << "\n";
+}
+
+
 int MPDtest_main (int argc,char** argv)
 {
+   PbHom("Test-Four");
+   PbHom("RadialExtended");
+
+   getchar();
+
+
    // ElList<Pt2di> aL = NewLPt2di(Pt2di(20,20));
 
    std::string aPref = "eTT_";

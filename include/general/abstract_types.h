@@ -797,6 +797,44 @@ Fonc_Num PowI(Fonc_Num f,INT aDegre);
 
 extern   double Square(double);
 
+    // Operateur utile au devt en four des fonction radiale
+
+double CosRx(double);  // cos sqrt x
+Fonc_Num CosRx(Fonc_Num);  // cos sqrt x
+double SinCardRx(double);  // cos sqrt x
+Fonc_Num SinCardRx(Fonc_Num);  // cos sqrt x
+
+
+
+    // Operateur utile a la fonction de conversion des Fish Eye Linear
+
+double AtRxSRx(double x);      // Atan(sqrt(x)) / sqrt(x)
+Fonc_Num AtRxSRx(Fonc_Num x);     
+double DerAtRxSRx(double x);   // Derivee de  AtRxSRx
+Fonc_Num DerAtRxSRx(Fonc_Num x); 
+double At2Rx(double x);        // Atan ^2 (sqrt(x)) 
+Fonc_Num At2Rx(Fonc_Num x);       
+double DerAt2Rx(double x);     // Derivee At2Rx
+Fonc_Num DerAt2Rx(Fonc_Num x);    
+
+// Predicteur d'inversion
+double TgRxSRx(double x);      // Tang(sqrt(x)) / sqrt(x)
+Fonc_Num TgRxSRx(Fonc_Num x);      // Tang(sqrt(x)) / sqrt(x)
+
+    // Operateur utile a la fonction de conversion des Fish Eye equisolid
+    //
+    //  2 sin (At(X)/2)
+    //
+double Dl_f2SAtRxS2SRx(double x);
+double Std_f2SAtRxS2SRx(double x);
+double  f2SAtRxS2SRx(double); // 2 sin(Atan(sqrt(x))/2) / sqrt(x)
+Fonc_Num  f2SAtRxS2SRx(Fonc_Num); 
+
+double Dl_Der2SAtRxS2SRx(double x);   
+double Std_Der2SAtRxS2SRx(double x);   
+double Der2SAtRxS2SRx(double x);   // Der f2SAtRxS2SRx
+
+
     // Operateur utile a la fonction de conversion des Fish Eye Linear
 
 double AtRxSRx(double x);      // Atan(sqrt(x)) / sqrt(x)

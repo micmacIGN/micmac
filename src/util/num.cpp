@@ -913,7 +913,21 @@ Fonc_Num Tg2AsRxS2SRx(Fonc_Num aF)
    return 0;
 }
 
+//  Operateur utile au devt en four des fonction radiale
 
+double CosRx(double anX)
+{
+   return cos(sqrt(ElAbs(anX)));
+}
+
+double SinCardRx(double anX)
+{
+   anX =  ElAbs(anX);
+   if (anX <1e-5) return 1 - anX/6.0 + (anX*anX)/120.0;
+
+   anX = sqrt(anX);
+   return sin(anX) / anX;
+}
 
      //  PRECOND EN ATAN
 double AtRxSRx(double x)

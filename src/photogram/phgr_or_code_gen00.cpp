@@ -54,13 +54,52 @@ Header-MicMac-eLiSe-25/06/2007*/
 #endif // ELISE_INSERT_CODE_GEN
 
 
-/*
 #include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CFour7x2.h"
 #include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CFour7x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CFour7x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CFour7x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CFour7x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PTInc_M2CFour7x2.h"
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CFour7x2.h"
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CFour7x2.h"
 #include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CFour7x2.h"
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CFour7x2.h"
+
+#include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CFour11x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CFour11x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CFour11x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CFour11x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CFour11x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PTInc_M2CFour11x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CFour11x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CFour11x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CFour11x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CFour11x2.h"
+
+#include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CFour15x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CFour15x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CFour15x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CFour15x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CFour15x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PTInc_M2CFour15x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CFour15x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CFour15x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CFour15x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CFour15x2.h"
+
+#include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CFour19x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CFour19x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CFour19x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CFour19x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CFour19x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PTInc_M2CFour19x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CFour19x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CFour19x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CFour19x2.h"
+#include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CFour19x2.h"
+
+
+/*
 */
 
 
@@ -431,6 +470,13 @@ AddEntry("cEqAppui_NoDist__PTInc_M2C"#aDist,cEqAppui_NoDist__PTInc_M2C##aDist::A
 AddEntry("cEqAppui_NoDist__PProjInc_M2C"#aDist,cEqAppui_NoDist__PProjInc_M2C##aDist::Alloc);
 
 
+
+#define FULL_NEW_ADD_ENTRY(aDist)\
+NEW_ADD_ENTRY(aDist)\
+AddEntry("cEqAppui_PTInc_M2C"#aDist,cEqAppui_PTInc_M2C##aDist::Alloc);\
+AddEntry("cEqAppui_PProjInc_M2C"#aDist,cEqAppui_PProjInc_M2C##aDist::Alloc);
+
+
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CNoVar.h"
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CNoVar.h"
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CNoVar.h"
@@ -501,9 +547,20 @@ void cElCompiledFonc::InitEntries()
      First = false;
 
 
+     FULL_NEW_ADD_ENTRY(Fraser_PPaEqPPs)
+     FULL_NEW_ADD_ENTRY(Four7x2);
+     FULL_NEW_ADD_ENTRY(Four11x2);
+     FULL_NEW_ADD_ENTRY(Four15x2);
+     FULL_NEW_ADD_ENTRY(Four19x2);
+/*
      NEW_ADD_ENTRY(Fraser_PPaEqPPs)
      AddEntry("cEqAppui_PTInc_M2CFraser_PPaEqPPs",cEqAppui_PTInc_M2CFraser_PPaEqPPs::Alloc);
      AddEntry("cEqAppui_PProjInc_M2CFraser_PPaEqPPs",cEqAppui_PProjInc_M2CFraser_PPaEqPPs::Alloc);
+*/
+
+
+     // NEW_ADD_ENTRY(Four7x2);
+
      // AddEntry("cEqAppui_GL__PTInc_M2CFraser_PPaEqPPs",          cEqAppui_GL__PTInc_M2CFraser_PPaEqPPs::Alloc);
      // AddEntry("cEqAppui_GL__PProjInc_M2CFraser_PPaEqPPs",         cEqAppui_GL__PProjInc_M2CFraser_PPaEqPPs::Alloc);
 
