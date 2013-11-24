@@ -463,8 +463,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                           "eGeomMNTEuclid" :
                           (mIsSperik? "eGeomMNTFaisceauPrChSpherik" : (mModePB ? "eGeomMNTFaisceauIm1ZTerrain_Px1D" : "eGeomMNTFaisceauIm1PrCh_Px1D"));
 
-  mCom =     MMDir() +"bin"+ELISE_CAR_DIR+"MICMAC "
-                      +  MMDir() +"include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+aFileMM // MM-Malt.xml
+  mCom =              MM3dBinFile_quotes("MICMAC")
+                      +  ToStrBlkCorr( Basic_XML_MM_File(aFileMM) )
                       + anArgCommuns
 
 /*

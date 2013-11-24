@@ -161,6 +161,7 @@ class  ELISE_fp
          static bool IsDirectory(const std::string &  aName );
          static void AssertIsDirectory(const std::string &  aName );
 		 static bool copy_file( const std::string i_src, const std::string i_dst, bool i_overwrite );
+         static int  file_length( const std::string &i_filename );
          
          static bool lastModificationDate(const std::string &i_filename, cElDate &o_date ); // returns if the date could be retrieved
 

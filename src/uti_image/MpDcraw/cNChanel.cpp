@@ -269,18 +269,16 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
     if (TraitBasic)
        Options = "" ;
 
-  
-/*
-    std::string aNameCom =    MMBin() 
-                           + std::string("ElDcraw -t 0 -c -d  " )
-                           + std::string(M16B?" -4 ":"") 
-                           + ToStrBlkCorr(aNameFile) + " > " + aNameTmp;
-*/
+    /*
     std::string aNameCom =    MMBin() 
                            + std::string("ElDcraw -c -t 0 ") + Options
                            + std::string(M16B?" -4 ":"") 
                            + ToStrBlkCorr(aNameFile) + " > " + aNameTmp;
-
+    */
+    std::string aNameCom = MM3dBinFile_quotes("ElDcraw")
+                           + std::string("-c -t 0 ") + Options
+                           + std::string(M16B?" -4 ":"")
+                           + ToStrBlkCorr(aNameFile) + " > " + aNameTmp;
      
 
      std::vector<Im2DGen *>  aV3;
@@ -289,7 +287,7 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
 
 
 			   
-    VoidSystem(aNameCom.c_str());
+     System(aNameCom.c_str());
 
     if (TraitBasic)
     {

@@ -251,8 +251,8 @@ int Tapas_main(int argc,char ** argv)
 
 
 
-   std::string aCom =     MM3dBinFile( "Apero" )
-                       +  MMDir() + std::string("include")+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+"Apero-Glob.xml "
+   std::string aCom =     MM3dBinFile_quotes( "Apero" )
+                       + ToStrBlkCorr( MMDir()+"include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+"Apero-Glob.xml" ) + " "
                        + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
                        + std::string(" ") + QUOTE(std::string("+PatternAllIm=") + aPat) + std::string(" ")
                        //+ std::string(" +PatternAllIm=") + aPat + std::string(" ")
