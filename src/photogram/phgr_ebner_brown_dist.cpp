@@ -43,6 +43,27 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 using namespace NS_ParamChantierPhotogram;
 
+/*
+template <class TDistR,class TDistF,const int NbVar,const int NbState>
+void  cPIF_Unif<TDistR,TDistF,NbVar,NbState>::FigeIfDegreSup(int aDegre,double aTol,eModeControleVarDGen aModeControl)
+{
+std::cout << "Bbbbbbbbbbbbb D=" << aDegre << " M=" << aModeControl << "\n";
+bool BUG = (aDegre==1);
+    for (int aKV=0 ; aKV<NbVar ; aKV++)
+    {
+        int aDegK = TDistR::DegreOfPolyn(mDegrePolyn,aKV,aModeControl);
+if (BUG) std::cout << "Ddd = " << aDegre << " " << aKV << " " << aDegK << "\n";
+        if (aDegK >=0)
+        {
+            if (aDegK > aDegre)
+                SetFigeKthParam(aKV,aTol);
+            else
+                SetFreeKthParam(aKV);
+        }
+    }
+}
+*/
+
 
 /************************************************************************************/
 /*                                                                                  */
@@ -622,20 +643,28 @@ template <class Type>
 
 template <const int TheNbRad> int cGeneratorFour<TheNbRad>::DegreOfPolyn(const int * aDegGlob,int aK,eModeControleVarDGen aMode)
 {
-   ELISE_ASSERT(false,"cGeneratorFour");
+   // ELISE_ASSERT(false,"cGeneratorFour");
    if (aMode==eModeContDGCDist)
    {
       if ((aK!= 6) && (aK!=7))
+      {
           return -1;
+      }
    }
-   if (aMode==eModeContDGDRad)
+   else if (aMode==eModeContDGDRad)
    {
-      if ((aK<8 ) && (aK>= 8 +TheNbRad))
+      if ((aK<8 ) ||  (aK>= 8 +TheNbRad))
+      {
           return -1;
+      }
+      return (aK -7);
+
+   }
+   else if (aMode==eModeContDGDCent)
+   {
+      return -1;
    }
 
-   if (aMode==eModeContDGDCent)
-      return -1;
    
    return aDegGlob[aK];
 }
@@ -684,8 +713,32 @@ template <class Type>
 
     int aInd = 8;
     Type aSomRho = 0.0;
+
+    if (0)   // Fourrier
+    {
+        for (int aD = 1 ; aD<= aDegRad ; aD++)
+        {
+            double aMul = (PI / 2.0 ) * aD ;
+            Type aPol =  1- CosRx( aMul * aR2C);
+            aSomRho = aSomRho + V[aInd]  * aPol;
+            aInd ++;
+        }
+    }
+    else   // Monome X^N
+    {
+        Type aMon = 1.0;
+        for (int aD = 1 ; aD<= aDegRad ; aD++)
+        {
+            aMon = aMon * aR2C;
+            aSomRho = aSomRho + V[aInd]  * aMon;
+            aInd ++;
+        }
+    }
+
+
     for (int aD = 1 ; aD<= aDegRad ; aD++)
     {
+/*
         std::vector<double> aCoeff;
         aCoeff.push_back(1.0);
   
@@ -706,20 +759,27 @@ template <class Type>
         for (int aKR = 0 ; aKR<=aD ; aKR++)
         {
             aPol = aPol + aMon * aCoeff[aKR];
-            aMon = aMon * aR2C;
+            if (aKR != aD)
+               aMon = aMon * aR2C;
         }
 
-       
-//std::cout << "WAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n";
-//aPol = aMon;
+*/
 
-        aSomRho = aSomRho + V[aInd]  * aPol;
+        // double aMul = (PI * double(aDegRad-1)/aDegRad) * aD ;
 
         aInd ++;
     }
     
     aXOut = aXOut +  aXC * aSomRho;
     aYOut = aYOut +  aYC * aSomRho;
+
+/*
+static int aCpt=0 ; aCpt++;
+if ((aCpt%1000)==0)
+{
+ std::cout << "AAAAAAAAAAAAAAa  " << aCpt << "\n";  getchar();
+}
+*/
 
 
    return Pt2d<Type>(States[1]+aXOut*States[0],States[2]+aYOut*States[0]);
