@@ -460,12 +460,8 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
     }
 
 #if CUDA_ENABLED
-    #if OPTIMZ
-       // SolveAllDirectionGpuZ_V02(aNbDir);
+
         SolveAllDirectionGpuZ_V03(aNbDir);
-    #else
-        SolveAllDirectionGpu(aNbDir);
-    #endif
 #else
     // Parcours dans toutes les directions
     for (int aKDir=0 ; aKDir<mNbDir ; aKDir++)
@@ -955,7 +951,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ_V03(int aNbDir)
 {
     const std::vector<Pt2di> * aVPt;
 
-    IGpuOpt.Prepare_V03(mSz.x,mSz.y);
+    IGpuOpt.Prepare(mSz.x,mSz.y,aNbDir);
 
     int aKDir = 0;
 
