@@ -1,6 +1,18 @@
-﻿#include "saisieMasqQT_main.h"
+﻿#include "saisieQT_main.h"
 
 bool MMVisualMode = false;
+
+int helpMessage(const QApplication &app, QString text)
+{
+#ifdef WIN32
+    QMessageBox msgBox(QMessageBox::NoIcon, app.applicationName(), text, QMessageBox::Ok);
+    return msgBox.exec();
+#else
+    printf("\n%s\n", app.applicationName().toStdString().c_str());
+    printf("\n%s", text.toStdString().c_str());
+    return 0;
+#endif
+}
 
 #ifdef _WIN32
 class Win32CommandLineConverter;
@@ -42,18 +54,15 @@ public:
 #endif
 
 
-
 #ifdef WIN32
 int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine, int nCmdShow)
 #else
 int main(int argc, char *argv[])
 #endif
 {
-    cout << "here" <<endl;
     QApplication::setStyle("fusion");
 
 #ifdef WIN32
-
     Win32CommandLineConverter cmd_line;
 
     int _argc = cmd_line.argc();
@@ -64,40 +73,44 @@ int main(int argc, char *argv[])
 #endif
 
     app.setOrganizationName("IGN");
-    app.setApplicationName("SaisieQT");
+    app.setApplicationName("QT graphical tools");
+
+    // qt translations
+    const QString locale = QLocale::system().name().section('_', 0, 0);
+    QTranslator qtTranslator;
+    qtTranslator.load(app.applicationName() + "_" + locale);
+    app.installTranslator(&qtTranslator);
 
     QStringList cmdline_args = QCoreApplication::arguments();
-    QString str;
+
+    QString cmds = QObject::tr("Allowed commands:") + "\n\n" +
+            QString("SaisieMasqQT\n") +
+            QString("SaisieAppuisInitQT\n\n");
 
     if (cmdline_args.size() > 1)
     {
-        for (int i=0; i< cmdline_args.size(); ++i)
+        for (int i=0; i < cmdline_args.size(); ++i)
         {
-            bool removeArg = false;
-
-            str = cmdline_args[i];
+            QString str = cmdline_args[i];
+            printf("commande : %s", str.toStdString().c_str());
 
             if (str.contains("SaisieMasqQT"))
-            {
                 saisieMasqQT_main(app);
-                removeArg = true;
-            }
             else if (str.contains("SaisieAppuisInitQT"))
+                saisieAppuisInitQT_main(app);
+            else if (!str.contains("SaisieQT"))
             {
-                //saisieAppuisInitQT_main(app);
-                removeArg =true;
+                QString text = QObject::tr("This is not a command!!!") + "\n\n" + cmds;
+                helpMessage(app, text);
+
+                return -1;
             }
 
-            if (removeArg)
-            {
-                cmdline_args[i] = cmdline_args.back();
-                cmdline_args.pop_back();
-                i--;
-            }
+            cmdline_args[i] = cmdline_args.back();
+            cmdline_args.pop_back();
+            i--;
         }
     }
-
-
+    else
+        helpMessage(app, cmds);
 }
-
-

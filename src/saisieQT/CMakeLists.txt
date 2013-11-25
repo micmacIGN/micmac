@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.9)
-project(saisie)
+project(saisieQT)
 
 if ( MSVC )
 	include("FindWindowsSDK.txt")
@@ -27,8 +27,9 @@ endif()
 
 set(CMAKE_AUTOMOC ON)
 
-set(saisie_SRCS saisie_main.cpp
+set(saisie_SRCS saisieQT_main.cpp
                 saisieMasqQT_main.cpp
+				saisieAppuisInitQT_main.cpp
 	        GLWidget.cpp
 	        mainwindow.cpp
 	        Cloud.cpp
@@ -37,8 +38,8 @@ set(saisie_SRCS saisie_main.cpp
                 3DObject.cpp
 	        ../poisson/plyfile.cpp)
 
-set(saisie_HEADERS GLWidget.h
-                   saisieMasqQT_main.h
+set(saisie_HEADERS saisieQT_main.h
+           GLWidget.h
 		   mainwindow.h
 		   Cloud.h
 		   Engine.h

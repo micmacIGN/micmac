@@ -160,8 +160,7 @@ if (WITH_INTERFACE)
 endif()
 
 if (WITH_SAISIEQT)
-        add_definitions(-DSAISIE_QT=1)
-	ADD_SUBDIRECTORY(saisie)
+    ADD_SUBDIRECTORY(saisieQT)
 endif()
 
 if (WITH_QT5)  
