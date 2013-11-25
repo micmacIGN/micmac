@@ -123,6 +123,10 @@ if (${WITH_ETALONPOLY})
 
 endif()
 
+if (${WITH_SAISIEQT})
+	add_definitions(-DSAISIE_QT)
+endif()
+
 
 # MERCURIAL
 find_program(MERCURIAL_EXECUTABLE hg DOC "Emplacement de gestionnaire de versions Mercurial")

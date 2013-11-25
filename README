@@ -40,6 +40,7 @@ program (www.cmake.org). Linux and MacOS X users may also want to get X11 header
 like SaisieBasc, SaisieMasque, etc.
 		The package of X11 headers is general called 'libx11-dev' under Linux distributions.
 		X11-based tools are not available in the Windows version.
+Windows users may need Qt5 libraries to generate graphical interfaces such as SaisieMasqQT.
 
 	Compiling process for Linux / MacOS X
 

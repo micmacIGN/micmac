@@ -1,13 +1,8 @@
-#include "saisieMasqQT_main.h"
+#include "saisieQT_main.h"
 
-int saisieMasqQT_main(QApplication const &app)
+int saisieMasqQT_main(QApplication &app)
 {
-    const QString locale = QLocale::system().name().section('_', 0, 0);
-
-    // qt translations
-    QTranslator qtTranslator;
-    qtTranslator.load(app.applicationName() + "_" + locale);
-    app.installTranslator(&qtTranslator);
+    app.setApplicationName("SaisieMasqQT");
 
     MainWindow w;
 
@@ -26,30 +21,17 @@ int saisieMasqQT_main(QApplication const &app)
 
             if (str.contains("help"))
             {
-                QString text =  "SaisieMasqQT [filename] [option=]\n"
-                                "\n"
-                                "* [filename] string\t: open file (image or ply or camera xml)\n"
-                                "\n"
-                                "Options\n"
-                                "\n"
+                QString help =  app.applicationName() +" [filename] [option=]\n\n"
+                                "* [filename] string\t: open file (image or ply or camera xml)\n\n"
+                                "Options\n\n"
                                 "* [Name=SzW] integer\t: set window width (default=800)\n"
                                 "* [Name=Post] string\t: change postfix output file (default=_Masq)\n"
                                 "* [Name=Name] string\t: set output filename (default=input+_Masq)\n"
-                                "* [Name=Gama] REAL\t: apply gamma to image\n"
-                                "\n"
-                                "Example: SaisieMasqQT IMG.tif SzW=1200 Name=PLAN Gama=1.5\n"
-                                "\n"
-                                "NB: SaisieMasqQT can be run without any argument\n\n";
+                                "* [Name=Gama] REAL\t: apply gamma to image\n\n"
+                                "Example: " + app.applicationName() + " IMG.tif SzW=1200 Name=PLAN Gama=1.5\n\n"
+                                "NB: " + app.applicationName() + " can be run without any argument\n\n";
 
-                //w.close();
-#ifdef WIN32
-                QMessageBox msgBox(QMessageBox::NoIcon, "Command SaisieMasqQT", text, QMessageBox::Ok);
-                return msgBox.exec();
-#else
-                printf("\nCommand SaisieMasqQT\n");
-                printf("\n %s", text.toStdString().c_str());
-                return 0;
-#endif
+                return helpMessage(app, help);
             }
             if (str == "mode2D")
             {
@@ -59,7 +41,6 @@ int saisieMasqQT_main(QApplication const &app)
             }
             else
             {
-
                 if (str.contains("Post="))
                 {
                     w.setPostFix(str.mid(str.indexOf("Post=")+5, str.size()));
@@ -90,16 +71,16 @@ int saisieMasqQT_main(QApplication const &app)
 
                 if (str.contains("Gama="))
                 {
-                    QString strGamma = str.mid(str.indexOf("Gama=")+5, str.size());
+                    QString arg = str.mid(str.indexOf("Gama=")+5, str.size());
 
-                    float aGamma = strGamma.toFloat();
+                    float aGamma = arg.toFloat();
 
                     w.setGamma(aGamma);
 
                     removeArg = true;
                 }
 
-                if (str.contains("SaisieMasqQT"))
+                if (str.contains(app.applicationName()))
                     removeArg=true;
             }
 

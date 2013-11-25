@@ -39,59 +39,40 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-int SaisieMasqQT_main(int argc,char ** argv)
-{
-    cout << "in SaisieMasqQT" << endl;
-    std::string aCom = std::string("\"") + g_externalToolHandler.get( "SaisieQT" ).callName() + std::string("\"");
+#ifdef SAISIE_QT
 
-    aCom += std::string(" SaisieMasqQT");
+int runCmd(int argc,char ** argv, std::string cmdName)
+{
+    std::string aCom = std::string("\"") + g_externalToolHandler.get( "SaisieQT" ).callName() + std::string("\" ") + cmdName;
 
     for (int i = 1; i < argc; ++i) aCom += std::string(" ") + argv[i];
 
     system_call(aCom.c_str());
 
     return EXIT_SUCCESS;
+}
+
+int SaisieMasqQT_main(int argc,char ** argv)
+{
+    return runCmd(argc, argv, "SaisieMasqQT");
 }
 
 int SaisieAppuisInitQT_main(int argc,char ** argv)
 {
-    std::string aCom = std::string("\"") + g_externalToolHandler.get( "SaisieQT" ).callName() + std::string("\"");
-
-    aCom += std::string(" SaisieAppuisInitQT");
-
-    for (int i = 1; i < argc; ++i) aCom += std::string(" ") + argv[i];
-
-    system_call(aCom.c_str());
-
-    return EXIT_SUCCESS;
+    return runCmd(argc, argv, "SaisieAppuisInitQT");
 }
 
 int SaisieAppuisPredicQT_main(int argc,char ** argv)
 {
-    std::string aCom = std::string("\"") + g_externalToolHandler.get( "SaisieQT" ).callName() + std::string("\"");
-
-    aCom += std::string(" SaisieAppuisPredicQT");
-
-    for (int i = 1; i < argc; ++i) aCom += std::string(" ") + argv[i];
-
-    system_call(aCom.c_str());
-
-    return EXIT_SUCCESS;
+    return runCmd(argc, argv, "SaisieAppuisPredicQT");
 }
 
 int SaisieBascQT_main(int argc,char ** argv)
 {
-    std::string aCom = std::string("\"") + g_externalToolHandler.get( "SaisieQT" ).callName() + std::string("\"");
-
-    aCom += std::string(" SaisieBascQT");
-
-    for (int i = 1; i < argc; ++i) aCom += std::string(" ") + argv[i];
-
-    system_call(aCom.c_str());
-
-    return EXIT_SUCCESS;
+    return runCmd(argc, argv, "SaisieBascQT");
 }
 
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
