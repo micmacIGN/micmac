@@ -1707,11 +1707,13 @@ void cAppliMICMAC::GlobDoCorrelAdHoc
 #if CUDA_ENABLED
         IMmGg.box.x = aBoxIn.sz().x;
         IMmGg.box.y = aBoxIn.sz().y;
+        IMmGg.SetProgress(aDecInterv.NbInterv());
 #endif
 
         for (int aKBox=0 ; aKBox<aDecInterv.NbInterv() ; aKBox++)
         {
             DoCorrelAdHoc(aDecInterv.KthIntervOut(aKBox));
+            IMmGg.IncProgress();
         }
 
 }
