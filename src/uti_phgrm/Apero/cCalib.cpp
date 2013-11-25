@@ -1049,6 +1049,7 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
     if (aCD.ModUnif().IsInit())
     {
        cCamera_Param_Unif_Gen * aCam = Std_Cal_Unif(aCIC,aConv);
+// std::cout << "CCaaaam "<< aCam << "\n";
        anAppli.NormaliseScTr(*aCam);
 
        cPIF_Unif_Gen * aPIF = aCam->PIF_Gen(aCam->DistIsC2M(),anAppli.SetEq());

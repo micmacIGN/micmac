@@ -301,17 +301,18 @@ std::cout << "Type Appui = " << aType << "\n";
 void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal)
 {
 
-/*
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadFour7x2");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour11x2");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour15x2");
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour19x2");
-
-
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour7x2");
+
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadFour11x2");
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour11x2");
+
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadFour15x2");
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour15x2");
+
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadFour19x2");
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour19x2");
+/*
 */
 
 

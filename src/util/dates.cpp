@@ -1070,7 +1070,7 @@ const std::vector<cXifDecoder *> &  cXifDecoder::TheVect()
 			(
 			new cXifDecoder
 			(
-              MM3dBinFile("ElDcraw")+" -i -v ",
+              MM3dBinFile_quotes("ElDcraw")+" -i -v ",
 			"ELDCRAW.txt",
 			"Timestamp: .* (...)  ?([0-9]{1,2})  ?([0-9]{1,2}):([0-9]{2}):([0-9]{2}) ([0-9]{4})",
 			"612345" ,

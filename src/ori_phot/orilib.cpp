@@ -3255,6 +3255,10 @@ class cDistFromCIC
 	   cCam_Polyn5 *            CamPolyn5();
 	   cCamera_Param_Unif_Gen * CamUnif();
 
+	   cCam_RadFour7x2 *             Cam_RadFour7x2();
+	   cCam_RadFour11x2 *            Cam_RadFour11x2();
+	   cCam_RadFour15x2 *            Cam_RadFour15x2();
+	   cCam_RadFour19x2 *            Cam_RadFour19x2();
 
 	   CamStenopeIdeale *             CamSI();
 
@@ -3266,6 +3270,10 @@ class cDistFromCIC
 	   cCamStenopeDistRadPol   * mCamDR;
            CamStenopeIdeale        * mCamSI;
 	   cCam_Ebner *              mCamEb;
+	   cCam_RadFour7x2 *         mCam_RadFour7x2;
+	   cCam_RadFour11x2 *        mCam_RadFour11x2;
+	   cCam_RadFour15x2 *        mCam_RadFour15x2;
+	   cCam_RadFour19x2 *        mCam_RadFour19x2;
            cCam_DRad_PPaEqPPs *      mCamDR_PPas;
            cCam_Fraser_PPaEqPPs *    mCamFras_PPas;
 	   cCam_DCBrown *            mCamDCB;
@@ -3289,12 +3297,38 @@ CamStenope * cDistFromCIC::Cam()
    return mCam;
 }
 
+cCam_RadFour7x2 * cDistFromCIC::Cam_RadFour7x2()
+{
+   ELISE_ASSERT(mCam_RadFour7x2!=0,"cDistFromCIC::Cam");
+   return mCam_RadFour7x2;
+}
+cCam_RadFour11x2 * cDistFromCIC::Cam_RadFour11x2()
+{
+   ELISE_ASSERT(mCam_RadFour11x2!=0,"cDistFromCIC::Cam");
+   return mCam_RadFour11x2;
+}
+cCam_RadFour15x2 * cDistFromCIC::Cam_RadFour15x2()
+{
+   ELISE_ASSERT(mCam_RadFour15x2!=0,"cDistFromCIC::Cam");
+   return mCam_RadFour15x2;
+}
+cCam_RadFour19x2 * cDistFromCIC::Cam_RadFour19x2()
+{
+   ELISE_ASSERT(mCam_RadFour19x2!=0,"cDistFromCIC::Cam");
+   return mCam_RadFour19x2;
+}
+
+
+
+
+
 
 cCam_Ebner * cDistFromCIC::CamEbner()
 {
    ELISE_ASSERT(mCamEb!=0,"cDistFromCIC::Cam");
    return mCamEb;
 }
+
 cCam_DRad_PPaEqPPs * cDistFromCIC::CamDRad_PPaEqPPs()
 {
    ELISE_ASSERT(mCamDR_PPas!=0,"cDistFromCIC::Cam");
@@ -3339,6 +3373,11 @@ cCam_Polyn5 *  cDistFromCIC::CamPolyn5()
 
 cCamera_Param_Unif_Gen *  cDistFromCIC::CamUnif()
 {
+    if (mCam_RadFour7x2) return mCam_RadFour7x2;
+    if (mCam_RadFour11x2) return mCam_RadFour11x2;
+    if (mCam_RadFour15x2) return mCam_RadFour15x2;
+    if (mCam_RadFour19x2) return mCam_RadFour19x2;
+
     if (mCamEb) return mCamEb;
     if (mCamDCB) return mCamDCB;
     if (mCamPolyn2) return mCamPolyn2;
@@ -3490,6 +3529,10 @@ cDistFromCIC::cDistFromCIC
        mCamPS =0;
        mCamDR =0;
        mCamEb = 0;
+       mCam_RadFour7x2 = 0;
+       mCam_RadFour11x2 = 0;
+       mCam_RadFour15x2 = 0;
+       mCam_RadFour19x2 = 0;
        mCamSI = 0;
        mCamDR_PPas = 0;
        mCamFras_PPas = 0;
@@ -3548,8 +3591,81 @@ cDistFromCIC::cDistFromCIC
        else if (aCD.ModUnif().IsInit())
        {
            const cCalibrationInterneUnif & aCIU = aCD.ModUnif().Val();
-	   switch (aCIU.TypeModele())
+           eModelesCalibUnif aTypeModele = aCIU.TypeModele();
+	   switch (aTypeModele)
 	   {
+ 
+	       case eModeleRadFour7x2 :
+	       case eModeleRadFour11x2 :
+	       case eModeleRadFour15x2 :
+	       case eModeleRadFour19x2 :
+               {
+	            std::vector<double> aVE = aCIU.Etats();
+                    Pt2dr aSzIm  = Pt2dr(aCIC.SzIm())/2.0;
+                    if (aVE.size()==0) aVE.push_back(euclid(aSzIm));
+                    if (aVE.size()==1) aVE.push_back(aSzIm.x);
+                    if (aVE.size()==2) aVE.push_back(aSzIm.y);
+
+                    if (aTypeModele == eModeleRadFour7x2)
+                    {
+                        mCam_RadFour7x2  = new cCam_RadFour7x2
+                                               (
+                                                   aKC2M,
+                                                   aCIC.F(),
+                                                   aCIC.PP(),
+                                                   Pt2dr(aCIC.SzIm()),
+                                                   aCIC.ParamAF(),
+                                                   &aCIU.Params(),
+                                                   &aVE
+                                                );
+                        mCam = mCam_RadFour7x2;
+                    }
+                    else if (aTypeModele == eModeleRadFour11x2)
+                    {
+                        mCam_RadFour11x2  = new cCam_RadFour11x2
+                                               (
+                                                   aKC2M,
+                                                   aCIC.F(),
+                                                   aCIC.PP(),
+                                                   Pt2dr(aCIC.SzIm()),
+                                                   aCIC.ParamAF(),
+                                                   &aCIU.Params(),
+                                                   &aVE
+                                                );
+                        mCam = mCam_RadFour11x2;
+                    }
+                    else if (aTypeModele == eModeleRadFour15x2)
+                    {
+                        mCam_RadFour15x2  = new cCam_RadFour15x2
+                                               (
+                                                   aKC2M,
+                                                   aCIC.F(),
+                                                   aCIC.PP(),
+                                                   Pt2dr(aCIC.SzIm()),
+                                                   aCIC.ParamAF(),
+                                                   &aCIU.Params(),
+                                                   &aVE
+                                                );
+                        mCam = mCam_RadFour15x2;
+                    }
+                    else if (aTypeModele == eModeleRadFour19x2)
+                    {
+                        mCam_RadFour19x2  = new cCam_RadFour19x2
+                                               (
+                                                   aKC2M,
+                                                   aCIC.F(),
+                                                   aCIC.PP(),
+                                                   Pt2dr(aCIC.SzIm()),
+                                                   aCIC.ParamAF(),
+                                                   &aCIU.Params(),
+                                                   &aVE
+                                                );
+                        mCam = mCam_RadFour19x2;
+                    }
+
+               }
+	       break;
+
 	       case eModeleEbner :
 	       {
 	            std::vector<double> aVE = aCIU.Etats();
