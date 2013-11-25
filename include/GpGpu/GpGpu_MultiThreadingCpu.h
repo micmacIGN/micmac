@@ -103,6 +103,8 @@ private:
 
     boost::progress_display *_show_progress;
 
+    bool            _show_progress_console;
+
 };
 
 template< class T >
@@ -110,7 +112,8 @@ CSimpleJobCpuGpu<T>::CSimpleJobCpuGpu(bool useMultiThreading):
     _gpGpuThread(NULL),
     _useMultiThreading(useMultiThreading),
     _idBufferHostIn(false),
-    _show_progress(NULL)
+    _show_progress(NULL),
+    _show_progress_console(false)
 {}
 
 template< class T >
@@ -197,16 +200,20 @@ void CSimpleJobCpuGpu<T>::SetThread(boost::thread *Thread)
 template< class T >
 void CSimpleJobCpuGpu<T>::SetProgress(unsigned long expected_count)
 {
-    if(_show_progress == NULL)
-        _show_progress = new boost::progress_display(expected_count);
-    else
-        _show_progress->restart(expected_count);
+    if(_show_progress_console)
+    {
+        if(_show_progress == NULL)
+            _show_progress = new boost::progress_display(expected_count);
+        else
+            _show_progress->restart(expected_count);
+    }
 }
 
 template< class T >
 void CSimpleJobCpuGpu<T>::IncProgress(uint inc)
 {
-    (*_show_progress) += inc;
+    if(_show_progress_console)
+        (*_show_progress) += inc;
 }
 
 template< class T >
