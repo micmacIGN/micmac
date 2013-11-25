@@ -78,8 +78,8 @@ int GCPBascule_main(int argc,char ** argv)
 		
 	MMD_InitArgcArgv(argc,argv);
 	
-    std::string aCom =   MMDir() + std::string("bin/Apero ")
-                       + MMDir() + std::string("include/XML_MicMac/Apero-GCP-Bascule.xml ")
+    std::string aCom =   MM3dBinFile_quotes( "Apero" )
+                       + ToStrBlkCorr( MMDir()+"include/XML_MicMac/Apero-GCP-Bascule.xml" )+" "
                        + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
                        + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
                        + std::string(" +AeroIn=") + AeroIn
@@ -97,7 +97,7 @@ int GCPBascule_main(int argc,char ** argv)
 
 
    std::cout << "Com = " << aCom << "\n";
-   int aRes = system_call(aCom.c_str());
+   int aRes = System(aCom.c_str());
 
    
    return aRes;

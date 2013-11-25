@@ -374,6 +374,13 @@ bool ELISE_fp::copy_file( const std::string i_src, const std::string i_dst, bool
 	#endif
 }
 
+int ELISE_fp::file_length( const std::string &i_filename )
+{
+   ifstream f( i_filename.c_str(), ios::binary );
+   if (!f) return -1;
+   f.seekg (0, f.end);
+   return (int)f.tellg();
+}
 
 bool  ELISE_fp::exist_file(const char * aNameFile)
 {

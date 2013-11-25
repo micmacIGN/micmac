@@ -817,6 +817,33 @@ Fonc_Num Der2SAtRxS2SRx  (Fonc_Num f)
             );
 }
 
+          // ==========  SinCardRx ===============
+void  tab_SinCardRx(REAL * out, const REAL * in,INT nb)
+{
+   for (INT i=0 ; i<nb ; i++)
+       out[i] = SinCardRx(in[i]);
+}
+Fonc_Num SinCardRx  (Fonc_Num f)
+{
+     return Op_Un_Math::New(f,tab_SinCardRx,"SinCardRx",SinCardRx,NoDeriv,NoValDeriv);
+}
+void tab_CosRx(REAL * out, const REAL * in,INT nb)
+{
+   for (INT i=0 ; i<nb ; i++)
+         out[i] = CosRx(in[i]);
+}
+static Fonc_Num DerivCosRx(Fonc_Num f,INT k)
+{
+    return - 0.5 * f.deriv(k) * SinCardRx(f);
+}
+static REAL VDerivCosRx(Fonc_Num f,const PtsKD & aPts,INT aK)
+{
+   return   -0.5 * f.ValDeriv(aPts,aK) *  SinCardRx(f.ValFonc(aPts));
+}     
+Fonc_Num CosRx  (Fonc_Num f)
+{
+     return Op_Un_Math::New(f,tab_CosRx,"CosRx",CosRx,DerivCosRx,VDerivCosRx);
+}
 
 
 
@@ -851,6 +878,7 @@ Fonc_Num DerAtRxSRx  (Fonc_Num f)
 {
      return Op_Un_Math::New(f,tab_DerAtRxSRx,"DerAtRxSRx",DerAtRxSRx,NoDeriv,NoValDeriv);
 }
+
 
 
           // ==========  At2Rx ===============

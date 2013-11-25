@@ -104,7 +104,9 @@ template <class Type> inline std::istream &  ElStdRead (std::istream &is,Type & 
 
 inline std::istream &  ElStdRead(std::istream &is,std::string &obj, const ElGramArgMain &)
 {
-	return is >> obj;
+    //return is >> obj;
+    // contrary to operator >>, getline does not stop at the first space character
+    return getline(is,obj);
 }
 
 extern bool Str2Bool(bool & aRes,const std::string & aStr);

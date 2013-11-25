@@ -1375,10 +1375,13 @@ std::cout << "LOEMI " << mParam.CalibSpecifLoemi() << "\n"; getchar();
    // bool isCDL =  mParam.CDistLibre(true) || (! OptionFigeC);
    // std::string aLibCD = isCDL ? "eLib_PP_CD_11" : "eLib_PP_CD_Lies" ;
 
-   std::string aCom =   MMDir() +  std::string("bin/Apero ")
-                        + std::string(" ") + MMDir() + aParamComp
+   //std::string aCom =   MMDir() +  std::string("bin/Apero ")
+   //                     + std::string(" ") + MMDir() + aParamComp
+   std::string aCom =   MM3dBinFile_quotes("Apero")
+                        + " " + ToStrBlkCorr( MMDir()+aParamComp )
                         + std::string(" DirectoryChantier=") + mDir
-                        + std::string(" \"+PatternIm=") + mParam.PatternGlob() +std::string("\"")
+                        //+ std::string(" \"+PatternIm=") + mParam.PatternGlob() +std::string("\"")
+                        + " " + ToStrBlkCorr( string("PatternIm=")+mParam.PatternGlob() )
                         + std::string(" +NameCam=")     +  aNameCam
                         + std::string(" +PrefCal=") +  aPrefix
                         + std::string(" +KeySetOri=") +   mParam.KeySetOri()
@@ -1396,7 +1399,7 @@ std::cout << "LOEMI " << mParam.CalibSpecifLoemi() << "\n"; getchar();
                       ;
    
    std::cout << "RUN COM=" << aCom << "\n";
-   int aK = system(aCom.c_str());
+   int aK = System(aCom.c_str());
    if (aK!=0)
    {
       std::cout << "COM=" << aCom << "\n";

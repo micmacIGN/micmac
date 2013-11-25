@@ -124,8 +124,8 @@ int Campari_main(int argc,char ** argv)
 
 
 
-   std::string aCom =     MM3dBinFile( "Apero" )
-                       +  XML_MM_File("Apero-Compense.xml")
+   std::string aCom =     MM3dBinFile_quotes( "Apero" )
+                       +  ToStrBlkCorr( Basic_XML_MM_File("Apero-Compense.xml") )
                        +  std::string(" DirectoryChantier=") + aDir + " "
                        +  std::string(" +SetIm=") + QUOTE(aPat) + " " 
                        +  std::string(" +AeroIn=-") + AeroIn + " " 
@@ -168,7 +168,7 @@ int Campari_main(int argc,char ** argv)
 
 
    std::cout << aCom << "\n";
-   int aRes = system_call(aCom.c_str());
+   int aRes = System(aCom.c_str());
 
 
    Campari_Banniere();

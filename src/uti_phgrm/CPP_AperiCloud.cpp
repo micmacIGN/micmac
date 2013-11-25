@@ -84,8 +84,10 @@ int AperiCloud_main(int argc,char ** argv)
 	#endif
 	SplitDirAndFile(aDir,aPat,aFullDir);
 
-    std::string aCom =   MMDir() + std::string("bin" ELISE_STR_DIR  "Apero ")
-                       + MMDir() + std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Cloud.xml ")
+    //std::string aCom =   MMDir() + std::string("bin" ELISE_STR_DIR  "Apero ")
+    //                   + MMDir() + std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Cloud.xml ")
+    std::string aCom =   MM3dBinFile_quotes("Apero")
+                       + ToStrBlkCorr( MMDir()+std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Cloud.xml") )+" "
                        + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
                        + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
                        + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
@@ -105,7 +107,7 @@ int AperiCloud_main(int argc,char ** argv)
        aCom = aCom + std::string(" +LimBsH=") + ToString(aLimBsH);
 
    std::cout << "Com = " << aCom << "\n";
-   int aRes = system_call(aCom.c_str());
+   int aRes = System(aCom.c_str());
 
    
    return aRes;
