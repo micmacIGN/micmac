@@ -47,7 +47,10 @@ OPTION(TRACE_SYSTEM "print system calls" OFF )
 OPTION(BUILD_BENCH "compile low-level test bench" OFF )
 
 # Interfaces de saisie des paramètres
-OPTION(WITH_QT5 "compile all Qt interfaces" OFF )
+OPTION(WITH_QT5 "compile Auto Qt interfaces" OFF )
+
+# construire les interfaces de saisie basees sur Qt5
+OPTION(WITH_SAISIEQT "build graphic interface for masks" OFF)
 
 if ( TRACE_SYSTEM )
 	add_definitions(-D__TRACE_SYSTEM__)
@@ -118,6 +121,10 @@ if (${WITH_ETALONPOLY})
 
 	add_definitions(-DETA_POLYGON)
 
+endif()
+
+if (${WITH_SAISIEQT})
+	add_definitions(-DSAISIE_QT)
 endif()
 
 

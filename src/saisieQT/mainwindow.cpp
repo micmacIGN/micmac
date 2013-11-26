@@ -156,9 +156,9 @@ void MainWindow::addFiles(const QStringList& filenames)
         QDir Dir = fi.dir();
         Dir.cdUp();
         _Engine->setDir(Dir);
-
+#define _DEBUG
 #ifdef _DEBUG
-        printf("adding files %s", filenames[0]);
+        printf("adding files %s", filenames[0].toStdString().c_str());
 #endif
 
         if (fi.suffix() == "ply")

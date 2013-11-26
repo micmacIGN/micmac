@@ -113,6 +113,24 @@ class cTD_SetAppuis
 };
 
 
+class cTD_Im
+{
+     public :
+        cTD_Im (int anX,int anY);
+        static cTD_Im  FromString(const std::string &);
+        void Save(const std::string &);
+
+        float GetVal(int anX,int anY) const {return mTIm.get(Pt2di(anX,anY));}
+        bool Ok(int anX,int anY) const  {return mTIm.inside(Pt2di(anX,anY));}
+        Pt2di Sz() const ;
+
+        void  SetVal(int anX,int anY,float aVal) {return mTIm.oset(Pt2di(anX,anY),aVal);}
+
+     private :
+        Im2D<float,double>   mIm;
+        TIm2D<float,double>  mTIm;
+};
+
 
 #endif // __TD_CAMERA__
 

@@ -226,7 +226,102 @@ int TD_Sol2(int argc,char ** argv)
      return 0;
 }
 
+float Correl(const cTD_Im & aIm1,const Pt2di & aP1,const cTD_Im & aIm2,const Pt2di & aP2,int aSzW)
+{
+// static int aCpt = 0 ; aCpt++;
+     double aS   = 0;
+     double aS1  = 0;
+     double aS2  = 0;
+     double aS11 = 0;
+     double aS22 = 0;
+     double aS12 = 0;
 
+     for (int aDx = -aSzW ; aDx<=aSzW ; aDx++)
+     {
+         for (int aDy = -aSzW ; aDy<=aSzW ; aDy++)
+         {
+              int aXIm1 = aP1.x + aDx;
+              int aYIm1 = aP1.y + aDy;
+              if (! aIm1.Ok(aXIm1,aYIm1)) return -2;
+
+              int aXIm2 = aP2.x + aDx;
+              int aYIm2 = aP2.y + aDy;
+              if (! aIm2.Ok(aXIm2,aYIm2)) return -2;
+
+              float aV1 = aIm1.GetVal(aXIm1,aYIm1);
+              float aV2 = aIm2.GetVal(aXIm2,aYIm2);
+
+
+              aS++;
+              aS1 += aV1;
+              aS11 += aV1 * aV1;
+              aS2 += aV2;
+              aS22 += aV2 * aV2;
+              aS12 += aV1 * aV2;
+         }
+     }
+
+     aS1 /= aS;
+     aS2 /= aS;
+     aS11 = aS11 / aS  - aS1 * aS1;
+     aS22 = aS22 / aS  - aS2 * aS2;
+     aS12 = aS12 / aS  - aS1 * aS2;
+
+     double aVar = aS11 * aS22;
+     if (aVar < 1e-5) return -2;
+
+     return  aS12 / sqrt(aVar);
+}
+
+int TD_Sol3(int argc,char ** argv)
+{
+    std::string aNameIm1;
+    std::string aNameIm2;
+    int aIntPax=30;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aNameIm1,"Name of camera")
+                    << EAMC(aNameIm2,"Name of GCP"),
+        LArgMain()  << EAM(aIntPax,"IntPax",true,"Intervale of paralaxe")
+    );
+
+    cTD_Im aIm1 = cTD_Im::FromString(aNameIm1);
+    Pt2di aSz = aIm1.Sz();
+
+    cTD_Im aIm2 = cTD_Im::FromString(aNameIm2);
+    cTD_Im aRes(aSz.x,aSz.y);
+
+    int aSzW=2;
+
+
+    for (int anY=aSzW ; anY< (aSz.y-aSzW) ; anY++)
+    {
+         std::cout << "Y=" << anY << "\n";
+         for (int anX=0 ; anX<aSz.x ; anX++)
+         {
+              double aPxMax = -100;
+              double aCorMax = -1;
+              for (int aP=-aIntPax ; aP<=aIntPax ; aP++)
+              {
+                  Pt2di aP1(anX,anY);
+                  Pt2di aP2(anX+aP,anY);
+                  float aCor = Correl(aIm1,aP1,aIm2,aP2,aSzW);
+                  if (aCor > aCorMax)
+                  {
+                      aCorMax = aCor;
+                      aPxMax = aP;
+                  }
+              }
+              aRes.SetVal(anX,anY,aPxMax);
+         }
+    }
+
+    aRes.Save("Px.tif");
+
+    return 0;
+}
 
 
 

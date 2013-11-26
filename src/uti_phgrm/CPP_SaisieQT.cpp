@@ -39,9 +39,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-int SaisieMasqQT_main(int argc,char ** argv)
+#ifdef SAISIE_QT
+
+int runCmd(int argc,char ** argv, std::string cmdName)
 {
-    std::string aCom = std::string("\"") + g_externalToolHandler.get( "SaisieMasqQT" ).callName() + std::string("\"");
+    std::string aCom = std::string("\"") + g_externalToolHandler.get( "SaisieQT" ).callName() + std::string("\" ") + cmdName;
 
     for (int i = 1; i < argc; ++i) aCom += std::string(" ") + argv[i];
 
@@ -49,6 +51,28 @@ int SaisieMasqQT_main(int argc,char ** argv)
 
     return EXIT_SUCCESS;
 }
+
+int SaisieMasqQT_main(int argc,char ** argv)
+{
+    return runCmd(argc, argv, "SaisieMasqQT");
+}
+
+int SaisieAppuisInitQT_main(int argc,char ** argv)
+{
+    return runCmd(argc, argv, "SaisieAppuisInitQT");
+}
+
+int SaisieAppuisPredicQT_main(int argc,char ** argv)
+{
+    return runCmd(argc, argv, "SaisieAppuisPredicQT");
+}
+
+int SaisieBascQT_main(int argc,char ** argv)
+{
+    return runCmd(argc, argv, "SaisieBascQT");
+}
+
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

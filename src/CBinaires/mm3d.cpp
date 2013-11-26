@@ -268,7 +268,12 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Im2XYZ",Im2XYZ_main," tool to transform a 2D point (text file) to their 3D cloud homologous"));
        aRes.push_back(cMMCom("SplitMPO",SplitMPO_main,"tool 2 develop MPO stereo format in pair of image"));
 
+#ifdef SAISIE_QT
+       aRes.push_back(cMMCom("SaisieAppuisInitQT",SaisieAppuisInitQT_main,"Interactive tool for initial capture of GCP"));
+      // aRes.push_back(cMMCom("SaisieAppuisPredicQT",SaisieAppuisPredicQT_main,"Interactive tool for assisted capture of GCP"));
+      // aRes.push_back(cMMCom("SaisieBascQT",SaisieBascQT_main,"Interactive tool to cature information on the scene"));
        aRes.push_back(cMMCom("SaisieMasqQT",SaisieMasqQT_main,"Interactive tool to capture masq"));
+#endif
 
 #if (ELISE_X11)
        aRes.push_back(cMMCom("MPDtest",MPDtest_main," My own test"));
@@ -339,6 +344,7 @@ extern int  TD_GenereAppuis_main(int argc,char ** argv);
 extern int  TD_Exemple_main(int argc,char ** argv);
 extern int  TD_Sol1(int argc,char ** argv);
 extern int  TD_Sol2(int argc,char ** argv);
+extern int  TD_Sol3(int argc,char ** argv);
 
 extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
@@ -349,6 +355,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    static std::vector<cMMCom> aRes;
    aRes.push_back(cMMCom("X1",TD_Sol1,"Some stuff "));
    aRes.push_back(cMMCom("X2",TD_Sol2,"Some stuff "));
+   aRes.push_back(cMMCom("X3",TD_Sol3,"Some stuff "));
    aRes.push_back(cMMCom("W0",Sample_W0_main,"Test on Graphic Windows "));
    aRes.push_back(cMMCom("LSQ0",Sample_LSQ0_main,"Basic Test on Least Square libray "));
    aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou "));
@@ -380,10 +387,6 @@ int SampleLibElise_main(int argc,char ** argv)
 
 
 //=====================================
-
-
-bool MMVisualMode = false;
-
 
 int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 {
