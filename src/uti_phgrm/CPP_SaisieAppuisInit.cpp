@@ -63,7 +63,7 @@ int SaisieAppuisInit_main(int argc,char ** argv)
         LArgMain()  << EAM(aSzW,"SzW",true,"Sz of Window")
                     << EAM(aNbFen,"NbF",true,"Nb Of Sub window (Def depends of number of images with max of 2x2)")
                     << EAM(aNameAuto,"NameAuto",true," Prefix or automatic point creation")
-                    << EAM(aPrefix2Add,"Pref2Add",true," Prefix to add during inpoort (for bug correction ?)")
+                    << EAM(aPrefix2Add,"Pref2Add",true," Prefix to add during import (for bug correction ?)")
                     << EAM(aForceGray,"ForceGray",true," Force gray image, def =true")
   );
 

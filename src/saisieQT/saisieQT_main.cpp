@@ -92,23 +92,28 @@ int main(int argc, char *argv[])
         for (int i=0; i < cmdline_args.size(); ++i)
         {
             QString str = cmdline_args[i];
-            printf("commande : %s", str.toStdString().c_str());
+#ifdef _DEBUG
+            printf("\ncommande : %s", str.toStdString().c_str());
+#endif
 
-            if (str.contains("SaisieMasqQT"))
-                saisieMasqQT_main(app);
-            else if (str.contains("SaisieAppuisInitQT"))
-                saisieAppuisInitQT_main(app);
-            else if (!str.contains("SaisieQT"))
+            if (!str.contains("SaisieQT"))
             {
-                QString text = QObject::tr("This is not a command!!!") + "\n\n" + cmds;
-                helpMessage(app, text);
+                if (str.contains("SaisieMasqQT"))
+                    saisieMasqQT_main(app);
+                else if (str.contains("SaisieAppuisInitQT"))
+                    saisieAppuisInitQT_main(app, argc, argv);
+                else
+                {
+                    QString text = QObject::tr("This is not a command!!!") + "\n\n" + cmds;
+                    helpMessage(app, text);
 
-                return -1;
+                    return -1;
+                }
+
+                cmdline_args[i] = cmdline_args.back();
+                cmdline_args.pop_back();
+                i--;
             }
-
-            cmdline_args[i] = cmdline_args.back();
-            cmdline_args.pop_back();
-            i--;
         }
     }
     else

@@ -1,8 +1,8 @@
 #include "saisieQT_main.h"
 
-int saisieAppuisInitQT_main(QApplication &app)
+int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 {
-    app.setApplicationName("saisieAppuisInitQT");
+    app.setApplicationName("SaisieAppuisInitQT");
 
     const QString locale = QLocale::system().name().section('_', 0, 0);
 
@@ -13,9 +13,70 @@ int saisieAppuisInitQT_main(QApplication &app)
 
     MainWindow w;
 
-    QStringList cmdline_args = QCoreApplication::arguments();
-    QString str;
+    MMD_InitArgcArgv(argc,argv);
+    Pt2di aSzW(800,800);
+    Pt2di aNbFen(-1,-1);
+    std::string aFullName,aNamePt,anOri,anOut;
+    std::string aNameAuto = "NONE";
+    std::string aPrefix2Add = "";
+    bool aForceGray = true;
 
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pattern)")
+                      << EAMC(anOri,"Orientation ; NONE if not used")
+                      << EAMC(aNamePt,"Name point")
+                      << EAMC(anOut,"Output"),
+          LArgMain()  << EAM(aSzW,"SzW",true,"Sz of Window")
+                      << EAM(aNbFen,"NbF",true,"Nb Of Sub window (Def depends of number of images with max of 2x2)")
+                      << EAM(aNameAuto,"NameAuto",true," Prefix or automatic point creation")
+                      << EAM(aPrefix2Add,"Pref2Add",true," Prefix to add during import (for bug correction ?)")
+                      << EAM(aForceGray,"ForceGray",true," Force gray image, def =true")
+    );
+
+    std::string aDir,aName;
+    SplitDirAndFile(aDir,aName,aFullName);
+
+
+    cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
+
+    std::cout << "Nb Image =" << aSet->size() << "\n";
+    ELISE_ASSERT(aSet->size()!=0,"No image found");
+
+    if (aNbFen.x<0)
+    {
+       if (aSet->size() == 1)
+       {
+           aNbFen = Pt2di(1,2);
+       }
+       else if (aSet->size() == 2)
+       {
+           Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
+           Pt2di aSzIm = aTF.sz();
+           aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
+       }
+       else
+       {
+           aNbFen = Pt2di(2,2);
+       }
+    }
+
+    cResulMSO aRMSO = aCINM->MakeStdOrient(anOri,true);
+
+    if (0)
+    {
+       std::cout  << "RMSO; Cam "  << aRMSO.Cam()
+                  << " Nuage " <<  aRMSO.Nuage()
+                  << " Ori " <<  aRMSO.IsKeyOri()
+                  << "\n";
+       getchar();
+    }
+
+
+
+    /*
     if (cmdline_args.size() > 1)
     {
         cmdline_args.pop_front();
@@ -92,14 +153,14 @@ int saisieAppuisInitQT_main(QApplication &app)
                 i--;
             }
         }
-    }
+    }*/
 
     w.show();
 
-    if (cmdline_args.size() > 0)
+   /* if (cmdline_args.size() > 0)
         w.addFiles(cmdline_args);
 
-    w.checkForLoadedData();
+    w.checkForLoadedData();*/
 
     return app.exec();
 }

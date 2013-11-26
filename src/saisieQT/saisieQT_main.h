@@ -8,6 +8,6 @@
 int helpMessage(QApplication const &app, QString text);
 
 int saisieMasqQT_main(QApplication &app);
-int saisieAppuisInitQT_main(QApplication &app);
+int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[]);
 
 #endif
