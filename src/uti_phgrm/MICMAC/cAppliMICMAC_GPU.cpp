@@ -40,30 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
-//#define NT1 4
-//#define NT2 3
-
-#if OPM_ENABLED
-    #if ELISE_windows
-        #define OMP_NT1 __pragma("omp parallel for num_threads(4)")
-        #define OMP_NT2 __pragma("omp parallel for num_threads(3)")
-    #else
-        #define OMP_NT1 _Pragma("omp parallel for num_threads(4)")
-        #define OMP_NT2 _Pragma("omp parallel for num_threads(3)")
-    #endif
-#else
-    #define OMP_NT1
-    #define OMP_NT2
-#endif
-
 namespace NS_ParamMICMAC
 {
-
-
-#if CUDA_ENABLED
-    uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);}
-    int2  toI2(Pt2dr a){return make_int2((int)a.x,(int)a.y);}
-#endif
 
     template <class Type,class TBase>
     Type ** ImDec
@@ -765,33 +743,117 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
         Rect rMask(NEGARECT);
 
+        std::vector<Rect> cellules;
+
         OMP_NT1
         for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
         {
             OMP_NT2
             for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
             {
+
+                int2 mZ = make_int2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
+
+                Rect cellInit;
+
                 if (IsInTer(anX,anY))
                 {
+
                     if ( aEq(rMask.pt0, -1))
                         rMask.pt0 = make_int2(anX,anY);
 
-                    if (anX < rMask.pt0.x ) rMask.pt0.x = anX;
-                    if (anY < rMask.pt0.y ) rMask.pt0.y = anY;
+                    rMask.SetMaxMin(anX,anY);
 
-                    if (rMask.pt1.x < anX) rMask.pt1.x = anX;
-                    if (rMask.pt1.y < anY) rMask.pt1.y = anY;
+                    cellInit = Rect(anX,anY,anX,anY);
 
                 }
+                else
+                    cellInit = Rect(-1,-1,-1,-1);
 
-                ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
-                ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
+                if(mZMaxGlob == -1e7 && mZMinGlob == 1e7)
+                {
+                    for (int i = 0; i < abs(count(mZ)); ++i)
+                        cellules.push_back(cellInit);
+                }
+                else
+                {
+                    if (mZ.x < mZMinGlob)
+                    {
+                        for (int i = 0; i < abs(mZ.x - mZMinGlob); ++i)
+                            cellules.insert(cellules.begin(),cellInit);
+                    }
+
+                    if (mZ.y > mZMaxGlob)
+                    {
+                        for (int i = 0; i < abs(mZ.y - mZMaxGlob); ++i)
+                            cellules.push_back(cellInit);
+                    }
+                }
+
+                ElSetMin(mZMinGlob,mZ.x);
+                ElSetMax(mZMaxGlob,mZ.y);
+
+                if(IsInTer(anX,anY))
+                    for (int i = 0; i < abs(count(mZ)); ++i)
+                    {
+                        Rect &box = cellules[i + abs(mZ.x - mZMinGlob)];
+                        if(box == NEGARECT)
+                            box = Rect(anX,anY,anX,anY);
+                        else
+                        {
+                            box.SetMaxMin(anX,anY);
+                            if(box.pt0.x == -1)
+                            {
+                                box.pt0.x = anX;
+                                box.pt0.y = anY;
+                            }
+                            if(box.pt1.x == -1)
+                            {
+                                box.pt1.x = anX;
+                                box.pt1.y = anY;
+                            }
+                        }
+                    }
             }
         }
 
-        inc(rMask.pt1);       
+//        uint globalMaskVolume = rMask.area() * abs(mZMaxGlob-mZMinGlob);
+
+        inc(rMask.pt1);
 
         IMmGg.Param().SetDimension(rMask);
+
+        std::vector<Rect> cellReduc;
+
+        uint cellZmaskVol = iDivUp((int)cellules.size(), INTERZ);
+
+        //uint reste = mod(cellules.size(),INTERZ);
+
+        cellReduc.resize(cellZmaskVol,Rect(1e7,1e7,-1e7,-1e7));
+
+        //uint reduceMaskVolume = 0;
+
+        for (uint i = 0; i < cellules.size(); ++i)
+        {
+            uint sI     = i/INTERZ;
+            Rect &sRec  = cellReduc[sI];
+            Rect Rec    = cellules[i];
+            sRec.SetMaxMin(Rec);
+        }
+
+//        for (uint i = 0; i < cellReduc.size(); ++i)
+//        {
+//            Rect rec = ((Rect)cellReduc[i]);
+//            reduceMaskVolume += rec.area() * INTERZ;
+//        }
+
+//        if(reste != 0)
+//            reduceMaskVolume -= ((Rect)cellReduc[cellReduc.size()-1]).area() * abs(INTERZ - reste);
+
+//        DUMP_UINT(globalMaskVolume)
+//        DUMP_UINT(reduceMaskVolume)
+
+        cellules.clear();
 
 #else
 
@@ -1432,7 +1494,7 @@ void cAppliMICMAC::DoGPU_Correl
 #ifdef  CUDA_ENABLED
     void cAppliMICMAC::Tabul_Projection(int Z, int zMax, uint &interZ)
     {
-
+        GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0033);
         IMmGg.IntervalZ(interZ, Z, zMax);
         IMmGg.Data().MemsetHostVolumeProj(IMmGg.Param().IntDefault);
 
@@ -1480,11 +1542,12 @@ void cAppliMICMAC::DoGPU_Correl
                 }
             }
         }
+        nvtxRangePop();
     }
 
     void cAppliMICMAC::setVolumeCost( uint z0, uint z1)
     {
-
+        GpGpuTools::NvtxR_Push(__FUNCTION__,0x335A8833);
         float*  tabCost     = IMmGg.VolumeCost();
         Rect    zone        = IMmGg.Param().RTer();
         float   valdefault  = IMmGg.Param().floatDefault;
@@ -1507,6 +1570,7 @@ void cAppliMICMAC::DoGPU_Correl
                 }
 
             }
+        nvtxRangePop();
     }
 
 #endif
@@ -1727,11 +1791,13 @@ void cAppliMICMAC::GlobDoCorrelAdHoc
 #if CUDA_ENABLED
         IMmGg.box.x = aBoxIn.sz().x;
         IMmGg.box.y = aBoxIn.sz().y;
+        IMmGg.SetProgress(aDecInterv.NbInterv());
 #endif
 
         for (int aKBox=0 ; aKBox<aDecInterv.NbInterv() ; aKBox++)
         {
             DoCorrelAdHoc(aDecInterv.KthIntervOut(aKBox));
+            IMmGg.IncProgress();
         }
 
 }
