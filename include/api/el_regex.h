@@ -134,7 +134,7 @@ std::string  GetStringFromLineExprReg
 
 
 
-// class pour memoriser le Nomn, centre et orientation d'un fichier de trajecto
+// class pour memoriser le Nom, centre et orientation d'un fichier de trajecto
 class  cLine_N_XYZ_WPK
 {
     public :
