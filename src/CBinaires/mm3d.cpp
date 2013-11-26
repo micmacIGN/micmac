@@ -388,10 +388,6 @@ int SampleLibElise_main(int argc,char ** argv)
 
 //=====================================
 
-
-bool MMVisualMode = false;
-
-
 int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 {
    if ((argc==1) || ((argc==2) && (std::string(argv[1])=="-help")))

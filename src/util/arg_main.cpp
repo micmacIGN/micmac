@@ -49,6 +49,7 @@ static char buf[SzBuf];
 
 std::list<std::string>  TheEmptyListEnum;
 
+bool MMVisualMode = false;
 
 std::string MakeStrFromArgcARgv(int  argc,char** argv)
 {
