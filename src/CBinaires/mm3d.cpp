@@ -360,7 +360,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("LSQ0",Sample_LSQ0_main,"Basic Test on Least Square libray "));
    aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou "));
    aRes.push_back(cMMCom("Tests_Luc",Luc_main,"tests de Luc"));
-   // aRes.push_back(cMMCom("Tests_Vincent",Vincent_main,"tests de Vincent"));
+   aRes.push_back(cMMCom("Tests_Vincent",Vincent_main,"tests de Vincent"));
    aRes.push_back(cMMCom("TesSI",Mathieu_main,"Test SelectionInfos "));
    // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
    aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Exemples fonctions modifying cloud "));
