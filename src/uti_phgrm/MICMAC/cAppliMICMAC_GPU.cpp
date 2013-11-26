@@ -743,33 +743,117 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
         Rect rMask(NEGARECT);
 
+        std::vector<Rect> cellules;
+
         OMP_NT1
         for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
         {
             OMP_NT2
             for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
             {
+
+                int2 mZ = make_int2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
+
+                Rect cellInit;
+
                 if (IsInTer(anX,anY))
                 {
+
                     if ( aEq(rMask.pt0, -1))
                         rMask.pt0 = make_int2(anX,anY);
 
-                    if (anX < rMask.pt0.x ) rMask.pt0.x = anX;
-                    if (anY < rMask.pt0.y ) rMask.pt0.y = anY;
+                    rMask.SetMaxMin(anX,anY);
 
-                    if (rMask.pt1.x < anX) rMask.pt1.x = anX;
-                    if (rMask.pt1.y < anY) rMask.pt1.y = anY;
+                    cellInit = Rect(anX,anY,anX,anY);
 
                 }
+                else
+                    cellInit = Rect(-1,-1,-1,-1);
 
-                ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
-                ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
+                if(mZMaxGlob == -1e7 && mZMinGlob == 1e7)
+                {
+                    for (int i = 0; i < abs(count(mZ)); ++i)
+                        cellules.push_back(cellInit);
+                }
+                else
+                {
+                    if (mZ.x < mZMinGlob)
+                    {
+                        for (int i = 0; i < abs(mZ.x - mZMinGlob); ++i)
+                            cellules.insert(cellules.begin(),cellInit);
+                    }
+
+                    if (mZ.y > mZMaxGlob)
+                    {
+                        for (int i = 0; i < abs(mZ.y - mZMaxGlob); ++i)
+                            cellules.push_back(cellInit);
+                    }
+                }
+
+                ElSetMin(mZMinGlob,mZ.x);
+                ElSetMax(mZMaxGlob,mZ.y);
+
+                if(IsInTer(anX,anY))
+                    for (int i = 0; i < abs(count(mZ)); ++i)
+                    {
+                        Rect &box = cellules[i + abs(mZ.x - mZMinGlob)];
+                        if(box == NEGARECT)
+                            box = Rect(anX,anY,anX,anY);
+                        else
+                        {
+                            box.SetMaxMin(anX,anY);
+                            if(box.pt0.x == -1)
+                            {
+                                box.pt0.x = anX;
+                                box.pt0.y = anY;
+                            }
+                            if(box.pt1.x == -1)
+                            {
+                                box.pt1.x = anX;
+                                box.pt1.y = anY;
+                            }
+                        }
+                    }
             }
         }
 
-        inc(rMask.pt1);       
+//        uint globalMaskVolume = rMask.area() * abs(mZMaxGlob-mZMinGlob);
+
+        inc(rMask.pt1);
 
         IMmGg.Param().SetDimension(rMask);
+
+        std::vector<Rect> cellReduc;
+
+        uint cellZmaskVol = iDivUp((int)cellules.size(), INTERZ);
+
+        //uint reste = mod(cellules.size(),INTERZ);
+
+        cellReduc.resize(cellZmaskVol,Rect(1e7,1e7,-1e7,-1e7));
+
+        //uint reduceMaskVolume = 0;
+
+        for (uint i = 0; i < cellules.size(); ++i)
+        {
+            uint sI     = i/INTERZ;
+            Rect &sRec  = cellReduc[sI];
+            Rect Rec    = cellules[i];
+            sRec.SetMaxMin(Rec);
+        }
+
+//        for (uint i = 0; i < cellReduc.size(); ++i)
+//        {
+//            Rect rec = ((Rect)cellReduc[i]);
+//            reduceMaskVolume += rec.area() * INTERZ;
+//        }
+
+//        if(reste != 0)
+//            reduceMaskVolume -= ((Rect)cellReduc[cellReduc.size()-1]).area() * abs(INTERZ - reste);
+
+//        DUMP_UINT(globalMaskVolume)
+//        DUMP_UINT(reduceMaskVolume)
+
+        cellules.clear();
 
 #else
 
