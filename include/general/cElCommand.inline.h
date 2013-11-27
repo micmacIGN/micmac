@@ -61,4 +61,4 @@ bool cElFilename::operator !=( const cElFilename &i_b ) const { return !( (*this
 
 cElRegEx::cElRegEx( const cElPath &i_path, const std::string i_regex ):cElFilename(i_path,i_regex){}
 
-cElRegEx::cElRegEx( const std::string i_fullregex=std::string() ):cElFilename(i_fullregex){}
+cElRegEx::cElRegEx( const std::string i_fullregex ):cElFilename(i_fullregex){}
