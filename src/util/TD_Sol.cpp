@@ -278,6 +278,7 @@ int TD_Sol3(int argc,char ** argv)
     std::string aNameIm1;
     std::string aNameIm2;
     int aIntPax=30;
+    int aSzW=2;
 
     ElInitArgMain
     (
@@ -285,6 +286,7 @@ int TD_Sol3(int argc,char ** argv)
         LArgMain()  << EAMC(aNameIm1,"Name of image1")
                     << EAMC(aNameIm2,"Name of image2"),
         LArgMain()  << EAM(aIntPax,"IntPax",true,"Intervale of paralaxe")
+                    << EAM(aSzW,"SzW",true,"Size of Window")
     );
 
     cTD_Im aIm1 = cTD_Im::FromString(aNameIm1);
@@ -293,7 +295,6 @@ int TD_Sol3(int argc,char ** argv)
     cTD_Im aIm2 = cTD_Im::FromString(aNameIm2);
     cTD_Im aRes(aSz.x,aSz.y);
 
-    int aSzW=2;
 
 
     for (int anY=aSzW ; anY< (aSz.y-aSzW) ; anY++)
