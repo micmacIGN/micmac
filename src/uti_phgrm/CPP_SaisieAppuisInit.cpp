@@ -41,17 +41,17 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #if (ELISE_X11||SAISIE_QT)
 void SaisieAppuisInit(int argc, char ** argv,
-                      Pt2di aSzW,
-                      Pt2di aNbFen,
-                      std::string aFullName,
-                      std::string aDir,
-                      std::string aName,
-                      std::string aNamePt,
-                      std::string anOri,
-                      std::string anOut,
-                      std::string aNameAuto = "NONE",
-                      std::string aPrefix2Add = "",
-                      bool aForceGray = true)
+                      Pt2di &aSzW,
+                      Pt2di &aNbFen,
+                      std::string &aFullName,
+                      std::string &aDir,
+                      std::string &aName,
+                      std::string &aNamePt,
+                      std::string &anOri,
+                      std::string &anOut,
+                      std::string &aNameAuto,
+                      std::string &aPrefix2Add,
+                      bool &aForceGray)
 {
     MMD_InitArgcArgv(argc,argv);
 
@@ -62,13 +62,12 @@ void SaisieAppuisInit(int argc, char ** argv,
                       << EAMC(anOri,"Orientation ; NONE if not used")
                       << EAMC(aNamePt,"Name point")
                       << EAMC(anOut,"Output"),
-          LArgMain()  << EAM(aSzW,"SzW",true,"Sz of Window")
-                      << EAM(aNbFen,"NbF",true,"Nb Of Sub window (Def depends of number of images with max of 2x2)")
-                      << EAM(aNameAuto,"NameAuto",true," Prefix or automatic point creation")
+          LArgMain()  << EAM(aSzW,"SzW",true,"Sz of window")
+                      << EAM(aNbFen,"NbF",true,"Nb of sub window (Def depends of number of images with max of 2x2)")
+                      << EAM(aNameAuto,"NameAuto",true," Prefix for automatic point creation")
                       << EAM(aPrefix2Add,"Pref2Add",true," Prefix to add during import (for bug correction ?)")
                       << EAM(aForceGray,"ForceGray",true," Force gray image, def =true")
     );
-
 
     SplitDirAndFile(aDir,aName,aFullName);
 
@@ -118,6 +117,8 @@ int SaisieAppuisInit_main(int argc,char ** argv)
   Pt2di aSzW(800,800);
   Pt2di aNbFen(-1,-1);
   std::string aFullName,aNamePt,anOri,anOut, aNameAuto, aPrefix2Add, aDir, aName;
+  aNameAuto = "NONE";
+  aPrefix2Add = "";
   bool aForceGray = true;
 
   SaisieAppuisInit(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, anOut, aNameAuto, aPrefix2Add, aForceGray);
