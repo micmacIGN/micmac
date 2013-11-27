@@ -36,103 +36,57 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#ifndef __TD_CAMERA__
-#define __TD_CAMERA__
 
-#include "StdAfx.h"
-
-/* ===========================================
-
-   Ce fichier contient la definition de quelques classe donnant acces au fonctionallité
-   MicMac de la manière la plus simple possible.
-
-   Pour quelque classe simples, on se contente de rappeler l'existance des classe MicMac
-
-==================================================*/
+#include "TpPPMD.h"
 
 
-//     Pt2dr  classe definissant les points 2D
-//     Pt3dr  classe definissant les points 3D
-//
+/********************************************************************/
+/*                                                                  */
+/*         cTD_Camera                                               */
+/*                                                                  */
+/********************************************************************/
 
-class cTD_Prof;
-
-class cTD_Camera
+cTD_Im::cTD_Im(int anX,int anY) :
+  mIm  (anX,anY,0.0),
+  mTIm (mIm)
 {
-     public :
-        
-        // Constructeur a partir d'un fichier XML , peut etre une calibration interne ou externe
-        cTD_Camera(const std::string &);
+}
 
-        // Sauvegarde dans un fichier
-        void Save(const std::string &) const;
-
-        // Fonction de projection  Terrain  -> Image
-        Pt2dr Ter2Image(const Pt3dr &) const;
-
-        // Relevement dans l'espace
-        std::vector<cTD_Camera> RelvtEspace
-                                (
-                                    const Pt3dr & aPTer1, const Pt2dr & aPIm1,
-                                    const Pt3dr & aPTer2, const Pt2dr & aPIm2,
-                                    const Pt3dr & aPTer3, const Pt2dr & aPIm3
-                                );
-
-        // Focale et coeff en R3
-
-            double  Focale () const;
-            double  R3 () const;
-            Pt2dr   SzCam() const ;
-
-            cTD_Camera NewCam(double aFoc , double aR3);
-            
-
-        // Coeff dist  R3
-          
-     private :
-        friend class cTD_Prof;
-
-        std::string                mName;
-        cCalibrationInternConique  mCIO;
-        CamStenope *               mCS;
-};
-
-int TD_EntierAleatoire(int aN);  // Renvoie un entier au hasrd entre 1 et N
-
-class cTD_SetAppuis
+cTD_Im cTD_Im::FromString(const std::string & aName)
 {
-     public :
-        cTD_SetAppuis(const std::string &);
+   Tiff_Im aTF = Tiff_Im::StdConvGen(aName,-1,true);
+   Pt2di aSzIm = aTF.sz();
+   cTD_Im aRes(aSzIm.x,aSzIm.y);
 
-        const std::vector<Pt3dr> & PTer() const {return mPTer;}
-        const std::vector<Pt2dr> & PIm() const {return mPIm;}
+   ELISE_COPY(aRes.mIm.all_pts(),aTF.in(),aRes.mIm.out());
 
-     private :
-         std::vector<Pt3dr> mPTer;
-         std::vector<Pt2dr> mPIm;
-};
+   return aRes;
+}
 
-
-class cTD_Im
+void cTD_Im::Save(const std::string & aName)
 {
-     public :
-        cTD_Im (int anX,int anY);
-        static cTD_Im  FromString(const std::string &);
-        void Save(const std::string &);
+    Tiff_Im  aTF
+             (
+                 aName.c_str(),
+                 mIm.sz(),
+                 GenIm::real4,
+                 Tiff_Im::No_Compr,
+                 Tiff_Im::BlackIsZero
 
-        float GetVal(int anX,int anY) const {return mTIm.get(Pt2di(anX,anY));}
-        bool Ok(int anX,int anY) const  {return mTIm.inside(Pt2di(anX,anY));}
-        Pt2di Sz() const ;
+             );
 
-        void  SetVal(int anX,int anY,float aVal) {return mTIm.oset(Pt2di(anX,anY),aVal);}
+    ELISE_COPY(mIm.all_pts(),mIm.in(),aTF.out());
+}
 
-     private :
-        Im2D<float,double>   mIm;
-        TIm2D<float,double>  mTIm;
-};
+Pt2di cTD_Im::Sz() const 
+{
+   return mIm.sz();
+}
 
 
-#endif // __TD_CAMERA__
+
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
