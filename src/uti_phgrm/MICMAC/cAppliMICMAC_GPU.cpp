@@ -745,6 +745,8 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
         std::vector<Rect> cellules;
 
+        Rect rectMax(1e7,1e7,-1e7,-1e7);
+
         OMP_NT1
         for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
         {
@@ -816,8 +818,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                     }
             }
         }
-
-//        uint globalMaskVolume = rMask.area() * abs(mZMaxGlob-mZMinGlob);
+     //   uint globalMaskVolume = rMask.area() * abs(mZMaxGlob-mZMinGlob);
 
         inc(rMask.pt1);
 
@@ -827,11 +828,11 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
         uint cellZmaskVol = iDivUp((int)cellules.size(), INTERZ);
 
-        //uint reste = mod(cellules.size(),INTERZ);
+   //     uint reste = mod(cellules.size(),INTERZ);
 
-        cellReduc.resize(cellZmaskVol,Rect(1e7,1e7,-1e7,-1e7));
+        cellReduc.resize(cellZmaskVol,rectMax);
 
-        //uint reduceMaskVolume = 0;
+ //       uint reduceMaskVolume = 0;
 
         for (uint i = 0; i < cellules.size(); ++i)
         {
@@ -850,9 +851,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 //        if(reste != 0)
 //            reduceMaskVolume -= ((Rect)cellReduc[cellReduc.size()-1]).area() * abs(INTERZ - reste);
 
-//        DUMP_UINT(globalMaskVolume)
-//        DUMP_UINT(reduceMaskVolume)
-
+//        printf(" %d/%d \t\t\t\t : %d \n",reduceMaskVolume,globalMaskVolume,globalMaskVolume-reduceMaskVolume);
         cellules.clear();
 
 #else
