@@ -64,6 +64,10 @@ public:
 
   void          SetTexturesAreLoaded(bool load);
 
+  uint          GlobalMaskVolume;
+
+  uint          ReduceMaskVolume;
+
 private:
 
   void              CorrelationGpGpu(const int s = 0);
