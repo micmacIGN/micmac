@@ -17,7 +17,7 @@ private:
 public:
    inline cElTokenAsIs( const std::string &i_value );
    inline const std::string & str() const;
-}
+};
 
 
 //-------------------------------------------
@@ -32,7 +32,7 @@ private:
 public:
    inline cElTokenToQuote( const std::string &i_value );
    inline const std::string & str() const;
-}
+};
 
 
 //-------------------------------------------

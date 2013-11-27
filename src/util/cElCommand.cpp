@@ -38,7 +38,7 @@ cElPath getCurrentDirectory()
 
 void cElPath::append( const cElPathToken &i_token )
 {
-   if ( i_token.length()==0 || i_token.str()=="." ) return;
+   if ( i_token.str().length()==0 || i_token.str()=="." ) return;
    if ( m_tokens.size()>0 && i_token.str()==".." ){ m_tokens.pop_back(); return; }
    m_tokens.push_back( i_token );
 }
@@ -70,7 +70,7 @@ cElPath::cElPath( const string &i_path )
    if ( m_tokens.size()==0 ){ m_isAbsolute=true; return; }
    
    // there is no ELISE_windows/ELISE_POSIX test here because a system may want to manipulate files for another system
-   const unsigned int firstTokenSize = m_tokens.begin()->length();
+   const unsigned int firstTokenSize = m_tokens.begin()->str().length();
    m_isAbsolute = ( firstTokenSize==0 ) ||  // first token is empty (unix)
                   ( (firstTokenSize==2)&&(m_tokens.begin()->str()[1]==':') ); // first token is a volume letter + ':' (windows)
 }
