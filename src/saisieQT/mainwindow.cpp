@@ -5,7 +5,9 @@
 MainWindow::MainWindow(bool mode2D, QWidget *parent) :
     QMainWindow(parent),
     _ui(new Ui::MainWindow),
-    _Engine(new cEngine)
+    _Engine(new cEngine),
+    _nbFen(QPoint(1,1)),
+    _szFen(QPoint(800,600))
 {
     _ui->setupUi(this);
 
@@ -35,7 +37,7 @@ MainWindow::MainWindow(bool mode2D, QWidget *parent) :
 
     setMode2D(mode2D);
 
-    QHBoxLayout* layout = new QHBoxLayout();
+    QGridLayout* layout = new QGridLayout();
     layout->addWidget(_glWidget);
     connectActions();
     _ui->OpenglLayout->setLayout(layout);
@@ -120,6 +122,16 @@ bool MainWindow::checkForLoadedData()
 void MainWindow::setPostFix(QString str)
 {
    _Engine->setPostFix("_" + str);
+}
+
+void MainWindow::setNbFen(QPoint nb)
+{
+   _nbFen = nb;
+}
+
+void MainWindow::setSzFen(QPoint sz)
+{
+   _szFen = sz;
 }
 
 void MainWindow::progression()
