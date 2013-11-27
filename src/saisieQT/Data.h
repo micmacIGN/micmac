@@ -8,6 +8,9 @@
 
 using namespace Cloud_;
 
+//invalid GL list index
+const GLuint GL_INVALID_LIST_ID = (~0);
+
 class cData
 {
     public:
@@ -39,7 +42,12 @@ class cData
         QImage * &     getCurImage()     {return _Images[_curImgIdx];}
         QImage * &     getCurMask()      {return _Masks[_curImgIdx];}
 
-        void    setCurImage(int idx)     {_curImgIdx = idx;}
+        void    setCurImageIdx(int idx)     {_curImgIdx = idx;}
+        int     getCurImageIdx()            {return _curImgIdx;}
+
+        void    fillCurMask(){getCurMask()->fill(Qt::white);}
+
+        void    deleteCurMask();
 
         void    getBB();
 
@@ -52,9 +60,21 @@ class cData
 
         void    reset();
 
-        //Bounding box and diameter of all clouds
-        float m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_diam;
+        void    applyGamma(float aGamma);
+        void    applyGammaToImage(int aK, float aGamma);
 
+
+        void    drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw);
+
+        void    drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QColor color);
+
+        void    drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, GLuint idTexture);
+
+        //!Bounding box and diameter of all clouds
+        float   m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_diam;
+
+        //! Texture image
+        GLuint  m_textureImage;
 
    private:
 

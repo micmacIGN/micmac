@@ -271,8 +271,10 @@ void cEngine::doMasks()
     }
 }
 
-void cEngine::doMaskImage(QImage* pImg)
+void cEngine::doMaskImage()
 {
+    QImage* pImg = _Data->getCurMask();
+
 	if (pImg->hasAlphaChannel())
 	{
 		QColor c;
@@ -411,6 +413,7 @@ ViewportParameters::ViewportParameters()
     , angleY(0.f)
     , angleZ(0.f)
     , m_gamma(1.f)
+    , m_speed(2.f)
 {
     m_translationMatrix[0] = m_translationMatrix[1] = m_translationMatrix[2] = 0.f;
 }

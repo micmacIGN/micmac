@@ -1,21 +1,28 @@
 #include "Data.h"
 
-cData::cData()
+cData::cData() :
+   m_textureImage(GL_INVALID_LIST_ID)
 {
     reset();
 }
 
 cData::~cData()
 {
-   for (int aK=0; aK < getNbCameras();++aK) delete _Cameras[aK];
-   for (int aK=0; aK < getNbClouds();++aK)  delete _Clouds[aK];
-   for (int aK=0; aK < getNbImages();++aK)  delete _Images[aK];
-   for (int aK=0; aK < getNbMasks();++aK)   delete _Masks[aK];
+    if (m_textureImage != GL_INVALID_LIST_ID)
+    {
+        glDeleteLists(m_textureImage,1);
+        m_textureImage = GL_INVALID_LIST_ID;
+    }
 
-   _Cameras.clear();
-   _Clouds.clear();
-   _Images.clear();
-   _Masks.clear();
+    for (int aK=0; aK < getNbCameras();++aK) delete _Cameras[aK];
+    for (int aK=0; aK < getNbClouds();++aK)  delete _Clouds[aK];
+    for (int aK=0; aK < getNbImages();++aK)  delete _Images[aK];
+    for (int aK=0; aK < getNbMasks();++aK)   delete _Masks[aK];
+
+    _Cameras.clear();
+    _Clouds.clear();
+    _Images.clear();
+    _Masks.clear();
 }
 
 void cData::addCloud(Cloud * aCloud)
@@ -30,13 +37,20 @@ void cData::addCamera(CamStenope * aCam)
 
 void cData::addImage(QImage * aImg)
 {
-    _Images.push_back(aImg);
+    QImage *_glImg = NULL;
+    _glImg = new QImage(aImg->size(),aImg->format());
+    *_glImg = QGLWidget::convertToGLFormat( *aImg );
+    _Images.push_back(_glImg);
+
     _curImgIdx = _Images.size() - 1;
 }
 
 void cData::addMask(QImage * aImg)
 {
-    _Masks.push_back(aImg);
+    QImage *_glMask = NULL;
+    _glMask = new QImage(aImg->size(),aImg->format());
+    *_glMask = QGLWidget::convertToGLFormat( *aImg );
+    _Masks.push_back(_glMask);
 }
 
 void cData::clearClouds()
@@ -77,6 +91,11 @@ void cData::clearMasks()
     _Masks.clear();
 
     reset();
+}
+
+void cData::deleteCurMask()
+{
+    delete _Masks[_curImgIdx];
 }
 
 void cData::reset()
@@ -147,4 +166,67 @@ void cData::getBB()
     _center.z = (m_minZ + m_maxZ) * .5f;
 
     m_diam = max(m_maxX-m_minX, max(m_maxY-m_minY, m_maxZ-m_minZ));   
+}
+
+void cData::applyGamma(float aGamma)
+{
+    for (uint aK=0; aK<_Images.size();++aK)
+        applyGammaToImage(aK, aGamma);
+}
+
+void cData::applyGammaToImage(int aK, float aGamma)
+{
+    if (aGamma == 1.f) return;
+
+    QRgb pixel;
+    int r,g,b;
+
+    float _gamma = 1.f / aGamma;
+
+    for(int i=0; i< getImage(aK)->width();++i)
+        for(int j=0; j< getImage(aK)->height();++j)
+        {
+            pixel = getImage(aK)->pixel(i,j);
+
+            r = 255*pow((float) qRed(pixel)  / 255.f, _gamma);
+            g = 255*pow((float) qGreen(pixel)/ 255.f, _gamma);
+            b = 255*pow((float) qBlue(pixel) / 255.f, _gamma);
+
+            if (r>255) r = 255;
+            if (g>255) g = 255;
+            if (b>255) b = 255;
+
+            getImage(aK)->setPixel(i,j, qRgb(r,g,b) );
+        }
+}
+
+void cData::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw)
+{
+    glBegin(GL_QUADS);
+    {
+        glTexCoord2f(0.0f, 0.0f);
+        glVertex2f(originX, originY);
+        glTexCoord2f(1.0f, 0.0f);
+        glVertex2f(originX+glw, originY);
+        glTexCoord2f(1.0f, 1.0f);
+        glVertex2f(originX+glw, originY+glh);
+        glTexCoord2f(0.0f, 1.0f);
+        glVertex2f(originX, originY+glh);
+    }
+    glEnd();
+}
+
+void cData::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QColor color)
+{
+    glColor4f(color.redF(),color.greenF(),color.blueF(),color.alphaF());
+    drawQuad(originX,originY,glh,glw);
+}
+
+void cData::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, GLuint idTexture)
+{
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture( GL_TEXTURE_2D, idTexture );
+    drawQuad(originX,originY,glh,glw);
+    glBindTexture( GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
 }

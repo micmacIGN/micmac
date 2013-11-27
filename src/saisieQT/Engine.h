@@ -154,7 +154,7 @@ public:
     void doMasks();
 
     //! Creates binary image from selection and saves
-    void doMaskImage(QImage* pImg);
+    void doMaskImage();
 
     void saveSelectInfos(QVector <selectInfos> const &Infos);
 

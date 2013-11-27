@@ -554,7 +554,7 @@ void MainWindow::on_actionSave_masks_triggered()
 {
     if (_Engine->getData()->getNbImages())
     {
-        _Engine->doMaskImage(_glWidget->getGLMask());
+        _Engine->doMaskImage();
     }
     else
     {
@@ -572,7 +572,7 @@ void MainWindow::on_actionSave_as_triggered()
 
         if (_Engine->getData()->getNbImages())
         {
-            _Engine->doMaskImage(_glWidget->getGLMask());
+            _Engine->doMaskImage();
         }
         else
         {
