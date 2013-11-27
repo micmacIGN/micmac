@@ -1,7 +1,5 @@
 ﻿#include "saisieQT_main.h"
 
-bool MMVisualMode = false;
-
 int helpMessage(const QApplication &app, QString text)
 {
 #ifdef WIN32
@@ -104,7 +102,7 @@ int main(int argc, char *argv[])
                     saisieAppuisInitQT_main(app, argc, argv);
                 else
                 {
-                    QString text = QObject::tr("This is not a command!!!") + "\n\n" + cmds;
+                    QString text = QObject::tr("This is not a valid command!!!") + "\n\n" + cmds;
                     helpMessage(app, text);
 
                     return -1;
