@@ -1,7 +1,9 @@
 #include "GpGpu/GpGpu_InterCorrel.h"
 
 /// \brief Constructeur GpGpuInterfaceCorrel
-GpGpuInterfaceCorrel::GpGpuInterfaceCorrel()
+GpGpuInterfaceCorrel::GpGpuInterfaceCorrel():
+    GlobalMaskVolume(0),
+    ReduceMaskVolume(0)
 {
     for (int s = 0;s<NSTREAM;s++)
         checkCudaErrors( cudaStreamCreate(GetStream(s)));
