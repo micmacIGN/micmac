@@ -4,9 +4,6 @@
 const float GL_MAX_ZOOM = 50.f;
 const float GL_MIN_ZOOM = 0.01f;
 
-//invalid GL list index
-const GLuint GL_INVALID_LIST_ID = (~0);
-
 using namespace Cloud_;
 using namespace std;
 
@@ -17,11 +14,9 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_bDrawMessages(true)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
-  , m_textureImage(GL_INVALID_LIST_ID)
   , m_textureMask(GL_INVALID_LIST_ID)
   , m_params(ViewportParameters())
   , m_Data(data)
-  , m_speed(2.0f)
   , m_bDisplayMode2D(false)
   , _frameCount(0)
   , _previousTime(0)
@@ -30,7 +25,6 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _g_mouseLeftDown(false)
   , _g_mouseMiddleDown(false)
   , _g_mouseRightDown(false)
-  , _mask(NULL)
 {
     resetRotationMatrix();
 
@@ -59,20 +53,11 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
 
 GLWidget::~GLWidget()
 {
-    if (m_textureImage != GL_INVALID_LIST_ID)
-    {
-        glDeleteLists(m_textureImage,1);
-        m_textureImage = GL_INVALID_LIST_ID;
-    }
-
     if (m_textureMask != GL_INVALID_LIST_ID)
     {
         glDeleteLists(m_textureMask,1);
         m_textureMask = GL_INVALID_LIST_ID;
     }
-
-    if(_mask)
-        delete _mask;
 
     delete [] _mvmatrix;
     delete [] _projmatrix;
@@ -135,8 +120,8 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
 
             if ( _g_mouseLeftDown ) // rotation autour de X et Y
             {
-                float d_angleX = m_speed * dPWin.y() / (float) _glViewport[3];
-                float d_angleY = m_speed * dPWin.x() / (float) _glViewport[2];
+                float d_angleX = m_params.m_speed * dPWin.y() / (float) _glViewport[3];
+                float d_angleY = m_params.m_speed * dPWin.x() / (float) _glViewport[2];
 
                 m_params.angleX += d_angleX;
                 m_params.angleY += d_angleY;
@@ -160,19 +145,19 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                     {
                         QPointF dp = pos - m_lastPosImage;
 
-                        m_glPosition[0] += m_speed * dp.x()/_glViewport[2];
-                        m_glPosition[1] += m_speed * dp.y()/_glViewport[3];
+                        m_glPosition[0] += m_params.m_speed * dp.x()/_glViewport[2];
+                        m_glPosition[1] += m_params.m_speed * dp.y()/_glViewport[3];
                     }
                     else
                     {
-                        m_params.m_translationMatrix[0] += m_speed*dPWin.x()*m_Data->m_diam/_glViewport[2];
-                        m_params.m_translationMatrix[1] -= m_speed*dPWin.y()*m_Data->m_diam/_glViewport[3];
+                        m_params.m_translationMatrix[0] += m_params.m_speed*dPWin.x()*m_Data->m_diam/_glViewport[2];
+                        m_params.m_translationMatrix[1] -= m_params.m_speed*dPWin.y()*m_Data->m_diam/_glViewport[3];
                     }
                 }
             }
             else if ( _g_mouseRightDown ) // rotation autour de Z
             {
-                float d_angleZ =  m_speed * dPWin.x() / (float) _glViewport[2];
+                float d_angleZ =  m_params.m_speed * dPWin.x() / (float) _glViewport[2];
 
                 m_params.angleZ += d_angleZ;
 
@@ -344,36 +329,7 @@ void GLWidget::computeFPS()
     }
 }
 
-void GLWidget::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw)
-{
-    glBegin(GL_QUADS);
-    {
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex2f(originX, originY);
-        glTexCoord2f(1.0f, 0.0f);
-        glVertex2f(originX+glw, originY);
-        glTexCoord2f(1.0f, 1.0f);
-        glVertex2f(originX+glw, originY+glh);
-        glTexCoord2f(0.0f, 1.0f);
-        glVertex2f(originX, originY+glh);
-    }
-    glEnd();
-}
 
-void GLWidget::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QColor color)
-{
-    glColor4f(color.redF(),color.greenF(),color.blueF(),color.alphaF());
-    drawQuad(originX,originY,glh,glw);
-}
-
-void GLWidget::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, GLuint idTexture)
-{
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture( GL_TEXTURE_2D, idTexture );
-    drawQuad(originX,originY,glh,glw);
-    glBindTexture( GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_2D);
-}
 
 void GLWidget::enableOptionLine()
 {
@@ -439,18 +395,18 @@ void GLWidget::paintGL()
         m_glPosition[0] = m_glPosition[1] = 0.f;
 
         glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
-        drawQuad(0, 0, m_rh, m_rw,QColor(255,255,255));
+        m_Data->drawQuad(0, 0, m_rh, m_rw,QColor(255,255,255));
 
-        if(_mask != NULL && !_g_mouseMiddleDown)
+        if(m_Data->getCurMask() != NULL && !_g_mouseMiddleDown)
         {
-            drawQuad(0,0,m_rh,m_rw,m_textureMask);
+            m_Data->drawQuad(0,0,m_rh,m_rw,m_textureMask);
             glBlendFunc(GL_ONE,GL_ONE);
 
-            drawQuad(0, 0, m_rh, m_rw,QColor(128,128,128));
+            m_Data->drawQuad(0, 0, m_rh, m_rw,QColor(128,128,128));
             glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
         }
 
-        drawQuad(0,0,m_rh,m_rw,m_textureImage);
+        m_Data->drawQuad(0,0,m_rh,m_rw,m_Data->m_textureImage);
 
         glPopMatrix();
 
@@ -469,8 +425,9 @@ void GLWidget::paintGL()
             float px = m_lastMoveImage.x();
             float py = m_lastMoveImage.y();
 
-            if  ((px>=0.f)&&(py>=0.f)&&(px<_glImg.width())&&(py<_glImg.height()))
-                renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(px,'f',1) + ", " + QString::number(_glImg.height()-py,'f',1) + " px", m_font);
+            if  ((px>=0.f)&&(py>=0.f)&&(px<m_Data->getCurImage()->width())&&(py<m_Data->getCurImage()->height()))
+                renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(px,'f',1) + ", " + QString::number(m_Data->getCurImage()->height()-py,'f',1) + " px", m_font);
+
         }
     }
     else
@@ -680,9 +637,7 @@ void GLWidget::setData(cData *data)
     {
         m_bDisplayMode2D = true;
 
-        _glImg = QGLWidget::convertToGLFormat( *m_Data->getCurImage() );
-
-        applyGamma(m_params.getGamma());
+        m_Data->applyGammaToImage(m_Data->getCurImageIdx(), m_params.getGamma());
 
         zoomFit();
 
@@ -691,30 +646,22 @@ void GLWidget::setData(cData *data)
         glLoadIdentity();
 
         glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
-        glGenTextures(1, &m_textureImage );
+        glGenTextures(1, &m_Data->m_textureImage);
 
-        ImageToTexture(m_textureImage, &_glImg);
+        ImageToTexture(m_Data->m_textureImage, m_Data->getCurImage());
 
-        if(_mask)
-            delete _mask;
-        else
+        if(m_Data->getCurMask() == NULL)
             glGenTextures(1, &m_textureMask );
 
-        _mask = new QImage(_glImg.size(),_glImg.format());
-
         if (m_Data->getNbMasks())
-        {
-            *_mask = QGLWidget::convertToGLFormat( *m_Data->getCurMask() );
             m_bFirstAction = false;
-        }
         else
         {
-            QGLWidget::convertToGLFormat(*_mask);
-            _mask->fill(Qt::white);
+            m_Data->fillCurMask();
             m_bFirstAction = true;
         }
 
-        ImageToTexture(m_textureMask, _mask);
+        ImageToTexture(m_textureMask,  m_Data->getCurMask());
     }
 
     glGetIntegerv (GL_VIEWPORT, _glViewport);
@@ -957,8 +904,8 @@ void GLWidget::setZoom(float value)
 void GLWidget::zoomFit()
 {
     //width and height ratio between viewport and image
-    float rw = (float)_glImg.width()/ _glViewport[2];
-    float rh = (float)_glImg.height()/_glViewport[3];
+    float rw = (float)m_Data->getCurImage()->width()/ _glViewport[2];
+    float rh = (float)m_Data->getCurImage()->height()/_glViewport[3];
 
     if(rw>rh)
         setZoom(1.f/rw); //orientation landscape
@@ -1140,7 +1087,8 @@ void GLWidget::Select(int mode)
          QBrush SBrush(Qt::white);
          QBrush NSBrush(Qt::black);
 
-         p.begin(_mask);
+         //p.begin(_mask);
+         p.begin(m_Data->getCurMask());
          p.setCompositionMode(QPainter::CompositionMode_Source);
          p.setPen(Qt::NoPen);
 
@@ -1148,7 +1096,7 @@ void GLWidget::Select(int mode)
          {
              if (m_bFirstAction)
              {
-                 p.fillRect(_mask->rect(), Qt::black);
+                 p.fillRect(m_Data->getCurMask()->rect(), Qt::black);
              }
              p.setBrush(SBrush);
              p.drawPolygon(polyg.getVector().data(),polyg.size());
@@ -1160,18 +1108,18 @@ void GLWidget::Select(int mode)
          }
          else if(mode == ALL)
          {
-             p.fillRect(_mask->rect(), Qt::white);
+             p.fillRect(m_Data->getCurMask()->rect(), Qt::white);
          }
          else if(mode == NONE)
          {
-             p.fillRect(_mask->rect(), Qt::black);
+             p.fillRect(m_Data->getCurMask()->rect(), Qt::black);
          }
          p.end();
 
          if(mode == INVERT)         
-            _mask->invertPixels(QImage::InvertRgb);
+            m_Data->getCurMask()->invertPixels(QImage::InvertRgb);
 
-         ImageToTexture(m_textureMask, _mask);
+         ImageToTexture(m_textureMask, m_Data->getCurMask());
     }
     else
     {
@@ -1361,30 +1309,4 @@ void GLWidget::resetTranslationMatrix()
     m_params.m_translationMatrix[0] = -center.x;
     m_params.m_translationMatrix[1] = -center.y;
     m_params.m_translationMatrix[2] = -center.z;
-}
-
-void GLWidget::applyGamma(float aGamma)
-{
-    if (aGamma == 1.f) return;
-
-    QRgb  pixel;
-    int r,g,b;
-
-    float _gamma = 1.f / aGamma;
-
-    for(int i=0; i< _glImg.width();++i)
-        for(int j=0; j<_glImg.height();++j)
-        {
-            pixel = _glImg.pixel(i,j);
-
-            r = 255*pow((float) qRed(pixel)  / 255.f, _gamma);
-            g = 255*pow((float) qGreen(pixel)/ 255.f, _gamma);
-            b = 255*pow((float) qBlue(pixel) / 255.f, _gamma);
-
-            if (r>255) r = 255;
-            if (g>255) g = 255;
-            if (b>255) b = 255;
-
-            _glImg.setPixel(i,j, qRgb(r,g,b) );
-        }
 }

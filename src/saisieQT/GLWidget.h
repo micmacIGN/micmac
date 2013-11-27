@@ -140,17 +140,7 @@ public:
 
     void resetTranslationMatrix();
 
-    QImage* getGLMask(){return _mask;}
-
     ViewportParameters* getParams(){return &m_params;}
-
-    void applyGamma(float aGamma);
-
-    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw);
-
-    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QColor color);
-
-    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, GLuint idTexture);
 
     void enableOptionLine();
     void disableOptionLine();
@@ -218,9 +208,6 @@ protected:
         MessagePosition position;
     };
 
-    //! Texture image
-    GLuint      m_textureImage;
-
     GLuint      m_textureMask;
 
     //! List of messages to display
@@ -239,9 +226,6 @@ protected:
 
     //! Data to display
     cData      *m_Data;
-
-    //! acceleration factor
-    float       m_speed;
 
     //! selection infos stack
     QVector <selectInfos> m_infos;
@@ -280,8 +264,6 @@ private:
     GLfloat     _g_glMatrix[16];
     QTime       _time;
 
-    QImage      _glImg;
-    QImage      *_mask;
     GLdouble    *_mvmatrix;
     GLdouble    *_projmatrix;
     GLint       *_glViewport;
