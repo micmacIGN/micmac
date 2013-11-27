@@ -282,8 +282,8 @@ int TD_Sol3(int argc,char ** argv)
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(aNameIm1,"Name of camera")
-                    << EAMC(aNameIm2,"Name of GCP"),
+        LArgMain()  << EAMC(aNameIm1,"Name of image1")
+                    << EAMC(aNameIm2,"Name of image2"),
         LArgMain()  << EAM(aIntPax,"IntPax",true,"Intervale of paralaxe")
     );
 
