@@ -75,7 +75,6 @@ char * getExecutableName( buffer_t *i_buffer )
       }
    #elif __APPLE__
     {
-          char *itChar;
           uint32_t size = (uint32_t)i_buffer->size;
           if ( _NSGetExecutablePath(i_buffer->data, &size)==-1 )
           {
