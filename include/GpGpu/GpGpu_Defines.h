@@ -39,6 +39,20 @@ typedef unsigned char pixel;
 
 #define CUDA_DUMP_INT(varname) if(!threadIdx.x) printf("%s = %d\n", #varname, varname);
 #define CUDA_DUMP_INT_ALL(varname) printf("%s = %d\n", #varname, varname);
+#define DUMP_UINT(varname) printf("%s = %u\n", #varname, varname);
+
+#if OPM_ENABLED
+    #if ELISE_windows
+        #define OMP_NT1 __pragma("omp parallel for num_threads(4)")
+        #define OMP_NT2 __pragma("omp parallel for num_threads(3)")
+    #else
+        #define OMP_NT1 _Pragma("omp parallel for num_threads(4)")
+        #define OMP_NT2 _Pragma("omp parallel for num_threads(3)")
+    #endif
+#else
+    #define OMP_NT1
+    #define OMP_NT2
+#endif
 
 enum Plans {XY,XZ,YZ,YX,ZX,ZY};
 
