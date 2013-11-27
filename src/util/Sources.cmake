@@ -31,6 +31,7 @@ set(Util_Src_Files
 	${UTIL_DIR}/xml2cpp.cpp
 	${UTIL_DIR}/parseline.cpp
 	${UTIL_DIR}/TD_Sol.cpp
+	${UTIL_DIR}/cElCommand.cpp
 	#${UTIL_DIR}/win_regex.c
 )
 

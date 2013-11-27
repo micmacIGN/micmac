@@ -70,6 +70,7 @@ add_executable(bench    ${bench_source_directory}/b_0_all.cpp
 			${bench_source_directory}/b_0_46_4.cpp
 			${bench_source_directory}/b_0_55.cpp
 			${bench_source_directory}/b_0_54_1.cpp
+			${bench_source_directory}/b_0_58.cpp
       )
 target_link_libraries(bench elise ${X11_LIBRARIES} ${WINSOCK2_LIBRAIRIE})
 INSTALL(TARGETS bench RUNTIME DESTINATION ${Install_Dir})
