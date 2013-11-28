@@ -712,4 +712,81 @@ bool cPolygon::isPointInsidePoly(const QPointF& P)
     return inside;
 }
 
+//invalid GL list index
+const GLuint GL_INVALID_LIST_ID = (~0);
 
+cImageGL::cImageGL() :
+    _originX(0.f),
+    _originY(0.f),
+    _texture(GL_INVALID_LIST_ID)
+{}
+
+cImageGL::~cImageGL()
+{
+    if (_texture != GL_INVALID_LIST_ID)
+    {
+        glDeleteLists(_texture,1);
+        _texture = GL_INVALID_LIST_ID;
+    }
+}
+
+void cImageGL::draw()
+{
+    glBegin(GL_QUADS);
+    {
+        glTexCoord2f(0.0f, 0.0f);
+        glVertex2f(_originX, _originY);
+        glTexCoord2f(1.0f, 0.0f);
+        glVertex2f(_originX+_glw, _originY);
+        glTexCoord2f(1.0f, 1.0f);
+        glVertex2f(_originX+_glw, _originY+_glh);
+        glTexCoord2f(0.0f, 1.0f);
+        glVertex2f(_originX, _originY+_glh);
+    }
+    glEnd();
+}
+
+void cImageGL::setPosition(GLfloat originX, GLfloat originY)
+{
+    _originX = originX;
+    _originY = originY;
+}
+
+void cImageGL::setDimensions(GLfloat glh, GLfloat glw)
+{
+    _glh = glh;
+    _glw = glw;
+}
+
+void cImageGL::setDimensions(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw)
+{
+    _originX = originX;
+    _originY = originY;
+    _glh = glh;
+    _glw = glw;
+}
+
+void cImageGL::draw(QColor color)
+{
+    glColor4f(color.redF(),color.greenF(),color.blueF(),color.alphaF());
+    draw();
+}
+
+void cImageGL::bind_draw()
+{
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture( GL_TEXTURE_2D, _texture );
+    draw();
+    glBindTexture( GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
+}
+
+void cImageGL::ImageToTexture(QImage *image)
+{
+    glBindTexture( GL_TEXTURE_2D, _texture );
+    glTexImage2D( GL_TEXTURE_2D, 0, 4, image->width(), image->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image->bits());
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+    glBindTexture( GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
+}

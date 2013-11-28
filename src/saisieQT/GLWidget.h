@@ -166,8 +166,6 @@ protected:
     void keyReleaseEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent* event);
 
-    void ImageToTexture(GLuint idTexture,QImage* image);
-
     //inherited from QWidget (drag & drop support)
     virtual void dragEnterEvent(QDragEnterEvent* event);
     virtual void dropEvent(QDropEvent* event);
@@ -207,8 +205,6 @@ protected:
         //! Message position on screen
         MessagePosition position;
     };
-
-    GLuint      m_textureMask;
 
     //! List of messages to display
     list<MessageToDisplay> m_messagesToDisplay;
@@ -271,6 +267,9 @@ private:
     cBall       *_theBall;
     cAxis       *_theAxis;
     cBBox       *_theBBox;
+
+    cImageGL    *_theImage;
+    cImageGL    *_theMask;
 
     QVector < cCam* > _pCams;
 };

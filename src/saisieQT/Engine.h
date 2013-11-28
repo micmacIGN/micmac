@@ -32,6 +32,8 @@ public:
     void    setGamma(float aGamma) {m_gamma = aGamma;}
     float   getGamma() {return m_gamma;}
 
+    void    ptSizeUp(bool up);
+
     //! Current zoom
     float zoom;
 
