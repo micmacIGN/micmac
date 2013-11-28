@@ -443,4 +443,5 @@ endif()
 
 if ( ${BUILD_BENCH} )
    include(${PROJECT_SOURCE_DIR}/BenchElise/bench/CMakeLists.txt)
+   include(${PROJECT_SOURCE_DIR}/BenchElise/bench_mm3d/CMakeLists.txt)
 endif()

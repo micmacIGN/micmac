@@ -10,6 +10,7 @@ REV_NUMBER=$(hg log -r tip --template "{rev}")
 NBRP=$(cat /proc/cpuinfo | grep processor | wc -l)
 make install -j$NBRP
 
+
 # créer un répertoire pour l'archive
 BIN_DIR=micmac
 rm -fr $BIN_DIR
