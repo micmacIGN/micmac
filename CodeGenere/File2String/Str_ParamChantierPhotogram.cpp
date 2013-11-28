@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1482]) = {
+const char * (theNameVar_ParamChantierPhotogram[1483]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -38,6 +38,7 @@ const char * (theNameVar_ParamChantierPhotogram[1482]) = {
 "\n",
 "   <enum Name=\"eTypeMMByP\">\n",
 "       <eGround>         </eGround>\n",
+"       <eStatute>        </eStatute>\n",
 "       <eNbTypeMMByP>    </eNbTypeMMByP>\n",
 "   </enum>\n",
 "\n",
