@@ -463,4 +463,17 @@ void ViewportParameters::reset()
     m_translationMatrix[0] = m_translationMatrix[1] = m_translationMatrix[2] = 0.f;
 }
 
+void ViewportParameters::ptSizeUp(bool up)
+{
+    if (up)
+        PointSize++;
+    else
+        PointSize--;
+
+    if (PointSize == 0)
+        PointSize = 1;
+
+    glPointSize(PointSize);
+}
+
 

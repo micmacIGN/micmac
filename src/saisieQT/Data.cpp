@@ -1,19 +1,12 @@
 #include "Data.h"
 
-cData::cData() :
-   m_textureImage(GL_INVALID_LIST_ID)
+cData::cData()
 {
     reset();
 }
 
 cData::~cData()
 {
-    if (m_textureImage != GL_INVALID_LIST_ID)
-    {
-        glDeleteLists(m_textureImage,1);
-        m_textureImage = GL_INVALID_LIST_ID;
-    }
-
     for (int aK=0; aK < getNbCameras();++aK) delete _Cameras[aK];
     for (int aK=0; aK < getNbClouds();++aK)  delete _Clouds[aK];
     for (int aK=0; aK < getNbImages();++aK)  delete _Images[aK];
@@ -198,35 +191,4 @@ void cData::applyGammaToImage(int aK, float aGamma)
 
             getImage(aK)->setPixel(i,j, qRgb(r,g,b) );
         }
-}
-
-void cData::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw)
-{
-    glBegin(GL_QUADS);
-    {
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex2f(originX, originY);
-        glTexCoord2f(1.0f, 0.0f);
-        glVertex2f(originX+glw, originY);
-        glTexCoord2f(1.0f, 1.0f);
-        glVertex2f(originX+glw, originY+glh);
-        glTexCoord2f(0.0f, 1.0f);
-        glVertex2f(originX, originY+glh);
-    }
-    glEnd();
-}
-
-void cData::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QColor color)
-{
-    glColor4f(color.redF(),color.greenF(),color.blueF(),color.alphaF());
-    drawQuad(originX,originY,glh,glw);
-}
-
-void cData::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, GLuint idTexture)
-{
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture( GL_TEXTURE_2D, idTexture );
-    drawQuad(originX,originY,glh,glw);
-    glBindTexture( GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_2D);
 }

@@ -14,7 +14,6 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_bDrawMessages(true)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
-  , m_textureMask(GL_INVALID_LIST_ID)
   , m_params(ViewportParameters())
   , m_Data(data)
   , m_bDisplayMode2D(false)
@@ -47,18 +46,15 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
     _theAxis = new cAxis();
     _theBBox = new cBBox();
 
+    _theImage = new cImageGL();
+    _theMask  = new cImageGL();
+
     installEventFilter(this);
     setMouseTracking(true);
 }
 
 GLWidget::~GLWidget()
 {
-    if (m_textureMask != GL_INVALID_LIST_ID)
-    {
-        glDeleteLists(m_textureMask,1);
-        m_textureMask = GL_INVALID_LIST_ID;
-    }
-
     delete [] _mvmatrix;
     delete [] _projmatrix;
     delete [] _glViewport;
@@ -66,6 +62,9 @@ GLWidget::~GLWidget()
     delete _theBall;
     delete _theAxis;
     delete _theBBox;
+
+    delete _theImage;
+    delete _theMask;
 }
 
 bool GLWidget::eventFilter(QObject* object,QEvent* event)
@@ -395,18 +394,20 @@ void GLWidget::paintGL()
         m_glPosition[0] = m_glPosition[1] = 0.f;
 
         glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
-        m_Data->drawQuad(0, 0, m_rh, m_rw,QColor(255,255,255));
+        _theImage->setDimensions(m_rh, m_rw);
+        _theImage->draw(QColor(255,255,255));
 
         if(m_Data->getCurMask() != NULL && !_g_mouseMiddleDown)
         {
-            m_Data->drawQuad(0,0,m_rh,m_rw,m_textureMask);
+            _theMask->setDimensions(m_rh, m_rw);
+            _theMask->bind_draw();
             glBlendFunc(GL_ONE,GL_ONE);
 
-            m_Data->drawQuad(0, 0, m_rh, m_rw,QColor(128,128,128));
+            _theMask->draw(QColor(128,128,128));
             glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
         }
 
-        m_Data->drawQuad(0,0,m_rh,m_rw,m_Data->m_textureImage);
+        _theImage->bind_draw();
 
         glPopMatrix();
 
@@ -566,7 +567,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
                 setZoom(m_params.zoom*1.5f);
             }
             else
-                ptSizeUp(true);
+                m_params.ptSizeUp(true);
             break;
         case Qt::Key_Minus:
             if (m_bDisplayMode2D)
@@ -575,7 +576,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
                 setZoom(m_params.zoom/1.5f);
             }
             else
-                ptSizeUp(false);
+                m_params.ptSizeUp(false);
             break;
         default:
             event->ignore();
@@ -646,12 +647,12 @@ void GLWidget::setData(cData *data)
         glLoadIdentity();
 
         glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
-        glGenTextures(1, &m_Data->m_textureImage);
+        glGenTextures(1, _theImage->getTexture());
 
-        ImageToTexture(m_Data->m_textureImage, m_Data->getCurImage());
+        _theImage->ImageToTexture(m_Data->getCurImage());
 
         if(m_Data->getCurMask() == NULL)
-            glGenTextures(1, &m_textureMask );
+            glGenTextures(1, _theMask->getTexture() );
 
         if (m_Data->getNbMasks())
             m_bFirstAction = false;
@@ -661,7 +662,7 @@ void GLWidget::setData(cData *data)
             m_bFirstAction = true;
         }
 
-        ImageToTexture(m_textureMask,  m_Data->getCurMask());
+        _theMask->ImageToTexture(m_Data->getCurMask());
     }
 
     glGetIntegerv (GL_VIEWPORT, _glViewport);
@@ -954,16 +955,6 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     onWheelEvent(wheelDelta_deg);
 }
 
-void GLWidget::ImageToTexture(GLuint idTexture, QImage *image)
-{
-    glBindTexture( GL_TEXTURE_2D, idTexture );
-    glTexImage2D( GL_TEXTURE_2D, 0, 4, image->width(), image->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image->bits());
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-    glBindTexture( GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_2D);
-}
-
 void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (m_Data->getNbClouds())
@@ -1119,7 +1110,7 @@ void GLWidget::Select(int mode)
          if(mode == INVERT)         
             m_Data->getCurMask()->invertPixels(QImage::InvertRgb);
 
-         ImageToTexture(m_textureMask, m_Data->getCurMask());
+         _theMask->ImageToTexture(m_Data->getCurMask());
     }
     else
     {
@@ -1184,21 +1175,6 @@ void GLWidget::clearPolyline()
     m_polygon.clear();
     m_polygon.setClosed(false);
     m_dihedron.clear();
-
-    update();
-}
-
-void GLWidget::ptSizeUp(bool up)
-{
-    if (up)
-        m_params.PointSize++;
-    else
-        m_params.PointSize--;
-
-    if (m_params.PointSize == 0)
-        m_params.PointSize = 1;
-
-    glPointSize(m_params.PointSize);
 
     update();
 }
