@@ -472,6 +472,13 @@ void BanniereMM3D()
     std::cout << "  **     hosted at Ecole Nationale des Sciences Geographiques           **\n";
     std::cout << "  **               in Marne-la-Vallee, for IGN-France                   **\n";
     std::cout << "  **                                                                    **\n";
+    std::cout << "  **  The project is funded by :                                        **\n";
+    std::cout << "  **                                                                    **\n";
+    std::cout << "  **  - Institut National de l'Information Geographique et Forestiere   **\n";
+    std::cout << "  **  - the french FUI Project \"Culture 3D Cloud\"                       **\n";
+    std::cout << "  **  - the french ANR Project \"MONUMENTUM\"                             **\n";
+    std::cout << "  **                                                                    **\n";
+    std::cout << "  **                                                                    **\n";
     std::cout << "  **  Current Team: MP Deseilligny, M Deveau, J Belvaux, G Choqueux,    **\n";
     std::cout << "  **     G.Maillet, L. Girod                                            **\n";
     std::cout << "  **                                                                    **\n";
