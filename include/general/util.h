@@ -1054,17 +1054,7 @@ class cEquiv1D
 class cEl_GPAO;
 class cEl_Task;
 
-// __DEL
-//#define __C_EL_COMMAND__
-
-#ifdef __C_EL_COMMAND__
-	class cElCommand : public std::list<std::string>
-	{
-	public:
-		cElCommand( const char *i_command );
-		cElCommand( const string &i_command );
-	};
-#endif
+//#include "cElCommand.h"
 
 class cElTask
 {
@@ -1076,7 +1066,7 @@ class cElTask
           // Genere le mkf, l'execute, le purge
      private :
           friend class cEl_GPAO;
-		#ifdef __C_EL_COMMAND__
+        #ifdef __USE_EL_COMMAND__
 		  cElTask
           (
                const std::string & aName,
@@ -1094,7 +1084,7 @@ class cElTask
          cEl_GPAO &  mGPAO;
 
          std::string mName;
-		#ifdef __C_EL_COMMAND__
+        #ifdef __USE_EL_COMMAND__
 			std::list<cElCommand> mBR;  // BuildingRule
 		#else
 			std::list<std::string> mBR;  // BuildingRule
@@ -1114,7 +1104,7 @@ class cEl_GPAO
          ~cEl_GPAO();
           cEl_GPAO();
 
-		#ifdef __C_EL_COMMAND__
+        #ifdef __USE_EL_COMMAND__
 			cElTask   & NewTask
 				        (
 							const std::string &aName,
