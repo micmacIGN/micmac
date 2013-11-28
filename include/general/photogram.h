@@ -2951,7 +2951,7 @@ class cCpleEpip
          bool IsLeft(const std::string &);
 
 
-         void ImEpip(Tiff_Im aFile,const std::string & aNameOriIn,bool Im1);
+         void ImEpip(Tiff_Im aFile,const std::string & aNameOriIn,bool Im1,bool InParal=true);
          const bool & Ok() const;
          void AssertOk() const;
      private :

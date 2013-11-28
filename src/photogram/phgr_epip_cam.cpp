@@ -747,7 +747,7 @@ std::string  cCpleEpip::LocMasqFileMatch(bool Im1,int aNum)
 
 
 
-void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1)
+void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool InParal)
 {
     bool ByP= true; /// std::cout << "Nnnnnnnnnnnnnnnnnnnnnoo process \n";
     std::string aNameImOut = mDir + LocNameImEpi(Im1);
@@ -820,7 +820,10 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1)
               ReechEpipGen (aCamIn,aTIn,aCamOut,aTOut,aBoxOut);
          }
     }
-    cEl_GPAO::DoComInParal(aLCom,"MakeEpip");
+    if (InParal)
+       cEl_GPAO::DoComInParal(aLCom,"MakeEpip");
+    else
+       cEl_GPAO::DoComInSerie(aLCom);
 
 
 

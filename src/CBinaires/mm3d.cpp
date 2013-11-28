@@ -348,6 +348,8 @@ extern int  TD_Sol3(int argc,char ** argv);
 
 extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
+extern int VisuCoupeEpip_main(int,char **);
+
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -371,6 +373,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("TD_Test",TD_Exemple_main,"Test TD "));
    aRes.push_back(cMMCom("DocI0",DocEx_Intro0_main,"Introduction 0  of example fro DocElise  "));
    aRes.push_back(cMMCom("DocID2",DocEx_Introd2_main,"Introduction to D2  of example fro DocElise  "));
+   aRes.push_back(cMMCom("VCE",VisuCoupeEpip_main,"Visualisation of epipolar pair (cut)  "));
    return aRes;
 }
 
