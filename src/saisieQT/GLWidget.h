@@ -123,9 +123,6 @@ public:
      //! Undo all past selection actions
     void undoAll();
 
-    //! Increase or decrease point size
-    void ptSizeUp(bool);
-
     void getProjection(QPointF &P2D, Pt3dr P);
 
     QVector <selectInfos> getSelectInfos(){return m_infos;}
@@ -180,7 +177,7 @@ protected:
 
     QPointF ImageToWindow(const QPointF &im);
 
-    //! GL context aspect ratio m_glWidth/m_glHeight
+    //! GL context aspect ratio (width/height)
     float m_glRatio;
 
     //! ratio between GL context size and image size

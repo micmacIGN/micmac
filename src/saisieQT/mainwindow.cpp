@@ -168,7 +168,7 @@ void MainWindow::addFiles(const QStringList& filenames)
         QDir Dir = fi.dir();
         Dir.cdUp();
         _Engine->setDir(Dir);
-#define _DEBUG
+
 #ifdef _DEBUG
         printf("adding files %s", filenames[0].toStdString().c_str());
 #endif
@@ -195,6 +195,8 @@ void MainWindow::addFiles(const QStringList& filenames)
 
             _Engine->setFilename();
             _Engine->setFilenamesOut();
+
+            _ui->actionShow_ball->setChecked(true);
         }
         else if (fi.suffix() == "xml")
         {
@@ -478,12 +480,12 @@ void MainWindow::on_actionReset_view_triggered()
 //zoom
 void MainWindow::on_actionZoom_Plus_triggered()
 {
-    _glWidget->setZoom(_glWidget->getParams()->zoom*1.5f);
+    _glWidget->setZoom(_glWidget->getParams()->m_zoom*1.5f);
 }
 
 void MainWindow::on_actionZoom_Moins_triggered()
 {
-    _glWidget->setZoom(_glWidget->getParams()->zoom/1.5f);
+    _glWidget->setZoom(_glWidget->getParams()->m_zoom/1.5f);
 }
 
 void MainWindow::on_actionZoom_fit_triggered()
@@ -591,6 +593,7 @@ void MainWindow::closeAll()
     _Engine->unloadAll();
 
     _glWidget->reset();
+    _glWidget->resetView();
     checkForLoadedData();
 }
 
