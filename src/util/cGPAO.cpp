@@ -40,7 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-#ifdef __C_EL_COMMAND__
+#ifdef __USE_EL_COMMAND__
 /*********************************************************/
 /*                                                       */
 /*                  cElCommand                           */
@@ -263,7 +263,7 @@ cEl_GPAO::~cEl_GPAO()
 {
 }
 
-#ifdef __C_EL_COMMAND__
+#ifdef __USE_EL_COMMAND__
 	cElTask   & cEl_GPAO::NewTask
 				(
 					 const std::string &aName,
@@ -305,7 +305,7 @@ cElTask & cEl_GPAO::TaskOfName(const std::string &aName)
     return *aTask;
 }
 
-#ifdef __C_EL_COMMAND__
+#ifdef __USE_EL_COMMAND__
 	cElTask   & cEl_GPAO::GetOrCreate
 				(
 					 const std::string &aName,
@@ -367,7 +367,7 @@ void cElTask::AddDep(const std::string & aName)
     AddDep(mGPAO.TaskOfName(aName));
 }
 
-#ifdef __C_EL_COMMAND__
+#ifdef __USE_EL_COMMAND__
 	cElTask::cElTask
 	(
 				   const std::string & aName,
@@ -400,7 +400,7 @@ void cElTask::GenerateMakeFile(FILE * aFP) const
        fprintf(aFP,"%s ", mDeps[aK]->mName.c_str());
     fprintf(aFP,"\n");
 	
-	#ifdef __C_EL_COMMAND__
+    #ifdef __USE_EL_COMMAND__
 		list<string>::const_iterator itToken;
 		for 
 		(
