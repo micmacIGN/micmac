@@ -320,7 +320,7 @@ void cEngine::doMaskImage()
 		MakeFileXML(anOri, StdPrefix(sOut) + ".xml");
 		
 		#ifdef _DEBUG
-			cout << "saved " << StdPrefix(sOut) + ".xml" << endl;
+            printf("saved %s.xml\n", StdPrefix(sOut));
 		#endif
 	}
 	else
@@ -349,7 +349,7 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
 
         selectInfos SInfo = Infos[i];
 
-        t = doc.createTextNode(QString::number(SInfo.params.zoom));
+        t = doc.createTextNode(QString::number(SInfo.params.m_zoom));
         Scale.appendChild(t);
 
         t = doc.createTextNode(QString::number(SInfo.params.angleX) + " " + QString::number(SInfo.params.angleY) + " " + QString::number(SInfo.params.angleZ));
@@ -388,9 +388,9 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
     content << doc.toString();
     outFile.close();
 
-    #ifdef _DEBUG
-   //    printf ( "File saved in: %s\n", m_Loader->GetSelectionFilename().toStdString());
-    #endif
+#ifdef _DEBUG
+        printf ( "File saved in: %s\n", _Loader->GetSelectionFilename().toStdString().c_str());
+#endif
 }
 
 void cEngine::unloadAll()
@@ -400,13 +400,50 @@ void cEngine::unloadAll()
     _Data->clearImages();
     _Data->clearMasks();
     _Data->reset();
+}
 
+vector <cImageGL*> g_pImgs;
+vector <cImageGL*> g_pMasks;
+vector <cCam*> _pCams;
+
+void cEngine::setGLObjects()
+{
+    for (int aK = 0; aK < _Data->getNbImages();++aK)
+    {
+        cImageGL * pImg  = new cImageGL();
+        cImageGL * pMask = new cImageGL();
+
+        pImg->ImageToTexture(_Data->getImage(aK));
+
+        if(_Data->getCurMask() == NULL)
+            glGenTextures(1, pMask->getTexture() );
+
+        if (!_Data->getNbMasks())
+            _Data->fillCurMask();
+
+        pMask->ImageToTexture(_Data->getMask(aK));
+
+        g_pImgs.push_back(pImg);
+        g_pMasks.push_back(pMask);
+    }
+
+    for (int aK = 0; aK < _Data->getNbClouds();++aK)
+    {
+        _Data->getCloud(aK)->setBufferGl();
+    }
+
+    for (int aK = 0; aK < _Data->getNbCameras();++aK)
+    {
+        cCam *pCam = new cCam(_Data->getCamera(aK));
+
+        _pCams.push_back(pCam);
+    }
 }
 
 //********************************************************************************
 
 ViewportParameters::ViewportParameters()
-    : zoom(1.f)
+    : m_zoom(1.f)
     , PointSize(1.f)
     , LineWidth(1.f)
     , angleX(0.f)
@@ -419,12 +456,12 @@ ViewportParameters::ViewportParameters()
 }
 
 ViewportParameters::ViewportParameters(const ViewportParameters& params)
-    : zoom(params.zoom)
+    : m_zoom(params.m_zoom)
     , PointSize(params.PointSize)
     , LineWidth(params.LineWidth)
-   /* , angleX(params.angleX)
+    , angleX(params.angleX)
     , angleY(params.angleY)
-    , angleZ(params.angleZ)*/
+    , angleZ(params.angleZ)
 {
     m_translationMatrix[0] = params.m_translationMatrix[0];
     m_translationMatrix[1] = params.m_translationMatrix[1];
@@ -437,19 +474,19 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
 {
     if (this != &par)
     {
-        this->zoom = par.zoom;
-        this->PointSize = par.PointSize;
+        m_zoom = par.m_zoom;
+        PointSize = par.PointSize;
 
-        /*this->angleX = par.angleX;
-        this->angleY = par.angleY;
-        this->angleZ = par.angleZ;*/
+        angleX = par.angleX;
+        angleY = par.angleY;
+        angleZ = par.angleZ;
 
-        this->m_translationMatrix[0] = par.m_translationMatrix[0];
-        this->m_translationMatrix[1] = par.m_translationMatrix[1];
-        this->m_translationMatrix[2] = par.m_translationMatrix[2];
-		this->LineWidth = par.LineWidth;
-		this->m_gamma 	= par.m_gamma;
-		
+        m_translationMatrix[0] = par.m_translationMatrix[0];
+        m_translationMatrix[1] = par.m_translationMatrix[1];
+        m_translationMatrix[2] = par.m_translationMatrix[2];
+        LineWidth = par.LineWidth;
+        m_gamma 	= par.m_gamma;
+
     }
 
     return *this;
@@ -457,8 +494,8 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
 
 void ViewportParameters::reset()
 {
-    zoom = PointSize = LineWidth = m_gamma = 1.f;
-    //angleX = angleY = angleZ = 0.f;
+    m_zoom = PointSize = LineWidth = m_gamma = 1.f;
+    angleX = angleY = angleZ = 0.f;
 
     m_translationMatrix[0] = m_translationMatrix[1] = m_translationMatrix[2] = 0.f;
 }

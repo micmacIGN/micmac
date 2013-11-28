@@ -35,7 +35,7 @@ public:
     void    ptSizeUp(bool up);
 
     //! Current zoom
-    float zoom;
+    float m_zoom;
 
     //! Point size
     float PointSize;
@@ -153,14 +153,20 @@ public:
     void unloadAll();
 
     //! Compute mask binary images: projection of visible points into loaded cameras
-    void doMasks();
+    void     doMasks();
 
     //! Creates binary image from selection and saves
-    void doMaskImage();
+    void     doMaskImage();
 
-    void saveSelectInfos(QVector <selectInfos> const &Infos);
+    void     saveSelectInfos(QVector <selectInfos> const &Infos);
 
     cData*   getData()  {return _Data;}
+
+    //!looks for data and creates GLobjects
+    void     setGLObjects();
+
+    //!sends GLObjects to GLWidget
+    //void     getGLObjects();
 
 private:
 

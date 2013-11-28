@@ -82,8 +82,8 @@ int main(int argc, char *argv[])
     QStringList cmdline_args = QCoreApplication::arguments();
 
     QString cmds = QObject::tr("Allowed commands:") + "\n\n" +
-            QString("SaisieMasqQT\n") +
-            QString("SaisieAppuisInitQT\n\n");
+                   QString("SaisieMasqQT\n") +
+                   QString("SaisieAppuisInitQT\n\n");
 
     if (cmdline_args.size() > 1)
     {
@@ -104,13 +104,8 @@ int main(int argc, char *argv[])
                 {
                     QString text = QObject::tr("This is not a valid command!!!") + "\n\n" + cmds;
                     helpMessage(app, text);
-
-                    return -1;
                 }
-
-                cmdline_args[i] = cmdline_args.back();
-                cmdline_args.pop_back();
-                i--;
+                return -1;
             }
         }
     }

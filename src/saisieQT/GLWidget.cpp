@@ -135,8 +135,8 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
             {
                 if (mouseEvent->modifiers() & Qt::ShiftModifier) // zoom
                 {
-                    if (dPWin.y() > 0) m_params.zoom *= pow(2.f, ((float)dPWin.y()) *.05f);
-                    else if (dPWin.y() < 0) m_params.zoom /= pow(2.f, -((float)dPWin.y()) *.05f);
+                    if (dPWin.y() > 0) m_params.m_zoom *= pow(2.f, ((float)dPWin.y()) *.05f);
+                    else if (dPWin.y() < 0) m_params.m_zoom /= pow(2.f, -((float)dPWin.y()) *.05f);
                 }
                 else if((_glViewport[2]!=0) || (_glViewport[3]!=0)) // translation
                 {
@@ -374,7 +374,7 @@ void GLWidget::paintGL()
         glPushMatrix();
         glMultMatrixd(_projmatrix);
 
-        if(_projmatrix[0] != m_params.zoom)
+        if(_projmatrix[0] != m_params.m_zoom)
         {
             GLint recal;
             GLdouble wx, wy, wz;
@@ -385,7 +385,7 @@ void GLWidget::paintGL()
                           _mvmatrix, _projmatrix, _glViewport, &wx, &wy, &wz);
 
             glTranslatef(wx,wy,0);
-            glScalef(m_params.zoom/_projmatrix[0], m_params.zoom/_projmatrix[0], 1.f);
+            glScalef(m_params.m_zoom/_projmatrix[0], m_params.m_zoom/_projmatrix[0], 1.f);
             glTranslatef(-wx,-wy,0);
         }
 
@@ -421,7 +421,7 @@ void GLWidget::paintGL()
         {
             glColor3f(1.f,1.f,1.f);
 
-            renderText(10, _glViewport[3] - m_font.pointSize(), QString::number(m_params.zoom*100,'f',1) + "%", m_font);
+            renderText(10, _glViewport[3] - m_font.pointSize(), QString::number(m_params.m_zoom*100,'f',1) + "%", m_font);
 
             float px = m_lastMoveImage.x();
             float py = m_lastMoveImage.y();
@@ -470,20 +470,7 @@ void GLWidget::paintGL()
         }
     }
 
-    if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
-    {
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(0,_glViewport[2],_glViewport[3],0,-1,1);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-
-        enableOptionLine();
-
-        drawPolygon();
-
-        disableOptionLine();
-    }
+    if (m_bDisplayMode2D || (m_interactionMode == SELECTION)) drawPolygon();
 
     //current messages (if valid)
     if (!m_messagesToDisplay.empty())
@@ -564,7 +551,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             if (m_bDisplayMode2D)
             {
                 m_lastClickZoom = m_lastPosWindow;
-                setZoom(m_params.zoom*1.5f);
+                setZoom(m_params.m_zoom*1.5f);
             }
             else
                 m_params.ptSizeUp(true);
@@ -573,7 +560,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             if (m_bDisplayMode2D)
             {
                 m_lastClickZoom = m_lastPosWindow;
-                setZoom(m_params.zoom/1.5f);
+                setZoom(m_params.m_zoom/1.5f);
             }
             else
                 m_params.ptSizeUp(false);
@@ -757,6 +744,14 @@ void GLWidget::drawGradientBackground()
 
 void GLWidget::drawPolygon()
 {
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0,_glViewport[2],_glViewport[3],0,-1,1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    enableOptionLine();
+
     if (m_Data->getNbImages())
     {
         cPolygon poly = m_polygon;
@@ -781,12 +776,14 @@ void GLWidget::drawPolygon()
         m_polygon.draw();
         m_dihedron.drawDihedron();
     }
+
+    disableOptionLine();
 }
 
 // zoom in 3D mode
 void GLWidget::zoom()
 {
-    GLdouble zoom = m_params.zoom;
+    GLdouble zoom = m_params.m_zoom;
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -887,7 +884,7 @@ void GLWidget::onWheelEvent(float wheelDelta_deg)
     //convert degrees in zoom 'power'
     float zoomFactor = pow(1.1f,wheelDelta_deg *.05f);
 
-    setZoom(m_params.zoom*zoomFactor);
+    setZoom(m_params.m_zoom*zoomFactor);
 }
 
 void GLWidget::setZoom(float value)
@@ -897,7 +894,7 @@ void GLWidget::setZoom(float value)
     else if (value > GL_MAX_ZOOM)
         value = GL_MAX_ZOOM;
 
-    m_params.zoom = value;   
+    m_params.m_zoom = value;
 
     update();
 }
@@ -916,16 +913,16 @@ void GLWidget::zoomFit()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glPushMatrix();
-    glScalef(m_params.zoom, m_params.zoom, 1.0);
-    glTranslatef(-rw,-rh,0);
+    glScalef(m_params.m_zoom, m_params.m_zoom, 1.f);
+    glTranslatef(-rw,-rh,0.f);
     glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
     glPopMatrix();
 
     m_rw = 2.f*rw;
     m_rh = 2.f*rh;
 
-    m_glPosition[0] = 0;
-    m_glPosition[1] = 0;
+    m_glPosition[0] = 0.f;
+    m_glPosition[1] = 0.f;
 }
 
 void GLWidget::zoomFactor(int percent)
@@ -1039,15 +1036,15 @@ QPointF GLWidget::WindowToImage(QPointF const &pt)
     QPointF res( pt.x()         - .5f*_glViewport[2]*(1.f+ _projmatrix[12]),
                 -pt.y()  -1.f   + .5f*_glViewport[3]*(1.f- _projmatrix[13]));
 
-    res /= m_params.zoom;
+    res /= m_params.m_zoom;
 
     return res;
 }
 
 QPointF GLWidget::ImageToWindow(QPointF const &im)
 {
-    return QPointF (im.x()*m_params.zoom + .5f*_glViewport[2]*(1.f + _projmatrix[12]),
-            - 1.f - im.y()*m_params.zoom + .5f*_glViewport[3]*(1.f - _projmatrix[13]));
+    return QPointF (im.x()*m_params.m_zoom + .5f*_glViewport[2]*(1.f + _projmatrix[12]),
+            - 1.f - im.y()*m_params.m_zoom + .5f*_glViewport[3]*(1.f - _projmatrix[13]));
 }
 
 void GLWidget::Select(int mode)
@@ -1107,8 +1104,8 @@ void GLWidget::Select(int mode)
          }
          p.end();
 
-         if(mode == INVERT)         
-            m_Data->getCurMask()->invertPixels(QImage::InvertRgb);
+         if(mode == INVERT)
+             m_Data->getCurMask()->invertPixels(QImage::InvertRgb);
 
          _theMask->ImageToTexture(m_Data->getCurMask());
     }
@@ -1252,8 +1249,6 @@ void GLWidget::reset()
     m_params.reset();
 
     m_bFirstAction = true;
-
-    resetView();
 }
 
 void GLWidget::resetView()
@@ -1266,6 +1261,8 @@ void GLWidget::resetView()
         resetTranslationMatrix();
 
         setZoom(m_Data->getScale());
+
+        _theBall->setVisible(hasDataLoaded()); //rustine - a passer dans MainWindow pour ui->action_showBall->setChecked(false)
     }
 
     update();
