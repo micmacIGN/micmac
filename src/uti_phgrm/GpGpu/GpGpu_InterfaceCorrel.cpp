@@ -1,7 +1,9 @@
 #include "GpGpu/GpGpu_InterCorrel.h"
 
 /// \brief Constructeur GpGpuInterfaceCorrel
-GpGpuInterfaceCorrel::GpGpuInterfaceCorrel()
+GpGpuInterfaceCorrel::GpGpuInterfaceCorrel():
+    GlobalMaskVolume(0),
+    ReduceMaskVolume(0)
 {
     for (int s = 0;s<NSTREAM;s++)
         checkCudaErrors( cudaStreamCreate(GetStream(s)));
@@ -19,8 +21,9 @@ GpGpuInterfaceCorrel::~GpGpuInterfaceCorrel()
 uint GpGpuInterfaceCorrel::InitCorrelJob(int Zmin, int Zmax)
 {
 
+    uint DZ     = abs(Zmin - Zmax);
 
-    uint interZ = min(INTERZ, abs(Zmin - Zmax));
+    uint interZ = min(INTERZ, DZ);
 
     _param.SetZCInter(interZ);
 
@@ -99,10 +102,9 @@ void GpGpuInterfaceCorrel::threadCompute()
             SwitchIdBuffer();
 
             while(GetDataToCopy());
+
             SetDataToCopy(interZ);
         }
-//        else
-//            boost::this_thread::sleep(boost::posix_time::microsec(1));
     }
 }
 

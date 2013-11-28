@@ -242,7 +242,7 @@ public:
 
     bool			ReallocIf(uint dim1D);
 
-    bool			ReallocIf(uint2 dim, uint l);
+    bool			ReallocIf(uint2 dim, uint l = 1);
 
     bool			ReallocIf(uint dimX, uint dimY, uint l = 1);
 

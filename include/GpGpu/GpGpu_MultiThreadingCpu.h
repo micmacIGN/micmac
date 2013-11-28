@@ -4,6 +4,8 @@
 #include <stdio.h>
 
 #include <boost/thread/thread.hpp>
+#include <boost/progress.hpp>
+#include <boost/timer.hpp>
 
 #include "GpGpu/GpGpu_Data.h"
 
@@ -69,6 +71,10 @@ public:
     void            CreateJob();
     void            KillJob();
 
+    void            SetProgress(unsigned long expected_count);
+
+    void            IncProgress(uint inc = 1);
+
 protected:
 
     void            SetThread(boost::thread* Thread);
@@ -95,19 +101,27 @@ private:
 
     bool            _idBufferHostIn;
 
+    boost::progress_display *_show_progress;
+
+    bool            _show_progress_console;
+
 };
 
 template< class T >
 CSimpleJobCpuGpu<T>::CSimpleJobCpuGpu(bool useMultiThreading):
     _gpGpuThread(NULL),
     _useMultiThreading(useMultiThreading),
-    _idBufferHostIn(false)
+    _idBufferHostIn(false),
+    _show_progress(NULL),
+    _show_progress_console(false)
 {}
 
 template< class T >
 CSimpleJobCpuGpu<T>::~CSimpleJobCpuGpu()
 {
     KillJob();
+    if(_show_progress)
+        delete _show_progress;
 }
 
 template< class T >
@@ -181,6 +195,25 @@ template< class T >
 void CSimpleJobCpuGpu<T>::SetThread(boost::thread *Thread)
 {
     _gpGpuThread = Thread;
+}
+
+template< class T >
+void CSimpleJobCpuGpu<T>::SetProgress(unsigned long expected_count)
+{
+    if(_show_progress_console)
+    {
+        if(_show_progress == NULL)
+            _show_progress = new boost::progress_display(expected_count);
+        else
+            _show_progress->restart(expected_count);
+    }
+}
+
+template< class T >
+void CSimpleJobCpuGpu<T>::IncProgress(uint inc)
+{
+    if(_show_progress_console)
+        (*_show_progress) += inc;
 }
 
 template< class T >

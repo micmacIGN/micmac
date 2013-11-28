@@ -1,6 +1,6 @@
 ﻿#include "saisieQT_main.h"
 
-bool MMVisualMode = false;
+//bool MMVisualMode = false;
 
 int helpMessage(const QApplication &app, QString text)
 {
