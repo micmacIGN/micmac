@@ -25,11 +25,12 @@ uint GpGpuInterfaceCorrel::InitCorrelJob(int Zmin, int Zmax)
 
     uint interZ = min(INTERZ, DZ);
 
-    _param.SetZCInter(interZ);
+    _param[0].SetZCInter(interZ);
+    _param[1].SetZCInter(interZ);
 
-    CopyParamTodevice(_param);
+    //CopyParamTodevice(_param[0]);
 
-    _data2Cor.ReallocHostData(interZ,_param);
+    _data2Cor.ReallocHostData(interZ,_param[0]);
 
     if(UseMultiThreading())
     {
@@ -44,23 +45,27 @@ uint GpGpuInterfaceCorrel::InitCorrelJob(int Zmin, int Zmax)
 /// \brief Initialisation des parametres constants
 void GpGpuInterfaceCorrel::SetParameter(int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef )
 {
-    _param.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
+    _param[0].SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
+    _param[1].SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
 }
 
 void GpGpuInterfaceCorrel::BasicCorrelation(uint ZInter)
 {
 
-    Param().SetZCInter(ZInter);
+
+
+    Param(GetIdBuf()).SetZCInter(ZInter);
 
     // Re-allocation les structures de données si elles ont été modifiées
 
-    Data().ReallocDeviceData(Param());
+    Data().ReallocDeviceData(Param(GetIdBuf()));
 
     // copie des donnees du host vers le device
 
-    Data().copyHostToDevice(Param());
-
+    Data().copyHostToDevice(Param(GetIdBuf()));
+    CopyParamTodevice(_param[GetIdBuf()]);
     // Indique que la copie est terminée pour le thread de calcul des projections
+
 
     SetPreComp(true);
 
@@ -138,19 +143,19 @@ void GpGpuInterfaceCorrel::SetTexturesAreLoaded(bool load)
     _TexturesAreLoaded = load;
 }
 
-void GpGpuInterfaceCorrel::CorrelationGpGpu(const int s)
+void GpGpuInterfaceCorrel::CorrelationGpGpu(const int s, ushort idBuf)
 {
-    LaunchKernelCorrelation(s, *(GetStream(s)),_param, _data2Cor);
+    LaunchKernelCorrelation(s, *(GetStream(s)),_param[idBuf], _data2Cor);
 }
 
-void GpGpuInterfaceCorrel::MultiCorrelationGpGpu(const int s)
+void GpGpuInterfaceCorrel::MultiCorrelationGpGpu(const int s, ushort idBuf)
 {
-    LaunchKernelMultiCorrelation( *(GetStream(s)),_param,  _data2Cor);
+    LaunchKernelMultiCorrelation( *(GetStream(s)),_param[idBuf],  _data2Cor);
 }
 
-pCorGpu& GpGpuInterfaceCorrel::Param()
+pCorGpu& GpGpuInterfaceCorrel::Param(ushort idBuf)
 {
-    return _param;
+    return _param[idBuf];
 }
 
 void GpGpuInterfaceCorrel::signalComputeCorrel(uint dZ)

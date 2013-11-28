@@ -953,13 +953,10 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ_V03(int aNbDir)
 
     IGpuOpt.Prepare(mSz.x,mSz.y,aNbDir);
 
-    int aKDir = 0;
+    int     aKDir       = 0;
+    int     aKPreDir    = 0;
+    bool    idPreCo     = false;
 
-    IGpuOpt._preFinalCost1D.Fill(0);
-
-    IGpuOpt.SetPreComp(true);
-    int aKPreDir = 0;
-    bool idPreCo = false;
     while (aKDir < aNbDir)
     {
 

@@ -42,7 +42,7 @@ public:
 
   /// \brief    Renvoie les parametres de correlation
 
-  pCorGpu       &Param();
+  pCorGpu       &Param(ushort idBuf);
 
   void          signalComputeCorrel(uint dZ);
 
@@ -68,17 +68,19 @@ public:
 
   uint          ReduceMaskVolume;
 
+  std::vector<cellules> MaskCellules;
+
 private:
 
-  void              CorrelationGpGpu(const int s = 0);
+  void              CorrelationGpGpu(const int s = 0, ushort idBuf = 0 );
 
-  void              MultiCorrelationGpGpu(const int s = 0);
+  void              MultiCorrelationGpGpu(const int s = 0, ushort idBuf = 0);
 
   cudaStream_t*		GetStream(int stream);
   void              threadCompute();
 
   cudaStream_t      _stream[NSTREAM];
-  pCorGpu           _param;
+  pCorGpu           _param[2];
 
   SData2Correl      _data2Cor;
 

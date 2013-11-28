@@ -11,6 +11,17 @@ extern "C" textureReference&	getProjection(int TexSel);
 #define SYNC    false
 #define ASYNC   true
 
+struct cellules
+{
+    Rect Zone;
+    uint Dz;
+
+    cellules():
+        Zone(MAXIRECT),
+        Dz(INTERZ)
+    {}
+};
+
 ///
 /// \brief The SData2Correl struct
 ///
@@ -48,7 +59,7 @@ struct SData2Correl
 
     void    ReallocHostData(uint zInter, pCorGpu param);
 
-    void    ReallocDeviceData(pCorGpu &param);
+    void    ReallocDeviceData(pCorGpu &param);   
 
 private:
 
@@ -75,6 +86,8 @@ private:
     textureReference&           _texProjections_01;
 
     void DeviceMemset(pCorGpu &param, uint s = 0);
+
+
 };
 
 #endif

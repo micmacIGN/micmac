@@ -11,6 +11,7 @@
 #endif
 
 #define NEGARECT Rect(-1,-1,-1,-1)
+#define MAXIRECT Rect(1e7,1e7,-1e7,-1e7)
 
 /// \struct Rect
 /// \brief Cette structure represente un rectangle definie par deux points

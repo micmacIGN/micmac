@@ -67,6 +67,9 @@ void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort NBDir)
     _H_data2Opt.ReallocParam(size);
     _D_data2Opt.ReallocParam(size);
 
+    _preFinalCost1D.Fill(0);
+
+    SetPreComp(true);
 }
 
 void InterfOptimizGpGpu::threadCompute()
