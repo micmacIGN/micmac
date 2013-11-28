@@ -486,7 +486,7 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
     }
 #endif
 
-    GpGpuTools::NvtxR_Push("Agregation",0x330000AA);
+    //GpGpuTools::NvtxR_Push("Agregation",0x330000AA);
     Pt2di aPTer;
 
     for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
@@ -513,7 +513,7 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
             }
         }
     }
-    nvtxRangePop();
+    //nvtxRangePop();
 
 }
 #if CUDA_ENABLED
@@ -561,7 +561,7 @@ void cGBV2_ProgDynOptimiseur::copyCells(Pt2di aDirI, Data2Optimiz<CuHostData3D,2
 void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<ushort*> &costInit, CuHostData3D<short2> &dim, CuHostData3D<ushort> &size, uint idBuf)
 {
 
-    GpGpuTools::NvtxR_Push("copyCells_Mat2Stream",0xFFAAFF33);
+    //GpGpuTools::NvtxR_Push("copyCells_Mat2Stream",0xFFAAFF33);
 
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
     const std::vector<Pt2di>* aVPt;
@@ -593,13 +593,13 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuH
         idLine++;
     }
 
-    nvtxRangePop();
+    //nvtxRangePop();
 
 }
 
 void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostData3D<uint *> &costFinal, CuHostData3D<short2> &dim, CuHostData3D<ushort> &size, uint idBuf)
 {
-    GpGpuTools::NvtxR_Push("copyCells_Stream2Mat",0xFFAA0033);
+    //GpGpuTools::NvtxR_Push("copyCells_Stream2Mat",0xFFAA0033);
 
     //nvtxMarkA("Start INIT");
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
@@ -630,14 +630,14 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
         idLine++;
     }
 
-    nvtxRangePop();
+    //nvtxRangePop();
 }
 */
 
 void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream_V03(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostDaPo3D<ushort> &costInit1D, uint idBuf)
 {
 
-    GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAAFF33);
+    //GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAAFF33);
 
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
     const std::vector<Pt2di>* aVPt;
@@ -665,12 +665,12 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream_V03(Pt2di aDirI, Data2Optimiz
         idLine++;
     }
 
-    nvtxRangePop();
+    //nvtxRangePop();
 }
 
 void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat_V03(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostDaPo3D<ushort> &costInit1D, CuHostData3D<uint> &costFinal1D, uint idBuf)
 {
-    GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0033);
+    //GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0033);
 
     //nvtxMarkA("Start INIT");
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
@@ -701,7 +701,7 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat_V03(Pt2di aDirI, Data2Optimiz
         idLine++;
     }
 
-    nvtxRangePop();
+    //nvtxRangePop();
 }
 
 Pt2di cGBV2_ProgDynOptimiseur::direction(int aNbDir, int aKDir)
@@ -834,7 +834,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ_V02(int aNbDir)
 
     int aKDir = 0;
 
-    GpGpuTools::NvtxR_Push("ReStructure",0xFFAA66FF);
+    //GpGpuTools::NvtxR_Push("ReStructure",0xFFAA66FF);
 
     for (uint line = 0 ; line < (uint)mSz.y; line++)
         for (uint aK = 0 ; aK < (uint)mSz.x; aK++)
@@ -856,7 +856,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ_V02(int aNbDir)
                 costIni[aPx-ptZ.x] = aMat[Pt2di(aPx,0)].GetCostInit();
         }
 
-    nvtxRangePop();
+    //nvtxRangePop();
 
     IGpuOpt.SetPreComp(true);
     int aKPreDir = 0;
@@ -873,7 +873,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ_V02(int aNbDir)
 
             mLMR.Init(aDirI,Pt2di(0,0),mSz);
 
-            GpGpuTools::NvtxR_Push("Prepa",0xFF0000FF);
+            //GpGpuTools::NvtxR_Push("Prepa",0xFF0000FF);
 
             while ((aVPt = mLMR.Next()))
             {
@@ -896,7 +896,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ_V02(int aNbDir)
                 nbLine++;
             }
 
-            nvtxRangePop();
+            //nvtxRangePop();
 
             IGpuOpt.HData2Opt().SetNbLine(nbLine);
 
@@ -921,7 +921,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ_V02(int aNbDir)
 
     IGpuOpt.freezeCompute();
 
-    GpGpuTools::NvtxR_Push("FinalCost",0xFF883300);
+    //GpGpuTools::NvtxR_Push("FinalCost",0xFF883300);
     for (uint line = 0 ; line < (uint)mSz.y; line++)
         for (uint aK = 0 ; aK < (uint)mSz.x; aK++)
         {
@@ -936,7 +936,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ_V02(int aNbDir)
                  aMat[Pt2di(aPx,0)].SetCostFinal(finalCost[aPx]);
         }
 
-    nvtxRangePop();
+    //nvtxRangePop();
 
     for (uint i = 0; i < IGpuOpt._preCostInit.GetSize(); ++i)
     {
@@ -969,7 +969,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ_V03(int aNbDir)
 
             mLMR.Init(aDirI,Pt2di(0,0),mSz);
 
-            GpGpuTools::NvtxR_Push("Prepa",0xFF0000FF);
+            //GpGpuTools::NvtxR_Push("Prepa",0xFF0000FF);
 
             while ((aVPt = mLMR.Next()))
             {
@@ -988,7 +988,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ_V03(int aNbDir)
                 nbLine++;
             }
 
-            nvtxRangePop();
+            //nvtxRangePop();
 
             IGpuOpt.HData2Opt().SetNbLine(nbLine);
 
@@ -1013,7 +1013,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ_V03(int aNbDir)
 
     IGpuOpt.freezeCompute();
 
-    GpGpuTools::NvtxR_Push("FinalCost",0xFF883300);
+    //GpGpuTools::NvtxR_Push("FinalCost",0xFF883300);
     for (uint line = 0 ; line < (uint)mSz.y; line++)
         for (uint aK = 0 ; aK < (uint)mSz.x; aK++)
         {
@@ -1028,7 +1028,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpuZ_V03(int aNbDir)
                  aMat[Pt2di(aPx,0)].SetCostFinal(finalCost[aPx]);
         }
 
-    nvtxRangePop();
+    ////nvtxRangePop();
 
 }
 #endif
@@ -1074,7 +1074,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
     {
         SolveOneEtape(itE->NbDir().Val());
     }
-GpGpuTools::NvtxR_Push(__FUNCTION__,0x335A0033);
+//GpGpuTools::NvtxR_Push(__FUNCTION__,0x335A0033);
 Im2D_INT4 aDupRes(mSz.x,mSz.y);
 
     {
@@ -1109,7 +1109,7 @@ aDupRes.data()[aPTer.y][aPTer.x] = aPRXMin.x ;
         }
 
     }
-nvtxRangePop();
+//nvtxRangePop();
 
 if (0)
 {

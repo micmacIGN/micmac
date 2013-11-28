@@ -70,6 +70,8 @@ public:
 
   std::vector<cellules> MaskCellules;
 
+  void          ReallocHostData(uint interZ, ushort idBuff);
+
 private:
 
   void              CorrelationGpGpu(const int s = 0, ushort idBuf = 0 );

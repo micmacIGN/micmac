@@ -17,6 +17,10 @@ GpGpuInterfaceCorrel::~GpGpuInterfaceCorrel()
         checkCudaErrors( cudaStreamDestroy(*(GetStream(s))));
 
 }
+void GpGpuInterfaceCorrel::ReallocHostData(uint interZ,ushort idBuff)
+{
+    _data2Cor.ReallocHostData(interZ,_param[idBuff]);
+}
 
 uint GpGpuInterfaceCorrel::InitCorrelJob(int Zmin, int Zmax)
 {
