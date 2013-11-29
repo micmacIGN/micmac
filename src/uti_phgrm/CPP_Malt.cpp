@@ -142,9 +142,9 @@ class cAppliMalt
 int cAppliMalt::Exe()
 {
   if (! mExe) return 0;
-  int aRes = system_call(mCom.c_str());
+  int aRes = ::System(mCom.c_str());
   if ((aRes==0) && ( mComOA !=""))
-     aRes = system_call(mComOA.c_str());
+     aRes = ::System(mComOA.c_str());
   ShowParam();
   return aRes;
 }

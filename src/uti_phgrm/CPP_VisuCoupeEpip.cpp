@@ -39,6 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+#if (ELISE_X11)
+
 class cAppli_VCE;
 class cCoupe_VCE;
 
@@ -206,6 +208,8 @@ void cAppli_VCE::ShowLine(float * aLine,bool First)
     }
 }
 
+#endif // ELISE_X11
+
 /**********************************************************/
 /*                                                        */
 /*                         ::                             */
@@ -214,7 +218,11 @@ void cAppli_VCE::ShowLine(float * aLine,bool First)
 
 int VisuCoupeEpip_main(int argc,char ** argv)
 {
-    cAppli_VCE anAppli(argc,argv);
+	#if (ELISE_X11)
+		cAppli_VCE anAppli(argc,argv);
+	#else
+		cerr << "X11 is not available" << endl;
+	#endif
     return 0;
 }
 
