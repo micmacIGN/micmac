@@ -754,58 +754,43 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                 int2 mZ = make_int2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
 
-                Rect cellInit;
-
                 bool InTer = IsInTer(anX,anY);
 
                 if (InTer)
                 {
-
                     if ( aEq(rMask.pt0, -1))
                         rMask.pt0 = make_int2(anX,anY);
 
                     rMask.SetMaxMin(anX,anY);
 
-                    cellInit = MAXIRECT;
-
-                }
-                else
-                    cellInit = NEGARECT;
-
-                if(mZMaxGlob == -1e7 && mZMinGlob == 1e7)
-                {
-                    for (int i = 0; i < abs(count(mZ)); ++i)
-                        vCellules.push_back(cellInit);
-                }
-                else
-                {
-                    if (mZ.x < mZMinGlob)
+                    if(mZMaxGlob == -1e7)
+                        vCellules.resize(abs(count(mZ)),MAXIRECT);
+                    else
                     {
-                        for (int i = 0; i < abs(mZ.x - mZMinGlob); ++i)
-                            vCellules.insert(vCellules.begin(),cellInit);
+                        if (mZ.x < mZMinGlob)
+                            vCellules.insert(vCellules.begin(), abs(mZ.x - mZMinGlob),MAXIRECT);
+                        if (mZ.y > mZMaxGlob)
+                            vCellules.insert(vCellules.end(),   abs(mZ.y - mZMaxGlob),MAXIRECT);
                     }
 
-                    if (mZ.y > mZMaxGlob)
-                    {
-                        for (int i = 0; i < abs(mZ.y - mZMaxGlob); ++i)
-                            vCellules.push_back(cellInit);
-                    }
-                }
+                    ElSetMin(mZMinGlob,mZ.x);
+                    ElSetMax(mZMaxGlob,mZ.y);
 
-                ElSetMin(mZMinGlob,mZ.x);
-                ElSetMax(mZMaxGlob,mZ.y);
-
-                if(InTer)
                     for (int i = 0; i < abs(count(mZ)); ++i)
                     {
                         Rect &box = vCellules[i + abs(mZ.x - mZMinGlob)];
-                        if(box == NEGARECT) box = MAXIRECT;
 
                         box.SetMaxMin(anX,anY);
                     }
+                }
             }
         }
 
+        if(mZMinGlob == 1e7 || mZMaxGlob == 1e7)
+        {
+            mZMinGlob = 0;
+            mZMaxGlob = 0;
+        }
 
         inc(rMask.pt1);
         IMmGg.GlobalMaskVolume = rMask.area() * abs(mZMaxGlob-mZMinGlob);
@@ -813,86 +798,58 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
         IMmGg.Param(0).SetDimension(rMask);
         IMmGg.Param(1).SetDimension(rMask);
 
-        uint cellZmaskVol = iDivUp((int)vCellules.size(), INTERZ);
-        //uint reste        = vCellules.size()%INTERZ;
-
-        IMmGg.MaskCellules.clear();
-
-        IMmGg.MaskCellules.resize(cellZmaskVol);
-
-        cellules &celLast = IMmGg.MaskCellules[IMmGg.MaskCellules.size()-1];
-
-        celLast.Dz = mod(vCellules.size(),INTERZ);
-
-        for (uint i = 0; i < vCellules.size(); ++i)
+        if(vCellules.size() > 0)
         {
-            uint sI     = i/INTERZ;
-            cellules &cel = IMmGg.MaskCellules[sI];
-            Rect &Rec   = vCellules[i];
+            uint cellZmaskVol = iDivUp((int)vCellules.size(), INTERZ);
+            uint reste        = vCellules.size()%INTERZ;
 
-            if(Rec != NEGARECT)
+            IMmGg.MaskCellules.clear();
+            IMmGg.MaskCellules.resize(cellZmaskVol);
+
+            cellules &celLast = IMmGg.MaskCellules.back();
+            celLast.Dz = reste;
+
+            //DUMP_UINT((uint)IMmGg.MaskCellules.size())
+
+            for (uint i = 0; i < vCellules.size(); ++i)
+            {
+                uint      sI    = i/INTERZ;
+                cellules &cel   = IMmGg.MaskCellules[sI];
+                Rect     &Rec   = vCellules[i];
+
                 cel.Zone.SetMaxMin(Rec);
-        }
+            }
 
-        for (uint i = 0; i < IMmGg.MaskCellules.size(); ++i)
-        {
-            cellules &cel = IMmGg.MaskCellules[i];
-            //inc(cel.Zone.pt1);
-            if(cel.Zone != MAXIRECT)
+            for (uint i = 0; i < IMmGg.MaskCellules.size(); ++i)
             {
+                cellules &cel   = IMmGg.MaskCellules[i];
                 inc(cel.Zone.pt1);
-                IMmGg.ReduceMaskVolume += cel.Zone.area() * cel.Dz;
-            }
-            else
-                if(rMask.pt0.x != -1)
-                    printf("ooooooooooooooooooooooooooooooooooooooo");
-        }
-
-        /*
-        printf(" %d/%d \t\t\t\t : %d \n",IMmGg.ReduceMaskVolume,IMmGg.GlobalMaskVolume,IMmGg.GlobalMaskVolume-IMmGg.ReduceMaskVolume);
-
-        vCellules.clear();
-        std::vector<Rect> cellReduc;
-        IMmGg.ReduceMaskVolume = 0;
-        cellReduc.resize(cellZmaskVol,MAXIRECT);
-
-        for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
-            for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
-            {
-                if(IsInTer(anX,anY))
-                {
-                    int2 mZ  = make_int2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
-                    uint Dz  = abs(count(mZ));
-                    uint pit = mZ.x - mZMinGlob;
-
-                    for (uint i = pit; i < Dz + pit; ++i)
-                    {
-                         Rect &rec =  cellReduc[i/INTERZ];
-                         rec.SetMaxMin(anX,anY);
-                    }
-                }
             }
 
+//            for (uint i = 0; i < cellZmaskVol; ++i)
+//            {
+//                cellules &cel = IMmGg.MaskCellules[i];
 
-        for (uint i = 0; i < cellReduc.size(); ++i)
-        {
-            Rect rec = ((Rect)cellReduc[i]);
-            if(rec != MAXIRECT)
-            {
-                inc(rec.pt1);
-                IMmGg.ReduceMaskVolume += rec.area() * INTERZ;
-            }
+//                if(cel.Zone != MAXIRECT)
+//                {
+//                    inc(cel.Zone.pt1);
+//                    IMmGg.ReduceMaskVolume += cel.Zone.area() * cel.Dz;
+//                }
+//                else
+//                    if(rMask.pt0.x != -1)
+//                    {
+//                        //cel.Zone.out();
+//                        for(uint j = 0; j < cel.Dz; ++j)
+//                        {
+//                            Rect rr = vCellules[i*INTERZ + j];
+//                            rr.out();
+//                        }
+
+//                        printf("\n");
+//                    }
+//            }
         }
 
-        if(reste != 0 && ((Rect)cellReduc[cellReduc.size()-1]) != MAXIRECT)
-        {
-            Rect &rec = cellReduc[cellReduc.size()-1];
-            inc(rec.pt1);
-            IMmGg.ReduceMaskVolume -= rec.area() * abs(INTERZ - reste);
-        }
-
-        printf(" Test %d/%d \t\t\t\t : %d \n",IMmGg.ReduceMaskVolume,IMmGg.GlobalMaskVolume,IMmGg.GlobalMaskVolume-IMmGg.ReduceMaskVolume);
-*/
 #else
 
         for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
@@ -1642,9 +1599,7 @@ void cAppliMICMAC::DoGPU_Correl
 
                 if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + (int)interZ && anZProjection < mZMaxGlob)
                 {
-//                    cellules Mask = IMmGg.MaskCellules[(anZProjection-mZMinGlob)/INTERZ];
-
-//                    if(Mask.Zone.pt0.x == 1e7) Mask.Zone = ZoneTotal;
+//                    cellules Mask = IMmGg.MaskCellules[abs(anZProjection-mZMinGlob)/INTERZ];
 
 //                    IMmGg.Param(idPreBuf).SetDimension(Mask.Zone);
 
