@@ -745,10 +745,10 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
         std::vector<Rect> vCellules;
 
-        OMP_NT1
+        //OMP_NT1
         for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
         {
-            OMP_NT2
+            //OMP_NT2
             for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
             {
 
@@ -814,7 +814,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
         IMmGg.Param(1).SetDimension(rMask);
 
         uint cellZmaskVol = iDivUp((int)vCellules.size(), INTERZ);
-        uint reste        = vCellules.size()%INTERZ;
+        //uint reste        = vCellules.size()%INTERZ;
 
         IMmGg.MaskCellules.clear();
 
@@ -1532,7 +1532,7 @@ void cAppliMICMAC::DoGPU_Correl
 #ifdef  CUDA_ENABLED
     void cAppliMICMAC::Tabul_Projection(int Z, int zMax, uint &interZ, ushort idBuf)
     {
-        //GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0033);
+        GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0033);
         IMmGg.IntervalZ(interZ, Z, zMax);
         IMmGg.Data().MemsetHostVolumeProj(IMmGg.Param(idBuf).IntDefault);
 
@@ -1580,12 +1580,12 @@ void cAppliMICMAC::DoGPU_Correl
                 }
             }
         }
-        //nvtxRangePop();
+        nvtxRangePop();
     }
 
     void cAppliMICMAC::setVolumeCost( uint z0, uint z1,ushort idBuf)
     {
-        //GpGpuTools::NvtxR_Push(__FUNCTION__,0x335A8833);
+        GpGpuTools::NvtxR_Push(__FUNCTION__,0x335A8833);
         float*  tabCost     = IMmGg.VolumeCost();
         Rect    zone        = IMmGg.Param(idBuf).RTer();
         float   valdefault  = IMmGg.Param(idBuf).floatDefault;
@@ -1608,7 +1608,7 @@ void cAppliMICMAC::DoGPU_Correl
                 }
 
             }
-        //nvtxRangePop();
+        nvtxRangePop();
     }
 
 #endif
@@ -1624,7 +1624,7 @@ void cAppliMICMAC::DoGPU_Correl
         // Si le terrain est masque ou aucune image : Aucun calcul
         if (mNbIm == 0 || !IMmGg.Param(0).MaskNoNULL()) return;
 
-        Rect ZoneTotal = IMmGg.Param(0).rTer;
+        //Rect ZoneTotal = IMmGg.Param(0).rTer;
 
         // Initiation du calcul
         uint interZ = IMmGg.InitCorrelJob(mZMinGlob,mZMaxGlob);
