@@ -51,9 +51,9 @@ public:
     bool eventFilter(QObject* object, QEvent* event);
 
     //! Set data to display
-    void setData(cData* data);
+    void setData(cData* data){ m_Data = data; }  // a supprimer
 
-    cData* getData() {return m_Data;}
+    void updateAfterSetData();
 
     //! Interaction mode (only in 3D)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
@@ -123,9 +123,6 @@ public:
      //! Undo all past selection actions
     void undoAll();
 
-    //! Increase or decrease point size
-    void ptSizeUp(bool);
-
     void getProjection(QPointF &P2D, Pt3dr P);
 
     QVector <selectInfos> getSelectInfos(){return m_infos;}
@@ -140,20 +137,12 @@ public:
 
     void resetTranslationMatrix();
 
-    QImage* getGLMask(){return _mask;}
-
     ViewportParameters* getParams(){return &m_params;}
-
-    void applyGamma(float aGamma);
-
-    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw);
-
-    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QColor color);
-
-    void drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, GLuint idTexture);
 
     void enableOptionLine();
     void disableOptionLine();
+
+    void setGLData(cGLData* aData);
 
 public slots:
     void zoom();
@@ -176,8 +165,6 @@ protected:
     void keyReleaseEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent* event);
 
-    void ImageToTexture(GLuint idTexture,QImage* image);
-
     //inherited from QWidget (drag & drop support)
     virtual void dragEnterEvent(QDragEnterEvent* event);
     virtual void dropEvent(QDropEvent* event);
@@ -192,7 +179,7 @@ protected:
 
     QPointF ImageToWindow(const QPointF &im);
 
-    //! GL context aspect ratio m_glWidth/m_glHeight
+    //! GL context aspect ratio (width/height)
     float m_glRatio;
 
     //! ratio between GL context size and image size
@@ -218,11 +205,6 @@ protected:
         MessagePosition position;
     };
 
-    //! Texture image
-    GLuint      m_textureImage;
-
-    GLuint      m_textureMask;
-
     //! List of messages to display
     list<MessageToDisplay> m_messagesToDisplay;
 
@@ -237,11 +219,11 @@ protected:
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
 
-    //! Data to display
-    cData      *m_Data;
+    //! Loaded Data
+    cData      *m_Data; //a enlever
 
-    //! acceleration factor
-    float       m_speed;
+    //! Data to display
+    cGLData    *m_GLData;
 
     //! selection infos stack
     QVector <selectInfos> m_infos;
@@ -280,17 +262,9 @@ private:
     GLfloat     _g_glMatrix[16];
     QTime       _time;
 
-    QImage      _glImg;
-    QImage      *_mask;
     GLdouble    *_mvmatrix;
     GLdouble    *_projmatrix;
     GLint       *_glViewport;
-
-    cBall       *_theBall;
-    cAxis       *_theAxis;
-    cBBox       *_theBBox;
-
-    QVector < cCam* > _pCams;
 };
 
 #endif  /* _GLWIDGET_H */
