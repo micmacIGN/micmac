@@ -23,7 +23,7 @@ Internet: Marc.Pierrot-Deseilligny@ign.fr
    Phone: (33) 01 43 98 81 28
 eLiSe06/05/99*/
 
-
+#define __TRACE_SYSTEM__
 
 #include "StdAfx.h"
 #include "general/cElCommand.h"
@@ -73,4 +73,7 @@ void bench_command()
 {
    // test la classe cElCommand et ses classes connexes
    bench_path();
+   string command = "\"d:/dev/culture3d/bin/mm3d\" Apero \"d:/dev/culture3d/include/XML_MicMac/Apero-Glob.xml\"  DirectoryChantier=./  \"+PatternAllIm=.*.JPG\"  +AeroOut=-Arbitrary +Ext=dat +ModeleCam=eCalibAutomPhgrStdBasic +FileLibereParam=Param-Fraser.xml DoCompensation=1 +SeuilFE=-1.000000 +TetaLVM=0.010000 +CentreLVM=0.100000 +RayFEInit=0.850000 +CalibIn=-#@LL?~~XXXXXXXXXX +AeroIn=-#@LL?~~XXXXXXXXXX +VitesseInit=4 +PropDiagU=1.000000 +ValDec=eLiberte_Phgr_Std_Dec +ValDecPP=eLiberte_Dec1 +ValAffPP=eLiberteParamDeg_1 +ValAff=eLiberte_Phgr_Std_Aff";
+   cout << "[" << command << "]" << endl;
+   ::System( command );
 }
