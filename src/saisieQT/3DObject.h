@@ -144,6 +144,7 @@ class cBBox : public cObjectGL
 class cCam : public cObjectGL
 {
     public:
+        cCam();
         cCam(CamStenope *pCam);
 
         void    draw();
