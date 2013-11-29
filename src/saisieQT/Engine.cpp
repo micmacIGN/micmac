@@ -225,6 +225,7 @@ void  cEngine::loadImage(QString imgName)
 
     if (img!=NULL) _Data->addImage(img);
     if (mask!=NULL) _Data->addMask(mask);
+    else cout <<"mask null" <<endl;
 }
 
 void cEngine::doMasks()
@@ -370,7 +371,7 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
         for (int aK=0; aK <pts.size(); ++aK)
         {
             QDomElement Point    = doc.createElement("Pt");
-            QString str = QString::number(pts[aK].x()) + " "  + QString::number(pts[aK].y(), 'f',1);
+            QString str = QString::number(pts[aK].x(), 'f',1) + " "  + QString::number(pts[aK].y(), 'f',1);
 
             t = doc.createTextNode( str );
             Point.appendChild(t);
@@ -411,21 +412,17 @@ void cEngine::setGLData()
     {
         cGLData *theData = new cGLData();
 
-        cImageGL * pImg  = new cImageGL();
-        cImageGL * pMask = new cImageGL();
+        //pImg->ImageToTexture(_Data->getImage(aK));
 
-        pImg->ImageToTexture(_Data->getImage(aK));
+        if (_Data->getNbMasks()>aK)
+        {
+            if(_Data->getMask(aK) == NULL)
+                glGenTextures(1, theData->pMask->getTexture() );
 
-        if(_Data->getCurMask() == NULL)
-            glGenTextures(1, pMask->getTexture() );
-
-        if (!_Data->getNbMasks())
+            theData->pMask->ImageToTexture(_Data->getMask(aK));
+        }
+        else if (!_Data->getNbMasks())
             _Data->fillCurMask();
-
-        pMask->ImageToTexture(_Data->getMask(aK));
-
-        theData->pImg = pImg;
-        theData->pMask = pMask;
 
         _GLData.push_back(theData);
     }
