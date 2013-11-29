@@ -82,7 +82,7 @@ extern bool BugDG;
 	#endif
 #endif
 
-#include  "general/MM_InstalDir.h"
+#include  "general/HG_defines.h"
 
 #include "general/sys_dep.h"
 
