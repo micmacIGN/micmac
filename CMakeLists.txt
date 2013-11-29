@@ -150,8 +150,8 @@ else()
 	
 	if ( NOT ${hg_result} )
 	   CONFIGURE_FILE (
-	      "include/general/MM_InstalDir.h.in"
-	      "${CMAKE_SOURCE_DIR}/include/general/MM_InstalDir.h"
+	      "include/general/HG_defines.h.in"
+	      "${CMAKE_SOURCE_DIR}/include/general/HG_defines.h"
 	   )
 	endif()
 endif()

@@ -99,7 +99,6 @@ void UseRequirement(const std::string &,const cTplValGesInit<cBatchRequirement> 
 
 namespace NS_ParamChantierPhotogram{ 
 cMicMacConfiguration * MMC();
-std::string _MMDir();
 std::string MMDir();
 std::string MMBin();
 std::string current_program_fullname();   // mm3d's full name (absolute path + executable name)
