@@ -315,9 +315,19 @@ void cAppliWithSetImage::AddCoupleMMImSec()
                          + aBlank + mFullName 
                          + aBlank + mOri;
       System(aCom);
-      for (int aKI=0 ; aKI<int(mImages.size()) ; aKI++)
+      for (int aKI=0 ; aKI<int(mSetIm->size()) ; aKI++)
       {
+          const std::string & aName1 = (*mSetIm)[aKI];
+          cImSecOfMaster aISOM = StdGetISOM(mICNM,aName1,mOri);
+          const std::list<std::string > *  aLIm = GetBestImSec(aISOM);
+          std::cout << " ### " << aName1 << " ###\n";
+          for (std::list<std::string>::const_iterator itN=aLIm->begin(); itN!=aLIm->end() ; itN++)
+          {
+              const std::string & aName2 = *itN;
+              AddPair(aNam1,aName2);
+          }
       }
+
 }
 
 void cAppliWithSetImage::ComputeStripPair(int aDif)
@@ -642,7 +652,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mBoxOfImage,"BoxOfIm","Associated to ImOfBox, def = full")
   );
   if (! EAMIsInit(&mMMImSec))
-     mMMImSec = mType;
+     mMMImSec = (mType==eStatute);
   if (mModeHelp) 
       exit(0);
   if (! EAMIsInit(&mZoom0))
@@ -664,6 +674,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
 
 void cAppliMMByPair::DoCorrelAndBasculeEpip()
 {
+   std::list<std::string> mLCom;
    for ( tSetPairIm::const_iterator itP= mPairs.begin(); itP!=mPairs.end() ; itP++)
    {
         cImaMM & anI1 = *(itP->first);
