@@ -323,8 +323,8 @@ void cAppliWithSetImage::AddCoupleMMImSec()
           std::cout << " ### " << aName1 << " ###\n";
           for (std::list<std::string>::const_iterator itN=aLIm->begin(); itN!=aLIm->end() ; itN++)
           {
-              const std::string & aName2 = *itN;
-              AddPair(aNam1,aName2);
+              //const std::string & aName2 = *itN;
+              // AddPair(aName1,aName2);
           }
       }
 
