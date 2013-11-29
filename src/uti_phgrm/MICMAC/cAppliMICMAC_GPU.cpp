@@ -40,30 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
-//#define NT1 4
-//#define NT2 3
-
-#if OPM_ENABLED
-    #if ELISE_windows
-        #define OMP_NT1 __pragma("omp parallel for num_threads(4)")
-        #define OMP_NT2 __pragma("omp parallel for num_threads(3)")
-    #else
-        #define OMP_NT1 _Pragma("omp parallel for num_threads(4)")
-        #define OMP_NT2 _Pragma("omp parallel for num_threads(3)")
-    #endif
-#else
-    #define OMP_NT1
-    #define OMP_NT2
-#endif
-
 namespace NS_ParamMICMAC
 {
-
-
-#if CUDA_ENABLED
-    uint2 toUi2(Pt2di a){return make_uint2(a.x,a.y);}
-    int2  toI2(Pt2dr a){return make_int2((int)a.x,(int)a.y);}
-#endif
 
     template <class Type,class TBase>
     Type ** ImDec
@@ -765,33 +743,112 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
         Rect rMask(NEGARECT);
 
-        OMP_NT1
+        std::vector<Rect> vCellules;
+
+        //OMP_NT1
         for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
         {
-            OMP_NT2
+            //OMP_NT2
             for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
             {
-                if (IsInTer(anX,anY))
+
+                int2 mZ = make_int2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
+
+                bool InTer = IsInTer(anX,anY);
+
+                if (InTer)
                 {
                     if ( aEq(rMask.pt0, -1))
                         rMask.pt0 = make_int2(anX,anY);
 
-                    if (anX < rMask.pt0.x ) rMask.pt0.x = anX;
-                    if (anY < rMask.pt0.y ) rMask.pt0.y = anY;
+                    rMask.SetMaxMin(anX,anY);
 
-                    if (rMask.pt1.x < anX) rMask.pt1.x = anX;
-                    if (rMask.pt1.y < anY) rMask.pt1.y = anY;
+                    if(mZMaxGlob == -1e7)
+                        vCellules.resize(abs(count(mZ)),MAXIRECT);
+                    else
+                    {
+                        if (mZ.x < mZMinGlob)
+                            vCellules.insert(vCellules.begin(), abs(mZ.x - mZMinGlob),MAXIRECT);
+                        if (mZ.y > mZMaxGlob)
+                            vCellules.insert(vCellules.end(),   abs(mZ.y - mZMaxGlob),MAXIRECT);
+                    }
 
+                    ElSetMin(mZMinGlob,mZ.x);
+                    ElSetMax(mZMaxGlob,mZ.y);
+
+                    for (int i = 0; i < abs(count(mZ)); ++i)
+                    {
+                        Rect &box = vCellules[i + abs(mZ.x - mZMinGlob)];
+
+                        box.SetMaxMin(anX,anY);
+                    }
                 }
-
-                ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
-                ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
             }
         }
 
-        inc(rMask.pt1);       
+        if(mZMinGlob == 1e7 || mZMaxGlob == 1e7)
+        {
+            mZMinGlob = 0;
+            mZMaxGlob = 0;
+        }
 
-        IMmGg.Param().SetDimension(rMask);
+        inc(rMask.pt1);
+        IMmGg.GlobalMaskVolume = rMask.area() * abs(mZMaxGlob-mZMinGlob);
+        IMmGg.ReduceMaskVolume = 0;
+        IMmGg.Param(0).SetDimension(rMask);
+        IMmGg.Param(1).SetDimension(rMask);
+
+        if(vCellules.size() > 0)
+        {
+            uint cellZmaskVol = iDivUp((int)vCellules.size(), INTERZ);
+            uint reste        = vCellules.size()%INTERZ;
+
+            IMmGg.MaskCellules.clear();
+            IMmGg.MaskCellules.resize(cellZmaskVol);
+
+            cellules &celLast = IMmGg.MaskCellules.back();
+            celLast.Dz = reste;
+
+            //DUMP_UINT((uint)IMmGg.MaskCellules.size())
+
+            for (uint i = 0; i < vCellules.size(); ++i)
+            {
+                uint      sI    = i/INTERZ;
+                cellules &cel   = IMmGg.MaskCellules[sI];
+                Rect     &Rec   = vCellules[i];
+
+                cel.Zone.SetMaxMin(Rec);
+            }
+
+            for (uint i = 0; i < IMmGg.MaskCellules.size(); ++i)
+            {
+                cellules &cel   = IMmGg.MaskCellules[i];
+                inc(cel.Zone.pt1);
+            }
+
+//            for (uint i = 0; i < cellZmaskVol; ++i)
+//            {
+//                cellules &cel = IMmGg.MaskCellules[i];
+
+//                if(cel.Zone != MAXIRECT)
+//                {
+//                    inc(cel.Zone.pt1);
+//                    IMmGg.ReduceMaskVolume += cel.Zone.area() * cel.Dz;
+//                }
+//                else
+//                    if(rMask.pt0.x != -1)
+//                    {
+//                        //cel.Zone.out();
+//                        for(uint j = 0; j < cel.Dz; ++j)
+//                        {
+//                            Rect rr = vCellules[i*INTERZ + j];
+//                            rr.out();
+//                        }
+
+//                        printf("\n");
+//                    }
+//            }
+        }
 
 #else
 
@@ -1430,14 +1487,14 @@ void cAppliMICMAC::DoGPU_Correl
 }
 
 #ifdef  CUDA_ENABLED
-    void cAppliMICMAC::Tabul_Projection(int Z, int zMax, uint &interZ)
+    void cAppliMICMAC::Tabul_Projection(int Z, int zMax, uint &interZ, ushort idBuf)
     {
-
+        GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0033);
         IMmGg.IntervalZ(interZ, Z, zMax);
-        IMmGg.Data().MemsetHostVolumeProj(IMmGg.Param().IntDefault);
+        IMmGg.Data().MemsetHostVolumeProj(IMmGg.Param(idBuf).IntDefault);
 
-        Rect    zone        = IMmGg.Param().RDTer();
-        uint    sample      = IMmGg.Param().sampProj;
+        Rect    zone        = IMmGg.Param(idBuf).RDTer();
+        uint    sample      = IMmGg.Param(idBuf).sampProj;
         float2  *pTabProj   = IMmGg.Data().HostVolumeProj();
         uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain
         uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain echantilloné
@@ -1480,14 +1537,15 @@ void cAppliMICMAC::DoGPU_Correl
                 }
             }
         }
+        nvtxRangePop();
     }
 
-    void cAppliMICMAC::setVolumeCost( uint z0, uint z1)
+    void cAppliMICMAC::setVolumeCost( uint z0, uint z1,ushort idBuf)
     {
-
+        GpGpuTools::NvtxR_Push(__FUNCTION__,0x335A8833);
         float*  tabCost     = IMmGg.VolumeCost();
-        Rect    zone        = IMmGg.Param().RTer();
-        float   valdefault  = IMmGg.Param().floatDefault;
+        Rect    zone        = IMmGg.Param(idBuf).RTer();
+        float   valdefault  = IMmGg.Param(idBuf).floatDefault;
 
         uint2 rDiTer = zone.dimension();
         uint  rSiTer = size(rDiTer);
@@ -1507,6 +1565,7 @@ void cAppliMICMAC::DoGPU_Correl
                 }
 
             }
+        nvtxRangePop();
     }
 
 #endif
@@ -1520,12 +1579,16 @@ void cAppliMICMAC::DoGPU_Correl
 #ifdef  CUDA_ENABLED
 
         // Si le terrain est masque ou aucune image : Aucun calcul
-        if (mNbIm == 0 || !IMmGg.Param().MaskNoNULL()) return;
+        if (mNbIm == 0 || !IMmGg.Param(0).MaskNoNULL()) return;
+
+        //Rect ZoneTotal = IMmGg.Param(0).rTer;
 
         // Initiation du calcul
         uint interZ = IMmGg.InitCorrelJob(mZMinGlob,mZMaxGlob);
 
         int anZProjection = mZMinGlob, anZComputed= mZMinGlob, ZtoCopy = 0;
+
+        bool idPreBuf = false;
 
         // Parcourt de l'intervalle de Z compris dans la nappe globale
         if (IMmGg.UseMultiThreading())
@@ -1536,18 +1599,26 @@ void cAppliMICMAC::DoGPU_Correl
 
                 if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + (int)interZ && anZProjection < mZMaxGlob)
                 {
-                    Tabul_Projection( anZProjection, mZMaxGlob, interZ);
+//                    cellules Mask = IMmGg.MaskCellules[abs(anZProjection-mZMinGlob)/INTERZ];
+
+//                    IMmGg.Param(idPreBuf).SetDimension(Mask.Zone);
+
+//                    IMmGg.ReallocHostData(interZ,idPreBuf);
+
+                    Tabul_Projection( anZProjection, mZMaxGlob, interZ,idPreBuf);
 
                     IMmGg.signalComputeCorrel(interZ);
 
                     anZProjection+= interZ;
+
+                    idPreBuf = !idPreBuf;
                 }
 
                 // Affectation des couts si des nouveaux ont ete calcule!
 
                 if ((ZtoCopy = (int)IMmGg.GetDataToCopy()))
                 {
-                    setVolumeCost(anZComputed,anZComputed + ZtoCopy);
+                    setVolumeCost(anZComputed,anZComputed + ZtoCopy,!IMmGg.GetIdBuf());
 
                     anZComputed += ZtoCopy;
 
@@ -1559,12 +1630,12 @@ void cAppliMICMAC::DoGPU_Correl
             while( anZComputed < mZMaxGlob )
             {
                 // calcul des projections
-                Tabul_Projection( anZComputed,mZMaxGlob,interZ);
+                Tabul_Projection( anZComputed,mZMaxGlob,interZ,0);
 
                 // Kernel Correlation
                 IMmGg.BasicCorrelation(interZ);
 
-                setVolumeCost(anZComputed,anZComputed + interZ);
+                setVolumeCost(anZComputed,anZComputed + interZ,0);
 
                 anZComputed += interZ;
             }
@@ -1727,12 +1798,23 @@ void cAppliMICMAC::GlobDoCorrelAdHoc
 #if CUDA_ENABLED
         IMmGg.box.x = aBoxIn.sz().x;
         IMmGg.box.y = aBoxIn.sz().y;
-#endif
+        IMmGg.SetProgress(aDecInterv.NbInterv());
 
+
+        IMmGg.GlobalMaskVolume = 0;
+        IMmGg.ReduceMaskVolume = 0;
+#endif
         for (int aKBox=0 ; aKBox<aDecInterv.NbInterv() ; aKBox++)
         {
             DoCorrelAdHoc(aDecInterv.KthIntervOut(aKBox));
+            #if CUDA_ENABLED
+                IMmGg.IncProgress();
+            #endif
         }
+
+//        printf(" GAIN ----------------- %f\n",(((float)(IMmGg.GlobalMaskVolume-IMmGg.ReduceMaskVolume)/(float)IMmGg.GlobalMaskVolume)*100.0f));
+//        DUMP_UINT(IMmGg.GlobalMaskVolume)
+//        DUMP_UINT(IMmGg.ReduceMaskVolume)
 
 }
 
