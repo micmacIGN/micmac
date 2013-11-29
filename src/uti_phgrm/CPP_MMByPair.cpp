@@ -67,6 +67,7 @@ class cAppliMMByPair : public cAppliWithSetImage
       int mZoom0;
       int mZoomF;
       bool mDelaunay;
+      bool mMMImSec;
       int mDiffInStrip;
       bool mStripIsFirt;
       std::string  mPairByStrip;
@@ -306,6 +307,17 @@ void cAppliWithSetImage::AddDelaunayCple()
        (cImaMM **) 0
   );
 
+}
+
+void cAppliWithSetImage::AddCoupleMMImSec()
+{
+      std::string aCom = MMDir() + "bin/mm3d AperoChImSecMM "
+                         + aBlank + mFullName 
+                         + aBlank + mOri;
+      System(aCom);
+      for (int aKI=0 ; aKI<int(mImages.size()) ; aKI++)
+      {
+      }
 }
 
 void cAppliWithSetImage::ComputeStripPair(int aDif)
@@ -591,6 +603,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mZoom0       (64),
     mZoomF       (1),
     mDelaunay    (false),
+    mMMImSec     (false),
     mDiffInStrip (1),
     mStripIsFirt (true),
     mDirBasc     ("MTD-Nuage"),
@@ -614,6 +627,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
         LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64")
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final, Def=1")
                     << EAM(mDelaunay,"Delaunay","Add delaunay edges in pair to macth, Def=False")
+                    << EAM(mMMImSec,"MMImSec","Add pair from AperoChImSecMM,  Def=true in mode Statute")
                     << EAM(mPairByStrip,"ByStrip",true,"Pair in same strip , first () : strip, second () : num in strip (or reverse with StripIsFisrt)")
                     << EAM(mStripIsFirt,"StripIsFisrt",true,"If true : first expr is strip, second is num in strip Def=true")
                     << EAM(mDiffInStrip,"DeltaStrip",true,"Delta in same strip (Def=1,apply with mPairByStrip)")
@@ -627,6 +641,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mImageOfBox,"ImOfBox","Image to define box for MTD (test purpose to limit size of result)")
                     << EAM(mBoxOfImage,"BoxOfIm","Associated to ImOfBox, def = full")
   );
+  if (! EAMIsInit(&mMMImSec))
+     mMMImSec = mType;
   if (mModeHelp) 
       exit(0);
   if (! EAMIsInit(&mZoom0))
@@ -640,6 +656,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
   }
   if (mDelaunay)
      AddDelaunayCple();
+  if (mMMImSec)
+     AddCoupleMMImSec();
 
   mNbStep = round_ni(log2(mZoom0/double(mZoomF))) + 3 ;
 }
