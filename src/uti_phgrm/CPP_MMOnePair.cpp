@@ -58,6 +58,7 @@ class cMMOnePair
       std::string NameAutoM(int aStep,std::string aPost = "" ) {return "AutoMask_LeChantier_Num_" + ToString(ElMin(aStep,mStepEnd-1)) + aPost +".tif";}
 
       bool             mExe;
+      bool             mMM1PInParal;
       int              mZoom0;
       int              mZoomF;
       int              mStepEnd;
@@ -115,6 +116,7 @@ class cAppliMMOnePair : public cMMOnePair,
 
 cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mExe          (true),
+    mMM1PInParal  (true),
     mZoom0        (64),
     mZoomF        (1),
     mByEpip       (true),
@@ -143,6 +145,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mSigmaP,"SigmaP",true,"Sigma Pixel for coherence (Def=1.5)")
                     << EAM(mBoxIm,"BoxIm",true,"Box of calc in Epip, tuning purpose, def=All image")
                     << EAM(mPurge,"Purge",true,"Purge directory, tuning, def=true")
+                    << EAM(mMM1PInParal,"InParal",true,"Do it in paral, def=true")
   );
 
   mNoOri = (mNameOriInit=="NONE");
@@ -169,7 +172,10 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                                + std::string(" CreateEpip ")
                                + " " + mNameIm1Init 
                                + " " + mNameIm2Init 
-                               + " " + mNameOriInit;
+                               + " " + mNameOriInit
+                               + " InParal=" + ToString(mMM1PInParal)
+                              ;
+
              System(aCom);
        }
   }
@@ -272,7 +278,8 @@ void cAppliMMOnePair::SymetriseMasqReentrant()
                         + aBlk + ToString(aSzY) 
                         + aBlk + "0"
                         + aBlk + ToString(aSzY) 
-                        + aBlk + ToString(!mCpleE->IsLeft(true));
+                        + aBlk + ToString(!mCpleE->IsLeft(true))
+                        + " InParal=" + ToString(mMM1PInParal) ;
 
    System(aCom);
 
@@ -283,7 +290,6 @@ void cAppliMMOnePair::SymetriseMasqReentrant()
         ELISE_fp::MvFile(aDir+NameAutoM(mStepEnd,"_MSym"),aDir+aNAM);
    }
    std::cout << "cAppliMMOnePair::SymetriseMasqReentrant \n";
-   
 }
 
 
@@ -349,6 +355,7 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                           + " Step="     + ToString(aResol)
                           + " SigP="     + ToString(mSigmaP)
                           + " Prefix="   + aPref
+                          + " InParal="  + ToString(mMM1PInParal)
                       ;
 
      System(aCom);
@@ -426,6 +433,7 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
                           + " +CMS="     + ToString(mCMS)
                           + " +DoOnlyXml="     + ToString(ForMTD)
                           + " +MMC="     + ToString(!ForMTD)
+                          + " +NbProc=" + ToString(mMM1PInParal ? MMNbProc() : 1)
 // FirstEtapeMEC=5 LastEtapeMEC=6
                       ;
 
@@ -630,6 +638,7 @@ int MMSymMasqAR_main(int argc,char ** argv)
   bool aFirsIsRight;
   double  aStep = 1.0;
   bool   CalleByP = false;
+  bool   InParal = false;
 
   ElInitArgMain
   (
@@ -645,6 +654,7 @@ int MMSymMasqAR_main(int argc,char ** argv)
                     << EAMC(aFirsIsRight,"FR"),
         LArgMain()  << EAM(aStep,"Step",true,"Step of pax")
                     << EAM(CalleByP,"CalleByP","Internal use")
+                    << EAM(InParal,"InParal","Internal use")
   );
 
   if (! CalleByP)
@@ -683,7 +693,10 @@ int MMSymMasqAR_main(int argc,char ** argv)
 
              aLCom.push_back(aCom);
       }
-      cEl_GPAO::DoComInParal(aLCom,"MakeSymMasq");
+      if (InParal)
+         cEl_GPAO::DoComInParal(aLCom,"MakeSymMasq");
+      else
+         cEl_GPAO::DoComInSerie(aLCom);
   }
   else
   {
