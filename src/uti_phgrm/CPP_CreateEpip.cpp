@@ -74,6 +74,7 @@ int CreateEpip_main(int argc,char ** argv)
 
     bool Gray = true;
     bool Cons16B = true;
+    bool InParal = true;
     
 
     ElInitArgMain
@@ -86,6 +87,7 @@ int CreateEpip_main(int argc,char ** argv)
                     << EAM(aDir,"Dir",true,"directory, def = current")
                     << EAM(Gray,"Gray",true,"One channel Gray level image (Def=true)")
                     << EAM(Cons16B,"16B",true,"Maintain 16 Bits images if avalaibale (Def=true)")
+                    << EAM(InParal,"InParal",true,"Compute in parallel (Def=true)")
     );	
     if (aName1 > aName2) ElSwap(aName1,aName2);
 
@@ -126,9 +128,9 @@ int CreateEpip_main(int argc,char ** argv)
 
      std::cout << "TimeEpi-0 \n";
      ElTimer aChrono;
-     aCplE.ImEpip(aTif1,aNameOr1,true);
+     aCplE.ImEpip(aTif1,aNameOr1,true,InParal);
      std::cout << "TimeEpi-1 " << aChrono.uval() << "\n";
-     aCplE.ImEpip(aTif2,aNameOr2,false);
+     aCplE.ImEpip(aTif2,aNameOr2,false,InParal);
      std::cout << "TimeEpi-2 " << aChrono.uval() << "\n";
 
      return EXIT_SUCCESS;
