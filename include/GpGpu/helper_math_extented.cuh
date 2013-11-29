@@ -115,7 +115,7 @@ struct Rect
 
 	void out()
 	{
-		std::cout << "(" << pt0.x << "," <<  pt0.y << ")" << " -> (" << pt1.x << "," <<  pt1.y << ") ";
+        std::cout << "[(" << pt0.x << "," <<  pt0.y << ")" << "(" << pt1.x << "," <<  pt1.y << ")] ";
 	}
 
 #endif
