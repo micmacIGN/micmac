@@ -42,12 +42,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
 
     m_font.setPointSize(10);
 
-    _theBall = new cBall();
-    _theAxis = new cAxis();
-    _theBBox = new cBBox();
-
-    _theImage = new cImageGL();
-    _theMask  = new cImageGL();
+    m_GLData = new cGLData();
 
     installEventFilter(this);
     setMouseTracking(true);
@@ -59,12 +54,7 @@ GLWidget::~GLWidget()
     delete [] _projmatrix;
     delete [] _glViewport;
 
-    delete _theBall;
-    delete _theAxis;
-    delete _theBBox;
-
-    delete _theImage;
-    delete _theMask;
+    delete m_GLData;
 }
 
 bool GLWidget::eventFilter(QObject* object,QEvent* event)
@@ -122,8 +112,8 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                 float d_angleX = m_params.m_speed * dPWin.y() / (float) _glViewport[3];
                 float d_angleY = m_params.m_speed * dPWin.x() / (float) _glViewport[2];
 
-                m_params.angleX += d_angleX;
-                m_params.angleY += d_angleY;
+                m_params.m_angleX += d_angleX;
+                m_params.m_angleY += d_angleY;
 
                 setRotateOx_m33( d_angleX, _g_rotationOx );
                 setRotateOy_m33( d_angleY, _g_rotationOy );
@@ -158,7 +148,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
             {
                 float d_angleZ =  m_params.m_speed * dPWin.x() / (float) _glViewport[2];
 
-                m_params.angleZ += d_angleZ;
+                m_params.m_angleZ += d_angleZ;
 
                 setRotateOz_m33( d_angleZ, _g_rotationOz );
 
@@ -346,6 +336,11 @@ void GLWidget::disableOptionLine()
     glEnable(GL_DEPTH_TEST);
 }
 
+void GLWidget::setGLData(cGLData * aData)
+{
+
+}
+
 void GLWidget::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -394,20 +389,20 @@ void GLWidget::paintGL()
         m_glPosition[0] = m_glPosition[1] = 0.f;
 
         glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
-        _theImage->setDimensions(m_rh, m_rw);
-        _theImage->draw(QColor(255,255,255));
+        m_GLData->pImg->setDimensions(m_rh, m_rw);
+        m_GLData->pImg->draw(QColor(255,255,255));
 
         if(m_Data->getCurMask() != NULL && !_g_mouseMiddleDown)
         {
-            _theMask->setDimensions(m_rh, m_rw);
-            _theMask->bind_draw();
+            m_GLData->pMask->setDimensions(m_rh, m_rw);
+            m_GLData->pMask->bind_draw();
             glBlendFunc(GL_ONE,GL_ONE);
 
-            _theMask->draw(QColor(128,128,128));
+            m_GLData->pMask->draw(QColor(128,128,128));
             glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
         }
 
-        _theImage->bind_draw();
+        m_GLData->pImg->bind_draw();
 
         glPopMatrix();
 
@@ -448,15 +443,15 @@ void GLWidget::paintGL()
 
         enableOptionLine();
 
-        if (_theBall->isVisible())
-            _theBall->draw();
-        else if (_theAxis->isVisible())
-            _theAxis->draw();
+        if (m_GLData->pBall->isVisible())
+            m_GLData->pBall->draw();
+        else if (m_GLData->pAxis->isVisible())
+            m_GLData->pAxis->draw();
 
-        _theBBox->draw();
+        m_GLData->pBbox->draw();
 
         //cameras
-        for (int i=0; i<_pCams.size();i++) _pCams[i]->draw();
+        for (int i=0; i< m_GLData->Cams.size();i++) m_GLData->Cams[i]->draw();
 
         disableOptionLine();
 
@@ -582,19 +577,32 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
     }
 }
 
-void GLWidget::setData(cData *data)
+void GLWidget::updateAfterSetData()
 {
     clearPolyline();
-    m_Data = data;
 
-    if ((m_Data->getNbClouds())||(m_Data->getNbCameras()))
+
+    if (m_Data->is3D())
     {
-        m_bDisplayMode2D = false;
-
         float scale = m_Data->m_diam / 1.5f;
 
+        m_bDisplayMode2D = false;
+
+        //a passer dans m_GLData
         for (int aK=0; aK<m_Data->getNbClouds();aK++)
             m_Data->getCloud(aK)->setBufferGl();
+
+        setZoom(m_Data->getScale());
+
+        m_GLData->pBall->setPosition(m_Data->getCenter());
+        m_GLData->pBall->setScale(scale);
+        m_GLData->pBall->setVisible(true);
+
+        m_GLData->pAxis->setPosition(m_Data->getCenter());
+        m_GLData->pAxis->setScale(scale);
+
+        m_GLData->pBbox->setPosition(m_Data->getCenter());
+        m_GLData->pBbox->set(m_Data->m_minX,m_Data->m_minY,m_Data->m_minZ,m_Data->m_maxX,m_Data->m_maxY,m_Data->m_maxZ);
 
         for (int i=0; i<m_Data->getNbCameras();i++)
         {
@@ -603,20 +611,8 @@ void GLWidget::setData(cData *data)
             pCam->setScale(scale);
             pCam->setVisible(true);
 
-            _pCams.push_back(pCam);
+            m_GLData->Cams.push_back(pCam);
         }
-
-        setZoom(m_Data->getScale());
-
-        _theBall->setPosition(m_Data->getCenter());
-        _theBall->setScale(scale);
-        _theBall->setVisible(true);
-
-        _theAxis->setPosition(m_Data->getCenter());
-        _theAxis->setScale(scale);
-
-        _theBBox->setPosition(m_Data->getCenter());
-        _theBBox->set(m_Data->m_minX,m_Data->m_minY,m_Data->m_minZ,m_Data->m_maxX,m_Data->m_maxY,m_Data->m_maxZ);
 
         resetTranslationMatrix();
     }
@@ -629,27 +625,22 @@ void GLWidget::setData(cData *data)
 
         zoomFit();
 
-        //position de l'image dans la vue gl             
+        //position de l'image dans la vue gl
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
         glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
-        glGenTextures(1, _theImage->getTexture());
+        glGenTextures(1, m_GLData->pImg->getTexture());
 
-        _theImage->ImageToTexture(m_Data->getCurImage());
+        m_GLData->pImg->ImageToTexture(m_Data->getCurImage());
 
         if(m_Data->getCurMask() == NULL)
-            glGenTextures(1, _theMask->getTexture() );
+            glGenTextures(1, m_GLData->pMask->getTexture());
 
         if (m_Data->getNbMasks())
             m_bFirstAction = false;
         else
-        {
-            m_Data->fillCurMask();
             m_bFirstAction = true;
-        }
-
-        _theMask->ImageToTexture(m_Data->getCurMask());
     }
 
     glGetIntegerv (GL_VIEWPORT, _glViewport);
@@ -997,9 +988,9 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 
             m_Data->setCenter(Pt);
 
-            _theBall->setPosition(Pt);
-            _theAxis->setPosition(Pt);
-            _theBBox->setPosition(Pt);
+            m_GLData->pBall->setPosition(Pt);
+            m_GLData->pAxis->setPosition(Pt);
+            m_GLData->pBbox->setPosition(Pt);
 
             for (int aK=0; aK < m_Data->getNbClouds();++aK)
             {
@@ -1107,7 +1098,7 @@ void GLWidget::Select(int mode)
          if(mode == INVERT)
              m_Data->getCurMask()->invertPixels(QImage::InvertRgb);
 
-         _theMask->ImageToTexture(m_Data->getCurMask());
+          m_GLData->pMask->ImageToTexture(m_Data->getCurMask());
     }
     else
     {
@@ -1178,29 +1169,29 @@ void GLWidget::clearPolyline()
 
 void GLWidget::showAxis(bool show)
 {
-    _theAxis->setVisible(show);
+    m_GLData->pAxis->setVisible(show);
 
     update();
 }
 
 void GLWidget::showBall(bool show)
 {
-    _theBall->setVisible(show);
+    m_GLData->pBall->setVisible(show);
 
     update();
 }
 
 void GLWidget::showCams(bool show)
 {
-    for (int i=0; i < _pCams.size();i++)
-        _pCams[i]->setVisible(show);
+    for (int i=0; i < m_GLData->Cams.size();i++)
+        m_GLData->Cams[i]->setVisible(show);
 
     update();
 }
 
 void GLWidget::showBBox(bool show)
 {
-    _theBBox->setVisible(show);
+    m_GLData->pBbox->setVisible(show);
 
     update();
 }
@@ -1262,7 +1253,7 @@ void GLWidget::resetView()
 
         setZoom(m_Data->getScale());
 
-        _theBall->setVisible(hasDataLoaded()); //rustine - a passer dans MainWindow pour ui->action_showBall->setChecked(false)
+        m_GLData->pBall->setVisible(hasDataLoaded()); //rustine - a passer dans MainWindow pour ui->action_showBall->setChecked(false)
     }
 
     update();

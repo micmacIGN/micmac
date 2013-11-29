@@ -25,6 +25,7 @@ class cData
         void clearMasks();
 
         bool isDataLoaded(){return getNbClouds()||getNbCameras() ||getNbImages();}
+        bool is3D(){return getNbClouds()||getNbCameras();}
 
         int getNbCameras() {return _Cameras.size();}
         int getNbClouds()  {return _Clouds.size(); }

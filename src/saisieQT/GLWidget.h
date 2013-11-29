@@ -51,9 +51,9 @@ public:
     bool eventFilter(QObject* object, QEvent* event);
 
     //! Set data to display
-    void setData(cData* data);
+    void setData(cData* data){ m_Data = data; }  // a supprimer
 
-    cData* getData() {return m_Data;}
+    void updateAfterSetData();
 
     //! Interaction mode (only in 3D)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
@@ -142,6 +142,8 @@ public:
     void enableOptionLine();
     void disableOptionLine();
 
+    void setGLData(cGLData* aData);
+
 public slots:
     void zoom();
 
@@ -217,8 +219,11 @@ protected:
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
 
+    //! Loaded Data
+    cData      *m_Data; //a enlever
+
     //! Data to display
-    cData      *m_Data;
+    cGLData    *m_GLData;
 
     //! selection infos stack
     QVector <selectInfos> m_infos;
@@ -260,15 +265,6 @@ private:
     GLdouble    *_mvmatrix;
     GLdouble    *_projmatrix;
     GLint       *_glViewport;
-
-    cBall       *_theBall;
-    cAxis       *_theAxis;
-    cBBox       *_theBBox;
-
-    cImageGL    *_theImage;
-    cImageGL    *_theMask;
-
-    QVector < cCam* > _pCams;
 };
 
 #endif  /* _GLWIDGET_H */

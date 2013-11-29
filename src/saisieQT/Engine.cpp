@@ -7,7 +7,7 @@ cLoader::cLoader()
    _postFix("_Masq")
 {}
 
-void cLoader::SetFilenamesOut()
+void cLoader::setFilenamesOut()
 {
     _FilenamesOut.clear();
 
@@ -19,19 +19,19 @@ void cLoader::SetFilenamesOut()
     }
 }
 
-void cLoader::SetFilenameOut(QString str)
+void cLoader::setFilenameOut(QString str)
 {
     _FilenamesOut.clear();
 
     _FilenamesOut.push_back(str);
 }
 
-void cLoader::SetPostFix(QString str)
+void cLoader::setPostFix(QString str)
 {
     _postFix = str;
 }
 
-void cLoader::SetSelectionFilename()
+void cLoader::setSelectionFilename()
 {
     _SelectionOut = _Dir.absolutePath() + QDir::separator() + "SelectionInfos.xml";
 }
@@ -61,7 +61,7 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
 
     QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif";
 
-    SetFilenameOut(mask_filename);
+    setFilenameOut(mask_filename);
 
     if (img->isNull())
     {
@@ -181,6 +181,9 @@ cEngine::~cEngine()
 {
    delete _Data;
    delete _Loader;
+
+    for (uint aK=0; aK < _GLData.size();++aK)
+        delete _GLData[aK];
 }
 
 void cEngine::loadClouds(QStringList filenames, int* incre)
@@ -210,7 +213,7 @@ void cEngine::loadImages(QStringList filenames)
         loadImage(filenames[i]);
     }
 
-    _Loader->SetFilenamesOut();
+    _Loader->setFilenamesOut();
 }
 
 void  cEngine::loadImage(QString imgName)
@@ -258,7 +261,7 @@ void cEngine::doMasks()
             }
         }
 
-        string aOut = _Loader->GetFilenamesOut()[cK].toStdString();
+        string aOut = _Loader->getFilenamesOut()[cK].toStdString();
 #ifdef _DEBUG
         printf ("Saving %s\n", aOut);
 #endif
@@ -294,7 +297,7 @@ void cEngine::doMaskImage()
 			}
 		}
 
-		QString aOut = _Loader->GetFilenamesOut()[0];
+        QString aOut = _Loader->getFilenamesOut()[0];
 		string sOut = aOut.toStdString();
 
 		#ifdef _DEBUG
@@ -333,7 +336,7 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
 {
     QDomDocument doc;
 
-    QFile outFile(_Loader->GetSelectionFilename());
+    QFile outFile(_Loader->getSelectionFilename());
     if (!outFile.open(QIODevice::WriteOnly)) return;
 
     QDomElement SI = doc.createElement("SelectionInfos");
@@ -352,7 +355,7 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
         t = doc.createTextNode(QString::number(SInfo.params.m_zoom));
         Scale.appendChild(t);
 
-        t = doc.createTextNode(QString::number(SInfo.params.angleX) + " " + QString::number(SInfo.params.angleY) + " " + QString::number(SInfo.params.angleZ));
+        t = doc.createTextNode(QString::number(SInfo.params.m_angleX) + " " + QString::number(SInfo.params.m_angleY) + " " + QString::number(SInfo.params.m_angleZ));
         Rotation.appendChild(t);
 
         t = doc.createTextNode(QString::number(SInfo.params.m_translationMatrix[0]) + " " + QString::number(SInfo.params.m_translationMatrix[1]) + " " + QString::number(SInfo.params.m_translationMatrix[2]));
@@ -402,14 +405,12 @@ void cEngine::unloadAll()
     _Data->reset();
 }
 
-vector <cImageGL*> g_pImgs;
-vector <cImageGL*> g_pMasks;
-vector <cCam*> _pCams;
-
-void cEngine::setGLObjects()
+void cEngine::setGLData()
 {
     for (int aK = 0; aK < _Data->getNbImages();++aK)
     {
+        cGLData *theData = new cGLData();
+
         cImageGL * pImg  = new cImageGL();
         cImageGL * pMask = new cImageGL();
 
@@ -423,32 +424,69 @@ void cEngine::setGLObjects()
 
         pMask->ImageToTexture(_Data->getMask(aK));
 
-        g_pImgs.push_back(pImg);
-        g_pMasks.push_back(pMask);
+        theData->pImg = pImg;
+        theData->pMask = pMask;
+
+        _GLData.push_back(theData);
     }
 
-    for (int aK = 0; aK < _Data->getNbClouds();++aK)
+    if (_Data->is3D())
     {
-        _Data->getCloud(aK)->setBufferGl();
-    }
+        cGLData *theData = new cGLData();
 
-    for (int aK = 0; aK < _Data->getNbCameras();++aK)
-    {
-        cCam *pCam = new cCam(_Data->getCamera(aK));
+        for (int aK = 0; aK < _Data->getNbClouds();++aK)
+        {
+            _Data->getCloud(aK)->setBufferGl();
+        }
 
-        _pCams.push_back(pCam);
+        for (int aK = 0; aK < _Data->getNbCameras();++aK)
+        {
+            cCam *pCam = new cCam(_Data->getCamera(aK));
+
+            theData->Cams.push_back(pCam);
+        }
+
+        _GLData.push_back(theData);
     }
+}
+cGLData* cEngine::getGLData(int WidgetIndex)
+{
+    if (_GLData.size() > 0)
+        return _GLData[WidgetIndex];
+    else
+        return NULL;
+}
+
+cGLData::cGLData()
+{
+    pImg  = new cImageGL();
+    pMask = new cImageGL();
+
+    pBall = new cBall();
+    pAxis = new cAxis();
+    pBbox = new cBBox();
+}
+
+cGLData::~cGLData()
+{
+    delete pImg;
+    delete pMask;
+    for (int aK = 0; aK< Cams.size();++aK) delete Cams[aK];
+
+    delete pBall;
+    delete pAxis;
+    delete pBbox;
 }
 
 //********************************************************************************
 
 ViewportParameters::ViewportParameters()
     : m_zoom(1.f)
-    , PointSize(1.f)
-    , LineWidth(1.f)
-    , angleX(0.f)
-    , angleY(0.f)
-    , angleZ(0.f)
+    , m_PointSize(1)
+    , m_LineWidth(1.f)
+    , m_angleX(0.f)
+    , m_angleY(0.f)
+    , m_angleZ(0.f)
     , m_gamma(1.f)
     , m_speed(2.f)
 {
@@ -457,11 +495,11 @@ ViewportParameters::ViewportParameters()
 
 ViewportParameters::ViewportParameters(const ViewportParameters& params)
     : m_zoom(params.m_zoom)
-    , PointSize(params.PointSize)
-    , LineWidth(params.LineWidth)
-    , angleX(params.angleX)
-    , angleY(params.angleY)
-    , angleZ(params.angleZ)
+    , m_PointSize(params.m_PointSize)
+    , m_LineWidth(params.m_LineWidth)
+    , m_angleX(params.m_angleX)
+    , m_angleY(params.m_angleY)
+    , m_angleZ(params.m_angleZ)
 {
     m_translationMatrix[0] = params.m_translationMatrix[0];
     m_translationMatrix[1] = params.m_translationMatrix[1];
@@ -475,16 +513,16 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
     if (this != &par)
     {
         m_zoom = par.m_zoom;
-        PointSize = par.PointSize;
+        m_PointSize = par.m_PointSize;
 
-        angleX = par.angleX;
-        angleY = par.angleY;
-        angleZ = par.angleZ;
+        m_angleX = par.m_angleX;
+        m_angleY = par.m_angleY;
+        m_angleZ = par.m_angleZ;
 
         m_translationMatrix[0] = par.m_translationMatrix[0];
         m_translationMatrix[1] = par.m_translationMatrix[1];
         m_translationMatrix[2] = par.m_translationMatrix[2];
-        LineWidth = par.LineWidth;
+        m_LineWidth = par.m_LineWidth;
         m_gamma 	= par.m_gamma;
 
     }
@@ -494,8 +532,9 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
 
 void ViewportParameters::reset()
 {
-    m_zoom = PointSize = LineWidth = m_gamma = 1.f;
-    angleX = angleY = angleZ = 0.f;
+    m_zoom = m_LineWidth = m_gamma = 1.f;
+    m_angleX = m_angleY = m_angleZ = 0.f;
+    m_PointSize = 1;
 
     m_translationMatrix[0] = m_translationMatrix[1] = m_translationMatrix[2] = 0.f;
 }
@@ -503,14 +542,14 @@ void ViewportParameters::reset()
 void ViewportParameters::ptSizeUp(bool up)
 {
     if (up)
-        PointSize++;
+        m_PointSize++;
     else
-        PointSize--;
+        m_PointSize--;
 
-    if (PointSize == 0)
-        PointSize = 1;
+    if (m_PointSize == 0)
+        m_PointSize = 1;
 
-    glPointSize(PointSize);
+    glPointSize((GLfloat) m_PointSize);
 }
 
 
