@@ -77,7 +77,7 @@ namespace NS_ParamChantierPhotogram
 using namespace std;
 
 
-#include "general/MM_InstalDir.h"
+#include "general/HG_defines.h"
 #include "general/sys_dep.h"
 #include "general/opt_debug.h"
 #include "general/allocation.h"

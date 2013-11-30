@@ -5,7 +5,9 @@
 MainWindow::MainWindow(bool mode2D, QWidget *parent) :
     QMainWindow(parent),
     _ui(new Ui::MainWindow),
-    _Engine(new cEngine)
+    _Engine(new cEngine),
+    _nbFen(QPoint(1,1)),
+    _szFen(QPoint(800,600))
 {
     _ui->setupUi(this);
 
@@ -35,7 +37,7 @@ MainWindow::MainWindow(bool mode2D, QWidget *parent) :
 
     setMode2D(mode2D);
 
-    QHBoxLayout* layout = new QHBoxLayout();
+    QGridLayout* layout = new QGridLayout();
     layout->addWidget(_glWidget);
     connectActions();
     _ui->OpenglLayout->setLayout(layout);
@@ -122,6 +124,16 @@ void MainWindow::setPostFix(QString str)
    _Engine->setPostFix("_" + str);
 }
 
+void MainWindow::setNbFen(QPoint nb)
+{
+   _nbFen = nb;
+}
+
+void MainWindow::setSzFen(QPoint sz)
+{
+   _szFen = sz;
+}
+
 void MainWindow::progression()
 {
     if(_incre)
@@ -145,7 +157,7 @@ void MainWindow::addFiles(const QStringList& filenames)
             }
         }
 
-        _Engine->SetFilenamesIn(filenames);
+        _Engine->setFilenamesIn(filenames);
 
         if (getMode2D() != false) closeAll();
         setMode2D(false);
@@ -156,7 +168,7 @@ void MainWindow::addFiles(const QStringList& filenames)
         QDir Dir = fi.dir();
         Dir.cdUp();
         _Engine->setDir(Dir);
-#define _DEBUG
+
 #ifdef _DEBUG
         printf("adding files %s", filenames[0].toStdString().c_str());
 #endif
@@ -183,6 +195,8 @@ void MainWindow::addFiles(const QStringList& filenames)
 
             _Engine->setFilename();
             _Engine->setFilenamesOut();
+
+            _ui->actionShow_ball->setChecked(true);
         }
         else if (fi.suffix() == "xml")
         {
@@ -216,6 +230,10 @@ void MainWindow::addFiles(const QStringList& filenames)
 
             _Engine->setFilenamesOut();
         }
+
+        _Engine->setGLData();
+        _glWidget->setGLData(_Engine->getGLData(0));
+        _glWidget->updateAfterSetData();
 
         _glWidget->setData(_Engine->getData());
 
@@ -466,12 +484,12 @@ void MainWindow::on_actionReset_view_triggered()
 //zoom
 void MainWindow::on_actionZoom_Plus_triggered()
 {
-    _glWidget->setZoom(_glWidget->getParams()->zoom*1.5f);
+    _glWidget->setZoom(_glWidget->getParams()->m_zoom*1.5f);
 }
 
 void MainWindow::on_actionZoom_Moins_triggered()
 {
-    _glWidget->setZoom(_glWidget->getParams()->zoom/1.5f);
+    _glWidget->setZoom(_glWidget->getParams()->m_zoom/1.5f);
 }
 
 void MainWindow::on_actionZoom_fit_triggered()
@@ -529,6 +547,13 @@ void MainWindow::on_actionLoad_image_triggered()
         // load image (and mask)
         _Engine->loadImage(img_filename);
 
+        cout << "ici1\n";
+        _Engine->setGLData();
+        cout <<"ici2\n";
+        _glWidget->setGLData(_Engine->getGLData(0));
+        cout <<"ici3\n";
+        _glWidget->updateAfterSetData();
+        cout <<"ici4\n";
         _glWidget->setData(_Engine->getData());
 
         setCurrentFile(img_filename);
@@ -542,7 +567,7 @@ void MainWindow::on_actionSave_masks_triggered()
 {
     if (_Engine->getData()->getNbImages())
     {
-        _Engine->doMaskImage(_glWidget->getGLMask());
+        _Engine->doMaskImage();
     }
     else
     {
@@ -560,7 +585,7 @@ void MainWindow::on_actionSave_as_triggered()
 
         if (_Engine->getData()->getNbImages())
         {
-            _Engine->doMaskImage(_glWidget->getGLMask());
+            _Engine->doMaskImage();
         }
         else
         {
@@ -579,6 +604,7 @@ void MainWindow::closeAll()
     _Engine->unloadAll();
 
     _glWidget->reset();
+    _glWidget->resetView();
     checkForLoadedData();
 }
 
