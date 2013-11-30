@@ -85,7 +85,8 @@ class cMMOnePair
       double           mSigmaP;
       Box2di           mBoxIm;
       bool             mPurge;
-
+      std::string      mBascMTD;
+      std::string      mBascDEST;
 };
 
 class cAppliMMOnePair : public cMMOnePair,
@@ -101,6 +102,7 @@ class cAppliMMOnePair : public cMMOnePair,
          void SymetriseMasqReentrant();
          void UseReentrant(bool First,int aStep,bool Last);
          void GenerateMTDEpip(bool MasterIs1);
+         void Bascule(bool MasterIs1);
 
          cImaMM * mIm1;
          cImaMM * mIm2;
@@ -111,7 +113,6 @@ class cAppliMMOnePair : public cMMOnePair,
 /*             cMMOnePair                                        */
 /*                                                               */
 /*****************************************************************/
-
 
 
 cMMOnePair::cMMOnePair(int argc,char ** argv) :
@@ -127,7 +128,8 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mNoOri        (false),
     mDoMR         (true),
     mSigmaP       (1.5),
-    mPurge        (true)
+    mPurge        (true),
+    mBascDEST     ("Basculed-")
 {
   ElInitArgMain
   (
@@ -146,6 +148,8 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mBoxIm,"BoxIm",true,"Box of calc in Epip, tuning purpose, def=All image")
                     << EAM(mPurge,"Purge",true,"Purge directory, tuning, def=true")
                     << EAM(mMM1PInParal,"InParal",true,"Do it in paral, def=true")
+                    << EAM(mBascMTD,"BascMTD",true,"Metadata of file to bascule (Def No Basc)")
+                    << EAM(mBascDEST,"BascMTD",true,"Res of Bascule (Def Basculed-)")
   );
 
   mNoOri = (mNameOriInit=="NONE");
@@ -256,6 +260,51 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
        GenerateMTDEpip(true);
        GenerateMTDEpip(false);
     }
+
+
+    if (EAMIsInit(&mBascMTD))
+    {
+          Bascule(true);
+          Bascule(false);
+    }
+}
+
+void cAppliMMOnePair::Bascule(bool MasterIs1)
+{
+    std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
+    std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
+    std::string aNamInitA = MasterIs1 ? mNameIm1Init : mNameIm2Init;
+    std::string aNamInitB = MasterIs1 ? mNameIm2Init : mNameIm1Init;
+
+    std::string aDirMatch = mDir + LocDirMec2Im(aNamA,aNamB);
+    std::string aNuageIn =  aDirMatch          + std::string("NuageImProf_Chantier-Ori_Etape_Last.xml");
+    std::string aNuageGeom =    mDir +  mBascMTD;
+    std::string aNuageTarget = mDir +  DirOfFile(mBascMTD) + mBascDEST + aNamInitA + aNamInitB + ".xml";
+
+    std::string aCom =   MMBinFile(MM3DStr) + " NuageBascule "
+                           + aBlk + aNuageIn
+                           + aBlk + aNuageGeom
+                           + aBlk + aNuageTarget
+                           + " SeuilE=500"
+                           + aBlk + " Paral=" + ToString(mMM1PInParal)
+                         ;
+    System(aCom);
+
+/*
+         std::string aNuageGeom =    mDir +  std::string("MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml");
+         std::string aNuageTarget =  mDir +  std::string("MTD-Nuage/Basculed-")
+                                          + ((aK==0) ? anI1.mNameIm : anI2.mNameIm )
+                                          + "-" + ((aK==0) ? anI2.mNameIm :anI1.mNameIm) + ".xml";
+
+
+         std::string aCom =   MMBinFile(MM3DStr) + " NuageBascule "
+                           + aBlank + aNuageIn
+                           + aBlank + aNuageGeom
+                           + aBlank + aNuageTarget
+                           + " SeuilE=500";
+         std::cout << aCom << "\n";
+
+*/
 }
 
 

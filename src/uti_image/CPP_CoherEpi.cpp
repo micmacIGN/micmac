@@ -477,10 +477,10 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
    }
 
    std::string aNameIm1DeZoom =  mCple                                          ?
-                                 (mDir+ mCple->LocNameImEpi(mNameIm1,mDeZoom))  : 
+                                 (mDir+ mCple->LocNameImEpi(mNameIm1,mDeZoom,false))  : 
                                  StdNameImDeZoom(mNameIm1,mDeZoom)              ;
    std::string aNameIm2DeZoom =  mCple                                          ?
-                                 (mDir+ mCple->LocNameImEpi(mNameIm2,mDeZoom))  : 
+                                 (mDir+ mCple->LocNameImEpi(mNameIm2,mDeZoom,false))  : 
                                  StdNameImDeZoom(mNameIm2,mDeZoom)              ;
 
 

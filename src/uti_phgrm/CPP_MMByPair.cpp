@@ -66,6 +66,7 @@ class cAppliMMByPair : public cAppliWithSetImage
       std::string mDo;
       int mZoom0;
       int mZoomF;
+      bool mParalMM1Glob;
       bool mDelaunay;
       bool mMMImSec;
       int mDiffInStrip;
@@ -320,11 +321,10 @@ void cAppliWithSetImage::AddCoupleMMImSec()
           const std::string & aName1 = (*mSetIm)[aKI];
           cImSecOfMaster aISOM = StdGetISOM(mICNM,aName1,mOri);
           const std::list<std::string > *  aLIm = GetBestImSec(aISOM);
-          std::cout << " ### " << aName1 << " ###\n";
           for (std::list<std::string>::const_iterator itN=aLIm->begin(); itN!=aLIm->end() ; itN++)
           {
-              //const std::string & aName2 = *itN;
-              // AddPair(aName1,aName2);
+              const std::string & aName2 = *itN;
+              AddPair(ImOfName(aName1),ImOfName(aName2));
           }
       }
 
@@ -609,17 +609,18 @@ int ClipIm_main(int argc,char ** argv)
 
 cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     cAppliWithSetImage (argc-2,argv+2,FlagDev16BGray),
-    mDo          ("PMCF"),
-    mZoom0       (64),
-    mZoomF       (1),
-    mDelaunay    (false),
-    mMMImSec     (false),
-    mDiffInStrip (1),
-    mStripIsFirt (true),
-    mDirBasc     ("MTD-Nuage"),
-    mIntIncert   (1.25),
-    mSkipCorDone (false),
-    mByMM1P      (true)
+    mDo           ("PMCF"),
+    mZoom0        (64),
+    mZoomF        (1),
+    mParalMM1Glob (false),
+    mDelaunay     (false),
+    mMMImSec      (false),
+    mDiffInStrip  (1),
+    mStripIsFirt  (true),
+    mDirBasc      ("MTD-Nuage"),
+    mIntIncert    (1.25),
+    mSkipCorDone  (false),
+    mByMM1P       (true)
 {
   if (argc>=2)
   {
@@ -698,6 +699,10 @@ void cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
                          +  " CreateE=" + ToString(mByEpi)
                       ;
 
+     if (mType == eGround)
+       aMatchCom = aMatchCom + " BascMTD=MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml ";
+
+/*
      std::string aNameIm1 = anI1.mNameIm;
      std::string aNameIm2 = anI2.mNameIm;
      if (mByEpi)
@@ -747,6 +752,9 @@ void cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
            if ((!AllDoneMatch) || (! mSkipCorDone) || (!ELISE_fp::exist_file(aVTarget[aK])))
                System(aBascCom[aK]);
      }
+*/
+     if (! mSkipCorDone)
+        System(aMatchCom);
 }
 
 

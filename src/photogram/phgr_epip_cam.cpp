@@ -681,9 +681,9 @@ std::string cCpleEpip::LocDirMatch(const std::string & aIm)
     return LocDirMatch(IsIm1(aIm));
 }
 
-std::string cCpleEpip::LocNameImEpi(const std::string & aIm,int aDeZoom)
+std::string cCpleEpip::LocNameImEpi(const std::string & aIm,int aDeZoom,bool Pyram)
 {
-    return LocNameImEpi(IsIm1(aIm),aDeZoom);
+    return LocNameImEpi(IsIm1(aIm),aDeZoom,Pyram);
 }
 std::string cCpleEpip::LocPxFileMatch(const std::string & aIm,int aNum,int aDeZoom)
 {
@@ -700,14 +700,17 @@ bool cCpleEpip::IsLeft(const std::string & aName) {return  IsLeft(IsIm1(aName));
 
 bool cCpleEpip::IsLeft(bool Im1) {return  mFirstIsLeft ? Im1 : (!Im1) ;}
 
-std::string StdNameImDeZoom(const std::string & aName,int aDeZoom)
+std::string  StdNameImDeZoom(const std::string & aName,int aDeZoom)
 {
    if (aDeZoom==1) return aName;
    return "Pyram/" + aName + "DeZoom"+ToString(aDeZoom) + ".tif";
 }
 
 
-std::string cCpleEpip::LocNameImEpi(bool Im1,int aDeZoom)
+
+
+
+std::string cCpleEpip::LocNameImEpi(bool Im1,int aDeZoom,bool Pyram)
 {
     // bool ImLeft = mFirstIsLeft ? Im1 : (!Im1) ;
     std::string aRes =   "Epi_" 
@@ -716,11 +719,17 @@ std::string cCpleEpip::LocNameImEpi(bool Im1,int aDeZoom)
            + mNamePair + ".tif";
 
     if (aDeZoom!=1)
-       aRes = "Pyram/" + aRes + "DeZoom" + ToString(aDeZoom) + ".tif";
+    {
+       std::string aDir =  "Pyram/";
+       if (! Pyram)
+          aDir = LocDirMatch(Im1);
+       aRes = aDir + aRes + "DeZoom" + ToString(aDeZoom) + ".tif";
+    }
 
 
     return aRes;
 }
+
 
 std::string LocDirMec2Im(const std::string & Im1,const std::string & Im2)
 {

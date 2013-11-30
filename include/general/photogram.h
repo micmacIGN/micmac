@@ -2934,14 +2934,15 @@ class cCpleEpip
 
          bool IsIm1(const std::string & aNameIm);  // Erreur si ni Im1 ni Im2
         
+
          std::string LocDirMatch(const std::string & Im);
-         std::string LocNameImEpi(const std::string & Im,int aDeZoom=1);
+         std::string LocNameImEpi(const std::string & Im,int aDeZoom=1,bool Pyram = true);
          std::string LocPxFileMatch(const std::string & Im,int aNum,int aDeZoom);
          std::string LocMasqFileMatch(const std::string & Im,int aNum);
 
 
          std::string LocDirMatch(bool Im1);
-         std::string LocNameImEpi(bool Im1,int aDeZoom=1);
+         std::string LocNameImEpi(bool Im1,int aDeZoom=1,bool Pyram=true);
          std::string LocPxFileMatch(bool Im1,int aNum,int aDeZoom);
          std::string LocMasqFileMatch(bool Im1,int aNum);
 
