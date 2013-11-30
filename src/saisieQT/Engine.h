@@ -32,19 +32,21 @@ public:
     void    setGamma(float aGamma) {m_gamma = aGamma;}
     float   getGamma() {return m_gamma;}
 
+    void    ptSizeUp(bool up);
+
     //! Current zoom
-    float zoom;
+    float m_zoom;
 
     //! Point size
-    float PointSize;
+    int m_PointSize;
 
     //! Line width
-    float LineWidth;
+    float m_LineWidth;
 
     //! Rotation angles
-    float angleX;
-    float angleY;
-    float angleZ;
+    float m_angleX;
+    float m_angleY;
+    float m_angleZ;
 
     //! Translation matrix
     float m_translationMatrix[3];
@@ -90,16 +92,16 @@ public:
     void        setDir(QDir aDir){_Dir = aDir;}
     QDir        getDir(){return _Dir;}
 
-    void        SetFilenamesIn(QStringList const &strl){_FilenamesIn = strl;}
-    void        SetFilenamesOut();
-    void        SetFilenameOut(QString str);
-    void        SetSelectionFilename();
+    void        setFilenamesIn(QStringList const &strl){_FilenamesIn = strl;}
+    void        setFilenamesOut();
+    void        setFilenameOut(QString str);
+    void        setSelectionFilename();
 
-    QStringList GetFilenamesOut() {return _FilenamesOut;}
-    QString     GetSelectionFilename() {return _SelectionOut;}
+    QStringList getFilenamesOut() {return _FilenamesOut;}
+    QString     getSelectionFilename() {return _SelectionOut;}
 
 
-    void        SetPostFix(QString str);
+    void        setPostFix(QString str);
 
 private:
     QStringList _FilenamesIn;
@@ -111,6 +113,22 @@ private:
     QDir        _Dir;
 };
 
+class cGLData
+{
+    public:
+
+    cGLData();
+    ~cGLData();
+
+    cImageGL    *pImg;
+    cImageGL    *pMask;
+    QVector < cCam* > Cams;
+
+    cBall       *pBall;
+    cAxis       *pAxis;
+    cBBox       *pBbox;
+};
+
 class cEngine
 {    
 public:
@@ -119,51 +137,59 @@ public:
     ~cEngine();
 
     //! Set working directory
-    void setDir(QDir aDir){_Loader->setDir(aDir);}
+    void    setDir(QDir aDir){_Loader->setDir(aDir);}
 
     //! Set working directory
-    void setFilename(){_Loader->SetSelectionFilename();}
+    void    setFilename(){_Loader->setSelectionFilename();}
 
     //! Set input filenames
-    void SetFilenamesIn(QStringList const &strl){_Loader->SetFilenamesIn(strl);}
+    void    setFilenamesIn(QStringList const &strl){_Loader->setFilenamesIn(strl);}
 
     //! Set output filenames
-    void setFilenamesOut(){_Loader->SetFilenamesOut();}
+    void    setFilenamesOut(){_Loader->setFilenamesOut();}
 
     //! Set output filename
-    void setFilenameOut(QString filename){_Loader->SetFilenameOut(filename);}
+    void    setFilenameOut(QString filename){_Loader->setFilenameOut(filename);}
 
     //! Set postfix
-    void setPostFix(QString filename){_Loader->SetPostFix(filename);}
+    void    setPostFix(QString filename){_Loader->setPostFix(filename);}
 
     //! Load point cloud .ply files
-    void loadClouds(QStringList, int *incre = NULL);
+    void    loadClouds(QStringList, int *incre = NULL);
 
     //! Load cameras .xml files
-    void loadCameras(QStringList);
+    void    loadCameras(QStringList);
 
     //! Load images  files
-    void loadImages(QStringList);
+    void    loadImages(QStringList);
 
     //! Load image (and mask) file
-    void loadImage(QString imgName);
+    void    loadImage(QString imgName);
 
-    void unloadAll();
+    void    unloadAll();
 
     //! Compute mask binary images: projection of visible points into loaded cameras
-    void doMasks();
+    void    doMasks();
 
     //! Creates binary image from selection and saves
-    void doMaskImage(QImage* pImg);
+    void    doMaskImage();
 
-    void saveSelectInfos(QVector <selectInfos> const &Infos);
+    void    saveSelectInfos(QVector <selectInfos> const &Infos);
 
-    cData*   getData()  {return _Data;}
+    cData*  getData()  {return _Data;}
+
+    //!looks for data and creates GLobjects
+    void    setGLData();
+
+    //!sends GLObjects to GLWidget
+    cGLData* getGLData(int WidgetIndex);
 
 private:
 
-    cLoader *_Loader;
-    cData   *_Data;
+    cLoader*         _Loader;
+    cData*           _Data;
+
+    vector <cGLData*> _GLData;
 };
 
 

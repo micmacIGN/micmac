@@ -38,6 +38,9 @@ public:
 
     void setPostFix(QString str);
 
+    void setNbFen(QPoint nb);
+    void setSzFen(QPoint sz);
+
 public slots:
 
     //! Try to load a list of files
@@ -138,5 +141,8 @@ private:
     QMenu*                  _RFMenu; //recent files menu
 
     bool                    _bMode2D;
+
+    QPoint                  _nbFen;
+    QPoint                  _szFen;
 };
 #endif // MAINWINDOW_H

@@ -1,7 +1,6 @@
 #ifndef DATA_H
 #define DATA_H
 
-
 #include "StdAfx.h"
 #include "Cloud.h"
 #include <QImage>
@@ -26,6 +25,7 @@ class cData
         void clearMasks();
 
         bool isDataLoaded(){return getNbClouds()||getNbCameras() ||getNbImages();}
+        bool is3D(){return getNbClouds()||getNbCameras();}
 
         int getNbCameras() {return _Cameras.size();}
         int getNbClouds()  {return _Clouds.size(); }
@@ -39,7 +39,12 @@ class cData
         QImage * &     getCurImage()     {return _Images[_curImgIdx];}
         QImage * &     getCurMask()      {return _Masks[_curImgIdx];}
 
-        void    setCurImage(int idx)     {_curImgIdx = idx;}
+        void    setCurImageIdx(int idx)     {_curImgIdx = idx;}
+        int     getCurImageIdx()            {return _curImgIdx;}
+
+        void    fillCurMask(){getCurMask()->fill(Qt::white);}
+
+        void    deleteCurMask();
 
         void    getBB();
 
@@ -52,9 +57,11 @@ class cData
 
         void    reset();
 
-        //Bounding box and diameter of all clouds
-        float m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_diam;
+        void    applyGamma(float aGamma);
+        void    applyGammaToImage(int aK, float aGamma);
 
+        //!Bounding box and diameter of all clouds
+        float   m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_diam;
 
    private:
 
