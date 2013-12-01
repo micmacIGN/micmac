@@ -1374,6 +1374,10 @@ class Monome2dReal
 class Polynome2dReal
 {
       public :
+            std::vector<double> ToVect() const;
+            static Polynome2dReal FromVect(const std::vector<double>&,double anAmp);
+
+
             Polynome2dReal(INT aD0,REAL anAmpl); // Contient tous les monomes, avec un coeff 1.0
             void SetDegre1(REAL aV0,REAL aVX, REAL aVY,bool AnnulOthers = true);
 

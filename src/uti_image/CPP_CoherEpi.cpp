@@ -456,6 +456,9 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAM(mPostfixP,"InternalPostfixP",true)
    );	
 
+   if (! EAMIsInit(&mPrefix))
+     mPrefix = mPrefix + mNameIm1 + "-" + mNameIm2 ;
+
 /*
    ELISE_ASSERT
    (

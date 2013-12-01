@@ -537,6 +537,7 @@ int Bascule_main(int argc,char ** argv);
 int CmpCalib_main(int argc,char ** argv);
 int Campari_main(int argc,char ** argv);
 int MMTestOrient_main(int argc,char ** argv);
+int MMHomCorOri_main(int argc,char ** argv);
 int ChgSysCo_main(int argc,char ** argv);
 int GCPBascule_main(int argc,char ** argv);
 int CentreBascule_main(int argc,char ** argv);
