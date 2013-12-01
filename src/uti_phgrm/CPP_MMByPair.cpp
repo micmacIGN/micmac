@@ -60,13 +60,13 @@ class cAppliMMByPair : public cAppliWithSetImage
       void DoMDT();
       void DoCorrelAndBasculeStd();
       void DoCorrelAndBasculeEpip();
-      void MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 );
+      std::string MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 );
       void DoFusion();
 
       std::string mDo;
       int mZoom0;
       int mZoomF;
-      bool mParalMM1Glob;
+      bool mParalMMIndiv;
       bool mDelaunay;
       bool mMMImSec;
       int mDiffInStrip;
@@ -612,7 +612,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mDo           ("PMCF"),
     mZoom0        (64),
     mZoomF        (1),
-    mParalMM1Glob (false),
+    mParalMMIndiv (false),
     mDelaunay     (false),
     mMMImSec      (false),
     mDiffInStrip  (1),
@@ -648,9 +648,10 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mTetaBande,"TetaStrip",true,"If used, cut strip when dir of vector > 45 degre from TetaStrip")
                     << EAM(mSkipCorDone,"SMD",true,"Skip Matching When Already Done (Def=false)")
                     << EAM(mDo,"Do",true,"Step to Do in [Pyram,MetaData,Correl,Fusion], Def \"PMCF\" (i.e. All Step)")
-                    << EAM(mByMM1P,"ByMM1P","Do match using new MM1P , def = true")
-                    << EAM(mImageOfBox,"ImOfBox","Image to define box for MTD (test purpose to limit size of result)")
-                    << EAM(mBoxOfImage,"BoxOfIm","Associated to ImOfBox, def = full")
+                    << EAM(mByMM1P,"ByMM1P",true,"Do match using new MM1P , def = true")
+                    << EAM(mImageOfBox,"ImOfBox",true,"Image to define box for MTD (test purpose to limit size of result)")
+                    << EAM(mBoxOfImage,"BoxOfIm",true,"Associated to ImOfBox, def = full")
+                    << EAM(mParalMMIndiv,"ParMMI",true,"If true each MM if // (\" expert\" option, Def=false currently)")
   );
   if (! EAMIsInit(&mMMImSec))
      mMMImSec = (mType==eStatute);
@@ -675,19 +676,29 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
 
 void cAppliMMByPair::DoCorrelAndBasculeEpip()
 {
-   std::list<std::string> mLCom;
+   std::list<std::string> aLCom;
    for ( tSetPairIm::const_iterator itP= mPairs.begin(); itP!=mPairs.end() ; itP++)
    {
         cImaMM & anI1 = *(itP->first);
         cImaMM & anI2 = *(itP->second);
         if (anI1.mNameIm < anI2.mNameIm)
         {
-             MatchEpipOnePair(anI1,anI2);
+             std::string aCom =  MatchEpipOnePair(anI1,anI2);
+             if (aCom != "")
+                aLCom.push_back(aCom);
         }
+   }
+   if (mParalMMIndiv)
+   {
+        cEl_GPAO::DoComInSerie(aLCom);
+   }
+   else
+   {
+        cEl_GPAO::DoComInParal(aLCom);
    }
 }
 
-void cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
+std::string cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
 {
      bool mByEpi = true;
      std::string aMatchCom =     MMBinFile(MM3DStr)
@@ -697,12 +708,12 @@ void cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
                          +  aBlank + mOri
                          +  " ZoomF=" + ToString(mZoomF)
                          +  " CreateE=" + ToString(mByEpi)
+                         +  " InParal=" + ToString(mParalMMIndiv)
                       ;
 
      if (mType == eGround)
        aMatchCom = aMatchCom + " BascMTD=MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml ";
 
-/*
      std::string aNameIm1 = anI1.mNameIm;
      std::string aNameIm2 = anI2.mNameIm;
      if (mByEpi)
@@ -723,38 +734,26 @@ void cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
      {
          std::string aDirMatch = mDir + LocDirMec2Im((aK==0) ? aNameIm1:aNameIm2,(aK==0) ? aNameIm2:aNameIm1);
          std::string aNuageIn =  aDirMatch          + std::string("NuageImProf_Chantier-Ori_Etape_Last.xml");
+         AllDoneMatch  = AllDoneMatch && ELISE_fp::exist_file(aNuageIn);
+         
+
+
+/*
          std::string aNuageGeom =    mDir +  std::string("MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml");
          std::string aNuageTarget =  mDir +  std::string("MTD-Nuage/Basculed-") 
                                           + ((aK==0) ? anI1.mNameIm : anI2.mNameIm ) 
                                           + "-" + ((aK==0) ? anI2.mNameIm :anI1.mNameIm) + ".xml";
 
-
-         std::string aCom =   MMBinFile(MM3DStr) + " NuageBascule "
-                           + aBlank + aNuageIn
-                           + aBlank + aNuageGeom
-                           + aBlank + aNuageTarget
-                           + " SeuilE=500";
-         std::cout << aCom << "\n";
  
-         aBascCom.push_back(aCom);
-         aVTarget.push_back(aNuageTarget);
-
          AllDoneMatch = AllDoneMatch && ELISE_fp::exist_file(aNuageIn);
-     }
-
-
-
-     if ((!AllDoneMatch) || (! mSkipCorDone))
-        System(aMatchCom);
-
-     for (int aK= 0 ; aK< int(aBascCom.size()) ; aK++)
-     {
-           if ((!AllDoneMatch) || (! mSkipCorDone) || (!ELISE_fp::exist_file(aVTarget[aK])))
-               System(aBascCom[aK]);
-     }
 */
-     if (! mSkipCorDone)
-        System(aMatchCom);
+     }
+
+     // std::cout << aMatchCom << "\n";
+     if ((!AllDoneMatch) || (! mSkipCorDone))
+        return aMatchCom;
+
+     return "";
 }
 
 

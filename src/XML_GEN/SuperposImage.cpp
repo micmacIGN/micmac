@@ -4303,6 +4303,17 @@ const cTplValGesInit< bool > & cModeFaisceauxImage::IsSpherik()const
    return mIsSpherik;
 }
 
+
+cTplValGesInit< Pt2dr > & cModeFaisceauxImage::DirTrans()
+{
+   return mDirTrans;
+}
+
+const cTplValGesInit< Pt2dr > & cModeFaisceauxImage::DirTrans()const 
+{
+   return mDirTrans;
+}
+
 cElXMLTree * ToXMLTree(const cModeFaisceauxImage & anObj)
 {
   XMLPushContext(anObj.mGXml);
@@ -4311,6 +4322,8 @@ cElXMLTree * ToXMLTree(const cModeFaisceauxImage & anObj)
    aRes->AddFils(::ToXMLTree(std::string("ZIsInverse"),anObj.ZIsInverse())->ReTagThis("ZIsInverse"));
    if (anObj.IsSpherik().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("IsSpherik"),anObj.IsSpherik().Val())->ReTagThis("IsSpherik"));
+   if (anObj.DirTrans().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DirTrans"),anObj.DirTrans().Val())->ReTagThis("DirTrans"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -4326,6 +4339,8 @@ void xml_init(cModeFaisceauxImage & anObj,cElXMLTree * aTree)
    xml_init(anObj.ZIsInverse(),aTree->Get("ZIsInverse",1)); //tototo 
 
    xml_init(anObj.IsSpherik(),aTree->Get("IsSpherik",1),bool(false)); //tototo 
+
+   xml_init(anObj.DirTrans(),aTree->Get("DirTrans",1)); //tototo 
 }
 
 
@@ -4359,6 +4374,17 @@ cTplValGesInit< bool > & cPM3D_ParamSpecifs::IsSpherik()
 const cTplValGesInit< bool > & cPM3D_ParamSpecifs::IsSpherik()const 
 {
    return ModeFaisceauxImage().Val().IsSpherik();
+}
+
+
+cTplValGesInit< Pt2dr > & cPM3D_ParamSpecifs::DirTrans()
+{
+   return ModeFaisceauxImage().Val().DirTrans();
+}
+
+const cTplValGesInit< Pt2dr > & cPM3D_ParamSpecifs::DirTrans()const 
+{
+   return ModeFaisceauxImage().Val().DirTrans();
 }
 
 
@@ -4593,6 +4619,17 @@ cTplValGesInit< bool > & cXML_ParamNuage3DMaille::IsSpherik()
 const cTplValGesInit< bool > & cXML_ParamNuage3DMaille::IsSpherik()const 
 {
    return PM3D_ParamSpecifs().ModeFaisceauxImage().Val().IsSpherik();
+}
+
+
+cTplValGesInit< Pt2dr > & cXML_ParamNuage3DMaille::DirTrans()
+{
+   return PM3D_ParamSpecifs().ModeFaisceauxImage().Val().DirTrans();
+}
+
+const cTplValGesInit< Pt2dr > & cXML_ParamNuage3DMaille::DirTrans()const 
+{
+   return PM3D_ParamSpecifs().ModeFaisceauxImage().Val().DirTrans();
 }
 
 
