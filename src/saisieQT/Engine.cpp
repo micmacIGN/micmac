@@ -179,11 +179,11 @@ cEngine::cEngine():
 
 cEngine::~cEngine()
 {
-   delete _Data;
-   delete _Loader;
+    delete _Data;
+    delete _Loader;
 
-    for (uint aK=0; aK < _GLData.size();++aK)
-        delete _GLData[aK];
+    qDeleteAll(_GLData);
+    _GLData.clear();
 }
 
 void cEngine::loadClouds(QStringList filenames, int* incre)
@@ -223,8 +223,11 @@ void  cEngine::loadImage(QString imgName)
 
     _Loader->loadImage(imgName, img, mask);
 
-    if (img!=NULL) _Data->addImage(img);
+    if (img !=NULL) _Data->addImage(img);
     if (mask!=NULL) _Data->addMask(mask);
+#ifdef _DEBUG
+    else cout << "mask null" << endl;
+#endif
 }
 
 void cEngine::doMasks()
@@ -370,7 +373,7 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
         for (int aK=0; aK <pts.size(); ++aK)
         {
             QDomElement Point    = doc.createElement("Pt");
-            QString str = QString::number(pts[aK].x()) + " "  + QString::number(pts[aK].y(), 'f',1);
+            QString str = QString::number(pts[aK].x(), 'f',1) + " "  + QString::number(pts[aK].y(), 'f',1);
 
             t = doc.createTextNode( str );
             Point.appendChild(t);
@@ -407,25 +410,28 @@ void cEngine::unloadAll()
 
 void cEngine::setGLData()
 {
+    _GLData.clear();
+
     for (int aK = 0; aK < _Data->getNbImages();++aK)
     {
         cGLData *theData = new cGLData();
 
-        cImageGL * pImg  = new cImageGL();
-        cImageGL * pMask = new cImageGL();
+        if (_Data->getNbMasks()>aK)
+        {
+            if(_Data->getMask(aK) == NULL)
+                glGenTextures(1, theData->pMask->getTexture() );   
+            _Data->setEmptymask(false);
 
-        pImg->ImageToTexture(_Data->getImage(aK));
-
-        if(_Data->getCurMask() == NULL)
-            glGenTextures(1, pMask->getTexture() );
-
-        if (!_Data->getNbMasks())
-            _Data->fillCurMask();
-
-        pMask->ImageToTexture(_Data->getMask(aK));
-
-        theData->pImg = pImg;
-        theData->pMask = pMask;
+            theData->pMask->ImageToTexture(_Data->getMask(aK));
+        }
+        else if (_Data->getNbMasks() == 0)
+        {
+            QImage *mask;
+            mask = new QImage(_Data->getImage(aK)->size(),QImage::Format_Mono);
+            _Data->addMask(mask);
+            _Data->fillMask(aK);
+            _Data->setEmptymask(true);
+        }
 
         _GLData.push_back(theData);
     }
@@ -436,7 +442,12 @@ void cEngine::setGLData()
 
         for (int aK = 0; aK < _Data->getNbClouds();++aK)
         {
+           /* Cloud *pCloud = new Cloud();
+            pCloud = _Data->getCloud(aK);
+            theData->Clouds.push_back(pCloud);*/
+
             _Data->getCloud(aK)->setBufferGl();
+            //theData->Clouds[aK]->setBufferGl();
         }
 
         for (int aK = 0; aK < _Data->getNbCameras();++aK)
@@ -446,12 +457,35 @@ void cEngine::setGLData()
             theData->Cams.push_back(pCam);
         }
 
+        float scale = _Data->m_diam / 1.5f;
+
+        theData->pBall->setPosition(_Data->getCenter());
+        theData->pBall->setScale(scale);
+        theData->pBall->setVisible(true);
+
+        theData->pAxis->setPosition(_Data->getCenter());
+        theData->pAxis->setScale(scale);
+
+        theData->pBbox->setPosition(_Data->getCenter());
+        theData->pBbox->set(_Data->m_minX,_Data->m_minY,_Data->m_minZ,_Data->m_maxX,_Data->m_maxY,_Data->m_maxZ);
+
+        for (int i=0; i<_Data->getNbCameras();i++)
+        {
+            cCam *pCam = new cCam(_Data->getCamera(i));
+
+            pCam->setScale(scale);
+            pCam->setVisible(true);
+
+            theData->Cams.push_back(pCam);
+        }
+
         _GLData.push_back(theData);
+
     }
 }
-cGLData* cEngine::getGLData(int WidgetIndex)
+cGLData* cEngine::getGLData(uint WidgetIndex)
 {
-    if (_GLData.size() > 0)
+    if ((_GLData.size() > 0) && (WidgetIndex < _GLData.size()))
         return _GLData[WidgetIndex];
     else
         return NULL;
@@ -459,9 +493,11 @@ cGLData* cEngine::getGLData(int WidgetIndex)
 
 cGLData::cGLData()
 {
+    //2D
     pImg  = new cImageGL();
     pMask = new cImageGL();
 
+    //3D
     pBall = new cBall();
     pAxis = new cAxis();
     pBbox = new cBBox();
@@ -471,7 +507,10 @@ cGLData::~cGLData()
 {
     delete pImg;
     delete pMask;
-    for (int aK = 0; aK< Cams.size();++aK) delete Cams[aK];
+
+    //for (int aK = 0; aK< Clouds.size(); ++aK) delete Clouds[aK];
+    qDeleteAll(Cams);
+    Cams.clear();
 
     delete pBall;
     delete pAxis;
