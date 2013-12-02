@@ -803,25 +803,17 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
         if(vCellules.size() > 0)
         {
-            //uint cellZmaskVol = iDivUp((int)vCellules.size(), INTERZ);
-            uint cellZmaskVol = iDivUp((int)vCellules.size(), INTERZ);
-            //uint reste        = vCellules.size()%INTERZ;
 
+            uint cellZmaskVol = iDivUp((int)vCellules.size(), INTERZ);
             uint reste        = Dz - (((uint)vCellules.size()) / INTERZ) * INTERZ  ;
-//            DUMP_UINT(reste)
-//            DUMP_UINT(Dz)
 
             IMmGg.MaskCellules.resize(cellZmaskVol);
-
-           // if(reste == 1) reste = INTERZ;
 
             if(reste != 0)
             {
                 cellules &celLast = IMmGg.MaskCellules.back();
                 celLast.Dz = reste;
             }
-
-            //DUMP_UINT((uint)IMmGg.MaskCellules.size())
 
             for (uint i = 0; i < vCellules.size(); ++i)
             {
@@ -1476,10 +1468,10 @@ void cAppliMICMAC::DoGPU_Correl
 }
 
 #ifdef  CUDA_ENABLED
-    void cAppliMICMAC::Tabul_Projection(int Z, int zMax, uint &interZ, ushort idBuf)
+    void cAppliMICMAC::Tabul_Projection(int Z, uint &interZ, ushort idBuf)
     {
         GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0033);
-        IMmGg.IntervalZ(interZ, Z, zMax);
+        //IMmGg.IntervalZ(interZ, Z, zMax);
         IMmGg.Data().MemsetHostVolumeProj(IMmGg.Param(idBuf).IntDefault);
 
         Rect    zone        = IMmGg.Param(idBuf).RDTer();
@@ -1532,9 +1524,11 @@ void cAppliMICMAC::DoGPU_Correl
     void cAppliMICMAC::setVolumeCost( uint z0, uint z1,ushort idBuf)
     {
         GpGpuTools::NvtxR_Push(__FUNCTION__,0x335A8833);
-        float*  tabCost     = IMmGg.VolumeCost();
+        float*  tabCost     = IMmGg.VolumeCost(idBuf);
         Rect    zone        = IMmGg.Param(idBuf).RTer();
         float   valdefault  = IMmGg.Param(idBuf).floatDefault;
+
+        //std::cout << "Copy : [(" << zone.pt0.x << "," <<  zone.pt0.y << ")" << "(" << zone.pt1.x << "," <<  zone.pt1.y << ")] Z: " << (int)z0 << "->" << (int)z1 << "\n";
 
         uint2 rDiTer = zone.dimension();
         uint  rSiTer = size(rDiTer);
@@ -1570,8 +1564,6 @@ void cAppliMICMAC::DoGPU_Correl
         // Si le terrain est masque ou aucune image : Aucun calcul
         if (mNbIm == 0 || !IMmGg.Param(0).MaskNoNULL()) return;
 
-        //Rect ZoneTotal = IMmGg.Param(0).rTer;
-
         // Initiation du calcul
         uint interZ = IMmGg.InitCorrelJob(mZMinGlob,mZMaxGlob);
 
@@ -1588,31 +1580,18 @@ void cAppliMICMAC::DoGPU_Correl
 
                 if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + (int)interZ && anZProjection < mZMaxGlob)
                 {
-//                    uint idMask = abs(anZProjection-mZMinGlob)/INTERZ;
 
-//                    cellules Mask = IMmGg.MaskCellules[idMask];
+                    cellules Mask = IMmGg.MaskCellules[abs(anZProjection-mZMinGlob)/INTERZ];
 
-//                    IMmGg.Param(idPreBuf).SetDimension(Mask.Zone,Mask.Dz);
+                    IMmGg.Param(idPreBuf).SetDimension(Mask.Zone,Mask.Dz);
 
-//                    IMmGg.ReallocHostData(Mask.Dz,idPreBuf);
+                    IMmGg.ReallocHostData(Mask.Dz,idPreBuf);
 
-                    Tabul_Projection( anZProjection, mZMaxGlob, interZ,idPreBuf);
+                    Tabul_Projection( anZProjection, Mask.Dz,idPreBuf);
 
-//                    if(interZ != Mask.Dz)
-//                    {
-//                        DUMP_UINT(interZ)
-//                        DUMP_UINT(Mask.Dz)
-//                        DUMP_UINT(idMask)
-//                        DUMP_UINT((uint)IMmGg.MaskCellules.size())
-//                                CUDA_DUMP_INT_ALL(anZProjection)
-//                                CUDA_DUMP_INT_ALL(mZMinGlob)
-//                                CUDA_DUMP_INT_ALL(mZMaxGlob)
-//                        DUMP_LINE
-//                    }
+                    IMmGg.signalComputeCorrel(Mask.Dz);
 
-                    IMmGg.signalComputeCorrel(interZ);
-
-                    anZProjection+= interZ;
+                    anZProjection+= Mask.Dz;
 
                     idPreBuf = !idPreBuf;
                 }
@@ -1621,6 +1600,7 @@ void cAppliMICMAC::DoGPU_Correl
 
                 if ((ZtoCopy = (int)IMmGg.GetDataToCopy()))
                 {
+
                     setVolumeCost(anZComputed,anZComputed + ZtoCopy,!IMmGg.GetIdBuf());
 
                     anZComputed += ZtoCopy;
@@ -1632,8 +1612,11 @@ void cAppliMICMAC::DoGPU_Correl
         {
             while( anZComputed < mZMaxGlob )
             {
+
+                cellules Mask = IMmGg.MaskCellules[abs(anZComputed-mZMinGlob)/INTERZ];
+
                 // calcul des projections
-                Tabul_Projection( anZComputed,mZMaxGlob,interZ,0);
+                Tabul_Projection( anZComputed,Mask.Dz,0);
 
                 // Kernel Correlation
                 IMmGg.BasicCorrelation(interZ);

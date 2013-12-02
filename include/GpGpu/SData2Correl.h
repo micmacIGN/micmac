@@ -59,6 +59,8 @@ struct SData2Correl
 
     void    ReallocHostData(uint zInter, pCorGpu param);
 
+    void    ReallocHostData(uint zInter, pCorGpu param, uint idBuff);
+
     void    ReallocDeviceData(pCorGpu &param);   
 
 private:

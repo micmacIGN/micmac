@@ -165,6 +165,13 @@ void SData2Correl::ReallocHostData(uint zInter, pCorGpu param)
     nvtxRangePop();
 }
 
+void SData2Correl::ReallocHostData(uint zInter, pCorGpu param, uint idBuff)
+{
+    _hVolumeCost[idBuff].ReallocIf(param.dimTer,zInter);
+
+    _hVolumeProj.ReallocIf(param.dimSTer,zInter*param.nbImages);
+}
+
 void SData2Correl::ReallocDeviceData(pCorGpu &param)
 {
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF1A2BB5);
