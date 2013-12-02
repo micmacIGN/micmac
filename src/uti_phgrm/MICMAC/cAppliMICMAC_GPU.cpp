@@ -793,21 +793,33 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
         }
 
         inc(rMask.pt1);
-        IMmGg.GlobalMaskVolume = rMask.area() * abs(mZMaxGlob-mZMinGlob);
+        uint Dz = abs(mZMaxGlob-mZMinGlob);
+        IMmGg.GlobalMaskVolume = rMask.area() * Dz;
         IMmGg.ReduceMaskVolume = 0;
         IMmGg.Param(0).SetDimension(rMask);
         IMmGg.Param(1).SetDimension(rMask);
 
+        IMmGg.MaskCellules.clear();
+
         if(vCellules.size() > 0)
         {
+            //uint cellZmaskVol = iDivUp((int)vCellules.size(), INTERZ);
             uint cellZmaskVol = iDivUp((int)vCellules.size(), INTERZ);
-            uint reste        = vCellules.size()%INTERZ;
+            //uint reste        = vCellules.size()%INTERZ;
 
-            IMmGg.MaskCellules.clear();
+            uint reste        = Dz - (((uint)vCellules.size()) / INTERZ) * INTERZ  ;
+//            DUMP_UINT(reste)
+//            DUMP_UINT(Dz)
+
             IMmGg.MaskCellules.resize(cellZmaskVol);
 
-            cellules &celLast = IMmGg.MaskCellules.back();
-            celLast.Dz = reste;
+           // if(reste == 1) reste = INTERZ;
+
+            if(reste != 0)
+            {
+                cellules &celLast = IMmGg.MaskCellules.back();
+                celLast.Dz = reste;
+            }
 
             //DUMP_UINT((uint)IMmGg.MaskCellules.size())
 
@@ -825,29 +837,6 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                 cellules &cel   = IMmGg.MaskCellules[i];
                 inc(cel.Zone.pt1);
             }
-
-//            for (uint i = 0; i < cellZmaskVol; ++i)
-//            {
-//                cellules &cel = IMmGg.MaskCellules[i];
-
-//                if(cel.Zone != MAXIRECT)
-//                {
-//                    inc(cel.Zone.pt1);
-//                    IMmGg.ReduceMaskVolume += cel.Zone.area() * cel.Dz;
-//                }
-//                else
-//                    if(rMask.pt0.x != -1)
-//                    {
-//                        //cel.Zone.out();
-//                        for(uint j = 0; j < cel.Dz; ++j)
-//                        {
-//                            Rect rr = vCellules[i*INTERZ + j];
-//                            rr.out();
-//                        }
-
-//                        printf("\n");
-//                    }
-//            }
         }
 
 #else
@@ -1599,13 +1588,27 @@ void cAppliMICMAC::DoGPU_Correl
 
                 if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + (int)interZ && anZProjection < mZMaxGlob)
                 {
-//                    cellules Mask = IMmGg.MaskCellules[abs(anZProjection-mZMinGlob)/INTERZ];
+//                    uint idMask = abs(anZProjection-mZMinGlob)/INTERZ;
 
-//                    IMmGg.Param(idPreBuf).SetDimension(Mask.Zone);
+//                    cellules Mask = IMmGg.MaskCellules[idMask];
 
-//                    IMmGg.ReallocHostData(interZ,idPreBuf);
+//                    IMmGg.Param(idPreBuf).SetDimension(Mask.Zone,Mask.Dz);
+
+//                    IMmGg.ReallocHostData(Mask.Dz,idPreBuf);
 
                     Tabul_Projection( anZProjection, mZMaxGlob, interZ,idPreBuf);
+
+//                    if(interZ != Mask.Dz)
+//                    {
+//                        DUMP_UINT(interZ)
+//                        DUMP_UINT(Mask.Dz)
+//                        DUMP_UINT(idMask)
+//                        DUMP_UINT((uint)IMmGg.MaskCellules.size())
+//                                CUDA_DUMP_INT_ALL(anZProjection)
+//                                CUDA_DUMP_INT_ALL(mZMinGlob)
+//                                CUDA_DUMP_INT_ALL(mZMaxGlob)
+//                        DUMP_LINE
+//                    }
 
                     IMmGg.signalComputeCorrel(interZ);
 
