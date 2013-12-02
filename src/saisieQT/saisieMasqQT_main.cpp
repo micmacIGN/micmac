@@ -18,6 +18,9 @@ int saisieMasqQT_main(QApplication &app)
             bool removeArg = false;
 
             str = cmdline_args[i];
+#ifdef _DEBUG
+            cout << "arguments : " << str.toStdString().c_str() << endl;
+#endif
 
             if (str.contains("help"))
             {
