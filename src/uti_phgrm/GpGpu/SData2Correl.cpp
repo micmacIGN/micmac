@@ -31,6 +31,8 @@ SData2Correl::SData2Correl():
         _hVolumeCost[i].SetPageLockedMemory(true);
     }
     _hVolumeProj.SetName("_hVolumeProj");
+
+    _MaxAlloc = make_uint2(0,0);
 }
 
 SData2Correl::~SData2Correl()
@@ -123,12 +125,17 @@ void SData2Correl::copyHostToDevice(pCorGpu param,uint s)
 
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF292CB0);
 
-    uint2 dimP = _dt_LayeredProjection[s].GetDimension();
+    //uint2 dimP = _dt_LayeredProjection[s].GetDimension();
 
-
-
-    if(!aEq(param.dimSTer,dimP))
+    //if(!aEq(param.dimSTer,dimP))
+    if(oI(_MaxAlloc,param.dimSTer))
+    {
+        _MaxAlloc = param.dimSTer;
         _dt_LayeredProjection[s].Realloc(param.dimSTer,param.nbImages * param.ZCInter);
+
+    }
+    else
+     _dt_LayeredProjection[s].SetDimension(param.dimSTer,param.nbImages * param.ZCInter);
 //    if(!aEq(_hVolumeProj.GetDimension(),dimP))
 //    {
 //        _dt_LayeredProjection[s].Realloc(_hVolumeProj.GetDimension(),param.nbImages * param.ZCInter);

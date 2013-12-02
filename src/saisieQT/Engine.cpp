@@ -505,12 +505,12 @@ cGLData::cGLData()
 
 cGLData::~cGLData()
 {
-    delete pImg;
-    delete pMask;
+    //delete pImg;
+    //delete pMask;
 
     //for (int aK = 0; aK< Clouds.size(); ++aK) delete Clouds[aK];
-    qDeleteAll(Cams);
-    Cams.clear();
+    //qDeleteAll(Cams);
+    //Cams.clear();
 
     delete pBall;
     delete pAxis;
