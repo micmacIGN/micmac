@@ -120,8 +120,18 @@ class cGLData
     cGLData();
     ~cGLData();
 
+    //2D
     cImageGL    *pImg;
     cImageGL    *pMask;
+
+    //! Point list for polygonal selection
+    cPolygon    m_polygon;
+
+    //! Point list for polygonal insertion
+    cPolygon    m_dihedron;
+
+    //3D
+    //QVector < Cloud *> Clouds;
     QVector < cCam* > Cams;
 
     cBall       *pBall;
@@ -182,7 +192,7 @@ public:
     void    setGLData();
 
     //!sends GLObjects to GLWidget
-    cGLData* getGLData(int WidgetIndex);
+    cGLData* getGLData(uint WidgetIndex);
 
 private:
 
