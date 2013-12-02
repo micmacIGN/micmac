@@ -188,8 +188,6 @@ void  all()
      ncout () << "DEBUT DU BENCH \n";
      ELISE_DEBUG_USER = true;
 
-      Macro_Exec_bench(bench_deriche);
-      getchar();
 /*
      Macro_Exec_bench(bench_reduc_image);
      Macro_Exec_bench(bench_tiff_im);
@@ -231,13 +229,15 @@ void  all()
 */
 
 
-    bench_Proj32();
+    //-Macro_Exec_bench(bench_deriche);
+    //-getchar();
+    //-bench_Proj32();
 
-
+     Macro_Exec_bench(bench_command);
 
      for(int i =0; i<1 ; i++)
      {
-		
+	 /*
           //Macro_Exec_bench(bench_bits_flow);
           Macro_Exec_bench(bench_xml);
           Macro_Exec_bench(somme_cste_int_rect_2d_by_hand);
@@ -324,6 +324,7 @@ void  all()
           Macro_Exec_bench(bench_pjeq234);
           Macro_Exec_bench(bench_new_mep_rel);
           Macro_Exec_bench(bench_auto_calibration);
+	  */
      }
 
 

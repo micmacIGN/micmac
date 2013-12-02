@@ -144,6 +144,7 @@ class cBBox : public cObjectGL
 class cCam : public cObjectGL
 {
     public:
+        cCam();
         cCam(CamStenope *pCam);
 
         void    draw();
@@ -221,6 +222,37 @@ private:
         int                 _click;
 
         QVector <QPointF>   _points;
+};
+
+class cImageGL : public cObjectGL
+{
+    public:
+        cImageGL();
+        ~cImageGL();
+
+        void    draw(QColor color);
+
+        void    bind_draw();
+
+        void    draw();
+
+        void    setPosition(GLfloat originX, GLfloat originY);
+        void    setDimensions(GLfloat glh, GLfloat glw);
+
+        void    setDimensions(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw);
+
+        void    ImageToTexture(QImage *image);
+
+        GLuint* getTexture(){return &_texture;}
+
+    private:
+        GLfloat _originX;
+        GLfloat _originY;
+        GLfloat _glh;
+        GLfloat _glw;
+
+        //! Texture image
+        GLuint  _texture;
 };
 
 #endif //__3DObject__

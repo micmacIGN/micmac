@@ -58,6 +58,7 @@ class cMMOnePair
       std::string NameAutoM(int aStep,std::string aPost = "" ) {return "AutoMask_LeChantier_Num_" + ToString(ElMin(aStep,mStepEnd-1)) + aPost +".tif";}
 
       bool             mExe;
+      bool             mMM1PInParal;
       int              mZoom0;
       int              mZoomF;
       int              mStepEnd;
@@ -84,7 +85,10 @@ class cMMOnePair
       double           mSigmaP;
       Box2di           mBoxIm;
       bool             mPurge;
-
+      std::string      mBascMTD;
+      std::string      mBascDEST;
+      bool             mDoHom;
+      int              mDegCorrEpip;
 };
 
 class cAppliMMOnePair : public cMMOnePair,
@@ -100,6 +104,7 @@ class cAppliMMOnePair : public cMMOnePair,
          void SymetriseMasqReentrant();
          void UseReentrant(bool First,int aStep,bool Last);
          void GenerateMTDEpip(bool MasterIs1);
+         void Bascule(bool MasterIs1);
 
          cImaMM * mIm1;
          cImaMM * mIm2;
@@ -112,9 +117,9 @@ class cAppliMMOnePair : public cMMOnePair,
 /*****************************************************************/
 
 
-
 cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mExe          (true),
+    mMM1PInParal  (true),
     mZoom0        (64),
     mZoomF        (1),
     mByEpip       (true),
@@ -125,7 +130,10 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mNoOri        (false),
     mDoMR         (true),
     mSigmaP       (1.5),
-    mPurge        (true)
+    mPurge        (true),
+    mBascDEST     ("Basculed-"),
+    mDoHom        (false),
+    mDegCorrEpip  (-1)
 {
   ElInitArgMain
   (
@@ -143,7 +151,14 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mSigmaP,"SigmaP",true,"Sigma Pixel for coherence (Def=1.5)")
                     << EAM(mBoxIm,"BoxIm",true,"Box of calc in Epip, tuning purpose, def=All image")
                     << EAM(mPurge,"Purge",true,"Purge directory, tuning, def=true")
+                    << EAM(mMM1PInParal,"InParal",true,"Do it in paral, def=true")
+                    << EAM(mBascMTD,"BascMTD",true,"Metadata of file to bascule (Def No Basc)")
+                    << EAM(mBascDEST,"BascMTD",true,"Res of Bascule (Def Basculed-)")
+                    << EAM(mDoHom,"DoHom",true,"Do Hom in epolar (Def= false)")
+                    << EAM(mDegCorrEpip,"DegCE",true,"Degree of epipolar correction (def=-1)")
   );
+  if (!EAMIsInit(&mDoHom))
+     mDoHom = (mDegCorrEpip>=0);
 
   mNoOri = (mNameOriInit=="NONE");
   if ((! EAMIsInit(&mByEpip)) && mNoOri)
@@ -169,7 +184,16 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                                + std::string(" CreateEpip ")
                                + " " + mNameIm1Init 
                                + " " + mNameIm2Init 
-                               + " " + mNameOriInit;
+                               + " " + mNameOriInit
+                               + " InParal=" + ToString(mMM1PInParal)
+                              ;
+
+             if (mDoHom) aCom = aCom + "  DoHom=true ";
+             if (mDegCorrEpip >=0) aCom = aCom + " Degre=" + ToString(mDegCorrEpip) + " ";
+    // mDoHom        (false),
+    // mDegCorrEpip  (-1)
+// mm3d CreateEpip MVxxxx_MAP_7078.NEF MVxxxx_MAP_7079.NEF Step4  DoIm=true DoHom=true Degre=1
+
              System(aCom);
        }
   }
@@ -250,6 +274,51 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
        GenerateMTDEpip(true);
        GenerateMTDEpip(false);
     }
+
+
+    if (EAMIsInit(&mBascMTD))
+    {
+          Bascule(true);
+          Bascule(false);
+    }
+}
+
+void cAppliMMOnePair::Bascule(bool MasterIs1)
+{
+    std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
+    std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
+    std::string aNamInitA = MasterIs1 ? mNameIm1Init : mNameIm2Init;
+    std::string aNamInitB = MasterIs1 ? mNameIm2Init : mNameIm1Init;
+
+    std::string aDirMatch = mDir + LocDirMec2Im(aNamA,aNamB);
+    std::string aNuageIn =  aDirMatch          + std::string("NuageImProf_Chantier-Ori_Etape_Last.xml");
+    std::string aNuageGeom =    mDir +  mBascMTD;
+    std::string aNuageTarget = mDir +  DirOfFile(mBascMTD) + mBascDEST + aNamInitA + "-" + aNamInitB + ".xml";
+
+    std::string aCom =   MMBinFile(MM3DStr) + " NuageBascule "
+                           + aBlk + aNuageIn
+                           + aBlk + aNuageGeom
+                           + aBlk + aNuageTarget
+                           + " SeuilE=500"
+                           + aBlk + " Paral=" + ToString(mMM1PInParal)
+                         ;
+    System(aCom);
+
+/*
+         std::string aNuageGeom =    mDir +  std::string("MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml");
+         std::string aNuageTarget =  mDir +  std::string("MTD-Nuage/Basculed-")
+                                          + ((aK==0) ? anI1.mNameIm : anI2.mNameIm )
+                                          + "-" + ((aK==0) ? anI2.mNameIm :anI1.mNameIm) + ".xml";
+
+
+         std::string aCom =   MMBinFile(MM3DStr) + " NuageBascule "
+                           + aBlank + aNuageIn
+                           + aBlank + aNuageGeom
+                           + aBlank + aNuageTarget
+                           + " SeuilE=500";
+         std::cout << aCom << "\n";
+
+*/
 }
 
 
@@ -272,7 +341,8 @@ void cAppliMMOnePair::SymetriseMasqReentrant()
                         + aBlk + ToString(aSzY) 
                         + aBlk + "0"
                         + aBlk + ToString(aSzY) 
-                        + aBlk + ToString(!mCpleE->IsLeft(true));
+                        + aBlk + ToString(!mCpleE->IsLeft(true))
+                        + " InParal=" + ToString(mMM1PInParal) ;
 
    System(aCom);
 
@@ -283,7 +353,6 @@ void cAppliMMOnePair::SymetriseMasqReentrant()
         ELISE_fp::MvFile(aDir+NameAutoM(mStepEnd,"_MSym"),aDir+aNAM);
    }
    std::cout << "cAppliMMOnePair::SymetriseMasqReentrant \n";
-   
 }
 
 
@@ -328,7 +397,7 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
 {
      std::string aNameInitA = MasterIs1 ? mNameIm1Init : mNameIm2Init;
      std::string aNameInitB = MasterIs1 ? mNameIm2Init : mNameIm1Init;
-     std::string aPref = "AR"+ std::string(MasterIs1? "1" : "2");
+     std::string aPref = "AR"+ std::string(MasterIs1? "1" : "2") + "-" + aNameInitA + "-" + aNameInitB;
 
      int aZoom = mVZoom[aStep];
      std::string aName = mDir+LocDirMec2Im(mNameIm1,mNameIm2)+"Z_Num"+ToString(aStep)+"_DeZoom"+ToString(aZoom)+"_LeChantier.xml";
@@ -349,6 +418,7 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                           + " Step="     + ToString(aResol)
                           + " SigP="     + ToString(mSigmaP)
                           + " Prefix="   + aPref
+                          + " InParal="  + ToString(mMM1PInParal)
                       ;
 
      System(aCom);
@@ -356,9 +426,11 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
 
 void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
 {
-     std::string aPref = "AR"+ std::string(MasterIs1? "1" : "2");
      std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
      std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
+     std::string aNameInitA = MasterIs1 ? mNameIm1Init : mNameIm2Init;
+     std::string aNameInitB = MasterIs1 ? mNameIm2Init : mNameIm1Init;
+     std::string aPref = "AR"+ std::string(MasterIs1? "1" : "2") + "-" + aNameInitA + "-" + aNameInitB;
 
      std::string aNameCor =    aLast                                                             ?
                                ("AutoMask_LeChantier_Num_" + ToString(aStep-1)+".tif")           :
@@ -426,6 +498,7 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
                           + " +CMS="     + ToString(mCMS)
                           + " +DoOnlyXml="     + ToString(ForMTD)
                           + " +MMC="     + ToString(!ForMTD)
+                          + " +NbProc=" + ToString(mMM1PInParal ? MMNbProc() : 1)
 // FirstEtapeMEC=5 LastEtapeMEC=6
                       ;
 
@@ -630,6 +703,7 @@ int MMSymMasqAR_main(int argc,char ** argv)
   bool aFirsIsRight;
   double  aStep = 1.0;
   bool   CalleByP = false;
+  bool   InParal = false;
 
   ElInitArgMain
   (
@@ -645,6 +719,7 @@ int MMSymMasqAR_main(int argc,char ** argv)
                     << EAMC(aFirsIsRight,"FR"),
         LArgMain()  << EAM(aStep,"Step",true,"Step of pax")
                     << EAM(CalleByP,"CalleByP","Internal use")
+                    << EAM(InParal,"InParal","Internal use")
   );
 
   if (! CalleByP)
@@ -683,7 +758,10 @@ int MMSymMasqAR_main(int argc,char ** argv)
 
              aLCom.push_back(aCom);
       }
-      cEl_GPAO::DoComInParal(aLCom,"MakeSymMasq");
+      if (InParal)
+         cEl_GPAO::DoComInParal(aLCom,"MakeSymMasq");
+      else
+         cEl_GPAO::DoComInSerie(aLCom);
   }
   else
   {

@@ -242,6 +242,10 @@ void cGeomImage::RemplitOriXMLNuage
                 eModeExportNuage
            ) const
 {
+
+
+
+
    aNuage.PM3D_ParamSpecifs().NoParamSpecif().SetNoInit();
    cModeFaisceauxImage aMFI;
    aMFI.ZIsInverse() = false;

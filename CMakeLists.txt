@@ -82,14 +82,6 @@ endif()
 # DEFINITION : Dossier des exe et Dll nécessaires sous windows
 set(BinAuxWinDir ${PROJECT_SOURCE_DIR}/binaire-aux/BIN_AUX_WIN32)
 
-# SUBVERSION
-
-FIND_PACKAGE(Subversion)
-IF(NOT SUBVERSION_FOUND)
-	MESSAGE("Impossible de trouver la version SVN")
-	MESSAGE("Impossible d'effectuer les tests sans SVN")
-ENDIF()
-
 # DEFINITIION : des chemins binaires sous UNIX
 set(UnixBinPath
 		/bin
@@ -131,8 +123,8 @@ endif()
 # MERCURIAL
 find_program(MERCURIAL_EXECUTABLE hg DOC "Emplacement de gestionnaire de versions Mercurial")
 
-if(MERCURIAL_EXECUTABLE-NOTFOUND)
-	message("Vous devez installer TortoiseHG")
+if(NOT MERCURIAL_EXECUTABLE)
+	message( STATUS "Mercurial (hg) cannot be found" )
 else()
 	# Affiche la revision MICMAC
 	EXECUTE_PROCESS(
@@ -150,8 +142,8 @@ else()
 	
 	if ( NOT ${hg_result} )
 	   CONFIGURE_FILE (
-	      "include/general/MM_InstalDir.h.in"
-	      "${CMAKE_SOURCE_DIR}/include/general/MM_InstalDir.h"
+	      "include/general/HG_defines.h.in"
+	      "${CMAKE_SOURCE_DIR}/include/general/HG_defines.h"
 	   )
 	endif()
 endif()
@@ -376,13 +368,14 @@ IF (MSVC)
         else()
             add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
             # la valeur par défaut Zm1000 genere une erreur sous windows XP
+			set(zm_value "/Zm200")
 			string( FIND "${CMAKE_CXX_FLAGS}" "/Zm1000" has_zm1000 )
 			if ( ${has_zm1000} LESS 0 )
 				# la valeur par défaut Zm1000 n'existe plus a partir de la version 2.8.11
-				set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm131")
+				set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${zm_value}")
 			else()
-				# REPLACE pour eviter le conflit Zm1000 vs Zm131
-				string(REPLACE "/Zm1000" "/Zm131" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+				# REPLACE pour eviter le conflit Zm1000 vs ZmXXX
+				string(REPLACE "/Zm1000" ${zm_value} CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 			endif()
         endif()
 
@@ -443,4 +436,5 @@ endif()
 
 if ( ${BUILD_BENCH} )
    include(${PROJECT_SOURCE_DIR}/BenchElise/bench/CMakeLists.txt)
+   include(${PROJECT_SOURCE_DIR}/BenchElise/bench_mm3d/CMakeLists.txt)
 endif()

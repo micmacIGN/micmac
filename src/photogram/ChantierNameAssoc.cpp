@@ -2290,43 +2290,7 @@ std::string XML_MM_File(const std::string & aFile)
 	const std::string cInterfChantierNameManipulateur::theNamePrelim
 		= "MicMac-Prelim-LCD.xml";
 
-
-	cMicMacConfiguration * MMConfig()
-	{
-		static bool Exist = ELISE_fp::exist_file(TheFileMMDIR);
-		if (! Exist) return 0;
-
-		static cMicMacConfiguration aMF = StdGetObjFromFile<cMicMacConfiguration>
-			(
-			TheFileMMDIR,
-			StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
-			"MicMacConfiguration",
-			"MicMacConfiguration"
-			);
-		return & aMF;
-	}
-
-	cMicMacConfiguration * MMConfigNN()
-	{
-		cMicMacConfiguration * aRes = MMConfig();
-
-		ELISE_ASSERT(aRes!=0,"Cannot open MMConfigNN");
-		return aRes;
-	}
-	
-	// MMDir() can return source directory
-	// it may be unappropriate in case of several builds
-	std::string _MMDir(){ return ArgvMMDir; }
-
-	std::string MMDir() 
-	{
-		cMicMacConfiguration * aMMC = MMConfig();
-		if (aMMC != 0)
-		{
-			return aMMC->DirInstall();
-		}
-		return ArgvMMDir;
-	}
+    std::string MMDir(){ return ArgvMMDir; }
 	
 	std::string current_program_fullname()   { return CurrentProgramFullName;}
 	std::string current_program_subcommand() { return CurrentProgramSubcommand;}
@@ -2340,21 +2304,9 @@ std::string XML_MM_File(const std::string & aFile)
 
 
 
-	std::string MMBin() 
-	{
-    return MMDir()+"bin"+ELISE_CAR_DIR;
-	}
-	int MMNbProc()
-	{
-		cMicMacConfiguration * aMMC = MMConfig();
-		if (aMMC != 0)
-		{
-			return aMMC->NbProcess();
-		}
-		return NbProcSys();
-	}
+    std::string MMBin() { return MMDir()+"bin"+ELISE_CAR_DIR; }
 
-
+    int MMNbProc(){	return NbProcSys();	}
 
 	cInterfChantierNameManipulateur::cInterfChantierNameManipulateur
 		(

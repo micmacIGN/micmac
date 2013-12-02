@@ -153,6 +153,7 @@ void cInterfSurfAn_Formelle::PostInitEqRat(bool Code2Gen)
     mSet.AddFonct(mFoncEqRat);
 }
 
+
 void cInterfSurfAn_Formelle::PostInit(bool Code2Gen)
 {
     PostInitEqRat(Code2Gen);

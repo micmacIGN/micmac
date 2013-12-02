@@ -170,7 +170,7 @@ ExternalToolItem & ExternalToolHandler::addTool( const std::string &i_tool )
 	}
 
 	// check EXTERNAL_TOOLS_SUBDIRECTORY directory
-	testName = _MMDir()+EXTERNAL_TOOLS_SUBDIRECTORY+ELISE_CAR_DIR+exeName;
+    testName = MMDir()+EXTERNAL_TOOLS_SUBDIRECTORY+ELISE_CAR_DIR+exeName;
 	if ( ELISE_fp::exist_file( testName ) ){
 		status = ( ExtToolStatus )( status|EXT_TOOL_FOUND_IN_EXTERN );
 		fullName = testName;
@@ -178,7 +178,7 @@ ExternalToolItem & ExternalToolHandler::addTool( const std::string &i_tool )
 	
 	// check INTERNAL_TOOLS_SUBDIRECTORY directory
 	// INTERNAL_TOOLS_SUBDIRECTORY prevails upon EXTERNAL_TOOLS_SUBDIRECTORY
-	testName = _MMDir()+INTERNAL_TOOLS_SUBDIRECTORY+ELISE_CAR_DIR+exeName;
+    testName = MMDir()+INTERNAL_TOOLS_SUBDIRECTORY+ELISE_CAR_DIR+exeName;
 	if ( ELISE_fp::exist_file( testName ) ){
 		status = ( ExtToolStatus )( status|EXT_TOOL_FOUND_IN_INTERN );
 		fullName = testName;

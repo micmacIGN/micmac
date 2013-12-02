@@ -36,6 +36,7 @@ namespace NS_ParamChantierPhotogram{
 
    <enum Name="eTypeMMByP">
        <eGround>         </eGround>
+       <eStatute>        </eStatute>
        <eNbTypeMMByP>    </eNbTypeMMByP>
    </enum>
 

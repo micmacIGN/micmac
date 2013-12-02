@@ -289,7 +289,6 @@ cLoadTer::cLoadTer(int aNbPx,Pt2di aSz,const cEtapeMecComp & anEtape) :
   mSom1           (1,1),
   mMasqGlob       (1,1)
 {
-// std::cout << "ZZZZZZZZZZZ   " << mNbPx << "\n";
    if (anEtape.GenImageCorrel() && (aSz.x >0))
       mImCorrelSol.Resize(aSz);
    for (int aK=0 ; aK<aNbPx ; aK++)

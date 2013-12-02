@@ -440,6 +440,8 @@ Polynome2dReal  ElPackHomologue::FitPolynome
     else
         aSys = new SystLinSurResolu(aNbMon,(INT)size());
 
+     aSys->SetPhaseEquation(0);
+
     Im1D_REAL8  aIMCoeff(aNbMon);
     double * aDC = aIMCoeff.data();
 

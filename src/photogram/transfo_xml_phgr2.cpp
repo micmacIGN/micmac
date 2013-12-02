@@ -765,6 +765,20 @@ const std::list<std::string > * GetBestImSec(const cImSecOfMaster& anISOM,int aN
 }
 
 
+cImSecOfMaster StdGetISOM
+               (
+                    cInterfChantierNameManipulateur * anICNM,
+                    const std::string & aNameIm,
+                    const std::string & anOri
+               )
+{
+    std::string aKey = "NKS-Assoc-ImSec@-"+anOri;
+    std::string aFile = anICNM->Dir() + anICNM->Assoc1To1(aKey,aNameIm,true);
+
+    return StdGetFromPCP(aFile,ImSecOfMaster);
+}
+
+
 
 };
 

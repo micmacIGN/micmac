@@ -75,12 +75,11 @@ char * getExecutableName( buffer_t *i_buffer )
       }
    #elif __APPLE__
     {
-        char *itChar;
-        uint32_t size = (uint32_t)i_buffer->size;
-        if ( _NSGetExecutablePath(i_buffer->data, &size)==-1 )
-            _NSGetExecutablePath( getBuffer(i_buffer,size,0), &size);
-        return i_buffer->data;
-    }
+          uint32_t size = (uint32_t)i_buffer->size;
+          if ( _NSGetExecutablePath(i_buffer->data, &size)==-1 )
+	    _NSGetExecutablePath( getBuffer(i_buffer,size,0), &size);
+          return i_buffer->data;
+      }
    #else // Linux
 	 retrievedSize = (unsigned int)readlink( "/proc/self/exe", i_buffer->data, i_buffer->size );
    #endif
