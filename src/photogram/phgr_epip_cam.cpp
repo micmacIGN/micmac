@@ -840,8 +840,15 @@ cChangEpip::cChangEpip(const ElPackHomologue & aPck,double anAmpl,int aDegre) :
 }
 
 
-void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool InParal,bool DoIm,bool DoHom,int aDegPolyCor)
+void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool InParal,bool DoIm,const char * CarNameHom,int aDegPolyCor)
 {
+    std::string aPrefixHom;
+    if (CarNameHom)
+       aPrefixHom = std::string(CarNameHom);
+    else if (aDegPolyCor>=0)
+       aPrefixHom = "";
+
+
     bool ByP= true; /// std::cout << "Nnnnnnnnnnnnnnnnnnnnnoo process \n";
     std::string aNameImOut = mDir + LocNameImEpi(Im1);
 /*
@@ -866,11 +873,12 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
 
     Polynome2dReal  *  aPolyCor = 0;
 
-    if (DoHom || (aDegPolyCor>=0))
+    if (CarNameHom || (aDegPolyCor>=0))
     {
         std::string & aNamA  =  Im1 ? mName1 : mName2;
         std::string & aNamB  =  Im1 ? mName2 : mName1;
-        std::string aNameHom = mICNM->Dir() + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",aNamA,aNamB,true);
+        std::string aNameHom = mICNM->Dir() 
+                             + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+aPrefixHom+"@dat",aNamA,aNamB,true);
 
 
         ElPackHomologue aPackIn = ElPackHomologue::FromFile(aNameHom);
@@ -899,9 +907,11 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
            aPolyCor = aCE.PolyCor();
         }
 
-        if (DoHom)
+        if (CarNameHom)
         {
-            std::string aNameHEpi = mICNM->Dir() + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",LocNameImEpi(Im1),LocNameImEpi(!Im1),true);
+            std::string aNameHEpi = mICNM->Dir() 
+                                  + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",LocNameImEpi(Im1),LocNameImEpi(!Im1),true);
+
             aPackOut.StdPutInFile(aNameHEpi);
         }
             
