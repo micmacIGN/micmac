@@ -109,3 +109,8 @@ BenchElise/bench/notes.txt
 BenchElise/bench/.Makefile.swp
 install Micmac/images/IGN_logo_2012.psd
 install Micmac/Windows/Output
+MakeBascule
+fdsc/fonctions_perp.pyc
+fdsc/fonctions_cg.pyc
+fdsc/ConstructLine.pyc
+fdsc/ConstructCG.pyc
