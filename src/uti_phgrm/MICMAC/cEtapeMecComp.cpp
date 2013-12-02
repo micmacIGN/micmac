@@ -1856,7 +1856,6 @@ void cEtapeMecComp::RemplitXMLNuage
         }
         aIP.OrigineAlti() =  mGeomTer.OrigineAlti();
         aIP.ResolutionAlti() =    mGeomTer.ResolutionAlti();
-        // aIP.GeomRestit() = eGeomMNTFaisceauIm1PrCh_Px1D;
         aIP.GeomRestit() = mAppli.GeomMNT();
 
    
@@ -1875,6 +1874,19 @@ void cEtapeMecComp::RemplitXMLNuage
           aNuage,
           aMode
       );
+
+      if (mAppli.PDV2())
+      {
+         Pt2dr aPxT(-5,-5);
+         bool aGotET = mAppli.PDV2()->Geom().DirEpipTransv(aPxT);
+         if (aGotET)
+         {
+            cModeFaisceauxImage * aMFI = aNuage.PM3D_ParamSpecifs().ModeFaisceauxImage().PtrVal();
+            ELISE_ASSERT(aMFI!=0,"Incoherence in .DirEpipTransv fill");
+            aMFI->DirTrans().SetVal(aPxT);
+            // std::cout << "ZZZZZ " << aPxT << "\n";
+         }
+      }
    }
 
     cGeomDiscFPx  aGT = GeomTer();
@@ -1884,7 +1896,7 @@ void cEtapeMecComp::RemplitXMLNuage
     // mGeomTer.SetOriResolPlani(aOriPlani,aResolPlani);
     aGT.SetOriResolPlani(aOriPlani,aResolPlani);
 
-    if ((mAppli.GeomMNT() == eGeomMNTFaisceauIm1PrCh_Px1D) || (mAppli.GeomMNT()==eGeomMNTFaisceauPrChSpherik))
+    if ((mAppli.GeomMNT() == eGeomMNTFaisceauIm1PrCh_Px1D) || (mAppli.GeomMNT()==eGeomMNTFaisceauPrChSpherik) || (mAppli.GeomMNT() == eGeomMNTFaisceauIm1PrCh_Px2D))
     {
        ElAffin2D anAff =   ElAffin2D::TransfoImCropAndSousEch(aOriPlani,aResolPlani);
        AddAffinite(aNuage.Orientation(),anAff);

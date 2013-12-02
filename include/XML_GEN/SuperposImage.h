@@ -1664,10 +1664,14 @@ class cModeFaisceauxImage
 
         cTplValGesInit< bool > & IsSpherik();
         const cTplValGesInit< bool > & IsSpherik()const ;
+
+        cTplValGesInit< Pt2dr > & DirTrans();
+        const cTplValGesInit< Pt2dr > & DirTrans()const ;
     private:
         Pt3dr mDirFaisceaux;
         bool mZIsInverse;
         cTplValGesInit< bool > mIsSpherik;
+        cTplValGesInit< Pt2dr > mDirTrans;
 };
 cElXMLTree * ToXMLTree(const cModeFaisceauxImage &);
 
@@ -1687,6 +1691,9 @@ class cPM3D_ParamSpecifs
 
         cTplValGesInit< bool > & IsSpherik();
         const cTplValGesInit< bool > & IsSpherik()const ;
+
+        cTplValGesInit< Pt2dr > & DirTrans();
+        const cTplValGesInit< Pt2dr > & DirTrans()const ;
 
         cTplValGesInit< cModeFaisceauxImage > & ModeFaisceauxImage();
         const cTplValGesInit< cModeFaisceauxImage > & ModeFaisceauxImage()const ;
@@ -1771,6 +1778,9 @@ class cXML_ParamNuage3DMaille
 
         cTplValGesInit< bool > & IsSpherik();
         const cTplValGesInit< bool > & IsSpherik()const ;
+
+        cTplValGesInit< Pt2dr > & DirTrans();
+        const cTplValGesInit< Pt2dr > & DirTrans()const ;
 
         cTplValGesInit< cModeFaisceauxImage > & ModeFaisceauxImage();
         const cTplValGesInit< cModeFaisceauxImage > & ModeFaisceauxImage()const ;

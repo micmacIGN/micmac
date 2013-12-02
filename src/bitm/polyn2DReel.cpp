@@ -389,6 +389,26 @@ Polynome2dReal Polynome2dReal::read(ELISE_fp & aFile)
    return aRes;
 }
 
+std::vector<double>  Polynome2dReal::ToVect() const
+{
+    return mCoeff;
+}
+Polynome2dReal Polynome2dReal::FromVect(const std::vector<double>& aCoef,double anAmpl)
+{
+    int aDeg = 0;
+    while (   ((aDeg+2)*(aDeg+1))/2 < int(aCoef.size()))
+        aDeg++;
+    ELISE_ASSERT( ((aDeg+2)*(aDeg+1))/2 == int(aCoef.size()),"Polynome2dReal::FromVect");
+
+    Polynome2dReal aRes(aDeg,anAmpl);
+    aRes.mCoeff = aCoef;
+    return aRes;
+}
+
+// Polynome2dReal 
+// std::vector<double> ToVect() const;
+// static Polynome2dReal FromVect(const std::vector<double>&);
+
 
 
 

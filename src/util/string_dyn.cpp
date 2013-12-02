@@ -139,6 +139,21 @@ template <> std::string ToString(const Pt2dr & aP)
 }
 
 
+template <class Type> std::string  Vec2String(const std::vector<Type> & aV)
+{
+   std::string aRes= "[";
+   for (int aK=0 ; aK<int(aV.size()) ; aK++)
+   {
+      if (aK!=0) aRes = aRes + ",";
+      aRes = aRes + ToString(aV[aK]);
+   }
+   aRes =  aRes + "]";
+   return aRes;
+}
+template <> std::string ToString(const std::vector<double> & aV)
+{
+    return Vec2String(aV);
+}
 
 
 

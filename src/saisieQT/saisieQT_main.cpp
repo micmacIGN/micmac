@@ -1,7 +1,5 @@
 ﻿#include "saisieQT_main.h"
 
-//bool MMVisualMode = false;
-
 int helpMessage(const QApplication &app, QString text)
 {
 #ifdef WIN32

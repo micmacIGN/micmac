@@ -105,7 +105,7 @@ extern "C" {
 
 
 // const  std::string  TheFileMMDIR="/usr/local/bin/MicMacConfig.xml";
-const  std::string  TheFileMMDIR= TheMicMacInstallDir "MicMacConfig.xml";
+//const  std::string  TheFileMMDIR= TheMicMacInstallDir "MicMacConfig.xml";
 
 FILE  * FopenNN
 	(

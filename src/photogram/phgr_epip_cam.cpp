@@ -472,11 +472,21 @@ template <class Type,class TypeBase> class cReechantEpi
                  Tiff_Im aTIn,
                  const CamStenope & aCamOut,
                  Tiff_Im aTOut,
-                 Box2di  aBoxOut
+                 Box2di  aBoxOut,
+                 Polynome2dReal * aPol
             );
             typedef TIm2D<Type,TypeBase>  tTIm;
      private  :
 };
+
+Pt2dr CorrecPoly(const Pt2dr aP,Polynome2dReal *aPol,double aMul)
+{
+   if (aPol==0) return aP;
+
+   double aDY = (*aPol) (aP) ;
+
+   return Pt2dr (aP.x,aP.y+aMul*aDY);
+}
 
 template <class Type,class TypeBase> 
          cReechantEpi<Type,TypeBase>::cReechantEpi
@@ -485,7 +495,8 @@ template <class Type,class TypeBase>
              Tiff_Im aTIn,
              const CamStenope & aCamOut,
              Tiff_Im aTOut,
-             Box2di  aBoxOut
+             Box2di  aBoxOut,
+             Polynome2dReal * aPol
          )
 {
 
@@ -531,11 +542,15 @@ template <class Type,class TypeBase>
    TIm2D<REAL8,REAL8> aTImX(Pt2di(aSzXR+1,aSzXY+1));
    TIm2D<REAL8,REAL8> aTImY(Pt2di(aSzXR+1,aSzXY+1));
    Pt2di aPInd;
+
    for ( aPInd.x=0; aPInd.x<=aSzXR ; aPInd.x++)
    {
        for (aPInd.y=0; aPInd.y<=aSzXY ; aPInd.y++)
        {
-            Pt2dr aPIm = GlobTransfoEpip(Pt2dr(aPInd*aPas+aBoxOut._p0),aCamOut,aCamIn) -Pt2dr(aBoxIn._p0);
+            Pt2dr aPInput = Pt2dr(aPInd*aPas+aBoxOut._p0);
+            aPInput = CorrecPoly(aPInput,aPol,-1);
+
+            Pt2dr aPIm = GlobTransfoEpip(aPInput,aCamOut,aCamIn) -Pt2dr(aBoxIn._p0);
             aTImX.oset(aPInd,aPIm.x);
             aTImY.oset(aPInd,aPIm.y);
        }
@@ -608,20 +623,21 @@ void ReechEpipGen
              Tiff_Im aTIn,
              const CamStenope & aCamOut,
              Tiff_Im aTOut,
-             Box2di  aBoxOut
+             Box2di  aBoxOut,
+             Polynome2dReal * aPol
      )
 {
    switch (aTOut.type_el())
    {
         case GenIm::u_int1 :
         {
-             cReechantEpi<U_INT1,INT> aREE1(aCamIn,aTIn,aCamOut,aTOut,aBoxOut);
+             cReechantEpi<U_INT1,INT> aREE1(aCamIn,aTIn,aCamOut,aTOut,aBoxOut,aPol);
         }
         break;
 
         case GenIm::u_int2 :
         {
-             cReechantEpi<U_INT2,INT> aREE2(aCamIn,aTIn,aCamOut,aTOut,aBoxOut);
+             cReechantEpi<U_INT2,INT> aREE2(aCamIn,aTIn,aCamOut,aTOut,aBoxOut,aPol);
         }
         break;
 
@@ -639,6 +655,8 @@ int CreateBlockEpip_main(int argc,char ** argv)
    Box2di aBoxOut;
 
    bool mSinCard=false;
+   std::vector<double>  aVecPolCorrec;
+   double               anAmplPol;
 
    ElInitArgMain
    (
@@ -648,7 +666,9 @@ int CreateBlockEpip_main(int argc,char ** argv)
                     << EAMC(aNameCamIn,"Camera In")
                     << EAMC(aNameCamOut,"Camera Out")
                     << EAMC(aBoxOut,"Box out"),
-        LArgMain()  << EAM(mSinCard,"SinCard","Use sinus card for interp, def = false")
+        LArgMain()  << EAM(mSinCard,"SinCard",true,"Use sinus card for interp, def = false")
+                    << EAM(aVecPolCorrec,"PolCorr",true,"Coeff of pol correc")
+                    << EAM(anAmplPol,"AmplPol",true,"Ampl of Pol")
    );
 
     CamStenope * aCamOut = CamOrientGenFromFile(aNameCamOut,0);
@@ -657,8 +677,15 @@ int CreateBlockEpip_main(int argc,char ** argv)
     Tiff_Im aTIn(aNameTifIn.c_str());
     Tiff_Im aTOut(aNameTifOut.c_str());
 
+    Polynome2dReal * aPolCor = 0;
+    if (EAMIsInit(&aVecPolCorrec))
+    {
+        ELISE_ASSERT(EAMIsInit(&anAmplPol),"Incoherence in init aVecPolCorrec");
+        aPolCor = new Polynome2dReal(Polynome2dReal::FromVect(aVecPolCorrec,anAmplPol));
+    }
 
-    ReechEpipGen(*aCamIn,aTIn,*aCamOut,aTOut,aBoxOut);
+
+    ReechEpipGen(*aCamIn,aTIn,*aCamOut,aTOut,aBoxOut,aPolCor);
 
     return 0;
 }
@@ -681,9 +708,9 @@ std::string cCpleEpip::LocDirMatch(const std::string & aIm)
     return LocDirMatch(IsIm1(aIm));
 }
 
-std::string cCpleEpip::LocNameImEpi(const std::string & aIm,int aDeZoom)
+std::string cCpleEpip::LocNameImEpi(const std::string & aIm,int aDeZoom,bool Pyram)
 {
-    return LocNameImEpi(IsIm1(aIm),aDeZoom);
+    return LocNameImEpi(IsIm1(aIm),aDeZoom,Pyram);
 }
 std::string cCpleEpip::LocPxFileMatch(const std::string & aIm,int aNum,int aDeZoom)
 {
@@ -700,14 +727,17 @@ bool cCpleEpip::IsLeft(const std::string & aName) {return  IsLeft(IsIm1(aName));
 
 bool cCpleEpip::IsLeft(bool Im1) {return  mFirstIsLeft ? Im1 : (!Im1) ;}
 
-std::string StdNameImDeZoom(const std::string & aName,int aDeZoom)
+std::string  StdNameImDeZoom(const std::string & aName,int aDeZoom)
 {
    if (aDeZoom==1) return aName;
    return "Pyram/" + aName + "DeZoom"+ToString(aDeZoom) + ".tif";
 }
 
 
-std::string cCpleEpip::LocNameImEpi(bool Im1,int aDeZoom)
+
+
+
+std::string cCpleEpip::LocNameImEpi(bool Im1,int aDeZoom,bool Pyram)
 {
     // bool ImLeft = mFirstIsLeft ? Im1 : (!Im1) ;
     std::string aRes =   "Epi_" 
@@ -716,11 +746,17 @@ std::string cCpleEpip::LocNameImEpi(bool Im1,int aDeZoom)
            + mNamePair + ".tif";
 
     if (aDeZoom!=1)
-       aRes = "Pyram/" + aRes + "DeZoom" + ToString(aDeZoom) + ".tif";
+    {
+       std::string aDir =  "Pyram/";
+       if (! Pyram)
+          aDir = LocDirMatch(Im1);
+       aRes = aDir + aRes + "DeZoom" + ToString(aDeZoom) + ".tif";
+    }
 
 
     return aRes;
 }
+
 
 std::string LocDirMec2Im(const std::string & Im1,const std::string & Im2)
 {
@@ -745,9 +781,66 @@ std::string  cCpleEpip::LocMasqFileMatch(bool Im1,int aNum)
 }
 
 
+class cChangEpip
+{
+     public :
+         cChangEpip(const ElPackHomologue &,double aSz,int aDegre);
+         Polynome2dReal * PolyCor() {return new Polynome2dReal(mCurPoly);}
+     private :
+          void OneIteration(int aDeg,double aSeuil,double aPond);
+  
+          int                mDegre;
+          ElPackHomologue    mPck;
+          double             mAmpl;
+          Polynome2dReal     mCurPoly;
+};
+
+void cChangEpip::OneIteration(int aDeg,double aSeuil,double aPond)
+{
+    double aMoyEr = 0;
+    double aNb = 0;
+    for (ElPackHomologue::iterator itH = mPck.begin() ;  itH!=mPck.end(); itH++)
+    {
+        Pt2dr aPA = itH->P1();
+        Pt2dr aPB = itH->P2();
+        double anEr = ElAbs(aPB.y - mCurPoly(aPA));
+        double aPds = 0;
+        if (anEr< aSeuil)
+           aPds = 1/sqrt(1.0 + ElSquare(anEr/aPond));
+        itH->Pds() = aPds;
+
+        aMoyEr+= anEr;
+        aNb ++;
+    }
+
+    std::cout << "MOY ERR " << aMoyEr / aNb  << " On" << aNb << "\n";
+
+    mCurPoly =  mPck.FitPolynome(true,aDeg,mAmpl,false);
+
+}
 
 
-void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool InParal)
+
+cChangEpip::cChangEpip(const ElPackHomologue & aPck,double anAmpl,int aDegre) :
+     mDegre   (aDegre),
+     mPck     (aPck),
+     mAmpl    (anAmpl),
+     mCurPoly (0,anAmpl)
+{
+   mCurPoly.SetDegre1(0,0,0,true);
+
+   for (int aD=0 ; aD <= aDegre ; aD++)
+   {
+       for (int aK=0; aK<3 ;aK++)
+       {
+          OneIteration(aD,(aD<=1) ? 10 : 5 ,(aD<=1) ? 2 : 1.0);
+       }
+       std::cout << "\n";
+   }
+}
+
+
+void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool InParal,bool DoIm,bool DoHom,int aDegPolyCor)
 {
     bool ByP= true; /// std::cout << "Nnnnnnnnnnnnnnnnnnnnnoo process \n";
     std::string aNameImOut = mDir + LocNameImEpi(Im1);
@@ -770,6 +863,55 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
     // CamStenope * aCTEST = CamOrientGenFromFile(aNameOriOut,mICNM);
     // std::cout << "TTTTT " << aCTEST->Focale() << "\n";
 
+
+    Polynome2dReal  *  aPolyCor = 0;
+
+    if (DoHom || (aDegPolyCor>=0))
+    {
+        std::string & aNamA  =  Im1 ? mName1 : mName2;
+        std::string & aNamB  =  Im1 ? mName2 : mName1;
+        std::string aNameHom = mICNM->Dir() + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",aNamA,aNamB,true);
+
+
+        ElPackHomologue aPackIn = ElPackHomologue::FromFile(aNameHom);
+        ElPackHomologue aPackOut;
+        ElPackHomologue aPackPolyn;
+
+        const CamStenope & aCamInA = aCamIn ;
+        const CamStenopeIdeale &  aCamOutA = aCamOut ;
+        const CamStenope & aCamInB =        Im1 ? mCInit2  : mCInit1;
+        const CamStenopeIdeale & aCamOutB = Im1 ? mCamOut2 : mCamOut1;
+
+        for (ElPackHomologue::const_iterator itH = aPackIn.begin() ;  itH!=aPackIn.end(); itH++)
+        {
+            Pt2dr aPA = itH->P1();
+            Pt2dr aPB = itH->P2();
+
+            Pt2dr aQA = GlobTransfoEpip(aPA,aCamInA,aCamOutA);
+            Pt2dr aQB = GlobTransfoEpip(aPB,aCamInB,aCamOutB);
+            aPackOut.Cple_Add(ElCplePtsHomologues(aQA,aQB));
+            aPackPolyn.Cple_Add(ElCplePtsHomologues(aQA,aQB-aQA));
+        }
+
+        if ((aDegPolyCor>=0) && (!Im1))
+        {
+           cChangEpip aCE(aPackPolyn,euclid(aCamOut.Sz()),aDegPolyCor);
+           aPolyCor = aCE.PolyCor();
+        }
+
+        if (DoHom)
+        {
+            std::string aNameHEpi = mICNM->Dir() + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",LocNameImEpi(Im1),LocNameImEpi(!Im1),true);
+            aPackOut.StdPutInFile(aNameHEpi);
+        }
+            
+
+        // std::cout << "HomIn = " << aNameHom << "\n";
+        // getchar();
+    }
+
+
+    if (! DoIm) return;
 
     GenIm::type_el aTypeNOut =  aTIn.type_el();
     Tiff_Im aTOut
@@ -813,11 +955,19 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
                                   + " " + mDir + aNameOriIn
                                   + " " + mDir + aNameOriOut
                                   + " " + ToString(aBoxOut);
+
+             if (aPolyCor)
+             {
+                 std::vector<double> aVec =  aPolyCor->ToVect() ;
+                 aCom = aCom + " PolCorr=" + ToString(aVec)
+                             + " AmplPol=" + ToString(aPolyCor->Ampl());
+
+             }
              aLCom.push_back(aCom);
          }
          else
          {
-              ReechEpipGen (aCamIn,aTIn,aCamOut,aTOut,aBoxOut);
+              ReechEpipGen (aCamIn,aTIn,aCamOut,aTOut,aBoxOut,0);
          }
     }
     if (InParal)

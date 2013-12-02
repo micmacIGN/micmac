@@ -82,14 +82,6 @@ endif()
 # DEFINITION : Dossier des exe et Dll nécessaires sous windows
 set(BinAuxWinDir ${PROJECT_SOURCE_DIR}/binaire-aux/BIN_AUX_WIN32)
 
-# SUBVERSION
-
-FIND_PACKAGE(Subversion)
-IF(NOT SUBVERSION_FOUND)
-	MESSAGE("Impossible de trouver la version SVN")
-	MESSAGE("Impossible d'effectuer les tests sans SVN")
-ENDIF()
-
 # DEFINITIION : des chemins binaires sous UNIX
 set(UnixBinPath
 		/bin
@@ -131,8 +123,8 @@ endif()
 # MERCURIAL
 find_program(MERCURIAL_EXECUTABLE hg DOC "Emplacement de gestionnaire de versions Mercurial")
 
-if(MERCURIAL_EXECUTABLE-NOTFOUND)
-	message("Vous devez installer TortoiseHG")
+if(NOT MERCURIAL_EXECUTABLE)
+	message( STATUS "Mercurial (hg) cannot be found" )
 else()
 	# Affiche la revision MICMAC
 	EXECUTE_PROCESS(
@@ -150,8 +142,8 @@ else()
 	
 	if ( NOT ${hg_result} )
 	   CONFIGURE_FILE (
-	      "include/general/MM_InstalDir.h.in"
-	      "${CMAKE_SOURCE_DIR}/include/general/MM_InstalDir.h"
+	      "include/general/HG_defines.h.in"
+	      "${CMAKE_SOURCE_DIR}/include/general/HG_defines.h"
 	   )
 	endif()
 endif()
