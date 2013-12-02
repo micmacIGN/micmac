@@ -88,6 +88,7 @@ class cAppliWithSetImage
       cImaMM * ImOfName(const std::string & aName);
       void MakeStripStruct(const std::string & aPairByStrip,bool StripFirst);
       void AddDelaunayCple();
+      void AddCoupleMMImSec();
 
 
 

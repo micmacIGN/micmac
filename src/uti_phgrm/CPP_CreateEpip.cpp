@@ -74,6 +74,10 @@ int CreateEpip_main(int argc,char ** argv)
 
     bool Gray = true;
     bool Cons16B = true;
+    bool InParal = true;
+    bool DoIm = true;
+    bool DoHomol = false;
+    int  aDegre = -1;
     
 
     ElInitArgMain
@@ -86,6 +90,10 @@ int CreateEpip_main(int argc,char ** argv)
                     << EAM(aDir,"Dir",true,"directory, def = current")
                     << EAM(Gray,"Gray",true,"One channel Gray level image (Def=true)")
                     << EAM(Cons16B,"16B",true,"Maintain 16 Bits images if avalaibale (Def=true)")
+                    << EAM(InParal,"InParal",true,"Compute in parallel (Def=true)")
+                    << EAM(DoIm,"DoIm",true,"Compute image (def=true !!)")
+                    << EAM(DoHomol,"DoHom",true,"Compute transformation of homologous point in epi coord (def=false)")
+                    << EAM(aDegre,"Degre",true,"Degre of polynom to correct epi (def=1-, ,2,3)")
     );	
     if (aName1 > aName2) ElSwap(aName1,aName2);
 
@@ -126,9 +134,9 @@ int CreateEpip_main(int argc,char ** argv)
 
      std::cout << "TimeEpi-0 \n";
      ElTimer aChrono;
-     aCplE.ImEpip(aTif1,aNameOr1,true);
+     aCplE.ImEpip(aTif1,aNameOr1,true,InParal,DoIm,DoHomol,aDegre);
      std::cout << "TimeEpi-1 " << aChrono.uval() << "\n";
-     aCplE.ImEpip(aTif2,aNameOr2,false);
+     aCplE.ImEpip(aTif2,aNameOr2,false,InParal,DoIm,DoHomol,aDegre);
      std::cout << "TimeEpi-2 " << aChrono.uval() << "\n";
 
      return EXIT_SUCCESS;

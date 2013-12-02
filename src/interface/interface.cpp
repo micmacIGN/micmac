@@ -490,7 +490,7 @@ bool Interface::checkMicmac() {
 	settings->setValue("cpu", maxcpu);
 
 	//répertoire micmac
-	QString micmacPath( _MMDir().c_str() );
+	QString micmacPath( MMDir().c_str() );
 	paramMain.setMicmacDir(micmacPath);	//NB : s'il existe, le dossier micmac est validé même s'il n'y a pas tous les binaires ou la bonne configuration
 	cout << tr("Micmac directory : ").toStdString(); cout << micmacPath.toStdString() << endl;
 

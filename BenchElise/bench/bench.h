@@ -157,6 +157,8 @@ void bench_reduc_image();
 
 void bench_Proj32();
 
+void bench_command();
+
 #if (ELISE_unix)
 #define RM "rm "
 #else

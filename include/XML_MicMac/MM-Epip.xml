@@ -45,7 +45,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
        <Symb> Ori=Epi    </Symb>
        <Symb> Im1=Epi_Im1_Left_17_18.tif     </Symb>
        <Symb> Im2=Epi_Im2_Right_17_18.tif     </Symb>
-       <Symb> IncPix=400   </Symb>
+       <Symb> IncPix=1000   </Symb>
        <Symb> NbDirProg=4   </Symb>
        <Symb> CMS=true   </Symb>
        <Symb> Census=true   </Symb>
@@ -56,7 +56,10 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
        <Symb> SzW0=2  </Symb>
        <Symb> DeltaY=0  </Symb>
        <Symb> Verif=false  </Symb>
+       <Symb> NbProc=${MMNbProc}  </Symb>
+
        <Symb> MMC=true  </Symb>
+
 
   <!-- Clip zone pour le test -->
        <Symb> ClipCalc=false  </Symb>
@@ -476,9 +479,9 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
     <WorkDir> ThisDir </WorkDir> 
     <TmpMEC> ${DirMEC}/ </TmpMEC>
     <TmpResult> ${DirMEC}/ </TmpResult>
-    <TmpPyr> Pyram/ </TmpPyr>
+    <TmpPyr> ${DirMEC}/ </TmpPyr>
     <PurgeMECResultBefore>  ${Purge} </PurgeMECResultBefore>
-    <ByProcess>  ${MMNbProc} </ByProcess>
+    <ByProcess>  ${NbProc} </ByProcess>
 <!--
     <ByProcess>  1 </ByProcess>
 -->

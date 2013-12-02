@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1141]) = {
+const char * (theNameVar_SuperposImage[1142]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -541,6 +541,7 @@ const char * (theNameVar_SuperposImage[1141]) = {
 "                  <DirFaisceaux Nb=\"1\" Type=\"Pt3dr\"> </DirFaisceaux>\n",
 "                  <ZIsInverse   Nb=\"1\" Type=\"bool\"> </ZIsInverse>\n",
 "                  <IsSpherik    Nb=\"?\" Type=\"bool\" Def=\"false\"> </IsSpherik>\n",
+"                  <DirTrans     Nb=\"?\" Type=\"Pt2dr\"> </DirTrans>\n",
 "              </ModeFaisceauxImage>\n",
 "              <NoParamSpecif Nb=\"?\" Type=\"std::string\"> </NoParamSpecif>\n",
 "          </PM3D_ParamSpecifs>\n",

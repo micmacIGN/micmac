@@ -539,6 +539,7 @@ namespace NS_SuperposeImage{
                   <DirFaisceaux Nb="1" Type="Pt3dr"> </DirFaisceaux>
                   <ZIsInverse   Nb="1" Type="bool"> </ZIsInverse>
                   <IsSpherik    Nb="?" Type="bool" Def="false"> </IsSpherik>
+                  <DirTrans     Nb="?" Type="Pt2dr"> </DirTrans>
               </ModeFaisceauxImage>
               <NoParamSpecif Nb="?" Type="std::string"> </NoParamSpecif>
           </PM3D_ParamSpecifs>

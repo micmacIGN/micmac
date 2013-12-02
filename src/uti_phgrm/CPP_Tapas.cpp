@@ -340,7 +340,7 @@ int Tapas_main(int argc,char ** argv)
    }
 
    std::cout << "Com = " << aCom << "\n";
-   int aRes = system_call(aCom.c_str());
+   int aRes = ::System(aCom.c_str());
 
 
    Tapas_Banniere();

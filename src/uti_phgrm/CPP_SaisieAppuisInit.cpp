@@ -39,72 +39,89 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+#if (ELISE_X11||SAISIE_QT)
+void SaisieAppuisInit(int argc, char ** argv,
+                      Pt2di &aSzW,
+                      Pt2di &aNbFen,
+                      std::string &aFullName,
+                      std::string &aDir,
+                      std::string &aName,
+                      std::string &aNamePt,
+                      std::string &anOri,
+                      std::string &anOut,
+                      std::string &aNameAuto,
+                      std::string &aPrefix2Add,
+                      bool &aForceGray)
+{
+    MMD_InitArgcArgv(argc,argv);
+
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pattern)")
+                      << EAMC(anOri,"Orientation ; NONE if not used")
+                      << EAMC(aNamePt,"Name point")
+                      << EAMC(anOut,"Output"),
+          LArgMain()  << EAM(aSzW,"SzW",true,"Sz of window")
+                      << EAM(aNbFen,"NbF",true,"Nb of sub window (Def depends of number of images with max of 2x2)")
+                      << EAM(aNameAuto,"NameAuto",true," Prefix for automatic point creation")
+                      << EAM(aPrefix2Add,"Pref2Add",true," Prefix to add during import (for bug correction ?)")
+                      << EAM(aForceGray,"ForceGray",true," Force gray image, def =true")
+    );
+
+    SplitDirAndFile(aDir,aName,aFullName);
+
+    cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
+
+    std::cout << "Nb Image =" << aSet->size() << "\n";
+    ELISE_ASSERT(aSet->size()!=0,"No image found");
+
+    if (aNbFen.x<0)
+    {
+       if (aSet->size() == 1)
+       {
+           aNbFen = Pt2di(1,2);
+       }
+       else if (aSet->size() == 2)
+       {
+           Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
+           Pt2di aSzIm = aTF.sz();
+           aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
+       }
+       else
+       {
+           aNbFen = Pt2di(2,2);
+       }
+    }
+
+    cResulMSO aRMSO = aCINM->MakeStdOrient(anOri,true);
+
+    if (0)
+    {
+       std::cout  << "RMSO; Cam "  << aRMSO.Cam()
+                  << " Nuage " <<  aRMSO.Nuage()
+                  << " Ori " <<  aRMSO.IsKeyOri()
+                  << "\n";
+       getchar();
+    }
+}
+#endif
+
 #if (ELISE_X11)
 
 using namespace NS_ParamChantierPhotogram;
 
 int SaisieAppuisInit_main(int argc,char ** argv)
 {
-  MMD_InitArgcArgv(argc,argv);
   Pt2di aSzW(800,800);
   Pt2di aNbFen(-1,-1);
-  std::string aFullName,aNamePt,anOri,anOut;
-  std::string aNameAuto = "NONE";
-  std::string aPrefix2Add = "";
+  std::string aFullName,aNamePt,anOri,anOut, aNameAuto, aPrefix2Add, aDir, aName;
+  aNameAuto = "NONE";
+  aPrefix2Add = "";
   bool aForceGray = true;
 
-  ElInitArgMain
-  (
-        argc,argv,
-        LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pattern)")
-                    << EAMC(anOri,"Orientation ; NONE if not used")
-                    << EAMC(aNamePt,"Name point")
-                    << EAMC(anOut,"Output"),
-        LArgMain()  << EAM(aSzW,"SzW",true,"Sz of Window")
-                    << EAM(aNbFen,"NbF",true,"Nb Of Sub window (Def depends of number of images with max of 2x2)")
-                    << EAM(aNameAuto,"NameAuto",true," Prefix or automatic point creation")
-                    << EAM(aPrefix2Add,"Pref2Add",true," Prefix to add during import (for bug correction ?)")
-                    << EAM(aForceGray,"ForceGray",true," Force gray image, def =true")
-  );
-
-  std::string aDir,aName;
-  SplitDirAndFile(aDir,aName,aFullName);
-
-
-  cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-  const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
-
-  std::cout << "Nb Image =" << aSet->size() << "\n";
-  ELISE_ASSERT(aSet->size()!=0,"No image found");
-
-  if (aNbFen.x<0)
-  {
-     if (aSet->size() == 1)
-     {
-         aNbFen = Pt2di(1,2);
-     }
-     else if (aSet->size() == 2)
-     {
-         Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
-         Pt2di aSzIm = aTF.sz();
-         aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
-     }
-     else 
-     {
-         aNbFen = Pt2di(2,2);
-     }
-  }
-
-  cResulMSO aRMSO = aCINM->MakeStdOrient(anOri,true);
-
-  if (0)
-  {
-     std::cout  << "RMSO; Cam "  << aRMSO.Cam() 
-                << " Nuage " <<  aRMSO.Nuage() 
-                << " Ori " <<  aRMSO.IsKeyOri()
-                << "\n";
-     getchar();
-  }
+  SaisieAppuisInit(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, anOut, aNameAuto, aPrefix2Add, aForceGray);
 
   std::string aCom =     MMDir() +"bin/SaisiePts "
                       +  MMDir() +"include/XML_MicMac/SaisieInitiale.xml "

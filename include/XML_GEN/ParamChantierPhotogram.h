@@ -29,6 +29,7 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeTapas & anObj);
 typedef enum
 {
   eGround,
+  eStatute,
   eNbTypeMMByP
 } eTypeMMByP;
 void xml_init(eTypeMMByP & aVal,cElXMLTree * aTree);

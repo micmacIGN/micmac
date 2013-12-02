@@ -99,7 +99,6 @@ void UseRequirement(const std::string &,const cTplValGesInit<cBatchRequirement> 
 
 namespace NS_ParamChantierPhotogram{ 
 cMicMacConfiguration * MMC();
-std::string _MMDir();
 std::string MMDir();
 std::string MMBin();
 std::string current_program_fullname();   // mm3d's full name (absolute path + executable name)
@@ -1263,6 +1262,14 @@ const cOneMesureAF1I *  PtsOfName(const cMesureAppuiFlottant1Im &,const std::str
 
 class cImSecOfMaster;
 const std::list<std::string > * GetBestImSec(const cImSecOfMaster&,int aNb=-1,int aNbMin=-1,int aNbMax=1000,bool OkAndOutWhenNone=false);
+
+cImSecOfMaster StdGetISOM
+               (
+                    cInterfChantierNameManipulateur * anICNM,
+                    const std::string & aNameIm,
+                    const std::string & anOri
+               );
+
 };
 
 
