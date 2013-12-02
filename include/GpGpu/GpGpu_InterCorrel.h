@@ -54,7 +54,7 @@ public:
 
   SData2Correl&  Data(){return _data2Cor;}
 
-  float*        VolumeCost();
+  float*        VolumeCost(ushort id);
 
   uint2         box;
 
@@ -74,9 +74,9 @@ public:
 
 private:
 
-  void              CorrelationGpGpu(const int s = 0, ushort idBuf = 0 );
+  void              CorrelationGpGpu(ushort idBuf = 0 , const int s = 0);
 
-  void              MultiCorrelationGpGpu(const int s = 0, ushort idBuf = 0);
+  void              MultiCorrelationGpGpu(ushort idBuf = 0,const int s = 0);
 
   cudaStream_t*		GetStream(int stream);
   void              threadCompute();
