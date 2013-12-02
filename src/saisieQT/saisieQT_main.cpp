@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
         {
             QString str = cmdline_args[i];
 #ifdef _DEBUG
-            printf("\ncommande : %s", str.toStdString().c_str());
+            cout << "\ncommande : " << str.toStdString().c_str()<<endl;
 #endif
 
             if (!str.contains("SaisieQT"))
@@ -105,6 +105,7 @@ int main(int argc, char *argv[])
                     QString text = QObject::tr("This is not a valid command!!!") + "\n\n" + cmds;
                     helpMessage(app, text);
                 }
+
                 return -1;
             }
         }
