@@ -52,8 +52,7 @@ GLWidget::~GLWidget()
     delete [] _projmatrix;
     delete [] _glViewport;
 
-    delete [] m_GLData;
-//m_Data is deleted by Engine
+//m_GLData, m_Data are deleted by Engine
 }
 
 bool GLWidget::eventFilter(QObject* object,QEvent* event)
@@ -317,8 +316,6 @@ void GLWidget::computeFPS()
     }
 }
 
-
-
 void GLWidget::enableOptionLine()
 {
     glDisable(GL_DEPTH_TEST);
@@ -568,7 +565,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
 
 void GLWidget::keyReleaseEvent(QKeyEvent* event)
 {
-    if  (event->key() == Qt::Key_Shift)
+    if ((event->key() == Qt::Key_Shift) && hasDataLoaded())
     {
         m_GLData->m_dihedron.clear();
         m_GLData->m_polygon.resetClick();
@@ -582,6 +579,9 @@ void GLWidget::updateAfterSetData()
     if (m_Data->is3D())
     {
         m_bDisplayMode2D = false;
+
+        /*for (int aK=0; aK<m_Data->getNbClouds();aK++)
+            m_Data->getCloud(aK)->setBufferGl();*/
 
         setZoom(m_Data->getScale());
 
@@ -730,7 +730,7 @@ void GLWidget::drawPolygon()
 
         poly.drawDihedron();
     }
-    else
+    else if (m_Data->is3D())
     {
         m_GLData->m_polygon.draw();
         m_GLData->m_dihedron.drawDihedron();
@@ -1008,158 +1008,170 @@ QPointF GLWidget::ImageToWindow(QPointF const &im)
 
 void GLWidget::Select(int mode)
 {
-    QPointF P2D;
-    bool pointInside;
-    cPolygon polyg;
-
-    if(mode == ADD || mode == SUB)
+    if (hasDataLoaded())
     {
-        if ((m_GLData->m_polygon.size() < 3) || (!m_GLData->m_polygon.isClosed()))
-            return;
+        QPointF P2D;
+        bool pointInside;
+        cPolygon polyg;
 
-        if (!m_bDisplayMode2D)
+        if(mode == ADD || mode == SUB)
         {
-            for (int aK=0; aK < m_GLData->m_polygon.size(); ++aK)
+            if ((m_GLData->m_polygon.size() < 3) || (!m_GLData->m_polygon.isClosed()))
+                return;
+
+            if (!m_bDisplayMode2D)
             {
-                polyg.add(QPointF(m_GLData->m_polygon[aK].x(), _glViewport[3] - m_GLData->m_polygon[aK].y()));
+                for (int aK=0; aK < m_GLData->m_polygon.size(); ++aK)
+                {
+                    polyg.add(QPointF(m_GLData->m_polygon[aK].x(), _glViewport[3] - m_GLData->m_polygon[aK].y()));
+                }
             }
+            else
+                polyg = m_GLData->m_polygon;
         }
-        else
-            polyg = m_GLData->m_polygon;
-    }
 
-    if (m_bDisplayMode2D)
-    {
-         QPainter    p;
-         QBrush SBrush(Qt::white);
-         QBrush NSBrush(Qt::black);
+        if (m_bDisplayMode2D)
+        {
+             QPainter    p;
+             QBrush SBrush(Qt::white);
+             QBrush NSBrush(Qt::black);
 
-         //p.begin(_mask);
-         p.begin(m_Data->getCurMask());
-         p.setCompositionMode(QPainter::CompositionMode_Source);
-         p.setPen(Qt::NoPen);
+             //p.begin(_mask);
+             p.begin(m_Data->getCurMask());
+             p.setCompositionMode(QPainter::CompositionMode_Source);
+             p.setPen(Qt::NoPen);
 
-         if(mode == ADD)
-         {
-             if (m_bFirstAction)
+             if(mode == ADD)
+             {
+                 if (m_bFirstAction)
+                 {
+                     p.fillRect(m_Data->getCurMask()->rect(), Qt::black);
+                 }
+                 p.setBrush(SBrush);
+                 p.drawPolygon(polyg.getVector().data(),polyg.size());
+             }
+             else if(mode == SUB)
+             {
+                 p.setBrush(NSBrush);
+                 p.drawPolygon(polyg.getVector().data(),polyg.size());
+             }
+             else if(mode == ALL)
+             {
+                 p.fillRect(m_Data->getCurMask()->rect(), Qt::white);
+             }
+             else if(mode == NONE)
              {
                  p.fillRect(m_Data->getCurMask()->rect(), Qt::black);
              }
-             p.setBrush(SBrush);
-             p.drawPolygon(polyg.getVector().data(),polyg.size());
-         }
-         else if(mode == SUB)
-         {
-             p.setBrush(NSBrush);
-             p.drawPolygon(polyg.getVector().data(),polyg.size());
-         }
-         else if(mode == ALL)
-         {
-             p.fillRect(m_Data->getCurMask()->rect(), Qt::white);
-         }
-         else if(mode == NONE)
-         {
-             p.fillRect(m_Data->getCurMask()->rect(), Qt::black);
-         }
-         p.end();
+             p.end();
 
-         if(mode == INVERT)
-             m_Data->getCurMask()->invertPixels(QImage::InvertRgb);
+             if(mode == INVERT)
+                 m_Data->getCurMask()->invertPixels(QImage::InvertRgb);
 
-         m_GLData->pMask->ImageToTexture(m_Data->getCurMask());
-    }
-    else
-    {
-        for (uint aK=0; aK < (uint) m_Data->getNbClouds(); ++aK)
+             m_GLData->pMask->ImageToTexture(m_Data->getCurMask());
+        }
+        else
         {
-            Cloud *a_cloud = m_Data->getCloud(aK);
-
-            for (uint bK=0; bK < (uint) a_cloud->size();++bK)
+            for (uint aK=0; aK < (uint) m_Data->getNbClouds(); ++aK)
             {
-                Vertex P  = a_cloud->getVertex( bK );
-                Pt3dr  Pt = P.getPosition();
+                Cloud *a_cloud = m_Data->getCloud(aK);
 
-                switch (mode)
+                for (uint bK=0; bK < (uint) a_cloud->size();++bK)
                 {
-                case ADD:
-                    getProjection(P2D, Pt);
-                    pointInside = polyg.isPointInsidePoly(P2D);
-                    if (m_bFirstAction)
-                        emit selectedPoint(aK,bK,pointInside);
-                    else
-                        emit selectedPoint(aK,bK,pointInside||P.isVisible());
-                    break;
-                case SUB:
-                    if (P.isVisible())
+                    Vertex P  = a_cloud->getVertex( bK );
+                    Pt3dr  Pt = P.getPosition();
+
+                    switch (mode)
                     {
+                    case ADD:
                         getProjection(P2D, Pt);
                         pointInside = polyg.isPointInsidePoly(P2D);
-                        emit selectedPoint(aK,bK,!pointInside);
+                        if (m_bFirstAction)
+                            emit selectedPoint(aK,bK,pointInside);
+                        else
+                            emit selectedPoint(aK,bK,pointInside||P.isVisible());
+                        break;
+                    case SUB:
+                        if (P.isVisible())
+                        {
+                            getProjection(P2D, Pt);
+                            pointInside = polyg.isPointInsidePoly(P2D);
+                            emit selectedPoint(aK,bK,!pointInside);
+                        }
+                        break;
+                    case INVERT:
+                        emit selectedPoint(aK,bK,!P.isVisible());
+                        break;
+                    case ALL:
+                        m_bFirstAction = true;
+                        emit selectedPoint(aK,bK, true);
+                        break;
+                    case NONE:
+                        emit selectedPoint(aK,bK,false);
+                        break;
                     }
-                    break;
-                case INVERT:
-                    emit selectedPoint(aK,bK,!P.isVisible());
-                    break;
-                case ALL:
-                    m_bFirstAction = true;
-                    emit selectedPoint(aK,bK, true);
-                    break;
-                case NONE:
-                    emit selectedPoint(aK,bK,false);
-                    break;
                 }
+
+                a_cloud->setBufferGl(true);
             }
-
-            a_cloud->setBufferGl(true);
         }
+
+        if (((mode == ADD)||(mode == SUB)) && (m_bFirstAction)) m_bFirstAction = false;
+
+        selectInfos info;
+        info.params = m_params;
+        info.poly   = m_GLData->m_polygon.getVector();
+        info.selection_mode   = mode;
+
+        m_infos.push_back(info);
+
+        clearPolyline();
     }
-
-    if (((mode == ADD)||(mode == SUB)) && (m_bFirstAction)) m_bFirstAction = false;
-
-    selectInfos info;
-    info.params = m_params;
-    info.poly   = m_GLData->m_polygon.getVector();
-    info.selection_mode   = mode;
-
-    m_infos.push_back(info);
-
-    clearPolyline();
 }
 
 void GLWidget::clearPolyline()
 {
-    m_GLData->m_polygon.clear();
-    m_GLData->m_polygon.setClosed(false);
-    m_GLData->m_dihedron.clear();
+    if (hasDataLoaded())
+    {
+        m_GLData->m_polygon.clear();
+        m_GLData->m_polygon.setClosed(false);
+        m_GLData->m_dihedron.clear();
+    }
 
     update();
 }
 
 void GLWidget::showAxis(bool show)
 {
-    m_GLData->pAxis->setVisible(show);
+    if (hasDataLoaded())
+        m_GLData->pAxis->setVisible(show);
 
     update();
 }
 
 void GLWidget::showBall(bool show)
 {
-    m_GLData->pBall->setVisible(show);
+    if (hasDataLoaded())
+        m_GLData->pBall->setVisible(show);
 
     update();
 }
 
 void GLWidget::showCams(bool show)
 {
-    for (int i=0; i < m_GLData->Cams.size();i++)
-        m_GLData->Cams[i]->setVisible(show);
+    if (hasDataLoaded())
+    {
+        for (int i=0; i < m_GLData->Cams.size();i++)
+            m_GLData->Cams[i]->setVisible(show);
+    }
 
     update();
 }
 
 void GLWidget::showBBox(bool show)
 {
-    m_GLData->pBbox->setVisible(show);
+    if (hasDataLoaded())
+        m_GLData->pBbox->setVisible(show);
 
     update();
 }
@@ -1221,7 +1233,9 @@ void GLWidget::resetView()
 
         setZoom(m_Data->getScale());
 
-        m_GLData->pBall->setVisible(hasDataLoaded()); //rustine - a passer dans MainWindow pour ui->action_showBall->setChecked(false)
+        //rustine - a passer dans MainWindow pour ui->action_showBall->setChecked(false)
+        if (hasDataLoaded())
+            m_GLData->pBall->setVisible(true);
     }
 
     update();
