@@ -231,11 +231,11 @@ void MainWindow::addFiles(const QStringList& filenames)
             _Engine->setFilenamesOut();
         }
 
+        _glWidget->setData(_Engine->getData());
+
         _Engine->setGLData();
         _glWidget->setGLData(_Engine->getGLData(0));
         _glWidget->updateAfterSetData();
-
-        _glWidget->setData(_Engine->getData());
 
         for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
 
@@ -536,29 +536,9 @@ void MainWindow::on_actionLoad_image_triggered()
         _FilenamesIn.clear();
         _FilenamesIn.push_back(img_filename);
 
-        if (!_bMode2D)
-        {
-            _bMode2D = true;
-
-            closeAll();
-            glLoadIdentity();
-        }
-
-        // load image (and mask)
-        _Engine->loadImage(img_filename);
-
-        cout << "ici1\n";
-        _Engine->setGLData();
-        cout <<"ici2\n";
-        _glWidget->setGLData(_Engine->getGLData(0));
-        cout <<"ici3\n";
-        _glWidget->updateAfterSetData();
-        cout <<"ici4\n";
-        _glWidget->setData(_Engine->getData());
-
         setCurrentFile(img_filename);
 
-        checkForLoadedData();
+        addFiles(_FilenamesIn);
     }
 }
 
