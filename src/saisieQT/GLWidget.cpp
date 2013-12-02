@@ -42,8 +42,6 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
 
     m_font.setPointSize(10);
 
-    m_GLData = new cGLData();
-
     installEventFilter(this);
     setMouseTracking(true);
 }
@@ -338,7 +336,7 @@ void GLWidget::disableOptionLine()
 
 void GLWidget::setGLData(cGLData * aData)
 {
-
+    m_GLData = aData;
 }
 
 void GLWidget::paintGL()
@@ -392,14 +390,18 @@ void GLWidget::paintGL()
         m_GLData->pImg->setDimensions(m_rh, m_rw);
         m_GLData->pImg->draw(QColor(255,255,255));
 
+        //cout << "on passe  là" << endl;
         if(m_Data->getCurMask() != NULL && !_g_mouseMiddleDown)
         {
+            //cout <<"on rentre" << endl;
             m_GLData->pMask->setDimensions(m_rh, m_rw);
             m_GLData->pMask->bind_draw();
             glBlendFunc(GL_ONE,GL_ONE);
 
             m_GLData->pMask->draw(QColor(128,128,128));
             glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
+
+            //cout << "on sort " << endl;
         }
 
         m_GLData->pImg->bind_draw();
@@ -423,7 +425,6 @@ void GLWidget::paintGL()
 
             if  ((px>=0.f)&&(py>=0.f)&&(px<m_Data->getCurImage()->width())&&(py<m_Data->getCurImage()->height()))
                 renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(px,'f',1) + ", " + QString::number(m_Data->getCurImage()->height()-py,'f',1) + " px", m_font);
-
         }
     }
     else
@@ -581,7 +582,6 @@ void GLWidget::updateAfterSetData()
 {
     clearPolyline();
 
-
     if (m_Data->is3D())
     {
         float scale = m_Data->m_diam / 1.5f;
@@ -634,13 +634,10 @@ void GLWidget::updateAfterSetData()
 
         m_GLData->pImg->ImageToTexture(m_Data->getCurImage());
 
-        if(m_Data->getCurMask() == NULL)
-            glGenTextures(1, m_GLData->pMask->getTexture());
-
-        if (m_Data->getNbMasks())
-            m_bFirstAction = false;
-        else
+        if (m_Data->isMaskEmpty())
             m_bFirstAction = true;
+        else
+            m_bFirstAction = false;
     }
 
     glGetIntegerv (GL_VIEWPORT, _glViewport);
@@ -1053,7 +1050,7 @@ void GLWidget::Select(int mode)
         {
             for (int aK=0; aK < m_polygon.size(); ++aK)
             {
-               polyg.add(QPointF(m_polygon[aK].x(), _glViewport[3] - m_polygon[aK].y()));
+                polyg.add(QPointF(m_polygon[aK].x(), _glViewport[3] - m_polygon[aK].y()));
             }
         }
         else
@@ -1098,7 +1095,7 @@ void GLWidget::Select(int mode)
          if(mode == INVERT)
              m_Data->getCurMask()->invertPixels(QImage::InvertRgb);
 
-          m_GLData->pMask->ImageToTexture(m_Data->getCurMask());
+         m_GLData->pMask->ImageToTexture(m_Data->getCurMask());
     }
     else
     {

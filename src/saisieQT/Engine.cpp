@@ -223,8 +223,11 @@ void  cEngine::loadImage(QString imgName)
 
     _Loader->loadImage(imgName, img, mask);
 
-    if (img!=NULL) _Data->addImage(img);
+    if (img !=NULL) _Data->addImage(img);
     if (mask!=NULL) _Data->addMask(mask);
+#ifdef _DEBUG
+    else cout << "mask null" <<endl;
+#endif
 }
 
 void cEngine::doMasks()
@@ -370,7 +373,7 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
         for (int aK=0; aK <pts.size(); ++aK)
         {
             QDomElement Point    = doc.createElement("Pt");
-            QString str = QString::number(pts[aK].x()) + " "  + QString::number(pts[aK].y(), 'f',1);
+            QString str = QString::number(pts[aK].x(), 'f',1) + " "  + QString::number(pts[aK].y(), 'f',1);
 
             t = doc.createTextNode( str );
             Point.appendChild(t);
@@ -411,21 +414,22 @@ void cEngine::setGLData()
     {
         cGLData *theData = new cGLData();
 
-        cImageGL * pImg  = new cImageGL();
-        cImageGL * pMask = new cImageGL();
+        if (_Data->getNbMasks()>aK)
+        {
+            if(_Data->getMask(aK) == NULL)
+                glGenTextures(1, theData->pMask->getTexture() );   
+            _Data->setEmptymask(false);
 
-        pImg->ImageToTexture(_Data->getImage(aK));
-
-        if(_Data->getCurMask() == NULL)
-            glGenTextures(1, pMask->getTexture() );
-
-        if (!_Data->getNbMasks())
-            _Data->fillCurMask();
-
-        pMask->ImageToTexture(_Data->getMask(aK));
-
-        theData->pImg = pImg;
-        theData->pMask = pMask;
+            theData->pMask->ImageToTexture(_Data->getMask(aK));
+        }
+        else if (_Data->getNbMasks() == 0)
+        {
+            QImage *mask;
+            mask = new QImage(_Data->getImage(aK)->size(),QImage::Format_Mono);
+            _Data->addMask(mask);
+            _Data->fillMask(aK);
+            _Data->setEmptymask(true);
+        }
 
         _GLData.push_back(theData);
     }
@@ -471,7 +475,7 @@ cGLData::~cGLData()
 {
     delete pImg;
     delete pMask;
-    for (int aK = 0; aK< Cams.size();++aK) delete Cams[aK];
+    for (int aK = 0; aK< Cams.size(); ++aK) delete Cams[aK];
 
     delete pBall;
     delete pAxis;
