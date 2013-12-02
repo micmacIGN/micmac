@@ -210,12 +210,6 @@ protected:
 
     QString     m_messageFPS;
 
-    //! Point list for polygonal selection
-    cPolygon    m_polygon;
-
-    //! Point list for polygonal insertion
-    cPolygon    m_dihedron;
-
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
 
