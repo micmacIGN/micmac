@@ -68,5 +68,27 @@ private:
   
 };
 
+class cl_MatPtsHom
+{
+	public:
+		cl_MatPtsHom(const int nbIm){
+			for(int i=0;i<nbIm;i++)
+			{
+				vector<PtsHom> aPtsHom(nbIm);
+				this->aMat.push_back(aPtsHom);
+			}
+		}
+		~cl_MatPtsHom(){}
+		vector<vector<PtsHom> > aMat;
+		int size(){
+			int sum=0;
+			for(int i=0;i<this->aMat.size();i++)
+			{
+				sum += this->aMat[i].size();
+			}
+			return sum;
+
+		}
+};
 
 #endif // ARSENIC_H
