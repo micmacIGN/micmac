@@ -52,7 +52,7 @@ GLWidget::~GLWidget()
     delete [] _projmatrix;
     delete [] _glViewport;
 
-    delete [] m_GLData;
+    //delete [] m_GLData;
 //m_Data is deleted by Engine
 }
 

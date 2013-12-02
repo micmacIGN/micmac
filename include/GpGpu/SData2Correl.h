@@ -89,7 +89,7 @@ private:
 
     void DeviceMemset(pCorGpu &param, uint s = 0);
 
-
+    uint2                       _MaxAlloc;
 };
 
 #endif
