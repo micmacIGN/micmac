@@ -208,6 +208,11 @@ void cBall::setPosition(Pt3dr const &aPt)
     _cr2->setPosition(aPt);
 }
 
+Pt3dr cBall::getPosition()
+{
+    return _cl0->getPosition();
+}
+
 void cBall::setColor(QColor const &aCol)
 {
     _cl0->setColor(aCol);
