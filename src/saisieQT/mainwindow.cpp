@@ -37,10 +37,12 @@ MainWindow::MainWindow(bool mode2D, QWidget *parent) :
 
     setMode2D(mode2D);
 
-    QGridLayout* layout = new QGridLayout();
-    layout->addWidget(_glWidget);
+    _layout = new QGridLayout();
+    _layout->addWidget(_glWidget);
+
+    _signalMapper = new QSignalMapper (this) ;
     connectActions();
-    _ui->OpenglLayout->setLayout(layout);
+    _ui->OpenglLayout->setLayout(_layout);
 
     createMenus();
 }
@@ -51,6 +53,9 @@ MainWindow::~MainWindow()
     delete _glWidget;
     delete _Engine;
     delete _RFMenu;
+
+    delete _layout;
+    delete _signalMapper;
 }
 
 void MainWindow::connectActions()
@@ -62,21 +67,20 @@ void MainWindow::connectActions()
     connect(_ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
 
     //Zoom menu
-    QSignalMapper* signalMapper = new QSignalMapper (this) ;
 
-    connect(_ui->action4_1_400,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
-    connect(_ui->action2_1_200,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
-    connect(_ui->action1_1_100,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
-    connect(_ui->action1_2_50,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
-    connect(_ui->action1_4_25,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
+    connect(_ui->action4_1_400,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
+    connect(_ui->action2_1_200,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
+    connect(_ui->action1_1_100,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
+    connect(_ui->action1_2_50,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
+    connect(_ui->action1_4_25,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
 
-    signalMapper->setMapping (_ui->action4_1_400, 400);
-    signalMapper->setMapping (_ui->action2_1_200, 200);
-    signalMapper->setMapping (_ui->action1_1_100, 100);
-    signalMapper->setMapping (_ui->action1_2_50, 50);
-    signalMapper->setMapping (_ui->action1_4_25, 25);
+    _signalMapper->setMapping (_ui->action4_1_400, 400);
+    _signalMapper->setMapping (_ui->action2_1_200, 200);
+    _signalMapper->setMapping (_ui->action1_1_100, 100);
+    _signalMapper->setMapping (_ui->action1_2_50, 50);
+    _signalMapper->setMapping (_ui->action1_4_25, 25);
 
-    connect (signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
+    connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
 
     //Selection
     connect(_glWidget,SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
@@ -231,11 +235,11 @@ void MainWindow::addFiles(const QStringList& filenames)
             _Engine->setFilenamesOut();
         }
 
-        _Engine->setGLData();
-        _glWidget->setGLData(_Engine->getGLData(0));
-        _glWidget->updateAfterSetData();
-
         _glWidget->setData(_Engine->getData());
+
+        _Engine->setGLData();
+        _glWidget->setGLData(_Engine->getGLData((uint)0));
+        _glWidget->updateAfterSetData();
 
         for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
 
@@ -536,29 +540,9 @@ void MainWindow::on_actionLoad_image_triggered()
         _FilenamesIn.clear();
         _FilenamesIn.push_back(img_filename);
 
-        if (!_bMode2D)
-        {
-            _bMode2D = true;
-
-            closeAll();
-            glLoadIdentity();
-        }
-
-        // load image (and mask)
-        _Engine->loadImage(img_filename);
-
-        cout << "ici1\n";
-        _Engine->setGLData();
-        cout <<"ici2\n";
-        _glWidget->setGLData(_Engine->getGLData(0));
-        cout <<"ici3\n";
-        _glWidget->updateAfterSetData();
-        cout <<"ici4\n";
-        _glWidget->setData(_Engine->getData());
-
         setCurrentFile(img_filename);
 
-        checkForLoadedData();
+        addFiles(_FilenamesIn);
     }
 }
 

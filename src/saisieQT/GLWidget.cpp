@@ -42,8 +42,6 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
 
     m_font.setPointSize(10);
 
-    m_GLData = new cGLData();
-
     installEventFilter(this);
     setMouseTracking(true);
 }
@@ -54,7 +52,8 @@ GLWidget::~GLWidget()
     delete [] _projmatrix;
     delete [] _glViewport;
 
-    delete m_GLData;
+    delete [] m_GLData;
+//m_Data is deleted by Engine
 }
 
 bool GLWidget::eventFilter(QObject* object,QEvent* event)
@@ -74,14 +73,14 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
         {
-            int sz = m_polygon.size();
+            int sz = m_GLData->m_polygon.size();
 
-            if(!m_polygon.isClosed())
+            if(!m_GLData->m_polygon.isClosed())
             {
                 if (sz == 1)     // add current mouse position to polygon (dynamic display)
-                    m_polygon.add(pos);
+                    m_GLData->m_polygon.add(pos);
                 else if (sz > 1) // replace last point by the current one
-                    m_polygon[sz-1] = pos;
+                    m_GLData->m_polygon[sz-1] = pos;
             }
             else
             {
@@ -90,14 +89,14 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                     QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
                     if (keyEvent->modifiers().testFlag(Qt::ShiftModifier))
                     {
-                        m_polygon.fillDihedron(pos, m_dihedron);
+                        m_GLData->m_polygon.fillDihedron(pos, m_GLData->m_dihedron);
                     }
                     else
                     {
-                        if (m_polygon.click() == 1)
-                            m_polygon.fillDihedron2(pos, m_dihedron);
+                        if (m_GLData->m_polygon.click() == 1)
+                            m_GLData->m_polygon.fillDihedron2(pos, m_GLData->m_dihedron);
                         else
-                            m_polygon.findClosestPoint(pos);
+                            m_GLData->m_polygon.findClosestPoint(pos);
                     }
                 }
             }
@@ -178,33 +177,33 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
            {
                if (hasDataLoaded())
                {
-                   if(!m_polygon.isClosed())        // add point to polygon
+                   if(!m_GLData->m_polygon.isClosed())        // add point to polygon
                    {
-                       if (m_polygon.size() >= 1)
-                           m_polygon[m_polygon.size()-1] = m_lastPosImage;
+                       if (m_GLData->m_polygon.size() >= 1)
+                           m_GLData->m_polygon[m_GLData->m_polygon.size()-1] = m_lastPosImage;
 
-                       m_polygon.add(m_lastPosImage);
+                       m_GLData->m_polygon.add(m_lastPosImage);
                    }
                    else // modify polygon (insert or move vertex)
                    {
                        if (mouseEvent->modifiers().testFlag(Qt::ShiftModifier))
                        {
-                           if ((m_polygon.size() >=2) && m_dihedron.size() && m_polygon.isClosed())
+                           if ((m_GLData->m_polygon.size() >=2) && m_GLData->m_dihedron.size() && m_GLData->m_polygon.isClosed())
                            {
                                int idx = -1;
 
-                               for (int i=0;i<m_polygon.size();++i)
+                               for (int i=0;i<m_GLData->m_polygon.size();++i)
                                {
-                                   if (m_polygon[i] == m_dihedron[0]) idx = i;
+                                   if (m_GLData->m_polygon[i] == m_GLData->m_dihedron[0]) idx = i;
                                }
 
-                               if (idx >=0) m_polygon.insert(idx+1, m_dihedron[1]);
+                               if (idx >=0) m_GLData->m_polygon.insert(idx+1, m_GLData->m_dihedron[1]);
                            }
 
-                           m_dihedron.clear();
+                           m_GLData->m_dihedron.clear();
                        }
-                       else if (m_polygon.idx() != -1)
-                           m_polygon.clicked();
+                       else if (m_GLData->m_polygon.idx() != -1)
+                           m_GLData->m_polygon.clicked();
                    }
                }
            }
@@ -213,17 +212,17 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
        {
            _g_mouseRightDown = true; // for rotation around Z (in 3D)
 
-           int idx = m_polygon.idx();
-           if ((idx >=0)&&(idx<m_polygon.size())&&m_polygon.isClosed())
+           int idx = m_GLData->m_polygon.idx();
+           if ((idx >=0)&&(idx<m_GLData->m_polygon.size())&&m_GLData->m_polygon.isClosed())
            {
-               m_polygon.remove(idx);   // remove closest point
+               m_GLData->m_polygon.remove(idx);   // remove closest point
 
-               m_polygon.findClosestPoint(m_lastPosImage);
+               m_GLData->m_polygon.findClosestPoint(m_lastPosImage);
 
-               if (m_polygon.size() < 2) m_polygon.setClosed(false);
+               if (m_GLData->m_polygon.size() < 2) m_GLData->m_polygon.setClosed(false);
            }
            else // close polygon
-               m_polygon.close();
+               m_GLData->m_polygon.close();
        }
        else if (mouseEvent->button() == Qt::MiddleButton)
        {
@@ -241,18 +240,18 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
         {
             _g_mouseLeftDown = false;
 
-            int idx = m_polygon.idx();
-            if ((m_polygon.click() >=1) && (idx>=0) && m_dihedron.size())
+            int idx = m_GLData->m_polygon.idx();
+            if ((m_GLData->m_polygon.click() >=1) && (idx>=0) && m_GLData->m_dihedron.size())
             {
-                m_polygon[idx] = m_dihedron[1];
+                m_GLData->m_polygon[idx] = m_GLData->m_dihedron[1];
 
-                m_dihedron.clear();
-                m_polygon.resetClick();
+                m_GLData->m_dihedron.clear();
+                m_GLData->m_polygon.resetClick();
             }
 
-            if ((m_polygon.click() >=1) && m_polygon.isClosed())
+            if ((m_GLData->m_polygon.click() >=1) && m_GLData->m_polygon.isClosed())
             {
-                m_polygon.findClosestPoint(m_lastPosImage);
+                m_GLData->m_polygon.findClosestPoint(m_lastPosImage);
             }
         }
         if ( mouseEvent->button() == Qt::RightButton  )
@@ -338,7 +337,7 @@ void GLWidget::disableOptionLine()
 
 void GLWidget::setGLData(cGLData * aData)
 {
-
+    m_GLData = aData;
 }
 
 void GLWidget::paintGL()
@@ -423,10 +422,9 @@ void GLWidget::paintGL()
 
             if  ((px>=0.f)&&(py>=0.f)&&(px<m_Data->getCurImage()->width())&&(py<m_Data->getCurImage()->height()))
                 renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(px,'f',1) + ", " + QString::number(m_Data->getCurImage()->height()-py,'f',1) + " px", m_font);
-
         }
     }
-    else
+    else if (m_Data->is3D())
     {
         zoom();
 
@@ -572,8 +570,8 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
 {
     if  (event->key() == Qt::Key_Shift)
     {
-        m_dihedron.clear();
-        m_polygon.resetClick();
+        m_GLData->m_dihedron.clear();
+        m_GLData->m_polygon.resetClick();
     }
 }
 
@@ -581,38 +579,11 @@ void GLWidget::updateAfterSetData()
 {
     clearPolyline();
 
-
     if (m_Data->is3D())
     {
-        float scale = m_Data->m_diam / 1.5f;
-
         m_bDisplayMode2D = false;
 
-        //a passer dans m_GLData
-        for (int aK=0; aK<m_Data->getNbClouds();aK++)
-            m_Data->getCloud(aK)->setBufferGl();
-
         setZoom(m_Data->getScale());
-
-        m_GLData->pBall->setPosition(m_Data->getCenter());
-        m_GLData->pBall->setScale(scale);
-        m_GLData->pBall->setVisible(true);
-
-        m_GLData->pAxis->setPosition(m_Data->getCenter());
-        m_GLData->pAxis->setScale(scale);
-
-        m_GLData->pBbox->setPosition(m_Data->getCenter());
-        m_GLData->pBbox->set(m_Data->m_minX,m_Data->m_minY,m_Data->m_minZ,m_Data->m_maxX,m_Data->m_maxY,m_Data->m_maxZ);
-
-        for (int i=0; i<m_Data->getNbCameras();i++)
-        {
-            cCam *pCam = new cCam(m_Data->getCamera(i));
-
-            pCam->setScale(scale);
-            pCam->setVisible(true);
-
-            m_GLData->Cams.push_back(pCam);
-        }
 
         resetTranslationMatrix();
     }
@@ -634,13 +605,10 @@ void GLWidget::updateAfterSetData()
 
         m_GLData->pImg->ImageToTexture(m_Data->getCurImage());
 
-        if(m_Data->getCurMask() == NULL)
-            glGenTextures(1, m_GLData->pMask->getTexture());
-
-        if (m_Data->getNbMasks())
-            m_bFirstAction = false;
-        else
+        if (m_Data->isMaskEmpty())
             m_bFirstAction = true;
+        else
+            m_bFirstAction = false;
     }
 
     glGetIntegerv (GL_VIEWPORT, _glViewport);
@@ -745,27 +713,27 @@ void GLWidget::drawPolygon()
 
     if (m_Data->getNbImages())
     {
-        cPolygon poly = m_polygon;
+        cPolygon poly = m_GLData->m_polygon;
         poly.clearPoints();
-        for (int aK = 0;aK < m_polygon.size(); ++aK)
+        for (int aK = 0;aK < m_GLData->m_polygon.size(); ++aK)
         {
-            poly.add(ImageToWindow(m_polygon[aK]));
+            poly.add(ImageToWindow(m_GLData->m_polygon[aK]));
         }
 
         poly.draw();
 
         poly.clearPoints();
-        for (int aK = 0;aK < m_dihedron.size(); ++aK)
+        for (int aK = 0;aK < m_GLData->m_dihedron.size(); ++aK)
         {
-            poly.add(ImageToWindow(m_dihedron[aK]));
+            poly.add(ImageToWindow(m_GLData->m_dihedron[aK]));
         }
 
         poly.drawDihedron();
     }
     else
     {
-        m_polygon.draw();
-        m_dihedron.drawDihedron();
+        m_GLData->m_polygon.draw();
+        m_GLData->m_dihedron.drawDihedron();
     }
 
     disableOptionLine();
@@ -1046,18 +1014,18 @@ void GLWidget::Select(int mode)
 
     if(mode == ADD || mode == SUB)
     {
-        if ((m_polygon.size() < 3) || (!m_polygon.isClosed()))
+        if ((m_GLData->m_polygon.size() < 3) || (!m_GLData->m_polygon.isClosed()))
             return;
 
         if (!m_bDisplayMode2D)
         {
-            for (int aK=0; aK < m_polygon.size(); ++aK)
+            for (int aK=0; aK < m_GLData->m_polygon.size(); ++aK)
             {
-               polyg.add(QPointF(m_polygon[aK].x(), _glViewport[3] - m_polygon[aK].y()));
+                polyg.add(QPointF(m_GLData->m_polygon[aK].x(), _glViewport[3] - m_GLData->m_polygon[aK].y()));
             }
         }
         else
-            polyg = m_polygon;
+            polyg = m_GLData->m_polygon;
     }
 
     if (m_bDisplayMode2D)
@@ -1098,7 +1066,7 @@ void GLWidget::Select(int mode)
          if(mode == INVERT)
              m_Data->getCurMask()->invertPixels(QImage::InvertRgb);
 
-          m_GLData->pMask->ImageToTexture(m_Data->getCurMask());
+         m_GLData->pMask->ImageToTexture(m_Data->getCurMask());
     }
     else
     {
@@ -1150,7 +1118,7 @@ void GLWidget::Select(int mode)
 
     selectInfos info;
     info.params = m_params;
-    info.poly   = m_polygon.getVector();
+    info.poly   = m_GLData->m_polygon.getVector();
     info.selection_mode   = mode;
 
     m_infos.push_back(info);
@@ -1160,9 +1128,9 @@ void GLWidget::Select(int mode)
 
 void GLWidget::clearPolyline()
 {
-    m_polygon.clear();
-    m_polygon.setClosed(false);
-    m_dihedron.clear();
+    m_GLData->m_polygon.clear();
+    m_GLData->m_polygon.setClosed(false);
+    m_GLData->m_dihedron.clear();
 
     update();
 }

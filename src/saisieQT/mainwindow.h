@@ -12,6 +12,7 @@
 #include <QProgressDialog>
 #include <QTimer>
 #include <QSignalMapper>
+#include <QGridLayout>
 
 #include "GLWidget.h"
 #include "Engine.h"
@@ -144,5 +145,8 @@ private:
 
     QPoint                  _nbFen;
     QPoint                  _szFen;
+
+    QSignalMapper*          _signalMapper;
+    QGridLayout*            _layout;
 };
 #endif // MAINWINDOW_H
