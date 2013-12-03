@@ -43,23 +43,6 @@ static PlyProperty oriented_vert_props[] = {
     {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,nz), 0, 0, 0, 0}
 };
 
-/*Vertex::Vertex()
-{
-    _position = Pt3dr(0.,0.,0.);
-    _color    = QColor();
-    _bVisible = true;
-}
-
-
- Vertex::Vertex(Pt3dr pos, QColor col)
-{
-    _position  = pos;
-    _color     = col;
-    _bVisible  = true;
-}
-
-*/
-
 /*!
     Read a ply file, store the point cloud
 */
