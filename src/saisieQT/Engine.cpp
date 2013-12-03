@@ -182,7 +182,8 @@ cEngine::~cEngine()
     delete _Data;
     delete _Loader;
 
-    qDeleteAll(_GLData);
+    for (uint aK=0; aK<_GLData.size();++aK)
+        delete _GLData[aK];
     _GLData.clear();
 }
 
@@ -438,6 +439,8 @@ void cEngine::setGLData()
 
     if (_Data->is3D())
     {
+        cout << "ok "<< endl;
+
         cGLData *theData = new cGLData();
 
         for (int aK = 0; aK < _Data->getNbClouds();++aK)
@@ -481,6 +484,7 @@ void cEngine::setGLData()
 
         _GLData.push_back(theData);
 
+        cout << "ok "<< endl;
     }
 }
 cGLData* cEngine::getGLData(uint WidgetIndex)
@@ -508,13 +512,16 @@ cGLData::~cGLData()
     delete pImg;
     delete pMask;
 
-    //for (int aK = 0; aK< Clouds.size(); ++aK) delete Clouds[aK];
-    qDeleteAll(Cams);
+    for (int aK = 0; aK< Cams.size(); ++aK) delete Cams[aK];
+    //qDeleteAll(Cams);
     Cams.clear();
 
     delete pBall;
     delete pAxis;
     delete pBbox;
+
+   // qDeleteAll(Clouds);
+   // Clouds.clear();
 }
 
 //********************************************************************************

@@ -7,10 +7,10 @@ cData::cData()
 
 cData::~cData()
 {
-    qDeleteAll(_Cameras);
-    qDeleteAll(_Clouds);
-    qDeleteAll(_Images);
-    qDeleteAll(_Masks);
+    for (int aK=0; aK < getNbCameras();++aK) delete _Cameras[aK];
+    for (int aK=0; aK < getNbClouds();++aK)  delete _Clouds[aK];
+    for (int aK=0; aK < getNbImages();++aK)  delete _Images[aK];
+    for (int aK=0; aK < getNbMasks();++aK)   delete _Masks[aK];
 
     _Cameras.clear();
     _Clouds.clear();
@@ -48,7 +48,8 @@ void cData::addMask(QImage * aImg)
 
 void cData::clearClouds()
 {
-    qDeleteAll(_Clouds);
+    for (uint aK=0; aK < (uint)getNbClouds();++aK)
+        delete _Clouds[aK];
 
     _Clouds.clear();
 
@@ -57,7 +58,8 @@ void cData::clearClouds()
 
 void cData::clearCameras()
 {
-    qDeleteAll(_Cameras);
+    for (uint aK=0; aK < (uint)getNbCameras();++aK)
+        delete _Cameras[aK];
 
     _Cameras.clear();
 
@@ -66,7 +68,8 @@ void cData::clearCameras()
 
 void cData::clearImages()
 {
-    qDeleteAll(_Images);
+    for (uint aK=0; aK < (uint)getNbCameras();++aK)
+        delete _Images[aK];
 
     _Images.clear();
 
@@ -75,16 +78,12 @@ void cData::clearImages()
 
 void cData::clearMasks()
 {
-    qDeleteAll(_Masks);
+    for (uint aK=0; aK < (uint)getNbMasks();++aK)
+        delete _Masks[aK];
 
     _Masks.clear();
 
     reset();
-}
-
-void cData::deleteCurMask()
-{
-    delete _Masks[_curImgIdx];
 }
 
 void cData::reset()
