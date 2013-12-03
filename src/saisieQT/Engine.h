@@ -120,13 +120,24 @@ class cGLData
     cGLData();
     ~cGLData();
 
+    //2D
     cImageGL    *pImg;
     cImageGL    *pMask;
+
+    //! Point list for polygonal selection
+    cPolygon    m_polygon;
+
+    //! Point list for polygonal insertion
+    cPolygon    m_dihedron;
+
+    //3D
     QVector < cCam* > Cams;
 
     cBall       *pBall;
     cAxis       *pAxis;
     cBBox       *pBbox;
+
+    //QVector < Cloud *> Clouds;
 };
 
 class cEngine
@@ -189,7 +200,7 @@ private:
     cLoader*         _Loader;
     cData*           _Data;
 
-    vector <cGLData*> _GLData;
+    QVector <cGLData*> _GLData;
 };
 
 

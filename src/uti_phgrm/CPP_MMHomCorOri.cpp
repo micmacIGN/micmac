@@ -56,6 +56,8 @@ Parametre de Tapas :
 
 #define  NbModele 10
 
+static const int TheSeuilC = 196;
+
 class cAppli_HomCorOri
 {
     public :
@@ -63,7 +65,11 @@ class cAppli_HomCorOri
          void DoMatch();
          void Load();
          void ComputeOrtho();
+         void ComputePts();
+         void SauvPack();
     private :
+         Pt3dr ComputeOneBox(const Box2di &);
+         double ScorePts(const Pt2di &);
 
          void LoadImage(const std::string & aName,Im2D_REAL4,bool Resize);
 
@@ -90,6 +96,7 @@ class cAppli_HomCorOri
          CamStenope       * mCS2;
          Im2D_REAL4        mImCorrel;
          Im2D_REAL4        mImProf;
+         TIm2D<float,double> mTProf;
          Im2D_REAL4        mImPxT;
          TIm2D<float,double> mTPx;
          Video_Win *       mW;
@@ -97,8 +104,10 @@ class cAppli_HomCorOri
          Im2D_REAL4        mIm1;
          Im2D_REAL4        mIm2Ori;
          Im2D_REAL4        mIm2;
-         Im2D_Bits<1>      mMasq;
+         Im2D_U_INT1       mMasq;
+         TIm2D<U_INT1,INT> mTMasq;
          bool              mMatch;
+         ElPackHomologue   mPack;
 };
 
 Fonc_Num Correl(Fonc_Num aMasq,Fonc_Num aF1,Fonc_Num aF2,int aSzW)
@@ -131,7 +140,7 @@ Pt2dr cAppli_HomCorOri::Im1ToIm2(const Pt2di aP)
     Pt3dr aP3 = mNuage->PtOfIndex(aP);
     Pt2dr aRes =  mCS2->R3toF2(aP3);
 
-    return aRes +  mVPxT * mTPx.get(aP);
+    return aRes +  mVPxT * (mTPx.get(aP) * mDownSize);
 }
 
 Pt2dr cAppli_HomCorOri::RRIm1ToIm2(const Pt2di aP)
@@ -159,6 +168,150 @@ void cAppli_HomCorOri::LoadImage(const std::string & aName,Im2D_REAL4 anIm,bool 
    //  ELISE_COPY (anIm.all_pts(),Min(255,anIm.in()/mDynVisu),mW->ogray());
 }
 
+inline double PdsErr(double anEr) {return 1/(1+ElSquare(anEr));}
+
+double cAppli_HomCorOri::ScorePts(const Pt2di & aP)
+{
+    int aLarge = 10;
+    double aRes = 0;
+    Pt2di aSz = mTPx.sz();
+    Pt2di aPLarg(aLarge,aLarge);
+
+    Pt2di aP0 = Sup(Pt2di(0,0),aP-aPLarg);
+    Pt2di aP1 = Inf(aSz,aP+aPLarg);
+
+    double aProf = mTProf.get(aP);
+    double aPax =  mTPx.get(aP);
+    Pt2di aQ;
+    for (aQ.x=aP0.x ; aQ.x<aP1.x; aQ.x++)
+    {
+        for (aQ.y=aP0.y ; aQ.y<aP1.y; aQ.y++)
+        {
+             double aEPr = ElAbs(aProf-mTProf.get(aQ));
+             double aEPax = ElAbs(aPax-mTPx.get(aQ)) * 10;
+
+             aRes += PdsErr(aEPr) * PdsErr(aEPax); 
+        }
+    }
+    
+   
+    return aRes / ( 2*aLarge);
+}
+
+Pt3dr cAppli_HomCorOri::ComputeOneBox(const Box2di & aBox)
+{
+    // mW->draw_rect(I2R(aBox),mW->pdisc()(P8COL::green));
+    Pt2di aP;
+    int aNbTirage = 10;
+
+    int aNbOk=0;
+    int aNb=0;
+    for (aP.x=aBox._p0.x ; aP.x<aBox._p1.x ; aP.x++)
+    {
+        for (aP.y=aBox._p0.y ; aP.y<aBox._p1.y ; aP.y++)
+        {
+            aNb++;
+            if (mTMasq.get(aP))
+            {
+                aNbOk++;
+            }
+        }
+    }
+
+    if (aNbOk <(aNb/3))
+    {
+         return Pt3dr(0,0,-1);
+    }
+
+    double aProba = double(aNbTirage) / aNbOk;
+
+    double aScMax = -1;
+    Pt2di aPMax(0,0);
+    int aNbT=0;
+
+    for (aP.x=aBox._p0.x ; aP.x<aBox._p1.x ; aP.x++)
+    {
+        for (aP.y=aBox._p0.y ; aP.y<aBox._p1.y ; aP.y++)
+        {
+            if (mTMasq.get(aP)  && (NRrandom3()<aProba))
+            {
+                double aSc = ScorePts(aP);
+                aNbT++;
+                if (aSc > aScMax)
+                {
+                    aScMax = aSc;
+                    aPMax = aP;
+                }
+            }
+        }
+    }
+    return Pt3dr(aPMax.x,aPMax.y,aScMax);
+}
+
+class cCmpPt3drOnZ
+{
+    public :
+      bool operator () (const Pt3dr & aP1,const Pt3dr & aP2) {return aP1.z>aP2.z;}
+};
+
+void cAppli_HomCorOri::ComputePts()
+{
+    Pt2di aSz = mIm2.sz();
+    int aNbTarget =10000;
+    double aLarg = sqrt((aSz.x*aSz.y) /double(aNbTarget));
+    int aNbX = round_up(aSz.x/aLarg);
+    int aNbY = round_up(aSz.y/aLarg);
+
+    double aSom=0;
+
+    std::vector<Pt3dr> aVP;
+
+    for (int aKx=0 ; aKx<aNbX; aKx++)
+    {
+        for (int aKy=0 ; aKy<aNbY; aKy++)
+        {
+             int aX0 = (aKx * aSz.x) /aNbX;
+             int aX1 = ((aKx+1) * aSz.x) /aNbX;
+             int aY0 = (aKy * aSz.y) /aNbY;
+             int aY1 = ((aKy+1) * aSz.y) /aNbY;
+             Pt3dr aRes  = ComputeOneBox(Box2di(Pt2di(aX0,aY0),Pt2di(aX1,aY1)));
+             if (aRes.z >0)
+             {
+                aSom += aRes.z;
+                aVP.push_back(aRes);
+             }
+        }
+    }
+    cCmpPt3drOnZ aCmp;
+    std::sort(aVP.begin(),aVP.end(),aCmp);
+
+    for (int aK=0 ; aK<int(aVP.size() * 0.9) ; aK++)
+    {
+         // std::cout << " " << aVP[aK] << "\n";
+         Pt2di aP = round_ni(Pt2dr(aVP[aK].x,aVP[aK].y));
+         // mW->draw_circle_abs(Pt2dr(aP),2.0,mW->pdisc()(P8COL::red));
+
+         mPack.Cple_Add(ElCplePtsHomologues(Pt2dr(aP)*(mZoomFinal*mDownSize),Im1ToIm2(aP)));
+    }
+}
+
+void cAppli_HomCorOri::SauvPack()
+{
+   std::string aNameHom = 
+             mICNM->Dir() 
+           + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@-DenseM@dat",mNameIm1,mNameIm2,true);
+
+   mPack.StdPutInFile(aNameHom);
+
+   mPack.SelfSwap();
+   aNameHom = 
+             mICNM->Dir() 
+           + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@-DenseM@dat",mNameIm2,mNameIm1,true);
+
+   mPack.StdPutInFile(aNameHom);
+   mPack.SelfSwap();
+}
+
 
 void cAppli_HomCorOri::ComputeOrtho() 
 {
@@ -170,7 +323,6 @@ void cAppli_HomCorOri::ComputeOrtho()
     TIm2D<float,double> aTIm2(mIm2);
     TIm2D<float,double> aTIm2Ori(mIm2Ori);
     TIm2D<float,double> aTImC(mImCorrel);
-    TIm2DBits<1>        aTMasq(mMasq);
 
     
 
@@ -180,16 +332,16 @@ void cAppli_HomCorOri::ComputeOrtho()
     {
        for (aP.y=0 ; aP.y<aSz.y ; aP.y++)
        {
-            if ((aTImC.get(aP) > 196) && mNuage->IndexHasContenu(aP))
+            if ((aTImC.get(aP) > TheSeuilC) && mNuage->IndexHasContenu(aP))
             {
-                aTMasq.oset(aP,1);
+                mTMasq.oset(aP,1);
                 Pt2dr aPIm2 = RRIm1ToIm2(aP);
 
                 aTIm2.oset(aP,aTIm2Ori.getr(aPIm2,-10.0));
             }
             else
             {
-                aTMasq.oset(aP,0);
+                mTMasq.oset(aP,0);
             }
        }
     }
@@ -202,53 +354,50 @@ void cAppli_HomCorOri::ComputeOrtho()
     ELISE_COPY(aGX2.all_pts(),deriche(mIm2.in_proj(),1.0),Virgule(aGX2.out(),aGY2.out()));
 
 
+/*
     ELISE_COPY 
     (
          mIm2.all_pts(),
          Min(255,Virgule(mIm2.in(),mIm1.in(),mIm1.in())/mDynVisu),
          mW->orgb()
     );
-    std::cout << "LLLLL \n";
-    getchar();
+*/
 
-    ELISE_COPY 
-    (
-         mIm2.all_pts(),
-         Min(255,(mIm2.in()/mDynVisu)),
-         mW->ogray()
-    );
+    static const int aNbW = 5;
+    int aTabSzW[aNbW] = {1,2,4,6,9};
 
-
-    
-
-    for (int aSzW=1 ; aSzW<10 ; aSzW ++)
+    for (int aKW=0 ; aKW<aNbW ; aKW ++)
     {
+         int aSzW = aTabSzW[aKW];
          ELISE_COPY
          (
               mIm2.all_pts(),
               Min(Correl(mMasq.in(0),mIm1.in(0),mIm2.in(0),aSzW),mImCorrel.in()),
-              mW->ogray() | mImCorrel.out()
+              mImCorrel.out()
          );
 
          ELISE_COPY
          (
               mIm2.all_pts(),
               Min(Correl(mMasq.in(0),aGX1.in(0),aGX2.in(0),aSzW),mImCorrel.in()),
-              mW->ogray() | mImCorrel.out()
+               mImCorrel.out()
          );
 
          ELISE_COPY
          (
               mIm2.all_pts(),
               Min(Correl(mMasq.in(0),aGY1.in(0),aGY2.in(0),aSzW),mImCorrel.in()),
-              mW->ogray() | mImCorrel.out()
+              mImCorrel.out()
          );
 
-         ELISE_COPY ( mImCorrel.all_pts(), mImCorrel.in() > 196, mMasq.out());
-         getchar();
+         ELISE_COPY ( mImCorrel.all_pts(), mImCorrel.in() > TheSeuilC, mMasq.out());
     }
 
+    ELISE_COPY(mMasq.border(1),0,mMasq.out());
 
+    FiltrageCardCC(true,mTMasq,1,2,1000);
+    ELISE_COPY(mMasq.all_pts(),mMasq.in()==1,mMasq.out());
+    // ELISE_COPY(mMasq.all_pts(),mMasq.in(),mW->odisc());
 }
 
 
@@ -264,14 +413,16 @@ void cAppli_HomCorOri::Load()
     std::cout << "PXXXXtt " << mVPxT << "\n";
     mImCorrel.Resize(mNuage->SzUnique());
     mImProf.Resize(mNuage->SzUnique());
+    mTProf = TIm2D<float,double>(mImProf);
     mImPxT.Resize(mNuage->SzUnique());
     mTPx = TIm2D<float,double>(mImPxT);
     mIm1.Resize(mNuage->SzUnique());
     mIm2.Resize(mNuage->SzUnique());
-    mMasq = Im2D_Bits<1>(mNuage->SzUnique().x,mNuage->SzUnique().y);
+    mMasq.Resize(mNuage->SzUnique());
+    mTMasq = TIm2D<U_INT1,INT>(mMasq);
 
 
-    mW = Video_Win::PtrWStd(mNuage->SzUnique());
+    // mW = Video_Win::PtrWStd(mNuage->SzUnique());
 
     ELISE_COPY
     (
@@ -284,6 +435,8 @@ void cAppli_HomCorOri::Load()
          ),
          mImCorrel.out()
     );
+    ELISE_COPY(mImCorrel.all_pts(), mImCorrel.in()<TheSeuilC,mMasq.out());
+
     ELISE_COPY
     (
          mImPxT.all_pts(),
@@ -297,9 +450,6 @@ void cAppli_HomCorOri::Load()
     );
 
     ELISE_COPY(mImProf.all_pts(),mNuage->ImProf()->in(),mImProf.out());
-
-    // ELISE_COPY ( mImProf.all_pts(), mImProf.in() * 20, mW->ocirc());
-    // ELISE_COPY ( mImCorrel.all_pts(), mImCorrel.in() > 196, mW->odisc());
 
     LoadImage(mNameIm1,mIm1,false);
     LoadImage(mNameIm2,mIm2Ori,true);
@@ -340,12 +490,14 @@ cAppli_HomCorOri::cAppli_HomCorOri (int argc,char ** argv) :
     mNuage     (0),
     mImCorrel  (1,1),
     mImProf    (1,1),
+    mTProf     (mImProf),
     mImPxT     (1,1),
     mTPx       (mImPxT),
     mIm1       (1,1),
     mIm2Ori    (1,1),
     mIm2       (1,1),
     mMasq      (1,1),
+    mTMasq     (mMasq),
     mMatch     (false)
 {
     MMD_InitArgcArgv(argc,argv);
@@ -376,6 +528,8 @@ int MMHomCorOri_main(int argc,char ** argv)
    anAppli.DoMatch();
    anAppli.Load();
    anAppli.ComputeOrtho();
+   anAppli.ComputePts();
+   anAppli.SauvPack();
 
 
    BanniereMM3D();
