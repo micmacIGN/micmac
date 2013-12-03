@@ -125,21 +125,15 @@ void SData2Correl::copyHostToDevice(pCorGpu param,uint s)
 
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF292CB0);
 
-    //uint2 dimP = _dt_LayeredProjection[s].GetDimension();
 
-    //if(!aEq(param.dimSTer,dimP))
+    // A remplacer par ReallocIf dans le layeredProjection....
     if(oI(_MaxAlloc,param.dimSTer))
     {
         _MaxAlloc = param.dimSTer;
         _dt_LayeredProjection[s].Realloc(param.dimSTer,param.nbImages * param.ZCInter);
-
     }
     else
-     _dt_LayeredProjection[s].SetDimension(param.dimSTer,param.nbImages * param.ZCInter);
-//    if(!aEq(_hVolumeProj.GetDimension(),dimP))
-//    {
-//        _dt_LayeredProjection[s].Realloc(_hVolumeProj.GetDimension(),param.nbImages * param.ZCInter);
-//    }
+        _dt_LayeredProjection[s].SetDimension(param.dimSTer,param.nbImages * param.ZCInter);
 
     // Copier les projections du host --> device
     _dt_LayeredProjection[s].copyHostToDevice(_hVolumeProj.pData());
@@ -196,7 +190,8 @@ void    SData2Correl::DeviceMemset(pCorGpu &param, uint s)
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF1A2BB5);
     _d_volumeCost[s].Memset(param.IntDefault);
 
-    _d_volumeCach[s].Memset(param.IntDefault);
+    // A vERIFIER que le memset est inutile
+    //_d_volumeCach[s].Memset(param.IntDefault);
 
     _d_volumeNIOk[s].Memset(0);
     nvtxRangePop();
