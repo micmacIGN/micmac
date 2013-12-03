@@ -128,7 +128,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                 }
                 else if((_glViewport[2]!=0) || (_glViewport[3]!=0)) // translation
                 {
-                    if (m_Data->getNbImages())
+                    if (m_bDisplayMode2D)
                     {
                         QPointF dp = pos - m_lastPosImage;
 
@@ -351,7 +351,7 @@ void GLWidget::paintGL()
 
     glDisable(GL_BLEND);
 
-    if (m_Data->getNbImages())
+    if ((m_bDisplayMode2D)&&(m_GLData->pImg != NULL) )
     {
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE,GL_ZERO);
@@ -388,7 +388,7 @@ void GLWidget::paintGL()
         m_GLData->pImg->setDimensions(m_rh, m_rw);
         m_GLData->pImg->draw(QColor(255,255,255));
 
-        if(m_Data->getCurMask() != NULL && !_g_mouseMiddleDown)
+        if(m_GLData->pMask != NULL && !_g_mouseMiddleDown)
         {
             m_GLData->pMask->setDimensions(m_rh, m_rw);
             m_GLData->pMask->bind_draw();
@@ -421,7 +421,7 @@ void GLWidget::paintGL()
                 renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(px,'f',1) + ", " + QString::number(m_Data->getCurImage()->height()-py,'f',1) + " px", m_font);
         }
     }
-    else if (m_Data->is3D())
+    else //if(m_Data->is3D())
     {
         zoom();
 
@@ -433,30 +433,33 @@ void GLWidget::paintGL()
         transpose( tmp, _g_glMatrix );
         glLoadMatrixf( _g_glMatrix );
 
-        for (int i=0; i<m_Data->getNbClouds();i++)
-            m_Data->getCloud(i)->draw();
-
-        enableOptionLine();
-
-        if (m_GLData->pBall->isVisible())
-            m_GLData->pBall->draw();
-        else if (m_GLData->pAxis->isVisible())
-            m_GLData->pAxis->draw();
-
-        m_GLData->pBbox->draw();
-
-        //cameras
-        for (int i=0; i< m_GLData->Cams.size();i++) m_GLData->Cams[i]->draw();
-
-        disableOptionLine();
-
-        if (m_Data->getNbClouds()&& m_bDrawMessages)
+        if (hasDataLoaded())
         {
-            computeFPS();
+            for (int i=0; i<m_GLData->Clouds.size();i++)
+                m_GLData->Clouds[i]->draw();
 
-            glColor4f(0.8f,0.9f,1.0f,0.9f);
+            enableOptionLine();
 
-            renderText(10, _glViewport[3]- m_font.pointSize(), m_messageFPS, m_font);
+            if (m_GLData->pBall->isVisible())
+                m_GLData->pBall->draw();
+            else if (m_GLData->pAxis->isVisible())
+                m_GLData->pAxis->draw();
+
+            m_GLData->pBbox->draw();
+
+            //cameras
+            for (int i=0; i< m_GLData->Cams.size();i++) m_GLData->Cams[i]->draw();
+
+            disableOptionLine();
+
+            if (m_GLData->Clouds.size()&& m_bDrawMessages)
+            {
+                computeFPS();
+
+                glColor4f(0.8f,0.9f,1.0f,0.9f);
+
+                renderText(10, _glViewport[3]- m_font.pointSize(), m_messageFPS, m_font);
+            }
         }
     }
 
@@ -579,9 +582,6 @@ void GLWidget::updateAfterSetData()
     if (m_Data->is3D())
     {
         m_bDisplayMode2D = false;
-
-        /*for (int aK=0; aK<m_Data->getNbClouds();aK++)
-            m_Data->getCloud(aK)->setBufferGl();*/
 
         setZoom(m_Data->getScale());
 
@@ -711,7 +711,7 @@ void GLWidget::drawPolygon()
 
     enableOptionLine();
 
-    if (m_Data->getNbImages())
+    if (m_bDisplayMode2D)
     {
         cPolygon poly = m_GLData->m_polygon;
         poly.clearPoints();
@@ -924,14 +924,14 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 
         pos.setY(_glViewport[3] - pos.y());
 
-        for (int aK=0; aK < m_Data->getNbClouds();++aK)
+        for (int aK=0; aK < m_GLData->Clouds.size();++aK)
         {
             float sqrD;
             float dist = FLT_MAX;
             idx2 = -1;
             QPointF proj;
 
-            Cloud *a_cloud = m_Data->getCloud(aK);
+            Cloud *a_cloud = m_GLData->Clouds[aK];
 
             for (int bK=0; bK < a_cloud->size();++bK)
             {
@@ -951,7 +951,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
         if ((idx1>=0) && (idx2>=0))
         {
             //final center:
-            Cloud *a_cloud = m_Data->getCloud(idx1);
+            Cloud *a_cloud = m_GLData->Clouds[idx1];
             Pt3dr Pt = a_cloud->getVertex( idx2 ).getPosition();
 
             m_Data->setCenter(Pt);
@@ -960,9 +960,9 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
             m_GLData->pAxis->setPosition(Pt);
             m_GLData->pBbox->setPosition(Pt);
 
-            for (int aK=0; aK < m_Data->getNbClouds();++aK)
+            for (int aK=0; aK < m_GLData->Clouds.size();++aK)
             {
-                m_Data->getCloud(aK)->setPosition(Pt);
+                m_GLData->Clouds[aK]->setPosition(Pt);
             }
 
             resetTranslationMatrix();
@@ -1072,9 +1072,9 @@ void GLWidget::Select(int mode)
         }
         else
         {
-            for (uint aK=0; aK < (uint) m_Data->getNbClouds(); ++aK)
+            for (int aK=0; aK < m_GLData->Clouds.size(); ++aK)
             {
-                Cloud *a_cloud = m_Data->getCloud(aK);
+                Cloud *a_cloud = m_GLData->Clouds[aK];
 
                 for (uint bK=0; bK < (uint) a_cloud->size();++bK)
                 {
@@ -1218,6 +1218,8 @@ void GLWidget::reset()
     clearPolyline();
 
     m_params.reset();
+
+    m_GLData->clear();
 
     m_bFirstAction = true;
 }
