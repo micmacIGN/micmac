@@ -67,10 +67,10 @@ class cData
 
    private:
 
-        QVector <CamStenope *> _Cameras;
-        QVector <Cloud *>      _Clouds;
-        QVector <QImage *>     _Images;
-        QVector <QImage *>     _Masks;
+        vector <CamStenope *> _Cameras;
+        vector <Cloud *>      _Clouds;
+        vector <QImage *>     _Images;
+        vector <QImage *>     _Masks;
 
         int                   _curImgIdx;
 

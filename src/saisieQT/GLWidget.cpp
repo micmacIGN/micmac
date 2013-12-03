@@ -423,7 +423,7 @@ void GLWidget::paintGL()
     }
     else if (m_Data->is3D())
     {
-      /*  zoom();
+        zoom();
 
         static GLfloat trans44[16], rot44[16], tmp[16];
         m33_to_m44( _g_rotationMatrix, rot44 );
@@ -457,7 +457,7 @@ void GLWidget::paintGL()
             glColor4f(0.8f,0.9f,1.0f,0.9f);
 
             renderText(10, _glViewport[3]- m_font.pointSize(), m_messageFPS, m_font);
-        }*/
+        }
     }
 
     if (m_bDisplayMode2D || (m_interactionMode == SELECTION)) drawPolygon();

@@ -182,7 +182,7 @@ cEngine::~cEngine()
     delete _Data;
     delete _Loader;
 
-    for (uint aK=0; aK<_GLData.size();++aK)
+    for (int aK=0; aK<_GLData.size();++aK)
         delete _GLData[aK];
     _GLData.clear();
 }
@@ -484,7 +484,7 @@ void cEngine::setGLData()
         _GLData.push_back(theData);
     }
 }
-cGLData* cEngine::getGLData(uint WidgetIndex)
+cGLData* cEngine::getGLData(int WidgetIndex)
 {
     if ((_GLData.size() > 0) && (WidgetIndex < _GLData.size()))
         return _GLData[WidgetIndex];

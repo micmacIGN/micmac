@@ -107,11 +107,11 @@ int cData::getSizeClouds()
 //compute bounding box
 void cData::getBB()
 {  
-    for (int bK=0; bK < _Clouds.size();++bK)
+    for (uint bK=0; bK < _Clouds.size();++bK)
     {
         Cloud * aCloud = _Clouds[bK];
 
-        for (int aK=0; aK < aCloud->size(); ++aK)
+        for (uint aK=0; aK < aCloud->size(); ++aK)
         {
             Pt3dr vert = aCloud->getVertex(aK).getPosition();
 
@@ -124,7 +124,7 @@ void cData::getBB()
         }
     }
 
-    for (int  cK=0; cK < _Cameras.size();++cK)
+    for (uint  cK=0; cK < _Cameras.size();++cK)
     {
         CamStenope * aCam= _Cameras[cK];
 
@@ -159,7 +159,7 @@ void cData::getBB()
 
 void cData::applyGamma(float aGamma)
 {
-    for (int aK=0; aK<_Images.size();++aK)
+    for (uint aK=0; aK<_Images.size();++aK)
         applyGammaToImage(aK, aGamma);
 }
 
