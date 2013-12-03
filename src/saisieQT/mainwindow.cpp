@@ -237,6 +237,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         _glWidget->setData(_Engine->getData());
 
+        cout << "ici" <<endl;
         _Engine->setGLData();
         _glWidget->setGLData(_Engine->getGLData((uint)0));
         _glWidget->updateAfterSetData();

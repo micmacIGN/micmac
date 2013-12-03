@@ -131,12 +131,13 @@ class cGLData
     cPolygon    m_dihedron;
 
     //3D
-    //QVector < Cloud *> Clouds;
     QVector < cCam* > Cams;
 
     cBall       *pBall;
     cAxis       *pAxis;
     cBBox       *pBbox;
+
+    //QVector < Cloud *> Clouds;
 };
 
 class cEngine
