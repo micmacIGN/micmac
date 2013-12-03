@@ -9,6 +9,9 @@
 #ifdef _WIN32
     #include <Lmcons.h>
 #else
+	#define  NVTOOLS
+	#include "nvToolsExtCuda.h"
+	#include <stdio.h>
     #include <unistd.h>
     #include <sys/types.h>
     #include <pwd.h>

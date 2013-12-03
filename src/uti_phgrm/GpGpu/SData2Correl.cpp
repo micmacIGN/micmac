@@ -103,28 +103,36 @@ textureReference &SData2Correl::GetTeXProjection(int TexSel)
 
 void SData2Correl::SetImages(float *dataImage, uint2 dimImage, int nbLayer)
 {
+#ifdef  NVTOOLS
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF1A22B5);
+#endif
     // Images vers Textures Gpu
     _dt_LayeredImages.CData3D::Realloc(dimImage,nbLayer);
     _dt_LayeredImages.copyHostToDevice(dataImage);
     _dt_LayeredImages.bindTexture(_texImages);
+#ifdef  NVTOOLS
     nvtxRangePop();
+#endif
 }
 
 void SData2Correl::SetGlobalMask(pixel *dataMask, uint2 dimMask)
-{    
+{   
+	#ifdef  NVTOOLS
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF1A2B51);
+	#endif
     _dt_GlobalMask.CData2D::Realloc(dimMask);
     _dt_GlobalMask.copyHostToDevice(dataMask);
     _dt_GlobalMask.bindTexture(_texMaskGlobal);
+	#ifdef  NVTOOLS
     nvtxRangePop();
+	#endif
 }
 
 void SData2Correl::copyHostToDevice(pCorGpu param,uint s)
 {
-
+	#ifdef  NVTOOLS
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF292CB0);
-
+	#endif
 
     // A remplacer par ReallocIf dans le layeredProjection....
     if(oI(_MaxAlloc,param.dimSTer))
@@ -140,8 +148,9 @@ void SData2Correl::copyHostToDevice(pCorGpu param,uint s)
 
     // Lié de données de projections du device avec la texture de projections
     _dt_LayeredProjection[s].bindTexture(GetTeXProjection(s));
-
+	#ifdef  NVTOOLS
     nvtxRangePop();
+	#endif
 }
 
 void SData2Correl::CopyDevicetoHost(uint idBuf, uint s)
@@ -156,14 +165,17 @@ void SData2Correl::UnBindTextureProj(uint s)
 
 void SData2Correl::ReallocHostData(uint zInter, pCorGpu param)
 {
+	#ifdef  NVTOOLS
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0000);
-
+	#endif
     for (int i = 0; i < SIZERING; ++i)
         _hVolumeCost[i].ReallocIf(param.dimTer,zInter);
 
     _hVolumeProj.ReallocIf(param.dimSTer,zInter*param.nbImages);
 
+	#ifdef  NVTOOLS
     nvtxRangePop();
+	#endif
 }
 
 void SData2Correl::ReallocHostData(uint zInter, pCorGpu param, uint idBuff)
@@ -175,26 +187,34 @@ void SData2Correl::ReallocHostData(uint zInter, pCorGpu param, uint idBuff)
 
 void SData2Correl::ReallocDeviceData(pCorGpu &param)
 {
+	#ifdef NVTOOLS
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF1A2BB5);
+	#endif
     for (int s = 0;s<NSTREAM;s++)
     {
         ReallocDeviceData(s, param);
 
         DeviceMemset(param,s);
     }
+	#ifdef NVTOOLS
     nvtxRangePop();
+	#endif
 }
 
 void    SData2Correl::DeviceMemset(pCorGpu &param, uint s)
 {
+	#ifdef NVTOOLS
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF1A2BB5);
+	#endif
     _d_volumeCost[s].Memset(param.IntDefault);
 
     // A vERIFIER que le memset est inutile
     //_d_volumeCach[s].Memset(param.IntDefault);
 
     _d_volumeNIOk[s].Memset(0);
+	#ifdef NVTOOLS
     nvtxRangePop();
+	#endif
 }
 
 uint    *SData2Correl::DeviVolumeNOK(uint s){

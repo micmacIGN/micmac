@@ -755,7 +755,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                 if (IsInTer(anX,anY))
                 {
                     if(mZMaxGlob == -1e7)
-                        vCellules.resize(abs(count(mZ)),MAXIRECT);
+                        vCellules.resize(abs((int)count(mZ)),MAXIRECT);
                     else
                     {
                         if (mZ.x < mZMinGlob)
@@ -767,7 +767,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                     ElSetMin(mZMinGlob,mZ.x);
                     ElSetMax(mZMaxGlob,mZ.y);
 
-                    for (int i = 0; i < abs(count(mZ)); ++i)
+                    for (int i = 0; i < abs((int)count(mZ)); ++i)
                     {
                         Rect &box = vCellules[i + abs(mZ.x - mZMinGlob)];
 
@@ -1449,8 +1449,9 @@ void cAppliMICMAC::DoGPU_Correl
 #ifdef  CUDA_ENABLED
     void cAppliMICMAC::Tabul_Projection(int Z, uint &interZ, ushort idBuf)
     {
+#ifdef  NVTOOLS
         GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0033);
-        //IMmGg.IntervalZ(interZ, Z, zMax);
+#endif
         IMmGg.Data().MemsetHostVolumeProj(IMmGg.Param(idBuf).IntDefault);
 
         Rect    zone        = IMmGg.Param(idBuf).RDTer();
@@ -1497,12 +1498,16 @@ void cAppliMICMAC::DoGPU_Correl
                 }
             }
         }
+#ifdef  NVTOOLS
         nvtxRangePop();
+#endif
     }
 
     void cAppliMICMAC::setVolumeCost( uint z0, uint z1,ushort idBuf)
     {
+#ifdef  NVTOOLS
         GpGpuTools::NvtxR_Push(__FUNCTION__,0x335A8833);
+#endif
         float*  tabCost     = IMmGg.VolumeCost(idBuf);
         Rect    zone        = IMmGg.Param(idBuf).RTer();
         float   valdefault  = IMmGg.Param(idBuf).floatDefault;
@@ -1527,7 +1532,10 @@ void cAppliMICMAC::DoGPU_Correl
                 }
 
             }
-        nvtxRangePop();
+#ifdef  NVTOOLS
+			nvtxRangePop();
+#endif
+
     }
 
 #endif
