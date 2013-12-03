@@ -45,8 +45,6 @@ class cData
         void    fillMask(int aK){getMask(aK)->fill(Qt::white);}
         void    fillCurMask(){getCurMask()->fill(Qt::white);}
 
-        void    deleteCurMask();
-
         void    getBB();
 
         int     getSizeClouds();

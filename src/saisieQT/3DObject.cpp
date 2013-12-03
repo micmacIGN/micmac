@@ -608,7 +608,7 @@ void cPolygon::drawDihedron()
 
     glDisable(GL_LINE_STIPPLE);
 
-    if (_points.size())
+    if (_points.size()>1)
         glDrawUnitCircle(2, _points[1].x(), _points[1].y());
 
     glPopMatrix();
