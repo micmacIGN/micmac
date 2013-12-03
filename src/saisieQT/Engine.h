@@ -192,8 +192,6 @@ public:
     //!looks for data and creates GLobjects
     void    setGLData();
 
-    bool    isGLDataSet(){return _bGLDataSet;}
-
     //!sends GLObjects to GLWidget
     cGLData* getGLData(int WidgetIndex);
 
@@ -203,8 +201,6 @@ private:
     cData*           _Data;
 
     QVector <cGLData*> _GLData;
-
-    bool             _bGLDataSet;
 };
 
 
