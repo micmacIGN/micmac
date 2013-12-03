@@ -208,6 +208,11 @@ void cBall::setPosition(Pt3dr const &aPt)
     _cr2->setPosition(aPt);
 }
 
+Pt3dr cBall::getPosition()
+{
+    return _cl0->getPosition();
+}
+
 void cBall::setColor(QColor const &aCol)
 {
     _cl0->setColor(aCol);
@@ -603,7 +608,7 @@ void cPolygon::drawDihedron()
 
     glDisable(GL_LINE_STIPPLE);
 
-    if (_points.size())
+    if (_points.size()>1)
         glDrawUnitCircle(2, _points[1].x(), _points[1].y());
 
     glPopMatrix();

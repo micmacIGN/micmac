@@ -176,7 +176,7 @@ double Dist3d(Pt3d<double> aP1, Pt3d<double> aP2 ){
 	return (double)std::sqrt(pow(double(aP1.x-aP2.x),2)+pow(double(aP1.y-aP2.y),2)+pow(double(aP1.z-aP2.z),2));
 }
 
-void drawTP(PtsHom aPtsHomol, string aDir, string aNameOut, int ResolModel)
+void drawTP(PtsHom aPtsHomol, string aDir, string aNameOut, int ResolModel)//Create images to visualize Tie Point positions
 {
 		//Bulding the output file system
 		ELISE_fp::MkDirRec(aDir + "TP/");
@@ -238,13 +238,13 @@ void drawTP(PtsHom aPtsHomol, string aDir, string aNameOut, int ResolModel)
 
 }
 
-vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm, string InVig, int ResolModel, double TPA)
+cl_MatPtsHom ReadPtsHom3D(string aDir,string aPatIm, string InVig, int ResolModel, double TPA)
 {
 	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 	const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
 	std::vector<std::string> aVectIm=*aSetIm;
 	int nbIm=aVectIm.size();
-	vector<PtsHom> aVectPtsHomol(nbIm*nbIm);
+	cl_MatPtsHom aMatPtsHomol(nbIm);
 
 	//Loading all images and usefull metadata (masks...)
 	vector<ArsenicImage> aGrIm=LoadGrpImages(aDir, aPatIm, ResolModel, InVig);
@@ -264,7 +264,7 @@ vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm, string InVig, int ResolMo
 				if(aGrIm[aK1].Mask.data()[aY][aX]==0){continue;}else{//If pts in masq, go look for 3D position
 					Pt3d<double> pos3DPtIm1=aGrIm[aK1].info3D->PreciseCapteur2Terrain(pos2DPtIm1);	
 						//Testing the position of the point in other images	
-						vector<double> distances(nbIm,10000000); //distances between original 3D point and reprojection from other images
+						vector<double> distances(nbIm,10000000); //distances between original 3D point and reprojection from other images (init to "a lot")
 						vector<Pt2dr> pos2DOtherIm(nbIm);
 						for (int aK2=0 ; aK2<int(nbIm) ; aK2++)
 						{
@@ -280,43 +280,46 @@ vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm, string InVig, int ResolMo
 											distances[aK2]=Dist3d(pos3DPtIm1,pos3DPtIm2);
 										}
 									}
-							}else{aVectPtsHomol[aK1*nbIm].SZ=aGrIm[aK1].SZ;}
+							}else{aMatPtsHomol.aMat[aK1][aK1].SZ=aGrIm[aK1].SZ;}
 						}
 						for (int aK2=aK1+1 ; aK2<int(nbIm) ; aK2++){
 							if(distances[aK2]<(aGrIm[aK1].info3D->ResolSolOfPt(pos3DPtIm1))/TPA){//id pos3DPtIm1~=pos3DPtIm2 -->pt is considered homologous,it is added to PtsHom (Gr1, R1, G1, B1, X1, Y1, idem 2, NbPtsCouple++)
-								//Go looking for grey value of the point for each chan
-								double Red1   =Reechantillonnage::biline(aGrIm[aK1].RChan.data(), aGrIm[aK1].SZ.x, aGrIm[aK1].SZ.y, pos2DPtIm1);
-								double Green1 =Reechantillonnage::biline(aGrIm[aK1].GChan.data(), aGrIm[aK1].SZ.x, aGrIm[aK1].SZ.y, pos2DPtIm1);
-								double Blue1  =Reechantillonnage::biline(aGrIm[aK1].BChan.data(), aGrIm[aK1].SZ.x, aGrIm[aK1].SZ.y, pos2DPtIm1);
+								//Go looking for grey value of the point for each chan (Reechantillonnage/interpolation because pos2DPtIm not always integer)
+								//double Red1   =Reechantillonnage::biline(aGrIm[aK1].RChan.data(), aGrIm[aK1].SZ.x, aGrIm[aK1].SZ.y, pos2DPtIm1);
+								//double Green1 =Reechantillonnage::biline(aGrIm[aK1].GChan.data(), aGrIm[aK1].SZ.x, aGrIm[aK1].SZ.y, pos2DPtIm1);
+								//double Blue1  =Reechantillonnage::biline(aGrIm[aK1].BChan.data(), aGrIm[aK1].SZ.x, aGrIm[aK1].SZ.y, pos2DPtIm1);
+								double Red1   =aGrIm[aK1].RChan.data()[int(pos2DPtIm1.y)][int(pos2DPtIm1.x)];
+								double Green1 =aGrIm[aK1].GChan.data()[int(pos2DPtIm1.y)][int(pos2DPtIm1.x)];
+								double Blue1  =aGrIm[aK1].BChan.data()[int(pos2DPtIm1.y)][int(pos2DPtIm1.x)];
 								double Red2   =Reechantillonnage::biline(aGrIm[aK2].RChan.data(), aGrIm[aK2].SZ.x, aGrIm[aK2].SZ.y, pos2DOtherIm[aK2]);
 								double Green2 =Reechantillonnage::biline(aGrIm[aK2].GChan.data(), aGrIm[aK2].SZ.x, aGrIm[aK2].SZ.y, pos2DOtherIm[aK2]);
 								double Blue2  =Reechantillonnage::biline(aGrIm[aK2].BChan.data(), aGrIm[aK2].SZ.x, aGrIm[aK2].SZ.y, pos2DOtherIm[aK2]);
-								aVectPtsHomol[(aK1*nbIm)+aK2].Pt1.push_back(pos2DPtIm1.mul(ResolModel)) ;
-								aVectPtsHomol[(aK1*nbIm)+aK2].Pt2.push_back(pos2DOtherIm[aK2].mul(ResolModel)) ;
-								aVectPtsHomol[(aK1*nbIm)+aK2].Gr1.push_back((Red1+Green1+Blue1)/3);
-								aVectPtsHomol[(aK1*nbIm)+aK2].Gr2.push_back((Red2+Green2+Blue2)/3);
-								aVectPtsHomol[(aK1*nbIm)+aK2].R1.push_back(Red1);
-								aVectPtsHomol[(aK1*nbIm)+aK2].G1.push_back(Green1);
-								aVectPtsHomol[(aK1*nbIm)+aK2].B1.push_back(Blue1);
-								aVectPtsHomol[(aK1*nbIm)+aK2].R2.push_back(Red2);
-								aVectPtsHomol[(aK1*nbIm)+aK2].G2.push_back(Green2);
-								aVectPtsHomol[(aK1*nbIm)+aK2].B2.push_back(Blue2);
-								aVectPtsHomol[(aK1*nbIm)+aK2].NbPtsCouple++;
-								aVectPtsHomol[(aK1*nbIm)+aK2].SZ=aGrIm[aK1].SZ;
+								aMatPtsHomol.aMat[aK1][aK2].Pt1.push_back(pos2DPtIm1.mul(ResolModel)) ;
+								aMatPtsHomol.aMat[aK1][aK2].Pt2.push_back(pos2DOtherIm[aK2].mul(ResolModel)) ;
+								aMatPtsHomol.aMat[aK1][aK2].Gr1.push_back((Red1+Green1+Blue1)/3);
+								aMatPtsHomol.aMat[aK1][aK2].Gr2.push_back((Red2+Green2+Blue2)/3);
+								aMatPtsHomol.aMat[aK1][aK2].R1.push_back(Red1);
+								aMatPtsHomol.aMat[aK1][aK2].G1.push_back(Green1);
+								aMatPtsHomol.aMat[aK1][aK2].B1.push_back(Blue1);
+								aMatPtsHomol.aMat[aK1][aK2].R2.push_back(Red2);
+								aMatPtsHomol.aMat[aK1][aK2].G2.push_back(Green2);
+								aMatPtsHomol.aMat[aK1][aK2].B2.push_back(Blue2);
+								aMatPtsHomol.aMat[aK1][aK2].NbPtsCouple++;
+								aMatPtsHomol.aMat[aK1][aK2].SZ=aGrIm[aK1].SZ;
 
 								//Copy in inverse image (1->2==2->1)
-								aVectPtsHomol[(aK2*nbIm)+aK1].Pt2.push_back(pos2DPtIm1.mul(ResolModel)) ;
-								aVectPtsHomol[(aK2*nbIm)+aK1].Pt1.push_back(pos2DOtherIm[aK2].mul(ResolModel)) ;
-								aVectPtsHomol[(aK2*nbIm)+aK1].Gr2.push_back((Red1+Green1+Blue1)/3);
-								aVectPtsHomol[(aK2*nbIm)+aK1].Gr1.push_back((Red2+Green2+Blue2)/3);
-								aVectPtsHomol[(aK2*nbIm)+aK1].R2.push_back(Red1);
-								aVectPtsHomol[(aK2*nbIm)+aK1].G2.push_back(Green1);
-								aVectPtsHomol[(aK2*nbIm)+aK1].B2.push_back(Blue1);
-								aVectPtsHomol[(aK2*nbIm)+aK1].R1.push_back(Red2);
-								aVectPtsHomol[(aK2*nbIm)+aK1].G1.push_back(Green2);
-								aVectPtsHomol[(aK2*nbIm)+aK1].B1.push_back(Blue2);
-								aVectPtsHomol[(aK2*nbIm)+aK1].NbPtsCouple++;
-								aVectPtsHomol[(aK2*nbIm)+aK1].SZ=aGrIm[aK2].SZ;
+								aMatPtsHomol.aMat[aK2][aK1].Pt2.push_back(pos2DPtIm1.mul(ResolModel)) ;
+								aMatPtsHomol.aMat[aK2][aK1].Pt1.push_back(pos2DOtherIm[aK2].mul(ResolModel)) ;
+								aMatPtsHomol.aMat[aK2][aK1].Gr2.push_back((Red1+Green1+Blue1)/3);
+								aMatPtsHomol.aMat[aK2][aK1].Gr1.push_back((Red2+Green2+Blue2)/3);
+								aMatPtsHomol.aMat[aK2][aK1].R2.push_back(Red1);
+								aMatPtsHomol.aMat[aK2][aK1].G2.push_back(Green1);
+								aMatPtsHomol.aMat[aK2][aK1].B2.push_back(Blue1);
+								aMatPtsHomol.aMat[aK2][aK1].R1.push_back(Red2);
+								aMatPtsHomol.aMat[aK2][aK1].G1.push_back(Green2);
+								aMatPtsHomol.aMat[aK2][aK1].B1.push_back(Blue2);
+								aMatPtsHomol.aMat[aK2][aK1].NbPtsCouple++;
+								aMatPtsHomol.aMat[aK2][aK1].SZ=aGrIm[aK2].SZ;
 							}
 						}
 				}
@@ -345,35 +348,33 @@ vector<PtsHom> ReadPtsHom3D(string aDir,string aPatIm, string InVig, int ResolMo
 		//drawTP(aVectPtsHomol[22], aDir, "5-3",ResolModel);
 		//drawTP(aVectPtsHomol[23], aDir, "5-4",ResolModel);
 		int nbPtsHomols=0;
-		for(int i=0 ; i<int(aVectPtsHomol.size()) ; i++){nbPtsHomols=nbPtsHomols + aVectPtsHomol[i].NbPtsCouple;}
+		for(int i=0 ; i<int(aMatPtsHomol.size()) ; i++){for(int j=0 ; j<int(aMatPtsHomol.size()) ; i++){nbPtsHomols=nbPtsHomols + aMatPtsHomol.aMat[i][j].NbPtsCouple;}}
 		ELISE_ASSERT(nbPtsHomols!=0,"No homologous points (resolution of ResolModel might be too small");
-		return aVectPtsHomol;
+		return aMatPtsHomol;
 		
 }
 
-void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm,vector<PtsHom> aVectPtsHomol, string aDirOut, string InVig, int ResolModel, int nbIm)
+void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm, cl_MatPtsHom aMatPtsHomol, string aDirOut, string InVig, int ResolModel, int nbIm)
 {
 
-	int aNbCouples=aVectPtsHomol.size();
+    //int aNbCouples=aMatPtsHomol.size();
 	vector<PtsRadioTie> vectPtsRadioTie(nbIm);
 	int nbPts=0;
 	//filling up the factors from homologous points
-	for (int i=0;i<int(aNbCouples);i++){
-
-		int numImage1=(i/(nbIm));
-		int numImage2=i-numImage1*(nbIm);
+	for (int numImage1=0;numImage1<int(nbIm);numImage1++){
+	for (int numImage2=0;numImage2<int(nbIm);numImage2++){
 		//string PtsTxt="PtsTxt.txt";
 		//ofstream file_out(PtsTxt, ios::out | ios::app);
 		if (numImage1!=numImage2){
-			for(int j=0; j<aVectPtsHomol[i].NbPtsCouple; j++){//if there are homologous points between images
+			for(int j=0; j<aMatPtsHomol.aMat[numImage1][numImage2].NbPtsCouple; j++){//if there are homologous points between images
 				//For each chan, compute GreyLevelImage2/GreyLevelImage1 and add it to image1 vector of tie points
-				double kR=aVectPtsHomol[i].R2[j]/aVectPtsHomol[i].R1[j];
-				double kG=aVectPtsHomol[i].G2[j]/aVectPtsHomol[i].G1[j];
-				double kB=aVectPtsHomol[i].B2[j]/aVectPtsHomol[i].B1[j];
+				double kR=aMatPtsHomol.aMat[numImage1][numImage2].R2[j]/aMatPtsHomol.aMat[numImage1][numImage2].R1[j];
+				double kG=aMatPtsHomol.aMat[numImage1][numImage2].G2[j]/aMatPtsHomol.aMat[numImage1][numImage2].G1[j];
+				double kB=aMatPtsHomol.aMat[numImage1][numImage2].B2[j]/aMatPtsHomol.aMat[numImage1][numImage2].B1[j];
 				vectPtsRadioTie[numImage1].kR.push_back((kR+kR)/2);
 				vectPtsRadioTie[numImage1].kG.push_back((kG+kG)/2);
 				vectPtsRadioTie[numImage1].kB.push_back((kB+kB)/2);
-				vectPtsRadioTie[numImage1].Pos.push_back(aVectPtsHomol[i].Pt1[j]);
+				vectPtsRadioTie[numImage1].Pos.push_back(aMatPtsHomol.aMat[numImage1][numImage2].Pt1[j]);
 				vectPtsRadioTie[numImage1].multiplicity.push_back(1);
 				//if(vectPtsRadioTie[numImage1].Pos[vectPtsRadioTie[numImage1].Pos.size()-2]==vectPtsRadioTie[numImage1].Pos.back())
 				//{
@@ -389,6 +390,7 @@ void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm,vector<Pts
 			}
 		}
 		//file_out.close();
+	}
 	}
 	cout<<nbPts<<" tie points loaded"<<endl;
 
@@ -407,7 +409,7 @@ void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm,vector<Pts
 		cout<<"Correcting "<<aNameIm<<" (with "<<vectPtsRadioTie[i].size()<<" data points)"<<endl;
 		string aNameOut=aDir + aDirOut + (*aSetIm)[i] +"_egal.tif";
 
-		Pt2di aSzMod=aVectPtsHomol[i*nbIm].SZ;//Size of the correction surface, taken from the size of the scaled image
+		Pt2di aSzMod=aMatPtsHomol.aMat[i][i].SZ;//Size of the correction surface, taken from the size of the scaled image
 		Im2D_REAL4  aImCorR(aSzMod.x,aSzMod.y,0.0);
 		Im2D_REAL4  aImCorG(aSzMod.x,aSzMod.y,0.0);
 		Im2D_REAL4  aImCorB(aSzMod.x,aSzMod.y,0.0);
@@ -498,34 +500,31 @@ void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm,vector<Pts
 	}	
 }
 
-void Egal_field_correct_ite(string aDir,std::vector<std::string> * aSetIm,vector<PtsHom> aVectPtsHomol, string aDirOut, string InVig, int ResolModel, int nbIm, int nbIte)
+void Egal_field_correct_ite(string aDir,std::vector<std::string> * aSetIm, cl_MatPtsHom aMatPtsHomol , string aDirOut, string InVig, int ResolModel, int nbIm, int nbIte)
 {
-int aNbCouples=aVectPtsHomol.size();
 vector<PtsRadioTie> vectPtsRadioTie(nbIm);
 
 //truc à iterer--------------------------------------------------------------------------------------------------------------------------------------
 for(int iter=0;iter<nbIte;iter++){
 	cout<<"Pass "<<iter+1<<" out of "<< nbIte<<endl;
-	int nbPts=0;
 	vector<PtsRadioTie> vectPtsRadioTie2(nbIm);
+	int nbPts=0;
 	//filling up the factors from homologous points
-	for (int i=0;i<int(aNbCouples);i++){
-
-		int numImage1=(i/(nbIm));
-		int numImage2=i-numImage1*(nbIm);
+	for (int numImage1=0;numImage1<int(nbIm);numImage1++){
+	for (int numImage2=0;numImage2<int(nbIm);numImage2++){
 		//string PtsTxt="PtsTxt.txt";
 		//ofstream file_out(PtsTxt, ios::out | ios::app);
 		//cout<<numImage1<<" "<<numImage2<<" "<<aVectPtsHomol[i].NbPtsCouple<<endl;
 		if (numImage1!=numImage2){
-			for(int j=0; j<aVectPtsHomol[i].NbPtsCouple; j++){//if there are homologous points between images
+			for(int j=0; j<aMatPtsHomol.aMat[numImage1][numImage2].NbPtsCouple; j++){//if there are homologous points between images
 				//For each chan, compute GreyLevelImage2/GreyLevelImage1 and add it to image1 vector of tie points
-				double kR=aVectPtsHomol[i].R2[j]/aVectPtsHomol[i].R1[j];
-				double kG=aVectPtsHomol[i].G2[j]/aVectPtsHomol[i].G1[j];
-				double kB=aVectPtsHomol[i].B2[j]/aVectPtsHomol[i].B1[j];
+				double kR=aMatPtsHomol.aMat[numImage1][numImage2].R2[j]/aMatPtsHomol.aMat[numImage1][numImage2].R1[j];
+				double kG=aMatPtsHomol.aMat[numImage1][numImage2].G2[j]/aMatPtsHomol.aMat[numImage1][numImage2].G1[j];
+				double kB=aMatPtsHomol.aMat[numImage1][numImage2].B2[j]/aMatPtsHomol.aMat[numImage1][numImage2].B1[j];
 				vectPtsRadioTie2[numImage1].kR.push_back((kR+1)/2.0);
 				vectPtsRadioTie2[numImage1].kG.push_back((kG+1)/2.0);
 				vectPtsRadioTie2[numImage1].kB.push_back((kB+1)/2.0);
-				vectPtsRadioTie2[numImage1].Pos.push_back(aVectPtsHomol[i].Pt1[j]);
+				vectPtsRadioTie2[numImage1].Pos.push_back(aMatPtsHomol.aMat[numImage1][numImage2].Pt1[j]);
 				vectPtsRadioTie2[numImage1].OtherIm.push_back(numImage2);
 				//vectPtsRadioTie[numImage1].multiplicity.push_back(1);
 				//if(vectPtsRadioTie[numImage1].Pos[vectPtsRadioTie[numImage1].Pos.size()-2]==vectPtsRadioTie[numImage1].Pos.back())
@@ -543,6 +542,7 @@ for(int iter=0;iter<nbIte;iter++){
 		}
 		//file_out.close();
 	}
+	}
 	//cout<<nbPts<<" tie points loaded"<<endl;
 
 
@@ -550,51 +550,51 @@ for(int iter=0;iter<nbIte;iter++){
 
 //#pragma omp parallel for
 
-    for(int i=0;i<nbIm;i++)
+    for(int numImage1=0;numImage1<nbIm;numImage1++)
 	{
 		vector<int> cpt(nbIm,0);
 		
 		//For each tie point point, compute correction value (distance-ponderated mean value of all the tie points)
-		for(int k = 0; k<int(vectPtsRadioTie2[i].size()) ; k++){//go through each tie point
+		for(int k = 0; k<int(vectPtsRadioTie2[numImage1].size()) ; k++){//go through each tie point
 			double aCorR=0.0,aCorG=0.0,aCorB=0.0;
 			double aSumDist=0;
-			Pt2dr aPt; aPt.x=vectPtsRadioTie2[i].Pos[k].x/ResolModel; ; aPt.y=vectPtsRadioTie2[i].Pos[k].x/ResolModel;;
-			for(int j = 0; j<int(vectPtsRadioTie2[i].size()) ; j++){//go through each tie point
-				if(vectPtsRadioTie2[i].kR[j]>5||vectPtsRadioTie2[i].kG[j]>5||vectPtsRadioTie2[i].kB[j]>5 || vectPtsRadioTie2[i].kR[j]<0.2||vectPtsRadioTie2[i].kG[j]<0.2||vectPtsRadioTie2[i].kB[j]<0.2){continue;}
-				Pt2dr aPtIn; aPtIn.x=vectPtsRadioTie2[i].Pos[j].x/ResolModel; aPtIn.y=vectPtsRadioTie2[i].Pos[j].y/ResolModel;
+			Pt2dr aPt; aPt.x=vectPtsRadioTie2[numImage1].Pos[k].x/ResolModel; ; aPt.y=vectPtsRadioTie2[numImage1].Pos[k].x/ResolModel;;
+			for(int numPt = 0; numPt<int(vectPtsRadioTie2[numImage1].size()) ; numPt++){//go through each tie point
+				if(vectPtsRadioTie2[numImage1].kR[numPt]>5||vectPtsRadioTie2[numImage1].kG[numPt]>5||vectPtsRadioTie2[numImage1].kB[numPt]>5 || vectPtsRadioTie2[numImage1].kR[numPt]<0.2||vectPtsRadioTie2[numImage1].kG[numPt]<0.2||vectPtsRadioTie2[numImage1].kB[numPt]<0.2){continue;}
+				Pt2dr aPtIn; aPtIn.x=vectPtsRadioTie2[numImage1].Pos[numPt].x/ResolModel; aPtIn.y=vectPtsRadioTie2[numImage1].Pos[numPt].y/ResolModel;
 				double aDist=euclid(aPtIn, aPt);
 				if(aDist<1){aDist=1;}
 				aSumDist=aSumDist+1/(aDist);
-				aCorR = aCorR + vectPtsRadioTie2[i].kR[j]/(aDist);
-				aCorG = aCorG + vectPtsRadioTie2[i].kG[j]/(aDist);
-				aCorB = aCorB + vectPtsRadioTie2[i].kB[j]/(aDist);	
+				aCorR = aCorR + vectPtsRadioTie2[numImage1].kR[numPt]/(aDist);
+				aCorG = aCorG + vectPtsRadioTie2[numImage1].kG[numPt]/(aDist);
+				aCorB = aCorB + vectPtsRadioTie2[numImage1].kB[numPt]/(aDist);	
 			}
 			//Normalize
 			aCorR = aCorR/aSumDist;
 			aCorG = aCorG/aSumDist; 
 			aCorB = aCorB/aSumDist; 
 			//correcting Tie points color with computed surface
-			int image1=i,image2=vectPtsRadioTie2[i].OtherIm[k];
-			int pos=cpt[image2];cpt[image2]++;
-			if(aVectPtsHomol[image1*nbIm+image2].R1[pos]*aCorR>255)
+			int numImage2=vectPtsRadioTie2[numImage1].OtherIm[k];
+			int pos=cpt[numImage2];cpt[numImage2]++;
+			if(aMatPtsHomol.aMat[numImage1][numImage2].R1[pos]*aCorR>255)
 			{
-				aCorR=255/aVectPtsHomol[image1*nbIm+image2].R1[pos];
+				aCorR=255/aMatPtsHomol.aMat[numImage1][numImage2].R1[pos];
 			}
-			if(aVectPtsHomol[image1*nbIm+image2].G1[pos]*aCorB>255)
+			if(aMatPtsHomol.aMat[numImage1][numImage2].G1[pos]*aCorB>255)
 			{
-				aCorG=255/aVectPtsHomol[image1*nbIm+image2].G1[pos];
+				aCorG=255/aMatPtsHomol.aMat[numImage1][numImage2].G1[pos];
 			}
-			if(aVectPtsHomol[image1*nbIm+image2].B1[pos]*aCorG>255)
+			if(aMatPtsHomol.aMat[numImage1][numImage2].B1[pos]*aCorG>255)
 			{
-				aCorB=255/aVectPtsHomol[image1*nbIm+image2].B1[pos];
+				aCorB=255/aMatPtsHomol.aMat[numImage1][numImage2].B1[pos];
 			}
-			aVectPtsHomol[image1*nbIm+image2].R1[pos]=aVectPtsHomol[image1*nbIm+image2].R1[pos]*aCorR;
-			aVectPtsHomol[image1*nbIm+image2].G1[pos]=aVectPtsHomol[image1*nbIm+image2].G1[pos]*aCorG;
-			aVectPtsHomol[image1*nbIm+image2].B1[pos]=aVectPtsHomol[image1*nbIm+image2].B1[pos]*aCorB;
+			aMatPtsHomol.aMat[numImage1][numImage2].R1[pos]=aMatPtsHomol.aMat[numImage1][numImage2].R1[pos]*aCorR;
+			aMatPtsHomol.aMat[numImage1][numImage2].G1[pos]=aMatPtsHomol.aMat[numImage1][numImage2].G1[pos]*aCorG;
+			aMatPtsHomol.aMat[numImage1][numImage2].B1[pos]=aMatPtsHomol.aMat[numImage1][numImage2].B1[pos]*aCorB;
 
-		    aVectPtsHomol[image2*nbIm+image1].R2[pos]=aVectPtsHomol[image1*nbIm+image2].R1[pos];
-		    aVectPtsHomol[image2*nbIm+image1].G2[pos]=aVectPtsHomol[image1*nbIm+image2].G1[pos];
-		    aVectPtsHomol[image2*nbIm+image1].B2[pos]=aVectPtsHomol[image1*nbIm+image2].B1[pos];
+		    aMatPtsHomol.aMat[numImage2][numImage1].R2[pos]=aMatPtsHomol.aMat[numImage1][numImage2].R1[pos];
+		    aMatPtsHomol.aMat[numImage2][numImage1].G2[pos]=aMatPtsHomol.aMat[numImage1][numImage2].G1[pos];
+		    aMatPtsHomol.aMat[numImage2][numImage1].B2[pos]=aMatPtsHomol.aMat[numImage1][numImage2].B1[pos];
 		}
 		//cout<<cpt<<endl;
 	}
@@ -630,7 +630,7 @@ cout<<"Factors were computed"<<endl;
 		cout<<"Correcting "<<aNameIm<<" (with "<<vectPtsRadioTie[i].size()<<" data points)"<<endl;
 		string aNameOut=aDir + aDirOut + (*aSetIm)[i] +"_egal.tif";
 
-		Pt2di aSzMod=aVectPtsHomol[i*nbIm].SZ;//Size of the correction surface, taken from the size of the scaled image
+		Pt2di aSzMod=aMatPtsHomol.aMat[i][i].SZ;//Size of the correction surface, taken from the size of the scaled image
 		//cout<<"aSzMod"<<aSzMod<<endl;
 		Im2D_REAL4  aImCorR(aSzMod.x,aSzMod.y,0.0);
 		Im2D_REAL4  aImCorG(aSzMod.x,aSzMod.y,0.0);
@@ -755,10 +755,10 @@ int  Arsenic_main(int argc,char ** argv)
 		ELISE_ASSERT(nbIm>1,"Less than two images found with this pattern");
 
 		//Computing homologous points
-		vector<PtsHom> aVectPtsHomol=ReadPtsHom3D(aDir, aPatIm, InVig, ResolModel, TPA);
+		cl_MatPtsHom aMatPtsHomol=ReadPtsHom3D(aDir, aPatIm, InVig, ResolModel, TPA);
 		
 		//Computing and applying the equalization surface
-		Egal_field_correct_ite(aDir, & aVectIm, aVectPtsHomol, aDirOut, InVig, ResolModel, nbIm, nbIte);
+		Egal_field_correct_ite(aDir, & aVectIm, aMatPtsHomol, aDirOut, InVig, ResolModel, nbIm, nbIte);
 	
 		Arsenic_Banniere();
 

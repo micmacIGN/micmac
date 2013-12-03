@@ -20,7 +20,7 @@ cData::~cData()
 
 void cData::addCloud(Cloud * aCloud)
 {
-    _Clouds.push_back((aCloud));
+    _Clouds.push_back(aCloud);
 }
 
 void cData::addCamera(CamStenope * aCam)
@@ -86,11 +86,6 @@ void cData::clearMasks()
     reset();
 }
 
-void cData::deleteCurMask()
-{
-    delete _Masks[_curImgIdx];
-}
-
 void cData::reset()
 {
     m_minX = m_minY = m_minZ =  FLT_MAX;
@@ -116,7 +111,7 @@ void cData::getBB()
     {
         Cloud * aCloud = _Clouds[bK];
 
-        for (int aK=0; aK < aCloud->size(); ++aK)
+        for (uint aK=0; aK < aCloud->size(); ++aK)
         {
             Pt3dr vert = aCloud->getVertex(aK).getPosition();
 

@@ -179,11 +179,12 @@ cEngine::cEngine():
 
 cEngine::~cEngine()
 {
-   delete _Data;
-   delete _Loader;
+    delete _Data;
+    delete _Loader;
 
-    for (uint aK=0; aK < _GLData.size();++aK)
+    for (int aK=0; aK<_GLData.size();++aK)
         delete _GLData[aK];
+    _GLData.clear();
 }
 
 void cEngine::loadClouds(QStringList filenames, int* incre)
@@ -226,7 +227,7 @@ void  cEngine::loadImage(QString imgName)
     if (img !=NULL) _Data->addImage(img);
     if (mask!=NULL) _Data->addMask(mask);
 #ifdef _DEBUG
-    else cout << "mask null" <<endl;
+    else cout << "mask null" << endl;
 #endif
 }
 
@@ -410,6 +411,8 @@ void cEngine::unloadAll()
 
 void cEngine::setGLData()
 {
+    _GLData.clear();
+
     for (int aK = 0; aK < _Data->getNbImages();++aK)
     {
         cGLData *theData = new cGLData();
@@ -436,11 +439,17 @@ void cEngine::setGLData()
 
     if (_Data->is3D())
     {
+
         cGLData *theData = new cGLData();
 
         for (int aK = 0; aK < _Data->getNbClouds();++aK)
         {
+           /* Cloud *pCloud = new Cloud();
+            pCloud = _Data->getCloud(aK);
+            theData->Clouds.push_back(pCloud);*/
+
             _Data->getCloud(aK)->setBufferGl();
+            //theData->Clouds[aK]->setBufferGl();
         }
 
         for (int aK = 0; aK < _Data->getNbCameras();++aK)
@@ -450,12 +459,34 @@ void cEngine::setGLData()
             theData->Cams.push_back(pCam);
         }
 
+        float scale = _Data->m_diam / 1.5f;
+
+        theData->pBall->setPosition(_Data->getCenter());
+        theData->pBall->setScale(scale);
+        theData->pBall->setVisible(true);
+
+        theData->pAxis->setPosition(_Data->getCenter());
+        theData->pAxis->setScale(scale);
+
+        theData->pBbox->setPosition(_Data->getCenter());
+        theData->pBbox->set(_Data->m_minX,_Data->m_minY,_Data->m_minZ,_Data->m_maxX,_Data->m_maxY,_Data->m_maxZ);
+
+        for (int i=0; i<_Data->getNbCameras();i++)
+        {
+            cCam *pCam = new cCam(_Data->getCamera(i));
+
+            pCam->setScale(scale);
+            pCam->setVisible(true);
+
+            theData->Cams.push_back(pCam);
+        }
+
         _GLData.push_back(theData);
     }
 }
 cGLData* cEngine::getGLData(int WidgetIndex)
 {
-    if (_GLData.size() > 0)
+    if ((_GLData.size() > 0) && (WidgetIndex < _GLData.size()))
         return _GLData[WidgetIndex];
     else
         return NULL;
@@ -463,9 +494,11 @@ cGLData* cEngine::getGLData(int WidgetIndex)
 
 cGLData::cGLData()
 {
+    //2D
     pImg  = new cImageGL();
     pMask = new cImageGL();
 
+    //3D
     pBall = new cBall();
     pAxis = new cAxis();
     pBbox = new cBBox();
@@ -475,11 +508,17 @@ cGLData::~cGLData()
 {
     delete pImg;
     delete pMask;
+
     for (int aK = 0; aK< Cams.size(); ++aK) delete Cams[aK];
+    //qDeleteAll(Cams);
+    Cams.clear();
 
     delete pBall;
     delete pAxis;
     delete pBbox;
+
+   // qDeleteAll(Clouds);
+   // Clouds.clear();
 }
 
 //********************************************************************************

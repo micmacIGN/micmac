@@ -11,7 +11,7 @@ public:
 	bool isComputed;
 	vector<string> aListIm;
 	vector<double> ExpTime,ISO; 
-	int size(){return this->aListIm.size();};
+    int size(){return this->aListIm.size();}
 };
 
 class ArsenicImage
@@ -33,7 +33,7 @@ public:
 	Param3Chan(){}
 	~Param3Chan(){}
     vector<double> parRed, parBlue, parGreen;
-	int size(){return this->parRed.size();};
+    int size(){return this->parRed.size();}
 private:
   
 };
@@ -49,7 +49,7 @@ class PtsRadioTie
 	vector<Pt2dr> Pos;
 	vector<int> OtherIm;
 	vector<int> multiplicity;
-	int size(){	return this->Pos.size();};
+    int size(){	return this->Pos.size();}
 private:
   
 };
@@ -63,10 +63,32 @@ class PtsHom
 	vector<Pt2dr> Pt1,Pt2;
 	int NbPtsCouple;
 	Pt2di SZ;
-	int size(){	return this->Gr1.size();};
+    int size(){	return this->Gr1.size();}
 private:
   
 };
 
+class cl_MatPtsHom
+{
+	public:
+		cl_MatPtsHom(const int nbIm){
+			for(int i=0;i<nbIm;i++)
+			{
+				vector<PtsHom> aPtsHom(nbIm);
+				this->aMat.push_back(aPtsHom);
+			}
+		}
+		~cl_MatPtsHom(){}
+		vector<vector<PtsHom> > aMat;
+		int size(){
+            unsigned int sum=0;
+            for(unsigned int i=0;i<this->aMat.size();i++)
+			{
+				sum += this->aMat[i].size();
+			}
+			return sum;
+
+		}
+};
 
 #endif // ARSENIC_H

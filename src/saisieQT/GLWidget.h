@@ -50,7 +50,6 @@ public:
 
     bool eventFilter(QObject* object, QEvent* event);
 
-    //! Set data to display
     void setData(cData* data){ m_Data = data; }  // a supprimer
 
     void updateAfterSetData();
@@ -209,12 +208,6 @@ protected:
     list<MessageToDisplay> m_messagesToDisplay;
 
     QString     m_messageFPS;
-
-    //! Point list for polygonal selection
-    cPolygon    m_polygon;
-
-    //! Point list for polygonal insertion
-    cPolygon    m_dihedron;
 
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;

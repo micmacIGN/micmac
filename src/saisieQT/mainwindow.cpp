@@ -37,10 +37,12 @@ MainWindow::MainWindow(bool mode2D, QWidget *parent) :
 
     setMode2D(mode2D);
 
-    QGridLayout* layout = new QGridLayout();
-    layout->addWidget(_glWidget);
+    _layout = new QGridLayout();
+    _layout->addWidget(_glWidget);
+
+    _signalMapper = new QSignalMapper (this) ;
     connectActions();
-    _ui->OpenglLayout->setLayout(layout);
+    _ui->OpenglLayout->setLayout(_layout);
 
     createMenus();
 }
@@ -51,6 +53,9 @@ MainWindow::~MainWindow()
     delete _glWidget;
     delete _Engine;
     delete _RFMenu;
+
+    delete _layout;
+    delete _signalMapper;
 }
 
 void MainWindow::connectActions()
@@ -62,21 +67,20 @@ void MainWindow::connectActions()
     connect(_ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
 
     //Zoom menu
-    QSignalMapper* signalMapper = new QSignalMapper (this) ;
 
-    connect(_ui->action4_1_400,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
-    connect(_ui->action2_1_200,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
-    connect(_ui->action1_1_100,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
-    connect(_ui->action1_2_50,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
-    connect(_ui->action1_4_25,		    SIGNAL(triggered()),   signalMapper, SLOT(map()));
+    connect(_ui->action4_1_400,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
+    connect(_ui->action2_1_200,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
+    connect(_ui->action1_1_100,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
+    connect(_ui->action1_2_50,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
+    connect(_ui->action1_4_25,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
 
-    signalMapper->setMapping (_ui->action4_1_400, 400);
-    signalMapper->setMapping (_ui->action2_1_200, 200);
-    signalMapper->setMapping (_ui->action1_1_100, 100);
-    signalMapper->setMapping (_ui->action1_2_50, 50);
-    signalMapper->setMapping (_ui->action1_4_25, 25);
+    _signalMapper->setMapping (_ui->action4_1_400, 400);
+    _signalMapper->setMapping (_ui->action2_1_200, 200);
+    _signalMapper->setMapping (_ui->action1_1_100, 100);
+    _signalMapper->setMapping (_ui->action1_2_50, 50);
+    _signalMapper->setMapping (_ui->action1_4_25, 25);
 
-    connect (signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
+    connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
 
     //Selection
     connect(_glWidget,SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
@@ -174,7 +178,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 #endif
 
         if (fi.suffix() == "ply")
-        {            
+        {
             QTimer *timer_test = new QTimer(this);
             _incre = new int(0);
             connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
@@ -195,8 +199,6 @@ void MainWindow::addFiles(const QStringList& filenames)
 
             _Engine->setFilename();
             _Engine->setFilenamesOut();
-
-            _ui->actionShow_ball->setChecked(true);
         }
         else if (fi.suffix() == "xml")
         {
@@ -234,7 +236,7 @@ void MainWindow::addFiles(const QStringList& filenames)
         _glWidget->setData(_Engine->getData());
 
         _Engine->setGLData();
-        _glWidget->setGLData(_Engine->getGLData(0));
+        _glWidget->setGLData(_Engine->getGLData((uint)0));
         _glWidget->updateAfterSetData();
 
         for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);

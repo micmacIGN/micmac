@@ -87,6 +87,7 @@ class cBall : public cObjectGL
         ~cBall();
 
         void    setPosition(Pt3dr const &aPt);
+        Pt3dr   getPosition();
         void    setColor(QColor const &aCol);
         void    setVisible(bool aVis);
         void    setScale(float aScale);
