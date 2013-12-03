@@ -242,7 +242,7 @@ public:
 
     bool			ReallocIf(uint dim1D);
 
-    bool			ReallocIf(uint2 dim, uint l);
+    bool			ReallocIf(uint2 dim, uint l = 1);
 
     bool			ReallocIf(uint dimX, uint dimY, uint l = 1);
 
@@ -646,6 +646,17 @@ public:
     /// \param data : Donnees cible a copierAImageCuda
     /// \param stream : flux cuda
     bool	copyHostToDeviceASync(T* data, cudaStream_t stream = 0);
+
+
+    bool    ReallocIf(uint2 dim, uint l)
+    {
+        if( size(dim) * l * sizeof(T) > GetSizeofMalloc())
+            return Realloc(dim,l);
+        else
+            SetDimension(dim,l);
+
+        return true;
+    }
 
 protected:
 

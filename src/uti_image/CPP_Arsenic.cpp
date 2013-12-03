@@ -357,7 +357,7 @@ cl_MatPtsHom ReadPtsHom3D(string aDir,string aPatIm, string InVig, int ResolMode
 void Egal_field_correct(string aDir,std::vector<std::string> * aSetIm, cl_MatPtsHom aMatPtsHomol, string aDirOut, string InVig, int ResolModel, int nbIm)
 {
 
-	int aNbCouples=aMatPtsHomol.size();
+//	int aNbCouples=aMatPtsHomol.size();
 	vector<PtsRadioTie> vectPtsRadioTie(nbIm);
 	int nbPts=0;
 	//filling up the factors from homologous points

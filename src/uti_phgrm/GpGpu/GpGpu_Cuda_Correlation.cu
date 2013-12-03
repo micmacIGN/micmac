@@ -59,6 +59,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 
   // Nous traitons uniquement les points du terrain du bloque ou Si le processus est hors du terrain global, nous sortons du kernel
 
+  // Simplifier!!!
   if (oSE(threadIdx, nbActThrd + cH.rayVig) || oI(threadIdx , cH.rayVig) || oSE( ptTer, cH.dimTer) || oI(ptTer, 0))
     return;
 
@@ -196,13 +197,13 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, uint* de
       const float val  = cacheVign[iCach];
       //const float val  = tex2DLayered( TexL_Cache,ptCach.x , ptCach.y,l);
 
-      if(val!= cH.floatDefault)
-        {
+      //if(val!= cH.floatDefault) A verifier si pas d'influence
+        //{
           // Coordonnées 1D du cache vignette
 
           aSV[t.y][t.x]   += val;
           aSVV[t.y][t.x]  += val * val;
-        }
+        //}
     }
 
   __syncthreads();
