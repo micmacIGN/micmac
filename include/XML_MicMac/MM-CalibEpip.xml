@@ -136,7 +136,7 @@ MICMAC ~/MMM/culture3d/include/XML_MicMac/MM-CalibEpip.xml  WorkDir=/media/data1
             <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
 
             <Px1Regul>  0.05     </Px1Regul>
-            <Px2Regul>  4.0     </Px2Regul>
+            <Px2Regul>  2.0     </Px2Regul>
 	    <!-- <ZRegul_Quad> 0.1 </ZRegul_Quad>  -->
 	    <Px1Pas>   0.5     </Px1Pas>
 	    <Px2Pas>   0.1     </Px2Pas>
@@ -239,6 +239,18 @@ MICMAC ~/MMM/culture3d/include/XML_MicMac/MM-CalibEpip.xml  WorkDir=/media/data1
 
         <EtapeMEC>
                 <DeZoom >  2   </DeZoom>
+                <SzW>  ${SzWPx2} </SzW>
+                <Px1DilatAlti>  0  </Px1DilatAlti>
+	        <Px1DilatPlani> 0  </Px1DilatPlani>
+                <Px2DilatAlti>  2  </Px2DilatAlti>
+	        <Px2DilatPlani> 2  </Px2DilatPlani>
+                <SsResolOptim> 4 </SsResolOptim>
+        </EtapeMEC>
+
+
+<!--
+        <EtapeMEC>
+                <DeZoom >  2   </DeZoom>
                 <SzW>   8  </SzW>
 	        <Px2Pas>   0.05    </Px2Pas>
                 <Px1DilatAlti>  0  </Px1DilatAlti>
@@ -246,11 +258,13 @@ MICMAC ~/MMM/culture3d/include/XML_MicMac/MM-CalibEpip.xml  WorkDir=/media/data1
                 <Px2DilatAlti>  4  </Px2DilatAlti>
 	        <Px2DilatPlani> 4  </Px2DilatPlani>
                 <SsResolOptim> 4 </SsResolOptim>
+                <Px2Regul>  0.5     </Px2Regul>
 
 
                 <Px1RedrPx>   true   </Px1RedrPx>
                 <Px2RedrPx>   true   </Px2RedrPx>
         </EtapeMEC>
+-->
 
 
         <EtapeMEC>
