@@ -439,7 +439,6 @@ void cEngine::setGLData()
 
     if (_Data->is3D())
     {
-        cout << "ok "<< endl;
 
         cGLData *theData = new cGLData();
 
@@ -483,8 +482,6 @@ void cEngine::setGLData()
         }
 
         _GLData.push_back(theData);
-
-        cout << "ok "<< endl;
     }
 }
 cGLData* cEngine::getGLData(uint WidgetIndex)
