@@ -20,7 +20,7 @@ cData::~cData()
 
 void cData::addCloud(Cloud * aCloud)
 {
-    _Clouds.push_back((aCloud));
+    _Clouds.push_back(aCloud);
 }
 
 void cData::addCamera(CamStenope * aCam)
@@ -107,7 +107,7 @@ int cData::getSizeClouds()
 //compute bounding box
 void cData::getBB()
 {  
-    for (uint bK=0; bK < _Clouds.size();++bK)
+    for (int bK=0; bK < _Clouds.size();++bK)
     {
         Cloud * aCloud = _Clouds[bK];
 
@@ -124,7 +124,7 @@ void cData::getBB()
         }
     }
 
-    for (uint  cK=0; cK < _Cameras.size();++cK)
+    for (int  cK=0; cK < _Cameras.size();++cK)
     {
         CamStenope * aCam= _Cameras[cK];
 
@@ -159,7 +159,7 @@ void cData::getBB()
 
 void cData::applyGamma(float aGamma)
 {
-    for (uint aK=0; aK<_Images.size();++aK)
+    for (int aK=0; aK<_Images.size();++aK)
         applyGammaToImage(aK, aGamma);
 }
 

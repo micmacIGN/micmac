@@ -192,15 +192,19 @@ public:
     //!looks for data and creates GLobjects
     void    setGLData();
 
+    bool    isGLDataSet(){return _bGLDataSet;}
+
     //!sends GLObjects to GLWidget
-    cGLData* getGLData(uint WidgetIndex);
+    cGLData* getGLData(int WidgetIndex);
 
 private:
 
     cLoader*         _Loader;
     cData*           _Data;
 
-    vector <cGLData*> _GLData;
+    QVector <cGLData*> _GLData;
+
+    bool             _bGLDataSet;
 };
 
 

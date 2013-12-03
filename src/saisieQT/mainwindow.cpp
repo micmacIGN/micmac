@@ -234,7 +234,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
             _Engine->setFilenamesOut();
         }
-
+/*
         _glWidget->setData(_Engine->getData());
 
         cout << "ici" <<endl;
@@ -242,7 +242,7 @@ void MainWindow::addFiles(const QStringList& filenames)
         _glWidget->setGLData(_Engine->getGLData((uint)0));
         _glWidget->updateAfterSetData();
 
-        for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
+        for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);*/
 
         checkForLoadedData();
     }

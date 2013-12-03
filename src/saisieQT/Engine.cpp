@@ -174,15 +174,16 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
 
 cEngine::cEngine():    
     _Loader(new cLoader),
-    _Data(new cData)
+    _Data(new cData),
+    _bGLDataSet(false)
 {}
 
 cEngine::~cEngine()
 {
-    delete _Data;
     delete _Loader;
+    delete _Data;
 
-    for (uint aK=0; aK<_GLData.size();++aK)
+    for (int aK=0; aK<_GLData.size();++aK)
         delete _GLData[aK];
     _GLData.clear();
 }
@@ -191,10 +192,12 @@ void cEngine::loadClouds(QStringList filenames, int* incre)
 {
     for (int i=0;i<filenames.size();++i)
     {
-        _Data->addCloud(_Loader->loadCloud(filenames[i].toStdString(), incre));
+        Cloud * temp = new Cloud();
+               //temp = _Loader->loadCloud(filenames[i].toStdString(), incre);
+        _Data->addCloud(temp);
     }
 
-    _Data->getBB();
+    //_Data->getBB();
 }
 
 void cEngine::loadCameras(QStringList filenames)
@@ -439,8 +442,6 @@ void cEngine::setGLData()
 
     if (_Data->is3D())
     {
-        cout << "ok "<< endl;
-
         cGLData *theData = new cGLData();
 
         for (int aK = 0; aK < _Data->getNbClouds();++aK)
@@ -483,11 +484,12 @@ void cEngine::setGLData()
         }
 
         _GLData.push_back(theData);
-
-        cout << "ok "<< endl;
     }
+
+    _bGLDataSet = true;
 }
-cGLData* cEngine::getGLData(uint WidgetIndex)
+
+cGLData* cEngine::getGLData(int WidgetIndex)
 {
     if ((_GLData.size() > 0) && (WidgetIndex < _GLData.size()))
         return _GLData[WidgetIndex];
