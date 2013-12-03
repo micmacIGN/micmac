@@ -113,6 +113,47 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeMMByP & anObj)
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+eTypeQuality  Str2eTypeQuality(const std::string & aName)
+{
+   if (aName=="eQual_High")
+      return eQual_High;
+   else if (aName=="eQual_Average")
+      return eQual_Average;
+   else if (aName=="eQual_Low")
+      return eQual_Low;
+   else if (aName=="eNbTypeQual")
+      return eNbTypeQual;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeQuality\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeQuality) 0;
+}
+void xml_init(eTypeQuality & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeQuality(aTree->Contenu());
+}
+std::string  eToString(const eTypeQuality & anObj)
+{
+   if (anObj==eQual_High)
+      return  "eQual_High";
+   if (anObj==eQual_Average)
+      return  "eQual_Average";
+   if (anObj==eQual_Low)
+      return  "eQual_Low";
+   if (anObj==eNbTypeQual)
+      return  "eNbTypeQual";
+ std::cout << "Enum = eTypeQuality\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeQuality & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 eTypeMalt  Str2eTypeMalt(const std::string & aName)
 {
    if (aName=="eOrtho")

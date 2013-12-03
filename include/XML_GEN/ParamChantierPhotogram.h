@@ -41,6 +41,20 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeMMByP & anObj);
 
 typedef enum
 {
+  eQual_High,
+  eQual_Average,
+  eQual_Low,
+  eNbTypeQual
+} eTypeQuality;
+void xml_init(eTypeQuality & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeQuality & aVal);
+
+eTypeQuality  Str2eTypeQuality(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeQuality & anObj);
+
+typedef enum
+{
   eOrtho,
   eUrbanMNE,
   eGeomImage,

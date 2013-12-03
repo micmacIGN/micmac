@@ -255,6 +255,7 @@ void PbHom(const std::string & anOri)
 
 int MPDtest_main (int argc,char** argv)
 {
+   BanniereMM3D(); exit(0);
    PbHom("Test-Four");
    PbHom("RadialExtended");
 
