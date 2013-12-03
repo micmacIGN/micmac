@@ -64,10 +64,6 @@ public:
 
   void          SetTexturesAreLoaded(bool load);
 
-  uint          GlobalMaskVolume;
-
-  uint          ReduceMaskVolume;
-
   std::vector<cellules> MaskCellules;
 
   void          ReallocHostData(uint interZ, ushort idBuff);

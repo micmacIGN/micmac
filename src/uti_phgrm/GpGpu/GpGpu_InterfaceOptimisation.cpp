@@ -14,10 +14,6 @@ void InterfOptimizGpGpu::Dealloc()
 
     _preFinalCost1D.Dealloc();
     _poInitCost.Dealloc();
-//    _preCostInit.Dealloc();
-//    _preFinalCost.Dealloc();
-//    _prePtZ.Dealloc();
-//    _preDZ.Dealloc();
 }
 
 void InterfOptimizGpGpu::oneDirOptGpGpu()
@@ -40,21 +36,6 @@ void InterfOptimizGpGpu::oneDirOptGpGpu()
     _D_data2Opt.CopyDevicetoHost(_H_data2Opt);
 
 }
-
-//void InterfOptimizGpGpu::Prepare(uint x, uint y)
-//{
-//    uint size = (uint)(1.5f*sqrt((float)x *x + y * y));
-
-//    ResetIdBuffer();
-
-//    _H_data2Opt.ReallocParam(size);
-//    _D_data2Opt.ReallocParam(size);
-
-//    _preCostInit.ReallocIf(x,y);
-//    _preFinalCost.ReallocIf(x,y);
-//    _prePtZ.ReallocIf(x,y);
-//    _preDZ.ReallocIf(x,y);
-//}
 
 void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort NBDir)
 {

@@ -13,6 +13,15 @@
 #define NEGARECT Rect(-1,-1,-1,-1)
 #define MAXIRECT Rect(1e7,1e7,-1e7,-1e7)
 
+
+inline __host__ __device__ int2 inc( int2 &a)
+{
+    a.x++;
+    a.y++;
+
+    return a;
+}
+
 /// \struct Rect
 /// \brief Cette structure represente un rectangle definie par deux points
 struct Rect
@@ -88,6 +97,18 @@ struct Rect
 
     void SetMaxMin(Rect rect)
     {
+
+        if (rect.pt0.x < pt0.x ) pt0.x = rect.pt0.x;
+        if (rect.pt0.y < pt0.y ) pt0.y = rect.pt0.y;
+
+        if (pt1.x < rect.pt1.x) pt1.x = rect.pt1.x;
+        if (pt1.y < rect.pt1.y) pt1.y = rect.pt1.y;
+    }
+
+    void SetMaxMinInc(Rect rect)
+    {
+
+        inc(rect.pt1);
 
         if (rect.pt0.x < pt0.x ) pt0.x = rect.pt0.x;
         if (rect.pt0.y < pt0.y ) pt0.y = rect.pt0.y;
@@ -247,13 +268,7 @@ inline __host__ __device__ int2 operator+(const uint3 a, uint2 b)
 	return make_int2(a.x + b.x, a.y + b.y);
 }
 
-inline __host__ __device__ int2 inc( int2 &a)
-{
-    a.x++;
-    a.y++;
 
-    return a;
-}
 
 
 

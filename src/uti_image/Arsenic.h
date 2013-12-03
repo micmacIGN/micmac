@@ -82,7 +82,7 @@ class cl_MatPtsHom
 		vector<vector<PtsHom> > aMat;
 		int size(){
 			int sum=0;
-			for(int i=0;i<this->aMat.size();i++)
+            for(int i=0;i<(int)this->aMat.size();i++)
 			{
 				sum += this->aMat[i].size();
 			}

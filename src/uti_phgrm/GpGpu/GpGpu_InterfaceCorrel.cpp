@@ -1,9 +1,7 @@
 #include "GpGpu/GpGpu_InterCorrel.h"
 
 /// \brief Constructeur GpGpuInterfaceCorrel
-GpGpuInterfaceCorrel::GpGpuInterfaceCorrel():
-    GlobalMaskVolume(0),
-    ReduceMaskVolume(0)
+GpGpuInterfaceCorrel::GpGpuInterfaceCorrel()
 {
     for (int s = 0;s<NSTREAM;s++)
         checkCudaErrors( cudaStreamCreate(GetStream(s)));
@@ -25,18 +23,10 @@ void GpGpuInterfaceCorrel::ReallocHostData(uint interZ,ushort idBuff)
 uint GpGpuInterfaceCorrel::InitCorrelJob(int Zmin, int Zmax)
 {
 
-    uint DZ     = abs(Zmin - Zmax);
-
-    uint interZ = min(INTERZ, DZ);
-
-    _param[0].SetZCInter(interZ);
-    _param[1].SetZCInter(interZ);
-
-    _data2Cor.ReallocHostData(interZ,_param[0]);
+    uint interZ = min(INTERZ, abs(Zmin - Zmax));
 
     if(UseMultiThreading())
     {
-        //CreateJob();
         ResetIdBuffer();
         SetPreComp(true);
     }
@@ -62,12 +52,11 @@ void GpGpuInterfaceCorrel::BasicCorrelation(uint ZInter)
 
     Data().copyHostToDevice(Param(GetIdBuf()));
 
-    CopyParamTodevice(_param[GetIdBuf()]);
-
     // Indique que la copie est terminée pour le thread de calcul des projections
-
-
     SetPreComp(true);
+
+    // COPIE Les parametres à Virer!!
+    CopyParamTodevice(_param[GetIdBuf()]);
 
     // Lancement du calcul de correlation
     CorrelationGpGpu(GetIdBuf());

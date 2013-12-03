@@ -647,6 +647,17 @@ public:
     /// \param stream : flux cuda
     bool	copyHostToDeviceASync(T* data, cudaStream_t stream = 0);
 
+
+    bool    ReallocIf(uint2 dim, uint l)
+    {
+        if( size(dim) * l * sizeof(T) > GetSizeofMalloc())
+            return Realloc(dim,l);
+        else
+            SetDimension(dim,l);
+
+        return true;
+    }
+
 protected:
 
     bool    abDealloc(){ return DecoratorImageCuda::abDealloc();}
