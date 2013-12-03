@@ -50,7 +50,6 @@ public:
 
     bool eventFilter(QObject* object, QEvent* event);
 
-    //! Set data to display
     void setData(cData* data){ m_Data = data; }  // a supprimer
 
     void updateAfterSetData();

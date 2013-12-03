@@ -178,7 +178,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 #endif
 
         if (fi.suffix() == "ply")
-        {            
+        {
             QTimer *timer_test = new QTimer(this);
             _incre = new int(0);
             connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
@@ -199,8 +199,6 @@ void MainWindow::addFiles(const QStringList& filenames)
 
             _Engine->setFilename();
             _Engine->setFilenamesOut();
-
-            _ui->actionShow_ball->setChecked(true);
         }
         else if (fi.suffix() == "xml")
         {
