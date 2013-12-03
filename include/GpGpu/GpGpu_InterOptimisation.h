@@ -158,18 +158,10 @@ public:
     ///
     void            freezeCompute();
 
-//    CuHostData3D<ushort*>   _preCostInit;
-//    CuHostData3D<uint*>     _preFinalCost;
-//    CuHostData3D<short2>    _prePtZ;
-//    CuHostData3D<ushort>    _preDZ;
 
-//    CuHostData3D<ushort>    _preInitCost1D;
-      CuHostData3D<uint>      _preFinalCost1D;
-//    CuHostData3D<uint>      _prePitTer;
+    CuHostData3D<uint>      _preFinalCost1D;
 
-//    uint                    _pit;
-
-    CuHostDaPo3D<ushort>      _poInitCost;
+    CuHostDaPo3D<ushort>    _poInitCost;
 
 private:
 

@@ -111,7 +111,7 @@ void cData::getBB()
     {
         Cloud * aCloud = _Clouds[bK];
 
-        for (uint aK=0; aK < aCloud->size(); ++aK)
+        for (int aK=0; aK < aCloud->size(); ++aK)
         {
             Pt3dr vert = aCloud->getVertex(aK).getPosition();
 
