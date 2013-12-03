@@ -178,7 +178,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 #endif
 
         if (fi.suffix() == "ply")
-        {            
+        {
             QTimer *timer_test = new QTimer(this);
             _incre = new int(0);
             connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
@@ -199,8 +199,6 @@ void MainWindow::addFiles(const QStringList& filenames)
 
             _Engine->setFilename();
             _Engine->setFilenamesOut();
-
-            _ui->actionShow_ball->setChecked(true);
         }
         else if (fi.suffix() == "xml")
         {
@@ -234,15 +232,14 @@ void MainWindow::addFiles(const QStringList& filenames)
 
             _Engine->setFilenamesOut();
         }
-/*
+
         _glWidget->setData(_Engine->getData());
 
-        cout << "ici" <<endl;
         _Engine->setGLData();
         _glWidget->setGLData(_Engine->getGLData((uint)0));
         _glWidget->updateAfterSetData();
 
-        for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);*/
+        for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
 
         checkForLoadedData();
     }
