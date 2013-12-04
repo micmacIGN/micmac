@@ -6,14 +6,6 @@
 #include <iostream>
 #include <limits>
 
-#ifdef _WIN32
-    #include <Lmcons.h>
-#else
-    #include <unistd.h>
-    #include <sys/types.h>
-    #include <pwd.h>
-    #include <cmath>
-#endif
 
 #include "GpGpu/GpGpu_BuildOptions.h"
 
@@ -24,6 +16,17 @@
 #include <helper_functions.h>
 #include "helper_math_extented.cuh"
 
+#ifdef _WIN32
+    #include <Lmcons.h>
+#else
+    #define  NVTOOLS
+    #include "nvToolsExtCuda.h"
+    #include <stdio.h>
+    #include <unistd.h>
+    #include <sys/types.h>
+    #include <pwd.h>
+    #include <cmath>
+#endif
 
 #include "GpGpu/GpGpu_Defines.h"
 
