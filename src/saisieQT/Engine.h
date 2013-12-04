@@ -29,9 +29,6 @@ public:
 
     void    reset();
 
-    void    setGamma(float aGamma) {m_gamma = aGamma;}
-    float   getGamma() {return m_gamma;}
-
     void    ptSizeUp(bool up);
 
     //! Current zoom
@@ -50,8 +47,6 @@ public:
 
     //! Translation matrix
     float m_translationMatrix[3];
-
-    float m_gamma;
 
 	float m_speed;
 };
@@ -135,6 +130,9 @@ public:
     //! Point list for polygonal insertion
     cPolygon    m_dihedron;
 
+    void    setEmptymask(bool aBool){_bEmptyMask = aBool;}
+    bool    isMaskEmpty(){return _bEmptyMask;}
+
     //3D
     QVector < cCam* > Cams;
 
@@ -143,6 +141,9 @@ public:
     cBBox       *pBbox;
 
     QVector < Cloud* > Clouds;
+
+    float       m_diam;
+    bool        _bEmptyMask;
 };
 
 class cEngine
@@ -200,12 +201,20 @@ public:
     //!sends GLObjects to GLWidget
     cGLData* getGLData(int WidgetIndex);
 
+    void    applyGamma(float aGamma);
+    void    applyGammaToImage(int aK, float aGamma);
+
+    void    setGamma(float aGamma){_gamma = aGamma;}
+    float   getGamma(){return _gamma;}
+
 private:
 
     cLoader*            _Loader;
     cData*              _Data;
 
     QVector <cGLData*>  _GLData;
+
+    float               _gamma;
 };
 
 

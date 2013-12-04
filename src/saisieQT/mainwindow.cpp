@@ -237,7 +237,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         _Engine->setGLData();
         _glWidget->setGLData(_Engine->getGLData((uint)0));
-        _glWidget->updateAfterSetData();
+        _glWidget->updateAfterSetGLData();
 
         for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
 
@@ -685,7 +685,7 @@ void MainWindow::on_action2D_3D_mode_triggered()
 
 void  MainWindow::setGamma(float aGamma)
 {
-    _glWidget->getParams()->setGamma(aGamma);
+    _Engine->setGamma(aGamma);
 }
 
 

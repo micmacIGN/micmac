@@ -589,24 +589,22 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
     }
 }
 
-void GLWidget::updateAfterSetData()
+void GLWidget::updateAfterSetGLData()
 {
     clearPolyline();
 
-    if (m_Data->is3D())
+    if (m_GLData->is3D())
     {
         m_bDisplayMode2D = false;
 
-        setZoom(m_Data->getScale());
+        setZoom(m_GLData->m_diam);
 
         resetTranslationMatrix();
     }
 
-    if (m_Data->getNbImages())
+    if (m_GLData->is2D())
     {
         m_bDisplayMode2D = true;
-
-        m_Data->applyGammaToImage(m_Data->getCurImageIdx(), m_params.getGamma());
 
         zoomFit();
 
@@ -619,7 +617,7 @@ void GLWidget::updateAfterSetData()
 
         m_GLData->pImg->ImageToTexture(m_Data->getCurImage());
 
-        if (m_Data->isMaskEmpty())
+        if (m_GLData->isMaskEmpty())
             m_bFirstAction = true;
         else
             m_bFirstAction = false;
@@ -906,7 +904,8 @@ void GLWidget::zoomFactor(int percent)
         setZoom(0.01f * percent);
     }
     else
-        setZoom(m_Data->getScale() / (float) percent * 100.f);
+        //setZoom(m_Data->getScale() / (float) percent * 100.f);
+        setZoom(m_GLData->m_diam / (float) percent * 100.f);
 }
 
 void GLWidget::wheelEvent(QWheelEvent* event)
@@ -1245,11 +1244,13 @@ void GLWidget::resetView()
         resetRotationMatrix();
         resetTranslationMatrix();
 
-        setZoom(m_Data->getScale());
-
-        //rustine - a passer dans MainWindow pour ui->action_showBall->setChecked(false)
         if (hasDataLoaded())
+        {
+            setZoom(m_GLData->m_diam);
+
+            //rustine - a passer dans MainWindow pour ui->action_showBall->setChecked(false)
             m_GLData->pBall->setVisible(true);
+        }
     }
 
     update();
