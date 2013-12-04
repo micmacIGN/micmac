@@ -92,7 +92,7 @@ void cData::reset()
     m_maxX = m_maxY = m_maxZ = -FLT_MAX;
     _center = Pt3dr(0.f,0.f,0.f);
     _curImgIdx = 0;
-    _emptyMask = true;
+    _bEmptyMask = true;
 }
 
 int cData::getSizeClouds()
