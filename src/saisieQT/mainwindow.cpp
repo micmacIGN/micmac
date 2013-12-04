@@ -587,6 +587,7 @@ void MainWindow::closeAll()
 
     _glWidget->reset();
     _glWidget->resetView();
+
     checkForLoadedData();
 }
 
