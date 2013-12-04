@@ -67,6 +67,7 @@ class cAppli_HomCorOri
          void ComputeOrtho();
          void ComputePts();
          void SauvPack();
+         bool AllDone() const;
     private :
          Pt3dr ComputeOneBox(const Box2di &);
          double ScorePts(const Pt2di &);
@@ -107,6 +108,8 @@ class cAppli_HomCorOri
          Im2D_U_INT1       mMasq;
          TIm2D<U_INT1,INT> mTMasq;
          bool              mMatch;
+         std::string       mNameHom12;
+         std::string       mNameHom21;
          ElPackHomologue   mPack;
 };
 
@@ -295,20 +298,17 @@ void cAppli_HomCorOri::ComputePts()
     }
 }
 
+bool cAppli_HomCorOri::AllDone() const
+{
+     return ELISE_fp::exist_file(mNameHom12) && ELISE_fp::exist_file(mNameHom21);
+
+}
+
 void cAppli_HomCorOri::SauvPack()
 {
-   std::string aNameHom = 
-             mICNM->Dir() 
-           + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@-DenseM@dat",mNameIm1,mNameIm2,true);
-
-   mPack.StdPutInFile(aNameHom);
-
+   mPack.StdPutInFile(mNameHom12);
    mPack.SelfSwap();
-   aNameHom = 
-             mICNM->Dir() 
-           + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@-DenseM@dat",mNameIm2,mNameIm1,true);
-
-   mPack.StdPutInFile(aNameHom);
+   mPack.StdPutInFile(mNameHom21);
    mPack.SelfSwap();
 }
 
@@ -518,6 +518,13 @@ cAppli_HomCorOri::cAppli_HomCorOri (int argc,char ** argv) :
     mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
     mDirMatch = mDir + "CalibEPi" + mNameIm1 + "-" + mNameIm2 + "/";
 
+    mNameHom12 = 
+             mICNM->Dir() 
+           + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@-DenseM@dat",mNameIm1,mNameIm2,true);
+
+    mNameHom21 = 
+             mICNM->Dir() 
+           + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@-DenseM@dat",mNameIm2,mNameIm1,true);
 }
 
 
@@ -525,16 +532,18 @@ int MMHomCorOri_main(int argc,char ** argv)
 {
    cAppli_HomCorOri anAppli (argc,argv);
 
-   anAppli.DoMatch();
-   anAppli.Load();
-   anAppli.ComputeOrtho();
-   anAppli.ComputePts();
-   anAppli.SauvPack();
+   if (! anAppli.AllDone())
+   {
+       anAppli.DoMatch();
+       anAppli.Load();
+       anAppli.ComputeOrtho();
+       anAppli.ComputePts();
+       anAppli.SauvPack();
 
+       BanniereMM3D();
+   } 
 
-   BanniereMM3D();
-
-   return 1;
+   return 0;
 }
 
 

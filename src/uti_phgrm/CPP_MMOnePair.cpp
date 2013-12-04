@@ -89,6 +89,9 @@ class cMMOnePair
       std::string      mBascDEST;
       bool             mDoHom;
       int              mDegCorrEpip;
+      eTypeQuality     mQualOr;
+      std::string      mStrQualOr;
+
 };
 
 class cAppliMMOnePair : public cMMOnePair,
@@ -133,7 +136,8 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mPurge        (true),
     mBascDEST     ("Basculed-"),
     mDoHom        (false),
-    mDegCorrEpip  (-1)
+    mDegCorrEpip  (4),
+    mQualOr       (eQual_High)
 {
   ElInitArgMain
   (
@@ -155,10 +159,17 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mBascMTD,"BascMTD",true,"Metadata of file to bascule (Def No Basc)")
                     << EAM(mBascDEST,"BascMTD",true,"Res of Bascule (Def Basculed-)")
                     << EAM(mDoHom,"DoHom",true,"Do Hom in epolar (Def= false)")
-                    << EAM(mDegCorrEpip,"DegCE",true,"Degree of epipolar correction (def=-1)")
+                    << EAM(mDegCorrEpip,"DegCE",true,"Degree of epipolar correction when Qual Orient is not high (def=4)")
+                    << EAM(mStrQualOr,"QualOr",true,"Quality orient (in High, Average, Low, Def= Low)",eSAM_None,ListOfVal(eNbTypeQual,"eQual_"))
   );
-  if (!EAMIsInit(&mDoHom))
-     mDoHom = (mDegCorrEpip>=0);
+  if (EAMIsInit(&mStrQualOr))
+     mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
+
+  mDoHom = mDoHom || (mQualOr!= eQual_High);
+  if (mQualOr==eQual_High)
+    mDegCorrEpip = -1;
+  else
+    mDegCorrEpip = ElMax(1,mDegCorrEpip);
 
   mNoOri = (mNameOriInit=="NONE");
   if ((! EAMIsInit(&mByEpip)) && mNoOri)
@@ -167,6 +178,18 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
 
   if (!EAMIsInit(&mCMS)) 
      mCMS = mByEpip;
+
+  if (mQualOr==eQual_Low)
+  {
+      std::string aCom =        MMBinFile(MM3DStr)
+                               + std::string(" MMHomCorOri ")
+                               + " " + mNameIm1Init
+                               + " " + mNameIm2Init
+                               + " " + mNameOriInit
+                               + " Match=true "
+                        ;
+      System(aCom);
+  }
 
   if (mByEpip)
   {
@@ -188,8 +211,13 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                                + " InParal=" + ToString(mMM1PInParal)
                               ;
 
-             if (mDoHom) aCom = aCom + "  DoHom=true ";
-             if (mDegCorrEpip >=0) aCom = aCom + " Degre=" + ToString(mDegCorrEpip) + " ";
+             if (mDegCorrEpip >=0) 
+             {
+                  aCom = aCom + " Degre=" + ToString(mDegCorrEpip) + " ";
+                  aCom = aCom + " NameH=" +  ((mQualOr==eQual_Average)? " " : "-DenseM ");
+             }
+             else if (mDoHom)
+                  aCom = aCom + " NameH= " ;
     // mDoHom        (false),
     // mDegCorrEpip  (-1)
 // mm3d CreateEpip MVxxxx_MAP_7078.NEF MVxxxx_MAP_7079.NEF Step4  DoIm=true DoHom=true Degre=1
