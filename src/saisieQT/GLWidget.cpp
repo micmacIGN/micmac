@@ -14,6 +14,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_bDrawMessages(true)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
+  , m_bLastActionIsRightClick(false)
   , m_params(ViewportParameters())
   , m_Data(data)
   , m_bDisplayMode2D(false)
@@ -78,8 +79,12 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
             {
                 if (sz == 1)     // add current mouse position to polygon (dynamic display)
                     m_GLData->m_polygon.add(pos);
+                else if ((sz == 2) && (m_bLastActionIsRightClick))
+                    m_GLData->m_polygon.add(pos);
                 else if (sz > 1) // replace last point by the current one
                     m_GLData->m_polygon[sz-1] = pos;
+
+                m_bLastActionIsRightClick = false;
             }
             else
             {
@@ -218,7 +223,15 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
 
                m_GLData->m_polygon.findClosestPoint(m_lastPosImage);
 
-               if (m_GLData->m_polygon.size() < 2) m_GLData->m_polygon.setClosed(false);
+               if (m_GLData->m_polygon.size() < 3)
+                   m_GLData->m_polygon.setClosed(false);
+
+               m_bLastActionIsRightClick = true;
+           }
+           else if (m_GLData->m_polygon.size() == 2)
+           {
+               m_GLData->m_polygon.remove(1);
+               m_GLData->m_polygon.setClosed(false);
            }
            else // close polygon
                m_GLData->m_polygon.close();
