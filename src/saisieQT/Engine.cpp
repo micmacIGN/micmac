@@ -407,6 +407,10 @@ void cEngine::unloadAll()
     _Data->clearImages();
     _Data->clearMasks();
     _Data->reset();
+
+    for (int aK=0; aK<_GLData.size();++aK)
+        delete _GLData[aK];
+    _GLData.clear();
 }
 
 void cEngine::setGLData()
@@ -448,7 +452,6 @@ void cEngine::setGLData()
             pCloud = _Data->getCloud(aK);
             theData->Clouds.push_back(pCloud);
 
-            //_Data->getCloud(aK)->setBufferGl();
             pCloud->setBufferGl();
         }
 

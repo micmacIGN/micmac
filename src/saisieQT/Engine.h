@@ -142,7 +142,7 @@ public:
     cAxis       *pAxis;
     cBBox       *pBbox;
 
-    QVector < Cloud *> Clouds;
+    QVector < Cloud* > Clouds;
 };
 
 class cEngine
@@ -202,10 +202,10 @@ public:
 
 private:
 
-    cLoader*         _Loader;
-    cData*           _Data;
+    cLoader*            _Loader;
+    cData*              _Data;
 
-    QVector <cGLData*> _GLData;
+    QVector <cGLData*>  _GLData;
 };
 
 
