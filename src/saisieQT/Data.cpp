@@ -92,6 +92,7 @@ void cData::reset()
     m_maxX = m_maxY = m_maxZ = -FLT_MAX;
     _center = Pt3dr(0.f,0.f,0.f);
     _curImgIdx = 0;
+    _bEmptyMask = true;
 }
 
 int cData::getSizeClouds()
@@ -154,4 +155,36 @@ void cData::getBB()
     _center.z = (m_minZ + m_maxZ) * .5f;
 
     m_diam = max(m_maxX-m_minX, max(m_maxY-m_minY, m_maxZ-m_minZ));   
+}
+
+void cData::applyGamma(float aGamma)
+{
+    for (uint aK=0; aK<_Images.size();++aK)
+        applyGammaToImage(aK, aGamma);
+}
+
+void cData::applyGammaToImage(int aK, float aGamma)
+{
+    if (aGamma == 1.f) return;
+
+    QRgb pixel;
+    int r,g,b;
+
+    float _gamma = 1.f / aGamma;
+
+    for(int i=0; i< getImage(aK)->width();++i)
+        for(int j=0; j< getImage(aK)->height();++j)
+        {
+            pixel = getImage(aK)->pixel(i,j);
+
+            r = 255*pow((float) qRed(pixel)  / 255.f, _gamma);
+            g = 255*pow((float) qGreen(pixel)/ 255.f, _gamma);
+            b = 255*pow((float) qBlue(pixel) / 255.f, _gamma);
+
+            if (r>255) r = 255;
+            if (g>255) g = 255;
+            if (b>255) b = 255;
+
+            getImage(aK)->setPixel(i,j, qRgb(r,g,b) );
+        }
 }
