@@ -52,7 +52,7 @@ public:
 
     void setData(cData* data){ m_Data = data; }  // a supprimer
 
-    void updateAfterSetGLData();
+    void updateAfterSetData();
 
     //! Interaction mode (only in 3D)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
@@ -249,7 +249,6 @@ private:
     bool        _g_mouseLeftDown;
     bool        _g_mouseMiddleDown;
     bool        _g_mouseRightDown;
-
     GLfloat     _g_tmpoMatrix[9];
     GLfloat     _g_rotationOx[9];
     GLfloat     _g_rotationOy[9];

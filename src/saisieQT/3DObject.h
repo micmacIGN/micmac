@@ -246,8 +246,6 @@ class cImageGL : public cObjectGL
 
         GLuint* getTexture(){return &_texture;}
 
-
-
     private:
         GLfloat _originX;
         GLfloat _originY;
