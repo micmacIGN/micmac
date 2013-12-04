@@ -176,68 +176,6 @@ double Dist3d(Pt3d<double> aP1, Pt3d<double> aP2 ){
 	return (double)std::sqrt(pow(double(aP1.x-aP2.x),2)+pow(double(aP1.y-aP2.y),2)+pow(double(aP1.z-aP2.z),2));
 }
 
-void drawTP(PtsHom aPtsHomol, string aDir, string aNameOut, int ResolModel)//Create images to visualize Tie Point positions
-{
-		//Bulding the output file system
-		ELISE_fp::MkDirRec(aDir + "TP/");
-		Pt2di aSz=aPtsHomol.SZ;
-		cout<<aSz.x<<" "<<aSz.y<<endl;
-		//Reading the image and creating the objects to be manipulated
-		aNameOut=aDir + "TP/"+ aNameOut +".tif";
-		Tiff_Im aTF=Tiff_Im(aNameOut.c_str(), aSz, GenIm::u_int1, Tiff_Im::No_Compr, Tiff_Im::RGB);
-
-		Im2D_U_INT1  aImR(aSz.x,aSz.y);
-		Im2D_U_INT1  aImG(aSz.x,aSz.y);
-		Im2D_U_INT1  aImB(aSz.x,aSz.y);
-
-		ELISE_COPY
-		(
-		   aTF.all_pts(),
-		   aTF.in(),
-		   Virgule(aImR.out(),aImG.out(),aImB.out())
-		);
-
-		U_INT1 ** aDataR = aImR.data();
-		U_INT1 ** aDataG = aImG.data();
-		U_INT1 ** aDataB = aImB.data();
-
-		for (int aY=0 ; aY<aSz.y  ; aY++)
-			{
-				for (int aX=0 ; aX<aSz.x  ; aX++)
-				{
-					aDataR[aY][aX]=0;
-					aDataG[aY][aX]=0;
-					aDataB[aY][aX]=0;
-				}
-		}
-		for (int i=0;i<aPtsHomol.size();i++)
-		{
-			//cout<<int(aPtsHomol.Y1[i])<<" "<<int(aPtsHomol.X1[i])<<endl;
-			aDataR[int(aPtsHomol.Pt1[i].y/ResolModel)][int(aPtsHomol.Pt1[i].x/ResolModel)]=255;
-			aDataG[int(aPtsHomol.Pt1[i].y/ResolModel)][int(aPtsHomol.Pt1[i].x/ResolModel)]=255;
-			aDataB[int(aPtsHomol.Pt1[i].y/ResolModel)][int(aPtsHomol.Pt1[i].x/ResolModel)]=255;
-		}
-		
-		 Tiff_Im  aTOut
-			(
-				aNameOut.c_str(),
-				aSz,
-				GenIm::u_int1,
-				Tiff_Im::No_Compr,
-				Tiff_Im::RGB
-			);
-
-
-		 ELISE_COPY
-			 (
-				 aTOut.all_pts(),
-				 Virgule(aImR.in(),aImG.in(),aImB.in()),
-				 aTOut.out()
-			 );
-
-
-}
-
 cl_MatPtsHom ReadPtsHom3D(string aDir,string aPatIm, string InVig, int ResolModel, double TPA)
 {
 	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
@@ -309,27 +247,6 @@ cl_MatPtsHom ReadPtsHom3D(string aDir,string aPatIm, string InVig, int ResolMode
 			}
 		}
 	}
-
-		//drawTP(aVectPtsHomol[1], aDir, "1-2",ResolModel);
-		//drawTP(aVectPtsHomol[2], aDir, "1-3",ResolModel);
-		//drawTP(aVectPtsHomol[3], aDir, "1-4",ResolModel);
-		//drawTP(aVectPtsHomol[4], aDir, "1-5",ResolModel);
-		//drawTP(aVectPtsHomol[5], aDir, "2-1",ResolModel);
-		//drawTP(aVectPtsHomol[7], aDir, "2-3",ResolModel);
-		//drawTP(aVectPtsHomol[8], aDir, "2-4",ResolModel);
-		//drawTP(aVectPtsHomol[9], aDir, "2-5",ResolModel);
-		//drawTP(aVectPtsHomol[10], aDir, "3-1",ResolModel);
-		//drawTP(aVectPtsHomol[11], aDir, "3-2",ResolModel);
-		//drawTP(aVectPtsHomol[13], aDir, "3-4",ResolModel);
-		//drawTP(aVectPtsHomol[14], aDir, "3-5",ResolModel);
-		//drawTP(aVectPtsHomol[15], aDir, "4-1",ResolModel);
-		//drawTP(aVectPtsHomol[16], aDir, "4-2",ResolModel);
-		//drawTP(aVectPtsHomol[17], aDir, "4-3",ResolModel);
-		//drawTP(aVectPtsHomol[19], aDir, "4-5",ResolModel);
-		//drawTP(aVectPtsHomol[20], aDir, "5-1",ResolModel);
-		//drawTP(aVectPtsHomol[21], aDir, "5-2",ResolModel);
-		//drawTP(aVectPtsHomol[22], aDir, "5-3",ResolModel);
-		//drawTP(aVectPtsHomol[23], aDir, "5-4",ResolModel);
 
 		//int nbPtsHomols=0;
 		//for(int i=0 ; i<int(aMatPtsHomol.size()) ; i++){for(int j=0 ; j<int(aMatPtsHomol.size()) ; i++){nbPtsHomols=nbPtsHomols + aMatPtsHomol.aMat[i][j].NbPtsCouple;}}
