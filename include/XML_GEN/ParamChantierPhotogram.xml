@@ -40,6 +40,14 @@ namespace NS_ParamChantierPhotogram{
        <eNbTypeMMByP>    </eNbTypeMMByP>
    </enum>
 
+   <enum Name="eTypeQuality">
+       <eQual_High>         </eQual_High>
+       <eQual_Average>      </eQual_Average>
+       <eQual_Low>          </eQual_Low>
+       <eNbTypeQual>        </eNbTypeQual>
+
+   </enum>
+
     
    <enum Name="eTypeMalt">
        <eOrtho>         </eOrtho>

@@ -92,7 +92,7 @@ int CreateEpip_main(int argc,char ** argv)
                     << EAM(Cons16B,"16B",true,"Maintain 16 Bits images if avalaibale (Def=true)")
                     << EAM(InParal,"InParal",true,"Compute in parallel (Def=true)")
                     << EAM(DoIm,"DoIm",true,"Compute image (def=true !!)")
-                    << EAM(aNameHom,"NameH",true,"Compute transformation of homologous point in epi coord (def=none)")
+                    << EAM(aNameHom,"NameH",true,"Extension to compute Hom point in epi coord (def=none)")
                     << EAM(aDegre,"Degre",true,"Degre of polynom to correct epi (def=1-, ,2,3)")
     );	
     if (aName1 > aName2) ElSwap(aName1,aName2);
