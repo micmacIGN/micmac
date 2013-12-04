@@ -490,8 +490,14 @@ void BanniereMM3D()
     std::cout << "  **  The project is funded by :                                        **\n";
     std::cout << "  **                                                                    **\n";
     std::cout << "  **  - Institut National de l'Information Geographique et Forestiere   **\n";
+    std::cout << "  **    (IGN main funder since 2003)                                    **\n";
     std::cout << "  **  - the french FUI Project \"Culture 3D Cloud\"                       **\n";
     std::cout << "  **  - the french ANR Project \"MONUMENTUM\"                             **\n";
+    std::cout << "  **                                                                    **\n";
+    std::cout << "  **  Research also currently supported by                              **\n";
+    std::cout << "  **  - CNES (French Space Agency) - via TOSCA Committee                **\n";
+    std::cout << "  **  - Compagnie National du Rhone                                     **\n";
+    std::cout << "  **  - Vinci-Construction-Terrassement                                 **\n";
     std::cout << "  **                                                                    **\n";
     std::cout << "  **                                                                    **\n";
     std::cout << "  **  Current Team: MP Deseilligny, M Deveau, J Belvaux, G Choqueux,    **\n";

@@ -131,12 +131,13 @@ class cGLData
     cPolygon    m_dihedron;
 
     //3D
-    //QVector < Cloud *> Clouds;
     QVector < cCam* > Cams;
 
     cBall       *pBall;
     cAxis       *pAxis;
     cBBox       *pBbox;
+
+    //QVector < Cloud *> Clouds;
 };
 
 class cEngine
@@ -192,14 +193,14 @@ public:
     void    setGLData();
 
     //!sends GLObjects to GLWidget
-    cGLData* getGLData(uint WidgetIndex);
+    cGLData* getGLData(int WidgetIndex);
 
 private:
 
     cLoader*         _Loader;
     cData*           _Data;
 
-    vector <cGLData*> _GLData;
+    QVector <cGLData*> _GLData;
 };
 
 

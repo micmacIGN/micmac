@@ -76,7 +76,7 @@ int CreateEpip_main(int argc,char ** argv)
     bool Cons16B = true;
     bool InParal = true;
     bool DoIm = true;
-    bool DoHomol = false;
+    std::string aNameHom;
     int  aDegre = -1;
     
 
@@ -92,7 +92,7 @@ int CreateEpip_main(int argc,char ** argv)
                     << EAM(Cons16B,"16B",true,"Maintain 16 Bits images if avalaibale (Def=true)")
                     << EAM(InParal,"InParal",true,"Compute in parallel (Def=true)")
                     << EAM(DoIm,"DoIm",true,"Compute image (def=true !!)")
-                    << EAM(DoHomol,"DoHom",true,"Compute transformation of homologous point in epi coord (def=false)")
+                    << EAM(aNameHom,"NameH",true,"Extension to compute Hom point in epi coord (def=none)")
                     << EAM(aDegre,"Degre",true,"Degre of polynom to correct epi (def=1-, ,2,3)")
     );	
     if (aName1 > aName2) ElSwap(aName1,aName2);
@@ -132,11 +132,15 @@ int CreateEpip_main(int argc,char ** argv)
                     *aCam2,aName2
                );
 
+     const char * aCarHom = 0;
+     if (EAMIsInit(&aNameHom)) 
+        aCarHom = aNameHom.c_str();
+
      std::cout << "TimeEpi-0 \n";
      ElTimer aChrono;
-     aCplE.ImEpip(aTif1,aNameOr1,true,InParal,DoIm,DoHomol,aDegre);
+     aCplE.ImEpip(aTif1,aNameOr1,true,InParal,DoIm,aCarHom,aDegre);
      std::cout << "TimeEpi-1 " << aChrono.uval() << "\n";
-     aCplE.ImEpip(aTif2,aNameOr2,false,InParal,DoIm,DoHomol,aDegre);
+     aCplE.ImEpip(aTif2,aNameOr2,false,InParal,DoIm,aCarHom,aDegre);
      std::cout << "TimeEpi-2 " << aChrono.uval() << "\n";
 
      return EXIT_SUCCESS;
