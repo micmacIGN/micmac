@@ -20,6 +20,10 @@
 
 using namespace std;
 
+const char   cElPath::sm_unix_separator    = '/';
+const char   cElPath::sm_windows_separator = '\\';
+const string cElPath::sm_all_separators    = "/\\";
+   
 cElPath getCurrentDirectory()
 {
    #if (ELISE_windows)
@@ -38,13 +42,13 @@ cElPath getCurrentDirectory()
 
 void cElPath::append( const cElPathToken &i_token )
 {
-   if ( i_token.str().length()==0 || i_token.str()=="." ) return;
+   if ( i_token.str()=="." ) return;
    if ( m_tokens.size()>0 && i_token.str()==".." ){ m_tokens.pop_back(); return; }
    m_tokens.push_back( i_token );
 }
    
 cElPath::cElPath( const string &i_path )
-{
+{   
    const size_t pathLength = i_path.length();
    if ( pathLength==0 ) return;
    
@@ -54,7 +58,7 @@ cElPath::cElPath( const string &i_path )
    size_t iPath = path.size();
    while ( iPath-- )
    {
-      if ( *itPath=='/' || *itPath=='\\' ) *itPath='\0';
+      if ( *itPath==sm_unix_separator || *itPath==sm_windows_separator ) *itPath='\0';
       itPath++;
    }
    // append all strings in the token list
@@ -66,13 +70,6 @@ cElPath::cElPath( const string &i_path )
       append( cElPathToken( tokenString ) );
       itPath += tokenString.length()+1;
    }
-   
-   if ( m_tokens.size()==0 ){ m_isAbsolute=true; return; }
-   
-   // there is no ELISE_windows/ELISE_POSIX test here because a system may want to manipulate files for another system
-   const unsigned int firstTokenSize = m_tokens.begin()->str().length();
-   m_isAbsolute = ( firstTokenSize==0 ) ||  // first token is empty (unix)
-                  ( (firstTokenSize==2)&&(m_tokens.begin()->str()[1]==':') ); // first token is a volume letter + ':' (windows)
 }
 
 void cElPath::trace( ostream &io_stream ) const
@@ -91,30 +88,70 @@ void cElPath::trace( ostream &io_stream ) const
 
 string cElPath::str( char i_separator ) const
 {
-   if ( isNull() ) return string();
    const string separator(1,i_separator);
    list<cElPathToken>::const_iterator itToken = m_tokens.begin();
-   string res = (*itToken++).str();
+   string res;
    while ( itToken!=m_tokens.end() )
-      res.append( separator+(*itToken++).str() );
+      res.append( (*itToken++).str()+separator );
    return res;
 }
 
-bool cElPath::operator ==( const cElPath &i_b ) const
+int cElPath::compare( const cElPath &i_b ) const
 {
    list<cElPathToken>::const_iterator itA = m_tokens.begin(),
-				  itB = i_b.m_tokens.begin();
+				      itB = i_b.m_tokens.begin();
    while ( itA!=m_tokens.end() &&
 	   itB!=i_b.m_tokens.end() )
-      if ( (*itA++).str()!=(*itB++).str() ) return false;
-   return ( itA==m_tokens.end() ) && ( itB==i_b.m_tokens.end() );
+   {
+      int compare = ( *itA++ ).compare( *itB++ );
+      if ( compare!=0 ) return compare;
+   }
+   if ( itA==m_tokens.end() && itB==i_b.m_tokens.end() ) return 0;
+   if ( itA==m_tokens.end() ) return -1;
+   return 1;
 }
-      
+
+void cElPath::toAbsolute( const cElPath &i_relativeTo )
+{
+   if ( isAbsolute() ) return;
+   cElPath res( i_relativeTo );
+   list<cElPathToken>::iterator itToken = m_tokens.begin();
+   while ( itToken!=m_tokens.end() )
+      res.append( *itToken++ );
+   *this = res;
+}
+
+bool cElPath::isInvalid() const { return false; }
+
 //-------------------------------------------
 // cElFilename
 //-------------------------------------------
 
 cElFilename::cElFilename( const std::string i_fullname )
 {
-   if ( i_fullname.length()==0 ) return;
+   if ( i_fullname.length()==0 ) return; // this is an invalid cElFilename
+   size_t pos = i_fullname.string::find_last_of( cElPath::sm_all_separators );
+   if ( pos==string::npos )
+   {
+      m_basename = i_fullname;
+      return;
+   }
+   m_path = cElPath( i_fullname.substr( 0, pos ) );
+   if ( pos==i_fullname.length()-1 ) return; // this is an invalid cElFilename
+   m_basename = i_fullname.substr( pos+1 );
+}
+
+void cElFilename::trace( std::ostream &io_stream ) const
+{
+   m_path.trace(io_stream);
+   io_stream << '{' << m_basename << '}' << endl;
+}
+
+bool cElFilename::isInvalid() const { return false; }
+
+int cElFilename::compare( const cElFilename &i_b ) const
+{
+   int compare = m_path.compare(i_b.m_path);
+   if (compare!=0) return compare;
+   return m_basename.compare( i_b.m_basename );
 }

@@ -82,6 +82,8 @@ class cAppliMMByPair : public cAppliWithSetImage
       bool         mByMM1P;
       Box2di       mBoxOfImage;
       std::string  mImageOfBox;
+      eTypeQuality mQualOr;
+      std::string  mStrQualOr;
 };
 
 /*****************************************************************/
@@ -129,8 +131,6 @@ void Paral_Tiff_Dev
          aLCom.push_back(aCom);
          // std::cout << aCom << "\n";
     }
-
-    // std::cout << "Paral_Tiff_Dev TO DO \n"; getchar();
 
     cEl_GPAO::DoComInParal(aLCom);
 }
@@ -620,7 +620,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mDirBasc      ("MTD-Nuage"),
     mIntIncert    (1.25),
     mSkipCorDone  (false),
-    mByMM1P       (true)
+    mByMM1P       (true),
+    mQualOr       (eQual_Low)
 {
   if (argc>=2)
   {
@@ -628,6 +629,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
      mStrType = argv[1];
      StdReadEnum(mModeHelp,mType,mStrType,eNbTypeMMByP);
   }
+
+
 
   ElInitArgMain
   (
@@ -652,7 +655,10 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mImageOfBox,"ImOfBox",true,"Image to define box for MTD (test purpose to limit size of result)")
                     << EAM(mBoxOfImage,"BoxOfIm",true,"Associated to ImOfBox, def = full")
                     << EAM(mParalMMIndiv,"ParMMI",true,"If true each MM if // (\" expert\" option, Def=false currently)")
+                    << EAM(mStrQualOr,"QualOr",true,"Quality orient (in High, Average, Low, Def= Low)",eSAM_None,ListOfVal(eNbTypeQual,"eQual_"))
   );
+  if (EAMIsInit(&mStrQualOr))
+     mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
   if (! EAMIsInit(&mMMImSec))
      mMMImSec = (mType==eStatute);
   if (mModeHelp) 
@@ -710,6 +716,8 @@ std::string cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
                          +  " CreateE=" + ToString(mByEpi)
                          +  " InParal=" + ToString(mParalMMIndiv)
                       ;
+     if (EAMIsInit(&mStrQualOr))
+       aMatchCom += " QualOr=" + aMatchCom;
 
      if (mType == eGround)
        aMatchCom = aMatchCom + " BascMTD=MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml ";
@@ -931,9 +939,13 @@ int cAppliMMByPair::Exe()
    if (BoolFind(mDo,'C'))
    {
       if (mByMM1P)
+      {
          DoCorrelAndBasculeEpip();
+      }
       else
+      {
          DoCorrelAndBasculeStd();
+      }
    }
 /*
    if (BoolFind(mDo,'F'))
