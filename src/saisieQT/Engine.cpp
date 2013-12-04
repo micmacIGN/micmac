@@ -407,12 +407,6 @@ void cEngine::unloadAll()
     _Data->clearImages();
     _Data->clearMasks();
     _Data->reset();
-
-    for (int aK=0; aK<_GLData.size();++aK)
-        delete _GLData[aK];
-    _GLData.clear();
-
-    _gamma = 1.f;
 }
 
 void cEngine::setGLData()
@@ -423,13 +417,11 @@ void cEngine::setGLData()
     {
         cGLData *theData = new cGLData();
 
-        applyGammaToImage(aK, getGamma());
-
         if (_Data->getNbMasks()>aK)
         {
             if(_Data->getMask(aK) == NULL)
                 glGenTextures(1, theData->pMask->getTexture() );   
-            theData->setEmptymask(false);
+            _Data->setEmptymask(false);
 
             theData->pMask->ImageToTexture(_Data->getMask(aK));
         }
@@ -439,7 +431,7 @@ void cEngine::setGLData()
             mask = new QImage(_Data->getImage(aK)->size(),QImage::Format_Mono);
             _Data->addMask(mask);
             _Data->fillMask(aK);
-            theData->setEmptymask(true);
+            _Data->setEmptymask(true);
         }
 
         _GLData.push_back(theData);
@@ -456,6 +448,7 @@ void cEngine::setGLData()
             pCloud = _Data->getCloud(aK);
             theData->Clouds.push_back(pCloud);
 
+            //_Data->getCloud(aK)->setBufferGl();
             pCloud->setBufferGl();
         }
 
@@ -488,47 +481,9 @@ void cEngine::setGLData()
             theData->Cams.push_back(pCam);
         }
 
-        theData->m_diam = _Data->m_diam;
-
         _GLData.push_back(theData);
     }
 }
-
-void cEngine::applyGamma(float aGamma)
-{
-    for (int aK=0; aK<_Data->getNbImages();++aK)
-        applyGammaToImage(aK, aGamma);
-}
-
-void cEngine::applyGammaToImage(int aK, float aGamma)
-{
-    if (aGamma == 1.f) return;
-
-    QRgb pixel;
-    int r,g,b;
-
-    float _gamma = 1.f / aGamma;
-
-    for(int i=0; i< _Data->getImage(aK)->width();++i)
-        for(int j=0; j< _Data->getImage(aK)->height();++j)
-        {
-            pixel = _Data->getImage(aK)->pixel(i,j);
-
-            r = 255*pow((float) qRed(pixel)  / 255.f, _gamma);
-            g = 255*pow((float) qGreen(pixel)/ 255.f, _gamma);
-            b = 255*pow((float) qBlue(pixel) / 255.f, _gamma);
-
-            if (r>255) r = 255;
-            if (g>255) g = 255;
-            if (b>255) b = 255;
-
-            _Data->getImage(aK)->setPixel(i,j, qRgb(r,g,b) );
-        }
-}
-
-//****************************************
-//   cGLData
-
 cGLData* cEngine::getGLData(int WidgetIndex)
 {
     if ((_GLData.size() > 0) && (WidgetIndex < _GLData.size()))
@@ -537,9 +492,7 @@ cGLData* cEngine::getGLData(int WidgetIndex)
         return NULL;
 }
 
-cGLData::cGLData() :
-    m_diam(1.0),
-    _bEmptyMask(true)
+cGLData::cGLData()
 {
     //2D
     pImg  = new cImageGL();
@@ -594,6 +547,7 @@ ViewportParameters::ViewportParameters()
     , m_angleX(0.f)
     , m_angleY(0.f)
     , m_angleZ(0.f)
+    , m_gamma(1.f)
     , m_speed(2.f)
 {
     m_translationMatrix[0] = m_translationMatrix[1] = m_translationMatrix[2] = 0.f;
@@ -629,6 +583,8 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
         m_translationMatrix[1] = par.m_translationMatrix[1];
         m_translationMatrix[2] = par.m_translationMatrix[2];
         m_LineWidth = par.m_LineWidth;
+        m_gamma 	= par.m_gamma;
+
     }
 
     return *this;
@@ -636,7 +592,7 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
 
 void ViewportParameters::reset()
 {
-    m_zoom = m_LineWidth = 1.f;
+    m_zoom = m_LineWidth = m_gamma = 1.f;
     m_angleX = m_angleY = m_angleZ = 0.f;
     m_PointSize = 1;
 
