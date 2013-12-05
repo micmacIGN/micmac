@@ -996,7 +996,7 @@ LocBug=true;
                    aPCel.push_back(anEl);
                 }
             }
-            int Ok= 0;
+            int Ok= 1;
             double aZ=0;
             double aP=0;
             if (aPCel.size() >0)
