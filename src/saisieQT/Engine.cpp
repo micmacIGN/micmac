@@ -407,6 +407,10 @@ void cEngine::unloadAll()
     _Data->clearImages();
     _Data->clearMasks();
     _Data->reset();
+
+    for (int aK=0; aK<_GLData.size();++aK)
+        delete _GLData[aK];
+    _GLData.clear();
 }
 
 void cEngine::setGLData()
@@ -444,12 +448,11 @@ void cEngine::setGLData()
 
         for (int aK = 0; aK < _Data->getNbClouds();++aK)
         {
-           /* Cloud *pCloud = new Cloud();
+            Cloud *pCloud;
             pCloud = _Data->getCloud(aK);
-            theData->Clouds.push_back(pCloud);*/
+            theData->Clouds.push_back(pCloud);
 
-            _Data->getCloud(aK)->setBufferGl();
-            //theData->Clouds[aK]->setBufferGl();
+            pCloud->setBufferGl();
         }
 
         for (int aK = 0; aK < _Data->getNbCameras();++aK)
@@ -517,8 +520,25 @@ cGLData::~cGLData()
     delete pAxis;
     delete pBbox;
 
-   // qDeleteAll(Clouds);
-   // Clouds.clear();
+   //pas de delete des pointeurs dans Clouds c'est Data qui s'en charge
+    Clouds.clear();
+}
+
+void cGLData::clear()
+{
+    pImg  = NULL;
+    pMask = NULL;
+
+    for (int aK = 0; aK< Cams.size(); ++aK) Cams[aK] = NULL;
+    //qDeleteAll(Cams);
+    Cams.clear();
+
+    pBall = NULL;
+    pAxis = NULL;
+    pBbox = NULL;
+
+    for (int aK = 0; aK< Clouds.size(); ++aK) Clouds[aK] = NULL;
+    Clouds.clear();
 }
 
 //********************************************************************************

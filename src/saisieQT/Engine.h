@@ -115,10 +115,15 @@ private:
 
 class cGLData
 {
-    public:
+public:
 
     cGLData();
     ~cGLData();
+
+    void clear();
+
+    bool is2D(){return pImg != NULL;}
+    bool is3D(){return Clouds.size() || Cams.size();}
 
     //2D
     cImageGL    *pImg;
@@ -137,7 +142,7 @@ class cGLData
     cAxis       *pAxis;
     cBBox       *pBbox;
 
-    //QVector < Cloud *> Clouds;
+    QVector < Cloud* > Clouds;
 };
 
 class cEngine
@@ -197,10 +202,10 @@ public:
 
 private:
 
-    cLoader*         _Loader;
-    cData*           _Data;
+    cLoader*            _Loader;
+    cData*              _Data;
 
-    QVector <cGLData*> _GLData;
+    QVector <cGLData*>  _GLData;
 };
 
 
