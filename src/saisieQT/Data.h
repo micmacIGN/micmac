@@ -49,7 +49,6 @@ class cData
 
         int     getSizeClouds();
 
-        void    setCenter(Pt3dr const &pt){_center = pt;}
         Pt3dr   getCenter(){return _center;}
 
         float   getScale(){return m_diam;}

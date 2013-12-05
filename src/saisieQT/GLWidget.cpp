@@ -7,7 +7,7 @@ const float GL_MIN_ZOOM = 0.01f;
 using namespace Cloud_;
 using namespace std;
 
-GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
+GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent)
   , m_rw(1.f)
   , m_rh(1.f)
   , m_font(font())
@@ -16,7 +16,6 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , m_bFirstAction(true)
   , m_bLastActionIsRightClick(false)
   , m_params(ViewportParameters())
-  , m_Data(data)
   , m_bDisplayMode2D(false)
   , _frameCount(0)
   , _previousTime(0)
@@ -25,6 +24,7 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
   , _g_mouseLeftDown(false)
   , _g_mouseMiddleDown(false)
   , _g_mouseRightDown(false)
+  , _bDataLoaded(false)
 {
     resetRotationMatrix();
 
@@ -41,8 +41,6 @@ GLWidget::GLWidget(QWidget *parent, cData *data) : QGLWidget(parent)
     _projmatrix = new GLdouble[16];
     _glViewport = new GLint[4];
 
-    //m_GLData    = new cGLData();
-
     m_font.setPointSize(10);
 
     installEventFilter(this);
@@ -55,7 +53,7 @@ GLWidget::~GLWidget()
     delete [] _projmatrix;
     delete [] _glViewport;
 
-    //m_GLData, m_Data are deleted by Engine
+    //m_GLData is deleted by Engine
 }
 
 bool GLWidget::eventFilter(QObject* object,QEvent* event)
@@ -439,7 +437,7 @@ void GLWidget::paintGL()
                     renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(px,'f',1) + ", " + QString::number(m_GLData->pImg->sz().height()-py,'f',1) + " px", m_font);
             }
         }
-        else //if(m_Data->is3D())
+        else if(m_GLData->is3D())
         {
             zoom();
 
@@ -973,7 +971,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
             Cloud *a_cloud = m_GLData->Clouds[idx1];
             Pt3dr Pt = a_cloud->getVertex( idx2 ).getPosition();
 
-            m_Data->setCenter(Pt);
+            m_GLData->setCenter(Pt);
 
             m_GLData->pBall->setPosition(Pt);
             m_GLData->pAxis->setPosition(Pt);
@@ -1056,7 +1054,7 @@ void GLWidget::Select(int mode)
             QBrush NSBrush(Qt::black);
 
             //p.begin(_mask);
-            p.begin(m_Data->getCurMask());
+            p.begin(m_GLData->getMask());
             p.setCompositionMode(QPainter::CompositionMode_Source);
             p.setPen(Qt::NoPen);
 
@@ -1064,7 +1062,7 @@ void GLWidget::Select(int mode)
             {
                 if (m_bFirstAction)
                 {
-                    p.fillRect(m_Data->getCurMask()->rect(), Qt::black);
+                    p.fillRect(m_GLData->getMask()->rect(), Qt::black);
                 }
                 p.setBrush(SBrush);
                 p.drawPolygon(polyg.getVector().data(),polyg.size());
@@ -1076,18 +1074,18 @@ void GLWidget::Select(int mode)
             }
             else if(mode == ALL)
             {
-                p.fillRect(m_Data->getCurMask()->rect(), Qt::white);
+                p.fillRect(m_GLData->getMask()->rect(), Qt::white);
             }
             else if(mode == NONE)
             {
-                p.fillRect(m_Data->getCurMask()->rect(), Qt::black);
+                p.fillRect(m_GLData->getMask()->rect(), Qt::black);
             }
             p.end();
 
             if(mode == INVERT)
-                m_Data->getCurMask()->invertPixels(QImage::InvertRgb);
+                m_GLData->getMask()->invertPixels(QImage::InvertRgb);
 
-            m_GLData->pMask->ImageToTexture(m_Data->getCurMask());
+            m_GLData->pMask->ImageToTexture(m_GLData->getMask());
         }
         else
         {
@@ -1239,6 +1237,8 @@ void GLWidget::reset()
     m_params.reset();
 
     m_bFirstAction = true;
+
+    _bDataLoaded = false;
 }
 
 void GLWidget::resetView()
@@ -1271,9 +1271,12 @@ void GLWidget::resetRotationMatrix()
 
 void GLWidget::resetTranslationMatrix()
 {
-    Pt3dr center = m_Data->getCenter();
+    if (hasDataLoaded())
+    {
+        Pt3dr center = m_GLData->getCenter();
 
-    m_params.m_translationMatrix[0] = -center.x;
-    m_params.m_translationMatrix[1] = -center.y;
-    m_params.m_translationMatrix[2] = -center.z;
+        m_params.m_translationMatrix[0] = -center.x;
+        m_params.m_translationMatrix[1] = -center.y;
+        m_params.m_translationMatrix[2] = -center.z;
+    }
 }
