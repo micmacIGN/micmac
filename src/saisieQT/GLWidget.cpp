@@ -606,8 +606,6 @@ void GLWidget::updateAfterSetData()
     {
         m_bDisplayMode2D = true;
 
-        m_Data->applyGammaToImage(m_Data->getCurImageIdx(), m_params.getGamma());
-
         zoomFit();
 
         //position de l'image dans la vue gl
@@ -617,7 +615,7 @@ void GLWidget::updateAfterSetData()
         glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
         glGenTextures(1, m_GLData->pImg->getTexture());
 
-        m_GLData->pImg->ImageToTexture(m_Data->getCurImage());
+
 
         if (m_GLData->isMaskEmpty())
             m_bFirstAction = true;
