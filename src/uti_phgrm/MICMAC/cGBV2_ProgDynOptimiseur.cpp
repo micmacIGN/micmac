@@ -455,7 +455,7 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
     }
 
 #if CUDA_ENABLED
-
+        printf("==== USE CUDA REGULATION =====\n");
         SolveAllDirectionGpu(aNbDir);
 #else
     // Parcours dans toutes les directions
