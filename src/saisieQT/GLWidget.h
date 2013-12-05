@@ -74,7 +74,8 @@ public:
                                    MessagePosition pos = SCREEN_CENTER_MESSAGE);
 
     //! States if data (cloud, camera or image) is loaded
-    bool hasDataLoaded(){return m_Data->isDataLoaded();}
+    bool hasDataLoaded(){return m_Data->isDataLoaded();}//{return m_GLData->isDataLoaded();}
+
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);

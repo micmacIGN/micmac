@@ -119,6 +119,7 @@ public:
 
     bool        is2D(){return pImg != NULL;}
     bool        is3D(){return Clouds.size() || Cams.size();}
+    bool        isDataLoaded(){return (!isImgEmpty()) || is3D();}
 
     //2D
     cImageGL    *pImg;
@@ -129,6 +130,9 @@ public:
 
     //! Point list for polygonal insertion
     cPolygon    m_dihedron;
+
+    void        setEmptyImg(bool aBool){_bEmptyImg = aBool;}
+    bool        isImgEmpty(){return _bEmptyImg;}
 
     void        setEmptymask(bool aBool){_bEmptyMask = aBool;}
     bool        isMaskEmpty(){return _bEmptyMask;}
@@ -147,7 +151,7 @@ public:
 
 private:
 
-
+    bool        _bEmptyImg;
     bool        _bEmptyMask;
 
     float       _diam;
@@ -217,7 +221,7 @@ private:
     cLoader*            _Loader;
     cData*              _Data;
 
-    QVector <cGLData*>  _GLData;
+    QVector <cGLData*>  _vGLData;
 
     float               _Gamma;
 };
