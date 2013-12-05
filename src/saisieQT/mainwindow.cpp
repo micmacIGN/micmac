@@ -231,6 +231,9 @@ void MainWindow::addFiles(const QStringList& filenames)
             future.waitForFinished();*/
 
             _Engine->setFilenamesOut();
+
+            for (int aK=0; aK<_Engine->getData()->getNbImages();++aK)
+                _Engine->applyGammaToImage(aK);
         }
 
         _glWidget->setData(_Engine->getData());
@@ -685,7 +688,8 @@ void MainWindow::on_action2D_3D_mode_triggered()
 
 void  MainWindow::setGamma(float aGamma)
 {
-    _glWidget->getParams()->setGamma(aGamma);
+    _Engine->setGamma(aGamma);
+    //_glWidget->getParams()->setGamma(aGamma);
 }
 
 

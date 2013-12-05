@@ -174,7 +174,8 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
 
 cEngine::cEngine():    
     _Loader(new cLoader),
-    _Data(new cData)
+    _Data(new cData),
+    _Gamma(1.f)
 {}
 
 cEngine::~cEngine()
@@ -400,6 +401,11 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
 #endif
 }
 
+void cEngine::applyGammaToImage(int aK)
+{
+    _Data->applyGammaToImage(aK, _Gamma);
+}
+
 void cEngine::unloadAll()
 {
     _Data->clearClouds();
@@ -421,6 +427,8 @@ void cEngine::setGLData()
     {
         cGLData *theData = new cGLData();
 
+                theData->pImg->ImageToTexture(_Data->getImage(aK));
+
         if (_Data->getNbMasks()>aK)
         {
             if(_Data->getMask(aK) == NULL)
@@ -437,6 +445,8 @@ void cEngine::setGLData()
             _Data->fillMask(aK);
             theData->setEmptymask(true);
         }
+
+
 
         _GLData.push_back(theData);
     }
@@ -557,7 +567,6 @@ ViewportParameters::ViewportParameters()
     , m_angleX(0.f)
     , m_angleY(0.f)
     , m_angleZ(0.f)
-    , m_gamma(1.f)
     , m_speed(2.f)
 {
     m_translationMatrix[0] = m_translationMatrix[1] = m_translationMatrix[2] = 0.f;
@@ -593,8 +602,6 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
         m_translationMatrix[1] = par.m_translationMatrix[1];
         m_translationMatrix[2] = par.m_translationMatrix[2];
         m_LineWidth = par.m_LineWidth;
-        m_gamma 	= par.m_gamma;
-
     }
 
     return *this;
@@ -602,7 +609,7 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
 
 void ViewportParameters::reset()
 {
-    m_zoom = m_LineWidth = m_gamma = 1.f;
+    m_zoom = m_LineWidth = 1.f;
     m_angleX = m_angleY = m_angleZ = 0.f;
     m_PointSize = 1;
 

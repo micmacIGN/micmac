@@ -29,9 +29,6 @@ public:
 
     void    reset();
 
-    void    setGamma(float aGamma) {m_gamma = aGamma;}
-    float   getGamma() {return m_gamma;}
-
     void    ptSizeUp(bool up);
 
     //! Current zoom
@@ -50,8 +47,6 @@ public:
 
     //! Translation matrix
     float m_translationMatrix[3];
-
-    float m_gamma;
 
 	float m_speed;
 };
@@ -213,12 +208,18 @@ public:
     //!sends GLObjects to GLWidget
     cGLData* getGLData(int WidgetIndex);
 
+    void    applyGammaToImage(int aK);
+
+    void    setGamma(float aGamma) {_Gamma = aGamma;}
+
 private:
 
     cLoader*            _Loader;
     cData*              _Data;
 
     QVector <cGLData*>  _GLData;
+
+    float               _Gamma;
 };
 
 
