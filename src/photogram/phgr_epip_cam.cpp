@@ -880,10 +880,14 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
         std::string aNameHom = mICNM->Dir() 
                              + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+aPrefixHom+"@dat",aNamA,aNamB,true);
 
+        std::string aNameHomMatch = mICNM->Dir() 
+                             + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",aNamA,aNamB,true);
 
         ElPackHomologue aPackIn = ElPackHomologue::FromFile(aNameHom);
         ElPackHomologue aPackOut;
         ElPackHomologue aPackPolyn;
+
+        ElPackHomologue aPackMatch = ElPackHomologue::FromFile(aNameHomMatch);
 
         const CamStenope & aCamInA = aCamIn ;
         const CamStenopeIdeale &  aCamOutA = aCamOut ;
@@ -903,8 +907,22 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
 
         if ((aDegPolyCor>=0) && (!Im1))
         {
-           cChangEpip aCE(aPackPolyn,euclid(aCamOut.Sz()),aDegPolyCor);
-           aPolyCor = aCE.PolyCor();
+             cChangEpip aCE(aPackPolyn,euclid(aCamOut.Sz()),aDegPolyCor);
+             aPolyCor = aCE.PolyCor();
+        }
+        for (ElPackHomologue::iterator itH = aPackMatch.begin() ;  itH!=aPackMatch.end(); itH++)
+        {
+            Pt2dr aPA = itH->P1();
+            Pt2dr aPB = itH->P2();
+
+            Pt2dr aQA = GlobTransfoEpip(aPA,aCamInA,aCamOutA);
+            Pt2dr aQB = GlobTransfoEpip(aPB,aCamInB,aCamOutB);
+            if (aPolyCor)
+            {
+                 aQB.y  += (*aPolyCor)(aQA);
+            }
+            itH->P1() = aQA;
+            itH->P2() = aQB;
         }
 
         if (CarNameHom)
@@ -912,7 +930,7 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
             std::string aNameHEpi = mICNM->Dir() 
                                   + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",LocNameImEpi(Im1),LocNameImEpi(!Im1),true);
 
-            aPackOut.StdPutInFile(aNameHEpi);
+            aPackMatch.StdPutInFile(aNameHEpi);
         }
             
 
