@@ -143,6 +143,13 @@ public:
     cBBox       *pBbox;
 
     QVector < Cloud* > Clouds;
+
+    float       getScale(){return m_diam;}
+    void        setScale(float aS){m_diam = aS;}
+
+private:
+
+    float       m_diam;
 };
 
 class cEngine

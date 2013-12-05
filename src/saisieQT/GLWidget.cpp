@@ -593,11 +593,11 @@ void GLWidget::updateAfterSetData()
 {
     clearPolyline();
 
-    if (m_Data->is3D())
+    if (m_GLData->is3D())
     {
         m_bDisplayMode2D = false;
 
-        setZoom(m_Data->getScale());
+        setZoom(m_GLData->getScale());
 
         resetTranslationMatrix();
     }

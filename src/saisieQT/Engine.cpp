@@ -484,6 +484,8 @@ void cEngine::setGLData()
             theData->Cams.push_back(pCam);
         }
 
+        theData->setScale(_Data->getScale());
+
         _GLData.push_back(theData);
     }
 }
