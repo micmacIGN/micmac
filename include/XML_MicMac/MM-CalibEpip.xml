@@ -242,7 +242,7 @@ MICMAC ~/MMM/culture3d/include/XML_MicMac/MM-CalibEpip.xml  WorkDir=/media/data1
                 <SzW>  ${SzWPx2} </SzW>
                 <Px1DilatAlti>  0  </Px1DilatAlti>
 	        <Px1DilatPlani> 0  </Px1DilatPlani>
-                <Px2DilatAlti>  2  </Px2DilatAlti>
+                <Px2DilatAlti>  1  </Px2DilatAlti>
 	        <Px2DilatPlani> 2  </Px2DilatPlani>
                 <SsResolOptim> 4 </SsResolOptim>
         </EtapeMEC>
