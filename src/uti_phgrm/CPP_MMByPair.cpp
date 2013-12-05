@@ -68,7 +68,7 @@ class cAppliMMByPair : public cAppliWithSetImage
       int mZoomF;
       bool mParalMMIndiv;
       bool mDelaunay;
-      bool mMMImSec;
+      bool mAddMMImSec;
       int mDiffInStrip;
       bool mStripIsFirt;
       std::string  mPairByStrip;
@@ -82,8 +82,8 @@ class cAppliMMByPair : public cAppliWithSetImage
       bool         mByMM1P;
       Box2di       mBoxOfImage;
       std::string  mImageOfBox;
-      eTypeQuality mQualOr;
       std::string  mStrQualOr;
+      eTypeQuality mQualOr;
 };
 
 /*****************************************************************/
@@ -614,14 +614,14 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mZoomF        (1),
     mParalMMIndiv (false),
     mDelaunay     (false),
-    mMMImSec      (false),
+    mAddMMImSec      (false),
     mDiffInStrip  (1),
     mStripIsFirt  (true),
     mDirBasc      ("MTD-Nuage"),
     mIntIncert    (1.25),
     mSkipCorDone  (false),
     mByMM1P       (true),
-    mQualOr       (eQual_Low)
+    mStrQualOr    ("Low")
 {
   if (argc>=2)
   {
@@ -641,7 +641,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
         LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64")
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final, Def=1")
                     << EAM(mDelaunay,"Delaunay","Add delaunay edges in pair to macth, Def=False")
-                    << EAM(mMMImSec,"MMImSec","Add pair from AperoChImSecMM,  Def=true in mode Statute")
+                    << EAM(mAddMMImSec,"MMImSec","Add pair from AperoChImSecMM,  Def=true in mode Statute")
                     << EAM(mPairByStrip,"ByStrip",true,"Pair in same strip , first () : strip, second () : num in strip (or reverse with StripIsFisrt)")
                     << EAM(mStripIsFirt,"StripIsFisrt",true,"If true : first expr is strip, second is num in strip Def=true")
                     << EAM(mDiffInStrip,"DeltaStrip",true,"Delta in same strip (Def=1,apply with mPairByStrip)")
@@ -657,10 +657,9 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mParalMMIndiv,"ParMMI",true,"If true each MM if // (\" expert\" option, Def=false currently)")
                     << EAM(mStrQualOr,"QualOr",true,"Quality orient (in High, Average, Low, Def= Low)",eSAM_None,ListOfVal(eNbTypeQual,"eQual_"))
   );
-  if (EAMIsInit(&mStrQualOr))
-     mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
-  if (! EAMIsInit(&mMMImSec))
-     mMMImSec = (mType==eStatute);
+  mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
+  if (! EAMIsInit(&mAddMMImSec))
+     mAddMMImSec = (mType==eStatute);
   if (mModeHelp) 
       exit(0);
   if (! EAMIsInit(&mZoom0))
@@ -674,7 +673,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
   }
   if (mDelaunay)
      AddDelaunayCple();
-  if (mMMImSec)
+  if (mAddMMImSec)
      AddCoupleMMImSec();
 
   mNbStep = round_ni(log2(mZoom0/double(mZoomF))) + 3 ;
@@ -715,9 +714,8 @@ std::string cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
                          +  " ZoomF=" + ToString(mZoomF)
                          +  " CreateE=" + ToString(mByEpi)
                          +  " InParal=" + ToString(mParalMMIndiv)
+                         +  " QualOr=" +  mStrQualOr
                       ;
-     if (EAMIsInit(&mStrQualOr))
-       aMatchCom += " QualOr=" + aMatchCom;
 
      if (mType == eGround)
        aMatchCom = aMatchCom + " BascMTD=MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml ";
@@ -928,7 +926,7 @@ void cAppliMMByPair::DoMDT()
 int cAppliMMByPair::Exe()
 {
   
-   if (BoolFind(mDo,'P') && (!mByMM1P))
+   if (BoolFind(mDo,'P') && ((!mByMM1P) || (mQualOr= eQual_Low)))
    {
       DoPyram();
    }
