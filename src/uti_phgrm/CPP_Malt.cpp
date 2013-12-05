@@ -132,6 +132,7 @@ class cAppliMalt
           std::string  mMasqIm;
           bool        mUseImSec;
           bool        mCorMS;
+          bool        mUseGpu;
           double      mIncidMax;
           bool        mGenCubeCorrel;
           bool        mEZA;
@@ -182,6 +183,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mSzGlob       (0,0),
     mUseImSec     (false),
     mCorMS        (false),
+    mUseGpu       (false),
     mGenCubeCorrel (false),
     mEZA           (true)
 {
@@ -207,7 +209,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
         LArgMain()  << EAM(mImMaster,"Master",true," Master image must  exist iff Mode=GeomImage, AUTO for using result of AperoChImSecMM")
                     << EAM(mSzW,"SzW",true,"Correlation Window Size (1 means 3x3)")
                     << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, avalaible in image geometry")
-                    << EAM(mCorMS,"UseGpu",true,"Use Cuda acceleration, def=false")
+                    << EAM(mUseGpu,"UseGpu",true,"Use Cuda acceleration, def=false")
                     << EAM(mZRegul,"Regul",true,"Regularization factor")
                     << EAM(mDirMEC,"DirMEC",true,"Subdirectory where the results will be stored")
                     << EAM(mDirOrthoF,"DirOF","Subdirectory for ortho (def in Ortho-${DirMEC}) ")
@@ -249,6 +251,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
   );
 
+#if CUDA_ENABLED == 0
+      ELISE_ASSERT(!mUseGpu , "NO CUDA VERSION");
+#endif
 
   std::string mFullModeOri;
   mModePB = EAMIsInit(&mModeOri);
@@ -499,6 +504,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                       + std::string(" +Purge=") + (mPurge ? "true" : "false")
                       + std::string(" +MkFPC=") + (mMkFPC ? "true" : "false")
                       + std::string(" +DoMEC=") + (mDoMEC ? "true" : "false")
+                      + std::string(" +UseGpu=") + (mUseGpu ? "true" : "false")
                       + std::string(" +ZIncCalc=") + ToString(mZincCalc)
                       + std::string(" +NbEtapeQuant=") + ToString(mNbEtapeQ)
                       + std::string(" +DefCor=") + ToString(mDefCor)
