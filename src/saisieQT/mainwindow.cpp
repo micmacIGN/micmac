@@ -29,12 +29,6 @@ MainWindow::MainWindow(bool mode2D, QWidget *parent) :
 
     _glWidget = new GLWidget(this,_Engine->getData());
 
-    on_actionShow_messages_toggled(_ui->actionShow_messages->isChecked());
-    //on_actionShow_ball_toggled(_ui->actionShow_ball->isChecked());
-    on_actionShow_axis_toggled(_ui->actionShow_axis->isChecked());
-    on_actionShow_bbox_toggled(_ui->actionShow_bbox->isChecked());
-    on_actionShow_cams_toggled(_ui->actionShow_cams->isChecked());
-
     setMode2D(mode2D);
 
     _layout = new QGridLayout();
@@ -163,7 +157,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         _Engine->setFilenamesIn(filenames);
 
-        if (getMode2D() != false) closeAll();
+        if (isMode2D() == true) closeAll();
         setMode2D(false);
 
         QFileInfo fi(filenames[0]);
@@ -216,6 +210,7 @@ void MainWindow::addFiles(const QStringList& filenames)
         else
         {
             setMode2D(true);
+            closeAll();
 
             glLoadIdentity();
 
@@ -420,7 +415,7 @@ void MainWindow::on_actionSelectAll_triggered()
 
 void MainWindow::on_actionReset_triggered()
 {
-    if (getMode2D())
+    if (isMode2D())
     {
         closeAll();
 
@@ -592,6 +587,8 @@ void MainWindow::closeAll()
     _glWidget->resetView();
 
     checkForLoadedData();
+
+    _glWidget->update();
 }
 
 void MainWindow::openRecentFile()

@@ -183,9 +183,9 @@ cEngine::~cEngine()
     delete _Data;
     delete _Loader;
 
-    for (int aK=0; aK<_GLData.size();++aK)
-        delete _GLData[aK];
-    _GLData.clear();
+    for (int aK=0; aK<_vGLData.size();++aK)
+        delete _vGLData[aK];
+    _vGLData.clear();
 }
 
 void cEngine::loadClouds(QStringList filenames, int* incre)
@@ -281,13 +281,13 @@ void cEngine::doMasks()
 
 void cEngine::doMaskImage()
 {
-    QImage* pImg = _Data->getCurMask();
+    QImage* pMask = _Data->getCurMask();
 
-	if (pImg->hasAlphaChannel())
+    if (pMask->hasAlphaChannel())
 	{
 		QColor c;
-		uint w = pImg->width();
-		uint h = pImg->height();
+        uint w = pMask->width();
+        uint h = pMask->height();
 
 		QImage qMask(w, h, QImage::Format_Mono);
 		qMask.fill(0);
@@ -296,7 +296,7 @@ void cEngine::doMaskImage()
 		{
 			for (uint bK=0; bK < h;++bK)
 			{
-				c = QColor::fromRgba(pImg->pixel(aK,bK));
+                c = QColor::fromRgba(pMask->pixel(aK,bK));
 				if (c.red() == 255)
 					qMask.setPixel(aK, h-bK-1, 1);
 			}
@@ -414,20 +414,18 @@ void cEngine::unloadAll()
     _Data->clearMasks();
     _Data->reset();
 
-    for (int aK=0; aK<_GLData.size();++aK)
-        delete _GLData[aK];
-    _GLData.clear();
+    for (int aK=0; aK<_vGLData.size();++aK)
+        delete _vGLData[aK];
+    _vGLData.clear();
 }
 
 void cEngine::setGLData()
 {
-    _GLData.clear();
+    _vGLData.clear();
 
     for (int aK = 0; aK < _Data->getNbImages();++aK)
     {
         cGLData *theData = new cGLData();
-
-                theData->pImg->ImageToTexture(_Data->getImage(aK));
 
         if (_Data->getNbMasks()>aK)
         {
@@ -446,14 +444,18 @@ void cEngine::setGLData()
             theData->setEmptymask(true);
         }
 
+         glGenTextures(1, theData->pImg->getTexture());
 
+         theData->pImg->ImageToTexture(_Data->getImage(aK));
+         theData->setEmptyImg(false);
 
-        _GLData.push_back(theData);
+         theData->pImg->setSize(_Data->getImage(aK)->size());
+
+        _vGLData.push_back(theData);
     }
 
     if (_Data->is3D())
     {
-
         cGLData *theData = new cGLData();
 
         for (int aK = 0; aK < _Data->getNbClouds();++aK)
@@ -496,14 +498,14 @@ void cEngine::setGLData()
 
         theData->setScale(_Data->getScale());
 
-        _GLData.push_back(theData);
+        _vGLData.push_back(theData);
     }
 }
 
 cGLData* cEngine::getGLData(int WidgetIndex)
 {
-    if ((_GLData.size() > 0) && (WidgetIndex < _GLData.size()))
-        return _GLData[WidgetIndex];
+    if ((_vGLData.size() > 0) && (WidgetIndex < _vGLData.size()))
+        return _vGLData[WidgetIndex];
     else
         return NULL;
 }
@@ -511,6 +513,7 @@ cGLData* cEngine::getGLData(int WidgetIndex)
 //********************************************************************************
 
 cGLData::cGLData():
+    _bEmptyImg(true),
     _bEmptyMask(true),
     _diam(1.f)
 {
