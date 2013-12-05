@@ -125,6 +125,8 @@ public:
     cImageGL    *pImg;
     cImageGL    *pMask;
 
+    QImage      *pQMask;
+
     //! Point list for polygonal selection
     cPolygon    m_polygon;
 
@@ -137,6 +139,8 @@ public:
     void        setEmptymask(bool aBool){_bEmptyMask = aBool;}
     bool        isMaskEmpty(){return _bEmptyMask;}
 
+    QImage*     getMask(){return pQMask;}
+
     //3D
     QVector < cCam* > Cams;
 
@@ -146,8 +150,12 @@ public:
 
     QVector < Cloud* > Clouds;
 
+    //info coming from cData
     float       getScale(){return _diam;}
     void        setScale(float aS){_diam = aS;}
+
+    Pt3dr       getCenter(){return _center;}
+    void        setCenter(Pt3dr aCenter){_center = aCenter;}
 
 private:
 
@@ -155,6 +163,7 @@ private:
     bool        _bEmptyMask;
 
     float       _diam;
+    Pt3dr       _center;
 };
 
 class cEngine

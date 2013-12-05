@@ -27,7 +27,7 @@ MainWindow::MainWindow(bool mode2D, QWidget *parent) :
 
     connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog,SLOT(cancel()));
 
-    _glWidget = new GLWidget(this,_Engine->getData());
+    _glWidget = new GLWidget(this);
 
     setMode2D(mode2D);
 
@@ -231,7 +231,7 @@ void MainWindow::addFiles(const QStringList& filenames)
                 _Engine->applyGammaToImage(aK);
         }
 
-        _glWidget->setData(_Engine->getData());
+        _glWidget->setDataLoaded(true);
 
         _Engine->setGLData();
         _glWidget->setGLData(_Engine->getGLData((uint)0));

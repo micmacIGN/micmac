@@ -434,12 +434,13 @@ void cEngine::setGLData()
             theData->setEmptymask(false);
 
             theData->pMask->ImageToTexture(_Data->getMask(aK));
+
+            theData->pQMask = _Data->getMask(aK);
         }
         else if (_Data->getNbMasks() == 0)
         {
-            QImage *mask;
-            mask = new QImage(_Data->getImage(aK)->size(),QImage::Format_Mono);
-            _Data->addMask(mask);
+            theData->pQMask = new QImage(_Data->getImage(aK)->size(),QImage::Format_Mono);
+            _Data->addMask(theData->pQMask);
             _Data->fillMask(aK);
             theData->setEmptymask(true);
         }
@@ -497,6 +498,7 @@ void cEngine::setGLData()
         }
 
         theData->setScale(_Data->getScale());
+        theData->setCenter(_Data->getCenter());
 
         _vGLData.push_back(theData);
     }
