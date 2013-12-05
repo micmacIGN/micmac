@@ -195,6 +195,8 @@ protected:
 
     bool m_bFirstAction;
 
+    bool m_bLastActionIsRightClick;
+
     //! Temporary Message to display
     struct MessageToDisplay
     {
