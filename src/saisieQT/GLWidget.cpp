@@ -619,7 +619,7 @@ void GLWidget::updateAfterSetData()
 
         m_GLData->pImg->ImageToTexture(m_Data->getCurImage());
 
-        if (m_Data->isMaskEmpty())
+        if (m_GLData->isMaskEmpty())
             m_bFirstAction = true;
         else
             m_bFirstAction = false;
