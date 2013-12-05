@@ -122,8 +122,8 @@ public:
 
     void clear();
 
-    bool is2D(){return pImg != NULL;}
-    bool is3D(){return Clouds.size() || Cams.size();}
+    bool        is2D(){return pImg != NULL;}
+    bool        is3D(){return Clouds.size() || Cams.size();}
 
     //2D
     cImageGL    *pImg;
@@ -135,6 +135,9 @@ public:
     //! Point list for polygonal insertion
     cPolygon    m_dihedron;
 
+    void        setEmptymask(bool aBool){_bEmptyMask = aBool;}
+    bool        isMaskEmpty(){return _bEmptyMask;}
+
     //3D
     QVector < cCam* > Cams;
 
@@ -144,12 +147,15 @@ public:
 
     QVector < Cloud* > Clouds;
 
-    float       getScale(){return m_diam;}
-    void        setScale(float aS){m_diam = aS;}
+    float       getScale(){return _diam;}
+    void        setScale(float aS){_diam = aS;}
 
 private:
 
-    float       m_diam;
+
+    bool        _bEmptyMask;
+
+    float       _diam;
 };
 
 class cEngine

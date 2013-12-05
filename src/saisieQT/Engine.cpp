@@ -425,7 +425,7 @@ void cEngine::setGLData()
         {
             if(_Data->getMask(aK) == NULL)
                 glGenTextures(1, theData->pMask->getTexture() );   
-            _Data->setEmptymask(false);
+            theData->setEmptymask(false);
 
             theData->pMask->ImageToTexture(_Data->getMask(aK));
         }
@@ -435,7 +435,7 @@ void cEngine::setGLData()
             mask = new QImage(_Data->getImage(aK)->size(),QImage::Format_Mono);
             _Data->addMask(mask);
             _Data->fillMask(aK);
-            _Data->setEmptymask(true);
+            theData->setEmptymask(true);
         }
 
         _GLData.push_back(theData);
@@ -489,6 +489,7 @@ void cEngine::setGLData()
         _GLData.push_back(theData);
     }
 }
+
 cGLData* cEngine::getGLData(int WidgetIndex)
 {
     if ((_GLData.size() > 0) && (WidgetIndex < _GLData.size()))
@@ -497,7 +498,11 @@ cGLData* cEngine::getGLData(int WidgetIndex)
         return NULL;
 }
 
-cGLData::cGLData()
+//********************************************************************************
+
+cGLData::cGLData():
+    _bEmptyMask(true),
+    _diam(1.f)
 {
     //2D
     pImg  = new cImageGL();
