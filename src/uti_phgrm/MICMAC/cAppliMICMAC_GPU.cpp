@@ -679,7 +679,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 #if CUDA_ENABLED
 
         if (!IMmGg.TexturesAreLoaded())//		Mise en calque des images
-        {
+        {          
             IMmGg.SetTexturesAreLoaded(true);
 
             float*	fdataImg1D	= NULL;
