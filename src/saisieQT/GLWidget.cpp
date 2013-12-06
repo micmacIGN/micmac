@@ -781,7 +781,7 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
             break;
         case SELECTION:
         {
-            if(!m_GLData->isImgEmpty()) //3D
+            if(m_GLData->isImgEmpty()) //3D
                 setProjectionMatrix();
 
             if (showMessages())
