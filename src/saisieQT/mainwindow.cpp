@@ -60,8 +60,15 @@ void MainWindow::connectActions()
     connect(_ui->actionClose_all, SIGNAL(triggered()), this, SLOT(closeAll()));
     connect(_ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
 
-    //Zoom menu
+    for (int i = 0; i < MaxRecentFiles; ++i)
+    {
+        _recentFileActs[i] = new QAction(this);
+        _recentFileActs[i]->setVisible(false);
+        connect(_recentFileActs[i], SIGNAL(triggered()),
+                this, SLOT(openRecentFile()));
+    }
 
+    //Zoom menu
     connect(_ui->action4_1_400,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
     connect(_ui->action2_1_200,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
     connect(_ui->action1_1_100,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
@@ -76,16 +83,8 @@ void MainWindow::connectActions()
 
     connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
 
-    //Selection
+    //Selection menu
     connect(_glWidget,SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
-
-    for (int i = 0; i < MaxRecentFiles; ++i)
-    {
-        _recentFileActs[i] = new QAction(this);
-        _recentFileActs[i]->setVisible(false);
-        connect(_recentFileActs[i], SIGNAL(triggered()),
-                this, SLOT(openRecentFile()));
-    }
 }
 
 void MainWindow::createMenus()
