@@ -204,6 +204,7 @@ class cPolygon : public cObjectGL
         void    remove ( int i );
 
         QVector <QPointF> const getVector(){ return _points; }
+        void setVector(QVector <QPointF> const &aPts){ _points = aPts; }
 
         int     idx(){return _idx;}
 
