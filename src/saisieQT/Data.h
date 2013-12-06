@@ -49,7 +49,6 @@ class cData
 
         int     getSizeClouds();
 
-        void    setCenter(Pt3dr const &pt){_center = pt;}
         Pt3dr   getCenter(){return _center;}
 
         float   getScale(){return m_diam;}
@@ -59,8 +58,6 @@ class cData
         void    applyGamma(float aGamma);
         void    applyGammaToImage(int aK, float aGamma);
 
-        void    setEmptymask(bool aBool){_bEmptyMask = aBool;}
-        bool    isMaskEmpty(){return _bEmptyMask;}
 
         //!Bounding box and diameter of all clouds
         float   m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_diam;
@@ -77,7 +74,5 @@ class cData
         float                 _gamma;
 
         Pt3dr                 _center;  // center of all clouds
-
-        bool                  _bEmptyMask;
 };
 #endif // DATA_H
