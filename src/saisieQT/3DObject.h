@@ -246,11 +246,18 @@ class cImageGL : public cObjectGL
 
         GLuint* getTexture(){return &_texture;}
 
+        //height and width of original data
+        QSize   sz() {return _size;}
+
+        void    setSize(QSize aSz) {_size = aSz;}
+
     private:
         GLfloat _originX;
         GLfloat _originY;
         GLfloat _glh;
         GLfloat _glw;
+
+        QSize   _size;
 
         //! Texture image
         GLuint  _texture;

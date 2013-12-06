@@ -27,13 +27,7 @@ MainWindow::MainWindow(bool mode2D, QWidget *parent) :
 
     connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog,SLOT(cancel()));
 
-    _glWidget = new GLWidget(this,_Engine->getData());
-
-    on_actionShow_messages_toggled(_ui->actionShow_messages->isChecked());
-    //on_actionShow_ball_toggled(_ui->actionShow_ball->isChecked());
-    on_actionShow_axis_toggled(_ui->actionShow_axis->isChecked());
-    on_actionShow_bbox_toggled(_ui->actionShow_bbox->isChecked());
-    on_actionShow_cams_toggled(_ui->actionShow_cams->isChecked());
+    _glWidget = new GLWidget(this);
 
     setMode2D(mode2D);
 
@@ -163,7 +157,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         _Engine->setFilenamesIn(filenames);
 
-        if (getMode2D() != false) closeAll();
+        if (isMode2D() == true) closeAll();
         setMode2D(false);
 
         QFileInfo fi(filenames[0]);
@@ -216,6 +210,7 @@ void MainWindow::addFiles(const QStringList& filenames)
         else
         {
             setMode2D(true);
+            closeAll();
 
             glLoadIdentity();
 
@@ -231,9 +226,12 @@ void MainWindow::addFiles(const QStringList& filenames)
             future.waitForFinished();*/
 
             _Engine->setFilenamesOut();
+
+            for (int aK=0; aK<_Engine->getData()->getNbImages();++aK)
+                _Engine->applyGammaToImage(aK);
         }
 
-        _glWidget->setData(_Engine->getData());
+        _glWidget->setDataLoaded(true);
 
         _Engine->setGLData();
         _glWidget->setGLData(_Engine->getGLData((uint)0));
@@ -417,7 +415,7 @@ void MainWindow::on_actionSelectAll_triggered()
 
 void MainWindow::on_actionReset_triggered()
 {
-    if (getMode2D())
+    if (isMode2D())
     {
         closeAll();
 
@@ -589,6 +587,8 @@ void MainWindow::closeAll()
     _glWidget->resetView();
 
     checkForLoadedData();
+
+    _glWidget->update();
 }
 
 void MainWindow::openRecentFile()
@@ -685,7 +685,8 @@ void MainWindow::on_action2D_3D_mode_triggered()
 
 void  MainWindow::setGamma(float aGamma)
 {
-    _glWidget->getParams()->setGamma(aGamma);
+    _Engine->setGamma(aGamma);
+    //_glWidget->getParams()->setGamma(aGamma);
 }
 
 
