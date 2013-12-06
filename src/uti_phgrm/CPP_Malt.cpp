@@ -255,6 +255,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       ELISE_ASSERT(!mUseGpu , "NO CUDA VERSION");
 #endif
 
+  if(mUseGpu) // TEMPORAIRE
+      mSzW = 2;
+
+
   std::string mFullModeOri;
   mModePB = EAMIsInit(&mModeOri);
   if (mModePB)
