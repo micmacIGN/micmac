@@ -125,6 +125,7 @@ QStatusBar
      <string>Selection</string>
     </property>
     <addaction name="actionToggleMode"/>
+    <addaction name="actionUndo"/>
     <addaction name="actionAdd"/>
     <addaction name="actionRemove"/>
     <addaction name="actionSelectAll"/>
@@ -665,6 +666,14 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>Shift+R</string>
+   </property>
+  </action>
+  <action name="actionUndo">
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
    </property>
   </action>
  </widget>

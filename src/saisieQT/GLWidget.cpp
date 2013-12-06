@@ -466,7 +466,7 @@ void GLWidget::paintGL()
 
             disableOptionLine();
 
-            if (m_GLData->Clouds.size()&& m_bDrawMessages)
+            if (m_bDrawMessages)
             {
                 computeFPS();
 
@@ -591,13 +591,18 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
 
 void GLWidget::updateAfterSetData()
 {
+    updateAfterSetData(true);
+}
+
+void GLWidget::updateAfterSetData(bool doZoom)
+{
     clearPolyline();
 
     if (m_GLData->is3D())
     {
         m_bDisplayMode2D = false;
 
-        setZoom(m_GLData->getScale());
+        if (doZoom) setZoom(m_GLData->getScale());
 
         resetTranslationMatrix();
     }
@@ -607,7 +612,7 @@ void GLWidget::updateAfterSetData()
 //        cout << "image" << endl;
         m_bDisplayMode2D = true;
 
-        zoomFit();
+        if (doZoom) zoomFit();
 
         //position de l'image dans la vue gl
         glMatrixMode(GL_MODELVIEW);
@@ -1025,6 +1030,11 @@ QPointF GLWidget::ImageToWindow(QPointF const &im)
 
 void GLWidget::Select(int mode)
 {
+    Select(mode, true);
+}
+
+void GLWidget::Select(int mode, bool saveInfos)
+{
     if (hasDataLoaded())
     {
         QPointF P2D;
@@ -1135,12 +1145,23 @@ void GLWidget::Select(int mode)
 
         if (((mode == ADD)||(mode == SUB)) && (m_bFirstAction)) m_bFirstAction = false;
 
-        selectInfos info;
-        info.params = m_params;
-        info.poly   = m_GLData->m_polygon.getVector();
-        info.selection_mode   = mode;
+        if (saveInfos)
+        {
+            selectInfos info;
+            info.params = m_params;
+            info.poly   = m_GLData->m_polygon.getVector();
+            info.selection_mode   = mode;
 
-        m_infos.push_back(info);
+            for (int aK=0; aK<4; ++aK)
+                info._glViewport[aK] = _glViewport[aK];
+            for (int aK=0; aK<16; ++aK)
+            {
+                info._mvmatrix[aK] = _mvmatrix[aK];
+                info._projmatrix[aK] = _projmatrix[aK];
+            }
+
+            m_infos.push_back(info);
+        }
 
         clearPolyline();
     }
@@ -1156,6 +1177,37 @@ void GLWidget::clearPolyline()
     }
 
     update();
+}
+
+void GLWidget::undo()
+{
+    if (m_infos.size())
+    {
+        if (!m_bDisplayMode2D)
+            Select(ALL, false);
+
+        for (int aK = 0; aK < m_infos.size()-1; ++aK)
+        {
+            cPolygon Polygon;
+            Polygon.setClosed(true);
+            Polygon.setVector(m_infos[aK].poly);
+            m_GLData->setPolygon(Polygon);
+
+            if (!m_bDisplayMode2D)
+            {
+                for (int bK=0; bK<16;++bK) _mvmatrix[bK]   = m_infos[aK]._mvmatrix[bK];
+                for (int bK=0; bK<16;++bK) _projmatrix[bK] = m_infos[aK]._projmatrix[bK];
+                for (int bK=0; bK<4;++bK)  _glViewport[bK] = m_infos[aK]._glViewport[bK];
+
+                if (aK==0) m_bFirstAction = true;
+                else m_bFirstAction = false;
+            }
+
+            Select(m_infos[aK].selection_mode, false);
+        }
+
+        m_infos.pop_back();
+    }
 }
 
 void GLWidget::showAxis(bool show)
