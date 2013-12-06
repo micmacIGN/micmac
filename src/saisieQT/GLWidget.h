@@ -43,16 +43,12 @@ class GLWidget : public QGLWidget
 public:
 
     //! Default constructor
-    GLWidget(QWidget *parent = NULL, cData* data = NULL);
+    GLWidget(QWidget *parent = NULL);
 
     //! Destructor
     ~GLWidget();
 
     bool eventFilter(QObject* object, QEvent* event);
-
-    void setData(cData* data){ m_Data = data; }  // a supprimer
-
-    void updateAfterSetData();
 
     //! Interaction mode (only in 3D)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
@@ -73,8 +69,13 @@ public:
     virtual void displayNewMessage(const QString& message,
                                    MessagePosition pos = SCREEN_CENTER_MESSAGE);
 
+
+    void updateAfterSetData();
+
     //! States if data (cloud, camera or image) is loaded
-    bool hasDataLoaded(){return m_Data->isDataLoaded();}
+    bool hasDataLoaded(){return _bDataLoaded;}
+
+    void setDataLoaded(bool aBool){ _bDataLoaded = aBool; }
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
@@ -214,9 +215,6 @@ protected:
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
 
-    //! Loaded Data
-    cData      *m_Data; //a enlever
-
     //! Data to display
     cGLData    *m_GLData;
 
@@ -260,6 +258,8 @@ private:
     GLdouble    *_mvmatrix;
     GLdouble    *_projmatrix;
     GLint       *_glViewport;
+
+    bool        _bDataLoaded;
 };
 
 #endif  /* _GLWIDGET_H */
