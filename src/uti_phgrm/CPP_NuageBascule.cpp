@@ -401,10 +401,10 @@ int  NuageBascule_main(int argc,char ** argv)
 
                         ELISE_COPY(select(aIMasqLoc.all_pts(),aIMasqLoc.in()),aCorLoc.in(),aCorGlob.out());
                         ELISE_COPY(rectangle(aDec,aDec+aSz),trans(aCorGlob.in(),-aDec),aFileCorrel->out());
-                         ELISE_fp::RmFile(aNameCorrL);
+                        ELISE_fp::RmFile(aNameCorrL);
                   }
-                  ELISE_fp::RmFile(aBl.mName+".xml");
              }
+             ELISE_fp::RmFile(aBl.mName+".xml");
          }
          std::cout << "Basc4- Done T=" << aChrono.uval() << "\n";
     }
