@@ -58,8 +58,6 @@ public:
 
   uint2         box;
 
-  uint2         startPt;
-
   bool          TexturesAreLoaded();
 
   void          SetTexturesAreLoaded(bool load);

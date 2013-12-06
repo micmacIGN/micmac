@@ -52,14 +52,43 @@ std::string CGObject::Id()
     return " NAME : " + Name() + ", " + "TYPE : " + Type() + "/" + ClassTemplate();
 }
 
+struct2D::struct2D():
+    _m_maxsize(0),
+    _m_maxdimension(make_uint2(0,0))
+{}
+
 uint2 struct2D::GetDimension()
 {
     return _dimension;
 }
 
+void struct2D::SetMaxSize(uint size)
+{
+    _m_maxsize = size;
+}
+
+uint2 struct2D::GetMaxDimension()
+{
+    return _m_maxdimension;
+}
+
+void struct2D::RefreshMaxSize()
+{
+    uint size = GetSize();
+
+    if(_m_maxsize < size) SetMaxSize(size);
+}
+
+void struct2D::RefreshMaxDim()
+{
+    if(oI(_m_maxdimension,GetDimension()))
+        _m_maxdimension = GetDimension();
+}
+
 uint2 struct2D::SetDimension( uint2 dimension )
 {
     _dimension = dimension;
+    RefreshMaxSize();
     return _dimension;
 }
 
@@ -83,6 +112,17 @@ void struct2D::Output()
     std::cout << "Dimension 2D        : " << GpGpuTools::toStr(_dimension) << "\n";
 }
 
+uint2 struct2D::SetDimensionOnly(uint2 dimension)
+{
+    _dimension = dimension;
+    return _dimension;
+}
+
+uint struct2D::GetMaxSize()
+{
+    return _m_maxsize;
+}
+
 void struct2DLayered::SetDimension( uint3 dimension )
 {
     SetDimension(make_uint2(dimension),dimension.z);
@@ -95,8 +135,9 @@ uint3 struct2DLayered::GetDimension3D()
 
 void struct2DLayered::SetDimension( uint2 dimension, uint nbLayer )
 {
-    struct2D::SetDimension(dimension);
+    struct2D::SetDimensionOnly(dimension);
     SetNbLayer(nbLayer);
+    struct2DLayered::RefreshMaxSize();
 }
 
 void struct2DLayered::SetNbLayer( uint nbLayer )
@@ -123,4 +164,11 @@ void struct2DLayered::Output()
 {
     struct2D::Output();
     std::cout << "Nombre de calques   : " << GetNbLayer() << "\n";
+}
+
+void struct2DLayered::RefreshMaxSize()
+{
+    uint size = struct2DLayered::GetSize();
+    if(struct2D::GetMaxSize() < size) struct2D::SetMaxSize(size);
+    struct2D::RefreshMaxDim();
 }
