@@ -74,6 +74,8 @@ class cCEM_OneIm
           cCEM_OneIm (cCoherEpi_main * ,const std::string &,const Box2di & aBox,bool Visu);
           Box2dr BoxIm2(const Pt2di & aSzIm2);
           void SetConj(cCEM_OneIm *);
+          virtual void UsePack(const ElPackHomologue &) ;
+        
 
           Pt2dr ToIm2(const Pt2dr & aP,bool &Ok)
           {
@@ -110,7 +112,7 @@ class cCEM_OneIm
           Pt2di            mSz;
           Pt2di            mP0;
           Pt2dr            mRP0;
-          Im2D_U_INT2      mIm;
+          Im2D_REAL4       mIm;
 
 
           Video_Win *      mW;
@@ -132,6 +134,7 @@ class cCEM_OneIm_Epip  : public cCEM_OneIm
           {
               return mTMasq.get(aP,0);
           }
+          void UsePack(const ElPackHomologue &) ;
 
           std::string      mNamePx;
           Tiff_Im          mTifPx;
@@ -217,6 +220,7 @@ class cCoherEpi_main : public Cont_Vect_Action
         std::string  mNameIm2;
         std::string  mOri;
         std::string  mDir;
+        cInterfChantierNameManipulateur * mICNM;
         cCpleEpip *  mCple;
         bool          mWithEpi;
         bool          mByP;
@@ -277,6 +281,22 @@ cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aNam
     ELISE_COPY(mImMasq.all_pts(),trans(mTifMasq.in(0),mP0),mImMasq.out());
 }
 
+void cCEM_OneIm_Epip::UsePack(const ElPackHomologue & aPack) 
+{
+     for (ElPackHomologue::const_iterator itH = aPack.begin() ;  itH!=aPack.end(); itH++)
+     {
+         Pt2dr aP1 = itH->P1();
+         Pt2dr aP2 = itH->P2();
+         bool Ok;
+         Pt2dr aQ2 = ToIm2(aP1,Ok);
+
+         std::cout << aQ2 - aP2 <<  " " << mTPx.getr(aP1,0) << "\n";
+
+         double aD = ElAbs(aQ2.x-aP2.x);
+         if (mW) mW->draw_circle_abs(aP1,3.0,mW->pdisc()( (aD<0.5) ? P8COL::green : P8COL::red));
+     }
+}
+
 /*******************************************************************/
 /*                                                                 */
 /*                cCEM_OneIm_Nuage                                 */
@@ -316,7 +336,7 @@ cCEM_OneIm::cCEM_OneIm
    mCple      (mCoher->mCple),
    mDir       (mCoher->mDir),
    mNameInit  (aName),
-   mNameFinal (mDir+  (mCple ? mCple->LocNameImEpi(mNameInit) : mNameInit)),
+   mNameFinal (mDir+  (mCple ? mCple->LocNameImEpi(mNameInit,mCoher->mDeZoom,false) : StdNameImDeZoom(mNameInit,mCoher->mDeZoom))),
    mTifIm     (Tiff_Im::UnivConvStd(mNameFinal.c_str())),
    mBox       (Inf(aBox,Box2di(Pt2di(0,0),mTifIm.sz()))),
    mSz        (mBox.sz()),
@@ -326,8 +346,26 @@ cCEM_OneIm::cCEM_OneIm
    mW         (aVisu ? Video_Win::PtrWStd(mSz) : 0),
    mConj      (0)
 {
-    ELISE_COPY ( mIm.all_pts(),trans(mTifIm.in(),mP0),mIm.out() | VGray());
+    std::cout << mNameInit << " \n";
+    std::cout << mNameFinal << " \n";
+    ELISE_COPY 
+    ( 
+         mIm.all_pts(),
+         trans(mTifIm.in(),mP0),
+         mIm.out() 
+    );
+    if (mW)
+    {
+       ELISE_COPY ( mIm.all_pts(), Min(mIm.in()/1000,255), VGray());
+    }
+
+
 }
+
+void cCEM_OneIm::UsePack(const ElPackHomologue &) 
+{
+}
+
 
 void cCEM_OneIm::SetConj(cCEM_OneIm * aConj)
 {
@@ -456,6 +494,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAM(mPostfixP,"InternalPostfixP",true)
    );	
 
+   mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
    if (! EAMIsInit(&mPrefix))
      mPrefix = mPrefix + mNameIm1 + "-" + mNameIm2 ;
 
@@ -486,6 +525,18 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                                  (mDir+ mCple->LocNameImEpi(mNameIm2,mDeZoom,false))  : 
                                  StdNameImDeZoom(mNameIm2,mDeZoom)              ;
 
+   std::string aNameIm1Match = mCple ? mCple->LocNameImEpi(mNameIm1) : mNameIm1;
+   std::string aNameIm2Match = mCple ? mCple->LocNameImEpi(mNameIm2) : mNameIm2;
+
+   bool HasHom = false;
+   ElPackHomologue  aPackH ;
+   if (mCple)
+   {
+       HasHom = true;
+       std::string aNameH = mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",aNameIm1Match,aNameIm2Match,true);
+       // std::cout << "NAME HHH " << aNameH << "\n"; getchar();
+       aPackH = ElPackHomologue::FromFile(aNameH);
+   }
 
 
    Tiff_Im aTF1(aNameIm1DeZoom.c_str());
@@ -610,7 +661,31 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
           mIm2 = new cCEM_OneIm_Epip(this,mNameIm2,aBoxIm2,mVisu);
        else
           mIm2 = new cCEM_OneIm_Nuage(this,mNameIm2,mNameIm1,aBoxIm2,mVisu);
+  
        mIm1->SetConj(mIm2);
+
+       if (HasHom)
+       {
+           ElPackHomologue aNewPack;
+           Box2dr aBoxR1 = I2R(mBoxIm1);
+           Box2dr aBoxR2 = I2R(aBoxIm2);
+
+           for (ElPackHomologue::const_iterator itH = aPackH.begin() ;  itH!=aPackH.end(); itH++)
+           {
+               Pt2dr aP1 = itH->P1() / mDeZoom;
+               Pt2dr aP2 = itH->P2() / mDeZoom;
+               if (aBoxR1.inside(aP1) && aBoxR2.inside(aP2))
+               {
+                    aNewPack.Cple_Add(ElCplePtsHomologues(aP1-aBoxR1._p0,aP2-aBoxR2._p0));
+               }
+           }
+           aPackH = aNewPack;
+           mIm1->UsePack(aPackH);
+std::cout << "USEP====\n";getchar();
+       }
+
+
+
 
        Im2D_U_INT1 anAR1 = mIm1->ImAR();
        Tiff_Im::Create8BFromFonc(mDir+ mPrefix + mPostfixP + ".tif",anAR1.sz(),anAR1.in());

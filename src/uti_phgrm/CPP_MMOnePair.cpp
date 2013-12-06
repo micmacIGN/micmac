@@ -188,6 +188,8 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                                + " " + mNameOriInit
                                + " Match=true "
                         ;
+      if (mZoomF!=1)
+         aCom = aCom + " ZoomF=4 ";
       System(aCom);
   }
 
