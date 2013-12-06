@@ -60,7 +60,7 @@ public slots:
     void progression();
 
     void setMode2D(bool mBool);
-    bool getMode2D() {return _bMode2D;}
+    bool isMode2D() {return _bMode2D;}
 
     cEngine* getEngine(){return _Engine;}
 
