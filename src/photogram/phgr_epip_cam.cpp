@@ -269,24 +269,44 @@ Pt2dr GlobTransfoEpip ( const Pt2dr & aPIm, const CamStenope & aCamIn, const Cam
     return  aCamOut.R3toF2(aC+aRay);
 }
 
-Box2dr  GlobBoxCam(Box2dr aBoxIn,const CamStenope & aCamIn,const CamStenope & aCamOut) 
+std::vector<Pt2dr>  GlobEnvCam(Box2dr aBoxIn,const CamStenope & aCamIn,const CamStenope & aCamOut) 
 {
     std::vector<Pt2dr> aVPtsIn;
-    int aNbPts =1;
+    int aNbPts =4;
     aBoxIn.PtsDisc(aVPtsIn,aNbPts);
 
-    Pt2dr aPInfOut(1e20,1e20);
-    Pt2dr aPSupOut(-1e20,-1e20);
+    std::vector<Pt2dr> aRes;
 
     for (int aK=0 ; aK<int(aVPtsIn.size()) ; aK++)
     {
-        Pt2dr aP = GlobTransfoEpip(aVPtsIn[aK],aCamIn,aCamOut);
-        aPInfOut.SetInf(aP);
-        aPSupOut.SetSup(aP);
+        aRes.push_back(GlobTransfoEpip(aVPtsIn[aK],aCamIn,aCamOut));
     }
 
+    return aRes;
+}
+
+Box2dr  GlobBoxCam(Box2dr aBoxIn,const CamStenope & aCamIn,const CamStenope & aCamOut) 
+{
+   std::vector<Pt2dr> anEnv = GlobEnvCam(aBoxIn,aCamIn,aCamOut);
+
+   Pt2dr aPInfOut(1e20,1e20);
+   Pt2dr aPSupOut(-1e20,-1e20);
+
+    for (int aK=0 ; aK<int(anEnv.size()) ; aK++)
+    {
+        aPInfOut.SetInf(anEnv[aK]);
+        aPSupOut.SetSup(anEnv[aK]);
+    }
     return Box2dr(aPInfOut,aPSupOut);
 }
+
+double RatioExp(const CamStenope & aCamIn,const CamStenope & aCamOut)
+{
+   Box2dr aBoxIn = Box2dr(Pt2dr(0,0),Pt2dr(aCamIn.Sz()));
+   return ElAbs(surf_or_poly(GlobEnvCam(aBoxIn,aCamIn,aCamOut)) ) / aBoxIn.surf();
+}
+
+
 /********************************************************/
 /*                                                      */
 /*                cCpleEpip                             */
@@ -339,7 +359,6 @@ Box2dr  cCpleEpip::BoxCam(const CamStenope & aCamIn,const CamStenope & aCamOut,b
 
 
 
-
 Pt2dr cCpleEpip::TransfoEpip ( const Pt2dr & aPIm, const CamStenope & aCamIn, const CamStenope & aCamOut) const
 {
    return GlobTransfoEpip(aPIm,aCamIn,aCamOut);
@@ -358,7 +377,6 @@ void cCpleEpip::AssertOk() const
 }
 
 //Box2di BoxEpip
-
 
 cCpleEpip::cCpleEpip
 (
@@ -461,6 +479,12 @@ cCpleEpip::cCpleEpip
 
    mOk = true;
 }
+
+Pt2dr  cCpleEpip::RatioExp() const
+{
+    return Pt2dr(::RatioExp(mCInit1,mCamOut1),::RatioExp(mCInit2,mCamOut2));
+}
+
 
 
 template <class Type,class TypeBase> class cReechantEpi

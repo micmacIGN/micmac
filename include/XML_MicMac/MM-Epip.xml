@@ -58,7 +58,9 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
        <Symb> Verif=false  </Symb>
        <Symb> NbProc=${MMNbProc}  </Symb>
 
-       <Symb> MMC=true  </Symb>
+       <Symb>  MMC=true  </Symb>
+       <Symb>  DoPly=false </Symb>
+       <Symb>  ScalePly=4 </Symb>
 
 
   <!-- Clip zone pour le test -->
@@ -485,6 +487,15 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 <!--
     <ByProcess>  1 </ByProcess>
 -->
+    <#WHEN  VTEST=${DoPly}>
+        <PostProcess>
+            <OneCmdPar>
+                <OneCmdSer>  ${MMDir}bin/Nuage2Ply ${ThisDir}${DirMEC}/NuageImProf_Chantier-Ori_Etape_Last.xml  Scale=${ScalePly}  Attr=${Im1} Out=${ThisDir}${DirMEC}/PLY${Im1}-${Im2}.ply RatioAttrCarte=${ZoomF}
+                </OneCmdSer>
+             </OneCmdPar>
+        </PostProcess>
+     </#WHEN>
+
     <AvalaibleMemory> 1024 </AvalaibleMemory>
     <SzDalleMin> 400 </SzDalleMin>
     <SzDalleMax> 1000 </SzDalleMax>

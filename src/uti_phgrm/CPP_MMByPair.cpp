@@ -84,6 +84,8 @@ class cAppliMMByPair : public cAppliWithSetImage
       std::string  mImageOfBox;
       std::string  mStrQualOr;
       eTypeQuality mQualOr;
+      bool         mDoPlyMM1P;
+      int          mScalePlyMM1P;
 };
 
 /*****************************************************************/
@@ -320,11 +322,14 @@ void cAppliWithSetImage::AddCoupleMMImSec()
       {
           const std::string & aName1 = (*mSetIm)[aKI];
           cImSecOfMaster aISOM = StdGetISOM(mICNM,aName1,mOri);
-          const std::list<std::string > *  aLIm = GetBestImSec(aISOM);
-          for (std::list<std::string>::const_iterator itN=aLIm->begin(); itN!=aLIm->end() ; itN++)
+          const std::list<std::string > *  aLIm = GetBestImSec(aISOM,-1,-1,10000,true);
+          if (aLIm)
           {
-              const std::string & aName2 = *itN;
-              AddPair(ImOfName(aName1),ImOfName(aName2));
+             for (std::list<std::string>::const_iterator itN=aLIm->begin(); itN!=aLIm->end() ; itN++)
+             {
+                 const std::string & aName2 = *itN;
+                 AddPair(ImOfName(aName1),ImOfName(aName2));
+             }
           }
       }
 
@@ -374,8 +379,21 @@ void cAppliWithSetImage::operator()(cImaMM* anI1,cImaMM* anI2,bool)   // Delauna
 
 void cAppliWithSetImage::AddPair(cImaMM * anI1,cImaMM * anI2)
 {
-    if (anI1>anI2) 
+    if (anI1->mNameIm>anI2->mNameIm) 
        ElSwap(anI1,anI2);
+
+    if (true) // (mByMM1P)
+    {
+       cCpleEpip aCple (mDir,1.0,*(anI1->mCam),anI1->mNameIm,*(anI2->mCam),anI2->mNameIm);
+       Pt2dr aRatio =  aCple.RatioExp();
+       double aSeuil = 1.8;
+       // std::cout << "RRR " << anI1->mNameIm << " " << anI2->mNameIm << " " << aCple.RatioExp() << "\n";
+       if ((aRatio.x>aSeuil) || (aRatio.y>aSeuil))  
+           return;
+
+    }
+
+
     AddPairASym(anI1,anI2);
     if (mSym)
        AddPairASym(anI2,anI1);
@@ -621,7 +639,9 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mIntIncert    (1.25),
     mSkipCorDone  (false),
     mByMM1P       (true),
-    mStrQualOr    ("Low")
+    mStrQualOr    ("Low"),
+    mDoPlyMM1P    (false),
+    mScalePlyMM1P (3)
 {
   if (argc>=2)
   {
@@ -656,6 +676,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mBoxOfImage,"BoxOfIm",true,"Associated to ImOfBox, def = full")
                     << EAM(mParalMMIndiv,"ParMMI",true,"If true each MM if // (\" expert\" option, Def=false currently)")
                     << EAM(mStrQualOr,"QualOr",true,"Quality orient (in High, Average, Low, Def= Low)",eSAM_None,ListOfVal(eNbTypeQual,"eQual_"))
+                    << EAM(mDoPlyMM1P,"DoPlyMM1P",true,"Do ply after MM1P, def=false")
+                    << EAM(mScalePlyMM1P,"ScalePlyMM1P",true,"Down Scale of ply after MM1P =3")
   );
   mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
   if (! EAMIsInit(&mAddMMImSec))
@@ -719,6 +741,9 @@ std::string cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
 
      if (mType == eGround)
        aMatchCom = aMatchCom + " BascMTD=MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml ";
+
+      if (mDoPlyMM1P)
+         aMatchCom = aMatchCom + " DoPly=true " + " ScalePly="  + ToString(mScalePlyMM1P) + " " ;
 
      std::string aNameIm1 = anI1.mNameIm;
      std::string aNameIm2 = anI2.mNameIm;
