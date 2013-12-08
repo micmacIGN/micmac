@@ -60,7 +60,6 @@ public slots:
     void progression();
 
     void setMode2D(bool mBool);
-    bool isMode2D() {return _bMode2D;}
 
     cEngine* getEngine(){return _Engine;}
 
@@ -101,6 +100,7 @@ protected slots:
     void on_actionSelectAll_triggered();
     void on_actionReset_triggered();
     void on_actionRemove_triggered();
+    void on_actionUndo_triggered();
 
     //File Menu
     void on_actionLoad_plys_triggered();

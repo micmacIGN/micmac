@@ -88,8 +88,6 @@ private:
     textureReference&           _texProjections_01;
 
     void DeviceMemset(pCorGpu &param, uint s = 0);
-
-    uint2                       _MaxAlloc;
 };
 
 #endif
