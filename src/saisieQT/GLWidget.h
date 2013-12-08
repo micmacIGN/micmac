@@ -71,6 +71,7 @@ public:
 
 
     void updateAfterSetData();
+    void updateAfterSetData(bool doZoom);
 
     //! States if data (cloud, camera or image) is loaded
     bool hasDataLoaded(){return _bDataLoaded;}
@@ -117,8 +118,13 @@ public:
     //! Select points with polyline
     void Select(int mode);
 
+    void Select(int mode, bool saveInfos);
+
     //! Delete current polyline
     void clearPolyline();
+
+    //!Undo last action
+    void undo();
 
      //! Undo all past selection actions
     void undoAll();
@@ -143,6 +149,7 @@ public:
     void disableOptionLine();
 
     void setGLData(cGLData* aData);
+    cGLData* getGLData(){return m_GLData;}
 
 public slots:
     void zoom();

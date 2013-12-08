@@ -173,6 +173,8 @@ public:
     /// \param      dim : Dimension 2D a initialiser
     bool			Realloc(uint2 dim);
 
+    bool            ReallocIfDim(uint2 dim);
+
 protected:
 
     virtual bool    abDealloc() = 0;
@@ -199,6 +201,16 @@ TPL_T bool CData2D<T>::Realloc( uint2 dim )
 {
     CData<T>::Dealloc();
     Malloc(dim);
+    return true;
+}
+
+TPL_T bool CData2D<T>::ReallocIfDim(uint2 dim)
+{
+    if(oI(struct2D::GetMaxDimension(),dim))
+        return CData2D<T>::Realloc(dim);
+    else
+        CData2D<T>::SetDimension(dim);
+
     return true;
 }
 
@@ -246,6 +258,8 @@ public:
 
     bool			ReallocIf(uint dimX, uint dimY, uint l = 1);
 
+    bool            ReallocIfDim(uint2 dim,uint l);
+
     T&              operator[](uint2 pt);
 
     T&              operator[](uint3 pt);
@@ -291,9 +305,21 @@ TPL_T bool CData3D<T>::ReallocIf(uint dim1D)
     return ReallocIf(dim2D,1);
 }
 
+TPL_T inline bool CData3D<T>::ReallocIfDim(uint2 dim,uint l)
+{
+    if(oI(struct2DLayered::GetMaxDimension(),dim))
+        return CData3D<T>::Realloc(dim,l);
+    else
+        CData3D<T>::SetDimension(dim,l);
+
+    return true;
+}
+
+
 TPL_T inline bool CData3D<T>::ReallocIf(uint2 dim, uint l)
 {
-    if( size(dim) * l * sizeof(T) > CData3D<T>::GetSizeofMalloc())
+    //if( size(dim) * l * sizeof(T) > CData3D<T>::GetSizeofMalloc())
+    if( size(dim) * l > struct2DLayered::GetMaxSize())
         return CData3D<T>::Realloc(dim,l);
     else
         CData3D<T>::SetDimension(dim,l);
@@ -646,17 +672,6 @@ public:
     /// \param data : Donnees cible a copierAImageCuda
     /// \param stream : flux cuda
     bool	copyHostToDeviceASync(T* data, cudaStream_t stream = 0);
-
-
-    bool    ReallocIf(uint2 dim, uint l)
-    {
-        if( size(dim) * l * sizeof(T) > GetSizeofMalloc())
-            return Realloc(dim,l);
-        else
-            SetDimension(dim,l);
-
-        return true;
-    }
 
 protected:
 

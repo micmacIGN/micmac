@@ -51,6 +51,8 @@ public:
 	float m_speed;
 };
 
+
+
 struct selectInfos
 {
     //! Ortho camera infos
@@ -60,7 +62,11 @@ struct selectInfos
     QVector <QPointF>  poly;
 
     //! selection mode
-    int                selection_mode;
+    int         selection_mode;
+
+    GLdouble    _mvmatrix[16];
+    GLdouble    _projmatrix[16];
+    GLint       _glViewport[4];
 };
 
 //! Selection mode
@@ -140,6 +146,8 @@ public:
     bool        isMaskEmpty(){return _bEmptyMask;}
 
     QImage*     getMask(){return pQMask;}
+
+    void        setPolygon(cPolygon const &aPoly){m_polygon = aPoly;}
 
     //3D
     QVector < cCam* > Cams;

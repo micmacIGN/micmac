@@ -32,7 +32,6 @@ SData2Correl::SData2Correl():
     }
     _hVolumeProj.SetName("_hVolumeProj");
 
-    _MaxAlloc = make_uint2(0,0);
 }
 
 SData2Correl::~SData2Correl()
@@ -107,7 +106,7 @@ void SData2Correl::SetImages(float *dataImage, uint2 dimImage, int nbLayer)
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF1A22B5);
 #endif
     // Images vers Textures Gpu
-    _dt_LayeredImages.CData3D::Realloc(dimImage,nbLayer);
+    _dt_LayeredImages.CData3D::ReallocIfDim(dimImage,nbLayer);
     _dt_LayeredImages.copyHostToDevice(dataImage);
     _dt_LayeredImages.bindTexture(_texImages);
 #ifdef  NVTOOLS
@@ -120,7 +119,7 @@ void SData2Correl::SetGlobalMask(pixel *dataMask, uint2 dimMask)
 	#ifdef  NVTOOLS
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF1A2B51);
 	#endif
-    _dt_GlobalMask.CData2D::Realloc(dimMask);
+    _dt_GlobalMask.CData2D::ReallocIfDim(dimMask);
     _dt_GlobalMask.copyHostToDevice(dataMask);
     _dt_GlobalMask.bindTexture(_texMaskGlobal);
 	#ifdef  NVTOOLS
@@ -134,14 +133,7 @@ void SData2Correl::copyHostToDevice(pCorGpu param,uint s)
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF292CB0);
 	#endif
 
-    // A remplacer par ReallocIf dans le layeredProjection....
-    if(oI(_MaxAlloc,param.dimSTer))
-    {
-        _MaxAlloc = param.dimSTer;
-        _dt_LayeredProjection[s].Realloc(param.dimSTer,param.nbImages * param.ZCInter);
-    }
-    else
-        _dt_LayeredProjection[s].SetDimension(param.dimSTer,param.nbImages * param.ZCInter);
+    _dt_LayeredProjection[s].ReallocIfDim(param.dimSTer,param.nbImages * param.ZCInter);
 
     // Copier les projections du host --> device
     _dt_LayeredProjection[s].copyHostToDevice(_hVolumeProj.pData());
