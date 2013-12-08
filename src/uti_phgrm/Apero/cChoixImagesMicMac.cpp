@@ -190,8 +190,35 @@ double GainAngle(double A,double Opt)
    return  1 / (1+ 2*pow(ElAbs(A-1),3));
 }
 
+
+// Un autre critere de qualite du couple est que la base soit _| aux dir de visee
+// C'est un critere complementair du B/H tradi , il evite les "stereo" en profondeurs
+// qui sont mauvaises et peut generer des epipolaire degenerees
+
+
+double OrthogBase(cPoseCam* aPC1,cPoseCam* aPC2)
+{
+    const CamStenope & aCS1 = *(aPC1->CurCam());
+    const CamStenope & aCS2 = *(aPC2->CurCam());
+
+    Pt3dr aB12 = aCS2.PseudoOpticalCenter() -aCS1.PseudoOpticalCenter();
+    double aD = euclid(aB12);
+    if (aD<=0) return 1;
+
+    aB12 = aB12 / aD;
+
+    double aS1 = ElAbs(scal(aB12,aCS1.DirK()));
+    double aS2 = ElAbs(scal(aB12,aCS2.DirK()));
+
+     return ElMax(aS1,aS2);
+    
+}
+
+
+
 void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
 {
+
     std::cout << "ExportImSecMM " << aPC0->Name() << "\n";
     cImSecOfMaster aISM;
     aISM.ISOM_AllVois().SetVal(cISOM_AllVois());
@@ -253,7 +280,13 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
            double anAngle = euclid(aDir0-aPC2->MMDir());
            aPC2->MMAngle() = anAngle;
            aPC2->MMGainAng() =  GainAngle(anAngle,aCIM.TetaOpt().Val());
-           if ((anAngle>aCIM.TetaMinPreSel().Val()) && (anAngle<aCIM.TetaMaxPreSel().Val()))
+
+
+           if (
+                      (anAngle>aCIM.TetaMinPreSel().Val()) 
+                   && (anAngle<aCIM.TetaMaxPreSel().Val())
+                   && (OrthogBase(aPC0,aPC2) < 0.7)
+              )
            {
                aVPPres.push_back(aPC2);
            }
@@ -274,6 +307,7 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
           aVPPres.pop_back();
 	
     int aNbIm = aVPPres.size();
+
 	    
     double aTeta0 = aCIM.Teta2Min().Val();
     double aTeta1 = aCIM.Teta2Max().Val();
@@ -315,7 +349,7 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
 
     aISM.Master() = aPC0->Name();
     // ON TESTE LES SUBSET 
-    for (int aCard=2 ; aCard< ElMin(aNbIm, 1+aCIM.CardMaxSub().Val()) ; aCard++)
+    for (int aCard=1 ; aCard< ElMin(aNbIm+1, 1+aCIM.CardMaxSub().Val()) ; aCard++)
     {
          // On selectionne a cardinal donne, les subset qui couvrent l'ensemble des directions
          std::vector<std::vector<int> > aSubSub;

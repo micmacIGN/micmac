@@ -91,6 +91,8 @@ class cMMOnePair
       int              mDegCorrEpip;
       eTypeQuality     mQualOr;
       std::string      mStrQualOr;
+      bool             mDoPly;
+      int              mScalePly;
 
 };
 
@@ -137,7 +139,9 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mBascDEST     ("Basculed-"),
     mDoHom        (false),
     mDegCorrEpip  (4),
-    mQualOr       (eQual_High)
+    mQualOr       (eQual_High),
+    mDoPly        (false),
+    mScalePly     (4)
 {
   ElInitArgMain
   (
@@ -161,7 +165,10 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mDoHom,"DoHom",true,"Do Hom in epolar (Def= false)")
                     << EAM(mDegCorrEpip,"DegCE",true,"Degree of epipolar correction when Qual Orient is not high (def=4)")
                     << EAM(mStrQualOr,"QualOr",true,"Quality orient (in High, Average, Low, Def= Low)",eSAM_None,ListOfVal(eNbTypeQual,"eQual_"))
+                    << EAM(mDoPly,"DoPly",true,"Generate Ply")
+                    << EAM(mScalePly,"ScalePly",true,"Dowsize of generated Ply (Def=4)")
   );
+
   if (EAMIsInit(&mStrQualOr))
      mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
 
@@ -296,13 +303,16 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
               if (mByEpip)
                  SymetriseMasqReentrant();
            }
-        }
-    }
 
-    if (mByEpip)
-    {
-       GenerateMTDEpip(true);
-       GenerateMTDEpip(false);
+
+
+
+           if ((aStep==1) && mByEpip)  // Mis ici pour Nuage2Ply
+           {
+              GenerateMTDEpip(true);
+              GenerateMTDEpip(false);
+           }
+        }
     }
 
 
@@ -542,8 +552,15 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
               ;
      }
 
+     bool AddPly = (!ForMTD) && ((aStepF-1)== mStepEnd)  && (mDoPly) && (MasterIs1);
+     if (AddPly)
+     {
+          aCom = aCom + " +DoPly=true " + " +ScalePly=" + ToString(mScalePly) +  " ";
+     }
+
      if (mExe)
         System(aCom);
+
 }
 
 /*****************************************************************/

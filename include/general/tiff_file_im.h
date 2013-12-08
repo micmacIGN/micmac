@@ -503,8 +503,9 @@ void MakeTiffRed2BinaireWithCaracIdent
           Pt2di                 aSzRed=Pt2di(-1,-1)
      );
 
+// A priori ExigB8 est redondant avec cons16B, mais ai des doutes et pour assurer la compat ....
 
-std::string NameFileStd(const std::string & aFullNameOri,int aNbChan,bool cons16B,bool ExigNoCompr = true,bool Create= true);
+std::string NameFileStd(const std::string & aFullNameOri,int aNbChan,bool cons16B,bool ExigNoCompr = true,bool Create= true,bool ExigB8=false);
 // std::string NoCreateNameFileStd(const std::string & aFullNameOri);
 bool IsKnownTifPost(const std::string & aPost);
 bool IsKnownJPGPost(const std::string & aPost);
