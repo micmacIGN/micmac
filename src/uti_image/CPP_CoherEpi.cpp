@@ -71,11 +71,17 @@ class cBoxCoher
 class cCEM_OneIm
 { 
      public :
-          cCEM_OneIm (cCoherEpi_main * ,const std::string &,const Box2di & aBox,bool Visu);
+          bool Empty() const;
+          cCEM_OneIm (cCoherEpi_main * ,const std::string &,const Box2di & aBox,bool Visu,bool IsFirstIm);
           Box2dr BoxIm2(const Pt2di & aSzIm2);
           void SetConj(cCEM_OneIm *);
           virtual void UsePack(const ElPackHomologue &) ;
         
+          Pt2dr ToIm2Gen(const Pt2dr & aP)
+          {
+                bool Ok;
+                return RoughToIm2(aP,Ok)- mConj->mRP0;
+          }
 
           Pt2dr ToIm2(const Pt2dr & aP,bool &Ok)
           {
@@ -96,11 +102,20 @@ class cCEM_OneIm
           Im2D_U_INT1  ImAR();
           const Pt2di &  Sz() const {return mSz;}
 
+          void VerifIm(Im2D_Bits<1> aMasq);
+          void VerifProf(Im2D_Bits<1> aMasq);
+          void ComputeOrtho();
+          virtual Im2D_REAL4 ImPx() 
+          {
+                 ELISE_ASSERT(false,"ImPx");
+                 return Im2D_REAL4(1,1);
+          }
+
      protected :
           virtual  Pt2dr  RoughToIm2(const Pt2dr & aP,bool & Ok) = 0;
           virtual  bool  IsOK(const Pt2di & aP) = 0;
 
-          Output VGray() {return mW ?  mW->ogray() : Output::onul(1) ;}
+          Output VGray() {return mWin ?  mWin->ogray() : Output::onul(1) ;}
 
           cCoherEpi_main * mCoher;
           cCpleEpip *      mCple;
@@ -113,17 +128,20 @@ class cCEM_OneIm
           Pt2di            mP0;
           Pt2dr            mRP0;
           Im2D_REAL4       mIm;
+          Im2D_REAL4       mImOrtho;
 
 
-          Video_Win *      mW;
+          Video_Win *      mWin;
+          Video_Win *      mWin2;
           cCEM_OneIm *     mConj;
 };
 
 class cCEM_OneIm_Epip  : public cCEM_OneIm
 {
     public :
+          Im2D_REAL4 ImPx() {return mImPx;}
 
-          cCEM_OneIm_Epip (cCoherEpi_main * ,const std::string &,const Box2di & aBox,bool Visu);
+          cCEM_OneIm_Epip (cCoherEpi_main * ,const std::string &,const Box2di & aBox,bool Visu,bool IsFirstIm);
 
           virtual  Pt2dr  RoughToIm2(const Pt2dr & aP,bool & Ok)
           {
@@ -152,7 +170,7 @@ class cCEM_OneIm_Epip  : public cCEM_OneIm
 class cCEM_OneIm_Nuage  : public cCEM_OneIm
 {
       public :
-          cCEM_OneIm_Nuage (cCoherEpi_main * ,const std::string &,const std::string &,const Box2di & aBox,bool Visu);
+          cCEM_OneIm_Nuage (cCoherEpi_main * ,const std::string &,const std::string &,const Box2di & aBox,bool Visu,bool IsFirstIm);
       private :
           Pt2dr  RoughToIm2(const Pt2dr & aP,bool & Ok) 
           {
@@ -253,8 +271,8 @@ class cCoherEpi_main : public Cont_Vect_Action
 /*                                                                 */
 /*******************************************************************/
 
-cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aName,const Box2di & aBox,bool aVisu) :
-   cCEM_OneIm(aCEM,aName,aBox,aVisu),
+cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aName,const Box2di & aBox,bool aVisu,bool IsFirstIm) :
+   cCEM_OneIm(aCEM,aName,aBox,aVisu,IsFirstIm),
    mNamePx    (mDir+mCple->LocPxFileMatch(mNameInit,mCoher->mNumPx,mCoher->mDeZoom)),
    mTifPx     (mNamePx.c_str()),
    mImPx      (mSz.x,mSz.y),
@@ -264,6 +282,7 @@ cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aNam
    mImMasq    (mSz.x,mSz.y),
    mTMasq     (mImMasq)
 {
+    if (Empty()) return;
 
     if (type_im_integral(mTifPx.type_el()))
     {
@@ -290,10 +309,10 @@ void cCEM_OneIm_Epip::UsePack(const ElPackHomologue & aPack)
          bool Ok;
          Pt2dr aQ2 = ToIm2(aP1,Ok);
 
-         std::cout << aQ2 - aP2 <<  " " << mTPx.getr(aP1,0) << "\n";
+         //std::cout << aQ2 - aP2 <<  " " << mTPx.getr(aP1,0) << "\n";
 
          double aD = ElAbs(aQ2.x-aP2.x);
-         if (mW) mW->draw_circle_abs(aP1,3.0,mW->pdisc()( (aD<0.5) ? P8COL::green : P8COL::red));
+         if (0) mWin->draw_circle_abs(aP1,3.0,mWin->pdisc()( (aD<0.5) ? P8COL::green : P8COL::red));
      }
 }
 
@@ -303,8 +322,8 @@ void cCEM_OneIm_Epip::UsePack(const ElPackHomologue & aPack)
 /*                                                                 */
 /*******************************************************************/
 
-cCEM_OneIm_Nuage::cCEM_OneIm_Nuage(cCoherEpi_main * aCoh,const std::string & aName1,const std::string & aName2,const Box2di & aBox,bool Visu) :
-    cCEM_OneIm  (aCoh,aName1,aBox,Visu),
+cCEM_OneIm_Nuage::cCEM_OneIm_Nuage(cCoherEpi_main * aCoh,const std::string & aName1,const std::string & aName2,const Box2di & aBox,bool Visu,bool IsFirstIm) :
+    cCEM_OneIm  (aCoh,aName1,aBox,Visu,IsFirstIm),
     mDirLoc1    (LocDirMec2Im(aName1,aName2)),
     mDirLoc2    (LocDirMec2Im(aName2,aName1)),
     mDirNuage1  (mDir+mDirLoc1),
@@ -330,7 +349,8 @@ cCEM_OneIm::cCEM_OneIm
     cCoherEpi_main *       aCoher,
     const std::string &    aName,
     const Box2di      &    aBox,
-    bool                   aVisu
+    bool                   aVisu,
+    bool                   IsFirstIm
 )  :
    mCoher     (aCoher),
    mCple      (mCoher->mCple),
@@ -343,23 +363,29 @@ cCEM_OneIm::cCEM_OneIm
    mP0        (mBox._p0),
    mRP0       (mP0),
    mIm        (mSz.x,mSz.y),
-   mW         (aVisu ? Video_Win::PtrWStd(mSz) : 0),
+   mImOrtho   (1,1),
+   mWin       ((aVisu && IsFirstIm) ? Video_Win::PtrWStd(mSz) : 0),
+   mWin2      (0),
    mConj      (0)
 {
-    std::cout << mNameInit << " \n";
-    std::cout << mNameFinal << " \n";
     ELISE_COPY 
     ( 
          mIm.all_pts(),
          trans(mTifIm.in(),mP0),
          mIm.out() 
     );
-    if (mW)
+    if (mWin)
     {
-       ELISE_COPY ( mIm.all_pts(), Min(mIm.in()/1000,255), VGray());
+       double aVMax;
+       ELISE_COPY(mIm.all_pts(),mIm.in(),VMax(aVMax));
+       ELISE_COPY ( mIm.all_pts(), 255.0* Min(mIm.in()/aVMax,1.0), VGray());
+       mWin->set_title(IsFirstIm ? "Image 1" : "Image 2");
     }
+}
 
-
+bool cCEM_OneIm::Empty() const
+{
+    return (mSz.x==0) || (mSz.y==0);
 }
 
 void cCEM_OneIm::UsePack(const ElPackHomologue &) 
@@ -425,13 +451,116 @@ Im2D_U_INT1  cCEM_OneIm::ImAR()
            }
        }
    }
-   if (mW) 
+   if (0) 
    {
       ELISE_COPY(aRes.all_pts(),aRes.in(),VGray());
    }
 
 
    return aRes;
+}
+
+void cCEM_OneIm::VerifProf(Im2D_Bits<1> aMasq)
+{
+    Pt2di aSz =  aMasq.sz();
+    Im2D_Bits<1> aImOut(aSz.x,aSz.y,1);
+    ELISE_COPY(aMasq.all_pts(),aMasq.in(),aImOut.out());
+
+    // On selectionne rapdiement ceux qui seront OK de maniere trivial
+    for (int aSzW = 1 ; aSzW < 8 ; aSzW++)
+    {
+         float aPxInf = 1e5;
+
+         Symb_FNum  aSM1(aMasq.in_proj());
+         Fonc_Num PxMax = aSM1 * ImPx().in(-aPxInf) + (1-aSM1) * (-aPxInf);
+
+         Symb_FNum  aSM2(aMasq.in_proj());
+         Fonc_Num PxMin = aSM2 * ImPx().in(aPxInf) + (1-aSM2) * (aPxInf);
+
+        Symb_FNum  aFOk = dilat_d8((rect_max(PxMax,aSzW)-rect_min(PxMin,aSzW)< aSzW/1.5),aSzW);
+
+         ELISE_COPY
+         (
+              mWin->all_pts(),
+              aFOk && aImOut.in(),
+              aImOut.out() | mWin->odisc()
+         );
+    }
+    ELISE_COPY(aMasq.all_pts(),aMasq.in(),mWin->odisc());
+    ELISE_COPY(select(aImOut.all_pts(),aImOut.in()),P8COL::blue,mWin->odisc());
+
+    mWin->clik_in();
+}
+
+void cCEM_OneIm::VerifIm(Im2D_Bits<1> aMasq)
+{
+   if (Empty()) return;
+
+   ComputeOrtho();
+
+   Im2D_U_INT1 aIMin(mSz.x,mSz.y,255);
+
+  for (int aSzW = 1; aSzW<20 ; aSzW++)
+  {
+
+      Symb_FNum  aSymbM(aMasq.in_proj());
+      Symb_FNum  aSymbF1(mIm.in_proj());
+      Symb_FNum  aSymbF2(mImOrtho.in_proj());
+
+      Symb_FNum  aSFoncs (Virgule(1,aSymbF1,aSymbF2,Square(aSymbF1),Square(aSymbF2),aSymbF1*aSymbF2));
+      Symb_FNum  aSomFoncs(rect_som(aSFoncs,aSzW));
+
+      Symb_FNum aS0  ( aSomFoncs.kth_proj(0));
+      Symb_FNum aS1  ( aSomFoncs.kth_proj(1) /aS0);
+      Symb_FNum aS2  ( aSomFoncs.kth_proj(2) /aS0);
+      Symb_FNum aS11 ( aSomFoncs.kth_proj(3) /aS0 - Square(aS1));
+      Symb_FNum aS22 ( aSomFoncs.kth_proj(4) /aS0 - Square(aS2));
+      Symb_FNum aS12 ( aSomFoncs.kth_proj(5) /aS0 - aS1*aS2);
+
+      Symb_FNum aCor = aS12 / sqrt(Max(1e-2,aS11*aS22));
+
+       ELISE_COPY 
+       (  
+            mImOrtho.all_pts(), Max(0,Min(aIMin.in(),128 * (1+aCor))) , mWin2->ogray() | aIMin.out()
+       );
+   }
+
+   std::cout << "GGGGGGGGgggggggggg\n";
+   getchar();
+}
+
+void cCEM_OneIm::ComputeOrtho()
+{
+   mImOrtho.Resize(mIm.sz());
+   Pt2di aSz =  mImOrtho.sz();
+   TIm2D<REAL4,REAL8> aTIm(mIm);
+   TIm2D<REAL4,REAL8> aTImOr(mImOrtho);
+   TIm2D<REAL4,REAL8> aTIm2(mConj->mIm);
+
+   Pt2di aP;
+
+   for (aP.x=0 ; aP.x<aSz.x; aP.x++)
+   {
+       for (aP.y=0 ; aP.y<aSz.y; aP.y++)
+       {
+           // bool Ok;
+           // Pt2dr  aP2 = ToIm2(Pt2dr(aP),Ok);
+
+           Pt2dr  aP2 = ToIm2Gen(Pt2dr(aP));
+           double aVal =  aTIm2.getr(aP2,0.0);
+           aTImOr.oset(aP,aVal);
+       }
+   }
+
+   if (mWin)
+   {
+       mWin2  =  Video_Win::PtrWStd(mSz) ;
+       mWin2->set_title("Image Ortho");
+       double aVMax;
+       ELISE_COPY( mImOrtho.all_pts(), mImOrtho.in(),VMax(aVMax));
+       ELISE_COPY (  mImOrtho.all_pts(), 255.0* Min( mImOrtho.in()/aVMax,1.0), mWin2->ogray());
+   }
+
 }
 
 /*******************************************************************/
@@ -534,7 +663,6 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
    {
        HasHom = true;
        std::string aNameH = mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",aNameIm1Match,aNameIm2Match,true);
-       // std::cout << "NAME HHH " << aNameH << "\n"; getchar();
        aPackH = ElPackHomologue::FromFile(aNameH);
    }
 
@@ -556,6 +684,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
           mBoxIm1 = Box2di(Pt2di(0,0),aSz1);
       }
    }
+
 
 
    if (mByP && (!mCalledByP))
@@ -652,15 +781,19 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
 
 
        if (mWithEpi)
-          mIm1 = new cCEM_OneIm_Epip(this,mNameIm1,mBoxIm1,mVisu)          ;
+          mIm1 = new cCEM_OneIm_Epip(this,mNameIm1,mBoxIm1,mVisu,true)          ;
        else
-          mIm1 = new cCEM_OneIm_Nuage(this,mNameIm1,mNameIm2,mBoxIm1,mVisu);
+          mIm1 = new cCEM_OneIm_Nuage(this,mNameIm1,mNameIm2,mBoxIm1,mVisu,true);
 
        Box2di aBoxIm2 = R2ISup(mIm1->BoxIm2(aSzIm2));
        if (mWithEpi)
-          mIm2 = new cCEM_OneIm_Epip(this,mNameIm2,aBoxIm2,mVisu);
+       {
+          mIm2 = new cCEM_OneIm_Epip(this,mNameIm2,aBoxIm2,mVisu,false);
+       }
        else
-          mIm2 = new cCEM_OneIm_Nuage(this,mNameIm2,mNameIm1,aBoxIm2,mVisu);
+       {
+          mIm2 = new cCEM_OneIm_Nuage(this,mNameIm2,mNameIm1,aBoxIm2,mVisu,false);
+       }
   
        mIm1->SetConj(mIm2);
 
@@ -681,13 +814,12 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
            }
            aPackH = aNewPack;
            mIm1->UsePack(aPackH);
-std::cout << "USEP====\n";getchar();
        }
 
 
-
-
        Im2D_U_INT1 anAR1 = mIm1->ImAR();
+
+
        Tiff_Im::Create8BFromFonc(mDir+ mPrefix + mPostfixP + ".tif",anAR1.sz(),anAR1.in());
 
        if (mDoMasq)
@@ -734,10 +866,16 @@ std::cout << "USEP====\n";getchar();
            aCox->SetStdCostRegul(0,aMul*mRegul,0);
            aCox->TopMaxFlowStd(aISol.data());
 
+           Im2D_Bits<1> aMassFR(anAR1.sz().x,anAR1.sz().y);
+           ELISE_COPY(anAR1.all_pts(),aISol.in_proj()[Virgule(FX/mReduce,FY/mReduce)],aMassFR.out());
+
+
+           mIm1->VerifProf(aMassFR);
+
            Tiff_Im::Create8BFromFonc
            (
                mDir+ mPrefix + "_Masq1" + mPostfixP + ".tif",
-               anAR1.sz(),aISol.in_proj()[Virgule(FX/mReduce,FY/mReduce)]
+               anAR1.sz(), aMassFR.in()      // aISol.in_proj()[Virgule(FX/mReduce,FY/mReduce)]
            );
 
            // Creation du masque symetrique
@@ -759,6 +897,7 @@ std::cout << "USEP====\n";getchar();
            }
        }
    }
+
 }
 
 
