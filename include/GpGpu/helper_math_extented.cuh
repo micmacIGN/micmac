@@ -11,6 +11,16 @@
 #endif
 
 #define NEGARECT Rect(-1,-1,-1,-1)
+#define MAXIRECT Rect(1e7,1e7,-1e7,-1e7)
+
+
+inline __host__ __device__ int2 inc( int2 &a)
+{
+    a.x++;
+    a.y++;
+
+    return a;
+}
 
 /// \struct Rect
 /// \brief Cette structure represente un rectangle definie par deux points
@@ -21,7 +31,7 @@ struct Rect
     /// \brief point bas et droite du rectangle
 	int2 pt1;
 
-	__device__ __host__ Rect(){};
+    __device__ __host__ Rect(){}
 
     /// \brief Definie les points du rectangle avec des points entiers
     /// \param p0 : point haut et gauche du rectangle
@@ -63,18 +73,70 @@ struct Rect
     /// \brief Renvoie la dimension du rectangle
 	uint2 dimension()
 	{
-		return make_uint2(pt1-pt0);
+        return make_uint2(abs(pt1-pt0));
     }
 
     bool operator==(const Rect &other) const {
         return ( this->pt0.x == other.pt0.x && this->pt0.y == other.pt0.y && this->pt1.x == other.pt1.x && this->pt1.y == other.pt1.y);
     }
 
+    bool operator!=(const Rect &other) const {
+        return !(*this == other);
+    }
+
+    void SetMaxMin(int x, int y)
+    {
+
+        if (x < pt0.x ) pt0.x = x;
+        if (y < pt0.y ) pt0.y = y;
+
+        if (pt1.x < x) pt1.x = x;
+        if (pt1.y < y) pt1.y = y;
+    }
+
+
+    void SetMaxMin(Rect rect)
+    {
+
+        if (rect.pt0.x < pt0.x ) pt0.x = rect.pt0.x;
+        if (rect.pt0.y < pt0.y ) pt0.y = rect.pt0.y;
+
+        if (pt1.x < rect.pt1.x) pt1.x = rect.pt1.x;
+        if (pt1.y < rect.pt1.y) pt1.y = rect.pt1.y;
+    }
+
+    void SetMaxMinInc(Rect rect)
+    {
+
+        inc(rect.pt1);
+
+        if (rect.pt0.x < pt0.x ) pt0.x = rect.pt0.x;
+        if (rect.pt0.y < pt0.y ) pt0.y = rect.pt0.y;
+
+        if (pt1.x < rect.pt1.x) pt1.x = rect.pt1.x;
+        if (pt1.y < rect.pt1.y) pt1.y = rect.pt1.y;
+    }
+
+    uint area()
+    {
+        uint2 dim =  dimension();
+        return dim.x * dim.y;
+    }
+
+    Rect& operator=(const Rect &copy)
+    {
+
+        pt0 = copy.pt0;
+        pt1 = copy.pt1;
+
+        return *this;
+    }
+
 #ifdef __cplusplus
 
 	void out()
 	{
-		std::cout << "(" << pt0.x << "," <<  pt0.y << ")" << " -> (" << pt1.x << "," <<  pt1.y << ") ";
+        std::cout << "[(" << pt0.x << "," <<  pt0.y << ")" << "(" << pt1.x << "," <<  pt1.y << ")] ";
 	}
 
 #endif
@@ -206,13 +268,7 @@ inline __host__ __device__ int2 operator+(const uint3 a, uint2 b)
 	return make_int2(a.x + b.x, a.y + b.y);
 }
 
-inline __host__ __device__ int2 inc( int2 &a)
-{
-    a.x++;
-    a.y++;
 
-    return a;
-}
 
 
 
@@ -239,6 +295,11 @@ inline __host__ __device__ uint lenght(uint2 a)
 
 
 inline __host__ __device__ ushort count(short2 a)
+{
+    return a.y - a.x;
+}
+
+inline __host__ __device__ uint count(int2 a)
 {
     return a.y - a.x;
 }
