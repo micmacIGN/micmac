@@ -51,22 +51,17 @@ public:
 	float m_speed;
 };
 
-
-
 struct selectInfos
 {
-    //! Ortho camera infos
-    ViewportParameters params;
-
     //! polyline infos
-    QVector <QPointF>  poly;
+    QVector <QPointF> poly;
 
     //! selection mode
     int         selection_mode;
 
-    GLdouble    _mvmatrix[16];
-    GLdouble    _projmatrix[16];
-    GLint       _glViewport[4];
+    GLdouble    mvmatrix[16];
+    GLdouble    projmatrix[16];
+    GLint       glViewport[4];
 };
 
 //! Selection mode

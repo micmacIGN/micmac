@@ -1,13 +1,10 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-
-MainWindow::MainWindow(bool mode2D, QWidget *parent) :
-    QMainWindow(parent),
-    _ui(new Ui::MainWindow),
-    _Engine(new cEngine),
-    _nbFen(QPoint(1,1)),
-    _szFen(QPoint(800,600))
+MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
+        QMainWindow(parent),
+        _ui(new Ui::MainWindow),
+        _Engine(new cEngine)
 {
     _ui->setupUi(this);
 
@@ -27,16 +24,32 @@ MainWindow::MainWindow(bool mode2D, QWidget *parent) :
 
     connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog,SLOT(cancel()));
 
-    _glWidget = new GLWidget(this);
+    _nbFen = QPoint(aNbFen.x,aNbFen.y);
+    _szFen = QPoint(aSzW.x,aSzW.y);
+
+    resize(_szFen.x(), _szFen.y());
+
+  //  _glWidget = new GLWidget(this);
 
     setMode2D(mode2D);
 
     _layout = new QGridLayout();
-    _layout->addWidget(_glWidget);
+   // _layout->addWidget(_glWidget);
 
+    for (int aK = 0; aK < aNbFen.x;++aK)
+    {
+        for (int bK = 0; bK < aNbFen.y;++bK)
+        {
+            GLWidget * pWidget = new GLWidget(this);
+            _layout->addWidget(pWidget, bK, aK);
+            _glWidgets.push_back(pWidget);
+        }
+    }
     _signalMapper = new QSignalMapper (this) ;
     connectActions();
     _ui->OpenglLayout->setLayout(_layout);
+
+    _glWidgetCur = _glWidgets[0];
 
     createMenus();
 }
@@ -44,7 +57,9 @@ MainWindow::MainWindow(bool mode2D, QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete _ui;
-    delete _glWidget;
+    //delete _glWidget;
+    for (int aK=0; aK < _glWidgets.size();++aK) delete _glWidgets[aK];
+    _glWidgets.clear();
     delete _Engine;
     delete _RFMenu;
 
@@ -54,7 +69,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::connectActions()
 {
-    connect(_glWidget,	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
+    for (int aK = 0; aK < _glWidgets.size();++aK)
+    {
+        connect(_glWidgets[aK],	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
+    }
 
     //File menu
     connect(_ui->actionClose_all, SIGNAL(triggered()), this, SLOT(closeAll()));
@@ -84,7 +102,7 @@ void MainWindow::connectActions()
     connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
 
     //Selection menu
-    connect(_glWidget,SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
+    //TODO: connect(_glWidget,SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
 }
 
 void MainWindow::createMenus()
@@ -103,11 +121,11 @@ void MainWindow::createMenus()
 bool MainWindow::checkForLoadedData()
 {
     bool loadedEntities = true;
-    _glWidget->displayNewMessage(QString()); //clear (any) message in the middle area
+    _glWidgetCur->displayNewMessage(QString()); //clear (any) message in the middle area
 
-    if (!_glWidget->hasDataLoaded())
+    if (!_glWidgetCur->hasDataLoaded())
     {
-        _glWidget->displayNewMessage(tr("Drag & drop files on window to load them!"));
+        _glWidgetCur->displayNewMessage(tr("Drag & drop files on window to load them!"));
         loadedEntities = false;
     }
     else
@@ -203,7 +221,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
             future.waitForFinished();
 
-            _glWidget->showCams(true);
+            //TODO: _glWidget->showCams(true);
             _ui->actionShow_cams->setChecked(true);
         }
         else
@@ -230,11 +248,13 @@ void MainWindow::addFiles(const QStringList& filenames)
                 _Engine->applyGammaToImage(aK);
         }
 
-        _glWidget->setDataLoaded(true);
-
         _Engine->setGLData();
-        _glWidget->setGLData(_Engine->getGLData((uint)0));
-        _glWidget->updateAfterSetData();
+        for (int aK = 0; aK < _glWidgets.size();++aK)
+        {
+            _glWidgets[aK]->setGLData(_Engine->getGLData((uint) aK));
+            _glWidgets[aK]->setDataLoaded(true);
+            _glWidgets[aK]->updateAfterSetData();
+        }
 
         for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
 
@@ -261,11 +281,11 @@ void MainWindow::on_actionShow_ball_toggled(bool state)
 {
     if (!_bMode2D)
     {
-        _glWidget->showBall(state);
+        _glWidgetCur->showBall(state);
 
         if (state)
         {
-            _glWidget->showAxis(!state);
+            _glWidgetCur->showAxis(!state);
             _ui->actionShow_axis->setChecked(!state);
         }
     }
@@ -274,18 +294,18 @@ void MainWindow::on_actionShow_ball_toggled(bool state)
 void MainWindow::on_actionShow_bbox_toggled(bool state)
 {
     if(!_bMode2D)
-        _glWidget->showBBox(state);
+        _glWidgetCur->showBBox(state);
 }
 
 void MainWindow::on_actionShow_axis_toggled(bool state)
 {
     if (!_bMode2D)
     {
-        _glWidget->showAxis(state);
+        _glWidgetCur->showAxis(state);
 
         if (state)
         {
-            _glWidget->showBall(!state);
+            _glWidgetCur->showBall(!state);
             _ui->actionShow_ball->setChecked(!state);
         }
     }
@@ -294,30 +314,30 @@ void MainWindow::on_actionShow_axis_toggled(bool state)
 void MainWindow::on_actionShow_cams_toggled(bool state)
 {
     if (!_bMode2D)
-        _glWidget->showCams(state);
+        _glWidgetCur->showCams(state);
 }
 
 void MainWindow::on_actionShow_messages_toggled(bool state)
 {
-    _glWidget->showMessages(state);
+    _glWidgetCur->showMessages(state);
 }
 
 void MainWindow::on_actionToggleMode_toggled(bool mode)
 {
     if (!_bMode2D)
     {
-        _glWidget->setInteractionMode(mode ? GLWidget::SELECTION : GLWidget::TRANSFORM_CAMERA);
+        _glWidgetCur->setInteractionMode(mode ? GLWidget::SELECTION : GLWidget::TRANSFORM_CAMERA);
 
-        _glWidget->showBall(mode ? GLWidget::TRANSFORM_CAMERA : GLWidget::SELECTION && _Engine->getData()->isDataLoaded());
-        _glWidget->showAxis(false);
+        _glWidgetCur->showBall(mode ? GLWidget::TRANSFORM_CAMERA : GLWidget::SELECTION && _Engine->getData()->isDataLoaded());
+        _glWidgetCur->showAxis(false);
 
         if (mode == GLWidget::SELECTION)
         {
-            _glWidget->showCams(false);
-            _glWidget->showBBox(false);
+            _glWidgetCur->showCams(false);
+            _glWidgetCur->showBBox(false);
         }
 
-        _glWidget->update();
+        _glWidgetCur->update();
     }
 }
 
@@ -385,31 +405,32 @@ void MainWindow::on_actionHelpShortcuts_triggered()
     text += tr("Right click: \tdelete polyline vertex") +"\n";
     text += "Ctrl+A: \t"+tr("select all") +"\n";
     text += "Ctrl+D: \t"+tr("select none") +"\n";
-    text += "Ctrl+R: \t"+tr("undo all past selections") +"\n";
+    text += "Ctrl+R: \t"+tr("reset") +"\n";
     text += "Ctrl+I: \t"+tr("invert selection") +"\n";
+    text += "Ctrl+Z: \t"+tr("undo last selection") +"\n";
 
     QMessageBox::information(NULL, tr("Saisie - shortcuts"), text);
 }
 
 void MainWindow::on_actionAdd_triggered()
 {
-    _glWidget->Select(ADD);
+    _glWidgetCur->Select(ADD);
 }
 
 void MainWindow::on_actionSelect_none_triggered()
 {
-    _glWidget->Select(NONE);
-    _glWidget->clearPolyline();
+    _glWidgetCur->Select(NONE);
+    _glWidgetCur->clearPolyline();
 }
 
 void MainWindow::on_actionInvertSelected_triggered()
 {
-    _glWidget->Select(INVERT);
+    _glWidgetCur->Select(INVERT);
 }
 
 void MainWindow::on_actionSelectAll_triggered()
 {
-    _glWidget->Select(ALL);
+    _glWidgetCur->Select(ALL);
 }
 
 void MainWindow::on_actionReset_triggered()
@@ -422,13 +443,13 @@ void MainWindow::on_actionReset_triggered()
     }
     else
     {
-        _glWidget->Select(ALL);
+        _glWidgetCur->Select(ALL);
     }
 }
 
 void MainWindow::on_actionRemove_triggered()
 {
-    _glWidget->Select(SUB);
+    _glWidgetCur->Select(SUB);
 }
 
 void MainWindow::on_actionUndo_triggered()
@@ -446,85 +467,85 @@ void MainWindow::on_actionUndo_triggered()
         for (int aK=0; aK<_Engine->getData()->getNbImages();++aK)
             _Engine->applyGammaToImage(aK);
 
-        _glWidget->setDataLoaded(true);
+        _glWidgetCur->setDataLoaded(true);
 
         _Engine->setGLData();
-        _glWidget->setGLData(_Engine->getGLData((uint)0));
-        _glWidget->updateAfterSetData(false);
+        _glWidgetCur->setGLData(_Engine->getGLData((uint)0));
+        _glWidgetCur->updateAfterSetData(false);
 
-        _glWidget->showMessages(_ui->actionShow_messages->isChecked());
+        _glWidgetCur->showMessages(_ui->actionShow_messages->isChecked());
     }
-    _glWidget->undo();
+    _glWidgetCur->undo();
 }
 
 void MainWindow::on_actionSetViewTop_triggered()
 {
     if (!_bMode2D)
-        _glWidget->setView(TOP_VIEW);
+        _glWidgetCur->setView(TOP_VIEW);
 }
 
 void MainWindow::on_actionSetViewBottom_triggered()
 {
     if (!_bMode2D)
-        _glWidget->setView(BOTTOM_VIEW);
+        _glWidgetCur->setView(BOTTOM_VIEW);
 }
 
 void MainWindow::on_actionSetViewFront_triggered()
 {
     if (!_bMode2D)
-        _glWidget->setView(FRONT_VIEW);
+        _glWidgetCur->setView(FRONT_VIEW);
 }
 
 void MainWindow::on_actionSetViewBack_triggered()
 {
     if (!_bMode2D)
-        _glWidget->setView(BACK_VIEW);
+        _glWidgetCur->setView(BACK_VIEW);
 }
 
 void MainWindow::on_actionSetViewLeft_triggered()
 {
     if (!_bMode2D)
-        _glWidget->setView(LEFT_VIEW);
+        _glWidgetCur->setView(LEFT_VIEW);
 }
 
 void MainWindow::on_actionSetViewRight_triggered()
 {
     if (!_bMode2D)
-        _glWidget->setView(RIGHT_VIEW);
+        _glWidgetCur->setView(RIGHT_VIEW);
 }
 
 void MainWindow::on_actionReset_view_triggered()
 {
-    _glWidget->resetView();
+    _glWidgetCur->resetView();
 
     if (!_bMode2D)
     {
-         _glWidget->showBall(_Engine->getData()->isDataLoaded());
-         _glWidget->showAxis(false);
-         _glWidget->showBBox(false);
-         _glWidget->showCams(false);
+         _glWidgetCur->showBall(_Engine->getData()->isDataLoaded());
+         _glWidgetCur->showAxis(false);
+         _glWidgetCur->showBBox(false);
+         _glWidgetCur->showCams(false);
     }
 }
 
 //zoom
 void MainWindow::on_actionZoom_Plus_triggered()
 {
-    _glWidget->setZoom(_glWidget->getParams()->m_zoom*1.5f);
+    _glWidgetCur->setZoom(_glWidgetCur->getParams()->m_zoom*1.5f);
 }
 
 void MainWindow::on_actionZoom_Moins_triggered()
 {
-    _glWidget->setZoom(_glWidget->getParams()->m_zoom/1.5f);
+    _glWidgetCur->setZoom(_glWidgetCur->getParams()->m_zoom/1.5f);
 }
 
 void MainWindow::on_actionZoom_fit_triggered()
 {
-    _glWidget->zoomFit();
+    _glWidgetCur->zoomFit();
 }
 
 void MainWindow::zoomFactor(int aFactor)
 {
-    _glWidget->zoomFactor(aFactor);
+    _glWidgetCur->zoomFactor(aFactor);
 }
 
 void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
@@ -601,19 +622,19 @@ void MainWindow::on_actionSave_as_triggered()
 
 void MainWindow::on_actionSave_selection_triggered()
 {
-    _Engine->saveSelectInfos(_glWidget->getSelectInfos());
+    _Engine->saveSelectInfos(_glWidgetCur->getSelectInfos());
 }
 
 void MainWindow::closeAll()
 {
     _Engine->unloadAll();
 
-    _glWidget->reset();
-    _glWidget->resetView();
+    _glWidgetCur->reset();
+    _glWidgetCur->resetView();
 
     checkForLoadedData();
 
-    _glWidget->update();
+    _glWidgetCur->update();
 }
 
 void MainWindow::openRecentFile()
