@@ -236,9 +236,9 @@ cl_MatPtsHom ReadPtsHom3D(string aDir,string aPatIm, string InVig, int ResolMode
 								double Green2 =Reechantillonnage::biline(aGrIm[aK2].GChan.data(), aGrIm[aK2].SZ.x, aGrIm[aK2].SZ.y, pos2DOtherIm[aK2]);
 								double Blue2  =Reechantillonnage::biline(aGrIm[aK2].BChan.data(), aGrIm[aK2].SZ.x, aGrIm[aK2].SZ.y, pos2DOtherIm[aK2]);
 								aMatPtsHomol.aMat[aK1].Pts.push_back(pos2DPtIm1.mul(ResolModel));
-								aMatPtsHomol.aMat[aK1].kR.push_back((1 + Red2/Red1 )/2);
-								aMatPtsHomol.aMat[aK1].kG.push_back((1 + Green2/Green1 )/2);
-								aMatPtsHomol.aMat[aK1].kB.push_back((1 + Blue2/Blue1 )/2);
+								if(Red1>0){aMatPtsHomol.aMat[aK1].kR.push_back((1 + Red2/Red1 )/2);}else{aMatPtsHomol.aMat[aK1].kR.push_back((1 + Red2)/2);}
+								if(Green1>0){aMatPtsHomol.aMat[aK1].kG.push_back((1 + Green2/Green1 )/2);}else{aMatPtsHomol.aMat[aK1].kG.push_back((1 + Green2)/2);}
+								if(Blue1>0){aMatPtsHomol.aMat[aK1].kB.push_back((1 + Blue2/Blue1 )/2);}else{aMatPtsHomol.aMat[aK1].kB.push_back((1 + Blue2)/2);}
 								aMatPtsHomol.aMat[aK1].OtherIm.push_back(aK2);
 								aMatPtsHomol.aMat[aK1].SZ=aGrIm[aK1].SZ;
 							}
