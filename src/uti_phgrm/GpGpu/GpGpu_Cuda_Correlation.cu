@@ -39,18 +39,18 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 
   uint pitZ,modZ;
 
-  if (oI(ptProj,0))
+//  if (oI(ptProj,0)) // retirer le 9 decembre 2013 à verifier
 
-      return;
+//      return;
 
-  else
-  {
+//  else
+//  {
       pitZ  = blockIdx.z / invPc.nbImages;
 
       modZ  = blockIdx.z - pitZ * invPc.nbImages;
 
       cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = GetImageValue(ptProj,modZ);
-  }
+ // }
 
   __syncthreads();
 
@@ -74,11 +74,12 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
   #pragma unroll // ATTENTION PRAGMA FAIT AUGMENTER LA quantité MEMOIRE des registres!!!
   for (pt.y = c0.y ; pt.y <= c1.y; pt.y++)
   {
-        const int pic = pt.y*BLOCKDIM;
+        //const int pic = pt.y*BLOCKDIM;
+        float* cImg    = cacheImg +  pt.y*BLOCKDIM;
       #pragma unroll
       for (pt.x = c0.x ; pt.x <= c1.x; pt.x++)
       {
-          const float val = cacheImg[pic+ pt.x];	// Valeur de l'image
+          const float val = cImg[pt.x];	// Valeur de l'image
           //        if (val ==  cH.floatDefault) return;
           aSV  += val;          // Somme des valeurs de l'image cte
           aSVV += (val*val);	// Somme des carrés des vals image cte
@@ -110,9 +111,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 
     }
 
-  const int ZPitch	= pitZ * HdPc.sizeTer;
-
-  const int idN		= ZPitch + to1D(ptTer,HdPc.dimTer);
+  const int idN		= pitZ * HdPc.sizeTer + to1D(ptTer,HdPc.dimTer);
 
   atomicAdd( &dev_NbImgOk[idN], 1U);
 
