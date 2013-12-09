@@ -1,0 +1,61 @@
+<!DOCTYPE RCC><RCC version="1.0">
+ <qresource>
+	<file>help/about.txt</file>
+	<file>help/about_english.txt</file>
+
+	<file>xml/ChantierDescrConver.xml</file>
+	<file>xml/AperoConver.xml</file>
+	<file>xml/AperoConvAutoCalib.xml</file>
+	<file>xml/AperoConvCourteFoc.xml</file>
+	<file>xml/AperoConvLongFoc.xml</file>
+	<file>xml/AperoLiberCalib.xml</file>
+	<file>xml/MicMacTA.xml</file>
+	<file>xml/MicMacConver.xml</file>
+	<file>xml/MicMacEuclidien.xml</file>
+	<file>xml/MicMacOrtho.xml</file>
+	<file>xml/Porto.xml</file>
+	<file>xml/PortoEgal.xml</file>
+
+	<file>images/cursor-openhand.png</file>
+	<file>images/cursor-sizeall.png</file>
+	<file>images/designer-edit-resources-button.png</file>
+	<file>images/designer-property-editor-add-dynamic.png</file>
+	<file>images/designer-property-editor-remove-dynamic.png</file>
+	<file>images/designer-property-editor-remove-dynamic2.png</file>
+	<file>images/linguist-check-off.png</file>
+	<file>images/linguist-check-on.png</file>
+	<file>images/linguist-diag.png</file>
+	<file>images/linguist-diag2.png</file>
+	<file>images/linguist-down.png</file>
+	<file>images/linguist-editcut.png</file>
+	<file>images/linguist-editredo.png</file>
+	<file>images/linguist-editundo.png</file>
+	<file>images/linguist-fileopen.png</file>
+	<file>images/linguist-filesave.png</file>
+	<file>images/linguist-next.png</file>
+	<file>images/linguist-prev.png</file>
+	<file>images/linguist-up.png</file>
+	<file>images/paintsystem-icon.png</file>
+	<file>images/qmessagebox-crit.png</file>
+	<file>images/windows_fullscreen.png</file>
+	<file>images/collapse.png</file>
+	<file>images/expand.png</file>
+	<file>images/qmessagebox-info.png</file>
+	<file>images/radialGradient.png</file>
+	<file>images/rotation.png</file>
+	<file>images/viewmag.png</file>
+	<file>images/camera.png</file>
+	<file>images/color.png</file>
+	<file>images/LOGO_MATIS.gif</file>
+	<file>images/movie_grey_camera.png</file>
+	<file>images/measure.png</file>
+	<file>images/editbookmarks.png</file>
+	<file>images/texture.png</file>
+	<file>images/white.png</file>
+	<file>images/update.png</file>
+	<file>images/bin.png</file>
+	<file>images/cursor-arrow.png</file>
+ </qresource>
+ </RCC>
+
+
