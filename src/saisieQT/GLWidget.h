@@ -69,12 +69,11 @@ public:
     virtual void displayNewMessage(const QString& message,
                                    MessagePosition pos = SCREEN_CENTER_MESSAGE);
 
-
     void updateAfterSetData();
     void updateAfterSetData(bool doZoom);
 
     //! States if data (cloud, camera or image) is loaded
-    bool hasDataLoaded(){return _bDataLoaded;}
+    bool hasDataLoaded(){return m_GLData != NULL && _bDataLoaded;}
 
     void setDataLoaded(bool aBool){ _bDataLoaded = aBool; }
 

@@ -357,14 +357,14 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
 
         selectInfos SInfo = Infos[i];
 
-        t = doc.createTextNode(QString::number(SInfo.params.m_zoom));
+        /*t = doc.createTextNode(QString::number(SInfo.params.m_zoom));
         Scale.appendChild(t);
 
         t = doc.createTextNode(QString::number(SInfo.params.m_angleX) + " " + QString::number(SInfo.params.m_angleY) + " " + QString::number(SInfo.params.m_angleZ));
         Rotation.appendChild(t);
 
         t = doc.createTextNode(QString::number(SInfo.params.m_translationMatrix[0]) + " " + QString::number(SInfo.params.m_translationMatrix[1]) + " " + QString::number(SInfo.params.m_translationMatrix[2]));
-        Translation.appendChild(t);
+        Translation.appendChild(t);*/
 
         SII.appendChild(Scale);
         SII.appendChild(Rotation);
@@ -430,7 +430,7 @@ void cEngine::setGLData()
         if (_Data->getNbMasks()>aK)
         {
             if(_Data->getMask(aK) == NULL)
-                glGenTextures(1, theData->pMask->getTexture() );   
+                glGenTextures(1, theData->pMask->getTexture() );
             theData->setEmptymask(false);
 
             theData->pMask->ImageToTexture(_Data->getMask(aK));

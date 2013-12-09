@@ -181,16 +181,14 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
 
                 if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
                 {
-                    if (hasDataLoaded())
+                    if(!m_GLData->m_polygon.isClosed())        // add point to polygon
                     {
-                        if(!m_GLData->m_polygon.isClosed())        // add point to polygon
-                        {
-                            if (m_GLData->m_polygon.size() >= 1)
-                                m_GLData->m_polygon[m_GLData->m_polygon.size()-1] = m_lastPosImage;
+                        if (m_GLData->m_polygon.size() >= 1)
+                            m_GLData->m_polygon[m_GLData->m_polygon.size()-1] = m_lastPosImage;
 
-                            m_GLData->m_polygon.add(m_lastPosImage);
-                        }
-                        else // modify polygon (insert or move vertex)
+                        m_GLData->m_polygon.add(m_lastPosImage);
+                    }
+                    else // modify polygon (insert or move vertex)
                         {
                             if (mouseEvent->modifiers().testFlag(Qt::ShiftModifier))
                             {
@@ -210,8 +208,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                             }
                             else if (m_GLData->m_polygon.idx() != -1)
                                 m_GLData->m_polygon.clicked();
-                        }
-                    }
+                     }
                 }
             }
             else if (mouseEvent->button() == Qt::RightButton)
@@ -596,39 +593,41 @@ void GLWidget::updateAfterSetData()
 
 void GLWidget::updateAfterSetData(bool doZoom)
 {
-    clearPolyline();
-
-    if (m_GLData->is3D())
+    if (m_GLData != NULL)
     {
-        m_bDisplayMode2D = false;
+        clearPolyline();
 
-        if (doZoom) setZoom(m_GLData->getScale());
+        if (m_GLData->is3D())
+        {
+            m_bDisplayMode2D = false;
 
-        resetTranslationMatrix();
+            if (doZoom) setZoom(m_GLData->getScale());
+
+            resetTranslationMatrix();
+        }
+
+        if (!m_GLData->isImgEmpty())
+        {
+            m_bDisplayMode2D = true;
+
+            if (doZoom) zoomFit();
+
+            //position de l'image dans la vue gl
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+
+            glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
+
+            if (m_GLData->isMaskEmpty())
+                m_bFirstAction = true;
+            else
+                m_bFirstAction = false;
+        }
+
+        glGetIntegerv (GL_VIEWPORT, _glViewport);
+
+        update();
     }
-
-    if (!m_GLData->isImgEmpty())
-    {
-//        cout << "image" << endl;
-        m_bDisplayMode2D = true;
-
-        if (doZoom) zoomFit();
-
-        //position de l'image dans la vue gl
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-
-        glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
-
-        if (m_GLData->isMaskEmpty())
-            m_bFirstAction = true;
-        else
-            m_bFirstAction = false;
-    }
-
-    glGetIntegerv (GL_VIEWPORT, _glViewport);
-
-    update();
 }
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -757,14 +756,17 @@ void GLWidget::drawPolygon()
 // zoom in 3D mode
 void GLWidget::zoom()
 {
-    GLdouble zoom = m_params.m_zoom;
+    if (m_GLData != NULL)
+    {
+        GLdouble zoom = m_params.m_zoom;
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
 
-    glOrtho(-zoom*m_glRatio,zoom*m_glRatio,-zoom, zoom,-2.f*m_GLData->getScale(), 2.f*m_GLData->getScale());
+        glOrtho(-zoom*m_glRatio,zoom*m_glRatio,-zoom, zoom,-2.f*m_GLData->getScale(), 2.f*m_GLData->getScale());
 
-    glMatrixMode(GL_MODELVIEW);
+        glMatrixMode(GL_MODELVIEW);
+    }
 }
 
 void GLWidget::setInteractionMode(INTERACTION_MODE mode)
@@ -1148,16 +1150,16 @@ void GLWidget::Select(int mode, bool saveInfos)
         if (saveInfos)
         {
             selectInfos info;
-            info.params = m_params;
+            //info.params = m_params;
             info.poly   = m_GLData->m_polygon.getVector();
             info.selection_mode   = mode;
 
             for (int aK=0; aK<4; ++aK)
-                info._glViewport[aK] = _glViewport[aK];
+                info.glViewport[aK] = _glViewport[aK];
             for (int aK=0; aK<16; ++aK)
             {
-                info._mvmatrix[aK] = _mvmatrix[aK];
-                info._projmatrix[aK] = _projmatrix[aK];
+                info.mvmatrix[aK] = _mvmatrix[aK];
+                info.projmatrix[aK] = _projmatrix[aK];
             }
 
             m_infos.push_back(info);
@@ -1181,7 +1183,7 @@ void GLWidget::clearPolyline()
 
 void GLWidget::undo()
 {
-    if (m_infos.size())
+    if (m_infos.size() && hasDataLoaded())
     {
         if (!m_bDisplayMode2D)
             Select(ALL, false);
@@ -1195,9 +1197,9 @@ void GLWidget::undo()
 
             if (!m_bDisplayMode2D)
             {
-                for (int bK=0; bK<16;++bK) _mvmatrix[bK]   = m_infos[aK]._mvmatrix[bK];
-                for (int bK=0; bK<16;++bK) _projmatrix[bK] = m_infos[aK]._projmatrix[bK];
-                for (int bK=0; bK<4;++bK)  _glViewport[bK] = m_infos[aK]._glViewport[bK];
+                for (int bK=0; bK<16;++bK) _mvmatrix[bK]   = m_infos[aK].mvmatrix[bK];
+                for (int bK=0; bK<16;++bK) _projmatrix[bK] = m_infos[aK].projmatrix[bK];
+                for (int bK=0; bK<4;++bK)  _glViewport[bK] = m_infos[aK].glViewport[bK];
 
                 if (aK==0) m_bFirstAction = true;
                 else m_bFirstAction = false;
@@ -1214,7 +1216,6 @@ void GLWidget::showAxis(bool show)
 {
     if (hasDataLoaded())
         m_GLData->pAxis->setVisible(show);
-
     update();
 }
 
@@ -1222,7 +1223,6 @@ void GLWidget::showBall(bool show)
 {
     if (hasDataLoaded())
         m_GLData->pBall->setVisible(show);
-
     update();
 }
 

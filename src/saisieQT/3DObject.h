@@ -19,15 +19,15 @@ class cObject
         virtual ~cObject();
 
 
-        Pt3dr   getPosition()   { return _position;  }
-        QColor  getColor()      { return _color;     }
-        float   getScale()      { return _scale;     }
-        bool    isVisible()     { return _bVisible;  }
+        Pt3dr   getPosition()   { return _position; }
+        QColor  getColor()      { return _color;    }
+        float   getScale()      { return _scale;    }
+        bool    isVisible()     { return _bVisible; }
 
-        void    setPosition(Pt3dr const &aPt)  { _position = aPt;   }
-        void    setColor(QColor const &aCol)   { _color = aCol;     }
-        void    setVisible(bool aVis)          { _bVisible = aVis;  }
-        void    setScale(float aScale)         { _scale = aScale;   }
+        void    setPosition(Pt3dr const &aPt)  { _position = aPt;  }
+        void    setColor(QColor const &aCol)   { _color = aCol;    }
+        void    setVisible(bool aVis)          { _bVisible = aVis; }
+        void    setScale(float aScale)         { _scale = aScale;  }
 
         cObject & operator = (const cObject &);
 
