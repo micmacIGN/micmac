@@ -18,6 +18,7 @@
 #include "GpGpu/SData2Correl.h"
 
 extern "C" void	CopyParamTodevice(pCorGpu h);
+extern "C" void CopyParamInvTodevice( pCorGpu param );
 extern "C" void	LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu &param,SData2Correl &dataCorrel);
 extern "C" void	LaunchKernelMultiCorrelation(cudaStream_t stream, pCorGpu &param, SData2Correl &dataCorrel);
 
@@ -42,7 +43,7 @@ public:
 
   /// \brief    Renvoie les parametres de correlation
 
-  pCorGpu       &Param(ushort idBuf);
+  pCorGpu&      Param(ushort idBuf);
 
   void          signalComputeCorrel(uint dZ);
 
@@ -52,19 +53,19 @@ public:
 
   void          IntervalZ(uint &interZ, int anZProjection, int aZMaxTer);
 
-  SData2Correl&  Data(){return _data2Cor;}
+  SData2Correl& Data();
 
   float*        VolumeCost(ushort id);
 
-  uint2         box;
-
   bool          TexturesAreLoaded();
 
-  void          SetTexturesAreLoaded(bool load);
-
-  std::vector<cellules> MaskCellules;
+  void          SetTexturesAreLoaded(bool load);  
 
   void          ReallocHostData(uint interZ, ushort idBuff);
+
+  uint2&        DimTerrainGlob();
+
+  std::vector<cellules> &MaskVolumeBlock();
 
 private:
 
@@ -73,15 +74,22 @@ private:
   void              MultiCorrelationGpGpu(ushort idBuf = 0,const int s = 0);
 
   cudaStream_t*		GetStream(int stream);
+
   void              threadCompute();
 
   cudaStream_t      _stream[NSTREAM];
+
   pCorGpu           _param[2];
 
   SData2Correl      _data2Cor;
 
   bool				_TexturesAreLoaded;
 
+  uint2             _m_DimTerrainGlob;
+
+  std::vector<cellules> _m_MaskVolumeBlock;
+
+  bool              copyInvParam;
 };
 
 #endif

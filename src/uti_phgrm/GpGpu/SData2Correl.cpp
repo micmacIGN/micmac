@@ -133,7 +133,7 @@ void SData2Correl::copyHostToDevice(pCorGpu param,uint s)
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF292CB0);
 	#endif
 
-    _dt_LayeredProjection[s].ReallocIfDim(param.dimSTer,param.nbImages * param.ZCInter);
+    _dt_LayeredProjection[s].ReallocIfDim(param.dimSTer,param.invPC.nbImages * param.ZCInter);
 
     // Copier les projections du host --> device
     _dt_LayeredProjection[s].copyHostToDevice(_hVolumeProj.pData());
@@ -161,9 +161,9 @@ void SData2Correl::ReallocHostData(uint zInter, pCorGpu param)
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0000);
 	#endif
     for (int i = 0; i < SIZERING; ++i)
-        _hVolumeCost[i].ReallocIf(param.dimTer,zInter);
+        _hVolumeCost[i].ReallocIf(param.HdPc.dimTer,zInter);
 
-    _hVolumeProj.ReallocIf(param.dimSTer,zInter*param.nbImages);
+    _hVolumeProj.ReallocIf(param.dimSTer,zInter*param.invPC.nbImages);
 
 	#ifdef  NVTOOLS
     nvtxRangePop();
@@ -172,9 +172,9 @@ void SData2Correl::ReallocHostData(uint zInter, pCorGpu param)
 
 void SData2Correl::ReallocHostData(uint zInter, pCorGpu param, uint idBuff)
 {
-    _hVolumeCost[idBuff].ReallocIf(param.dimTer,zInter);
+    _hVolumeCost[idBuff].ReallocIf(param.HdPc.dimTer,zInter);
 
-    _hVolumeProj.ReallocIf(param.dimSTer,zInter*param.nbImages);
+    _hVolumeProj.ReallocIf(param.dimSTer,zInter*param.invPC.nbImages);
 }
 
 void SData2Correl::ReallocDeviceData(pCorGpu &param)
@@ -198,7 +198,7 @@ void    SData2Correl::DeviceMemset(pCorGpu &param, uint s)
 	#ifdef NVTOOLS
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF1A2BB5);
 	#endif
-    _d_volumeCost[s].Memset(param.IntDefault);
+    _d_volumeCost[s].Memset(param.invPC.IntDefault);
 
     // A vERIFIER que le memset est inutile
     //_d_volumeCach[s].Memset(param.IntDefault);
@@ -230,11 +230,11 @@ float   *SData2Correl::DeviVolumeCost(uint s){
 void SData2Correl::ReallocDeviceData(int nStream, pCorGpu param)
 {
 
-    _d_volumeCost[nStream].ReallocIf(param.dimTer,     param.ZCInter);
+    _d_volumeCost[nStream].ReallocIf(param.HdPc.dimTer,     param.ZCInter);
 
-    _d_volumeCach[nStream].ReallocIf(param.dimCach,    param.nbImages * param.ZCInter);
+    _d_volumeCach[nStream].ReallocIf(param.HdPc.dimCach,    param.invPC.nbImages * param.ZCInter);
 
-    _d_volumeNIOk[nStream].ReallocIf(param.dimTer,     param.ZCInter);
+    _d_volumeNIOk[nStream].ReallocIf(param.HdPc.dimTer,     param.ZCInter);
 }
 
 void SData2Correl::MemsetHostVolumeProj(uint iDef)

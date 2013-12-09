@@ -721,21 +721,21 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
             IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
 
-            pixel *maskGlobal = new pixel[size(IMmGg.box)];
+            pixel *maskGlobal = new pixel[size(IMmGg.DimTerrainGlob())];
 
             OMP_NT1
-            for (uint anY = 0 ; anY <  IMmGg.box.y ; anY++)
+            for (uint anY = 0 ; anY <  IMmGg.DimTerrainGlob().y ; anY++)
                 OMP_NT2
-                for (uint anX = 0 ; anX < IMmGg.box.x ; anX++)
+                for (uint anX = 0 ; anX < IMmGg.DimTerrainGlob().x ; anX++)
                 {
-                    uint idMask		= IMmGg.box.x * anY + anX ;
+                    uint idMask		= IMmGg.DimTerrainGlob().x * anY + anX ;
                     if(IsInTer(anX,anY))
                         maskGlobal[idMask] = 1 ;
                     else
                         maskGlobal[idMask] = 0 ;
                 }
 
-            IMmGg.Data().SetGlobalMask(maskGlobal,IMmGg.box);
+            IMmGg.Data().SetGlobalMask(maskGlobal,IMmGg.DimTerrainGlob());
 
             delete[] maskGlobal;
 
@@ -785,30 +785,32 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
         uint Dz = abs(mZMaxGlob-mZMinGlob);
 
-        IMmGg.MaskCellules.clear();
+        IMmGg.MaskVolumeBlock().clear();
 
         if(vCellules.size() > 0)
         {
             uint cellZmaskVol = iDivUp((int)vCellules.size(), INTERZ);
             uint reste        = Dz - (((uint)vCellules.size()) / INTERZ) * INTERZ  ;
 
-            IMmGg.MaskCellules.resize(cellZmaskVol);
+            IMmGg.MaskVolumeBlock().resize(cellZmaskVol);
 
             if(reste != 0)
             {
-                cellules &celLast = IMmGg.MaskCellules.back();
+                cellules &celLast = IMmGg.MaskVolumeBlock().back();
                 celLast.Dz = reste;
             }
 
             for (uint i = 0; i < vCellules.size(); ++i)
             {
                 uint      sI    = i/INTERZ;
-                cellules &cel   = IMmGg.MaskCellules[sI];
+                cellules &cel   = IMmGg.MaskVolumeBlock()[sI];
                 Rect     &Rec   = vCellules[i];
 
                 cel.Zone.SetMaxMinInc(Rec);
             }
         }
+
+
 
 #else
 
@@ -1452,10 +1454,10 @@ void cAppliMICMAC::DoGPU_Correl
 #ifdef  NVTOOLS
         GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0033);
 #endif
-        IMmGg.Data().MemsetHostVolumeProj(IMmGg.Param(idBuf).IntDefault);
+        IMmGg.Data().MemsetHostVolumeProj(IMmGg.Param(idBuf).invPC.IntDefault);
 
         Rect    zone        = IMmGg.Param(idBuf).RDTer();
-        uint    sample      = IMmGg.Param(idBuf).sampProj;
+        uint    sample      = IMmGg.Param(idBuf).invPC.sampProj;
         float2  *pTabProj   = IMmGg.Data().HostVolumeProj();
         uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain
         uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain echantilloné
@@ -1510,7 +1512,7 @@ void cAppliMICMAC::DoGPU_Correl
 #endif
         float*  tabCost     = IMmGg.VolumeCost(idBuf);
         Rect    zone        = IMmGg.Param(idBuf).RTer();
-        float   valdefault  = IMmGg.Param(idBuf).floatDefault;
+        float   valdefault  = IMmGg.Param(idBuf).invPC.floatDefault;
 
         //std::cout << "Copy : [(" << zone.pt0.x << "," <<  zone.pt0.y << ")" << "(" << zone.pt1.x << "," <<  zone.pt1.y << ")] Z: " << (int)z0 << "->" << (int)z1 << "\n";
 
@@ -1549,7 +1551,7 @@ void cAppliMICMAC::DoGPU_Correl
 #ifdef  CUDA_ENABLED
 
         // Si le terrain est masque ou aucune image : Aucun calcul
-        if (mNbIm == 0 || IMmGg.MaskCellules.size() == 0) return;
+        if (mNbIm == 0 || IMmGg.MaskVolumeBlock().size() == 0) return;
 
         // Initiation du calcul
         uint interZ = IMmGg.InitCorrelJob(mZMinGlob,mZMaxGlob);
@@ -1568,7 +1570,7 @@ void cAppliMICMAC::DoGPU_Correl
                 if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + (int)interZ && anZProjection < mZMaxGlob)
                 {
 
-                    cellules Mask = IMmGg.MaskCellules[abs(anZProjection-mZMinGlob)/INTERZ];
+                    cellules Mask = IMmGg.MaskVolumeBlock()[abs(anZProjection-mZMinGlob)/INTERZ];
 
                     IMmGg.Param(idPreBuf).SetDimension(Mask.Zone,Mask.Dz);
 
@@ -1600,7 +1602,7 @@ void cAppliMICMAC::DoGPU_Correl
             while( anZComputed < mZMaxGlob )
             {
 
-                cellules Mask = IMmGg.MaskCellules[abs(anZComputed-mZMinGlob)/INTERZ];
+                cellules Mask = IMmGg.MaskVolumeBlock()[abs(anZComputed-mZMinGlob)/INTERZ];
 
                 // calcul des projections
                 Tabul_Projection( anZComputed,Mask.Dz,0);
@@ -1769,8 +1771,8 @@ void cAppliMICMAC::GlobDoCorrelAdHoc
         cDecoupageInterv2D aDecInterv = cDecoupageInterv2D::SimpleDec ( aBoxIn.sz(), aSzDecoupe, 0);
 
 #if CUDA_ENABLED
-        IMmGg.box.x = aBoxIn.sz().x;
-        IMmGg.box.y = aBoxIn.sz().y;
+        IMmGg.DimTerrainGlob().x = aBoxIn.sz().x;
+        IMmGg.DimTerrainGlob().y = aBoxIn.sz().y;
         IMmGg.SetProgress(aDecInterv.NbInterv());
 #endif
         for (int aKBox=0 ; aKBox<aDecInterv.NbInterv() ; aKBox++)

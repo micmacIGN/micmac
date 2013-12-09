@@ -1,7 +1,8 @@
 #include "GpGpu/GpGpu_InterCorrel.h"
 
 /// \brief Constructeur GpGpuInterfaceCorrel
-GpGpuInterfaceCorrel::GpGpuInterfaceCorrel()
+GpGpuInterfaceCorrel::GpGpuInterfaceCorrel():
+    copyInvParam(false)
 {
     for (int s = 0;s<NSTREAM;s++)
         checkCudaErrors( cudaStreamCreate(GetStream(s)));
@@ -18,6 +19,16 @@ GpGpuInterfaceCorrel::~GpGpuInterfaceCorrel()
 void GpGpuInterfaceCorrel::ReallocHostData(uint interZ,ushort idBuff)
 {
     _data2Cor.ReallocHostData(interZ,_param[idBuff],idBuff);
+}
+
+uint2 &GpGpuInterfaceCorrel::DimTerrainGlob()
+{
+    return _m_DimTerrainGlob;
+}
+
+std::vector<cellules> &GpGpuInterfaceCorrel::MaskVolumeBlock()
+{
+    return _m_MaskVolumeBlock;
 }
 
 uint GpGpuInterfaceCorrel::InitCorrelJob(int Zmin, int Zmax)
@@ -37,8 +48,14 @@ uint GpGpuInterfaceCorrel::InitCorrelJob(int Zmin, int Zmax)
 /// \brief Initialisation des parametres constants
 void GpGpuInterfaceCorrel::SetParameter(int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef )
 {
-    _param[0].SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
-    _param[1].SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
+
+    if(!copyInvParam)
+    {
+        copyInvParam = true;
+        _param[0].invPC.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
+        _param[1].invPC.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
+        CopyParamInvTodevice(_param[0]);
+    }
 }
 
 void GpGpuInterfaceCorrel::BasicCorrelation(uint ZInter)
@@ -56,7 +73,9 @@ void GpGpuInterfaceCorrel::BasicCorrelation(uint ZInter)
     SetPreComp(true);
 
     // COPIE Les parametres à Virer!!
-    CopyParamTodevice(_param[GetIdBuf()]);
+    //CopyParamTodevice(_param[GetIdBuf()]);
+
+    //Param(GetIdBuf()).CopyParamToDevice();
 
     // Lancement du calcul de correlation
     CorrelationGpGpu(GetIdBuf());
@@ -149,4 +168,9 @@ void GpGpuInterfaceCorrel::signalComputeCorrel(uint dZ)
 {
     SetPreComp(false);
     SetCompute(dZ);
+}
+
+SData2Correl &GpGpuInterfaceCorrel::Data()
+{
+    return _data2Cor;
 }
