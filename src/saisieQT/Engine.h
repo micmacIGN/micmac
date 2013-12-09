@@ -29,9 +29,6 @@ public:
 
     void    reset();
 
-    void    setGamma(float aGamma) {m_gamma = aGamma;}
-    float   getGamma() {return m_gamma;}
-
     void    ptSizeUp(bool up);
 
     //! Current zoom
@@ -51,10 +48,10 @@ public:
     //! Translation matrix
     float m_translationMatrix[3];
 
-    float m_gamma;
-
 	float m_speed;
 };
+
+
 
 struct selectInfos
 {
@@ -65,7 +62,11 @@ struct selectInfos
     QVector <QPointF>  poly;
 
     //! selection mode
-    int                selection_mode;
+    int         selection_mode;
+
+    GLdouble    _mvmatrix[16];
+    GLdouble    _projmatrix[16];
+    GLint       _glViewport[4];
 };
 
 //! Selection mode
@@ -122,18 +123,31 @@ public:
 
     void clear();
 
-    bool is2D(){return pImg != NULL;}
-    bool is3D(){return Clouds.size() || Cams.size();}
+    bool        is2D(){return pImg != NULL;}
+    bool        is3D(){return Clouds.size() || Cams.size();}
+    bool        isDataLoaded(){return (!isImgEmpty()) || is3D();}
 
     //2D
     cImageGL    *pImg;
     cImageGL    *pMask;
+
+    QImage      *pQMask;
 
     //! Point list for polygonal selection
     cPolygon    m_polygon;
 
     //! Point list for polygonal insertion
     cPolygon    m_dihedron;
+
+    void        setEmptyImg(bool aBool){_bEmptyImg = aBool;}
+    bool        isImgEmpty(){return _bEmptyImg;}
+
+    void        setEmptymask(bool aBool){_bEmptyMask = aBool;}
+    bool        isMaskEmpty(){return _bEmptyMask;}
+
+    QImage*     getMask(){return pQMask;}
+
+    void        setPolygon(cPolygon const &aPoly){m_polygon = aPoly;}
 
     //3D
     QVector < cCam* > Cams;
@@ -143,6 +157,21 @@ public:
     cBBox       *pBbox;
 
     QVector < Cloud* > Clouds;
+
+    //info coming from cData
+    float       getScale(){return _diam;}
+    void        setScale(float aS){_diam = aS;}
+
+    Pt3dr       getCenter(){return _center;}
+    void        setCenter(Pt3dr aCenter){_center = aCenter;}
+
+private:
+
+    bool        _bEmptyImg;
+    bool        _bEmptyMask;
+
+    float       _diam;
+    Pt3dr       _center;
 };
 
 class cEngine
@@ -200,12 +229,18 @@ public:
     //!sends GLObjects to GLWidget
     cGLData* getGLData(int WidgetIndex);
 
+    void    applyGammaToImage(int aK);
+
+    void    setGamma(float aGamma) {_Gamma = aGamma;}
+
 private:
 
     cLoader*            _Loader;
     cData*              _Data;
 
-    QVector <cGLData*>  _GLData;
+    QVector <cGLData*>  _vGLData;
+
+    float               _Gamma;
 };
 
 

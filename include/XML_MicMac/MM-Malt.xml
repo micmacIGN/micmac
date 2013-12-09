@@ -34,8 +34,8 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
    <Symb>   Repere="NO-REPERE"  </Symb>
    <Symb>   FileAnam=EmptyXML.xml  </Symb>
    <Symb>   FileZMoy=EmptyXML.xml  </Symb>
-
-
+   <Symb>   UseGpu=false </Symb>
+   <eSymb>  NotUseGpu=! ${UseGpu} </eSymb>
 
 
    <Symb>  FileMasqT=MM-MasqTerrain.xml </Symb>
@@ -286,7 +286,14 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
       <EtapeMEC>
              <DeZoom >  -1                      </DeZoom>
              <SzW >      ${SzW}             </SzW>
-             <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+
+             <#WHEN VTEST=${NotUseGpu}>
+                <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+             </#WHEN>
+
+             <#WHEN VTEST=${UseGpu}>
+                <AlgoRegul>  eAlgoTestGPU </AlgoRegul>
+             </#WHEN>
 
              <GenImagesCorrel > true </GenImagesCorrel>
              <GenCubeCorrel > ${GCC} </GenCubeCorrel>
@@ -317,12 +324,24 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
 
             <AggregCorr> ${ModeAgrCor} </AggregCorr>
+            <!---->
             <#WHEN VTEST=${CorMS}>
-                 <CorrelAdHoc>
-                      <TypeCAH>
-                           <GPU_Correl> </GPU_Correl>
-                      </TypeCAH>
-                 </CorrelAdHoc>
+                 <#WHEN VTEST=${NotUseGpu}>
+                     <CorrelAdHoc>
+                          <TypeCAH>
+                               <GPU_Correl> </GPU_Correl>
+                          </TypeCAH>
+                     </CorrelAdHoc>
+                  </#WHEN>
+
+            </#WHEN>
+            <#WHEN VTEST=${UseGpu}>
+               <CorrelAdHoc>
+                   <SzBlocAH > 48 </SzBlocAH>
+                   <TypeCAH>
+                           <GPU_CorrelBasik >  true   </GPU_CorrelBasik>
+                   </TypeCAH>
+               </CorrelAdHoc>
             </#WHEN>
             
         </EtapeMEC>
@@ -417,9 +436,17 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                                        <Pds> 0.25 </Pds>
                                   </OneParamCMS>
                            </CorrelMultiScale>
-                            <TypeCAH>
-                                  <GPU_Correl> </GPU_Correl>
-                            </TypeCAH>
+                           <#WHEN VTEST=${NotUseGpu}>
+                               <TypeCAH>
+                                      <GPU_Correl> </GPU_Correl>
+                                </TypeCAH>
+                            </#WHEN>
+                            <#WHEN VTEST=${UseGpu}>
+                                <SzBlocAH > 48 </SzBlocAH>
+                                <TypeCAH>
+                                        <GPU_CorrelBasik >  true   </GPU_CorrelBasik>
+                                </TypeCAH>
+                            </#WHEN>
                        </CorrelAdHoc>
                    </#WHEN>
 

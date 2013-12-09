@@ -63,7 +63,7 @@ class struct2D
 {
 public:
 
-    struct2D(){}
+    struct2D();
     ~struct2D(){}
     /// \brief  Renvoie la dimension de la structure 2D
     uint2		GetDimension();
@@ -83,10 +83,27 @@ public:
     /// \brief  Sortie console de la structure
     void		Output();
 
+protected:
+
+    uint2		SetDimensionOnly(uint2 dimension);
+
+    uint        GetMaxSize();
+
+    virtual     void RefreshMaxSize();
+
+    void        RefreshMaxDim();
+
+    void        SetMaxSize(uint size);
+
+    uint2       GetMaxDimension();
+
 private:
 
     uint2		_dimension;
 
+    uint        _m_maxsize;
+
+    uint2		_m_maxdimension;
 };
 
 
@@ -116,6 +133,10 @@ public:
     uint        GetSize();
 
     void        Output();
+
+protected:
+
+    virtual     void RefreshMaxSize();
 
 private:
 

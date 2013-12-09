@@ -27,13 +27,7 @@ MainWindow::MainWindow(bool mode2D, QWidget *parent) :
 
     connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog,SLOT(cancel()));
 
-    _glWidget = new GLWidget(this,_Engine->getData());
-
-    on_actionShow_messages_toggled(_ui->actionShow_messages->isChecked());
-    //on_actionShow_ball_toggled(_ui->actionShow_ball->isChecked());
-    on_actionShow_axis_toggled(_ui->actionShow_axis->isChecked());
-    on_actionShow_bbox_toggled(_ui->actionShow_bbox->isChecked());
-    on_actionShow_cams_toggled(_ui->actionShow_cams->isChecked());
+    _glWidget = new GLWidget(this);
 
     setMode2D(mode2D);
 
@@ -66,8 +60,15 @@ void MainWindow::connectActions()
     connect(_ui->actionClose_all, SIGNAL(triggered()), this, SLOT(closeAll()));
     connect(_ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
 
-    //Zoom menu
+    for (int i = 0; i < MaxRecentFiles; ++i)
+    {
+        _recentFileActs[i] = new QAction(this);
+        _recentFileActs[i]->setVisible(false);
+        connect(_recentFileActs[i], SIGNAL(triggered()),
+                this, SLOT(openRecentFile()));
+    }
 
+    //Zoom menu
     connect(_ui->action4_1_400,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
     connect(_ui->action2_1_200,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
     connect(_ui->action1_1_100,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
@@ -82,16 +83,8 @@ void MainWindow::connectActions()
 
     connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
 
-    //Selection
+    //Selection menu
     connect(_glWidget,SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
-
-    for (int i = 0; i < MaxRecentFiles; ++i)
-    {
-        _recentFileActs[i] = new QAction(this);
-        _recentFileActs[i]->setVisible(false);
-        connect(_recentFileActs[i], SIGNAL(triggered()),
-                this, SLOT(openRecentFile()));
-    }
 }
 
 void MainWindow::createMenus()
@@ -163,7 +156,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         _Engine->setFilenamesIn(filenames);
 
-        if (getMode2D() != false) closeAll();
+        if (_bMode2D == true) closeAll();
         setMode2D(false);
 
         QFileInfo fi(filenames[0]);
@@ -216,6 +209,7 @@ void MainWindow::addFiles(const QStringList& filenames)
         else
         {
             setMode2D(true);
+            closeAll();
 
             glLoadIdentity();
 
@@ -231,9 +225,12 @@ void MainWindow::addFiles(const QStringList& filenames)
             future.waitForFinished();*/
 
             _Engine->setFilenamesOut();
+
+            for (int aK=0; aK<_Engine->getData()->getNbImages();++aK)
+                _Engine->applyGammaToImage(aK);
         }
 
-        _glWidget->setData(_Engine->getData());
+        _glWidget->setDataLoaded(true);
 
         _Engine->setGLData();
         _glWidget->setGLData(_Engine->getGLData((uint)0));
@@ -417,7 +414,7 @@ void MainWindow::on_actionSelectAll_triggered()
 
 void MainWindow::on_actionReset_triggered()
 {
-    if (getMode2D())
+    if (_bMode2D)
     {
         closeAll();
 
@@ -432,6 +429,32 @@ void MainWindow::on_actionReset_triggered()
 void MainWindow::on_actionRemove_triggered()
 {
     _glWidget->Select(SUB);
+}
+
+void MainWindow::on_actionUndo_triggered()
+{
+    if (_bMode2D)
+    {
+        _Engine->unloadAll();
+
+        glLoadIdentity();
+
+        _Engine->loadImages(_FilenamesIn);
+
+        _Engine->setFilenamesOut();
+
+        for (int aK=0; aK<_Engine->getData()->getNbImages();++aK)
+            _Engine->applyGammaToImage(aK);
+
+        _glWidget->setDataLoaded(true);
+
+        _Engine->setGLData();
+        _glWidget->setGLData(_Engine->getGLData((uint)0));
+        _glWidget->updateAfterSetData(false);
+
+        _glWidget->showMessages(_ui->actionShow_messages->isChecked());
+    }
+    _glWidget->undo();
 }
 
 void MainWindow::on_actionSetViewTop_triggered()
@@ -589,6 +612,8 @@ void MainWindow::closeAll()
     _glWidget->resetView();
 
     checkForLoadedData();
+
+    _glWidget->update();
 }
 
 void MainWindow::openRecentFile()
@@ -685,7 +710,8 @@ void MainWindow::on_action2D_3D_mode_triggered()
 
 void  MainWindow::setGamma(float aGamma)
 {
-    _glWidget->getParams()->setGamma(aGamma);
+    _Engine->setGamma(aGamma);
+    //_glWidget->getParams()->setGamma(aGamma);
 }
 
 
