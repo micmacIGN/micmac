@@ -2,7 +2,9 @@
 
 /// \brief Constructeur GpGpuInterfaceCorrel
 GpGpuInterfaceCorrel::GpGpuInterfaceCorrel():
-    copyInvParam(false)
+     NoMasked(false),
+     copyInvParam(false)
+
 {
     for (int s = 0;s<NSTREAM;s++)
         checkCudaErrors( cudaStreamCreate(GetStream(s)));
@@ -147,6 +149,7 @@ bool GpGpuInterfaceCorrel::TexturesAreLoaded()
 void GpGpuInterfaceCorrel::SetTexturesAreLoaded(bool load)
 {
     _TexturesAreLoaded = load;
+    NoMasked = false;
 }
 
 void GpGpuInterfaceCorrel::CorrelationGpGpu(ushort idBuf,const int s )

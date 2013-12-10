@@ -682,45 +682,6 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
         {          
             IMmGg.SetTexturesAreLoaded(true);
 
-            float*	fdataImg1D	= NULL;
-            uint2	dimImgMax	= make_uint2(0,0);
-
-            for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
-            {
-                cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
-                dimImgMax = max(dimImgMax,toUi2(aGLI.getSizeImage()));
-            }
-
-            // Pour chaque image
-            for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
-            {
-                // Obtention de l'image courante
-                cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
-
-                // Obtention des donnees images
-                float **aDataIm	= aGLI.DataIm0();
-                float*	data	= aGLI.LinDIm0();
-                uint2 dimImg	= toUi2(aGLI.getSizeImage());
-
-                if(fdataImg1D == NULL)
-                    fdataImg1D	= new float[ size(dimImgMax) * mNbIm ];
-
-                // Copie du tableau 2d des valeurs de l'image Ameliorer encore la copy de texture, copier les images une à  une dans le device!!!!
-                if (aEq(dimImgMax,dimImg))
-                    memcpy(  fdataImg1D + size(dimImgMax)* aKIm , data,  size(dimImg) * sizeof(float));
-
-                else
-                    GpGpuTools::Memcpy2Dto1D(aDataIm ,fdataImg1D + size(dimImgMax) * aKIm, dimImgMax, dimImg );
-
-            }
-
-            if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
-                IMmGg.Data().SetImages(fdataImg1D, dimImgMax, mNbIm);
-
-            if (fdataImg1D != NULL) delete[] fdataImg1D;
-
-            IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
-
             pixel *maskGlobal = new pixel[size(IMmGg.DimTerrainGlob())];
 
             OMP_NT1
@@ -730,87 +691,138 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                 {
                     uint idMask		= IMmGg.DimTerrainGlob().x * anY + anX ;
                     if(IsInTer(anX,anY))
+                    {
                         maskGlobal[idMask] = 1 ;
+                        IMmGg.NoMasked = true;
+                    }
                     else
                         maskGlobal[idMask] = 0 ;
                 }
 
-            IMmGg.Data().SetGlobalMask(maskGlobal,IMmGg.DimTerrainGlob());
+            if(IMmGg.NoMasked)
+                IMmGg.Data().SetGlobalMask(maskGlobal,IMmGg.DimTerrainGlob());
 
             delete[] maskGlobal;
 
-        }
-
-        std::vector<Rect> vCellules;
-
-        //OMP_NT1
-        for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
-        {
-            //OMP_NT2
-            for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+            if(IMmGg.NoMasked)
             {
+                float*	fdataImg1D	= NULL;
+                uint2	dimImgMax	= make_uint2(0,0);
 
-                int2 mZ = make_int2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
-
-                if (IsInTer(anX,anY))
+                for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
                 {
-                    if(mZMaxGlob == -1e7)
-                        vCellules.resize(abs((int)count(mZ)),MAXIRECT);
-                    else
-                    {
-                        if (mZ.x < mZMinGlob)
-                            vCellules.insert(vCellules.begin(), abs(mZ.x - mZMinGlob),MAXIRECT);
-                        if (mZ.y > mZMaxGlob)
-                            vCellules.insert(vCellules.end(),   abs(mZ.y - mZMaxGlob),MAXIRECT);
-                    }
-
-                    ElSetMin(mZMinGlob,mZ.x);
-                    ElSetMax(mZMaxGlob,mZ.y);
-
-                    for (int i = 0; i < abs((int)count(mZ)); ++i)
-                    {
-                        Rect &box = vCellules[i + abs(mZ.x - mZMinGlob)];
-
-                        box.SetMaxMin(anX,anY);
-                    }
+                    cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
+                    dimImgMax = max(dimImgMax,toUi2(aGLI.getSizeImage()));
                 }
+
+                // Pour chaque image
+                for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
+                {
+                    // Obtention de l'image courante
+                    cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
+
+                    // Obtention des donnees images
+                    float **aDataIm	= aGLI.DataIm0();
+                    float*	data	= aGLI.LinDIm0();
+                    uint2 dimImg	= toUi2(aGLI.getSizeImage());
+
+                    if(fdataImg1D == NULL)
+                        fdataImg1D	= new float[ size(dimImgMax) * mNbIm ];
+
+                    // Copie du tableau 2d des valeurs de l'image Ameliorer encore la copy de texture, copier les images une à  une dans le device!!!!
+                    if (aEq(dimImgMax,dimImg))
+                        memcpy(  fdataImg1D + size(dimImgMax)* aKIm , data,  size(dimImg) * sizeof(float));
+
+                    else
+                        GpGpuTools::Memcpy2Dto1D(aDataIm ,fdataImg1D + size(dimImgMax) * aKIm, dimImgMax, dimImg );
+
+                }
+
+                if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
+                    IMmGg.Data().SetImages(fdataImg1D, dimImgMax, mNbIm);
+
+                if (fdataImg1D != NULL) delete[] fdataImg1D;
+
+                IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
+
             }
+
         }
 
-        if(mZMinGlob == 1e7)
-        {
-            mZMinGlob = 0;
-            mZMaxGlob = 0;
-        }
-
-        uint Dz = abs(mZMaxGlob-mZMinGlob);
 
         IMmGg.MaskVolumeBlock().clear();
 
-        if(vCellules.size() > 0)
+        if(IMmGg.NoMasked)
         {
-            uint cellZmaskVol = iDivUp((int)vCellules.size(), INTERZ);
-            uint reste        = Dz - (((uint)vCellules.size()) / INTERZ) * INTERZ  ;
-
-            IMmGg.MaskVolumeBlock().resize(cellZmaskVol);
-
-            if(reste != 0)
+            std::vector<Rect> vCellules;
+            //OMP_NT1
+            for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
             {
-                cellules &celLast = IMmGg.MaskVolumeBlock().back();
-                celLast.Dz = reste;
+                //OMP_NT2
+                for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+                {
+
+                    int2 mZ = make_int2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
+
+                    if (IsInTer(anX,anY))
+                    {
+                        if(mZMaxGlob == -1e7)
+                            vCellules.resize(abs((int)count(mZ)),MAXIRECT);
+                        else
+                        {
+                            if (mZ.x < mZMinGlob)
+                                vCellules.insert(vCellules.begin(), abs(mZ.x - mZMinGlob),MAXIRECT);
+                            if (mZ.y > mZMaxGlob)
+                                vCellules.insert(vCellules.end(),   abs(mZ.y - mZMaxGlob),MAXIRECT);
+                        }
+
+                        ElSetMin(mZMinGlob,mZ.x);
+                        ElSetMax(mZMaxGlob,mZ.y);
+
+                        for (int i = 0; i < abs((int)count(mZ)); ++i)
+                        {
+                            Rect &box = vCellules[i + abs(mZ.x - mZMinGlob)];
+
+                            box.SetMaxMin(anX,anY);
+                        }
+                    }
+                }
             }
 
-            for (uint i = 0; i < vCellules.size(); ++i)
+            if(mZMinGlob == 1e7)
             {
-                uint      sI    = i/INTERZ;
-                cellules &cel   = IMmGg.MaskVolumeBlock()[sI];
-                Rect     &Rec   = vCellules[i];
-
-                cel.Zone.SetMaxMinInc(Rec);
+                mZMinGlob = 0;
+                mZMaxGlob = 0;
             }
+
+            uint Dz = abs(mZMaxGlob-mZMinGlob);
+
+
+
+            if(vCellules.size() > 0)
+            {
+                uint cellZmaskVol = iDivUp((int)vCellules.size(), INTERZ);
+                uint reste        = Dz - (((uint)vCellules.size()) / INTERZ) * INTERZ  ;
+
+                IMmGg.MaskVolumeBlock().resize(cellZmaskVol);
+
+                if(reste != 0)
+                {
+                    cellules &celLast = IMmGg.MaskVolumeBlock().back();
+                    celLast.Dz = reste;
+                }
+
+                for (uint i = 0; i < vCellules.size(); ++i)
+                {
+                    uint      sI    = i/INTERZ;
+                    cellules &cel   = IMmGg.MaskVolumeBlock()[sI];
+                    Rect     &Rec   = vCellules[i];
+
+                    cel.Zone.SetMaxMinInc(Rec);
+                }
+            }
+
         }
-
-
 
 #else
 
