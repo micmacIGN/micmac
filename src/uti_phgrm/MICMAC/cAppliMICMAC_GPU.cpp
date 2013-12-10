@@ -766,24 +766,41 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                     if (IsInTer(anX,anY))
                     {
+                        ushort dZ = abs((int)count(mZ));
+
+
+                        ushort oldSize = (ushort)vCellules.size();
+
                         if(mZMaxGlob == -1e7)
-                            vCellules.resize(abs((int)count(mZ)),MAXIRECT);
+                            vCellules.resize(dZ,MAXIRECT);
                         else
                         {
                             if (mZ.x < mZMinGlob)
+                            {
                                 vCellules.insert(vCellules.begin(), abs(mZ.x - mZMinGlob),MAXIRECT);
+                                if(mZ.y < mZMinGlob)
+                                    dZ = abs(mZ.x - mZMinGlob);
+                            }
                             if (mZ.y > mZMaxGlob)
+                            {
                                 vCellules.insert(vCellules.end(),   abs(mZ.y - mZMaxGlob),MAXIRECT);
+                                if(mZ.x > mZMaxGlob)
+                                {
+                                    mZ.x = mZMaxGlob;
+                                    dZ = abs(mZ.y - mZMaxGlob);
+                                }
+                            }
                         }
 
                         ElSetMin(mZMinGlob,mZ.x);
                         ElSetMax(mZMaxGlob,mZ.y);
 
-                        for (int i = 0; i < abs((int)count(mZ)); ++i)
+                        for (int i = 0; i < dZ; ++i)
                         {
                             Rect &box = vCellules[i + abs(mZ.x - mZMinGlob)];
 
                             box.SetMaxMin(anX,anY);
+
                         }
                     }
                 }
@@ -796,8 +813,6 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
             }
 
             uint Dz = abs(mZMaxGlob-mZMinGlob);
-
-
 
             if(vCellules.size() > 0)
             {
@@ -819,9 +834,9 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                     Rect     &Rec   = vCellules[i];
 
                     cel.Zone.SetMaxMinInc(Rec);
+
                 }
             }
-
         }
 
 #else
