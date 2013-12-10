@@ -65,6 +65,8 @@ public slots:
 
 	void setGamma(float aGamma);
 
+    //void setCurrentWidget(int aK);
+
 protected slots:
 
     //View Menu

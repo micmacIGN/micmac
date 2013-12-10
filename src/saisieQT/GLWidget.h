@@ -43,7 +43,7 @@ class GLWidget : public QGLWidget
 public:
 
     //! Default constructor
-    GLWidget(QWidget *parent = NULL);
+    GLWidget(QWidget *parent = NULL, const QGLWidget *shared = NULL);
 
     //! Destructor
     ~GLWidget();
@@ -82,6 +82,9 @@ public:
 
     //! Sets current zoom
     void setZoom(float value);
+
+    //! Get current zoom
+    float getZoom(){return getParams()->m_zoom;}
 
     void zoomFit();
 
@@ -162,6 +165,8 @@ signals:
     void filesDropped(const QStringList& filenames);
 
     void selectedPoint(uint idCloud, uint idVertex,bool selected);
+
+    void setCurrentWidget(int aK);
 
 protected:
     void resizeGL(int w, int h);
@@ -266,6 +271,7 @@ private:
     GLint       *_glViewport;
 
     bool        _bDataLoaded;
+    int         _idx;
 };
 
 #endif  /* _GLWIDGET_H */

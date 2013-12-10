@@ -234,7 +234,7 @@ class cImageGL : public cObjectGL
 
         void    draw(QColor color);
 
-        void    bind_draw();
+        void    drawQuad();
 
         void    draw();
 
@@ -243,16 +243,17 @@ class cImageGL : public cObjectGL
 
         void    setDimensions(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw);
 
-        void    ImageToTexture(QImage *image);
+        void    PrepareTexture(QImage *pImg);
+
+        void    ImageToTexture(QImage *pImg);
 
         GLuint* getTexture(){return &_texture;}
 
         //height and width of original data
-        QSize   sz() {return _size;}
+        int     width()  {return _size.width();}
+        int     height() {return _size.height();}
 
-        void    setSize(QSize aSz) {_size = aSz;}
-
-    private:
+private:
         GLfloat _originX;
         GLfloat _originY;
         GLfloat _glh;
