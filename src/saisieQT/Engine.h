@@ -51,22 +51,17 @@ public:
 	float m_speed;
 };
 
-
-
 struct selectInfos
 {
-    //! Ortho camera infos
-    ViewportParameters params;
-
     //! polyline infos
-    QVector <QPointF>  poly;
+    QVector <QPointF> poly;
 
     //! selection mode
     int         selection_mode;
 
-    GLdouble    _mvmatrix[16];
-    GLdouble    _projmatrix[16];
-    GLint       _glViewport[4];
+    GLdouble    mvmatrix[16];
+    GLdouble    projmatrix[16];
+    GLint       glViewport[4];
 };
 
 //! Selection mode
@@ -142,7 +137,7 @@ public:
     void        setEmptyImg(bool aBool){_bEmptyImg = aBool;}
     bool        isImgEmpty(){return _bEmptyImg;}
 
-    void        setEmptymask(bool aBool){_bEmptyMask = aBool;}
+    void        setEmptyMask(bool aBool){_bEmptyMask = aBool;}
     bool        isMaskEmpty(){return _bEmptyMask;}
 
     QImage*     getMask(){return pQMask;}
