@@ -1469,10 +1469,13 @@ void cAppliMICMAC::DoGPU_Correl
         OMP_NT1
         for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
         {
+            int rZ = abs(Z - anZ) * mNbIm;
             OMP_NT2
             for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )					// Mise en calque des projections pour chaque image
             {
 
+                //int   pitZ =
+                float2* pTproj = pTabProj + (rZ  +   aKIm )* sizSTabProj;
                 cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);			// Obtention de l'image courante
                 const cGeomImage*	aGeom	= aGLI.Geom();
                 int2 an;
@@ -1485,7 +1488,7 @@ void cAppliMICMAC::DoGPU_Correl
                         {
 
                             int2 r	= (an - zone.pt0)/sample;
-                            int iD	= (abs(Z - anZ) * mNbIm  +   aKIm )* sizSTabProj  + to1D(r,dimSTabProj);
+                            int iD	=  to1D(r,dimSTabProj);
 // 							int aZMin	= mTabZMin[an.y][an.x];int aZMax	= mTabZMax[an.y][an.x];if ((aGLI.IsVisible(an.x ,an.y )) /*&& (aZMin <= anZ)&&(anZ <=aZMax) */)
 
                             const double aZReel	= DequantZ(anZ);			// Dequantification  de X, Y et Z
@@ -1493,7 +1496,7 @@ void cAppliMICMAC::DoGPU_Correl
                             Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image
 
                             if (aGLI.IsOk( aPIm.x, aPIm.y ))
-                                pTabProj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
+                                pTproj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
 
                         }
                     }
@@ -1521,19 +1524,24 @@ void cAppliMICMAC::DoGPU_Correl
 
         OMP_NT1
         for (int anY = zone.pt0.y ; anY < (int)zone.pt1.y; anY++)
+        {
+            int pitY = rDiTer.x * (anY - zone.pt0.y);
             OMP_NT2
             for (int anX = zone.pt0.x ; anX <  (int)zone.pt1.x ; anX++)
             {
+                int pitXY = pitY + anX -  zone.pt0.x;
+                float *tCost =  tabCost + pitXY;
                 int anZ0 = max(z0,mTabZMin[anY][anX]);
                 int anZ1 = min(z1,mTabZMax[anY][anX]);
 
                 for (int anZ = anZ0;  anZ < anZ1 ; anZ++,mNbPointsIsole++)
                 {
-                    double cost = (double)tabCost[rSiTer * abs(anZ - (int)z0) + rDiTer.x * (anY - zone.pt0.y) + anX -  zone.pt0.x];
+                    double cost = (double)tCost[rSiTer * abs(anZ - (int)z0)];
                     mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : mAhDefCost);
                 }
 
             }
+        }
 #ifdef  NVTOOLS
 			nvtxRangePop();
 #endif
