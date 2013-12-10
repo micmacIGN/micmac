@@ -67,6 +67,8 @@ public:
 
   std::vector<cellules> &MaskVolumeBlock();
 
+  bool              NoMasked;
+
 private:
 
   void              CorrelationGpGpu(ushort idBuf = 0 , const int s = 0);
@@ -90,6 +92,8 @@ private:
   std::vector<cellules> _m_MaskVolumeBlock;
 
   bool              copyInvParam;
+
+
 };
 
 #endif

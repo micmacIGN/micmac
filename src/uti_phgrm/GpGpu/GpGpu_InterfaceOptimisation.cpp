@@ -56,7 +56,7 @@ void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort NBDir)
 
     //DUMP_UINT((uint)_D_data2Opt._m_DzMax)
 
-    _D_data2Opt._m_DzMax = NAPPEMAX;
+ //   _D_data2Opt._m_DzMax = NAPPEMAX;
 
 
     _preFinalCost1D.Fill(0);

@@ -53,7 +53,7 @@ struct CuHostDaPo3D
         ushort dZ   = abs(count(ptZ));
         _ptZ[pt]    = ptZ;
         _dZ[pt]     = dZ;
-        if(_maxDz < dZ) _maxDz = dZ;
+        //if(_maxDz < dZ) _maxDz = dZ;
         _pit[pt]    = _size;
         _size      += dZ;
     }
