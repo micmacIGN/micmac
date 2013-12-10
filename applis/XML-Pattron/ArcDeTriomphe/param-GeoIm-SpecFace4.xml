@@ -1,0 +1,209 @@
+<!-- 
+      Parametrage pour les points de liaison pour une triangulation.
+   Il s'agit de l'etape 0, elle doit etre suivie de 1, 2 et 3.
+   Cette etape 0 ne va que jusqu'a la resolution 16 et les 
+   les orientation exportees ne laisse libre que le cap.
+
+       Ce fichier a ete mis au point pour un vol drone heliporte.
+   Les valeus suivie d'un "#" en commentaire doivent etre modifiee
+   pour utilisation sur d'autre mission (terrestre, aerien ...)
+
+   #N : indique une modification numerique, une fois les valeurs 
+   fixees pour un type de chantier, il n'est pas necessaire de les
+   modifier pour un autre.
+
+   #S : indique une modification de nom;
+-->
+<ParamMICMAC 
+      Subst="@$#1"
+      NameDecl="@$#1"
+
+      NumImC="@xxx"
+      NumImVois="@x"
+      FOC="@xxx"
+      Prefix="@xxx"
+      Postix="@xxx"
+      Face="@xxx"
+      ZInc="@0"
+      SzW="@1"
+      ZRegul="@0.1"
+      PatternMasqIm="@PasDeMasqImage"
+      DynExport="@1.0"
+      NbB="16"
+>
+<Section_Terrain>  
+
+    <!--  
+
+4868|4878|4886  4876
+
+F100_IMG_4868_Face4_MpDcraw8B_GR.tif
+F100_IMG_4878_Face4_MpDcraw8B_GR.tif
+F100_IMG_4886_Face4_MpDcraw8B_GR.tif
+F100_IMG_4876_Face4_MpDcraw8B_GR.tif
+
+
+          ici 10 m c'est bcp pour un helico a 30 m.
+
+          Px2IncCalc : en pixel, c'est lie au defaut de mise en place
+     -->
+    
+    <IntervAltimetrie>
+        <ZIncCalc> 3.0   </ZIncCalc>    <!-- metres -->
+    </IntervAltimetrie>
+
+    <Planimetrie>
+          <MasqueTerrain >
+                  <MT_Image> F100_IMG_4876_Face4_MpDcraw8B_GR_Masq.tif    </MT_Image>
+                  <MT_Xml>   F100_IMG_4876_Face4_MpDcraw8B_GR_Masq.xml  </MT_Xml>
+          </MasqueTerrain>
+
+    </Planimetrie>
+</Section_Terrain>
+<!--  ************************************************************* 
+         Parametres lies a la prise de vue,
+         independamment de son exploitation
+         par le correlateur
+-->
+<Section_PriseDeVue >
+     <GeomImages> eGeomImageOri </GeomImages> 
+     <Images >  
+          <Im1 >    F100_IMG_4876_Face4_MpDcraw16B_GR.tif  </Im1>  
+          <ImPat >  F100_IMG_(4868|4878|4886)_Face4_MpDcraw16B_GR.tif  </ImPat>  
+     </Images>
+
+     <MasqImageIn>
+             <!-- En cas de match multiple, c'est le dernier qui compte -->
+             <OneMasqueImage>
+                <PatternSel>   (.*)16B_GR.tif  </PatternSel>
+                <NomMasq >     $18B_GR_Masq.tif </NomMasq>
+             </OneMasqueImage>
+     </MasqImageIn>
+
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>   Key-Assoc-16B-Im2Or8BFinale-2 </FCND_GeomCalc>  
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+
+</Section_PriseDeVue>
+<!--  *************************************************************
+       Parametres fixant le comportement
+     de l'algo de mise en correspondance
+-->
+<Section_MEC >
+	<ChantierFullImage1>  true </ChantierFullImage1>
+	<!-- 
+	     Etape 0, ne sera pas calculee, DeZoom vaut -1,
+	elle permet de donner des valeur par defaut aux autres
+	parametres
+	-->
+
+        <TypePyramImage>
+               <Resol>   2            </Resol>
+               <TypeEl>  eFloat32Bits </TypeEl>
+        </TypePyramImage>
+<!--
+         <IncludeFile> ${ThisDir}test.xml </IncludeFile>
+-->
+
+	<EtapeMEC>
+            <DeZoom >  -1             </DeZoom>
+	    <DynamiqueCorrel> eCoeffCorrelStd </DynamiqueCorrel>
+	    <AggregCorr> eAggregSymetrique </AggregCorr>
+
+            <SzW >       3               </SzW>
+            <ZRegul>     0.2  </ZRegul>
+
+
+	    <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+            <CoxRoy8Cnx> true </CoxRoy8Cnx>
+            <ModeInterpolation> eInterpolMPD </ModeInterpolation>
+
+	    <!-- <ZRegul_Quad> 0.1 </ZRegul_Quad>  -->
+	    <ZPas>   0.5     </ZPas>
+            <ZDilatAlti>  3  </ZDilatAlti>
+	    <ZDilatPlani> 4  </ZDilatPlani>
+
+            <SsResolOptim> 1 </SsResolOptim>
+            <CoxRoyUChar> false </CoxRoyUChar>
+
+            <!--  <Gen8Bits_Px1> true </Gen8Bits_Px1> -->
+
+            <ModulationProgDyn Portee="Globale">
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   5               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   10.0    </Px1PenteMax>
+            </ModulationProgDyn>
+            <GenImagesCorrel> true </GenImagesCorrel>
+	</EtapeMEC>
+
+	<EtapeMEC> <DeZoom >  32    </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  16    </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  8    </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  4    </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  2    </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  1    </DeZoom> </EtapeMEC>
+	<EtapeMEC> 
+	       <DeZoom >  1  </DeZoom> 
+	       <ZPas>   1.0     </ZPas>
+               <AlgoRegul> eAlgoDequant </AlgoRegul>
+        </EtapeMEC>
+<!--
+-->
+
+
+
+
+</Section_MEC>
+<!--  *************************************************************
+       Parametres fixant les resultats
+     devant etre produits par l'algo
+-->
+<Section_Results >
+
+
+
+    <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D </GeomMNT>
+    <DoMEC >  true </DoMEC> 
+    <ZoomMakeTA> 8 </ZoomMakeTA>
+    <GammaVisu> 2.0 </GammaVisu>
+    <ZoomVisuLiaison> -1 </ZoomVisuLiaison>
+    <!--
+    <DoNothingBut>
+	<ButDoOriMNT>  true </ButDoOriMNT>
+    </DoNothingBut>
+    -->
+    <!--
+    -->
+</Section_Results>
+<!--  *************************************************************
+       Parametres lies a la gestions
+     du "chantier" sur la machine
+-->
+<Section_WorkSpace >
+     <WorkDir >  ThisDir </WorkDir> 
+     <TmpMEC > GeoI-Spec-F4/ </TmpMEC>
+     <TmpPyr > Pyr-GeoI/ </TmpPyr>
+     <TmpResult > GeoI-Spec-F4/ </TmpResult>
+
+     <AvalaibleMemory> 1024 </AvalaibleMemory>
+     <SzDalleMin>  400 </SzDalleMin>
+     <SzDalleMax>  1000  </SzDalleMax>
+     <SzRecouvrtDalles> 100 </SzRecouvrtDalles>
+     <ByProcess> 2 </ByProcess>
+     <NomChantier> GeomIm-${NumImC} </NomChantier>
+     <FirstEtapeMEC> 0 </FirstEtapeMEC>
+
+     <FileExportApero2MM>  AttributFace4.xml </FileExportApero2MM>
+     <UseProfInVertLoc> false </UseProfInVertLoc>
+</Section_WorkSpace>
+
+<Section_Vrac> 
+</Section_Vrac>
+
+</ParamMICMAC>
+
