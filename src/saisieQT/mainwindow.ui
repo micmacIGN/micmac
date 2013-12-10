@@ -125,13 +125,13 @@ QStatusBar
      <string>Selection</string>
     </property>
     <addaction name="actionToggleMode"/>
-    <addaction name="actionUndo"/>
     <addaction name="actionAdd"/>
     <addaction name="actionRemove"/>
     <addaction name="actionSelectAll"/>
     <addaction name="actionSelect_none"/>
     <addaction name="actionReset"/>
     <addaction name="actionInvertSelected"/>
+    <addaction name="actionUndo"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuFile">
