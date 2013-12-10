@@ -7,7 +7,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     if ((argc>0)&&(std::string(argv[0]).find("SaisieQT")!= std::string::npos))
     {
         argv++;
-        argc = argc -1;
+        argc--;
     }
 
     Pt2di aSzW(800,800);
@@ -19,12 +19,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     SaisieAppuisInit(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, anOut, aNameAuto, aPrefix2Add, aForceGray);
 
-    MainWindow w;
-
-    w.setNbFen(QPoint(aNbFen.x, aNbFen.y));
-    w.setSzFen(QPoint(aSzW.x, aSzW.y));
-
-    w.resize( aSzW.x*aNbFen.x, aSzW.y*aNbFen.y );
+    MainWindow w(aSzW, aNbFen);
 
     w.show();
 

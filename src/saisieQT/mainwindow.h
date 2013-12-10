@@ -31,7 +31,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(bool mode2D = false, QWidget *parent = 0);
+     explicit MainWindow( Pt2di aSzW, Pt2di aNbFen, bool mode2D = false, QWidget *parent = 0 );
     ~MainWindow();
 
     //! Checks for loaded data
@@ -64,6 +64,8 @@ public slots:
     cEngine* getEngine(){return _Engine;}
 
 	void setGamma(float aGamma);
+
+    //void setCurrentWidget(int aK);
 
 protected slots:
 
@@ -127,7 +129,8 @@ private:
 
     Ui::MainWindow*         _ui;
 
-    GLWidget*               _glWidget;
+    QVector <GLWidget*>      _glWidgets;
+    GLWidget*                _glWidgetCur;
 
     cEngine*                _Engine;
 

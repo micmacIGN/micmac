@@ -19,15 +19,15 @@ class cObject
         virtual ~cObject();
 
 
-        Pt3dr   getPosition()   { return _position;  }
-        QColor  getColor()      { return _color;     }
-        float   getScale()      { return _scale;     }
-        bool    isVisible()     { return _bVisible;  }
+        Pt3dr   getPosition()   { return _position; }
+        QColor  getColor()      { return _color;    }
+        float   getScale()      { return _scale;    }
+        bool    isVisible()     { return _bVisible; }
 
-        void    setPosition(Pt3dr const &aPt)  { _position = aPt;   }
-        void    setColor(QColor const &aCol)   { _color = aCol;     }
-        void    setVisible(bool aVis)          { _bVisible = aVis;  }
-        void    setScale(float aScale)         { _scale = aScale;   }
+        void    setPosition(Pt3dr const &aPt)  { _position = aPt;  }
+        void    setColor(QColor const &aCol)   { _color = aCol;    }
+        void    setVisible(bool aVis)          { _bVisible = aVis; }
+        void    setScale(float aScale)         { _scale = aScale;  }
 
         cObject & operator = (const cObject &);
 
@@ -234,7 +234,7 @@ class cImageGL : public cObjectGL
 
         void    draw(QColor color);
 
-        void    bind_draw();
+        void    drawQuad();
 
         void    draw();
 
@@ -243,16 +243,17 @@ class cImageGL : public cObjectGL
 
         void    setDimensions(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw);
 
-        void    ImageToTexture(QImage *image);
+        void    PrepareTexture(QImage *pImg);
+
+        void    ImageToTexture(QImage *pImg);
 
         GLuint* getTexture(){return &_texture;}
 
         //height and width of original data
-        QSize   sz() {return _size;}
+        int     width()  {return _size.width();}
+        int     height() {return _size.height();}
 
-        void    setSize(QSize aSz) {_size = aSz;}
-
-    private:
+private:
         GLfloat _originX;
         GLfloat _originY;
         GLfloat _glh;
