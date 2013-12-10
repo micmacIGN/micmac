@@ -743,7 +743,7 @@ cImageGL::~cImageGL()
     }
 }
 
-void cImageGL::draw()
+void cImageGL::drawQuad()
 {
     glBegin(GL_QUADS);
     {
@@ -757,6 +757,23 @@ void cImageGL::draw()
         glVertex2f(_originX, _originY+_glh);
     }
     glEnd();
+}
+
+void cImageGL::draw()
+{
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture( GL_TEXTURE_2D, _texture );
+
+    drawQuad();
+
+    glBindTexture( GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
+}
+
+void cImageGL::draw(QColor color)
+{
+    glColor4f(color.redF(),color.greenF(),color.blueF(),color.alphaF());
+    drawQuad();
 }
 
 void cImageGL::setPosition(GLfloat originX, GLfloat originY)
@@ -779,26 +796,20 @@ void cImageGL::setDimensions(GLfloat originX, GLfloat originY, GLfloat glh, GLfl
     _glw = glw;
 }
 
-void cImageGL::draw(QColor color)
+void cImageGL::PrepareTexture(QImage * pImg)
 {
-    glColor4f(color.redF(),color.greenF(),color.blueF(),color.alphaF());
-    draw();
+    glGenTextures(1, getTexture() );
+
+    ImageToTexture(pImg);
+
+    _size = pImg->size();
 }
 
-void cImageGL::bind_draw()
+void cImageGL::ImageToTexture(QImage *pImg)
 {
     glEnable(GL_TEXTURE_2D);
-    glBindTexture( GL_TEXTURE_2D, _texture );
-    cout << "texture GL : " << _texture << endl;
-    draw();
-    glBindTexture( GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_2D);
-}
-
-void cImageGL::ImageToTexture(QImage *image)
-{
-    glBindTexture( GL_TEXTURE_2D, _texture );
-    glTexImage2D( GL_TEXTURE_2D, 0, 4, image->width(), image->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image->bits());
+    glBindTexture( GL_TEXTURE_2D, _texture );    
+    glTexImage2D( GL_TEXTURE_2D, 0, 4, pImg->width(), pImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pImg->bits());
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
     glBindTexture( GL_TEXTURE_2D, 0);

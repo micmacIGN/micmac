@@ -7,7 +7,7 @@ const float GL_MIN_ZOOM = 0.01f;
 using namespace Cloud_;
 using namespace std;
 
-GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent)
+GLWidget::GLWidget(QWidget *parent, const QGLWidget *shared) : QGLWidget(parent,shared)
   , m_rw(1.f)
   , m_rh(1.f)
   , m_font(font())
@@ -62,10 +62,12 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
     {
         QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
 
+        //emit setCurrentWidget(_idx);
+
         if(event->type() == QEvent::MouseMove)
         {
-            QPointF pos     = mouseEvent->localPos();
-            QPoint  posInt  = mouseEvent->pos();
+            QPointF pos    = mouseEvent->localPos();
+            QPoint  posInt = mouseEvent->pos();
 
             if (m_bDisplayMode2D)
             {
@@ -399,19 +401,20 @@ void GLWidget::paintGL()
 
             glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
             m_GLData->pImg->setDimensions(m_rh, m_rw);
+
             m_GLData->pImg->draw(QColor(255,255,255));
 
             if(m_GLData->pMask != NULL && !_g_mouseMiddleDown)
             {
                 m_GLData->pMask->setDimensions(m_rh, m_rw);
-                m_GLData->pMask->bind_draw();
+                m_GLData->pMask->draw();
                 glBlendFunc(GL_ONE,GL_ONE);
 
                 m_GLData->pMask->draw(QColor(128,128,128));
                 glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
             }
 
-            m_GLData->pImg->bind_draw();
+            m_GLData->pImg->draw();
 
             glPopMatrix();
 
@@ -430,8 +433,8 @@ void GLWidget::paintGL()
                 float px = m_lastMoveImage.x();
                 float py = m_lastMoveImage.y();
 
-                if  ((px>=0.f)&&(py>=0.f)&&(px<m_GLData->pImg->sz().width())&&(py<m_GLData->pImg->sz().height()))
-                    renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(px,'f',1) + ", " + QString::number(m_GLData->pImg->sz().height()-py,'f',1) + " px", m_font);
+                if  ((px>=0.f)&&(py>=0.f)&&(px<m_GLData->pImg->width())&&(py<m_GLData->pImg->height()))
+                    renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(px,'f',1) + ", " + QString::number(m_GLData->pImg->height()-py,'f',1) + " px", m_font);
             }
         }
         else if(m_GLData->is3D())
@@ -788,7 +791,7 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
             break;
         case SELECTION:
         {
-            if(m_GLData->isImgEmpty()) //3D
+            if(m_GLData->is3D()) //3D
                 setProjectionMatrix();
 
             if (showMessages())
@@ -881,8 +884,8 @@ void GLWidget::zoomFit()
     if (hasDataLoaded())
     {
         //width and height ratio between viewport and image
-        float rw = (float)m_GLData->pImg->sz().width()/ _glViewport[2];
-        float rh = (float)m_GLData->pImg->sz().height()/_glViewport[3];
+        float rw = (float)m_GLData->pImg->width()/ _glViewport[2];
+        float rh = (float)m_GLData->pImg->height()/_glViewport[3];
 
         if(rw>rh)
             setZoom(1.f/rw); //orientation landscape
@@ -1065,7 +1068,6 @@ void GLWidget::Select(int mode, bool saveInfos)
             QBrush SBrush(Qt::white);
             QBrush NSBrush(Qt::black);
 
-            //p.begin(_mask);
             p.begin(m_GLData->getMask());
             p.setCompositionMode(QPainter::CompositionMode_Source);
             p.setPen(Qt::NoPen);

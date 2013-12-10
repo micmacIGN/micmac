@@ -29,23 +29,22 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
 
     resize(_szFen.x(), _szFen.y());
 
-  //  _glWidget = new GLWidget(this);
-
     setMode2D(mode2D);
 
     _layout = new QGridLayout();
-   // _layout->addWidget(_glWidget);
 
     for (int aK = 0; aK < aNbFen.x;++aK)
     {
         for (int bK = 0; bK < aNbFen.y;++bK)
         {
-            GLWidget * pWidget = new GLWidget(this);
+            //GLWidget * pWidget = new GLWidget(this, aK == 0 && bK == 0? NULL : (const QGLWidget*)_glWidgets[0], aK*aNbFen.y + bK);
+            GLWidget * pWidget = new GLWidget(this, aK == 0 && bK == 0? NULL : (const QGLWidget*)_glWidgets[0]);
             _layout->addWidget(pWidget, bK, aK);
             _glWidgets.push_back(pWidget);
         }
     }
-    _signalMapper = new QSignalMapper (this) ;
+
+    _signalMapper = new QSignalMapper (this);
     connectActions();
     _ui->OpenglLayout->setLayout(_layout);
 
@@ -57,7 +56,6 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete _ui;
-    //delete _glWidget;
     for (int aK=0; aK < _glWidgets.size();++aK) delete _glWidgets[aK];
     _glWidgets.clear();
     delete _Engine;
@@ -72,6 +70,8 @@ void MainWindow::connectActions()
     for (int aK = 0; aK < _glWidgets.size();++aK)
     {
         connect(_glWidgets[aK],	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
+        connect(_glWidgets[aK], SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
+        //connect(_glWidgets[aK], SIGNAL(setCurrentWidget(int)),this,SLOT(setCurrentWidget(int)));
     }
 
     //File menu
@@ -100,9 +100,6 @@ void MainWindow::connectActions()
     _signalMapper->setMapping (_ui->action1_4_25, 25);
 
     connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
-
-    //Selection menu
-    //TODO: connect(_glWidget,SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
 }
 
 void MainWindow::createMenus()
@@ -530,12 +527,12 @@ void MainWindow::on_actionReset_view_triggered()
 //zoom
 void MainWindow::on_actionZoom_Plus_triggered()
 {
-    _glWidgetCur->setZoom(_glWidgetCur->getParams()->m_zoom*1.5f);
+    _glWidgetCur->setZoom(_glWidgetCur->getZoom()*1.5f);
 }
 
 void MainWindow::on_actionZoom_Moins_triggered()
 {
-    _glWidgetCur->setZoom(_glWidgetCur->getParams()->m_zoom/1.5f);
+    _glWidgetCur->setZoom(_glWidgetCur->getZoom()/1.5f);
 }
 
 void MainWindow::on_actionZoom_fit_triggered()
@@ -588,7 +585,6 @@ void MainWindow::on_actionLoad_image_triggered()
     }
 }
 
-
 void MainWindow::on_actionSave_masks_triggered()
 {
     if (_Engine->getData()->getNbImages())
@@ -629,12 +625,15 @@ void MainWindow::closeAll()
 {
     _Engine->unloadAll();
 
-    _glWidgetCur->reset();
-    _glWidgetCur->resetView();
+    for (int aK=0; aK < _glWidgets.size(); ++aK)
+    {
+        _glWidgets[aK]->reset();
+        _glWidgets[aK]->resetView();
 
-    checkForLoadedData();
+        checkForLoadedData();
 
-    _glWidgetCur->update();
+        _glWidgets[aK]->update();
+    }
 }
 
 void MainWindow::openRecentFile()
@@ -732,8 +731,13 @@ void MainWindow::on_action2D_3D_mode_triggered()
 void  MainWindow::setGamma(float aGamma)
 {
     _Engine->setGamma(aGamma);
-    //_glWidget->getParams()->setGamma(aGamma);
 }
+
+/*void MainWindow::setCurrentWidget(int aK)
+{
+    if (aK < _glWidgets.size())
+        _glWidgetCur = _glWidgets[aK];
+}*/
 
 
 

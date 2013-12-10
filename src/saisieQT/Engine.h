@@ -137,7 +137,7 @@ public:
     void        setEmptyImg(bool aBool){_bEmptyImg = aBool;}
     bool        isImgEmpty(){return _bEmptyImg;}
 
-    void        setEmptymask(bool aBool){_bEmptyMask = aBool;}
+    void        setEmptyMask(bool aBool){_bEmptyMask = aBool;}
     bool        isMaskEmpty(){return _bEmptyMask;}
 
     QImage*     getMask(){return pQMask;}
