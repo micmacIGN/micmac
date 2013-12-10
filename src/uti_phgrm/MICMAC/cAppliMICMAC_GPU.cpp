@@ -1526,9 +1526,8 @@ void cAppliMICMAC::DoGPU_Correl
             int pitY = rDiTer.x * (anY - zone.pt0.y);
             OMP_NT2
             for (int anX = zone.pt0.x ; anX <  (int)zone.pt1.x ; anX++)
-            {
-                int pitXY = pitY + anX -  zone.pt0.x;
-                float *tCost =  tabCost + pitXY;
+            {                
+                float *tCost =  tabCost + pitY + anX -  zone.pt0.x;
                 int anZ0 = max(z0,mTabZMin[anY][anX]);
                 int anZ1 = min(z1,mTabZMax[anY][anX]);
 
