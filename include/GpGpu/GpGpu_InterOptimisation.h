@@ -21,6 +21,11 @@ struct CuHostDaPo3D
     CuHostData3D<ushort>    _dZ;
     CuHostData3D<uint>      _pit;
     uint                    _size;
+    ushort                  _maxDz;
+
+    CuHostDaPo3D():
+        _maxDz(0)
+    {}
 
     void                    ReallocPt(uint2 dim)
     {
@@ -48,6 +53,7 @@ struct CuHostDaPo3D
         ushort dZ   = abs(count(ptZ));
         _ptZ[pt]    = ptZ;
         _dZ[pt]     = dZ;
+        if(_maxDz < dZ) _maxDz = dZ;
         _pit[pt]    = _size;
         _size      += dZ;
     }

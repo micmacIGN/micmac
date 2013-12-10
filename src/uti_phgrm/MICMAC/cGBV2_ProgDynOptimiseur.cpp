@@ -605,7 +605,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
             Pt2di aDirI = direction(aNbDir, aKPreDir);
 
-            uint nbLine = 0, sizeStreamLine, pitStream = NAPPEMAX, pitIdStream = WARPSIZE ;
+            uint nbLine = 0, sizeStreamLine, pitStream = IGpuOpt.DData2Opt()._m_DzMax, pitIdStream = WARPSIZE ;
 
             mLMR.Init(aDirI,Pt2di(0,0),mSz);
 
@@ -632,7 +632,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
             IGpuOpt.HData2Opt().SetNbLine(nbLine);
 
-            IGpuOpt.HData2Opt().ReallocInputIf(pitStream + NAPPEMAX,pitIdStream + WARPSIZE);
+            IGpuOpt.HData2Opt().ReallocInputIf(pitStream + IGpuOpt.DData2Opt()._m_DzMax,pitIdStream + WARPSIZE);
 
             copyCells_Mat2Stream(aDirI, IGpuOpt.HData2Opt(),IGpuOpt._poInitCost,idPreCo);
 
