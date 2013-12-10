@@ -309,7 +309,9 @@ void ReadLine_V02(
                 short2     *S_Bf_Index,
                 ushort     *ST_Bf_ICost,
                 uint       *S_FCost[2],
-                p_ReadLine &p
+                p_ReadLine &p,
+                ushort      sizeBuffer
+
 )
 {
     short2* ST_Bf_Index = S_Bf_Index + p.tid + (sens ? 0 : -WARPSIZE + 1);
@@ -331,7 +333,7 @@ void ReadLine_V02(
 
             while( z < dZ)
             {
-                if(p.ID_Bf_Icost >= NAPPEMAX) // VERIFIER si > ou >=
+                if(p.ID_Bf_Icost >= sizeBuffer) // VERIFIER si > ou >=
                 {
                     streamICost.read<sens>(ST_Bf_ICost);
                     streamFCost.incre<sens>();
@@ -348,13 +350,13 @@ void ReadLine_V02(
 
                 uint* prevFCost = S_FCost[p.Id_Buf] + sgn(pitPrZ);
 
-                ConeZ.y = min(NAPPEMAX - pitPrZ,ConeZ.y );
+                ConeZ.y = min(sizeBuffer - pitPrZ,ConeZ.y );
 
                 for (short i = ConeZ.x; i <= ConeZ.y; ++i)
                     fCostMin = min(fCostMin, costInit + prevFCost[i]);
 
                 const uint fcost =  fCostMin + (sens ? 0 : (streamFCost.GetValue(sgn(p.ID_Bf_Icost)) - costInit));
-                bool inside = tZ < dZ && p.ID_Bf_Icost +  p.stid<sens>() < NAPPEMAX && tZ < NAPPEMAX;
+                bool inside = tZ < dZ && p.ID_Bf_Icost +  p.stid<sens>() < sizeBuffer && tZ < sizeBuffer;
 
                 if(inside)
                 {
@@ -371,7 +373,7 @@ void ReadLine_V02(
 
                 const ushort pIdCost = p.ID_Bf_Icost;
                 p.ID_Bf_Icost       += min(dZ - z           , WARPSIZE);
-                z                   += min(NAPPEMAX-pIdCost , WARPSIZE);
+                z                   += min(sizeBuffer-pIdCost , WARPSIZE);
 
             }
 
@@ -401,14 +403,16 @@ void ReadLine_V02(
 }
 
 template<class T> __global__
-void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrParam, uint penteMax)
+void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrParam, uint penteMax, ushort sizeBuffer)
 {
-    __shared__ short2   S_BuffIndex[WARPSIZE];
-    __shared__ ushort   S_BuffICost0[NAPPEMAX + 2*WARPSIZE];
-    __shared__ uint     S_BuffFCost0[NAPPEMAX + 2*WARPSIZE];
-    __shared__ uint     S_BuffFCost1[NAPPEMAX + 2*WARPSIZE];
-    __shared__ uint     pit_Id;
-    __shared__ uint     pit_Stream;
+    extern __shared__ float sharedMemory[];
+
+    ushort*   S_BuffICost0 = (ushort*)sharedMemory;
+    uint*     S_BuffFCost0 = (uint*)&S_BuffICost0[sizeBuffer + 2*WARPSIZE];
+    uint*     S_BuffFCost1 = (uint*)&S_BuffFCost0[sizeBuffer + 2*WARPSIZE];
+    short2*   S_BuffIndex  = (short2*)&S_BuffFCost1[sizeBuffer + 2*WARPSIZE];
+    uint*     pit_Id       = (uint*)&S_BuffIndex[WARPSIZE];
+    uint*     pit_Stream   = pit_Id + 1;
 
     p_ReadLine p(threadIdx.x,penteMax);
 
@@ -417,8 +421,8 @@ void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
 
     if(!threadIdx.x)
     {
-        pit_Stream          = g_RecStrParam[blockIdx.x].x;
-        pit_Id              = g_RecStrParam[blockIdx.x].y;
+        *pit_Stream          = g_RecStrParam[blockIdx.x].x;
+        *pit_Id              = g_RecStrParam[blockIdx.x].y;
     }
 
     __syncthreads();
@@ -426,9 +430,9 @@ void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     p.line.lenght   = g_RecStrParam[blockIdx.x].z;
     p.seg.lenght    = min(p.line.LOver(),WARPSIZE);
 
-    SimpleStream<ushort>    streamICost(g_ICost + pit_Stream,NAPPEMAX);
-    SimpleStream<uint>      streamFCost(g_FCost + pit_Stream,NAPPEMAX);
-    SimpleStream<short2>    streamIndex(g_Index + pit_Id    ,WARPSIZE);
+    SimpleStream<ushort>    streamICost(g_ICost + *pit_Stream,sizeBuffer);
+    SimpleStream<uint>      streamFCost(g_FCost + *pit_Stream,sizeBuffer);
+    SimpleStream<short2>    streamIndex(g_Index + *pit_Id    ,WARPSIZE);
 
     streamICost.read<eAVANT>(S_BuffICost);
     streamIndex.read<eAVANT>(S_BuffIndex + p.tid);
@@ -442,34 +446,34 @@ void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
         streamFCost.SetValue(i,S_BuffICost[i]);
     }
 
-    ReadLine_V02<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,p);
+    ReadLine_V02<eAVANT>(streamIndex,streamFCost,streamICost,S_BuffIndex,S_BuffICost,S_BuffFCost,p,sizeBuffer);
 
     streamIndex.ReverseIncre<eARRIERE>();
     streamFCost.incre<eAVANT>();
     streamFCost.reverse<eARRIERE>();
 
-    S_BuffFCost[0]  += NAPPEMAX;
-    S_BuffFCost[1]  += NAPPEMAX;
-    S_BuffICost     += NAPPEMAX - WARPSIZE;
+    S_BuffFCost[0]  += sizeBuffer;
+    S_BuffFCost[1]  += sizeBuffer;
+    S_BuffICost     += sizeBuffer - WARPSIZE;
 
-    streamICost.readFrom<eARRIERE>(S_BuffFCost[p.Id_Buf] + p.tid, NAPPEMAX - p.ID_Bf_Icost);
+    streamICost.readFrom<eARRIERE>(S_BuffFCost[p.Id_Buf] + p.tid, sizeBuffer - p.ID_Bf_Icost);
     streamICost.ReverseIncre<eARRIERE>();
 
     p.reverse(S_BuffIndex);
 
     if(p.ID_Bf_Icost > NAPPEMAX)
     {
-        p.ID_Bf_Icost -= NAPPEMAX;
+        p.ID_Bf_Icost -= sizeBuffer;
         streamICost.read<eARRIERE>(S_BuffICost);
         streamFCost.incre<eARRIERE>();
     }
 
     uint* locFCost = S_BuffFCost[p.Id_Buf] - p.stid<eARRIERE>();
 
-    for (ushort i = 0; i < NAPPEMAX; i+=WARPSIZE)
+    for (ushort i = 0; i < sizeBuffer; i+=WARPSIZE)
         locFCost[-i] = S_BuffICost[-i];
 
-    ReadLine_V02<eARRIERE>( streamIndex,streamFCost,streamICost,S_BuffIndex + WARPSIZE - 1,S_BuffICost,S_BuffFCost,p);
+    ReadLine_V02<eARRIERE>( streamIndex,streamFCost,streamICost,S_BuffIndex + WARPSIZE - 1,S_BuffICost,S_BuffFCost,p,sizeBuffer);
 }
 
 extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O)
@@ -477,14 +481,16 @@ extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O)
     uint deltaMax = 3;
     dim3 Threads(WARPSIZE,1,1);
     dim3 Blocks(d2O.NBlines(),1,1);
+    ushort sizeBuff = NAPPEMAX;
 
-    Run_V02< uint ><<<Blocks,Threads>>>
+    Run_V02< uint ><<<Blocks,Threads, (sizeof(ushort)+sizeof(uint)*2)*(sizeBuff + 2 * WARPSIZE) + sizeof(short2)*WARPSIZE + 2 * sizeof(uint)>>>
                                   (
                                       d2O.pInitCost(),
                                       d2O.pIndex(),
                                       d2O.pForceCostVol(),
                                       d2O.pParam(),
-                                      deltaMax
+                                      deltaMax,
+                                      sizeBuff
                                       );
     getLastCudaError("TestkernelOptiOneDirection failed");
 }

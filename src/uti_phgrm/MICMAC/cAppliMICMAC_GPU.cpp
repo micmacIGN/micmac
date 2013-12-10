@@ -1473,8 +1473,6 @@ void cAppliMICMAC::DoGPU_Correl
             OMP_NT2
             for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )					// Mise en calque des projections pour chaque image
             {
-
-                //int   pitZ =
                 float2* pTproj = pTabProj + (rZ  +   aKIm )* sizSTabProj;
                 cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);			// Obtention de l'image courante
                 const cGeomImage*	aGeom	= aGLI.Geom();
