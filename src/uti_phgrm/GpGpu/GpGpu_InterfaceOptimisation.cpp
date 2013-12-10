@@ -48,6 +48,17 @@ void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort NBDir)
     _H_data2Opt.ReallocParam(size);
     _D_data2Opt.ReallocParam(size);
 
+//    _D_data2Opt._m_DzMax = iDivUp32(_poInitCost._maxDz) << 5;
+
+//    _D_data2Opt._m_DzMax = _D_data2Opt._m_DzMax < NAPPEMAX ? NAPPEMAX : _D_data2Opt._m_DzMax;
+
+//    if (_D_data2Opt._m_DzMax > 4 * NAPPEMAX) _D_data2Opt._m_DzMax = 4 * NAPPEMAX;
+
+    //DUMP_UINT((uint)_D_data2Opt._m_DzMax)
+
+    _D_data2Opt._m_DzMax = NAPPEMAX;
+
+
     _preFinalCost1D.Fill(0);
 
     SetPreComp(true);

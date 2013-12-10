@@ -459,7 +459,7 @@ void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     streamICost.readFrom<eARRIERE>(S_BuffFCost[p.Id_Buf] + p.tid, sizeBuffer - p.ID_Bf_Icost);
     streamICost.ReverseIncre<eARRIERE>();
 
-    p.reverse(S_BuffIndex);
+    p.reverse(S_BuffIndex,sizeBuffer);
 
     if(p.ID_Bf_Icost > NAPPEMAX)
     {
@@ -481,9 +481,10 @@ extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O)
     uint deltaMax = 3;
     dim3 Threads(WARPSIZE,1,1);
     dim3 Blocks(d2O.NBlines(),1,1);
-    ushort sizeBuff = NAPPEMAX;
+    ushort sizeBuff = d2O._m_DzMax ;
+    uint   sizeSharedMemory = (sizeof(ushort)+sizeof(uint)*2)*(sizeBuff + 2 * WARPSIZE) + sizeof(short2)*WARPSIZE + 2 * sizeof(uint);
 
-    Run_V02< uint ><<<Blocks,Threads, (sizeof(ushort)+sizeof(uint)*2)*(sizeBuff + 2 * WARPSIZE) + sizeof(short2)*WARPSIZE + 2 * sizeof(uint)>>>
+    Run_V02< uint ><<<Blocks,Threads,sizeSharedMemory>>>
                                   (
                                       d2O.pInitCost(),
                                       d2O.pIndex(),
