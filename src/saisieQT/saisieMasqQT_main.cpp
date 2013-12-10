@@ -7,11 +7,12 @@ int saisieMasqQT_main(QApplication &app)
     Pt2di NbFen(1,1);
     Pt2di SzWin(800,600);
 
-    MainWindow w(NbFen, SzWin);
+    MainWindow w(SzWin, NbFen);
 
     QStringList cmdline_args = QCoreApplication::arguments();
     QString str;
 
+    cout << "args : " << cmdline_args.size() << endl;
     if (cmdline_args.size() > 1)
     {
         cmdline_args.pop_front();
