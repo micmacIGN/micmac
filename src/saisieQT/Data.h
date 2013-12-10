@@ -32,10 +32,10 @@ class cData
         int getNbImages()  {return _Images.size(); }
         int getNbMasks()   {return _Masks.size();  }
 
-        CamStenope *   getCamera(int aK) {return aK < (int)_Cameras.size() ?_Cameras[aK] : NULL;}
-        Cloud *        getCloud(int aK)  {return aK < (int)_Clouds.size() ?_Clouds[aK] : NULL;  }
-        QImage *       getImage(int aK)  {return aK < (int)_Images.size() ?_Images[aK] : NULL;  }
-        QImage *       getMask(int aK)   {return aK < (int)_Masks.size() ?_Masks[aK] : NULL;    }
+        CamStenope *   getCamera(int aK) {return aK < (int)_Cameras.size() ? _Cameras[aK] : NULL;}
+        Cloud *        getCloud(int aK)  {return aK < (int)_Clouds.size() ? _Clouds[aK] : NULL;  }
+        QImage *       getImage(int aK)  {return aK < (int)_Images.size() ? _Images[aK] : NULL;  }
+        QImage *       getMask(int aK)   {return aK < (int)_Masks.size() ? _Masks[aK] : NULL;    }
         QImage *       getCurMask()      {return _Masks[getNbMasks()-1];}
 
         void    fillMask(int aK){getMask(aK)->fill(Qt::white);}
