@@ -293,7 +293,6 @@ void Egal_field_correct_ite(string aDir,std::vector<std::string> * aSetIm, cl_Ma
 //truc à iterer--------------------------------------------------------------------------------------------------------------------------------------
 for(int iter=0;iter<nbIte;iter++){
 	cout<<"Pass "<<iter+1<<" out of "<< nbIte<<endl;
-	int nbPts=0;
 
 	//Filtering the tie points
 	aMatPtsHomol = TiePtsFilter(aMatPtsHomol, aThresh);
