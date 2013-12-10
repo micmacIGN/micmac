@@ -768,9 +768,6 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                     {
                         ushort dZ = abs((int)count(mZ));
 
-
-                        ushort oldSize = (ushort)vCellules.size();
-
                         if(mZMaxGlob == -1e7)
                             vCellules.resize(dZ,MAXIRECT);
                         else
