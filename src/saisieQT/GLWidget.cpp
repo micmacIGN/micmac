@@ -1,5 +1,7 @@
 #include "GLWidget.h"
 
+#include "GLWidgetSet.h"
+
 //Min and max zoom ratio (relative)
 const float GL_MAX_ZOOM = 50.f;
 const float GL_MIN_ZOOM = 0.01f;
@@ -7,7 +9,7 @@ const float GL_MIN_ZOOM = 0.01f;
 using namespace Cloud_;
 using namespace std;
 
-GLWidget::GLWidget(QWidget *parent, const QGLWidget *shared) : QGLWidget(parent,shared)
+GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLWidget(NULL,shared)
   , m_rw(1.f)
   , m_rh(1.f)
   , m_font(font())
@@ -25,6 +27,8 @@ GLWidget::GLWidget(QWidget *parent, const QGLWidget *shared) : QGLWidget(parent,
   , _g_mouseMiddleDown(false)
   , _g_mouseRightDown(false)
   , _bDataLoaded(false)
+  , _idx(idx)
+  , _parentSet(theSet)
 {
     resetRotationMatrix();
 
@@ -62,7 +66,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
     {
         QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
 
-        //emit setCurrentWidget(_idx);
+        _parentSet->setCurrentWidget(_idx);
 
         if(event->type() == QEvent::MouseMove)
         {
@@ -348,6 +352,12 @@ void GLWidget::disableOptionLine()
 void GLWidget::setGLData(cGLData * aData)
 {
     m_GLData = aData;
+}
+
+void GLWidget::setBackgroundColors(const QColor &col0, const QColor &col1)
+{
+    _BGColor0 = col0;
+    _BGColor1 = col1;
 }
 
 void GLWidget::paintGL()
@@ -702,7 +712,7 @@ void GLWidget::drawGradientBackground()
     int h = (_glViewport[3]>>1)+1;
     glOrtho(-w,w,-h,h,-2.f, 2.f);
 
-    const uchar BkgColor[3] = {(uchar) colorBG0.red(),(uchar) colorBG0.green(), (uchar) colorBG0.blue()};
+    const uchar BkgColor[3] = {(uchar) _BGColor0.red(),(uchar) _BGColor0.green(), (uchar) _BGColor0.blue()};
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     //Gradient "texture" drawing
@@ -712,7 +722,7 @@ void GLWidget::drawGradientBackground()
     glVertex2f(-w,h);
     glVertex2f(w,h);
     //and the inverse of points color for gradient end
-    glColor3ub(colorBG1.red(),colorBG1.green(),colorBG1.blue());
+    glColor3ub(_BGColor1.red(),_BGColor1.green(),_BGColor1.blue());
     glVertex2f(w,-h);
     glVertex2f(-w,-h);
     glEnd();

@@ -23,9 +23,11 @@
 #include "Data.h"
 #include "Engine.h"
 #include "3DTools.h"
-#include "mainwindow.h"
+
 
 #include "3DObject.h"
+
+class GLWidgetSet;
 
 //! View orientation
 enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
@@ -43,7 +45,7 @@ class GLWidget : public QGLWidget
 public:
 
     //! Default constructor
-    GLWidget(QWidget *parent = NULL, const QGLWidget *shared = NULL);
+    GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared);
 
     //! Destructor
     ~GLWidget();
@@ -153,6 +155,8 @@ public:
     void setGLData(cGLData* aData);
     cGLData* getGLData(){return m_GLData;}
 
+    void setBackgroundColors(QColor const &col0, QColor const &col1);
+
 public slots:
     void zoom();
 
@@ -165,8 +169,6 @@ signals:
     void filesDropped(const QStringList& filenames);
 
     void selectedPoint(uint idCloud, uint idVertex,bool selected);
-
-    void setCurrentWidget(int aK);
 
 protected:
     void resizeGL(int w, int h);
@@ -272,6 +274,11 @@ private:
 
     bool        _bDataLoaded;
     int         _idx;
+
+    GLWidgetSet* _parentSet;
+
+    QColor      _BGColor0;
+    QColor      _BGColor1;
 };
 
 #endif  /* _GLWIDGET_H */

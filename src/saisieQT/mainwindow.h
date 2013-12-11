@@ -14,10 +14,8 @@
 #include <QSignalMapper>
 #include <QGridLayout>
 
-#include "GLWidget.h"
 #include "Engine.h"
-
-class GLWidget;
+#include "GLWidgetSet.h"
 
 namespace Ui {
 class MainWindow;
@@ -26,12 +24,14 @@ class MainWindow;
 const QColor colorBG0(65,65,60);
 const QColor colorBG1(120,115,115);
 
-class MainWindow : public QMainWindow
+
+
+class MainWindow : public QMainWindow, public GLWidgetSet
 {
     Q_OBJECT
 
 public:
-     explicit MainWindow( Pt2di aSzW, Pt2di aNbFen, bool mode2D = false, QWidget *parent = 0 );
+    explicit MainWindow( Pt2di aSzW, Pt2di aNbFen, bool mode2D = false, QWidget *parent = 0 );
     ~MainWindow();
 
     //! Checks for loaded data
@@ -64,8 +64,6 @@ public slots:
     cEngine* getEngine(){return _Engine;}
 
 	void setGamma(float aGamma);
-
-    //void setCurrentWidget(int aK);
 
 protected slots:
 
@@ -118,7 +116,6 @@ protected:
     void connectActions();  
 
 private:
-
     void                    createMenus();
 
     void                    setCurrentFile(const QString &fileName);
@@ -128,9 +125,6 @@ private:
     int *                   _incre;
 
     Ui::MainWindow*         _ui;
-
-    QVector <GLWidget*>      _glWidgets;
-    GLWidget*                _glWidgetCur;
 
     cEngine*                _Engine;
 
