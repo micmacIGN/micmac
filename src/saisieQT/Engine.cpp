@@ -357,14 +357,14 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
 
         selectInfos SInfo = Infos[i];
 
-        t = doc.createTextNode(QString::number(SInfo.params.m_zoom));
+        /*t = doc.createTextNode(QString::number(SInfo.params.m_zoom));
         Scale.appendChild(t);
 
         t = doc.createTextNode(QString::number(SInfo.params.m_angleX) + " " + QString::number(SInfo.params.m_angleY) + " " + QString::number(SInfo.params.m_angleZ));
         Rotation.appendChild(t);
 
         t = doc.createTextNode(QString::number(SInfo.params.m_translationMatrix[0]) + " " + QString::number(SInfo.params.m_translationMatrix[1]) + " " + QString::number(SInfo.params.m_translationMatrix[2]));
-        Translation.appendChild(t);
+        Translation.appendChild(t);*/
 
         SII.appendChild(Scale);
         SII.appendChild(Rotation);
@@ -427,30 +427,24 @@ void cEngine::setGLData()
     {
         cGLData *theData = new cGLData();
 
-        if (_Data->getNbMasks()>aK)
+        if(_Data->getMask(aK) != NULL)
         {
-            if(_Data->getMask(aK) == NULL)
-                glGenTextures(1, theData->pMask->getTexture() );   
-            theData->setEmptymask(false);
-
-            theData->pMask->ImageToTexture(_Data->getMask(aK));
+            theData->setEmptyMask(false);
 
             theData->pQMask = _Data->getMask(aK);
         }
-        else if (_Data->getNbMasks() == 0)
+        else
         {
             theData->pQMask = new QImage(_Data->getImage(aK)->size(),QImage::Format_Mono);
+            *theData->pQMask = QGLWidget::convertToGLFormat( *theData->pQMask );
             _Data->addMask(theData->pQMask);
             _Data->fillMask(aK);
-            theData->setEmptymask(true);
         }
 
-         glGenTextures(1, theData->pImg->getTexture());
+        theData->pMask->PrepareTexture(_Data->getMask(aK));
+        theData->pImg->PrepareTexture(_Data->getImage(aK));
 
-         theData->pImg->ImageToTexture(_Data->getImage(aK));
-         theData->setEmptyImg(false);
-
-         theData->pImg->setSize(_Data->getImage(aK)->size());
+        theData->setEmptyImg(false);
 
         _vGLData.push_back(theData);
     }
