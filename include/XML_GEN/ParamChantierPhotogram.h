@@ -254,7 +254,8 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModelesCalibUnif & an
 typedef enum
 {
   eProjStenope,
-  eProjOrthographique
+  eProjOrthographique,
+  eProjGrid
 } eTypeProjectionCam;
 void xml_init(eTypeProjectionCam & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeProjectionCam & aVal);
@@ -2282,12 +2283,12 @@ cElXMLTree * ToXMLTree(const cOrientationExterneRigide &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-class cOrientationFile
+class cModuleOrientationFile
 {
     public:
         cGlobXmlGen mGXml;
 
-        friend void xml_init(cOrientationFile & anObj,cElXMLTree * aTree);
+        friend void xml_init(cModuleOrientationFile & anObj,cElXMLTree * aTree);
 
 
         std::string & NameFileOri();
@@ -2295,7 +2296,7 @@ class cOrientationFile
     private:
         std::string mNameFileOri;
 };
-cElXMLTree * ToXMLTree(const cOrientationFile &);
+cElXMLTree * ToXMLTree(const cModuleOrientationFile &);
 
 /******************************************************/
 /******************************************************/
@@ -2407,8 +2408,8 @@ class cOrientationConique
         std::string & NameFileOri();
         const std::string & NameFileOri()const ;
 
-        cTplValGesInit< cOrientationFile > & OrientationFile();
-        const cTplValGesInit< cOrientationFile > & OrientationFile()const ;
+        cTplValGesInit< cModuleOrientationFile > & ModuleOrientationFile();
+        const cTplValGesInit< cModuleOrientationFile > & ModuleOrientationFile()const ;
 
         cTplValGesInit< cAffinitePlane > & OrIntImaM2C();
         const cTplValGesInit< cAffinitePlane > & OrIntImaM2C()const ;
@@ -2467,7 +2468,7 @@ class cOrientationConique
         cConvOri & ConvOri();
         const cConvOri & ConvOri()const ;
     private:
-        cTplValGesInit< cOrientationFile > mOrientationFile;
+        cTplValGesInit< cModuleOrientationFile > mModuleOrientationFile;
         cTplValGesInit< cAffinitePlane > mOrIntImaM2C;
         cTplValGesInit< eTypeProjectionCam > mTypeProj;
         cTplValGesInit< cCalibrationInternConique > mInterne;

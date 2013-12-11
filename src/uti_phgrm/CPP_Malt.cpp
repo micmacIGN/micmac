@@ -336,6 +336,14 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   double aSomZM = 0;
   int    aNbZM = 0;
 
+
+  if (mNbIm < mNbMinIV)
+  {
+      std::cout << "For Nb Im = " << mNbIm << " NbVI= " << mNbMinIV << "\n";
+      ELISE_ASSERT(false,"Nb image is < to min visible image ...");
+  }
+
+
   if (! mModePB)
   {
      for (int aKIm = 0; aKIm<mNbIm ; aKIm++)
