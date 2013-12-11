@@ -436,6 +436,7 @@ void cEngine::setGLData()
         else
         {
             theData->pQMask = new QImage(_Data->getImage(aK)->size(),QImage::Format_Mono);
+            *theData->pQMask = QGLWidget::convertToGLFormat( *theData->pQMask );
             _Data->addMask(theData->pQMask);
             _Data->fillMask(aK);
         }
