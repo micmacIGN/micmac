@@ -4,7 +4,10 @@ int saisieMasqQT_main(QApplication &app)
 {
     app.setApplicationName("SaisieMasqQT");
 
-    MainWindow w;
+    Pt2di NbFen(1,1);
+    Pt2di SzWin(800,600);
+
+    MainWindow w(SzWin, NbFen);
 
     QStringList cmdline_args = QCoreApplication::arguments();
     QString str;

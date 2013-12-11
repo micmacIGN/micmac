@@ -7,7 +7,7 @@ const float GL_MIN_ZOOM = 0.01f;
 using namespace Cloud_;
 using namespace std;
 
-GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent)
+GLWidget::GLWidget(QWidget *parent, const QGLWidget *shared) : QGLWidget(parent,shared)
   , m_rw(1.f)
   , m_rh(1.f)
   , m_font(font())
@@ -62,10 +62,12 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
     {
         QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
 
+        //emit setCurrentWidget(_idx);
+
         if(event->type() == QEvent::MouseMove)
         {
-            QPointF pos     = mouseEvent->localPos();
-            QPoint  posInt  = mouseEvent->pos();
+            QPointF pos    = mouseEvent->localPos();
+            QPoint  posInt = mouseEvent->pos();
 
             if (m_bDisplayMode2D)
             {
@@ -181,16 +183,14 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
 
                 if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
                 {
-                    if (hasDataLoaded())
+                    if(!m_GLData->m_polygon.isClosed())        // add point to polygon
                     {
-                        if(!m_GLData->m_polygon.isClosed())        // add point to polygon
-                        {
-                            if (m_GLData->m_polygon.size() >= 1)
-                                m_GLData->m_polygon[m_GLData->m_polygon.size()-1] = m_lastPosImage;
+                        if (m_GLData->m_polygon.size() >= 1)
+                            m_GLData->m_polygon[m_GLData->m_polygon.size()-1] = m_lastPosImage;
 
-                            m_GLData->m_polygon.add(m_lastPosImage);
-                        }
-                        else // modify polygon (insert or move vertex)
+                        m_GLData->m_polygon.add(m_lastPosImage);
+                    }
+                    else // modify polygon (insert or move vertex)
                         {
                             if (mouseEvent->modifiers().testFlag(Qt::ShiftModifier))
                             {
@@ -210,8 +210,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                             }
                             else if (m_GLData->m_polygon.idx() != -1)
                                 m_GLData->m_polygon.clicked();
-                        }
-                    }
+                     }
                 }
             }
             else if (mouseEvent->button() == Qt::RightButton)
@@ -402,19 +401,20 @@ void GLWidget::paintGL()
 
             glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
             m_GLData->pImg->setDimensions(m_rh, m_rw);
+
             m_GLData->pImg->draw(QColor(255,255,255));
 
             if(m_GLData->pMask != NULL && !_g_mouseMiddleDown)
             {
                 m_GLData->pMask->setDimensions(m_rh, m_rw);
-                m_GLData->pMask->bind_draw();
+                m_GLData->pMask->draw();
                 glBlendFunc(GL_ONE,GL_ONE);
 
                 m_GLData->pMask->draw(QColor(128,128,128));
                 glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
             }
 
-            m_GLData->pImg->bind_draw();
+            m_GLData->pImg->draw();
 
             glPopMatrix();
 
@@ -433,8 +433,8 @@ void GLWidget::paintGL()
                 float px = m_lastMoveImage.x();
                 float py = m_lastMoveImage.y();
 
-                if  ((px>=0.f)&&(py>=0.f)&&(px<m_GLData->pImg->sz().width())&&(py<m_GLData->pImg->sz().height()))
-                    renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(px,'f',1) + ", " + QString::number(m_GLData->pImg->sz().height()-py,'f',1) + " px", m_font);
+                if  ((px>=0.f)&&(py>=0.f)&&(px<m_GLData->pImg->width())&&(py<m_GLData->pImg->height()))
+                    renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(px,'f',1) + ", " + QString::number(m_GLData->pImg->height()-py,'f',1) + " px", m_font);
             }
         }
         else if(m_GLData->is3D())
@@ -596,39 +596,41 @@ void GLWidget::updateAfterSetData()
 
 void GLWidget::updateAfterSetData(bool doZoom)
 {
-    clearPolyline();
-
-    if (m_GLData->is3D())
+    if (m_GLData != NULL)
     {
-        m_bDisplayMode2D = false;
+        clearPolyline();
 
-        if (doZoom) setZoom(m_GLData->getScale());
+        if (m_GLData->is3D())
+        {
+            m_bDisplayMode2D = false;
 
-        resetTranslationMatrix();
+            if (doZoom) setZoom(m_GLData->getScale());
+
+            resetTranslationMatrix();
+        }
+
+        if (!m_GLData->isImgEmpty())
+        {
+            m_bDisplayMode2D = true;
+
+            if (doZoom) zoomFit();
+
+            //position de l'image dans la vue gl
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+
+            glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
+
+            if (m_GLData->isMaskEmpty())
+                m_bFirstAction = true;
+            else
+                m_bFirstAction = false;
+        }
+
+        glGetIntegerv (GL_VIEWPORT, _glViewport);
+
+        update();
     }
-
-    if (!m_GLData->isImgEmpty())
-    {
-//        cout << "image" << endl;
-        m_bDisplayMode2D = true;
-
-        if (doZoom) zoomFit();
-
-        //position de l'image dans la vue gl
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-
-        glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
-
-        if (m_GLData->isMaskEmpty())
-            m_bFirstAction = true;
-        else
-            m_bFirstAction = false;
-    }
-
-    glGetIntegerv (GL_VIEWPORT, _glViewport);
-
-    update();
 }
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -757,14 +759,17 @@ void GLWidget::drawPolygon()
 // zoom in 3D mode
 void GLWidget::zoom()
 {
-    GLdouble zoom = m_params.m_zoom;
+    if (m_GLData != NULL)
+    {
+        GLdouble zoom = m_params.m_zoom;
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
 
-    glOrtho(-zoom*m_glRatio,zoom*m_glRatio,-zoom, zoom,-2.f*m_GLData->getScale(), 2.f*m_GLData->getScale());
+        glOrtho(-zoom*m_glRatio,zoom*m_glRatio,-zoom, zoom,-2.f*m_GLData->getScale(), 2.f*m_GLData->getScale());
 
-    glMatrixMode(GL_MODELVIEW);
+        glMatrixMode(GL_MODELVIEW);
+    }
 }
 
 void GLWidget::setInteractionMode(INTERACTION_MODE mode)
@@ -786,7 +791,7 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
             break;
         case SELECTION:
         {
-            if(m_GLData->isImgEmpty()) //3D
+            if(m_GLData->is3D()) //3D
                 setProjectionMatrix();
 
             if (showMessages())
@@ -879,8 +884,8 @@ void GLWidget::zoomFit()
     if (hasDataLoaded())
     {
         //width and height ratio between viewport and image
-        float rw = (float)m_GLData->pImg->sz().width()/ _glViewport[2];
-        float rh = (float)m_GLData->pImg->sz().height()/_glViewport[3];
+        float rw = (float)m_GLData->pImg->width()/ _glViewport[2];
+        float rh = (float)m_GLData->pImg->height()/_glViewport[3];
 
         if(rw>rh)
             setZoom(1.f/rw); //orientation landscape
@@ -1063,7 +1068,6 @@ void GLWidget::Select(int mode, bool saveInfos)
             QBrush SBrush(Qt::white);
             QBrush NSBrush(Qt::black);
 
-            //p.begin(_mask);
             p.begin(m_GLData->getMask());
             p.setCompositionMode(QPainter::CompositionMode_Source);
             p.setPen(Qt::NoPen);
@@ -1148,16 +1152,16 @@ void GLWidget::Select(int mode, bool saveInfos)
         if (saveInfos)
         {
             selectInfos info;
-            info.params = m_params;
+            //info.params = m_params;
             info.poly   = m_GLData->m_polygon.getVector();
             info.selection_mode   = mode;
 
             for (int aK=0; aK<4; ++aK)
-                info._glViewport[aK] = _glViewport[aK];
+                info.glViewport[aK] = _glViewport[aK];
             for (int aK=0; aK<16; ++aK)
             {
-                info._mvmatrix[aK] = _mvmatrix[aK];
-                info._projmatrix[aK] = _projmatrix[aK];
+                info.mvmatrix[aK] = _mvmatrix[aK];
+                info.projmatrix[aK] = _projmatrix[aK];
             }
 
             m_infos.push_back(info);
@@ -1181,7 +1185,7 @@ void GLWidget::clearPolyline()
 
 void GLWidget::undo()
 {
-    if (m_infos.size())
+    if (m_infos.size() && hasDataLoaded())
     {
         if (!m_bDisplayMode2D)
             Select(ALL, false);
@@ -1195,9 +1199,9 @@ void GLWidget::undo()
 
             if (!m_bDisplayMode2D)
             {
-                for (int bK=0; bK<16;++bK) _mvmatrix[bK]   = m_infos[aK]._mvmatrix[bK];
-                for (int bK=0; bK<16;++bK) _projmatrix[bK] = m_infos[aK]._projmatrix[bK];
-                for (int bK=0; bK<4;++bK)  _glViewport[bK] = m_infos[aK]._glViewport[bK];
+                for (int bK=0; bK<16;++bK) _mvmatrix[bK]   = m_infos[aK].mvmatrix[bK];
+                for (int bK=0; bK<16;++bK) _projmatrix[bK] = m_infos[aK].projmatrix[bK];
+                for (int bK=0; bK<4;++bK)  _glViewport[bK] = m_infos[aK].glViewport[bK];
 
                 if (aK==0) m_bFirstAction = true;
                 else m_bFirstAction = false;
@@ -1214,7 +1218,6 @@ void GLWidget::showAxis(bool show)
 {
     if (hasDataLoaded())
         m_GLData->pAxis->setVisible(show);
-
     update();
 }
 
@@ -1222,7 +1225,6 @@ void GLWidget::showBall(bool show)
 {
     if (hasDataLoaded())
         m_GLData->pBall->setVisible(show);
-
     update();
 }
 

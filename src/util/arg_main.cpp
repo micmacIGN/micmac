@@ -456,12 +456,13 @@ std::vector<char *>  	ElInitArgMain
 
 
 	aRes.push_back(argv[0]);
+
 	argc--;
 	argv++;
 
 	bool Help = false;
 
-// std::cout << "ARGCCCC " << argc << " " <<  LGlob.Size() << "\n";
+ //std::cout << "ARGCCCC " << argc << " " <<  LGlob.Size() << endl;
 	if ((argc==0) && ( LGlob.Size() !=0)) Help = true;
 	for (int aK=0 ; aK<argc ; aK++)
 	{
@@ -485,6 +486,7 @@ std::vector<char *>  	ElInitArgMain
 	}
 
 	INT k = LGlob.Init(argc,argv);
+
 	if (aNbArgGlobGlob !=-1)
 	{
 		ELISE_ASSERT(k<=aNbArgGlobGlob," ElInitArgMain ArgGlob");
