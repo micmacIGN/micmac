@@ -12,7 +12,6 @@ int saisieMasqQT_main(QApplication &app)
     QStringList cmdline_args = QCoreApplication::arguments();
     QString str;
 
-    cout << "args : " << cmdline_args.size() << endl;
     if (cmdline_args.size() > 1)
     {
         cmdline_args.pop_front();
