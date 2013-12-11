@@ -1,0 +1,27 @@
+Apero-0-Split-Hom.xml :
+    -  Genere 2 jeux de points homo
+
+Apero-1-Sec.xml :
+    - Aero des points sec ; calibration interne commune;
+
+Apero-2-FocInd.xml :
+    - Aero des points sec , calibration interne indep pour
+    les Ouv A et B, repart de Apero-1-Sec.xml
+
+Apero-3-Test-Eau.xml
+     - Calcul la hauteur de la suface d'eau (Niv 2) ;
+
+          Ter [-0.251319,0.340461,1.13176]
+          Ter [0.164566,0.0375754,1.17947]
+          Ter [1.00093,-0.746108,1.13404]
+          Ter [0.169866,0.0417105,1.13436]
+          Ter [-0.334686,0.441508,1.10846]
+          Ter [0.212905,-1.19308,1.05782]
+
+
+           1.13 semble une valeur OK
+
+
+     - Observe les residus dans l'eau
+
+
