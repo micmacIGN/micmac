@@ -279,9 +279,11 @@ void cEngine::doMasks()
     }
 }
 
-void cEngine::doMaskImage()
+void cEngine::doMaskImage(ushort idCur)
 {
-    QImage* pMask = _Data->getCurMask();
+    //QImage* pMask = _Data->getCurMask();
+    // WARNING TO DO
+    QImage* pMask = _vGLData[idCur]->getMask();
 
     if (pMask->hasAlphaChannel())
 	{
@@ -428,12 +430,8 @@ void cEngine::setGLData()
         cGLData *theData = new cGLData();
 
         if(_Data->getMask(aK) != NULL)
-        {
-
-            theData->setEmptyMask(false);
-
             theData->pQMask = _Data->getMask(aK);
-        }
+
         else
         {
             theData->pQMask = new QImage(_Data->getImage(aK)->size(),QImage::Format_Mono);
@@ -442,16 +440,12 @@ void cEngine::setGLData()
             _Data->fillMask(aK);
         }
 
-//        theData->pMask->PrepareTexture(_Data->getMask(aK));
-//        theData->pImg->PrepareTexture(_Data->getImage(aK));
-
         theData->maskedImage._m_mask = new cImageGL();
         theData->maskedImage._m_image = new cImageGL();
 
         theData->maskedImage._m_mask->PrepareTexture(_Data->getMask(aK));
         theData->maskedImage._m_image->PrepareTexture(_Data->getImage(aK));
 
-        //theData->setEmptyImg(false);
 
         _vGLData.push_back(theData);
     }
@@ -516,18 +510,8 @@ cGLData* cEngine::getGLData(int WidgetIndex)
 //********************************************************************************
 
 cGLData::cGLData():
-    _bEmptyImg(true),
-    _bEmptyMask(true),
     _diam(1.f)
 {
-    //2D
-//    pImg  = new cImageGL();
-//    pMask = new cImageGL();
-
-//    maskedImage._m_image = new cImageGL();
-//    maskedImage._m_mask  = new cImageGL();
-
-
     //3D
     pBall = new cBall();
     pAxis = new cAxis();

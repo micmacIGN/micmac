@@ -135,10 +135,7 @@ public:
 
     bool        isImgEmpty(){return maskedImage._m_image == NULL;}
 
-    void        setEmptyMask(bool aBool){_bEmptyMask = aBool;}
-    //bool        isMaskEmpty(){ return maskedImage._m_mask == NULL;}
-
-    bool        isMaskEmpty(){ return _bEmptyMask;}
+    bool        isMaskEmpty(){ return maskedImage._m_mask == NULL;}
 
     QImage*     getMask(){return pQMask;}
 
@@ -164,9 +161,6 @@ public:
     void        setCenter(Pt3dr aCenter){_center = aCenter;}
 
 private:
-
-    bool        _bEmptyImg;
-    bool        _bEmptyMask;
 
     float       _diam;
     Pt3dr       _center;
@@ -215,7 +209,7 @@ public:
     void    doMasks();
 
     //! Creates binary image from selection and saves
-    void    doMaskImage();
+    void    doMaskImage(ushort idCur);
 
     void    saveSelectInfos(QVector <selectInfos> const &Infos);
 

@@ -581,10 +581,8 @@ void GLWidget::updateAfterSetData(bool doZoom)
 
             glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
 
-            if (m_GLData->isMaskEmpty())
-                m_bFirstAction = true;
-            else
-                m_bFirstAction = false;
+            m_bFirstAction = m_GLData->isMaskEmpty();
+
         }
 
         glGetIntegerv (GL_VIEWPORT, _glViewport);
