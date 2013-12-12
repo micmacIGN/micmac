@@ -82,7 +82,7 @@ void cAppliMICMAC::DoAllMEC()
 
 #if CUDA_ENABLED
 	
-	// Cr�ation du contexte GPGPU
+    // Creation du contexte GPGPU
 	cudaDeviceProp deviceProp;
 	// Obtention de l'identifiant de la carte la plus puissante
 	int devID = gpuGetMaxGflopsDeviceId();
@@ -90,8 +90,8 @@ void cAppliMICMAC::DoAllMEC()
 	checkCudaErrors(cudaSetDevice(devID));
     // Obtention des proprietes de la carte
 	checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
-	// Affichage des propriétés de la carte
-	printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
+    // Affichage des proprietes de la carte
+    //printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
 
 #endif
 
@@ -139,7 +139,7 @@ void cAppliMICMAC::DoAllMEC()
 #if CUDA_ENABLED
 
 	checkCudaErrors( cudaDeviceReset() );
-    printf("Reset Device GpGpu.\n");
+    //printf("Reset Device GpGpu.\n");
 
 #endif
 }
@@ -590,7 +590,8 @@ void cAppliMICMAC::DoOneBloc
    mNbApproxVueActive = -1;
 
 #if CUDA_ENABLED
-   IMmGg.SetTexturesAreLoaded(false);
+   if (mCorrelAdHoc)
+       IMmGg.SetTexturesAreLoaded(false);
 #endif
 
 
@@ -816,7 +817,18 @@ void cAppliMICMAC::DoOneBloc
    
         aTimeCorrel = aChrono.ValAndInit();
         if (mShowMes)
-            mCout << "       Correl Calc, Begin Opt\n";
+        {
+            if(mCorrelAdHoc)
+            {
+                if(mCorrelAdHoc->TypeCAH().GPU_CorrelBasik().IsInit())
+                    mCout << "       Cuda Correlation Finished, Begin Cuda Optimisation\n";
+                else
+                    mCout << "       Correl Calc, Begin Opt\n";
+            }
+            else
+                mCout << "       Correl Calc, Begin Opt\n";
+        }
+
         mSurfOpt->SolveOpt();
 
 #if CUDA_ENABLED
@@ -1402,7 +1414,7 @@ void   cAppliMICMAC::CalcCorrelByRect(Box2di aBox,int * aPx)
 
 
 
-};
+}
 
 
 

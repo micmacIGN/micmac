@@ -300,6 +300,7 @@ void cAppli_HomCorOri::ComputePts()
 
 bool cAppli_HomCorOri::AllDone() const
 {
+// std::cout << mNameHom12 << " " << mNameHom21 << "\n";
      return ELISE_fp::exist_file(mNameHom12) && ELISE_fp::exist_file(mNameHom21);
 
 }
@@ -484,7 +485,6 @@ void cAppli_HomCorOri::DoMatch()
 cAppli_HomCorOri::cAppli_HomCorOri (int argc,char ** argv) :
     mNumFinal  (11),
     mZoomFinal (2),
-    mNumCorrel (mNumFinal-1),
     mDownSize  (3.0),
     mDynVisu   (255),
     mNuage     (0),
@@ -510,7 +510,20 @@ cAppli_HomCorOri::cAppli_HomCorOri (int argc,char ** argv) :
                     << EAMC(mNameIm2,"Second Images")
                     << EAMC(mOri,"Orientation"),
 	LArgMain()  << EAM(mMatch,"Match",true,"Do matching, def = true")	
+                    << EAM(mZoomFinal,"ZoomF","Zoom Final")
     );
+
+    if (mZoomFinal==2)
+    {
+    }
+    else if (mZoomFinal==4)
+    {
+        mNumFinal = 10;
+    }
+    else 
+    {
+    }
+    mNumCorrel = mNumFinal-1;
 
     mDir = DirOfFile(mNameIm1);
     mNameIm1 = NameWithoutDir(mNameIm1);

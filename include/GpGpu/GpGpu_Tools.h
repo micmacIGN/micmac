@@ -3,11 +3,6 @@
 
 #include "GpGpu/GpGpu_CommonHeader.h"
 
-#include "nvToolsExtCuda.h"
-#include <stdio.h>
-#include <sys/types.h>
-#include <unistd.h>
-
 using namespace std;
 
 template<class T> class CuHostData3D;
@@ -118,13 +113,15 @@ public:
     ///	\brief			(X)
     static void			OutputGpu();
 
+	#ifdef  NVTOOLS
     static void			NvtxR_Push(const char* message, int32_t color);
-
+#endif
 };
 
 template <class T>
 void GpGpuTools::Memcpy2Dto1D( T** dataImage2D, T* dataImage1D, uint2 dimDest, uint2 dimSource )
 {
+    OMP_NT1
     for (uint j = 0; j < dimSource.y ; j++)
         memcpy(  dataImage1D + dimDest.x * j , dataImage2D[j],  dimSource.x * sizeof(T));
 }

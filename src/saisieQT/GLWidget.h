@@ -23,9 +23,11 @@
 #include "Data.h"
 #include "Engine.h"
 #include "3DTools.h"
-#include "mainwindow.h"
+
 
 #include "3DObject.h"
+
+class GLWidgetSet;
 
 //! View orientation
 enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
@@ -43,16 +45,12 @@ class GLWidget : public QGLWidget
 public:
 
     //! Default constructor
-    GLWidget(QWidget *parent = NULL, cData* data = NULL);
+    GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared);
 
     //! Destructor
     ~GLWidget();
 
     bool eventFilter(QObject* object, QEvent* event);
-
-    void setData(cData* data){ m_Data = data; }  // a supprimer
-
-    void updateAfterSetData();
 
     //! Interaction mode (only in 3D)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
@@ -73,14 +71,20 @@ public:
     virtual void displayNewMessage(const QString& message,
                                    MessagePosition pos = SCREEN_CENTER_MESSAGE);
 
+    void updateAfterSetData();
+    void updateAfterSetData(bool doZoom);
+
     //! States if data (cloud, camera or image) is loaded
-    bool hasDataLoaded(){return m_Data->isDataLoaded();}
+    bool hasDataLoaded(){return m_GLData != NULL && _bDataLoaded;}
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
 
     //! Sets current zoom
     void setZoom(float value);
+
+    //! Get current zoom
+    float getZoom(){return getParams()->m_zoom;}
 
     void zoomFit();
 
@@ -116,8 +120,13 @@ public:
     //! Select points with polyline
     void Select(int mode);
 
+    void Select(int mode, bool saveInfos);
+
     //! Delete current polyline
     void clearPolyline();
+
+    //!Undo last action
+    void undo();
 
      //! Undo all past selection actions
     void undoAll();
@@ -142,6 +151,9 @@ public:
     void disableOptionLine();
 
     void setGLData(cGLData* aData);
+    cGLData* getGLData(){return m_GLData;}
+
+    void setBackgroundColors(QColor const &col0, QColor const &col1);
 
 public slots:
     void zoom();
@@ -181,9 +193,6 @@ protected:
     //! GL context aspect ratio (width/height)
     float m_glRatio;
 
-    //! ratio between GL context size and image size
-    float m_rw, m_rh;
-
     //! Default font
     QFont m_font;
 
@@ -194,6 +203,8 @@ protected:
     INTERACTION_MODE m_interactionMode;
 
     bool m_bFirstAction;
+
+    bool m_bLastActionIsRightClick;
 
     //! Temporary Message to display
     struct MessageToDisplay
@@ -211,9 +222,6 @@ protected:
 
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
-
-    //! Loaded Data
-    cData      *m_Data; //a enlever
 
     //! Data to display
     cGLData    *m_GLData;
@@ -258,6 +266,14 @@ private:
     GLdouble    *_mvmatrix;
     GLdouble    *_projmatrix;
     GLint       *_glViewport;
+
+    bool        _bDataLoaded;
+    int         _idx;
+
+    GLWidgetSet* _parentSet;
+
+    QColor      _BGColor0;
+    QColor      _BGColor1;
 };
 
 #endif  /* _GLWIDGET_H */

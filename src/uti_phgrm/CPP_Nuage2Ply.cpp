@@ -108,7 +108,8 @@ int Nuage2Ply_main(int argc,char ** argv)
 
     if (anAttr1!="")
     {
-       anAttr1 = NameFileStd(anAttr1,3,false,true);
+       anAttr1 = NameFileStd(anAttr1,3,false,true,true,true);
+       std::cout << "ATTR1 " << anAttr1 << "\n";
        aNuage->Std_AddAttrFromFile(anAttr1,aDyn,aRatio);
     }
 

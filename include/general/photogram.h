@@ -2929,6 +2929,7 @@ class cCpleEpip
              const std::string & PrefLeft =   "Left_",
              const std::string & PrefRight =  "Right_"
          );
+         Pt2dr RatioExp() const;
 
          std::string Dir();
 

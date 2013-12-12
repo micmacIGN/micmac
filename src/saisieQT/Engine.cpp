@@ -174,7 +174,8 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
 
 cEngine::cEngine():    
     _Loader(new cLoader),
-    _Data(new cData)
+    _Data(new cData),
+    _Gamma(1.f)
 {}
 
 cEngine::~cEngine()
@@ -182,9 +183,9 @@ cEngine::~cEngine()
     delete _Data;
     delete _Loader;
 
-    for (int aK=0; aK<_GLData.size();++aK)
-        delete _GLData[aK];
-    _GLData.clear();
+    for (int aK=0; aK<_vGLData.size();++aK)
+        delete _vGLData[aK];
+    _vGLData.clear();
 }
 
 void cEngine::loadClouds(QStringList filenames, int* incre)
@@ -280,13 +281,13 @@ void cEngine::doMasks()
 
 void cEngine::doMaskImage()
 {
-    QImage* pImg = _Data->getCurMask();
+    QImage* pMask = _Data->getCurMask();
 
-	if (pImg->hasAlphaChannel())
+    if (pMask->hasAlphaChannel())
 	{
 		QColor c;
-		uint w = pImg->width();
-		uint h = pImg->height();
+        uint w = pMask->width();
+        uint h = pMask->height();
 
 		QImage qMask(w, h, QImage::Format_Mono);
 		qMask.fill(0);
@@ -295,7 +296,7 @@ void cEngine::doMaskImage()
 		{
 			for (uint bK=0; bK < h;++bK)
 			{
-				c = QColor::fromRgba(pImg->pixel(aK,bK));
+                c = QColor::fromRgba(pMask->pixel(aK,bK));
 				if (c.red() == 255)
 					qMask.setPixel(aK, h-bK-1, 1);
 			}
@@ -356,14 +357,14 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
 
         selectInfos SInfo = Infos[i];
 
-        t = doc.createTextNode(QString::number(SInfo.params.m_zoom));
+        /*t = doc.createTextNode(QString::number(SInfo.params.m_zoom));
         Scale.appendChild(t);
 
         t = doc.createTextNode(QString::number(SInfo.params.m_angleX) + " " + QString::number(SInfo.params.m_angleY) + " " + QString::number(SInfo.params.m_angleZ));
         Rotation.appendChild(t);
 
         t = doc.createTextNode(QString::number(SInfo.params.m_translationMatrix[0]) + " " + QString::number(SInfo.params.m_translationMatrix[1]) + " " + QString::number(SInfo.params.m_translationMatrix[2]));
-        Translation.appendChild(t);
+        Translation.appendChild(t);*/
 
         SII.appendChild(Scale);
         SII.appendChild(Rotation);
@@ -400,6 +401,11 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
 #endif
 }
 
+void cEngine::applyGammaToImage(int aK)
+{
+    _Data->applyGammaToImage(aK, _Gamma);
+}
+
 void cEngine::unloadAll()
 {
     _Data->clearClouds();
@@ -407,49 +413,56 @@ void cEngine::unloadAll()
     _Data->clearImages();
     _Data->clearMasks();
     _Data->reset();
+
+    for (int aK=0; aK<_vGLData.size();++aK)
+        delete _vGLData[aK];
+    _vGLData.clear();
 }
 
 void cEngine::setGLData()
 {
-    _GLData.clear();
+    _vGLData.clear();
 
     for (int aK = 0; aK < _Data->getNbImages();++aK)
     {
         cGLData *theData = new cGLData();
 
-        if (_Data->getNbMasks()>aK)
+        if(_Data->getMask(aK) != NULL)
         {
-            if(_Data->getMask(aK) == NULL)
-                glGenTextures(1, theData->pMask->getTexture() );   
-            _Data->setEmptymask(false);
+            theData->setEmptyMask(false);
 
-            theData->pMask->ImageToTexture(_Data->getMask(aK));
+            theData->pQMask = _Data->getMask(aK);
         }
-        else if (_Data->getNbMasks() == 0)
+        else
         {
-            QImage *mask;
-            mask = new QImage(_Data->getImage(aK)->size(),QImage::Format_Mono);
-            _Data->addMask(mask);
+            theData->pQMask = new QImage(_Data->getImage(aK)->size(),QImage::Format_Mono);
+            *theData->pQMask = QGLWidget::convertToGLFormat( *theData->pQMask );
+            _Data->addMask(theData->pQMask);
             _Data->fillMask(aK);
-            _Data->setEmptymask(true);
         }
 
-        _GLData.push_back(theData);
+//        theData->pMask->PrepareTexture(_Data->getMask(aK));
+//        theData->pImg->PrepareTexture(_Data->getImage(aK));
+
+        theData->maskedImage._m_mask->PrepareTexture(_Data->getMask(aK));
+        theData->maskedImage._m_image->PrepareTexture(_Data->getImage(aK));
+
+        theData->setEmptyImg(false);
+
+        _vGLData.push_back(theData);
     }
 
     if (_Data->is3D())
     {
-
         cGLData *theData = new cGLData();
 
         for (int aK = 0; aK < _Data->getNbClouds();++aK)
         {
-           /* Cloud *pCloud = new Cloud();
+            Cloud *pCloud;
             pCloud = _Data->getCloud(aK);
-            theData->Clouds.push_back(pCloud);*/
+            theData->Clouds.push_back(pCloud);
 
-            _Data->getCloud(aK)->setBufferGl();
-            //theData->Clouds[aK]->setBufferGl();
+            pCloud->setBufferGl();
         }
 
         for (int aK = 0; aK < _Data->getNbCameras();++aK)
@@ -481,22 +494,35 @@ void cEngine::setGLData()
             theData->Cams.push_back(pCam);
         }
 
-        _GLData.push_back(theData);
+        theData->setScale(_Data->getScale());
+        theData->setCenter(_Data->getCenter());
+
+        _vGLData.push_back(theData);
     }
 }
+
 cGLData* cEngine::getGLData(int WidgetIndex)
 {
-    if ((_GLData.size() > 0) && (WidgetIndex < _GLData.size()))
-        return _GLData[WidgetIndex];
+    if ((_vGLData.size() > 0) && (WidgetIndex < _vGLData.size()))
+        return _vGLData[WidgetIndex];
     else
         return NULL;
 }
 
-cGLData::cGLData()
+//********************************************************************************
+
+cGLData::cGLData():
+    _bEmptyImg(true),
+    _bEmptyMask(true),
+    _diam(1.f)
 {
     //2D
-    pImg  = new cImageGL();
-    pMask = new cImageGL();
+//    pImg  = new cImageGL();
+//    pMask = new cImageGL();
+
+    maskedImage._m_image = new cImageGL();
+    maskedImage._m_mask  = new cImageGL();
+
 
     //3D
     pBall = new cBall();
@@ -506,8 +532,11 @@ cGLData::cGLData()
 
 cGLData::~cGLData()
 {
-    delete pImg;
-    delete pMask;
+//    delete pImg;
+//    delete pMask;
+
+    if(maskedImage._m_image != NULL) delete maskedImage._m_image;
+    if(maskedImage._m_mask != NULL) delete maskedImage._m_mask;
 
     for (int aK = 0; aK< Cams.size(); ++aK) delete Cams[aK];
     //qDeleteAll(Cams);
@@ -517,8 +546,30 @@ cGLData::~cGLData()
     delete pAxis;
     delete pBbox;
 
-   // qDeleteAll(Clouds);
-   // Clouds.clear();
+   //pas de delete des pointeurs dans Clouds c'est Data qui s'en charge
+    Clouds.clear();
+}
+
+
+// ATTENTION JAMAIS APPELER
+void cGLData::clear()
+{
+//    pImg  = NULL;
+//    pMask = NULL;
+
+    maskedImage._m_image = NULL;
+    maskedImage._m_mask  = NULL;
+
+    for (int aK = 0; aK< Cams.size(); ++aK) Cams[aK] = NULL;
+    //qDeleteAll(Cams);
+    Cams.clear();
+
+    pBall = NULL;
+    pAxis = NULL;
+    pBbox = NULL;
+
+    for (int aK = 0; aK< Clouds.size(); ++aK) Clouds[aK] = NULL;
+    Clouds.clear();
 }
 
 //********************************************************************************
@@ -530,7 +581,6 @@ ViewportParameters::ViewportParameters()
     , m_angleX(0.f)
     , m_angleY(0.f)
     , m_angleZ(0.f)
-    , m_gamma(1.f)
     , m_speed(2.f)
 {
     m_translationMatrix[0] = m_translationMatrix[1] = m_translationMatrix[2] = 0.f;
@@ -566,8 +616,6 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
         m_translationMatrix[1] = par.m_translationMatrix[1];
         m_translationMatrix[2] = par.m_translationMatrix[2];
         m_LineWidth = par.m_LineWidth;
-        m_gamma 	= par.m_gamma;
-
     }
 
     return *this;
@@ -575,7 +623,7 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
 
 void ViewportParameters::reset()
 {
-    m_zoom = m_LineWidth = m_gamma = 1.f;
+    m_zoom = m_LineWidth = 1.f;
     m_angleX = m_angleY = m_angleZ = 0.f;
     m_PointSize = 1;
 
