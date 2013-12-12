@@ -23,9 +23,11 @@
 #include "Data.h"
 #include "Engine.h"
 #include "3DTools.h"
-#include "mainwindow.h"
+
 
 #include "3DObject.h"
+
+class GLWidgetSet;
 
 //! View orientation
 enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
@@ -43,7 +45,7 @@ class GLWidget : public QGLWidget
 public:
 
     //! Default constructor
-    GLWidget(QWidget *parent = NULL, const QGLWidget *shared = NULL);
+    GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared);
 
     //! Destructor
     ~GLWidget();
@@ -73,9 +75,14 @@ public:
     void updateAfterSetData(bool doZoom);
 
     //! States if data (cloud, camera or image) is loaded
-    bool hasDataLoaded(){return m_GLData != NULL && _bDataLoaded;}
+    bool hasDataLoaded(){
 
-    void setDataLoaded(bool aBool){ _bDataLoaded = aBool; }
+        if(m_GLData == NULL)
+            return false;
+        else
+            return m_GLData->isDataLoaded();
+
+    }
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
@@ -147,12 +154,15 @@ public:
 
     ViewportParameters* getParams(){return &m_params;}
 
-    void enableOptionLine();
-    void disableOptionLine();
+//    void enableOptionLine();
+//    void disableOptionLine();
 
     void setGLData(cGLData* aData);
     cGLData* getGLData(){return m_GLData;}
 
+    void setBackgroundColors(QColor const &col0, QColor const &col1);
+
+    cPolygon PolyImageToWindow(cPolygon polygon);
 public slots:
     void zoom();
 
@@ -165,8 +175,6 @@ signals:
     void filesDropped(const QStringList& filenames);
 
     void selectedPoint(uint idCloud, uint idVertex,bool selected);
-
-    void setCurrentWidget(int aK);
 
 protected:
     void resizeGL(int w, int h);
@@ -192,9 +200,6 @@ protected:
 
     //! GL context aspect ratio (width/height)
     float m_glRatio;
-
-    //! ratio between GL context size and image size
-    float m_rw, m_rh;
 
     //! Default font
     QFont m_font;
@@ -270,8 +275,13 @@ private:
     GLdouble    *_projmatrix;
     GLint       *_glViewport;
 
-    bool        _bDataLoaded;
+    //bool        _bDataLoaded;
     int         _idx;
+
+    GLWidgetSet* _parentSet;
+
+    QColor      _BGColor0;
+    QColor      _BGColor1;
 };
 
 #endif  /* _GLWIDGET_H */

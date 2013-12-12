@@ -45,13 +45,16 @@ typedef unsigned char pixel;
 
 #if OPM_ENABLED
     #if ELISE_windows
+        #define OMP_NT0 __pragma("omp parallel for num_threads(8)")
         #define OMP_NT1 __pragma("omp parallel for num_threads(4)")
         #define OMP_NT2 __pragma("omp parallel for num_threads(3)")
     #else
+        #define OMP_NT0 _Pragma("omp parallel for num_threads(4)")
         #define OMP_NT1 _Pragma("omp parallel for num_threads(4)")
         #define OMP_NT2 _Pragma("omp parallel for num_threads(3)")
     #endif
 #else
+    #define OMP_NT0
     #define OMP_NT1
     #define OMP_NT2
 #endif

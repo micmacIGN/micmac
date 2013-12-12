@@ -3,6 +3,7 @@
 
 MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
         QMainWindow(parent),
+        GLWidgetSet(aNbFen.x*aNbFen.y),
         _ui(new Ui::MainWindow),
         _Engine(new cEngine)
 {
@@ -33,22 +34,19 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
 
     _layout = new QGridLayout();
 
+    int cpt=0;
     for (int aK = 0; aK < aNbFen.x;++aK)
-    {
-        for (int bK = 0; bK < aNbFen.y;++bK)
+        for (int bK = 0; bK < aNbFen.y;++bK, cpt++)
         {
-            //GLWidget * pWidget = new GLWidget(this, aK == 0 && bK == 0? NULL : (const QGLWidget*)_glWidgets[0], aK*aNbFen.y + bK);
-            GLWidget * pWidget = new GLWidget(this, aK == 0 && bK == 0? NULL : (const QGLWidget*)_glWidgets[0]);
-            _layout->addWidget(pWidget, bK, aK);
-            _glWidgets.push_back(pWidget);
+            getWidget(cpt).setBackgroundColors(colorBG0, colorBG1);
+
+            _layout->addWidget(&getWidget(cpt), bK, aK);
+
         }
-    }
 
     _signalMapper = new QSignalMapper (this);
     connectActions();
     _ui->OpenglLayout->setLayout(_layout);
-
-    _glWidgetCur = _glWidgets[0];
 
     createMenus();
 }
@@ -56,8 +54,6 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete _ui;
-    for (int aK=0; aK < _glWidgets.size();++aK) delete _glWidgets[aK];
-    _glWidgets.clear();
     delete _Engine;
     delete _RFMenu;
 
@@ -67,11 +63,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::connectActions()
 {
-    for (int aK = 0; aK < _glWidgets.size();++aK)
+    for (uint aK = 0; aK < NbWidgets();++aK)
     {
-        connect(_glWidgets[aK],	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
-        connect(_glWidgets[aK], SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
-        //connect(_glWidgets[aK], SIGNAL(setCurrentWidget(int)),this,SLOT(setCurrentWidget(int)));
+        connect(&getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
+        connect(&getWidget(aK), SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
     }
 
     //File menu
@@ -115,20 +110,17 @@ void MainWindow::createMenus()
     updateRecentFileActions();
 }
 
-bool MainWindow::checkForLoadedData()
+void MainWindow::checkForLoadedData()
 {
-    bool loadedEntities = true;
-    _glWidgetCur->displayNewMessage(QString()); //clear (any) message in the middle area
 
-    if (!_glWidgetCur->hasDataLoaded())
-    {
-        _glWidgetCur->displayNewMessage(tr("Drag & drop files on window to load them!"));
-        loadedEntities = false;
-    }
+    GLWidget &widget = CurrentWidget();
+    widget.displayNewMessage(QString()); //clear (any) message in the middle area
+
+    if (!widget.hasDataLoaded())
+        widget.displayNewMessage(tr("Drag & drop images or ply files"));
     else
         on_actionShow_messages_toggled(_ui->actionShow_messages->isChecked());
 
-    return loadedEntities;
 }
 
 void MainWindow::setPostFix(QString str)
@@ -193,9 +185,9 @@ void MainWindow::addFiles(const QStringList& filenames)
             timer_test->start(10);
             QFuture<void> future = QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames,_incre);
 
-            this->_FutureWatcher.setFuture(future);
-            this->_ProgressDialog->setWindowModality(Qt::WindowModal);
-            this->_ProgressDialog->exec();
+            _FutureWatcher.setFuture(future);
+            _ProgressDialog->setWindowModality(Qt::WindowModal);
+            _ProgressDialog->exec();
 
             timer_test->stop();
             disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
@@ -212,9 +204,9 @@ void MainWindow::addFiles(const QStringList& filenames)
         {
             QFuture<void> future = QtConcurrent::run(_Engine, &cEngine::loadCameras, filenames);
 
-            this->_FutureWatcher.setFuture(future);
-            this->_ProgressDialog->setWindowModality(Qt::WindowModal);
-            this->_ProgressDialog->exec();
+            _FutureWatcher.setFuture(future);
+            _ProgressDialog->setWindowModality(Qt::WindowModal);
+            _ProgressDialog->exec();
 
             future.waitForFinished();
 
@@ -246,11 +238,11 @@ void MainWindow::addFiles(const QStringList& filenames)
         }
 
         _Engine->setGLData();
-        for (int aK = 0; aK < _glWidgets.size();++aK)
+        for (uint aK = 0; aK < NbWidgets();++aK)
         {
-            _glWidgets[aK]->setGLData(_Engine->getGLData((uint) aK));
-            _glWidgets[aK]->setDataLoaded(true);
-            _glWidgets[aK]->updateAfterSetData();
+            GLWidget &widget = getWidget(aK);
+            widget.setGLData(_Engine->getGLData(aK));
+            widget.updateAfterSetData();
         }
 
         for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
@@ -278,11 +270,11 @@ void MainWindow::on_actionShow_ball_toggled(bool state)
 {
     if (!_bMode2D)
     {
-        _glWidgetCur->showBall(state);
+        CurrentWidget().showBall(state);
 
         if (state)
         {
-            _glWidgetCur->showAxis(!state);
+            CurrentWidget().showAxis(!state);
             _ui->actionShow_axis->setChecked(!state);
         }
     }
@@ -291,18 +283,20 @@ void MainWindow::on_actionShow_ball_toggled(bool state)
 void MainWindow::on_actionShow_bbox_toggled(bool state)
 {
     if(!_bMode2D)
-        _glWidgetCur->showBBox(state);
+        CurrentWidget().showBBox(state);
 }
 
 void MainWindow::on_actionShow_axis_toggled(bool state)
 {
     if (!_bMode2D)
     {
-        _glWidgetCur->showAxis(state);
+        GLWidget &widget = CurrentWidget();
+
+        widget.showAxis(state);
 
         if (state)
         {
-            _glWidgetCur->showBall(!state);
+            widget.showBall(!state);
             _ui->actionShow_ball->setChecked(!state);
         }
     }
@@ -311,30 +305,32 @@ void MainWindow::on_actionShow_axis_toggled(bool state)
 void MainWindow::on_actionShow_cams_toggled(bool state)
 {
     if (!_bMode2D)
-        _glWidgetCur->showCams(state);
+        CurrentWidget().showCams(state);
 }
 
 void MainWindow::on_actionShow_messages_toggled(bool state)
 {
-    _glWidgetCur->showMessages(state);
+    CurrentWidget().showMessages(state);
 }
 
 void MainWindow::on_actionToggleMode_toggled(bool mode)
 {
+    GLWidget &widget = CurrentWidget();
+
     if (!_bMode2D)
     {
-        _glWidgetCur->setInteractionMode(mode ? GLWidget::SELECTION : GLWidget::TRANSFORM_CAMERA);
+        widget.setInteractionMode(mode ? GLWidget::SELECTION : GLWidget::TRANSFORM_CAMERA);
 
-        _glWidgetCur->showBall(mode ? GLWidget::TRANSFORM_CAMERA : GLWidget::SELECTION && _Engine->getData()->isDataLoaded());
-        _glWidgetCur->showAxis(false);
+        widget.showBall(mode ? GLWidget::TRANSFORM_CAMERA : GLWidget::SELECTION && _Engine->getData()->isDataLoaded());
+        widget.showAxis(false);
 
         if (mode == GLWidget::SELECTION)
         {
-            _glWidgetCur->showCams(false);
-            _glWidgetCur->showBBox(false);
+            widget.showCams(false);
+            widget.showBBox(false);
         }
 
-        _glWidgetCur->update();
+        widget.update();
     }
 }
 
@@ -411,23 +407,25 @@ void MainWindow::on_actionHelpShortcuts_triggered()
 
 void MainWindow::on_actionAdd_triggered()
 {
-    _glWidgetCur->Select(ADD);
+
+    CurrentWidget().Select(ADD);
 }
 
 void MainWindow::on_actionSelect_none_triggered()
 {
-    _glWidgetCur->Select(NONE);
-    _glWidgetCur->clearPolyline();
+    GLWidget &widget = CurrentWidget();
+    widget.Select(NONE);
+    widget.clearPolyline();
 }
 
 void MainWindow::on_actionInvertSelected_triggered()
 {
-    _glWidgetCur->Select(INVERT);
+    CurrentWidget().Select(INVERT);
 }
 
 void MainWindow::on_actionSelectAll_triggered()
 {
-    _glWidgetCur->Select(ALL);
+    CurrentWidget().Select(ALL);
 }
 
 void MainWindow::on_actionReset_triggered()
@@ -440,109 +438,100 @@ void MainWindow::on_actionReset_triggered()
     }
     else
     {
-        _glWidgetCur->Select(ALL);
+        CurrentWidget().Select(ALL);
     }
 }
 
 void MainWindow::on_actionRemove_triggered()
 {
-    _glWidgetCur->Select(SUB);
+    CurrentWidget().Select(SUB);
 }
 
 void MainWindow::on_actionUndo_triggered()
-{
+{   
+    GLWidget &widget = CurrentWidget();
+
     if (_bMode2D)
     {
-        _Engine->unloadAll();
+        widget.setGLData(_Engine->getGLData(getCurrentWidget()));
+        widget.updateAfterSetData(false);
 
-        glLoadIdentity();
-
-        _Engine->loadImages(_FilenamesIn);
-
-        _Engine->setFilenamesOut();
-
-        for (int aK=0; aK<_Engine->getData()->getNbImages();++aK)
-            _Engine->applyGammaToImage(aK);
-
-        _glWidgetCur->setDataLoaded(true);
-
-        _Engine->setGLData();
-        _glWidgetCur->setGLData(_Engine->getGLData((uint)0));
-        _glWidgetCur->updateAfterSetData(false);
-
-        _glWidgetCur->showMessages(_ui->actionShow_messages->isChecked());
+        widget.showMessages(_ui->actionShow_messages->isChecked());
     }
-    _glWidgetCur->undo();
+
+    widget.undo();
 }
 
 void MainWindow::on_actionSetViewTop_triggered()
 {
     if (!_bMode2D)
-        _glWidgetCur->setView(TOP_VIEW);
+        CurrentWidget().setView(TOP_VIEW);
 }
 
 void MainWindow::on_actionSetViewBottom_triggered()
 {
     if (!_bMode2D)
-        _glWidgetCur->setView(BOTTOM_VIEW);
+        CurrentWidget().setView(BOTTOM_VIEW);
 }
 
 void MainWindow::on_actionSetViewFront_triggered()
 {
     if (!_bMode2D)
-        _glWidgetCur->setView(FRONT_VIEW);
+        CurrentWidget().setView(FRONT_VIEW);
 }
 
 void MainWindow::on_actionSetViewBack_triggered()
 {
     if (!_bMode2D)
-        _glWidgetCur->setView(BACK_VIEW);
+        CurrentWidget().setView(BACK_VIEW);
 }
 
 void MainWindow::on_actionSetViewLeft_triggered()
 {
     if (!_bMode2D)
-        _glWidgetCur->setView(LEFT_VIEW);
+        CurrentWidget().setView(LEFT_VIEW);
 }
 
 void MainWindow::on_actionSetViewRight_triggered()
 {
     if (!_bMode2D)
-        _glWidgetCur->setView(RIGHT_VIEW);
+        CurrentWidget().setView(RIGHT_VIEW);
 }
 
 void MainWindow::on_actionReset_view_triggered()
 {
-    _glWidgetCur->resetView();
+    GLWidget &widget = CurrentWidget();
+
+    widget.resetView();
 
     if (!_bMode2D)
     {
-         _glWidgetCur->showBall(_Engine->getData()->isDataLoaded());
-         _glWidgetCur->showAxis(false);
-         _glWidgetCur->showBBox(false);
-         _glWidgetCur->showCams(false);
+         widget.showBall(_Engine->getData()->isDataLoaded());
+         widget.showAxis(false);
+         widget.showBBox(false);
+         widget.showCams(false);
     }
 }
 
 //zoom
 void MainWindow::on_actionZoom_Plus_triggered()
 {
-    _glWidgetCur->setZoom(_glWidgetCur->getZoom()*1.5f);
+    CurrentWidget().setZoom(CurrentWidget().getZoom()*1.5f);
 }
 
 void MainWindow::on_actionZoom_Moins_triggered()
 {
-    _glWidgetCur->setZoom(_glWidgetCur->getZoom()/1.5f);
+    CurrentWidget().setZoom(CurrentWidget().getZoom()/1.5f);
 }
 
 void MainWindow::on_actionZoom_fit_triggered()
 {
-    _glWidgetCur->zoomFit();
+    CurrentWidget().zoomFit();
 }
 
 void MainWindow::zoomFactor(int aFactor)
 {
-    _glWidgetCur->zoomFactor(aFactor);
+    CurrentWidget().zoomFactor(aFactor);
 }
 
 void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
@@ -589,7 +578,7 @@ void MainWindow::on_actionSave_masks_triggered()
 {
     if (_Engine->getData()->getNbImages())
     {
-        _Engine->doMaskImage();
+        _Engine->doMaskImage(getCurrentWidget());
     }
     else
     {
@@ -607,7 +596,7 @@ void MainWindow::on_actionSave_as_triggered()
 
         if (_Engine->getData()->getNbImages())
         {
-            _Engine->doMaskImage();
+            _Engine->doMaskImage(getCurrentWidget());
         }
         else
         {
@@ -618,21 +607,24 @@ void MainWindow::on_actionSave_as_triggered()
 
 void MainWindow::on_actionSave_selection_triggered()
 {
-    _Engine->saveSelectInfos(_glWidgetCur->getSelectInfos());
+    _Engine->saveSelectInfos(CurrentWidget().getSelectInfos());
 }
 
 void MainWindow::closeAll()
 {
     _Engine->unloadAll();
 
-    for (int aK=0; aK < _glWidgets.size(); ++aK)
+    for (uint aK=0; aK < NbWidgets(); ++aK)
     {
-        _glWidgets[aK]->reset();
-        _glWidgets[aK]->resetView();
+        GLWidget &widget = getWidget(aK);
 
+        widget.reset();
+        widget.resetView();
+
+        //  A VIRER
         checkForLoadedData();
 
-        _glWidgets[aK]->update();
+        widget.update();
     }
 }
 
@@ -732,12 +724,5 @@ void  MainWindow::setGamma(float aGamma)
 {
     _Engine->setGamma(aGamma);
 }
-
-/*void MainWindow::setCurrentWidget(int aK)
-{
-    if (aK < _glWidgets.size())
-        _glWidgetCur = _glWidgets[aK];
-}*/
-
 
 

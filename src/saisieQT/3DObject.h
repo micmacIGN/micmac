@@ -48,6 +48,13 @@ class cObjectGL : public cObject
         virtual ~cObjectGL(){}
 
         virtual void draw()=0;
+
+protected:
+
+        void enableOptionLine();
+
+        void disableOptionLine();
+
 };
 
 class cCircle : public cObjectGL
@@ -254,6 +261,7 @@ class cImageGL : public cObjectGL
         int     height() {return _size.height();}
 
 private:
+
         GLfloat _originX;
         GLfloat _originY;
         GLfloat _glh;
@@ -263,6 +271,27 @@ private:
 
         //! Texture image
         GLuint  _texture;
+
+};
+
+class cMaskedImageGL : public cObjectGL
+{
+
+public:
+
+    cMaskedImageGL():
+        _m_image(NULL),
+        _m_mask(NULL)
+    {}
+
+    void draw();
+    cImageGL    *_m_image;
+    cImageGL    *_m_mask;
+
+//private:
+
+
+
 };
 
 #endif //__3DObject__

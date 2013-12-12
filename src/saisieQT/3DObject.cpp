@@ -483,6 +483,8 @@ cPolygon::cPolygon(const cPolygon& pol)
 
 void cPolygon::draw()
 {
+
+    enableOptionLine();
     glColor3f(.1f,1.f,.2f);
 
     glBegin(_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
@@ -509,6 +511,7 @@ void cPolygon::draw()
         for (int aK = 0;aK < _points.size(); ++aK)
             glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
     }
+    disableOptionLine();
 }
 
 cPolygon & cPolygon::operator = (const cPolygon &aP)
@@ -585,6 +588,7 @@ void cPolygon::findClosestPoint(QPointF const &pos)
 
 void cPolygon::drawDihedron()
 {
+    enableOptionLine();
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
 
@@ -612,6 +616,7 @@ void cPolygon::drawDihedron()
         glDrawUnitCircle(2, _points[1].x(), _points[1].y());
 
     glPopMatrix();
+    disableOptionLine();
 }
 
 float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)
@@ -814,4 +819,49 @@ void cImageGL::ImageToTexture(QImage *pImg)
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
     glBindTexture( GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
+}
+
+
+void cMaskedImageGL::draw()
+{
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE,GL_ZERO);
+    glDisable(GL_ALPHA_TEST);
+    glDisable(GL_DEPTH_TEST);
+
+    //_m_image->setDimensions(h, w);
+    _m_image->draw(QColor(255,255,255));
+
+    if(_m_mask != NULL && true)
+    {
+        //_m_mask->setDimensions(h, w);
+        _m_mask->draw();
+        glBlendFunc(GL_ONE,GL_ONE);
+
+        _m_mask->draw(QColor(128,128,128));
+        glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
+    }
+
+    _m_image->draw();
+
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_ALPHA_TEST);
+}
+
+
+void cObjectGL::enableOptionLine()
+{
+    glDisable(GL_DEPTH_TEST);
+    glEnable (GL_LINE_SMOOTH);
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+}
+
+void cObjectGL::disableOptionLine()
+{
+    glDisable(GL_BLEND);
+    glDisable(GL_LINE_SMOOTH);
+    glEnable(GL_DEPTH_TEST);
 }
