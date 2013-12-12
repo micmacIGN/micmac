@@ -267,7 +267,7 @@ private:
 
 };
 
-class cMaskedImageGL
+class cMaskedImageGL : public cObjectGL
 {
 
 public:
@@ -277,7 +277,7 @@ public:
         _m_mask(NULL)
     {}
 
-    void draw(uint h, uint w, bool drawMask);
+    void draw();
     cImageGL    *_m_image;
     cImageGL    *_m_mask;
 
