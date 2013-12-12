@@ -848,3 +848,20 @@ void cMaskedImageGL::draw()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_ALPHA_TEST);
 }
+
+
+void cObjectGL::enableOptionLine()
+{
+    glDisable(GL_DEPTH_TEST);
+    glEnable (GL_LINE_SMOOTH);
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+}
+
+void cObjectGL::disableOptionLine()
+{
+    glDisable(GL_BLEND);
+    glDisable(GL_LINE_SMOOTH);
+    glEnable(GL_DEPTH_TEST);
+}

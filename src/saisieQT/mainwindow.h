@@ -35,7 +35,7 @@ public:
     ~MainWindow();
 
     //! Checks for loaded data
-    bool checkForLoadedData();
+    void checkForLoadedData();
 
     void setPostFix(QString str);
 

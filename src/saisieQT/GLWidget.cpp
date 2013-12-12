@@ -10,14 +10,13 @@ using namespace Cloud_;
 using namespace std;
 
 GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLWidget(NULL,shared)
-//  , m_rw(1.f)
-//  , m_rh(1.f)
   , m_font(font())
   , m_bDrawMessages(true)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
   , m_bLastActionIsRightClick(false)
   , m_params(ViewportParameters())
+  , m_GLData(NULL)
   , m_bDisplayMode2D(false)
   , _frameCount(0)
   , _previousTime(0)
@@ -26,7 +25,7 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
   , _g_mouseLeftDown(false)
   , _g_mouseMiddleDown(false)
   , _g_mouseRightDown(false)
-  , _bDataLoaded(false)
+  //, _bDataLoaded(false)
   , _idx(idx)
   , _parentSet(theSet)
 {
@@ -336,7 +335,7 @@ void GLWidget::computeFPS()
 void GLWidget::setGLData(cGLData * aData)
 {
     m_GLData = aData;
-    _bDataLoaded = true;
+    //_bDataLoaded = true;
 }
 
 void GLWidget::setBackgroundColors(const QColor &col0, const QColor &col1)
@@ -1260,7 +1259,9 @@ void GLWidget::reset()
 
     m_bFirstAction = true;
 
-    _bDataLoaded = false;
+   //_bDataLoaded = false;
+
+    m_GLData = NULL;
 }
 
 void GLWidget::resetView()

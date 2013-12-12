@@ -75,7 +75,14 @@ public:
     void updateAfterSetData(bool doZoom);
 
     //! States if data (cloud, camera or image) is loaded
-    bool hasDataLoaded(){return m_GLData != NULL && _bDataLoaded;}
+    bool hasDataLoaded(){
+
+        if(m_GLData == NULL)
+            return false;
+        else
+            return m_GLData->isDataLoaded();
+
+    }
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
@@ -268,7 +275,7 @@ private:
     GLdouble    *_projmatrix;
     GLint       *_glViewport;
 
-    bool        _bDataLoaded;
+    //bool        _bDataLoaded;
     int         _idx;
 
     GLWidgetSet* _parentSet;
