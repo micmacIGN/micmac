@@ -118,13 +118,15 @@ public:
 
     void clear();
 
-    bool        is2D(){return pImg != NULL;}
+    //bool        is2D(){return pImg != NULL;}
     bool        is3D(){return Clouds.size() || Cams.size();}
     bool        isDataLoaded(){return (!isImgEmpty()) || is3D();}
 
     //2D
-    cImageGL    *pImg;
-    cImageGL    *pMask;
+//    cImageGL    *pImg;
+//    cImageGL    *pMask;
+
+    cMaskedImageGL maskedImage;
 
     QImage      *pQMask;
 

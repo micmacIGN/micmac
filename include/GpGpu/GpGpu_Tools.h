@@ -121,6 +121,7 @@ public:
 template <class T>
 void GpGpuTools::Memcpy2Dto1D( T** dataImage2D, T* dataImage1D, uint2 dimDest, uint2 dimSource )
 {
+    OMP_NT1
     for (uint j = 0; j < dimSource.y ; j++)
         memcpy(  dataImage1D + dimDest.x * j , dataImage2D[j],  dimSource.x * sizeof(T));
 }

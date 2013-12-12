@@ -254,6 +254,7 @@ class cImageGL : public cObjectGL
         int     height() {return _size.height();}
 
 private:
+
         GLfloat _originX;
         GLfloat _originY;
         GLfloat _glh;
@@ -263,6 +264,27 @@ private:
 
         //! Texture image
         GLuint  _texture;
+
+};
+
+class cMaskedImageGL
+{
+
+public:
+
+    cMaskedImageGL():
+        _m_image(NULL),
+        _m_mask(NULL)
+    {}
+
+    void draw(uint h, uint w, bool drawMask);
+    cImageGL    *_m_image;
+    cImageGL    *_m_mask;
+
+//private:
+
+
+
 };
 
 #endif //__3DObject__
