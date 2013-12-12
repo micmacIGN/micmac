@@ -757,6 +757,8 @@ eTypeProjectionCam  Str2eTypeProjectionCam(const std::string & aName)
       return eProjStenope;
    else if (aName=="eProjOrthographique")
       return eProjOrthographique;
+   else if (aName=="eProjGrid")
+      return eProjGrid;
   else
   {
       cout << aName << " is not a correct value for enum eTypeProjectionCam\n" ;
@@ -774,6 +776,8 @@ std::string  eToString(const eTypeProjectionCam & anObj)
       return  "eProjStenope";
    if (anObj==eProjOrthographique)
       return  "eProjOrthographique";
+   if (anObj==eProjGrid)
+      return  "eProjGrid";
  std::cout << "Enum = eTypeProjectionCam\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
@@ -5756,27 +5760,27 @@ void xml_init(cOrientationExterneRigide & anObj,cElXMLTree * aTree)
 }
 
 
-std::string & cOrientationFile::NameFileOri()
+std::string & cModuleOrientationFile::NameFileOri()
 {
    return mNameFileOri;
 }
 
-const std::string & cOrientationFile::NameFileOri()const 
+const std::string & cModuleOrientationFile::NameFileOri()const 
 {
    return mNameFileOri;
 }
 
-cElXMLTree * ToXMLTree(const cOrientationFile & anObj)
+cElXMLTree * ToXMLTree(const cModuleOrientationFile & anObj)
 {
   XMLPushContext(anObj.mGXml);
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"OrientationFile",eXMLBranche);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ModuleOrientationFile",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("NameFileOri"),anObj.NameFileOri())->ReTagThis("NameFileOri"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
-void xml_init(cOrientationFile & anObj,cElXMLTree * aTree)
+void xml_init(cModuleOrientationFile & anObj,cElXMLTree * aTree)
 {
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
@@ -6081,23 +6085,23 @@ void xml_init(cConvOri & anObj,cElXMLTree * aTree)
 
 std::string & cOrientationConique::NameFileOri()
 {
-   return OrientationFile().Val().NameFileOri();
+   return ModuleOrientationFile().Val().NameFileOri();
 }
 
 const std::string & cOrientationConique::NameFileOri()const 
 {
-   return OrientationFile().Val().NameFileOri();
+   return ModuleOrientationFile().Val().NameFileOri();
 }
 
 
-cTplValGesInit< cOrientationFile > & cOrientationConique::OrientationFile()
+cTplValGesInit< cModuleOrientationFile > & cOrientationConique::ModuleOrientationFile()
 {
-   return mOrientationFile;
+   return mModuleOrientationFile;
 }
 
-const cTplValGesInit< cOrientationFile > & cOrientationConique::OrientationFile()const 
+const cTplValGesInit< cModuleOrientationFile > & cOrientationConique::ModuleOrientationFile()const 
 {
-   return mOrientationFile;
+   return mModuleOrientationFile;
 }
 
 
@@ -6313,8 +6317,8 @@ cElXMLTree * ToXMLTree(const cOrientationConique & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"OrientationConique",eXMLBranche);
-   if (anObj.OrientationFile().IsInit())
-      aRes->AddFils(ToXMLTree(anObj.OrientationFile().Val())->ReTagThis("OrientationFile"));
+   if (anObj.ModuleOrientationFile().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.ModuleOrientationFile().Val())->ReTagThis("ModuleOrientationFile"));
    if (anObj.OrIntImaM2C().IsInit())
       aRes->AddFils(ToXMLTree(anObj.OrIntImaM2C().Val())->ReTagThis("OrIntImaM2C"));
    if (anObj.TypeProj().IsInit())
@@ -6339,7 +6343,7 @@ void xml_init(cOrientationConique & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
-   xml_init(anObj.OrientationFile(),aTree->Get("OrientationFile",1)); //tototo 
+   xml_init(anObj.ModuleOrientationFile(),aTree->Get("ModuleOrientationFile",1)); //tototo 
 
    xml_init(anObj.OrIntImaM2C(),aTree->Get("OrIntImaM2C",1)); //tototo 
 
