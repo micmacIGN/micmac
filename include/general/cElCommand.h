@@ -76,27 +76,29 @@ public:
    static const char        sm_unix_separator;
    static const char        sm_windows_separator;
    static const std::string sm_all_separators;
-   
+
    cElPath( const std::string &i_path=std::string() );
-   
+
    void append( const cElPathToken &i_token );
-   
+
    bool isInvalid() const;
    void trace( std::ostream &io_stream=std::cout ) const;
-      
-   std::string str( char i_separator ) const;
-   inline std::string str_unix() const;
-   inline std::string str_windows() const;
-   
+
+
    inline bool isAbsolute() const;
-      
+
    int compare( const cElPath &i_b ) const;
    inline bool operator < ( const cElPath &i_b ) const;
    inline bool operator > ( const cElPath &i_b ) const;
    inline bool operator ==( const cElPath &i_b ) const;
    inline bool operator !=( const cElPath &i_b ) const;
    
+          std::string str( char i_separator ) const;
+   inline std::string str_unix() const;
+   inline std::string str_windows() const;
+   
    void toAbsolute( const cElPath &i_relativeTo=getCurrentDirectory() );
+   bool exists() const;
 };
 
 //-------------------------------------------
@@ -125,6 +127,8 @@ public:
    inline std::string str( char i_separator ) const;
    inline std::string str_unix() const;
    inline std::string str_windows() const;
+   
+   bool exists() const;
 };
 
 //-------------------------------------------
