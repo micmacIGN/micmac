@@ -4474,8 +4474,26 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
 {
    ElCamera * aRes = 0;
    cCalibrationInternConique  aCIC;
-   if (anOC.TypeProj().ValWithDef(eProjStenope) == eProjStenope)
+
+   eTypeProjectionCam aTPC = anOC.TypeProj().ValWithDef(eProjStenope);
+
+   ELISE_ASSERT
+   (
+          (aTPC==eProjGrid) == (anOC.ModuleOrientationFile().IsInit()),
+          "ModuleOrientationFile must be init IF and ONLY IF TypeProj equals ProjGrid"
+   );
+   
+   if (aTPC == eProjGrid)
    {
+           std::cout << "Chargement de : "<<anOC.ModuleOrientationFile().Val().NameFileOri()<<std::endl;
+           cAffinitePlane orIntImaM2C = anOC.OrIntImaM2C().Val();
+           aRes = new cCameraModuleOrientation(new OrientationGrille(anOC.ModuleOrientationFile().Val().NameFileOri()),anOC.Interne().Val().SzIm(),Xml2EL(orIntImaM2C));
+           std::cout << "Fin du chargement de la grille"<<std::endl;
+	   return aRes;
+   }
+   else if (anOC.TypeProj().ValWithDef(eProjStenope) == eProjStenope)
+   {
+/*
        if (anOC.OrientationFile().IsInit())
        {
            std::cout << "Chargement de : "<<anOC.OrientationFile().Val().NameFileOri()<<std::endl;
@@ -4484,7 +4502,8 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
            std::cout << "Fin du chargement de la grille"<<std::endl;
 	   return aRes;
        }
-      else if (anOC.Interne().IsInit())
+*/
+      if (anOC.Interne().IsInit())
       {
          double aRayonInv=-1;
          aCIC = anOC.Interne().Val();

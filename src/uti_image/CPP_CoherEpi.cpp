@@ -116,6 +116,8 @@ class cCEM_OneIm
           virtual  bool  IsOK(const Pt2di & aP) = 0;
 
           Output VGray() {return mWin ?  mWin->ogray() : Output::onul(1) ;}
+          Output VDisc() {return mWin ?  mWin->odisc() : Output::onul(1) ;}
+
 
           cCoherEpi_main * mCoher;
           cCpleEpip *      mCple;
@@ -462,6 +464,9 @@ Im2D_U_INT1  cCEM_OneIm::ImAR()
 
 void cCEM_OneIm::VerifProf(Im2D_Bits<1> aMasq)
 {
+std::cout << "BBBBBBBBBB\n";
+    if (! mWin) return;
+
     Pt2di aSz =  aMasq.sz();
     Im2D_Bits<1> aImOut(aSz.x,aSz.y,1);
     ELISE_COPY(aMasq.all_pts(),aMasq.in(),aImOut.out());
@@ -481,15 +486,19 @@ void cCEM_OneIm::VerifProf(Im2D_Bits<1> aMasq)
 
          ELISE_COPY
          (
-              mWin->all_pts(),
+              aMasq.all_pts(),
               aFOk && aImOut.in(),
-              aImOut.out() | mWin->odisc()
+              aImOut.out() | VDisc()
          );
     }
-    ELISE_COPY(aMasq.all_pts(),aMasq.in(),mWin->odisc());
-    ELISE_COPY(select(aImOut.all_pts(),aImOut.in()),P8COL::blue,mWin->odisc());
+    if (mWin)
+    {
+std::cout << "AAAAAAAAAAAAAAAAAAa\n";
+       ELISE_COPY(aMasq.all_pts(),aMasq.in(),mWin->odisc());
+       ELISE_COPY(select(aImOut.all_pts(),aImOut.in()),P8COL::blue,mWin->odisc());
 
-    mWin->clik_in();
+       mWin->clik_in();
+    }
 }
 
 void cCEM_OneIm::VerifIm(Im2D_Bits<1> aMasq)
@@ -623,6 +632,12 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAM(mPostfixP,"InternalPostfixP",true)
    );	
 
+   if (mVisu)
+   {
+        mDoMasq = true;
+        mByP = true;
+   }
+
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
    if (! EAMIsInit(&mPrefix))
      mPrefix = mPrefix + mNameIm1 + "-" + mNameIm2 ;
@@ -746,6 +761,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                 aTifGlob.out()
              );
              ELISE_fp::RmFile(aNameC);
+
              if (mDoMasq)
              {
                  ELISE_COPY
@@ -778,7 +794,6 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
    }
    else
    {
-
 
        if (mWithEpi)
           mIm1 = new cCEM_OneIm_Epip(this,mNameIm1,mBoxIm1,mVisu,true)          ;
