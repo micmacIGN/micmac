@@ -193,9 +193,6 @@ protected:
     //! GL context aspect ratio (width/height)
     float m_glRatio;
 
-    //! ratio between GL context size and image size
-    float m_rw, m_rh;
-
     //! Default font
     QFont m_font;
 

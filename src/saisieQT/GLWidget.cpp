@@ -10,8 +10,8 @@ using namespace Cloud_;
 using namespace std;
 
 GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLWidget(NULL,shared)
-  , m_rw(1.f)
-  , m_rh(1.f)
+//  , m_rw(1.f)
+//  , m_rh(1.f)
   , m_font(font())
   , m_bDrawMessages(true)
   , m_interactionMode(TRANSFORM_CAMERA)
@@ -379,9 +379,7 @@ void GLWidget::paintGL()
     {
         if (m_bDisplayMode2D)
         {
-
-
-            // CAMERA BEGIN ======================
+            // CAMERA BEGIN ======================            
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
 
@@ -412,57 +410,31 @@ void GLWidget::paintGL()
             // CAMERA END ======================
 
             // IMAGE BEGIN ======================
-
-//            glEnable(GL_BLEND);
-//            glBlendFunc(GL_ONE,GL_ZERO);
-//            glDisable(GL_ALPHA_TEST);
-//            glDisable(GL_DEPTH_TEST);
-
-//            m_GLData->pImg->setDimensions(m_rh, m_rw);
-//            m_GLData->pImg->draw(QColor(255,255,255));
-
-//            if(m_GLData->pMask != NULL && !_g_mouseMiddleDown)
-//            {
-//                m_GLData->pMask->setDimensions(m_rh, m_rw);
-//                m_GLData->pMask->draw();
-//                glBlendFunc(GL_ONE,GL_ONE);
-
-//                m_GLData->pMask->draw(QColor(128,128,128));
-//                glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
-//            }
-
-//            m_GLData->pImg->draw();
-
-//            glPopMatrix();
-
-//            glDisable(GL_BLEND);
-//            glEnable(GL_DEPTH_TEST);
-//            glEnable(GL_ALPHA_TEST);
-
-            m_GLData->maskedImage.draw(m_rh, m_rw,!_g_mouseMiddleDown);
+            m_GLData->maskedImage.draw();
+            // IMAGE END ======================
 
             glPopMatrix();
 
-            // IMAGE END ======================
-
             //Affichage du zoom et des coordonnées image
-//            if (m_bDrawMessages)
-//            {
-//                glMatrixMode(GL_MODELVIEW);
+            if (m_bDrawMessages)
+            {
+                glMatrixMode(GL_MODELVIEW);
 
-//                glColor3f(1.f,1.f,1.f);
+                glColor3f(1.f,1.f,1.f);
 
-//                renderText(10, _glViewport[3] - m_font.pointSize(), QString::number(m_params.m_zoom*100,'f',1) + "%", m_font);
+                renderText(10, _glViewport[3] - m_font.pointSize(), QString::number(m_params.m_zoom*100,'f',1) + "%", m_font);
 
-//                float px = m_lastMoveImage.x();
-//                float py = m_lastMoveImage.y();
+                float px = m_lastMoveImage.x();
+                float py = m_lastMoveImage.y();
 
-//                if  ((px>=0.f)&&(py>=0.f)&&(px<m_GLData->pImg->width())&&(py<m_GLData->pImg->height()))
-//                    renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(px,'f',1) + ", " + QString::number(m_GLData->pImg->height()-py,'f',1) + " px", m_font);
-//            }
+                if  ((px>=0.f)&&(py>=0.f)&&(px<m_GLData->maskedImage._m_image->width())&&(py<m_GLData->maskedImage._m_image->height()))
+                    renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(px,'f',1) + ", " + QString::number(m_GLData->maskedImage._m_image->height()-py,'f',1) + " px", m_font);
+            }
         }
         else if(m_GLData->is3D())
         {
+
+            // CAMERA BEGIN ===================
             zoom();
 
             static GLfloat trans44[16], rot44[16], tmp[16];
@@ -473,10 +445,12 @@ void GLWidget::paintGL()
             transpose( tmp, _g_glMatrix );
             glLoadMatrixf( _g_glMatrix );
 
+            // CAMERA END ===================
+            enableOptionLine();
             for (int i=0; i<m_GLData->Clouds.size();i++)
                 m_GLData->Clouds[i]->draw();
 
-            enableOptionLine();
+
 
             if (m_GLData->pBall->isVisible())
                 m_GLData->pBall->draw();
@@ -928,8 +902,11 @@ void GLWidget::zoomFit()
         glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
         glPopMatrix();
 
-        m_rw = 2.f*rw;
-        m_rh = 2.f*rh;
+//        m_rw = 2.f*rw;
+//        m_rh = 2.f*rh;
+
+        m_GLData->maskedImage._m_image->setDimensions(2.f*rh,2.f*rw);
+        m_GLData->maskedImage._m_mask->setDimensions(2.f*rh,2.f*rw);
 
         m_glPosition[0] = 0.f;
         m_glPosition[1] = 0.f;
