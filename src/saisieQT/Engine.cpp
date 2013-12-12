@@ -429,6 +429,7 @@ void cEngine::setGLData()
 
         if(_Data->getMask(aK) != NULL)
         {
+
             theData->setEmptyMask(false);
 
             theData->pQMask = _Data->getMask(aK);
@@ -444,10 +445,13 @@ void cEngine::setGLData()
 //        theData->pMask->PrepareTexture(_Data->getMask(aK));
 //        theData->pImg->PrepareTexture(_Data->getImage(aK));
 
+        theData->maskedImage._m_mask = new cImageGL();
+        theData->maskedImage._m_image = new cImageGL();
+
         theData->maskedImage._m_mask->PrepareTexture(_Data->getMask(aK));
         theData->maskedImage._m_image->PrepareTexture(_Data->getImage(aK));
 
-        theData->setEmptyImg(false);
+        //theData->setEmptyImg(false);
 
         _vGLData.push_back(theData);
     }
@@ -520,8 +524,8 @@ cGLData::cGLData():
 //    pImg  = new cImageGL();
 //    pMask = new cImageGL();
 
-    maskedImage._m_image = new cImageGL();
-    maskedImage._m_mask  = new cImageGL();
+//    maskedImage._m_image = new cImageGL();
+//    maskedImage._m_mask  = new cImageGL();
 
 
     //3D

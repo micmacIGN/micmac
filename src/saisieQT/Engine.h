@@ -133,11 +133,12 @@ public:
     //! Point list for polygonal insertion
     cPolygon    m_dihedron;
 
-    void        setEmptyImg(bool aBool){_bEmptyImg = aBool;}
-    bool        isImgEmpty(){return _bEmptyImg;}
+    bool        isImgEmpty(){return maskedImage._m_image == NULL;}
 
     void        setEmptyMask(bool aBool){_bEmptyMask = aBool;}
-    bool        isMaskEmpty(){return _bEmptyMask;}
+    //bool        isMaskEmpty(){ return maskedImage._m_mask == NULL;}
+
+    bool        isMaskEmpty(){ return _bEmptyMask;}
 
     QImage*     getMask(){return pQMask;}
 
