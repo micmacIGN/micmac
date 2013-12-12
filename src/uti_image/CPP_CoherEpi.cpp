@@ -37,235 +37,12 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
-
-#define DEF_OFSET -12349876
-
-class cCEM_OneIm;
-class cCEM_OneIm_Epip;
-class cCoherEpi_main;
-class cCEM_OneIm_Nuage;
-
-template <class Type> Type DebugMess(const std::string & aMes,const Type & aVal)
-{
-   std::cout << aMes << "\n";
-   return aVal;
-}
+//#include "StdAfx.h"
+#include "QualDepthMap.h"
 
 
-class cBoxCoher
-{
-     public :
-         cBoxCoher(const Box2di & aBoxIn, const Box2di & aBoxOut, const std::string & aPost) :
-              mBoxIn  (aBoxIn),
-              mBoxOut (aBoxOut),
-              mPost   (aPost)
-         {
-         }
-
-         Box2di mBoxIn;
-         Box2di mBoxOut;
-         std::string mPost;
-};
-
-class cCEM_OneIm
-{ 
-     public :
-          bool Empty() const;
-          cCEM_OneIm (cCoherEpi_main * ,const std::string &,const Box2di & aBox,bool Visu,bool IsFirstIm);
-          Box2dr BoxIm2(const Pt2di & aSzIm2);
-          void SetConj(cCEM_OneIm *);
-          virtual void UsePack(const ElPackHomologue &) ;
-        
-          Pt2dr ToIm2Gen(const Pt2dr & aP)
-          {
-                bool Ok;
-                return RoughToIm2(aP,Ok)- mConj->mRP0;
-          }
-
-          Pt2dr ToIm2(const Pt2dr & aP,bool &Ok)
-          {
-                 Ok = IsOK(round_ni(aP));
-                 if (Ok)
-                    return RoughToIm2(aP,Ok)- mConj->mRP0;
-                 else
-                    return Pt2dr(0,0);
-          }
-
-
-          Pt2dr AllerRetour(const Pt2dr & aP,bool & Ok)
-          {
-                Pt2dr Aller = ToIm2(aP,Ok);
-                if (!Ok) return aP;
-                return mConj->ToIm2(Aller,Ok);
-          }
-          Im2D_U_INT1  ImAR();
-          const Pt2di &  Sz() const {return mSz;}
-
-          void VerifIm(Im2D_Bits<1> aMasq);
-          void VerifProf(Im2D_Bits<1> aMasq);
-          void ComputeOrtho();
-          virtual Im2D_REAL4 ImPx() 
-          {
-                 ELISE_ASSERT(false,"ImPx");
-                 return Im2D_REAL4(1,1);
-          }
-
-     protected :
-          virtual  Pt2dr  RoughToIm2(const Pt2dr & aP,bool & Ok) = 0;
-          virtual  bool  IsOK(const Pt2di & aP) = 0;
-
-          Output VGray() {return mWin ?  mWin->ogray() : Output::onul(1) ;}
-          Output VDisc() {return mWin ?  mWin->odisc() : Output::onul(1) ;}
-
-
-          cCoherEpi_main * mCoher;
-          cCpleEpip *      mCple;
-          std::string      mDir;
-          std::string      mNameInit;
-          std::string      mNameFinal;
-          Tiff_Im          mTifIm;
-          Box2di           mBox;
-          Pt2di            mSz;
-          Pt2di            mP0;
-          Pt2dr            mRP0;
-          Im2D_REAL4       mIm;
-          Im2D_REAL4       mImOrtho;
-
-
-          Video_Win *      mWin;
-          Video_Win *      mWin2;
-          cCEM_OneIm *     mConj;
-};
-
-class cCEM_OneIm_Epip  : public cCEM_OneIm
-{
-    public :
-          Im2D_REAL4 ImPx() {return mImPx;}
-
-          cCEM_OneIm_Epip (cCoherEpi_main * ,const std::string &,const Box2di & aBox,bool Visu,bool IsFirstIm);
-
-          virtual  Pt2dr  RoughToIm2(const Pt2dr & aP,bool & Ok)
-          {
-             Ok = true;
-             return Pt2dr(aP.x+mTPx.getprojR(aP),aP.y) + mRP0;
-          }
-          virtual  bool  IsOK(const Pt2di & aP) 
-          {
-              return mTMasq.get(aP,0);
-          }
-          void UsePack(const ElPackHomologue &) ;
-
-          std::string      mNamePx;
-          Tiff_Im          mTifPx;
-          Im2D_REAL4       mImPx;
-          TIm2D<REAL4,REAL8> mTPx;
-
-          std::string      mNameMasq;
-          Tiff_Im          mTifMasq;
-          Im2D_Bits<1>     mImMasq;
-          TIm2DBits<1>     mTMasq;
-
-};
-
-
-class cCEM_OneIm_Nuage  : public cCEM_OneIm
-{
-      public :
-          cCEM_OneIm_Nuage (cCoherEpi_main * ,const std::string &,const std::string &,const Box2di & aBox,bool Visu,bool IsFirstIm);
-      private :
-          Pt2dr  RoughToIm2(const Pt2dr & aP,bool & Ok) 
-          {
-                 if (! mNuage1->IndexIsOKForInterpol(aP)) 
-                 {
-                      Ok = false;
-                      return Pt2dr (0,0);
-                 }
-                 Pt3dr aP3 = mNuage1->PtOfIndexInterpol(aP);
-                 Pt2dr aRes = mNuage2->Terrain2Index(aP3);
-
-                 Ok = true;
-                 return aRes;
-          }
-          bool  IsOK(const Pt2di & aP) {return mNuage1->IndexHasContenu(aP);}
-
-          std::string              mDirLoc1;
-          std::string              mDirLoc2;
-          std::string              mDirNuage1;
-          std::string              mDirNuage2;
-          cParamModifGeomMTDNuage  mPGMN;
-          std::string              mNameN;
-          cXML_ParamNuage3DMaille  mParam1;
-          cElNuage3DMaille *       mNuage1;
-          cXML_ParamNuage3DMaille  mParam2;
-          cElNuage3DMaille *       mNuage2;
-};
-
-
-class cOneContour
-{
-     public :
-        ElList<Pt2di> *  mL;
-        double           mSurf;
-        bool             mExt;
-};
-bool operator < (const cOneContour & aC1,const cOneContour & aC2)
-{
-   return aC1.mSurf > aC2.mSurf;
-}
-
-
-
-class cCoherEpi_main : public Cont_Vect_Action
-{
-     public :
-
-
-        void action(const  ElFifo<Pt2di> & aFil,bool                ext);
-
-
-        friend class cCEM_OneIm;
-        friend class cCEM_OneIm_Epip;
-        friend class cCEM_OneIm_Nuage;
-        cCoherEpi_main (int argc,char ** argv);
-
-        
-
-     private  :
-        Box2di       mBoxIm1;
-        int          mSzDecoup;
-        int          mBrd;
-        Pt2di        mIntY1;
-        std::string  mNameIm1;
-        std::string  mNameIm2;
-        std::string  mOri;
-        std::string  mDir;
-        cInterfChantierNameManipulateur * mICNM;
-        cCpleEpip *  mCple;
-        bool          mWithEpi;
-        bool          mByP;
-        bool          mInParal;
-        bool          mCalledByP;
-        std::string   mPrefix;
-        std::string   mPostfixP;
-        cCEM_OneIm  * mIm1; 
-        cCEM_OneIm  * mIm2; 
-
-        int           mDeZoom;
-        int           mNumPx;
-        int           mNumMasq;
-        bool          mVisu;
-        double        mSigmaP;
-        double        mStep;
-        double        mRegul;
-        double        mReduceM;
-        bool          mDoMasq;
-        double        mDoMasqSym;
-        bool          mUseAutoMasq;
-        double        mReduce;
-        std::vector<cOneContour> mConts;
-
-};
+#if (0)
+#endif
 
 /*******************************************************************/
 /*                                                                 */
@@ -374,7 +151,7 @@ cCEM_OneIm::cCEM_OneIm
     ( 
          mIm.all_pts(),
          trans(mTifIm.in(),mP0),
-         mIm.out() 
+         mIm.out()  | VMax(mVMaxIm)
     );
     if (mWin)
     {
@@ -464,8 +241,20 @@ Im2D_U_INT1  cCEM_OneIm::ImAR()
 
 void cCEM_OneIm::VerifProf(Im2D_Bits<1> aMasq)
 {
-std::cout << "BBBBBBBBBB\n";
+/*
     if (! mWin) return;
+
+    Im2D_REAL4 anIQG = ImageQualityGrad(ImPx(),aMasq);
+
+    if (mWin)
+    {
+       ELISE_COPY(anIQG.all_pts(),Min(255,5*anIQG.in()),mWin->ogray());
+       Tiff_Im::Create8BFromFonc("QDM.tif",anIQG.sz(),Min(255,5*anIQG.in()));
+
+       mWin->clik_in();
+    }
+
+*/
 
     Pt2di aSz =  aMasq.sz();
     Im2D_Bits<1> aImOut(aSz.x,aSz.y,1);
@@ -482,7 +271,7 @@ std::cout << "BBBBBBBBBB\n";
          Symb_FNum  aSM2(aMasq.in_proj());
          Fonc_Num PxMin = aSM2 * ImPx().in(aPxInf) + (1-aSM2) * (aPxInf);
 
-        Symb_FNum  aFOk = dilat_d8((rect_max(PxMax,aSzW)-rect_min(PxMin,aSzW)< aSzW/1.5),aSzW);
+        Symb_FNum  aFOk = dilat_d8((rect_max(PxMax,aSzW)-rect_min(PxMin,aSzW)< (aSzW/1.5) ),aSzW-1);
 
          ELISE_COPY
          (
@@ -493,9 +282,16 @@ std::cout << "BBBBBBBBBB\n";
     }
     if (mWin)
     {
-std::cout << "AAAAAAAAAAAAAAAAAAa\n";
        ELISE_COPY(aMasq.all_pts(),aMasq.in(),mWin->odisc());
-       ELISE_COPY(select(aImOut.all_pts(),aImOut.in()),P8COL::blue,mWin->odisc());
+       Fonc_Num aFIm = mIm.in() * (255.0/mVMaxIm);
+       Fonc_Num aFM = aImOut.in()!=0;
+ 
+       ELISE_COPY
+       (
+           aImOut.all_pts(),
+           Virgule(aFIm,aFIm,aFIm * aFM),
+           mWin->orgb()
+       );
 
        mWin->clik_in();
     }
@@ -540,6 +336,7 @@ void cCEM_OneIm::VerifIm(Im2D_Bits<1> aMasq)
 
 void cCEM_OneIm::ComputeOrtho()
 {
+
    mImOrtho.Resize(mIm.sz());
    Pt2di aSz =  mImOrtho.sz();
    TIm2D<REAL4,REAL8> aTIm(mIm);
@@ -560,14 +357,13 @@ void cCEM_OneIm::ComputeOrtho()
            aTImOr.oset(aP,aVal);
        }
    }
+   ELISE_COPY(mImOrtho.all_pts(), mImOrtho.in(),VMax(mVMaxOrtho));
 
    if (mWin)
    {
        mWin2  =  Video_Win::PtrWStd(mSz) ;
        mWin2->set_title("Image Ortho");
-       double aVMax;
-       ELISE_COPY( mImOrtho.all_pts(), mImOrtho.in(),VMax(aVMax));
-       ELISE_COPY (  mImOrtho.all_pts(), 255.0* Min( mImOrtho.in()/aVMax,1.0), mWin2->ogray());
+       ELISE_COPY (  mImOrtho.all_pts(), 255.0* Min( mImOrtho.in()/mVMaxOrtho,1.0), mWin2->ogray());
    }
 
 }
