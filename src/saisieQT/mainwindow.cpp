@@ -118,7 +118,7 @@ bool MainWindow::checkForLoadedData()
 
     if (!widget.hasDataLoaded())
     {
-        widget.displayNewMessage(tr("Drag & drop files on window to load them!"));
+        widget.displayNewMessage(tr("Drag & drop images or ply files"));
         loadedEntities = false;
     }
     else

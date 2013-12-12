@@ -483,6 +483,8 @@ cPolygon::cPolygon(const cPolygon& pol)
 
 void cPolygon::draw()
 {
+
+    enableOptionLine();
     glColor3f(.1f,1.f,.2f);
 
     glBegin(_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
@@ -509,6 +511,7 @@ void cPolygon::draw()
         for (int aK = 0;aK < _points.size(); ++aK)
             glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
     }
+    disableOptionLine();
 }
 
 cPolygon & cPolygon::operator = (const cPolygon &aP)
@@ -585,6 +588,7 @@ void cPolygon::findClosestPoint(QPointF const &pos)
 
 void cPolygon::drawDihedron()
 {
+    enableOptionLine();
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
 
@@ -612,6 +616,7 @@ void cPolygon::drawDihedron()
         glDrawUnitCircle(2, _points[1].x(), _points[1].y());
 
     glPopMatrix();
+    disableOptionLine();
 }
 
 float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)

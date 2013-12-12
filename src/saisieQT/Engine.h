@@ -109,7 +109,7 @@ private:
     QDir        _Dir;
 };
 
-class cGLData
+class cGLData : cObjectGL
 {
 public:
 
@@ -122,9 +122,6 @@ public:
     bool        is3D(){return Clouds.size() || Cams.size();}
     bool        isDataLoaded(){return (!isImgEmpty()) || is3D();}
 
-    //2D
-//    cImageGL    *pImg;
-//    cImageGL    *pMask;
 
     cMaskedImageGL maskedImage;
 
@@ -147,6 +144,9 @@ public:
     void        setPolygon(cPolygon const &aPoly){m_polygon = aPoly;}
 
     //3D
+
+    void        draw();
+
     QVector < cCam* > Cams;
 
     cBall       *pBall;

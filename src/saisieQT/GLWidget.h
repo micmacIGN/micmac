@@ -147,14 +147,15 @@ public:
 
     ViewportParameters* getParams(){return &m_params;}
 
-    void enableOptionLine();
-    void disableOptionLine();
+//    void enableOptionLine();
+//    void disableOptionLine();
 
     void setGLData(cGLData* aData);
     cGLData* getGLData(){return m_GLData;}
 
     void setBackgroundColors(QColor const &col0, QColor const &col1);
 
+    cPolygon PolyImageToWindow(cPolygon polygon);
 public slots:
     void zoom();
 

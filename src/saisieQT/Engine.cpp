@@ -532,8 +532,6 @@ cGLData::cGLData():
 
 cGLData::~cGLData()
 {
-//    delete pImg;
-//    delete pMask;
 
     if(maskedImage._m_image != NULL) delete maskedImage._m_image;
     if(maskedImage._m_mask != NULL) delete maskedImage._m_mask;
@@ -554,8 +552,6 @@ cGLData::~cGLData()
 // ATTENTION JAMAIS APPELER
 void cGLData::clear()
 {
-//    pImg  = NULL;
-//    pMask = NULL;
 
     maskedImage._m_image = NULL;
     maskedImage._m_mask  = NULL;
@@ -570,6 +566,26 @@ void cGLData::clear()
 
     for (int aK = 0; aK< Clouds.size(); ++aK) Clouds[aK] = NULL;
     Clouds.clear();
+}
+
+void cGLData::draw()
+{
+    enableOptionLine();
+
+    for (int i=0; i<Clouds.size();i++)
+        Clouds[i]->draw();
+
+    if (pBall->isVisible())
+        pBall->draw();
+    else if (pAxis->isVisible())
+        pAxis->draw();
+
+    pBbox->draw();
+
+    //cameras
+    for (int i=0; i< Cams.size();i++) Cams[i]->draw();
+
+    disableOptionLine();
 }
 
 //********************************************************************************
