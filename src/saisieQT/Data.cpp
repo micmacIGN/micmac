@@ -34,8 +34,6 @@ void cData::addImage(QImage * aImg)
     _glImg = new QImage(aImg->size(),aImg->format());
     *_glImg = QGLWidget::convertToGLFormat( *aImg );
     _Images.push_back(_glImg);
-
-    _curImgIdx = _Images.size() - 1;
 }
 
 void cData::addMask(QImage * aImg)
@@ -91,8 +89,6 @@ void cData::reset()
     m_minX = m_minY = m_minZ =  FLT_MAX;
     m_maxX = m_maxY = m_maxZ = -FLT_MAX;
     _center = Pt3dr(0.f,0.f,0.f);
-    _curImgIdx = 0;
-    _emptyMask = true;
 }
 
 int cData::getSizeClouds()
@@ -111,7 +107,7 @@ void cData::getBB()
     {
         Cloud * aCloud = _Clouds[bK];
 
-        for (uint aK=0; aK < aCloud->size(); ++aK)
+        for (int aK=0; aK < aCloud->size(); ++aK)
         {
             Pt3dr vert = aCloud->getVertex(aK).getPosition();
 

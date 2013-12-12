@@ -363,7 +363,10 @@ void cGeomDiscFPx::PostInit()
                {
                    mV0Px[aD] += aPx[aD];
                }
-           }  
+            }  
+            else
+            {
+            }
          }
 
          double aResol = (*itFI)->Geom().GetResolMoyenne_Euclid();

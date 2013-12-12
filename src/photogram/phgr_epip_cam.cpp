@@ -269,24 +269,44 @@ Pt2dr GlobTransfoEpip ( const Pt2dr & aPIm, const CamStenope & aCamIn, const Cam
     return  aCamOut.R3toF2(aC+aRay);
 }
 
-Box2dr  GlobBoxCam(Box2dr aBoxIn,const CamStenope & aCamIn,const CamStenope & aCamOut) 
+std::vector<Pt2dr>  GlobEnvCam(Box2dr aBoxIn,const CamStenope & aCamIn,const CamStenope & aCamOut) 
 {
     std::vector<Pt2dr> aVPtsIn;
-    int aNbPts =1;
+    int aNbPts =4;
     aBoxIn.PtsDisc(aVPtsIn,aNbPts);
 
-    Pt2dr aPInfOut(1e20,1e20);
-    Pt2dr aPSupOut(-1e20,-1e20);
+    std::vector<Pt2dr> aRes;
 
     for (int aK=0 ; aK<int(aVPtsIn.size()) ; aK++)
     {
-        Pt2dr aP = GlobTransfoEpip(aVPtsIn[aK],aCamIn,aCamOut);
-        aPInfOut.SetInf(aP);
-        aPSupOut.SetSup(aP);
+        aRes.push_back(GlobTransfoEpip(aVPtsIn[aK],aCamIn,aCamOut));
     }
 
+    return aRes;
+}
+
+Box2dr  GlobBoxCam(Box2dr aBoxIn,const CamStenope & aCamIn,const CamStenope & aCamOut) 
+{
+   std::vector<Pt2dr> anEnv = GlobEnvCam(aBoxIn,aCamIn,aCamOut);
+
+   Pt2dr aPInfOut(1e20,1e20);
+   Pt2dr aPSupOut(-1e20,-1e20);
+
+    for (int aK=0 ; aK<int(anEnv.size()) ; aK++)
+    {
+        aPInfOut.SetInf(anEnv[aK]);
+        aPSupOut.SetSup(anEnv[aK]);
+    }
     return Box2dr(aPInfOut,aPSupOut);
 }
+
+double RatioExp(const CamStenope & aCamIn,const CamStenope & aCamOut)
+{
+   Box2dr aBoxIn = Box2dr(Pt2dr(0,0),Pt2dr(aCamIn.Sz()));
+   return ElAbs(surf_or_poly(GlobEnvCam(aBoxIn,aCamIn,aCamOut)) ) / aBoxIn.surf();
+}
+
+
 /********************************************************/
 /*                                                      */
 /*                cCpleEpip                             */
@@ -339,7 +359,6 @@ Box2dr  cCpleEpip::BoxCam(const CamStenope & aCamIn,const CamStenope & aCamOut,b
 
 
 
-
 Pt2dr cCpleEpip::TransfoEpip ( const Pt2dr & aPIm, const CamStenope & aCamIn, const CamStenope & aCamOut) const
 {
    return GlobTransfoEpip(aPIm,aCamIn,aCamOut);
@@ -358,7 +377,6 @@ void cCpleEpip::AssertOk() const
 }
 
 //Box2di BoxEpip
-
 
 cCpleEpip::cCpleEpip
 (
@@ -461,6 +479,12 @@ cCpleEpip::cCpleEpip
 
    mOk = true;
 }
+
+Pt2dr  cCpleEpip::RatioExp() const
+{
+    return Pt2dr(::RatioExp(mCInit1,mCamOut1),::RatioExp(mCInit2,mCamOut2));
+}
+
 
 
 template <class Type,class TypeBase> class cReechantEpi
@@ -880,10 +904,14 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
         std::string aNameHom = mICNM->Dir() 
                              + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+aPrefixHom+"@dat",aNamA,aNamB,true);
 
+        std::string aNameHomMatch = mICNM->Dir() 
+                             + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",aNamA,aNamB,true);
 
         ElPackHomologue aPackIn = ElPackHomologue::FromFile(aNameHom);
         ElPackHomologue aPackOut;
         ElPackHomologue aPackPolyn;
+
+        ElPackHomologue aPackMatch = ElPackHomologue::FromFile(aNameHomMatch);
 
         const CamStenope & aCamInA = aCamIn ;
         const CamStenopeIdeale &  aCamOutA = aCamOut ;
@@ -903,8 +931,22 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
 
         if ((aDegPolyCor>=0) && (!Im1))
         {
-           cChangEpip aCE(aPackPolyn,euclid(aCamOut.Sz()),aDegPolyCor);
-           aPolyCor = aCE.PolyCor();
+             cChangEpip aCE(aPackPolyn,euclid(aCamOut.Sz()),aDegPolyCor);
+             aPolyCor = aCE.PolyCor();
+        }
+        for (ElPackHomologue::iterator itH = aPackMatch.begin() ;  itH!=aPackMatch.end(); itH++)
+        {
+            Pt2dr aPA = itH->P1();
+            Pt2dr aPB = itH->P2();
+
+            Pt2dr aQA = GlobTransfoEpip(aPA,aCamInA,aCamOutA);
+            Pt2dr aQB = GlobTransfoEpip(aPB,aCamInB,aCamOutB);
+            if (aPolyCor)
+            {
+                 aQB.y  += (*aPolyCor)(aQA);
+            }
+            itH->P1() = aQA;
+            itH->P2() = aQB;
         }
 
         if (CarNameHom)
@@ -912,7 +954,7 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
             std::string aNameHEpi = mICNM->Dir() 
                                   + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",LocNameImEpi(Im1),LocNameImEpi(!Im1),true);
 
-            aPackOut.StdPutInFile(aNameHEpi);
+            aPackMatch.StdPutInFile(aNameHEpi);
         }
             
 

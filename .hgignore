@@ -115,3 +115,4 @@ fdsc/fonctions_cg.pyc
 fdsc/ConstructLine.pyc
 fdsc/ConstructCG.pyc
 include/general/HG_defines.h
+include/XML_MicMac/TmpCam.xml

@@ -131,6 +131,7 @@ QStatusBar
     <addaction name="actionSelect_none"/>
     <addaction name="actionReset"/>
     <addaction name="actionInvertSelected"/>
+    <addaction name="actionUndo"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuFile">
@@ -380,7 +381,7 @@ QStatusBar
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>Show ball</string>
@@ -665,6 +666,14 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>Shift+R</string>
+   </property>
+  </action>
+  <action name="actionUndo">
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
    </property>
   </action>
  </widget>

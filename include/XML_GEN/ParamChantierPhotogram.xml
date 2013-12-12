@@ -182,6 +182,7 @@ namespace NS_ParamChantierPhotogram{
   <enum  Name="eTypeProjectionCam">
        <eProjStenope>            </eProjStenope>
        <eProjOrthographique>     </eProjOrthographique>
+       <eProjGrid>            </eProjGrid>
   </enum>
 
     <enum Name="eTypeCoord">
@@ -783,10 +784,10 @@ namespace NS_ParamChantierPhotogram{
    <OrientationConique  Nb="1" Class="true" ToReference="true" >
 
        <!-- modif Greg pour pouvoir utiliser des grilles comme dans MicMac -->
-       <OrientationFile Nb="?">
+       <ModuleOrientationFile Nb="?">
            <!--GeomImages Nb="1" Type="eModeGeomImage" RefFile="ParamMICMAC.xml"> </GeomImages-->
            <NameFileOri Nb="1" Type="std::string"></NameFileOri>
-       </OrientationFile>
+       </ModuleOrientationFile>
        
        <!-- fin modif Greg-->
        
