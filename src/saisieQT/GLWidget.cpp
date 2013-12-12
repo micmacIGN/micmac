@@ -63,7 +63,7 @@ GLWidget::~GLWidget()
 bool GLWidget::eventFilter(QObject* object,QEvent* event)
 {
     if (hasDataLoaded())
-    {
+    {      
         QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
 
         _parentSet->setCurrentWidget(_idx);
@@ -352,6 +352,7 @@ void GLWidget::disableOptionLine()
 void GLWidget::setGLData(cGLData * aData)
 {
     m_GLData = aData;
+    _bDataLoaded = true;
 }
 
 void GLWidget::setBackgroundColors(const QColor &col0, const QColor &col1)
@@ -1197,27 +1198,32 @@ void GLWidget::undo()
 {
     if (m_infos.size() && hasDataLoaded())
     {
-        if (!m_bDisplayMode2D)
+        if ((!m_bDisplayMode2D) || (m_infos.size() == 1))
             Select(ALL, false);
 
         for (int aK = 0; aK < m_infos.size()-1; ++aK)
         {
+            selectInfos &infos = m_infos[aK];
+
             cPolygon Polygon;
             Polygon.setClosed(true);
-            Polygon.setVector(m_infos[aK].poly);
+            Polygon.setVector(infos.poly);
             m_GLData->setPolygon(Polygon);
 
             if (!m_bDisplayMode2D)
             {
-                for (int bK=0; bK<16;++bK) _mvmatrix[bK]   = m_infos[aK].mvmatrix[bK];
-                for (int bK=0; bK<16;++bK) _projmatrix[bK] = m_infos[aK].projmatrix[bK];
-                for (int bK=0; bK<4;++bK)  _glViewport[bK] = m_infos[aK].glViewport[bK];
+                for (int bK=0; bK<16;++bK)
+                {
+                    _mvmatrix[bK]   = infos.mvmatrix[bK];
+                    _projmatrix[bK] = infos.projmatrix[bK];
+                }
+                for (int bK=0; bK<4;++bK)  _glViewport[bK] = infos.glViewport[bK];
 
                 if (aK==0) m_bFirstAction = true;
                 else m_bFirstAction = false;
             }
 
-            Select(m_infos[aK].selection_mode, false);
+            Select(infos.selection_mode, false);
         }
 
         m_infos.pop_back();
