@@ -14,6 +14,7 @@
    #include <Windows.h>
 #elif (ELISE_POSIX)
    #include <unistd.h>
+   #include <sys/stat.h>
 #endif
 
 #include <vector>
@@ -89,6 +90,7 @@ void cElPath::trace( ostream &io_stream ) const
 string cElPath::str( char i_separator ) const
 {
    const string separator(1,i_separator);
+   if ( !isAbsolute() && m_tokens.size()==0 ) return string(".")+separator;
    list<cElPathToken>::const_iterator itToken = m_tokens.begin();
    string res;
    while ( itToken!=m_tokens.end() )
@@ -123,6 +125,13 @@ void cElPath::toAbsolute( const cElPath &i_relativeTo )
 
 bool cElPath::isInvalid() const { return false; }
 
+bool cElPath::exists() const
+{
+   struct stat status;
+   return ( stat( str_unix().c_str(), &status )==0 &&
+	    S_ISDIR( status.st_mode ) );
+}
+
 //-------------------------------------------
 // cElFilename
 //-------------------------------------------
@@ -154,4 +163,11 @@ int cElFilename::compare( const cElFilename &i_b ) const
    int compare = m_path.compare(i_b.m_path);
    if (compare!=0) return compare;
    return m_basename.compare( i_b.m_basename );
+}
+
+bool cElFilename::exists() const
+{
+   struct stat status;
+   return ( stat( str_unix().c_str(), &status )==0 &&
+	    S_ISREG( status.st_mode ) );
 }

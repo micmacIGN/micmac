@@ -129,7 +129,7 @@ else()
 	# Affiche la revision MICMAC
 	EXECUTE_PROCESS(
 		COMMAND
-		hg log -l 1 -b "default" --template "{rev}"
+		hg identify --num
 		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 		RESULT_VARIABLE hg_result
 		OUTPUT_VARIABLE HG_REVISION_DIST
@@ -141,6 +141,7 @@ else()
 	set(HG_REV ${HG_REVISION_DIST} CACHE STRING "Revision" FORCE)
 	
 	if ( NOT ${hg_result} )
+	   set( HG_REVISION_DIST \"${HG_REVISION_DIST}\" )
 	   CONFIGURE_FILE (
 	      "include/general/HG_defines.h.in"
 	      "${CMAKE_SOURCE_DIR}/include/general/HG_defines.h"
