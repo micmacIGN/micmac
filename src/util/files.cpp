@@ -425,7 +425,7 @@ bool ELISE_fp::lastModificationDate(const std::string &i_filename, cElDate &o_da
 	if ( stat( i_filename.c_str(), &sb )==-1) return false;
     struct tm *t = localtime( &sb.st_mtime );
     
-    o_date = cElDate( t->tm_mday, t->tm_mon, t->tm_year+1900, cElHour( t->tm_hour, t->tm_min, t->tm_sec ) );
+    o_date = cElDate( t->tm_mday, t->tm_mon+1, t->tm_year+1900, cElHour( t->tm_hour, t->tm_min, t->tm_sec ) );
     return true;
 }
 #endif
