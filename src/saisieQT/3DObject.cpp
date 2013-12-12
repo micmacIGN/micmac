@@ -815,3 +815,31 @@ void cImageGL::ImageToTexture(QImage *pImg)
     glBindTexture( GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
 }
+
+
+void cMaskedImageGL::draw(uint h, uint w, bool drawMask)
+{
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE,GL_ZERO);
+    glDisable(GL_ALPHA_TEST);
+    glDisable(GL_DEPTH_TEST);
+
+    _m_image->setDimensions(h, w);
+    _m_image->draw(QColor(255,255,255));
+
+    if(_m_mask != NULL && drawMask)
+    {
+        _m_mask->setDimensions(h, w);
+        _m_mask->draw();
+        glBlendFunc(GL_ONE,GL_ONE);
+
+        _m_mask->draw(QColor(128,128,128));
+        glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
+    }
+
+    _m_image->draw();
+
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_ALPHA_TEST);
+}

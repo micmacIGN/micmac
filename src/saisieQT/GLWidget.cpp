@@ -379,14 +379,11 @@ void GLWidget::paintGL()
     {
         if (m_bDisplayMode2D)
         {
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_ONE,GL_ZERO);
 
+
+            // CAMERA BEGIN ======================
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
-
-            glDisable(GL_ALPHA_TEST);
-            glDisable(GL_DEPTH_TEST);
 
             glPushMatrix();
             glMultMatrixd(_projmatrix);
@@ -411,42 +408,58 @@ void GLWidget::paintGL()
             m_glPosition[0] = m_glPosition[1] = 0.f;
 
             glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
-            m_GLData->pImg->setDimensions(m_rh, m_rw);
 
-            m_GLData->pImg->draw(QColor(255,255,255));
+            // CAMERA END ======================
 
-            if(m_GLData->pMask != NULL && !_g_mouseMiddleDown)
-            {
-                m_GLData->pMask->setDimensions(m_rh, m_rw);
-                m_GLData->pMask->draw();
-                glBlendFunc(GL_ONE,GL_ONE);
+            // IMAGE BEGIN ======================
 
-                m_GLData->pMask->draw(QColor(128,128,128));
-                glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
-            }
+//            glEnable(GL_BLEND);
+//            glBlendFunc(GL_ONE,GL_ZERO);
+//            glDisable(GL_ALPHA_TEST);
+//            glDisable(GL_DEPTH_TEST);
 
-            m_GLData->pImg->draw();
+//            m_GLData->pImg->setDimensions(m_rh, m_rw);
+//            m_GLData->pImg->draw(QColor(255,255,255));
+
+//            if(m_GLData->pMask != NULL && !_g_mouseMiddleDown)
+//            {
+//                m_GLData->pMask->setDimensions(m_rh, m_rw);
+//                m_GLData->pMask->draw();
+//                glBlendFunc(GL_ONE,GL_ONE);
+
+//                m_GLData->pMask->draw(QColor(128,128,128));
+//                glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
+//            }
+
+//            m_GLData->pImg->draw();
+
+//            glPopMatrix();
+
+//            glDisable(GL_BLEND);
+//            glEnable(GL_DEPTH_TEST);
+//            glEnable(GL_ALPHA_TEST);
+
+            m_GLData->maskedImage.draw(m_rh, m_rw,!_g_mouseMiddleDown);
 
             glPopMatrix();
 
-            glDisable(GL_BLEND);
-            glEnable(GL_DEPTH_TEST);
-            glEnable(GL_ALPHA_TEST);
-            glMatrixMode(GL_MODELVIEW);
+            // IMAGE END ======================
 
             //Affichage du zoom et des coordonnées image
-            if (m_bDrawMessages)
-            {
-                glColor3f(1.f,1.f,1.f);
+//            if (m_bDrawMessages)
+//            {
+//                glMatrixMode(GL_MODELVIEW);
 
-                renderText(10, _glViewport[3] - m_font.pointSize(), QString::number(m_params.m_zoom*100,'f',1) + "%", m_font);
+//                glColor3f(1.f,1.f,1.f);
 
-                float px = m_lastMoveImage.x();
-                float py = m_lastMoveImage.y();
+//                renderText(10, _glViewport[3] - m_font.pointSize(), QString::number(m_params.m_zoom*100,'f',1) + "%", m_font);
 
-                if  ((px>=0.f)&&(py>=0.f)&&(px<m_GLData->pImg->width())&&(py<m_GLData->pImg->height()))
-                    renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(px,'f',1) + ", " + QString::number(m_GLData->pImg->height()-py,'f',1) + " px", m_font);
-            }
+//                float px = m_lastMoveImage.x();
+//                float py = m_lastMoveImage.y();
+
+//                if  ((px>=0.f)&&(py>=0.f)&&(px<m_GLData->pImg->width())&&(py<m_GLData->pImg->height()))
+//                    renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(px,'f',1) + ", " + QString::number(m_GLData->pImg->height()-py,'f',1) + " px", m_font);
+//            }
         }
         else if(m_GLData->is3D())
         {
@@ -895,8 +908,12 @@ void GLWidget::zoomFit()
     if (hasDataLoaded())
     {
         //width and height ratio between viewport and image
-        float rw = (float)m_GLData->pImg->width()/ _glViewport[2];
-        float rh = (float)m_GLData->pImg->height()/_glViewport[3];
+//        float rw = (float)m_GLData->pImg->width()/ _glViewport[2];
+//        float rh = (float)m_GLData->pImg->height()/_glViewport[3];
+
+        float rw = (float)m_GLData->maskedImage._m_image->width()/ _glViewport[2];
+        float rh = (float)m_GLData->maskedImage._m_image->height()/_glViewport[3];
+
 
         if(rw>rh)
             setZoom(1.f/rw); //orientation landscape
@@ -1110,7 +1127,8 @@ void GLWidget::Select(int mode, bool saveInfos)
             if(mode == INVERT)
                 m_GLData->getMask()->invertPixels(QImage::InvertRgb);
 
-            m_GLData->pMask->ImageToTexture(m_GLData->getMask());
+//            m_GLData->pMask->ImageToTexture(m_GLData->getMask());
+             m_GLData->maskedImage._m_mask->ImageToTexture(m_GLData->getMask());
         }
         else
         {

@@ -625,6 +625,7 @@ void MainWindow::closeAll()
         widget.reset();
         widget.resetView();
 
+        //  A VIRER
         checkForLoadedData();
 
         widget.update();

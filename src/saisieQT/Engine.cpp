@@ -441,8 +441,11 @@ void cEngine::setGLData()
             _Data->fillMask(aK);
         }
 
-        theData->pMask->PrepareTexture(_Data->getMask(aK));
-        theData->pImg->PrepareTexture(_Data->getImage(aK));
+//        theData->pMask->PrepareTexture(_Data->getMask(aK));
+//        theData->pImg->PrepareTexture(_Data->getImage(aK));
+
+        theData->maskedImage._m_mask->PrepareTexture(_Data->getMask(aK));
+        theData->maskedImage._m_image->PrepareTexture(_Data->getImage(aK));
 
         theData->setEmptyImg(false);
 
@@ -514,8 +517,12 @@ cGLData::cGLData():
     _diam(1.f)
 {
     //2D
-    pImg  = new cImageGL();
-    pMask = new cImageGL();
+//    pImg  = new cImageGL();
+//    pMask = new cImageGL();
+
+    maskedImage._m_image = new cImageGL();
+    maskedImage._m_mask  = new cImageGL();
+
 
     //3D
     pBall = new cBall();
@@ -525,8 +532,11 @@ cGLData::cGLData():
 
 cGLData::~cGLData()
 {
-    delete pImg;
-    delete pMask;
+//    delete pImg;
+//    delete pMask;
+
+    if(maskedImage._m_image != NULL) delete maskedImage._m_image;
+    if(maskedImage._m_mask != NULL) delete maskedImage._m_mask;
 
     for (int aK = 0; aK< Cams.size(); ++aK) delete Cams[aK];
     //qDeleteAll(Cams);
@@ -540,10 +550,15 @@ cGLData::~cGLData()
     Clouds.clear();
 }
 
+
+// ATTENTION JAMAIS APPELER
 void cGLData::clear()
 {
-    pImg  = NULL;
-    pMask = NULL;
+//    pImg  = NULL;
+//    pMask = NULL;
+
+    maskedImage._m_image = NULL;
+    maskedImage._m_mask  = NULL;
 
     for (int aK = 0; aK< Cams.size(); ++aK) Cams[aK] = NULL;
     //qDeleteAll(Cams);
