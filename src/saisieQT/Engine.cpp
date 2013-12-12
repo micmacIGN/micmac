@@ -279,9 +279,11 @@ void cEngine::doMasks()
     }
 }
 
-void cEngine::doMaskImage()
+void cEngine::doMaskImage(ushort idCur)
 {
-    QImage* pMask = _Data->getCurMask();
+    //QImage* pMask = _Data->getCurMask();
+    // WARNING TO DO
+    QImage* pMask = _vGLData[idCur]->getMask();
 
     if (pMask->hasAlphaChannel())
 	{
@@ -428,11 +430,8 @@ void cEngine::setGLData()
         cGLData *theData = new cGLData();
 
         if(_Data->getMask(aK) != NULL)
-        {
-            theData->setEmptyMask(false);
-
             theData->pQMask = _Data->getMask(aK);
-        }
+
         else
         {
             theData->pQMask = new QImage(_Data->getImage(aK)->size(),QImage::Format_Mono);
@@ -441,10 +440,12 @@ void cEngine::setGLData()
             _Data->fillMask(aK);
         }
 
-        theData->pMask->PrepareTexture(_Data->getMask(aK));
-        theData->pImg->PrepareTexture(_Data->getImage(aK));
+        theData->maskedImage._m_mask = new cImageGL();
+        theData->maskedImage._m_image = new cImageGL();
 
-        theData->setEmptyImg(false);
+        theData->maskedImage._m_mask->PrepareTexture(_Data->getMask(aK));
+        theData->maskedImage._m_image->PrepareTexture(_Data->getImage(aK));
+
 
         _vGLData.push_back(theData);
     }
@@ -509,14 +510,8 @@ cGLData* cEngine::getGLData(int WidgetIndex)
 //********************************************************************************
 
 cGLData::cGLData():
-    _bEmptyImg(true),
-    _bEmptyMask(true),
     _diam(1.f)
 {
-    //2D
-    pImg  = new cImageGL();
-    pMask = new cImageGL();
-
     //3D
     pBall = new cBall();
     pAxis = new cAxis();
@@ -525,8 +520,9 @@ cGLData::cGLData():
 
 cGLData::~cGLData()
 {
-    delete pImg;
-    delete pMask;
+
+    if(maskedImage._m_image != NULL) delete maskedImage._m_image;
+    if(maskedImage._m_mask != NULL) delete maskedImage._m_mask;
 
     for (int aK = 0; aK< Cams.size(); ++aK) delete Cams[aK];
     //qDeleteAll(Cams);
@@ -540,10 +536,13 @@ cGLData::~cGLData()
     Clouds.clear();
 }
 
+
+// ATTENTION JAMAIS APPELER
 void cGLData::clear()
 {
-    pImg  = NULL;
-    pMask = NULL;
+
+    maskedImage._m_image = NULL;
+    maskedImage._m_mask  = NULL;
 
     for (int aK = 0; aK< Cams.size(); ++aK) Cams[aK] = NULL;
     //qDeleteAll(Cams);
@@ -555,6 +554,26 @@ void cGLData::clear()
 
     for (int aK = 0; aK< Clouds.size(); ++aK) Clouds[aK] = NULL;
     Clouds.clear();
+}
+
+void cGLData::draw()
+{
+    enableOptionLine();
+
+    for (int i=0; i<Clouds.size();i++)
+        Clouds[i]->draw();
+
+    if (pBall->isVisible())
+        pBall->draw();
+    else if (pAxis->isVisible())
+        pAxis->draw();
+
+    pBbox->draw();
+
+    //cameras
+    for (int i=0; i< Cams.size();i++) Cams[i]->draw();
+
+    disableOptionLine();
 }
 
 //********************************************************************************

@@ -109,7 +109,7 @@ private:
     QDir        _Dir;
 };
 
-class cGLData
+class cGLData : cObjectGL
 {
 public:
 
@@ -118,13 +118,12 @@ public:
 
     void clear();
 
-    bool        is2D(){return pImg != NULL;}
+    //bool        is2D(){return pImg != NULL;}
     bool        is3D(){return Clouds.size() || Cams.size();}
     bool        isDataLoaded(){return (!isImgEmpty()) || is3D();}
 
-    //2D
-    cImageGL    *pImg;
-    cImageGL    *pMask;
+
+    cMaskedImageGL maskedImage;
 
     QImage      *pQMask;
 
@@ -134,17 +133,18 @@ public:
     //! Point list for polygonal insertion
     cPolygon    m_dihedron;
 
-    void        setEmptyImg(bool aBool){_bEmptyImg = aBool;}
-    bool        isImgEmpty(){return _bEmptyImg;}
+    bool        isImgEmpty(){return maskedImage._m_image == NULL;}
 
-    void        setEmptyMask(bool aBool){_bEmptyMask = aBool;}
-    bool        isMaskEmpty(){return _bEmptyMask;}
+    bool        isMaskEmpty(){ return maskedImage._m_mask == NULL;}
 
     QImage*     getMask(){return pQMask;}
 
     void        setPolygon(cPolygon const &aPoly){m_polygon = aPoly;}
 
     //3D
+
+    void        draw();
+
     QVector < cCam* > Cams;
 
     cBall       *pBall;
@@ -161,9 +161,6 @@ public:
     void        setCenter(Pt3dr aCenter){_center = aCenter;}
 
 private:
-
-    bool        _bEmptyImg;
-    bool        _bEmptyMask;
 
     float       _diam;
     Pt3dr       _center;
@@ -212,7 +209,7 @@ public:
     void    doMasks();
 
     //! Creates binary image from selection and saves
-    void    doMaskImage();
+    void    doMaskImage(ushort idCur);
 
     void    saveSelectInfos(QVector <selectInfos> const &Infos);
 

@@ -23,7 +23,9 @@ Internet: Marc.Pierrot-Deseilligny@ign.fr
    Phone: (33) 01 43 98 81 28
 eLiSe06/05/99*/
 
-#define __TRACE_SYSTEM__
+#ifndef __TRACE_SYSTEM__
+   #define __TRACE_SYSTEM__
+#endif
 
 #include "StdAfx.h"
 #include "general/cElCommand.h"
