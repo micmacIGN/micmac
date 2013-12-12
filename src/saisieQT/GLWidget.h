@@ -77,8 +77,6 @@ public:
     //! States if data (cloud, camera or image) is loaded
     bool hasDataLoaded(){return m_GLData != NULL && _bDataLoaded;}
 
-    void setDataLoaded(bool aBool){ _bDataLoaded = aBool; }
-
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
 

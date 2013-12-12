@@ -245,8 +245,7 @@ void MainWindow::addFiles(const QStringList& filenames)
         for (uint aK = 0; aK < NbWidgets();++aK)
         {
             GLWidget &widget = getWidget(aK);
-            widget.setGLData(_Engine->getGLData((uint) aK));
-            widget.setDataLoaded(true);
+            widget.setGLData(_Engine->getGLData(aK));
             widget.updateAfterSetData();
         }
 
@@ -453,30 +452,17 @@ void MainWindow::on_actionRemove_triggered()
 }
 
 void MainWindow::on_actionUndo_triggered()
-{
+{   
     GLWidget &widget = CurrentWidget();
 
     if (_bMode2D)
     {
-        _Engine->unloadAll();
-
-        glLoadIdentity();
-
-        _Engine->loadImages(_FilenamesIn);
-
-        _Engine->setFilenamesOut();
-
-        for (int aK=0; aK<_Engine->getData()->getNbImages();++aK)
-            _Engine->applyGammaToImage(aK);
-
-        widget.setDataLoaded(true);
-
-        _Engine->setGLData();
-        widget.setGLData(_Engine->getGLData((uint)0));
+        widget.setGLData(_Engine->getGLData(getCurrentWidget()));
         widget.updateAfterSetData(false);
 
         widget.showMessages(_ui->actionShow_messages->isChecked());
     }
+
     widget.undo();
 }
 
