@@ -110,21 +110,17 @@ void MainWindow::createMenus()
     updateRecentFileActions();
 }
 
-bool MainWindow::checkForLoadedData()
+void MainWindow::checkForLoadedData()
 {
-    bool loadedEntities = true;
+
     GLWidget &widget = CurrentWidget();
     widget.displayNewMessage(QString()); //clear (any) message in the middle area
 
     if (!widget.hasDataLoaded())
-    {
         widget.displayNewMessage(tr("Drag & drop images or ply files"));
-        loadedEntities = false;
-    }
     else
         on_actionShow_messages_toggled(_ui->actionShow_messages->isChecked());
 
-    return loadedEntities;
 }
 
 void MainWindow::setPostFix(QString str)
