@@ -33,8 +33,12 @@ public:
 	 unsigned int m_dataOffset;
 	 unsigned int m_dataSize;
 	 
-	 Item( const cElFilename &i_filename, TD_Type i_type );
-	 Item( const cElFilename &i_filename, TD_Type i_type, const cElDate &i_date );
+	 Item( const cElFilename &i_filename,
+	       TD_Type i_type,
+	       const cElDate &i_date,
+	       const cElFilename &i_dataFile,
+	       unsigned int i_dataOffset,
+	       unsigned int i_dataSize );
 	 void reset_date();
 	 void apply( TracePack::Registry &o_actions );
 	 void dump( std::ostream &io_ostream=std::cout, const std::string &i_prefix=string() ) const;
@@ -46,7 +50,7 @@ public:
       void write_v1( ostream &io_stream ) const;
       void read_v1( istream &io_stream );
       void reset_dates();
-      void add( const Item &i_item );
+      Item & add( const Item &i_item );
       void stateDirectory( const cElPath &i_path );
       void difference( const TracePack::Registry &i_a, const TracePack::Registry &i_b );
       void apply( const TracePack::Registry &i_actions );

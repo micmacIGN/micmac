@@ -22,12 +22,18 @@ using namespace std;
 // class TracePack::Registry::Item
 //--------------------------------------------
       
-TracePack::Registry::Item::Item( const cElFilename &i_filename, TD_Type i_type, const cElDate &i_date ):
+TracePack::Registry::Item::Item( const cElFilename &i_filename,
+	                         TD_Type i_type,
+	                         const cElDate &i_date,
+	                         const cElFilename &i_dataFile,
+	                         unsigned int i_dataOffset,
+	                         unsigned int i_dataSize ):
    m_filename( i_filename ),
    m_type( i_type ),
    m_date( i_date ),
-   m_dataOffset(0),
-   m_dataSize(0)
+   m_dataFile( i_dataFile ),
+   m_dataOffset( i_dataOffset ),
+   m_dataSize( i_dataOffset )
 {
 }
 
@@ -36,6 +42,7 @@ void TracePack::Registry::Item::reset_date()
    ELISE_fp::lastModificationDate( m_filename.str_unix(), m_date );
 }
 
+/*
 TracePack::Registry::Item::Item( const cElFilename &i_filename, TD_Type i_type ):
    m_filename(i_filename),
    m_type( i_type ),
@@ -43,6 +50,7 @@ TracePack::Registry::Item::Item( const cElFilename &i_filename, TD_Type i_type )
 {
    reset_date();
 }
+*/
 
 void TracePack::Registry::Item::dump( ostream &io_ostream, const string &i_prefix ) const
 {
@@ -65,6 +73,7 @@ TracePack::Registry::Registry()
 void TracePack::Registry::difference( const Registry &i_a, const Registry &i_b )
 {   
    m_items.clear();
+   cElFilename nofilename;
    list<TracePack::Registry::Item>::const_iterator itA = i_a.m_items.begin(),
                                                    itB = i_b.m_items.begin();
    while ( itA!=i_a.m_items.end() && itB!=i_b.m_items.end() )
@@ -79,15 +88,17 @@ void TracePack::Registry::difference( const Registry &i_a, const Registry &i_b )
       if ( compare==0 )
       {
 	 if ( itA->m_date!=itB->m_date )
-	    m_items.push_back( Item( itA->m_filename, TD_Modified, itB->m_date ) );
+	 {
+	    m_items.push_back( Item( itA->m_filename, TD_Modified, itB->m_date, itB->m_dataFile, itB->m_dataOffset, itB->m_dataSize ) );
+	 }
 	 itA++; itB++;
       }
       else
       {
 	 if ( compare<0 )
-	    m_items.push_back( Item( (*itA++).m_filename, TD_Removed, cElDate::NoDate ) );
+	    m_items.push_back( Item( (*itA++).m_filename, TD_Removed, cElDate::NoDate, nofilename, 0, 0 ) );
 	 else
-	    m_items.push_back( Item( (*itB++).m_filename, TD_Added, itB->m_date ) );
+	    m_items.push_back( Item( (*itB++).m_filename, TD_Added, itB->m_date, itB->m_dataFile, itB->m_dataOffset, itB->m_dataSize ) );
       }
    }
    while ( itA!=i_a.m_items.end() )
@@ -95,14 +106,14 @@ void TracePack::Registry::difference( const Registry &i_a, const Registry &i_b )
       #ifdef _DEBUG
 	 if ( itA->m_type!=TD_State ) debug_error( __difference_illegal_item_message );
       #endif
-      m_items.push_back( Item( (*itA++).m_filename, TD_Removed, cElDate::NoDate ) );
+      m_items.push_back( Item( (*itA++).m_filename, TD_Removed, cElDate::NoDate, nofilename, 0, 0 ) );
    }
    while ( itB!=i_b.m_items.end() )
    {
       #ifdef _DEBUG
 	 if ( itB->m_type!=TD_State ) debug_error( __difference_illegal_item_message );
       #endif
-      m_items.push_back( Item( (*itB++).m_filename, TD_Added, itB->m_date ) );
+      m_items.push_back( Item( (*itB++).m_filename, TD_Added, itB->m_date, itB->m_dataFile, itB->m_dataOffset, itB->m_dataSize ) );
    }
    
    // __DEL
@@ -113,15 +124,16 @@ void TracePack::Registry::difference( const Registry &i_a, const Registry &i_b )
    
 void TracePack::Registry::write_v1( ostream &io_stream/*, bool m_inverseByteOrder*/ ) const
 {
-   U_INT4 ui = (U_INT4)m_items.size();
+   U_INT4 ui = (U_INT4)m_items.size(),
+          dataCoordinates[2];
    INT4 i;
    string s;
    io_stream.write( (char*)(&ui), 4 );
    list<Item>::const_iterator itItem = m_items.begin();
    while ( itItem!=m_items.end() )
    {
-      s = itItem->m_filename.str_unix();
       // write filename
+      s = itItem->m_filename.str_unix();
       ui = s.size();
       io_stream.write( (char*)(&ui), 4 );
       io_stream.write( s.c_str(), ui );
@@ -131,7 +143,18 @@ void TracePack::Registry::write_v1( ostream &io_stream/*, bool m_inverseByteOrde
       if ( itItem->m_type==TracePack::Registry::TD_State ||
            itItem->m_type==TracePack::Registry::TD_Added ||
            itItem->m_type==TracePack::Registry::TD_Modified )
+      {
 	 itItem->m_date.write_raw( io_stream );
+	 // write data filename
+	 s = itItem->m_filename.str_unix();
+	 ui = s.size();
+	 io_stream.write( (char*)(&ui), 4 );
+	 io_stream.write( s.c_str(), ui );
+	 // write data offset and length
+	 dataCoordinates[0] = (U_INT4)itItem->m_dataOffset;
+	 dataCoordinates[1] = (U_INT4)itItem->m_dataSize;
+	 io_stream.write( (char*)dataCoordinates, 8 );
+      }
       itItem++;
    }
 }
@@ -139,9 +162,11 @@ void TracePack::Registry::write_v1( ostream &io_stream/*, bool m_inverseByteOrde
 void TracePack::Registry::read_v1( istream &io_stream )
 {
    m_items.clear();
-   U_INT4 nbFiles, ui;
+   U_INT4 nbFiles, ui,
+          fileCoordinates[2];
    INT4 i;
    vector<char> str;
+   cElFilename itemFilename, dataFilename;
    cElDate d( cElDate::NoDate );
    io_stream.read( (char*)&nbFiles, 4 );
    while ( nbFiles-- )
@@ -151,16 +176,27 @@ void TracePack::Registry::read_v1( istream &io_stream )
       str.resize(ui+1);
       io_stream.read( str.data(), ui );
       str[ui] = '\0';
+      itemFilename = cElFilename( string( str.data() ) );
       // write type
       io_stream.read( (char*)(&i), 4 );
       // add item
       if ( i==TracePack::Registry::TD_State ||
            i==TracePack::Registry::TD_Added ||
            i==TracePack::Registry::TD_Modified )
+      {
 	 d.read_raw( io_stream );
+	 // read filename
+	 io_stream.read( (char*)(&ui), 4 );
+	 str.resize(ui+1);
+	 io_stream.read( str.data(), ui );
+	 str[ui] = '\0';
+	 dataFilename = cElFilename( string( str.data() ) );
+	 // read offset and length
+	 io_stream.read( (char*)fileCoordinates, 8 );
+      }
       else
 	 d = cElDate::NoDate;
-      m_items.push_back( Item( cElFilename( string( str.data() ) ), (TD_Type)i, d ) );
+      m_items.push_back( Item( itemFilename, (TD_Type)i, d, dataFilename, fileCoordinates[0], fileCoordinates[1] ) );
    }
 }
 
@@ -171,7 +207,7 @@ void TracePack::Registry::reset_dates()
       ( *itItem++ ).reset_date();
 }
 
-void TracePack::Registry::add( const Item &i_item )
+TracePack::Registry::Item & TracePack::Registry::add( const Item &i_item )
 {
    const cElFilename &filename = i_item.m_filename;
    list<Item>::iterator it = m_items.begin();
@@ -180,10 +216,10 @@ void TracePack::Registry::add( const Item &i_item )
    if ( it==m_items.end() )
    {
       m_items.push_back( i_item );
-      return;
+      return *m_items.rbegin();
    }
-   if ( it->m_filename==filename ) return;
-   m_items.insert( it, i_item );
+   if ( it->m_filename==filename ) return *it;
+   return *m_items.insert( it, i_item );
 }
 
 void TracePack::Registry::stateDirectory( const cElPath &i_path )
@@ -196,10 +232,22 @@ void TracePack::Registry::stateDirectory( const cElPath &i_path )
    #endif
    
    m_items.clear();
+   cElDate date = cElDate::NoDate;
+   int fileLength;
    list<string> files = RegexListFileMatch( path.str_unix()+cElPath::sm_unix_separator, ".*", numeric_limits<INT>::max(), false );
    list<string>::iterator itFile = files.begin();
    while ( itFile!=files.end() )
-      add( Item( cElFilename( *itFile++ ), TD_State ) );
+   {
+      cElFilename filename( *itFile++ );
+      const string unix_filename = filename.str_unix();
+      ELISE_fp::lastModificationDate( unix_filename, date );
+      fileLength = ELISE_fp::file_length( unix_filename );
+      #ifdef _DEBUG
+	 if ( fileLength<0 )
+	    debug_error( "TracePack::Registry::stateDirectory: cannot read length of file ["+unix_filename+"]"  );
+      #endif
+      add( Item( filename, TD_State, date, filename, 0, (unsigned int)fileLength ) );
+   }
 }
 
 void TracePack::Registry::apply( const TracePack::Registry &i_actions )
@@ -246,7 +294,7 @@ void TracePack::Registry::apply( const TracePack::Registry &i_actions )
 	       else
 	    #endif
 	       {
-		  m_items.insert( itA, Item( itB->m_filename, TD_State, itB->m_date ) );
+		  m_items.insert( itA, Item( itB->m_filename, TD_State, itB->m_date, itB->m_dataFile, itB->m_dataOffset, itB->m_dataSize ) );
 		  itB++;
 	       }
 	 }
@@ -260,7 +308,7 @@ void TracePack::Registry::apply( const TracePack::Registry &i_actions )
 	 else
       #endif
 	 {
-	    m_items.push_back( Item( itB->m_filename, TD_State, itB->m_date ) );
+	    m_items.push_back( Item( itB->m_filename, TD_State, itB->m_date, itB->m_dataFile, itB->m_dataOffset, itB->m_dataSize ) );
 	    itB++;
 	 }
    }
