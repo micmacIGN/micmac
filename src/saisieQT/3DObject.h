@@ -90,7 +90,7 @@ class cBall : public cObjectGL
 {
     public:
 
-        cBall(Pt3dr pt = Pt3dr(0.f,0.f,0.f), float scale = 1.f, bool isVis = false, float lineWidth = 1.f);
+        cBall(Pt3dr pt = Pt3dr(0.f,0.f,0.f), float scale = 1.f, bool isVis = true, float lineWidth = 1.f);
         ~cBall();
 
         void    setPosition(Pt3dr const &aPt);
@@ -133,8 +133,6 @@ class cBBox : public cObjectGL
     public:
         cBBox(Pt3dr pt, float scale, Pt3dr min, Pt3dr max);
 
-        //void    set(float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
-
         void    draw();
 
         void    setLineWidth(float width){_lineWidth = width;}
@@ -149,8 +147,7 @@ private:
 class cCam : public cObjectGL
 {
     public:
-        cCam();
-        cCam(CamStenope *pCam);
+        cCam(CamStenope *pCam, float scale, bool isVisible = true);
 
         void    draw();
 

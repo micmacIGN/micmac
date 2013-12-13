@@ -482,16 +482,13 @@ cGLData::cGLData(cData *data):
     Pt3dr center = data->getCenter();
     float scale = data->m_diam / 1.5f;
 
-    pBall = new cBall(center, scale, true, 1.f);
+    pBall = new cBall(center, scale);
     pAxis = new cAxis(center, scale);
     pBbox = new cBBox(center, scale, data->m_min, data->m_max);
 
     for (int i=0; i< data->getNbCameras(); i++)
     {
-        cCam *pCam = new cCam(data->getCamera(i));
-
-        pCam->setScale(scale);
-        pCam->setVisible(true);
+        cCam *pCam = new cCam(data->getCamera(i), scale);
 
         Cams.push_back(pCam);
     }

@@ -393,19 +393,14 @@ void cBBox::draw()
     }
 }
 
-cCam::cCam() :
-    _lineWidth(1.f),
-    _pointSize(5.f),
-    _Cam()
-{
-    setColor(QColor("red"));
-}
-
-cCam::cCam(CamStenope *pCam) :
+cCam::cCam(CamStenope *pCam, float scale, bool isVisible) :
     _lineWidth(1.f),
     _pointSize(5.f),
     _Cam(pCam)
 {
+    _scale = scale;
+    _bVisible = isVisible;
+
     setColor(QColor("red"));
 }
 
