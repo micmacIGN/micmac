@@ -15,10 +15,8 @@ class cData
 
         void addCamera(CamStenope *);
         void addCloud(Cloud *);
-        void addImage(QImage *);
-        void addMask(QImage *);
+        void PushBackImage(QImage *);
         void PushBackMask(QImage *);
-
 
         void clearCameras();
         void clearClouds();
