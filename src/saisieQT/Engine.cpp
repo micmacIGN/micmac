@@ -101,44 +101,31 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
 
     if (QFile::exists(mask_filename))
     {
-        QImage* imgM = new QImage( mask_filename );
 
-        printf("START \n");
-        if (img->isNull())
+        aImgMask = new QImage( mask_filename );
+
+        if (aImgMask->isNull())
         {
-            printf("ELISE \n");
-            Tiff_Im img( mask_filename.toStdString().c_str() );
+            Tiff_Im imgMask( mask_filename.toStdString().c_str() );
 
-            if( img.can_elise_use() )
+            if( imgMask.can_elise_use() )
             {
-                int w = img.sz().x;
-                int h = img.sz().y;
+                int w = imgMask.sz().x;
+                int h = imgMask.sz().y;
 
-                QImage* pDest = new QImage( w, h, QImage::Format_ARGB32 );
+                delete aImgMask;
+                aImgMask = new QImage( w, h, QImage::Format_Mono);
+                aImgMask->fill(0);
 
                 Im2D_Bits<1> aOut(w,h,1);
-                ELISE_COPY(img.all_pts(),img.in(),aOut.out());
+                ELISE_COPY(imgMask.all_pts(),imgMask.in(),aOut.out());
 
                 for (int x=0;x< w;++x)
-                {
                     for (int y=0; y<h;++y)
-                    {
-                        if (aOut.get(x,y) == 0 )
-                        {
-                            QColor c(0,0,0,0);
-                            pDest->setPixel(x,y,c.rgba());
-                        }
-                        else
-                        {
-                            QColor c(255,255,255,255);
-                            pDest->setPixel(x,y,c.rgba());
-                        }
-                    }
-                }
-                //aImgMask = pDest;
-                *aImgMask = QGLWidget::convertToGLFormat( *pDest );
+                        if (aOut.get(x,y) == 1 )
+                            aImgMask->setPixel(x,y,1);
 
-                delete pDest;
+                *aImgMask = QGLWidget::convertToGLFormat( *aImgMask );                                
             }
             else
             {
@@ -146,11 +133,8 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
             }
         }
         else
-        {
-            printf("QT \n");
-            *aImgMask = QGLWidget::convertToGLFormat( *imgM );
-        }
-        printf("END \n");
+            *aImgMask = QGLWidget::convertToGLFormat( *aImgMask );
+
     }
 }
 
@@ -468,9 +452,14 @@ cGLData* cEngine::getGLData(int WidgetIndex)
 cGLData::cGLData():
     _diam(1.f){}
 
-cGLData::cGLData(QImage *image, QImage *mask)
+cGLData::cGLData(QImage *image, QImage *mask):
+    pBall(NULL),
+    pAxis(NULL),
+    pBbox(NULL)
 {
     // TODO a factoriser dans maskedimage!!
+    //
+
     if(mask == NULL)
     {
         pQMask = new QImage(image->size(),QImage::Format_Mono);
@@ -479,7 +468,7 @@ cGLData::cGLData(QImage *image, QImage *mask)
         maskedImage._m_newMask = true;
     }
     else
-       *pQMask = QGLWidget::convertToGLFormat( *pQMask );
+       pQMask = mask;
 
     maskedImage._m_mask = new cImageGL();
     maskedImage._m_image = new cImageGL();
@@ -499,9 +488,6 @@ cGLData::cGLData(cData *data):
         pCloud->setBufferGl();
     }
 
-    for (int aK = 0; aK < data->getNbCameras();++aK)
-        Cams.push_back(new cCam(data->getCamera(aK)));
-
     float scale = data->m_diam / 1.5f;
 
     // TODO creer les constructeurs
@@ -519,16 +505,16 @@ cGLData::cGLData(cData *data):
     pBbox->setPosition(data->getCenter());
     pBbox->set(data->m_minX,data->m_minY,data->m_minZ,data->m_maxX,data->m_maxY,data->m_maxZ);
 
-// ?????????????????????
-    //    for (int i=0; i<data->getNbCameras();i++)
-//    {
-//        cCam *pCam = new cCam(data->getCamera(i));
 
-//        pCam->setScale(scale);
-//        pCam->setVisible(true);
+    for (int i=0; i<data->getNbCameras();i++)
+    {
+        cCam *pCam = new cCam(data->getCamera(i));
 
-//        Cams.push_back(pCam);
-//    }
+        pCam->setScale(scale);
+        pCam->setVisible(true);
+
+        Cams.push_back(pCam);
+    }
 
     setScale(data->getScale());
     setCenter(data->getCenter());
@@ -544,31 +530,11 @@ cGLData::~cGLData()
     //qDeleteAll(Cams);
     Cams.clear();
 
-    delete pBall;
-    delete pAxis;
-    delete pBbox;
+    if(pBall != NULL) delete pBall;
+    if(pAxis != NULL) delete pAxis;
+    if(pBbox != NULL) delete pBbox;
 
    //pas de delete des pointeurs dans Clouds c'est Data qui s'en charge
-    Clouds.clear();
-}
-
-
-// ATTENTION JAMAIS APPELER
-void cGLData::clear()
-{
-
-    maskedImage._m_image = NULL;
-    maskedImage._m_mask  = NULL;
-
-    for (int aK = 0; aK< Cams.size(); ++aK) Cams[aK] = NULL;
-    //qDeleteAll(Cams);
-    Cams.clear();
-
-    pBall = NULL;
-    pAxis = NULL;
-    pBbox = NULL;
-
-    for (int aK = 0; aK< Clouds.size(); ++aK) Clouds[aK] = NULL;
     Clouds.clear();
 }
 

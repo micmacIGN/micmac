@@ -119,8 +119,6 @@ public:
 
     ~cGLData();
 
-    void clear();
-
     //bool        is2D(){return pImg != NULL;}
     bool        is3D(){return Clouds.size() || Cams.size();}
     bool        isDataLoaded(){return (!isImgEmpty()) || is3D();}
