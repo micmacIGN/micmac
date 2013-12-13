@@ -3,8 +3,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "poisson/ply.h"
-
 
 using namespace std;
 using namespace Cloud_;

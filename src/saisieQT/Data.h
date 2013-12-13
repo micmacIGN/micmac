@@ -1,7 +1,6 @@
 #ifndef DATA_H
 #define DATA_H
 
-#include "StdAfx.h"
 #include "Cloud.h"
 #include <QImage>
 
@@ -16,8 +15,8 @@ class cData
 
         void addCamera(CamStenope *);
         void addCloud(Cloud *);
-        void addImage(QImage *);
-        void addMask(QImage *);
+        void PushBackImage(QImage *);
+        void PushBackMask(QImage *);
 
         void clearCameras();
         void clearClouds();

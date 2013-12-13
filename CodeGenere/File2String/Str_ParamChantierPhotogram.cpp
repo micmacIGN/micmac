@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1491]) = {
+const char * (theNameVar_ParamChantierPhotogram[1492]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -184,6 +184,7 @@ const char * (theNameVar_ParamChantierPhotogram[1491]) = {
 "  <enum  Name=\"eTypeProjectionCam\">\n",
 "       <eProjStenope>            </eProjStenope>\n",
 "       <eProjOrthographique>     </eProjOrthographique>\n",
+"       <eProjGrid>            </eProjGrid>\n",
 "  </enum>\n",
 "\n",
 "    <enum Name=\"eTypeCoord\">\n",
@@ -785,10 +786,10 @@ const char * (theNameVar_ParamChantierPhotogram[1491]) = {
 "   <OrientationConique  Nb=\"1\" Class=\"true\" ToReference=\"true\" >\n",
 "\n",
 "       <!-- modif Greg pour pouvoir utiliser des grilles comme dans MicMac -->\n",
-"       <OrientationFile Nb=\"?\">\n",
+"       <ModuleOrientationFile Nb=\"?\">\n",
 "           <!--GeomImages Nb=\"1\" Type=\"eModeGeomImage\" RefFile=\"ParamMICMAC.xml\"> </GeomImages-->\n",
 "           <NameFileOri Nb=\"1\" Type=\"std::string\"></NameFileOri>\n",
-"       </OrientationFile>\n",
+"       </ModuleOrientationFile>\n",
 "       \n",
 "       <!-- fin modif Greg-->\n",
 "       \n",

@@ -226,15 +226,20 @@ int  NuageBascule_main(int argc,char ** argv)
          ElTimer aChrono;
          std::cout << "-Basc1- bascule by block \n";
          if (mParal)
+         {
             cEl_GPAO::DoComInParal(aLCom,"MakeBascule");
-          else
+         }
+         else
+         {
             cEl_GPAO::DoComInSerie(aLCom);
+         }
 
          std::cout << "-Basc2- create glob T=" << aChrono.uval() << " \n";
 
          std::cout << "\n";
          Pt2di aP0(1e9,1e9);
          Pt2di aP1(-1e9,-1e9);
+         bool oneBlocOk =false;
          for (int aKB=0 ; aKB<int(mVBl.size()) ; aKB++)
          {
              cBlockBasc & aBl = *(mVBl[aKB]);
@@ -243,7 +248,12 @@ int  NuageBascule_main(int argc,char ** argv)
              {
                 aP0.SetInf(aBl.mBoxGlob._p0);
                 aP1.SetSup(aBl.mBoxGlob._p1);
+                oneBlocOk = true;
              }
+         }
+         if (! oneBlocOk)
+         {
+              ELISE_ASSERT(false,"No bloc OK : probable bascule with empty mask !!!");
          }
          Pt2di aSzNew = Pt2di(aP1-aP0);
 

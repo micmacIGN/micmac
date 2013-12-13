@@ -28,20 +28,14 @@ void cData::addCamera(CamStenope * aCam)
     _Cameras.push_back(aCam);
 }
 
-void cData::addImage(QImage * aImg)
+void cData::PushBackImage(QImage * aImg)
 {
-    QImage *_glImg = NULL;
-    _glImg = new QImage(aImg->size(),aImg->format());
-    *_glImg = QGLWidget::convertToGLFormat( *aImg );
-    _Images.push_back(_glImg);
+    _Images.push_back(aImg);
 }
 
-void cData::addMask(QImage * aImg)
+void cData::PushBackMask(QImage *mask)
 {
-    QImage *_glMask = NULL;
-    _glMask = new QImage(aImg->size(),aImg->format());
-    *_glMask = QGLWidget::convertToGLFormat( *aImg );
-    _Masks.push_back(_glMask);
+    _Masks.push_back(mask);
 }
 
 void cData::clearClouds()

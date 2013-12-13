@@ -48,6 +48,13 @@ class cObjectGL : public cObject
         virtual ~cObjectGL(){}
 
         virtual void draw()=0;
+
+protected:
+
+        void enableOptionLine();
+
+        void disableOptionLine();
+
 };
 
 class cCircle : public cObjectGL
@@ -241,8 +248,6 @@ class cImageGL : public cObjectGL
         void    setPosition(GLfloat originX, GLfloat originY);
         void    setDimensions(GLfloat glh, GLfloat glw);
 
-        void    setDimensions(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw);
-
         void    PrepareTexture(QImage *pImg);
 
         void    ImageToTexture(QImage *pImg);
@@ -254,6 +259,7 @@ class cImageGL : public cObjectGL
         int     height() {return _size.height();}
 
 private:
+
         GLfloat _originX;
         GLfloat _originY;
         GLfloat _glh;
@@ -263,6 +269,27 @@ private:
 
         //! Texture image
         GLuint  _texture;
+
+};
+
+class cMaskedImageGL : public cObjectGL
+{
+
+public:
+
+    cMaskedImageGL():
+        _m_image(NULL),
+        _m_mask(NULL),
+        _m_newMask(false)
+    {}
+
+    void draw();
+    cImageGL    *_m_image;
+    cImageGL    *_m_mask;
+
+    bool        _m_newMask;
+
+//private:
 };
 
 #endif //__3DObject__

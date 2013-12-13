@@ -439,6 +439,9 @@ eTypeProj Xml2EL(const eTypeProjectionCam & aType)
 
       case  eProjOrthographique:
             return  eProjectionOrtho ;
+
+      case  eProjGrid :
+            ;
    }
    ELISE_ASSERT(false," Xml2EL(const eTypeProjectionCam & aType)");
    return  eProjectionOrtho ;
