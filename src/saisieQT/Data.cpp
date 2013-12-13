@@ -44,6 +44,11 @@ void cData::addMask(QImage * aImg)
     _Masks.push_back(_glMask);
 }
 
+void cData::PushBackMask(QImage *mask)
+{
+    _Masks.push_back(mask);
+}
+
 void cData::clearClouds()
 {
     for (uint aK=0; aK < (uint)getNbClouds();++aK)

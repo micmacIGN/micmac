@@ -279,17 +279,17 @@ public:
 
     cMaskedImageGL():
         _m_image(NULL),
-        _m_mask(NULL)
+        _m_mask(NULL),
+        _m_newMask(false)
     {}
 
     void draw();
     cImageGL    *_m_image;
     cImageGL    *_m_mask;
 
+    bool        _m_newMask;
+
 //private:
-
-
-
 };
 
 #endif //__3DObject__
