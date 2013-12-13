@@ -1,0 +1,85 @@
+Lignes de commandes :
+
+cd micmac
+ make bin/test_ISA0
+bin/test_ISA0 toto.xml
+
+
+Paramètres en entrée :
+
+<ParamFusionSift>
+	<dossier Nb="1" Type="string"> </dossier>
+	<dossierImg Nb="1" Type="string"> </dossierImg>
+	<extensionSortie Nb="?" Type="std::string" Def="filtre"> </extensionSortie>
+	<firstfichier Nb="?" Type="int" Def="1"> </firstfichier>	
+	<lastfichier Nb="?" Type="int"> </lastfichier>	
+	<SzMin Nb="?" Type="int" Def="50"> </SzMin>	
+	<NbObjMax Nb="?" Type="int" Def="10"> </NbObjMax>
+	<box Nb="?" Type="Box2dr" Def="Pt2dr(0.0,0.0),Pt2dr(10000.0,10000.0)"> </box>
+	<distIsol Nb="?" Type="REAL" Def="300"> </distIsol>
+	<ptppi Nb="?" Type="int" Def="10"> </ptppi>	
+	<mindistalign Nb="?" Type="double" Def="4"> </mindistalign>	
+	<filtre1 Nb="?" Type="bool" Def="false"> </filtre1>
+	<filtre2 Nb="?" Type="bool" Def="true"> </filtre2>
+	<filtre3 Nb="?" Type="bool" Def="false"> </filtre3>
+	<distIsol2 Nb="?" Type="REAL" Def="1000"> </distIsol2>
+	<rapide Nb="?" Type="bool" Def="false"> </rapide>
+	<aDistInitVois Nb="?" Type="double" Def="1"> </aDistInitVois>
+	<aFact Nb="?" Type="double" Def="10.0"> </aFact>
+	<aNbMax Nb="?" Type="int" Def="100"> </aNbMax>
+	<aNb1 Nb="?" Type="int" Def="10"> </aNb1>
+	<aNb2 Nb="?" Type="int" Def="20"> </aNb2>
+	<seuilCoherenceVois Nb="?" Type="double" Def="0.9"> </seuilCoherenceVois>
+	<seuilCoherenceCarre Nb="?" Type="double" Def="0.5"> </seuilCoherenceCarre>	
+	<aNb Nb="?" Type="int" Def="50"> </aNb>
+	<nbEssais Nb="?" Type="int" Def="25"> </nbEssais>
+	<affichImg Nb="*">
+		<image Nb="1" Type="int"> </image>
+		<fichier Nb="1" Type="std::string"> </fichier>
+	</affichImg>
+	<affichPaire Nb="*">
+		<image1 Nb="1" Type="int"> </image1>
+		<fichier1 Nb="1" Type="std::string"> </fichier1>
+		<image2 Nb="1" Type="int"> </image2>
+		<fichier2 Nb="1" Type="std::string"> </fichier2>
+		<liste Nb="1" Type="int"> </liste>
+		<trait Nb="?" Type="bool" Def="true"> </trait>
+	</affichPaire>	
+</ParamFusionSift>
+
+lecture des points d'intérêt :
+	dossier : dossier où se trouvent les dossiers des points homologues et des images
+	dossierImg : sous-dossier où se trouvent les images
+	extensionSortie : changement de nom des fichiers de points d'intérêts conservés
+	firstfichier : numéro du premier fichier lu (à partir de 1)
+	lastfichier : numéro du dernier fichier lu (>=firstfichier)
+
+sélection des points (mêmes paramètres pour toutes les images) :
+	SzMin : nombre minimal de px par division du quod-tree
+	NbObjMax : nombre maximal de points par division du quod-tree
+	box : boîte englobante des points d'intérêt dans les images
+	distIsol : distance minimale pour laquelle le point d'intérêt retenu n'a pas de voisin
+	ptppi : nombre minmimal de points à conserver pour chaque paire d'images
+	mindistalign : distance minimale à la droite moyenne pour que les points soient considérés comme non-alignés (au carré)
+		
+filtage des points d'inérêt a priori faux :
+	filtre1 : utilisation du filtrage par appartenance à la zone de recouvrement de la paire d'images
+	distIsol2 : distance minimale pour laquelle le point d'intérêt ayant des voisins est considéré comme inclu dans la zone de recouvrement
+
+	filtre2 : utilisation du filtrage par conservation des voisins
+	aDistInitVois : distance initiale pour la recherche des voisins
+	aFact : distance maximale (ratio avec aDistInitVois) pour la recherche des voisins
+	(aNbMax : nombre maximum de voisins acceptés)
+	aNb1 : nombre de plus proches voisins à rechercher dans l'image 1
+	aNb2 : nombre de plus proches voisins à rechercher dans l'image 2 (>=aNb1)
+	seuilCoherenceVois : ratio minimal de voisins conservés lors de la transformation pour que le point soit considéré comme juste
+
+	filtre3 : utilisation du filtrage par cohérence de la géométrie avec les voisins (conservation de la convex/cav-ité des quadrilatères)
+	seuilCoherenceCarre : ratio minimal de formes conservées par la transformation pour que le point soit considéré comme juste
+	aNb : nombre de voisins utilisés pour définir les formes à tester
+	nbEssais : nombre de tests à effectuer par point d'intérêt
+
+affichage des points triés :
+	affichImg : affichage de tous les points d'intérêt (petits ronds) et des points d'intérêt retenus (grands ronds) de l'image dans le fichier indiqué (couleur fonction de la multiplicité du point)
+	affichPaire : affichage des points d'intérêt de la paire d'images (image1,image2) dans les fichiers indiqués (trait : pour relier les homologues ; liste : 0 pour afficher tous les points, 1 pour afficher les points considérés comme a priori faux, 2 pour les points a priori justes, 3 pour les points retenus)
+
