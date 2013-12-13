@@ -15,7 +15,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     std::string aFullName, aDir, aName, aNamePt,anOri,anOut, aNameAuto, aPrefix2Add;
     aNameAuto = "NONE";
     aPrefix2Add = "";
-    bool aForceGray = false;
+    //bool aForceGray = false;
 
     //SaisieAppuisInit(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, anOut, aNameAuto, aPrefix2Add, aForceGray);
 
