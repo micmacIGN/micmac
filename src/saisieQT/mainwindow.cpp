@@ -112,7 +112,6 @@ void MainWindow::createMenus()
 
 void MainWindow::checkForLoadedData()
 {
-
     GLWidget &widget = CurrentWidget();
     widget.displayNewMessage(QString()); //clear (any) message in the middle area
 
@@ -120,7 +119,6 @@ void MainWindow::checkForLoadedData()
         widget.displayNewMessage(tr("Drag & drop images or ply files"));
     else
         on_actionShow_messages_toggled(_ui->actionShow_messages->isChecked());
-
 }
 
 void MainWindow::setPostFix(QString str)

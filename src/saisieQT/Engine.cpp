@@ -320,7 +320,7 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
     for (int i = 0; i < Infos.size(); ++i)
     {
         QDomElement SII            = doc.createElement("Item");
-        QDomElement mvMatrixElem = doc.createElement("ModelViewMatrix");
+        QDomElement mvMatrixElem   = doc.createElement("ModelViewMatrix");
         QDomElement ProjMatrixElem = doc.createElement("ProjMatrix");
         QDomElement glViewportElem = doc.createElement("glViewport");
         QDomElement Mode           = doc.createElement("Mode");
@@ -479,25 +479,14 @@ cGLData::cGLData(cData *data):
         pCloud->setBufferGl();
     }
 
+    Pt3dr center = data->getCenter();
     float scale = data->m_diam / 1.5f;
 
-    // TODO creer les constructeurs
-    pBall = new cBall();
-    pAxis = new cAxis();
-    pBbox = new cBBox();
+    pBall = new cBall(center, scale, true, 1.f);
+    pAxis = new cAxis(center, scale);
+    pBbox = new cBBox(center, scale, data->m_min, data->m_max);
 
-    pBall->setPosition(data->getCenter());
-    pBall->setScale(scale);
-    pBall->setVisible(true);
-
-    pAxis->setPosition(data->getCenter());
-    pAxis->setScale(scale);
-
-    pBbox->setPosition(data->getCenter());
-    pBbox->set(data->m_minX,data->m_minY,data->m_minZ,data->m_maxX,data->m_maxY,data->m_maxZ);
-
-
-    for (int i=0; i<data->getNbCameras();i++)
+    for (int i=0; i< data->getNbCameras(); i++)
     {
         cCam *pCam = new cCam(data->getCamera(i));
 

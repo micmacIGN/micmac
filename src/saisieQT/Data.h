@@ -53,7 +53,8 @@ class cData
         void    applyGammaToImage(int aK, float aGamma);
 
         //!Bounding box and diameter of all clouds
-        float   m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_diam;
+        Pt3dr   m_min, m_max;
+        float   m_diam;
 
    private:
 
