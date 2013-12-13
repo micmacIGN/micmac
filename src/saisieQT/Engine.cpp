@@ -357,45 +357,66 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
     QDomText t;
     for (int i = 0; i < Infos.size(); ++i)
     {
-        QDomElement SII         = doc.createElement("Item");
-        QDomElement Scale       = doc.createElement("Scale");
-        QDomElement Rotation	= doc.createElement("Rotation");
-        QDomElement Translation	= doc.createElement("Translation");
-        QDomElement Mode        = doc.createElement("Mode");
+        QDomElement SII            = doc.createElement("Item");
+        QDomElement mvMatrixElem = doc.createElement("ModelViewMatrix");
+        QDomElement ProjMatrixElem = doc.createElement("ProjMatrix");
+        QDomElement glViewportElem = doc.createElement("glViewport");
+        QDomElement Mode           = doc.createElement("Mode");
 
-        selectInfos SInfo = Infos[i];
+        const selectInfos &SInfo = Infos[i];
 
-        /*t = doc.createTextNode(QString::number(SInfo.params.m_zoom));
-        Scale.appendChild(t);
-
-        t = doc.createTextNode(QString::number(SInfo.params.m_angleX) + " " + QString::number(SInfo.params.m_angleY) + " " + QString::number(SInfo.params.m_angleZ));
-        Rotation.appendChild(t);
-
-        t = doc.createTextNode(QString::number(SInfo.params.m_translationMatrix[0]) + " " + QString::number(SInfo.params.m_translationMatrix[1]) + " " + QString::number(SInfo.params.m_translationMatrix[2]));
-        Translation.appendChild(t);*/
-
-        SII.appendChild(Scale);
-        SII.appendChild(Rotation);
-        SII.appendChild(Translation);
-
-        QVector <QPointF> pts = SInfo.poly;
-
-        for (int aK=0; aK <pts.size(); ++aK)
+        if ((SInfo.mvmatrix != NULL) && (SInfo.projmatrix != NULL) && (SInfo.glViewport != NULL))
         {
-            QDomElement Point    = doc.createElement("Pt");
-            QString str = QString::number(pts[aK].x(), 'f',1) + " "  + QString::number(pts[aK].y(), 'f',1);
+            QString text1, text2;
 
-            t = doc.createTextNode( str );
-            Point.appendChild(t);
-            SII.appendChild(Point);
+            text1 = QString::number(SInfo.mvmatrix[0], 'f');
+            text2 = QString::number(SInfo.projmatrix[0], 'f');
+
+            for (int aK=0; aK < 16;++aK)
+            {
+                text1 += " " + QString::number(SInfo.mvmatrix[aK], 'f');
+                text2 += " " + QString::number(SInfo.projmatrix[aK], 'f');
+            }
+
+            t = doc.createTextNode(text1);
+            mvMatrixElem.appendChild(t);
+
+            t = doc.createTextNode(text2);
+            ProjMatrixElem.appendChild(t);
+
+            text1 = QString::number(SInfo.glViewport[0]) ;
+            for (int aK=1; aK < 4;++aK)
+                text1 += " " + QString::number(SInfo.glViewport[aK]);
+
+            t = doc.createTextNode(text1);
+            glViewportElem.appendChild(t);
+
+            SII.appendChild(mvMatrixElem);
+            SII.appendChild(ProjMatrixElem);
+            SII.appendChild(glViewportElem);
+
+            QVector <QPointF> pts = SInfo.poly;
+
+            for (int aK=0; aK < pts.size(); ++aK)
+            {
+                QDomElement Point    = doc.createElement("Pt");
+                QString str = QString::number(pts[aK].x(), 'f',1) + " "  + QString::number(pts[aK].y(), 'f',1);
+
+                t = doc.createTextNode( str );
+                Point.appendChild(t);
+                SII.appendChild(Point);
+            }
+
+            t = doc.createTextNode(QString::number(SInfo.selection_mode));
+            Mode.appendChild(t);
+
+            SII.appendChild(Mode);
+
+            SI.appendChild(SII);
         }
+        else
+            cerr << "saveSelectInfos: null matrix";
 
-        t = doc.createTextNode(QString::number(SInfo.selection_mode));
-        Mode.appendChild(t);
-
-        SII.appendChild(Mode);
-
-        SI.appendChild(SII);
     }
 
     doc.appendChild(SI);
@@ -405,7 +426,7 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
     outFile.close();
 
 #ifdef _DEBUG
-        printf ( "File saved in: %s\n", _Loader->GetSelectionFilename().toStdString().c_str());
+        printf ( "File saved in: %s\n", _Loader->getSelectionFilename().toStdString().c_str());
 #endif
 }
 
