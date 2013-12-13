@@ -114,9 +114,10 @@ class cGLData : cObjectGL
 public:
 
     cGLData();
-    ~cGLData();
+    cGLData(QImage* image, QImage *mask);
+    cGLData(cData *data);
 
-    void clear();
+    ~cGLData();
 
     //bool        is2D(){return pImg != NULL;}
     bool        is3D(){return Clouds.size() || Cams.size();}
