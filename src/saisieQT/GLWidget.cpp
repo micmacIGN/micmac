@@ -23,8 +23,6 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
   , _currentTime(0)
   , _fps(0.0f)
   , _g_mouseLeftDown(false)
-  , _g_mouseMiddleDown(false)
-  , _g_mouseRightDown(false)
   , _idx(idx)
   , _parentSet(theSet)
 {
@@ -127,7 +125,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                     mult_m33( _g_rotationOx, _g_rotationMatrix, _g_tmpoMatrix );
                     mult_m33( _g_rotationOy, _g_tmpoMatrix, _g_rotationMatrix );
                 }
-                else if ( _g_mouseMiddleDown )
+                else if ( mouseEvent->buttons() == Qt::MiddleButton )
                 {
                     if (mouseEvent->modifiers() & Qt::ShiftModifier) // zoom
                     {
@@ -150,7 +148,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                         }
                     }
                 }
-                else if ( _g_mouseRightDown ) // rotation autour de Z
+                else if (mouseEvent->buttons() == Qt::RightButton)// rotation autour de Z
                 {
                     float d_angleZ =  m_params.m_speed * dPWin.x() / (float) _glViewport[2];
 
@@ -212,7 +210,6 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
             }
             else if (mouseEvent->button() == Qt::RightButton)
             {
-                _g_mouseRightDown = true; // for rotation around Z (in 3D)
 
                 int idx = m_GLData->m_polygon.idx();
                 if ((idx >=0)&&(idx<m_GLData->m_polygon.size())&&m_GLData->m_polygon.isClosed())
@@ -235,12 +232,8 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                     m_GLData->m_polygon.close();
             }
             else if (mouseEvent->button() == Qt::MiddleButton)
-            {
-                if (m_bDisplayMode2D || (m_interactionMode == TRANSFORM_CAMERA))
-                    _g_mouseMiddleDown = true;
-
                 m_lastClickZoom = m_lastPosWindow;
-            }
+
 
             return true;
         }
@@ -263,14 +256,6 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                 {
                     m_GLData->m_polygon.findClosestPoint(m_lastPosImage);
                 }
-            }
-            if ( mouseEvent->button() == Qt::RightButton  )
-            {
-                _g_mouseRightDown = false;
-            }
-            if ( mouseEvent->button() == Qt::MiddleButton  )
-            {
-                _g_mouseMiddleDown = false;
             }
 
             update();

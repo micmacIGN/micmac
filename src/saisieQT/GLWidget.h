@@ -261,8 +261,6 @@ private:
     float       _fps;
 
     bool        _g_mouseLeftDown;
-    bool        _g_mouseMiddleDown;
-    bool        _g_mouseRightDown;
     GLfloat     _g_tmpoMatrix[9];
     GLfloat     _g_rotationOx[9];
     GLfloat     _g_rotationOy[9];
