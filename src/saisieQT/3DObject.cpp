@@ -17,6 +17,15 @@ cObject::cObject(Pt3dr pos, QColor col) :
     _color     = col;
 }
 
+/*cObject::cObject(Pt3d<double> pt, QColor col, float scale, float alpha, bool isVisible) :
+    _scale(scale),
+    _alpha(alpha),
+    _bVisible(isVisible)
+{
+    _position = pt;
+    _color = col;
+}*/
+
 cObject::~cObject(){}
 
 cObject& cObject::operator =(const cObject& aB)
@@ -164,8 +173,10 @@ void cCross::draw()
     glPopMatrix();
 }
 
-cBall::cBall(Pt3dr pt, float scale, float lineWidth, bool isVis)
+cBall::cBall(Pt3dr pt, float scale, bool isVis, float lineWidth)
 {
+    _bVisible = isVis;
+
     _cl0 = new cCircle(pt, QColor(255,0,0),   scale, lineWidth, isVis, 0);
     _cl1 = new cCircle(pt, QColor(0,255,0),   scale, lineWidth, isVis, 1);
     _cl2 = new cCircle(pt, QColor(0,178,255), scale, lineWidth, isVis, 2);
@@ -248,9 +259,12 @@ void cBall::setScale(float aScale)
     _cr2->setScale(aScale);
 }
 
-cAxis::cAxis():
+cAxis::cAxis(Pt3dr pt, float scale):
     _lineWidth(1.f)
-{}
+{
+    _position = pt;
+    _scale    = scale;
+}
 
 void cAxis::draw()
 {
@@ -288,20 +302,20 @@ void cAxis::draw()
     glPopMatrix();
 }
 
-cBBox::cBBox() :
-    _lineWidth(1.f)
+cBBox::cBBox(Pt3dr pt, float scale, Pt3dr min, Pt3dr max):
+     _lineWidth(1.f)
 {
+    _position = pt;
+    _scale = scale;
+    _min = min;
+    _max = max;
     setColor(QColor("orange"));
 }
 
-void cBBox::set(float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
+void cBBox::set(Pt3dr min, Pt3dr max)
 {
-    _minX = minX;
-    _minY = minY;
-    _minZ = minZ;
-    _maxX = maxX;
-    _maxY = maxY;
-    _maxZ = maxZ;
+    _min = min;
+    _max = max;
 }
 
 void cBBox::draw()
@@ -320,14 +334,14 @@ void cBBox::draw()
 
         glColor3f(_color.redF(),_color.greenF(),_color.blueF());
 
-        Pt3dr P1(_minX, _minY, _minZ);
-        Pt3dr P2(_minX, _minY, _maxZ);
-        Pt3dr P3(_minX, _maxY, _maxZ);
-        Pt3dr P4(_minX, _maxY, _minZ);
-        Pt3dr P5(_maxX, _minY, _minZ);
-        Pt3dr P6(_maxX, _maxY, _minZ);
-        Pt3dr P7(_maxX, _maxY, _maxZ);
-        Pt3dr P8(_maxX, _minY, _maxZ);
+        Pt3dr P1(_min);
+        Pt3dr P2(_min.x, _min.y, _max.z);
+        Pt3dr P3(_min.x, _max.y, _max.z);
+        Pt3dr P4(_min.x, _max.y, _min.z);
+        Pt3dr P5(_max.x, _min.y, _min.z);
+        Pt3dr P6(_max.x, _max.y, _min.z);
+        Pt3dr P7(_max);
+        Pt3dr P8(_max.x, _min.y, _max.z);
 
         glBegin(GL_LINES);
 

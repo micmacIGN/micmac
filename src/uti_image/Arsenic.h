@@ -71,7 +71,7 @@ class cl_MatPtsHom
 		vector<cl_PtsRadio> aMat;
 		int nbTotalPts(){
 			int sum=0;
-            for(uint i=0;i<aMat.size();i++)
+            for(int i=0;i<int(aMat.size());i++)
 			{
                 sum += aMat[i].size();
 			}

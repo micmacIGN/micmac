@@ -80,8 +80,8 @@ void cData::clearMasks()
 
 void cData::reset()
 {
-    m_minX = m_minY = m_minZ =  FLT_MAX;
-    m_maxX = m_maxY = m_maxZ = -FLT_MAX;
+    m_min.x = m_min.y = m_min.z =  FLT_MAX;
+    m_max.x = m_max.y = m_max.z = -FLT_MAX;
     _center = Pt3dr(0.f,0.f,0.f);
 }
 
@@ -105,12 +105,12 @@ void cData::getBB()
         {
             Pt3dr vert = aCloud->getVertex(aK).getPosition();
 
-            if (vert.x > m_maxX) m_maxX = vert.x;
-            if (vert.x < m_minX) m_minX = vert.x;
-            if (vert.y > m_maxY) m_maxY = vert.y;
-            if (vert.y < m_minY) m_minY = vert.y;
-            if (vert.z > m_maxZ) m_maxZ = vert.z;
-            if (vert.z < m_minZ) m_minZ = vert.z;
+            if (vert.x > m_max.x) m_max.x = vert.x;
+            if (vert.x < m_min.x) m_min.x = vert.x;
+            if (vert.y > m_max.y) m_max.y = vert.y;
+            if (vert.y < m_min.y) m_min.y = vert.y;
+            if (vert.z > m_max.z) m_max.z = vert.z;
+            if (vert.z < m_min.z) m_min.z = vert.z;
         }
     }
 
@@ -131,20 +131,20 @@ void cData::getBB()
         {
             Pt3dr C = vert[aK];
 
-            if (C.x > m_maxX) m_maxX = C.x;
-            if (C.x < m_minX) m_minX = C.x;
-            if (C.y > m_maxY) m_maxY = C.y;
-            if (C.y < m_minY) m_minY = C.y;
-            if (C.z > m_maxZ) m_maxZ = C.z;
-            if (C.z < m_minZ) m_minZ = C.z;
+            if (C.x > m_max.x) m_max.x = C.x;
+            if (C.x < m_min.x) m_min.x = C.x;
+            if (C.y > m_max.y) m_max.y = C.y;
+            if (C.y < m_min.y) m_min.y = C.y;
+            if (C.z > m_max.z) m_max.z = C.z;
+            if (C.z < m_min.z) m_min.z = C.z;
         }
     }
 
-    _center.x = (m_minX + m_maxX) * .5f;
-    _center.y = (m_minY + m_maxY) * .5f;
-    _center.z = (m_minZ + m_maxZ) * .5f;
+    _center.x = (m_min.x + m_max.x) * .5f;
+    _center.y = (m_min.y + m_max.y) * .5f;
+    _center.z = (m_min.z + m_max.z) * .5f;
 
-    m_diam = max(m_maxX-m_minX, max(m_maxY-m_minY, m_maxZ-m_minZ));   
+    m_diam = max(m_max.x-m_min.x, max(m_max.y-m_min.y, m_max.z-m_min.z));
 }
 
 void cData::applyGamma(float aGamma)
