@@ -207,7 +207,7 @@ public:
     void    unloadAll();
 
     //! Compute mask binary images: projection of visible points into loaded cameras
-    void    doMasks();
+    void    do3DMasks();
 
     //! Creates binary image from selection and saves
     void    doMaskImage(ushort idCur);

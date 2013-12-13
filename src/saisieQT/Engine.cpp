@@ -55,7 +55,7 @@ void DoMkT()
 
 void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
 {
-    QImage* img = new QImage( aNameFile );
+    aImg = new QImage( aNameFile );
 
     QFileInfo fi(aNameFile);
 
@@ -63,7 +63,7 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
 
     setFilenameOut(mask_filename);
 
-    if (img->isNull())
+    if (aImg->isNull())
     {
         Tiff_Im aTF= Tiff_Im::StdConvGen(aNameFile.toStdString(),3,false);
 
@@ -84,20 +84,20 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
         U_INT1 ** aDataG = aImG.data();
         U_INT1 ** aDataB = aImB.data();
 
-        aImg = new QImage(aSz.x, aSz.y, QImage::Format_ARGB32);
+        aImg = new QImage(aSz.x, aSz.y, QImage::Format_RGB32);
 
         for (int y=0; y<aSz.y; y++)
         {
             for (int x=0; x<aSz.x; x++)
             {
-                QColor col(aDataR[y][x],aDataG[y][x],aDataB[y][x],255);
+                QColor col(aDataR[y][x],aDataG[y][x],aDataB[y][x]);
 
-                aImg->setPixel(x,y,col.rgba());
+                aImg->setPixel(x,y,col.rgb());
             }
         }
     }
-    else
-        aImg = img;
+
+    *aImg = QGLWidget::convertToGLFormat( *aImg );
 
     if (QFile::exists(mask_filename))
     {
@@ -217,14 +217,14 @@ void  cEngine::loadImage(QString imgName)
 
     _Loader->loadImage(imgName, img, mask);
 
-    if (img !=NULL) _Data->addImage(img);
-    if (mask!=NULL) _Data->addMask(mask);
+    if (img !=NULL) _Data->PushBackImage(img);
+    if (mask!=NULL) _Data->PushBackMask(mask);
 #ifdef _DEBUG
     else cout << "mask null" << endl;
 #endif
 }
 
-void cEngine::doMasks()
+void cEngine::do3DMasks()
 {
     CamStenope* pCam;
     Cloud *pCloud;
@@ -273,55 +273,25 @@ void cEngine::doMasks()
 
 void cEngine::doMaskImage(ushort idCur)
 {
-    QImage* pMask = _vGLData[idCur]->getMask();
+    QImage pMask = _vGLData[idCur]->getMask()->mirrored().convertToFormat(QImage::Format_Mono);
 
-    if (pMask->hasAlphaChannel())
-	{
-		QColor c;
-        uint w = pMask->width();
-        uint h = pMask->height();
+    if (!pMask.isNull())
+    {
+        QString aOut = _Loader->getFilenamesOut()[idCur];
 
-		QImage qMask(w, h, QImage::Format_Mono);
-		qMask.fill(0);
-
-		for (uint aK=0; aK < w;++aK)
-		{
-			for (uint bK=0; bK < h;++bK)
-			{
-                c = QColor::fromRgba(pMask->pixel(aK,bK));
-				if (c.red() == 255)
-					qMask.setPixel(aK, h-bK-1, 1);
-			}
-		}
-
-        QString aOut = _Loader->getFilenamesOut()[0];
-		string sOut = aOut.toStdString();
-
-		#ifdef _DEBUG
-			printf ("Saving %s\n", sOut);
-		#endif
-
-		qMask.save(aOut);
-
-		#ifdef _DEBUG
-			printf ("Done\n");
-		#endif
+        pMask.save(aOut);
 
 		cFileOriMnt anOri;
 
-		anOri.NameFileMnt()		= sOut;
-		anOri.NombrePixels()	= Pt2di(w,h);
+        anOri.NameFileMnt()		= aOut.toStdString();
+        anOri.NombrePixels()	= Pt2di(pMask.width(),pMask.height());
 		anOri.OriginePlani()	= Pt2dr(0,0);
 		anOri.ResolutionPlani() = Pt2dr(1.0,1.0);
 		anOri.OrigineAlti()		= 0.0;
 		anOri.ResolutionAlti()	= 1.0;
 		anOri.Geometrie()		= eGeomMNTFaisceauIm1PrCh_Px1D;
 
-		MakeFileXML(anOri, StdPrefix(sOut) + ".xml");
-		
-		#ifdef _DEBUG
-            printf("saved %s.xml\n", StdPrefix(sOut));
-		#endif
+        MakeFileXML(anOri, StdPrefix(aOut.toStdString()) + ".xml");
 	}
 	else
     {
@@ -334,7 +304,7 @@ void cEngine::saveMask(ushort idCur)
     if (getData()->getNbImages())
         doMaskImage(idCur);
     else
-        doMasks();
+        do3DMasks();
 }
 
 void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
