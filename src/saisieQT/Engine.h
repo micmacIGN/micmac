@@ -211,6 +211,8 @@ public:
     //! Creates binary image from selection and saves
     void    doMaskImage(ushort idCur);
 
+    void    saveMask(ushort idCur);
+
     void    saveSelectInfos(QVector <selectInfos> const &Infos);
 
     cData*  getData()  {return _Data;}

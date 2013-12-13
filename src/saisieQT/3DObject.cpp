@@ -793,14 +793,6 @@ void cImageGL::setDimensions(GLfloat glh, GLfloat glw)
     _glw = glw;
 }
 
-void cImageGL::setDimensions(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw)
-{
-    _originX = originX;
-    _originY = originY;
-    _glh = glh;
-    _glw = glw;
-}
-
 void cImageGL::PrepareTexture(QImage * pImg)
 {
     glGenTextures(1, getTexture() );

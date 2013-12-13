@@ -453,7 +453,7 @@ void MainWindow::on_actionUndo_triggered()
 
     if (_bMode2D)
     {
-        widget.setGLData(_Engine->getGLData(getCurrentWidget()));
+        widget.setGLData(_Engine->getGLData(CurrentWidgetIdx()));
         widget.updateAfterSetData(false);
 
         widget.showMessages(_ui->actionShow_messages->isChecked());
@@ -576,14 +576,7 @@ void MainWindow::on_actionLoad_image_triggered()
 
 void MainWindow::on_actionSave_masks_triggered()
 {
-    if (_Engine->getData()->getNbImages())
-    {
-        _Engine->doMaskImage(getCurrentWidget());
-    }
-    else
-    {
-        _Engine->doMasks();
-    }
+    _Engine->saveMask(CurrentWidgetIdx());
 }
 
 void MainWindow::on_actionSave_as_triggered()
@@ -594,14 +587,7 @@ void MainWindow::on_actionSave_as_triggered()
     {
         _Engine->setFilenameOut(fname);
 
-        if (_Engine->getData()->getNbImages())
-        {
-            _Engine->doMaskImage(getCurrentWidget());
-        }
-        else
-        {
-            _Engine->doMasks();
-        }
+        _Engine->saveMask(CurrentWidgetIdx());
     }
 }
 

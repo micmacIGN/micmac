@@ -18,7 +18,7 @@ GLWidgetSet::~GLWidgetSet()
     for (uint aK=0; aK < NbWidgets();++aK) delete _Widgets[aK];
 }
 
-void GLWidgetSet::setCurrentWidget(uint aK)
+void GLWidgetSet::setCurrentWidgetIdx(uint aK)
 {
     if (aK < NbWidgets())
     {

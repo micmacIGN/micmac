@@ -281,8 +281,6 @@ void cEngine::doMasks()
 
 void cEngine::doMaskImage(ushort idCur)
 {
-    //QImage* pMask = _Data->getCurMask();
-    // WARNING TO DO
     QImage* pMask = _vGLData[idCur]->getMask();
 
     if (pMask->hasAlphaChannel())
@@ -337,6 +335,14 @@ void cEngine::doMaskImage(ushort idCur)
     {
         QMessageBox::critical(NULL, "cEngine::doMaskImage","No alpha channel!!!");
     }
+}
+
+void cEngine::saveMask(ushort idCur)
+{
+    if (getData()->getNbImages())
+        doMaskImage(idCur);
+    else
+        doMasks();
 }
 
 void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)

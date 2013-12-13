@@ -10,8 +10,8 @@ public:
     GLWidgetSet(uint aNb);
     ~GLWidgetSet();
 
-    void setCurrentWidget(uint aK);
-    uint getCurrentWidget(){return _currentWidget;}
+    void setCurrentWidgetIdx(uint aK);
+    uint CurrentWidgetIdx(){return _currentWidget;}
 
     GLWidget& getWidget(uint aK){return *_Widgets[aK];}
     const GLWidget& getWidget(uint aK) const {return *_Widgets[aK];}

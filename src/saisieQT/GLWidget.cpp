@@ -65,7 +65,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
     {      
         QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
 
-        _parentSet->setCurrentWidget(_idx);
+        _parentSet->setCurrentWidgetIdx(_idx);
 
         if(event->type() == QEvent::MouseMove)
         {

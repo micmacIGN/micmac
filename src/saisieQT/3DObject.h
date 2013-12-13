@@ -248,8 +248,6 @@ class cImageGL : public cObjectGL
         void    setPosition(GLfloat originX, GLfloat originY);
         void    setDimensions(GLfloat glh, GLfloat glw);
 
-        void    setDimensions(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw);
-
         void    PrepareTexture(QImage *pImg);
 
         void    ImageToTexture(QImage *pImg);
