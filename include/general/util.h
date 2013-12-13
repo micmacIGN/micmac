@@ -1340,6 +1340,13 @@ class cElHour
       bool operator==( const cElHour &i_b ) const;
       bool operator!=( const cElHour &i_b ) const;
       
+     // read/write in raw binary format
+     void read_raw( istream &io_istream, bool i_inverseByteOrder=false );
+     void write_raw( ostream &io_ostream, bool i_inverseByteOrder=false ) const;
+     
+     static void getCurrentHour_local( cElHour &o_localHour );
+     static void getCurrentHour_UTC( cElHour &o_utcHour );
+
     private :
        int mH;
        int mM;
@@ -1375,6 +1382,13 @@ class cElDate
 		bool operator==( const cElDate &i_b ) const;
 		bool operator!=( const cElDate &i_b ) const;
       
+	// read/write in raw binary format
+	void read_raw( istream &io_istream, bool i_inverseByteOrder=false );
+	void write_raw( ostream &io_ostream, bool i_inverseByteOrder=false ) const;
+	
+	static void getCurrentDate_local( cElDate &o_localDate );
+	static void getCurrentDate_UTC( cElDate &o_utcDate );
+      
     private :
          int mD;
          int mM;
@@ -1394,7 +1408,6 @@ class cElDate
 
 
 	 static bool PrivIsBissextile(int aY);
-
 };
 
 bool operator < (const cElDate & aD1, const cElDate & aD2);

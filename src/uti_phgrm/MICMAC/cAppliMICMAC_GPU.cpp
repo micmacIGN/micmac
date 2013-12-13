@@ -732,7 +732,6 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                     // Copie du tableau 2d des valeurs de l'image Ameliorer encore la copy de texture, copier les images une à  une dans le device!!!!
                     if (aEq(dimImgMax,dimImg))
                         memcpy(  fdataImg1D + size(dimImgMax)* aKIm , data,  size(dimImg) * sizeof(float));
-
                     else
                         GpGpuTools::Memcpy2Dto1D(aDataIm ,fdataImg1D + size(dimImgMax) * aKIm, dimImgMax, dimImg );
 

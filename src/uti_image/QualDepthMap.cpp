@@ -1,5 +1,6 @@
 /*Header-MicMac-eLiSe-25/06/2007
 
+
     MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
     eLiSe  : ELements of an Image Software Environnement
 
@@ -36,97 +37,76 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+#include "QualDepthMap.h"
 
+#define DEF_OFSET -12349876
 
+/*
+   (x,y) -> (x+p(x),y)
 
-#ifndef _ELISE_PRIVATE_UTI_H
-#define _ELISE_PRIVATE_UTI_H
+   (1+Gx  Gy)     (1/(1+Gx)   -Gy/(1+Gx))
+   (0      1)     (0           1)
+*/
 
+#define MaxQualDM 1e9
 
+double SquareQualGrad(double aGx,double aGy)
+{
+   if (aGx <=-1) return MaxQualDM;
 
-inline INT sub_bit(INT v,INT k0,INT k1)             
-        { return (v >> k0) & ((1 << (k1-k0)) -1);}
+   double InvX = 1/(1+aGx);
 
-inline INT set_sub_bit(INT v,INT new_v,INT k0,INT k1)             
-{ 
-      INT masq = (1 << (k1-k0)) -1;
-
-      return
-                (v & ~(masq << k0))  // efface les bits entre k0 et k1
-              | ((new_v&masq) << k0);
+   return ElSquare(aGx) + ElSquare(aGy) * (1+ElSquare(InvX)) +ElSquare(1-InvX);
 }
 
-inline INT kth_bit(INT v,INT k)             { return (v & (1<<k)) != 0 ; }
-
-inline INT kth_bit_to_1(INT v, INT k)       { return v | (1<< k)       ; }
-
-inline INT kth_bit_to_0(INT v, INT k)       { return v & (~ (1<< k))   ; }
-
-inline INT set_kth_bit_to_1(INT & v, INT k) { return v |=  1<< k       ; }
-
-inline INT set_kth_bit_to_0(INT & v, INT k) { return v &=  (~ (1<< k)) ; }
-
-inline  INT nb_bits_to_nb_byte(INT nb_bits) { return (nb_bits + 7) / 8; }
-
-
-
-inline INT kth_bit_msbf(const U_INT1* v,INT k) 
-           { return (v[k/8]&(1<<(7-k%8)))!= 0;}
-
-inline INT kth_bit(const U_INT1* v,INT k) 
-           { return (v[k/8]&(1<<(k%8)))!= 0;}
-
-inline U_INT1 kth_bit_to_1(const U_INT1 * v, INT k)  
-           { return v[k/8] | (1<< (k%8)) ;}
-
-#if (0)
-extern INT sub_bit(INT v,INT k0,INT k1);
-INT set_sub_bit(INT v,INT new_v,INT k0,INT k1);
-extern INT kth_bit(INT v,INT k);
-extern INT kth_bit_to_1(INT v, INT k);
-extern INT kth_bit_to_0(INT v, INT k);
-extern INT set_kth_bit_to_1(INT & v, INT k);
-extern INT set_kth_bit_to_0(INT & v, INT k);
-extern  INT nb_bits_to_nb_byte(INT nb_bits);
-extern INT kth_bit(const U_INT1* v,INT k) ;
-extern INT kth_bit_msbf(const U_INT1* v,INT k) ;
-extern U_INT1 kth_bit_to_1(const U_INT1 * v, INT k)  ;
-#endif // CPP_OPTIMIZE
-
-INT inv_bits_order(INT val,INT nbb);
-
-void byte_inv_2(void *);  // inverse the byte of a two byte  data
-void byte_inv_4(void *);  // inverse the byte of a four byte data
-void byte_inv_8(void *);  // inverse the byte of a eight byte data
-
-void byte_inv_tab(void *,INT byte_by_el,INT nb_el);  
-    // inverse the byte of a four byte data
-
-
-void to_lsb_rep_2(void *);
-void to_lsb_rep_4(void *);
-
-void to_msb_rep_2(void *);
-void to_msb_rep_4(void *);
+Im2D_REAL4 ImageQualityGrad(Im2D_REAL4 aProf,Im2D_Bits<1> aMasq)
+{
+     Pt2di aSz = aProf.sz();
+     Im2D_REAL4 aRes(aSz.x,aSz.y);
+     TIm2D<REAL4,REAL8>   aTRes(aRes);
+     TIm2DBits<1> aTM(aMasq);
+     TIm2D<REAL4,REAL8>   aTProf(aProf);
+    
+     Pt2di aP;
+     for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
+     {
+         for (aP.y=0 ; aP.y<aSz.y ; aP.y++)
+         {
+              double aMaxGr = 0;
+              bool Ok=false;
+              if (aTM.get(aP))
+              {
+                  double aV0 = aTProf.get(aP);
+                  for (int aSx=-1; aSx<=1 ; aSx++)
+                  {
+                      Pt2di aQx(aP.x+aSx,aP.y);
+                      if (aTM.get(aQx,0))
+                      {
+                          double aGx = (aTProf.get(aQx)-aV0) * aSx;
+                          for (int aSy=-1; aSy<=1 ; aSy++)
+                          {
+                              Pt2di aQy(aP.x,aP.y+aSy);
+                              if (aTM.get(aQy,0))
+                              {
+                                  double aGy = (aTProf.get(aQy)-aV0) * aSy;
+                                  double aScore = SquareQualGrad(aGx,aGy);
+                                  ElSetMax(aMaxGr,aScore);
+                                  Ok = true;
+                              }
+                          }
+                      }
+                  }
+              }
+              if (!Ok) aMaxGr = MaxQualDM;
+              aTRes.oset(aP,sqrt(aMaxGr/2.0));
+         }
+     }
+     return aRes;
+}
 
 
-extern std::string TheEliseDirXmlSpec;
 
-std::string StdGetFileXMLSpec(const std::string & aName);
 
-// convert upper-case caracter into lower-case
-void tolower( std::string &io_str );
-std::string tolower( const std::string &i_str);
-
-// convert a filename into a unique representation
-// (don't do anything unless under windows because unix's filenames are already unique)
-void filename_normalize( std::string &io_filename );
-std::string filename_normalize( const std::string &i_str);
-
-// return true if i_str starts with i_start (case sensitive)
-bool startWith( const std::string &i_str, const std::string &i_start );
-
-#endif // _ELISE_PRIVATE_UTI_H
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

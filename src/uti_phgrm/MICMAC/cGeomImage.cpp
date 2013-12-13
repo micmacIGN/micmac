@@ -182,10 +182,26 @@ Pt3dr cGeomImage::Bascule(const Pt3dr & aPIm) const
 
 
 
-ElSeg3D cGeomImage::FaisceauPersp(const Pt2dr & )  const
+ElSeg3D cGeomImage::FaisceauPersp(const Pt2dr & aPIm )  const
 {
-      ELISE_ASSERT(false,"cGeomImage::Faisceau non defini");
-      return ElSeg3D(Pt3dr(0,0,0),Pt3dr(0,0,0));
+      // std::cout << "PXXXXXxxx " << mAppli 
+      double aPx[2];
+      aPx[1] = 0;
+      double aPxMoy =  mAppli.GeomDFPxInit().V0Px()[0];
+
+      double aPx0 = 0.99 *  aPxMoy;
+      aPx[0] =   aPx0;
+      Pt2dr aP2Ter0 = ImageAndPx2Obj_Euclid(aPIm,aPx);
+
+      double aPx1 = 1.01 *  aPxMoy;
+      aPx[0] =   aPx1;
+      Pt2dr aP2Ter1 = ImageAndPx2Obj_Euclid(aPIm,aPx);
+
+      Pt3dr aP3Ter0(aP2Ter0.x,aP2Ter0.y,aPx0);
+      Pt3dr aP3Ter1(aP2Ter1.x,aP2Ter1.y,aPx1);
+
+      // ELISE_ASSERT(false,"cGeomImage::Faisceau non defini");
+      return ElSeg3D(aP3Ter0,aP3Ter1);
 }
 
 Pt3dr cGeomImage::GeomFP2GeomFinale(const Pt3dr & aP)  const
@@ -2605,10 +2621,10 @@ class cGeomImage_Module : public cGeomImage
         cGeomImage::RemplitOriXMLNuage(false,mtd,aGT,aNuage,mode);
         if (CFM)
         {
-            cOrientationFile oriFile;
+            cModuleOrientationFile oriFile;
             oriFile.NameFileOri()=mModule->GetFilename();
-            aNuage.Orientation().OrientationFile().SetVal(oriFile);
-            aNuage.Orientation().TypeProj().SetVal(eProjStenope);
+            aNuage.Orientation().ModuleOrientationFile().SetVal(oriFile);
+            aNuage.Orientation().TypeProj().SetVal(eProjGrid);
          }
     }
 

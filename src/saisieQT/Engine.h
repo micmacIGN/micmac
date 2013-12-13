@@ -40,11 +40,6 @@ public:
     //! Line width
     float m_LineWidth;
 
-    //! Rotation angles
-    float m_angleX;
-    float m_angleY;
-    float m_angleZ;
-
     //! Translation matrix
     float m_translationMatrix[3];
 
@@ -109,22 +104,22 @@ private:
     QDir        _Dir;
 };
 
-class cGLData
+class cGLData : cObjectGL
 {
 public:
 
     cGLData();
+    cGLData(QImage* image, QImage *mask);
+    cGLData(cData *data);
+
     ~cGLData();
 
-    void clear();
-
-    bool        is2D(){return pImg != NULL;}
+    //bool        is2D(){return pImg != NULL;}
     bool        is3D(){return Clouds.size() || Cams.size();}
     bool        isDataLoaded(){return (!isImgEmpty()) || is3D();}
 
-    //2D
-    cImageGL    *pImg;
-    cImageGL    *pMask;
+
+    cMaskedImageGL maskedImage;
 
     QImage      *pQMask;
 
@@ -134,17 +129,18 @@ public:
     //! Point list for polygonal insertion
     cPolygon    m_dihedron;
 
-    void        setEmptyImg(bool aBool){_bEmptyImg = aBool;}
-    bool        isImgEmpty(){return _bEmptyImg;}
+    bool        isImgEmpty(){return maskedImage._m_image == NULL;}
 
-    void        setEmptyMask(bool aBool){_bEmptyMask = aBool;}
-    bool        isMaskEmpty(){return _bEmptyMask;}
+    bool        isMaskEmpty(){ return maskedImage._m_mask == NULL;}
 
     QImage*     getMask(){return pQMask;}
 
     void        setPolygon(cPolygon const &aPoly){m_polygon = aPoly;}
 
     //3D
+
+    void        draw();
+
     QVector < cCam* > Cams;
 
     cBall       *pBall;
@@ -161,9 +157,6 @@ public:
     void        setCenter(Pt3dr aCenter){_center = aCenter;}
 
 private:
-
-    bool        _bEmptyImg;
-    bool        _bEmptyMask;
 
     float       _diam;
     Pt3dr       _center;
@@ -209,10 +202,12 @@ public:
     void    unloadAll();
 
     //! Compute mask binary images: projection of visible points into loaded cameras
-    void    doMasks();
+    void    do3DMasks();
 
     //! Creates binary image from selection and saves
-    void    doMaskImage();
+    void    doMaskImage(ushort idCur);
+
+    void    saveMask(ushort idCur);
 
     void    saveSelectInfos(QVector <selectInfos> const &Infos);
 

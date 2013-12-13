@@ -35,8 +35,8 @@ set(saisie_SRCS saisieQT_main.cpp
 	        Cloud.cpp
 	        Data.cpp
 	        Engine.cpp
-                3DObject.cpp
-	        ../poisson/plyfile.cpp)
+            3DObject.cpp
+			GLWidgetSet.cpp)
 
 set(saisie_HEADERS saisieQT_main.h
            GLWidget.h
@@ -45,7 +45,8 @@ set(saisie_HEADERS saisieQT_main.h
 		   Engine.h
 		   Data.h
 		   3DObject.h
-		   3DTools.h)
+		   3DTools.h
+		   GLWidgetSet.h)
 
 SET(Saisie_RCS ./icones/icones.qrc)
 
