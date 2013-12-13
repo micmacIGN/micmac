@@ -114,6 +114,9 @@ class cGLData : cObjectGL
 public:
 
     cGLData();
+    cGLData(QImage* image, QImage *mask);
+    cGLData(cData *data);
+
     ~cGLData();
 
     void clear();

@@ -103,9 +103,10 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
     {
         QImage* imgM = new QImage( mask_filename );
 
+        printf("START \n");
         if (img->isNull())
         {
-
+            printf("ELISE \n");
             Tiff_Im img( mask_filename.toStdString().c_str() );
 
             if( img.can_elise_use() )
@@ -134,7 +135,10 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
                         }
                     }
                 }
-                aImgMask = pDest;
+                //aImgMask = pDest;
+                *aImgMask = QGLWidget::convertToGLFormat( *pDest );
+
+                delete pDest;
             }
             else
             {
@@ -142,7 +146,11 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
             }
         }
         else
-            aImgMask = imgM;
+        {
+            printf("QT \n");
+            *aImgMask = QGLWidget::convertToGLFormat( *imgM );
+        }
+        printf("END \n");
     }
 }
 
@@ -433,76 +441,18 @@ void cEngine::setGLData()
 
     for (int aK = 0; aK < _Data->getNbImages();++aK)
     {
-        cGLData *theData = new cGLData();
 
-        if(_Data->getMask(aK) != NULL)
-            theData->pQMask = _Data->getMask(aK);
+        cGLData *glData = new cGLData(_Data->getImage(aK),_Data->getMask(aK));
 
-        else
-        {
-            theData->pQMask = new QImage(_Data->getImage(aK)->size(),QImage::Format_Mono);
-            *theData->pQMask = QGLWidget::convertToGLFormat( *theData->pQMask );
-            _Data->addMask(theData->pQMask);
-            _Data->fillMask(aK);
-        }
+        // TODO _Data->addMask(theData->pQMask) ne prend pas en compte l'ordre des images
+        if(_Data->getMask(aK) == NULL) _Data->PushBackMask(glData->pQMask);
 
-        theData->maskedImage._m_mask = new cImageGL();
-        theData->maskedImage._m_image = new cImageGL();
-
-        theData->maskedImage._m_mask->PrepareTexture(_Data->getMask(aK));
-        theData->maskedImage._m_image->PrepareTexture(_Data->getImage(aK));
-
-
-        _vGLData.push_back(theData);
+        _vGLData.push_back(glData);
     }
 
     if (_Data->is3D())
-    {
-        cGLData *theData = new cGLData();
+        _vGLData.push_back(new cGLData(_Data));
 
-        for (int aK = 0; aK < _Data->getNbClouds();++aK)
-        {
-            Cloud *pCloud;
-            pCloud = _Data->getCloud(aK);
-            theData->Clouds.push_back(pCloud);
-
-            pCloud->setBufferGl();
-        }
-
-        for (int aK = 0; aK < _Data->getNbCameras();++aK)
-        {
-            cCam *pCam = new cCam(_Data->getCamera(aK));
-
-            theData->Cams.push_back(pCam);
-        }
-
-        float scale = _Data->m_diam / 1.5f;
-
-        theData->pBall->setPosition(_Data->getCenter());
-        theData->pBall->setScale(scale);
-        theData->pBall->setVisible(true);
-
-        theData->pAxis->setPosition(_Data->getCenter());
-        theData->pAxis->setScale(scale);
-
-        theData->pBbox->setPosition(_Data->getCenter());
-        theData->pBbox->set(_Data->m_minX,_Data->m_minY,_Data->m_minZ,_Data->m_maxX,_Data->m_maxY,_Data->m_maxZ);
-
-        for (int i=0; i<_Data->getNbCameras();i++)
-        {
-            cCam *pCam = new cCam(_Data->getCamera(i));
-
-            pCam->setScale(scale);
-            pCam->setVisible(true);
-
-            theData->Cams.push_back(pCam);
-        }
-
-        theData->setScale(_Data->getScale());
-        theData->setCenter(_Data->getCenter());
-
-        _vGLData.push_back(theData);
-    }
 }
 
 cGLData* cEngine::getGLData(int WidgetIndex)
@@ -516,12 +466,72 @@ cGLData* cEngine::getGLData(int WidgetIndex)
 //********************************************************************************
 
 cGLData::cGLData():
+    _diam(1.f){}
+
+cGLData::cGLData(QImage *image, QImage *mask)
+{
+    // TODO a factoriser dans maskedimage!!
+    if(mask == NULL)
+    {
+        pQMask = new QImage(image->size(),QImage::Format_Mono);
+        *pQMask = QGLWidget::convertToGLFormat( *pQMask );
+        pQMask->fill(Qt::white);
+        maskedImage._m_newMask = true;
+    }
+    else
+       *pQMask = QGLWidget::convertToGLFormat( *pQMask );
+
+    maskedImage._m_mask = new cImageGL();
+    maskedImage._m_image = new cImageGL();
+
+    maskedImage._m_mask->PrepareTexture(pQMask);
+    maskedImage._m_image->PrepareTexture(image);
+
+}
+
+cGLData::cGLData(cData *data):
     _diam(1.f)
 {
-    //3D
+    for (int aK = 0; aK < data->getNbClouds();++aK)
+    {
+        Cloud *pCloud = data->getCloud(aK);
+        Clouds.push_back(pCloud);
+        pCloud->setBufferGl();
+    }
+
+    for (int aK = 0; aK < data->getNbCameras();++aK)
+        Cams.push_back(new cCam(data->getCamera(aK)));
+
+    float scale = data->m_diam / 1.5f;
+
+    // TODO creer les constructeurs
     pBall = new cBall();
     pAxis = new cAxis();
     pBbox = new cBBox();
+
+    pBall->setPosition(data->getCenter());
+    pBall->setScale(scale);
+    pBall->setVisible(true);
+
+    pAxis->setPosition(data->getCenter());
+    pAxis->setScale(scale);
+
+    pBbox->setPosition(data->getCenter());
+    pBbox->set(data->m_minX,data->m_minY,data->m_minZ,data->m_maxX,data->m_maxY,data->m_maxZ);
+
+// ?????????????????????
+    //    for (int i=0; i<data->getNbCameras();i++)
+//    {
+//        cCam *pCam = new cCam(data->getCamera(i));
+
+//        pCam->setScale(scale);
+//        pCam->setVisible(true);
+
+//        Cams.push_back(pCam);
+//    }
+
+    setScale(data->getScale());
+    setCenter(data->getCenter());
 }
 
 cGLData::~cGLData()

@@ -17,6 +17,8 @@ class cData
         void addCloud(Cloud *);
         void addImage(QImage *);
         void addMask(QImage *);
+        void PushBackMask(QImage *);
+
 
         void clearCameras();
         void clearClouds();
