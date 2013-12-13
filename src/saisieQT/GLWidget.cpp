@@ -335,7 +335,6 @@ void GLWidget::computeFPS()
 void GLWidget::setGLData(cGLData * aData)
 {
     m_GLData = aData;
-    //_bDataLoaded = true;
 }
 
 void GLWidget::setBackgroundColors(const QColor &col0, const QColor &col1)
@@ -581,7 +580,7 @@ void GLWidget::updateAfterSetData(bool doZoom)
 
             glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
 
-            m_bFirstAction = m_GLData->isMaskEmpty();
+            m_bFirstAction = m_GLData->maskedImage._m_newMask;
 
         }
 
