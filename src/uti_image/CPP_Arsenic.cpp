@@ -188,6 +188,8 @@ cl_MatPtsHom ReadPtsHom3D(string aDir,string aPatIm, string InVig, int ResolMode
 	vector<ArsenicImage> aGrIm=LoadGrpImages(aDir, aPatIm, ResolModel, InVig);
 	std::cout<<"===== "<<aGrIm.size()<< " images loaded"<<endl;
 
+	//string PtsTxt="PtsTxt.txt";
+	//ofstream file_out(PtsTxt, ios::out | ios::app);
 
 	//going throug each pair of different images
     for (int aK1=0 ; aK1<nbIm ; aK1++)
@@ -241,12 +243,14 @@ cl_MatPtsHom ReadPtsHom3D(string aDir,string aPatIm, string InVig, int ResolMode
 								if(Blue1>0){aMatPtsHomol.aMat[aK1].kB.push_back((1 + Blue2/Blue1 )/2);}else{aMatPtsHomol.aMat[aK1].kB.push_back((1 + Blue2)/2);}
 								aMatPtsHomol.aMat[aK1].OtherIm.push_back(aK2);
 								aMatPtsHomol.aMat[aK1].SZ=aGrIm[aK1].SZ;
+								//file_out <<(Red2+Blue2+Green2)/(Red1+Blue1+Green1)<<endl;
 							}
 						}
 				}
 			}
 		}
 	}
+	//file_out.close();
 	return aMatPtsHomol;
 		
 }
@@ -475,8 +479,8 @@ int  Arsenic_main(int argc,char ** argv)
 
 	std::string aFullPattern,aDirOut="Egal/",aMaster="",InVig="";
     //bool InTxt=false;
-	int ResolModel=8;
-	double TPA=8,aThresh=1.4;
+	int ResolModel=16;
+	double TPA=16,aThresh=1.4;
 	int nbIte=5;
 	  //Reading the arguments
         ElInitArgMain
@@ -485,8 +489,8 @@ int  Arsenic_main(int argc,char ** argv)
             LArgMain()  << EAMC(aFullPattern,"Images Pattern"),
             LArgMain()  << EAM(aDirOut,"Out",true,"Output folder (end with /) and/or prefix (end with another char)")
 						<< EAM(InVig,"InVig",true,"Input vignette folder (for example : Vignette/ )")
-						<< EAM(ResolModel,"ResolModel",true,"Resol of input model (Def=8)")
-						<< EAM(TPA,"TPA",true,"Tie Point Accuracy (Higher is better, lower gives more points Def=8)")
+						<< EAM(ResolModel,"ResolModel",true,"Resol of input model (Def=16)")
+						<< EAM(TPA,"TPA",true,"Tie Point Accuracy (Higher is better, lower gives more points Def=16)")
 						<< EAM(nbIte,"NbIte",true,"Number of iteraration of the process (default=5)")
 						<< EAM(aThresh,"ThreshDisp",true,"Disparity threshold between the tie points (Def=1.4 for 40%)")
         );

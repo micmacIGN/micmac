@@ -569,6 +569,14 @@ void GLWidget::updateAfterSetData(bool doZoom)
     }
 }
 
+bool GLWidget::hasDataLoaded()
+{
+    if(m_GLData == NULL)
+        return false;
+    else
+        return m_GLData->isDataLoaded();
+}
+
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
 {
     const QMimeData* mimeData = event->mimeData();

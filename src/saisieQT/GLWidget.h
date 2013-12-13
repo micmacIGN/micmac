@@ -75,14 +75,7 @@ public:
     void updateAfterSetData(bool doZoom);
 
     //! States if data (cloud, camera or image) is loaded
-    bool hasDataLoaded(){
-
-        if(m_GLData == NULL)
-            return false;
-        else
-            return m_GLData->isDataLoaded();
-
-    }
+    bool hasDataLoaded();
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
