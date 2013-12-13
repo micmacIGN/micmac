@@ -40,11 +40,6 @@ public:
     //! Line width
     float m_LineWidth;
 
-    //! Rotation angles
-    float m_angleX;
-    float m_angleY;
-    float m_angleZ;
-
     //! Translation matrix
     float m_translationMatrix[3];
 

@@ -25,7 +25,6 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
   , _g_mouseLeftDown(false)
   , _g_mouseMiddleDown(false)
   , _g_mouseRightDown(false)
-  //, _bDataLoaded(false)
   , _idx(idx)
   , _parentSet(theSet)
 {
@@ -122,9 +121,6 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                     float d_angleX = m_params.m_speed * dPWin.y() / (float) _glViewport[3];
                     float d_angleY = m_params.m_speed * dPWin.x() / (float) _glViewport[2];
 
-                    m_params.m_angleX += d_angleX;
-                    m_params.m_angleY += d_angleY;
-
                     setRotateOx_m33( d_angleX, _g_rotationOx );
                     setRotateOy_m33( d_angleY, _g_rotationOy );
 
@@ -157,8 +153,6 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                 else if ( _g_mouseRightDown ) // rotation autour de Z
                 {
                     float d_angleZ =  m_params.m_speed * dPWin.x() / (float) _glViewport[2];
-
-                    m_params.m_angleZ += d_angleZ;
 
                     setRotateOz_m33( d_angleZ, _g_rotationOz );
 
@@ -1263,8 +1257,6 @@ void GLWidget::reset()
     m_params.reset();
 
     m_bFirstAction = true;
-
-   //_bDataLoaded = false;
 
     m_GLData = NULL;
 }

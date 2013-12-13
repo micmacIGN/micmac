@@ -544,9 +544,6 @@ ViewportParameters::ViewportParameters()
     : m_zoom(1.f)
     , m_PointSize(1)
     , m_LineWidth(1.f)
-    , m_angleX(0.f)
-    , m_angleY(0.f)
-    , m_angleZ(0.f)
     , m_speed(2.f)
 {
     m_translationMatrix[0] = m_translationMatrix[1] = m_translationMatrix[2] = 0.f;
@@ -556,9 +553,6 @@ ViewportParameters::ViewportParameters(const ViewportParameters& params)
     : m_zoom(params.m_zoom)
     , m_PointSize(params.m_PointSize)
     , m_LineWidth(params.m_LineWidth)
-    , m_angleX(params.m_angleX)
-    , m_angleY(params.m_angleY)
-    , m_angleZ(params.m_angleZ)
 {
     m_translationMatrix[0] = params.m_translationMatrix[0];
     m_translationMatrix[1] = params.m_translationMatrix[1];
@@ -574,10 +568,6 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
         m_zoom = par.m_zoom;
         m_PointSize = par.m_PointSize;
 
-        m_angleX = par.m_angleX;
-        m_angleY = par.m_angleY;
-        m_angleZ = par.m_angleZ;
-
         m_translationMatrix[0] = par.m_translationMatrix[0];
         m_translationMatrix[1] = par.m_translationMatrix[1];
         m_translationMatrix[2] = par.m_translationMatrix[2];
@@ -590,7 +580,6 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
 void ViewportParameters::reset()
 {
     m_zoom = m_LineWidth = 1.f;
-    m_angleX = m_angleY = m_angleZ = 0.f;
     m_PointSize = 1;
 
     m_translationMatrix[0] = m_translationMatrix[1] = m_translationMatrix[2] = 0.f;
