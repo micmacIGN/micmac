@@ -241,10 +241,9 @@ Im2D_U_INT1  cCEM_OneIm::ImAR()
 
 void cCEM_OneIm::VerifProf(Im2D_Bits<1> aMasq)
 {
-/*
     if (! mWin) return;
 
-    Im2D_REAL4 anIQG = ImageQualityGrad(ImPx(),aMasq);
+    Im2D_REAL4 anIQG = ImageQualityGrad(ImPx(),aMasq,mWin);
 
     if (mWin)
     {
@@ -254,7 +253,7 @@ void cCEM_OneIm::VerifProf(Im2D_Bits<1> aMasq)
        mWin->clik_in();
     }
 
-*/
+/*
 
     Pt2di aSz =  aMasq.sz();
     Im2D_Bits<1> aImOut(aSz.x,aSz.y,1);
@@ -295,6 +294,7 @@ void cCEM_OneIm::VerifProf(Im2D_Bits<1> aMasq)
 
        mWin->clik_in();
     }
+*/
 }
 
 void cCEM_OneIm::VerifIm(Im2D_Bits<1> aMasq)
@@ -636,10 +636,10 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
        if (mDoMasq)
        {
            double aMul = 20;
-           mReduce = 2.0;
+           // mReduce = 2.0;
 
            Pt2di aSz0 = anAR1.sz();
-           Pt2di aSzR = round_up(Pt2dr(aSz0)/mReduce);
+           Pt2di aSzR = round_up(Pt2dr(aSz0)/mReduceM);
            Im2D_REAL4  anArRed(aSzR.x,aSzR.y);
 
            Fonc_Num FScore = anAR1.in_proj();
@@ -647,7 +647,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
            ELISE_COPY
            (
                 anArRed.all_pts(),
-                StdFoncChScale_Bilin(FScore,Pt2dr(0,0),Pt2dr(mReduce,mReduce)),
+                StdFoncChScale_Bilin(FScore,Pt2dr(0,0),Pt2dr(mReduceM,mReduceM)),
                 anArRed.out()
            );
 
@@ -678,7 +678,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
            aCox->TopMaxFlowStd(aISol.data());
 
            Im2D_Bits<1> aMassFR(anAR1.sz().x,anAR1.sz().y);
-           ELISE_COPY(anAR1.all_pts(),aISol.in_proj()[Virgule(FX/mReduce,FY/mReduce)],aMassFR.out());
+           ELISE_COPY(anAR1.all_pts(),aISol.in_proj()[Virgule(FX/mReduceM,FY/mReduceM)],aMassFR.out());
 
 
            mIm1->VerifProf(aMassFR);
@@ -724,7 +724,7 @@ void cCoherEpi_main::action(const  ElFifo<Pt2di> & aFil,bool ext)
     for (int aK=0 ; aK<aFil.nb() ; aK++)
     {
         bool Ok; 
-        Pt2dr aP2 = mIm1->ToIm2(Pt2dr(aFil[aK])*mReduce,Ok);
+        Pt2dr aP2 = mIm1->ToIm2(Pt2dr(aFil[aK])*mReduceM,Ok);
         if (Ok) 
         {
            aNbOk++;
