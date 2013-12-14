@@ -195,10 +195,29 @@ template <class T1> void  FilterGauss(T1 & anIm, double aSzF,int aNbIter = 4)
       FilterExp(anIm,aF);
       ELISE_COPY(anIm.all_pts(),anIm.in()/aIP1.in(),anIm.out());
   }
-
-  // for (int aK=0 ; aK<
-
 }
+
+template <class T1,class T2> void  MasqkedFilterGauss(T1 & anIm, T2& aMasq,double aSzF,int aNbIter = 4)
+{
+  double aF = FromSzW2FactExp(aSzF,aNbIter);
+
+  Pt2di aSz = anIm.sz();
+  Im2D_REAL4 aIP1(aSz.x,aSz.y);
+  ELISE_COPY(aIP1.all_pts(),aMasq.in(),aIP1.out());
+  FilterExp(aIP1,aF);
+  ELISE_COPY(aIP1.all_pts(),Max(1e-5,aIP1.in()),aIP1.out());
+
+  for (int aKIt=0 ; aKIt<aNbIter ; aKIt++)
+  {
+      ELISE_COPY(anIm.all_pts(),anIm.in()*aMasq.in(),anIm.out());
+      FilterExp(anIm,aF);
+      ELISE_COPY(anIm.all_pts(),anIm.in()/aIP1.in(),anIm.out());
+  }
+}
+
+
+
+
 
 #endif  //  _ELISE_IM_ALGO_FILTER_EXP
 
