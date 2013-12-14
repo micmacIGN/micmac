@@ -264,7 +264,6 @@ class cCoherEpi_main : public Cont_Vect_Action
         bool          mDoMasq;
         double        mDoMasqSym;
         bool          mUseAutoMasq;
-        double        mReduce;
         std::vector<cOneContour> mConts;
 
 };
@@ -278,7 +277,7 @@ class cQual_DeptMap
        TIm2DBits<1>        mTMasq;
 };
 
-Im2D_REAL4 ImageQualityGrad(Im2D_REAL4 aProf,Im2D_Bits<1> aMasq);
+Im2D_REAL4 ImageQualityGrad(Im2D_REAL4 aProf,Im2D_Bits<1> aMasq,Video_Win *);
 
 
 
