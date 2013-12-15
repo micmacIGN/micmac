@@ -574,6 +574,7 @@ int XYZ2Im_main(int argc,char ** argv);
 int Im2XYZ_main(int argc,char ** argv);
 
 int MMPyram_main(int argc,char ** argv);
+int ReechInvEpip_main(int argc,char ** argv);
 int CreateEpip_main(int argc,char ** argv);
 int AperoChImMM_main(int argc,char ** argv);
 int MM_FusionNuage_main(int argc,char ** argv);

@@ -104,7 +104,7 @@ class cCEM_OneIm
           const Pt2di &  Sz() const {return mSz;}
 
           void VerifIm(Im2D_Bits<1> aMasq);
-          void VerifProf(Im2D_Bits<1> aMasq);
+          Im2D_REAL4 VerifProf(Im2D_Bits<1> aMasq);
           void ComputeOrtho();
           virtual Im2D_REAL4 ImPx()
           {
@@ -261,6 +261,8 @@ class cCoherEpi_main : public Cont_Vect_Action
         double        mStep;
         double        mRegul;
         double        mReduceM;
+        bool          mFinal;
+        Im2D_REAL4    mImQualDepth;
         bool          mDoMasq;
         double        mDoMasqSym;
         bool          mUseAutoMasq;

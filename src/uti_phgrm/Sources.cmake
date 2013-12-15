@@ -52,6 +52,7 @@ configure_file(
 
 set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_NuageBascule.cpp
+    ${UTI_PHGRM_DIR}/CPP_ReechInvEpip.cpp
     ${UTI_PHGRM_DIR}/CPP_CreateEpip.cpp
     ${UTI_PHGRM_DIR}/CPP_VideoVisage.cpp
     ${UTI_PHGRM_DIR}/CPP_SEL.cpp

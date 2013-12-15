@@ -299,9 +299,11 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
 
               SauvMasqReentrant(true,aStep,aStep==mStepEnd);
               SauvMasqReentrant(false,aStep,aStep==mStepEnd);
-
+/*
+   BUGUEE et a priori inutile ...  BUGUEE CAR CREE DES TROU et pas appelle sauf en resol finale (ou ca cree des trous ...).
               if (mByEpip)
                  SymetriseMasqReentrant();
+*/
            }
 
 
@@ -461,6 +463,11 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                           + " InParal="  + ToString(mMM1PInParal)
                       ;
 
+     if (aLast) 
+     {
+        aCom = aCom + " ExpFin=true ";
+     }
+
      System(aCom);
 }
 
@@ -476,6 +483,7 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                                ("AutoMask_LeChantier_Num_" + ToString(aStep-1)+".tif")           :
                                ("Masq_LeChantier_DeZoom" + ToString(mVZoom[aStep+1]) +  ".tif")  ;
      aNameCor =     mDir +  LocDirMec2Im(aNamA,aNamB) + aNameCor;
+
 
      Tiff_Im aFMCor(aNameCor.c_str());
      std::string aNameNew = aPref + "_Masq1_Glob.tif";
@@ -501,6 +509,11 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
            std::string aName = mDir + aPref + "_Glob.tif";
            std::string aDest = mDir + LocDirMec2Im(aNamA,aNamB) + "Score-AR.tif";
            ELISE_fp::MvFile(aName,aDest);
+
+           aName = mDir + aPref + "_ImDistor_Glob.tif";
+           aDest = mDir + LocDirMec2Im(aNamA,aNamB) + "Distorsion.tif";
+           ELISE_fp::MvFile(aName,aDest);
+
            ELISE_fp::RmFile(mDir + aPref + "*.tif");
 // LocDirMec2Im(aNamA,aNamB) 
      }

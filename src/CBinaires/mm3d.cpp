@@ -375,6 +375,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("DocI0",DocEx_Intro0_main,"Introduction 0  of example fro DocElise  "));
    aRes.push_back(cMMCom("DocID2",DocEx_Introd2_main,"Introduction to D2  of example fro DocElise  "));
    aRes.push_back(cMMCom("VCE",VisuCoupeEpip_main,"Visualisation of epipolar pair (cut)  "));
+   aRes.push_back(cMMCom("RIE",ReechInvEpip_main,"Visualisation of epipolar pair (cut)  "));
    return aRes;
 }
 
