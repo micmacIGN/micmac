@@ -52,12 +52,18 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 double SquareQualGrad(double aGx,double aGy)
 {
-   if (aGx <=-1) return MaxQualDM;
+   return ElSquare(aGx) + ElSquare(aGy) ;
+/*
+   
+   aGx  = ElMax(-0.66,ElMin(2.0,aGx));
+
+   // if (aGx <=-0.66) return MaxQualDM;
 
 
    double InvX = 1/(1+aGx);
 
    return ElSquare(aGx) + ElSquare(aGy) * (1+ElSquare(InvX)) +ElSquare(1-InvX);
+*/
 }
 
 Im2D_REAL4 ImageQualityGrad(Im2D_REAL4 aProfInit,Im2D_Bits<1> aMasq,Video_Win * aW,double aResol)
@@ -72,7 +78,7 @@ Im2D_REAL4 ImageQualityGrad(Im2D_REAL4 aProfInit,Im2D_Bits<1> aMasq,Video_Win * 
     TIm2D<REAL4,REAL8>   aTProf(aProf);
     TIm2DBits<1> aTM(aMasq);
 
-    if (aW)
+    if (0) // (aW)
     {
        // ELISE_COPY(aProf.all_pts(),mod(aProf.in(),256),aW->ogray()); aW->clik_in();
        ELISE_COPY
@@ -85,7 +91,7 @@ Im2D_REAL4 ImageQualityGrad(Im2D_REAL4 aProfInit,Im2D_Bits<1> aMasq,Video_Win * 
         aW->clik_in();
     }
 
-    double aMulG = aResol;
+    double aMulG = 1;
     MasqkedFilterGauss(aProf,aMasq,aResol,2);
     Pt2di aP;
     for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
@@ -110,9 +116,7 @@ Im2D_REAL4 ImageQualityGrad(Im2D_REAL4 aProfInit,Im2D_Bits<1> aMasq,Video_Win * 
                               {
                                   double aGy = (aTProf.get(aQy)-aV0) * aSy * aMulG ;
                                   double aScore = SquareQualGrad(aGx,aGy);
-
-                                   aScore = aGx;
-                                  
+                                   // aScore = aGx;
                                   aSomGr += aScore;
                                   aNbOk++;
                               }
@@ -130,13 +134,13 @@ Im2D_REAL4 ImageQualityGrad(Im2D_REAL4 aProfInit,Im2D_Bits<1> aMasq,Video_Win * 
               }
          }
     }
-    if (aW)
+    if (0)//  (aW)
     {
         ELISE_COPY
         (
             aW->all_pts(),
             // Min(255,aRes.in()*20),
-            Min(255,128 + aRes.in()*64),
+            Max(0,Min(255,aRes.in()*200)),
             aW->ogray()
         );
         std::cout << "RESOL " <<  aResol << "\n";
@@ -149,11 +153,14 @@ Im2D_REAL4 ImageQualityGrad(Im2D_REAL4 aProfInit,Im2D_Bits<1> aMasq,Video_Win * 
 
 Im2D_REAL4 ImageQualityGrad(Im2D_REAL4 aProf,Im2D_Bits<1> aMasq,Video_Win * aW)
 {
+   return ImageQualityGrad(aProf,aMasq,aW,4.0);
+/*
    ImageQualityGrad(aProf,aMasq,aW,1.0);
    ImageQualityGrad(aProf,aMasq,aW,2.0);
    ImageQualityGrad(aProf,aMasq,aW,4.0);
    ImageQualityGrad(aProf,aMasq,aW,8.0);
    return ImageQualityGrad(aProf,aMasq,aW,1.0);
+*/
 }
 
 Im2D_REAL4 Fine_ImageQualityGrad(Im2D_REAL4 aProf,Im2D_Bits<1> aMasq,Video_Win *)
