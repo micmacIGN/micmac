@@ -170,6 +170,7 @@ public:
 
     int renderLineText(MessageToDisplay messageTD, int x, int y, int sizeFont = 10);
 
+    std::list<MessageToDisplay>::iterator GetLastMessage();
 public slots:
     void zoom();
 
