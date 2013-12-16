@@ -40,6 +40,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_PRIVATE_FILES_H
 #define _ELISE_PRIVATE_FILES_H
 
+#ifndef S_ISREG
+	inline int S_ISREG(int v) { return v&_S_IFREG;}
+#endif
+
+#ifndef S_ISDIR
+	inline int S_ISDIR(int v){ return v&_S_IFDIR; }
+#endif
+
 namespace NS_ParamChantierPhotogram {
   class cXmlExivEntry;
   class cXmlDataBase;
