@@ -38,6 +38,31 @@ enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
                          RIGHT_VIEW     /**< Right view **/
 };
 
+
+//! Default message positions on screen
+enum MessagePosition {  LOWER_LEFT_MESSAGE,
+                        LOWER_CENTER_MESSAGE,
+                        UPPER_CENTER_MESSAGE,
+                        SCREEN_CENTER_MESSAGE
+};
+
+//! Temporary Message to display
+struct MessageToDisplay
+{
+    MessageToDisplay():
+        color(Qt::white)
+    {}
+
+    //! Message
+    QString message;
+
+    //! color
+    QColor color;
+
+    //! Message position on screen
+    MessagePosition position;
+};
+
 class GLWidget : public QGLWidget
 {
     Q_OBJECT
@@ -57,12 +82,7 @@ public:
                             SELECTION
     };
 
-    //! Default message positions on screen
-    enum MessagePosition {  LOWER_LEFT_MESSAGE,
-                            LOWER_CENTER_MESSAGE,
-                            UPPER_CENTER_MESSAGE,
-                            SCREEN_CENTER_MESSAGE
-    };
+
 
     //! Displays a status message
     /** \param message message (if message is empty, all messages will be cleared)
@@ -91,7 +111,7 @@ public:
     void zoomFactor(int percent);
 
     //! Switch between move mode and selection mode (only in 3D)
-    void setInteractionMode(INTERACTION_MODE mode);
+    void setInteractionMode(INTERACTION_MODE mode, bool showmessage);
 
     //! Shows axis or not
     void showAxis(bool show);
@@ -103,7 +123,7 @@ public:
     void showCams(bool show);
 
     //! Shows help messages or not
-    void showMessages(bool show);
+    void ConstructListMessages(bool show);
 
     //! Shows bounding box or not
     void showBBox(bool show);
@@ -156,6 +176,9 @@ public:
     void setBackgroundColors(QColor const &col0, QColor const &col1);
 
     cPolygon PolyImageToWindow(cPolygon polygon);
+
+    int renderLineText(MessageToDisplay messageTD, int x, int y, int sizeFont = 10);
+
 public slots:
     void zoom();
 
@@ -208,21 +231,10 @@ protected:
 
     bool m_bFirstAction;
 
-    bool m_bLastActionIsRightClick;
-
-    //! Temporary Message to display
-    struct MessageToDisplay
-    {
-        //! Message
-        QString message;
-        //! Message position on screen
-        MessagePosition position;
-    };
-
     //! List of messages to display
     list<MessageToDisplay> m_messagesToDisplay;
 
-    QString     m_messageFPS;
+    //QString     m_messageFPS;
 
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
@@ -248,13 +260,11 @@ protected:
 private:
 
     void        setProjectionMatrix();
-    void        computeFPS();
+    void        computeFPS(MessageToDisplay &dynMess);
 
     int         _frameCount;
     int         _previousTime;
-    int         _currentTime;
-
-    float       _fps;
+    int         _currentTime;    
 
     GLfloat     _g_tmpoMatrix[9];
     GLfloat     _g_rotationOx[9];
@@ -275,6 +285,8 @@ private:
 
     QColor      _BGColor0;
     QColor      _BGColor1;
+
+    MessageToDisplay _m_DynamicMessage;
 };
 
 #endif  /* _GLWIDGET_H */

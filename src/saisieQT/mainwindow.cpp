@@ -112,13 +112,11 @@ void MainWindow::createMenus()
 
 void MainWindow::checkForLoadedData()
 {
-    GLWidget &widget = CurrentWidget();
-    widget.displayNewMessage(QString()); //clear (any) message in the middle area
+//    GLWidget &widget = CurrentWidget();
+//    widget.displayNewMessage(QString()); //clear (any) message in the middle area
 
-    if (!widget.hasDataLoaded())
-        widget.displayNewMessage(tr("Drag & drop images or ply files"));
-    else
-        on_actionShow_messages_toggled(_ui->actionShow_messages->isChecked());
+//    if (widget.hasDataLoaded())
+//        on_actionShow_messages_toggled(_ui->actionShow_messages->isChecked());
 }
 
 void MainWindow::setPostFix(QString str)
@@ -241,14 +239,15 @@ void MainWindow::addFiles(const QStringList& filenames)
             GLWidget &widget = getWidget(aK);
             widget.setGLData(_Engine->getGLData(aK));
             widget.updateAfterSetData();
+            widget.ConstructListMessages(_ui->actionShow_messages->isChecked());
         }
 
         for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
 
-        checkForLoadedData();
+
     }
 
-    this->setWindowState(Qt::WindowActive);
+    this->setWindowState(Qt::WindowActive); // ????
 }
 
 void MainWindow::selectedPoint(uint idC, uint idV, bool select)
@@ -308,7 +307,7 @@ void MainWindow::on_actionShow_cams_toggled(bool state)
 
 void MainWindow::on_actionShow_messages_toggled(bool state)
 {
-    CurrentWidget().showMessages(state);
+    CurrentWidget().ConstructListMessages(state);
 }
 
 void MainWindow::on_actionToggleMode_toggled(bool mode)
@@ -317,7 +316,7 @@ void MainWindow::on_actionToggleMode_toggled(bool mode)
 
     if (!_bMode2D)
     {
-        widget.setInteractionMode(mode ? GLWidget::SELECTION : GLWidget::TRANSFORM_CAMERA);
+        widget.setInteractionMode(mode ? GLWidget::SELECTION : GLWidget::TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
 
         widget.showBall(mode ? GLWidget::TRANSFORM_CAMERA : GLWidget::SELECTION && _Engine->getData()->isDataLoaded());
         widget.showAxis(false);
@@ -454,7 +453,7 @@ void MainWindow::on_actionUndo_triggered()
         widget.setGLData(_Engine->getGLData(CurrentWidgetIdx()));
         widget.updateAfterSetData(false);
 
-        widget.showMessages(_ui->actionShow_messages->isChecked());
+        widget.ConstructListMessages(_ui->actionShow_messages->isChecked());
     }
 
     widget.undo();
@@ -604,9 +603,6 @@ void MainWindow::closeAll()
 
         widget.reset();
         widget.resetView();
-
-        //  A VIRER
-        checkForLoadedData();
 
         widget.update();
     }

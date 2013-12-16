@@ -135,13 +135,13 @@ public:
     void        InsertPointPolygon();
 
     // c'est quoi ce lastAction ??????
-    void        RemoveClosestPoint(QPointF pos, bool &lastAction);
+    void        RemoveClosestPoint(QPointF pos);
 
     void        AddPoint(QPointF pos);
 
     void        FinalMovePoint(QPointF pos);
 
-    void        RefreshHelperPolygon(QPointF pos, bool insertMode, bool &lastAction);
+    void        RefreshHelperPolygon(QPointF pos, bool insertMode);
 
     // =================================================
 

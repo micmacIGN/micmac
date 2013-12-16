@@ -532,7 +532,7 @@ void cGLData::InsertPointPolygon()
     m_dihedron.clear();
 }
 
-void cGLData::RemoveClosestPoint(QPointF pos, bool &lastAction)
+void cGLData::RemoveClosestPoint(QPointF pos)
 {
     int idx = m_polygon.idx();
     if ((idx >=0)&&(idx<m_polygon.size())&&m_polygon.isClosed())
@@ -544,7 +544,6 @@ void cGLData::RemoveClosestPoint(QPointF pos, bool &lastAction)
         if (m_polygon.size() < 3)
             m_polygon.setClosed(false);
 
-        lastAction = true;
     }
     else if (m_polygon.size() == 2)
     {
@@ -582,7 +581,7 @@ void cGLData::FinalMovePoint(QPointF pos)
 
 }
 
-void cGLData::RefreshHelperPolygon(QPointF pos, bool insertMode, bool &lastAction)
+void cGLData::RefreshHelperPolygon(QPointF pos, bool insertMode)
 {
     int nbVertex =m_polygon.size();
 
@@ -590,12 +589,9 @@ void cGLData::RefreshHelperPolygon(QPointF pos, bool insertMode, bool &lastActio
     {
         if (nbVertex == 1)     // add current mouse position to polygon (dynamic display)
            m_polygon.add(pos);
-        else if ((nbVertex == 2) && lastAction)
-           m_polygon.add(pos);
         else if (nbVertex > 1) // replace last point by the current one
            m_polygon[nbVertex-1] = pos;
 
-        lastAction = false;
     }
     else if(nbVertex)                       // move vertex or insert vertex (dynamic display) en court d'opération
     {
