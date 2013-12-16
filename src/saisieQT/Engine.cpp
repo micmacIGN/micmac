@@ -219,9 +219,7 @@ void  cEngine::loadImage(QString imgName)
 
     if (img !=NULL) _Data->PushBackImage(img);
     if (mask!=NULL) _Data->PushBackMask(mask);
-#ifdef _DEBUG
-    else cout << "mask null" << endl;
-#endif
+
 }
 
 void cEngine::do3DMasks()
@@ -399,18 +397,14 @@ void cEngine::applyGammaToImage(int aK)
 
 void cEngine::unloadAll()
 {
-    _Data->clearClouds();
-    _Data->clearCameras();
-    _Data->clearImages();
-    _Data->clearMasks();
-    _Data->reset();
+    _Data->clearAll();
 
     for (int aK=0; aK<_vGLData.size();++aK)
         delete _vGLData[aK];
     _vGLData.clear();
 }
 
-void cEngine::setGLData()
+void cEngine::AllocAndSetGLData()
 {
     _vGLData.clear();
 
@@ -455,11 +449,13 @@ cGLData::cGLData(QImage *image, QImage *mask):
     {
         pQMask = new QImage(image->size(),QImage::Format_Mono);
         *pQMask = QGLWidget::convertToGLFormat( *pQMask );
-        pQMask->fill(Qt::white);
-        maskedImage._m_newMask = true;
+        pQMask->fill(Qt::white);        
     }
     else
+    {
+       maskedImage._m_newMask = false;
        pQMask = mask;
+    }
 
     maskedImage._m_mask = new cImageGL();
     maskedImage._m_image = new cImageGL();

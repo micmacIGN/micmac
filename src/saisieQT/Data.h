@@ -23,6 +23,8 @@ class cData
         void clearImages();
         void clearMasks();
 
+        void clearAll();
+
         bool isDataLoaded(){return getNbClouds()||getNbCameras() ||getNbImages();}
         bool is3D(){return getNbClouds()||getNbCameras();}
 

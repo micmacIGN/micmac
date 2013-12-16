@@ -275,7 +275,7 @@ public:
     cMaskedImageGL():
         _m_image(NULL),
         _m_mask(NULL),
-        _m_newMask(false)
+        _m_newMask(true)
     {}
 
     void draw();
