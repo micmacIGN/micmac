@@ -515,6 +515,103 @@ cGLData::~cGLData()
     Clouds.clear();
 }
 
+void cGLData::InsertPointPolygon()
+{
+    if ((m_polygon.size() >=2) && m_dihedron.size() && m_polygon.isClosed())
+    {
+        int idx = -1;
+
+        for (int i=0;i<m_polygon.size();++i)
+        {
+            if (m_polygon[i] == m_dihedron[0]) idx = i;
+        }
+
+        if (idx >=0) m_polygon.insert(idx+1, m_dihedron[1]);
+    }
+
+    m_dihedron.clear();
+}
+
+void cGLData::RemoveClosestPoint(QPointF pos, bool &lastAction)
+{
+    int idx = m_polygon.idx();
+    if ((idx >=0)&&(idx<m_polygon.size())&&m_polygon.isClosed())
+    {
+        m_polygon.remove(idx);   // remove closest point
+
+        m_polygon.findClosestPoint(pos);
+
+        if (m_polygon.size() < 3)
+            m_polygon.setClosed(false);
+
+        lastAction = true;
+    }
+    else if (m_polygon.size() == 2)
+    {
+        m_polygon.remove(1);
+        m_polygon.setClosed(false);
+    }
+    else // close polygon
+        m_polygon.close();
+}
+
+void cGLData::AddPoint(QPointF pos)
+{
+    if (m_polygon.size() >= 1)
+        m_polygon[m_polygon.size()-1] = pos;
+
+    m_polygon.add(pos);
+}
+
+void cGLData::FinalMovePoint(QPointF pos)
+{
+    int idx = m_polygon.idx(); // index du point selectionné
+    if ((m_polygon.click() >=1) && (idx>=0) && m_dihedron.size()) //  fin de deplacement point
+    {
+        m_polygon[idx] = m_dihedron[1];
+
+        m_dihedron.clear();
+        m_polygon.resetClick();
+    }
+
+    // TODO refactoriser
+    if ((m_polygon.click() >=1) && m_polygon.isClosed()) // recherche de points le plus proche
+    {
+        m_polygon.findClosestPoint(pos);
+    }
+
+}
+
+void cGLData::RefreshHelperPolygon(QPointF pos, bool insertMode, bool &lastAction)
+{
+    int nbVertex =m_polygon.size();
+
+    if(m_polygon.isOpened())
+    {
+        if (nbVertex == 1)     // add current mouse position to polygon (dynamic display)
+           m_polygon.add(pos);
+        else if ((nbVertex == 2) && lastAction)
+           m_polygon.add(pos);
+        else if (nbVertex > 1) // replace last point by the current one
+           m_polygon[nbVertex-1] = pos;
+
+        lastAction = false;
+    }
+    else if(nbVertex)                       // move vertex or insert vertex (dynamic display) en court d'opération
+    {
+        if (insertMode )                    // INSERT POINT POLYGON
+
+           m_polygon.fillDihedron(pos,m_dihedron);
+
+        else if (m_polygon.click() == 1)    // MOVE POINT POLYGON
+
+           m_polygon.fillDihedron2(pos,m_dihedron);
+        else                                // SELECT CLOSEST POINT POLYGON
+
+           m_polygon.findClosestPoint(pos);
+    }
+}
+
 void cGLData::draw()
 {
     enableOptionLine();
