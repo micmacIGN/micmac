@@ -76,13 +76,10 @@ public:
     //! Destructor
     ~GLWidget();
 
-//    bool eventFilter(QObject* object, QEvent* event);
-
     //! Interaction mode (only in 3D)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
                             SELECTION
     };
-
 
 
     //! Displays a status message
@@ -92,8 +89,7 @@ public:
     virtual void displayNewMessage(const QString& message,
                                    MessagePosition pos = SCREEN_CENTER_MESSAGE);
 
-    void updateAfterSetData();
-    void updateAfterSetData(bool doZoom);
+    void updateAfterSetData(bool doZoom = true);
 
     //! States if data (cloud, camera or image) is loaded
     bool hasDataLoaded();
@@ -128,9 +124,6 @@ public:
 
     //! Shows bounding box or not
     void showBBox(bool show);
-
-    //! States if help messages should be displayed
-    bool showMessages(){return m_bDrawMessages;}
 
     //! Display help messages for selection mode
     void displaySelectionMessages();
@@ -167,9 +160,6 @@ public:
     void resetTranslationMatrix();
 
     ViewportParameters* getParams(){return &m_params;}
-
-//    void enableOptionLine();
-//    void disableOptionLine();
 
     void setGLData(cGLData* aData);
     cGLData* getGLData(){return m_GLData;}
@@ -235,8 +225,6 @@ protected:
     //! List of messages to display
     list<MessageToDisplay> m_messagesToDisplay;
 
-    //QString     m_messageFPS;
-
     //! Viewport parameters (zoom, etc.)
     ViewportParameters m_params;
 
@@ -279,7 +267,6 @@ private:
     GLdouble    *_projmatrix;
     GLint       *_glViewport;
 
-    //bool        _bDataLoaded;
     int         _idx;
 
     GLWidgetSet* _parentSet;

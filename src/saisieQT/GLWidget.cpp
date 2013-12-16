@@ -302,11 +302,6 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
     }
 }
 
-void GLWidget::updateAfterSetData()
-{
-    updateAfterSetData(true);
-}
-
 void GLWidget::updateAfterSetData(bool doZoom)
 {
     if (m_GLData != NULL)
@@ -335,7 +330,6 @@ void GLWidget::updateAfterSetData(bool doZoom)
             glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
 
             m_bFirstAction = m_GLData->maskedImage._m_newMask;
-
         }
 
         glGetIntegerv (GL_VIEWPORT, _glViewport);
@@ -474,7 +468,6 @@ void GLWidget::drawPolygon()
         m_GLData->m_polygon.draw();
         m_GLData->m_dihedron.drawDihedron();
     }
-
 }
 
 // zoom in 3D mode
