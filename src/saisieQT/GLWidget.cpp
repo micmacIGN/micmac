@@ -14,14 +14,12 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
   , m_bDrawMessages(true)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
-  , m_bLastActionIsRightClick(false)
   , m_params(ViewportParameters())
   , m_GLData(NULL)
   , m_bDisplayMode2D(false)
   , _frameCount(0)
   , _previousTime(0)
   , _currentTime(0)
-  , _fps(0.0f)
   , _idx(idx)
   , _parentSet(theSet)
 {
@@ -40,8 +38,9 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
     _projmatrix = new GLdouble[16];
     _glViewport = new GLint[4];
 
-    m_font.setPointSize(10);
-    setMouseTracking(true);
+    setMouseTracking(true);   
+
+    ConstructListMessages(m_bDrawMessages);
 }
 
 GLWidget::~GLWidget()
@@ -69,8 +68,10 @@ void GLWidget::resizeGL(int width, int height)
 //-------------------------------------------------------------------------
 // Computes the frames rate
 //-------------------------------------------------------------------------
-void GLWidget::computeFPS()
+void GLWidget::computeFPS(MessageToDisplay &dynMess)
 {
+    float       fps;
+
     //  Increase frame count
     _frameCount++;
 
@@ -82,7 +83,7 @@ void GLWidget::computeFPS()
     if(deltaTime > 1000)
     {
         //  compute the number of frames per second
-        _fps = _frameCount * 1000.f / deltaTime;
+        fps = _frameCount * 1000.f / deltaTime;
 
         //  Set time
         _previousTime = _currentTime;
@@ -90,10 +91,9 @@ void GLWidget::computeFPS()
         //  Reset frame count
         _frameCount = 0;
 
-        if (_fps > 1e-3)
-        {
-            m_messageFPS = "fps: " + QString::number(_fps,'f',1);
-        }
+        if (fps > 1e-3)
+            dynMess.message = "fps: " + QString::number(fps,'f',1);
+
     }
 }
 
@@ -106,6 +106,18 @@ void GLWidget::setBackgroundColors(const QColor &col0, const QColor &col1)
 {
     _BGColor0 = col0;
     _BGColor1 = col1;
+}
+
+int GLWidget::renderLineText(MessageToDisplay messageTD, int x, int y, int sizeFont)
+{
+    qglColor(messageTD.color);
+
+    m_font.setPointSize(sizeFont);
+
+    QRect rect = QFontMetrics(m_font).boundingRect(messageTD.message);
+    renderText(x, y, messageTD.message,m_font);
+
+    return (rect.height()*5)/4;
 }
 
 void GLWidget::paintGL()
@@ -156,21 +168,6 @@ void GLWidget::paintGL()
 
             glPopMatrix();
 
-            //Affichage du zoom et des coordonnées image
-            if (m_bDrawMessages)
-            {
-                glMatrixMode(GL_MODELVIEW);
-
-                glColor3f(1.f,1.f,1.f);
-
-                renderText(10, _glViewport[3] - m_font.pointSize(), QString::number(m_params.m_zoom*100,'f',1) + "%", m_font);
-
-                float px = m_lastMoveImage.x();
-                float py = m_lastMoveImage.y();
-
-                if  ((px>=0.f)&&(py>=0.f)&&(px<m_GLData->maskedImage._m_image->width())&&(py<m_GLData->maskedImage._m_image->height()))
-                    renderText(_glViewport[2] - 120, _glViewport[3] - m_font.pointSize(), QString::number(px,'f',1) + ", " + QString::number(m_GLData->maskedImage._m_image->height()-py,'f',1) + " px", m_font);
-            }
         }
         else if(m_GLData->is3D())
         {
@@ -189,64 +186,55 @@ void GLWidget::paintGL()
             // CAMERA END ===================
 
             m_GLData->draw();
-
-            if (m_bDrawMessages)
-            {
-                computeFPS();
-
-                glColor4f(0.8f,0.9f,1.0f,0.9f);
-
-                renderText(10, _glViewport[3]- m_font.pointSize(), m_messageFPS, m_font);
-            }
         }
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION)) drawPolygon();
+
+        if (m_bDrawMessages && m_messagesToDisplay.size())
+        {
+            if (m_bDisplayMode2D)
+            {
+                std::list<MessageToDisplay>::iterator it = --m_messagesToDisplay.end();
+                it->message = QString::number(m_params.m_zoom*100,'f',1) + "%";
+
+                float px = m_lastMoveImage.x();
+                float py = m_lastMoveImage.y();
+                float w  = m_GLData->maskedImage._m_image->width();
+                float h  = m_GLData->maskedImage._m_image->height();
+
+                if  ((px>=0.f)&&(py>=0.f)&&(px<w)&&(py<h))
+                    (--it)->message = QString::number(px,'f',1) + ", " + QString::number(h-py,'f',1) + " px";
+            }
+            else
+                computeFPS(m_messagesToDisplay.back());
+        }
     }
 
     //current messages (if valid)
     if (!m_messagesToDisplay.empty())
     {
-        glColor3f(1.f,1.f,1.f);
-
-        int lc_currentHeight = _glViewport[3] - m_font.pointSize()*m_messagesToDisplay.size(); //lower center
+        int ll_curHeight = _glViewport[3] - m_font.pointSize()*m_messagesToDisplay.size(); //lower center
+        int lc_currentHeight = ll_curHeight;
         int uc_currentHeight = 10;            //upper center
 
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
         while (it != m_messagesToDisplay.end())
         {
+            QRect rect = QFontMetrics(m_font).boundingRect(it->message);
             switch(it->position)
             {
             case LOWER_LEFT_MESSAGE:
-            {
-                renderText(10, lc_currentHeight, it->message,m_font);
-                int messageHeight = QFontMetrics(m_font).height();
-                lc_currentHeight -= (messageHeight*5)/4; //add a 25% margin
-            }
+                ll_curHeight -= renderLineText(*it, 10, ll_curHeight);
                 break;
             case LOWER_CENTER_MESSAGE:
-            {
-                QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                renderText((_glViewport[2]-rect.width())/2, lc_currentHeight, it->message,m_font);
-                int messageHeight = QFontMetrics(m_font).height();
-                lc_currentHeight += (messageHeight*5)/4; //add a 25% margin
-            }
+                lc_currentHeight += renderLineText(*it,(_glViewport[2]-rect.width())/2, lc_currentHeight);
                 break;
             case UPPER_CENTER_MESSAGE:
-            {
-                QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                renderText((_glViewport[2]-rect.width())/2, uc_currentHeight+rect.height(), it->message,m_font);
-                uc_currentHeight += (rect.height()*5)/4; //add a 25% margin
-            }
+                uc_currentHeight += renderLineText(*it,(_glViewport[2]-rect.width())/2, uc_currentHeight+rect.height());
                 break;
             case SCREEN_CENTER_MESSAGE:
-            {
-                m_font.setPointSize(12);
-                QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-                renderText((_glViewport[2]-rect.width())/2, (_glViewport[3]-rect.height())/2, it->message,m_font);
-                m_font.setPointSize(10);
+                renderLineText(*it,(_glViewport[2]-rect.width())/2, (_glViewport[3]-rect.height())/2,12);
             }
-            }
-
             ++it;
         }
     }
@@ -467,13 +455,13 @@ cPolygon GLWidget::PolyImageToWindow(cPolygon polygon)
 
 void GLWidget::drawPolygon()
 {
-    // camera begin
+    // camera begin ==================
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(0,_glViewport[2],_glViewport[3],0,-1,1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    // camera end
+    // camera end  ======================
 
     if (m_bDisplayMode2D)
     {
@@ -504,8 +492,9 @@ void GLWidget::zoom()
     }
 }
 
-void GLWidget::setInteractionMode(INTERACTION_MODE mode)
+void GLWidget::setInteractionMode(INTERACTION_MODE mode, bool showmessage)
 {
+    // TODO !!!!!!!!!
     m_interactionMode = mode;
 
     if (hasDataLoaded())
@@ -514,26 +503,20 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode)
         {
         case TRANSFORM_CAMERA:
         {
-            if (showMessages())
-            {
-                clearPolyline();
-                displayMoveMessages();
-            }
+            clearPolyline();
         }
             break;
         case SELECTION:
         {
             if(m_GLData->is3D()) //3D
-                setProjectionMatrix();
-
-            if (showMessages())
-                displaySelectionMessages();
+                setProjectionMatrix();            
         }
             break;
         default:
             break;
         }
     }
+    ConstructListMessages(showmessage);
 }
 
 void GLWidget::setView(VIEW_ORIENTATION orientation)
@@ -696,7 +679,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         }
         else if (event->button() == Qt::RightButton)
 
-           m_GLData->RemoveClosestPoint(m_lastPosImage,m_bLastActionIsRightClick);
+           m_GLData->RemoveClosestPoint(m_lastPosImage);
 
         else if (event->button() == Qt::MiddleButton)
 
@@ -726,7 +709,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
 
-            m_GLData->RefreshHelperPolygon(pos,(event->modifiers() & Qt::ShiftModifier),m_bLastActionIsRightClick);
+            m_GLData->RefreshHelperPolygon(pos,(event->modifiers() & Qt::ShiftModifier));
 
         if (m_interactionMode == TRANSFORM_CAMERA)
         {
@@ -1098,26 +1081,50 @@ void GLWidget::showBBox(bool show)
     update();
 }
 
-void GLWidget::showMessages(bool show)
+void GLWidget::ConstructListMessages(bool show)
 {
     m_bDrawMessages = show;
+    _m_DynamicMessage.color = Qt::lightGray;
+    displayNewMessage(QString());
 
-    if ((m_bDrawMessages)&&(!m_bDisplayMode2D))
+    m_messagesToDisplay.clear();
+
+    if (m_bDrawMessages)
     {
-        if (m_interactionMode == TRANSFORM_CAMERA)
-            displayMoveMessages();
-        else if (m_interactionMode == SELECTION)
-            displaySelectionMessages();
+        if(hasDataLoaded())
+        {
+            if(m_bDisplayMode2D)
+            {
+                _m_DynamicMessage.position = LOWER_CENTER_MESSAGE;
+                _m_DynamicMessage.message  = "POSITION PIXEL";
+                m_messagesToDisplay.push_back(_m_DynamicMessage);
+
+                _m_DynamicMessage.position = LOWER_LEFT_MESSAGE; // TODO ;)
+                _m_DynamicMessage.message  = "ZOOM";
+                m_messagesToDisplay.push_back(_m_DynamicMessage);
+            }
+            else
+            {
+                if (m_interactionMode == TRANSFORM_CAMERA)
+                    displayMoveMessages();
+                else if (m_interactionMode == SELECTION)
+                    displaySelectionMessages();
+
+                _m_DynamicMessage.position = LOWER_LEFT_MESSAGE;
+                _m_DynamicMessage.message  = "0 Fps";
+                m_messagesToDisplay.push_back(_m_DynamicMessage);
+
+            }
+        }
+        else
+            displayNewMessage(tr("Drag & drop images or ply files"));
     }
-    else
-        displayNewMessage(QString());
 
     update();
 }
 
 void GLWidget::displaySelectionMessages()
 {
-    displayNewMessage(QString());
     displayNewMessage(tr("Selection mode"),UPPER_CENTER_MESSAGE);
     displayNewMessage(tr("Left click: add contour point / Right click: close"),LOWER_CENTER_MESSAGE);
     displayNewMessage(tr("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
@@ -1125,7 +1132,6 @@ void GLWidget::displaySelectionMessages()
 
 void GLWidget::displayMoveMessages()
 {
-    displayNewMessage(QString());
     displayNewMessage(tr("Move mode"),UPPER_CENTER_MESSAGE);
     displayNewMessage(tr("Left click: rotate viewpoint / Right click: translate viewpoint"),LOWER_CENTER_MESSAGE);
 }
@@ -1148,6 +1154,8 @@ void GLWidget::reset()
 
 void GLWidget::resetView()
 {
+    ConstructListMessages(true);
+
     if (m_bDisplayMode2D)
         zoomFit();
     else
