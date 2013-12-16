@@ -41,6 +41,7 @@ enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
 
 //! Default message positions on screen
 enum MessagePosition {  LOWER_LEFT_MESSAGE,
+                        LOWER_RIGHT_MESSAGE,
                         LOWER_CENTER_MESSAGE,
                         UPPER_CENTER_MESSAGE,
                         SCREEN_CENTER_MESSAGE
@@ -285,8 +286,6 @@ private:
 
     QColor      _BGColor0;
     QColor      _BGColor1;
-
-    MessageToDisplay _m_DynamicMessage;
 };
 
 #endif  /* _GLWIDGET_H */

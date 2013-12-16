@@ -165,9 +165,7 @@ void GLWidget::paintGL()
 
             m_GLData->maskedImage.draw();
 
-
             glPopMatrix();
-
         }
         else if(m_GLData->is3D())
         {
@@ -210,12 +208,12 @@ void GLWidget::paintGL()
         }
     }
 
-    //current messages (if valid)
     if (!m_messagesToDisplay.empty())
     {
-        int ll_curHeight = _glViewport[3] - m_font.pointSize()*m_messagesToDisplay.size(); //lower center
-        int lc_currentHeight = ll_curHeight;
-        int uc_currentHeight = 10;            //upper center
+        int ll_curHeight = _glViewport[3] - m_font.pointSize()*m_messagesToDisplay.size(); //lower left
+        int lr_curHeight = ll_curHeight;  //lower right
+        int lc_curHeight = ll_curHeight;  //lower center
+        int uc_curHeight = 10;            //upper center
 
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
         while (it != m_messagesToDisplay.end())
@@ -226,11 +224,14 @@ void GLWidget::paintGL()
             case LOWER_LEFT_MESSAGE:
                 ll_curHeight -= renderLineText(*it, 10, ll_curHeight);
                 break;
+            case LOWER_RIGHT_MESSAGE:
+                lr_curHeight -= renderLineText(*it, _glViewport[2] - 120, lr_curHeight);
+                break;
             case LOWER_CENTER_MESSAGE:
-                lc_currentHeight += renderLineText(*it,(_glViewport[2]-rect.width())/2, lc_currentHeight);
+                lc_curHeight -= renderLineText(*it,(_glViewport[2]-rect.width())/2, lc_curHeight);
                 break;
             case UPPER_CENTER_MESSAGE:
-                uc_currentHeight += renderLineText(*it,(_glViewport[2]-rect.width())/2, uc_currentHeight+rect.height());
+                uc_curHeight += renderLineText(*it,(_glViewport[2]-rect.width())/2, uc_curHeight+rect.height());
                 break;
             case SCREEN_CENTER_MESSAGE:
                 renderLineText(*it,(_glViewport[2]-rect.width())/2, (_glViewport[3]-rect.height())/2,12);
@@ -1084,7 +1085,9 @@ void GLWidget::showBBox(bool show)
 void GLWidget::ConstructListMessages(bool show)
 {
     m_bDrawMessages = show;
-    _m_DynamicMessage.color = Qt::lightGray;
+
+    MessageToDisplay DynamicMessage;
+    DynamicMessage.color = Qt::lightGray;
     displayNewMessage(QString());
 
     m_messagesToDisplay.clear();
@@ -1095,13 +1098,13 @@ void GLWidget::ConstructListMessages(bool show)
         {
             if(m_bDisplayMode2D)
             {
-                _m_DynamicMessage.position = LOWER_CENTER_MESSAGE;
-                _m_DynamicMessage.message  = "POSITION PIXEL";
-                m_messagesToDisplay.push_back(_m_DynamicMessage);
+                DynamicMessage.position = LOWER_RIGHT_MESSAGE;
+                DynamicMessage.message  = "POSITION PIXEL";
+                m_messagesToDisplay.push_back(DynamicMessage);
 
-                _m_DynamicMessage.position = LOWER_LEFT_MESSAGE; // TODO ;)
-                _m_DynamicMessage.message  = "ZOOM";
-                m_messagesToDisplay.push_back(_m_DynamicMessage);
+                DynamicMessage.position = LOWER_LEFT_MESSAGE;
+                DynamicMessage.message  = "ZOOM";
+                m_messagesToDisplay.push_back(DynamicMessage);
             }
             else
             {
@@ -1110,10 +1113,9 @@ void GLWidget::ConstructListMessages(bool show)
                 else if (m_interactionMode == SELECTION)
                     displaySelectionMessages();
 
-                _m_DynamicMessage.position = LOWER_LEFT_MESSAGE;
-                _m_DynamicMessage.message  = "0 Fps";
-                m_messagesToDisplay.push_back(_m_DynamicMessage);
-
+                DynamicMessage.position = LOWER_LEFT_MESSAGE;
+                DynamicMessage.message  = "0 Fps";
+                m_messagesToDisplay.push_back(DynamicMessage);
             }
         }
         else
