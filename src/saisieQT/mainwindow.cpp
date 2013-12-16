@@ -3,9 +3,10 @@
 
 MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
         QMainWindow(parent),
-        GLWidgetSet(aNbFen.x*aNbFen.y),
+        GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1),
         _ui(new Ui::MainWindow),
-        _Engine(new cEngine)
+        _Engine(new cEngine),
+        _layout(new QGridLayout)
 {
     _ui->setupUi(this);
 
@@ -19,7 +20,6 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
     _ui->OpenglLayout->setStyleSheet(style);
 
     _ProgressDialog = new QProgressDialog("Loading files","Stop",0,0,this);
-    //ProgressDialog->setMinimumDuration(500);
     _ProgressDialog->setMinimum(0);
     _ProgressDialog->setMaximum(100);
 
@@ -32,17 +32,11 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
 
     setMode2D(mode2D);
 
-    _layout = new QGridLayout();
-
     int cpt=0;
     for (int aK = 0; aK < aNbFen.x;++aK)
         for (int bK = 0; bK < aNbFen.y;++bK, cpt++)
-        {
-            getWidget(cpt).setBackgroundColors(colorBG0, colorBG1);
+            _layout->addWidget(getWidget(cpt), bK, aK);
 
-            _layout->addWidget(&getWidget(cpt), bK, aK);
-
-        }
 
     _signalMapper = new QSignalMapper (this);
     connectActions();
@@ -56,7 +50,6 @@ MainWindow::~MainWindow()
     delete _ui;
     delete _Engine;
     delete _RFMenu;
-
     delete _layout;
     delete _signalMapper;
 }
@@ -65,8 +58,8 @@ void MainWindow::connectActions()
 {
     for (uint aK = 0; aK < NbWidgets();++aK)
     {
-        connect(&getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
-        connect(&getWidget(aK), SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
+        connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
+        connect(getWidget(aK), SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
     }
 
     //File menu
@@ -108,15 +101,6 @@ void MainWindow::createMenus()
         _RFMenu->addAction(_recentFileActs[i]);
 
     updateRecentFileActions();
-}
-
-void MainWindow::checkForLoadedData()
-{
-//    GLWidget &widget = CurrentWidget();
-//    widget.displayNewMessage(QString()); //clear (any) message in the middle area
-
-//    if (widget.hasDataLoaded())
-//        on_actionShow_messages_toggled(_ui->actionShow_messages->isChecked());
 }
 
 void MainWindow::setPostFix(QString str)
@@ -236,10 +220,10 @@ void MainWindow::addFiles(const QStringList& filenames)
         _Engine->setGLData();
         for (uint aK = 0; aK < NbWidgets();++aK)
         {
-            GLWidget &widget = getWidget(aK);
-            widget.setGLData(_Engine->getGLData(aK));
-            widget.updateAfterSetData();
-            widget.ConstructListMessages(_ui->actionShow_messages->isChecked());
+            GLWidget *widget = getWidget(aK);
+            widget->setGLData(_Engine->getGLData(aK));
+            widget->updateAfterSetData();
+            widget->ConstructListMessages(_ui->actionShow_messages->isChecked());
         }
 
         for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
@@ -267,11 +251,11 @@ void MainWindow::on_actionShow_ball_toggled(bool state)
 {
     if (!_bMode2D)
     {
-        CurrentWidget().showBall(state);
+        CurrentWidget()->showBall(state);
 
         if (state)
         {
-            CurrentWidget().showAxis(!state);
+            CurrentWidget()->showAxis(!state);
             _ui->actionShow_axis->setChecked(!state);
         }
     }
@@ -280,20 +264,20 @@ void MainWindow::on_actionShow_ball_toggled(bool state)
 void MainWindow::on_actionShow_bbox_toggled(bool state)
 {
     if(!_bMode2D)
-        CurrentWidget().showBBox(state);
+        CurrentWidget()->showBBox(state);
 }
 
 void MainWindow::on_actionShow_axis_toggled(bool state)
 {
     if (!_bMode2D)
     {
-        GLWidget &widget = CurrentWidget();
+        GLWidget *widget = CurrentWidget();
 
-        widget.showAxis(state);
+        widget->showAxis(state);
 
         if (state)
         {
-            widget.showBall(!state);
+            widget->showBall(!state);
             _ui->actionShow_ball->setChecked(!state);
         }
     }
@@ -302,32 +286,32 @@ void MainWindow::on_actionShow_axis_toggled(bool state)
 void MainWindow::on_actionShow_cams_toggled(bool state)
 {
     if (!_bMode2D)
-        CurrentWidget().showCams(state);
+        CurrentWidget()->showCams(state);
 }
 
 void MainWindow::on_actionShow_messages_toggled(bool state)
 {
-    CurrentWidget().ConstructListMessages(state);
+    CurrentWidget()->ConstructListMessages(state);
 }
 
 void MainWindow::on_actionToggleMode_toggled(bool mode)
 {
-    GLWidget &widget = CurrentWidget();
+    GLWidget *widget = CurrentWidget();
 
     if (!_bMode2D)
     {
-        widget.setInteractionMode(mode ? GLWidget::SELECTION : GLWidget::TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
+        widget->setInteractionMode(mode ? GLWidget::SELECTION : GLWidget::TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
 
-        widget.showBall(mode ? GLWidget::TRANSFORM_CAMERA : GLWidget::SELECTION && _Engine->getData()->isDataLoaded());
-        widget.showAxis(false);
+        widget->showBall(mode ? GLWidget::TRANSFORM_CAMERA : GLWidget::SELECTION && _Engine->getData()->isDataLoaded());
+        widget->showAxis(false);
 
         if (mode == GLWidget::SELECTION)
         {
-            widget.showCams(false);
-            widget.showBBox(false);
+            widget->showCams(false);
+            widget->showBBox(false);
         }
 
-        widget.update();
+        widget->update();
     }
 }
 
@@ -405,24 +389,24 @@ void MainWindow::on_actionHelpShortcuts_triggered()
 void MainWindow::on_actionAdd_triggered()
 {
 
-    CurrentWidget().Select(ADD);
+    CurrentWidget()->Select(ADD);
 }
 
 void MainWindow::on_actionSelect_none_triggered()
 {
-    GLWidget &widget = CurrentWidget();
-    widget.Select(NONE);
-    widget.clearPolyline();
+    GLWidget *widget = CurrentWidget();
+    widget->Select(NONE);
+    widget->clearPolyline();
 }
 
 void MainWindow::on_actionInvertSelected_triggered()
 {
-    CurrentWidget().Select(INVERT);
+    CurrentWidget()->Select(INVERT);
 }
 
 void MainWindow::on_actionSelectAll_triggered()
 {
-    CurrentWidget().Select(ALL);
+    CurrentWidget()->Select(ALL);
 }
 
 void MainWindow::on_actionReset_triggered()
@@ -435,100 +419,97 @@ void MainWindow::on_actionReset_triggered()
     }
     else
     {
-        CurrentWidget().Select(ALL);
+        CurrentWidget()->Select(ALL);
     }
 }
 
 void MainWindow::on_actionRemove_triggered()
 {
-    CurrentWidget().Select(SUB);
+    CurrentWidget()->Select(SUB);
 }
 
 void MainWindow::on_actionUndo_triggered()
 {   
-    GLWidget &widget = CurrentWidget();
 
     if (_bMode2D)
     {
-        widget.setGLData(_Engine->getGLData(CurrentWidgetIdx()));
-        widget.updateAfterSetData(false);
-
-        widget.ConstructListMessages(_ui->actionShow_messages->isChecked());
+        CurrentWidget()->setGLData(_Engine->getGLData(CurrentWidgetIdx()));
+        CurrentWidget()->updateAfterSetData(false);
     }
 
-    widget.undo();
+    CurrentWidget()->undo();
 }
 
 void MainWindow::on_actionSetViewTop_triggered()
 {
     if (!_bMode2D)
-        CurrentWidget().setView(TOP_VIEW);
+        CurrentWidget()->setView(TOP_VIEW);
 }
 
 void MainWindow::on_actionSetViewBottom_triggered()
 {
     if (!_bMode2D)
-        CurrentWidget().setView(BOTTOM_VIEW);
+        CurrentWidget()->setView(BOTTOM_VIEW);
 }
 
 void MainWindow::on_actionSetViewFront_triggered()
 {
     if (!_bMode2D)
-        CurrentWidget().setView(FRONT_VIEW);
+        CurrentWidget()->setView(FRONT_VIEW);
 }
 
 void MainWindow::on_actionSetViewBack_triggered()
 {
     if (!_bMode2D)
-        CurrentWidget().setView(BACK_VIEW);
+        CurrentWidget()->setView(BACK_VIEW);
 }
 
 void MainWindow::on_actionSetViewLeft_triggered()
 {
     if (!_bMode2D)
-        CurrentWidget().setView(LEFT_VIEW);
+        CurrentWidget()->setView(LEFT_VIEW);
 }
 
 void MainWindow::on_actionSetViewRight_triggered()
 {
     if (!_bMode2D)
-        CurrentWidget().setView(RIGHT_VIEW);
+        CurrentWidget()->setView(RIGHT_VIEW);
 }
 
 void MainWindow::on_actionReset_view_triggered()
 {
-    GLWidget &widget = CurrentWidget();
+    GLWidget *widget = CurrentWidget();
 
-    widget.resetView();
+    widget->resetView();
 
     if (!_bMode2D)
     {
-         widget.showBall(_Engine->getData()->isDataLoaded());
-         widget.showAxis(false);
-         widget.showBBox(false);
-         widget.showCams(false);
+         widget->showBall(_Engine->getData()->isDataLoaded());
+         widget->showAxis(false);
+         widget->showBBox(false);
+         widget->showCams(false);
     }
 }
 
 //zoom
 void MainWindow::on_actionZoom_Plus_triggered()
 {
-    CurrentWidget().setZoom(CurrentWidget().getZoom()*1.5f);
+    CurrentWidget()->setZoom(CurrentWidget()->getZoom()*1.5f);
 }
 
 void MainWindow::on_actionZoom_Moins_triggered()
 {
-    CurrentWidget().setZoom(CurrentWidget().getZoom()/1.5f);
+    CurrentWidget()->setZoom(CurrentWidget()->getZoom()/1.5f);
 }
 
 void MainWindow::on_actionZoom_fit_triggered()
 {
-    CurrentWidget().zoomFit();
+    CurrentWidget()->zoomFit();
 }
 
 void MainWindow::zoomFactor(int aFactor)
 {
-    CurrentWidget().zoomFactor(aFactor);
+    CurrentWidget()->zoomFactor(aFactor);
 }
 
 void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
@@ -590,7 +571,7 @@ void MainWindow::on_actionSave_as_triggered()
 
 void MainWindow::on_actionSave_selection_triggered()
 {
-    _Engine->saveSelectInfos(CurrentWidget().getSelectInfos());
+    _Engine->saveSelectInfos(CurrentWidget()->getSelectInfos());
 }
 
 void MainWindow::closeAll()
@@ -599,12 +580,9 @@ void MainWindow::closeAll()
 
     for (uint aK=0; aK < NbWidgets(); ++aK)
     {
-        GLWidget &widget = getWidget(aK);
-
-        widget.reset();
-        widget.resetView();
-
-        widget.update();
+        GLWidget *widget = getWidget(aK);
+        widget->reset();
+        widget->resetView();
     }
 }
 
