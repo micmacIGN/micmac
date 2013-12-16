@@ -114,10 +114,16 @@ int GLWidget::renderLineText(MessageToDisplay messageTD, int x, int y, int sizeF
 
     m_font.setPointSize(sizeFont);
 
-    QRect rect = QFontMetrics(m_font).boundingRect(messageTD.message);
     renderText(x, y, messageTD.message,m_font);
 
-    return (rect.height()*5)/4;
+    return (QFontMetrics(m_font).boundingRect(messageTD.message).height()*5)/4;
+}
+
+std::list<MessageToDisplay>::iterator GLWidget::GetLastMessage()
+{
+    std::list<MessageToDisplay>::iterator it = --m_messagesToDisplay.end();
+
+    return it;
 }
 
 void GLWidget::paintGL()
@@ -192,8 +198,7 @@ void GLWidget::paintGL()
         {
             if (m_bDisplayMode2D)
             {
-                std::list<MessageToDisplay>::iterator it = --m_messagesToDisplay.end();
-                it->message = QString::number(m_params.m_zoom*100,'f',1) + "%";
+                GetLastMessage()->message = QString::number(m_params.m_zoom*100,'f',1) + "%";
 
                 float px = m_lastMoveImage.x();
                 float py = m_lastMoveImage.y();
@@ -201,7 +206,7 @@ void GLWidget::paintGL()
                 float h  = m_GLData->maskedImage._m_image->height();
 
                 if  ((px>=0.f)&&(py>=0.f)&&(px<w)&&(py<h))
-                    (--it)->message = QString::number(px,'f',1) + ", " + QString::number(h-py,'f',1) + " px";
+                    (--GetLastMessage())->message = QString::number(px,'f',1) + ", " + QString::number(h-py,'f',1) + " px";
             }
             else
                 computeFPS(m_messagesToDisplay.back());
