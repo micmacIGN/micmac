@@ -192,6 +192,7 @@ class cPolygon : public cObjectGL
 
         void    setClosed(bool aBool){ _bPolyIsClosed = aBool; }
         bool    isClosed(){ return _bPolyIsClosed;}
+        bool    isOpened(){ return !_bPolyIsClosed;}
 
         int     size(){ return _points.size(); }
 

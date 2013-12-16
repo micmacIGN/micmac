@@ -129,6 +129,22 @@ public:
     //! Point list for polygonal insertion
     cPolygon    m_dihedron;
 
+
+    // ==============================================================
+    // TODO a factoriser dans cpolygon
+    void        InsertPointPolygon();
+
+    // c'est quoi ce lastAction ??????
+    void        RemoveClosestPoint(QPointF pos, bool &lastAction);
+
+    void        AddPoint(QPointF pos);
+
+    void        FinalMovePoint(QPointF pos);
+
+    void        RefreshHelperPolygon(QPointF pos, bool insertMode, bool &lastAction);
+
+    // =================================================
+
     bool        isImgEmpty(){return maskedImage._m_image == NULL;}
 
     bool        isMaskEmpty(){ return maskedImage._m_mask == NULL;}
