@@ -50,7 +50,7 @@ public:
     //! Destructor
     ~GLWidget();
 
-    bool eventFilter(QObject* object, QEvent* event);
+//    bool eventFilter(QObject* object, QEvent* event);
 
     //! Interaction mode (only in 3D)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
@@ -177,8 +177,8 @@ protected:
     void keyReleaseEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent* event);
     void mousePressEvent(QMouseEvent *event);
-
     void mouseReleaseEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
 
     //inherited from QWidget (drag & drop support)
     virtual void dragEnterEvent(QDragEnterEvent* event);

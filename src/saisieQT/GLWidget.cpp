@@ -41,8 +41,6 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
     _glViewport = new GLint[4];
 
     m_font.setPointSize(10);
-
-    installEventFilter(this);
     setMouseTracking(true);
 }
 
@@ -53,118 +51,6 @@ GLWidget::~GLWidget()
     delete [] _glViewport;
 
     //m_GLData is deleted by Engine
-}
-
-bool GLWidget::eventFilter(QObject* object,QEvent* event)
-{
-    if (hasDataLoaded())
-    {      
-        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
-
-        _parentSet->setCurrentWidgetIdx(_idx);
-
-        if(event->type() == QEvent::MouseMove)
-        {
-            QPointF pos    = mouseEvent->localPos();
-            QPoint  posInt = mouseEvent->pos();
-
-            if (m_bDisplayMode2D)
-            {
-                pos = WindowToImage(mouseEvent->localPos());
-                m_lastMoveImage = pos;
-            }
-
-            if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
-            {
-                int sz = m_GLData->m_polygon.size();
-
-                if(!m_GLData->m_polygon.isClosed())
-                {
-                    if (sz == 1)     // add current mouse position to polygon (dynamic display)
-                        m_GLData->m_polygon.add(pos);
-                    else if ((sz == 2) && (m_bLastActionIsRightClick))
-                        m_GLData->m_polygon.add(pos);
-                    else if (sz > 1) // replace last point by the current one
-                        m_GLData->m_polygon[sz-1] = pos;
-
-                    m_bLastActionIsRightClick = false;
-                }
-                else
-                {
-                    if(sz)           // move vertex or insert vertex (dynamic display) en court d'opération
-                    {
-                        QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
-                        if (keyEvent->modifiers().testFlag(Qt::ShiftModifier)) // insert
-                        {
-                            m_GLData->m_polygon.fillDihedron(pos, m_GLData->m_dihedron);
-                        }
-                        else // move
-                        {
-                            if (m_GLData->m_polygon.click() == 1)
-                                m_GLData->m_polygon.fillDihedron2(pos, m_GLData->m_dihedron);
-                            else
-                                m_GLData->m_polygon.findClosestPoint(pos);
-                        }
-                    }
-                }
-            }
-
-            if (m_bDisplayMode2D || (m_interactionMode == TRANSFORM_CAMERA))
-            {
-                QPoint dPWin = posInt - m_lastPosWindow;
-
-                if ( mouseEvent->buttons() == Qt::LeftButton ) // rotation autour de X et Y
-                {
-                    float d_angleX = m_params.m_speed * dPWin.y() / (float) _glViewport[3];
-                    float d_angleY = m_params.m_speed * dPWin.x() / (float) _glViewport[2];
-
-                    setRotateOx_m33( d_angleX, _g_rotationOx );
-                    setRotateOy_m33( d_angleY, _g_rotationOy );
-
-                    mult_m33( _g_rotationOx, _g_rotationMatrix, _g_tmpoMatrix );
-                    mult_m33( _g_rotationOy, _g_tmpoMatrix, _g_rotationMatrix );
-                }
-                else if ( mouseEvent->buttons() == Qt::MiddleButton )
-                {
-                    if (mouseEvent->modifiers() & Qt::ShiftModifier) // zoom
-                    {
-                        if (dPWin.y() > 0) m_params.m_zoom *= pow(2.f, ((float)dPWin.y()) *.05f);
-                        else if (dPWin.y() < 0) m_params.m_zoom /= pow(2.f, -((float)dPWin.y()) *.05f);
-                    }
-                    else if((_glViewport[2]!=0) || (_glViewport[3]!=0)) // translation
-                    {
-                        if (m_bDisplayMode2D)
-                        {
-                            QPointF dp = pos - m_lastPosImage;
-
-                            m_glPosition[0] += m_params.m_speed * dp.x()/_glViewport[2];
-                            m_glPosition[1] += m_params.m_speed * dp.y()/_glViewport[3];
-                        }
-                        else
-                        {
-                            m_params.m_translationMatrix[0] += m_params.m_speed*dPWin.x()*m_GLData->getScale()/_glViewport[2];
-                            m_params.m_translationMatrix[1] -= m_params.m_speed*dPWin.y()*m_GLData->getScale()/_glViewport[3];
-                        }
-                    }
-                }
-                else if (mouseEvent->buttons() == Qt::RightButton)// rotation autour de Z
-                {
-                    float d_angleZ =  m_params.m_speed * dPWin.x() / (float) _glViewport[2];
-
-                    setRotateOz_m33( d_angleZ, _g_rotationOz );
-
-                    mult_m33( _g_rotationOz, _g_rotationMatrix, _g_tmpoMatrix );
-
-                    for (int i = 0; i < 9; ++i) _g_rotationMatrix[i] = _g_tmpoMatrix[i];
-                }
-            }
-            m_lastPosWindow = mouseEvent->pos();
-            update();
-            return true;
-        }
-    }
-
-    return QObject::eventFilter(object,event);
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -881,6 +767,116 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
 
 
+}
+
+void GLWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    if (hasDataLoaded())
+    {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+
+        _parentSet->setCurrentWidgetIdx(_idx);
+
+        //if(event->type() == QEvent::MouseMove)
+        {
+            QPointF pos    = mouseEvent->localPos();
+            QPoint  posInt = mouseEvent->pos();
+
+            if (m_bDisplayMode2D)
+            {
+                pos = WindowToImage(mouseEvent->localPos());
+                m_lastMoveImage = pos;
+            }
+
+            if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
+            {
+                int sz = m_GLData->m_polygon.size();
+
+                if(!m_GLData->m_polygon.isClosed())
+                {
+                    if (sz == 1)     // add current mouse position to polygon (dynamic display)
+                        m_GLData->m_polygon.add(pos);
+                    else if ((sz == 2) && (m_bLastActionIsRightClick))
+                        m_GLData->m_polygon.add(pos);
+                    else if (sz > 1) // replace last point by the current one
+                        m_GLData->m_polygon[sz-1] = pos;
+
+                    m_bLastActionIsRightClick = false;
+                }
+                else
+                {
+                    if(sz)           // move vertex or insert vertex (dynamic display) en court d'opération
+                    {
+                        //QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+                        if (mouseEvent->modifiers() & Qt::ShiftModifier) // insert
+                        {
+                            m_GLData->m_polygon.fillDihedron(pos, m_GLData->m_dihedron);
+                        }
+                        else // move
+                        {
+                            if (m_GLData->m_polygon.click() == 1)
+                                m_GLData->m_polygon.fillDihedron2(pos, m_GLData->m_dihedron);
+                            else
+                                m_GLData->m_polygon.findClosestPoint(pos);
+                        }
+                    }
+                }
+            }
+
+            if (m_bDisplayMode2D || (m_interactionMode == TRANSFORM_CAMERA))
+            {
+                QPoint dPWin = posInt - m_lastPosWindow;
+
+                if ( mouseEvent->buttons() == Qt::LeftButton ) // rotation autour de X et Y
+                {
+                    float d_angleX = m_params.m_speed * dPWin.y() / (float) _glViewport[3];
+                    float d_angleY = m_params.m_speed * dPWin.x() / (float) _glViewport[2];
+
+                    setRotateOx_m33( d_angleX, _g_rotationOx );
+                    setRotateOy_m33( d_angleY, _g_rotationOy );
+
+                    mult_m33( _g_rotationOx, _g_rotationMatrix, _g_tmpoMatrix );
+                    mult_m33( _g_rotationOy, _g_tmpoMatrix, _g_rotationMatrix );
+                }
+                else if ( mouseEvent->buttons() == Qt::MiddleButton )
+                {
+                    if (mouseEvent->modifiers() & Qt::ShiftModifier) // zoom
+                    {
+                        if (dPWin.y() > 0) m_params.m_zoom *= pow(2.f, ((float)dPWin.y()) *.05f);
+                        else if (dPWin.y() < 0) m_params.m_zoom /= pow(2.f, -((float)dPWin.y()) *.05f);
+                    }
+                    else if((_glViewport[2]!=0) || (_glViewport[3]!=0)) // translation
+                    {
+                        if (m_bDisplayMode2D)
+                        {
+                            QPointF dp = pos - m_lastPosImage;
+
+                            m_glPosition[0] += m_params.m_speed * dp.x()/_glViewport[2];
+                            m_glPosition[1] += m_params.m_speed * dp.y()/_glViewport[3];
+                        }
+                        else
+                        {
+                            m_params.m_translationMatrix[0] += m_params.m_speed*dPWin.x()*m_GLData->getScale()/_glViewport[2];
+                            m_params.m_translationMatrix[1] -= m_params.m_speed*dPWin.y()*m_GLData->getScale()/_glViewport[3];
+                        }
+                    }
+                }
+                else if (mouseEvent->buttons() == Qt::RightButton)// rotation autour de Z
+                {
+                    float d_angleZ =  m_params.m_speed * dPWin.x() / (float) _glViewport[2];
+
+                    setRotateOz_m33( d_angleZ, _g_rotationOz );
+
+                    mult_m33( _g_rotationOz, _g_rotationMatrix, _g_tmpoMatrix );
+
+                    for (int i = 0; i < 9; ++i) _g_rotationMatrix[i] = _g_tmpoMatrix[i];
+                }
+            }
+            m_lastPosWindow = mouseEvent->pos();
+            update();
+            //return true;
+        }
+    }
 }
 
 void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
