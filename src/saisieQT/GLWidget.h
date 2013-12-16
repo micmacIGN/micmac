@@ -176,6 +176,9 @@ protected:
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent* event);
+    void mousePressEvent(QMouseEvent *event);
+
+    void mouseReleaseEvent(QMouseEvent *event);
 
     //inherited from QWidget (drag & drop support)
     virtual void dragEnterEvent(QDragEnterEvent* event);
@@ -253,7 +256,6 @@ private:
 
     float       _fps;
 
-    bool        _g_mouseLeftDown;
     GLfloat     _g_tmpoMatrix[9];
     GLfloat     _g_rotationOx[9];
     GLfloat     _g_rotationOy[9];

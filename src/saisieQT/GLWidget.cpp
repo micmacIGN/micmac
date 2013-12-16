@@ -21,8 +21,7 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
   , _frameCount(0)
   , _previousTime(0)
   , _currentTime(0)
-  , _fps(0.0f)
-  , _g_mouseLeftDown(false)
+  , _fps(0.0f)  
   , _idx(idx)
   , _parentSet(theSet)
 {
@@ -92,14 +91,14 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
                 }
                 else
                 {
-                    if(sz)           // move vertex or insert vertex (dynamic display)
+                    if(sz)           // move vertex or insert vertex (dynamic display) en court d'opération
                     {
                         QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
-                        if (keyEvent->modifiers().testFlag(Qt::ShiftModifier))
+                        if (keyEvent->modifiers().testFlag(Qt::ShiftModifier)) // insert
                         {
                             m_GLData->m_polygon.fillDihedron(pos, m_GLData->m_dihedron);
                         }
-                        else
+                        else // move
                         {
                             if (m_GLData->m_polygon.click() == 1)
                                 m_GLData->m_polygon.fillDihedron2(pos, m_GLData->m_dihedron);
@@ -114,7 +113,7 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
             {
                 QPoint dPWin = posInt - m_lastPosWindow;
 
-                if ( _g_mouseLeftDown ) // rotation autour de X et Y
+                if ( mouseEvent->buttons() == Qt::LeftButton ) // rotation autour de X et Y
                 {
                     float d_angleX = m_params.m_speed * dPWin.y() / (float) _glViewport[3];
                     float d_angleY = m_params.m_speed * dPWin.x() / (float) _glViewport[2];
@@ -161,105 +160,6 @@ bool GLWidget::eventFilter(QObject* object,QEvent* event)
             }
             m_lastPosWindow = mouseEvent->pos();
             update();
-            return true;
-        }
-        else if (event->type() == QEvent::MouseButtonPress)
-        {
-            m_lastPosWindow = mouseEvent->pos();
-
-            if (m_bDisplayMode2D)
-                m_lastPosImage = WindowToImage(mouseEvent->pos());
-            else
-                m_lastPosImage = m_lastPosWindow;
-
-            if ( mouseEvent->button() == Qt::LeftButton )
-            {
-                _g_mouseLeftDown = true;
-
-                if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
-                {
-                    if(!m_GLData->m_polygon.isClosed())        // add point to polygon
-                    {
-                        if (m_GLData->m_polygon.size() >= 1)
-                            m_GLData->m_polygon[m_GLData->m_polygon.size()-1] = m_lastPosImage;
-
-                        m_GLData->m_polygon.add(m_lastPosImage);
-                    }
-                    else // modify polygon (insert or move vertex)
-                        {
-                            if (mouseEvent->modifiers().testFlag(Qt::ShiftModifier))
-                            {
-                                if ((m_GLData->m_polygon.size() >=2) && m_GLData->m_dihedron.size() && m_GLData->m_polygon.isClosed())
-                                {
-                                    int idx = -1;
-
-                                    for (int i=0;i<m_GLData->m_polygon.size();++i)
-                                    {
-                                        if (m_GLData->m_polygon[i] == m_GLData->m_dihedron[0]) idx = i;
-                                    }
-
-                                    if (idx >=0) m_GLData->m_polygon.insert(idx+1, m_GLData->m_dihedron[1]);
-                                }
-
-                                m_GLData->m_dihedron.clear();
-                            }
-                            else if (m_GLData->m_polygon.idx() != -1)
-                                m_GLData->m_polygon.clicked();
-                     }
-                }
-            }
-            else if (mouseEvent->button() == Qt::RightButton)
-            {
-
-                int idx = m_GLData->m_polygon.idx();
-                if ((idx >=0)&&(idx<m_GLData->m_polygon.size())&&m_GLData->m_polygon.isClosed())
-                {
-                    m_GLData->m_polygon.remove(idx);   // remove closest point
-
-                    m_GLData->m_polygon.findClosestPoint(m_lastPosImage);
-
-                    if (m_GLData->m_polygon.size() < 3)
-                        m_GLData->m_polygon.setClosed(false);
-
-                    m_bLastActionIsRightClick = true;
-                }
-                else if (m_GLData->m_polygon.size() == 2)
-                {
-                    m_GLData->m_polygon.remove(1);
-                    m_GLData->m_polygon.setClosed(false);
-                }
-                else // close polygon
-                    m_GLData->m_polygon.close();
-            }
-            else if (mouseEvent->button() == Qt::MiddleButton)
-                m_lastClickZoom = m_lastPosWindow;
-
-
-            return true;
-        }
-        else if (event->type() == QEvent::MouseButtonRelease)
-        {
-            if ( mouseEvent->button() == Qt::LeftButton )
-            {
-                _g_mouseLeftDown = false;
-
-                int idx = m_GLData->m_polygon.idx();
-                if ((m_GLData->m_polygon.click() >=1) && (idx>=0) && m_GLData->m_dihedron.size())
-                {
-                    m_GLData->m_polygon[idx] = m_GLData->m_dihedron[1];
-
-                    m_GLData->m_dihedron.clear();
-                    m_GLData->m_polygon.resetClick();
-                }
-
-                if ((m_GLData->m_polygon.click() >=1) && m_GLData->m_polygon.isClosed())
-                {
-                    m_GLData->m_polygon.findClosestPoint(m_lastPosImage);
-                }
-            }
-
-            update();
-
             return true;
         }
     }
@@ -882,6 +782,105 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     m_lastClickZoom = event->pos();
 
     onWheelEvent(wheelDelta_deg);
+}
+
+void GLWidget::mousePressEvent(QMouseEvent *event)
+{
+    m_lastPosWindow = event->pos();
+
+    if (m_bDisplayMode2D)
+        m_lastPosImage = WindowToImage(event->pos());
+    else
+        m_lastPosImage = m_lastPosWindow;
+
+    if (hasDataLoaded() && event->button() == Qt::LeftButton )
+    {
+
+        if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
+        {
+            if(!m_GLData->m_polygon.isClosed())        // add point to polygon
+            {
+                if (m_GLData->m_polygon.size() >= 1)
+                    m_GLData->m_polygon[m_GLData->m_polygon.size()-1] = m_lastPosImage;
+
+                m_GLData->m_polygon.add(m_lastPosImage);
+            }
+            else // modify polygon (insert or move vertex) Validation de l'opération
+                {
+                    if (event->modifiers().testFlag(Qt::ShiftModifier)) // Insert
+                    {
+                        if ((m_GLData->m_polygon.size() >=2) && m_GLData->m_dihedron.size() && m_GLData->m_polygon.isClosed())
+                        {
+                            int idx = -1;
+
+                            for (int i=0;i<m_GLData->m_polygon.size();++i)
+                            {
+                                if (m_GLData->m_polygon[i] == m_GLData->m_dihedron[0]) idx = i;
+                            }
+
+                            if (idx >=0) m_GLData->m_polygon.insert(idx+1, m_GLData->m_dihedron[1]);
+                        }
+
+                        m_GLData->m_dihedron.clear();
+                    } // move
+                    else if (m_GLData->m_polygon.idx() != -1)
+                        m_GLData->m_polygon.clicked();
+             }
+        }
+    }
+    else if (event->button() == Qt::RightButton)
+    {
+
+        int idx = m_GLData->m_polygon.idx();
+        if ((idx >=0)&&(idx<m_GLData->m_polygon.size())&&m_GLData->m_polygon.isClosed())
+        {
+            m_GLData->m_polygon.remove(idx);   // remove closest point
+
+            m_GLData->m_polygon.findClosestPoint(m_lastPosImage);
+
+            if (m_GLData->m_polygon.size() < 3)
+                m_GLData->m_polygon.setClosed(false);
+
+            m_bLastActionIsRightClick = true;
+        }
+        else if (m_GLData->m_polygon.size() == 2)
+        {
+            m_GLData->m_polygon.remove(1);
+            m_GLData->m_polygon.setClosed(false);
+        }
+        else // close polygon
+            m_GLData->m_polygon.close();
+    }
+    else if (event->button() == Qt::MiddleButton)
+        m_lastClickZoom = m_lastPosWindow;
+
+}
+
+void GLWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    if ( hasDataLoaded() && event->button() == Qt::LeftButton )
+    {
+
+        int idx = m_GLData->m_polygon.idx(); // index du point selectionné
+        if ((m_GLData->m_polygon.click() >=1) && (idx>=0) && m_GLData->m_dihedron.size()) //  fin de deplacement point
+        {
+            m_GLData->m_polygon[idx] = m_GLData->m_dihedron[1];
+
+            m_GLData->m_dihedron.clear();
+            m_GLData->m_polygon.resetClick();
+        }
+
+        // TODO refactoriser
+        if ((m_GLData->m_polygon.click() >=1) && m_GLData->m_polygon.isClosed()) // recherche de points le plus proche
+        {
+            m_GLData->m_polygon.findClosestPoint(m_lastPosImage);
+        }
+
+        update();
+    }
+
+
+
 }
 
 void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
