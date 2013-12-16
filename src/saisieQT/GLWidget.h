@@ -89,8 +89,6 @@ public:
     virtual void displayNewMessage(const QString& message,
                                    MessagePosition pos = SCREEN_CENTER_MESSAGE);
 
-    void updateAfterSetData(bool doZoom = true);
-
     //! States if data (cloud, camera or image) is loaded
     bool hasDataLoaded();
 
@@ -131,10 +129,8 @@ public:
     //! Display help messages for move mode
     void displayMoveMessages();
 
-    //! Select points with polyline
-    void Select(int mode);
 
-    void Select(int mode, bool saveInfos);
+    void Select(int mode, bool saveInfos = true);
 
     //! Delete current polyline
     void clearPolyline();
@@ -161,7 +157,7 @@ public:
 
     ViewportParameters* getParams(){return &m_params;}
 
-    void setGLData(cGLData* aData);
+    void setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
     cGLData* getGLData(){return m_GLData;}
 
     void setBackgroundColors(QColor const &col0, QColor const &col1);

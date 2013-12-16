@@ -202,33 +202,17 @@ void MainWindow::addFiles(const QStringList& filenames)
 
             _Engine->loadImages(filenames);
 
-            //try to load images
-            /*QFuture<void> future = QtConcurrent::run(m_Engine, &cEngine::loadImages, filenames);
-
-            this->m_FutureWatcher.setFuture(future);
-            this->m_ProgressDialog->setWindowModality(Qt::WindowModal);
-            this->m_ProgressDialog->exec();
-
-            future.waitForFinished();*/
-
             _Engine->setFilenamesOut();
 
             for (int aK=0; aK<_Engine->getData()->getNbImages();++aK)
                 _Engine->applyGammaToImage(aK);
         }
 
-        _Engine->setGLData();
+        _Engine->AllocAndSetGLData();
         for (uint aK = 0; aK < NbWidgets();++aK)
-        {
-            GLWidget *widget = getWidget(aK);
-            widget->setGLData(_Engine->getGLData(aK));
-            widget->updateAfterSetData();
-            widget->ConstructListMessages(_ui->actionShow_messages->isChecked());
-        }
+            getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages);
 
         for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
-
-
     }
 
     this->setWindowState(Qt::WindowActive); // ????
@@ -431,11 +415,9 @@ void MainWindow::on_actionRemove_triggered()
 void MainWindow::on_actionUndo_triggered()
 {   
 
-    if (_bMode2D)
-    {
-        CurrentWidget()->setGLData(_Engine->getGLData(CurrentWidgetIdx()));
-        CurrentWidget()->updateAfterSetData(false);
-    }
+    // WHY????
+    if (_bMode2D)    
+        CurrentWidget()->setGLData(_Engine->getGLData(CurrentWidgetIdx()),_ui->actionShow_messages,false);
 
     CurrentWidget()->undo();
 }

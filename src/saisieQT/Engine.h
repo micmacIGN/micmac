@@ -230,7 +230,7 @@ public:
     cData*  getData()  {return _Data;}
 
     //!looks for data and creates GLobjects
-    void    setGLData();
+    void    AllocAndSetGLData();
 
     //!sends GLObjects to GLWidget
     cGLData* getGLData(int WidgetIndex);

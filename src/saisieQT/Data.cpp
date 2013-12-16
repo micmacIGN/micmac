@@ -78,6 +78,15 @@ void cData::clearMasks()
     reset();
 }
 
+void cData::clearAll()
+{
+    clearClouds();
+    clearCameras();
+    clearImages();
+    clearMasks();
+    reset();
+}
+
 void cData::reset()
 {
     m_min.x = m_min.y = m_min.z =  FLT_MAX;

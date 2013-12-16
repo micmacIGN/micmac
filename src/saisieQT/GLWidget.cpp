@@ -97,9 +97,44 @@ void GLWidget::computeFPS(MessageToDisplay &dynMess)
     }
 }
 
-void GLWidget::setGLData(cGLData * aData)
+void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 {
     m_GLData = aData;
+
+    if (m_GLData != NULL)
+    {
+        clearPolyline();
+
+        if (m_GLData->is3D())
+        {
+            m_bDisplayMode2D = false;
+
+            if (doZoom) setZoom(m_GLData->getScale());
+
+            resetTranslationMatrix();
+        }
+
+        if (!m_GLData->isImgEmpty())
+        {
+            m_bDisplayMode2D = true;
+
+            if (doZoom) zoomFit();
+
+            //position de l'image dans la vue gl
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+
+            glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
+
+            m_bFirstAction = m_GLData->maskedImage._m_newMask;
+        }
+
+        glGetIntegerv (GL_VIEWPORT, _glViewport);
+
+        ConstructListMessages(showMessage);
+
+        update();
+    }
 }
 
 void GLWidget::setBackgroundColors(const QColor &col0, const QColor &col1)
@@ -304,42 +339,6 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
     {
         m_GLData->m_dihedron.clear();
         m_GLData->m_polygon.resetClick();
-    }
-}
-
-void GLWidget::updateAfterSetData(bool doZoom)
-{
-    if (m_GLData != NULL)
-    {
-        clearPolyline();
-
-        if (m_GLData->is3D())
-        {
-            m_bDisplayMode2D = false;
-
-            if (doZoom) setZoom(m_GLData->getScale());
-
-            resetTranslationMatrix();
-        }
-
-        if (!m_GLData->isImgEmpty())
-        {
-            m_bDisplayMode2D = true;
-
-            if (doZoom) zoomFit();
-
-            //position de l'image dans la vue gl
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-
-            glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
-
-            m_bFirstAction = m_GLData->maskedImage._m_newMask;
-        }
-
-        glGetIntegerv (GL_VIEWPORT, _glViewport);
-
-        update();
     }
 }
 
@@ -859,11 +858,6 @@ QPointF GLWidget::ImageToWindow(QPointF const &im)
 {
     return QPointF (im.x()*m_params.m_zoom + .5f*_glViewport[2]*(1.f + _projmatrix[12]),
             - 1.f - im.y()*m_params.m_zoom + .5f*_glViewport[3]*(1.f - _projmatrix[13]));
-}
-
-void GLWidget::Select(int mode)
-{
-    Select(mode, true);
 }
 
 void GLWidget::Select(int mode, bool saveInfos)
