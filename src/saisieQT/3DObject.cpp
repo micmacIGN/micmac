@@ -955,6 +955,14 @@ void cImageGL::ImageToTexture(QImage *pImg)
     glDisable(GL_TEXTURE_2D);
 }
 
+cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> &qMaskedImage)
+{
+    _m_mask     = new cImageGL();
+    _m_image    = new cImageGL();
+    _m_newMask  = qMaskedImage._m_newMask;
+    _m_mask->PrepareTexture(qMaskedImage._m_mask);
+    _m_image->PrepareTexture(qMaskedImage._m_image);
+}
 
 void cMaskedImageGL::draw()
 {

@@ -11,6 +11,8 @@
 
 #include "GL/glu.h"
 
+#define QMaskedImage cMaskedImage<QImage>
+
 class cObject
 {
     public:
@@ -294,24 +296,37 @@ private:
 
 };
 
-class cMaskedImageGL : public cObjectGL
+template<class T>
+class cMaskedImage
 {
 
 public:
 
-    cMaskedImageGL():
+    cMaskedImage():
         _m_image(NULL),
         _m_mask(NULL),
         _m_newMask(true)
     {}
 
-    void draw();
-    cImageGL    *_m_image;
-    cImageGL    *_m_mask;
+    T           *_m_image;
+    T           *_m_mask;
 
     bool        _m_newMask;
 
-//private:
+};
+
+
+class cMaskedImageGL : public cMaskedImage<cImageGL>, public cObjectGL
+{
+
+public:
+
+    cMaskedImageGL(){}
+
+    cMaskedImageGL(QMaskedImage &qMaskedImage);
+
+    void draw();
+
 };
 
 #endif //__3DObject__
