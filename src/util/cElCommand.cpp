@@ -19,6 +19,8 @@
 
 #include <vector>
 
+#define __DEBUG_C_EL_COMMAND
+
 using namespace std;
 
 const char   cElPath::sm_unix_separator    = '/';
@@ -41,11 +43,31 @@ cElPath getCurrentDirectory()
 // cElPath
 //-------------------------------------------
 
+cElPath::cElPath( const cElPath &i_path1, const cElPath &i_path2 )
+{
+   append( i_path1 );
+   append( i_path2 );
+}
+   
 void cElPath::append( const cElPathToken &i_token )
 {
    if ( i_token.str()=="." ) return;
    if ( m_tokens.size()>0 && i_token.str()==".." ){ m_tokens.pop_back(); return; }
    m_tokens.push_back( i_token );
+}
+   
+void cElPath::append( const cElPath &i_path )
+{
+   if ( i_path.isAbsolute() )
+   {
+      #ifdef __DEBUG_C_EL_COMMAND
+	 cerr << "ERROR: cElPath::append : appening absolute path [" << i_path.str_unix() << "] to a directory [" << str_unix() << "]" << endl;
+      #endif
+      return;
+   }
+   list<cElPathToken>::const_iterator itToken = i_path.m_tokens.begin();
+   while ( itToken!=i_path.m_tokens.end() )
+      append( *itToken++ );
 }
    
 cElPath::cElPath( const string &i_path )

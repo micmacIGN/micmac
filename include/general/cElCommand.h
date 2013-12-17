@@ -78,14 +78,16 @@ public:
    static const std::string sm_all_separators;
 
    cElPath( const std::string &i_path=std::string() );
+   cElPath( const cElPath &i_path1, const cElPath &i_path2 );
 
    void append( const cElPathToken &i_token );
+   void append( const cElPath &i_token );
 
    bool isInvalid() const;
    void trace( std::ostream &io_stream=std::cout ) const;
 
-
    inline bool isAbsolute() const;
+   inline bool isEmpty() const; // an empty path is the current directory
 
    int compare( const cElPath &i_b ) const;
    inline bool operator < ( const cElPath &i_b ) const;
@@ -112,6 +114,7 @@ public:
    std::string m_basename;
    
    inline cElFilename( const cElPath &i_path, const std::string i_basename );
+   inline cElFilename( const cElPath &i_path, const cElFilename &i_filename );
    cElFilename( const std::string i_fullname=std::string() ); // i_fullname = path+basename
    
    bool isInvalid() const;
