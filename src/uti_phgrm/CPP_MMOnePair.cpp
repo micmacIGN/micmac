@@ -86,6 +86,7 @@ class cMMOnePair
       Box2di           mBoxIm;
       bool             mPurge;
       std::string      mBascMTD;
+      bool             mRIE;
       std::string      mBascDEST;
       bool             mDoHom;
       int              mDegCorrEpip;
@@ -109,7 +110,8 @@ class cAppliMMOnePair : public cMMOnePair,
          void SymetriseMasqReentrant();
          void UseReentrant(bool First,int aStep,bool Last);
          void GenerateMTDEpip(bool MasterIs1);
-         void Bascule(bool MasterIs1);
+         void BasculeGround(bool MasterIs1);
+         void BasculeEpip(bool MasterIs1);
 
          cImaMM * mIm1;
          cImaMM * mIm2;
@@ -136,6 +138,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mDoMR         (true),
     mSigmaP       (1.5),
     mPurge        (true),
+    mRIE          (false),
     mBascDEST     ("Basculed-"),
     mDoHom        (false),
     mDegCorrEpip  (4),
@@ -161,6 +164,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mPurge,"Purge",true,"Purge directory, tuning, def=true")
                     << EAM(mMM1PInParal,"InParal",true,"Do it in paral, def=true")
                     << EAM(mBascMTD,"BascMTD",true,"Metadata of file to bascule (Def No Basc)")
+                    << EAM(mRIE,"RIE",true,",Inverse re-sampling from epipolar")
                     << EAM(mBascDEST,"BascMTD",true,"Res of Bascule (Def Basculed-)")
                     << EAM(mDoHom,"DoHom",true,"Do Hom in epolar (Def= false)")
                     << EAM(mDegCorrEpip,"DegCE",true,"Degree of epipolar correction when Qual Orient is not high (def=4)")
@@ -317,15 +321,37 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
         }
     }
 
+    if (mRIE)
+    {
+       BasculeEpip(true);
+       BasculeEpip(false);
+    }
+
 
     if (EAMIsInit(&mBascMTD))
     {
-          Bascule(true);
-          Bascule(false);
+       BasculeGround(true);
+       BasculeGround(false);
     }
 }
 
-void cAppliMMOnePair::Bascule(bool MasterIs1)
+void cAppliMMOnePair::BasculeEpip(bool MasterIs1)
+{
+    std::string aNamInitA =  (MasterIs1 ? mNameIm1Init : mNameIm2Init);
+    std::string aNamInitB =  (MasterIs1 ? mNameIm2Init : mNameIm1Init);
+
+    std::string aCom =   MMBinFile(MM3DStr) + " TestLib RIE "
+                                            + aBlk + aNamInitA
+                                            + aBlk + aNamInitB
+                                            + aBlk + mNameOriInit
+                                            + aBlk + " Dir=" + mDir
+                       ;
+//  mm3d TestLib RIE MVxxxx_MAP_6937.NEF MVxxxx_MAP_6938.NEF Basc
+
+    System(aCom);
+}
+
+void cAppliMMOnePair::BasculeGround(bool MasterIs1)
 {
     std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
     std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
@@ -565,7 +591,7 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
               ;
      }
 
-     bool AddPly = (!ForMTD) && ((aStepF-1)== mStepEnd)  && (mDoPly) && (MasterIs1);
+     bool AddPly = (!ForMTD) && ((aStepF-1)== mStepEnd)  && (mDoPly); //  && (MasterIs1);
      if (AddPly)
      {
           aCom = aCom + " +DoPly=true " + " +ScalePly=" + ToString(mScalePly) +  " ";
