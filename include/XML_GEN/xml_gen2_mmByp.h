@@ -82,6 +82,8 @@ class cAppliWithSetImage
       void operator()(cImaMM*,cImaMM*,bool);   // Delaunay call back
    protected :
       cAppliWithSetImage(int argc,char ** argv,int aFlag);
+
+      void FilterImageIsolated();
       void Develop(bool EnGray,bool En16B);
 
       static const int  FlagDev8BGray   = 1;
