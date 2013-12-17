@@ -101,6 +101,7 @@ public:
    
    void toAbsolute( const cElPath &i_relativeTo=getCurrentDirectory() );
    bool exists() const;
+   bool create() const;
 };
 
 //-------------------------------------------
@@ -132,6 +133,7 @@ public:
    inline std::string str_windows() const;
    
    bool exists() const;
+   bool remove() const;
 };
 
 //-------------------------------------------

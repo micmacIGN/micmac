@@ -42,6 +42,7 @@ public:
 	 void dump( std::ostream &io_ostream=std::cout, const std::string &i_prefix=string() ) const;
 	 bool copyToDirectory( const cElFilename &i_packname, const cElPath &i_directory ) const;
 	 bool compare( const Item &i_b ) const;
+	 bool applyToDirectory( const cElFilename &i_packname, const cElPath &i_path ) const;
       };
       
       list<Item> m_items;
@@ -53,6 +54,7 @@ public:
       void reset_dates();
       Item & add( const Item &i_item );
       void stateDirectory( const cElPath &i_path );
+      bool applyToDirectory( const cElFilename &i_packname, const cElPath &i_path ) const;
       void difference( const TracePack::Registry &i_a, const TracePack::Registry &i_b );
       void apply( const TracePack::Registry &i_actions );
       inline size_t size() const;
@@ -89,6 +91,7 @@ public:
    inline unsigned int nbStates() const;
    void getState( unsigned int i_iState, Registry &o_state ) const;
    void addState();
+   void setState( unsigned int i_iState );
    void dump( std::ostream &io_ostream=std::cout, const std::string &i_prefix=string() ) const;
    bool compare( const TracePack &i_b ) const;
    

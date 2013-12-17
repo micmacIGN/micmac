@@ -10,6 +10,8 @@
    #endif
 #endif
 
+#include "StdAfx.h"
+
 #if (ELISE_windows)
    #include <Windows.h>
 #elif (ELISE_POSIX)
@@ -45,7 +47,7 @@ cElPath getCurrentDirectory()
 
 cElPath::cElPath( const cElPath &i_path1, const cElPath &i_path2 )
 {
-   append( i_path1 );
+   *this = i_path1;
    append( i_path2 );
 }
    
@@ -147,11 +149,12 @@ void cElPath::toAbsolute( const cElPath &i_relativeTo )
 
 bool cElPath::isInvalid() const { return false; }
 
-bool cElPath::exists() const
+bool cElPath::exists() const { return ELISE_fp::IsDirectory( str_unix().c_str() ); }
+
+bool cElPath::create() const
 {
-   struct stat status;
-   return ( stat( str_unix().c_str(), &status )==0 &&
-	    S_ISDIR( status.st_mode ) );
+   ELISE_fp::MkDirRec( str_unix() );
+   return exists();
 }
 
 //-------------------------------------------
@@ -187,9 +190,11 @@ int cElFilename::compare( const cElFilename &i_b ) const
    return m_basename.compare( i_b.m_basename );
 }
 
-bool cElFilename::exists() const
+bool cElFilename::exists() const { return ELISE_fp::exist_file( str_unix().c_str() ); }
+
+bool cElFilename::remove() const
 {
-   struct stat status;
-   return ( stat( str_unix().c_str(), &status )==0 &&
-	    S_ISREG( status.st_mode ) );
+   ELISE_fp::RmFile( str_unix() );
+   return !exists();
 }
+   
