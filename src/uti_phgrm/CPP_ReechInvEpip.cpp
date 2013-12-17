@@ -88,6 +88,7 @@ int ReechInvEpip_main(int argc,char ** argv)
     std::string aDirOut = aDir+ "MTD-Image-" + aName1 + "/";
 
     std::string aNameIn       =  aDirIn  + "NuageImProf_Chantier-Ori_Etape_Last.xml";
+std::cout << "NAME IN= " << aNameIn << "\n";
     std::string aNameGeomOut  =  aDirOut + "NuageImProf_LeChantier_Etape_1.xml";
     std::string aNameOut = aDirOut+"Nuage-"+aName2 +".xml";
     std::string aComBase =  MMBinFile(MM3DStr) +   " TestLib " + MakeStrFromArgcARgv(argc,argv);
@@ -100,8 +101,21 @@ int ReechInvEpip_main(int argc,char ** argv)
     std::string aNameDistOut  = aDirOut  + "Dist-"+aName2 +".tif";
     std::string aNameDepthOut = aDirOut  + "Depth-"+aName2 +".tif";
     std::string aNameMaskOut  = aDirOut  + "Mask-"+aName2 +".tif";
+    std::string aNameARIn   = aDirIn  + "Score-AR.tif";
+    std::string aNameAROut  = aDirOut + "Score-AR-"+aName2 +".tif";
+
 
     bool isModified;
+
+    Tiff_Im  aTifAROut = Tiff_Im::CreateIfNeeded(
+                            isModified,
+                            aNameAROut,
+                            aSzOut,
+                            GenIm::u_int1,
+                            Tiff_Im::No_Compr,
+                            Tiff_Im::BlackIsZero
+                      );
+
     Tiff_Im  aTifDistOut = Tiff_Im::CreateIfNeeded(
                             isModified,
                             aNameDistOut,
@@ -127,9 +141,6 @@ int ReechInvEpip_main(int argc,char ** argv)
                             Tiff_Im::BlackIsZero
                       );
 
-
-Pt2di aPBUG(2655,224);
-// 346.577,397.082
 
     if (CalleByP)
     {
@@ -177,6 +188,17 @@ Pt2di aPBUG(2655,224);
          TIm2D<U_INT1,INT> aTDistIn(aImDist_In);
          TIm2D<U_INT1,INT> aTDistOut(aImDist_Out);
          
+         Im2D_U_INT1 aImAR_Out(aSzOut.x,aSzOut.y,0);
+         Tiff_Im aTifARIn = Tiff_Im::BasicConvStd(aNameARIn);
+         Im2D_U_INT1 aImAR_In(aSzIn.x,aSzIn.y,255);
+         ELISE_COPY
+         (
+               aImAR_In.all_pts(),
+               trans(aTifARIn.in(),aBoxIn._p0),
+               aImAR_In.out()
+         );
+         TIm2D<U_INT1,INT> aTARIn(aImAR_In);
+         TIm2D<U_INT1,INT> aTAROut(aImAR_Out);
 
 
          Pt2di aPOut;
@@ -187,16 +209,13 @@ Pt2di aPBUG(2655,224);
                    Pt3dr aP3 = aNOut->PtOfIndex(aPOut);
                    Pt2dr aPIn = aNIn->Terrain2Index(aP3);
                    bool Ok = aNIn->IndexHasContenuForInterpol(aPIn);
-if (aPOut==aPBUG)
-{
-    std::cout <<  "OOKKKKKKK   " << Ok << " " << aPOut << " " << aPIn << "\n";
-}
                    if (Ok)
                    {
                        aP3 = aNIn->PtOfIndexInterpol(aPIn);
-                       aP3 = aNIn->Euclid2ProfAndIndex(aP3);
-                       aNOut->SetProfOfIndex(aPOut,aP3.z);
+                       Pt3dr aQ3 = aNOut->Euclid2ProfAndIndex(aP3);
+                       aNOut->SetProfOfIndex(aPOut,aQ3.z);
                        aTDistOut.oset(aPOut,aTDistIn.getr(aPIn));
+                       aTAROut.oset(aPOut,aTARIn.getr(aPIn));
                    }
                    else
                    {
@@ -230,6 +249,12 @@ if (aPOut==aPBUG)
              aTifDistOut.out()
          );
 
+         ELISE_COPY
+         (
+             rectangle(aBoxOut._p0,aBoxOut._p1),
+             trans(aImAR_Out.in(),-aBoxOut._p0),
+             aTifAROut.out()
+         );
     }
     else
     {
