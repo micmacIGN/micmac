@@ -17,15 +17,6 @@ cObject::cObject(Pt3dr pos, QColor col) :
     _color     = col;
 }
 
-/*cObject::cObject(Pt3d<double> pt, QColor col, float scale, float alpha, bool isVisible) :
-    _scale(scale),
-    _alpha(alpha),
-    _bVisible(isVisible)
-{
-    _position = pt;
-    _color = col;
-}*/
-
 cObject::~cObject(){}
 
 cObject& cObject::operator =(const cObject& aB)
@@ -303,7 +294,7 @@ void cAxis::draw()
 }
 
 cBBox::cBBox(Pt3dr pt, float scale, Pt3dr min, Pt3dr max):
-     _lineWidth(1.f)
+    _lineWidth(1.f)
 {
     _position = pt;
     _scale = scale;
@@ -430,37 +421,37 @@ void cCam::draw()
         Pt3dr P4 = _Cam->ImEtProf2Terrain(Pt2dr(sz.x,sz.y),aZ);
 
         glBegin(GL_LINES);
-            //perspective cone
-            glColor3f(1.f,1.f,1.f);
-            glVertex3d(C.x, C.y, C.z);
-            glVertex3d(P1.x, P1.y, P1.z);
+        //perspective cone
+        glColor3f(1.f,1.f,1.f);
+        glVertex3d(C.x, C.y, C.z);
+        glVertex3d(P1.x, P1.y, P1.z);
 
-            glVertex3d(C.x, C.y, C.z);
-            glVertex3d(P2.x, P2.y, P2.z);
+        glVertex3d(C.x, C.y, C.z);
+        glVertex3d(P2.x, P2.y, P2.z);
 
-            glVertex3d(C.x, C.y, C.z);
-            glVertex3d(P3.x, P3.y, P3.z);
+        glVertex3d(C.x, C.y, C.z);
+        glVertex3d(P3.x, P3.y, P3.z);
 
-            glVertex3d(C.x, C.y, C.z);
-            glVertex3d(P4.x, P4.y, P4.z);
+        glVertex3d(C.x, C.y, C.z);
+        glVertex3d(P4.x, P4.y, P4.z);
 
-            //Image
-            glColor3f(_color.redF(),_color.greenF(),_color.blueF());
-            glVertex3d(P1.x, P1.y, P1.z);
-            glVertex3d(P2.x, P2.y, P2.z);
+        //Image
+        glColor3f(_color.redF(),_color.greenF(),_color.blueF());
+        glVertex3d(P1.x, P1.y, P1.z);
+        glVertex3d(P2.x, P2.y, P2.z);
 
-            glVertex3d(P4.x, P4.y, P4.z);
-            glVertex3d(P2.x, P2.y, P2.z);
+        glVertex3d(P4.x, P4.y, P4.z);
+        glVertex3d(P2.x, P2.y, P2.z);
 
-            glVertex3d(P3.x, P3.y, P3.z);
-            glVertex3d(P1.x, P1.y, P1.z);
+        glVertex3d(P3.x, P3.y, P3.z);
+        glVertex3d(P1.x, P1.y, P1.z);
 
-            glVertex3d(P4.x, P4.y, P4.z);
-            glVertex3d(P3.x, P3.y, P3.z);
+        glVertex3d(P4.x, P4.y, P4.z);
+        glVertex3d(P3.x, P3.y, P3.z);
         glEnd();
 
         glBegin(GL_POINTS);
-            glVertex3d(C.x, C.y, C.z);
+        glVertex3d(C.x, C.y, C.z);
         glEnd();
 
         glEndList();
@@ -473,28 +464,32 @@ void cCam::draw()
     }
 }
 
-cPolygon::cPolygon(float lineWidth, QColor color):
+cPolygon::cPolygon(float lineWidth, QColor lineColor, QColor pointColor, int style):
     _helper(new cPolygonHelper(lineWidth)),
     _lineWidth(lineWidth),
-    _lineColor(color),
+    _lineColor(lineColor),
     _idx(-1),
     _pointSize(6.f),
     _sqr_radius(2500.f),
     _bPolyIsClosed(false),
-    _click(0)
+    _click(0),
+    _style(style)
 {
-    setColor(Qt::red);
+    setColor(pointColor);
 }
 
-cPolygon::cPolygon(float lineWidth, QColor color, bool withHelper):
+cPolygon::cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style):
     _lineWidth(lineWidth),
-    _lineColor(color)
-{}
-
-cPolygon::cPolygon(const cPolygon& pol)
+    _lineColor(lineColor),
+    _idx(-1),
+    _pointSize(6.f),
+    _sqr_radius(2500.f),
+    _bPolyIsClosed(false),
+    _click(0),
+    _style(style)
 {
-    this->cObject::operator =(pol);
-    *this = pol;
+    if (!withHelper) _helper = NULL;
+    setColor(pointColor);
 }
 
 void cPolygon::draw()
@@ -503,11 +498,19 @@ void cPolygon::draw()
 
     glColor3f(_lineColor.redF(),_lineColor.greenF(),_lineColor.blueF());
 
+    if(_style == LINE_STIPPLE)
+    {
+        glLineStipple(2, 0xAAAA);
+        glEnable(GL_LINE_STIPPLE);
+    }
+
     //draw segments
     glBegin(_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
     for (int aK = 0;aK < _points.size(); ++aK)
         glVertex2f(_points[aK].x(), _points[aK].y());
     glEnd();
+
+    if(_style == LINE_STIPPLE) glDisable(GL_LINE_STIPPLE);
 
     glColor3f(_color.redF(),_color.greenF(),_color.blueF());
 
@@ -520,7 +523,7 @@ void cPolygon::draw()
         glColor3f(0.f,0.f,1.f);
         glDrawUnitCircle(2, _points[_idx].x(), _points[_idx].y());
 
-        glColor3f(1.f,0.f,0.f);
+        glColor3f(_color.redF(),_color.greenF(),_color.blueF());
         for (int aK = _idx+1;aK < _points.size(); ++aK)
             glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
     }
@@ -606,14 +609,11 @@ void cPolygon::insertPoint(int i, const QPointF &value)
 
 void cPolygon::insertPoint()
 {
-    cout << "coucou" << endl;
     if ((size() >=2) && _helper->size()>1 && _bPolyIsClosed)
     {
         int idx = -1;
         QPointF Pt1 = (*_helper)[0];
         QPointF Pt2 = (*_helper)[1];
-
-        cout << "cucu" << endl;
 
         for (int i=0;i<size();++i)
         {
@@ -622,8 +622,6 @@ void cPolygon::insertPoint()
 
         if (idx >=0) insertPoint(idx+1, Pt2);
     }
-
-    cout << "coco" << endl;
 
     _helper->clear();
 }
@@ -657,50 +655,11 @@ void cPolygon::findClosestPoint(QPointF const &pos)
     }
 }
 
-cPolygonHelper::cPolygonHelper(float lineWidth, QColor color):
-    cPolygon(lineWidth, color, false)
+cPolygonHelper::cPolygonHelper(float lineWidth, QColor lineColor, QColor pointColor):
+    cPolygon(lineWidth, lineColor, pointColor,false)
 {
 
 }
-
-#ifdef toto
-void cPolygonHelper::draw()
-{
-    cout << "youhou" << endl;
-    enableOptionLine();
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-
-    glLineStipple(2, 0xAAAA);
-    glEnable(GL_LINE_STIPPLE);
-/*
-    glEnable (GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
-*/
-   // glColor3f(0.f,0.f,1.f);
-
-    glLineWidth(_lineWidth);
-
-    glBegin(GL_LINE_STRIP);
-    for (int aK=0;aK < _points.size(); ++aK)
-    {
-        cout << "POINT" << endl;
-        glVertex2f(_points[aK].x(), _points[aK].y());
-    }
-    glEnd();
-
-    glDisable(GL_LINE_STIPPLE);
-
-    if (_points.size()>1)
-        glDrawUnitCircle(2, _points[1].x(), _points[1].y());
-
-    glPopMatrix();
-    disableOptionLine();
-
-    cout << "youhou2" << endl;
-}
-#endif //toto
 
 void cPolygon::refreshHelper(QPointF pos, bool insertMode)
 {
@@ -709,49 +668,42 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
     if(!isClosed())
     {
         if (nbVertex == 1)     // add current mouse position to polygon (dynamic display)
-           add(pos);
+            add(pos);
         else if (nbVertex > 1) // replace last point by the current one
-           _points[nbVertex-1] = pos;
+            _points[nbVertex-1] = pos;
 
     }
     else if(nbVertex)                       // move vertex or insert vertex (dynamic display) en court d'opération
     {
-
         if (insertMode )                    // INSERT POINT POLYGON
-        {
-            cout << "insert" <<endl;
-           _helper->fill(pos, _points);
-}
+
+            _helper->fill(pos, _points);
+
         else if (click() == 1)    // MOVE POINT POLYGON
-        {
-            cout << "move" << endl;
+
             _helper->fill2(pos, _idx, _points);
-        }
+
         else                                // SELECT CLOSEST POINT POLYGON
 
-           findClosestPoint(pos);
-
+            findClosestPoint(pos);
     }
 }
 
 
 void cPolygon::finalMovePoint(QPointF pos)
 {
-    /*int idx = m_polygon.idx(); // index du point selectionne
-    if ((m_polygon.click() >=1) && (idx>=0) && m_dihedron.size()) //  fin de deplacement point
+    //    int idx = m_polygon.idx(); // index du point selectionne
+    if ((click() >=1) && (_idx>=0) && _helper->size()) //  fin de deplacement point
     {
-        m_polygon[idx] = m_dihedron[1];
+        _points[_idx] = (*_helper)[1];
 
-        m_dihedron.clear();
-        m_polygon.resetClick();
+        _helper->clear();
+        resetClick();
     }
 
     // TODO refactoriser
-    if ((m_polygon.click() >=1) && m_polygon.isClosed()) // recherche de points le plus proche
-    {
-        m_polygon.findClosestPoint(pos);
-    }*/
-
+    if ((click() >=1) && _bPolyIsClosed) // recherche de points le plus proche
+        findClosestPoint(pos);
 }
 
 
@@ -775,17 +727,15 @@ float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)
     return sqrt(dx*dx + dy*dy);
 }
 
-void cPolygonHelper::fill(QPointF const &pos, QVector <QPointF> &polygon)
+void cPolygonHelper::fill(QPointF const &pos, QVector <QPointF> &polygon) // INSERT FILL
 {
     float dist, dist2;
     dist2 = FLT_MAX;
     int idx = -1;
-
-    polygon.push_back(polygon[0]);
-
-    for (int aK =0; aK < polygon.size()-1; ++aK)
+    int size= polygon.size();
+    for (int aK =0; aK < size; ++aK)
     {
-        dist = segmentDistToPoint(polygon[aK], polygon[aK+1], pos);
+        dist = segmentDistToPoint(polygon[aK], polygon[(aK + 1)%size], pos);
 
         if (dist < dist2)
         {
@@ -795,47 +745,28 @@ void cPolygonHelper::fill(QPointF const &pos, QVector <QPointF> &polygon)
     }
 
     if (idx != -1)
-    {
-        cout << "adding point to helper" << endl;
-       clear();
-       add(polygon[idx]);
-       add(pos);
-       add(polygon[idx+1]);
-    }
-
-    cout << "helper size : " << cPolygonHelper::_points.size() <<endl;
+        SetPoints(polygon[idx],pos,polygon[(idx+1)%size]);
 }
 
-void cPolygonHelper::fill2(QPointF const &pos, int idx, QVector<QPointF> &points)
+void cPolygonHelper::SetPoints(QPointF p1,QPointF p2,QPointF p3)
 {
-    //QVector<QPointF> &points = cPolygon::_points;
+    clear();
+    add(p1);
+    add(p2);
+    add(p3);
+}
+
+void cPolygonHelper::fill2(QPointF const &pos, int idx, QVector<QPointF> &points) // MOVE FILL
+{
     int sz  = points.size();
-    //int idx = cPolygon::_idx;
 
-    points.clear();
-
+    // TODO MODULO
     if ((idx > 0) && (idx < sz-1))
-    {
-        add(points[idx-1]);
-        add(pos);
-        add(points[idx+1]);
-    }
-    else
-    {
-        if (idx == 0)
-        {
-            add(points[sz-1]);
-            add(pos);
-            add(points[1]);
-        }
-
-        if (idx == sz-1)
-        {
-            add(points[sz-2]);
-            add(pos);
-            add(points[0]);
-        }
-    }
+        SetPoints(points[idx-1],pos,points[idx+1]);
+    else if (idx == 0)
+        SetPoints(points[sz-1],pos,points[1]);
+    else if (idx == sz-1)
+        SetPoints(points[sz-2],pos,points[0]);
 }
 
 bool cPolygon::isPointInsidePoly(const QPointF& P)
@@ -947,7 +878,7 @@ void cImageGL::PrepareTexture(QImage * pImg)
 void cImageGL::ImageToTexture(QImage *pImg)
 {
     glEnable(GL_TEXTURE_2D);
-    glBindTexture( GL_TEXTURE_2D, _texture );    
+    glBindTexture( GL_TEXTURE_2D, _texture );
     glTexImage2D( GL_TEXTURE_2D, 0, 4, pImg->width(), pImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pImg->bits());
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
@@ -955,7 +886,7 @@ void cImageGL::ImageToTexture(QImage *pImg)
     glDisable(GL_TEXTURE_2D);
 }
 
-cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> &qMaskedImage)
+cMaskedImageGL::cMaskedImageGL(QMaskedImage &qMaskedImage)
 {
     _m_mask     = new cImageGL();
     _m_image    = new cImageGL();

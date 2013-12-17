@@ -27,7 +27,7 @@ void cData::addCamera(CamStenope * aCam)
 }
 
 
-void cData::PushBackMaskedImage(cMaskedImage<QImage> maskedImage)
+void cData::PushBackMaskedImage(QMaskedImage maskedImage)
 {
     _MaskedImages.push_back(maskedImage);
 }
@@ -54,11 +54,7 @@ void cData::clearCameras()
 
 void cData::clearImages()
 {
-//    for (uint aK=0; aK < (uint)getNbCameras();++aK)
-//        delete _Images[aK];
-
     _MaskedImages.clear();
-
     reset();
 }
 

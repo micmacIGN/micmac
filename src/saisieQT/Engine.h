@@ -124,9 +124,9 @@ public:
     //! Point list for polygonal selection
     cPolygon    m_polygon;
 
-    bool        isImgEmpty(){return maskedImage._m_image == NULL;}
+    bool        isImgEmpty(){return glMaskedImage._m_image == NULL;}
 
-    bool        isMaskEmpty(){ return maskedImage._m_mask == NULL;}
+    bool        isMaskEmpty(){ return glMaskedImage._m_mask == NULL;}
 
     QImage*     getMask(){return pQMask;}
 
