@@ -463,7 +463,7 @@ void GLWidget::drawPolygon()
     if (m_bDisplayMode2D)
     {
         PolyImageToWindow(m_GLData->m_polygon).draw();
-       (PolyImageToWindow(m_GLData->m_polygon)).helper()->draw();
+        PolyImageToWindow(*(m_GLData->m_polygon.helper())).draw();
     }
     else if (m_GLData->is3D())
     {

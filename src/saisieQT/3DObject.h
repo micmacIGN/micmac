@@ -13,6 +13,12 @@
 
 #define QMaskedImage cMaskedImage<QImage>
 
+enum LINE_STYLE
+{
+    LINE_NOSTIPPLE,
+    LINE_STIPPLE
+};
+
 class cObject
 {
     public:
@@ -170,12 +176,9 @@ class cPolygon : public cObjectGL
 {
     public:
 
-        cPolygon(float lineWidth = 1.0f, QColor color = Qt::red);
-
-        cPolygon(const cPolygon&);
+        cPolygon(float lineWidth = 1.0f, QColor lineColor = Qt::green,  QColor pointColor = Qt::red,int style = LINE_NOSTIPPLE);
 
         void    draw();
-       // void    drawDihedron();
 
         void    close();
 
@@ -228,7 +231,7 @@ class cPolygon : public cObjectGL
 protected:
        QVector <QPointF>   _points;
        cPolygonHelper*     _helper;
-       cPolygon(float lineWidth, QColor color, bool withHelper=true);
+       cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
        float               _lineWidth;
        QColor              _lineColor;
        int                 _idx;
@@ -240,6 +243,8 @@ private:
        bool                _bPolyIsClosed;
 
        int                 _click;
+
+       int                 _style;
 };
 
 class cPolygonHelper : public cPolygon
@@ -247,14 +252,13 @@ class cPolygonHelper : public cPolygon
 
 public:
 
-    cPolygonHelper(float lineWidth, QColor color = Qt::blue);
-
- //   void    draw();
+    cPolygonHelper(float lineWidth, QColor lineColor = Qt::blue,  QColor pointColor = Qt::blue);
 
     void   fill(const QPointF &pos, QVector <QPointF> &polygon);
 
     void   fill2(const QPointF &pos, int idx, QVector <QPointF> &points);
 
+    void   SetPoints(QPointF p1, QPointF p2, QPointF p3);
 };
 
 class cImageGL : public cObjectGL
@@ -314,7 +318,6 @@ public:
     bool        _m_newMask;
 
 };
-
 
 class cMaskedImageGL : public cMaskedImage<cImageGL>, public cObjectGL
 {
