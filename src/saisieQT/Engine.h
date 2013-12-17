@@ -78,7 +78,7 @@ public:
 
     Cloud*      loadCloud(string i_ply_file , int *incre = NULL);
 
-    void        loadImage(QString aNameFile, QImage* &aImg, QImage* &aImgMask);
+    void        loadImage(QString aNameFile, QMaskedImage &maskedImg);
 
     void        setDir(QDir aDir){_Dir = aDir;}
     QDir        getDir(){return _Dir;}
@@ -109,7 +109,7 @@ class cGLData : cObjectGL
 public:
 
     cGLData();
-    cGLData(QImage* image, QImage *mask);
+    cGLData(QMaskedImage &qMaskedImage);
     cGLData(cData *data);
 
     ~cGLData();
@@ -118,8 +118,7 @@ public:
     bool        is3D(){return Clouds.size() || Cams.size();}
     bool        isDataLoaded(){return (!isImgEmpty()) || is3D();}
 
-
-    cMaskedImageGL maskedImage;
+    cMaskedImageGL glMaskedImage;
 
     QImage      *pQMask;
 
@@ -145,9 +144,9 @@ public:
 
     // =================================================
 
-    bool        isImgEmpty(){return maskedImage._m_image == NULL;}
+    bool        isImgEmpty(){return glMaskedImage._m_image == NULL;}
 
-    bool        isMaskEmpty(){ return maskedImage._m_mask == NULL;}
+    bool        isMaskEmpty(){ return glMaskedImage._m_mask == NULL;}
 
     QImage*     getMask(){return pQMask;}
 
@@ -213,7 +212,7 @@ public:
     void    loadImages(QStringList);
 
     //! Load image (and mask) file
-    void    loadImage(QString imgName);
+    void loadImage(QString imgName);
 
     void    unloadAll();
 
