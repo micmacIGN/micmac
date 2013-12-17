@@ -126,7 +126,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 
             glGetDoublev (GL_MODELVIEW_MATRIX, _mvmatrix);
 
-            m_bFirstAction = m_GLData->maskedImage._m_newMask;
+            m_bFirstAction = m_GLData->glMaskedImage._m_newMask;
         }
 
         glGetIntegerv (GL_VIEWPORT, _glViewport);
@@ -204,7 +204,7 @@ void GLWidget::paintGL()
 
             // CAMERA END ======================
 
-            m_GLData->maskedImage.draw();
+            m_GLData->glMaskedImage.draw();
 
             glPopMatrix();
         }
@@ -237,8 +237,8 @@ void GLWidget::paintGL()
 
                 float px = m_lastMoveImage.x();
                 float py = m_lastMoveImage.y();
-                float w  = m_GLData->maskedImage._m_image->width();
-                float h  = m_GLData->maskedImage._m_image->height();
+                float w  = m_GLData->glMaskedImage._m_image->width();
+                float h  = m_GLData->glMaskedImage._m_image->height();
 
                 if  ((px>=0.f)&&(py>=0.f)&&(px<w)&&(py<h))
                     (--GetLastMessage())->message = QString::number(px,'f',1) + ", " + QString::number(h-py,'f',1) + " px";
@@ -596,8 +596,8 @@ void GLWidget::zoomFit()
 {
     if (hasDataLoaded())
     {
-        float rw = (float)m_GLData->maskedImage._m_image->width()/ _glViewport[2];
-        float rh = (float)m_GLData->maskedImage._m_image->height()/_glViewport[3];
+        float rw = (float)m_GLData->glMaskedImage._m_image->width()/ _glViewport[2];
+        float rh = (float)m_GLData->glMaskedImage._m_image->height()/_glViewport[3];
 
         if(rw>rh)
             setZoom(1.f/rw); //orientation landscape
@@ -612,8 +612,8 @@ void GLWidget::zoomFit()
         glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
         glPopMatrix();
 
-        m_GLData->maskedImage._m_image->setDimensions(2.f*rh,2.f*rw);
-        m_GLData->maskedImage._m_mask->setDimensions(2.f*rh,2.f*rw);
+        m_GLData->glMaskedImage._m_image->setDimensions(2.f*rh,2.f*rw);
+        m_GLData->glMaskedImage._m_mask->setDimensions(2.f*rh,2.f*rw);
 
         m_glPosition[0] = 0.f;
         m_glPosition[1] = 0.f;
@@ -921,7 +921,7 @@ void GLWidget::Select(int mode, bool saveInfos)
             if(mode == INVERT)
                 m_GLData->getMask()->invertPixels(QImage::InvertRgb);
 
-            m_GLData->maskedImage._m_mask->ImageToTexture(m_GLData->getMask());
+            m_GLData->glMaskedImage._m_mask->ImageToTexture(m_GLData->getMask());
         }
         else
         {
