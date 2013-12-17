@@ -42,6 +42,17 @@ void TracePack::Registry::Item::dump( ostream &io_ostream, const string &i_prefi
 bool TracePack::Registry::Item::copyToDirectory( const cElFilename &i_packName, const cElPath &i_directory ) const
 {
    const cElFilename filename( i_directory, m_filename );
+   
+   if ( !filename.m_path.exists() && !filename.m_path.create() )
+   {
+      #ifdef __DEBUG_TRACE_PACK
+	 stringstream ss;
+	 ss << "TracePack::Registry::Item::copyToDirectory: cannot create directory [" << filename.m_path.str_unix() << ']' << endl;
+	 debug_error( ss.str() );
+      #endif
+      return false;
+   }
+   
    ofstream fOut( filename.str_unix().c_str(), ios::binary );
    ifstream fIn( i_packName.str_unix().c_str(), ios::binary );
    
@@ -85,6 +96,29 @@ bool TracePack::Registry::Item::compare( const TracePack::Registry::Item &i_b ) 
       return true;
    return false;
 }
+
+bool TracePack::Registry::Item::applyToDirectory( const cElFilename &i_packname, const cElPath &i_path ) const
+{
+   switch ( m_type )
+   {
+   case TD_Added:
+   case TD_Modified:
+      return copyToDirectory( i_packname, i_path );
+      break;
+   case TD_Removed:
+      return cElFilename( i_path, m_filename ).remove();
+      break;
+   case TD_State:
+      #ifdef __DEBUG_TRACE_PACK
+	 stringstream ss;
+	 ss << "TracePack::Registry::Item::applyToDirectory: cannot apply state item [" << m_filename.str_unix() << ']';
+	 debug_error( ss.str() );
+      #endif
+      break;
+   }
+   return false;
+}
+
 
 //--------------------------------------------
 // class TracePack::Registry
@@ -390,21 +424,6 @@ TracePack::Registry::Item * TracePack::Registry::getItem( const cElFilename &i_f
    return NULL;
 }
 
-#ifdef __DEBUG_TRACE_PACK
-   void TracePack::Registry::check_sorted() const
-   {
-      if ( m_items.size()<2 ) return;
-      list<Item>::const_iterator it1 = m_items.begin(),
-                                 it2 = it1;
-      it2++;
-      while ( it2!=m_items.end() )
-      {
-	 if ( (*it1++).m_filename.compare( (*it2++).m_filename )>=0 )
-	    debug_error( "TracePack::Registry::check_sorted: items are not corretly sorted or an item appears more than once" );
-      }
-   }
-#endif
-
 bool TracePack::Registry::compare( const TracePack::Registry &i_b ) const
 {
    unsigned int nbItems = m_items.size();
@@ -426,6 +445,29 @@ bool TracePack::Registry::compare( const TracePack::Registry &i_b ) const
    }
    return true;
 }
+	 
+bool TracePack::Registry::applyToDirectory( const cElFilename &i_filename, const cElPath &i_path ) const
+{
+   list<TracePack::Registry::Item>::const_iterator itItem = m_items.begin();
+   while ( itItem!=m_items.end() )
+      if ( !( *itItem++ ).applyToDirectory( i_filename, i_path ) ) return false;
+   return true;
+}
+
+#ifdef __DEBUG_TRACE_PACK
+   void TracePack::Registry::check_sorted() const
+   {
+      if ( m_items.size()<2 ) return;
+      list<Item>::const_iterator it1 = m_items.begin(),
+                                 it2 = it1;
+      it2++;
+      while ( it2!=m_items.end() )
+      {
+	 if ( (*it1++).m_filename.compare( (*it2++).m_filename )>=0 )
+	    debug_error( "TracePack::Registry::check_sorted: items are not corretly sorted or an item appears more than once" );
+      }
+   }
+#endif
 
 
 //--------------------------------------------
@@ -694,6 +736,34 @@ bool TracePack::compare( const TracePack &i_b ) const
       return true;
    }
    return false;
+}
+
+void TracePack::setState( unsigned int i_iState )
+{
+   #ifdef __DEBUG_TRACE_PACK
+      const unsigned int nbRegistries = nbStates();
+      if ( i_iState>=nbRegistries )
+      {
+	 stringstream ss;
+	 ss << "TracePack::setState: state index " << i_iState << " out of range (" << nbRegistries << " registries" << (nbRegistries>1?'s':'\0') << " in pack [" << m_filename.str_unix() << "])";
+	 debug_error( ss.str() );
+      }
+   #endif
+   #ifdef __DEBUG_TRACE_PACK
+      if ( !ELISE_fp::IsDirectory( m_anchor.str_unix() ) )
+      {
+	 stringstream ss;
+	 ss << "TracePack::setState: destination directory [" << m_anchor.str_unix() << "] does not exist";
+	 debug_error( ss.str() );
+      }
+   #endif
+   
+   Registry refReg, dirReg, dir_to_ref;
+   getState( i_iState, refReg );
+   dirReg.stateDirectory( m_anchor );
+   dir_to_ref.difference( dirReg, refReg );
+   dir_to_ref.dump();
+   dir_to_ref.applyToDirectory( m_filename, m_anchor );
 }
 
 

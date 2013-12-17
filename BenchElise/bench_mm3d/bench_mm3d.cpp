@@ -48,7 +48,7 @@ int snapshot_func( int argc, char **argv )
    const cElFilename packname( (string)(argv[0]) );
    TracePack pack( packname, anchor );
    
-   if ( ELISE_fp::exist_file( packname.str_unix() ) )
+   if ( packname.exists() )
    {
       if ( !pack.load() )
       {
@@ -187,7 +187,7 @@ int setstate_func( int argc, char **argv )
    if ( argc!=3 ){ cerr << "not enough args " << argc << " != " << 3 << endl; return EXIT_FAILURE; }
    
    const cElFilename packname( (string)(argv[0]) );
-   if ( !ELISE_fp::exist_file( packname.str_unix() ) )
+   if ( !packname.exists() )
    {
       cerr << "ERROR: pack [" << packname.str_unix() << "] does not exist" << endl;
       return EXIT_FAILURE;
@@ -202,29 +202,26 @@ int setstate_func( int argc, char **argv )
    const unsigned int iState = (unsigned int)iState_s;
    
    const cElPath anchor( argv[2] );
-   if ( !ELISE_fp::MkDirSvp( anchor.str_unix() ) )
+   if ( !anchor.exists() && !anchor.create() )
    {
       cerr << "ERROR: cannot create directory [" << anchor.str_unix() << "]" << endl;
       return EXIT_FAILURE;
    }
    
-   /*
    TracePack pack( packname, anchor );
-   const int iRegistry = atoi( argv[1] );
-   if ( iRegistry<0 )
+   if ( !pack.load() )
    {
-      cerr << "ERROR: invalid state index : " << iRegistry << endl;
+      cerr << "ERROR: loading a pack from file [" << packname.str_unix() << "] failed" << endl;
       return EXIT_FAILURE;
    }
-   
-   const cElFilename itemName( (string)(argv[2]) );
-   
-   if ( !pack.copyItemOnDisk( iRegistry, itemName ) )
+   const unsigned int nbStates = pack.nbStates();
+   if ( iState>=nbStates )
    {
-      cerr << "ERROR: unable to copy item [" << itemName.str_unix() << "] from [" << packname.str_unix() << "]:s" << iRegistry << " to directory [" << anchor.str_unix() << ']' << endl;
+      cerr << "ERROR: state index " << iState << " out of range (" << nbStates << " state" << (nbStates>1?'s':'\0') << " in pack [" << packname.str_unix() << "])" << endl;
       return EXIT_FAILURE;
    }
-   */
+   pack.setState( iState );
+   
    return EXIT_SUCCESS;
 }
 

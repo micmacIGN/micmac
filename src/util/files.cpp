@@ -275,7 +275,6 @@ void ELISE_fp::AssertIsDirectory(const std::string &  aName )
 	}
 }
 
-
 void ELISE_fp::RmFile(const std::string & aFile)
 {
 #if ELISE_windows
@@ -358,11 +357,12 @@ bool ELISE_fp::copy_file( const std::string i_src, const std::string i_dst, bool
 
 		if ( !src || !dst ) return false;
 
-		char buffer[1024];
+        const unsigned int buffer_size = 1000000;
+        vector<char> buffer(buffer_size);
 		while ( !src.eof() )
 		{
-			src.read( buffer, 1024 );
-			dst.write( buffer, src.gcount() );
+            src.read( buffer.data(), buffer_size );
+            dst.write( buffer.data(), src.gcount() );
 		}
 		return true;
 		#if (ELISE_POSIX)
