@@ -279,6 +279,22 @@ int  cAppliWithSetImage::DeZoomOfSize(double aSz) const
     return 1 << aL2;
 }
 
+void cAppliWithSetImage::FilterImageIsolated()
+{
+   std::vector<cImaMM *> aRes;
+   for (int aK=0 ; aK<int(mImages.size()) ; aK++)
+   {
+       cImaMM* anIm = mImages[aK];
+       int aNbIm = anIm->mVois.size();
+
+
+       if (aNbIm>0)
+          aRes.push_back(anIm);
+   }
+
+
+   mImages = aRes;
+}
 
 
 const std::string & cAppliWithSetImage::Dir() const
@@ -742,8 +758,12 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
   if (mAddMMImSec)
      AddCoupleMMImSec();
 
+
+  FilterImageIsolated();
+
   mNbStep = round_ni(log2(mZoom0/double(mZoomF))) + 3 ;
 }
+
 
 void cAppliMMByPair::DoCorrelAndBasculeEpip()
 {
