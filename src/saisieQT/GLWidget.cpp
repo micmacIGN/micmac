@@ -13,10 +13,10 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
   , m_font(font())
   , m_bDrawMessages(true)
   , m_interactionMode(TRANSFORM_CAMERA)
-  , m_bFirstAction(true)
-  , m_params(ViewportParameters())
+  , m_bFirstAction(true)  
   , m_GLData(NULL)
   , m_bDisplayMode2D(false)
+  , _params(ViewportParameters())
   , _frameCount(0)
   , _previousTime(0)
   , _currentTime(0)
@@ -181,7 +181,7 @@ void GLWidget::paintGL()
             glPushMatrix();
             glMultMatrixd(_projmatrix);
 
-            if(_projmatrix[0] != m_params.m_zoom)
+            if(_projmatrix[0] != _params.m_zoom)
             {
                 GLint recal;
                 GLdouble wx, wy, wz;
@@ -192,7 +192,7 @@ void GLWidget::paintGL()
                               _mvmatrix, _projmatrix, _glViewport, &wx, &wy, &wz);
 
                 glTranslatef(wx,wy,0);
-                glScalef(m_params.m_zoom/_projmatrix[0], m_params.m_zoom/_projmatrix[0], 1.f);
+                glScalef(_params.m_zoom/_projmatrix[0], _params.m_zoom/_projmatrix[0], 1.f);
                 glTranslatef(-wx,-wy,0);
             }
 
@@ -216,7 +216,7 @@ void GLWidget::paintGL()
 
             static GLfloat trans44[16], rot44[16], tmp[16];
             m33_to_m44( _g_rotationMatrix, rot44 );
-            setTranslate_m3(  m_params.m_translationMatrix, trans44 );
+            setTranslate_m3(  _params.m_translationMatrix, trans44 );
 
             mult( rot44, trans44, tmp );
             transpose( tmp, _g_glMatrix );
@@ -233,7 +233,7 @@ void GLWidget::paintGL()
         {
             if (m_bDisplayMode2D)
             {
-                GetLastMessage()->message = QString::number(m_params.m_zoom*100,'f',1) + "%";
+                GetLastMessage()->message = QString::number(_params.m_zoom*100,'f',1) + "%";
 
                 float px = m_lastMoveImage.x();
                 float py = m_lastMoveImage.y();
@@ -311,19 +311,19 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             if (m_bDisplayMode2D)
             {
                 m_lastClickZoom = m_lastPosWindow;
-                setZoom(m_params.m_zoom*1.5f);
+                setZoom(_params.m_zoom*1.5f);
             }
             else
-                m_params.ptSizeUp(true);
+                _params.ptSizeUp(true);
             break;
         case Qt::Key_Minus:
             if (m_bDisplayMode2D)
             {
                 m_lastClickZoom = m_lastPosWindow;
-                setZoom(m_params.m_zoom/1.5f);
+                setZoom(_params.m_zoom/1.5f);
             }
             else
-                m_params.ptSizeUp(false);
+                _params.ptSizeUp(false);
             break;
         default:
             event->ignore();
@@ -337,7 +337,7 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
 {
     if ((event->key() == Qt::Key_Shift) && hasDataLoaded())
     {
-        m_GLData->m_dihedron.clear();
+        m_GLData->m_polygon.helper()->clear();
         m_GLData->m_polygon.resetClick();
     }
 }
@@ -445,9 +445,7 @@ cPolygon GLWidget::PolyImageToWindow(cPolygon polygon)
     cPolygon poly = polygon;
     poly.clearPoints();
     for (int aK = 0;aK < polygon.size(); ++aK)
-    {
         poly.add(ImageToWindow(polygon[aK]));
-    }
 
     return poly;
 }
@@ -465,12 +463,12 @@ void GLWidget::drawPolygon()
     if (m_bDisplayMode2D)
     {
         PolyImageToWindow(m_GLData->m_polygon).draw();
-        PolyImageToWindow(m_GLData->m_dihedron).drawDihedron();
+       (PolyImageToWindow(m_GLData->m_polygon)).helper()->draw();
     }
     else if (m_GLData->is3D())
     {
         m_GLData->m_polygon.draw();
-        m_GLData->m_dihedron.drawDihedron();
+        m_GLData->m_polygon.helper()->draw();
     }
 }
 
@@ -479,7 +477,7 @@ void GLWidget::zoom()
 {
     if (m_GLData != NULL)
     {
-        GLdouble zoom = m_params.m_zoom;
+        GLdouble zoom = _params.m_zoom;
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
@@ -577,7 +575,7 @@ void GLWidget::onWheelEvent(float wheelDelta_deg)
     //convert degrees in zoom 'power'
     float zoomFactor = pow(1.1f,wheelDelta_deg *.05f);
 
-    setZoom(m_params.m_zoom*zoomFactor);
+    setZoom(_params.m_zoom*zoomFactor);
 }
 
 void GLWidget::setZoom(float value)
@@ -587,7 +585,7 @@ void GLWidget::setZoom(float value)
     else if (value > GL_MAX_ZOOM)
         value = GL_MAX_ZOOM;
 
-    m_params.m_zoom = value;
+    _params.m_zoom = value;
 
     update();
 }
@@ -607,7 +605,7 @@ void GLWidget::zoomFit()
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glPushMatrix();
-        glScalef(m_params.m_zoom, m_params.m_zoom, 1.f);
+        glScalef(_params.m_zoom, _params.m_zoom, 1.f);
         glTranslatef(-rw,-rh,0.f);
         glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
         glPopMatrix();
@@ -662,22 +660,24 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         {
             if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
             {
-                if(!m_GLData->m_polygon.isClosed())             // ADD POINT
+                cPolygon &polygon = m_GLData->m_polygon;
 
-                    m_GLData->AddPoint(m_lastPosImage);
+                if(!polygon.isClosed())             // ADD POINT
+
+                    polygon.addPoint(m_lastPosImage);
 
                 else if (event->modifiers() & Qt::ShiftModifier) // INSERT POINT
 
-                    m_GLData->InsertPointPolygon();
+                    polygon.insertPoint();
 
-                else if (m_GLData->m_polygon.idx() != -1)
+                else if (polygon.idx() != -1)
 
-                    m_GLData->m_polygon.clicked();
+                    polygon.clicked();
             }
         }
         else if (event->button() == Qt::RightButton)
 
-           m_GLData->RemoveClosestPoint(m_lastPosImage);
+            m_GLData->m_polygon.removeClosestPoint(m_lastPosImage);
 
         else if (event->button() == Qt::MiddleButton)
 
@@ -689,7 +689,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if ( hasDataLoaded() && event->button() == Qt::LeftButton )
     {
-        m_GLData->FinalMovePoint(m_lastPosImage);
+        m_GLData->m_polygon.finalMovePoint(m_lastPosImage);
 
         update();
     }
@@ -707,7 +707,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
 
-            m_GLData->RefreshHelperPolygon(pos,(event->modifiers() & Qt::ShiftModifier));
+            m_GLData->m_polygon.refreshHelper(pos,(event->modifiers() & Qt::ShiftModifier));
 
         if (m_interactionMode == TRANSFORM_CAMERA)
         {
@@ -715,8 +715,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
             if ( event->buttons() == Qt::LeftButton ) // rotation autour de X et Y
             {
-                float d_angleX = m_params.m_speed * dPWin.y() / (float) _glViewport[3];
-                float d_angleY = m_params.m_speed * dPWin.x() / (float) _glViewport[2];
+                float d_angleX = _params.m_speed * dPWin.y() / (float) _glViewport[3];
+                float d_angleY = _params.m_speed * dPWin.x() / (float) _glViewport[2];
 
                 setRotateOx_m33( d_angleX, _g_rotationOx );
                 setRotateOy_m33( d_angleY, _g_rotationOy );
@@ -728,8 +728,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             {
                 if (event->modifiers() & Qt::ShiftModifier)         // ZOOM VIEW
                 {
-                    if (dPWin.y() > 0) m_params.m_zoom *= pow(2.f, ((float)dPWin.y()) *.05f);
-                    else if (dPWin.y() < 0) m_params.m_zoom /= pow(2.f, -((float)dPWin.y()) *.05f);
+                    if (dPWin.y() > 0) _params.m_zoom *= pow(2.f, ((float)dPWin.y()) *.05f);
+                    else if (dPWin.y() < 0) _params.m_zoom /= pow(2.f, -((float)dPWin.y()) *.05f);
                 }
                 else if((_glViewport[2]!=0) || (_glViewport[3]!=0)) // TRANSLATION VIEW
                 {
@@ -737,19 +737,19 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                     {
                         QPointF dp = pos - m_lastPosImage;
 
-                        m_glPosition[0] += m_params.m_speed * dp.x()/_glViewport[2];
-                        m_glPosition[1] += m_params.m_speed * dp.y()/_glViewport[3];
+                        m_glPosition[0] += _params.m_speed * dp.x()/_glViewport[2];
+                        m_glPosition[1] += _params.m_speed * dp.y()/_glViewport[3];
                     }
                     else
                     {
-                        m_params.m_translationMatrix[0] += m_params.m_speed*dPWin.x()*m_GLData->getScale()/_glViewport[2];
-                        m_params.m_translationMatrix[1] -= m_params.m_speed*dPWin.y()*m_GLData->getScale()/_glViewport[3];
+                        _params.m_translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getScale()/_glViewport[2];
+                        _params.m_translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getScale()/_glViewport[3];
                     }
                 }
             }
             else if (event->buttons() == Qt::RightButton)           // rotation autour de Z
             {
-                float d_angleZ =  m_params.m_speed * dPWin.x() / (float) _glViewport[2];
+                float d_angleZ =  _params.m_speed * dPWin.x() / (float) _glViewport[2];
 
                 setRotateOz_m33( d_angleZ, _g_rotationOz );
 
@@ -849,15 +849,15 @@ QPointF GLWidget::WindowToImage(QPointF const &pt)
     QPointF res( pt.x()         - .5f*_glViewport[2]*(1.f+ _projmatrix[12]),
             -pt.y()  -1.f   + .5f*_glViewport[3]*(1.f- _projmatrix[13]));
 
-    res /= m_params.m_zoom;
+    res /= _params.m_zoom;
 
     return res;
 }
 
 QPointF GLWidget::ImageToWindow(QPointF const &im)
 {
-    return QPointF (im.x()*m_params.m_zoom + .5f*_glViewport[2]*(1.f + _projmatrix[12]),
-            - 1.f - im.y()*m_params.m_zoom + .5f*_glViewport[3]*(1.f - _projmatrix[13]));
+    return QPointF (im.x()*_params.m_zoom + .5f*_glViewport[2]*(1.f + _projmatrix[12]),
+            - 1.f - im.y()*_params.m_zoom + .5f*_glViewport[3]*(1.f - _projmatrix[13]));
 }
 
 void GLWidget::Select(int mode, bool saveInfos)
@@ -986,7 +986,7 @@ void GLWidget::Select(int mode, bool saveInfos)
                 info.projmatrix[aK] = _projmatrix[aK];
             }
 
-            m_infos.push_back(info);
+            _infos.push_back(info);
         }
 
         clearPolyline();
@@ -997,9 +997,11 @@ void GLWidget::clearPolyline()
 {
     if (hasDataLoaded())
     {
-        m_GLData->m_polygon.clear();
-        m_GLData->m_polygon.setClosed(false);
-        m_GLData->m_dihedron.clear();
+        cPolygon &poly = m_GLData->m_polygon;
+
+        poly.clear();
+        poly.setClosed(false);
+        poly.helper()->clear();
     }
 
     update();
@@ -1007,14 +1009,14 @@ void GLWidget::clearPolyline()
 
 void GLWidget::undo()
 {
-    if (m_infos.size() && hasDataLoaded())
+    if (_infos.size() && hasDataLoaded())
     {
-        if ((!m_bDisplayMode2D) || (m_infos.size() == 1))
+        if ((!m_bDisplayMode2D) || (_infos.size() == 1))
             Select(ALL, false);
 
-        for (int aK = 0; aK < m_infos.size()-1; ++aK)
+        for (int aK = 0; aK < _infos.size()-1; ++aK)
         {
-            selectInfos &infos = m_infos[aK];
+            selectInfos &infos = _infos[aK];
 
             cPolygon Polygon;
             Polygon.setClosed(true);
@@ -1037,7 +1039,7 @@ void GLWidget::undo()
             Select(infos.selection_mode, false);
         }
 
-        m_infos.pop_back();
+        _infos.pop_back();
     }
 }
 
@@ -1139,7 +1141,7 @@ void GLWidget::reset()
 
     clearPolyline();
 
-    m_params.reset();
+    _params.reset();
 
     m_bFirstAction = true;
 
@@ -1182,8 +1184,8 @@ void GLWidget::resetTranslationMatrix()
     {
         Pt3dr center = m_GLData->getCenter();
 
-        m_params.m_translationMatrix[0] = -center.x;
-        m_params.m_translationMatrix[1] = -center.y;
-        m_params.m_translationMatrix[2] = -center.z;
+        _params.m_translationMatrix[0] = -center.x;
+        _params.m_translationMatrix[1] = -center.y;
+        _params.m_translationMatrix[2] = -center.z;
     }
 }

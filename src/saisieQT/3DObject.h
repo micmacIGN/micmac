@@ -161,38 +161,39 @@ class cCam : public cObjectGL
         CamStenope *_Cam;
 };
 
+
+class cPolygonHelper;
+
 class cPolygon : public cObjectGL
 {
     public:
-        cPolygon();
+
+        cPolygon(float lineWidth = 1.0f, QColor color = Qt::red);
+
         cPolygon(const cPolygon&);
 
         void    draw();
-        void    drawDihedron();
+       // void    drawDihedron();
 
         void    close();
 
         bool    isPointInsidePoly(const QPointF& P);
 
-        //!used for point insertion
-        void    fillDihedron(const QPointF &pos, cPolygon &dihedron);
-
-        //!used for point moving
-        void    fillDihedron2(const QPointF &pos, cPolygon &dihedron);
-
         void    findClosestPoint(const QPointF &pos);
+
+        void    removeClosestPoint(QPointF pos);
 
         void    setLineWidth(float width){_lineWidth = width;}
         void    setpointSize(float size) {_pointSize = size;}
 
-        void    add(QPointF const &pt){ _points.push_back(pt); }
+        void    add(QPointF const &pt){_points.push_back(pt);}
+        void    addPoint(QPointF const &pt);
 
         void    clear();
         void    clearPoints() {_points.clear();}
 
         void    setClosed(bool aBool){ _bPolyIsClosed = aBool; }
         bool    isClosed(){ return _bPolyIsClosed;}
-        bool    isOpened(){ return !_bPolyIsClosed;}
 
         int     size(){ return _points.size(); }
 
@@ -201,9 +202,11 @@ class cPolygon : public cObjectGL
 
         cPolygon & operator = (const cPolygon &);
 
-        void    insert( int i, const QPointF & value );
+        void    insertPoint( int i, const QPointF & value );
 
-        void    remove ( int i );
+        void    insertPoint();
+
+        void    removePoint( int i );
 
         QVector <QPointF> const getVector(){ return _points; }
         void setVector(QVector <QPointF> const &aPts){ _points = aPts; }
@@ -214,18 +217,42 @@ class cPolygon : public cObjectGL
         int     click(){return _click;}
         void    resetClick(){_click=0;}
 
+        cPolygonHelper* helper() {return _helper;}
+
+        void    refreshHelper(QPointF pos, bool insertMode);
+
+        void    finalMovePoint(QPointF pos);
+
+protected:
+       QVector <QPointF>   _points;
+       cPolygonHelper*     _helper;
+       cPolygon(float lineWidth, QColor color, bool withHelper=true);
+       float               _lineWidth;
+       QColor              _lineColor;
+       int                 _idx;
+
 private:
-        float               _lineWidth;
-        float               _pointSize;
-        float               _sqr_radius;
+       float               _pointSize;
+       float               _sqr_radius;
 
-        bool                _bPolyIsClosed;
+       bool                _bPolyIsClosed;
 
-        int                 _idx;
+       int                 _click;
+};
 
-        int                 _click;
+class cPolygonHelper : public cPolygon
+{
 
-        QVector <QPointF>   _points;
+public:
+
+    cPolygonHelper(float lineWidth, QColor color = Qt::blue);
+
+ //   void    draw();
+
+    void   fill(const QPointF &pos, QVector <QPointF> &polygon);
+
+    void   fill2(const QPointF &pos, int idx, QVector <QPointF> &points);
+
 };
 
 class cImageGL : public cObjectGL

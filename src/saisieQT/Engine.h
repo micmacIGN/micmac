@@ -114,7 +114,6 @@ public:
 
     ~cGLData();
 
-    //bool        is2D(){return pImg != NULL;}
     bool        is3D(){return Clouds.size() || Cams.size();}
     bool        isDataLoaded(){return (!isImgEmpty()) || is3D();}
 
@@ -125,25 +124,6 @@ public:
 
     //! Point list for polygonal selection
     cPolygon    m_polygon;
-
-    //! Point list for polygonal insertion
-    cPolygon    m_dihedron;
-
-
-    // ==============================================================
-    // TODO a factoriser dans cpolygon
-    void        InsertPointPolygon();
-
-    // c'est quoi ce lastAction ??????
-    void        RemoveClosestPoint(QPointF pos);
-
-    void        AddPoint(QPointF pos);
-
-    void        FinalMovePoint(QPointF pos);
-
-    void        RefreshHelperPolygon(QPointF pos, bool insertMode);
-
-    // =================================================
 
     bool        isImgEmpty(){return maskedImage._m_image == NULL;}
 

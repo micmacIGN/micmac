@@ -38,7 +38,6 @@ enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
                          RIGHT_VIEW     /**< Right view **/
 };
 
-
 //! Default message positions on screen
 enum MessagePosition {  LOWER_LEFT_MESSAGE,
                         LOWER_RIGHT_MESSAGE,
@@ -57,7 +56,7 @@ struct MessageToDisplay
     //! Message
     QString message;
 
-    //! color
+    //! Color
     QColor color;
 
     //! Message position on screen
@@ -80,7 +79,6 @@ public:
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
                             SELECTION
     };
-
 
     //! Displays a status message
     /** \param message message (if message is empty, all messages will be cleared)
@@ -129,21 +127,23 @@ public:
     //! Display help messages for move mode
     void displayMoveMessages();
 
-
+    //! Apply selection to data
     void Select(int mode, bool saveInfos = true);
 
     //! Delete current polyline
     void clearPolyline();
 
-    //!Undo last action
+    //! Undo last action
     void undo();
 
-     //! Undo all past selection actions
+    //! Undo all past selection actions
     void undoAll();
 
+    //! 3D point projection in viewport
     void getProjection(QPointF &P2D, Pt3dr P);
 
-    QVector <selectInfos> getSelectInfos(){return m_infos;}
+    //! Get the selection infos stack
+    QVector <selectInfos> getSelectInfos(){return _infos;}
 
     //! Avoid all past actions
     void reset();
@@ -151,11 +151,13 @@ public:
     //! Reset view
     void resetView();
 
+    //! Reset rotation matrix
     void resetRotationMatrix();
 
+    //! Reset translation matrix
     void resetTranslationMatrix();
 
-    ViewportParameters* getParams(){return &m_params;}
+    ViewportParameters* getParams(){return &_params;}
 
     void setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
     cGLData* getGLData(){return m_GLData;}
@@ -167,10 +169,10 @@ public:
     int renderLineText(MessageToDisplay messageTD, int x, int y, int sizeFont = 10);
 
     std::list<MessageToDisplay>::iterator GetLastMessage();
+
 public slots:
     void zoom();
 
-    //! called when receiving mouse wheel is rotated
     void onWheelEvent(float wheelDelta_deg);
 
 signals:
@@ -201,8 +203,10 @@ protected:
     //! Draw selection polygon
     void drawPolygon();
 
+    //! Project a point from window to image
     QPointF WindowToImage(const QPointF &pt);
 
+    //! Project a point from image to window
     QPointF ImageToWindow(const QPointF &im);
 
     //! GL context aspect ratio (width/height)
@@ -222,14 +226,8 @@ protected:
     //! List of messages to display
     list<MessageToDisplay> m_messagesToDisplay;
 
-    //! Viewport parameters (zoom, etc.)
-    ViewportParameters m_params;
-
     //! Data to display
     cGLData    *m_GLData;
-
-    //! selection infos stack
-    QVector <selectInfos> m_infos;
 
     //! states if display is 2D or 3D
     bool        m_bDisplayMode2D;
@@ -244,6 +242,12 @@ protected:
     QPoint      m_lastPosWindow;
 
 private:
+
+    //! Window parameters (zoom, etc.)
+    ViewportParameters _params;
+
+    //! selection infos stack
+    QVector <selectInfos> _infos;
 
     void        setProjectionMatrix();
     void        computeFPS(MessageToDisplay &dynMess);
