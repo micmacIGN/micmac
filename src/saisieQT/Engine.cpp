@@ -53,9 +53,10 @@ void DoMkT()
     }
 }
 
-void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
-{
-    aImg = new QImage( aNameFile );
+void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
+{    
+
+    maskedImg._m_image = new QImage( aNameFile );
 
     QFileInfo fi(aNameFile);
 
@@ -63,7 +64,7 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
 
     setFilenameOut(mask_filename);
 
-    if (aImg->isNull())
+    if (maskedImg._m_image->isNull())
     {
         Tiff_Im aTF= Tiff_Im::StdConvGen(aNameFile.toStdString(),3,false);
 
@@ -84,7 +85,8 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
         U_INT1 ** aDataG = aImG.data();
         U_INT1 ** aDataB = aImB.data();
 
-        aImg = new QImage(aSz.x, aSz.y, QImage::Format_RGB32);
+        delete maskedImg._m_image;
+        maskedImg._m_image = new QImage(aSz.x, aSz.y, QImage::Format_RGB32);
 
         for (int y=0; y<aSz.y; y++)
         {
@@ -92,19 +94,21 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
             {
                 QColor col(aDataR[y][x],aDataG[y][x],aDataB[y][x]);
 
-                aImg->setPixel(x,y,col.rgb());
+                maskedImg._m_image->setPixel(x,y,col.rgb());
             }
         }
     }
 
-    *aImg = QGLWidget::convertToGLFormat( *aImg );
+    *(maskedImg._m_image) = QGLWidget::convertToGLFormat( *(maskedImg._m_image) );
 
     if (QFile::exists(mask_filename))
     {
 
-        aImgMask = new QImage( mask_filename );
+        maskedImg._m_newMask = false;
 
-        if (aImgMask->isNull())
+        maskedImg._m_mask = new QImage( mask_filename );
+
+        if (maskedImg._m_mask->isNull())
         {
             Tiff_Im imgMask( mask_filename.toStdString().c_str() );
 
@@ -113,9 +117,9 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
                 int w = imgMask.sz().x;
                 int h = imgMask.sz().y;
 
-                delete aImgMask;
-                aImgMask = new QImage( w, h, QImage::Format_Mono);
-                aImgMask->fill(0);
+                delete maskedImg._m_mask;
+                maskedImg._m_mask = new QImage( w, h, QImage::Format_Mono);
+                maskedImg._m_mask->fill(0);
 
                 Im2D_Bits<1> aOut(w,h,1);
                 ELISE_COPY(imgMask.all_pts(),imgMask.in(),aOut.out());
@@ -123,9 +127,9 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
                 for (int x=0;x< w;++x)
                     for (int y=0; y<h;++y)
                         if (aOut.get(x,y) == 1 )
-                            aImgMask->setPixel(x,y,1);
+                            maskedImg._m_mask->setPixel(x,y,1);
 
-                *aImgMask = QGLWidget::convertToGLFormat( *aImgMask );                                
+                *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
             }
             else
             {
@@ -133,9 +137,16 @@ void cLoader::loadImage(QString aNameFile , QImage* &aImg, QImage* &aImgMask)
             }
         }
         else
-            *aImgMask = QGLWidget::convertToGLFormat( *aImgMask );
+            *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
 
     }
+    else
+    {
+        maskedImg._m_mask = new QImage(maskedImg._m_image->size(),QImage::Format_Mono);
+        *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
+        maskedImg._m_mask->fill(Qt::white);
+    }
+
 }
 
 // File structure is assumed to be a typical Micmac workspace structure:
@@ -212,14 +223,12 @@ void cEngine::loadImages(QStringList filenames)
 
 void  cEngine::loadImage(QString imgName)
 {
-    QImage* img, *mask;
-    img = mask = NULL;
 
-    _Loader->loadImage(imgName, img, mask);
+    QMaskedImage maskedImg;
 
-    if (img !=NULL) _Data->PushBackImage(img);
-    if (mask!=NULL) _Data->PushBackMask(mask);
+    _Loader->loadImage(imgName, maskedImg);
 
+    _Data->PushBackMaskedImage(maskedImg);
 }
 
 void cEngine::do3DMasks()
@@ -409,15 +418,7 @@ void cEngine::AllocAndSetGLData()
     _vGLData.clear();
 
     for (int aK = 0; aK < _Data->getNbImages();++aK)
-    {
-
-        cGLData *glData = new cGLData(_Data->getImage(aK),_Data->getMask(aK));
-
-        // TODO _Data->addMask(theData->pQMask) ne prend pas en compte l'ordre des images
-        if(_Data->getMask(aK) == NULL) _Data->PushBackMask(glData->pQMask);
-
-        _vGLData.push_back(glData);
-    }
+        _vGLData.push_back(new cGLData(_Data->getMaskedImage(aK)));
 
     if (_Data->is3D())
         _vGLData.push_back(new cGLData(_Data));
@@ -437,31 +438,13 @@ cGLData* cEngine::getGLData(int WidgetIndex)
 cGLData::cGLData():
     _diam(1.f){}
 
-cGLData::cGLData(QImage *image, QImage *mask):
+cGLData::cGLData(QMaskedImage &qMaskedImage):
+    glMaskedImage(qMaskedImage),
+    pQMask(qMaskedImage._m_mask),
     pBall(NULL),
     pAxis(NULL),
     pBbox(NULL)
 {
-    // TODO a factoriser dans maskedimage!!
-    //
-
-    if(mask == NULL)
-    {
-        pQMask = new QImage(image->size(),QImage::Format_Mono);
-        *pQMask = QGLWidget::convertToGLFormat( *pQMask );
-        pQMask->fill(Qt::white);        
-    }
-    else
-    {
-       maskedImage._m_newMask = false;
-       pQMask = mask;
-    }
-
-    maskedImage._m_mask = new cImageGL();
-    maskedImage._m_image = new cImageGL();
-
-    maskedImage._m_mask->PrepareTexture(pQMask);
-    maskedImage._m_image->PrepareTexture(image);
 
 }
 
@@ -496,8 +479,8 @@ cGLData::cGLData(cData *data):
 cGLData::~cGLData()
 {
 
-    if(maskedImage._m_image != NULL) delete maskedImage._m_image;
-    if(maskedImage._m_mask != NULL) delete maskedImage._m_mask;
+    if(glMaskedImage._m_image != NULL) delete glMaskedImage._m_image;
+    if(glMaskedImage._m_mask != NULL) delete glMaskedImage._m_mask;
 
     for (int aK = 0; aK< Cams.size(); ++aK) delete Cams[aK];
     //qDeleteAll(Cams);
