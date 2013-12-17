@@ -403,7 +403,7 @@ int  NuageBascule_main(int argc,char ** argv)
                         std::string aNameCorrL = DirOfFile(aNameIn)+  NameWithoutDir(aBl.mName)+"_Correl.tif"; 
                         // std::cout << aBl.mBoxLoc._p0 << " " << aNameCorrL << "\n";
                         Im2D_U_INT1   aCorLoc(aSz.x,aSz.y);
-                        ELISE_COPY(aCorLoc.all_pts(),trans(Tiff_Im::StdConv(aNameCorrL).in(),aBl.mBoxLoc._p0) ,aCorLoc.out());
+                        ELISE_COPY(aCorLoc.all_pts(),trans(Tiff_Im::StdConv(aNameCorrL).in(0),aBl.mBoxLoc._p0) ,aCorLoc.out());
 
 
                         Im2D_U_INT1   aCorGlob(aSz.x,aSz.y);

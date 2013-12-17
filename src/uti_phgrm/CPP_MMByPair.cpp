@@ -786,6 +786,9 @@ std::string cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
      if (mType == eGround)
        aMatchCom = aMatchCom + " BascMTD=MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml ";
 
+     if (mType == eStatute)
+       aMatchCom = aMatchCom + " RIE=true ";
+
       if (mDoPlyMM1P)
          aMatchCom = aMatchCom + " DoPly=true " + " ScalePly="  + ToString(mScalePlyMM1P) + " " ;
 
