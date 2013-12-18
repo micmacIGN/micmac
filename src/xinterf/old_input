@@ -1,0 +1,140 @@
+/*eLiSe06/05/99
+  
+     Copyright (C) 1999 Marc PIERROT DESEILLIGNY
+
+   eLiSe : Elements of a Linux Image Software Environment
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS  
+Internet: Marc.Pierrot-Deseilligny@ign.fr
+   Phone: (33) 01 43 98 81 28
+eLiSe06/05/99*/
+
+
+
+#include "general/all.h"
+#include "private/all.h"
+
+
+#if (0)
+
+/*****************************************************************/
+/*                                                               */
+/*                  X11_Fen_Input_Comp                           */
+/*                                                               */
+/*****************************************************************/
+
+class X11_Fen_Input_Comp : public Fonc_Num_Comp_TPL<INT>
+{
+      public : 
+          X11_Fen_Input_Comp(const Fen_X11 *,const Arg_Fonc_Num_Comp &);
+          virtual const Pack_Of_Pts * values(const Pack_Of_Pts *);
+
+      private :
+
+           Window _w;
+           XImage * _xi;
+           Display * _d;
+           const Fen_X11 * _fx;
+           INT _p0[2];
+           INT _p1[2];
+};
+
+
+X11_Fen_Input_Comp::X11_Fen_Input_Comp
+           (const Fen_X11 * fx,const Arg_Fonc_Num_Comp & arg) :
+      Fonc_Num_Comp_TPL<INT>(arg,1,arg.flux()),
+      _w  (fx->_xfen->_w),
+      _xi (fx->_xfen->_xi),
+      _d  (fx->_xfen->_d),
+      _fx (fx)
+{
+    Pt2di(0,0).to_tab(_p0);
+    fx->sz().to_tab(_p1);
+}
+
+
+const Pack_Of_Pts * X11_Fen_Input_Comp::values(const Pack_Of_Pts * p)
+{
+    RLE_Pack_Of_Pts * rle_pck = 
+            SAFE_DYNC(RLE_Pack_Of_Pts *,p);
+    INT4 * pt0 = rle_pck->pt0();
+    INT  nb = rle_pck->nb();
+
+    ASSERT_TJS_USER
+    (   rle_pck->inside(_p0,_p1),
+        "X11_Fen_Input_Comp : out of window"
+    );
+
+    XImage * xi =
+           XGetSubImage
+           (_d,_w,
+            pt0[0],pt0[1],nb,1,
+            AllPlanes,ZPixmap,_xi,0,0
+           );
+    ASSERT_INTERNAL(xi == _xi,"incoherence with XGetSubImage");
+
+    char * im = _xi->data;
+    INT * im_out = _pack_out->_pts[0];
+    _pack_out->set_nb(nb);
+
+    for (int i=0 ; i<nb ; i++)
+        im_out[i] = im[i];       
+   
+    return _pack_out;
+}
+
+/*****************************************************************/
+/*                                                               */
+/*                  X11_Fen_Input_Not_Comp                       */
+/*                                                               */
+/*****************************************************************/
+
+
+class X11_Fen_Input_Not_Comp : public Fonc_Num_Not_Comp
+{
+    public :
+        X11_Fen_Input_Not_Comp(const Fen_X11 *);
+    private :
+        const Fen_X11 * _fx;
+
+        virtual  Fonc_Num_Computed * compute(const Arg_Fonc_Num_Comp & arg)
+        {
+            ASSERT_TJS_USER 
+            (    arg.flux()->type() == Pack_Of_Pts::rle,
+                "need RLE flux for X11_fen in input"
+            );
+            return NEW_REUS_OBJ(X11_Fen_Input_Comp,(_fx,arg));
+        }
+};
+
+
+X11_Fen_Input_Not_Comp::X11_Fen_Input_Not_Comp (const Fen_X11 * fx) :
+      _fx (fx)
+{
+}
+
+
+Fonc_Num Fen_X11::in()
+{
+    return NEW_OBJ_GC(X11_Fen_Input_Not_Comp,(this));
+}
+
+
+
+
+#endif
+
