@@ -1,4 +1,5 @@
 #include "3DObject.h"
+#include "SaisieGlsl.glsl"
 
 cObject::cObject() :
     _position(Pt3dr(0.f,0.f,0.f)),
@@ -807,27 +808,9 @@ cImageGL::cImageGL(float gamma) :
     _originY(0.f),
     _texture(GL_INVALID_LIST_ID),
     _gamma(gamma)
-{   
-    _program.addShaderFromSourceCode(QGLShader::Vertex,
-                                     "uniform highp mat4 matrix;\n"
-                                     "varying vec2 vTexCoord;\n"
-                                     "void main(void)\n"
-                                     "{\n"
-                                     "   vTexCoord = gl_MultiTexCoord0.xy;\n"
-                                     "   gl_Position = matrix * gl_Vertex;\n"
-                                     "}");
-
-    _program.addShaderFromSourceCode(QGLShader::Fragment,
-                                     "uniform mediump vec4 color;\n"
-                                     "uniform sampler2D tex;\n"
-                                     "uniform float gamma;\n"
-                                     "varying vec2 vTexCoord;\n"
-                                     "void main(void)\n"
-                                     "{\n"
-                                     "vec3 colorTex = texture2D(tex, vTexCoord).rgb;\n"
-                                     "gl_FragColor.rgb = pow(colorTex, gamma)\n;"
-                                     "gl_FragColor.a = 1.0f\n;"
-                                     "}");
+{
+    _program.addShaderFromSourceCode(QGLShader::Vertex,vertexShader);
+    _program.addShaderFromSourceCode(QGLShader::Fragment,fragmentGamma);
     _program.link();
 
 }
@@ -955,8 +938,8 @@ void cMaskedImageGL::draw()
     {
         _m_mask->draw();
         glBlendFunc(GL_ONE,GL_ONE);
-        int c =128;
-        _m_mask->draw(QColor(c,c,c));
+        int c =256;
+        _m_mask->draw(QColor((float)c/2.0f,c/2,c/2));
         glBlendFunc(GL_DST_COLOR,GL_ZERO);
         glColor4f(1.0f,1.0f,1.0f,1.0f);
     }
