@@ -144,26 +144,8 @@ void cData::applyGamma(float aGamma)
 
 void cData::applyGammaToImage(int aK, float aGamma)
 {
-    if (aGamma == 1.f) return;
+    //if (aGamma == 1.f) return;
 
-    QRgb pixel;
-    int r,g,b;
+    getMaskedImage(aK)._gamma = aGamma;
 
-    float _gamma = 1.f / aGamma;
-
-    for(int i=0; i< getImage(aK)->width();++i)
-        for(int j=0; j< getImage(aK)->height();++j)
-        {
-            pixel = getImage(aK)->pixel(i,j);
-
-            r = 255*pow((float) qRed(pixel)  / 255.f, _gamma);
-            g = 255*pow((float) qGreen(pixel)/ 255.f, _gamma);
-            b = 255*pow((float) qBlue(pixel) / 255.f, _gamma);
-
-            if (r>255) r = 255;
-            if (g>255) g = 255;
-            if (b>255) b = 255;
-
-            getImage(aK)->setPixel(i,j, qRgb(r,g,b) );
-        }
 }
