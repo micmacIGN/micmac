@@ -802,11 +802,35 @@ bool cPolygon::isPointInsidePoly(const QPointF& P)
 //invalid GL list index
 const GLuint GL_INVALID_LIST_ID = (~0);
 
-cImageGL::cImageGL() :
+cImageGL::cImageGL(float gamma) :
     _originX(0.f),
     _originY(0.f),
-    _texture(GL_INVALID_LIST_ID)
-{}
+    _texture(GL_INVALID_LIST_ID),
+    _gamma(gamma)
+{   
+    _program.addShaderFromSourceCode(QGLShader::Vertex,
+                                     "uniform highp mat4 matrix;\n"
+                                     "varying vec2 vTexCoord;\n"
+                                     "void main(void)\n"
+                                     "{\n"
+                                     "   vTexCoord = gl_MultiTexCoord0.xy;\n"
+                                     "   gl_Position = matrix * gl_Vertex;\n"
+                                     "}");
+
+    _program.addShaderFromSourceCode(QGLShader::Fragment,
+                                     "uniform mediump vec4 color;\n"
+                                     "uniform sampler2D tex;\n"
+                                     "uniform float gamma;\n"
+                                     "varying vec2 vTexCoord;\n"
+                                     "void main(void)\n"
+                                     "{\n"
+                                     "vec3 colorTex = texture2D(tex, vTexCoord).rgb;\n"
+                                     "gl_FragColor.rgb = pow(colorTex, gamma)\n;"
+                                     "gl_FragColor.a = 1.0f\n;"
+                                     "}");
+    _program.link();
+
+}
 
 cImageGL::~cImageGL()
 {
@@ -838,7 +862,34 @@ void cImageGL::draw()
     glEnable(GL_TEXTURE_2D);
     glBindTexture( GL_TEXTURE_2D, _texture );
 
+    if(_gamma !=1.0f)
+    {
+        _program.bind();
+
+        int matrixLocation = _program.uniformLocation("matrix");
+        int colorLocation  = _program.uniformLocation("color");
+        int texLocation    = _program.uniformLocation("tex");
+        int gammaLocation  = _program.uniformLocation("gamma");
+
+        QColor color = Qt::red;
+
+        GLdouble pmat[16];
+
+        glGetDoublev(GL_PROJECTION_MATRIX,pmat);
+
+        QMatrix4x4 pmvMatrix;
+        pmvMatrix.translate((float)pmat[12],(float)pmat[13],0.0f);
+        pmvMatrix.scale((float)pmat[0]);
+
+        _program.setUniformValue(matrixLocation, pmvMatrix);
+        _program.setUniformValue(colorLocation, color);
+        _program.setUniformValue(texLocation, GLint(0));
+        _program.setUniformValue(gammaLocation, GLfloat(1.0f/_gamma));
+    }
+
     drawQuad();
+
+    if(_gamma !=1.0f) _program.release();
 
     glBindTexture( GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
@@ -882,10 +933,10 @@ void cImageGL::ImageToTexture(QImage *pImg)
     glDisable(GL_TEXTURE_2D);
 }
 
-cMaskedImageGL::cMaskedImageGL(QMaskedImage &qMaskedImage)
+cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> &qMaskedImage)
 {
     _m_mask     = new cImageGL();
-    _m_image    = new cImageGL();
+    _m_image    = new cImageGL(qMaskedImage._gamma);
     _m_newMask  = qMaskedImage._m_newMask;
     _m_mask->PrepareTexture(qMaskedImage._m_mask);
     _m_image->PrepareTexture(qMaskedImage._m_image);
@@ -898,17 +949,16 @@ void cMaskedImageGL::draw()
     glDisable(GL_ALPHA_TEST);
     glDisable(GL_DEPTH_TEST);
 
-    //_m_image->setDimensions(h, w);
-    _m_image->draw(QColor(255,255,255));
+    glColor4f(1.0f,1.0f,1.0f,1.0f);
 
     if(_m_mask != NULL && true)
     {
-        //_m_mask->setDimensions(h, w);
         _m_mask->draw();
         glBlendFunc(GL_ONE,GL_ONE);
-
-        _m_mask->draw(QColor(128,128,128));
-        glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
+        int c =128;
+        _m_mask->draw(QColor(c,c,c));
+        glBlendFunc(GL_DST_COLOR,GL_ZERO);
+        glColor4f(1.0f,1.0f,1.0f,1.0f);
     }
 
     _m_image->draw();
@@ -917,7 +967,6 @@ void cMaskedImageGL::draw()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_ALPHA_TEST);
 }
-
 
 void cObjectGL::enableOptionLine()
 {

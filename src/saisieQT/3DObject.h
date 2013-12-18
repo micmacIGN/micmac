@@ -263,11 +263,12 @@ public:
 
     void   SetPoints(QPointF p1, QPointF p2, QPointF p3);
 };
+#include <QGLShaderProgram>
 
 class cImageGL : public cObjectGL
 {
     public:
-        cImageGL();
+        cImageGL(float gamma = 1.0f);
         ~cImageGL();
 
         void    draw(QColor color);
@@ -291,6 +292,8 @@ class cImageGL : public cObjectGL
 
 private:
 
+        QGLShaderProgram _program;
+
         GLfloat _originX;
         GLfloat _originY;
         GLfloat _glh;
@@ -300,6 +303,7 @@ private:
 
         //! Texture image
         GLuint  _texture;
+        float   _gamma;
 
 };
 
@@ -309,16 +313,19 @@ class cMaskedImage
 
 public:
 
-    cMaskedImage():
+    cMaskedImage(float gamma = 1.0f):
         _m_image(NULL),
         _m_mask(NULL),
-        _m_newMask(true)
+        _m_newMask(true),
+        _gamma(gamma)
     {}
 
     T           *_m_image;
     T           *_m_mask;
 
     bool        _m_newMask;
+    float       _gamma;
+
 
 };
 
