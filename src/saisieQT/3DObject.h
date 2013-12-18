@@ -218,9 +218,9 @@ class cPolygon : public cObjectGL
 
         int     idx(){return _idx;}
 
-        void    clicked(){_click++;}
-        int     click(){return _click;}
-        void    resetClick(){_click=0;}
+        void    setPointSelected(){_bSelectedPoint = true;}
+        bool    isPointSelected(){return _bSelectedPoint;}
+        void    resetSelectedPoint(){_bSelectedPoint = false;}
 
         cPolygonHelper* helper() {return _helper;}
 
@@ -229,22 +229,25 @@ class cPolygon : public cObjectGL
         void    finalMovePoint(QPointF pos);
 
 protected:
-       QVector <QPointF>   _points;
-       cPolygonHelper*     _helper;
-       cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
-       float               _lineWidth;
-       QColor              _lineColor;
-       int                 _idx;
+        cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
+
+        QVector <QPointF>   _points;
+        cPolygonHelper*     _helper;
+        float               _lineWidth;
+        QColor              _lineColor;
+        int                 _idx;
 
 private:
-       float               _pointSize;
-       float               _sqr_radius;
+        float               _pointSize;
+        float               _sqr_radius;
 
-       bool                _bPolyIsClosed;
+        //!states if polygon is closed
+        bool                _bPolyIsClosed;
 
-       int                 _click;
+        //!states if point with index _idx is selected
+        bool                _bSelectedPoint;
 
-       int                 _style;
+        int                 _style;
 };
 
 class cPolygonHelper : public cPolygon

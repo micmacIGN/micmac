@@ -40,7 +40,7 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
 
     setMouseTracking(true);   
 
-    ConstructListMessages(m_bDrawMessages);
+    constructMessagesList(m_bDrawMessages);
 }
 
 GLWidget::~GLWidget()
@@ -131,7 +131,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 
         glGetIntegerv (GL_VIEWPORT, _glViewport);
 
-        ConstructListMessages(showMessage);
+        constructMessagesList(showMessage);
 
         update();
     }
@@ -143,7 +143,7 @@ void GLWidget::setBackgroundColors(const QColor &col0, const QColor &col1)
     _BGColor1 = col1;
 }
 
-int GLWidget::renderLineText(MessageToDisplay messageTD, int x, int y, int sizeFont)
+int GLWidget::renderTextLine(MessageToDisplay messageTD, int x, int y, int sizeFont)
 {
     qglColor(messageTD.color);
 
@@ -262,19 +262,19 @@ void GLWidget::paintGL()
             switch(it->position)
             {
             case LOWER_LEFT_MESSAGE:
-                ll_curHeight -= renderLineText(*it, 10, ll_curHeight);
+                ll_curHeight -= renderTextLine(*it, 10, ll_curHeight);
                 break;
             case LOWER_RIGHT_MESSAGE:
-                lr_curHeight -= renderLineText(*it, _glViewport[2] - 120, lr_curHeight);
+                lr_curHeight -= renderTextLine(*it, _glViewport[2] - 120, lr_curHeight);
                 break;
             case LOWER_CENTER_MESSAGE:
-                lc_curHeight -= renderLineText(*it,(_glViewport[2]-rect.width())/2, lc_curHeight);
+                lc_curHeight -= renderTextLine(*it,(_glViewport[2]-rect.width())/2, lc_curHeight);
                 break;
             case UPPER_CENTER_MESSAGE:
-                uc_curHeight += renderLineText(*it,(_glViewport[2]-rect.width())/2, uc_curHeight+rect.height());
+                uc_curHeight += renderTextLine(*it,(_glViewport[2]-rect.width())/2, uc_curHeight+rect.height());
                 break;
             case SCREEN_CENTER_MESSAGE:
-                renderLineText(*it,(_glViewport[2]-rect.width())/2, (_glViewport[3]-rect.height())/2,12);
+                renderTextLine(*it,(_glViewport[2]-rect.width())/2, (_glViewport[3]-rect.height())/2,12);
             }
             ++it;
         }
@@ -338,7 +338,7 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
     if ((event->key() == Qt::Key_Shift) && hasDataLoaded())
     {
         m_GLData->m_polygon.helper()->clear();
-        m_GLData->m_polygon.resetClick();
+        m_GLData->m_polygon.resetSelectedPoint();
     }
 }
 
@@ -512,7 +512,7 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode, bool showmessage)
             break;
         }
     }
-    ConstructListMessages(showmessage);
+    constructMessagesList(showmessage);
 }
 
 void GLWidget::setView(VIEW_ORIENTATION orientation)
@@ -672,7 +672,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
                 else if (polygon.idx() != -1)
 
-                    polygon.clicked();
+                    polygon.setPointSelected();
             }
         }
         else if (event->button() == Qt::RightButton)
@@ -1076,7 +1076,7 @@ void GLWidget::showBBox(bool show)
     update();
 }
 
-void GLWidget::ConstructListMessages(bool show)
+void GLWidget::constructMessagesList(bool show)
 {
     m_bDrawMessages = show;
 
@@ -1150,7 +1150,7 @@ void GLWidget::reset()
 
 void GLWidget::resetView()
 {
-    ConstructListMessages(true);
+    constructMessagesList(true);
 
     if (m_bDisplayMode2D)
         zoomFit();
@@ -1160,12 +1160,12 @@ void GLWidget::resetView()
         resetTranslationMatrix();
 
         if (hasDataLoaded())
-        {
             setZoom(m_GLData->getScale());
 
-            //rustine - a passer dans MainWindow pour ui->action_showBall->setChecked(false)
-            m_GLData->pBall->setVisible(true);
-        }
+        showBall(hasDataLoaded());
+        showAxis(false);
+        showBBox(false);
+        showCams(false);
     }
 
     update();

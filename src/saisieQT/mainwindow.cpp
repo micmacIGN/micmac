@@ -275,7 +275,7 @@ void MainWindow::on_actionShow_cams_toggled(bool state)
 
 void MainWindow::on_actionShow_messages_toggled(bool state)
 {
-    CurrentWidget()->ConstructListMessages(state);
+    CurrentWidget()->constructMessagesList(state);
 }
 
 void MainWindow::on_actionToggleMode_toggled(bool mode)
@@ -463,14 +463,6 @@ void MainWindow::on_actionReset_view_triggered()
     GLWidget *widget = CurrentWidget();
 
     widget->resetView();
-
-    if (!_bMode2D)
-    {
-         widget->showBall(_Engine->getData()->isDataLoaded());
-         widget->showAxis(false);
-         widget->showBBox(false);
-         widget->showCams(false);
-    }
 }
 
 //zoom

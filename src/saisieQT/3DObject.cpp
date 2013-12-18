@@ -472,7 +472,7 @@ cPolygon::cPolygon(float lineWidth, QColor lineColor, QColor pointColor, int sty
     _pointSize(6.f),
     _sqr_radius(2500.f),
     _bPolyIsClosed(false),
-    _click(0),
+    _bSelectedPoint(false),
     _style(style)
 {
     setColor(pointColor);
@@ -485,7 +485,7 @@ cPolygon::cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool w
     _pointSize(6.f),
     _sqr_radius(2500.f),
     _bPolyIsClosed(false),
-    _click(0),
+    _bSelectedPoint(false),
     _style(style)
 {
     if (!withHelper) _helper = NULL;
@@ -562,7 +562,7 @@ void cPolygon::close()
         _bPolyIsClosed = true;
     }
 
-    _click = 0;
+    _bSelectedPoint = false;
 }
 
 void cPolygon::removeClosestPoint(QPointF pos)
@@ -598,7 +598,7 @@ void cPolygon::clear()
 {
     _points.clear();
     _idx = -1;
-    _click = 0;
+    _bSelectedPoint = false;
 }
 
 void cPolygon::insertPoint(int i, const QPointF &value)
@@ -675,15 +675,15 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
     }
     else if(nbVertex)                       // move vertex or insert vertex (dynamic display) en court d'opération
     {
-        if (insertMode )                    // INSERT POINT POLYGON
+        if (insertMode )                    // INSERT POLYGON POINT
 
             _helper->fill(pos, _points);
 
-        else if (click() == 1)    // MOVE POINT POLYGON
+        else if (isPointSelected())    // MOVE POLYGON POINT
 
             _helper->fill2(pos, _idx, _points);
 
-        else                                // SELECT CLOSEST POINT POLYGON
+        else                                // SELECT CLOSEST POLYGON POINT
 
             findClosestPoint(pos);
     }
@@ -692,17 +692,16 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
 
 void cPolygon::finalMovePoint(QPointF pos)
 {
-    //    int idx = m_polygon.idx(); // index du point selectionne
-    if ((click() >=1) && (_idx>=0) && _helper->size()) //  fin de deplacement point
+    if ((_idx>=0) && _helper->size()) //  fin de deplacement point
     {
         _points[_idx] = (*_helper)[1];
 
         _helper->clear();
-        resetClick();
+
+        resetSelectedPoint();
     }
 
-    // TODO refactoriser
-    if ((click() >=1) && _bPolyIsClosed) // recherche de points le plus proche
+    if (_bPolyIsClosed) // recherche de points le plus proche
         findClosestPoint(pos);
 }
 
@@ -758,15 +757,12 @@ void cPolygonHelper::SetPoints(QPointF p1,QPointF p2,QPointF p3)
 
 void cPolygonHelper::fill2(QPointF const &pos, int idx, QVector<QPointF> &points) // MOVE FILL
 {
-    int sz  = points.size();
+    int sz = points.size();
 
-    // TODO MODULO
-    if ((idx > 0) && (idx < sz-1))
-        SetPoints(points[idx-1],pos,points[idx+1]);
+    if ((idx > 0) && (idx <= sz-1))
+        SetPoints(points[(idx-1)%sz],pos,points[(idx+1)%sz]);
     else if (idx == 0)
         SetPoints(points[sz-1],pos,points[1]);
-    else if (idx == sz-1)
-        SetPoints(points[sz-2],pos,points[0]);
 }
 
 bool cPolygon::isPointInsidePoly(const QPointF& P)

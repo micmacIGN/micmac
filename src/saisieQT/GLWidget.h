@@ -115,8 +115,8 @@ public:
     //! Shows cams or not
     void showCams(bool show);
 
-    //! Shows help messages or not
-    void ConstructListMessages(bool show);
+    //! Construct help messages
+    void constructMessagesList(bool show);
 
     //! Shows bounding box or not
     void showBBox(bool show);
@@ -166,7 +166,7 @@ public:
 
     cPolygon PolyImageToWindow(cPolygon polygon);
 
-    int renderLineText(MessageToDisplay messageTD, int x, int y, int sizeFont = 10);
+    int renderTextLine(MessageToDisplay messageTD, int x, int y, int sizeFont = 10);
 
     std::list<MessageToDisplay>::iterator GetLastMessage();
 
