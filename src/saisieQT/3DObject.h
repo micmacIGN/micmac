@@ -255,13 +255,17 @@ class cPolygonHelper : public cPolygon
 
 public:
 
-    cPolygonHelper(float lineWidth, QColor lineColor = Qt::blue,  QColor pointColor = Qt::blue);
+    cPolygonHelper(cPolygon* polygon,float lineWidth, QColor lineColor = Qt::blue,  QColor pointColor = Qt::blue);
 
-    void   fill(const QPointF &pos, QVector <QPointF> &polygon);
+    void   fill(const QPointF &pos);
 
-    void   fill2(const QPointF &pos, int idx, QVector <QPointF> &points);
+    void   fill2(const QPointF &pos);
 
     void   SetPoints(QPointF p1, QPointF p2, QPointF p3);
+
+private:
+
+    cPolygon* _polygon;
 };
 #include <QGLShaderProgram>
 
@@ -315,6 +319,7 @@ private:
         GLuint  _texture;
         float   _gamma;
         GLfloat _pmat[16];
+
 };
 
 template<class T>
@@ -330,12 +335,20 @@ public:
         _gamma(gamma)
     {}
 
+    ~cMaskedImage()
+    {}
+
+    void deallocImages()
+    {
+        if(_m_image != NULL) delete _m_image;
+        if(_m_mask != NULL) delete _m_mask;
+    }
+
     T           *_m_image;
     T           *_m_mask;
 
     bool        _m_newMask;
     float       _gamma;
-
 
 };
 
@@ -347,6 +360,12 @@ public:
     cMaskedImageGL(){}
 
     cMaskedImageGL(QMaskedImage &qMaskedImage);
+
+    void SetDimensions(int h,int w)
+    {
+        _m_image->setDimensions(h,w);
+        _m_mask->setDimensions(h,w);
+    }
 
     void draw();
 

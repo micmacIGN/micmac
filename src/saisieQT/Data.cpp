@@ -7,13 +7,7 @@ cData::cData()
 
 cData::~cData()
 {
-    for (int aK=0; aK < getNbCameras();++aK) delete _Cameras[aK];
-    for (int aK=0; aK < getNbClouds();++aK)  delete _Clouds[aK];
-
-    _Cameras.clear();
-    _Clouds.clear();
-    _MaskedImages.clear();
-
+  clearAll();
 }
 
 void cData::addCloud(Cloud * aCloud)
@@ -34,9 +28,7 @@ void cData::PushBackMaskedImage(QMaskedImage maskedImage)
 
 void cData::clearClouds()
 {
-    for (uint aK=0; aK < (uint)getNbClouds();++aK)
-        delete _Clouds[aK];
-
+    qDeleteAll(_Clouds);
     _Clouds.clear();
 
     reset();
@@ -44,8 +36,7 @@ void cData::clearClouds()
 
 void cData::clearCameras()
 {
-    for (uint aK=0; aK < (uint)getNbCameras();++aK)
-        delete _Cameras[aK];
+    qDeleteAll(_Cameras);
 
     _Cameras.clear();
 
@@ -64,7 +55,6 @@ void cData::clearAll()
     clearClouds();
     clearCameras();
     clearImages();
-    reset();
 }
 
 void cData::reset()
@@ -86,6 +76,8 @@ int cData::getSizeClouds()
 //compute bounding box
 void cData::getBB()
 {  
+
+    //compute cloud bounding box
     for (uint bK=0; bK < _Clouds.size();++bK)
     {
         Cloud * aCloud = _Clouds[bK];
@@ -103,6 +95,7 @@ void cData::getBB()
         }
     }
 
+    //compute "cameras and clouds" global bounding box
     for (uint  cK=0; cK < _Cameras.size();++cK)
     {
         CamStenope * aCam= _Cameras[cK];
@@ -129,6 +122,7 @@ void cData::getBB()
         }
     }
 
+    // compute BB center
     _center.x = (m_min.x + m_max.x) * .5f;
     _center.y = (m_min.y + m_max.y) * .5f;
     _center.z = (m_min.z + m_max.z) * .5f;

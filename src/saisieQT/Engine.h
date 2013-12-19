@@ -67,9 +67,9 @@ enum SELECTION_MODE { SUB,
                       NONE
                     };
 
-class cLoader : QObject   
+class cLoader
 {
-    Q_OBJECT
+
 public:
 
     cLoader();
@@ -91,7 +91,6 @@ public:
     QStringList getFilenamesOut() {return _FilenamesOut;}
     QString     getSelectionFilename() {return _SelectionOut;}
 
-
     void        setPostFix(QString str);
 
 private:
@@ -104,6 +103,7 @@ private:
     QDir        _Dir;
 };
 
+// TODO a mettre dans object3d
 class cGLData : cObjectGL
 {
 public:
@@ -115,6 +115,8 @@ public:
     ~cGLData();
 
     bool        is3D(){return Clouds.size() || Cams.size();}
+
+    // TODO a virer
     bool        isDataLoaded(){return (!isImgEmpty()) || is3D();}
 
     cMaskedImageGL glMaskedImage;
@@ -126,8 +128,6 @@ public:
 
     bool        isImgEmpty(){return glMaskedImage._m_image == NULL;}
 
-    bool        isMaskEmpty(){ return glMaskedImage._m_mask == NULL;}
-
     QImage*     getMask(){return pQMask;}
 
     void        setPolygon(cPolygon const &aPoly){m_polygon = aPoly;}
@@ -136,6 +136,7 @@ public:
 
     void        draw();
 
+    // rererededondondandan
     QVector < cCam* > Cams;
 
     cBall       *pBall;
@@ -145,11 +146,11 @@ public:
     QVector < Cloud* > Clouds;
 
     //info coming from cData
-    float       getScale(){return _diam;}
-    void        setScale(float aS){_diam = aS;}
+    float       getBBHalfDiag(){return _diam;}
+    void        setBBHalfDiag(float aS){_diam = aS;}
 
-    Pt3dr       getCenter(){return _center;}
-    void        setCenter(Pt3dr aCenter){_center = aCenter;}
+    Pt3dr       getBBCenter(){return _center;}
+    void        setBBCenter(Pt3dr aCenter){_center = aCenter;}
 
 private:
 
@@ -214,8 +215,9 @@ public:
     //!sends GLObjects to GLWidget
     cGLData* getGLData(int WidgetIndex);
 
-    void    setGamma(float aGamma) {_Gamma = aGamma;}
-    float   getGamma() { return _Gamma;}
+    void     setGamma(float aGamma) {_Gamma = aGamma;}
+
+    float    getGamma() { return _Gamma;}
 
 private:
 

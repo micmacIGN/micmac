@@ -115,11 +115,11 @@ public:
     //! Shows cams or not
     void showCams(bool show);
 
-    //! Construct help messages
-    void constructMessagesList(bool show);
-
     //! Shows bounding box or not
     void showBBox(bool show);
+
+    //! Construct help messages
+    void constructMessagesList(bool show);
 
     //! Display help messages for selection mode
     void displaySelectionMessages();
@@ -179,8 +179,6 @@ signals:
 
     //! Signal emitted when files are dropped on the window
     void filesDropped(const QStringList& filenames);
-
-    void selectedPoint(uint idCloud, uint idVertex,bool selected);
 
 protected:
     void resizeGL(int w, int h);

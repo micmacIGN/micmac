@@ -57,15 +57,11 @@ MainWindow::~MainWindow()
 void MainWindow::connectActions()
 {
     for (uint aK = 0; aK < NbWidgets();++aK)
-    {
         connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
-        // TODO mettre dans glwidget
-        connect(getWidget(aK), SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
-    }
 
     //File menu
     connect(_ui->actionClose_all, SIGNAL(triggered()), this, SLOT(closeAll()));
-    connect(_ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
+//    connect(_ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
 
     for (int i = 0; i < MaxRecentFiles; ++i)
     {
@@ -214,11 +210,6 @@ void MainWindow::addFiles(const QStringList& filenames)
     }
 
     this->setWindowState(Qt::WindowActive); // ????
-}
-
-void MainWindow::selectedPoint(uint idC, uint idV, bool select)
-{
-    _Engine->getData()->getCloud(idC)->getVertex(idV).setVisible(select);
 }
 
 void MainWindow::on_actionFullScreen_toggled(bool state)

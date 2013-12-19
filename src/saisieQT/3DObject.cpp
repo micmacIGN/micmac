@@ -466,7 +466,7 @@ void cCam::draw()
 }
 
 cPolygon::cPolygon(float lineWidth, QColor lineColor, QColor pointColor, int style):
-    _helper(new cPolygonHelper(lineWidth)),
+    _helper(new cPolygonHelper(this,lineWidth)),
     _lineWidth(lineWidth),
     _lineColor(lineColor),
     _idx(-1),
@@ -656,8 +656,9 @@ void cPolygon::findClosestPoint(QPointF const &pos)
     }
 }
 
-cPolygonHelper::cPolygonHelper(float lineWidth, QColor lineColor, QColor pointColor):
-    cPolygon(lineWidth, lineColor, pointColor,false)
+cPolygonHelper::cPolygonHelper(cPolygon* polygon,float lineWidth, QColor lineColor, QColor pointColor):
+    cPolygon(lineWidth, lineColor, pointColor,false),
+    _polygon(polygon)
 {
 
 }
@@ -678,11 +679,11 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
     {
         if (insertMode )                    // INSERT POLYGON POINT
 
-            _helper->fill(pos, _points);
+            _helper->fill(pos);
 
         else if (isPointSelected())    // MOVE POLYGON POINT
 
-            _helper->fill2(pos, _idx, _points);
+            _helper->fill2(pos);
 
         else                                // SELECT CLOSEST POLYGON POINT
 
@@ -727,15 +728,15 @@ float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)
     return sqrt(dx*dx + dy*dy);
 }
 
-void cPolygonHelper::fill(QPointF const &pos, QVector <QPointF> &polygon) // INSERT FILL
+void cPolygonHelper::fill(QPointF const &pos) // INSERT FILL
 {
     float dist, dist2;
     dist2 = FLT_MAX;
     int idx = -1;
-    int size= polygon.size();
+    int size= _polygon->size();
     for (int aK =0; aK < size; ++aK)
     {
-        dist = segmentDistToPoint(polygon[aK], polygon[(aK + 1)%size], pos);
+        dist = segmentDistToPoint((*_polygon)[aK], (*_polygon)[(aK + 1)%size], pos);
 
         if (dist < dist2)
         {
@@ -745,7 +746,7 @@ void cPolygonHelper::fill(QPointF const &pos, QVector <QPointF> &polygon) // INS
     }
 
     if (idx != -1)
-        SetPoints(polygon[idx],pos,polygon[(idx+1)%size]);
+        SetPoints((*_polygon)[idx],pos,(*_polygon)[(idx+1)%size]);
 }
 
 void cPolygonHelper::SetPoints(QPointF p1,QPointF p2,QPointF p3)
@@ -756,14 +757,14 @@ void cPolygonHelper::SetPoints(QPointF p1,QPointF p2,QPointF p3)
     add(p3);
 }
 
-void cPolygonHelper::fill2(QPointF const &pos, int idx, QVector<QPointF> &points) // MOVE FILL
+void cPolygonHelper::fill2(QPointF const &pos) // MOVE FILL
 {
-    int sz = points.size();
+    int sz = _polygon->size();
 
-    if ((idx > 0) && (idx <= sz-1))
-        SetPoints(points[(idx-1)%sz],pos,points[(idx+1)%sz]);
-    else if (idx == 0)
-        SetPoints(points[sz-1],pos,points[1]);
+    if ((_polygon->idx() > 0) && (_polygon->idx() <= sz-1))
+        SetPoints((*_polygon)[(_polygon->idx()-1)%sz],pos,(*_polygon)[(_polygon->idx()+1)%sz]);
+    else if (_polygon->idx()  == 0)
+        SetPoints((*_polygon)[sz-1],pos,(*_polygon)[1]);
 }
 
 bool cPolygon::isPointInsidePoly(const QPointF& P)
@@ -954,3 +955,5 @@ void cObjectGL::disableOptionLine()
     glDisable(GL_LINE_SMOOTH);
     glEnable(GL_DEPTH_TEST);
 }
+
+
