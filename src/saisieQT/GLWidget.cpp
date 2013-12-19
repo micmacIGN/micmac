@@ -853,7 +853,7 @@ void GLWidget::getProjection(QPointF &P2D, Pt3dr P)
 QPointF GLWidget::WindowToImage(QPointF const &pt)
 {
     QPointF res( pt.x()         - .5f*_glViewport[2]*(1.f+ _projmatrix[12]),
-            -pt.y()  -1.f   + .5f*_glViewport[3]*(1.f- _projmatrix[13]));
+                -pt.y()  -1.f   + .5f*_glViewport[3]*(1.f- _projmatrix[13]));
 
     res /= _params.m_zoom;
 
@@ -876,18 +876,20 @@ void GLWidget::Select(int mode, bool saveInfos)
 
         if(mode == ADD || mode == SUB)
         {
-            if ((m_GLData->m_polygon.size() < 3) || (!m_GLData->m_polygon.isClosed()))
+            cPolygon &polygon = m_GLData->m_polygon;
+
+            if ((polygon.size() < 3) || (!polygon.isClosed()))
                 return;
 
             if (!m_bDisplayMode2D)
             {
-                for (int aK=0; aK < m_GLData->m_polygon.size(); ++aK)
+                for (int aK=0; aK < polygon.size(); ++aK)
                 {
-                    polyg.add(QPointF(m_GLData->m_polygon[aK].x(), _glViewport[3] - m_GLData->m_polygon[aK].y()));
+                    polyg.add(QPointF(polygon[aK].x(), _glViewport[3] - polygon[aK].y()));
                 }
             }
             else
-                polyg = m_GLData->m_polygon;
+                polyg = polygon;
         }
 
         if (m_bDisplayMode2D)
