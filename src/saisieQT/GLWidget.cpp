@@ -594,8 +594,10 @@ void GLWidget::zoomFit()
 {
     if (hasDataLoaded())
     {
-        float rw = (float)m_GLData->glMaskedImage._m_image->width()/ _glViewport[2];
-        float rh = (float)m_GLData->glMaskedImage._m_image->height()/_glViewport[3];
+        cMaskedImageGL &aMaskedImg = m_GLData->glMaskedImage;
+
+        float rw = (float)aMaskedImg._m_image->width()/ _glViewport[2];
+        float rh = (float)aMaskedImg._m_image->height()/_glViewport[3];
 
         if(rw>rh)
             setZoom(1.f/rw); //orientation landscape
@@ -610,8 +612,8 @@ void GLWidget::zoomFit()
         glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
         glPopMatrix();
 
-        m_GLData->glMaskedImage._m_image->setDimensions(2.f*rh,2.f*rw);
-        m_GLData->glMaskedImage._m_mask->setDimensions(2.f*rh,2.f*rw);
+        aMaskedImg._m_image->setDimensions(2.f*rh,2.f*rw);
+        aMaskedImg._m_mask->setDimensions(2.f*rh,2.f*rw);
 
         m_glPosition[0] = 0.f;
         m_glPosition[1] = 0.f;
@@ -847,7 +849,7 @@ void GLWidget::getProjection(QPointF &P2D, Pt3dr P)
 QPointF GLWidget::WindowToImage(QPointF const &pt)
 {
     QPointF res( pt.x()         - .5f*_glViewport[2]*(1.f+ _projmatrix[12]),
-            -pt.y()  -1.f   + .5f*_glViewport[3]*(1.f- _projmatrix[13]));
+                -pt.y()  -1.f   + .5f*_glViewport[3]*(1.f- _projmatrix[13]));
 
     res /= _params.m_zoom;
 
@@ -870,18 +872,20 @@ void GLWidget::Select(int mode, bool saveInfos)
 
         if(mode == ADD || mode == SUB)
         {
-            if ((m_GLData->m_polygon.size() < 3) || (!m_GLData->m_polygon.isClosed()))
+            cPolygon &polygon = m_GLData->m_polygon;
+
+            if ((polygon.size() < 3) || (!polygon.isClosed()))
                 return;
 
             if (!m_bDisplayMode2D)
             {
-                for (int aK=0; aK < m_GLData->m_polygon.size(); ++aK)
+                for (int aK=0; aK < polygon.size(); ++aK)
                 {
-                    polyg.add(QPointF(m_GLData->m_polygon[aK].x(), _glViewport[3] - m_GLData->m_polygon[aK].y()));
+                    polyg.add(QPointF(polygon[aK].x(), _glViewport[3] - polygon[aK].y()));
                 }
             }
             else
-                polyg = m_GLData->m_polygon;
+                polyg = polygon;
         }
 
         if (m_bDisplayMode2D)
