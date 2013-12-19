@@ -307,6 +307,15 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
         case Qt::Key_9:
             zoomFit();
             break;
+        case Qt::Key_G:
+            m_GLData->glMaskedImage._m_image->incGamma(0.2f);
+            break;
+        case Qt::Key_H:
+            m_GLData->glMaskedImage._m_image->incGamma(-0.2f);
+            break;
+        case Qt::Key_J:
+            m_GLData->glMaskedImage._m_image->setGamma(1.0f);
+            break;
         case Qt::Key_Plus:
             if (m_bDisplayMode2D)
             {
