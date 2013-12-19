@@ -59,7 +59,7 @@ void MainWindow::connectActions()
     for (uint aK = 0; aK < NbWidgets();++aK)
     {
         connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
-        // TODO mettre dabs
+        // TODO mettre dans glwidget
         connect(getWidget(aK), SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
     }
 
@@ -367,6 +367,7 @@ void MainWindow::on_actionHelpShortcuts_triggered()
 
 void MainWindow::on_actionAdd_triggered()
 {
+
     CurrentWidget()->Select(ADD);
 }
 
@@ -638,5 +639,3 @@ void  MainWindow::setGamma(float aGamma)
 {
     _Engine->setGamma(aGamma);
 }
-
-
