@@ -732,8 +732,8 @@ void cPolygonHelper::fill(QPointF const &pos) // INSERT FILL
 {
     float dist, dist2;
     dist2 = FLT_MAX;
-    int idx = -1;
-    int size= _polygon->size();
+    int idx  = -1;
+    int size = _polygon->size();
     for (int aK =0; aK < size; ++aK)
     {
         dist = segmentDistToPoint((*_polygon)[aK], (*_polygon)[(aK + 1)%size], pos);
@@ -749,22 +749,23 @@ void cPolygonHelper::fill(QPointF const &pos) // INSERT FILL
         SetPoints((*_polygon)[idx],pos,(*_polygon)[(idx+1)%size]);
 }
 
+void cPolygonHelper::fill2(QPointF const &pos) // MOVE FILL
+{
+    int sz  = _polygon->size();
+    int idx = _polygon->idx();
+
+    if ((idx > 0) && (idx <= sz-1))
+        SetPoints((*_polygon)[(idx-1)%sz],pos,(*_polygon)[(idx+1)%sz]);
+    else if (idx  == 0)
+        SetPoints((*_polygon)[sz-1],pos,(*_polygon)[1]);
+}
+
 void cPolygonHelper::SetPoints(QPointF p1,QPointF p2,QPointF p3)
 {
     clear();
     add(p1);
     add(p2);
     add(p3);
-}
-
-void cPolygonHelper::fill2(QPointF const &pos) // MOVE FILL
-{
-    int sz = _polygon->size();
-
-    if ((_polygon->idx() > 0) && (_polygon->idx() <= sz-1))
-        SetPoints((*_polygon)[(_polygon->idx()-1)%sz],pos,(*_polygon)[(_polygon->idx()+1)%sz]);
-    else if (_polygon->idx()  == 0)
-        SetPoints((*_polygon)[sz-1],pos,(*_polygon)[1]);
 }
 
 bool cPolygon::isPointInsidePoly(const QPointF& P)

@@ -114,6 +114,8 @@ public:
 
     ~cGLData();
 
+    void        draw();
+
     bool        is3D(){return Clouds.size() || Cams.size();}
 
     // TODO a virer
@@ -134,8 +136,6 @@ public:
 
     //3D
 
-    void        draw();
-
     // rererededondondandan
     QVector < cCam* > Cams;
 
@@ -146,8 +146,8 @@ public:
     QVector < Cloud* > Clouds;
 
     //info coming from cData
-    float       getBBHalfDiag(){return _diam;}
-    void        setBBHalfDiag(float aS){_diam = aS;}
+    float       getBBmaxSize(){return _diam;}
+    void        setBBmaxSize(float aS){_diam = aS;}
 
     Pt3dr       getBBCenter(){return _center;}
     void        setBBCenter(Pt3dr aCenter){_center = aCenter;}

@@ -7,7 +7,7 @@ cData::cData()
 
 cData::~cData()
 {
-  clearAll();
+    clearAll();
 }
 
 void cData::addCloud(Cloud * aCloud)
@@ -19,7 +19,6 @@ void cData::addCamera(CamStenope * aCam)
 {
     _Cameras.push_back(aCam);
 }
-
 
 void cData::PushBackMaskedImage(QMaskedImage maskedImage)
 {
@@ -64,7 +63,7 @@ void cData::reset()
     _center = Pt3dr(0.f,0.f,0.f);
 }
 
-int cData::getSizeClouds()
+int cData::getCloudsSize()
 {
     int sizeClouds = 0;
     for (int aK=0; aK < getNbClouds();++aK)
@@ -76,8 +75,6 @@ int cData::getSizeClouds()
 //compute bounding box
 void cData::getBB()
 {  
-
-    //compute cloud bounding box
     for (uint bK=0; bK < _Clouds.size();++bK)
     {
         Cloud * aCloud = _Clouds[bK];
@@ -95,7 +92,6 @@ void cData::getBB()
         }
     }
 
-    //compute "cameras and clouds" global bounding box
     for (uint  cK=0; cK < _Cameras.size();++cK)
     {
         CamStenope * aCam= _Cameras[cK];
@@ -127,6 +123,7 @@ void cData::getBB()
     _center.y = (m_min.y + m_max.y) * .5f;
     _center.z = (m_min.z + m_max.z) * .5f;
 
+    // compute BB max length
     m_diam = max(m_max.x-m_min.x, max(m_max.y-m_min.y, m_max.z-m_min.z));
 }
 

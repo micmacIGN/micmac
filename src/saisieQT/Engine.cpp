@@ -439,7 +439,7 @@ cGLData::cGLData(cData *data):
         pCloud->setBufferGl();
     }
 
-    Pt3dr center = data->getCenter();
+    Pt3dr center = data->getBBCenter();
     float scale = data->m_diam / 1.5f;
 
     pBall = new cBall(center, scale);
@@ -453,8 +453,8 @@ cGLData::cGLData(cData *data):
         Cams.push_back(pCam);
     }
 
-    setBBHalfDiag(data->getScale());
-    setBBCenter(data->getCenter());
+    setBBmaxSize(data->getBBmaxSize());
+    setBBCenter(data->getBBCenter());
 }
 
 cGLData::~cGLData()

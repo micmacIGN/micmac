@@ -92,7 +92,6 @@ void GLWidget::computeFPS(MessageToDisplay &dynMess)
 
         if (fps > 1e-3)
             dynMess.message = "fps: " + QString::number(fps,'f',1);
-
     }
 }
 
@@ -108,7 +107,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
         {
             m_bDisplayMode2D = false;
 
-            if (doZoom) setZoom(m_GLData->getBBHalfDiag());
+            if (doZoom) setZoom(m_GLData->getBBmaxSize());
 
             resetTranslationMatrix();
         }
@@ -171,7 +170,7 @@ void GLWidget::paintGL()
 
     if (hasDataLoaded())
     {
-        if (m_bDisplayMode2D)
+        if (!m_GLData->isImgEmpty())//(m_bDisplayMode2D)
         {
             // CAMERA BEGIN ======================
             glMatrixMode(GL_PROJECTION);
@@ -352,10 +351,12 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
 
 bool GLWidget::hasDataLoaded()
 {
-    if(m_GLData == NULL)
+    return (m_GLData == NULL) ? false : true;
+
+    /*if(m_GLData == NULL)
         return false;
     else
-        return m_GLData->isDataLoaded();
+        return true; *///m_GLData->isDataLoaded();
 }
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -490,7 +491,7 @@ void GLWidget::zoom()
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
-        glOrtho(-zoom*m_glRatio,zoom*m_glRatio,-zoom, zoom,-2.f*m_GLData->getBBHalfDiag(), 2.f*m_GLData->getBBHalfDiag());
+        glOrtho(-zoom*m_glRatio,zoom*m_glRatio,-zoom, zoom,-2.f*m_GLData->getBBmaxSize(), 2.f*m_GLData->getBBmaxSize());
 
         glMatrixMode(GL_MODELVIEW);
     }
@@ -501,25 +502,21 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode, bool showmessage)
     // TODO !!!!!!!!!
     m_interactionMode = mode;
 
-    if (hasDataLoaded())
+    switch (mode)
     {
-        switch (mode)
-        {
         case TRANSFORM_CAMERA:
-        {
             clearPolyline();
-        }
             break;
         case SELECTION:
         {
             if(m_GLData->is3D()) //3D
-                setProjectionMatrix();            
+                setProjectionMatrix();
         }
             break;
         default:
             break;
-        }
     }
+
     constructMessagesList(showmessage);
 }
 
@@ -600,7 +597,7 @@ void GLWidget::setZoom(float value)
 
 void GLWidget::zoomFit()
 {
-    if (hasDataLoaded())
+    if (hasDataLoaded() && !m_GLData->isImgEmpty())
     {
         float rw = (float)m_GLData->glMaskedImage._m_image->width()/ _glViewport[2];
         float rh = (float)m_GLData->glMaskedImage._m_image->height()/_glViewport[3];
@@ -620,7 +617,7 @@ void GLWidget::zoomFit()
         glPopMatrix();
         // CAMERA END
 
-        m_GLData->glMaskedImage.SetDimensions(2.f*rh,2.f*rw);
+        m_GLData->glMaskedImage.setDimensions(2.f*rh,2.f*rw);
 
         m_glPosition[0] = 0.f;
         m_glPosition[1] = 0.f;
@@ -629,16 +626,13 @@ void GLWidget::zoomFit()
 
 void GLWidget::zoomFactor(int percent)
 {
-    if (hasDataLoaded())
+    if (m_bDisplayMode2D)
     {
-        if (m_bDisplayMode2D)
-        {
-            m_lastClickZoom = m_lastPosWindow;
-            setZoom(0.01f * percent);
-        }
-        else
-            setZoom(m_GLData->getBBHalfDiag() / (float) percent * 100.f);
+        m_lastClickZoom = m_lastPosWindow;
+        setZoom(0.01f * percent);
     }
+    else if (hasDataLoaded() && m_GLData->is3D())
+        setZoom(m_GLData->getBBmaxSize() / (float) percent * 100.f);
 }
 
 void GLWidget::wheelEvent(QWheelEvent* event)
@@ -748,8 +742,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                     }
                     else
                     {
-                        _params.m_translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBHalfDiag()/_glViewport[2];
-                        _params.m_translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBHalfDiag()/_glViewport[3];
+                        _params.m_translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBmaxSize()/_glViewport[2];
+                        _params.m_translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBmaxSize()/_glViewport[3];
                     }
                 }
             }
@@ -1172,7 +1166,7 @@ void GLWidget::resetView()
         resetTranslationMatrix();
 
         if (hasDataLoaded())
-            setZoom(m_GLData->getBBHalfDiag());
+            setZoom(m_GLData->getBBmaxSize());
 
         showBall(hasDataLoaded());
         showAxis(false);

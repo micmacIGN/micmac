@@ -40,15 +40,15 @@ class cData
 
         void    getBB();
 
-        int     getSizeClouds();
+        int     getCloudsSize();
 
-        Pt3dr   getCenter(){return _center;}
+        Pt3dr   getBBCenter(){return _center;}
 
-        float   getScale(){return m_diam;}
+        float   getBBmaxSize(){return m_diam;}
 
         void    reset();
 
-        //!Bounding box and diameter of all clouds
+        //!Bounding box of all data
         Pt3dr   m_min, m_max;
         float   m_diam;
 
@@ -60,6 +60,6 @@ class cData
 
         float                 _gamma;
 
-        Pt3dr                 _center;  // center of all clouds
+        Pt3dr                 _center;  // center of BB
 };
 #endif // DATA_H

@@ -61,7 +61,6 @@ void MainWindow::connectActions()
 
     //File menu
     connect(_ui->actionClose_all, SIGNAL(triggered()), this, SLOT(closeAll()));
-//    connect(_ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
 
     for (int i = 0; i < MaxRecentFiles; ++i)
     {
@@ -199,7 +198,6 @@ void MainWindow::addFiles(const QStringList& filenames)
 
             _Engine->loadImages(filenames);
             _Engine->setFilenamesOut();
-
         }
 
         _Engine->AllocAndSetGLData();
@@ -358,7 +356,6 @@ void MainWindow::on_actionHelpShortcuts_triggered()
 
 void MainWindow::on_actionAdd_triggered()
 {
-
     CurrentWidget()->Select(ADD);
 }
 
@@ -444,9 +441,7 @@ void MainWindow::on_actionSetViewRight_triggered()
 
 void MainWindow::on_actionReset_view_triggered()
 {
-    GLWidget *widget = CurrentWidget();
-
-    widget->resetView();
+    CurrentWidget()->resetView();
 }
 
 //zoom
@@ -529,7 +524,6 @@ void MainWindow::closeAll()
 
     for (uint aK=0; aK < NbWidgets(); ++aK)
         getWidget(aK)->reset();
-
 }
 
 void MainWindow::openRecentFile()
