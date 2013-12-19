@@ -318,7 +318,6 @@ private:
         //! Texture image
         GLuint  _texture;
         float   _gamma;
-        GLfloat _pmat[16];
 
 };
 

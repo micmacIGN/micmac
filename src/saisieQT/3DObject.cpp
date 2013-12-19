@@ -814,7 +814,7 @@ cImageGL::cImageGL(float gamma) :
     _program.addShaderFromSourceCode(QGLShader::Fragment,fragmentGamma);
     _program.link();
 
-    _matrixLocation = _program.uniformLocation("matrix");
+    //_matrixLocation = _program.uniformLocation("matrix");
     _texLocation    = _program.uniformLocation("tex");
     _gammaLocation  = _program.uniformLocation("gamma");
 
@@ -853,8 +853,6 @@ void cImageGL::draw()
     if(_gamma !=1.0f)
     {
         _program.bind();
-        glGetFloatv(GL_TRANSPOSE_PROJECTION_MATRIX,_pmat);
-        _program.setUniformValue(_matrixLocation, QMatrix4x4(_pmat));
         _program.setUniformValue(_texLocation, GLint(0));
         _program.setUniformValue(_gammaLocation, GLfloat(1.0f/_gamma));
     }
