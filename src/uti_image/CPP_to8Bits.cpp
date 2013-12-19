@@ -407,8 +407,7 @@ cout << "Types = "
                            + aDir+"Tmp-MM-Dir/"+StdPrefix(aNewName) + std::string(".gif ");
 
         system_call(aCom.c_str());
-        aCom  = string( SYS_RM ) + aNameOut;
-        system_call(aCom.c_str());
+		ELISE_fp::RmFile( aNameOut );
    }
 
 // convert -quality 100 Z_Num3_DeZoom8_LeChantier_8Bits.tif  Z_Num3_DeZoom8_LeChantier_8Bits.jpg
