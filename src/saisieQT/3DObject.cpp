@@ -813,6 +813,10 @@ cImageGL::cImageGL(float gamma) :
     _program.addShaderFromSourceCode(QGLShader::Fragment,fragmentGamma);
     _program.link();
 
+    _matrixLocation = _program.uniformLocation("matrix");
+    _texLocation    = _program.uniformLocation("tex");
+    _gammaLocation  = _program.uniformLocation("gamma");
+
 }
 
 cImageGL::~cImageGL()
@@ -848,26 +852,10 @@ void cImageGL::draw()
     if(_gamma !=1.0f)
     {
         _program.bind();
-
-        int matrixLocation = _program.uniformLocation("matrix");
-        int colorLocation  = _program.uniformLocation("color");
-        int texLocation    = _program.uniformLocation("tex");
-        int gammaLocation  = _program.uniformLocation("gamma");
-
-        QColor color = Qt::red;
-
-        GLdouble pmat[16];
-
-        glGetDoublev(GL_PROJECTION_MATRIX,pmat);
-
-        QMatrix4x4 pmvMatrix;
-        pmvMatrix.translate((float)pmat[12],(float)pmat[13],0.0f);
-        pmvMatrix.scale((float)pmat[0]);
-
-        _program.setUniformValue(matrixLocation, pmvMatrix);
-        _program.setUniformValue(colorLocation, color);
-        _program.setUniformValue(texLocation, GLint(0));
-        _program.setUniformValue(gammaLocation, GLfloat(1.0f/_gamma));
+        glGetFloatv(GL_TRANSPOSE_PROJECTION_MATRIX,_pmat);
+        _program.setUniformValue(_matrixLocation, QMatrix4x4(_pmat));
+        _program.setUniformValue(_texLocation, GLint(0));
+        _program.setUniformValue(_gammaLocation, GLfloat(1.0f/_gamma));
     }
 
     drawQuad();

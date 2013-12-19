@@ -300,6 +300,10 @@ private:
 
         QGLShaderProgram _program;
 
+        int     _matrixLocation;
+        int     _texLocation  ;
+        int     _gammaLocation;
+
         GLfloat _originX;
         GLfloat _originY;
         GLfloat _glh;
@@ -310,7 +314,7 @@ private:
         //! Texture image
         GLuint  _texture;
         float   _gamma;
-
+        GLfloat _pmat[16];
 };
 
 template<class T>

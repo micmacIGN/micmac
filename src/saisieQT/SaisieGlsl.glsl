@@ -10,6 +10,7 @@ void main(void)
 {
     vTexCoord   = gl_MultiTexCoord0.xy;
     gl_Position = matrix * gl_Vertex;
+
 }
 
 
