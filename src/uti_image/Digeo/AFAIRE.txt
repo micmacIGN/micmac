@@ -1,0 +1,12 @@
+Pour le sur-ech/ sous ech :
+
+   -1- Rajouter un facteur d'echelle dans les parametres;
+
+   -2- Modifier la BBbox globale en fonction de ce parametre
+
+   -3- Lire les images directement en fonction de ce parametre :
+
+
+Typiquement le parametre SIFT -1 correspond a 0.5 d'echelle.
+        
+
