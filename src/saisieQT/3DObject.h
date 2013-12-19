@@ -361,7 +361,7 @@ public:
 
     cMaskedImageGL(QMaskedImage &qMaskedImage);
 
-    void SetDimensions(int h,int w)
+    void SetDimensions(float h,float w)
     {
         _m_image->setDimensions(h,w);
         _m_mask->setDimensions(h,w);
