@@ -41,18 +41,6 @@ Cloud* cLoader::loadCloud( string i_ply_file, int* incre )
     return Cloud::loadPly( i_ply_file, incre );
 }
 
-int	ByP=-1;
-std::string MkFT;
-
-void DoMkT()
-{
-    if (ByP)
-    {
-        std::string aSMkSr = g_externalToolHandler.get( "make" ).callName()+" all -f " + MkFT + string(" -j")+ToString(ByP)/*+" -s"*/;
-        System(aSMkSr,true);
-    }
-}
-
 void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
 {    
 
@@ -64,6 +52,8 @@ void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
 
     setFilenameOut(mask_filename);
 
+
+    // TODO factoriser le chargement d'image
     if (maskedImg._m_image->isNull())
     {
         Tiff_Im aTF= Tiff_Im::StdConvGen(aNameFile.toStdString(),3,false);
@@ -183,12 +173,11 @@ cEngine::cEngine():
 
 cEngine::~cEngine()
 {
-    delete _Data;
-    delete _Loader;
 
-    for (int aK=0; aK<_vGLData.size();++aK)
-        delete _vGLData[aK];
-    _vGLData.clear();
+    delete _Loader;
+    unloadAll();
+    delete _Data;
+
 }
 
 void cEngine::loadClouds(QStringList filenames, int* incre)
@@ -401,9 +390,7 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
 void cEngine::unloadAll()
 {
     _Data->clearAll();
-
-    for (int aK=0; aK<_vGLData.size();++aK)
-        delete _vGLData[aK];
+    qDeleteAll(_vGLData);
     _vGLData.clear();
 }
 
@@ -466,18 +453,15 @@ cGLData::cGLData(cData *data):
         Cams.push_back(pCam);
     }
 
-    setScale(data->getScale());
-    setCenter(data->getCenter());
+    setBBHalfDiag(data->getScale());
+    setBBCenter(data->getCenter());
 }
 
 cGLData::~cGLData()
 {
+    glMaskedImage.deallocImages();
 
-    if(glMaskedImage._m_image != NULL) delete glMaskedImage._m_image;
-    if(glMaskedImage._m_mask != NULL) delete glMaskedImage._m_mask;
-
-    for (int aK = 0; aK< Cams.size(); ++aK) delete Cams[aK];
-    //qDeleteAll(Cams);
+   qDeleteAll(Cams);
     Cams.clear();
 
     if(pBall != NULL) delete pBall;

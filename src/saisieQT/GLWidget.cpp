@@ -61,8 +61,7 @@ void GLWidget::resizeGL(int width, int height)
     glViewport( 0, 0, width, height );
     glGetIntegerv (GL_VIEWPORT, _glViewport);
 
-    if (hasDataLoaded() && !m_GLData->isImgEmpty())
-        zoomFit();
+    zoomFit();
 }
 
 //-------------------------------------------------------------------------
@@ -109,7 +108,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
         {
             m_bDisplayMode2D = false;
 
-            if (doZoom) setZoom(m_GLData->getScale());
+            if (doZoom) setZoom(m_GLData->getBBHalfDiag());
 
             resetTranslationMatrix();
         }
@@ -491,7 +490,7 @@ void GLWidget::zoom()
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
-        glOrtho(-zoom*m_glRatio,zoom*m_glRatio,-zoom, zoom,-2.f*m_GLData->getScale(), 2.f*m_GLData->getScale());
+        glOrtho(-zoom*m_glRatio,zoom*m_glRatio,-zoom, zoom,-2.f*m_GLData->getBBHalfDiag(), 2.f*m_GLData->getBBHalfDiag());
 
         glMatrixMode(GL_MODELVIEW);
     }
@@ -611,6 +610,7 @@ void GLWidget::zoomFit()
         else
             setZoom(1.f/rh); //orientation portrait
 
+        // CAMERA BEGIN
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glPushMatrix();
@@ -618,9 +618,9 @@ void GLWidget::zoomFit()
         glTranslatef(-rw,-rh,0.f);
         glGetDoublev (GL_PROJECTION_MATRIX, _projmatrix);
         glPopMatrix();
+        // CAMERA END
 
-        m_GLData->glMaskedImage._m_image->setDimensions(2.f*rh,2.f*rw);
-        m_GLData->glMaskedImage._m_mask->setDimensions(2.f*rh,2.f*rw);
+        m_GLData->glMaskedImage.SetDimensions(2.f*rh,2.f*rw);
 
         m_glPosition[0] = 0.f;
         m_glPosition[1] = 0.f;
@@ -637,7 +637,7 @@ void GLWidget::zoomFactor(int percent)
             setZoom(0.01f * percent);
         }
         else
-            setZoom(m_GLData->getScale() / (float) percent * 100.f);
+            setZoom(m_GLData->getBBHalfDiag() / (float) percent * 100.f);
     }
 }
 
@@ -748,8 +748,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                     }
                     else
                     {
-                        _params.m_translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getScale()/_glViewport[2];
-                        _params.m_translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getScale()/_glViewport[3];
+                        _params.m_translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBHalfDiag()/_glViewport[2];
+                        _params.m_translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBHalfDiag()/_glViewport[3];
                     }
                 }
             }
@@ -814,7 +814,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
             Cloud *a_cloud = m_GLData->Clouds[idx1];
             Pt3dr Pt = a_cloud->getVertex( idx2 ).getPosition();
 
-            m_GLData->setCenter(Pt);
+            m_GLData->setBBCenter(Pt);
 
             m_GLData->pBall->setPosition(Pt);
             m_GLData->pAxis->setPosition(Pt);
@@ -939,7 +939,7 @@ void GLWidget::Select(int mode, bool saveInfos)
 
                 for (uint bK=0; bK < (uint) a_cloud->size();++bK)
                 {
-                    Vertex P  = a_cloud->getVertex( bK );
+                    Vertex &P  = a_cloud->getVertex( bK );
                     Pt3dr  Pt = P.getPosition();
 
                     switch (mode)
@@ -948,27 +948,29 @@ void GLWidget::Select(int mode, bool saveInfos)
                         getProjection(P2D, Pt);
                         pointInside = polyg.isPointInsidePoly(P2D);
                         if (m_bFirstAction)
-                            emit selectedPoint(aK,bK,pointInside);
+                            P.setVisible(pointInside);
                         else
-                            emit selectedPoint(aK,bK,pointInside||P.isVisible());
+                            P.setVisible(pointInside||P.isVisible());
                         break;
                     case SUB:
                         if (P.isVisible())
                         {
                             getProjection(P2D, Pt);
                             pointInside = polyg.isPointInsidePoly(P2D);
-                            emit selectedPoint(aK,bK,!pointInside);
+                            P.setVisible(!pointInside);
                         }
                         break;
                     case INVERT:
-                        emit selectedPoint(aK,bK,!P.isVisible());
+                        P.setVisible(!P.isVisible());
                         break;
                     case ALL:
+                    {
                         m_bFirstAction = true;
-                        emit selectedPoint(aK,bK, true);
+                        P.setVisible(true);
+                    }
                         break;
-                    case NONE:
-                        emit selectedPoint(aK,bK,false);
+                    case NONE:                        
+                        P.setVisible(false);
                         break;
                     }
                 }
@@ -1170,7 +1172,7 @@ void GLWidget::resetView()
         resetTranslationMatrix();
 
         if (hasDataLoaded())
-            setZoom(m_GLData->getScale());
+            setZoom(m_GLData->getBBHalfDiag());
 
         showBall(hasDataLoaded());
         showAxis(false);
@@ -1192,7 +1194,7 @@ void GLWidget::resetTranslationMatrix()
 {
     if (hasDataLoaded())
     {
-        Pt3dr center = m_GLData->getCenter();
+        Pt3dr center = m_GLData->getBBCenter();
 
         _params.m_translationMatrix[0] = -center.x;
         _params.m_translationMatrix[1] = -center.y;

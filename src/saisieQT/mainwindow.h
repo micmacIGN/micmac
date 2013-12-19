@@ -42,8 +42,6 @@ public slots:
     //! Try to load a list of files
     void addFiles(const QStringList& filenames);
 
-    void selectedPoint(uint idC,uint idV,bool select);
-
     void zoomFactor(int aFactor);
 
     void closeAll();
