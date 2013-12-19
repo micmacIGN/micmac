@@ -649,12 +649,9 @@ void GLWidget::wheelEvent(QWheelEvent* event)
         return;
     }
 
-    //see QWheelEvent documentation ("distance that the wheel is rotated, in eighths of a degree")
-    float wheelDelta_deg = event->angleDelta().y() / 8.f;
-
     m_lastClickZoom = event->pos();
 
-    onWheelEvent(wheelDelta_deg);
+    setZoom(_params.m_zoom*pow(1.1f,event->angleDelta().y() / 160.0f ));
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
@@ -1155,6 +1152,8 @@ void GLWidget::reset()
     m_bFirstAction = true;
 
     m_GLData = NULL;
+
+    resetView();
 }
 
 void GLWidget::resetView()

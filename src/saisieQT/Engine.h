@@ -214,9 +214,8 @@ public:
     //!sends GLObjects to GLWidget
     cGLData* getGLData(int WidgetIndex);
 
-    void    applyGammaToImage(int aK);
-
     void    setGamma(float aGamma) {_Gamma = aGamma;}
+    float   getGamma() { return _Gamma;}
 
 private:
 

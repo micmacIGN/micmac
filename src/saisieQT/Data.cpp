@@ -136,16 +136,3 @@ void cData::getBB()
     m_diam = max(m_max.x-m_min.x, max(m_max.y-m_min.y, m_max.z-m_min.z));
 }
 
-void cData::applyGamma(float aGamma)
-{
-    for (uint aK=0; aK<_MaskedImages.size();++aK)
-        applyGammaToImage(aK, aGamma);
-}
-
-void cData::applyGammaToImage(int aK, float aGamma)
-{
-    //if (aGamma == 1.f) return;
-
-    getMaskedImage(aK)._gamma = aGamma;
-
-}

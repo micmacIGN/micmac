@@ -59,6 +59,7 @@ void MainWindow::connectActions()
     for (uint aK = 0; aK < NbWidgets();++aK)
     {
         connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
+        // TODO mettre dabs
         connect(getWidget(aK), SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
     }
 
@@ -159,6 +160,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         if (fi.suffix() == "ply")
         {
+            // TODO ENCAPSULER LA PROGRESS BAR
             QTimer *timer_test = new QTimer(this);
             _incre = new int(0);
             connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
@@ -172,16 +174,17 @@ void MainWindow::addFiles(const QStringList& filenames)
             timer_test->stop();
             disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
             delete _incre;
+            delete timer_test;                     
 
-            delete timer_test;
-
-            future.waitForFinished();
+            future.waitForFinished();            
+            // FIN DE CHARGEMENT ET PROGRESS BAR
 
             _Engine->setFilename();
             _Engine->setFilenamesOut();
         }
         else if (fi.suffix() == "xml")
         {
+            // TODO ENCAPSULER LA PROGRESS BAR
             QFuture<void> future = QtConcurrent::run(_Engine, &cEngine::loadCameras, filenames);
 
             _FutureWatcher.setFuture(future);
@@ -189,23 +192,18 @@ void MainWindow::addFiles(const QStringList& filenames)
             _ProgressDialog->exec();
 
             future.waitForFinished();
+            // FIN DE CHARGEMENT ET PROGRESS BAR
 
-            //TODO: _glWidget->showCams(true);
             _ui->actionShow_cams->setChecked(true);
         }
-        else
+        else // LOAD IMAGE
         {
             setMode2D(true);
-            closeAll();
-
-            glLoadIdentity();
+            closeAll();            
 
             _Engine->loadImages(filenames);
-
             _Engine->setFilenamesOut();
 
-            for (int aK=0; aK<_Engine->getData()->getNbImages();++aK)
-                _Engine->applyGammaToImage(aK);
         }
 
         _Engine->AllocAndSetGLData();
@@ -224,11 +222,8 @@ void MainWindow::selectedPoint(uint idC, uint idV, bool select)
 }
 
 void MainWindow::on_actionFullScreen_toggled(bool state)
-{
-    if (state)
-        showFullScreen();
-    else
-        showNormal();
+{   
+    return state ? showFullScreen() : showNormal();
 }
 
 void MainWindow::on_actionShow_ball_toggled(bool state)
@@ -372,7 +367,6 @@ void MainWindow::on_actionHelpShortcuts_triggered()
 
 void MainWindow::on_actionAdd_triggered()
 {
-
     CurrentWidget()->Select(ADD);
 }
 
@@ -414,8 +408,6 @@ void MainWindow::on_actionRemove_triggered()
 
 void MainWindow::on_actionUndo_triggered()
 {   
-
-    // WHY????
     if (_bMode2D)    
         CurrentWidget()->setGLData(_Engine->getGLData(CurrentWidgetIdx()),_ui->actionShow_messages,false);
 
@@ -486,15 +478,6 @@ void MainWindow::zoomFactor(int aFactor)
     CurrentWidget()->zoomFactor(aFactor);
 }
 
-void MainWindow::echoMouseWheelRotate(float wheelDelta_deg)
-{
-    GLWidget* sendingWindow = dynamic_cast<GLWidget*>(sender());
-    if (!sendingWindow)
-        return;
-
-    sendingWindow->onWheelEvent(wheelDelta_deg);
-}
-
 void MainWindow::on_actionLoad_plys_triggered()
 {
     QStringList filenames = QFileDialog::getOpenFileNames(NULL, tr("Open Cloud Files"),QString(), tr("Files (*.ply)"));
@@ -553,15 +536,13 @@ void MainWindow::closeAll()
     _Engine->unloadAll();
 
     for (uint aK=0; aK < NbWidgets(); ++aK)
-    {
-        GLWidget *widget = getWidget(aK);
-        widget->reset();
-        widget->resetView();
-    }
+        getWidget(aK)->reset();
+
 }
 
 void MainWindow::openRecentFile()
 {
+    // A TESTER en multi images
     QAction *action = qobject_cast<QAction *>(sender());
     if (action)
     {
@@ -573,6 +554,7 @@ void MainWindow::openRecentFile()
 
 void MainWindow::setCurrentFile(const QString &fileName)
 {
+    // Rafraichi le menu des fichiers récents
     _curFile = fileName;
     setWindowFilePath(_curFile);
 

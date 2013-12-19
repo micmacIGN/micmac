@@ -48,9 +48,6 @@ public slots:
 
     void closeAll();
 
-    // A Mettre dans qglwidget
-    void echoMouseWheelRotate(float);
-
     void openRecentFile();
 
     void progression();

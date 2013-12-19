@@ -223,8 +223,7 @@ void cEngine::loadImages(QStringList filenames)
 
 void  cEngine::loadImage(QString imgName)
 {
-
-    QMaskedImage maskedImg;
+    QMaskedImage maskedImg(_Gamma);
 
     _Loader->loadImage(imgName, maskedImg);
 
@@ -397,11 +396,6 @@ void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
 #ifdef _DEBUG
         printf ( "File saved in: %s\n", _Loader->getSelectionFilename().toStdString().c_str());
 #endif
-}
-
-void cEngine::applyGammaToImage(int aK)
-{
-    _Data->applyGammaToImage(aK, _Gamma);
 }
 
 void cEngine::unloadAll()
