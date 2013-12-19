@@ -47,6 +47,7 @@ public:
       
       list<Item> m_items;
       bool       m_hasBeenWritten;
+      cElCommand m_command;
       
 	   Registry();
       bool write_v1( ofstream &io_stream, const cElPath &i_anchor );
@@ -90,15 +91,18 @@ public:
    
    inline unsigned int nbStates() const;
    void getState( unsigned int i_iState, Registry &o_state ) const;
-   void addState();
+   void addState( const cElCommand &i_command=cElCommand() );
    void setState( unsigned int i_iState );
    void dump( std::ostream &io_ostream=std::cout, const std::string &i_prefix=string() ) const;
    bool compare( const TracePack &i_b ) const;
+   void getAllCommands( std::vector<std::string> &o_commands ) const;
    
    bool load();
    bool save(unsigned int i_version=g_versioned_headers_list[VFH_TracePack].last_handled_version, bool i_MSBF=MSBF_PROCESSOR() );
    bool copyItemOnDisk( unsigned int i_iState, const cElFilename &i_itemName );
 };
+
+bool load_script( const cElFilename &i_filename, std::list<cElCommand> &o_commands );
 
 bool write_file(  const cElFilename &i_filenameIn, std::ostream &io_fOut, unsigned int i_expectedSize );
 bool write_file( std::istream &io_fIn, std::ostream &io_fOut, unsigned int i_expectedSize );
