@@ -1,47 +1,49 @@
 // this file is supposed to be included only in cElCommand.h
 
-
 //-------------------------------------------
-// cElTokenAsIs
-//-------------------------------------------
-
-cElTokenAsIs::cElTokenAsIs( const std::string &i_token ):m_value(i_token){}
-
-const std::string & cElTokenAsIs::str() const { return m_value; }
-
-
-//-------------------------------------------
-// cElTokenToQuote
+// cElCommandToken
 //-------------------------------------------
 
-cElTokenToQuote::cElTokenToQuote( const std::string &i_token ):m_value(i_token){}
+bool cElCommandToken::operator !=( const cElCommandToken &i_b ) const { return !((*this)==i_b); }
 
-const std::string & cElTokenToQuote::str() const { return m_value; }
+template <class T> T & cElCommandToken::specialize() { return *((T *)this); }
+
+template <class T> const T & cElCommandToken::specialize() const { return *((const T *)this); }
 
 
 //-------------------------------------------
-// cElPathToken
+// ctRawString
 //-------------------------------------------
 
-cElPathToken::cElPathToken( const std::string &i_token ):m_value(i_token){}
+ctRawString::ctRawString( const std::string &i_value ):m_value(i_value){}
 
-const std::string & cElPathToken::str() const { return m_value; }
+//-------------------------------------------
+// cElCommand
+//-------------------------------------------
 
-bool cElPathToken::isRoot() const
+cElCommand::cElCommand(){}
+
+cElCommand::cElCommand( const std::string &i_str ){ add_raw(i_str); }
+
+cElCommand::~cElCommand(){ clear(); }
+
+cElCommand::cElCommand( const cElCommand &i_b ){ *this=i_b; }
+
+bool cElCommand::operator !=( const cElCommand &i_b ) const { return !( (*this)==i_b ); }
+
+
+//-------------------------------------------
+// cElPath::cElPathToken
+//-------------------------------------------
+
+cElPath::Token::Token( const std::string &i_token ):std::string(i_token){}
+
+bool cElPath::Token::isRoot() const
 {
-   return m_value.length()==0 ||  // empty (unix)
-          ( m_value.length()==2 && m_value[1]==':' ); // a volume letter + ':' (windows)
+   return length()==0 ||  // empty (unix)
+          ( length()==2 && at(1)==':' ); // a volume letter + ':' (windows)
 }
 
-int cElPathToken::compare( const cElPathToken &i_b ) const { return m_value.compare( m_value ); }
-
-bool cElPathToken::operator <( const cElPathToken &i_b ) const { return compare(i_b)<0; }
-
-bool cElPathToken::operator >( const cElPathToken &i_b ) const { return compare(i_b)>0; }
-
-bool cElPathToken::operator ==( const cElPathToken &i_b ) const { return compare(i_b)==0; }
-
-bool cElPathToken::operator !=( const cElPathToken &i_b ) const { return compare(i_b)!=0; }
    
 //-------------------------------------------
 // cElPath

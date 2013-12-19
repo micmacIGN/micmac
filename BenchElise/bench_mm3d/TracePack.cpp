@@ -14,11 +14,6 @@ using namespace std;
    const string __apply_illegal_action_message = "TracePack::Registry::apply: illegal action item";
    const string __apply_illegal_state_message = "TracePack::Registry::apply: illegal state item";
    const string __apply_illegal_no_add_message = __apply_illegal_action_message+" (TD_Added expected)";
-   void debug_error( const string &i_message )
-   {
-      cerr << "DEBUG_ERROR: " << i_message << endl;
-      exit(-1);
-   }
 #endif
 
 //--------------------------------------------
@@ -46,9 +41,7 @@ bool TracePack::Registry::Item::copyToDirectory( const cElFilename &i_packName, 
    if ( !filename.m_path.exists() && !filename.m_path.create() )
    {
       #ifdef __DEBUG_TRACE_PACK
-	 stringstream ss;
-	 ss << "TracePack::Registry::Item::copyToDirectory: cannot create directory [" << filename.m_path.str_unix() << ']' << endl;
-	 debug_error( ss.str() );
+	 cerr << "DEBUG_ERROR: TracePack::Registry::Item::copyToDirectory: cannot create directory [" << filename.m_path.str_unix() << ']' << endl;
       #endif
       return false;
    }
@@ -62,17 +55,9 @@ bool TracePack::Registry::Item::copyToDirectory( const cElFilename &i_packName, 
    {
       #ifdef __DEBUG_TRACE_PACK
 	 if ( !fIn )
-	 {
-	    stringstream ss;
-	    ss << "TracePack::Registry::Item::copyToDirectory: unable to open [" << i_packName.str_unix() << "] for reading at position " << m_dataOffset;
-	    debug_error( ss.str() );
-	 }
+	    cerr << "DEBUG_ERROR: TracePack::Registry::Item::copyToDirectory: unable to open [" << i_packName.str_unix() << "] for reading at position " << m_dataOffset;
 	 if ( !fOut )
-	 {
-	    stringstream ss;
-	    ss << "TracePack::Registry::Item::copyToDirectory: unable to open [" << filename.str_unix() << "] for writing";
-	    debug_error( ss.str() );
-	 }
+	    cerr << "DEBUG_ERROR: TracePack::Registry::Item::copyToDirectory: unable to open [" << filename.str_unix() << "] for writing";
       #endif
       return false;
    }
@@ -110,9 +95,7 @@ bool TracePack::Registry::Item::applyToDirectory( const cElFilename &i_packname,
       break;
    case TD_State:
       #ifdef __DEBUG_TRACE_PACK
-	 stringstream ss;
-	 ss << "TracePack::Registry::Item::applyToDirectory: cannot apply state item [" << m_filename.str_unix() << ']';
-	 debug_error( ss.str() );
+	 cerr << "DEBUG_ERROR: TracePack::Registry::Item::applyToDirectory: cannot apply state item [" << m_filename.str_unix() << ']';
       #endif
       break;
    }
@@ -139,7 +122,7 @@ void TracePack::Registry::difference( const Registry &i_a, const Registry &i_b )
       #ifdef __DEBUG_TRACE_PACK
 	 if ( itA->m_type!=TD_State ||
               itB->m_type!=TD_State )
-	    debug_error( __difference_illegal_item_message );
+	    cerr << "DEBUG_ERROR: " << __difference_illegal_item_message << endl;
       #endif
       
       int compare = itA->m_filename.compare( itB->m_filename );
@@ -162,22 +145,19 @@ void TracePack::Registry::difference( const Registry &i_a, const Registry &i_b )
    while ( itA!=i_a.m_items.end() )
    {
       #ifdef __DEBUG_TRACE_PACK
-	 if ( itA->m_type!=TD_State ) debug_error( __difference_illegal_item_message );
+	 if ( itA->m_type!=TD_State )
+	    cerr << "DEBUG_ERROR: " << __difference_illegal_item_message << endl;
       #endif
       m_items.push_back( Item( (*itA++).m_filename, TD_Removed, cElDate::NoDate, 0, 0 ) );
    }
    while ( itB!=i_b.m_items.end() )
    {
       #ifdef __DEBUG_TRACE_PACK
-	 if ( itB->m_type!=TD_State ) debug_error( __difference_illegal_item_message );
+	 if ( itB->m_type!=TD_State )
+	    cerr << "DEBUG_ERROR: " << __difference_illegal_item_message << endl;
       #endif
       m_items.push_back( Item( (*itB++).m_filename, TD_Added, itB->m_date, itB->m_dataOffset, itB->m_dataSize ) );
    }
-   
-   // __DEL
-   #ifdef __DEBUG_TRACE_PACK
-      check_sorted();
-   #endif
 }
 
 bool TracePack::Registry::write_v1( ofstream &io_stream, const cElPath &i_anchor )
@@ -215,9 +195,7 @@ bool TracePack::Registry::write_v1( ofstream &io_stream, const cElPath &i_anchor
 	 if ( !write_file( cElFilename( i_anchor, itItem->m_filename ), io_stream, dataSize ) )
 	 {
 	    #ifdef __DEBUG_TRACE_PACK
-	       stringstream ss;
-	       ss << "TracePack::Registry::write_v1: unable to copy data of ile [" << itItem->m_filename.str_unix() << ']';
-	       debug_error( ss.str() );
+	       cerr << "DEBUG_ERROR: TracePack::Registry::write_v1: unable to copy data of ile [" << itItem->m_filename.str_unix() << ']' << endl;
 	    #endif
 	    return false;
 	 }
@@ -248,10 +226,9 @@ void TracePack::Registry::read_v1( istream &io_stream )
    {
       // read filename
       io_stream.read( (char*)(&ui), 4 );
-      str.resize(ui+1);
+      str.resize(ui);
       io_stream.read( str.data(), ui );
-      str[ui] = '\0';
-      itemFilename = cElFilename( string( str.data() ) );
+      itemFilename = cElFilename( string( str.data(), ui ) );
       // write type
       io_stream.read( (char*)(&i), 4 );
       // add item
@@ -308,7 +285,8 @@ void TracePack::Registry::stateDirectory( const cElPath &i_path )
    path.toAbsolute();
    
    #ifdef __DEBUG_TRACE_PACK
-      if ( !path.exists() ) debug_error( "TracePack::Registry::stateDirectory: directory ["+i_path.str_unix()+"] does not exist"  );
+      if ( !path.exists() )
+	 cerr << "DEBUG_ERROR: TracePack::Registry::stateDirectory: directory ["+i_path.str_unix()+"] does not exist" << endl;
    #endif
    
    m_items.clear();
@@ -325,7 +303,7 @@ void TracePack::Registry::stateDirectory( const cElPath &i_path )
       fileLength = ELISE_fp::file_length( attached_filename );
       #ifdef __DEBUG_TRACE_PACK
 	 if ( fileLength<0 )
-	    debug_error( "TracePack::Registry::stateDirectory: cannot read length of file ["+attached_filename+"]"  );
+	    cerr << "DEBUG_ERROR: TracePack::Registry::stateDirectory: cannot read length of file ["+attached_filename+"]" << endl;
       #endif
       add( Item( detachedFile, TD_State, date, 0, (unsigned int)fileLength ) );
    }
@@ -338,8 +316,8 @@ void TracePack::Registry::apply( const TracePack::Registry &i_actions )
    while ( itA!=m_items.end() && itB!=i_actions.m_items.end() )
    {      
       #ifdef __DEBUG_TRACE_PACK
-	 if ( itA->m_type!=TD_State ) debug_error( __apply_illegal_action_message );
-	 if ( itB->m_type==TD_State ) debug_error( __apply_illegal_state_message );
+	 if ( itA->m_type!=TD_State ) cerr << "DEBUG_ERROR: " << __apply_illegal_action_message << endl;
+	 if ( itB->m_type==TD_State ) cerr << "DEBUG_ERROR: " << __apply_illegal_state_message << endl;
       #endif
       
       int compare = itA->m_filename.compare( itB->m_filename );
@@ -359,7 +337,7 @@ void TracePack::Registry::apply( const TracePack::Registry &i_actions )
 	 }
 	 #ifdef __DEBUG_TRACE_PACK
 	    else
-	       debug_error( "TracePack::Registry::apply: illegal action item of type TD_Added" );
+	       cerr << "DEBUG_ERROR: TracePack::Registry::apply: illegal action item of type TD_Added" << endl;
 	 #endif
       }
       else
@@ -370,7 +348,7 @@ void TracePack::Registry::apply( const TracePack::Registry &i_actions )
 	 {
 	    #ifdef __DEBUG_TRACE_PACK
 	       if ( itB->m_type!=TD_Added )
-		  debug_error( __apply_illegal_no_add_message );
+		  cerr << "DEBUG_ERROR: " << __apply_illegal_no_add_message << endl;
 	       else
 	    #endif
 	       {
@@ -384,7 +362,7 @@ void TracePack::Registry::apply( const TracePack::Registry &i_actions )
    {
       #ifdef __DEBUG_TRACE_PACK
 	 if ( itB->m_type!=TD_Added )
-	    debug_error( __apply_illegal_no_add_message );
+	    cerr << "DEBUG_ERROR: " << __apply_illegal_no_add_message << endl;
 	 else
       #endif
 	 {
@@ -392,11 +370,6 @@ void TracePack::Registry::apply( const TracePack::Registry &i_actions )
 	    itB++;
 	 }
    }
-   
-   // __DEL
-   #ifdef __DEBUG_TRACE_PACK
-      check_sorted();
-   #endif
 }
 
 void TracePack::Registry::dump( ostream &io_ostream, const string &i_prefix ) const
@@ -432,6 +405,11 @@ bool TracePack::Registry::compare( const TracePack::Registry &i_b ) const
       cout << "registries have different number of items : " << nbItems << " != " << i_b.m_items.size() << endl;
       return false;
    }
+   if ( m_command!=i_b.m_command )
+   {
+      cout << "registries have different commands : " << m_command.str() << " != " << i_b.m_command.str() << endl;
+      return false;
+   }
    list<TracePack::Registry::Item>::const_iterator itA = m_items.begin(),
                                                    itB = i_b.m_items.begin();
    for ( unsigned int iItem=0; iItem<nbItems; iItem++ )
@@ -464,7 +442,7 @@ bool TracePack::Registry::applyToDirectory( const cElFilename &i_filename, const
       while ( it2!=m_items.end() )
       {
 	 if ( (*it1++).m_filename.compare( (*it2++).m_filename )>=0 )
-	    debug_error( "TracePack::Registry::check_sorted: items are not corretly sorted or an item appears more than once" );
+	    cerr << "DEBUG_ERROR: TracePack::Registry::check_sorted: items are not corretly sorted or an item appears more than once" << endl;
       }
    }
 #endif
@@ -508,9 +486,7 @@ bool TracePack::load()
    if ( !f )
    {
       #ifdef __DEBUG_TRACE_PACK
-	 stringstream ss;
-	 ss << "TracePack::load: unable to open [" << m_filename.str_unix() << "] for reading";
-	 debug_error( ss.str() );
+	 cerr << "DEBUG_ERROR: TracePack::load: unable to open [" << m_filename.str_unix() << "] for reading" << endl;
       #endif
       return false;
    }
@@ -520,11 +496,7 @@ bool TracePack::load()
    
    #ifdef __DEBUG_TRACE_PACK
       if ( !res )
-      {
-	 stringstream ss;
-	 ss << "TracePack::load: unable to read versioned file header of type VFH_TracePack from file [" << m_filename.str_unix() << ']';
-	 debug_error( ss.str() );
-      }
+	 cerr << "DEBUG_ERROR: TracePack::load: unable to read versioned file header of type VFH_TracePack from file [" << m_filename.str_unix() << ']' << endl;
       #ifdef __DEBUG_TRACE_PACK_PRINT_READ
 	 else
 	    cout << "-read------------------- header : VFH_TracePack, " << (header.isMSBF()?"big-endian":"little-endian") << ", v" << header.version() << endl;
@@ -539,11 +511,7 @@ bool TracePack::load()
    
    #ifdef __DEBUG_TRACE_PACK
       if ( !res )
-      {
-	 stringstream ss;
-	 ss << "TracePack::load: unable to read versioned file of type VFH_TracePack (v" << header.version() << ' ' << (header.isMSBF()?"big-endian":"little-endian") << ") from file [" << m_filename.str_unix() << ']';
-	 debug_error( ss.str() );
-      }
+	 cerr << "DEBUG_ERROR: TracePack::load: unable to read versioned file of type VFH_TracePack (v" << header.version() << ' ' << (header.isMSBF()?"big-endian":"little-endian") << ") from file [" << m_filename.str_unix() << ']' << endl;
    #endif
    
    m_writeInUpdateMode = res;
@@ -581,7 +549,7 @@ bool TracePack::write_v1( ofstream &f )
 void TracePack::save_nbRegistries() const
 {
    #ifdef __DEBUG_TRACE_PACK
-      if ( !m_writeInUpdateMode || m_nbRegistriesOffset==0 ) debug_error( "TracePack::update_registry_number: TracePack is not in update mode" );
+      if ( !m_writeInUpdateMode || m_nbRegistriesOffset==0 ) cerr << "DEBUG_ERROR: TracePack::update_registry_number: TracePack is not in update mode" << endl;
    #endif
    ofstream f( m_filename.str_unix().c_str(), ios::in|ios::out|ios::binary );
    f.seekp( m_nbRegistriesOffset );
@@ -619,11 +587,7 @@ void TracePack::getState( unsigned int i_iState, TracePack::Registry &o_state ) 
 {
    #ifdef __DEBUG_TRACE_PACK
       if ( i_iState>=m_registries.size() )
-      {
-	 stringstream ss;
-	 ss << "TracePack::getState: index out of range " << i_iState << " >= " << m_registries.size();
-	 debug_error( ss.str() );
-      }
+	 cerr << "DEBUG_ERROR: TracePack::getState: index out of range " << i_iState << " >= " << m_registries.size() << endl;
    #endif
    list<TracePack::Registry>::const_iterator itReg = m_registries.begin();
    o_state = *itReg++;
@@ -634,11 +598,11 @@ void TracePack::getState( unsigned int i_iState, TracePack::Registry &o_state ) 
       o_state.apply( *itReg++ );
 }
 
-void TracePack::addState()
+void TracePack::addState( const cElCommand &i_command )
 {
    #ifdef __DEBUG_TRACE_PACK
       if ( !m_anchor.exists() )
-	 debug_error( (string)("TracePack::addState: directory [")+m_anchor.str_unix()+"] does not exist" );
+	 cerr << "DEBUG_ERROR: TracePack::addState: directory [" << m_anchor.str_unix() << "] does not exist" << endl;
    #endif
    
    if ( nbStates()==0 )
@@ -651,6 +615,7 @@ void TracePack::addState()
    
    Registry directoryState, lastState, diff;
    directoryState.stateDirectory( m_anchor );
+   directoryState.m_command = i_command;
       
    getState( nbStates()-1, lastState );
    diff.difference( lastState, directoryState );
@@ -674,11 +639,7 @@ const TracePack::Registry & TracePack::getRegistry( unsigned int i_iRegistry ) c
 {
    #ifdef __DEBUG_TRACE_PACK
       if ( i_iRegistry>=m_registries.size() )
-      {
-	 stringstream ss;
-	 ss << "TracePack::getRegistry: index " << i_iRegistry << " out of range (max:" << m_registries.size() << ')';
-	 debug_error( ss.str() );
-      }
+	 cerr << "DEBUG_ERROR: TracePack::getRegistry: index " << i_iRegistry << " out of range (max:" << m_registries.size() << ')' << endl;
    #endif
    list<Registry>::const_iterator itReg = m_registries.begin();
    while ( i_iRegistry-- ) itReg++;
@@ -693,9 +654,7 @@ bool TracePack::copyItemOnDisk( unsigned int i_iState, const cElFilename &i_item
    if ( pItem==NULL )
    {
       #ifdef __DEBUG_TRACE_PACK
-	 stringstream ss;
-	 ss << "TracePack::copyItemOnDisk: file [" << i_itemName.str_unix() << "] does not exist in state " << i_iState << " of pack [" << m_filename.str_unix() << ']';
-	 debug_error( ss.str() );
+	 cerr << "TracePack::copyItemOnDisk: file [" << i_itemName.str_unix() << "] does not exist in state " << i_iState << " of pack [" << m_filename.str_unix() << ']' << endl;
       #endif
       return false;
    }
@@ -743,19 +702,12 @@ void TracePack::setState( unsigned int i_iState )
    #ifdef __DEBUG_TRACE_PACK
       const unsigned int nbRegistries = nbStates();
       if ( i_iState>=nbRegistries )
-      {
-	 stringstream ss;
-	 ss << "TracePack::setState: state index " << i_iState << " out of range (" << nbRegistries << " registries" << (nbRegistries>1?'s':'\0') << " in pack [" << m_filename.str_unix() << "])";
-	 debug_error( ss.str() );
-      }
+	 cerr << "TracePack::setState: state index " << i_iState << " out of range (" << nbRegistries << " registries" 
+	      << (nbRegistries>1?'s':'\0') << " in pack [" << m_filename.str_unix() << "])" << endl;
    #endif
    #ifdef __DEBUG_TRACE_PACK
       if ( !ELISE_fp::IsDirectory( m_anchor.str_unix() ) )
-      {
-	 stringstream ss;
-	 ss << "TracePack::setState: destination directory [" << m_anchor.str_unix() << "] does not exist";
-	 debug_error( ss.str() );
-      }
+	 cerr << "DEBUG_ERROR: TracePack::setState: destination directory [" << m_anchor.str_unix() << "] does not exist" << endl;
    #endif
    
    Registry refReg, dirReg, dir_to_ref;
@@ -778,9 +730,7 @@ bool write_file( const cElFilename &i_filenameIn, ostream &io_fOut, unsigned int
    if ( !fIn )
    {
       #ifdef __DEBUG_TRACE_PACK
-	 stringstream ss;
-	 ss << "write_file: unable to open [" << i_filenameIn.str_unix() << "] for reading" << endl;
-	 debug_error( ss.str() );
+	 cerr << "DEBUG_ERROR: write_file: unable to open [" << i_filenameIn.str_unix() << "] for reading" << endl;
       #endif
       return false;
    }
@@ -798,12 +748,12 @@ bool write_file( istream &io_fIn, ostream &io_fOut, unsigned int i_length )
       if ( buffer_size>remaining )
 	 io_fIn.read( buffer.data(), remaining );
       else
-	 io_fIn.read( buffer.data(), 1000000 );
+	 io_fIn.read( buffer.data(), buffer_size );
       streamsize nbRead = io_fIn.gcount();
       if ( nbRead<0 )
       {	 
 	 #ifdef __DEBUG_TRACE_PACK
-	    debug_error( "write_file: unable to read in input stream" );
+	    cerr <<  "DEBUG_ERROR: write_file: unable to read in input stream" << endl;
 	 #endif
 	 return false;
       }
@@ -813,11 +763,7 @@ bool write_file( istream &io_fIn, ostream &io_fOut, unsigned int i_length )
    
    #ifdef __DEBUG_TRACE_PACK
       if ( remaining!=0 )
-      {
-	 stringstream ss;
-	 ss << "write_file: " << remaining << " bytes needs to be read but end-of-file is reached";
-	 debug_error( ss.str() );
-      }
+	 cerr << "DEBUG_ERROR: write_file: " << remaining << " bytes needs to be read but end-of-file is reached" << endl;
    #endif
    
    return remaining==0;
@@ -848,4 +794,30 @@ ostream & operator <<( ostream &s, const cElDate &d )
               << setw(2) << setfill('0') << d.M() << '-'
 	      << setw(2) << setfill('0') << d.D() << ' '
 	      << d.H() );
+}
+
+bool load_script( const cElFilename &i_filename, std::list<cElCommand> &o_commands )
+{
+   ifstream f( i_filename.str_unix().c_str(), ios::binary );
+   if ( !f )
+   {
+      #ifdef __DEBUG_TRACE_PACK
+	 cerr << "DEBUG_ERROR: load_script: script file [" << i_filename.str_unix() << "] open for reading" << endl;
+      #endif
+      return false;
+   }
+   string line;
+   cElCommand cmd;
+   while ( !f.eof() )
+   {
+      // read a line in the script file
+      getline( f, line );
+      if ( line.length()!=0 && line[1]!='#' )
+      {
+	 // use the string to create a command with RawString tokens and add it to the list
+	 cmd.set_raw( line );	 
+	 o_commands.push_back( cmd );
+      }
+   }
+   return true;
 }
