@@ -19,9 +19,7 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
 
     _ui->OpenglLayout->setStyleSheet(style);
 
-    _ProgressDialog = new QProgressDialog("Loading files","Stop",0,0,this);
-    _ProgressDialog->setMinimum(0);
-    _ProgressDialog->setMaximum(100);
+    _ProgressDialog = new QProgressDialog("Loading files","Stop",0,100,this);
 
     connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog,SLOT(cancel()));
 
@@ -36,7 +34,6 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
     for (int aK = 0; aK < aNbFen.x;++aK)
         for (int bK = 0; bK < aNbFen.y;++bK, cpt++)
             _layout->addWidget(getWidget(cpt), bK, aK);
-
 
     _signalMapper = new QSignalMapper (this);
     connectActions();
@@ -58,7 +55,7 @@ void MainWindow::connectActions()
 {
     for (uint aK = 0; aK < NbWidgets();++aK)
     {
-        connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
+        connect(getWidget(aK), SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
         connect(getWidget(aK), SIGNAL(selectedPoint(uint,uint,bool)),this,SLOT(selectedPoint(uint,uint,bool)));
     }
 
@@ -105,17 +102,17 @@ void MainWindow::createMenus()
 
 void MainWindow::setPostFix(QString str)
 {
-   _Engine->setPostFix("_" + str);
+    _Engine->setPostFix("_" + str);
 }
 
 void MainWindow::setNbFen(QPoint nb)
 {
-   _nbFen = nb;
+    _nbFen = nb;
 }
 
 void MainWindow::setSzFen(QPoint sz)
 {
-   _szFen = sz;
+    _szFen = sz;
 }
 
 void MainWindow::progression()
@@ -414,8 +411,6 @@ void MainWindow::on_actionRemove_triggered()
 
 void MainWindow::on_actionUndo_triggered()
 {   
-
-    // WHY????
     if (_bMode2D)    
         CurrentWidget()->setGLData(_Engine->getGLData(CurrentWidgetIdx()),_ui->actionShow_messages,false);
 
@@ -513,14 +508,14 @@ void MainWindow::on_actionLoad_camera_triggered()
 
 void MainWindow::on_actionLoad_image_triggered()
 {
-    QString img_filename = QFileDialog::getOpenFileName(NULL, tr("Open Image File"),QString(), tr("File (*.*)"));
+    QString filename = QFileDialog::getOpenFileName(NULL, tr("Open Image File"),QString(), tr("File (*.*)"));
 
-    if (!img_filename.isEmpty())
+    if (!filename.isEmpty())
     {
         _FilenamesIn.clear();
-        _FilenamesIn.push_back(img_filename);
+        _FilenamesIn.push_back(filename);
 
-        setCurrentFile(img_filename);
+        setCurrentFile(filename);
 
         addFiles(_FilenamesIn);
     }
@@ -656,5 +651,3 @@ void  MainWindow::setGamma(float aGamma)
 {
     _Engine->setGamma(aGamma);
 }
-
-

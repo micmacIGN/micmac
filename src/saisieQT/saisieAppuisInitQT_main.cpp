@@ -12,8 +12,8 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
         argc--;
     }
 
-    Pt2di aSzW(800,800);
-    Pt2di aNbFen(3,2);
+    Pt2di aSzW(800,600);
+    Pt2di aNbFen(1,1);
     string aFullName, aDir, aName, aNamePt, aNameOri, aNameOut, aNameAuto, aPrefix2Add;
     aNameAuto = "NONE";
     aPrefix2Add = "";
