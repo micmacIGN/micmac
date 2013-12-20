@@ -7,7 +7,7 @@ cData::cData()
 
 cData::~cData()
 {
-  clearAll();
+    clearAll();
 }
 
 void cData::addCloud(Cloud * aCloud)
@@ -20,8 +20,7 @@ void cData::addCamera(CamStenope * aCam)
     _Cameras.push_back(aCam);
 }
 
-
-void cData::PushBackMaskedImage(QMaskedImage maskedImage)
+void cData::pushBackMaskedImage(QMaskedImage maskedImage)
 {
     _MaskedImages.push_back(maskedImage);
 }
@@ -59,12 +58,11 @@ void cData::clearAll()
 
 void cData::reset()
 {
-    m_min.x = m_min.y = m_min.z =  FLT_MAX;
-    m_max.x = m_max.y = m_max.z = -FLT_MAX;
-    _center = Pt3dr(0.f,0.f,0.f);
+    _min.x = _min.y = _min.z =  FLT_MAX;
+    _max.x = _max.y = _max.z = -FLT_MAX;
 }
 
-int cData::getSizeClouds()
+int cData::getCloudsSize()
 {
     int sizeClouds = 0;
     for (int aK=0; aK < getNbClouds();++aK)
@@ -74,10 +72,8 @@ int cData::getSizeClouds()
 }
 
 //compute bounding box
-void cData::getBB()
+void cData::computeBBox()
 {  
-
-    //compute cloud bounding box
     for (uint bK=0; bK < _Clouds.size();++bK)
     {
         Cloud * aCloud = _Clouds[bK];
@@ -86,16 +82,15 @@ void cData::getBB()
         {
             Pt3dr vert = aCloud->getVertex(aK).getPosition();
 
-            if (vert.x > m_max.x) m_max.x = vert.x;
-            if (vert.x < m_min.x) m_min.x = vert.x;
-            if (vert.y > m_max.y) m_max.y = vert.y;
-            if (vert.y < m_min.y) m_min.y = vert.y;
-            if (vert.z > m_max.z) m_max.z = vert.z;
-            if (vert.z < m_min.z) m_min.z = vert.z;
+            if (vert.x > _max.x) _max.x = vert.x;
+            if (vert.x < _min.x) _min.x = vert.x;
+            if (vert.y > _max.y) _max.y = vert.y;
+            if (vert.y < _min.y) _min.y = vert.y;
+            if (vert.z > _max.z) _max.z = vert.z;
+            if (vert.z < _min.z) _min.z = vert.z;
         }
     }
 
-    //compute "cameras and clouds" global bounding box
     for (uint  cK=0; cK < _Cameras.size();++cK)
     {
         CamStenope * aCam= _Cameras[cK];
@@ -113,20 +108,25 @@ void cData::getBB()
         {
             Pt3dr C = vert[aK];
 
-            if (C.x > m_max.x) m_max.x = C.x;
-            if (C.x < m_min.x) m_min.x = C.x;
-            if (C.y > m_max.y) m_max.y = C.y;
-            if (C.y < m_min.y) m_min.y = C.y;
-            if (C.z > m_max.z) m_max.z = C.z;
-            if (C.z < m_min.z) m_min.z = C.z;
+            if (C.x > _max.x) _max.x = C.x;
+            if (C.x < _min.x) _min.x = C.x;
+            if (C.y > _max.y) _max.y = C.y;
+            if (C.y < _min.y) _min.y = C.y;
+            if (C.z > _max.z) _max.z = C.z;
+            if (C.z < _min.z) _min.z = C.z;
         }
     }
+}
 
-    // compute BB center
-    _center.x = (m_min.x + m_max.x) * .5f;
-    _center.y = (m_min.y + m_max.y) * .5f;
-    _center.z = (m_min.z + m_max.z) * .5f;
+// compute BBox center
+Pt3dr cData::getBBoxCenter()
+{
+    return Pt3dr((_min.x + _max.x) * .5f, (_min.y + _max.y) * .5f, (_min.z + _max.z) * .5f);
+}
 
-    m_diam = max(m_max.x-m_min.x, max(m_max.y-m_min.y, m_max.z-m_min.z));
+// compute BB max size
+float cData::getBBoxMaxSize()
+{
+    return max(_max.x-_min.x, max(_max.y-_min.y, _max.z-_min.z));
 }
 
