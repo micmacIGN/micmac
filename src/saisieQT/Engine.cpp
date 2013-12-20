@@ -479,11 +479,8 @@ void cGLData::draw()
     for (int i=0; i<Clouds.size();i++)
         Clouds[i]->draw();
 
-    if (pBall->isVisible())
-        pBall->draw();
-    else if (pAxis->isVisible())
-        pAxis->draw();
-
+    pBall->draw();
+    pAxis->draw();
     pBbox->draw();
 
     //cameras
