@@ -19,9 +19,7 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
 
     _ui->OpenglLayout->setStyleSheet(style);
 
-    _ProgressDialog = new QProgressDialog("Loading files","Stop",0,0,this);
-    _ProgressDialog->setMinimum(0);
-    _ProgressDialog->setMaximum(100);
+    _ProgressDialog = new QProgressDialog("Loading files","Stop",0,100,this);
 
     connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog,SLOT(cancel()));
 
@@ -36,7 +34,6 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
     for (int aK = 0; aK < aNbFen.x;++aK)
         for (int bK = 0; bK < aNbFen.y;++bK, cpt++)
             _layout->addWidget(getWidget(cpt), bK, aK);
-
 
     _signalMapper = new QSignalMapper (this);
     connectActions();
@@ -206,8 +203,6 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
     }
-
-    this->setWindowState(Qt::WindowActive); // ????
 }
 
 void MainWindow::on_actionFullScreen_toggled(bool state)
@@ -239,13 +234,11 @@ void MainWindow::on_actionShow_axis_toggled(bool state)
 {
     if (!_bMode2D)
     {
-        GLWidget *widget = CurrentWidget();
-
-        widget->showAxis(state);
+        CurrentWidget()->showAxis(state);
 
         if (state)
         {
-            widget->showBall(!state);
+            CurrentWidget()->showBall(!state);
             _ui->actionShow_ball->setChecked(!state);
         }
     }
@@ -264,10 +257,10 @@ void MainWindow::on_actionShow_messages_toggled(bool state)
 
 void MainWindow::on_actionToggleMode_toggled(bool mode)
 {
-    GLWidget *widget = CurrentWidget();
-
     if (!_bMode2D)
     {
+        GLWidget *widget = CurrentWidget();
+
         widget->setInteractionMode(mode ? GLWidget::SELECTION : GLWidget::TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
 
         widget->showBall(mode ? GLWidget::TRANSFORM_CAMERA : GLWidget::SELECTION && _Engine->getData()->isDataLoaded());
@@ -361,9 +354,7 @@ void MainWindow::on_actionAdd_triggered()
 
 void MainWindow::on_actionSelect_none_triggered()
 {
-    GLWidget *widget = CurrentWidget();
-    widget->Select(NONE);
-    widget->clearPolyline();
+    CurrentWidget()->Select(NONE);
 }
 
 void MainWindow::on_actionInvertSelected_triggered()
@@ -444,7 +435,6 @@ void MainWindow::on_actionReset_view_triggered()
     CurrentWidget()->resetView();
 }
 
-//zoom
 void MainWindow::on_actionZoom_Plus_triggered()
 {
     CurrentWidget()->setZoom(CurrentWidget()->getZoom()*1.5f);
@@ -467,18 +457,12 @@ void MainWindow::zoomFactor(int aFactor)
 
 void MainWindow::on_actionLoad_plys_triggered()
 {
-    QStringList filenames = QFileDialog::getOpenFileNames(NULL, tr("Open Cloud Files"),QString(), tr("Files (*.ply)"));
-
-    if (!filenames.empty())
-        addFiles(filenames);
+    addFiles(QFileDialog::getOpenFileNames(NULL, tr("Open Cloud Files"),QString(), tr("Files (*.ply)")));
 }
 
 void MainWindow::on_actionLoad_camera_triggered()
 {
-    QStringList filenames = QFileDialog::getOpenFileNames(NULL, tr("Open Camera Files"),QString(), tr("Files (*.xml)"));
-
-    if (!filenames.empty())
-        addFiles(filenames);
+    addFiles(QFileDialog::getOpenFileNames(NULL, tr("Open Camera Files"),QString(), tr("Files (*.xml)")));
 }
 
 void MainWindow::on_actionLoad_image_triggered()
@@ -540,7 +524,7 @@ void MainWindow::openRecentFile()
 
 void MainWindow::setCurrentFile(const QString &fileName)
 {
-    // Rafraichi le menu des fichiers récents
+    // Rafraichit le menu des fichiers récents
     _curFile = fileName;
     setWindowFilePath(_curFile);
 

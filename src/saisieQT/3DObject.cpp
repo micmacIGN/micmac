@@ -630,23 +630,26 @@ void cPolygon::removePoint(int i)
 
 void cPolygon::findClosestPoint(QPointF const &pos)
 {
-    _idx = -1;
-    float dist, dist2, x, y, dx, dy;
-    dist2 = _sqr_radius;
-    x = pos.x();
-    y = pos.y();
-
-    for (int aK = 0; aK < _points.size(); ++aK)
+    if (_bPolyIsClosed)
     {
-        dx = x - _points[aK].x();
-        dy = y - _points[aK].y();
+        _idx = -1;
+        float dist, dist2, x, y, dx, dy;
+        dist2 = _sqr_radius;
+        x = pos.x();
+        y = pos.y();
 
-        dist = dx * dx + dy * dy;
-
-        if  (dist < dist2)
+        for (int aK = 0; aK < _points.size(); ++aK)
         {
-            dist2 = dist;
-            _idx = aK;
+            dx = x - _points[aK].x();
+            dy = y - _points[aK].y();
+
+            dist = dx * dx + dy * dy;
+
+            if  (dist < dist2)
+            {
+                dist2 = dist;
+                _idx = aK;
+            }
         }
     }
 }
@@ -693,9 +696,6 @@ void cPolygon::finalMovePoint(QPointF pos)
 
         resetSelectedPoint();
     }
-
-    if (_bPolyIsClosed) // recherche de points le plus proche
-        findClosestPoint(pos);
 }
 
 

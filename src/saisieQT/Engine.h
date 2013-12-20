@@ -118,9 +118,6 @@ public:
 
     bool        is3D(){return Clouds.size() || Cams.size();}
 
-    // TODO a virer
-    bool        isDataLoaded(){return (!isImgEmpty()) || is3D();}
-
     cMaskedImageGL glMaskedImage;
 
     QImage      *pQMask;
