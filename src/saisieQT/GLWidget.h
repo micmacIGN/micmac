@@ -107,6 +107,8 @@ public:
     //! Switch between move mode and selection mode (only in 3D)
     void setInteractionMode(INTERACTION_MODE mode, bool showmessage);
 
+    bool getInteractionMode(){return m_interactionMode;}
+
     //! Shows axis or not
     void showAxis(bool show);
 

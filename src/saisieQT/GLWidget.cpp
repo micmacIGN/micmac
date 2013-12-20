@@ -96,7 +96,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 {
     m_GLData = aData;
 
-    if (m_GLData != NULL)
+    if (hasDataLoaded())
     {
         clearPolyline();
 
@@ -348,11 +348,6 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
 bool GLWidget::hasDataLoaded()
 {
     return (m_GLData == NULL) ? false : true;
-
-    /*if(m_GLData == NULL)
-        return false;
-    else
-        return true; *///m_GLData->isDataLoaded();
 }
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -527,8 +522,7 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
     GLdouble u[3]   = {0.0, 0.0, 0.0};
 
     switch (orientation)
-    {glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
+    {
     case TOP_VIEW:
         eye[2] = -1.0;
         top[1] =  1.0;
@@ -684,9 +678,11 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    if ( hasDataLoaded() && event->button() == Qt::LeftButton )
+    if ( event->button() == Qt::LeftButton && hasDataLoaded() )
     {
-        m_GLData->m_polygon.finalMovePoint(m_lastPosImage);
+        m_GLData->m_polygon.finalMovePoint(m_lastPosImage); //ne pas factoriser
+
+        m_GLData->m_polygon.findClosestPoint(m_lastPosImage);
 
         update();
     }
@@ -975,7 +971,6 @@ void GLWidget::Select(int mode, bool saveInfos)
         if (saveInfos)
         {
             selectInfos info;
-            //info.params = m_params;
             info.poly   = m_GLData->m_polygon.getVector();
             info.selection_mode   = mode;
 
