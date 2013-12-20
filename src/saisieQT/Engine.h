@@ -114,10 +114,9 @@ public:
 
     ~cGLData();
 
-    bool        is3D(){return Clouds.size() || Cams.size();}
+    void        draw();
 
-    // TODO a virer
-    bool        isDataLoaded(){return (!isImgEmpty()) || is3D();}
+    bool        is3D(){return Clouds.size() || Cams.size();}
 
     cMaskedImageGL glMaskedImage;
 
@@ -133,10 +132,6 @@ public:
     void        setPolygon(cPolygon const &aPoly){m_polygon = aPoly;}
 
     //3D
-
-    void        draw();
-
-    // rererededondondandan
     QVector < cCam* > Cams;
 
     cBall       *pBall;
@@ -146,11 +141,11 @@ public:
     QVector < Cloud* > Clouds;
 
     //info coming from cData
-    float       getBBHalfDiag(){return _diam;}
-    void        setBBHalfDiag(float aS){_diam = aS;}
+    float       getBBoxMaxSize(){return _diam;}
+    void        setBBoxMaxSize(float aS){_diam = aS;}
 
-    Pt3dr       getBBCenter(){return _center;}
-    void        setBBCenter(Pt3dr aCenter){_center = aCenter;}
+    Pt3dr       getBBoxCenter(){return _center;}
+    void        setBBoxCenter(Pt3dr aCenter){_center = aCenter;}
 
 private:
 

@@ -16,7 +16,7 @@ class cData
         void addCamera(CamStenope *);
         void addCloud(Cloud *);
 
-        void PushBackMaskedImage(QMaskedImage maskedImage);
+        void pushBackMaskedImage(QMaskedImage maskedImage);
 
         void clearCameras();
         void clearClouds();
@@ -38,19 +38,17 @@ class cData
 
         QMaskedImage&  getMaskedImage(int aK)   {return _MaskedImages[aK];}
 
-        void    getBB();
+        void    computeBBox();
 
-        int     getSizeClouds();
+        int     getCloudsSize();
 
-        Pt3dr   getCenter(){return _center;}
+        Pt3dr   getBBoxCenter();
+        Pt3dr   getMin(){return _min;}
+        Pt3dr   getMax(){return _max;}
 
-        float   getScale(){return m_diam;}
+        float   getBBoxMaxSize();
 
         void    reset();
-
-        //!Bounding box and diameter of all clouds
-        Pt3dr   m_min, m_max;
-        float   m_diam;
 
    private:
 
@@ -58,8 +56,7 @@ class cData
         vector <Cloud *>      _Clouds;
         vector<QMaskedImage>  _MaskedImages;
 
-        float                 _gamma;
-
-        Pt3dr                 _center;  // center of all clouds
+        //!Bounding box of all data
+        Pt3dr   _min, _max;
 };
 #endif // DATA_H
