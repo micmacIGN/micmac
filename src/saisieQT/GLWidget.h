@@ -63,6 +63,50 @@ struct MessageToDisplay
     MessagePosition position;
 };
 
+class c3DCamera
+{
+public:
+    c3DCamera();
+    ~c3DCamera();
+
+    GLdouble*   getModelViewMatrix(){return _mvMatrix;}
+    GLdouble*   getProjectionMatrix(){return _projMatrix;}
+    GLint*      getGLViewport(){return _glViewport;}
+
+    void        doProjection(QPointF point, float zoom);
+
+    void        orthoProjection();
+
+    void        scaleAndTranslate(float x, float y, float zoom);
+
+    GLdouble    mvMatrix(int i)     { return _mvMatrix[i];   }
+    GLdouble    projMatrix(int i)   { return _projMatrix[i]; }
+    GLint       VP(int i)           { return _glViewport[i]; }
+
+    void        setMatrices();
+
+    void        resetPosition(){m_glPosition[0] = m_glPosition[1] = 0.f;}
+
+    //! 3D point projection in viewport
+    void        getProjection(QPointF &P2D, Pt3dr P);
+
+    //! Project a point from window to image
+    QPointF     WindowToImage(const QPointF &pt, float zoom);
+
+    //! Project a point from image to window
+    QPointF     ImageToWindow(const QPointF &im, float zoom);
+
+    cPolygon    PolygonImageToWindow(cPolygon polygon, float zoom);
+
+    GLfloat     m_glPosition[2];
+
+private:
+    GLdouble    *_mvMatrix;
+    GLdouble    *_projMatrix;
+    GLint       *_glViewport;
+};
+
+
 class GLWidget : public QGLWidget
 {
     Q_OBJECT
@@ -73,7 +117,7 @@ public:
     GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared);
 
     //! Destructor
-    ~GLWidget();
+    ~GLWidget(){}
 
     //! Interaction mode (only in 3D)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
@@ -136,9 +180,6 @@ public:
     //! Undo all past selection actions
     void undoAll();
 
-    //! 3D point projection in viewport
-    void getProjection(QPointF &P2D, Pt3dr P);
-
     //! Get the selection infos stack
     QVector <selectInfos> getSelectInfos(){return _infos;}
 
@@ -160,8 +201,6 @@ public:
     cGLData* getGLData(){return m_GLData;}
 
     void setBackgroundColors(QColor const &col0, QColor const &col1);
-
-    cPolygon PolyImageToWindow(cPolygon polygon);
 
     int renderTextLine(MessageToDisplay messageTD, int x, int y, int sizeFont = 10);
 
@@ -188,7 +227,6 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
 
-
     //inherited from QWidget (drag & drop support)
     virtual void dragEnterEvent(QDragEnterEvent* event);
     virtual void dropEvent(QDropEvent* event);
@@ -198,12 +236,6 @@ protected:
     
     //! Draw selection polygon
     void drawPolygon();
-
-    //! Project a point from window to image
-    QPointF WindowToImage(const QPointF &pt);
-
-    //! Project a point from image to window
-    QPointF ImageToWindow(const QPointF &im);
 
     //! GL context aspect ratio (width/height)
     float m_glRatio;
@@ -229,7 +261,7 @@ protected:
     bool        m_bDisplayMode2D;
 
     //! data position in the gl viewport
-    GLfloat     m_glPosition[2];
+    //GLfloat     m_glPosition[2];
 
     QPointF     m_lastMoveImage;
     QPoint      m_lastClickZoom;
@@ -260,9 +292,7 @@ private:
     GLfloat     _g_glMatrix[16];
     QTime       _time;
 
-    GLdouble    *_mvmatrix;
-    GLdouble    *_projmatrix;
-    GLint       *_glViewport;
+    c3DCamera   _g_Cam;
 
     int         _idx;
 
