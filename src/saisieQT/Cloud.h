@@ -12,8 +12,6 @@
 
 #include "3DObject.h"
 
-using namespace std;
-
 namespace Cloud_
 {
     #define Vertex cObject

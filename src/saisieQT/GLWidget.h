@@ -85,7 +85,8 @@ public:
         \param pos message position on screen
     **/
     virtual void displayNewMessage(const QString& message,
-                                   MessagePosition pos = SCREEN_CENTER_MESSAGE);
+                                   MessagePosition pos = SCREEN_CENTER_MESSAGE,
+                                   QColor color = Qt::white);
 
     //! States if data (cloud, camera or image) is loaded
     bool hasDataLoaded();
@@ -120,12 +121,6 @@ public:
 
     //! Construct help messages
     void constructMessagesList(bool show);
-
-    //! Display help messages for selection mode
-    void displaySelectionMessages();
-
-    //! Display help messages for move mode
-    void displayMoveMessages();
 
     //! Apply selection to data
     void Select(int mode, bool saveInfos = true);

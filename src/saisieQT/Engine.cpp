@@ -187,7 +187,7 @@ void cEngine::loadClouds(QStringList filenames, int* incre)
         _Data->addCloud(_Loader->loadCloud(filenames[i].toStdString(), incre));
     }
 
-    _Data->getBB();
+    _Data->computeBBox();
 }
 
 void cEngine::loadCameras(QStringList filenames)
@@ -197,7 +197,7 @@ void cEngine::loadCameras(QStringList filenames)
         _Data->addCamera(_Loader->loadCamera(filenames[i]));
     }
 
-    _Data->getBB();
+    _Data->computeBBox();
 }
 
 void cEngine::loadImages(QStringList filenames)
@@ -216,7 +216,7 @@ void  cEngine::loadImage(QString imgName)
 
     _Loader->loadImage(imgName, maskedImg);
 
-    _Data->PushBackMaskedImage(maskedImg);
+    _Data->pushBackMaskedImage(maskedImg);
 }
 
 void cEngine::do3DMasks()
@@ -439,12 +439,12 @@ cGLData::cGLData(cData *data):
         pCloud->setBufferGl();
     }
 
-    Pt3dr center = data->getBBCenter();
-    float scale = data->m_diam / 1.5f;
+    Pt3dr center = data->getBBoxCenter();
+    float scale = data->getBBoxMaxSize() / 1.5f;
 
     pBall = new cBall(center, scale);
     pAxis = new cAxis(center, scale);
-    pBbox = new cBBox(center, scale, data->m_min, data->m_max);
+    pBbox = new cBBox(center, scale, data->getMin(), data->getMax());
 
     for (int i=0; i< data->getNbCameras(); i++)
     {
@@ -453,8 +453,8 @@ cGLData::cGLData(cData *data):
         Cams.push_back(pCam);
     }
 
-    setBBmaxSize(data->getBBmaxSize());
-    setBBCenter(data->getBBCenter());
+    setBBoxMaxSize(data->getBBoxMaxSize());
+    setBBoxCenter(data->getBBoxCenter());
 }
 
 cGLData::~cGLData()
