@@ -57,12 +57,15 @@ class cObjectGL : public cObject
 
         virtual void draw()=0;
 
+        void    setLineWidth(float width){_lineWidth = width;}
+
+        float   _lineWidth;
+
 protected:
 
         void enableOptionLine();
 
-        void disableOptionLine();
-
+        void disableOptionLine();        
 };
 
 class cCircle : public cObjectGL
@@ -73,10 +76,8 @@ class cCircle : public cObjectGL
 
         void    draw();
 
-        void    setLineWidth(float width){_lineWidth = width;}
-
     private:
-        float   _lineWidth;
+
         int     _dim;
 };
 
@@ -87,10 +88,7 @@ class cCross : public cObjectGL
 
         void    draw();
 
-        void    setLineWidth(float width){_lineWidth = width;}
-
     private:
-        float   _lineWidth;
         int     _dim;
 };
 
@@ -103,16 +101,12 @@ class cBall : public cObjectGL
 
         void    setPosition(Pt3dr const &aPt);
         Pt3dr   getPosition();
-        void    setColor(QColor const &aCol);
         void    setVisible(bool aVis);
         void    setScale(float aScale);
 
         void    draw();
 
-        void    setLineWidth(float width);
-
     private:
-        float   _lineWidth;
 
         cCircle *_cl0;
         cCircle *_cl1;
@@ -126,28 +120,20 @@ class cBall : public cObjectGL
 class cAxis : public cObjectGL
 {
     public:
-        cAxis(Pt3dr pt, float scale = 1.f);
+        cAxis(Pt3dr pt, float scale = 1.f, float lineWidth = 1.f);
 
         void    draw();
-
-        void    setLineWidth(float width){_lineWidth = width;}
-
-    private:
-        float   _lineWidth;
 };
 
 class cBBox : public cObjectGL
 {
     public:
-        cBBox(Pt3dr pt, float scale, Pt3dr min, Pt3dr max);
+        cBBox(Pt3dr pt, float scale, Pt3dr min, Pt3dr max, float lineWidth = 1.f);
 
         void    draw();
 
-        void    setLineWidth(float width){_lineWidth = width;}
-
         void set(Pt3d<double> min, Pt3d<double> max);
 private:
-        float   _lineWidth;
         Pt3dr   _min;
         Pt3dr   _max;
 };
@@ -155,15 +141,13 @@ private:
 class cCam : public cObjectGL
 {
     public:
-        cCam(CamStenope *pCam, float scale, bool isVisible = true);
+        cCam(CamStenope *pCam, float scale, bool isVisible = true, float lineWidth = 1.f);
 
         void    draw();
 
-        void    setLineWidth(float width){_lineWidth = width;}
         void    setpointSize(float size) {_pointSize = size;}
 
     private:
-        float   _lineWidth;
         float   _pointSize;
 
         CamStenope *_Cam;
@@ -187,7 +171,6 @@ class cPolygon : public cObjectGL
 
         void    removeClosestPoint(QPointF pos);
 
-        void    setLineWidth(float width){_lineWidth = width;}
         void    setpointSize(float size) {_pointSize = size;}
 
         void    add(QPointF const &pt){_points.push_back(pt);}
@@ -232,7 +215,6 @@ protected:
 
         QVector <QPointF>   _points;
         cPolygonHelper*     _helper;
-        float               _lineWidth;
         QColor              _lineColor;
         int                 _idx;
 

@@ -218,17 +218,6 @@ Pt3dr cBall::getPosition()
     return _cl0->getPosition();
 }
 
-void cBall::setColor(QColor const &aCol)
-{
-    _cl0->setColor(aCol);
-    _cl1->setColor(aCol);
-    _cl2->setColor(aCol);
-
-    _cr0->setColor(aCol);
-    _cr1->setColor(aCol);
-    _cr2->setColor(aCol);
-}
-
 void cBall::setVisible(bool aVis)
 {
     _bVisible = aVis;
@@ -253,11 +242,11 @@ void cBall::setScale(float aScale)
     _cr2->setScale(aScale);
 }
 
-cAxis::cAxis(Pt3dr pt, float scale):
-    _lineWidth(1.f)
+cAxis::cAxis(Pt3dr pt, float scale, float lineWidth)
 {
     _position = pt;
     _scale    = scale;
+    setLineWidth(lineWidth);
 }
 
 void cAxis::draw()
@@ -299,14 +288,15 @@ void cAxis::draw()
     }
 }
 
-cBBox::cBBox(Pt3dr pt, float scale, Pt3dr min, Pt3dr max):
-    _lineWidth(1.f)
+cBBox::cBBox(Pt3dr pt, float scale, Pt3dr min, Pt3dr max, float lineWidth)
 {
     _position = pt;
     _scale = scale;
     _min = min;
     _max = max;
+
     setColor(QColor("orange"));
+    setLineWidth(lineWidth);
 }
 
 void cBBox::set(Pt3dr min, Pt3dr max)
@@ -390,8 +380,7 @@ void cBBox::draw()
     }
 }
 
-cCam::cCam(CamStenope *pCam, float scale, bool isVisible) :
-    _lineWidth(1.f),
+cCam::cCam(CamStenope *pCam, float scale, bool isVisible, float lineWidth) :
     _pointSize(5.f),
     _Cam(pCam)
 {
@@ -399,6 +388,7 @@ cCam::cCam(CamStenope *pCam, float scale, bool isVisible) :
     _bVisible = isVisible;
 
     setColor(QColor("red"));
+    setLineWidth(lineWidth);
 }
 
 void cCam::draw()
@@ -472,7 +462,6 @@ void cCam::draw()
 
 cPolygon::cPolygon(float lineWidth, QColor lineColor, QColor pointColor, int style):
     _helper(new cPolygonHelper(this,lineWidth)),
-    _lineWidth(lineWidth),
     _lineColor(lineColor),
     _idx(-1),
     _pointSize(6.f),
@@ -482,10 +471,10 @@ cPolygon::cPolygon(float lineWidth, QColor lineColor, QColor pointColor, int sty
     _style(style)
 {
     setColor(pointColor);
+    setLineWidth(lineWidth);
 }
 
 cPolygon::cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style):
-    _lineWidth(lineWidth),
     _lineColor(lineColor),
     _idx(-1),
     _pointSize(6.f),
@@ -496,6 +485,7 @@ cPolygon::cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool w
 {
     if (!withHelper) _helper = NULL;
     setColor(pointColor);
+    setLineWidth(lineWidth);
 }
 
 void cPolygon::draw()
