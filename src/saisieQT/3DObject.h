@@ -11,6 +11,14 @@
 
 #include "GL/glu.h"
 
+#define QMaskedImage cMaskedImage<QImage>
+
+enum LINE_STYLE
+{
+    LINE_NOSTIPPLE,
+    LINE_STIPPLE
+};
+
 class cObject
 {
     public:
@@ -90,7 +98,7 @@ class cBall : public cObjectGL
 {
     public:
 
-        cBall(Pt3dr pt = Pt3dr(0.f,0.f,0.f), float scale = 1.f, float lineWidth = 1.f, bool isVis = false);
+        cBall(Pt3dr pt = Pt3dr(0.f,0.f,0.f), float scale = 1.f, bool isVis = true, float lineWidth = 1.f);
         ~cBall();
 
         void    setPosition(Pt3dr const &aPt);
@@ -118,7 +126,7 @@ class cBall : public cObjectGL
 class cAxis : public cObjectGL
 {
     public:
-        cAxis();
+        cAxis(Pt3dr pt, float scale = 1.f);
 
         void    draw();
 
@@ -131,29 +139,23 @@ class cAxis : public cObjectGL
 class cBBox : public cObjectGL
 {
     public:
-        cBBox();
-
-        void    set(float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
+        cBBox(Pt3dr pt, float scale, Pt3dr min, Pt3dr max);
 
         void    draw();
 
         void    setLineWidth(float width){_lineWidth = width;}
 
-    private:
+        void set(Pt3d<double> min, Pt3d<double> max);
+private:
         float   _lineWidth;
-        float   _minX;
-        float   _minY;
-        float   _minZ;
-        float   _maxX;
-        float   _maxY;
-        float   _maxZ;
+        Pt3dr   _min;
+        Pt3dr   _max;
 };
 
 class cCam : public cObjectGL
 {
     public:
-        cCam();
-        cCam(CamStenope *pCam);
+        cCam(CamStenope *pCam, float scale, bool isVisible = true);
 
         void    draw();
 
@@ -167,31 +169,30 @@ class cCam : public cObjectGL
         CamStenope *_Cam;
 };
 
+
+class cPolygonHelper;
+
 class cPolygon : public cObjectGL
 {
     public:
-        cPolygon();
-        cPolygon(const cPolygon&);
+
+        cPolygon(float lineWidth = 1.0f, QColor lineColor = Qt::green,  QColor pointColor = Qt::red,int style = LINE_NOSTIPPLE);
 
         void    draw();
-        void    drawDihedron();
 
         void    close();
 
         bool    isPointInsidePoly(const QPointF& P);
 
-        //!used for point insertion
-        void    fillDihedron(const QPointF &pos, cPolygon &dihedron);
-
-        //!used for point moving
-        void    fillDihedron2(const QPointF &pos, cPolygon &dihedron);
-
         void    findClosestPoint(const QPointF &pos);
+
+        void    removeClosestPoint(QPointF pos);
 
         void    setLineWidth(float width){_lineWidth = width;}
         void    setpointSize(float size) {_pointSize = size;}
 
-        void    add(QPointF const &pt){ _points.push_back(pt); }
+        void    add(QPointF const &pt){_points.push_back(pt);}
+        void    addPoint(QPointF const &pt);
 
         void    clear();
         void    clearPoints() {_points.clear();}
@@ -206,37 +207,72 @@ class cPolygon : public cObjectGL
 
         cPolygon & operator = (const cPolygon &);
 
-        void    insert( int i, const QPointF & value );
+        void    insertPoint( int i, const QPointF & value );
 
-        void    remove ( int i );
+        void    insertPoint();
+
+        void    removePoint( int i );
 
         QVector <QPointF> const getVector(){ return _points; }
         void setVector(QVector <QPointF> const &aPts){ _points = aPts; }
 
         int     idx(){return _idx;}
 
-        void    clicked(){_click++;}
-        int     click(){return _click;}
-        void    resetClick(){_click=0;}
+        void    setPointSelected(){_bSelectedPoint = true;}
+        bool    isPointSelected(){return _bSelectedPoint;}
+        void    resetSelectedPoint(){_bSelectedPoint = false;}
+
+        cPolygonHelper* helper() {return _helper;}
+
+        void    refreshHelper(QPointF pos, bool insertMode);
+
+        void    finalMovePoint(QPointF pos);
+
+protected:
+        cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
+
+        QVector <QPointF>   _points;
+        cPolygonHelper*     _helper;
+        float               _lineWidth;
+        QColor              _lineColor;
+        int                 _idx;
 
 private:
-        float               _lineWidth;
         float               _pointSize;
         float               _sqr_radius;
 
+        //!states if polygon is closed
         bool                _bPolyIsClosed;
 
-        int                 _idx;
+        //!states if point with index _idx is selected
+        bool                _bSelectedPoint;
 
-        int                 _click;
-
-        QVector <QPointF>   _points;
+        int                 _style;
 };
+
+class cPolygonHelper : public cPolygon
+{
+
+public:
+
+    cPolygonHelper(cPolygon* polygon,float lineWidth, QColor lineColor = Qt::blue,  QColor pointColor = Qt::blue);
+
+    void   fill(const QPointF &pos);
+
+    void   fill2(const QPointF &pos);
+
+    void   SetPoints(QPointF p1, QPointF p2, QPointF p3);
+
+private:
+
+    cPolygon* _polygon;
+};
+#include <QGLShaderProgram>
 
 class cImageGL : public cObjectGL
 {
     public:
-        cImageGL();
+        cImageGL(float gamma = 1.0f);
         ~cImageGL();
 
         void    draw(QColor color);
@@ -258,7 +294,19 @@ class cImageGL : public cObjectGL
         int     width()  {return _size.width();}
         int     height() {return _size.height();}
 
+        void    setGamma(float gamma){_gamma = (gamma >= 0) ? gamma : 0;}
+
+        float   getGamma(){ return _gamma;}
+
+        void    incGamma(float dgamma){setGamma(_gamma + dgamma);}
+
 private:
+
+        QGLShaderProgram _program;
+
+        int     _matrixLocation;
+        int     _texLocation  ;
+        int     _gammaLocation;
 
         GLfloat _originX;
         GLfloat _originY;
@@ -269,26 +317,56 @@ private:
 
         //! Texture image
         GLuint  _texture;
+        float   _gamma;
 
 };
 
-class cMaskedImageGL : public cObjectGL
+template<class T>
+class cMaskedImage
 {
 
 public:
 
-    cMaskedImageGL():
+    cMaskedImage(float gamma = 1.0f):
         _m_image(NULL),
-        _m_mask(NULL)
+        _m_mask(NULL),
+        _m_newMask(true),
+        _gamma(gamma)
     {}
 
+    ~cMaskedImage()
+    {}
+
+    void deallocImages()
+    {
+        if(_m_image != NULL) delete _m_image;
+        if(_m_mask != NULL) delete _m_mask;
+    }
+
+    T           *_m_image;
+    T           *_m_mask;
+
+    bool        _m_newMask;
+    float       _gamma;
+
+};
+
+class cMaskedImageGL : public cMaskedImage<cImageGL>, public cObjectGL
+{
+
+public:
+
+    cMaskedImageGL(){}
+
+    cMaskedImageGL(QMaskedImage &qMaskedImage);
+
+    void SetDimensions(float h,float w)
+    {
+        _m_image->setDimensions(h,w);
+        _m_mask->setDimensions(h,w);
+    }
+
     void draw();
-    cImageGL    *_m_image;
-    cImageGL    *_m_mask;
-
-//private:
-
-
 
 };
 

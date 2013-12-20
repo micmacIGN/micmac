@@ -64,6 +64,8 @@ class cImaMM
        Pt3dr        mC3;
        Pt2dr        mC2;
        Tiff_Im  &   Tiff();
+       std::list<cImaMM*> mVois;
+       std::string PatternOfVois(bool IncludeThis) const;
     private :
        cAppliWithSetImage &  mAppli;
        Tiff_Im  *            mPtrTiff;
@@ -80,6 +82,8 @@ class cAppliWithSetImage
       void operator()(cImaMM*,cImaMM*,bool);   // Delaunay call back
    protected :
       cAppliWithSetImage(int argc,char ** argv,int aFlag);
+
+      void FilterImageIsolated();
       void Develop(bool EnGray,bool En16B);
 
       static const int  FlagDev8BGray   = 1;

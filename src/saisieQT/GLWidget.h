@@ -38,6 +38,31 @@ enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
                          RIGHT_VIEW     /**< Right view **/
 };
 
+//! Default message positions on screen
+enum MessagePosition {  LOWER_LEFT_MESSAGE,
+                        LOWER_RIGHT_MESSAGE,
+                        LOWER_CENTER_MESSAGE,
+                        UPPER_CENTER_MESSAGE,
+                        SCREEN_CENTER_MESSAGE
+};
+
+//! Temporary Message to display
+struct MessageToDisplay
+{
+    MessageToDisplay():
+        color(Qt::white)
+    {}
+
+    //! Message
+    QString message;
+
+    //! Color
+    QColor color;
+
+    //! Message position on screen
+    MessagePosition position;
+};
+
 class GLWidget : public QGLWidget
 {
     Q_OBJECT
@@ -50,18 +75,9 @@ public:
     //! Destructor
     ~GLWidget();
 
-    bool eventFilter(QObject* object, QEvent* event);
-
     //! Interaction mode (only in 3D)
     enum INTERACTION_MODE { TRANSFORM_CAMERA,
                             SELECTION
-    };
-
-    //! Default message positions on screen
-    enum MessagePosition {  LOWER_LEFT_MESSAGE,
-                            LOWER_CENTER_MESSAGE,
-                            UPPER_CENTER_MESSAGE,
-                            SCREEN_CENTER_MESSAGE
     };
 
     //! Displays a status message
@@ -71,18 +87,8 @@ public:
     virtual void displayNewMessage(const QString& message,
                                    MessagePosition pos = SCREEN_CENTER_MESSAGE);
 
-    void updateAfterSetData();
-    void updateAfterSetData(bool doZoom);
-
     //! States if data (cloud, camera or image) is loaded
-    bool hasDataLoaded(){
-
-        if(m_GLData == NULL)
-            return false;
-        else
-            return m_GLData->isDataLoaded();
-
-    }
+    bool hasDataLoaded();
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
@@ -98,7 +104,7 @@ public:
     void zoomFactor(int percent);
 
     //! Switch between move mode and selection mode (only in 3D)
-    void setInteractionMode(INTERACTION_MODE mode);
+    void setInteractionMode(INTERACTION_MODE mode, bool showmessage);
 
     //! Shows axis or not
     void showAxis(bool show);
@@ -109,14 +115,11 @@ public:
     //! Shows cams or not
     void showCams(bool show);
 
-    //! Shows help messages or not
-    void showMessages(bool show);
-
     //! Shows bounding box or not
     void showBBox(bool show);
 
-    //! States if help messages should be displayed
-    bool showMessages(){return m_bDrawMessages;}
+    //! Construct help messages
+    void constructMessagesList(bool show);
 
     //! Display help messages for selection mode
     void displaySelectionMessages();
@@ -124,23 +127,23 @@ public:
     //! Display help messages for move mode
     void displayMoveMessages();
 
-    //! Select points with polyline
-    void Select(int mode);
-
-    void Select(int mode, bool saveInfos);
+    //! Apply selection to data
+    void Select(int mode, bool saveInfos = true);
 
     //! Delete current polyline
     void clearPolyline();
 
-    //!Undo last action
+    //! Undo last action
     void undo();
 
-     //! Undo all past selection actions
+    //! Undo all past selection actions
     void undoAll();
 
+    //! 3D point projection in viewport
     void getProjection(QPointF &P2D, Pt3dr P);
 
-    QVector <selectInfos> getSelectInfos(){return m_infos;}
+    //! Get the selection infos stack
+    QVector <selectInfos> getSelectInfos(){return _infos;}
 
     //! Avoid all past actions
     void reset();
@@ -148,33 +151,34 @@ public:
     //! Reset view
     void resetView();
 
+    //! Reset rotation matrix
     void resetRotationMatrix();
 
+    //! Reset translation matrix
     void resetTranslationMatrix();
 
-    ViewportParameters* getParams(){return &m_params;}
+    ViewportParameters* getParams(){return &_params;}
 
-//    void enableOptionLine();
-//    void disableOptionLine();
-
-    void setGLData(cGLData* aData);
+    void setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
     cGLData* getGLData(){return m_GLData;}
 
     void setBackgroundColors(QColor const &col0, QColor const &col1);
 
     cPolygon PolyImageToWindow(cPolygon polygon);
+
+    int renderTextLine(MessageToDisplay messageTD, int x, int y, int sizeFont = 10);
+
+    std::list<MessageToDisplay>::iterator GetLastMessage();
+
 public slots:
     void zoom();
 
-    //! called when receiving mouse wheel is rotated
     void onWheelEvent(float wheelDelta_deg);
 
 signals:
 
     //! Signal emitted when files are dropped on the window
     void filesDropped(const QStringList& filenames);
-
-    void selectedPoint(uint idCloud, uint idVertex,bool selected);
 
 protected:
     void resizeGL(int w, int h);
@@ -183,6 +187,10 @@ protected:
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
     void wheelEvent(QWheelEvent* event);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+
 
     //inherited from QWidget (drag & drop support)
     virtual void dragEnterEvent(QDragEnterEvent* event);
@@ -194,8 +202,10 @@ protected:
     //! Draw selection polygon
     void drawPolygon();
 
+    //! Project a point from window to image
     QPointF WindowToImage(const QPointF &pt);
 
+    //! Project a point from image to window
     QPointF ImageToWindow(const QPointF &im);
 
     //! GL context aspect ratio (width/height)
@@ -212,30 +222,11 @@ protected:
 
     bool m_bFirstAction;
 
-    bool m_bLastActionIsRightClick;
-
-    //! Temporary Message to display
-    struct MessageToDisplay
-    {
-        //! Message
-        QString message;
-        //! Message position on screen
-        MessagePosition position;
-    };
-
     //! List of messages to display
     list<MessageToDisplay> m_messagesToDisplay;
 
-    QString     m_messageFPS;
-
-    //! Viewport parameters (zoom, etc.)
-    ViewportParameters m_params;
-
     //! Data to display
     cGLData    *m_GLData;
-
-    //! selection infos stack
-    QVector <selectInfos> m_infos;
 
     //! states if display is 2D or 3D
     bool        m_bDisplayMode2D;
@@ -251,18 +242,19 @@ protected:
 
 private:
 
+    //! Window parameters (zoom, etc.)
+    ViewportParameters _params;
+
+    //! selection infos stack
+    QVector <selectInfos> _infos;
+
     void        setProjectionMatrix();
-    void        computeFPS();
+    void        computeFPS(MessageToDisplay &dynMess);
 
     int         _frameCount;
     int         _previousTime;
-    int         _currentTime;
+    int         _currentTime;    
 
-    float       _fps;
-
-    bool        _g_mouseLeftDown;
-    bool        _g_mouseMiddleDown;
-    bool        _g_mouseRightDown;
     GLfloat     _g_tmpoMatrix[9];
     GLfloat     _g_rotationOx[9];
     GLfloat     _g_rotationOy[9];
@@ -275,7 +267,6 @@ private:
     GLdouble    *_projmatrix;
     GLint       *_glViewport;
 
-    //bool        _bDataLoaded;
     int         _idx;
 
     GLWidgetSet* _parentSet;

@@ -104,7 +104,5 @@ int saisieMasqQT_main(QApplication &app)
     if (cmdline_args.size() > 0)
         w.addFiles(cmdline_args);
 
-    w.checkForLoadedData();
-
     return app.exec();
 }

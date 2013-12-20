@@ -40,11 +40,6 @@ public:
     //! Line width
     float m_LineWidth;
 
-    //! Rotation angles
-    float m_angleX;
-    float m_angleY;
-    float m_angleZ;
-
     //! Translation matrix
     float m_translationMatrix[3];
 
@@ -72,9 +67,9 @@ enum SELECTION_MODE { SUB,
                       NONE
                     };
 
-class cLoader : QObject   
+class cLoader
 {
-    Q_OBJECT
+
 public:
 
     cLoader();
@@ -83,7 +78,7 @@ public:
 
     Cloud*      loadCloud(string i_ply_file , int *incre = NULL);
 
-    void        loadImage(QString aNameFile, QImage* &aImg, QImage* &aImgMask);
+    void        loadImage(QString aNameFile, QMaskedImage &maskedImg);
 
     void        setDir(QDir aDir){_Dir = aDir;}
     QDir        getDir(){return _Dir;}
@@ -95,7 +90,6 @@ public:
 
     QStringList getFilenamesOut() {return _FilenamesOut;}
     QString     getSelectionFilename() {return _SelectionOut;}
-
 
     void        setPostFix(QString str);
 
@@ -109,33 +103,30 @@ private:
     QDir        _Dir;
 };
 
+// TODO a mettre dans object3d
 class cGLData : cObjectGL
 {
 public:
 
     cGLData();
+    cGLData(QMaskedImage &qMaskedImage);
+    cGLData(cData *data);
+
     ~cGLData();
 
-    void clear();
-
-    //bool        is2D(){return pImg != NULL;}
     bool        is3D(){return Clouds.size() || Cams.size();}
+
+    // TODO a virer
     bool        isDataLoaded(){return (!isImgEmpty()) || is3D();}
 
-
-    cMaskedImageGL maskedImage;
+    cMaskedImageGL glMaskedImage;
 
     QImage      *pQMask;
 
     //! Point list for polygonal selection
     cPolygon    m_polygon;
 
-    //! Point list for polygonal insertion
-    cPolygon    m_dihedron;
-
-    bool        isImgEmpty(){return maskedImage._m_image == NULL;}
-
-    bool        isMaskEmpty(){ return maskedImage._m_mask == NULL;}
+    bool        isImgEmpty(){return glMaskedImage._m_image == NULL;}
 
     QImage*     getMask(){return pQMask;}
 
@@ -145,6 +136,7 @@ public:
 
     void        draw();
 
+    // rererededondondandan
     QVector < cCam* > Cams;
 
     cBall       *pBall;
@@ -154,11 +146,11 @@ public:
     QVector < Cloud* > Clouds;
 
     //info coming from cData
-    float       getScale(){return _diam;}
-    void        setScale(float aS){_diam = aS;}
+    float       getBBHalfDiag(){return _diam;}
+    void        setBBHalfDiag(float aS){_diam = aS;}
 
-    Pt3dr       getCenter(){return _center;}
-    void        setCenter(Pt3dr aCenter){_center = aCenter;}
+    Pt3dr       getBBCenter(){return _center;}
+    void        setBBCenter(Pt3dr aCenter){_center = aCenter;}
 
 private:
 
@@ -206,7 +198,7 @@ public:
     void    unloadAll();
 
     //! Compute mask binary images: projection of visible points into loaded cameras
-    void    doMasks();
+    void    do3DMasks();
 
     //! Creates binary image from selection and saves
     void    doMaskImage(ushort idCur);
@@ -218,14 +210,14 @@ public:
     cData*  getData()  {return _Data;}
 
     //!looks for data and creates GLobjects
-    void    setGLData();
+    void    AllocAndSetGLData();
 
     //!sends GLObjects to GLWidget
     cGLData* getGLData(int WidgetIndex);
 
-    void    applyGammaToImage(int aK);
+    void     setGamma(float aGamma) {_Gamma = aGamma;}
 
-    void    setGamma(float aGamma) {_Gamma = aGamma;}
+    float    getGamma() { return _Gamma;}
 
 private:
 

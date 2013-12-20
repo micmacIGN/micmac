@@ -13,10 +13,10 @@
 #include "StdAfx.h"
 
 #if (ELISE_windows)
-   #include <Windows.h>
+	#include <Windows.h>
 #elif (ELISE_POSIX)
-   #include <unistd.h>
-   #include <sys/stat.h>
+	#include <unistd.h>
+	#include <sys/stat.h>
 #endif
 
 #include <vector>

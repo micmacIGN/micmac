@@ -209,6 +209,7 @@ Box2dr cCEM_OneIm::BoxIm2(const Pt2di & aSzIm2)
    return Box2dr(aP0,aP1);
 }
 
+static Pt2di PBUG(180,418);
 Im2D_U_INT1  cCEM_OneIm::ImAR()
 {
    Im2D_U_INT1 aRes(mSz.x,mSz.y,0);
@@ -222,6 +223,13 @@ Im2D_U_INT1  cCEM_OneIm::ImAR()
        {
            bool  Ok;
            Pt2dr aQ = AllerRetour(Pt2dr(aPIm),Ok);
+           if (0) // (aPIm==PBUG) 
+           {
+              std::cout << "OOkkkkk " << Ok << "\n";
+              Pt2dr aP2 =  ToIm2(Pt2dr(aPIm),Ok);
+              std::cout << "OOkkkkk2 " << Ok << aP2 << "\n";
+              std::cout << "OOkkkkk3 " <<  mConj->IsOK(round_ni(aP2)) << "\n";
+           }
            if (Ok)
            {
                double aRatio = euclid(Pt2dr(aPIm)-aQ) / aSigma;
@@ -233,28 +241,28 @@ Im2D_U_INT1  cCEM_OneIm::ImAR()
    if (0) 
    {
       ELISE_COPY(aRes.all_pts(),aRes.in(),VGray());
+      getchar();
    }
 
 
    return aRes;
 }
 
-void cCEM_OneIm::VerifProf(Im2D_Bits<1> aMasq)
+Im2D_REAL4  cCEM_OneIm::VerifProf(Im2D_Bits<1> aMasq)
 {
-/*
-    if (! mWin) return;
 
-    Im2D_REAL4 anIQG = ImageQualityGrad(ImPx(),aMasq);
+    Im2D_REAL4 anIQG = ImageQualityGrad(ImPx(),aMasq,mWin);
 
     if (mWin)
     {
-       ELISE_COPY(anIQG.all_pts(),Min(255,5*anIQG.in()),mWin->ogray());
-       Tiff_Im::Create8BFromFonc("QDM.tif",anIQG.sz(),Min(255,5*anIQG.in()));
+       ELISE_COPY(anIQG.all_pts(),Min(255,100*anIQG.in()),mWin->ogray());
 
        mWin->clik_in();
     }
 
-*/
+    return anIQG;
+
+/*
 
     Pt2di aSz =  aMasq.sz();
     Im2D_Bits<1> aImOut(aSz.x,aSz.y,1);
@@ -295,6 +303,7 @@ void cCEM_OneIm::VerifProf(Im2D_Bits<1> aMasq)
 
        mWin->clik_in();
     }
+*/
 }
 
 void cCEM_OneIm::VerifIm(Im2D_Bits<1> aMasq)
@@ -393,9 +402,12 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
     mStep     (1.0),
     mRegul    (0.5),
     mReduceM  (2.0),
-    mDoMasq   (false),
-    mDoMasqSym  (false),
+    mFinal    (false),
+    mImQualDepth (1,1),
+    mDoMasq      (false),
+    mDoMasqSym   (false),
     mUseAutoMasq   (true)
+    
     
 {
     ElInitArgMain
@@ -426,6 +438,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAM(mInParal,"InParal",true,"Run command in paral, Def=true, tunning")
                     << EAM(mCalledByP,"InternalCalledByP",true)
                     << EAM(mPostfixP,"InternalPostfixP",true)
+                    << EAM(mFinal,"ExpFin",true,"For final export (generate dirtosion indicator)")
    );	
 
    if (mVisu)
@@ -534,13 +547,20 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
          std::string aNameMasqGlob2 = mDir+ mPrefix +"_Masq2" + mPostfixP + ".tif";
          Tiff_Im aTifGlob = Tiff_Im::Create8BFromFonc(aNameGlob,mBoxIm1.sz(),0);
 
+         std::string aNameImDist = mDir+ mPrefix + "_ImDistor"  +mPostfixP + ".tif";
+
          Tiff_Im aTifMasq1 = aTifGlob;
          Tiff_Im aTifMasq2 = aTifGlob;
+         Tiff_Im aTifDist = aTifGlob;
          if (mDoMasq)
          {
              aTifMasq1 = Tiff_Im(aNameMasqGlob1.c_str(),mBoxIm1.sz(),GenIm::bits1_msbf,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
              if (mDoMasqSym)
                  aTifMasq2 = Tiff_Im(aNameMasqGlob2.c_str(),aSzIm2,GenIm::bits1_msbf,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
+         }
+         if (mFinal)
+         {
+             aTifDist = Tiff_Im(aNameImDist.c_str(),mBoxIm1.sz(),GenIm::u_int1,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
          }
          
          for (int aKB=0 ; aKB<int(aVBoxC.size()) ; aKB++)
@@ -558,6 +578,17 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
              );
              ELISE_fp::RmFile(aNameC);
 
+             if (mFinal)
+             {
+                 std::string aNamDistLoc =  mDir+ mPrefix + "_ImDistor" + aVBoxC[aKB].mPost + ".tif";
+                 ELISE_COPY
+                 (
+                    rectangle(aBoxOut._p0,aBoxOut._p1),
+                    trans(Tiff_Im::StdConv(aNamDistLoc).in(),-aBoxIn._p0),
+                    aTifDist.out()
+                 );
+                 ELISE_fp::RmFile(aNamDistLoc);
+             }
              if (mDoMasq)
              {
                  ELISE_COPY
@@ -636,10 +667,10 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
        if (mDoMasq)
        {
            double aMul = 20;
-           mReduce = 2.0;
+           // mReduce = 2.0;
 
            Pt2di aSz0 = anAR1.sz();
-           Pt2di aSzR = round_up(Pt2dr(aSz0)/mReduce);
+           Pt2di aSzR = round_up(Pt2dr(aSz0)/mReduceM);
            Im2D_REAL4  anArRed(aSzR.x,aSzR.y);
 
            Fonc_Num FScore = anAR1.in_proj();
@@ -647,7 +678,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
            ELISE_COPY
            (
                 anArRed.all_pts(),
-                StdFoncChScale_Bilin(FScore,Pt2dr(0,0),Pt2dr(mReduce,mReduce)),
+                StdFoncChScale_Bilin(FScore,Pt2dr(0,0),Pt2dr(mReduceM,mReduceM)),
                 anArRed.out()
            );
 
@@ -678,10 +709,18 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
            aCox->TopMaxFlowStd(aISol.data());
 
            Im2D_Bits<1> aMassFR(anAR1.sz().x,anAR1.sz().y);
-           ELISE_COPY(anAR1.all_pts(),aISol.in_proj()[Virgule(FX/mReduce,FY/mReduce)],aMassFR.out());
+           ELISE_COPY(anAR1.all_pts(),aISol.in_proj()[Virgule(FX/mReduceM,FY/mReduceM)],aMassFR.out());
 
 
-           mIm1->VerifProf(aMassFR);
+           if (mFinal)
+           {
+              mImQualDepth = mIm1->VerifProf(aMassFR);
+              Tiff_Im::Create8BFromFonc
+              (
+                  mDir+ mPrefix + "_ImDistor" + mPostfixP + ".tif",
+                  anAR1.sz(), Min(255,100*mImQualDepth.in())
+              );
+           }
 
            Tiff_Im::Create8BFromFonc
            (
@@ -724,7 +763,7 @@ void cCoherEpi_main::action(const  ElFifo<Pt2di> & aFil,bool ext)
     for (int aK=0 ; aK<aFil.nb() ; aK++)
     {
         bool Ok; 
-        Pt2dr aP2 = mIm1->ToIm2(Pt2dr(aFil[aK])*mReduce,Ok);
+        Pt2dr aP2 = mIm1->ToIm2(Pt2dr(aFil[aK])*mReduceM,Ok);
         if (Ok) 
         {
            aNbOk++;

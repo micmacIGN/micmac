@@ -52,14 +52,118 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 double SquareQualGrad(double aGx,double aGy)
 {
-   if (aGx <=-1) return MaxQualDM;
+   return ElSquare(aGx) + ElSquare(aGy) ;
+/*
+   
+   aGx  = ElMax(-0.66,ElMin(2.0,aGx));
+
+   // if (aGx <=-0.66) return MaxQualDM;
+
 
    double InvX = 1/(1+aGx);
 
    return ElSquare(aGx) + ElSquare(aGy) * (1+ElSquare(InvX)) +ElSquare(1-InvX);
+*/
 }
 
-Im2D_REAL4 ImageQualityGrad(Im2D_REAL4 aProf,Im2D_Bits<1> aMasq)
+Im2D_REAL4 ImageQualityGrad(Im2D_REAL4 aProfInit,Im2D_Bits<1> aMasq,Video_Win * aW,double aResol)
+{
+    Pt2di aSz = aProfInit.sz();
+    Im2D_REAL4 aRes(aSz.x,aSz.y);
+    Im2D_REAL4 aProf(aSz.x,aSz.y);
+    ELISE_COPY(aProf.all_pts(),aProfInit.in(),aProf.out());
+
+
+    TIm2D<REAL4,REAL8>   aTRes(aRes);
+    TIm2D<REAL4,REAL8>   aTProf(aProf);
+    TIm2DBits<1> aTM(aMasq);
+
+    if (0) // (aW)
+    {
+       // ELISE_COPY(aProf.all_pts(),mod(aProf.in(),256),aW->ogray()); aW->clik_in();
+       ELISE_COPY
+       (
+             aProf.all_pts(),
+             Min(255,30.0*Polar_Def_Opun::polar(deriche(aProf.in_proj(),1.0),0).v0()),
+             aW->ogray()
+        ); 
+        ELISE_COPY(select(aMasq.all_pts(),!aMasq.in()),P8COL::yellow,aW->odisc());
+        aW->clik_in();
+    }
+
+    double aMulG = 1;
+    MasqkedFilterGauss(aProf,aMasq,aResol,2);
+    Pt2di aP;
+    for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
+    {
+         for (aP.y=0 ; aP.y<aSz.y ; aP.y++)
+         {
+              double aSomGr = 0;
+              int aNbOk=0;
+              if (aTM.get(aP))
+              {
+                  double aV0 = aTProf.get(aP);
+                  for (int aSx=-1; aSx<=1 ; aSx++)
+                  {
+                      Pt2di aQx(aP.x+aSx,aP.y);
+                      if (aTM.get(aQx,0))
+                      {
+                          double aGx = (aTProf.get(aQx)-aV0) * aSx  * aMulG ;
+                          for (int aSy=-1; aSy<=1 ; aSy++)
+                          {
+                              Pt2di aQy(aP.x,aP.y+aSy);
+                              if (aTM.get(aQy,0))
+                              {
+                                  double aGy = (aTProf.get(aQy)-aV0) * aSy * aMulG ;
+                                  double aScore = SquareQualGrad(aGx,aGy);
+                                   // aScore = aGx;
+                                  aSomGr += aScore;
+                                  aNbOk++;
+                              }
+                          }
+                      }
+                  }
+              }
+              if (!aNbOk) 
+              {
+                 aTRes.oset(aP,MaxQualDM);
+              }
+              else 
+              {
+                 aTRes.oset(aP,sqrt(aSomGr/aNbOk));
+              }
+         }
+    }
+    if (0)//  (aW)
+    {
+        ELISE_COPY
+        (
+            aW->all_pts(),
+            // Min(255,aRes.in()*20),
+            Max(0,Min(255,aRes.in()*200)),
+            aW->ogray()
+        );
+        std::cout << "RESOL " <<  aResol << "\n";
+        aW->clik_in();
+    }
+
+    
+    return aRes;
+}
+
+Im2D_REAL4 ImageQualityGrad(Im2D_REAL4 aProf,Im2D_Bits<1> aMasq,Video_Win * aW)
+{
+   return ImageQualityGrad(aProf,aMasq,aW,4.0);
+/*
+   ImageQualityGrad(aProf,aMasq,aW,1.0);
+   ImageQualityGrad(aProf,aMasq,aW,2.0);
+   ImageQualityGrad(aProf,aMasq,aW,4.0);
+   ImageQualityGrad(aProf,aMasq,aW,8.0);
+   return ImageQualityGrad(aProf,aMasq,aW,1.0);
+*/
+}
+
+Im2D_REAL4 Fine_ImageQualityGrad(Im2D_REAL4 aProf,Im2D_Bits<1> aMasq,Video_Win *)
 {
      Pt2di aSz = aProf.sz();
      Im2D_REAL4 aRes(aSz.x,aSz.y);
@@ -103,8 +207,6 @@ Im2D_REAL4 ImageQualityGrad(Im2D_REAL4 aProf,Im2D_Bits<1> aMasq)
      }
      return aRes;
 }
-
-
 
 
 

@@ -158,20 +158,6 @@ static void DebugFileOpen(INT delta,const std::string & aName)
 	// cout << "-- Number Of File Opened = " << aEliseCptFileOpen << "\n";
 }
 
-
-
-#ifndef S_ISREG
-int S_ISREG(int v) { return v&_S_IFREG;}
-#endif
-
-#ifndef S_ISDIR
-int S_ISDIR(int v)
-{
-	return v&_S_IFDIR;
-}
-#endif
-
-
 bool ELISE_fp::MkDirSvp(const std::string & aName )
 {
 #if (ELISE_unix)

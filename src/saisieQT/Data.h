@@ -15,29 +15,28 @@ class cData
 
         void addCamera(CamStenope *);
         void addCloud(Cloud *);
-        void addImage(QImage *);
-        void addMask(QImage *);
+
+        void PushBackMaskedImage(QMaskedImage maskedImage);
 
         void clearCameras();
         void clearClouds();
         void clearImages();
-        void clearMasks();
+
+        void clearAll();
 
         bool isDataLoaded(){return getNbClouds()||getNbCameras() ||getNbImages();}
         bool is3D(){return getNbClouds()||getNbCameras();}
 
         int getNbCameras() {return _Cameras.size();}
         int getNbClouds()  {return _Clouds.size(); }
-        int getNbImages()  {return _Images.size(); }
-        int getNbMasks()   {return _Masks.size();  }
+        int getNbImages()  {return _MaskedImages.size(); }
 
         CamStenope *   getCamera(int aK) {return aK < (int)_Cameras.size() ? _Cameras[aK] : NULL;}
         Cloud *        getCloud(int aK)  {return aK < (int)_Clouds.size() ? _Clouds[aK] : NULL;  }
-        QImage *       getImage(int aK)  {return aK < (int)_Images.size() ? _Images[aK] : NULL;  }
-        QImage *       getMask(int aK)   {return aK < (int)_Masks.size() ? _Masks[aK] : NULL;    }
-        QImage *       getCurMask()      {return _Masks[getNbMasks()-1];}
+        QImage *       getImage(int aK)  {return aK < (int)_MaskedImages.size() ? ((QMaskedImage)_MaskedImages[aK])._m_image : NULL;  }
+        QImage *       getMask(int aK)   {return aK < (int)_MaskedImages.size() ? ((QMaskedImage)_MaskedImages[aK])._m_mask  : NULL;    }
 
-        void    fillMask(int aK){getMask(aK)->fill(Qt::white);}
+        QMaskedImage&  getMaskedImage(int aK)   {return _MaskedImages[aK];}
 
         void    getBB();
 
@@ -49,18 +48,15 @@ class cData
 
         void    reset();
 
-        void    applyGamma(float aGamma);
-        void    applyGammaToImage(int aK, float aGamma);
-
         //!Bounding box and diameter of all clouds
-        float   m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ, m_diam;
+        Pt3dr   m_min, m_max;
+        float   m_diam;
 
    private:
 
         vector <CamStenope *> _Cameras;
         vector <Cloud *>      _Clouds;
-        vector <QImage *>     _Images;
-        vector <QImage *>     _Masks;
+        vector<QMaskedImage>  _MaskedImages;
 
         float                 _gamma;
 

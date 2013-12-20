@@ -24,8 +24,6 @@ class MainWindow;
 const QColor colorBG0(65,65,60);
 const QColor colorBG1(120,115,115);
 
-
-
 class MainWindow : public QMainWindow, public GLWidgetSet
 {
     Q_OBJECT
@@ -33,9 +31,6 @@ class MainWindow : public QMainWindow, public GLWidgetSet
 public:
     explicit MainWindow( Pt2di aSzW, Pt2di aNbFen, bool mode2D = false, QWidget *parent = 0 );
     ~MainWindow();
-
-    //! Checks for loaded data
-    void checkForLoadedData();
 
     void setPostFix(QString str);
 
@@ -47,14 +42,9 @@ public slots:
     //! Try to load a list of files
     void addFiles(const QStringList& filenames);
 
-    void selectedPoint(uint idC,uint idV,bool select);
-
     void zoomFactor(int aFactor);
 
     void closeAll();
-
-    // A Mettre dans qglwidget
-    void echoMouseWheelRotate(float);
 
     void openRecentFile();
 

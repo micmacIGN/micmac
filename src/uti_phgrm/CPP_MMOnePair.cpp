@@ -86,6 +86,7 @@ class cMMOnePair
       Box2di           mBoxIm;
       bool             mPurge;
       std::string      mBascMTD;
+      bool             mRIE;
       std::string      mBascDEST;
       bool             mDoHom;
       int              mDegCorrEpip;
@@ -109,7 +110,8 @@ class cAppliMMOnePair : public cMMOnePair,
          void SymetriseMasqReentrant();
          void UseReentrant(bool First,int aStep,bool Last);
          void GenerateMTDEpip(bool MasterIs1);
-         void Bascule(bool MasterIs1);
+         void BasculeGround(bool MasterIs1);
+         void BasculeEpip(bool MasterIs1);
 
          cImaMM * mIm1;
          cImaMM * mIm2;
@@ -136,6 +138,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mDoMR         (true),
     mSigmaP       (1.5),
     mPurge        (true),
+    mRIE          (false),
     mBascDEST     ("Basculed-"),
     mDoHom        (false),
     mDegCorrEpip  (4),
@@ -161,6 +164,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mPurge,"Purge",true,"Purge directory, tuning, def=true")
                     << EAM(mMM1PInParal,"InParal",true,"Do it in paral, def=true")
                     << EAM(mBascMTD,"BascMTD",true,"Metadata of file to bascule (Def No Basc)")
+                    << EAM(mRIE,"RIE",true,",Inverse re-sampling from epipolar")
                     << EAM(mBascDEST,"BascMTD",true,"Res of Bascule (Def Basculed-)")
                     << EAM(mDoHom,"DoHom",true,"Do Hom in epolar (Def= false)")
                     << EAM(mDegCorrEpip,"DegCE",true,"Degree of epipolar correction when Qual Orient is not high (def=4)")
@@ -299,9 +303,11 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
 
               SauvMasqReentrant(true,aStep,aStep==mStepEnd);
               SauvMasqReentrant(false,aStep,aStep==mStepEnd);
-
+/*
+   BUGUEE et a priori inutile ...  BUGUEE CAR CREE DES TROU et pas appelle sauf en resol finale (ou ca cree des trous ...).
               if (mByEpip)
                  SymetriseMasqReentrant();
+*/
            }
 
 
@@ -315,15 +321,37 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
         }
     }
 
+    if (mRIE)
+    {
+       BasculeEpip(true);
+       BasculeEpip(false);
+    }
+
 
     if (EAMIsInit(&mBascMTD))
     {
-          Bascule(true);
-          Bascule(false);
+       BasculeGround(true);
+       BasculeGround(false);
     }
 }
 
-void cAppliMMOnePair::Bascule(bool MasterIs1)
+void cAppliMMOnePair::BasculeEpip(bool MasterIs1)
+{
+    std::string aNamInitA =  (MasterIs1 ? mNameIm1Init : mNameIm2Init);
+    std::string aNamInitB =  (MasterIs1 ? mNameIm2Init : mNameIm1Init);
+
+    std::string aCom =   MMBinFile(MM3DStr) + " TestLib RIE "
+                                            + aBlk + aNamInitA
+                                            + aBlk + aNamInitB
+                                            + aBlk + mNameOriInit
+                                            + aBlk + " Dir=" + mDir
+                       ;
+//  mm3d TestLib RIE MVxxxx_MAP_6937.NEF MVxxxx_MAP_6938.NEF Basc
+
+    System(aCom);
+}
+
+void cAppliMMOnePair::BasculeGround(bool MasterIs1)
 {
     std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
     std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
@@ -461,6 +489,11 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                           + " InParal="  + ToString(mMM1PInParal)
                       ;
 
+     if (aLast) 
+     {
+        aCom = aCom + " ExpFin=true ";
+     }
+
      System(aCom);
 }
 
@@ -476,6 +509,7 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                                ("AutoMask_LeChantier_Num_" + ToString(aStep-1)+".tif")           :
                                ("Masq_LeChantier_DeZoom" + ToString(mVZoom[aStep+1]) +  ".tif")  ;
      aNameCor =     mDir +  LocDirMec2Im(aNamA,aNamB) + aNameCor;
+
 
      Tiff_Im aFMCor(aNameCor.c_str());
      std::string aNameNew = aPref + "_Masq1_Glob.tif";
@@ -501,6 +535,11 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
            std::string aName = mDir + aPref + "_Glob.tif";
            std::string aDest = mDir + LocDirMec2Im(aNamA,aNamB) + "Score-AR.tif";
            ELISE_fp::MvFile(aName,aDest);
+
+           aName = mDir + aPref + "_ImDistor_Glob.tif";
+           aDest = mDir + LocDirMec2Im(aNamA,aNamB) + "Distorsion.tif";
+           ELISE_fp::MvFile(aName,aDest);
+
            ELISE_fp::RmFile(mDir + aPref + "*.tif");
 // LocDirMec2Im(aNamA,aNamB) 
      }
@@ -552,7 +591,7 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
               ;
      }
 
-     bool AddPly = (!ForMTD) && ((aStepF-1)== mStepEnd)  && (mDoPly) && (MasterIs1);
+     bool AddPly = (!ForMTD) && ((aStepF-1)== mStepEnd)  && (mDoPly); //  && (MasterIs1);
      if (AddPly)
      {
           aCom = aCom + " +DoPly=true " + " +ScalePly=" + ToString(mScalePly) +  " ";

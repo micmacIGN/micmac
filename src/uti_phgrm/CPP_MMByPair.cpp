@@ -38,6 +38,34 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+class cPatOfName
+{
+    public :
+       cPatOfName();
+       std::string Pattern() const;
+       void AddName(const std::string &);
+    private :
+        std::string mPat;
+        int mNb;
+};
+
+
+cPatOfName::cPatOfName() :
+    mPat ("\"(") ,
+    mNb (0)
+{
+}
+std::string cPatOfName::Pattern() const
+{
+   return mPat + ")\"";
+}
+
+void cPatOfName::AddName(const std::string & aName)
+{
+   if (mNb) mPat += "|";
+   mPat += aName;
+   mNb++;
+}
 
 
 class cAppliClipChantier : public cAppliWithSetImage
@@ -57,7 +85,10 @@ class cAppliMMByPair : public cAppliWithSetImage
       cAppliMMByPair(int argc,char ** argv);
       int Exe();
     private :
+      void DoMDTGround();
+      void DoMDTStatute();
       void DoMDT();
+
       void DoCorrelAndBasculeStd();
       void DoCorrelAndBasculeEpip();
       std::string MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 );
@@ -166,6 +197,17 @@ Tiff_Im  &   cImaMM::Tiff()
     return *mPtrTiff;
 }
 
+
+std::string cImaMM::PatternOfVois(bool IncludeThis) const
+{
+   cPatOfName aPON;
+   if (IncludeThis) aPON.AddName(mNameIm);
+
+   for (std::list<cImaMM*>::const_iterator itIM=mVois.begin() ; itIM!=mVois.end() ; itIM++)
+       aPON.AddName((*itIM)->mNameIm);
+   return aPON.Pattern();
+}
+
 /*****************************************************************/
 /*                                                               */
 /*                      cAppliWithSetImage                       */
@@ -237,6 +279,22 @@ int  cAppliWithSetImage::DeZoomOfSize(double aSz) const
     return 1 << aL2;
 }
 
+void cAppliWithSetImage::FilterImageIsolated()
+{
+   std::vector<cImaMM *> aRes;
+   for (int aK=0 ; aK<int(mImages.size()) ; aK++)
+   {
+       cImaMM* anIm = mImages[aK];
+       int aNbIm = anIm->mVois.size();
+
+
+       if (aNbIm>0)
+          aRes.push_back(anIm);
+   }
+
+
+   mImages = aRes;
+}
 
 
 const std::string & cAppliWithSetImage::Dir() const
@@ -315,7 +373,7 @@ void cAppliWithSetImage::AddDelaunayCple()
 void cAppliWithSetImage::AddCoupleMMImSec()
 {
       std::string aCom = MMDir() + "bin/mm3d AperoChImSecMM "
-                         + aBlank + mFullName 
+                         + aBlank + QUOTE(mFullName)
                          + aBlank + mOri;
       System(aCom);
       for (int aKI=0 ; aKI<int(mSetIm->size()) ; aKI++)
@@ -407,6 +465,8 @@ void cAppliWithSetImage::AddPairASym(cImaMM * anI1,cImaMM * anI2)
        return;
     
     mPairs.insert(aPair);
+
+    anI1->mVois.push_back(anI2);
 
     if (mShow)
        std::cout << "Add Pair " << anI1->mNameIm << " " << anI2->mNameIm << "\n";
@@ -698,8 +758,12 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
   if (mAddMMImSec)
      AddCoupleMMImSec();
 
+
+  FilterImageIsolated();
+
   mNbStep = round_ni(log2(mZoom0/double(mZoomF))) + 3 ;
 }
+
 
 void cAppliMMByPair::DoCorrelAndBasculeEpip()
 {
@@ -741,6 +805,9 @@ std::string cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
 
      if (mType == eGround)
        aMatchCom = aMatchCom + " BascMTD=MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml ";
+
+     if (mType == eStatute)
+       aMatchCom = aMatchCom + " RIE=true ";
 
       if (mDoPlyMM1P)
          aMatchCom = aMatchCom + " DoPly=true " + " ScalePly="  + ToString(mScalePlyMM1P) + " " ;
@@ -895,8 +962,30 @@ void cAppliMMByPair::DoFusion()
     System(aCom);
 }
 
-
 void cAppliMMByPair::DoMDT()
+{
+  if (mType==eStatute) DoMDTStatute();
+  if (mType==eGround)  DoMDTGround();
+}
+
+void cAppliMMByPair::DoMDTStatute()
+{
+   for (int aKI= 0 ; aKI<int(mImages.size() ) ; aKI++)
+   {
+        cImaMM & anIm = *(mImages[aKI]);
+        std::string aCom =     MMBinFile("MICMAC")
+                            +  XML_MM_File("MM-GenMTDFusionImage.xml")
+                            +  std::string(" WorkDir=") + mDir          + aBlank
+                            +  std::string(" +Ori=") + mOri + aBlank
+                            +  std::string(" +Zoom=")  + ToString(mZoomF)  + aBlank
+                            +  " +Im1=" +  anIm.mNameIm + aBlank
+                            +  " +PattVois=" +  anIm.PatternOfVois(true)  + aBlank
+                       ;
+         System(aCom);
+   }
+}
+
+void cAppliMMByPair::DoMDTGround()
 {
    std::string aCom =     MMBinFile("MICMAC")
                        +  XML_MM_File("MM-GenMTDNuage.xml")
@@ -955,7 +1044,7 @@ int cAppliMMByPair::Exe()
    {
       DoPyram();
    }
-   if (BoolFind(mDo,'M') && (mType == eGround))
+   if (BoolFind(mDo,'M') )
    {
       DoMDT();
    }

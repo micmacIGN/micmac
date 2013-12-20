@@ -29,24 +29,26 @@ set(CMAKE_AUTOMOC ON)
 
 set(saisie_SRCS saisieQT_main.cpp
                 saisieMasqQT_main.cpp
-				saisieAppuisInitQT_main.cpp
+                saisieAppuisInitQT_main.cpp
 	        GLWidget.cpp
 	        mainwindow.cpp
 	        Cloud.cpp
 	        Data.cpp
-	        Engine.cpp
+                Engine.cpp
             3DObject.cpp
 			GLWidgetSet.cpp)
 
 set(saisie_HEADERS saisieQT_main.h
-           GLWidget.h
+                   GLWidget.h
 		   mainwindow.h
 		   Cloud.h
 		   Engine.h
 		   Data.h
 		   3DObject.h
 		   3DTools.h
-		   GLWidgetSet.h)
+                   SaisieGlsl.glsl
+                   GLWidgetSet.h
+                   )
 
 SET(Saisie_RCS ./icones/icones.qrc)
 
@@ -69,7 +71,7 @@ include_directories( ${Qt5_INCLUDES}
 IF(WIN32)
         add_executable(SaisieQT WIN32 ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS_MOC})
 else()
-        add_executable(SaisieQT ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS_MOC})
+        add_executable(SaisieQT ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS} ${saisie_HEADERS_MOC})
 endif()
 
 qt5_use_modules(SaisieQT Widgets Core Gui Xml Concurrent OpenGL)

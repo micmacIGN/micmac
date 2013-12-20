@@ -7,15 +7,7 @@ cData::cData()
 
 cData::~cData()
 {
-    for (int aK=0; aK < getNbCameras();++aK) delete _Cameras[aK];
-    for (int aK=0; aK < getNbClouds();++aK)  delete _Clouds[aK];
-    for (int aK=0; aK < getNbImages();++aK)  delete _Images[aK];
-    for (int aK=0; aK < getNbMasks();++aK)   delete _Masks[aK];
-
-    _Cameras.clear();
-    _Clouds.clear();
-    _Images.clear();
-    _Masks.clear();
+  clearAll();
 }
 
 void cData::addCloud(Cloud * aCloud)
@@ -28,27 +20,15 @@ void cData::addCamera(CamStenope * aCam)
     _Cameras.push_back(aCam);
 }
 
-void cData::addImage(QImage * aImg)
-{
-    QImage *_glImg = NULL;
-    _glImg = new QImage(aImg->size(),aImg->format());
-    *_glImg = QGLWidget::convertToGLFormat( *aImg );
-    _Images.push_back(_glImg);
-}
 
-void cData::addMask(QImage * aImg)
+void cData::PushBackMaskedImage(QMaskedImage maskedImage)
 {
-    QImage *_glMask = NULL;
-    _glMask = new QImage(aImg->size(),aImg->format());
-    *_glMask = QGLWidget::convertToGLFormat( *aImg );
-    _Masks.push_back(_glMask);
+    _MaskedImages.push_back(maskedImage);
 }
 
 void cData::clearClouds()
 {
-    for (uint aK=0; aK < (uint)getNbClouds();++aK)
-        delete _Clouds[aK];
-
+    qDeleteAll(_Clouds);
     _Clouds.clear();
 
     reset();
@@ -56,8 +36,7 @@ void cData::clearClouds()
 
 void cData::clearCameras()
 {
-    for (uint aK=0; aK < (uint)getNbCameras();++aK)
-        delete _Cameras[aK];
+    qDeleteAll(_Cameras);
 
     _Cameras.clear();
 
@@ -66,28 +45,22 @@ void cData::clearCameras()
 
 void cData::clearImages()
 {
-    for (uint aK=0; aK < (uint)getNbCameras();++aK)
-        delete _Images[aK];
-
-    _Images.clear();
-
+    _MaskedImages.clear();
     reset();
 }
 
-void cData::clearMasks()
+
+void cData::clearAll()
 {
-    for (uint aK=0; aK < (uint)getNbMasks();++aK)
-        delete _Masks[aK];
-
-    _Masks.clear();
-
-    reset();
+    clearClouds();
+    clearCameras();
+    clearImages();
 }
 
 void cData::reset()
 {
-    m_minX = m_minY = m_minZ =  FLT_MAX;
-    m_maxX = m_maxY = m_maxZ = -FLT_MAX;
+    m_min.x = m_min.y = m_min.z =  FLT_MAX;
+    m_max.x = m_max.y = m_max.z = -FLT_MAX;
     _center = Pt3dr(0.f,0.f,0.f);
 }
 
@@ -103,6 +76,8 @@ int cData::getSizeClouds()
 //compute bounding box
 void cData::getBB()
 {  
+
+    //compute cloud bounding box
     for (uint bK=0; bK < _Clouds.size();++bK)
     {
         Cloud * aCloud = _Clouds[bK];
@@ -111,15 +86,16 @@ void cData::getBB()
         {
             Pt3dr vert = aCloud->getVertex(aK).getPosition();
 
-            if (vert.x > m_maxX) m_maxX = vert.x;
-            if (vert.x < m_minX) m_minX = vert.x;
-            if (vert.y > m_maxY) m_maxY = vert.y;
-            if (vert.y < m_minY) m_minY = vert.y;
-            if (vert.z > m_maxZ) m_maxZ = vert.z;
-            if (vert.z < m_minZ) m_minZ = vert.z;
+            if (vert.x > m_max.x) m_max.x = vert.x;
+            if (vert.x < m_min.x) m_min.x = vert.x;
+            if (vert.y > m_max.y) m_max.y = vert.y;
+            if (vert.y < m_min.y) m_min.y = vert.y;
+            if (vert.z > m_max.z) m_max.z = vert.z;
+            if (vert.z < m_min.z) m_min.z = vert.z;
         }
     }
 
+    //compute "cameras and clouds" global bounding box
     for (uint  cK=0; cK < _Cameras.size();++cK)
     {
         CamStenope * aCam= _Cameras[cK];
@@ -137,50 +113,20 @@ void cData::getBB()
         {
             Pt3dr C = vert[aK];
 
-            if (C.x > m_maxX) m_maxX = C.x;
-            if (C.x < m_minX) m_minX = C.x;
-            if (C.y > m_maxY) m_maxY = C.y;
-            if (C.y < m_minY) m_minY = C.y;
-            if (C.z > m_maxZ) m_maxZ = C.z;
-            if (C.z < m_minZ) m_minZ = C.z;
+            if (C.x > m_max.x) m_max.x = C.x;
+            if (C.x < m_min.x) m_min.x = C.x;
+            if (C.y > m_max.y) m_max.y = C.y;
+            if (C.y < m_min.y) m_min.y = C.y;
+            if (C.z > m_max.z) m_max.z = C.z;
+            if (C.z < m_min.z) m_min.z = C.z;
         }
     }
 
-    _center.x = (m_minX + m_maxX) * .5f;
-    _center.y = (m_minY + m_maxY) * .5f;
-    _center.z = (m_minZ + m_maxZ) * .5f;
+    // compute BB center
+    _center.x = (m_min.x + m_max.x) * .5f;
+    _center.y = (m_min.y + m_max.y) * .5f;
+    _center.z = (m_min.z + m_max.z) * .5f;
 
-    m_diam = max(m_maxX-m_minX, max(m_maxY-m_minY, m_maxZ-m_minZ));   
+    m_diam = max(m_max.x-m_min.x, max(m_max.y-m_min.y, m_max.z-m_min.z));
 }
 
-void cData::applyGamma(float aGamma)
-{
-    for (uint aK=0; aK<_Images.size();++aK)
-        applyGammaToImage(aK, aGamma);
-}
-
-void cData::applyGammaToImage(int aK, float aGamma)
-{
-    if (aGamma == 1.f) return;
-
-    QRgb pixel;
-    int r,g,b;
-
-    float _gamma = 1.f / aGamma;
-
-    for(int i=0; i< getImage(aK)->width();++i)
-        for(int j=0; j< getImage(aK)->height();++j)
-        {
-            pixel = getImage(aK)->pixel(i,j);
-
-            r = 255*pow((float) qRed(pixel)  / 255.f, _gamma);
-            g = 255*pow((float) qGreen(pixel)/ 255.f, _gamma);
-            b = 255*pow((float) qBlue(pixel) / 255.f, _gamma);
-
-            if (r>255) r = 255;
-            if (g>255) g = 255;
-            if (b>255) b = 255;
-
-            getImage(aK)->setPixel(i,j, qRgb(r,g,b) );
-        }
-}
