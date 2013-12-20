@@ -6,9 +6,6 @@
 const float GL_MAX_ZOOM = 50.f;
 const float GL_MIN_ZOOM = 0.01f;
 
-using namespace Cloud_;
-using namespace std;
-
 GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLWidget(NULL,shared)
   , m_font(font())
   , m_bDrawMessages(true)
@@ -107,7 +104,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
         {
             m_bDisplayMode2D = false;
 
-            if (doZoom) setZoom(m_GLData->getBBmaxSize());
+            if (doZoom) setZoom(m_GLData->getBBoxMaxSize());
 
             resetTranslationMatrix();
         }
@@ -248,9 +245,8 @@ void GLWidget::paintGL()
 
     if (!m_messagesToDisplay.empty())
     {
-        int ll_curHeight = _glViewport[3] - m_font.pointSize()*m_messagesToDisplay.size(); //lower left
-        int lr_curHeight = ll_curHeight;  //lower right
-        int lc_curHeight = ll_curHeight;  //lower center
+        int ll_curHeight, lr_curHeight, lc_curHeight; //lower left, lower right and lower center y position
+        ll_curHeight = lr_curHeight = lc_curHeight = _glViewport[3] - m_font.pointSize()*m_messagesToDisplay.size();
         int uc_curHeight = 10;            //upper center
 
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
@@ -404,7 +400,8 @@ void GLWidget::dropEvent(QDropEvent *event)
 }
 
 void GLWidget::displayNewMessage(const QString& message,
-                                 MessagePosition pos)
+                                 MessagePosition pos,
+                                 QColor color)
 {
     if (message.isEmpty())
     {
@@ -416,6 +413,7 @@ void GLWidget::displayNewMessage(const QString& message,
     MessageToDisplay mess;
     mess.message = message;
     mess.position = pos;
+    mess.color = color;
     m_messagesToDisplay.push_back(mess);
 }
 
@@ -491,7 +489,7 @@ void GLWidget::zoom()
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
-        glOrtho(-zoom*m_glRatio,zoom*m_glRatio,-zoom, zoom,-2.f*m_GLData->getBBmaxSize(), 2.f*m_GLData->getBBmaxSize());
+        glOrtho(-zoom*m_glRatio,zoom*m_glRatio,-zoom, zoom,-2.f*m_GLData->getBBoxMaxSize(), 2.f*m_GLData->getBBoxMaxSize());
 
         glMatrixMode(GL_MODELVIEW);
     }
@@ -499,7 +497,6 @@ void GLWidget::zoom()
 
 void GLWidget::setInteractionMode(INTERACTION_MODE mode, bool showmessage)
 {
-    // TODO !!!!!!!!!
     m_interactionMode = mode;
 
     switch (mode)
@@ -632,7 +629,7 @@ void GLWidget::zoomFactor(int percent)
         setZoom(0.01f * percent);
     }
     else if (hasDataLoaded() && m_GLData->is3D())
-        setZoom(m_GLData->getBBmaxSize() / (float) percent * 100.f);
+        setZoom(m_GLData->getBBoxMaxSize() / (float) percent * 100.f);
 }
 
 void GLWidget::wheelEvent(QWheelEvent* event)
@@ -742,8 +739,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                     }
                     else
                     {
-                        _params.m_translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBmaxSize()/_glViewport[2];
-                        _params.m_translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBmaxSize()/_glViewport[3];
+                        _params.m_translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_glViewport[2];
+                        _params.m_translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_glViewport[3];
                     }
                 }
             }
@@ -808,7 +805,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
             Cloud *a_cloud = m_GLData->Clouds[idx1];
             Pt3dr Pt = a_cloud->getVertex( idx2 ).getPosition();
 
-            m_GLData->setBBCenter(Pt);
+            m_GLData->setBBoxCenter(Pt);
 
             m_GLData->pBall->setPosition(Pt);
             m_GLData->pAxis->setPosition(Pt);
@@ -1084,11 +1081,7 @@ void GLWidget::constructMessagesList(bool show)
 {
     m_bDrawMessages = show;
 
-    MessageToDisplay DynamicMessage;
-    DynamicMessage.color = Qt::lightGray;
     displayNewMessage(QString());
-
-    m_messagesToDisplay.clear();
 
     if (m_bDrawMessages)
     {
@@ -1096,24 +1089,24 @@ void GLWidget::constructMessagesList(bool show)
         {
             if(m_bDisplayMode2D)
             {
-                DynamicMessage.position = LOWER_RIGHT_MESSAGE;
-                DynamicMessage.message  = "POSITION PIXEL";
-                m_messagesToDisplay.push_back(DynamicMessage);
-
-                DynamicMessage.position = LOWER_LEFT_MESSAGE;
-                DynamicMessage.message  = "ZOOM";
-                m_messagesToDisplay.push_back(DynamicMessage);
+                displayNewMessage(tr("POSITION PIXEL"),LOWER_RIGHT_MESSAGE, Qt::lightGray);
+                displayNewMessage(tr("ZOOM"),LOWER_LEFT_MESSAGE, Qt::lightGray);
             }
             else
             {
                 if (m_interactionMode == TRANSFORM_CAMERA)
-                    displayMoveMessages();
+                {
+                    displayNewMessage(tr("Move mode"),UPPER_CENTER_MESSAGE);
+                    displayNewMessage(tr("Left click: rotate viewpoint / Right click: translate viewpoint"),LOWER_CENTER_MESSAGE);
+                }
                 else if (m_interactionMode == SELECTION)
-                    displaySelectionMessages();
+                {
+                    displayNewMessage(tr("Selection mode"),UPPER_CENTER_MESSAGE);
+                    displayNewMessage(tr("Left click: add contour point / Right click: close"),LOWER_CENTER_MESSAGE);
+                    displayNewMessage(tr("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
+                }
 
-                DynamicMessage.position = LOWER_LEFT_MESSAGE;
-                DynamicMessage.message  = "0 Fps";
-                m_messagesToDisplay.push_back(DynamicMessage);
+                displayNewMessage(tr("0 Fps"), LOWER_LEFT_MESSAGE, Qt::lightGray);
             }
         }
         else
@@ -1121,19 +1114,6 @@ void GLWidget::constructMessagesList(bool show)
     }
 
     update();
-}
-
-void GLWidget::displaySelectionMessages()
-{
-    displayNewMessage(tr("Selection mode"),UPPER_CENTER_MESSAGE);
-    displayNewMessage(tr("Left click: add contour point / Right click: close"),LOWER_CENTER_MESSAGE);
-    displayNewMessage(tr("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
-}
-
-void GLWidget::displayMoveMessages()
-{
-    displayNewMessage(tr("Move mode"),UPPER_CENTER_MESSAGE);
-    displayNewMessage(tr("Left click: rotate viewpoint / Right click: translate viewpoint"),LOWER_CENTER_MESSAGE);
 }
 
 void GLWidget::reset()
@@ -1166,7 +1146,7 @@ void GLWidget::resetView()
         resetTranslationMatrix();
 
         if (hasDataLoaded())
-            setZoom(m_GLData->getBBmaxSize());
+            setZoom(m_GLData->getBBoxMaxSize());
 
         showBall(hasDataLoaded());
         showAxis(false);
@@ -1188,7 +1168,7 @@ void GLWidget::resetTranslationMatrix()
 {
     if (hasDataLoaded())
     {
-        Pt3dr center = m_GLData->getBBCenter();
+        Pt3dr center = m_GLData->getBBoxCenter();
 
         _params.m_translationMatrix[0] = -center.x;
         _params.m_translationMatrix[1] = -center.y;
