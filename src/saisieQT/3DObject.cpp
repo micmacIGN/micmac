@@ -75,7 +75,6 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r = 3.0, int steps = 
         x = c * x - s * y;
         y = s * t + c * y;
     }
-
     glEnd();
 }
 
@@ -191,13 +190,16 @@ cBall::~cBall()
 
 void cBall::draw()
 {
-    _cl0->draw();
-    _cl1->draw();
-    _cl2->draw();
+    if (_bVisible)
+    {
+        _cl0->draw();
+        _cl1->draw();
+        _cl2->draw();
 
-    _cr0->draw();
-    _cr1->draw();
-    _cr2->draw();
+        _cr0->draw();
+        _cr1->draw();
+        _cr2->draw();
+    }
 }
 
 void cBall::setPosition(Pt3dr const &aPt)
@@ -260,38 +262,41 @@ cAxis::cAxis(Pt3dr pt, float scale):
 
 void cAxis::draw()
 {
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
+    if (_bVisible)
+    {
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
 
-    GLuint dihedron = glGenLists(1);
-    glNewList(dihedron, GL_COMPILE);
+        GLuint dihedron = glGenLists(1);
+        glNewList(dihedron, GL_COMPILE);
 
-    glPushAttrib(GL_LINE_BIT | GL_DEPTH_BUFFER_BIT);
+        glPushAttrib(GL_LINE_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glLineWidth(_lineWidth);
+        glLineWidth(_lineWidth);
 
-    glBegin(GL_LINES);
-    glColor3f(1.0f,0.0f,0.0f);
-    glVertex3f(0.0f,0.0f,0.0f);
-    glVertex3f(0.4f,0.0f,0.0f);
-    glColor3f(0.0f,1.0f,0.0f);
-    glVertex3f(0.0f,0.0f,0.0f);
-    glVertex3f(0.0f,0.4f,0.0f);
-    glColor3f(0.0f,0.7f,1.0f);
-    glVertex3f(0.0f,0.0f,0.0f);
-    glVertex3f(0.0f,0.0f,0.4f);
-    glEnd();
+        glBegin(GL_LINES);
+        glColor3f(1.0f,0.0f,0.0f);
+        glVertex3f(0.0f,0.0f,0.0f);
+        glVertex3f(0.4f,0.0f,0.0f);
+        glColor3f(0.0f,1.0f,0.0f);
+        glVertex3f(0.0f,0.0f,0.0f);
+        glVertex3f(0.0f,0.4f,0.0f);
+        glColor3f(0.0f,0.7f,1.0f);
+        glVertex3f(0.0f,0.0f,0.0f);
+        glVertex3f(0.0f,0.0f,0.4f);
+        glEnd();
 
-    glPopAttrib();
+        glPopAttrib();
 
-    glEndList();
+        glEndList();
 
-    glTranslatef(_position.x,_position.y,_position.z);
-    glScalef(_scale,_scale,_scale);
+        glTranslatef(_position.x,_position.y,_position.z);
+        glScalef(_scale,_scale,_scale);
 
-    glCallList(dihedron);
+        glCallList(dihedron);
 
-    glPopMatrix();
+        glPopMatrix();
+    }
 }
 
 cBBox::cBBox(Pt3dr pt, float scale, Pt3dr min, Pt3dr max):
@@ -677,13 +682,9 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
     }
     else if(nbVertex)                       // move vertex or insert vertex (dynamic display) en court d'opération
     {
-        if (insertMode )                    // INSERT POLYGON POINT
+        if (insertMode || isPointSelected())                    // INSERT POLYGON POINT
 
-            _helper->fill(pos);
-
-        else if (isPointSelected())    // MOVE POLYGON POINT
-
-            _helper->fill2(pos);
+            _helper->build(pos, insertMode);
 
         else                                // SELECT CLOSEST POLYGON POINT
 
@@ -728,39 +729,40 @@ float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)
     return sqrt(dx*dx + dy*dy);
 }
 
-void cPolygonHelper::fill(QPointF const &pos) // INSERT FILL
+void cPolygonHelper::build(QPointF const &pos, bool insertMode)
 {
-    float dist, dist2;
-    dist2 = FLT_MAX;
-    int idx  = -1;
-    int size = _polygon->size();
-    for (int aK =0; aK < size; ++aK)
+    int sz = _polygon->size();
+
+    if (insertMode)
     {
-        dist = segmentDistToPoint((*_polygon)[aK], (*_polygon)[(aK + 1)%size], pos);
-
-        if (dist < dist2)
+        float dist, dist2 = FLT_MAX;
+        int idx  = -1;
+        for (int aK =0; aK < sz; ++aK)
         {
-            dist2 = dist;
-            idx = aK;
+            dist = segmentDistToPoint((*_polygon)[aK], (*_polygon)[(aK + 1)%sz], pos);
+
+            if (dist < dist2)
+            {
+                dist2 = dist;
+                idx = aK;
+            }
         }
+
+        if (idx != -1)
+            setPoints((*_polygon)[idx],pos,(*_polygon)[(idx+1)%sz]);
     }
+    else //moveMode
+    {
+        int idx = _polygon->idx();
 
-    if (idx != -1)
-        SetPoints((*_polygon)[idx],pos,(*_polygon)[(idx+1)%size]);
+        if ((idx > 0) && (idx <= sz-1))
+            setPoints((*_polygon)[(idx-1)%sz],pos,(*_polygon)[(idx+1)%sz]);
+        else if (idx  == 0)
+            setPoints((*_polygon)[sz-1],pos,(*_polygon)[1]);
+    }
 }
 
-void cPolygonHelper::fill2(QPointF const &pos) // MOVE FILL
-{
-    int sz  = _polygon->size();
-    int idx = _polygon->idx();
-
-    if ((idx > 0) && (idx <= sz-1))
-        SetPoints((*_polygon)[(idx-1)%sz],pos,(*_polygon)[(idx+1)%sz]);
-    else if (idx  == 0)
-        SetPoints((*_polygon)[sz-1],pos,(*_polygon)[1]);
-}
-
-void cPolygonHelper::SetPoints(QPointF p1,QPointF p2,QPointF p3)
+void cPolygonHelper::setPoints(QPointF p1,QPointF p2,QPointF p3)
 {
     clear();
     add(p1);
@@ -815,7 +817,6 @@ cImageGL::cImageGL(float gamma) :
     _program.addShaderFromSourceCode(QGLShader::Fragment,fragmentGamma);
     _program.link();
 
-    _matrixLocation = _program.uniformLocation("matrix");
     _texLocation    = _program.uniformLocation("tex");
     _gammaLocation  = _program.uniformLocation("gamma");
 
@@ -854,8 +855,6 @@ void cImageGL::draw()
     if(_gamma !=1.0f)
     {
         _program.bind();
-        glGetFloatv(GL_TRANSPOSE_PROJECTION_MATRIX,_pmat);
-        _program.setUniformValue(_matrixLocation, QMatrix4x4(_pmat));
         _program.setUniformValue(_texLocation, GLint(0));
         _program.setUniformValue(_gammaLocation, GLfloat(1.0f/_gamma));
     }

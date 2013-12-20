@@ -169,7 +169,6 @@ class cCam : public cObjectGL
         CamStenope *_Cam;
 };
 
-
 class cPolygonHelper;
 
 class cPolygon : public cObjectGL
@@ -257,11 +256,9 @@ public:
 
     cPolygonHelper(cPolygon* polygon,float lineWidth, QColor lineColor = Qt::blue,  QColor pointColor = Qt::blue);
 
-    void   fill(const QPointF &pos);
+    void   build(const QPointF &pos, bool insertMode);
 
-    void   fill2(const QPointF &pos);
-
-    void   SetPoints(QPointF p1, QPointF p2, QPointF p3);
+    void   setPoints(QPointF p1, QPointF p2, QPointF p3);
 
 private:
 
@@ -360,7 +357,7 @@ public:
 
     cMaskedImageGL(QMaskedImage &qMaskedImage);
 
-    void setDimensions(int h,int w)
+    void setDimensions(float h, float w)
     {
         _m_image->setDimensions(h,w);
         _m_mask->setDimensions(h,w);
