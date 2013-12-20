@@ -983,9 +983,11 @@ void CLASS canon_sraw_load_raw()
     if (row & (jh.sraw >> 1))
       for (col=0; col < width; col+=2)
 	for (c=1; c < 3; c++)
+	{
 	  if (row == height-1)
 	       ip[col][c] =  ip[col-width][c];
 	  else ip[col][c] = (ip[col-width][c] + ip[col+width][c] + 1) >> 1;
+	}
     for (col=1; col < width; col+=2)
       for (c=1; c < 3; c++)
 	if (col == width-1)
@@ -8749,9 +8751,12 @@ void CLASS convert_to_rgb()
 	  out_cam[i][j] += out_rgb[output_color-1][i][k] * rgb_cam[k][j];
   }
   if (verbose)
-    fprintf (stderr, raw_color ? _("Building histograms...\n") :
-	_("Converting to %s colorspace...\n"), name[output_color-1]);
-
+  {
+	  if ( raw_color )
+		fprintf (stderr,  _("Building histograms...\n") );
+	  else
+		fprintf (stderr,  _("Converting to %s colorspace...\n"), name[output_color-1]);
+  }
   memset (histogram, 0, sizeof histogram);
   for (img=image[0], row=0; row < height; row++)
     for (col=0; col < width; col++, img+=4) {
@@ -9424,7 +9429,10 @@ thumbnail:
     else if (output_tiff && write_fun == &CLASS write_ppm_tiff)
       write_ext = ".tiff";
     else
-      write_ext = ".pgm\0.ppm\0.ppm\0.pam" + colors*5-5;
+    {
+      write_ext = ".pgm\0.ppm\0.ppm\0.pam";
+      write_ext += colors*5-5;
+    }
     ofname = (char *) malloc (strlen(ifname) + 64);
     merror (ofname, "main()");
     if (write_to_stdout)
