@@ -51,7 +51,7 @@ if ( NOT ${qt_version} EQUAL 0 )
 
       add_definitions(-DTWEAK)
       if ( WIN32 )
-	add_definitions(-DELISE_windows)
+	 add_definitions(-DELISE_windows)
       ENDIF()
 
 
@@ -67,17 +67,21 @@ if ( NOT ${qt_version} EQUAL 0 )
       endif()
       
       qt5_use_modules(SaisieQT Widgets Core Gui Xml Concurrent OpenGL)
+
+      target_link_libraries(SaisieQT ${OPENGL_LIBRARIES}
+				     elise
+				     ${X11_LIBRARIES} )
    elseif ( ${qt_version} EQUAL 4 )
       QT4_WRAP_UI(saisie_ui mainwindow.ui)
       QT4_WRAP_CPP(saisie_HEADERS_MOC ${saisie_HEADERS})
       INCLUDE(${QT_USE_FILE})
       include_directories( ${PROJECT_BINARY_DIR} )
       add_executable(SaisieQT ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS_MOC})
+      target_link_libraries(SaisieQT ${OPENGL_LIBRARIES}
+                                     ${QT_LIBRARIES}
+				     elise
+				     ${X11_LIBRARIES} )      
    endif()
-
-   target_link_libraries(SaisieQT ${OPENGL_LIBRARIES}
-				  elise
-				  ${X11_LIBRARIES} )
 
    install(TARGETS SaisieQT DESTINATION ${Install_Dir})
 endif()

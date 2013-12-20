@@ -576,7 +576,11 @@ void GLWidget::wheelEvent(QWheelEvent* event)
 
     m_lastClickZoom = event->pos();
 
-    setZoom(_params.m_zoom*pow(1.1f,event->angleDelta().y() / 160.0f ));
+    #if QT_VER==5
+      setZoom(_params.m_zoom*pow(1.1f,event->angleDelta().y() / 160.0f ));
+    #else
+      setZoom(_params.m_zoom*pow(1.1f,event->delta() / 160.0f ));
+    #endif
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
@@ -633,8 +637,12 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     if (hasDataLoaded())
     {
         _parentSet->setCurrentWidgetIdx(_idx);
-
-        QPointF pos = m_bDisplayMode2D ?  _g_Cam.WindowToImage(event->localPos(), _params.m_zoom) : event->localPos();
+	
+	#if QT_VER == 5
+	    QPointF pos = m_bDisplayMode2D ?  _g_Cam.WindowToImage(event->localPos(), _params.m_zoom) : event->localPos();
+	#else
+	    QPointF pos = m_bDisplayMode2D ?  _g_Cam.WindowToImage(event->posF(), _params.m_zoom) : event->posF();
+	#endif
 
         if (m_bDisplayMode2D)  m_lastMoveImage = pos;
 
@@ -705,7 +713,11 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (hasDataLoaded() && m_GLData->Clouds.size())
     {
-        QPointF pos = event->localPos();
+	#if QT_VER == 5
+	    QPointF pos = event->localPos();
+	#else
+	    QPointF pos = event->posF();
+	#endif
 
         _g_Cam.setMatrices();
 
