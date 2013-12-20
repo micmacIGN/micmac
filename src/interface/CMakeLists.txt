@@ -49,7 +49,7 @@ message(STATUS "librairies Qt : "${QT_LIBRARIES})
 ADD_EXECUTABLE(interfaceMicmac ${interfaceMicmac_SOURCES}
                                ${interfaceMicmac_HEADERS_MOC})
 TARGET_LINK_LIBRARIES(interfaceMicmac ${OPENGL_LIBRARIES}
-									  ${QT_LIBRARIES}
+                                      ${QT_LIBRARIES}
                                       elise
-									  ${X11_LIBRARIES})
+                                      ${X11_LIBRARIES})
 INSTALL(TARGETS interfaceMicmac RUNTIME DESTINATION ${Install_Dir})

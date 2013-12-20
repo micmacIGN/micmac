@@ -88,6 +88,38 @@ set(UnixBinPath
 		/usr/bin
 		/usr/local/bin)
 
+set(qt_version 0)
+find_package(OpenGL)
+if ( OPENGL_FOUND AND OPENGL_GLU_FOUND )
+   message( STATUS "-----> OpenGL found" )
+
+   find_package(Qt5Widgets QUIET)
+   find_package(Qt5Core QUIET)
+   find_package(Qt5Gui QUIET)
+   find_package(Qt5Xml QUIET)
+   find_package(Qt5Concurrent QUIET)
+   find_package(Qt5OpenGL QUIET)
+   if ( Qt5Widgets_FOUND AND
+	Qt5Core_FOUND AND
+	Qt5Gui_FOUND AND
+	Qt5Xml_FOUND AND
+	Qt5Concurrent_FOUND AND
+	Qt5OpenGL_FOUND )
+      message( STATUS "-----> Qt5 found" )
+      set(qt_version 5)
+   else()
+      FIND_PACKAGE(Qt4 QUIET COMPONENTS QtCore QtGui QtOpenGL QtXml)
+      if ( QT4_FOUND )
+	 message( STATUS "-----> Qt4 found" )
+	 set(qt_version 4)
+      else()
+	 message( "Qt not available, Qt graphical tools disabled" )
+      endif()
+   endif()
+else()
+   message( "OpenGL or GLU not available, Qt graphical tools disabled" )
+endif()
+
 # CUDA
 if (${CUDA_ENABLED})
 
@@ -110,9 +142,7 @@ endif()
 # Etalonnage polygone
 
 if (${WITH_ETALONPOLY})
-
 	add_definitions(-DETA_POLYGON)
-
 endif()
 
 if (${WITH_SAISIEQT})
