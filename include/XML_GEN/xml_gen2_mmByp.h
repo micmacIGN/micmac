@@ -50,6 +50,35 @@ class cImaMM;
 class cAppliWithSetImage;
 class cAppliMMByPair;
 
+class cAttrSomAWSI
+{
+    public :
+        cAttrSomAWSI();
+        cAttrSomAWSI(cImaMM*);
+        cImaMM* mIma;
+};
+
+class cAttrArcAWSI
+{
+    public :
+       cAttrArcAWSI(cCpleEpip *);
+       cAttrArcAWSI();
+
+       cCpleEpip * mCpleE;
+};
+
+typedef  ElSom<cAttrSomAWSI,cAttrArcAWSI>         tSomAWSI;
+typedef  ElArc<cAttrSomAWSI,cAttrArcAWSI>         tArcAWSI;
+typedef  ElSomIterator<cAttrSomAWSI,cAttrArcAWSI> tItSAWSI;
+typedef  ElArcIterator<cAttrSomAWSI,cAttrArcAWSI> tItAAWSI;
+typedef  ElGraphe<cAttrSomAWSI,cAttrArcAWSI>      tGrAWSI;
+
+std::string NameImage(tArcAWSI &,bool Im1,bool ByEpi);
+
+
+std::string PatternOfVois(const tSomAWSI & ,bool IncludeThis) ;
+
+
 class cImaMM
 {
     public :
@@ -64,12 +93,21 @@ class cImaMM
        Pt3dr        mC3;
        Pt2dr        mC2;
        Tiff_Im  &   Tiff();
-       std::list<cImaMM*> mVois;
-       std::string PatternOfVois(bool IncludeThis) const;
     private :
        cAppliWithSetImage &  mAppli;
        Tiff_Im  *            mPtrTiff;
 
+};
+
+inline Pt2dr PtOfSomAWSI    (const tSomAWSI & aS) {return  aS.attr().mIma->mC2;}
+inline Pt2dr PtOfSomAWSIPtr (const tSomAWSI * aS) {return PtOfSomAWSI(*aS);}
+
+
+
+class cSubGrAWSI : public ElSubGraphe<cAttrSomAWSI,cAttrArcAWSI>
+{
+    public :
+        Pt2dr pt(tSomAWSI & aS) {return PtOfSomAWSI(aS);}
 };
 
 
@@ -79,7 +117,7 @@ class cAppliWithSetImage
       CamStenope * CamOfName(const std::string & aName);
       const std::string & Dir() const;
       int  DeZoomOfSize(double ) const;
-      void operator()(cImaMM*,cImaMM*,bool);   // Delaunay call back
+      void operator()(tSomAWSI*,tSomAWSI*,bool);   // Delaunay call back
    protected :
       cAppliWithSetImage(int argc,char ** argv,int aFlag);
 
@@ -89,7 +127,7 @@ class cAppliWithSetImage
       static const int  FlagDev8BGray   = 1;
       static const int  FlagDev16BGray  = 2;
 
-      cImaMM * ImOfName(const std::string & aName);
+      tSomAWSI * ImOfName(const std::string & aName);
       void MakeStripStruct(const std::string & aPairByStrip,bool StripFirst);
       void AddDelaunayCple();
       void AddCoupleMMImSec();
@@ -101,7 +139,7 @@ class cAppliWithSetImage
 
       void VerifAWSI();
       void ComputeStripPair(int);
-      void AddPair(cImaMM * anI1,cImaMM * anI2);
+      void AddPair(tSomAWSI * anI1,tSomAWSI * anI2);
 
       bool        mSym;
       bool        mShow;
@@ -114,16 +152,17 @@ class cAppliWithSetImage
       cInterfChantierNameManipulateur * mICNM;
       const cInterfChantierNameManipulateur::tSet * mSetIm;
 
-      std::vector<cImaMM *> mImages;
-      std::map<std::string,cImaMM *> mDicIm;
-      typedef std::pair<cImaMM *,cImaMM *> tPairIm;
-      typedef std::set<tPairIm> tSetPairIm;
-      tSetPairIm   mPairs;
+      std::map<std::string,tSomAWSI *> mDicIm;
+      tGrAWSI  mGrIm;
+      std::vector<tSomAWSI*> mVSoms;
+      cSubGrAWSI   mSubGrAll;
       double       mAverNbPix;
+
+
       double       mTetaBande;
+      bool         mByEpi;
 
    private :
-      void AddPairASym(cImaMM * anI1,cImaMM * anI2);
 
 };
 

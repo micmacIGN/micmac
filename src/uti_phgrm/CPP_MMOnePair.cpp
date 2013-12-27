@@ -259,7 +259,9 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
 
 cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
    cMMOnePair(argc,argv),
-   cAppliWithSetImage(2,&(mArgcAWS[0]),0)
+   cAppliWithSetImage(2,&(mArgcAWS[0]),0),
+   mIm1 (0),
+   mIm2 (0)
 {
     if (! EAMIsInit(&mZoom0))
     {
@@ -279,9 +281,18 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
 
     // std::cout << "STEP END = " << mStepEnd << " " << round_ni(log2(mZoom0/double(mZoomF))) + 3 << " :: " << mVZoom << "\n"; exit(0);
 
-    ELISE_ASSERT(mImages.size()==2,"Expect exaclty 2 images in cAppliMMOnePair");
-    mIm1 = mImages[0];
-    mIm2 = mImages[1];
+    int aK=0;
+    for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
+    {
+        if (aK==0) 
+           mIm1 =  (*anITS).attr().mIma;
+        if (aK==1) 
+           mIm2 =  (*anITS).attr().mIma;
+        aK++;
+    }
+    ELISE_ASSERT(aK==2,"Expect exaclty 2 images in cAppliMMOnePair");
+    // mIm1 = mImages[0];
+    // mIm2 = mImages[1];
 
 
 
@@ -591,7 +602,7 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
               ;
      }
 
-     bool AddPly = (!ForMTD) && ((aStepF-1)== mStepEnd)  && (mDoPly); //  && (MasterIs1);
+     bool AddPly = (!ForMTD) && ((aStepF-1)== mStepEnd)  && (mDoPly)  && (MasterIs1);
      if (AddPly)
      {
           aCom = aCom + " +DoPly=true " + " +ScalePly=" + ToString(mScalePly) +  " ";
