@@ -18,6 +18,7 @@ Saisie :
 Nouveaux outils :
 
   Dans Malt MASTR = AUTO
+       MasqIm
 
 
   Interf Graphique pour SaisieMasq 

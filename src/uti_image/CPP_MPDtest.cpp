@@ -255,6 +255,16 @@ void PbHom(const std::string & anOri)
 
 int MPDtest_main (int argc,char** argv)
 {
+   {
+      while (1)
+      {
+             for (int aK=0 ; aK<3 ; aK++)
+                 std::cout << GetUnikId() << "\n";
+             getchar();
+      }
+   }
+
+
    BanniereMM3D(); exit(0);
    PbHom("Test-Four");
    PbHom("RadialExtended");
