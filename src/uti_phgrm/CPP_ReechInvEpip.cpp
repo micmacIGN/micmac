@@ -75,7 +75,7 @@ int ReechInvEpip_main(int argc,char ** argv)
 	LArgMain()  << EAM(aDir,"Dir",true,"directory, def = current")
                     << EAM(InParal,"InParal",true,"Compute in parallel (Def=true)")
                     << EAM(CalleByP,"CalleByP",true,"Intenal Use")
-                    << EAM(aBoxOut,"BoxIn",true,"Intenal Use")
+                    << EAM(aBoxOut,"BoxOut",true,"Intenal Use")
                     << EAM(aSzDecoup,"SzDec",true,"Sz Decoup")
     );	
 
@@ -88,7 +88,6 @@ int ReechInvEpip_main(int argc,char ** argv)
     std::string aDirOut = aDir+ "MTD-Image-" + aName1 + "/";
 
     std::string aNameIn       =  aDirIn  + "NuageImProf_Chantier-Ori_Etape_Last.xml";
-std::cout << "NAME IN= " << aNameIn << "\n";
     std::string aNameGeomOut  =  aDirOut + "NuageImProf_LeChantier_Etape_1.xml";
     std::string aNameOut = aDirOut+"Nuage-"+aName2 +".xml";
     std::string aComBase =  MMBinFile(MM3DStr) +   " TestLib " + MakeStrFromArgcARgv(argc,argv);
@@ -98,11 +97,12 @@ std::cout << "NAME IN= " << aNameIn << "\n";
 
 
     std::string aNameDistIn   = aDirIn  + "Distorsion.tif";
+    std::string aNameARIn   = aDirIn  + "Score-AR.tif";
+
     std::string aNameDistOut  = aDirOut  + "Dist-"+aName2 +".tif";
     std::string aNameDepthOut = aDirOut  + "Depth-"+aName2 +".tif";
     std::string aNameMaskOut  = aDirOut  + "Mask-"+aName2 +".tif";
-    std::string aNameARIn   = aDirIn  + "Score-AR.tif";
-    std::string aNameAROut  = aDirOut + "Score-AR-"+aName2 +".tif";
+    std::string aNameAROut    = aDirOut  + "Score-AR-"+aName2 +".tif";
 
 
     bool isModified;
@@ -153,6 +153,7 @@ std::cout << "NAME IN= " << aNameIn << "\n";
          std::vector<Pt2dr> aVCont;
 
 
+
          Pt2di aSzOut = aBoxOut.sz();
          Box2di aBoxM1(Pt2di(0,0),aSzOut-Pt2di(1,1));
          aBoxM1.PtsDisc(aVCont,100);
@@ -170,8 +171,10 @@ std::cout << "NAME IN= " << aNameIn << "\n";
          Pt2di aIPMinIn = Sup(Pt2di(0,0),round_down(aRPMinIn-Pt2dr(5,5)));
          Pt2di aIPMaxIn = Inf(aNuageXMLIn.NbPixel(),round_up(aRPMaxIn+Pt2dr(5,5)));
          Box2di aBoxIn(aIPMinIn,aIPMaxIn);
-         Pt2di aSzIn = aBoxIn.sz();
+         Pt2di aSzIn = aIPMaxIn - aIPMinIn;
 
+
+         if ((aSzIn.x<=0) || (aSzIn.y<=0)) return 0;
 
          cParamModifGeomMTDNuage aModifGIn(1.0,I2R(aBoxIn),false);
          aNIn = cElNuage3DMaille::FromParam(aNuageXMLIn,aDirIn,"",1.0,&aModifGIn);
@@ -271,13 +274,13 @@ std::cout << "NAME IN= " << aNameIn << "\n";
 
         for (int aKB=0 ; aKB<aDecoup.NbInterv() ; aKB++)
         {
-             std::string aCom = aComBase + " CalleByP=true "  + " BoxIn="+ToString(aDecoup.KthIntervIn(aKB));
+             std::string aCom = aComBase + " CalleByP=true "  + " BoxOut="+ToString(aDecoup.KthIntervIn(aKB));
 
              System(aCom);
         }
     }
 
-    return 1;
+    return 0;
 }
 
 

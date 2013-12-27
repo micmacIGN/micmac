@@ -376,6 +376,12 @@ void cCpleEpip::AssertOk() const
     ELISE_ASSERT(mOk,"CpleEpip::AssertOk Not OK ");
 }
 
+double  cCpleEpip::RatioCam() const
+{
+   Pt2dr aSz = Pt2dr(Inf(mCInit1.Sz(),mCInit2.Sz()));
+   return  sqrt((double(mSzX)*double(mSzY)) / (aSz.x*aSz.y)) ;
+}
+
 //Box2di BoxEpip
 
 cCpleEpip::cCpleEpip
@@ -416,13 +422,17 @@ cCpleEpip::cCpleEpip
 
    double yMin = ElMax(aB1._p0.y,aB2._p0.y);
    double yMax = ElMin(aB1._p1.y,aB2._p1.y);
-   int aSzY =  round_ni(yMax-yMin);
-   if (aSzY <=0)
+   mSzY =  round_ni(yMax-yMin);
+   if (mSzY <=0)
+   {
       return;
+   }
 
 
-   mCamOut1  = CamOut(mCInit1,-Pt2dr(aB1._p0.x,yMin),Pt2di(aB1.sz().x,aSzY));
-   mCamOut2  = CamOut(mCInit2,-Pt2dr(aB2._p0.x,yMin),Pt2di(aB2.sz().x,aSzY));
+
+   mCamOut1  = CamOut(mCInit1,-Pt2dr(aB1._p0.x,yMin),Pt2di(aB1.sz().x,mSzY));
+   mCamOut2  = CamOut(mCInit2,-Pt2dr(aB2._p0.x,yMin),Pt2di(aB2.sz().x,mSzY));
+
 
 
    if (1)
@@ -431,22 +441,32 @@ cCpleEpip::cCpleEpip
       Pt3dr aP1 =  aC1.ImEtProf2Terrain(Pt2dr(aC1.Sz()/2),aC1.GetRoughProfondeur());
       Pt3dr aP2 =  aC2.ImEtProf2Terrain(Pt2dr(aC2.Sz()/2),aC2.GetRoughProfondeur());
       Pt3dr aP = (aP1+aP2) / 2.0;
+
  
       Pt2dr aPI1 = mCamOut1.R3toF2(aP);
       Pt2dr aPI2 = mCamOut2.R3toF2(aP);
       double aDX = aPI2.x - aPI1.x;
 
+
       double aDX1 = (aDX > 0 ) ? 0 : (-aDX);
       double aDX2 = (aDX > 0 ) ? aDX : 0 ;
 
-      int aSzX1 = aB1.sz().x - ElAbs(aDX);
-      int aSzX2 = aB2.sz().x - ElAbs(aDX);
+      // int aSzX1 = aB1.sz().x - ElAbs(aDX);
+      // int aSzX2 = aB2.sz().x - ElAbs(aDX);
+      mSzX = ElMin(aB1.sz().x - aDX1,aB2.sz().x-aDX2);
+
+      int aSzX1 = mSzX;
+      int aSzX2 = mSzX;
 
       // Emprise nulle des cameras
-      if ((aSzX1<=0) || (aSzX2 <=0)) return;
+      if ((aSzX1<=0) || (aSzX2 <=0)) 
+      {
+          //std::cout << "SZX-NEG \n";
+          return;
+      }
 
-      mCamOut1  = CamOut(mCInit1,-Pt2dr(aB1._p0.x+aDX1,yMin),Pt2di(aSzX1,aSzY));
-      mCamOut2  = CamOut(mCInit2,-Pt2dr(aB2._p0.x+aDX2,yMin),Pt2di(aSzX2,aSzY));
+      mCamOut1  = CamOut(mCInit1,-Pt2dr(aB1._p0.x+aDX1,yMin),Pt2di(aSzX1,mSzY));
+      mCamOut2  = CamOut(mCInit2,-Pt2dr(aB2._p0.x+aDX2,yMin),Pt2di(aSzX2,mSzY));
    }
 
    Pt3dr aDirI =  mMatC2M * Pt3dr(1,0,0);
@@ -455,29 +475,46 @@ cCpleEpip::cCpleEpip
    mFirstIsLeft = (scal(aDirI,aDirC) > 0) ;
 
 
-   bool Test=false;
-   for (int aK= 0 ; aK< (Test ? 10 : 1) ; aK++)
+   Pt2dr aMil = Pt2dr(mCamOut1.Sz()) /2.0;
+   double aDist;
+   Pt3dr aPCentre = mCamOut1.PseudoInter(aMil,mCamOut2,aMil,&aDist);
+   double aProf1 = mCamOut1.ProfondeurDeChamps(aPCentre);
+   double aProf2 = mCamOut2.ProfondeurDeChamps(aPCentre);
+   double aProf = (aProf1+aProf2) / 2.0;  // Normalemennt c'est kif-kif
+   mCamOut1.SetProfondeur(aProf);
+   mCamOut2.SetProfondeur(aProf);
+
+   std::cout << "0000=DIST = " << aDist << " " << aProf1 << " " << aProf2<< "\n"; 
+
+   Pt3dr  aPProche = mCamOut1.ImEtProf2Terrain(aMil,aProf/2.0);
+   Pt2dr aPRojP2 = mCamOut2.R3toF2(aPProche);
+
+  //  DP =  (Foc* Base) (1/Pof -  Prof0)
+  //  Delta(Pax) /Foc = Base  *  Delta(1/Prof)
+
+   double aDPX = (-aPRojP2.x + aMil.x)  ;
+   Pt2dr aProjInf2 (aMil.x+aDPX,aMil.y);
+   Pt3dr aPInf = mCamOut1.PseudoInter(aMil,mCamOut2,aProjInf2,&aDist);
+   
+   std::cout << aPRojP2 << aMil << aProjInf2 << " Infty?=" << aPInf<< "\n";
+   std::cout << "DIST = " << aDist << " " << aProf1 << " " << aProf2<< "\n"; 
+   std::cout << "PX INF=" << aDPX << "\n";
+
+    std::cout << aMil  << Pt2dr(mCamOut2.Sz()) /2.0 << mCamOut1.R3toF2(aPCentre) <<  mCamOut2.R3toF2(aPCentre) << "\n";
+//getchar();
+
+   //exit(0);
+
+/*
+   if (1)
    {
-        Pt2dr aM1 = Pt2dr(mCamOut1.Sz()) /2.0;
-        Pt2dr aQ1 = aM1 ;
-        if (Test) 
-        {
-           aQ1 = aQ1 + Pt2dr(NRrandC(),NRrandC()) * 100.0;
-        }
-        double aDist;
-        Pt3dr aPTest = mCamOut1.PseudoInter(aQ1,mCamOut2,aQ1,&aDist);
-        double aProf1 = mCamOut1.ProfondeurDeChamps(aPTest);
-        double aProf2 = mCamOut2.ProfondeurDeChamps(aPTest);
-        if (Test)
-        {
-           std::cout << "TEST-PROF-EPIP " << aProf1 << " " << aProf2 << " " << aDist << "\n";
-        }
-        double aProf = (aProf1+aProf2) / 2.0;  // Normalemennt c'est kif-kif
-        mCamOut1.SetProfondeur(aProf);
-        mCamOut2.SetProfondeur(aProf);
+        Pt2dr aM0 = mCamOut1.sz()/2.0;
+        double aProf =  mCamOut1.GePr
    }
+*/
 
    mOk = true;
+
 }
 
 Pt2dr  cCpleEpip::RatioExp() const

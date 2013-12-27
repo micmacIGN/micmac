@@ -66,6 +66,10 @@ const cArgLogCom  cArgLogCom::NoLog(-1);
 
 
 
+// MPD : suspecte un problème d'écrasement mutuel entre processus dans le logfile, inhibe temporairement pour 
+// valider / invalider le diagnostic
+static bool DOLOG_MM3d = true;
+
 FILE * FileLogMM3d(const std::string & aDir)
 {
     return  FopenNN(aDir+"mm3d-LogFile.txt","a+","Log File");
@@ -87,6 +91,7 @@ void LogTime(FILE * aFp,const std::string & aMes)
 
 void LogIn(int  argc,char **  argv,const std::string & aDir)
 {
+   if (! DOLOG_MM3d) return;
    FILE * aFp = FileLogMM3d(aDir);
 
    fprintf(aFp,"=================================================================\n");
@@ -100,6 +105,8 @@ void LogIn(int  argc,char **  argv,const std::string & aDir)
 
 void LogOut(int aRes,const std::string & aDir)
 {
+   if (! DOLOG_MM3d) return;
+
    FILE * aFp = FileLogMM3d(aDir);
    std::string aMes;
    if (aRes==0)
