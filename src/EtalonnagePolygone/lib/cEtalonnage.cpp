@@ -1069,7 +1069,10 @@ void cEtalonnage::RechercheCibles
 	   iTN++
           )
           {
-               std::string aCom =    ToCommande(argc,argv)
+
+               std::string aCom =    
+                        MMBinFile(MM3DStr) + " "
+                      + ToCommande(argc,argv)
                       +  " CalledByItsef=1"
                       +  " Im=" +*iTN;
                std::cout << aCom << "\n";
@@ -1381,7 +1384,7 @@ std::cout << "LOEMI " << mParam.CalibSpecifLoemi() << "\n"; getchar();
                         + " " + ToStrBlkCorr( MMDir()+aParamComp )
                         + std::string(" DirectoryChantier=") + mDir
                         //+ std::string(" \"+PatternIm=") + mParam.PatternGlob() +std::string("\"")
-                        + " " + ToStrBlkCorr( string("PatternIm=")+mParam.PatternGlob() )
+                        + " " + ToStrBlkCorr( string("+PatternIm=")+mParam.PatternGlob() )
                         + std::string(" +NameCam=")     +  aNameCam
                         + std::string(" +PrefCal=") +  aPrefix
                         + std::string(" +KeySetOri=") +   mParam.KeySetOri()

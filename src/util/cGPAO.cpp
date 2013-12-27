@@ -51,6 +51,23 @@ cElCommand::cElCommand( const char *i_command ){ push_back(string(i_command)); }
 cElCommand::cElCommand( const string &i_command ){ push_back(i_command); }
 #endif
 
+int Round(double aV,double aSup,double aInf)
+{
+  double aVal = aV / aSup;
+  aVal = aVal - floor(aVal);
+  return round_ni((aSup*aVal)/aInf);
+}
+
+std::string GetUnikId()
+{
+   double aTSec = ElTimeOfDay();
+
+   return         ToString(getpid()) 
+          + "_" + ToString(Round(aTSec,1e3,1.0)) 
+          + "_" + ToString(Round(aTSec,1,1e-3))
+          + "_" + ToString(Round(aTSec,1e-3,1e-6));
+}
+
 /*********************************************************/
 /*                                                       */
 /*                  cEl_GPAO                             */
@@ -119,8 +136,19 @@ void cEl_GPAO::DoComInParal(const std::list<std::string> & aL,std::string  FileM
     if (aNbProc<=0)  
        aNbProc = NbProcSys();
 
+   // Modif MPD, certain process plantent apres qq heures en finissant sur 
+   // FAIL IN :
+   // "/usr/bin/make" all -f "/home/mpd/MMM/culture3d/TestOpenMMmmmmMkStdMM" -j8
+   // Suspecte que c'est du a un "ecrasement" entre les Makefile lance par des process concurents;
+   // tente un unique Id sur ces makefiles ...
+
+
     if (FileMk=="") 
-       FileMk = Dir2Write() + "MkStdMM";
+       FileMk = Dir2Write() + "MkStdMM" +GetUnikId();
+    else  if (Exe)
+    {
+       FileMk = FileMk + GetUnikId();
+    }
 
     
 
@@ -156,8 +184,8 @@ void cEl_GPAO::DoComInParal(const std::list<std::string> & aL,std::string  FileM
 	*/
 	if ( Exe )
 	{
-		launchMake( FileMk, "all", aNbProc, (MoinsK?"-k":"") );
-        ELISE_fp::RmFile(FileMk);
+	     launchMake( FileMk, "all", aNbProc, (MoinsK?"-k":"") );
+             ELISE_fp::RmFile(FileMk);
 	}
 	else
 		cout << g_externalToolHandler.get( "make" ).callName()+" all -f " + FileMk + " -j" + ToString(aNbProc) + " " << endl;
@@ -182,7 +210,7 @@ void MkFMapCmd
        aNbProc = NbProcSys();
 
     if (FileMk=="") 
-       FileMk = MMDir() + "MkStdMM";
+       FileMk = MMDir() + "MkStdMM" + GetUnikId();
 
 
     cEl_GPAO aGPAO;
