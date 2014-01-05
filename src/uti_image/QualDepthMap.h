@@ -72,6 +72,7 @@ class cBoxCoher
 class cCEM_OneIm
 {
      public :
+
           bool Empty() const;
           cCEM_OneIm (cCoherEpi_main * ,const std::string &,const Box2di & aBox,bool Visu,bool IsFirstIm);
           Box2dr BoxIm2(const Pt2di & aSzIm2);
@@ -106,10 +107,26 @@ class cCEM_OneIm
           void VerifIm(Im2D_Bits<1> aMasq);
           Im2D_REAL4 VerifProf(Im2D_Bits<1> aMasq);
           void ComputeOrtho();
+
           virtual Im2D_REAL4 ImPx()
           {
                  ELISE_ASSERT(false,"ImPx");
                  return Im2D_REAL4(1,1);
+          }
+          virtual Im2D_INT2 ImPx_u2()
+          {
+                 ELISE_ASSERT(false,"ImPx");
+                 return Im2D_INT2(1,1);
+          }
+
+          Im2D_REAL4   Im() {return     mIm;}
+
+          double ResolAlti() const {return mResolAlti;}
+
+          Video_Win *  Win()
+          {
+               // ELISE_ASSERT(mWin!=0,"cCEM_OneIm::Win()");
+               return    mWin;
           }
 
      protected :
@@ -123,6 +140,10 @@ class cCEM_OneIm
           cCoherEpi_main * mCoher;
           cCpleEpip *      mCple;
           std::string      mDir;
+          std::string      mDirM;
+          std::string      mNameNuage;
+          cXML_ParamNuage3DMaille mParNuage;
+          double                  mResolAlti;
           std::string      mNameInit;
           std::string      mNameFinal;
           Tiff_Im          mTifIm;
@@ -145,8 +166,9 @@ class cCEM_OneIm_Epip  : public cCEM_OneIm
 {
     public :
           Im2D_REAL4 ImPx() {return mImPx;}
+          Im2D_INT2  ImPx_u2() {return mImPx_u2;}
 
-          cCEM_OneIm_Epip (cCoherEpi_main * ,const std::string &,const Box2di & aBox,bool Visu,bool IsFirstIm);
+          cCEM_OneIm_Epip (cCoherEpi_main * ,const std::string &,const Box2di & aBox,bool Visu,bool IsFirstIm,bool Final);
 
           virtual  Pt2dr  RoughToIm2(const Pt2dr & aP,bool & Ok)
           {
@@ -163,6 +185,7 @@ class cCEM_OneIm_Epip  : public cCEM_OneIm
           Tiff_Im          mTifPx;
           Im2D_REAL4       mImPx;
           TIm2D<REAL4,REAL8> mTPx;
+          Im2D_INT2         mImPx_u2;
 
           std::string      mNameMasq;
           Tiff_Im          mTifMasq;
@@ -267,7 +290,8 @@ class cCoherEpi_main : public Cont_Vect_Action
         double        mDoMasqSym;
         bool          mUseAutoMasq;
         std::vector<cOneContour> mConts;
-
+        double        mBSHRejet;  // Def 0.02
+        double        mBSHOk;     // Def 2 * mBSHMin
 };
 
 class cQual_DeptMap

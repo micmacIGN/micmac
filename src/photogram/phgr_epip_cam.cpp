@@ -384,6 +384,22 @@ double  cCpleEpip::RatioCam() const
 
 //Box2di BoxEpip
 
+// double 
+void  cCpleEpip::SetNameLock(const std::string & anExt)
+{
+    mFileLock= mDir + "LockEpi-"  + mName1 + "-" +mName2 + "-" + anExt + ".txt";
+}
+
+void cCpleEpip::LockMess(const std::string & aMes)
+{
+   return;
+   FILE * aFP = FopenNN(mFileLock,"a+","cCpleEpip::LockMess");
+   fprintf(aFP,"%s\n",aMes.c_str());
+   fclose(aFP);
+}
+
+
+
 cCpleEpip::cCpleEpip
 (
    const std::string & aDir,
@@ -414,6 +430,7 @@ cCpleEpip::cCpleEpip
    mCamOut2  (CamOut(mCInit2,Pt2dr(0,0),mSzIn)),
    mOk       (false)
 {
+   SetNameLock("Init") ;
       // double aProf = (mCamOut1.GetRoughProfondeur()+mCamOut2.GetRoughProfondeur()) / 2.0;
 
    ELISE_ASSERT(aName1<aName2,"cCpleEpip::cCpleEpip order");
@@ -484,15 +501,32 @@ cCpleEpip::cCpleEpip
    mCamOut1.SetProfondeur(aProf);
    mCamOut2.SetProfondeur(aProf);
 
-   std::cout << "0000=DIST = " << aDist << " " << aProf1 << " " << aProf2<< "\n"; 
+   // std::cout << "0000=DIST = " << aDist << " " << aProf1 << " " << aProf2<< "\n"; 
 
    Pt3dr  aPProche = mCamOut1.ImEtProf2Terrain(aMil,aProf/2.0);
    Pt2dr aPRojP2 = mCamOut2.R3toF2(aPProche);
 
-  //  DP =  (Foc* Base) (1/Pof -  Prof0)
-  //  Delta(Pax) /Foc = Base  *  Delta(1/Prof)
 
-   double aDPX = (-aPRojP2.x + aMil.x)  ;
+   mPxInf = (-aPRojP2.x + aMil.x)  ;
+
+   ELISE_ASSERT ((mFirstIsLeft == (mPxInf>0)), "Incoherence in cCpleEpip");
+
+   if (0)
+   {
+         double aBase = euclid(mCamOut1.VraiOpticalCenter()-mCamOut2.VraiOpticalCenter());
+         double aBSH = aBase / aProf1;
+         
+   std::cout << "CCc " << mName1 
+             << "#" << mName2 << " " 
+             <<  BSurHOfPx(true,mPxInf) << " " 
+             <<  BSurHOfPx(true,mPxInf*0.9)<< " " 
+             <<  BSurHOfPx(true,0)   << " "
+             <<  " Verif :: " <<  (BSurHOfPx(true,0) / aBSH)   << " "
+             << "\n";
+   }
+   //
+/*
+   std::cout << "CCCcPleee   " << mFirstIsLeft << " " << mPxInf << "\n";
    Pt2dr aProjInf2 (aMil.x+aDPX,aMil.y);
    Pt3dr aPInf = mCamOut1.PseudoInter(aMil,mCamOut2,aProjInf2,&aDist);
    
@@ -501,9 +535,9 @@ cCpleEpip::cCpleEpip
    std::cout << "PX INF=" << aDPX << "\n";
 
     std::cout << aMil  << Pt2dr(mCamOut2.Sz()) /2.0 << mCamOut1.R3toF2(aPCentre) <<  mCamOut2.R3toF2(aPCentre) << "\n";
+*/
 //getchar();
 
-   //exit(0);
 
 /*
    if (1)
@@ -516,6 +550,30 @@ cCpleEpip::cCpleEpip
    mOk = true;
 
 }
+
+  //  DP =  (Foc* Base) (1/Pof -  Prof0)
+  //  Delta(Pax) /Foc = Base  *  Delta(1/Prof)
+  //  B/H =   (Pax-PxInf) / Foc
+double cCpleEpip::BSurHOfPx(bool Im1,double aPx)
+{
+     double aPxInf = Im1 ? mPxInf : (-mPxInf);
+     double aRes = (aPxInf - aPx) /  mFoc;
+     return   (aPxInf<0) ? -aRes : aRes;
+}
+
+Fonc_Num cCpleEpip::BSurHOfPx(bool Im1,Fonc_Num aPx)
+{
+//std::cout << "PXXXINF " << mPxInf 
+//std::cout << BSurHOfP(mPxInf*0.9) << "\n";
+//std::cout << BSurHOfP(mPxInf*1.1) << "\n";
+
+     double aPxInf = Im1 ? mPxInf : (-mPxInf);
+     Fonc_Num aRes = (aPxInf - aPx) /  mFoc;
+     return   (aPxInf<0) ? -aRes : aRes;
+}
+
+
+
 
 Pt2dr  cCpleEpip::RatioExp() const
 {
@@ -903,6 +961,7 @@ cChangEpip::cChangEpip(const ElPackHomologue & aPck,double anAmpl,int aDegre) :
 
 void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool InParal,bool DoIm,const char * CarNameHom,int aDegPolyCor)
 {
+    LockMess("Begin cCpleEpip::ImEpip Im1="+ToString(Im1));
     std::string aPrefixHom;
     if (CarNameHom)
        aPrefixHom = std::string(CarNameHom);
@@ -1062,7 +1121,21 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
     if (InParal)
        cEl_GPAO::DoComInParal(aLCom,"MakeEpip");
     else
-       cEl_GPAO::DoComInSerie(aLCom);
+    {
+       int aK=0;
+       for
+       (
+            std::list<std::string>::const_iterator itS=aLCom.begin();
+            itS!=aLCom.end();
+            itS++
+        )
+        {
+             LockMess(std::string("Begin Box ")+ ToString(aK));
+             System(*itS);
+             LockMess(std::string("End Box ")+ ToString(aK));
+             aK++;
+        }
+    }
 
 }
 

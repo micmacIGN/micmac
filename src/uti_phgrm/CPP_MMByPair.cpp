@@ -128,8 +128,10 @@ class cAppliMMByPair : public cAppliWithSetImage
       eTypeQuality mQualOr;
       bool         mDoPlyMM1P;
       int          mScalePlyMM1P;
+      bool         mDoOMF;
       bool         mRIEInParal;  // Pour debuguer en l'inhibant,
       int          mTimes;
+      bool         mDebugCreatE;
 };
 
 /*****************************************************************/
@@ -779,10 +781,12 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mSkipCorDone  (false),
     mByMM1P       (true),
     mStrQualOr    ("Low"),
-    mDoPlyMM1P    (false),
+    mDoPlyMM1P    (true),
     mScalePlyMM1P (3),
-    mRIEInParal   (true),
-    mTimes        (1)
+    mDoOMF        (false),
+    mRIEInParal   (false),
+    mTimes        (1),
+    mDebugCreatE  (false)
 {
   if (argc>=2)
   {
@@ -821,6 +825,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mScalePlyMM1P,"ScalePlyMM1P",true,"Down Scale of ply after MM1P =3")
                     << EAM(mRIEInParal,"RIEPar",true,"Internal use (debug Reech Inv Epip)")
                     << EAM(mTimes,"TimesExe",true,"Internal use (debug Reech Inv Epip)")
+                    << EAM(mDebugCreatE,"DCE",true,"Debug Create Epip")
+                    << EAM(mDoOMF,"DoOMF",true,"Do Only Masq Final (tuning purpose)")
   );
   mByEpi = mByMM1P;
 
@@ -828,7 +834,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
   if (! EAMIsInit(&mAddMMImSec))
      mAddMMImSec = (mType==eStatute);
   if (mModeHelp) 
-      exit(0);
+      StdEXIT(0);
   if (! EAMIsInit(&mZoom0))
      mZoom0 =  DeZoomOfSize(7e4);
   VerifAWSI();
@@ -980,6 +986,7 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
                          +  " CreateE=" + ToString(mByEpi)
                          +  " InParal=" + ToString(mParalMMIndiv)
                          +  " QualOr=" +  mStrQualOr
+                         +  " DCE=" +  ToString(mDebugCreatE)
                       ;
 
      if (mType == eGround)
@@ -992,6 +999,9 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
 
       if (mDoPlyMM1P)
          aMatchCom = aMatchCom + " DoPly=true " + " ScalePly="  + ToString(mScalePlyMM1P) + " " ;
+
+     if (mDoOMF)
+        aMatchCom = aMatchCom + " DoOMF=true";
 
      std::string aNameIm1 = anI1.mNameIm;
      std::string aNameIm2 = anI2.mNameIm;
@@ -1144,7 +1154,7 @@ void cAppliMMByPair::DoBascule()
 void cAppliMMByPair::DoFusion()
 {
     std::string aCom =    MMBinFile(MM3DStr) + " MergeDepthMap "
-                       +   XML_MM_File("Fusion-MMByP.xml") + aBlank
+                       +   XML_MM_File("Fusion-MMByP-Ground.xml") + aBlank
                        +   "  WorkDirPFM=" + mDir + mDirBasc + "/ ";
     if (mShow)
        std::cout  << aCom << "\n";
@@ -1260,16 +1270,24 @@ int cAppliMMByPair::Exe()
              DoCorrelAndBasculeStd();
           }
        }
-       if (BoolFind(mDo,'R') && (!mRIEInParal) && mByMM1P )
+    
+       if ( (!mDebugCreatE) && BoolFind(mDo,'R') && (!mRIEInParal) && mByMM1P )
        {
              DoReechantEpipInv();
+       }
+
+       if (mDebugCreatE)
+       {
+          ELISE_fp::RmFile(mDir+"LockEpi-*.txt");
+          ELISE_fp::RmFile(mDir+"Epi_Im*");
+          ELISE_fp::PurgeDirRecursif(mDir+"Homol-DenseM/");
        }
    }
 /*
    if (BoolFind(mDo,'F'))
       DoFusion();
 */
-   return 1;
+   return 0;
 }
 
 

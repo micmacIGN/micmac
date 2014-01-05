@@ -45,9 +45,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 /* ------------------------ MODULE fmueller.c ----------------------- */
 
 
+
 #include "basis.h"
 #include "u_proto.h"
 
+#include "StdAfx.h"
 
 #define SABS(A,B) (ABS(A) + ABS(B))     /* Sum of the absolute values */
 
@@ -441,7 +443,7 @@ void mueller ( int   n, REAL  a[], REAL  zreal[], REAL  zimag[])
     if (res !=0)
     {
         printf("Error %d in Muller\n",res);
-        exit(-1);
+        ElEXIT(-1,"mueller");
     }
 }
 

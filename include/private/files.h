@@ -176,6 +176,8 @@ class  ELISE_fp
 	 static void RmFile(const std::string &);
 	 static void MvFile(const std::string & aFile,const std::string & aDest);
 	 static void PurgeDir(const std::string &);
+	 static void PurgeDirGen(const std::string &,bool Recurs);
+	 static void PurgeDirRecursif(const std::string &);
       
          ~ELISE_fp();
          ELISE_fp(eModeBinTxt ModeBin=eTxtOnPremierLigne);

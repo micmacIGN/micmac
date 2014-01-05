@@ -388,7 +388,7 @@ void Elise_Craig_Barrodale_Roberts_l1(INT m,INT  n,REAL * a,REAL *b,REAL toler,R
 		   a[m][n] = the minimum sum of the absolute values of
 				the residuals.
 		   a[m][n+1] = the rank of the matrix of coefficients.
-		   a[m+1][n] = exit code with values:
+		   a[m+1][n] = e-xit code with values:
 				0 - optimal solution which is probably
 					non-unique.
 				1 - unique optimal solution.
@@ -397,10 +397,10 @@ void Elise_Craig_Barrodale_Roberts_l1(INT m,INT  n,REAL * a,REAL *b,REAL toler,R
 		   a[m+1][n+1] = number of simplex iterations performed.
 		   b = garbage on output.
 		   x = one dimensional double precision array of length
-			n.  On exit, this array contains a solution to
+			n.  On e-xit, this array contains a solution to
 			the L1 problem.
 		   e = one dimensional double precision array of size n.
-			On exit, this array contains the residuals in
+			On e-xit, this array contains the residuals in
 			the equations.
 
 	  Reference:  I. Barrodale and F. D. Roberts, "Algorithm 478:

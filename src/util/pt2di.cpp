@@ -159,8 +159,8 @@ Pt2di second_freeman_approx(Pt2di u, bool conx_8,Pt2di u1)
 
      if(u1^u)
      {
-        u2 = best_4_approx(u - u1 * scal(u,u1));  // first suppose not 4 conexity
-        if (conx_8)  // eventually correct if 8 connexity
+        u2 = best_4_approx(u - u1 * scal(u,u1));  // first suppose not 4 cone xity
+        if (conx_8)  // eventually correct if 8 conne xity
            u2 = u1+u2;
       }
       // if u is horizontal or vertical (wich is equivalent to u colinear to u1)

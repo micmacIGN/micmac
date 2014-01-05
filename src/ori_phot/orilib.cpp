@@ -4341,7 +4341,7 @@ int XML_orlit_fictexte_orientation (const char *fic, or_orientation *ori,bool Qu
 		           << " dif=" << (aPImV-aPIm)<<  " P = " << aPImV << "\n";
              }
 	   }
-	   exit(-1);
+	   e-xit(-1);
       }
 #endif
    }

@@ -31,7 +31,7 @@ buffer_t g_buffer0 = { NULL, 0 },
 void FataleError(const char * aMes)
 {
     printf("Error: %s\n",aMes);
-    printf("Fatal error : exit\n");
+    printf("Fatal error : e-xit\n");
     exit(-1);
 }
 

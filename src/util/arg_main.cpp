@@ -45,6 +45,8 @@ using namespace NS_ParamChantierPhotogram;
 #if ElMemberTpl
 
 #define SzBuf 2000
+
+
 static char buf[SzBuf];
 
 std::list<std::string>  TheEmptyListEnum;
@@ -64,6 +66,11 @@ std::string MakeStrFromArgcARgv(int  argc,char** argv)
 int MemoArgc=-1;
 char ** MemoArgv=0;
 static std::string GlobArcArgv;
+static std::vector<std::string>  GlobMessErrContext;
+void AddMessErrContext(const std::string & aMes)
+{
+   GlobMessErrContext.push_back(aMes);
+}
 
 
 void MemoArg(int argc,char** argv)   
@@ -482,7 +489,7 @@ std::vector<char *>  	ElInitArgMain
 		LGlob.show(false);
 		cout << "Named args : \n";
 		L1.show(true);
-		exit(-1);
+		StdEXIT(-1);
 	}
 
 	INT k = LGlob.Init(argc,argv);
@@ -716,12 +723,52 @@ int System(const std::string & aCom,bool aSVP)
 	#endif
 	if ((aRes != 0) && (!aSVP))
 	{
-		std::cout  << "FAIL IN : \n";
-		std::cout << aCom << "\n";
-		exit(-1);
+            // Modif MPD : sur de gros chantier avec un maxe de  MicMac en paral, il faut savoir quelle commande a plantee
+            // sans avoir a inspecter un terminal sature
+           
+/*
+            std::string aFileName = Dir2Write() + GetUnikId() + ".txt";
+            FILE * aFP = fopen(aFileName.c_str(),"a+");
+            if (aFP)
+            {
+                fprintf(aFP,"Failed in command\n");
+                fprintf(aFP,"%s\n",aCom.c_str());
+                fprintf(aFP,"PID=%d\n",getpid());
+                fclose(aFP);
+            }
+*/
+
+
+  	    std::cout  << "FAIL IN : \n";
+            std::cout << aCom << "\n";
+            ElEXIT(-1,(std::string("System-call :") + aCom));
 	}
 
 	return aRes;
+}
+
+void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
+{
+   if (aCode==0) 
+      StdEXIT(0);
+
+   std::string aFileName = Dir2Write() + "MM-Error-"+ GetUnikId() + ".txt";
+   FILE * aFP = fopen(aFileName.c_str(),"a+");
+   if (aFP)
+   {
+      fprintf(aFP,"Exit with code %d \n",aCode);
+      fprintf(aFP,"Generated from line %d  of file %s \n",aLine,aFile);
+      fprintf(aFP,"PID=%d\n",getpid());
+      if (aMessage!="")
+         fprintf(aFP,"Context=[%s]\n",aMessage.c_str());
+
+      for (int aK=0 ; aK<GlobMessErrContext.size() ; aK++)
+         fprintf(aFP,"GMEC:%s\n",GlobMessErrContext[aK].c_str()),
+
+      fprintf(aFP,"MM3D-Command=[%s]\n",GlobArcArgv.c_str());
+   }
+
+   StdEXIT(aCode);
 }
 
 

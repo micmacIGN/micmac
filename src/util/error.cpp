@@ -61,15 +61,21 @@ void EliseBRKP()
 bool ELISE_DEBUG_USER = true;
 bool ELISE_DEBUG_INTERNAL = false;
 
-void elise_error_exit()
+void Elise_Error_Exit()
 {
     message_copy_where_error();
     for (int k=0; k<10; k++) EliseBRKP();
-    exit (1);
+    ElEXIT(1,"");  // Le seul contexte peut venir de message_copy_where_error qui a rempli si necessaire
 }
 
 void elise_internal_error(const char * mes,const char * file,int line)
 {
+    AddMessErrContext
+    (
+           std::string("elise_internal_error : ") + mes
+        +  std::string(" from line ") + ToString(line) + std::string(" of file") + file
+    );
+
     for (int i = 0; i < 3 ; i++)
         ncout() <<  "INTERNAL ERROR IN ELISE !!!\n";
     ncout() << "\n\n The following error :\n";
@@ -78,7 +84,7 @@ void elise_internal_error(const char * mes,const char * file,int line)
  
     ncout()  << "please sent a bug report \n";
 
-    elise_error_exit();
+    Elise_Error_Exit();
 }
 
 
@@ -139,7 +145,8 @@ void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,
     ncout() << "Bye  (tape enter)\n";
 
     EliseBRKP();
-    exit (1);
+    AddMessErrContext(std::string("mes=") +mes + std::string(" line=") +ToString(line) + std::string(" file=") + file);
+    ElEXIT ( 1, "cEliseFatalErrorHandler::cEFEH_OnErreur");
 }
 
 void  elise_fatal_error(const char * mes,const char * file,int line)
@@ -229,7 +236,8 @@ void Elise_Pile_Mess_0::display(const char * kind_of)
     ncout() << "Bye  (tape enter to quit)\n";
 
     EliseBRKP();
-    exit (1);
+    AddMessErrContext(std::string("Kind of err ") + kind_of);
+    ElEXIT (1,"Elise_Pile_Mess_0::display");
 }
 
 INT Elise_Pile_Mess_0::_nb = 0;

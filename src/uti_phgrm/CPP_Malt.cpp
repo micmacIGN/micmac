@@ -297,7 +297,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
 
   if (mModeHelp) 
-     exit(-1);
+     StdEXIT(-1);
 
   {
       int TabZF[4] ={1,2,4,8};
@@ -321,7 +321,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       ELISE_ASSERT
       (
           false,
-          "Incoherence : master image must exit iff mode==GeomImage"
+          "Incoherence : master image must exist iff mode==GeomImage"
       );
   }
 

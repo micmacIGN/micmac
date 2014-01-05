@@ -56,6 +56,7 @@ static const char * file_err[nb_max_level_copy]  ;
 void message_copy_where_error()
 {
      if ((nb_level_copy >=0) && (nb_level_copy < nb_max_level_copy))
+     {
         cout 
              << "********************************************************\n"
              << "**      (YOUR)  LOCATION :                              \n"
@@ -64,6 +65,15 @@ void message_copy_where_error()
              << "**         at line : " << line_err[nb_level_copy]  << "\n"
              << "**         of file : " << file_err[nb_level_copy]  << "\n"
              << "********************************************************\n";
+
+         AddMessErrContext
+         (
+               std::string("Error in ELISE_COPY, called at line ") 
+             + ToString(line_err[nb_level_copy]) 
+             + " of file " 
+             + file_err[nb_level_copy]
+         );
+      }
           
 }
 
