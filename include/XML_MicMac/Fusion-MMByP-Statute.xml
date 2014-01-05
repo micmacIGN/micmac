@@ -1,9 +1,15 @@
+<!--
+mm3d MergeDepthMap /home/mpd/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statute.xml WorkDirPFM=/media/data1/Jeux-Tests/MedinetAbou/MTD-Image-IMG_0107.CR2/
+-->
 <ParamFusionMNT>
     <DicoLoc>
 
       <KeyedSetsOfNames >
           <Sets>
-                 <PatternAccepteur>   Basculed-.*.xml  </PatternAccepteur>
+                 <PatternAccepteur>   Nuage-.*.xml  </PatternAccepteur>
+<!--
+                 <PatternAccepteur>   .* </PatternAccepteur>
+-->
           </Sets>
           <Key> Loc-SetInput </Key>
     </KeyedSetsOfNames>
@@ -27,11 +33,11 @@
                 <Arrite>  2 1 </Arrite>
                 <Direct>
                     <PatternTransform> (.*) </PatternTransform>
-                    <CalcName> FusionZ1_$1  </CalcName>
+                    <CalcName> Fusion_$1  </CalcName>
                  </Direct>
            </Calcs>
            <Key>  Loc-Assoc-Im2NuageFusionne </Key>
-       </KeyedNamesAssociations>
+     </KeyedNamesAssociations>
 
 
     </DicoLoc>
@@ -92,11 +98,10 @@
    <SectionGestionChantier>
              <SzDalles >  1300 </SzDalles>
              <RecouvrtDalles> 150  </RecouvrtDalles>
-             <ParalMkF> MkFusion.txt </ParalMkF> 
-             <WorkDirPFM> XXXX </WorkDirPFM>
 <!--
-             <WorkDirPFM> /media/data1/SummerSchhol/Gironde_Zone2/MTD-Nuage/ </WorkDirPFM>
+             <ParalMkF> MkFusion.txt </ParalMkF> 
 -->
+             <WorkDirPFM> XXXX </WorkDirPFM>
    </SectionGestionChantier>
 
 
