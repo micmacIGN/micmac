@@ -245,7 +245,7 @@ int amd_demo_1 (void)
     if (result != AMD_OK)
     {
 	printf ("AMD failed\n") ;
-	exit (1) ;
+	ElEXIT (1,"AMD DEMO") ;
     }
 
     /* print the permutation vector, P, and compute the inverse permutation */

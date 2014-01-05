@@ -144,7 +144,7 @@ cElCommandToken & cElCommand::add_a_copy( const cElCommandToken &i_token )
       if ( res==NULL )
       {
 	 cerr <<  "cElCommand::add_a_copy: cElCommandToken::copy returned NULL" << endl;
-	 exit(EXIT_FAILURE);
+	 ElEXIT(EXIT_FAILURE,"");
       }
    #endif
    
@@ -265,7 +265,7 @@ void cElCommand::add_raw( const std::string &i_str )
 	 if ( newToken==NULL )
 	 {
 	    cerr << "ERROR: cElCommand::cElCommand(string): new ctRawString returned NULL" << endl;
-	    exit(EXIT_FAILURE);
+	    ElEXIT(EXIT_FAILURE,(std::string("cElCommand::add_raw with i_str=")+i_str));
 	 }
       #endif
       m_tokens.push_back( newToken );

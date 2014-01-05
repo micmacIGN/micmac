@@ -72,7 +72,21 @@ static bool DOLOG_MM3d = true;
 
 FILE * FileLogMM3d(const std::string & aDir)
 {
-    return  FopenNN(aDir+"mm3d-LogFile.txt","a+","Log File");
+    // return  FopenNN(aDir+"mm3d-LogFile.txt","a+","Log File");
+    std::string aName = aDir+"mm3d-LogFile.txt";
+    FILE * aRes = 0;
+    while (aRes==0)
+    {
+        aRes = fopen(aName.c_str(),"a+");
+        if (aRes ==0)
+        {
+             int aModulo = 1000;
+             int aPId = getpid();
+             double aTimeSleep = (aPId%aModulo) / double(aModulo);
+             SleepProcess (aTimeSleep);
+        }
+    }
+    return aRes;
 }
 
 #include <ctime>
@@ -86,7 +100,7 @@ void LogTime(FILE * aFp,const std::string & aMes)
   time ( &rawtime );
   timeinfo = localtime ( &rawtime );
 
-  fprintf(aFp,"   %s %s",aMes.c_str(),asctime (timeinfo));
+  fprintf(aFp," PID : %d ;   %s %s",getpid(),aMes.c_str(),asctime (timeinfo));
 }
 
 void LogIn(int  argc,char **  argv,const std::string & aDir)

@@ -54,6 +54,14 @@ extern int MemoArgc;
 extern char ** MemoArgv;
 
 std::string GetUnikId();
+std::string Dir2Write();
+
+void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage);
+#define ElEXIT(aCode,aMessage) ElExit(__LINE__,__FILE__,aCode,aMessage)
+//  Il existe des exit qui n'ont pas besoin d'etres traces, par exemple sur les help
+#define StdEXIT(aCode)  exit(aCode)
+
+void AddMessErrContext(const std::string & aMes);
 
 
 
@@ -1519,6 +1527,8 @@ void BasicComputeIntervaleDelta
 double FromSzW2FactExp(double aSzW,double mCurNbIterFenSpec);
 
 void BanniereMM3D();
+
+
 
 extern "C" {
 FILE * ElFopen(const char *path, const char *mode);

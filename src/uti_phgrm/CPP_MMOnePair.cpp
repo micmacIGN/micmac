@@ -94,6 +94,8 @@ class cMMOnePair
       std::string      mStrQualOr;
       bool             mDoPly;
       int              mScalePly;
+      bool             mDoOnlyMF;
+      bool             mDebugCreatE;
 
 };
 
@@ -144,7 +146,9 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mDegCorrEpip  (4),
     mQualOr       (eQual_High),
     mDoPly        (false),
-    mScalePly     (4)
+    mScalePly     (4),
+    mDoOnlyMF     (false),
+    mDebugCreatE  (false)
 {
   ElInitArgMain
   (
@@ -171,7 +175,12 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mStrQualOr,"QualOr",true,"Quality orient (in High, Average, Low, Def= Low)",eSAM_None,ListOfVal(eNbTypeQual,"eQual_"))
                     << EAM(mDoPly,"DoPly",true,"Generate Ply")
                     << EAM(mScalePly,"ScalePly",true,"Dowsize of generated Ply (Def=4)")
+                    << EAM(mDoOnlyMF,"DoOMF",true,"Do Only Masq Final (tuning purpose)")
+                    << EAM(mDebugCreatE,"DCE",true,"Debug Create Etpi (tuning purpose)")
   );
+
+  if (mNameIm1Init > mNameIm2Init)
+     ElSwap(mNameIm1Init,mNameIm2Init);
 
   if (EAMIsInit(&mStrQualOr))
      mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
@@ -279,7 +288,7 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
     // mStepEnd = round_ni(log2(mZoom0/double(mZoomF))) + 3;
     mStepEnd = mVZoom.size()-1;
 
-    // std::cout << "STEP END = " << mStepEnd << " " << round_ni(log2(mZoom0/double(mZoomF))) + 3 << " :: " << mVZoom << "\n"; exit(0);
+    // std::cout << "STEP END = " << mStepEnd << " " << round_ni(log2(mZoom0/double(mZoomF))) + 3 << " :: " << mVZoom << "\n"; StdEXIT(0);
 
     int aK=0;
     for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
@@ -295,6 +304,19 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
     // mIm2 = mImages[1];
 
 
+   std::string aComPly =    MMBinFile(MM3DStr)
+                          + " Nuage2Ply "
+                          + mDir+LocDirMec2Im(mNameIm1,mNameIm2) + "NuageImProf_Chantier-Ori_Etape_Last.xml "
+                          + " Attr=" + mNameIm1
+                          + " RatioAttrCarte=" + ToString(mZoomF)
+                          + " Scale=" + ToString(mScalePly)
+                          + " Out=" +  LocDirMec2Im(mNameIm1,mNameIm2) +"PLY-" + mNameIm1 + "-"+ mNameIm1+".ply";
+                        ;
+
+   if (mDebugCreatE)  
+      return;
+// std::cout << aComPly << "\n"; getchar();
+
 
     if (false)
     {
@@ -304,10 +326,17 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
     {
         for (int aStep=1 ; aStep<=mStepEnd ; aStep++)
         {
-           MatchTwoWay(aStep,aStep+1);
+           if (! mDoOnlyMF)
+           {
+              MatchTwoWay(aStep,aStep+1);
+           }
            int aDeZoom = mVZoom[aStep];
 
-           if (mDoMR && ((aDeZoom!= mZoomF) || (aStep==mStepEnd)) && (aDeZoom<=8))
+           if (     mDoMR 
+                 && ((aDeZoom!= mZoomF) || (aStep==mStepEnd)) 
+                 && (aDeZoom<=8)
+                 && ((!mDoOnlyMF) || (aStep==mStepEnd))
+              )
            {
               DoMasqReentrant(true,aStep,aStep==mStepEnd);
               DoMasqReentrant(false,aStep,aStep==mStepEnd);
@@ -321,15 +350,18 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
 */
            }
 
-
-
-
            if ((aStep==1) && mByEpip)  // Mis ici pour Nuage2Ply
            {
               GenerateMTDEpip(true);
               GenerateMTDEpip(false);
            }
         }
+
+        if (mDoPly)
+        {
+                System(aComPly);
+        }
+
     }
 
     if (mRIE)
@@ -489,7 +521,7 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                           + aNameInitA + aBlk
                           + aNameInitB + aBlk
                           + mNameOriInit + aBlk
-                          + " DoM=true"
+                          + " DoM=true"  // Pas utilise dans coher epip, et peu creer bug ...
                           + " ByE="      + ToString(mByEpip)
                           + " NumPx="    + ToString(aStep)
                           + " NumMasq="  + ToString(aLast ? (aStep-1) : aStep)
@@ -502,7 +534,8 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
 
      if (aLast) 
      {
-        aCom = aCom + " ExpFin=true ";
+        aCom = aCom + " ExpFin=true " ;
+        aCom = aCom + " RedM=1.0 ";
      }
 
      System(aCom);
@@ -602,12 +635,13 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
               ;
      }
 
+/*
      bool AddPly = (!ForMTD) && ((aStepF-1)== mStepEnd)  && (mDoPly)  && (MasterIs1);
      if (AddPly)
      {
           aCom = aCom + " +DoPly=true " + " +ScalePly=" + ToString(mScalePly) +  " ";
      }
-
+*/
      if (mExe)
         System(aCom);
 
@@ -871,7 +905,7 @@ int MMSymMasqAR_main(int argc,char ** argv)
   }
   // Im2D_REAL4 aImPX1(aSz1In);
 
-  return 1;
+  return 0;
 }
 
 

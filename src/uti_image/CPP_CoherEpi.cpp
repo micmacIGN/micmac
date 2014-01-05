@@ -44,18 +44,24 @@ Header-MicMac-eLiSe-25/06/2007*/
 #if (0)
 #endif
 
+extern Im2D_Bits<1>  TestLabel(Im2D_INT2 aILabel,INT aLabelOut);
+extern Fonc_Num  MasqBorHomogene(Im2D_REAL4 anIm0,Im2D_Bits<1>  aMasq0,Video_Win * aW);
+
+
+
 /*******************************************************************/
 /*                                                                 */
 /*                cCEM_OneIm_Epip                                  */
 /*                                                                 */
 /*******************************************************************/
 
-cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aName,const Box2di & aBox,bool aVisu,bool IsFirstIm) :
+cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aName,const Box2di & aBox,bool aVisu,bool IsFirstIm,bool Final) :
    cCEM_OneIm(aCEM,aName,aBox,aVisu,IsFirstIm),
    mNamePx    (mDir+mCple->LocPxFileMatch(mNameInit,mCoher->mNumPx,mCoher->mDeZoom)),
    mTifPx     (mNamePx.c_str()),
    mImPx      (mSz.x,mSz.y),
    mTPx       (mImPx),
+   mImPx_u2   (mSz.x,mSz.y),
    mNameMasq  (mDir+mCple->LocMasqFileMatch(mNameInit,mCoher->mNumMasq)),
    mTifMasq   (mNameMasq.c_str()),
    mImMasq    (mSz.x,mSz.y),
@@ -76,6 +82,13 @@ cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aNam
         ELISE_COPY (mImPx.all_pts(),trans(mTifPx.in_proj(),mP0) * mCoher->mStep ,mImPx.out());
     }
 
+    if (Final)
+    {
+        std::string aNamePxU2 = mDir+mCple->LocPxFileMatch(mNameInit,mCoher->mNumPx-1,mCoher->mDeZoom);
+        Tiff_Im aTpxU2 (aNamePxU2.c_str());
+        ELISE_COPY(mImPx_u2.all_pts(),trans(aTpxU2.in_proj(),mP0),mImPx_u2.out());
+
+    }
     ELISE_COPY(mImMasq.all_pts(),trans(mTifMasq.in(0),mP0),mImMasq.out());
 }
 
@@ -134,6 +147,10 @@ cCEM_OneIm::cCEM_OneIm
    mCoher     (aCoher),
    mCple      (mCoher->mCple),
    mDir       (mCoher->mDir),
+   mDirM      (mDir + mCple->LocDirMatch(IsFirstIm)),
+   mNameNuage ("NuageImProf_LeChantier_Etape_"+ToString(mCoher->mNumPx) + ".xml"),
+   mParNuage  (StdGetFromSI(mDirM+mNameNuage,XML_ParamNuage3DMaille)),
+   mResolAlti (mParNuage.Image_Profondeur().Val().ResolutionAlti()),
    mNameInit  (aName),
    mNameFinal (mDir+  (mCple ? mCple->LocNameImEpi(mNameInit,mCoher->mDeZoom,false) : StdNameImDeZoom(mNameInit,mCoher->mDeZoom))),
    mTifIm     (Tiff_Im::UnivConvStd(mNameFinal.c_str())),
@@ -253,7 +270,7 @@ Im2D_REAL4  cCEM_OneIm::VerifProf(Im2D_Bits<1> aMasq)
 
     Im2D_REAL4 anIQG = ImageQualityGrad(ImPx(),aMasq,mWin);
 
-    if (mWin)
+    if (0) // (mWin)
     {
        ELISE_COPY(anIQG.all_pts(),Min(255,100*anIQG.in()),mWin->ogray());
 
@@ -261,49 +278,11 @@ Im2D_REAL4  cCEM_OneIm::VerifProf(Im2D_Bits<1> aMasq)
     }
 
     return anIQG;
+}
 
-/*
-
-    Pt2di aSz =  aMasq.sz();
-    Im2D_Bits<1> aImOut(aSz.x,aSz.y,1);
-    ELISE_COPY(aMasq.all_pts(),aMasq.in(),aImOut.out());
-
-    // On selectionne rapdiement ceux qui seront OK de maniere trivial
-    for (int aSzW = 1 ; aSzW < 8 ; aSzW++)
-    {
-         float aPxInf = 1e5;
-
-         Symb_FNum  aSM1(aMasq.in_proj());
-         Fonc_Num PxMax = aSM1 * ImPx().in(-aPxInf) + (1-aSM1) * (-aPxInf);
-
-         Symb_FNum  aSM2(aMasq.in_proj());
-         Fonc_Num PxMin = aSM2 * ImPx().in(aPxInf) + (1-aSM2) * (aPxInf);
-
-        Symb_FNum  aFOk = dilat_d8((rect_max(PxMax,aSzW)-rect_min(PxMin,aSzW)< (aSzW/1.5) ),aSzW-1);
-
-         ELISE_COPY
-         (
-              aMasq.all_pts(),
-              aFOk && aImOut.in(),
-              aImOut.out() | VDisc()
-         );
-    }
-    if (mWin)
-    {
-       ELISE_COPY(aMasq.all_pts(),aMasq.in(),mWin->odisc());
-       Fonc_Num aFIm = mIm.in() * (255.0/mVMaxIm);
-       Fonc_Num aFM = aImOut.in()!=0;
- 
-       ELISE_COPY
-       (
-           aImOut.all_pts(),
-           Virgule(aFIm,aFIm,aFIm * aFM),
-           mWin->orgb()
-       );
-
-       mWin->clik_in();
-    }
-*/
+Fonc_Num Grad(Fonc_Num aF)
+{
+  return aF -trans(aF,Pt2di(1,0));
 }
 
 void cCEM_OneIm::VerifIm(Im2D_Bits<1> aMasq)
@@ -314,12 +293,13 @@ void cCEM_OneIm::VerifIm(Im2D_Bits<1> aMasq)
 
    Im2D_U_INT1 aIMin(mSz.x,mSz.y,255);
 
-  for (int aSzW = 1; aSzW<20 ; aSzW++)
+  for (int aSzW = 1; aSzW<2 ; aSzW++)
   {
 
-      Symb_FNum  aSymbM(aMasq.in_proj());
-      Symb_FNum  aSymbF1(mIm.in_proj());
-      Symb_FNum  aSymbF2(mImOrtho.in_proj());
+      // Symb_FNum  aSymbM(aMasq.in_proj());
+      Symb_FNum  aSymbM(1);
+      Symb_FNum  aSymbF1(Grad(mIm.in_proj()));
+      Symb_FNum  aSymbF2(Grad(mImOrtho.in_proj()));
 
       Symb_FNum  aSFoncs (Virgule(1,aSymbF1,aSymbF2,Square(aSymbF1),Square(aSymbF2),aSymbF1*aSymbF2));
       Symb_FNum  aSomFoncs(rect_som(aSFoncs,aSzW));
@@ -335,12 +315,9 @@ void cCEM_OneIm::VerifIm(Im2D_Bits<1> aMasq)
 
        ELISE_COPY 
        (  
-            mImOrtho.all_pts(), Max(0,Min(aIMin.in(),128 * (1+aCor))) , mWin2->ogray() | aIMin.out()
+            mImOrtho.all_pts(), Max(0,Min(aIMin.in(), 255*(aCor>0.5))) , mWin2->ogray() | aIMin.out()
        );
    }
-
-   std::cout << "GGGGGGGGgggggggggg\n";
-   getchar();
 }
 
 void cCEM_OneIm::ComputeOrtho()
@@ -374,7 +351,6 @@ void cCEM_OneIm::ComputeOrtho()
        mWin2->set_title("Image Ortho");
        ELISE_COPY (  mImOrtho.all_pts(), 255.0* Min( mImOrtho.in()/mVMaxOrtho,1.0), mWin2->ogray());
    }
-
 }
 
 /*******************************************************************/
@@ -406,10 +382,11 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
     mImQualDepth (1,1),
     mDoMasq      (false),
     mDoMasqSym   (false),
-    mUseAutoMasq   (true)
-    
+    mUseAutoMasq   (true),
+    mBSHRejet      (0.02)
     
 {
+    double aFactBSHOk=2;
     ElInitArgMain
     (
 	argc,argv,
@@ -439,7 +416,11 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAM(mCalledByP,"InternalCalledByP",true)
                     << EAM(mPostfixP,"InternalPostfixP",true)
                     << EAM(mFinal,"ExpFin",true,"For final export (generate dirtosion indicator)")
+                    << EAM(mBSHRejet,"BSHReject",true,"Value for low Basr to Ratio leading do rejection (Def=0.02)")
+                    << EAM(aFactBSHOk,"FactBSHOk",true,"Multiplier so that BSHOk= FactBSHOk * BSHReject (Def=2)")
    );	
+
+   mBSHOk  = mBSHRejet * aFactBSHOk;
 
    if (mVisu)
    {
@@ -485,9 +466,9 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
    ElPackHomologue  aPackH ;
    if (mCple)
    {
-       HasHom = true;
-       std::string aNameH = mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",aNameIm1Match,aNameIm2Match,true);
-       aPackH = ElPackHomologue::FromFile(aNameH);
+       // HasHom = true;  Pas utilise et bug sur couple sans homologue
+       // std::string aNameH = mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",aNameIm1Match,aNameIm2Match,true);
+       // aPackH = ElPackHomologue::FromFile(aNameH);
    }
 
 
@@ -623,14 +604,14 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
    {
 
        if (mWithEpi)
-          mIm1 = new cCEM_OneIm_Epip(this,mNameIm1,mBoxIm1,mVisu,true)          ;
+          mIm1 = new cCEM_OneIm_Epip(this,mNameIm1,mBoxIm1,mVisu,true,mFinal)          ;
        else
           mIm1 = new cCEM_OneIm_Nuage(this,mNameIm1,mNameIm2,mBoxIm1,mVisu,true);
 
        Box2di aBoxIm2 = R2ISup(mIm1->BoxIm2(aSzIm2));
        if (mWithEpi)
        {
-          mIm2 = new cCEM_OneIm_Epip(this,mNameIm2,aBoxIm2,mVisu,false);
+          mIm2 = new cCEM_OneIm_Epip(this,mNameIm2,aBoxIm2,mVisu,false,mFinal);
        }
        else
        {
@@ -660,6 +641,25 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
 
 
        Im2D_U_INT1 anAR1 = mIm1->ImAR();
+       if (mFinal)
+       {
+          if (mCple)
+          {
+             Fonc_Num aFPx = mIm1->ImPx().in() * mIm1->ResolAlti();
+             bool I1ISFirst = mCple->IsIm1(mNameIm1);
+             Fonc_Num aFBsH = mCple->BSurHOfPx(I1ISFirst,aFPx);
+             aFBsH = Max(0,Min(1,(aFBsH-mBSHRejet) / (mBSHOk-mBSHRejet))) * 255;
+             ELISE_COPY(anAR1.all_pts(),Min(anAR1.in(),aFBsH),anAR1.out());
+          }
+          else
+          {
+               ELISE_ASSERT(false,"Unachieved Coher Epip for non epipolar case");
+          }
+
+
+          Im2D_Bits<1>  aMasqL =  TestLabel(mIm1->ImPx_u2(),1<<16);
+          ELISE_COPY(aMasqL.all_pts(),aMasqL.in()*anAR1.in(),anAR1.out());
+       }
 
 
        Tiff_Im::Create8BFromFonc(mDir+ mPrefix + mPostfixP + ".tif",anAR1.sz(),anAR1.in());
@@ -720,6 +720,15 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                   mDir+ mPrefix + "_ImDistor" + mPostfixP + ".tif",
                   anAR1.sz(), Min(255,100*mImQualDepth.in())
               );
+
+               Fonc_Num aF = MasqBorHomogene(mIm1->Im(),aMassFR,mIm1->Win());
+               if (mIm1->Win())
+               {
+                  ELISE_COPY(select(aMassFR.all_pts(),aF),P8COL::yellow,mIm1->Win()->odisc());
+                  getchar();
+               }
+               ELISE_COPY(select(aMassFR.all_pts(),aF),0,aMassFR.out());
+              // mIm1->VerifIm(aMassFR);
            }
 
            Tiff_Im::Create8BFromFonc

@@ -208,6 +208,189 @@ Im2D_REAL4 Fine_ImageQualityGrad(Im2D_REAL4 aProf,Im2D_Bits<1> aMasq,Video_Win *
      return aRes;
 }
 
+class cMasqBordHomomogene
+{
+    public :
+       cMasqBordHomomogene(Im2D_REAL4 anIm0,Im2D_Bits<1>  aMasq,Video_Win * aW);
+       Fonc_Num  Erased();
+    private :
+       Pt2di              mSz;
+       Im2D_REAL4         mIm0;
+       TIm2D<REAL4,REAL8> mTIm0;
+       Im2D_Bits<1>       mMasq0;
+       TIm2DBits<1>       mTMasq0;
+       Im2D_REAL4         mImLisse;
+       TIm2D<REAL4,REAL8> mTImLisse;
+       Im2D_Bits<2>       mMasqFin;
+       TIm2DBits<2>       mTMasqFin;
+       Video_Win *        mW;
+};
+
+
+/*
+
+   0 -> Out
+   1 -> Masq Init
+   2 -> 
+*/
+
+Fonc_Num  cMasqBordHomomogene::Erased()
+{
+   return (mMasqFin.in()==0) && (mMasq0.in()==1);
+}
+
+
+Fonc_Num  MasqBorHomogene(Im2D_REAL4 anIm0,Im2D_Bits<1>  aMasq0,Video_Win * aW)
+{
+    cMasqBordHomomogene aMBH(anIm0,aMasq0,aW);
+    return aMBH.Erased();
+}
+
+cMasqBordHomomogene::cMasqBordHomomogene(Im2D_REAL4 anIm0,Im2D_Bits<1>  aMasq0,Video_Win * aW) :
+    mSz         (anIm0.sz()),
+    mIm0        (anIm0),
+    mTIm0       (mIm0),
+    mMasq0      (aMasq0),
+    mTMasq0     (mMasq0),
+    mImLisse    (mSz.x,mSz.y,float(-1e5)),
+    mTImLisse   (mImLisse),
+    mMasqFin    (mSz.x,mSz.y),
+    mTMasqFin   (mMasqFin), 
+    mW          (aW)
+{
+   double aRatioLisse = 0.97;
+   double aRatioMaxMin = 0.90;
+
+// aRatioLisse =0;
+// aRatioMaxMin=0;
+
+
+   int aNbVMax=2;
+   double aPropMin = 0.3;
+   ELISE_ASSERT(aMasq0.sz()==mSz,"Sz Incoh in cMasqBordHomomogene");
+   ELISE_COPY(mMasq0.all_pts(),mMasq0.in(),mMasqFin.out());
+   ELISE_COPY(mMasqFin.border(ElMax(aNbVMax,2)),0,mMasqFin.out());
+   ELISE_COPY(mIm0.all_pts(),mIm0.in(),mImLisse.out());
+ 
+
+   Pt2di aP;
+   std::vector<Pt2di> aV0;
+   for (aP.x=1 ; aP.x<mSz.x-1; aP.x++)
+   {
+       for (aP.y=1 ; aP.y<mSz.y-1; aP.y++)
+       {
+           if (! mTMasqFin.get(aP))
+           {
+               bool isFront= false;
+               for (int aKV=0 ; (aKV<4) && (!isFront) ; aKV++)
+               {
+                   if (mTMasqFin.get(aP+TAB_4_NEIGH[aKV]))
+                   {
+                      isFront = true;
+                   }
+               }
+               if  (isFront)
+               {
+                  aV0.push_back(aP);
+               }
+           }
+       }
+   }
+
+   int aCpt = 0;
+   while (! aV0.empty())
+   {
+       int aNbV = ElMax(1,ElMin(1+aCpt,aNbVMax));
+       int aNbMinInVois =  round_down(ElSquare(1+2*aNbV)*aPropMin);
+
+       std::vector<Pt2di> aV1;
+       for (int aKP=0 ; aKP<int(aV0.size()) ; aKP++)
+       {
+           Pt2di aP0 = aV0[aKP];
+           if (0)
+           {
+              mW->draw_circle_abs(Pt2dr(aP0),1.0,mW->pdisc()(P8COL::red));
+           }
+           for (int aKV=0 ; (aKV<4)  ; aKV++)
+           {
+               Pt2di aPVois = aP0+TAB_4_NEIGH[aKV];
+               if (mTMasqFin.get(aPVois)==1)
+               {
+                   mTMasqFin.oset(aPVois,2);
+                   aV1.push_back(aPVois);
+               }
+           }
+       }
+
+       aV0.clear();
+
+       for (int aKP=0 ; aKP<int(aV1.size()) ; aKP++)
+       {
+           Pt2di aP1 = aV1[aKP];
+           int aNb=0;
+           double aSomL=0;
+           double aMax0 = -1e9;
+           double aMin0 = 1e9;
+           for (int aDx=-aNbV ; aDx<=aNbV ; aDx++)
+           {
+               for (int aDy=-aNbV ; aDy<=aNbV ; aDy++)
+               {
+                   Pt2di aPVois = aP1 + Pt2di(aDx,aDy);
+                   if (mTMasqFin.get(aPVois)==0)
+                   {
+                       aNb++;
+                       aSomL += mTImLisse.get(aPVois);
+                   }
+               }
+           }
+           
+           for (int aDx=-1 ; aDx<=1 ; aDx++)
+           {
+               for (int aDy=-1 ; aDy<=1 ; aDy++)
+               {
+                    Pt2di aPVois = aP1 + Pt2di(aDx,aDy);
+                    if (mTMasqFin.get(aPVois)==0 ||((aDx==0) && (aDy==0)))
+                    {
+                       double aV = mTIm0.get(aPVois);
+                       ElSetMax(aMax0,aV);
+                       ElSetMin(aMin0,aV);
+                    }
+ 
+               }
+           }
+
+           if (aNb>0)
+           {
+               mTImLisse.oset(aP1,aSomL/aNb);
+           }
+
+           if (   (aNb > aNbMinInVois) 
+               && ((aMin0/aMax0) > aRatioMaxMin)
+              )
+           {
+              double aRatio = mTImLisse.get(aP1) /  mTIm0.get(aP1);
+              if (aRatio >1 ) aRatio = 1/aRatio;
+              if (aRatio>aRatioLisse)
+                aV0.push_back(aP1);
+           }
+       }
+
+
+
+       for (int aKP=0 ; aKP<int(aV1.size()) ; aKP++)
+       {
+           Pt2di aP0 = aV1[aKP];
+           mTMasqFin.oset(aP0,0);
+           if (0)
+           {
+              mW->draw_circle_abs(Pt2dr(aP0),1.0,mW->pdisc()(P8COL::green));
+           }
+       }
+
+       aCpt++;
+       // if (mW) getchar();
+   }
+}
 
 
 

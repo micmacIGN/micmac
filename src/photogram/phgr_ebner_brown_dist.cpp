@@ -2053,7 +2053,7 @@ template <class TPreC,const int NbRad,const int NbDec,const int NbPolyn,const in
    if (ShowIndex)
    {
        std::cout << "INT LAST POLY " << aInd << "\n";
-       exit(-1);
+       StdEXIT(-1); // Rien de spec a faire, dans ce mode de mise au point
    }
    // Show(States,V,2,D0Dec());
 

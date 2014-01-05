@@ -89,12 +89,15 @@ void cEl_GPAO::DoComInSerie(const std::list<std::string> & aL)
 
 bool TestFileOpen(const std::string & aFile)
 {
-    FILE *  aFP = fopen(aFile.c_str(),"w");
-    if (aFP)
+    for (int aK=0 ; aK<5 ; aK++)
     {
-       fclose(aFP);
-       ELISE_fp::RmFile(aFile);
-       return true;
+       FILE *  aFP = fopen(aFile.c_str(),"w");
+       if (aFP)
+       {
+          fclose(aFP);
+          ELISE_fp::RmFile(aFile);
+          return true;
+       }
     }
     return false;
 }

@@ -280,7 +280,7 @@ void ELISE_fp::MvFile(const std::string & aName1,const std::string &  aDest)
      VoidSystem(aNameCom.c_str());
 }
 
-void  ELISE_fp::PurgeDir(const std::string & aDir)
+void  ELISE_fp::PurgeDirGen(const std::string & aDir,bool Recurs)
 {
 	std::string aDirC = aDir;
 	MakeFileDirCompl(aDirC);
@@ -291,8 +291,21 @@ void  ELISE_fp::PurgeDir(const std::string & aDir)
     // MODIF MPD LES "" ne permettent pas
 	std::string aCom = std::string(SYS_RM)+ " " + aDirC+"*";
 #endif
+        if (Recurs)
+           aCom = aCom + " .* -r";
 	VoidSystem(aCom.c_str());
 }
+
+void  ELISE_fp::PurgeDirRecursif(const std::string & aDir)
+{
+    ELISE_fp::PurgeDirGen(aDir,true);
+}
+
+void  ELISE_fp::PurgeDir(const std::string & aDir)
+{
+    ELISE_fp::PurgeDirGen(aDir,false);
+}
+
 
 void ELISE_fp::InterneMkDirRec(const  std::string  & aName )
 {
@@ -334,7 +347,7 @@ void ELISE_fp::MkDirRec(const std::string &  aName )
 bool ELISE_fp::copy_file( const std::string i_src, const std::string i_dst, bool i_overwrite )
 {
 	#if (ELISE_windows)
-		return (bool)CopyFile( i_src.c_str(), i_dst.c_str(), i_overwrite?0:1 /*fail if exits*/ );
+		return (bool)CopyFile( i_src.c_str(), i_dst.c_str(), i_overwrite?0:1 /*fail if Exits*/ );
 	#else
 		if ( !i_overwrite && exist_file(i_dst) ) return false;
 
