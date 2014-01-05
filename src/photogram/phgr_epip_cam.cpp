@@ -941,14 +941,15 @@ void cChangEpip::OneIteration(int aDeg,double aSeuil,double aPond)
 
 
 cChangEpip::cChangEpip(const ElPackHomologue & aPck,double anAmpl,int aDegre) :
-     mDegre   (aDegre),
+     mDegre   (ElMin(aDegre,round_down(sqrt(aPck.size() /20) -1))),
      mPck     (aPck),
      mAmpl    (anAmpl),
      mCurPoly (0,anAmpl)
 {
+   std::cout << "===DEGRE ; Required : " << aDegre << " ; Got : " << mDegre << "\n";
    mCurPoly.SetDegre1(0,0,0,true);
 
-   for (int aD=0 ; aD <= aDegre ; aD++)
+   for (int aD=0 ; aD <= mDegre ; aD++)
    {
        for (int aK=0; aK<3 ;aK++)
        {
