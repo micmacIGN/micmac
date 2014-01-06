@@ -210,6 +210,7 @@ public:
 
     std::list<MessageToDisplay>::iterator GetLastMessage();
 
+    void rotateMatrix(GLfloat *matrix, float rX, float rY, float rZ, float factor = 1.0f);
 public slots:
     void zoom();
 
@@ -235,9 +236,6 @@ protected:
     virtual void dragEnterEvent(QDragEnterEvent* event);
     virtual void dropEvent(QDropEvent* event);
 
-    //! Draw widget gradient background
-    void drawGradientBackground();
-    
     //! Draw selection polygon
     void drawPolygon();
 

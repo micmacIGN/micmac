@@ -898,6 +898,38 @@ void cImageGL::ImageToTexture(QImage *pImg)
     glDisable(GL_TEXTURE_2D);
 }
 
+void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
+{
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE,GL_ZERO);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+
+    w = (w>>1)+1;
+    h = (h>>1)+1;
+
+    glOrtho(-w,w,-h,h,-2.f, 2.f);
+
+    const uchar BkgColor[3] = {(uchar) c1.red(),(uchar) c1.green(), (uchar) c1.blue()};
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    //Gradient "texture" drawing
+    glBegin(GL_QUADS);
+    //user-defined background color for gradient start
+    glColor3ubv(BkgColor);
+    glVertex2f(-w,h);
+    glVertex2f(w,h);
+    //and the inverse of points color for gradient end
+    glColor3ub(c2.red(),c2.green(),c2.blue());
+    glVertex2f(w,-h);
+    glVertex2f(-w,-h);
+    glEnd();
+
+    glDisable(GL_BLEND);
+}
+
 cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> &qMaskedImage)
 {
     _m_mask     = new cImageGL();

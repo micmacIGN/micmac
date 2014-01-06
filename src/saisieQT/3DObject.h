@@ -281,6 +281,8 @@ class cImageGL : public cObjectGL
 
         void    incGamma(float dgamma){setGamma(_gamma + dgamma);}
 
+        static  void drawGradientBackground(int w,int h,QColor c1,QColor c2);
+
 private:
 
         QGLShaderProgram _program;

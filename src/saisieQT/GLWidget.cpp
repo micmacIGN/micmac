@@ -1,4 +1,4 @@
-#include "GLWidget.h"
+#include "GLWidget.h"
 
 #include "GLWidgetSet.h"
 
@@ -147,7 +147,8 @@ void GLWidget::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //gradient color background
-    drawGradientBackground();
+    cImageGL::drawGradientBackground(_g_Cam.vpWidth(), _g_Cam.vpHeight(), _BGColor0, _BGColor1);
+
     glClear(GL_DEPTH_BUFFER_BIT);
 
     if (hasDataLoaded())
@@ -367,36 +368,6 @@ void GLWidget::displayNewMessage(const QString& message,
     mess.position = pos;
     mess.color = color;
     m_messagesToDisplay.push_back(mess);
-}
-
-void GLWidget::drawGradientBackground()
-{
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE,GL_ZERO);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    int w = (_g_Cam.ViewPort(2)>>1)+1;
-    int h = (_g_Cam.ViewPort(3)>>1)+1;
-    glOrtho(-w,w,-h,h,-2.f, 2.f);
-
-    const uchar BkgColor[3] = {(uchar) _BGColor0.red(),(uchar) _BGColor0.green(), (uchar) _BGColor0.blue()};
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    //Gradient "texture" drawing
-    glBegin(GL_QUADS);
-    //user-defined background color for gradient start
-    glColor3ubv(BkgColor);
-    glVertex2f(-w,h);
-    glVertex2f(w,h);
-    //and the inverse of points color for gradient end
-    glColor3ub(_BGColor1.red(),_BGColor1.green(),_BGColor1.blue());
-    glVertex2f(w,-h);
-    glVertex2f(-w,-h);
-    glEnd();
-
-    glDisable(GL_BLEND);
 }
 
 void GLWidget::drawPolygon()
@@ -620,6 +591,18 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
+void GLWidget::rotateMatrix(GLfloat* matrix, float rX, float rY, float rZ,float factor)
+{
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glMultMatrixf(matrix);
+
+    glRotatef(rX * factor,1.0,0.0,0.0);
+    glRotatef(rY * factor,0.0,1.0,0.0);
+    glRotatef(rZ * factor,0.0,0.0,1.0);
+    glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
+}
+
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if (hasDataLoaded())
@@ -642,18 +625,14 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         {
             QPoint dPWin = event->pos() - m_lastPosWindow;
 
-            float _glViewport2 = (float) _g_Cam.ViewPort(2);
-            float _glViewport3 = (float) _g_Cam.ViewPort(3);
-
-
             if ( event->buttons())
             {
                 float rX,rY,rZ;
                 rX = rY = rZ = 0;
                 if ( event->buttons() == Qt::LeftButton ) // rotation autour de X et Y
                 {
-                    rX = 50.0f * _params.m_speed * dPWin.y() / _g_Cam.vpWidth();
-                    rY = 50.0f * _params.m_speed * dPWin.x() / _g_Cam.vpHeight();
+                    rX = (float)dPWin.y() / _g_Cam.vpWidth();
+                    rY = (float)dPWin.x() / _g_Cam.vpHeight();
                 }
                 else if ( event->buttons() == Qt::MiddleButton )
                 {
@@ -662,33 +641,26 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                         if (dPWin.y() > 0) _params.m_zoom *= pow(2.f, ((float)dPWin.y()) *.05f);
                         else if (dPWin.y() < 0) _params.m_zoom /= pow(2.f, -((float)dPWin.y()) *.05f);
                     }
-                    else if((_glViewport2!=0.f) || (_glViewport3!=0.f)) // TRANSLATION VIEW
+                    else if((_g_Cam.vpWidth()!=0.f) || (_g_Cam.vpHeight()!=0.f)) // TRANSLATION VIEW
                     {
                         if (m_bDisplayMode2D)
                         {
                             QPointF dp = pos - m_lastPosImage;
 
-                            _g_Cam.m_glPosition[0] += _params.m_speed * dp.x()/_glViewport2;
-                            _g_Cam.m_glPosition[1] += _params.m_speed * dp.y()/_glViewport3;
+                            _g_Cam.m_glPosition[0] += _params.m_speed * dp.x()/_g_Cam.vpWidth();
+                            _g_Cam.m_glPosition[1] += _params.m_speed * dp.y()/_g_Cam.vpHeight();
                         }
                         else
                         {
-                            _translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_glViewport2;
-                            _translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_glViewport3;
+                            _translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_g_Cam.vpWidth();
+                            _translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_g_Cam.vpHeight();
                         }
                     }
                 }
                 else if (event->buttons() == Qt::RightButton)           // rotation autour de Z
-                    rZ = 50.0f * _params.m_speed * dPWin.x() / _glViewport2;
+                    rZ = (float)dPWin.x() / _g_Cam.vpWidth();
 
-                glMatrixMode(GL_MODELVIEW);
-                glLoadIdentity();
-                glMultMatrixf(_rotationMatrix);
-
-                glRotatef(rX,1.0,0.0,0.0);
-                glRotatef(rY,0.0,1.0,0.0);
-                glRotatef(rZ,0.0,0.0,1.0);
-                glGetFloatv(GL_MODELVIEW_MATRIX, _rotationMatrix);
+                rotateMatrix(_rotationMatrix,rX, rY, rZ,50.0f *_params.m_speed);
             }
         }
 
