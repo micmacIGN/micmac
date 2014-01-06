@@ -1526,6 +1526,8 @@ void BasicComputeIntervaleDelta
               );
 double FromSzW2FactExp(double aSzW,double mCurNbIterFenSpec);
 
+std::string getBanniereMM3D();
+
 void BanniereMM3D();
 
 

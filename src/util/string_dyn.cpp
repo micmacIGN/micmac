@@ -477,36 +477,41 @@ std::vector<std::string> VecStrFromFile(const std::string & aFilePtsIn)
     return aRes;
 }
 
+std::string getBanniereMM3D()
+{
+    std::string banniere = "\n";
+    banniere += "  ************************************************************************\n";
+    banniere += "  **                                                                    **\n";
+    banniere += "  **    MicMac: a  free open source project  for photogrammetry         **\n";
+    banniere += "  **     hosted at Ecole Nationale des Sciences Geographiques           **\n";
+    banniere += "  **               in Marne-la-Vallee, for IGN-France                   **\n";
+    banniere += "  **                                                                    **\n";
+    banniere += "  **  The project is funded by :                                        **\n";
+    banniere += "  **                                                                    **\n";
+    banniere += "  **  - Institut National de l'Information Geographique et Forestiere   **\n";
+    banniere += "  **    (IGN main funder since 2003)                                    **\n";
+    banniere += "  **  - the french FUI Project \"Culture 3D Cloud\"                       **\n";
+    banniere += "  **  - the french ANR Project \"MONUMENTUM\"                             **\n";
+    banniere += "  **                                                                    **\n";
+    banniere += "  **  Research also currently supported by                              **\n";
+    banniere += "  **  - CNES (French Space Agency) - via TOSCA Committee                **\n";
+    banniere += "  **  - Compagnie National du Rhone                                     **\n";
+    banniere += "  **  - Vinci-Construction-Terrassement                                 **\n";
+    banniere += "  **                                                                    **\n";
+    banniere += "  **                                                                    **\n";
+    banniere += "  **  Current Team: MP Deseilligny, M Deveau, J Belvaux, G Choqueux,    **\n";
+    banniere += "  **     G Maillet, L Girod                                             **\n";
+    banniere += "  **                                                                    **\n";
+    banniere += "  **               Contact: Marc.Pierrot-Deseilligny@ensg.eu            **\n";
+    banniere += "  **                                                                    **\n";
+    banniere += "  ************************************************************************\n";
+
+    return banniere;
+}
 
 void BanniereMM3D()
 {
-    std::cout << "\n";
-    std::cout << "  ************************************************************************\n";
-    std::cout << "  **                                                                    **\n";
-    std::cout << "  **    MicMac: a  free open source project  for photogrammetry         **\n";
-    std::cout << "  **     hosted at Ecole Nationale des Sciences Geographiques           **\n";
-    std::cout << "  **               in Marne-la-Vallee, for IGN-France                   **\n";
-    std::cout << "  **                                                                    **\n";
-    std::cout << "  **  The project is funded by :                                        **\n";
-    std::cout << "  **                                                                    **\n";
-    std::cout << "  **  - Institut National de l'Information Geographique et Forestiere   **\n";
-    std::cout << "  **    (IGN main funder since 2003)                                    **\n";
-    std::cout << "  **  - the french FUI Project \"Culture 3D Cloud\"                       **\n";
-    std::cout << "  **  - the french ANR Project \"MONUMENTUM\"                             **\n";
-    std::cout << "  **                                                                    **\n";
-    std::cout << "  **  Research also currently supported by                              **\n";
-    std::cout << "  **  - CNES (French Space Agency) - via TOSCA Committee                **\n";
-    std::cout << "  **  - Compagnie National du Rhone                                     **\n";
-    std::cout << "  **  - Vinci-Construction-Terrassement                                 **\n";
-    std::cout << "  **                                                                    **\n";
-    std::cout << "  **                                                                    **\n";
-    std::cout << "  **  Current Team: MP Deseilligny, M Deveau, J Belvaux, G Choqueux,    **\n";
-    std::cout << "  **     G Maillet, L Girod                                            **\n";
-    std::cout << "  **                                                                    **\n";
-    std::cout << "  **               Contact: Marc.Pierrot-Deseilligny@ensg.eu            **\n";
-    std::cout << "  **                                                                    **\n";
-    std::cout << "  ************************************************************************\n";
- 
+    std::cout << getBanniereMM3D();
 }
 
 
