@@ -69,7 +69,6 @@ protected slots:
     void on_actionToggleMode_toggled(bool);
 
     void on_action2D_3D_mode_triggered();
-    void on_actionHelpShortcuts_triggered();
     void on_actionReset_view_triggered();
 
     void on_actionSetViewTop_triggered();
@@ -100,6 +99,10 @@ protected slots:
     void on_actionSave_masks_triggered();
     void on_actionSave_as_triggered();
     void on_actionSave_selection_triggered();
+
+    //Help Menu
+    void on_actionHelpShortcuts_triggered();
+    void on_actionAbout_triggered();
 
 protected:
 
