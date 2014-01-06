@@ -169,7 +169,7 @@ class cPolygon : public cObjectGL
 
         void    findClosestPoint(const QPointF &pos);
 
-        void    rightClick(QPointF pos, bool removeLastPoint); //remove closest or last point, or close polygon
+        void    RemoveNearestOrClose(QPointF pos); //remove closest or last point, or close polygon
 
         void    setpointSize(float size) { _pointSize = size; }
 
@@ -209,6 +209,8 @@ class cPolygon : public cObjectGL
         void    refreshHelper(QPointF pos, bool insertMode);
 
         void    finalMovePoint(QPointF pos);
+
+        void    RemoveLastPoint();
 
 protected:
         cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);

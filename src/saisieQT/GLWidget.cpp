@@ -599,7 +599,13 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         }
         else if (event->button() == Qt::RightButton)
 
-            m_GLData->m_polygon.rightClick(m_lastPosImage, event->modifiers() & Qt::ControlModifier);
+            if(event->modifiers() & Qt::ControlModifier)
+
+                m_GLData->m_polygon.RemoveLastPoint();
+
+            else
+
+                m_GLData->m_polygon.RemoveNearestOrClose(m_lastPosImage);
 
         else if (event->button() == Qt::MiddleButton)
 
