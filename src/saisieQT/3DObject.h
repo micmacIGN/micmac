@@ -145,7 +145,7 @@ class cCam : public cObjectGL
 
         void    draw();
 
-        void    setpointSize(float size) {_pointSize = size;}
+        void    setpointSize(float size) { _pointSize = size; }
 
     private:
         float   _pointSize;
@@ -169,18 +169,18 @@ class cPolygon : public cObjectGL
 
         void    findClosestPoint(const QPointF &pos);
 
-        void    removeClosestPoint(QPointF pos);
+        void    rightClick(QPointF pos, bool removeLastPoint); //remove closest or last point, or close polygon
 
-        void    setpointSize(float size) {_pointSize = size;}
+        void    setpointSize(float size) { _pointSize = size; }
 
-        void    add(QPointF const &pt){_points.push_back(pt);}
+        void    add(QPointF const &pt){ _points.push_back(pt); }
         void    addPoint(QPointF const &pt);
 
         void    clear();
         void    clearPoints() {_points.clear();}
 
         void    setClosed(bool aBool){ _bPolyIsClosed = aBool; }
-        bool    isClosed(){ return _bPolyIsClosed;}
+        bool    isClosed(){ return _bPolyIsClosed; }
 
         int     size(){ return _points.size(); }
 
@@ -200,11 +200,11 @@ class cPolygon : public cObjectGL
 
         int     idx(){return _idx;}
 
-        void    setPointSelected(){_bSelectedPoint = true;}
-        bool    isPointSelected(){return _bSelectedPoint;}
-        void    resetSelectedPoint(){_bSelectedPoint = false;}
+        void    setPointSelected(){ _bSelectedPoint = true; }
+        bool    isPointSelected(){ return _bSelectedPoint; }
+        void    resetSelectedPoint(){ _bSelectedPoint = false; }
 
-        cPolygonHelper* helper() {return _helper;}
+        cPolygonHelper* helper() { return _helper; }
 
         void    refreshHelper(QPointF pos, bool insertMode);
 
@@ -236,7 +236,7 @@ class cPolygonHelper : public cPolygon
 
 public:
 
-    cPolygonHelper(cPolygon* polygon,float lineWidth, QColor lineColor = Qt::blue,  QColor pointColor = Qt::blue);
+    cPolygonHelper(cPolygon* polygon, float lineWidth, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
 
     void   build(const QPointF &pos, bool insertMode);
 
